@@ -33,6 +33,12 @@
 extern char my_name[];
 extern time_t daemon_start_time;
 extern int num_jobs_run;
+#ifdef SMARTALLOC
+extern uint64_t sm_max_bytes;
+extern uint64_t sm_bytes;
+extern uint32_t sm_max_buffers;
+extern uint32_t sm_buffers;
+#endif
 
 static void list_scheduled_jobs(UAContext *ua);
 static void list_running_jobs(UAContext *ua);
@@ -206,6 +212,16 @@ static void do_director_status(UAContext *ua)
    bstrftime_nc(dt, sizeof(dt), daemon_start_time);
    bsendmsg(ua, _("Daemon started %s, %d Job%s run since started.\n"), 
         dt, num_jobs_run, num_jobs_run == 1 ? "" : "s");
+#ifdef SMARTALLOC
+   if (debug_level > 0) {
+      char b1[35], b2[35], b3[35], b4[35];
+      bsendmsg(ua, _(" Heap: bytes=%s max_bytes=%s bufs=%s max_bufs=%s\n"),
+	    edit_uint64_with_commas(sm_bytes, b1),
+	    edit_uint64_with_commas(sm_max_bytes, b2),
+	    edit_uint64_with_commas(sm_buffers, b3),
+	    edit_uint64_with_commas(sm_max_buffers, b4));
+    }
+#endif
    /*
     * List scheduled Jobs
     */
