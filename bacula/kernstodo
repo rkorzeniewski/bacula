@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                  27 June 2003 
+                   6 July 2003 
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -44,8 +44,7 @@ For 1.31 release:
    ERR=The system cannot find the path specified.
 - Finish Windows implementation (add setting of correct type on restore,
   add Portable Data Format flag).
-- Remove multiple simultaneous devices code in SD.
-- Check that Block number in JobMedia are correct.
+- Maybe remove multiple simultaneous devices code in SD.
 - Increment DB version prior to releasing.
 - Turn off FULL_DEBUG prior to releasing.
 - On Windows with very long path names, it may be impossible to create 
@@ -53,23 +52,17 @@ For 1.31 release:
   We must cd into the directory then create the file without the
   full path name.
 - Move JobFiles and JobBytes to SD rather than FD -- more correct.
-- Add client name to cram-md5 challenge so Director can immediately
-  verify if it is the correct client.
 - lstat() is not going to work on Win32 for testing date.
 - Implement a Recycle command
 - Something is not right in last block of fill command.
-- Implement List Volume Job=xxx  or List scheduled volumes or
-  Status Director 
+- Implement List Volume Job=xxx  or List scheduled volumes or Status Director 
 - Check if Incremental is working correctly when it looks for the previous Job 
   (Phil's problem).
-- Add next Volume to be used to status output.
-- The bsr for Dan's job has file indexes covering the whole range rather
-  than only the range contained on the volume.
-  Constrain FileIndex to be within range for Volume.
-- Pass prefix_links to FD.
 
 
 For 1.32:
+- Add client name to cram-md5 challenge so Director can immediately
+  verify if it is the correct client.
 - Implement ClientRunBeforeJob and ClientRunAfterJob.
 - Implement new alist in FileSet scanning.
 - Add JobLevel in FD status (but make sure it is defined).
@@ -1018,4 +1011,10 @@ Done: (see kernsdone for more)
 - To link with mysqlclient_r may require -lssl -lcrypto
 - Document Heart beat code 
 - Non-fatal errors are not correct counting attribs.c:277
- 
+- Check that Block number in JobMedia are correct.
+- The bsr for Dan's job has file indexes covering the whole range rather
+  than only the range contained on the volume.
+  Constrain FileIndex to be within range for Volume.
+- Pass prefix_links to FD.
+- Fix restore list of volumes if Volume not selected.
+

@@ -1,5 +1,7 @@
 
 2003-07-xx Version 1.31 Beta xxJul03
+- In restore print only volumes that will actually be used.
+- Fix bextract -- add appropriate breaks in new case code.
 - Add a new test -- bsr-opt-test for testing bsr optimization. As usual,
   it pointed out a bug where the directory tree handling code destroyed
   the restore arg list.

@@ -187,7 +187,9 @@ int write_bsr_file(UAContext *ua, RBSR *bsr)
    start_prompt(ua, "");
    for (RBSR *nbsr=bsr; nbsr; nbsr=nbsr->next) {
       for (int i=0; i < nbsr->VolCount; i++) {
-	 add_prompt(ua, nbsr->VolParams[i].VolumeName);
+	 if (nbsr->VolParams[i].VolumeName[0]) {
+	    add_prompt(ua, nbsr->VolParams[i].VolumeName);
+	 }
       }
    }
    for (int i=0; i < ua->num_prompts; i++) {
@@ -206,6 +208,7 @@ static void write_bsr(UAContext *ua, RBSR *bsr, FILE *fd)
       for (int i=0; i < bsr->VolCount; i++) {
 	 if (!is_volume_selected(bsr->fi, bsr->VolParams[i].FirstIndex,
 	      bsr->VolParams[i].LastIndex)) {
+	    bsr->VolParams[i].VolumeName[0] = 0;  /* zap VolumeName */
 	    continue;
 	 }
          fprintf(fd, "Volume=\"%s\"\n", bsr->VolParams[i].VolumeName);

@@ -256,8 +256,8 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 if (!is_bopen(&bfd)) {
             Emsg0(M_ERROR, 0, _("Logic error output file should be open but is not.\n"));
 	 }
-	 extract = FALSE;
 	 set_attributes(jcr, attr, &bfd);
+	 extract = FALSE;
       }
 
       if (!unpack_attributes_record(jcr, rec->Stream, rec->data, attr)) {
@@ -277,6 +277,7 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
                Jmsg(jcr, M_ERROR, 0, _("%s stream not supported on this Client.\n"),
 		  stream_to_ascii(attr->data_stream));
 	    }
+	    extract = FALSE;
 	    return;
 	 }
 
@@ -303,6 +304,7 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	    break;
 	 }  
       }
+      break;
 
    /* Data stream and extracting */
    case STREAM_FILE_DATA:
@@ -336,7 +338,7 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 }
 	 fileAddr += wsize;
       }
-
+      break;
 
    /* GZIP data stream */
    case STREAM_GZIP_DATA:
@@ -344,12 +346,13 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
    case STREAM_WIN32_GZIP_DATA:  
 #ifdef HAVE_LIBZ
       if (extract) {
-	 uLongf compress_len;
+	 uLong compress_len;
 	 int stat;
 
 	 if (rec->Stream == STREAM_SPARSE_GZIP_DATA) {
 	    ser_declare;
 	    uint64_t faddr;
+	    char ec1[50];
 	    wbuf = rec->data + SPARSE_FADDR_SIZE;
 	    wsize = rec->data_len - SPARSE_FADDR_SIZE;
 	    ser_begin(rec->data, SPARSE_FADDR_SIZE);
@@ -357,8 +360,10 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	    if (fileAddr != faddr) {
 	       fileAddr = faddr;
 	       if (blseek(&bfd, (off_t)fileAddr, SEEK_SET) < 0) {
-                  Emsg2(M_ERROR, 0, _("Seek error on %s: %s\n"), 
-		     attr->ofname, strerror(errno));
+                  Emsg3(M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"), 
+		     edit_uint64(fileAddr, ec1), attr->ofname, berror(&bfd));
+		  extract = FALSE;
+		  return;
 	       }
 	    }
 	 } else {
@@ -368,14 +373,18 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 compress_len = compress_buf_size;
 	 if ((stat=uncompress((Bytef *)compress_buf, &compress_len, 
 	       (const Bytef *)wbuf, (uLong)wsize) != Z_OK)) {
-            Emsg1(M_ERROR_TERM, 0, _("Uncompression error. ERR=%d\n"), stat);
+            Emsg1(M_ERROR, 0, _("Uncompression error. ERR=%d\n"), stat);
+	    extract = FALSE;
+	    return;
 	 }
 
          Dmsg2(100, "Write uncompressed %d bytes, total before write=%d\n", compress_len, total);
 	 if ((uLongf)bwrite(&bfd, compress_buf, (size_t)compress_len) != compress_len) {
             Pmsg0(0, "===Write error===\n");
-            Emsg2(M_ERROR_TERM, 0, _("Write error on %s: %s\n"), 
+            Emsg2(M_ERROR, 0, _("Write error on %s: %s\n"), 
 	       attr->ofname, strerror(errno));
+	    extract = FALSE;
+	    return;
 	 }
 	 total += compress_len;
 	 fileAddr += compress_len;
@@ -389,6 +398,7 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 return;
       }
 #endif
+      break;
 
    case STREAM_MD5_SIGNATURE:
    case STREAM_SHA1_SIGNATURE:
@@ -408,8 +418,8 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 if (!is_bopen(&bfd)) {
             Emsg0(M_ERROR, 0, "Logic error output file should be open but is not.\n");
 	 }
-	 extract = FALSE;
 	 set_attributes(jcr, attr, &bfd);
+	 extract = FALSE;
       }
       Jmsg(jcr, M_ERROR, 0, _("Unknown stream=%d ignored. This shouldn't happen!\n"), 
 	 rec->Stream);
