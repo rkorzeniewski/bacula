@@ -57,7 +57,7 @@ Build Bacula:
    lib/signal.c as I currently pull in all Linux signals, some of
    which may not be available on your system.
 
-To creat the database:
+To create the database:
 
    src/make_bacula_tables
 

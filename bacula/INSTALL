@@ -36,3 +36,6 @@ Using GNU autoconfig
 
   4.    Build it (repeat step 2 as desired):
             make
+
+  5.    Install it
+            make install
