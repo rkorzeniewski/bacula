@@ -94,7 +94,7 @@ int main()
       sprintf(buf, "This is item %d", i);
       fileset->mylist.append(bstrdup(buf));
    } 
-   for (int i=0; i<fileset->mylist.size(); i++) {
+   for (int i=0; i< fileset->mylist.size(); i++) {
       printf("Item %d = %s\n", i, (char *)fileset->mylist[i]);  
    }
    fileset->mylist.destroy();
@@ -107,7 +107,7 @@ int main()
       sprintf(buf, "This is item %d", i);
       mlist->append(bstrdup(buf));
    } 
-   for (int i=0; i<mlist->size(); i++) {
+   for (int i=0; i< mlist->size(); i++) {
       printf("Item %d = %s\n", i, (char *)mlist->get(i));  
    }
 

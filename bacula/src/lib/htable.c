@@ -322,7 +322,7 @@ int main()
 
    jcrtbl->stats();
    printf("Walk the hash table:\n");
-   for (MYJCR *jcr=(MYJCR *)jcrtbl->first(); jcr; jcr=(MYJCR *)jcrtbl->next() ) {
+   foreach_htable (jcr, jcrtbl) {
 //    printf("htable item = %s\n", jcr->key);
       free(jcr->key);
       count++;

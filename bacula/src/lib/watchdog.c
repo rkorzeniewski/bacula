@@ -49,8 +49,6 @@ static int quit;
 static bool wd_is_init = false;
 
 /* Forward referenced callback functions */
-static void callback_child_timer(watchdog_t *self);
-static void callback_thread_timer(watchdog_t *self);
 static pthread_t wd_tid;
 
 /* Static globals */
@@ -159,7 +157,7 @@ bool register_watchdog(watchdog_t *wd)
    wd->next_fire = watchdog_time + wd->interval;
    TAILQ_INSERT_TAIL(&wd_queue, wd, qe);
    Dmsg3(200, "Registered watchdog %p, interval %d%s\n",
-	 wd, wd->interval, wd->one_shot ? " one shot" : "");
+         wd, wd->interval, wd->one_shot ? " one shot" : "");
    V(mutex);
 
    return false;
@@ -176,7 +174,7 @@ bool unregister_watchdog_unlocked(watchdog_t *wd)
    TAILQ_FOREACH_SAFE(p, &wd_queue, qe, n) {
       if (wd == p) {
 	 TAILQ_REMOVE(&wd_queue, wd, qe);
-	 Dmsg1(200, "Unregistered watchdog %p\n", wd);
+         Dmsg1(200, "Unregistered watchdog %p\n", wd);
 	 return true;
       }
    }
@@ -184,7 +182,7 @@ bool unregister_watchdog_unlocked(watchdog_t *wd)
    TAILQ_FOREACH_SAFE(p, &wd_inactive, qe, n) {
       if (wd == p) {
 	 TAILQ_REMOVE(&wd_inactive, wd, qe);
-	 Dmsg1(200, "Unregistered inactive watchdog %p\n", wd);
+         Dmsg1(200, "Unregistered inactive watchdog %p\n", wd);
 	 return true;
       }
    }
@@ -229,7 +227,7 @@ static void *watchdog_thread(void *arg)
 	    /* Run the callback */
 	    p->callback(p);
 
-	    /* Reschedule (or move to inactive list if it's a one-shot timer) */
+            /* Reschedule (or move to inactive list if it's a one-shot timer) */
 	    if (p->one_shot) {
 	       TAILQ_REMOVE(&wd_queue, p, qe);
 	       TAILQ_INSERT_TAIL(&wd_inactive, p, qe);

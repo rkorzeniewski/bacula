@@ -55,16 +55,13 @@ For 1.33 Testing/Documentation:
 - Add subsections to the Disaster Recovery index section.
                 
 For 1.33
+- Release SQLite 2.8.8
 - If a tape is recycled while it is mounted, Stanislav Tvrudy must do an
   additional mount to deblock the job.
-- Notes for integrating Nic's code:
-  - Most likely jcr crash is the free_jcr(). The ref count was not incremented
-    in the watchdog call to cancel_job() as it is in the UA -- see
-    dird/job.c.
-  - The ua->jcr = control_jcr in job_monitor_watchdog() dird/job.c doesn't
-    look right.
-  - Add: fd->timer_start = 0;   /* turn off timer */
-    just before "fd->timed_out = TRUE;"in lib/jcr.c jcr_timeout_check.
+- Notes for final checking of Nic's code:
+  Could I get you to double check the switch () statements in the
+  job_check_maxwaittime and job_check_maxruntime functions in
+  src/dird/job.c?
 - In restore, provide option for limiting to a particular Pool.
 - In restore, list FileSets that only have different base names --
   i.e. any FileSet with the same name should be treated as the same.

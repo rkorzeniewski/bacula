@@ -455,7 +455,7 @@ static void jcr_timeout_check(watchdog_t *self)
 {
    JCR *jcr;
    BSOCK *fd;
-   time_t timer_start, now;
+   time_t timer_start;
 
    Dmsg0(200, "Start JCR timeout checks\n");
 

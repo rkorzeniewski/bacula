@@ -257,9 +257,9 @@ static void list_terminated_jobs(void *arg)
    lock_last_jobs_list();
    msg =  _("\nTerminated Jobs:\n"); 
    sendit(msg, strlen(msg), arg);
-   msg =  _(" JobId  Level   Files        Bytes Status   Finished        Name \n");
+   msg =  _(" JobId  Level   Files          Bytes Status   Finished        Name \n");
    sendit(msg, strlen(msg), arg);
-   msg = _("====================================================================\n"); 
+   msg = _("======================================================================\n"); 
    sendit(msg, strlen(msg), arg);
    for (je=NULL; (je=(s_last_job *)last_jobs->next(je)); ) {
       char JobName[MAX_NAME_LENGTH];
@@ -307,7 +307,7 @@ static void list_terminated_jobs(void *arg)
 	    *p = 0;
 	 }
       }
-      bsnprintf(buf, sizeof(buf), _("%6d  %-4s %8s %12s %-7s  %-8s %s\n"), 
+      bsnprintf(buf, sizeof(buf), _("%6d  %-4s %8s %14s %-7s  %-8s %s\n"), 
 	 je->JobId,
 	 level, 
 	 edit_uint64_with_commas(je->JobFiles, b1),

@@ -198,7 +198,7 @@ int main()
    jcr_chain->insert_before(jcr, next_jcr);
    
    printf("Print remaining list.\n");
-   for (MYJCR *jcr=NULL; (jcr=(MYJCR *)jcr_chain->next(jcr)); ) {
+   foreach_dlist (jcr, jcr_chain) {
       printf("Dlist item = %s\n", jcr->buf);
       free(jcr->buf);
    }
@@ -227,7 +227,7 @@ int main()
    jcr_chain->insert_before(jcr, next_jcr);
    
    printf("Print remaining list.\n");
-   for (MYJCR *jcr=NULL; (jcr=(MYJCR *)jcr_chain->next(jcr)); ) {
+   foreach_dlist (jcr, jcr_chain) {
       printf("Dlist item = %s\n", jcr->buf);
       free(jcr->buf);
    }
