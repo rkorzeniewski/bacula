@@ -96,6 +96,7 @@ void	 attach_jcr_to_device(DEVICE *dev, JCR *jcr);
 void	 detach_jcr_from_device(DEVICE *dev, JCR *jcr);
 JCR	*next_attached_jcr(DEVICE *dev, JCR *jcr);
 int	dev_can_write(DEVICE *dev);
+int	offline_or_rewind_dev(DEVICE *dev);
 
 
 /* Get info about device */

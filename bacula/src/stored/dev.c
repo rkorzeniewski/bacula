@@ -670,6 +670,21 @@ int offline_dev(DEVICE *dev)
    return 1;
 }
 
+int offline_or_rewind_dev(DEVICE *dev)
+{
+   if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
+      return offline_dev(dev);
+   } else {
+   /*		 
+    * Note, this rewind probably should not be here (it wasn't
+    *  in prior versions of Bacula), but on FreeBSD, this is
+    *  needed in the case the tape was "frozen" due to an error
+    *  such as backspacing after writing and EOF. If it is not
+    *  done, all future references to the drive get and I/O error.
+    */
+      return rewind_dev(dev);
+   }
+}
 
 /* 
  * Foward space a file	

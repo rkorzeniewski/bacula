@@ -38,6 +38,8 @@ void free_ua_context(UAContext *ua);
 extern int recycle_oldest_purged_volume(JCR *jcr, MEDIA_DBR *mr);
 extern int find_recycled_volume(JCR *jcr, MEDIA_DBR *mr);
 
+/* backup.c */
+extern int wait_for_job_termination(JCR *jcr);
 
 /* catreq.c */
 extern void catalog_request(JCR *jcr, BSOCK *bs, char *buf);

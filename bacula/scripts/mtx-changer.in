@@ -1,0 +1,69 @@
+#!/bin/sh
+#
+# Bacula interface to mtx autoloader
+#
+#  $Id$
+#
+#  If you set in your Device resource
+#
+#  Changer Command = "path-to-this-script/mtx-changer" %c %o %S %a
+#    you will have the following input to this script:
+#
+#  mtx-changer "changer-device" "command" "slot" "archive-device"
+#
+#  for example:
+#
+#  mtx-changer /dev/sg0 load 1 /dev/nst0 (on a Linux system)
+#
+#  If you need to to an offline, refer to the drive as $4
+#    e.g.   mt -f $f offline
+#
+#  Many changers need an offline after the unload. Also many
+#   changers need a sleep 60 after the mtx load.
+#
+#  N.B. If you change the script, take care to return either 
+#   the mtx exit code or a 0. If the script exits with a non-zero
+#   exit code, Bacula will assume the request failed.
+#
+
+MTX=@MTX@
+
+case "$2" in 
+   unload)
+#     echo "Doing mtx -f $1 unload"
+#
+# enable the following line if you need to eject the cartridge
+#     mt -f $4 offline
+      ${MTX} -f $1 unload
+      ;;
+
+   load)
+#     echo "Doing mtx -f $1 load $3"
+      ${MTX} -f $1 load $3
+      rtn=$?
+#
+# Increase the sleep time if you have a slow device
+      sleep 15
+      exit $rtn
+      ;;
+
+   list) 
+#     echo "Requested list"
+      ${MTX} -f $1 status | grep " *Storage Element [0-9]*:.*Full" | awk "{print \$3 \$4}" | sed "s/Full *\(:VolumeTag=\)*//"
+      ;;
+
+   loaded)
+#     echo "Request loaded"
+      ${MTX} -f $1 status >/tmp/mtx.$$
+      rtn=$?
+      cat /tmp/mtx.$$ | grep "^Data Transfer Element 0:Full" | awk "{print \$7}"
+      cat /tmp/mtx.$$ | grep "^Data Transfer Element 0:Empty" | awk "{print 0}"
+      rm -f /tmp/mtx.$$
+      exit $rtn
+      ;;
+
+   slots)
+#     echo "Request slots"
+      ${MTX} -f $1 status | grep " *Storage Changer" | awk "{print \$5}"
+      ;;
+esac

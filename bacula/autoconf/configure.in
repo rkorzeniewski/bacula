@@ -61,6 +61,7 @@ AC_PATH_PROG(TBL, tbl, tbl)
 AC_PATH_PROG(AR, ar, ar)
 AC_PATH_PROG(RANLIB, ranlib, ranlib)
 AC_PATH_PROG(OPENSSL, openssl, none)
+AC_PATH_PROG(MTX, mtx, mtx)
 
 test -n "$ARFLAG" || ARFLAGS="cr"
 AC_SUBST(ARFLAGS)
@@ -1402,6 +1403,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   scripts/logrotate \
 	   scripts/bacula.desktop.gnome1 \
 	   scripts/bacula.desktop.gnome2 \
+	   scripts/mtx-changer \
 	   doc/Makefile \
 	   src/Makefile \
 	   src/console/Makefile \
@@ -1445,7 +1447,7 @@ AC_OUTPUT([autoconf/Make.common \
 
 cd scripts
 chmod 755 startmysql stopmysql bacula startit stopit btraceback mtx-changer
-chmod 755 console gconsole
+chmod 755 console gconsole mtx-changer
 cd ..
 chmod 755 src/cats/make_mysql_tables src/cats/drop_mysql_tables
 chmod 755 src/cats/make_test_tables src/cats/drop_test_tables

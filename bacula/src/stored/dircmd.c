@@ -616,9 +616,7 @@ static int unmount_cmd(JCR *jcr)
 	 } else if (dev->dev_blocked == BST_WAITING_FOR_SYSOP) {
             Dmsg2(90, "%d waiter dev_block=%d. doing unmount\n", dev->num_waiting,
 	       dev->dev_blocked);
-	    if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
-	       offline_dev(dev);
-	    }
+	    offline_or_rewind_dev(dev);
 	    force_close_dev(dev);
 	    dev->dev_blocked = BST_UNMOUNTED_WAITING_FOR_SYSOP;
             bnet_fsend(dir, _("3001 Device %s unmounted.\n"), dev_name(dev));
@@ -645,9 +643,7 @@ static int unmount_cmd(JCR *jcr)
 	 } else {		      /* device not being used */
             Dmsg0(90, "Device not in use, unmounting\n");
 	    block_device(dev, BST_UNMOUNTED);
-	    if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
-	       offline_dev(dev);
-	    }
+	    offline_or_rewind_dev(dev);
 	    force_close_dev(dev);
             bnet_fsend(dir, _("3002 Device %s unmounted.\n"), dev_name(dev));
 	 }

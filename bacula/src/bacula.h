@@ -79,7 +79,9 @@
 #include <sys/bitypes.h>
 #endif
 #include <sys/ioctl.h>
+#ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
+#endif
 #include <sys/stat.h>
 #include <sys/time.h>
 #if HAVE_SYS_WAIT_H

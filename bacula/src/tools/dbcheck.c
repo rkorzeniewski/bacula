@@ -103,28 +103,27 @@ int main (int argc, char *argv[])
 
    while ((ch = getopt(argc, argv, "bd:fv?")) != -1) {
       switch (ch) {
-         case 'b':                    /* batch */
-	    batch = TRUE;
-	    break;
+      case 'b':                    /* batch */
+	 batch = TRUE;
+	 break;
 
-         case 'd':                    /* debug level */
-	    debug_level = atoi(optarg);
-	    if (debug_level <= 0)
-	       debug_level = 1; 
-	    break;
+      case 'd':                    /* debug level */
+	 debug_level = atoi(optarg);
+	 if (debug_level <= 0)
+	    debug_level = 1; 
+	 break;
 
-         case 'f':                    /* fix inconsistencies */
-	    fix = TRUE;
-	    break;
+      case 'f':                    /* fix inconsistencies */
+	 fix = TRUE;
+	 break;
 
-         case 'v':
-	    verbose++;
-	    break;
+      case 'v':
+	 verbose++;
+	 break;
 
-         case '?':
-	 default:
-	    usage();
-
+      case '?':
+      default:
+	 usage();
       }  
    }
    argc -= optind;
@@ -348,9 +347,7 @@ static int make_id_list(char *query, ID_LIST *id_list)
  */
 static int delete_id_list(char *query, ID_LIST *id_list)
 { 
-   int i;
-
-   for (i=0; i < id_list->num_ids; i++) {
+   for (int i=0; i < id_list->num_ids; i++) {
       sprintf(buf, query, id_list->Id[i]);
       if (verbose) {
          printf("Deleting: %s\n", buf);
@@ -405,9 +402,7 @@ static int make_name_list(char *query, NAME_LIST *name_list)
  */
 static void print_name_list(NAME_LIST *name_list)
 { 
-   int i;
-
-   for (i=0; i < name_list->num_ids; i++) {
+   for (int i=0; i < name_list->num_ids; i++) {
       printf("%s\n", name_list->name[i]);
    }
 }
@@ -418,9 +413,7 @@ static void print_name_list(NAME_LIST *name_list)
  */
 static void free_name_list(NAME_LIST *name_list)
 { 
-   int i;
-
-   for (i=0; i < name_list->num_ids; i++) {
+   for (int i=0; i < name_list->num_ids; i++) {
       free(name_list->name[i]);
    }
    name_list->num_ids = 0;
@@ -529,8 +522,7 @@ static void eliminate_orphaned_jobmedia_records()
    }
    printf("Found %d orphaned JobMedia records.\n", id_list.num_ids);
    if (id_list.num_ids && verbose && yes_no("Print them? (yes/no): ")) {
-      int i;
-      for (i=0; i < id_list.num_ids; i++) {
+      for (int i=0; i < id_list.num_ids; i++) {
 	 sprintf(buf, 
 "SELECT JobMedia.JobMediaId,JobMedia.JobId,Media.VolumeName FROM JobMedia,Media "
 "WHERE JobMedia.JobMediaId=%u AND Media.MediaId=JobMedia.MediaId", id_list.Id[i]);
@@ -559,8 +551,7 @@ static void eliminate_orphaned_file_records()
    }
    printf("Found %d orphaned File records.\n", id_list.num_ids);
    if (name_list.num_ids && verbose && yes_no("Print them? (yes/no): ")) {
-      int i;
-      for (i=0; i < id_list.num_ids; i++) {
+      for (int i=0; i < id_list.num_ids; i++) {
 	 sprintf(buf, 
 "SELECT File.FileId,File.JobId,Filename.Name FROM File,Filename "
 "WHERE File.FileId=%u AND File.FilenameId=Filename.FilenameId", id_list.Id[i]);
@@ -589,8 +580,7 @@ static void eliminate_orphaned_path_records()
    }
    printf("Found %d orphaned Path records.\n", id_list.num_ids);
    if (id_list.num_ids && verbose && yes_no("Print them? (yes/no): ")) {
-      int i;
-      for (i=0; i < id_list.num_ids; i++) {
+      for (int i=0; i < id_list.num_ids; i++) {
          sprintf(buf, "SELECT Path FROM Path WHERE PathId=%u", id_list.Id[i]);
 	 db_sql_query(db, buf, print_name_handler, NULL);
       }
@@ -616,8 +606,7 @@ static void eliminate_orphaned_filename_records()
    }
    printf("Found %d orphaned Filename records.\n", id_list.num_ids);
    if (id_list.num_ids && verbose && yes_no("Print them? (yes/no): ")) {
-      int i;
-      for (i=0; i < id_list.num_ids; i++) {
+      for (int i=0; i < id_list.num_ids; i++) {
          sprintf(buf, "SELECT Name FROM Filename WHERE FilenameId=%u", id_list.Id[i]);
 	 db_sql_query(db, buf, print_name_handler, NULL);
       }
@@ -642,8 +631,7 @@ static void eliminate_orphaned_fileset_records()
    }
    printf("Found %d orphaned FileSet records.\n", id_list.num_ids);
    if (id_list.num_ids && verbose && yes_no("Print them? (yes/no): ")) {
-      int i;
-      for (i=0; i < id_list.num_ids; i++) {
+      for (int i=0; i < id_list.num_ids; i++) {
          sprintf(buf, "SELECT FileSetId,FileSet,MD5 FROM FileSet "
                       "WHERE FileSetId=%u", id_list.Id[i]);
 	 if (!db_sql_query(db, buf, print_fileset_handler, NULL)) {

@@ -62,7 +62,8 @@
 #else
 #define _(s) (s)
 #define N_(s) (s)
-#define textdomain(x)
+#define textdomain(d)
+#define bindtextdomain(p, d)
 #endif
 
 

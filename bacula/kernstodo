@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                  30 May  2003 
+                  31 May  2003 
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -40,8 +40,6 @@ For 1.31 release:
 - Unsaved Flag in Job record.
 - Base Flag in Job record.
 - Implement UnsavedFiles DB record.
-- The "List last 20 Jobs run" doesnt work correctly.
-  It doesnt show the last 20 jobs , but some older ones.
 - The bsr for Dan's job has file indexes covering the whole range rather
   than only the range contained on the volume.
   Constrain FileIndex to be within range for Volume.
@@ -914,3 +912,7 @@ Done: (see kernsdone for more)
 - No READLINE_SRC if found in alternate directory.
 - If ./btape is called without /dev, assume argument is a Storage resource name.
 - Find general solution for sscanf size problems (as well as sprintf. Do at run time?
+- Bytes restored is wrong.
+- The "List last 20 Jobs run" doesnt work correctly in restore.
+  It doesnt show the last 20 jobs , but some older ones.
+

@@ -52,7 +52,6 @@ static char OKrestore[]   = "2000 OK restore\n";
 static char OKstore[]     = "2000 OK storage\n";
 static char OKsession[]   = "2000 OK session\n";
 static char OKbootstrap[] = "2000 OK bootstrap\n";
-static char EndRestore[]  = "2800 End Job TermCode=%d JobFiles=%u JobBytes=%" lld " Errors=%u\n";
 
 /* Forward referenced functions */
 static void restore_cleanup(JCR *jcr, int status);
@@ -70,8 +69,6 @@ int do_restore(JCR *jcr)
 {
    BSOCK   *fd;
    JOB_DBR rjr; 		      /* restore job record */
-   int ok = FALSE;
-
 
    if (!get_or_create_client_record(jcr)) {
       restore_cleanup(jcr, JS_ErrorTerminated);
@@ -252,23 +249,8 @@ int do_restore(JCR *jcr)
    }
 
    /* Wait for Job Termination */
-   Dmsg0(20, "wait for job termination\n");
-   while (bget_dirmsg(fd) >= 0) {
-      Dmsg1(100, "dird<filed: %s\n", fd->msg);
-      if (sscanf(fd->msg, EndRestore, &jcr->FDJobStatus, &jcr->JobFiles,
-	  &jcr->JobBytes, &jcr->Errors) == 4) {
-	 ok = TRUE;
-      }
-   }
-
-   if (is_bnet_error(fd)) {
-      Jmsg(jcr, M_FATAL, 0, _("Network error during RESTORE command. ERR=%s\n"),
-	  bnet_strerror(fd));
-   }
-   bnet_sig(fd, BNET_TERMINATE);   /* tell Client we are terminating */
-
-
-   restore_cleanup(jcr, ok?jcr->FDJobStatus:JS_ErrorTerminated);
+   int stat = wait_for_job_termination(jcr);
+   restore_cleanup(jcr, stat);
 
    return 1;
 }
@@ -281,7 +263,7 @@ static void restore_cleanup(JCR *jcr, int TermCode)
 {
    char sdt[MAX_TIME_LENGTH], edt[MAX_TIME_LENGTH];
    char ec1[30], ec2[30];
-   char term_code[100], fd_term_msg[100];
+   char term_code[100], fd_term_msg[100], sd_term_msg[100];
    char *term_msg;
    int msg_type;
    double kbps;
@@ -293,29 +275,29 @@ static void restore_cleanup(JCR *jcr, int TermCode)
 
    msg_type = M_INFO;		      /* by default INFO message */
    switch (TermCode) {
-      case JS_Terminated:
-         term_msg = _("Restore OK");
-	 break;
-      case JS_FatalError:
-      case JS_ErrorTerminated:
-         term_msg = _("*** Restore Error ***"); 
-	 msg_type = M_ERROR;	      /* Generate error message */
-	 if (jcr->store_bsock) {
-	    bnet_sig(jcr->store_bsock, BNET_TERMINATE);
-	    pthread_cancel(jcr->SD_msg_chan);
-	 }
-	 break;
-      case JS_Canceled:
-         term_msg = _("Restore Canceled");
-	 if (jcr->store_bsock) {
-	    bnet_sig(jcr->store_bsock, BNET_TERMINATE);
-	    pthread_cancel(jcr->SD_msg_chan);
-	 }
-	 break;
-      default:
-	 term_msg = term_code;
-         sprintf(term_code, _("Inappropriate term code: %c\n"), TermCode);
-	 break;
+   case JS_Terminated:
+      term_msg = _("Restore OK");
+      break;
+   case JS_FatalError:
+   case JS_ErrorTerminated:
+      term_msg = _("*** Restore Error ***"); 
+      msg_type = M_ERROR;	   /* Generate error message */
+      if (jcr->store_bsock) {
+	 bnet_sig(jcr->store_bsock, BNET_TERMINATE);
+	 pthread_cancel(jcr->SD_msg_chan);
+      }
+      break;
+   case JS_Canceled:
+      term_msg = _("Restore Canceled");
+      if (jcr->store_bsock) {
+	 bnet_sig(jcr->store_bsock, BNET_TERMINATE);
+	 pthread_cancel(jcr->SD_msg_chan);
+      }
+      break;
+   default:
+      term_msg = term_code;
+      sprintf(term_code, _("Inappropriate term code: %c\n"), TermCode);
+      break;
    }
    bstrftime(sdt, sizeof(sdt), jcr->jr.StartTime);
    bstrftime(edt, sizeof(edt), jcr->jr.EndTime);
@@ -329,6 +311,7 @@ static void restore_cleanup(JCR *jcr, int TermCode)
    }
 
    jobstatus_to_ascii(jcr->FDJobStatus, fd_term_msg, sizeof(fd_term_msg));
+   jobstatus_to_ascii(jcr->SDJobStatus, sd_term_msg, sizeof(sd_term_msg));
 
    Jmsg(jcr, msg_type, 0, _("Bacula " VERSION " (" LSMDATE "): %s\n\
 JobId:                  %d\n\
@@ -341,6 +324,7 @@ Bytes Restored:         %s\n\
 Rate:                   %.1f KB/s\n\
 Non-fatal FD Errors:    %d\n\
 FD termination status:  %s\n\
+SD termination status:  %s\n\
 Termination:            %s\n\n"),
 	edt,
 	jcr->jr.JobId,
@@ -353,6 +337,7 @@ Termination:            %s\n\n"),
 	(float)kbps,
 	jcr->Errors,
 	fd_term_msg,
+	sd_term_msg,
 	term_msg);
 
    Dmsg0(20, "Leaving restore_cleanup\n");

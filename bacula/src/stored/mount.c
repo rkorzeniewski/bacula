@@ -75,30 +75,13 @@ mount_next_vol:
       jcr->VolumeName[0] = 0;
 
       if (!dev_is_tape(dev) || !dev_cap(dev, CAP_ALWAYSOPEN)) {
-	 if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
-	    offline_dev(dev);
-	 /*	       
-          * Note, this rewind probably should not be here (it wasn't
-	  *  in prior versions of Bacula), but on FreeBSD, this is
-          *  needed in the case the tape was "frozen" due to an error
-	  *  such as backspacing after writing and EOF. If it is not
-	  *  done, all future references to the drive get and I/O error.
-	  */
-	 } else if (!rewind_dev(dev)) {
-            Jmsg2(jcr, M_WARNING, 0, _("Rewind error on device %s. ERR=%s\n"), 
-		  dev_name(dev), strerror_dev(dev));
-	 }
+	 offline_or_rewind_dev(dev);
 	 close_dev(dev);
       }
 
       /* If we have not closed the device, then at least rewind the tape */
       if (dev->state & ST_OPENED) {
-	 if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
-	    offline_dev(dev);
-	 } else if (!rewind_dev(dev)) {
-            Jmsg2(jcr, M_WARNING, 0, _("Rewind error on device %s. ERR=%s\n"), 
-		  dev_name(dev), strerror_dev(dev));
-	 }
+	 offline_or_rewind_dev(dev);
       }
       ask = 1;			      /* ask operator to mount tape */
    }

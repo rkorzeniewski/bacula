@@ -44,16 +44,15 @@ static char storaddr[]  = "storage address=%s port=%d ssl=%d\n";
 static char levelcmd[]  = "level = %s%s\n";
 
 /* Responses received from File daemon */
-static char OKbackup[]  = "2000 OK backup\n";
-static char OKstore[]   = "2000 OK storage\n";
-static char OKlevel[]   = "2000 OK level\n";
-static char EndBackup[] = "2801 End Backup Job TermCode=%d JobFiles=%u "
-                          "ReadBytes=%" lld " JobBytes=%" lld " Errors=%u\n";
+static char OKbackup[]   = "2000 OK backup\n";
+static char OKstore[]    = "2000 OK storage\n";
+static char OKlevel[]    = "2000 OK level\n";
+static char EndJob[]     = "2800 End Job TermCode=%d JobFiles=%u "
+                           "ReadBytes=%" lld " JobBytes=%" lld " Errors=%u\n";
 
 
 /* Forward referenced functions */
 static void backup_cleanup(JCR *jcr, int TermCode, char *since, FILESET_DBR *fsr);
-static int wait_for_job_termination(JCR *jcr);		     
 
 /* External functions */
 
@@ -101,7 +100,7 @@ int do_backup(JCR *jcr)
    }   
    jcr->jr.FileSetId = fsr.FileSetId;
    if (fsr.created) {
-      Jmsg(jcr, M_INFO, 0, _("Created new FileSet record \"%s\" at %s\n"), 
+      Jmsg(jcr, M_INFO, 0, _("Created new FileSet record \"%s\" %s\n"), 
 	 fsr.FileSet, fsr.cCreateTime);
    }
    Dmsg2(119, "Created FileSet %s record %u\n", jcr->fileset->hdr.name, 
@@ -272,8 +271,9 @@ bail_out:
  * Here we wait for the File daemon to signal termination,
  *   then we wait for the Storage daemon.  When both
  *   are done, we return the job status.
+ * Also used by restore.c 
  */
-static int wait_for_job_termination(JCR *jcr)
+int wait_for_job_termination(JCR *jcr)
 {
    int32_t n = 0;
    BSOCK *fd = jcr->file_bsock;
@@ -282,7 +282,7 @@ static int wait_for_job_termination(JCR *jcr)
    set_jcr_job_status(jcr, JS_Running);
    /* Wait for Client to terminate */
    while ((n = bget_dirmsg(fd)) >= 0) {
-      if (sscanf(fd->msg, EndBackup, &jcr->FDJobStatus, &jcr->JobFiles,
+      if (sscanf(fd->msg, EndJob, &jcr->FDJobStatus, &jcr->JobFiles,
 	  &jcr->ReadBytes, &jcr->JobBytes, &jcr->Errors) == 5) {
 	 fd_ok = TRUE;
 	 set_jcr_job_status(jcr, jcr->FDJobStatus);
@@ -296,8 +296,8 @@ static int wait_for_job_termination(JCR *jcr)
       }
    }
    if (is_bnet_error(fd)) {
-      Jmsg(jcr, M_FATAL, 0, _("Network error with FD during BACKUP: ERR=%s\n"),
-	  bnet_strerror(fd));
+      Jmsg(jcr, M_FATAL, 0, _("Network error with FD during %s: ERR=%s\n"),
+	  job_type_to_str(jcr->JobType), bnet_strerror(fd));
    }
    bnet_sig(fd, BNET_TERMINATE);   /* tell Client we are terminating */
 

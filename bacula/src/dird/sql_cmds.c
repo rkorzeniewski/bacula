@@ -132,10 +132,10 @@ char *select_restore_del =
 
 /* List last 20 Jobs */
 char *uar_list_jobs = 
-   "SELECT JobId,Client.Name as Client,StartTime,Type as "
-   "JobType,JobFiles,JobBytes "
+   "SELECT JobId,Client.Name as Client,StartTime,Level as "
+   "JobLevel,JobFiles,JobBytes "
    "FROM Client,Job WHERE Client.ClientId=Job.ClientId AND JobStatus='T' "
-   "AND Type='B' LIMIT 20";
+   "AND Type='B' ORDER BY StartTime LIMIT 20";
 
 #ifdef HAVE_MYSQL
 /*  MYSQL IS NOT STANDARD SQL !!!!! */

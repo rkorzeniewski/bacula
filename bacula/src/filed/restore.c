@@ -339,6 +339,7 @@ void do_restore(JCR *jcr)
 	    } 
 	    total += wsize;
 	    jcr->JobBytes += wsize;
+	    jcr->ReadBytes += wsize;
 	    fileAddr += wsize;
 	 }
 	
@@ -394,6 +395,7 @@ void do_restore(JCR *jcr)
 	    }
 	    total += compress_len;
 	    jcr->JobBytes += compress_len;
+	    jcr->ReadBytes += wsize;
 	    fileAddr += compress_len;
 	 }
 #else

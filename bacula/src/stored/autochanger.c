@@ -89,9 +89,7 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
 
       /* If bad status or tape we want is not loaded, load it. */
       if (status != 0 || loaded != slot) { 
-	 if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
-	    offline_dev(dev);
-	 }
+	 offline_or_rewind_dev(dev);
 	 /* We are going to load a new tape, so close the device */
 	 force_close_dev(dev);
 	 if (loaded != 0) {	   /* must unload drive */
@@ -159,9 +157,7 @@ int autochanger_list(JCR *jcr, DEVICE *dev, BSOCK *dir)
    }
 
    changer = get_pool_memory(PM_FNAME);
-   if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
-      offline_dev(dev);
-   }
+   offline_or_rewind_dev(dev);
    /* We are going to load a new tape, so close the device */
    force_close_dev(dev);
 
