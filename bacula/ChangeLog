@@ -1,3 +1,7 @@
+2002-09-05 Version 1.25a (05Sep02) Released
+- Fix unitialized stack variable in bextract so it
+  will always read the currently mounted tape.
+
 2002-09-04 Version 1.25 (01Sep02) Released
   General:
 - Added .cvsignore files in each directory to cut down on the
