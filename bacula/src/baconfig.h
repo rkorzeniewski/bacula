@@ -488,6 +488,7 @@ extern "C" int getdomainname(char *name, int len);
 #define REPLACE_NEVER    'n'
 #define REPLACE_IFOLDER  'o'
 
+#undef HAVE_SETLOCALE
 #ifdef HAVE_SETLOCALE
 #include <locale.h>
 #else
