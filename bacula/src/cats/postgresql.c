@@ -405,7 +405,7 @@ void my_postgresql_field_seek(B_DB *mdb, int field)
  * Note, if this routine returns 1 (failure), Bacula expects
  *  that no result has been stored.
  */
-int my_postgresql_query(B_DB *mdb, char *query) {
+int my_postgresql_query(B_DB *mdb, const char *query) {
    Dmsg0(500, "my_postgresql_query started\n");
    // We are starting a new query.  reset everything.
    mdb->num_rows     = -1;
