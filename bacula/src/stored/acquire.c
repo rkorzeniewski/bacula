@@ -54,10 +54,39 @@ DCR *new_dcr(JCR *jcr, DEVICE *dev)
    /* Attach this dcr only if dev is initialized */
    if (dev->fd != 0 && jcr && jcr->JobType != JT_SYSTEM) {
       dev->attached_dcrs->append(dcr);
+//    jcr->dcrs->append(dcr);
    }
    return dcr;
 }
 
+/*
+ * Search the dcrs list for the given dcr. If it is found,
+ *  as it should be, then remove it. Also zap the jcr pointer
+ *  to the dcr if it is the same one.
+ */
+static void remove_dcr_from_dcrs(DCR *dcr)
+{
+   JCR *jcr = dcr->jcr;
+   if (jcr->dcrs) {
+      int i = 0;
+      DCR *ldcr;
+      int num = jcr->dcrs->size();
+      for (i=0; i < num; i++) {
+	 ldcr = (DCR *)jcr->dcrs->get(i);
+	 if (ldcr == dcr) {
+	    jcr->dcrs->remove(i);
+	    if (jcr->dcr == dcr) {
+	       jcr->dcr = NULL;
+	    }
+	 }
+      }
+   }
+}
+
+/*
+ * Free up all aspects of the given dcr -- i.e. dechain it,
+ *  release allocated memory, zap pointers, ...
+ */
 void free_dcr(DCR *dcr)
 {
    JCR *jcr = dcr->jcr;
@@ -80,7 +109,8 @@ void free_dcr(DCR *dcr)
 
    /* Detach this dcr only if the dev is initialized */
    if (dev->fd != 0 && jcr && jcr->JobType != JT_SYSTEM) {
-      dcr->dev->attached_dcrs->remove(dcr);
+      dev->attached_dcrs->remove(dcr);
+//    remove_dcr_from_dcrs(dcr);
    }
    if (dcr->block) {
       free_block(dcr->block);
@@ -93,6 +123,7 @@ void free_dcr(DCR *dcr)
    }
    free(dcr);
 }
+
 
 /*
  * We "reserve" the drive by setting the ST_READ bit. No one else
@@ -512,9 +543,9 @@ ok_out:
  *  the device remains open.
  *
  */
-bool release_device(JCR *jcr)
+bool release_device(DCR *dcr)
 {
-   DCR *dcr = jcr->dcr;
+   JCR *jcr = dcr->jcr;
    DEVICE *dev = dcr->dev;
    lock_device(dev);
    Dmsg1(100, "release_device device is %s\n", dev_is_tape(dev)?"tape":"disk");
@@ -592,7 +623,7 @@ bool release_device(JCR *jcr)
       free_pool_memory(alert);
    }
    unlock_device(dev);
-   free_dcr(jcr->dcr);
+   free_dcr(dcr);
    jcr->dcr = NULL;
    return true;
 }

@@ -242,7 +242,7 @@ int main (int argc, char *argv[])
 
 static void do_close(JCR *jcr)
 {
-   release_device(jcr);
+   release_device(jcr->dcr);
    free_attr(attr);
    free_record(rec);
    free_block(block);

@@ -127,6 +127,8 @@ For 1.37:
 - Scratch Pool where the volumes can be re-assigned to any Pool.
 - Upgrade to MySQL 4.1.1 See:  
   http://dev.mysql.com/doc/mysql/en/Server_SQL_mode.html
+- Add client version to the Client name line that prints in
+  the Job report.
 - Bug: 
   Enter MediaId or Volume name: 32
   Enter new Volume name: DLT-20Dec04

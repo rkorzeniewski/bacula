@@ -80,7 +80,7 @@ bool do_read_data(JCR *jcr)
    /* Send end of data to FD */
    bnet_sig(fd, BNET_EOD);
 
-   if (!release_device(jcr)) {
+   if (!release_device(dcr)) {
       ok = false;
    }
 

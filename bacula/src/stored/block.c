@@ -877,11 +877,11 @@ reread:
    retry = 0;
    do {
 //    uint32_t *bp = (uint32_t *)block->buf;
-//    Dmsg3(000, "Read %p %u at %llu\n", block->buf, block->buf_len, lseek(dev->fd, 0, SEEK_CUR));
+//    Pmsg3(000, "Read %p %u at %llu\n", block->buf, block->buf_len, lseek(dev->fd, 0, SEEK_CUR));
 
       stat = read(dev->fd, block->buf, (size_t)block->buf_len);
 
-//    Dmsg8(000, "stat=%d Csum=%u blen=%u bnum=%u %c%c%c%c\n",stat, bp[0],bp[1],bp[2],
+//    Pmsg8(000, "stat=%d Csum=%u blen=%u bnum=%u %c%c%c%c\n",stat, bp[0],bp[1],bp[2],
 //	block->buf[12],block->buf[13],block->buf[14],block->buf[15]);
 
       if (retry == 1) {

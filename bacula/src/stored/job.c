@@ -518,6 +518,10 @@ void stored_free_jcr(JCR *jcr)
       Emsg0(M_FATAL, 0, _("In free_jcr(), but still attached to device!!!!\n"));
    }
    pthread_cond_destroy(&jcr->job_start_wait);
+   if (jcr->dcrs) {
+      delete jcr->dcrs;
+   }
+   jcr->dcrs = NULL;
    if (jcr->dcr) {
       free_dcr(jcr->dcr);
       jcr->dcr = NULL;

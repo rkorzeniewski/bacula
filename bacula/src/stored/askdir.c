@@ -221,12 +221,12 @@ bool dir_update_volume_info(DCR *dcr, bool label)
 
    if (vol->VolCatName[0] == 0) {
       Jmsg0(jcr, M_FATAL, 0, _("NULL Volume name. This shouldn't happen!!!\n"));
-      Dmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
+      Pmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
       return false;
    }
    if (dev->can_read()) {
       Jmsg0(jcr, M_FATAL, 0, _("Attempt to update_volume_info in read mode!!!\n"));
-      Dmsg0(000, "Attempt to update_volume_info in read mode!!!\n");
+      Pmsg0(000, "Attempt to update_volume_info in read mode!!!\n");
       return false;
    }
 
@@ -254,7 +254,7 @@ bool dir_update_volume_info(DCR *dcr, bool label)
 
    if (!do_get_volume_info(dcr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", jcr->errmsg);
-      Dmsg2(000, "Didn't get vol info vol=%s: ERR=%s", 
+      Pmsg2(000, "Didn't get vol info vol=%s: ERR=%s", 
 	 vol->VolCatName, jcr->errmsg);
       return false;
    }
