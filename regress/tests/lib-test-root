@@ -7,8 +7,8 @@ MUID=`/usr/bin/id -u`
 if [ $MUID != 0 ] ; then
    echo " "
    echo "You must be root to run this test."
-   echo "  ===== lib-test-root failed!!! ===== "
-   echo "  ===== lib-test-root failed!!! ===== " >>test.out
+   echo "  ===== !!!! lib-test-root not run !!!! ===== "
+   echo "  ===== !!!! lib-test-root not run !!!! ===== " >>test.out
    echo " "
    exit 1
 fi
@@ -16,17 +16,13 @@ cwd=`pwd`
 scripts/copy-test-confs
 scripts/cleanup
 echo "/lib" >/tmp/file-list
-bin/bacula stop 2>&1 >/dev/null
-cd bin
-./drop_bacula_tables >/dev/null 2>&1
-./make_bacula_tables >/dev/null 2>&1
-./grant_bacula_privileges 2>&1 >/dev/null
-cd ..
+
 echo " "
 echo " "
 echo " === Starting /lib save/restore test ==="
 echo " "
 echo " "
+
 bin/bacula start 2>&1 >/dev/null
 bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
 @output /dev/null
@@ -70,8 +66,8 @@ diff tmp/original tmp/restored 2>&1 1>/dev/nul
 if [ $? != 0 ] ; then
    echo " "
    echo " "
-   echo "  ===== lib-test-root failed!!! ===== "
-   echo "  ===== lib-test-root failed!!! ===== " >>test.out
+   echo "  ===== !!!! lib-test-root failed !!!! ===== "
+   echo "  ===== !!!! lib-test-root failed !!!! ===== " >>test.out
    echo " "
 else
    echo "  ===== lib-test-root OK ===== "
