@@ -1,7 +1,7 @@
 
           Release Notes for Bacula 1.32
 
-  Bacula code: Total files = 259 Total lines = 77,120 (*.h *.c *.in)
+  Bacula code: Total files = 259 Total lines = 77,284 (*.h *.c *.in)
 
 Major Changes this Release:
 - Fixed gnome-console to compile with RH9 (Gnome 2.0)
@@ -12,6 +12,8 @@ Major Changes this Release:
   during restore.
 - Added SDConnectTimeout to FD.    
 - Added ClientRunBeforeJob and ClientRunAfterJob.
+- Implemented Include | and < in File daemon.
+- Implemented a new Include/Exclude syntax.
 
 
 Other Changes this Release:
@@ -30,6 +32,9 @@ Other Changes this Release:
   heartbeat thread.
 - Eliminate gnome2-console directory. Everything is in gnome-console
 - Enhanced "packet too big" message to indicate who sent it.
+- Corrected console prompt problem in non-readline versions.
+- Correct a number of variable expansion problems.
+- Added a number of new regression tests.
 
 
 Items to note:  !!!!!

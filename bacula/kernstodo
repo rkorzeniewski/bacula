@@ -13,9 +13,6 @@ Documentation to do: (any release a little bit at a time)
   hours of operation.
 - Lookup HP cleaning recommendations.
 - Lookup HP tape replacement recommendations (see trouble shooting autochanger)
-- Document FInclude ...
-- Document all the status codes JobLevel, JobType, JobStatus.
-- Document SDConnectTimeout (in FD).
           
 Testing to do: (painful)
 - that ALL console command line options work and are always implemented
@@ -23,12 +20,12 @@ Testing to do: (painful)
 - Test if rewind at end of tape waits for tape to rewind.
 - Test cancel at EOM.       
 - Test not zeroing Autochanger slot when it is wrong.
-- Test recycling and purging (code changed in db_find_next_volume and
-  in recycle.c).
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.32:
-- Add restore by filename test.
+- Document restore by files.
+- Document new Include/Exclude ...
+- Document all the status codes JobLevel, JobType, JobStatus.
 - Add test of exclusion, test multiple Include {} statements.
 - Enhance "update slots" to include a "scan" feature
   scan 1; scan 1-5; scan 1,2,4 ...  to update the catalog 
@@ -37,9 +34,9 @@ For 1.32:
 - Don't print "Warning: Wrong Volume mounted ..." if mounting second
   volume.
 - Implement List Volume Job=xxx  or List scheduled volumes or Status Director 
-- Add heartbeat from FD to SD if hb interval expires.
 
 For 1.33
+- Add heartbeat from FD to SD if hb interval expires.
 - Suppress read error on blank tape when doing a label.
 - Can we dynamically change FileSets.
 - If pool specified to label command and Label Format is specified,
@@ -897,3 +894,7 @@ Done: (see kernsdone for more)
 - Check to see if "blocked" is set during restore.
 - Figure out what is interrupting sql command in console.
 - Make new job print warning User Unmounted Tape.
+- Test recycling and purging (code changed in db_find_next_volume and
+  in recycle.c).
+- Document SDConnectTimeout (in FD).
+- Add restore by filename test.

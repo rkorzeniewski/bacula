@@ -1,4 +1,19 @@
-2003-08-02 Version 1.32 06Sep03 Beta
+
+2003-08-02 Version 1.32 10Sep03 Beta
+- Finally fixed the .messages that was sent during prompts
+  in the console with no readline.
+- Implement new Include/Exclude semantics.
+- Fix a good number of segfaults reported by Chris Allen in
+  the variable expansion code. 
+- Print warning message if a job is blocked by user unmount.
+- Fix additional variable expansion problem reported by Chris Allen.
+- Fix pathconf() error status bug that caused a segfault on
+  a FreeBSD system -- reported by Gernot Hueber.
+- Make sure the console sends ".messages" only when at the
+  command line prompt.
+- Apply a patch from Nic Bellamy that corrects a file descriptor
+  leak in the Storage deamon when a job is canceled. (Thanks)
+- Implement < and | in File daemon.
 - Implement ClientRunBeforeJob and ClientRunAfterJob.
 - Corrected BSRatEOF to be BSFatEOF in btape --
   reported by Lars Koller.
