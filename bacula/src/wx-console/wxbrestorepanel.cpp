@@ -65,8 +65,12 @@ Select parameter to modify (1-11):
 #include "marked.xpm"
 #include "partmarked.xpm"
 
+#include <wx/listimpl.cpp>
+
 /* A macro named Yield is defined under MinGW */
 #undef Yield
+
+WX_DEFINE_LIST(wxbEventList);
 
 /*
  *  Class which is stored in the tree and in the list to keep informations
@@ -234,6 +238,10 @@ END_EVENT_TABLE()
  *  wxbRestorePanel constructor
  */
 wxbRestorePanel::wxbRestorePanel(wxWindow* parent): wxbPanel(parent) {
+   //pendingEvents = new wxbEventList(); //EVTQUEUE
+   //processing = false; //EVTQUEUE
+   SetWorking(false);
+   
    imagelist = new wxImageList(16, 16, TRUE, 3);
    imagelist->Add(wxIcon(unmarked_xpm));
    imagelist->Add(wxIcon(marked_xpm));
@@ -397,7 +405,6 @@ wxbRestorePanel::wxbRestorePanel(wxWindow* parent): wxbPanel(parent) {
       list->SetColumnWidth(i, 70);
    }
 
-   working = false;
    SetCursor(*wxSTANDARD_CURSOR);
 
    markWhenListingDone = false;
@@ -917,7 +924,7 @@ void wxbRestorePanel::CmdCancel() {
    }
    
    wxStopWatch sw;
-   while ((working) && (cancelled != 2)) {
+   while ((IsWorking()) && (cancelled != 2)) {
       wxTheApp->Yield(true);
       ::wxUsleep(100);
       if (sw.Time() > 30000) { /* 30 seconds timeout */
@@ -1133,7 +1140,7 @@ void wxbRestorePanel::CmdList(wxTreeItemId item) {
       if (!item.IsOk()) {
          return;
       }
-      UpdateTreeItem(item, (tree->GetSelection() == item), false);
+      UpdateTreeItem(item, true, false);
     
       if (list->GetItemCount() >= 1) {
          int firstwidth = list->GetSize().GetWidth(); 
@@ -1859,8 +1866,7 @@ void wxbRestorePanel::SetStatus(status_enum newstatus) {
       this->Layout();
       tree->Enable(true);
       list->Enable(true);
-      working = false;
-      SetCursor(*wxSTANDARD_CURSOR);
+      SetWorking(false);
       break;
    case configuring:
       start->Enable(false);
@@ -1884,8 +1890,7 @@ void wxbRestorePanel::SetStatus(status_enum newstatus) {
       configPanel->Enable(false);
       tree->Enable(false);
       list->Enable(false);
-      SetCursor(*wxHOURGLASS_CURSOR);
-      working = true;
+      SetWorking(true);
       break;
    }
    status = newstatus;
@@ -1895,6 +1900,35 @@ void wxbRestorePanel::SetStatus(status_enum newstatus) {
    UI related
   ----------------------------------------------------------------------------*/
 
+void wxbRestorePanel::SetWorking(bool working) {
+   this->working = working;
+   if (working) {
+      SetCursor(*wxHOURGLASS_CURSOR);
+//      SetEvtHandlerEnabled(false); //EVTQUEUE
+   }
+//   else if (!processing) { /* Empty event queue if we aren't already doing this */ //EVTQUEUE
+   else {
+//      processing = true; //EVTQUEUE
+      SetCursor(*wxSTANDARD_CURSOR);
+//      SetEvtHandlerEnabled(true); //EVTQUEUE
+/*      wxNode *node = pendingEvents->First(); //EVTQUEUE
+      while ( node ) {
+         wxEvent *event = (wxEvent *)node->Data();
+         delete node;
+   
+         wxEvtHandler::ProcessEvent(*event);
+         delete event;
+   
+         node = pendingEvents->First();
+      }
+      processing = false;*/
+   }
+}
+
+bool wxbRestorePanel::IsWorking() {
+   return this->working;
+}
+
 void wxbRestorePanel::EnableConfig(bool enable) {
    restorePanel->Enable(enable);
 }
@@ -1903,32 +1937,49 @@ void wxbRestorePanel::EnableConfig(bool enable) {
    Event handling
   ----------------------------------------------------------------------------*/
 
-void wxbRestorePanel::OnCancel(wxCommandEvent& WXUNUSED(event)) {
+
+//EVTQUEUE
+/*
+bool wxbRestorePanel::ProcessEvent(wxEvent& event) {
+   if (IsWorking() || processing) {
+      wxEvent *eventCopy = event.Clone();
+      
+      pendingEvents->Append(eventCopy);
+      return TRUE;
+   }
+   else {
+      return wxEvtHandler::ProcessEvent(event);
+   }
+}
+*/
+
+void wxbRestorePanel::OnCancel(wxCommandEvent& event) {
    cancel->Enable(false);
    SetCursor(*wxHOURGLASS_CURSOR);
    CmdCancel();
    SetCursor(*wxSTANDARD_CURSOR);
 }
 
-void wxbRestorePanel::OnStart(wxCommandEvent& WXUNUSED(event)) {
-   if (working) {
+void wxbRestorePanel::OnStart(wxCommandEvent& event) {
+   if (IsWorking()) {
+      AddPendingEvent(event);
       return;
    }
-   SetCursor(*wxHOURGLASS_CURSOR);
-   working = true;
+   SetWorking(true);
    CmdStart();
-   working = false;
-   SetCursor(*wxSTANDARD_CURSOR);
+   SetWorking(false);
 }
 
 void wxbRestorePanel::OnTreeChanging(wxTreeEvent& event) {
-   if (working) {
+   if (IsWorking()) {
+      AddPendingEvent(event);
       event.Veto();
    }
 }
 
 void wxbRestorePanel::OnTreeExpanding(wxTreeEvent& event) {
-   if (working) {
+   if (IsWorking()) {
+      AddPendingEvent(event);
       event.Veto();
       return;
    }
@@ -1941,7 +1992,8 @@ void wxbRestorePanel::OnTreeExpanding(wxTreeEvent& event) {
 }
 
 void wxbRestorePanel::OnTreeChanged(wxTreeEvent& event) {
-   if (working) {
+   if (IsWorking()) {
+      AddPendingEvent(event);
       return;
    }
    if (currentTreeItem == event.GetItem()) {
@@ -1950,17 +2002,15 @@ void wxbRestorePanel::OnTreeChanged(wxTreeEvent& event) {
    treeadd->Enable(false);
    treeremove->Enable(false);
    treerefresh->Enable(false);
-   SetCursor(*wxHOURGLASS_CURSOR);
    markWhenListingDone = false;
-   working = true;
+   SetWorking(true);
    currentTreeItem = event.GetItem();
    CmdList(event.GetItem());
    if (markWhenListingDone) {
       CmdMark(event.GetItem(), NULL, 0);
       tree->Refresh();
    }
-   working = false;
-   SetCursor(*wxSTANDARD_CURSOR);
+   SetWorking(false);
    if (event.GetItem().IsOk()) {
       int status = ((wxbTreeItemData*)tree->GetItemData(event.GetItem()))->GetMarked();
       treeadd->Enable(status != 1);
@@ -1971,70 +2021,71 @@ void wxbRestorePanel::OnTreeChanged(wxTreeEvent& event) {
 
 void wxbRestorePanel::OnTreeMarked(wxbTreeMarkedEvent& event) {
    csprint("Tree marked", CS_DEBUG);
-   if (working) {
+   if (IsWorking()) {
       if (tree->GetSelection() == event.GetItem()) {
          markWhenListingDone = !markWhenListingDone;
       }
+      AddPendingEvent(event);
       return;
    }
-   SetCursor(*wxHOURGLASS_CURSOR);
-   working = true;
+   SetWorking(true);
    CmdMark(event.GetItem(), NULL, 0);
    //event.Skip();
    tree->Refresh();
-   working = false;
+   SetWorking(false);
    if (event.GetItem().IsOk()) {
       int status = ((wxbTreeItemData*)tree->GetItemData(event.GetItem()))->GetMarked();
       treeadd->Enable(status != 1);
       treeremove->Enable(status != 0);
    }
-   SetCursor(*wxSTANDARD_CURSOR);
 }
 
 void wxbRestorePanel::OnTreeAdd(wxCommandEvent& event) {
-   if (working) {
+   if (IsWorking()) {
+      AddPendingEvent(event);
       return;
    }
    
    if (currentTreeItem.IsOk()) {
-      SetCursor(*wxHOURGLASS_CURSOR);
-      working = true;
+      SetWorking(true);
       CmdMark(currentTreeItem, NULL, 0, 1);
       tree->Refresh();
-      working = false;
       treeadd->Enable(0);
       treeremove->Enable(1);
-      SetCursor(*wxSTANDARD_CURSOR);
+      SetWorking(false);
    }
 }
 
 void wxbRestorePanel::OnTreeRemove(wxCommandEvent& event) {
-   if (working) {
+   if (IsWorking()) {
+      AddPendingEvent(event);
       return;
    }
    
    if (currentTreeItem.IsOk()) {
-      SetCursor(*wxHOURGLASS_CURSOR);
-      working = true;
+      SetWorking(true);
       CmdMark(currentTreeItem, NULL, 0, 0);
       tree->Refresh();
-      working = false;
       treeadd->Enable(1);
       treeremove->Enable(0);
-      SetCursor(*wxSTANDARD_CURSOR);
+      SetWorking(false);
    }
 }
 
 void wxbRestorePanel::OnTreeRefresh(wxCommandEvent& event) {
-   if (working) {
+   if (IsWorking()) {
+      AddPendingEvent(event);
       return;
    }
    
+   SetWorking(true);
    RefreshTree();
+   SetWorking(false);
 }
 
 void wxbRestorePanel::OnListMarked(wxbListMarkedEvent& event) {
-   if (working) {
+   if (IsWorking()) {
+      AddPendingEvent(event);
       //event.Skip();
       return;
    }
@@ -2043,8 +2094,7 @@ void wxbRestorePanel::OnListMarked(wxbListMarkedEvent& event) {
       return;
    }
    
-   SetCursor(*wxHOURGLASS_CURSOR);
-   working = true;  
+   SetWorking(true);  
    
    long* items = new long[list->GetSelectedItemCount()];
    
@@ -2067,17 +2117,16 @@ void wxbRestorePanel::OnListMarked(wxbListMarkedEvent& event) {
    
    event.Skip();
    tree->Refresh();
-   working = false;
-   SetCursor(*wxSTANDARD_CURSOR);
+   SetWorking(false);
 }
 
 void wxbRestorePanel::OnListActivated(wxListEvent& event) {
-   if (working) {
+   if (IsWorking()) {
+      AddPendingEvent(event);
       //event.Skip();
       return;
    }
-   SetCursor(*wxHOURGLASS_CURSOR);
-   working = true;
+   SetWorking(true);
    long item = event.GetIndex();
 //   long item = list->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_FOCUSED);
    if (item > -1) {
@@ -2096,8 +2145,7 @@ void wxbRestorePanel::OnListActivated(wxListEvent& event) {
             wxString name2 = tree->GetItemText(currentChild);
             if (name2 == name) {
                //tree->UnselectAll();
-               working = false;
-               SetCursor(*wxSTANDARD_CURSOR);
+               SetWorking(false);
                tree->Expand(currentTreeItem);
                tree->SelectItem(currentChild);
                //tree->Refresh();
@@ -2107,11 +2155,15 @@ void wxbRestorePanel::OnListActivated(wxListEvent& event) {
          }
       }
    }
-   working = false;
-   SetCursor(*wxSTANDARD_CURSOR);
+   SetWorking(false);
 }
 
 void wxbRestorePanel::OnListChanged(wxListEvent& event) {
+   if (IsWorking()) {
+      AddPendingEvent(event);
+      return;
+   }
+ 
    listadd->Enable(false);
    listremove->Enable(false);
    
@@ -2143,13 +2195,13 @@ void wxbRestorePanel::OnListChanged(wxListEvent& event) {
    listremove->Enable(marked);
 }
 
-void wxbRestorePanel::OnListAdd(wxCommandEvent& WXUNUSED(event)) {
-   if (working) {
+void wxbRestorePanel::OnListAdd(wxCommandEvent& event) {
+   if (IsWorking()) {
+      AddPendingEvent(event);
       return;
    }
    
-   SetCursor(*wxHOURGLASS_CURSOR);
-   working = true;
+   SetWorking(true);
    
    long* items = new long[list->GetSelectedItemCount()];
    
@@ -2167,20 +2219,19 @@ void wxbRestorePanel::OnListAdd(wxCommandEvent& WXUNUSED(event)) {
    delete[] items;
    
    tree->Refresh();
-   working = false;
-   SetCursor(*wxSTANDARD_CURSOR);
+   SetWorking(false);
    
    listadd->Enable(false);
    listremove->Enable(true);
 }
 
-void wxbRestorePanel::OnListRemove(wxCommandEvent& WXUNUSED(event)) {
-   if (working) {
+void wxbRestorePanel::OnListRemove(wxCommandEvent& event) {
+   if (IsWorking()) {
+      AddPendingEvent(event);
       return;
    }
    
-   SetCursor(*wxHOURGLASS_CURSOR);
-   working = true;
+   SetWorking(true);
    
    long* items = new long[list->GetSelectedItemCount()];
    
@@ -2198,44 +2249,42 @@ void wxbRestorePanel::OnListRemove(wxCommandEvent& WXUNUSED(event)) {
    delete[] items;
    
    tree->Refresh();
-   working = false;
-   SetCursor(*wxSTANDARD_CURSOR);
+   SetWorking(false);
    
    listadd->Enable(true);
    listremove->Enable(false);
 }
 
-void wxbRestorePanel::OnListRefresh(wxCommandEvent& WXUNUSED(event)) {
-   if (working) {
+void wxbRestorePanel::OnListRefresh(wxCommandEvent& event) {
+   if (IsWorking()) {
+      AddPendingEvent(event);
       return;
    }
    
+   SetWorking(true);
    RefreshList();
+   SetWorking(false);
 }
 
 void wxbRestorePanel::OnConfigUpdated(wxCommandEvent& event) {
    if (status == entered) {
       if (event.GetId() == ConfigJobName) {
-         if (working) {
+         if (IsWorking()) {
             return;
          }
-         SetCursor(*wxHOURGLASS_CURSOR);
-         working = true;
+         SetWorking(true);
          UpdateFirstConfig();
-         working = false;
-         SetCursor(*wxSTANDARD_CURSOR);
+         SetWorking(false);
       }
       else if (event.GetId() == ConfigClient) {
-         if (working) {
+         if (IsWorking()) {
             return;
          }
-         SetCursor(*wxHOURGLASS_CURSOR);
-         working = true;
+         SetWorking(true);
          configPanel->Enable(false);
          CmdListJobs();
          configPanel->Enable(true);
-         working = false;
-         SetCursor(*wxSTANDARD_CURSOR);
+         SetWorking(false);
       }
       cfgUpdated = cfgUpdated | (1 << event.GetId());
    }
@@ -2247,40 +2296,34 @@ void wxbRestorePanel::OnConfigUpdated(wxCommandEvent& event) {
 
 void wxbRestorePanel::OnConfigOk(wxCommandEvent& WXUNUSED(event)) {
    if (status != configuring) return;
-   if (working) {
+   if (IsWorking()) {
       return;
    }
-   SetCursor(*wxHOURGLASS_CURSOR);
-   working = true;
+   SetWorking(true);
    CmdStart();
-   working = false;
-   SetCursor(*wxSTANDARD_CURSOR);
+   SetWorking(false);
 }
 
 void wxbRestorePanel::OnConfigApply(wxCommandEvent& WXUNUSED(event)) {
    if (status != configuring) return;
-   if (working) {
+   if (IsWorking()) {
       return;
    }
-   SetCursor(*wxHOURGLASS_CURSOR);
-   working = true;
+   SetWorking(true);
    CmdConfigApply();
    if (cfgUpdated == 0) {
       restorePanel->EnableApply(false);
    }
-   working = false;  
-   SetCursor(*wxSTANDARD_CURSOR);
+   SetWorking(false);  
 }
 
 void wxbRestorePanel::OnConfigCancel(wxCommandEvent& WXUNUSED(event)) {
    if (status != configuring) return;
-   if (working) {
+   if (IsWorking()) {
       return;
    }
-   SetCursor(*wxHOURGLASS_CURSOR);
-   working = true;
+   SetWorking(true);
    CmdConfigCancel();
-   working = false;
-   SetCursor(*wxSTANDARD_CURSOR);
+   SetWorking(false);
 }
 

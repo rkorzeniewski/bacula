@@ -47,6 +47,8 @@
 #include "wxbtreectrl.h"
 #include "wxblistctrl.h"
 
+WX_DECLARE_LIST(wxEvent, wxbEventList);
+
 /*
  * wxbPanel for restoring files
  */
@@ -159,6 +161,8 @@ class wxbRestorePanel : public wxbPanel
 
 /* UI related */
       bool working; // A command is running, discard GUI events
+      void SetWorking(bool working);
+      bool IsWorking();
       bool markWhenListingDone;
       wxTreeItemId currentTreeItem; // Currently selected tree item
 
@@ -166,23 +170,29 @@ class wxbRestorePanel : public wxbPanel
       void EnableConfig(bool enable);
 
 /* Event handling */
-      void OnStart(wxCommandEvent& WXUNUSED(event));
-      void OnCancel(wxCommandEvent& WXUNUSED(event));
+//      wxbEventList* pendingEvents; /* Stores event sent while working */ //EVTQUEUE
+//      bool processing; /* True if pendingEvents is being processed */ //EVTQUEUE
+
+//      virtual void AddPendingEvent(wxEvent& event);
+//      virtual bool ProcessEvent(wxEvent& event); //EVTQUEUE
+
+      void OnStart(wxCommandEvent& event);
+      void OnCancel(wxCommandEvent& event);
       
       void OnTreeChanging(wxTreeEvent& event);
       void OnTreeExpanding(wxTreeEvent& event);
       void OnTreeChanged(wxTreeEvent& event);
       void OnTreeMarked(wxbTreeMarkedEvent& event);
-      void OnTreeAdd(wxCommandEvent& WXUNUSED(event));
-      void OnTreeRemove(wxCommandEvent& WXUNUSED(event));
-      void OnTreeRefresh(wxCommandEvent& WXUNUSED(event));
+      void OnTreeAdd(wxCommandEvent& event);
+      void OnTreeRemove(wxCommandEvent& event);
+      void OnTreeRefresh(wxCommandEvent& event);
       
       void OnListMarked(wxbListMarkedEvent& event);
       void OnListActivated(wxListEvent& event);
       void OnListChanged(wxListEvent& event);
-      void OnListAdd(wxCommandEvent& WXUNUSED(event));
-      void OnListRemove(wxCommandEvent& WXUNUSED(event));
-      void OnListRefresh(wxCommandEvent& WXUNUSED(event));
+      void OnListAdd(wxCommandEvent& event);
+      void OnListRemove(wxCommandEvent& event);
+      void OnListRefresh(wxCommandEvent& event);
       
       void OnConfigUpdated(wxCommandEvent& event);
       void OnConfigOk(wxCommandEvent& WXUNUSED(event));

@@ -12,7 +12,11 @@ Mac OS X : Ask kern for the status of this distribution (who is
 
 wxbRestorePanel : Add images in add/remove/refresh buttons
 
-wxbRestorePanel : disable controls when working
+wxbRestorePanel : disable controls when working or (better) queue events
+  (see commented out code in wxbrestorepanel (marked with EVTQUEUE))
+
+wxbMainFrame : When exiting using menu, a messagebox is shown to ask the
+  user if he want to quit because the connection is lost.
 
 [postponed to July:]
 
