@@ -395,4 +395,13 @@ db_make_inchanger_unique(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    }
 }
 
+#else
+
+void
+db_make_inchanger_unique(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
+{
+  /* DUMMY func for Bacula_DB */
+  return;
+}
+
 #endif /* HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL*/

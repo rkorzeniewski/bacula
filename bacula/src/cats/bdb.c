@@ -102,8 +102,8 @@ int bdb_write_control_file(B_DB *mdb)
  * never have errors, or it is really fatal.
  */
 B_DB *
-db_init_database(JCR *jcr, char *db_name, char *db_user, char *db_password,
-		 char *db_address, int db_port, char *db_socket, 
+db_init_database(JCR *jcr, char const *db_name, char const *db_user, char const *db_password,
+		 char const *db_address, int db_port, char const *db_socket, 
 		 int mult_db_connections)
 {
    B_DB *mdb;
@@ -289,7 +289,7 @@ char *db_strerror(B_DB *mdb)
    return mdb->errmsg;
 }
 
-int db_sql_query(B_DB *mdb, char *query, DB_RESULT_HANDLER *result_handler, void *ctx)
+int db_sql_query(B_DB *mdb, char const *query, DB_RESULT_HANDLER *result_handler, void *ctx)
 {
    return 1;
 }
@@ -430,7 +430,7 @@ int bdb_open_media_file(B_DB *mdb)
 }
 
 
-void _db_lock(char *file, int line, B_DB *mdb)
+void _db_lock(const char *file, int line, B_DB *mdb)
 {
    int errstat;
    if ((errstat=rwl_writelock(&mdb->lock)) != 0) {
@@ -439,7 +439,7 @@ void _db_lock(char *file, int line, B_DB *mdb)
    }
 }    
 
-void _db_unlock(char *file, int line, B_DB *mdb)
+void _db_unlock(const char *file, int line, B_DB *mdb)
 {
    int errstat;
    if ((errstat=rwl_writeunlock(&mdb->lock)) != 0) {

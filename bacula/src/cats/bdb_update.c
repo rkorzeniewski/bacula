@@ -111,7 +111,7 @@ int db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 
    fseek(mdb->jobfd, ojr.rec_addr, SEEK_SET);
    if (fwrite(jr, len, 1, mdb->jobfd) != 1) {
-      Mmsg1(&db->errmsg, _("Error updating DB Job file. ERR=%s\n"), strerror(errno));
+      Mmsg1(&mdb->errmsg, _("Error updating DB Job file. ERR=%s\n"), strerror(errno));
       stat = 0;
    }
    fflush(mdb->jobfd);
