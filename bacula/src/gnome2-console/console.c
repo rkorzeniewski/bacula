@@ -32,7 +32,7 @@
 #include "support.h"
 
 /* Imported functions */
-int authenticate_director(JCR *jcr, DIRRES *director);
+int authenticate_director(JCR *jcr, DIRRES *director, char *name);
        
 /* Exported variables */
 GtkWidget *app1;	     /* application window */
@@ -127,30 +127,29 @@ int main(int argc, char *argv[])
 
    while ((ch = getopt(argc, argv, "bc:d:r:st?")) != -1) {
       switch (ch) {
-         case 'c':                    /* configuration file */
-	    if (configfile != NULL)
-	       free(configfile);
-	    configfile = bstrdup(optarg);
-	    break;
+      case 'c':                    /* configuration file */
+	 if (configfile != NULL)
+	    free(configfile);
+	 configfile = bstrdup(optarg);
+	 break;
 
-         case 'd':
-	    debug_level = atoi(optarg);
-	    if (debug_level <= 0)
-	       debug_level = 1;
-	    break;
+      case 'd':
+	 debug_level = atoi(optarg);
+	 if (debug_level <= 0)
+	    debug_level = 1;
+	 break;
 
-         case 's':                    /* turn off signals */
-	    no_signals = TRUE;
-	    break;
+      case 's':                    /* turn off signals */
+	 no_signals = TRUE;
+	 break;
 
-         case 't':
-	    test_config = TRUE;
-	    break;
+      case 't':
+	 test_config = TRUE;
+	 break;
 
-         case '?':
-	 default:
-	    usage();
-
+      case '?':
+      default:
+	 usage();
       }  
    }
    argc -= optind;
@@ -238,7 +237,6 @@ Without that I don't how to speak to the Director :-(\n"), configfile);
    gtk_widget_modify_font (status1, font_desc);
    pango_font_description_free (font_desc);
 
-
    initial = gtk_timeout_add(100, initial_connect_to_director, (gpointer)NULL);
 
    gtk_main();
@@ -261,8 +259,9 @@ static gint message_handler(gpointer data)
 
 int disconnect_from_director(gpointer data)
 {
-   if (!quit)
+   if (!quit) {
       set_status(_(" Not Connected"));
+   }
    if (UA_sock) {
       bnet_sig(UA_sock, BNET_TERMINATE); /* send EOF */
       bnet_close(UA_sock);
@@ -345,7 +344,7 @@ int connect_to_director(gpointer data)
 
    if (ndir > 1) {
       LockRes();
-      for (dir = NULL; (dir = (DIRRES *)GetNextRes(R_DIRECTOR, (RES *)dir)); ) {
+      foreach_res(dir, R_DIRECTOR) {
          sprintf(buf, "%s at %s:%d", dir->hdr.name, dir->address,
 	    dir->DIRport);
          printf("%s\n", buf);
@@ -399,7 +398,16 @@ int connect_to_director(gpointer data)
    }
    
    jcr.dir_bsock = UA_sock;
-   if (!authenticate_director(&jcr, dir)) {
+   LockRes();
+   CONRES *cons = (CONRES *)GetNextRes(R_CONSOLE, (RES *)NULL);
+   UnlockRes();
+   char *con_name;
+   if (cons) {
+      con_name = cons->hdr.name;
+   } else {
+      con_name = "*UserAgent*";
+   }
+   if (!authenticate_director(&jcr, dir, con_name)) {
       set_text(UA_sock->msg, UA_sock->msglen);
       return 0;
    }

@@ -45,15 +45,18 @@ static char OKhello[]   = "1000 OK:";
 /*
  * Authenticate Director
  */
-int authenticate_director(JCR *jcr, DIRRES *director)
+int authenticate_director(JCR *jcr, DIRRES *director, char *name)
 {
    BSOCK *dir = jcr->dir_bsock;
    int ssl_need = BNET_SSL_NONE;
+   char bashed_name[MAX_NAME_LENGTH];
 
    /* 
     * Send my name to the Director then do authentication
     */
-   bnet_fsend(dir, hello, "UserAgent");
+   bstrncpy(bashed_name, name, sizeof(bashed_name));
+   bash_spaces(bashed_name);
+   bnet_fsend(dir, hello, bashed_name);
 
    if (!cram_md5_get_auth(dir, director->password, ssl_need) || 
        !cram_md5_auth(dir, director->password, ssl_need)) {

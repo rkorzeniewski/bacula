@@ -8,14 +8,14 @@
  *   1. The generic lexical scanner in lib/lex.c and lib/lex.h
  *
  *   2. The generic config  scanner in lib/parse_config.c and 
- *	lib/parse_config.h.
- *	These files contain the parser code, some utility
- *	routines, and the common store routines (name, int,
- *	string).
+ *      lib/parse_config.h.
+ *      These files contain the parser code, some utility
+ *      routines, and the common store routines (name, int,
+ *      string).
  *
  *   3. The daemon specific file, which contains the Resource
- *	definitions as well as any specific store routines
- *	for the resource records.
+ *      definitions as well as any specific store routines
+ *      for the resource records.
  *
  *     Kern Sibbald, January MM, September MM
  *
@@ -91,7 +91,7 @@ static struct res_items con_items[] = {
 struct s_res resources[] = {
    {"director",      dir_items,   R_DIRECTOR,  NULL},
    {"consolefont",   con_items,   R_CONSOLE,   NULL},
-   {NULL,	     NULL,	  0,	       NULL}
+   {NULL,            NULL,        0,           NULL}
 };
 
 
@@ -105,21 +105,21 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
       printf("No record for %d %s\n", type, res_to_str(type));
       return;
    }
-   if (type < 0) {		      /* no recursion */
+   if (type < 0) {                    /* no recursion */
       type = - type;
       recurse = 0;
    }
    switch (type) {
-      case R_DIRECTOR:
-         printf("Director: name=%s address=%s DIRport=%d\n", reshdr->name, 
-		 res->res_dir.address, res->res_dir.DIRport);
-	 break;
-      case R_CONSOLE:
-         printf("Console: name=%s font face=%s\n", 
-		reshdr->name, NPRT(res->con_dir.fontface));
-	 break;
-      default:
-         printf("Unknown resource type %d\n", type);
+   case R_DIRECTOR:
+      printf("Director: name=%s address=%s DIRport=%d\n", reshdr->name, 
+              res->res_dir.address, res->res_dir.DIRport);
+      break;
+   case R_CONSOLE:
+      printf("Console: name=%s font face=%s\n", 
+             reshdr->name, NPRT(res->con_dir.fontface));
+      break;
+   default:
+      printf("Unknown resource type %d\n", type);
    }
    if (recurse && res->res_dir.hdr.next) {
       dump_resource(type, res->res_dir.hdr.next, sendit, sock);
@@ -154,18 +154,18 @@ void free_resource(int type)
    }
 
    switch (type) {
-      case R_DIRECTOR:
-	 if (res->res_dir.address) {
-	    free(res->res_dir.address);
-	 }
-	 break;
-      case R_CONSOLE:
-	 if (res->con_dir.fontface) {
-	    free(res->con_dir.fontface);
-	 }
-	 break;
-      default:
-         printf("Unknown resource type %d\n", type);
+   case R_DIRECTOR:
+      if (res->res_dir.address) {
+         free(res->res_dir.address);
+      }
+      break;
+   case R_CONSOLE:
+      if (res->con_dir.fontface) {
+         free(res->con_dir.fontface);
+      }
+      break;
+   default:
+      printf("Unknown resource type %d\n", type);
    }
    /* Common stuff again -- free the resource, recurse to next one */
    free(res);
@@ -191,10 +191,10 @@ void save_resource(int type, struct res_items *items, int pass)
     */
    for (i=0; items[i].name; i++) {
       if (items[i].flags & ITEM_REQUIRED) {
-	    if (!bit_is_set(i, res_all.res_dir.hdr.item_present)) {  
+            if (!bit_is_set(i, res_all.res_dir.hdr.item_present)) {  
                Emsg2(M_ABORT, 0, "%s item is required in %s resource, but not found.\n",
-		 items[i].name, resources[rindex]);
-	     }
+                 items[i].name, resources[rindex]);
+             }
       }
    }
 
@@ -205,64 +205,64 @@ void save_resource(int type, struct res_items *items, int pass)
     */
    if (pass == 2) {
       switch (type) {
-	 /* Resources not containing a resource */
-	 case R_DIRECTOR:
-	    break;
+      /* Resources not containing a resource */
+      case R_DIRECTOR:
+         break;
 
-	 case R_CONSOLE:
-	    break;
+      case R_CONSOLE:
+         break;
 
-	 default:
-            Emsg1(M_ERROR, 0, "Unknown resource type %d\n", type);
-	    error = 1;
-	    break;
+      default:
+         Emsg1(M_ERROR, 0, "Unknown resource type %d\n", type);
+         error = 1;
+         break;
       }
       /* Note, the resoure name was already saved during pass 1,
        * so here, we can just release it.
        */
       if (res_all.res_dir.hdr.name) {
-	 free(res_all.res_dir.hdr.name);
-	 res_all.res_dir.hdr.name = NULL;
+         free(res_all.res_dir.hdr.name);
+         res_all.res_dir.hdr.name = NULL;
       }
       if (res_all.res_dir.hdr.desc) {
-	 free(res_all.res_dir.hdr.desc);
-	 res_all.res_dir.hdr.desc = NULL;
+         free(res_all.res_dir.hdr.desc);
+         res_all.res_dir.hdr.desc = NULL;
       }
       return;
    }
 
    /* The following code is only executed during pass 1 */
    switch (type) {
-      case R_DIRECTOR:
-	 size = sizeof(DIRRES);
-	 break;
-      case R_CONSOLE:
-	 size = sizeof(CONRES);
-	 break;
-      default:
-         printf("Unknown resource type %d\n", type);
-	 error = 1;
-	 break;
+   case R_DIRECTOR:
+      size = sizeof(DIRRES);
+      break;
+   case R_CONSOLE:
+      size = sizeof(CONRES);
+      break;
+   default:
+      printf("Unknown resource type %d\n", type);
+      error = 1;
+      break;
    }
    /* Common */
    if (!error) {
       res = (URES *)malloc(size);
       memcpy(res, &res_all, size);
       if (!resources[rindex].res_head) {
-	 resources[rindex].res_head = (RES *)res; /* store first entry */
+         resources[rindex].res_head = (RES *)res; /* store first entry */
       } else {
-	 RES *next;
-	 /* Add new res to end of chain */
-	 for (next=resources[rindex].res_head; next->next; next=next->next) {
-	    if (strcmp(next->name, res->res_dir.hdr.name) == 0) {
-	       Emsg2(M_ERROR_TERM, 0,
+         RES *next;
+         /* Add new res to end of chain */
+         for (next=resources[rindex].res_head; next->next; next=next->next) {
+            if (strcmp(next->name, res->res_dir.hdr.name) == 0) {
+               Emsg2(M_ERROR_TERM, 0,
                   _("Attempt to define second %s resource named \"%s\" is not permitted.\n"),
-		  resources[rindex].name, res->res_dir.hdr.name);
-	    }
-	 }
-	 next->next = (RES *)res;
+                  resources[rindex].name, res->res_dir.hdr.name);
+            }
+         }
+         next->next = (RES *)res;
          Dmsg2(90, "Inserting %s res: %s\n", res_to_str(type),
-	       res->res_dir.hdr.name);
+               res->res_dir.hdr.name);
       }
    }
 }

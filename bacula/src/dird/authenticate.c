@@ -128,11 +128,11 @@ int authenticate_file_daemon(JCR *jcr)
  */
 int authenticate_user_agent(BSOCK *ua)
 {
-   char name[MAXSTRING];
+   char name[MAX_NAME_LENGTH];
    int ssl_need = BNET_SSL_NONE;
-   int ok;    
+   bool ok;    
 
-   if (ua->msglen < 16 || ua->msglen >= MAXSTRING-1) {
+   if (ua->msglen < 16 || ua->msglen >= MAX_NAME_LENGTH + 15) {
       Emsg2(M_ERROR, 0, _("UA Hello from %s is invalid. Len=%d\n"), ua->who, 
 	    ua->msglen);
       return 0;
@@ -144,14 +144,24 @@ int authenticate_user_agent(BSOCK *ua)
 	    ua->msg);
       return 0;
    }
-
-   ok = cram_md5_auth(ua, director->password, ssl_need) &&
-	cram_md5_get_auth(ua, director->password, ssl_need);
-
+   name[MAXSTRING-1] = 0;	      /* terminate name */
+   if (strcmp(name, "*UserAgent*") == 0) {  /* default console */
+      ok = cram_md5_auth(ua, director->password, ssl_need) &&
+	   cram_md5_get_auth(ua, director->password, ssl_need);
+   } else {
+      unbash_spaces(name); 
+      CONRES *cons = (CONRES *)GetResWithName(R_CONSOLE, name);
+      if (cons) {
+	 ok = cram_md5_auth(ua, cons->password, ssl_need) &&
+	      cram_md5_get_auth(ua, cons->password, ssl_need);
+      } else {
+	 ok = false;
+      }
+   }
    if (!ok) {
       bnet_fsend(ua, "%s", _(Dir_sorry));
-      Emsg1(M_WARNING, 0, _("Unable to authenticate User Agent at %s.\n"),
-	    ua->who);
+      Emsg2(M_ERROR, 0, _("Unable to authenticate User Agent \"%s\" at %s.\n"),
+	    name, ua->who);
       sleep(5);
       return 0;
    }

@@ -235,7 +235,7 @@ void save_resource(int type, struct res_items *items, int pass)
    /* The following code is only executed during pass 1 */
    switch (type) {
       case R_CONSOLE:
-	 size = sizeof(CONSRES);
+	 size = sizeof(CONRES);
 	 break;
       case R_DIRECTOR:
 	 size = sizeof(DIRRES);

@@ -51,7 +51,7 @@ extern int rl_catch_signals;
 #endif
 
 /* Imported functions */
-int authenticate_director(JCR *jcr, DIRRES *director);
+int authenticate_director(JCR *jcr, DIRRES *director, char *name);
 
 
 
@@ -398,7 +398,17 @@ try_again:
       return 1;
    }
    jcr.dir_bsock = UA_sock;
-   if (!authenticate_director(&jcr, dir)) {
+
+   LockRes();
+   CONRES *cons = (CONRES *)GetNextRes(R_CONSOLE, (RES *)NULL);
+   UnlockRes();
+   char *con_name;
+   if (cons) {
+      con_name = cons->hdr.name;
+   } else {
+      con_name = "*UserAgent*";
+   }
+   if (!authenticate_director(&jcr, dir, con_name)) {
       fprintf(stderr, "ERR=%s", UA_sock->msg);
       terminate_console(0);
       return 1;
