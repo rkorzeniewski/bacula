@@ -1,0 +1,54 @@
+#!/bin/sh
+#
+# Run a simple backup of the Bacula build directory
+#   then verify the catalog.           
+#
+cwd=`pwd`
+scripts/copy-test-confs
+rm -rf /tmp/TestVolume001 /tmp/bacula-restores
+bin/bacula stop 2>&1 >/dev/null
+bin/drop_sqlite_tables
+bin/make_sqlite_tables
+
+echo " "
+echo " "
+echo " === Starting verify Volume Test ==="
+echo " "
+
+bin/bacula start
+bin/console -c bin/console.conf <<END_OF_DATA
+@output /dev/null
+messages
+@output
+label
+TestVolume001
+run job=NightlySave
+yes
+wait
+messages
+@# 
+@# now do a verify volume
+@#
+run job=VerifyVolume
+yes
+wait
+@tee /tmp/original
+messages
+@output
+quit
+END_OF_DATA
+sleep 2
+bin/bacula stop
+grep "Termination: *Verify OK" /tmp/original 2>&1 >/dev/null
+if [ $? != 0 ] ; then
+   echo " "
+   echo " "
+   echo "  ===== Verify Volume failed!!! ===== "
+   echo "  ===== Verify Volume failed!!! ===== " >>test.out
+   echo " "
+else
+   echo "  ===== Verify Volume Test OK ===== "
+   echo "  ===== Verify Volume Test OK ===== " >>test.out
+fi
+rm -rf /tmp/bacula-restores
+rm -f /tmp/original
