@@ -182,7 +182,7 @@ int do_backup(JCR *jcr)
    /* 
     * send Storage daemon address to the File daemon
     */
-   store = (STORE *)jcr->storage[0]->first();
+   store = jcr->store;
    if (store->SDDport == 0) {
       store->SDDport = store->SDport;
    }

@@ -30,10 +30,12 @@
 
 #include "bacula.h"
 
+EVENT_HANDLER *generate_event;
+
 #ifdef HAVE_PYTHON
+#undef _POSIX_C_SOURCE
 #include <Python.h>
 
-EVENT_HANDLER *generate_event;
 
 PyObject *bacula_get(PyObject *self, PyObject *args);
 PyObject *bacula_set(PyObject *self, PyObject *args, PyObject *keyw);
