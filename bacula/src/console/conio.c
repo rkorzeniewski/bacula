@@ -834,11 +834,13 @@ static void rawmode(FILE *input)
 
    if (!termtype) {
       printf("Cannot get terminal type.\n");
-      exit(1);
+      normode();
+      _exit(1);
    }
    if (tgetent(term_buffer, termtype) < 0) {
       printf("Cannot get terminal termcap entry.\n");
-      exit(1);
+      normode();
+      _exit(1);
    }
    t_width = t_height = -1;
    t_width = tgetnum("co") - 1;
@@ -989,7 +991,8 @@ static void sigintcatcher(int sig)
 {
    brkflg++;
    if (brkflg > 1) {
-      exit(1);
+      normode();
+      _exit(1);
    }
    signal(SIGINT, sigintcatcher);
 }

@@ -172,6 +172,8 @@ int status_cmd(JCR *jcr)
 #endif
    bnet_fsend(user, "====\n");
 
+   list_spool_stats(user);
+
    bnet_sig(user, BNET_EOD);
    return 1;
 }
