@@ -4,7 +4,7 @@
 #   each constrained to 10MB using the automatic labeling feature.
 #
 
-if test ! -e /dev/urandom ; then
+if test ! -c /dev/urandom ; then
    echo "No random device. Test skipped.\n"
    exit 0
 fi
