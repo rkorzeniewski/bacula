@@ -83,6 +83,7 @@ struct DEVRES {
    uint32_t min_block_size;           /* min block size */
    uint32_t max_block_size;           /* max block size */
    uint32_t max_volume_jobs;          /* max jobs to put on one volume */
+   utime_t  vol_poll_interval;        /* interval between polling volume during mount */
    int64_t max_volume_files;          /* max files to put on one volume */
    int64_t max_volume_size;           /* max bytes to put on one volume */
    int64_t max_file_size;             /* max file size in bytes */

@@ -366,6 +366,7 @@ void _steal_device_lock(char *file, int line, DEVICE *dev, bsteal_lock_t *hold, 
    Dmsg4(100, "steal lock. old=%d new=%d from %s:%d\n", dev->dev_blocked, state,
       file, line);
    hold->dev_blocked = dev->dev_blocked;
+   hold->dev_prev_blocked = dev->dev_prev_blocked;
    hold->no_wait_id = dev->no_wait_id;
    dev->dev_blocked = state;
    dev->no_wait_id = pthread_self();
@@ -382,5 +383,6 @@ void _give_back_device_lock(char *file, int line, DEVICE *dev, bsteal_lock_t *ho
       dev->dev_blocked, hold->dev_blocked, file, line);
    P(dev->mutex);
    dev->dev_blocked = hold->dev_blocked;
+   dev->dev_prev_blocked = hold->dev_prev_blocked;
    dev->no_wait_id = hold->no_wait_id;
 }

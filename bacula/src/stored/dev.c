@@ -147,6 +147,11 @@ init_dev(DEVICE *dev, DEVRES *device)
    dev->max_rewind_wait = device->max_rewind_wait;
    dev->max_open_wait = device->max_open_wait;
    dev->max_open_vols = device->max_open_vols;
+   dev->vol_poll_interval = device->vol_poll_interval;
+   /* Sanity check */
+   if (dev->vol_poll_interval && dev->vol_poll_interval < 60) {
+      dev->vol_poll_interval = 60;
+   }
    dev->device = device;
 
    if (tape) {
@@ -1385,4 +1390,38 @@ JCR *next_attached_jcr(DEVICE *dev, JCR *jcr)
       return dev->attached_jcrs;
    }
    return jcr->next_dev;
+}
+
+/*
+ * This routine initializes the device wait timers
+ */
+void init_dev_wait_timers(DEVICE *dev)
+{
+   /* ******FIXME******* put these on config variables */
+   dev->min_wait = 60 * 60;
+   dev->max_wait = 24 * 60 * 60;
+   dev->max_num_wait = 9;	       /* 5 waits =~ 1 day, then 1 day at a time */
+   dev->wait_sec = dev->min_wait;
+   dev->rem_wait_sec = dev->wait_sec;
+   dev->num_wait = 0;
+   dev->poll = false;
+   dev->BadVolName[0] = 0;
+}
+
+/*
+ * Returns: true if time doubled
+ *	    false if max time expired
+ */
+bool double_dev_wait_time(DEVICE *dev)
+{
+   dev->wait_sec *= 2;		     /* double wait time */
+   if (dev->wait_sec > dev->max_wait) {   /* but not longer than maxtime */
+      dev->wait_sec = dev->max_wait;
+   }
+   dev->num_wait++;
+   dev->rem_wait_sec = dev->wait_sec;
+   if (dev->num_wait >= dev->max_num_wait) {
+      return false;
+   }
+   return true;
 }

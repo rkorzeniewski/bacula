@@ -30,10 +30,6 @@
 #include "bacula.h"                   /* pull in global headers */
 #include "stored.h"                   /* pull in Storage Deamon headers */
 
-/* Forward referenced routines */
-static void mark_volume_in_error(JCR *jcr, DEVICE *dev);
-
-
 /*
  * If release is set, we rewind the current volume, 
  * which we no longer want, and ask the user (console) 
@@ -54,13 +50,16 @@ int mount_next_write_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, int release
 
    Dmsg0(100, "Enter mount_next_volume()\n");
 
+   init_dev_wait_timers(dev);
+
    /* 
     * Attempt to mount the next volume. If something non-fatal goes
     *  wrong, we come back here to re-try (new op messages, re-read
     *  Volume, ...)
     */
 mount_next_vol:
-   if (retry++ > 5) {
+   /* Ignore retry if this is poll request */
+   if (!dev->poll && retry++ > 8) {
       Jmsg(jcr, M_FATAL, 0, _("Too many errors trying to mount device %s.\n"), 
 	   dev_name(dev));
       return 0;
@@ -82,9 +81,9 @@ mount_next_vol:
     *	 in jcr->VolCatInfo
     */
    Dmsg0(100, "Before dir_find_next\n");
-   if (!dir_find_next_appendable_volume(jcr)) {
+   while (!dir_find_next_appendable_volume(jcr)) {
        Dmsg0(100, "not dir_find_next\n");
-       if (!dir_ask_sysop_to_mount_next_volume(jcr, dev)) {
+       if (!dir_ask_sysop_to_create_appendable_volume(jcr, dev)) {
 	 return 0;
        }
    }
@@ -123,7 +122,7 @@ mount_next_vol:
    Dmsg2(100, "Ask=%d autochanger=%d\n", ask, autochanger);
    release = true;                /* release next time if we "recurse" */
 
-   if (ask && !dir_ask_sysop_to_mount_next_volume(jcr, dev)) {
+   if (ask && !dir_ask_sysop_to_mount_volume(jcr, dev)) {
       Dmsg0(100, "Error return ask_sysop ...\n");
       return 0; 	     /* error return */
    }
@@ -179,6 +178,13 @@ read_volume:
       VOLUME_CAT_INFO VolCatInfo;
 
       Dmsg1(100, "Vol NAME Error Name=%s\n", jcr->VolumeName);
+      /* If polling and got a previous bad name, ignore it */
+      if (dev->poll && strcmp(dev->BadVolName, dev->VolHdr.VolName) == 0) {
+	 ask = true;
+         Dmsg1(200, "Vol Name error supress due to poll. Name=%s\n", 
+	    jcr->VolumeName);
+	 goto mount_next_vol;
+      }
       /* 
        * OK, we got a different volume mounted. First save the
        *  requested Volume info (jcr) structure, then query if
@@ -189,6 +195,7 @@ read_volume:
       /* Check if this is a valid Volume in the pool */
       pm_strcpy(&jcr->VolumeName, dev->VolHdr.VolName); 			
       if (!dir_get_volume_info(jcr, GET_VOL_INFO_FOR_WRITE)) {
+	 bstrncpy(dev->BadVolName, dev->VolHdr.VolName, sizeof(dev->BadVolName));
          Jmsg(jcr, M_WARNING, 0, _("Director wanted Volume \"%s\".\n"
               "    Current Volume \"%s\" not acceptable because:\n"
               "    %s"),
@@ -240,7 +247,11 @@ read_volume:
    case VOL_NO_MEDIA:
    default:
       /* Send error message */
-      Jmsg(jcr, M_WARNING, 0, "%s", jcr->errmsg);                         
+      if (!dev->poll) {
+         Jmsg(jcr, M_WARNING, 0, "%s", jcr->errmsg);                         
+      } else {
+         Dmsg1(200, "Msg suppressed by poll: %s\n", jcr->errmsg);
+      }
       ask = true;
       goto mount_next_vol;
    }
@@ -375,7 +386,10 @@ The number of files mismatch! Volume=%u Catalog=%u\n"),
    return 1; 
 }
 
-static void mark_volume_in_error(JCR *jcr, DEVICE *dev)
+/*
+ * Mark volume in error in catalog 
+ */
+void mark_volume_in_error(JCR *jcr, DEVICE *dev)
 {
    Jmsg(jcr, M_INFO, 0, _("Marking Volume \"%s\" in Error in Catalog.\n"),
 	jcr->VolumeName);

@@ -54,7 +54,7 @@ static char OK_media[] = "1000 OK VolName=%127s VolJobs=%u VolFiles=%u"
 static char OK_create[] = "1000 OK CreateJobMedia\n";
 
 /* Forward referenced functions */
-static int wait_for_sysop(JCR *jcr, DEVICE *dev, int wait_sec);
+static int wait_for_sysop(JCR *jcr, DEVICE *dev);
 
 /*
  * Send current JobStatus to Director
@@ -159,7 +159,7 @@ int dir_find_next_appendable_volume(JCR *jcr)
 int dir_update_volume_info(JCR *jcr, DEVICE *dev, int label)
 {
    BSOCK *dir = jcr->dir_bsock;
-   time_t EndTime = time(NULL);
+   time_t LastWritten = time(NULL);
    char ed1[50], ed2[50], ed3[50], ed4[50];
    VOLUME_CAT_INFO *vol = &dev->VolCatInfo;
 
@@ -188,7 +188,7 @@ int dir_update_volume_info(JCR *jcr, DEVICE *dev, int label)
       vol->VolCatBlocks, edit_uint64(vol->VolCatBytes, ed1),
       vol->VolCatMounts, vol->VolCatErrors,
       vol->VolCatWrites, edit_uint64(vol->VolCatMaxBytes, ed2), 
-      EndTime, vol->VolCatStatus, vol->Slot, label,
+      LastWritten, vol->VolCatStatus, vol->Slot, label,
       vol->InChanger,
       edit_uint64(vol->VolReadTime, ed3), 
       edit_uint64(vol->VolWriteTime, ed4) );
@@ -262,8 +262,9 @@ int dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec)
 }
 
 
+
 /*
- *   Request to mount next Volume, which Volume not specified
+ *   Request the sysop to create an appendable volume
  *
  *   Entered with device blocked.
  *   Leaves with device blocked.
@@ -280,37 +281,34 @@ int dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec)
  *	actually be mounted. The calling routine must read it and
  *	verify the label.
  */
-int dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev)
+int dir_ask_sysop_to_create_appendable_volume(JCR *jcr, DEVICE *dev)
 {
    int stat = 0, jstat;
-   /* ******FIXME******* put these on config variable */
-   int min_wait = 60 * 60;
-   int max_wait = 24 * 60 * 60;
-   int max_num_wait = 9;	      /* 5 waits =~ 1 day, then 1 day at a time */
+   bool unmounted;
 
-   int wait_sec;
-   int num_wait = 0;
-
-   Dmsg0(130, "enter dir_ask_sysop_to_mount_next_volume\n");
+   Dmsg0(130, "enter dir_ask_sysop_to_create_appendable_volume\n");
    ASSERT(dev->dev_blocked);
-   wait_sec = min_wait;
    for ( ;; ) {
       if (job_canceled(jcr)) {
-         Mmsg(&dev->errmsg, _("Job %s canceled while waiting for mount on Storage Device \"%s\".\n"), 
+	 Mmsg(&dev->errmsg,
+              _("Job %s canceled while waiting for mount on Storage Device \"%s\".\n"), 
 	      jcr->Job, jcr->dev_name);
          Jmsg(jcr, M_INFO, 0, "%s", dev->errmsg);
 	 return 0;
       }
       if (dir_find_next_appendable_volume(jcr)) {    /* get suggested volume */
 	 jstat = JS_WaitMount;
+	 unmounted = (dev->dev_blocked == BST_UNMOUNTED) ||
+		     (dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP);
 	 /*
 	  * If we have a valid volume name and we are not
 	  *   removable media, return now, or if we have a
 	  *   Slot for an autochanger, otherwise wait
 	  *   for the operator to mount the media.
 	  */
-	 if ((jcr->VolumeName[0] && !dev_cap(dev, CAP_REM) && dev_cap(dev, CAP_LABEL)) ||
-	     (jcr->VolumeName[0] && jcr->VolCatInfo.Slot)) {
+	 if (!unmounted && ((jcr->VolumeName[0] && !dev_cap(dev, CAP_REM) && 
+		dev_cap(dev, CAP_LABEL)) ||
+		 (jcr->VolumeName[0] && jcr->VolCatInfo.Slot))) {
             Dmsg0(100, "Return 1 from mount without wait.\n");
 	    return 1;
 	 }
@@ -322,32 +320,33 @@ int dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev)
 		jcr->VolumeName, jcr->dev_name, jcr->Job);
       } else {
 	 jstat = JS_WaitMedia;
-	 Jmsg(jcr, M_MOUNT, 0, _(
+	 if (!dev->poll) {
+	    Jmsg(jcr, M_MOUNT, 0, _(
 "Job %s waiting. Cannot find any appendable volumes.\n\
 Please use the \"label\"  command to create a new Volume for:\n\
     Storage:      %s\n\
     Media type:   %s\n\
     Pool:         %s\n"),
-	      jcr->Job, 
-	      jcr->dev_name, 
-	      jcr->media_type,
-	      jcr->pool_name);
+	       jcr->Job, 
+	       jcr->dev_name, 
+	       jcr->media_type,
+	       jcr->pool_name);
+	 }
       }
 
       jcr->JobStatus = jstat;
       dir_send_job_status(jcr);
 
-      stat = wait_for_sysop(jcr, dev, wait_sec);
+      stat = wait_for_sysop(jcr, dev);
+      if (dev->poll) {
+         Dmsg1(200, "Poll timeout in create append vol on device %s\n", dev_name(dev));
+	 continue;
+      }
 
       if (stat == ETIMEDOUT) {
-	 wait_sec *= 2; 	      /* double wait time */
-	 if (wait_sec > max_wait) {   /* but not longer than maxtime */
-	    wait_sec = max_wait;
-	 }
-	 num_wait++;
-	 if (num_wait >= max_num_wait) {
+	 if (!double_dev_wait_time(dev)) {
             Mmsg(&dev->errmsg, _("Gave up waiting to mount Storage Device \"%s\" for Job %s\n"), 
-		 jcr->dev_name, jcr->Job);
+	       dev_name(dev), jcr->Job);
             Jmsg(jcr, M_FATAL, 0, "%s", dev->errmsg);
             Dmsg1(190, "Gave up waiting on device %s\n", dev_name(dev));
 	    return 0;		      /* exceeded maximum waits */
@@ -366,22 +365,30 @@ Please use the \"label\"  command to create a new Volume for:\n\
       }
       Dmsg1(190, "Someone woke me for device %s\n", dev_name(dev));
 
-      /* Restart wait counters */
-      wait_sec = min_wait;
-      num_wait = 0;
       /* If no VolumeName, and cannot get one, try again */
       if (jcr->VolumeName[0] == 0 && !job_canceled(jcr) &&
 	  !dir_find_next_appendable_volume(jcr)) {
 	 Jmsg(jcr, M_MOUNT, 0, _(
 "Someone woke me up, but I cannot find any appendable\n\
 volumes for Job=%s.\n"), jcr->Job);
+	 /* Restart wait counters after user interaction */
+	 init_dev_wait_timers(dev);
 	 continue;
       }       
+      unmounted = (dev->dev_blocked == BST_UNMOUNTED) ||
+		  (dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP);
+      if (unmounted) {
+	 continue;		      /* continue to wait */
+      }
+
+      /*
+       * Device mounted, we have a volume, break and return   
+       */
       break;
    }
    set_jcr_job_status(jcr, JS_Running);
    dir_send_job_status(jcr);
-   Dmsg0(130, "leave dir_ask_sysop_to_mount_next_volume\n");
+   Dmsg0(130, "leave dir_ask_sysop_to_mount_create_appendable_volume\n");
    return 1;
 }
 
@@ -400,47 +407,55 @@ volumes for Job=%s.\n"), jcr->Job);
 int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
 {
    int stat = 0;
-   /* ******FIXME******* put these on config variable */
-   int min_wait = 60 * 60;
-   int max_wait = 24 * 60 * 60;
-   int max_num_wait = 9;	      /* 5 waits =~ 1 day, then 1 day at a time */
-   int wait_sec;
-   int num_wait = 0;
    char *msg;
 
-   Dmsg0(130, "enter dir_ask_sysop_to_mount_next_volume\n");
+   Dmsg0(130, "enter dir_ask_sysop_to_mount_volume\n");
    if (!jcr->VolumeName[0]) {
       Mmsg0(&dev->errmsg, _("Cannot request another volume: no volume name given.\n"));
       return 0;
    }
    ASSERT(dev->dev_blocked);
-   wait_sec = min_wait;
    for ( ;; ) {
       if (job_canceled(jcr)) {
          Mmsg(&dev->errmsg, _("Job %s canceled while waiting for mount on Storage Device \"%s\".\n"), 
 	      jcr->Job, jcr->dev_name);
 	 return 0;
       }
-      msg = _("Please mount");
-      Jmsg(jcr, M_MOUNT, 0, _("%s Volume \"%s\" on Storage Device \"%s\" for Job %s\n"),
-	   msg, jcr->VolumeName, jcr->dev_name, jcr->Job);
-      Dmsg3(190, "Mount %s on %s for Job %s\n",
-	    jcr->VolumeName, jcr->dev_name, jcr->Job);
+
+      /*
+       * If we have a valid volume name and we are not
+       *   removable media, return now, or if we have a
+       *   Slot for an autochanger, otherwise wait
+       *   for the operator to mount the media.
+       */
+      if ((jcr->VolumeName[0] && !dev_cap(dev, CAP_REM) && dev_cap(dev, CAP_LABEL)) ||
+	  (jcr->VolumeName[0] && jcr->VolCatInfo.Slot)) {
+         Dmsg0(100, "Return 1 from mount without wait.\n");
+	 return 1;
+      }
+
+      if (!dev->poll) {
+         msg = _("Please mount");
+         Jmsg(jcr, M_MOUNT, 0, _("%s Volume \"%s\" on Storage Device \"%s\" for Job %s\n"),
+	      msg, jcr->VolumeName, jcr->dev_name, jcr->Job);
+         Dmsg3(190, "Mount %s on %s for Job %s\n",
+	       jcr->VolumeName, jcr->dev_name, jcr->Job);
+      }
 
       jcr->JobStatus = JS_WaitMount;
       dir_send_job_status(jcr);
 
-      stat = wait_for_sysop(jcr, dev, wait_sec); /* wait on device */
+      stat = wait_for_sysop(jcr, dev);	   /* wait on device */
+      if (dev->poll) {
+         Dmsg1(200, "Poll timeout in mount vol on device %s\n", dev_name(dev));
+         Dmsg1(200, "Blocked=%d\n", dev->dev_blocked);
+	 return 1;
+      }
 
       if (stat == ETIMEDOUT) {
-	 wait_sec *= 2; 	      /* double wait time */
-	 if (wait_sec > max_wait) {   /* but not longer than maxtime */
-	    wait_sec = max_wait;
-	 }
-	 num_wait++;
-	 if (num_wait >= max_num_wait) {
+	 if (!double_dev_wait_time(dev)) {
             Mmsg(&dev->errmsg, _("Gave up waiting to mount Storage Device \"%s\" for Job %s\n"), 
-		 jcr->dev_name, jcr->Job);
+	       dev_name(dev), jcr->Job);
             Jmsg(jcr, M_FATAL, 0, "%s", dev->errmsg);
             Dmsg1(190, "Gave up waiting on device %s\n", dev_name(dev));
 	    return 0;		      /* exceeded maximum waits */
@@ -458,59 +473,66 @@ int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
 	    strerror(stat));
       }
       Dmsg1(190, "Someone woke me for device %s\n", dev_name(dev));
-
-      /* Restart wait counters */
-      wait_sec = min_wait;
-      num_wait = 0;
       break;
    }
    set_jcr_job_status(jcr, JS_Running);
    dir_send_job_status(jcr);
-   Dmsg0(130, "leave dir_ask_sysop_to_mount_next_volume\n");
+   Dmsg0(130, "leave dir_ask_sysop_to_mount_volume\n");
    return 1;
 }
 
 /*
  * Wait for SysOp to mount a tape
  */
-static int wait_for_sysop(JCR *jcr, DEVICE *dev, int wait_sec)
+static int wait_for_sysop(JCR *jcr, DEVICE *dev)
 {
    struct timeval tv;
    struct timezone tz;
    struct timespec timeout;
-   int dev_blocked;
-   time_t start = time(NULL);
    time_t last_heartbeat = 0;
+   time_t first_start = time(NULL);
    int stat = 0;
    int add_wait;
+   bool unmounted;
    
+   P(dev->mutex);
+   unmounted = (dev->dev_blocked == BST_UNMOUNTED) ||
+		(dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP);
+
+   dev->poll = false;
    /*
-    * Wait requested time (wait_sec).  However, we also wake up every
+    * Wait requested time (dev->rem_wait_sec).	However, we also wake up every
     *	 HB_TIME seconds and send a heartbeat to the FD and the Director
     *	 to keep stateful firewalls from closing them down while waiting
     *	 for the operator.
     */
-   add_wait = wait_sec;
+   add_wait = dev->rem_wait_sec;
    if (me->heartbeat_interval && add_wait > me->heartbeat_interval) {
       add_wait = me->heartbeat_interval;
+   }
+   if (!unmounted && dev->vol_poll_interval && add_wait > dev->vol_poll_interval) {
+      add_wait = dev->vol_poll_interval;
    }
    gettimeofday(&tv, &tz);
    timeout.tv_nsec = tv.tv_usec * 1000;
    timeout.tv_sec = tv.tv_sec + add_wait;
 
-   P(dev->mutex);
-   dev_blocked = dev->dev_blocked;
-   dev->dev_blocked = BST_WAITING_FOR_SYSOP; /* indicate waiting for mount */
+   if (!unmounted) {
+      dev->dev_prev_blocked = dev->dev_blocked;
+      dev->dev_blocked = BST_WAITING_FOR_SYSOP; /* indicate waiting for mount */
+   }
 
    for ( ; !job_canceled(jcr); ) {
-      time_t now;
+      time_t now, start;
 
       Dmsg3(100, "I'm going to sleep on device %s. HB=%d wait=%d\n", dev_name(dev),
-	 (int)me->heartbeat_interval, wait_sec);
+	 (int)me->heartbeat_interval, dev->wait_sec);
+      start = time(NULL);
       stat = pthread_cond_timedwait(&dev->wait_next_vol, &dev->mutex, &timeout);
       Dmsg1(100, "Wokeup from sleep on device stat=%d\n", stat);
 
       now = time(NULL);
+      dev->rem_wait_sec -= (now - start);
 
       /* Note, this always triggers the first time. We want that. */
       if (me->heartbeat_interval) {
@@ -527,19 +549,38 @@ static int wait_for_sysop(JCR *jcr, DEVICE *dev, int wait_sec)
 	 }
       }
 
+      /*
+       * Check if user unmounted the device while we were waiting
+       */
+      unmounted = (dev->dev_blocked == BST_UNMOUNTED) ||
+		   (dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP);
+
+      if (stat != ETIMEDOUT) {	   /* we blocked the device */
+	 break; 		   /* on error return */
+      }
+      if (dev->rem_wait_sec <= 0) {  /* on exceeding wait time return */
+         Dmsg0(100, "Exceed wait time.\n");
+	 break;
+      }
+      
+      if (!unmounted && dev->vol_poll_interval &&	
+	  (now - first_start >= dev->vol_poll_interval)) {
+         Dmsg1(200, "In wait blocked=%d\n", dev->dev_blocked);
+	 dev->poll = true;
+	 break;
+      }
+      /*
+       * Check if user mounted the device while we were waiting
+       */
       if (dev->dev_blocked == BST_MOUNT) {   /* mount request ? */
 	 stat = 0;
 	 break;
       }
 
-      if (stat != ETIMEDOUT) {	   /* we blocked the device */
-	 break; 		   /* on error return */
+      add_wait = dev->wait_sec - (now - start);
+      if (add_wait < 0) {
+	 add_wait = 0;
       }
-      if (now - start >= wait_sec) {  /* on exceeding wait time return */
-         Dmsg0(100, "Exceed wait time.\n");
-	 break;
-      }
-      add_wait = wait_sec - (now - start);
       if (me->heartbeat_interval && add_wait > me->heartbeat_interval) {
 	 add_wait = me->heartbeat_interval;
       }
@@ -549,7 +590,9 @@ static int wait_for_sysop(JCR *jcr, DEVICE *dev, int wait_sec)
       Dmsg1(100, "Additional wait %d sec.\n", add_wait);
    }
 
-   dev->dev_blocked = dev_blocked;    /* restore entry state */
+   if (!unmounted) {
+      dev->dev_blocked = dev->dev_prev_blocked;    /* restore entry state */
+   }
    V(dev->mutex);
    return stat;
 }

@@ -2245,7 +2245,7 @@ int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
    return 1;
 }
 
-int dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev)
+int dir_ask_sysop_to_create_appendable_volume(JCR *jcr, DEVICE *dev)
 {
    /* Close device so user can use autochanger if desired */
    if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {

@@ -40,7 +40,7 @@ enum get_vol_info_rw {
 int     dir_get_volume_info(JCR *jcr, enum get_vol_info_rw);
 int     dir_find_next_appendable_volume(JCR *jcr);
 int     dir_update_volume_info(JCR *jcr, DEVICE *dev, int label);
-int     dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev);
+int     dir_ask_sysop_to_create_appendable_volume(JCR *jcr, DEVICE *dev);
 int     dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev);
 int     dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec);
 int     dir_send_job_status(JCR *jcr);
@@ -103,6 +103,8 @@ JCR     *next_attached_jcr(DEVICE *dev, JCR *jcr);
 int      dev_can_write(DEVICE *dev);
 int      offline_or_rewind_dev(DEVICE *dev);
 int      reposition_dev(DEVICE *dev, uint32_t file, uint32_t block);
+void     init_dev_wait_timers(DEVICE *dev);
+bool     double_dev_wait_time(DEVICE *dev);
 
 
 /* Get info about device */
@@ -115,15 +117,15 @@ int      dev_is_tape(DEVICE *dev);
 /* From device.c */
 int      open_device(DEVICE *dev);
 int      fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
-void _lock_device(char *file, int line, DEVICE *dev);
-void _unlock_device(char *file, int line, DEVICE *dev);
-void _block_device(char *file, int line, DEVICE *dev, int state);
-void _unblock_device(char *file, int line, DEVICE *dev);
-void _steal_device_lock(char *file, int line, DEVICE *dev, bsteal_lock_t *hold, int state);
-void _give_back_device_lock(char *file, int line, DEVICE *dev, bsteal_lock_t *hold);
-void set_new_volume_parameters(JCR *jcr, DEVICE *dev);
-void set_new_file_parameters(JCR *jcr, DEVICE *dev); 
-int  device_is_unmounted(DEVICE *dev);
+void     _lock_device(char *file, int line, DEVICE *dev);
+void     _unlock_device(char *file, int line, DEVICE *dev);
+void     _block_device(char *file, int line, DEVICE *dev, int state);
+void     _unblock_device(char *file, int line, DEVICE *dev);
+void     _steal_device_lock(char *file, int line, DEVICE *dev, bsteal_lock_t *hold, int state);
+void     _give_back_device_lock(char *file, int line, DEVICE *dev, bsteal_lock_t *hold);
+void     set_new_volume_parameters(JCR *jcr, DEVICE *dev);
+void     set_new_file_parameters(JCR *jcr, DEVICE *dev); 
+int      device_is_unmounted(DEVICE *dev);
 
 /* From dircmd.c */
 void     *connection_request(void *arg); 
@@ -161,6 +163,7 @@ bool     match_set_eof(BSR *bsr, DEV_RECORD *rec);
 int      mount_next_write_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, int release);
 int      mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
 void     release_volume(JCR *jcr, DEVICE *dev);
+void     mark_volume_in_error(JCR *jcr, DEVICE *dev);
 
 /* From autochanger.c */
 int      autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir);
@@ -178,13 +181,13 @@ void     free_vol_list(JCR *jcr);
 void     create_vol_list(JCR *jcr);
 
 /* From record.c */
-char   *FI_to_ascii(int fi);
-char   *stream_to_ascii(int stream, int fi);
-int     write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec);
-int     can_write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec);
-int     read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec); 
+char    *FI_to_ascii(int fi);
+char    *stream_to_ascii(int stream, int fi);
+int      write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec);
+int      can_write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec);
+int      read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec); 
 DEV_RECORD *new_record();
-void    free_record(DEV_RECORD *rec);
+void     free_record(DEV_RECORD *rec);
 
 /* From read_record.c */
 int read_records(JCR *jcr,  DEVICE *dev, 

@@ -437,7 +437,7 @@ int	dir_get_volume_info(JCR *jcr, enum get_vol_info_rw  writing) { return 1;}
 int	dir_find_next_appendable_volume(JCR *jcr) { return 1;}
 int	dir_update_volume_info(JCR *jcr, DEVICE *dev, int relabel) { return 1; }
 int	dir_create_jobmedia_record(JCR *jcr) { return 1; }
-int	dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev) { return 1; }
+int	dir_ask_sysop_to_create_appendable_volume(JCR *jcr, DEVICE *dev) { return 1; }
 int	dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec) { return 1;}
 int	dir_send_job_status(JCR *jcr) {return 1;}
 

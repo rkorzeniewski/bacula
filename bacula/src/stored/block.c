@@ -412,6 +412,7 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       block->write_failed = true;
       if (weof_dev(dev, 1) != 0) {	      /* end tape */
          Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
+	 dev->VolCatInfo.VolCatErrors++;
       }
       /* Don't do update after second EOF or file count will be wrong */
       Dmsg0(100, "dir_update_volume_info\n");
@@ -419,6 +420,7 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       dir_update_volume_info(jcr, dev, 0);
       if (dev_cap(dev, CAP_TWOEOF) && weof_dev(dev, 1) != 0) {	/* write eof */
          Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
+	 dev->VolCatInfo.VolCatErrors++;
       }
       dev->state |= (ST_EOF | ST_EOT | ST_WEOT);
       return 0;   
@@ -433,6 +435,7 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	 if (weof_dev(dev, 1) != 0) {		 /* write eof */
             Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
 	    block->write_failed = true;
+	    dev->VolCatInfo.VolCatErrors++;
 	    dev->state |= (ST_EOF | ST_EOT | ST_WEOT);
             Dmsg0(100, "dir_update_volume_info\n");
 	    dev->VolCatInfo.VolCatFiles = dev->file;
@@ -499,12 +502,14 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 
       block->write_failed = true;
       if (weof_dev(dev, 1) != 0) {	   /* end the tape */
+	 dev->VolCatInfo.VolCatErrors++;
          Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       }
       Dmsg0(100, "dir_update_volume_info\n");
       dev->VolCatInfo.VolCatFiles = dev->file;
       dir_update_volume_info(jcr, dev, 0);
       if (dev_cap(dev, CAP_TWOEOF) && weof_dev(dev, 1) != 0) {	/* end the tape */
+	 dev->VolCatInfo.VolCatErrors++;
          Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       }
       dev->state |= (ST_EOF | ST_EOT | ST_WEOT);

@@ -599,7 +599,7 @@ static int unmount_cmd(JCR *jcr)
 	 P(dev->mutex); 	      /* Use P to avoid indefinite block */
 	 if (!(dev->state & ST_OPENED)) {
             Dmsg0(90, "Device already unmounted\n");
-            bnet_fsend(dir, _("3901 Device %s is already unmounted.\n"), dev_name(dev));
+            bnet_fsend(dir, _("3901 Device \"%s\" is already unmounted.\n"), dev_name(dev));
 
 	 } else if (dev->dev_blocked == BST_WAITING_FOR_SYSOP) {
             Dmsg2(90, "%d waiter dev_block=%d. doing unmount\n", dev->num_waiting,
@@ -608,18 +608,18 @@ static int unmount_cmd(JCR *jcr)
 	    offline_or_rewind_dev(dev);
 	    force_close_dev(dev);
 	    dev->dev_blocked = BST_UNMOUNTED_WAITING_FOR_SYSOP;
-            bnet_fsend(dir, _("3001 Device %s unmounted.\n"), dev_name(dev));
+            bnet_fsend(dir, _("3001 Device \"%s\" unmounted.\n"), dev_name(dev));
 
 	 } else if (dev->dev_blocked == BST_DOING_ACQUIRE) {
-            bnet_fsend(dir, _("3902 Device %s is busy in acquire.\n"), dev_name(dev));
+            bnet_fsend(dir, _("3902 Device \"%s\" is busy in acquire.\n"), dev_name(dev));
 
 	 } else if (dev->dev_blocked == BST_WRITING_LABEL) {
-            bnet_fsend(dir, _("3903 Device %s is being labeled.\n"), dev_name(dev));
+            bnet_fsend(dir, _("3903 Device \"%s\" is being labeled.\n"), dev_name(dev));
 
 	 } else if (dev_state(dev, ST_READ) || dev->num_writers) {
 	    if (dev_state(dev, ST_READ)) {
                 Dmsg0(90, "Device in read mode\n");
-                bnet_fsend(dir, _("3904 Device %s is busy with 1 reader.\n"), dev_name(dev));
+                bnet_fsend(dir, _("3904 Device \"%s\" is busy reading.\n"), dev_name(dev));
 	    } else {
                 Dmsg1(90, "Device busy with %d writers\n", dev->num_writers);
                 bnet_fsend(dir, _("3905 Device %s is busy with %d writer(s).\n"),
@@ -789,7 +789,7 @@ static int readlabel_cmd(JCR *jcr)
 	 dev = jcr->device->dev;
 
 	 P(dev->mutex); 	      /* Use P to avoid indefinite block */
-	 if (!(dev->state & ST_OPENED)) {
+	 if (!dev_state(dev, ST_OPENED)) {
 	    if (open_dev(dev, NULL, READ_WRITE) < 0) {
                bnet_fsend(dir, _("3994 Connot open device: %s\n"), strerror_dev(dev));
 	    } else {
@@ -845,9 +845,9 @@ static void read_volume_label(JCR *jcr, DEVICE *dev, int Slot)
    block = new_block(dev);
 
    /* Ensure that the device is open -- autoload_device() closes it */
-   for ( ; !(dev->state & ST_OPENED); ) {
+   for ( ; !dev_state(dev, ST_OPENED); ) {
       if (open_dev(dev, jcr->VolumeName, READ_WRITE) < 0) {
-         bnet_fsend(dir, _("3910 Unable to open device %s. ERR=%s\n"), 
+         bnet_fsend(dir, _("3910 Unable to open device \"%s\". ERR=%s\n"), 
 	    dev_name(dev), strerror_dev(dev));
 	 goto bail_out;
       }
@@ -856,7 +856,7 @@ static void read_volume_label(JCR *jcr, DEVICE *dev, int Slot)
    dev->state &= ~ST_LABEL;	      /* force read of label */
    switch (read_dev_volume_label(jcr, dev, block)) {		    
    case VOL_OK:
-      bnet_fsend(dir, _("3001 Volume=%s Slot=%d\n"), dev->VolHdr.VolName, Slot);
+      bnet_fsend(dir, _("3001 Volume=\"%s\" Slot=%d\n"), dev->VolHdr.VolName, Slot);
       Dmsg1(100, "Volume: %s\n", dev->VolHdr.VolName);
       break;
    default:
