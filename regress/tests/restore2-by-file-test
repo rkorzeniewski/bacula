@@ -7,7 +7,7 @@ cwd=`pwd`
 scripts/copy-test-confs
 scripts/cleanup
 echo "${cwd}/build" >/tmp/file-list
-sed s%\^%${cwd}% ${cwd}/scripts/flist >>${cwd}/tmp/restore2-list
+sed s%\^%${cwd}% ${cwd}/scripts/flist >${cwd}/tmp/restore2-list
 bin/bacula stop  2>&1 >/dev/null
 bin/drop_sqlite_tables
 bin/make_sqlite_tables
