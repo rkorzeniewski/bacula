@@ -9,7 +9,7 @@ if test xsqlite = x@DB_NAME@ ; then
 fi
 if test xmysql = x@DB_NAME@ ; then
   echo "Altering MySQL tables"
-  @scriptdir@/update_mysql_tables
+  @scriptdir@/update_mysql_tables $*
 fi
 if test xpostgresql = x@DB_NAME@ ; then
   echo "Altering PostgreSQL tables"

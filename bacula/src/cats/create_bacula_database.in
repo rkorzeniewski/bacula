@@ -9,7 +9,7 @@ if test xsqlite = x@DB_NAME@ ; then
 else
   if test xmysql = x@DB_NAME@ ; then
     echo "Creating MySQL database"
-    @scriptdir@/create_mysql_database
+    @scriptdir@/create_mysql_database $*
   else
     echo "Creating PostgreSQL database"
     @scriptdir@/create_postgresql_database
