@@ -118,8 +118,8 @@ db_update_job_start_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
  *
  *
  */
-void numornull(char *s, size_t n, int id) {
-	bsnprintf(s, n, id ? "%d" : "NULL", id);
+void edit_num_or_null(char *s, size_t n, uint32_t id) {
+	bsnprintf(s, n, id ? "%u" : "NULL", id);
 }
 
 
@@ -144,9 +144,9 @@ db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 
 
    /* some values are set to zero, which translates to NULL in SQL */
-   numornull(PoolId,    sizeof(PoolId),    jr->PoolId);
-   numornull(FileSetId, sizeof(FileSetId), jr->FileSetId);
-   numornull(ClientId,  sizeof(ClientId),  jr->ClientId);
+   edit_num_or_null(PoolId,    sizeof(PoolId),    jr->PoolId);
+   edit_num_or_null(FileSetId, sizeof(FileSetId), jr->FileSetId);
+   edit_num_or_null(ClientId,  sizeof(ClientId),  jr->ClientId);
        
    ttime = jr->EndTime;
    localtime_r(&ttime, &tm);
