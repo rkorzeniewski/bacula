@@ -298,10 +298,10 @@ static void free_saved_resources(int table)
    int num = r_last - r_first + 1;
    RES **res_tab = reload_table[table].res_table;
    if (!res_tab) {
-      Dmsg1(000, "res_tab for table %d already released.\n", table);
+      Dmsg1(100, "res_tab for table %d already released.\n", table);
       return;
    }
-   Dmsg1(000, "Freeing resources for table %d\n", table);
+   Dmsg1(100, "Freeing resources for table %d\n", table);
    for (int j=0; j<num; j++) {
       free_resource(res_tab[j], r_first + j);
    }
@@ -319,7 +319,7 @@ static void free_saved_resources(int table)
 static void reload_job_end_cb(JCR *jcr, void *ctx)
 {
    int reload_id = (int)ctx;
-   Dmsg3(000, "reload job_end JobId=%d table=%d cnt=%d\n", jcr->JobId,
+   Dmsg3(100, "reload job_end JobId=%d table=%d cnt=%d\n", jcr->JobId,
       reload_id, reload_table[reload_id].job_count);
    lock_jcr_chain();
    LockRes();
@@ -389,14 +389,13 @@ void reload_config(int sig)
       goto bail_out;
    }
 
-   Dmsg1(000, "Reload_config njobs=%d\n", njobs);
+   Dmsg1(100, "Reload_config njobs=%d\n", njobs);
    reload_table[table].res_table = save_config_resources();
-   Dmsg1(000, "Saved old config in table %d\n", table);
+   Dmsg1(100, "Saved old config in table %d\n", table);
 
-   Dmsg0(000, "Calling parse config\n");
    parse_config(configfile);
 
-   Dmsg0(000, "Reloaded config file\n");
+   Dmsg0(100, "Reloaded config file\n");
    if (!check_resources()) {
       rtable = find_free_reload_table_entry();	  /* save new, bad table */
       if (rtable < 0) {
@@ -517,7 +516,7 @@ Without that I don't know who I am :-(\n"), configfile);
 		       job->hdr.name, job_items[i].name, *def_svalue, i, offset);
 		  svalue = (char **)((char *)job + offset);
 		  if (*svalue) {
-                     Dmsg1(000, "Hey something is wrong. p=0x%lu\n", *svalue);
+                     Pmsg1(000, "Hey something is wrong. p=0x%lu\n", *svalue);
 		  }
 		  *svalue = bstrdup(*def_svalue);
 		  set_bit(i, job->hdr.item_present);
@@ -527,7 +526,7 @@ Without that I don't know who I am :-(\n"), configfile);
 		       job->hdr.name, job_items[i].name, i, offset);
 		  svalue = (char **)((char *)job + offset);
 		  if (*svalue) {
-                     Dmsg1(000, "Hey something is wrong. p=0x%lu\n", *svalue);
+                     Pmsg1(000, "Hey something is wrong. p=0x%lu\n", *svalue);
 		  }
 		  *svalue = *def_svalue;
 		  set_bit(i, job->hdr.item_present);
