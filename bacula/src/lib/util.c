@@ -419,14 +419,15 @@ void make_session_key(char *key, char *seed, int mode)
 /*
  * Edit job codes into main command line
  *  %% = %
- *  %j = Job name
- *  %t = Job type (Backup, ...)
+ *  %c = Client's name
+ *  %d = Director's name
  *  %e = Job Exit code
  *  %i = JobId
+ *  %j = Unique Job name
  *  %l = job level
- *  %c = Client's name
+ *  %n = Unadorned Job name
+ *  %t = Job type (Backup, ...)
  *  %r = Recipients
- *  %d = Director's name
  *
  *  omsg = edited output message
  *  imsg = input string containing edit codes (%x)
@@ -470,10 +471,12 @@ POOLMEM *edit_job_codes(JCR *jcr, char *omsg, char *imsg, char *to)
 	    str = job_level_to_str(jcr->JobLevel);
 	    break;
          case 'n':
-             str = strchr(jcr->Job, '.');
-	     for (int i=0; i<str-jcr->Job-1; i++) {
-		name[i] = jcr->Job[i];
-		name[i+1] = 0;
+	     bstrncpy(name, jcr->Job, sizeof(name));
+	     /* There are three periods after the Job name */
+	     for (int i=0; i<3; i++) {
+                if ((str=strrchr(name, '.')) != NULL) {
+		    *str = 0;
+		}
 	     }
 	     str = name;
 	     break;
