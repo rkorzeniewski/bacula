@@ -319,12 +319,19 @@ static int include_cmd(JCR *jcr)
 static int exclude_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
+   char *p;  
 
    while (bnet_recv(dir) >= 0) {
        dir->msg[dir->msglen] = 0;
        strip_trailing_junk(dir->msg);
-       add_fname_to_exclude_list((FF_PKT *)jcr->ff, dir->msg);
-       Dmsg1(110, "<dird: exclude file :%s:\n", dir->msg);
+       /* Skip leading options -- currently ignored */
+       for (p=dir->msg; *p && *p != ' '; p++)
+	  { }
+       /* Skip spaces */
+       for ( ; *p && *p == ' '; p++)
+	  { }
+       add_fname_to_exclude_list((FF_PKT *)jcr->ff, p);
+       Dmsg1(110, "<dird: exclude file %s\n", dir->msg);
    }
 
    return bnet_fsend(dir, OKexc);

@@ -53,6 +53,9 @@ extern int debug_level;
 extern DIRRES *director; 
 extern int FDConnectTimeout;
 
+#define INC_LIST 0
+#define EXC_LIST 1
+
 /*
  * Open connection with File daemon. 
  * Try connecting every 10 seconds, give up after 1 hour.
@@ -110,19 +113,24 @@ int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
 
 
 /*
- * Send include list to File daemon
+ * Send either an Included or an Excluded list
  */
-int send_include_list(JCR *jcr)
+static int send_list(JCR *jcr, int list)
 {
    FILESET *fileset;
    BSOCK   *fd;
+   int num;
 
    fd = jcr->file_bsock;
    fileset = jcr->fileset;
 
-   fd->msglen = sprintf(fd->msg, inc);
-   bnet_send(fd);
-   for (int i=0; i < fileset->num_includes; i++) {
+   if (list == INC_LIST) {
+      num = fileset->num_includes;
+   } else {
+      num = fileset->num_excludes;
+   }
+
+   for (int i=0; i < num; i++) {
       BPIPE *bpipe;
       FILE *ffd;
       char buf[1000];
@@ -130,7 +138,11 @@ int send_include_list(JCR *jcr)
       int optlen, stat;
       INCEXE *ie;
 
-      ie = fileset->include_items[i];
+      if (list == INC_LIST) {
+	 ie = fileset->include_items[i];
+      } else {
+	 ie = fileset->exclude_items[i];
+      }
       for (int j=0; j<ie->num_names; j++) {
 	 p = ie->name_list[j];
 	 switch (*p++) {
@@ -152,7 +164,7 @@ int send_include_list(JCR *jcr)
 	    optlen = strlen(buf);
 	    while (fgets(buf+optlen, sizeof(buf)-optlen, bpipe->rfd)) {
                fd->msglen = Mmsg(&fd->msg, "%s", buf);
-               Dmsg2(200, "Including len=%d: %s", fd->msglen, fd->msg);
+               Dmsg2(200, "Inc/exc len=%d: %s", fd->msglen, fd->msg);
 	       if (!bnet_send(fd)) {
                   Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
 		  goto bail_out;
@@ -166,8 +178,8 @@ int send_include_list(JCR *jcr)
 	    break;
          case '<':
             if ((ffd = fopen(p, "r")) == NULL) {
-               Jmsg(jcr, M_FATAL, 0, _("Cannot open included file: %s. ERR=%s\n"),
-		  p, strerror(errno));
+               Jmsg(jcr, M_FATAL, 0, _("Cannot open %s file: %s. ERR=%s\n"),
+                  list==INC_LIST?"included":"excluded", p, strerror(errno));
 	       goto bail_out;
 	    }
 	    /* Copy File options */
@@ -195,7 +207,7 @@ int send_include_list(JCR *jcr)
                pm_strcpy(&fd->msg, "0 ");
 	    }
 	    pm_strcat(&fd->msg, ie->name_list[j]);
-            Dmsg1(100, "Include name=%s\n", fd->msg);
+            Dmsg1(100, "Inc/Exc name=%s\n", fd->msg);
 	    fd->msglen = strlen(fd->msg);
 	    if (!bnet_send(fd)) {
                Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
@@ -206,8 +218,12 @@ int send_include_list(JCR *jcr)
       }
    }
    bnet_sig(fd, BNET_EOD);	      /* end of data */
-   if (!response(fd, OKinc, "Include")) {
-      goto bail_out;
+   if (list == INC_LIST) {
+      if (!response(fd, OKinc, "Include")) {
+	 goto bail_out;
+      }
+   } else if (!response(fd, OKexc, "Exclude")) {
+	goto bail_out;
    }
    return 1;
 
@@ -218,38 +234,26 @@ bail_out:
 }
 
 /*
+ * Send include list to File daemon
+ */
+int send_include_list(JCR *jcr)
+{
+   BSOCK *fd = jcr->file_bsock;
+   fd->msglen = sprintf(fd->msg, inc);
+   bnet_send(fd);
+   return send_list(jcr, INC_LIST);
+}
+
+
+/*
  * Send exclude list to File daemon 
  */
 int send_exclude_list(JCR *jcr)
 {
-   FILESET *fileset;
-   BSOCK   *fd;
-
-   fd = jcr->file_bsock;
-   fileset = jcr->fileset;
-
+   BSOCK *fd = jcr->file_bsock;
    fd->msglen = sprintf(fd->msg, exc);
    bnet_send(fd);
-   for (int i=0; i < fileset->num_excludes; i++) {
-      INCEXE *ie;
-      ie = fileset->exclude_items[i];
-      for (int j=0; j<ie->num_names; j++) {
-	 pm_strcpy(&fd->msg, ie->name_list[j]);
-	 fd->msglen = strlen(fd->msg);
-         Dmsg1(200, "Exclude name: %s\n", fd->msg);
-	 if (!bnet_send(fd)) {
-            Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
-	    set_jcr_job_status(jcr, JS_ErrorTerminated);
-	    return 0;
-	 }
-      }
-   }
-   bnet_sig(fd, BNET_EOD);
-   if (!response(fd, OKexc, "Exclude")) {
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
-      return 0;
-   }
-   return 1;
+   return send_list(jcr, EXC_LIST);
 }
 
 
