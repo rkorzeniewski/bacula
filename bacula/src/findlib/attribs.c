@@ -34,8 +34,7 @@
 #ifdef HAVE_CYGWIN
 
 /* Forward referenced subroutines */
-static
-int set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd);
+static int set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd);
 void unix_name_to_win32(POOLMEM **win32_name, char *name);
 void win_error(JCR *jcr, char *prefix, POOLMEM *ofile);
 HANDLE bget_handle(BFILE *bfd);
@@ -60,7 +59,7 @@ int select_data_stream(FF_PKT *ff_pkt)
    int stream;
 
    /* Note, no sparse option for win32_data */
-   if (is_win32_backup()) {
+   if (!is_portable_backup(&ff_pkt->bfd)) {
       stream = STREAM_WIN32_DATA;
       ff_pkt->flags &= ~FO_SPARSE;
    } else if (ff_pkt->flags & FO_SPARSE) {
@@ -237,8 +236,19 @@ int set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    int stat = 1;
 
 #ifdef HAVE_CYGWIN
+   if (attr->data_stream == STREAM_WIN32_DATA ||
+       attr->data_stream == STREAM_WIN32_GZIP_DATA) {
+      if (is_bopen(ofd)) {
+	 bclose(ofd); 
+      }
+      return 1;
+   }
+
    if (attr->stream == STREAM_UNIX_ATTRIBUTES_EX &&
        set_win32_attributes(jcr, attr, ofd)) {
+      if (is_bopen(ofd)) {
+	 bclose(ofd); 
+      }
       return 1;
    }
    /*
@@ -264,18 +274,18 @@ int set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    if (attr->type == FT_LNK) {
       /* Change owner of link, not of real file */
       if (lchown(attr->ofname, attr->statp.st_uid, attr->statp.st_gid) < 0) {
-         Jmsg2(jcr, M_WARNING, 0, _("Unable to set file owner %s: ERR=%s\n"),
+         Jmsg2(jcr, M_ERROR, 0, _("Unable to set file owner %s: ERR=%s\n"),
 	    attr->ofname, strerror(errno));
 	 stat = 0;
       }
    } else {
       if (chown(attr->ofname, attr->statp.st_uid, attr->statp.st_gid) < 0) {
-         Jmsg2(jcr, M_WARNING, 0, _("Unable to set file owner %s: ERR=%s\n"),
+         Jmsg2(jcr, M_ERROR, 0, _("Unable to set file owner %s: ERR=%s\n"),
 	    attr->ofname, strerror(errno));
 	 stat = 0;
       }
       if (chmod(attr->ofname, attr->statp.st_mode) < 0) {
-         Jmsg2(jcr, M_WARNING, 0, _("Unable to set file modes %s: ERR=%s\n"),
+         Jmsg2(jcr, M_ERROR, 0, _("Unable to set file modes %s: ERR=%s\n"),
 	    attr->ofname, strerror(errno));
 	 stat = 0;
       }
@@ -283,7 +293,7 @@ int set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
       /* FreeBSD user flags */
 #ifdef HAVE_CHFLAGS
       if (chflags(attr->ofname, attr->statp.st_flags) < 0) {
-         Jmsg2(jcr, M_WARNING, 0, _("Unable to set file flags %s: ERR=%s\n"),
+         Jmsg2(jcr, M_ERROR, 0, _("Unable to set file flags %s: ERR=%s\n"),
 	    attr->ofname, strerror(errno));
 	 stat = 0;
       }
@@ -345,7 +355,7 @@ int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
 
    attribsEx[0] = 0;		      /* no extended attributes */
 
-   if (!p_GetFileAttributesEx) {
+   if (!p_GetFileAttributesEx) {				 
       return STREAM_UNIX_ATTRIBUTES;
    }
 
@@ -398,8 +408,7 @@ int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
  * Returns:  1 on success
  *	     0 on failure
  */
-static
-int set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
+static int set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
 {
    char *p = attr->attrEx;
    int64_t val;
@@ -448,7 +457,6 @@ int set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
 
 
    /* At this point, we have reconstructed the WIN32_FILE_ATTRIBUTE_DATA pkt */
-
 
    if (!is_bopen(ofd)) {
       Dmsg1(100, "File not open: %s\n", attr->ofname);

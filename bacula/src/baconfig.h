@@ -120,7 +120,6 @@
 #define STREAM_SHA1_SIGNATURE    10    /* SHA1 signature for the file */
 #define STREAM_WIN32_DATA        11    /* Win32 BackupRead data */
 #define STREAM_WIN32_GZIP_DATA   12    /* Gzipped Win32 BackupRead data */
-#define STREAM_WIN32_ATTRIBUTES  13    /* Unix attribs, but WIN32_DATA follows */
 
 /* 
  *  File type (Bacula defined).           

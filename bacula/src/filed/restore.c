@@ -188,24 +188,11 @@ void do_restore(JCR *jcr)
 	 }  
 	 break;
 
-      /* Windows Backup data stream */
-      case STREAM_WIN32_DATA:  
-	 if (!is_win32_backup()) {
-	    if (!non_support_data) {
-               Jmsg(jcr, M_ERROR, 0, _("%s stream not supported on this Client.\n"),
-		  stream_to_ascii(stream));
-	    }
-	    extract = FALSE;
-	    non_support_data++;
-	    continue;
-	 }
-	 goto extract_data;
-
       /* Data stream */
       case STREAM_FILE_DATA:
       case STREAM_SPARSE_DATA:	
+      case STREAM_WIN32_DATA:  
 
-extract_data:
 	 if (extract) {
 	    if (stream == STREAM_SPARSE_DATA) {
 	       ser_declare;
@@ -243,22 +230,10 @@ extract_data:
 	 }
 	 break;
 
-      /* Windows Backup GZIP data stream */
-      case STREAM_WIN32_GZIP_DATA:  
-	 if (!is_win32_backup()) {
-	    if (!non_support_attr) {
-               Jmsg(jcr, M_ERROR, 0, _("%s stream not supported on this Client.\n"),
-		  stream_to_ascii(stream));
-	    }
-	    extract = FALSE;
-	    non_support_attr++;
-	    continue;
-	 }
-	 /* Fall through desired */
-
       /* GZIP data stream */
       case STREAM_GZIP_DATA:
       case STREAM_SPARSE_GZIP_DATA:  
+      case STREAM_WIN32_GZIP_DATA:  
 #ifdef HAVE_LIBZ
 	 if (extract) {
 	    ser_declare;

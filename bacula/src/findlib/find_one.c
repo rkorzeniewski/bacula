@@ -206,11 +206,11 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
       dev_t our_device = ff_pkt->statp.st_dev;
 
       /*  
-       * If we are using Win32 backup API, don't check
+       * If we are using Win32 (non-portable) backup API, don't check
        *  access as everything is more complicated, and
        *  in principle, we should be able to access everything.
        */
-      if (!is_win32_backup()) {
+      if (!have_win32_api() || (ff_pkt->flags & FO_PORTABLE)) {
 	 if (access(fname, R_OK) == -1 && geteuid() != 0) {
 	    /* Could not access() directory */
 	    ff_pkt->type = FT_NOACCESS;

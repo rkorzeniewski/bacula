@@ -67,9 +67,12 @@ struct BFILE {
 
 void	binit(BFILE *bfd);
 int	is_bopen(BFILE *bfd);
-int	set_win32_backup(BFILE *bfd, int enable);
-int	is_win32_backup();
+int	set_win32_backup(BFILE *bfd);
+int	set_portable_backup(BFILE *bfd);
+int	have_win32_api();
+int	is_portable_backup(BFILE *bfd);
 int	is_stream_supported(int stream);
+int	is_win32_stream(int stream);
 char   *berror(BFILE *bfd);
 int	bopen(BFILE *bfd, const char *fname, int flags, mode_t mode);
 int	bclose(BFILE *bfd);
