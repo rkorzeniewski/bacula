@@ -53,7 +53,7 @@ int blast_data_to_storage_daemon(JCR *jcr, char *addr)
 
    set_jcr_job_status(jcr, JS_Running);
 
-   Dmsg1(110, "bfiled: opened data connection %d to stored\n", sd->fd);
+   Dmsg1(300, "bfiled: opened data connection %d to stored\n", sd->fd);
 
    LockRes();
    CLIENT *client = (CLIENT *)GetNextRes(R_CLIENT, NULL);
@@ -79,9 +79,9 @@ int blast_data_to_storage_daemon(JCR *jcr, char *addr)
    jcr->compress_buf_size = jcr->buf_size + ((jcr->buf_size+999) / 1000) + 30;
    jcr->compress_buf = get_memory(jcr->compress_buf_size);
 
-   Dmsg1(100, "set_find_options ff=%p\n", jcr->ff);
+   Dmsg1(300, "set_find_options ff=%p\n", jcr->ff);
    set_find_options((FF_PKT *)jcr->ff, jcr->incremental, jcr->mtime);
-   Dmsg0(110, "start find files\n");
+   Dmsg0(300, "start find files\n");
 
    start_heartbeat_monitor(jcr);
 
@@ -103,7 +103,7 @@ int blast_data_to_storage_daemon(JCR *jcr, char *addr)
       free_pool_memory(jcr->compress_buf);
       jcr->compress_buf = NULL;
    }
-   Dmsg1(110, "end blast_data stat=%d\n", stat);
+   Dmsg1(300, "end blast_data stat=%d\n", stat);
    return stat;
 }	   
 
@@ -241,7 +241,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
    /* Now possibly extend the attributes */
    attr_stream = encode_attribsEx(jcr, attribsEx, ff_pkt);
 
-   Dmsg3(200, "File %s\nattribs=%s\nattribsEx=%s\n", ff_pkt->fname, attribs, attribsEx);
+   Dmsg3(300, "File %s\nattribs=%s\nattribsEx=%s\n", ff_pkt->fname, attribs, attribsEx);
      
    P(jcr->mutex);
    jcr->JobFiles++;		       /* increment number of files sent */
@@ -260,7 +260,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       return 0;
    }
-   Dmsg1(100, ">stored: attrhdr %s\n", sd->msg);
+   Dmsg1(300, ">stored: attrhdr %s\n", sd->msg);
 
    /*
     * Send file attributes to Storage daemon
@@ -275,7 +275,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
     * slash. For a linked file, link is the link.
     */
    if (ff_pkt->type == FT_LNK || ff_pkt->type == FT_LNKSAVED) {
-      Dmsg2(100, "Link %s to %s\n", ff_pkt->fname, ff_pkt->link);
+      Dmsg2(300, "Link %s to %s\n", ff_pkt->fname, ff_pkt->link);
       stat = bnet_fsend(sd, "%ld %d %s%c%s%c%s%c%s%c", jcr->JobFiles, 
 	       ff_pkt->type, ff_pkt->fname, 0, attribs, 0, ff_pkt->link, 0,
 	       attribsEx, 0);
@@ -288,7 +288,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	       ff_pkt->type, ff_pkt->fname, 0, attribs, 0, 0, attribsEx, 0);
    }
 
-   Dmsg2(100, ">stored: attr len=%d: %s\n", sd->msglen, sd->msg);
+   Dmsg2(300, ">stored: attr len=%d: %s\n", sd->msglen, sd->msg);
    if (!stat) {
       if (is_bopen(&ff_pkt->bfd)) {
 	 bclose(&ff_pkt->bfd);
@@ -312,7 +312,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       wbuf = sd->msg;		      /* write buffer */
 
 
-      Dmsg1(100, "Saving data, type=%d\n", ff_pkt->type);
+      Dmsg1(300, "Saving data, type=%d\n", ff_pkt->type);
 
 
 #ifdef HAVE_LIBZ
@@ -340,7 +340,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	 set_jcr_job_status(jcr, JS_ErrorTerminated);
 	 return 0;
       }
-      Dmsg1(100, ">stored: datahdr %s\n", sd->msg);
+      Dmsg1(300, ">stored: datahdr %s\n", sd->msg);
 
       if (ff_pkt->flags & FO_MD5) {
 	 MD5Init(&md5c);
@@ -457,7 +457,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
    if (gotMD5 && ff_pkt->flags & FO_MD5) {
       MD5Final(signature, &md5c);
       bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_MD5_SIGNATURE);
-      Dmsg1(100, "bfiled>stored:header %s\n", sd->msg);
+      Dmsg1(300, "bfiled>stored:header %s\n", sd->msg);
       memcpy(sd->msg, signature, 16);
       sd->msglen = 16;
       bnet_send(sd);
@@ -468,7 +468,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
    /* Terminate any SHA1 signature and send it to Storage daemon and the Director */
       SHA1Final(&sha1c, signature);
       bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_SHA1_SIGNATURE);
-      Dmsg1(100, "bfiled>stored:header %s\n", sd->msg);
+      Dmsg1(300, "bfiled>stored:header %s\n", sd->msg);
       memcpy(sd->msg, signature, 20);
       sd->msglen = 20;
       bnet_send(sd);

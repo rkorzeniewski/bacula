@@ -176,7 +176,9 @@ int restore_cmd(UAContext *ua, char *cmd)
          bsendmsg(ua, _("Unable to construct a valid BSR. Cannot continue.\n"));
 	 goto bail_out;
       }
-      write_bsr_file(ua, rx.bsr);
+      if (!write_bsr_file(ua, rx.bsr)) {
+	 goto bail_out;
+      }
       bsendmsg(ua, _("\n%u file%s selected to be restored.\n\n"), rx.selected_files,
          rx.selected_files==1?"":"s");
    } else {

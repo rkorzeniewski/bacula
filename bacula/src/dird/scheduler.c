@@ -165,6 +165,9 @@ JCR *wait_for_next_job(char *one_shot_job_to_run)
    if (run->Priority) {
       jcr->JobPriority = run->Priority;
    }
+   if (run->spool_data_set) {
+      jcr->spool_data = run->spool_data;
+   }
    Dmsg0(200, "Leave wait_for_next_job()\n");
    return jcr;
 }

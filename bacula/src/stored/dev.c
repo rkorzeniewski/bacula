@@ -125,7 +125,7 @@ init_dev(DEVICE *dev, DEVRES *device)
 	 dev->dev_errno = ENODEV;
       }
       Emsg2(M_FATAL, 0, _("%s is an unknown device type. Must be tape or directory. st_mode=%x\n"),
-	 dev_name, statp.st_mode);
+	 device->device_name, statp.st_mode);
       return NULL;
    }
    if (!dev) {

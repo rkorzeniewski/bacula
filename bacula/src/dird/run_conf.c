@@ -158,6 +158,7 @@ static struct s_kw RunFields[] = {
    {"storage",          'S'},
    {"messages",         'M'},
    {"priority",         'p'},
+   {"spooldata",        's'},
    {NULL,		  0}
 };
 
@@ -203,6 +204,18 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
 	       /* NOT REACHED */ 
 	    }
 	    switch (RunFields[i].token) {
+            case 's':                 /* Data spooling */
+	       token = lex_get_token(lc, T_NAME);
+               if (strcasecmp(lc->str, "yes") == 0) {
+		  lrun.spool_data = true;
+		  lrun.spool_data_set = true;
+               } else if (strcasecmp(lc->str, "no") == 0) {
+		  lrun.spool_data = false;
+		  lrun.spool_data_set = true;
+	       } else {
+                  scan_err1(lc, _("Expect a YES or NO, got: %s"), lc->str);
+	       }
+	       break;
             case 'L':                 /* level */
 	       token = lex_get_token(lc, T_NAME);
 	       for (j=0; joblevels[j].level_name; j++) {

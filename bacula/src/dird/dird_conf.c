@@ -224,6 +224,7 @@ RES_ITEM job_items[] = {
    {"prunefiles",  store_yesno, ITEM(res_job.PruneFiles), 1, ITEM_DEFAULT, 0},
    {"prunevolumes",store_yesno, ITEM(res_job.PruneVolumes), 1, ITEM_DEFAULT, 0},
    {"spoolattributes",store_yesno, ITEM(res_job.SpoolAttributes), 1, ITEM_DEFAULT, 0},
+   {"spooldata",   store_yesno, ITEM(res_job.spool_data), 1, ITEM_DEFAULT, 0},
    {"runbeforejob", store_str,  ITEM(res_job.RunBeforeJob), 0, 0, 0},
    {"runafterjob",  store_str,  ITEM(res_job.RunAfterJob),  0, 0, 0},
    {"runafterfailedjob",  store_str,  ITEM(res_job.RunAfterFailedJob),  0, 0, 0},
@@ -495,9 +496,10 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
 	 res->res_job.hdr.name, res->res_job.JobType, 
 	 level_to_str(res->res_job.level), res->res_job.Priority,
 	 res->res_job.MaxConcurrentJobs);
-      sendit(sock, "     Resched=%d Times=%d Interval=%s\n",
+      sendit(sock, "     Resched=%d Times=%d Interval=%s Spool=%d\n",
 	  res->res_job.RescheduleOnError, res->res_job.RescheduleTimes,
-	  edit_uint64_with_commas(res->res_job.RescheduleInterval, ed1));
+	  edit_uint64_with_commas(res->res_job.RescheduleInterval, ed1),
+	  res->res_job.spool_data);
       if (res->res_job.client) {
          sendit(sock, "  --> ");
 	 dump_resource(-R_CLIENT, (RES *)res->res_job.client, sendit, sock);

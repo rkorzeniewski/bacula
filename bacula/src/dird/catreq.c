@@ -186,7 +186,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
       &sdmr.VolWriteTime) == 17) {
 
       db_lock(jcr->db);
-      Dmsg3(100, "Update media %s oldStat=%s newStat=%s\n", sdmr.VolumeName,
+      Dmsg3(300, "Update media %s oldStat=%s newStat=%s\n", sdmr.VolumeName,
 	 mr.VolStatus, sdmr.VolStatus);
       bstrncpy(mr.VolumeName, sdmr.VolumeName, sizeof(mr.VolumeName)); /* copy Volume name */
       unbash_spaces(mr.VolumeName);
@@ -202,11 +202,11 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
 	 mr.FirstWritten = jcr->start_time;   /* use Job start time as first write */
       }
       /* If we just labeled the tape set time */
-      Dmsg2(100, "label=%d labeldate=%d\n", label, mr.LabelDate);
+      Dmsg2(300, "label=%d labeldate=%d\n", label, mr.LabelDate);
       if (label || mr.LabelDate == 0) {
 	 mr.LabelDate = time(NULL);
       }
-      Dmsg2(100, "Update media: BefVolJobs=%u After=%u\n", mr.VolJobs, sdmr.VolJobs);
+      Dmsg2(300, "Update media: BefVolJobs=%u After=%u\n", mr.VolJobs, sdmr.VolJobs);
       /* Copy updated values to original media record */
       mr.VolJobs      = sdmr.VolJobs;
       mr.VolFiles     = sdmr.VolFiles;
@@ -222,7 +222,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
       mr.VolWriteTime = sdmr.VolWriteTime;
       bstrncpy(mr.VolStatus, sdmr.VolStatus, sizeof(mr.VolStatus));
 
-      Dmsg2(100, "db_update_media_record. Stat=%s Vol=%s\n", mr.VolStatus, mr.VolumeName);
+      Dmsg2(300, "db_update_media_record. Stat=%s Vol=%s\n", mr.VolStatus, mr.VolumeName);
       /*
        * Check if it has expired, and if not update the DB. Note, if
        *   Volume has expired, has_volume_expired() will update the DB.
@@ -248,14 +248,14 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
 
       jm.JobId = jcr->JobId;
       jm.MediaId = jcr->MediaId;
-      Dmsg6(100, "create_jobmedia JobId=%d MediaId=%d SF=%d EF=%d FI=%d LI=%d\n",
+      Dmsg6(300, "create_jobmedia JobId=%d MediaId=%d SF=%d EF=%d FI=%d LI=%d\n",
 	 jm.JobId, jm.MediaId, jm.StartFile, jm.EndFile, jm.FirstIndex, jm.LastIndex);
       if (!db_create_jobmedia_record(jcr, jcr->db, &jm)) {
          Jmsg(jcr, M_ERROR, 0, _("Catalog error creating JobMedia record. %s"),
 	    db_strerror(jcr->db));
          bnet_fsend(bs, "1991 Update JobMedia error\n");
       } else {
-         Dmsg0(100, "JobMedia record created\n");
+         Dmsg0(300, "JobMedia record created\n");
 	 bnet_fsend(bs, OK_create);
       }
 
@@ -266,7 +266,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
       Jmsg1(jcr, M_ERROR, 0, _("Invalid Catalog request: %s"), omsg);
       free_memory(omsg);
    }
-   Dmsg1(120, ">CatReq response: %s", bs->msg);
+   Dmsg1(300, ">CatReq response: %s", bs->msg);
    Dmsg1(200, "Leave catreq jcr 0x%x\n", jcr);
    return;
 }
@@ -308,8 +308,8 @@ void catalog_update(JCR *jcr, BSOCK *bs, char *msg)
    unser_uint32(data_len);
    p += unser_length(p);
 
-   Dmsg1(99, "UpdCat msg=%s\n", bs->msg);
-   Dmsg5(99, "UpdCat VolSessId=%d VolSessT=%d FI=%d Strm=%d data_len=%d\n",
+   Dmsg1(300, "UpdCat msg=%s\n", bs->msg);
+   Dmsg5(300, "UpdCat VolSessId=%d VolSessT=%d FI=%d Strm=%d data_len=%d\n",
       VolSessionId, VolSessionTime, FileIndex, Stream, data_len);
 
    if (Stream == STREAM_UNIX_ATTRIBUTES || Stream == STREAM_UNIX_ATTRIBUTES_EX) {
@@ -321,8 +321,8 @@ void catalog_update(JCR *jcr, BSOCK *bs, char *msg)
       len = strlen(fname);	  /* length before attributes */
       attr = &fname[len+1];
 
-      Dmsg2(109, "dird<stored: stream=%d %s\n", Stream, fname);
-      Dmsg1(109, "dird<stored: attr=%s\n", attr);
+      Dmsg2(300, "dird<stored: stream=%d %s\n", Stream, fname);
+      Dmsg1(300, "dird<stored: attr=%s\n", attr);
       ar.attr = attr; 
       ar.fname = fname;
       ar.FileIndex = FileIndex;
@@ -330,7 +330,7 @@ void catalog_update(JCR *jcr, BSOCK *bs, char *msg)
       ar.link = NULL;
       ar.JobId = jcr->JobId;
 
-      Dmsg2(111, "dird<filed: stream=%d %s\n", Stream, fname);
+      Dmsg2(300, "dird<filed: stream=%d %s\n", Stream, fname);
       Dmsg1(120, "dird<filed: attr=%s\n", attr);
 
       if (!db_create_file_attributes_record(jcr, jcr->db, &ar)) {

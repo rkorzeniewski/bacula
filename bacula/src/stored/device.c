@@ -323,7 +323,7 @@ int open_device(JCR *jcr, DEVICE *dev)
 void _lock_device(char *file, int line, DEVICE *dev)
 {
    int stat;
-   Dmsg3(100, "lock %d from %s:%d\n", dev->dev_blocked, file, line);
+   Dmsg3(500, "lock %d from %s:%d\n", dev->dev_blocked, file, line);
    P(dev->mutex);
    if (dev->dev_blocked && !pthread_equal(dev->no_wait_id, pthread_self())) {
       dev->num_waiting++;	      /* indicate that I am waiting */
@@ -353,7 +353,7 @@ int device_is_unmounted(DEVICE *dev)
 
 void _unlock_device(char *file, int line, DEVICE *dev) 
 {
-   Dmsg2(100, "unlock from %s:%d\n", file, line);
+   Dmsg2(500, "unlock from %s:%d\n", file, line);
    V(dev->mutex);
 }
 
@@ -367,7 +367,7 @@ void _unlock_device(char *file, int line, DEVICE *dev)
  */
 void _block_device(char *file, int line, DEVICE *dev, int state)
 {
-   Dmsg3(100, "block set %d from %s:%d\n", state, file, line);
+   Dmsg3(500, "block set %d from %s:%d\n", state, file, line);
    ASSERT(dev->dev_blocked == BST_NOT_BLOCKED);
    dev->dev_blocked = state;	      /* make other threads wait */
    dev->no_wait_id = pthread_self();  /* allow us to continue */
@@ -380,7 +380,7 @@ void _block_device(char *file, int line, DEVICE *dev, int state)
  */
 void _unblock_device(char *file, int line, DEVICE *dev)
 {
-   Dmsg3(100, "unblock %d from %s:%d\n", dev->dev_blocked, file, line);
+   Dmsg3(500, "unblock %d from %s:%d\n", dev->dev_blocked, file, line);
    ASSERT(dev->dev_blocked);
    dev->dev_blocked = BST_NOT_BLOCKED;
    dev->no_wait_id = 0;
@@ -395,7 +395,7 @@ void _unblock_device(char *file, int line, DEVICE *dev)
  */
 void _steal_device_lock(char *file, int line, DEVICE *dev, bsteal_lock_t *hold, int state)
 {
-   Dmsg4(100, "steal lock. old=%d new=%d from %s:%d\n", dev->dev_blocked, state,
+   Dmsg4(500, "steal lock. old=%d new=%d from %s:%d\n", dev->dev_blocked, state,
       file, line);
    hold->dev_blocked = dev->dev_blocked;
    hold->dev_prev_blocked = dev->dev_prev_blocked;
@@ -411,7 +411,7 @@ void _steal_device_lock(char *file, int line, DEVICE *dev, bsteal_lock_t *hold, 
  */
 void _give_back_device_lock(char *file, int line, DEVICE *dev, bsteal_lock_t *hold)	      
 {
-   Dmsg4(100, "return lock. old=%d new=%d from %s:%d\n", 
+   Dmsg4(500, "return lock. old=%d new=%d from %s:%d\n", 
       dev->dev_blocked, hold->dev_blocked, file, line);
    P(dev->mutex);
    dev->dev_blocked = hold->dev_blocked;
