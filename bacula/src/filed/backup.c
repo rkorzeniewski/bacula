@@ -30,13 +30,11 @@
 #include "bacula.h"
 #include "filed.h"
 
-#ifdef HAVE_ACL
-#include <sys/acl.h>
-#include <acl/libacl.h>
-#endif
-
 static int save_file(FF_PKT *ff_pkt, void *pkt);
-static int send_data(int stream, FF_PKT *ff_pkt, BSOCK *sd, JCR *jcr, struct CHKSUM *chksum);
+static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, struct CHKSUM *chksum);
+#ifdef HAVE_ACL
+static int read_and_send_acl(JCR *jcr, int acltype, int stream);
+#endif
 
 /*
  * Find all the requested files and send them
@@ -92,12 +90,16 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
 
    start_heartbeat_monitor(jcr);
 
+   jcr->acl_text = get_pool_memory(PM_MESSAGE);
+
    /* Subroutine save_file() is called for each file */
    if (!find_files(jcr, (FF_PKT *)jcr->ff, save_file, (void *)jcr)) {
       ok = false;		      /* error */
       set_jcr_job_status(jcr, JS_ErrorTerminated);
 //    Jmsg(jcr, M_FATAL, 0, _("Find files error.\n"));
    }
+
+   free_pool_memory(jcr->acl_text);
 
    stop_heartbeat_monitor(jcr);
 
@@ -117,8 +119,7 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
 
 /*
  * Called here by find() for each file included.
- *
- *  *****FIXME*****   add FSMs File System Modules
+ *   This is a callback. The original is find_files() above.
  *
  *  Send the file and its data to the Storage daemon.
  *
@@ -185,25 +186,22 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       break;
    case FT_NOACCESS: {
       berrno be;
-      be.set_errno(ff_pkt->ff_errno);
       Jmsg(jcr, M_NOTSAVED, 0, _("     Could not access %s: ERR=%s\n"), ff_pkt->fname,
-	 be.strerror());
+	 be.strerror(ff_pkt->ff_errno));
       jcr->Errors++;
       return 1;
    }
    case FT_NOFOLLOW: {
       berrno be;
-      be.set_errno(ff_pkt->ff_errno);
       Jmsg(jcr, M_NOTSAVED, 0, _("     Could not follow link %s: ERR=%s\n"), ff_pkt->fname,
-	 be.strerror());
+	 be.strerror(ff_pkt->ff_errno));
       jcr->Errors++;
       return 1;
    }
    case FT_NOSTAT: {
       berrno be;
-      be.set_errno(ff_pkt->ff_errno);
       Jmsg(jcr, M_NOTSAVED, 0, _("     Could not stat %s: ERR=%s\n"), ff_pkt->fname,
-	 be.strerror());
+	 be.strerror(ff_pkt->ff_errno));
       jcr->Errors++;
       return 1;
    }
@@ -216,9 +214,8 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       return 1;
    case FT_NOOPEN: {
       berrno be;
-      be.set_errno(ff_pkt->ff_errno);
       Jmsg(jcr, M_NOTSAVED, 0, _("     Could not open directory %s: ERR=%s\n"), ff_pkt->fname,
-	 be.strerror());
+	 be.strerror(ff_pkt->ff_errno));
       jcr->Errors++;
       return 1;
    }
@@ -250,7 +247,6 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
     *	 <file-index> <stream> <info>
     */
    if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, attr_stream)) {
-      berrno be;
       Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
 	    bnet_strerror(sd));
       return 0;
@@ -285,7 +281,6 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 
    Dmsg2(300, ">stored: attr len=%d: %s\n", sd->msglen, sd->msg);
    if (!stat) {
-      berrno be;
       Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
 	    bnet_strerror(sd));
       return 0;
@@ -338,7 +333,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	 stop_thread_timer(tid);
 	 tid = NULL;
       }
-      stat = send_data(data_stream, ff_pkt, sd, jcr, &chksum);
+      stat = send_data(jcr, data_stream, ff_pkt, &chksum);
       bclose(&ff_pkt->bfd);
       if (!stat) {
 	 return 0;
@@ -364,7 +359,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	 }
 	 flags = ff_pkt->flags;
 	 ff_pkt->flags &= ~(FO_GZIP|FO_SPARSE);
-	 stat = send_data(STREAM_MACOS_FORK_DATA, ff_pkt, sd, jcr, &chksum);
+	 stat = send_data(jcr, STREAM_MACOS_FORK_DATA, ff_pkt, &chksum);
 	 ff_pkt->flags = flags;
 	 bclose(&ff_pkt->bfd);
 	 if (!stat) {
@@ -384,113 +379,14 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 #endif
 
 #ifdef HAVE_ACL
-   /*** FIXME ***/
-   /* ACL stream */
-   if (ff_pkt->flags & FO_ACL) {
-      char *acl_text = NULL;
-      char *aclDef_text = NULL;
-
-      /* Read ACLs for files, dirs and links */
-      if (ff_pkt->type == FT_DIREND) {
-	 /* Directory: Check for default ACL*/
-	 acl_t myDefAcl = acl_get_file(ff_pkt->fname, ACL_TYPE_DEFAULT);
-	 /* Check for Access ACL */
-	 acl_t myAccAcl = acl_get_file(ff_pkt->fname, ACL_TYPE_ACCESS);
-	 if (!myDefAcl || !myAccAcl) {
-            Jmsg1(jcr, M_WARNING, 0, "Error while trying to get ACL of directory: %s!\n", ff_pkt->fname);
-	 }
-	 if(myDefAcl){
-            aclDef_text = acl_to_any_text(myDefAcl, NULL, ',', TEXT_ABBREVIATE);
-	    acl_free(myDefAcl);
-	 }
-	 if(myAccAcl){
-            acl_text = acl_to_any_text(myAccAcl, NULL, ',', TEXT_ABBREVIATE);
-	    acl_free(myAccAcl);
-	 }
-      } else {
-	 /* Files or links */
-	 acl_t myAcl = acl_get_file(ff_pkt->fname, ACL_TYPE_ACCESS);
-	 if (!myAcl) {
-            Jmsg1(jcr, M_WARNING, 0, "Error while trying to get ACL of file: %s!\n", ff_pkt->fname);
-	    acl_free(myAcl);
-	 }
-         acl_text = acl_to_any_text(myAcl, NULL, ',', TEXT_ABBREVIATE);
-	 acl_free(myAcl);
-      }
-
-      POOLMEM *msgsave;
-
-      /* If there is an ACL, send it to the Storage daemon */
-      if (acl_text != NULL) {
-	 sd = jcr->store_bsock;
-	 pm_strcpy(&jcr->last_fname, ff_pkt->fname);
-
-
-	 // Send ACL header
-         if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_UNIX_ATTRIBUTES_ACCESS_ACL)) {
-	    berrno be;
-            Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-		  bnet_strerror(sd));
-	    return 0;
-	 }
-
-	 /* Send the buffer to the storage deamon */
-	 msgsave = sd->msg;
-	 sd->msg = acl_text;
-	 sd->msglen = strlen(acl_text) + 1;
-	 if (!bnet_send(sd)) {
-	    berrno be;
-	    sd->msg = msgsave;
-	    sd->msglen = 0;
-            Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-		  bnet_strerror(sd));
-	 } else {
-	    jcr->JobBytes += sd->msglen;
-	    sd->msg = msgsave;
-	    if (!bnet_sig(sd, BNET_EOD)) {
-	       berrno be;
-               Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-		     bnet_strerror(sd));
-	    } else {
-               Dmsg1(200, "ACL of file: %s successfully backed up!\n", ff_pkt->fname);
-	    }
-	 }
-      }
-      /* If there is an Default ACL, send it to the Storage daemon */
-      if (aclDef_text != NULL) {
-	 sd = jcr->store_bsock;
-	 pm_strcpy(&jcr->last_fname, ff_pkt->fname);
-
-
-	 // Send ACL header
-         if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_UNIX_ATTRIBUTES_DEFAULT_ACL)) {
-	    berrno be;
-            Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-		  bnet_strerror(sd));
-	    return 0;
-	 }
-
-	 // Send the buffer to the storage deamon
-	 msgsave = sd->msg;
-	 sd->msg = aclDef_text;
-	 sd->msglen = strlen(aclDef_text) + 1;
-	 if (!bnet_send(sd)) {
-	    berrno be;
-	    sd->msg = msgsave;
-	    sd->msglen = 0;
-            Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-		  bnet_strerror(sd));
-	 } else {
-	    jcr->JobBytes += sd->msglen;
-	    sd->msg = msgsave;
-	    if (!bnet_sig(sd, BNET_EOD)) {
-	       berrno be;
-               Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-		     bnet_strerror(sd));
-	    } else {
-               Dmsg1(200, "ACL of file: %s successfully backed up!\n", ff_pkt->fname);
-	    }
-	 }
+   /* Read access ACLs for files, dirs and links */
+   if (!read_and_send_acl(jcr, BACL_TYPE_ACCESS, STREAM_UNIX_ATTRIBUTES_ACCESS_ACL)) {
+      return 0;
+   }
+   /* Directories can have default ACLs too */
+   if (ff_pkt->type == FT_DIREND && (BACL_CAP & BACL_CAP_DEFAULTS_DIR)) {
+      if (!read_and_send_acl(jcr, BACL_TYPE_DEFAULT, STREAM_UNIX_ATTRIBUTES_DEFAULT_ACL)) {
+	 return 0;
       }
    }
 #endif
@@ -529,8 +425,9 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
  * Currently this is not a problem as the only other stream, resource forks,
  * are not handled as sparse files.
  */
-int send_data(int stream, FF_PKT *ff_pkt, BSOCK *sd, JCR *jcr, struct CHKSUM *chksum)
+int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, struct CHKSUM *chksum)
 {
+   BSOCK *sd = jcr->store_bsock;
    uint64_t fileAddr = 0;	      /* file address */
    char *rbuf, *wbuf;
    int rsize = jcr->buf_size;	   /* read buffer size */
@@ -642,7 +539,6 @@ int send_data(int stream, FF_PKT *ff_pkt, BSOCK *sd, JCR *jcr, struct CHKSUM *ch
 	 }
 	 sd->msg = wbuf;	      /* set correct write buffer */
 	 if (!bnet_send(sd)) {
-	    berrno be;
             Jmsg2(jcr, M_FATAL, 0, _("Network send error %d to SD. ERR=%s\n"),
 		  sd->msglen, bnet_strerror(sd));
 	    sd->msg = msgsave;	   /* restore bnet buffer */
@@ -672,3 +568,55 @@ int send_data(int stream, FF_PKT *ff_pkt, BSOCK *sd, JCR *jcr, struct CHKSUM *ch
 
    return 1;
 }
+
+#ifdef HAVE_ACL
+/*
+ * Read and send an ACL for the last encountered file.
+ */
+static int read_and_send_acl(JCR *jcr, int acltype, int stream)
+{
+   BSOCK *sd = jcr->store_bsock;
+   POOLMEM *msgsave;
+   int len;
+
+   len = bacl_get(jcr, acltype);
+   if (len < 0) {
+      Jmsg1(jcr, M_WARNING, 0, "Error reading ACL of %s\n", jcr->last_fname);
+      return 1;
+   }
+   if (len == 0) {
+      return 1; 		      /* no ACL */
+   }
+
+   /* Send header */
+   if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, stream)) {
+      Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+	    bnet_strerror(sd));
+      return 0;
+   }
+
+   /* Send the buffer to the storage deamon */
+   Dmsg2(400, "Backing up ACL type 0x%2x <%s>\n", acltype, jcr->acl_text);
+   msgsave = sd->msg;
+   sd->msg = jcr->acl_text;
+   sd->msglen = len + 1;
+   if (!bnet_send(sd)) {
+      sd->msg = msgsave;
+      sd->msglen = 0;
+      Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+	    bnet_strerror(sd));
+      return 0;
+   }
+
+   jcr->JobBytes += sd->msglen;
+   sd->msg = msgsave;
+   if (!bnet_sig(sd, BNET_EOD)) {
+      Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+	    bnet_strerror(sd));
+      return 0;
+   }
+
+   Dmsg1(200, "ACL of file: %s successfully backed up!\n", jcr->last_fname);
+   return 1;
+}
+#endif

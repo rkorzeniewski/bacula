@@ -29,15 +29,6 @@
  *   Version $Id$
  */
 
-#ifdef xxxxxxx
-
-Remove fprintf() and actuallyfree and fix POOLMEM coding
-
-Pass errmsg buffer and a length or a POOLMEM buffer
-into subroutine rather than malloc in
-subroutine and free() in higher level routine, which causes
-memory leaks if you forget to free. 
-
 #ifndef TEST_PROGRAM
 
 #include "bacula.h"
@@ -66,11 +57,21 @@ memory leaks if you forget to free.
 #include <sys/stat.h>
 #include "acl.h"
 
-#define POOLMEM 	   char
-#define bstrdup 	   strdup
+#define BACLLEN 65535
+#define pm_strcpy(d,s)	   (strncpy(d, s, BACLLEN - 1) == NULL ? -1 : (int)strlen(d))
+#define Dmsg0(n,s)	   fprintf(stderr, s)
+#define Dmsg1(n,s,a1)	   fprintf(stderr, s, a1)
+#define Dmsg2(n,s,a1,a2)   fprintf(stderr, s, a1, a2)
+
 int aclls(char *fname);
 int aclcp(char *src, char *dst);
 
+struct JCRstruct {
+   char *last_fname;
+   char acl_text[BACLLEN];
+};
+typedef struct JCRstruct JCR;
+JCR jcr;
 #endif
 
 /*
@@ -87,13 +88,24 @@ int aclcp(char *src, char *dst);
       || defined(HAVE_HPUX_OS)      /* man page -- may need flags         */ \
       || defined(HAVE_SUN_OS)       /* tested   -- compile with -lsec     */ \
        )
+/*
+ * ***FIXME***
+ * For now we abandon this test and only test for Linux:
+ * 1. This is backwards compatible.
+ * 2. If we allow any of the other now, we may have to provide conversion
+ *    routines if we ever want to distinguish them. Or just do our best
+ *    with what we have and give all ACL streams a new number/type.
+ */
+#endif
+#if !defined(HAVE_ACL) || ! defined(HAVE_LINUX_OS)
 
-POOLMEM *bacl_get(char *fname, int acltype)
+/* bacl_get() returns the lenght of the string, or -1 on error. */
+int bacl_get(JCR *jcr, int acltype)
 {
-   return NULL;
+   return -1;
 }
 
-int bacl_set(char *fname, int acltype, char *acltext)
+int bacl_set(JCR *jcr, int acltype)
 {
    return -1;
 }
@@ -102,21 +114,22 @@ int bacl_set(char *fname, int acltype, char *acltext)
 
 #include <sys/access.h>
 
-bool bacl_get(JCR *jcr, char *fname, int acltype)
+int bacl_get(JCR *jcr, int acltype)
 {
    char *acl_text;
+   int len;
 
-   if ((acl_text = acl_get(fname)) != NULL) {
-      pm_strcpy(jcr->acl_text, acl_text);
+   if ((acl_text = acl_get(jcr->last_fname)) != NULL) {
+      len = pm_strcpy(jcr->acl_text, acl_text);
       free(acl_text);
-      return true;
+      return len;
    }
-   return false;
+   return -1;
 }
 
-int bacl_set(char *fname, int acltype, char *acltext)
+int bacl_set(JCR *jcr, int acltype)
 {
-   if (acl_put(fname, acltext, 0) != 0) {
+   if (acl_put(jcr->last_fname, jcr->acl_text, 0) != 0) {
       return -1;
    }
    return 0;
@@ -150,36 +163,43 @@ int bacl_set(char *fname, int acltype, char *acltext)
 #endif
 #endif
 
-bool bacl_get(JCR *jcr, char *fname, int acltype)
+int bacl_get(JCR *jcr, int acltype)
 {
    acl_t acl;
-   int ostype;
+   int len, ostype;
    char *acl_text;
 
    ostype = (acltype & BACL_TYPE_DEFAULT) ? ACL_TYPE_DEFAULT : ACL_TYPE_ACCESS;
 
-   acl = acl_get_file(fname, ostype);
+   acl = acl_get_file(jcr->last_fname, ostype);
    if (acl) {
       if ((acl_text = acl_to_text(acl, NULL)) != NULL) {
-	 pm_strcpy(jcr->acl_text, acl_text);
+	 len = pm_strcpy(jcr->acl_text, acl_text);
 	 acl_free(acl_text);
-	 return true;
+	 return len;
       }
-      acl_free(acl_text);
    }
    /***** Do we really want to silently ignore errors from acl_get_file
      and acl_to_text?  *****/
-   return false;
+   return -1;
 }
 
-int bacl_set(char *fname, int acltype, char *acltext)
+int bacl_set(JCR *jcr, int acltype)
 {
    acl_t acl;
-   int ostype, stat;
+   int ostype;
 
    ostype = (acltype & BACL_TYPE_DEFAULT) ? ACL_TYPE_DEFAULT : ACL_TYPE_ACCESS;
 
-   acl = acl_from_text(acltext);
+   /* If we get empty default ACLs, clear ACLs now */
+   if (ostype == ACL_TYPE_DEFAULT && strlen(jcr->acl_text) == 0) {
+      if (acl_delete_def_file(jcr->last_fname) == 0) {
+	 return 0;
+      }
+      return -1;
+   }
+
+   acl = acl_from_text(jcr->acl_text);
    if (acl == NULL) {
       return -1;
    }
@@ -195,47 +215,50 @@ int bacl_set(char *fname, int acltype, char *acltext)
    }
 #endif
 
-   stat = acl_set_file(fname, ostype, acl);
+   if (acl_set_file(jcr->last_fname, ostype, acl) != 0) {
+      acl_free(acl);
+      return -1;
+   }
    acl_free(acl);
-   return stat;
+   return 0;
 }
 
 #elif defined(HAVE_HPUX_OS)
 #include <sys/acl.h>
 #include <acllib.h>
 
-POOLMEM *bacl_get(char *fname, int acltype)
+int bacl_get(JCR *jcr, int acltype)
 {
-   int n;
+   int n, len;
    struct acl_entry acls[NACLENTRIES];
-   char *tmp;
-   POOLMEM *acltext = NULL;
+   char *acl_text;
 
-   if ((n = getacl(fname, 0, acls)) <= 0) {
-      return NULL;
+   if ((n = getacl(jcr->last_fname, 0, acls)) <= 0) {
+      return -1;
    }
-   if ((n = getacl(fname, n, acls)) > 0) {
-      if ((tmp = acltostr(n, acls, FORM_SHORT)) != NULL) {
-	 acltext = bstrdup(tmp);
-	 actuallyfree(tmp);
+   if ((n = getacl(jcr->last_fname, n, acls)) > 0) {
+      if ((acl_text = acltostr(n, acls, FORM_SHORT)) != NULL) {
+	 len = pm_strcpy(jcr->acl_text, acl_text);
+	 free(acl_text);
+	 return len;
       }
    }
-   return acltext;
+   return -1;
 }
 
-int bacl_set(char *fname, int acltype, char *acltext)
+int bacl_set(JCR *jcr, int acltype)
 {
    int n, stat;
    struct acl_entry acls[NACLENTRIES];
 
-   n = strtoacl(acltext, 0, NACLENTRIES, acls, ACL_FILEOWNER, ACL_FILEGROUP);
+   n = strtoacl(jcr->acl_text, 0, NACLENTRIES, acls, ACL_FILEOWNER, ACL_FILEGROUP);
    if (n <= 0) {
       return -1;
    }
-   if (strtoacl(acltext, n, NACLENTRIES, acls, ACL_FILEOWNER, ACL_FILEGROUP) != n) {
+   if (strtoacl(jcr->acl_text, n, NACLENTRIES, acls, ACL_FILEOWNER, ACL_FILEGROUP) != n) {
       return -1;
    }
-   if (setacl(fname, n, acls) != 0) {
+   if (setacl(jcr->last_fname, n, acls) != 0) {
       return -1;
    }
    return 0;
@@ -244,42 +267,46 @@ int bacl_set(char *fname, int acltype, char *acltext)
 #elif defined(HAVE_SUN_OS)
 #include <sys/acl.h>
 
-POOLMEM *bacl_get(char *fname, int acltype)
+int bacl_get(JCR *jcr, int acltype)
+{
+   int n, len;
+   aclent_t *acls;
+   char *acl_text;
+
+   n = acl(jcr->last_fname, GETACLCNT, 0, NULL);
+   if (n <= 0) {
+      return -1;
+   }
+   if ((acls = (aclent_t *)malloc(n * sizeof(aclent_t))) == NULL) {
+      return -1;
+   }
+   if (acl(jcr->last_fname, GETACL, n, acls) == n) {
+      if ((acl_text = acltotext(acls, n)) != NULL) {
+	 pm_strcpy(jcr->acl_text, acl_text);
+	 free(acl_text);
+	 free(acls);
+	 return len;
+      }
+   }
+   free(acls);
+   return -1;
+}
+
+int bacl_set(JCR *jcr, int acltype)
 {
    int n;
    aclent_t *acls;
-   char *tmp;
-   POOLMEM *acltext = NULL;
 
-   n = acl(fname, GETACLCNT, 0, NULL);
-   if (n <= 0) {
-      return NULL;
-   }
-   if ((acls = (aclent_t *)malloc(n * sizeof(aclent_t))) == NULL) {
-      return NULL;
-   }
-   if (acl(fname, GETACL, n, acls) == n) {
-      if ((tmp = acltotext(acls, n)) != NULL) {
-	 acltext = bstrdup(tmp);
-	 actuallyfree(tmp);
-      }
-   }
-   actuallyfree(acls);
-   return acltext;
-}
-
-int bacl_set(char *fname, int acltype, char *acltext)
-{
-   int n, stat;
-   aclent_t *acls;
-
-   acls = aclfromtext(acltext, &n);
+   acls = aclfromtext(jcr->acl_text, &n);
    if (!acls) {
       return -1;
    }
-   stat = acl(fname, SETACL, n, acls);
-   actuallyfree(acls);
-   return stat;
+   if (acl(jcr->last_fname, SETACL, n, acls) != 0) {
+      free(acls);
+      return -1;
+   }
+   free(acls);
+   return 0;
 }
 
 #endif
@@ -292,7 +319,7 @@ int main(int argc, char **argv)
    int status = 0;
 
    if (argc < 1) {
-      fprintf(stderr, "Cannot determine my own name\n");
+      Dmsg0(200, "Cannot determine my own name\n");
       return EXIT_FAILURE;
    }
 
@@ -312,7 +339,7 @@ int main(int argc, char **argv)
 	 ++argv;
       }
       if (argc != 2) {
-         fprintf(stderr, "%s: wrong number of arguments\n"
+         Dmsg2(200, "%s: wrong number of arguments\n"
                "usage:\t%s [-v] source destination\n"
                "\tCopies ACLs from source to destination.\n"
                "\tSpecify -v to show ACLs after copy for verification.\n",
@@ -320,7 +347,7 @@ int main(int argc, char **argv)
 	 return EXIT_FAILURE;
       }
       if (strcmp(argv[0], argv[1]) == 0) {
-         fprintf(stderr, "%s: identical source and destination.\n"
+         Dmsg2(200, "%s: identical source and destination.\n"
                "usage:\t%s [-v] source destination\n"
                "\tCopies ACLs from source to destination.\n"
                "\tSpecify -v to show ACLs after copy for verification.\n",
@@ -339,7 +366,7 @@ int main(int argc, char **argv)
 
    /* Default: just list ACLs */
    if (argc < 1) {
-      fprintf(stderr, "%s: missing arguments\n"
+      Dmsg2(200, "%s: missing arguments\n"
             "usage:\t%s file ...\n"
             "\tLists ACLs of specified files or directories.\n",
 	    prgname, prgname);
@@ -358,47 +385,47 @@ int main(int argc, char **argv)
 int aclcp(char *src, char *dst)
 {
    struct stat st;
-   POOLMEM *acltext;
 
    if (lstat(dst, &st) != 0) {
-      fprintf(stderr, "aclcp: destination does not exist\n");
+      Dmsg0(200, "aclcp: destination does not exist\n");
       return EXIT_FAILURE;
    }
    if (S_ISLNK(st.st_mode)) {
-      fprintf(stderr, "aclcp: cannot set ACL on symlinks\n");
+      Dmsg0(200, "aclcp: cannot set ACL on symlinks\n");
       return EXIT_FAILURE;
    }
    if (lstat(src, &st) != 0) {
-      fprintf(stderr, "aclcp: source does not exist\n");
+      Dmsg0(200, "aclcp: source does not exist\n");
       return EXIT_FAILURE;
    }
    if (S_ISLNK(st.st_mode)) {
-      fprintf(stderr, "aclcp: will not read ACL from symlinks\n");
+      Dmsg0(200, "aclcp: will not read ACL from symlinks\n");
       return EXIT_FAILURE;
    }
 
-   acltext = bacl_get(src, BACL_TYPE_ACCESS);
-   if (!acltext) {
-      fprintf(stderr, "aclcp: could not read ACLs for %s\n", src);
+   jcr.last_fname = src;
+   if (bacl_get(&jcr, BACL_TYPE_ACCESS) < 0) {
+      Dmsg1(200, "aclcp: could not read ACLs for %s\n", jcr.last_fname);
       return EXIT_FAILURE;
    } else {
-      if (bacl_set(dst, BACL_TYPE_ACCESS, acltext) != 0) {
-         fprintf(stderr, "aclcp: could not set ACLs on %s\n", dst);
-	 actuallyfree(acltext);
+      jcr.last_fname = dst;
+      if (bacl_set(&jcr, BACL_TYPE_ACCESS) < 0) {
+         Dmsg1(200, "aclcp: could not set ACLs on %s\n", jcr.last_fname);
 	 return EXIT_FAILURE;
       }
-      actuallyfree(acltext);
    }
 
    if (S_ISDIR(st.st_mode) && (BACL_CAP & BACL_CAP_DEFAULTS_DIR)) {
-      acltext = bacl_get(src, BACL_TYPE_DEFAULT);
-      if (acltext) {
-	 if (bacl_set(dst, BACL_TYPE_DEFAULT, acltext) != 0) {
-            fprintf(stderr, "aclcp: could not set default ACLs on %s\n", dst);
-	    actuallyfree(acltext);
+      jcr.last_fname = src;
+      if (bacl_get(&jcr, BACL_TYPE_DEFAULT) < 0) {
+	 Dmsg1(200, "aclcp: could not read default ACLs for %s\n", jcr.last_fname);
+	 return EXIT_FAILURE;
+      } else {
+	 jcr.last_fname = dst;
+	 if (bacl_set(&jcr, BACL_TYPE_DEFAULT) < 0) {
+            Dmsg1(200, "aclcp: could not set default ACLs on %s\n", jcr.last_fname);
 	    return EXIT_FAILURE;
 	 }
-	 actuallyfree(acltext);
       }
    }
 
@@ -409,36 +436,32 @@ int aclcp(char *src, char *dst)
 int aclls(char *fname)
 {
    struct stat st;
-   POOLMEM *acltext;
 
    if (lstat(fname, &st) != 0) {
-      fprintf(stderr, "acl: source does not exist\n");
+      Dmsg0(200, "acl: source does not exist\n");
       return EXIT_FAILURE;
    }
    if (S_ISLNK(st.st_mode)) {
-      fprintf(stderr, "acl: will not read ACL from symlinks\n");
+      Dmsg0(200, "acl: will not read ACL from symlinks\n");
       return EXIT_FAILURE;
    }
 
-   acltext = bacl_get(fname, BACL_TYPE_ACCESS);
-   if (!acltext) {
-      fprintf(stderr, "acl: could not read ACLs for %s\n", fname);
+   jcr.last_fname = fname;
+
+   if (bacl_get(&jcr, BACL_TYPE_ACCESS) < 0) {
+      Dmsg1(200, "acl: could not read ACLs for %s\n", jcr.last_fname);
       return EXIT_FAILURE;
    }
-   printf("#file: %s\n%s\n", fname, acltext);
-   actuallyfree(acltext);
+   printf("#file: %s\n%s\n", jcr.last_fname, jcr.acl_text);
 
    if (S_ISDIR(st.st_mode) && (BACL_CAP & BACL_CAP_DEFAULTS_DIR)) {
-      acltext = bacl_get(fname, BACL_TYPE_DEFAULT);
-      if (!acltext) {
-         fprintf(stderr, "acl: could not read default ACLs for %s\n", fname);
+      if (bacl_get(&jcr, BACL_TYPE_DEFAULT) < 0) {
+         Dmsg1(200, "acl: could not read default ACLs for %s\n", jcr.last_fname);
 	 return EXIT_FAILURE;
       }
-      printf("#file: %s [default]\n%s\n", fname, acltext);
-      actuallyfree(acltext);
+      printf("#file: %s [default]\n%s\n", jcr.last_fname, jcr.acl_text);
    }
 
    return 0;
 }
-#endif
 #endif

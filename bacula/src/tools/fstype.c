@@ -50,10 +50,10 @@ static void usage()
 int
 main (int argc, char *const *argv)
 {
+   char fs[1000];
    int verbose = 0;
    int status = 0;
    int ch, i;
-   char fs[1000];
 
    while ((ch = getopt(argc, argv, "v?")) != -1) {
       switch (ch) {

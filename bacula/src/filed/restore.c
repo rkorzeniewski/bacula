@@ -29,11 +29,6 @@
 #include "bacula.h"
 #include "filed.h"
 
-#ifdef HAVE_ACL
-#include <sys/acl.h>
-#include <acl/libacl.h>
-#endif
-
 #ifdef HAVE_DARWIN_OS
 #include <sys/attr.h>
 #endif
@@ -102,9 +97,6 @@ void do_restore(JCR *jcr)
    int non_support_progname = 0;
 
    /* Finally, set up for special configurations */
-#ifdef HAVE_ACL
-   acl_t acl;
-#endif
 #ifdef HAVE_DARWIN_OS
    intmax_t rsrc_len = 0;	      /* Original length of resource fork */
    struct attrlist attrList;
@@ -165,6 +157,7 @@ void do_restore(JCR *jcr)
    binit(&bfd);
    binit(&altbfd);
    attr = new_attr();
+   jcr->acl_text = get_pool_memory(PM_MESSAGE);
 
    while (bget_msg(sd) >= 0 && !job_canceled(jcr)) {
       /* Remember previous stream type */
@@ -349,59 +342,30 @@ void do_restore(JCR *jcr)
 #else
 	 non_support_finfo++;
 #endif
-	 break;
 
-/*** FIXME ***/
-case STREAM_UNIX_ATTRIBUTES_ACCESS_ACL:
+      case STREAM_UNIX_ATTRIBUTES_ACCESS_ACL:
 #ifdef HAVE_ACL
-	 /* Recover Acess ACL from stream and check it */
-	 acl = acl_from_text(sd->msg);
-	 if (acl_valid(acl) != 0) {
-            Jmsg1(jcr, M_WARNING, 0, "Failure in the ACL of %s! FD is not able to restore it!\n", jcr->last_fname);
-	    acl_free(acl);
+	 pm_strcpy(jcr->acl_text, sd->msg);
+         Dmsg2(400, "Restoring ACL type 0x%2x <%s>\n", BACL_TYPE_ACCESS, jcr->acl_text);
+	 if (bacl_set(jcr, BACL_TYPE_ACCESS) != 0) {
+               Jmsg1(jcr, M_WARNING, 0, "Can't restore ACL of %s\n", jcr->last_fname);
 	 }
-
-	 /* Try to restore ACL */
-	 if (attr->type == FT_DIREND) {
-	    /* Directory */
-	    if (acl_set_file(jcr->last_fname, ACL_TYPE_ACCESS, acl) != 0) {
-               Jmsg1(jcr, M_WARNING, 0, "Error! Can't restore ACL of directory: %s! Maybe system does not support ACLs!\n", jcr->last_fname);
-	    }
-	 /* File or Link */
-	 } else if (acl_set_file(jcr->last_fname, ACL_TYPE_ACCESS, acl) != 0) {
-            Jmsg1(jcr, M_WARNING, 0, "Error! Can't restore ACL of file: %s! Maybe system does not support ACLs!\n", jcr->last_fname);
-	 }
-	 acl_free(acl);
-         Dmsg1(200, "ACL of file: %s successfully restored!\n", jcr->last_fname);
-	 break;
-#else
+#else 
 	 non_support_acl++;
-	 break; 		      /* unconfigured, ignore */
 #endif
+	 break;
+
       case STREAM_UNIX_ATTRIBUTES_DEFAULT_ACL:
 #ifdef HAVE_ACL
-      /* Recover Default ACL from stream and check it */
-	 acl = acl_from_text(sd->msg);
-	 if (acl_valid(acl) != 0) {
-            Jmsg1(jcr, M_WARNING, 0, "Failure in the Default ACL of %s! FD is not able to restore it!\n", jcr->last_fname);
-	    acl_free(acl);
+	 pm_strcpy(jcr->acl_text, sd->msg);
+         Dmsg2(400, "Restoring ACL type 0x%2x <%s>\n", BACL_TYPE_DEFAULT, jcr->acl_text);
+	 if (bacl_set(jcr, BACL_TYPE_DEFAULT) != 0) {
+               Jmsg1(jcr, M_WARNING, 0, "Can't restore default ACL of %s\n", jcr->last_fname);
 	 }
-
-	 /* Try to restore ACL */
-	 if (attr->type == FT_DIREND) {
-	    /* Directory */
-	    if (acl_set_file(jcr->last_fname, ACL_TYPE_DEFAULT, acl) != 0) {
-               Jmsg1(jcr, M_WARNING, 0, "Error! Can't restore Default ACL of directory: %s! Maybe system does not support ACLs!\n", jcr->last_fname);
-	     }
-	 }
-	 acl_free(acl);
-         Dmsg1(200, "Default ACL of file: %s successfully restored!\n", jcr->last_fname);
-	 break;
-#else
+#else 
 	 non_support_acl++;
-	 break; 		      /* unconfigured, ignore */
 #endif
-/*** FIXME ***/
+	 break;
 
       case STREAM_MD5_SIGNATURE:
       case STREAM_SHA1_SIGNATURE:
@@ -461,6 +425,7 @@ ok_out:
    bclose(&altbfd);
    bclose(&bfd);
    free_attr(attr);
+   free_pool_memory(jcr->acl_text);
    Dmsg2(10, "End Do Restore. Files=%d Bytes=%s\n", jcr->JobFiles,
       edit_uint64(jcr->JobBytes, ec1));
    if (non_support_data > 1 || non_support_attr > 1) {
@@ -535,9 +500,9 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
 	 *addr = faddr;
 	 if (blseek(bfd, (off_t)*addr, SEEK_SET) < 0) {
 	    berrno be;
-	    be.set_errno(bfd->berrno);
             Jmsg3(jcr, M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"),
-		  edit_uint64(*addr, ec1), jcr->last_fname, be.strerror());
+		  edit_uint64(*addr, ec1), jcr->last_fname, 
+		  be.strerror(bfd->berrno));
 	    return -1;
 	 }
       }
@@ -549,6 +514,11 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
 
    if (flags & FO_GZIP) {
 #ifdef HAVE_LIBZ
+      /* 
+       * NOTE! We only use uLong and Byte because they are
+       *  needed by the zlib routines, they should not otherwise
+       *  be used in Bacula.
+       */
       compress_len = jcr->compress_buf_size;
       Dmsg2(100, "Comp_len=%d msglen=%d\n", compress_len, wsize);
       if ((stat=uncompress((Byte *)jcr->compress_buf, &compress_len,
@@ -568,11 +538,10 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
       Dmsg2(30, "Write %u bytes, total before write=%s\n", wsize, edit_uint64(jcr->JobBytes, ec1));
    }
 
-   if ((uLong)bwrite(bfd, wbuf, wsize) != wsize) {
-      Dmsg0(0, "===Write error===\n");
+   if (bwrite(bfd, wbuf, wsize) != (ssize_t)wsize) {
       berrno be;
-      be.set_errno(bfd->berrno);
-      Jmsg2(jcr, M_ERROR, 0, _("Write error on %s: %s\n"), jcr->last_fname, be.strerror());
+      Jmsg2(jcr, M_ERROR, 0, _("Write error on %s: %s\n"), 
+	    jcr->last_fname, be.strerror(bfd->berrno));
       return -1;
    }
 
