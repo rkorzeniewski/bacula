@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                05 November 2003  
+                23 November 2003  
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -11,6 +11,18 @@ Documentation to do: (any release a little bit at a time)
 - VXA drives have a "cleaning required"
   indicator, but Exabyte recommends preventive cleaning after every 75
   hours of operation.
+  From Phil:
+    In this context, it should be noted that Exabyte has a command-line
+    vxatool utility available for free download.  (The current version is
+    vxatool-3.72.) It can get diagnostic info, read, write and erase tapes,
+    test the drive, unload tapes, change drive settings, flash new firmware,
+    etc.
+    Of particular interest in this context is that vxatool <device> -i will
+    report, among other details, the time since last cleaning in tape motion
+    minutes.  This information can be retrieved (and settings changed, for
+    that matter) through the generic-SCSI device even when Bacula has the
+    regular tape device locked.  (Needless to say, I don't recommend
+    changing tape settings while a job is running.)
 - Lookup HP cleaning recommendations.
 - Lookup HP tape replacement recommendations (see trouble shooting autochanger)
 - Create a man page for each binary (Debian package requirement).
@@ -47,8 +59,6 @@ For 1.33 Testing/Documentation:
                 
 
 For 1.33
-- Add flag to write only one EOF mark on the tape.
-- Implement autochanger testing in btape "test" command.
 - Implement RestoreJobRetention? Maybe better "JobRetention" in a Job,
   which would take precidence over the Catalog "JobRetention".
 - Implement Label Format in Add and Label console commands.
@@ -57,14 +67,14 @@ For 1.33
 - Make a Running Jobs: output similar to current Scheduled Jobs:
 
 After 1.33:
+- Make dev->file and dev->block_num signed integers so that -1 can
+  be an invalid value.
 - Create VolAddr for disk files in place of VolFile and VolBlock. This
   is needed to properly specify ranges.
 - Print bsmtp output to job report so that problems will be seen.
-- Make mark/unmark report how many files marked/unmarked.
 - Have some way to estimate the restore size or have it printed.
 - Pass the number of files to be restored to the FD for reporting 
 - Add progress of files/bytes to SD and FD.
-- Implement lmark to list everyfile marked.
 - Don't continue Restore if no files selected.
 - Print warning message if FileId > 4 billion
 - do a "messages" before the first prompt in Console
@@ -738,6 +748,9 @@ Options records:
   asterisk preceding the name indicates a feature not currently
   implemented.
 
+    - Match "xxx"             - Match regular expression
+    - Wild "xxx"              - Do a wild card match
+
   For Backup Jobs:
     - Compression= (GZIP, ...)
     - Signature=   (MD5, SHA1, ...)
@@ -748,6 +761,9 @@ Options records:
     - *Exclude=   (yes/no)    - exclude file from being saved
     - *Reader=    (filename)  - external read (backup) program
     - *Plugin=    (filename)  - read/write plugin module
+
+    - Include=    (yes/no)    - Include the file matched no additional
+                                patterns are applied.
 
   For Verify Jobs:
     - verify=     (ipnougsamc5) - verify options
@@ -804,13 +820,13 @@ Example:
         Options {
           Signature = MD5
           # Note multiple Matches are ORed
-          Match = /*.gz/   # matches .gz files */
-          Match = /*.Z/    # matches .Z files */
+          Match = "*.gz"   # matches .gz files
+          Match = "*.Z"    # matches .Z files
         }
         Options {
           Compression = GZIP
           Signature = MD5
-          Match = /*.?*/   # matches all files
+          Match = "*.?*"   # matches all files
         }
         File = /
       }
@@ -907,4 +923,7 @@ Done: (see kernsdone for more)
 - Finish implementation of Verify=DiskToCatalog
 - Make sure that Volumes are recycled based on "Least recently used"
   rather than lowest MediaId.
-
+- Add flag to write only one EOF mark on the tape.
+- Implement autochanger testing in btape "test" command.
+- Implement lmark to list everyfile marked.
+- Make mark/unmark report how many files marked/unmarked.

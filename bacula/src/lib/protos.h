@@ -162,8 +162,8 @@ void             init_stack_dump          (void);
 /* scan.c */
 void             strip_trailing_junk     (char *str);
 void             strip_trailing_slashes  (char *dir);
-int              skip_spaces             (char **msg);
-int              skip_nonspaces          (char **msg);
+bool             skip_spaces             (char **msg);
+bool             skip_nonspaces          (char **msg);
 int              fstrsch                 (char *a, char *b);
 int              parse_args(POOLMEM *cmd, POOLMEM **args, int *argc, 
                         char **argk, char **argv, int max_args);

@@ -1,6 +1,41 @@
 
 2003-11-xx Version 1.33  xxNov03
+24Nov03
+- Sort FileSet selection list by CreateTime.
+- Add "lsmark", and "estimate" to tree routines.
+- Doing a mark or unmark now prints how many entries were changed.
+- Add command argument parsing to btape.c
+- Enhance EOT to print file:block on message.
+- Add repeat counts on btape bsf, fsf, bsr, fsr, and weof commands.
+- Enhance btape's fill command to be much clearer and more reliable.
+- Add state file to btape so that unfill command can be done any time
+  after a fill command.
+- Use reposition_dev() to position for read back of last block.
+22Nov03
+- Zap InChanger flag only if setting Slot to non-zero.
+- Added new SD directive TwoEOF, default off, that tells Bacula whether
+  to write one or two EOFs for EOM.  For the OnStream driver it must
+  be off, otherwise an empty file will be created.
+- Cleaned up the btape "fill" command to compare the last block written
+  and read rather than just printing them.
+21Nov03
+- Implement btape test for autochanger.
+- Implement btape test for Fast Forward Space File.
+- Moved up to cygwin 1.5.5-1
+- Implemented Fast Forward Space File
+20Nov03
+- Add support for selecting volumes from InChanger list first, then
+  selecting from all available volumes.
+- Ensure that Volumes are selected from oldest LastWritten data/time.
+- A couple of bug fixes ensuring the proper ordering of volumes.
+19Nov03
+- Return oldest LastWritten for find_next_volume.
+- Remove ASSERT from stored/acquire.c that could trip when it shouldn't.
+- Enhance SD status if debug_level > 1 to show details of dev status.
 18Nov03
+- Create update_bacula_tables, ... scripts and modify configure and Makefiles
+- Eliminate is_num() and use is_an_integer().
+- Add user slot selection code "slots=1,2-3,5,10, ..."
 - Start daemons at level 90 rather than 20 so that MySQL will already
   be started.
 - Write alter_mysql_tables.in and alter_sqlite_tables.in
@@ -51,7 +86,8 @@
 09Nov03
 - Implement new code that assures that a non-zero Slot is unique within
   a given Pool. When setting a non-zero Slot, the Slot of all other
-  Volumes with the same Slot is set to zero.
+  Volumes with the same Slot is set to zero.  Redone later to add
+  InChanger flag
 07Nov03
 - Fix bug reported by Lars where an incorrect Volume name was printed
   by the "status dir" command.

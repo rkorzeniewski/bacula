@@ -236,7 +236,7 @@ char *uar_sel_fileset =
    "SELECT FileSet.FileSetId,FileSet.FileSet,FileSet.CreateTime FROM Job,"
    "Client,FileSet WHERE Job.FileSetId=FileSet.FileSetId "
    "AND Job.ClientId=%u AND Client.ClientId=%u "
-   "GROUP BY FileSet.FileSetId ORDER BY FileSet.FileSetId";
+   "GROUP BY FileSet.FileSetId ORDER BY FileSet.CreateTime";
 
 /* Find MediaType used by this Job */
 char *uar_mediatype =

@@ -46,6 +46,12 @@ char buf[100000];
 int bsize = TAPE_BSIZE;
 char VolName[MAX_NAME_LENGTH];
 
+/*
+ * If you change the format of the state file, 
+ *  increment this value
+ */ 
+static uint32_t btape_state_level = 1;
+
 DEVICE *dev = NULL;
 DEVRES *device = NULL;
 
@@ -73,14 +79,21 @@ static void bfill_cmd();
 static bool open_the_device();
 static char *edit_device_codes(JCR *jcr, char *omsg, char *imsg, char *cmd);
 static void autochangercmd();
+static void do_unfill();
 
 
 /* Static variables */
 #define CONFIG_FILE "bacula-sd.conf"
 char *configfile;
 
+#define MAX_CMD_ARGS 30
+static POOLMEM *cmd;
+static POOLMEM *args;
+static char *argk[MAX_CMD_ARGS];
+static char *argv[MAX_CMD_ARGS];
+static int argc;
+
 static BSR *bsr = NULL;
-static char cmd[1000];
 static int signals = TRUE;
 static int ok;
 static int stop;
@@ -118,7 +131,7 @@ int get_cmd(char *prompt);
  *	   Main Bacula Pool Creation Program
  *
  */
-int main(int argc, char *argv[])
+int main(int margc, char *margv[])
 {
    int ch;
 
@@ -134,10 +147,10 @@ int main(int argc, char *argv[])
    printf("Tape block granularity is %d bytes.\n", TAPE_BSIZE);
 
    working_directory = "/tmp";
-   my_name_is(argc, argv, "btape");
+   my_name_is(margc, margv, "btape");
    init_msg(NULL, NULL);
 
-   while ((ch = getopt(argc, argv, "b:c:d:sv?")) != -1) {
+   while ((ch = getopt(margc, margv, "b:c:d:sv?")) != -1) {
       switch (ch) {
       case 'b':                    /* bootstrap file */
 	 bsr = parse_bsr(NULL, optarg);
@@ -173,10 +186,11 @@ int main(int argc, char *argv[])
 
       }  
    }
-   argc -= optind;
-   argv += optind;
+   margc -= optind;
+   margv += optind;
 
-
+   cmd = get_pool_memory(PM_FNAME);
+   args = get_pool_memory(PM_FNAME);
    
    if (signals) {
       init_signals(terminate_btape);
@@ -192,21 +206,22 @@ int main(int argc, char *argv[])
 
 
    /* See if we can open a device */
-   if (argc == 0) {
+   if (margc == 0) {
       Pmsg0(000, "No archive name specified.\n");
       usage();
       exit(1);
-   } else if (argc != 1) {
+   } else if (margc != 1) {
       Pmsg0(000, "Improper number of arguments specified.\n");
       usage();
       exit(1);
    }
 
-   jcr = setup_jcr("btape", argv[0], bsr, NULL);
+   jcr = setup_jcr("btape", margv[0], bsr, NULL);
    dev = setup_to_access_device(jcr, 0);     /* acquire for write */
    if (!dev) {
       exit(1);
    }
+   dev->max_volume_size = 0;	     
    if (!open_the_device()) {
       goto terminate;
    }
@@ -227,6 +242,14 @@ static void terminate_btape(int stat)
       free(configfile);
    }
    free_config_resources();
+   if (args) {
+      free_pool_memory(args);
+      args = NULL;
+   }
+   if (cmd) {
+      free_pool_memory(cmd);
+      cmd = NULL;
+   }
 
    if (dev) {
       term_dev(dev);
@@ -289,7 +312,7 @@ void quitcmd()
 static void labelcmd()
 {
    if (VolumeName) {
-      bstrncpy(cmd, VolumeName, sizeof(cmd));
+      pm_strcpy(&cmd, VolumeName);
    } else {
       if (!get_cmd("Enter Volume Name: ")) {
 	 return;
@@ -389,12 +412,19 @@ static void clearcmd()
 static void weofcmd()
 {
    int stat;
+   int num = 1;
+   if (argc > 1) {
+      num = atoi(argk[1]);
+   }
+   if (num <= 0) {
+      num = 1;
+   }
 
-   if ((stat = weof_dev(dev, 1)) < 0) {
+   if ((stat = weof_dev(dev, num)) < 0) {
       Pmsg2(0, "Bad status from weof %d. ERR=%s\n", stat, strerror_dev(dev));
       return;
    } else {
-      Pmsg1(0, "Wrote EOF to %s\n", dev_name(dev));
+      Pmsg3(0, "Wrote %d EOF%s to %s\n", num, num==1?"":"s", dev_name(dev));
    }
 }
 
@@ -429,11 +459,18 @@ static void eodcmd()
  */
 static void bsfcmd()
 {
+   int num = 1;
+   if (argc > 1) {
+      num = atoi(argk[1]);
+   }
+   if (num <= 0) {
+      num = 1;
+   }
 
-   if (!bsf_dev(dev, 1)) {
+   if (!bsf_dev(dev, num)) {
       Pmsg1(0, _("Bad status from bsf. ERR=%s\n"), strerror_dev(dev));
    } else {
-      Pmsg0(0, _("Backspaced one file.\n"));
+      Pmsg2(0, _("Backspaced %d file%s.\n"), num, num==1?"":"s");
    }
 }
 
@@ -442,10 +479,17 @@ static void bsfcmd()
  */
 static void bsrcmd()
 {
-   if (!bsr_dev(dev, 1)) {
+   int num = 1;
+   if (argc > 1) {
+      num = atoi(argk[1]);
+   }
+   if (num <= 0) {
+      num = 1;
+   }
+   if (!bsr_dev(dev, num)) {
       Pmsg1(0, _("Bad status from bsr. ERR=%s\n"), strerror_dev(dev));
    } else {
-      Pmsg0(0, _("Backspaced one record.\n"));
+      Pmsg2(0, _("Backspaced %d record%s.\n"), num, num==1?"":"s");
    }
 }
 
@@ -669,6 +713,7 @@ static int append_test()
 "I'm going to write one record  in file 0,\n"
 "                   two records in file 1,\n"
 "             and three records in file 2\n\n"));
+   argc = 1;
    rewindcmd();
    wrcmd();
    weofcmd();	   /* end file 0 */
@@ -848,6 +893,7 @@ static int fsf_test()
    Pmsg0(-1, _("\n\n=== Forward space files test ===\n\n"
                "This test is essential to Bacula.\n\n"
                "I'm going to write five files then test forward spacing\n\n"));
+   argc = 1;
    rewindcmd();
    wrcmd();
    weofcmd();	   /* end file 0 */
@@ -1023,21 +1069,35 @@ all_done:
 /* Forward space a file */
 static void fsfcmd()
 {
-   if (!fsf_dev(dev, 1)) {
+   int num = 1;
+   if (argc > 1) {
+      num = atoi(argk[1]);
+   }
+   if (num <= 0) {
+      num = 1;
+   }
+   if (!fsf_dev(dev, num)) {
       Pmsg1(0, "Bad status from fsf. ERR=%s\n", strerror_dev(dev));
       return;
    }
-   Pmsg0(0, "Forward spaced one file.\n");
+   Pmsg2(0, "Forward spaced %d file%s.\n", num, num==1?"":"s");
 }
 
 /* Forward space a record */
 static void fsrcmd()
 {
-   if (!fsr_dev(dev, 1)) {
+   int num = 1;
+   if (argc > 1) {
+      num = atoi(argk[1]);
+   }
+   if (num <= 0) {
+      num = 1;
+   }
+   if (!fsr_dev(dev, num)) {
       Pmsg1(0, "Bad status from fsr. ERR=%s\n", strerror_dev(dev));
       return;
    }
-   Pmsg0(0, "Forward spaced one record.\n");
+   Pmsg2(0, "Forward spaced %d record%s.\n", num, num==1?"":"s");
 }
 
 
@@ -1295,10 +1355,16 @@ static void fillcmd()
    DEV_RECORD rec;
    DEV_BLOCK  *block;
    char ec1[50];
+   int fd;
+   uint32_t i;
+   uint32_t min_block_size;
 
    ok = TRUE;
    stop = 0;
    vol_num = 0;
+   last_file = 0;
+   last_block_num = 0;
+   BlockNumber = 0;
 
    Pmsg0(-1, "\n\
 This command simulates Bacula writing to a tape.\n\
@@ -1334,6 +1400,10 @@ This may take a long time -- hours! ...\n\n");
    
    Dmsg1(20, "Begin append device=%s\n", dev_name(dev));
 
+
+   /* Use fixed block size to simplify read back */
+   min_block_size = dev->min_block_size;
+   dev->min_block_size = dev->max_block_size;
    block = new_block(dev);
 
    /* 
@@ -1367,28 +1437,44 @@ This may take a long time -- hours! ...\n\n");
    rec.data_len = REC_SIZE;
 
    /* 
+    * Put some random data in the record
+    */
+   fd = open("/dev/urandom", O_RDONLY);
+   if (fd) {
+      read(fd, rec.data, rec.data_len);
+      close(fd);
+   } else {
+      uint32_t *p = (uint32_t *)rec.data;
+      srandom(time(NULL));
+      for (i=0; i<rec.data_len/sizeof(uint32_t); i++) {
+	 p[i] = random();
+      }
+   }
+
+   /* 
     * Generate data as if from File daemon, write to device   
     */
    jcr->VolFirstIndex = 0;
    time(&jcr->run_time);	      /* start counting time for rates */
-   Pmsg0(-1, "Begin writing Bacula records to first tape ...\n");
-   Pmsg1(-1, "Block num = %d\n", dev->block_num);
+   if (simple) {
+      Pmsg0(-1, "Begin writing Bacula records to tape ...\n");
+   } else {
+      Pmsg0(-1, "Begin writing Bacula records to first tape ...\n");
+   }
    for (file_index = 0; ok && !job_canceled(jcr); ) {
       rec.VolSessionId = jcr->VolSessionId;
       rec.VolSessionTime = jcr->VolSessionTime;
       rec.FileIndex = ++file_index;
       rec.Stream = STREAM_FILE_DATA;
 
-      /* 
-       * Fill the buffer with the file_index negated. Negation ensures that
-       *   more bits are turned on.
-       */
-      uint64_t *lp = (uint64_t *)rec.data;
-      for (uint32_t i=0; i < (rec.data_len-sizeof(uint64_t))/sizeof(uint64_t); i++) {
-	 *lp++ = ~file_index;
+      /* Mix up the data just a bit */
+      uint32_t *lp = (uint32_t *)rec.data;
+      lp[0] += lp[13];
+      for (i=1; i < (rec.data_len-sizeof(uint32_t))/sizeof(uint32_t)-1; i++) {
+	 lp[i] += lp[i-1];
       }
 
-      Dmsg4(250, "before writ_rec FI=%d SessId=%d Strm=%s len=%d\n",
+      Dmsg4(250, "before write_rec FI=%d SessId=%d Strm=%s len=%d\n",
 	 rec.FileIndex, rec.VolSessionId, stream_to_ascii(rec.Stream, rec.FileIndex), 
 	 rec.data_len);
        
@@ -1410,11 +1496,11 @@ This may take a long time -- hours! ...\n\n");
 	    now = time(NULL);
 	    now -= jcr->run_time;
 	    if (now <= 0) {
-	       now = 1;
+	       now = 1; 	 /* prevent divide error */
 	    }
 	    kbs = (double)dev->VolCatInfo.VolCatBytes / (1000.0 * (double)now);
-            Pmsg4(-1, "Wrote block=%u, blk_num=%d VolBytes=%s rate=%.1f KB/s\n", block->BlockNumber,
-	       dev->block_num,
+            Pmsg4(-1, "Wrote blk_block=%u, dev_blk_num=%u VolBytes=%s rate=%.1f KB/s\n", 
+	       block->BlockNumber, dev->block_num,
 	       edit_uint64_with_commas(dev->VolCatInfo.VolCatBytes, ec1), (float)kbs);
 	 }
 	 /* Every 15000 blocks (approx 1GB) write an EOF.
@@ -1462,7 +1548,21 @@ This may take a long time -- hours! ...\n\n");
          Pmsg0(-1, _("Set ok=FALSE after write_block_to_device.\n"));
 	 ok = FALSE;
       }
-      Pmsg0(-1, "Wrote End Of Session label.\n");
+      Pmsg0(-1, _("Wrote End Of Session label.\n"));
+   }
+
+   sprintf(buf, "%s/btape.state", working_directory);
+   fd = open(buf, O_CREAT|O_TRUNC|O_WRONLY, 0640);
+   if (fd >= 0) {
+      write(fd, &btape_state_level, sizeof(btape_state_level));
+      write(fd, &last_block_num, sizeof(last_block_num));
+      write(fd, &last_file, sizeof(last_file));
+      write(fd, last_block->buf, last_block->buf_len);
+      close(fd);
+      Pmsg0(-1, "Wrote state file.\n");
+   } else {
+      Pmsg2(-1, _("Could not create state file: %s ERR=%s\n"), buf,
+		 strerror(errno));
    }
 
    /* Release the device */
@@ -1471,38 +1571,31 @@ This may take a long time -- hours! ...\n\n");
       ok = FALSE;
    }
 
-   free_block(block);
-   free_memory(rec.data);
-
-   dump_block(last_block, _("Last block written to tape.\n"));
+   if (verbose) {
+      Pmsg0(-1, "\n");
+      dump_block(last_block, _("Last block written to tape.\n"));
+   }
 
    Pmsg0(-1, _("\n\nDone filling tape. Now beginning re-read of tape ...\n"));
 
-   unfillcmd();
-}
+   if (simple) {
+      do_unfill();
+    } else {
+       /* Multiple Volume tape */
+      dumped = 0;
+      VolBytes = 0;
+      LastBlock = 0;
+      block = new_block(dev);
 
-/*
- * Read two tapes written by the "fill" command and ensure
- *  that the data is valid.  If stop==1 we simulate full read back
- *  of two tapes.  If stop==-1 we simply read the last block and
- *  verify that it is correct.
- */
-static void unfillcmd()
-{
-   DEV_BLOCK *block;
-   uint32_t i;
+      dev->capabilities |= CAP_ANONVOLS; /* allow reading any volume */
+      dev->capabilities &= ~CAP_LABEL;   /* don't label anything here */
 
-   dumped = 0;
-   VolBytes = 0;
-   LastBlock = 0;
-   block = new_block(dev);
+      end_of_tape = 0;
 
-   dev->capabilities |= CAP_ANONVOLS; /* allow reading any volume */
-   dev->capabilities &= ~CAP_LABEL;   /* don't label anything here */
 
-   end_of_tape = 0;
-
-   if (!simple) {
+      time(&jcr->run_time);		 /* start counting time for rates */
+      stop = 0;
+      file_index = 0;
       /* Close device so user can use autochanger if desired */
       if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
 	 offline_dev(dev);
@@ -1518,80 +1611,122 @@ static void unfillcmd()
       dev->state &= ~ST_READ;
       if (!acquire_device_for_read(jcr, dev, block)) {
          Pmsg1(-1, "%s", dev->errmsg);
-	 return;
+	 goto bail_out;
       }
+      /* Read all records and then second tape */
+      read_records(jcr, dev, record_cb, my_mount_next_read_volume);
    }
+bail_out:
+   dev->min_block_size = min_block_size;
+   free_block(block);
+   free_memory(rec.data);
+}
+
+/*
+ * Read two tapes written by the "fill" command and ensure
+ *  that the data is valid.  If stop==1 we simulate full read back
+ *  of two tapes.  If stop==-1 we simply read the last block and
+ *  verify that it is correct.
+ */
+static void unfillcmd()
+{
+   int fd;
+
+   if (!last_block) {
+      last_block = new_block(dev);
+   }
+   sprintf(buf, "%s/btape.state", working_directory);
+   fd = open(buf, O_RDONLY);
+   if (fd >= 0) {
+      uint32_t state_level;		 
+      read(fd, &state_level, sizeof(btape_state_level));
+      read(fd, &last_block_num, sizeof(last_block_num));
+      read(fd, &last_file, sizeof(last_file));
+      read(fd, last_block->buf, last_block->buf_len);
+      close(fd);
+      if (state_level != btape_state_level) {
+          Pmsg0(-1, "\nThe state file level has changed. You must redo\n"
+                  "the fill command.\n");
+	  return;
+       }
+   } else {
+      Pmsg2(-1, "\nCould not find the state file: %s ERR=%s\n"
+             "You must redo the fill command.\n", buf, strerror(errno));
+      return;
+   }
+   
+   do_unfill();
+}
+
+static void do_unfill()
+{
+   DEV_BLOCK *block;
+
+   dumped = 0;
+   VolBytes = 0;
+   LastBlock = 0;
+   block = new_block(dev);
+
+   dev->capabilities |= CAP_ANONVOLS; /* allow reading any volume */
+   dev->capabilities &= ~CAP_LABEL;   /* don't label anything here */
+
+   end_of_tape = 0;
+
 
    time(&jcr->run_time);	      /* start counting time for rates */
    stop = 0;
    file_index = 0;
-   if (!simple) {
-      /* Read all records and then second tape */
-      read_records(jcr, dev, record_cb, my_mount_next_read_volume);
-   } else {
-      /*
-       * Simplified test, we simply fsf to file, then read the
-       * last block and make sure it is the same as the saved block.
-       */
-      Pmsg0(000, "Rewinding tape ...\n");
-      if (!rewind_dev(dev)) {
-         Pmsg1(-1, _("Error rewinding: ERR=%s\n"), strerror_dev(dev));
+
+   /*
+    * Note, re-reading last block may have caused us to 
+    *	lose track of where we are (block number unknown).
+    */
+   rewind_dev(dev);		      /* get to a known place on tape */
+   Pmsg4(-1, _("Reposition from %u:%u to %u:%u\n"), dev->file, dev->block_num,
+	 last_file, last_block_num);
+   if (!reposition_dev(dev, last_file, last_block_num)) {
+      Pmsg1(-1, "Reposition error. ERR=%s\n", strerror_dev(dev));
+   }
+   Pmsg1(-1, _("Reading block %u.\n"), last_block_num);
+   if (!read_block_from_device(jcr, dev, block, NO_BLOCK_NUMBER_CHECK)) {
+      Pmsg1(-1, _("Error reading block: ERR=%s\n"), strerror_dev(dev));
+      goto bail_out;
+   }
+   if (last_block) {
+      char *p, *q;
+      uint32_t CheckSum, block_len;
+      ser_declare;
+      p = last_block->buf;	
+      q = block->buf;
+      unser_begin(q, BLKHDR2_LENGTH);
+      unser_uint32(CheckSum);
+      unser_uint32(block_len);
+      while (q < (block->buf+block_len)) {
+	 if (*p == *q) {
+	    p++;
+	    q++;
+	    continue;
+	 }
+         Pmsg0(-1, "\n");
+         dump_block(last_block, _("Last block written"));
+         Pmsg0(-1, "\n");
+         dump_block(block, _("Block read back"));
+         Pmsg1(-1, "\n\nThe blocks differ at byte %u\n", p - last_block->buf);
+         Pmsg0(-1, "\n\n!!!! The last block written and the block\n"
+                   "that was read back differ. The test FAILED !!!!\n"
+                   "This must be corrected before you use Bacula\n"
+                   "to write multi-tape Volumes.!!!!\n");
 	 goto bail_out;
       }
-      if (last_file > 0) {
-         Pmsg1(000, "Forward spacing to last file=%u\n", last_file);
-	 if (!fsf_dev(dev, last_file)) {
-            Pmsg1(-1, _("Error in FSF: ERR=%s\n"), strerror_dev(dev));
-	    goto bail_out;
-	 }
-      }
-      Pmsg1(-1, _("Forward space to file %u complete. Reading blocks ...\n"), 
-	    last_file);
-      Pmsg1(-1, _("Now reading to block %u.\n"), last_block_num);
-      for (i=0; i <= last_block_num; i++) {
-	 if (!read_block_from_device(jcr, dev, block, NO_BLOCK_NUMBER_CHECK)) {
-            Pmsg1(-1, _("Error reading blocks: ERR=%s\n"), strerror_dev(dev));
-            Pmsg2(-1, _("Wanted block %u error at block %u\n"), last_block_num, i);
-	    goto bail_out;
-	 }
-	 if (i > 0 && i % 1000 == 0) {
-            Pmsg1(-1, _("At block %u\n"), i);
-	 }
-      }
-      if (last_block) {
-	 char *p, *q;
-	 uint32_t CheckSum, block_len;
-	 ser_declare;
-	 p = last_block->buf;	   
-	 q = block->buf;
-	 unser_begin(q, BLKHDR1_LENGTH);
-	 unser_uint32(CheckSum);
-	 unser_uint32(block_len);
-	 while (q < (block->buf+block_len+BLKHDR2_LENGTH)) {
-	    if (*p++ == *q++) {
-	       continue;
-	    }
-            Pmsg0(-1, "\n");
-            dump_block(last_block, _("Last block written"));
-            dump_block(block, _("Block read back"));
-            Pmsg0(-1, "\n\n!!!! The last block written and the block\n"
-                      "that was read back differ. The test FAILED !!!!\n"
-                      "This must be corrected before you use Bacula\n"
-                      "to write multi-tape Volumes.!!!!\n");
-	    goto bail_out;
-	 }
-         Pmsg0(-1, _("\nThe blocks are identical. Test succeeded.\n"));
-	 if (verbose) {
-            dump_block(last_block, _("Last block written"));
-            dump_block(block, _("Block read back"));
-	 }
+      Pmsg0(-1, _("\nThe blocks are identical. Test succeeded.\n\n"));
+      if (verbose) {
+         dump_block(last_block, _("Last block written"));
+         dump_block(block, _("Block read back"));
       }
    }
 
 bail_out:
    free_block(block);
-
-   Pmsg0(000, _("Done with reread of fill data.\n"));
 }
 
 /* 
@@ -1603,7 +1738,9 @@ static int record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 
    if (stop > 1 && !dumped) {	      /* on second tape */
       dumped = 1;
-      dump_block(block, "First block on second tape");
+      if (verbose) {
+         dump_block(block, "First block on second tape");
+      }
       Pmsg4(-1, "Blk: FileIndex=%d: block=%u size=%d vol=%s\n", 
 	   rec->FileIndex, block->BlockNumber, block->block_len, dev->VolHdr.VolName);
       Pmsg6(-1, "   Rec: VId=%d VT=%d FI=%s Strm=%s len=%d state=%x\n",
@@ -1723,12 +1860,14 @@ static int flush_block(DEV_BLOCK *block, int dump)
    this_file = dev->file;
    this_block_num = dev->block_num;
    if (!write_block_to_dev(jcr, dev, block)) {
-      Pmsg3(000, "Block not written: FileIndex=%u Block=%u Size=%u\n", 
-	 (unsigned)file_index, block->BlockNumber, block->block_len);
-      Pmsg2(000, "last_block_num=%u this_block_num=%d\n", last_block_num,
-	 this_block_num);
-      if (dump) {
-         dump_block(block, "Block not written");
+      Pmsg3(000, "Last block at: %u:%u this_dev_block_num=%d\n", 
+		  last_file, last_block_num, this_block_num);
+      if (verbose) {
+         Pmsg3(000, "Block not written: FileIndex=%u blk_block=%u Size=%u\n", 
+	    (unsigned)file_index, block->BlockNumber, block->block_len);
+	 if (dump) {
+            dump_block(block, "Block not written");
+	 }
       }
       if (stop == 0) {
 	 eot_block = block->BlockNumber;
@@ -1738,7 +1877,7 @@ static int flush_block(DEV_BLOCK *block, int dump)
       now = time(NULL);
       now -= jcr->run_time;
       if (now <= 0) {
-	 now = 1;
+         now = 1;                     /* don't divide by zero */
       }
       kbs = (double)dev->VolCatInfo.VolCatBytes / (1000 * now);
       vol_size = dev->VolCatInfo.VolCatBytes;
@@ -1851,15 +1990,19 @@ static void rawfill_cmd()
    uint32_t block_num = 0;
    uint32_t *p;
    int my_errno;
+   uint32_t i;
 
    block = new_block(dev);
    fd = open("/dev/urandom", O_RDONLY);
    if (fd) {
       read(fd, block->buf, block->buf_len);
+      close(fd);
    } else {
-      Pmsg0(0, "Cannot open /dev/urandom.\n");
-      free_block(block);
-      return;
+      uint32_t *p = (uint32_t *)block->buf;
+      srandom(time(NULL));
+      for (i=0; i<block->buf_len/sizeof(uint32_t); i++) {
+	 p[i] = random();
+      }
    }
    p = (uint32_t *)block->buf;
    Pmsg1(0, "Begin writing raw blocks of %u bytes.\n", block->buf_len);
@@ -1870,6 +2013,10 @@ static void rawfill_cmd()
 	 if ((block_num++ % 100) == 0) {
             printf("+");
 	    fflush(stdout);
+	 }
+	 p[0] += p[13];
+	 for (i=1; i<(block->buf_len-sizeof(uint32_t))/sizeof(uint32_t)-1; i++) {
+	    p[i] += p[i-1];
 	 }
 	 continue;
       }
@@ -1893,16 +2040,20 @@ static void bfill_cmd()
    uint32_t block_num = 0;
    uint32_t *p;
    int my_errno;
-   int fd;
+   int fd;   
+   uint32_t i;
 
    block = new_block(dev);
    fd = open("/dev/urandom", O_RDONLY);
    if (fd) {
       read(fd, block->buf, block->buf_len);
+      close(fd);
    } else {
-      Pmsg0(0, "Cannot open /dev/urandom.\n");
-      free_block(block);
-      return;
+      uint32_t *p = (uint32_t *)block->buf;
+      srandom(time(NULL));
+      for (i=0; i<block->buf_len/sizeof(uint32_t); i++) {
+	 p[i] = random();
+      }
    }
    p = (uint32_t *)block->buf;
    Pmsg1(0, "Begin writing Bacula blocks of %u bytes.\n", block->buf_len);
@@ -1916,6 +2067,10 @@ static void bfill_cmd()
       if ((block_num++ % 100) == 0) {
          printf("+");
 	 fflush(stdout);
+      }
+      p[0] += p[13];
+      for (i=1; i<(block->buf_len/sizeof(uint32_t)-1); i++) {
+	 p[i] += p[i-1];
       }
    }
    my_errno = errno;
@@ -1963,15 +2118,16 @@ static void
 do_tape_cmds()
 {
    unsigned int i;
-   int found;
+   bool found;
 
    while (get_cmd("*")) {
       sm_check(__FILE__, __LINE__, False);
-      found = 0;
+      found = false;
+      parse_args(cmd, &args, &argc, argk, argv, MAX_CMD_ARGS);
       for (i=0; i<comsize; i++)       /* search for command */
-	 if (fstrsch(cmd,  commands[i].key)) {
+	 if (argc > 0 && fstrsch(argk[0],  commands[i].key)) {
 	    (*commands[i].func)();    /* go execute command */
-	    found = 1;
+	    found = true;
 	    break;
 	 }
       if (!found)

@@ -59,17 +59,17 @@ void strip_trailing_slashes(char *dir)
  *	     1 on success
  *	     new address in passed parameter 
  */
-int skip_spaces(char **msg)
+bool skip_spaces(char **msg)
 {
    char *p = *msg;
    if (!p) {
-      return 0;
+      return false;
    }
    while (*p && B_ISSPACE(*p)) {
       p++;
    }
    *msg = p;
-   return *p ? 1 : 0;
+   return *p ? true : false;
 }
 
 /*
@@ -78,18 +78,18 @@ int skip_spaces(char **msg)
  *	     1 on success
  *	     new address in passed parameter 
  */
-int skip_nonspaces(char **msg)
+bool skip_nonspaces(char **msg)
 {
    char *p = *msg;
 
    if (!p) {
-      return 0;
+      return false;
    }
    while (*p && !B_ISSPACE(*p)) {
       p++;
    }
    *msg = p;
-   return *p ? 1 : 0;
+   return *p ? true : false;
 }
 
 /* folded search for string - case insensitive */
