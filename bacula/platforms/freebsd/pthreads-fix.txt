@@ -10,7 +10,9 @@ FreeBSD pthreads library.  A solution has been found.
 PROBLEM DESCRIPTION:
 
 The FreeBSD pthreads library does not properly handle End Of Tape.
-This problem will be fixed in FreeBSD 4.9.  The bug results in more
+This problem will be fixed in FreeBSD 4.9. (note, the problem
+was apparently not fixed in 4.9, and version prior to 4.10-RELEASE
+and 5.2.1-RELEASE need to be patched. The bug results in more
 data being written to the tape than could be read.  Any backup which
 involved more than one tape would be incomplete.
 
@@ -90,18 +92,22 @@ This tests with pthreads:
  *    Total files=1, blocks=17913, bytes = 1155603456
  * ========
  *
- * which is incroorect because it wrote 17,926 blocks but read
- * back only 17,913 blocks
+ * which is incorrect because it wrote 17,926 blocks but read
+ * back only 17,913 blocks AND the status on the last block
+ * written was -1 when it should have been 0.
 
 If you get the same number of blocks written and read WHEN using 
-pthreads, then you've been correctly patched.
+pthreads, and the test with pthreads enabled returns a stat=0
+on the last write, and the scan operation returns no error
+code, then you've been correctly patched.  
 
 SOLUTION:
 
-For FreeBSD prior to and including 4.9, you have two choices to ensure proper
-backups.  These instructions assume you are familiar with patching
-FreeBSD and already have the FreeBSD source code installed on your
-machine.
+For FreeBSD prior to and including 4.9, in other words, for
+FreeBSD prior to 4.10-RELEASE and 5.2.1-RELEASE you have two
+choices to ensure proper backups.  These instructions assume you
+are familiar with patching FreeBSD and already have the FreeBSD
+source code installed on your machine.
 
 Do one of the following:
 
@@ -114,14 +120,20 @@ Do one of the following:
 
   To apply the patch, follow these instructions as root.  
 
-    fetch -o pthread.diff http://www.freebsd.org/cgi/cvsweb.cgi/src/lib/libc_r/uthread/uthread_write.c.diff?r1=1.16.2.6\&r2=1.16.2.8
+    fetch -o pthread.diff 'http://www.freebsd.org/cgi/cvsweb.cgi/src/lib/libc_r/uthread/uthread_write.c.diff?r1=1.16.2.6&r2=1.16.2.8'
 
     cd /usr/src/lib/libc_r/uthread/
     patch < /path/to/pthread.diff
     cd ..
     make all install
 
-I recommend restarting Bacula.
+You should then recompile Bacula to get the new library
+code included by doing:
+
+  cd <bacula-source>
+  make clean
+  make 
+  ...
 
 
 TESTING:
@@ -129,3 +141,6 @@ TESTING:
 I suggest running tapetest on your patched system and then
 conducting a backup which spans two tapes.  Restore the data
 and compare to the original.  If not identical, please let us know.
+
+tapetest.c can also be found in the Bacula source distribution
+in <bacula-source>/platforms/freebsd/tapetest.c

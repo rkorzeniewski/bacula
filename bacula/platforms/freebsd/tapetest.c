@@ -16,6 +16,7 @@
  *  rawfill
  *  rewind
  *  scan
+ *  quit
  *
  *  The output will be:
  * 
@@ -53,6 +54,7 @@
  *  rawfill
  *  rewind
  *  scan
+ *  quit
  *
  *  The output will be:
  *
@@ -72,8 +74,10 @@
  *    Total files=1, blocks=17913, bytes = 1155603456
  * ========
  *
- * which is incorrect because it wrote 17,926 blocks but read
- * back only 17,913 blocks.
+ * which is incroorect because it wrote 17,926 blocks but read
+ * back only 17,913 blocks, AND because the return status on 
+ * the last block written was -1 when it should have been
+ * 0 (ie. stat=0 above).
  *
  *
  */

@@ -215,7 +215,7 @@ int main (int argc, char *argv[])
 
    drop(uid, gid);		      /* reduce priveleges if requested */
 
-   signal(SIGHUP, reload_config);
+   /* signal(SIGHUP, reload_config); */
 
    init_console_msg(working_directory);
 
@@ -312,6 +312,7 @@ static void free_saved_resources(int table)
  */
 static void reload_job_end_cb(JCR *jcr)
 {
+#ifdef working
    int i = jcr->reload_id - 1;
    Dmsg1(000, "reload job_end JobId=%d\n", jcr->JobId);
    lock_jcr_chain();
@@ -321,6 +322,7 @@ static void reload_job_end_cb(JCR *jcr)
    }
    UnlockRes();
    unlock_jcr_chain();
+#endif
 }
 
 static int find_free_table()
