@@ -1,3 +1,96 @@
+2002-06-xx Release 1.22
+- All the basic Restore code to handle the boostrap file is
+  now implemented with the exception of the Console Restore command.
+- Retained compatibility with previous Restore providing no 
+  bootstrap file is specified. However, the old code (JobId based)
+  will go away in a future release.
+- Fixed a number of segmentation faults in the Console program due
+  to printing of NULL pointers -- thanks to Chuck and his Sun for
+  finding and reporting them -- mostly in ua_output.c.
+
+  From kes25Jun02
+- Null pointers now are printed as *None* if NPRT() is used.
+- At the request of Phil, all resources are now chained in in the
+  order they appear in the config file.
+- Implement Bootstrap record in the Director's config file, which
+  allows you to specify a predefined bootstrap file for Restore Jobs.
+- Allow Bootstrap on the Restore record. This is deprecated.
+- Implemented code to pass the Bootstrap file, if defined, to the
+  File daemon, then from the File daemon to the Storage daemon.
+- Added ability to set Bootstrap file in the Console when running a Restore.
+- Allow scan_error() routine to be passed to lex_open_file(). This permits
+  using lex in the Storage daemon without worrying that it will ABORT on
+  a syntax error.  More work is needed to direct the error messages correctly.
+- Improved error messages a bit when config syntax errors are found.
+- Tested and corrected some errors in match_bsr.c
+- Removed askdir.c from bls and bextract by defining dummy entry points.
+- bextract now has bootstrap pretty well integrated.
+- Changed bextract ABORTs into FATAL and exit(1) or ERROR_TERMINATE.
+  More user friendly.
+- Eliminated at least one lld and replaced it by edit_uint64() 
+- Eliminated a few more _PROTO()s.
+- Corrected a problem with the SQL for in query.sql for 
+  Listing Volumes to Restore All Files
+
+  From kes22Jun02
+- Additional documentation.
+- Reduce the time the jcr mutex is locked in lib/jcr.c
+- More null pointer printing fixes in lib/parse_conf.c (debug output only).
+- Added daemon filename to Kaboom message so I know what daemon died.
+- Fix big bad bug introduced in watchdog.c last update that caused
+  a segmentation violation (forgot to check for NULL pointer).
+- Add a bit more info to bad returns from Stored when starting
+  a job fails.
+
+  From kes21Jun02
+- Fixed scan_to_eol
+- Fixed backup scanning forgot one T_STRING -> T_UNQUOTED_STRING
+- changed all rwlock_t to brwlock_t to avoid conflicts with
+  Solaris library.
+- Added NPRT() macro to allow printing of NULL pointers, which
+  segment fault on Solaris.
+- Cast printing of pid_t to int for Solaris compiler.
+
+  From kes20Jun02
+- Added expect argment to lex_get_token().
+- Added tree.c and tree.h to lib directory.
+
+  From kes19Jun02
+- Improvements to the bootstrap compiler
+- Implemented first cut of bootstrap code in the Storage daemon
+- Modified the authentication code to be more explicit during 
+  failures.
+- Added a few more debug message numbers with more arguments (Dmsg10, ...)
+- Added more and more precise error messages when authentication fails.
+- Implemented new "expect" codes in the lexical scanner that allows
+  the caller to specify what he wants.                   
+- Added integer, positive integer, 64 bit integer, and integer ranges,
+  and name scanning to lex.
+- Implemented new lex code in parse_conf.c, this reduces significantly
+  the code.
+- Hopefully fixed a watchdog race bug that caused the watchdog to time
+  out a line after 1 hour rather than 6 days.
+
+  From kes15Jun02
+- Implemented a Bootstrap file parser and matcher.
+- Implemented first cut of bootstrap code in bextract  
+- Started clarifying different termination codes.
+- Added M_ERROR_TERM to immediately terminate the daemon -- no dump.
+  Also changed a few termination codes as appropriate.
+- Fixed create_jobmedia_record() to include all the fields such as
+  StartFile/EndFile, StartBlock/EndBlock.
+- Print user friendly message when query mode ends.
+- Fixed ls style print routines (bextract, bls, restore) to check
+  buffer size, to print the link if any, and to used edit_uint64()
+  instead of %lld.
+- Moved scan_to_eol() and s_err() to lex.c to avoid dragging in 
+  parse_conf.c for new bsr scanning code.
+- New files: bsr.h, parse_bsr.c and match_bsr.c. parse_bsr.c parses
+  a Bootstrap file, and match_bsr.c matches a bsr against a tape.
+- use strcasecmp() in several places instead of lcase().
+- Add first cut of bootstrap to bextract.
+- Added File Size limit -- writes EOF after limit exeeded.
+
 2002-06-12 Release 1.21
 - Fixed several problems with filenames being truncated if
   they contain spaces. Thanks to the user that reported this.
