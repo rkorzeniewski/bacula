@@ -498,6 +498,7 @@ int read_block_from_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, bool check_bloc
    ssize_t stat;
    int looping;
    uint32_t BlockNumber;
+   int retry = 0;
 
    looping = 0;
    Dmsg1(100, "Full read() in read_block_from_device() len=%d\n",
@@ -510,7 +511,10 @@ reread:
       block->read_len = 0;
       return 0;
    }
-   if ((stat=read(dev->fd, block->buf, (size_t)block->buf_len)) < 0) {
+   do {
+      stat = read(dev->fd, block->buf, (size_t)block->buf_len);
+   } while (stat == -1 && (errno == EINTR || errno == EIO) && retry++ < 6);
+   if (stat < 0) {
       Dmsg1(90, "Read device got: ERR=%s\n", strerror(errno));
       clrerror_dev(dev, -1);
       block->read_len = 0;

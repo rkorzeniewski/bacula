@@ -134,17 +134,19 @@ int do_read_data(JCR *jcr)
 	    read_record_from_block(block, record);
 	    get_session_record(dev, record, &sessrec);
 	    free_record(record);
-	 }
-	 if (dev->state & ST_EOF) {
+	    /* Now, continue to read the records on this volume */
+
+	 } else if (dev->state & ST_EOF) {
             Dmsg0(90, "Got End of File. Trying again ...\n");
 	    continue;		      /* End of File */
-	 }
-	 if (dev->state & ST_SHORT) {
+	 } else if (dev->state & ST_SHORT) {
 	    continue;
+	 } else {
+	    /* I/O error -- or non-standard end of tape */
+            Dmsg0(000, "I/O error, bailing out.\n");
+	    ok = FALSE;
+	    break;
 	 }
-	 /* I/O error -- or non-standard end of tape */
-	 ok = FALSE;
-	 break;
       }
 
       for (rec->state=0; !is_block_empty(rec); ) {
@@ -253,26 +255,26 @@ static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sess
    char *rtype;
    memset(sessrec, 0, sizeof(sessrec));
    switch (rec->FileIndex) {
-      case PRE_LABEL:
-         rtype = "Fresh Volume Label";   
-	 break;
-      case VOL_LABEL:
-         rtype = "Volume Label";
-	 unser_volume_label(dev, rec);
-	 break;
-      case SOS_LABEL:
-         rtype = "Begin Session";
-	 unser_session_label(sessrec, rec);
-	 break;
-      case EOS_LABEL:
-         rtype = "End Session";
-	 break;
-      case EOM_LABEL:
-         rtype = "End of Media";
-	 break;
-      default:
-         rtype = "Unknown";
-	 break;
+   case PRE_LABEL:
+      rtype = "Fresh Volume Label";   
+      break;
+   case VOL_LABEL:
+      rtype = "Volume Label";
+      unser_volume_label(dev, rec);
+      break;
+   case SOS_LABEL:
+      rtype = "Begin Session";
+      unser_session_label(sessrec, rec);
+      break;
+   case EOS_LABEL:
+      rtype = "End Session";
+      break;
+   case EOM_LABEL:
+      rtype = "End of Media";
+      break;
+   default:
+      rtype = "Unknown";
+      break;
    }
    Dmsg5(10, "%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
 	 rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);

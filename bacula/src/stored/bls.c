@@ -242,6 +242,7 @@ static void do_blocks(char *infname)
                printf("End of File on device\n");
 	       break;
 	    }
+	    /* Read and discard Volume label */
 	    DEV_RECORD *record;
 	    record = new_record();
 	    read_block_from_device(jcr, dev, block, NO_BLOCK_NUMBER_CHECK);
@@ -249,19 +250,19 @@ static void do_blocks(char *infname)
 	    get_session_record(dev, record, &sessrec);
 	    free_record(record);
             printf("Volume %s mounted.\n", jcr->VolumeName);
-	    continue;
-	 }
-	 if (dev->state & ST_EOF) {
+	    
+	 } else if (dev->state & ST_EOF) {
             Jmsg(jcr, M_INFO, 0, "Got EOF on device %s\n", dev_name(dev));
             Dmsg0(20, "read_record got eof. try again\n");
 	    continue;
-	 }
-	 if (dev->state & ST_SHORT) {
+	 } else if (dev->state & ST_SHORT) {
             Jmsg(jcr, M_INFO, 0, "%s", dev->errmsg);
 	    continue;
+	 } else {
+	    /* I/O error */
+	    display_tape_error_status(jcr, dev);
+	    break;
 	 }
-	 display_tape_error_status(jcr, dev);
-	 break;
       }
       Dmsg5(100, "Blk=%u blen=%u bVer=%d SessId=%u SessTim=%u\n",
 	 block->BlockNumber, block->block_len, block->BlockVer,

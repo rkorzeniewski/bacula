@@ -91,22 +91,22 @@ int read_records(JCR *jcr,  DEVICE *dev,
 	    get_session_record(dev, trec, &sessrec);
 	    record_cb(jcr, dev, block, trec);
 	    free_record(trec);
-	    goto next_record;
-	 }
-	 if (dev->state & ST_EOF) {
+	    goto next_record;	      /* go read new tape */
+
+	 } else if (dev->state & ST_EOF) {
             Jmsg(jcr, M_INFO, 0, "Got EOF on device %s, Volume \"%s\"\n", 
 		  dev_name(dev), jcr->VolumeName);
             Dmsg0(20, "read_record got eof. try again\n");
 	    continue;
-	 }
-	 if (dev->state & ST_SHORT) {
+	 } else if (dev->state & ST_SHORT) {
             Jmsg(jcr, M_INFO, 0, "%s", dev->errmsg);
 	    continue;
+	 } else {
+	    /* I/O error or strange end of tape */
+	    display_tape_error_status(jcr, dev);
+	    ok = FALSE;
+	    break;
 	 }
-	 /* I/O error or strange end of tape */
-	 display_tape_error_status(jcr, dev);
-	 ok = FALSE;
-	 break;
       }
       if (verbose) {
          Dmsg2(10, "Block: %d blen=%d\n", block->BlockNumber, block->block_len);
