@@ -93,6 +93,7 @@ static char sessioncmd[]  = "session %127s %ld %ld %ld %ld %ld %ld\n";
 static char restorecmd[]  = "restore replace=%c where=%s\n";
 static char restorecmd1[] = "restore replace=%c where=\n";
 static char verifycmd[]   = "verify level=%30s\n";
+static char estimatecmd[] = "estimate listing=%d\n";
 
 /* Responses sent to Director */
 static char errmsg[]      = "2999 Invalid command\n";
@@ -272,7 +273,8 @@ static int setdebug_cmd(JCR *jcr)
 
    Dmsg1(110, "setdebug_cmd: %s", dir->msg);
    if (sscanf(dir->msg, "setdebug=%d", &level) != 1 || level < 0) {
-      bnet_fsend(dir, "2991 Bad setdebug command: %s\n", dir->msg);
+      pm_strcpy(&jcr->errmsg, dir->msg);
+      bnet_fsend(dir, "2991 Bad setdebug command: %s\n", jcr->errmsg);
       return 0;   
    }
    debug_level = level;
@@ -285,7 +287,12 @@ static int estimate_cmd(JCR *jcr)
    BSOCK *dir = jcr->dir_bsock;
    char ed2[50];
 
-   jcr->listing = 1;
+   if (sscanf(dir->msg, estimatecmd, &jcr->listing) != 1) {
+      pm_strcpy(&jcr->errmsg, dir->msg);
+      Jmsg(jcr, M_FATAL, 0, _("Bad estimate command: %s"), jcr->errmsg);
+      bnet_fsend(dir, "2992 Bad estimate command.\n");
+      return 0;
+   }
    make_estimate(jcr);
    bnet_fsend(dir, OKest, jcr->num_files_examined, 
       edit_uint64(jcr->JobBytes, ed2));
@@ -305,8 +312,9 @@ static int job_cmd(JCR *jcr)
    if (sscanf(dir->msg, jobcmd,  &jcr->JobId, jcr->Job,  
 	      &jcr->VolSessionId, &jcr->VolSessionTime,
 	      sd_auth_key) != 5) {
+      pm_strcpy(&jcr->errmsg, dir->msg);
       bnet_fsend(dir, BADjob);
-      Jmsg(jcr, M_FATAL, 0, _("Bad Job Command: %s\n"), dir->msg);
+      Jmsg(jcr, M_FATAL, 0, _("Bad Job Command: %s"), jcr->errmsg);
       free_pool_memory(sd_auth_key);
       return 0;
    }
@@ -429,7 +437,8 @@ static int level_cmd(JCR *jcr)
    level = get_memory(dir->msglen+1);
    Dmsg1(110, "level_cmd: %s", dir->msg);
    if (sscanf(dir->msg, "level = %s ", level) != 1) {
-      Jmsg1(jcr, M_FATAL, 0, _("Bad level command: %s\n"), dir->msg);
+      pm_strcpy(&jcr->errmsg, dir->msg);
+      Jmsg1(jcr, M_FATAL, 0, _("Bad level command: %s\n"), jcr->errmsg);
       free_memory(level);
       return 0;
    }
@@ -448,7 +457,8 @@ static int level_cmd(JCR *jcr)
       if (sscanf(dir->msg, "level = since %d-%d-%d %d:%d:%d mtime_only=%d", 
 		 &tm.tm_year, &tm.tm_mon, &tm.tm_mday,
 		 &tm.tm_hour, &tm.tm_min, &tm.tm_sec, &mtime_only) != 7) {
-         Jmsg1(jcr, M_FATAL, 0, _("Bad scan of date/time: %s\n"), dir->msg);
+	 pm_strcpy(&jcr->errmsg, dir->msg);
+         Jmsg1(jcr, M_FATAL, 0, _("Bad scan of date/time: %s\n"), jcr->errmsg);
 	 free_memory(level);
 	 return 0;
       }
@@ -482,7 +492,8 @@ static int session_cmd(JCR *jcr)
 	      &jcr->VolSessionId, &jcr->VolSessionTime,
 	      &jcr->StartFile, &jcr->EndFile, 
 	      &jcr->StartBlock, &jcr->EndBlock) != 7) {
-      Jmsg(jcr, M_FATAL, 0, "Bad session command: %s", dir->msg);
+      pm_strcpy(&jcr->errmsg, dir->msg);
+      Jmsg(jcr, M_FATAL, 0, "Bad session command: %s", jcr->errmsg);
       return 0;
    }
 
@@ -502,7 +513,8 @@ static int storage_cmd(JCR *jcr)
 
    Dmsg1(100, "StorageCmd: %s", dir->msg);
    if (sscanf(dir->msg, storaddr, &jcr->stored_addr, &stored_port, &enable_ssl) != 3) {
-      Jmsg(jcr, M_FATAL, 0, _("Bad storage command: %s"), dir->msg);
+      pm_strcpy(&jcr->errmsg, dir->msg);
+      Jmsg(jcr, M_FATAL, 0, _("Bad storage command: %s"), jcr->errmsg);
       return 0;
    }
    Dmsg3(110, "Open storage: %s:%d ssl=%d\n", jcr->stored_addr, stored_port, enable_ssl);
@@ -742,7 +754,8 @@ static int restore_cmd(JCR *jcr)
 
    if (sscanf(dir->msg, restorecmd, &replace, where) != 2) {
       if (sscanf(dir->msg, restorecmd1, &replace) != 1) {
-         Jmsg(jcr, M_FATAL, 0, _("Bad replace command. CMD=%s\n"), dir->msg);
+	 pm_strcpy(&jcr->errmsg, dir->msg);
+         Jmsg(jcr, M_FATAL, 0, _("Bad replace command. CMD=%s\n"), jcr->errmsg);
 	 return 0;
       }
       *where = 0;
