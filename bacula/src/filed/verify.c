@@ -175,7 +175,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
      
    P(jcr->mutex);
    jcr->JobFiles++;		     /* increment number of files sent */
-   pm_strcpy(&jcr->last_fname, ff_pkt->fname);
+   pm_strcpy(jcr->last_fname, ff_pkt->fname);
    V(jcr->mutex);
 
    /* 
