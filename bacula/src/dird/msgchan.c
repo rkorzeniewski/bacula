@@ -66,7 +66,7 @@ bool connect_to_storage_daemon(JCR *jcr, int retry_interval,
    BSOCK *sd;
    STORE *store = jcr->store;
    if (!store) {
-      store = (STORE *)jcr->storage[0]->first();
+      jcr->store = store = (STORE *)jcr->storage[0]->first();
    }
 
    /*
@@ -82,7 +82,6 @@ bool connect_to_storage_daemon(JCR *jcr, int retry_interval,
    }
    sd->res = (RES *)store;	  /* save pointer to other end */
    jcr->store_bsock = sd;
-   jcr->store = store;
 
    if (!authenticate_storage_daemon(jcr, store)) {
       return false;

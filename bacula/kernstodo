@@ -17,6 +17,7 @@ Version 1.35                Kern (see below)
   block numbers in btape "test".  Possibly adjust in Bacula.
 - Fix possible bug in update volumefrompool (email 9/28 from
   jesk@killall.org
+- Fix storage overrides in Run directives.
 
 - Document a get out of jail procedure if everything breaks if 
   you lost/broke the Catalog -- do the same for "I know my
