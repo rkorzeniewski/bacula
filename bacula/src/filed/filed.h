@@ -27,6 +27,7 @@
 
 #define FILE_DAEMON 1
 #include "filed_conf.h"
+#include "chksum.h"
 #include "findlib/find.h"
 #include "jcr.h"
 #include "protos.h"                   /* file daemon prototypes */

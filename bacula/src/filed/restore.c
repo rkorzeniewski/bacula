@@ -36,7 +36,6 @@
 
 #ifdef HAVE_DARWIN_OS
 #include <sys/attr.h>
-#include <sys/paths.h>
 #endif
 
 /* Data received from Storage Daemon */
@@ -181,11 +180,7 @@ void do_restore(JCR *jcr)
 	  * close the output file.
 	  */
 	 if (extract) {
-	    if (!is_bopen(&bfd)
-#ifdef HAVE_DARWIN_OS
-                  && !is_bopen(&rsrc_bfd)
-#endif
-                  ) {
+	    if (!is_bopen(&bfd) && !is_bopen(&rsrc_bfd)) {
                Jmsg0(jcr, M_ERROR, 0, _("Logic error output file should be open\n"));
 	    }
 #ifdef HAVE_DARWIN_OS

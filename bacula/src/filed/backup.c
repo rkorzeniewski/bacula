@@ -35,10 +35,6 @@
 #include <acl/libacl.h>
 #endif
 
-#ifdef HAVE_DARWIN_OS
-#include <sys/paths.h>
-#endif
-
 static int save_file(FF_PKT *ff_pkt, void *pkt);
 
 /* 

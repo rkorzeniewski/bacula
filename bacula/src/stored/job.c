@@ -42,7 +42,8 @@ static bool use_device_cmd(JCR *jcr);
 static char jobcmd[] = "JobId=%d job=%127s job_name=%127s client_name=%127s "
          "type=%d level=%d FileSet=%127s NoAttr=%d SpoolAttr=%d FileSetMD5=%127s "
          "SpoolData=%d";
-static char use_device[] = "use device=%127s media_type=%127s pool_name=%127s pool_type=%127s\n";
+static char use_device[]  = "use device=%127s media_type=%127s pool_name=%127s pool_type=%127s\n";
+static char use_devices[] = "use devices=%127s media_type=%127s pool_name=%127s pool_type=%127s\n";
 
 /* Responses sent to Director daemon */
 static char OKjob[]     = "3000 OK Job SDid=%u SDtime=%u Authorization=%s\n";
@@ -241,59 +242,76 @@ static bool use_device_cmd(JCR *jcr)
    POOL_MEM dev_name, media_type, pool_name, pool_type;
    BSOCK *dir = jcr->dir_bsock;
    DEVRES *device;
-
-   if (bnet_recv(dir) <= 0) {
-      Jmsg0(jcr, M_FATAL, 0, _("No Device from Director\n"));
-      return false;
-   }
+   bool quit = false;
    
-   Dmsg1(120, "Use device: %s", dir->msg);
-   if (sscanf(dir->msg, use_device, dev_name.c_str(), media_type.c_str(), 
-	      pool_name.c_str(), pool_type.c_str()) == 4) {
-      unbash_spaces(dev_name);
-      unbash_spaces(media_type);
-      unbash_spaces(pool_name);
-      unbash_spaces(pool_type);
-      LockRes();
-      foreach_res(device, R_DEVICE) {
-	 /* Find resource, and make sure we were able to open it */
-	 if (fnmatch(dev_name.c_str(), device->hdr.name, 0) == 0 && 
-	     device->dev && strcmp(device->media_type, media_type.c_str()) == 0) {
-	    const int name_len = MAX_NAME_LENGTH;
-	    DCR *dcr;
-	    UnlockRes();
-	    dcr = new_dcr(jcr, device->dev);
-	    if (!dcr) {
-	       return false;
-	    }
-            Dmsg1(120, "Found device %s\n", device->hdr.name);
-	    bstrncpy(dcr->pool_name, pool_name, name_len);
-	    bstrncpy(dcr->pool_type, pool_type, name_len);
-	    bstrncpy(dcr->media_type, media_type, name_len);
-	    bstrncpy(dcr->dev_name, dev_name, name_len);
-	    jcr->device = device;
-            Dmsg1(220, "Got: %s", dir->msg);
-	    return bnet_fsend(dir, OK_device);
-	 }
+   while (!quit) {
+      bool ok;
+      if (bnet_recv(dir) <= 0) {
+         Jmsg0(jcr, M_FATAL, 0, _("No Device from Director\n"));
+	 return false;
       }
-      UnlockRes();
-      if (verbose) {
+   
+      Dmsg1(120, "Use device: %s", dir->msg);
+      /* 
+       * If there are multiple devices, the director sends us 
+       *   use_devices (note plurel) until the last one, at which
+       *   time, it sends us a use_device command (note singlular)
+       *   so we stop looking after getting the use_device.
+       */
+      ok = sscanf(dir->msg, use_device, dev_name.c_str(), media_type.c_str(), 
+		  pool_name.c_str(), pool_type.c_str()) == 4;
+      if (ok) {
+	 quit = true;		      /* got last device */
+      } else {
+	 ok = sscanf(dir->msg, use_devices, dev_name.c_str(), media_type.c_str(), 
+		     pool_name.c_str(), pool_type.c_str()) == 4;
+      }
+      if (ok) {
+	 unbash_spaces(dev_name);
+	 unbash_spaces(media_type);
+	 unbash_spaces(pool_name);
+	 unbash_spaces(pool_type);
+	 LockRes();
+	 foreach_res(device, R_DEVICE) {
+	    /* Find resource, and make sure we were able to open it */
+	    if (fnmatch(dev_name.c_str(), device->hdr.name, 0) == 0 && 
+		device->dev && strcmp(device->media_type, media_type.c_str()) == 0) {
+	       const int name_len = MAX_NAME_LENGTH;
+	       DCR *dcr;
+	       UnlockRes();
+	       dcr = new_dcr(jcr, device->dev);
+	       if (!dcr) {
+		  return false;
+	       }
+               Dmsg1(120, "Found device %s\n", device->hdr.name);
+	       bstrncpy(dcr->pool_name, pool_name, name_len);
+	       bstrncpy(dcr->pool_type, pool_type, name_len);
+	       bstrncpy(dcr->media_type, media_type, name_len);
+	       bstrncpy(dcr->dev_name, dev_name, name_len);
+	       jcr->device = device;
+               Dmsg1(220, "Got: %s", dir->msg);
+	       return bnet_fsend(dir, OK_device);
+	    }
+	 }
+	 UnlockRes();
+	 if (verbose) {
+	    unbash_spaces(dir->msg);
+	    pm_strcpy(jcr->errmsg, dir->msg);
+            Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), jcr->errmsg);
+	 }
+         Jmsg(jcr, M_FATAL, 0, _("\n"
+            "     Device \"%s\" with MediaType \"%s\" requested by Dir not found in SD Device resources.\n"),
+	      dev_name.c_str(), media_type.c_str());
+	 bnet_fsend(dir, NO_device, dev_name.c_str());
+      } else {
 	 unbash_spaces(dir->msg);
 	 pm_strcpy(jcr->errmsg, dir->msg);
-         Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), jcr->errmsg);
+	 if (verbose) {
+            Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), jcr->errmsg);
+	 }
+         Jmsg(jcr, M_FATAL, 0, _("Bad Use Device command: %s\n"), jcr->errmsg);
+	 bnet_fsend(dir, BAD_use, jcr->errmsg);
       }
-      Jmsg(jcr, M_FATAL, 0, _("\n"
-         "     Device \"%s\" with MediaType \"%s\" requested by Dir not found in SD Device resources.\n"),
-	   dev_name.c_str(), media_type.c_str());
-      bnet_fsend(dir, NO_device, dev_name.c_str());
-   } else {
-      unbash_spaces(dir->msg);
-      pm_strcpy(jcr->errmsg, dir->msg);
-      if (verbose) {
-         Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), jcr->errmsg);
-      }
-      Jmsg(jcr, M_FATAL, 0, _("Bad Use Device command: %s\n"), jcr->errmsg);
-      bnet_fsend(dir, BAD_use, jcr->errmsg);
    }
 
    return false;		      /* ERROR return */
