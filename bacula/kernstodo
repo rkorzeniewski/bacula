@@ -751,7 +751,7 @@ Options records:
   asterisk preceding the name indicates a feature not currently
   implemented.
 
-    - Match "xxx"             - Match regular expression
+    - Regexp "xxx"            - Match regular expression
     - Wild "xxx"              - Do a wild card match
 
   For Backup Jobs:
@@ -805,7 +805,7 @@ Example:
       Include {
         Compression = GZIP;
         Signature = MD5
-        Match = /*.?*/                # matches all files.
+        Wild  = /*.?*/                # matches all files.
         File = /
       }
     }
@@ -823,13 +823,13 @@ Example:
         Options {
           Signature = MD5
           # Note multiple Matches are ORed
-          Match = "*.gz"   # matches .gz files
-          Match = "*.Z"    # matches .Z files
+          Wild  = "*.gz"   # matches .gz files
+          Wild  = "*.Z"    # matches .Z files
         }
         Options {
           Compression = GZIP
           Signature = MD5
-          Match = "*.?*"   # matches all files
+          Wild  = "*.?*"   # matches all files
         }
         File = /
       }
@@ -845,7 +845,7 @@ Questions:
   - Is it necessary to provide some means of ANDing regular expressions
     and negation?  (not currently planned)
 
-    e.g.  Match = /*.gz/ && !/big.gz/
+    e.g.  Wild  = /*.gz/ && !/big.gz/
 
   - I see that Networker has a "null" module which, if specified, does not 
     backup the file, but does make an record of the file in the catalog
@@ -937,4 +937,3 @@ Done: (see kernsdone for more)
 - Volume problems occurs if you have valid volume, written, then it is
   truncated. You get 12-Nov-2003 11:48 rufus-sd: kernsave.2003-11-12_11.48.09 Warning: mount.c:228 Volume on /tmp is not a Bacula labeled Volume, because:
      block.c:640 Read zero bytes on device /tmp.
-
