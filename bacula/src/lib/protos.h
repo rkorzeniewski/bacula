@@ -53,7 +53,8 @@ int	   bnet_send		 (BSOCK *bsock);
 int	   bnet_fsend		 (BSOCK *bs, char *fmt, ...);
 int	   bnet_set_buffer_size  (BSOCK *bs, uint32_t size, int rw);
 int	   bnet_sig		 (BSOCK *bs, int sig);
-int	   bnet_ssl		 (BSOCK *bsock, char *password, int listen);
+int	   bnet_ssl_server	 (BSOCK *bsock, char *password, int ssl_need, int ssl_has);
+int	   bnet_ssl_client	 (BSOCK *bsock, char *password, int ssl_need);
 BSOCK *    bnet_connect 	   (void *jcr, int retry_interval,
 	       int max_retry_time, char *name, char *host, char *service, 
 	       int port, int verbose);
@@ -72,8 +73,8 @@ void	   bnet_suppress_error_messages(BSOCK *bsock, int flag);
 
 
 /* cram-md5.c */
-int cram_md5_get_auth(BSOCK *bs, char *password);
-int cram_md5_auth(BSOCK *bs, char *password);
+int cram_md5_get_auth(BSOCK *bs, char *password, int ssl_need);
+int cram_md5_auth(BSOCK *bs, char *password, int ssl_need);
 void hmac_md5(uint8_t* text, int text_len, uint8_t*  key,
 	      int key_len, uint8_t *hmac);
 

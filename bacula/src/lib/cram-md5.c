@@ -30,7 +30,7 @@
 #include "bacula.h"
 
 /* Authorize other end */
-int cram_md5_auth(BSOCK *bs, char *password)
+int cram_md5_auth(BSOCK *bs, char *password, int ssl_need)
 {
    struct timeval t1;
    struct timeval t2;
@@ -49,9 +49,14 @@ int cram_md5_auth(BSOCK *bs, char *password)
       bstrncpy(host, my_name, sizeof(host));
    }
    bsnprintf(chal, sizeof(chal), "<%u.%u@%s>", (uint32_t)random(), (uint32_t)time(NULL), host);
-   if (!bnet_fsend(bs, "auth cram-md5 %s\n", chal)) {
+   if (!bnet_fsend(bs, "auth cram-md5 %s ssl=%d\n", chal, ssl_need)) {
       return 0;
    }
+
+   if (!bnet_ssl_client(bs, password, ssl_need)) {
+      return 0;
+   }
+
    Dmsg1(99, "%s", bs->msg);
    if (bnet_wait_data(bs, 180) <= 0 || bnet_recv(bs) <= 0) {
       bmicrosleep(5, 0);
@@ -72,20 +77,32 @@ int cram_md5_auth(BSOCK *bs, char *password)
 }
 
 /* Get authorization from other end */
-int cram_md5_get_auth(BSOCK *bs, char *password)
+int cram_md5_get_auth(BSOCK *bs, char *password, int ssl_need)
 {
    char chal[MAXSTRING];
    uint8_t hmac[20];
+   int ssl_has; 		      /* This is what the other end has */
 
    if (bnet_recv(bs) <= 0) {
       bmicrosleep(5, 0);
       return 0;
    }
-   if (bs->msglen >= MAXSTRING || sscanf(bs->msg, "auth cram-md5 %s\n", chal) != 1) {
-     Dmsg1(99, "Wanted auth cram... Got: %s", bs->msg);
-     bmicrosleep(5, 0);
-     return 0;
+   if (bs->msglen >= MAXSTRING) {
+      Dmsg1(99, "Wanted auth cram... Got: %s", bs->msg);
+      bmicrosleep(5, 0);
+      return 0;
    }
+   if (sscanf(bs->msg, "auth cram-md5 %s ssl=%d\n", chal, &ssl_has) != 2) {
+      ssl_has = BNET_SSL_NONE;
+      if (sscanf(bs->msg, "auth cram-md5 %s\n", chal) != 1) {
+	 bmicrosleep(5, 0);
+	 return 0;
+      }
+   }
+   if (!bnet_ssl_server(bs, password, ssl_need, ssl_has)) {
+      return 0;
+   }
+
    hmac_md5((uint8_t *)chal, strlen(chal), (uint8_t *)password, strlen(password), hmac);
    bs->msglen = bin_to_base64(bs->msg, (char *)hmac, 16) + 1;
    if (!bnet_send(bs)) {

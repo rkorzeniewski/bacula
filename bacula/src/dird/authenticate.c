@@ -56,6 +56,7 @@ int authenticate_storage_daemon(JCR *jcr)
 {
    BSOCK *sd = jcr->store_bsock;
    char dirname[MAX_NAME_LENGTH];
+   int ssl_need = BNET_SSL_NONE;
 
    /* 
     * Send my name to the Storage daemon then do authentication
@@ -66,8 +67,8 @@ int authenticate_storage_daemon(JCR *jcr)
       Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to Storage daemon. ERR=%s\n"), bnet_strerror(sd));
       return 0;
    }
-   if (!cram_md5_get_auth(sd, jcr->store->password) || 
-       !cram_md5_auth(sd, jcr->store->password)) {
+   if (!cram_md5_get_auth(sd, jcr->store->password, ssl_need) || 
+       !cram_md5_auth(sd, jcr->store->password, ssl_need)) {
       Jmsg0(jcr, M_FATAL, 0, _("Director and Storage daemon passwords not the same.\n"));
       return 0;
    }
@@ -92,6 +93,7 @@ int authenticate_file_daemon(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
    char dirname[MAX_NAME_LENGTH];
+   int ssl_need = BNET_SSL_NONE;
 
    /* 
     * Send my name to the File daemon then do authentication
@@ -102,8 +104,8 @@ int authenticate_file_daemon(JCR *jcr)
       Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to File daemon. ERR=%s\n"), bnet_strerror(fd));
       return 0;
    }
-   if (!cram_md5_get_auth(fd, jcr->client->password) || 
-       !cram_md5_auth(fd, jcr->client->password)) {
+   if (!cram_md5_get_auth(fd, jcr->client->password, ssl_need) || 
+       !cram_md5_auth(fd, jcr->client->password, ssl_need)) {
       Jmsg(jcr, M_FATAL, 0, _("Director and File daemon passwords not the same.\n"));
       return 0;
    }
@@ -127,6 +129,7 @@ int authenticate_file_daemon(JCR *jcr)
 int authenticate_user_agent(BSOCK *ua)
 {
    char name[MAXSTRING];
+   int ssl_need = BNET_SSL_NONE;
    int ok;    
 
    if (ua->msglen < 16 || ua->msglen >= MAXSTRING-1) {
@@ -142,8 +145,8 @@ int authenticate_user_agent(BSOCK *ua)
       return 0;
    }
 
-   ok = cram_md5_auth(ua, director->password) &&
-	cram_md5_get_auth(ua, director->password);
+   ok = cram_md5_auth(ua, director->password, ssl_need) &&
+	cram_md5_get_auth(ua, director->password, ssl_need);
 
    if (!ok) {
       bnet_fsend(ua, "%s", _(Dir_sorry));

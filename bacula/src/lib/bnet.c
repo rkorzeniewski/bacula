@@ -349,15 +349,29 @@ bnet_send(BSOCK *bsock)
 }
 
 /*
- * Establish an SSL connection.      
- *   If listen is set, the other end initiates the request.
- *   If listen is not set, I initiate it.
+ * Establish an SSL connection -- server side	      
+ *  Codes that ssl_need and ssl_has can take
+ *    BNET_SSL_NONE	 I cannot do ssl
+ *    BNET_SSL_OK	 I can do ssl, but it is not required on my end
+ *    BNET_SSL_REQUIRED  ssl is required on my end
  */
 int	
-bnet_ssl(BSOCK *bsock, char *password, int listen)
+bnet_ssl_server(BSOCK *bsock, char *password, int ssl_need, int ssl_has)
 {
+   /* Check to see if what we need (ssl_need) corresponds to what he has (ssl_has) */
+   /* The other side expects a response from us */
    return 1;
 }
+
+/*
+ * Establish an SSL connection -- client side	
+ */
+int bnet_ssl_client(BSOCK *bsock, char *password, int ssl_need)
+{
+   /* We are the client so we must wait for the server to notify us */
+   return 1;
+}
+
 
 /*
  * Wait for a specified time for data to appear on

@@ -41,6 +41,7 @@ static int authenticate(int rcode, BSOCK *bs)
 {
    POOLMEM *dirname;
    DIRRES *director = NULL;
+   int ssl_need = BNET_SSL_NONE;
 
    if (rcode != R_DIRECTOR) {
       Emsg1(M_FATAL, 0, _("I only authenticate Directors, not %d\n"), rcode);
@@ -73,8 +74,8 @@ static int authenticate(int rcode, BSOCK *bs)
 	    dirname, bs->who);
       goto bail_out;
    }
-   if (!cram_md5_auth(bs, director->password) ||
-       !cram_md5_get_auth(bs, director->password)) {
+   if (!cram_md5_auth(bs, director->password, ssl_need) ||
+       !cram_md5_get_auth(bs, director->password, ssl_need)) {
       Emsg0(M_FATAL, 0, _("Incorrect password given by Director.\n"));
       goto bail_out;
    }
@@ -114,9 +115,10 @@ int authenticate_director(JCR *jcr)
 int authenticate_filed(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
+   int ssl_need = BNET_SSL_NONE;
 
-   if (cram_md5_auth(fd, jcr->sd_auth_key) &&
-       cram_md5_get_auth(fd, jcr->sd_auth_key)) {
+   if (cram_md5_auth(fd, jcr->sd_auth_key, ssl_need) &&
+       cram_md5_get_auth(fd, jcr->sd_auth_key, ssl_need)) {
       jcr->authenticated = TRUE;
    }
    if (!jcr->authenticated) {

@@ -47,14 +47,15 @@ static char OKhello[]   = "1000 OK:";
 int authenticate_director(JCR *jcr, DIRRES *director)
 {
    BSOCK *dir = jcr->dir_bsock;
+   int ssl_need = BNET_SSL_NONE;
 
    /* 
     * Send my name to the Director then do authentication
     */
    bnet_fsend(dir, hello, "UserAgent");
 
-   if (!cram_md5_get_auth(dir, director->password) || 
-       !cram_md5_auth(dir, director->password)) {
+   if (!cram_md5_get_auth(dir, director->password, ssl_need) || 
+       !cram_md5_auth(dir, director->password, ssl_need)) {
       Pmsg0(-1, _("Director authorization problem.\n"
             "Most likely the passwords do not agree.\n"));  
       return 0;
