@@ -87,7 +87,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 	 dwaccess = GENERIC_WRITE|FILE_ALL_ACCESS|WRITE_OWNER|WRITE_DAC|ACCESS_SYSTEM_SECURITY; 	       
 	 dwflags = FILE_FLAG_BACKUP_SEMANTICS;
       } else {
-	 dwaccess = GENERIC_WRITE|FILE_ALL_ACCESS;
+	 dwaccess = GENERIC_WRITE;
 	 dwflags = 0;
       }
       bfd->fh = CreateFile(win32_fname,
@@ -104,7 +104,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 	 dwaccess = FILE_ALL_ACCESS|WRITE_OWNER|WRITE_DAC|ACCESS_SYSTEM_SECURITY;
 	 dwflags = FILE_FLAG_BACKUP_SEMANTICS;
       } else {
-	 dwaccess = FILE_ALL_ACCESS;
+	 dwaccess = GENERIC_WRITE;
 	 dwflags = 0;
       }
       bfd->fh = CreateFile(win32_fname,
