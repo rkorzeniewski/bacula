@@ -45,7 +45,7 @@ mkdir -p ${cwd}/tmp/bacula-restores
 bin/bextract -b working/restore.bsr -c bin/bacula-sd.conf ${cwd}/tmp ${cwd}/tmp/bacula-restores 2>&1 >/dev/null
 grep "^Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
 bstat=$?
-diff -r build  tmp/bacula-restores${cwd}/build
+diff -r build  tmp/bacula-restores${cwd}/build 2>&1 >/dev/null
 if [ $? != 0 -o $bstat != 0 ] ; then
    echo " "
    echo " "

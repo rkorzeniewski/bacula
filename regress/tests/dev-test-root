@@ -51,7 +51,7 @@ cd /
 ${cwd}/bin/testls -e ${cwd}/scripts/exclude-etc-test dev >${cwd}/tmp/original
 cd /tmp/bacula-restores
 ${cwd}/bin/testls -e ${cwd}/scripts/exclude-etc-test dev >${cwd}/tmp/restored
-diff ${cwd}/tmp/original ${cwd}/tmp/restored
+diff ${cwd}/tmp/original ${cwd}/tmp/restored 2>&1 >/dev/null
 if [ $? != 0 ] ; then
    echo " "
    echo " "

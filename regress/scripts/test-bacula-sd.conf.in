@@ -35,7 +35,7 @@ Director {
 Device {
   Name = FileStorage
   Media Type = File
-  Archive Device = /tmp
+  Archive Device = @tmpdir@
   LabelMedia = yes;                   # lets Bacula label unlabelled media
   Random Access = Yes;
   AutomaticMount = yes;               # when device opened, read it
