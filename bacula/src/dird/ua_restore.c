@@ -56,7 +56,7 @@ struct TREE_CTX {
 };
 
 /* Main structure for obtaining JobIds */
-struct JobIds {
+struct JOBIDS {
    utime_t JobTDate;
    uint32_t TotalFiles;
    char ClientName[MAX_NAME_LENGTH];
@@ -113,13 +113,13 @@ static void add_findex(RBSR *bsr, uint32_t JobId, int32_t findex);
 static int last_full_handler(void *ctx, int num_fields, char **row);
 static int jobid_handler(void *ctx, int num_fields, char **row);
 static int next_jobid_from_list(char **p, uint32_t *JobId);
-static int user_select_jobids(UAContext *ua, JobIds *ji);
+static int user_select_jobids(UAContext *ua, JOBIDS *ji);
 static void user_select_files(TREE_CTX *tree);
 static int fileset_handler(void *ctx, int num_fields, char **row);
 static void print_name_list(UAContext *ua, NAME_LIST *name_list);
 static int unique_name_list_handler(void *ctx, int num_fields, char **row);
 static void free_name_list(NAME_LIST *name_list);
-static void get_storage_from_mediatype(UAContext *ua, NAME_LIST *name_list, JobIds *ji);
+static void get_storage_from_mediatype(UAContext *ua, NAME_LIST *name_list, JOBIDS *ji);
 static RBSR *sort_bsr(RBSR *bsr);
 
 
@@ -135,7 +135,7 @@ int restorecmd(UAContext *ua, char *cmd)
    char *p;
    RBSR *bsr;
    char *nofname = "";
-   JobIds ji;
+   JOBIDS ji;
    JOB *job = NULL;
    JOB *restore_job = NULL;
    int restore_jobs = 0;
@@ -305,7 +305,7 @@ int restorecmd(UAContext *ua, char *cmd)
  *  select a list of JobIds from which he will subsequently
  *  select which files are to be restored.
  */
-static int user_select_jobids(UAContext *ua, JobIds *ji)
+static int user_select_jobids(UAContext *ua, JOBIDS *ji)
 {
    char fileset_name[MAX_NAME_LENGTH];
    char *p, ed1[50];
@@ -505,7 +505,7 @@ static int next_jobid_from_list(char **p, uint32_t *JobId)
  */
 static int jobid_handler(void *ctx, int num_fields, char **row)
 {
-   JobIds *ji = (JobIds *)ctx;
+   JOBIDS *ji = (JOBIDS *)ctx;
 
    if (strlen(ji->JobIds)+strlen(row[0])+2 < sizeof(ji->JobIds)) {
       if (ji->JobIds[0] != 0) {
@@ -523,7 +523,7 @@ static int jobid_handler(void *ctx, int num_fields, char **row)
  */
 static int last_full_handler(void *ctx, int num_fields, char **row)
 {
-   JobIds *ji = (JobIds *)ctx;
+   JOBIDS *ji = (JOBIDS *)ctx;
 
    ji->JobTDate = strtoll(row[1], NULL, 10);
 
@@ -1298,7 +1298,7 @@ static void free_name_list(NAME_LIST *name_list)
    name_list->num_ids = 0;
 }
 
-static void get_storage_from_mediatype(UAContext *ua, NAME_LIST *name_list, JobIds *ji)
+static void get_storage_from_mediatype(UAContext *ua, NAME_LIST *name_list, JOBIDS *ji)
 {
    char name[MAX_NAME_LENGTH];
    STORE *store = NULL;
