@@ -95,7 +95,8 @@ int bget_dirmsg(BSOCK *bs)
 	    bnet_fsend(bs, OK_msg); /* send response */
 	    break;
 	 case BNET_HEARTBEAT:
-       /*   Dmsg0(000, "Got heartbeat.\n"); */
+//	    encode_time(time(NULL), Job);
+//          Dmsg1(000, "%s got heartbeat.\n", Job);
 	    break;
 	 case BNET_HB_RESPONSE:
 	    break;

@@ -24,6 +24,7 @@ Testing to do: (painful)
 - Test connect timeouts.
 
 For 1.33 Testing/Documentation:
+- Document to start higher priorty jobs before lower ones.
 - suppress "Do not forget to mount the drive!!!" if error
 - Document new records in Director. SDAddress SDDeviceName, SDPassword.
   FDPassword, FDAddress, DBAddress, DBPort, DBPassword.
@@ -32,6 +33,48 @@ For 1.33 Testing/Documentation:
 - Add counter variable test.
                 
 For 1.33
+- Eliminate orphaned jobs: dbcheck, normal pruning, delet job command.
+  Hm.  Well, there are the remaining orphaned job records:
+
+     |   105 | Llioness Save  | 0000-00-00 00:00:00 | B    | D     |        0 |             0 | f         |
+     |   110 | Llioness Save  | 0000-00-00 00:00:00 | B    | I     |        0 |             0 | f         |
+     |   115 | Llioness Save  | 2003-09-10 02:22:03 | B    | I     |        0 |             0 | A         |
+     |   128 | Catalog Save   | 2003-09-11 03:53:32 | B    | I     |        0 |             0 | C         |
+     |   131 | Catalog Save   | 0000-00-00 00:00:00 | B    | I     |        0 |             0 | f         |
+
+     As you can see, three of the five are failures.  I already deleted the
+     one restore and one other failure using the by-client option.  Deciding
+     what is an orphaned job is a tricky problem though, I agree.  All these
+     records have or had 0 files/ 0 bytes, except for the restore.  With no
+     files, of course, I don't know of the job ever actually becomes
+     associated with a Volume.
+
+     (I'm not sure if this is documented anywhere -- what are the meanings of
+     all the possible JobStatus codes?)
+
+     Looking at my database, it appears to me as though all the "orphaned"
+     jobs fit into one of two categories:
+
+     1)  The Job record has a StartTime but no EndTime, and the job is not
+         currently running;
+     or
+     2)  The Job record has an EndTime, indicating that it completed, but
+         it has no associated JobMedia record.
+
+
+     This does suggest an approach.  If failed jobs (or jobs that, for some
+     other reason, write no files) are associated with a volume via a
+     JobMedia record, then they should be purged when the associated volume
+     is purged.  I see two ways to handle jobs that are NOT associated with a
+     specific volume:
+
+     1)  purge them automatically whenever any volume is manually purged;
+     or
+     2)  add an option to the purge command to manually purge all jobs with
+         no associated volume.
+
+- Implement Label Format in Add and Label console commands.
+- make "btape /tmp" work.
 - Make sure a rescheduled job is properly reported by status.
 - Walk through the Pool records rather than the Job records
   in dird.c to create/update pools.
