@@ -15,6 +15,7 @@ tests/six-vol-test
 tests/bscan-test
 tests/wierd-files2-test
 tests/concurrent-jobs-test
+tests/concurrent2-jobs-test
 echo " "
 echo " "
 echo "Test results"
