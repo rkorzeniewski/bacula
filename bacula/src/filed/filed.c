@@ -248,14 +248,14 @@ Without that I don't know who I am :-(\n"), configfile);
 
 void terminate_filed(int sig)
 {
+   write_state_file(me->working_directory, "bacula-fd", me->FDport);
+   delete_pid_file(me->pid_directory, "bacula-fd", me->FDport);
    if (configfile != NULL) {
       free(configfile);
    }
    if (debug_level > 5) {
       print_memory_pool_stats(); 
    }
-   write_state_file(me->working_directory, "bacula-fd", me->FDport);
-   delete_pid_file(me->pid_directory, "bacula-fd", me->FDport);
    free_config_resources();
    term_msg();
    stop_watchdog();

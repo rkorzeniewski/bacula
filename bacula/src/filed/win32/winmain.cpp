@@ -36,9 +36,10 @@
 #include "../../findlib/winapi.h"
 
 extern int BaculaMain(int argc, char *argv[]);
-extern int terminate_filed(int sig);
+extern void terminate_filed(int sig);
 extern DWORD g_error;
 extern BOOL ReportStatus(DWORD state, DWORD exitcode, DWORD waithint);
+extern void d_msg(const char *, int, int, const char *, ...);
 
 /* Globals */
 HINSTANCE       hAppInstance;
@@ -299,7 +300,10 @@ void *Main_Msg_Loop(LPVOID lpwThreadParam)
 
       // Tell the service manager that we've stopped.
       ReportStatus(SERVICE_STOPPED, g_error, 0);
-   }   
+   }  
+   terminate_filed(0);
+
+   /* Should not get here */
    pthread_kill(main_tid, SIGTERM);   /* ask main thread to terminate */
    sleep(1);
    kill(main_pid, SIGTERM);           /* ask main thread to terminate */

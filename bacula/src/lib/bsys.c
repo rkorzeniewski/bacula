@@ -353,13 +353,13 @@ int delete_pid_file(char *dir, const char *progname, int port)
 struct s_state_hdr {
    char id[14];
    int32_t version;
-   uint32_t last_jobs_addr;
-   uint32_t reserved[20];
+   uint64_t last_jobs_addr;
+   uint64_t reserved[20];
 };
 
 static struct s_state_hdr state_hdr = { 
    "Bacula State\n",
-   1,
+   2,
    0
 };
 
@@ -402,15 +402,18 @@ void write_state_file(char *dir, const char *progname, int port)
    Mmsg(&fname, "%s/%s.%d.state", dir, progname, port);
    /* Create new state file */
    if ((sfd = open(mp_chr(fname), O_CREAT | O_TRUNC | O_WRONLY, 0640)) < 0) {
+      Dmsg2(000, _("Could not create state file. %s ERR=%s\n"), fname, strerror(errno));
       Emsg2(M_ERROR, 0, _("Could not create state file. %s ERR=%s\n"), fname, strerror(errno));
       goto bail_out;
    }
    if (write(sfd, &state_hdr, sizeof(state_hdr)) < 0) {
+      Dmsg1(000, "Write error: ERR=%s\n", strerror(errno));
       goto bail_out;
    }
    state_hdr.last_jobs_addr = sizeof(state_hdr);
    state_hdr.reserved[0] = write_last_jobs_list(sfd, state_hdr.last_jobs_addr);   
    if (lseek(sfd, 0, SEEK_SET) < 0) {
+      Dmsg1(000, "lseek error: ERR=%s\n", strerror(errno));
       goto bail_out;
    }  
    write(sfd, &state_hdr, sizeof(state_hdr));

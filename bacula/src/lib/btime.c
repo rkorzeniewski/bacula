@@ -44,7 +44,7 @@
 /* Formatted time for user display: dd-Mon-yyyy hh:mm */
 char *bstrftime(char *dt, int maxlen, utime_t tim)
 {
-   time_t ttime = tim;
+   time_t ttime = (time_t)tim;
    struct tm tm;
    
    /* ***FIXME**** the format and localtime_r() should be user configurable */
@@ -56,7 +56,7 @@ char *bstrftime(char *dt, int maxlen, utime_t tim)
 /* Formatted time for user display: dd-Mon-yy hh:mm  (no century) */
 char *bstrftime_nc(char *dt, int maxlen, utime_t tim)
 {
-   time_t ttime = tim;
+   time_t ttime = (time_t)tim;
    struct tm tm;
    
    /* ***FIXME**** the format and localtime_r() should be user configurable */
@@ -71,7 +71,7 @@ char *bstrftime_nc(char *dt, int maxlen, utime_t tim)
 /* Unix time to standard time string yyyy-mm-dd hh:mm:ss */
 char *bstrutime(char *dt, int maxlen, utime_t tim)
 {
-   time_t ttime = tim;
+   time_t ttime = (time_t)tim;
    struct tm tm;
    localtime_r(&ttime, &tm);
    strftime(dt, maxlen, "%Y-%m-%d %H:%M:%S", &tm);
@@ -311,7 +311,7 @@ void time_decode(ftime_t time, uint8_t *hour, uint8_t *minute,
     *minute = (uint8_t) ((ij / 60L) % 60L);
     *second = (uint8_t) (ij % 60L);
     if (second_fraction != NULL) {
-	*second_fraction = time - floor(time);
+	*second_fraction = (float32_t)(time - floor(time));
     }
 }
 
