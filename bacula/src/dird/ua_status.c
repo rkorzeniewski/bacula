@@ -352,13 +352,19 @@ static void do_client_status(UAContext *ua, CLIENT *client)
    return;  
 }
 
-static void prt_runtime(UAContext *ua, JOB *job, time_t runtime)
+static void prt_runhdr(UAContext *ua)
+{
+   bsendmsg(ua, _("Level          Type     Scheduled          Name\n"));
+   bsendmsg(ua, _("=================================================================\n"));
+}
+
+static void prt_runtime(UAContext *ua, JOB *job, int level, time_t runtime)
 {
    char dt[MAX_TIME_LENGTH];	   
 
    bstrftime(dt, sizeof(dt), runtime);
-   bsendmsg(ua, _("%s job \"%s\" scheduled for %s\n"), 
-      job_type_to_str(job->JobType), job->hdr.name, dt);
+   bsendmsg(ua, _("%-14s %-8s %-18s %s\n"), 
+      level_to_str(level), job_type_to_str(job->JobType), dt, job->hdr.name);
 }
 
 /*	    
@@ -375,6 +381,8 @@ static void print_jobs_scheduled(UAContext *ua)
    int mday, wday, month, wpos, tmday, twday, tmonth, twpos, i, hour;
    int tod, tom;
    int found;
+   int hdr_printed = FALSE;
+   int level;
 
    Dmsg0(200, "enter find_runs()\n");
 
@@ -395,11 +403,15 @@ static void print_jobs_scheduled(UAContext *ua)
    /* Loop through all jobs */
    LockRes();
    for (job=NULL; (job=(JOB *)GetNextRes(R_JOB, (RES *)job)); ) {
+      level = job->level;   
       sched = job->schedule;
       if (sched == NULL) {	      /* scheduled? */
 	 continue;		      /* no, skip this job */
       }
       for (run=sched->run; run; run=run->next) {
+	 if (run->level) {
+	    level = run->level;
+	 }
 	 /* 
 	  * Find runs in next 24 hours
 	  */
@@ -422,7 +434,11 @@ static void print_jobs_scheduled(UAContext *ua)
 		  tm.tm_sec = 0;
 		  runtime = mktime(&tm);
 		  if (runtime > now) {
-		     prt_runtime(ua, job, runtime);
+		     if (!hdr_printed) {
+			hdr_printed = TRUE;
+			prt_runhdr(ua);
+		     }
+		     prt_runtime(ua, job, level, runtime);
 		     found = TRUE;
 		     break;
 		  }
@@ -446,7 +462,11 @@ static void print_jobs_scheduled(UAContext *ua)
 	    runtime = mktime(&tm);
             Dmsg2(200, "truntime=%d now=%d\n", runtime, now);
 	    if (runtime < tomorrow) {
-	       prt_runtime(ua, job, runtime);
+	       if (!hdr_printed) {
+		  hdr_printed = TRUE;
+		  prt_runhdr(ua);
+	       }
+	       prt_runtime(ua, job, level, runtime);
 	    }
 	 }
       }  

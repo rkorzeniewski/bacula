@@ -1311,6 +1311,8 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/filed/bacula-fd.conf \
 	   src/filed/win32/Makefile \
 	   src/cats/Makefile \
+	   src/cats/make_catalog_backup \
+	   src/cats/delete_catalog_backup \
 	   src/cats/alter_mysql_tables \
 	   src/cats/make_mysql_tables \
 	   src/cats/drop_mysql_tables \
@@ -1340,6 +1342,7 @@ cd ..
 chmod 755 src/cats/make_mysql_tables src/cats/drop_mysql_tables
 chmod 755 src/cats/make_test_tables src/cats/drop_test_tables
 chmod 755 src/cats/create_mysql_database 
+chmod 755 src/cats/make_catalog_backup src/cats/delete_catalog_backup
 chmod 755 src/cats/alter_mysql_tables
 chmod 755 src/cats/grant_mysql_privileges
 chmod 755 src/cats/make_sqlite_tables src/cats/drop_sqlite_tables 

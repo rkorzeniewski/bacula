@@ -24,7 +24,7 @@ Director {                            # define myself
   Messages = Standard
 }
 
-# Define the backup Job
+# Define the main nightly save backup job
 Job {
   Name = "NightlySave"
   Type = Backup
@@ -34,6 +34,22 @@ Job {
   Storage = DLTDrive
   Messages = Standard
   Pool = Default
+}
+
+# Backup the catalog database (after the nightly save)
+Job {
+  Name = "BackupCatalog"
+  Type = Backup
+  Client=@hostname@-fd 
+  FileSet="Catalog"
+  Schedule = "WeeklyCycleAfterBackup"
+  Storage = DLTDrive
+  Messages = Standard
+  Pool = Default
+  # This creates an ASCII copy of the catalog
+  RunBeforeJob = "@sysconfdir@/make_catalog_backup"
+  # This deletes the copy of the catalog
+  RunAfterJob  = "@sysconfdir@/delete_catalog_backup"
 }
 
 # Standard Restore template, to be changed by Console program
@@ -67,12 +83,31 @@ FileSet {
   Exclude = { }
 }
 
-# When to do the backups
+#
+# When to do the backups, full backup on first sunday of the month,
+#  differential (i.e. incremental since full) every other sunday,
+#  and incremental backups other days
 Schedule {
   Name = "WeeklyCycle"
-  Run = Full sun at 1:05
+  Run = Full 1st sun at 1:05
+  Run = Differential 2nd-5th sun at 1:05
   Run = Incremental mon-sat at 1:05
 }
+
+# This schedule does the catalog. It starts after the WeeklyCycle
+Schedule {
+  Name = "WeeklyCycleAfterBackup
+  Run = Full sun-sat at 1:10
+}
+
+# This is the backup of the catalog
+FileSet {
+  Name = "Catalog"
+  Include = signature=MD5 {
+     @working_directory@/bacula.sql
+  }
+}
+
 
 # Client (File Services) to backup
 Client {

@@ -63,6 +63,7 @@ realclean: clean
 	$(RMF) make_mysql_tables grant_mysql_privileges drop_mysql_tables
 	$(RMF) create_mysql_database make_sqlite_tables sqlite
 	$(RMF) create_bdb_database drop_bdb_tables make_dbd_tables
+	$(RMF) make_catalog_backup delete_catalog_backup
 
 distclean: realclean
 	if test $(srcdir) = .; then $(MAKE) realclean; fi
@@ -74,6 +75,8 @@ install:
 	$(INSTALL_SCRIPT) make_@DB_NAME@_tables $(DESTDIR)$(sysconfdir)/make_@DB_NAME@_tables
 	$(INSTALL_SCRIPT) drop_bacula_tables $(DESTDIR)$(sysconfdir)/drop_bacula_tables
 	$(INSTALL_SCRIPT) make_bacula_tables $(DESTDIR)$(sysconfdir)/make_bacula_tables
+	$(INSTALL_SCRIPT) make_catalog_backup $(DESTDIR)$(sysconfdir)/make_catalog_backup  
+	$(INSTALL_SCRIPT) delete_catalog_backup $(DESTDIR)$(sysconfdir)/delete_catalog_backup  
 
 uninstall:
 	(cd $(DESTDIR)$(sysconfdir); $(RMF) create_@DB_NAME@_database)
@@ -81,6 +84,8 @@ uninstall:
 	(cd $(DESTDIR)$(sysconfdir); $(RMF) make_@DB_NAME@_tables)
 	(cd $(DESTDIR)$(sysconfdir); $(RMF) drop_bacula_tables)
 	(cd $(DESTDIR)$(sysconfdir); $(RMF) make_bacula_tables)
+	(cd $(DESTDIR)$(sysconfdir); $(RMF) make_catalog_backup)
+	(cd $(DESTDIR)$(sysconfdir); $(RMF) delete_catalog_backup)
 
 
 # Semi-automatic generation of dependencies:

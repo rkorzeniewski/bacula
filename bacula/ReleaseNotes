@@ -3,13 +3,15 @@
   Bacula code: Total files = 226 Total lines = 61,863 (*.h *.c *.in)
 
 Major Changes this Release:
-- Bare Metal Recovery for Linux systems and manually for Solaris
+- Bare Metal Recovery mostly automated for Linux systems and 
+  partially automated for Solaris
 - Optimized restore, forward spaces to correct tape file and
   stops reading the archive when all files are restored.
 - Schedule permits specification of 1st, 2nd, ... week e.g.
   1st Sun ...
 
 Minor Changes this Release:
+- Allow backup of raw partitions.
 - Fixed Restore options (never,ifnewer, ...). They now work.
 - New bidirectional timed pipe mechanism for running child processes
   permits better error messages.
@@ -28,6 +30,7 @@ Minor Changes this Release:
   daemons and the console program.
 - Added a --enable-client-only    option that will cause "make" to only
   build the File daemon and the libraries it needs.
+- Documented how to save the Catalog database (with included script).
 
 Items to note:
 - Nothing in particular.

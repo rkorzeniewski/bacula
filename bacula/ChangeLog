@@ -13,6 +13,19 @@ General:
   tape drivers.
 
 Changes submitted this submission:
+03Jan03
+- Add scripts make_catalog_backup and delete_catalog_backup that makes and
+  deletes an ASCII copy of the catalog for backup. An example of how
+  to use it is in the <bacula-src/src/dird/bacula-dir.conf file.
+- Made a nicer column oriented listing of scheduled jobs for "status dir".
+02Jan03
+- Added backup/restore of raw partitions.
+- Corrected restoration of files in root directory (problem with
+  splitting path from file).
+01Jan03
+- Finally decided to cleanup handling of splitting path and filenames
+  in the cats directory. Now the code is in one place sql.c and it
+  is done using Pool memory, so there are no length restrictions.
 31Dec02
 - Add start of Solaris bare metal recovery
 - Add Site Visit usage statistics to Web page

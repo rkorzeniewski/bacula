@@ -542,7 +542,7 @@ next_run:
             strcpy(buf, "      hour=");
 	    for (i=0; i<24; i++) {
 	       if (bit_is_set(i, run->hour)) {
-                  sprintf(num, "%d ", i+1);
+                  sprintf(num, "%d ", i);
 		  strcat(buf, num);
 	       }
 	    }
@@ -569,6 +569,15 @@ next_run:
             strcpy(buf, "      wday=");
 	    for (i=0; i<7; i++) {
 	       if (bit_is_set(i, run->wday)) {
+                  sprintf(num, "%d ", i+1);
+		  strcat(buf, num);
+	       }
+	    }
+            strcat(buf, "\n");
+	    sendit(sock, buf);
+            strcpy(buf, "      wpos=");
+	    for (i=0; i<5; i++) {
+	       if (bit_is_set(i, run->wpos)) {
                   sprintf(num, "%d ", i+1);
 		  strcat(buf, num);
 	       }

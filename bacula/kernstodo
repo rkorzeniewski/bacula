@@ -20,6 +20,9 @@ For 1.28 release:
 - Backup of raw partitions
 
 For 1.29 release:
+- Implement SHA1
+- Implement disk spooling
+- Implement finer multiprocessing options.
 - Solaris -I on tar for include list
 - Add whereln to where or not where absolute links
 - Figure out some way to automatically backup all local partitions
