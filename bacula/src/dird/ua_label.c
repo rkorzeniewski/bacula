@@ -294,10 +294,10 @@ static int do_label(UAContext *ua, char *cmd, int relabel)
 	 return 1;
       }
 
-      /* Require Volume to be Purged */
+      /* Require Volume to be Purged or Recycled */
 checkVol:
-      if (strcmp(omr.VolStatus, "Purged") != 0) {
-         bsendmsg(ua, _("Volume \"%s\" has VolStatus %s. It must be purged before relabeling.\n"),
+      if (strcmp(omr.VolStatus, "Purged") != 0 || strcmp(omr.VolStatus, "Recycle") != 0) {
+         bsendmsg(ua, _("Volume \"%s\" has VolStatus %s. It must be Purged or Recycled before relabeling.\n"),
 	    omr.VolumeName, omr.VolStatus);
 	 return 1;
       }

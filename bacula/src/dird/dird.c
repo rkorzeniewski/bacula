@@ -32,9 +32,9 @@
 /* Forward referenced subroutines */
 static void terminate_dird(int sig);
 static int check_resources();
-static void reload_config(int sig);
 
 /* Exported subroutines */
+void reload_config(int sig);
 
 
 /* Imported subroutines */
@@ -61,6 +61,7 @@ int SDConnectTimeout;
 
 /* Globals Imported */
 extern int r_first, r_last;	      /* first and last resources */
+extern RES_TABLE resources[];
 extern RES_ITEM job_items[];
 extern URES res_all;
 
@@ -290,6 +291,19 @@ static void init_reload(void)
    }
 }
 
+static void free_saved_resources(int table)
+{
+   int num = r_last - r_first + 1;
+   RES **res_tab = reload_table[table].res_table;
+   Dmsg1(000, "Freeing resources for table %d\n", table);
+   for (int j=0; j<num; j++) {
+      free_resource(res_tab[j], r_first + j);
+   }
+   free(res_tab);
+   reload_table[table].job_count = 0;
+   reload_table[table].res_table = NULL;
+}
+
 /*
  * Called here at the end of every job that was
  * hooked decrementing the active job_count. When
@@ -299,32 +313,39 @@ static void init_reload(void)
 static void reload_job_end_cb(JCR *jcr)
 {
    int i = jcr->reload_id - 1;
-   RES **res_tab;
    Dmsg1(000, "reload job_end JobId=%d\n", jcr->JobId);
+   lock_jcr_chain();
+   LockRes();
    if (--reload_table[i].job_count <= 0) {
-      int num = r_last - r_first + 1;
-      res_tab = reload_table[i].res_table;
-      Dmsg0(000, "Freeing resources\n");
-      for (int j=0; j<num; j++) {
-	 free_resource(res_tab[j], r_first + j);
-      }
-      free(res_tab);
-      reload_table[i].job_count = 0;
-      reload_table[i].res_table = NULL;
+      free_saved_resources(i);
    }
+   UnlockRes();
+   unlock_jcr_chain();
+}
+
+static int find_free_table()
+{
+   int table = -1;
+   for (int i=0; i < max_reloads; i++) {
+      if (reload_table[i].res_table == NULL) {
+	 table = i;
+	 break;
+      }
+   }
+   return table;
 }
 
 /*
  * If we get here, we have received a SIGHUP, which means to
  *    reread our configuration file. 
  */
-static void reload_config(int sig)
+void reload_config(int sig)
 {
    static bool already_here = false;
    sigset_t set;	
    JCR *jcr;
    int njobs = 0;
-   int table = -1;
+   int table, rtable;
 
    if (already_here) {
       abort();			      /* Oops, recursion -> die */
@@ -336,12 +357,7 @@ static void reload_config(int sig)
    lock_jcr_chain();
    LockRes();
 
-   for (int i=0; i < max_reloads; i++) {
-      if (reload_table[i].res_table == NULL) {
-	 table = i;
-	 break;
-      }
-   }
+   table = find_free_table();
    if (table < 0) {
       Jmsg(NULL, M_ERROR, 0, _("Too many reload requests.\n"));
       goto bail_out;
@@ -352,8 +368,7 @@ static void reload_config(int sig)
     *  reload_id == 0
     */
    foreach_jcr(jcr) {
-      /* JobId==0 => console */
-      if (jcr->JobId != 0 && jcr->reload_id == 0) {
+      if (jcr->reload_id == 0) {
 	 reload_table[table].job_count++;
 	 jcr->reload_id = table + 1;
 	 job_end_push(jcr, reload_job_end_cb);
@@ -362,19 +377,28 @@ static void reload_config(int sig)
       free_locked_jcr(jcr);
    }
    Dmsg1(000, "Reload_config njobs=%d\n", njobs);
-   if (njobs > 0) {
-      reload_table[table].res_table = save_config_resources();
-      Dmsg1(000, "Saved old config in table %d\n", table);
-   } else {
-      free_config_resources();
-   }
+   reload_table[table].res_table = save_config_resources();
+   Dmsg1(000, "Saved old config in table %d\n", table);
 
    Dmsg0(000, "Calling parse config\n");
    parse_config(configfile);
 
    Dmsg0(000, "Reloaded config file\n");
    if (!check_resources()) {
-      Jmsg(NULL, M_ERROR_TERM, 0, _("Please correct configuration file: %s\n"), configfile);
+      rtable = find_free_table();     /* save new, bad table */
+      if (rtable < 0) {
+         Jmsg(NULL, M_ERROR_TERM, 0, _("Please correct configuration file: %s\n"), configfile);
+      } else {
+         Jmsg(NULL, M_ERROR, 0, _("Please correct configuration file: %s\n"), configfile);
+      }
+      reload_table[rtable].res_table = save_config_resources();
+      /* Now restore old resoure values */
+      int num = r_last - r_first + 1;
+      RES **res_tab = reload_table[table].res_table;
+      for (int i=0; i<num; i++) {
+	 resources[i].res_head = res_tab[i];
+      }
+      table = rtable;		      /* release new, bad, saved table below */
    }
 
    /* Reset globals */
@@ -382,6 +406,9 @@ static void reload_config(int sig)
    FDConnectTimeout = director->FDConnectTimeout;
    SDConnectTimeout = director->SDConnectTimeout;
    Dmsg0(0, "Director's configuration file reread.\n");
+	
+   /* Now release saved resources */
+   free_saved_resources(table);
 
 bail_out:
    UnlockRes();

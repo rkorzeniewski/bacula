@@ -95,16 +95,15 @@ static void signal_handler(int sig)
 	      exename, my_name, sig);
 
       if (exelen + 12 > (int)sizeof(btpath)) {
-         strcpy(btpath, "btraceback");
+         bstrncpy(btpath, "btraceback", sizeof(btpath));
       } else {
-	 strcpy(btpath, exepath);
-         if (btpath[exelen-1] != '/') {
-            strcat(btpath, "/btraceback");
-	 } else {
-            strcat(btpath, "btraceback");
+	 bstrncpy(btpath, exepath, sizeof(btpath));
+         if (btpath[exelen-1] == '/') {
+	    btpath[exelen-1] = 0;
 	 }
+         bstrncat(btpath, "/btraceback", sizeof(btpath));
       }
-      if (btpath[exelen-1] != '/') {
+      if (exepath[exelen-1] != '/') {
          strcat(exepath, "/");
       }
       strcat(exepath, exename);

@@ -54,7 +54,6 @@ void set_service_description(SC_HANDLE hSCManager, SC_HANDLE hService,
 bacService init;
 
 DWORD   g_platform_id;
-BOOL    g_impersonating_user = 0;
 
 bacService::bacService()
 {
@@ -67,14 +66,6 @@ bacService::bacService()
    } else {
       g_platform_id = osversioninfo.dwPlatformId;
    }
-#ifdef xxx
-   /* Rewritten to lookup entry point */
-   if (osversioninfo.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS &&
-       osversioninfo.dwMinorVersion == 0) {
-       /* Running Win95 so no GetFileAttributesEx available */
-       NoGetFileAttributesEx = 1;
-   }
-#endif
 }
 
 
@@ -156,6 +147,7 @@ bacService::ShowStatus()
   return TRUE;
 }
 
+#ifdef xxx_needed
 // Static routine to show the Events dialog for a currently-running
 // copy of Bacula, (usually a servicified version.)
 
@@ -185,6 +177,7 @@ bacService::PostAddNewClient(unsigned long ipaddress)
 
   return TRUE;
 }
+#endif
 
 // SERVICE-MODE ROUTINES
 
@@ -237,6 +230,7 @@ bacService::KillRunningCopy()
   return TRUE;
 }
 
+#ifdef xxx_needed
 
 // ROUTINE TO POST THE HANDLE OF THE CURRENT USER TO THE RUNNING Bacula, IN ORDER
 // THAT IT CAN LOAD THE APPROPRIATE SETTINGS.  THIS IS USED ONLY BY THE SVCHELPER
@@ -266,6 +260,8 @@ BOOL
 bacService::ProcessUserHelperMessage(WPARAM wParam, LPARAM lParam) {
    return TRUE;
 }
+
+#endif
 
 // SERVICE MAIN ROUTINE
 int

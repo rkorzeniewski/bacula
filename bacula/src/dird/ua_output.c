@@ -50,7 +50,7 @@ static int do_list_cmd(UAContext *ua, char *cmd, e_list_type llist);
 /*
  * Turn auto display of console messages on/off
  */
-int autodisplaycmd(UAContext *ua, char *cmd)
+int autodisplay_cmd(UAContext *ua, char *cmd)
 {
    static char *kw[] = {
       N_("on"), 
@@ -70,6 +70,31 @@ int autodisplaycmd(UAContext *ua, char *cmd)
    }
    return 1; 
 }
+
+/*
+ * Turn gui processing on/off
+ */
+int gui_cmd(UAContext *ua, char *cmd)
+{
+   static char *kw[] = {
+      N_("on"), 
+      N_("off"),
+      NULL};
+
+   switch (find_arg_keyword(ua, kw)) {
+   case 0:
+      ua->jcr->gui = true;
+      break;
+   case 1:
+      ua->jcr->gui = false;
+      break;
+   default:
+      bsendmsg(ua, _("ON or OFF keyword missing.\n"));
+      break;
+   }
+   return 1; 
+}
+
 
 
 struct showstruct {char *res_name; int type;};

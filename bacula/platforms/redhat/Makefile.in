@@ -8,20 +8,22 @@
 #
 
 INSTALL = @INSTALL@
-INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_PROGRAM = "@INSTALL_PROGRAM@ -m 754"
 
 nothing:
 
 install: install-autostart
 
-install-autostart: install-autostart-fd install-autostart-sd install-autostart-dir
+install-autostart: install-autostart-fd install-autostart-sd install-autostart-dir install-logrotate
 
+install_logrotate:
+       @$(INSTALL_PROGRAM) ../../scripts/logrotate $(DESTDIR)/etc/logrotate.d/bacula
 	
 install-autostart-fd:
 	@if test x$(DESTDIR) = x -a  -f /etc/rc.d/init.d/bacula-fd; then \
 	   /sbin/chkconfig --del bacula-fd; \
 	fi
-	@$(INSTALL_PROGRAM) -m 744 bacula-fd $(DESTDIR)/etc/rc.d/init.d/bacula-fd
+	@$(INSTALL_PROGRAM) bacula-fd $(DESTDIR)/etc/rc.d/init.d/bacula-fd
 	# set symlinks for script at startup and shutdown
 	@if test x$(DESTDIR) = x ; then \
 	   /sbin/chkconfig --add bacula-fd; \
@@ -32,7 +34,7 @@ install-autostart-sd:
 	@if test x$(DESTDIR) = x -a  -f /etc/rc.d/init.d/bacula-sd; then \
 	    /sbin/chkconfig --del bacula-sd; \
 	fi
-	@$(INSTALL_PROGRAM) -m 744 bacula-sd  $(DESTDIR)/etc/rc.d/init.d/bacula-sd
+	@$(INSTALL_PROGRAM) bacula-sd  $(DESTDIR)/etc/rc.d/init.d/bacula-sd
 	# set symlinks for script at startup and shutdown
 	@if test x$(DESTDIR) = x ; then \
 	   /sbin/chkconfig --add bacula-sd; \
@@ -43,7 +45,7 @@ install-autostart-dir:
 	@if test x$(DESTDIR) = x -a  -f /etc/rc.d/init.d/bacula-dir; then \
 	    /sbin/chkconfig --del bacula-dir; \
 	fi
-	@$(INSTALL_PROGRAM) -m 744 bacula-dir  $(DESTDIR)/etc/rc.d/init.d/bacula-dir
+	@$(INSTALL_PROGRAM) bacula-dir	$(DESTDIR)/etc/rc.d/init.d/bacula-dir
 	# set symlinks for script at startup and shutdown
 	@if test x$(DESTDIR) = x ; then \
 	   /sbin/chkconfig --add bacula-dir; \
@@ -52,7 +54,10 @@ install-autostart-dir:
 
 uninstall: uninstall-autostart
 
-uninstall-autostart: uninstall-autostart-fd uninstall-autostart-sd uninstall-autostart-dir
+uninstall-autostart: uninstall-autostart-fd uninstall-autostart-sd uninstall-autostart-dir uninstall-logrotate
+
+uninstall-logrotate:
+	@rm -f $(DESTDIR)/etc/logrotate.d/bacula
 
 uninstall-autostart-fd:
 	@if test x$(DESTDIR) = x -a  -f /etc/rc.d/init.d/bacula-fd; then \

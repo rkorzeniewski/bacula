@@ -456,7 +456,7 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since, FILESET_DBR *fsr
    jobstatus_to_ascii(jcr->FDJobStatus, fd_term_msg, sizeof(fd_term_msg));
    jobstatus_to_ascii(jcr->SDJobStatus, sd_term_msg, sizeof(sd_term_msg));
 
-// bmicrosleep(40, 0);		      /* for debugging SIGHUP */
+// bmicrosleep(15, 0);		      /* for debugging SIGHUP */
 
    Jmsg(jcr, msg_type, 0, _("Bacula " VERSION " (" LSMDATE "): %s\n\
 JobId:                  %d\n\

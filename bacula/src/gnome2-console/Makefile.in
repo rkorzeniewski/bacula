@@ -87,7 +87,7 @@ distclean: realclean
 	(cd $(srcdir); $(RMF) Makefile; $(RMF) -r CVS)
 
 install: all
-	$(INSTALL_SCRIPT) gnome-console $(DESTDIR)$(sbindir)/gnome-console
+	$(INSTALL_PROGRAM) gnome-console $(DESTDIR)$(sbindir)/gnome-console
 	@srcconf=gnome-console.conf; \
 	if  test -f ${DESTDIR}${sysconfdir}/$$srcconf; then \
 	   destconf=$$srcconf.new; \
@@ -98,7 +98,7 @@ install: all
 	echo "${INSTALL_CONFIG} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf"; \
 	${INSTALL_CONFIG} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf
 	if test -f static-gnome-console; then \
-	   $(INSTALL_SCRIPT) static-gnome-console $(DESTDIR)$(sbindir)/static-gnome-console; \
+	   $(INSTALL_PROGRAM) static-gnome-console $(DESTDIR)$(sbindir)/static-gnome-console; \
 	fi 
 
 uninstall:

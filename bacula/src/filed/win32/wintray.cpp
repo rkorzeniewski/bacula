@@ -54,6 +54,7 @@ const UINT MENU_SERVICEHELPER_MSG = RegisterWindowMessage("Bacula.ServiceHelper.
 const UINT MENU_ADD_CLIENT_MSG = RegisterWindowMessage("Bacula.AddClient.Message");
 const char *MENU_CLASS_NAME = "Bacula Tray Icon";
 
+extern void terminate_filed(int sig);
 extern char *bac_status(int stat);
 extern int bacstat;
 
@@ -187,182 +188,186 @@ bacMenu::SendTrayMsg(DWORD msg, int bacstat)
 // Process window messages
 LRESULT CALLBACK bacMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 {
-        // This is a static method, so we don't know which instantiation we're 
-        // dealing with. We use Allen Hadden's (ahadden@taratec.com) suggestion 
-        // from a newsgroup to get the pseudo-this.
-        bacMenu *_this = (bacMenu *) GetWindowLong(hwnd, GWL_USERDATA);
+   // This is a static method, so we don't know which instantiation we're 
+   // dealing with. We use Allen Hadden's (ahadden@taratec.com) suggestion 
+   // from a newsgroup to get the pseudo-this.
+   bacMenu *_this = (bacMenu *) GetWindowLong(hwnd, GWL_USERDATA);
 
-        switch (iMsg)
-        {
+   switch (iMsg) {
 
-                // Every five seconds, a timer message causes the icon to update
-        case WM_TIMER:
-                // *** HACK for running servicified
-                if (bacService::RunningAsService()) {
-                    // Attempt to add the icon if it's not already there
-                    _this->AddTrayIcon();
-                    // Trigger a check of the current user
-                    PostMessage(hwnd, WM_USERCHANGED, 0, 0);
-                }
+   // Every five seconds, a timer message causes the icon to update
+   case WM_TIMER:
+      // *** HACK for running servicified
+      if (bacService::RunningAsService()) {
+          // Attempt to add the icon if it's not already there
+          _this->AddTrayIcon();
+          // Trigger a check of the current user
+//        PostMessage(hwnd, WM_USERCHANGED, 0, 0);
+      }
 
-                // Update the icon
-                _this->UpdateTrayIcon(bacstat);
-                break;
+      // Update the icon
+      _this->UpdateTrayIcon(bacstat);
+     break;
 
-                // DEAL WITH NOTIFICATIONS FROM THE SERVER:
-        case WM_SRV_CLIENT_AUTHENTICATED:
-        case WM_SRV_CLIENT_DISCONNECT:
-                // Adjust the icon accordingly
-                _this->UpdateTrayIcon(bacstat);
-                return 0;
+#ifdef xxx_needed
 
-                // STANDARD MESSAGE HANDLING
-        case WM_CREATE:
-                return 0;
+   // DEAL WITH NOTIFICATIONS FROM THE SERVER:
+   case WM_SRV_CLIENT_AUTHENTICATED:
+   case WM_SRV_CLIENT_DISCONNECT:
+      // Adjust the icon accordingly
+      _this->UpdateTrayIcon(bacstat);
+      return 0;
+#endif
 
-        case WM_COMMAND:
-                // User has clicked an item on the tray menu
-                switch (LOWORD(wParam))
-                {
-                case ID_STATUS:
-                        // Show the status dialog
-                        _this->m_status.Show(TRUE);
-                        _this->UpdateTrayIcon(bacstat);
-                        break;
+   // STANDARD MESSAGE HANDLING
+   case WM_CREATE:
+      return 0;
 
-                case ID_EVENTS:
-                        // Show the Events dialog
-                        _this->m_events.Show(TRUE);
-                        _this->UpdateTrayIcon(bacstat);
-                        break;
+   case WM_COMMAND:
+      // User has clicked an item on the tray menu
+      switch (LOWORD(wParam)) {
+      case ID_STATUS:
+         // Show the status dialog
+         _this->m_status.Show(TRUE);
+         _this->UpdateTrayIcon(bacstat);
+         break;
+
+      case ID_EVENTS:
+         // Show the Events dialog
+         _this->m_events.Show(TRUE);
+         _this->UpdateTrayIcon(bacstat);
+         break;
 
 
-                case ID_KILLCLIENTS:
-                        // Disconnect all currently connected clients
-                        break;
+      case ID_KILLCLIENTS:
+         // Disconnect all currently connected clients
+         break;
 
-                case ID_ABOUT:
-                        // Show the About box
-                        _this->m_about.Show(TRUE);
-                        break;
+      case ID_ABOUT:
+         // Show the About box
+         _this->m_about.Show(TRUE);
+         break;
 
-                case ID_CLOSE:
-                        // User selected Close from the tray menu
-                        PostMessage(hwnd, WM_CLOSE, 0, 0);
-                        break;
+      case ID_CLOSE:
+         // User selected Close from the tray menu
+         PostMessage(hwnd, WM_CLOSE, 0, 0);
+         break;
 
-                }
-                return 0;
+      }
+      return 0;
 
-        case WM_TRAYNOTIFY:
-                // User has clicked on the tray icon or the menu
-                {
-                        // Get the submenu to use as a pop-up menu
-                        HMENU submenu = GetSubMenu(_this->m_hmenu, 0);
+   case WM_TRAYNOTIFY:
+      // User has clicked on the tray icon or the menu
+      {
+         // Get the submenu to use as a pop-up menu
+         HMENU submenu = GetSubMenu(_this->m_hmenu, 0);
 
-                        // What event are we responding to, RMB click?
-                        if (lParam==WM_RBUTTONUP) {
-                                if (submenu == NULL) {
-                                        return 0;
-                                }
+         // What event are we responding to, RMB click?
+         if (lParam==WM_RBUTTONUP) {
+            if (submenu == NULL) {
+                    return 0;
+            }
 
-                                // Make the first menu item the default (bold font)
-                                SetMenuDefaultItem(submenu, 0, TRUE);
-                                
-                                // Get the current cursor position, to display the menu at
-                                POINT mouse;
-                                GetCursorPos(&mouse);
+            // Make the first menu item the default (bold font)
+            SetMenuDefaultItem(submenu, 0, TRUE);
+            
+            // Get the current cursor position, to display the menu at
+            POINT mouse;
+            GetCursorPos(&mouse);
 
-                                // There's a "bug"
-                                // (Microsoft calls it a feature) in Windows 95 that requires calling
-                                // SetForegroundWindow. To find out more, search for Q135788 in MSDN.
-                                //
-                                SetForegroundWindow(_this->m_nid.hWnd);
+            // There's a "bug"
+            // (Microsoft calls it a feature) in Windows 95 that requires calling
+            // SetForegroundWindow. To find out more, search for Q135788 in MSDN.
+            //
+            SetForegroundWindow(_this->m_nid.hWnd);
 
-                                // Display the menu at the desired position
-                                TrackPopupMenu(submenu,
-                                                0, mouse.x, mouse.y, 0,
-                                                _this->m_nid.hWnd, NULL);
+            // Display the menu at the desired position
+            TrackPopupMenu(submenu,
+                            0, mouse.x, mouse.y, 0,
+                            _this->m_nid.hWnd, NULL);
 
-                                return 0;
-                        }
-                        
-                        // Or was there a LMB double click?
-                        if (lParam==WM_LBUTTONDBLCLK) {
-                                // double click: execute first menu item
-                                SendMessage(_this->m_nid.hWnd,
-                                                        WM_COMMAND, 
-                                                        GetMenuItemID(submenu, 0),
-                                                        0);
-                        }
+            return 0;
+         }
+         
+         // Or was there a LMB double click?
+         if (lParam==WM_LBUTTONDBLCLK) {
+             // double click: execute first menu item
+             SendMessage(_this->m_nid.hWnd,
+                         WM_COMMAND, 
+                         GetMenuItemID(submenu, 0),
+                         0);
+         }
 
-                        return 0;
-                }
+         return 0;
+      }
 
-        case WM_CLOSE:
-                break;
+   case WM_CLOSE:
+      terminate_filed(0);
+      break;
 
-        case WM_DESTROY:
-                // The user wants Bacula to quit cleanly...
-                PostQuitMessage(0);
-                return 0;
+   case WM_DESTROY:
+      // The user wants Bacula to quit cleanly...
+      PostQuitMessage(0);
+      return 0;
 
-        case WM_QUERYENDSESSION:
-                // Are we running as a system service?
-                // Or is the system shutting down (in which case we should check anyway!)
-                if ((!bacService::RunningAsService()) || (lParam == 0)) {
-                        // No, so we are about to be killed
+   case WM_QUERYENDSESSION:
+           // Are we running as a system service?
+           // Or is the system shutting down (in which case we should check anyway!)
+           if ((!bacService::RunningAsService()) || (lParam == 0)) {
+                   // No, so we are about to be killed
 
-                        // If there are remote connections then we should verify
-                        // that the user is happy about killing them.
+                   // If there are remote connections then we should verify
+                   // that the user is happy about killing them.
 
-                        // Finally, post a quit message, just in case
-                        PostQuitMessage(0);
-                        return TRUE;
-                }
+                   // Finally, post a quit message, just in case
+                   PostQuitMessage(0);
+                   return TRUE;
+           }
 
-                // Tell the OS that we've handled it anyway
-//              PostQuitMessage(0);
-                return TRUE;
+           // Tell the OS that we've handled it anyway
+//         PostQuitMessage(0);
+           return TRUE;
 
-        
-        default:
-                if (iMsg == MENU_ABOUTBOX_SHOW) {
-                        // External request to show our About dialog
-                        PostMessage(hwnd, WM_COMMAND, MAKELONG(ID_ABOUT, 0), 0);
-                        return 0;
-                }
-                if (iMsg == MENU_STATUS_SHOW) {
-                        // External request to show our status
-                        PostMessage(hwnd, WM_COMMAND, MAKELONG(ID_STATUS, 0), 0);
-                        return 0;
-                }
+   
+   default:
+           if (iMsg == MENU_ABOUTBOX_SHOW) {
+                   // External request to show our About dialog
+                   PostMessage(hwnd, WM_COMMAND, MAKELONG(ID_ABOUT, 0), 0);
+                   return 0;
+           }
+           if (iMsg == MENU_STATUS_SHOW) {
+                   // External request to show our status
+                   PostMessage(hwnd, WM_COMMAND, MAKELONG(ID_STATUS, 0), 0);
+                   return 0;
+           }
 
-                if (iMsg == MENU_EVENTS_SHOW) {
-                        // External request to show our Events dialogue
-                        PostMessage(hwnd, WM_COMMAND, MAKELONG(ID_EVENTS, 0), 0);
-                        return 0;
-                }
+#ifdef xxx_needed
+           if (iMsg == MENU_EVENTS_SHOW) {
+                   // External request to show our Events dialogue
+                   PostMessage(hwnd, WM_COMMAND, MAKELONG(ID_EVENTS, 0), 0);
+                   return 0;
+           }
 
-                if (iMsg == MENU_SERVICEHELPER_MSG) {
-                        // External ServiceHelper message.
-                        // This message holds a process id which we can use to
-                        // impersonate a specific user.  In doing so, we can load their
-                        // preferences correctly
-                        bacService::ProcessUserHelperMessage(wParam, lParam);
+           if (iMsg == MENU_SERVICEHELPER_MSG) {
+                   // External ServiceHelper message.
+                   // This message holds a process id which we can use to
+                   // impersonate a specific user.  In doing so, we can load their
+                   // preferences correctly
+                   bacService::ProcessUserHelperMessage(wParam, lParam);
 
-                        // - Trigger a check of the current user
-                        PostMessage(hwnd, WM_USERCHANGED, 0, 0);
-                        return 0;
-                }
-                if (iMsg == MENU_ADD_CLIENT_MSG) {
-                        // Add Client message.  This message includes an IP address
-                        // of a listening client, to which we should connect.
+                   // - Trigger a check of the current user
+                   PostMessage(hwnd, WM_USERCHANGED, 0, 0);
+                   return 0;
+           }
+           if (iMsg == MENU_ADD_CLIENT_MSG) {
+                   // Add Client message.  This message includes an IP address
+                   // of a listening client, to which we should connect.
 
-                        return 0;
-                }
-        }
+                   return 0;
+           }
+#endif
+   }
 
-        // Message not recognised
-        return DefWindowProc(hwnd, iMsg, wParam, lParam);
+   // Message not recognised
+   return DefWindowProc(hwnd, iMsg, wParam, lParam);
 }
