@@ -641,7 +641,6 @@ static int check_resources()
 	 create_pool(NULL, db, pool, POOL_OP_UPDATE);  /* update request */
       }
 
-      /* ***FIXME*** we need to update store and media_type records */
       STORE *store;
       foreach_res(store, R_STORAGE) {
 	 STORAGE_DBR sr;
@@ -653,10 +652,13 @@ static int check_resources()
 	 } else {
 	    mr.MediaTypeId = 0;
 	 }
-	 sr.MediaTypeId = mr.MediaTypeId;
 	 bstrncpy(sr.Name, store->name(), sizeof(sr.Name));
 	 sr.AutoChanger = store->autochanger;
 	 db_create_storage_record(NULL, db, &sr);
+	 store->StorageId = sr.StorageId;   /* set storage Id */
+	 if (!sr.created) {		    /* if not created, update it */
+	    db_update_storage_record(NULL, db, &sr);
+	 }
       }
 
       /* Loop over all counters, defining them in each database */

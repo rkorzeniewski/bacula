@@ -213,6 +213,7 @@ int update_slots(UAContext *ua)
 	 memset(&mr, 0, sizeof(mr));
 	 mr.Slot = vl->Slot;
 	 mr.InChanger = 1;
+	 mr.StorageId = store->StorageId;
 	 /* Set InChanger to zero for this Slot */
 	 db_lock(ua->db);
 	 db_make_inchanger_unique(ua->jcr, ua->db, &mr);
@@ -224,30 +225,32 @@ int update_slots(UAContext *ua)
       bstrncpy(mr.VolumeName, vl->VolName, sizeof(mr.VolumeName));
       db_lock(ua->db);
       if (db_get_media_record(ua->jcr, ua->db, &mr)) {
-	  if (mr.Slot != vl->Slot || !mr.InChanger) {
-	     mr.Slot = vl->Slot;
-	     mr.InChanger = 1;
-	     if (!db_update_media_record(ua->jcr, ua->db, &mr)) {
-                bsendmsg(ua, "%s", db_strerror(ua->db));
-	     } else {
-		bsendmsg(ua, _(
-                  "Catalog record for Volume \"%s\" updated to reference slot %d.\n"),
-		  mr.VolumeName, mr.Slot);
-	     }
-	  } else {
-             bsendmsg(ua, _("Catalog record for Volume \"%s\" is up to date.\n"),
-		mr.VolumeName);
-	  }
-	  db_unlock(ua->db);
-	  continue;
+	 if (mr.Slot != vl->Slot || !mr.InChanger || mr.StorageId != store->StorageId) {
+	    mr.Slot = vl->Slot;
+	    mr.InChanger = 1;
+	    mr.StorageId = store->StorageId;
+	    if (!db_update_media_record(ua->jcr, ua->db, &mr)) {
+               bsendmsg(ua, "%s", db_strerror(ua->db));
+	    } else {
+	       bsendmsg(ua, _(
+                 "Catalog record for Volume \"%s\" updated to reference slot %d.\n"),
+		 mr.VolumeName, mr.Slot);
+	    }
+	 } else {
+            bsendmsg(ua, _("Catalog record for Volume \"%s\" is up to date.\n"),
+	       mr.VolumeName);
+	 }
+	 db_unlock(ua->db);
+	 continue;
       } else {
-          bsendmsg(ua, _("Record for Volume \"%s\" not found in catalog.\n"),
+         bsendmsg(ua, _("Record for Volume \"%s\" not found in catalog.\n"),
 	     mr.VolumeName);
       }
       db_unlock(ua->db);
    }
    memset(&mr, 0, sizeof(mr));
    mr.InChanger = 1;
+   mr.StorageId = store->StorageId;
    db_lock(ua->db);
    for (int i=1; i<max_slots; i++) {
       if (slot_list[i]) {
@@ -491,11 +494,11 @@ static void label_from_barcodes(UAContext *ua)
 	  if (mr.VolBytes != 0) {
              bsendmsg(ua, _("Media record for Slot %d Volume \"%s\" already exists.\n"),
 		vl->Slot, mr.VolumeName);
-	     if (!mr.InChanger) {
-		mr.InChanger = 1;
-		if (!db_update_media_record(ua->jcr, ua->db, &mr)) {
-                   bsendmsg(ua, "Error setting InChanger: ERR=%s", db_strerror(ua->db));
-		}
+	     mr.Slot = vl->Slot;
+	     mr.InChanger = 1;
+	     mr.StorageId = store->StorageId;
+	     if (!db_update_media_record(ua->jcr, ua->db, &mr)) {
+                bsendmsg(ua, "Error setting InChanger: ERR=%s", db_strerror(ua->db));
 	     }
 	     continue;
 	  }

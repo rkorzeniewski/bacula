@@ -862,7 +862,6 @@ static void update_vol_pool(UAContext *ua, char *val, MEDIA_DBR *mr, POOL_DBR *o
       if (!db_update_pool_record(ua->jcr, ua->db, &pr)) {
          bsendmsg(ua, "%s", db_strerror(ua->db));
       }
-      db_make_inchanger_unique(ua->jcr, ua->db, mr);
    }
    db_unlock(ua->db);
    free_pool_memory(query);

@@ -221,6 +221,9 @@ RES_ITEM job_items[] = {
    {"writebootstrap",store_dir, ITEM(res_job.WriteBootstrap), 0, 0, 0},
    {"replace",  store_replace,  ITEM(res_job.replace), 0, ITEM_DEFAULT, REPLACE_ALWAYS},
    {"maxruntime",   store_time, ITEM(res_job.MaxRunTime), 0, 0, 0},
+   {"fullmaxwaittime",  store_time, ITEM(res_job.FullMaxWaitTime), 0, 0, 0},
+   {"incrementalmaxwaittime",  store_time, ITEM(res_job.IncMaxWaitTime), 0, 0, 0},
+   {"differentialmaxwaittime",  store_time, ITEM(res_job.DiffMaxWaitTime), 0, 0, 0},
    {"maxwaittime",  store_time, ITEM(res_job.MaxWaitTime), 0, 0, 0},
    {"maxstartdelay",store_time, ITEM(res_job.MaxStartDelay), 0, 0, 0},
    {"jobretention", store_time, ITEM(res_job.JobRetention),  0, 0, 0},
@@ -477,11 +480,12 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       break;
    case R_STORAGE:
       sendit(sock, "Storage: name=%s address=%s SDport=%d MaxJobs=%u\n"
-"      DeviceName=%s MediaType=%s\n",
+"      DeviceName=%s MediaType=%s StorageId=%s\n",
 	 res->res_store.hdr.name, res->res_store.address, res->res_store.SDport,
 	 res->res_store.MaxConcurrentJobs,
 	 res->res_store.dev_name(),
-	 res->res_store.media_type);
+	 res->res_store.media_type,
+	 edit_int64(res->res_store.StorageId, ed1));
       break;
    case R_CATALOG:
       sendit(sock, "Catalog: name=%s address=%s DBport=%d db_name=%s\n"

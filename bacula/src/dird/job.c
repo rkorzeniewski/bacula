@@ -436,18 +436,32 @@ static void job_monitor_watchdog(watchdog_t *self)
 static bool job_check_maxwaittime(JCR *control_jcr, JCR *jcr)
 {
    bool cancel = false;
+   bool ok_to_cancel = false;
+   JOB *job = jcr->job;
 
-   if (jcr->job->MaxWaitTime == 0) {
+   if (job->MaxWaitTime == 0 && job->FullMaxWaitTime == 0 &&
+       job->IncMaxWaitTime == 0 && job->DiffMaxWaitTime == 0) {
       return false;
+   } 
+   if (jcr->JobLevel == L_FULL && job->FullMaxWaitTime != 0 &&
+	 (watchdog_time - jcr->start_time) >= job->FullMaxWaitTime) {
+      ok_to_cancel = true;
+   } else if (jcr->JobLevel == L_DIFFERENTIAL && job->DiffMaxWaitTime != 0 &&
+	 (watchdog_time - jcr->start_time) >= job->DiffMaxWaitTime) {
+      ok_to_cancel = true;
+   } else if (jcr->JobLevel == L_INCREMENTAL && job->IncMaxWaitTime != 0 &&
+	 (watchdog_time - jcr->start_time) >= job->IncMaxWaitTime) {
+      ok_to_cancel = true;
+   } else if (job->MaxWaitTime != 0 &&
+	 (watchdog_time - jcr->start_time) >= job->MaxWaitTime) {
+      ok_to_cancel = true;
    }
-   if ((watchdog_time - jcr->start_time) < jcr->job->MaxWaitTime) {
-      Dmsg3(800, "Job %p (%s) with MaxWaitTime %d not expired\n",
-	    jcr, jcr->Job, jcr->job->MaxWaitTime);
+   if (!ok_to_cancel) {
       return false;
    }
    Dmsg3(800, "Job %d (%s): MaxWaitTime of %d seconds exceeded, "
          "checking status\n",
-	 jcr->JobId, jcr->Job, jcr->job->MaxWaitTime);
+	 jcr->JobId, jcr->Job, job->MaxWaitTime);
    switch (jcr->JobStatus) {
    case JS_Created:
    case JS_Blocked:

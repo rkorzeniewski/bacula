@@ -443,6 +443,8 @@ void save_resource(int type, RES_ITEM *items, int pass)
     * record.
     */
    if (pass == 2) {
+      DEVRES *dev;
+      int errstat;
       switch (type) {
       /* Resources not containing a resource */
       case R_DIRECTOR:
@@ -464,6 +466,14 @@ void save_resource(int type, RES_ITEM *items, int pass)
 	 }
 	 /* we must explicitly copy the device alist pointer */
 	 res->res_changer.device   = res_all.res_changer.device;
+	 foreach_alist(dev, res->res_changer.device) {
+	    dev->changer_res = (AUTOCHANGER *)&res->res_changer;
+	 }
+	 if ((errstat = pthread_mutex_init(&dev->changer_res->changer_mutex, NULL)) != 0) {
+	    berrno be;
+            Jmsg1(NULL, M_ERROR_TERM, 0, _("Unable to init mutex: ERR=%s\n"), 
+		  be.strerror(errstat));
+	 }
 	 break;
       default:
          printf("Unknown resource type %d\n", type);

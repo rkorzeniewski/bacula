@@ -250,9 +250,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
        * Check if it has expired, and if not update the DB. Note, if
        *   Volume has expired, has_volume_expired() will update the DB.
        */
-      if (has_volume_expired(jcr, &mr)) {
-	 send_volume_info_to_storage_daemon(jcr, bs, &mr);
-      } else if (db_update_media_record(jcr, jcr->db, &mr)) {
+      if (has_volume_expired(jcr, &mr) || db_update_media_record(jcr, jcr->db, &mr)) {
 	 send_volume_info_to_storage_daemon(jcr, bs, &mr);
       } else {
          Jmsg(jcr, M_FATAL, 0, _("Catalog error updating Media record. %s"),

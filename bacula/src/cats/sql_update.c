@@ -258,6 +258,22 @@ db_update_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
    return stat;
 }
 
+bool
+db_update_storage_record(JCR *jcr, B_DB *mdb, STORAGE_DBR *sr)
+{
+   int stat;
+   char ed1[50];
+
+   db_lock(mdb);
+   Mmsg(mdb->cmd, "UPDATE Storage SET AutoChanger=%d WHERE StorageId=%s", 
+      sr->AutoChanger, edit_int64(sr->StorageId, ed1));
+
+   stat = UPDATE_DB(jcr, mdb, mdb->cmd);
+   db_unlock(mdb);
+   return stat;
+}
+
+
 /*
  * Update the Media Record at end of Session
  *
@@ -271,7 +287,7 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    time_t ttime;
    struct tm tm;
    int stat;
-   char ed1[30], ed2[30], ed3[30], ed4[30];
+   char ed1[50], ed2[50], ed3[50], ed4[50], ed5[50];
 
 
    Dmsg1(100, "update_media: FirstWritten=%d\n", mr->FirstWritten);
@@ -297,46 +313,34 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
       Mmsg(mdb->cmd, "UPDATE Media SET LabelDate='%s' "
            "WHERE VolumeName='%s'", dt, mr->VolumeName);
-      stat = UPDATE_DB(jcr, mdb, mdb->cmd);
+      UPDATE_DB(jcr, mdb, mdb->cmd);
    }
 
    if (mr->LastWritten != 0) {
       ttime = mr->LastWritten;
       localtime_r(&ttime, &tm);
       strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
-
-      Mmsg(mdb->cmd, "UPDATE Media SET VolJobs=%u,"
-           "VolFiles=%u,VolBlocks=%u,VolBytes=%s,VolMounts=%u,VolErrors=%u,"
-           "VolWrites=%u,MaxVolBytes=%s,LastWritten='%s',VolStatus='%s',"
-           "Slot=%d,InChanger=%d,VolReadTime=%s,VolWriteTime=%s,VolParts=%d,"
-           "LabelType=%d"
-           " WHERE VolumeName='%s'",
-	   mr->VolJobs, mr->VolFiles, mr->VolBlocks, edit_uint64(mr->VolBytes, ed1),
-	   mr->VolMounts, mr->VolErrors, mr->VolWrites,
-	   edit_uint64(mr->MaxVolBytes, ed2), dt,
-	   mr->VolStatus, mr->Slot, mr->InChanger,
-	   edit_uint64(mr->VolReadTime, ed3),
-	   edit_uint64(mr->VolWriteTime, ed4),
-	   mr->VolParts,
-	   mr->LabelType,
-	   mr->VolumeName);
-   } else {
-      Mmsg(mdb->cmd, "UPDATE Media SET VolJobs=%u,"
-           "VolFiles=%u,VolBlocks=%u,VolBytes=%s,VolMounts=%u,VolErrors=%u,"
-           "VolWrites=%u,MaxVolBytes=%s,VolStatus='%s',"
-           "Slot=%d,InChanger=%d,VolReadTime=%s,VolWriteTime=%s,VolParts=%d,"
-           "LabelType=%d"
-           " WHERE VolumeName='%s'",
-	   mr->VolJobs, mr->VolFiles, mr->VolBlocks, edit_uint64(mr->VolBytes, ed1),
-	   mr->VolMounts, mr->VolErrors, mr->VolWrites,
-	   edit_uint64(mr->MaxVolBytes, ed2),
-	   mr->VolStatus, mr->Slot, mr->InChanger,
-	   edit_uint64(mr->VolReadTime, ed3),
-	   edit_uint64(mr->VolWriteTime, ed4),
-	   mr->VolParts,
-	   mr->LabelType,
-	   mr->VolumeName);
+      Mmsg(mdb->cmd, "UPDATE Media Set LastWritten='%s' "
+           "WHERE VolumeName='%s'", dt, mr->VolumeName);
+      UPDATE_DB(jcr, mdb, mdb->cmd);
    }
+
+   Mmsg(mdb->cmd, "UPDATE Media SET VolJobs=%u,"
+        "VolFiles=%u,VolBlocks=%u,VolBytes=%s,VolMounts=%u,VolErrors=%u,"
+        "VolWrites=%u,MaxVolBytes=%s,VolStatus='%s',"
+        "Slot=%d,InChanger=%d,VolReadTime=%s,VolWriteTime=%s,VolParts=%d,"
+        "LabelType=%d,StorageId=%s"
+        " WHERE VolumeName='%s'",
+	mr->VolJobs, mr->VolFiles, mr->VolBlocks, edit_uint64(mr->VolBytes, ed1),
+	mr->VolMounts, mr->VolErrors, mr->VolWrites,
+	edit_uint64(mr->MaxVolBytes, ed2),
+	mr->VolStatus, mr->Slot, mr->InChanger,
+	edit_uint64(mr->VolReadTime, ed3),
+	edit_uint64(mr->VolWriteTime, ed4),
+	mr->VolParts,
+	mr->LabelType,
+	edit_int64(mr->StorageId, ed5),
+	mr->VolumeName);
 
    Dmsg1(400, "%s\n", mdb->cmd);
 
@@ -406,9 +410,9 @@ db_make_inchanger_unique(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    char ed1[50], ed2[50];
    if (mr->InChanger != 0 && mr->Slot != 0) {
       Mmsg(mdb->cmd, "UPDATE Media SET InChanger=0 WHERE "
-           "Slot=%d AND PoolId=%s AND MediaId!=%s",
+           "Slot=%d AND StorageId=%s AND MediaId!=%s",
 	    mr->Slot, 
-	    edit_int64(mr->PoolId, ed1), edit_int64(mr->MediaId, ed2));
+	    edit_int64(mr->StorageId, ed1), edit_int64(mr->MediaId, ed2));
       Dmsg1(400, "%s\n", mdb->cmd);
       UPDATE_DB(jcr, mdb, mdb->cmd);
    }
