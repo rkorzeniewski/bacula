@@ -92,6 +92,9 @@ BPIPE *open_bpipe(char *prog, int wait, char *mode)
 	 dup2(readp[1], 1);	      /* dup our read to his stdout */
 	 dup2(readp[1], 2);	      /*   and his stderr */
       }
+      for (int i=3; i<=32; i++) {     /* close any open file descriptors */
+	 close(i);
+      }
       execvp(bargv[0], bargv);	      /* call the program */
       exit(errno);                    /* shouldn't get here */
 

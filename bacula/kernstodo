@@ -40,12 +40,12 @@ For 1.33 Testing/Documentation:
 - Document verify_disk_to_catalog
                 
 For 1.32c
-- If last Full back is purged and an Incremental or Differential remains,
-  Bacula does not promote the Incremental to a Full.
-- Finish implementation of Verify=DiskToCatalog
 - Add VerifyJob to "run" summary (yes/mod/no) prompt.
 
 For 1.33
+- Finish implementation of Verify=DiskToCatalog
+- Change console to bconsole.
+- Change smtp to bsmtp.
 - Add device name to "Current Volume not acceptable because ..."
 - Make sure that Bacula rechecks the tape after the 20 min wait.
 - Set IO_NOWAIT on Bacula TCP/IP packets.
@@ -1061,4 +1061,6 @@ Done: (see kernsdone for more)
 - Figure out a way to move Volumes from one pool to another.
 - Implement a RunAfterFailedJob
 - Limit the number of block checksum/header BB01, ... errors printed.
+- If last Full back is purged and an Incremental or Differential remains,
+  Bacula does not promote the Incremental to a Full.
 

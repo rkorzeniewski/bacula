@@ -390,20 +390,21 @@ static int do_list_cmd(UAContext *ua, char *cmd, e_list_type llist)
 	       }
 	    }
 	 }
-	 run = find_next_run(job, runtime);
-	 pool = run ? run->pool : NULL;
-	 if (!complete_jcr_for_job(jcr, job, pool)) {
-	    return 1;
-	 }
-	   
-	 if (!find_next_volume_for_append(jcr, &mr, 0)) {
-            bsendmsg(ua, "Could not find next Volume\n");
-	    db_close_database(jcr, jcr->db);
-	    jcr->db = NULL;
-	    return 1;
-	 } else {
-            bsendmsg(ua, "The next Volume to be used by Job \"%s\" will be %s\n", 
-	       job->hdr.name, mr.VolumeName);
+	 for (run=NULL; (run = find_next_run(run, job, runtime)); ) {
+	    pool = run ? run->pool : NULL;
+	    if (!complete_jcr_for_job(jcr, job, pool)) {
+	       return 1;
+	    }
+	      
+	    if (!find_next_volume_for_append(jcr, &mr, 0)) {
+               bsendmsg(ua, "Could not find next Volume\n");
+	       db_close_database(jcr, jcr->db);
+	       jcr->db = NULL;
+	       return 1;
+	    } else {
+               bsendmsg(ua, "The next Volume to be used by Job \"%s\" will be %s\n", 
+		  job->hdr.name, mr.VolumeName);
+	    }
 	 }
 	 db_close_database(jcr, jcr->db);
 	 jcr->db = NULL;
@@ -418,10 +419,9 @@ static int do_list_cmd(UAContext *ua, char *cmd, e_list_type llist)
  * For a given job, we examine all his run records
  *  to see if it is scheduled today or tomorrow.
  */
-RUN *find_next_run(JOB *job, time_t &runtime)
+RUN *find_next_run(RUN *run, JOB *job, time_t &runtime)
 {
    time_t now, tomorrow;
-   RUN *run;
    SCHED *sched;
    struct tm tm;
    int mday, wday, month, wpos, tmday, twday, tmonth, twpos, i, hour;
@@ -449,7 +449,12 @@ RUN *find_next_run(JOB *job, time_t &runtime)
    tmonth = tm.tm_mon;
    twpos  = (tm.tm_mday - 1) / 7;
 
-   for (run=sched->run; run; run=run->next) {
+   if (run == NULL) {
+      run = sched->run;
+   } else {
+      run = run->next;
+   }
+   if (run) {
       /* 
        * Find runs in next 24 hours
        */
