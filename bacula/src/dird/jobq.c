@@ -199,9 +199,8 @@ int jobq_add(jobq_t *jq, JCR *jcr)
       sched_pkt = (wait_pkt *)malloc(sizeof(wait_pkt));
       sched_pkt->jcr = jcr;
       sched_pkt->jq = jq;
-      if ((stat = pthread_create(&id, &jq->attr, sched_wait, (void *)sched_pkt)) != 0) {
-	 return stat;
-      }
+      stat = pthread_create(&id, &jq->attr, sched_wait, (void *)sched_pkt);	   
+      return stat;
    }
 
    if ((stat = pthread_mutex_lock(&jq->mutex)) != 0) {
