@@ -349,6 +349,17 @@ bnet_send(BSOCK *bsock)
 }
 
 /*
+ * Establish an SSL connection.      
+ *   If listen is set, the other end initiates the request.
+ *   If listen is not set, I initiate it.
+ */
+int	
+bnet_ssl(BSOCK *bsock, char *password, int listen)
+{
+   return 1;
+}
+
+/*
  * Wait for a specified time for data to appear on
  * the BSOCK connection.
  *

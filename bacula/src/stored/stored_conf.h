@@ -45,6 +45,7 @@ struct s_res_dir {
 
    char *password;		      /* Director password */
    char *address;		      /* Director IP address or zero */
+   int enable_ssl;		      /* Use SSL with this Director */
 };
 typedef struct s_res_dir DIRRES;
 
@@ -60,8 +61,7 @@ struct s_res_store {
    char *working_directory;	      /* working directory for checkpoints */
    char *pid_directory;
    char *subsys_directory;
-   char *ssl_certs;		      /* SSL Certificates directory */
-   int enable_ssl;		      /* Use SSL */
+   int require_ssl;		      /* Require SSL on all connections */
    uint32_t max_concurrent_jobs;      /* maximum concurrent jobs to run */
    struct s_res_msgs *messages;       /* Daemon message handler */
 };

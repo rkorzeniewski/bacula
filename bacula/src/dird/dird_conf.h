@@ -43,8 +43,9 @@
 #define R_POOL			      1009
 #define R_MSGS			      1010
 #define R_COUNTER		      1011
+#define R_CONSOLE		      1012
 
-#define R_LAST			      R_COUNTER
+#define R_LAST			      R_CONSOLE
 
 /*
  * Some resource attributes
@@ -86,18 +87,29 @@ struct s_res_dir {
    int	 DIRport;		      /* where we listen -- UA port server port */
    char *DIRaddr;		      /* bind address */
    char *password;		      /* Password for UA access */
+   int enable_ssl;		      /* Use SSL for UA */
    char *query_file;		      /* SQL query file */
    char *working_directory;	      /* WorkingDirectory */
    char *pid_directory; 	      /* PidDirectory */
    char *subsys_directory;	      /* SubsysDirectory */
-   char *ssl_certs;		      /* SSL Certificates directory */
-   int enable_ssl;		      /* Use SSL */
+   int require_ssl;		      /* Require SSL for all connections */
    struct s_res_msgs *messages;       /* Daemon message handler */
    uint32_t MaxConcurrentJobs;	      /* Max concurrent jobs for whole director */
    utime_t FDConnectTimeout;	      /* timeout for connect in seconds */
    utime_t SDConnectTimeout;	      /* timeout in seconds */
 };
 typedef struct s_res_dir DIRRES;
+
+/* 
+ *    Console Resource
+ */
+struct s_res_con {
+   RES	 hdr;
+   char *password;		      /* UA server password */
+   int enable_ssl;		      /* Use SSL */
+};
+typedef struct s_res_con CONRES;
+
 
 /*
  *   Client Resource
@@ -298,6 +310,7 @@ typedef struct s_res_pool POOL;
  */
 union u_res {
    struct s_res_dir	res_dir;
+   struct s_res_con	res_con;
    struct s_res_client	res_client;
    struct s_res_store	res_store;
    struct s_res_cat	res_cat;

@@ -95,7 +95,7 @@ static struct res_items dir_items[] = {
    {"workingdirectory", store_dir, ITEM(res_dir.working_directory), 0, ITEM_REQUIRED, 0},
    {"piddirectory",store_dir,     ITEM(res_dir.pid_directory), 0, ITEM_REQUIRED, 0},
    {"subsysdirectory", store_dir,  ITEM(res_dir.subsys_directory), 0, ITEM_REQUIRED, 0},
-   {"sslcertificatedirectory", store_dir, ITEM(res_dir.ssl_certs), 0, 0, 0},
+   {"requiressl",  store_yesno,    ITEM(res_dir.require_ssl), 1, ITEM_DEFAULT, 0},
    {"enablessl",   store_yesno,    ITEM(res_dir.enable_ssl), 1, ITEM_DEFAULT, 0},
    {"maximumconcurrentjobs", store_pint, ITEM(res_dir.MaxConcurrentJobs), 0, ITEM_DEFAULT, 1},
    {"password",    store_password, ITEM(res_dir.password), 0, ITEM_REQUIRED, 0},
@@ -103,6 +103,20 @@ static struct res_items dir_items[] = {
    {"sdconnecttimeout", store_time,ITEM(res_dir.SDConnectTimeout), 0, ITEM_DEFAULT, 60 * 30},
    {NULL, NULL, NULL, 0, 0, 0}
 };
+
+/* 
+ *    Console Resource
+ *
+ *   name	   handler     value		     code flags    default_value
+ */
+static struct res_items con_items[] = {
+   {"name",        store_name,     ITEM(res_con.hdr.name), 0, ITEM_REQUIRED, 0},
+   {"description", store_str,      ITEM(res_con.hdr.desc), 0, 0, 0},
+   {"enablessl",   store_yesno,    ITEM(res_con.enable_ssl), 1, ITEM_DEFAULT, 0},
+   {"password",    store_password, ITEM(res_con.password), 0, ITEM_REQUIRED, 0},
+   {NULL, NULL, NULL, 0, 0, 0}
+};
+
 
 /* 
  *    Client or File daemon resource
@@ -287,6 +301,7 @@ extern struct res_items msgs_items[];
  */
 struct s_res resources[] = {
    {"director",      dir_items,   R_DIRECTOR,  NULL},
+   {"console",       con_items,   R_CONSOLE,   NULL},
    {"client",        cli_items,   R_CLIENT,    NULL},
    {"job",           job_items,   R_JOB,       NULL},
    {"storage",       store_items, R_STORAGE,   NULL},
@@ -402,6 +417,10 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
             sendit(sock, "  --> ");
 	    dump_resource(-R_MSGS, (RES *)res->res_dir.messages, sendit, sock);
 	 }
+	 break;
+      case R_CONSOLE:
+         sendit(sock, "Console name=%s SSL=%d\n", 
+	    res->res_con.hdr.name, res->res_con.enable_ssl);
 	 break;
       case R_CLIENT:
          sendit(sock, "Client: name=%s address=%s FDport=%d MaxJobs=%u\n",
@@ -682,6 +701,11 @@ void free_resource(int type)
 	    free(res->res_dir.DIRaddr);
 	 }
 	 break;
+      case R_CONSOLE:
+	 if (res->res_con.password) {
+	    free(res->res_con.password);
+	 }
+	 break;
       case R_CLIENT:
 	 if (res->res_client.address) {
 	    free(res->res_client.address);
@@ -836,6 +860,7 @@ void save_resource(int type, struct res_items *items, int pass)
    if (pass == 2) {
       switch (type) {
 	 /* Resources not containing a resource */
+	 case R_CONSOLE:
 	 case R_CATALOG:
 	 case R_STORAGE:
 	 case R_GROUP:
@@ -919,6 +944,9 @@ void save_resource(int type, struct res_items *items, int pass)
    switch (type) {
       case R_DIRECTOR:
 	 size = sizeof(DIRRES);
+	 break;
+      case R_CONSOLE:
+	 size = sizeof(CONRES);
 	 break;
       case R_CLIENT:
 	 size =sizeof(CLIENT);

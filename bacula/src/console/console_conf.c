@@ -8,14 +8,14 @@
  *   1. The generic lexical scanner in lib/lex.c and lib/lex.h
  *
  *   2. The generic config  scanner in lib/parse_config.c and 
- *      lib/parse_config.h.
- *      These files contain the parser code, some utility
- *      routines, and the common store routines (name, int,
- *      string).
+ *	lib/parse_config.h.
+ *	These files contain the parser code, some utility
+ *	routines, and the common store routines (name, int,
+ *	string).
  *
  *   3. The daemon specific file, which contains the Resource
- *      definitions as well as any specific store routines
- *      for the resource records.
+ *	definitions as well as any specific store routines
+ *	for the resource records.
  *
  *     Kern Sibbald, January MM, September MM
  */
@@ -71,7 +71,7 @@ static struct res_items cons_items[] = {
    {"description", store_str,      ITEM(res_cons.hdr.desc), 0, 0, 0},
    {"rcfile",      store_dir,      ITEM(res_cons.rc_file), 0, 0, 0},
    {"historyfile", store_dir,      ITEM(res_cons.hist_file), 0, 0, 0},
-   {"sslcertificatedirectory", store_dir, ITEM(res_cons.ssl_certs), 0, 0, 0},
+   {"requiressl",  store_yesno,    ITEM(res_cons.require_ssl), 1, ITEM_DEFAULT, 0},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 
@@ -94,7 +94,7 @@ static struct res_items dir_items[] = {
 struct s_res resources[] = {
    {"console",       cons_items,  R_CONSOLE,   NULL},
    {"director",      dir_items,   R_DIRECTOR,  NULL},
-   {NULL,            NULL,        0,           NULL}
+   {NULL,	     NULL,	  0,	       NULL}
 };
 
 
@@ -108,19 +108,19 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
       printf("No record for %d %s\n", type, res_to_str(type));
       return;
    }
-   if (type < 0) {                    /* no recursion */
+   if (type < 0) {		      /* no recursion */
       type = - type;
       recurse = 0;
    }
    switch (type) {
       case R_CONSOLE:
          printf("Console: name=%s rcfile=%s histfile=%s\n", reshdr->name,
-                res->res_cons.rc_file, res->res_cons.hist_file);
-         break;
+		res->res_cons.rc_file, res->res_cons.hist_file);
+	 break;
       case R_DIRECTOR:
          printf("Director: name=%s address=%s DIRport=%d\n", reshdr->name, 
-                 res->res_dir.address, res->res_dir.DIRport);
-         break;
+		 res->res_dir.address, res->res_dir.DIRport);
+	 break;
       default:
          printf("Unknown resource type %d\n", type);
    }
@@ -158,16 +158,16 @@ void free_resource(int type)
 
    switch (type) {
       case R_CONSOLE:
-         if (res->res_cons.rc_file) {
-            free(res->res_cons.rc_file);
-         }
-         if (res->res_cons.hist_file) {
-            free(res->res_cons.hist_file);
-         }
+	 if (res->res_cons.rc_file) {
+	    free(res->res_cons.rc_file);
+	 }
+	 if (res->res_cons.hist_file) {
+	    free(res->res_cons.hist_file);
+	 }
       case R_DIRECTOR:
-         if (res->res_dir.address)
-            free(res->res_dir.address);
-         break;
+	 if (res->res_dir.address)
+	    free(res->res_dir.address);
+	 break;
       default:
          printf("Unknown resource type %d\n", type);
    }
@@ -194,10 +194,10 @@ void save_resource(int type, struct res_items *items, int pass)
     */
    for (i=0; items[i].name; i++) {
       if (items[i].flags & ITEM_REQUIRED) {
-            if (!bit_is_set(i, res_all.res_dir.hdr.item_present)) {  
+	    if (!bit_is_set(i, res_all.res_dir.hdr.item_present)) {  
                Emsg2(M_ABORT, 0, "%s item is required in %s resource, but not found.\n",
-                 items[i].name, resources[rindex]);
-             }
+		 items[i].name, resources[rindex]);
+	     }
       }
    }
 
@@ -208,26 +208,26 @@ void save_resource(int type, struct res_items *items, int pass)
     */
    if (pass == 2) {
       switch (type) {
-         /* Resources not containing a resource */
-         case R_CONSOLE:
-         case R_DIRECTOR:
-            break;
+	 /* Resources not containing a resource */
+	 case R_CONSOLE:
+	 case R_DIRECTOR:
+	    break;
 
-         default:
+	 default:
             Emsg1(M_ERROR, 0, "Unknown resource type %d\n", type);
-            error = 1;
-            break;
+	    error = 1;
+	    break;
       }
       /* Note, the resoure name was already saved during pass 1,
        * so here, we can just release it.
        */
       if (res_all.res_dir.hdr.name) {
-         free(res_all.res_dir.hdr.name);
-         res_all.res_dir.hdr.name = NULL;
+	 free(res_all.res_dir.hdr.name);
+	 res_all.res_dir.hdr.name = NULL;
       }
       if (res_all.res_dir.hdr.desc) {
-         free(res_all.res_dir.hdr.desc);
-         res_all.res_dir.hdr.desc = NULL;
+	 free(res_all.res_dir.hdr.desc);
+	 res_all.res_dir.hdr.desc = NULL;
       }
       return;
    }
@@ -235,31 +235,31 @@ void save_resource(int type, struct res_items *items, int pass)
    /* The following code is only executed during pass 1 */
    switch (type) {
       case R_CONSOLE:
-         size = sizeof(CONSRES);
-         break;
+	 size = sizeof(CONSRES);
+	 break;
       case R_DIRECTOR:
-         size = sizeof(DIRRES);
-         break;
+	 size = sizeof(DIRRES);
+	 break;
       default:
          printf("Unknown resource type %d\n", type);
-         error = 1;
-         size = 1;
-         break;
+	 error = 1;
+	 size = 1;
+	 break;
    }
    /* Common */
    if (!error) {
       res = (URES *)malloc(size);
       memcpy(res, &res_all, size);
       if (!resources[rindex].res_head) {
-         resources[rindex].res_head = (RES *)res; /* store first entry */
+	 resources[rindex].res_head = (RES *)res; /* store first entry */
       } else {
-         RES *next;
-         /* Add new res to end of chain */
-         for (next=resources[rindex].res_head; next->next; next=next->next)
-            { }
-         next->next = (RES *)res;
+	 RES *next;
+	 /* Add new res to end of chain */
+	 for (next=resources[rindex].res_head; next->next; next=next->next)
+	    { }
+	 next->next = (RES *)res;
          Dmsg2(90, "Inserting %s res: %s\n", res_to_str(type),
-               res->res_dir.hdr.name);
+	       res->res_dir.hdr.name);
       }
    }
 }

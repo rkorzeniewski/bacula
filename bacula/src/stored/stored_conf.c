@@ -62,8 +62,7 @@ static struct res_items store_items[] = {
    {"workingdirectory",      store_dir,  ITEM(res_store.working_directory), 0, ITEM_REQUIRED, 0},
    {"piddirectory",          store_dir,  ITEM(res_store.pid_directory), 0, ITEM_REQUIRED, 0},
    {"subsysdirectory",       store_dir,  ITEM(res_store.subsys_directory), 0, ITEM_REQUIRED, 0},
-   {"sslcertificatedirectory", store_dir,ITEM(res_store.ssl_certs), 0, 0, 0},
-   {"enablessl",             store_yesno,ITEM(res_store.enable_ssl), 1, ITEM_DEFAULT, 0},
+   {"requiressl",            store_yesno,ITEM(res_store.require_ssl), 1, ITEM_DEFAULT, 0},
    {"maximumconcurrentjobs", store_pint, ITEM(res_store.max_concurrent_jobs), 0, ITEM_DEFAULT, 3},
    {NULL, NULL, 0, 0, 0, 0} 
 };
@@ -75,6 +74,7 @@ static struct res_items dir_items[] = {
    {"description", store_str,      ITEM(res_dir.hdr.desc),   0, 0, 0},
    {"password",    store_password, ITEM(res_dir.password),   0, ITEM_REQUIRED, 0},
    {"address",     store_str,      ITEM(res_dir.address),    0, 0, 0},
+   {"enablessl",   store_yesno,    ITEM(res_dir.enable_ssl), 1, ITEM_DEFAULT, 0},
    {NULL, NULL, 0, 0, 0, 0} 
 };
 

@@ -41,13 +41,14 @@ int cram_md5_auth(BSOCK *bs, char *password)
    uint8_t hmac[20];
 
    gettimeofday(&t1, &tz);
-   for (i=0; i<4; i++)
+   for (i=0; i<4; i++) {
       gettimeofday(&t2, &tz);
+   }
    srandom((t1.tv_sec&0xffff) * (t2.tv_usec&0xff));
    if (!gethostname(host, sizeof(host))) {
       bstrncpy(host, my_name, sizeof(host));
    }
-   sprintf((char *)chal, "<%u.%u@%s>", (uint32_t)random(), (uint32_t)time(NULL), host);
+   bsnprintf(chal, sizeof(chal), "<%u.%u@%s>", (uint32_t)random(), (uint32_t)time(NULL), host);
    if (!bnet_fsend(bs, "auth cram-md5 %s\n", chal)) {
       return 0;
    }
@@ -59,13 +60,8 @@ int cram_md5_auth(BSOCK *bs, char *password)
    hmac_md5((uint8_t *)chal, strlen(chal), (uint8_t *)password, strlen(password), hmac);
    bin_to_base64(host, (char *)hmac, 16);
    ok = strcmp(bs->msg, host) == 0;
-   if (ok) {
-      Dmsg3(99, "Authenticate %s: wanted %s, got %s\n", 
-            ok ? "OK" : "NOT OK", host, bs->msg);
-   } else {
-      Dmsg3(99, "Authenticate %s: wanted %s, got %s\n", 
-            ok ? "OK" : "NOT OK", host, bs->msg);
-   }
+   Dmsg3(99, "Authenticate %s: wanted %s, got %s\n", 
+              ok ? "OK" : "NOT OK", host, bs->msg);
    if (ok) {
       bnet_fsend(bs, "1000 OK auth\n");
    } else {
