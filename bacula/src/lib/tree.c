@@ -5,7 +5,7 @@
  *
 */
 /*
-   Copyright (C) 2002-2003 Kern Sibbald and John Walker
+   Copyright (C) 2002-2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -28,9 +28,17 @@
 #include "bacula.h"
 #include "findlib/find.h"
 	     
-#ifndef MAXPATHLEN
-#define MAXPATHLEN 1000
-#endif
+/*
+ * Define PREPEND if you want the sibling list to
+ *  be prepended otherwise it will be appended when
+ *  a new entry is added.
+ */
+// #define PREPEND
+
+
+/* Forward referenced subroutines */
+static TREE_NODE *search_and_insert_tree_node(char *fname, int type, 
+	       TREE_NODE *node, TREE_ROOT *root, TREE_NODE *parent);
 
 /*
  * NOTE !!!!! we turn off Debug messages for performance reasons.
@@ -170,7 +178,6 @@ void free_tree(TREE_ROOT *root)
 TREE_NODE *insert_tree_node(char *path, TREE_NODE *node, 
 			    TREE_ROOT *root, TREE_NODE *parent)
 {
-   TREE_NODE *sibling;
    char *p, *q, *fname;
    int path_len = strlen(path);
 
@@ -216,21 +223,7 @@ TREE_NODE *insert_tree_node(char *path, TREE_NODE *node,
       Dmsg1(100, "No / found: %s\n", path);
    }
 
-   uint16_t fname_len = strlen(fname);
-   for (sibling=parent->child; sibling; sibling=sibling->sibling) {
-      Dmsg2(100, "sibling->fname=%s fname=%s\n", sibling->fname, fname);
-      if (sibling->fname_len == fname_len &&
-	  strcmp(sibling->fname, fname) == 0) {
-         Dmsg1(100, "make_tree_path: found parent=%s\n", parent->fname);
-	 if (q) {		      /* if trailing slash on entry */
-            *q = '/';                 /*  restore it */
-	 }
-	 return sibling;
-      }
-   }
-
-   append_tree_node(fname, node, root, parent);
-   Dmsg1(100, "insert_tree_node: parent=%s\n", parent->fname);
+   node = search_and_insert_tree_node(fname, 0, node, root, parent);
    if (q) {			      /* if trailing slash on entry */
       *q = '/';                       /*  restore it */
    }
@@ -243,7 +236,7 @@ TREE_NODE *insert_tree_node(char *path, TREE_NODE *node,
  */
 TREE_NODE *make_tree_path(char *path, TREE_ROOT *root)
 {
-   TREE_NODE *parent, *sibling, *node;
+   TREE_NODE *parent, *node;
    char *fname, *p;
    int type = TN_NEWDIR;
 
@@ -263,8 +256,20 @@ TREE_NODE *make_tree_path(char *path, TREE_ROOT *root)
       parent = (TREE_NODE *)root;
       type = TN_DIR_NLS;
    }
-   /* Is it already a sibling? */
+   node = search_and_insert_tree_node(fname, type, NULL, root, parent);
+   return node;
+}  
+
+/*
+ *  See if the fname already exists. If not insert a new node for it.
+ */
+static TREE_NODE *search_and_insert_tree_node(char *fname, int type, 
+	       TREE_NODE *node, TREE_ROOT *root, TREE_NODE *parent)
+{
+   TREE_NODE *sibling, *last_sibling;
    uint16_t fname_len = strlen(fname);
+
+   /* Is it already a sibling? */
    for (sibling=parent->child; sibling; sibling=sibling->sibling) {
       Dmsg2(100, "sibling->fname=%s fname=%s\n", sibling->fname, fname);
       if (sibling->fname_len == fname_len &&
@@ -272,34 +277,29 @@ TREE_NODE *make_tree_path(char *path, TREE_ROOT *root)
          Dmsg1(100, "make_tree_path: found parent=%s\n", parent->fname);
 	 return sibling;
       }
+      last_sibling = sibling;
    }
    /* Must add */
-   node = new_tree_node(root, type);
-   append_tree_node(fname, node, root, parent);
-   Dmsg1(100, "make_tree_path: add parent=%s\n", node->fname);
-   return node;
-}  
-
-/*
- *  Append sibling to parent's child chain
- */
-void append_tree_node(char *fname, TREE_NODE *node, TREE_ROOT *root, TREE_NODE *parent)
-{
-   TREE_NODE *child;
-
+   if (!node) {
+      node = new_tree_node(root, type);
+   }
    Dmsg1(100, "append_tree_node: %s\n", fname);
-   node->fname_len = strlen(fname);
+   node->fname_len = fname_len;
    node->fname = tree_alloc(root, node->fname_len + 1);
    strcpy(node->fname, fname);
    node->parent = parent;
    if (!parent->child) {
       parent->child = node;
-      goto item_link;
+      goto item_link;		      /* No children, so skip search */
    }
-   /* Append to end of sibling chain */
-   for (child=parent->child; child->sibling; child=child->sibling)
-      { }
-   child->sibling = node;
+
+#ifdef	PREPEND
+   /* Add node to head of sibling chain */
+   node->sibling = parent->child;
+   parent->child = node;
+#else
+   last_sibling = node;
+#endif
 
    /* Maintain a linear chain of nodes */
 item_link:
@@ -310,7 +310,7 @@ item_link:
       root->last->next = node;
       root->last = node;
    }
-   return;
+   return node;
 }
 
 #ifdef SLOW_WAY
@@ -327,44 +327,6 @@ TREE_NODE *next_tree_node(TREE_NODE *node)
 #endif
 
 
-void print_tree(char *path, TREE_NODE *tree)
-{
-   char buf[MAXPATHLEN];
-   char *termchr;
-
-   if (!tree) {
-      return;
-   }
-   switch (tree->type) {
-   case TN_DIR_NLS:
-   case TN_DIR:
-   case TN_NEWDIR:  
-      termchr = "/";
-      break;
-   case TN_ROOT:
-   case TN_FILE:
-   default:
-      termchr = "";
-      break;
-   }
-   Dmsg3(-1, "%s/%s%s\n", path, tree->fname, termchr);
-   switch (tree->type) {
-   case TN_FILE:
-   case TN_NEWDIR:
-   case TN_DIR:
-   case TN_DIR_NLS:
-      bsnprintf(buf, sizeof(buf), "%s/%s", path, tree->fname);
-      print_tree(buf, tree->child);
-      break;
-   case TN_ROOT:
-      print_tree(path, tree->child);
-      break;
-   default:
-      Pmsg1(000, "Unknown node type %d\n", tree->type);
-   }
-   print_tree(path, tree->sibling);
-   return;
-}
 
 int tree_getpath(TREE_NODE *node, char *buf, int buf_size)
 {
@@ -565,4 +527,48 @@ void FillDirectoryTree(char *path, TREE_ROOT *root, TREE_NODE *parent)
    }
    closedir(dp);
 }
+
+#ifndef MAXPATHLEN
+#define MAXPATHLEN 2000
+#endif
+
+void print_tree(char *path, TREE_NODE *tree)
+{
+   char buf[MAXPATHLEN];
+   char *termchr;
+
+   if (!tree) {
+      return;
+   }
+   switch (tree->type) {
+   case TN_DIR_NLS:
+   case TN_DIR:
+   case TN_NEWDIR:  
+      termchr = "/";
+      break;
+   case TN_ROOT:
+   case TN_FILE:
+   default:
+      termchr = "";
+      break;
+   }
+   Dmsg3(-1, "%s/%s%s\n", path, tree->fname, termchr);
+   switch (tree->type) {
+   case TN_FILE:
+   case TN_NEWDIR:
+   case TN_DIR:
+   case TN_DIR_NLS:
+      bsnprintf(buf, sizeof(buf), "%s/%s", path, tree->fname);
+      print_tree(buf, tree->child);
+      break;
+   case TN_ROOT:
+      print_tree(path, tree->child);
+      break;
+   default:
+      Pmsg1(000, "Unknown node type %d\n", tree->type);
+   }
+   print_tree(path, tree->sibling);
+   return;
+}
+
 #endif
