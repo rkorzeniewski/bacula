@@ -815,20 +815,6 @@ getArgv0(const char *cmdline)
     return rval;
 }
 
-/*
- * Check to see if filename has the batch file extention.
- */
-int
-isBatchFile(const char *fname)
-{
-    const char *ext = strrchr(fname, '.');
-    
-    if (ext) {
-	int rval = strncasecmp(ext, ".bat", 4);
-	return !rval;
-    }
-    return 0;
-}
 
 /**
  * OK, so it would seem CreateProcess only handles true executables:
@@ -871,55 +857,20 @@ CreateChildProcess(const char *cmdline, HANDLE in, HANDLE out, HANDLE err)
         siStartInfo.hStdError = GetStdHandle(STD_ERROR_HANDLE);
     // Create the child process.
 
-    char cmdLine[1024];
-    char exeFile[1024];
-    // retrive the first compont of the command line which should be the
-    // executable
-    const char *exeName = getArgv0(cmdline);
+    char exeFile[256];
 
-    if (isBatchFile(exeName)) {
-	const char *comspec = getenv("COMSPEC");
-	if (comspec == NULL) // should never happen
-	    return INVALID_HANDLE_VALUE;
+    const char *comspec = getenv("COMSPEC");
+    
+    if (comspec == NULL) // should never happen
+	return INVALID_HANDLE_VALUE;
 
-	free((void *)exeName);
-	strcpy(exeFile, comspec);
-	strcpy(cmdLine, comspec);
-	strcat(cmdLine, " /c ");
-	strcat(cmdLine, cmdline);
-    }
-    else
-    {
-    // check to see if absolute path was passed to us already?
-	// allow for case when absolute path is in quotes "C:/...."
-	int driveCheck = exeName[0] == '"' ? 2 : 1;
-	if (exeName[driveCheck] != ':'
-	    || (strchr(cmdline, '/') == NULL
-		&& strchr(cmdline, '\\') == NULL))
-	{
-	    // only command name so perform search of PATH to find
-	    char *file;
-	    DWORD rval = SearchPath(NULL,
-				    exeName,
-				    ".exe",
-				    sizeof(exeFile),
-				    exeFile,
-				    &file);
-	    if (rval == 0)
-		return INVALID_HANDLE_VALUE;
-	    if (rval > sizeof(exeFile))
-		return INVALID_HANDLE_VALUE;
-	    
-	}
-	else
-	    cygwin_conv_to_win32_path(exeName, exeFile);
-	
-	// exeFile now has absolute path to program to execute.
-	free((void *)exeName);
+    char *cmdLine = (char *)alloca(strlen(cmdline) + strlen(comspec) + 16);
+    
+    strcpy(exeFile, comspec);
+    strcpy(cmdLine, comspec);
+    strcat(cmdLine, " /c ");
+    strcat(cmdLine, cmdline);
 
-	// copy original command line to pass to create process
-	strcpy(cmdLine, cmdline);
-    }
     // try to execute program
     bFuncRetn = CreateProcess(exeFile,
                               cmdLine, // command line
