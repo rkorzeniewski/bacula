@@ -113,6 +113,14 @@ db_update_job_start_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    return stat;
 }
 
+/*
+ * Given an incoming integer, set the string buffer to either NULL or the value
+ *
+ *
+ */
+void numornull(char *s, size_t n, int id) {
+	bsnprintf(s, n, id ? "%d" : "NULL", id);
+}
 
 
 /*
@@ -130,6 +138,15 @@ db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    int stat;
    char ed1[30], ed2[30];
    btime_t JobTDate;
+   char PoolId    [50];
+   char FileSetId [50];
+   char ClientId  [50];
+
+
+   /* some values are set to zero, which translates to NULL in SQL */
+   numornull(PoolId,    sizeof(PoolId),    jr->PoolId);
+   numornull(FileSetId, sizeof(FileSetId), jr->FileSetId);
+   numornull(ClientId,  sizeof(ClientId),  jr->ClientId);
        
    ttime = jr->EndTime;
    localtime_r(&ttime, &tm);
@@ -139,11 +156,11 @@ db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    db_lock(mdb);
    Mmsg(&mdb->cmd,
       "UPDATE Job SET JobStatus='%c', EndTime='%s', \
-ClientId=%u, JobBytes=%s, JobFiles=%u, JobErrors=%u, VolSessionId=%u, \
-VolSessionTime=%u, PoolId=%u, FileSetId=%u, JobTDate=%s WHERE JobId=%u",
-      (char)(jr->JobStatus), dt, jr->ClientId, edit_uint64(jr->JobBytes, ed1), 
+ClientId=%s, JobBytes=%s, JobFiles=%u, JobErrors=%u, VolSessionId=%u, \
+VolSessionTime=%u, PoolId=%s, FileSetId=%s, JobTDate=%s WHERE JobId=%u",
+      (char)(jr->JobStatus), dt, ClientId, edit_uint64(jr->JobBytes, ed1), 
       jr->JobFiles, jr->JobErrors, jr->VolSessionId, jr->VolSessionTime, 
-      jr->PoolId, jr->FileSetId, edit_uint64(JobTDate, ed2), jr->JobId);
+      PoolId, FileSetId, edit_uint64(JobTDate, ed2), jr->JobId);
 
    stat = UPDATE_DB(jcr, mdb, mdb->cmd);
    db_unlock(mdb);
