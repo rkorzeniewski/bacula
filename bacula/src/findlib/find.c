@@ -212,7 +212,7 @@ static bool accept_file(FF_PKT *ff)
 	    }
 	 }
       }
-      ic = (incexe->current_opts != NULL && incexe->current_opts->flags & FO_IGNORE
+      ic = (incexe->current_opts != NULL && incexe->current_opts->flags & FO_IGNORECASE)
 	     ? FNM_CASEFOLD : 0;
       for (j=0; j<incexe->name_list.size(); j++) {
 	 if (fnmatch((char *)incexe->name_list.get(j), ff->fname, fnmode|ic) == 0) {
