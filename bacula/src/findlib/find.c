@@ -129,7 +129,7 @@ find_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt), void 
 	 for (j=0; j<incexe->name_list.size(); j++) {
             Dmsg1(400, "F %s\n", (char *)incexe->name_list.get(j));
 	    char *fname = (char *)incexe->name_list.get(j);
-	    if (!find_one_file(jcr, ff, our_callback, his_pkt, fname, (dev_t)-1, 1)) {
+	    if (find_one_file(jcr, ff, our_callback, his_pkt, fname, (dev_t)-1, 1) == 0) {
 	       return 0;		  /* error return */
 	    }
 	 }
@@ -143,7 +143,7 @@ find_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt), void 
 	 bstrncpy(ff->VerifyOpts, inc->VerifyOpts, sizeof(ff->VerifyOpts)); 
          Dmsg1(50, "find_files: file=%s\n", inc->fname);
 	 if (!file_is_excluded(ff, inc->fname)) {
-	    if (!find_one_file(jcr, ff, callback, his_pkt, inc->fname, (dev_t)-1, 1)) {
+	    if (find_one_file(jcr, ff, callback, his_pkt, inc->fname, (dev_t)-1, 1) ==0) {
 	       return 0;		  /* error return */
 	    }
 	 }
@@ -205,6 +205,7 @@ static int our_callback(FF_PKT *ff, void *hpkt)
    case FT_NOFOLLOW:
    case FT_NOSTAT:
    case FT_NOCHG:
+   case FT_DIRNOCHG:
    case FT_ISARCH:
    case FT_NORECURSE:
    case FT_NOFSCHG:
@@ -218,14 +219,20 @@ static int our_callback(FF_PKT *ff, void *hpkt)
    case FT_LNK:
    case FT_DIRBEGIN:
    case FT_DIREND:
+   case FT_RAW:
+   case FT_FIFO:
    case FT_SPEC:
       if (accept_file(ff)) {
 	 return ff->callback(ff, hpkt);
       } else {
-	 return 0;
+         Dmsg1(100, "Skip file %s\n", ff->fname);
+	 return -1;		      /* ignore this file */
       }
-   }	
-   return 0;
+
+   default:
+      Dmsg1(000, "Unknown FT code %d\n", ff->type);
+      return 0;
+   }
 }
 
 

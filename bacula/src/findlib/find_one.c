@@ -258,9 +258,10 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
        * do not immediately save it, but do so only after everything
        * in the directory is seen (i.e. the FT_DIREND).
        */
-      if (!handle_file(ff_pkt, pkt)) {
+      rtn_stat = handle_file(ff_pkt, pkt);
+      if (rtn_stat < 1) {	      /* ignore or error status */
 	 free(link);
-	 return 0;		      /* Do not save this directory */
+	 return rtn_stat;
       }
       /* Done with DIRBEGIN, next call will be DIREND */
       if (ff_pkt->type == FT_DIRBEGIN) {

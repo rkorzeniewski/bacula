@@ -66,6 +66,7 @@ int blast_data_to_storage_daemon(JCR *jcr, char *addr)
    }
    if (!bnet_set_buffer_size(sd, buf_size, BNET_SETBUF_WRITE)) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
+      Jmsg(jcr, M_FATAL, 0, _("Cannot set buffer size FD->SD.\n"));
       return 0;
    }
 
@@ -89,6 +90,7 @@ int blast_data_to_storage_daemon(JCR *jcr, char *addr)
    if (!find_files(jcr, (FF_PKT *)jcr->ff, save_file, (void *)jcr)) {
       stat = 0; 		      /* error */
       set_jcr_job_status(jcr, JS_ErrorTerminated);
+      Jmsg(jcr, M_FATAL, 0, _("Find files error.\n"));
    }
 
    stop_heartbeat_monitor(jcr);
@@ -113,6 +115,10 @@ int blast_data_to_storage_daemon(JCR *jcr, char *addr)
  *  *****FIXME*****   add FSMs File System Modules
  *
  *  Send the file and its data to the Storage daemon.
+ *
+ *  Returns: 1 if OK
+ *	     0 if error
+ *	    -1 to ignore file/directory (not used here)
  */
 static int save_file(FF_PKT *ff_pkt, void *vjcr)
 {
@@ -296,6 +302,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	 bclose(&ff_pkt->bfd);
       }
       set_jcr_job_status(jcr, JS_ErrorTerminated);
+      Jmsg0(jcr, M_FATAL, 0, _("Network send error.\n"));
       return 0;
    }
    bnet_sig(sd, BNET_EOD);	      /* indicate end of attributes data */
@@ -340,6 +347,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, data_stream)) {
 	 bclose(&ff_pkt->bfd);
 	 set_jcr_job_status(jcr, JS_ErrorTerminated);
+         Jmsg0(jcr, M_FATAL, 0, _("Network send error.\n"));
 	 return 0;
       }
       Dmsg1(300, ">stored: datahdr %s\n", sd->msg);
@@ -432,6 +440,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	       sd->msglen = 0;
 	       bclose(&ff_pkt->bfd);
 	       set_jcr_job_status(jcr, JS_ErrorTerminated);
+               Jmsg0(jcr, M_FATAL, 0, _("Network send error.\n"));
 	       return 0;
 	    }
 	 }
@@ -451,6 +460,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       bclose(&ff_pkt->bfd);		 /* close file */
       if (!bnet_sig(sd, BNET_EOD)) {	 /* indicate end of file data */
 	 set_jcr_job_status(jcr, JS_ErrorTerminated);
+         Jmsg0(jcr, M_FATAL, 0, _("Network send error.\n"));
 	 return 0;
       }
    }

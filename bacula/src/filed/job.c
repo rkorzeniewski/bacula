@@ -161,7 +161,8 @@ static char read_close[]   = "read close session %d\n";
  */
 void *handle_client_request(void *dirp)
 {
-   int i, found, quit;
+   int i; 
+   bool found, quit;
    JCR *jcr;
    BSOCK *dir = (BSOCK *)dirp;
 
@@ -178,7 +179,7 @@ void *handle_client_request(void *dirp)
 
    /**********FIXME******* add command handler error code */
 
-   for (quit=0; !quit;) {
+   for (quit=false; !quit;) {
 
       /* Read command */
       if (bnet_recv(dir) < 0) {
@@ -186,24 +187,25 @@ void *handle_client_request(void *dirp)
       }
       dir->msg[dir->msglen] = 0;
       Dmsg1(100, "<dird: %s", dir->msg);
-      found = FALSE;
+      found = false;
       for (i=0; cmds[i].cmd; i++) {
 	 if (strncmp(cmds[i].cmd, dir->msg, strlen(cmds[i].cmd)) == 0) {
 	    if (!jcr->authenticated && cmds[i].func != hello_cmd) {
 	       bnet_fsend(dir, no_auth);
 	       break;
 	    }
-	    found = TRUE;		 /* indicate command found */
+	    found = true;		 /* indicate command found */
+            Dmsg1(100, "Executing %s command.\n", cmds[i].cmd);
 	    if (!cmds[i].func(jcr)) {	 /* do command */
-	       quit = TRUE;		 /* error or fully terminated,	get out */
-               Dmsg0(20, "Command error or Job done.\n");
+	       quit = true;		 /* error or fully terminated,	get out */
+               Dmsg0(20, "Quit command loop due to command error or Job done.\n");
 	    }
 	    break;
 	 }
       }
       if (!found) {		      /* command not found */
 	 bnet_fsend(dir, errmsg);
-	 quit = TRUE;
+	 quit = true;
 	 break;
       }
    }
@@ -960,7 +962,7 @@ static int level_cmd(JCR *jcr)
 	 his_time = str_to_uint64(buf);
 	 rt = get_current_btime() - bt_start; /* compute round trip time */
 	 bt_adj -= his_time - bt_start - rt/2;
-         Dmsg2(100, "rt=%s adj=%s\n", edit_uint64(rt, ed1), edit_uint64(bt_adj, ed2));
+         Dmsg2(200, "rt=%s adj=%s\n", edit_uint64(rt, ed1), edit_uint64(bt_adj, ed2));
       }
 
       bt_adj = bt_adj / 8;	      /* compute average time */
@@ -1122,6 +1124,7 @@ static int backup_cmd(JCR *jcr)
    if (!blast_data_to_storage_daemon(jcr, NULL)) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       bnet_suppress_error_messages(sd, 1);
+      Dmsg0(110, "Error in blast_data.\n");
    } else {
       set_jcr_job_status(jcr, JS_Terminated);
       if (jcr->JobStatus != JS_Terminated) {
@@ -1167,10 +1170,10 @@ static int backup_cmd(JCR *jcr)
    }
 
 cleanup:
-
    bnet_fsend(dir, EndJob, jcr->JobStatus, jcr->JobFiles, 
       edit_uint64(jcr->ReadBytes, ed1), 
       edit_uint64(jcr->JobBytes, ed2), jcr->Errors);	
+   Dmsg1(110, "End FD msg: %s\n", dir->msg);
 
    return 0;			      /* return and stop command loop */
 }
