@@ -40,42 +40,42 @@ ALL : "$(OUTDIR)\bconsole.exe" "$(OUTDIR)\console.pch"
 
 
 CLEAN :
-	-@erase "$(INTDIR)\alist.obj"
-	-@erase "$(INTDIR)\authenticate.obj"
-	-@erase "$(INTDIR)\base64.obj"
-	-@erase "$(INTDIR)\bnet.obj"
-	-@erase "$(INTDIR)\bsys.obj"
-	-@erase "$(INTDIR)\btime.obj"
-	-@erase "$(INTDIR)\compat.obj"
-	-@erase "$(INTDIR)\console.obj"
-	-@erase "$(INTDIR)\console.pch"
-	-@erase "$(INTDIR)\console_conf.obj"
-	-@erase "$(INTDIR)\cram-md5.obj"
-	-@erase "$(INTDIR)\crc32.obj"
-	-@erase "$(INTDIR)\dlist.obj"
-	-@erase "$(INTDIR)\edit.obj"
-	-@erase "$(INTDIR)\getopt.obj"
-	-@erase "$(INTDIR)\hmac.obj"
-	-@erase "$(INTDIR)\idcache.obj"
-	-@erase "$(INTDIR)\jcr.obj"
-	-@erase "$(INTDIR)\lex.obj"
-	-@erase "$(INTDIR)\md5.obj"
-	-@erase "$(INTDIR)\mem_pool.obj"
-	-@erase "$(INTDIR)\message.obj"
-	-@erase "$(INTDIR)\parse_conf.obj"
-	-@erase "$(INTDIR)\print.obj"
-	-@erase "$(INTDIR)\queue.obj"
-	-@erase "$(INTDIR)\rwlock.obj"
-	-@erase "$(INTDIR)\scan.obj"
-	-@erase "$(INTDIR)\serial.obj"
-	-@erase "$(INTDIR)\sha1.obj"
-	-@erase "$(INTDIR)\smartall.obj"
-	-@erase "$(INTDIR)\StdAfx.obj"
-	-@erase "$(INTDIR)\timers.obj"
-	-@erase "$(INTDIR)\util.obj"
-	-@erase "$(INTDIR)\vc60.idb"
-	-@erase "$(INTDIR)\watchdog.obj"
-	-@erase "$(OUTDIR)\bconsole.exe"
+        -@erase "$(INTDIR)\alist.obj"
+        -@erase "$(INTDIR)\authenticate.obj"
+        -@erase "$(INTDIR)\base64.obj"
+        -@erase "$(INTDIR)\bnet.obj"
+        -@erase "$(INTDIR)\bsys.obj"
+        -@erase "$(INTDIR)\btime.obj"
+        -@erase "$(INTDIR)\compat.obj"
+        -@erase "$(INTDIR)\console.obj"
+        -@erase "$(INTDIR)\console.pch"
+        -@erase "$(INTDIR)\console_conf.obj"
+        -@erase "$(INTDIR)\cram-md5.obj"
+        -@erase "$(INTDIR)\crc32.obj"
+        -@erase "$(INTDIR)\dlist.obj"
+        -@erase "$(INTDIR)\edit.obj"
+        -@erase "$(INTDIR)\getopt.obj"
+        -@erase "$(INTDIR)\hmac.obj"
+        -@erase "$(INTDIR)\idcache.obj"
+        -@erase "$(INTDIR)\jcr.obj"
+        -@erase "$(INTDIR)\lex.obj"
+        -@erase "$(INTDIR)\md5.obj"
+        -@erase "$(INTDIR)\mem_pool.obj"
+        -@erase "$(INTDIR)\message.obj"
+        -@erase "$(INTDIR)\parse_conf.obj"
+        -@erase "$(INTDIR)\print.obj"
+        -@erase "$(INTDIR)\queue.obj"
+        -@erase "$(INTDIR)\rwlock.obj"
+        -@erase "$(INTDIR)\scan.obj"
+        -@erase "$(INTDIR)\serial.obj"
+        -@erase "$(INTDIR)\sha1.obj"
+        -@erase "$(INTDIR)\smartall.obj"
+        -@erase "$(INTDIR)\StdAfx.obj"
+        -@erase "$(INTDIR)\btimers.obj"
+        -@erase "$(INTDIR)\util.obj"
+        -@erase "$(INTDIR)\vc60.idb"
+        -@erase "$(INTDIR)\watchdog.obj"
+        -@erase "$(OUTDIR)\bconsole.exe"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
@@ -84,43 +84,43 @@ CPP_PROJ=/nologo /MD /W3 /GX /I "../compat" /I "../.." /I "../../../../depkgs-wi
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\console.bsc" 
 BSC32_SBRS= \
-	
+        
 LINK32=link.exe
 LINK32_FLAGS=wsock32.lib pthreadVCE.lib /nologo /subsystem:console /pdb:none /machine:I386 /out:"$(OUTDIR)\bconsole.exe" /libpath:"../../../../depkgs-win32/pthreads" 
 LINK32_OBJS= \
-	"$(INTDIR)\alist.obj" \
-	"$(INTDIR)\authenticate.obj" \
-	"$(INTDIR)\base64.obj" \
-	"$(INTDIR)\bnet.obj" \
-	"$(INTDIR)\bsys.obj" \
-	"$(INTDIR)\btime.obj" \
-	"$(INTDIR)\compat.obj" \
-	"$(INTDIR)\console.obj" \
-	"$(INTDIR)\console_conf.obj" \
-	"$(INTDIR)\cram-md5.obj" \
-	"$(INTDIR)\crc32.obj" \
-	"$(INTDIR)\dlist.obj" \
-	"$(INTDIR)\edit.obj" \
-	"$(INTDIR)\getopt.obj" \
-	"$(INTDIR)\hmac.obj" \
-	"$(INTDIR)\idcache.obj" \
-	"$(INTDIR)\jcr.obj" \
-	"$(INTDIR)\lex.obj" \
-	"$(INTDIR)\md5.obj" \
-	"$(INTDIR)\mem_pool.obj" \
-	"$(INTDIR)\message.obj" \
-	"$(INTDIR)\parse_conf.obj" \
-	"$(INTDIR)\print.obj" \
-	"$(INTDIR)\queue.obj" \
-	"$(INTDIR)\rwlock.obj" \
-	"$(INTDIR)\scan.obj" \
-	"$(INTDIR)\serial.obj" \
-	"$(INTDIR)\sha1.obj" \
-	"$(INTDIR)\smartall.obj" \
-	"$(INTDIR)\StdAfx.obj" \
-	"$(INTDIR)\timers.obj" \
-	"$(INTDIR)\util.obj" \
-	"$(INTDIR)\watchdog.obj"
+        "$(INTDIR)\alist.obj" \
+        "$(INTDIR)\authenticate.obj" \
+        "$(INTDIR)\base64.obj" \
+        "$(INTDIR)\bnet.obj" \
+        "$(INTDIR)\bsys.obj" \
+        "$(INTDIR)\btime.obj" \
+        "$(INTDIR)\compat.obj" \
+        "$(INTDIR)\console.obj" \
+        "$(INTDIR)\console_conf.obj" \
+        "$(INTDIR)\cram-md5.obj" \
+        "$(INTDIR)\crc32.obj" \
+        "$(INTDIR)\dlist.obj" \
+        "$(INTDIR)\edit.obj" \
+        "$(INTDIR)\getopt.obj" \
+        "$(INTDIR)\hmac.obj" \
+        "$(INTDIR)\idcache.obj" \
+        "$(INTDIR)\jcr.obj" \
+        "$(INTDIR)\lex.obj" \
+        "$(INTDIR)\md5.obj" \
+        "$(INTDIR)\mem_pool.obj" \
+        "$(INTDIR)\message.obj" \
+        "$(INTDIR)\parse_conf.obj" \
+        "$(INTDIR)\print.obj" \
+        "$(INTDIR)\queue.obj" \
+        "$(INTDIR)\rwlock.obj" \
+        "$(INTDIR)\scan.obj" \
+        "$(INTDIR)\serial.obj" \
+        "$(INTDIR)\sha1.obj" \
+        "$(INTDIR)\smartall.obj" \
+        "$(INTDIR)\StdAfx.obj" \
+        "$(INTDIR)\btimers.obj" \
+        "$(INTDIR)\util.obj" \
+        "$(INTDIR)\watchdog.obj"
 
 "$(OUTDIR)\bconsole.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -139,43 +139,43 @@ ALL : "$(OUTDIR)\bconsole.exe" "$(OUTDIR)\console.pch"
 
 
 CLEAN :
-	-@erase "$(INTDIR)\alist.obj"
-	-@erase "$(INTDIR)\authenticate.obj"
-	-@erase "$(INTDIR)\base64.obj"
-	-@erase "$(INTDIR)\bnet.obj"
-	-@erase "$(INTDIR)\bsys.obj"
-	-@erase "$(INTDIR)\btime.obj"
-	-@erase "$(INTDIR)\compat.obj"
-	-@erase "$(INTDIR)\console.obj"
-	-@erase "$(INTDIR)\console.pch"
-	-@erase "$(INTDIR)\console_conf.obj"
-	-@erase "$(INTDIR)\cram-md5.obj"
-	-@erase "$(INTDIR)\crc32.obj"
-	-@erase "$(INTDIR)\dlist.obj"
-	-@erase "$(INTDIR)\edit.obj"
-	-@erase "$(INTDIR)\getopt.obj"
-	-@erase "$(INTDIR)\hmac.obj"
-	-@erase "$(INTDIR)\idcache.obj"
-	-@erase "$(INTDIR)\jcr.obj"
-	-@erase "$(INTDIR)\lex.obj"
-	-@erase "$(INTDIR)\md5.obj"
-	-@erase "$(INTDIR)\mem_pool.obj"
-	-@erase "$(INTDIR)\message.obj"
-	-@erase "$(INTDIR)\parse_conf.obj"
-	-@erase "$(INTDIR)\print.obj"
-	-@erase "$(INTDIR)\queue.obj"
-	-@erase "$(INTDIR)\rwlock.obj"
-	-@erase "$(INTDIR)\scan.obj"
-	-@erase "$(INTDIR)\serial.obj"
-	-@erase "$(INTDIR)\sha1.obj"
-	-@erase "$(INTDIR)\smartall.obj"
-	-@erase "$(INTDIR)\StdAfx.obj"
-	-@erase "$(INTDIR)\timers.obj"
-	-@erase "$(INTDIR)\util.obj"
-	-@erase "$(INTDIR)\vc60.idb"
-	-@erase "$(INTDIR)\vc60.pdb"
-	-@erase "$(INTDIR)\watchdog.obj"
-	-@erase "$(OUTDIR)\bconsole.exe"
+        -@erase "$(INTDIR)\alist.obj"
+        -@erase "$(INTDIR)\authenticate.obj"
+        -@erase "$(INTDIR)\base64.obj"
+        -@erase "$(INTDIR)\bnet.obj"
+        -@erase "$(INTDIR)\bsys.obj"
+        -@erase "$(INTDIR)\btime.obj"
+        -@erase "$(INTDIR)\compat.obj"
+        -@erase "$(INTDIR)\console.obj"
+        -@erase "$(INTDIR)\console.pch"
+        -@erase "$(INTDIR)\console_conf.obj"
+        -@erase "$(INTDIR)\cram-md5.obj"
+        -@erase "$(INTDIR)\crc32.obj"
+        -@erase "$(INTDIR)\dlist.obj"
+        -@erase "$(INTDIR)\edit.obj"
+        -@erase "$(INTDIR)\getopt.obj"
+        -@erase "$(INTDIR)\hmac.obj"
+        -@erase "$(INTDIR)\idcache.obj"
+        -@erase "$(INTDIR)\jcr.obj"
+        -@erase "$(INTDIR)\lex.obj"
+        -@erase "$(INTDIR)\md5.obj"
+        -@erase "$(INTDIR)\mem_pool.obj"
+        -@erase "$(INTDIR)\message.obj"
+        -@erase "$(INTDIR)\parse_conf.obj"
+        -@erase "$(INTDIR)\print.obj"
+        -@erase "$(INTDIR)\queue.obj"
+        -@erase "$(INTDIR)\rwlock.obj"
+        -@erase "$(INTDIR)\scan.obj"
+        -@erase "$(INTDIR)\serial.obj"
+        -@erase "$(INTDIR)\sha1.obj"
+        -@erase "$(INTDIR)\smartall.obj"
+        -@erase "$(INTDIR)\StdAfx.obj"
+        -@erase "$(INTDIR)\btimers.obj"
+        -@erase "$(INTDIR)\util.obj"
+        -@erase "$(INTDIR)\vc60.idb"
+        -@erase "$(INTDIR)\vc60.pdb"
+        -@erase "$(INTDIR)\watchdog.obj"
+        -@erase "$(OUTDIR)\bconsole.exe"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
@@ -184,43 +184,43 @@ CPP_PROJ=/nologo /MDd /W3 /Gm /GX /ZI /Od /I "../compat" /I "../.." /I "../../..
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\console.bsc" 
 BSC32_SBRS= \
-	
+        
 LINK32=link.exe
 LINK32_FLAGS=wsock32.lib pthreadVCE.lib /nologo /subsystem:console /pdb:none /debug /machine:I386 /out:"$(OUTDIR)\bconsole.exe" /libpath:"../../../../depkgs-win32/pthreads" 
 LINK32_OBJS= \
-	"$(INTDIR)\alist.obj" \
-	"$(INTDIR)\authenticate.obj" \
-	"$(INTDIR)\base64.obj" \
-	"$(INTDIR)\bnet.obj" \
-	"$(INTDIR)\bsys.obj" \
-	"$(INTDIR)\btime.obj" \
-	"$(INTDIR)\compat.obj" \
-	"$(INTDIR)\console.obj" \
-	"$(INTDIR)\console_conf.obj" \
-	"$(INTDIR)\cram-md5.obj" \
-	"$(INTDIR)\crc32.obj" \
-	"$(INTDIR)\dlist.obj" \
-	"$(INTDIR)\edit.obj" \
-	"$(INTDIR)\getopt.obj" \
-	"$(INTDIR)\hmac.obj" \
-	"$(INTDIR)\idcache.obj" \
-	"$(INTDIR)\jcr.obj" \
-	"$(INTDIR)\lex.obj" \
-	"$(INTDIR)\md5.obj" \
-	"$(INTDIR)\mem_pool.obj" \
-	"$(INTDIR)\message.obj" \
-	"$(INTDIR)\parse_conf.obj" \
-	"$(INTDIR)\print.obj" \
-	"$(INTDIR)\queue.obj" \
-	"$(INTDIR)\rwlock.obj" \
-	"$(INTDIR)\scan.obj" \
-	"$(INTDIR)\serial.obj" \
-	"$(INTDIR)\sha1.obj" \
-	"$(INTDIR)\smartall.obj" \
-	"$(INTDIR)\StdAfx.obj" \
-	"$(INTDIR)\timers.obj" \
-	"$(INTDIR)\util.obj" \
-	"$(INTDIR)\watchdog.obj"
+        "$(INTDIR)\alist.obj" \
+        "$(INTDIR)\authenticate.obj" \
+        "$(INTDIR)\base64.obj" \
+        "$(INTDIR)\bnet.obj" \
+        "$(INTDIR)\bsys.obj" \
+        "$(INTDIR)\btime.obj" \
+        "$(INTDIR)\compat.obj" \
+        "$(INTDIR)\console.obj" \
+        "$(INTDIR)\console_conf.obj" \
+        "$(INTDIR)\cram-md5.obj" \
+        "$(INTDIR)\crc32.obj" \
+        "$(INTDIR)\dlist.obj" \
+        "$(INTDIR)\edit.obj" \
+        "$(INTDIR)\getopt.obj" \
+        "$(INTDIR)\hmac.obj" \
+        "$(INTDIR)\idcache.obj" \
+        "$(INTDIR)\jcr.obj" \
+        "$(INTDIR)\lex.obj" \
+        "$(INTDIR)\md5.obj" \
+        "$(INTDIR)\mem_pool.obj" \
+        "$(INTDIR)\message.obj" \
+        "$(INTDIR)\parse_conf.obj" \
+        "$(INTDIR)\print.obj" \
+        "$(INTDIR)\queue.obj" \
+        "$(INTDIR)\rwlock.obj" \
+        "$(INTDIR)\scan.obj" \
+        "$(INTDIR)\serial.obj" \
+        "$(INTDIR)\sha1.obj" \
+        "$(INTDIR)\smartall.obj" \
+        "$(INTDIR)\StdAfx.obj" \
+        "$(INTDIR)\btimers.obj" \
+        "$(INTDIR)\util.obj" \
+        "$(INTDIR)\watchdog.obj"
 
 "$(OUTDIR)\bconsole.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -273,7 +273,7 @@ LINK32_OBJS= \
 SOURCE=..\lib\alist.cpp
 
 "$(INTDIR)\alist.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 SOURCE=.\authenticate.cpp
@@ -284,31 +284,31 @@ SOURCE=.\authenticate.cpp
 SOURCE=..\lib\base64.cpp
 
 "$(INTDIR)\base64.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 SOURCE=..\lib\bnet.cpp
 
 "$(INTDIR)\bnet.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 SOURCE=..\lib\bsys.cpp
 
 "$(INTDIR)\bsys.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 SOURCE=..\lib\btime.cpp
 
 "$(INTDIR)\btime.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 SOURCE=..\compat\compat.cpp
 
 "$(INTDIR)\compat.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 SOURCE=.\console.cpp
@@ -324,121 +324,121 @@ SOURCE=.\console_conf.cpp
 SOURCE="..\lib\cram-md5.cpp"
 
 "$(INTDIR)\cram-md5.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 SOURCE=..\lib\crc32.cpp
 
 "$(INTDIR)\crc32.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 SOURCE=..\lib\dlist.cpp
 
 "$(INTDIR)\dlist.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 SOURCE=..\lib\edit.cpp
 
 "$(INTDIR)\edit.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 SOURCE=..\compat\getopt.c
 
 "$(INTDIR)\getopt.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 SOURCE=..\lib\hmac.cpp
 
 "$(INTDIR)\hmac.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 SOURCE=..\lib\idcache.cpp
 
 "$(INTDIR)\idcache.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 SOURCE=..\lib\jcr.cpp
 
 "$(INTDIR)\jcr.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 SOURCE=..\lib\lex.cpp
 
 "$(INTDIR)\lex.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 SOURCE=..\lib\md5.cpp
 
 "$(INTDIR)\md5.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 SOURCE=..\lib\mem_pool.cpp
 
 "$(INTDIR)\mem_pool.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 SOURCE=..\lib\message.cpp
 
 "$(INTDIR)\message.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 SOURCE=..\lib\parse_conf.cpp
 
 "$(INTDIR)\parse_conf.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 SOURCE=..\compat\print.cpp
 
 "$(INTDIR)\print.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 SOURCE=..\lib\queue.cpp
 
 "$(INTDIR)\queue.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 SOURCE=..\lib\rwlock.cpp
 
 "$(INTDIR)\rwlock.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 SOURCE=..\lib\scan.cpp
 
 "$(INTDIR)\scan.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 SOURCE=..\lib\serial.cpp
 
 "$(INTDIR)\serial.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 SOURCE=..\lib\sha1.cpp
 
 "$(INTDIR)\sha1.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 SOURCE=..\lib\smartall.cpp
 
 "$(INTDIR)\smartall.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 SOURCE=.\StdAfx.cpp
@@ -447,8 +447,8 @@ SOURCE=.\StdAfx.cpp
 
 CPP_SWITCHES=/nologo /MD /W3 /GX /I "../compat" /I "../.." /I "../../../../depkgs-win32/pthreads" /I "." /D "_DEBUG" /D "HAVE_CONSOLE" /D "_WINMAIN_" /D "PTW32_BUILD" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "HAVE_WIN32" /D "_AFXDLL" /Fp"$(INTDIR)\console.pch" /Yc"stdafx.h" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /I /GZ /c 
 
-"$(INTDIR)\StdAfx.obj"	"$(INTDIR)\console.pch" : $(SOURCE) "$(INTDIR)"
-	$(CPP) @<<
+"$(INTDIR)\StdAfx.obj"  "$(INTDIR)\console.pch" : $(SOURCE) "$(INTDIR)"
+        $(CPP) @<<
   $(CPP_SWITCHES) $(SOURCE)
 <<
 
@@ -457,30 +457,30 @@ CPP_SWITCHES=/nologo /MD /W3 /GX /I "../compat" /I "../.." /I "../../../../depkg
 
 CPP_SWITCHES=/nologo /MDd /W3 /Gm /GX /ZI /Od /I "../compat" /I "../.." /I "../../../../depkgs-win32/pthreads" /I "." /D "_DEBUG" /D "HAVE_CONSOLE" /D "_WINMAIN_" /D "PTW32_BUILD" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "HAVE_WIN32" /D "_AFXDLL" /Fp"$(INTDIR)\console.pch" /Yc"stdafx.h" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /I /GZ /c 
 
-"$(INTDIR)\StdAfx.obj"	"$(INTDIR)\console.pch" : $(SOURCE) "$(INTDIR)"
-	$(CPP) @<<
+"$(INTDIR)\StdAfx.obj"  "$(INTDIR)\console.pch" : $(SOURCE) "$(INTDIR)"
+        $(CPP) @<<
   $(CPP_SWITCHES) $(SOURCE)
 <<
 
 
 !ENDIF 
 
-SOURCE=..\lib\timers.cpp
+SOURCE=..\lib\btimers.cpp
 
-"$(INTDIR)\timers.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\btimers.obj" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 SOURCE=..\lib\util.cpp
 
 "$(INTDIR)\util.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 SOURCE=..\lib\watchdog.cpp
 
 "$(INTDIR)\watchdog.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 

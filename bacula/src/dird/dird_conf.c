@@ -1090,9 +1090,6 @@ void save_resource(int type, RES_ITEM *items, int pass)
    }
    /* Common */
    if (!error) {
-      if (type == R_JOBDEFS) {
-         Dmsg0(200, "Storing JobDefs definition.\n");
-      }
       res = (URES *)malloc(size);
       memcpy(res, &res_all, size);
       if (!resources[rindex].res_head) {

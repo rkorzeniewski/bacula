@@ -233,14 +233,14 @@ int wxbConfigPanel::GetRowSelection(const char* title) {
 void wxbConfigPanel::ClearRowChoices(const char* title) {
    int i;
    if ((i = FindRow(title)) > -1) {
-      return (*config)[i].Clear();
+      (*config)[i].Clear();
    }  
 }
 
 void wxbConfigPanel::AddRowChoice(const char* title, wxString value) {
    int i;
    if ((i = FindRow(title)) > -1) {
-      return (*config)[i].Add(value);
+      (*config)[i].Add(value);
    }  
 }
 

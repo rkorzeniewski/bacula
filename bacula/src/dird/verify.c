@@ -127,8 +127,8 @@ int do_verify(JCR *jcr)
    }
 
    /* Print Job Start message */
-   Jmsg(jcr, M_INFO, 0, _("Start Verify JobId %d Job=%s\n"),
-      jcr->JobId, jcr->Job);
+   Jmsg(jcr, M_INFO, 0, _("Start Verify JobId=%d Level=%s Job=%s\n"),
+      jcr->JobId, level_to_str(jcr->JobLevel), jcr->Job);
 
    /*
     * Now get the job record for the previous backup that interests
@@ -290,7 +290,8 @@ int do_verify(JCR *jcr)
       level="disk_to_catalog";
       break;
    default:
-      Jmsg1(jcr, M_FATAL, 0, _("Unimplemented save level %d\n"), jcr->JobLevel);
+      Jmsg2(jcr, M_FATAL, 0, _("Unimplemented save level %d(%c)\n"), jcr->JobLevel,
+	 jcr->JobLevel);
       goto bail_out;
    }
 

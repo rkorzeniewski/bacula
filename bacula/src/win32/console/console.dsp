@@ -112,6 +112,10 @@ SOURCE=..\lib\btime.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\lib\btimers.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\compat\compat.cpp
 # End Source File
 # Begin Source File
@@ -206,10 +210,6 @@ SOURCE=..\lib\smartall.cpp
 
 SOURCE=.\StdAfx.cpp
 # ADD CPP /Yc"stdafx.h"
-# End Source File
-# Begin Source File
-
-SOURCE=..\lib\timers.cpp
 # End Source File
 # Begin Source File
 

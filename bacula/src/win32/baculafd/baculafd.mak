@@ -37,79 +37,79 @@ ALL : "$(OUTDIR)\bacula-fd.exe"
 
 
 CLEAN :
-	-@erase "$(INTDIR)\alist.obj"
-	-@erase "$(INTDIR)\alloc.obj"
-	-@erase "$(INTDIR)\attr.obj"
-	-@erase "$(INTDIR)\attribs.obj"
-	-@erase "$(INTDIR)\authenticate.obj"
-	-@erase "$(INTDIR)\backup.obj"
-	-@erase "$(INTDIR)\base64.obj"
-	-@erase "$(INTDIR)\bfile.obj"
-	-@erase "$(INTDIR)\bget_msg.obj"
-	-@erase "$(INTDIR)\bnet.obj"
-	-@erase "$(INTDIR)\bnet_server.obj"
-	-@erase "$(INTDIR)\bshm.obj"
-	-@erase "$(INTDIR)\bsys.obj"
-	-@erase "$(INTDIR)\btime.obj"
-	-@erase "$(INTDIR)\compat.obj"
-	-@erase "$(INTDIR)\cram-md5.obj"
-	-@erase "$(INTDIR)\crc32.obj"
-	-@erase "$(INTDIR)\create_file.obj"
-	-@erase "$(INTDIR)\daemon.obj"
-	-@erase "$(INTDIR)\dlist.obj"
-	-@erase "$(INTDIR)\edit.obj"
-	-@erase "$(INTDIR)\enable_priv.obj"
-	-@erase "$(INTDIR)\estimate.obj"
-	-@erase "$(INTDIR)\filed.obj"
-	-@erase "$(INTDIR)\filed_conf.obj"
-	-@erase "$(INTDIR)\find.obj"
-	-@erase "$(INTDIR)\find_one.obj"
-	-@erase "$(INTDIR)\fnmatch.obj"
-	-@erase "$(INTDIR)\getopt.obj"
-	-@erase "$(INTDIR)\heartbeat.obj"
-	-@erase "$(INTDIR)\hmac.obj"
-	-@erase "$(INTDIR)\htable.obj"
-	-@erase "$(INTDIR)\idcache.obj"
-	-@erase "$(INTDIR)\jcr.obj"
-	-@erase "$(INTDIR)\job.obj"
-	-@erase "$(INTDIR)\lex.obj"
-	-@erase "$(INTDIR)\makepath.obj"
-	-@erase "$(INTDIR)\match.obj"
-	-@erase "$(INTDIR)\md5.obj"
-	-@erase "$(INTDIR)\mem_pool.obj"
-	-@erase "$(INTDIR)\message.obj"
-	-@erase "$(INTDIR)\parse_conf.obj"
-	-@erase "$(INTDIR)\print.obj"
-	-@erase "$(INTDIR)\queue.obj"
-	-@erase "$(INTDIR)\restore.obj"
-	-@erase "$(INTDIR)\rwlock.obj"
-	-@erase "$(INTDIR)\save-cwd.obj"
-	-@erase "$(INTDIR)\scan.obj"
-	-@erase "$(INTDIR)\semlock.obj"
-	-@erase "$(INTDIR)\serial.obj"
-	-@erase "$(INTDIR)\sha1.obj"
-	-@erase "$(INTDIR)\signal.obj"
-	-@erase "$(INTDIR)\smartall.obj"
-	-@erase "$(INTDIR)\status.obj"
-	-@erase "$(INTDIR)\StdAfx.obj"
-	-@erase "$(INTDIR)\timers.obj"
-	-@erase "$(INTDIR)\tree.obj"
-	-@erase "$(INTDIR)\util.obj"
-	-@erase "$(INTDIR)\var.obj"
-	-@erase "$(INTDIR)\vc60.idb"
-	-@erase "$(INTDIR)\verify.obj"
-	-@erase "$(INTDIR)\verify_vol.obj"
-	-@erase "$(INTDIR)\watchdog.obj"
-	-@erase "$(INTDIR)\winabout.obj"
-	-@erase "$(INTDIR)\winapi.obj"
-	-@erase "$(INTDIR)\winevents.obj"
-	-@erase "$(INTDIR)\winmain.obj"
-	-@erase "$(INTDIR)\winres.res"
-	-@erase "$(INTDIR)\winservice.obj"
-	-@erase "$(INTDIR)\winstat.obj"
-	-@erase "$(INTDIR)\wintray.obj"
-	-@erase "$(INTDIR)\workq.obj"
-	-@erase "$(OUTDIR)\bacula-fd.exe"
+        -@erase "$(INTDIR)\alist.obj"
+        -@erase "$(INTDIR)\alloc.obj"
+        -@erase "$(INTDIR)\attr.obj"
+        -@erase "$(INTDIR)\attribs.obj"
+        -@erase "$(INTDIR)\authenticate.obj"
+        -@erase "$(INTDIR)\backup.obj"
+        -@erase "$(INTDIR)\base64.obj"
+        -@erase "$(INTDIR)\bfile.obj"
+        -@erase "$(INTDIR)\bget_msg.obj"
+        -@erase "$(INTDIR)\bnet.obj"
+        -@erase "$(INTDIR)\bnet_server.obj"
+        -@erase "$(INTDIR)\bshm.obj"
+        -@erase "$(INTDIR)\bsys.obj"
+        -@erase "$(INTDIR)\btime.obj"
+        -@erase "$(INTDIR)\compat.obj"
+        -@erase "$(INTDIR)\cram-md5.obj"
+        -@erase "$(INTDIR)\crc32.obj"
+        -@erase "$(INTDIR)\create_file.obj"
+        -@erase "$(INTDIR)\daemon.obj"
+        -@erase "$(INTDIR)\dlist.obj"
+        -@erase "$(INTDIR)\edit.obj"
+        -@erase "$(INTDIR)\enable_priv.obj"
+        -@erase "$(INTDIR)\estimate.obj"
+        -@erase "$(INTDIR)\filed.obj"
+        -@erase "$(INTDIR)\filed_conf.obj"
+        -@erase "$(INTDIR)\find.obj"
+        -@erase "$(INTDIR)\find_one.obj"
+        -@erase "$(INTDIR)\fnmatch.obj"
+        -@erase "$(INTDIR)\getopt.obj"
+        -@erase "$(INTDIR)\heartbeat.obj"
+        -@erase "$(INTDIR)\hmac.obj"
+        -@erase "$(INTDIR)\htable.obj"
+        -@erase "$(INTDIR)\idcache.obj"
+        -@erase "$(INTDIR)\jcr.obj"
+        -@erase "$(INTDIR)\job.obj"
+        -@erase "$(INTDIR)\lex.obj"
+        -@erase "$(INTDIR)\makepath.obj"
+        -@erase "$(INTDIR)\match.obj"
+        -@erase "$(INTDIR)\md5.obj"
+        -@erase "$(INTDIR)\mem_pool.obj"
+        -@erase "$(INTDIR)\message.obj"
+        -@erase "$(INTDIR)\parse_conf.obj"
+        -@erase "$(INTDIR)\print.obj"
+        -@erase "$(INTDIR)\queue.obj"
+        -@erase "$(INTDIR)\restore.obj"
+        -@erase "$(INTDIR)\rwlock.obj"
+        -@erase "$(INTDIR)\save-cwd.obj"
+        -@erase "$(INTDIR)\scan.obj"
+        -@erase "$(INTDIR)\semlock.obj"
+        -@erase "$(INTDIR)\serial.obj"
+        -@erase "$(INTDIR)\sha1.obj"
+        -@erase "$(INTDIR)\signal.obj"
+        -@erase "$(INTDIR)\smartall.obj"
+        -@erase "$(INTDIR)\status.obj"
+        -@erase "$(INTDIR)\StdAfx.obj"
+        -@erase "$(INTDIR)\btimers.obj"
+        -@erase "$(INTDIR)\tree.obj"
+        -@erase "$(INTDIR)\util.obj"
+        -@erase "$(INTDIR)\var.obj"
+        -@erase "$(INTDIR)\vc60.idb"
+        -@erase "$(INTDIR)\verify.obj"
+        -@erase "$(INTDIR)\verify_vol.obj"
+        -@erase "$(INTDIR)\watchdog.obj"
+        -@erase "$(INTDIR)\winabout.obj"
+        -@erase "$(INTDIR)\winapi.obj"
+        -@erase "$(INTDIR)\winevents.obj"
+        -@erase "$(INTDIR)\winmain.obj"
+        -@erase "$(INTDIR)\winres.res"
+        -@erase "$(INTDIR)\winservice.obj"
+        -@erase "$(INTDIR)\winstat.obj"
+        -@erase "$(INTDIR)\wintray.obj"
+        -@erase "$(INTDIR)\workq.obj"
+        -@erase "$(OUTDIR)\bacula-fd.exe"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
@@ -152,81 +152,81 @@ RSC_PROJ=/l 0x409 /fo"$(INTDIR)\winres.res" /d "NDEBUG"
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\baculafd.bsc" 
 BSC32_SBRS= \
-	
+        
 LINK32=link.exe
 LINK32_FLAGS=user32.lib ADVAPI32.LIB gdi32.lib wsock32.lib shell32.lib pthreadVCE.lib zlib.lib /nologo /subsystem:windows /pdb:none /machine:I386 /nodefaultlib:"MSVCRT.lib" /out:"$(OUTDIR)\bacula-fd.exe" /libpath:"../../../../depkgs-win32/pthreads" /libpath:"../../../../depkgs-win32/zlib" 
 LINK32_OBJS= \
-	"$(INTDIR)\alist.obj" \
-	"$(INTDIR)\alloc.obj" \
-	"$(INTDIR)\attr.obj" \
-	"$(INTDIR)\attribs.obj" \
-	"$(INTDIR)\authenticate.obj" \
-	"$(INTDIR)\backup.obj" \
-	"$(INTDIR)\base64.obj" \
-	"$(INTDIR)\bfile.obj" \
-	"$(INTDIR)\bget_msg.obj" \
-	"$(INTDIR)\bnet.obj" \
-	"$(INTDIR)\bnet_server.obj" \
-	"$(INTDIR)\bshm.obj" \
-	"$(INTDIR)\bsys.obj" \
-	"$(INTDIR)\btime.obj" \
-	"$(INTDIR)\compat.obj" \
-	"$(INTDIR)\cram-md5.obj" \
-	"$(INTDIR)\crc32.obj" \
-	"$(INTDIR)\create_file.obj" \
-	"$(INTDIR)\daemon.obj" \
-	"$(INTDIR)\dlist.obj" \
-	"$(INTDIR)\edit.obj" \
-	"$(INTDIR)\enable_priv.obj" \
-	"$(INTDIR)\estimate.obj" \
-	"$(INTDIR)\filed.obj" \
-	"$(INTDIR)\filed_conf.obj" \
-	"$(INTDIR)\find.obj" \
-	"$(INTDIR)\find_one.obj" \
-	"$(INTDIR)\fnmatch.obj" \
-	"$(INTDIR)\getopt.obj" \
-	"$(INTDIR)\heartbeat.obj" \
-	"$(INTDIR)\hmac.obj" \
-	"$(INTDIR)\htable.obj" \
-	"$(INTDIR)\idcache.obj" \
-	"$(INTDIR)\jcr.obj" \
-	"$(INTDIR)\job.obj" \
-	"$(INTDIR)\lex.obj" \
-	"$(INTDIR)\makepath.obj" \
-	"$(INTDIR)\match.obj" \
-	"$(INTDIR)\md5.obj" \
-	"$(INTDIR)\mem_pool.obj" \
-	"$(INTDIR)\message.obj" \
-	"$(INTDIR)\parse_conf.obj" \
-	"$(INTDIR)\print.obj" \
-	"$(INTDIR)\queue.obj" \
-	"$(INTDIR)\restore.obj" \
-	"$(INTDIR)\rwlock.obj" \
-	"$(INTDIR)\save-cwd.obj" \
-	"$(INTDIR)\scan.obj" \
-	"$(INTDIR)\semlock.obj" \
-	"$(INTDIR)\serial.obj" \
-	"$(INTDIR)\sha1.obj" \
-	"$(INTDIR)\signal.obj" \
-	"$(INTDIR)\smartall.obj" \
-	"$(INTDIR)\status.obj" \
-	"$(INTDIR)\StdAfx.obj" \
-	"$(INTDIR)\timers.obj" \
-	"$(INTDIR)\tree.obj" \
-	"$(INTDIR)\util.obj" \
-	"$(INTDIR)\var.obj" \
-	"$(INTDIR)\verify.obj" \
-	"$(INTDIR)\verify_vol.obj" \
-	"$(INTDIR)\watchdog.obj" \
-	"$(INTDIR)\winabout.obj" \
-	"$(INTDIR)\winapi.obj" \
-	"$(INTDIR)\winevents.obj" \
-	"$(INTDIR)\winmain.obj" \
-	"$(INTDIR)\winservice.obj" \
-	"$(INTDIR)\winstat.obj" \
-	"$(INTDIR)\wintray.obj" \
-	"$(INTDIR)\workq.obj" \
-	"$(INTDIR)\winres.res"
+        "$(INTDIR)\alist.obj" \
+        "$(INTDIR)\alloc.obj" \
+        "$(INTDIR)\attr.obj" \
+        "$(INTDIR)\attribs.obj" \
+        "$(INTDIR)\authenticate.obj" \
+        "$(INTDIR)\backup.obj" \
+        "$(INTDIR)\base64.obj" \
+        "$(INTDIR)\bfile.obj" \
+        "$(INTDIR)\bget_msg.obj" \
+        "$(INTDIR)\bnet.obj" \
+        "$(INTDIR)\bnet_server.obj" \
+        "$(INTDIR)\bshm.obj" \
+        "$(INTDIR)\bsys.obj" \
+        "$(INTDIR)\btime.obj" \
+        "$(INTDIR)\compat.obj" \
+        "$(INTDIR)\cram-md5.obj" \
+        "$(INTDIR)\crc32.obj" \
+        "$(INTDIR)\create_file.obj" \
+        "$(INTDIR)\daemon.obj" \
+        "$(INTDIR)\dlist.obj" \
+        "$(INTDIR)\edit.obj" \
+        "$(INTDIR)\enable_priv.obj" \
+        "$(INTDIR)\estimate.obj" \
+        "$(INTDIR)\filed.obj" \
+        "$(INTDIR)\filed_conf.obj" \
+        "$(INTDIR)\find.obj" \
+        "$(INTDIR)\find_one.obj" \
+        "$(INTDIR)\fnmatch.obj" \
+        "$(INTDIR)\getopt.obj" \
+        "$(INTDIR)\heartbeat.obj" \
+        "$(INTDIR)\hmac.obj" \
+        "$(INTDIR)\htable.obj" \
+        "$(INTDIR)\idcache.obj" \
+        "$(INTDIR)\jcr.obj" \
+        "$(INTDIR)\job.obj" \
+        "$(INTDIR)\lex.obj" \
+        "$(INTDIR)\makepath.obj" \
+        "$(INTDIR)\match.obj" \
+        "$(INTDIR)\md5.obj" \
+        "$(INTDIR)\mem_pool.obj" \
+        "$(INTDIR)\message.obj" \
+        "$(INTDIR)\parse_conf.obj" \
+        "$(INTDIR)\print.obj" \
+        "$(INTDIR)\queue.obj" \
+        "$(INTDIR)\restore.obj" \
+        "$(INTDIR)\rwlock.obj" \
+        "$(INTDIR)\save-cwd.obj" \
+        "$(INTDIR)\scan.obj" \
+        "$(INTDIR)\semlock.obj" \
+        "$(INTDIR)\serial.obj" \
+        "$(INTDIR)\sha1.obj" \
+        "$(INTDIR)\signal.obj" \
+        "$(INTDIR)\smartall.obj" \
+        "$(INTDIR)\status.obj" \
+        "$(INTDIR)\StdAfx.obj" \
+        "$(INTDIR)\btimers.obj" \
+        "$(INTDIR)\tree.obj" \
+        "$(INTDIR)\util.obj" \
+        "$(INTDIR)\var.obj" \
+        "$(INTDIR)\verify.obj" \
+        "$(INTDIR)\verify_vol.obj" \
+        "$(INTDIR)\watchdog.obj" \
+        "$(INTDIR)\winabout.obj" \
+        "$(INTDIR)\winapi.obj" \
+        "$(INTDIR)\winevents.obj" \
+        "$(INTDIR)\winmain.obj" \
+        "$(INTDIR)\winservice.obj" \
+        "$(INTDIR)\winstat.obj" \
+        "$(INTDIR)\wintray.obj" \
+        "$(INTDIR)\workq.obj" \
+        "$(INTDIR)\winres.res"
 
 "$(OUTDIR)\bacula-fd.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -245,151 +245,151 @@ ALL : "$(OUTDIR)\bacula-fd.exe" "$(OUTDIR)\baculafd.bsc"
 
 
 CLEAN :
-	-@erase "$(INTDIR)\alist.obj"
-	-@erase "$(INTDIR)\alist.sbr"
-	-@erase "$(INTDIR)\alloc.obj"
-	-@erase "$(INTDIR)\alloc.sbr"
-	-@erase "$(INTDIR)\attr.obj"
-	-@erase "$(INTDIR)\attr.sbr"
-	-@erase "$(INTDIR)\attribs.obj"
-	-@erase "$(INTDIR)\attribs.sbr"
-	-@erase "$(INTDIR)\authenticate.obj"
-	-@erase "$(INTDIR)\authenticate.sbr"
-	-@erase "$(INTDIR)\backup.obj"
-	-@erase "$(INTDIR)\backup.sbr"
-	-@erase "$(INTDIR)\base64.obj"
-	-@erase "$(INTDIR)\base64.sbr"
-	-@erase "$(INTDIR)\bfile.obj"
-	-@erase "$(INTDIR)\bfile.sbr"
-	-@erase "$(INTDIR)\bget_msg.obj"
-	-@erase "$(INTDIR)\bget_msg.sbr"
-	-@erase "$(INTDIR)\bnet.obj"
-	-@erase "$(INTDIR)\bnet.sbr"
-	-@erase "$(INTDIR)\bnet_server.obj"
-	-@erase "$(INTDIR)\bnet_server.sbr"
-	-@erase "$(INTDIR)\bshm.obj"
-	-@erase "$(INTDIR)\bshm.sbr"
-	-@erase "$(INTDIR)\bsys.obj"
-	-@erase "$(INTDIR)\bsys.sbr"
-	-@erase "$(INTDIR)\btime.obj"
-	-@erase "$(INTDIR)\btime.sbr"
-	-@erase "$(INTDIR)\compat.obj"
-	-@erase "$(INTDIR)\compat.sbr"
-	-@erase "$(INTDIR)\cram-md5.obj"
-	-@erase "$(INTDIR)\cram-md5.sbr"
-	-@erase "$(INTDIR)\crc32.obj"
-	-@erase "$(INTDIR)\crc32.sbr"
-	-@erase "$(INTDIR)\create_file.obj"
-	-@erase "$(INTDIR)\create_file.sbr"
-	-@erase "$(INTDIR)\daemon.obj"
-	-@erase "$(INTDIR)\daemon.sbr"
-	-@erase "$(INTDIR)\dlist.obj"
-	-@erase "$(INTDIR)\dlist.sbr"
-	-@erase "$(INTDIR)\edit.obj"
-	-@erase "$(INTDIR)\edit.sbr"
-	-@erase "$(INTDIR)\enable_priv.obj"
-	-@erase "$(INTDIR)\enable_priv.sbr"
-	-@erase "$(INTDIR)\estimate.obj"
-	-@erase "$(INTDIR)\estimate.sbr"
-	-@erase "$(INTDIR)\filed.obj"
-	-@erase "$(INTDIR)\filed.sbr"
-	-@erase "$(INTDIR)\filed_conf.obj"
-	-@erase "$(INTDIR)\filed_conf.sbr"
-	-@erase "$(INTDIR)\find.obj"
-	-@erase "$(INTDIR)\find.sbr"
-	-@erase "$(INTDIR)\find_one.obj"
-	-@erase "$(INTDIR)\find_one.sbr"
-	-@erase "$(INTDIR)\fnmatch.obj"
-	-@erase "$(INTDIR)\fnmatch.sbr"
-	-@erase "$(INTDIR)\getopt.obj"
-	-@erase "$(INTDIR)\getopt.sbr"
-	-@erase "$(INTDIR)\heartbeat.obj"
-	-@erase "$(INTDIR)\heartbeat.sbr"
-	-@erase "$(INTDIR)\hmac.obj"
-	-@erase "$(INTDIR)\hmac.sbr"
-	-@erase "$(INTDIR)\htable.obj"
-	-@erase "$(INTDIR)\htable.sbr"
-	-@erase "$(INTDIR)\idcache.obj"
-	-@erase "$(INTDIR)\idcache.sbr"
-	-@erase "$(INTDIR)\jcr.obj"
-	-@erase "$(INTDIR)\jcr.sbr"
-	-@erase "$(INTDIR)\job.obj"
-	-@erase "$(INTDIR)\job.sbr"
-	-@erase "$(INTDIR)\lex.obj"
-	-@erase "$(INTDIR)\lex.sbr"
-	-@erase "$(INTDIR)\makepath.obj"
-	-@erase "$(INTDIR)\makepath.sbr"
-	-@erase "$(INTDIR)\match.obj"
-	-@erase "$(INTDIR)\match.sbr"
-	-@erase "$(INTDIR)\md5.obj"
-	-@erase "$(INTDIR)\md5.sbr"
-	-@erase "$(INTDIR)\mem_pool.obj"
-	-@erase "$(INTDIR)\mem_pool.sbr"
-	-@erase "$(INTDIR)\message.obj"
-	-@erase "$(INTDIR)\message.sbr"
-	-@erase "$(INTDIR)\parse_conf.obj"
-	-@erase "$(INTDIR)\parse_conf.sbr"
-	-@erase "$(INTDIR)\print.obj"
-	-@erase "$(INTDIR)\print.sbr"
-	-@erase "$(INTDIR)\queue.obj"
-	-@erase "$(INTDIR)\queue.sbr"
-	-@erase "$(INTDIR)\restore.obj"
-	-@erase "$(INTDIR)\restore.sbr"
-	-@erase "$(INTDIR)\rwlock.obj"
-	-@erase "$(INTDIR)\rwlock.sbr"
-	-@erase "$(INTDIR)\save-cwd.obj"
-	-@erase "$(INTDIR)\save-cwd.sbr"
-	-@erase "$(INTDIR)\scan.obj"
-	-@erase "$(INTDIR)\scan.sbr"
-	-@erase "$(INTDIR)\semlock.obj"
-	-@erase "$(INTDIR)\semlock.sbr"
-	-@erase "$(INTDIR)\serial.obj"
-	-@erase "$(INTDIR)\serial.sbr"
-	-@erase "$(INTDIR)\sha1.obj"
-	-@erase "$(INTDIR)\sha1.sbr"
-	-@erase "$(INTDIR)\signal.obj"
-	-@erase "$(INTDIR)\signal.sbr"
-	-@erase "$(INTDIR)\smartall.obj"
-	-@erase "$(INTDIR)\smartall.sbr"
-	-@erase "$(INTDIR)\status.obj"
-	-@erase "$(INTDIR)\status.sbr"
-	-@erase "$(INTDIR)\StdAfx.obj"
-	-@erase "$(INTDIR)\StdAfx.sbr"
-	-@erase "$(INTDIR)\timers.obj"
-	-@erase "$(INTDIR)\timers.sbr"
-	-@erase "$(INTDIR)\tree.obj"
-	-@erase "$(INTDIR)\tree.sbr"
-	-@erase "$(INTDIR)\util.obj"
-	-@erase "$(INTDIR)\util.sbr"
-	-@erase "$(INTDIR)\var.obj"
-	-@erase "$(INTDIR)\var.sbr"
-	-@erase "$(INTDIR)\vc60.idb"
-	-@erase "$(INTDIR)\vc60.pdb"
-	-@erase "$(INTDIR)\verify.obj"
-	-@erase "$(INTDIR)\verify.sbr"
-	-@erase "$(INTDIR)\verify_vol.obj"
-	-@erase "$(INTDIR)\verify_vol.sbr"
-	-@erase "$(INTDIR)\watchdog.obj"
-	-@erase "$(INTDIR)\watchdog.sbr"
-	-@erase "$(INTDIR)\winabout.obj"
-	-@erase "$(INTDIR)\winabout.sbr"
-	-@erase "$(INTDIR)\winapi.obj"
-	-@erase "$(INTDIR)\winapi.sbr"
-	-@erase "$(INTDIR)\winevents.obj"
-	-@erase "$(INTDIR)\winevents.sbr"
-	-@erase "$(INTDIR)\winmain.obj"
-	-@erase "$(INTDIR)\winmain.sbr"
-	-@erase "$(INTDIR)\winres.res"
-	-@erase "$(INTDIR)\winservice.obj"
-	-@erase "$(INTDIR)\winservice.sbr"
-	-@erase "$(INTDIR)\winstat.obj"
-	-@erase "$(INTDIR)\winstat.sbr"
-	-@erase "$(INTDIR)\wintray.obj"
-	-@erase "$(INTDIR)\wintray.sbr"
-	-@erase "$(INTDIR)\workq.obj"
-	-@erase "$(INTDIR)\workq.sbr"
-	-@erase "$(OUTDIR)\bacula-fd.exe"
-	-@erase "$(OUTDIR)\baculafd.bsc"
+        -@erase "$(INTDIR)\alist.obj"
+        -@erase "$(INTDIR)\alist.sbr"
+        -@erase "$(INTDIR)\alloc.obj"
+        -@erase "$(INTDIR)\alloc.sbr"
+        -@erase "$(INTDIR)\attr.obj"
+        -@erase "$(INTDIR)\attr.sbr"
+        -@erase "$(INTDIR)\attribs.obj"
+        -@erase "$(INTDIR)\attribs.sbr"
+        -@erase "$(INTDIR)\authenticate.obj"
+        -@erase "$(INTDIR)\authenticate.sbr"
+        -@erase "$(INTDIR)\backup.obj"
+        -@erase "$(INTDIR)\backup.sbr"
+        -@erase "$(INTDIR)\base64.obj"
+        -@erase "$(INTDIR)\base64.sbr"
+        -@erase "$(INTDIR)\bfile.obj"
+        -@erase "$(INTDIR)\bfile.sbr"
+        -@erase "$(INTDIR)\bget_msg.obj"
+        -@erase "$(INTDIR)\bget_msg.sbr"
+        -@erase "$(INTDIR)\bnet.obj"
+        -@erase "$(INTDIR)\bnet.sbr"
+        -@erase "$(INTDIR)\bnet_server.obj"
+        -@erase "$(INTDIR)\bnet_server.sbr"
+        -@erase "$(INTDIR)\bshm.obj"
+        -@erase "$(INTDIR)\bshm.sbr"
+        -@erase "$(INTDIR)\bsys.obj"
+        -@erase "$(INTDIR)\bsys.sbr"
+        -@erase "$(INTDIR)\btime.obj"
+        -@erase "$(INTDIR)\btime.sbr"
+        -@erase "$(INTDIR)\compat.obj"
+        -@erase "$(INTDIR)\compat.sbr"
+        -@erase "$(INTDIR)\cram-md5.obj"
+        -@erase "$(INTDIR)\cram-md5.sbr"
+        -@erase "$(INTDIR)\crc32.obj"
+        -@erase "$(INTDIR)\crc32.sbr"
+        -@erase "$(INTDIR)\create_file.obj"
+        -@erase "$(INTDIR)\create_file.sbr"
+        -@erase "$(INTDIR)\daemon.obj"
+        -@erase "$(INTDIR)\daemon.sbr"
+        -@erase "$(INTDIR)\dlist.obj"
+        -@erase "$(INTDIR)\dlist.sbr"
+        -@erase "$(INTDIR)\edit.obj"
+        -@erase "$(INTDIR)\edit.sbr"
+        -@erase "$(INTDIR)\enable_priv.obj"
+        -@erase "$(INTDIR)\enable_priv.sbr"
+        -@erase "$(INTDIR)\estimate.obj"
+        -@erase "$(INTDIR)\estimate.sbr"
+        -@erase "$(INTDIR)\filed.obj"
+        -@erase "$(INTDIR)\filed.sbr"
+        -@erase "$(INTDIR)\filed_conf.obj"
+        -@erase "$(INTDIR)\filed_conf.sbr"
+        -@erase "$(INTDIR)\find.obj"
+        -@erase "$(INTDIR)\find.sbr"
+        -@erase "$(INTDIR)\find_one.obj"
+        -@erase "$(INTDIR)\find_one.sbr"
+        -@erase "$(INTDIR)\fnmatch.obj"
+        -@erase "$(INTDIR)\fnmatch.sbr"
+        -@erase "$(INTDIR)\getopt.obj"
+        -@erase "$(INTDIR)\getopt.sbr"
+        -@erase "$(INTDIR)\heartbeat.obj"
+        -@erase "$(INTDIR)\heartbeat.sbr"
+        -@erase "$(INTDIR)\hmac.obj"
+        -@erase "$(INTDIR)\hmac.sbr"
+        -@erase "$(INTDIR)\htable.obj"
+        -@erase "$(INTDIR)\htable.sbr"
+        -@erase "$(INTDIR)\idcache.obj"
+        -@erase "$(INTDIR)\idcache.sbr"
+        -@erase "$(INTDIR)\jcr.obj"
+        -@erase "$(INTDIR)\jcr.sbr"
+        -@erase "$(INTDIR)\job.obj"
+        -@erase "$(INTDIR)\job.sbr"
+        -@erase "$(INTDIR)\lex.obj"
+        -@erase "$(INTDIR)\lex.sbr"
+        -@erase "$(INTDIR)\makepath.obj"
+        -@erase "$(INTDIR)\makepath.sbr"
+        -@erase "$(INTDIR)\match.obj"
+        -@erase "$(INTDIR)\match.sbr"
+        -@erase "$(INTDIR)\md5.obj"
+        -@erase "$(INTDIR)\md5.sbr"
+        -@erase "$(INTDIR)\mem_pool.obj"
+        -@erase "$(INTDIR)\mem_pool.sbr"
+        -@erase "$(INTDIR)\message.obj"
+        -@erase "$(INTDIR)\message.sbr"
+        -@erase "$(INTDIR)\parse_conf.obj"
+        -@erase "$(INTDIR)\parse_conf.sbr"
+        -@erase "$(INTDIR)\print.obj"
+        -@erase "$(INTDIR)\print.sbr"
+        -@erase "$(INTDIR)\queue.obj"
+        -@erase "$(INTDIR)\queue.sbr"
+        -@erase "$(INTDIR)\restore.obj"
+        -@erase "$(INTDIR)\restore.sbr"
+        -@erase "$(INTDIR)\rwlock.obj"
+        -@erase "$(INTDIR)\rwlock.sbr"
+        -@erase "$(INTDIR)\save-cwd.obj"
+        -@erase "$(INTDIR)\save-cwd.sbr"
+        -@erase "$(INTDIR)\scan.obj"
+        -@erase "$(INTDIR)\scan.sbr"
+        -@erase "$(INTDIR)\semlock.obj"
+        -@erase "$(INTDIR)\semlock.sbr"
+        -@erase "$(INTDIR)\serial.obj"
+        -@erase "$(INTDIR)\serial.sbr"
+        -@erase "$(INTDIR)\sha1.obj"
+        -@erase "$(INTDIR)\sha1.sbr"
+        -@erase "$(INTDIR)\signal.obj"
+        -@erase "$(INTDIR)\signal.sbr"
+        -@erase "$(INTDIR)\smartall.obj"
+        -@erase "$(INTDIR)\smartall.sbr"
+        -@erase "$(INTDIR)\status.obj"
+        -@erase "$(INTDIR)\status.sbr"
+        -@erase "$(INTDIR)\StdAfx.obj"
+        -@erase "$(INTDIR)\StdAfx.sbr"
+        -@erase "$(INTDIR)\btimers.obj"
+        -@erase "$(INTDIR)\btimers.sbr"
+        -@erase "$(INTDIR)\tree.obj"
+        -@erase "$(INTDIR)\tree.sbr"
+        -@erase "$(INTDIR)\util.obj"
+        -@erase "$(INTDIR)\util.sbr"
+        -@erase "$(INTDIR)\var.obj"
+        -@erase "$(INTDIR)\var.sbr"
+        -@erase "$(INTDIR)\vc60.idb"
+        -@erase "$(INTDIR)\vc60.pdb"
+        -@erase "$(INTDIR)\verify.obj"
+        -@erase "$(INTDIR)\verify.sbr"
+        -@erase "$(INTDIR)\verify_vol.obj"
+        -@erase "$(INTDIR)\verify_vol.sbr"
+        -@erase "$(INTDIR)\watchdog.obj"
+        -@erase "$(INTDIR)\watchdog.sbr"
+        -@erase "$(INTDIR)\winabout.obj"
+        -@erase "$(INTDIR)\winabout.sbr"
+        -@erase "$(INTDIR)\winapi.obj"
+        -@erase "$(INTDIR)\winapi.sbr"
+        -@erase "$(INTDIR)\winevents.obj"
+        -@erase "$(INTDIR)\winevents.sbr"
+        -@erase "$(INTDIR)\winmain.obj"
+        -@erase "$(INTDIR)\winmain.sbr"
+        -@erase "$(INTDIR)\winres.res"
+        -@erase "$(INTDIR)\winservice.obj"
+        -@erase "$(INTDIR)\winservice.sbr"
+        -@erase "$(INTDIR)\winstat.obj"
+        -@erase "$(INTDIR)\winstat.sbr"
+        -@erase "$(INTDIR)\wintray.obj"
+        -@erase "$(INTDIR)\wintray.sbr"
+        -@erase "$(INTDIR)\workq.obj"
+        -@erase "$(INTDIR)\workq.sbr"
+        -@erase "$(OUTDIR)\bacula-fd.exe"
+        -@erase "$(OUTDIR)\baculafd.bsc"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
@@ -432,76 +432,76 @@ RSC_PROJ=/l 0x409 /fo"$(INTDIR)\winres.res" /d "_DEBUG" /d "_AFXDLL"
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\baculafd.bsc" 
 BSC32_SBRS= \
-	"$(INTDIR)\alist.sbr" \
-	"$(INTDIR)\alloc.sbr" \
-	"$(INTDIR)\attr.sbr" \
-	"$(INTDIR)\attribs.sbr" \
-	"$(INTDIR)\authenticate.sbr" \
-	"$(INTDIR)\backup.sbr" \
-	"$(INTDIR)\base64.sbr" \
-	"$(INTDIR)\bfile.sbr" \
-	"$(INTDIR)\bget_msg.sbr" \
-	"$(INTDIR)\bnet.sbr" \
-	"$(INTDIR)\bnet_server.sbr" \
-	"$(INTDIR)\bshm.sbr" \
-	"$(INTDIR)\bsys.sbr" \
-	"$(INTDIR)\btime.sbr" \
-	"$(INTDIR)\compat.sbr" \
-	"$(INTDIR)\cram-md5.sbr" \
-	"$(INTDIR)\crc32.sbr" \
-	"$(INTDIR)\create_file.sbr" \
-	"$(INTDIR)\daemon.sbr" \
-	"$(INTDIR)\dlist.sbr" \
-	"$(INTDIR)\edit.sbr" \
-	"$(INTDIR)\enable_priv.sbr" \
-	"$(INTDIR)\estimate.sbr" \
-	"$(INTDIR)\filed.sbr" \
-	"$(INTDIR)\filed_conf.sbr" \
-	"$(INTDIR)\find.sbr" \
-	"$(INTDIR)\find_one.sbr" \
-	"$(INTDIR)\fnmatch.sbr" \
-	"$(INTDIR)\getopt.sbr" \
-	"$(INTDIR)\heartbeat.sbr" \
-	"$(INTDIR)\hmac.sbr" \
-	"$(INTDIR)\htable.sbr" \
-	"$(INTDIR)\idcache.sbr" \
-	"$(INTDIR)\jcr.sbr" \
-	"$(INTDIR)\job.sbr" \
-	"$(INTDIR)\lex.sbr" \
-	"$(INTDIR)\makepath.sbr" \
-	"$(INTDIR)\match.sbr" \
-	"$(INTDIR)\md5.sbr" \
-	"$(INTDIR)\mem_pool.sbr" \
-	"$(INTDIR)\message.sbr" \
-	"$(INTDIR)\parse_conf.sbr" \
-	"$(INTDIR)\print.sbr" \
-	"$(INTDIR)\queue.sbr" \
-	"$(INTDIR)\restore.sbr" \
-	"$(INTDIR)\rwlock.sbr" \
-	"$(INTDIR)\save-cwd.sbr" \
-	"$(INTDIR)\scan.sbr" \
-	"$(INTDIR)\semlock.sbr" \
-	"$(INTDIR)\serial.sbr" \
-	"$(INTDIR)\sha1.sbr" \
-	"$(INTDIR)\signal.sbr" \
-	"$(INTDIR)\smartall.sbr" \
-	"$(INTDIR)\status.sbr" \
-	"$(INTDIR)\StdAfx.sbr" \
-	"$(INTDIR)\timers.sbr" \
-	"$(INTDIR)\tree.sbr" \
-	"$(INTDIR)\util.sbr" \
-	"$(INTDIR)\var.sbr" \
-	"$(INTDIR)\verify.sbr" \
-	"$(INTDIR)\verify_vol.sbr" \
-	"$(INTDIR)\watchdog.sbr" \
-	"$(INTDIR)\winabout.sbr" \
-	"$(INTDIR)\winapi.sbr" \
-	"$(INTDIR)\winevents.sbr" \
-	"$(INTDIR)\winmain.sbr" \
-	"$(INTDIR)\winservice.sbr" \
-	"$(INTDIR)\winstat.sbr" \
-	"$(INTDIR)\wintray.sbr" \
-	"$(INTDIR)\workq.sbr"
+        "$(INTDIR)\alist.sbr" \
+        "$(INTDIR)\alloc.sbr" \
+        "$(INTDIR)\attr.sbr" \
+        "$(INTDIR)\attribs.sbr" \
+        "$(INTDIR)\authenticate.sbr" \
+        "$(INTDIR)\backup.sbr" \
+        "$(INTDIR)\base64.sbr" \
+        "$(INTDIR)\bfile.sbr" \
+        "$(INTDIR)\bget_msg.sbr" \
+        "$(INTDIR)\bnet.sbr" \
+        "$(INTDIR)\bnet_server.sbr" \
+        "$(INTDIR)\bshm.sbr" \
+        "$(INTDIR)\bsys.sbr" \
+        "$(INTDIR)\btime.sbr" \
+        "$(INTDIR)\compat.sbr" \
+        "$(INTDIR)\cram-md5.sbr" \
+        "$(INTDIR)\crc32.sbr" \
+        "$(INTDIR)\create_file.sbr" \
+        "$(INTDIR)\daemon.sbr" \
+        "$(INTDIR)\dlist.sbr" \
+        "$(INTDIR)\edit.sbr" \
+        "$(INTDIR)\enable_priv.sbr" \
+        "$(INTDIR)\estimate.sbr" \
+        "$(INTDIR)\filed.sbr" \
+        "$(INTDIR)\filed_conf.sbr" \
+        "$(INTDIR)\find.sbr" \
+        "$(INTDIR)\find_one.sbr" \
+        "$(INTDIR)\fnmatch.sbr" \
+        "$(INTDIR)\getopt.sbr" \
+        "$(INTDIR)\heartbeat.sbr" \
+        "$(INTDIR)\hmac.sbr" \
+        "$(INTDIR)\htable.sbr" \
+        "$(INTDIR)\idcache.sbr" \
+        "$(INTDIR)\jcr.sbr" \
+        "$(INTDIR)\job.sbr" \
+        "$(INTDIR)\lex.sbr" \
+        "$(INTDIR)\makepath.sbr" \
+        "$(INTDIR)\match.sbr" \
+        "$(INTDIR)\md5.sbr" \
+        "$(INTDIR)\mem_pool.sbr" \
+        "$(INTDIR)\message.sbr" \
+        "$(INTDIR)\parse_conf.sbr" \
+        "$(INTDIR)\print.sbr" \
+        "$(INTDIR)\queue.sbr" \
+        "$(INTDIR)\restore.sbr" \
+        "$(INTDIR)\rwlock.sbr" \
+        "$(INTDIR)\save-cwd.sbr" \
+        "$(INTDIR)\scan.sbr" \
+        "$(INTDIR)\semlock.sbr" \
+        "$(INTDIR)\serial.sbr" \
+        "$(INTDIR)\sha1.sbr" \
+        "$(INTDIR)\signal.sbr" \
+        "$(INTDIR)\smartall.sbr" \
+        "$(INTDIR)\status.sbr" \
+        "$(INTDIR)\StdAfx.sbr" \
+        "$(INTDIR)\btimers.sbr" \
+        "$(INTDIR)\tree.sbr" \
+        "$(INTDIR)\util.sbr" \
+        "$(INTDIR)\var.sbr" \
+        "$(INTDIR)\verify.sbr" \
+        "$(INTDIR)\verify_vol.sbr" \
+        "$(INTDIR)\watchdog.sbr" \
+        "$(INTDIR)\winabout.sbr" \
+        "$(INTDIR)\winapi.sbr" \
+        "$(INTDIR)\winevents.sbr" \
+        "$(INTDIR)\winmain.sbr" \
+        "$(INTDIR)\winservice.sbr" \
+        "$(INTDIR)\winstat.sbr" \
+        "$(INTDIR)\wintray.sbr" \
+        "$(INTDIR)\workq.sbr"
 
 "$(OUTDIR)\baculafd.bsc" : "$(OUTDIR)" $(BSC32_SBRS)
     $(BSC32) @<<
@@ -511,77 +511,77 @@ BSC32_SBRS= \
 LINK32=link.exe
 LINK32_FLAGS=user32.lib ADVAPI32.LIB gdi32.lib shell32.lib wsock32.lib pthreadVCE.lib zlib.lib /nologo /subsystem:windows /pdb:none /debug /machine:I386 /out:"$(OUTDIR)\bacula-fd.exe" /libpath:"../../../../depkgs-win32/pthreads" /libpath:"../../../../depkgs-win32/zlib" 
 LINK32_OBJS= \
-	"$(INTDIR)\alist.obj" \
-	"$(INTDIR)\alloc.obj" \
-	"$(INTDIR)\attr.obj" \
-	"$(INTDIR)\attribs.obj" \
-	"$(INTDIR)\authenticate.obj" \
-	"$(INTDIR)\backup.obj" \
-	"$(INTDIR)\base64.obj" \
-	"$(INTDIR)\bfile.obj" \
-	"$(INTDIR)\bget_msg.obj" \
-	"$(INTDIR)\bnet.obj" \
-	"$(INTDIR)\bnet_server.obj" \
-	"$(INTDIR)\bshm.obj" \
-	"$(INTDIR)\bsys.obj" \
-	"$(INTDIR)\btime.obj" \
-	"$(INTDIR)\compat.obj" \
-	"$(INTDIR)\cram-md5.obj" \
-	"$(INTDIR)\crc32.obj" \
-	"$(INTDIR)\create_file.obj" \
-	"$(INTDIR)\daemon.obj" \
-	"$(INTDIR)\dlist.obj" \
-	"$(INTDIR)\edit.obj" \
-	"$(INTDIR)\enable_priv.obj" \
-	"$(INTDIR)\estimate.obj" \
-	"$(INTDIR)\filed.obj" \
-	"$(INTDIR)\filed_conf.obj" \
-	"$(INTDIR)\find.obj" \
-	"$(INTDIR)\find_one.obj" \
-	"$(INTDIR)\fnmatch.obj" \
-	"$(INTDIR)\getopt.obj" \
-	"$(INTDIR)\heartbeat.obj" \
-	"$(INTDIR)\hmac.obj" \
-	"$(INTDIR)\htable.obj" \
-	"$(INTDIR)\idcache.obj" \
-	"$(INTDIR)\jcr.obj" \
-	"$(INTDIR)\job.obj" \
-	"$(INTDIR)\lex.obj" \
-	"$(INTDIR)\makepath.obj" \
-	"$(INTDIR)\match.obj" \
-	"$(INTDIR)\md5.obj" \
-	"$(INTDIR)\mem_pool.obj" \
-	"$(INTDIR)\message.obj" \
-	"$(INTDIR)\parse_conf.obj" \
-	"$(INTDIR)\print.obj" \
-	"$(INTDIR)\queue.obj" \
-	"$(INTDIR)\restore.obj" \
-	"$(INTDIR)\rwlock.obj" \
-	"$(INTDIR)\save-cwd.obj" \
-	"$(INTDIR)\scan.obj" \
-	"$(INTDIR)\semlock.obj" \
-	"$(INTDIR)\serial.obj" \
-	"$(INTDIR)\sha1.obj" \
-	"$(INTDIR)\signal.obj" \
-	"$(INTDIR)\smartall.obj" \
-	"$(INTDIR)\status.obj" \
-	"$(INTDIR)\StdAfx.obj" \
-	"$(INTDIR)\timers.obj" \
-	"$(INTDIR)\tree.obj" \
-	"$(INTDIR)\util.obj" \
-	"$(INTDIR)\var.obj" \
-	"$(INTDIR)\verify.obj" \
-	"$(INTDIR)\verify_vol.obj" \
-	"$(INTDIR)\watchdog.obj" \
-	"$(INTDIR)\winabout.obj" \
-	"$(INTDIR)\winapi.obj" \
-	"$(INTDIR)\winevents.obj" \
-	"$(INTDIR)\winmain.obj" \
-	"$(INTDIR)\winservice.obj" \
-	"$(INTDIR)\winstat.obj" \
-	"$(INTDIR)\wintray.obj" \
-	"$(INTDIR)\workq.obj" \
-	"$(INTDIR)\winres.res"
+        "$(INTDIR)\alist.obj" \
+        "$(INTDIR)\alloc.obj" \
+        "$(INTDIR)\attr.obj" \
+        "$(INTDIR)\attribs.obj" \
+        "$(INTDIR)\authenticate.obj" \
+        "$(INTDIR)\backup.obj" \
+        "$(INTDIR)\base64.obj" \
+        "$(INTDIR)\bfile.obj" \
+        "$(INTDIR)\bget_msg.obj" \
+        "$(INTDIR)\bnet.obj" \
+        "$(INTDIR)\bnet_server.obj" \
+        "$(INTDIR)\bshm.obj" \
+        "$(INTDIR)\bsys.obj" \
+        "$(INTDIR)\btime.obj" \
+        "$(INTDIR)\compat.obj" \
+        "$(INTDIR)\cram-md5.obj" \
+        "$(INTDIR)\crc32.obj" \
+        "$(INTDIR)\create_file.obj" \
+        "$(INTDIR)\daemon.obj" \
+        "$(INTDIR)\dlist.obj" \
+        "$(INTDIR)\edit.obj" \
+        "$(INTDIR)\enable_priv.obj" \
+        "$(INTDIR)\estimate.obj" \
+        "$(INTDIR)\filed.obj" \
+        "$(INTDIR)\filed_conf.obj" \
+        "$(INTDIR)\find.obj" \
+        "$(INTDIR)\find_one.obj" \
+        "$(INTDIR)\fnmatch.obj" \
+        "$(INTDIR)\getopt.obj" \
+        "$(INTDIR)\heartbeat.obj" \
+        "$(INTDIR)\hmac.obj" \
+        "$(INTDIR)\htable.obj" \
+        "$(INTDIR)\idcache.obj" \
+        "$(INTDIR)\jcr.obj" \
+        "$(INTDIR)\job.obj" \
+        "$(INTDIR)\lex.obj" \
+        "$(INTDIR)\makepath.obj" \
+        "$(INTDIR)\match.obj" \
+        "$(INTDIR)\md5.obj" \
+        "$(INTDIR)\mem_pool.obj" \
+        "$(INTDIR)\message.obj" \
+        "$(INTDIR)\parse_conf.obj" \
+        "$(INTDIR)\print.obj" \
+        "$(INTDIR)\queue.obj" \
+        "$(INTDIR)\restore.obj" \
+        "$(INTDIR)\rwlock.obj" \
+        "$(INTDIR)\save-cwd.obj" \
+        "$(INTDIR)\scan.obj" \
+        "$(INTDIR)\semlock.obj" \
+        "$(INTDIR)\serial.obj" \
+        "$(INTDIR)\sha1.obj" \
+        "$(INTDIR)\signal.obj" \
+        "$(INTDIR)\smartall.obj" \
+        "$(INTDIR)\status.obj" \
+        "$(INTDIR)\StdAfx.obj" \
+        "$(INTDIR)\btimers.obj" \
+        "$(INTDIR)\tree.obj" \
+        "$(INTDIR)\util.obj" \
+        "$(INTDIR)\var.obj" \
+        "$(INTDIR)\verify.obj" \
+        "$(INTDIR)\verify_vol.obj" \
+        "$(INTDIR)\watchdog.obj" \
+        "$(INTDIR)\winabout.obj" \
+        "$(INTDIR)\winapi.obj" \
+        "$(INTDIR)\winevents.obj" \
+        "$(INTDIR)\winmain.obj" \
+        "$(INTDIR)\winservice.obj" \
+        "$(INTDIR)\winstat.obj" \
+        "$(INTDIR)\wintray.obj" \
+        "$(INTDIR)\workq.obj" \
+        "$(INTDIR)\winres.res"
 
 "$(OUTDIR)\bacula-fd.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -607,14 +607,14 @@ SOURCE=..\lib\alist.cpp
 
 
 "$(INTDIR)\alist.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\alist.obj"	"$(INTDIR)\alist.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\alist.obj"   "$(INTDIR)\alist.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -625,14 +625,14 @@ SOURCE=..\lib\alloc.cpp
 
 
 "$(INTDIR)\alloc.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\alloc.obj"	"$(INTDIR)\alloc.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\alloc.obj"   "$(INTDIR)\alloc.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -643,14 +643,14 @@ SOURCE=..\lib\attr.cpp
 
 
 "$(INTDIR)\attr.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\attr.obj"	"$(INTDIR)\attr.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\attr.obj"    "$(INTDIR)\attr.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -661,14 +661,14 @@ SOURCE=..\findlib\attribs.cpp
 
 
 "$(INTDIR)\attribs.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\attribs.obj"	"$(INTDIR)\attribs.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\attribs.obj" "$(INTDIR)\attribs.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -679,14 +679,14 @@ SOURCE=..\filed\authenticate.cpp
 
 
 "$(INTDIR)\authenticate.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\authenticate.obj"	"$(INTDIR)\authenticate.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\authenticate.obj"    "$(INTDIR)\authenticate.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -697,14 +697,14 @@ SOURCE=..\filed\backup.cpp
 
 
 "$(INTDIR)\backup.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\backup.obj"	"$(INTDIR)\backup.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\backup.obj"  "$(INTDIR)\backup.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -715,14 +715,14 @@ SOURCE=..\lib\base64.cpp
 
 
 "$(INTDIR)\base64.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\base64.obj"	"$(INTDIR)\base64.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\base64.obj"  "$(INTDIR)\base64.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -733,14 +733,14 @@ SOURCE=..\findlib\bfile.cpp
 
 
 "$(INTDIR)\bfile.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\bfile.obj"	"$(INTDIR)\bfile.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\bfile.obj"   "$(INTDIR)\bfile.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -751,14 +751,14 @@ SOURCE=..\lib\bget_msg.cpp
 
 
 "$(INTDIR)\bget_msg.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\bget_msg.obj"	"$(INTDIR)\bget_msg.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\bget_msg.obj"        "$(INTDIR)\bget_msg.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -769,14 +769,14 @@ SOURCE=..\lib\bnet.cpp
 
 
 "$(INTDIR)\bnet.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\bnet.obj"	"$(INTDIR)\bnet.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\bnet.obj"    "$(INTDIR)\bnet.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -787,14 +787,14 @@ SOURCE=..\lib\bnet_server.cpp
 
 
 "$(INTDIR)\bnet_server.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\bnet_server.obj"	"$(INTDIR)\bnet_server.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\bnet_server.obj"     "$(INTDIR)\bnet_server.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -805,14 +805,14 @@ SOURCE=..\lib\bshm.cpp
 
 
 "$(INTDIR)\bshm.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\bshm.obj"	"$(INTDIR)\bshm.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\bshm.obj"    "$(INTDIR)\bshm.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -823,14 +823,14 @@ SOURCE=..\lib\bsys.cpp
 
 
 "$(INTDIR)\bsys.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\bsys.obj"	"$(INTDIR)\bsys.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\bsys.obj"    "$(INTDIR)\bsys.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -841,14 +841,14 @@ SOURCE=..\lib\btime.cpp
 
 
 "$(INTDIR)\btime.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\btime.obj"	"$(INTDIR)\btime.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\btime.obj"   "$(INTDIR)\btime.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -859,14 +859,14 @@ SOURCE=..\compat\compat.cpp
 
 
 "$(INTDIR)\compat.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\compat.obj"	"$(INTDIR)\compat.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\compat.obj"  "$(INTDIR)\compat.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -877,14 +877,14 @@ SOURCE="..\lib\cram-md5.cpp"
 
 
 "$(INTDIR)\cram-md5.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\cram-md5.obj"	"$(INTDIR)\cram-md5.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\cram-md5.obj"        "$(INTDIR)\cram-md5.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -895,14 +895,14 @@ SOURCE=..\lib\crc32.cpp
 
 
 "$(INTDIR)\crc32.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\crc32.obj"	"$(INTDIR)\crc32.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\crc32.obj"   "$(INTDIR)\crc32.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -913,14 +913,14 @@ SOURCE=..\findlib\create_file.cpp
 
 
 "$(INTDIR)\create_file.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\create_file.obj"	"$(INTDIR)\create_file.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\create_file.obj"     "$(INTDIR)\create_file.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -931,14 +931,14 @@ SOURCE=..\lib\daemon.cpp
 
 
 "$(INTDIR)\daemon.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\daemon.obj"	"$(INTDIR)\daemon.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\daemon.obj"  "$(INTDIR)\daemon.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -949,14 +949,14 @@ SOURCE=..\lib\dlist.cpp
 
 
 "$(INTDIR)\dlist.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\dlist.obj"	"$(INTDIR)\dlist.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\dlist.obj"   "$(INTDIR)\dlist.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -967,14 +967,14 @@ SOURCE=..\lib\edit.cpp
 
 
 "$(INTDIR)\edit.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\edit.obj"	"$(INTDIR)\edit.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\edit.obj"    "$(INTDIR)\edit.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -985,14 +985,14 @@ SOURCE=..\findlib\enable_priv.cpp
 
 
 "$(INTDIR)\enable_priv.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\enable_priv.obj"	"$(INTDIR)\enable_priv.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\enable_priv.obj"     "$(INTDIR)\enable_priv.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1003,14 +1003,14 @@ SOURCE=..\filed\estimate.cpp
 
 
 "$(INTDIR)\estimate.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\estimate.obj"	"$(INTDIR)\estimate.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\estimate.obj"        "$(INTDIR)\estimate.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1021,14 +1021,14 @@ SOURCE=..\filed\filed.cpp
 
 
 "$(INTDIR)\filed.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\filed.obj"	"$(INTDIR)\filed.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\filed.obj"   "$(INTDIR)\filed.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1039,14 +1039,14 @@ SOURCE=..\filed\filed_conf.cpp
 
 
 "$(INTDIR)\filed_conf.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\filed_conf.obj"	"$(INTDIR)\filed_conf.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\filed_conf.obj"      "$(INTDIR)\filed_conf.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1057,14 +1057,14 @@ SOURCE=..\findlib\find.cpp
 
 
 "$(INTDIR)\find.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\find.obj"	"$(INTDIR)\find.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\find.obj"    "$(INTDIR)\find.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1075,14 +1075,14 @@ SOURCE=..\findlib\find_one.cpp
 
 
 "$(INTDIR)\find_one.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\find_one.obj"	"$(INTDIR)\find_one.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\find_one.obj"        "$(INTDIR)\find_one.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1093,14 +1093,14 @@ SOURCE=..\lib\fnmatch.cpp
 
 
 "$(INTDIR)\fnmatch.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\fnmatch.obj"	"$(INTDIR)\fnmatch.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\fnmatch.obj" "$(INTDIR)\fnmatch.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1111,14 +1111,14 @@ SOURCE=..\compat\getopt.c
 
 
 "$(INTDIR)\getopt.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\getopt.obj"	"$(INTDIR)\getopt.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\getopt.obj"  "$(INTDIR)\getopt.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1129,14 +1129,14 @@ SOURCE=..\filed\heartbeat.cpp
 
 
 "$(INTDIR)\heartbeat.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\heartbeat.obj"	"$(INTDIR)\heartbeat.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\heartbeat.obj"       "$(INTDIR)\heartbeat.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1147,14 +1147,14 @@ SOURCE=..\lib\hmac.cpp
 
 
 "$(INTDIR)\hmac.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\hmac.obj"	"$(INTDIR)\hmac.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\hmac.obj"    "$(INTDIR)\hmac.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1165,14 +1165,14 @@ SOURCE=..\lib\htable.cpp
 
 
 "$(INTDIR)\htable.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\htable.obj"	"$(INTDIR)\htable.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\htable.obj"  "$(INTDIR)\htable.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1183,14 +1183,14 @@ SOURCE=..\lib\idcache.cpp
 
 
 "$(INTDIR)\idcache.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\idcache.obj"	"$(INTDIR)\idcache.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\idcache.obj" "$(INTDIR)\idcache.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1201,14 +1201,14 @@ SOURCE=..\lib\jcr.cpp
 
 
 "$(INTDIR)\jcr.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\jcr.obj"	"$(INTDIR)\jcr.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\jcr.obj"     "$(INTDIR)\jcr.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1219,14 +1219,14 @@ SOURCE=..\filed\job.cpp
 
 
 "$(INTDIR)\job.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\job.obj"	"$(INTDIR)\job.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\job.obj"     "$(INTDIR)\job.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1237,14 +1237,14 @@ SOURCE=..\lib\lex.cpp
 
 
 "$(INTDIR)\lex.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\lex.obj"	"$(INTDIR)\lex.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\lex.obj"     "$(INTDIR)\lex.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1255,14 +1255,14 @@ SOURCE=..\findlib\makepath.cpp
 
 
 "$(INTDIR)\makepath.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\makepath.obj"	"$(INTDIR)\makepath.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\makepath.obj"        "$(INTDIR)\makepath.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1273,14 +1273,14 @@ SOURCE=..\findlib\match.cpp
 
 
 "$(INTDIR)\match.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\match.obj"	"$(INTDIR)\match.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\match.obj"   "$(INTDIR)\match.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1291,14 +1291,14 @@ SOURCE=..\lib\md5.cpp
 
 
 "$(INTDIR)\md5.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\md5.obj"	"$(INTDIR)\md5.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\md5.obj"     "$(INTDIR)\md5.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1309,14 +1309,14 @@ SOURCE=..\lib\mem_pool.cpp
 
 
 "$(INTDIR)\mem_pool.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\mem_pool.obj"	"$(INTDIR)\mem_pool.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\mem_pool.obj"        "$(INTDIR)\mem_pool.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1327,14 +1327,14 @@ SOURCE=..\lib\message.cpp
 
 
 "$(INTDIR)\message.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\message.obj"	"$(INTDIR)\message.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\message.obj" "$(INTDIR)\message.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1345,14 +1345,14 @@ SOURCE=..\lib\parse_conf.cpp
 
 
 "$(INTDIR)\parse_conf.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\parse_conf.obj"	"$(INTDIR)\parse_conf.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\parse_conf.obj"      "$(INTDIR)\parse_conf.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1363,14 +1363,14 @@ SOURCE=..\compat\print.cpp
 
 
 "$(INTDIR)\print.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\print.obj"	"$(INTDIR)\print.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\print.obj"   "$(INTDIR)\print.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1381,14 +1381,14 @@ SOURCE=..\lib\queue.cpp
 
 
 "$(INTDIR)\queue.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\queue.obj"	"$(INTDIR)\queue.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\queue.obj"   "$(INTDIR)\queue.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1399,14 +1399,14 @@ SOURCE=..\filed\restore.cpp
 
 
 "$(INTDIR)\restore.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\restore.obj"	"$(INTDIR)\restore.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\restore.obj" "$(INTDIR)\restore.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1417,14 +1417,14 @@ SOURCE=..\lib\rwlock.cpp
 
 
 "$(INTDIR)\rwlock.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\rwlock.obj"	"$(INTDIR)\rwlock.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\rwlock.obj"  "$(INTDIR)\rwlock.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1435,14 +1435,14 @@ SOURCE="..\findlib\save-cwd.cpp"
 
 
 "$(INTDIR)\save-cwd.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\save-cwd.obj"	"$(INTDIR)\save-cwd.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\save-cwd.obj"        "$(INTDIR)\save-cwd.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1453,14 +1453,14 @@ SOURCE=..\lib\scan.cpp
 
 
 "$(INTDIR)\scan.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\scan.obj"	"$(INTDIR)\scan.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\scan.obj"    "$(INTDIR)\scan.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1471,14 +1471,14 @@ SOURCE=..\lib\semlock.cpp
 
 
 "$(INTDIR)\semlock.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\semlock.obj"	"$(INTDIR)\semlock.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\semlock.obj" "$(INTDIR)\semlock.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1489,14 +1489,14 @@ SOURCE=..\lib\serial.cpp
 
 
 "$(INTDIR)\serial.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\serial.obj"	"$(INTDIR)\serial.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\serial.obj"  "$(INTDIR)\serial.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1507,14 +1507,14 @@ SOURCE=..\lib\sha1.cpp
 
 
 "$(INTDIR)\sha1.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\sha1.obj"	"$(INTDIR)\sha1.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\sha1.obj"    "$(INTDIR)\sha1.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1525,14 +1525,14 @@ SOURCE=..\lib\signal.cpp
 
 
 "$(INTDIR)\signal.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\signal.obj"	"$(INTDIR)\signal.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\signal.obj"  "$(INTDIR)\signal.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1543,14 +1543,14 @@ SOURCE=..\lib\smartall.cpp
 
 
 "$(INTDIR)\smartall.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\smartall.obj"	"$(INTDIR)\smartall.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\smartall.obj"        "$(INTDIR)\smartall.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1561,14 +1561,14 @@ SOURCE=..\filed\status.cpp
 
 
 "$(INTDIR)\status.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\status.obj"	"$(INTDIR)\status.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\status.obj"  "$(INTDIR)\status.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1584,25 +1584,25 @@ SOURCE=.\StdAfx.cpp
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\StdAfx.obj"	"$(INTDIR)\StdAfx.sbr" : $(SOURCE) "$(INTDIR)"
+"$(INTDIR)\StdAfx.obj"  "$(INTDIR)\StdAfx.sbr" : $(SOURCE) "$(INTDIR)"
 
 
 !ENDIF 
 
-SOURCE=..\lib\timers.cpp
+SOURCE=..\lib\btimers.cpp
 
 !IF  "$(CFG)" == "baculafd - Win32 Release"
 
 
-"$(INTDIR)\timers.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\btimers.obj" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\timers.obj"	"$(INTDIR)\timers.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\btimers.obj"  "$(INTDIR)\btimers.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1613,14 +1613,14 @@ SOURCE=..\lib\tree.cpp
 
 
 "$(INTDIR)\tree.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\tree.obj"	"$(INTDIR)\tree.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\tree.obj"    "$(INTDIR)\tree.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1631,14 +1631,14 @@ SOURCE=..\lib\util.cpp
 
 
 "$(INTDIR)\util.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\util.obj"	"$(INTDIR)\util.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\util.obj"    "$(INTDIR)\util.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1649,14 +1649,14 @@ SOURCE=..\lib\var.cpp
 
 
 "$(INTDIR)\var.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\var.obj"	"$(INTDIR)\var.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\var.obj"     "$(INTDIR)\var.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1667,14 +1667,14 @@ SOURCE=..\filed\verify.cpp
 
 
 "$(INTDIR)\verify.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\verify.obj"	"$(INTDIR)\verify.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\verify.obj"  "$(INTDIR)\verify.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1685,14 +1685,14 @@ SOURCE=..\filed\verify_vol.cpp
 
 
 "$(INTDIR)\verify_vol.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\verify_vol.obj"	"$(INTDIR)\verify_vol.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\verify_vol.obj"      "$(INTDIR)\verify_vol.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1703,14 +1703,14 @@ SOURCE=..\lib\watchdog.cpp
 
 
 "$(INTDIR)\watchdog.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\watchdog.obj"	"$(INTDIR)\watchdog.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\watchdog.obj"        "$(INTDIR)\watchdog.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1721,14 +1721,14 @@ SOURCE=..\..\filed\win32\winabout.cpp
 
 
 "$(INTDIR)\winabout.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\winabout.obj"	"$(INTDIR)\winabout.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\winabout.obj"        "$(INTDIR)\winabout.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1739,14 +1739,14 @@ SOURCE=..\findlib\winapi.cpp
 
 
 "$(INTDIR)\winapi.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\winapi.obj"	"$(INTDIR)\winapi.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\winapi.obj"  "$(INTDIR)\winapi.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1757,14 +1757,14 @@ SOURCE=..\..\filed\win32\winevents.cpp
 
 
 "$(INTDIR)\winevents.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\winevents.obj"	"$(INTDIR)\winevents.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\winevents.obj"       "$(INTDIR)\winevents.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1775,14 +1775,14 @@ SOURCE=..\..\filed\win32\winmain.cpp
 
 
 "$(INTDIR)\winmain.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\winmain.obj"	"$(INTDIR)\winmain.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\winmain.obj" "$(INTDIR)\winmain.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1793,14 +1793,14 @@ SOURCE=..\..\filed\win32\winres.rc
 
 
 "$(INTDIR)\winres.res" : $(SOURCE) "$(INTDIR)"
-	$(RSC) /l 0x409 /fo"$(INTDIR)\winres.res" /i "..\..\filed\win32" /d "NDEBUG" $(SOURCE)
+        $(RSC) /l 0x409 /fo"$(INTDIR)\winres.res" /i "..\..\filed\win32" /d "NDEBUG" $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
 "$(INTDIR)\winres.res" : $(SOURCE) "$(INTDIR)"
-	$(RSC) /l 0x409 /fo"$(INTDIR)\winres.res" /i "..\..\filed\win32" /d "_DEBUG" /d "_AFXDLL" $(SOURCE)
+        $(RSC) /l 0x409 /fo"$(INTDIR)\winres.res" /i "..\..\filed\win32" /d "_DEBUG" /d "_AFXDLL" $(SOURCE)
 
 
 !ENDIF 
@@ -1811,14 +1811,14 @@ SOURCE=..\..\filed\win32\winservice.cpp
 
 
 "$(INTDIR)\winservice.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\winservice.obj"	"$(INTDIR)\winservice.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\winservice.obj"      "$(INTDIR)\winservice.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1829,14 +1829,14 @@ SOURCE=..\..\filed\win32\winstat.cpp
 
 
 "$(INTDIR)\winstat.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\winstat.obj"	"$(INTDIR)\winstat.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\winstat.obj" "$(INTDIR)\winstat.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1847,14 +1847,14 @@ SOURCE=..\..\filed\win32\wintray.cpp
 
 
 "$(INTDIR)\wintray.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\wintray.obj"	"$(INTDIR)\wintray.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\wintray.obj" "$(INTDIR)\wintray.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
@@ -1865,18 +1865,17 @@ SOURCE=..\lib\workq.cpp
 
 
 "$(INTDIR)\workq.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
-"$(INTDIR)\workq.obj"	"$(INTDIR)\workq.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\workq.obj"   "$(INTDIR)\workq.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
 
 
 !ENDIF 
-

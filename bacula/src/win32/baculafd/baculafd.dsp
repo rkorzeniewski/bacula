@@ -143,6 +143,10 @@ SOURCE=..\lib\btime.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\lib\btimers.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\compat\compat.cpp
 # End Source File
 # Begin Source File
@@ -304,10 +308,6 @@ SOURCE=..\filed\status.cpp
 # Begin Source File
 
 SOURCE=.\StdAfx.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\lib\timers.cpp
 # End Source File
 # Begin Source File
 
