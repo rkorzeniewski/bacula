@@ -416,17 +416,91 @@ static int run_cmd(JCR *jcr, char *cmd, char *name)
 
 static void add_fname_to_list(JCR *jcr, char *fname, int list)
 {
-   char *p;  
-   if (list == INC_LIST) {
-      add_fname_to_include_list((FF_PKT *)jcr->ff, 1, fname);
-   } else {
-      /* Skip leading options -- currently ignored */
-      for (p=fname; *p && *p != ' '; p++)
-	 { }
-      /* Skip spaces */
-      for ( ; *p && *p == ' '; p++)
-	 { }
-      add_fname_to_exclude_list((FF_PKT *)jcr->ff, p);
+   char *p, *q;
+   BPIPE *bpipe;
+   POOLMEM *fn;
+   FILE *ffd;
+   char buf[1000];
+   int optlen;
+   int stat;
+
+   /* Skip leading options -- currently ignored */
+   for (p=fname; *p && *p != ' '; p++)
+      { }
+   /* Skip spaces, and q points to first space */
+   for (q=NULL; *p && *p == ' '; p++) {
+      if (!q) {
+	 q = p;
+      }
+   }
+
+   switch (*p) {
+   case '|':
+      fn = get_pool_memory(PM_FNAME);
+      fn = edit_job_codes(jcr, fn, p, "");
+      bpipe = open_bpipe(fn, 0, "r");
+      free_pool_memory(fn);
+      if (!bpipe) {
+         Jmsg(jcr, M_FATAL, 0, _("Cannot run program: %s. ERR=%s\n"),
+	    p, strerror(errno));
+	 return;
+      }
+      /* Copy File options */
+      if (list == INC_LIST) {
+	 *q = 0;		      /* terminate options */
+	 strcpy(buf, fname);
+         strcat(buf, " ");
+	 optlen = strlen(buf);
+      } else {
+	 optlen = 0;
+      }
+      while (fgets(buf+optlen, sizeof(buf)-optlen, bpipe->rfd)) {
+	 strip_trailing_junk(buf);
+	 if (list == INC_LIST) {
+	    add_fname_to_include_list((FF_PKT *)jcr->ff, 1, buf);
+	 } else {
+	    add_fname_to_exclude_list((FF_PKT *)jcr->ff, buf);
+	 }
+      }
+      if ((stat=close_bpipe(bpipe)) != 0) {
+         Jmsg(jcr, M_FATAL, 0, _("Error running program: %s. RtnStat=%d ERR=%s\n"),
+	    p, stat, strerror(errno));
+	 return;
+      }
+      break;
+   case '<':
+      p++;			/* skip over < */
+      if ((ffd = fopen(p, "r")) == NULL) {
+         Jmsg(jcr, M_FATAL, 0, _("Cannot open %s file: %s. ERR=%s\n"),
+            list==INC_LIST?"included":"excluded", p, strerror(errno));
+	 return;
+      }
+      /* Copy File options */
+      if (list == INC_LIST) {
+	 *q = 0;		      /* terminate options */
+	 strcpy(buf, fname);
+         strcat(buf, " ");
+	 optlen = strlen(buf);
+      } else {
+	 optlen = 0;
+      }
+      while (fgets(buf+optlen, sizeof(buf)-optlen, ffd)) {
+	 strip_trailing_junk(buf);
+	 if (list == INC_LIST) {
+	    add_fname_to_include_list((FF_PKT *)jcr->ff, 1, buf);
+	 } else {
+	    add_fname_to_exclude_list((FF_PKT *)jcr->ff, buf);
+	 }
+      }
+      fclose(ffd);
+      break;
+   default:
+      if (list == INC_LIST) {
+	 add_fname_to_include_list((FF_PKT *)jcr->ff, 1, fname);
+      } else {
+	 add_fname_to_exclude_list((FF_PKT *)jcr->ff, p);
+      }
+      break;
    }
 }
 

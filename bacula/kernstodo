@@ -32,12 +32,10 @@ For 1.32:
   scan 1; scan 1-5; scan 1,2,4 ...  to update the catalog 
 - Allow a slot or range of slots on the label barcodes command.
   when the magazine is changed.
-- Implement ClientRunBeforeJob and ClientRunAfterJob.
 - Figure out what is interrupting sql command in console.
 - Don't print "Warning: Wrong Volume mounted ..." if mounting second
   volume.
 - Implement List Volume Job=xxx  or List scheduled volumes or Status Director 
-- Make | and < work on FD side.
 - Take a careful look a the Basic recycling algorithm.  When Bacula
   chooses, the order should be:
    - Look for Append
@@ -888,3 +886,6 @@ Done: (see kernsdone for more)
 - Use repositioning at the beginning of the tape.                   
 - Do full check the command line args in update (e.g. VolStatus ...).
 - Specify list of files to restore
+- Implement ClientRunBeforeJob and ClientRunAfterJob.
+- Make | and < work on FD side.
+
