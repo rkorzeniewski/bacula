@@ -226,7 +226,7 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
       Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
           "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
           "VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,Recycle,Slot,"
-          "FirstWritten,IFNULL(LastWritten,0),VolStatus "
+          "FirstWritten,COALESCE(LastWritten,0),VolStatus "
           "FROM Media WHERE PoolId=%u AND MediaType='%s' AND VolStatus IN ('Full',"
           "'Recycle','Purged','Used','Append') "
           "ORDER BY LastWritten LIMIT 1", mr->PoolId, mr->MediaType); 
@@ -298,7 +298,8 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
    mr->Slot = str_to_int64(row[16]);
    bstrncpy(mr->cFirstWritten, row[17]!=NULL?row[17]:"", sizeof(mr->cFirstWritten));
    mr->FirstWritten = (time_t)str_to_utime(mr->cFirstWritten);
-   bstrncpy(mr->cLastWritten, row[18]!=NULL?row[18]:"", sizeof(mr->cLastWritten));
+   /* LastWritten cannot be NULL because of COALESCE() in SQL */
+   bstrncpy(mr->cLastWritten, row[18], sizeof(mr->cLastWritten));
    mr->LastWritten = (time_t)str_to_utime(mr->cLastWritten);
    bstrncpy(mr->VolStatus, row[19], sizeof(mr->VolStatus));
    sql_free_result(mdb);
