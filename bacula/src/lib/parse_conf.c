@@ -291,7 +291,7 @@ static void scan_types(LEX *lc, MSGS *msg, int dest_code, char *where, char *cmd
 	 }
       }
       if (!found) {
-         scan_err1(lc, "message type: %s not found", str);
+         scan_err1(lc, _("message type: %s not found"), str);
 	 /* NOT REACHED */
       }
 
@@ -329,6 +329,10 @@ void store_name(LEX *lc, struct res_items *item, int index, int pass)
    }
    free_pool_memory(msg);
    /* Store the name both pass 1 and pass 2 */
+   if (*(item->value)) {
+      scan_err2(lc, _("Attempt to redefine name \"%s\" to \"%s\"."), 
+	 *(item->value), lc->str);
+   }
    *(item->value) = bstrdup(lc->str);
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);

@@ -359,11 +359,10 @@ void free_pool_memory(POOLMEM *obuf)
 void close_memory_pool()
 {
    struct abufhead *buf, *next;
-   int i;
 
    sm_check(__FILE__, __LINE__, False);
    P(mutex);
-   for (i=1; i<=PM_MAX; i++) {
+   for (int i=1; i<=PM_MAX; i++) {
       buf = pool_ctl[i].free_buf;
       while (buf) {
 	 next = buf->next;
@@ -379,7 +378,7 @@ void close_memory_pool()
 
 static char *pool_name(int pool)
 {
-   static char *name[] = {"NoPool", "FNAME ", "MSG   ", "EMSG  "};
+   static char *name[] = {"NoPool", "NAME  ", "FNAME ", "MSG   ", "EMSG  "};
    static char buf[30];
 
    if (pool >= 0 && pool <= PM_MAX) {
@@ -393,10 +392,8 @@ static char *pool_name(int pool)
  */ 
 void print_memory_pool_stats()
 {
-   int i;
-
    Dmsg0(-1, "Pool   Maxsize  Maxused  Inuse\n");
-   for (i=0; i<=PM_MAX; i++)
+   for (int i=0; i<=PM_MAX; i++)
       Dmsg4(-1, "%5s  %7d  %7d  %5d\n", pool_name(i), pool_ctl[i].max_size,
 	 pool_ctl[i].max_used, pool_ctl[i].in_use);
 

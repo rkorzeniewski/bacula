@@ -9,21 +9,19 @@
 #  For Bacula release @VERSION@ (@DATE@) -- @DISTNAME@
 #
 
-# Source function library
-. /etc/rc.d/init.d/functions
 
 RETVAL=0
 case "$1" in
     start)
        echo -n "Starting the Bacula Director: "
-       daemon @sbindir@/bacula-dir $2 -c @sysconfdir@/bacula-dir.conf
+       /sbin/startproc @sbindir@/bacula-dir $2 -c @sysconfdir@/bacula-dir.conf
        RETVAL=$?
        echo
        [ $RETVAL -eq 0 ] && touch @subsysdir@/bacula-dir
        ;;
     stop)
        echo -n "Stopping the Director daemon: "
-       killproc @sbindir@/bacula-dir
+       /sbin/killproc @sbindir@/bacula-dir
        RETVAL=$?
        echo
        [ $RETVAL -eq 0 ] && rm -f @subsysdir@/bacula-dir
@@ -34,7 +32,7 @@ case "$1" in
        $0 start
        ;;
     status)
-       status @sbindir@/bacula-dir
+       /sbin/checkproc @sbindir@/bacula-dir
        ;;
     *)
        echo "Usage: $0 {start|stop|restart|status}"

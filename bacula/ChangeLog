@@ -1,6 +1,77 @@
 
 
+03Feb04
+- Correct problems with jobs scheduled at a later time by hand.
+  Missing unlock(), backward test on pthread_create status.
+- Fix setip crash reported by Alan Brown.
+- Create bacula.spec.in in SuSE directory from Scott.
+- Fix missing unlock() in ua_status on access denial.
+- Lots of little cleanups, improving jcr use_count debug printing.
+- Add EMSG to mem_pool utilization statistics.
+01Feb04
+- New bacula.spec.in file from Scott
+- Add Scott's spec file to the platforms/suse directory
+- Modify configure.in to make platforms/suse/bacula.spec
+- Do not allow a resource name to be specified twice.
 
+2004-01-30 Version 1.33-30Jan04 Release
+30Jan04
+- Apply Jess Guardiani's second fix to list autochanger volumes without
+  opening the drive (necessary on FreeBSD if no tape is in the drive).
+- Added Postgresql configure search libraries recommended by Alan Brown.
+29Jan04
+- Reworked the command line handler in restore to walk through the
+  arguments one at a time. This makes the file= entries work correctly.
+  Also reworked the code that takes the MediaType and finds a 
+  storage device.
+26Jan04
+- I've noticed that the backups of Rufus, my development machine, can be
+  "stuck" for about 12 hours, then suddenly they run. In running the 
+  debugger, I see that it was stuck on the select() statement waiting
+  for the Hello.  Why this happens I am not sure. I re-organized the code
+  a bit because it didn't seem to be as robust as it could, but I cannot
+  explain the problem. 
+- As a consequence of the above, I have implemented a new bsock timer that
+  can be started and stopped. This is based on Nic Bellamy's new watchdog 
+  code. The timer is set with start_bsock_timer(bsock, timeout); If the
+  timeout expires, the bsock will be marked as timed_out and interrupted
+  with a pthread_kill() on the current thread.
+- Added 5 minute bsock timers to all the opening Hello/authentication 
+  exchanges between the various daemons.               
+24Jan04
+- New spec file from Scott.
+- New patch file from Scott for create_sqlite_database
+- Fix crash in run command if invalid pool specified on the command line
+  and then the user cancels the Pool prompt.
+- Separate Console and ConsoleFont resources in gnome2 conf files.
+- Remove possibly bad ASSERTs from bnet.c
+- Remove open() of device in dircmd.c, which fails on FreeBSD with
+  an autoloader -- thanks to Jesse Guardiani for this fix.
+20Jan04
+- Remove all "hostname -s" from configure except for RedHat. Use uname -n instead.
+- Implement SetIP command.
+- Implement Close On Poll in Device resource on SD.
+- Implement Full, Inc, and Diff Pools.
+- Implement Access control lists for Consoles.
+18Jan04
+- Define default working_dir as /var/bacula/working.
+- Implement setip console command to set new IP address for a Client.
+17Jan04
+- Implement maximum network buffer size directives.
+- Good first cut at access control lists for the console.
+- Optimize restore to select only latest Differential backup after
+  the Full, and then all following Incremental backups. Previously
+  everything after Full was selected.
+16Jan04
+- Organize kernstodo a bit (more to be done).
+- Add client IP address to BSOCK structure.
+- Use bit fields where appropriate in BSOCK structure.
+- Pass UAContext to ua authenticate in Director, and make it
+  set the appropriate console (or NULL for none).
+- Tweak restore "run" argument handling and add "files" keyword.
+- Add device name or Volume name to some SD messages.
+15Jan04
+- First cut multiple consoles.
 14Jan04
 - Update kernstodo
 - Add quit command to restore tree handler.
@@ -46,6 +117,8 @@
 - Call pthread_cancel on SD msgchan only if the threadid is non-zero.
 07Jan04
 - Change RH autostart scripts to start in Dan's order.
+
+2004-01-06 Version 1.33-06Jan04 Release
 06Jan04
 - Correct calculation of week of month in scheduler and in scheduled
   listing.

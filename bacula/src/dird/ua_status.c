@@ -349,7 +349,7 @@ static void list_scheduled_jobs(UAContext *ua)
    int level, num_jobs = 0;
    bool hdr_printed = false;
 
-   Dmsg0(200, "enter find_runs()\n");
+   Dmsg0(200, "enter list_sched_jobs()\n");
 
    /* Loop through all jobs */
    LockRes();
@@ -377,7 +377,7 @@ static void list_scheduled_jobs(UAContext *ua)
    } else {
       bsendmsg(ua, "\n");
    }
-   Dmsg0(200, "Leave find_runs()\n");
+   Dmsg0(200, "Leave list_sched_jobs_runs()\n");
 }
 
 static void list_running_jobs(UAContext *ua)
@@ -389,6 +389,7 @@ static void list_running_jobs(UAContext *ua)
    char level[10];
    bool pool_mem = false;
 
+   Dmsg0(200, "enter list_run_jobs()\n");
    lock_jcr_chain();
    for (jcr=NULL; (jcr=get_next_jcr(jcr)); njobs++) {
       if (jcr->JobId == 0) {	  /* this is us */
@@ -406,6 +407,7 @@ static void list_running_jobs(UAContext *ua)
    if (njobs == 0) {
       unlock_jcr_chain();
       bsendmsg(ua, _("No Running Jobs.\n"));
+      Dmsg0(200, "leave list_run_jobs()\n");
       return;
    }
    njobs = 0;
@@ -413,10 +415,7 @@ static void list_running_jobs(UAContext *ua)
    bsendmsg(ua, _("Level JobId  Job                        Status\n"));
    bsendmsg(ua, _("====================================================================\n"));
    for (jcr=NULL; (jcr=get_next_jcr(jcr)); njobs++) {
-      if (!acl_access_ok(ua, Job_ACL, jcr->job->hdr.name)) {
-	 continue;
-      }
-      if (jcr->JobId == 0) {	  /* this is us */
+      if (jcr->JobId == 0 || !acl_access_ok(ua, Job_ACL, jcr->job->hdr.name)) {
 	 njobs--;
 	 free_locked_jcr(jcr);
 	 continue;
@@ -535,8 +534,8 @@ static void list_running_jobs(UAContext *ua)
       free_locked_jcr(jcr);
    }
    unlock_jcr_chain();
-
    bsendmsg(ua, "\n");
+   Dmsg0(200, "leave list_run_jobs()\n");
 }
 
 static void list_terminated_jobs(UAContext *ua)

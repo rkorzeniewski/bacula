@@ -9,20 +9,18 @@
 #  For Bacula release @VERSION@ (@DATE@) -- @DISTNAME@
 #
 
-# Source function library
-. /etc/rc.d/init.d/functions
 
 case "$1" in
     start)
        echo -n "Starting the Bacula File daemon: "
-       daemon @sbindir@/bacula-fd $2 -c @sysconfdir@/bacula-fd.conf
+       /sbin/startproc @sbindir@/bacula-fd $2 -c @sysconfdir@/bacula-fd.conf
        RETVAL=$?
        echo
        [ $RETVAL -eq 0 ] && touch @subsysdir@/bacula-fd
        ;;
     stop)
        echo -n "Stopping the Bacula File daemon: "
-       killproc @sbindir@/bacula-fd
+       /sbin/killproc @sbindir@/bacula-fd
        RETVAL=$?
        echo
        [ $RETVAL -eq 0 ] && rm -f @subsysdir@/bacula-fd
@@ -33,7 +31,7 @@ case "$1" in
        $0 start
        ;;
     status)
-       status @sbindir@/bacula-fd
+       /sbin/checkproc @sbindir@/bacula-fd
        ;;
     *)
        echo "Usage: $0 {start|stop|restart|status}"
