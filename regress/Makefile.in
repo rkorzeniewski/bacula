@@ -33,7 +33,7 @@ bacula: all
 	 fi)
 	rm -rf tmp working
 	mkdir tmp working
-	scripts/setup ${BACULA_SOURCE} ${EMAIL} ${WHICHDB}
+	scripts/setup ${BACULA_SOURCE} ${EMAIL} ${WHICHDB} ${TCPWRAPPERS}
 	scripts/do_sed ${EMAIL} ${TAPE_DRIVE} ${AUTOCHANGER} ${AUTOCHANGER_PATH}
 
 # Run all non-root userid tests
@@ -55,6 +55,7 @@ clean:
 	rm -f test.out
 	rm -f diff
 	rm -f 1 2 3 scripts/1 scripts/2 scripts/3 tests/1 tests/2 tests/3
+	@find . -name .#* -exec $(RMF) {} \;
 
 # Reset our userid after running as root
 reset:

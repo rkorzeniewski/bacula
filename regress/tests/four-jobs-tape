@@ -18,12 +18,12 @@ echo " "
 
 bin/bacula start 2>&1 >/dev/null
 bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
-@tee /dev/null
+@output /dev/null
 estimate job=NightlySave listing
 estimate job=NightlySave listing
 estimate job=NightlySave listing
 messages
-@tee tmp/log1.out
+@output tmp/log1.out
 label storage=DDS-4 volume=TestVolume001 slot=0
 run job=NightlySave yes
 wait
@@ -40,9 +40,9 @@ touch ${cwd}/build/src/lib/*.c ${cwd}/build/src/lib/*.o
 # run a second job
 #
 bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
-@tee /dev/null
+@output /dev/null
 messages
-@tee tmp/log1.out
+@output tmp/log1.out
 run job=NightlySave level=Incremental yes
 wait
 messages
@@ -56,9 +56,9 @@ touch ${cwd}/build/src/lib/*.c ${cwd}/build/src/lib/*.o
 # run a third job
 #
 bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
-@tee /dev/null
+@output /dev/null
 messages
-@tee tmp/log1.out
+@output tmp/log1.out
 run job=NightlySave level=Incremental yes
 wait
 messages
@@ -72,9 +72,9 @@ touch ${cwd}/build/src/lib/*.c ${cwd}/build/src/lib/*.o
 # run a fourth job
 #
 bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
-@tee /dev/null
+@output /dev/null
 messages
-@tee tmp/log1.out
+@output tmp/log1.out
 run job=NightlySave level=Incremental yes
 wait
 messages
@@ -86,14 +86,14 @@ echo "Backup 4 done"
 # now do several restores to ensure we cleanup between jobs
 #
 bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
-@tee /dev/null
+@output /dev/null
 restore where=${cwd}/tmp/bacula-restores select all done
 yes
 wait
 restore where=${cwd}/tmp/bacula-restores select all done
 yes
 wait
-@tee tmp/log2.out
+@output tmp/log2.out
 @#
 @# now unmount the tape and start two restores
 @#  at the same time
@@ -109,7 +109,7 @@ yes
 mount storage=DDS-4
 wait
 messages
-@tee
+@output
 quit
 END_OF_DATA
 bin/bacula stop 2>&1 >/dev/null

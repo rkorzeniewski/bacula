@@ -2,6 +2,7 @@
 #
 # Run all tape tests
 #
+cp test.out test1.out
 tests/test0
 tests/backup-bacula-tape
 tests/small-file-size-tape
