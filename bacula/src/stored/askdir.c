@@ -30,7 +30,7 @@
 #include "stored.h"                   /* pull in Storage Deamon headers */
 
 /* Requests sent to the Director */
-static char Find_media[]   = "CatReq Job=%s FindMedia=%d\n";
+static char Find_media[]   = "CatReq Job=%s FindMedia=%d PoolId=%s\n";
 static char Get_Vol_Info[] = "CatReq Job=%s GetVolInfo VolName=%s write=%d\n";
 static char Update_media[] = "CatReq Job=%s UpdateMedia VolName=%s"
    " VolJobs=%u VolFiles=%u VolBlocks=%u VolBytes=%s VolMounts=%u"
@@ -90,7 +90,7 @@ static bool do_get_volume_info(DCR *dcr)
        return false;
     }
     memset(&vol, 0, sizeof(vol));
-    Dmsg1(300, "Get vol info=%s", dir->msg);
+    Dmsg1(100, "<dird %s", dir->msg);
     n = sscanf(dir->msg, OK_media, vol.VolCatName,
 	       &vol.VolCatJobs, &vol.VolCatFiles,
 	       &vol.VolCatBlocks, &vol.VolCatBytes,
@@ -133,10 +133,10 @@ bool dir_get_volume_info(DCR *dcr, enum get_vol_info_rw writing)
     BSOCK *dir = jcr->dir_bsock;
 
     bstrncpy(dcr->VolCatInfo.VolCatName, dcr->VolumeName, sizeof(dcr->VolCatInfo.VolCatName));
-    Dmsg1(300, "dir_get_volume_info=%s\n", dcr->VolCatInfo.VolCatName);
     bash_spaces(dcr->VolCatInfo.VolCatName);
     bnet_fsend(dir, Get_Vol_Info, jcr->Job, dcr->VolCatInfo.VolCatName,
        writing==GET_VOL_INFO_FOR_WRITE?1:0);
+    Dmsg1(100, ">dird: %s", dir->msg);
     return do_get_volume_info(dcr);
 }
 
@@ -154,6 +154,7 @@ bool dir_find_next_appendable_volume(DCR *dcr)
 {
     JCR *jcr = dcr->jcr;
     BSOCK *dir = jcr->dir_bsock;
+    char ed1[50];
     JCR *njcr;
 
     Dmsg0(200, "dir_find_next_appendable_volume\n");
@@ -163,7 +164,8 @@ bool dir_find_next_appendable_volume(DCR *dcr)
      *	 drive, so we continue looking for a not in use Volume.
      */
     for (int vol_index=1;  vol_index < 3; vol_index++) {
-       bnet_fsend(dir, Find_media, jcr->Job, vol_index);
+       bnet_fsend(dir, Find_media, jcr->Job, vol_index, edit_int64(dcr->PoolId, ed1));
+       Dmsg1(100, ">dird: %s", dir->msg);
        if (do_get_volume_info(dcr)) {
           Dmsg2(300, "JobId=%d got possible Vol=%s\n", jcr->JobId, dcr->VolumeName);
 	  bool found = false;
@@ -249,8 +251,7 @@ bool dir_update_volume_info(DCR *dcr, bool label)
       edit_uint64(vol->VolReadTime, ed3),
       edit_uint64(vol->VolWriteTime, ed4),
       vol->VolCatParts);
-
-   Dmsg1(300, "update_volume_info(): %s", dir->msg);
+    Dmsg1(100, ">dird: %s", dir->msg);
 
    if (!do_get_volume_info(dcr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", jcr->errmsg);
@@ -281,14 +282,14 @@ bool dir_create_jobmedia_record(DCR *dcr)
       dcr->VolFirstIndex, dcr->VolLastIndex,
       dcr->StartFile, dcr->EndFile,
       dcr->StartBlock, dcr->EndBlock);
-   Dmsg1(400, "create_jobmedia(): %s", dir->msg);
+    Dmsg1(100, ">dird: %s", dir->msg);
    if (bnet_recv(dir) <= 0) {
       Dmsg0(190, "create_jobmedia error bnet_recv\n");
       Jmsg(jcr, M_FATAL, 0, _("Error creating JobMedia record: ERR=%s\n"),
 	   bnet_strerror(dir));
       return false;
    }
-   Dmsg1(400, "Create_jobmedia: %s", dir->msg);
+   Dmsg1(100, "<dir: %s", dir->msg);
    if (strcmp(dir->msg, OK_create) != 0) {
       Dmsg1(130, "Bad response from Dir: %s\n", dir->msg);
       Jmsg(jcr, M_FATAL, 0, _("Error creating JobMedia record: %s\n"), dir->msg);
@@ -322,6 +323,7 @@ bool dir_update_file_attributes(DCR *dcr, DEV_RECORD *rec)
    ser_uint32(rec->data_len);
    ser_bytes(rec->data, rec->data_len);
    dir->msglen = ser_length(dir->msg);
+   Dmsg1(100, ">dird: %s", dir->msg);
    return bnet_send(dir);
 }
 

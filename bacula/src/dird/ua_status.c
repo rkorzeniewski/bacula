@@ -8,7 +8,7 @@
  */
 
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -108,7 +108,7 @@ int status_cmd(UAContext *ua, const char *cmd)
 	 do_all_status(ua);
 	 return 1;
       } else if (strcasecmp(ua->argk[i], _("dir")) == 0 ||
-		 strcasecmp(ua->argk[i], _("director")) == 0) {
+                 strcasecmp(ua->argk[i], _("director")) == 0) {
 	 do_director_status(ua);
 	 return 1;
       } else if (strcasecmp(ua->argk[i], _("client")) == 0) {
@@ -197,7 +197,7 @@ static void do_all_status(UAContext *ua)
       }
       if (!found) {
 	 unique_store[i++] = store;
-	 Dmsg2(40, "Stuffing: %s:%d\n", store->address, store->SDport);
+         Dmsg2(40, "Stuffing: %s:%d\n", store->address, store->SDport);
       }
    }
    UnlockRes();
@@ -231,7 +231,7 @@ static void do_all_status(UAContext *ua)
       }
       if (!found) {
 	 unique_client[i++] = client;
-	 Dmsg2(40, "Stuffing: %s:%d\n", client->address, client->FDport);
+         Dmsg2(40, "Stuffing: %s:%d\n", client->address, client->FDport);
       }
    }
    UnlockRes();
@@ -252,7 +252,7 @@ static void do_director_status(UAContext *ua)
 	    HOST_OS, DISTNAME, DISTVER);
    bstrftime_nc(dt, sizeof(dt), daemon_start_time);
    bsendmsg(ua, _("Daemon started %s, %d Job%s run since started.\n"),
-	dt, num_jobs_run, num_jobs_run == 1 ? "" : "s");
+        dt, num_jobs_run, num_jobs_run == 1 ? "" : "s");
    if (debug_level > 0) {
       char b1[35], b2[35], b3[35], b4[35];
       bsendmsg(ua, _(" Heap: bytes=%s max_bytes=%s bufs=%s max_bufs=%s\n"),
@@ -372,6 +372,7 @@ static void prt_runtime(UAContext *ua, sched_pkt *sp)
    JCR *jcr = ua->jcr;
    MEDIA_DBR mr;
    memset(&mr, 0, sizeof(mr));
+   mr.PoolId = jcr->PoolId;
    if (sp->job->JobType == JT_BACKUP) {
       jcr->db = NULL;
       ok = complete_jcr_for_job(jcr, sp->job, sp->pool);
@@ -382,7 +383,7 @@ static void prt_runtime(UAContext *ua, sched_pkt *sp)
 	 ok = find_next_volume_for_append(jcr, &mr, 0);
       }
       if (!ok) {
-	 bstrncpy(mr.VolumeName, "*unknown*", sizeof(mr.VolumeName));
+         bstrncpy(mr.VolumeName, "*unknown*", sizeof(mr.VolumeName));
       }
    }
    bstrftime_nc(dt, sizeof(dt), sp->runtime);
@@ -503,7 +504,7 @@ static void list_running_jobs(UAContext *ua)
 	  */
 	 if (jcr->JobType == JT_CONSOLE) {
 	    bstrftime_nc(dt, sizeof(dt), jcr->start_time);
-	    bsendmsg(ua, _("Console connected at %s\n"), dt);
+            bsendmsg(ua, _("Console connected at %s\n"), dt);
 	 }
 	 njobs--;
       }
@@ -527,66 +528,66 @@ static void list_running_jobs(UAContext *ua)
       njobs++;
       switch (jcr->JobStatus) {
       case JS_Created:
-	 msg = _("is waiting execution");
+         msg = _("is waiting execution");
 	 break;
       case JS_Running:
-	 msg = _("is running");
+         msg = _("is running");
 	 break;
       case JS_Blocked:
-	 msg = _("is blocked");
+         msg = _("is blocked");
 	 break;
       case JS_Terminated:
-	 msg = _("has terminated");
+         msg = _("has terminated");
 	 break;
       case JS_ErrorTerminated:
-	 msg = _("has erred");
+         msg = _("has erred");
 	 break;
       case JS_Error:
-	 msg = _("has errors");
+         msg = _("has errors");
 	 break;
       case JS_FatalError:
-	 msg = _("has a fatal error");
+         msg = _("has a fatal error");
 	 break;
       case JS_Differences:
-	 msg = _("has verify differences");
+         msg = _("has verify differences");
 	 break;
       case JS_Canceled:
-	 msg = _("has been canceled");
+         msg = _("has been canceled");
 	 break;
       case JS_WaitFD:
 	 emsg = (char *) get_pool_memory(PM_FNAME);
-	 Mmsg(emsg, _("is waiting on Client %s"), jcr->client->hdr.name);
+         Mmsg(emsg, _("is waiting on Client %s"), jcr->client->hdr.name);
 	 pool_mem = true;
 	 msg = emsg;
 	 break;
       case JS_WaitSD:
 	 emsg = (char *) get_pool_memory(PM_FNAME);
-	 Mmsg(emsg, _("is waiting on Storage %s"), jcr->store->hdr.name);
+         Mmsg(emsg, _("is waiting on Storage %s"), jcr->store->hdr.name);
 	 pool_mem = true;
 	 msg = emsg;
 	 break;
       case JS_WaitStoreRes:
-	 msg = _("is waiting on max Storage jobs");
+         msg = _("is waiting on max Storage jobs");
 	 break;
       case JS_WaitClientRes:
-	 msg = _("is waiting on max Client jobs");
+         msg = _("is waiting on max Client jobs");
 	 break;
       case JS_WaitJobRes:
-	 msg = _("is waiting on max Job jobs");
+         msg = _("is waiting on max Job jobs");
 	 break;
       case JS_WaitMaxJobs:
-	 msg = _("is waiting on max total jobs");
+         msg = _("is waiting on max total jobs");
 	 break;
       case JS_WaitStartTime:
-	 msg = _("is waiting for its start time");
+         msg = _("is waiting for its start time");
 	 break;
       case JS_WaitPriority:
-	 msg = _("is waiting for higher priority jobs to finish");
+         msg = _("is waiting for higher priority jobs to finish");
 	 break;
 
       default:
 	 emsg = (char *) get_pool_memory(PM_FNAME);
-	 Mmsg(emsg, _("is in unknown state %c"), jcr->JobStatus);
+         Mmsg(emsg, _("is in unknown state %c"), jcr->JobStatus);
 	 pool_mem = true;
 	 msg = emsg;
 	 break;
@@ -600,21 +601,21 @@ static void list_running_jobs(UAContext *ua)
 	    free_pool_memory(emsg);
 	    pool_mem = false;
 	 }
-	 msg = _("is waiting for a mount request");
+         msg = _("is waiting for a mount request");
 	 break;
       case JS_WaitMedia:
 	 if (pool_mem) {
 	    free_pool_memory(emsg);
 	    pool_mem = false;
 	 }
-	 msg = _("is waiting for an appendable Volume");
+         msg = _("is waiting for an appendable Volume");
 	 break;
       case JS_WaitFD:
 	 if (!pool_mem) {
 	    emsg = (char *) get_pool_memory(PM_FNAME);
 	    pool_mem = true;
 	 }
-	 Mmsg(emsg, _("is waiting for Client %s to connect to Storage %s"),
+         Mmsg(emsg, _("is waiting for Client %s to connect to Storage %s"),
 	      jcr->client->hdr.name, jcr->store->hdr.name);
 	 msg = emsg;
 	 break;
@@ -622,7 +623,7 @@ static void list_running_jobs(UAContext *ua)
       switch (jcr->JobType) {
       case JT_ADMIN:
       case JT_RESTORE:
-	 bstrncpy(level, "      ", sizeof(level));
+         bstrncpy(level, "      ", sizeof(level));
 	 break;
       default:
 	 bstrncpy(level, level_to_str(jcr->JobLevel), sizeof(level));
@@ -669,7 +670,7 @@ static void list_terminated_jobs(UAContext *ua)
       /* There are three periods after the Job name */
       char *p;
       for (int i=0; i<3; i++) {
-	 if ((p=strrchr(JobName, '.')) != NULL) {
+         if ((p=strrchr(JobName, '.')) != NULL) {
 	    *p = 0;
 	 }
       }
@@ -682,7 +683,7 @@ static void list_terminated_jobs(UAContext *ua)
       switch (je->JobType) {
       case JT_ADMIN:
       case JT_RESTORE:
-	 bstrncpy(level, "    ", sizeof(level));
+         bstrncpy(level, "    ", sizeof(level));
 	 break;
       default:
 	 bstrncpy(level, level_to_str(je->JobLevel), sizeof(level));
@@ -691,23 +692,23 @@ static void list_terminated_jobs(UAContext *ua)
       }
       switch (je->JobStatus) {
       case JS_Created:
-	 termstat = "Created";
+         termstat = "Created";
 	 break;
       case JS_FatalError:
       case JS_ErrorTerminated:
-	 termstat = "Error";
+         termstat = "Error";
 	 break;
       case JS_Differences:
-	 termstat = "Diffs";
+         termstat = "Diffs";
 	 break;
       case JS_Canceled:
-	 termstat = "Cancel";
+         termstat = "Cancel";
 	 break;
       case JS_Terminated:
-	 termstat = "OK";
+         termstat = "OK";
 	 break;
       default:
-	 termstat = "Other";
+         termstat = "Other";
 	 break;
       }
       bsendmsg(ua, _("%6d  %-6s %8s %14s %-7s  %-8s %s\n"),

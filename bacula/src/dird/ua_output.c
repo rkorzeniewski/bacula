@@ -421,6 +421,7 @@ static bool list_nextvol(UAContext *ua)
    MEDIA_DBR mr;
 
    memset(&mr, 0, sizeof(mr));
+   mr.PoolId = jcr->PoolId;
    int i = find_arg_with_value(ua, "job");
    if (i <= 0) {
       if ((job = select_job_resource(ua)) == NULL) {

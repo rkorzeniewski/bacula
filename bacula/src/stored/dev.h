@@ -233,6 +233,9 @@ public:
 
    VOLUME_CAT_INFO VolCatInfo;        /* Volume Catalog Information */
    VOLUME_LABEL VolHdr;               /* Actual volume label */
+   uint64_t PoolId;                   /* DB PoolId */
+   char pool_name[MAX_NAME_LENGTH];   /* pool name */
+   char pool_type[MAX_NAME_LENGTH];   /* pool type */
 
    /* Device wait times ***FIXME*** look at durations */
    char BadVolName[MAX_NAME_LENGTH];  /* Last wrong Volume mounted */
@@ -260,6 +263,7 @@ public:
    int can_read() const;
    const char *strerror() const;
    const char *archive_name() const;
+   const char *name() const;
    void set_eof();
    void set_eot();
    void set_append();
@@ -279,7 +283,7 @@ inline int DEVICE::is_dvd()  const { return state & ST_DVD; }
 inline int DEVICE::is_open() const { return state & ST_OPENED; }
 inline int DEVICE::is_offline() const { return state & ST_OFFLINE; }
 inline int DEVICE::is_labeled() const { return state & ST_LABEL; }
-inline int DEVICE::is_busy() const { return state & ST_READ || num_writers; }
+inline int DEVICE::is_busy() const { return state & ST_READ || num_writers || reserved_device; }
 inline int DEVICE::at_eof() const { return state & ST_EOF; }
 inline int DEVICE::at_eot() const { return state & ST_EOT; }
 inline int DEVICE::can_append() const { return state & ST_APPEND; }
@@ -326,6 +330,7 @@ public:
    uint32_t EndBlock;                 /* Ending block written */
    int64_t spool_size;                /* Current spool size */
    int64_t max_spool_size;            /* Max job spool size */
+   uint64_t PoolId;                   /* PoolId from DB */
    char VolumeName[MAX_NAME_LENGTH];  /* Volume name */
    char pool_name[MAX_NAME_LENGTH];   /* pool name */
    char pool_type[MAX_NAME_LENGTH];   /* pool type */

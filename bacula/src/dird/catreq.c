@@ -41,7 +41,7 @@
  */
 
 /* Requests from the Storage daemon */
-static char Find_media[] = "CatReq Job=%127s FindMedia=%d\n";
+static char Find_media[] = "CatReq Job=%127s FindMedia=%d PoolId=%lld\n";
 static char Get_Vol_Info[] = "CatReq Job=%127s GetVolInfo VolName=%127s write=%d\n";
 
 static char Update_media[] = "CatReq Job=%127s UpdateMedia VolName=%s"
@@ -114,7 +114,10 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
       free_memory(omsg);
       return;
    }
-   if (sscanf(bs->msg, Find_media, &Job, &index) == 2) {
+   /*
+    * Find next appendable medium for SD
+    */
+   if (sscanf(bs->msg, Find_media, &Job, &index, &mr.PoolId) == 3) {
       ok = find_next_volume_for_append(jcr, &mr, true /*permit create new vol*/);
       /*
        * Send Find Media response to Storage daemon

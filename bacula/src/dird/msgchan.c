@@ -43,15 +43,18 @@ static char jobcmd[]     = "JobId=%d job=%s job_name=%s client_name=%s "
    "type=%d level=%d FileSet=%s NoAttr=%d SpoolAttr=%d FileSetMD5=%s "
    "SpoolData=%d WritePartAfterJob=%d";
 static char use_device[] = "use device=%s media_type=%s pool_name=%s "
-   "pool_type=%s append=%d\n";
+   "pool_type=%s PoolId=%s append=%d\n";
 static char query_device[] = "query device=%s";
 
 /* Response from Storage daemon */
 static char OKjob[]      = "3000 OK Job SDid=%d SDtime=%d Authorization=%100s\n";
 static char OK_device[]  = "3000 OK use device device=%s\n";
-static char OK_query[]  = "3001 OK query append=%d read=%d num_writers=%d "
-   "num_waiting=%d open=%d use_count=%d labeled=%d offline=%d "
+static char OK_query[]   = "3001 OK query "
+   "append=%d read=%d num_writers=%d "
+   "open=%d labeled=%d offline=%d "
+   "reserved=%d max_writers=%d "
    "autoselect=%d autochanger=%d "
+   "poolid=%lld "
    "changer_name=%127s media_type=%127s volume_name=%127s";
 
 /* Storage Daemon requests */
@@ -80,7 +83,7 @@ bool connect_to_storage_daemon(JCR *jcr, int retry_interval,
    /*
     *  Open message channel with the Storage daemon
     */
-   Dmsg2(200, "bnet_connect to Storage daemon %s:%d\n", store->address,
+   Dmsg2(100, "bnet_connect to Storage daemon %s:%d\n", store->address,
       store->SDport);
    sd = bnet_connect(jcr, retry_interval, max_retry_time,
           _("Storage daemon"), store->address,
@@ -116,13 +119,17 @@ bool update_device_res(JCR *jcr, DEVICE *dev)
    pm_strcpy(device_name, dev->hdr.name);
    bash_spaces(device_name);
    bnet_fsend(sd, query_device, device_name.c_str());
+   Dmsg1(100, ">stored: %s\n", sd->msg);
    if (bget_dirmsg(sd) > 0) {
-      Dmsg1(400, "<stored: %s", sd->msg);
-      if (sscanf(sd->msg, OK_query, &dev_append, &dev_read,
-	  &dev->num_writers, &dev->num_waiting, &dev_open,
-	  &dev->use_count, &dev_labeled, &dev_offline, &dev_autoselect, 
-	  &dev_autochanger,  changer_name.c_str(), media_type.c_str(),
-	  volume_name.c_str()) != 13) {
+      Dmsg1(100, "<stored: %s", sd->msg);
+      if (sscanf(sd->msg, OK_query, 
+	  &dev_append, &dev_read,
+	  &dev->num_writers, &dev_open,
+	  &dev_labeled, &dev_offline, &dev->reserved,
+	  &dev->max_writers, &dev_autoselect, 
+	  &dev_autochanger,  &dev->PoolId,
+	  changer_name.c_str(), media_type.c_str(),
+	  volume_name.c_str()) != 14) {
 	 return false;
       }
       unbash_spaces(changer_name);
@@ -131,6 +138,9 @@ bool update_device_res(JCR *jcr, DEVICE *dev)
       bstrncpy(dev->ChangerName, changer_name.c_str(), sizeof(dev->ChangerName));
       bstrncpy(dev->MediaType, media_type.c_str(), sizeof(dev->MediaType));
       bstrncpy(dev->VolumeName, volume_name.c_str(), sizeof(dev->VolumeName));
+      /* Note, these are copied because they are boolean rather than
+       *  integer.
+       */
       dev->open = dev_open;
       dev->append = dev_append;
       dev->read = dev_read;
@@ -155,6 +165,7 @@ int start_storage_daemon_job(JCR *jcr, alist *store, int append)
    BSOCK *sd;
    char auth_key[100];
    POOL_MEM device_name, pool_name, pool_type, media_type;
+   char PoolId[50];
 
    sd = jcr->store_bsock;
    /*
@@ -170,12 +181,12 @@ int start_storage_daemon_job(JCR *jcr, alist *store, int append)
 	      jcr->client->hdr.name, jcr->JobType, jcr->JobLevel,
 	      jcr->fileset->hdr.name, !jcr->pool->catalog_files,
 	      jcr->job->SpoolAttributes, jcr->fileset->MD5, jcr->spool_data, jcr->write_part_after_job);
-   Dmsg1(200, "Jobcmd=%s\n", sd->msg);
+   Dmsg1(100, ">stored: %s\n", sd->msg);
    unbash_spaces(jcr->job->hdr.name);
    unbash_spaces(jcr->client->hdr.name);
    unbash_spaces(jcr->fileset->hdr.name);
    if (bget_dirmsg(sd) > 0) {
-       Dmsg1(110, "<stored: %s", sd->msg);
+       Dmsg1(100, "<stored: %s", sd->msg);
        if (sscanf(sd->msg, OKjob, &jcr->VolSessionId,
 		  &jcr->VolSessionTime, &auth_key) != 3) {
           Dmsg1(100, "BadJob=%s\n", sd->msg);
@@ -195,6 +206,7 @@ int start_storage_daemon_job(JCR *jcr, alist *store, int append)
    pm_strcpy(pool_name, jcr->pool->hdr.name);
    bash_spaces(pool_type);
    bash_spaces(pool_name);
+   edit_int64(jcr->PoolId, PoolId);
 
    /*
     * We have two loops here. The first comes from the 
@@ -217,10 +229,10 @@ int start_storage_daemon_job(JCR *jcr, alist *store, int append)
 	 bash_spaces(media_type);
 	 bnet_fsend(sd, use_device, device_name.c_str(),
 		    media_type.c_str(), pool_name.c_str(), pool_type.c_str(),
-		    append);
-         Dmsg1(200, ">stored: %s", sd->msg);
+		    PoolId, append);
+         Dmsg1(100, ">stored: %s", sd->msg);
 	 if (bget_dirmsg(sd) > 0) {
-            Dmsg1(400, "<stored: %s", sd->msg);
+            Dmsg1(100, "<stored: %s", sd->msg);
 	    /* ****FIXME**** save actual device name */
 	    ok = sscanf(sd->msg, OK_device, device_name.c_str()) == 1;
 	    if (ok) {
@@ -240,6 +252,7 @@ int start_storage_daemon_job(JCR *jcr, alist *store, int append)
 // }
    if (ok) {
       ok = bnet_fsend(sd, "run");
+      Dmsg1(100, ">stored: %s\n", sd->msg);
    }
    return ok;
 }

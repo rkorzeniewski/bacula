@@ -36,13 +36,6 @@ Autochangers:
    The defined Storage resources are:
 - Copy Changer Device and Changer Command from Autochanger
   to Device resource in SD if none given in Device resource.
-- Doc the following
-  to activate, check or disable the hardware compression feature on my 
-  exb-8900 i use the exabyte "MammothTool" you can get it here:
-  http://www.exabyte.com/support/online/downloads/index.cfm
-  There is a solaris version of this tool. With option -C 0 or 1 you can 
-  disable or activate compression. Start this tool without any options for 
-  a small reference.
 - 3.Prevent two drives requesting the same Volume in any given
      autochanger.
 - 4. Use Changer Device and Changer Command specified in the
@@ -77,6 +70,22 @@ Autochangers Done:
 
 
 For 1.37:
+- By the way: on page http://www.bacula.org/?page=tapedrives , at the 
+  bottom, the link to "Tape Testing Chapter" is broken. It goes to 
+  /html-manual/... while the others point to /rel-manual/...
+- OS linux 2.4
+  1) ADIC, DLT, FastStor 4000, 7*20GB
+  2) Sun, DDS, (Suns name unknown - Archive Python DDS drive), 1.2GB
+  3) Wangtek, QIC, 6525ES, 525MB (fixed block size 1k, block size etc. 
+  driver dependent - aic7xxx works, ncr53c8xx with problems)
+  4) HP, DDS-2, C1553A, 6*4GB
+- Doc the following
+  to activate, check or disable the hardware compression feature on my 
+  exb-8900 i use the exabyte "MammothTool" you can get it here:
+  http://www.exabyte.com/support/online/downloads/index.cfm
+  There is a solaris version of this tool. With option -C 0 or 1 you can 
+  disable or activate compression. Start this tool without any options for 
+  a small reference.
 - Linux Sony LIB-D81, AIT-3 library works.
 - Device resource needs the "name" of the SD.
 - Add and option to see if the file size changed

@@ -33,7 +33,7 @@
 
 /*
  *  Items needed:
- *   jcr->PoolId
+ *   mr.PoolId must be set
  *   jcr->store
  *   jcr->db
  *   jcr->pool
@@ -47,9 +47,8 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, bool create)
    bool InChanger;
    STORE *store = jcr->store;
 
-   mr->PoolId = jcr->PoolId;
    bstrncpy(mr->MediaType, store->media_type, sizeof(mr->MediaType));
-   Dmsg2(120, "CatReq FindMedia: Id=%d, MediaType=%s\n", mr->PoolId, mr->MediaType);
+   Dmsg2(100, "CatReq FindMedia: Id=%d, MediaType=%s\n", (int)mr->PoolId, mr->MediaType);
    /*
     * If we are using an Autochanger, restrict Volume
     *	search to the Autochanger on the first pass

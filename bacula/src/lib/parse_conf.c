@@ -529,6 +529,32 @@ void store_alist_res(LEX *lc, RES_ITEM *item, int index, int pass)
 
 
 /*
+ * Store a string in an alist.
+ */
+void store_alist_str(LEX *lc, RES_ITEM *item, int index, int pass)
+{
+   alist *list;
+
+   if (pass == 2) {
+      if (*(item->value) == NULL) {
+	 list = New(alist(10, owned_by_alist));
+      } else {
+	 list = (alist *)(*(item->value));    
+      }
+
+      lex_get_token(lc, T_STRING);   /* scan next item */
+      Dmsg4(900, "Append %s to alist %p size=%d %s\n", 
+	 lc->str, list, list->size(), item->name);
+      list->append(bstrdup(lc->str));
+      *(item->value) = (char *)list;
+   }
+   scan_to_eol(lc);
+   set_bit(index, res_all.hdr.item_present);
+}
+
+
+
+/*
  * Store default values for Resource from xxxDefs
  * If we are in pass 2, do a lookup of the
  * resource and store everything not explicitly set

@@ -1,7 +1,7 @@
 
-          Release Notes for Bacula 1.37.3
+          Release Notes for Bacula 1.37.6
 
-  Bacula code: Total files = 411 Total lines = 122,189 (*.h *.c *.in)
+  Bacula code: Total files = 414 Total lines = 123,723 (*.h *.c *.in)
 
 
 Major Changes:
@@ -23,6 +23,19 @@ Major Changes:
   and regexfile. See below for details.
 
 New Directives:
+- New Run directive in Job resource of DIR. It permits
+  cloning of jobs.  To clone a copy of the current job, use
+     Run = "job-name level=%l since=\"%s\""
+  Note, job-name is normally the same name as the job that
+  is running but there is no restriction on what you put. If you
+  want to start the job by hand and use job overrides such as       
+  storage=xxx, realize that the job will be started with the
+  default storage values not the overrides.  The level=%l guarantees
+  that the chosen level of the job is the same, and the since=... 
+  ensures that the job uses *exactly* the same time/date for incremental
+  and differential jobs. The since=... is ignored when level=Full.
+  A cloned job will not start additional clones, so it is not possible
+  to recurse.
 - New Options keywords in a FileSet directive:
   - WildDir xxx
     Will do a wild card match against directories (files will not
@@ -201,5 +214,4 @@ def NewVolume(j):
     bacula.set(jcr=j, VolumeName="TestA-001")
     return 1
 ====
-
 

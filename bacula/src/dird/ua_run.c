@@ -53,6 +53,8 @@ int run_cmd(UAContext *ua, const char *cmd)
    char *where, *fileset_name, *client_name, *bootstrap;
    const char *replace;
    char *when, *verify_job_name, *catalog_name;
+   char *since = NULL;
+   bool cloned = false;
    int Priority = 0;
    int i, j, opt, files = 0;
    bool kw_ok;
@@ -63,24 +65,26 @@ int run_cmd(UAContext *ua, const char *cmd)
    FILESET *fileset = NULL;
    POOL *pool = NULL;
    static const char *kw[] = {	      /* command line arguments */
-      N_("job"),                      /*  Used in a switch() */
-      N_("jobid"),                    /* 1 */
-      N_("client"),                   /* 2 */
-      N_("fd"),
-      N_("fileset"),                  /* 4 */
-      N_("level"),                    /* 5 */
-      N_("storage"),                  /* 6 */
-      N_("sd"),                       /* 7 */
-      N_("pool"),                     /* 8 */
-      N_("where"),                    /* 9 */
-      N_("bootstrap"),                /* 10 */
-      N_("replace"),                  /* 11 */
-      N_("when"),                     /* 12 */
-      N_("priority"),                 /* 13 */
-      N_("yes"),          /* 14 -- if you change this change YES_POS too */
-      N_("verifyjob"),                /* 15 */
-      N_("files"),                    /* 16 number of files to restore */
-       N_("catalog"),                 /* 17 override catalog */
+      "job",                          /*  Used in a switch() */
+      "jobid",                        /* 1 */
+      "client",                       /* 2 */
+      "fd",
+      "fileset",                      /* 4 */
+      "level",                        /* 5 */
+      "storage",                      /* 6 */
+      "sd",                           /* 7 */
+      "pool",                         /* 8 */
+      "where",                        /* 9 */
+      "bootstrap",                    /* 10 */
+      "replace",                      /* 11 */
+      "when",                         /* 12 */
+      "priority",                     /* 13 */
+      "yes",          /* 14  -- if you change this change YES_POS too */
+      "verifyjob",                    /* 15 */
+      "files",                        /* 16 number of files to restore */
+      "catalog",                      /* 17 override catalog */
+      "since",                        /* 18 since */
+      "cloned",                       /* 19 cloned */
       NULL};
 
 #define YES_POS 14
@@ -236,6 +240,16 @@ int run_cmd(UAContext *ua, const char *cmd)
 
 	    case 17: /* catalog */
 	       catalog_name = ua->argv[i];
+	       kw_ok = true;
+	       break;
+
+	    case 18: /* since */
+	       since = ua->argv[i];
+	       kw_ok = true; 
+	       break;
+
+	    case 19: /* cloned */
+	       cloned = true;
 	       kw_ok = true;
 	       break;
 
@@ -443,6 +457,15 @@ int run_cmd(UAContext *ua, const char *cmd)
    if (Priority) {
       jcr->JobPriority = Priority;
    }
+
+   if (since) {
+      if (!jcr->stime) {
+	 jcr->stime = get_pool_memory(PM_MESSAGE);
+      }
+      pm_strcpy(jcr->stime, since);
+   }
+
+   jcr->cloned = cloned;
 
    if (find_arg(ua, _("fdcalled")) > 0) {
       jcr->file_bsock = dup_bsock(ua->UA_sock);

@@ -145,14 +145,22 @@ int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
 void get_level_since_time(JCR *jcr, char *since, int since_len)
 {
    int JobLevel;
+
+   since[0] = 0;
+   if (jcr->cloned) {
+      if ( jcr->stime && jcr->stime[0]) {
+         bstrncpy(since, ", since=", since_len);
+	 bstrncat(since, jcr->stime, since_len);
+      }
+      return;
+   }
+   if (!jcr->stime) {
+      jcr->stime = get_pool_memory(PM_MESSAGE);
+   } 
+   jcr->stime[0] = 0;
    /* Lookup the last FULL backup job to get the time/date for a
     * differential or incremental save.
     */
-   if (!jcr->stime) {
-      jcr->stime = get_pool_memory(PM_MESSAGE);
-   }
-   jcr->stime[0] = 0;
-   since[0] = 0;
    switch (jcr->JobLevel) {
    case L_DIFFERENTIAL:
    case L_INCREMENTAL:
