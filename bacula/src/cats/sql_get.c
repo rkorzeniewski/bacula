@@ -363,7 +363,7 @@ int db_get_job_volume_parameters(JCR *jcr, B_DB *mdb, uint32_t JobId, VOL_PARAMS
    Mmsg(&mdb->cmd, 
 "SELECT VolumeName,FirstIndex,LastIndex,StartFile,EndFile,StartBlock,EndBlock"
 " FROM JobMedia,Media WHERE JobMedia.JobId=%u"
-" AND JobMedia.MediaId=Media.MediaId ORDER BY JobMediaId", JobId);
+" AND JobMedia.MediaId=Media.MediaId ORDER BY VolIndex,JobMediaId", JobId);
 
    Dmsg1(130, "VolNam=%s\n", mdb->cmd);
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {

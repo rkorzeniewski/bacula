@@ -63,26 +63,8 @@ mount_next_vol:
    recycle = ask = autochanger = 0;
    if (release) {
       Dmsg0(100, "mount_next_volume release=1\n");
-      /* 
-       * First erase all memory of the current volume	
-       */
-      dev->block_num = dev->file = 0;
-      dev->EndBlock = dev->EndFile = 0;
-      memset(&dev->VolCatInfo, 0, sizeof(dev->VolCatInfo));
-      memset(&jcr->VolCatInfo, 0, sizeof(jcr->VolCatInfo));
-      memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
-      dev->state &= ~ST_LABEL;	      /* label not yet read */
-      jcr->VolumeName[0] = 0;
 
-      if (!dev_is_tape(dev) || !dev_cap(dev, CAP_ALWAYSOPEN)) {
-	 offline_or_rewind_dev(dev);
-	 close_dev(dev);
-      }
-
-      /* If we have not closed the device, then at least rewind the tape */
-      if (dev->state & ST_OPENED) {
-	 offline_or_rewind_dev(dev);
-      }
+      release_volume(jcr, dev);
       ask = 1;			      /* ask operator to mount tape */
    }
 
@@ -377,4 +359,28 @@ int mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    }
    Dmsg0(90, "End of Device reached.\n");
    return 0;
+}
+
+void release_volume(JCR *jcr, DEVICE *dev)
+{
+   /* 
+    * First erase all memory of the current volume   
+    */
+   dev->block_num = dev->file = 0;
+   dev->EndBlock = dev->EndFile = 0;
+   memset(&dev->VolCatInfo, 0, sizeof(dev->VolCatInfo));
+   memset(&jcr->VolCatInfo, 0, sizeof(jcr->VolCatInfo));
+   memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
+   dev->state &= ~ST_LABEL;	   /* label not yet read */
+   jcr->VolumeName[0] = 0;
+
+   if (!dev_is_tape(dev) || !dev_cap(dev, CAP_ALWAYSOPEN)) {
+      offline_or_rewind_dev(dev);
+      close_dev(dev);
+   }
+
+   /* If we have not closed the device, then at least rewind the tape */
+   if (dev->state & ST_OPENED) {
+      offline_or_rewind_dev(dev);
+   }
 }

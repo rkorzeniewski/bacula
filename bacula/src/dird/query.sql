@@ -8,7 +8,7 @@ SELECT max(JobId) AS Jobs,sum(JobFiles) AS Files,
 *Enter path with trailing slash:
 *Enter filename:
 *Enter Client name:
-SELECT Job.JobId, StartTime AS JobStartTime, VolumeName, Client.Name AS ClientName
+SELECT Job.JobId,StartTime AS JobStartTime,VolumeName,Client.Name AS ClientName
  FROM Job,File,Path,Filename,Media,JobMedia,Client
  WHERE File.JobId=Job.JobId
  AND Path.Path='%1'
@@ -25,7 +25,7 @@ SELECT Job.JobId, StartTime AS JobStartTime, VolumeName, Client.Name AS ClientNa
 *Enter path with trailing slash:
 *Enter filename:
 *Enter Client name:
-SELECT Job.JobId, StartTime AS JobStartTime, VolumeName, Client.Name AS ClientName
+SELECT Job.JobId,StartTime AS JobStartTime,VolumeName,Client.Name AS ClientName
  FROM Job,File,Path,Filename,Media,JobMedia,Client
  WHERE File.JobId=Job.JobId
  AND Path.Path='%1'
@@ -47,7 +47,29 @@ JobMedia.StartFile as VolFile,VolumeName
  AND Client.ClientId=Job.ClientId
  AND Level='F' AND JobStatus='T'
  AND JobMedia.JobId=Job.JobId AND JobMedia.MediaId=Media.MediaId
- ORDER BY JobId DESC LIMIT 20;
+ ORDER BY Job.StartTime DESC LIMIT 20;
+#
+:List all backups for a Client after a specified time
+*Enter Client Name:
+*Enter time in YYYY-MM-DD HH:MM:SS format:
+Select Job.JobId,Client.Name as Client,Level,StartTime,JobFiles,JobBytes,VolumeName
+  FROM Client,Job,JobMedia,Media
+  WHERE Client.Name='%1'
+  AND Client.ClientId=Job.ClientId
+  AND JobStatus='T'
+  AND JobMedia.JobId=Job.JobId AND JobMedia.MediaId=Media.MediaId
+  AND Job.StartTime >= '%2'
+  ORDER BY Job.StartTime;
+#
+:List all backups for a Client
+*Enter Client Name:
+Select Job.JobId,Client.Name as Client,Level,StartTime,JobFiles,JobBytes,VolumeName
+  FROM Client,Job,JobMedia,Media
+  WHERE Client.Name='%1'
+  AND Client.ClientId=Job.ClientId
+  AND JobStatus='T'
+  AND JobMedia.JobId=Job.JobId AND JobMedia.MediaId=Media.MediaId
+  ORDER BY Job.StartTime;
 #
 :List Volume Attributes for a selected Volume:
 *Enter Volume name:
@@ -126,7 +148,7 @@ SELECT Job.JobId as JobId, Client.Name as Client,
  FROM Client,Job,File,Filename,Path WHERE Client.ClientId=Job.ClientId
  AND JobStatus='T' AND Job.JobId=File.JobId
  AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId
- AND Filename.Name='%1' ORDER BY Job.JobId LIMIT 20;
+ AND Filename.Name='%1' ORDER BY Job.StartTime LIMIT 20;
 #
 :List total files/bytes by Job:
 SELECT count(*) AS Jobs, sum(JobFiles) AS Files,

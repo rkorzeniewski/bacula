@@ -211,13 +211,13 @@ int create_file(JCR *jcr, char *fname, char *ofile, char *lname,
 	 return CF_CREATED;
 
       case FT_LNKSAVED: 		 /* Hard linked, file already saved */
-      Dmsg2(130, "Hard link %s => %s\n", ofile, lname);
-      if (link(lname, ofile) != 0) {
-         Jmsg3(jcr, M_ERROR, 0, _("Could not hard link %s -> %s: ERR=%s\n"),
-	       ofile, lname, strerror(errno));
-	 return CF_ERROR;
-      }
-      return CF_CREATED;
+         Dmsg2(130, "Hard link %s => %s\n", ofile, lname);
+	 if (link(lname, ofile) != 0) {
+            Jmsg3(jcr, M_ERROR, 0, _("Could not hard link %s -> %s: ERR=%s\n"),
+		  ofile, lname, strerror(errno));
+	    return CF_ERROR;
+	 }
+	 return CF_CREATED;
 
       } /* End inner switch */
 

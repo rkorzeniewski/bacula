@@ -63,56 +63,58 @@ extern int relabelcmd(UAContext *ua, char *cmd);
 extern int update_slots(UAContext *ua);  /* ua_label.c */
 
 /* Forward referenced functions */
-static int addcmd(UAContext *ua, char *cmd),  createcmd(UAContext *ua, char *cmd), cancelcmd(UAContext *ua, char *cmd);
-static int setdebugcmd(UAContext *ua, char *cmd);
-static int helpcmd(UAContext *ua, char *cmd);
-static int deletecmd(UAContext *ua, char *cmd);
-static int usecmd(UAContext *ua, char *cmd),  unmountcmd(UAContext *ua, char *cmd);
-static int versioncmd(UAContext *ua, char *cmd), automountcmd(UAContext *ua, char *cmd);
-static int timecmd(UAContext *ua, char *cmd);
+static int add_cmd(UAContext *ua, char *cmd),  createcmd(UAContext *ua, char *cmd), cancelcmd(UAContext *ua, char *cmd);
+static int setdebug_cmd(UAContext *ua, char *cmd);
+static int help_cmd(UAContext *ua, char *cmd);
+static int delete_cmd(UAContext *ua, char *cmd);
+static int use_cmd(UAContext *ua, char *cmd),  unmount_cmd(UAContext *ua, char *cmd);
+static int version_cmd(UAContext *ua, char *cmd), automount_cmd(UAContext *ua, char *cmd);
+static int time_cmd(UAContext *ua, char *cmd);
 static int update_volume(UAContext *ua);
 static int update_pool(UAContext *ua);
 static int delete_volume(UAContext *ua);
 static int delete_pool(UAContext *ua);
-static int mountcmd(UAContext *ua, char *cmd);
-static int updatecmd(UAContext *ua, char *cmd);
-static int waitcmd(UAContext *ua, char *cmd);
+static int mount_cmd(UAContext *ua, char *cmd);
+static int release_cmd(UAContext *ua, char *cmd);
+static int update_cmd(UAContext *ua, char *cmd);
+static int wait_cmd(UAContext *ua, char *cmd);
 
-int quitcmd(UAContext *ua, char *cmd);
+int quit_cmd(UAContext *ua, char *cmd);
 
 
 struct cmdstruct { char *key; int (*func)(UAContext *ua, char *cmd); char *help; }; 
 static struct cmdstruct commands[] = {
- { N_("add"),        addcmd,       _("add media to a pool")},
+ { N_("add"),        add_cmd,       _("add media to a pool")},
  { N_("autodisplay"), autodisplaycmd, _("autodisplay [on/off] -- console messages")},
- { N_("automount"),   automountcmd,   _("automount [on/off] -- after label")},
+ { N_("automount"),   automount_cmd,   _("automount [on/off] -- after label")},
  { N_("cancel"),     cancelcmd,    _("cancel job=nnn -- cancel a job")},
  { N_("create"),     createcmd,    _("create DB Pool from resource")},  
- { N_("delete"),     deletecmd,    _("delete [pool=<pool-name> | media volume=<volume-name>]")},    
- { N_("help"),       helpcmd,      _("print this command")},
+ { N_("delete"),     delete_cmd,    _("delete [pool=<pool-name> | media volume=<volume-name>]")},    
+ { N_("help"),       help_cmd,      _("print this command")},
  { N_("label"),      labelcmd,     _("label a tape")},
  { N_("relabel"),    relabelcmd,   _("relabel a tape")},
  { N_("list"),       listcmd,      _("list [pools | jobs | jobtotals | media <pool> | files job=<nn>]; from catalog")},
  { N_("llist"),      llistcmd,     _("full or long list like list command")},
  { N_("messages"),   messagescmd,  _("messages")},
- { N_("mount"),      mountcmd,     _("mount <storage-name>")},
+ { N_("mount"),      mount_cmd,     _("mount <storage-name>")},
  { N_("restore"),    restorecmd,   _("restore files")},
  { N_("prune"),      prunecmd,     _("prune expired records from catalog")},
  { N_("purge"),      purgecmd,     _("purge records from catalog")},
  { N_("run"),        runcmd,       _("run <job-name>")},
- { N_("setdebug"),   setdebugcmd,  _("sets debug level")},
+ { N_("setdebug"),   setdebug_cmd,  _("sets debug level")},
  { N_("show"),       showcmd,      _("show (resource records) [jobs | pools | ... | all]")},
  { N_("sqlquery"),   sqlquerycmd,  _("use SQL to query catalog")}, 
  { N_("status"),     statuscmd,    _("status [storage | client]=<name>")},
- { N_("unmount"),    unmountcmd,   _("unmount <storage-name>")},
- { N_("update"),     updatecmd,    _("update Volume or Pool")},
- { N_("use"),        usecmd,       _("use catalog xxx")},
- { N_("version"),    versioncmd,   _("print Director version")},
- { N_("quit"),       quitcmd,      _("quit")},
+ { N_("unmount"),    unmount_cmd,   _("unmount <storage-name>")},
+ { N_("update"),     update_cmd,    _("update Volume or Pool")},
+ { N_("use"),        use_cmd,       _("use catalog xxx")},
+ { N_("version"),    version_cmd,   _("print Director version")},
+ { N_("quit"),       quit_cmd,      _("quit")},
  { N_("query"),      querycmd,     _("query catalog")},
- { N_("time"),       timecmd,      _("print current time")},
- { N_("exit"),       quitcmd,      _("exit = quit")},
- { N_("wait"),       waitcmd,      _("wait until no jobs are running")},
+ { N_("release"),    release_cmd,   _("release <storage-name>")},
+ { N_("time"),       time_cmd,      _("print current time")},
+ { N_("exit"),       quit_cmd,      _("exit = quit")},
+ { N_("wait"),       wait_cmd,      _("wait until no jobs are running")},
 	     };
 #define comsize (sizeof(commands)/sizeof(struct cmdstruct))
 
@@ -170,7 +172,7 @@ void set_pool_dbr_defaults_in_media_dbr(MEDIA_DBR *mr, POOL_DBR *pr)
 /*
  *  Add Volumes to an existing Pool
  */
-static int addcmd(UAContext *ua, char *cmd) 
+static int add_cmd(UAContext *ua, char *cmd) 
 {
    POOL_DBR pr;
    MEDIA_DBR mr;
@@ -314,7 +316,7 @@ getVolName:
  *  automount on 
  *  automount off
  */
-int automountcmd(UAContext *ua, char *cmd)
+int automount_cmd(UAContext *ua, char *cmd)
 {
    char *onoff;
 
@@ -598,7 +600,7 @@ Use update to change it.\n"), pool->hdr.name);
  *    update media pool=<pool-name> volume=<volume-name>
  *	   changes pool info for volume
  */
-static int updatecmd(UAContext *ua, char *cmd) 
+static int update_cmd(UAContext *ua, char *cmd) 
 {
    static char *kw[] = {
       N_("media"),  /* 0 */
@@ -1058,7 +1060,7 @@ static void do_all_setdebug(UAContext *ua, int level)
 /*
  * setdebug level=nn all
  */
-static int setdebugcmd(UAContext *ua, char *cmd)
+static int setdebug_cmd(UAContext *ua, char *cmd)
 {
    STORE *store;
    CLIENT *client;
@@ -1163,7 +1165,7 @@ static int setdebugcmd(UAContext *ua, char *cmd)
 /*
  * print time
  */
-static int timecmd(UAContext *ua, char *cmd)
+static int time_cmd(UAContext *ua, char *cmd)
 {
    char sdt[50];
    time_t ttime = time(NULL);
@@ -1182,7 +1184,7 @@ static int timecmd(UAContext *ua, char *cmd)
  *  delete pool=<pool-name>
  *  delete media pool=<pool-name> volume=<name>
  */
-static int deletecmd(UAContext *ua, char *cmd)
+static int delete_cmd(UAContext *ua, char *cmd)
 {
    static char *keywords[] = {
       N_("volume"),
@@ -1266,7 +1268,7 @@ static int delete_pool(UAContext *ua)
 }
 
 
-static void do_mount_cmd(int mount, UAContext *ua, char *cmd)
+static void do_mount_cmd(UAContext *ua, char *command)
 {
    STORE *store;
    BSOCK *sd;
@@ -1276,7 +1278,7 @@ static void do_mount_cmd(int mount, UAContext *ua, char *cmd)
    if (!open_db(ua)) {
       return;
    }
-   Dmsg1(120, "mount: %s\n", ua->UA_sock->msg);
+   Dmsg2(120, "%s: %s\n", command, ua->UA_sock->msg);
 
    store = get_storage_resource(ua, 1);
    if (!store) {
@@ -1294,16 +1296,9 @@ static void do_mount_cmd(int mount, UAContext *ua, char *cmd)
    sd = ua->jcr->store_bsock;
    strcpy(dev_name, store->dev_name);
    bash_spaces(dev_name);
-   if (mount) {
-      bnet_fsend(sd, "mount %s", dev_name);
-   } else {
-      bnet_fsend(sd, "unmount %s", dev_name);
-   }
+   bnet_fsend(sd, "%s %s", command, dev_name);
    while (bnet_recv(sd) >= 0) {
       bsendmsg(ua, "%s", sd->msg);
-      if (strncmp(sd->msg, "3001 OK mount.", 14) == 0) {
-	  /***** ****FIXME**** fix JobStatus */
-      }
    }
    bnet_sig(sd, BNET_TERMINATE);
    bnet_close(sd);
@@ -1313,9 +1308,9 @@ static void do_mount_cmd(int mount, UAContext *ua, char *cmd)
 /*
  * mount [storage | device] <name>
  */
-static int mountcmd(UAContext *ua, char *cmd)
+static int mount_cmd(UAContext *ua, char *cmd)
 {
-   do_mount_cmd(1, ua, cmd);	      /* mount */
+   do_mount_cmd(ua, "mount");          /* mount */
    return 1;
 }
 
@@ -1323,9 +1318,19 @@ static int mountcmd(UAContext *ua, char *cmd)
 /*
  * unmount [storage | device] <name>
  */
-static int unmountcmd(UAContext *ua, char *cmd)
+static int unmount_cmd(UAContext *ua, char *cmd)
 {
-   do_mount_cmd(0, ua, cmd);	      /* unmount */
+   do_mount_cmd(ua, "unmount");          /* unmount */
+   return 1;
+}
+
+
+/*
+ * release [storage | device] <name>
+ */
+static int release_cmd(UAContext *ua, char *cmd)
+{
+   do_mount_cmd(ua, "release");          /* release */
    return 1;
 }
 
@@ -1334,7 +1339,7 @@ static int unmountcmd(UAContext *ua, char *cmd)
  * Switch databases
  *   use catalog=<name>
  */
-static int usecmd(UAContext *ua, char *cmd)
+static int use_cmd(UAContext *ua, char *cmd)
 {
    CAT *oldcatalog, *catalog;
 
@@ -1354,7 +1359,7 @@ static int usecmd(UAContext *ua, char *cmd)
    return 1;
 }
 
-int quitcmd(UAContext *ua, char *cmd) 
+int quit_cmd(UAContext *ua, char *cmd) 
 {
    ua->quit = TRUE;
    return 1;
@@ -1363,7 +1368,7 @@ int quitcmd(UAContext *ua, char *cmd)
 /*
  * Wait until no job is running 
  */
-int waitcmd(UAContext *ua, char *cmd) 
+int wait_cmd(UAContext *ua, char *cmd) 
 {
    bmicrosleep(0, 200000);	      /* let job actually start */
    for (int running=1; running; ) {
@@ -1386,7 +1391,7 @@ int waitcmd(UAContext *ua, char *cmd)
 }
 
 
-static int helpcmd(UAContext *ua, char *cmd)
+static int help_cmd(UAContext *ua, char *cmd)
 {
    unsigned int i;
 
@@ -1399,7 +1404,7 @@ static int helpcmd(UAContext *ua, char *cmd)
    return 1;
 }
 
-static int versioncmd(UAContext *ua, char *cmd)
+static int version_cmd(UAContext *ua, char *cmd)
 {
    bsendmsg(ua, "%s Version: " VERSION " (" BDATE ")\n", my_name);
    return 1;

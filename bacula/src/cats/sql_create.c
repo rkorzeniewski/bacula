@@ -114,6 +114,7 @@ int
 db_create_jobmedia_record(JCR *jcr, B_DB *mdb, JOBMEDIA_DBR *jm)
 {
    int stat;
+   int count;
 
    db_lock(mdb);
    Mmsg(&mdb->cmd, "SELECT JobId, MediaId FROM JobMedia WHERE \
@@ -132,13 +133,21 @@ JobId=%d AND MediaId=%d", jm->JobId, jm->MediaId);
       sql_free_result(mdb);
    }
 
+   /* Now get count for VolIndex */
+   Mmsg(&mdb->cmd, "SELECT count(*) from JobMedia");
+   count = get_sql_record_max(jcr, mdb);
+   if (count < 0) {
+      count = 0;
+   }
+   count++;
+
    /* Must create it */
    Mmsg(&mdb->cmd, 
 "INSERT INTO JobMedia (JobId,MediaId,FirstIndex,LastIndex,\
-StartFile,EndFile,StartBlock,EndBlock) \
-VALUES (%u,%u,%u,%u,%u,%u,%u,%u)", 
+StartFile,EndFile,StartBlock,EndBlock,VolIndex) \
+VALUES (%u,%u,%u,%u,%u,%u,%u,%u,%u)", 
        jm->JobId, jm->MediaId, jm->FirstIndex, jm->LastIndex,
-       jm->StartFile, jm->EndFile, jm->StartBlock, jm->EndBlock);
+       jm->StartFile, jm->EndFile, jm->StartBlock, jm->EndBlock,count);
 
    Dmsg0(30, mdb->cmd);
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {

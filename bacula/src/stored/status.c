@@ -101,7 +101,11 @@ int status_cmd(JCR *jcr)
 	       if (bpb <= 0) {
 		  bpb = 1;
 	       }
-	       bpb = dev->VolCatInfo.VolCatRBytes / bpb;
+	       if (dev->VolCatInfo.VolCatRBytes > 0) {
+		  bpb = dev->VolCatInfo.VolCatRBytes / bpb;
+	       } else {
+		  bpb = 0;
+	       }
                bnet_fsend(user, _("    Total Bytes Read=%s Blocks Read=%s Bytes/block=%s\n"),
 		  edit_uint64_with_commas(dev->VolCatInfo.VolCatRBytes, b1),
 		  edit_uint64_with_commas(dev->VolCatInfo.VolCatReads, b2), 
@@ -128,11 +132,11 @@ int status_cmd(JCR *jcr)
 	    job_type_to_str(jcr->JobType), jcr->Job);
       }
       if (jcr->device) {
-         bnet_fsend(user, _("%s %s job %s is using device %s volume %s\n"), 
+         bnet_fsend(user, _("%s %s job %s using Volume \"%s\" on device %s\n"), 
 		   job_level_to_str(jcr->JobLevel),
 		   job_type_to_str(jcr->JobType),
-		   jcr->Job, jcr->device->device_name,
-		   jcr->VolumeName);
+		   jcr->VolumeName,
+		   jcr->Job, jcr->device->device_name);
 	 sec = time(NULL) - jcr->run_time;
 	 if (sec <= 0) {
 	    sec = 1;
@@ -197,5 +201,5 @@ static void send_blocked_status(JCR *jcr, DEVICE *dev)
       break;
    default:
       break;
-}
+   }
 }

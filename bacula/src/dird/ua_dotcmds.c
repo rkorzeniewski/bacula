@@ -42,7 +42,7 @@ extern char my_name[];
 
 /* Imported functions */
 extern int qmessagescmd(UAContext *ua, char *cmd);
-extern int quitcmd(UAContext *ua, char *cmd);
+extern int quit_cmd(UAContext *ua, char *cmd);
 
 /* Forward referenced functions */
 static int diecmd(UAContext *ua, char *cmd);
@@ -69,8 +69,8 @@ static struct cmdstruct commands[] = {
  { N_(".storage"),    storagecmd,   NULL},
  { N_(".defaults"),   defaultscmd,  NULL},
  { N_(".messages"),   qmessagescmd, NULL},
- { N_(".quit"),       quitcmd,      NULL},
- { N_(".exit"),       quitcmd,      NULL} 
+ { N_(".quit"),       quit_cmd,     NULL},
+ { N_(".exit"),       quit_cmd,     NULL} 
 	     };
 #define comsize (sizeof(commands)/sizeof(struct cmdstruct))
 

@@ -99,7 +99,7 @@ db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
       }
       if ((row = sql_fetch_row(mdb)) == NULL) {
 	 sql_free_result(mdb);
-         Mmsg0(&mdb->errmsg, _("No Job Found.\n"));
+         Mmsg(&mdb->errmsg, _("No prior Job record found.\n"));
 	 db_unlock(mdb);
 	 return 0;
       }

@@ -370,7 +370,9 @@ Without that I don't know who I am :-(\n"), configfile);
 			    catalog->db_password, catalog->db_address,
 			    catalog->db_port, catalog->db_socket);
 	 if (!db_open_database(NULL, db)) {
-	    OK = FALSE; 	    /* Error message already printed */
+            Jmsg(NULL, M_FATAL, 0, _("Could not open database \"%s\".\n"),
+		 catalog->db_name);
+	    OK = FALSE;
 	 } else {
 	    /* If a pool is defined for this job, create the pool DB	   
 	     *	record if it is not already created. 

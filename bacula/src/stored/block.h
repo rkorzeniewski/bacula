@@ -85,24 +85,22 @@
 struct DEV_BLOCK {
    DEV_BLOCK *next;                   /* pointer to next one */
    void *dev;                         /* pointer to device (DEVICE not defined yet) */
-   /* binbuf is the number of bytes remaining
-    * in the buffer. For writes, it is bytes not yet written.
-    * For reads, it is remaining bytes not yet read.
+   /* binbuf is the number of bytes remaining in the buffer.
+    *   For writes, it is bytes not yet written.
+    *   For reads, it is remaining bytes not yet read.
     */
    uint32_t binbuf;                   /* bytes in buffer */
    uint32_t block_len;                /* length of current block read */
    uint32_t buf_len;                  /* max/default block length */
-   uint32_t BlockNumber;              /* sequential block number */
+   uint32_t BlockNumber;              /* sequential Bacula block number */
    uint32_t read_len;                 /* bytes read into buffer, if zero, block empty */
    uint32_t VolSessionId;             /* */
    uint32_t VolSessionTime;           /* */
    int      BlockVer;                 /* block version 1 or 2 */
    bool     write_failed;             /* set if write failed */
    bool     block_read;               /* set when block read */
-   char *bufp;                        /* pointer into buffer */
-   POOLMEM *buf;                      /* actual data buffer. This is a 
-                                       * Pool buffer!   
-                                       */
+   char    *bufp;                     /* pointer into buffer */
+   POOLMEM *buf;                      /* actual data buffer */
 };
 
 #define block_is_empty(block) !((block)->read_len)

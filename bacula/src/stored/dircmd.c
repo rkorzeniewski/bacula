@@ -64,6 +64,7 @@ extern int status_cmd(JCR *sjcr);
 /* Forward referenced functions */
 static int label_cmd(JCR *jcr);
 static int relabel_cmd(JCR *jcr);
+static int release_cmd(JCR *jcr);
 static int setdebug_cmd(JCR *jcr);
 static int cancel_cmd(JCR *cjcr);
 static int mount_cmd(JCR *jcr);
@@ -92,6 +93,7 @@ static struct s_cmds cmds[] = {
    {"unmount",   unmount_cmd},
    {"status",    status_cmd},
    {"autochanger", autochanger_cmd},
+   {"release",   release_cmd},
    {NULL,	 NULL}		      /* list terminator */
 };
 
@@ -671,6 +673,88 @@ static int unmount_cmd(JCR *jcr)
    bnet_sig(dir, BNET_EOD);
    return 1;
 }
+
+/*
+ * Release command from Director. This rewinds the device and if
+ *   configured does a offline and ensures that Bacula will
+ *   re-read the label of the tape before continuing. This gives
+ *   the operator the chance to change the tape anytime before the
+ *   next job starts.
+ */
+static int release_cmd(JCR *jcr)
+{
+   POOLMEM *dname;
+   BSOCK *dir = jcr->dir_bsock;
+   DEVRES *device;
+   DEVICE *dev;
+   int found = 0;
+
+   dname = get_memory(dir->msglen+1);
+   if (sscanf(dir->msg, "release %s", dname) == 1) {
+      unbash_spaces(dname);
+      device = NULL;
+      LockRes();
+      while ((device=(DEVRES *)GetNextRes(R_DEVICE, (RES *)device))) {
+	 /* Find resource, and make sure we were able to open it */
+	 if (strcmp(device->hdr.name, dname) == 0 && device->dev) {
+            Dmsg1(20, "Found device %s\n", device->hdr.name);
+	    found = 1;
+	    break;
+	 }
+      }
+      UnlockRes();
+      if (found) {
+	 jcr->device = device;
+	 dev = device->dev;
+	 P(dev->mutex); 	      /* Use P to avoid indefinite block */
+	 if (!(dev->state & ST_OPENED)) {
+            Dmsg0(90, "Device already released\n");
+            bnet_fsend(dir, _("3911 Device %s already released.\n"), dev_name(dev));
+
+	 } else if (dev->dev_blocked == BST_WAITING_FOR_SYSOP ||
+		    dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP) {
+            Dmsg2(90, "%d waiter dev_block=%d. doing unmount\n", dev->num_waiting,
+	       dev->dev_blocked);
+            bnet_fsend(dir, _("3912 Device %s waiting for mount.\n"), dev_name(dev));
+
+	 } else if (dev->dev_blocked == BST_DOING_ACQUIRE) {
+            bnet_fsend(dir, _("3913 Device %s is busy in acquire.\n"),
+	       dev_name(dev));
+
+	 } else if (dev->dev_blocked == BST_WRITING_LABEL) {
+            bnet_fsend(dir, _("3914 Device %s is being labeled.\n"),
+	       dev_name(dev));
+
+	 } else if (dev->state & ST_READ || dev->num_writers) {
+	    if (dev->state & ST_READ) {
+                Dmsg0(90, "Device in read mode\n");
+                bnet_fsend(dir, _("3915 Device %s is busy with 1 reader.\n"),
+		   dev_name(dev));
+	    } else {
+                Dmsg1(90, "Device busy with %d writers\n", dev->num_writers);
+                bnet_fsend(dir, _("3916 Device %s is busy with %d writer(s).\n"),
+		   dev_name(dev), dev->num_writers);
+	    }
+
+	 } else {		      /* device not being used */
+            Dmsg0(90, "Device not in use, unmounting\n");
+	    release_volume(jcr, dev);
+            bnet_fsend(dir, _("3012 Device %s released.\n"), dev_name(dev));
+	 }
+	 V(dev->mutex);
+      } else {
+         bnet_fsend(dir, _("3999 Device %s not found\n"), dname);
+      }
+   } else {
+      /* NB dir->msg gets clobbered in bnet_fsend, so save command */
+      pm_strcpy(&jcr->errmsg, dir->msg);
+      bnet_fsend(dir, _("3917 Error scanning release command: %s\n"), jcr->errmsg);
+   }
+   free_memory(dname);
+   bnet_sig(dir, BNET_EOD);
+   return 1;
+}
+
 
 
 /*

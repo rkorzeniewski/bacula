@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                  31 May  2003 
+                  06 June 2003 
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -26,19 +26,48 @@ Testing to do: (painful)
 - Test cancel at EOM.       
 - Test not zeroing Autochanger slot when it is wrong.
 - Test multiple simultaneous Volumes
+- That restoring a hard link that already exists works correctly.
+  Same for soft link.
+- Test of last block is correct in JobMedia when splitting file 
+  over two volumes.
 
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
+- Something is not right in last block of fill command.
+- Check this below from Phil.
+  > When the job was done, Bacula reported 11084 files restored:
+  > 
+  > JobId:                  527                                                     
+  > Job:                    Zocalo_Restore.2003-06-05_16.42.01                      
+  > Client:                 Zocalo                                                  
+  > Start time:             05-Jun-2003 16:42                                       
+  > End time:               06-Jun-2003 01:21                                       
+  > Files Restored:         11,084                                                  
+  > Bytes Restored:         65,474,772                                              
+  > Rate:                   2.1 KB/s                                                
+  > FD termination status:  OK                                                      
+  > Termination:            Restore OK                                              
+  > 
+  > when it should probably have reported 11084 files scanned, 250 restored.
+  > The bytes restored count looks about right.
+  > 
+- If during a restore, a hard linked file already exists (on option), delete
+  the file and re-link it.  This is to avoid the possibility that the
+  user had re-linked the file between the backup and the restore.
+  Do lstat() to see if it is already properly linked.
+  Same for symlinked file.
+- Remove the Jmsg() in sql_find.c:102 or only print on hard error.
+- Implement List Volume Job=xxx  or List scheduled volumes or
+  Status Director 
 - Instrument use_count on DEVICE packets and ensure that the device is
   being close()ed at the appropriate time.
 - Check if Incremental is working correctly when it looks for the previous Job 
   (Phil's problem).
 - Add next Volume to be used to status output.
 - Add a recycle command.
-- Command to determine next volume needed for a particular job.
 - Make bootstrap filename unique.
-- Implement FileSet VolIndex.
+- Implement FileSet VolIndex -- done, but must update old records.
 - Sort JobIds entered into recover tree.
 - The bsr for Dan's job has file indexes covering the whole range rather
   than only the range contained on the volume.
@@ -82,6 +111,8 @@ For 1.31 release:
 
 
 After 1.31:
+- When doing a Backup send all attributes back to the Director, who
+  would then figure out what files have been deleted.
 - Currently in mount.c:236 the SD simply creates a Volume. It should have
   explicit permission to do so.  It should also mark the tape in error
   if there is an error.
@@ -254,6 +285,18 @@ After 1.31:
 - Concept of precious tapes (cannot be reused).
 - Make bcopy copy with a single tape drive.
 - Permit changing ownership during restore.
+
+- From Phil:
+  > My suggestion:  Add a feature on the systray menu-icon menu to request
+  > an immediate backup now.  This would be useful for laptop users who may
+  > not be on the network when the regular scheduled backup is run.
+  > 
+  > My wife's suggestion: Add a setting to the win32 client to allow it to
+  > shut down the machine after backup is complete (after, of course,
+  > displaying a "System will shut down in one minute, click here to cancel"
+  > warning dialog).  This would be useful for sites that want user
+  > woorkstations to be shut down overnight to save power.
+  > 
 
 - Autolabel should be specified by DIR instead of SD.
 - Storage daemon    
@@ -923,3 +966,4 @@ Done: (see kernsdone for more)
 - The "List last 20 Jobs run" doesnt work correctly in restore.
   It doesnt show the last 20 jobs , but some older ones.
 - Fix Verify VolumeToCatalog to use BSRs -- it is broken.
+- Implement Release Storage=xxx

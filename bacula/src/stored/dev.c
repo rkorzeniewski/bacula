@@ -83,11 +83,6 @@
 #include "stored.h"
 
 /* Forward referenced functions */
-int dev_is_tape(DEVICE *dev);
-void clrerror_dev(DEVICE *dev, int func);
-int fsr_dev(DEVICE *dev, int num);
-
-extern int debug_level;
 
 /* 
  * Allocate and initialize the DEVICE structure
@@ -344,7 +339,7 @@ int rewind_dev(DEVICE *dev)
       Emsg0(M_FATAL, 0, dev->errmsg);
       return 0;
    }
-   dev->state &= ~(ST_APPEND|ST_READ|ST_EOT | ST_EOF | ST_WEOT);  /* remove EOF/EOT flags */
+   dev->state &= ~(ST_APPEND|ST_READ|ST_EOT|ST_EOF|ST_WEOT);  /* remove EOF/EOT flags */
    dev->block_num = dev->file = 0;
    dev->file_addr = 0;
    if (dev->state & ST_TAPE) {
@@ -651,6 +646,7 @@ int offline_dev(DEVICE *dev)
       return 1;
    }
 
+   dev->state &= ~(ST_APPEND|ST_READ|ST_EOT|ST_EOF|ST_WEOT);  /* remove EOF/EOT flags */
    dev->block_num = dev->file = 0;
    dev->file_addr = 0;
 #ifdef MTUNLOCK

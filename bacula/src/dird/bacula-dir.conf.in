@@ -27,15 +27,15 @@ Director {                            # define myself
 # Define the main nightly save backup job
 #   By default, this job will back up to disk in /tmp
 Job {
-  Name = "NightlySave"
+  Name = "Client1"
   Type = Backup
-  Client=@hostname@-fd 
-  FileSet="Full Set"
+  Client = @hostname@-fd 
+  FileSet = "Full Set"
   Schedule = "WeeklyCycle"
   Storage = File
   Messages = Standard
   Pool = Default
-  Write Bootstrap = "@working_dir@/NightlySave.bsr"
+  Write Bootstrap = "@working_dir@/Client1.bsr"
 }
 
 # Backup the catalog database (after the nightly save)

@@ -357,8 +357,6 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       Jmsg(jcr, M_INFO, 0, _("User defined maximum volume capacity %s exceeded on device %s.\n"),
 	    edit_uint64(max_cap, ed1),	dev->dev_name);
       block->write_failed = true;
-      dev->EndBlock = dev->block_num;
-      dev->EndFile  = dev->file;
       weof_dev(dev, 1); 	      /* end the tape */
       weof_dev(dev, 1); 	      /* write second eof */
       dev->state |= (ST_EOF | ST_EOT | ST_WEOT);
@@ -403,8 +401,6 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	 wlen, stat, dev->dev_errno, strerror(dev->dev_errno));
 
       block->write_failed = true;
-      dev->EndBlock = dev->block_num;
-      dev->EndFile  = dev->file;
       weof_dev(dev, 1); 	      /* end the tape */
       weof_dev(dev, 1); 	      /* write second eof */
       dev->state |= (ST_EOF | ST_EOT | ST_WEOT);

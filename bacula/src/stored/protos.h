@@ -147,6 +147,7 @@ int match_bsr(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
 /* From mount.c */
 int      mount_next_write_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, int release);
 int      mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
+void     release_volume(JCR *jcr, DEVICE *dev);
 
 /* From autochanger.c */
 int      autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir);

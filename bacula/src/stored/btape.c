@@ -68,6 +68,7 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
 static int my_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
 static void scan_blocks();
 static void set_volume_name(char *VolName, int volnum);
+static void rawfill_cmd();
 
 
 /* Static variables */
@@ -106,19 +107,6 @@ static JCR *jcr = NULL;
 static void usage();
 static void terminate_btape(int sig);
 int get_cmd(char *prompt);
-
-
-int write_dev(DEVICE *dev, char *buf, size_t len) 
-{
-   Emsg0(M_ABORT, 0, "write_dev not implemented.\n");
-   return 0;
-}
-
-int read_dev(DEVICE *dev, char *buf, size_t len)
-{
-   Emsg0(M_ABORT, 0, "read_dev not implemented.\n");
-   return 0;
-}
 
 
 /*********************************************************************
@@ -918,6 +906,7 @@ static void scancmd()
    }
    update_pos_dev(dev);
    tot_files = dev->file;
+   Pmsg1(0, _("Starting scan at file %u\n"), dev->file);
    for (;;) {
       if ((stat = read(dev->fd, buf, sizeof(buf))) < 0) {
 	 clrerror_dev(dev, -1);
@@ -1227,7 +1216,7 @@ This may take a long time -- hours! ...\n\n");
 
       /* Get out after writing 10 blocks to the second tape */
       if (BlockNumber > 10 && stop != 0) {	/* get out */
-         Pmsg0(-1, "Done writing 10 blocks to second tape.\n");
+         Pmsg0(-1, "Done writing ...\n");
 	 break;    
       }
    }
@@ -1286,22 +1275,24 @@ static void unfillcmd()
 
    end_of_tape = 0;
 
-   /* Close device so user can use autochanger if desired */
-   if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
-      offline_dev(dev);
-   }
-   force_close_dev(dev);
-   get_cmd(_("Mount first tape. Press enter when ready: ")); 
+   if (!simple) {
+      /* Close device so user can use autochanger if desired */
+      if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
+	 offline_dev(dev);
+      }
+      force_close_dev(dev);
+      get_cmd(_("Mount first tape. Press enter when ready: ")); 
    
-   free_vol_list(jcr);
-   set_volume_name("TestVolume1", 1);
-   jcr->bsr = NULL;
-   create_vol_list(jcr);
-   close_dev(dev);
-   dev->state &= ~ST_READ;
-   if (!acquire_device_for_read(jcr, dev, block)) {
-      Pmsg1(-1, "%s", dev->errmsg);
-      return;
+      free_vol_list(jcr);
+      set_volume_name("TestVolume1", 1);
+      jcr->bsr = NULL;
+      create_vol_list(jcr);
+      close_dev(dev);
+      dev->state &= ~ST_READ;
+      if (!acquire_device_for_read(jcr, dev, block)) {
+         Pmsg1(-1, "%s", dev->errmsg);
+	 return;
+      }
    }
 
    time(&jcr->run_time);	      /* start counting time for rates */
@@ -1330,7 +1321,7 @@ static void unfillcmd()
       Pmsg1(-1, _("Forward space to file %u complete. Reading blocks ...\n"), 
 	    last_file);
       Pmsg1(-1, _("Now reading to block %u.\n"), last_block_num);
-      for (uint32_t i= 0; i < last_block_num; i++) {
+      for (uint32_t i=0; i <= last_block_num; i++) {
 	 if (!read_block_from_device(jcr, dev, block, NO_BLOCK_NUMBER_CHECK)) {
             Pmsg1(-1, _("Error reading blocks: ERR=%s\n"), strerror_dev(dev));
             Pmsg2(-1, _("Wanted block %u error at block %u\n"), last_block_num, i);
@@ -1487,6 +1478,8 @@ static int flush_block(DEV_BLOCK *block, int dump)
       Pmsg0(000, strerror_dev(dev));		
       Pmsg3(000, "Block not written: FileIndex=%u Block=%u Size=%u\n", 
 	 (unsigned)file_index, block->BlockNumber, block->block_len);
+      Pmsg2(000, "last_block_num=%u this_block_num=%d\n", last_block_num,
+	 this_block_num);
       if (dump) {
          dump_block(block, "Block not written");
       }
@@ -1595,7 +1588,45 @@ bail_out:
 
 }
 
+static void rawfill_cmd()
+{
+   DEV_BLOCK *block;
+   int stat;
+   int fd;
+   uint32_t block_num = 0;
+   uint32_t *p;
+   int my_errno;
 
+   block = new_block(dev);
+   fd = open("/dev/urandom", O_RDONLY);
+   if (fd) {
+      read(fd, block->buf, block->buf_len);
+   } else {
+      Pmsg0(0, "Cannot open /dev/urandom.\n");
+      free_block(block);
+      return;
+   }
+   p = (uint32_t *)block->buf;
+   Pmsg1(0, "Begin writing blocks of %u bytes.\n", block->buf_len);
+   for ( ;; ) {
+      *p = block_num;
+      stat = write(dev->fd, block->buf, block->buf_len);
+      if (stat == (int)block->buf_len) {
+	 if ((block_num++ % 100) == 0) {
+            printf("+");
+	 }
+	 continue;
+      }
+      break;
+   }
+   my_errno = errno;
+   printf("\n");
+   weofcmd();
+   printf("Write failed at block %u. stat=%d ERR=%s\n", block_num, stat,
+      strerror(my_errno));
+   free_block(block);
+
+}
 
 struct cmdstruct { char *key; void (*func)(); char *help; }; 
 static struct cmdstruct commands[] = {
@@ -1613,10 +1644,12 @@ static struct cmdstruct commands[] = {
  {"label",      labelcmd,     "write a Bacula label to the tape"},
  {"load",       loadcmd,      "load a tape"},
  {"quit",       quitcmd,      "quit btape"},   
+ {"rawfill",    rawfill_cmd,  "use write() to fill tape"},
  {"readlabel",  readlabelcmd, "read and print the Bacula tape label"},
  {"rectest",    rectestcmd,   "test record handling functions"},
  {"rewind",     rewindcmd,    "rewind the tape"},
- {"scan",       scancmd,      "read tape block by block to EOT and report"}, 
+ {"scan",       scancmd,      "read() tape block by block to EOT and report"}, 
+ {"scanblocks", scan_blocks,  "Bacula read block by block to EOT and report"},
  {"status",     statcmd,      "print tape status"},
  {"test",       testcmd,      "General test Bacula tape functions"},
  {"weof",       weofcmd,      "write an EOF on the tape"},
