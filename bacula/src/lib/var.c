@@ -2605,20 +2605,12 @@ var_formatv(
     const char *fmt, va_list ap)
 {
     var_rc_t rc;
-    va_list apbak;
     char *cpBuf;
-    int nBuf;
+    int nBuf = 5000;
 
     /* argument sanity checks */
     if (var == NULL || dst_ptr == NULL || fmt == NULL)
 	return VAR_RC(VAR_ERR_INVALID_ARGUMENT);
-
-    /* determine formatting buffer length */
-    apbak = ap;
-    nBuf = var_mvsnprintf(NULL, 0, fmt, ap);
-    ap = apbak;
-    if (nBuf == -1)
-	return VAR_RC(VAR_ERR_FORMATTING_FAILURE);
 
     /* perform formatting */
     if ((cpBuf = (char *)malloc(nBuf+1)) == NULL)

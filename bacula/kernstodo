@@ -35,6 +35,8 @@ For 1.33 Testing/Documentation:
 - Document ln -sf /usr/lib/libncurses.so /usr/lib/libtermcap.so
   and install the esound-dev  package for compiling Console on 
   SuSE.
+- Add an example of using a FIFO in dirdconf.wml 
+- Add an item to the FAQ about running jobs in different timezones.
                 
 For 1.32c
 
