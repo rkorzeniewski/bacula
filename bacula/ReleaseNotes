@@ -15,6 +15,8 @@ Major Changes this Release:
 - Implemented Include | and < in File daemon.
 - Implemented a new Include/Exclude syntax.
 - Lots of fixes with variable expansion and counter variables
+- Automatic labeling of tape Volumes is fixed.
+- Recycling has been completely restructured and should work.
 
 
 Other Changes this Release:

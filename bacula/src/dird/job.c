@@ -381,6 +381,7 @@ void dird_free_jcr(JCR *jcr)
       free_pool_memory(jcr->client_uname);
       jcr->client_uname = NULL;
    }
+   pthread_cond_destroy(&jcr->term_wait);
    Dmsg0(200, "End dird free_jcr\n");
 }
 

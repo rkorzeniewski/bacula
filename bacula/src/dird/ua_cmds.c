@@ -821,12 +821,12 @@ static int update_volume(UAContext *ua)
       N_("Recycle"),                  /* 6 */
       NULL };
 
-   if (!select_media_dbr(ua, &mr)) {
-      return 0;
-   }
    for (int i=0; kw[i]; i++) {
       int j;
       if ((j=find_arg_with_value(ua, kw[i])) > 0) {
+	 if (!select_media_dbr(ua, &mr)) {
+	    return 0;
+	 }
 	 switch (i) {
 	 case 0:
 	    update_volstatus(ua, ua->argv[j], &mr);
