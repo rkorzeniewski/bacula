@@ -29,7 +29,7 @@
 class IPADDR : public SMARTALLOC {
  public:
    typedef enum { R_SINGLE, R_SINGLE_PORT, R_SINGLE_ADDR, R_MULTIPLE,
-                  R_DEFAULT, R_EMPTY
+		  R_DEFAULT, R_EMPTY
    } i_type;
    IPADDR(int af);
    IPADDR(const IPADDR & src);
@@ -87,4 +87,8 @@ extern int get_first_port_host_order(dlist * addrs);
 extern const char *build_addresses_str(dlist *addrs, char *buf, int blen);
 
 extern int sockaddr_get_port_net_order(const struct sockaddr *sa);
-extern int sockaddr_to_ascii(const struct sockaddr *sa, char *buf, int len);
+extern int sockaddr_get_port(const struct sockaddr *sa);
+extern char *sockaddr_to_ascii(const struct sockaddr *sa, char *buf, int len);
+#ifdef HAVE_OLD_SOCKOPT
+extern int inet_aton(const char *cp, struct in_addr *inp);
+#endif

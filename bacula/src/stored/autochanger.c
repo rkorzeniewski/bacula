@@ -156,7 +156,7 @@ static int get_autochanger_loaded_slot(JCR *jcr)
    changer = edit_device_codes(jcr, changer, jcr->device->changer_command, 
                 "loaded");
    status = run_program(changer, timeout, results);
-   Dmsg3(100, "run_prog: %s stat=%d result=%s\n", changer, status, results);
+   Dmsg3(50, "run_prog: %s stat=%d result=%s\n", changer, status, results);
    if (status == 0) {
       loaded = atoi(results);
       if (loaded > 0) {
@@ -191,7 +191,7 @@ void invalid_slot_in_catalog(DCR *dcr)
 	dcr->VolCatInfo.VolCatName, dcr->VolCatInfo.Slot);
    dcr->VolCatInfo.InChanger = false;
    dev->VolCatInfo.InChanger = false;
-   Dmsg0(100, "update vol info in mount\n");
+   Dmsg0(400, "update vol info in mount\n");
    dir_update_volume_info(dcr, true);  /* set new status */
 }
 
@@ -291,7 +291,7 @@ char *edit_device_codes(JCR *jcr, char *omsg, const char *imsg, const char *cmd)
    char add[20];
 
    *omsg = 0;
-   Dmsg1(400, "edit_device_codes: %s\n", imsg);
+   Dmsg1(800, "edit_device_codes: %s\n", imsg);
    for (p=imsg; *p; p++) {
       if (*p == '%') {
 	 switch (*++p) {
@@ -341,9 +341,9 @@ char *edit_device_codes(JCR *jcr, char *omsg, const char *imsg, const char *cmd)
 	 add[1] = 0;
 	 str = add;
       }
-      Dmsg1(400, "add_str %s\n", str);
+      Dmsg1(900, "add_str %s\n", str);
       pm_strcat(&omsg, (char *)str);
-      Dmsg1(400, "omsg=%s\n", omsg);
+      Dmsg1(800, "omsg=%s\n", omsg);
    }
    return omsg;
 }
