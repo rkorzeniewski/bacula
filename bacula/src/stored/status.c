@@ -39,6 +39,7 @@ extern char my_name[];
 extern time_t daemon_start_time;
 extern int num_jobs_run;
 
+
 /* Static variables */
 
 
@@ -67,6 +68,14 @@ int status_cmd(JCR *jcr)
    bstrftime_nc(dt, sizeof(dt), daemon_start_time);
    bnet_fsend(user, _("Daemon started %s, %d Job%s run since started.\n"), dt, num_jobs_run,
         num_jobs_run == 1 ? "" : "s");
+   if (debug_level > 0) {
+      char b1[35], b2[35], b3[35], b4[35];
+      bnet_fsend(user, _(" Heap: bytes=%s max_bytes=%s bufs=%s max_bufs=%s\n"),
+	    edit_uint64_with_commas(sm_bytes, b1),
+	    edit_uint64_with_commas(sm_max_bytes, b2),
+	    edit_uint64_with_commas(sm_buffers, b3),
+	    edit_uint64_with_commas(sm_max_buffers, b4));
+   }
 
    /*
     * List running jobs

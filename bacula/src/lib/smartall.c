@@ -59,6 +59,10 @@
 #define Dmsg4(l,f,a1,a2,a3,a4)
       
 
+uint64_t sm_max_bytes = 0;
+uint64_t sm_bytes = 0;
+uint32_t sm_max_buffers = 0;
+uint32_t sm_buffers = 0;
 
 #ifdef SMARTALLOC
 
@@ -86,10 +90,6 @@ static struct b_queue abqueue = {    /* Allocated buffer queue */
    &abqueue, &abqueue
 };
 
-uint64_t sm_max_bytes = 0;
-uint64_t sm_bytes = 0;
-uint32_t sm_max_buffers = 0;
-uint32_t sm_buffers = 0;
 
 static bool bufimode = false;	/* Buffers not tracked when True */
 
