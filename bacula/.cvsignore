@@ -48,3 +48,6 @@ startpostgre
 kerns-postgresql-config
 run
 run_clean
+run_two_broken
+run_two
+run_clean_tape
