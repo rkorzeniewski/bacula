@@ -159,6 +159,7 @@ init_dev(DEVICE *dev, DEVRES *device)
    dev->vol_poll_interval = device->vol_poll_interval;
    dev->max_spool_size = device->max_spool_size;
    dev->drive_index = device->drive_index;
+   dev->label_type = device->label_type;
    if (tape) { /* No parts on tapes */
       dev->max_part_size = 0;
    }

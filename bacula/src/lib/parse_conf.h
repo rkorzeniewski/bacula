@@ -138,3 +138,4 @@ void store_yesno(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_time(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_size(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_defs(LEX *lc, RES_ITEM *item, int index, int pass);
+void store_label(LEX *lc, RES_ITEM *item, int index, int pass);

@@ -82,6 +82,7 @@ public:
    char *changer_command;             /* Changer command  -- external program */
    char *alert_command;               /* Alert command -- external program */
    char *spool_directory;             /* Spool file directory */
+   int   label_type;                  /* label type */
    uint32_t drive_index;              /* Autochanger drive index */
    uint32_t cap_bits;                 /* Capabilities of this device */
    uint32_t max_changer_wait;         /* Changer timeout */

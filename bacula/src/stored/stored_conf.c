@@ -103,6 +103,7 @@ static RES_ITEM dev_items[] = {
    {"closeonpoll",           store_yesno,  ITEM(res_dev.cap_bits), CAP_CLOSEONPOLL, ITEM_DEFAULT, 0},
    {"blockpositioning",      store_yesno,  ITEM(res_dev.cap_bits), CAP_POSITIONBLOCKS, ITEM_DEFAULT, 1},
    {"usemtiocget",           store_yesno,  ITEM(res_dev.cap_bits), CAP_MTIOCGET, ITEM_DEFAULT, 1},
+   {"checklabels",           store_yesno,  ITEM(res_dev.cap_bits), CAP_CHECKLABELS, ITEM_DEFAULT, 0},
    {"changerdevice",         store_strname,ITEM(res_dev.changer_name), 0, 0, 0},
    {"changercommand",        store_strname,ITEM(res_dev.changer_command), 0, 0, 0},
    {"alertcommand",          store_strname,ITEM(res_dev.alert_command), 0, 0, 0},
@@ -129,6 +130,7 @@ static RES_ITEM dev_items[] = {
    {"unmountcommand",        store_strname,ITEM(res_dev.unmount_command), 0, 0, 0},
    {"writepartcommand",      store_strname,ITEM(res_dev.write_part_command), 0, 0, 0},
    {"freespacecommand",      store_strname,ITEM(res_dev.free_space_command), 0, 0, 0},
+   {"labeltype",             store_label,  ITEM(res_dev.label_type), 0, 0, 0},
    {NULL, NULL, 0, 0, 0, 0}
 };
 
@@ -157,7 +159,7 @@ RES_TABLE resources[] = {
    {"device",        dev_items,     R_DEVICE},
    {"messages",      msgs_items,    R_MSGS},
    {"autochanger",   changer_items, R_AUTOCHANGER},
-   {NULL,	     NULL,	    0}
+   {NULL,            NULL,          0}
 };
 
 
@@ -175,7 +177,7 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       return;
    }
    sendit(sock, "dump_resource type=%d\n", type);
-   if (type < 0) {		      /* no recursion */
+   if (type < 0) {                    /* no recursion */
       type = - type;
       recurse = 0;
    }
@@ -185,35 +187,36 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       break;
    case R_STORAGE:
       sendit(sock, "Storage: name=%s SDaddr=%s SDport=%d SDDport=%d HB=%s\n",
-	   res->res_store.hdr.name,
-	   NPRT(get_first_address(res->res_store.sdaddrs, buf, sizeof(buf))),
-	   get_first_port_host_order(res->res_store.sdaddrs),
-	   get_first_port_host_order(res->res_store.sddaddrs),
-	   edit_utime(res->res_store.heartbeat_interval, buf, sizeof(buf)));
-	  foreach_dlist(p, res->res_store.sdaddrs) {
+           res->res_store.hdr.name,
+           NPRT(get_first_address(res->res_store.sdaddrs, buf, sizeof(buf))),
+           get_first_port_host_order(res->res_store.sdaddrs),
+           get_first_port_host_order(res->res_store.sddaddrs),
+           edit_utime(res->res_store.heartbeat_interval, buf, sizeof(buf)));
+          foreach_dlist(p, res->res_store.sdaddrs) {
                 sendit(sock, "        SDaddr=%s SDport=%d\n",
-			     p->get_address(buf, sizeof(buf)), p->get_port_host_order());
-	  }
-	  foreach_dlist(p, res->res_store.sddaddrs) {
+                             p->get_address(buf, sizeof(buf)), p->get_port_host_order());
+          }
+          foreach_dlist(p, res->res_store.sddaddrs) {
                 sendit(sock, "        SDDaddr=%s SDDport=%d\n",
-			     p->get_address(buf, sizeof(buf)), p->get_port_host_order());
-	  }
+                             p->get_address(buf, sizeof(buf)), p->get_port_host_order());
+          }
       break;
    case R_DEVICE:
-      sendit(sock, "Device: name=%s MediaType=%s Device=%s\n",
-	 res->res_dev.hdr.name,
-	 res->res_dev.media_type, res->res_dev.device_name);
+      sendit(sock, "Device: name=%s MediaType=%s Device=%s LabelType=%d\n",
+         res->res_dev.hdr.name,
+         res->res_dev.media_type, res->res_dev.device_name,
+         res->res_dev.label_type);
       sendit(sock, "        rew_wait=%d min_bs=%d max_bs=%d\n",
-	 res->res_dev.max_rewind_wait, res->res_dev.min_block_size,
-	 res->res_dev.max_block_size);
+         res->res_dev.max_rewind_wait, res->res_dev.min_block_size,
+         res->res_dev.max_block_size);
       sendit(sock, "        max_jobs=%d max_files=%" lld " max_size=%" lld "\n",
-	 res->res_dev.max_volume_jobs, res->res_dev.max_volume_files,
-	 res->res_dev.max_volume_size);
+         res->res_dev.max_volume_jobs, res->res_dev.max_volume_files,
+         res->res_dev.max_volume_size);
       sendit(sock, "        max_file_size=%" lld " capacity=%" lld "\n",
-	 res->res_dev.max_file_size, res->res_dev.volume_capacity);
+         res->res_dev.max_file_size, res->res_dev.volume_capacity);
       sendit(sock, "         spool_directory=%s\n", NPRT(res->res_dev.spool_directory));
       sendit(sock, "         max_spool_size=%" lld " max_job_spool_size=%" lld "\n",
-	 res->res_dev.max_spool_size, res->res_dev.max_job_spool_size);
+         res->res_dev.max_spool_size, res->res_dev.max_job_spool_size);
       bstrncpy(buf, "        ", sizeof(buf));
       if (res->res_dev.cap_bits & CAP_EOF) {
          bstrncat(buf, "CAP_EOF ", sizeof(buf));
@@ -251,14 +254,17 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       if (res->res_dev.cap_bits & CAP_ALWAYSOPEN) {
          bstrncat(buf, "CAP_ALWAYSOPEN ", sizeof(buf));
       }
+      if (res->res_dev.cap_bits & CAP_CHECKLABELS) {
+         bstrncat(buf, "CAP_CHECKLABELS ", sizeof(buf));
+      }
       bstrncat(buf, "\n", sizeof(buf));
       sendit(sock, buf);
       break;
    case R_AUTOCHANGER:
       DEVRES *dev;
       sendit(sock, "Changer: name=%s Changer_devname=%s Changer_cmd=%s\n",
-	 res->res_changer.hdr.name,
-	 res->res_changer.changer_name, res->res_changer.changer_command);
+         res->res_changer.hdr.name,
+         res->res_changer.changer_name, res->res_changer.changer_command);
       foreach_alist(dev, res->res_changer.device) {
          sendit(sock, "   --->Device: name=%s\n", dev->hdr.name);
       }
@@ -308,77 +314,77 @@ void free_resource(RES *sres, int type)
    switch (type) {
    case R_DIRECTOR:
       if (res->res_dir.password) {
-	 free(res->res_dir.password);
+         free(res->res_dir.password);
       }
       if (res->res_dir.address) {
-	 free(res->res_dir.address);
+         free(res->res_dir.address);
       }
       break;
    case R_AUTOCHANGER:
       if (res->res_changer.changer_name) {
-	 free(res->res_changer.changer_name);
+         free(res->res_changer.changer_name);
       }
       if (res->res_changer.changer_command) {
-	 free(res->res_changer.changer_command);
+         free(res->res_changer.changer_command);
       }
    case R_STORAGE:
       if (res->res_store.sdaddrs) {
-	 free_addresses(res->res_store.sdaddrs);
+         free_addresses(res->res_store.sdaddrs);
       }
       if (res->res_store.sddaddrs) {
-	 free_addresses(res->res_store.sddaddrs);
+         free_addresses(res->res_store.sddaddrs);
       }
       if (res->res_store.working_directory) {
-	 free(res->res_store.working_directory);
+         free(res->res_store.working_directory);
       }
       if (res->res_store.pid_directory) {
-	 free(res->res_store.pid_directory);
+         free(res->res_store.pid_directory);
       }
       if (res->res_store.subsys_directory) {
-	 free(res->res_store.subsys_directory);
+         free(res->res_store.subsys_directory);
       }
       break;
    case R_DEVICE:
       if (res->res_dev.media_type) {
-	 free(res->res_dev.media_type);
+         free(res->res_dev.media_type);
       }
       if (res->res_dev.device_name) {
-	 free(res->res_dev.device_name);
+         free(res->res_dev.device_name);
       }
       if (res->res_dev.changer_name) {
-	 free(res->res_dev.changer_name);
+         free(res->res_dev.changer_name);
       }
       if (res->res_dev.changer_command) {
-	 free(res->res_dev.changer_command);
+         free(res->res_dev.changer_command);
       }
       if (res->res_dev.alert_command) {
-	 free(res->res_dev.alert_command);
+         free(res->res_dev.alert_command);
       }
       if (res->res_dev.spool_directory) {
-	 free(res->res_dev.spool_directory);
+         free(res->res_dev.spool_directory);
       }
       if (res->res_dev.mount_point) {
-	 free(res->res_dev.mount_point);
+         free(res->res_dev.mount_point);
       }
       if (res->res_dev.mount_command) {
-	 free(res->res_dev.mount_command);
+         free(res->res_dev.mount_command);
       }
       if (res->res_dev.unmount_command) {
-	 free(res->res_dev.unmount_command);
+         free(res->res_dev.unmount_command);
       }
       if (res->res_dev.write_part_command) {
-	 free(res->res_dev.write_part_command);
+         free(res->res_dev.write_part_command);
       }
       if (res->res_dev.free_space_command) {
-	 free(res->res_dev.free_space_command);
+         free(res->res_dev.free_space_command);
       }
       break;
    case R_MSGS:
       if (res->res_msgs.mail_cmd) {
-	 free(res->res_msgs.mail_cmd);
+         free(res->res_msgs.mail_cmd);
       }
       if (res->res_msgs.operator_cmd) {
-	 free(res->res_msgs.operator_cmd);
+         free(res->res_msgs.operator_cmd);
       }
       free_msgs_res((MSGS *)res);  /* free message resource */
       res = NULL;
@@ -412,10 +418,10 @@ void save_resource(int type, RES_ITEM *items, int pass)
     */
    for (i=0; items[i].name; i++) {
       if (items[i].flags & ITEM_REQUIRED) {
-	 if (!bit_is_set(i, res_all.res_dir.hdr.item_present)) {
+         if (!bit_is_set(i, res_all.res_dir.hdr.item_present)) {
             Emsg2(M_ERROR_TERM, 0, _("\"%s\" item is required in \"%s\" resource, but not found.\n"),
-	      items[i].name, resources[rindex]);
-	  }
+              items[i].name, resources[rindex]);
+          }
       }
       /* If this triggers, take a look at lib/parse_conf.h */
       if (i >= MAX_RES_ITEMS) {
@@ -434,37 +440,37 @@ void save_resource(int type, RES_ITEM *items, int pass)
       case R_DIRECTOR:
       case R_DEVICE:
       case R_MSGS:
-	 break;
+         break;
 
       /* Resources containing a resource or an alist */
       case R_STORAGE:
-	 if ((res = (URES *)GetResWithName(R_STORAGE, res_all.res_dir.hdr.name)) == NULL) {
+         if ((res = (URES *)GetResWithName(R_STORAGE, res_all.res_dir.hdr.name)) == NULL) {
             Emsg1(M_ERROR_TERM, 0, "Cannot find Storage resource \"%s\"\n", res_all.res_dir.hdr.name);
-	 }
-	 res->res_store.messages = res_all.res_store.messages;
-	 break;
+         }
+         res->res_store.messages = res_all.res_store.messages;
+         break;
       case R_AUTOCHANGER:
-	 if ((res = (URES *)GetResWithName(type, res_all.res_changer.hdr.name)) == NULL) {
+         if ((res = (URES *)GetResWithName(type, res_all.res_changer.hdr.name)) == NULL) {
             Emsg1(M_ERROR_TERM, 0, "Cannot find AutoChanger resource %s\n",
-		  res_all.res_changer.hdr.name);
-	 }
-	 /* we must explicitly copy the device alist pointer */
-	 res->res_changer.device   = res_all.res_changer.device;
-	 break;
+                  res_all.res_changer.hdr.name);
+         }
+         /* we must explicitly copy the device alist pointer */
+         res->res_changer.device   = res_all.res_changer.device;
+         break;
       default:
          printf("Unknown resource type %d\n", type);
-	 error = 1;
-	 break;
+         error = 1;
+         break;
       }
 
 
       if (res_all.res_dir.hdr.name) {
-	 free(res_all.res_dir.hdr.name);
-	 res_all.res_dir.hdr.name = NULL;
+         free(res_all.res_dir.hdr.name);
+         res_all.res_dir.hdr.name = NULL;
       }
       if (res_all.res_dir.hdr.desc) {
-	 free(res_all.res_dir.hdr.desc);
-	 res_all.res_dir.hdr.desc = NULL;
+         free(res_all.res_dir.hdr.desc);
+         res_all.res_dir.hdr.desc = NULL;
       }
       return;
    }
@@ -472,45 +478,45 @@ void save_resource(int type, RES_ITEM *items, int pass)
    /* The following code is only executed on pass 1 */
    switch (type) {
       case R_DIRECTOR:
-	 size = sizeof(DIRRES);
-	 break;
+         size = sizeof(DIRRES);
+         break;
       case R_STORAGE:
-	 size = sizeof(STORES);
-	 break;
+         size = sizeof(STORES);
+         break;
       case R_DEVICE:
-	 size = sizeof(DEVRES);
-	 break;
+         size = sizeof(DEVRES);
+         break;
       case R_MSGS:
-	 size = sizeof(MSGS);
-	 break;
+         size = sizeof(MSGS);
+         break;
       case R_AUTOCHANGER:
-	 size = sizeof(AUTOCHANGER);
-	 break;
+         size = sizeof(AUTOCHANGER);
+         break;
       default:
          printf("Unknown resource type %d\n", type);
-	 error = 1;
-	 size = 1;
-	 break;
+         error = 1;
+         size = 1;
+         break;
    }
    /* Common */
    if (!error) {
       res = (URES *)malloc(size);
       memcpy(res, &res_all, size);
       if (!res_head[rindex]) {
-	 res_head[rindex] = (RES *)res; /* store first entry */
+         res_head[rindex] = (RES *)res; /* store first entry */
       } else {
-	 RES *next;
-	 /* Add new res to end of chain */
-	 for (next=res_head[rindex]; next->next; next=next->next) {
-	    if (strcmp(next->name, res->res_dir.hdr.name) == 0) {
-	       Emsg2(M_ERROR_TERM, 0,
+         RES *next;
+         /* Add new res to end of chain */
+         for (next=res_head[rindex]; next->next; next=next->next) {
+            if (strcmp(next->name, res->res_dir.hdr.name) == 0) {
+               Emsg2(M_ERROR_TERM, 0,
                   _("Attempt to define second \"%s\" resource named \"%s\" is not permitted.\n"),
-		  resources[rindex].name, res->res_dir.hdr.name);
-	    }
-	 }
-	 next->next = (RES *)res;
+                  resources[rindex].name, res->res_dir.hdr.name);
+            }
+         }
+         next->next = (RES *)res;
          Dmsg2(90, "Inserting %s res: %s\n", res_to_str(type),
-	       res->res_dir.hdr.name);
+               res->res_dir.hdr.name);
       }
    }
 }

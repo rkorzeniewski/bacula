@@ -366,7 +366,7 @@ checkName:
       i = find_arg_with_value(ua, "slot");
       if (i >= 0) {
 	 mr.Slot = atoi(ua->argv[i]);
-      } else if (!get_pint(ua, _("Enter slot (0 for none): "))) {
+      } else if (!get_pint(ua, _("Enter slot (0 or Enter for none): "))) {
 	 return 1;
       } else {
 	 mr.Slot = ua->pint32_val;

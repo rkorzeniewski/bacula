@@ -131,8 +131,8 @@ void set_pool_dbr_defaults_in_media_dbr(MEDIA_DBR *mr, POOL_DBR *pr);
 
 /* ua_input.c */
 int get_cmd(UAContext *ua, const char *prompt);
-int get_pint(UAContext *ua, const char *prompt);
-int get_yesno(UAContext *ua, const char *prompt);
+bool get_pint(UAContext *ua, const char *prompt);
+bool get_yesno(UAContext *ua, const char *prompt);
 void parse_ua_args(UAContext *ua);
 
 /* ua_label.c */
