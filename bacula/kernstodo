@@ -29,9 +29,17 @@ From Chuck:
 
 - Figure out why my Catalog size keeps growing.
 
+- Use read_record.c in SD code.
+- Implement Sparce files, change ownership of files, restore
+  all Windows attributes, restore options, FSM for program
+  files.
+- Why don't we get an error message from Win32 FD when bootstrap 
+  file cannot be created for restore command?
+- At line 51 of ua_input.c, why is = 0 necessary. Previously without
+  it, if cancel gnome-console during sql command, DIR crashed.  However,
+  with it, blank line input for Where: is not possible.
 - Make SD disallow writing on Volume with fewer files than in
   the catalog.
-- Check if GZIP1 is working -- check speed.
 - Put MaximumVolumeSize in Director.
 - Document how to cancel a job that is waiting on a Volume. 
   Must "cancel" then "mount".
@@ -554,4 +562,4 @@ Longer term to do:
 Done: (see kernsdone for more)
 - Document bscan.
 - Document Restore.
-
+- Check if GZIP1 is working -- check speed.
