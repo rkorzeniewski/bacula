@@ -428,7 +428,10 @@ static void *jobq_server(void *arg)
 	    jcr->JobStatus = JS_Created; /* force new status */
 	    dird_free_jcr(jcr); 	 /* partial cleanup old stuff */
 	    if (jcr->JobBytes == 0) {
+               Dmsg1(100, "Requeue job=%d\n", jcr->JobId);
+	       V(jq->mutex);
 	       jobq_add(jq, jcr);     /* queue the job to run again */
+	       P(jq->mutex);
 	       free(je);	      /* free the job entry */
 	       continue;
 	    }
@@ -446,14 +449,19 @@ static void *jobq_server(void *arg)
 	    njcr->pool = jcr->pool;
 	    njcr->store = jcr->store;
 	    njcr->messages = jcr->messages;
+            Dmsg0(100, "Call to run new job\n");
+	    V(jq->mutex);
 	    run_job(njcr);
+	    P(jq->mutex);
+            Dmsg0(100, "Back from running new job.\n");
 	 }
 	 /* Clean up and release old jcr */
 	 if (jcr->db) {
-            Dmsg0(200, "Close DB\n");
+            Dmsg0(100, "Close DB\n");
 	    db_close_database(jcr, jcr->db);
 	    jcr->db = NULL;
 	 }
+         Dmsg1(100, "====== Termination job=%d\n", jcr->JobId);
 	 free_jcr(jcr);
 	 free(je);		      /* release job entry */
       }
