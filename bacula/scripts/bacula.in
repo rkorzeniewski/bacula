@@ -11,6 +11,22 @@
 
 PSCMD="@PSCMD@"
 
+BACBIN=@sbindir@
+BACCFG=@sysconfdir@
+PIDDIR=@piddir@
+SUBSYSDIR=@subsysdir@
+
+DIR_PORT=9101
+FD_PORT=9102
+SD_PORT=9103
+
+DIR_USER=@dir_user@
+DIR_GROUP=@dir_group@
+FD_USER=@fd_user@
+FD_GROUP=@fd_group@
+SD_USER=@sd_user@
+SD_GROUP=@sd_group@
+
 # A function to stop a program.
 killproc() {
     RC=0
@@ -69,7 +85,7 @@ killproc() {
     fi
     # Remove pid file if any.
     if [ "$notset" = "1" ]; then
-	rm -f @piddir@/$base.$2.pid
+	rm -f ${PIDDIR}/$base.$2.pid
     fi
     return $RC
 }
@@ -87,8 +103,8 @@ pidofproc() {
     base=`basename $1`
 
     # First try PID file
-    if [ -f @piddir@/$base.$2.pid ] ; then
-	pid=`head -1 @piddir@/$base.$2.pid`
+    if [ -f ${PIDDIR}/$base.$2.pid ] ; then
+	pid=`head -1 ${PIDDIR}/$base.$2.pid`
 	if [ "$pid" != "" ] ; then
 	    echo $pid
 	    return 0
@@ -138,15 +154,15 @@ status() {
    fi
 
     # Next try the PID files
-    if [ -f @piddir@/$base.$2.pid ] ; then
-	pid=`head -1 @piddir@/$base.$2.pid`
+    if [ -f ${PIDDIR}/$base.$2.pid ] ; then
+	pid=`head -1 ${PIDDIR}/$base.$2.pid`
 	if [ "$pid" != "" ] ; then
 	    echo "$base dead but pid file exists"
 	    return 1
 	fi
     fi
     # See if the subsys lock exists
-    if [ -f @subsysdir@/$base ] ; then
+    if [ -f ${SUBSYSDIR}/$base ] ; then
 	echo "$base dead but subsys locked"
 	return 2
     fi
@@ -165,33 +181,80 @@ failure() {
 
 case "$1" in
     start)
-       echo "Starting the Storage daemon"
-       @sbindir@/bacula-sd $2 -v -c @sysconfdir@/bacula-sd.conf
-       echo "Starting the File daemon"
-       @sbindir@/bacula-fd $2 -v -c @sysconfdir@/bacula-fd.conf
-       sleep 2
-       echo "Starting the Director daemon"
-       @sbindir@/bacula-dir $2 -v -c @sysconfdir@/bacula-dir.conf
+       [ -x ${BACBIN}/bacula-sd ] && {
+          echo "Starting the Storage daemon"
+          OPTIONS=''
+          if [ "${SD_USER}" != '' ]; then
+             OPTIONS="${OPTIONS} -u ${SD_USER}"
+          fi
+
+          if [ "${SD_GROUP}" != '' ]; then
+             OPTIONS="${OPTIONS} -g ${SD_GROUP}"
+          fi
+
+          ${BACBIN}/bacula-sd $2 ${OPTIONS} -v -c ${BACCFG}/bacula-sd.conf
+       }
+
+       [ -x ${BACBIN}/bacula-fd ] && {
+          echo "Starting the File daemon"
+          OPTIONS=''
+          if [ "${FD_USER}" != '' ]; then
+             OPTIONS="${OPTIONS} -u ${FD_USER}"
+          fi
+
+          if [ "${FD_GROUP}" != '' ]; then
+             OPTIONS="${OPTIONS} -g ${FD_GROUP}"
+          fi
+
+          ${BACBIN}/bacula-fd $2 ${OPTIONS} -v -c ${BACCFG}/bacula-fd.conf
+       }
+
+       [ -x ${BACBIN}/bacula-dir ] && { 
+       	   sleep 2
+       	   echo "Starting the Director daemon"
+          OPTIONS=''
+          if [ "${DIR_USER}" != '' ]; then
+             OPTIONS="${OPTIONS} -u ${DIR_USER}"
+          fi
+
+          if [ "${DIR_GROUP}" != '' ]; then
+             OPTIONS="${OPTIONS} -g ${DIR_GROUP}"
+          fi
+
+          ${BACBIN}/bacula-dir $2 ${OPTIONS} -v -c ${BACCFG}/bacula-dir.conf
+       }
        ;;
+
     stop)
-       echo "Stopping the File daemon"
-       killproc @sbindir@/bacula-fd @fd_port@
-       echo "Stopping the Storage daemon"
-       killproc @sbindir@/bacula-sd @sd_port@
-       echo "Stopping the Director daemon"
-       killproc @sbindir@/bacula-dir @dir_port@
+       [ -x ${BACBIN}/bacula-sd ] && {
+          echo "Stopping the Storage daemon"
+          killproc ${BACBIN}/bacula-sd ${SD_PORT}
+       }
+
+       [ -x ${BACBIN}/bacula-fd ] && {
+          echo "Stopping the File daemon"
+          killproc ${BACBIN}/bacula-fd ${FD_PORT}
+       }
+
+       [ -x ${BACBIN}/bacula-dir ] && {
+       	  echo "Stopping the Director daemon"
+          killproc ${BACBIN}/bacula-dir ${DIR_PORT}
+       }
        echo
        ;;
+
     restart)
        $0 stop
        sleep 5
        $0 start
        ;;
+
     status)
-       status @sbindir@/bacula-sd @sd_port@
-       status @sbindir@/bacula-fd @fd_port@
-       status @sbindir@/bacula-dir @dir_port@
+       [ -x ${BACBIN}/bacula-sd  ] && status ${BACBIN}/bacula-sd  ${SD_PORT}
+       [ -x ${BACBIN}/bacula-fd  ] && status ${BACBIN}/bacula-fd  ${FD_PORT}
+       [ -x ${BACBIN}/bacula-dir ] && status ${BACBIN}/bacula-dir ${DIR_PORT}
        ;;
+
     *)
        echo "Usage: $0 {start|stop|restart|status}"
        exit 1

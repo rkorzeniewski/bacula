@@ -565,9 +565,6 @@ void set_text(char *buf, int len)
    if (text_chars > MAX_TEXT_CHARS) {
       truncate_text_chars();
    }
-   buf_len = gtk_text_buffer_get_char_count(textbuf);
-   gtk_text_buffer_get_iter_at_offset(textbuf, &iter, buf_len - 1);
-   gtk_text_iter_set_offset(&iter, buf_len);
    set_scroll_bar_to_end();
 }
 
@@ -600,8 +597,16 @@ void set_status(char *buf)
 
 static void set_scroll_bar_to_end(void)
 {
-   GtkTextBuffer* buffer = NULL;
-   buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text1));
-   gtk_text_view_scroll_mark_onscreen (GTK_TEXT_VIEW(text1),
-              gtk_text_buffer_get_mark (buffer, "insert"));
+   GtkTextBuffer* textbuf = NULL;
+   GtkTextIter iter;
+   guint buf_len;
+
+   textbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text1));
+   buf_len = gtk_text_buffer_get_char_count(textbuf);
+   gtk_text_buffer_get_iter_at_offset(textbuf, &iter, buf_len - 1);
+   gtk_text_iter_set_offset(&iter, buf_len);
+   gtk_text_buffer_place_cursor(textbuf, &iter);
+   gtk_text_view_scroll_to_mark(GTK_TEXT_VIEW(text1),
+              gtk_text_buffer_get_mark(textbuf, "insert"), 
+	      0, TRUE, 0.0, 1.0);
 }

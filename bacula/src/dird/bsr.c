@@ -116,10 +116,10 @@ static void print_findex(UAContext *ua, RBSR_FINDEX *fi)
    for ( ; fi; fi=fi->next) {
       if (fi->findex == fi->findex2) {
          bsendmsg(ua, "FileIndex=%d\n", fi->findex);
-//       Dmsg1(000, "FileIndex=%d\n", fi->findex);
+//       Dmsg1(100, "FileIndex=%d\n", fi->findex);
       } else {
          bsendmsg(ua, "FileIndex=%d-%d\n", fi->findex, fi->findex2);
-//       Dmsg2(000, "FileIndex=%d-%d\n", fi->findex, fi->findex2);
+//       Dmsg2(100, "FileIndex=%d-%d\n", fi->findex, fi->findex2);
       }
    }
 }
@@ -249,7 +249,7 @@ static void write_bsr(UAContext *ua, RBSR *bsr, FILE *fd)
             fprintf(fd, "VolBlock=%u-%u\n", bsr->VolParams[i].StartBlock,
 		    bsr->VolParams[i].EndBlock);
 	 }
-//       Dmsg2(000, "bsr VolParam FI=%u LI=%u\n",
+//       Dmsg2(100, "bsr VolParam FI=%u LI=%u\n",
 //	    bsr->VolParams[i].FirstIndex, bsr->VolParams[i].LastIndex);
 
 	 count = write_findex(ua, bsr->fi, bsr->VolParams[i].FirstIndex,

@@ -190,7 +190,7 @@ void db_list_jobmedia_records(JCR *jcr, B_DB *mdb, uint32_t JobId,
 
    } else {
       if (JobId > 0) {			 /* do by JobId */
-         Mmsg(&mdb->cmd, "SELECT JobId,Media.VolumeName,FirstIndex,LastIndex"
+         Mmsg(&mdb->cmd, "SELECT JobId,Media.VolumeName,FirstIndex,LastIndex "
             "FROM JobMedia,Media WHERE Media.MediaId=JobMedia.MediaId "
             "AND JobMedia.JobId=%u", JobId);
       } else {

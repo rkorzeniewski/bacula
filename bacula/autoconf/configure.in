@@ -741,7 +741,78 @@ AC_SUBST(fd_password)
 AC_SUBST(sd_password)
 
 
+#
+# Handle users and groups for each daemon
+#
+dir_user=
+AC_ARG_WITH(dir_user,
+    [  --with-dir-user=USER		 specify user for Director daemon],
+    [
+	if test "x$withval" != "x" ; then	
+	     dir_user=$withval
+	fi
+    ]
+)
 
+dir_group=
+AC_ARG_WITH(dir_group,
+    [  --with-dir-group=GROUP		 specify group for Director daemon],
+    [
+	if test "x$withval" != "x" ; then	
+	     dir_group=$withval
+	fi
+    ]
+)
+
+sd_user=
+AC_ARG_WITH(sd_user,
+    [  --with-sd-user=USER		 specify user for Storage daemon],
+    [
+	if test "x$withval" != "x" ; then	
+	     sd_user=$withval
+	fi
+    ]
+)
+
+sd_group=
+AC_ARG_WITH(sd_group,
+    [  --with-sd-group=GROUP		 specify group for Storage daemon],
+    [
+	if test "x$withval" != "x" ; then	
+	     sd_group=$withval
+	fi
+    ]
+)
+
+fd_user=
+AC_ARG_WITH(fd_user,
+    [  --with-fd-user=USER		 specify user for File daemon],
+    [
+	if test "x$withval" != "x" ; then	
+	     fd_user=$withval
+	fi
+    ]
+)
+
+fd_group=
+AC_ARG_WITH(fd_group,
+    [  --with-fd-group=GROUP		 specify group for File daemon],
+    [
+	if test "x$withval" != "x" ; then	
+	     fd_group=$withval
+	fi
+    ]
+)
+
+
+
+
+AC_SUBST(dir_user)
+AC_SUBST(dir_group)
+AC_SUBST(sd_user)
+AC_SUBST(sd_group)
+AC_SUBST(fd_user)
+AC_SUBST(fd_group)
 
 # ------------------------------------------------
 # Bacula check for various SQL database engines
@@ -1544,9 +1615,18 @@ Configuration on `date`:
   Job Output Email:	      ${job_email}
   Traceback Email:	      ${dump_email}
   SMTP Host Address:	      ${smtp_host}
-  Director Port 	      ${dir_port}
-  File daemon Port	      ${fd_port}
-  Storage daemon Port	      ${sd_port}
+
+  Director Port: 	      ${dir_port}
+  File daemon Port:	      ${fd_port}
+  Storage daemon Port:	      ${sd_port}
+
+  Director User:            ${dir_user}
+  Director Group:           ${dir_group}
+  Storage Daemon User:      ${dir_user}
+  Storage DaemonGroup:      ${dir_group}
+  File Daemon User:         ${dir_user}
+  File Daemon Group:        ${dir_group}
+
   SQL binaries Directory      ${SQL_BINDIR}
 
   Large file support:	      $largefile_support

@@ -375,6 +375,7 @@ static int do_list_cmd(UAContext *ua, char *cmd, e_list_type llist)
 	 POOL *pool;
 	 RUN *run;
 	 time_t runtime;
+	 bool found = false;
 
          i = find_arg_with_value(ua, "job");
 	 if (i <= 0) {
@@ -395,19 +396,32 @@ static int do_list_cmd(UAContext *ua, char *cmd, e_list_type llist)
 	    if (!complete_jcr_for_job(jcr, job, pool)) {
 	       return 1;
 	    }
-	      
+	   
 	    if (!find_next_volume_for_append(jcr, &mr, 0)) {
-               bsendmsg(ua, "Could not find next Volume\n");
-	       db_close_database(jcr, jcr->db);
-	       jcr->db = NULL;
+               bsendmsg(ua, _("Could not find next Volume.\n"));
+	       if (jcr->db) {
+		  db_close_database(jcr, jcr->db);
+		  jcr->db = NULL;
+	       }
 	       return 1;
 	    } else {
-               bsendmsg(ua, "The next Volume to be used by Job \"%s\" will be %s\n", 
+               bsendmsg(ua, _("The next Volume to be used by Job \"%s\" will be %s\n"), 
 		  job->hdr.name, mr.VolumeName);
+	       found = true;
+	    }
+	    if (jcr->db) {
+	       db_close_database(jcr, jcr->db);
+	       jcr->db = NULL;
 	    }
 	 }
-	 db_close_database(jcr, jcr->db);
-	 jcr->db = NULL;
+	 if (jcr->db) {
+	    db_close_database(jcr, jcr->db);
+	    jcr->db = NULL;
+	 }
+	 if (!found) {
+            bsendmsg(ua, _("Could not find next Volume.\n"));
+	 }
+	 return 1;
       } else {
          bsendmsg(ua, _("Unknown list keyword: %s\n"), NPRT(ua->argk[i]));
       }
@@ -535,8 +549,10 @@ int complete_jcr_for_job(JCR *jcr, JOB *job, POOL *pool)
       if (create_pool(jcr, jcr->db, jcr->pool, POOL_OP_CREATE) < 0) {
          Jmsg(jcr, M_FATAL, 0, _("Pool %s not in database. %s"), pr.Name, 
 	    db_strerror(jcr->db));
-	 db_close_database(jcr, jcr->db);
-	 jcr->db = NULL;
+	 if (jcr->db) {
+	    db_close_database(jcr, jcr->db);
+	    jcr->db = NULL;
+	 }
 	 return 0;
       } else {
          Jmsg(jcr, M_INFO, 0, _("Pool %s created in database.\n"), pr.Name);

@@ -325,7 +325,7 @@ open_dev(DEVICE *dev, char *VolName, int mode)
 #undef rewind_dev
 int _rewind_dev(char *file, int line, DEVICE *dev)
 {
-   Dmsg2(000, "rewind_dev called from %s:%d\n", file, line);
+   Dmsg2(100, "rewind_dev called from %s:%d\n", file, line);
    return rewind_dev(dev);
 }
 #endif
@@ -412,7 +412,7 @@ eod_dev(DEVICE *dev)
    }
    if (!(dev->state & ST_TAPE)) {
       pos = lseek(dev->fd, (off_t)0, SEEK_END);
-//    Dmsg1(000, "====== Seek to %lld\n", pos);
+//    Dmsg1(100, "====== Seek to %lld\n", pos);
       if (pos >= 0) {
 	 update_pos_dev(dev);
 	 dev->state |= ST_EOT;

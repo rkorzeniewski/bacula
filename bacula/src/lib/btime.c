@@ -31,7 +31,7 @@
  *  it is being phased out. 
  *     
  *  Epoch is the base of Unix time in seconds (time_t, ...) 
- *     and is 1 Jan 1970 at 0:0
+ *     and is 1 Jan 1970 at 0:0 UTC
  *
  *  The major two times that should be left are:
  *     btime_t	(64 bit integer in microseconds base Epoch)
@@ -92,28 +92,10 @@ utime_t str_to_utime(char *str)
    return (utime_t)ttime;
 }
 
-/* Deprecated. Do not use. */
-void get_current_time(struct date_time *dt)
-{
-   struct tm tm;
-   time_t now;
-
-   now = time(NULL);
-   gmtime_r(&now, &tm);
-   Dmsg6(200, "m=%d d=%d y=%d h=%d m=%d s=%d\n", tm.tm_mon+1, tm.tm_mday, tm.tm_year+1900,
-      tm.tm_hour, tm.tm_min, tm.tm_sec);
-   tm_encode(dt, &tm);
-#ifdef DEBUG
-   Dmsg2(200, "jday=%f jmin=%f\n", dt->julian_day_number, dt->julian_day_fraction);
-   tm_decode(dt, &tm);
-   Dmsg6(200, "m=%d d=%d y=%d h=%d m=%d s=%d\n", tm.tm_mon+1, tm.tm_mday, tm.tm_year+1900,
-      tm.tm_hour, tm.tm_min, tm.tm_sec);
-#endif
-}
 
 /*
  * Bacula's time (btime_t) is an unsigned 64 bit integer that contains
- *   the number of microseconds since Epoch Time (1 Jan 1970).
+ *   the number of microseconds since Epoch Time (1 Jan 1970) UTC.
  */
 
 btime_t get_current_btime()
@@ -135,9 +117,28 @@ time_t btime_to_unix(btime_t bt)
 /* Convert btime to utime */
 utime_t btime_to_utime(btime_t bt)
 {
-   return (utime_t)bt;
+   return (utime_t)(bt/1000000);
 }
 
+
+/* Deprecated. Do not use. */
+void get_current_time(struct date_time *dt)
+{
+   struct tm tm;
+   time_t now;
+
+   now = time(NULL);
+   gmtime_r(&now, &tm);
+   Dmsg6(200, "m=%d d=%d y=%d h=%d m=%d s=%d\n", tm.tm_mon+1, tm.tm_mday, tm.tm_year+1900,
+      tm.tm_hour, tm.tm_min, tm.tm_sec);
+   tm_encode(dt, &tm);
+#ifdef DEBUG
+   Dmsg2(200, "jday=%f jmin=%f\n", dt->julian_day_number, dt->julian_day_fraction);
+   tm_decode(dt, &tm);
+   Dmsg6(200, "m=%d d=%d y=%d h=%d m=%d s=%d\n", tm.tm_mon+1, tm.tm_mday, tm.tm_year+1900,
+      tm.tm_hour, tm.tm_min, tm.tm_sec);
+#endif
+}
 
 
 /*  date_encode  --  Encode civil date as a Julian day number.	*/

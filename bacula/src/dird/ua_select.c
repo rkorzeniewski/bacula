@@ -278,7 +278,8 @@ CLIENT *get_client_resource(UAContext *ua)
    int i;
    
    for (i=1; i<ua->argc; i++) {
-      if (strcasecmp(ua->argk[i], _("client")) == 0 && ua->argv[i]) {
+      if ((strcasecmp(ua->argk[i], _("client")) == 0 ||
+           strcasecmp(ua->argk[i], _("fd")) == 0) && ua->argv[i]) {
 	 client = (CLIENT *)GetResWithName(R_CLIENT, ua->argv[i]);
 	 if (client) {
 	    return client;
@@ -311,7 +312,8 @@ int get_client_dbr(UAContext *ua, CLIENT_DBR *cr)
       bsendmsg(ua, _("Could not find Client %s: ERR=%s"), cr->Name, db_strerror(ua->db));
    }
    for (i=1; i<ua->argc; i++) {
-      if (strcasecmp(ua->argk[i], _("client")) == 0 && ua->argv[i]) {
+      if ((strcasecmp(ua->argk[i], _("client")) == 0 ||               
+           strcasecmp(ua->argk[i], _("fd")) == 0) && ua->argv[i]) {
 	 bstrncpy(cr->Name, ua->argv[i], sizeof(cr->Name));
 	 if (!db_get_client_record(ua->jcr, ua->db, cr)) {
             bsendmsg(ua, _("Could not find Client %s: ERR=%s"), ua->argv[i],
@@ -751,7 +753,8 @@ STORE *get_storage_resource(UAContext *ua, int use_default)
 	    break;
 	 }
       } else {
-         if (strcasecmp(ua->argk[i], _("storage")) == 0) {
+         if (strcasecmp(ua->argk[i], _("storage")) == 0 ||
+             strcasecmp(ua->argk[i], _("sd")) == 0) {
 	    store_name = ua->argv[i];
 	    break;
 

@@ -142,11 +142,6 @@ int job_cmd(JCR *jcr)
    /*
     * Pass back an authorization key for the File daemon
     */
-#ifdef Old_way_not_so_good
-   gettimeofday(&tv, &tz);
-   srandom(tv.tv_usec + tv.tv_sec);
-   sprintf(auth_key, "%ld", (long)random());
-#endif
    make_session_key(auth_key, NULL, 1);
    bnet_fsend(dir, OKjob, jcr->VolSessionId, jcr->VolSessionTime, auth_key);
    Dmsg1(110, ">dird: %s", dir->msg);
@@ -170,7 +165,7 @@ int job_cmd(JCR *jcr)
    timeout.tv_sec = tv.tv_sec + 30 * 60;	/* wait 30 minutes */
 
 
-   Dmsg1(200, "%s waiting on job_start_wait\n", jcr->Job);
+   Dmsg1(100, "%s waiting on job_start_wait\n", jcr->Job);
    /* Wait for the File daemon to contact us to start the Job,
     *  when he does, we will be released, unless the 30 minutes
     *  expires.
@@ -187,6 +182,7 @@ int job_cmd(JCR *jcr)
    memset(jcr->sd_auth_key, 0, strlen(jcr->sd_auth_key));
 
    if (jcr->authenticated && !job_canceled(jcr)) {
+      Dmsg1(100, "Running job %s\n", jcr->Job);
       run_job(jcr);		      /* Run the job */
    }
    return 0;

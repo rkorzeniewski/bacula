@@ -33,7 +33,9 @@
 static char rec_header[] = "rechdr %ld %ld %ld %ld %ld";
 
 /* Forward referenced functions */
+#ifdef HAVE_LIBZ
 static char *zlib_strerror(int stat);
+#endif
 
 #define RETRY 10		      /* retry wait time */
 
@@ -351,6 +353,7 @@ ok_out:
    }
 }	   
 
+#ifdef HAVE_LIBZ
 /*
  * Convert ZLIB error code into an ASCII message
  */
@@ -376,3 +379,4 @@ static char *zlib_strerror(int stat)
       return "*none*";
    }
 }
+#endif

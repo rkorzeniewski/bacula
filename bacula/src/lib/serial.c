@@ -242,7 +242,7 @@ uint64_t unserial_uint64(uint8_t * * const ptr)
 
 /*  unserial_btime  --	Unserialise a btime_t 64 bit integer.  */
 
-uint64_t unserial_btime(uint8_t * * const ptr)
+btime_t unserial_btime(uint8_t * * const ptr)
 {
     btime_t v;
 
