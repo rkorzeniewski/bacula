@@ -864,7 +864,7 @@ static void scancmd()
 
 static void statcmd()
 {
-   int stat;
+   int stat = 0;
    int debug;
    uint32_t status;
 

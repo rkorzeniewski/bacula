@@ -167,6 +167,8 @@ struct s_jcr {
 
 #ifdef STORAGE_DAEMON
    /* Storage Daemon specific part of JCR */
+   struct s_jcr *next_dev;            /* next JCR attached to device */
+   struct s_jcr *prev_dev;            /* previous JCR attached to device */
    pthread_cond_t job_start_wait;     /* Wait for FD to start Job */
    int type;
    DEVRES *device;                    /* device to use */

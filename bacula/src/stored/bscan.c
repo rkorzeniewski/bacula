@@ -110,7 +110,6 @@ int main (int argc, char *argv[])
 
 static void do_scan(char *devname)	       
 {
-   int n;     
    char VolName[100];
    char *p;
    struct stat statp;
@@ -184,7 +183,8 @@ static void do_scan(char *devname)
 	 else if (!(status & MT_ONLINE))
             Emsg0(M_ABORT, 0, "Unexpected Tape is Off-line\n");
 	 else
-            Emsg3(M_ABORT, 0, "Read error %d on Record Header %s: %s\n", n, dev_name(dev), strerror(errno));
+            Emsg3(M_ABORT, 0, "Read error %d on Record Header %s: %s\n", 
+	       status, dev_name(dev), strerror(errno));
       }
 
 

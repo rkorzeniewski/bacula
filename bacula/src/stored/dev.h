@@ -107,6 +107,7 @@ typedef struct s_volume_catalog_info {
 /* Device structure definition */
 typedef struct s_device {
    struct s_device *next;             /* pointer to next open device */
+   void *attached_jcrs;               /* attached JCR list */
    pthread_mutex_t mutex;             /* access control */
    pthread_cond_t wait;               /* thread wait variable */
    pthread_cond_t wait_next_vol;      /* wait for tape to be mounted */

@@ -1075,3 +1075,32 @@ term_dev(DEVICE *dev)
       free_pool_memory((POOLMEM *)dev);
    }
 }
+
+#define attached_jcrs ((JCR *)(dev->attached_jcrs))
+
+void dev_attach_jcr(DEVICE *dev, JCR *jcr)
+{
+
+   P(dev->mutex);
+   jcr->prev_dev = NULL;
+   jcr->next_dev = attached_jcrs;
+   if (attached_jcrs) {
+      attached_jcrs->prev_dev = jcr;
+   }
+   attached_jcrs = jcr;
+   V(dev->mutex);
+}
+
+void dev_remove_jcr(DEVICE *dev, JCR *jcr)
+{
+   P(dev->mutex);
+   if (!jcr->prev_dev) {
+      attached_jcrs = jcr->next_dev;
+   } else {
+      jcr->prev_dev->next_dev = jcr->next_dev;
+   }
+   if (jcr->next_dev) {
+      jcr->next_dev->prev_dev = jcr->prev_dev; 
+   }
+   V(dev->mutex);
+}
