@@ -92,7 +92,7 @@ int do_a_dot_command(UAContext *ua, const char *cmd)
 
    stat = 1;
 
-   Dmsg1(400, "Dot command: %s\n", ua->UA_sock->msg);
+   Dmsg1(1400, "Dot command: %s\n", ua->UA_sock->msg);
    if (ua->argc == 0) {
       return 1;
    }
@@ -254,16 +254,16 @@ static int defaultscmd(UAContext *ua, const char *cmd)
       job = (JOB *)GetResWithName(R_JOB, ua->argv[1]);
       if (job) {
 	 STORE *store;
-	 bsendmsg(ua, "job=%s", job->hdr.name);
-	 bsendmsg(ua, "pool=%s", job->pool->hdr.name);
-	 bsendmsg(ua, "messages=%s", job->messages->hdr.name);
-	 bsendmsg(ua, "client=%s", job->client->hdr.name);
-	 store = (STORE *)job->storage[0]->first();
-	 bsendmsg(ua, "storage=%s", store->hdr.name);
-	 bsendmsg(ua, "where=%s", job->RestoreWhere?job->RestoreWhere:"");
-	 bsendmsg(ua, "level=%s", level_to_str(job->JobLevel));
-	 bsendmsg(ua, "type=%s", job_type_to_str(job->JobType));
-	 bsendmsg(ua, "fileset=%s", job->fileset->hdr.name);
+         bsendmsg(ua, "job=%s", job->hdr.name);
+         bsendmsg(ua, "pool=%s", job->pool->hdr.name);
+         bsendmsg(ua, "messages=%s", job->messages->hdr.name);
+         bsendmsg(ua, "client=%s", job->client->hdr.name);
+	 store = (STORE *)job->storage->first();
+         bsendmsg(ua, "storage=%s", store->hdr.name);
+         bsendmsg(ua, "where=%s", job->RestoreWhere?job->RestoreWhere:"");
+         bsendmsg(ua, "level=%s", level_to_str(job->JobLevel));
+         bsendmsg(ua, "type=%s", job_type_to_str(job->JobType));
+         bsendmsg(ua, "fileset=%s", job->fileset->hdr.name);
       }
    }
    return 1;

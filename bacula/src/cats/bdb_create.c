@@ -46,7 +46,7 @@
 #ifdef HAVE_BACULA_DB
 
 /* Forward referenced functions */
-int db_create_pool_record(B_DB *mdb, POOL_DBR *pr);
+bool db_create_pool_record(B_DB *mdb, POOL_DBR *pr);
 
 /* -----------------------------------------------------------------------
  *
@@ -137,7 +137,7 @@ bool db_create_jobmedia_record(JCR *jcr, B_DB *mdb, JOBMEDIA_DBR *jm)
  * Returns: 0 on failure
  *	    1 on success
  */
-int db_create_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
+bool db_create_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
 {
    int len;
    POOL_DBR mpr;
@@ -170,6 +170,15 @@ int db_create_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
    db_unlock(mdb);
    return 1;
 }
+
+bool db_create_device_record(JCR *jcr, B_DB *mdb, DEVICE_DBR *dr)
+{ return false; }
+
+bool db_create_storage_record(JCR *jcr, B_DB *mdb, STORAGE_DBR *dr)
+{ return false; }
+
+bool db_create_mediatype_record(JCR *jcr, B_DB *mdb, MEDIATYPE_DBR *dr)
+{ return false; }
 
 
 /*
@@ -259,7 +268,7 @@ int db_create_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr)
  * Returns: 0 on failure
  *	    1 on success
  */
-int db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
+bool db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
 {
    int len;
    FILESET_DBR lfsr;

@@ -10,7 +10,7 @@
  */
 
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -37,7 +37,7 @@
 #include "bacula.h"
 #include "cats.h"
 
-#if    HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL
+#if    HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL
 
 uint32_t bacula_db_version = 0;
 
@@ -96,7 +96,7 @@ QueryDB(const char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
       m_msg(file, line, &mdb->errmsg, _("query %s failed:\n%s\n"), cmd, sql_strerror(mdb));
       j_msg(file, line, jcr, M_FATAL, 0, "%s", mdb->errmsg);
       if (verbose) {
-	 j_msg(file, line, jcr, M_INFO, 0, "%s\n", cmd);
+         j_msg(file, line, jcr, M_INFO, 0, "%s\n", cmd);
       }
       return 0;
    }
@@ -118,7 +118,7 @@ InsertDB(const char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
       m_msg(file, line, &mdb->errmsg,  _("insert %s failed:\n%s\n"), cmd, sql_strerror(mdb));
       j_msg(file, line, jcr, M_FATAL, 0, "%s", mdb->errmsg);
       if (verbose) {
-	 j_msg(file, line, jcr, M_INFO, 0, "%s\n", cmd);
+         j_msg(file, line, jcr, M_INFO, 0, "%s\n", cmd);
       }
       return 0;
    }
@@ -132,7 +132,7 @@ InsertDB(const char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
       m_msg(file, line, &mdb->errmsg, _("Insertion problem: affected_rows=%s\n"),
 	 edit_uint64(mdb->num_rows, ed1));
       if (verbose) {
-	 j_msg(file, line, jcr, M_INFO, 0, "%s\n", cmd);
+         j_msg(file, line, jcr, M_INFO, 0, "%s\n", cmd);
       }
       return 0;
    }
@@ -152,7 +152,7 @@ UpdateDB(const char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
       m_msg(file, line, &mdb->errmsg, _("update %s failed:\n%s\n"), cmd, sql_strerror(mdb));
       j_msg(file, line, jcr, M_ERROR, 0, "%s", mdb->errmsg);
       if (verbose) {
-	 j_msg(file, line, jcr, M_INFO, 0, "%s\n", cmd);
+         j_msg(file, line, jcr, M_INFO, 0, "%s\n", cmd);
       }
       return 0;
    }
@@ -183,7 +183,7 @@ DeleteDB(const char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
       m_msg(file, line, &mdb->errmsg, _("delete %s failed:\n%s\n"), cmd, sql_strerror(mdb));
       j_msg(file, line, jcr, M_ERROR, 0, "%s", mdb->errmsg);
       if (verbose) {
-	 j_msg(file, line, jcr, M_INFO, 0, "%s\n", cmd);
+         j_msg(file, line, jcr, M_INFO, 0, "%s\n", cmd);
       }
       return -1;
    }
@@ -206,7 +206,7 @@ int get_sql_record_max(JCR *jcr, B_DB *mdb)
 
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       if ((row = sql_fetch_row(mdb)) == NULL) {
-	 Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
+         Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
 	 stat = -1;
       } else {
 	 stat = atoi(row[0]);
@@ -411,7 +411,7 @@ list_dashes(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx)
    for (i = 0; i < sql_num_fields(mdb); i++) {
       field = sql_fetch_field(mdb);
       for (j = 0; j < (int)field->max_length + 2; j++) {
-	 send(ctx, "-");
+         send(ctx, "-");
       }
       send(ctx, "+");
    }
@@ -455,7 +455,7 @@ list_result(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type t
 	    col_len = field->max_length;
 	 }
 	 if (col_len < 4 && !IS_NOT_NULL(field->flags)) {
-	    col_len = 4;                 /* 4 = length of the word "NULL" */
+            col_len = 4;                 /* 4 = length of the word "NULL" */
 	 }
 	 field->max_length = col_len;	 /* reset column info */
       }
@@ -486,12 +486,12 @@ list_result(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type t
       for (i = 0; i < sql_num_fields(mdb); i++) {
 	 field = sql_fetch_field(mdb);
 	 if (row[i] == NULL) {
-	    bsnprintf(buf, sizeof(buf), " %-*s |", (int)field->max_length, "NULL");
+            bsnprintf(buf, sizeof(buf), " %-*s |", (int)field->max_length, "NULL");
 	 } else if (IS_NUM(field->type) && !jcr->gui && is_an_integer(row[i])) {
-	    bsnprintf(buf, sizeof(buf), " %*s |", (int)field->max_length,
+            bsnprintf(buf, sizeof(buf), " %*s |", (int)field->max_length,
 		      add_commas(row[i], ewc));
 	 } else {
-	    bsnprintf(buf, sizeof(buf), " %-*s |", (int)field->max_length, row[i]);
+            bsnprintf(buf, sizeof(buf), " %-*s |", (int)field->max_length, row[i]);
 	 }
 	 send(ctx, buf);
       }
@@ -508,12 +508,12 @@ vertical_list:
       for (i = 0; i < sql_num_fields(mdb); i++) {
 	 field = sql_fetch_field(mdb);
 	 if (row[i] == NULL) {
-	    bsnprintf(buf, sizeof(buf), " %*s: %s\n", max_len, field->name, "NULL");
+            bsnprintf(buf, sizeof(buf), " %*s: %s\n", max_len, field->name, "NULL");
 	 } else if (IS_NUM(field->type) && !jcr->gui && is_an_integer(row[i])) {
-	    bsnprintf(buf, sizeof(buf), " %*s: %s\n", max_len, field->name,
+            bsnprintf(buf, sizeof(buf), " %*s: %s\n", max_len, field->name,
 		add_commas(row[i], ewc));
 	 } else {
-	    bsnprintf(buf, sizeof(buf), " %*s: %s\n", max_len, field->name, row[i]);
+            bsnprintf(buf, sizeof(buf), " %*s: %s\n", max_len, field->name, row[i]);
 	 }
 	 send(ctx, buf);
       }
@@ -523,4 +523,4 @@ vertical_list:
 }
 
 
-#endif /* HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL */
+#endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL*/

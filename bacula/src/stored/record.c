@@ -323,18 +323,18 @@ bool write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec)
 #ifdef xxxxxSMCHECK
 	 if (!sm_check_rtn(__FILE__, __LINE__, False)) {
 	    /* We damaged a buffer */
-	    Dmsg6(0, "Damaged block FI=%s SessId=%d Strm=%s len=%d\n"
+            Dmsg6(0, "Damaged block FI=%s SessId=%d Strm=%s len=%d\n"
 "rem=%d remainder=%d\n",
 	       FI_to_ascii(rec->FileIndex), rec->VolSessionId,
 	       stream_to_ascii(rec->Stream, rec->FileIndex), rec->data_len,
 	       remlen, rec->remainder);
-	    Dmsg5(0, "Damaged block: bufp=%x binbuf=%d buf_len=%d rem=%d moved=%d\n",
+            Dmsg5(0, "Damaged block: bufp=%x binbuf=%d buf_len=%d rem=%d moved=%d\n",
 	       block->bufp, block->binbuf, block->buf_len, block->buf_len-block->binbuf,
 	       remlen);
-	    Dmsg2(0, "Damaged block: buf=%x binbuffrombuf=%d \n",
+            Dmsg2(0, "Damaged block: buf=%x binbuffrombuf=%d \n",
 	       block->buf, block->bufp-block->buf);
 
-	       Emsg0(M_ABORT, 0, "Damaged buffer\n");
+               Emsg0(M_ABORT, 0, "Damaged buffer\n");
 	 }
 #endif
 
@@ -402,7 +402,7 @@ bool read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
 
    /* Clear state flags */
    rec->state = 0;
-   if (((DEVICE *)block->dev)->state & ST_TAPE) {
+   if (block->dev->is_tape()) {
       rec->state |= REC_ISTAPE;
    }
 
@@ -444,7 +444,7 @@ bool read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
       if (rec->remainder && (rec->VolSessionId != VolSessionId ||
 			     rec->VolSessionTime != VolSessionTime)) {
 	 rec->state |= REC_NO_MATCH;
-	 Dmsg0(450, "remainder and VolSession doesn't match\n");
+         Dmsg0(450, "remainder and VolSession doesn't match\n");
 	 return false;		   /* This is from some other Session */
       }
 
@@ -452,10 +452,10 @@ bool read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
        * of a previous partially written record.
        */
       if (Stream < 0) { 	      /* continuation record? */
-	 Dmsg1(500, "Got negative Stream => continuation. remainder=%d\n",
+         Dmsg1(500, "Got negative Stream => continuation. remainder=%d\n",
 	    rec->remainder);
 	 rec->state |= REC_CONTINUATION;
-	 if (!rec->remainder) {       /* if we didn't read previously */
+         if (!rec->remainder) {       /* if we didn't read previously */
 	    rec->data_len = 0;	      /* return data as if no continuation */
 	 } else if (rec->Stream != -Stream) {
 	    rec->state |= REC_NO_MATCH;
@@ -477,7 +477,7 @@ bool read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
       }
 
       Dmsg6(450, "rd_rec_blk() got FI=%s SessId=%d Strm=%s len=%u\n"
-		 "remlen=%d data_len=%d\n",
+                 "remlen=%d data_len=%d\n",
 	 FI_to_ascii(rec->FileIndex), rec->VolSessionId,
 	 stream_to_ascii(rec->Stream, rec->FileIndex), data_bytes, remlen,
 	 rec->data_len);
@@ -491,12 +491,6 @@ bool read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
        * then reread.
        */
       Dmsg0(450, "read_record_block: nothing\n");
-#ifdef xxx
-      if (!rec->remainder) {
-	 rec->remainder = 1;	      /* set to expect continuation */
-	 rec->data_len = 0;	      /* no data transferred */
-      }
-#endif
       rec->state |= (REC_NO_HEADER | REC_BLOCK_EMPTY);
       empty_block(block);		       /* mark block empty */
       return false;

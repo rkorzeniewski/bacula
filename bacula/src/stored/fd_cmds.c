@@ -13,7 +13,7 @@
  *
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -145,7 +145,7 @@ void run_job(JCR *jcr)
 	 }
       }
       if (!found) {		      /* command not found */
-	 Dmsg1(110, "<filed: Command not found: %s\n", fd->msg);
+         Dmsg1(110, "<filed: Command not found: %s\n", fd->msg);
 	 bnet_fsend(fd, ferrmsg);
 	 break;
       }
@@ -214,8 +214,7 @@ static bool append_open_session(JCR *jcr)
       return false;
    }
 
-   Dmsg1(110, "Append open session: %s\n", dev_name(jcr->device->dev));
-   jcr->session_opened = TRUE;
+   jcr->session_opened = true;
 
    /* Send "Ticket" to File Daemon */
    bnet_fsend(fd, OK_open, jcr->VolSessionId);
@@ -243,8 +242,6 @@ static bool append_close_session(JCR *jcr)
    Dmsg1(120, ">filed: %s", fd->msg);
 
    bnet_sig(fd, BNET_EOD);	      /* send EOD to File daemon */
-
-   Dmsg1(110, "Append close session: %s\n", dev_name(jcr->device->dev));
 
    jcr->session_opened = false;
    return true;
@@ -301,9 +298,7 @@ static bool read_open_session(JCR *jcr)
 	 jcr->read_EndBlock);
    }
 
-   Dmsg1(110, "Read open session: %s\n", dev_name(jcr->device->dev));
-
-   jcr->session_opened = TRUE;
+   jcr->session_opened = true;
    jcr->JobType = JT_RESTORE;
 
    /* Send "Ticket" to File Daemon */
@@ -380,6 +375,6 @@ static bool read_close_session(JCR *jcr)
 
    bnet_sig(fd, BNET_EOD);	    /* send EOD to File daemon */
 
-   jcr->session_opened = FALSE;
+   jcr->session_opened = false;
    return true;
 }

@@ -195,38 +195,38 @@ int close_bpipe(BPIPE *bpipe)
 
    /* wait for worker child to exit */
    for ( ;; ) {
-      Dmsg2(200, "Wait for %d opt=%d\n", bpipe->worker_pid, wait_option);
+      Dmsg2(800, "Wait for %d opt=%d\n", bpipe->worker_pid, wait_option);
       do {
 	 wpid = waitpid(bpipe->worker_pid, &chldstatus, wait_option);
       } while (wpid == -1 && (errno == EINTR || errno == EAGAIN));
       if (wpid == bpipe->worker_pid || wpid == -1) {
 	 stat = errno;
-	 Dmsg3(200, "Got break wpid=%d status=%d ERR=%s\n", wpid, chldstatus,
-	    wpid==-1?strerror(errno):"none");
+         Dmsg3(800, "Got break wpid=%d status=%d ERR=%s\n", wpid, chldstatus,
+            wpid==-1?strerror(errno):"none");
 	 break;
       }
-      Dmsg3(200, "Got wpid=%d status=%d ERR=%s\n", wpid, chldstatus,
-	    wpid==-1?strerror(errno):"none");
+      Dmsg3(800, "Got wpid=%d status=%d ERR=%s\n", wpid, chldstatus,
+            wpid==-1?strerror(errno):"none");
       if (remaining_wait > 0) {
 	 bmicrosleep(1, 0);	      /* wait one second */
 	 remaining_wait--;
       } else {
 	 stat = ETIME;		      /* set error status */
 	 wpid = -1;
-	 break;                       /* don't wait any longer */
+         break;                       /* don't wait any longer */
       }
    }
    if (wpid > 0) {
       if (WIFEXITED(chldstatus)) {    /* process exit()ed */
 	 stat = WEXITSTATUS(chldstatus);
 	 if (stat != 0) {
-	    Dmsg1(200, "Non-zero status %d returned from child.\n", stat);
+            Dmsg1(800, "Non-zero status %d returned from child.\n", stat);
 	    stat |= b_errno_exit;	 /* exit status returned */
 	 }
-	 Dmsg1(200, "child status=%d\n", stat & ~b_errno_exit);
+         Dmsg1(800, "child status=%d\n", stat & ~b_errno_exit);
       } else if (WIFSIGNALED(chldstatus)) {  /* process died */
 	 stat = WTERMSIG(chldstatus);
-	 Dmsg1(200, "Child died from signale %d\n", stat);
+         Dmsg1(800, "Child died from signale %d\n", stat);
 	 stat |= b_errno_signal;      /* exit signal returned */
       }
    }
@@ -234,7 +234,7 @@ int close_bpipe(BPIPE *bpipe)
       stop_child_timer(bpipe->timer_id);
    }
    free(bpipe);
-   Dmsg1(200, "returning stat = %d\n", stat);
+   Dmsg1(800, "returning stat = %d\n", stat);
    return stat;
 }
 
@@ -269,9 +269,9 @@ int run_program(char *prog, int wait, POOLMEM *results)
 	 stat1 = ferror(bpipe->rfd);
       }
       if (stat1 < 0) {
-	 Dmsg2(100, "Run program fgets stat=%d ERR=%s\n", stat1, strerror(errno));
+         Dmsg2(100, "Run program fgets stat=%d ERR=%s\n", stat1, strerror(errno));
       } else if (stat1 != 0) {
-	 Dmsg1(100, "Run program fgets stat=%d\n", stat1);
+         Dmsg1(100, "Run program fgets stat=%d\n", stat1);
       }
    } else {
       stat1 = 0;
@@ -317,18 +317,18 @@ int run_program_full_output(char *prog, int wait, POOLMEM *results)
 
    while (1) {
       fgets(tmp, sizeof_pool_memory(tmp), bpipe->rfd);
-      Dmsg1(200, "Run program fgets=%s", tmp);
+      Dmsg1(800, "Run program fgets=%s", tmp);
       pm_strcat(results, tmp);
       if (feof(bpipe->rfd)) {
-         stat1 = 0;
+	 stat1 = 0;
          Dmsg1(100, "Run program fgets stat=%d\n", stat1);
-         break;
+	 break;
       } else {
-         stat1 = ferror(bpipe->rfd);
+	 stat1 = ferror(bpipe->rfd);
       }
       if (stat1 < 0) {
          Dmsg2(100, "Run program fgets stat=%d ERR=%s\n", stat1, strerror(errno));
-         break;
+	 break;
       } else if (stat1 != 0) {
          Dmsg1(100, "Run program fgets stat=%d\n", stat1);
       }
@@ -371,16 +371,16 @@ static void build_argc_argv(char *cmd, int *bargc, char *bargv[], int max_argv)
 	    q++;
 	    quote = 0;
 	 } else {
-	    while (*q && *q != ' ')
+            while (*q && *q != ' ')
 	    q++;
 	 }
 	 if (*q)
-	    *(q++) = '\0';
+            *(q++) = '\0';
 	 bargv[argc++] = p;
 	 p = q;
-	 while (*p && (*p == ' ' || *p == '\t'))
+         while (*p && (*p == ' ' || *p == '\t'))
 	    p++;
-	 if (*p == '\"' || *p == '\'') {
+         if (*p == '\"' || *p == '\'') {
 	    quote = *p;
 	    p++;
 	 }

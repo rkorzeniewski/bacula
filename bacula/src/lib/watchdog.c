@@ -68,7 +68,7 @@ int start_watchdog(void)
    if (wd_is_init) {
       return 0;
    }
-   Dmsg0(400, "Initialising NicB-hacked watchdog thread\n");
+   Dmsg0(800, "Initialising NicB-hacked watchdog thread\n");
    watchdog_time = time(NULL);
 
    if ((errstat=rwl_init(&lock)) != 0) {
@@ -180,8 +180,8 @@ bool register_watchdog(watchdog_t *wd)
    wd_lock();
    wd->next_fire = watchdog_time + wd->interval;
    wd_queue->append(wd);
-   Dmsg3(400, "Registered watchdog %p, interval %d%s\n",
-	 wd, wd->interval, wd->one_shot ? " one shot" : "");
+   Dmsg3(800, "Registered watchdog %p, interval %d%s\n",
+         wd, wd->interval, wd->one_shot ? " one shot" : "");
    wd_unlock();
    ping_watchdog();
 
@@ -201,7 +201,7 @@ bool unregister_watchdog(watchdog_t *wd)
    foreach_dlist(p, wd_queue) {
       if (wd == p) {
 	 wd_queue->remove(wd);
-	 Dmsg1(400, "Unregistered watchdog %p\n", wd);
+         Dmsg1(800, "Unregistered watchdog %p\n", wd);
 	 ok = true;
 	 goto get_out;
       }
@@ -210,13 +210,13 @@ bool unregister_watchdog(watchdog_t *wd)
    foreach_dlist(p, wd_inactive) {
       if (wd == p) {
 	 wd_inactive->remove(wd);
-	 Dmsg1(400, "Unregistered inactive watchdog %p\n", wd);
+         Dmsg1(800, "Unregistered inactive watchdog %p\n", wd);
 	 ok = true;
 	 goto get_out;
       }
    }
 
-   Dmsg1(400, "Failed to unregister watchdog %p\n", wd);
+   Dmsg1(800, "Failed to unregister watchdog %p\n", wd);
 
 get_out:
    wd_unlock();
@@ -231,7 +231,7 @@ extern "C" void *watchdog_thread(void *arg)
    struct timezone tz;
    time_t next_time;
 
-   Dmsg0(400, "NicB-reworked watchdog thread entered\n");
+   Dmsg0(800, "NicB-reworked watchdog thread entered\n");
 
    while (!quit) {
       watchdog_t *p;
@@ -256,7 +256,7 @@ walk_list:
 	    /* Run the callback */
 	    p->callback(p);
 
-	    /* Reschedule (or move to inactive list if it's a one-shot timer) */
+            /* Reschedule (or move to inactive list if it's a one-shot timer) */
 	    if (p->one_shot) {
 	       wd_queue->remove(p);
 	       wd_inactive->append(p);
@@ -290,7 +290,7 @@ walk_list:
       V(timer_mutex);
    }
 
-   Dmsg0(400, "NicB-reworked watchdog thread exited\n");
+   Dmsg0(800, "NicB-reworked watchdog thread exited\n");
    return NULL;
 }
 

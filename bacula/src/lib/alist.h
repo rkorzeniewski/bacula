@@ -3,7 +3,7 @@
  */
 
 /*
-   Copyright (C) 2003-2004 Kern Sibbald and John Walker
+   Copyright (C) 2003-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -32,11 +32,13 @@
  * Loop var through each member of list
  */
 #define foreach_alist(var, list) \
-    for((*((void **)&(var))=(void*)((list)->first())); (var); (*((void **)&(var))=(void*)((list)->next())))
+    for((*((void **)&(var))=(void*)((list)->first())); \
+         (var); \
+         (*((void **)&(var))=(void*)((list)->next())))
 
 #ifdef the_easy_way
 #define foreach_alist(var, list) \
-	for((void*(var))=(list)->first(); (var); (void *(var))=(list)->next(var)); )
+        for((void*(var))=(list)->first(); (var); (void *(var))=(list)->next(var)); )
 #endif
 
 

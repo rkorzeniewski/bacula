@@ -276,7 +276,7 @@ bool first_open_device(DEVICE *dev)
       return true;
    }
 
-   if (!(dev->state & ST_OPENED)) {
+   if (!dev->is_open()) {
        int mode;
        if (dev_cap(dev, CAP_STREAM)) {
 	  mode = OPEN_WRITE_ONLY;
@@ -285,7 +285,7 @@ bool first_open_device(DEVICE *dev)
        }
       Dmsg0(129, "Opening device.\n");
       if (open_dev(dev, NULL, mode) < 0) {
-	 Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), dev->errmsg);
+         Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), dev->errmsg);
 	 unlock_device(dev);
 	 return false;
       }
@@ -303,21 +303,23 @@ bool open_device(DCR *dcr)
 {
    DEVICE *dev = dcr->dev;
    /* Open device */
-   if  (!(dev_state(dev, ST_OPENED))) {
-       int mode;
-       if (dev_cap(dev, CAP_STREAM)) {
-	  mode = OPEN_WRITE_ONLY;
-       } else {
-	  mode = OPEN_READ_WRITE;
-       }
-       if (open_dev(dev, dcr->VolCatInfo.VolCatName, mode) < 0) {
-	  /* If polling, ignore the error */
-	  if (!dev->poll) {
-	     Jmsg2(dcr->jcr, M_FATAL, 0, _("Unable to open device %s. ERR=%s\n"),
-		dev_name(dev), strerror_dev(dev));
-	  }
-	  return false;
-       }
+   if  (!dev->is_open()) {
+      int mode;
+      if (dev_cap(dev, CAP_STREAM)) {
+	 mode = OPEN_WRITE_ONLY;
+      } else {
+	 mode = OPEN_READ_WRITE;
+      }
+      if (open_dev(dev, dcr->VolCatInfo.VolCatName, mode) < 0) {
+	 /* If polling, ignore the error */
+	 if (!dev->poll) {
+            Jmsg2(dcr->jcr, M_FATAL, 0, _("Unable to open archive %s. ERR=%s\n"),
+	       dev_name(dev), strerror_dev(dev));
+            Dmsg2(000, "Unable to open archive %s. ERR=%s\n", 
+	       dev_name(dev), strerror_dev(dev));
+	 }
+	 return false;
+      }
    }
    return true;
 }
@@ -353,7 +355,7 @@ void _lock_device(const char *file, int line, DEVICE *dev)
       while (dev->dev_blocked) {
 	 if ((stat = pthread_cond_wait(&dev->wait, &dev->mutex)) != 0) {
 	    V(dev->mutex);
-	    Emsg1(M_ABORT, 0, _("pthread_cond_wait failure. ERR=%s\n"),
+            Emsg1(M_ABORT, 0, _("pthread_cond_wait failure. ERR=%s\n"),
 	       strerror(stat));
 	 }
       }

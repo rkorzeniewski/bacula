@@ -11,7 +11,7 @@
  */
 
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -39,7 +39,7 @@
 #include "bacula.h"
 #include "cats.h"
 
-#if    HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL
+#if    HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL
 
 /* -----------------------------------------------------------------------
  *
@@ -90,14 +90,14 @@ db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
 	  *  backup
 	  */
 	 if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
-	    Mmsg2(&mdb->errmsg, _("Query error for start time request: ERR=%s\nCMD=%s\n"),
+            Mmsg2(&mdb->errmsg, _("Query error for start time request: ERR=%s\nCMD=%s\n"),
 	       sql_strerror(mdb), mdb->cmd);
 	    db_unlock(mdb);
 	    return 0;
 	 }
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
 	    sql_free_result(mdb);
-	    Mmsg(mdb->errmsg, _("No prior Full backup Job record found.\n"));
+            Mmsg(mdb->errmsg, _("No prior Full backup Job record found.\n"));
 	    db_unlock(mdb);
 	    return 0;
 	 }
@@ -110,7 +110,7 @@ db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
 	    jr->JobType, L_INCREMENTAL, L_DIFFERENTIAL, L_FULL, jr->Name,
 	    jr->ClientId, jr->FileSetId);
       } else {
-	 Mmsg1(&mdb->errmsg, _("Unknown level=%d\n"), jr->JobLevel);
+         Mmsg1(&mdb->errmsg, _("Unknown level=%d\n"), jr->JobLevel);
 	 db_unlock(mdb);
 	 return 0;
       }
@@ -266,33 +266,35 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
    if (item == -1) {	   /* find oldest volume */
       /* Find oldest volume */
       Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
-	  "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
-	  "VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,Recycle,Slot,"
-	  "FirstWritten,LastWritten,VolStatus,InChanger,VolParts "
-	  "FROM Media WHERE PoolId=%u AND MediaType='%s' AND VolStatus IN ('Full',"
-	  "'Recycle','Purged','Used','Append') "
-	  "ORDER BY LastWritten LIMIT 1", mr->PoolId, mr->MediaType);
+          "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
+          "VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,Recycle,Slot,"
+          "FirstWritten,LastWritten,VolStatus,InChanger,VolParts,"
+          "LabelType "
+          "FROM Media WHERE PoolId=%u AND MediaType='%s' AND VolStatus IN ('Full',"
+          "'Recycle','Purged','Used','Append') "
+          "ORDER BY LastWritten LIMIT 1", mr->PoolId, mr->MediaType);
      item = 1;
    } else {
       /* Find next available volume */
       if (InChanger) {
-	 changer = "AND InChanger=1";
+         changer = "AND InChanger=1";
       } else {
-	 changer = "";
+         changer = "";
       }
       if (strcmp(mr->VolStatus, "Recycled") == 0 ||
-	  strcmp(mr->VolStatus, "Purged") == 0) {
-	 order = "ORDER BY LastWritten ASC,MediaId";  /* take oldest */
+          strcmp(mr->VolStatus, "Purged") == 0) {
+         order = "ORDER BY LastWritten ASC,MediaId";  /* take oldest */
       } else {
-	 order = "ORDER BY LastWritten IS NULL,LastWritten DESC,MediaId";   /* take most recently written */
+         order = "ORDER BY LastWritten IS NULL,LastWritten DESC,MediaId";   /* take most recently written */
       }
       Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
-	  "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
-	  "VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,Recycle,Slot,"
-	  "FirstWritten,LastWritten,VolStatus,InChanger,VolParts "
-	  "FROM Media WHERE PoolId=%u AND MediaType='%s' AND VolStatus='%s' "
-	  "%s "
-	  "%s LIMIT %d",
+          "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
+          "VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,Recycle,Slot,"
+          "FirstWritten,LastWritten,VolStatus,InChanger,VolParts,"
+          "LabelType "
+          "FROM Media WHERE PoolId=%u AND MediaType='%s' AND VolStatus='%s' "
+          "%s "
+          "%s LIMIT %d",
 	  mr->PoolId, mr->MediaType, mr->VolStatus, changer, order, item);
    }
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
@@ -345,6 +347,7 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
    bstrncpy(mr->VolStatus, row[19], sizeof(mr->VolStatus));
    mr->InChanger = str_to_int64(row[20]);
    mr->VolParts = str_to_int64(row[21]);
+   mr->LabelType = str_to_int64(row[22]);
    sql_free_result(mdb);
 
    db_unlock(mdb);
@@ -352,4 +355,4 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
 }
 
 
-#endif /* HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL */
+#endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL*/

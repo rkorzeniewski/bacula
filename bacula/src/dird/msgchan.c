@@ -40,18 +40,23 @@
 
 /* Commands sent to Storage daemon */
 static char jobcmd[]     = "JobId=%d job=%s job_name=%s client_name=%s "
-"type=%d level=%d FileSet=%s NoAttr=%d SpoolAttr=%d FileSetMD5=%s SpoolData=%d WritePartAfterJob=%d";
-static char use_device[] = "use device=%s media_type=%s pool_name=%s pool_type=%s\n";
+   "type=%d level=%d FileSet=%s NoAttr=%d SpoolAttr=%d FileSetMD5=%s "
+   "SpoolData=%d WritePartAfterJob=%d";
+static char use_device[] = "use device=%s media_type=%s pool_name=%s "
+   "pool_type=%s append=%d\n";
+static char query_device[] = "query device=%s";
 
 /* Response from Storage daemon */
 static char OKjob[]      = "3000 OK Job SDid=%d SDtime=%d Authorization=%100s\n";
 static char OK_device[]  = "3000 OK use device\n";
+static char OK_query[]  = "3001 OK query append=%d read=%d num_writers=%d "
+   "num_waiting=%d open=%d use_count=%d labeled=%d "
+   "media_type=%127s volume_name=%127s";
 
 /* Storage Daemon requests */
 static char Job_start[]  = "3010 Job %127s start\n";
 static char Job_end[]	 =
    "3099 Job %127s end JobStatus=%d JobFiles=%d JobBytes=%" lld "\n";
-static char Job_status[] = "3012 Job %127s jobstatus %d\n";
 
 /* Forward referenced functions */
 extern "C" void *msg_thread(void *arg);
@@ -66,7 +71,10 @@ bool connect_to_storage_daemon(JCR *jcr, int retry_interval,
    BSOCK *sd;
    STORE *store;
 
-   store = (STORE *)jcr->storage[0]->first();
+   if (jcr->store_bsock) {
+      return true;		      /* already connected */
+   }
+   store = (STORE *)jcr->storage->first();
 
    /*
     *  Open message channel with the Storage daemon
@@ -83,6 +91,47 @@ bool connect_to_storage_daemon(JCR *jcr, int retry_interval,
    jcr->store_bsock = sd;
 
    if (!authenticate_storage_daemon(jcr, store)) {
+      bnet_close(sd);
+      jcr->store_bsock = NULL;
+      return false;
+   }
+   return true;
+}
+
+/*
+ * Here we ask the SD to send us the info for a 
+ *  particular device resource.
+ */
+bool update_device_res(JCR *jcr, DEVICE *dev)
+{
+   POOL_MEM device_name, media_type, volume_name;
+   int dev_open, dev_append, dev_read, dev_labeled;
+   BSOCK *sd;
+   if (!connect_to_storage_daemon(jcr, 5, 30, 0)) {
+      return false;
+   }
+   sd = jcr->store_bsock;
+   pm_strcpy(device_name, dev->hdr.name);
+   bash_spaces(device_name);
+   bnet_fsend(sd, query_device, device_name.c_str());
+   if (bget_dirmsg(sd) > 0) {
+      Dmsg1(400, "<stored: %s", sd->msg);
+      if (sscanf(sd->msg, OK_query, &dev_append, &dev_read,
+	  &dev->num_writers, &dev->num_waiting, &dev_open,
+	  &dev->use_count, &dev_labeled, media_type.c_str(),
+	  volume_name.c_str()) != 9) {
+	 return false;
+      }
+      unbash_spaces(media_type);
+      unbash_spaces(volume_name);
+      bstrncpy(dev->MediaType, media_type.c_str(), sizeof(dev->MediaType));
+      bstrncpy(dev->VolumeName, volume_name.c_str(), sizeof(dev->VolumeName));
+      dev->open = dev_open;
+      dev->append = dev_append;
+      dev->read = dev_read;
+      dev->labeled = dev_labeled;
+      dev->found = true;
+   } else {
       return false;
    }
    return true;
@@ -91,14 +140,13 @@ bool connect_to_storage_daemon(JCR *jcr, int retry_interval,
 /*
  * Start a job with the Storage daemon
  */
-int start_storage_daemon_job(JCR *jcr)
+int start_storage_daemon_job(JCR *jcr, alist *store, int append)
 {
-   int status = 0;
+   bool ok;
    STORE *storage;
    BSOCK *sd;
    char auth_key[100];
    POOL_MEM device_name, pool_name, pool_type, media_type;
-   int i;
 
    sd = jcr->store_bsock;
    /*
@@ -108,7 +156,7 @@ int start_storage_daemon_job(JCR *jcr)
    bash_spaces(jcr->client->hdr.name);
    bash_spaces(jcr->fileset->hdr.name);
    if (jcr->fileset->MD5[0] == 0) {
-      strcpy(jcr->fileset->MD5, "**Dummy**");
+      bstrncpy(jcr->fileset->MD5, "**Dummy**", sizeof(jcr->fileset->MD5));
    }
    bnet_fsend(sd, jobcmd, jcr->JobId, jcr->Job, jcr->job->hdr.name,
 	      jcr->client->hdr.name, jcr->JobType, jcr->JobLevel,
@@ -135,34 +183,32 @@ int start_storage_daemon_job(JCR *jcr)
       return 0;
    }
 
-   /*
-    * Send use device = xxx media = yyy pool = zzz
-    */
-
-   for (i=0; i < MAX_STORE; i++) {
-      if (jcr->storage[i]) {
-	 storage = (STORE *)jcr->storage[i]->first();
-	 pm_strcpy(device_name, storage->dev_name);
-	 pm_strcpy(media_type, storage->media_type);
-	 pm_strcpy(pool_type, jcr->pool->pool_type);
-	 pm_strcpy(pool_name, jcr->pool->hdr.name);
-	 bash_spaces(device_name);
-	 bash_spaces(media_type);
-	 bash_spaces(pool_type);
-	 bash_spaces(pool_name);
-	 bnet_fsend(sd, use_device, device_name.c_str(),
-		    media_type.c_str(), pool_name.c_str(), pool_type.c_str());
-         Dmsg1(110, ">stored: %s", sd->msg);
-         status = response(jcr, sd, OK_device, "Use Device", NO_DISPLAY);
-	 if (!status) {
-	    pm_strcpy(pool_type, sd->msg); /* save message */
-            Jmsg(jcr, M_FATAL, 0, _("\n"
-               "     Storage daemon didn't accept Device \"%s\" because:\n     %s"),
-	       device_name.c_str(), pool_type.c_str()/* sd->msg */);
-	 }
+// foreach_alist(storage, store) {
+      storage = (STORE *)store->first();
+      pm_strcpy(device_name, storage->dev_name());
+      pm_strcpy(media_type, storage->media_type);
+      pm_strcpy(pool_type, jcr->pool->pool_type);
+      pm_strcpy(pool_name, jcr->pool->hdr.name);
+      bash_spaces(device_name);
+      bash_spaces(media_type);
+      bash_spaces(pool_type);
+      bash_spaces(pool_name);
+      bnet_fsend(sd, use_device, device_name.c_str(),
+		 media_type.c_str(), pool_name.c_str(), pool_type.c_str(),
+		 append);
+      Dmsg1(200, ">stored: %s", sd->msg);
+      ok = response(jcr, sd, OK_device, "Use Device", NO_DISPLAY);
+      if (!ok) {
+	 pm_strcpy(pool_type, sd->msg); /* save message */
+         Jmsg(jcr, M_FATAL, 0, _("\n"
+            "     Storage daemon didn't accept Device \"%s\" because:\n     %s"),
+	    device_name.c_str(), pool_type.c_str()/* sd->msg */);
       }
+// }
+   if (ok) {
+      bnet_fsend(sd, "run");
    }
-   return status;
+   return ok;
 }
 
 /*
@@ -181,7 +227,8 @@ int start_storage_daemon_message_thread(JCR *jcr)
    V(jcr->mutex);
    Dmsg0(100, "Start SD msg_thread.\n");
    if ((status=pthread_create(&thid, NULL, msg_thread, (void *)jcr)) != 0) {
-      Jmsg1(jcr, M_ABORT, 0, _("Cannot create message thread: %s\n"), strerror(status));
+      berrno be;
+      Jmsg1(jcr, M_ABORT, 0, _("Cannot create message thread: %s\n"), be.strerror(status));
    }
    Dmsg0(100, "SD msg_thread started.\n");
    /* Wait for thread to start */
@@ -209,8 +256,7 @@ extern "C" void msg_thread_cleanup(void *arg)
  *  Storage daemon).
  * Note, we are running in a separate thread.
  */
-extern "C"
-void *msg_thread(void *arg)
+extern "C" void *msg_thread(void *arg)
 {
    JCR *jcr = (JCR *)arg;
    BSOCK *sd;
@@ -239,10 +285,6 @@ void *msg_thread(void *arg)
 	 jcr->SDJobFiles = JobFiles;
 	 jcr->SDJobBytes = JobBytes;
 	 break;
-      }
-      if (sscanf(sd->msg, Job_status, &Job, &JobStatus) == 2) {
-	 jcr->SDJobStatus = JobStatus; /* current status */
-	 continue;
       }
    }
    if (is_bnet_error(sd)) {
@@ -278,4 +320,55 @@ void wait_for_storage_daemon_termination(JCR *jcr)
    }
    V(jcr->mutex);
    set_jcr_job_status(jcr, JS_Terminated);
+}
+
+
+#define MAX_TRIES 30
+#define WAIT_TIME 2
+extern "C" void *device_thread(void *arg)
+{
+   int i;
+   JCR *jcr;
+   DEVICE *dev;
+
+
+   pthread_detach(pthread_self());
+   jcr = new_control_jcr("*DeviceInit*", JT_SYSTEM);
+   for (i=0; i < MAX_TRIES; i++) {
+      if (!connect_to_storage_daemon(jcr, 10, 30, 1)) {
+         Dmsg0(000, "Failed connecting to SD.\n");
+	 continue;
+      }
+      LockRes();
+      foreach_res(dev, R_DEVICE) {
+	 if (!update_device_res(jcr, dev)) {
+            Dmsg1(900, "Error updating device=%s\n", dev->hdr.name);
+	 } else {
+            Dmsg1(900, "Updated Device=%s\n", dev->hdr.name);
+	 }
+      }
+      UnlockRes();
+      bnet_close(jcr->store_bsock);
+      jcr->store_bsock = NULL;
+      break;
+
+   }
+   free_jcr(jcr);
+   return NULL;
+}
+
+/*
+ * Start a thread to handle getting Device resource information
+ *  from SD. This is called once at startup of the Director.
+ */
+void init_device_resources()
+{
+   int status;
+   pthread_t thid;
+
+   Dmsg0(100, "Start Device thread.\n");
+   if ((status=pthread_create(&thid, NULL, device_thread, NULL)) != 0) {
+      berrno be;
+      Jmsg1(NULL, M_ABORT, 0, _("Cannot create message thread: %s\n"), be.strerror(status));
+   }
 }

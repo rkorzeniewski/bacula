@@ -7,7 +7,7 @@
  */
 
 /*
-   Copyright (C) 2002 Kern Sibbald and John Walker
+   Copyright (C) 2002-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -32,6 +32,7 @@
 typedef BSR * (ITEM_HANDLER)(LEX *lc, BSR *bsr);
 
 static BSR *store_vol(LEX *lc, BSR *bsr);
+static BSR *store_mediatype(LEX *lc, BSR *bsr);
 static BSR *store_client(LEX *lc, BSR *bsr);
 static BSR *store_job(LEX *lc, BSR *bsr);
 static BSR *store_jobid(LEX *lc, BSR *bsr);
@@ -60,6 +61,7 @@ struct kw_items {
  */
 struct kw_items items[] = {
    {"volume", store_vol},
+   {"mediatype", store_mediatype},
    {"client", store_client},
    {"job", store_job},
    {"jobid", store_jobid},
@@ -137,13 +139,13 @@ BSR *parse_bsr(JCR *jcr, char *fname)
       for (i=0; items[i].name; i++) {
 	 if (strcasecmp(items[i].name, lc->str) == 0) {
 	    token = lex_get_token(lc, T_ALL);
-	    Dmsg1 (200, "in T_IDENT got token=%s\n", lex_tok_to_str(token));
+            Dmsg1 (200, "in T_IDENT got token=%s\n", lex_tok_to_str(token));
 	    if (token != T_EQUALS) {
-	       scan_err1(lc, "expected an equals, got: %s", lc->str);
+               scan_err1(lc, "expected an equals, got: %s", lc->str);
 	       bsr = NULL;
 	       break;
 	    }
-	    Dmsg1(200, "calling handler for %s\n", items[i].name);
+            Dmsg1(200, "calling handler for %s\n", items[i].name);
 	    /* Call item handler */
 	    bsr = items[i].handler(lc, bsr);
 	    i = -1;
@@ -151,8 +153,8 @@ BSR *parse_bsr(JCR *jcr, char *fname)
 	 }
       }
       if (i >= 0) {
-	 Dmsg1(200, "Keyword = %s\n", lc->str);
-	 scan_err1(lc, "Keyword %s not found", lc->str);
+         Dmsg1(200, "Keyword = %s\n", lc->str);
+         scan_err1(lc, "Keyword %s not found", lc->str);
 	 bsr = NULL;
 	 break;
       }
@@ -246,6 +248,28 @@ static BSR *store_vol(LEX *lc, BSR *bsr)
    }
    return bsr;
 }
+
+/* Shove the MediaType in each Volume in the current bsr */
+static BSR *store_mediatype(LEX *lc, BSR *bsr)
+{
+   int token;
+
+   token = lex_get_token(lc, T_STRING);
+   if (token == T_ERROR) {
+      return NULL;
+   }
+   if (!bsr->volume) {
+      Emsg1(M_ERROR,0, _("MediaType %s in bsr at inappropriate place.\n"),
+	 lc->str);
+      return bsr;
+   }
+   BSR_VOLUME *bv;
+   for (bv=bsr->volume; bv; bv=bv->next) {
+      bstrncpy(bv->MediaType, lc->str, sizeof(bv->MediaType));
+   }
+   return bsr;
+}
+
 
 static BSR *store_client(LEX *lc, BSR *bsr)
 {
@@ -619,9 +643,9 @@ void dump_findex(BSR_FINDEX *FileIndex)
 {
    if (FileIndex) {
       if (FileIndex->findex == FileIndex->findex2) {
-	 Dmsg1(-1, "FileIndex   : %u\n", FileIndex->findex);
+         Dmsg1(-1, "FileIndex   : %u\n", FileIndex->findex);
       } else {
-	 Dmsg2(-1, "FileIndex   : %u-%u\n", FileIndex->findex, FileIndex->findex2);
+         Dmsg2(-1, "FileIndex   : %u-%u\n", FileIndex->findex, FileIndex->findex2);
       }
       dump_findex(FileIndex->next);
    }
@@ -631,9 +655,9 @@ void dump_jobid(BSR_JOBID *jobid)
 {
    if (jobid) {
       if (jobid->JobId == jobid->JobId2) {
-	 Dmsg1(-1, "JobId       : %u\n", jobid->JobId);
+         Dmsg1(-1, "JobId       : %u\n", jobid->JobId);
       } else {
-	 Dmsg2(-1, "JobId       : %u-%u\n", jobid->JobId, jobid->JobId2);
+         Dmsg2(-1, "JobId       : %u-%u\n", jobid->JobId, jobid->JobId2);
       }
       dump_jobid(jobid->next);
    }
@@ -643,9 +667,9 @@ void dump_sessid(BSR_SESSID *sessid)
 {
    if (sessid) {
       if (sessid->sessid == sessid->sessid2) {
-	 Dmsg1(-1, "SessId      : %u\n", sessid->sessid);
+         Dmsg1(-1, "SessId      : %u\n", sessid->sessid);
       } else {
-	 Dmsg2(-1, "SessId      : %u-%u\n", sessid->sessid, sessid->sessid2);
+         Dmsg2(-1, "SessId      : %u-%u\n", sessid->sessid, sessid->sessid2);
       }
       dump_sessid(sessid->next);
    }
@@ -852,12 +876,14 @@ void create_vol_list(JCR *jcr)
 	 for (bsrvol = bsr->volume; bsrvol; bsrvol=bsrvol->next) {
 	    vol = new_vol();
 	    bstrncpy(vol->VolumeName, bsrvol->VolumeName, sizeof(vol->VolumeName));
+	    bstrncpy(vol->MediaType,  bsrvol->MediaType,  sizeof(vol->MediaType));
 	    vol->start_file = sfile;
 	    if (add_vol(jcr, vol)) {
 	       jcr->NumVolumes++;
-	       Dmsg1(400, "Added volume %s\n", vol->VolumeName);
+               Dmsg2(400, "Added volume=%s mediatype=%s\n", vol->VolumeName,
+		  vol->MediaType);
 	    } else {
-	       Dmsg1(400, "Duplicate volume %s\n", vol->VolumeName);
+               Dmsg1(400, "Duplicate volume %s\n", vol->VolumeName);
 	       free((char *)vol);
 	    }
 	    sfile = 0;		      /* start at beginning of second volume */
@@ -866,12 +892,13 @@ void create_vol_list(JCR *jcr)
    } else {
       /* This is the old way -- deprecated */
       for (p = jcr->dcr->VolumeName; p && *p; ) {
-	 n = strchr(p, '|');             /* volume name separator */
+         n = strchr(p, '|');             /* volume name separator */
 	 if (n) {
 	    *n++ = 0;			 /* Terminate name */
 	 }
 	 vol = new_vol();
 	 bstrncpy(vol->VolumeName, p, sizeof(vol->VolumeName));
+	 bstrncpy(vol->MediaType, jcr->dcr->media_type, sizeof(vol->MediaType));
 	 if (add_vol(jcr, vol)) {
 	    jcr->NumVolumes++;
 	 } else {

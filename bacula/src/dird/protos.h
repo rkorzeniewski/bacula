@@ -79,7 +79,7 @@ enum e_prtmsg {
    DISPLAY_ERROR,
    NO_DISPLAY
 };
-extern int response(JCR *jcr, BSOCK *fd, char *resp, const char *cmd, e_prtmsg prtmsg);
+extern bool response(JCR *jcr, BSOCK *fd, char *resp, const char *cmd, e_prtmsg prtmsg);
 
 /* job.c */
 extern void set_jcr_defaults(JCR *jcr, JOB *job);
@@ -99,7 +99,7 @@ extern void mount_request(JCR *jcr, BSOCK *bs, char *buf);
 /* msgchan.c */
 extern bool connect_to_storage_daemon(JCR *jcr, int retry_interval,
 			      int max_retry_time, int verbose);
-extern int start_storage_daemon_job(JCR *jcr);
+extern int start_storage_daemon_job(JCR *jcr, alist *store, int append);
 extern int start_storage_daemon_message_thread(JCR *jcr);
 extern int bget_dirmsg(BSOCK *bs);
 extern void wait_for_storage_daemon_termination(JCR *jcr);

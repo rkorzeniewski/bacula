@@ -42,8 +42,10 @@ static bool use_device_cmd(JCR *jcr);
 static char jobcmd[] = "JobId=%d job=%127s job_name=%127s client_name=%127s "
       "type=%d level=%d FileSet=%127s NoAttr=%d SpoolAttr=%d FileSetMD5=%127s "
       "SpoolData=%d  WritePartAfterJob=%d";
-static char use_device[]  = "use device=%127s media_type=%127s pool_name=%127s pool_type=%127s\n";
-static char use_devices[] = "use devices=%127s media_type=%127s pool_name=%127s pool_type=%127s\n";
+static char use_device[]  = "use device=%127s media_type=%127s "
+   "pool_name=%127s pool_type=%127s append=%d";
+static char query_device[] = "query device=%127s";
+
 
 /* Responses sent to Director daemon */
 static char OKjob[]     = "3000 OK Job SDid=%u SDtime=%u Authorization=%s\n";
@@ -51,6 +53,10 @@ static char OK_device[] = "3000 OK use device\n";
 static char NO_device[] = "3914 Device \"%s\" not in SD Device resources.\n";
 static char BAD_use[]   = "3913 Bad use command: %s\n";
 static char BAD_job[]   = "3915 Bad Job command: %s\n";
+static char OK_query[]  = "3001 OK query append=%d read=%d num_writers=%d "
+   "num_waiting=%d open=%d use_count=%d labeled=%d "
+   "media_type=%s volume_name=%s";
+static char BAD_query[]   = "3917 Bad query command: %s\n";
 
 /*
  * Director requests us to start a job
@@ -64,14 +70,11 @@ static char BAD_job[]   = "3915 Bad Job command: %s\n";
  */
 bool job_cmd(JCR *jcr)
 {
-   int JobId, errstat;
+   int JobId;
    char auth_key[100];
    BSOCK *dir = jcr->dir_bsock;
    POOL_MEM job_name, client_name, job, fileset_name, fileset_md5;
    int JobType, level, spool_attributes, no_attributes, spool_data, write_part_after_job;
-   struct timeval tv;
-   struct timezone tz;
-   struct timespec timeout;
    JCR *ojcr;
 
    /*
@@ -130,7 +133,11 @@ bool job_cmd(JCR *jcr)
    Dmsg1(110, ">dird: %s", dir->msg);
    jcr->sd_auth_key = bstrdup(auth_key);
    memset(auth_key, 0, sizeof(auth_key));
+   return true;
+}
 
+bool use_cmd(JCR *jcr) 
+{
    /*
     * Wait for the device, media, and pool information
     */
@@ -139,6 +146,15 @@ bool job_cmd(JCR *jcr)
       memset(jcr->sd_auth_key, 0, strlen(jcr->sd_auth_key));
       return false;
    }
+   return true;
+}
+
+bool run_cmd(JCR *jcr)
+{
+   struct timeval tv;
+   struct timezone tz;
+   struct timespec timeout;
+   int errstat;
 
    /* The following jobs don't need the FD */
    switch (jcr->JobType) {
@@ -243,80 +259,130 @@ static bool use_device_cmd(JCR *jcr)
    POOL_MEM dev_name, media_type, pool_name, pool_type;
    BSOCK *dir = jcr->dir_bsock;
    DEVRES *device;
-   bool quit = false;
+   int append;
+   bool ok;
 
-   while (!quit) {
-      bool ok;
-      if (bnet_recv(dir) <= 0) {
-         Jmsg0(jcr, M_FATAL, 0, _("No Device from Director\n"));
-	 return false;
-      }
-
-      Dmsg1(120, "Use device: %s", dir->msg);
-      /*
-       * If there are multiple devices, the director sends us
-       *   use_devices (note plurel) until the last one, at which
-       *   time, it sends us a use_device command (note singlular)
-       *   so we stop looking after getting the use_device.
-       */
-      ok = sscanf(dir->msg, use_device, dev_name.c_str(), media_type.c_str(),
-		  pool_name.c_str(), pool_type.c_str()) == 4;
-      if (ok) {
-	 quit = true;		      /* got last device */
-      } else {
-	 ok = sscanf(dir->msg, use_devices, dev_name.c_str(), media_type.c_str(),
-		     pool_name.c_str(), pool_type.c_str()) == 4;
-      }
-      if (ok) {
-	 unbash_spaces(dev_name);
-	 unbash_spaces(media_type);
-	 unbash_spaces(pool_name);
-	 unbash_spaces(pool_type);
-	 LockRes();
-	 foreach_res(device, R_DEVICE) {
-	    /* Find resource, and make sure we were able to open it */
-	    if (fnmatch(dev_name.c_str(), device->hdr.name, 0) == 0 &&
-		device->dev && strcmp(device->media_type, media_type.c_str()) == 0) {
-	       const int name_len = MAX_NAME_LENGTH;
-	       DCR *dcr;
-	       UnlockRes();
-	       dcr = new_dcr(jcr, device->dev);
-	       if (!dcr) {
-		  return false;
-	       }
-               Dmsg1(120, "Found device %s\n", device->hdr.name);
-	       bstrncpy(dcr->pool_name, pool_name, name_len);
-	       bstrncpy(dcr->pool_type, pool_type, name_len);
-	       bstrncpy(dcr->media_type, media_type, name_len);
-	       bstrncpy(dcr->dev_name, dev_name, name_len);
-	       jcr->device = device;
-               Dmsg1(220, "Got: %s", dir->msg);
-	       return bnet_fsend(dir, OK_device);
+   Dmsg1(120, "Use device: %s", dir->msg);
+   /*
+    * If there are multiple devices, the director sends us
+    *	use_device for each device that it wants to use.
+    */
+   ok = sscanf(dir->msg, use_device, dev_name.c_str(), media_type.c_str(),
+	       pool_name.c_str(), pool_type.c_str(), &append) == 5;
+   if (ok) {
+      unbash_spaces(dev_name);
+      unbash_spaces(media_type);
+      unbash_spaces(pool_name);
+      unbash_spaces(pool_type);
+      LockRes();
+      foreach_res(device, R_DEVICE) {
+	 /* Find resource, and make sure we were able to open it */
+	 if (fnmatch(dev_name.c_str(), device->hdr.name, 0) == 0 &&
+	     device->dev && strcmp(device->media_type, media_type.c_str()) == 0) {
+	    const int name_len = MAX_NAME_LENGTH;
+	    DCR *dcr = new_dcr(jcr, device->dev);
+	    UnlockRes();
+            Dmsg1(120, "Found device %s\n", device->hdr.name);
+	    bstrncpy(dcr->pool_name, pool_name, name_len);
+	    bstrncpy(dcr->pool_type, pool_type, name_len);
+	    bstrncpy(dcr->media_type, media_type, name_len);
+	    bstrncpy(dcr->dev_name, dev_name, name_len);
+	    jcr->dcr = dcr;
+	    if (!dcr) {
+               bnet_fsend(dir, _("Could not get dcr for device: %s\n"), dev_name.c_str());
+	       return false;
 	    }
+	    if (append == SD_APPEND) {
+	       ok = reserve_device_for_append(jcr, device->dev);
+	    } else {
+	       ok = reserve_device_for_read(jcr, device->dev);
+	    }
+	    if (!ok) {
+               bnet_fsend(dir, _("Could not get dcr for device: %s\n"), dev_name.c_str());
+	       free_dcr(jcr->dcr);
+	       return false;
+	    }
+            Dmsg1(220, "Got: %s", dir->msg);
+	    return bnet_fsend(dir, OK_device);
 	 }
-	 UnlockRes();
-	 if (verbose) {
-	    unbash_spaces(dir->msg);
-	    pm_strcpy(jcr->errmsg, dir->msg);
-            Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), jcr->errmsg);
-	 }
-         Jmsg(jcr, M_FATAL, 0, _("\n"
-            "     Device \"%s\" with MediaType \"%s\" requested by Dir not found in SD Device resources.\n"),
-	      dev_name.c_str(), media_type.c_str());
-	 bnet_fsend(dir, NO_device, dev_name.c_str());
-      } else {
+      }
+      UnlockRes();
+      if (verbose) {
 	 unbash_spaces(dir->msg);
 	 pm_strcpy(jcr->errmsg, dir->msg);
-	 if (verbose) {
-            Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), jcr->errmsg);
-	 }
-         Jmsg(jcr, M_FATAL, 0, _("Bad Use Device command: %s\n"), jcr->errmsg);
-	 bnet_fsend(dir, BAD_use, jcr->errmsg);
+         Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), jcr->errmsg);
       }
+      Jmsg(jcr, M_FATAL, 0, _("\n"
+         "     Device \"%s\" with MediaType \"%s\" requested by DIR not found in SD Device resources.\n"),
+	   dev_name.c_str(), media_type.c_str());
+      bnet_fsend(dir, NO_device, dev_name.c_str());
+   } else {
+      unbash_spaces(dir->msg);
+      pm_strcpy(jcr->errmsg, dir->msg);
+      if (verbose) {
+         Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), jcr->errmsg);
+      }
+      Jmsg(jcr, M_FATAL, 0, _("Bad Use Device command: %s\n"), jcr->errmsg);
+      bnet_fsend(dir, BAD_use, jcr->errmsg);
    }
 
    return false;		      /* ERROR return */
 }
+
+/*
+ *   Query Device command from Director
+ *   Sends Storage Daemon's information on the device to the
+ *    caller (presumably the Director).
+ *   This command always returns "true" so that the line is
+ *    not closed on an error.
+ *
+ */
+bool query_cmd(JCR *jcr)
+{
+   POOL_MEM dev_name;
+   BSOCK *dir = jcr->dir_bsock;
+   DEVRES *device;
+   bool ok;
+
+   Dmsg1(120, "Query: %s", dir->msg);
+
+   ok = sscanf(dir->msg, query_device, dev_name.c_str()) == 1;
+   if (ok) {
+      unbash_spaces(dev_name);
+      LockRes();
+      foreach_res(device, R_DEVICE) {
+	 /* Find resource, and make sure we were able to open it */
+	 if (fnmatch(dev_name.c_str(), device->hdr.name, 0) == 0 &&
+	     device->dev) {
+	    DEVICE *dev = device->dev;
+	    POOL_MEM VolumeName, MediaType;
+	    UnlockRes();
+	    if (dev->is_labeled()) {
+	       pm_strcpy(VolumeName, dev->VolHdr.VolName);
+	    } else {
+               pm_strcpy(VolumeName, "");
+	    }
+	    bash_spaces(VolumeName);
+	    pm_strcpy(MediaType, device->media_type);
+	    bash_spaces(MediaType);
+	    return bnet_fsend(dir, OK_query, dev->can_append()!=0,
+	       dev->can_read()!=0, dev->num_writers, dev->num_waiting,
+	       dev->is_open()!=0, dev->use_count, dev->is_labeled()!=0,
+	       MediaType.c_str(), VolumeName.c_str());
+	 }
+      }
+      UnlockRes();
+      unbash_spaces(dir->msg);
+      pm_strcpy(jcr->errmsg, dir->msg);
+      bnet_fsend(dir, NO_device, dev_name.c_str());
+   } else {
+      unbash_spaces(dir->msg);
+      pm_strcpy(jcr->errmsg, dir->msg);
+      bnet_fsend(dir, BAD_query, jcr->errmsg);
+   }
+   return true;
+}
+
 
 /*
  * Destroy the Job Control Record and associated

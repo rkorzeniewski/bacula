@@ -32,6 +32,8 @@
 
 /* Forward referenced functions */
 static void create_volume_label_record(DCR *dcr, DEV_RECORD *rec);
+static int read_ansi_ibm_label(DCR *dcr);
+static char *ansi_date(time_t td, char *buf);
 
 extern char my_name[];
 extern int debug_level;
@@ -68,7 +70,10 @@ int read_dev_volume_label(DCR *dcr)
    Dmsg3(100, "Enter read_volume_label device=%s vol=%s dev_Vol=%s\n",
       dev_name(dev), VolName, dev->VolHdr.VolName);
 
-   if (dev_state(dev, ST_LABEL)) {	 /* did we already read label? */
+   if (!dev->is_open()) {
+      Emsg0(M_ABORT, 0, _("BAD call to read_dev_volume_label\n"));
+   }
+   if (dev->is_labeled()) {		 /* did we already read label? */
       /* Compare Volume Names allow special wild card */
       if (VolName && *VolName && *VolName != '*' && strcmp(dev->VolHdr.VolName, VolName) != 0) {
          Mmsg(jcr->errmsg, _("Wrong Volume mounted on device %s: Wanted %s have %s\n"),
@@ -95,6 +100,12 @@ int read_dev_volume_label(DCR *dcr)
       return VOL_NO_MEDIA;
    }
    bstrncpy(dev->VolHdr.Id, "**error**", sizeof(dev->VolHdr.Id));
+
+  /* Read ANSI/IBM label if so requested */
+  int stat = read_ansi_ibm_label(dcr);		  
+  if (stat != VOL_OK) {
+      return stat;
+   }
   
    /* Read the Volume label block */
    record = new_record();
@@ -190,12 +201,15 @@ int read_dev_volume_label(DCR *dcr)
  *  Writing : returns the label of the current file (on the harddisk).
  *  Reading : returns an error
  */
-int read_dev_volume_label_guess(DCR *dcr, bool write) {
+int read_dev_volume_label_guess(DCR *dcr, bool write) 
+{
    int vol_label_status;
+   DEVICE *dev = dcr->dev;
+   JCR *jcr = dcr->jcr;
    Dmsg3(100, "Enter read_dev_volume_label_guess device=%s vol=%s dev_Vol=%s\n",
-	 dev_name(dcr->dev), dcr->VolumeName, dcr->dev->VolHdr.VolName);
+	 dev_name(dev), dcr->VolumeName, dev->VolHdr.VolName);
    
-   if (!dev_cap(dcr->dev, CAP_REQMOUNT)) {
+   if (!dev->is_dvd()) {
       Dmsg0(100, "Leave read_dev_volume_label_guess !CAP_REQMOUNT\n");
       return read_dev_volume_label(dcr);
    }
@@ -207,38 +221,37 @@ int read_dev_volume_label_guess(DCR *dcr, bool write) {
    
    /* For mounted devices, tries to guess the volume name, and read the label if possible.
    */
-   if (open_guess_name_dev(dcr->dev) < 0) {	
+   if (open_guess_name_dev(dev) < 0) {	   
       if ((!write) || (dcr->VolCatInfo.VolCatParts > 0)) {
-         Mmsg2(dcr->jcr->errmsg, _("Requested Volume \"%s\" on %s is not a Bacula labeled Volume."),
-	       dev_name(dcr->dev), dcr->VolumeName);
+         Mmsg2(jcr->errmsg, _("Requested Volume \"%s\" on %s is not a Bacula labeled Volume."),
+	       dev_name(dev), dcr->VolumeName);
          Dmsg0(100, "Leave read_dev_volume_label_guess VOL_IO_ERROR (!open_guess_name_dev)\n");
 	 return VOL_NO_LABEL;
       }
       
-      if (write && (dcr->dev->free_space_errno < 0)) {
+      if (write && (dev->free_space_errno < 0)) {
          Dmsg0(100, "Leave read_dev_volume_label_guess !free_space VOL_NO_MEDIA\n");
-         Mmsg2(dcr->jcr->errmsg, _("free_space error on %s. The current medium is probably not writable. ERR=%s.\n"),
-	       dcr->dev->dev_name, dcr->dev->errmsg);
+         Mmsg2(jcr->errmsg, _("free_space error on %s. The current medium is probably not writable. ERR=%s.\n"),
+	       dev->dev_name, dev->errmsg);
 	 return VOL_NO_MEDIA;
       }
       
       /* If we can't guess the name, and we are writing, just reopen the right file with open_first_part. */
-      if (open_first_part(dcr->dev) < 0) {
+      if (open_first_part(dev) < 0) {
 	 berrno be;
-         Mmsg2(dcr->jcr->errmsg, _("open_first_part error on %s. ERR=%s.\n"),
-	       dcr->dev->dev_name, be.strerror());
+         Mmsg2(jcr->errmsg, _("open_first_part error on %s. ERR=%s.\n"),
+	       dev->dev_name, be.strerror());
          Dmsg0(100, "Leave read_dev_volume_label_guess VOL_IO_ERROR (!open_guess_name_dev && !open_first_part)\n");
 	 return VOL_IO_ERROR;
       }
       
       Dmsg0(100, "Leave read_dev_volume_label_guess !open_guess_name_dev\n");
       return read_dev_volume_label(dcr);
-   }
-   else {
+   } else {
       if (write && (dcr->dev->free_space_errno < 0)) {
          Dmsg0(100, "Leave read_dev_volume_label_guess !free_space VOL_NO_MEDIA\n");
-         Mmsg2(dcr->jcr->errmsg, _("free_space error on %s. The current medium is probably not writable. ERR=%s.\n"),
-	       dcr->dev->dev_name, dcr->dev->errmsg);
+         Mmsg2(jcr->errmsg, _("free_space error on %s. The current medium is probably not writable. ERR=%s.\n"),
+	       dev->dev_name, dev->errmsg);
 	 return VOL_NO_MEDIA;
       }
       
@@ -251,8 +264,8 @@ int read_dev_volume_label_guess(DCR *dcr, bool write) {
       
       if (open_first_part(dcr->dev) < 0) {
 	 berrno be;
-         Mmsg2(dcr->jcr->errmsg, _("open_first_part error on %s. ERR=%s.\n"),
-	       dcr->dev->dev_name, be.strerror());
+         Mmsg2(jcr->errmsg, _("open_first_part error on %s. ERR=%s.\n"),
+	       dev->dev_name, be.strerror());
          Dmsg0(100, "Leave read_dev_volume_label_guess VOL_IO_ERROR (open_guess_name_dev && !open_first_part)\n");
 	 return VOL_IO_ERROR;
       }
@@ -262,7 +275,7 @@ int read_dev_volume_label_guess(DCR *dcr, bool write) {
        */
       if (vol_label_status != VOL_NAME_ERROR) {
          Dmsg0(100, "Leave read_dev_volume_label_guess (open_guess_name_dev && !VOL_NAME_ERROR)\n");
-	 dcr->dev->state &= ~ST_LABEL;
+	 dev->state &= ~ST_LABEL;
 	 return read_dev_volume_label(dcr);
       }
       else {
@@ -274,7 +287,7 @@ int read_dev_volume_label_guess(DCR *dcr, bool write) {
 
 /*  unser_volume_label
  *
- * Unserialize the Volume label into the device Volume_Label
+ * Unserialize the Bacula Volume label into the device Volume_Label
  * structure.
  *
  * Assumes that the record is already read.
@@ -497,6 +510,11 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *Po
       }
    }
 
+   /* Write ANSI/IBM label if so requested */
+   if (!write_ansi_ibm_label(dcr, VolName)) {
+      goto bail_out;
+   }
+
    create_volume_label_record(dcr, dcr->rec);
    dcr->rec->Stream = 0;
 
@@ -674,29 +692,28 @@ void dump_volume_label(DEVICE *dev)
    debug_level = 1;
    File = dev->file;
    switch (dev->VolHdr.LabelType) {
-      case PRE_LABEL:
-         LabelType = "PRE_LABEL";
-	 break;
-      case VOL_LABEL:
-         LabelType = "VOL_LABEL";
-	 break;
-      case EOM_LABEL:
-         LabelType = "EOM_LABEL";
-	 break;
-      case SOS_LABEL:
-         LabelType = "SOS_LABEL";
-	 break;
-      case EOS_LABEL:
-         LabelType = "EOS_LABEL";
-	 break;
-      case EOT_LABEL:
-	 goto bail_out;
-      default:
-	 LabelType = buf;
-         sprintf(buf, "Unknown %d", dev->VolHdr.LabelType);
-	 break;
+   case PRE_LABEL:
+      LabelType = "PRE_LABEL";
+      break;
+   case VOL_LABEL:
+      LabelType = "VOL_LABEL";
+      break;
+   case EOM_LABEL:
+      LabelType = "EOM_LABEL";
+      break;
+   case SOS_LABEL:
+      LabelType = "SOS_LABEL";
+      break;
+   case EOS_LABEL:
+      LabelType = "EOS_LABEL";
+      break;
+   case EOT_LABEL:
+      goto bail_out;
+   default:
+      LabelType = buf;
+      sprintf(buf, "Unknown %d", dev->VolHdr.LabelType);
+      break;
    }
-
 
    Pmsg11(-1, "\nVolume Label:\n"
 "Id                : %s"
@@ -936,4 +953,153 @@ void dump_label_record(DEVICE *dev, DEV_RECORD *rec, int verbose)
       }
    }
    debug_level = dbl;
+}
+
+/*
+ * Write an ANSI or IBM 80 character tape label
+ *   Assume we are positioned at the beginning of the tape.
+ *   Returns:  true of OK
+ *	       false if error
+ */
+bool write_ansi_ibm_label(DCR *dcr, const char *VolName)
+{
+   DEVICE *dev = dcr->dev;
+   JCR *jcr = dcr->jcr;
+   char label[80];		      /* tape label */
+   char date[20];		      /* ansi date buffer */
+   time_t now;
+   int len;
+   int stat;
+
+   switch (dcr->VolCatInfo.LabelType) {
+   case B_BACULA_LABEL:
+      return true;
+   case B_ANSI_LABEL:
+   case B_IBM_LABEL:
+      ser_declare;
+      Dmsg0(000, "Write ansi label.\n");
+      len = strlen(VolName);
+      if (len > 6) {
+	 len = 6;			 /* max len ANSI label */
+      }
+      memset(label, ' ', sizeof(label));
+      ser_begin(label, sizeof(label));
+      ser_bytes("VOL1", 4);
+      ser_bytes(VolName, len);
+      label[79] = '1';                /* ANSI label flag */
+      /* Write VOL1 label */
+      stat = write(dev->fd, label, sizeof(label));
+      if (stat != sizeof(label)) {
+	 berrno be;
+         Jmsg1(jcr, M_FATAL, 0,  _("Could not write ANSI VOL1 label. ERR=%s\n"),
+	    be.strerror());
+	 return false;
+      }
+      /* Now construct HDR1 label */
+      ser_begin(label, sizeof(label));
+      ser_bytes("HDR1", 4);
+      len = strlen(VolName);
+      if (len > 17) {
+	 len = 17;		      /* Max filename len */
+      }
+      ser_bytes(VolName, len);	      /* stick Volume name in Filename field */
+      if (len > 6) {
+	 len = 6;
+      }
+      ser_begin(&label[21], sizeof(label)-21);
+      ser_bytes(VolName, len);	      /* write Vol Ser No. */
+      ser_begin(&label[27], sizeof(label)-27);
+      ser_bytes("000100010001", 12);  /* File section, File seq no, Generation no */
+      now = time(NULL);
+      ser_bytes(ansi_date(now, date), 6); /* current date */
+      ser_bytes(ansi_date(now - 24 * 3600, date), 6); /* created yesterday */
+      ser_bytes(" 000000BACULA              ", 27);
+      /* Write HDR1 label */
+      stat = write(dev->fd, label, sizeof(label));
+      if (stat != sizeof(label)) {
+	 berrno be;
+         Jmsg1(jcr, M_FATAL, 0, _("Could not write ANSI HDR1 label. ERR=%s\n"),
+	    be.strerror());
+	 return false;
+      }
+      /* Now construct HDR2 label */
+      memset(label, ' ', sizeof(label));
+      ser_begin(label, sizeof(label));
+      ser_bytes("HDR2F3200032000", 15);
+      /* Write HDR1 label */
+      stat = write(dev->fd, label, sizeof(label));
+      if (stat != sizeof(label)) {
+	 berrno be;
+         Jmsg1(jcr, M_FATAL, 0, _("Could not write ANSI HDR1 label. ERR=%s\n"),
+	    be.strerror());
+	 return false;
+      }
+      if (weof_dev(dev, 1) < 0) {
+         Jmsg(jcr, M_FATAL, 0, _("Error writing EOF to tape. ERR=%s"), dev->errmsg);
+	 return false;
+      }
+      return true;
+   default:
+      Jmsg0(jcr, M_ABORT, 0, _("write_ansi_ibm_label called for non-ANSI/IBM type\n"));
+      return false; /* should not get here */
+   }
+}
+
+static int read_ansi_ibm_label(DCR *dcr) 
+{
+   DEVICE *dev = dcr->dev;
+   JCR *jcr = dcr->jcr;
+   char label[80];		      /* tape label */
+   int retry, stat, i, num_rec;
+
+   if (dcr->VolCatInfo.LabelType == B_BACULA_LABEL) {
+      return VOL_OK;
+   }
+   /*
+    * Read VOL1, HDR1, HDR2 labels, but ignore the data
+    *  If tape read the following EOF mark, on disk do
+    *  not read.
+    */
+   Dmsg0(000, "Read ansi label.\n");
+   if (dev->state & ST_TAPE) {
+      num_rec = 4;
+   } else {
+      num_rec = 3;
+   }
+   for (i=0; i < num_rec; i++) {
+      retry = 0;
+      do {
+	 stat = read(dev->fd, label, sizeof(label));
+	 if (retry == 1) {
+	    dev->VolCatInfo.VolCatErrors++;
+	 }
+      } while (stat == -1 && (errno == EINTR || errno == EIO) && retry++ < 11);
+      if (stat < 0) {
+	 berrno be;
+	 clrerror_dev(dev, -1);
+         Dmsg1(200, "Read device got: ERR=%s\n", be.strerror());
+         Mmsg2(dev->errmsg, _("Read error on device %s in ANSI/IBM label. ERR=%s\n"),
+	    dev->dev_name, be.strerror());
+         Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
+	 if (dev->state & ST_EOF) {  /* EOF just seen? */
+	    dev->state |= ST_EOT;    /* yes, error => EOT */
+	 }
+	 return VOL_IO_ERROR;
+      }
+      Dmsg1(000, "ANSI label=%80s\n", label);
+   }
+   return VOL_OK;
+}  
+
+
+static char *ansi_date(time_t td, char *buf)
+{
+   struct tm *tm;
+
+   if (td == 0) {
+      td = time(NULL);
+   }
+   tm = gmtime(&td);
+   bsnprintf(buf, 6, "%d", 1000 * (tm->tm_year + 1900 - 2000) + tm->tm_yday);
+   return buf;
 }

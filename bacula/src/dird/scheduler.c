@@ -206,7 +206,7 @@ static void find_runs()
    /* Items corresponding to above at the next hour */
    int nh_hour, nh_mday, nh_wday, nh_month, nh_wom, nh_woy, nh_year;
 
-   Dmsg0(200, "enter find_runs()\n");
+   Dmsg0(1200, "enter find_runs()\n");
 
 
    /* compute values for time now */
@@ -242,7 +242,7 @@ static void find_runs()
       if (sched == NULL) {	      /* scheduled? */
 	 continue;		      /* no, skip this job */
       }
-      Dmsg1(200, "Got job: %s\n", job->hdr.name);
+      Dmsg1(1200, "Got job: %s\n", job->hdr.name);
       for (run=sched->run; run; run=run->next) {
 	 bool run_now, run_nh;
 	 /*
@@ -285,7 +285,7 @@ static void find_runs()
 	    bit_is_set(nh_wom, run->wom) &&
 	    bit_is_set(nh_woy, run->woy);
 
-         Dmsg2(200, "run_now=%d run_nh=%d\n", run_now, run_nh);
+         Dmsg2(1200, "run_now=%d run_nh=%d\n", run_now, run_nh);
 
 	 /* find time (time_t) job is to be run */
 	 localtime_r(&now, &tm);      /* reset tm structure */
@@ -308,7 +308,7 @@ static void find_runs()
       }
    }
    UnlockRes();
-   Dmsg0(200, "Leave find_runs()\n");
+   Dmsg0(1200, "Leave find_runs()\n");
 }
 
 static void add_job(JOB *job, RUN *run, time_t now, time_t runtime)

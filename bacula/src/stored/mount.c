@@ -156,23 +156,24 @@ mount_next_vol:
    }
 
    /* Ensure the device is open */
-   /* If we have a device that requires mount, we first want to guess
-    * which device is loaded, so we continue (if the wrong device is
+   /* If we have a dvd that requires mount, we first want to guess
+    * which Volume is loaded, so we continue (if the wrong device is
     * loaded, open_device would fail). */
-   if (!dev_cap(dev, CAP_REQMOUNT)) {
+   if (!dev->is_dvd()) {
       if (!open_device(dcr)) {
 	 if (dev->poll) {
 	    goto mount_next_vol;
-	 } 
-	 else {
+	 } else {
 	    return false;
 	 }
       }
-   }
-   else {
-      /* Just copy the VolCatName in the device resource (usually done by open_dev).
-       * It is necessary so we can open the real files later. */
-      bstrncpy(dcr->dev->VolCatInfo.VolCatName, dcr->VolCatInfo.VolCatName, sizeof(dcr->dev->VolCatInfo.VolCatName));
+   } else {
+      /*
+       * Just copy the VolCatName in the device resource 
+       *   (usually done by open_dev).
+       * It is necessary so we can open the real files later.	
+       */
+      bstrncpy(dev->VolCatInfo.VolCatName, dcr->VolCatInfo.VolCatName, sizeof(dev->VolCatInfo.VolCatName));
    }
 
    /*
@@ -187,10 +188,9 @@ read_volume:
       vol_label_status = VOL_OK;
       create_volume_label(dev, dcr->VolumeName, "Default");
       dev->VolHdr.LabelType = PRE_LABEL;
-   } else if (dev_cap(dev, CAP_REQMOUNT)) {
+   } else if (dev->is_dvd()) {
       vol_label_status = read_dev_volume_label_guess(dcr, 1);
-   }
-   else {
+   } else {
       vol_label_status = read_dev_volume_label(dcr);
    }
    if (job_canceled(jcr)) {
@@ -410,6 +410,9 @@ static bool rewrite_volume_label(DCR *dcr, bool recycle)
       }
       /* Attempt write to check write permission */
       Dmsg0(200, "Attempt to write to device.\n");
+      if (!write_ansi_ibm_label(dcr, dev->VolHdr.VolName)) {
+	 return false;
+      }
       if (!write_block_to_dev(dcr)) {
          Jmsg2(jcr, M_ERROR, 0, _("Unable to write device \"%s\". ERR=%s\n"),
 	    dev_name(dev), strerror_dev(dev));
@@ -482,7 +485,7 @@ bool mount_next_read_volume(DCR *dcr)
    if (jcr->NumVolumes > 1 && jcr->CurVolume < jcr->NumVolumes) {
       close_dev(dev);
       dev->state &= ~ST_READ;
-      if (!acquire_device_for_read(jcr)) {
+      if (!acquire_device_for_read(jcr, dev)) {
          Jmsg2(jcr, M_FATAL, 0, "Cannot open Dev=%s, Vol=%s\n", dev_name(dev),
 	       dcr->VolumeName);
 	 return false;
@@ -517,14 +520,13 @@ void release_volume(DCR *dcr)
    dev->state &= ~(ST_LABEL|ST_READ|ST_APPEND);
    dcr->VolumeName[0] = 0;
 
-   if ((dev->state & ST_OPENED) &&
-       (!dev_is_tape(dev) || !dev_cap(dev, CAP_ALWAYSOPEN))) {
+   if (dev->is_open() && (!dev->is_tape() || !dev_cap(dev, CAP_ALWAYSOPEN))) {
       offline_or_rewind_dev(dev);
       close_dev(dev);
    }
 
    /* If we have not closed the device, then at least rewind the tape */
-   if (dev->state & ST_OPENED) {
+   if (dev->is_open()) {
       offline_or_rewind_dev(dev);
    }
    Dmsg0(190, "===== release_volume ---");

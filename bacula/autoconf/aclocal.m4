@@ -541,6 +541,72 @@ AC_SUBST(SQL_BINDIR)
   
 ])
 
+AC_DEFUN(BA_CHECK_SQLITE3_DB,
+[
+db_found=no
+AC_MSG_CHECKING(for SQLite3 support)
+AC_ARG_WITH(sqlite3,
+[
+  --with-sqlite3[=DIR]    Include SQLite3 support.  DIR is the SQLite3 base
+                          install directory, default is to search through
+                          a number of common places for the SQLite3 files.],
+[
+  if test "$withval" != "no"; then
+     if test "$withval" = "yes"; then
+        if test -f /usr/local/include/sqlite3.h; then
+           SQLITE_INCDIR=/usr/local/include
+           SQLITE_LIBDIR=/usr/local/lib
+           SQLITE_BINDIR=/usr/local/bin
+        elif test -f /usr/include/sqlite3.h; then
+           SQLITE_INCDIR=/usr/include
+           SQLITE_LIBDIR=/usr/lib
+           SQLITE_BINDIR=/usr/bin      
+        elif test -f $prefix/include/sqlite3.h; then
+           SQLITE_INCDIR=$prefix/include
+           SQLITE_LIBDIR=$prefix/lib
+           SQLITE_BINDIR=$prefix/bin      
+        else
+           AC_MSG_RESULT(no)
+           AC_MSG_ERROR(Unable to find sqlite3.h in standard locations)
+        fi
+     else
+        if test -f $withval/sqlite3.h; then
+           SQLITE_INCDIR=$withval
+           SQLITE_LIBDIR=$withval
+           SQLITE_BINDIR=$withval
+        elif test -f $withval/include/sqlite3.h; then
+           SQLITE_INCDIR=$withval/include
+           SQLITE_LIBDIR=$withval/lib
+           SQLITE_BINDIR=$withval/bin
+        else
+           AC_MSG_RESULT(no)
+           AC_MSG_ERROR(Invalid SQLite3 directory $withval - unable to find sqlite3.h under $withval)
+        fi
+     fi
+     SQL_INCLUDE=-I$SQLITE_INCDIR
+     SQL_LFLAGS="-L$SQLITE_LIBDIR -lsqlite3"
+     SQL_BINDIR=$SQLITE_BINDIR
+
+     AC_DEFINE(HAVE_SQLITE3)
+     AC_MSG_RESULT(yes)
+     db_found=yes
+     support_sqlite3=yes
+     db_name=SQLite3
+     DB_NAME=sqlite3
+
+  else
+     AC_MSG_RESULT(no)
+  fi
+],[
+  AC_MSG_RESULT(no)
+])
+AC_SUBST(SQL_LFLAGS)
+AC_SUBST(SQL_INCLUDE)
+AC_SUBST(SQL_BINDIR)
+  
+])
+
+
 
 AC_DEFUN(BA_CHECK_POSTGRESQL_DB,
 [

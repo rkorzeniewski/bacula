@@ -36,12 +36,11 @@
 /* Define if you want to use SQLite */
 #undef HAVE_SQLITE
 
+/* Define if you want to use SQLite3 */
+#undef HAVE_SQLITE3
+
 /* Define if you want to use Berkeley DB */
 #undef HAVE_BERKELEY_DB
-
-
-/* Define if you want to use PostgreSQL */
-#undef HAVE_PGSQL
 
 /* Define if you want to use mSQL */
 #undef HAVE_MSQL

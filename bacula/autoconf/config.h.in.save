@@ -36,12 +36,11 @@
 /* Define if you want to use SQLite */
 #undef HAVE_SQLITE
 
+/* Define if you want to use SQLite3 */
+#undef HAVE_SQLITE3
+
 /* Define if you want to use Berkeley DB */
 #undef HAVE_BERKELEY_DB
-
-
-/* Define if you want to use PostgreSQL */
-#undef HAVE_PGSQL
 
 /* Define if you want to use mSQL */
 #undef HAVE_MSQL
@@ -594,9 +593,9 @@
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
    automatically deduced at run-time.
-        STACK_DIRECTION > 0 => grows toward higher addresses
-        STACK_DIRECTION < 0 => grows toward lower addresses
-        STACK_DIRECTION = 0 => direction of growth unknown */
+	STACK_DIRECTION > 0 => grows toward higher addresses
+	STACK_DIRECTION < 0 => grows toward lower addresses
+	STACK_DIRECTION = 0 => direction of growth unknown */
 #undef STACK_DIRECTION
 
 /* Define to 1 if the `S_IS*' macros in <sys/stat.h> do not work properly. */

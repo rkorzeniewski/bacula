@@ -106,16 +106,16 @@ int querycmd(UAContext *ua, const char *cmd)
       len = strlen(line);
       if (line[0] == '*') {            /* prompt */
 	 if (nprompt >= 9) {
-	    bsendmsg(ua, _("Too many prompts in query, max is 9.\n"));
+            bsendmsg(ua, _("Too many prompts in query, max is 9.\n"));
 	 } else {
-	    line[len++] = ' ';
+            line[len++] = ' ';
 	    line[len] = 0;
 	    prompt[nprompt++] = bstrdup(line+1);
 	    continue;
 	 }
       }
       if (*query != 0) {
-	 pm_strcat(query, " ");
+         pm_strcat(query, " ");
       }
       pm_strcat(query, line);
       if (line[len-1] != ';') {
@@ -124,11 +124,11 @@ int querycmd(UAContext *ua, const char *cmd)
       line[len-1] = 0;		   /* zap ; */
       if (query[0] != 0) {
 	 query = substitute_prompts(ua, query, prompt, nprompt);
-	 Dmsg1(100, "Query2=%s\n", query);
-	 if (query[0] == '!') {
+         Dmsg1(100, "Query2=%s\n", query);
+         if (query[0] == '!') {
 	    db_list_sql_query(ua->jcr, ua->db, query+1, prtit, ua, 0, VERT_LIST);
 	 } else if (!db_list_sql_query(ua->jcr, ua->db, query, prtit, ua, 1, HORZ_LIST)) {
-	    bsendmsg(ua, "%s\n", query);
+            bsendmsg(ua, "%s\n", query);
 	 }
 	 query[0] = 0;
       }
@@ -137,10 +137,10 @@ int querycmd(UAContext *ua, const char *cmd)
    if (query[0] != 0) {
       query = substitute_prompts(ua, query, prompt, nprompt);
       Dmsg1(100, "Query2=%s\n", query);
-	 if (query[0] == '!') {
+         if (query[0] == '!') {
 	    db_list_sql_query(ua->jcr, ua->db, query+1, prtit, ua, 0, VERT_LIST);
 	 } else if (!db_list_sql_query(ua->jcr, ua->db, query, prtit, ua, 1, HORZ_LIST)) {
-	    bsendmsg(ua, "%s\n", query);
+            bsendmsg(ua, "%s\n", query);
 	 }
    }
 
@@ -181,16 +181,16 @@ static POOLMEM *substitute_prompts(UAContext *ua,
 	 }
 	 p++;
 	 switch (*p) {
-	 case '1':
-	 case '2':
-	 case '3':
-	 case '4':
-	 case '5':
-	 case '6':
-	 case '7':
-	 case '8':
-	 case '9':
-	    n = (int)(*p) - (int)'1';
+         case '1':
+         case '2':
+         case '3':
+         case '4':
+         case '5':
+         case '6':
+         case '7':
+         case '8':
+         case '9':
+            n = (int)(*p) - (int)'1';
 	    if (prompt[n]) {
 	       if (!subst[n]) {
 		  if (!get_cmd(ua, prompt[n])) {
@@ -209,16 +209,16 @@ static POOLMEM *substitute_prompts(UAContext *ua,
 		  *o++ = *p++;
 	       }
 	    } else {
-	       bsendmsg(ua, _("Warning prompt %d missing.\n"), n+1);
+               bsendmsg(ua, _("Warning prompt %d missing.\n"), n+1);
 	    }
 	    q += 2;
 	    break;
-	 case '%':
-	    *o++ = '%';
+         case '%':
+            *o++ = '%';
 	    q += 2;
 	    break;
 	 default:
-	    *o++ = '%';
+            *o++ = '%';
 	    q++;
 	    break;
 	 }
@@ -267,17 +267,17 @@ int sqlquerycmd(UAContext *ua, const char *cmd)
       }
       query = check_pool_memory_size(query, len + 1);
       if (*query != 0) {
-	 strcat(query, " ");
+         pm_strcat(query, " ");
       }
-      strcat(query, ua->cmd);
+      pm_strcat(query, ua->cmd);
       if (ua->cmd[len-1] == ';') {
 	 ua->cmd[len-1] = 0;	      /* zap ; */
 	 /* Submit query */
 	 db_list_sql_query(ua->jcr, ua->db, query, prtit, ua, 1, HORZ_LIST);
 	 *query = 0;		      /* start new query */
-	 msg = _("Enter SQL query: ");
+         msg = _("Enter SQL query: ");
       } else {
-	 msg = _("Add to SQL query: ");
+         msg = _("Add to SQL query: ");
       }
    }
    free_pool_memory(query);

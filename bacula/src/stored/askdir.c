@@ -41,7 +41,7 @@ static char Create_job_media[] = "CatReq Job=%s CreateJobMedia"
    " FirstIndex=%u LastIndex=%u StartFile=%u EndFile=%u"
    " StartBlock=%u EndBlock=%u\n";
 static char FileAttributes[] = "UpdCat Job=%s FileAttributes ";
-static char Job_status[]     = "3012 Job %s jobstatus %d\n";
+static char Job_status[]     = "Status Job=%s JobStatus=%d\n";
 
 
 /* Responses received from the Director */
@@ -49,7 +49,8 @@ static char OK_media[] = "1000 OK VolName=%127s VolJobs=%u VolFiles=%u"
    " VolBlocks=%u VolBytes=%" lld " VolMounts=%u VolErrors=%u VolWrites=%u"
    " MaxVolBytes=%" lld " VolCapacityBytes=%" lld " VolStatus=%20s"
    " Slot=%d MaxVolJobs=%u MaxVolFiles=%u InChanger=%d"
-   " VolReadTime=%" lld " VolWriteTime=%" lld " EndFile=%u EndBlock=%u VolParts=%u";
+   " VolReadTime=%" lld " VolWriteTime=%" lld " EndFile=%u EndBlock=%u"
+   " VolParts=%u LabelType=%d";
 
 
 static char OK_create[] = "1000 OK CreateJobMedia\n";
@@ -98,8 +99,9 @@ static bool do_get_volume_info(DCR *dcr)
 	       &vol.VolCatCapacityBytes, vol.VolCatStatus,
 	       &vol.Slot, &vol.VolCatMaxJobs, &vol.VolCatMaxFiles,
 	       &InChanger, &vol.VolReadTime, &vol.VolWriteTime,
-	       &vol.EndFile, &vol.EndBlock, &vol.VolCatParts);
-    if (n != 20) {
+	       &vol.EndFile, &vol.EndBlock, &vol.VolCatParts,
+	       &vol.LabelType);
+    if (n != 21) {
        Dmsg2(100, "Bad response from Dir fields=%d: %s\n", n, dir->msg);
        Mmsg(jcr->errmsg, _("Error getting Volume info: %s\n"), dir->msg);
        return false;
@@ -215,13 +217,14 @@ bool dir_update_volume_info(DCR *dcr, bool label)
    char ed1[50], ed2[50], ed3[50], ed4[50];
    VOLUME_CAT_INFO *vol = &dev->VolCatInfo;
    int InChanger;
+   POOL_MEM VolumeName;
 
    if (vol->VolCatName[0] == 0) {
       Jmsg0(jcr, M_FATAL, 0, _("NULL Volume name. This shouldn't happen!!!\n"));
       Dmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
       return false;
    }
-   if (dev_state(dev, ST_READ)) {
+   if (dev->can_read()) {
       Jmsg0(jcr, M_FATAL, 0, _("Attempt to update_volume_info in read mode!!!\n"));
       Dmsg0(000, "Attempt to update_volume_info in read mode!!!\n");
       return false;
@@ -233,10 +236,11 @@ bool dir_update_volume_info(DCR *dcr, bool label)
       bstrncpy(vol->VolCatStatus, "Append", sizeof(vol->VolCatStatus));
       vol->VolCatBytes = 1;	      /* indicates tape labeled */
    }
-   bash_spaces(vol->VolCatName);
+   pm_strcpy(VolumeName, vol->VolCatName);
+   bash_spaces(VolumeName);
    InChanger = vol->InChanger;
    bnet_fsend(dir, Update_media, jcr->Job,
-      vol->VolCatName, vol->VolCatJobs, vol->VolCatFiles,
+      VolumeName.c_str(), vol->VolCatJobs, vol->VolCatFiles,
       vol->VolCatBlocks, edit_uint64(vol->VolCatBytes, ed1),
       vol->VolCatMounts, vol->VolCatErrors,
       vol->VolCatWrites, edit_uint64(vol->VolCatMaxBytes, ed2),
@@ -244,14 +248,14 @@ bool dir_update_volume_info(DCR *dcr, bool label)
       InChanger,		      /* bool in structure */
       edit_uint64(vol->VolReadTime, ed3),
       edit_uint64(vol->VolWriteTime, ed4),
-      vol->VolCatParts );
+      vol->VolCatParts);
 
    Dmsg1(300, "update_volume_info(): %s", dir->msg);
-   unbash_spaces(vol->VolCatName);
 
    if (!do_get_volume_info(dcr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", jcr->errmsg);
-      Dmsg1(000, "Didn't get vol info: %s", jcr->errmsg);
+      Dmsg2(000, "Didn't get vol info vol=%s: ERR=%s", 
+	 vol->VolCatName, jcr->errmsg);
       return false;
    }
    Dmsg1(420, "get_volume_info(): %s", dir->msg);

@@ -19,7 +19,7 @@
  */
 
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -67,11 +67,6 @@ int do_restore(JCR *jcr)
    BSOCK   *fd;
    JOB_DBR rjr; 		      /* restore job record */
 
-   if (!get_or_create_client_record(jcr)) {
-      restore_cleanup(jcr, JS_ErrorTerminated);
-      return 0;
-   }
-
    memset(&rjr, 0, sizeof(rjr));
    jcr->jr.JobLevel = L_FULL;	      /* Full restore */
    if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
@@ -80,7 +75,6 @@ int do_restore(JCR *jcr)
       return 0;
    }
    Dmsg0(20, "Updated job start record\n");
-   jcr->fname = (char *) get_pool_memory(PM_FNAME);
 
    Dmsg1(20, "RestoreJobId=%d\n", jcr->job->RestoreJobId);
 
@@ -99,7 +93,7 @@ int do_restore(JCR *jcr)
 	 rjr.JobId = jcr->job->RestoreJobId; /* specified by Job Resource */
       }
       if (!db_get_job_record(jcr, jcr->db, &rjr)) {
-	 Jmsg2(jcr, M_FATAL, 0, _("Cannot get job record id=%d %s"), rjr.JobId,
+         Jmsg2(jcr, M_FATAL, 0, _("Cannot get job record id=%d %s"), rjr.JobId,
 	    db_strerror(jcr->db));
 	 restore_cleanup(jcr, JS_ErrorTerminated);
 	 return 0;
@@ -111,7 +105,7 @@ int do_restore(JCR *jcr)
       jcr->VolumeName[0] = 0;
       if (!db_get_job_volume_names(jcr, jcr->db, rjr.JobId, &jcr->VolumeName) ||
 	   jcr->VolumeName[0] == 0) {
-	 Jmsg(jcr, M_FATAL, 0, _("Cannot find Volume names for restore Job %d. %s"),
+         Jmsg(jcr, M_FATAL, 0, _("Cannot find Volume names for restore Job %d. %s"),
 	    rjr.JobId, db_strerror(jcr->db));
 	 restore_cleanup(jcr, JS_ErrorTerminated);
 	 return 0;
@@ -141,7 +135,7 @@ int do_restore(JCR *jcr)
    /*
     * Now start a job with the Storage daemon
     */
-   if (!start_storage_daemon_job(jcr)) {
+   if (!start_storage_daemon_job(jcr, jcr->storage, SD_READ)) {
       restore_cleanup(jcr, JS_ErrorTerminated);
       return 0;
    }
@@ -281,9 +275,9 @@ static void restore_cleanup(JCR *jcr, int TermCode)
    switch (TermCode) {
    case JS_Terminated:
       if (jcr->ExpectedFiles > jcr->jr.JobFiles) {
-	 term_msg = _("Restore OK -- warning file count mismatch");
+         term_msg = _("Restore OK -- warning file count mismatch");
       } else {
-	 term_msg = _("Restore OK");
+         term_msg = _("Restore OK");
       }
       break;
    case JS_FatalError:

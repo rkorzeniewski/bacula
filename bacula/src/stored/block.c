@@ -300,8 +300,10 @@ static bool unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 			 block_len-BLKHDR_CS_LENGTH);
       if (BlockCheckSum != CheckSum) {
 	 dev->dev_errno = EIO;
-         Mmsg5(dev->errmsg, _("Volume data error at %u:%u! Block checksum mismatch in block %u: calc=%x blk=%x\n"),
-	    dev->file, dev->block_num, (unsigned)BlockNumber, BlockCheckSum, CheckSum);
+         Mmsg6(dev->errmsg, _("Volume data error at %u:%u!\n" 
+            "Block checksum mismatch in block=%u len=%d: calc=%x blk=%x\n"),
+	    dev->file, dev->block_num, (unsigned)BlockNumber, 
+	    block_len, BlockCheckSum, CheckSum);
 	 if (block->read_errors == 0 || verbose >= 2) {
             Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
 	 }
@@ -545,8 +547,7 @@ bool write_block_to_dev(DCR *dcr)
    }
    
    if (dev->free_space_errno < 0) { /* Error while getting free space */
-      char ed1[50];
-      char ed2[50];
+      char ed1[50], ed2[50];
       Dmsg1(10, "Cannot get free space on the device ERR=%s.\n", dev->errmsg);
       Jmsg(jcr, M_FATAL, 0, _("End of Volume \"%s\" at %u:%u on device %s (part_size=%s, free_space=%s, free_space_errno=%d, errmsg=%s).\n"),
 	   dev->VolCatInfo.VolCatName,
@@ -558,8 +559,7 @@ bool write_block_to_dev(DCR *dcr)
    }
    
    if (((dev->free_space_errno > 0) && ((dev->part_size + block->binbuf) >= dev->free_space))) {
-      char ed1[50];
-      char ed2[50];
+      char ed1[50], ed2[50];
       Dmsg0(10, "==== Just enough free space on the device to write the current part...\n");
       Jmsg(jcr, M_INFO, 0, _("End of Volume \"%s\" at %u:%u on device %s (part_size=%s, free_space=%s, free_space_errno=%d).\n"),
 	    dev->VolCatInfo.VolCatName,
@@ -736,7 +736,7 @@ static bool terminate_writing_volume(DCR *dcr)
    }
    dev->VolCatInfo.VolCatFiles = dev->file;
    
-   if (dev_cap(dev, CAP_REQMOUNT)) { /* Write the current (and last) part. */
+   if (dev->is_dvd()) { /* Write the current (and last) part. */
       open_next_part(dev);
    }
    
@@ -820,14 +820,14 @@ reread:
       return false;
    }
    
-   /*Dmsg1(200, "dev.c 111->file_size=%u\n",(unsigned int)dev->file_size);
-   Dmsg1(200, "dev.c          lseek=%u\n",(unsigned int)lseek(dev->fd, 0, SEEK_CUR));
-   Dmsg1(200, "dev.c dev->part_start=%u\n",(unsigned int)dev->part_start);
-   Dmsg1(200, "dev.c dev->file_size-dev->part_start=%u\n",(unsigned int)dev->file_size-dev->part_start);
-   Dmsg1(200, "dev.c dev->part_size=%u\n", (unsigned int)dev->part_size);
-   Dmsg1(200, "dev.c dev->part=%u\n", (unsigned int)dev->part);
-   Dmsg1(200, "dev.c dev->VolCatInfo.VolCatParts=%u\n", (unsigned int)dev->VolCatInfo.VolCatParts);
-   Dmsg3(200, "dev.c Tests : %d %d %d\n", (dev->VolCatInfo.VolCatParts > 0), ((dev->file_size-dev->part_start) == dev->part_size), (dev->part <= dev->VolCatInfo.VolCatParts));*/
+   /*Dmsg1(200, "dev->file_size=%u\n",(unsigned int)dev->file_size);
+   Dmsg1(200, "lseek=%u\n",(unsigned int)lseek(dev->fd, 0, SEEK_CUR));
+   Dmsg1(200, "dev->part_start=%u\n",(unsigned int)dev->part_start);
+   Dmsg1(200, "dev->file_size-dev->part_start=%u\n",(unsigned int)dev->file_size-dev->part_start);
+   Dmsg1(200, "dev->part_size=%u\n", (unsigned int)dev->part_size);
+   Dmsg1(200, "dev->part=%u\n", (unsigned int)dev->part);
+   Dmsg1(200, "dev->VolCatInfo.VolCatParts=%u\n", (unsigned int)dev->VolCatInfo.VolCatParts);
+   Dmsg3(200, "Tests : %d %d %d\n", (dev->VolCatInfo.VolCatParts > 0), ((dev->file_size-dev->part_start) == dev->part_size), (dev->part <= dev->VolCatInfo.VolCatParts));*/
    /* Check for part file end */
    if ((dev->num_parts > 0) &&
 	((dev->file_size-dev->part_start) == dev->part_size) && 
@@ -862,17 +862,18 @@ reread:
       Mmsg4(dev->errmsg, _("Read error at file:blk %u:%u on device %s. ERR=%s.\n"),
 	 dev->file, dev->block_num, dev->dev_name, be.strerror());
       Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
-      if (dev->state & ST_EOF) {  /* EOF just seen? */
+      if (dev->at_eof()) {	  /* EOF just seen? */
 	 dev->state |= ST_EOT;	  /* yes, error => EOT */
       }
       return false;
    }
-   Dmsg1(200, "Read device got %d bytes\n", stat);
+   Dmsg3(200, "Read device got %d bytes at %u:%u\n", stat,
+      dev->file, dev->block_num);
    if (stat == 0) {		/* Got EOF ! */
       dev->block_num = block->read_len = 0;
       Mmsg3(dev->errmsg, _("Read zero bytes at %u:%u on device %s.\n"),
 	 dev->file, dev->block_num, dev->dev_name);
-      if (dev->state & ST_EOF) { /* EOF already read? */
+      if (dev->at_eof()) {	 /* EOF already read? */
 	 dev->state |= ST_EOT;	/* yes, 2 EOFs => EOT */
 	 block->read_len = 0;
 	 return 0;
@@ -990,11 +991,13 @@ reread:
     *	absolute positioning -- so much for efficiency.  KES Sep 02.
     */
    Dmsg0(200, "At end of read block\n");
-   if (block->read_len > block->block_len && !(dev->state & ST_TAPE)) {
+   if (block->read_len > block->block_len && !dev->is_tape()) {
+      char ed1[50];
       off_t pos = lseek_dev(dev, (off_t)0, SEEK_CUR); /* get curr pos */
       pos -= (block->read_len - block->block_len);
       lseek_dev(dev, pos, SEEK_SET);
-      Dmsg2(200, "Did lseek blk_size=%d rdlen=%d\n", block->block_len,
+      Dmsg3(200, "Did lseek pos=%s blk_size=%d rdlen=%d\n", 
+	 edit_uint64(pos, ed1), block->block_len,
 	    block->read_len);
       dev->file_addr = pos;
       dev->file_size = pos;

@@ -323,7 +323,7 @@ void store_inc(LEX *lc, RES_ITEM *item, int index, int pass)
    }
 
    if (!inc_opts[0]) {
-      strcat(inc_opts, "0");          /* set no options */
+      bstrncat(inc_opts, "0", sizeof(inc_opts));   /* set no options */
    }
    inc_opts_len = strlen(inc_opts);
 

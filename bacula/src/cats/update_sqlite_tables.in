@@ -10,9 +10,9 @@ echo " "
 
 bindir=@SQL_BINDIR@
 cd @working_dir@
+sqlite=@DB_NAME@
 
-$bindir/sqlite $* bacula.db <<END-OF-DATA
-
+${bindir}/${sqlite} $* bacula.db <<END-OF-DATA
 BEGIN TRANSACTION;
 CREATE TEMPORARY TABLE Media_backup (
    MediaId INTEGER UNSIGNED AUTOINCREMENT,
@@ -50,7 +50,7 @@ CREATE TEMPORARY TABLE Media_backup (
 
 INSERT INTO Media_backup SELECT 
    MediaId, VolumeName, Slot, PoolId,
-   MediaType, FirstWritten, LastWritten,
+   MediaType, 0, FirstWritten, LastWritten,
    LabelDate, VolJobs, VolFiles, VolBlocks,
    VolMounts, VolBytes, 0, VolErrors, VolWrites,
    VolCapacityBytes, VolStatus, Recycle,
@@ -68,6 +68,7 @@ CREATE TABLE Media (
    Slot INTEGER DEFAULT 0,
    PoolId INTEGER UNSIGNED REFERENCES Pool NOT NULL,
    MediaType VARCHAR(128) NOT NULL,
+   LabelType TINYINT DEFAULT 0,
    FirstWritten DATETIME DEFAULT 0,
    LastWritten DATETIME DEFAULT 0,
    LabelDate DATETIME DEFAULT 0,

@@ -7,7 +7,7 @@
  */
 
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -37,7 +37,7 @@
 #include "cats.h"
 
 
-#if    HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL
+#if    HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL
 /* -----------------------------------------------------------------------
  *
  *   Generic Routines (or almost generic)
@@ -76,18 +76,18 @@ db_delete_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
       mdb->num_rows = sql_num_rows(mdb);
 
       if (mdb->num_rows == 0) {
-	 Mmsg(mdb->errmsg, _("No pool record %s exists\n"), pr->Name);
+         Mmsg(mdb->errmsg, _("No pool record %s exists\n"), pr->Name);
 	 sql_free_result(mdb);
 	 db_unlock(mdb);
 	 return 0;
       } else if (mdb->num_rows != 1) {
-	 Mmsg(mdb->errmsg, _("Expecting one pool record, got %d\n"), mdb->num_rows);
+         Mmsg(mdb->errmsg, _("Expecting one pool record, got %d\n"), mdb->num_rows);
 	 sql_free_result(mdb);
 	 db_unlock(mdb);
 	 return 0;
       }
       if ((row = sql_fetch_row(mdb)) == NULL) {
-	 Mmsg1(&mdb->errmsg, _("Error fetching row %s\n"), sql_strerror(mdb));
+         Mmsg1(&mdb->errmsg, _("Error fetching row %s\n"), sql_strerror(mdb));
 	 db_unlock(mdb);
 	 return 0;
       }
@@ -235,4 +235,4 @@ int db_purge_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 }
 
 
-#endif /* HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL */
+#endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL*/

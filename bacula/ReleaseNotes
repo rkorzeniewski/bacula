@@ -1,10 +1,21 @@
 
-          Release Notes for Bacula 1.37.2
+          Release Notes for Bacula 1.37.3
 
-  Bacula code: Total files = 398 Total lines = 117,151 (*.h *.c *.in)
+  Bacula code: Total files = 411 Total lines = 121,855 (*.h *.c *.in)
 
 
 Major Changes:
+- This version has a new database format that is not compatible
+  with previous databases. There are NO upgrade scripts yet.
+- Due to the massive changes made during the last two weeks, 
+  version 1.37.3 should be considered unstable.  It does, however,
+  pass the regression tests.
+- SQLite3 support.
+- First cut at ANSI labels.
+- New communications protocol between DIR and SD to reserve 
+  drives.
+
+
 - Preliminary Python Event support has been added. See below for
   configuration.
   A Python script will be called at particular points or conditions
