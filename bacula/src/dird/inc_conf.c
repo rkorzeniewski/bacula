@@ -43,6 +43,8 @@ static void store_opts(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_fname(LEX *lc, RES_ITEM *item, int index, int pass);
 static void options_res(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_base(LEX *lc, RES_ITEM *item, int index, int pass);
+static void store_reader(LEX *lc, RES_ITEM *item, int index, int pass);
+static void store_writer(LEX *lc, RES_ITEM *item, int index, int pass);
 static void setup_current_opts(void);
 
 
@@ -87,6 +89,8 @@ static RES_ITEM options_items[] = {
    {"wild",            store_wild,    NULL,     0, 0, 0},
    {"exclude",         store_opts,    NULL,     0, 0, 0},
    {"aclsupport",      store_opts,    NULL,     0, 0, 0},
+   {"reader",          store_reader,  NULL,     0, 0, 0},
+   {"writer",          store_writer,  NULL,     0, 0, 0},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 
@@ -494,6 +498,41 @@ static void store_base(LEX *lc, RES_ITEM *item, int index, int pass)
    }
    scan_to_eol(lc);
 }
+
+/* Store reader info */
+static void store_reader(LEX *lc, RES_ITEM *item, int index, int pass)
+{
+   int token;
+
+   if (pass == 1) {
+      /*
+       * Pickup reader command
+       */
+      token = lex_get_token(lc, T_NAME);	   
+      res_incexe.current_opts->reader = bstrdup(lc->str); 
+   } else { /* pass 2 */
+      lex_get_token(lc, T_ALL); 	 
+   }
+   scan_to_eol(lc);
+}
+
+/* Store writer innfo */
+static void store_writer(LEX *lc, RES_ITEM *item, int index, int pass)
+{
+   int token;
+
+   if (pass == 1) {
+      /*
+       * Pickup writer command
+       */
+      token = lex_get_token(lc, T_NAME);	   
+      res_incexe.current_opts->writer = bstrdup(lc->str);
+   } else { /* pass 2 */
+      lex_get_token(lc, T_ALL); 	 
+   }
+   scan_to_eol(lc);
+}
+
 
 
 /* Store Wild-card info */

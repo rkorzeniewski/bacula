@@ -47,6 +47,7 @@ extern char *insert_delcand;
 extern char *select_backup_del;
 extern char *select_verify_del;
 extern char *select_restore_del;
+extern char *select_admin_del;
 extern char *cnt_File;
 extern char *del_File;
 extern char *upd_Purged;
@@ -413,15 +414,17 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
    del.PurgedFiles = (char *)malloc(del.max_ids);
 
    switch (JobType) {
-   case JT_ADMIN:
    case JT_BACKUP:
       Mmsg(&query, select_backup_del, ed1, ed1, cr.ClientId);
       break;
    case JT_RESTORE:
-      Mmsg(&query, select_restore_del, ed1, cr.ClientId);
+      Mmsg(&query, select_restore_del, ed1, ed1, cr.ClientId);
       break;
    case JT_VERIFY:
-      Mmsg(&query, select_verify_del, ed1, cr.ClientId);
+      Mmsg(&query, select_verify_del, ed1, ed1, cr.ClientId);
+      break;
+   case JT_ADMIN:
+      Mmsg(&query, select_admin_del, ed1, ed1, cr.ClientId);
       break;
    }
    if (!db_sql_query(ua->db, query, job_delete_handler, (void *)&del)) {

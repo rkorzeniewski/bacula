@@ -83,7 +83,7 @@ bnet_thread_server(dlist *addrs, int max_clients, workq_t *client_wq,
    char buf[128];
    dlist sockfds;
 
-   char allbuf[256 * addrs->size()];
+   char allbuf[256 * 10];
    Dmsg1(100, "Addresses %s\n", build_addresses_str(addrs, allbuf, sizeof(allbuf)));
 
    foreach_dlist(p, addrs) {

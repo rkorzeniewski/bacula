@@ -114,45 +114,54 @@ const char *insert_delcand =
  * (i.e. no files, ...) for deletion.
  */
 const char *select_backup_del =
-   "SELECT DelCandidates.JobId "
+   "SELECT DISTINCT DelCandidates.JobId "
    "FROM Job,DelCandidates "
-   "WHERE (JobTDate<%s AND ((DelCandidates.JobFiles=0) OR "
+   "WHERE (Job.JobTDate<%s AND ((DelCandidates.JobFiles=0) OR "
    "(DelCandidates.JobStatus!='T'))) OR "
    "(Job.JobTDate>%s "
    "AND Job.ClientId=%u "
    "AND Job.Type='B' "
    "AND Job.Level='F' "
    "AND Job.JobStatus='T' "
-   "AND Job.FileSetId=DelCandidates.FileSetId) "
-   "GROUP BY DelCandidates.JobId";
+   "AND Job.FileSetId=DelCandidates.FileSetId)";
 
 /* Select Jobs from the DelCandidates table that have a
  * more recent InitCatalog -- i.e. are not the only InitCatalog
  * This is the list of Jobs to delete for a Verify Job.
  */
 const char *select_verify_del =
-   "SELECT DelCandidates.JobId "
+   "SELECT DISTINCT DelCandidates.JobId "
    "FROM Job,DelCandidates "
-   "WHERE Job.JobTDate>%s "
+   "WHERE (Job.JobTdate<%s AND DelCandidates.JobStatus!='T') OR "
+   "(Job.JobTDate>%s "
    "AND Job.ClientId=%u "
    "AND Job.Type='V' "
    "AND Job.Level='V' "
    "AND Job.JobStatus='T' "
-   "AND Job.FileSetId=DelCandidates.FileSetId "
-   "GROUP BY DelCandidates.JobId";
+   "AND Job.FileSetId=DelCandidates.FileSetId)";
 
 
 /* Select Jobs from the DelCandidates table.
  * This is the list of Jobs to delete for a Restore Job.
  */
 const char *select_restore_del =
-   "SELECT DelCandidates.JobId "
+   "SELECT DISTINCT DelCandidates.JobId "
    "FROM Job,DelCandidates "
-   "WHERE Job.JobTDate>%s "
+   "WHERE (Job.JobTdate<%s AND delCandidates.JobStatus!='T') OR "
+   "(Job.JobTDate>%s "
    "AND Job.ClientId=%u "   
-   "AND Job.Type='R' "
-   "GROUP BY DelCandidates.JobId";
+   "AND Job.Type='R')";
 
+/* Select Jobs from the DelCandidates table.
+ * This is the list of Jobs to delete for an Admin Job.
+ */
+const char *select_admin_del =
+   "SELECT DISTINCT DelCandidates.JobId "
+   "FROM Job,DelCandidates "
+   "WHERE (Job.JobTdate<%s AND delCandidates.JobStatus!='T') OR "
+   "(Job.JobTDate>%s "
+   "AND Job.ClientId=%u "   
+   "AND Job.Type='D')";
 
 
 /* ======= ua_restore.c */

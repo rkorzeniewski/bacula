@@ -230,6 +230,9 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
    if (ff_pkt->flags & FO_PORTABLE) {
       set_portable_backup(&ff_pkt->bfd); /* disable Win32 BackupRead() */
    }
+   if (ff_pkt->reader) {
+      set_prog(&ff_pkt->bfd, ff_pkt->reader, jcr);
+   }
 
    /* 
     * Open any file with data that we intend to save.  

@@ -391,6 +391,12 @@ static int send_fileset(JCR *jcr)
 	    for (k=0; k<fo->base.size(); k++) {
                bnet_fsend(fd, "B %s\n", fo->base.get(k));
 	    }
+	    if (fo->reader) {
+               bnet_fsend(fd, "D %s\n", fo->reader);
+	    }
+	    if (fo->writer) {
+               bnet_fsend(fd, "T %s\n", fo->writer);
+	    }
             bnet_fsend(fd, "N\n");
 	 }
 

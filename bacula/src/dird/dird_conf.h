@@ -247,6 +247,8 @@ struct FOPTS {
    alist regex;                       /* regex string(s) */
    alist wild;                        /* wild card strings */
    alist base;                        /* list of base names */
+   char *reader;                      /* reader program */
+   char *writer;                      /* writer program */
 };
 
 

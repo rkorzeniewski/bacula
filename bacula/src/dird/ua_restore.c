@@ -415,6 +415,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
    for ( ; !done; ) {
       char *fname;
       int len;
+      bool gui_save;
 
       start_prompt(ua, _("To select the JobIds, you have the following choices:\n"));
       for (int i=0; list[i]; i++) {
@@ -425,7 +426,10 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
       case -1:			      /* error */
 	 return 0;
       case 0:			      /* list last 20 Jobs run */
+	 gui_save = ua->jcr->gui;
+	 ua->jcr->gui = true;
 	 db_list_sql_query(ua->jcr, ua->db, uar_list_jobs, prtit, ua, 1, HORZ_LIST);
+	 ua->jcr->gui = gui_save;
 	 done = false;
 	 break;
       case 1:			      /* list where a file is saved */
@@ -437,7 +441,10 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
 	 db_escape_string(fname, ua->cmd, len);
 	 Mmsg(&rx->query, uar_file, fname);
 	 free(fname);
+	 gui_save = ua->jcr->gui;
+	 ua->jcr->gui = true;
 	 db_list_sql_query(ua->jcr, ua->db, rx->query, prtit, ua, 1, HORZ_LIST);
+	 ua->jcr->gui = gui_save;
 	 done = false;
 	 break;
       case 2:			      /* enter a list of JobIds */
@@ -450,7 +457,10 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
          if (!get_cmd(ua, _("Enter SQL list command: "))) {
 	    return 0;
 	 }
+	 gui_save = ua->jcr->gui;
+	 ua->jcr->gui = true;
 	 db_list_sql_query(ua->jcr, ua->db, ua->cmd, prtit, ua, 1, HORZ_LIST);
+	 ua->jcr->gui = gui_save;
 	 done = false;
 	 break;
       case 4:			      /* Select the most recent backups */
