@@ -146,8 +146,6 @@ create table media
         default 0,
     maxvolbytes       bigint                not null
         default 0,
-    drive             integer               not null
-        default 0,
     inchanger         smallint              not null
         default 0,
     mediaaddressing   smallint              not null
