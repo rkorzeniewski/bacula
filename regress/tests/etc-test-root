@@ -25,7 +25,7 @@ bin/bacula stop 2>&1 >/dev/null
 bin/drop_sqlite_tables
 bin/make_sqlite_tables
 bin/bacula start 2>&1 >/dev/null
-bin/console -c bin/console.conf <<END_OF_DATA
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
 @output /dev/null
 messages
 @output tmp/log1.out

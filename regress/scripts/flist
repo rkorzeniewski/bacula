@@ -4,7 +4,7 @@
 /build/src/tools/testfind
 /build/Makefile.in
 /build/src/dird/bacula-dir
-/build/src/console/console
+/build/src/console/bconsole
 /build/src/filed/bacula-fd
 /build/src/findlib/find_one.c
 /build/src/jcr.h

@@ -24,7 +24,7 @@ echo " === Starting incremental-test ===" >>working/log
 echo " "
 
 bin/bacula start 2>&1 >/dev/null
-bin/console -c bin/console.conf <<END_OF_DATA
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
 @output /dev/null
 messages
 @tee    tmp/log1.out
@@ -37,7 +37,7 @@ quit
 END_OF_DATA
 echo "ficheriro1.txt" >${cwd}/tmp/build/ficheriro1.txt
 echo "ficheriro2.txt" >${cwd}/tmp/build/ficheriro2.txt
-bin/console -c bin/console.conf <<END_OF_DATA
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
 @output /dev/null
 messages
 @tee    tmp/log1.out
