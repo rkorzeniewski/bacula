@@ -89,8 +89,8 @@ extern void *b_malloc();
 
 #endif
 
-//#ifdef SMARTALLOC
-#ifdef xxx
+#ifdef SMARTALLOC
+// #ifdef xxx
 
 #define New(type) new(__FILE__, __LINE__) type
 
@@ -118,8 +118,8 @@ void  operator delete[](void *ptr, size_t i)
 }
 
 private:
-//void *operator new(size_t s) throw() { return 0; }
-//void *operator new[](size_t s) throw() { return 0; }
+void *operator new(size_t s) throw() { return 0; }
+void *operator new[](size_t s) throw() { return 0; }
 };
  
 
