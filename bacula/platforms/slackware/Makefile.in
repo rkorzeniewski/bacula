@@ -7,6 +7,8 @@
 #  Patrick Naubert 25 Jan 2003
 # and reworked for Slackware by
 #  Matt Howard 09 Mar 2004
+# further reworked for Slackware without Perl dependency by
+#  Phil Stracchino 13 Mar 2004
 #
 #  for Bacula release @VERSION@ (@DATE@) -- @DISTNAME@
 #
@@ -31,7 +33,7 @@ install-autostart-dir: install-autostart-rc
 
 install-autostart-rc:
 	@$(INSTALL) -m 744 functions.bacula $(DESTDIR)/etc/rc.d
-	./add-remove-rc.local.pl -a $(DESTDIR)
+	sh ./local-install.sh install $(DESTDIR)
 
 
 uninstall: uninstall-autostart
@@ -49,7 +51,7 @@ uninstall-autostart-dir: uninstall-autostart-rc
 
 uninstall-autostart-rc:
 	@rm -f $(DESTDIR)/etc/rc.d/functions.bacula
-	./add-remove-rc.local.pl -r $(DESTDIR)
+	sh ./local-install.sh remove $(DESTDIR)
 
 
 clean:
