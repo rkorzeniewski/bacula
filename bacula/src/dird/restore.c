@@ -88,6 +88,7 @@ int do_restore(JCR *jcr)
    /* 
     * The following code is kept temporarily for compatibility.
     * It is the predecessor to the Bootstrap file.
+    *	DEPRECATED
     */
    if (!jcr->RestoreBootstrap) {
       /*

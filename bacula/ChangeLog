@@ -1,6 +1,7 @@
 
-2003-10-29 Version 1.32c 29Oct03
+2003-10-30 Version 1.32c 30Oct03 Release
 29Oct03
+- Add %v to job edit codes. It edits in the VolumeName(s).
 - Add code to ensure that fds 0,1, and 2 are defined by dup'ing them
   to /dev/null if necessary.  Mostly for Windows that does not have them.
 - Error check dir_create_jobmedia_record() 2 places in acquire.c
