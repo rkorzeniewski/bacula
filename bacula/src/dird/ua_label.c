@@ -148,8 +148,8 @@ static int do_label(UAContext *ua, char *cmd, int relabel)
    char dev_name[MAX_NAME_LENGTH];
    MEDIA_DBR mr, omr;
    POOL_DBR pr;
+   bool print_reminder = true;
    int ok = FALSE;
-   int mounted = FALSE;
    int i;
    bool media_record_exists = false;
    static char *barcode_keyword[] = {
@@ -284,12 +284,17 @@ checkName:
 	    /* Here we can get
 	     *	3001 OK mount. Device=xxx      or
 	     *	3001 Mounted Volume vvvv
+	     *	3906 is cannot mount non-tape
+	     * So for those, no need to print a reminder
 	     */
-            mounted = strncmp(sd->msg, "3001 ", 5) == 0;
+            if (strncmp(sd->msg, "3001 ", 5) == 0 ||
+                strncmp(sd->msg, "3906 ", 5) == 0) {
+	       print_reminder = false;
+	    }
 	 }
       }
    }
-   if (!mounted) {
+   if (!print_reminder) {
       bsendmsg(ua, _("Do not forget to mount the drive!!!\n"));
    }
    bnet_sig(sd, BNET_TERMINATE);

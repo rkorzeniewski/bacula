@@ -324,10 +324,10 @@ static int do_label(JCR *jcr, int relabel)
 	    label_volume_if_ok(jcr, dev, oldname, newname, poolname, slot, relabel);
 	 } else if (dev->state & ST_READ || dev->num_writers) {
 	    if (dev->state & ST_READ) {
-                bnet_fsend(dir, _("3901 Device %s is busy with 1 reader.\n"),
+                bnet_fsend(dir, _("3911 Device %s is busy with 1 reader.\n"),
 		   dev_name(dev));
 	    } else {
-                bnet_fsend(dir, _("3902 Device %s is busy with %d writer(s).\n"),
+                bnet_fsend(dir, _("3912 Device %s is busy with %d writer(s).\n"),
 		   dev_name(dev), dev->num_writers);
 	    }
 	 } else {		      /* device not being used */
@@ -581,7 +581,7 @@ static int mount_cmd(JCR *jcr)
       }
    } else {
       pm_strcpy(&jcr->errmsg, dir->msg);
-      bnet_fsend(dir, _("3906 Error scanning mount command: %s\n"), jcr->errmsg);
+      bnet_fsend(dir, _("3909 Error scanning mount command: %s\n"), jcr->errmsg);
    }
    free_memory(dev_name);
    bnet_sig(dir, BNET_EOD);
@@ -823,7 +823,7 @@ static int autochanger_cmd(JCR *jcr)
       }
    } else {  /* error on scanf */
       pm_strcpy(&jcr->errmsg, dir->msg);
-      bnet_fsend(dir, _("3907 Error scanning autocharger list command: %s\n"),
+      bnet_fsend(dir, _("3908 Error scanning autocharger list command: %s\n"),
 	 jcr->errmsg);
    }
    free_memory(devname);
