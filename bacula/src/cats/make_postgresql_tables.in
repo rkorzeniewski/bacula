@@ -110,12 +110,9 @@ create table media
         default 0,
     poolid            integer               not null,
     mediatype         text                  not null,
-    firstwritten      timestamp without time zone not null
-        default current_timestamp,
-    lastwritten       timestamp without time zone not null
-        default current_timestamp,
-    labeldate         timestamp without time zone not null
-        default current_timestamp,
+    firstwritten      timestamp without time zone,
+    lastwritten       timestamp without time zone,
+    labeldate         timestamp without time zone,
     voljobs           integer               not null
         default 0,
     volfiles          integer               not null
