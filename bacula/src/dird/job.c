@@ -359,6 +359,7 @@ wait:
       V(mutex);
       /* Try again */
    }
+   jcr->acquired_resource_locks = 1;
 #endif
    return 1;
 }
@@ -403,6 +404,9 @@ static void backoff_resource_locks(JCR *jcr, int count)
  */
 static void release_resource_locks(JCR *jcr)
 {
+   if (!jcr->acquired_resource_locks) {
+      return;			      /* Job canceled, no locks acquired */
+   }
 #ifdef USE_SEMAPHORE
    P(mutex);
    sem_unlock(&jcr->store->sem);

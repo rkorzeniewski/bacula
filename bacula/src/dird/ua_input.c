@@ -61,15 +61,73 @@ int get_cmd(UAContext *ua, char *prompt)
       if (strcmp(ua->cmd, ".messages") == 0) {
 	 qmessagescmd(ua, ua->cmd);
       }
-      /* ****FIXME**** if .command, go off and do it. For now ignore it. */
-      if (ua->cmd[0] == '.' && ua->cmd[1] != 0) {
-	 continue;		      /* dot command */
+      /* Lone dot => break */
+      if (ua->cmd[0] == '.' && ua->cmd[1] == 0) {
+	 return 0;
       }
-      /* Lone dot => break or actual response */
       break;
    }
    return 1;
 }
+
+/* 
+ * Get a positive integer
+ *  Returns:  0 if failure
+ *	      1 if success => value in ua->pint32_val
+ */
+int get_pint(UAContext *ua, char *prompt)
+{
+   double dval;
+   ua->pint32_val = 0;
+   for (;;) {
+      if (!get_cmd(ua, prompt)) {
+	 return 0;
+      }
+      if (!is_a_number(ua->cmd)) {
+         bsendmsg(ua, "Expected a positive integer, got: %s\n", ua->cmd);
+	 continue;
+      }
+      errno = 0;
+      dval = strtod(ua->cmd, NULL);
+      if (errno != 0 || dval < 0) {
+         bsendmsg(ua, "Expected a positive integer, got: %s\n", ua->cmd);
+	 continue;
+      }
+      ua->pint32_val = (uint32_t)dval;
+      return 1;
+   }
+}
+
+/* 
+ * Gets a yes or no response
+ *  Returns:  0 if failure
+ *	      1 if success => ua->pint32_val == 1 for yes
+ *			      ua->pint32_val == 0 for no
+ */
+int get_yesno(UAContext *ua, char *prompt)
+{
+   int len;
+
+   ua->pint32_val = 0;
+   for (;;) {
+      if (!get_cmd(ua, prompt)) {
+	 return 0;
+      }
+      len = strlen(ua->cmd);
+      if (len < 1 || len > 3) {
+	 continue;
+      }
+      if (strncasecmp(ua->cmd, _("yes"), len) == 0) {
+	 ua->pint32_val = 1;
+	 return 1;
+      }
+      if (strncasecmp(ua->cmd, _("no"), len) == 0) {
+	 return 1;
+      }
+      bsendmsg(ua, _("Invalid response. You must answer yes or no.\n"));
+   }
+}
+  
 
 void parse_ua_args(UAContext *ua)
 {

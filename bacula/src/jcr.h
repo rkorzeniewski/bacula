@@ -149,6 +149,7 @@ struct s_jcr {
    char *RestoreWhere;                /* Where to restore the files */
    POOLMEM *client_uname;             /* client uname */ 
    int replace;                       /* Replace option */
+   int acquired_resource_locks;       /* set if resource locks acquired */
 #endif /* DIRECTOR_DAEMON */
 
 

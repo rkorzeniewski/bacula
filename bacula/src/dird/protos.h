@@ -88,6 +88,8 @@ void set_pool_dbr_defaults_in_media_dbr(MEDIA_DBR *mr, POOL_DBR *pr);
 
 /* ua_input.c */
 int get_cmd(UAContext *ua, char *prompt);
+int get_pint(UAContext *ua, char *prompt);
+int get_yesno(UAContext *ua, char *prompt);
 void parse_ua_args(UAContext *ua);
 
 /* ua_output.c */
@@ -122,6 +124,7 @@ int	get_job_dbr(UAContext *ua, JOB_DBR *jr);
 
 int find_arg_keyword(UAContext *ua, char **list);
 int find_arg(UAContext *ua, char *keyword);
+int find_arg_with_value(UAContext *ua, char *keyword);
 int do_keyword_prompt(UAContext *ua, char *msg, char **list);
 int confirm_retention(UAContext *ua, utime_t *ret, char *msg);
 

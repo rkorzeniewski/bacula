@@ -48,6 +48,8 @@ typedef struct s_ua_context {
    int automount;                     /* if set, mount after label */
    int quit;                          /* if set, quit */
    int verbose;                       /* set for normal UA verbosity */
+   uint32_t pint32_val;               /* positive integer */
+   int32_t  int32_val;                /* positive/negative */
 } UAContext;
 
 #endif

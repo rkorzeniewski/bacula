@@ -58,7 +58,6 @@ int	   bnet_ssl_client	 (BSOCK *bsock, char *password, int ssl_need);
 BSOCK *    bnet_connect 	   (void *jcr, int retry_interval,
 	       int max_retry_time, char *name, char *host, char *service, 
 	       int port, int verbose);
-int	   bnet_wait_data	  (BSOCK *bsock, int sec);
 void	   bnet_close		 (BSOCK *bsock);
 BSOCK *    init_bsock		 (void *jcr, int sockfd, char *who, char *ip, int port);
 BSOCK *    dup_bsock		 (BSOCK *bsock);
@@ -66,6 +65,7 @@ void	   term_bsock		 (BSOCK *bsock);
 char *	   bnet_strerror	 (BSOCK *bsock);
 char *	   bnet_sig_to_ascii	 (BSOCK *bsock);
 int	   bnet_wait_data	 (BSOCK *bsock, int sec);
+int	   bnet_wait_data_intr	 (BSOCK *bsock, int sec);
 int	   bnet_despool 	 (BSOCK *bsock);
 int	   is_bnet_stop 	 (BSOCK *bsock);
 int	   is_bnet_error	 (BSOCK *bsock);

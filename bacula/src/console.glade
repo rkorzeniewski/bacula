@@ -2344,7 +2344,7 @@
 	<widget>
 	  <class>GtkLabel</class>
 	  <name>label107</name>
-	  <width>70</width>
+	  <width>78</width>
 	  <label>Storage:</label>
 	  <justify>GTK_JUSTIFY_CENTER</justify>
 	  <wrap>False</wrap>
@@ -2407,7 +2407,7 @@
 	<widget>
 	  <class>GtkLabel</class>
 	  <name>label109</name>
-	  <width>70</width>
+	  <width>78</width>
 	  <label>Pool:</label>
 	  <justify>GTK_JUSTIFY_LEFT</justify>
 	  <wrap>False</wrap>
@@ -2470,11 +2470,11 @@
 	<widget>
 	  <class>GtkLabel</class>
 	  <name>label111</name>
-	  <width>70</width>
+	  <width>78</width>
 	  <label>Volume Name:</label>
 	  <justify>GTK_JUSTIFY_LEFT</justify>
 	  <wrap>False</wrap>
-	  <xalign>0.18</xalign>
+	  <xalign>0.17</xalign>
 	  <yalign>0.5</yalign>
 	  <xpad>0</xpad>
 	  <ypad>0</ypad>
@@ -2493,6 +2493,64 @@
 	  <text_visible>True</text_visible>
 	  <text_max_length>0</text_max_length>
 	  <text></text>
+	  <child>
+	    <padding>0</padding>
+	    <expand>True</expand>
+	    <fill>True</fill>
+	  </child>
+	</widget>
+
+	<widget>
+	  <class>Placeholder</class>
+	</widget>
+      </widget>
+
+      <widget>
+	<class>GtkHBox</class>
+	<name>hbox48</name>
+	<border_width>5</border_width>
+	<homogeneous>False</homogeneous>
+	<spacing>0</spacing>
+	<child>
+	  <padding>0</padding>
+	  <expand>True</expand>
+	  <fill>True</fill>
+	</child>
+
+	<widget>
+	  <class>GtkLabel</class>
+	  <name>slot1</name>
+	  <width>93</width>
+	  <label>Slot:</label>
+	  <justify>GTK_JUSTIFY_LEFT</justify>
+	  <wrap>False</wrap>
+	  <xalign>0.09</xalign>
+	  <yalign>0.5</yalign>
+	  <xpad>0</xpad>
+	  <ypad>0</ypad>
+	  <child>
+	    <padding>0</padding>
+	    <expand>False</expand>
+	    <fill>True</fill>
+	  </child>
+	</widget>
+
+	<widget>
+	  <class>GtkSpinButton</class>
+	  <name>label_slot</name>
+	  <can_focus>True</can_focus>
+	  <climb_rate>1</climb_rate>
+	  <digits>0</digits>
+	  <numeric>True</numeric>
+	  <update_policy>GTK_UPDATE_ALWAYS</update_policy>
+	  <snap>False</snap>
+	  <wrap>False</wrap>
+	  <value>0</value>
+	  <lower>0</lower>
+	  <upper>10000</upper>
+	  <step>1</step>
+	  <page>10</page>
+	  <page_size>10</page_size>
 	  <child>
 	    <padding>0</padding>
 	    <expand>True</expand>

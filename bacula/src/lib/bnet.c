@@ -382,7 +382,7 @@ int bnet_ssl_client(BSOCK *bsock, char *password, int ssl_need)
  *	     -1 if error
  */
 int 
-bnet_wait_data(BSOCK *bsock, int sec)
+bnet_wait_data(BSOCK *bsock, int sec)	       
 {
    fd_set fdset;
    struct timeval tv;
@@ -408,6 +408,35 @@ bnet_wait_data(BSOCK *bsock, int sec)
       }
    }
 }
+
+/*
+ * As above, but returns on interrupt
+ */
+int
+bnet_wait_data_intr(BSOCK *bsock, int sec)	    
+{
+   fd_set fdset;
+   struct timeval tv;
+
+   FD_ZERO(&fdset);
+   FD_SET(bsock->fd, &fdset);
+   tv.tv_sec = sec;
+   tv.tv_usec = 0;
+   for ( ;; ) {
+      switch(select(bsock->fd + 1, &fdset, NULL, NULL, &tv)) {
+	 case 0:			 /* timeout */
+	    bsock->b_errno = 0;
+	    return 0;
+	 case -1:
+	    bsock->b_errno = errno;
+	    return -1;			/* error return */
+	 default:
+	    bsock->b_errno = 0;
+	    return 1;
+      }
+   }
+}
+
 
 static pthread_mutex_t ip_mutex = PTHREAD_MUTEX_INITIALIZER;
 

@@ -20,6 +20,9 @@ For 1.30a release:
 - Test multiple simultaneous Volumes
 - Document FInclude ...
 
+- Test and implement get_pint and get_yesno.
+- Implement timeout in response() when it should come quickly.
+
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 After 1.30:

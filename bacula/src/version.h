@@ -11,7 +11,7 @@
 #define TRACE_FILE 1  
 
 /* Turn this on if you want to try the new Job semaphore code */
-/* #define USE_SEMAPHORE */
+#define USE_SEMAPHORE
 
 /* IF you undefine this, Bacula will run 10X slower */
 #define NO_POLL_TEST 1

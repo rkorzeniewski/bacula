@@ -225,17 +225,27 @@ checkName:
 
    /* If autochanger, request slot */
    if (store->autochanger) {
+      int first = 1;
       for ( ;; ) {
-         if (!get_cmd(ua, _("Enter slot (0 for none): ")) || ua->cmd[0] == '.') {
-	    return 1;
+	 if (first) {
+            i = find_arg(ua, "slot"); 
+	    if (i >= 0 && ua->argv[i]) {
+	       mr.Slot = atoi(ua->argv[i]);
+	    }
+	    first = 0;
+	 } else {
+            if (!get_cmd(ua, _("Enter slot (0 for none): ")) || ua->cmd[0] == '.') {
+	       return 1;
+	    }
+	    mr.Slot = atoi(ua->cmd);
 	 }
-	 mr.Slot = atoi(ua->cmd);
 	 if (mr.Slot >= 0) {	      /* OK */
 	    break;
 	 }
          bsendmsg(ua, _("Slot numbers must be positive.\n"));
       }
    }
+
    bstrncpy(mr.MediaType, store->media_type, sizeof(mr.MediaType));
 
    /* Must select Pool if not already done */

@@ -83,17 +83,24 @@ static void signal_handler(int sig)
       static char pid_buf[20];
       static char btpath[400];
       pid_t pid;
+      int exelen = strlen(exepath);
 
       fprintf(stderr, "Kaboom! %s, %s got signal %d. Attempting traceback.\n", 
 	      exename, my_name, sig);
 
-      if (strlen(exepath) + 12 > (int)sizeof(btpath)) {
+      if (exelen + 12 > (int)sizeof(btpath)) {
          strcpy(btpath, "btraceback");
       } else {
 	 strcpy(btpath, exepath);
-         strcat(btpath, "/btraceback");
+         if (btpath[exelen-1] != '/') {
+            strcat(btpath, "/btraceback");
+	 } else {
+            strcat(btpath, "btraceback");
+	 }
       }
-      strcat(exepath, "/");
+      if (btpath[exelen-1] != '/') {
+         strcat(exepath, "/");
+      }
       strcat(exepath, exename);
       if (chdir(working_directory) !=0) {  /* dump in working directory */
          Pmsg2(000, "chdir to %s failed. ERR=%s\n", working_directory,  strerror(errno));
@@ -112,6 +119,7 @@ static void signal_handler(int sig)
 	 argv[1] = exepath;	      /* path to exe */
 	 argv[2] = pid_buf;
 	 argv[3] = (char *)NULL;
+         fprintf(stderr, "Calling: %s %s %s\n", btpath, exepath, pid_buf);
 	 if (execv(btpath, argv) != 0) {
             printf("execv: %s failed: ERR=%s\n", btpath, strerror(errno));
 	 }
@@ -119,6 +127,7 @@ static void signal_handler(int sig)
       default:			      /* parent */
 	 break;
       }
+      /* Parent continue here, waiting for child */
       sigdefault.sa_flags = 0;
       sigdefault.sa_handler = SIG_DFL;
       sigfillset(&sigdefault.sa_mask);

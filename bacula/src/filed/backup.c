@@ -50,17 +50,19 @@ static void *heartbeat_thread(void *arg)
     *	a heartbeat, we simply send it on to the Director to
     *	keep him alive.
     */
-   for ( ;; ) {
-      n = bnet_recv(sd);
-      if (is_bnet_stop(sd)) {
-	 break;
+   for ( ; !is_bnet_stop(sd); ) {
+      n = bnet_wait_data_intr(sd, 60);
+      if (n != 1) {
+	 continue;
       }
+      n = bnet_recv(sd);
       if (n == BNET_SIGNAL && sd->msglen == BNET_HEARTBEAT) {
 	 bnet_sig(dir, BNET_HEARTBEAT);
       }
    }
    bnet_close(sd);
    bnet_close(dir);
+   jcr->duped_sd = NULL;
    return NULL;
 }
 
@@ -81,8 +83,12 @@ static void stop_heartbeat_monitor(JCR *jcr)
       bmicrosleep(0, 500);	      /* avoid race */
    }
    jcr->duped_sd->timed_out = 1;      /* set timed_out to terminate read */
+   jcr->duped_sd->terminated = 1;     /* set to terminate read */
 
-   pthread_kill(hbtid, TIMEOUT_SIGNAL);  /* make heartbeat thread go away */
+   while (jcr->duped_sd) {
+      pthread_kill(hbtid, TIMEOUT_SIGNAL);  /* make heartbeat thread go away */
+      bmicrosleep(0, 20);
+   }
    pthread_join(hbtid, NULL);	      /* wait for him to clean up */
 }
 

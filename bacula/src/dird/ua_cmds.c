@@ -241,11 +241,11 @@ static int addcmd(UAContext *ua, char *cmd)
    }
 getVolName:
    if (num == 0) {
-      if (!get_cmd(ua, _("Enter Volume name: ")) || ua->cmd[0] == '.') {
+      if (!get_cmd(ua, _("Enter Volume name: "))) {
 	 return 1;
       }
    } else {
-      if (!get_cmd(ua, _("Enter base volume name: ")) || ua->cmd[0] == '.') {
+      if (!get_cmd(ua, _("Enter base volume name: "))) {
 	 return 1;
       }
    }
@@ -284,7 +284,7 @@ getVolName:
    }
 
    if (store && store->autochanger) {
-      if (!get_cmd(ua, _("Enter slot (0 for none): ")) || ua->cmd[0] == '.') {
+      if (!get_cmd(ua, _("Enter slot (0 for none): "))) {
 	 return 1;
       }
       slot = atoi(ua->cmd);
@@ -410,10 +410,7 @@ static int cancelcmd(UAContext *ua, char *cmd)
 	 return 1;
       }
       if (njobs == 1) {
-         if (!get_cmd(ua, _("Confirm cancel (yes/no): "))) {
-	    return 1;
-	 }
-         if (strcasecmp(ua->cmd, _("yes")) != 0) {
+         if (!get_yesno(ua, _("Confirm cancel (yes/no): ")) || ua->pint32_val == 0) {
 	    return 1;
 	 }
       }
@@ -1101,11 +1098,9 @@ static int setdebugcmd(UAContext *ua, char *cmd)
    Dmsg1(120, "setdebug:%s:\n", cmd);
 
    level = -1;
-   for (i=1; i<ua->argc; i++) {
-      if (strcasecmp(ua->argk[i], _("level")) == 0 && ua->argv[i]) {
-	 level = atoi(ua->argv[i]);
-	 break;
-      }
+   i = find_arg_with_value(ua, _("level"));
+   if (i >= 0) {
+      level = atoi(ua->argv[i]);
    }
    if (level < 0) {
       if (!get_cmd(ua, _("Enter new debug level: "))) {

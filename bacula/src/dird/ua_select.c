@@ -97,6 +97,21 @@ int find_arg(UAContext *ua, char *keyword)
    return -1;
 }
 
+int find_arg_with_value(UAContext *ua, char *keyword)
+{
+   for (int i=1; i<ua->argc; i++) {
+      if (strcasecmp(keyword, ua->argk[i]) == 0) {
+	 if (ua->argv[i]) {
+	    return i;
+	 } else {
+	    return -1;
+	 }
+      }
+   }
+   return -1;
+}
+
+
 
 /* 
  * Given a list of keywords, prompt the user 
@@ -459,8 +474,8 @@ int select_media_dbr(UAContext *ua, MEDIA_DBR *mr)
 
    memset(mr, 0, sizeof(MEDIA_DBR));
 
-   i = find_arg(ua, "volume");
-   if (i >= 0 && ua->argv[i]) {
+   i = find_arg_with_value(ua, "volume");
+   if (i >= 0) {
       bstrncpy(mr->VolumeName, ua->argv[i], sizeof(mr->VolumeName));
    }
    if (mr->VolumeName[0] == 0) {
@@ -520,15 +535,13 @@ POOL *get_pool_resource(UAContext *ua)
    POOL *pool = NULL;
    int i;
    
-   for (i=1; i<ua->argc; i++) {
-      if (strcasecmp(ua->argk[i], _("pool")) == 0 && ua->argv[i]) {
-	 pool = (POOL *)GetResWithName(R_POOL, ua->argv[i]);
-	 if (pool) {
-	    return pool;
-	 }
-         bsendmsg(ua, _("Error: Pool resource %s does not exist.\n"), ua->argv[i]);
-	 break;
+   i = find_arg_with_value(ua, "pool");
+   if (i >= 0) {
+      pool = (POOL *)GetResWithName(R_POOL, ua->argv[i]);
+      if (pool) {
+	 return pool;
       }
+      bsendmsg(ua, _("Error: Pool resource %s does not exist.\n"), ua->argv[i]);
    }
    return select_pool_resource(ua);
 }
@@ -661,7 +674,7 @@ int do_prompt(UAContext *ua, char *msg, char *prompt, int max_prompt)
          sprintf(pmsg, "%s (1-%d): ", msg, ua->num_prompts-1);
       }
       /* Either a . or an @ will get you out of the loop */
-      if (!get_cmd(ua, pmsg) || *ua->cmd == '.' || *ua->cmd == '@') {
+      if (!get_cmd(ua, pmsg) || *ua->cmd == '@') {
 	 item = -1;		      /* error */
          bsendmsg(ua, _("Selection aborted, nothing done.\n"));
 	 break;
@@ -779,8 +792,8 @@ int get_media_type(UAContext *ua, char *MediaType, int max_media)
    STORE *store;
    int i;
 
-   i = find_arg(ua, "mediatype");
-   if (i >= 0 && ua->argv[i]) {
+   i = find_arg_with_value(ua, "mediatype");
+   if (i >= 0) {
       bstrncpy(MediaType, ua->argv[i], max_media);
       return 1;
    }
