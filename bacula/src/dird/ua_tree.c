@@ -66,11 +66,11 @@ static struct cmdstruct commands[] = {
  { N_("help"),       helpcmd,      _("print help")},
  { N_("ls"),         lscmd,        _("list current directory -- wildcards allowed")},    
  { N_("lsmark"),     lsmarkcmd,    _("list the marked files in and below the cd")},    
- { N_("mark"),       markcmd,      _("mark file to be restored")},
- { N_("markdir"),    markdircmd,   _("mark directory entry to be restored -- nonrecursive")},
+ { N_("mark"),       markcmd,      _("mark dir/file to be restored -- recursively in dirs")},
+ { N_("markdir"),    markdircmd,   _("mark directory name to be restored (no files)")},
  { N_("pwd"),        pwdcmd,       _("print current working directory")},
- { N_("unmark"),     unmarkcmd,    _("unmark file to be restored")},
- { N_("unmarkdir"),  unmarkdircmd, _("unmark directory -- no recursion")},
+ { N_("unmark"),     unmarkcmd,    _("unmark dir/file to be restored -- recursively in dir")},
+ { N_("unmarkdir"),  unmarkdircmd, _("unmark directory name only -- no recursion")},
  { N_("quit"),       quitcmd,      _("quit")},
  { N_("?"),          helpcmd,      _("print help")},    
 	     };
@@ -168,8 +168,7 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
       type = TN_FILE;
    }
    hard_link = (decode_LinkFI(row[4], &statp) != 0);
-   node = insert_tree_node(row[0], row[1], NULL, tree->root, NULL);
-   /* Note, if node already exists, save new one for next time */
+   node = insert_tree_node(row[0], row[1], type, tree->root, NULL);
    JobId = (JobId_t)str_to_int64(row[3]);
    FileIndex = atoi(row[2]);
    /*
@@ -200,6 +199,13 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
 	 if (type == TN_DIR || type == TN_DIR_NLS) {
 	    node->extract_dir = true;	/* if dir, extract it */
 	 }
+      }
+   }
+   if (node->inserted) {
+      tree->FileCount++;
+      if (tree->DeltaCount > 0 && (tree->FileCount-tree->LastCount) > tree->DeltaCount) {
+         bsendmsg(tree->ua, "+");
+	 tree->LastCount = tree->FileCount;
       }
    }
    tree->cnt++;
@@ -284,6 +290,7 @@ static int markcmd(UAContext *ua, TREE_CTX *tree)
 {
    TREE_NODE *node;
    int count = 0;
+   char ec1[50];
 
    if (ua->argc < 2 || !tree_node_has_child(tree->node)) {
       bsendmsg(ua, _("No files marked.\n"));
@@ -299,7 +306,8 @@ static int markcmd(UAContext *ua, TREE_CTX *tree)
    if (count == 0) {
       bsendmsg(ua, _("No files marked.\n"));
    } else {
-      bsendmsg(ua, _("%d file%s marked.\n"), count, count==0?"":"s");
+      bsendmsg(ua, _("%s file%s marked.\n"),        
+               edit_uint64_with_commas(count, ec1), count==0?"":"s");
    }
    return 1;
 }
@@ -308,6 +316,7 @@ static int markdircmd(UAContext *ua, TREE_CTX *tree)
 {
    TREE_NODE *node;
    int count = 0;
+   char ec1[50];
 
    if (ua->argc < 2 || !tree_node_has_child(tree->node)) {
       bsendmsg(ua, _("No files marked.\n"));
@@ -326,7 +335,8 @@ static int markdircmd(UAContext *ua, TREE_CTX *tree)
    if (count == 0) {
       bsendmsg(ua, _("No directories marked.\n"));
    } else {
-      bsendmsg(ua, _("%d director%s marked.\n"), count, count==1?"y":"ies");
+      bsendmsg(ua, _("%s director%s marked.\n"), 
+               edit_uint64_with_commas(count, ec1), count==1?"y":"ies");
    }
    return 1;
 }
@@ -335,6 +345,7 @@ static int markdircmd(UAContext *ua, TREE_CTX *tree)
 static int countcmd(UAContext *ua, TREE_CTX *tree)
 {
    int total, num_extract;
+   char ec1[50];
 
    total = num_extract = 0;
    for (TREE_NODE *node=first_tree_node(tree->root); node; node=next_tree_node(node)) {
@@ -345,7 +356,8 @@ static int countcmd(UAContext *ua, TREE_CTX *tree)
 	 }
       }
    }
-   bsendmsg(ua, "%d total files/dirs. %d marked to be restored.\n", total, num_extract);
+   bsendmsg(ua, "%s total files/dirs. %d marked to be restored.\n", total, 
+	    edit_uint64_with_commas(num_extract, ec1));
    return 1;
 }
 

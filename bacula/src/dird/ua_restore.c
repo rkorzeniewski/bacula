@@ -48,6 +48,7 @@ extern char *uar_create_temp1,	 *uar_last_full,   *uar_full;
 extern char *uar_inc,		 *uar_list_temp,   *uar_sel_jobid_temp;
 extern char *uar_sel_all_temp1,  *uar_sel_fileset, *uar_mediatype;
 extern char *uar_jobid_fileindex, *uar_dif,	   *uar_sel_all_temp;
+extern char *uar_count_files;
 
 
 struct NAME_LIST {
@@ -108,6 +109,7 @@ static int insert_file_into_findex_list(UAContext *ua, RESTORE_CTX *rx, char *fi
 static void insert_one_file(UAContext *ua, RESTORE_CTX *rx, char *date);
 static int get_client_name(UAContext *ua, RESTORE_CTX *rx);
 static int get_date(UAContext *ua, char *date, int date_len);
+static int count_handler(void *ctx, int num_fields, char **row);
 
 /*
  *   Restore files
@@ -716,6 +718,20 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
     * appear more than once, however, we only insert it once.
     */
    int items = 0;
+   p = rx->JobIds;
+   tree.FileEstimate = 0;
+   if (get_next_jobid_from_list(&p, &JobId) > 0) {
+      /* Use first JobId as estimate of the number of files to restore */
+      Mmsg(&rx->query, uar_count_files, JobId);
+      if (!db_sql_query(ua->db, rx->query, count_handler, (void *)rx)) {
+         bsendmsg(ua, "%s\n", db_strerror(ua->db));
+      }
+      if (rx->found) {
+	 /* Add about 25% more than this job for over estimate */
+	 tree.FileEstimate = rx->JobId + (rx->JobId >> 2);
+	 tree.DeltaCount = rx->JobId/50; /* print 50 ticks */
+      }
+   }
    for (p=rx->JobIds; get_next_jobid_from_list(&p, &JobId) > 0; ) {
 
       if (JobId == last_JobId) {	     
@@ -739,8 +755,10 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
          bsendmsg(ua, "%s", db_strerror(ua->db));
       }
    }
-   bsendmsg(ua, "%d Job%s inserted into the tree%s.\n", 
-      items, items==1?"":"s", tree.all?" and marked for extraction":"");
+   char ec1[50];
+   bsendmsg(ua, "\n%d Job%s, %s files inserted into the tree%s.\n", 
+      items, items==1?"":"s", edit_uint64_with_commas(tree.FileCount, ec1),
+      tree.all?" and marked for extraction":"");
 
    /* Check MediaType and select storage that corresponds */
    get_storage_from_mediatype(ua, &rx->name_list, rx);
@@ -942,6 +960,14 @@ static int get_next_jobid_from_list(char **p, uint32_t *JobId)
    *p = q;
    *JobId = strtoul(jobid, NULL, 10);
    return 1;
+}
+
+static int count_handler(void *ctx, int num_fields, char **row)
+{
+   RESTORE_CTX *rx = (RESTORE_CTX *)ctx;
+   rx->JobId = atoi(row[0]);
+   rx->found = true;
+   return 0;
 }
 
 /*
