@@ -614,10 +614,11 @@ void wxbRestorePanel::CmdStart() {
                   << "-" << willdo << "]", CS_DEBUG);*/
          }
          wxTheApp->Yield(true);
+         ::wxUsleep(100);
       }
 
       gauge->SetValue(tot);
-      wxTheApp->Yield();
+      wxTheApp->Yield(true);
       gauge->SetValue(0);
       
       delete dt;
@@ -739,7 +740,8 @@ void wxbRestorePanel::CmdStart() {
 
          time_t start = wxDateTime::Now().GetTicks();
          while (((wxDateTime::Now().GetTicks())-start) < 10) {
-            wxTheApp->Yield();
+            wxTheApp->Yield(true);
+            ::wxUsleep(100);
          }
       }
 
@@ -1039,7 +1041,8 @@ wxbTableParser* wxbRestorePanel::CreateAndWaitForParser(wxString cmd) {
    //time_t base = wxDateTime::Now().GetTicks();
    while (!tableParser->hasFinished()) {
       //innerThread->Yield();
-      wxTheApp->Yield();
+      wxTheApp->Yield(true);
+      ::wxUsleep(100);
       //if (base+15 < wxDateTime::Now().GetTicks()) break;
    }
    return tableParser;
@@ -1056,7 +1059,8 @@ wxbPromptParser* wxbRestorePanel::WaitForPrompt(wxString cmd, bool keepresults) 
    //time_t base = wxDateTime::Now().GetTicks();
    while (!promptParser->hasFinished()) {
       //innerThread->Yield();
-      wxTheApp->Yield();
+      wxTheApp->Yield(true);
+      ::wxUsleep(100);
       //if (base+15 < wxDateTime::Now().GetTicks()) break;
    }
      
@@ -1080,7 +1084,8 @@ wxbDataTokenizer* wxbRestorePanel::WaitForEnd(wxString cmd, bool keepresults, bo
    //time_t base = wxDateTime::Now().GetTicks();
    while (!datatokenizer->hasFinished()) {
       //innerThread->Yield();
-      wxTheApp->Yield();
+      wxTheApp->Yield(true);
+      ::wxUsleep(100);
       //if (base+15 < wxDateTime::Now().GetTicks()) break;
    }
    
