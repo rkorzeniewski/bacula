@@ -799,7 +799,7 @@ int db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
          "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
          "MediaType,VolStatus,PoolId,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,"
-         "Recycle,Slot,FirstWritten,LastWritten "
+         "Recycle,Slot,FirstWritten,LastWritten,InChanger "
          "FROM Media WHERE VolumeName='%s'", mr->VolumeName);
    }  
 

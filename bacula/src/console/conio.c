@@ -988,6 +988,9 @@ void clrbrk()
 static void sigintcatcher(int sig)
 {
    brkflg++;
+   if (brkflg > 1) {
+      exit(1);
+   }
    signal(SIGINT, sigintcatcher);
 }
 

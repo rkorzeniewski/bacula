@@ -220,6 +220,7 @@ struct DCR {
    DEV_BLOCK *block;		      /* pointer to block */
    DEV_RECORD *record;		      /* pointer to record */
    bool spool_data;		      /* set to spool data */
+   bool spooling;		      /* set when actually spooling */
    int spool_fd;		      /* fd if spooling */
    bool NewVol; 		      /* set if new Volume mounted */
    bool WroteVol;		      /* set if Volume written */

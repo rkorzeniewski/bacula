@@ -417,8 +417,8 @@ int write_volume_label_to_dev(JCR *jcr, DEVRES *device, char *VolName, char *Poo
    }
    free_pool_memory(rec.data);
       
-   Dmsg0(99, "Call write_block_to_device()\n");
-   if (!write_block_to_dev(jcr, dev, block)) {
+   Dmsg0(99, "Call write_block_to_dev()\n");
+   if (!write_block_to_dev(jcr->dcr, block)) {
       memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
       Dmsg2(30, "Bad Label write on %s. ERR=%s\n", dev_name(dev), strerror_dev(dev));
       stat = 9;
@@ -537,7 +537,7 @@ int write_session_label(JCR *jcr, DEV_BLOCK *block, int label)
     */
    if (!can_write_record_to_block(block, rec)) {
       Dmsg0(100, "Cannot write session label to block.\n");
-      if (!write_block_to_device(jcr, dev, block)) {
+      if (!write_block_to_device(jcr->dcr, block)) {
          Dmsg0(90, "Got session label write_block_to_dev error.\n");
          Jmsg(jcr, M_FATAL, 0, _("Error writing Session label to %s: %s\n"), 
 			   dev_vol_name(dev), strerror(errno));

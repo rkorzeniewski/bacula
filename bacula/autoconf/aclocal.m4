@@ -344,7 +344,6 @@ db_found=no
 AC_MSG_CHECKING(for MySQL support)
 AC_ARG_WITH(mysql,
 [
-Which DBMS do you want to use (please select only one):
   --with-mysql[=DIR]      Include MySQL support.  DIR is the MySQL base
                           install directory, default is to search through
                           a number of common places for the MySQL files.],
@@ -414,7 +413,6 @@ Which DBMS do you want to use (please select only one):
 
 AC_ARG_WITH(embedded-mysql,
 [
-Which DBMS do you want to use (please select only one):
   --with-embedded-mysql[=DIR] Include MySQL support.  DIR is the MySQL base
                           install directory, default is to search through
                           a number of common places for the MySQL files.],
@@ -492,7 +490,6 @@ db_found=no
 AC_MSG_CHECKING(for SQLite support)
 AC_ARG_WITH(sqlite,
 [
-Which DBMS do you want to use (please select only one):
   --with-sqlite[=DIR]     Include SQLite support.  DIR is the SQLite base
                           install directory, default is to search through
                           a number of common places for the SQLite files.],
@@ -630,7 +627,6 @@ fi
 AC_MSG_CHECKING(for Berkeley DB support)
 AC_ARG_WITH(berkeleydb,
 [
-Which DBMS do you want to use (please select only one):
   --with-berkeleydb[=DIR] Include Berkeley DB support.  DIR is the Berkeley DB base
                           install directory, default is to search through
                           a number of common places for the DB files.],

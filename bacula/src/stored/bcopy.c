@@ -167,7 +167,7 @@ int main (int argc, char *argv[])
    out_block = out_jcr->dcr->block;
 
    read_records(in_jcr, in_dev, record_cb, mount_next_read_volume);
-   if (!write_block_to_device(out_jcr, out_dev, out_block)) {
+   if (!write_block_to_device(out_jcr->dcr, out_block)) {
       Pmsg0(000, _("Write of last block failed.\n"));
    }
 
@@ -214,14 +214,14 @@ static int record_cb(JCR *in_jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec
 	 while (!write_record_to_block(out_block, rec)) {
             Dmsg2(150, "!write_record_to_block data_len=%d rem=%d\n", rec->data_len,
 		       rec->remainder);
-	    if (!write_block_to_device(out_jcr, out_dev, out_block)) {
+	    if (!write_block_to_device(out_jcr->dcr, out_block)) {
                Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
 		  dev_name(out_dev), strerror_dev(out_dev));
                Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
 		     strerror_dev(out_dev));
 	    }
 	 }
-	 if (!write_block_to_device(out_jcr, out_dev, out_block)) {
+	 if (!write_block_to_device(out_jcr->dcr, out_block)) {
             Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
 	       dev_name(out_dev), strerror_dev(out_dev));
             Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
@@ -244,7 +244,7 @@ static int record_cb(JCR *in_jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec
    while (!write_record_to_block(out_block, rec)) {
       Dmsg2(150, "!write_record_to_block data_len=%d rem=%d\n", rec->data_len,
 		 rec->remainder);
-      if (!write_block_to_device(out_jcr, out_dev, out_block)) {
+      if (!write_block_to_device(out_jcr->dcr, out_block)) {
          Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
 	    dev_name(out_dev), strerror_dev(out_dev));
          Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),

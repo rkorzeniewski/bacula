@@ -285,7 +285,7 @@ read_volume:
 	    }
 	 }
 	 /* Attempt write to check write permission */
-	 if (!write_block_to_dev(jcr, dev, block)) {
+	 if (!write_block_to_dev(jcr->dcr, block)) {
             Jmsg2(jcr, M_ERROR, 0, _("Unable to write device \"%s\". ERR=%s\n"),
 	       dev_name(dev), strerror_dev(dev));
 	    goto mount_next_vol;
