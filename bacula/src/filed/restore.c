@@ -33,6 +33,7 @@
 static char rec_header[] = "rechdr %ld %ld %ld %ld %ld";
 
 /* Forward referenced functions */
+static char *zlib_strerror(int stat);
 
 #define RETRY 10		      /* retry wait time */
 
@@ -47,7 +48,7 @@ void do_restore(JCR *jcr)
    uint32_t size;
    uint32_t VolSessionId, VolSessionTime;
    int32_t file_index;
-   int extract = FALSE;
+   bool extract = false;
    BFILE bfd;
    int stat;
    uint32_t total = 0;		      /* Job total but only 32 bits for debug */
@@ -125,7 +126,7 @@ void do_restore(JCR *jcr)
                Jmsg0(jcr, M_ERROR, 0, _("Logic error output file should be open\n"));
 	    }
 	    set_attributes(jcr, attr, &bfd);
-	    extract = FALSE;
+	    extract = false;
             Dmsg0(30, "Stop extracting.\n");
 	 }
 
@@ -157,14 +158,14 @@ void do_restore(JCR *jcr)
 	 jcr->num_files_examined++;
 
          Dmsg1(30, "Outfile=%s\n", attr->ofname);
-	 extract = FALSE;
+	 extract = false;
 	 stat = create_file(jcr, attr, &bfd, jcr->replace);
 	 switch (stat) {
 	 case CF_ERROR:
 	 case CF_SKIP:
 	    break;
 	 case CF_EXTRACT:
-	    extract = TRUE;
+	    extract = true;
 	    P(jcr->mutex);
 	    pm_strcpy(&jcr->last_fname, attr->ofname);
 	    V(jcr->mutex);
@@ -206,7 +207,8 @@ void do_restore(JCR *jcr)
 		  if (blseek(&bfd, (off_t)fileAddr, SEEK_SET) < 0) {
                      Jmsg3(jcr, M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"),
 			 edit_uint64(fileAddr, ec1), attr->ofname, berror(&bfd));
-		     extract = FALSE;
+		     extract = false;
+		     bclose(&bfd);
 		     continue;
 		  }
 	       }
@@ -218,7 +220,8 @@ void do_restore(JCR *jcr)
 	    if ((uint32_t)bwrite(&bfd, wbuf, wsize) != wsize) {
                Dmsg0(0, "===Write error===\n");
                Jmsg2(jcr, M_ERROR, 0, _("Write error on %s: ERR=%s\n"), attr->ofname, berror(&bfd));
-	       extract = FALSE;
+	       extract = false;
+	       bclose(&bfd);
 	       continue;
 	    } 
 	    total += wsize;
@@ -250,7 +253,8 @@ void do_restore(JCR *jcr)
 		  if (blseek(&bfd, (off_t)fileAddr, SEEK_SET) < 0) {
                      Jmsg3(jcr, M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"),
 			 edit_uint64(fileAddr, ec1), attr->ofname, berror(&bfd));
-		     extract = FALSE;
+		     extract = false;
+		     bclose(&bfd);
 		     continue;
 		  }
 	       }
@@ -262,8 +266,10 @@ void do_restore(JCR *jcr)
             Dmsg2(100, "Comp_len=%d msglen=%d\n", compress_len, wsize);
 	    if ((stat=uncompress((Byte *)jcr->compress_buf, &compress_len, 
 		  (const Byte *)wbuf, (uLong)wsize)) != Z_OK) {
-               Jmsg(jcr, M_ERROR, 0, _("Uncompression error. ERR=%d\n"), stat);
-	       extract = FALSE;
+               Jmsg(jcr, M_ERROR, 0, _("Uncompression error on file %s. ERR=%s\n"), 
+		  attr->ofname, zlib_strerror(stat));
+	       extract = false;
+	       bclose(&bfd);
 	       continue;
 	    }
 
@@ -271,7 +277,8 @@ void do_restore(JCR *jcr)
 	    if ((uLong)bwrite(&bfd, jcr->compress_buf, compress_len) != compress_len) {
                Dmsg0(0, "===Write error===\n");
                Jmsg2(jcr, M_ERROR, 0, _("Write error on %s: %s\n"), attr->ofname, berror(&bfd));
-	       extract = FALSE;
+	       extract = false;
+	       bclose(&bfd);
 	       continue;
 	    }
 	    total += compress_len;
@@ -282,7 +289,8 @@ void do_restore(JCR *jcr)
 #else
 	 if (extract) {
             Jmsg(jcr, M_ERROR, 0, _("GZIP data stream found, but GZIP not configured!\n"));
-	    extract = FALSE;
+	    extract = false;
+	    bclose(&bfd);
 	    continue;
 	 }
 #endif
@@ -308,7 +316,7 @@ void do_restore(JCR *jcr)
                Jmsg0(jcr, M_ERROR, 0, _("Logic error output file should be open but is not.\n"));
 	    }
 	    set_attributes(jcr, attr, &bfd);
-	    extract = FALSE;
+	    extract = false;
 	 }
          Jmsg(jcr, M_ERROR, 0, _("Unknown stream=%d ignored. This shouldn't happen!\n"), stream);
          Dmsg2(0, "None of above!!! stream=%d data=%s\n", stream,sd->msg);
@@ -333,6 +341,7 @@ ok_out:
       free(jcr->compress_buf);
       jcr->compress_buf = NULL;
    }
+   bclose(&bfd);
    free_attr(attr);
    Dmsg2(10, "End Do Restore. Files=%d Bytes=%" lld "\n", jcr->JobFiles,
       jcr->JobBytes);
@@ -341,3 +350,29 @@ ok_out:
 	 non_support_data, non_support_attr);
    }
 }	   
+
+/*
+ * Convert ZLIB error code into an ASCII message
+ */
+static char *zlib_strerror(int stat)
+{
+   if (stat >= 0) {
+      return "None";
+   }
+   switch (stat) {
+   case Z_ERRNO:
+      return "Zlib errno";
+   case Z_STREAM_ERROR:
+      return "Zlib stream error";
+   case Z_DATA_ERROR:
+      return "Zlib data error";
+   case Z_MEM_ERROR:
+      return "Zlib memory error";
+   case Z_BUF_ERROR:
+      return "Zlib buffer error";
+   case Z_VERSION_ERROR:
+      return "Zlib version error";
+   default:
+      return "*none*";
+   }
+}

@@ -464,7 +464,7 @@ static void bsrcmd()
  */
 static void capcmd()
 {
-   printf(_("Device capabilities:\n"));
+   printf(_("Configured device capabilities:\n"));
    printf("%sEOF ", dev->capabilities & CAP_EOF ? "" : "!");
    printf("%sBSR ", dev->capabilities & CAP_BSR ? "" : "!");
    printf("%sBSF ", dev->capabilities & CAP_BSF ? "" : "!");
@@ -1735,6 +1735,7 @@ static void helpcmd()
 {
    unsigned int i;
    usage();
+   printf(_("Interactive commands:\n"));
    printf(_("  Command    Description\n  =======    ===========\n"));
    for (i=0; i<comsize; i++)
       printf("  %-10s %s\n", commands[i].key, commands[i].help);
@@ -1745,7 +1746,7 @@ static void usage()
 {
    fprintf(stderr, _(
 "\nVersion: " VERSION " (" BDATE ")\n\n"
-"Usage: btape [-c config_file] [-d debug_level] [device_name]\n"
+"Usage: btape [-c config_file] [-d debug_level] device_name\n"
 "       -c <file>   set configuration file to file\n"
 "       -dnn        set debug level to nn\n"
 "       -s          turn off signals\n"

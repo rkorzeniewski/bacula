@@ -35,6 +35,7 @@
 
 /* Forward referenced functions */
 static void write_bsr(UAContext *ua, RBSR *bsr, FILE *fd);
+void print_bsr(UAContext *ua, RBSR *bsr);
 
 
 /*
@@ -62,20 +63,26 @@ static void free_findex(RBSR_FINDEX *fi)
  *  range regardless of volume. The FirstIndex and LastIndex
  *  passed in here are for the current volume, so when 
  *  writing out the fi, constrain them to those values.
+ *
+ * We are called here once for each JobMedia record
+ *  for each Volume.
  */
 static void write_findex(UAContext *ua, RBSR_FINDEX *fi, 
 	      int32_t FirstIndex, int32_t LastIndex, FILE *fd) 
 {
-   if (fi) {
+   for ( ; fi; fi=fi->next) {
       int32_t findex, findex2;
-      findex = fi->findex < FirstIndex ? FirstIndex : fi->findex;
-      findex2 = fi->findex2 > LastIndex ? LastIndex : fi->findex2;
-      if (findex == findex2) {
-         fprintf(fd, "FileIndex=%d\n", findex);
-      } else {
-         fprintf(fd, "FileIndex=%d-%d\n", findex, findex2);
+      if ((fi->findex >= FirstIndex && fi->findex <= LastIndex) ||
+	  (fi->findex2 >= FirstIndex && fi->findex2 <= LastIndex) ||
+	  (fi->findex < FirstIndex && fi->findex2 > LastIndex)) {
+	 findex = fi->findex < FirstIndex ? FirstIndex : fi->findex;
+	 findex2 = fi->findex2 > LastIndex ? LastIndex : fi->findex2;
+	 if (findex == findex2) {
+            fprintf(fd, "FileIndex=%d\n", findex);
+	 } else {
+            fprintf(fd, "FileIndex=%d-%d\n", findex, findex2);
+	 }
       }
-      write_findex(ua, fi->next, FirstIndex, LastIndex, fd);
    }
 }
 
@@ -101,13 +108,15 @@ static bool is_volume_selected(RBSR_FINDEX *fi,
 
 static void print_findex(UAContext *ua, RBSR_FINDEX *fi)
 {
-   if (fi) {
+   bsendmsg(ua, "fi=0x%x\n", (unsigned)fi);
+   for ( ; fi; fi=fi->next) {
       if (fi->findex == fi->findex2) {
          bsendmsg(ua, "FileIndex=%d\n", fi->findex);
+//       Dmsg1(000, "FileIndex=%d\n", fi->findex);
       } else {
          bsendmsg(ua, "FileIndex=%d-%d\n", fi->findex, fi->findex2);
+//       Dmsg2(000, "FileIndex=%d-%d\n", fi->findex, fi->findex2);
       }
-      print_findex(ua, fi->next);
    }
 }
 
@@ -210,6 +219,10 @@ int write_bsr_file(UAContext *ua, RBSR *bsr)
 static void write_bsr(UAContext *ua, RBSR *bsr, FILE *fd)
 {
    if (bsr) {
+      /*
+       * For a given volume, loop over all the JobMedia records.
+       *   VolCount is the number of JobMedia records.
+       */
       for (int i=0; i < bsr->VolCount; i++) {
 	 if (!is_volume_selected(bsr->fi, bsr->VolParams[i].FirstIndex,
 	      bsr->VolParams[i].LastIndex)) {
@@ -233,7 +246,7 @@ static void write_bsr(UAContext *ua, RBSR *bsr, FILE *fd)
    }
 }
 
-static void print_bsr(UAContext *ua, RBSR *bsr)
+void print_bsr(UAContext *ua, RBSR *bsr)
 {
    if (bsr) {
       for (int i=0; i < bsr->VolCount; i++) {
@@ -296,7 +309,7 @@ void add_findex(RBSR *bsr, uint32_t JobId, int32_t findex)
    }
 
    /* 
-    * At this point, bsr points to bsr containing JobId,
+    * At this point, bsr points to bsr containing this JobId,
     *  and we are sure that there is at least one fi record.
     */
    lfi = fi = bsr->fi;
@@ -318,6 +331,10 @@ void add_findex(RBSR *bsr, uint32_t JobId, int32_t findex)
       if (findex == (fi->findex2 + 1)) {  /* extend up */
 	 RBSR_FINDEX *nfi;     
 	 fi->findex2 = findex;
+	 /*
+	  * If the following record contains one higher, merge its
+	  *   file index by extending it up.
+	  */
 	 if (fi->next && ((findex+1) == fi->next->findex)) { 
 	    nfi = fi->next;
 	    fi->findex2 = nfi->findex2;

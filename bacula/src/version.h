@@ -1,12 +1,12 @@
 /* */
-#undef  VERSION
-#define VERSION "1.32a"
+#undef	VERSION
+#define VERSION "1.32b"
 #define VSTRING "1"
-#define BDATE   "04 Oct 2003"
-#define LSMDATE "04Oct03"
+#define BDATE   "08 Oct 2003"
+#define LSMDATE "08Oct03"
 
 /* Debug flags */
-#undef  DEBUG
+#undef	DEBUG
 #define DEBUG 1
 #define TRACEBACK 1
 #define SMCHECK     
