@@ -216,8 +216,7 @@ static int cancel_cmd(JCR *cjcr)
 	 if (jcr->file_bsock) {
 	    bnet_sig(jcr->file_bsock, BNET_TERMINATE);
 	 }
-         bnet_fsend(dir, _("3000 Job %s Status=%c marked to be cancelled.\n"), 
-	    jcr->Job, oldStatus);
+         bnet_fsend(dir, _("3000 Job %s marked to be cancelled.\n"), jcr->Job);
 	 free_jcr(jcr);
       }
    } else {

@@ -117,7 +117,7 @@ void run_job(JCR *jcr)
    bnet_fsend(dir, Job_start, jcr->Job); 
    jcr->start_time = time(NULL);
    jcr->run_time = jcr->start_time;
-   jcr->JobStatus = JS_Running;
+   set_jcr_job_status(jcr, JS_Running);
    dir_send_job_status(jcr);	      /* update director */
    for (quit=0; !quit;) {
       int stat;
@@ -136,7 +136,7 @@ void run_job(JCR *jcr)
 	 if (strncmp(fd_cmds[i].cmd, fd->msg, strlen(fd_cmds[i].cmd)) == 0) {
 	    found = 1;		     /* indicate command found */
 	    if (!fd_cmds[i].func(jcr)) {    /* do command */
-	       jcr->JobStatus = JS_ErrorTerminated;
+	       set_jcr_job_status(jcr, JS_ErrorTerminated);
 	       quit = 1;
 	    }
 	    break;
@@ -150,9 +150,7 @@ void run_job(JCR *jcr)
    }
    bnet_sig(fd, BNET_TERMINATE);      /* signal to FD job is done */
    jcr->end_time = time(NULL);
-   if (!job_cancelled(jcr)) {
-      jcr->JobStatus = JS_Terminated;
-   }
+   set_jcr_job_status(jcr, JS_Terminated);
    bnet_fsend(dir, Job_end, jcr->Job, jcr->JobStatus, jcr->JobFiles,
       edit_uint64(jcr->JobBytes, ec1));
 
@@ -237,9 +235,6 @@ static int append_close_session(JCR *jcr)
    if (!jcr->session_opened) {
       bnet_fsend(fd, NOT_opened);
       return 0;
-   }
-   if (jcr->JobStatus != JS_ErrorTerminated) {
-      jcr->JobStatus = JS_Terminated;
    }
    /* Send final statistics to File daemon */
    bnet_fsend(fd, OK_close, jcr->JobStatus);

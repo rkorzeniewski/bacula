@@ -272,12 +272,15 @@ static int wait_for_job_termination(JCR *jcr)
 
    set_jcr_job_status(jcr, JS_WaitFD);
    /* Wait for Client to terminate */
-   while ((n = bget_msg(fd, 0)) >= 0 && !job_cancelled(jcr)) {
+   while ((n = bget_msg(fd, 0)) >= 0) {
       if (sscanf(fd->msg, EndBackup, &jcr->FDJobStatus, &jcr->JobFiles,
 	  &jcr->ReadBytes, &jcr->JobBytes) == 4) {
 	 fd_ok = TRUE;
 	 set_jcr_job_status(jcr, jcr->FDJobStatus);
          Dmsg1(100, "FDStatus=%c\n", (char)jcr->JobStatus);
+      }
+      if (job_cancelled(jcr)) {
+	 break;
       }
    }
    if (is_bnet_error(fd)) {
@@ -321,18 +324,18 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
    if (!db_get_job_record(jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_WARNING, 0, _("Error getting job record for stats: %s"), 
 	 db_strerror(jcr->db));
-      TermCode = JS_ErrorTerminated;
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
    }
 
    strcpy(mr.VolumeName, jcr->VolumeName);
    if (!db_get_media_record(jcr->db, &mr)) {
       Jmsg(jcr, M_WARNING, 0, _("Error getting Media record for stats: %s"), 
 	 db_strerror(jcr->db));
-      TermCode = JS_ErrorTerminated;
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
    }
 
    /* Now update the bootstrap file if any */
-   if (TermCode == JS_Terminated && jcr->job->WriteBootstrap) {
+   if (jcr->JobStatus == JS_Terminated && jcr->job->WriteBootstrap) {
       FILE *fd;
       BPIPE *bpipe = NULL;
       int got_pipe = 0;
@@ -378,12 +381,12 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
       } else {
          Jmsg(jcr, M_ERROR, 0, _("Could not open WriteBootstrap file:\n"
               "%s: ERR=%s\n"), fname, strerror(errno));
-	 TermCode = JS_ErrorTerminated;
+	 set_jcr_job_status(jcr, JS_ErrorTerminated);
       }
    }
 
    msg_type = M_INFO;		      /* by default INFO message */
-   switch (TermCode) {
+   switch (jcr->JobStatus) {
       case JS_Terminated:
          term_msg = _("Backup OK");
 	 break;
@@ -405,7 +408,7 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
 	 break;
       default:
 	 term_msg = term_code;
-         sprintf(term_code, _("Inappropriate term code: %c\n"), TermCode);
+         sprintf(term_code, _("Inappropriate term code: %c\n"), jcr->JobStatus);
 	 break;
    }
    bstrftime(sdt, sizeof(sdt), jcr->jr.StartTime);
@@ -423,7 +426,7 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
        *  it is normal.  Or look at it the other way, only for a
        *  normal exit should we complain about this error.
        */
-      if (TermCode == JS_Terminated) {				      
+      if (jcr->JobStatus == JS_Terminated) {				    
          Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
       }
       jcr->VolumeName[0] = 0;	      /* none */

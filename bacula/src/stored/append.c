@@ -231,26 +231,30 @@ int do_append_data(JCR *jcr)
     */
    sm_check(__FILE__, __LINE__, False);
    Dmsg0(90, "Write_end_session_label()\n");
+
    /* Create Job status for end of session label */
-   if (!job_cancelled(jcr) && ok) {
-      set_jcr_job_status(jcr, JS_Terminated);
-   } else if (!ok) {
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
-   }
+   set_jcr_job_status(jcr, ok?JS_Terminated:JS_ErrorTerminated);
+
+   Dmsg1(200, "Write session label JobStatus=%d\n", jcr->JobStatus);
+
    if (!write_session_label(jcr, block, EOS_LABEL)) {
       Jmsg1(jcr, M_FATAL, 0, _("Error writting end session label. ERR=%s\n"),
 	  strerror_dev(dev));
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       ok = FALSE;
    }
    /* Write out final block of this session */
    if (!write_block_to_device(jcr, dev, block)) {
       Pmsg0(000, _("Set ok=FALSE after write_block_to_device.\n"));
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       ok = FALSE;
    }
 
+   Dmsg1(200, "release device JobStatus=%d\n", jcr->JobStatus);
    /* Release the device */
    if (!release_device(jcr, dev)) {
       Pmsg0(000, _("Error in release_device\n"));
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       ok = FALSE;
    }
 
@@ -260,6 +264,8 @@ int do_append_data(JCR *jcr)
       bnet_despool(jcr->dir_bsock);
       close_spool_file(jcr, jcr->dir_bsock);
    }
+
+   dir_send_job_status(jcr);	      /* update director */
 
    Dmsg0(90, "return from do_append_data()\n");
    return ok ? 1 : 0;

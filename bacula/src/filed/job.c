@@ -550,6 +550,9 @@ static int backup_cmd(JCR *jcr)
       set_jcr_job_status(jcr, JS_ErrorTerminated);
    } else {
       set_jcr_job_status(jcr, JS_Terminated);
+      if (jcr->JobStatus != JS_Terminated) {
+	 goto cleanup;		      /* bail out now */
+      }
       /* 
        * Expect to get response to append_data from Storage daemon
        */

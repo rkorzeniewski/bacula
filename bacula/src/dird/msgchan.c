@@ -246,10 +246,11 @@ static void *msg_thread(void *arg)
 
 void wait_for_storage_daemon_termination(JCR *jcr)
 {
+   int cancel_count = 0;
    /* Now wait for Storage daemon to terminate our message thread */
    P(jcr->mutex);
    set_jcr_job_status(jcr, JS_WaitSD);
-   while (!jcr->msg_thread_done && !job_cancelled(jcr)) {
+   while (!jcr->msg_thread_done) {
       struct timeval tv;
       struct timezone tz;
       struct timespec timeout;
@@ -259,6 +260,13 @@ void wait_for_storage_daemon_termination(JCR *jcr)
       timeout.tv_sec = tv.tv_sec + 10; /* wait 10 seconds */
       Dmsg0(300, "I'm waiting for message thread termination.\n");
       pthread_cond_timedwait(&jcr->term_wait, &jcr->mutex, &timeout);
+      if (job_cancelled(jcr)) {
+	 cancel_count++;
+      }
+      /* Give SD 30 seconds to clean up after cancel */
+      if (cancel_count == 3) {
+	 break;
+      }
    }
    V(jcr->mutex);
    set_jcr_job_status(jcr, jcr->SDJobStatus);
