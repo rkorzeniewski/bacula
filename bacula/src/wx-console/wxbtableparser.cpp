@@ -41,7 +41,7 @@
 /*
  *   wxbTableParser constructor
  */
-wxbTableParser::wxbTableParser() : wxbTable(5), wxbDataParser() {
+wxbTableParser::wxbTableParser() : wxbTable(5), wxbDataParser(true) {
    separatorNum = 0;
    tableHeader = wxbTableRow(5);
 }
@@ -61,20 +61,19 @@ wxbTableRow* wxbTableParser::GetHeader() {
 }
 
 /*
- *   Receives director information, forwarded by the wxbPanel which
- *  uses this parser.
+ *   Receives data to analyse.
  */
-void wxbTableParser::Print(wxString str, int status) {
+bool wxbTableParser::Analyse(wxString str, int status) {
    if ((status == CS_END) && (separatorNum > 0)) {
       separatorNum = 3;
    }
 
-   if (separatorNum == 3) return;
+   if (separatorNum == 3) return false;
 
    if (str.Length() > 4) {
       if ((str.GetChar(0) == '+') && (str.GetChar(str.Length()-2) == '+') && (str.GetChar(str.Length()-1) == '\n')) {
          separatorNum++;
-         return;
+         return false;
       }
 
       if ((str.GetChar(0) == '|') && (str.GetChar(str.Length()-2) == '|') && (str.GetChar(str.Length()-1) == '\n')) {
@@ -97,6 +96,7 @@ void wxbTableParser::Print(wxString str, int status) {
          }
       }
    }
+   return false;
 }
 
 /*

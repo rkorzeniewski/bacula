@@ -86,7 +86,12 @@ class wxbRestorePanel : public wxbPanel
       /* Run a command, and waits until result is fully received,
        * if keepresults is true, returns a valid pointer to a wxbDataTokenizer
        * containing the data. */
-      wxbDataTokenizer* WaitForEnd(wxString cmd, bool keepresults = false);
+      wxbDataTokenizer* WaitForEnd(wxString cmd, bool keepresults = false, bool linebyline = true);
+
+      /* Run a command, and waits until prompt result is fully received,
+       * if keepresults is true, returns a valid pointer to a wxbPromptParser
+       * containing the data. */
+      wxbPromptParser* WaitForPrompt(wxString cmd, bool keepresults = false);
 
       /* Run a dir command, and waits until result is fully received. */
       void UpdateTreeItem(wxTreeItemId item, bool updatelist);
@@ -172,7 +177,7 @@ class wxbRestorePanel : public wxbPanel
       wxStaticText* cfgBootstrap;
       wxTextCtrl*   cfgWhere;
       wxChoice*     cfgReplace;
-      wxStaticText* cfgFileset;
+      wxChoice*     cfgFileset;
       wxChoice*     cfgClient;
       wxStaticText* cfgStorage;
       wxTextCtrl*   cfgWhen;

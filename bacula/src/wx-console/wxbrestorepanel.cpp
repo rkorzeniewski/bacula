@@ -172,7 +172,8 @@ enum
    ConfigReplace = 9,
    ConfigWhen = 10,
    ConfigPriority = 11,
-   ConfigClient = 12
+   ConfigClient = 12,
+   ConfigFileset = 13
 };
 
 BEGIN_EVENT_TABLE(wxbRestorePanel, wxPanel)
@@ -192,6 +193,7 @@ BEGIN_EVENT_TABLE(wxbRestorePanel, wxPanel)
    EVT_TEXT(ConfigPriority, wxbRestorePanel::OnConfigUpdated)
    EVT_CHOICE(ConfigReplace, wxbRestorePanel::OnConfigUpdated)
    EVT_CHOICE(ConfigClient, wxbRestorePanel::OnConfigUpdated)
+   EVT_CHOICE(ConfigFileset, wxbRestorePanel::OnConfigUpdated)
    
    EVT_BUTTON(ConfigOk, wxbRestorePanel::OnConfigOk)
    EVT_BUTTON(ConfigApply, wxbRestorePanel::OnConfigApply)
@@ -292,7 +294,7 @@ wxbRestorePanel::wxbRestorePanel(wxWindow* parent): wxbPanel(parent) {
    cfgWhere = new wxTextCtrl(restorePanel, ConfigWhere, "", wxDefaultPosition, wxDefaultSize);
    wxString erlist[] = {"always", "if newer", "if older", "never"};
    cfgReplace = new wxChoice(restorePanel, ConfigReplace, wxDefaultPosition, wxDefaultSize, 4, erlist);
-   cfgFileset = new wxStaticText(restorePanel, -1, "  ", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+   cfgFileset = new wxChoice(restorePanel, ConfigFileset, wxDefaultPosition, wxDefaultSize, 0, elist);
    cfgClient = new wxChoice(restorePanel, ConfigClient, wxDefaultPosition, wxDefaultSize, 0, elist);
    cfgStorage = new wxStaticText(restorePanel, -1, "  ", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
    cfgWhen = new wxTextCtrl(restorePanel, ConfigWhen, "0000-00-00 00:00:00", wxDefaultPosition, wxDefaultSize);
@@ -307,7 +309,7 @@ wxbRestorePanel::wxbRestorePanel(wxWindow* parent): wxbPanel(parent) {
    cfgSizer->Add(new wxStaticText(restorePanel, -1, "Replace: ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND | wxALIGN_CENTER_HORIZONTAL);
    cfgSizer->Add(cfgReplace, 1, wxEXPAND);
    cfgSizer->Add(new wxStaticText(restorePanel, -1, "Fileset: ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND | wxALIGN_CENTER_HORIZONTAL);
-   cfgSizer->Add(cfgFileset, 1, wxEXPAND | wxADJUST_MINSIZE);
+   cfgSizer->Add(cfgFileset, 1, wxEXPAND);
    cfgSizer->Add(new wxStaticText(restorePanel, -1, "Client: ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND | wxALIGN_CENTER_HORIZONTAL);
    cfgSizer->Add(cfgClient, 1, wxEXPAND);
    cfgSizer->Add(new wxStaticText(restorePanel, -1, "Storage: ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND | wxALIGN_CENTER_HORIZONTAL);
@@ -397,17 +399,30 @@ void wxbRestorePanel::EnablePanel(bool enable) {
 /* The main button has been clicked */
 void wxbRestorePanel::CmdStart() {
    if (status == activable) {
-      wxbTableParser* tableparser = CreateAndWaitForParser("list clients\n");
+      wxbDataTokenizer* dt = WaitForEnd(".clients\n", true, false);
+      wxString str;
 
       clientChoice->Clear();
-      for (unsigned int i = 0; i < tableparser->size(); i++) {
-         long* j = new long;
-         (*tableparser)[i][0].ToLong(j);
-         clientChoice->Append((*tableparser)[i][1], (void*)j);
-         cfgClient->Append((*tableparser)[i][1]);
+      cfgClient->Clear();
+      for (unsigned int i = 0; i < dt->GetCount(); i++) {
+         str = (*dt)[i];
+         str.RemoveLast();
+         clientChoice->Append(str);
+         cfgClient->Append(str);
       }
       
-      delete tableparser;
+      delete dt;
+      
+      dt = WaitForEnd(".filesets\n", true, false);
+
+      cfgFileset->Clear();
+      for (unsigned int i = 0; i < dt->GetCount(); i++) {
+         str = (*dt)[i];
+         str.RemoveLast();
+         cfgFileset->Append(str);
+      }
+      
+      delete dt;
 
       SetStatus(entered);
    }
@@ -416,10 +431,16 @@ void wxbRestorePanel::CmdStart() {
          wxbMainFrame::GetInstance()->SetStatusText("Please select a client.");
          return;
       }
-      WaitForEnd("restore\n");
-      WaitForEnd("6\n");
-      WaitForEnd(wxString() << jobChoice->GetStringSelection() << "\n");
-      WaitForEnd(wxString() << *((long*)clientChoice->GetClientData(clientChoice->GetSelection())) << "\n");
+      WaitForPrompt("restore\n");
+      WaitForPrompt("6\n");
+      wxbPromptParser *pp = WaitForPrompt(wxString() << jobChoice->GetStringSelection() << "\n", true);
+      int client = pp->getChoices()->Index(clientChoice->GetStringSelection());
+      if (client == wxNOT_FOUND) {
+         wxbMainFrame::GetInstance()->SetStatusText("Failed to find the selected client.");
+         return;
+      }
+      delete pp;
+      WaitForEnd(wxString() << client << "\n");
       WaitForEnd("unmark *\n");
       SetStatus(choosing);
       wxTreeItemId root = tree->AddRoot(clientChoice->GetStringSelection(), -1, -1, new wxbTreeItemData("/", clientChoice->GetStringSelection(), 0));
@@ -437,25 +458,11 @@ void wxbRestorePanel::CmdStart() {
       
       totfilemessages = 0;
       wxbDataTokenizer* dt;
-      
-      /*dt = WaitForEnd("estimate\n", true);
-      
-      int j, k;
-          
-      for (unsigned int i = 0; i < dt->GetCount(); i++) {*/
-         /* 15847 total files; 1 marked to be restored; 1,034 bytes. */
-/*         if ((j = (*dt)[i].Find(" marked to be restored;")) > -1) {
-            k = (*dt)[i].Find("; ");
-            (*dt)[i].Mid(k+2, j).ToLong(&totfilemessages);
-            break;
-         }
-      }
-      
-      delete dt;*/
-      
+           
       int j;
       
-      dt = WaitForEnd("done\n", true);
+      dt = new wxbDataTokenizer(true);
+      WaitForPrompt("done\n");
 
       for (unsigned int i = 0; i < dt->GetCount(); i++) {
          if ((j = (*dt)[i].Find(" files selected to be restored.")) > -1) {
@@ -577,8 +584,8 @@ void wxbRestorePanel::CmdStart() {
 /*   1: Level (not appropriate)
  *   2: Storage (automatic ?)
  *   3: Job (no)
- *   4: FileSet (no)
- *   5: Client (no)
+ *   4: FileSet (yes)
+ *   5: Client (yes)
  *   6: When (yes : "Please enter desired start time as YYYY-MM-DD HH:MM:SS (return for now):")
  *   7: Priority (yes : "Enter new Priority: (positive integer)")
  *   8: Bootstrap (?)
@@ -594,55 +601,68 @@ void wxbRestorePanel::CmdConfigApply() {
    EnableConfig(false);
    
    wxbDataTokenizer* dt = NULL;
+   
    while (cfgUpdated > 0) {
       wxString def; //String to send if can't use our data
       if ((cfgUpdated >> ConfigWhere) & 1) {
-         WaitForEnd("mod\n"); /* TODO: check results */
-         WaitForEnd("9\n");
-         dt = WaitForEnd(cfgWhere->GetValue() + "\n", true);
+         WaitForPrompt("mod\n"); /* TODO: check results */
+         WaitForPrompt("9\n");
+         dt = new wxbDataTokenizer(true);
+         WaitForPrompt(cfgWhere->GetValue() + "\n");
          def = "/tmp";
          cfgUpdated = cfgUpdated & (~(1 << ConfigWhere));
       }
       else if ((cfgUpdated >> ConfigReplace) & 1) {
-         WaitForEnd("mod\n"); /* TODO: check results */
-         WaitForEnd("10\n");
-         dt = WaitForEnd(wxString() << (cfgReplace->GetSelection()+1) << "\n", true);
+         WaitForPrompt("mod\n"); /* TODO: check results */
+         WaitForPrompt("10\n");
+         dt = new wxbDataTokenizer(true);
+         WaitForPrompt(wxString() << (cfgReplace->GetSelection()+1) << "\n");
          def = "1";
          cfgUpdated = cfgUpdated & (~(1 << ConfigReplace));
       }
       else if ((cfgUpdated >> ConfigWhen) & 1) {
-         WaitForEnd("mod\n"); /* TODO: check results */
-         WaitForEnd("6\n");
-         dt = WaitForEnd(cfgWhen->GetValue() + "\n", true);
+         WaitForPrompt("mod\n"); /* TODO: check results */
+         WaitForPrompt("6\n");
+         dt = new wxbDataTokenizer(true);
+         WaitForPrompt(cfgWhen->GetValue() + "\n");
          def = "";
          cfgUpdated = cfgUpdated & (~(1 << ConfigWhen));
       }
       else if ((cfgUpdated >> ConfigPriority) & 1) {
-         WaitForEnd("mod\n"); /* TODO: check results */
-         WaitForEnd("7\n");
-         dt = WaitForEnd(cfgPriority->GetValue() + "\n", true);
+         WaitForPrompt("mod\n"); /* TODO: check results */
+         WaitForPrompt("7\n");
+         dt = new wxbDataTokenizer(true);
+         WaitForPrompt(cfgPriority->GetValue() + "\n");
          def = "10";
          cfgUpdated = cfgUpdated & (~(1 << ConfigPriority));
       }
       else if ((cfgUpdated >> ConfigClient) & 1) {
-         WaitForEnd("mod\n"); /* TODO: check results */
-         dt = WaitForEnd("5\n", true);
-         wxString sel = cfgClient->GetStringSelection();
-         wxString sint = "1";
-         if (sel != "") {
-            // "The defined Client resources are:\n    1: velours-fd\n    2: tom-fd\nSelect Client (File daemon) resource (1-2):"
-            for (unsigned int i = 0; i < dt->GetCount(); i++) {
-               int j;
-               if ((j = (*dt)[i].Find(": " + sel + "\n")) > -1) {
-                  sint = (*dt)[i].Mid(0, j).Trim().Trim(false);
-                  break;
-               }
-            }
+         WaitForPrompt("mod\n"); /* TODO: check results */
+         wxbPromptParser *pp = WaitForPrompt("5\n", true);
+         int client = pp->getChoices()->Index(cfgClient->GetStringSelection());
+         if (client == wxNOT_FOUND) {
+            wxbMainFrame::GetInstance()->SetStatusText("Failed to find the selected client.");
+            client = 1;
          }
-         delete dt;
-         dt = WaitForEnd(sint + "\n", true);
+         delete pp;
+         dt = new wxbDataTokenizer(true);
+         WaitForPrompt(wxString() << client << "\n");
          def = "1";
          cfgUpdated = cfgUpdated & (~(1 << ConfigClient));
+      }
+      else if ((cfgUpdated >> ConfigFileset) & 1) {
+         WaitForPrompt("mod\n"); /* TODO: check results */
+         wxbPromptParser *pp = WaitForPrompt("4\n", true);
+         int fileset = pp->getChoices()->Index(cfgFileset->GetStringSelection());
+         if (fileset == wxNOT_FOUND) {
+            wxbMainFrame::GetInstance()->SetStatusText("Failed to find the selected fileset.");
+            fileset = 1;
+         }
+         delete pp;
+         dt = new wxbDataTokenizer(true);
+         WaitForPrompt(wxString() << fileset << "\n");
+         def = "1";
+         cfgUpdated = cfgUpdated & (~(1 << ConfigFileset));
       }
       else {
          cfgUpdated = 0;
@@ -680,8 +700,8 @@ void wxbRestorePanel::CmdConfigCancel() {
 void wxbRestorePanel::CmdListJobs() {
    if (status == entered) {
       jobChoice->Clear();
-      WaitForEnd("query\n");
-      WaitForEnd("6\n");
+      WaitForPrompt("query\n");
+      WaitForPrompt("6\n");
       wxbTableParser* tableparser = CreateAndWaitForParser(clientChoice->GetString(clientChoice->GetSelection()) + "\n");
 
       for (int i = tableparser->size()-1; i > -1; i--) {
@@ -818,9 +838,33 @@ wxbTableParser* wxbRestorePanel::CreateAndWaitForParser(wxString cmd) {
    return tableParser;
 }
 
+/* Run a command, and waits until prompt result is fully received,
+ * if keepresults is true, returns a valid pointer to a wxbPromptParser
+ * containing the data. */
+wxbPromptParser* wxbRestorePanel::WaitForPrompt(wxString cmd, bool keepresults) {
+   wxbPromptParser* promptParser = new wxbPromptParser();
+   
+   wxbMainFrame::GetInstance()->Send(cmd);
+    
+   //time_t base = wxDateTime::Now().GetTicks();
+   while (!promptParser->hasFinished()) {
+      //innerThread->Yield();
+      wxTheApp->Yield();
+      //if (base+15 < wxDateTime::Now().GetTicks()) break;
+   }
+     
+   if (keepresults) {
+      return promptParser;
+   }
+   else {
+      delete promptParser;
+      return NULL;
+   }  
+}
+
 /* Run a command, and waits until result is fully received. */
-wxbDataTokenizer* wxbRestorePanel::WaitForEnd(wxString cmd, bool keepresults) {
-   wxbDataTokenizer* datatokenizer = new wxbDataTokenizer();
+wxbDataTokenizer* wxbRestorePanel::WaitForEnd(wxString cmd, bool keepresults, bool linebyline) {
+   wxbDataTokenizer* datatokenizer = new wxbDataTokenizer(linebyline);
 
    wxbMainFrame::GetInstance()->Send(cmd);
    
@@ -1170,7 +1214,18 @@ bool wxbRestorePanel::UpdateConfig(wxbDataTokenizer* dt) {
    else cfgReplace->SetSelection(0);
    
    if ((k = (*dt)[++i].Find("FileSet:")) != 0) return false;
-   cfgFileset->SetLabel((*dt)[i].Mid(10).Trim(false).RemoveLast());
+   str = (*dt)[i].Mid(10).Trim(false).RemoveLast();
+   for (k = 0; k < cfgFileset->GetCount(); k++) {
+      if (str == cfgFileset->GetString(k)) {
+         cfgFileset->SetSelection(k);
+         break;
+      }
+   }
+   if (k == cfgFileset->GetCount()) { // Should never happen
+      cfgFileset->Append(str);
+      cfgFileset->SetSelection(k+1);
+   }
+   
    if ((k = (*dt)[++i].Find("Client:")) != 0) return false;
    str = (*dt)[i].Mid(10).Trim(false).RemoveLast();
    for (k = 0; k < cfgClient->GetCount(); k++) {
@@ -1302,6 +1357,7 @@ void wxbRestorePanel::EnableConfig(bool enable) {
    cfgWhen->Enable(enable);
    cfgPriority->Enable(enable);
    cfgClient->Enable(enable);
+   cfgFileset->Enable(enable);
 }
 
 /*----------------------------------------------------------------------------
@@ -1314,8 +1370,10 @@ void wxbRestorePanel::OnClientChoiceChanged(wxCommandEvent& event) {
    }
    working = true;
    clientChoice->Enable(false);
+   jobChoice->Enable(false);
    CmdListJobs();
    clientChoice->Enable(true);
+   jobChoice->Enable(true);
    jobChoice->Refresh();
    working = false;
 }

@@ -255,6 +255,8 @@ wxbMainFrame::wxbMainFrame(const wxString& title, const wxPoint& pos, const wxSi
    sizer->SetSizeHints( this );
    this->SetSize(size);
    EnableConsole(false);
+   
+   nlines = 0;
 }
 
 /*
@@ -264,6 +266,9 @@ void wxbMainFrame::StartConsoleThread()
 {
    if (ct != NULL) {
       ct->Delete();
+   }
+   else {
+      promptparser = new wxbPromptParser();      
    }
    ct = new console_thread();
    ct->Create();
@@ -332,20 +337,83 @@ void wxbMainFrame::Print(wxString str, int status)
    }
       
    // CS_DEBUG is often sent by panels, 
-   // and resend it to them would sometimes cause an infinite loop
+   // and resend it to them would sometimes cause infinite loops
+   
+   /* One promptcaught is normal, so we must have two true Print values to be
+    * sure that the prompt has effectively been caught.
+    */
+   int promptcaught = -1;
+   
    if (status != CS_DEBUG) {
       for (unsigned int i = 0; i < parsers.GetCount(); i++) {
-         parsers[i]->Print(str, status);
-       }
+         promptcaught += parsers[i]->Print(str, status) ? 1 : 0;
+      }
+         
+      if ((status == CS_PROMPT) && (promptcaught < 1) && (promptparser->isPrompt())) {
+         Print("Unexpected question has been received.\n", CS_DEBUG);
+//         Print(wxString("(") << promptparser->getIntroString() << "/-/" << promptparser->getQuestionString() << ")\n", CS_DEBUG);
+         
+         wxString message;
+         if (promptparser->getIntroString() != "") {
+            message << promptparser->getIntroString() << "\n";
+         }
+         message << promptparser->getQuestionString();
+         
+         if (promptparser->getChoices()) {
+            wxString *choices = new wxString[promptparser->getChoices()->GetCount()];
+            int *numbers = new int[promptparser->getChoices()->GetCount()];
+            int n = 0;
+            
+            for (unsigned int i = 0; i < promptparser->getChoices()->GetCount(); i++) {
+               if ((*promptparser->getChoices())[i] != "") {
+                  choices[n] = (*promptparser->getChoices())[i];
+                  numbers[n] = i;
+                  n++;
+               }
+            }
+            
+            int res = ::wxGetSingleChoiceIndex(message,
+               "wx-console: unexpected director's question.", n, choices, this);
+            if (res == -1) {
+               Send("\n");
+            }
+            else {
+               Send(wxString() << numbers[res] << "\n");
+            }
+         }
+         else {
+            Send(::wxGetTextFromUser(message,
+               "wx-console: unexpected director's question.", "", this) + "\n");
+         }
+      }
    }
-
+      
    if (status == CS_END) {
       str = "#";
    }
 
-   consoleCtrl->SetDefaultStyle(wxTextAttr(*wxBLACK));
+   if (status == CS_DEBUG) {
+      consoleCtrl->SetDefaultStyle(wxTextAttr(wxColour(0, 128, 0)));
+   }
+   else {
+      consoleCtrl->SetDefaultStyle(wxTextAttr(*wxBLACK));
+   }
    (*consoleCtrl) << str;
-   consoleCtrl->SetInsertionPointEnd();
+   if (status == CS_PROMPT) {
+      (*consoleCtrl) << "<P>";
+   }
+   /*if (status != CS_DEBUG) {
+      (*consoleCtrl) << "@";
+   }*/
+   //consoleCtrl->SetInsertionPointEnd();
+   
+/*   if ((consoleCtrl->GetNumberOfLines()-1) > nlines) {
+      nlines = consoleCtrl->GetNumberOfLines()-1;
+   }
+   
+   if (status == CS_END) {
+      consoleCtrl->ShowPosition(nlines);
+   }*/
 }
 
 /*
@@ -357,6 +425,12 @@ void wxbMainFrame::Send(wxString str)
    typeCtrl->SetValue("");
    consoleCtrl->SetDefaultStyle(wxTextAttr(*wxRED));
    (*consoleCtrl) << str;
+   
+/*   if ((consoleCtrl->GetNumberOfLines()-1) > nlines) {
+      nlines = consoleCtrl->GetNumberOfLines()-1;
+   }
+   
+   consoleCtrl->ShowPosition(nlines);*/
 }
 
 /* Enable panels */
@@ -405,7 +479,7 @@ void firePrintEvent(wxString str, int status)
    wxbMainFrame::GetInstance()->AddPendingEvent(evt);
 }
 
-wxString csBuffer; /* Temporary buffer for receiving data from console thread */
+//wxString csBuffer; /* Temporary buffer for receiving data from console thread */
 
 /*
  *  Called by console thread, this function forwards data line by line and end
@@ -414,47 +488,9 @@ wxString csBuffer; /* Temporary buffer for receiving data from console thread */
 void csprint(char* str, int status)
 {
    if (str != 0) {
-      int len = strlen(str);
-      bool allnewline = true;
-      for (int i = 0; i < len; i++) {
-      if (!(allnewline = (str[i] == '\n')))
-      break;
-      }
-
-      if (allnewline) {
-         firePrintEvent(csBuffer << "\n", CS_DATA);
-         csBuffer = "";
-         for (int i = 1; i < len; i++) {
-            firePrintEvent("\n", status);
-         }
-      }
-      else {
-         wxStringTokenizer tkz(str, "\n", 
-            wxTOKEN_RET_DELIMS | wxTOKEN_RET_EMPTY | wxTOKEN_RET_EMPTY_ALL);
-
-         while ( tkz.HasMoreTokens() ) {
-            csBuffer << tkz.GetNextToken();
-            if (csBuffer.Length() != 0) {
-               if ((csBuffer.GetChar(csBuffer.Length()-1) == '\n') ||
-                  (csBuffer.GetChar(csBuffer.Length()-1) == '\r')) {
-                  firePrintEvent(csBuffer, status);
-                  csBuffer = "";
-               }
-            }
-         }
-      }
-
-      if (csBuffer == "$ ") { // Restore console
-         firePrintEvent(csBuffer, status);
-         csBuffer = "";
-      }
+      firePrintEvent(wxString(str), status);
    }
-
-   if (status != CS_DATA) {
-      if (csBuffer.Length() != 0) {
-         firePrintEvent(csBuffer, CS_DATA);
-      }
-      csBuffer = "";
+   else {
       firePrintEvent("", status);
    }
 }

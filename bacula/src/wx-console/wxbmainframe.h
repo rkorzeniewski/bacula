@@ -137,7 +137,11 @@ private:
 
    console_thread* ct; /* thread interacting with the director */
 
+   wxbPromptParser* promptparser; /* prompt parser catching uncatched questions */
+
    static wxbMainFrame *frame; /* this */
+   
+   int nlines; /* number of lines in the console */
 
    // any class wishing to process wxWindows events must use this macro
    DECLARE_EVENT_TABLE()

@@ -39,16 +39,31 @@
 class wxbDataParser
 {
    public:
-      /* Creates a new wxbDataParser, and register it in wxbMainFrame */
-      wxbDataParser();
+      /* Creates a new wxbDataParser, and register it in wxbMainFrame
+       * lineanalysis : indicate if date is to be analysed line by line (true)
+       * or packet by packet (false).
+       */
+      wxbDataParser(bool lineanalysis);
 
       /* Destroy a wxbDataParser, and unregister it in wxbMainFrame */
       virtual ~wxbDataParser();
 
       /*
-       *   Receives director information, forwarded by wxbMainFrame.
+       * Receives director information, forwarded by wxbMainFrame, and sends it
+       * line by line to the virtual function Analyse.
+       * 
+       * Returns true if status == CS_PROMPT and the message has been parsed
+       * correctly.
        */
-      virtual void Print(wxString str, int status) = 0;
+      bool Print(wxString str, int status);
+
+      /*
+       *   Receives data to analyse.
+       */
+      virtual bool Analyse(wxString str, int status) = 0;
+   private:
+      bool lineanalysis;
+      wxString buffer;
 };
 
 /*
@@ -79,15 +94,15 @@ class wxbDataTokenizer: public wxbDataParser, public wxArrayString
 {
    public:
       /* Creates a new wxbDataTokenizer */
-      wxbDataTokenizer();
+      wxbDataTokenizer(bool linebyline);
 
       /* Destroy a wxbDataTokenizer */
       virtual ~wxbDataTokenizer();
 
       /*
-       *   Receives director information, forwarded by wxbMainFrame.
+       *   Receives data to analyse.
        */
-      virtual void Print(wxString str, int status);
+      virtual bool Analyse(wxString str, int status);
       
       /* Returns true if the last signal received was an end signal, 
        * indicating that no more data is available */
@@ -95,7 +110,51 @@ class wxbDataTokenizer: public wxbDataParser, public wxArrayString
       
    private:
       bool finished;
-      wxString buffer;
+};
+
+/*
+ *  Receives director information, and check if the last messages are questions.
+ */
+class wxbPromptParser: public wxbDataParser
+{
+   public:
+      /* Creates a new wxbDataTokenizer */
+      wxbPromptParser();
+
+      /* Destroy a wxbDataTokenizer */
+      virtual ~wxbPromptParser();
+
+      /*
+       *   Receives data to analyse.
+       */
+      virtual bool Analyse(wxString str, int status);
+      
+      /* Returns true if the last signal received was an prompt signal, 
+       * or an end signal */
+      bool hasFinished();
+      
+      /* Returns true if the last message received is a prompt message */
+      bool isPrompt();
+
+      /* Returns multiple choice question's introduction */
+      wxString getIntroString();
+
+      /* Returns question string */
+      wxString getQuestionString();
+      
+      /* Return a wxArrayString containing the indexed choices we have
+       * to answer the question, or NULL if this question is not a multiple
+       * choice one. */
+      wxArrayString* getChoices();
+      
+      
+      
+   private:
+      bool finished;
+      bool prompt;
+      wxString introStr;
+      wxArrayString* choices;
+      wxString questionStr;
 };
 
 #endif // WXBPANEL_H

@@ -67,10 +67,9 @@ class wxbTableParser: public wxbTable, public wxbDataParser
       virtual ~wxbTableParser();
 
       /*
-       *   Receives director information, forwarded by the wxbPanel which
-       *  uses this parser.
+       *   Receives data to analyse.
        */
-      virtual void Print(wxString str, int status);
+      virtual bool Analyse(wxString str, int status);
 
       /*
        *   Return true table parsing has finished.

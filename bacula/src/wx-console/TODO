@@ -7,36 +7,47 @@ console_thread : Show a nice message when config file is not found.
 
 wxbRestorePanel : Add buttons to mark/unmark directories/files.
 
-wxbRestorePanel : Add a button to force the refreshing of the whole tree
+wxbRestorePanel : Add a button to force to refresh the whole tree
 
 wxbRestorePanel : Add a timeout when waiting for commands results
 
-wxbRestorePanel : Check more carefully which job we just have run.
+wxbMainFrame : Automatically scroll to the last lines of console control.
 
-wxbRestorePanel : Check if commands run successfully (cd, mark, mods...).
+wxbRestorePanel : Check if commands ran successfully (cd, mark, mods...).
 
 GTK : Improve look
 
-general : Don't concatenate lines in csprint, but in wxbDataTokenizer
-         (necessary for dot commands)
-         
-general : use dot commands
-
-wxbRestorePanel : Allow configure to change fileset (need dot)
-
-general : Allow the user to be prompted when an unexpected "question"
-  is asked ("prompt" data message).
+wxbRestorePanel : Use ".default job=RestoreFiles" to get defaults parameters
+	when changing a restore parameter fails.
 
 console_thread : Allow the user to choose his config file.
+
+wxbRestorePanel : Implement BNET_BREAK to break current command
+
+general : Implement reconnecting
+
+general : Allow the user to quit however the state is (kill thread if necessary)
+
+wxbDataParser : Add a boolean in the constructor to avoid storing data is 
+    will not be used.
 
 wxblistctrl/wxbtreectrl : Find why events are not forwarded correctly 
   to parent' parent, and correct bad actual implementation.
    (remove wxbTreeListPanel)
-   
-general : make a good documentation with snapshots
+
+general : find out why I had to modify string.cpp and string.h
+  + In include/wx/string.h, replace line 195 by
+      #if defined(__VISUALC__) // && defined(_MT) && !defined(_DLL)
+  + In src/common/string.cpp, replace line 167 by
+      #if defined(__VISUALC__) // && defined(_MT) && !defined(_DLL)
 
 mingw : correct findlib stat blocks and block size
         (Note : nothing to do with wx-console)
+
+wxbRestorePanel : Check more carefully which job we just have run
+   (needs director modification).
+
+general : make a good documentation with snapshots
 
 BUGS
 ----

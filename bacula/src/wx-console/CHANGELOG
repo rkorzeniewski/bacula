@@ -1,3 +1,14 @@
+24-04-2003 :
+ - wxbMainFrame : the user is now prompted when an 
+      unexpected "question" is asked).
+ - wxbRestorePanel : configure is allowed to change fileset
+ - wxbRestorePanel : using dot commands (.clients, .filesets)
+ - console_thread : implemented prompt and heartbeat messages
+
+23-04-2003 :
+ - general : Don't concatenate lines in csprint, but in wxbDataParser
+         (necessary for dot commands)
+
 22-04-2003 :
  - wxbRestorePanel : improved restore appearance
  - wxbRestorePanel : configure is allowed to change client
