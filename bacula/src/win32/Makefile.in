@@ -26,7 +26,7 @@ first_rule: all
 
 dummy:
 
-all:  bacula bconsole wx-console installer
+all:  bacula bconsole wx-console pebuilder installer
 
 
 bacula: dummy
@@ -37,6 +37,9 @@ bconsole: dummy
 	
 wx-console: dummy
 	(cd wx-console; env MAKEFLAGS= ${NMAKE} CFG="wx-console - Win32 Release" /f wx-console.mak)
+
+pebuilder: bacula bconsole wx-console
+	(cd pebuilder; make)
 
 #
 # Quickie debug installation
@@ -67,7 +70,9 @@ clean:
 	(cd baculafd; make clean)
 	(cd console; make clean)
 	(cd wx-console; make clean)
+	(cd pebuilder; make clean)
 
 distclean: clean
 	rm -rf baculafd/Release baculafd/Debug
 	rm -f winbacula-*.exe
+	rm -f winbacula-bartpe-*.zip
