@@ -6,6 +6,7 @@ Documentation to do: (a little bit at a time)
 - Make sure restore options are documented
 - Document query file format.
 - Document static linking
+- Document nofollow flag
 
 Testing to do: (painful)
 - that console command line options work
@@ -16,9 +17,11 @@ For 1.28 release:
 - Figure out how to allow multiple simultaneous file Volumes on
   a single device.
 - Why are save/restore of device different sizes (sparse?)
+- Backup of raw partitions
 
 For 1.29 release:
-- Backup of raw partitions
+- Solaris -I on tar for include list
+- Add whereln to where or not where absolute links
 - Figure out some way to automatically backup all local partitions
 - Enable avoid backing up archive device (findlib/find_one.c:128)
 - Implement FileOptions (see end of this document)
