@@ -45,9 +45,9 @@ extern void print_bsr(UAContext *ua, RBSR *bsr);
 extern char *uar_list_jobs,	 *uar_file,	   *uar_sel_files;
 extern char *uar_del_temp,	 *uar_del_temp1,   *uar_create_temp;
 extern char *uar_create_temp1,	 *uar_last_full,   *uar_full;
-extern char *uar_inc_dec,	 *uar_list_temp,   *uar_sel_jobid_temp;
+extern char *uar_inc,		 *uar_list_temp,   *uar_sel_jobid_temp;
 extern char *uar_sel_all_temp1,  *uar_sel_fileset, *uar_mediatype;
-extern char *uar_jobid_fileindex;
+extern char *uar_jobid_fileindex, *uar_dec,	   *uar_sel_all_temp;
 
 
 struct NAME_LIST {
@@ -839,8 +839,24 @@ static int select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *date
       goto bail_out;
    }
 
-   /* Now find all Incremental/Decremental Jobs after Full save */
-   Mmsg(&rx->query, uar_inc_dec, edit_uint64(rx->JobTDate, ed1), date,
+   /* Now find most recent Decremental Job after Full save, if any */
+   Mmsg(&rx->query, uar_dec, edit_uint64(rx->JobTDate, ed1), date,
+	cr.ClientId, fsr.FileSet, pool_select);
+   if (!db_sql_query(ua->db, rx->query, NULL, NULL)) {
+      bsendmsg(ua, "%s\n", db_strerror(ua->db));
+   }
+   /* Now update JobTDate to lock onto Decremental, if any */
+   rx->JobTDate = 0;
+   if (!db_sql_query(ua->db, uar_sel_all_temp, last_full_handler, (void *)rx)) {
+      bsendmsg(ua, "%s\n", db_strerror(ua->db));
+   }
+   if (rx->JobTDate == 0) {
+      bsendmsg(ua, _("No Full backup before %s found.\n"), date);
+      goto bail_out;
+   }
+
+   /* Now find all Incremental Jobs after Full/Dec save */
+   Mmsg(&rx->query, uar_inc, edit_uint64(rx->JobTDate, ed1), date,
 	cr.ClientId, fsr.FileSet, pool_select);
    if (!db_sql_query(ua->db, rx->query, NULL, NULL)) {
       bsendmsg(ua, "%s\n", db_strerror(ua->db));
