@@ -121,7 +121,8 @@ Bacula source code has been released under the GPL version 2 license.
 
 Summary: Bacula - The Network Backup Solution
 Group: System Environment/Daemons
-Provides: bacula-dir, bacula-sd, bacula-fd
+Provides: bacula-dir, bacula-sd, bacula-fd, bacula-server
+Conflicts: bacula-client, bacula-gconsole
 Requires: readline, perl, atk, ncurses, pango, libstdc++
 Requires: libxml2, zlib
 %if %{rh7}
@@ -207,14 +208,18 @@ Summary: Bacula - The Network Backup Solution
 Group: System Environment/Daemons
 Provides: bacula-fd
 Requires: readline, perl, libstdc++, zlib
+
 %if %{rh7}
-Requires: gtk+ >= 1.2
-Requires: gnome-libs >= 1.4
 Requires: glibc >= 2.2
-%else
-Requires: gtk2 >= 2.0
-Requires: libgnomeui >= 2.0
+Requires: libtermcap
+%endif
+%if %{su9}
 Requires: glibc >= 2.3
+Requires: termcap
+%endif
+%if ! %{rh7} && ! %{su9}
+Requires: glibc >= 2.3
+Requires: libtermcap
 %endif
 
 %description client
@@ -228,7 +233,8 @@ easy to use and efficient, while offering many advanced storage management
 features that make it easy to find and recover lost or damaged files. 
 Bacula source code has been released under the GPL version 2 license.
 
-This is the File daemon (Client) only package.
+This is the File daemon (Client) only package. It includes the command line 
+console program.
 
 %package rescue
 
@@ -259,7 +265,6 @@ your platform installed and configured before installing this package.
 
 Summary: Bacula - The Network Backup Solution
 Group: System Environment/Daemons
-Requires: coreutils, util-linux, libc5, bacula-fd
 
 %description updatedb
 Bacula - It comes by night and sucks the vital essence from your computers.
@@ -274,6 +279,58 @@ Bacula source code has been released under the GPL version 2 license.
 
 This package installs scripts for updating older versions of the bacula
 database.
+
+%package gconsole
+Summary: Bacula - The Network Backup Solution
+Group: System Environment/Daemons
+Requires: readline, libstdc++, zlib, pango, bacula-client
+Conflicts: bacula-server
+
+%if %{rh7}
+Requires: gtk+ >= 1.2
+Requires: gnome-libs >= 1.4
+Requires: glibc >= 2.2
+Requires: ORBit
+Requires: bonobo
+Requires: GConf
+%endif
+%if %{su9}
+Requires: gtk2 >= 2.0
+Requires: libgnomeui >= 2.0
+Requires: glibc >= 2.3
+Requires: ORBit2
+Requires: libart_lgpl >= 2.0
+Requires: libbonobo >= 2.0
+Requires: libbonoboui >= 2.0
+Requires: bonobo-activation
+Requires: gconf2
+Requires: linc
+%endif
+%if ! %{rh7} && ! %{su9}
+Requires: gtk2 >= 2.0
+Requires: libgnomeui >= 2.0
+Requires: glibc >= 2.3
+Requires: ORBit2
+Requires: libart_lgpl >= 2.0
+Requires: libbonobo >= 2.0
+Requires: libbonoboui >= 2.0
+Requires: bonobo-activation
+Requires: GConf2
+Requires: linc
+%endif
+
+%description gconsole
+Bacula - It comes by night and sucks the vital essence from your computers.
+
+Bacula is a set of computer programs that permit you (or the system 
+administrator) to manage backup, recovery, and verification of computer 
+data across a network of computers of different kinds. In technical terms, 
+it is a network client/server based backup program. Bacula is relatively 
+easy to use and efficient, while offering many advanced storage management 
+features that make it easy to find and recover lost or damaged files. 
+Bacula source code has been released under the GPL version 2 license.
+
+This is the Gnome Console package. It is an add-on to the client package.
 
 %prep
 
@@ -736,18 +793,21 @@ if [ -z "$DB_VER" ]; then
 %defattr(-,root,root)
 
 %attr(0754,root,root) /etc/bacula/fd
+%attr(0754,root,root) /etc/bacula/bconsole
 %attr(0754,root,root) /etc/init.d/bacula-fd
 
 %attr(0644,root,root) %doc COPYING ChangeLog INSTALL README ReleaseNotes doc/*
 %attr(0644,root,root) /etc/logrotate.d/bacula
 
 %attr(0640,root,root) %config(noreplace) /etc/bacula/bacula-fd.conf
+%attr(0640,root,root) %config(noreplace) /etc/bacula/bconsole.conf
 %attr(0640,root,root) %dir %{working_dir}
 
 %attr(0750,root,root) /usr/sbin/bacula-fd
 %attr(0750,root,root) /usr/sbin/btraceback
 %attr(0750,root,root) /etc/bacula/btraceback.gdb
 %attr(0750,root,root) /usr/sbin/bsmtp
+%attr(0750,root,root) /usr/sbin/bconsole
 
 
 %post client
@@ -814,7 +874,23 @@ rm -rf /etc/bacula/rescue/diskinfo/*
 %post updatedb
 echo "The database update scripts were installed to /etc/bacula/updatedb"
 
+%files gconsole
+%defattr(-,root,root)
+%attr(0750,root,root) /usr/sbin/gnome-console
+%attr(0754,root,root) /etc/bacula/gconsole
+%attr(0644,root,root) %config(noreplace) /etc/bacula/gnome-console.conf
+%attr(0644,root,root) /usr/share/pixmaps/bacula.png
+%attr(0644,root,root) /usr/share/gnome/apps/System/bacula.desktop
+%attr(0644,root,root) /usr/share/applications/bacula.desktop
+
+%post gconsole
+
+
 %changelog
+* Fri Feb 20 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
+- added bconsole to client package
+- added gconsole package as add-on to client
+- removed spurious dependancies on updatedb package (!cut/paste)
 * Thu Feb 19 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - added updatedb package
 * Thu Feb 12 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
