@@ -254,6 +254,8 @@ wxbMainFrame::wxbMainFrame(const wxString& title, const wxPoint& pos, const wxSi
    sizer->SetSizeHints( this );
    this->SetSize(size);
    EnableConsole(false);
+   
+   lockedbyconsole = false;
 }
 
 /*
@@ -307,6 +309,8 @@ void wxbMainFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
 
 void wxbMainFrame::OnEnter(wxCommandEvent& WXUNUSED(event))
 {
+   lockedbyconsole = true;
+   DisablePanels();
    wxString str = typeCtrl->GetValue() + "\n";
    Send(str);
 }
@@ -325,6 +329,10 @@ void wxbMainFrame::OnPrint(wxbThreadEvent& event) {
  */
 void wxbMainFrame::Print(wxString str, int status)
 {
+   if (lockedbyconsole) {
+      EnableConsole(false);
+   }
+   
    if (status == CS_TERMINATED) {
       SetStatusText("Console thread terminated.");
       ct = NULL;
@@ -396,6 +404,10 @@ void wxbMainFrame::Print(wxString str, int status)
    }
       
    if (status == CS_END) {
+      if (lockedbyconsole) {
+         EnablePanels();
+         lockedbyconsole = false;
+      }
       str = "#";
    }
 
@@ -407,6 +419,9 @@ void wxbMainFrame::Print(wxString str, int status)
    }
    consoleCtrl->AppendText(str);
    if (status == CS_PROMPT) {
+      if (lockedbyconsole) {
+         EnableConsole(true);
+      }
       consoleCtrl->AppendText("<P>");
    }
    
@@ -433,11 +448,13 @@ void wxbMainFrame::Print(wxString str, int status)
  */
 void wxbMainFrame::Send(wxString str)
 {
-   ct->Write((const char*)str);
-   typeCtrl->SetValue("");
-   consoleCtrl->SetDefaultStyle(wxTextAttr(*wxRED));
-   consoleCtrl->AppendText(str);
-   consoleCtrl->ScrollLines(3);
+   if (ct != NULL) {
+      ct->Write((const char*)str);
+      typeCtrl->SetValue("");
+      consoleCtrl->SetDefaultStyle(wxTextAttr(*wxRED));
+      consoleCtrl->AppendText(str);
+      consoleCtrl->ScrollLines(3);
+   }
    
 /*   if ((consoleCtrl->GetNumberOfLines()-1) > nlines) {
       nlines = consoleCtrl->GetNumberOfLines()-1;
@@ -472,7 +489,9 @@ void wxbMainFrame::DisablePanels(void* except) {
 /* Enable or disable console typing */
 void wxbMainFrame::EnableConsole(bool enable) {
    typeCtrl->Enable(enable);
-   typeCtrl->SetFocus();
+   if (enable) {
+      typeCtrl->SetFocus();
+   }
 }
 
 /*
