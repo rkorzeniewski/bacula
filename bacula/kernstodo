@@ -61,6 +61,7 @@ For 1.37:
 - Make sure that Python has access to Client address/port so that
   it can check if Clients are alive.
 - Implement copies and stripes.
+- Add history file to console.
 
 Maybe in 1.37:
 - By the way: on page http://www.bacula.org/?page=tapedrives , at the 
