@@ -38,7 +38,8 @@ Version: @VERSION@
 Release: 1
 Group: System Environment/Daemons
 Copyright: GPL v2
-Source: http://www.prdownloads.sourceforge.net/bacula/%{name}-%{version}.tar.gz
+Source0:http://www.prdownloads.sourceforge.net/bacula/%{name}-%{version}.tar.gz
+Source1:http://www.prdownloads.sourceforge.net/bacula/depkgs-24Jul03.tar.gz
 BuildRoot: %{_tmppath}/%{name}-root
 URL: http://www.bacula.org/
 Vendor: The Bacula Team
@@ -116,7 +117,7 @@ This is the File daemon (Client) only package.
 
 %prep
 
-%setup
+%setup -b 1
 
 %build
 
@@ -130,6 +131,9 @@ cd ${cwd}
 
 # patch the make_sqlite_tables script for installation bindir
 patch src/cats/make_sqlite_tables.in src/cats/make_sqlite_tables.in.patch
+
+# patch the make_catalog_backup script for installation bindir
+patch src/cats/make_catalog_backup.in src/cats/make_catalog_backup.in.patch
 
 %configure \
         --prefix=/usr \
@@ -369,6 +373,9 @@ chmod 0755 /usr/sbin/gnome-console
 /sbin/chkconfig --del bacula-fd
 
 %changelog
+* Fri Oct 24 2003 D. Scott Barninger <barninger at fairfieldcomputers.com>
+- Added separate Source declaration for depkgs
+- added patch for make_catalog_backup script
 * Mon May 11 2003 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - Misc changes to mysql/sqlite build and rh7/8 menu differences
 - Added rh_version to sub-package names

@@ -32,6 +32,15 @@
 #define MAXPATHLEN 1000
 #endif
 
+#undef Dmsg0
+#undef Dmsg1
+#undef Dmsg2
+#undef Dmsg3
+#define Dmsg0(n,f)
+#define Dmsg1(n,f,a1)
+#define Dmsg2(n,f,a1,a2)
+#define Dmsg3(n,f,a1,a2,a3)
+
 /*
  * This subroutine gets a big buffer.
  */
@@ -40,11 +49,13 @@ static void malloc_buf(TREE_ROOT *root, int size)
    struct s_mem *mem;
 
    mem = (struct s_mem *)malloc(size);
+   root->total_size += size;
+   root->blocks++;
    mem->next = root->mem;
    root->mem = mem;
    mem->mem = mem->first;
    mem->rem = (char *)mem + size - mem->mem;
-   Dmsg2(400, "malloc buf size=%d rem=%d\n", size, mem->rem);
+   Dmsg2(200, "malloc buf size=%d rem=%d\n", size, mem->rem);
 }
 
 
@@ -65,9 +76,9 @@ TREE_ROOT *new_tree(int count)
    root = (TREE_ROOT *)malloc(sizeof(TREE_ROOT));
    memset(root, 0, sizeof(TREE_ROOT));
    root->type = TN_ROOT;
-   /* Assume filename = 20 characters average length */
-   size = count * (BALIGN(sizeof(TREE_NODE)) + 20);
-   if (size > 10000000) {
+   /* Assume filename + node  = 40 characters average length */
+   size = count * (BALIGN(sizeof(TREE_NODE)) + 40);
+   if (count > 1000000 || size > 10000000) {
       size = 10000000;
    }
    Dmsg2(400, "count=%d size=%d\n", count, size);
@@ -82,15 +93,20 @@ TREE_ROOT *new_tree(int count)
 TREE_NODE *new_tree_node(TREE_ROOT *root, int type)
 {
    TREE_NODE *node;
-   int size = BALIGN(sizeof(TREE_NODE));
+   int asize = BALIGN(sizeof(TREE_NODE));
 
-   if (root->mem->rem < size) {
-      malloc_buf(root, 20000);
+   if (root->mem->rem < asize) {
+      uint32_t mb_size;
+      if (root->total_size >= 1000000) {
+	 mb_size = 1000000;
+      } else {
+	 mb_size = 100000;
+      }
+      malloc_buf(root, mb_size);
    }
-
-   root->mem->rem -= size;
+   root->mem->rem -= asize;
    node = (TREE_NODE *)root->mem->mem;
-   root->mem->mem += size;
+   root->mem->mem += asize;
    memset(node, 0, sizeof(TREE_NODE));
    node->type = type;
    return node;
@@ -108,7 +124,13 @@ static char *tree_alloc(TREE_ROOT *root, int size)
    int asize = BALIGN(size);
 
    if (root->mem->rem < asize) {
-      malloc_buf(root, 20000+asize);
+      uint32_t mb_size;
+      if (root->total_size >= 1000000) {
+	 mb_size = 1000000;
+      } else {
+	 mb_size = 100000;
+      }
+      malloc_buf(root, mb_size);
    }
    root->mem->rem -= asize;
    buf = root->mem->mem;
@@ -130,6 +152,7 @@ void free_tree(TREE_ROOT *root)
    if (root->cached_path) {
       free_pool_memory(root->cached_path);
    }
+   Dmsg2(400, "Total size=%u blocks=%d\n", root->total_size, root->blocks);
    free(root);
    return;
 }
@@ -137,7 +160,8 @@ void free_tree(TREE_ROOT *root)
 
 
 /* 
- * Insert a node in the tree
+ * Insert a node in the tree. This is the main subroutine
+ *   called when building a tree.
  *
  */
 TREE_NODE *insert_tree_node(char *path, TREE_NODE *node, 
@@ -145,14 +169,14 @@ TREE_NODE *insert_tree_node(char *path, TREE_NODE *node,
 {
    TREE_NODE *sibling;
    char *p, *q, *fname;
-   int len = strlen(path);
+   int path_len = strlen(path);
 
    Dmsg1(100, "insert_tree_node: %s\n", path);
    /*
     * If trailing slash, strip it
     */
-   if (len > 0) {
-      q = path + len - 1;
+   if (path_len > 0) {
+      q = path + path_len - 1;
       if (*q == '/') {
 	 *q = 0;		      /* strip trailing slash */
       } else {
@@ -167,11 +191,12 @@ TREE_NODE *insert_tree_node(char *path, TREE_NODE *node,
       if (!parent) {		      /* if no parent, we need to make one */
 	 *p = 0;		      /* terminate path */
          Dmsg1(100, "make_tree_path for %s\n", path);
-	 if ((int)strlen(path) == root->cached_path_len &&
+	 path_len = strlen(path);     /* get new length */
+	 if (path_len == root->cached_path_len &&
 	     strcmp(path, root->cached_path) == 0) {
 	    parent = root->cached_parent;
 	 } else {
-	    root->cached_path_len = strlen(path);
+	    root->cached_path_len = path_len;
 	    pm_strcpy(&root->cached_path, path);
 	    parent = make_tree_path(path, root);
 	    root->cached_parent = parent; 
@@ -188,9 +213,11 @@ TREE_NODE *insert_tree_node(char *path, TREE_NODE *node,
       Dmsg1(100, "No / found: %s\n", path);
    }
 
+   uint16_t fname_len = strlen(fname);
    for (sibling=parent->child; sibling; sibling=sibling->sibling) {
       Dmsg2(100, "sibling->fname=%s fname=%s\n", sibling->fname, fname);
-      if (strcmp(sibling->fname, fname) == 0) {
+      if (sibling->fname_len == fname_len &&
+	  strcmp(sibling->fname, fname) == 0) {
          Dmsg1(100, "make_tree_path: found parent=%s\n", parent->fname);
 	 if (q) {		      /* if trailing slash on entry */
             *q = '/';                 /*  restore it */
@@ -234,9 +261,11 @@ TREE_NODE *make_tree_path(char *path, TREE_ROOT *root)
       type = TN_DIR_NLS;
    }
    /* Is it already a sibling? */
+   uint16_t fname_len = strlen(fname);
    for (sibling=parent->child; sibling; sibling=sibling->sibling) {
       Dmsg2(100, "sibling->fname=%s fname=%s\n", sibling->fname, fname);
-      if (strcmp(sibling->fname, fname) == 0) {
+      if (sibling->fname_len == fname_len &&
+	  strcmp(sibling->fname, fname) == 0) {
          Dmsg1(100, "make_tree_path: found parent=%s\n", parent->fname);
 	 return sibling;
       }
@@ -256,7 +285,8 @@ void append_tree_node(char *fname, TREE_NODE *node, TREE_ROOT *root, TREE_NODE *
    TREE_NODE *child;
 
    Dmsg1(100, "append_tree_node: %s\n", fname);
-   node->fname = tree_alloc(root, strlen(fname) + 1);
+   node->fname_len = strlen(fname);
+   node->fname = tree_alloc(root, node->fname_len + 1);
    strcpy(node->fname, fname);
    node->parent = parent;
    if (!parent->child) {
@@ -435,6 +465,7 @@ int main(int argc, char *argv[])
     root = new_tree();
     root->fname = tree_alloc(root, 1);
     *root->fname = 0;
+    root->fname_len = 0;
 
     FillDirectoryTree("/home/kern/bacula/k", root, NULL);
 

@@ -31,12 +31,17 @@ struct s_mem {
    char first[1];                     /* first byte */
 };
 
+/*
+ * Keep this node as small as possible because
+ *   there is one for each file.
+ */
 struct s_tree_node {
    char *fname;                       /* file name */
    int32_t FileIndex;                 /* file index */
    uint32_t JobId;                    /* JobId */
-   short type;                        /* node type */
-   short extract;                     /* set if extracting */
+   uint16_t fname_len;                /* length of string */
+   uint8_t type;                      /* node type */
+   bool extract;                      /* set if extracting */
    struct s_tree_node *parent;
    struct s_tree_node *sibling;
    struct s_tree_node *child;
@@ -48,8 +53,9 @@ struct s_tree_root {
    char *fname;                       /* file name */
    int32_t FileIndex;                 /* file index */
    uint32_t JobId;                    /* JobId */
-   short type;                        /* node type */
-   short extract;                     /* set if extracting */
+   uint16_t fname_len;                /* length of string */
+   uint8_t type;                      /* node type */
+   bool extract;                      /* set if extracting */
    struct s_tree_node *parent;
    struct s_tree_node *sibling;
    struct s_tree_node *child;
@@ -59,6 +65,8 @@ struct s_tree_root {
    struct s_tree_node *first;         /* first entry in the tree */
    struct s_tree_node *last;          /* last entry in tree */
    struct s_mem *mem;                 /* tree memory */
+   uint32_t total_size;               /* total bytes allocated */
+   uint32_t blocks;                   /* total mallocs */
    int cached_path_len;               /* length of cached path */
    char *cached_path;                 /* cached current path */
    TREE_NODE *cached_parent;          /* cached parent for above path */
