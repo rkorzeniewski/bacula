@@ -638,7 +638,7 @@ When:       %s\n"),
    if (strncasecmp(ua->cmd, _("yes"), strlen(ua->cmd)) == 0) {
       Dmsg1(200, "Calling run_job job=%x\n", jcr->job);
       run_job(jcr);
-      bsendmsg(ua, _("Run Job command submitted.\n"));
+      bsendmsg(ua, _("Run command submitted.\n"));
       return 1;
    }
 

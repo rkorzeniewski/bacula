@@ -19,21 +19,10 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
-14-May-2003 14:41 undef-sd: RestoreFiles.2003-05-14_14.41.00 Warning: acquire.c:106 Volume name mismatch. Wanted TestVolume0005 got TestVolume0010
-14-May-2003 14:41 undef-sd: 3301 Issuing autochanger "loaded" command.
-14-May-2003 14:41 undef-sd: 3302 Issuing autochanger "unload" command.
-14-May-2003 14:42 undef-sd: 3303 Issuing autochanger "load slot 1" command.
-14-May-2003 14:42 undef-sd: 3304 Autochanger "load slot 1" status is OK.
-14-May-2003 14:42 undef-sd: RestoreFiles.2003-05-14_14.41.00 Warning: acquire.c:106 Volume name mismatch. Wanted TestVolume0005 got TestVolume0009
-14-May-2003 14:42 undef-sd: 3301 Issuing autochanger "loaded" command.
-14-May-2003 14:42 undef-sd: RestoreFiles.2003-05-14_14.41.00 Warning: acquire.c:106 Volume name mismatch. Wanted TestVolume0005 got TestVolume0009
-14-May-2003 14:42 undef-sd: 3301 Issuing autochanger "loaded" command.
-14-May-2003 14:42 undef-sd: RestoreFiles.2003-05-14_14.41.00 Warning: acquire.c:106 Volume name mismatch. Wanted TestVolume0005 got TestVolume0009
-14-May-2003 14:42 undef-sd: 3301 Issuing autochanger "loaded" command.
-14-May-2003 14:42 undef-sd: RestoreFiles.2003-05-14_14.41.00 Warning: acquire.c:106 Volume name mismatch. Wanted TestVolume0005 got TestVolume0009
-14-May-2003 14:42 undef-sd: 3301 Issuing autochanger "loaded" command.
-14-May-2003 14:42 undef-sd: RestoreFiles.2003-05-14_14.41.00 Fatal error: acquire.c:129 Too many errors trying to mount device "/dev/nrsa0".
-14-May-2003 14:42 undef-dir: Bacula 1.31 (12May03): 14-May-2003 14:42
+- Volume names with spaces get jammed into the catalog with 0x1 
+  i.e. the SD bashes the Volume but they are not unbased by Dir.
+
+- ChangeServiceConfig2A does not exist on WinNT (ADVAPI32.DLL).
 
 - Implement MTIOCERRSTAT on FreeBSD to clear tape error conditions.
 
@@ -42,9 +31,7 @@ For 1.31 release:
 - BSD defines a number of MT_xxx variables which conflict
   with those defined by Bacula.
 
-- The following  Re-read last block at EOT failed. ERR=block.c:523 Read zero bytes on device /dev/nrsa0.
-    undef-sd: block.c:523 Read zero bytes on device /dev/nrsa0.
-  apparently masks the standard EOM message.
+
 - Add Progress command that periodically reports the progress of
   a job or all jobs.
 - Implement "Reschedule OnError=yes interval=nnn times=xxx"
@@ -60,10 +47,6 @@ For 1.31 release:
 - Fix "access not allowed" for backup of files on WinXP.
 - Check for existence of all new Win32 API's.  See LoadLibrary in 
   winservice.cpp
-- Fix problem reported by Christopher McCurdy <cmccurdy@eecis.udel.edu>
-   xeon-fd:      Could not stat c:/Documents and Settings/All 
-   Users/Application Data/Humc:\Documents and Settings\All User98_AIX.kbf: 
-   ERR=No such file or directory
 - Examine Bare Metal restore problem (a FD crash exists somewhere ...).
 - Test multiple simultaneous Volumes
 - Document FInclude ...
@@ -809,3 +792,27 @@ Done: (see kernsdone for more)
 - Shell character expansion is failing occassionally.
 - Add a section to the doc on Manual cycling of Volumes.
 - Check if Job/File retentions apply to multivolume jobs.
+- Fix missing casette in autoloader during read:
+  14-May-2003 14:41 undef-sd: RestoreFiles.2003-05-14_14.41.00 Warning: acquire.c:106 Volume name mismatch. Wanted TestVolume0005 got TestVolume0010
+  14-May-2003 14:41 undef-sd: 3301 Issuing autochanger "loaded" command.
+  14-May-2003 14:41 undef-sd: 3302 Issuing autochanger "unload" command.
+  14-May-2003 14:42 undef-sd: 3303 Issuing autochanger "load slot 1" command.
+  14-May-2003 14:42 undef-sd: 3304 Autochanger "load slot 1" status is OK.
+  14-May-2003 14:42 undef-sd: RestoreFiles.2003-05-14_14.41.00 Warning: acquire.c:106 Volume name mismatch. Wanted TestVolume0005 got TestVolume0009
+  14-May-2003 14:42 undef-sd: 3301 Issuing autochanger "loaded" command.
+  14-May-2003 14:42 undef-sd: RestoreFiles.2003-05-14_14.41.00 Warning: acquire.c:106 Volume name mismatch. Wanted TestVolume0005 got TestVolume0009
+  14-May-2003 14:42 undef-sd: 3301 Issuing autochanger "loaded" command.
+  14-May-2003 14:42 undef-sd: RestoreFiles.2003-05-14_14.41.00 Warning: acquire.c:106 Volume name mismatch. Wanted TestVolume0005 got TestVolume0009
+  14-May-2003 14:42 undef-sd: 3301 Issuing autochanger "loaded" command.
+  14-May-2003 14:42 undef-sd: RestoreFiles.2003-05-14_14.41.00 Warning: acquire.c:106 Volume name mismatch. Wanted TestVolume0005 got TestVolume0009
+  14-May-2003 14:42 undef-sd: 3301 Issuing autochanger "loaded" command.
+  14-May-2003 14:42 undef-sd: RestoreFiles.2003-05-14_14.41.00 Fatal error: acquire.c:129 Too many errors trying to mount device "/dev/nrsa0".
+  14-May-2003 14:42 undef-dir: Bacula 1.31 (12May03): 14-May-2003 14:42
+- Fix problem reported by Christopher McCurdy <cmccurdy@eecis.udel.edu>
+   xeon-fd:      Could not stat c:/Documents and Settings/All 
+   Users/Application Data/Humc:\Documents and Settings\All User98_AIX.kbf: 
+   ERR=No such file or directory
+   Cannot reproduce.
+- The following  Re-read last block at EOT failed. ERR=block.c:523 Read zero bytes on device /dev/nrsa0.
+    undef-sd: block.c:523 Read zero bytes on device /dev/nrsa0.
+  apparently masks the standard EOM message.
