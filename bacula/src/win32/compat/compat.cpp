@@ -22,8 +22,8 @@
 // Author          : Christopher S. Hull
 // Created On      : Sat Jan 31 15:55:00 2004
 // Last Modified By: Christopher S. Hull
-// Last Modified On: Mon Feb 23 10:48:23 2004
-// Update Count    : 663
+// Last Modified On: Tue Feb 24 11:01:09 2004
+// Update Count    : 664
 // $Id$
 
 #include <stdio.h>
@@ -1145,7 +1145,7 @@ write(int fd, const void *buf, size_t len)
 off_t
 lseek(int fd, off_t offset, int whence)
 {
-    return _lseek(fd, offset, whence);
+    return _lseeki64(fd, offset, whence);
 }
 
 int

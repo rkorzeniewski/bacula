@@ -21,14 +21,17 @@
  * Author          : Christopher S. Hull
  * Created On      : Fri Jan 30 13:00:51 2004
  * Last Modified By: Christopher S. Hull
- * Last Modified On: Mon Feb 23 10:39:46 2004
- * Update Count    : 202
+ * Last Modified On: Tue Feb 24 11:13:32 2004
+ * Update Count    : 218
  * $Id$
  */
 
 
 #ifndef __COMPAT_H_
 #define __COMPAT_H_
+
+#define __STDC__ 1
+
 #include <stdio.h>
 #include <basetsd.h>
 #include <stdarg.h>
@@ -44,7 +47,6 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <conio.h>
-//#include <io.h>
 #include <process.h>
 #include <errno.h>
 #include <string.h>
@@ -55,8 +57,6 @@
 #include <direct.h>
 #include <ctype.h>
 #include <fcntl.h>
-
-#define __STDC__ 1
 #include <io.h>
 
 
@@ -78,12 +78,17 @@ typedef float float32_t;
 typedef unsigned short uint16_t;
 typedef signed short int16_t;
 typedef long time_t;
-typedef long _off_t;
+#if __STDC__
+typedef _dev_t dev_t;
+typedef __int64 ino_t;
+typedef __int64 off_t;		/* STDC=1 means we can define this */
+#else
+typedef long _off_t;		/* must be same as sys/types.h */
+#endif
 typedef signed char int8_t;
 typedef int BOOL;
 #define bool BOOL
 typedef double float64_t;
-
 typedef UINT32 u_int32_t;
 typedef unsigned char u_int8_t;
 typedef unsigned short u_int16_t;
@@ -181,6 +186,20 @@ struct stat
 #define S_ISSOCK(x) 0
 #define S_ISLNK(x)      0
 
+
+#if __STDC__
+#define O_RDONLY _O_RDONLY
+#define O_WRONLY _O_WRONLY
+#define O_RDWR   _O_RDWR
+#define O_CREAT  _O_CREAT
+#define O_TRUNC  _O_TRUNC
+
+#define isascii __isascii
+#define toascii __toascii
+#define iscsymf __iscsymf
+#define iscsym  __iscsym
+
+#endif
 #define SIGUSR2 9999
 
 int umask(int);
