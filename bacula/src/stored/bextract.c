@@ -31,12 +31,11 @@
 #include "stored.h"
 #include "findlib/find.h"
 
-#ifdef HAVE_CYGWIN
+#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
 int win32_client = 1;
 #else
 int win32_client = 0;
 #endif
-
 
 static void do_extract(char *fname);
 static int record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);

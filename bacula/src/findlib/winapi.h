@@ -27,29 +27,34 @@
 
 #ifndef __WINAPI_H
 #define __WINAPI_H
-
-#ifdef HAVE_CYGWIN
+#if defined(HAVE_WIN32)
+#include <native.h>
+#include <windef.h>
+#endif
+#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
 /* In ADVAPI32.DLL */
-typedef BOOL WINAPI (*t_OpenProcessToken)(HANDLE, DWORD, PHANDLE);
-typedef BOOL WINAPI (*t_AdjustTokenPrivileges)(HANDLE, BOOL,
+
+typedef BOOL (WINAPI * t_OpenProcessToken)(HANDLE, DWORD, PHANDLE);
+typedef BOOL (WINAPI * t_AdjustTokenPrivileges)(HANDLE, BOOL,
 	       PTOKEN_PRIVILEGES, DWORD, PTOKEN_PRIVILEGES, PDWORD);
-typedef BOOL WINAPI (*t_LookupPrivilegeValue)(LPCTSTR, LPCTSTR, PLUID);
+typedef BOOL (WINAPI * t_LookupPrivilegeValue)(LPCTSTR, LPCTSTR, PLUID);
 
 extern t_OpenProcessToken      p_OpenProcessToken;
 extern t_AdjustTokenPrivileges p_AdjustTokenPrivileges;
 extern t_LookupPrivilegeValue  p_LookupPrivilegeValue;
 
 /* In KERNEL32.DLL */
-typedef BOOL WINAPI (*t_GetFileAttributesEx)(LPCTSTR, GET_FILEEX_INFO_LEVELS,
+typedef BOOL (WINAPI * t_GetFileAttributesEx)(LPCTSTR, GET_FILEEX_INFO_LEVELS,
 		 LPVOID);
-typedef BOOL WINAPI (*t_SetProcessShutdownParameters)(DWORD, DWORD);
-typedef BOOL WINAPI (*t_BackupRead)(HANDLE,LPBYTE,DWORD,LPDWORD,BOOL,BOOL,LPVOID*);
-typedef BOOL WINAPI (*t_BackupWrite)(HANDLE,LPBYTE,DWORD,LPDWORD,BOOL,BOOL,LPVOID*);
+typedef BOOL (WINAPI * t_SetProcessShutdownParameters)(DWORD, DWORD);
+typedef BOOL (WINAPI * t_BackupRead)(HANDLE,LPBYTE,DWORD,LPDWORD,BOOL,BOOL,LPVOID*);
+typedef BOOL (WINAPI * t_BackupWrite)(HANDLE,LPBYTE,DWORD,LPDWORD,BOOL,BOOL,LPVOID*);
 
 extern t_GetFileAttributesEx   p_GetFileAttributesEx;
 extern t_SetProcessShutdownParameters p_SetProcessShutdownParameters;
 extern t_BackupRead	       p_BackupRead;
 extern t_BackupWrite	       p_BackupWrite;
+
 
 #endif
 

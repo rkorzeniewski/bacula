@@ -179,7 +179,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
 	    return CF_ERROR;
 	 }
 	 return CF_EXTRACT;
-
+#ifndef HAVE_WIN32  // none of these exists on MS Windows
       case FT_RAW:		      /* Bacula raw device e.g. /dev/sda1 */
       case FT_FIFO:		      /* Bacula fifo to save data */
       case FT_SPEC:			 
@@ -240,7 +240,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
 	    return CF_ERROR;
 	 }
 	 return CF_CREATED;
-
+#endif
       } /* End inner switch */
 
    case FT_DIR:

@@ -128,21 +128,20 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,190,120,50,15
 //  CONTROL         "\3", IDC_BACULABMP,"Static",SS_ICON | SS_CENTERIMAGE |
 //                  SS_SUNKEN,7,5,73,65
-    CONTROL         "a", IDB_BACULABMP,"Static",SS_BITMAP|SS_SUNKEN,7,5,73,65
-    LTEXT           "Bacula Version " VERSION " (" BDATE ")", IDC_VERSION,90,10,239,10
-    LTEXT           "      by Kern Sibbald",IDC_NAME,90,20,239,10
-    LTEXT           "For more information, see:",
-                    IDC_WWW,90,40,239,10
-    LTEXT           "         www.sibbald.com/bacula",
-                    IDC_WWW,90,50,239,10
-    LTEXT           "                                               ",
-                    IDC_WWW,90,60,239,10
-    LTEXT           "                                    ",
-                    IDC_WWW,90,70,239,10
-    LTEXT           "Copyright (C) 1999-2004, Kern Sibbald",
-                    IDC_COPYRIGHT,7,120,175,10
-    LTEXT           "Licensed under GNU GPL 2.0.",
-                    IDC_TRADEMARK,7,130,175,10
+    CONTROL         IDB_BACULABMP,IDB_BACULABMP,"Static",SS_BITMAP|SS_SUNKEN,7,5,32,32
+
+    LTEXT           "      by Kern Sibbald",IDC_NAME,134,38,78,10
+    LTEXT           "For more information, see:",-1,115,60,100,10
+    LTEXT           "         www.sibbald.com/bacula",IDC_WWW,115,70,100,10
+//    LTEXT           "                 ",-1,69,81,100,10
+//    LTEXT           "                 ",-1,90,70,100,10
+    LTEXT           "Copyright (C) 1999-2003, Kern Sibbald",IDC_COPYRIGHT,7,120,175,10
+    LTEXT           "Licensed under GNU GPL 2.0.",IDC_TRADEMARK,7,130,175,10
+    RTEXT           "Build Date:",-1,108,24,42,8
+    RTEXT           "Bacula Version:",-1,100,9,50,8
+    LTEXT           VERSION,IDC_VERSION,159,10,65,8
+    LTEXT           BDATE,-1,159,24,65,10
+
 END
 
 /////////////////////////////////////////////////////////////////////////////

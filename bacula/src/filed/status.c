@@ -39,7 +39,7 @@ static void bsock_sendit(char *msg, int len, void *arg);
 static char *level_to_str(int level);
 
 
-#ifdef HAVE_CYGWIN
+#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
 static int privs = 0;
 #endif
 
@@ -63,7 +63,7 @@ static void do_status(void sendit(char *msg, int len, void *sarg), void *arg)
    len = Mmsg(&msg, _("Daemon started %s, %d Job%s run.\n"), dt, last_job.NumJobs,
         last_job.NumJobs == 1 ? "" : "s");
    sendit(msg, len, arg);
-#ifdef HAVE_CYGWIN
+#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
    if (debug_level > 0) {
       if (!privs) {
 	 privs = enable_backup_privileges(NULL, 1);
@@ -319,7 +319,7 @@ static char *level_to_str(int level)
 }
 
 
-#ifdef HAVE_CYGWIN
+#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
 #include <windows.h>
 
 static char buf[100];
@@ -338,7 +338,12 @@ static void win32_sendit(char *msg, int len, void *marg)
    struct s_win32_arg *arg = (struct s_win32_arg *)marg;
 
    if (len > 0 && msg[len-1] == '\n') {
-      msg[len-1] = 0;		      /* eliminate newline */
+       // when compiling with visual studio some strings are read-only 
+       // and cause access violations.  So we creat a tmp copy.
+       char *_msg = (char *)alloca(len);
+       strncpy(_msg, msg, len-1);
+       _msg[len-1] = 0;
+       msg = _msg;
    }
    SendDlgItemMessage(arg->hwnd, arg->idlist, LB_ADDSTRING, 0, (LONG)msg);
    

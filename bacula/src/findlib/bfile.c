@@ -92,7 +92,7 @@ char *stream_to_ascii(int stream)
  * ===============================================================
  */
 
-#ifdef HAVE_CYGWIN
+#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
 
 void unix_name_to_win32(POOLMEM **win32_name, char *name);
 extern "C" HANDLE get_osfhandle(int fd);
@@ -213,7 +213,11 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 
    } else if (flags & O_WRONLY) {     /* Open existing for write */
       if (bfd->use_backup_api) {
-	 dwaccess = GENERIC_WRITE|FILE_ALL_ACCESS|WRITE_OWNER|WRITE_DAC|ACCESS_SYSTEM_SECURITY;
+#ifdef HAVE_WIN32
+	  dwaccess = GENERIC_WRITE|/*FILE_ALL_ACCESS|*/WRITE_OWNER|WRITE_DAC/*|ACCESS_SYSTEM_SECURITY*/;
+#else
+	  dwaccess = GENERIC_WRITE|FILE_ALL_ACCESS|WRITE_OWNER|WRITE_DAC|ACCESS_SYSTEM_SECURITY;
+#endif
 	 dwflags = FILE_FLAG_BACKUP_SEMANTICS;
       } else {
 	 dwaccess = GENERIC_WRITE;

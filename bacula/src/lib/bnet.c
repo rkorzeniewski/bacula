@@ -42,7 +42,13 @@ extern time_t watchdog_time;
 #define ENODATA EPIPE
 #endif
 
-
+#ifdef HAVE_WIN32
+#define socketRead(fd, buf, len) recv(fd, buf, len, 0)
+#define socketWrite(fd, buf, len) send(fd, buf, len, 0)
+#else
+#define socketRead(fd, buf, len) read(fd, buf, len)
+#define socketWrite(fd, buf, len) write(fd, buf, len)
+#endif
 
 
 /*
@@ -59,7 +65,7 @@ static int32_t read_nbytes(BSOCK *bsock, char *ptr, int32_t nbytes)
    while (nleft > 0) {
       do {
 	 errno = 0;
-	 nread = read(bsock->fd, ptr, nleft);	 
+	 nread = socketRead(bsock->fd, ptr, nleft);	 
 	 if (bsock->timed_out || bsock->terminated) {
 	    return nread;
 	 }
@@ -95,7 +101,7 @@ static int32_t write_nbytes(BSOCK *bsock, char *ptr, int32_t nbytes)
    while (nleft > 0) {
       do {
 	 errno = 0;
-	 nwritten = write(bsock->fd, ptr, nleft);
+	 nwritten = socketWrite(bsock->fd, ptr, nleft);
 	 if (bsock->timed_out || bsock->terminated) {
 	    return nwritten;
 	 }
@@ -490,8 +496,9 @@ bnet_wait_data_intr(BSOCK *bsock, int sec)
 #define NO_DATA 	4	/* Valid name, no data record of requested type. */
 #endif
 
+#ifndef HAVE_WIN32
 extern int h_errno;		/* On error has one of the above */
-
+#endif
 /*
  * Get human readable error for gethostbyname()
  */

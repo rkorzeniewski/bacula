@@ -22,7 +22,6 @@
    MA 02111-1307, USA.
 
  */
-
 /* from attribs.c */
 void	encode_stat	  (char *buf, FF_PKT *ff_pkt, int data_stream);
 int	decode_stat	  (char *buf, struct stat *statp, int32_t *LinkFI);

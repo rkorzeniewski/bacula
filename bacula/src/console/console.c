@@ -196,10 +196,19 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
       }
       if (tty_input) {
 	 stat = get_cmd(input, prompt, UA_sock, 30);
-	 clrbrk();
+	 if (usrbrk() == 1) {
+	    clrbrk();
+	 }
+	 if (usrbrk()) {
+	    break;
+	 }
       } else {
+	 /* Reading input from a file */
 	 int len = sizeof_pool_memory(UA_sock->msg) - 1;
-	 if (fgets(UA_sock->msg, len, input) == NULL || usrbrk()) {
+	 if (usrbrk()) {
+	    break;
+	 }
+	 if (fgets(UA_sock->msg, len, input) == NULL) {
 	    stat = -1;
 	 } else {
 	    sendit(UA_sock->msg);  /* echo to terminal */
@@ -244,6 +253,11 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
 	 if (!stop && !usrbrk()) {
 	    sendit(UA_sock->msg);
 	 }
+      }
+      if (usrbrk() > 1) {
+	 break;
+      } else {
+	 clrbrk();
       }
       if (!stop) {
 	 fflush(stdout);

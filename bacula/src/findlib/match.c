@@ -39,12 +39,7 @@
 #undef bmalloc
 #define bmalloc(x) sm_malloc(__FILE__, __LINE__, x)
 
-#ifdef HAVE_CYGWIN
-static int win32_client = 1;
-#else
-static int win32_client = 0;
-#endif
-
+extern const int win32_client;
        
 /*
  * Initialize structures for filename matching
@@ -178,7 +173,7 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, char *fname)
 	 break;
       }
    }
-#ifdef HAVE_CYGWIN
+#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
    /* Convert any \'s into /'s */
    for (p=inc->fname; *p; p++) {
       if (*p == '\\') {
@@ -210,7 +205,7 @@ void add_fname_to_exclude_list(FF_PKT *ff, char *fname)
    int len;
    struct s_excluded_file *exc, **list;
 
-#ifdef HAVE_CYGWIN
+#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
    /* Convert any \'s into /'s */
    for (char *p=fname; *p; p++) {
       if (*p == '\\') {

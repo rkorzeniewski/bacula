@@ -29,7 +29,7 @@
 #include "bacula.h"
 #include "jcr.h"
 
-extern int win32_client;
+extern const int win32_client;
 
 ATTR *new_attr()
 {

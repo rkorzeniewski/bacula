@@ -71,7 +71,11 @@ save_cwd(struct saved_cwd *cwd)
     }
 
   if (!have_working_fchdir) {
-      POOLMEM *buf = get_pool_memory(PM_FNAME);
+#ifdef HAVE_WIN32
+      POOLMEM *buf = get_memory(MAX_PATH);
+#else
+      POOLMEM *buf = get_memory(5000);
+#endif
       cwd->name = (POOLMEM *)getcwd(buf, sizeof_pool_memory(buf));
       if (cwd->name == NULL) {
           Emsg1(M_ERROR, 0, "Cannot get current directory: %s\n", strerror(errno));

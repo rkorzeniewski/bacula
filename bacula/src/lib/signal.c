@@ -34,7 +34,7 @@
 
  */
 
-
+#ifndef HAVE_WIN32
 #include "bacula.h"
 
 #ifndef _NSIG
@@ -320,3 +320,4 @@ void init_signals(void terminate(int sig))
    sigaction(SIGLOST,	&sighandle, NULL);
 #endif
 }
+#endif

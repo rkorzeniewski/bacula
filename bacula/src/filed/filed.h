@@ -36,6 +36,6 @@
 #define uLongf uint32_t
 #endif
 
-extern int win32_client;              /* Are we running on Windows? */
+extern const int win32_client;              /* Are we running on Windows? */
 
 extern CLIENT *me;                    /* "Global" Client resource */

@@ -26,6 +26,13 @@
 #include "findlib/find.h"
 
 
+#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
+int win32_client = 1;
+#else
+int win32_client = 0;
+#endif
+
+
 /* Global variables */
 static int num_files = 0;
 static int max_file_len = 0;

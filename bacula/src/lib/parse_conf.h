@@ -111,9 +111,13 @@ void init_resource(int type, struct res_items *item);
 void save_resource(int type, struct res_items *item, int pass);
 char *res_to_str(int rcode);
 /* Loop through each resource of type, returning in var */
+#ifdef HAVE_WIN32
+#define foreach_res(var, type) \
+    for(var=NULL; *((void **)&(var))=(void *)GetNextRes((type), (RES *)var);) 
+#else
 #define foreach_res(var, type) \
         for((var)=NULL; (((void *)(var))=GetNextRes((type), (RES *)var));) 
-
+#endif
 
 
 void store_str(LEX *lc, struct res_items *item, int index, int pass);

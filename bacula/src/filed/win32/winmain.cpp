@@ -21,7 +21,9 @@
    Copyright (2000) Kern E. Sibbald
 */
 
+#ifndef HAVE_WIN32
 #define HAVE_CYGWIN 1
+#endif
 
 #include <unistd.h>
 #include <lmcons.h>
@@ -33,7 +35,7 @@
 #include <pthread.h>
 #include "../../findlib/winapi.h"
 
-extern int BaculaMain(int argc, char **argv);
+extern int BaculaMain(int argc, char *argv[]);
 extern int terminate_filed(int sig);
 extern DWORD g_error;
 extern BOOL ReportStatus(DWORD state, DWORD exitcode, DWORD waithint);
@@ -315,7 +317,9 @@ int BaculaAppMain()
 {
 // DWORD dwThreadID;
    pthread_t tid;
-
+#ifdef HAVE_WIN32
+   WSA_Init();
+#endif
    HINSTANCE hLib = LoadLibrary("KERNEL32.DLL");
    if (hLib) {
       p_GetFileAttributesEx = (t_GetFileAttributesEx)
@@ -361,7 +365,7 @@ int BaculaAppMain()
 
    // Create a thread to handle the Windows messages
 // (void)CreateThread(NULL, 0, Main_Msg_Loop, NULL, 0, &dwThreadID);
-   pthread_create(&tid, NULL, Main_Msg_Loop, (void *)0);
+   pthread_create(&tid, NULL,  Main_Msg_Loop, (void *)0);
 
    // Call the "real" Bacula
    BaculaMain(num_command_args, command_args);
