@@ -76,6 +76,8 @@ wxbRestorePanel : Add a timeout when waiting for commands results
 wxbRestorePanel : Be sure of which job we just have run (not suppositions
    as I'm doing now) : needs director modification.
 
+bacula-dir : Progress status when building tree.
+
 bacula-dir : correct director to handle correctly + marked status
    (In fact there is a bug in the director : If you mark a directory
    (not a file), and then unmark it, its parents keep the "+" status.)

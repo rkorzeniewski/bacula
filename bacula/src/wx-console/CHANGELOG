@@ -1,4 +1,6 @@
 02-05-2004 :
+ - wxbMainFrame : Corrected incorrect casting of thread event
+      functions (reported by Aristedes Maniatis)
  - wxbRestorePanel : Corrected incorrect casting of event
       functions (reported by Aristedes Maniatis)
 

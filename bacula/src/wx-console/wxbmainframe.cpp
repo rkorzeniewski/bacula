@@ -67,6 +67,15 @@ END_DECLARE_EVENT_TYPES()
 
 DEFINE_EVENT_TYPE(wxbTHREAD_EVENT)
 
+typedef void (wxEvtHandler::*wxThreadEventFunction)(wxbThreadEvent&);
+
+#define EVT_THREAD_EVENT(id, fn) \
+    DECLARE_EVENT_TABLE_ENTRY( \
+        wxbTHREAD_EVENT, id, wxID_ANY, \
+        (wxObjectEventFunction)(wxEventFunction)(wxThreadEventFunction)&fn, \
+        (wxObject *) NULL \
+    ),
+
 // the event tables connect the wxWindows events with the functions (event
 // handlers) which process them. It can be also done at run-time, but for the
 // simple menu events like this the static method is much simpler.
@@ -74,8 +83,8 @@ BEGIN_EVENT_TABLE(wxbMainFrame, wxFrame)
    EVT_MENU(Minimal_Quit,  wxbMainFrame::OnQuit)
    EVT_MENU(Minimal_About, wxbMainFrame::OnAbout)
    EVT_TEXT_ENTER(TypeText, wxbMainFrame::OnEnter)
+   EVT_THREAD_EVENT(Thread, wxbMainFrame::OnPrint)
    EVT_BUTTON(SendButton, wxbMainFrame::OnEnter)
-   EVT_CUSTOM(wxbTHREAD_EVENT, Thread, wxbMainFrame::OnPrint)
 END_EVENT_TABLE()
 
 // ----------------------------------------------------------------------------
