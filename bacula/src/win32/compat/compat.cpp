@@ -176,15 +176,18 @@ srandom(unsigned int seed)
 // convert from Windows concept of time to Unix concept of time
 // /////////////////////////////////////////////////////////////////
 time_t
-cvt(const FILETIME &time)
+cvt_ftime_to_utime(const FILETIME &time)
 {
     uint64_t mstime = time.dwHighDateTime;
     mstime <<= 32;
     mstime |= time.dwLowDateTime;
 
-    mstime /= 10000000;         // convert to seconds.
-    mstime -= 3234336I64*3600I64; // difference between jan 1, 1601
+//  mstime /= 10000000;         // convert to seconds.
+//  mstime -= 3234336I64*3600I64; // difference between jan 1, 1601
                                   // and jan, 1 1970
+    mstime -= 116444736000000000; // convert to 1 Jan 1970
+    mstime /= 10000000;         // convert to seconds.
+
 
     return (time_t) (mstime & 0xffffffff);
 }
@@ -211,11 +214,10 @@ static int
 statDir(const char *file, struct stat *sb)
 {
     WIN32_FIND_DATA info;       // window's file info
-    sb->st_mode |= S_IFDIR;
 
-    if (file[1] == ':' && file[2] == 0)
-    {
+    if (file[1] == ':' && file[2] == 0) {
         d_msg(__FILE__, __LINE__, 99, "faking ROOT attrs(%s).\n", file);
+        sb->st_mode = S_IFDIR;
         sb->st_mode |= S_IREAD|S_IEXEC|S_IWRITE;
         time(&sb->st_ctime);
         time(&sb->st_mtime);
@@ -232,22 +234,23 @@ statDir(const char *file, struct stat *sb)
         return -1;
     }
 
-    sb->st_mode |= (S_IREAD | S_IEXEC);
-    if (!(info.dwFileAttributes & FILE_ATTRIBUTE_READONLY))
-        sb->st_mode |= S_IWRITE;
-    
+    sb->st_mode = 0777;               /* start with everything */
+    if (info.dwFileAttributes & FILE_ATTRIBUTE_READONLY)
+        sb->st_mode &= ~(S_IRUSR|S_IRGRP|S_IROTH);
     if (info.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM)
-        sb->st_mode |= S_IRGRP;
+        sb->st_mode &= ~S_IRWXO; /* remove everything for other */
     if (info.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN)
-        sb->st_mode |= S_IROTH;
+        sb->st_mode |= S_ISVTX; /* use sticky bit -> hidden */
+    sb->st_mode |= S_IFDIR;
+
     sb->st_size = info.nFileSizeHigh;
     sb->st_size <<= 32;
     sb->st_size |= info.nFileSizeLow;
     sb->st_blksize = 4096;
     sb->st_blocks = (uint32_t)(sb->st_size + 4095)/4096;
-    sb->st_atime = cvt(info.ftLastAccessTime);
-    sb->st_mtime = cvt(info.ftLastWriteTime);
-    sb->st_ctime = cvt(info.ftCreationTime);
+    sb->st_atime = cvt_ftime_to_utime(info.ftLastAccessTime);
+    sb->st_mtime = cvt_ftime_to_utime(info.ftLastWriteTime);
+    sb->st_ctime = cvt_ftime_to_utime(info.ftLastWriteTime);
 
     return 0;
 }
@@ -275,8 +278,6 @@ stat2(const char *file, struct stat *sb)
     if (attr & FILE_ATTRIBUTE_DIRECTORY) 
         return statDir(tmpbuf, sb);
 
-    sb->st_mode |= S_IFREG;
-    
     h = CreateFile(tmpbuf, GENERIC_READ,
                    FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
 
@@ -305,22 +306,24 @@ stat2(const char *file, struct stat *sb)
     sb->st_ino <<= 32;
     sb->st_ino |= info.nFileIndexLow;
     sb->st_nlink = (short)info.nNumberOfLinks;
-    sb->st_mode |= (S_IREAD | S_IEXEC);
-    if (!(info.dwFileAttributes & FILE_ATTRIBUTE_READONLY))
-        sb->st_mode |= S_IWRITE;
 
+    sb->st_mode = 0777;               /* start with everything */
+    if (info.dwFileAttributes & FILE_ATTRIBUTE_READONLY)
+        sb->st_mode &= ~(S_IRUSR|S_IRGRP|S_IROTH);
     if (info.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM)
-        sb->st_mode |= S_IRGRP;
+        sb->st_mode &= ~S_IRWXO; /* remove everything for other */
     if (info.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN)
-        sb->st_mode |= S_IROTH;
+        sb->st_mode |= S_ISVTX; /* use sticky bit -> hidden */
+    sb->st_mode |= S_IFREG;
+
     sb->st_size = info.nFileSizeHigh;
     sb->st_size <<= 32;
     sb->st_size |= info.nFileSizeLow;
     sb->st_blksize = 4096;
     sb->st_blocks = (uint32_t)(sb->st_size + 4095)/4096;
-    sb->st_atime = cvt(info.ftLastAccessTime);
-    sb->st_mtime = cvt(info.ftLastWriteTime);
-    sb->st_ctime = cvt(info.ftCreationTime);
+    sb->st_atime = cvt_ftime_to_utime(info.ftLastAccessTime);
+    sb->st_mtime = cvt_ftime_to_utime(info.ftLastWriteTime);
+    sb->st_ctime = cvt_ftime_to_utime(info.ftLastWriteTime);
 
 error:
     CloseHandle(h);
@@ -341,28 +344,27 @@ stat(const char *file, struct stat *sb)
     if (!GetFileAttributesEx(file, GetFileExInfoStandard, &data))
         return stat2(file, sb);
 
+    sb->st_mode = 0777;               /* start with everything */
+    if (data.dwFileAttributes & FILE_ATTRIBUTE_READONLY)
+        sb->st_mode &= ~(S_IRUSR|S_IRGRP|S_IROTH);
+    if (data.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM)
+        sb->st_mode &= ~S_IRWXO; /* remove everything for other */
+    if (data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN)
+        sb->st_mode |= S_ISVTX; /* use sticky bit -> hidden */
     if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
         sb->st_mode |= S_IFDIR;
     else
         sb->st_mode |= S_IFREG;
 
     sb->st_nlink = 1;
-    sb->st_mode |= (S_IREAD | S_IEXEC);
-    if (!(data.dwFileAttributes & FILE_ATTRIBUTE_READONLY))
-        sb->st_mode |= S_IWRITE;
-
-    if (data.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM)
-        sb->st_mode |= S_IRGRP;
-    if (data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN)
-        sb->st_mode |= S_IROTH;
     sb->st_size = data.nFileSizeHigh;
     sb->st_size <<= 32;
     sb->st_size |= data.nFileSizeLow;
     sb->st_blksize = 4096;
     sb->st_blocks = (uint32_t)(sb->st_size + 4095)/4096;
-    sb->st_atime = cvt(data.ftLastAccessTime);
-    sb->st_mtime = cvt(data.ftLastWriteTime);
-    sb->st_ctime = cvt(data.ftCreationTime);
+    sb->st_atime = cvt_ftime_to_utime(data.ftLastAccessTime);
+    sb->st_mtime = cvt_ftime_to_utime(data.ftLastWriteTime);
+    sb->st_ctime = cvt_ftime_to_utime(data.ftLastWriteTime);
     return 0;
 }
 

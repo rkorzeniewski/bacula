@@ -135,7 +135,7 @@ make_dir(JCR *jcr, const char *dir, const char *dirpath, mode_t mode, int *creat
 int
 isAbsolute(const char *path)
 {
-#if defined(HAVE_CYGWIN) || defined(WIN32)
+#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
     return path[1] == ':' || *path == '/' || *path == '\\';     /* drivespec:/blah is absolute */
 #else
     return *path == '/';
