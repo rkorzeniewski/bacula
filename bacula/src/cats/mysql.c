@@ -96,6 +96,8 @@ db_init_database(void *jcr, char *db_name, char *db_user, char *db_password)
 int
 db_open_database(B_DB *mdb)
 {
+   int errstat;
+
    P(mutex);
    if (mdb->connected) {
       V(mutex);
@@ -103,8 +105,9 @@ db_open_database(B_DB *mdb)
    }
    mdb->connected = FALSE;
 
-   if (rwl_init(&mdb->lock) != 0) {
-      Mmsg1(&mdb->errmsg, "Unable to initialize DB lock. ERR=%s\n", strerror(errno));
+   if ((errstat=rwl_init(&mdb->lock)) != 0) {
+      Mmsg1(&mdb->errmsg, _("Unable to initialize DB lock. ERR=%s\n"), 
+	    strerror(errstat));
       V(mutex);
       return 0;
    }

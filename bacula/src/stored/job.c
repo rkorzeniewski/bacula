@@ -308,6 +308,7 @@ void stored_free_jcr(JCR *jcr)
 {
    if (jcr->file_bsock) {
       bnet_close(jcr->file_bsock);
+      jcr->file_bsock = NULL;
    }
    if (jcr->pool_name) {
       free_memory(jcr->pool_name);

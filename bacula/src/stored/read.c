@@ -95,6 +95,7 @@ int do_read_data(JCR *jcr)
    }
 
    rec = new_record();
+   free_pool_memory(rec->data);
    rec->data = ds->msg; 	       /* use socket message buffer */
    hdr = get_pool_memory(PM_MESSAGE);
 
@@ -207,6 +208,7 @@ int do_read_data(JCR *jcr)
 	 if (!bnet_fsend(ds, rec_header, rec->VolSessionId, rec->VolSessionTime,
 		rec->FileIndex, rec->Stream, rec->data_len)) {
             Dmsg1(30, ">filed: Error Hdr=%s\n", ds->msg);
+	    hdr = ds->msg;
 	    ds->msg = rec->data;
 	    ok = FALSE;
 	    break;
@@ -214,7 +216,8 @@ int do_read_data(JCR *jcr)
             Dmsg1(30, ">filed: Hdr=%s\n", ds->msg);
 	 }
 
-	 ds->msg = rec->data;		  /* restore data record address */
+	 hdr = ds->msg; 	      /* restore hdr buffer */
+	 ds->msg = rec->data;	      /* restore data record address */
 
 	 /* Send data record to File daemon */
 	 ds->msglen = rec->data_len;
@@ -235,6 +238,7 @@ int do_read_data(JCR *jcr)
    }
    free_pool_memory(hdr);
    free_block(block);
+   rec->data = NULL;		      /* previously released */
    free_record(rec);
    free_vol_list(jcr);
    Dmsg0(30, "Done reading.\n");

@@ -257,6 +257,7 @@ static int label_cmd(JCR *jcr)
 	 /******FIXME**** compare MediaTypes */
 	 jcr->device = device;
 	 dev = device->dev;
+
 	 P(dev->mutex);
 	 if (!(dev->state & ST_OPENED)) {
 	    if (open_dev(dev, volname, READ_WRITE) < 0) {
@@ -306,15 +307,19 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *vname, char *poolnam
 {
    BSOCK *dir = jcr->dir_bsock;
    DEV_BLOCK *block;
+   brwsteal_t hold;
+#ifndef NEW_LOCK
    int blocked;
    pthread_t no_wait_id;
    
    blocked = dev->dev_blocked;	      /* save any prev blocked state */
-   no_wait_id = dev->no_wait_id;
    dev->dev_blocked = BST_WRITING_LABEL;
+   no_wait_id = dev->no_wait_id;
    dev->no_wait_id = pthread_self();  /* let us use the tape */
-   V(dev->mutex);		      /* release lock */
+#endif
    
+   new_steal_device_lock(dev, &hold, BST_WRITING_LABEL);
+   V(dev->mutex);
    strcpy(jcr->VolumeName, vname);
    block = new_block(dev);
    switch (read_dev_volume_label(jcr, dev, block)) {		    
@@ -339,8 +344,11 @@ Unknown status %d from read_volume_label()\n"), jcr->label_status);
    }
    free_block(block);
    P(dev->mutex);
+   new_return_device_lock(dev, &hold);
+#ifndef NEW_LOCK
    dev->dev_blocked = blocked;	      /* reset blocked state */
    dev->no_wait_id = no_wait_id;      /* reset blocking thread id */
+#endif
 }
 
 
@@ -351,16 +359,20 @@ Unknown status %d from read_volume_label()\n"), jcr->label_status);
  */
 static int read_label(JCR *jcr, DEVICE *dev)
 {
+   int stat;
    BSOCK *dir = jcr->dir_bsock;
    DEV_BLOCK *block;
+   brwsteal_t hold;
+#ifndef NEW_LOCK
    int blocked;
    pthread_t no_wait_id;
-   int stat;
    
    blocked = dev->dev_blocked;	      /* save any prev blocked state */
    no_wait_id = dev->no_wait_id;
    dev->dev_blocked = BST_DOING_ACQUIRE;
    dev->no_wait_id = pthread_self();  /* let us use the tape */
+#endif
+   new_steal_device_lock(dev, &hold, BST_DOING_ACQUIRE);
    V(dev->mutex);		      /* release lock */
    
    jcr->VolumeName[0] = 0;
@@ -379,8 +391,11 @@ static int read_label(JCR *jcr, DEVICE *dev)
    }
    free_block(block);
    P(dev->mutex);
+   new_return_device_lock(dev, &hold);
+#ifndef NEW_LOCK
    dev->dev_blocked = blocked;	      /* reset blocked state */
    dev->no_wait_id = no_wait_id;      /* reset blocking thread id */
+#endif
    return stat;
 }
 
@@ -436,6 +451,7 @@ static int mount_cmd(JCR *jcr)
 	       if (dev->dev_blocked == BST_UNMOUNTED) {
                   Dmsg0(90, "Unmounted unblocking device\n");
 		  read_label(jcr, dev);
+		  new_unlock_device(dev);
 		  unblock_device(dev);
 	       } else {
                   Dmsg0(90, "Unmounted waiting for mount attempt to wake thread\n");
@@ -571,6 +587,7 @@ static int unmount_cmd(JCR *jcr)
 
 	 } else {		      /* device not being used */
             Dmsg0(90, "Device not in use, unmounting\n");
+	    new_lock_device_state(dev, BST_UNMOUNTED);
 	    block_device(dev, BST_UNMOUNTED);
 	    if (dev->capabilities & CAP_OFFLINEUNMOUNT) {
 	       offline_dev(dev);

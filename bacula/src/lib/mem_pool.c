@@ -195,6 +195,10 @@ void free_pool_memory(POOLMEM *obuf)
    if (pool == 0) {
       free((char *)buf);	      /* free nonpooled memory */
    } else {			      /* otherwise link it to the free pool chain */
+      struct abufhead *next;
+      for (next=pool_ctl[pool].free_buf; next; next=next->next) {
+	 ASSERT(next != buf);  /* attempt to free twice */
+      }
       buf->next = pool_ctl[pool].free_buf;
       pool_ctl[pool].free_buf = buf;
    }

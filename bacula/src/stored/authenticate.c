@@ -39,15 +39,15 @@ static char OK_hello[]  = "3000 OK Hello\n";
  */
 static int authenticate(int rcode, BSOCK *bs)
 {
-   char *name;
+   POOLMEM *name;
    DIRRES *director = NULL;
 
    if (rcode != R_DIRECTOR) {
       Emsg1(M_FATAL, 0, _("I only authenticate Directors, not %d\n"), rcode);
       return 0;
    }
-   name = (char *) get_pool_memory(PM_MESSAGE);
-   name = (char *) check_pool_memory_size(name, bs->msglen);
+   name = get_pool_memory(PM_MESSAGE);
+   name = check_pool_memory_size(name, bs->msglen);
 
    if (sscanf(bs->msg, "Hello Director %127s calling\n", name) != 1) {
       Emsg1(M_FATAL, 0, _("Bad Hello command from Director: %s\n"), bs->msg);

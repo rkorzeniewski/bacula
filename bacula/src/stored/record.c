@@ -107,7 +107,9 @@ DEV_RECORD *new_record(void)
 void free_record(DEV_RECORD *rec) 
 {
    Dmsg0(150, "Enter free_record.\n");
-   free_pool_memory(rec->data);
+   if (rec->data) {
+      free_pool_memory(rec->data);
+   }
    Dmsg0(150, "Data buf is freed.\n");
    free_pool_memory((POOLMEM *)rec);
    Dmsg0(150, "Leave free_record.\n");

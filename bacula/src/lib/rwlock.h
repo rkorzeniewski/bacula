@@ -45,6 +45,12 @@ typedef struct s_rwlock_tag {
    int               w_wait;          /* writers waiting */
 } brwlock_t;
 
+typedef struct s_rwsteal_tag {
+   pthread_t         writer_id;       /* writer's thread id */
+   int               state;
+} brwsteal_t;
+
+
 #define RWLOCK_VALID  0xfacade
 
 #define RWL_INIIALIZER \

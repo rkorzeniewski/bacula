@@ -201,7 +201,7 @@ bnet_bind(int port)
       sleep(5);
    }
    listen(sockfd, 1);		      /* tell system we are ready */
-   return init_bsock(sockfd, _("Server socket"), _("client"), port);
+   return init_bsock(NULL, sockfd, _("Server socket"), _("client"), port);
 }
 
 /*
@@ -290,7 +290,7 @@ bnet_accept(BSOCK *bsock, char *who)
       strcpy(buf, who);
       strcat(buf, ": ");
       strcat(buf, caller);
-      bs = init_bsock(newsockfd, "client", buf, bsock->port);
+      bs = init_bsock(NULL, newsockfd, "client", buf, bsock->port);
       free(buf);
       return bs;		      /* return new BSOCK */
    }

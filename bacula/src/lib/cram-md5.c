@@ -57,7 +57,7 @@ int cram_md5_auth(BSOCK *bs, char *password)
    bin_to_base64(host, (char *)hmac, 16);
    ok = strcmp(bs->msg, host) == 0;
    if (ok) {
-      Dmsg3(399, "Authenticate %s: wanted %s, got %s\n", 
+      Dmsg3(99, "Authenticate %s: wanted %s, got %s\n", 
             ok ? "OK" : "NOT OK", host, bs->msg);
    } else {
       Dmsg3(99, "Authenticate %s: wanted %s, got %s\n", 
@@ -82,6 +82,7 @@ int cram_md5_get_auth(BSOCK *bs, char *password)
       return 0;
    }
    if (sscanf(bs->msg, "auth cram-md5 %s", chal) != 1) {
+     Dmsg1(99, "Wanted auth cram... Got: %s\n", bs->msg);
      sleep(5);
      return 0;
    }

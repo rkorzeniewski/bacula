@@ -29,6 +29,12 @@
 #ifndef __DEV_H
 #define __DEV_H 1
 
+/* #define NEW_LOCK 1 */
+
+#define new_lock_device(dev)             _lock_device(__FILE__, __LINE__, (dev)) 
+#define new_lock_device_state(dev,state) _lock_device(__FILE__, __LINE__, (dev), (state))
+#define new_unlock_device(dev)           _unlock_device(__FILE__, __LINE__, (dev))
+
 /* Arguments to open_dev() */
 #define READ_WRITE 0
 #define READ_ONLY  1
@@ -108,6 +114,7 @@ typedef struct s_volume_catalog_info {
 typedef struct s_device {
    struct s_device *next;             /* pointer to next open device */
    void *attached_jcrs;               /* attached JCR list */
+   brwlock_t lock;                    /* new device locking mechanism */
    pthread_mutex_t mutex;             /* access control */
    pthread_cond_t wait;               /* thread wait variable */
    pthread_cond_t wait_next_vol;      /* wait for tape to be mounted */

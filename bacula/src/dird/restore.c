@@ -69,7 +69,6 @@ static int send_bootstrap_file(JCR *jcr);
  */
 int do_restore(JCR *jcr) 
 {
-   char dt[MAX_TIME_LENGTH];
    BSOCK   *fd;
    JOB_DBR rjr; 		      /* restore job record */
    int ok = FALSE;
@@ -129,10 +128,7 @@ int do_restore(JCR *jcr)
       
 
    /* Print Job Start message */
-   bstrftime(dt, sizeof(dt), jcr->start_time);
-   Jmsg(jcr, M_INFO, 0, _("%s Start Restore Job %s Name=%s, Client=%s, FileSet=%s\n"), 
-      dt, jcr->Job, jcr->job->hdr.name, jcr->client->hdr.name, 
-      jcr->fileset->hdr.name);
+   Jmsg(jcr, M_INFO, 0, _("Start Restore Job %s\n"), jcr->Job);
 
    /*
     * Open a message channel connection with the Storage

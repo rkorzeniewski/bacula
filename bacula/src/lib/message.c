@@ -461,7 +461,7 @@ void close_msg(void *vjcr)
    if (msgs == NULL) {
       return;
    }
-   Dmsg1(050, "close msg resource at 0x%x\n", msgs);
+   Dmsg1(150, "begin close msg resource at 0x%x\n", msgs);
    cmd = get_pool_memory(PM_MESSAGE);
    for (d=msgs->dest_chain; d; ) {
       if (d->fd) {
@@ -521,6 +521,7 @@ rem_temp_file:
 
    free_msgs_res(msgs);
    msgs = NULL;
+   Dmsg0(150, "end close msg resource\n");
 }
 
 /*

@@ -142,13 +142,14 @@ db_open_database(B_DB *mdb)
    char *dbf;
    int fd, badctl;
    off_t filend;
+   int errstat;
 
    Dmsg1(200, "db_open_database() %s\n", mdb->db_name);
 
    P(mutex);
 
-   if (rwl_init(&mdb->lock) != 0) {
-      Mmsg1(&mdb->errmsg, "Unable to initialize DB lock. ERR=%s\n", strerror(errno));
+   if ((errstat=rwl_init(&mdb->lock)) != 0) {
+      Mmsg1(&mdb->errmsg, _("Unable to initialize DB lock. ERR=%s\n"), strerror(errstat));
       V(mutex);
       return 0;
    }
@@ -158,7 +159,7 @@ db_open_database(B_DB *mdb)
    mdb->cfd = open(dbf, O_CREAT|O_RDWR, 0600); 
    free_memory(dbf);
    if (mdb->cfd < 0) {
-      Mmsg2(&mdb->errmsg, "Unable to open Catalog DB control file %s: ERR=%s\n", 
+      Mmsg2(&mdb->errmsg, _("Unable to open Catalog DB control file %s: ERR=%s\n"), 
 	 dbf, strerror(errno));
       V(mutex);
       return 0;
@@ -213,12 +214,12 @@ db_open_database(B_DB *mdb)
    badctl = 0;
    lseek(mdb->cfd, 0, SEEK_SET);      /* seek to begining of control file */
    if (read(mdb->cfd, &mdb->control, sizeof(mdb->control)) != sizeof(mdb->control)) {
-      Mmsg1(&mdb->errmsg, "Error reading catalog DB control file. ERR=%s\n", strerror(errno));
+      Mmsg1(&mdb->errmsg, _("Error reading catalog DB control file. ERR=%s\n"), strerror(errno));
       badctl = 1;
    } else if (mdb->control.bdb_version != BDB_VERSION) {
-      Mmsg2(&mdb->errmsg, "Error, catalog DB control file wrong version. \
+      Mmsg2(&mdb->errmsg, _("Error, catalog DB control file wrong version. \
 Wanted %d, got %d\n\
-Please reinitialize the working directory.\n", 
+Please reinitialize the working directory.\n"), 
 	 BDB_VERSION, mdb->control.bdb_version);
       badctl = 1;
    }

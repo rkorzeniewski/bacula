@@ -657,10 +657,24 @@ bnet_close(BSOCK *bsock)
 void
 term_bsock(BSOCK *bsock)
 {
-   free_pool_memory(bsock->msg);
-   free_pool_memory(bsock->errmsg);
-   free(bsock->who);
-   free(bsock->host);
+   if (bsock->msg) {
+      free_pool_memory(bsock->msg);
+      bsock->msg = NULL;
+   } else {
+      ASSERT(1=0);		      /* double close */
+   }
+   if (bsock->errmsg) {
+      free_pool_memory(bsock->errmsg);
+      bsock->errmsg = NULL;
+   }
+   if (bsock->who) {
+      free(bsock->who);
+      bsock->who = NULL;
+   }
+   if (bsock->host) {
+      free(bsock->host);
+      bsock->host = NULL;
+   }
    free(bsock);
 }
  

@@ -225,7 +225,11 @@ int restorecmd(UAContext *ua, char *cmd)
    free_tree(tree.root);	      /* free the directory tree */
 
    if (bsr->JobId) {
-      complete_bsr(ua, bsr);	      /* find Vol, SessId, SessTime from JobIds */
+      if (!complete_bsr(ua, bsr)) {   /* find Vol, SessId, SessTime from JobIds */
+         bsendmsg(ua, _("Unable to construct a valid BSR. Cannot continue.\n"));
+	 free_bsr(bsr);
+	 return 0;
+      }
 //    print_bsr(ua, bsr);
       write_bsr_file(ua, bsr);
    } else {
@@ -1117,7 +1121,9 @@ static void free_name_list(NAME_LIST *name_list)
    for (i=0; i < name_list->num_ids; i++) {
       free(name_list->name[i]);
    }
-   free(name_list->name);
+   if (name_list->name) {
+      free(name_list->name);
+   }
    name_list->max_ids = 0;
    name_list->num_ids = 0;
 }
@@ -1131,6 +1137,12 @@ static void get_storage_from_mediatype(UAContext *ua, NAME_LIST *name_list, JobI
       bsendmsg(ua, _("Warning, the JobIds that you selected refer to more than one MediaType.\n"
          "Restore is not possible. The MediaTypes used are:\n"));
       print_name_list(ua, name_list);
+      ji->store = select_storage_resource(ua);
+      return;
+   }
+
+   if (name_list->num_ids == 0) {
+      bsendmsg(ua, _("No MediaType found for your JobIds.\n"));
       ji->store = select_storage_resource(ua);
       return;
    }

@@ -138,11 +138,16 @@ init_dev(DEVICE *dev, char *dev_name)
    if (tape) {
       dev->state |= ST_TAPE;
    }
-   dev->dev_name = (char *) get_memory(strlen(dev_name)+1);
+   dev->dev_name = get_memory(strlen(dev_name)+1);
    strcpy(dev->dev_name, dev_name);
 
-   dev->errmsg = (char *) get_pool_memory(PM_EMSG);
+   dev->errmsg = get_pool_memory(PM_EMSG);
    *dev->errmsg = 0;
+
+   if ((errstat=rwl_init(&dev->lock)) != 0) {
+      Mmsg1(&dev->errmsg, _("Unable to initialize dev lock. ERR=%s\n"), strerror(errstat));
+      Emsg0(M_FATAL, 0, dev->errmsg);
+   }
 
    if ((errstat = pthread_mutex_init(&dev->mutex, NULL)) != 0) {
       dev->dev_errno = errstat;
@@ -1068,6 +1073,7 @@ term_dev(DEVICE *dev)
       free_pool_memory(dev->errmsg);
       dev->errmsg = NULL;
    }
+   rwl_destroy(&dev->lock);
    pthread_mutex_destroy(&dev->mutex);
    pthread_cond_destroy(&dev->wait);
    pthread_cond_destroy(&dev->wait_next_vol);

@@ -270,7 +270,7 @@ static void do_setup(char *infname)
    }
 
    pm_strcpy(&jcr->VolumeName, VolName);
-   Dmsg1(000, "Volume=%s\n", jcr->VolumeName);
+   Dmsg1(100, "Volume=%s\n", jcr->VolumeName);
    if (!acquire_device_for_read(jcr, dev, block)) {
       Emsg0(M_ERROR, 0, dev->errmsg);
       exit(1);

@@ -240,10 +240,12 @@ static int unser_block_header(DEVICE *dev, DEV_BLOCK *block)
 int write_block_to_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 {
    int stat = 1;
+   new_lock_device(dev);
    lock_device(dev);
    if (!write_block_to_dev(dev, block)) {
        stat = fixup_device_block_write_error(jcr, dev, block);
    }
+   new_unlock_device(dev);
    unlock_device(dev);
    return stat;
 }
@@ -368,8 +370,10 @@ int read_block_from_device(DEVICE *dev, DEV_BLOCK *block)
 {
    int stat;
    Dmsg0(90, "Enter read_block_from_device\n");
+   new_lock_device(dev);
    lock_device(dev);
    stat = read_block_from_dev(dev, block);
+   new_unlock_device(dev);
    unlock_device(dev);
    Dmsg0(90, "Leave read_block_from_device\n");
    return stat;

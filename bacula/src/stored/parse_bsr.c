@@ -698,6 +698,9 @@ void create_vol_list(JCR *jcr)
    jcr->CurVolume = 1;
    if (jcr->bsr) {
       BSR *bsr = jcr->bsr;
+      if (!bsr->volume || !bsr->volume->VolumeName) {
+	 return;
+      }
       strcpy(jcr->VolumeName, bsr->volume->VolumeName); /* setup first volume */
       for ( ; bsr; bsr=bsr->next) {
 	 BSR_VOLUME *bsrvol = bsr->volume;

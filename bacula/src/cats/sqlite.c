@@ -100,6 +100,7 @@ db_open_database(B_DB *mdb)
    char *db_name;
    int len;
    struct stat statbuf;
+   int errstat;
 
    P(mutex);
    if (mdb->connected) {
@@ -108,8 +109,9 @@ db_open_database(B_DB *mdb)
    }
    mdb->connected = FALSE;
 
-   if (rwl_init(&mdb->lock) != 0) {
-      Mmsg1(&mdb->errmsg, _("Unable to initialize DB lock. ERR=%s\n"), strerror(errno));
+   if ((errstat=rwl_init(&mdb->lock)) != 0) {
+      Mmsg1(&mdb->errmsg, _("Unable to initialize DB lock. ERR=%s\n"), 
+	    strerror(errstat));
       V(mutex);
       return 0;
    }
