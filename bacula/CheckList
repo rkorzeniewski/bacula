@@ -15,4 +15,4 @@
 - cvs -q tag Release-1_nn
 - cd bacula
 - rm -rf bacula-1.nn
-- cvs -q export -r Release-1_nn -d bacula-1.nn bacula
+- cvs -z3 export -r Release-1_nn -d bacula-1.nn bacula

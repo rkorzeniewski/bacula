@@ -79,12 +79,17 @@ static void write_findex(UAContext *ua, RBSR_FINDEX *fi,
    }
 }
 
+/*
+ * Find out if Volume defined with FirstIndex and LastIndex
+ *   falls within the range of selected files in the bsr.
+ */
 static bool is_volume_selected(RBSR_FINDEX *fi, 
 	      int32_t FirstIndex, int32_t LastIndex) 
 {
    if (fi) {
       if ((fi->findex >= FirstIndex && fi->findex <= LastIndex) ||
-	  (fi->findex2 >= FirstIndex && fi->findex2 <= LastIndex)) {
+	  (fi->findex2 >= FirstIndex && fi->findex2 <= LastIndex) ||
+	  (fi->findex < FirstIndex && fi->findex2 > LastIndex)) {
 	 return true;
       }
       return is_volume_selected(fi->next, FirstIndex, LastIndex);
