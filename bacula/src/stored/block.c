@@ -301,7 +301,7 @@ int write_block_to_dev(DEVICE *dev, DEV_BLOCK *block)
 
    /* Limit maximum Volume size to value specified by user */
    if ((dev->max_volume_size > 0) &&
-       ((int64_t) (dev->VolCatInfo.VolCatBytes + block->binbuf)) >= dev->max_volume_size) {
+       ((dev->VolCatInfo.VolCatBytes + block->binbuf)) >= dev->max_volume_size) {
       dev->state |= ST_WEOT;
       Dmsg0(10, "==== Output bytes Triggered medium max capacity.\n");
       Mmsg2(&dev->errmsg, _("Max. Volume capacity %" lld " exceeded on device %s.\n"),
@@ -346,7 +346,7 @@ int write_block_to_dev(DEVICE *dev, DEV_BLOCK *block)
    /* Limit maximum File size on volume to user specified value */
    if ((dev->max_file_size > 0) &&
        dev->file_bytes >= dev->max_file_size) {
-      weof(dev, 1);		      /* write end of file */
+      weof_dev(dev, 1); 	      /* write eof */
    }
 
    Dmsg2(190, "write_block: wrote block %d bytes=%d\n", dev->block_num,

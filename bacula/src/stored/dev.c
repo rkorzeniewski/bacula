@@ -397,7 +397,7 @@ int update_pos_dev(DEVICE *dev)
    /* Find out where we are */
    if (!(dev->state & ST_TAPE)) {
       dev->file = 0;
-      dev->file_bytes - 0;
+      dev->file_bytes = 0;
       pos = lseek(dev->fd, 0, SEEK_CUR);
       if (pos < 0) {
          Dmsg1(200, "Seek error: ERR=%s\n", strerror(dev->dev_errno));
