@@ -9,6 +9,7 @@ tests/restore-by-file-tape
 tests/incremental-tape
 tests/four-concurrent-jobs-tape
 tests/four-jobs-tape
+tests/fixed-block-size-tape
 echo " "
 echo " "
 echo "Test results"
