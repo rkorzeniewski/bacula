@@ -39,7 +39,7 @@ struct BSOCK {
    int32_t msglen;                    /* message length */
    int b_errno;                       /* bsock errno */
    int port;                          /* desired port */
-   volatile bool errors: 1;           /* set if errors on socket */
+   volatile int errors;               /* incremented for each error on socket */
    volatile bool suppress_error_msgs: 1; /* set to suppress error messages */
    volatile bool timed_out: 1;        /* timed out in read/write */
    volatile bool terminated: 1;       /* set when BNET_TERMINATE arrives */

@@ -94,7 +94,7 @@ bool skip_nonspaces(char **msg)
 
 /* folded search for string - case insensitive */
 int
-fstrsch(const char *a, const char *b)   /* folded case search */
+fstrsch(const char *a, const char *b)	/* folded case search */
 {
    const char *s1,*s2;
    char c1, c2;
@@ -245,7 +245,7 @@ int parse_args(POOLMEM *cmd, POOLMEM **args, int *argc,
 void split_path_and_filename(const char *fname, POOLMEM **path, int *pnl,
 	POOLMEM **file, int *fnl)
 {
-   const char *p, *f;
+   const char *f;
    int slen;
    int len = slen = strlen(fname);
 
@@ -256,7 +256,6 @@ void split_path_and_filename(const char *fname, POOLMEM **path, int *pnl,
     * a filename. If we don't find a / then the whole name
     * must be a path name (e.g. c:).
     */
-   p = fname;
    f = fname + len - 1;
    /* "strip" any trailing slashes */
    while (slen > 1 && *f == '/') {

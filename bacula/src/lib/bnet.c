@@ -36,21 +36,21 @@
 extern time_t watchdog_time;
 
 #ifndef   INADDR_NONE
-#define   INADDR_NONE    -1
+#define   INADDR_NONE	 -1
 #endif
 
-#ifndef ENODATA                       /* not defined on BSD systems */
+#ifndef ENODATA 		      /* not defined on BSD systems */
 #define ENODATA EPIPE
 #endif
 
 #ifdef HAVE_WIN32
 #define socketRead(fd, buf, len)  recv(fd, buf, len, 0)
 #define socketWrite(fd, buf, len) send(fd, buf, len, 0)
-#define socketClose(fd)           closesocket(fd)
+#define socketClose(fd) 	  closesocket(fd)
 #else
 #define socketRead(fd, buf, len)  read(fd, buf, len)
 #define socketWrite(fd, buf, len) write(fd, buf, len)
-#define socketClose(fd)           close(fd)
+#define socketClose(fd) 	  close(fd)
 #endif
 
 
@@ -67,19 +67,19 @@ static int32_t read_nbytes(BSOCK *bsock, char *ptr, int32_t nbytes)
    nleft = nbytes;
    while (nleft > 0) {
       do {
-         errno = 0;
-         nread = socketRead(bsock->fd, ptr, nleft);      
-         if (bsock->timed_out || bsock->terminated) {
-            return nread;
-         }
+	 errno = 0;
+	 nread = socketRead(bsock->fd, ptr, nleft);	 
+	 if (bsock->timed_out || bsock->terminated) {
+	    return nread;
+	 }
       } while (nread == -1 && (errno == EINTR || errno == EAGAIN));
       if (nread <= 0) {
-         return nread;               /* error, or EOF */
+	 return nread;		     /* error, or EOF */
       }
       nleft -= nread;
       ptr += nread;
    }
-   return nbytes - nleft;            /* return >= 0 */
+   return nbytes - nleft;	     /* return >= 0 */
 }
 
 /*
@@ -96,18 +96,18 @@ static int32_t write_nbytes(BSOCK *bsock, char *ptr, int32_t nbytes)
       if (nwritten != nbytes) {
          Qmsg1(bsock->jcr, M_FATAL, 0, _("Attr spool write error. ERR=%s\n"), strerror(errno));
          Dmsg2(400, "nwritten=%d nbytes=%d.\n", nwritten, nbytes);
-         return -1;
+	 return -1;
       }
       return nbytes;
    }
    nleft = nbytes;
    while (nleft > 0) {
       do {
-         errno = 0;
-         nwritten = socketWrite(bsock->fd, ptr, nleft);
-         if (bsock->timed_out || bsock->terminated) {
-            return nwritten;
-         }
+	 errno = 0;
+	 nwritten = socketWrite(bsock->fd, ptr, nleft);
+	 if (bsock->timed_out || bsock->terminated) {
+	    return nwritten;
+	 }
       } while (nwritten == -1 && errno == EINTR);
       /*
        * If connection is non-blocking, we will get EAGAIN, so
@@ -115,18 +115,18 @@ static int32_t write_nbytes(BSOCK *bsock, char *ptr, int32_t nbytes)
        * and try again.
        */
       if (nwritten == -1 && errno == EAGAIN) {
-         fd_set fdset;
-         struct timeval tv;
+	 fd_set fdset;
+	 struct timeval tv;
 
-         FD_ZERO(&fdset);
-         FD_SET((unsigned)bsock->fd, &fdset);
-         tv.tv_sec = 10;
-         tv.tv_usec = 0;
-         select(bsock->fd + 1, NULL, &fdset, NULL, &tv);
-         continue;
+	 FD_ZERO(&fdset);
+	 FD_SET((unsigned)bsock->fd, &fdset);
+	 tv.tv_sec = 10;
+	 tv.tv_usec = 0;
+	 select(bsock->fd + 1, NULL, &fdset, NULL, &tv);
+	 continue;
       }
       if (nwritten <= 0) {
-         return nwritten;            /* error */
+	 return nwritten;	     /* error */
       }
       nleft -= nwritten;
       ptr += nwritten;
@@ -141,13 +141,13 @@ static int32_t write_nbytes(BSOCK *bsock, char *ptr, int32_t nbytes)
  * Returns number of bytes read (may return zero)
  * Returns -1 on signal (BNET_SIGNAL) 
  * Returns -2 on hard end of file (BNET_HARDEOF)
- * Returns -3 on error  (BNET_ERROR)
+ * Returns -3 on error	(BNET_ERROR)
  *
  *  Unfortunately, it is a bit complicated because we have these
  *    four return types:
  *    1. Normal data
  *    2. Signal including end of data stream
- *    3. Hard end of file                 
+ *    3. Hard end of file		  
  *    4. Error
  *  Using is_bnet_stop() and is_bnet_error() you can figure this all out.
  */
@@ -162,54 +162,54 @@ int32_t bnet_recv(BSOCK *bsock)
       return BNET_HARDEOF;
    }
 
-   bsock->read_seqno++;               /* bump sequence number */
-   bsock->timer_start = watchdog_time;  /* set start wait time */
+   bsock->read_seqno++; 	      /* bump sequence number */
+   bsock->timer_start = watchdog_time;	/* set start wait time */
    bsock->timed_out = 0;
    /* get data size -- in int32_t */
    if ((nbytes = read_nbytes(bsock, (char *)&pktsiz, sizeof(int32_t))) <= 0) {
-      bsock->timer_start = 0;         /* clear timer */
+      bsock->timer_start = 0;	      /* clear timer */
       /* probably pipe broken because client died */
       if (errno == 0) {
-         bsock->b_errno = ENODATA;
+	 bsock->b_errno = ENODATA;
       } else {
-         bsock->b_errno = errno;
+	 bsock->b_errno = errno;
       }
       bsock->errors++;
-      return BNET_HARDEOF;            /* assume hard EOF received */
+      return BNET_HARDEOF;	      /* assume hard EOF received */
    }
-   bsock->timer_start = 0;            /* clear timer */
+   bsock->timer_start = 0;	      /* clear timer */
    if (nbytes != sizeof(int32_t)) {
       bsock->errors++;
       bsock->b_errno = EIO;
       Qmsg5(bsock->jcr, M_ERROR, 0, _("Read expected %d got %d from %s:%s:%d\n"), 
-            sizeof(int32_t), nbytes, bsock->who, bsock->host, bsock->port);
+	    sizeof(int32_t), nbytes, bsock->who, bsock->host, bsock->port);
       return BNET_ERROR;
    }
 
-   pktsiz = ntohl(pktsiz);            /* decode no. of bytes that follow */
+   pktsiz = ntohl(pktsiz);	      /* decode no. of bytes that follow */
 
-   if (pktsiz == 0) {                 /* No data transferred */
-      bsock->timer_start = 0;         /* clear timer */
+   if (pktsiz == 0) {		      /* No data transferred */
+      bsock->timer_start = 0;	      /* clear timer */
       bsock->in_msg_no++;
       bsock->msglen = 0;
-      return 0;                       /* zero bytes read */
+      return 0; 		      /* zero bytes read */
    }
 
    /* If signal or packet size too big */
    if (pktsiz < 0 || pktsiz > 1000000) {
-      if (pktsiz > 0) {               /* if packet too big */
-         Qmsg3(bsock->jcr, M_FATAL, 0, 
+      if (pktsiz > 0) { 	      /* if packet too big */
+	 Qmsg3(bsock->jcr, M_FATAL, 0, 
             _("Packet size too big from \"%s:%s:%d. Terminating connection.\n"),
-            bsock->who, bsock->host, bsock->port);
-         pktsiz = BNET_TERMINATE;     /* hang up */
+	    bsock->who, bsock->host, bsock->port);
+	 pktsiz = BNET_TERMINATE;     /* hang up */
       }
       if (pktsiz == BNET_TERMINATE) {
-         bsock->terminated = 1;
+	 bsock->terminated = 1;
       }
-      bsock->timer_start = 0;         /* clear timer */
+      bsock->timer_start = 0;	      /* clear timer */
       bsock->b_errno = ENODATA;
-      bsock->msglen = pktsiz;         /* signal code */
-      return BNET_SIGNAL;             /* signal */
+      bsock->msglen = pktsiz;	      /* signal code */
+      return BNET_SIGNAL;	      /* signal */
    }
 
    /* Make sure the buffer is big enough + one byte for EOS */
@@ -217,29 +217,29 @@ int32_t bnet_recv(BSOCK *bsock)
       bsock->msg = realloc_pool_memory(bsock->msg, pktsiz + 100);
    }
 
-   bsock->timer_start = watchdog_time;  /* set start wait time */
+   bsock->timer_start = watchdog_time;	/* set start wait time */
    bsock->timed_out = 0;
    /* now read the actual data */
    if ((nbytes = read_nbytes(bsock, mp_chr(bsock->msg), pktsiz)) <=  0) {
-      bsock->timer_start = 0;         /* clear timer */
+      bsock->timer_start = 0;	      /* clear timer */
       if (errno == 0) {
-         bsock->b_errno = ENODATA;
+	 bsock->b_errno = ENODATA;
       } else {
-         bsock->b_errno = errno;
+	 bsock->b_errno = errno;
       }
       bsock->errors++;
       Qmsg4(bsock->jcr, M_ERROR, 0, _("Read error from %s:%s:%d: ERR=%s\n"), 
-            bsock->who, bsock->host, bsock->port, bnet_strerror(bsock));
+	    bsock->who, bsock->host, bsock->port, bnet_strerror(bsock));
       return BNET_ERROR;
    }
-   bsock->timer_start = 0;            /* clear timer */
+   bsock->timer_start = 0;	      /* clear timer */
    bsock->in_msg_no++;
    bsock->msglen = nbytes;
    if (nbytes != pktsiz) {
       bsock->b_errno = EIO;
       bsock->errors++;
       Qmsg5(bsock->jcr, M_ERROR, 0, _("Read expected %d got %d from %s:%s:%d\n"), pktsiz, nbytes,
-            bsock->who, bsock->host, bsock->port);
+	    bsock->who, bsock->host, bsock->port);
       return BNET_ERROR;
    }
    /* always add a zero by to properly terminate any
@@ -248,12 +248,12 @@ int32_t bnet_recv(BSOCK *bsock)
     */
    mp_chr(bsock->msg)[nbytes] = 0;    /* terminate in case it is a string */
    sm_check(__FILE__, __LINE__, false);
-   return nbytes;                     /* return actual length of message */
+   return nbytes;		      /* return actual length of message */
 }
 
 
 /*
- * Return 1 if there are errors on this bsock or it is closed,  
+ * Return 1 if there are errors on this bsock or it is closed,	
  *   i.e. stop communicating on this line.
  */
 bool is_bnet_stop(BSOCK *bsock) 
@@ -295,21 +295,21 @@ int bnet_despool_to_bsock(BSOCK *bsock, void update_attr_spool_size(ssize_t size
       size += sizeof(int32_t);
       bsock->msglen = ntohl(pktsiz);
       if (bsock->msglen > 0) {
-         if (bsock->msglen > (int32_t)sizeof_pool_memory(bsock->msg)) {
-            bsock->msg = realloc_pool_memory(bsock->msg, bsock->msglen + 1);
-         }
-         nbytes = fread(bsock->msg, 1, bsock->msglen, bsock->spool_fd);
-         if (nbytes != (size_t)bsock->msglen) {
+	 if (bsock->msglen > (int32_t)sizeof_pool_memory(bsock->msg)) {
+	    bsock->msg = realloc_pool_memory(bsock->msg, bsock->msglen + 1);
+	 }
+	 nbytes = fread(bsock->msg, 1, bsock->msglen, bsock->spool_fd);
+	 if (nbytes != (size_t)bsock->msglen) {
             Dmsg2(400, "nbytes=%d msglen=%d\n", nbytes, bsock->msglen);
             Qmsg1(bsock->jcr, M_FATAL, 0, _("fread attr spool error. ERR=%s\n"), strerror(errno));
-            update_attr_spool_size(tsize-last);
-            return 0;
-         }
-         size += nbytes;
-         if ((++count & 0x3F) == 0) {
-            update_attr_spool_size(size-last);
-            last = size;
-         }
+	    update_attr_spool_size(tsize-last);
+	    return 0;
+	 }
+	 size += nbytes;
+	 if ((++count & 0x3F) == 0) {
+	    update_attr_spool_size(size-last);
+	    last = size;
+	 }
       }
       bnet_send(bsock);
    }
@@ -328,73 +328,71 @@ int bnet_despool_to_bsock(BSOCK *bsock, void update_attr_spool_size(ssize_t size
  * the length of the data packet which follows.
  *
  * Returns: 0 on failure
- *          1 on success
+ *	    1 on success
  */
 bool
 bnet_send(BSOCK *bsock)
 {
    int32_t rc;
    int32_t pktsiz;
-   int32_t msglen;
 
    if (bsock->errors || bsock->terminated || bsock->msglen > 1000000) {
       return false;
    }
-   msglen = bsock->msglen;
    pktsiz = htonl((int32_t)bsock->msglen);
    /* send int32_t containing size of data packet */
    bsock->timer_start = watchdog_time; /* start timer */
-   bsock->timed_out = 0;               
+   bsock->timed_out = 0;	       
    rc = write_nbytes(bsock, (char *)&pktsiz, sizeof(int32_t));
-   bsock->timer_start = 0;            /* clear timer */
+   bsock->timer_start = 0;	      /* clear timer */
    if (rc != sizeof(int32_t)) {
       if (bsock->msglen == BNET_TERMINATE) { /* if we were terminating */
-         bsock->terminated = 1;
-         return false;                /* ignore any errors */
+	 bsock->terminated = 1;
+	 return false;		      /* ignore any errors */
       }
       bsock->errors++;
       if (errno == 0) {
-         bsock->b_errno = EIO;
+	 bsock->b_errno = EIO;
       } else {
-         bsock->b_errno = errno;
+	 bsock->b_errno = errno;
       }
       if (rc < 0) {
-         if (!bsock->suppress_error_msgs && !bsock->timed_out) {
+	 if (!bsock->suppress_error_msgs && !bsock->timed_out) {
             Qmsg4(bsock->jcr, M_ERROR, 0, _("Write error sending to %s:%s:%d: ERR=%s\n"), 
-                  bsock->who, bsock->host, bsock->port,  bnet_strerror(bsock));
-         }
+		  bsock->who, bsock->host, bsock->port,  bnet_strerror(bsock));
+	 }
       } else {
          Qmsg5(bsock->jcr, M_ERROR, 0, _("Wrote %d bytes to %s:%s:%d, but only %d accepted.\n"), 
-               bsock->who, bsock->host, bsock->port, bsock->msglen, rc);
+	       bsock->who, bsock->host, bsock->port, bsock->msglen, rc);
       }
       return false;
    }
 
-   bsock->out_msg_no++;               /* increment message number */
-   if (bsock->msglen <= 0) {          /* length only? */
-      return true;                    /* yes, no data */
+   bsock->out_msg_no++; 	      /* increment message number */
+   if (bsock->msglen <= 0) {	      /* length only? */
+      return true;		      /* yes, no data */
    }
 
    /* send data packet */
    bsock->timer_start = watchdog_time; /* start timer */
-   bsock->timed_out = 0;               
+   bsock->timed_out = 0;	       
    rc = write_nbytes(bsock, mp_chr(bsock->msg), bsock->msglen);
-   bsock->timer_start = 0;            /* clear timer */
+   bsock->timer_start = 0;	      /* clear timer */
    if (rc != bsock->msglen) {
       bsock->errors++;
       if (errno == 0) {
-         bsock->b_errno = EIO;
+	 bsock->b_errno = EIO;
       } else {
-         bsock->b_errno = errno;
+	 bsock->b_errno = errno;
       }
       if (rc < 0) {
-         if (!bsock->suppress_error_msgs) {
+	 if (!bsock->suppress_error_msgs) {
             Qmsg4(bsock->jcr, M_ERROR, 0, _("Write error sending to %s:%s:%d: ERR=%s\n"), 
-                  bsock->who, bsock->host, bsock->port,  bnet_strerror(bsock));
-         }
+		  bsock->who, bsock->host, bsock->port,  bnet_strerror(bsock));
+	 }
       } else {
          Qmsg5(bsock->jcr, M_ERROR, 0, _("Wrote %d bytes to %s:%s:%d, but only %d accepted.\n"), 
-               bsock->msglen, bsock->who, bsock->host, bsock->port, rc);
+	       bsock->msglen, bsock->who, bsock->host, bsock->port, rc);
       }
       return false;
    }
@@ -402,13 +400,13 @@ bnet_send(BSOCK *bsock)
 }
 
 /*
- * Establish an SSL connection -- server side         
+ * Establish an SSL connection -- server side	      
  *  Codes that ssl_need and ssl_has can take
- *    BNET_SSL_NONE      I cannot do ssl
- *    BNET_SSL_OK        I can do ssl, but it is not required on my end
+ *    BNET_SSL_NONE	 I cannot do ssl
+ *    BNET_SSL_OK	 I can do ssl, but it is not required on my end
  *    BNET_SSL_REQUIRED  ssl is required on my end
  */
-int     
+int	
 bnet_ssl_server(BSOCK *bsock, char *password, int ssl_need, int ssl_has)
 {
    /* Check to see if what we need (ssl_need) corresponds to what he has (ssl_has) */
@@ -417,7 +415,7 @@ bnet_ssl_server(BSOCK *bsock, char *password, int ssl_need, int ssl_has)
 }
 
 /*
- * Establish an SSL connection -- client side   
+ * Establish an SSL connection -- client side	
  */
 int bnet_ssl_client(BSOCK *bsock, char *password, int ssl_need)
 {
@@ -431,11 +429,11 @@ int bnet_ssl_client(BSOCK *bsock, char *password, int ssl_need)
  * the BSOCK connection.
  *
  *   Returns: 1 if data available
- *            0 if timeout
- *           -1 if error
+ *	      0 if timeout
+ *	     -1 if error
  */
 int 
-bnet_wait_data(BSOCK *bsock, int sec)          
+bnet_wait_data(BSOCK *bsock, int sec)	       
 {
    fd_set fdset;
    struct timeval tv;
@@ -446,18 +444,18 @@ bnet_wait_data(BSOCK *bsock, int sec)
    tv.tv_usec = 0;
    for ( ;; ) {
       switch(select(bsock->fd + 1, &fdset, NULL, NULL, &tv)) {
-      case 0:                         /* timeout */
-         bsock->b_errno = 0;
-         return 0;
+      case 0:			      /* timeout */
+	 bsock->b_errno = 0;
+	 return 0;
       case -1:
-         bsock->b_errno = errno;
-         if (errno == EINTR || errno == EAGAIN) {
-            continue;
-         }
-         return -1;                  /* error return */
+	 bsock->b_errno = errno;
+	 if (errno == EINTR || errno == EAGAIN) {
+	    continue;
+	 }
+	 return -1;		     /* error return */
       default:
-         bsock->b_errno = 0;
-         return 1;
+	 bsock->b_errno = 0;
+	 return 1;
       }
    }
 }
@@ -466,7 +464,7 @@ bnet_wait_data(BSOCK *bsock, int sec)
  * As above, but returns on interrupt
  */
 int
-bnet_wait_data_intr(BSOCK *bsock, int sec)          
+bnet_wait_data_intr(BSOCK *bsock, int sec)	    
 {
    fd_set fdset;
    struct timeval tv;
@@ -477,36 +475,36 @@ bnet_wait_data_intr(BSOCK *bsock, int sec)
    tv.tv_usec = 0;
    for ( ;; ) {
       switch(select(bsock->fd + 1, &fdset, NULL, NULL, &tv)) {
-      case 0:                         /* timeout */
-         bsock->b_errno = 0;
-         return 0;
+      case 0:			      /* timeout */
+	 bsock->b_errno = 0;
+	 return 0;
       case -1:
-         bsock->b_errno = errno;
-         return -1;                  /* error return */
+	 bsock->b_errno = errno;
+	 return -1;		     /* error return */
       default:
-         bsock->b_errno = 0;
-         return 1;
+	 bsock->b_errno = 0;
+	 return 1;
       }
    }
 }
 
 #ifndef NETDB_INTERNAL
-#define NETDB_INTERNAL  -1      /* See errno. */
+#define NETDB_INTERNAL	-1	/* See errno. */
 #endif
 #ifndef NETDB_SUCCESS
-#define NETDB_SUCCESS   0       /* No problem. */
+#define NETDB_SUCCESS	0	/* No problem. */
 #endif
 #ifndef HOST_NOT_FOUND
-#define HOST_NOT_FOUND  1       /* Authoritative Answer Host not found. */
+#define HOST_NOT_FOUND	1	/* Authoritative Answer Host not found. */
 #endif
 #ifndef TRY_AGAIN
-#define TRY_AGAIN       2       /* Non-Authoritative Host not found, or SERVERFAIL. */
+#define TRY_AGAIN	2	/* Non-Authoritative Host not found, or SERVERFAIL. */
 #endif
 #ifndef NO_RECOVERY
-#define NO_RECOVERY     3       /* Non recoverable errors, FORMERR, REFUSED, NOTIMP. */
+#define NO_RECOVERY	3	/* Non recoverable errors, FORMERR, REFUSED, NOTIMP. */
 #endif
 #ifndef NO_DATA
-#define NO_DATA         4       /* Valid name, no data record of requested type. */
+#define NO_DATA 	4	/* Valid name, no data record of requested type. */
 #endif
 
 /*
@@ -542,7 +540,7 @@ static pthread_mutex_t ip_mutex = PTHREAD_MUTEX_INITIALIZER;
 static uint32_t *bget_host_ip(JCR *jcr, char *host)
 {
    struct in_addr inaddr;
-   uint32_t *addr_list;               /* this really should be struct in_addr */
+   uint32_t *addr_list; 	      /* this really should be struct in_addr */
    struct hostent *hp;
    char **p;
    int i;
@@ -555,25 +553,25 @@ static uint32_t *bget_host_ip(JCR *jcr, char *host)
       P(ip_mutex);
       if ((hp = gethostbyname(host)) == NULL) {
          Qmsg2(jcr, M_ERROR, 0, "gethostbyname() for host \"%s\" failed: ERR=%s\n", 
-               host, gethost_strerror());
-         V(ip_mutex);
-         return NULL;
+	       host, gethost_strerror());
+	 V(ip_mutex);
+	 return NULL;
       }
       if (hp->h_length != sizeof(inaddr.s_addr) || hp->h_addrtype != AF_INET) {
          Qmsg2(jcr, M_ERROR, 0, _("gethostbyname() network address length error.\n\
 Wanted %d got %d bytes for s_addr.\n"), sizeof(inaddr.s_addr), hp->h_length);
-         V(ip_mutex);
-         return NULL;
+	 V(ip_mutex);
+	 return NULL;
       }
       i = 0;
       for (p = hp->h_addr_list; *p != 0; p++) {
-         i++;
+	 i++;
       }
       i++;
       addr_list = (uint32_t *)malloc(sizeof(uint32_t) * i);
       i = 0;
       for (p = hp->h_addr_list; *p != 0; p++) {
-         addr_list[i++] = (*(struct in_addr **)p)->s_addr;
+	 addr_list[i++] = (*(struct in_addr **)p)->s_addr;
       }
       addr_list[i] = (uint32_t) -1;
       V(ip_mutex);
@@ -592,7 +590,7 @@ static BSOCK *
 bnet_open(JCR *jcr, const char *name, char *host, char *service, int port, int *fatal)
 {
    int sockfd;
-   struct sockaddr_in tcp_serv_addr;     /* socket information */
+   struct sockaddr_in tcp_serv_addr;	 /* socket information */
    uint32_t *addr_list;
    int i, connected = 0;
    int turnon = 1;
@@ -628,7 +626,7 @@ bnet_open(JCR *jcr, const char *name, char *host, char *service, int port, int *
       /* connect to server */
       tcp_serv_addr.sin_addr.s_addr = addr_list[i];
       if (connect(sockfd, (struct sockaddr *)&tcp_serv_addr, sizeof(tcp_serv_addr)) < 0) {
-         continue;
+	 continue;
       }
       connected = 1;
       break;
@@ -647,7 +645,7 @@ bnet_open(JCR *jcr, const char *name, char *host, char *service, int port, int *
  */
 BSOCK *
 bnet_connect(JCR *jcr, int retry_interval, int max_retry_time, const char *name,
-             char *host, char *service, int port, int verbose)
+	     char *host, char *service, int port, int verbose)
 {
    int i;
    BSOCK *bsock;
@@ -655,13 +653,13 @@ bnet_connect(JCR *jcr, int retry_interval, int max_retry_time, const char *name,
 
    for (i=0; (bsock = bnet_open(jcr, name, host, service, port, &fatal)) == NULL; i -= retry_interval) {
      if (fatal || (jcr && job_canceled(jcr))) {
-        return NULL;
+	return NULL;
      }
      Dmsg4(100, "Unable to connect to %s on %s:%d. ERR=%s\n",
-              name, host, port, strerror(errno));
+	      name, host, port, strerror(errno));
       if (i < 0) {
-         i = 60 * 5;                  /* complain again in 5 minutes */
-         if (verbose)
+	 i = 60 * 5;		      /* complain again in 5 minutes */
+	 if (verbose)
             Qmsg4(jcr, M_WARNING, 0, "Could not connect to %s on %s:%d. ERR=%s\n\
 Retrying ...\n", name, host, port, strerror(errno));
       }
@@ -669,8 +667,8 @@ Retrying ...\n", name, host, port, strerror(errno));
       max_retry_time -= retry_interval;
       if (max_retry_time <= 0) {
          Qmsg4(jcr, M_FATAL, 0, _("Unable to connect to %s on %s:%d. ERR=%s\n"),
-              name, host, port, strerror(errno));
-         return NULL;
+	      name, host, port, strerror(errno));
+	 return NULL;
       }
    }
    return bsock;
@@ -689,7 +687,7 @@ char *bnet_strerror(BSOCK *bsock)
 /*
  * Format and send a message
  *  Returns: 0 on failure
- *           1 on success
+ *	     1 on success
  */
 bool
 bnet_fsend(BSOCK *bs, const char *fmt, ...)
@@ -722,7 +720,7 @@ again:
  *  Actual size obtained is returned in bs->msglen
  *
  *  Returns: 0 on failure
- *           1 on success
+ *	     1 on success
  */
 bool bnet_set_buffer_size(BSOCK *bs, uint32_t size, int rw)
 {
@@ -746,9 +744,9 @@ bool bnet_set_buffer_size(BSOCK *bs, uint32_t size, int rw)
    }
    if (rw & BNET_SETBUF_READ) {
       while ((dbuf_size > TAPE_BSIZE) &&
-         (setsockopt(bs->fd, SOL_SOCKET, SO_RCVBUF, (sockopt_val_t)&dbuf_size, sizeof(dbuf_size)) < 0)) {
+	 (setsockopt(bs->fd, SOL_SOCKET, SO_RCVBUF, (sockopt_val_t)&dbuf_size, sizeof(dbuf_size)) < 0)) {
          Qmsg1(bs->jcr, M_ERROR, 0, _("sockopt error: %s\n"), strerror(errno));
-         dbuf_size -= TAPE_BSIZE;
+	 dbuf_size -= TAPE_BSIZE;
       }
       Dmsg1(200, "set network buffer size=%d\n", dbuf_size);
       if (dbuf_size != start_size) {
@@ -756,7 +754,7 @@ bool bnet_set_buffer_size(BSOCK *bs, uint32_t size, int rw)
       }
       if (dbuf_size % TAPE_BSIZE != 0) {
          Qmsg1(bs->jcr, M_ABORT, 0, _("Network buffer size %d not multiple of tape block size.\n"),
-              dbuf_size);
+	      dbuf_size);
       }
    }
    if (size != 0) {
@@ -767,9 +765,9 @@ bool bnet_set_buffer_size(BSOCK *bs, uint32_t size, int rw)
    start_size = dbuf_size;
    if (rw & BNET_SETBUF_WRITE) {
       while ((dbuf_size > TAPE_BSIZE) &&
-         (setsockopt(bs->fd, SOL_SOCKET, SO_SNDBUF, (sockopt_val_t)&dbuf_size, sizeof(dbuf_size)) < 0)) {
+	 (setsockopt(bs->fd, SOL_SOCKET, SO_SNDBUF, (sockopt_val_t)&dbuf_size, sizeof(dbuf_size)) < 0)) {
          Qmsg1(bs->jcr, M_ERROR, 0, _("sockopt error: %s\n"), strerror(errno));
-         dbuf_size -= TAPE_BSIZE;
+	 dbuf_size -= TAPE_BSIZE;
       }
       Dmsg1(200, "set network buffer size=%d\n", dbuf_size);
       if (dbuf_size != start_size) {
@@ -777,7 +775,7 @@ bool bnet_set_buffer_size(BSOCK *bs, uint32_t size, int rw)
       }
       if (dbuf_size % TAPE_BSIZE != 0) {
          Qmsg1(bs->jcr, M_ABORT, 0, _("Network buffer size %d not multiple of tape block size.\n"),
-              dbuf_size);
+	      dbuf_size);
       }
    }
 
@@ -790,7 +788,7 @@ bool bnet_set_buffer_size(BSOCK *bs, uint32_t size, int rw)
  *  This consists of sending a negative packet length
  *
  *  Returns: 0 on failure
- *           1 on success
+ *	     1 on success
  */
 bool bnet_sig(BSOCK *bs, int sig)
 {
@@ -824,7 +822,7 @@ const char *bnet_sig_to_ascii(BSOCK *bs)
          return "BNET_PROMPT";
       default:
          sprintf(buf, "Unknown sig %d", bs->msglen);
-         return buf;
+	 return buf;
    }
 }
 
@@ -834,7 +832,7 @@ const char *bnet_sig_to_ascii(BSOCK *bs)
  */
 BSOCK *
 init_bsock(JCR *jcr, int sockfd, const char *who, const char *host, int port, 
-           struct sockaddr_in *client_addr) 
+	   struct sockaddr_in *client_addr) 
 {
    BSOCK *bsock = (BSOCK *)malloc(sizeof(BSOCK));
    memset(bsock, 0, sizeof(BSOCK));
@@ -848,7 +846,7 @@ init_bsock(JCR *jcr, int sockfd, const char *who, const char *host, int port,
    memcpy(&bsock->client_addr, client_addr, sizeof(bsock->client_addr));
    /*
     * ****FIXME**** reduce this to a few hours once   
-    *   heartbeats are implemented
+    *	heartbeats are implemented
     */
    bsock->timeout = 60 * 60 * 6 * 24; /* 6 days timeout */
    bsock->jcr = jcr;
@@ -881,10 +879,10 @@ bnet_close(BSOCK *bsock)
    for ( ; bsock != NULL; bsock = next) {
       next = bsock->next;
       if (!bsock->duped) {
-         if (bsock->timed_out) {
-            shutdown(bsock->fd, 2);   /* discard any pending I/O */
-         }
-         socketClose(bsock->fd);      /* normal close */
+	 if (bsock->timed_out) {
+	    shutdown(bsock->fd, 2);   /* discard any pending I/O */
+	 }
+	 socketClose(bsock->fd);      /* normal close */
       }
       term_bsock(bsock);
    }
@@ -898,7 +896,7 @@ term_bsock(BSOCK *bsock)
       free_pool_memory(bsock->msg);
       bsock->msg = NULL;
    } else {
-      ASSERT(1==0);                   /* double close */
+      ASSERT(1==0);		      /* double close */
    }
    if (bsock->errmsg) {
       free_pool_memory(bsock->errmsg);
