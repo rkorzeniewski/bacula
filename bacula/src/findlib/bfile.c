@@ -485,6 +485,9 @@ int bclose(BFILE *bfd)
 { 
    int stat;  
    Dmsg1(50, "Close file %d\n", bfd->fid);
+   if (bfd->fid == -1) {
+      return 0;
+   }
    stat = close(bfd->fid);
    bfd->berrno = errno;
    bfd->fid = -1;

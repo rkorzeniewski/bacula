@@ -39,6 +39,7 @@
 
 /* Imported functions */
 extern int runcmd(UAContext *ua, char *cmd);
+extern void print_bsr(UAContext *ua, RBSR *bsr);
 
 /* Imported variables */
 extern char *uar_list_jobs,	*uar_file,	  *uar_sel_files;
@@ -174,7 +175,6 @@ int restorecmd(UAContext *ua, char *cmd)
 	 free_rx(&rx);
 	 return 0;
       }
-//    print_bsr(ua, rx.bsr);
       write_bsr_file(ua, rx.bsr);
       bsendmsg(ua, _("\n%u file%s selected to restore.\n\n"), rx.selected_files,
          rx.selected_files==1?"":"s");
@@ -422,6 +422,9 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
 	 if (!get_client_name(ua, rx)) {
 	    return 0;
 	 }
+         bsendmsg(ua, _("Enter file names, or < to enter a filename\n"      
+                        "containg a list of file names, and terminate\n"
+                        "them with a blank line.\n"));
 	 for ( ;; ) {
             if (!get_cmd(ua, _("Enter filename: "))) {
 	       return 0;
@@ -513,6 +516,7 @@ static int insert_file_into_findex_list(UAContext *ua, RESTORE_CTX *rx, char *fi
    split_path_and_filename(rx, file);
    Mmsg(&rx->query, uar_jobid_fileindex, rx->path, rx->fname, rx->ClientName);
    rx->found = false;
+   /* Find and insert jobid and File Index */
    if (!db_sql_query(ua->db, rx->query, jobid_fileindex_handler, (void *)rx)) {
       bsendmsg(ua, _("Query failed: %s. ERR=%s\n"), 
 	 rx->query, db_strerror(ua->db));

@@ -1049,6 +1049,7 @@ static void filed_free_jcr(JCR *jcr)
    if (jcr->RestoreBootstrap) {
       unlink(jcr->RestoreBootstrap);
       free_pool_memory(jcr->RestoreBootstrap);
+      jcr->RestoreBootstrap = NULL;
    }
    if (jcr->last_fname) {
       free_pool_memory(jcr->last_fname);
@@ -1096,6 +1097,7 @@ static int send_bootstrap_file(JCR *jcr)
    char buf[2000];
    BSOCK *sd = jcr->store_bsock;
    char *bootstrap = "bootstrap\n";
+   int stat = 0;
 
    Dmsg1(400, "send_bootstrap_file: %s\n", jcr->RestoreBootstrap);
    if (!jcr->RestoreBootstrap) {
@@ -1106,7 +1108,7 @@ static int send_bootstrap_file(JCR *jcr)
       Jmsg(jcr, M_FATAL, 0, _("Could not open bootstrap file %s: ERR=%s\n"), 
 	 jcr->RestoreBootstrap, strerror(errno));
       set_jcr_job_status(jcr, JS_ErrorTerminated);
-      return 0;
+      goto bail_out;
    }
    pm_strcpy(&sd->msg, bootstrap);  
    sd->msglen = strlen(sd->msg);
@@ -1119,7 +1121,16 @@ static int send_bootstrap_file(JCR *jcr)
    fclose(bs);
    if (!response(jcr, sd, OKSDbootstrap, "Bootstrap")) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
-      return 0;
+      goto bail_out;
    }
-   return 1;
+   stat = 1;
+
+bail_out:
+   if (jcr->RestoreBootstrap) {
+      unlink(jcr->RestoreBootstrap);
+      free_pool_memory(jcr->RestoreBootstrap);
+      jcr->RestoreBootstrap = NULL;
+   }
+
+   return stat;
 }

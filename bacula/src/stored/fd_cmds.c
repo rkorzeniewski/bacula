@@ -317,6 +317,7 @@ static int bootstrap_cmd(JCR *jcr)
    BSOCK *fd = jcr->file_bsock;
    POOLMEM *fname = get_pool_memory(PM_FNAME);
    FILE *bs;
+   int stat = 0;
 
    if (jcr->RestoreBootstrap) {
       unlink(jcr->RestoreBootstrap);
@@ -345,15 +346,18 @@ static int bootstrap_cmd(JCR *jcr)
    if (debug_level > 20) {
       dump_bsr(jcr->bsr, true);
    }
-   return bnet_fsend(fd, OK_bootstrap);
+   stat = 1;
 
 bail_out:
    unlink(jcr->RestoreBootstrap);
    free_pool_memory(jcr->RestoreBootstrap);
    jcr->RestoreBootstrap = NULL;
-   bnet_fsend(fd, ERROR_bootstrap);
-   return 0;
-
+   if (stat) {
+      return bnet_fsend(fd, OK_bootstrap);
+   } else {
+      bnet_fsend(fd, ERROR_bootstrap);
+      return 0;
+   }
 }
 
 

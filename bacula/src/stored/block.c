@@ -399,7 +399,8 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       Jmsg(jcr, M_INFO, 0, _("User defined maximum volume capacity %s exceeded on device %s.\n"),
 	    edit_uint64(max_cap, ed1),	dev->dev_name);
       block->write_failed = true;
-      weof_dev(dev, 2); 	      /* end the tape */
+      weof_dev(dev, 1); 	      /* end the tape */
+      weof_dev(dev, 1);
       dev->state |= (ST_EOF | ST_EOT | ST_WEOT);
       return 0;   
    }
@@ -472,7 +473,8 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	 wlen, stat, dev->block_num, block->BlockNumber, dev->dev_errno, strerror(dev->dev_errno));
 
       block->write_failed = true;
-      if (weof_dev(dev, 2) != 0) {	   /* end the tape */
+      weof_dev(dev,1);
+      if (weof_dev(dev, 1) != 0) {	   /* end the tape */
          Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       }
       dev->state |= (ST_EOF | ST_EOT | ST_WEOT);
@@ -585,7 +587,7 @@ int read_block_from_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, bool check_bloc
    ssize_t stat;
    int looping;
    uint32_t BlockNumber;
-   int retry = 0;
+   int retry;
 
    if (dev_state(dev, ST_EOT)) {
       return 0;
@@ -601,12 +603,14 @@ reread:
       block->read_len = 0;
       return 0;
    }
+   retry = 0;
    do {
       stat = read(dev->fd, block->buf, (size_t)block->buf_len);
       if (retry == 1) {
 	 dev->VolCatInfo.VolCatErrors++;   
       }
    } while (stat == -1 && (errno == EINTR || errno == EIO) && retry++ < 11);
+// Dmsg1(000, "read stat = %d\n", stat);
    if (stat < 0) {
       Dmsg1(90, "Read device got: ERR=%s\n", strerror(errno));
       clrerror_dev(dev, -1);

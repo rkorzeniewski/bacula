@@ -77,8 +77,8 @@ int match_bsr_block(BSR *bsr, DEV_BLOCK *block)
       return 1; 		      /* cannot fast reject */
    }
 
-   if (match_block_sesstime(bsr, bsr->sesstime, block)) {
-      return 1;
+   if (!match_block_sesstime(bsr, bsr->sesstime, block)) {
+      return 0;
    }
    return match_block_sessid(bsr, bsr->sessid, block);
 }
@@ -243,7 +243,7 @@ static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
    if (bsr->done) {
       goto no_match;
    }
-   if (bsr->count && bsr->count <= bsr->found) {
+   if (bsr->count && bsr->found >= bsr->count) {
       bsr->done = true;
       bsr->root->reposition = true;
       Dmsg0(100, "bsr done from count\n");
