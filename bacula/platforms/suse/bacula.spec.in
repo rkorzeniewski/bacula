@@ -883,7 +883,7 @@ fi
 /etc/bacula/delete_catalog_backup
 /etc/bacula/mtx-changer
 /etc/bacula/btraceback.dbx
-/etc/bacula/btraceback.gbd
+/etc/bacula/btraceback.gdb
 /etc/init.d/bacula-dir
 /etc/init.d/bacula-fd
 /etc/init.d/bacula-sd
