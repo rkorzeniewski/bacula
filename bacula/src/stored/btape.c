@@ -63,6 +63,7 @@ static void unfillcmd();
 static int flush_block(DEV_BLOCK *block, int dump);
 static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
 static int my_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
+static void scan_blocks();
 
 
 /* Static variables */
@@ -533,19 +534,21 @@ plus the header exceeds the block size (by default about 64K\n");
    sm_check(__FILE__, __LINE__, False);
 }
 
-/* 
- * This is a general test of Bacula's functions
- *   needed to read and write the tape.
- */
-static void testcmd()
+static int re_read_block_test()
 {
    DEV_BLOCK *block;
    DEV_RECORD *rec;
+   int stat = 0;
    int len;
 
-   Pmsg0(0, "\nWrite, backup, and re-read test.\n\n"
-"I'm going to write three records and two eof's\n"
-"then backup over the eof's and re-read the last record.\n\n");
+   if (!(dev->capabilities & CAP_EOM)) {
+      Pmsg0(-1, _("Skipping read backwards test because MT_EOM turned off.\n"));
+      return 0;
+   }
+
+   Pmsg0(-1, _("\nWrite, backup, and re-read test.\n\n"
+      "I'm going to write three records and two eof's\n"
+      "then backup over the eof's and re-read the last record.\n\n"));
    rewindcmd();
    block = new_block(dev);
    rec = new_record();
@@ -553,75 +556,86 @@ static void testcmd()
    len = rec->data_len = block->buf_len-100;
    memset(rec->data, 1, rec->data_len);
    if (!write_record_to_block(block, rec)) {
-      Pmsg0(0, "Error writing record to block.\n"); 
+      Pmsg0(0, _("Error writing record to block.\n")); 
       goto bail_out;
    }
    if (!write_block_to_dev(jcr, dev, block)) {
-      Pmsg0(0, "Error writing block to device.\n"); 
+      Pmsg0(0, _("Error writing block to device.\n")); 
       goto bail_out;
    } else {
-      Pmsg1(0, "Wrote one record of %d bytes.\n", rec->data_len);
+      Pmsg1(0, _("Wrote first record of %d bytes.\n"), rec->data_len);
    }
    memset(rec->data, 2, rec->data_len);
    if (!write_record_to_block(block, rec)) {
-      Pmsg0(0, "Error writing record to block.\n"); 
+      Pmsg0(0, _("Error writing record to block.\n")); 
       goto bail_out;
    }
    if (!write_block_to_dev(jcr, dev, block)) {
-      Pmsg0(0, "Error writing block to device.\n"); 
+      Pmsg0(0, _("Error writing block to device.\n")); 
       goto bail_out;
    } else {
-      Pmsg1(0, "Wrote one record of %d bytes.\n", rec->data_len);
+      Pmsg1(0, _("Wrote second record of %d bytes.\n"), rec->data_len);
    }
    memset(rec->data, 3, rec->data_len);
    if (!write_record_to_block(block, rec)) {
-      Pmsg0(0, "Error writing record to block.\n"); 
+      Pmsg0(0, _("Error writing record to block.\n")); 
       goto bail_out;
    }
    if (!write_block_to_dev(jcr, dev, block)) {
-      Pmsg0(0, "Error writing block to device.\n"); 
+      Pmsg0(0, _("Error writing block to device.\n")); 
       goto bail_out;
    } else {
-      Pmsg1(0, "Wrote one record of %d bytes.\n", rec->data_len);
+      Pmsg1(0, _("Wrote fourth record of %d bytes.\n"), rec->data_len);
    }
    weofcmd();
    weofcmd();
    if (bsf_dev(dev, 1) != 0) {
-      Pmsg1(0, "Back space file failed! ERR=%s\n", strerror(dev->dev_errno));
+      Pmsg1(0, _("Back space file failed! ERR=%s\n"), strerror(dev->dev_errno));
       goto bail_out;
    }
    if (bsf_dev(dev, 1) != 0) {
-      Pmsg1(0, "Back space file failed! ERR=%s\n", strerror(dev->dev_errno));
+      Pmsg1(0, _("Back space file failed! ERR=%s\n"), strerror(dev->dev_errno));
       goto bail_out;
    }
    Pmsg0(0, "Backspaced over two EOFs OK.\n");
    if (bsr_dev(dev, 1) != 0) {
-      Pmsg1(0, "Back space record failed! ERR=%s\n", strerror(dev->dev_errno));
+      Pmsg1(0, _("Back space record failed! ERR=%s\n"), strerror(dev->dev_errno));
       goto bail_out;
    }
    Pmsg0(0, "Backspace record OK.\n");
    if (!read_block_from_dev(dev, block)) {
-      Pmsg1(0, "Read block failed! ERR=%s\n", strerror(dev->dev_errno));
+      Pmsg1(0, _("Read block failed! ERR=%s\n"), strerror(dev->dev_errno));
       goto bail_out;
    }
    memset(rec->data, 0, rec->data_len);
    if (!read_record_from_block(block, rec)) {
-      Pmsg1(0, "Read block failed! ERR=%s\n", strerror(dev->dev_errno));
+      Pmsg1(0, _("Read block failed! ERR=%s\n"), strerror(dev->dev_errno));
       goto bail_out;
    }
    for (int i=0; i<len; i++) {
       if (rec->data[i] != 3) {
-         Pmsg0(0, "Bad data in record. Test failed!\n");
+         Pmsg0(0, _("Bad data in record. Test failed!\n"));
+         Pmsg0(0, _("You might try adding:\n\n"
+               "Hardware End of File = No\n\n"
+               "to your Storage daemon's Device resource definition.\n"));
 	 goto bail_out;
       }
    }
-   Pmsg0(0, "Test succeeded!\n\n");
+   Pmsg0(0, _("Re-read test succeeded!\n\n"));
+   stat = 1;
 
+bail_out:
+   free_block(block);
+   free_record(rec);
+   return stat;
+}
 
-   Pmsg0(0, "\nAppend files test.\n\n"
+static int append_test()
+{
+   Pmsg0(-1, _("\n\n=== Append files test. ===\n\n"
 "I'm going to write one record  in file 0,\n"
 "                   two records in file 1,\n"
-"             and three records in file 2\n\n");
+"             and three records in file 2\n\n"));
    rewindcmd();
    wrcmd();
    weofcmd();	   /* end file 0 */
@@ -632,51 +646,73 @@ static void testcmd()
    wrcmd();
    wrcmd();
    weofcmd();	  /* end file 2 */
-//   weofcmd();
    rewindcmd();
-   Pmsg0(0, "Now moving to end of media.\n");
+   Pmsg0(0, _("Now moving to end of media.\n"));
    eodcmd();
-   Pmsg2(0, "End Append files test.\n\
-We should be in file 3. I am at file %d. This is %s\n\n", 
+   Pmsg2(-1, _("End Append files test.\n\
+We should be in file 3. I am at file %d. This is %s\n\n"), 
       dev->file, dev->file == 3 ? "correct!" : "NOT correct!!!!");
 
-   Pmsg0(0, "\nNow I am going to attempt to append to the tape.\n");
+   if (dev->file != 3) {
+      Pmsg0(-1, _("To correct this problem, you might try adding:\n\n"
+            "Hardware End of Medium = No\n\n"
+            "to your Storage daemon's Device resource definition.\n"));
+      return 0;
+   }
+
+   Pmsg0(-1, _("\nNow I am going to attempt to append to the tape.\n"));
    wrcmd(); 
    weofcmd();
-//   weofcmd();
    rewindcmd();
-   Pmsg0(0, "Done writing, scanning results ...\n\n");
-   scancmd();
-   Pmsg0(0, "End Append to the tape test.\n\
+   Pmsg0(0, _("Done writing, scanning results ...\n\n"));
+   scan_blocks();
+   Pmsg0(-1, _("End Append to the tape test.\n\
 The above scan should have four files of:\n\
 One record, two records, three records, and one record \n\
-respectively each with 64,512 bytes.\n\n");
+respectively each with 64,448 bytes.\n\n"));
+   Pmsg0(-1, _("If the above is not correct, you might try running Bacula\n"
+              "in fixed block mode by setting:\n\n"
+              "Minimum Block Size = nnn\n"
+              "Maximum Block Size = nnn\n\n"
+              "in your Storage daemon's Device definition.\n"
+              "nnn must match your tape driver's block size.\n"));
+
+   return 1;
+}
 
 
-   Pmsg0(0, "Append block test.\n\
+/* 
+ * This is a general test of Bacula's functions
+ *   needed to read and write the tape.
+ */
+static void testcmd()
+{
+   re_read_block_test();
+
+   if (!append_test()) {
+      return;
+   }
+
+   Pmsg0(-1, "\n\n=== Append block test. ===\n\n\
 I'm going to write a block, an EOF, rewind, go to EOM,\n\
 then backspace over the EOF and attempt to append a second\n\
 block in the first file.\n\n");
    rewindcmd();
    wrcmd();
    weofcmd();
-//   weofcmd();
    rewindcmd();
    eodcmd();
-   Pmsg2(0, "We should be at file 1. I am at EOM File=%d. This is %s\n",
+   Pmsg2(-1, _("We should be at file 1. I am at EOM File=%d. This is %s\n"),
       dev->file, dev->file == 1 ? "correct!" : "NOT correct!!!!");
    Pmsg0(0, "Doing backspace file.\n");
    bsfcmd();
-   Pmsg0(0, "Write second block, hoping to append to first file.\n");
+   Pmsg0(0, _("Write second block, hoping to append to first file.\n"));
    wrcmd();
    weofcmd();
    rewindcmd();
-   Pmsg0(0, "Done writing, scanning results ...\n\n");
-   scancmd();
-   Pmsg0(0, "The above should have one file of two blocks 64,512 bytes each.\n");
-bail_out:
-   free_record(rec);
-   free_block(block);
+   Pmsg0(0, _("Done writing, scanning results ...\n\n"));
+   scan_blocks();
+   Pmsg0(-1, _("\nThe above should have one file of two blocks 64,448 bytes each.\n"));
 }
 
 
@@ -718,6 +754,9 @@ static void rdcmd()
 }
 
 
+/*
+ * Write a Bacula block to the tape
+ */
 static void wrcmd()
 {
    DEV_BLOCK *block;
@@ -736,17 +775,16 @@ static void wrcmd()
    rec->data_len = i;
    sm_check(__FILE__, __LINE__, False);
    if (!write_record_to_block(block, rec)) {
-      Pmsg0(0, "Error writing record to block.\n"); 
+      Pmsg0(0, _("Error writing record to block.\n")); 
       goto bail_out;
    }
    if (!write_block_to_dev(jcr, dev, block)) {
-      Pmsg0(0, "Error writing block to device.\n"); 
+      Pmsg0(0, _("Error writing block to device.\n")); 
       goto bail_out;
    } else {
-      Pmsg1(0, "Wrote one record of %d bytes.\n",
-	 ((i+TAPE_BSIZE-1)/TAPE_BSIZE) * TAPE_BSIZE);
+      Pmsg1(0, _("Wrote one record of %d bytes.\n"), i);
    }
-   Pmsg0(0, "Wrote block to device.\n");
+   Pmsg0(0, _("Wrote block to device.\n"));
 
 bail_out:
    sm_check(__FILE__, __LINE__, False);
@@ -758,7 +796,8 @@ bail_out:
 
 /*
  * Scan tape by reading block by block. Report what is
- * on the tape.
+ * on the tape.  Note, this command does raw reads, and as such
+ * will not work with fixed block size devices.
  */
 static void scancmd()
 {
@@ -823,6 +862,93 @@ static void scancmd()
    tot_files = dev->file - tot_files;
    printf("Total files=%d, blocks=%d, bytes = %" lld "\n", tot_files, tot_blocks, bytes);
 }
+
+
+/*
+ * Scan tape by reading Bacula block by block. Report what is
+ * on the tape.  This function reads Bacula blocks, so if your
+ * Device resource is correctly defined, it should work with
+ * either variable or fixed block sizes.
+ */
+static void scan_blocks()
+{
+   int blocks, tot_blocks, tot_files;
+   uint32_t block_size;
+   uint64_t bytes;
+   DEV_BLOCK *block;
+
+   block = new_block(dev);
+   blocks = block_size = tot_blocks = 0;
+   bytes = 0;
+
+   update_pos_dev(dev);
+   tot_files = dev->file;
+   for (;;) {
+      if (!read_block_from_device(dev, block)) {
+         Dmsg1(100, "!read_block(): ERR=%s\n", strerror_dev(dev));
+	 if (dev->state & ST_EOT) {
+	    if (blocks > 0) {
+               printf("%d block%s of %d bytes in file %d\n", 
+                    blocks, blocks>1?"s":"", block_size, dev->file);
+	       blocks = 0;
+	    }
+	    goto bail_out;
+	 }
+	 if (dev->state & ST_EOF) {
+	    if (blocks > 0) {
+               printf("%d block%s of %d bytes in file %d\n",        
+                       blocks, blocks>1?"s":"", block_size, dev->file);
+	       blocks = 0;
+	    }
+            printf(_("End of File mark.\n"));
+	    continue;
+	 }
+	 if (dev->state & ST_SHORT) {
+	    if (blocks > 0) {
+               printf("%d block%s of %d bytes in file %d\n",        
+                       blocks, blocks>1?"s":"", block_size, dev->file);
+	       blocks = 0;
+	    }
+            printf(_("Short block read.\n"));
+	    continue;
+	 }
+         printf(_("Error reading block. ERR=%s\n"), strerror_dev(dev));
+	 goto bail_out;
+      }
+      if (block->block_len != block_size) {
+	 if (blocks > 0) {
+            printf("%d block%s of %d bytes in file %d\n",        
+                    blocks, blocks>1?"s":"", block_size, dev->file);
+	    blocks = 0;
+	 }
+	 block_size = block->block_len;
+      }
+      blocks++;
+      tot_blocks++;
+      bytes += block->block_len;
+      Dmsg5(100, "Blk=%u blen=%u bVer=%d SessId=%u SessTim=%u\n",
+	 block->BlockNumber, block->block_len, block->BlockVer,
+	 block->VolSessionId, block->VolSessionTime);
+      if (verbose == 1) {
+	 DEV_RECORD *rec = new_record();
+	 read_record_from_block(block, rec);
+         Pmsg7(-1, "Block: %u blen=%u First rec FI=%s SessId=%u SessTim=%u Strm=%s rlen=%d\n",
+	      block->BlockNumber, block->block_len,
+	      FI_to_ascii(rec->FileIndex), rec->VolSessionId, rec->VolSessionTime,
+	      stream_to_ascii(rec->Stream, rec->FileIndex), rec->data_len);
+	 rec->remainder = 0;
+	 free_record(rec);
+      } else if (verbose > 1) {
+         dump_block(block, "");
+      }
+
+   }
+bail_out:
+   free_block(block);
+   tot_files = dev->file - tot_files;
+   printf("Total files=%d, blocks=%d, bytes = %" lld "\n", tot_files, tot_blocks, bytes);
+}
+
 
 static void statcmd()
 {

@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                 11 December 2002
+                 12 December 2002
 
 Documentation to do: (a little bit at a time)
 - Document running a test version.
@@ -12,22 +12,22 @@ Testing to do: (painful)
 - blocksize recognition code.
 - Test new BSR code (mostly done).
 - Test watchdog child timer code.
+- Test that EndFile/Block are correctly updated at end of tape 
+  (in view of new block reading code).
 
 
 For 1.28 release:
+- Count number of ignored messages in bscan and print when first
+  SOS is found.
 - Need a verbose mode in restore, perhaps to bsr.
 - Should we dump a SOS when starting a new tape?
 - bscan without -v is too quiet -- perhaps show jobs.
-- Get rid of bscan.c:534 error message (one time only).
-- Print some statistics when get EOF on device in bscan -- feedback
-  to let user know it is working.
 - Add code to reject whole blocks if not wanted on restore.
 
 - Figure out how to allow multiple simultaneous file Volumes on
   a single device.
 - Start working on Base jobs.
 - Implement FileOptions (see end of this document)
-- Ensure that restore of differential jobs works (check SQL).
 - Make sure the MaxVolFiles is fully implemented in SD
 - Flush all the daemon messages at the end of every job.
 - Check if both CatalogFiles and UseCatalog are set to SD.
@@ -77,7 +77,6 @@ For 1.28 release:
   allow -with-termcap-dir.
 - Enhance time and size scanning routines.
 - Fix Autoprune for Volumes to respect need for full save.
-- DateWritten field on tape may be wrong.
 - Fix Win32 config file definition name on /install
 - No READLINE_SRC if found in alternate directory.
 - Add Client FS/OS id (Linux, Win95/98, ...).
@@ -131,7 +130,6 @@ For 1.28 release:
   a single Storage specification) in the Job record. Thus a job 
   can be backed up to a number of storage devices.
 - Implement dump label to UA
-- Copy volume using single drive.
 - Concept of VolumeSet during restore which is a list
   of Volume names needed.
 - Restore files modified after date
@@ -625,4 +623,9 @@ Done: (see kernsdone for more)
 - Volumes can be listed multiple times in Restore volume list.
 - Add watchdog timeout for child processes start_child_timer()
   end_child_timer();
+- Get rid of bscan.c:534 error message (one time only).
+- Print some statistics when get EOF on device in bscan -- feedback
+  to let user know it is working.
+- DateWritten field on tape may be wrong.
+- Ensure that restore of differential jobs works (check SQL).
 
