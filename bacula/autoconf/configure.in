@@ -247,7 +247,7 @@ if test x$support_tray_monitor = xyes; then
      abc=`$PKGCONFIG --atleast-version=2.4 gtk+-2.0`
      pkg=$?
      if test $pkg = 0; then
-        AC_DEFINE(HAVE_GTK_2_4)
+	AC_DEFINE(HAVE_GTK_2_4)
      fi
   fi
 fi
@@ -851,7 +851,7 @@ fi
 
 mon_dir_password=
 AC_ARG_WITH(mon-dir-password,
-   [  --with-mon-dir-password=PASSWORD   specify Director's password used by the monitor],
+   [  --with-mon-dir-password=PASSWORD	 specify Director's password used by the monitor],
    [
        if test "x$withval" != "xno" ; then     
 	   mon_dir_password=$withval
@@ -871,7 +871,7 @@ fi
 
 mon_fd_password=
 AC_ARG_WITH(mon-fd-password,
-   [  --with-mon-fd-password=PASSWORD    specify Client's password used by the monitor],
+   [  --with-mon-fd-password=PASSWORD	 specify Client's password used by the monitor],
    [
        if test "x$withval" != "xno" ; then     
 	   mon_fd_password=$withval
@@ -891,7 +891,7 @@ fi
 
 mon_sd_password=
 AC_ARG_WITH(mon-sd-password,
-   [  --with-mon-sd-password=PASSWORD    specify Storage daemon's password used by the monitor],
+   [  --with-mon-sd-password=PASSWORD	 specify Storage daemon's password used by the monitor],
    [
        if test "x$withval" != "xno" ; then     
 	   mon_sd_password=$withval
@@ -1760,6 +1760,8 @@ AC_OUTPUT([autoconf/Make.common \
 	   Makefile \
 	   rescue/Makefile \
 	   rescue/linux/Makefile \
+	   rescue/linux/floppy/Makefile \
+	   rescue/linux/cdrom/Makefile \
 	   rescue/freebsd/Makefile \
 	   rescue/solaris/Makefile \
 	   scripts/startmysql \
