@@ -662,6 +662,8 @@ fi
 HAVE_BACULA=`cat %{group_file} | grep %{daemon_group} 2>/dev/null`
 if [ -z $HAVE_BACULA ]; then
 	%{groupadd} -r %{daemon_group} > /dev/null 2>&1
+	echo "The group %{daemon_group} has been added to %{groupfile}."
+	echo "See the manual chapter Running Bacula for details."
 fi
 
 %preun mysql
@@ -786,6 +788,8 @@ fi
 HAVE_BACULA=`cat %{group_file} | grep %{daemon_group} 2>/dev/null`
 if [ -z $HAVE_BACULA ]; then
 	%{groupadd} -r %{daemon_group} > /dev/null 2>&1
+	echo "The group %{daemon_group} has been added to %{groupfile}."
+	echo "See the manual chapter Running Bacula for details."
 fi
 
 %preun sqlite
@@ -882,6 +886,8 @@ fi
 HAVE_BACULA=`cat %{group_file} | grep %{daemon_group} 2>/dev/null`
 if [ -z $HAVE_BACULA ]; then
 	%{groupadd} -r %{daemon_group} > /dev/null 2>&1
+	echo "The group %{daemon_group} has been added to %{groupfile}."
+	echo "See the manual chapter Running Bacula for details."
 fi
 	
 
@@ -925,6 +931,8 @@ fi
 HAVE_BACULA=`cat %{group_file} | grep %{daemon_group} 2>/dev/null`
 if [ -z $HAVE_BACULA ]; then
 	%{groupadd} -r %{daemon_group} > /dev/null 2>&1
+	echo "The group %{daemon_group} has been added to %{groupfile}."
+	echo "See the manual chapter Running Bacula for details."
 fi
 
 %preun client
@@ -994,6 +1002,8 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 
 
 %changelog
+* Sun Sep 12 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
+- add documentation to console for groupadd
 * Sat Sep 04 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - add support for running daemons as root.bacula
 - correct for change in location of floppy rescue files in 1.35.2
