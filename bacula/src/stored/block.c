@@ -738,8 +738,8 @@ reread:
       }
    } while (stat == -1 && (errno == EINTR || errno == EIO) && retry++ < 11);
    if (stat < 0) {
-      Dmsg1(90, "Read device got: ERR=%s\n", strerror(errno));
       clrerror_dev(dev, -1);
+      Dmsg1(90, "Read device got: ERR=%s\n", strerror(errno));
       block->read_len = 0;
       Mmsg4(&dev->errmsg, _("Read error at file:blk %u:%u on device %s. ERR=%s.\n"), 
 	 dev->file, dev->block_num, dev->dev_name, strerror(dev->dev_errno));

@@ -705,12 +705,14 @@ static BSOCK *bnet_open(JCR * jcr, const char *name, char *host, char *service,
       break;
    }
 
-   free_addresses(addr_list);
    if (!connected) {
+         free_addresses(addr_list);
       errno = save_errno;
       return NULL;
    }
-   return init_bsock(jcr, sockfd, name, host, port, ipaddr->get_sockaddr());
+   BSOCK* ret =  init_bsock(jcr, sockfd, name, host, port, ipaddr->get_sockaddr());
+   free_addresses(addr_list);
+   return ret;
 }
 
 /*
