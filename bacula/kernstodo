@@ -1,0 +1,428 @@
+                 Kern's ToDo List
+                  18 July 2002
+
+To do:    
+- Document passwords.
+- Document running multiple Jobs
+- Document that two Verifys at same time on same client do not work.
+- Document how to recycle a tape in 7 days even if the backup takes a long time.
+- Document default config file locations.
+- Document better includes (does it cross file systems ?).
+- Document specifically how to add new File daemon to config files.
+- Document forcing a new tape to be used.
+
+- Pass "Catalog Files = no" to storage daemon to eliminate
+  network traffic.
+- Implement alter_sqlite_tables
+- Fix scheduler -- see "Hourly cycle". It doesn't do both each
+  hour, rather it alternates between 0:05 and 0:35.
+- Create Counter DB records.
+- Make Pool resource handle Counter resources.
+- Remove NextId for SQLite. Optimize.
+- Termination status in FD for Verify = C -- incorrect.
+- Fix strerror() to use strerror_r()
+- Fix gethostbyname() to use gethostbyname_r()
+- Cleanup path/filename separation in sql_get.c and sql_create.c
+- Implement ./configure --with-client-only
+- Strip trailing / from Include
+- Move all SQL statements into a single location.
+- Cleanup db_update_media and db_update_pool
+- Add UA rc and history files.
+- put termcap (used by console) in ./configure and
+  allow -with-termcap-dir.
+- Remove JobMediaId it is not used.
+- Enhance time and size scanning routines.
+- Fix Autoprune for Volumes to respect need for full save.
+- DateWritten may be wrong.
+- Fix Win32 config file definition name on /install
+- When we are at EOM, we must ask each job to write JobMedia
+  record (update_volume_info).
+- No READLINE_SRC if found in alternate directory.
+- Add Client FS/OS id (Linux, Win95/98, ...).
+- Put Windows files in Windows stream?
+
+====== 31 May 2002 ========
+Now that Bacula 1.20 is released, virtually all the 
+basic features are implemented (some are still quite
+primitive though). Over the next month or two, I'm 
+planning to focus on the following items:
+
+Minor details:
+- Fix any bugs I find or you report.
+- Finish the implementation of automatic pruning 
+  (add pruning of Restore and Verify jobs). 
+- Make sure pruning of Volumes won't prune the
+  only backup of a FileSet
+
+Major Project:
+- Improve the Restore capabilities of Bacula
+  * Restore to most recent system state (i.e.
+    figure out what tapes need to be mounted and
+    in what order).
+  * Restore to a particular time (perhaps several
+    variations -- e.g. before date, after date).
+  * Interactive Restore where you get to select 
+    what files are to be restored (much like the Unix
+    "restore" program permits). Now that we have a
+    catalog of all files saved, it would be nice to
+    be able to use it. 
+  * Restore options (overwrite, overwrite if older,
+    overwrite if newer, never overwrite, ...)
+  * Improve the standalone programs (bls and bextract)
+    to have pattern matching capabilities (e.g. restore
+    by FileSet, Job, JobType, JobLevel, ...). 
+  * Ideally after each Job, Bacula could write out a 
+    set of commands to a file that if later feed to
+    bextract would restore your system to the current
+    state (at least for the saved FileSet).  This would 
+    provide a simple disaster recovery that could be 
+    initiated from a "floppy" and one simple ASCII control 
+    file. I'm not exactly sure how to do this, but it
+    shouldn't be too hard and I'll 
+    be trying to go in this direction.
+  
+Smaller Projects:
+- Implement tape verification to ensure that the data
+  written for a particular Job can really be read.
+- Compare tape File attributes to Catalog.
+  (File attributes are size, dates, MD5, but not
+   data).
+- Compare tape to Client files (attributes, or
+  attributes and data) 
+
+Playing around:
+- With the current Bacula 1.21 (not yet in the CVS) I
+  expect there is about 95% chance that running multiple
+  simultaneous Jobs will actually work without stepping
+  on each other. I'm planning to try this sometime soon.
+===========
+
+Projects:
+- Add Base job.
+- Rework Storage daemon with new rwl_lock routines.
+- Implement Label templates
+- Pass JCR to database routines permitting better error printing.
+- Improve Restore
+- Verify tape data
+- Verify against Full.
+
+Dump:
+  mysqldump -f  --opt bacula >bacula
+
+
+To be done:
+- Probably add End of Data tape records (this would make
+  the tape format incompatible with the previous version).
+- I'll most likely enhance the current tape format
+  in the way that I previously described, which will make
+  some of the labels incompatible, but the change will
+  not affect the current restore code since it does not
+  look at the details of the labels.
+- I may add a few more waiting conditions in the Storage
+  daemon where it will current immediately aborts a
+  Job if the necessary resources are not available (e.g.
+  tape is being written and a read request arrives).
+- Write an applet for Linux.
+
+- Remove PoolId from Job table, it exists in Media.
+- Allow commands to detach or run in background.
+- Write better dump of Messages resource.
+- Fix status delay on storage daemon during rewind.
+- Add VerNo to each Session label record. 
+- Add Job to Session records.
+- Add VOLUME_CAT_INFO to the EOS tape record (as
+  well as to the EOD record).
+- Add SD message variables to control operator wait time
+  - Maximum Operator Wait
+  - Minimum Message Interval
+  - Maximum Message Interval
+- Add EOM handling variables
+  - Write EOD records
+  - Require EOD records
+- Send Operator message when cannot read tape label.
+- Think about how to handle I/O error on MTEOM.
+- If Storage daemon aborts a job, ensure that this
+  is printed in the error message.
+- Verify level=Volume (scan only), level=Data (compare of data to file).
+  Verify level=Catalog, level=InitCatalog
+- Scan tape contents into database.
+- Dump of Catalog
+- Cold start full restore (restore catalog then
+  user selects what to restore).  Write summary file containing only
+  Job, Media, and Catalog information. Store on another machine.
+- Dump/Restore database
+- File system type
+- Events file
+- Implement first cut of Catalog Retention period (remove old
+  entries from database).
+- Add SessionTime/Id filters to bextract.
+- Write bscan
+- Ensure that Start/End File/Block are correct.
+- Add keyword search to show command in Console.
+- If MySQL database is not running, job terminates with
+  wierd type and wierd error code.
+- Write a regression script
+- Report bad status from smtp or mail program.
+- Fix Win2000 error with no messages during startup.
+- Add estimate to Console
+- Events : tape has more than xxx bytes.
+- In Storage daemon, status should include job cancelled.
+- Write general list maintenance subroutines.
+- Implement immortal format with EDOs. 
+- Restrict characters permitted in a Resource name.
+- Restore file xx or files xx, yy to their most recent values.
+- Provide definitive identification of  type in backup.
+- Complete  code in Bacula Resources -- this will permit
+  reading a new config file at any time.
+- Document new Console
+- Handle ctl-c in Console
+- Test restore of Windows backup
+- Implement LabelTemplate (at least first cut).
+- Implement script driven addition of File daemon to
+  config files.
+
+- Bug: anonymous Volumes requires mount in some cases.
+- see setgroup and user for Bacula p4-5 of stunnel.c
+- Implement new serialize subroutines
+   send(socket, "string", &Vol, "uint32", &i, NULL)
+- Add save type to Session label.
+- Correct date on Session label.
+- On I/O error, write EOF, then try to write again.
+- Audit all UA commands to ensure that we always prompt where
+  possible.
+- If ./btape is called without /dev, assume argument is
+  a Storage resource name.
+- Put memory utilization in Status output of each daemon
+  if full status requested or if some level of debug on.
+- Make database type selectable by .conf files i.e. at runtime
+- gethostbyname failure in bnet_connect() continues
+  generating errors -- should stop.
+- Don't create a volume that is already written. I.e. create only once.
+- If error at end of tape, implement some way to kill waiting processes.
+- Get correct block/file information in Catalog, pay attention
+  to change of media.
+- Add HOST to Volume label.
+- Set flag for uname -a.  Add to Volume label.
+- Implement throttled work queue.
+- Write bscan program that will syncronize the DB Media record with
+  the contents of the Volume -- for use after a crash.
+- Check for EOT at ENOSPC or EIO or ENXIO (unix Pc)
+- Allow multiple Storage specifications (or multiple names on
+  a single Storage specification) in the Job record. Thus a job 
+  can be backed up to a number of storage devices.
+- Implement full MediaLabel code.
+- Implement dump label to UA
+- Copy volume using single drive.
+- Copy volume with multiple driven (same or different block size).     
+- Add block size (min, max) to Vol label.
+- Concept of VolumeSet during restore which is a list
+  of Volume names needed.
+- Restore files modified after date
+- Restore file modified before date
+- Emergency restore info:
+  - Backup Bacula
+  - Backup working directory
+  - Backup Catalog
+- Restore options (do not overwrite)
+- Restore -- do nothing but show what would happend
+- Authentication between SD and FD
+- SET LD_RUN_PATH=$HOME/mysql/lib/mysql
+- Send Volumes needed during restore to Console
+- Put Job statistics in End Session Label (files saved,
+  total bytes, start time, ...).     
+- Put FileSet name in the SOS label.
+- Implement Restore FileSet=
+- Write a scanner for the UA (keyword, scan-routine, result, prompt).
+- Create a protocol.h and protocol.c where all protocol messages
+  are concentrated.
+- If SD cannot open a drive, make it periodically retry.
+- Put Bacula version somewhere in Job stream, probably Start Session
+  Labels.
+- Remove duplicate fields from jcr (e.g. jcr.level and
+  jcr.jr.Level, ...).
+- Timout a job or terminate if link goes down, or reopen link and query.
+- Define how we handle times to avoid problem with Unix dates (2049 ?).
+- The daemons should know when one is already
+  running and refuse to run a second copy.
+- Fill all fields in Vol/Job Header -- ensure that everything
+  needed is written to tape. Think about restore to Catalog
+  from tape.  Client record needs improving.
+- Find general solution for sscanf size problems (as well
+  as sprintf. Do at run time?
+
+- Concept of precious tapes (cannot be reused).
+- Allow FD to run from inetd ???
+- Preprocessing command per file.
+- Postprocessing command per file (when restoring).
+
+- Restore should get Device and Pool information from
+  job record rather than from config.
+- Make SD send attribute stream to DR but first
+  buffering to file, then sending only when the
+  files are written to tape.
+- Autolabel should be specified by DR instead of SD.
+- Ability to recreate the catalog from a tape.
+- Find out how to get the system tape block limits, e.g.:
+  Apr 22 21:22:10 polymatou kernel: st1: Block limits 1 - 245760 bytes.  
+  Apr 22 21:22:10 polymatou kernel: st0: Block limits 2 - 16777214 bytes.
+- Storage daemon    
+  - Add media capacity
+  - AutoScan (check checksum of tape)
+  - Format command = "format /dev/nst0"
+  - MaxRewindTime
+  - MinRewindTime
+  - MaxBufferSize
+  - Seek resolution (usually corresponds to buffer size)
+  - EODErrorCode=ENOSPC or code
+  - Partial Read error code
+  - Partial write error code
+  - Nonformatted read error
+  - Nonformatted write error
+  - WriteProtected error
+  - IOTimeout
+  - OpenRetries
+  - OpenTimeout
+  - IgnoreCloseErrors=yes
+  - Tape=yes
+  - NoRewind=yes
+- Pool
+  - Maxwrites
+  - Recycle period
+- Job
+  - MaxWarnings
+  - MaxErrors (job?)
+=====
+- Eliminate duplicate File records to shrink database.
+- FD sends unsaved file list to Director at end of job. 
+- Implement InsertUniqueDB. 
+- Write a Storage daemon that uses pipes and
+  standard Unix programs to write to the tape.
+  See afbackup.
+- Need something that monitors the JCR queue and
+  times out jobs by asking the deamons where they are.
+- Add daemon JCR JobId=0 to have a daemon context
+- Pool resource
+  - Auto label
+  - Auto media verify
+  - Client (list of clients to force client)
+  - Devices (list of devices to force device)
+  - enable/disable
+  - Groups
+  - Levels
+  - Type: Backup, ...
+  - Recycle from other pools: Yes, No
+  - Recycle to other pools: Yes, no
+  - FileSets
+  - MaxBytes?
+  - Optional MediaType to force media?
+  - Maintain Catalog
+  - Label Template
+  - Retention Period
+  ============
+  - Name
+  - NumVols
+  - NaxVols
+  - CurrentVol
+
+=====
+  if(connect(sockfd, (struct sockaddr * ) (& addr), sizeof(addr)) .lt. 0){
+    close(sockfd);
+    return(-6);
+  }
+
+  linger.l_onoff = 1;
+  linger.l_linger = 60;
+  i = setsockopt(sockfd, SOL_SOCKET, SO_LINGER, (char *) &linger,
+                                                sizeof (linger));
+
+  fl = fcntl(sockfd, F_GETFL);
+  fcntl(sockfd, F_SETFL, fl & (~ O_NONBLOCK) & (~ O_NDELAY));
+====
+- Add "0nnn" in front of all sscanf %s fields
+  to prevent field overflow.
+- Restore:
+  What: jobid or file list
+  From: tape, file, ...
+  Where: original location, another path
+  How: Always replace, Replace if newer, Never replace
+  Report: files restored; files not restored; errors; warnings
+          summary.
+- Enhance Jmsg code to permit buffering and saving to disk.
+- Probably create a jcr with JobId=0 as a master
+  catchall if jcr not found or if operation involves
+  global operation.
+- device driver = "xxxx" for drives.
+- restart: paranoid: read label fsf to
+  eom read append block, and go
+  super-paranoid: read label, read all files
+  in between, read append block, and go
+  verify: backspace, read append block, and go
+  permissive: same as above but frees drive
+  if tape is not valid.
+- Verify from Volume
+- Ensure that /dev/null works
+- File daemon should build list of files skipped, and then
+  at end of save retry and report any errors.
+- Need report class for messages. Perhaps
+  report resource where report=group of messages
+- Extract what=(session_id|file_list); where
+- Verify from Tape
+- enhance scan_attrib and rename scan_jobtype, and
+  fill in code for "since" option 
+- dir_config: get rid of all printfs
+- To buffer messages, we need associated jobid and Director name.
+- Need to save contents of FileSet to tape?
+- Director needs a time after which the report status is sent
+  anyway -- or better yet, a retry time for the job.
+  Don't reschedule a job if previous incarnation is still running.
+- Figure out how to do a "full" restore from catalog
+- Figure out how to save the catalog (possibly a special FileSet).
+- Figure out how to restore the catalog.
+- Figure out how to put a Volume into the catalog (from the tape)
+- Figure out how to do a restore from a Volume
+- Some way to automatically backup everything is needed????
+- Need a structure for pending actions:
+  - buffered messages
+  - termination status (part of buffered msgs?)
+- Concept of grouping Storage devices and job can use
+  any of a number of devices
+- Drive management
+  Read, Write, Clean, Delete
+- Login to Bacula; Bacula users with different permissions:
+   owner, group, user
+- Tape recycle destination
+- Job Schedule Status
+  - Automatic
+  - Manual
+  - Running
+- File daemon should pass Director the operating system info
+  to be stored in the Client Record (or verified that it has
+  not changed).
+- Store info on each file system type (probably in the job header on tape.
+  This could be the output of df; or perhaps some sort of /etc/mtab record.
+
+Longer term to do:
+- Use media 1 time (so that we can do 6 days of incremental
+  backups before switching to another tape) (already)
+  specify # times (jobs)
+  specify bytes (already)
+  specify time (seconds, hours, days)
+- Implement FSM (File System Modules).
+- Identify unchanged or "system" files and save them to a
+  special tape thus removing them from the standard 
+  backup FileSet -- BASE backup.
+- Turn virutally all sprintfs into snprintfs.
+- Heartbeat between daemons.
+- Audit M_ error codes to ensure they are correct and
+  consistent.
+- Add variable break characters to lex analyzer.
+  Either a bit mask or a string of chars so that
+  the caller can change the break characters.
+- Make a single T_BREAK to replace T_COMMA, etc.
+- Ensure that File daemon and Storage daemon can
+  continue a save if the Director goes down (this
+  is NOT currently the case). Must detect socket error,
+  buffer messages for later. 
+
+
+Done: (see kernsdone for more)

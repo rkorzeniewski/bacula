@@ -1,4 +1,85 @@
 2002-mm-dd Release 1.23
+  From kes18Jul02
+- The following two changes were prompted by questions/suggestions
+  from A Morgan.
+- If you have "AlwaysOpen = no" in your SD Device
+  resource, Bacula will free() the drive when it
+  is finished with the Job.
+- If you have "Offline On Unmount = yes", in your
+  SD Device resource, Bacula will offline (or eject)
+  the tape prior to freeing it.
+- Added Maximum Open Wait to allow open() to wait if drive is busy.
+- Added RunBeforeJob and RunAfterJob records to Job records.
+  This permits running an external program with the following editing
+  codes:
+    %% = %
+    %c = Client's name
+    %d = Director's name
+    %i = JobId
+    %e = Job Exit
+    %j = Job
+    %l = Job Level
+    %n = Job name
+    %t = Job type
+
+  From kes17Jul02
+- Added autochanger support to devices.c
+- Allow user to change Slot in the Volume record.
+- Implemented code in lib to run an external program
+  (tape changer)
+- Implemented a changer script for mtx.
+- Currently the changer commands used are:  
+    loaded -- returns number of slot loaded or 0
+    load   -- loads a specified slot
+    unload -- unloads the device (returns casette to slot)
+- Other changer commands defined but not yet used:
+    list   -- returns list of slots containing a cassette
+    slots  -- returns total number of slots 
+- Implemented ChangerCommand, specified in the SD Device
+  resource, permits editing of:
+      %% = %
+      %a = archive device name
+      %c = changer device name
+      %f = Client's name
+      %j = Job name
+      %o = command
+      %s = Slot base 0
+      %S = Slot base 1
+      %v = Volume name
+- Implemented MaximumChangerWait default 120 seconds. It is 
+  specified in the SD Device resource.
+
+  From kes15Jul02
+- Moved techlogs from main directory to be subdirectory of doc
+- Added code for strerror_r, and detection of gethostbyname_r().
+- The protocol between the Director and the SD has changed.
+- Major rework of SD tape mounting to prepare for Changer commands.
+- Separated Update Media record and Create JobMedia record. These
+  are done from the SD by calling the Director. Need separate Create
+  JobMedia so that when a Job spans a volume, all other Jobs writing
+  the same volume will also have JobMedia records created.
+- Added message to user indicating selection aborted if he enters .
+  to a Console selection request.
+- Create a jobstatus_to_ascii() routine for use in status commands.
+  This makes a single routine from three separate pieces of code.
+  Updated the code to properly handle more (all) termination statuses.
+- Tried to fix the gnome-console to handle history a bit better. There
+  are still some problems with focus not being properly set to the edit
+  box after history replacement.
+- Removed the shutdown() from bnet_close() hoping to fix Console termination
+  errors that are occassionally seen -- no luck.
+- Moved add_str() to lib/util and renamed it add_str_to_pool_mem() so that
+  it can be used to edit Job termination codes and Changer command codes.
+- Reworked how the SD mounts tapes (in device.c) so that control passes through
+  only a single routine. The logic is much simpler than previously, and now
+  adding AutoChanger code is straight forward.
+- Made SD tape mounting much more fault tolerant -- more cases retry instead
+  of terminating the Job.
+- Wrote code to edit_device_codes() for Changer commands. Not yet fully     
+  implemented.
+- Added a ChangerDevice directive to the Device resource. Still need to add
+  ChangerCommand.
+
   From kes07Jul02
 - This documents what I did while on vacation. 
 - A fair amount of documentation.
@@ -574,7 +655,6 @@
    Device
      Name, MediaType (must correspond to those sent by Director)
      Archive Device (defines device name)
-
 
 
 2000-03-10 Release 0.3 Kern Sibbald

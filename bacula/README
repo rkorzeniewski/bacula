@@ -1,16 +1,14 @@
 
-This is the first release of Bacula, and as such it
-is perhaps a bit rough around the edges. As you will
-note, I don't follow the standard GNU release numbering
-conventions, but rather one that I started in 1970.
-My internal releases were 0.nn, the first release to
-another user was 1.0, each modified source code release
-then gets a new minor release (1.1, ...) as well as
-a date. Each major change in the software -- e.g. new
-tape format will have the major release number incremented.
+As you will note, I don't follow the standard GNU release
+numbering conventions, but rather one that I started in
+1970.  My internal releases were 0.nn, the first release to
+another user was 1.0, each modified source code release then
+gets a new minor release (1.1, ...) as well as a date.  Each
+major change in the software -- e.g.  new tape format will
+have the major release number incremented.
 
-Your best bet for getting Bacula up and running
-is to read the manual, which can be found in
+Your best bet for getting Bacula up and running is to read
+the manual, which can be found in
 <bacula-main-directory>/doc/html-manual, or in
 <bacula-main-directory>/doc/bacula.pdf.
 
@@ -41,4 +39,3 @@ Build Bacula
    in time.c or dev.c.  There may also be problems in
    lib/signal.c as I currently pull in all Linux signals,
    some of which may not be available on your system.
-

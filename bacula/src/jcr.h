@@ -105,7 +105,7 @@ struct s_jcr {
    time_t end_time;                   /* job end time */
    POOLMEM *VolumeName;               /* Volume name desired -- pool_memory */
    POOLMEM *client_name;              /* client name */
-   char *RestoreBootstrap;            /* Bootstrap file to restore */
+   POOLMEM *RestoreBootstrap;         /* Bootstrap file to restore */
    char *sd_auth_key;                 /* SD auth key */
    MSGS *msgs;                        /* Message resource */
 
@@ -143,7 +143,7 @@ struct s_jcr {
 #ifdef FILE_DAEMON
    /* File Daemon specific part of JCR */
    uint32_t num_files_examined;       /* files examined this job */
-   char *last_fname;                  /* last file saved */
+   POOLMEM *last_fname;               /* last file saved/verified */
    /*********FIXME********* add missing files and files to be retried */
    int incremental;                   /* set if incremental for SINCE */
    time_t mtime;                      /* begin time for SINCE */
@@ -180,6 +180,8 @@ struct s_jcr {
    long NumVolumes;                   /* number of volumes used */
    long CurVolume;                    /* current volume number */
    int mode;                          /* manual/auto run */
+   int spool_attributes;              /* set if spooling attributes */
+   int no_attributes;                 /* set if no attributes wanted */
    int label_status;                  /* device volume label status */
    int label_errors;                  /* count of label errors */
    int session_opened;

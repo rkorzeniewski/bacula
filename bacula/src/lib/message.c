@@ -362,10 +362,47 @@ static char *edit_job_codes(JCR *jcr, char *omsg, char *imsg, char *to)
    return omsg;
 }
 
+static void make_unique_spool_filename(JCR *jcr, POOLMEM **name, int fd)
+{
+   Mmsg(name, "%s/%s.spool.%s.%d", working_directory, my_name,
+      jcr->Job, fd);
+}
+
+int open_spool_file(void *vjcr, BSOCK *bs)
+{
+    POOLMEM *name  = get_pool_memory(PM_MESSAGE);
+    JCR *jcr = (JCR *)vjcr;
+
+    make_unique_spool_filename(jcr, &name, bs->fd);
+    bs->spool_fd = fopen(name, "w+");
+    if (!bs->spool_fd) {
+       Jmsg(jcr, M_ERROR, 0, "fopen spool file %s failed: ERR=%s\n", name, strerror(errno));
+       free_pool_memory(name);
+       return 0;
+    }
+    free_pool_memory(name);
+    return 1;
+}
+
+int close_spool_file(void *vjcr, BSOCK *bs)
+{
+    POOLMEM *name  = get_pool_memory(PM_MESSAGE);
+    JCR *jcr = (JCR *)vjcr;
+
+    make_unique_spool_filename(jcr, &name, bs->fd);
+    fclose(bs->spool_fd);
+    unlink(name);
+    free_pool_memory(name);
+    bs->spool_fd = NULL;
+    bs->spool = 0;
+    return 1;
+}
+
+
 /*
  * Create a unique filename for the mail command
  */
-static void make_unique_mail_filename(JCR *jcr, char **name, DEST *d)
+static void make_unique_mail_filename(JCR *jcr, POOLMEM **name, DEST *d)
 {
    if (jcr) {
       Mmsg(name, "%s/%s.mail.%s.%d", working_directory, my_name,
@@ -408,7 +445,7 @@ void close_msg(void *vjcr)
    DEST *d;
    FILE *pfd;
    POOLMEM *cmd, *line;
-   int len;
+   int len, stat;
    
    Dmsg1(050, "Close_msg jcr=0x%x\n", jcr);
 
@@ -453,7 +490,15 @@ void close_msg(void *vjcr)
 	    while (fgets(line, len, d->fd)) {
 	       fputs(line, pfd);
 	    }
-	    pclose(pfd);	    /* close pipe, sending mail */
+	    stat = pclose(pfd);       /* close pipe, sending mail */
+	    /*
+             * Since we are closing all messages, before "recursing"
+	     * make sure we are not closing the daemon messages, otherwise
+	     * kaboom.
+	     */
+	    if (stat < 0 && msgs != daemon_msgs) {
+               Emsg0(M_ERROR, 0, _("Mail program terminated in error.\n"));
+	    }
 	    free_memory(line);
 rem_temp_file:
 	    /* Remove temp file */
@@ -591,10 +636,14 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
 		d->fd = open_mail_pipe(jcr, &mcmd, d);
 		free_pool_memory(mcmd);
 		if (d->fd) {
+		   int stat;
 		   fputs(msg, d->fd);
 		   /* Messages to the operator go one at a time */
-		   pclose(d->fd);
+		   stat = pclose(d->fd);
 		   d->fd = NULL;
+		   if (stat < 0) {
+                      Emsg0(M_ERROR, 0, _("Operator mail program terminated in error.\n"));
+		   }
 		}
 		break;
 	     case MD_MAIL:
@@ -785,7 +834,7 @@ Jmsg(void *vjcr, int type, int level, char *fmt,...)
     char     *buf;
     va_list   arg_ptr;
     int i, len;
-    JCR *jcr = (JCR *) vjcr;
+    JCR *jcr = (JCR *)vjcr;
     MSGS *msgs;
     char *job;
 

@@ -76,6 +76,7 @@ void run_job(JCR *jcr)
    jcr->jr.StartTime = jcr->start_time;
    jcr->jr.Type = jcr->JobType;
    jcr->jr.Level = jcr->JobLevel;
+   jcr->jr.JobStatus = jcr->JobStatus;
    strcpy(jcr->jr.Name, jcr->job->hdr.name);
    strcpy(jcr->jr.Job, jcr->Job);
 

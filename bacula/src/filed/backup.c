@@ -94,7 +94,7 @@ int blast_data_to_storage_daemon(JCR *jcr, char *addr, int port)
 static int save_file(FF_PKT *ff_pkt, void *ijcr)
 {
    char attribs[MAXSTRING];
-   int fid, stat, stream;
+   int fid, stat, stream, len;
    struct MD5Context md5c;
    int gotMD5 = 0;
    unsigned char signature[16];
@@ -179,7 +179,9 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
    encode_stat(attribs, &ff_pkt->statp);
      
    jcr->JobFiles++;		       /* increment number of files sent */
-   jcr->last_fname = (char *) check_pool_memory_size(jcr->last_fname, strlen(ff_pkt->fname) + 1);
+   len = strlen(ff_pkt->fname);
+   jcr->last_fname = check_pool_memory_size(jcr->last_fname, len + 1);
+   jcr->last_fname[len] = 0;	      /* terminate properly before copy */
    strcpy(jcr->last_fname, ff_pkt->fname);
     
    /*

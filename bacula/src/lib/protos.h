@@ -65,6 +65,7 @@ void	   term_bsock		 (BSOCK *bsock);
 char *	   bnet_strerror	 (BSOCK *bsock);
 char *	   bnet_sig_to_ascii	 (BSOCK *bsock);
 int	   bnet_wait_data	 (BSOCK *bsock, int sec);
+int	   bnet_despool 	 (BSOCK *bsock);
 
 
 /* cram-md5.c */
@@ -117,6 +118,8 @@ void	   Jmsg 		 (void *jcr, int type, int level, char *fmt, ...);
 void	   dispatch_message	 (void *jcr, int type, int level, char *buf);
 void	   init_console_msg	 (char *wd);
 void	   free_msgs_res	 (MSGS *msgs);
+int	   open_spool_file	 (void *jcr, BSOCK *bs);
+int	   close_spool_file	 (void *vjcr, BSOCK *bs);
 
 
 /* bnet_server.c */

@@ -87,10 +87,10 @@ db_create_job_record(B_DB *mdb, JOB_DBR *jr)
    }
    /* Must create it */
    Mmsg(&mdb->cmd,
-"INSERT INTO Job (JobId, Job, Name, Type, Level, SchedTime, JobTDate) VALUES \
-(%s, \"%s\", \"%s\", \"%c\", \"%c\", \"%s\", %s)", 
-	   JobId, jr->Job, jr->Name, (char)(jr->Type), (char)(jr->Level), dt,
-	   edit_uint64(JobTDate, ed1));
+"INSERT INTO Job (JobId,Job,Name,Type,Level,JobStatus,SchedTime,JobTDate) VALUES \
+(%s,\"%s\",\"%s\",\"%c\",\"%c\",\"%c\",\"%s\",%s)", 
+	   JobId, jr->Job, jr->Name, (char)(jr->Type), (char)(jr->Level), 
+	   (char)(jr->JobStatus), dt, edit_uint64(JobTDate, ed1));
 
    if (!INSERT_DB(mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create DB Job record %s failed. ERR=%s\n"), 
@@ -505,7 +505,13 @@ int db_create_file_attributes_record(B_DB *mdb, ATTR_DBR *ar)
    Dmsg0(50, "db_create_file_record\n");
 
    Dmsg3(100, "Path=%s File=%s FilenameId=%d\n", spath, file, ar->FilenameId);
-
+#ifdef HAVE_SQLITE
+   if (mdb->transaction && mdb->changes > 10000) {
+      my_sqlite_query(mdb, "COMMIT");    /* end transaction */
+      my_sqlite_query(mdb, "BEGIN");     /* start new transaction */
+      mdb->changes = 0;
+   }
+#endif
    return 1;
 }
 

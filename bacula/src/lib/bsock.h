@@ -51,6 +51,8 @@ typedef struct s_bsock {
    POOLMEM *errmsg;                   /* edited error message (to be implemented) */
    RES *res;                          /* Resource to which we are connected */
    struct s_bsock *next;              /* next BSOCK if duped */
+   int spool;                         /* set for spooling */
+   FILE *spool_fd;                    /* spooling file */
 } BSOCK;
 
 /* Signal definitions for use in bnet_sig() */
@@ -99,4 +101,3 @@ typedef struct s_bpkt {
 #define BP_BYTES     7                /* Binary bytes */
 #define BP_FLOAT32   8                /* 32 bit floating point */
 #define BP_FLOAT64   9                /* 64 bit floating point */
-

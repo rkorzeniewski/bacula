@@ -97,6 +97,8 @@ typedef struct s_db {
    POOLMEM *cmd;                      /* SQL command string */
    POOLMEM *cached_path;
    uint32_t cached_path_id;
+   int transaction;                   /* transaction started */
+   int changes;                       /* changes during transaction */
 } B_DB;
 
 
@@ -159,6 +161,7 @@ typedef struct s_db {
    POOLMEM *cmd;                      /* SQL command string */
    POOLMEM *cached_path;
    uint32_t cached_path_id;
+   int changes;                       /* changes made to db */
 } B_DB;
 
 

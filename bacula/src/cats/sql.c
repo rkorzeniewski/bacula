@@ -119,6 +119,7 @@ InsertDB(char *file, int line, B_DB *mdb, char *cmd)
       e_msg(file, line, M_FATAL, 0, mdb->errmsg);  /* ***FIXME*** remove me */
       return 0;
    }
+   mdb->changes++;
    return 1;
 }
 
@@ -145,6 +146,7 @@ UpdateDB(char *file, int line, B_DB *mdb, char *cmd)
       e_msg(file, line, M_ERROR, 0, "%s\n", cmd);
       return 0;
    }
+   mdb->changes++;
    return 1;
 }
 
@@ -162,6 +164,7 @@ DeleteDB(char *file, int line, B_DB *mdb, char *cmd)
       e_msg(file, line, M_ERROR, 0, mdb->errmsg);
       return -1;
    }
+   mdb->changes++;
    return sql_affected_rows(mdb);
 }
 

@@ -584,6 +584,11 @@ int offline_dev(DEVICE *dev)
 
    dev->block_num = dev->file = 0;
    dev->file_bytes = 0;
+#ifdef MTUNLOCK
+   mt_com.mt_op = MTUNLOCK;
+   mt_com.mt_count = 1;
+   ioctl(dev->fd, MTIOCTOP, (char *)&mt_com);
+#endif
    mt_com.mt_op = MTOFFL;
    mt_com.mt_count = 1;
    if (ioctl(dev->fd, MTIOCTOP, (char *)&mt_com) < 0) {
@@ -951,6 +956,7 @@ int flush_dev(DEVICE *dev)
 
 static void do_close(DEVICE *dev)
 {
+
    Dmsg0(29, "really close_dev\n");
    close(dev->fd);
    /* Clean up device packet so it can be reused */
@@ -962,6 +968,7 @@ static void do_close(DEVICE *dev)
    dev->LastBlockNumWritten = 0;
    memset(&dev->VolCatInfo, 0, sizeof(dev->VolCatInfo));
    memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
+   dev->use_count--;
 }
 
 /* 
@@ -979,8 +986,8 @@ close_dev(DEVICE *dev)
       do_close(dev);
    } else {    
       Dmsg0(29, "close_dev but in use so leave open.\n");
+      dev->use_count--;
    }
-   dev->use_count--;
 }
 
 /*
@@ -995,7 +1002,6 @@ void force_close_dev(DEVICE *dev)
    }
    Dmsg0(29, "really close_dev\n");
    do_close(dev);
-   dev->use_count--;
 }
 
 int truncate_dev(DEVICE *dev)

@@ -39,7 +39,7 @@ CREATE TABLE Job (
    Type CHAR NOT NULL,
    Level CHAR NOT NULL,
    ClientId INTEGER REFERENCES Client DEFAULT 0,
-   JobStatus CHAR,
+   JobStatus CHAR NOT NULL,
    SchedTime DATETIME NOT NULL,
    StartTime DATETIME DEFAULT 0,
    EndTime DATETIME DEFAULT 0,
@@ -155,7 +155,8 @@ CREATE TABLE Counters (
    PRIMARY KEY (Counter)
    );
 
-PRAGMA default_synchronous=OFF;
+PRAGMA default_synchronous = OFF;
+PRAGMA default_cache_size = 10000;
 
 END-OF-DATA
 exit 0

@@ -110,7 +110,9 @@ ClientId=%d, JobTDate=%s WHERE JobId=%d",
 #ifdef HAVE_SQLITE
    /******FIXME***** do this machine independently */
    my_sqlite_query(mdb, "BEGIN");     /* begin transaction */
+   mdb->transaction = 1;
 #endif
+   mdb->changes = 0;
    return stat;
 }
 
@@ -149,6 +151,7 @@ VolSessionTime=%d, PoolId=%d, FileSetId=%d, JobTDate=%s WHERE JobId=%d",
    stat = UPDATE_DB(mdb, mdb->cmd);
 #ifdef HAVE_SQLITE
    my_sqlite_query(mdb, "COMMIT");    /* end transaction */
+   mdb->transaction = 0;
 #endif
    db_unlock(mdb);
    return stat;

@@ -70,7 +70,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
 {
    char attribs[MAXSTRING];
    int32_t n;
-   int fid, stat;
+   int fid, stat, len;
    struct MD5Context md5c;
    unsigned char signature[16];
    BSOCK *sd, *dir;
@@ -82,6 +82,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
    
    sd = jcr->store_bsock;
    dir = jcr->dir_bsock;
+   jcr->num_files_examined++;	      /* bump total file count */
 
    switch (ff_pkt->type) {
    case FT_LNKSAVED:		      /* Hard linked, file already saved */
@@ -146,6 +147,10 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
    encode_stat(attribs, &ff_pkt->statp);
      
    jcr->JobFiles++;		     /* increment number of files sent */
+   len = strlen(ff_pkt->fname);
+   jcr->last_fname = check_pool_memory_size(jcr->last_fname, len + 1);
+   jcr->last_fname[len] = 0;	      /* terminate properly before copy */
+   strcpy(jcr->last_fname, ff_pkt->fname);
     
    if (ff_pkt->VerifyOpts[0] == 0) {
       ff_pkt->VerifyOpts[0] = 'V';

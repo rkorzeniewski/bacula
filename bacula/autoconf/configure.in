@@ -441,7 +441,7 @@ AC_SUBST(working_dir)
 # ------------------------------------------
 # Where to send dump email
 # ------------------------------------------
-dump_email=root
+dump_email=root@localhost
 AC_ARG_WITH(dump-email,
    [  --with-dump-email=Dump email address],
    [
@@ -456,7 +456,7 @@ AC_SUBST(dump_email)
 # ------------------------------------------
 # Where to send job email
 # ------------------------------------------
-job_email=root
+job_email=root@localhost
 AC_ARG_WITH(job-email,
    [  --with-job-email=Job output email address],
    [

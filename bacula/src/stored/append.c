@@ -56,6 +56,10 @@ int do_append_data(JCR *jcr)
 
    sm_check(__FILE__, __LINE__, False);
 
+   if (!jcr->no_attributes && jcr->spool_attributes) {
+      open_spool_file(jcr, jcr->dir_bsock);
+   }
+
    ds = fd_sock;
 
    if (!bnet_set_buffer_size(ds, MAX_NETWORK_BUFFER_SIZE, BNET_SETBUF_WRITE)) {
@@ -174,6 +178,7 @@ int do_append_data(JCR *jcr)
 	 }
 	 sm_check(__FILE__, __LINE__, False);
 	 if (!ok) {
+            Dmsg0(400, "Not OK\n");
 	    break;
 	 }
 	 jcr->JobBytes += rec.data_len;   /* increment bytes this job */
@@ -182,9 +187,18 @@ int do_append_data(JCR *jcr)
 	    stream_to_ascii(rec.Stream), rec.data_len);
 	 /* Send attributes and MD5 to Director for Catalog */
 	 if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_MD5_SIGNATURE) {
-	    if (!dir_update_file_attributes(jcr, &rec)) {
-	       ok = FALSE;
-	       break;
+	    if (!jcr->no_attributes) {
+	       if (jcr->spool_attributes && jcr->dir_bsock->spool_fd) {
+		  jcr->dir_bsock->spool = 1;
+	       }
+	       if (!dir_update_file_attributes(jcr, &rec)) {
+                  Jmsg(jcr, M_FATAL, 0, _("Error updating file attributes. ERR=%s\n"),
+		     bnet_strerror(jcr->dir_bsock));
+		  ok = FALSE;
+		  jcr->dir_bsock->spool = 0;
+		  break;
+	       }
+	       jcr->dir_bsock->spool = 0;
 	    }
 	 }
 	 sm_check(__FILE__, __LINE__, False);
@@ -212,17 +226,23 @@ int do_append_data(JCR *jcr)
    }
    /* Write out final block of this session */
    if (!write_block_to_device(jcr, dev, block)) {
-      Pmsg0(0, "Set ok=FALSE after write_block_to_device.\n");
+      Pmsg0(000, "Set ok=FALSE after write_block_to_device.\n");
       ok = FALSE;
    }
 
    /* Release the device */
    if (!release_device(jcr, dev, block)) {
-      Pmsg0(0, "Error in release_device\n");
+      Pmsg0(000, "Error in release_device\n");
       ok = FALSE;
    }
 
    free_block(block);
+
+   if (jcr->spool_attributes && jcr->dir_bsock->spool_fd) {
+      bnet_despool(jcr->dir_bsock);
+      close_spool_file(jcr, jcr->dir_bsock);
+   }
+
    Dmsg0(90, "return from do_append_data()\n");
    return ok ? 1 : 0;
 }

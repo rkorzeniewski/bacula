@@ -3545,7 +3545,7 @@ fi
 # ------------------------------------------
 # Where to send dump email
 # ------------------------------------------
-dump_email=root
+dump_email=root@localhost
 # Check whether --with-dump-email or --without-dump-email was given.
 if test "${with_dump_email+set}" = set; then
   withval="$with_dump_email"
@@ -3563,7 +3563,7 @@ fi
 # ------------------------------------------
 # Where to send job email
 # ------------------------------------------
-job_email=root
+job_email=root@localhost
 # Check whether --with-job-email or --without-job-email was given.
 if test "${with_job_email+set}" = set; then
   withval="$with_job_email"

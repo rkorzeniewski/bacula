@@ -680,11 +680,13 @@ static int status_cmd(JCR *jcr)
    /* NOTE, we reuse a calling argument jcr. Be warned! */ 
    for (jcr=NULL; (jcr=get_next_jcr(jcr)); ) {
       if (jcr->JobStatus == JS_WaitFD) {
-         bnet_fsend(user, _("Job %s is waiting for the Client connection.\n"),
-	    jcr->Job);
+         bnet_fsend(user, _("%s Job %s waiting for Client connection.\n"),
+	    job_type_to_str(jcr->JobType), jcr->Job);
       }
       if (jcr->device) {
-         bnet_fsend(user, _("Job %s is using device %s\n"), 
+         bnet_fsend(user, _("%s %s job %s is using device %s\n"), 
+		   job_level_to_str(jcr->JobLevel),
+		   job_type_to_str(jcr->JobType),
 		   jcr->Job, jcr->device->device_name);
 	 sec = time(NULL) - jcr->run_time;
 	 if (sec <= 0) {

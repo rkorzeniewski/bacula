@@ -76,6 +76,15 @@ static int32_t write_nbytes(BSOCK *bsock, char *ptr, int32_t nbytes)
 {
    int32_t nleft, nwritten;
 
+   if (bsock->spool) {
+      nwritten = fwrite(ptr, 1, nbytes, bsock->spool_fd);
+      if (nwritten != nbytes) {
+         Emsg1(M_ERROR, 0, _("Spool write error. ERR=%s\n"), strerror(errno));
+         Dmsg2(400, "nwritten=%d nbytes=%d.\n", nwritten, nbytes);
+	 return -1;
+      }
+      return nbytes;
+   }
    nleft = nbytes;
    while (nleft > 0) {
       do {
@@ -186,6 +195,34 @@ bnet_recv(BSOCK *bsock)
    bsock->msg[nbytes] = 0;	      /* terminate in case it is a string */
    sm_check(__FILE__, __LINE__, False);
    return nbytes;		      /* return actual length of message */
+}
+
+int bnet_despool(BSOCK *bsock)
+{
+   int32_t pktsiz;
+   size_t nbytes;
+
+   rewind(bsock->spool_fd);
+   while (fread((char *)&pktsiz, 1, sizeof(int32_t), bsock->spool_fd) == sizeof(int32_t)) {
+      bsock->msglen = ntohl(pktsiz);
+      if (bsock->msglen > 0) {
+	 if (bsock->msglen > (int32_t)sizeof_pool_memory(bsock->msg)) {
+	    bsock->msg = realloc_pool_memory(bsock->msg, bsock->msglen);
+	 }
+	 nbytes = fread(bsock->msg, 1, bsock->msglen, bsock->spool_fd);
+	 if (nbytes != (size_t)bsock->msglen) {
+            Dmsg2(400, "nbytes=%d msglen=%d\n", nbytes, bsock->msglen);
+            Emsg1(M_ERROR, 0, _("fread error. ERR=%s\n"), strerror(errno));
+	    return 0;
+	 }
+      }
+      bnet_send(bsock);
+   }
+   if (ferror(bsock->spool_fd)) {
+      Emsg1(M_ERROR, 0, _("fread error. ERR=%s\n"), strerror(errno));
+      return 0;
+   }
+   return 1;
 }
 
 /*
