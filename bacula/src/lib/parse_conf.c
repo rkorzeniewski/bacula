@@ -457,11 +457,11 @@ void store_int(LEX *lc, struct res_items *item, int index, int pass)
    int token;
 
    token = lex_get_token(lc);
-   if (token != T_NUMBER) {
+   if (token != T_NUMBER || !is_a_number(lc->str)) {
       scan_err1(lc, "expected an integer number, got: %s", lc->str);
    } else {
       errno = 0;
-      *(int *)(item->value) = strtol(lc->str, NULL, 0);
+      *(int *)(item->value) = (int)strtod(lc->str, NULL);
       if (errno != 0) {
          scan_err1(lc, "expected an integer number, got: %s", lc->str);
       }
@@ -476,11 +476,11 @@ void store_pint(LEX *lc, struct res_items *item, int index, int pass)
    int token;
 
    token = lex_get_token(lc);
-   if (token != T_NUMBER) {
-      scan_err1(lc, "expected an integer number, got: %s", lc->str);
+   if (token != T_NUMBER || !is_a_number(lc->str)) {
+      scan_err1(lc, "expected a positive integer number, got: %s", lc->str);
    } else {
       errno = 0;
-      token = strtol(lc->str, NULL, 0);
+      token = (int)strtod(lc->str, NULL);
       if (errno != 0 || token < 0) {
          scan_err1(lc, "expected a postive integer number, got: %s", lc->str);
       }
@@ -497,7 +497,8 @@ void store_int64(LEX *lc, struct res_items *item, int index, int pass)
    int token;
 
    token = lex_get_token(lc);
-   if (token != T_NUMBER) {
+   Dmsg2(400, "int64=:%s: %f\n", lc->str, strtod(lc->str, NULL)); 
+   if (token != T_NUMBER || !is_a_number(lc->str)) {
       scan_err1(lc, "expected an integer number, got: %s", lc->str);
    } else {
       errno = 0;
@@ -514,14 +515,16 @@ void store_size(LEX *lc, struct res_items *item, int index, int pass)
 {
    int token, i, ch;
    uint64_t value;
-   int mod[]  = {'k', 'm', 'g'};
-   uint64_t mult[] = {1024,	     /* kilobyte */
+   int mod[]  = {'*', 'k', 'm', 'g', 0}; /* first item * not used */
+   uint64_t mult[] = {1,	     /* byte */
+		      1024,	     /* kilobyte */
 		      1048576,	     /* megabyte */
 		      1073741824};   /* gigabyte */
 
 #ifdef we_have_a_compiler_that_works
-   int mod[]  = {'k', 'm', 'g', 't'};
-   uint64_t mult[] = {1024,	     /* kilobyte */
+   int mod[]  = {'*', 'k', 'm', 'g', 't', 0};
+   uint64_t mult[] = {1,	     /* byte */
+		      1024,	     /* kilobyte */
 		      1048576,	     /* megabyte */
 		      1073741824,    /* gigabyte */
 		      1099511627776};/* terabyte */
@@ -532,9 +535,10 @@ void store_size(LEX *lc, struct res_items *item, int index, int pass)
    errno = 0;
    switch (token) {
    case T_NUMBER:
+      Dmsg2(400, "size num=:%s: %f\n", lc->str, strtod(lc->str, NULL)); 
       value = (uint64_t)strtod(lc->str, NULL);
       if (errno != 0 || token < 0) {
-         scan_err1(lc, "expected a size, got: %s", lc->str);
+         scan_err1(lc, "expected a size number, got: %s", lc->str);
       }
       *(uint64_t *)(item->value) = value;
       break;
@@ -547,25 +551,27 @@ void store_size(LEX *lc, struct res_items *item, int index, int pass)
 	 if (ISUPPER(ch)) {
 	    ch = tolower(ch);
 	 }
-	 while (i < (int)sizeof(mod)) {
+	 while (mod[++i] != 0) {
 	    if (ch == mod[i]) {
 	       lc->str_len--;
 	       lc->str[lc->str_len] = 0; /* strip modifier */
 	       break;
 	    }
-	    i++;
 	 }
       }
-      if (i >= (int)sizeof(mod)) {
-         scan_err1(lc, "expected a size, got: %s", lc->str);
+      if (mod[i] == 0 || !is_a_number(lc->str)) {
+         scan_err1(lc, "expected a size number, got: %s", lc->str);
       }
+      Dmsg3(400, "size str=:%s: %f i=%d\n", lc->str, strtod(lc->str, NULL), i);
+
       value = (uint64_t)strtod(lc->str, NULL);
       Dmsg1(400, "Int value = %d\n", (int)value);
       if (errno != 0 || value < 0) {
-         scan_err1(lc, "expected a size, got: %s", lc->str);
+         scan_err1(lc, "expected a size number, got: %s", lc->str);
       }
-      *(uint64_t *)(item->value) = (uint64_t)(strtod(lc->str, NULL) * mult[i]);
-      Dmsg1(400, "Full value = %f\n", strtod(lc->str, NULL) * mult[i]);
+      *(uint64_t *)(item->value) = value * mult[i];
+      Dmsg2(400, "Full value = %f %" lld "\n", strtod(lc->str, NULL) * mult[i],
+	  value *mult[i]);
       break;
    default:
       scan_err1(lc, "expected a size, got: %s", lc->str);
@@ -581,7 +587,7 @@ void store_size(LEX *lc, struct res_items *item, int index, int pass)
 void store_time(LEX *lc, struct res_items *item, int index, int pass)
 {
    int token, i, ch, value;
-   int  mod[]  = {'s', 'm', 'h', 'd', 'w', 'o', 'q', 'y'};
+   int  mod[]  = {'*', 's', 'm', 'h', 'd', 'w', 'o', 'q', 'y', 0};
    int	mult[] = {1, 60, 60*60, 60*60*24, 60*60*24*7, 60*60*24*30, 
 		  60*60*24*91, 60*60*24*365};
 
@@ -589,7 +595,7 @@ void store_time(LEX *lc, struct res_items *item, int index, int pass)
    errno = 0;
    switch (token) {
    case T_NUMBER:
-      token = strtol(lc->str, NULL, 0);
+      token = (int)strtod(lc->str, NULL);
       if (errno != 0 || token < 0) {
          scan_err1(lc, "expected a time period, got: %s", lc->str);
       }
@@ -604,17 +610,18 @@ void store_time(LEX *lc, struct res_items *item, int index, int pass)
 	 if (ISUPPER(ch)) {
 	    ch = tolower(ch);
 	 }
-	 while (i < (int)sizeof(mod)) {
+	 while (mod[++i] != 0) {
 	    if (ch == mod[i]) {
+	       lc->str_len--;
+	       lc->str[lc->str_len] = 0; /* strip modifier */
 	       break;
 	    }
-	    i++;
 	 }
       }
-      if (i >= (int)sizeof(mod)) {
+      if (mod[i] == 0 || !is_a_number(lc->str)) {
          scan_err1(lc, "expected a time period, got: %s", lc->str);
       }
-      value = strtol(lc->str, NULL, 0);
+      value = (int)strtod(lc->str, NULL);
       if (errno != 0 || value < 0) {
          scan_err1(lc, "expected a time period, got: %s", lc->str);
       }

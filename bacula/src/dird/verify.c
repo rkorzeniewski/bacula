@@ -325,6 +325,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, int last_full_id)
    struct stat statc;		      /* catalog stat */
    int stat = JS_Terminated;
    char buf[MAXSTRING];
+   char *fname = (char *)get_pool_memory(PM_MESSAGE);
 
    memset(&fdbr, 0, sizeof(FILE_DBR));
    fd = jcr->file_bsock;
@@ -341,9 +342,11 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, int last_full_id)
        char Opts_MD5[MAXSTRING];	/* Verify Opts or MD5 signature */
        int do_MD5;
 
+       fname = (char *)check_pool_memory_size(fname, fd->msglen);
+       jcr->fname = (char *)check_pool_memory_size(fname, fd->msglen);
        Dmsg1(50, "Atts+MD5=%s\n", fd->msg);
-       if ((len = sscanf(fd->msg, "%ld %d %s %s", &file_index, &stream, 
-	     Opts_MD5, jcr->fname)) != 4) {
+       if ((len = sscanf(fd->msg, "%ld %d %100s %s", &file_index, &stream, 
+	     Opts_MD5, fname)) != 4) {
           Jmsg3(jcr, M_FATAL, 0, _("bird<filed: bad attributes, expected 4 fields got %d\n\
 msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
 	  jcr->JobStatus = JS_ErrorTerminated;
@@ -359,6 +362,7 @@ msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
 	  decode_stat(attr, &statf);  /* decode file stat packet */
 	  do_MD5 = FALSE;
 	  jcr->fn_printed = FALSE;
+	  strcpy(jcr->fname, fname);  /* move filename into JCR */
 
           Dmsg2(11, "dird<filed: stream=%d %s\n", stream, jcr->fname);
           Dmsg1(20, "dird<filed: attr=%s\n", attr);
@@ -490,7 +494,6 @@ msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
 	  } else if (do_MD5) {
 	     db_escape_string(buf, Opts_MD5, strlen(Opts_MD5));
 	     if (strcmp(buf, fdbr.MD5) != 0) {
-		/***FIXME**** fname may not be valid */
 		prt_fname(jcr);
 		if (debug_level >= 10) {
                    Jmsg(jcr, M_INFO, 0, _("      MD5 not same. File=%s Cat=%s\n"), buf, fdbr.MD5);
@@ -521,6 +524,7 @@ msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
 "AND File.FileIndex!=%d AND File.PathId=Path.PathId "
 "AND File.FilenameId=Filename.FilenameId", 
       last_full_id, jcr->JobId);
+   /* missing_handler is called for each file found */
    db_sql_query(jcr->db, buf, missing_handler, (void *)jcr);
    if (jcr->fn_printed) {
       stat = JS_Differences;

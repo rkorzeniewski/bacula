@@ -60,7 +60,7 @@ static int cancel_cmd(JCR *cjcr);
 static int mount_cmd(JCR *jcr);
 static int unmount_cmd(JCR *jcr);
 static int status_cmd(JCR *sjcr);
-static void label_device_if_ok(JCR *jcr, DEVICE *dev, char *vname, char *poolname);
+static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *vname, char *poolname);
 
 struct s_cmds {
    char *cmd;
@@ -260,12 +260,12 @@ static int label_cmd(JCR *jcr)
 	    if (open_dev(dev, volname, READ_WRITE) < 0) {
                bnet_fsend(dir, _("3994 Connot open device: %s\n"), strerror_dev(dev));
 	    } else {
-	       label_device_if_ok(jcr, dev, volname, poolname);
+	       label_volume_if_ok(jcr, dev, volname, poolname);
 	       force_close_dev(dev);
 	    }
 	 } else if (dev->dev_blocked && 
 		    dev->dev_blocked != BST_DOING_ACQUIRE) {  /* device blocked? */
-	    label_device_if_ok(jcr, dev, volname, poolname);
+	    label_volume_if_ok(jcr, dev, volname, poolname);
 	 } else if (dev->state & ST_READ || dev->num_writers) {
 	    if (dev->state & ST_READ) {
                 bnet_fsend(dir, _("3901 Device %s is busy with 1 reader.\n"),
@@ -275,7 +275,7 @@ static int label_cmd(JCR *jcr)
 		   dev_name(dev), dev->num_writers);
 	    }
 	 } else {		      /* device not being used */
-	    label_device_if_ok(jcr, dev, volname, poolname);
+	    label_volume_if_ok(jcr, dev, volname, poolname);
 	 }
 	 V(dev->mutex);
       } else {
@@ -300,7 +300,7 @@ static int label_cmd(JCR *jcr)
  *
  *  Enter with the mutex set
  */
-static void label_device_if_ok(JCR *jcr, DEVICE *dev, char *vname, char *poolname)
+static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *vname, char *poolname)
 {
    BSOCK *dir = jcr->dir_bsock;
    DEV_BLOCK *block;

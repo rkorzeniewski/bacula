@@ -49,6 +49,8 @@ int get_cmd(char *prompt, BSOCK *sock, int sec);
 static char *configfile = NULL;
 static BSOCK *UA_sock = NULL;
 static DIRRES *dir; 
+static FILE *output = stdout;
+
 
 #define CONFIG_FILE "./console.conf"   /* default configuration file */
 
@@ -147,7 +149,7 @@ int main(int argc, char *argv[])
    }
    UnlockRes();
    if (ndir == 0) {
-      Emsg1(M_ABORT, 0, "No director resource defined in %s\n\
+      Emsg1(M_ABORT, 0, "No Director resource defined in %s\n\
 Without that I don't how to speak to the Director :-(\n", configfile);
    }
 
@@ -161,11 +163,11 @@ Without that I don't how to speak to the Director :-(\n", configfile);
    if (ndir > 1) {
       UA_sock = init_bsock(0, "", "", 0);
 try_again:
-      printf("Available Directors:\n");
+      fprintf(output, "Available Directors:\n");
       LockRes();
       ndir = 0;
       for (dir = NULL; (dir = (DIRRES *)GetNextRes(R_DIRECTOR, (RES *)dir)); ) {
-         printf("%d  %s at %s:%d\n", 1+ndir++, dir->hdr.name, dir->address,
+         fprintf(output, "%d  %s at %s:%d\n", 1+ndir++, dir->hdr.name, dir->address,
 	    dir->DIRport);
       }
       UnlockRes();
@@ -174,7 +176,7 @@ try_again:
       }
       item = atoi(UA_sock->msg);
       if (item < 0 || item > ndir) {
-         printf("You must enter a number between 1 and %d\n", ndir);
+         fprintf(output, "You must enter a number between 1 and %d\n", ndir);
 	 goto try_again;
       }
       LockRes();
@@ -200,7 +202,7 @@ try_again:
    }
    jcr.dir_bsock = UA_sock;
    if (!authenticate_director(&jcr, dir)) {
-      printf("ERR: %s", UA_sock->msg);
+      fprintf(stderr, "ERR: %s", UA_sock->msg);
       terminate_console(0);
       return 1;
    }
@@ -334,8 +336,8 @@ wait_for_data(int fd, int sec)
 int 
 get_cmd(char *prompt, BSOCK *sock, int sec)
 {
-   fprintf(stdout, prompt);
-   fflush(stdout);
+   fprintf(output, prompt);
+   fflush(output);
    switch (wait_for_data(fileno(stdin), sec)) {
       case 0:
 	 return 0;		      /* timeout */

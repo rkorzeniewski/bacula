@@ -109,24 +109,117 @@ db_delete_pool_record(B_DB *mdb, POOL_DBR *pr)
    return 1;
 }
 
+#define MAX_DEL_LIST_LEN 1000000
 
-/* Delete Media record */
-int db_delete_media_record(B_DB *mdb, MEDIA_DBR *mr)
+struct s_del_ctx {
+   uint32_t *JobId; 
+   int num_ids; 		      /* ids stored */
+   int max_ids; 		      /* size of array */
+   int num_del; 		      /* number deleted */
+   int tot_ids; 		      /* total to process */
+};
+
+/*
+ * Called here to make in memory list of JobIds to be
+ *  deleted. The in memory list will then be transversed
+ *  to issue the SQL DELETE commands.  Note, the list
+ *  is allowed to get to MAX_DEL_LIST_LEN to limit the
+ *  maximum malloc'ed memory.
+ */
+static int delete_handler(void *ctx, int num_fields, char **row)
 {
+   struct s_del_ctx *del = (struct s_del_ctx *)ctx;
 
-   P(mdb->mutex);
-   if (mr->MediaId == 0) {
-      Mmsg(&mdb->cmd, "DELETE FROM Media WHERE VolumeName=\"%s\"", 
-	   mr->VolumeName);
-   } else {
-      Mmsg(&mdb->cmd, "DELETE FROM Media WHERE MediaId=%d", 
-	   mr->MediaId);
+   if (del->num_ids == MAX_DEL_LIST_LEN) {  
+      return 1;
    }
+   if (del->num_ids == del->max_ids) {
+      del->max_ids = (del->max_ids * 3) / 2;
+      del->JobId = (uint32_t *)brealloc(del->JobId, sizeof(uint32_t) *
+	 del->max_ids);
+   }
+   del->JobId[del->num_ids++] = (uint32_t)strtod(row[0], NULL);
+   return 0;
+}
 
-   mr->MediaId = DELETE_DB(mdb, mdb->cmd);
 
-   V(mdb->mutex);
+/* 
+ * This routine will purge (delete) all records 
+ * associated with a particular Volume. It will
+ * not delete the media record itself.
+ */
+static int do_media_purge(B_DB *mdb, MEDIA_DBR *mr)
+{
+   char *query = (char *)get_pool_memory(PM_MESSAGE);
+   struct s_del_ctx del;
+   int i;
+
+   del.num_ids = 0;
+   del.tot_ids = 0;
+   del.num_del = 0;
+   del.max_ids = 0;
+   Mmsg(&mdb->cmd, "SELECT JobId from JobMedia WHERE MediaId=%d", mr->MediaId);
+   del.max_ids = mr->VolJobs;
+   if (del.max_ids < 100) {
+      del.max_ids = 100;
+   } else if (del.max_ids > MAX_DEL_LIST_LEN) {
+      del.max_ids = MAX_DEL_LIST_LEN;
+   }
+   del.JobId = (uint32_t *)malloc(sizeof(uint32_t) * del.max_ids);
+   db_sql_query(mdb, mdb->cmd, delete_handler, (void *)&del);
+
+   for (i=0; i < del.num_ids; i++) {
+      Dmsg1(400, "Delete JobId=%d\n", del.JobId[i]);
+      Mmsg(&query, "DELETE FROM Job WHERE JobId=%d", del.JobId[i]);
+      db_sql_query(mdb, query, NULL, (void *)NULL);
+      Mmsg(&query, "DELETE FROM File WHERE JobId=%d", del.JobId[i]);
+      db_sql_query(mdb, query, NULL, (void *)NULL);
+      Mmsg(&query, "DELETE FROM JobMedia WHERE JobId=%d", del.JobId[i]);
+      db_sql_query(mdb, query, NULL, (void *)NULL);
+   }
+   free(del.JobId);
+   free_pool_memory(query);
    return 1;
 }
+
+/* Delete Media record and all records that
+ * are associated with it.
+ */
+int db_delete_media_record(B_DB *mdb, MEDIA_DBR *mr)
+{
+   if (mr->MediaId == 0 && !db_get_media_record(mdb, mr)) {
+      return 0;
+   } 
+   /* Delete associated records */
+   do_media_purge(mdb, mr);
+
+   Mmsg(&mdb->cmd, "DELETE FROM Media WHERE MediaId=%d", mr->MediaId);
+   db_sql_query(mdb, mdb->cmd, NULL, (void *)NULL);
+   return 1;
+}
+
+/*
+ * Purge all records associated with a 
+ * media record. This does not delete the
+ * media record itself. But the media status
+ * is changed to "Purged".
+ */
+int db_purge_media_record(B_DB *mdb, MEDIA_DBR *mr)
+{
+   if (mr->MediaId == 0 && !db_get_media_record(mdb, mr)) {
+      return 0;
+   } 
+   /* Delete associated records */
+   do_media_purge(mdb, mr);
+
+   /* Mark Volume as purged */
+   strcpy(mr->VolStatus, "Purged");
+   if (!db_update_media_record(mdb, mr)) {
+      return 0;
+   }
+
+   return 1;
+}
+
 
 #endif /* HAVE_MYSQL || HAVE_SQLITE */

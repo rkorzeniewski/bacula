@@ -91,6 +91,7 @@ typedef struct s_volume_catalog_info {
    uint32_t VolCatErrors;             /* Number of errors this volume */
    uint32_t VolCatWrites;             /* Number of writes this volume */
    uint32_t VolCatReads;              /* Number of reads this volume */
+   uint32_t VolCatRecycles;           /* Number of recycles this volume */
    uint64_t VolCatMaxBytes;           /* max bytes to write */
    uint64_t VolCatCapacityBytes;      /* capacity estimate */
    char VolCatStatus[20];             /* Volume status */

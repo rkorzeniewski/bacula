@@ -138,6 +138,9 @@ char *		 encode_mode		 __PROTO((mode_t mode, char *buf));
 char *		 edit_uint_with_commas	 __PROTO((uint64_t val, char *buf));
 char *		 add_commas		 __PROTO((char *val, char *buf));
 int do_shell_expansion(char *name);
+int		 is_a_number(const char *num);
+
+
 /*
  *void		 print_ls_output	 __PROTO((char *fname, char *lname, int type, struct stat *statp));
  */

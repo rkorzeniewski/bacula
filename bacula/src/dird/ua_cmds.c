@@ -954,6 +954,9 @@ static int delete_media(UAContext *ua)
    }
    mr.MediaId = 0;
    strcpy(mr.VolumeName, ua->cmd);
+   bsendmsg(ua, _("\nThis command will delete volume %s\n"
+      "and all Jobs saved on that volume from the Catalog\n"));
+
    if (!get_cmd(ua, _("If you want to continue enter pretty please: "))) {
       return 1;
    }
@@ -1065,7 +1068,7 @@ gotVol:
    bnet_fsend(sd, _("label %s VolumeName=%s PoolName=%s MediaType=%s"), 
       dev_name, mr.VolumeName, pr.Name, mr.MediaType);
    bsendmsg(ua, "Sending label command ...\n");
-   while (bnet_recv(sd) > 0) {
+   while (bget_msg(sd, 0) > 0) {
       bsendmsg(ua, "%s", sd->msg);
       if (strncmp(sd->msg, "3000 OK label.", 14) == 0) {
 	 ok = TRUE;
@@ -1253,6 +1256,7 @@ int open_db(UAContext *ua)
       close_db(ua);
       return 0;
    }
+   ua->jcr->db = ua->db;
    Dmsg1(50, "DB %s opened\n", ua->catalog->db_name);
    return 1;
 }
@@ -1263,4 +1267,5 @@ void close_db(UAContext *ua)
       db_close_database(ua->db);
    }
    ua->db = NULL;
+   ua->jcr->db = NULL;
 }

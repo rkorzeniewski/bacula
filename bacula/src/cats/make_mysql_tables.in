@@ -102,7 +102,7 @@ CREATE TABLE Media (
    VolWrites INTEGER UNSIGNED NOT NULL,
    VolMaxBytes BIGINT UNSIGNED NOT NULL,
    VolCapacityBytes BIGINT UNSIGNED NOT NULL,
-   VolStatus ENUM('Full', 'Archive', 'Append', 'Recycle', 
+   VolStatus ENUM('Full', 'Archive', 'Append', 'Recycle', 'Purged',
     'Read-Only', 'Disabled', 'Error', 'Busy') NOT NULL,
    Recycle ENUM('No', 'Yes') NOT NULL,
    PRIMARY KEY(MediaId),

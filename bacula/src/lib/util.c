@@ -33,8 +33,37 @@
  */
 
 /*
- * Edit a number with commas, the supplied buffer
- * must be at least 27 bytes long.
+ * Check if specified string is a number or not.
+ *  Taken from SQLite, cool, thanks.
+ */
+int is_a_number(const char *n)
+{
+   int digit_seen = 0;
+
+   if( *n == '-' || *n == '+' ) {
+      n++;
+   }
+   while (ISDIGIT(*n)) {
+      digit_seen = 1;
+      n++;
+   }
+   if (digit_seen && *n == '.') {
+      n++;
+      while (ISDIGIT(*n)) { n++; }
+   }
+   if (digit_seen && (*n == 'e' || *n == 'E')
+       && (ISDIGIT(n[1]) || ((n[1]=='-' || n[1] == '+') && ISDIGIT(n[2])))) {
+      n += 2;			      /* skip e- or e+ */
+      while (ISDIGIT(*n)) { n++; }
+   }
+   return digit_seen && *n==0;
+}
+
+
+/*
+ * Edit an integer number with commas, the supplied buffer
+ * must be at least 27 bytes long.  The incoming number
+ * is always widened to 64 bits.
  */
 char *edit_uint_with_commas(uint64_t val, char *buf)
 {
@@ -42,6 +71,10 @@ char *edit_uint_with_commas(uint64_t val, char *buf)
    return add_commas(buf, buf);
 }
 
+/*
+ * Add commas to a string, which is presumably
+ * a number.  
+ */
 char *add_commas(char *val, char *buf)
 {
    int len, nc;
@@ -70,8 +103,7 @@ char *add_commas(char *val, char *buf)
 
 
 /* Convert a string in place to lower case */
-void 
-lcase(char *str)
+void lcase(char *str)
 {
    while (*str) {
       if (ISUPPER(*str))

@@ -33,7 +33,6 @@
 extern void run_job(JCR *jcr);
 
 /* Imported variables */
-extern struct s_jl joblevels[];
 extern int r_first;
 extern int r_last;
 extern struct s_res resources[];
@@ -155,11 +154,12 @@ getout:
       ua.UA_sock = NULL;
    }
 
+   close_db(&ua);		      /* do this before freeing JCR */
+
    if (ua.jcr) {
       free_jcr(ua.jcr);
       ua.jcr = NULL;
    }
-   close_db(&ua);
    if (ua.prompt) {
       free(ua.prompt);
    }

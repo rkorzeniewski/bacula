@@ -176,7 +176,7 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
    } else {
       lcase(lc->str);
       for (i=0; joblevels[i].level_name; i++) {
-	 if (strcmp(lc->str, joblevels[i].level_name) == 0) {
+	 if (strcasecmp(lc->str, joblevels[i].level_name) == 0) {
 	    lrun.level = joblevels[i].level;
 	    lrun.job_class = joblevels[i].job_class;
 	    i = 0;

@@ -288,6 +288,7 @@ static int mount_next_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *label_blk)
 static int ready_dev_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 {
    int mounted = 0;
+   int recycle = 0;
 
    Dmsg0(100, "Enter ready_dev_for_append\n");
 
@@ -331,6 +332,9 @@ static int ready_dev_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	 case VOL_OK:
             Dmsg1(200, "Vol OK name=%s\n", jcr->VolumeName);
 	    memcpy(&dev->VolCatInfo, &jcr->VolCatInfo, sizeof(jcr->VolCatInfo));
+            if (strcmp(dev->VolCatInfo.VolCatStatus, "Recycle") == 0) {
+	       recycle = 1;
+	    }
 	    break;		      /* got it */
 	 case VOL_NAME_ERROR:
 	    /* Check if we can accept this as an anonymous volume */
@@ -387,8 +391,10 @@ mount_next_vol:
     *  be appended just after the block label.	If we are writing
     *  an second volume, the calling routine will write the label
     *  before writing the overflow block.
+    *
+    *  If the tape is marked as Recycle, we rewrite the label.
     */
-   if (dev->VolHdr.LabelType == PRE_LABEL) {	  /* fresh tape */
+   if (dev->VolHdr.LabelType == PRE_LABEL || recycle) {
       Dmsg1(90, "ready_for_append found freshly labeled volume. dev=%x\n", dev);
       dev->VolHdr.LabelType = VOL_LABEL; /* set Volume label */
       write_volume_label_to_block(jcr, dev, block);
@@ -415,13 +421,26 @@ mount_next_vol:
       write_volume_label_to_block(jcr, dev, block);
       dev->VolCatInfo.VolCatJobs = 1;
       dev->VolCatInfo.VolCatFiles = 1;
-      dev->VolCatInfo.VolCatMounts = 1;
       dev->VolCatInfo.VolCatErrors = 0;
-      dev->VolCatInfo.VolCatWrites = 1;
       dev->VolCatInfo.VolCatBlocks = 1;
+      if (recycle) {
+	 dev->VolCatInfo.VolCatMounts++;  
+	 dev->VolCatInfo.VolCatRecycles++;
+      } else {
+	 dev->VolCatInfo.VolCatMounts = 1;
+	 dev->VolCatInfo.VolCatRecycles = 0;
+	 dev->VolCatInfo.VolCatWrites = 1;
+	 dev->VolCatInfo.VolCatReads = 1;
+      }
+      strcpy(dev->VolCatInfo.VolCatStatus, "Append");
       dir_update_volume_info(jcr, &dev->VolCatInfo);
-      Jmsg(jcr, M_INFO, 0, _("Wrote label to prelabeled Volume %s on device %s\n"),
-	 jcr->VolumeName, dev_name(dev));
+      if (recycle) {
+         Jmsg(jcr, M_INFO, 0, _("Recycled volume %s on device %s, all previous data lost.\n"),
+	    jcr->VolumeName, dev_name(dev));
+      } else {
+         Jmsg(jcr, M_INFO, 0, _("Wrote label to prelabeled Volume %s on device %s\n"),
+	    jcr->VolumeName, dev_name(dev));
+      }
 
    } else {
       /* OK, at this point, we have a valid Bacula label, but

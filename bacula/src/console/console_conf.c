@@ -64,6 +64,18 @@ int  res_all_size = sizeof(res_all);
  * resource with the routine to process the record 
  * information.
  */ 
+
+/*  Console "globals" */
+static struct res_items cons_items[] = {
+   {"name",        store_name,     ITEM(res_cons.hdr.name), 0, ITEM_REQUIRED, 0},
+   {"description", store_str,      ITEM(res_cons.hdr.desc), 0, 0, 0},
+   {"rcfile",      store_dir,      ITEM(res_cons.rc_file), 0, 0, 0},
+   {"historyfile", store_dir,      ITEM(res_cons.hist_file), 0, 0, 0},
+   {NULL, NULL, NULL, 0, 0, 0} 
+};
+
+
+/*  Director's that we can contact */
 static struct res_items dir_items[] = {
    {"name",        store_name,     ITEM(res_dir.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,      ITEM(res_dir.hdr.desc), 0, 0, 0},
@@ -78,6 +90,7 @@ static struct res_items dir_items[] = {
  * It must have one item for each of the resources.
  */
 struct s_res resources[] = {
+   {"console",       cons_items,  R_CONSOLE,   NULL},
    {"director",      dir_items,   R_DIRECTOR,  NULL},
    {NULL,	     NULL,	  0,	       NULL}
 };
@@ -98,6 +111,10 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
       recurse = 0;
    }
    switch (type) {
+      case R_CONSOLE:
+         printf("Console: name=%s rcfile=%s histfile=%s\n", reshdr->name,
+		res->res_cons.rc_file, res->res_cons.hist_file);
+	 break;
       case R_DIRECTOR:
          printf("Director: name=%s address=%s DIRport=%d\n", reshdr->name, 
 		 res->res_dir.address, res->res_dir.DIRport);
@@ -136,6 +153,13 @@ void free_resource(int type)
       free(res->res_dir.hdr.desc);
 
    switch (type) {
+      case R_CONSOLE:
+	 if (res->res_cons.rc_file) {
+	    free(res->res_cons.rc_file);
+	 }
+	 if (res->res_cons.hist_file) {
+	    free(res->res_cons.hist_file);
+	 }
       case R_DIRECTOR:
 	 if (res->res_dir.address)
 	    free(res->res_dir.address);
@@ -181,6 +205,7 @@ void save_resource(int type, struct res_items *items, int pass)
    if (pass == 2) {
       switch (type) {
 	 /* Resources not containing a resource */
+	 case R_CONSOLE:
 	 case R_DIRECTOR:
 	    break;
 
@@ -204,6 +229,9 @@ void save_resource(int type, struct res_items *items, int pass)
    }
 
    switch (type) {
+      case R_CONSOLE:
+	 size = sizeof(CONSRES);
+	 break;
       case R_DIRECTOR:
 	 size = sizeof(DIRRES);
 	 break;

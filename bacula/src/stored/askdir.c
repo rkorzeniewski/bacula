@@ -30,7 +30,7 @@
 
 /* Requests sent to the Director */
 static char Find_media[]    = "CatReq Job=%s FindMedia=%d\n";
-static char Find_Vol_Info[] = "CatReq Job=%s GetVolInfo VolName=%s\n";
+static char Get_Vol_Info[] = "CatReq Job=%s GetVolInfo VolName=%s\n";
 
 static char Update_media[] = "CatReq Job=%s UpdateMedia VolName=%s\
  VolJobs=%d VolFiles=%d VolBlocks=%d VolBytes=%" lld " VolMounts=%d\
@@ -46,7 +46,7 @@ static char Job_status[]   = "3012 Job %s jobstatus %d\n";
 /* Responses received from the Director */
 static char OK_media[] = "1000 OK VolName=%127s VolJobs=%d VolFiles=%d\
  VolBlocks=%d VolBytes=%" lld " VolMounts=%d VolErrors=%d VolWrites=%d\
- VolMaxBytes=%" lld " VolCapacityBytes=%" lld "\n";
+ VolMaxBytes=%" lld " VolCapacityBytes=%" lld " VolStatus=%20s\n";
 
 static char OK_update[] = "1000 OK UpdateMedia\n";
 
@@ -80,7 +80,7 @@ static int do_request_volume_info(JCR *jcr)
 	       &vol->VolCatBlocks, &vol->VolCatBytes, 
 	       &vol->VolCatMounts, &vol->VolCatErrors,
 	       &vol->VolCatWrites, &vol->VolCatMaxBytes, 
-	       &vol->VolCatCapacityBytes) != 10) {
+	       &vol->VolCatCapacityBytes, vol->VolCatStatus) != 11) {
        Dmsg1(30, "Bad response from Dir: %s\n", dir->msg);
        return 0;
     }
@@ -88,7 +88,6 @@ static int do_request_volume_info(JCR *jcr)
     strcpy(jcr->VolumeName, vol->VolCatName); /* set desired VolumeName */
     
     Dmsg1(200, "Got Volume=%s\n", vol->VolCatName);
-    strcpy(vol->VolCatStatus, "Append");
     return 1;
 }
 
@@ -97,7 +96,8 @@ static int do_request_volume_info(JCR *jcr)
  * Get Volume info for a specific volume from the Director's Database
  *
  * Returns: 1 on success   (not Director guarantees that Pool and MediaType
- *			    are correct and VolStatus==Append)
+ *			    are correct and VolStatus==Append or
+ *			    VolStatus==Recycle)
  *	    0 on failure
  *
  *	    Volume information returned in jcr
@@ -109,7 +109,7 @@ int dir_get_volume_info(JCR *jcr)
     strcpy(jcr->VolCatInfo.VolCatName, jcr->VolumeName);
     Dmsg1(200, "dir_get_volume_info=%s\n", jcr->VolCatInfo.VolCatName);
     bash_spaces(jcr->VolCatInfo.VolCatName);
-    bnet_fsend(dir, Find_Vol_Info, jcr->Job, jcr->VolCatInfo.VolCatName);
+    bnet_fsend(dir, Get_Vol_Info, jcr->Job, jcr->VolCatInfo.VolCatName);
     return do_request_volume_info(jcr);
 }
 

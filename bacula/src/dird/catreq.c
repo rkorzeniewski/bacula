@@ -41,7 +41,7 @@
 
 /* Requests from the Storage daemon */
 static char Find_media[] = "CatReq Job=%127s FindMedia=%d\n";
-static char Find_Vol_Info[] = "CatReq Job=%127s GetVolInfo VolName=%127s\n";
+static char Get_Vol_Info[] = "CatReq Job=%127s GetVolInfo VolName=%127s\n";
 
 static char Update_media[] = "CatReq Job=%127s UpdateMedia VolName=%s\
  VolJobs=%d VolFiles=%d VolBlocks=%d VolBytes=%" lld " VolMounts=%d\
@@ -52,7 +52,7 @@ static char Update_media[] = "CatReq Job=%127s UpdateMedia VolName=%s\
 /* Responses  sent to Storage daemon */
 static char OK_media[] = "1000 OK VolName=%s VolJobs=%d VolFiles=%d\
  VolBlocks=%d VolBytes=%" lld " VolMounts=%d VolErrors=%d VolWrites=%d\
- VolMaxBytes=%" lld " VolCapacityBytes=%" lld "\n";
+ VolMaxBytes=%" lld " VolCapacityBytes=%" lld " VolStatus=%s\n";
 
 static char OK_update[] = "1000 OK UpdateMedia\n";
 
@@ -88,11 +88,19 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
 	 jcr->MediaId = mr.MediaId;
          Dmsg1(20, "Find_next_vol MediaId=%d\n", jcr->MediaId);
 	 strcpy(jcr->VolumeName, mr.VolumeName);
-
 	 ok = TRUE;
       } else {
-	 /* See if we can create a new Volume */
-	 ok = newVolume(jcr);
+	 /* Well, try finding recycled tapes */
+         strcpy(mr.VolStatus, "Recycle");
+	 if (db_find_next_volume(jcr->db, index, &mr)) {
+	    jcr->MediaId = mr.MediaId;
+            Dmsg1(20, "Find_next_vol MediaId=%d\n", jcr->MediaId);
+	    strcpy(jcr->VolumeName, mr.VolumeName);
+	    ok = TRUE;
+	 } else {
+	    /* See if we can create a new Volume */
+	    ok = newVolume(jcr);
+	 }
       }
       /*
        * Send Find Media response to Storage daemon 
@@ -101,7 +109,8 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
 	 bash_spaces(mr.VolumeName);
 	 bnet_fsend(bs, OK_media, mr.VolumeName, mr.VolJobs,
 	    mr.VolFiles, mr.VolBlocks, mr.VolBytes, mr.VolMounts, mr.VolErrors,
-	    mr.VolWrites, mr.VolMaxBytes, mr.VolCapacityBytes);
+	    mr.VolWrites, mr.VolMaxBytes, mr.VolCapacityBytes,
+	    mr.VolStatus);
       } else {
          bnet_fsend(bs, "1999 No Media\n");
       }
@@ -109,7 +118,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
    /* 
     * Request to find specific volume information
     */
-   } else if (sscanf(bs->msg, Find_Vol_Info, &Job, &mr.VolumeName) == 2) {
+   } else if (sscanf(bs->msg, Get_Vol_Info, &Job, &mr.VolumeName) == 2) {
       Dmsg1(120, "CatReq GetVolInfo Vol=%s\n", mr.VolumeName);
       /*
        * Find the Volume
@@ -120,10 +129,12 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
          Dmsg1(20, "VolumeInfo MediaId=%d\n", jcr->MediaId);
 	 strcpy(jcr->VolumeName, mr.VolumeName);
 	 /* 
-	  * Make sure this volume is suitable for this job
+	  * Make sure this volume is suitable for this job, i.e.
+	  *  it is either Append or Recycle and Media Type matches.
 	  */
 	 if (mr.PoolId == jcr->PoolId && 
-             strcmp(mr.VolStatus, "Append") == 0 &&
+             (strcmp(mr.VolStatus, "Append") == 0 ||
+              strcmp(mr.VolStatus, "Recycle") == 0) &&
 	     strcmp(mr.MediaType, jcr->store->media_type) == 0) {
 	    /*
 	     * Send Find Media response to Storage daemon 
@@ -131,7 +142,8 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
 	    bash_spaces(mr.VolumeName);
 	    bnet_fsend(bs, OK_media, mr.VolumeName, mr.VolJobs,
 	       mr.VolFiles, mr.VolBlocks, mr.VolBytes, mr.VolMounts, mr.VolErrors,
-	       mr.VolWrites, mr.VolMaxBytes, mr.VolCapacityBytes);
+	       mr.VolWrites, mr.VolMaxBytes, mr.VolCapacityBytes,
+	       mr.VolStatus);
 	 } else { 
             Dmsg4(000, "get_media_record PoolId=%d wanted %d, Status=%s, \
 MediaType=%s\n", mr.PoolId, jcr->PoolId, mr.VolStatus, mr.MediaType);
