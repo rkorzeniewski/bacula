@@ -35,6 +35,7 @@
 
 /* Forward referenced subroutines */
 static void find_runs();
+static void add_job(JOB *job, RUN *run, time_t now, time_t runtime);
 
 /* Imported subroutines */
 
@@ -66,6 +67,7 @@ JCR *wait_for_next_job(char *job_to_run)
    time_t now, runtime, nexttime;
    int jobindex, i;
    static int first = TRUE;
+   char dt[MAX_TIME_LENGTH];
 
    Dmsg0(200, "Enter wait_for_next_job\n");
    if (first) {
@@ -73,6 +75,7 @@ JCR *wait_for_next_job(char *job_to_run)
       max_runjobs = 10;
       runjobs = (RUNJOB *) malloc(sizeof(RUNJOB) * max_runjobs);
       num_runjobs = 0;
+      rem_runjobs = 0;
       if (job_to_run) { 	      /* one shot */
 	 job = (JOB *)GetResWithName(R_JOB, job_to_run);
 	 if (!job) {
@@ -83,15 +86,18 @@ JCR *wait_for_next_job(char *job_to_run)
 	 set_jcr_defaults(jcr, job);
 	 return jcr;
       }
-      find_runs();
    }
    /* Wait until we have something in the
     * next hour or so.
     */
-   while (num_runjobs == 0 || rem_runjobs == 0) {
-      sleep(60);
+   while (rem_runjobs == 0) {
       find_runs();
+      if (rem_runjobs > 0) {
+	 break;
+      }
+      sleep(60);
    }
+
    /* 
     * Sort through what is to be run in the next
     * two hours to find the first job to be run,
@@ -101,12 +107,20 @@ JCR *wait_for_next_job(char *job_to_run)
    time(&now);
    nexttime = now + 60 * 60 * 24;     /* a much later time */
    jobindex = -1;
+   bstrftime(dt, sizeof(dt), now);
+   Dmsg2(400, "jobs=%d. Now is %s\n", rem_runjobs, dt);
    for (i=0; i<num_runjobs; i++) {
       runtime = runjobs[i].runtime;
       if (runtime > 0 && runtime < nexttime) { /* find minimum time job */
 	 nexttime = runtime;
 	 jobindex = i;
       }
+#ifdef xxxx_debug
+      if (runtime > 0) {
+	 bstrftime(dt, sizeof(dt), runjobs[i].runtime);  
+         Dmsg2(000, "    %s run %s\n", dt, runjobs[i].job->hdr.name);
+      }
+#endif
    }
    if (jobindex < 0) {		      /* we really should have something now */
       Emsg0(M_ABORT, 0, _("Scheduler logic error\n"));
@@ -119,8 +133,8 @@ JCR *wait_for_next_job(char *job_to_run)
       twait = nexttime - now;
       if (twait <= 0)		      /* time to run it */
 	 break;
-      if (twait > 20)		      /* sleep max 20 seconds */
-	 twait = 20;
+      if (twait > 1)		      /* sleep max 20 seconds */
+	 twait--;
       sleep(twait);
    }
    run = runjobs[jobindex].run;
@@ -200,9 +214,6 @@ static void find_runs()
       }
       for (run=sched->run; run; run=run->next) {
 
-	 if (now - run->last_run < 60 * 20)
-	    continue;		      /* wait at least 20 minutes */
-
 	 /* Find runs scheduled in this our or in the
 	  * next hour (we may be one second before the next hour).
 	  */
@@ -212,27 +223,20 @@ static void find_runs()
 
 	    /* find time (time_t) job is to be run */
 	    localtime_r(&now, &tm);
-	    if (bit_is_set(next_hour, run->hour))
-	       tm.tm_hour++;
-	    if (tm.tm_hour > 23)
-	       tm.tm_hour = 0;
 	    tm.tm_min = run->minute;
 	    tm.tm_sec = 0;
-	    runtime = mktime(&tm);
-	    if (runtime < (now - 5 * 60)) /* give 5 min grace to pickup straglers */
-	       continue;
-	    /* Make sure array is big enough */
-	    if (num_runjobs == max_runjobs) {
-	       max_runjobs += 10;
-	       runjobs = (RUNJOB *) realloc(runjobs, sizeof(RUNJOB) * max_runjobs);
-	       if (!runjobs)
-                  Emsg0(M_ABORT, 0, _("Out of memory\n"));
+	    if (bit_is_set(hour, run->hour)) {
+	       runtime = mktime(&tm);
+	       add_job(job, run, now, runtime);
 	    }
-	    /* accept to run this job */
-	    runjobs[num_runjobs].run = run;
-	    runjobs[num_runjobs].job = job;
-	    runjobs[num_runjobs++].runtime = runtime; /* when to run it */
-
+	    if (bit_is_set(next_hour, run->hour)) {
+	       tm.tm_hour++;
+	       if (tm.tm_hour > 23) {
+		  tm.tm_hour = 0;
+	       }
+	       runtime = mktime(&tm);
+	       add_job(job, run, now, runtime);
+	    }
 	 }
       }  
    }
@@ -240,4 +244,27 @@ static void find_runs()
    UnlockRes();
    rem_runjobs = num_runjobs;
    Dmsg0(200, "Leave find_runs()\n");
+}
+
+static void add_job(JOB *job, RUN *run, time_t now, time_t runtime)
+{
+   /*
+    * Don't run any job that ran less than a minute ago, but
+    *  do run any job scheduled less than a minute ago.
+    */
+   if ((runtime - run->last_run < 61) || (runtime+59 < now)) {
+      return;
+   }
+
+   /* Make sure array is big enough */
+   if (num_runjobs == max_runjobs) {
+      max_runjobs += 10;
+      runjobs = (RUNJOB *) realloc(runjobs, sizeof(RUNJOB) * max_runjobs);
+      if (!runjobs)
+         Emsg0(M_ABORT, 0, _("Out of memory\n"));
+   } 
+   /* accept to run this job */
+   runjobs[num_runjobs].run = run;
+   runjobs[num_runjobs].job = job;
+   runjobs[num_runjobs++].runtime = runtime; /* when to run it */
 }

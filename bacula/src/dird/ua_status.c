@@ -354,24 +354,11 @@ static void do_client_status(UAContext *ua, CLIENT *client)
 
 static void prt_runtime(UAContext *ua, JOB *job, time_t runtime)
 {
-   char dt[MAX_TIME_LENGTH], *type;
+   char dt[MAX_TIME_LENGTH];	   
 
    bstrftime(dt, sizeof(dt), runtime);
-   switch (job->JobType) {
-      case JT_BACKUP:
-         type = _("Backup");
-	 break;
-      case JT_VERIFY:
-         type = _("Verify");
-	 break;
-      case JT_RESTORE:
-         type = _("Restore");
-	 break;
-      default:
-         type = _("Unknown type of");
-	 break;
-   }
-   bsendmsg(ua, _("%s job \"%s\" scheduled for %s\n"), type, job->hdr.name, dt);
+   bsendmsg(ua, _("%s job \"%s\" scheduled for %s\n"), 
+      job_type_to_str(job->JobType), job->hdr.name, dt);
 }
 
 /*	    

@@ -60,6 +60,9 @@ TREE_ROOT *new_tree(int count)
    TREE_ROOT *root;
    uint32_t size;
 
+   if (count < 1000) {		      /* minimum tree size */
+      count = 1000;
+   }
    root = (TREE_ROOT *)malloc(sizeof(TREE_ROOT));
    memset(root, 0, sizeof(TREE_ROOT));
    root->type = TN_ROOT;

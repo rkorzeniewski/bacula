@@ -122,7 +122,6 @@ int restorecmd(UAContext *ua, char *cmd)
       return 0;
    }
 
-
    /* 
     * Build the directory tree	
     */
@@ -187,7 +186,7 @@ static int user_select_jobids(UAContext *ua, struct s_full_ctx *full)
       "List Jobs where a given File is saved",
       "Enter list of JobIds to select",
       "Enter SQL list command", 
-      "Select the most recent backup for a client"
+      "Select the most recent backup for a client",
       "Cancel",
       NULL };
 
@@ -287,6 +286,7 @@ static int user_select_jobids(UAContext *ua, struct s_full_ctx *full)
 
    memset(&jr, 0, sizeof(JOB_DBR));
 
+   full->TotalFiles = 0;
    for (p=full->JobIds; ; ) {
       int stat = next_jobid_from_list(&p, &JobId);
       if (stat < 0) {
@@ -301,7 +301,7 @@ static int user_select_jobids(UAContext *ua, struct s_full_ctx *full)
          bsendmsg(ua, _("Unable to get Job record. ERR=%s\n"), db_strerror(ua->db));
 	 return 0;
       }
-      full->TotalFiles = jr.JobFiles;
+      full->TotalFiles += jr.JobFiles;
    }
    return 1;
 }
@@ -495,6 +495,7 @@ static int complete_bsr(UAContext *ua, RBSR *bsr)
 {
    JOB_DBR jr;
    char VolumeNames[1000];	      /* ****FIXME**** */
+   char *p;
 
    if (bsr) {
       memset(&jr, 0, sizeof(jr));
@@ -508,6 +509,9 @@ static int complete_bsr(UAContext *ua, RBSR *bsr)
       if (!db_get_job_volume_names(ua->db, bsr->JobId, VolumeNames)) {
          bsendmsg(ua, _("Unable to get Job Volumes. ERR=%s\n"), db_strerror(ua->db));
 	 return 0;
+      }
+      if ((p = strchr(VolumeNames, '|'))) {
+	 *p = 0;		      /* take first volume */
       }
       bsr->VolumeName = bstrdup(VolumeNames);
       return complete_bsr(ua, bsr->next);

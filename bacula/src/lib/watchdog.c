@@ -191,19 +191,12 @@ static void *watchdog_thread(void *arg)
       timeout.tv_sec = tv.tv_sec + SLEEP_TIME;
 
       Dmsg1(200, "pthread_cond_timedwait sec=%d\n", timeout.tv_sec);
-#ifdef xxxxxxxxxxxxxxx_was_HAVE_CYGWIN
-      /* CYGWIN dies with a page fault the second
-       * time that pthread_cond_timedwait() is called
-       * so fake it out.
-       */
-      sleep(SLEEP_TIME); 
-#else
       stat = pthread_cond_timedwait(&timer, &mutex, &timeout);
       Dmsg1(200, "pthread_cond_timedwait stat=%d\n", stat);
-#endif
       
    } /* end of big for loop */
 
+   pthread_mutex_unlock(&mutex);      /* for good form */
    Dmsg0(200, "End watchdog\n");
    return NULL;
 }

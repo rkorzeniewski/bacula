@@ -385,23 +385,23 @@ char *job_status_to_str(int stat)
 
    switch (stat) {
    case JS_Terminated:
-      str = "OK";
+      str = _("OK");
       break;
    case JS_ErrorTerminated:
    case JS_Error:
-      str = "Error";
+      str = _("Error");
       break;
    case JS_FatalError:
-      str = "Fatal Error";
+      str = _("Fatal Error");
       break;
    case JS_Cancelled:
-      str = "Cancelled";
+      str = _("Cancelled");
       break;
    case JS_Differences:
-      str = "Differences";
+      str = _("Differences");
       break;
    default:
-      str = "Unknown term code";
+      str = _("Unknown term code");
       break;
    }
    return str;
@@ -417,18 +417,18 @@ char *job_type_to_str(int type)
 
    switch (type) {
    case JT_BACKUP:
-      str = "Backup";
+      str = _("Backup");
       break;
    case JT_VERIFY:
-      str = "Verify";
+      str = _("Verify");
       break;
    case JT_RESTORE:
-      str = "Restore";
+      str = _("Restore");
       break;
    case JT_ADMIN:
-      str = "Admin";
+      str = _("Admin");
    default:
-      str = "Unknown Job Type";
+      str = _("Unknown Type");
       break;
    }
    return str;
@@ -443,34 +443,34 @@ char *job_level_to_str(int level)
 
    switch (level) {
    case L_FULL:
-      str = "full";
+      str = _("Full");
       break;
    case L_INCREMENTAL:
-      str = "incremental";
+      str = _("Incremental");
       break;
    case L_DIFFERENTIAL:
-      str = "differential";
+      str = _("Differential");
       break;
    case L_LEVEL:
-      str = "level";
+      str = _("Level");
       break;
    case L_SINCE:
-      str = "since";
+      str = _("Since");
       break;
    case L_VERIFY_CATALOG:
-      str = "verify catalog";
+      str = _("Verify Catalog");
       break;
    case L_VERIFY_INIT:
-      str = "verify init";
+      str = _("Verify Init Catalog");
       break;
    case L_VERIFY_VOLUME_TO_CATALOG:
-      str = "verify volume to catalog";
+      str = _("Verify Volume to Catalog");
       break;
    case L_VERIFY_DATA:
-      str = "verify data";
+      str = _("Verify Data");
       break;
    default:
-      str = "Unknown Job level";
+      str = _("Unknown Job Level");
       break;
    }
    return str;

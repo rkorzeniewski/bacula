@@ -234,7 +234,7 @@ void db_start_transaction(B_DB *mdb)
    }
    if (!mdb->transaction) {   
       my_sqlite_query(mdb, "BEGIN");  /* begin transaction */
-      Dmsg0(000, "Start SQLite transaction\n");
+      Dmsg0(400, "Start SQLite transaction\n");
       mdb->transaction = 1;
    }
    db_unlock(mdb);
@@ -249,7 +249,7 @@ void db_end_transaction(B_DB *mdb)
    if (mdb->transaction) {
       my_sqlite_query(mdb, "COMMIT"); /* end transaction */
       mdb->transaction = 0;
-      Dmsg1(000, "End SQLite transaction changes=%d\n", mdb->changes);
+      Dmsg1(400, "End SQLite transaction changes=%d\n", mdb->changes);
    }
    mdb->changes = 0;
    db_unlock(mdb);

@@ -121,7 +121,7 @@ SELECT * from temp2;
 :List where a File is saved:
 *Enter Filename (no path):
 SELECT Job.JobId as JobId, Client.Name as Client,
- CONCAT(Path.Path,Filename.Name) as Name,
+ Path.Path||Filename.Name as Name,
  StartTime,Level,JobFiles,JobBytes
  FROM Client,Job,File,Filename,Path WHERE Client.ClientId=Job.ClientId
  AND JobStatus='T' AND Job.JobId=File.JobId
