@@ -92,7 +92,7 @@ static DEV_BLOCK *last_block = NULL;
 static DEV_BLOCK *this_block = NULL;
 static uint32_t last_file = 0;
 static uint32_t last_block_num = 0;
-static int simple = TRUE;
+static int simple = FALSE;
 
 static char *VolumeName = NULL;
 
@@ -1075,7 +1075,6 @@ static void fillcmd()
    DEV_RECORD rec;
    DEV_BLOCK  *block;
    char ec1[50];
-   char *p;
 
    ok = TRUE;
    stop = 0;
@@ -1088,8 +1087,9 @@ every 322 MB, and write an EOF every 3.2 GB.  If you have\n\
 selected the simple test option, after writing the first tape\n\
 it will rewind it and re-read the last block written.\n\
 If you have selected the multiple tape test, when the first tape\n\
-fills, it will ask for a second, and after writing a few \n\
+fills, it will ask for a second, and after writing a few more \n\
 blocks, it will stop.  Then it will begin re-reading the\n\
+two tapes.\n\n\
 This may take a long time. I.e. hours! ...\n\n");
 
    get_cmd("Insert a blank tape then indicate if you want\n"
@@ -1107,6 +1107,7 @@ This may take a long time. I.e. hours! ...\n\n");
    }
 
    VolumeName = "TestVolume1";
+   pm_strcpy(&jcr->VolumeName, "TestVolume1");
    labelcmd();
    VolumeName = NULL;
 
@@ -1140,16 +1141,8 @@ This may take a long time. I.e. hours! ...\n\n");
 
    memset(&rec, 0, sizeof(rec));
    rec.data = get_memory(100000);     /* max record size */
-   /* 
-    * Fill write buffer with random data
-    */
+
 #define REC_SIZE 32768
-   p = rec.data;
-   for (int i=0; i < REC_SIZE; ) {
-      makeSessionKey(p, NULL, 0);
-      p += 16;
-      i += 16;
-   }
    rec.data_len = REC_SIZE;
 
    /* 
@@ -1158,7 +1151,6 @@ This may take a long time. I.e. hours! ...\n\n");
    jcr->VolFirstIndex = 0;
    time(&jcr->run_time);	      /* start counting time for rates */
    for (file_index = 0; ok && !job_canceled(jcr); ) {
-      uint64_t *lp;
       rec.VolSessionId = jcr->VolSessionId;
       rec.VolSessionTime = jcr->VolSessionTime;
       rec.FileIndex = ++file_index;
@@ -1167,17 +1159,21 @@ This may take a long time. I.e. hours! ...\n\n");
       /* Write file_index at beginning of buffer and add file_index to each
        *  uint64_t item to make it unique.
        */
-      lp = (uint64_t *)rec.data;
-      *lp++ = (uint64_t)file_index;
+      uint64_t *lp = (uint64_t *)rec.data;
       for (uint32_t i=0; i < (REC_SIZE-sizeof(uint64_t))/sizeof(uint64_t); i++) {
-	 *lp++ = *lp + rec.FileIndex;
+	 *lp++ = file_index;
       }
 
       Dmsg4(250, "before writ_rec FI=%d SessId=%d Strm=%s len=%d\n",
 	 rec.FileIndex, rec.VolSessionId, stream_to_ascii(rec.Stream, rec.FileIndex), 
 	 rec.data_len);
        
-      if (!write_record_to_block(block, &rec)) {
+      while (!write_record_to_block(block, &rec)) {
+	 
+	 /*
+	  * Here we just filled a block
+	  */
+
          Dmsg2(150, "!write_record_to_block data_len=%d rem=%d\n", rec.data_len,
 		    rec.remainder);
 
@@ -1207,6 +1203,7 @@ This may take a long time. I.e. hours! ...\n\n");
 	    /* The weof resets the block number */
 	 }
 
+	 /* Get out after writing 10 blocks to the second tape */
 	 if (block->BlockNumber > 10 && stop != 0) {	  /* get out */
 	    break;
 	 }
@@ -1299,11 +1296,13 @@ static void unfillcmd()
        * Simplified test, we simply fsf to file, then read the
        * last block and make sure it is the same as the saved block.
        */
+      Pmsg0(000, "Rewinding tape ...\n");
       if (!rewind_dev(dev)) {
          Pmsg1(-1, _("Error rewinding: ERR=%s\n"), strerror_dev(dev));
 	 goto bail_out;
       }
       if (last_file > 0) {
+         Pmsg1(000, "Forward spacing to last file=%u\n", last_file);
 	 if (!fsf_dev(dev, last_file)) {
             Pmsg1(-1, _("Error in FSF: ERR=%s\n"), strerror_dev(dev));
 	    goto bail_out;
@@ -1362,51 +1361,67 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 dump_label_record(dev, rec, 1);
       }
       switch (rec->FileIndex) {
-	 case PRE_LABEL:
-            Pmsg0(000, "Volume is prelabeled. This tape cannot be scanned.\n");
-	    return;
-	 case VOL_LABEL:
-	    unser_volume_label(dev, rec);
-            Pmsg3(000, "VOL_LABEL: block=%u size=%d vol=%s\n", block->BlockNumber, 
-	       block->block_len, dev->VolHdr.VolName);
-	    stop++;
-	    break;
-	 case SOS_LABEL:
-	    unser_session_label(&label, rec);
-            Pmsg1(000, "SOS_LABEL: JobId=%u\n", label.JobId);
-	    break;
-	 case EOS_LABEL:
-	    unser_session_label(&label, rec);
-            Pmsg2(000, "EOS_LABEL: block=%u JobId=%u\n", block->BlockNumber, 
-	       label.JobId);
-	    break;
-	 case EOM_LABEL:
-            Pmsg0(000, "EOM_LABEL:\n");
-	    break;
-	 case EOT_LABEL:	      /* end of all tapes */
-	    char ec1[50];
+      case PRE_LABEL:
+         Pmsg0(000, "Volume is prelabeled. This tape cannot be scanned.\n");
+	 return;
+      case VOL_LABEL:
+	 unser_volume_label(dev, rec);
+         Pmsg3(000, "VOL_LABEL: block=%u size=%d vol=%s\n", block->BlockNumber, 
+	    block->block_len, dev->VolHdr.VolName);
+	 stop++;
+	 break;
+      case SOS_LABEL:
+	 unser_session_label(&label, rec);
+         Pmsg1(000, "SOS_LABEL: JobId=%u\n", label.JobId);
+	 break;
+      case EOS_LABEL:
+	 unser_session_label(&label, rec);
+         Pmsg2(000, "EOS_LABEL: block=%u JobId=%u\n", block->BlockNumber, 
+	    label.JobId);
+	 break;
+      case EOM_LABEL:
+         Pmsg0(000, "EOM_LABEL:\n");
+	 break;
+      case EOT_LABEL:		   /* end of all tapes */
+	 char ec1[50];
 
-	    if (LastBlock != block->BlockNumber) {
-	       VolBytes += block->block_len;
-	    }
-	    LastBlock = block->BlockNumber;
-	    now = time(NULL);
-	    now -= jcr->run_time;
-	    if (now <= 0) {
-	       now = 1;
-	    }
-	    kbs = (double)VolBytes / (1000 * now);
-            Pmsg3(000, "Read block=%u, VolBytes=%s rate=%.1f KB/s\n", block->BlockNumber,
-		     edit_uint64_with_commas(VolBytes, ec1), (float)kbs);
+	 if (LastBlock != block->BlockNumber) {
+	    VolBytes += block->block_len;
+	 }
+	 LastBlock = block->BlockNumber;
+	 now = time(NULL);
+	 now -= jcr->run_time;
+	 if (now <= 0) {
+	    now = 1;
+	 }
+	 kbs = (double)VolBytes / (1000 * now);
+         Pmsg3(000, "Read block=%u, VolBytes=%s rate=%.1f KB/s\n", block->BlockNumber,
+		  edit_uint64_with_commas(VolBytes, ec1), (float)kbs);
 
-            Pmsg0(000, "End of all tapes.\n");
+         Pmsg0(000, "End of all tapes.\n");
 
-	    break;
-	 default:
-	    break;
+	 break;
+      default:
+	 break;
       }
       return;
    }
+   if (++file_index != rec->FileIndex) {
+      Pmsg3(000, "Incorrect FileIndex in Block %u. Got %d, expected %d.\n", 
+	 block->BlockNumber, rec->FileIndex, file_index);
+   }
+   /*
+    * Now check that the right data is in the record.
+    */
+   uint64_t *lp = (uint64_t *)rec->data;
+   for (uint32_t i=0; i < (REC_SIZE-sizeof(uint64_t))/sizeof(uint64_t); i++) {
+      if (*lp++ != (uint64_t)file_index) {
+         Pmsg2(000, "Record %d contains bad data in Block %u.\n",
+	    file_index, block->BlockNumber);
+	 break;
+      }
+   }
+
    if (LastBlock != block->BlockNumber) {
       VolBytes += block->block_len;
    }
