@@ -12,7 +12,7 @@ cwd=`pwd`
 scripts/copy-test-confs
 scripts/cleanup
 rm -rf weird-files2
-cp -a weird-files weird-files2
+cp -Rp weird-files weird-files2
 echo "${cwd}/weird-files2" >/tmp/file-list
 bin/bacula stop 2>&1 >/dev/null
 bin/drop_sqlite_tables
