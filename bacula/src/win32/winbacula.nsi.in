@@ -163,6 +163,19 @@ Section "Install Console" SecConsole
  do_next:
 SectionEnd
 
+Section "Install wx-Console" SecWxConsole
+  SetOutPath "$INSTDIR\bin"
+  File wx-console\Release\wx-console.exe
+  IfFileExists "$INSTDIR\bin\wx-console.conf" newconf 
+  File console\wx-console.conf
+  goto do_next
+ newconf:
+  File /oname=wx-console.conf.new console\wx-console.conf
+       
+  ; If /service was given jump to the service install part
+ do_next:
+SectionEnd
+
 
 Section "Install Documentation" SecDoc
   SetOutPath "$INSTDIR\doc"
@@ -178,11 +191,13 @@ SectionEnd
 
   LangString DESC_SecService ${LANG_ENGLISH} "Install Bacula client on this system."
   LangString DESC_SecConsole ${LANG_ENGLISH} "Install Console program on this system."
+  LangString DESC_SecWxConsole ${LANG_ENGLISH} "Install graphical console program on this system."
   LangString DESC_SecDoc ${LANG_ENGLISH} "Install Documenation on this system."
 
   !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
     !insertmacro MUI_DESCRIPTION_TEXT ${SecService} $(DESC_SecService)
     !insertmacro MUI_DESCRIPTION_TEXT ${SecConsole} $(DESC_SecConsole)
+    !insertmacro MUI_DESCRIPTION_TEXT ${SecWxConsole} $(DESC_SecWxConsole)
     !insertmacro MUI_DESCRIPTION_TEXT ${SecDoc} $(DESC_SecDoc)
   !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
