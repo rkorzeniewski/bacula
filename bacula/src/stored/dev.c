@@ -1057,12 +1057,16 @@ reposition_dev(DEVICE *dev, uint32_t file, uint32_t block)
 
    if (!(dev_state(dev, ST_TAPE))) {
       off_t pos = (((off_t)file)<<32) + block;
+      Dmsg1(100, "===== lseek to %d\n", (int)pos);
       if (lseek(dev->fd, pos, SEEK_SET) == (off_t)-1) {
 	 dev->dev_errno = errno;
          Mmsg2(&dev->errmsg, _("lseek error on %s. ERR=%s.\n"),
 	    dev->dev_name, strerror(dev->dev_errno));
 	 return 0;
       }
+      dev->file = file;
+      dev->block_num = block;
+      dev->file_addr = pos;
       return 1;
    }
    Dmsg4(100, "reposition_dev from %u:%u to %u:%u\n", 

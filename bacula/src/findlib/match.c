@@ -125,6 +125,12 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, char *fname)
          case 's':
 	    inc->options |= FO_SPARSE;
 	    break;
+         case 'm':
+	    inc->options |= FO_MTIMEONLY;
+	    break;
+         case 'k':
+	    inc->options |= FO_KEEPATIME;
+	    break;
          case 'V':                  /* verify options */
 	    /* Copy Verify Options */
             for (j=0; *p && *p != ':'; p++) {

@@ -627,7 +627,6 @@ static int level_cmd(JCR *jcr)
       Dmsg2(100, "Got since time: %s mtime_only=%d\n", ctime(&mtime), mtime_only);
       jcr->incremental = 1;	      /* set incremental or decremental backup */
       jcr->mtime = mtime;	      /* set since time */
-      jcr->mtime_only = mtime_only;   /* and what to compare */
    /*
     * We get his UTC since time, then sync the clocks and correct it
     *	to agree with our clock.
@@ -677,7 +676,6 @@ static int level_cmd(JCR *jcr)
       Dmsg2(100, "adj = %d since_time=%d\n", (int)adj, (int)since_time);
       jcr->incremental = 1;	      /* set incremental or decremental backup */
       jcr->mtime = since_time;	      /* set since time */
-      jcr->mtime_only = mtime_only;   /* and what to compare */
    } else {
       Jmsg1(jcr, M_FATAL, 0, "Unknown backup level: %s\n", level);
       free_memory(level);

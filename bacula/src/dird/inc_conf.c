@@ -85,6 +85,8 @@ static struct res_items newinc_items[] = {
 #define INC_KW_REPLACE	    8	      /* restore options */
 #define INC_KW_READFIFO     9	      /* Causes fifo data to be read */
 #define INC_KW_PORTABLE    10
+#define INC_KW_MTIMEONLY   11
+#define INC_KW_KEEPATIME   12
 
 /* Include keywords -- these are keywords that can appear
  *    in the options lists of an old include ( Include = compression= ...)
@@ -100,6 +102,8 @@ static struct s_kw FS_option_kw[] = {
    {"replace",     INC_KW_REPLACE},
    {"readfifo",    INC_KW_READFIFO},
    {"portable",    INC_KW_PORTABLE},
+   {"mtimeonly",   INC_KW_MTIMEONLY},
+   {"keepatime",   INC_KW_KEEPATIME},
    {NULL,	   0}
 };
 
@@ -145,6 +149,10 @@ static struct s_fs_opt FS_options[] = {
    {"no",       INC_KW_READFIFO,      "0"},
    {"yes",      INC_KW_PORTABLE,      "p"},
    {"no",       INC_KW_PORTABLE,      "0"},
+   {"yes",      INC_KW_MTIMEONLY,     "m"},
+   {"no",       INC_KW_MTIMEONLY,     "0"},
+   {"yes",      INC_KW_KEEPATIME,     "k"},
+   {"no",       INC_KW_KEEPATIME,     "0"},
    {NULL,	0,		     0}
 };
 

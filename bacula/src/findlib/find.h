@@ -83,6 +83,8 @@ enum {
 #define FO_READFIFO     (1<<8)        /* read data from fifo */
 #define FO_SHA1         (1<<9)        /* Do SHA1 checksum */
 #define FO_PORTABLE     (1<<10)       /* Use portable data format -- no BackupWrite */
+#define FO_MTIMEONLY    (1<<11)       /* Use mtime rather than mtime & ctime */
+#define FO_KEEPATIME    (1<<12)       /* Reset access time */
 
 struct s_included_file {
    struct s_included_file *next;
@@ -114,16 +116,14 @@ struct FF_PKT {
    int32_t LinkFI;                    /* FileIndex of main hard linked file */
    struct f_link *linked;             /* Set if this file is hard linked */
    int type;                          /* FT_ type from above */
-   uint32_t flags;                    /* control flags */
+   uint32_t flags;                    /* backup options */
    int ff_errno;                      /* errno */
-   int incremental;                   /* do incremental save */
    BFILE bfd;                         /* Bacula file descriptor */
    time_t save_time;                  /* start of incremental time */
-   int mtime_only;                    /* incremental on mtime_only */
-   int dereference;                   /* follow links */
+   bool dereference;                  /* follow links (not implemented) */
+   bool null_output_device;           /* using null output device */
+   bool incremental;                  /* incremental save */
    int GZIP_level;                    /* compression level */
-   int atime_preserve;                /* preserve access times */
-   int null_output_device;            /* using null output device */
    char VerifyOpts[20];
    struct s_included_file *included_files_list;
    struct s_excluded_file *excluded_files_list;
