@@ -46,7 +46,7 @@ main (int argc, char *const *argv)
 {
    FF_PKT *ff;
    char name[1000];
-   int i, ch;
+   int i, ch, hard_links;
 
    while ((ch = getopt(argc, argv, "ad:?")) != -1) {
       switch (ch) {
@@ -87,16 +87,17 @@ main (int argc, char *const *argv)
   }
 
   find_files(ff, print_file, NULL);
-  term_find_files(ff);
+  hard_links = term_find_files(ff);
   
    printf(_("\
 Total files    : %d\n\
 Max file length: %d\n\
 Max path length: %d\n\
 Files truncated: %d\n\
-Paths truncated: %d\n"),
+Paths truncated: %d\n\
+Hard links     : %d\n"),
      num_files, max_file_len, max_path_len,
-     trunc_fname, trunc_path);
+     trunc_fname, trunc_path, hard_links);
   
   close_memory_pool();
   sm_dump(False);

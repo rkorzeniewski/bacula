@@ -108,13 +108,14 @@ next_volume:
 	 }
       }
       /* Check if use duration has expired */
-      if (ok && mr.VolUseDuration > 0 && 
-                strcmp(mr.VolStatus, "Recycle") != 0) {
+      Dmsg2(200, "VolJobs=%d FirstWritten=%d\n", mr.VolJobs, mr.FirstWritten);
+      if (ok && mr.VolJobs > 0 && mr.VolUseDuration > 0 && 
+           strcmp(mr.VolStatus, "Recycle") != 0) {
 	 utime_t now = time(NULL);
-	 utime_t start = str_to_utime(mr.cFirstWritten);			 
-	 if (start > 0 && mr.VolUseDuration <= (now - start)) {
+	 if (mr.VolUseDuration <= (now - mr.FirstWritten)) {
             Dmsg4(100, "Duration=%d now=%d start=%d now-start=%d\n",
-	       (int)jcr->pool->VolUseDuration, (int)now, (int)start, (int)(now-start));
+	       (int)jcr->pool->VolUseDuration, (int)now, (int)mr.FirstWritten, 
+	       (int)(now-mr.FirstWritten));
             Jmsg(jcr, M_INFO, 0, _("Max configured use duration exceeded. "       
                "Marking Volume \"%s\" as Used.\n"), mr.VolumeName);
             strcpy(mr.VolStatus, "Used");  /* yes, mark as used */
@@ -145,6 +146,7 @@ next_volume:
 	    edit_uint64(mr.MaxVolBytes, ed2), 
 	    edit_uint64(mr.VolCapacityBytes, ed3),
 	    mr.VolStatus, mr.Slot, mr.MaxVolJobs, mr.MaxVolFiles);
+         Dmsg1(200, "Find media: %s", bs->msg);
       } else {
          bnet_fsend(bs, "1999 No Media\n");
       }
@@ -191,8 +193,7 @@ next_volume:
 	       edit_uint64(mr.MaxVolBytes, ed2), 
 	       edit_uint64(mr.VolCapacityBytes, ed3),
 	       mr.VolStatus, mr.Slot, mr.MaxVolJobs, mr.MaxVolFiles);
-            Dmsg5(200, "get_media_record PoolId=%d wanted %d, Status=%s, Slot=%d \
-MediaType=%s\n", mr.PoolId, jcr->PoolId, mr.VolStatus, mr.Slot, mr.MediaType);
+            Dmsg1(200, "Vol Info: %s", bs->msg);
 	 } else { 
 	    /* Not suitable volume */
             bnet_fsend(bs, "1998 Volume \"%s\"not appropriate.\n",
@@ -220,6 +221,11 @@ MediaType=%s\n", mr.PoolId, jcr->PoolId, mr.VolStatus, mr.Slot, mr.MediaType);
          bnet_fsend(bs, "1991 Catalog Request failed: %s", db_strerror(jcr->db));
 	 return;
       }
+      /* Set first written time if this is first job */
+      if (mr.VolJobs == 0) {
+	 mr.FirstWritten = jcr->start_time;   /* use Job start time as first write */
+      }
+      Dmsg2(200, "Update media: BefVolJobs=%u After=%u\n", mr.VolJobs, sdmr.VolJobs);
       /* Copy updated values to original media record */
       mr.VolJobs     = sdmr.VolJobs;
       mr.VolFiles    = sdmr.VolFiles;
@@ -262,11 +268,9 @@ MediaType=%s\n", mr.PoolId, jcr->PoolId, mr.VolStatus, mr.Slot, mr.MediaType);
 
       /* Finally, check Use duration expiration */
       } else if (mr.VolUseDuration > 0) {
-	 utime_t start;
 	 utime_t now = time(NULL);
-	 start = str_to_utime(mr.cFirstWritten);			 
 	 /* See if Vol Use has expired */
-	 if (start > 0 && mr.VolUseDuration <= (now - start)) {
+	 if (mr.VolUseDuration <= (now - mr.FirstWritten)) {
             Jmsg(jcr, M_INFO, 0, _("Max configured use duration exceeded. "       
                "Marking Volume \"%s\"as Used.\n"), mr.VolumeName);
             strcpy(mr.VolStatus, "Used");  /* yes, mark as used */

@@ -206,7 +206,8 @@ db_find_next_volume(B_DB *mdb, int item, MEDIA_DBR *mr)
    Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,\
 VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,\
 VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,Recycle,Slot,\
-FirstWritten FROM Media WHERE PoolId=%d AND MediaType='%s' AND VolStatus='%s' \
+FirstWritten,LastWritten \
+FROM Media WHERE PoolId=%d AND MediaType='%s' AND VolStatus='%s' \
 ORDER BY MediaId", mr->PoolId, mr->MediaType, mr->VolStatus); 
 
    if (!QUERY_DB(mdb, mdb->cmd)) {
@@ -253,6 +254,9 @@ ORDER BY MediaId", mr->PoolId, mr->MediaType, mr->VolStatus);
    mr->Recycle = str_to_int64(row[15]);
    mr->Slot = str_to_int64(row[16]);
    bstrncpy(mr->cFirstWritten, row[17]!=NULL?row[17]:"", sizeof(mr->cFirstWritten));
+   mr->FirstWritten = (time_t)str_to_utime(mr->cFirstWritten);
+   bstrncpy(mr->cLastWritten, row[18]!=NULL?row[18]:"", sizeof(mr->cLastWritten));
+   mr->LastWritten = (time_t)str_to_utime(mr->cLastWritten);
 
    sql_free_result(mdb);
 

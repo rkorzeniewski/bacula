@@ -152,10 +152,10 @@ find_one_file(FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), void *pkt
 	  }
 
        /* File not previously dumped. Chain it into our list. */
-       lp = (struct f_link *)bmalloc(sizeof (struct f_link) + strlen(fname));
+       lp = (struct f_link *)bmalloc(sizeof(struct f_link) + strlen(fname) +1);
        lp->ino = ff_pkt->statp.st_ino;
        lp->dev = ff_pkt->statp.st_dev;
-       strcpy (lp->name, fname);
+       strcpy(lp->name, fname);
        lp->next = ff_pkt->linklist;
        ff_pkt->linklist = lp;
    }
@@ -321,9 +321,10 @@ find_one_file(FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), void *pkt
    return handle_file(ff_pkt, pkt);
 }
 
-void term_find_one(FF_PKT *ff)
+int term_find_one(FF_PKT *ff)
 {
    struct f_link *lp, *lc;
+   int count = 0;
   
    /* Free up list of hard linked files */
    for (lp = ff->linklist; lp;) {
@@ -331,7 +332,8 @@ void term_find_one(FF_PKT *ff)
       lp = lp->next;
       if (lc) {
 	 free(lc);
+	 count++;
       }
    }
-   return;
+   return count;
 }

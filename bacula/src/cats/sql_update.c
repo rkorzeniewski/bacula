@@ -183,7 +183,7 @@ db_update_pool_record(B_DB *mdb, POOL_DBR *pr)
 int
 db_update_media_record(B_DB *mdb, MEDIA_DBR *mr) 
 {
-   char dt[MAX_TIME_LENGTH];
+   char dt[MAX_TIME_LENGTH], dtF[MAX_TIME_LENGTH];
    time_t ttime;
    struct tm tm;
    int stat;
@@ -195,10 +195,13 @@ db_update_media_record(B_DB *mdb, MEDIA_DBR *mr)
 
    Dmsg1(100, "update_media: FirstWritten=%d\n", mr->FirstWritten);
    db_lock(mdb);
-   if (mr->VolMounts == 1 && mr->VolBlocks==1 && mr->VolWrites==1) {
+   if (mr->VolJobs == 1) {
       Dmsg1(400, "Set FirstWritten Vol=%s\n", mr->VolumeName);
+      ttime = mr->FirstWritten;
+      localtime_r(&ttime, &tm);
+      strftime(dtF, sizeof(dtF), "%Y-%m-%d %T", &tm);
       Mmsg(&mdb->cmd, "UPDATE Media SET FirstWritten='%s'\
- WHERE VolumeName='%s'", dt, mr->VolumeName);
+ WHERE VolumeName='%s'", dtF, mr->VolumeName);
       stat = UPDATE_DB(mdb, mdb->cmd);
       Dmsg1(400, "Firstwritten stat=%d\n", stat);
    }

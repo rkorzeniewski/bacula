@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                 08 January 2003 
+                 11 January 2003 
 
 Documentation to do: (a little bit at a time)
 - Document running a test version.
@@ -16,6 +16,16 @@ Testing to do: (painful)
 - test and fix < code and | code.
 
 For 1.29 release:
+- Why is catreq.c:111 Find vol called twice for a job?
+- Why is FirstWritten = -1 after label?
+- Add include list to end of chain in findlib
+- Fix cancel in find_one -- need jcr.
+- Write SetJobStatus() function so cancel status not lost.
+- Find out why Full saves run slower and slower (hashing?)
+- Test size of hash table needed in find_one using testfind.
+- Make 1.28c release
+- Rewrite find_one.c to use only pool_memory instead of 
+  alloca and malloc.
 - Make sure btraceback goes into /sbin not sysconf directory.
 - Get correct error status from run_program or open_bpipe().
 - Figure out how to allow multiple simultaneous file Volumes on

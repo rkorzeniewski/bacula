@@ -29,7 +29,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -110,7 +110,7 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       }
 
       strcpy(dev->VolCatInfo.VolCatStatus, "Full");
-      Dmsg2(100, "Call update_vol_info Stat=%s Vol=%s\n", 
+      Dmsg2(200, "Call update_vol_info Stat=%s Vol=%s\n", 
 	 dev->VolCatInfo.VolCatStatus, dev->VolCatInfo.VolCatName);
       if (!dir_update_volume_info(jcr, &dev->VolCatInfo, 0)) {	  /* send Volume info to Director */
          Jmsg(jcr, M_ERROR, 0, _("Could not update Volume info Volume=%s Job=%s\n"),

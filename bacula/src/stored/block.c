@@ -533,13 +533,13 @@ reread:
       Dmsg1(000, "%s", dev->errmsg);
       /* Attempt to reposition to re-read the block */
       if (dev->state & ST_TAPE) {
-         Dmsg0(000, "Backspace record for reread.\n");
+         Dmsg0(100, "Backspace record for reread.\n");
 	 if (bsf_dev(dev, 1) != 0) {
 	    Emsg0(M_ERROR, 0, dev->errmsg);
 	    return 0;
 	 }
       } else {
-         Dmsg0(000, "Seek to beginning of block for reread.\n");
+         Dmsg0(100, "Seek to beginning of block for reread.\n");
 	 off_t pos = lseek(dev->fd, (off_t)0, SEEK_CUR); /* get curr pos */
 	 pos -= block->read_len;
 	 lseek(dev->fd, pos, SEEK_SET);   

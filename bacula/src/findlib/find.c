@@ -31,7 +31,7 @@
 /* Imported functions */
 int find_one_file(FF_PKT *ff, int handle_file(FF_PKT *ff_pkt, void *hpkt), 
 	       void *pkt, char *p, dev_t parent_device, int top_level);
-void term_find_one(FF_PKT *ff);
+int term_find_one(FF_PKT *ff);
 
 size_t name_max;	       /* filename max length */
 size_t path_max;	       /* path name max length */
@@ -128,12 +128,14 @@ find_files(FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt), void *his_pkt)
  * Terminate find_files() and release
  * all allocated memory   
  */
-void
+int
 term_find_files(FF_PKT *ff)
 {
+  int hard_links;
+
   term_include_exclude_files(ff);
   free_pool_memory(ff->sys_fname);
-  term_find_one(ff);
+  hard_links = term_find_one(ff);
   free(ff);
-  return;
+  return hard_links;
 }

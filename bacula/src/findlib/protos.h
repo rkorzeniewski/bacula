@@ -40,7 +40,7 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
 FF_PKT *init_find_files();
 void set_find_options(FF_PKT *ff, int incremental, time_t mtime);
 int find_files(FF_PKT *ff, int sub(FF_PKT *ff_pkt, void *hpkt), void *pkt);
-void term_find_files(FF_PKT *ff);
+int term_find_files(FF_PKT *ff);
 
 /* From match.c */
 void init_include_exclude_files(FF_PKT *ff);

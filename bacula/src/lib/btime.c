@@ -56,10 +56,16 @@ utime_t str_to_utime(char *str)
 
    if (sscanf(str, "%d-%d-%d %d:%d:%d", &tm.tm_year, &tm.tm_mon, &tm.tm_mday,
 					&tm.tm_hour, &tm.tm_min, &tm.tm_sec) != 6) {
-      return -1;
+      return 0;
    }
-   tm.tm_mon--;
-   tm.tm_year -= 1900;
+   if (tm.tm_mon > 0) {
+      tm.tm_mon--;
+   }
+   if (tm.tm_year >= 1900) {
+      tm.tm_year -= 1900;
+   } else {
+      tm.tm_year = 0;
+   }
    return (utime_t)mktime(&tm);
 }
 

@@ -165,7 +165,6 @@ void parse_command_args(UAContext *ua)
 	 *p++ = 0;		      /* terminate keyword and point to value */
 	 /* Unquote quoted values */
          if (*p == '"') {
-            Dmsg1(000, "Start with quote: %s\n", p);
             for (n = q = ++p; *p && *p != '"'; ) {
                if (*p == '\\') {
 		  p++;

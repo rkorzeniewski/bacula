@@ -6,7 +6,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -253,7 +253,7 @@ int release_device(JCR *jcr, DEVICE *dev)
 	 dev->VolCatInfo.VolCatFiles++; 	    /* increment number of files */
 	 dev->VolCatInfo.VolCatJobs++;		    /* increment number of jobs */
 	 /* Note! do volume update before close, which zaps VolCatInfo */
-         Dmsg0(100, "dir_update_vol_info. Release\n");
+         Dmsg0(200, "dir_update_vol_info. Release0\n");
 	 dir_update_volume_info(jcr, &dev->VolCatInfo, 0); /* send Volume info to Director */
 
 	 if (!dev_is_tape(dev) || !(dev->capabilities & CAP_ALWAYSOPEN)) {
@@ -265,7 +265,7 @@ int release_device(JCR *jcr, DEVICE *dev)
       } else {
          Dmsg0(100, "dir_create_jobmedia_record. Release\n");
 	 dir_create_jobmedia_record(jcr);
-         Dmsg0(100, "dir_update_vol_info. Release\n");
+         Dmsg0(200, "dir_update_vol_info. Release1\n");
 	 dev->VolCatInfo.VolCatJobs++;		    /* increment number of jobs */
 	 dir_update_volume_info(jcr, &dev->VolCatInfo, 0); /* send Volume info to Director */
       }

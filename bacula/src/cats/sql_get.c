@@ -795,13 +795,13 @@ int db_get_media_record(B_DB *mdb, MEDIA_DBR *mr)
       Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,\
 VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,\
 MediaType,VolStatus,PoolId,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,\
-Recycle,Slot, FirstWritten \
+Recycle,Slot,FirstWritten,LastWritten \
 FROM Media WHERE MediaId=%d", mr->MediaId);
    } else {			      /* find by name */
       Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,\
 VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,\
 MediaType,VolStatus,PoolId,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,\
-Recycle,Slot,FirstWritten \
+Recycle,Slot,FirstWritten,LastWritten \
 FROM Media WHERE VolumeName='%s'", mr->VolumeName);
    }  
 
@@ -839,6 +839,9 @@ FROM Media WHERE VolumeName='%s'", mr->VolumeName);
 	    mr->Recycle = str_to_int64(row[18]);
 	    mr->Slot = str_to_int64(row[19]);
             bstrncpy(mr->cFirstWritten, row[20]!=NULL?row[20]:"", sizeof(mr->cFirstWritten));
+	    mr->FirstWritten = (time_t)str_to_utime(mr->cFirstWritten);
+            bstrncpy(mr->cLastWritten, row[21]!=NULL?row[21]:"", sizeof(mr->cLastWritten));
+	    mr->LastWritten = (time_t)str_to_utime(mr->cLastWritten);
 	    stat = mr->MediaId;
 	 }
       } else {

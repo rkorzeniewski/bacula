@@ -8,7 +8,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -208,6 +208,7 @@ mount_error:
     Setting slot to zero in catalog.\n"),
 		  jcr->VolCatInfo.VolCatName, jcr->VolCatInfo.Slot);
 	       jcr->VolCatInfo.Slot = 0; /* invalidate slot */
+               Dmsg0(200, "update vol info in mount\n");
 	       dir_update_volume_info(jcr, &jcr->VolCatInfo, 1);  /* set slot */
 	    }
             Dmsg0(100, "Default\n");
@@ -263,10 +264,10 @@ mount_error:
       /* Recreate a correct volume label and return it in the block */
       write_volume_label_to_block(jcr, dev, block);
       /* Set or reset Volume statistics */
-      dev->VolCatInfo.VolCatJobs = 1;
-      dev->VolCatInfo.VolCatFiles = 1;
+      dev->VolCatInfo.VolCatJobs = 0;
+      dev->VolCatInfo.VolCatFiles = 0;
       dev->VolCatInfo.VolCatErrors = 0;
-      dev->VolCatInfo.VolCatBlocks = 1;
+      dev->VolCatInfo.VolCatBlocks = 0;
       if (recycle) {
 	 dev->VolCatInfo.VolCatMounts++;  
 	 dev->VolCatInfo.VolCatRecycles++;
@@ -277,7 +278,7 @@ mount_error:
 	 dev->VolCatInfo.VolCatReads = 1;
       }
       strcpy(dev->VolCatInfo.VolCatStatus, "Append");
-      Dmsg0(100, "dir_update_vol_info. Set Append\n");
+      Dmsg0(200, "dir_update_vol_info. Set Append\n");
       dir_update_volume_info(jcr, &dev->VolCatInfo, 1);  /* indicate doing relabel */
       if (recycle) {
          Jmsg(jcr, M_INFO, 0, _("Recycled volume %s on device %s, all previous data lost.\n"),
@@ -302,7 +303,7 @@ mount_error:
          Jmsg(jcr, M_INFO, 0, _("Marking Volume %s in Error in Catalog.\n"),
 	    jcr->VolumeName);
          strcpy(dev->VolCatInfo.VolCatStatus, "Error");
-         Dmsg0(100, "dir_update_vol_info. Set Error.\n");
+         Dmsg0(200, "dir_update_vol_info. Set Error.\n");
 	 dir_update_volume_info(jcr, &dev->VolCatInfo, 0);
 	 goto mount_next_vol;
       }
@@ -320,12 +321,13 @@ mount_error:
 The number of files mismatch! Volume=%d Catalog=%d\n"), 
 		 dev_file(dev)+1, dev->VolCatInfo.VolCatFiles);
             strcpy(dev->VolCatInfo.VolCatStatus, "Error");
-            Dmsg0(100, "dir_update_vol_info. Set Error.\n");
+            Dmsg0(200, "dir_update_vol_info. Set Error.\n");
 	    dir_update_volume_info(jcr, &dev->VolCatInfo, 0);
 	    goto mount_next_vol;
 	 }
       }
       dev->VolCatInfo.VolCatMounts++;	   /* Update mounts */
+      Dmsg1(200, "update volinfo mounts=%d\n", dev->VolCatInfo.VolCatMounts);
       dir_update_volume_info(jcr, &dev->VolCatInfo, 0);
       /* Return an empty block */
       empty_block(block);	      /* we used it for reading so set for write */

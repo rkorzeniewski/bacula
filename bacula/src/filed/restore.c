@@ -7,7 +7,7 @@
  *
  */
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -256,7 +256,9 @@ void do_restore(JCR *jcr)
 	    break;
 	 case CF_EXTRACT:
 	    extract = TRUE;
+	    P(jcr->mutex);
 	    pm_strcpy(&jcr->last_fname, ofile);
+	    V(jcr->mutex);
 	    /* Fall-through wanted */
 	 case CF_CREATED:
 	    jcr->JobFiles++;

@@ -8,7 +8,7 @@
  *
  */
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -159,9 +159,11 @@ void do_verify_volume(JCR *jcr)
 	 } else {
 	    *lname = 0;
 	 }
+	 P(jcr->mutex);
 	 jcr->JobFiles++;
 	 jcr->num_files_examined++;
 	 pm_strcpy(&jcr->last_fname, fname); /* last file examined */
+	 V(jcr->mutex);
 
 	 /* 
 	  * Send file attributes to Director

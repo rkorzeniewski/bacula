@@ -188,8 +188,10 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
    stream = encode_attribsEx(jcr, attribsEx, ff_pkt);
    Dmsg3(200, "File %s\nattribs=%s\nattribsEx=%s\n", ff_pkt->fname, attribs, attribsEx);
      
+   P(jcr->mutex);
    jcr->JobFiles++;		       /* increment number of files sent */
    pm_strcpy(&jcr->last_fname, ff_pkt->fname);
+   V(jcr->mutex);
     
    /*
     * Send Attributes header to Storage daemon
@@ -204,8 +206,8 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
    }
    Dmsg1(100, ">stored: attrhdr %s\n", sd->msg);
 
-   /* 
-    * Send file attributes to Storage daemon   
+   /*
+    * Send file attributes to Storage daemon
     *	File_index
     *	File type
     *	Filename (full path)
