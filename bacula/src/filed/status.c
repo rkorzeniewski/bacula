@@ -357,7 +357,7 @@ char *bac_status(int stat)
       return _("Bacula Terminated");
    }
    if (last_jobs->size() > 0) {
-      job = (struct s_last_job *)last_jobs->first();
+      job = (struct s_last_job *)last_jobs->last();
       switch (job->JobStatus) {
       case JS_Canceled:
 	 bacstat = -1;
