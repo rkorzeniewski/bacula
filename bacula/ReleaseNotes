@@ -1,10 +1,10 @@
 
-          Release Notes for Bacula 1.35.7
+          Release Notes for Bacula 1.35.8
 
-  Bacula code: Total files = 396 Total lines = 116,116 (*.h *.c *.in)
+  Bacula code: Total files = 396 Total lines = 116,211 (*.h *.c *.in)
 
 
-Changes for 1.35.7
+Changes for 1.35.8
 Major Changes:
 - Tray monitor program
 - Bacula Rescue CDROM     
@@ -27,8 +27,18 @@ Major Changes:
 - Default for Wild-cards on Win32 systems is to fold case.
 
 New Directives:
-- Added "Ignore FileSet Changes = yes"
+- Added "Rerun Failed levels = yes/no" in the Job resource
+  of the Director. It will upgrade the current job to a 
+  higher level (Full or Differential) if a previous job
+  of that level failed.
+- Added "Ignore FileSet Changes = yes/no" in the FileSet
+  directive of the Director. It prevents the Director from
+  immediately upgrading the job to a Full save if you modify
+  the contents of the FileSet. Not recommended. 
 - Added "Block positioning = yes/no" in Device resource in SD.
+  If set to no, Bacula should (as yet untested) be able to
+  recover data from tapes where the drive was set to fixed
+  blocksize but Bacula is in variable block size.
 - Added "Multiple connections = yes/no" in Catalog record for
   allowing multiple simultaneous connections to the database.
   This is a major performance improvement for PostgreSQL.

@@ -1,4 +1,35 @@
 
+Changes to 1.35.8:
+09Oct04
+- Documentation.
+- Integrate Peter Ericksson's dbx traceback scripts into Bacula
+08Oct04
+- Fix segfault in lsmark command in restore tree.
+- Fix segfault in editing numbers in count command of restore tree.
+- Add missing #define for IPV6 found by Martin in address_conf.c
+- Use strcasecmp() instead of strcmp() in address_conf.c
+07Oct04
+- Fix bug where SD crashes on label if drive is not open
+  (i.e. Always Open = no).
+- Added "Rerun Failed Levels = yes/no"
+- Made calling offline_or_rewind() non-fatal if the
+  device is not open.
+- Added Martin's suggestion to have multiple level index on
+  the file table.
+- Update doc
+- Fix misspelled #define in mysql.c for threading pointed out
+  by a user. 
+- Fix incorrect prototype.
+- Attempt to fix Solaris crash in SD during status command. 
+04Oct04
+- Fix backspace to first character in conio.c
+- Add umount command for Phil. :-)
+- Fix update volume volfrompool.
+- Modify restore to print an error message if the size of a
+  restored file does not correspond to the saved stat packet.
+- Fix count of files to be restored *not* to include 
+  top level created directories.
+
 Changes to 1.35.7:
 03Oct04
 - Apply Martin's patch that puts back the run pool override
