@@ -82,7 +82,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
     */
    Dmsg1(200, "catreq %s", bs->msg);
    if (sscanf(bs->msg, Find_media, &Job, &index) == 2) {
-      ok = find_next_volume_for_append(jcr, &mr, TRUE /*create*/);
+      ok = find_next_volume_for_append(jcr, &mr, TRUE /*permit create new vol*/);
       /*
        * Send Find Media response to Storage daemon 
        */
@@ -112,14 +112,16 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
        */
       unbash_spaces(mr.VolumeName);
       if (db_get_media_record(jcr, jcr->db, &mr)) {
-	 bool VolSuitable = false;
-         char *reason = "";           /* detailed reason for rejection */
+	 char *reason = NULL;	      /* detailed reason for rejection */
 	 jcr->MediaId = mr.MediaId;
          Dmsg1(120, "VolumeInfo MediaId=%d\n", jcr->MediaId);
 	 pm_strcpy(&jcr->VolumeName, mr.VolumeName);
-	 if (!writing) {
-	    VolSuitable = true;        /* accept anything for read */
-	 } else {
+	 /*		      
+	  * If we are reading, accept any volume (reason == NULL)
+	  * If we are writing, check if the Volume is valid 
+	  *   for this job, and do a recycle if necessary
+	  */ 
+	 if (writing) {
 	    /* 
 	     * SD wants to write this Volume, so make
 	     *	 sure it is suitable for this job, i.e.
@@ -128,63 +130,26 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
 	     */
 	    if (mr.PoolId != jcr->PoolId) {
                reason = "not in Pool";
-            } else if (strcmp(mr.VolStatus, "Append") != 0 &&
-                       strcmp(mr.VolStatus, "Recycle") != 0 &&
-                       strcmp(mr.VolStatus, "Purged") != 0) {
-               reason = "not Append, Purged or Recycle";
-               /* What we're trying to do here is see if the current volume is
-                * "recycleable" - ie. if we prune all expired jobs off it, is
-		* it now possible to reuse it for the job that it is currently
-		* needed for?
-		*/
-	       if ((mr.LastWritten + mr.VolRetention) < (utime_t)time(NULL)
-		     && mr.Recycle && jcr->pool->recycle_current_volume   
-                     && (strcmp(mr.VolStatus, "Full") == 0 ||
-                        strcmp(mr.VolStatus, "Used") == 0)) {
-		  /*
-		   * Attempt prune of current volume to see if we can
-		   * recycle it for use.
-		   */
-		  UAContext *ua;
-
-		  ua = new_ua_context(jcr);
-		  ok = prune_volume(ua, &mr);
-		  free_ua_context(ua);
-
-		  if (ok) {
-		     /* If fully purged, recycle current volume */
-		     if (recycle_volume(jcr, &mr)) {
-                        Jmsg(jcr, M_INFO, 0, "Recycled current "
-                              "volume \"%s\"\n", mr.VolumeName);
-			VolSuitable = true;
-		     } else {
-                        reason = "not Append, Purged or Recycle (recycling of the "
-                           "current volume failed)";
-		     }
-		  } else {
-                     reason = "not Append, Purged or Recycle (cannot automatically "
-                        "recycle current volume, as it still contains "
-                        "unpruned data)";
-		  }
-	       }
 	    } else if (strcmp(mr.MediaType, jcr->store->media_type) != 0) {
                reason = "not correct MediaType";
-	    } else if (!jcr->pool->accept_any_volume) {
-               reason = "Volume not in sequence";
-            } else if (strcmp(mr.VolStatus, "Purged") == 0) {
-	       if (recycle_volume(jcr, &mr)) {
-                  Jmsg(jcr, M_INFO, 0, "Recycled current "
-                       "volume \"%s\"\n", mr.VolumeName);
-		  VolSuitable = true;
-	       } else {
-                  /* In principle this shouldn't happen */
-                  reason = "recycling of current volume failed";
-	       }
 	    } else {
-	       VolSuitable = true;
+	      /* 
+	       * ****FIXME*** 
+	       *   This test (accept_any_volume) is turned off
+               *   because it doesn't properly check if the volume
+	       *   really is out of sequence!
+	       *
+	       * } else if (!jcr->pool->accept_any_volume) {
+               *    reason = "Volume not in sequence";
+	       */
+
+	       /* 
+		* Now try recycling if necessary
+		*/
+	       is_volume_valid_or_recyclable(jcr, &mr, &reason);
 	    }
 	 }
-	 if (VolSuitable) {
+	 if (reason == NULL) {
 	    char ed1[50], ed2[50], ed3[50];
 	    /*
 	     * Send Find Media response to Storage daemon 
@@ -199,8 +164,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
             Dmsg2(100, "Vol Info for %s: %s", jcr->Job, bs->msg);
 	 } else { 
 	    /* Not suitable volume */
-            bnet_fsend(bs, "1998 Volume \"%s\" %s.\n",
-	       mr.VolumeName, reason);
+            bnet_fsend(bs, "1998 Volume \"%s\" %s.\n", mr.VolumeName, reason);
 	 }
 
       } else {
@@ -210,7 +174,8 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
    
    /*
     * Request to update Media record. Comes typically at the end
-    *  of a Storage daemon Job Session
+    *  of a Storage daemon Job Session or when labeling/relabeling a
+    *  Volume.
     */
    } else if (sscanf(bs->msg, Update_media, &Job, &sdmr.VolumeName, &sdmr.VolJobs,
       &sdmr.VolFiles, &sdmr.VolBlocks, &sdmr.VolBytes, &sdmr.VolMounts, &sdmr.VolErrors,
@@ -252,47 +217,17 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
       mr.Slot = sdmr.Slot;
 
       /*     
-       * Update Media Record
+       * Apply expiration periods and limits, if not a label request,
+       *   and ignore status because if !label we won't use it.
        */
-
-      /* Check limits and expirations if "Append" and not a lable request */
-      if (strcmp(mr.VolStatus, "Append") == 0 && !label) {
-	 /* First handle Max Volume Bytes */
-	 if ((mr.MaxVolBytes > 0 && mr.VolBytes >= mr.MaxVolBytes)) {
-            Jmsg(jcr, M_INFO, 0, _("Max Volume bytes exceeded. "             
-                "Marking Volume \"%s\" as Full.\n"), mr.VolumeName);
-            strcpy(mr.VolStatus, "Full");
-
-	 /* Now see if Volume should only be used once */
-	 } else if (mr.VolBytes > 0 && jcr->pool->use_volume_once) {
-            Jmsg(jcr, M_INFO, 0, _("Volume used once. "             
-                "Marking Volume \"%s\" as Used.\n"), mr.VolumeName);
-            strcpy(mr.VolStatus, "Used");
-
-	 /* Now see if Max Jobs written to volume */
-	 } else if (mr.MaxVolJobs > 0 && mr.MaxVolJobs <= mr.VolJobs) {
-            Jmsg(jcr, M_INFO, 0, _("Max Volume jobs exceeded. "       
-                "Marking Volume \"%s\" as Used.\n"), mr.VolumeName);
-            strcpy(mr.VolStatus, "Used");
-
-	 /* Now see if Max Files written to volume */
-	 } else if (mr.MaxVolFiles > 0 && mr.MaxVolFiles <= mr.VolFiles) {
-            Jmsg(jcr, M_INFO, 0, _("Max Volume files exceeded. "       
-                "Marking Volume \"%s\" as Used.\n"), mr.VolumeName);
-            strcpy(mr.VolStatus, "Used");
-
-	 /* Finally, check Use duration expiration */
-	 } else if (mr.VolUseDuration > 0) {
-	    utime_t now = time(NULL);
-	    /* See if Vol Use has expired */
-	    if (mr.VolUseDuration <= (now - mr.FirstWritten)) {
-               Jmsg(jcr, M_INFO, 0, _("Max configured use duration exceeded. "       
-                  "Marking Volume \"%s\"as Used.\n"), mr.VolumeName);
-               strcpy(mr.VolStatus, "Used");  /* yes, mark as used */
-	    }
-	 }
+      if (!label) {
+	 has_volume_expired(jcr, &mr);
       }
+
       Dmsg2(200, "db_update_media_record. Stat=%s Vol=%s\n", mr.VolStatus, mr.VolumeName);
+      /*
+       * Write the modified record to the DB
+       */
       if (db_update_media_record(jcr, jcr->db, &mr)) {
 	 bnet_fsend(bs, OK_update);
          Dmsg0(190, "send OK\n");

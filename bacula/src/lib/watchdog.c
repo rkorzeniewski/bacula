@@ -75,8 +75,6 @@ int start_watchdog(void)
    watchdog_time = time(NULL);
    quit = FALSE;
    if ((stat = pthread_create(&wdid, NULL, btimer_thread, (void *)NULL)) != 0) {
-      pthread_mutex_destroy(&mutex);
-      pthread_cond_destroy(&timer);
       return stat;
    }
    return 0;

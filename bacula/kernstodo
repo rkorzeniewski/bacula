@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                16 September 2003 
+                18 September 2003 
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -32,15 +32,16 @@ For 1.32 Testing/Documentation:
 - Add test of exclusion, test multiple Include {} statements.
                 
 For 1.32:
+- Add multiple character duration qualifiers.
 - Enhance "update slots" to include a "scan" feature
   scan 1; scan 1-5; scan 1,2,4 ...  to update the catalog 
 - Allow a slot or range of slots on the label barcodes command.
 - Don't print "Warning: Wrong Volume mounted ..." if mounting second volume.
 
 
-
-
 For 1.33
+- Do a complete audit of all pthreads_mutex, cond, ... to ensure that
+  any that are dynamically initialized are destroyed when no longer used.
 - Write a mini-readline with history and editing.
 - Look at how fuser works and /proc/PID/fd that is how Nic found the
   file descriptor leak in Bacula.
@@ -919,4 +920,5 @@ Done: (see kernsdone for more)
   a block and a record.
 - LabelFormat on tape volume apparently creates the db record but 
   never actually labels the volume.
+- Recycling a volume when two jobs are using it is going to break. Fixed.
 

@@ -387,7 +387,7 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
    case VOL_OK:
       if (!relabel) {
 	 bnet_fsend(dir, _(
-            "3911 Cannot label Volume because it is already labeled: %s\n"), 
+            "3911 Cannot label Volume because it is already labeled: \"%s\"\n"), 
 	     dev->VolHdr.VolName);
 	 break;
       }
@@ -520,7 +520,7 @@ static int mount_cmd(JCR *jcr)
 		  dev->dev_name, dev->VolHdr.VolName);
 	    } else {
                bnet_fsend(dir, _("3905 Device %s open but no Bacula volume is mounted.\n"
-                                 "Try unmounting and remounting the Volume.\n"),
+                                 "If this is not a blank tape, try unmounting and remounting the Volume.\n"),
 			  dev->dev_name);
 	    }
 	    break;
@@ -541,7 +541,7 @@ static int mount_cmd(JCR *jcr)
 		     dev->dev_name, dev->VolHdr.VolName);
 	       } else {
                   bnet_fsend(dir, _("3905 Device %s open but no Bacula volume is mounted.\n"   
-                                 "Try unmounting and remounting the Volume.\n"),
+                                 "If this is not a blank tape, try unmounting and remounting the Volume.\n"),
 			     dev->dev_name);
 	       }
 	    } else {
@@ -560,7 +560,7 @@ static int mount_cmd(JCR *jcr)
 		     dev->dev_name, dev->VolHdr.VolName);
 	       } else {
                   bnet_fsend(dir, _("3905 Device %s open but no Bacula volume is mounted.\n"
-                                    "Try unmounting and remounting the Volume.\n"),
+                                    "If this is not a blank tape, try unmounting and remounting the Volume.\n"),
 			     dev->dev_name);
 	       }
 	    }

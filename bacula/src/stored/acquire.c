@@ -161,10 +161,11 @@ get_out:
  *   multiple devices (for files), thus we have our own mutex 
  *   on top of the device mutex.
  */
-DEVICE * acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
+DEVICE *acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 {
    int release = 0;
-   int do_mount = 0;
+   bool recycle = false;
+   bool do_mount = false;
    DEVICE *rtn_dev = NULL;
 
    if (device_is_unmounted(dev)) {
@@ -218,8 +219,20 @@ DEVICE * acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	 }
 	 /* Wrong tape mounted, release it, then fall through to get correct one */
 	 release = 1;
-	 do_mount = 1;
-      }
+	 do_mount = true;
+      } else {
+	 /*	  
+	  * At this point, the correct tape is already mounted, so 
+	  *   we do not need to do mount_next_write_volume(), unless
+	  *   we need to recycle the tape.
+	  */
+          recycle = strcmp(jcr->VolCatInfo.VolCatStatus, "Recycle") == 0;
+	  if (recycle && dev->num_writers != 0) {
+             Jmsg(jcr, M_FATAL, 0, _("Cannot recycle volume \"%s\""
+                  " because it is in use by another job."));
+	     goto get_out;
+	  }
+       }
    } else { 
       /* Not already in append mode, so mount the device */
       if (dev->state & ST_READ) {
@@ -227,10 +240,10 @@ DEVICE * acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	 goto get_out;
       } 
       ASSERT(dev->num_writers == 0);
-      do_mount = 1;
+      do_mount = true;
    }
 
-   if (do_mount) {
+   if (do_mount || recycle) {
       if (!mount_next_write_volume(jcr, dev, block, release)) {
          Jmsg(jcr, M_FATAL, 0, _("Could not ready device %s for append.\n"),
 	    dev_name(dev));
@@ -239,16 +252,16 @@ DEVICE * acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    }
 
    dev->num_writers++;
-   if (dev->num_writers > 1) {
-      Dmsg2(100, "Hey!!!! There are %d writers on device %s\n", dev->num_writers,
-	 dev_name(dev));
-   }
    if (jcr->NumVolumes == 0) {
       jcr->NumVolumes = 1;
    }
    attach_jcr_to_device(dev, jcr);    /* attach jcr to device */
    rtn_dev = dev;		      /* return device */
 
+/*
+ * If we jump here, it is an error return because
+ *  rtn_dev will still be NULL
+ */
 get_out:
    P(dev->mutex); 
    unblock_device(dev);
