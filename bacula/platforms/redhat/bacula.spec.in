@@ -274,7 +274,6 @@ cp rescue/linux/backup.etc.list $RPM_BUILD_ROOT/etc/bacula/rescue/
 cp rescue/linux/format_floppy $RPM_BUILD_ROOT/etc/bacula/rescue/
 cp rescue/linux/getdiskinfo $RPM_BUILD_ROOT/etc/bacula/rescue/
 cp rescue/linux/make_rescue_disk $RPM_BUILD_ROOT/etc/bacula/rescue/
-cp rescue/linux/make_static_bacula $RPM_BUILD_ROOT/etc/bacula/rescue/
 cp rescue/linux/restore_bacula $RPM_BUILD_ROOT/etc/bacula/rescue/
 cp rescue/linux/restore_etc $RPM_BUILD_ROOT/etc/bacula/rescue/
 cp rescue/linux/run_grub $RPM_BUILD_ROOT/etc/bacula/rescue/
@@ -455,7 +454,6 @@ chmod 0755 /usr/sbin/gnome-console
 %attr(0754,root,root) /etc/bacula/rescue/format_floppy
 %attr(0754,root,root) /etc/bacula/rescue/getdiskinfo
 %attr(0754,root,root) /etc/bacula/rescue/make_rescue_disk
-%attr(0754,root,root) /etc/bacula/rescue/make_static_bacula
 %attr(0754,root,root) /etc/bacula/rescue/restore_bacula
 %attr(0754,root,root) /etc/bacula/rescue/restore_etc
 %attr(0754,root,root) /etc/bacula/rescue/run_grub
@@ -499,6 +497,8 @@ rm -f /etc/bacula/rescue/sfdisk
 rm -rf /etc/bacula/rescue/diskinfo/*
 
 %changelog
+* Tue Nov 25 2003 D. Scott Barninger <barninger at fairfieldcomputers.com>
+- removed make_static_bacula script from rescue package install
 * Sun Nov 23 2003 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - Added define at top of file for depkgs version
 - Added rescue sub-package

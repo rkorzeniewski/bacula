@@ -117,6 +117,13 @@ char             *edit_utime             (utime_t val, char *buf);
 int              is_a_number             (const char *num);
 int              is_an_integer           (const char *n);
 
+/* jcr.c (most definitions are in src/jcr.h) */
+void init_last_jobs_list();
+void term_last_jobs_list();
+void lock_last_jobs_list();
+void unlock_last_jobs_list();
+
+
 /* lex.c */
 LEX *     lex_close_file         (LEX *lf);
 LEX *     lex_open_file          (LEX *lf, char *fname, LEX_ERROR_HANDLER *scan_error);

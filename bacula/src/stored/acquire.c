@@ -47,7 +47,8 @@ int acquire_device_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    int i;
 
    if (device_is_unmounted(dev)) {
-      Jmsg(jcr, M_WARNING, 0, _("device is BLOCKED due to user unmount.\n"));
+      Jmsg(jcr, M_WARNING, 0, _("device %s is BLOCKED due to user unmount.\n"),
+	 dev_name(dev));
    }
    lock_device(dev);
    block_device(dev, BST_DOING_ACQUIRE);
@@ -170,7 +171,8 @@ DEVICE *acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    DEVICE *rtn_dev = NULL;
 
    if (device_is_unmounted(dev)) {
-      Jmsg(jcr, M_WARNING, 0, _("device is BLOCKED due to user unmount.\n"));
+      Jmsg(jcr, M_WARNING, 0, _("device %s is BLOCKED due to user unmount.\n"),
+	 dev_name(dev));
    }
    lock_device(dev);
    block_device(dev, BST_DOING_ACQUIRE);

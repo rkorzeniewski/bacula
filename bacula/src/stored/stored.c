@@ -94,7 +94,6 @@ int main (int argc, char *argv[])
    textdomain("bacula-sd");
    init_msg(NULL, NULL);
    daemon_start_time = time(NULL);
-   memset(&last_job, 0, sizeof(last_job));
 
    /* Sanity checks */
    if (TAPE_BSIZE % DEV_BSIZE != 0 || TAPE_BSIZE / DEV_BSIZE == 0) {

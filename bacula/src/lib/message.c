@@ -160,6 +160,10 @@ init_msg(JCR *jcr, MSGS *msg)
    DEST *d, *dnew, *temp_chain = NULL;
    int i, fd;
 
+   if (jcr == NULL && msg == NULL) {
+      init_last_jobs_list();
+   }
+
    /*
     * Make sure we have fd's 0, 1, 2 open
     *  If we don't do this one of our sockets may open
@@ -551,6 +555,7 @@ void term_msg()
       fclose(trace_fd);
       trace_fd = NULL;
    }
+   term_last_jobs_list();
 }
 
 

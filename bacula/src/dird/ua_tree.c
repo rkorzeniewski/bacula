@@ -63,9 +63,9 @@ static struct cmdstruct commands[] = {
  { N_("help"),       helpcmd,      _("print help")},
  { N_("lsmark"),     lsmark,       _("list the marked files")},    
  { N_("ls"),         lscmd,        _("list current directory")},    
- { N_("mark"),       markcmd,      _("mark file for restoration")},
+ { N_("mark"),       markcmd,      _("mark file to be restored")},
  { N_("pwd"),        pwdcmd,       _("print current working directory")},
- { N_("unmark"),     unmarkcmd,    _("unmark file for restoration")},
+ { N_("unmark"),     unmarkcmd,    _("unmark file to be restored")},
  { N_("?"),          helpcmd,      _("print help")},    
 	     };
 #define comsize (sizeof(commands)/sizeof(struct cmdstruct))
@@ -209,7 +209,7 @@ static int set_extract(UAContext *ua, TREE_NODE *node, TREE_CTX *tree, bool extr
 	 decode_stat(fdbr.LStat, &statp, &LinkFI); /* decode stat pkt */
 	 /*
 	  * If we point to a hard linked file, traverse the tree to
-	  * find that file, and mark it for restoration as well. It
+	  * find that file, and mark it to be restored as well. It
 	  * must have the Link we just obtained and the same JobId.
 	  */
 	 if (LinkFI) {
@@ -260,7 +260,7 @@ static int countcmd(UAContext *ua, TREE_CTX *tree)
 	 }
       }
    }
-   bsendmsg(ua, "%d total files. %d marked for restoration.\n", total, num_extract);
+   bsendmsg(ua, "%d total files. %d marked to be restored.\n", total, num_extract);
    return 1;
 }
 
@@ -422,7 +422,7 @@ static int estimatecmd(UAContext *ua, TREE_CTX *tree)
 	 }
       }
    }
-   bsendmsg(ua, "%d total files; %d marked for restoration; %s bytes.\n", 
+   bsendmsg(ua, "%d total files; %d marked to be restored; %s bytes.\n", 
 	    total, num_extract, edit_uint64_with_commas(total_bytes, ec1));
    return 1;
 }

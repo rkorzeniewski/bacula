@@ -33,10 +33,38 @@
 
 extern void timeout_handler(int sig);
 
-struct s_last_job last_job;	      /* last job run by this daemon */
+struct s_last_job last_job;    /* last job run by this daemon */
+dlist *last_jobs;
+static int num_last_jobs = 0;
+#define MAX_LAST_JOBS 10
 
 static JCR *jobs = NULL;	      /* pointer to JCR chain */
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
+void init_last_jobs_list()
+{
+   struct s_last_job *job_entry;
+   last_jobs = new dlist(job_entry,  &job_entry->link);
+   memset(&last_job, 0, sizeof(last_job));
+}
+
+void term_last_jobs_list()
+{
+   for (void *je=NULL; (je=last_jobs->next(je)); ) {
+      free(je); 		    
+   }
+   delete last_jobs;
+}
+
+void lock_last_jobs_list() 
+{
+   P(mutex);
+}
+
+void unlock_last_jobs_list() 
+{
+   V(mutex);
+}
 
 /*
  * Create a Job Control Record and link it into JCR chain
@@ -59,9 +87,9 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    pthread_mutex_init(&(jcr->mutex), NULL);
    jcr->JobStatus = JS_Created;       /* ready to run */
    jcr->VolumeName = get_pool_memory(PM_FNAME);
-   mp_chr(jcr->VolumeName)[0] = 0;
+   jcr->VolumeName[0] = 0;
    jcr->errmsg = get_pool_memory(PM_MESSAGE);
-   mp_chr(jcr->errmsg)[0] = 0;
+   jcr->errmsg[0] = 0;
    strcpy(jcr->Job, "*Console*");     /* default */
 
    sigtimer.sa_flags = 0;
@@ -124,6 +152,7 @@ static void free_common_jcr(JCR *jcr)
       last_job.JobFiles = jcr->JobFiles;
       last_job.JobBytes = jcr->JobBytes;
       last_job.JobStatus = jcr->JobStatus;
+      last_job.JobLevel = jcr->JobLevel;
       last_job.start_time = jcr->start_time;
       last_job.end_time = time(NULL);
       break;
@@ -183,9 +212,11 @@ void b_free_jcr(char *file, int line, JCR *jcr)
 
 void free_jcr(JCR *jcr)
 {
+
    Dmsg1(200, "Enter free_jcr 0x%x\n", jcr);
 
 #endif
+   struct s_last_job *je;
 
    P(mutex);
    jcr->use_count--;		      /* decrement use count */
@@ -205,6 +236,16 @@ void free_jcr(JCR *jcr)
    free_common_jcr(jcr);
 
    P(mutex);
+   /* Keep list of last jobs, but not Console where JobId==0 */
+   if (last_job.JobId > 0) {
+      je = (struct s_last_job *)malloc(sizeof(struct s_last_job));
+      memcpy((char *)je, (char *)&last_job, sizeof(last_job));
+      last_jobs->append(je);
+      if (++num_last_jobs > MAX_LAST_JOBS) {
+	 last_jobs->remove(last_jobs->first());
+	 num_last_jobs--;
+      }
+   }
    close_msg(NULL);		      /* flush any daemon messages */
    V(mutex);
    Dmsg0(200, "Exit free_jcr\n");
