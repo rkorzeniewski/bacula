@@ -547,3 +547,134 @@ int do_shell_expansion(char *name)
 #endif
 
 }
+
+#define MAX_ARGV 100
+static char *bargv[MAX_ARGV];
+static int bargc;
+static void build_argc_argv(char *cmd);
+
+int run_program(char *prog, int wait, POOLMEM *results)
+{
+   int stat = ETIME;
+   int chldstatus = 0;
+   pid_t pid1, pid2;
+   int pfd[2];
+   int i;
+
+   
+   build_argc_argv(prog);
+#ifdef lots_of_debug
+   printf("argc=%d\n", bargc);
+   for (i=0; i<bargc; i++) {
+      printf("argc=%d argv=%s\n", i, bargv[i]);
+   }
+#endif
+
+   if (results && pipe(pfd) == -1) {
+      return errno;
+   }
+   /* Start worker process */
+   switch (pid1 = fork()) {
+   case -1:
+      break;
+
+   case 0:			      /* child */
+//    printf("execl of %s\n", prog);
+      if (results) {
+	 close(1); dup(pfd[1]);       /* attach pipes to stdin and stdout */
+	 close(2); dup(pfd[1]);
+      }
+      execvp(bargv[0], bargv);
+      exit(errno);                   /* shouldn't get here */
+
+   default:			      /* parent */
+      /* start timer process */
+      switch (pid2=fork()) {
+      case -1:
+	 break;
+      case 0:			      /* child 2 */
+	 /* Time the worker process */	
+	 sleep(wait);
+	 if (kill(pid1, SIGTERM) == 0) { /* time expired kill it */
+	    exit(0);
+	 }
+	 sleep(3);
+	 kill(pid1, SIGKILL);
+	 exit(0);
+      default:			      /* parent */
+	 int i;
+	 if (results) {
+	    i = read(pfd[0], results, sizeof_pool_memory(results) - 1);
+	    if (--i < 0) {
+	       i = 0;
+	    }
+	    results[i] = 0;		   /* set end of string */
+	 }
+	 /* wait for worker child to exit */
+	 for ( ;; ) {
+	    pid_t wpid;
+	    wpid = waitpid(pid1, &chldstatus, 0);	  
+	    if (wpid == pid1 || (errno != EINTR)) {
+	       break;
+	    }
+	 }
+	 if (WIFEXITED(chldstatus))
+	    stat = WEXITSTATUS(chldstatus);
+
+	 kill(pid2, SIGKILL);		/* kill off timer process */
+	 waitpid(pid2, &chldstatus, 0); /* reap timer process */
+	 if (results) { 
+	    close(pfd[0]);		/* close pipe */
+	    close(pfd[1]);
+	 }
+	 break;
+      }
+      break;
+   }
+   return stat;
+}
+
+/*
+ * Build argc and argv from a string
+ */
+static void build_argc_argv(char *cmd)
+{
+   int i, quote;
+   char *p, *q;
+
+   bargc = 0;
+   for (i=0; i<MAX_ARGV; i++)
+      bargv[i] = NULL;
+
+   p = cmd;
+   quote = 0;
+   while  (*p && (*p == ' ' || *p == '\t'))
+      p++;
+   if (*p == '\"') {
+      quote = 1;
+      p++;
+   }
+   if (*p) {
+      while (*p && bargc < MAX_ARGV) {
+	 q = p;
+	 if (quote) {
+            while (*q && *q != '\"')
+	    q++;
+	    quote = 0;
+	 } else {
+            while (*q && *q != ' ')
+	    q++;
+	 }
+	 if (*q)
+            *(q++) = '\0';
+	 bargv[bargc++] = p;
+	 p = q;
+         while (*p && (*p == ' ' || *p == '\t'))
+	    p++;
+         if (*p == '\"') {
+	    quote = 1;
+	    p++;
+	 }
+      }
+   }
+}

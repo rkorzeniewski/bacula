@@ -151,6 +151,7 @@ int              string_to_btime         (char *str, btime_t *value);
 char             *edit_btime             (btime_t val, char *buf);
 void             jobstatus_to_ascii      (int JobStatus, char *msg, int maxlen);
 void             add_str_to_pool_mem     (POOLMEM **base, char **msg, char *str);
+int              run_program             (char *prog, int wait, POOLMEM *results);
 
 
 /*

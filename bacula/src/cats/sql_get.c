@@ -584,12 +584,12 @@ int db_get_media_record(B_DB *mdb, MEDIA_DBR *mr)
    if (mr->MediaId != 0) {		 /* find by id */
       Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,\
 VolBytes,VolMounts,VolErrors,VolWrites,VolMaxBytes,VolCapacityBytes,\
-MediaType,VolStatus,PoolId,VolRetention,Recycle \
+MediaType,VolStatus,PoolId,VolRetention,Recycle,Slot \
 FROM Media WHERE MediaId=%d", mr->MediaId);
    } else {			      /* find by name */
       Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,\
 VolBytes,VolMounts,VolErrors,VolWrites,VolMaxBytes,VolCapacityBytes,\
-MediaType,VolStatus,PoolId,VolRetention,Recycle \
+MediaType,VolStatus,PoolId,VolRetention,Recycle,Slot \
 FROM Media WHERE VolumeName=\"%s\"", mr->VolumeName);
    }  
 
@@ -620,6 +620,7 @@ FROM Media WHERE VolumeName=\"%s\"", mr->VolumeName);
 	    mr->PoolId = atoi(row[13]);
 	    mr->VolRetention = (btime_t)strtod(row[14], NULL);
 	    mr->Recycle = atoi(row[15]);
+	    mr->Slot = atoi(row[16]);
 	    stat = mr->MediaId;
 	 }
       } else {

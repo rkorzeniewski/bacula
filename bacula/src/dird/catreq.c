@@ -147,7 +147,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
 	    bnet_fsend(bs, OK_media, mr.VolumeName, mr.VolJobs,
 	       mr.VolFiles, mr.VolBlocks, mr.VolBytes, mr.VolMounts, mr.VolErrors,
 	       mr.VolWrites, mr.VolMaxBytes, mr.VolCapacityBytes,
-	       mr.VolStatus);
+	       mr.VolStatus, mr.Slot);
 	 } else { 
             Dmsg4(100, "get_media_record PoolId=%d wanted %d, Status=%s, \
 MediaType=%s\n", mr.PoolId, jcr->PoolId, mr.VolStatus, mr.MediaType);

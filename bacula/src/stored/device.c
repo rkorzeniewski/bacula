@@ -53,6 +53,7 @@
 
 /* Forward referenced functions */
 static int mount_next_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *label_blk, int release);
+static char *edit_device_codes(JCR *jcr, char *omsg, char *imsg, char *cmd);
 
 extern char my_name[];
 extern int debug_level;
@@ -178,7 +179,7 @@ int release_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       if (!dev_is_tape(dev)) {
 	 close_dev(dev);
       }
-      /******FIXME**** send read volume info to director */
+      /******FIXME**** send read volume usage statistics to director */
 
    } else if (dev->num_writers > 0) {
       dev->num_writers--;
@@ -220,11 +221,15 @@ int release_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
  */
 static int mount_next_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, int release)
 {
-   int recycle, ask;
+   int recycle, ask, retry = 0;
 
    Dmsg0(90, "Enter mount_next_volume()\n");
 
 mount_next_vol:
+   if (retry++ > 5) {
+      Mmsg0(&dev->errmsg, _("Too many retries.\n"));
+      return 0;
+   }
    if (job_cancelled(jcr)) {
       Mmsg0(&dev->errmsg, _("Job cancelled.\n"));
       return 0;
@@ -281,16 +286,71 @@ mount_next_vol:
 
    jcr->VolFirstFile = 0;	      /* first update of Vol FileIndex */
    for ( ;; ) {
+      int slot = jcr->VolCatInfo.Slot;
+	
+      /*
+       * Handle autoloaders here.  If we cannot autoload it, we
+       *  will fall through to ask the sysop.
+       */
+      if (dev->capabilities && CAP_AUTOCHANGER && slot <= 0) {
+	 if (dir_find_next_appendable_volume(jcr)) {
+	    slot = jcr->VolCatInfo.Slot; 
+	 }
+      }
+      Dmsg1(100, "Want changer slot=%d\n", slot);
 
-      Dmsg1(000, "Have changer. Dev=%s\n", NPRT(jcr->device->changer_name));
-      if (ask) {
-	 if (dev->capabilities && CAP_AUTOCHANGER) {
-            Dmsg1(000, "Have changer. Dev=%s\n", NPRT(jcr->device->changer_name));
- /*** ****FIXME**** add changer code here */
+      if (slot > 0 && jcr->device->changer_name && jcr->device->changer_command) {
+	 uint32_t timeout = jcr->device->changer_timeout;
+	 POOLMEM *changer, *results;
+	 int status, loaded;
+
+	 results = get_pool_memory(PM_MESSAGE);
+	 changer = get_pool_memory(PM_FNAME);
+	 /* Find out what is loaded */
+	 changer = edit_device_codes(jcr, changer, jcr->device->changer_command, 
+                      "loaded");
+	 status = run_program(changer, timeout, results);
+	 if (status == 0) {
+	    loaded = atoi(results);
+	 } else {
+	    loaded = -1;	      /* force unload */
 	 }
-	 if (!dir_ask_sysop_to_mount_next_volume(jcr, dev)) {
-	    return 0;		   /* error return */
+         Dmsg1(100, "loaded=%s\n", results);
+
+	 /* If bad status or tape we want is not loaded, load it. */
+	 if (status != 0 || loaded != slot) { 
+	    if (dev->capabilities & CAP_OFFLINEUNMOUNT) {
+	       offline_dev(dev);
+	    }
+	    /* We are going to load a new tape, so close the device */
+	    force_close_dev(dev);
+	    if (loaded != 0) {	      /* must unload drive */
+               Dmsg0(100, "Doing changer unload.\n");
+	       changer = edit_device_codes(jcr, changer, 
+                           jcr->device->changer_command, "unload");
+	       status = run_program(changer, timeout, NULL);
+               Dmsg1(100, "unload status=%d\n", status);
+	    }
+	    /*
+	     * Load the desired cassette    
+	     */
+            Dmsg1(100, "Doing changer load slot %d\n", slot);
+	    changer = edit_device_codes(jcr, changer, 
+                         jcr->device->changer_command, "load");
+	    status = run_program(changer, timeout, NULL);
+            Dmsg2(100, "load slot %d status=%d\n", slot, status);
 	 }
+	 free_pool_memory(changer);
+	 free_pool_memory(results);
+         Dmsg1(100, "After changer, status=%d\n", status);
+	 if (status == 0) {	      /* did we succeed? */
+	    ask = 0;		      /* yes, got vol, no need to ask sysop */
+	 }
+      }
+
+
+      if (ask && !dir_ask_sysop_to_mount_next_volume(jcr, dev)) {
+	 return 0;		/* error return */
       }
       Dmsg1(200, "want vol=%s\n", jcr->VolumeName);
 
@@ -732,7 +792,7 @@ void unblock_device(DEVICE *dev)
 
 
 /*
- * Edit codes into ChangerDevice
+ * Edit codes into ChangerCommand
  *  %% = %
  *  %a = archive device name
  *  %c = changer device name
@@ -749,9 +809,10 @@ void unblock_device(DEVICE *dev)
  *  cmd = command string (load, unload, ...) 
  *
  */
-char *edit_device_codes(JCR *jcr, char *omsg, char *imsg, char *cmd) 
+static char *edit_device_codes(JCR *jcr, char *omsg, char *imsg, char *cmd) 
 {
-   char *p, *o, *str;
+   char *p, *o;
+   const char *str;
    char add[20];
 
    Dmsg1(200, "edit_job_codes: %s\n", imsg);
@@ -769,17 +830,17 @@ char *edit_device_codes(JCR *jcr, char *omsg, char *imsg, char *cmd)
 	    str = jcr->device->dev->dev_name;
 	    break;
          case 'c':
-	    str = jcr->device->changer_name;
+	    str = NPRT(jcr->device->changer_name);
 	    break;
          case 'o':
-	    str = cmd;
+	    str = NPRT(cmd);
 	    break;
          case 's':
-            sprintf(add, "%d", jcr->device->dev->VolCatInfo.Slot - 1);
+            sprintf(add, "%d", jcr->VolCatInfo.Slot - 1);
 	    str = add;
 	    break;
          case 'S':
-            sprintf(add, "%d", jcr->device->dev->VolCatInfo.Slot);
+            sprintf(add, "%d", jcr->VolCatInfo.Slot);
 	    str = add;
 	    break;
          case 'j':                    /* Job name */
@@ -810,7 +871,7 @@ char *edit_device_codes(JCR *jcr, char *omsg, char *imsg, char *cmd)
 	 str = add;
       }
       Dmsg1(200, "add_str %s\n", str);
-      add_str_to_pool_mem(&omsg, &o, str);
+      add_str_to_pool_mem(&omsg, &o, (char *)str);
       *o = 0;
       Dmsg1(200, "omsg=%s\n", omsg);
    }

@@ -95,6 +95,8 @@ static struct res_items dev_items[] = {
    {"alwaysopen",            store_yesno,  ITEM(res_dev.cap_bits), CAP_ALWAYSOPEN, ITEM_DEFAULT, 1},
    {"autochanger",           store_yesno,  ITEM(res_dev.cap_bits), CAP_AUTOCHANGER, ITEM_DEFAULT, 0},
    {"changerdevice",         store_strname,ITEM(res_dev.changer_name), 0, 0, 0},
+   {"changercommand",        store_strname,ITEM(res_dev.changer_command), 0, 0, 0},
+   {"changertimeout",        store_pint,   ITEM(res_dev.changer_timeout), 0, ITEM_DEFAULT, 60},
    {"offlineonunmount",      store_yesno,  ITEM(res_dev.cap_bits), CAP_OFFLINEUNMOUNT, ITEM_DEFAULT, 1},
    {"maximumrewindwait",     store_pint,   ITEM(res_dev.max_rewind_wait), 0, ITEM_DEFAULT, 5 * 60},
    {"minimumblocksize",      store_pint,   ITEM(res_dev.min_block_size), 0, 0, 0},
@@ -259,6 +261,8 @@ void free_resource(int type)
 	    free(res->res_dev.device_name);
 	 if (res->res_dev.changer_name)
 	    free(res->res_dev.changer_name);
+	 if (res->res_dev.changer_command)
+	    free(res->res_dev.changer_command);
 	 break;
       case R_MSGS:
 	 if (res->res_msgs.mail_cmd)

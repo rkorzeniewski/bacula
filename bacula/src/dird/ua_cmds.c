@@ -592,17 +592,18 @@ static int update_volume(UAContext *ua)
       }
       strcpy(mr.VolumeName, ua->cmd);
    }
-   mr.MediaId = 0;
-   if (!db_get_media_record(ua->db, &mr)) {
-      bsendmsg(ua, _("Volume record for %s not found.\n"), mr.VolumeName);
-      return 0;
-   }
 
    for (int done=0; !done; ) {
+      mr.MediaId = 0;
+      if (!db_get_media_record(ua->db, &mr)) {
+         bsendmsg(ua, _("Volume record for %s not found.\n"), mr.VolumeName);
+	 return 0;
+      }
       start_prompt(ua, _("Parameters to modify:\n"));
       add_prompt(ua, _("Volume Status"));
       add_prompt(ua, _("Volume Retention Period"));
       add_prompt(ua, _("Recycle Flag"));
+      add_prompt(ua, _("Slot"));
       add_prompt(ua, _("Done"));
       switch (do_prompt(ua, _("Select paramter to modify"), NULL)) {
       case 0:			      /* Volume Status */
@@ -670,9 +671,37 @@ static int update_volume(UAContext *ua)
 	 }	 
 	 free_pool_memory(query);
 	 break;
+
+      case 3:			      /* Slot */
+	 int slot;
+         bsendmsg(ua, _("Current value is: %d\n"), mr.Slot);
+         if (!get_cmd(ua, _("Enter new Slot: "))) {
+	    return 0;
+	 }
+	 slot = atoi(ua->cmd);
+	 if (slot < 0) {
+            bsendmsg(ua, _("Invalid slot, it must be 0 or greater\n"));
+	    break;
+	 } else if (pr.MaxVols > 0 && slot >(int)pr.MaxVols) {
+            bsendmsg(ua, _("Invalid slot, it must be between 0 and %d\n"),
+	       pr.MaxVols);
+	    break;
+	 }
+	 query = get_pool_memory(PM_MESSAGE);
+         Mmsg(&query, "UPDATE Media SET Slot=%d WHERE MediaId=%d",
+	    slot, mr.MediaId);
+	 if (!db_sql_query(ua->db, query, NULL, NULL)) {  
+            bsendmsg(ua, "%s", db_strerror(ua->db));
+	 } else {
+            bsendmsg(ua, "New value is: %d\n", slot);
+	 }
+	 free_pool_memory(query);
+	 break;
+
 	 
       default:			      /* Done or error */
-	 return 0;
+         bsendmsg(ua, "Selection done.\n");
+	 return 1;
       }
    }
    return 1;
