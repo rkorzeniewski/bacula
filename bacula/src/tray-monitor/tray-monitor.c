@@ -100,7 +100,7 @@ static void usage()
 "       -dnn          set debug level to nn\n"
 "       -t            test - read configuration and exit\n"
 "       -f <filed>    monitor <filed>\n"
-"       -s <stored> monitor <stored>\n"
+"       -s <stored>   monitor <stored>\n"
 "       -?            print this message.\n"  
 "\n"), HOST_OS, DISTNAME, DISTVER);
 }
