@@ -11,7 +11,7 @@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL = @INSTALL@
 
-SUBDIRS = freebsd redhat solaris unknown openbsd irix
+SUBDIRS = freebsd redhat solaris unknown openbsd irix gentoo
 
 MAKE = make
 

@@ -1233,6 +1233,18 @@ redhat)
 	    platforms/redhat/bacula-dir"
 	hostname=`hostname -s`
   ;;
+gentoo)
+	DISTVER=`uname -r`
+	TAPEDRIVE="/dev/nst0"
+	PSCMD="ps -e -o pid,command"
+	PFILES="\
+	    platforms/gentoo/Makefile \
+	    platforms/gentoo/bacula-fd \
+	    platforms/gentoo/bacula-sd \
+	    platforms/gentoo/bacula-dir"
+	hostname=`hostname -s`
+  ;;
+
 slackware)
 	DISTVER=`cat /etc/slackware-version`
 	TAPEDRIVE="/dev/nst0"
