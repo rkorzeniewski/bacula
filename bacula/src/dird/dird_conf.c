@@ -294,7 +294,6 @@ struct s_jl joblevels[] = {
    {"Full",          L_FULL,            JT_BACKUP},
    {"Incremental",   L_INCREMENTAL,     JT_BACKUP},
    {"Differential",  L_DIFFERENTIAL,    JT_BACKUP},
-   {"Level",         L_LEVEL,           JT_BACKUP},
    {"Since",         L_SINCE,           JT_BACKUP},
    {"Catalog",       L_VERIFY_CATALOG,  JT_VERIFY},
    {"Initcatalog",   L_VERIFY_INIT,     JT_VERIFY},
@@ -1248,7 +1247,7 @@ static void scan_include_options(LEX *lc, int keyword, char *opts, int optlen)
          scan_err1(lc, "Expected a FileSet option keyword, got:%s:", lc->str);
       } else { /* add option */
 	 bstrncat(opts, option, optlen);
-         Dmsg3(100, "IncOpts=%s option=%s optlen=%d\n", opts, option,optlen);
+         Dmsg3(200, "Catopts=%s option=%s optlen=%d\n", opts, option,optlen);
       }
    }
 
