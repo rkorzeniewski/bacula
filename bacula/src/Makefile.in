@@ -42,6 +42,7 @@ clean:
 	@$(RMF) core core.* a.out *.o *.bak *~ *.intpro *.extpro 1 2 3
 	@$(RMF) AUTHORS ChangeLog Makefile.am NEWS README acconfig.h autogen.sh 
 	@$(RMF) configure.in stamp.h
+	@$(RMF) -r po
 	(cd gnome-console; $(MAKE) clean)
 	(cd gnome2-console; $(MAKE) clean)
 

@@ -94,7 +94,7 @@ int main (int argc, char *argv[])
 
    init_stack_dump();
    my_name_is(argc, argv, "bacula-sd");
-   textdomain("bacula-sd");
+   textdomain("bacula");
    init_msg(NULL, NULL);
    daemon_start_time = time(NULL);
 

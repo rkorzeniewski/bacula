@@ -66,7 +66,7 @@ wx-console_private.res: wx-console_private.rc
 	windres.exe -i wx-console_private.rc -I rc -o wx-console_private.res -O coff 
 
 clean:
-	@$(RMF) $(OBJ) wx-console $(WIN32RES)
+	@$(RMF) $(CONSOBJS) wx-console $(WIN32RES)
 
 distclean: clean
 	$(RMF) Makefile

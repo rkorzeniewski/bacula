@@ -396,7 +396,7 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since, FILESET_DBR *fsr
    switch (jcr->JobStatus) {
       case JS_Terminated:
 	 if (jcr->Errors || jcr->SDErrors) {
-            term_msg = _("Backup OK with warnings");
+            term_msg = _("Backup OK -- with warnings");
 	 } else {
             term_msg = _("Backup OK");
 	 }

@@ -358,7 +358,7 @@ static void *jobq_server(void *arg)
    jobq_t *jq = (jobq_t *)arg;
    jobq_item_t *je;		      /* job entry in queue */
    int stat;
-   bool timedout;
+   bool timedout = false;
    bool work = true;
 
    Dmsg0(300, "Start jobq_server\n");
@@ -373,30 +373,31 @@ static void *jobq_server(void *arg)
       struct timezone tz;
 
       Dmsg0(300, "Top of for loop\n");
-      timedout = false;
-      gettimeofday(&tv, &tz);
-      timeout.tv_nsec = 0;
-      timeout.tv_sec = tv.tv_sec + 4;
+      if (!work && !jq->quit) {
+	 gettimeofday(&tv, &tz);
+	 timeout.tv_nsec = 0;
+	 timeout.tv_sec = tv.tv_sec + 4;
 
-      while (!work && !jq->quit) {
-	 /*
-	  * Wait 4 seconds, then if no more work, exit
-	  */
-         Dmsg0(300, "pthread_cond_timedwait()\n");
-	 stat = pthread_cond_timedwait(&jq->work, &jq->mutex, &timeout);
-	 if (stat == ETIMEDOUT) {
-            Dmsg0(300, "timedwait timedout.\n");
-	    timedout = true;
+	 while (!jq->quit) {
+	    /*
+	     * Wait 4 seconds, then if no more work, exit
+	     */
+            Dmsg0(300, "pthread_cond_timedwait()\n");
+	    stat = pthread_cond_timedwait(&jq->work, &jq->mutex, &timeout);
+	    if (stat == ETIMEDOUT) {
+               Dmsg0(300, "timedwait timedout.\n");
+	       timedout = true;
+	       break;
+	    } else if (stat != 0) {
+               /* This shouldn't happen */
+               Dmsg0(300, "This shouldn't happen\n");
+	       jq->num_workers--;
+	       pthread_mutex_unlock(&jq->mutex);
+	       return NULL;
+	    }
 	    break;
-	 } else if (stat != 0) {
-            /* This shouldn't happen */
-            Dmsg0(300, "This shouldn't happen\n");
-	    jq->num_workers--;
-	    pthread_mutex_unlock(&jq->mutex);
-	    return NULL;
-	 }
-	 break;
-      } 
+	 } 
+      }
       /* 
        * If anything is in the ready queue, run it
        */
@@ -588,7 +589,20 @@ static void *jobq_server(void *arg)
 	 jq->num_workers--;
 	 break;
       }
-      work = !jq->ready_jobs->empty() || !jq->waiting_jobs->empty();		   
+      work = !jq->ready_jobs->empty() || !jq->waiting_jobs->empty();
+      if (work) {
+	 /*	     
+          * If a job is waiting on a Resource, don't consume all
+	  *   the CPU time looping looking for work, and even more
+	  *   important, release the lock so that a job that has
+	  *   terminated can give us the resource.
+	  */
+	 pthread_mutex_unlock(&jq->mutex);
+	 bmicrosleep(2, 0);		 /* pause for 2 seconds */
+	 pthread_mutex_unlock(&jq->mutex);
+	 /* Recompute work as something may have changed in last 2 secs */
+	 work = !jq->ready_jobs->empty() || !jq->waiting_jobs->empty();
+      }
       Dmsg1(300, "Loop again. work=%d\n", work);
    } /* end of big for loop */
 
