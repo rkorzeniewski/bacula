@@ -2,6 +2,7 @@ build
 bin
 test.out
 weird-files
+weird-files2
 diff
 tmp
 working
