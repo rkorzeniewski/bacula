@@ -1,5 +1,5 @@
 
-          Release Notes for Bacula 1.37.1
+          Release Notes for Bacula 1.37.2
 
   Bacula code: Total files = 398 Total lines = 117,151 (*.h *.c *.in)
 
@@ -86,7 +86,10 @@ def NewVolume(j):
     bacula.set(jcr=j, VolumeName="TestA-001")
     return 1
 ====
-
+- Part files support: File volumes can now be splitted in multiple
+  files, called "parts".
+- DVD writing support, using parts, and a lot of new directives in
+  the Device resource of the Storage configuration file.
 
 New Directives:
 - Scripts Directory = <directory> name.  Defines the directory from 
@@ -96,7 +99,36 @@ New Directives:
 - In FileSet, you can exclude backing up of hardlinks (if you have
   a lot, it can be very expensive), by using:
     HardLinks = no
-  in the Options section. Patch supplied by David R Bosso. Thanks.              
+  in the Options section. Patch supplied by David R Bosso. Thanks.
+- MaximumPartSize = bytes (SD, Device resource)
+  Defines the maximum part size.
+- Requires Mount = Yes/No (SD, Device resource)
+  Defines if the device require to be mounted to be read, and if it
+  must be written in a special way. If it set, the following directives 
+  must be defined in the same Device resource:
+  + Mount Point = directory
+    Directory where the device must be mounted. 
+  + Mount Command = name-string
+    Command that must be executed to mount the device. Before the command
+    is executed, %a is replaced with the Archive Device, and %m with the 
+    Mount Point.
+  + Unmount Command = name-string
+    Command that must be executed to unmount the device. Before the 
+    command is executed, %a is replaced with the Archive Device, and 
+    %m with the Mount Point.
+  + Write Part Command = name-string
+    Command that must be executed to write a part to the device. Before
+    the command is executed, %a is replaced with the Archive Device, %m 
+    with the Mount Point, %n with the current part number (0-based), 
+    and %v with the current part filename.
+  + Free Space Command = name-string
+    Command that must be executed to check how much free space is left 
+    on the device. Before the command is executed, %a is replaced with 
+    the Archive Device, %m with the Mount Point, %n with the current part
+    number (0-based), and %v with the current part filename.
+- Write Part After Job = Yes/No (DIR, Job Resource, and Schedule Resource)
+  If this directive is set to yes (default no), a new part file will be
+  created after the job is finished.
 
 New Commands:
 - "python restart" restarts the Python interpreter. Rather brutal, make
@@ -113,3 +145,7 @@ Items to note!!!
 - With Python 2.3, there are a few compiler warnings.
 
 Other Items:
+- 2 new scripts, dvd-writepart and dvd-freespace, in the scripts directory,
+  which are designed to be used as parameters to Write Part Command and
+  Free Space Command. They need the dvd+rw-tools to be installed
+  (http://fy.chalmers.se/~appro/linux/DVD+RW/).
