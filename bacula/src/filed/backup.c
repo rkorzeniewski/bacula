@@ -384,28 +384,32 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 #endif
 
 #ifdef HAVE_ACL
+   /*** FIXME ***/
    /* ACL stream */
    if (ff_pkt->flags & FO_ACL) {
-      POOLMEM *msgsave;
-      char *acl_text;
+      char *acl_text = NULL;
+      char *aclDef_text = NULL;
+      
       /* Read ACLs for files, dirs and links */
       if (ff_pkt->type == FT_DIREND) {
-	 /* Directory: Try for default ACL*/
-	 acl_t myAcl = acl_get_file(ff_pkt->fname, ACL_TYPE_DEFAULT);
-	 if (!myAcl) {
-            Dmsg1(200, "No default ACL defined for directory: %s!\n", ff_pkt->fname);
-	    /* If there is no default ACL get standard ACL */
-	    myAcl = acl_get_file(ff_pkt->fname, ACL_TYPE_ACCESS);
-	    if (!myAcl) {
-               Jmsg1(jcr, M_WARNING, 0, "Error while trying to get ACL of directory: %s!\n", ff_pkt->fname);
-	    }
-	 }
-         acl_text = acl_to_any_text(myAcl, NULL, ',', TEXT_ABBREVIATE);
-	 /* Free memory */
-	 acl_free(myAcl);
+	 /* Directory: Check for default ACL*/
+	 acl_t myDefAcl = acl_get_file(ff_pkt->fname, ACL_TYPE_DEFAULT);
+         /* Check for Access ACL */
+         acl_t myAccAcl = acl_get_file(ff_pkt->fname, ACL_TYPE_ACCESS);
+         if (!myDefAcl || !myAccAcl) {
+            Jmsg1(jcr, M_WARNING, 0, "Error while trying to get ACL of directory: %s!\n", ff_pkt->fname);
+         }
+         if(myDefAcl){
+            aclDef_text = acl_to_any_text(myDefAcl, NULL, ',', TEXT_ABBREVIATE);
+            acl_free(myDefAcl);
+         }
+         if(myAccAcl){
+            acl_text = acl_to_any_text(myAccAcl, NULL, ',', TEXT_ABBREVIATE);
+            acl_free(myAccAcl);
+         }
       } else {
 	 /* Files or links */
-	 acl_t myAcl = acl_get_file(ff_pkt->fname, ACL_TYPE_ACCESS);
+         acl_t myAcl = acl_get_file(ff_pkt->fname, ACL_TYPE_ACCESS);
 	 if (!myAcl) {
             Jmsg1(jcr, M_WARNING, 0, "Error while trying to get ACL of file: %s!\n", ff_pkt->fname);
 	    acl_free(myAcl);
@@ -413,23 +417,23 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
          acl_text = acl_to_any_text(myAcl, NULL, ',', TEXT_ABBREVIATE);
 	 acl_free(myAcl);
       }
-
+      
+      POOLMEM *msgsave;
+      
       /* If there is an ACL, send it to the Storage daemon */
-      if (acl_text) {
+      if (acl_text != NULL) {
 	 sd = jcr->store_bsock;
 	 pm_strcpy(&jcr->last_fname, ff_pkt->fname);
-
-	 /*
-	  * Send ACL header
-	  *
-	  */
-         if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_UNIX_ATTRIBUTES_ACL)) {
+      
+	 
+	 // Send ACL header
+         if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_UNIX_ATTRIBUTES_ACCESS_ACL)) {
 	    berrno be;
             Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
 		  bnet_strerror(sd));
 	    return 0;
 	 }
-
+      
 	 /* Send the buffer to the storage deamon */
 	 msgsave = sd->msg;
 	 sd->msg = acl_text;
@@ -452,7 +456,43 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	    }
 	 }  
       }
-   }
+      /* If there is an Default ACL, send it to the Storage daemon */
+      if (aclDef_text != NULL) {
+	 sd = jcr->store_bsock;
+	 pm_strcpy(&jcr->last_fname, ff_pkt->fname);
+      
+	 
+	 // Send ACL header
+	 if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_UNIX_ATTRIBUTES_DEFAULT_ACL)) {
+	    berrno be;
+            Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+		  bnet_strerror(sd));
+	    return 0;
+	 }
+      
+	 // Send the buffer to the storage deamon
+	 msgsave = sd->msg;
+	 sd->msg = aclDef_text;
+	 sd->msglen = strlen(aclDef_text) + 1;
+	 if (!bnet_send(sd)) {
+	    berrno be;
+	    sd->msg = msgsave;
+	    sd->msglen = 0;
+            Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+		  bnet_strerror(sd));
+	 } else {
+	    jcr->JobBytes += sd->msglen;
+	    sd->msg = msgsave;
+	    if (!bnet_sig(sd, BNET_EOD)) {
+	       berrno be;
+               Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+		     bnet_strerror(sd));
+	    } else {
+               Dmsg1(200, "ACL of file: %s successfully backed up!\n", ff_pkt->fname);
+	    }
+	 }  
+      }
+   }   
 #endif
 
    /* Terminate any signature and send it to Storage daemon and the Director */

@@ -70,7 +70,7 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
    director = NULL;
    unbash_spaces(dirname);
    LockRes();
-   while ((director=(DIRRES *)GetNextRes(rcode, (RES *)director))) {
+   foreach_res(director, rcode) {
       if (strcmp(director->hdr.name, dirname) == 0)
 	 break;
    }

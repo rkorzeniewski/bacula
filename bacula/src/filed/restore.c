@@ -442,10 +442,10 @@ void do_restore(JCR *jcr)
 #else
          non_support_finfo++;
 #endif
-
-      case STREAM_UNIX_ATTRIBUTES_ACL:	 
+/*** FIXME ***/
+case STREAM_UNIX_ATTRIBUTES_ACCESS_ACL:	 
 #ifdef HAVE_ACL
-	 /* Recover ACL from stream and check it */
+	 /* Recover Acess ACL from stream and check it */
 	 acl = acl_from_text(sd->msg);
 	 if (acl_valid(acl) != 0) {
             Jmsg1(jcr, M_WARNING, 0, "Failure in the ACL of %s! FD is not able to restore it!\n", jcr->last_fname);
@@ -455,8 +455,7 @@ void do_restore(JCR *jcr)
 	 /* Try to restore ACL */
 	 if (attr->type == FT_DIREND) {
 	    /* Directory */
-	    if (acl_set_file(jcr->last_fname, ACL_TYPE_DEFAULT, acl) != 0 &&
-		acl_set_file(jcr->last_fname, ACL_TYPE_ACCESS, acl) != 0) {
+	    if (acl_set_file(jcr->last_fname, ACL_TYPE_ACCESS, acl) != 0) {
                Jmsg1(jcr, M_WARNING, 0, "Error! Can't restore ACL of directory: %s! Maybe system does not support ACLs!\n", jcr->last_fname);
 	    }
 	 /* File or Link */
@@ -469,7 +468,31 @@ void do_restore(JCR *jcr)
 #else 
 	 non_support_acl++;
 	 break; 		      /* unconfigured, ignore */
-#endif	 
+#endif
+      case STREAM_UNIX_ATTRIBUTES_DEFAULT_ACL:
+#ifdef HAVE_ACL
+      /* Recover Default ACL from stream and check it */
+	 acl = acl_from_text(sd->msg);
+	 if (acl_valid(acl) != 0) {
+            Jmsg1(jcr, M_WARNING, 0, "Failure in the Default ACL of %s! FD is not able to restore it!\n", jcr->last_fname);
+	    acl_free(acl);
+	 }
+	 
+	 /* Try to restore ACL */
+	 if (attr->type == FT_DIREND) {
+	    /* Directory */
+	    if (acl_set_file(jcr->last_fname, ACL_TYPE_DEFAULT, acl) != 0) {
+               Jmsg1(jcr, M_WARNING, 0, "Error! Can't restore Default ACL of directory: %s! Maybe system does not support ACLs!\n", jcr->last_fname);
+	     }
+         }
+	 acl_free(acl);
+         Dmsg1(200, "Default ACL of file: %s successfully restored!", jcr->last_fname);
+	 break;
+#else 
+	 non_support_acl++;
+	 break; 		      /* unconfigured, ignore */
+#endif
+/*** FIXME ***/
 	 
       case STREAM_MD5_SIGNATURE:
       case STREAM_SHA1_SIGNATURE:
