@@ -373,7 +373,7 @@ bool rewind_dev(DEVICE *dev)
       dev->dev_errno = EBADF;
       Mmsg1(&dev->errmsg, _("Bad call to rewind_dev. Device %s not open\n"),
 	    dev->dev_name);
-      Emsg0(M_FATAL, 0, dev->errmsg);
+      Emsg0(M_ABORT, 0, dev->errmsg);
       return false;
    }
    dev->state &= ~(ST_EOT|ST_EOF|ST_WEOT);  /* remove EOF/EOT flags */
@@ -1006,7 +1006,7 @@ fsr_dev(DEVICE *dev, int num)
       return false;
    }
 
-   Dmsg0(29, "fsr_dev\n");
+   Dmsg1(29, "fsr_dev %d\n", num);
    mt_com.mt_op = MTFSR;
    mt_com.mt_count = num;
    stat = ioctl(dev->fd, MTIOCTOP, (char *)&mt_com);
@@ -1016,6 +1016,8 @@ fsr_dev(DEVICE *dev, int num)
    } else {
       berrno be;
       struct mtget mt_stat;
+      clrerror_dev(dev, MTFSR);
+      Dmsg1(100, "FSF fail: ERR=%s\n", be.strerror());
       if (ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) == 0 && mt_stat.mt_fileno >= 0) {
          Dmsg4(100, "Adjust from %d:%d to %d:%d\n", dev->file, 
 	    dev->block_num, mt_stat.mt_fileno, mt_stat.mt_blkno);
@@ -1031,7 +1033,6 @@ fsr_dev(DEVICE *dev, int num)
 	    dev->file_addr = 0;
 	 }
       }
-      clrerror_dev(dev, MTFSR);
       Mmsg2(dev->errmsg, _("ioctl MTFSR error on %s. ERR=%s.\n"),
 	 dev->dev_name, be.strerror(dev->dev_errno));
    }

@@ -102,7 +102,7 @@ bool read_records(DCR *dcr,
                Jmsg(jcr, M_INFO, 0, "Got EOF at file %u  on device %s, Volume \"%s\"\n", 
 		  dev->file, dev_name(dev), dcr->VolumeName);
 	    }
-            Dmsg3(100, "Got EOF at file %u  on device %s, Volume \"%s\"\n", 
+            Dmsg3(200, "Got EOF at file %u  on device %s, Volume \"%s\"\n", 
 		  dev->file, dev_name(dev), dcr->VolumeName);
 	    continue;
 	 } else if (dev_state(dev, ST_SHORT)) {
@@ -120,7 +120,7 @@ bool read_records(DCR *dcr,
 	    break;
 	 }
       }
-      Dmsg2(100, "New block at position=(file:block) %d:%d\n", dev->file, dev->block_num);
+      Dmsg2(300, "New block at position=(file:block) %d:%d\n", dev->file, dev->block_num);
 #ifdef if_and_when_FAST_BLOCK_REJECTION_is_working
       /* this does not stop when file/block are too big */
       if (!match_bsr_block(jcr->bsr, block)) {
@@ -146,7 +146,7 @@ bool read_records(DCR *dcr,
       if (!found) {
 	 rec = new_record();
 	 recs->prepend(rec);
-         Dmsg2(100, "New record for SI=%d ST=%d\n",
+         Dmsg2(300, "New record for SI=%d ST=%d\n",
 	     block->VolSessionId, block->VolSessionTime);
       } else {
 #ifdef xxx
@@ -156,18 +156,18 @@ bool read_records(DCR *dcr,
 	 }
 #endif 
       }
-      Dmsg3(100, "After mount next vol. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
+      Dmsg3(300, "After mount next vol. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
 	    block->BlockNumber, rec->remainder);
       record = 0;
       rec->state = 0;
-      Dmsg1(100, "Block empty %d\n", is_block_empty(rec));
+      Dmsg1(300, "Block empty %d\n", is_block_empty(rec));
       for (rec->state=0; !is_block_empty(rec); ) {
 	 if (!read_record_from_block(block, rec)) {
-            Dmsg3(100, "!read-break. state=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
+            Dmsg3(400, "!read-break. state=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
 		  block->BlockNumber, rec->remainder);
 	    break;
 	 }
-         Dmsg5(100, "read-OK. state=%s blk=%d rem=%d file:block=%d:%d\n", 
+         Dmsg5(300, "read-OK. state=%s blk=%d rem=%d file:block=%d:%d\n", 
 		 rec_state_to_str(rec), block->BlockNumber, rec->remainder,
 		 dev->file, dev->block_num);
 	 /*
@@ -177,7 +177,7 @@ bool read_records(DCR *dcr,
 	  *  get all the data.
 	  */
 	 record++;
-         Dmsg6(100, "recno=%d state=%s blk=%d SI=%d ST=%d FI=%d\n", record,
+         Dmsg6(300, "recno=%d state=%s blk=%d SI=%d ST=%d FI=%d\n", record,
 	    rec_state_to_str(rec), block->BlockNumber,
 	    rec->VolSessionId, rec->VolSessionTime, rec->FileIndex);
 
@@ -191,7 +191,7 @@ bool read_records(DCR *dcr,
 	    handle_session_record(dev, rec, &sessrec);
 	    ok = record_cb(dcr, rec);
 	    if (rec->FileIndex == EOS_LABEL) {
-               Dmsg2(100, "Remove rec. SI=%d ST=%d\n", rec->VolSessionId,
+               Dmsg2(300, "Remove rec. SI=%d ST=%d\n", rec->VolSessionId,
 		  rec->VolSessionTime);
 	       recs->remove(rec);
 	       free_record(rec);
@@ -206,10 +206,10 @@ bool read_records(DCR *dcr,
 	    int stat = match_bsr(jcr->bsr, rec, &dev->VolHdr, &sessrec);
 	    if (stat == -1) { /* no more possible matches */
 	       done = true;   /* all items found, stop */
-               Dmsg2(100, "All done=(file:block) %d:%d\n", dev->file, dev->block_num);
+               Dmsg2(300, "All done=(file:block) %d:%d\n", dev->file, dev->block_num);
 	       break;
 	    } else if (stat == 0) {  /* no match */
-               Dmsg4(100, "Clear rem=%d FI=%d before set_eof pos %d:%d\n", 
+               Dmsg4(300, "Clear rem=%d FI=%d before set_eof pos %d:%d\n", 
 		  rec->remainder, rec->FileIndex, dev->file, dev->block_num);
 	       rec->remainder = 0;
 	       rec->state &= ~REC_PARTIAL_RECORD;
@@ -220,26 +220,26 @@ bool read_records(DCR *dcr,
 	    }
 	 }
 	 if (is_partial_record(rec)) {
-            Dmsg6(100, "Partial, break. recno=%d state=%s blk=%d SI=%d ST=%d FI=%d\n", record,
+            Dmsg6(300, "Partial, break. recno=%d state=%s blk=%d SI=%d ST=%d FI=%d\n", record,
 	       rec_state_to_str(rec), block->BlockNumber,
 	       rec->VolSessionId, rec->VolSessionTime, rec->FileIndex);
 	    break;		      /* read second part of record */
 	 }
 	 ok = record_cb(dcr, rec);
 	 if (rec->Stream == STREAM_MD5_SIGNATURE || rec->Stream == STREAM_SHA1_SIGNATURE) {
-            Dmsg3(100, "Done FI=%d before set_eof pos %d:%d\n", rec->FileIndex,
+            Dmsg3(300, "Done FI=%d before set_eof pos %d:%d\n", rec->FileIndex,
 		  dev->file, dev->block_num);
 	    if (match_set_eof(jcr->bsr, rec) && try_repositioning(jcr, rec, dev)) {
-               Dmsg2(100, "Break after match_set_eof pos %d:%d\n",
+               Dmsg2(300, "Break after match_set_eof pos %d:%d\n",
 		     dev->file, dev->block_num);
 	       break;
 	    }
-            Dmsg2(100, "After set_eof pos %d:%d\n", dev->file, dev->block_num);
+            Dmsg2(300, "After set_eof pos %d:%d\n", dev->file, dev->block_num);
 	 }
       } /* end for loop over records */
-      Dmsg2(100, "After end records position=(file:block) %d:%d\n", dev->file, dev->block_num);
+      Dmsg2(300, "After end records position=(file:block) %d:%d\n", dev->file, dev->block_num);
    } /* end for loop over blocks */
-// Dmsg2(100, "Position=(file:block) %d:%d\n", dev->file, dev->block_num);
+// Dmsg2(300, "Position=(file:block) %d:%d\n", dev->file, dev->block_num);
 
    /* Walk down list and free all remaining allocated recs */
    while (!recs->empty()) {
@@ -262,8 +262,8 @@ static int try_repositioning(JCR *jcr, DEV_RECORD *rec, DEVICE *dev)
    BSR *bsr;
    bsr = find_next_bsr(jcr->bsr, dev);
    if (bsr == NULL && jcr->bsr->mount_next_volume) {
-      Dmsg0(100, "Would mount next volume here\n");
-      Dmsg2(100, "Current postion (file:block) %d:%d\n",
+      Dmsg0(300, "Would mount next volume here\n");
+      Dmsg2(300, "Current postion (file:block) %d:%d\n",
 	 dev->file, dev->block_num);
       jcr->bsr->mount_next_volume = false;
       dev->state |= ST_EOT;
@@ -276,7 +276,7 @@ static int try_repositioning(JCR *jcr, DEV_RECORD *rec, DEVICE *dev)
 	    dev->file, dev->block_num, bsr->volfile->sfile,
 	    bsr->volblock->sblock);
       }
-      Dmsg4(100, "Try_Reposition from (file:block) %d:%d to %d:%d\n",
+      Dmsg4(300, "Try_Reposition from (file:block) %d:%d to %d:%d\n",
 	    dev->file, dev->block_num, bsr->volfile->sfile,
 	    bsr->volblock->sblock);
       reposition_dev(dev, bsr->volfile->sfile, bsr->volblock->sblock);
@@ -301,7 +301,7 @@ static BSR *position_to_first_file(JCR *jcr, DEVICE *dev)
       if (bsr && (bsr->volfile->sfile != 0 || bsr->volblock->sblock != 0)) {
          Jmsg(jcr, M_INFO, 0, _("Forward spacing to file:block %u:%u.\n"), 
 	    bsr->volfile->sfile, bsr->volblock->sblock);
-         Dmsg2(100, "Forward spacing to file:block %u:%u.\n", 
+         Dmsg2(300, "Forward spacing to file:block %u:%u.\n", 
 	    bsr->volfile->sfile, bsr->volblock->sblock);
 	 reposition_dev(dev, bsr->volfile->sfile, bsr->volblock->sblock);
       }
@@ -339,7 +339,7 @@ static void handle_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *s
       rtype = buf;
       break;
    }
-   Dmsg5(100, "%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
+   Dmsg5(300, "%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
 	 rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
 }
 
