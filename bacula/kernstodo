@@ -219,6 +219,8 @@ Why:
     format string. Then I have the tape labeled automatically with weekday
     name in the correct language.
 ==========
+- Make output from status use html table tags for nicely 
+  presenting in a browser.
 - Can one write tapes faster with 8192 byte block sizes?
 - Specify a single directory to restore.
 - Document security problems with the same password for everyone in

@@ -782,8 +782,17 @@ static bool autochanger_cmd(JCR *jcr)
    BSOCK *dir = jcr->dir_bsock;
    DEVICE *dev;
    DCR *dcr;
+   const char *cmd;
+   bool ok = false;
 
    if (sscanf(dir->msg, "autochanger list %127s ", devname.c_str()) == 1) {
+      cmd = "list";
+      ok = true;
+   } else if (sscanf(dir->msg, "autochanger slots %127s ", devname.c_str()) == 1) {
+      cmd = "slots";
+      ok = true;
+   }
+   if (ok) {
       dev = find_device(jcr, devname);
       dcr = jcr->dcr;
       if (dev) {
@@ -792,17 +801,17 @@ static bool autochanger_cmd(JCR *jcr)
             bnet_fsend(dir, _("3995 Device %s is not an autochanger.\n"), 
 	       dev->print_name());
 	 } else if (!dev->is_open()) {
-	    autochanger_list(dcr, dir);
+	    autochanger_cmd(dcr, dir, cmd);
          /* Under certain "safe" conditions, we can steal the lock */
 	 } else if (dev->dev_blocked &&
 		    (dev->dev_blocked == BST_UNMOUNTED ||
 		     dev->dev_blocked == BST_WAITING_FOR_SYSOP ||
 		     dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP)) {
-	    autochanger_list(dcr, dir);
+	    autochanger_cmd(dcr, dir, cmd);
 	 } else if (dev->is_busy()) {
 	    send_dir_busy_message(dir, dev);
 	 } else {		      /* device not being used */
-	    autochanger_list(dcr, dir);
+	    autochanger_cmd(dcr, dir, cmd);
 	 }
 	 V(dev->mutex);
       } else {
@@ -810,8 +819,8 @@ static bool autochanger_cmd(JCR *jcr)
       }
    } else {  /* error on scanf */
       pm_strcpy(jcr->errmsg, dir->msg);
-      bnet_fsend(dir, _("3908 Error scanning autocharger list command: %s\n"),
-	 jcr->errmsg);
+      bnet_fsend(dir, _("3908 Error scanning autocharger %s command: %s\n"),
+	 cmd, jcr->errmsg);
    }
    bnet_sig(dir, BNET_EOD);
    return true;

@@ -159,7 +159,7 @@ static int get_autochanger_loaded_slot(DCR *dcr)
 	drive);
    changer = edit_device_codes(dcr, changer, "loaded");
    status = run_program(changer, timeout, results);
-   Dmsg3(50, "run_prog: %s stat=%d result=%s\n", changer, status, results);
+   Dmsg3(50, "run_prog: %s stat=%d result=%s", changer, status, results);
    if (status == 0) {
       loaded = atoi(results);
       if (loaded > 0) {
@@ -223,7 +223,7 @@ void mark_volume_not_inchanger(DCR *dcr)
  *   with their barcodes.
  *   We assume that it is always the Console that is calling us.
  */
-bool autochanger_list(DCR *dcr, BSOCK *dir)
+bool autochanger_cmd(DCR *dcr, BSOCK *dir, const char *cmd)  
 {
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
@@ -232,6 +232,8 @@ bool autochanger_list(DCR *dcr, BSOCK *dir)
    BPIPE *bpipe;
    int slot, loaded;
    int len = sizeof_pool_memory(dir->msg) - 1;
+   bool ok = false;
+   int stat;
 
    if (!dev_cap(dev, CAP_AUTOCHANGER) || !dcr->device->changer_name ||
        !dcr->device->changer_command) {
@@ -240,49 +242,73 @@ bool autochanger_list(DCR *dcr, BSOCK *dir)
    }
 
    changer = get_pool_memory(PM_FNAME);
-   offline_or_rewind_dev(dev);
-   /* We are going to load a new tape, so close the device */
-   force_close_dev(dev);
+   /* List command? */
+   if (strcmp(cmd, "list") == 0) {
+      int drive = dev->device->drive_index;
+      /* Yes, to get a good listing, we unload any volumes */
+      offline_or_rewind_dev(dev);
+      /* We are going to load a new tape, so close the device */
+      force_close_dev(dev);
 
-   /* First unload any tape */
-   loaded = get_autochanger_loaded_slot(dcr);
-   if (loaded > 0) {
-      bnet_fsend(dir, _("3305 Issuing autochanger \"unload slot %d\" command.\n"), loaded);
-      slot = dcr->VolCatInfo.Slot;
-      dcr->VolCatInfo.Slot = loaded;
-      changer = edit_device_codes(dcr, changer, "unload");
-      int stat = run_program(changer, timeout, NULL);
-      if (stat != 0) {
-	 berrno be;
-	 be.set_errno(stat);
-         Jmsg(jcr, M_INFO, 0, _("3995 Bad autochanger \"unload slot %d\" command: ERR=%s.\n"),
-	      loaded, be.strerror());
+      /* First unload any tape */
+      loaded = get_autochanger_loaded_slot(dcr);
+      if (loaded > 0) {
+	 bnet_fsend(dir,
+            _("3305 Issuing autochanger \"unload slot %d, drive %d\" command.\n"),
+	    loaded, drive);
+	 slot = dcr->VolCatInfo.Slot;
+	 dcr->VolCatInfo.Slot = loaded;
+         changer = edit_device_codes(dcr, changer, "unload");
+	 lock_changer(dcr);
+	 int stat = run_program(changer, timeout, NULL);
+	 unlock_changer(dcr);
+	 if (stat != 0) {
+	    berrno be;
+	    be.set_errno(stat);
+            Jmsg(jcr, M_INFO, 0, _("3995 Bad autochanger \"unload slot %d, drive %d\": ERR=%s.\n"),
+		    slot, drive, be.strerror());
+	 }
+	 dcr->VolCatInfo.Slot = slot;
       }
-      dcr->VolCatInfo.Slot = slot;
    }
 
-   /* Now list slots occupied */
-   changer = edit_device_codes(dcr, changer, "list");
-   bnet_fsend(dir, _("3306 Issuing autochanger \"list\" command.\n"));
+   /* Now issue the command */
+   changer = edit_device_codes(dcr, changer, cmd);
+   bnet_fsend(dir, _("3306 Issuing autochanger \"%s\" command.\n"), cmd);
+   lock_changer(dcr);
    bpipe = open_bpipe(changer, timeout, "r");
    if (!bpipe) {
+      unlock_changer(dcr);
       bnet_fsend(dir, _("3993 Open bpipe failed.\n"));
-      free_pool_memory(changer);
-      return false;
+      goto bail_out;
    }
-   /* Get output from changer */
-   while (fgets(dir->msg, len, bpipe->rfd)) {
+   if (strcmp(cmd, "list") == 0) {
+      /* Get output from changer */
+      while (fgets(dir->msg, len, bpipe->rfd)) {
+	 dir->msglen = strlen(dir->msg);
+         Dmsg1(100, "<stored: %s\n", dir->msg);
+	 bnet_send(dir);
+      }
+   } else {
+      /* For slots command, read a single line */
+      bstrncpy(dir->msg, "slots=", len);
+      fgets(dir->msg+6, len-6, bpipe->rfd);
       dir->msglen = strlen(dir->msg);
+      Dmsg1(100, "<stored: %s", dir->msg);
       bnet_send(dir);
    }
-   int stat = close_bpipe(bpipe);
+		 
+   stat = close_bpipe(bpipe);
+   unlock_changer(dcr);
    if (stat != 0) {
       berrno be;
       be.set_errno(stat);
       bnet_fsend(dir, "Autochanger error: ERR=%s\n", be.strerror());
    }
    bnet_sig(dir, BNET_EOD);
+   ok = true;
 
+bail_out:
    free_pool_memory(changer);
    return true;
 }
@@ -315,7 +341,7 @@ char *edit_device_codes(DCR *dcr, char *omsg, const char *cmd)
    const char *imsg = dcr->device->changer_command;
 
    *omsg = 0;
-   Dmsg1(800, "edit_device_codes: %s\n", imsg);
+   Dmsg1(1800, "edit_device_codes: %s\n", imsg);
    for (p=imsg; *p; p++) {
       if (*p == '%') {
 	 switch (*++p) {
@@ -365,9 +391,10 @@ char *edit_device_codes(DCR *dcr, char *omsg, const char *cmd)
 	 add[1] = 0;
 	 str = add;
       }
-      Dmsg1(900, "add_str %s\n", str);
+      Dmsg1(1900, "add_str %s\n", str);
       pm_strcat(&omsg, (char *)str);
-      Dmsg1(800, "omsg=%s\n", omsg);
+      Dmsg1(1800, "omsg=%s\n", omsg);
    }
+   Dmsg1(800, "omsg=%s\n", omsg);
    return omsg;
 }
