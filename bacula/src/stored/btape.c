@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
       Emsg1(M_ABORT, 0, "Tape block size (%d) is not a power of 2\n", TAPE_BSIZE);
    }
 
-   printf("Tape block size is %d bytes.\n", TAPE_BSIZE);
+   printf("Tape block granularity is %d bytes.\n", TAPE_BSIZE);
 
    while ((ch = getopt(argc, argv, "c:d:st?")) != -1) {
       switch (ch) {
@@ -441,75 +441,6 @@ static void weofcmd()
    }
 }
 
-/*
- * Test on uninitialized tape 
- *  Destroys tape contents !!!! Including Bacula label.
- */
-static void rawtestcmd()
-{
-#ifdef xxxx
-   int i, j, k;
-
-   if (!dev) {
-      Pmsg0(0, "No device: Use device command.\n");
-      return;
-   }
-   if (!rewind_dev(dev)) {
-      Pmsg1(0, "Bad status from rewind. ERR=%s\n", strerror_dev(dev));
-      return;
-   }
-   Pmsg0(0, "Rewound, now writing 100 blocks\n");
-   for (i=0; i<100; i++) {
-      j = 10000 + i;
-      memset(buf, i, j);
-      if (!write_dev(dev, buf, j)) {
-         Pmsg1(0, "Bad status from write. ERR=%s\n", strerror_dev(dev));
-	 return;
-      }
-     Pmsg2(10, "Wrote %d bytes of %d\n", j, i);
-   }
-   Pmsg0(0, "100 Blocks written, flushing buffers and writing EOF\n");
-   if (flush_dev(dev) != 0) {
-      Pmsg1(0, "Error writing flushing. ERR=%s\n", strerror(errno));
-      return;
-   }
-   if (weof_dev(dev, 1) != 0) {
-      Pmsg1(0, "Error writing eof. ERR=%s\n", strerror(errno));
-      return;
-   }
-   Pmsg0(0, "Rewinding ...\n");
-   if (!rewind_dev(dev)) {
-      Pmsg1(0, "Bad status from rewind. ERR=%s\n", strerror_dev(dev));
-      return;
-   }
-
-
-   Pmsg0(0, "Read and verify data ...\n");
-   for (i=0; i<100; i++) {
-      j = 10000 + i;
-      if (!read_dev(dev, buf, j)) {
-         Pmsg1(0, "Bad status from read. ERR=%s\n", strerror_dev(dev));
-	 return;
-      }
-      for (k=0; k<j; k++) {
-	 if (buf[k] != i) {
-            Pmsg5(0, "Data read expected %d got %d at byte %d, block %d size %d\n", 
-	     i, buf[k], k, i, j);
-	    return;
-	 }
-      }     
-      Dmsg3(10, "Successful read block %d of %d bytes of %d\n", i, j, i);   
-   }
-   Pmsg0(0, "Read OK!\n");
-   Pmsg0(0, "Rewinding ...\n");
-   if (!rewind_dev(dev)) {
-      Pmsg1(0, "Bad status from rewind. ERR=%s\n", strerror_dev(dev));
-      return;
-   }
-#else
-   printf("Rawtest command no longer implemented.\n");
-#endif
-}
 
 /* Go to the end of the medium -- raw command	
  * The idea was orginally that the end of the Bacula
@@ -616,21 +547,32 @@ static void rectestcmd()
    }
 
    Pmsg0(0, "Test writting larger and larger records.\n\
-This is a torture test for records. \n");
+This is a torture test for records.\nI am going to write\n\
+larger and larger records. It will stop when the record size\n\
+plus the header exceeds the block size (by default about 64K\n");
+
+
+   get_cmd("Do you want to continue? (y/n): ");
+   if (cmd[0] != 'y') {
+      Pmsg0(000, "Command aborted.\n");
+      return;
+   }
 
    sm_check(__FILE__, __LINE__, False);
    block = new_block(dev);
    rec = new_record();
 
    for (i=1; i<500000; i++) {
-      rec->data = (char *) check_pool_memory_size(rec->data, i);
+      rec->data = check_pool_memory_size(rec->data, i);
       memset(rec->data, i & 0xFF, i);
       rec->data_len = i;
       sm_check(__FILE__, __LINE__, False);
-      while (!write_record_to_block(block, rec)) {
+      if (write_record_to_block(block, rec)) {
 	 empty_block(block);
 	 blkno++;
          Pmsg2(0, "Block %d i=%d\n", blkno, i);
+      } else {
+	 break;
       }
       sm_check(__FILE__, __LINE__, False);
    }
@@ -884,91 +826,9 @@ static void statcmd()
 }
 
 
-/*
- * Test on labeled tape. Preserves Bacula label.
- */
-static void appendcmd()
-{
-
-#ifdef xxxx_this_code_turned_off
-
-   int i, j, k;
-   int file;
-   DEV_BLOCK *block;
-
-   if (!dev) {
-      Pmsg0(0, "No device: Use device command.\n");
-      return;
-   }
-
-   block = new_block(dev);
-
-   if (!ready_device_for_append(jcr, dev, block, VolName)) {
-      Pmsg0(0, "Cannot append, not a Bacula tape.\n");
-      return;
-   }
-
-   file = dev_file(dev);
-   Pmsg1(0, "Begin write test data in file %d\n", file);
-
-   /* Write our test data */
-   for (i=0; i<100; i++) {
-      j = 10000 + i;
-      memset(buf, i, j);
-      if (!write_dev(dev, buf, j)) {
-         Pmsg1(0, "Bad status from write. ERR=%s\n", strerror_dev(dev));
-	 return;
-      }
-     Pmsg2(10, "Wrote %d bytes of %d\n", j, i);
-   }
-
-   if (flush_dev(dev) != 0) {		       /* ensure written to tape */
-      Pmsg1(0, "Flush error: %s\n", strerror(errno));
-   }
-   if (weof_dev(dev, 1) != 0) { 
-      Pmsg1(0, "EOF error: %s\n", strerror(errno));
-   }
-
-   Pmsg0(0, "Rewind and reread label\n");
-   if (read_dev_volume_label(dev, VolName) != VOL_OK) {
-      return;
-   }
-
-   if (file != 0) { 
-      Pmsg1(0, "FSF %d files\n", file);
-      fsf_dev(dev, file);
-   }
-      
-   file = dev_file(dev);
-   Pmsg1(0, "Begin read/test from file %d\n", file);
-   /* Now read our test data and make sure it is what we wrote */
-   for (i=0; i<100; i++) {
-      j = 10000 + i;
-      if (!read_dev(dev, buf, j)) {
-         Pmsg1(0, "Bad status from read. ERR=%s\n", strerror_dev(dev));
-	 return;
-      }
-      for (k=0; k<j; k++) {
-	 if (buf[k] != i) {
-            Pmsg5(0, "Data read expected %d got %d at byte %d, block %d size %d\n", 
-	     i, buf[k], k, i, j);
-	    return;
-	 }
-      }     
-      Pmsg3(10, "Successful read block %d of %d bytes of %d\n", i, j, i);
-   }
-
-   Pmsg0(0, "Reread test data successfully.\n");
-#else 
-   printf("append command no longer implemented.\n");
-#endif
-}
-
-
 
 struct cmdstruct { char *key; void (*func)(); char *help; }; 
 static struct cmdstruct commands[] = {
- {"append",     appendcmd,    "append and read test data on a Bacula labeled tape"},
  {"bsf",        bsfcmd,       "backspace file"},
  {"bsr",        bsrcmd,       "backspace record"},
  {"cap",        capcmd,       "list device capabilities"},
@@ -983,7 +843,6 @@ static struct cmdstruct commands[] = {
  {"label",      labelcmd,     "write a Bacula label to the tape"},
  {"load",       loadcmd,      "load a tape"},
  {"quit",       quitcmd,      "quit btape"},   
- {"rawtest",    rawtestcmd,   "write and read test data on unlabeled tape"},     
  {"rd",         rdcmd,        "read tape"},
  {"readlabel",  readlabelcmd, "read and print the Bacula tape label"},
  {"rectest",    rectestcmd,   "test record handling functions"},

@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                 23 September 2002
+                 6 October 2002
 
 Irix conversion notes:
 - no uuencode
@@ -27,6 +27,12 @@ From Chuck:
   I tried this and it didn't find sqlite.h
 =======
 
+- Figure out why my Catalog size keeps growing.
+- Document bscan.
+- Document Restore.
+
+- Make SD disallow writing on Volume with fewer files than in
+  the catalog.
 - Check if GZIP1 is working -- check speed.
 - Put MaximumVolumeSize in Director.
 - Document how to cancel a job that is waiting on a Volume. 
@@ -50,8 +56,6 @@ From Chuck:
   only a single filename split routine.
 - Add command to reset VolFiles to a larger value (don't allow
   a smaller number or print big warning).
-- Make SD disallow writing on Volume with fewer files than in
-  the catalog.
 - Make Restore report an error if FD or SD term codes are not OK.
 - Convert all %x substitution variables, which are hard to remember
   and read to %(variable-name).  Idea from TMDA.
@@ -75,7 +79,7 @@ From Chuck:
 - No READLINE_SRC if found in alternate directory.
 - Add Client FS/OS id (Linux, Win95/98, ...).
 - Put Windows files in Windows stream?
-- Ensure that everyone uses btime routines.
+- Ensure that everyone uses btime routines (mostly done).
 
   
 Projects:
@@ -610,3 +614,6 @@ Done: (see kernsdone for more)
      
   Another try with tape mounted and Job hung in Director.
 - Write updated bootstrap after every Job.
+- Document driver testing with btape.
+- Document autochanger.
+
