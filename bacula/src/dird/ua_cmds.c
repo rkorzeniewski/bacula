@@ -811,6 +811,26 @@ static void update_volpool(UAContext *ua, char *val, MEDIA_DBR *mr)
    }
 }
 
+static void update_volfrompool(UAContext *ua, MEDIA_DBR *mr)
+{
+   POOL_DBR pr;
+   char VolStatus[50];
+
+   memset(&pr, 0, sizeof(pr));
+   pr.PoolId = mr->PoolId;
+   if (!get_pool_dbr(ua, &pr)) {
+      return;
+   }
+   bstrncpy(VolStatus, mr->VolStatus, sizeof(VolStatus));
+   set_pool_dbr_defaults_in_media_dbr(mr, &pr);
+   bstrncpy(mr->VolStatus, VolStatus, sizeof(mr->VolStatus));
+   if (!db_update_media_record(ua->jcr, ua->db, mr)) {
+      bsendmsg(ua, _("Error updating Volume record: ERR=%s"), db_strerror(ua->db));
+   } else {
+      bsendmsg(ua, _("Volume defaults updated from Pool record.\n"));
+   }
+}
+
 /*
  * Update a media record -- allows you to change the
  *  Volume status. E.g. if you want Bacula to stop
@@ -833,6 +853,7 @@ static int update_volume(UAContext *ua)
       N_("MaxVolBytes"),              /* 5 */
       N_("Recycle"),                  /* 6 */
       N_("Pool"),                     /* 7 */
+      N_("FromPool"),                 /* 8 */
       NULL };
 
    for (int i=0; kw[i]; i++) {
@@ -865,6 +886,10 @@ static int update_volume(UAContext *ua)
 	    break;
 	 case 7:
 	    update_volpool(ua, ua->argv[j], &mr);
+	    break;
+	 case 8:
+	    update_volfrompool(ua, &mr);
+	    break;
 	 }
 	 done = true;
       }
@@ -1512,6 +1537,7 @@ static int delete_cmd(UAContext *ua, char *cmd)
       N_("volume"),
       N_("pool"),
       N_("job"),
+      N_("jobid"),
       NULL};
 
    if (!open_db(ua)) {
@@ -1526,6 +1552,7 @@ static int delete_cmd(UAContext *ua, char *cmd)
       delete_pool(ua);
       return 1;
    case 2:
+   case 3:
       int i;
       while ((i=find_arg(ua, _("jobid"))) > 0) {
 	 delete_job(ua);
