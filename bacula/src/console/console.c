@@ -51,7 +51,7 @@ extern int rl_catch_signals;
 #endif
 
 /* Imported functions */
-int authenticate_director(JCR *jcr, DIRRES *director, char *name);
+int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons);
 
 
 
@@ -404,13 +404,7 @@ try_again:
    LockRes();
    CONRES *cons = (CONRES *)GetNextRes(R_CONSOLE, (RES *)NULL);
    UnlockRes();
-   char *con_name;
-   if (cons) {
-      con_name = cons->hdr.name;
-   } else {
-      con_name = "*UserAgent*";
-   }
-   if (!authenticate_director(&jcr, dir, con_name)) {
+   if (!authenticate_director(&jcr, dir, cons)) {
       fprintf(stderr, "ERR=%s", UA_sock->msg);
       terminate_console(0);
       return 1;

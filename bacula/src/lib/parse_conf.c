@@ -214,10 +214,10 @@ void store_msgs(LEX *lc, struct res_items *item, int index, int pass)
 	    token = lex_get_token(lc, T_NAME);	 /* scan destination */
 	    dest = check_pool_memory_size(dest, dest_len + lc->str_len + 2);
 	    if (dest[0] != 0) {
-               strcat(dest, " ");  /* separate multiple destinations with space */
+               pm_strcat(&dest, " ");  /* separate multiple destinations with space */
 	       dest_len++;
 	    }
-	    strcat(dest, lc->str);
+	    pm_strcat(&dest, lc->str);
 	    dest_len += lc->str_len;
             Dmsg2(100, "store_msgs newdest=%s: dest=%s:\n", lc->str, NPRT(dest));
 	    token = lex_get_token(lc, T_ALL);

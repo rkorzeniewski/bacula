@@ -129,12 +129,11 @@ int do_a_command(UAContext *ua, char *cmd)
 {
    unsigned int i;
    int len, stat;
-   int found;
+   bool found = false;
 
-   found = 0;
    stat = 1;
 
-   Dmsg1(120, "Command: %s\n", ua->UA_sock->msg);
+   Dmsg1(200, "Command: %s\n", ua->UA_sock->msg);
    if (ua->argc == 0) {
       return 1;
    }
@@ -142,15 +141,16 @@ int do_a_command(UAContext *ua, char *cmd)
    len = strlen(ua->argk[0]);
    for (i=0; i<comsize; i++) {	   /* search for command */
       if (strncasecmp(ua->argk[0],  _(commands[i].key), len) == 0) {
+	 if (!acl_access_ok(ua, Command_ACL, ua->argk[0], len)) {
+	    break;
+	 }
 	 stat = (*commands[i].func)(ua, cmd);	/* go execute command */
-	 found = 1;
+	 found = true;
 	 break;
       }
    }
    if (!found) {
-      pm_strcat(&ua->UA_sock->msg, _(": is an illegal command\n"));
-      ua->UA_sock->msglen = strlen(ua->UA_sock->msg);
-      bnet_send(ua->UA_sock);
+      bnet_fsend(ua->UA_sock, _("%s: is an illegal command.\n"), ua->argk[0]);
    }
    return stat;
 }

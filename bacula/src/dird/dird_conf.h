@@ -30,23 +30,23 @@
 /*
  * Resource codes -- they must be sequential for indexing   
  */
-#define R_FIRST               1001
+enum {
+   R_DIRECTOR = 1001,
+   R_CLIENT,
+   R_JOB,
+   R_STORAGE,
+   R_CATALOG,
+   R_SCHEDULE,
+   R_FILESET,
+   R_POOL,
+   R_MSGS,
+   R_COUNTER,
+   R_CONSOLE,
+   R_JOBDEFS
+};
 
-#define R_DIRECTOR            1001
-#define R_CLIENT              1002
-#define R_JOB                 1003
-#define R_STORAGE             1004
-#define R_CATALOG             1005
-#define R_SCHEDULE            1006
-#define R_FILESET             1007
-#define R_GROUP               1008
-#define R_POOL                1009
-#define R_MSGS                1010
-#define R_COUNTER             1011
-#define R_CONSOLE             1012
-#define R_JOBDEFS             1013
-
-#define R_LAST                R_JOBDEFS    
+#define R_FIRST  R_DIRECTOR
+#define R_LAST   R_JOBDEFS    
 
 /*
  * Some resource attributes
@@ -106,6 +106,23 @@ struct DIRRES {
    utime_t SDConnectTimeout;          /* timeout in seconds */
 };
 
+
+/*
+ * Console ACL positions
+ */
+enum {
+   Job_ACL = 0,
+   Client_ACL,
+   Storage_ACL,
+   Schedule_ACL,
+   Run_ACL,
+   Pool_ACL,
+   Command_ACL,
+   FileSet_ACL,
+   Catalog_ACL,
+   Num_ACL                            /* keep last */
+};
+
 /* 
  *    Console Resource
  */
@@ -113,6 +130,7 @@ struct CONRES {
    RES   hdr;
    char *password;                    /* UA server password */
    int enable_ssl;                    /* Use SSL */
+   alist *ACL_lists[Num_ACL];         /* pointers to ACLs */
 };
 
 
@@ -262,14 +280,6 @@ struct SCHED {
 };
 
 /*
- *   Group Resource (not used)
- *
- */
-struct GROUP {
-   RES   hdr;
-};
-
-/*
  *   Counter Resource
  */
 struct COUNTER {
@@ -323,7 +333,6 @@ union URES {
    JOB        res_job;
    FILESET    res_fs;
    SCHED      res_sch;
-   GROUP      res_group;
    POOL       res_pool;
    MSGS       res_msgs;
    COUNTER    res_counter;
