@@ -1,6 +1,6 @@
 /*
  *
- *    Bacula wx GUI application
+ *    Bacula wx-console application
  *
  *    Nicolas Boichat, April 2004
  *
@@ -51,18 +51,17 @@
 // resources
 // ----------------------------------------------------------------------------
 
-
 class MyApp : public wxApp
 {
 public:
    virtual bool OnInit();
 };
 
-IMPLEMENT_APP(MyApp)
-
 // ============================================================================
 // implementation
 // ============================================================================
+
+IMPLEMENT_APP(MyApp)
 
 // ----------------------------------------------------------------------------
 // the application class
@@ -71,14 +70,14 @@ IMPLEMENT_APP(MyApp)
 // 'Main program' equivalent: the program execution "starts" here
 bool MyApp::OnInit()
 {
-   wxbMainFrame *frame = wxbMainFrame::CreateInstance(_T("Minimal wxWindows App"),
+   wxbMainFrame *frame = wxbMainFrame::CreateInstance(_T("Bacula wx-console"),
                          wxPoint(50, 50), wxSize(780, 500));
 
    frame->Show(TRUE);
 
    frame->StartConsoleThread();
 
-   csprint("Console started !\n");
-
+   csprint("Bacula wx-console started !\n");
+   
    return TRUE;
 }
