@@ -9,6 +9,8 @@ bconsole
 devel_bacula
 gconsole
 mtx-changer
+dvd-writepart
+dvd-freespace
 Makefile
 bacula
 btraceback

@@ -16,7 +16,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -40,7 +40,7 @@
 
 /* Commands sent to Storage daemon */
 static char jobcmd[]     = "JobId=%d job=%s job_name=%s client_name=%s "
-"type=%d level=%d FileSet=%s NoAttr=%d SpoolAttr=%d FileSetMD5=%s SpoolData=%d";
+"type=%d level=%d FileSet=%s NoAttr=%d SpoolAttr=%d FileSetMD5=%s SpoolData=%d WritePartAfterJob=%d";
 static char use_device[] = "use device=%s media_type=%s pool_name=%s pool_type=%s\n";
 
 /* Response from Storage daemon */
@@ -74,7 +74,7 @@ bool connect_to_storage_daemon(JCR *jcr, int retry_interval,
    Dmsg2(200, "bnet_connect to Storage daemon %s:%d\n", store->address,
       store->SDport);
    sd = bnet_connect(jcr, retry_interval, max_retry_time,
-	  _("Storage daemon"), store->address,
+          _("Storage daemon"), store->address,
 	  NULL, store->SDport, verbose);
    if (sd == NULL) {
       return false;
@@ -113,7 +113,7 @@ int start_storage_daemon_job(JCR *jcr)
    bnet_fsend(sd, jobcmd, jcr->JobId, jcr->Job, jcr->job->hdr.name,
 	      jcr->client->hdr.name, jcr->JobType, jcr->JobLevel,
 	      jcr->fileset->hdr.name, !jcr->pool->catalog_files,
-	      jcr->job->SpoolAttributes, jcr->fileset->MD5, jcr->spool_data);
+	      jcr->job->SpoolAttributes, jcr->fileset->MD5, jcr->spool_data, jcr->write_part_after_job);
    Dmsg1(200, "Jobcmd=%s\n", sd->msg);
    unbash_spaces(jcr->job->hdr.name);
    unbash_spaces(jcr->client->hdr.name);
@@ -122,12 +122,12 @@ int start_storage_daemon_job(JCR *jcr)
        Dmsg1(110, "<stored: %s", sd->msg);
        if (sscanf(sd->msg, OKjob, &jcr->VolSessionId,
 		  &jcr->VolSessionTime, &auth_key) != 3) {
-	  Dmsg1(100, "BadJob=%s\n", sd->msg);
-	  Jmsg(jcr, M_FATAL, 0, _("Storage daemon rejected Job command: %s\n"), sd->msg);
+          Dmsg1(100, "BadJob=%s\n", sd->msg);
+          Jmsg(jcr, M_FATAL, 0, _("Storage daemon rejected Job command: %s\n"), sd->msg);
 	  return 0;
        } else {
 	  jcr->sd_auth_key = bstrdup(auth_key);
-	  Dmsg1(150, "sd_auth_key=%s\n", jcr->sd_auth_key);
+          Dmsg1(150, "sd_auth_key=%s\n", jcr->sd_auth_key);
        }
    } else {
       Jmsg(jcr, M_FATAL, 0, _("<stored: bad response to Job command: %s\n"),
@@ -152,12 +152,12 @@ int start_storage_daemon_job(JCR *jcr)
 	 bash_spaces(pool_name);
 	 bnet_fsend(sd, use_device, device_name.c_str(),
 		    media_type.c_str(), pool_name.c_str(), pool_type.c_str());
-	 Dmsg1(110, ">stored: %s", sd->msg);
-	 status = response(jcr, sd, OK_device, "Use Device", NO_DISPLAY);
+         Dmsg1(110, ">stored: %s", sd->msg);
+         status = response(jcr, sd, OK_device, "Use Device", NO_DISPLAY);
 	 if (!status) {
 	    pm_strcpy(pool_type, sd->msg); /* save message */
-	    Jmsg(jcr, M_FATAL, 0, _("\n"
-	       "     Storage daemon didn't accept Device \"%s\" because:\n     %s"),
+            Jmsg(jcr, M_FATAL, 0, _("\n"
+               "     Storage daemon didn't accept Device \"%s\" because:\n     %s"),
 	       device_name.c_str(), pool_type.c_str()/* sd->msg */);
 	 }
       }

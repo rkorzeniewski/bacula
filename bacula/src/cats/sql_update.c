@@ -261,7 +261,7 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    time_t ttime;
    struct tm tm;
    int stat;
-   char ed1[30], ed2[30], ed3[30], ed4[30];
+   char ed1[30], ed2[30], ed3[30], ed4[30], ed5[30];
 
 
    Dmsg1(100, "update_media: FirstWritten=%d\n", mr->FirstWritten);
@@ -298,7 +298,7 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       Mmsg(mdb->cmd, "UPDATE Media SET VolJobs=%u,"
 	   "VolFiles=%u,VolBlocks=%u,VolBytes=%s,VolMounts=%u,VolErrors=%u,"
 	   "VolWrites=%u,MaxVolBytes=%s,LastWritten='%s',VolStatus='%s',"
-	   "Slot=%d,InChanger=%d,VolReadTime=%s,VolWriteTime=%s "
+	   "Slot=%d,InChanger=%d,VolReadTime=%s,VolWriteTime=%s,VolParts=%s "
 	   " WHERE VolumeName='%s'",
 	   mr->VolJobs, mr->VolFiles, mr->VolBlocks, edit_uint64(mr->VolBytes, ed1),
 	   mr->VolMounts, mr->VolErrors, mr->VolWrites,
@@ -306,12 +306,13 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 	   mr->VolStatus, mr->Slot, mr->InChanger,
 	   edit_uint64(mr->VolReadTime, ed3),
 	   edit_uint64(mr->VolWriteTime, ed4),
+           edit_uint64(mr->VolParts, ed5),
 	   mr->VolumeName);
    } else {
       Mmsg(mdb->cmd, "UPDATE Media SET VolJobs=%u,"
 	   "VolFiles=%u,VolBlocks=%u,VolBytes=%s,VolMounts=%u,VolErrors=%u,"
 	   "VolWrites=%u,MaxVolBytes=%s,VolStatus='%s',"
-	   "Slot=%d,InChanger=%d,VolReadTime=%s,VolWriteTime=%s "
+                 "Slot=%d,InChanger=%d,VolReadTime=%s,VolWriteTime=%s,VolParts=%s "
 	   " WHERE VolumeName='%s'",
 	   mr->VolJobs, mr->VolFiles, mr->VolBlocks, edit_uint64(mr->VolBytes, ed1),
 	   mr->VolMounts, mr->VolErrors, mr->VolWrites,
@@ -319,6 +320,7 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 	   mr->VolStatus, mr->Slot, mr->InChanger,
 	   edit_uint64(mr->VolReadTime, ed3),
 	   edit_uint64(mr->VolWriteTime, ed4),
+           edit_uint64(mr->VolParts, ed5),
 	   mr->VolumeName);
    }
 

@@ -22,7 +22,7 @@
  *     Version $Id$
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -241,6 +241,7 @@ RES_ITEM job_items[] = {
    {"rescheduleinterval", store_time, ITEM(res_job.RescheduleInterval), 0, ITEM_DEFAULT, 60 * 30},
    {"rescheduletimes", store_pint, ITEM(res_job.RescheduleTimes), 0, 0, 0},
    {"priority",   store_pint, ITEM(res_job.Priority), 0, ITEM_DEFAULT, 10},
+   {"writepartafterjob",   store_yesno, ITEM(res_job.write_part_after_job), 1, ITEM_DEFAULT, 0},
    {NULL, NULL, NULL, 0, 0, 0}
 };
 
@@ -442,10 +443,10 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
 	 edit_uint64(res->res_dir.FDConnectTimeout, ed1),
 	 edit_uint64(res->res_dir.SDConnectTimeout, ed2));
       if (res->res_dir.query_file) {
-	 sendit(sock, "   query_file=%s\n", res->res_dir.query_file);
+         sendit(sock, "   query_file=%s\n", res->res_dir.query_file);
       }
       if (res->res_dir.messages) {
-	 sendit(sock, "  --> ");
+         sendit(sock, "  --> ");
 	 dump_resource(-R_MSGS, (RES *)res->res_dir.messages, sendit, sock);
       }
       break;
@@ -455,17 +456,17 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       break;
    case R_COUNTER:
       if (res->res_counter.WrapCounter) {
-	 sendit(sock, "Counter: name=%s min=%d max=%d cur=%d wrapcntr=%s\n",
+         sendit(sock, "Counter: name=%s min=%d max=%d cur=%d wrapcntr=%s\n",
 	    res->res_counter.hdr.name, res->res_counter.MinValue,
 	    res->res_counter.MaxValue, res->res_counter.CurrentValue,
 	    res->res_counter.WrapCounter->hdr.name);
       } else {
-	 sendit(sock, "Counter: name=%s min=%d max=%d\n",
+         sendit(sock, "Counter: name=%s min=%d max=%d\n",
 	    res->res_counter.hdr.name, res->res_counter.MinValue,
 	    res->res_counter.MaxValue);
       }
       if (res->res_counter.Catalog) {
-	 sendit(sock, "  --> ");
+         sendit(sock, "  --> ");
 	 dump_resource(-R_CATALOG, (RES *)res->res_counter.Catalog, sendit, sock);
       }
       break;
@@ -479,7 +480,7 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
 	 edit_utime(res->res_client.FileRetention, ed2, sizeof(ed2)),
 	 res->res_client.AutoPrune);
       if (res->res_client.catalog) {
-	 sendit(sock, "  --> ");
+         sendit(sock, "  --> ");
 	 dump_resource(-R_CATALOG, (RES *)res->res_client.catalog, sendit, sock);
       }
       break;
@@ -500,72 +501,72 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
    case R_JOB:
    case R_JOBDEFS:
       sendit(sock, "%s: name=%s JobType=%d level=%s Priority=%d MaxJobs=%u\n",
-	 type == R_JOB ? "Job" : "JobDefs",
+         type == R_JOB ? "Job" : "JobDefs",
 	 res->res_job.hdr.name, res->res_job.JobType,
 	 level_to_str(res->res_job.JobLevel), res->res_job.Priority,
 	 res->res_job.MaxConcurrentJobs);
-      sendit(sock, "     Resched=%d Times=%d Interval=%s Spool=%d\n",
+      sendit(sock, "     Resched=%d Times=%d Interval=%s Spool=%d WritePartAfterJob=%d\n",
 	  res->res_job.RescheduleOnError, res->res_job.RescheduleTimes,
 	  edit_uint64_with_commas(res->res_job.RescheduleInterval, ed1),
-	  res->res_job.spool_data);
+	  res->res_job.spool_data, res->res_job.write_part_after_job);
       if (res->res_job.client) {
-	 sendit(sock, "  --> ");
+         sendit(sock, "  --> ");
 	 dump_resource(-R_CLIENT, (RES *)res->res_job.client, sendit, sock);
       }
       if (res->res_job.fileset) {
-	 sendit(sock, "  --> ");
+         sendit(sock, "  --> ");
 	 dump_resource(-R_FILESET, (RES *)res->res_job.fileset, sendit, sock);
       }
       if (res->res_job.schedule) {
-	 sendit(sock, "  --> ");
+         sendit(sock, "  --> ");
 	 dump_resource(-R_SCHEDULE, (RES *)res->res_job.schedule, sendit, sock);
       }
       if (res->res_job.RestoreWhere) {
-	 sendit(sock, "  --> Where=%s\n", NPRT(res->res_job.RestoreWhere));
+         sendit(sock, "  --> Where=%s\n", NPRT(res->res_job.RestoreWhere));
       }
       if (res->res_job.RestoreBootstrap) {
-	 sendit(sock, "  --> Bootstrap=%s\n", NPRT(res->res_job.RestoreBootstrap));
+         sendit(sock, "  --> Bootstrap=%s\n", NPRT(res->res_job.RestoreBootstrap));
       }
       if (res->res_job.RunBeforeJob) {
-	 sendit(sock, "  --> RunBefore=%s\n", NPRT(res->res_job.RunBeforeJob));
+         sendit(sock, "  --> RunBefore=%s\n", NPRT(res->res_job.RunBeforeJob));
       }
       if (res->res_job.RunAfterJob) {
-	 sendit(sock, "  --> RunAfter=%s\n", NPRT(res->res_job.RunAfterJob));
+         sendit(sock, "  --> RunAfter=%s\n", NPRT(res->res_job.RunAfterJob));
       }
       if (res->res_job.RunAfterFailedJob) {
-	 sendit(sock, "  --> RunAfterFailed=%s\n", NPRT(res->res_job.RunAfterFailedJob));
+         sendit(sock, "  --> RunAfterFailed=%s\n", NPRT(res->res_job.RunAfterFailedJob));
       }
       if (res->res_job.WriteBootstrap) {
-	 sendit(sock, "  --> WriteBootstrap=%s\n", NPRT(res->res_job.WriteBootstrap));
+         sendit(sock, "  --> WriteBootstrap=%s\n", NPRT(res->res_job.WriteBootstrap));
       }
       if (res->res_job.storage[0]) {
-	 sendit(sock, "  --> ");
+         sendit(sock, "  --> ");
 	 /* ***FIXME*** */
 //	   dump_resource(-R_STORAGE, (RES *)res->res_job.storage, sendit, sock);
       }
       if (res->res_job.pool) {
-	 sendit(sock, "  --> ");
+         sendit(sock, "  --> ");
 	 dump_resource(-R_POOL, (RES *)res->res_job.pool, sendit, sock);
       }
       if (res->res_job.full_pool) {
-	 sendit(sock, "  --> ");
+         sendit(sock, "  --> ");
 	 dump_resource(-R_POOL, (RES *)res->res_job.full_pool, sendit, sock);
       }
       if (res->res_job.inc_pool) {
-	 sendit(sock, "  --> ");
+         sendit(sock, "  --> ");
 	 dump_resource(-R_POOL, (RES *)res->res_job.inc_pool, sendit, sock);
       }
       if (res->res_job.dif_pool) {
-	 sendit(sock, "  --> ");
+         sendit(sock, "  --> ");
 	 dump_resource(-R_POOL, (RES *)res->res_job.dif_pool, sendit, sock);
       }
       if (res->res_job.verify_job) {
-	 sendit(sock, "  --> ");
+         sendit(sock, "  --> ");
 	 dump_resource(-type, (RES *)res->res_job.verify_job, sendit, sock);
       }
       break;
       if (res->res_job.messages) {
-	 sendit(sock, "  --> ");
+         sendit(sock, "  --> ");
 	 dump_resource(-R_MSGS, (RES *)res->res_job.messages, sendit, sock);
       }
       break;
@@ -577,54 +578,54 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
 	 INCEXE *incexe = res->res_fs.include_items[i];
 	 for (j=0; j<incexe->num_opts; j++) {
 	    FOPTS *fo = incexe->opts_list[j];
-	    sendit(sock, "      O %s\n", fo->opts);
+            sendit(sock, "      O %s\n", fo->opts);
 	    for (k=0; k<fo->regex.size(); k++) {
-	       sendit(sock, "      R %s\n", fo->regex.get(k));
+               sendit(sock, "      R %s\n", fo->regex.get(k));
 	    }
 	    for (k=0; k<fo->regexdir.size(); k++) {
-	       sendit(sock, "      RD %s\n", fo->regexdir.get(k));
+               sendit(sock, "      RD %s\n", fo->regexdir.get(k));
 	    }
 	    for (k=0; k<fo->regexfile.size(); k++) {
-	       sendit(sock, "      RF %s\n", fo->regexfile.get(k));
+               sendit(sock, "      RF %s\n", fo->regexfile.get(k));
 	    }
 	    for (k=0; k<fo->wild.size(); k++) {
-	       sendit(sock, "      W %s\n", fo->wild.get(k));
+               sendit(sock, "      W %s\n", fo->wild.get(k));
 	    }
 	    for (k=0; k<fo->wilddir.size(); k++) {
-	       sendit(sock, "      WD %s\n", fo->wilddir.get(k));
+               sendit(sock, "      WD %s\n", fo->wilddir.get(k));
 	    }
 	    for (k=0; k<fo->wildfile.size(); k++) {
-	       sendit(sock, "      WF %s\n", fo->wildfile.get(k));
+               sendit(sock, "      WF %s\n", fo->wildfile.get(k));
 	    }
 	    for (k=0; k<fo->base.size(); k++) {
-	       sendit(sock, "      B %s\n", fo->base.get(k));
+               sendit(sock, "      B %s\n", fo->base.get(k));
 	    }
 	    for (k=0; k<fo->fstype.size(); k++) {
-	       sendit(sock, "      X %s\n", fo->fstype.get(k));
+               sendit(sock, "      X %s\n", fo->fstype.get(k));
 	    }
 	    if (fo->reader) {
-	       sendit(sock, "      D %s\n", fo->reader);
+               sendit(sock, "      D %s\n", fo->reader);
 	    }
 	    if (fo->writer) {
-	       sendit(sock, "      T %s\n", fo->writer);
+               sendit(sock, "      T %s\n", fo->writer);
 	    }
-	    sendit(sock, "      N\n");
+            sendit(sock, "      N\n");
 	 }
 	 for (j=0; j<incexe->name_list.size(); j++) {
-	    sendit(sock, "      I %s\n", incexe->name_list.get(j));
+            sendit(sock, "      I %s\n", incexe->name_list.get(j));
 	 }
 	 if (incexe->name_list.size()) {
-	    sendit(sock, "      N\n");
+            sendit(sock, "      N\n");
 	 }
       }
 
       for (i=0; i<res->res_fs.num_excludes; i++) {
 	 INCEXE *incexe = res->res_fs.exclude_items[i];
 	 for (j=0; j<incexe->name_list.size(); j++) {
-	    sendit(sock, "      E %s\n", incexe->name_list.get(j));
+            sendit(sock, "      E %s\n", incexe->name_list.get(j));
 	 }
 	 if (incexe->name_list.size()) {
-	    sendit(sock, "      N\n");
+            sendit(sock, "      N\n");
 	 }
       }
       break;
@@ -634,77 +635,77 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
 	 int i;
 	 RUN *run = res->res_sch.run;
 	 char buf[1000], num[30];
-	 sendit(sock, "Schedule: name=%s\n", res->res_sch.hdr.name);
+         sendit(sock, "Schedule: name=%s\n", res->res_sch.hdr.name);
 	 if (!run) {
 	    break;
 	 }
 next_run:
-	 sendit(sock, "  --> Run Level=%s\n", level_to_str(run->level));
-	 bstrncpy(buf, "      hour=", sizeof(buf));
+         sendit(sock, "  --> Run Level=%s\n", level_to_str(run->level));
+         bstrncpy(buf, "      hour=", sizeof(buf));
 	 for (i=0; i<24; i++) {
 	    if (bit_is_set(i, run->hour)) {
-	       bsnprintf(num, sizeof(num), "%d ", i);
+               bsnprintf(num, sizeof(num), "%d ", i);
 	       bstrncat(buf, num, sizeof(buf));
 	    }
 	 }
-	 bstrncat(buf, "\n", sizeof(buf));
+         bstrncat(buf, "\n", sizeof(buf));
 	 sendit(sock, buf);
-	 bstrncpy(buf, "      mday=", sizeof(buf));
+         bstrncpy(buf, "      mday=", sizeof(buf));
 	 for (i=0; i<31; i++) {
 	    if (bit_is_set(i, run->mday)) {
-	       bsnprintf(num, sizeof(num), "%d ", i);
+               bsnprintf(num, sizeof(num), "%d ", i);
 	       bstrncat(buf, num, sizeof(buf));
 	    }
 	 }
-	 bstrncat(buf, "\n", sizeof(buf));
+         bstrncat(buf, "\n", sizeof(buf));
 	 sendit(sock, buf);
-	 bstrncpy(buf, "      month=", sizeof(buf));
+         bstrncpy(buf, "      month=", sizeof(buf));
 	 for (i=0; i<12; i++) {
 	    if (bit_is_set(i, run->month)) {
-	       bsnprintf(num, sizeof(num), "%d ", i);
+               bsnprintf(num, sizeof(num), "%d ", i);
 	       bstrncat(buf, num, sizeof(buf));
 	    }
 	 }
-	 bstrncat(buf, "\n", sizeof(buf));
+         bstrncat(buf, "\n", sizeof(buf));
 	 sendit(sock, buf);
-	 bstrncpy(buf, "      wday=", sizeof(buf));
+         bstrncpy(buf, "      wday=", sizeof(buf));
 	 for (i=0; i<7; i++) {
 	    if (bit_is_set(i, run->wday)) {
-	       bsnprintf(num, sizeof(num), "%d ", i);
+               bsnprintf(num, sizeof(num), "%d ", i);
 	       bstrncat(buf, num, sizeof(buf));
 	    }
 	 }
-	 bstrncat(buf, "\n", sizeof(buf));
+         bstrncat(buf, "\n", sizeof(buf));
 	 sendit(sock, buf);
-	 bstrncpy(buf, "      wom=", sizeof(buf));
+         bstrncpy(buf, "      wom=", sizeof(buf));
 	 for (i=0; i<5; i++) {
 	    if (bit_is_set(i, run->wom)) {
-	       bsnprintf(num, sizeof(num), "%d ", i);
+               bsnprintf(num, sizeof(num), "%d ", i);
 	       bstrncat(buf, num, sizeof(buf));
 	    }
 	 }
-	 bstrncat(buf, "\n", sizeof(buf));
+         bstrncat(buf, "\n", sizeof(buf));
 	 sendit(sock, buf);
-	 bstrncpy(buf, "      woy=", sizeof(buf));
+         bstrncpy(buf, "      woy=", sizeof(buf));
 	 for (i=0; i<54; i++) {
 	    if (bit_is_set(i, run->woy)) {
-	       bsnprintf(num, sizeof(num), "%d ", i);
+               bsnprintf(num, sizeof(num), "%d ", i);
 	       bstrncat(buf, num, sizeof(buf));
 	    }
 	 }
-	 bstrncat(buf, "\n", sizeof(buf));
+         bstrncat(buf, "\n", sizeof(buf));
 	 sendit(sock, buf);
-	 sendit(sock, "      mins=%d\n", run->minute);
+         sendit(sock, "      mins=%d\n", run->minute);
 	 if (run->pool) {
-	    sendit(sock, "     --> ");
+            sendit(sock, "     --> ");
 	    dump_resource(-R_POOL, (RES *)run->pool, sendit, sock);
 	 }
 	 if (run->storage) {
-	    sendit(sock, "     --> ");
+            sendit(sock, "     --> ");
 	    dump_resource(-R_STORAGE, (RES *)run->storage, sendit, sock);
 	 }
 	 if (run->msgs) {
-	    sendit(sock, "     --> ");
+            sendit(sock, "     --> ");
 	    dump_resource(-R_MSGS, (RES *)run->msgs, sendit, sock);
 	 }
 	 /* If another Run record is chained in, go print it */
@@ -713,7 +714,7 @@ next_run:
 	    goto next_run;
 	 }
       } else {
-	 sendit(sock, "Schedule: name=%s\n", res->res_sch.hdr.name);
+         sendit(sock, "Schedule: name=%s\n", res->res_sch.hdr.name);
       }
       break;
    case R_POOL:
@@ -739,9 +740,9 @@ next_run:
    case R_MSGS:
       sendit(sock, "Messages: name=%s\n", res->res_msgs.hdr.name);
       if (res->res_msgs.mail_cmd)
-	 sendit(sock, "      mailcmd=%s\n", res->res_msgs.mail_cmd);
+         sendit(sock, "      mailcmd=%s\n", res->res_msgs.mail_cmd);
       if (res->res_msgs.operator_cmd)
-	 sendit(sock, "      opcmd=%s\n", res->res_msgs.operator_cmd);
+         sendit(sock, "      opcmd=%s\n", res->res_msgs.operator_cmd);
       break;
    default:
       sendit(sock, "Unknown resource type %d in dump_resource.\n", type);
@@ -996,13 +997,13 @@ void save_resource(int type, RES_ITEM *items, int pass)
       for (i=0; items[i].name; i++) {
 	 if (items[i].flags & ITEM_REQUIRED) {
 	       if (!bit_is_set(i, res_all.res_dir.hdr.item_present)) {
-		  Emsg2(M_ERROR_TERM, 0, "%s item is required in %s resource, but not found.\n",
+                  Emsg2(M_ERROR_TERM, 0, "%s item is required in %s resource, but not found.\n",
 		    items[i].name, resources[rindex]);
 		}
 	 }
 	 /* If this triggers, take a look at lib/parse_conf.h */
 	 if (i >= MAX_RES_ITEMS) {
-	    Emsg1(M_ERROR_TERM, 0, "Too many items in %s resource\n", resources[rindex]);
+            Emsg1(M_ERROR_TERM, 0, "Too many items in %s resource\n", resources[rindex]);
 	 }
       }
    }
@@ -1027,14 +1028,14 @@ void save_resource(int type, RES_ITEM *items, int pass)
       /* Resources containing another resource */
       case R_DIRECTOR:
 	 if ((res = (URES *)GetResWithName(R_DIRECTOR, res_all.res_dir.hdr.name)) == NULL) {
-	    Emsg1(M_ERROR_TERM, 0, "Cannot find Director resource %s\n", res_all.res_dir.hdr.name);
+            Emsg1(M_ERROR_TERM, 0, "Cannot find Director resource %s\n", res_all.res_dir.hdr.name);
 	 }
 	 res->res_dir.messages = res_all.res_dir.messages;
 	 break;
       case R_JOB:
       case R_JOBDEFS:
 	 if ((res = (URES *)GetResWithName(type, res_all.res_dir.hdr.name)) == NULL) {
-	    Emsg1(M_ERROR_TERM, 0, "Cannot find Job resource %s\n",
+            Emsg1(M_ERROR_TERM, 0, "Cannot find Job resource %s\n",
 		  res_all.res_dir.hdr.name);
 	 }
 	 res->res_job.messages	 = res_all.res_job.messages;
@@ -1053,7 +1054,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
 	 break;
       case R_COUNTER:
 	 if ((res = (URES *)GetResWithName(R_COUNTER, res_all.res_counter.hdr.name)) == NULL) {
-	    Emsg1(M_ERROR_TERM, 0, "Cannot find Counter resource %s\n", res_all.res_counter.hdr.name);
+            Emsg1(M_ERROR_TERM, 0, "Cannot find Counter resource %s\n", res_all.res_counter.hdr.name);
 	 }
 	 res->res_counter.Catalog = res_all.res_counter.Catalog;
 	 res->res_counter.WrapCounter = res_all.res_counter.WrapCounter;
@@ -1061,24 +1062,24 @@ void save_resource(int type, RES_ITEM *items, int pass)
 
       case R_CLIENT:
 	 if ((res = (URES *)GetResWithName(R_CLIENT, res_all.res_client.hdr.name)) == NULL) {
-	    Emsg1(M_ERROR_TERM, 0, "Cannot find Client resource %s\n", res_all.res_client.hdr.name);
+            Emsg1(M_ERROR_TERM, 0, "Cannot find Client resource %s\n", res_all.res_client.hdr.name);
 	 }
 	 res->res_client.catalog = res_all.res_client.catalog;
 	 break;
       case R_SCHEDULE:
 	 /*
 	  * Schedule is a bit different in that it contains a RUN record
-	  * chain which isn't a "named" resource. This chain was linked
+          * chain which isn't a "named" resource. This chain was linked
 	  * in by run_conf.c during pass 2, so here we jam the pointer
 	  * into the Schedule resource.
 	  */
 	 if ((res = (URES *)GetResWithName(R_SCHEDULE, res_all.res_client.hdr.name)) == NULL) {
-	    Emsg1(M_ERROR_TERM, 0, "Cannot find Schedule resource %s\n", res_all.res_client.hdr.name);
+            Emsg1(M_ERROR_TERM, 0, "Cannot find Schedule resource %s\n", res_all.res_client.hdr.name);
 	 }
 	 res->res_sch.run = res_all.res_sch.run;
 	 break;
       default:
-	 Emsg1(M_ERROR, 0, "Unknown resource type %d in save_resource.\n", type);
+         Emsg1(M_ERROR, 0, "Unknown resource type %d in save_resource.\n", type);
 	 error = 1;
 	 break;
       }
@@ -1146,7 +1147,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
       memcpy(res, &res_all, size);
       if (!res_head[rindex]) {
 	 res_head[rindex] = (RES *)res; /* store first entry */
-	 Dmsg3(900, "Inserting first %s res: %s index=%d\n", res_to_str(type),
+         Dmsg3(900, "Inserting first %s res: %s index=%d\n", res_to_str(type),
 	       res->res_dir.hdr.name, rindex);
       } else {
 	 RES *next;
@@ -1154,12 +1155,12 @@ void save_resource(int type, RES_ITEM *items, int pass)
 	 for (next=res_head[rindex]; next->next; next=next->next) {
 	    if (strcmp(next->name, res->res_dir.hdr.name) == 0) {
 	       Emsg2(M_ERROR_TERM, 0,
-		  _("Attempt to define second %s resource named \"%s\" is not permitted.\n"),
+                  _("Attempt to define second %s resource named \"%s\" is not permitted.\n"),
 		  resources[rindex].name, res->res_dir.hdr.name);
 	    }
 	 }
 	 next->next = (RES *)res;
-	 Dmsg4(900, "Inserting %s res: %s index=%d pass=%d\n", res_to_str(type),
+         Dmsg4(900, "Inserting %s res: %s index=%d pass=%d\n", res_to_str(type),
 	       res->res_dir.hdr.name, rindex, pass);
       }
    }
@@ -1245,10 +1246,10 @@ void store_acl(LEX *lc, RES_ITEM *item, int index, int pass)
       if (pass == 1) {
 	 if (((alist **)item->value)[item->code] == NULL) {
 	    ((alist **)item->value)[item->code] = New(alist(10, owned_by_alist));
-	    Dmsg1(900, "Defined new ACL alist at %d\n", item->code);
+            Dmsg1(900, "Defined new ACL alist at %d\n", item->code);
 	 }
 	 ((alist **)item->value)[item->code]->append(bstrdup(lc->str));
-	 Dmsg2(900, "Appended to %d %s\n", item->code, lc->str);
+         Dmsg2(900, "Appended to %d %s\n", item->code, lc->str);
       }
       token = lex_get_token(lc, T_ALL);
       if (token == T_COMMA) {

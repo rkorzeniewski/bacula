@@ -8,7 +8,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -71,14 +71,14 @@ int read_dev_volume_label(DCR *dcr)
    if (dev_state(dev, ST_LABEL)) {	 /* did we already read label? */
       /* Compare Volume Names allow special wild card */
       if (VolName && *VolName && *VolName != '*' && strcmp(dev->VolHdr.VolName, VolName) != 0) {
-	 Mmsg(jcr->errmsg, _("Wrong Volume mounted on device %s: Wanted %s have %s\n"),
+         Mmsg(jcr->errmsg, _("Wrong Volume mounted on device %s: Wanted %s have %s\n"),
 	    dev_name(dev), VolName, dev->VolHdr.VolName);
 	 /*
 	  * Cancel Job if too many label errors
 	  *  => we are in a loop
 	  */
 	 if (!dev->poll && jcr->label_errors++ > 100) {
-	    Jmsg(jcr, M_FATAL, 0, "Too many tries: %s", jcr->errmsg);
+            Jmsg(jcr, M_FATAL, 0, "Too many tries: %s", jcr->errmsg);
 	 }
 	 return VOL_NAME_ERROR;
       }
@@ -95,14 +95,14 @@ int read_dev_volume_label(DCR *dcr)
       return VOL_NO_MEDIA;
    }
    bstrncpy(dev->VolHdr.Id, "**error**", sizeof(dev->VolHdr.Id));
-
+  
    /* Read the Volume label block */
    record = new_record();
    empty_block(block);
    Dmsg0(90, "Big if statement in read_volume_label\n");
    if (!read_block_from_dev(dcr, NO_BLOCK_NUMBER_CHECK)) {
       Mmsg(jcr->errmsg, _("Requested Volume \"%s\" on %s is not a Bacula "
-	   "labeled Volume, because: ERR=%s"), NPRT(VolName), dev_name(dev),
+           "labeled Volume, because: ERR=%s"), NPRT(VolName), dev_name(dev),
 	   strerror_dev(dev));
       Dmsg1(30, "%s", jcr->errmsg);
    } else if (!read_record_from_block(block, record)) {
@@ -123,7 +123,7 @@ int read_dev_volume_label(DCR *dcr)
       free_record(record);
       if (forge_on || jcr->ignore_label_errors) {
 	 dev->state |= ST_LABEL;      /* set has Bacula label */
-	 Jmsg(jcr, M_ERROR, 0, "%s", jcr->errmsg);
+         Jmsg(jcr, M_ERROR, 0, "%s", jcr->errmsg);
 	 return VOL_OK;
       }
       empty_block(block);
@@ -170,7 +170,7 @@ int read_dev_volume_label(DCR *dcr)
        *  => we are in a loop
        */
       if (!dev->poll && jcr->label_errors++ > 100) {
-	 Jmsg(jcr, M_FATAL, 0, "Too many tries: %s", jcr->errmsg);
+         Jmsg(jcr, M_FATAL, 0, "Too many tries: %s", jcr->errmsg);
       }
       return VOL_NAME_ERROR;
    }
@@ -181,6 +181,95 @@ int read_dev_volume_label(DCR *dcr)
    }
    Dmsg0(30, "Leave read_volume_label() VOL_OK\n");
    return VOL_OK;
+}
+
+/* Read the volume label by guessing the volume name. (only for mounted devices)
+ * write is true if we are reading the label before writing to the device.
+ *
+ * If the volume name cannot be guessed :
+ *  Writing : returns the label of the current file (on the harddisk).
+ *  Reading : returns an error
+ */
+int read_dev_volume_label_guess(DCR *dcr, bool write) {
+   int vol_label_status;
+   Dmsg3(100, "Enter read_dev_volume_label_guess device=%s vol=%s dev_Vol=%s\n",
+	 dev_name(dcr->dev), dcr->VolumeName, dcr->dev->VolHdr.VolName);
+   
+   if (!dev_cap(dcr->dev, CAP_REQMOUNT)) {
+      Dmsg0(100, "Leave read_dev_volume_label_guess !CAP_REQMOUNT\n");
+      return read_dev_volume_label(dcr);
+   }
+   
+   if (!write && (dcr->VolCatInfo.VolCatParts == 0)) {
+      Dmsg0(100, "Leave read_dev_volume_label_guess !writing, and VolCatParts == 0\n");
+      return read_dev_volume_label(dcr);
+   }
+   
+   /* For mounted devices, tries to guess the volume name, and read the label if possible.
+   */
+   if (open_guess_name_dev(dcr->dev) < 0) {	
+      if ((!write) || (dcr->VolCatInfo.VolCatParts > 0)) {
+         Mmsg2(dcr->jcr->errmsg, _("Requested Volume \"%s\" on %s is not a Bacula labeled Volume."),
+	       dev_name(dcr->dev), dcr->VolumeName);
+         Dmsg0(100, "Leave read_dev_volume_label_guess VOL_IO_ERROR (!open_guess_name_dev)\n");
+	 return VOL_NO_LABEL;
+      }
+      
+      if (write && (dcr->dev->free_space_errno < 0)) {
+         Dmsg0(100, "Leave read_dev_volume_label_guess !free_space VOL_NO_MEDIA\n");
+         Mmsg2(dcr->jcr->errmsg, _("free_space error on %s. The current medium is probably not writable. ERR=%s.\n"),
+	       dcr->dev->dev_name, dcr->dev->errmsg);
+	 return VOL_NO_MEDIA;
+      }
+      
+      /* If we can't guess the name, and we are writing, just reopen the right file with open_first_part. */
+      if (open_first_part(dcr->dev) < 0) {
+	 berrno be;
+         Mmsg2(dcr->jcr->errmsg, _("open_first_part error on %s. ERR=%s.\n"),
+	       dcr->dev->dev_name, be.strerror());
+         Dmsg0(100, "Leave read_dev_volume_label_guess VOL_IO_ERROR (!open_guess_name_dev && !open_first_part)\n");
+	 return VOL_IO_ERROR;
+      }
+      
+      Dmsg0(100, "Leave read_dev_volume_label_guess !open_guess_name_dev\n");
+      return read_dev_volume_label(dcr);
+   }
+   else {
+      if (write && (dcr->dev->free_space_errno < 0)) {
+         Dmsg0(100, "Leave read_dev_volume_label_guess !free_space VOL_NO_MEDIA\n");
+         Mmsg2(dcr->jcr->errmsg, _("free_space error on %s. The current medium is probably not writable. ERR=%s.\n"),
+	       dcr->dev->dev_name, dcr->dev->errmsg);
+	 return VOL_NO_MEDIA;
+      }
+      
+      vol_label_status = read_dev_volume_label(dcr);
+
+      if ((!write) || (dcr->VolCatInfo.VolCatParts > 0)) {
+         Dmsg0(100, "Leave read_dev_volume_label_guess (open_guess_name_dev && (!write || dcr->VolCatInfo.VolCatParts > 0))\n");
+	 return vol_label_status;
+      }
+      
+      if (open_first_part(dcr->dev) < 0) {
+	 berrno be;
+         Mmsg2(dcr->jcr->errmsg, _("open_first_part error on %s. ERR=%s.\n"),
+	       dcr->dev->dev_name, be.strerror());
+         Dmsg0(100, "Leave read_dev_volume_label_guess VOL_IO_ERROR (open_guess_name_dev && !open_first_part)\n");
+	 return VOL_IO_ERROR;
+      }
+      
+      /* When writing, if the guessed volume name is no the right volume name, 
+       * report the error, otherwise, just continue with the right file.
+       */
+      if (vol_label_status != VOL_NAME_ERROR) {
+         Dmsg0(100, "Leave read_dev_volume_label_guess (open_guess_name_dev && !VOL_NAME_ERROR)\n");
+	 dcr->dev->state &= ~ST_LABEL;
+	 return read_dev_volume_label(dcr);
+      }
+      else {
+         Dmsg0(100, "Leave read_dev_volume_label_guess (open_guess_name_dev && VOL_NAME_ERROR)\n");
+	 return vol_label_status;
+      }
+   }
 }
 
 /*  unser_volume_label
@@ -546,9 +635,9 @@ bool write_session_label(DCR *dcr, int label)
    if (!can_write_record_to_block(block, rec)) {
       Dmsg0(100, "Cannot write session label to block.\n");
       if (!write_block_to_device(dcr)) {
-	 Dmsg0(90, "Got session label write_block_to_dev error.\n");
+         Dmsg0(90, "Got session label write_block_to_dev error.\n");
 	 /* ****FIXME***** errno is not set here */
-	 Jmsg(jcr, M_FATAL, 0, _("Error writing Session label to %s: %s\n"),
+         Jmsg(jcr, M_FATAL, 0, _("Error writing Session label to %s: %s\n"),
 			   dev_vol_name(dev), strerror(errno));
 	 free_record(rec);
 	 return false;
@@ -562,7 +651,7 @@ bool write_session_label(DCR *dcr, int label)
    }
 
    Dmsg6(20, "Write sesson_label record JobId=%d FI=%s SessId=%d Strm=%s len=%d "
-	     "remainder=%d\n", jcr->JobId,
+             "remainder=%d\n", jcr->JobId,
       FI_to_ascii(rec->FileIndex), rec->VolSessionId,
       stream_to_ascii(rec->Stream, rec->FileIndex), rec->data_len,
       rec->remainder);
@@ -586,25 +675,25 @@ void dump_volume_label(DEVICE *dev)
    File = dev->file;
    switch (dev->VolHdr.LabelType) {
       case PRE_LABEL:
-	 LabelType = "PRE_LABEL";
+         LabelType = "PRE_LABEL";
 	 break;
       case VOL_LABEL:
-	 LabelType = "VOL_LABEL";
+         LabelType = "VOL_LABEL";
 	 break;
       case EOM_LABEL:
-	 LabelType = "EOM_LABEL";
+         LabelType = "EOM_LABEL";
 	 break;
       case SOS_LABEL:
-	 LabelType = "SOS_LABEL";
+         LabelType = "SOS_LABEL";
 	 break;
       case EOS_LABEL:
-	 LabelType = "EOS_LABEL";
+         LabelType = "EOS_LABEL";
 	 break;
       case EOT_LABEL:
 	 goto bail_out;
       default:
 	 LabelType = buf;
-	 sprintf(buf, "Unknown %d", dev->VolHdr.LabelType);
+         sprintf(buf, "Unknown %d", dev->VolHdr.LabelType);
 	 break;
    }
 
@@ -804,14 +893,14 @@ void dump_label_record(DEVICE *dev, DEV_RECORD *rec, int verbose)
 	 dump_session_label(rec, type);
 	 break;
       case EOM_LABEL:
-	 Pmsg5(-1, "%s Record: SessId=%d SessTime=%d JobId=%d DataLen=%d\n",
+         Pmsg5(-1, "%s Record: SessId=%d SessTime=%d JobId=%d DataLen=%d\n",
 	    type, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
 	 break;
       case EOT_LABEL:
-	 Pmsg0(-1, _("End of physical tape.\n"));
+         Pmsg0(-1, _("End of physical tape.\n"));
 	 break;
       default:
-	 Pmsg5(-1, "%s Record: SessId=%d SessTime=%d JobId=%d DataLen=%d\n",
+         Pmsg5(-1, "%s Record: SessId=%d SessTime=%d JobId=%d DataLen=%d\n",
 	    type, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
 	 break;
       }
@@ -820,17 +909,17 @@ void dump_label_record(DEVICE *dev, DEV_RECORD *rec, int verbose)
       switch (rec->FileIndex) {
       case SOS_LABEL:
 	 unser_session_label(&label, rec);
-	 Pmsg6(-1, "%s Record: SessId=%d SessTime=%d JobId=%d Level=%c Type=%c\n",
+         Pmsg6(-1, "%s Record: SessId=%d SessTime=%d JobId=%d Level=%c Type=%c\n",
 	    type, rec->VolSessionId, rec->VolSessionTime, rec->Stream,
 	    label.JobLevel, label.JobType);
 	 break;
       case EOS_LABEL:
 	 char ed1[30], ed2[30];
 	 unser_session_label(&label, rec);
-	 Pmsg6(-1, "%s Record: SessId=%d SessTime=%d JobId=%d Level=%c Type=%c\n",
+         Pmsg6(-1, "%s Record: SessId=%d SessTime=%d JobId=%d Level=%c Type=%c\n",
 	    type, rec->VolSessionId, rec->VolSessionTime, rec->Stream,
 	    label.JobLevel, label.JobType);
-	 Pmsg4(-1, "   Files=%s Bytes=%s Errors=%d Status=%c\n",
+         Pmsg4(-1, "   Files=%s Bytes=%s Errors=%d Status=%c\n",
 	    edit_uint64_with_commas(label.JobFiles, ed1),
 	    edit_uint64_with_commas(label.JobBytes, ed2),
 	    label.JobErrors, (char)label.JobStatus);
@@ -839,7 +928,7 @@ void dump_label_record(DEVICE *dev, DEV_RECORD *rec, int verbose)
       case PRE_LABEL:
       case VOL_LABEL:
       default:
-	 Pmsg5(-1, "%s Record: SessId=%d SessTime=%d JobId=%d DataLen=%d\n",
+         Pmsg5(-1, "%s Record: SessId=%d SessTime=%d JobId=%d DataLen=%d\n",
       type, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
 	 break;
       case EOT_LABEL:

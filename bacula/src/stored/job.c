@@ -7,7 +7,7 @@
  *
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -40,8 +40,8 @@ static bool use_device_cmd(JCR *jcr);
 
 /* Requests from the Director daemon */
 static char jobcmd[] = "JobId=%d job=%127s job_name=%127s client_name=%127s "
-	 "type=%d level=%d FileSet=%127s NoAttr=%d SpoolAttr=%d FileSetMD5=%127s "
-	 "SpoolData=%d";
+      "type=%d level=%d FileSet=%127s NoAttr=%d SpoolAttr=%d FileSetMD5=%127s "
+      "SpoolData=%d  WritePartAfterJob=%d";
 static char use_device[]  = "use device=%127s media_type=%127s pool_name=%127s pool_type=%127s\n";
 static char use_devices[] = "use devices=%127s media_type=%127s pool_name=%127s pool_type=%127s\n";
 
@@ -68,7 +68,7 @@ bool job_cmd(JCR *jcr)
    char auth_key[100];
    BSOCK *dir = jcr->dir_bsock;
    POOL_MEM job_name, client_name, job, fileset_name, fileset_md5;
-   int JobType, level, spool_attributes, no_attributes, spool_data;
+   int JobType, level, spool_attributes, no_attributes, spool_data, write_part_after_job;
    struct timeval tv;
    struct timezone tz;
    struct timespec timeout;
@@ -81,7 +81,7 @@ bool job_cmd(JCR *jcr)
    if (sscanf(dir->msg, jobcmd, &JobId, job.c_str(), job_name.c_str(),
 	      client_name.c_str(),
 	      &JobType, &level, fileset_name.c_str(), &no_attributes,
-	      &spool_attributes, fileset_md5.c_str(), &spool_data) != 11) {
+	      &spool_attributes, fileset_md5.c_str(), &spool_data, &write_part_after_job) != 12) {
       pm_strcpy(jcr->errmsg, dir->msg);
       bnet_fsend(dir, BAD_job, jcr->errmsg);
       Emsg1(M_FATAL, 0, _("Bad Job Command from Director: %s\n"), jcr->errmsg);
@@ -116,6 +116,7 @@ bool job_cmd(JCR *jcr)
    jcr->no_attributes = no_attributes;
    jcr->spool_attributes = spool_attributes;
    jcr->spool_data = spool_data;
+   jcr->write_part_after_job = write_part_after_job;
    jcr->fileset_md5 = get_pool_memory(PM_NAME);
    pm_strcpy(jcr->fileset_md5, fileset_md5);
 
@@ -247,7 +248,7 @@ static bool use_device_cmd(JCR *jcr)
    while (!quit) {
       bool ok;
       if (bnet_recv(dir) <= 0) {
-	 Jmsg0(jcr, M_FATAL, 0, _("No Device from Director\n"));
+         Jmsg0(jcr, M_FATAL, 0, _("No Device from Director\n"));
 	 return false;
       }
 
@@ -283,13 +284,13 @@ static bool use_device_cmd(JCR *jcr)
 	       if (!dcr) {
 		  return false;
 	       }
-	       Dmsg1(120, "Found device %s\n", device->hdr.name);
+               Dmsg1(120, "Found device %s\n", device->hdr.name);
 	       bstrncpy(dcr->pool_name, pool_name, name_len);
 	       bstrncpy(dcr->pool_type, pool_type, name_len);
 	       bstrncpy(dcr->media_type, media_type, name_len);
 	       bstrncpy(dcr->dev_name, dev_name, name_len);
 	       jcr->device = device;
-	       Dmsg1(220, "Got: %s", dir->msg);
+               Dmsg1(220, "Got: %s", dir->msg);
 	       return bnet_fsend(dir, OK_device);
 	    }
 	 }
@@ -297,19 +298,19 @@ static bool use_device_cmd(JCR *jcr)
 	 if (verbose) {
 	    unbash_spaces(dir->msg);
 	    pm_strcpy(jcr->errmsg, dir->msg);
-	    Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), jcr->errmsg);
+            Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), jcr->errmsg);
 	 }
-	 Jmsg(jcr, M_FATAL, 0, _("\n"
-	    "     Device \"%s\" with MediaType \"%s\" requested by Dir not found in SD Device resources.\n"),
+         Jmsg(jcr, M_FATAL, 0, _("\n"
+            "     Device \"%s\" with MediaType \"%s\" requested by Dir not found in SD Device resources.\n"),
 	      dev_name.c_str(), media_type.c_str());
 	 bnet_fsend(dir, NO_device, dev_name.c_str());
       } else {
 	 unbash_spaces(dir->msg);
 	 pm_strcpy(jcr->errmsg, dir->msg);
 	 if (verbose) {
-	    Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), jcr->errmsg);
+            Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), jcr->errmsg);
 	 }
-	 Jmsg(jcr, M_FATAL, 0, _("Bad Use Device command: %s\n"), jcr->errmsg);
+         Jmsg(jcr, M_FATAL, 0, _("Bad Use Device command: %s\n"), jcr->errmsg);
 	 bnet_fsend(dir, BAD_use, jcr->errmsg);
       }
    }

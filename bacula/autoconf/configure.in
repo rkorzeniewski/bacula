@@ -62,6 +62,10 @@ AC_PATH_PROG(AR, ar, ar)
 dnl AC_PATH_PROG(RANLIB, ranlib, ranlib)
 AC_PATH_PROG(OPENSSL, openssl, none)
 AC_PATH_PROG(MTX, mtx, mtx)
+AC_PATH_PROG(MKISOFS, mkisofs, mkisofs)
+AC_PATH_PROG(PYTHON, python, python)
+AC_PATH_PROG(GROWISOFS, growisofs, growisofs)
+AC_PATH_PROG(DVDRWMEDIAINFO, dvd+rw-mediainfo, dvd+rw-mediainfo)
 AC_PATH_PROG(PKGCONFIG, pkg-config, pkg-config)
 AC_PATH_PROG(WXCONFIG, wx-config, wx-config)
 AC_PATH_PROG(CDRECORD, cdrecord, cdrecord)
@@ -1952,6 +1956,8 @@ AC_OUTPUT([autoconf/Make.common \
 	   scripts/bacula.desktop.gnome2.xsu \
 	   scripts/gnome-console.console_apps \
 	   scripts/mtx-changer \
+	   scripts/dvd-writepart \
+	   scripts/dvd-freespace \
 	   scripts/bacula-tray-monitor.desktop \
            scripts/logwatch/Makefile \
            scripts/logwatch/logfile.bacula.conf \

@@ -282,6 +282,65 @@ int run_program(char *prog, int wait, POOLMEM *results)
    return stat1;
 }
 
+/*
+ * Run an external program. Optionally wait a specified number
+ *   of seconds. Program killed if wait exceeded (it is done by the 
+ *   watchdog, as fgets is a blocking function).
+ *   Return the full output from the program (not only the first line).
+ *
+ * Contrary to my normal calling conventions, this program
+ *
+ *  Returns: 0 on success
+ *	     non-zero on error == berrno status
+ *
+ */
+int run_program_full_output(char *prog, int wait, POOLMEM *results)
+{
+   BPIPE *bpipe;
+   int stat1, stat2;
+   char *mode;
+   POOLMEM* tmp;
+
+   if (results == NULL) {
+      return run_program(prog, wait, NULL);
+   }
+   
+   tmp = get_pool_memory(PM_MESSAGE);
+   
+   mode = (char *)"r";
+   bpipe = open_bpipe(prog, wait, mode);
+   if (!bpipe) {
+      return ENOENT;
+   }
+   
+   results[0] = 0;
+
+   while (1) {
+      fgets(tmp, sizeof_pool_memory(tmp), bpipe->rfd);
+      Dmsg1(200, "Run program fgets=%s", tmp);
+      pm_strcat(results, tmp);
+      if (feof(bpipe->rfd)) {
+         stat1 = 0;
+         Dmsg1(100, "Run program fgets stat=%d\n", stat1);
+         break;
+      } else {
+         stat1 = ferror(bpipe->rfd);
+      }
+      if (stat1 < 0) {
+         Dmsg2(100, "Run program fgets stat=%d ERR=%s\n", stat1, strerror(errno));
+         break;
+      } else if (stat1 != 0) {
+         Dmsg1(100, "Run program fgets stat=%d\n", stat1);
+      }
+   }
+   
+   stat2 = close_bpipe(bpipe);
+   stat1 = stat2 != 0 ? stat2 : stat1;
+   
+   Dmsg1(100, "Run program returning %d\n", stat);
+   free_pool_memory(tmp);
+   return stat1;
+}
 
 /*
  * Build argc and argv from a string

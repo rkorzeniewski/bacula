@@ -4,7 +4,7 @@
  *  Version $Id$
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -47,7 +47,7 @@
 #include "jcr.h"
 #include "protos.h"
 #ifdef HAVE_LIBZ
-#include <zlib.h>                     /* compression headers */
+#include <zlib.h>		      /* compression headers */
 #else
 #define uLongf uint32_t
 #endif
@@ -56,9 +56,16 @@
 #else
 #include "lib/fnmatch.h"
 #endif
+#ifdef HAVE_DIRENT_H
+#include <dirent.h>
+#define NAMELEN(dirent) (strlen((dirent)->d_name))
+#endif
+#ifndef HAVE_READDIR_R
+int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result);
+#endif
 
 extern STORES *me;                    /* "Global" daemon resource */
-extern bool forge_on;                 /* proceed inspite of I/O errors */
+extern bool forge_on;		      /* proceed inspite of I/O errors */
 
 #ifdef debug_tracing
 extern int _rewind_dev(char *file, int line, DEVICE *dev);

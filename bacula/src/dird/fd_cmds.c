@@ -13,7 +13,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -78,7 +78,7 @@ int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
 
    if (!jcr->file_bsock) {
       fd = bnet_connect(jcr, retry_interval, max_retry_time,
-	   _("File daemon"), jcr->client->address,
+           _("File daemon"), jcr->client->address,
 	   NULL, jcr->client->FDport, verbose);
       if (fd == NULL) {
 	 set_jcr_job_status(jcr, JS_ErrorTerminated);
@@ -109,7 +109,7 @@ int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
    if (bget_dirmsg(fd) > 0) {
        Dmsg1(110, "<filed: %s", fd->msg);
        if (strncmp(fd->msg, OKjob, strlen(OKjob)) != 0) {
-	  Jmsg(jcr, M_FATAL, 0, _("File daemon \"%s\" rejected Job command: %s\n"),
+          Jmsg(jcr, M_FATAL, 0, _("File daemon \"%s\" rejected Job command: %s\n"),
 	     jcr->client->hdr.name, fd->msg);
 	  set_jcr_job_status(jcr, JS_ErrorTerminated);
 	  return 0;
@@ -122,7 +122,7 @@ int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
 	  cr.JobRetention = jcr->client->JobRetention;
 	  bstrncpy(cr.Uname, fd->msg+strlen(OKjob)+1, sizeof(cr.Uname));
 	  if (!db_update_client_record(jcr, jcr->db, &cr)) {
-	     Jmsg(jcr, M_WARNING, 0, _("Error updating Client record. ERR=%s\n"),
+             Jmsg(jcr, M_WARNING, 0, _("Error updating Client record. ERR=%s\n"),
 		db_strerror(jcr->db));
 	  }
        }
@@ -160,24 +160,24 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
       jcr->jr.JobId = 0;     /* flag for db_find_job_start time */
       if (!db_find_job_start_time(jcr, jcr->db, &jcr->jr, &jcr->stime)) {
 	 /* No job found, so upgrade this one to Full */
-	 Jmsg(jcr, M_INFO, 0, "%s", db_strerror(jcr->db));
-	 Jmsg(jcr, M_INFO, 0, _("No prior or suitable Full backup found. Doing FULL backup.\n"));
-	 bsnprintf(since, since_len, " (upgraded from %s)",
+         Jmsg(jcr, M_INFO, 0, "%s", db_strerror(jcr->db));
+         Jmsg(jcr, M_INFO, 0, _("No prior or suitable Full backup found. Doing FULL backup.\n"));
+         bsnprintf(since, since_len, " (upgraded from %s)",
 	    level_to_str(jcr->JobLevel));
 	 jcr->JobLevel = jcr->jr.JobLevel = L_FULL;
       } else {
 	 if (jcr->job->rerun_failed_levels) {
 	    if (db_find_failed_job_since(jcr, jcr->db, &jcr->jr, jcr->stime, JobLevel)) {
-	       Jmsg(jcr, M_INFO, 0, _("Prior failed job found. Upgrading to %s.\n"),
+               Jmsg(jcr, M_INFO, 0, _("Prior failed job found. Upgrading to %s.\n"),
 		  level_to_str(JobLevel));
-	       bsnprintf(since, since_len, " (upgraded from %s)",
+               bsnprintf(since, since_len, " (upgraded from %s)",
 		  level_to_str(jcr->JobLevel));
 	       jcr->JobLevel = jcr->jr.JobLevel = JobLevel;
 	       jcr->jr.JobId = jcr->JobId;
 	       break;
 	    }
 	 }
-	 bstrncpy(since, ", since=", since_len);
+         bstrncpy(since, ", since=", since_len);
 	 bstrncat(since, jcr->stime, since_len);
       }
       jcr->jr.JobId = jcr->JobId;
@@ -213,7 +213,7 @@ int send_level_command(JCR *jcr)
       stime = str_to_utime(jcr->stime);
       bnet_fsend(fd, levelcmd, "since_utime ", edit_uint64(stime, ed1), 0);
       while (bget_dirmsg(fd) >= 0) {  /* allow him to poll us to sync clocks */
-	 Jmsg(jcr, M_INFO, 0, "%s\n", fd->msg);
+         Jmsg(jcr, M_INFO, 0, "%s\n", fd->msg);
       }
       break;
    case L_SINCE:
@@ -265,80 +265,80 @@ static int send_list(JCR *jcr, int list)
       for (int j=0; j<ie->name_list.size(); j++) {
 	 p = (char *)ie->name_list.get(j);
 	 switch (*p) {
-	 case '|':
+         case '|':
 	    p++;		      /* skip over the | */
-	    fd->msg = edit_job_codes(jcr, fd->msg, p, "");
-	    bpipe = open_bpipe(fd->msg, 0, "r");
+            fd->msg = edit_job_codes(jcr, fd->msg, p, "");
+            bpipe = open_bpipe(fd->msg, 0, "r");
 	    if (!bpipe) {
 	       berrno be;
-	       Jmsg(jcr, M_FATAL, 0, _("Cannot run program: %s. ERR=%s\n"),
+               Jmsg(jcr, M_FATAL, 0, _("Cannot run program: %s. ERR=%s\n"),
 		  p, be.strerror());
 	       goto bail_out;
 	    }
 	    /* Copy File options */
 	    if (ie->num_opts) {
 	       bstrncpy(buf, ie->opts_list[0]->opts, sizeof(buf));
-	       bstrncat(buf, " ", sizeof(buf));
+               bstrncat(buf, " ", sizeof(buf));
 	    } else {
-	       bstrncpy(buf, "0 ", sizeof(buf));
+               bstrncpy(buf, "0 ", sizeof(buf));
 	    }
-	    Dmsg1(500, "Opts=%s\n", buf);
+            Dmsg1(500, "Opts=%s\n", buf);
 	    optlen = strlen(buf);
 	    while (fgets(buf+optlen, sizeof(buf)-optlen, bpipe->rfd)) {
-	       fd->msglen = Mmsg(fd->msg, "%s", buf);
-	       Dmsg2(500, "Inc/exc len=%d: %s", fd->msglen, fd->msg);
+               fd->msglen = Mmsg(fd->msg, "%s", buf);
+               Dmsg2(500, "Inc/exc len=%d: %s", fd->msglen, fd->msg);
 	       if (!bnet_send(fd)) {
-		  Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
+                  Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
 		  goto bail_out;
 	       }
 	    }
 	    if ((stat=close_bpipe(bpipe)) != 0) {
 	       berrno be;
-	       Jmsg(jcr, M_FATAL, 0, _("Error running program %p: ERR=%s\n"),
+               Jmsg(jcr, M_FATAL, 0, _("Error running program %p: ERR=%s\n"),
 		  p, be.strerror(stat));
 	       goto bail_out;
 	    }
 	    break;
-	 case '<':
+         case '<':
 	    p++;		      /* skip over < */
-	    if ((ffd = fopen(p, "r")) == NULL) {
-	       Jmsg(jcr, M_FATAL, 0, _("Cannot open %s file: %s. ERR=%s\n"),
-		  list==INC_LIST?"included":"excluded", p, strerror(errno));
+            if ((ffd = fopen(p, "r")) == NULL) {
+               Jmsg(jcr, M_FATAL, 0, _("Cannot open %s file: %s. ERR=%s\n"),
+                  list==INC_LIST?"included":"excluded", p, strerror(errno));
 	       goto bail_out;
 	    }
 	    /* Copy File options */
 	    if (ie->num_opts) {
 	       bstrncpy(buf, ie->opts_list[0]->opts, sizeof(buf));
-	       bstrncat(buf, " ", sizeof(buf));
+               bstrncat(buf, " ", sizeof(buf));
 	    } else {
-	       bstrncpy(buf, "0 ", sizeof(buf));
+               bstrncpy(buf, "0 ", sizeof(buf));
 	    }
-	    Dmsg1(500, "Opts=%s\n", buf);
+            Dmsg1(500, "Opts=%s\n", buf);
 	    optlen = strlen(buf);
 	    while (fgets(buf+optlen, sizeof(buf)-optlen, ffd)) {
-	       fd->msglen = Mmsg(fd->msg, "%s", buf);
+               fd->msglen = Mmsg(fd->msg, "%s", buf);
 	       if (!bnet_send(fd)) {
-		  Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
+                  Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
 		  goto bail_out;
 	       }
 	    }
 	    fclose(ffd);
 	    break;
-	 case '\\':
-	    p++;                      /* skip over \ */
+         case '\\':
+            p++;                      /* skip over \ */
 	    /* Note, fall through wanted */
 	 default:
 	    if (ie->num_opts) {
-	       Dmsg2(500, "numopts=%d opts=%s\n", ie->num_opts, NPRT(ie->opts_list[0]->opts));
+               Dmsg2(500, "numopts=%d opts=%s\n", ie->num_opts, NPRT(ie->opts_list[0]->opts));
 	       pm_strcpy(fd->msg, ie->opts_list[0]->opts);
-	       pm_strcat(fd->msg, " ");
+               pm_strcat(fd->msg, " ");
 	    } else {
-	       pm_strcpy(fd->msg, "0 ");
+               pm_strcpy(fd->msg, "0 ");
 	    }
 	    fd->msglen = pm_strcat(fd->msg, p);
-	    Dmsg1(500, "Inc/Exc name=%s\n", fd->msg);
+            Dmsg1(500, "Inc/Exc name=%s\n", fd->msg);
 	    if (!bnet_send(fd)) {
-	       Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
+               Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
 	       goto bail_out;
 	    }
 	    break;
@@ -389,113 +389,113 @@ static int send_fileset(JCR *jcr)
 
 	 if (include) {
 	    ie = fileset->include_items[i];
-	    bnet_fsend(fd, "I\n");
+            bnet_fsend(fd, "I\n");
 	 } else {
 	    ie = fileset->exclude_items[i];
-	    bnet_fsend(fd, "E\n");
+            bnet_fsend(fd, "E\n");
 	 }
 	 for (j=0; j<ie->num_opts; j++) {
 	    FOPTS *fo = ie->opts_list[j];
-	    bnet_fsend(fd, "O %s\n", fo->opts);
+            bnet_fsend(fd, "O %s\n", fo->opts);
 	    for (k=0; k<fo->regex.size(); k++) {
-	       bnet_fsend(fd, "R %s\n", fo->regex.get(k));
+               bnet_fsend(fd, "R %s\n", fo->regex.get(k));
 	    }
 	    for (k=0; k<fo->regexdir.size(); k++) {
-	       bnet_fsend(fd, "RD %s\n", fo->regexdir.get(k));
+               bnet_fsend(fd, "RD %s\n", fo->regexdir.get(k));
 	    }
 	    for (k=0; k<fo->regexfile.size(); k++) {
-	       bnet_fsend(fd, "RF %s\n", fo->regexfile.get(k));
+               bnet_fsend(fd, "RF %s\n", fo->regexfile.get(k));
 	    }
 	    for (k=0; k<fo->wild.size(); k++) {
-	       bnet_fsend(fd, "W %s\n", fo->wild.get(k));
+               bnet_fsend(fd, "W %s\n", fo->wild.get(k));
 	    }
 	    for (k=0; k<fo->wilddir.size(); k++) {
-	       bnet_fsend(fd, "WD %s\n", fo->wilddir.get(k));
+               bnet_fsend(fd, "WD %s\n", fo->wilddir.get(k));
 	    }
 	    for (k=0; k<fo->wildfile.size(); k++) {
-	       bnet_fsend(fd, "WF %s\n", fo->wildfile.get(k));
+               bnet_fsend(fd, "WF %s\n", fo->wildfile.get(k));
 	    }
 	    for (k=0; k<fo->base.size(); k++) {
-	       bnet_fsend(fd, "B %s\n", fo->base.get(k));
+               bnet_fsend(fd, "B %s\n", fo->base.get(k));
 	    }
 	    for (k=0; k<fo->fstype.size(); k++) {
-	       bnet_fsend(fd, "X %s\n", fo->fstype.get(k));
+               bnet_fsend(fd, "X %s\n", fo->fstype.get(k));
 	    }
 	    if (fo->reader) {
-	       bnet_fsend(fd, "D %s\n", fo->reader);
+               bnet_fsend(fd, "D %s\n", fo->reader);
 	    }
 	    if (fo->writer) {
-	       bnet_fsend(fd, "T %s\n", fo->writer);
+               bnet_fsend(fd, "T %s\n", fo->writer);
 	    }
-	    bnet_fsend(fd, "N\n");
+            bnet_fsend(fd, "N\n");
 	 }
 
 	 for (j=0; j<ie->name_list.size(); j++) {
 	    p = (char *)ie->name_list.get(j);
 	    switch (*p) {
-	    case '|':
+            case '|':
 	       p++;			 /* skip over the | */
-	       fd->msg = edit_job_codes(jcr, fd->msg, p, "");
-	       bpipe = open_bpipe(fd->msg, 0, "r");
+               fd->msg = edit_job_codes(jcr, fd->msg, p, "");
+               bpipe = open_bpipe(fd->msg, 0, "r");
 	       if (!bpipe) {
 		  berrno be;
-		  Jmsg(jcr, M_FATAL, 0, _("Cannot run program: %s. ERR=%s\n"),
+                  Jmsg(jcr, M_FATAL, 0, _("Cannot run program: %s. ERR=%s\n"),
 		     p, be.strerror());
 		  goto bail_out;
 	       }
-	       bstrncpy(buf, "F ", sizeof(buf));
-	       Dmsg1(500, "Opts=%s\n", buf);
+               bstrncpy(buf, "F ", sizeof(buf));
+               Dmsg1(500, "Opts=%s\n", buf);
 	       optlen = strlen(buf);
 	       while (fgets(buf+optlen, sizeof(buf)-optlen, bpipe->rfd)) {
-		  fd->msglen = Mmsg(fd->msg, "%s", buf);
-		  Dmsg2(500, "Inc/exc len=%d: %s", fd->msglen, fd->msg);
+                  fd->msglen = Mmsg(fd->msg, "%s", buf);
+                  Dmsg2(500, "Inc/exc len=%d: %s", fd->msglen, fd->msg);
 		  if (!bnet_send(fd)) {
-		     Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
+                     Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
 		     goto bail_out;
 		  }
 	       }
 	       if ((stat=close_bpipe(bpipe)) != 0) {
 		  berrno be;
-		  Jmsg(jcr, M_FATAL, 0, _("Error running program: %s. ERR=%s\n"),
+                  Jmsg(jcr, M_FATAL, 0, _("Error running program: %s. ERR=%s\n"),
 		     p, be.strerror(stat));
 		  goto bail_out;
 	       }
 	       break;
-	    case '<':
+            case '<':
 	       p++;			 /* skip over < */
-	       if ((ffd = fopen(p, "r")) == NULL) {
+               if ((ffd = fopen(p, "r")) == NULL) {
 		  berrno be;
-		  Jmsg(jcr, M_FATAL, 0, _("Cannot open included file: %s. ERR=%s\n"),
+                  Jmsg(jcr, M_FATAL, 0, _("Cannot open included file: %s. ERR=%s\n"),
 		     p, be.strerror());
 		  goto bail_out;
 	       }
-	       bstrncpy(buf, "F ", sizeof(buf));
-	       Dmsg1(500, "Opts=%s\n", buf);
+               bstrncpy(buf, "F ", sizeof(buf));
+               Dmsg1(500, "Opts=%s\n", buf);
 	       optlen = strlen(buf);
 	       while (fgets(buf+optlen, sizeof(buf)-optlen, ffd)) {
-		  fd->msglen = Mmsg(fd->msg, "%s", buf);
+                  fd->msglen = Mmsg(fd->msg, "%s", buf);
 		  if (!bnet_send(fd)) {
-		     Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
+                     Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
 		     goto bail_out;
 		  }
 	       }
 	       fclose(ffd);
 	       break;
-	    case '\\':
-	       p++;                      /* skip over \ */
+            case '\\':
+               p++;                      /* skip over \ */
 	       /* Note, fall through wanted */
 	    default:
-	       pm_strcpy(fd->msg, "F ");
+               pm_strcpy(fd->msg, "F ");
 	       fd->msglen = pm_strcat(fd->msg, p);
-	       Dmsg1(500, "Inc/Exc name=%s\n", fd->msg);
+               Dmsg1(500, "Inc/Exc name=%s\n", fd->msg);
 	       if (!bnet_send(fd)) {
-		  Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
+                  Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
 		  goto bail_out;
 	       }
 	       break;
 	    }
 	 }
-	 bnet_fsend(fd, "N\n");
+         bnet_fsend(fd, "N\n");
       }
       if (!include) {		      /* If we just did excludes */
 	 break; 		      /*   all done */
@@ -645,7 +645,7 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
 
       jcr->fname = check_pool_memory_size(jcr->fname, fd->msglen);
       if ((len = sscanf(fd->msg, "%ld %d %s", &file_index, &stream, Opts_SIG)) != 3) {
-	 Jmsg(jcr, M_FATAL, 0, _("<filed: bad attributes, expected 3 fields got %d\n"
+         Jmsg(jcr, M_FATAL, 0, _("<filed: bad attributes, expected 3 fields got %d\n"
 "msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
 	 set_jcr_job_status(jcr, JS_ErrorTerminated);
 	 return 0;
@@ -677,27 +677,27 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
 	 ar.PathId = 0;
 	 ar.FilenameId = 0;
 
-	 Dmsg2(111, "dird<filed: stream=%d %s\n", stream, jcr->fname);
-	 Dmsg1(120, "dird<filed: attr=%s\n", attr);
+         Dmsg2(111, "dird<filed: stream=%d %s\n", stream, jcr->fname);
+         Dmsg1(120, "dird<filed: attr=%s\n", attr);
 
 	 if (!db_create_file_attributes_record(jcr, jcr->db, &ar)) {
-	    Jmsg1(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
+            Jmsg1(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
 	    set_jcr_job_status(jcr, JS_Error);
 	    continue;
 	 }
 	 jcr->FileId = ar.FileId;
       } else if (stream == STREAM_MD5_SIGNATURE || stream == STREAM_SHA1_SIGNATURE) {
 	 if (jcr->FileIndex != (uint32_t)file_index) {
-	    Jmsg2(jcr, M_ERROR, 0, _("MD5/SHA1 index %d not same as attributes %d\n"),
+            Jmsg2(jcr, M_ERROR, 0, _("MD5/SHA1 index %d not same as attributes %d\n"),
 	       file_index, jcr->FileIndex);
 	    set_jcr_job_status(jcr, JS_Error);
 	    continue;
 	 }
 	 db_escape_string(SIG, Opts_SIG, strlen(Opts_SIG));
-	 Dmsg2(120, "SIGlen=%d SIG=%s\n", strlen(SIG), SIG);
+         Dmsg2(120, "SIGlen=%d SIG=%s\n", strlen(SIG), SIG);
 	 if (!db_add_SIG_to_file_record(jcr, jcr->db, jcr->FileId, SIG,
 		   stream==STREAM_MD5_SIGNATURE?MD5_SIG:SHA1_SIG)) {
-	    Jmsg1(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
+            Jmsg1(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
 	    set_jcr_job_status(jcr, JS_Error);
 	 }
       }

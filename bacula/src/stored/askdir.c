@@ -7,7 +7,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -35,7 +35,8 @@ static char Get_Vol_Info[] = "CatReq Job=%s GetVolInfo VolName=%s write=%d\n";
 static char Update_media[] = "CatReq Job=%s UpdateMedia VolName=%s"
    " VolJobs=%u VolFiles=%u VolBlocks=%u VolBytes=%s VolMounts=%u"
    " VolErrors=%u VolWrites=%u MaxVolBytes=%s EndTime=%d VolStatus=%s"
-   " Slot=%d relabel=%d InChanger=%d VolReadTime=%s VolWriteTime=%s\n";
+   " Slot=%d relabel=%d InChanger=%d VolReadTime=%s VolWriteTime=%s"
+   " VolParts=%u\n";
 static char Create_job_media[] = "CatReq Job=%s CreateJobMedia"
    " FirstIndex=%u LastIndex=%u StartFile=%u EndFile=%u"
    " StartBlock=%u EndBlock=%u\n";
@@ -48,7 +49,7 @@ static char OK_media[] = "1000 OK VolName=%127s VolJobs=%u VolFiles=%u"
    " VolBlocks=%u VolBytes=%" lld " VolMounts=%u VolErrors=%u VolWrites=%u"
    " MaxVolBytes=%" lld " VolCapacityBytes=%" lld " VolStatus=%20s"
    " Slot=%d MaxVolJobs=%u MaxVolFiles=%u InChanger=%d"
-   " VolReadTime=%" lld " VolWriteTime=%" lld " EndFile=%u EndBlock=%u";
+   " VolReadTime=%" lld " VolWriteTime=%" lld " EndFile=%u EndBlock=%u VolParts=%u";
 
 
 static char OK_create[] = "1000 OK CreateJobMedia\n";
@@ -97,8 +98,8 @@ static bool do_get_volume_info(DCR *dcr)
 	       &vol.VolCatCapacityBytes, vol.VolCatStatus,
 	       &vol.Slot, &vol.VolCatMaxJobs, &vol.VolCatMaxFiles,
 	       &InChanger, &vol.VolReadTime, &vol.VolWriteTime,
-	       &vol.EndFile, &vol.EndBlock);
-    if (n != 19) {
+	       &vol.EndFile, &vol.EndBlock, &vol.VolCatParts);
+    if (n != 20) {
        Dmsg2(100, "Bad response from Dir fields=%d: %s\n", n, dir->msg);
        Mmsg(jcr->errmsg, _("Error getting Volume info: %s\n"), dir->msg);
        return false;
@@ -162,7 +163,7 @@ bool dir_find_next_appendable_volume(DCR *dcr)
     for (int vol_index=1;  vol_index < 3; vol_index++) {
        bnet_fsend(dir, Find_media, jcr->Job, vol_index);
        if (do_get_volume_info(dcr)) {
-	  Dmsg2(300, "JobId=%d got possible Vol=%s\n", jcr->JobId, dcr->VolumeName);
+          Dmsg2(300, "JobId=%d got possible Vol=%s\n", jcr->JobId, dcr->VolumeName);
 	  bool found = false;
 	  /*
 	   * Walk through all jobs and see if the volume is
@@ -176,10 +177,10 @@ bool dir_find_next_appendable_volume(DCR *dcr)
 		free_locked_jcr(njcr);
 		continue;	      /* us */
 	     }
-	     Dmsg2(300, "Compare to JobId=%d using Vol=%s\n", njcr->JobId, njcr->dcr->VolumeName);
+             Dmsg2(300, "Compare to JobId=%d using Vol=%s\n", njcr->JobId, njcr->dcr->VolumeName);
 	     if (njcr->dcr && strcmp(dcr->VolumeName, njcr->dcr->VolumeName) == 0) {
 		found = true;
-		Dmsg1(400, "Vol in use by JobId=%u\n", njcr->JobId);
+                Dmsg1(400, "Vol in use by JobId=%u\n", njcr->JobId);
 		free_locked_jcr(njcr);
 		break;
 	     }
@@ -187,11 +188,11 @@ bool dir_find_next_appendable_volume(DCR *dcr)
 	  }
 	  unlock_jcr_chain();
 	  if (!found) {
-	     Dmsg0(400, "dir_find_next_appendable_volume return true\n");
+             Dmsg0(400, "dir_find_next_appendable_volume return true\n");
 	     return true;	      /* Got good Volume */
 	  }
        } else {
-	  Dmsg0(200, "No volume info, return false\n");
+          Dmsg0(200, "No volume info, return false\n");
 	  return false;
        }
     }
@@ -242,7 +243,8 @@ bool dir_update_volume_info(DCR *dcr, bool label)
       LastWritten, vol->VolCatStatus, vol->Slot, label,
       InChanger,		      /* bool in structure */
       edit_uint64(vol->VolReadTime, ed3),
-      edit_uint64(vol->VolWriteTime, ed4) );
+      edit_uint64(vol->VolWriteTime, ed4),
+      vol->VolCatParts );
 
    Dmsg1(300, "update_volume_info(): %s", dir->msg);
    unbash_spaces(vol->VolCatName);
@@ -347,9 +349,9 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
    for ( ;; ) {
       if (job_canceled(jcr)) {
 	 Mmsg(dev->errmsg,
-	      _("Job %s canceled while waiting for mount on Storage Device \"%s\".\n"),
+              _("Job %s canceled while waiting for mount on Storage Device \"%s\".\n"),
 	      jcr->Job, dcr->dev_name);
-	 Jmsg(jcr, M_INFO, 0, "%s", dev->errmsg);
+         Jmsg(jcr, M_INFO, 0, "%s", dev->errmsg);
 	 return false;
       }
       /* First pass, we *know* there are no appendable volumes, so no need to call */
@@ -365,7 +367,7 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
 	 if (!unmounted && ((dcr->VolumeName[0] && !dev_cap(dev, CAP_REM) &&
 		dev_cap(dev, CAP_LABEL)) ||
 		 (dcr->VolumeName[0] && dcr->VolCatInfo.Slot))) {
-	    Dmsg0(400, "Return 1 from mount without wait.\n");
+            Dmsg0(400, "Return 1 from mount without wait.\n");
 	    return true;
 	 }
 	 jstat = JS_WaitMount;
@@ -374,7 +376,7 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
 "Please mount Volume \"%s\" on Storage Device \"%s\" for Job %s\n"
 "Use \"mount\" command to release Job.\n"),
 	      dcr->VolumeName, dcr->dev_name, jcr->Job);
-	    Dmsg3(400, "Mount %s on %s for Job %s\n",
+            Dmsg3(400, "Mount %s on %s for Job %s\n",
 		  dcr->VolumeName, dcr->dev_name, jcr->Job);
 	 }
       } else {
@@ -399,30 +401,30 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
 
       stat = wait_for_sysop(dcr);
       if (dev->poll) {
-	 Dmsg1(400, "Poll timeout in create append vol on device %s\n", dev_name(dev));
+         Dmsg1(400, "Poll timeout in create append vol on device %s\n", dev_name(dev));
 	 continue;
       }
 
       if (stat == ETIMEDOUT) {
 	 if (!double_dev_wait_time(dev)) {
-	    Mmsg(dev->errmsg, _("Max time exceeded waiting to mount Storage Device \"%s\" for Job %s\n"),
+            Mmsg(dev->errmsg, _("Max time exceeded waiting to mount Storage Device \"%s\" for Job %s\n"),
 	       dev_name(dev), jcr->Job);
-	    Jmsg(jcr, M_FATAL, 0, "%s", dev->errmsg);
-	    Dmsg1(400, "Gave up waiting on device %s\n", dev_name(dev));
+            Jmsg(jcr, M_FATAL, 0, "%s", dev->errmsg);
+            Dmsg1(400, "Gave up waiting on device %s\n", dev_name(dev));
 	    return false;	      /* exceeded maximum waits */
 	 }
 	 continue;
       }
       if (stat == EINVAL) {
 	 berrno be;
-	 Mmsg2(dev->errmsg, _("pthread error in mount_next_volume stat=%d ERR=%s\n"),
+         Mmsg2(dev->errmsg, _("pthread error in mount_next_volume stat=%d ERR=%s\n"),
 	       stat, be.strerror(stat));
-	 Jmsg(jcr, M_FATAL, 0, "%s", dev->errmsg);
+         Jmsg(jcr, M_FATAL, 0, "%s", dev->errmsg);
 	 return false;
       }
       if (stat != 0) {
 	 berrno be;
-	 Jmsg(jcr, M_WARNING, 0, _("pthread error in mount_next_volume stat=%d ERR=%s\n"), stat,
+         Jmsg(jcr, M_WARNING, 0, _("pthread error in mount_next_volume stat=%d ERR=%s\n"), stat,
 	    be.strerror(stat));
       }
       Dmsg1(400, "Someone woke me for device %s\n", dev_name(dev));
@@ -481,16 +483,16 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
    ASSERT(dev->dev_blocked);
    for ( ;; ) {
       if (job_canceled(jcr)) {
-	 Mmsg(dev->errmsg, _("Job %s canceled while waiting for mount on Storage Device \"%s\".\n"),
+         Mmsg(dev->errmsg, _("Job %s canceled while waiting for mount on Storage Device \"%s\".\n"),
 	      jcr->Job, dcr->dev_name);
 	 return false;
       }
 
       if (!dev->poll) {
-	 msg = _("Please mount");
-	 Jmsg(jcr, M_MOUNT, 0, _("%s Volume \"%s\" on Storage Device \"%s\" for Job %s\n"),
+         msg = _("Please mount");
+         Jmsg(jcr, M_MOUNT, 0, _("%s Volume \"%s\" on Storage Device \"%s\" for Job %s\n"),
 	      msg, dcr->VolumeName, dcr->dev_name, jcr->Job);
-	 Dmsg3(400, "Mount \"%s\" on device \"%s\" for Job %s\n",
+         Dmsg3(400, "Mount \"%s\" on device \"%s\" for Job %s\n",
 	       dcr->VolumeName, dcr->dev_name, jcr->Job);
       }
 
@@ -499,31 +501,31 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
 
       stat = wait_for_sysop(dcr);    ;	   /* wait on device */
       if (dev->poll) {
-	 Dmsg1(400, "Poll timeout in mount vol on device %s\n", dev_name(dev));
-	 Dmsg1(400, "Blocked=%s\n", edit_blocked_reason(dev));
+         Dmsg1(400, "Poll timeout in mount vol on device %s\n", dev_name(dev));
+         Dmsg1(400, "Blocked=%s\n", edit_blocked_reason(dev));
 	 return true;
       }
 
       if (stat == ETIMEDOUT) {
 	 if (!double_dev_wait_time(dev)) {
-	    Mmsg(dev->errmsg, _("Max time exceeded waiting to mount Storage Device \"%s\" for Job %s\n"),
+            Mmsg(dev->errmsg, _("Max time exceeded waiting to mount Storage Device \"%s\" for Job %s\n"),
 	       dev_name(dev), jcr->Job);
-	    Jmsg(jcr, M_FATAL, 0, "%s", dev->errmsg);
-	    Dmsg1(400, "Gave up waiting on device %s\n", dev_name(dev));
+            Jmsg(jcr, M_FATAL, 0, "%s", dev->errmsg);
+            Dmsg1(400, "Gave up waiting on device %s\n", dev_name(dev));
 	    return false;	      /* exceeded maximum waits */
 	 }
 	 continue;
       }
       if (stat == EINVAL) {
 	 berrno be;
-	 Mmsg2(dev->errmsg, _("pthread error in mount_volume stat=%d ERR=%s\n"),
+         Mmsg2(dev->errmsg, _("pthread error in mount_volume stat=%d ERR=%s\n"),
 	       stat, be.strerror(stat));
-	 Jmsg(jcr, M_FATAL, 0, "%s", dev->errmsg);
+         Jmsg(jcr, M_FATAL, 0, "%s", dev->errmsg);
 	 return false;
       }
       if (stat != 0) {
 	 berrno be;
-	 Jmsg(jcr, M_FATAL, 0, _("pthread error in mount_next_volume stat=%d ERR=%s\n"), stat,
+         Jmsg(jcr, M_FATAL, 0, _("pthread error in mount_next_volume stat=%d ERR=%s\n"), stat,
 	    be.strerror(stat));
       }
       Dmsg1(400, "Someone woke me for device %s\n", dev_name(dev));
@@ -600,7 +602,7 @@ static int wait_for_sysop(DCR *dcr)
 	    /* send heartbeats */
 	    if (jcr->file_bsock) {
 	       bnet_sig(jcr->file_bsock, BNET_HEARTBEAT);
-	       Dmsg0(400, "Send heartbeat to FD.\n");
+               Dmsg0(400, "Send heartbeat to FD.\n");
 	    }
 	    if (jcr->dir_bsock) {
 	       bnet_sig(jcr->dir_bsock, BNET_HEARTBEAT);
@@ -619,13 +621,13 @@ static int wait_for_sysop(DCR *dcr)
 	 break; 		   /* on error return */
       }
       if (dev->rem_wait_sec <= 0) {  /* on exceeding wait time return */
-	 Dmsg0(400, "Exceed wait time.\n");
+         Dmsg0(400, "Exceed wait time.\n");
 	 break;
       }
 
       if (!unmounted && dev->vol_poll_interval &&
 	  (now - first_start >= dev->vol_poll_interval)) {
-	 Dmsg1(400, "In wait blocked=%s\n", edit_blocked_reason(dev));
+         Dmsg1(400, "In wait blocked=%s\n", edit_blocked_reason(dev));
 	 dev->poll = true;	      /* returning a poll event */
 	 break;
       }

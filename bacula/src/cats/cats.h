@@ -535,6 +535,7 @@ struct MEDIA_DBR {
    uint32_t VolWrites;                /* Number of writes */
    uint32_t VolReads;                 /* Number of reads */
    uint64_t VolBytes;                 /* Number of bytes written */
+   uint32_t VolParts;                 /* Number of parts written */
    uint64_t MaxVolBytes;              /* Max bytes to write to Volume */
    uint64_t VolCapacityBytes;         /* capacity estimate */
    uint64_t VolReadTime;              /* time spent reading volume */

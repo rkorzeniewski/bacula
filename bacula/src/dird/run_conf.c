@@ -8,7 +8,7 @@
  *     Version $Id$
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -139,15 +139,16 @@ static void set_defaults()
 
 /* Keywords (RHS) permitted in Run records */
 static struct s_kw RunFields[] = {
-   {"pool",             'P'},
-   {"fullpool",         'f'},
-   {"incrementalpool",  'i'},
-   {"differentialpool", 'd'},
-   {"level",            'L'},
-   {"storage",          'S'},
-   {"messages",         'M'},
-   {"priority",         'p'},
-   {"spooldata",        's'},
+   {"pool",              'P'},
+   {"fullpool",          'f'},
+   {"incrementalpool",   'i'},
+   {"differentialpool",  'd'},
+   {"level",             'L'},
+   {"storage",           'S'},
+   {"messages",          'M'},
+   {"priority",          'p'},
+   {"spooldata",         's'},
+   {"writepartafterjob", 'W'},
    {NULL,		  0}
 };
 
@@ -189,23 +190,35 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
 	 if (strcasecmp(lc->str, RunFields[i].name) == 0) {
 	    found = true;
 	    if (lex_get_token(lc, T_ALL) != T_EQUALS) {
-	       scan_err1(lc, "Expected an equals, got: %s", lc->str);
+               scan_err1(lc, "Expected an equals, got: %s", lc->str);
 	       /* NOT REACHED */
 	    }
 	    switch (RunFields[i].token) {
-	    case 's':                 /* Data spooling */
+            case 's':                 /* Data spooling */
 	       token = lex_get_token(lc, T_NAME);
-	       if (strcasecmp(lc->str, "yes") == 0) {
+               if (strcasecmp(lc->str, "yes") == 0) {
 		  lrun.spool_data = true;
 		  lrun.spool_data_set = true;
-	       } else if (strcasecmp(lc->str, "no") == 0) {
+               } else if (strcasecmp(lc->str, "no") == 0) {
 		  lrun.spool_data = false;
 		  lrun.spool_data_set = true;
 	       } else {
-		  scan_err1(lc, _("Expect a YES or NO, got: %s"), lc->str);
+                  scan_err1(lc, _("Expect a YES or NO, got: %s"), lc->str);
 	       }
 	       break;
-	    case 'L':                 /* level */
+            case 'W':                 /* Write part after job */
+	       token = lex_get_token(lc, T_NAME);
+               if (strcasecmp(lc->str, "yes") == 0) {
+		  lrun.write_part_after_job = true;
+		  lrun.write_part_after_job_set = true;
+               } else if (strcasecmp(lc->str, "no") == 0) {
+		  lrun.write_part_after_job = false;
+		  lrun.write_part_after_job_set = true;
+	       } else {
+                  scan_err1(lc, _("Expect a YES or NO, got: %s"), lc->str);
+	       }
+	       break;
+            case 'L':                 /* level */
 	       token = lex_get_token(lc, T_NAME);
 	       for (j=0; joblevels[j].level_name; j++) {
 		  if (strcasecmp(lc->str, joblevels[j].level_name) == 0) {
@@ -216,62 +229,62 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
 		  }
 	       }
 	       if (j != 0) {
-		  scan_err1(lc, _("Job level field: %s not found in run record"), lc->str);
+                  scan_err1(lc, _("Job level field: %s not found in run record"), lc->str);
 		  /* NOT REACHED */
 	       }
 	       break;
-	    case 'p':                 /* Priority */
+            case 'p':                 /* Priority */
 	       token = lex_get_token(lc, T_PINT32);
 	       if (pass == 2) {
 		  lrun.Priority = lc->pint32_val;
 	       }
 	       break;
-	    case 'P':                 /* Pool */
-	    case 'f':                 /* FullPool */
-	    case 'i':                 /* IncPool */
-	    case 'd':                 /* DifPool */
+            case 'P':                 /* Pool */
+            case 'f':                 /* FullPool */
+            case 'i':                 /* IncPool */
+            case 'd':                 /* DifPool */
 	       token = lex_get_token(lc, T_NAME);
 	       if (pass == 2) {
 		  res = GetResWithName(R_POOL, lc->str);
 		  if (res == NULL) {
-		     scan_err1(lc, "Could not find specified Pool Resource: %s",
+                     scan_err1(lc, "Could not find specified Pool Resource: %s",
 				lc->str);
 		     /* NOT REACHED */
 		  }
 		  switch(RunFields[i].token) {
-		  case 'P':
+                  case 'P':
 		     lrun.pool = (POOL *)res;
 		     break;
-		  case 'f':
+                  case 'f':
 		     lrun.full_pool = (POOL *)res;
 		     break;
-		  case 'i':
+                  case 'i':
 		     lrun.inc_pool = (POOL *)res;
 		     break;
-		  case 'd':
+                  case 'd':
 		     lrun.dif_pool = (POOL *)res;
 		     break;
 		  }
 	       }
 	       break;
-	    case 'S':                 /* storage */
+            case 'S':                 /* storage */
 	       token = lex_get_token(lc, T_NAME);
 	       if (pass == 2) {
 		  res = GetResWithName(R_STORAGE, lc->str);
 		  if (res == NULL) {
-		     scan_err1(lc, "Could not find specified Storage Resource: %s",
+                     scan_err1(lc, "Could not find specified Storage Resource: %s",
 				lc->str);
 		     /* NOT REACHED */
 		  }
 		  lrun.storage = (STORE *)res;
 	       }
 	       break;
-	    case 'M':                 /* messages */
+            case 'M':                 /* messages */
 	       token = lex_get_token(lc, T_NAME);
 	       if (pass == 2) {
 		  res = GetResWithName(R_MSGS, lc->str);
 		  if (res == NULL) {
-		     scan_err1(lc, "Could not find specified Messages Resource: %s",
+                     scan_err1(lc, "Could not find specified Messages Resource: %s",
 				lc->str);
 		     /* NOT REACHED */
 		  }
@@ -279,7 +292,7 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
 	       }
 	       break;
 	    default:
-	       scan_err1(lc, "Expected a keyword name, got: %s", lc->str);
+               scan_err1(lc, "Expected a keyword name, got: %s", lc->str);
 	       /* NOT REACHED */
 	       break;
 	    } /* end switch */
@@ -314,24 +327,24 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
 	 state = s_mday;
 	 code = atoi(lc->str) - 1;
 	 if (code < 0 || code > 30) {
-	    scan_err0(lc, _("Day number out of range (1-31)"));
+            scan_err0(lc, _("Day number out of range (1-31)"));
 	 }
 	 break;
       case T_NAME:		   /* this handles drop through from keyword */
       case T_UNQUOTED_STRING:
-	 if (strchr(lc->str, (int)'-')) {
+         if (strchr(lc->str, (int)'-')) {
 	    state = s_range;
 	    break;
 	 }
-	 if (strchr(lc->str, (int)':')) {
+         if (strchr(lc->str, (int)':')) {
 	    state = s_time;
 	    break;
 	 }
-	 if (lc->str_len == 3 && (lc->str[0] == 'w' || lc->str[0] == 'W') &&
+         if (lc->str_len == 3 && (lc->str[0] == 'w' || lc->str[0] == 'W') &&
 	     is_an_integer(lc->str+1)) {
 	    code = atoi(lc->str+1);
 	    if (code < 0 || code > 53) {
-	       scan_err0(lc, _("Week number out of range (0-53)"));
+               scan_err0(lc, _("Week number out of range (0-53)"));
 	    }
 	    state = s_woy;	      /* week of year */
 	    break;
@@ -346,14 +359,14 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
 	    }
 	 }
 	 if (i != 0) {
-	    scan_err1(lc, _("Job type field: %s in run record not found"), lc->str);
+            scan_err1(lc, _("Job type field: %s in run record not found"), lc->str);
 	    /* NOT REACHED */
 	 }
 	 break;
       case T_COMMA:
 	 continue;
       default:
-	 scan_err2(lc, _("Unexpected token: %d:%s"), token, lc->str);
+         scan_err2(lc, _("Unexpected token: %d:%s"), token, lc->str);
 	 /* NOT REACHED */
 	 break;
       }
@@ -397,27 +410,27 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
 	 break;
       case s_time:		   /* time */
 	 if (!have_at) {
-	    scan_err0(lc, _("Time must be preceded by keyword AT."));
+            scan_err0(lc, _("Time must be preceded by keyword AT."));
 	    /* NOT REACHED */
 	 }
 	 if (!have_hour) {
 	    clear_bits(0, 23, lrun.hour);
 	 }
-	 p = strchr(lc->str, ':');
+         p = strchr(lc->str, ':');
 	 if (!p)  {
-	    scan_err0(lc, _("Time logic error.\n"));
+            scan_err0(lc, _("Time logic error.\n"));
 	    /* NOT REACHED */
 	 }
 	 *p++ = 0;		   /* separate two halves */
 	 code = atoi(lc->str);
 	 len = strlen(p);
-	 if (len > 2 && p[len-1] == 'm') {
-	    if (p[len-2] == 'a') {
+         if (len > 2 && p[len-1] == 'm') {
+            if (p[len-2] == 'a') {
 	       pm = 0;
-	    } else if (p[len-2] == 'p') {
+            } else if (p[len-2] == 'p') {
 	       pm = 1;
 	    } else {
-	       scan_err0(lc, _("Bad time specification."));
+               scan_err0(lc, _("Bad time specification."));
 	       /* NOT REACHED */
 	    }
 	 } else {
@@ -428,7 +441,7 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
 	    code += 12;
 	 }
 	 if (code < 0 || code > 23 || code2 < 0 || code2 > 59) {
-	    scan_err0(lc, _("Bad time specification."));
+            scan_err0(lc, _("Bad time specification."));
 	    /* NOT REACHED */
 	 }
 	 /****FIXME**** convert to UTC */
@@ -440,9 +453,9 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
 	 have_at = true;
 	 break;
       case s_range:
-	 p = strchr(lc->str, '-');
+         p = strchr(lc->str, '-');
 	 if (!p) {
-	    scan_err0(lc, _("Range logic error.\n"));
+            scan_err0(lc, _("Range logic error.\n"));
 	 }
 	 *p++ = 0;		   /* separate two halves */
 
@@ -451,7 +464,7 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
 	    code = atoi(lc->str) - 1;
 	    code2 = atoi(p) - 1;
 	    if (code < 0 || code > 30 || code2 < 0 || code2 > 30) {
-	       scan_err0(lc, _("Bad day range specification."));
+               scan_err0(lc, _("Bad day range specification."));
 	    }
 	    if (!have_mday) {
 	       clear_bits(0, 30, lrun.mday);
@@ -467,13 +480,13 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
 	 }
 	 /* Check for week of year range */
 	 if (strlen(lc->str) == 3 && strlen(p) == 3 &&
-	     (lc->str[0] == 'w' || lc->str[0] == 'W') &&
-	     (p[0] == 'w' || p[0] == 'W') &&
+             (lc->str[0] == 'w' || lc->str[0] == 'W') &&
+             (p[0] == 'w' || p[0] == 'W') &&
 	     is_an_integer(lc->str+1) && is_an_integer(p+1)) {
 	    code = atoi(lc->str+1);
 	    code2 = atoi(p+1);
 	    if (code < 0 || code > 53 || code2 < 0 || code2 > 53) {
-	       scan_err0(lc, _("Week number out of range (0-53)"));
+               scan_err0(lc, _("Week number out of range (0-53)"));
 	    }
 	    if (!have_woy) {
 	       clear_bits(0, 53, lrun.woy);
@@ -498,7 +511,7 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
 	    }
 	 }
 	 if (i != 0 || (state != s_month && state != s_wday && state != s_wom)) {
-	    scan_err0(lc, _("Invalid month, week or position day range"));
+            scan_err0(lc, _("Invalid month, week or position day range"));
 	    /* NOT REACHED */
 	 }
 
@@ -513,7 +526,7 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
 	    }
 	 }
 	 if (i != 0 || state != state2 || code == code2) {
-	    scan_err0(lc, _("Invalid month, weekday or position range"));
+            scan_err0(lc, _("Invalid month, weekday or position range"));
 	    /* NOT REACHED */
 	 }
 	 if (state == s_wday) {
@@ -572,7 +585,7 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
 	 set_bits(0, 11, lrun.month);
 	 break;
       default:
-	 scan_err0(lc, _("Unexpected run state\n"));
+         scan_err0(lc, _("Unexpected run state\n"));
 	 /* NOT REACHED */
 	 break;
       }

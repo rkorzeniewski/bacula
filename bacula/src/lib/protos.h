@@ -209,6 +209,7 @@ char *           encode_mode             (mode_t mode, char *buf);
 int              do_shell_expansion      (char *name, int name_len);
 void             jobstatus_to_ascii      (int JobStatus, char *msg, int maxlen);
 int              run_program             (char *prog, int wait, POOLMEM *results);
+int              run_program_full_output (char *prog, int wait, POOLMEM *results);
 const char *     job_type_to_str         (int type);
 const char *     job_status_to_str       (int stat);
 const char *     job_level_to_str        (int level);

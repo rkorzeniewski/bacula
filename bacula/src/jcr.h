@@ -10,7 +10,7 @@
  */
 
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -185,6 +185,7 @@ struct JCR {
    bool acquired_resource_locks;      /* set if resource locks acquired */
    bool term_wait_inited;             /* Set when cond var inited */
    bool fn_printed;                   /* printed filename */
+   bool write_part_after_job;         /* Write part after job in SD */
 #endif /* DIRECTOR_DAEMON */
 
 
@@ -239,7 +240,8 @@ struct JCR {
    bool spool_data;                   /* set to spool data */
    int CurVol;                        /* Current Volume count */
    DIRRES* director;                  /* Director resource */
-
+   bool write_part_after_job;         /* Set to write part after job */
+   
    uint32_t FileId;                   /* Last file id inserted */
 
    /* Parmaters for Open Read Session */

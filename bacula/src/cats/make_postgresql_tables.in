@@ -122,6 +122,8 @@ create table media
 	default 0,
     volbytes	      bigint		    not null
 	default 0,
+    volparts	      integer		    not null
+	default 0,
     volerrors	      integer		    not null
 	default 0,
     volwrites	      integer		    not null
