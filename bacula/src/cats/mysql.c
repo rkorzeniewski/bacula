@@ -141,6 +141,12 @@ It is probably not running or your password is incorrect.\n"),
       V(mutex);
       return 0;
    }
+
+   if (!check_tables_version(mdb)) {
+      V(mutex);
+      return 0;
+   }
+
    mdb->connected = TRUE;
    V(mutex);
    return 1;

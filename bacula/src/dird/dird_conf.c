@@ -207,16 +207,17 @@ static struct res_items group_items[] = {
  */
 static struct res_items pool_items[] = {
    {"name",            store_name,    ITEM(res_pool.hdr.name),        0, ITEM_REQUIRED, 0},
-   {"description",     store_str,     ITEM(res_pool.hdr.desc),        0, 0,             0},
+   {"description",     store_str,     ITEM(res_pool.hdr.desc),        0, 0,     0},
    {"pooltype",        store_strname, ITEM(res_pool.pool_type),       0, ITEM_REQUIRED, 0},
-   {"labelformat",     store_strname, ITEM(res_pool.label_format),    0, 0,             0},
+   {"labelformat",     store_strname, ITEM(res_pool.label_format),    0, 0,     0},
    {"usecatalog",      store_yesno, ITEM(res_pool.use_catalog),     1, ITEM_DEFAULT,  1},
-   {"usevolumeonce",   store_yesno, ITEM(res_pool.use_volume_once), 1, 0,             0},
+   {"usevolumeonce",   store_yesno, ITEM(res_pool.use_volume_once), 1, 0,       0},
    {"maximumvolumes",  store_pint,  ITEM(res_pool.max_volumes),     0, 0,             0},
-   {"acceptanyvolume", store_yesno, ITEM(res_pool.accept_any_volume), 1, 0,           0},
+   {"acceptanyvolume", store_yesno, ITEM(res_pool.accept_any_volume), 1, 0,     0},
    {"catalogfiles",    store_yesno, ITEM(res_pool.catalog_files),   1, ITEM_DEFAULT,  1},
    {"volumeretention", store_time,  ITEM(res_pool.VolumeRetention), 0, ITEM_DEFAULT, 60*60*24*365},
-   {"autorecycle",     store_yesno, ITEM(res_pool.AutoRecycle), 0, ITEM_DEFAULT, 1},
+   {"autorecycle",     store_yesno, ITEM(res_pool.AutoRecycle), 1, ITEM_DEFAULT, 1},
+   {"recycle",         store_yesno, ITEM(res_pool.Recycle),     1, ITEM_DEFAULT, 1},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 

@@ -73,6 +73,9 @@ int do_verify(JCR *jcr)
    CLIENT_DBR cr;
 
    memset(&cr, 0, sizeof(cr));
+   cr.AutoPrune = jcr->client->AutoPrune;
+   cr.FileRetention = jcr->client->FileRetention;
+   cr.JobRetention = jcr->client->JobRetention;
    strcpy(cr.Name, jcr->client->hdr.name);
    if (jcr->client_name) {
       free(jcr->client_name);

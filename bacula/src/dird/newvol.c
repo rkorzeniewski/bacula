@@ -59,7 +59,8 @@ int newVolume(JCR *jcr)
          strcat(name, "%04d");
 	 sprintf(mr.VolumeName, name, ++pr.NumVols);
          strcpy(mr.VolStatus, "Append");
-         strcpy(mr.Recycle, "No");
+	 mr.Recycle = pr.Recycle;
+	 mr.VolRetention = pr.VolumeRetention;
 	 if (db_create_media_record(jcr->db, &mr) &&
 	    db_update_pool_record(jcr->db, &pr) == 1) {
             Dmsg1(90, "Created new Volume=%s\n", mr.VolumeName);

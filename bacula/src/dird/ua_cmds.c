@@ -241,7 +241,8 @@ getVolName:
 	   
    mr.PoolId = pr.PoolId;
    strcpy(mr.VolStatus, "Append");
-   strcpy(mr.Recycle, "No");
+   mr.Recycle = pr.Recycle;
+   mr.VolRetention = pr.VolumeRetention;
    for (i=startnum; i < num+startnum; i++) { 
       sprintf(mr.VolumeName, name, i);
       Dmsg1(200, "Create Volume %s\n", mr.VolumeName);
@@ -1028,8 +1029,9 @@ gotVol:
       return 1;
    }
    mr.PoolId = pr.PoolId;
-   strcpy(mr.Recycle, "Yes");
    strcpy(mr.VolStatus, "Append");
+   mr.Recycle = pr.Recycle;
+   mr.VolRetention = pr.VolumeRetention;
 
    ua->jcr->store = store;
    bsendmsg(ua, _("Connecting to Storage daemon %s at %s:%d ...\n"), 
@@ -1064,7 +1066,9 @@ gotVol:
 	    mr.VolumeName);
 	 if (ua->automount) {
             bsendmsg(ua, _("Requesting mount %s ...\n"), dev_name);
+	    bash_spaces(dev_name);
             bnet_fsend(sd, "mount %s", dev_name);
+	    unbash_spaces(dev_name);
 	    while (bnet_recv(sd) > 0) {
                bsendmsg(ua, "%s", sd->msg);
 	       /* Here we can get
@@ -1181,7 +1185,8 @@ static int usecmd(UAContext *ua, char *cmd)
 
 int quitcmd(UAContext *ua, char *cmd) 
 {
-   return 0;
+   ua->quit = TRUE;
+   return 1;
 }
 
 static int helpcmd(UAContext *ua, char *cmd)

@@ -38,6 +38,7 @@
 
 #include "bacula.h"
 #include "dird.h"
+#include "ua.h"
 
 /* Commands sent to File daemon */
 static char backupcmd[] = "backup\n";
@@ -79,6 +80,9 @@ int do_backup(JCR *jcr)
     */
    memset(&cr, 0, sizeof(cr));
    strcpy(cr.Name, jcr->client->hdr.name);
+   cr.AutoPrune = jcr->client->AutoPrune;
+   cr.FileRetention = jcr->client->FileRetention;
+   cr.JobRetention = jcr->client->JobRetention;
    if (jcr->client_name) {
       free(jcr->client_name);
    }

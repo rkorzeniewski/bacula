@@ -168,35 +168,6 @@ int showcmd(UAContext *ua, char *cmd)
 }
 
 
-/*
- * Callback routine for "printing" database file listing
- */
-void prtit(void *ctx, char *msg)
-{
-   UAContext *ua = (UAContext *)ctx;
- 
-   bnet_fsend(ua->UA_sock, "%s", msg);
-}
-
-/* Format message and send to other end */
-void bsendmsg(void *ctx, char *fmt, ...)
-{
-   va_list arg_ptr;
-   UAContext *ua = (UAContext *)ctx;
-   BSOCK *bs = ua->UA_sock;
-   int maxlen;
-
-again:
-   maxlen = sizeof_pool_memory(bs->msg) - 1;
-   va_start(arg_ptr, fmt);
-   bs->msglen = bvsnprintf(bs->msg, maxlen, fmt, arg_ptr);
-   va_end(arg_ptr);
-   if (bs->msglen < 0 || bs->msglen >= maxlen) {
-      bs->msg = (char *) realloc_pool_memory(bs->msg, maxlen + 200);
-      goto again;
-   }
-   bnet_send(bs);
-}
 
 
 /*
@@ -384,4 +355,55 @@ int messagescmd(UAContext *ua, char *cmd)
       bnet_fsend(ua->UA_sock, _("You have no messages.\n"));
    }
    return 1;
+}
+
+/*
+ * Callback routine for "printing" database file listing
+ */
+void prtit(void *ctx, char *msg)
+{
+   UAContext *ua = (UAContext *)ctx;
+ 
+   bnet_fsend(ua->UA_sock, "%s", msg);
+}
+
+/* 
+ * Format message and send to other end.  
+
+ * If the UA_sock is NULL, it means that there is no user
+ * agent, so we are being called from Bacula core. In
+ * that case direct the messages to the Job.
+ */
+void bsendmsg(void *ctx, char *fmt, ...)
+{
+   va_list arg_ptr;
+   UAContext *ua = (UAContext *)ctx;
+   BSOCK *bs = ua->UA_sock;
+   int maxlen, len;
+   char *msg;
+
+   if (bs) {
+      msg = bs->msg;
+   } else {
+      msg = (char *)get_pool_memory(PM_EMSG);
+   }
+
+again:
+   maxlen = sizeof_pool_memory(msg) - 1;
+   va_start(arg_ptr, fmt);
+   len = bvsnprintf(msg, maxlen, fmt, arg_ptr);
+   va_end(arg_ptr);
+   if (len < 0 || len >= maxlen) {
+      msg = (char *) realloc_pool_memory(msg, maxlen + 200);
+      goto again;
+   }
+
+   if (bs) {
+      bs->msglen = len;
+      bnet_send(bs);
+   } else {			      /* No UA, send to Job */
+      Jmsg(ua->jcr, M_INFO, 0, msg);
+      free_memory(msg);
+   }
+
 }

@@ -104,7 +104,8 @@ CREATE TABLE Media (
    VolCapacityBytes BIGINT UNSIGNED NOT NULL,
    VolStatus ENUM('Full', 'Archive', 'Append', 'Recycle', 'Purged',
     'Read-Only', 'Disabled', 'Error', 'Busy') NOT NULL,
-   Recycle ENUM('No', 'Yes') NOT NULL,
+   Recycle TINYINT NOT NULL,
+   VolRetention BIGINT UNSIGNED NOT NULL,
    PRIMARY KEY(MediaId),
    INDEX (PoolId)
    );
@@ -117,6 +118,9 @@ CREATE TABLE Pool (
    UseOnce TINYINT NOT NULL,
    UseCatalog TINYINT NOT NULL,
    AcceptAnyVolume TINYINT NOT NULL,
+   VolRetention BIGINT NOT NULL,
+   AutoRecycle TINYINT NOT NULL,
+   Recycle TINYINT NOT NULL,
    PoolType ENUM('Backup', 'Copy', 'Cloned', 'Archive', 'Migration') NOT NULL,
    LabelFormat TINYBLOB,
    UNIQUE (Name(128)),
@@ -128,9 +132,20 @@ CREATE TABLE Client (
    ClientId INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
    Name TINYBLOB NOT NULL,
    Uname TINYBLOB NOT NULL,	  /* full uname -a of client */
+   AutoPrune TINYINT NOT NULL,
+   FileRetention BIGINT NOT NULL,
+   JobRetention  BIGINT NOT NULL,
    UNIQUE (Name(128)),
    PRIMARY KEY(ClientId)
    );
+
+CREATE TABLE Version (
+   VersionId INTEGER UNSIGNED NOT NULL 
+   );
+
+-- Initialize Version		 
+INSERT INTO Version (VersionId) VALUES (1);
+
 
 ## Experimental
 #CREATE TABLE FileSave (

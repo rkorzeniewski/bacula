@@ -214,7 +214,8 @@ struct s_res_pool {
    int   accept_any_volume;           /* accept any volume */
    int   max_volumes;                 /* max number of volumes */
    btime_t VolumeRetention;           /* volume retention period in seconds */
-   int   AutoRecycle;                 /* auto recycle */
+   int   AutoRecycle;                 /* default for pool auto recycle */
+   int   Recycle;                     /* default for media recycle yes/no */
 };
 typedef struct s_res_pool POOL;
 

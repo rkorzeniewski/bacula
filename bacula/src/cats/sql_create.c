@@ -160,6 +160,7 @@ int
 db_create_pool_record(B_DB *mdb, POOL_DBR *pool_dbr)
 {
    int stat;
+   char ed1[30];
 
    P(mdb->mutex);
    Mmsg(&mdb->cmd, "SELECT PoolId,Name FROM Pool WHERE Name=\"%s\"", pool_dbr->Name);
@@ -181,12 +182,14 @@ db_create_pool_record(B_DB *mdb, POOL_DBR *pool_dbr)
    /* Must create it */
    Mmsg(&mdb->cmd, 
 "INSERT INTO Pool (Name, NumVols, MaxVols, UseOnce, UseCatalog, \
-AcceptAnyVolume, PoolType, LabelFormat) \
-VALUES (\"%s\", %d, %d, %d, %d, %d, \"%s\", \"%s\")", 
+AcceptAnyVolume, AutoRecycle, Recycle, VolumeRetention, PoolType, LabelFormat) \
+VALUES (\"%s\", %d, %d, %d, %d, %d, %d, %d, %s \"%s\", \"%s\")", 
 		  pool_dbr->Name,
 		  pool_dbr->NumVols, pool_dbr->MaxVols,
 		  pool_dbr->UseOnce, pool_dbr->UseCatalog,
 		  pool_dbr->AcceptAnyVolume,
+		  pool_dbr->AutoRecycle, pool_dbr->Recycle,
+		  edit_uint64(pool_dbr->VolumeRetention, ed1),
 		  pool_dbr->PoolType, pool_dbr->LabelFormat);
 
    if (!INSERT_DB(mdb, mdb->cmd)) {
@@ -213,7 +216,7 @@ int
 db_create_media_record(B_DB *mdb, MEDIA_DBR *mr)
 {
    int stat;
-   char ed1[30], ed2[30];
+   char ed1[30], ed2[30], ed3[30];
 
    P(mdb->mutex);
    Mmsg(&mdb->cmd, "SELECT MediaId FROM Media WHERE VolumeName=\"%s\"", 
@@ -234,12 +237,14 @@ db_create_media_record(B_DB *mdb, MEDIA_DBR *mr)
    /* Must create it */
    Mmsg(&mdb->cmd, 
 "INSERT INTO Media (VolumeName, MediaType, PoolId, VolMaxBytes, VolCapacityBytes, \
-VolStatus, Recycle) VALUES (\"%s\", \"%s\", %d, %s, %s, \"%s\", \"%s\")", 
+VolStatus, Recycle) VALUES (\"%s\", \"%s\", %d, %s, %s, %d, %s, \"%s\")", 
 		  mr->VolumeName,
 		  mr->MediaType, mr->PoolId, 
 		  edit_uint64(mr->VolMaxBytes,ed1),
 		  edit_uint64(mr->VolCapacityBytes, ed2),
-		  mr->VolStatus, mr->Recycle);
+		  mr->Recycle,
+		  edit_uint64(mr->VolRetention, ed3),
+		  mr->VolStatus);
 
    if (!INSERT_DB(mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create DB Media record %s failed. ERR=%s\n"),
@@ -264,6 +269,7 @@ int db_create_client_record(B_DB *mdb, CLIENT_DBR *cr)
 {
    SQL_ROW row;
    int stat;
+   char ed1[30], ed2[30];
 
    P(mdb->mutex);
    Mmsg(&mdb->cmd, "SELECT ClientId FROM Client WHERE Name=\"%s\"", cr->Name);
@@ -295,8 +301,11 @@ int db_create_client_record(B_DB *mdb, CLIENT_DBR *cr)
    }
 
    /* Must create it */
-   Mmsg(&mdb->cmd, "INSERT INTO Client (Name, Uname) VALUES \
-(\"%s\", \"%s\")", cr->Name, cr->Uname);
+   Mmsg(&mdb->cmd, "INSERT INTO Client (Name, Uname, AutoPrune, \
+FileRetention, JobRetention) VALUES \
+(\"%s\", \"%s\")", cr->Name, cr->Uname, cr->AutoPrune,
+      edit_uint64(cr->FileRetention, ed1),
+      edit_uint64(cr->JobRetention, ed2));
 
    if (!INSERT_DB(mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create DB Client record %s failed. ERR=%s\n"),

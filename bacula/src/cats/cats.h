@@ -171,7 +171,7 @@ typedef struct s_db {
 /* Change this each time there is some incompatible
  * file format change!!!!
  */
-#define BDB_VERSION 7                 /* file version number */
+#define BDB_VERSION 8                 /* file version number */
 
 struct s_control {
    int bdb_version;                   /* Version number */
@@ -238,7 +238,7 @@ typedef uint32_t JobId_t;
  */
 /* Job record */
 typedef struct {
-   uint32_t JobId;
+   JobId_t JobId;
    char Job[MAX_NAME_LENGTH];         /* Job unique name */
    char Name[MAX_NAME_LENGTH];        /* Job base name */
    int Type;                          /* actually char(1) */
@@ -250,6 +250,7 @@ typedef struct {
    time_t SchedTime;                  /* Time job scheduled */
    time_t StartTime;                  /* Job start time */
    time_t EndTime;                    /* Job termination time */
+   btime_t StartDay;                  /* Start time/date in seconds */
    uint32_t VolSessionId;
    uint32_t VolSessionTime;
    uint32_t JobFiles;
@@ -280,7 +281,7 @@ typedef struct {
 /* JobMedia record */
 typedef struct {
    uint32_t JobMediaId;               /* record id */
-   uint32_t JobId;                    /* JobId */
+   JobId_t  JobId;                    /* JobId */
    uint32_t MediaId;                  /* MediaId */
    uint32_t FirstIndex;               /* First index this Volume */
    uint32_t LastIndex;                /* Last index this Volume */
@@ -289,8 +290,6 @@ typedef struct {
    uint32_t StartBlock;               /* start block on tape */
    uint32_t EndBlock;                 /* last block */
 } JOBMEDIA_DBR;
-
-
 
 
 /* Attributes record -- NOT same as in database because
@@ -303,7 +302,7 @@ typedef struct {
    char *attr;                        /* attributes statp */
    uint32_t FileIndex;
    uint32_t Stream;
-   uint32_t JobId;
+   JobId_t  JobId;
    uint32_t ClientId;
    uint32_t PathId;
    uint32_t FilenameId;
@@ -315,7 +314,7 @@ typedef struct {
 typedef struct {
    FileId_t FileId;
    uint32_t FileIndex;
-   uint32_t JobId;
+   JobId_t  JobId;
    uint32_t FilenameId;
    uint32_t PathId;
    char LStat[256];
@@ -333,7 +332,8 @@ typedef struct {
    int UseCatalog;                    /* set to use catalog */
    int AcceptAnyVolume;               /* set to accept any volume sequence */
    int AutoRecycle;                   /* set to recycle automatically */
-   uint32_t VolumeRetention;          /* retention period in seconds */
+   int Recycle;                       /* default Vol recycle flag */
+   btime_t VolumeRetention;           /* retention period in seconds */
    char PoolType[MAX_NAME_LENGTH];             
    char LabelFormat[MAX_NAME_LENGTH];
    /* Extra stuff not in DB */
@@ -359,8 +359,9 @@ typedef struct {
    uint64_t VolBytes;                 /* Number of bytes written */
    uint64_t VolMaxBytes;              /* max bytes to write */
    uint64_t VolCapacityBytes;         /* capacity estimate */
+   btime_t  VolRetention;             /* Volume retention in seconds */
+   int Recycle;                       /* recycle yes/no */
    char VolStatus[20];                /* Volume status */
-   char Recycle[20];                  /* Recycle yes/no */
    /* Extra stuff not in DB */
    faddr_t rec_addr;                  /* found record address */
 } MEDIA_DBR;
@@ -368,6 +369,9 @@ typedef struct {
 /* Client record -- same as the database */
 typedef struct {
    uint32_t ClientId;                 /* Unique Client id */
+   int AutoPrune;
+   btime_t FileRetention;
+   btime_t JobRetention;
    char Name[MAX_NAME_LENGTH];        /* Client name */
    char Uname[256];                   /* Uname for client */
 } CLIENT_DBR;

@@ -90,7 +90,7 @@ static void *connect_thread(void *arg)
  */
 static void handle_UA_client_request(void *arg)
 {
-   int quit, stat;
+   int stat;
    static char cmd[1000];
    UAContext ua;
    BSOCK *UA_sock = (BSOCK *) arg;
@@ -99,6 +99,7 @@ static void handle_UA_client_request(void *arg)
 
    memset(&ua, 0, sizeof(ua));
    ua.automount = TRUE;
+   ua.verbose = TRUE;
    ua.jcr = new_jcr(sizeof(JCR), dird_free_jcr);
    close_msg(ua.jcr);                 /* we don't handle messages */
    ua.jcr->sd_auth_key = bstrdup("dummy"); /* dummy Storage daemon key */
@@ -115,19 +116,18 @@ static void handle_UA_client_request(void *arg)
       goto getout;
    }
 
-   quit = FALSE;
-   while (!quit) {
+   while (!ua.quit) {
       stat = bnet_recv(ua.UA_sock);
       if (stat > 0) {
 	 strncpy(cmd, ua.UA_sock->msg, sizeof(cmd));
 	 cmd[sizeof(cmd)-1] = 0;       /* ensure it is terminated/trucated */
 	 parse_command_args(&ua);
          if (ua.argc > 0 && ua.argk[0][0] == '.') {
-	    quit = !do_a_dot_command(&ua, cmd);
+	    do_a_dot_command(&ua, cmd);
 	 } else {
-	    quit = !do_a_command(&ua, cmd);
+	    do_a_command(&ua, cmd);
 	 }
-	 if (!quit) {
+	 if (!ua.quit) {
 	    if (ua.auto_display_messages) {
                strcpy(cmd, "messages");
 	       qmessagescmd(&ua, cmd);
@@ -140,7 +140,7 @@ static void handle_UA_client_request(void *arg)
 	 }
       } else if (stat == 0) {
 	 if (ua.UA_sock->msglen == BNET_TERMINATE) {
-	    quit = TRUE;
+	    ua.quit = TRUE;
 	    break;
 	 }
 	 bnet_sig(ua.UA_sock, BNET_POLL);

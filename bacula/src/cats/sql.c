@@ -46,6 +46,13 @@ void print_result(B_DB *mdb);
  *  calling subroutine sets and clears the mutex
  */
 
+/* Check that the tables conrrespond to the version we want */
+int check_tables_version(B_DB *mdb)
+{
+/*****FIXME***** implement */
+   return 1;
+}
+
 /* Utility routine for queries */
 int
 QueryDB(char *file, int line, B_DB *mdb, char *cmd)

@@ -42,7 +42,7 @@ CREATE TABLE Job (
    SchedTime DATETIME NOT NULL,
    StartTime DATETIME DEFAULT 0,
    EndTime DATETIME DEFAULT 0,
-   StartDay INTEGER UNSIGNED DEFAULT 0,
+   StartDay BIGINT UNSIGNED DEFAULT 0,
    VolSessionId INTEGER UNSIGNED DEFAULT 0,
    VolSessionTime INTEGER UNSIGNED DEFAULT 0,
    JobFiles INTEGER UNSIGNED DEFAULT 0,
@@ -93,7 +93,8 @@ CREATE TABLE Media (
    VolMaxBytes BIGINT UNSIGNED DEFAULT 0,
    VolCapacityBytes BIGINT UNSIGNED DEFAULT 0,
    VolStatus VARCHAR(20) NOT NULL,
-   Recycle VARCHAR(20) NOT NULL,
+   Recycle TINYINT NOT NULL,
+   VolRetention BIGINT UNSIGNED NOT NULL,
    PRIMARY KEY(MediaId)
    );
 
@@ -105,6 +106,9 @@ CREATE TABLE Pool (
    UseOnce TINYINT NOT NULL,
    UseCatalog TINYINT NOT NULL,
    AcceptAnyVolume TINYINT NOT NULL,
+   VolRetention BIGINT NOT NULL,
+   AutoRecycle TINYINT NOT NULL,
+   Recycle TINYINT NOT NULL,
    PoolType VARCHAR(20) NOT NULL,
    LabelFormat VARCHAR(128) NOT NULL,
    UNIQUE (Name),
@@ -116,6 +120,9 @@ CREATE TABLE Client (
    ClientId INTEGER UNSIGNED AUTOINCREMENT,
    Name VARCHAR(128) NOT NULL,
    Uname VARCHAR(255) NOT NULL,   -- uname -a field
+   AutoPrune TINYINT NOT NULL,
+   FileRetention BIGINT NOT NULL,
+   JobRetention  BIGINT NOT NULL,
    UNIQUE (Name),
    PRIMARY KEY(ClientId)
    );
@@ -128,6 +135,14 @@ CREATE TABLE NextId (
 
 -- Initialize JobId to start at 1
 INSERT INTO NextId (id, TableName) VALUES (1, "Job");
+
+CREATE TABLE Version (
+   VersionId INTEGER UNSIGNED NOT NULL 
+   );
+
+-- Initialize Version		 
+INSERT INTO Version (VersionId) VALUES (1);
+
 
 -- Experimental stuff below. Not used.
 -- Invariant part of File

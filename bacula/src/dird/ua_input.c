@@ -40,6 +40,9 @@ int get_cmd(UAContext *ua, char *prompt)
    BSOCK *sock = ua->UA_sock;
 
    ua->cmd[0] = 0;
+   if (!sock) { 		      /* No UA */
+      return 0;
+   }
    bnet_fsend(sock, "%s", prompt);
    bnet_sig(sock, BNET_PROMPT);       /* request more input */
    for ( ;; ) {

@@ -483,7 +483,8 @@ int do_prompt(UAContext *ua, char *msg, char *prompt)
       } else {
          sprintf(pmsg, "%s (1-%d): ", msg, ua->num_prompts-1);
       }
-      if (!get_cmd(ua, pmsg) || *ua->cmd == '.') {
+      /* Either a . or an @ will get you out of the loop */
+      if (!get_cmd(ua, pmsg) || *ua->cmd == '.' || *ua->cmd == '@') {
 	 item = -1;		      /* error */
 	 break;
       }

@@ -34,6 +34,7 @@ char *db_strerror(B_DB *mdb);
 int get_sql_record_max(B_DB *mdb);
 char *db_next_index(B_DB *mdb, char *table);
 int db_sql_query(B_DB *mdb, char *cmd, DB_RESULT_HANDLER *result_handler, void *ctx);
+int check_tables_version(B_DB *mdb);
 
 /* create.c */
 int db_create_file_attributes_record(B_DB *mdb, ATTR_DBR *ar);

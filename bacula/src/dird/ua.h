@@ -31,17 +31,19 @@ typedef struct s_ua_context {
    JCR *jcr;
    B_DB *db;
    CAT *catalog;
-   char *cmd;			      /* return command/name buffer */
-   char *args;			      /* command line arguments */
-   char *argk[MAX_ARGS];	      /* argument keywords */
-   char *argv[MAX_ARGS];	      /* argument values */
-   int argc;			      /* number of arguments */
-   char **prompt;		      /* list of prompts */
-   int max_prompts;		      /* max size of list */
-   int num_prompts;		      /* current number in list */
-   int auto_display_messages;	      /* if set, display messages */
+   char *cmd;                         /* return command/name buffer */
+   char *args;                        /* command line arguments */
+   char *argk[MAX_ARGS];              /* argument keywords */
+   char *argv[MAX_ARGS];              /* argument values */
+   int argc;                          /* number of arguments */
+   char **prompt;                     /* list of prompts */
+   int max_prompts;                   /* max size of list */
+   int num_prompts;                   /* current number in list */
+   int auto_display_messages;         /* if set, display messages */
    int user_notified_msg_pending;     /* set when user notified */
-   int automount;		      /* if set, mount after label */
+   int automount;                     /* if set, mount after label */
+   int quit;                          /* if set, quit */
+   int verbose;                       /* set for normal UA verbosity */
 } UAContext;
 
 /* ua_cmds.c */
@@ -73,7 +75,7 @@ int select_pool_and_media_dbr(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr);
 void   start_prompt(UAContext *ua, char *msg);
 void   add_prompt(UAContext *ua, char *prompt);
 int    do_prompt(UAContext *ua, char *msg, char *prompt);
-CAT   *get_catalog_resource(UAContext *ua);	      
+CAT   *get_catalog_resource(UAContext *ua);           
 STORE *get_storage_resource(UAContext *ua, char *cmd);
 int    get_media_type(UAContext *ua, char *MediaType);
 int    get_pool_dbr(UAContext *ua, POOL_DBR *pr);

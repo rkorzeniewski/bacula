@@ -273,11 +273,11 @@ int db_get_job_record(B_DB *mdb, JOB_DBR *jr)
    P(mdb->mutex);
    if (jr->JobId == 0) {
       Mmsg(&mdb->cmd, "SELECT VolSessionId, VolSessionTime, \
-PoolId, StartTime, EndTime, JobFiles, JobBytes, Job \
+PoolId, StartTime, EndTime, JobFiles, JobBytes, StartDay, Job \
 FROM Job WHERE Job=\"%s\"", jr->Job);
     } else {
       Mmsg(&mdb->cmd, "SELECT VolSessionId, VolSessionTime, \
-PoolId, StartTime, EndTime, JobFiles, JobBytes, Job \
+PoolId, StartTime, EndTime, JobFiles, JobBytes, StartDay, Job \
 FROM Job WHERE JobId=%d", jr->JobId);
     }
 
@@ -299,7 +299,8 @@ FROM Job WHERE JobId=%d", jr->JobId);
    strcpy(jr->cEndTime, row[4]);
    jr->JobFiles = atol(row[5]);
    jr->JobBytes = (uint64_t)strtod(row[6], NULL);
-   strcpy(jr->Job, row[7]);
+   jr->StartDay = (btime_t)strtod(row[7], NULL);
+   strcpy(jr->Job, row[8]);
    sql_free_result(mdb);
 
    V(mdb->mutex);

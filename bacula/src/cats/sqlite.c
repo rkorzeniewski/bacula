@@ -137,6 +137,11 @@ db_open_database(B_DB *mdb)
       return 0;
    }
    free(db_name);
+   if (!check_tables_version(mdb)) {
+      V(mutex);
+      return 0;
+   }
+
    mdb->connected = TRUE;
    V(mutex);
    return 1;

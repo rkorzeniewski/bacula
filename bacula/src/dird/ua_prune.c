@@ -34,6 +34,7 @@
 int prune_files(UAContext *ua, CLIENT *client);
 int prune_jobs(UAContext *ua, CLIENT *client);
 int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr);
+static int mark_media_purged(UAContext *ua, MEDIA_DBR *mr);
 
 
 #define MAX_DEL_LIST_LEN 1000000
@@ -184,6 +185,10 @@ static int file_delete_handler(void *ctx, int num_fields, char **row)
 
 /*
  *   Prune records from database
+ *
+ *    prune files (from) client=xxx
+ *    prune jobs (from) client=xxx
+ *    prune volume=xxx	
  */
 int prunecmd(UAContext *ua, char *cmd)
 {
@@ -262,6 +267,7 @@ int prune_files(UAContext *ua, CLIENT *client)
    char ed1[50];
 
    memset(&cr, 0, sizeof(cr));
+   memset(&del, 0, sizeof(del));
    strcpy(cr.Name, client->hdr.name);
    if (!db_create_client_record(ua->db, &cr)) {
       return 0;
@@ -273,12 +279,6 @@ int prune_files(UAContext *ua, CLIENT *client)
    today = (uint64_t)(date_encode(tm.tm_year+1900, tm.tm_mon+1, tm.tm_mday) -
        date_encode(2000, 1, 1));
        
-   del.JobId = NULL;
-   del.num_ids = 0;
-   del.tot_ids = 0;
-   del.num_del = 0;
-   del.max_ids = 0;
-
    Dmsg3(100, "Today=%d period=%d period=%d\n", (uint32_t)today, (uint32_t)period,          
       (uint32_t)(period/(3600*24)));
 
@@ -375,12 +375,13 @@ int prune_jobs(UAContext *ua, CLIENT *client)
    char *query = (char *)get_pool_memory(PM_MESSAGE);
    int i;
    struct tm tm;
-   uint64_t today, period;
+   btime_t today, period;
    time_t now;
    CLIENT_DBR cr;
    char ed1[50];
 
    memset(&cr, 0, sizeof(cr));
+   memset(&del, 0, sizeof(del));
    strcpy(cr.Name, client->hdr.name);
    if (!db_create_client_record(ua->db, &cr)) {
       return 0;
@@ -389,15 +390,9 @@ int prune_jobs(UAContext *ua, CLIENT *client)
    period = client->JobRetention;
    now = time(NULL);
    localtime_r(&now, &tm);
-   today = (uint64_t)(date_encode(tm.tm_year+1900, tm.tm_mon+1, tm.tm_mday) -
+   today = (btime_t)(date_encode(tm.tm_year+1900, tm.tm_mon+1, tm.tm_mday) -
        date_encode(2000, 1, 1));
        
-
-   del.JobId = NULL;
-   del.num_ids = 0;
-   del.tot_ids = 0;
-   del.num_del = 0;
-   del.max_ids = 0;
 
    Dmsg3(050, "Today=%d period=%d period=%d\n", (uint32_t)today, (uint32_t)period,          
       (uint32_t)(period/(3600*24)));
@@ -493,7 +488,16 @@ int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
 {
    char *query = (char *)get_pool_memory(PM_MESSAGE);
    struct s_count_ctx cnt;
+   struct s_file_del_ctx del;
+   int i;
+   JOB_DBR jr;
+   struct tm tm;
+   btime_t today, period;
+   time_t now;
 
+   memset(&jr, 0, sizeof(jr));
+   memset(&del, 0, sizeof(del));
+   cnt.count = 0;
    Mmsg(&query, "SELECT count(*) FROM JobMedia WHERE MediaId=%d", mr->MediaId);
    if (!db_sql_query(ua->db, query, count_handler, (void *)&cnt)) {
       bsendmsg(ua, "%s", db_strerror(ua->db));
@@ -504,11 +508,81 @@ int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
    if (cnt.count == 0) {
       bsendmsg(ua, "There are no Jobs associated with Volume %s. It is purged.\n",
 	 mr->VolumeName);
-   } else {
-      bsendmsg(ua, "There are still %d Jobs on Volume %s. It is not purged.\n",
-	 cnt.count, mr->VolumeName);
+      if (!mark_media_purged(ua, mr)) {
+	 goto bail_out;
+      }
+      goto bail_out;
    }
+
+   if (cnt.count < MAX_DEL_LIST_LEN) {
+      del.max_ids = cnt.count + 1;
+   } else {
+      del.max_ids = MAX_DEL_LIST_LEN; 
+   }
+
+   del.JobId = (JobId_t *)malloc(sizeof(JobId_t) * del.max_ids);
+
+   Mmsg(&query, "SELECT JobId FROM JobMedia WHERE MediaId=%d", mr->MediaId);
+   if (!db_sql_query(ua->db, query, file_delete_handler, (void *)&del)) {
+      bsendmsg(ua, "%s", db_strerror(ua->db));
+      Dmsg0(050, "Count failed\n");
+      goto bail_out;
+   }
+
+   /* Use Volume Retention to purge Jobs and Files */
+   period = mr->VolRetention;
+   period = 30 * 3600 *24;    /* ****FIXME***** remove */
+   now = time(NULL);
+   localtime_r(&now, &tm);
+   today = (btime_t)(date_encode(tm.tm_year+1900, tm.tm_mon+1, tm.tm_mday) -
+       date_encode(2000, 1, 1));
+
+   Dmsg3(050, "Today=%d period=%d period=%d\n", (uint32_t)today, (uint32_t)period,          
+      (uint32_t)(period/(3600*24)));
+
+   for (i=0; i < del.num_ids; i++) {
+      jr.JobId = del.JobId[i];
+      if (!db_get_job_record(ua->db, &jr)) {
+	 continue;
+      }
+      if (jr.StartDay >= (today - period/(3600*24))) {
+	 continue;
+      }
+      Dmsg1(050, "Delete JobId=%d\n", del.JobId[i]);
+      Mmsg(&query, "DELETE FROM File WHERE JobId=%d", del.JobId[i]);
+      db_sql_query(ua->db, query, NULL, (void *)NULL);
+      Mmsg(&query, "DELETE FROM Job WHERE JobId=%d", del.JobId[i]);
+      db_sql_query(ua->db, query, NULL, (void *)NULL);
+      Mmsg(&query, "DELETE FROM JobMedia WHERE JobId=%d", del.JobId[i]);
+      db_sql_query(ua->db, query, NULL, (void *)NULL);
+      Dmsg1(050, "Del sql=%s\n", query);
+      del.num_del++;
+   }
+   if (del.JobId) {
+      free(del.JobId);
+   }
+   bsendmsg(ua, _("%d Jobs on Volume %s pruned from catalog.\n"), del.num_del,
+      mr->VolumeName);
+
+   /* If purged, mark it so */
+   if (del.num_ids == del.num_del) {
+      mark_media_purged(ua, mr);
+   }
+
 bail_out:   
    free_pool_memory(query);
+   return 1;
+}
+
+static int mark_media_purged(UAContext *ua, MEDIA_DBR *mr)
+{
+   if (strcmp(mr->VolStatus, "Append") == 0 || 
+       strcmp(mr->VolStatus, "Full")   == 0) {
+      strcpy(mr->VolStatus, "Purged");
+      if (!db_update_media_record(ua->db, mr)) {
+         bsendmsg(ua, "%s", db_strerror(ua->db));
+	 return 0;
+      }
+   }
    return 1;
 }
