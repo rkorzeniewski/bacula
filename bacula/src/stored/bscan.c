@@ -91,7 +91,7 @@ static bool list_records = false;
 static int ignored_msgs = 0;
 
 static uint64_t currentVolumeSize;
-static int64_t last_pct = -1;
+static int last_pct = -1;
 static bool showProgress = false;
 static int num_jobs = 0;
 static int num_pools = 0;
@@ -120,6 +120,7 @@ static void usage()
 "       -p                proceed inspite of I/O errors\n"
 "       -r                list records\n"
 "       -s                synchronize or store in database\n"
+"       -S                show scan progress periodically\n"
 "       -v                verbose\n"
 "       -V <Volumes>      specify Volume names (separated by |)\n"
 "       -w <dir>          specify working directory (default from conf file)\n"
@@ -256,10 +257,12 @@ int main (int argc, char *argv[])
    }
    dev = bjcr->dcr->dev;
    if (showProgress) {
+      char ed1[50];
       struct stat sb;
       fstat(dev->fd, &sb);
       currentVolumeSize = sb.st_size;
-      Pmsg1(000, _("Current Volume Size = %" llu "\n"), currentVolumeSize);
+      Pmsg1(000, _("First Volume Size = %sn"), 
+	 edit_uint64(currentVolumeSize, ed1));
    }
 
    if ((db=db_init_database(NULL, db_name, db_user, db_password,
@@ -321,10 +324,12 @@ static bool bscan_mount_next_read_volume(DCR *dcr)
    bool stat = mount_next_read_volume(dcr);
 
    if (showProgress) {
+      char ed1[50];
       struct stat sb;
       fstat(dev->fd, &sb);
       currentVolumeSize = sb.st_size;
-      Pmsg1(000, _("Current Volume Size = %" llu "\n"), currentVolumeSize);
+      Pmsg1(000, _("First Volume Size = %sn"), 
+	 edit_uint64(currentVolumeSize, ed1));
    }
    return stat;
 }
@@ -362,9 +367,10 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    if (rec->data_len > 0) {
       mr.VolBytes += rec->data_len + WRITE_RECHDR_LENGTH; /* Accumulate Volume bytes */
       if (showProgress) {
-	 int64_t pct = (mr.VolBytes * 100) / currentVolumeSize;
+	 char ed1[50];
+	 int pct = (mr.VolBytes * 100) / currentVolumeSize;
 	 if (pct != last_pct) {
-            fprintf(stdout, "done: %" lld "\n", pct);
+            fprintf(stdout, "done: %d%%\n", pct);
 	    fflush(stdout);
 	    last_pct = pct;
 	 }
@@ -1180,7 +1186,6 @@ static JCR *create_jcr(JOB_DBR *jr, DEV_RECORD *rec, uint32_t JobId)
    jobjcr->VolSessionId = rec->VolSessionId;
    jobjcr->VolSessionTime = rec->VolSessionTime;
    jobjcr->ClientId = jr->ClientId;
-// attach_jcr_to_device(dev, jobjcr);
    new_dcr(jobjcr, dev);
    return jobjcr;
 }
