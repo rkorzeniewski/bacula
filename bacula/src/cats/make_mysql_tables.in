@@ -135,8 +135,11 @@ CREATE TABLE Pool (
    MaxVolBytes BIGINT UNSIGNED NOT NULL,
    AutoPrune TINYINT DEFAULT 0,
    Recycle TINYINT DEFAULT 0,
-   PoolType ENUM('Backup', 'Copy', 'Cloned', 'Archive', 'Migration') NOT NULL,
+   PoolType ENUM('Backup', 'Copy', 'Cloned', 'Archive', 'Migration', 'Scratch') NOT NULL,
    LabelFormat TINYBLOB,
+   Enabled TINYINT DEFAULT 1,
+   ScratchPoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
+   RecyclePoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
    UNIQUE (Name(128)),
    PRIMARY KEY (PoolId)
    );

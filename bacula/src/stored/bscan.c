@@ -720,7 +720,8 @@ static int create_media_record(B_DB *db, MEDIA_DBR *mr, VOLUME_LABEL *vl)
    struct date_time dt;
    struct tm tm;
 
-   bstrncpy(mr->VolStatus, "Full", sizeof(mr->VolStatus));
+   /* We mark Vols as Archive to keep them from being re-written */
+   bstrncpy(mr->VolStatus, "Archive", sizeof(mr->VolStatus));
    mr->VolRetention = 365 * 3600 * 24; /* 1 year */
    if (vl->VerNum >= 11) {
       mr->FirstWritten = btime_to_utime(vl->write_btime);
