@@ -202,18 +202,25 @@ open_dev(DEVICE *dev, char *VolName, int mode)
 	 dev->dev_name, dev->VolCatInfo.VolCatName);
    dev->state &= ~(ST_LABEL|ST_APPEND|ST_READ|ST_EOT|ST_WEOT|ST_EOF);
    if (dev->state & ST_TAPE) {
+      int timeout;
       Dmsg0(29, "open_dev: device is tape\n");
       if (mode == READ_WRITE) {
 	 dev->mode = O_RDWR | O_BINARY;
       } else {
 	 dev->mode = O_RDONLY | O_BINARY;
       }
-      if ((dev->fd = open(dev->dev_name, dev->mode, MODE_RW)) < 0) {
+      timeout = dev->max_open_wait;
+      while ((dev->fd = open(dev->dev_name, dev->mode, MODE_RW)) < 0) {
+	 if (errno == EBUSY && timeout-- > 0) {
+	    sleep(1);
+	    continue;
+	 }
 	 dev->dev_errno = errno;
          Mmsg2(&dev->errmsg, _("stored: unable to open device %s: ERR=%s\n"), 
 	       dev->dev_name, strerror(dev->dev_errno));
 	 Emsg0(M_FATAL, 0, dev->errmsg);
-      } else {
+      }
+      if (dev->fd < 0) {
 	 dev->dev_errno = 0;
 	 dev->state |= ST_OPENED;
 	 dev->use_count++;
@@ -221,6 +228,9 @@ open_dev(DEVICE *dev, char *VolName, int mode)
       }
       Dmsg1(29, "open_dev: tape %d opened\n", dev->fd);
    } else {
+      /*
+       * Handle opening of file
+       */
       archive_name = get_pool_memory(PM_FNAME);
       strcpy(archive_name, dev->dev_name);
       if (archive_name[strlen(archive_name)] != '/') {

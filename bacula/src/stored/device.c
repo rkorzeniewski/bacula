@@ -314,7 +314,7 @@ mount_next_vol:
       Dmsg1(100, "Want changer slot=%d\n", slot);
 
       if (slot > 0 && jcr->device->changer_name && jcr->device->changer_command) {
-	 uint32_t timeout = jcr->device->changer_timeout;
+	 uint32_t timeout = jcr->device->max_changer_wait;
 	 POOLMEM *changer, *results;
 	 int status, loaded;
 

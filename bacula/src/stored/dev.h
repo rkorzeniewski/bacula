@@ -134,6 +134,7 @@ typedef struct s_device {
    uint64_t max_file_size;            /* max file size to put in one file on volume */
    uint64_t volume_capacity;          /* advisory capacity */
    uint32_t max_rewind_wait;          /* max secs to allow for rewind */
+   uint32_t max_open_wait;            /* max secs to allow for open */
    void *device;                      /* pointer to Device Resource */
 
    VOLUME_CAT_INFO VolCatInfo;        /* Volume Catalog Information */
