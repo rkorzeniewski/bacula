@@ -308,7 +308,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS BUILD_DIR TRUEPRG FALSEPRG build build_cpu build_vendor build_os host host_cpu host_vendor host_os VERSION DATE LSMDATE CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX CPP EGREP INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB MV RM CP SED AWK ECHO CMP TBL AR OPENSSL MTX PKGCONFIG ARFLAGS MAKE_SHELL LOCAL_LIBS LOCAL_CFLAGS LOCAL_LDFLAGS LOCAL_DEFS HAVE_SUN_OS_TRUE HAVE_SUN_OS_FALSE HAVE_OSF1_OS_TRUE HAVE_OSF1_OS_FALSE HAVE_AIX_OS_TRUE HAVE_AIX_OS_FALSE HAVE_HPUX_OS_TRUE HAVE_HPUX_OS_FALSE HAVE_LINUX_OS_TRUE HAVE_LINUX_OS_FALSE HAVE_FREEBSD_OS_TRUE HAVE_FREEBSD_OS_FALSE HAVE_NETBSD_OS_TRUE HAVE_NETBSD_OS_FALSE HAVE_OPENBSD_OS_TRUE HAVE_OPENBSD_OS_FALSE HAVE_BSDI_OS_TRUE HAVE_BSDI_OS_FALSE HAVE_SGI_OS_TRUE HAVE_SGI_OS_FALSE HAVE_IRIX_OS_TRUE HAVE_IRIX_OS_FALSE HAVE_DARWIN_OS_TRUE HAVE_DARWIN_OS_FALSE INSIDE_GNOME_COMMON_TRUE INSIDE_GNOME_COMMON_FALSE MSGFMT GNOME_INCLUDEDIR GNOMEUI_LIBS GNOME_LIBDIR GNOME_LIBS GNOMEGNORBA_LIBS GTKXMHTML_LIBS ZVT_LIBS GNOME_CONFIG ORBIT_CONFIG ORBIT_IDL HAVE_ORBIT_TRUE HAVE_ORBIT_FALSE ORBIT_CFLAGS ORBIT_LIBS HAVE_GNORBA_TRUE HAVE_GNORBA_FALSE GNORBA_CFLAGS GNORBA_LIBS GNOME_APPLETS_LIBS GNOME_DOCKLETS_LIBS GNOME_CAPPLET_LIBS GNOME_DIR TTOOL_LDFLAGS STATIC_FD STATIC_SD STATIC_DIR STATIC_CONS STATIC_GNOME_CONS ALL_DIRS CONS_INC CONS_OBJ CONS_SRC CONS_LIBS CONS_LDFLAGS READLINE_SRC working_dir scriptdir dump_email job_email smtp_host piddir subsysdir baseport dir_port fd_port sd_port dir_password fd_password sd_password dir_user dir_group sd_user sd_group fd_user fd_group SQL_LFLAGS SQL_INCLUDE SQL_BINDIR cats DB_NAME GETCONF ac_ct_GETCONF X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS LIBOBJS ALLOCA FDLIBS DEBUG DINCLUDE DLIB DB_LIBS WCFLAGS WLDFLAGS OBJLIST hostname TAPEDRIVE PSCMD WIN32 DISTNAME DISTVER LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS BUILD_DIR TRUEPRG FALSEPRG VERSION DATE LSMDATE CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX CPP EGREP INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB MV RM CP SED AWK ECHO CMP TBL AR OPENSSL MTX PKGCONFIG WXCONFIG ARFLAGS MAKE_SHELL LOCAL_LIBS LOCAL_CFLAGS LOCAL_LDFLAGS LOCAL_DEFS build build_cpu build_vendor build_os host host_cpu host_vendor host_os HAVE_SUN_OS_TRUE HAVE_SUN_OS_FALSE HAVE_OSF1_OS_TRUE HAVE_OSF1_OS_FALSE HAVE_AIX_OS_TRUE HAVE_AIX_OS_FALSE HAVE_HPUX_OS_TRUE HAVE_HPUX_OS_FALSE HAVE_LINUX_OS_TRUE HAVE_LINUX_OS_FALSE HAVE_FREEBSD_OS_TRUE HAVE_FREEBSD_OS_FALSE HAVE_NETBSD_OS_TRUE HAVE_NETBSD_OS_FALSE HAVE_OPENBSD_OS_TRUE HAVE_OPENBSD_OS_FALSE HAVE_BSDI_OS_TRUE HAVE_BSDI_OS_FALSE HAVE_SGI_OS_TRUE HAVE_SGI_OS_FALSE HAVE_IRIX_OS_TRUE HAVE_IRIX_OS_FALSE HAVE_DARWIN_OS_TRUE HAVE_DARWIN_OS_FALSE INSIDE_GNOME_COMMON_TRUE INSIDE_GNOME_COMMON_FALSE MSGFMT GNOME_INCLUDEDIR GNOMEUI_LIBS GNOME_LIBDIR GNOME_LIBS GNOMEGNORBA_LIBS GTKXMHTML_LIBS ZVT_LIBS GNOME_CONFIG ORBIT_CONFIG ORBIT_IDL HAVE_ORBIT_TRUE HAVE_ORBIT_FALSE ORBIT_CFLAGS ORBIT_LIBS HAVE_GNORBA_TRUE HAVE_GNORBA_FALSE GNORBA_CFLAGS GNORBA_LIBS GNOME_APPLETS_LIBS GNOME_DOCKLETS_LIBS GNOME_CAPPLET_LIBS GNOME_DIR WXCONS_CPPFLAGS WXCONS_LDFLAGS WX_DIR TTOOL_LDFLAGS STATIC_FD STATIC_SD STATIC_DIR STATIC_CONS STATIC_GNOME_CONS STATIC_WX_CONS ALL_DIRS CONS_INC CONS_OBJ CONS_SRC CONS_LIBS CONS_LDFLAGS READLINE_SRC working_dir scriptdir dump_email job_email smtp_host piddir subsysdir baseport dir_port fd_port sd_port dir_password fd_password sd_password dir_user dir_group sd_user sd_group fd_user fd_group SQL_LFLAGS SQL_INCLUDE SQL_BINDIR cats DB_NAME GETCONF ac_ct_GETCONF X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS LIBOBJS ALLOCA FDLIBS DEBUG DINCLUDE DLIB DB_LIBS WCFLAGS WLDFLAGS OBJLIST hostname TAPEDRIVE PSCMD WIN32 DISTNAME DISTVER LTLIBOBJS'
 ac_subst_files='MCOMMON'
 
 # Initialize some variables set by options.
@@ -856,6 +856,7 @@ Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-gnome	  enable build of gnome-console GUI disabled
+  --enable-wx-console      enable build of wxWidgets console disabled
   --enable-smartalloc     enable smartalloc debugging support disabled
   --enable-static-tools   enable static tape tools disabled
   --enable-static-fd      enable static File daemon disabled
@@ -1454,60 +1455,7 @@ done
 test -n "$FALSEPRG" || FALSEPRG=":"
 
 
-# Make sure we can run config.sub.
-$ac_config_sub sun4 >/dev/null 2>&1 ||
-  { { echo "$as_me:$LINENO: error: cannot run $ac_config_sub" >&5
-echo "$as_me: error: cannot run $ac_config_sub" >&2;}
-   { (exit 1); exit 1; }; }
-
-echo "$as_me:$LINENO: checking build system type" >&5
-echo $ECHO_N "checking build system type... $ECHO_C" >&6
-if test "${ac_cv_build+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  ac_cv_build_alias=$build_alias
-test -z "$ac_cv_build_alias" &&
-  ac_cv_build_alias=`$ac_config_guess`
-test -z "$ac_cv_build_alias" &&
-  { { echo "$as_me:$LINENO: error: cannot guess build type; you must specify one" >&5
-echo "$as_me: error: cannot guess build type; you must specify one" >&2;}
-   { (exit 1); exit 1; }; }
-ac_cv_build=`$ac_config_sub $ac_cv_build_alias` ||
-  { { echo "$as_me:$LINENO: error: $ac_config_sub $ac_cv_build_alias failed" >&5
-echo "$as_me: error: $ac_config_sub $ac_cv_build_alias failed" >&2;}
-   { (exit 1); exit 1; }; }
-
-fi
-echo "$as_me:$LINENO: result: $ac_cv_build" >&5
-echo "${ECHO_T}$ac_cv_build" >&6
-build=$ac_cv_build
-build_cpu=`echo $ac_cv_build | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\1/'`
-build_vendor=`echo $ac_cv_build | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\2/'`
-build_os=`echo $ac_cv_build | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\3/'`
-
-
-echo "$as_me:$LINENO: checking host system type" >&5
-echo $ECHO_N "checking host system type... $ECHO_C" >&6
-if test "${ac_cv_host+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  ac_cv_host_alias=$host_alias
-test -z "$ac_cv_host_alias" &&
-  ac_cv_host_alias=$ac_cv_build_alias
-ac_cv_host=`$ac_config_sub $ac_cv_host_alias` ||
-  { { echo "$as_me:$LINENO: error: $ac_config_sub $ac_cv_host_alias failed" >&5
-echo "$as_me: error: $ac_config_sub $ac_cv_host_alias failed" >&2;}
-   { (exit 1); exit 1; }; }
-
-fi
-echo "$as_me:$LINENO: result: $ac_cv_host" >&5
-echo "${ECHO_T}$ac_cv_host" >&6
-host=$ac_cv_host
-host_cpu=`echo $ac_cv_host | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\1/'`
-host_vendor=`echo $ac_cv_host | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\2/'`
-host_os=`echo $ac_cv_host | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\3/'`
-
-
+#AC_CANONICAL_HOST
 
 VERSION=`sed -n -e 's/^.*VERSION.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
 DATE=`sed -n -e 's/^.* \t*BDATE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
@@ -3782,6 +3730,46 @@ else
 echo "${ECHO_T}no" >&6
 fi
 
+# Extract the first word of "wx-config", so it can be a program name with args.
+set dummy wx-config; ac_word=$2
+echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
+if test "${ac_cv_path_WXCONFIG+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  case $WXCONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_WXCONFIG="$WXCONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_WXCONFIG="$as_dir/$ac_word$ac_exec_ext"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+
+  test -z "$ac_cv_path_WXCONFIG" && ac_cv_path_WXCONFIG="wx-config"
+  ;;
+esac
+fi
+WXCONFIG=$ac_cv_path_WXCONFIG
+
+if test -n "$WXCONFIG"; then
+  echo "$as_me:$LINENO: result: $WXCONFIG" >&5
+echo "${ECHO_T}$WXCONFIG" >&6
+else
+  echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+fi
+
 
 test -n "$ARFLAG" || ARFLAGS="cr"
 
@@ -3796,8 +3784,61 @@ MAKE_SHELL=/bin/sh
 
 
 
+# Make sure we can run config.sub.
+$ac_config_sub sun4 >/dev/null 2>&1 ||
+  { { echo "$as_me:$LINENO: error: cannot run $ac_config_sub" >&5
+echo "$as_me: error: cannot run $ac_config_sub" >&2;}
+   { (exit 1); exit 1; }; }
+
+echo "$as_me:$LINENO: checking build system type" >&5
+echo $ECHO_N "checking build system type... $ECHO_C" >&6
+if test "${ac_cv_build+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_cv_build_alias=$build_alias
+test -z "$ac_cv_build_alias" &&
+  ac_cv_build_alias=`$ac_config_guess`
+test -z "$ac_cv_build_alias" &&
+  { { echo "$as_me:$LINENO: error: cannot guess build type; you must specify one" >&5
+echo "$as_me: error: cannot guess build type; you must specify one" >&2;}
+   { (exit 1); exit 1; }; }
+ac_cv_build=`$ac_config_sub $ac_cv_build_alias` ||
+  { { echo "$as_me:$LINENO: error: $ac_config_sub $ac_cv_build_alias failed" >&5
+echo "$as_me: error: $ac_config_sub $ac_cv_build_alias failed" >&2;}
+   { (exit 1); exit 1; }; }
+
+fi
+echo "$as_me:$LINENO: result: $ac_cv_build" >&5
+echo "${ECHO_T}$ac_cv_build" >&6
+build=$ac_cv_build
+build_cpu=`echo $ac_cv_build | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\1/'`
+build_vendor=`echo $ac_cv_build | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\2/'`
+build_os=`echo $ac_cv_build | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\3/'`
+
+
 echo "$as_me:$LINENO: checking for Operating System" >&5
 echo $ECHO_N "checking for Operating System... $ECHO_C" >&6
+echo "$as_me:$LINENO: checking host system type" >&5
+echo $ECHO_N "checking host system type... $ECHO_C" >&6
+if test "${ac_cv_host+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_cv_host_alias=$host_alias
+test -z "$ac_cv_host_alias" &&
+  ac_cv_host_alias=$ac_cv_build_alias
+ac_cv_host=`$ac_config_sub $ac_cv_host_alias` ||
+  { { echo "$as_me:$LINENO: error: $ac_config_sub $ac_cv_host_alias failed" >&5
+echo "$as_me: error: $ac_config_sub $ac_cv_host_alias failed" >&2;}
+   { (exit 1); exit 1; }; }
+
+fi
+echo "$as_me:$LINENO: result: $ac_cv_host" >&5
+echo "${ECHO_T}$ac_cv_host" >&6
+host=$ac_cv_host
+host_cpu=`echo $ac_cv_host | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\1/'`
+host_vendor=`echo $ac_cv_host | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\2/'`
+host_os=`echo $ac_cv_host | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\3/'`
+
 
 case $host_os in
   *cygwin* ) CYGWIN=yes;;
@@ -4322,6 +4363,7 @@ support_smartalloc=yes
 support_readline=yes
 support_conio=yes
 support_gnome=no
+support_wx_console=no
 gnome_version=
 support_static_tools=no
 support_static_fd=no
@@ -4350,10 +4392,10 @@ if test x$support_gnome = xyes; then
   abc=`$PKGCONFIG --exists libgnomeui-2.0`
   pkg=$?
   if test $pkg = 0; then
-     GNOME_INCLUDEDIR=`pkg-config --cflags-only-I libgnomeui-2.0`
-     GNOMEUI_LIBS=`pkg-config --libs-only-l libgnomeui-2.0`
-     GNOME_LIBDIR=`pkg-config --libs libgnomeui-2.0`
-     GNOME_LIBS=`pkg-config --libs-only-l libgnomeui-2.0`
+     GNOME_INCLUDEDIR=`$PKGCONFIG --cflags-only-I libgnomeui-2.0`
+     GNOMEUI_LIBS=`$PKGCONFIG --libs-only-l libgnomeui-2.0`
+     GNOME_LIBDIR=`$PKGCONFIG --libs libgnomeui-2.0`
+     GNOME_LIBS=`$PKGCONFIG --libs-only-l libgnomeui-2.0`
 
 
 
@@ -4708,6 +4750,38 @@ fi
 
 
 # -------------------------------------------
+# wx-console (default off)
+# -------------------------------------------
+# Check whether --enable-wx-console or --disable-wx-console was given.
+if test "${enable_wx_console+set}" = set; then
+  enableval="$enable_wx_console"
+  if test x$enableval = xyes; then
+    support_wx_console=yes
+  fi
+fi;
+
+WX_DIR=
+if test x$support_wx_console = xyes; then
+  abc=`$WXCONFIG --cppflags`
+  pkg=$?
+  if test $pkg = 0; then
+     WXCONS_CPPFLAGS=`$WXCONFIG --cppflags`
+     WXCONS_LDFLAGS=`$WXCONFIG --libs`
+
+
+     WX_DIR=src/wx-console
+  else
+     echo " "
+     echo "wx-config program not found. wx-console disabled."
+     echo " "
+     support_wx_console=no
+  fi
+fi
+
+
+
+
+# -------------------------------------------
 # smartalloc (default off)
 # -------------------------------------------
 # Check whether --enable-smartalloc or --disable-smartalloc was given.
@@ -4806,10 +4880,13 @@ fi;
 
 STATIC_CONS=
 STATIC_GNOME_CONS=
+STATIC_WX_CONS=
 if test x$support_static_cons = xyes; then
    STATIC_CONS="static-bconsole"
    STATIC_GNOME_CONS="static-gnome-console"
+   STATIC_WX_CONS="static-wx-console"
 fi
+
 
 
 
@@ -18109,7 +18186,7 @@ if test "x${subsysdir}" = "x${sbindir}" ; then
    exit 1
 fi
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  ac_config_files="$ac_config_files autoconf/Make.common Makefile rescue/Makefile rescue/linux/Makefile rescue/freebsd/Makefile rescue/solaris/Makefile scripts/startmysql scripts/stopmysql scripts/btraceback scripts/startit scripts/stopit scripts/bconsole scripts/gconsole scripts/bacula scripts/devel_bacula scripts/fd scripts/Makefile scripts/logrotate scripts/bacula.desktop.gnome1 scripts/bacula.desktop.gnome2 scripts/bacula.desktop.gnome1.consolehelper scripts/bacula.desktop.gnome2.consolehelper scripts/bacula.desktop.gnome1.xsu scripts/bacula.desktop.gnome2.xsu scripts/gnome-console.console_apps scripts/mtx-changer doc/Makefile src/Makefile src/host.h src/console/Makefile src/console/bconsole.conf src/gnome-console/Makefile src/gnome-console/gnome-console.conf src/gnome2-console/Makefile src/gnome2-console/gnome-console.conf src/tconsole/Makefile src/dird/Makefile src/dird/bacula-dir.conf src/lib/Makefile src/stored/Makefile src/stored/bacula-sd.conf src/filed/Makefile src/filed/bacula-fd.conf src/filed/win32/Makefile src/cats/Makefile src/cats/make_catalog_backup src/cats/delete_catalog_backup src/cats/create_postgresql_database src/cats/update_postgresql_tables src/cats/make_postgresql_tables src/cats/grant_postgresql_privileges src/cats/drop_postgresql_tables src/cats/drop_postgresql_database src/cats/create_mysql_database src/cats/update_mysql_tables src/cats/make_mysql_tables src/cats/grant_mysql_privileges src/cats/drop_mysql_tables src/cats/drop_mysql_database src/cats/create_sqlite_database src/cats/update_sqlite_tables src/cats/make_sqlite_tables src/cats/grant_sqlite_privileges src/cats/drop_sqlite_tables src/cats/drop_sqlite_database src/cats/sqlite src/cats/mysql src/cats/create_bdb_database src/cats/update_bdb_tables src/cats/make_bdb_tables src/cats/grant_bdb_privileges src/cats/drop_bdb_tables src/cats/drop_bdb_database src/cats/create_bacula_database src/cats/update_bacula_tables src/cats/grant_bacula_privileges src/cats/make_bacula_tables src/cats/drop_bacula_tables src/cats/drop_bacula_database src/findlib/Makefile src/tools/Makefile src/win32/winbacula.nsi src/win32/bacula-fd.conf src/win32/Makefile $PFILES"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ac_config_files="$ac_config_files autoconf/Make.common Makefile rescue/Makefile rescue/linux/Makefile rescue/freebsd/Makefile rescue/solaris/Makefile scripts/startmysql scripts/stopmysql scripts/btraceback scripts/startit scripts/stopit scripts/bconsole scripts/gconsole scripts/bacula scripts/devel_bacula scripts/fd scripts/Makefile scripts/logrotate scripts/bacula.desktop.gnome1 scripts/bacula.desktop.gnome2 scripts/bacula.desktop.gnome1.consolehelper scripts/bacula.desktop.gnome2.consolehelper scripts/bacula.desktop.gnome1.xsu scripts/bacula.desktop.gnome2.xsu scripts/gnome-console.console_apps scripts/mtx-changer doc/Makefile src/Makefile src/host.h src/console/Makefile src/console/bconsole.conf src/gnome-console/Makefile src/gnome-console/gnome-console.conf src/gnome2-console/Makefile src/gnome2-console/gnome-console.conf src/wx-console/Makefile src/tconsole/Makefile src/dird/Makefile src/dird/bacula-dir.conf src/lib/Makefile src/stored/Makefile src/stored/bacula-sd.conf src/filed/Makefile src/filed/bacula-fd.conf src/filed/win32/Makefile src/cats/Makefile src/cats/make_catalog_backup src/cats/delete_catalog_backup src/cats/create_postgresql_database src/cats/update_postgresql_tables src/cats/make_postgresql_tables src/cats/grant_postgresql_privileges src/cats/drop_postgresql_tables src/cats/drop_postgresql_database src/cats/create_mysql_database src/cats/update_mysql_tables src/cats/make_mysql_tables src/cats/grant_mysql_privileges src/cats/drop_mysql_tables src/cats/drop_mysql_database src/cats/create_sqlite_database src/cats/update_sqlite_tables src/cats/make_sqlite_tables src/cats/grant_sqlite_privileges src/cats/drop_sqlite_tables src/cats/drop_sqlite_database src/cats/sqlite src/cats/mysql src/cats/create_bdb_database src/cats/update_bdb_tables src/cats/make_bdb_tables src/cats/grant_bdb_privileges src/cats/drop_bdb_tables src/cats/drop_bdb_database src/cats/create_bacula_database src/cats/update_bacula_tables src/cats/grant_bacula_privileges src/cats/make_bacula_tables src/cats/drop_bacula_tables src/cats/drop_bacula_database src/findlib/Makefile src/tools/Makefile src/win32/winbacula.nsi src/win32/bacula-fd.conf src/win32/Makefile $PFILES"
           ac_config_commands="$ac_config_commands default"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -18673,6 +18750,7 @@ do
   "src/gnome-console/gnome-console.conf" ) CONFIG_FILES="$CONFIG_FILES src/gnome-console/gnome-console.conf" ;;
   "src/gnome2-console/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/gnome2-console/Makefile" ;;
   "src/gnome2-console/gnome-console.conf" ) CONFIG_FILES="$CONFIG_FILES src/gnome2-console/gnome-console.conf" ;;
+  "src/wx-console/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/wx-console/Makefile" ;;
   "src/tconsole/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/tconsole/Makefile" ;;
   "src/dird/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/dird/Makefile" ;;
   "src/dird/bacula-dir.conf" ) CONFIG_FILES="$CONFIG_FILES src/dird/bacula-dir.conf" ;;
@@ -18813,14 +18891,6 @@ s,@LIBS@,$LIBS,;t t
 s,@BUILD_DIR@,$BUILD_DIR,;t t
 s,@TRUEPRG@,$TRUEPRG,;t t
 s,@FALSEPRG@,$FALSEPRG,;t t
-s,@build@,$build,;t t
-s,@build_cpu@,$build_cpu,;t t
-s,@build_vendor@,$build_vendor,;t t
-s,@build_os@,$build_os,;t t
-s,@host@,$host,;t t
-s,@host_cpu@,$host_cpu,;t t
-s,@host_vendor@,$host_vendor,;t t
-s,@host_os@,$host_os,;t t
 s,@VERSION@,$VERSION,;t t
 s,@DATE@,$DATE,;t t
 s,@LSMDATE@,$LSMDATE,;t t
@@ -18853,12 +18923,21 @@ s,@AR@,$AR,;t t
 s,@OPENSSL@,$OPENSSL,;t t
 s,@MTX@,$MTX,;t t
 s,@PKGCONFIG@,$PKGCONFIG,;t t
+s,@WXCONFIG@,$WXCONFIG,;t t
 s,@ARFLAGS@,$ARFLAGS,;t t
 s,@MAKE_SHELL@,$MAKE_SHELL,;t t
 s,@LOCAL_LIBS@,$LOCAL_LIBS,;t t
 s,@LOCAL_CFLAGS@,$LOCAL_CFLAGS,;t t
 s,@LOCAL_LDFLAGS@,$LOCAL_LDFLAGS,;t t
 s,@LOCAL_DEFS@,$LOCAL_DEFS,;t t
+s,@build@,$build,;t t
+s,@build_cpu@,$build_cpu,;t t
+s,@build_vendor@,$build_vendor,;t t
+s,@build_os@,$build_os,;t t
+s,@host@,$host,;t t
+s,@host_cpu@,$host_cpu,;t t
+s,@host_vendor@,$host_vendor,;t t
+s,@host_os@,$host_os,;t t
 s,@HAVE_SUN_OS_TRUE@,$HAVE_SUN_OS_TRUE,;t t
 s,@HAVE_SUN_OS_FALSE@,$HAVE_SUN_OS_FALSE,;t t
 s,@HAVE_OSF1_OS_TRUE@,$HAVE_OSF1_OS_TRUE,;t t
@@ -18908,12 +18987,16 @@ s,@GNOME_APPLETS_LIBS@,$GNOME_APPLETS_LIBS,;t t
 s,@GNOME_DOCKLETS_LIBS@,$GNOME_DOCKLETS_LIBS,;t t
 s,@GNOME_CAPPLET_LIBS@,$GNOME_CAPPLET_LIBS,;t t
 s,@GNOME_DIR@,$GNOME_DIR,;t t
+s,@WXCONS_CPPFLAGS@,$WXCONS_CPPFLAGS,;t t
+s,@WXCONS_LDFLAGS@,$WXCONS_LDFLAGS,;t t
+s,@WX_DIR@,$WX_DIR,;t t
 s,@TTOOL_LDFLAGS@,$TTOOL_LDFLAGS,;t t
 s,@STATIC_FD@,$STATIC_FD,;t t
 s,@STATIC_SD@,$STATIC_SD,;t t
 s,@STATIC_DIR@,$STATIC_DIR,;t t
 s,@STATIC_CONS@,$STATIC_CONS,;t t
 s,@STATIC_GNOME_CONS@,$STATIC_GNOME_CONS,;t t
+s,@STATIC_WX_CONS@,$STATIC_WX_CONS,;t t
 s,@ALL_DIRS@,$ALL_DIRS,;t t
 s,@CONS_INC@,$CONS_INC,;t t
 s,@CONS_OBJ@,$CONS_OBJ,;t t
@@ -19594,6 +19677,7 @@ Configuration on `date`:
   ZLIB support: 	      ${have_zlib}
   enable-smartalloc:	      ${support_smartalloc}
   enable-gnome: 	      ${support_gnome} ${gnome_version}
+  enable-wx-console:	      ${support_wx_console}
   client-only:		      ${build_client_only}
 
   " > config.out
