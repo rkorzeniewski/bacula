@@ -8,6 +8,7 @@ To do:
 - Document saving MySQL databases, where to find code for shutting 
   down and saving other databases.
   http://www.backupcentral.com/free-backup-software1.html
+- Document tape cycling 
 
 Test:
 - that restore options work in FD.
@@ -16,6 +17,7 @@ Test:
 - blocksize recognition code.
 
 For 1.27 release:
+- Implement FileOptions.
 - Need return status on read_cb() from read_records(). Need multiple
   records -- one per Job, maybe a JCR or some other structure with
   a block and a record.

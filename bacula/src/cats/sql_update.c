@@ -153,13 +153,15 @@ int
 db_update_pool_record(B_DB *mdb, POOL_DBR *pr)
 {
    int stat;
+   char ec1[50];
 
    db_lock(mdb);
    Mmsg(&mdb->cmd,
 "UPDATE Pool SET NumVols=%d, MaxVols=%d, UseOnce=%d, UseCatalog=%d, \
-AcceptAnyVolume=%d, LabelFormat='%s' WHERE PoolId=%u",
+AcceptAnyVolume=%d, VolRetention='%s',LabelFormat='%s' WHERE PoolId=%u",
       pr->NumVols, pr->MaxVols, pr->UseOnce, pr->UseCatalog,
-      pr->AcceptAnyVolume, pr->LabelFormat, pr->PoolId);
+      pr->AcceptAnyVolume, edit_uint64(pr->VolRetention, ed1),
+      pr->LabelFormat, pr->PoolId);
 
    stat = UPDATE_DB(mdb, mdb->cmd);
    db_unlock(mdb);

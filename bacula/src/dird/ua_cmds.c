@@ -742,6 +742,7 @@ static int update_pool(UAContext *ua)
    pr.UseOnce = pool->use_volume_once;
    pr.UseCatalog = pool->use_catalog;
    pr.AcceptAnyVolume = pool->accept_any_volume;
+   pr.VolRetention = pool->VolRetention;
    if (pool->label_format) {
       strcpy(pr.LabelFormat, pool->label_format);
    } else {
