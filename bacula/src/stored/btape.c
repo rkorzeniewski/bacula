@@ -168,7 +168,9 @@ int main(int margc, char *margv[])
       Pmsg3(-1, "32 bit printf/scanf problem. i=%d x32=%u y32=%u\n", i, x32, y32);
       exit(1);
    }
-   x64 = 123456789012345678;
+   x64 = 123456789;
+   x64 = x64 << 32;
+   x64 += 123456789;
    bsnprintf(buf, sizeof(buf), "%" llu, x64);
    i = bsscanf(buf, "%llu", &y64);
    if (i != 1 || x64 != y64) {
