@@ -20,6 +20,9 @@ echo " "
 bin/bacula start 2>&1 >/dev/null
 bin/console -c bin/console.conf <<END_OF_DATA
 @output /dev/null
+estimate job=CompressedTest listing
+estimate job=CompressedTest listing
+estimate job=CompressedTest listing
 messages
 @output tmp/log1.out
 label storage=File
@@ -44,12 +47,17 @@ yes
 wait
 messages
 @# 
-@# now do a restore
+@# now do several restores to ensure we cleanup between jobs
 @#
+@output /dev/null
+restore current all
+yes
+wait
+restore current all    
+yes
+wait
 @output tmp/log2.out
-restore
-5
-done
+restore current all    
 yes
 wait
 messages
