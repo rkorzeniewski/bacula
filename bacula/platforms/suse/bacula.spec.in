@@ -258,8 +258,17 @@ floppy disks for bare metal recovery. This package includes tomsrtbt
 (http://www.toms.net/rb/, by Tom Oehser, Tom@Toms.NET) to provide a tool
 to build a boot floppy disk.
 
-You need to have the bacula-sqlite, bacula-mysql or bacula-client package for 
-your platform installed and configured before installing this package.
+You need to have the bacula-sqlite, bacula-mysql, bacula-postgresql or 
+bacula-client package for your platform installed and configured before 
+installing this package.
+
+To create a boot disk run "./getdiskinfo" from the /etc/bacula/rescue
+directory (this is done when the package is first installed), 
+then run "./install.s" from the /etc/bacula/rescue/tomsrtbt/
+directory. To make the bacula rescue disk run
+"./make_rescue_disk --copy-static-bacula --copy-etc-files"
+from the /etc/bacula/rescue directory. To recreate the rescue
+information for this system run ./getdiskinfo again.
 
 %package updatedb
 
@@ -394,6 +403,7 @@ cd ../../
 %install
  
 cwd=${PWD}
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf "$RPM_BUILD_ROOT"
 mkdir -p $RPM_BUILD_ROOT/etc/init.d
 mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d
 mkdir -p $RPM_BUILD_ROOT/usr/share/pixmaps
@@ -403,7 +413,7 @@ mkdir -p $RPM_BUILD_ROOT/etc/bacula/rescue
 mkdir -p $RPM_BUILD_ROOT/etc/bacula/rescue/tomsrtbt
 mkdir -p $RPM_BUILD_ROOT/etc/bacula/updatedb
 
-%if ! %{mysql}
+%if %{sqlite}
 mkdir -p $RPM_BUILD_ROOT%{sqlite_bindir}
 %endif
 
@@ -485,6 +495,11 @@ cp ../%{tomsrtbt}/* $RPM_BUILD_ROOT/etc/bacula/rescue/tomsrtbt/
 # install the updatedb scripts
 cp updatedb/* $RPM_BUILD_ROOT/etc/bacula/updatedb/
 
+# now clean up permissions that are left broken by the install
+chmod a+x $RPM_BUILD_ROOT/usr/sbin/gnome-console
+chmod o-r $RPM_BUILD_ROOT/etc/bacula/query.sql
+chmod o-rwx $RPM_BUILD_ROOT/var/bacula
+
 %clean
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf "$RPM_BUILD_ROOT"
 
@@ -493,48 +508,48 @@ cp updatedb/* $RPM_BUILD_ROOT/etc/bacula/updatedb/
 %files mysql
 %defattr(-,root,root)
 
-%attr(0754,root,root) /etc/bacula/bacula
-%attr(0754,root,root) /etc/bacula/bconsole
-%attr(0754,root,root) /etc/bacula/fd
-%attr(0754,root,root) /etc/bacula/gconsole
-%attr(0754,root,root) /etc/bacula/create_mysql_database
-%attr(0754,root,root) /etc/bacula/drop_mysql_database
-%attr(0754,root,root) /etc/bacula/make_mysql_tables
-%attr(0754,root,root) /etc/bacula/drop_mysql_tables
-%attr(0754,root,root) /etc/bacula/update_mysql_tables
-%attr(0754,root,root) /etc/bacula/grant_mysql_privileges
-%attr(0754,root,root) /etc/bacula/create_bacula_database
-%attr(0754,root,root) /etc/bacula/drop_bacula_database
-%attr(0754,root,root) /etc/bacula/grant_bacula_privileges
-%attr(0754,root,root) /etc/bacula/make_bacula_tables
-%attr(0754,root,root) /etc/bacula/drop_bacula_tables
-%attr(0754,root,root) /etc/bacula/update_bacula_tables
-%attr(0754,root,root) /etc/bacula/make_catalog_backup
-%attr(0754,root,root) /etc/bacula/delete_catalog_backup
-%attr(0754,root,root) /etc/bacula/startmysql
-%attr(0754,root,root) /etc/bacula/stopmysql
-%attr(0754,root,root) /etc/bacula/mtx-changer
-%attr(0754,root,root) /etc/init.d/bacula-dir
-%attr(0754,root,root) /etc/init.d/bacula-fd
-%attr(0754,root,root) /etc/init.d/bacula-sd
+/etc/bacula/bacula
+/etc/bacula/bconsole
+/etc/bacula/fd
+/etc/bacula/gconsole
+/etc/bacula/create_mysql_database
+/etc/bacula/drop_mysql_database
+/etc/bacula/make_mysql_tables
+/etc/bacula/drop_mysql_tables
+/etc/bacula/update_mysql_tables
+/etc/bacula/grant_mysql_privileges
+/etc/bacula/create_bacula_database
+/etc/bacula/drop_bacula_database
+/etc/bacula/grant_bacula_privileges
+/etc/bacula/make_bacula_tables
+/etc/bacula/drop_bacula_tables
+/etc/bacula/update_bacula_tables
+/etc/bacula/make_catalog_backup
+/etc/bacula/delete_catalog_backup
+/etc/bacula/startmysql
+/etc/bacula/stopmysql
+/etc/bacula/mtx-changer
+/etc/init.d/bacula-dir
+/etc/init.d/bacula-fd
+/etc/init.d/bacula-sd
 
-%attr(0644,root,root) %doc COPYING ChangeLog INSTALL README ReleaseNotes doc/*
-%attr(0644,root,root) /usr/man/man1/*
-%attr(0644,root,root) /usr/share/pixmaps/bacula.png
-%attr(0644,root,root) /usr/share/gnome/apps/System/bacula.desktop
-%attr(0644,root,root) /usr/share/applications/bacula.desktop
-%attr(0644,root,root) %config(noreplace) /etc/bacula/gnome-console.conf
-%attr(0644,root,root) /etc/logrotate.d/bacula
+%doc COPYING ChangeLog INSTALL README ReleaseNotes doc/*
+/usr/man/man1/*
+/usr/share/pixmaps/bacula.png
+/usr/share/gnome/apps/System/bacula.desktop
+/usr/share/applications/bacula.desktop
+%config(noreplace) /etc/bacula/gnome-console.conf
+/etc/logrotate.d/bacula
 
-%attr(0640,root,root) %config(noreplace) /etc/bacula/bacula-dir.conf
-%attr(0640,root,root) %config(noreplace) /etc/bacula/bacula-fd.conf
-%attr(0640,root,root) %config(noreplace) /etc/bacula/bacula-sd.conf
-%attr(0640,root,root) %config(noreplace) /etc/bacula/bconsole.conf
-%attr(0640,root,root) /etc/bacula/query.sql
-%attr(0640,root,root) %dir %{working_dir}
+%config(noreplace) /etc/bacula/bacula-dir.conf
+%config(noreplace) /etc/bacula/bacula-fd.conf
+%config(noreplace) /etc/bacula/bacula-sd.conf
+%config(noreplace) /etc/bacula/bconsole.conf
+/etc/bacula/query.sql
+%dir %{working_dir}
 
-%attr(0750,root,root) /usr/sbin/*
-%attr(0750,root,root) /etc/bacula/btraceback.gdb
+/usr/sbin/*
+/etc/bacula/btraceback.gdb
 
 %pre mysql
 # test for bacula database older than version 6
@@ -556,16 +571,13 @@ if [ -s /etc/bacula/console.conf ];then
 fi
 
 %post mysql
-# delete then add our links
-/sbin/chkconfig --del bacula-dir
-/sbin/chkconfig --del bacula-fd
-/sbin/chkconfig --del bacula-sd
+
+# add our links
+if [ "$1" -ge 1 ] ; then
 /sbin/chkconfig --add bacula-dir
 /sbin/chkconfig --add bacula-fd
 /sbin/chkconfig --add bacula-sd
-
-# add execute permissions for console
-chmod 0755 /usr/sbin/gnome-console
+fi
 
 # test for an existing database
 # note: this ASSUMES no password has been set for bacula database
@@ -594,9 +606,11 @@ fi
 
 %preun mysql
 # delete our links
+if [ $1 = 0 ]; then
 /sbin/chkconfig --del bacula-dir
 /sbin/chkconfig --del bacula-fd
 /sbin/chkconfig --del bacula-sd
+fi
 
 %endif
 
@@ -605,49 +619,49 @@ fi
 %files sqlite
 %defattr(-,root,root)
 
-%attr(0754,root,root) /etc/bacula/bacula
-%attr(0754,root,root) /etc/bacula/bconsole
-%attr(0754,root,root) /etc/bacula/fd
-%attr(0754,root,root) /etc/bacula/gconsole
-%attr(0754,root,root) /etc/bacula/create_bacula_database
-%attr(0754,root,root) /etc/bacula/drop_bacula_database
-%attr(0754,root,root) /etc/bacula/grant_bacula_privileges
-%attr(0754,root,root) /etc/bacula/make_bacula_tables
-%attr(0754,root,root) /etc/bacula/drop_bacula_tables
-%attr(0754,root,root) /etc/bacula/update_bacula_tables
-%attr(0754,root,root) /etc/bacula/create_sqlite_database
-%attr(0754,root,root) /etc/bacula/drop_sqlite_database
-%attr(0754,root,root) /etc/bacula/grant_sqlite_privileges
-%attr(0754,root,root) /etc/bacula/make_sqlite_tables
-%attr(0754,root,root) /etc/bacula/drop_sqlite_tables
-%attr(0754,root,root) /etc/bacula/update_sqlite_tables
-%attr(0754,root,root) /etc/bacula/make_catalog_backup
-%attr(0754,root,root) /etc/bacula/delete_catalog_backup
-%attr(0754,root,root) /etc/bacula/mtx-changer
-%attr(0754,root,root) /etc/init.d/bacula-dir
-%attr(0754,root,root) /etc/init.d/bacula-fd
-%attr(0754,root,root) /etc/init.d/bacula-sd
+/etc/bacula/bacula
+/etc/bacula/bconsole
+/etc/bacula/fd
+/etc/bacula/gconsole
+/etc/bacula/create_bacula_database
+/etc/bacula/drop_bacula_database
+/etc/bacula/grant_bacula_privileges
+/etc/bacula/make_bacula_tables
+/etc/bacula/drop_bacula_tables
+/etc/bacula/update_bacula_tables
+/etc/bacula/create_sqlite_database
+/etc/bacula/drop_sqlite_database
+/etc/bacula/grant_sqlite_privileges
+/etc/bacula/make_sqlite_tables
+/etc/bacula/drop_sqlite_tables
+/etc/bacula/update_sqlite_tables
+/etc/bacula/make_catalog_backup
+/etc/bacula/delete_catalog_backup
+/etc/bacula/mtx-changer
+/etc/init.d/bacula-dir
+/etc/init.d/bacula-fd
+/etc/init.d/bacula-sd
 
-%attr(0644,root,root) %doc COPYING ChangeLog INSTALL README ReleaseNotes doc/*
-%attr(0644,root,root) /usr/man/man1/*
-%attr(0644,root,root) /usr/share/pixmaps/bacula.png
-%attr(0644,root,root) /usr/share/gnome/apps/System/bacula.desktop
-%attr(0644,root,root) /usr/share/applications/bacula.desktop
-%attr(0644,root,root) %config(noreplace) /etc/bacula/gnome-console.conf
-%attr(0644,root,root) /etc/logrotate.d/bacula
+%doc COPYING ChangeLog INSTALL README ReleaseNotes doc/*
+/usr/man/man1/*
+/usr/share/pixmaps/bacula.png
+/usr/share/gnome/apps/System/bacula.desktop
+/usr/share/applications/bacula.desktop
+%config(noreplace) /etc/bacula/gnome-console.conf
+/etc/logrotate.d/bacula
 
-%attr(0640,root,root) %config(noreplace) /etc/bacula/bacula-dir.conf
-%attr(0640,root,root) %config(noreplace) /etc/bacula/bacula-fd.conf
-%attr(0640,root,root) %config(noreplace) /etc/bacula/bacula-sd.conf
-%attr(0640,root,root) %config(noreplace) /etc/bacula/bconsole.conf
-%attr(0640,root,root) /etc/bacula/query.sql
-%attr(0640,root,root) %{sqlite_bindir}/libsqlite.a
-%attr(0640,root,root) %{sqlite_bindir}/sqlite.h
-%attr(0640,root,root) %dir %{working_dir}
+%config(noreplace) /etc/bacula/bacula-dir.conf
+%config(noreplace) /etc/bacula/bacula-fd.conf
+%config(noreplace) /etc/bacula/bacula-sd.conf
+%config(noreplace) /etc/bacula/bconsole.conf
+/etc/bacula/query.sql
+%{sqlite_bindir}/libsqlite.a
+%{sqlite_bindir}/sqlite.h
+%dir %{working_dir}
 
-%attr(0750,root,root) /usr/sbin/*
-%attr(0750,root,root) %{sqlite_bindir}/sqlite
-%attr(0750,root,root) /etc/bacula/btraceback.gdb
+/usr/sbin/*
+%{sqlite_bindir}/sqlite
+/etc/bacula/btraceback.gdb
 
 %pre sqlite
 # test for bacula database older than version 6
@@ -669,16 +683,12 @@ if [ -s /etc/bacula/console.conf ];then
 fi
 
 %post sqlite
-# delete then add our links
-/sbin/chkconfig --del bacula-dir
-/sbin/chkconfig --del bacula-fd
-/sbin/chkconfig --del bacula-sd
+# add our links
+if [ "$1" -ge 1 ] ; then
 /sbin/chkconfig --add bacula-dir
 /sbin/chkconfig --add bacula-fd
 /sbin/chkconfig --add bacula-sd
-
-# add execute permission for console
-chmod 0755 /usr/sbin/gnome-console
+fi
 
 # test for an existing database
 if [ -s %{working_dir}/bacula.db ]; then
@@ -703,9 +713,11 @@ fi
 
 %preun sqlite
 # delete our links
+if [ $1 = 0 ]; then
 /sbin/chkconfig --del bacula-dir
 /sbin/chkconfig --del bacula-fd
 /sbin/chkconfig --del bacula-sd
+fi
 
 %endif
 
@@ -714,58 +726,54 @@ fi
 %files postgresql
 %defattr(-,root,root)
 
-%attr(0754,root,root) /etc/bacula/bacula
-%attr(0754,root,root) /etc/bacula/bconsole
-%attr(0754,root,root) /etc/bacula/fd
-%attr(0754,root,root) /etc/bacula/gconsole
-%attr(0754,root,root) /etc/bacula/create_postgresql_database
-%attr(0754,root,root) /etc/bacula/drop_postgresql_database
-%attr(0754,root,root) /etc/bacula/make_postgresql_tables
-%attr(0754,root,root) /etc/bacula/drop_postgresql_tables
-%attr(0754,root,root) /etc/bacula/update_postgresql_tables
-%attr(0754,root,root) /etc/bacula/grant_postgresql_privileges
-%attr(0754,root,root) /etc/bacula/create_bacula_database
-%attr(0754,root,root) /etc/bacula/drop_bacula_database
-%attr(0754,root,root) /etc/bacula/grant_bacula_privileges
-%attr(0754,root,root) /etc/bacula/make_bacula_tables
-%attr(0754,root,root) /etc/bacula/drop_bacula_tables
-%attr(0754,root,root) /etc/bacula/update_bacula_tables
-%attr(0754,root,root) /etc/bacula/make_catalog_backup
-%attr(0754,root,root) /etc/bacula/delete_catalog_backup
-%attr(0754,root,root) /etc/bacula/mtx-changer
-%attr(0754,root,root) /etc/init.d/bacula-dir
-%attr(0754,root,root) /etc/init.d/bacula-fd
-%attr(0754,root,root) /etc/init.d/bacula-sd
+/etc/bacula/bacula
+/etc/bacula/bconsole
+/etc/bacula/fd
+/etc/bacula/gconsole
+/etc/bacula/create_postgresql_database
+/etc/bacula/drop_postgresql_database
+/etc/bacula/make_postgresql_tables
+/etc/bacula/drop_postgresql_tables
+/etc/bacula/update_postgresql_tables
+/etc/bacula/grant_postgresql_privileges
+/etc/bacula/create_bacula_database
+/etc/bacula/drop_bacula_database
+/etc/bacula/grant_bacula_privileges
+/etc/bacula/make_bacula_tables
+/etc/bacula/drop_bacula_tables
+/etc/bacula/update_bacula_tables
+/etc/bacula/make_catalog_backup
+/etc/bacula/delete_catalog_backup
+/etc/bacula/mtx-changer
+/etc/init.d/bacula-dir
+/etc/init.d/bacula-fd
+/etc/init.d/bacula-sd
 
-%attr(0644,root,root) %doc COPYING ChangeLog INSTALL README ReleaseNotes doc/*
-%attr(0644,root,root) /usr/man/man1/*
-%attr(0644,root,root) /usr/share/pixmaps/bacula.png
-%attr(0644,root,root) /usr/share/gnome/apps/System/bacula.desktop
-%attr(0644,root,root) /usr/share/applications/bacula.desktop
-%attr(0644,root,root) %config(noreplace) /etc/bacula/gnome-console.conf
-%attr(0644,root,root) /etc/logrotate.d/bacula
+%doc COPYING ChangeLog INSTALL README ReleaseNotes doc/*
+/usr/man/man1/*
+/usr/share/pixmaps/bacula.png
+/usr/share/gnome/apps/System/bacula.desktop
+/usr/share/applications/bacula.desktop
+%config(noreplace) /etc/bacula/gnome-console.conf
+/etc/logrotate.d/bacula
 
-%attr(0640,root,root) %config(noreplace) /etc/bacula/bacula-dir.conf
-%attr(0640,root,root) %config(noreplace) /etc/bacula/bacula-fd.conf
-%attr(0640,root,root) %config(noreplace) /etc/bacula/bacula-sd.conf
-%attr(0640,root,root) %config(noreplace) /etc/bacula/bconsole.conf
-%attr(0640,root,root) /etc/bacula/query.sql
-%attr(0640,root,root) %dir %{working_dir}
+%config(noreplace) /etc/bacula/bacula-dir.conf
+%config(noreplace) /etc/bacula/bacula-fd.conf
+%config(noreplace) /etc/bacula/bacula-sd.conf
+%config(noreplace) /etc/bacula/bconsole.conf
+/etc/bacula/query.sql
+%dir %{working_dir}
 
-%attr(0750,root,root) /usr/sbin/*
-%attr(0750,root,root) /etc/bacula/btraceback.gdb
+/usr/sbin/*
+/etc/bacula/btraceback.gdb
 
 %post postgresql
-# delete then add our links
-/sbin/chkconfig --del bacula-dir
-/sbin/chkconfig --del bacula-fd
-/sbin/chkconfig --del bacula-sd
+# add our links
+if [ "$1" -ge 1 ] ; then
 /sbin/chkconfig --add bacula-dir
 /sbin/chkconfig --add bacula-fd
 /sbin/chkconfig --add bacula-sd
-
-# add execute permissions for console
-chmod 0755 /usr/sbin/gnome-console
+fi
 
 # test for an existing database
 # note: this ASSUMES no password has been set for bacula database
@@ -783,79 +791,69 @@ if [ -z "$DB_VER" ]; then
 
 %preun postgresql
 # delete our links
+if [ $1 = 0 ]; then
 /sbin/chkconfig --del bacula-dir
 /sbin/chkconfig --del bacula-fd
 /sbin/chkconfig --del bacula-sd
+fi
 
 %endif
 
 %files client
 %defattr(-,root,root)
 
-%attr(0754,root,root) /etc/bacula/fd
-%attr(0754,root,root) /etc/bacula/bconsole
-%attr(0754,root,root) /etc/init.d/bacula-fd
+/etc/bacula/fd
+/etc/bacula/bconsole
+/etc/init.d/bacula-fd
 
-%attr(0644,root,root) %doc COPYING ChangeLog INSTALL README ReleaseNotes doc/*
-%attr(0644,root,root) /etc/logrotate.d/bacula
+%doc COPYING ChangeLog INSTALL README ReleaseNotes doc/*
+/etc/logrotate.d/bacula
 
-%attr(0640,root,root) %config(noreplace) /etc/bacula/bacula-fd.conf
-%attr(0640,root,root) %config(noreplace) /etc/bacula/bconsole.conf
-%attr(0640,root,root) %dir %{working_dir}
+%config(noreplace) /etc/bacula/bacula-fd.conf
+%config(noreplace) /etc/bacula/bconsole.conf
+%dir %{working_dir}
 
-%attr(0750,root,root) /usr/sbin/bacula-fd
-%attr(0750,root,root) /usr/sbin/btraceback
-%attr(0750,root,root) /etc/bacula/btraceback.gdb
-%attr(0750,root,root) /usr/sbin/bsmtp
-%attr(0750,root,root) /usr/sbin/bconsole
+/usr/sbin/bacula-fd
+/usr/sbin/btraceback
+/etc/bacula/btraceback.gdb
+/usr/sbin/bsmtp
+/usr/sbin/bconsole
 
 
 %post client
-# delete then add our links
-/sbin/chkconfig --del bacula-fd
+# add our link
+if [ "$1" -ge 1 ] ; then
 /sbin/chkconfig --add bacula-fd
+fi
 
 %preun client
-# delete our links
+# delete our link
+if [ $1 = 0 ]; then
 /sbin/chkconfig --del bacula-fd
+fi
 
 %files rescue
 %defattr(-,root,root)
-%attr(0644,root,root) /etc/bacula/rescue/backup.etc.list
-%attr(0754,root,root) /etc/bacula/rescue/format_floppy
-%attr(0754,root,root) /etc/bacula/rescue/getdiskinfo
-%attr(0754,root,root) /etc/bacula/rescue/make_rescue_disk
-%attr(0754,root,root) /etc/bacula/rescue/restore_bacula
-%attr(0754,root,root) /etc/bacula/rescue/restore_etc
-%attr(0754,root,root) /etc/bacula/rescue/run_grub
-%attr(0754,root,root) /etc/bacula/rescue/run_lilo
-%attr(0644,root,root) /etc/bacula/rescue/sfdisk.bz2
-%attr(0754,root,root) /etc/bacula/rescue/bacula-fd
+/etc/bacula/rescue/backup.etc.list
+/etc/bacula/rescue/format_floppy
+/etc/bacula/rescue/getdiskinfo
+/etc/bacula/rescue/make_rescue_disk
+/etc/bacula/rescue/restore_bacula
+/etc/bacula/rescue/restore_etc
+/etc/bacula/rescue/run_grub
+/etc/bacula/rescue/run_lilo
+/etc/bacula/rescue/sfdisk.bz2
+/etc/bacula/rescue/bacula-fd
 /etc/bacula/rescue/tomsrtbt/*
 
 %post rescue
 # link our current installed conf file to the rescue directory
 ln -s /etc/bacula-fd.conf /etc/bacula/rescue/bacula-fd.conf
 
-echo
-echo "Ready to create the rescue files for this system."
-echo "Press <enter> to continue..."
-read A
-echo
-
 # run getdiskinfo
-echo "Running getdiskinfo..."
+echo "Creating rescue files for this system..."
 cd /etc/bacula/rescue
 ./getdiskinfo
-
-echo
-echo "Finished."
-echo "To create a boot disk run \"./install.s\" from the /etc/bacula/rescue/tomsrtbt/"
-echo "directory. To make the bacula rescue disk run"
-echo "\"./make_rescue_disk --copy-static-bacula --copy-etc-files\" "
-echo "from the /etc/bacula/rescue directory. To recreate the rescue"
-echo "information for this system run ./getdiskinfo again."
-echo
 
 %preun rescue
 # remove the files created after the initial rpm installation
@@ -869,24 +867,34 @@ rm -rf /etc/bacula/rescue/diskinfo/*
 
 %files updatedb
 %defattr(-,root,root)
-%attr(0644,root,root) /etc/bacula/updatedb/*
+/etc/bacula/updatedb/*
 
 %post updatedb
 echo "The database update scripts were installed to /etc/bacula/updatedb"
 
 %files gconsole
 %defattr(-,root,root)
-%attr(0750,root,root) /usr/sbin/gnome-console
-%attr(0754,root,root) /etc/bacula/gconsole
-%attr(0644,root,root) %config(noreplace) /etc/bacula/gnome-console.conf
-%attr(0644,root,root) /usr/share/pixmaps/bacula.png
-%attr(0644,root,root) /usr/share/gnome/apps/System/bacula.desktop
-%attr(0644,root,root) /usr/share/applications/bacula.desktop
+/usr/sbin/gnome-console
+/etc/bacula/gconsole
+%config(noreplace) /etc/bacula/gnome-console.conf
+/usr/share/pixmaps/bacula.png
+/usr/share/gnome/apps/System/bacula.desktop
+/usr/share/applications/bacula.desktop
 
 %post gconsole
 
 
 %changelog
+* Sat Feb 28 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
+- corrected creation of sqlite_bindir in install from !mysql to sqlite
+-
+- various cleanup patches from Michael K. Johnson:
+- corrected post install routines for nicer chkconfig
+- removed chmod changes in post routines and moved to install section
+- removed interactive nature of post routine for rescue package
+- added description of building rescue disks to the description of rescue package
+- added clean of build root to beginning of install
+- removed specifying attr in all file lists
 * Fri Feb 20 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - added bconsole to client package
 - added gconsole package as add-on to client
@@ -935,7 +943,7 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 * Mon Oct 27 2003 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - Corrected Requires for Gnome 1.4/2.0 builds
 * Fri Oct 24 2003 D. Scott Barninger <barninger at fairfieldcomputers.com>
-- Added separate Source declaration for depkgs
+- Added separate source declaration for depkgs
 - added patch for make_catalog_backup script
 * Mon May 11 2003 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - Misc changes to mysql/sqlite build and rh7/8 menu differences
