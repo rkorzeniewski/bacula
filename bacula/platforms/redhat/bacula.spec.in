@@ -84,6 +84,7 @@ BuildRequires: freetype-devel
 %endif
 %if %{su9}
 BuildRequires: termcap
+BuildRequires: libgnome >= 2.0
 BuildRequires: gtk2-devel >= 2.0
 BuildRequires: libgnomeui-devel >= 2.0
 BuildRequires: glibc-devel >= 2.3
@@ -332,6 +333,7 @@ Requires: freetype
 %endif
 %if %{su9}
 Requires: gtk2 >= 2.0
+Requires: libgnome >= 2.0
 Requires: libgnomeui >= 2.0
 Requires: glibc >= 2.3
 Requires: ORBit2
@@ -389,9 +391,10 @@ server packages.
 
 %prep
 
-%setup -b 1
-%setup -b 2
-%setup -b 3
+%setup
+%setup -T -D -b 1
+%setup -T -D -b 2
+%setup -T -D -b 3
 
 %build
 
@@ -421,6 +424,11 @@ patch src/cats/make_catalog_backup.in src/cats/make_catalog_backup.in.patch
 # patch the update_sqlite_tables script for installation bindir
 patch src/cats/update_sqlite_tables.in src/cats/update_sqlite_tables.in.patch
 
+# patch the bacula-dir init script to remove sqlite service
+%if %{sqlite} && %{su9}
+patch platforms/suse/bacula-dir.in platforms/suse/bacula-dir-suse-sqlite.patch
+%endif
+
 %configure \
         --prefix=/usr \
         --sbindir=/usr/sbin \
@@ -436,7 +444,7 @@ patch src/cats/update_sqlite_tables.in src/cats/update_sqlite_tables.in.patch
         --with-mysql \
 %endif
 %if %{sqlite}
-        --with-sqlite=${cwd}/../depkgs/sqlite \
+        --with-sqlite=${cwd}/%{depkgs}/sqlite \
 %endif
 %if %{postgresql}
         --with-postgresql \
@@ -567,9 +575,9 @@ cp -p scripts/bacula-tray-monitor.desktop $RPM_BUILD_ROOT/usr/share/applications
 
 # install sqlite
 %if %{sqlite}
-cp -p ../depkgs/sqlite/sqlite $RPM_BUILD_ROOT%{sqlite_bindir}/sqlite
-cp -p ../depkgs/sqlite/sqlite.h $RPM_BUILD_ROOT%{sqlite_bindir}/sqlite.h
-cp -p ../depkgs/sqlite/libsqlite.a $RPM_BUILD_ROOT%{sqlite_bindir}/libsqlite.a
+cp -p %{depkgs}/sqlite/sqlite $RPM_BUILD_ROOT%{sqlite_bindir}/sqlite
+cp -p %{depkgs}/sqlite/sqlite.h $RPM_BUILD_ROOT%{sqlite_bindir}/sqlite.h
+cp -p %{depkgs}/sqlite/libsqlite.a $RPM_BUILD_ROOT%{sqlite_bindir}/libsqlite.a
 %endif
 
 # install the logrotate file
@@ -1101,6 +1109,8 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 
 
 %changelog
+* Sun Oct 31 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
+- misc fixes from 1.36.0 suse feedback
 * Fri Oct 22 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - remove tray-monitor from RH8 build
 - fix permissions on tray-monitor files
