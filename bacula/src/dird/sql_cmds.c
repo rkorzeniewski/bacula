@@ -8,7 +8,7 @@
  */
 
 /*
-   Copyright (C) 2002-2003  Kern Sibbald and John Walker
+   Copyright (C) 2002-2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -177,9 +177,9 @@ char *uar_file =
 
 
 char *uar_sel_files = 
-   "SELECT Path.Path,Filename.Name,FileIndex,JobId "
+   "SELECT Path.Path,Filename.Name,FileIndex,JobId,LStat "
    "FROM File,Filename,Path "
-   "WHERE File.JobId=%d AND Filename.FilenameId=File.FilenameId "
+   "WHERE File.JobId=%u AND Filename.FilenameId=File.FilenameId "
    "AND Path.PathId=File.PathId";
 
 char *uar_del_temp  = "DROP TABLE temp";

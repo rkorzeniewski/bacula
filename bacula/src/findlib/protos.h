@@ -24,14 +24,15 @@
  */
 
 /* from attribs.c */
-void   encode_stat       (char *buf, FF_PKT *ff_pkt, int data_stream);
-int    decode_stat       (char *buf, struct stat *statp, int32_t *LinkFI);
-int    encode_attribsEx  (JCR *jcr, char *attribsEx, FF_PKT *ff_pkt);
-int    set_attributes    (JCR *jcr, ATTR *attr, BFILE *ofd);
-int    select_data_stream(FF_PKT *ff_pkt);
+void	encode_stat	  (char *buf, FF_PKT *ff_pkt, int data_stream);
+int	decode_stat	  (char *buf, struct stat *statp, int32_t *LinkFI);
+int32_t decode_LinkFI	  (char *buf);
+int	encode_attribsEx  (JCR *jcr, char *attribsEx, FF_PKT *ff_pkt);
+int	set_attributes	  (JCR *jcr, ATTR *attr, BFILE *ofd);
+int	select_data_stream(FF_PKT *ff_pkt);
 
 /* from create_file.c */
-int    create_file       (JCR *jcr, ATTR *attr, BFILE *ofd, int replace);
+int    create_file	 (JCR *jcr, ATTR *attr, BFILE *ofd, int replace);
 
 /* From find.c */
 FF_PKT *init_find_files();
@@ -47,11 +48,11 @@ void  add_fname_to_exclude_list(FF_PKT *ff, char *fname);
 int   file_is_excluded(FF_PKT *ff, char *file);
 int   file_is_included(FF_PKT *ff, char *file);
 struct s_included_file *get_next_included_file(FF_PKT *ff, 
-                           struct s_included_file *inc);
+			   struct s_included_file *inc);
 
 /* From find_one.c */
 int   find_one_file(JCR *jcr, FF_PKT *ff, int handle_file(FF_PKT *ff_pkt, void *hpkt), 
-               void *pkt, char *p, dev_t parent_device, int top_level);
+	       void *pkt, char *p, dev_t parent_device, int top_level);
 int   term_find_one(FF_PKT *ff);
 
 
@@ -61,7 +62,7 @@ int enable_backup_privileges(JCR *jcr, int ignore_errors);
 
 /* from makepath.c */
 int make_path(JCR *jcr, const char *argpath, int mode,
-           int parent_mode, uid_t owner, gid_t group,
-           int preserve_existing, char *verbose_fmt_string);
+	   int parent_mode, uid_t owner, gid_t group,
+	   int preserve_existing, char *verbose_fmt_string);
 
 /* from bfile.c -- see bfile.h */

@@ -5,7 +5,7 @@
  *
 */
 /*
-   Copyright (C) 2002,2003 Kern Sibbald and John Walker
+   Copyright (C) 2002-2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -39,9 +39,11 @@ struct s_tree_node {
    char *fname;                       /* file name */
    int32_t FileIndex;                 /* file index */
    uint32_t JobId;                    /* JobId */
-   uint16_t fname_len;                /* length of string */
-   uint8_t type;                      /* node type */
-   bool extract;                      /* set if extracting */
+   uint16_t fname_len;                /* filename length */
+   unsigned int type: 8;              /* node type */
+   unsigned int extract: 1;           /* extract item */
+   unsigned int extract_dir: 1;       /* extract dir entry only */
+   unsigned int have_link: 1;         /* set if have hard link */
    struct s_tree_node *parent;
    struct s_tree_node *sibling;
    struct s_tree_node *child;
@@ -53,9 +55,11 @@ struct s_tree_root {
    char *fname;                       /* file name */
    int32_t FileIndex;                 /* file index */
    uint32_t JobId;                    /* JobId */
-   uint16_t fname_len;                /* length of string */
-   uint8_t type;                      /* node type */
-   bool extract;                      /* set if extracting */
+   uint16_t fname_len;                /* filename length */
+   unsigned int type: 8;              /* node type */
+   unsigned int extract: 1;           /* extract item */
+   unsigned int extract_dir: 1;       /* extract dir entry only */
+   unsigned int have_link: 1;         /* set if have hard link */
    struct s_tree_node *parent;
    struct s_tree_node *sibling;
    struct s_tree_node *child;

@@ -10,7 +10,7 @@
  */
 
 /*
-   Copyright (C) 2002-2003 Kern Sibbald and John Walker
+   Copyright (C) 2002-2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -132,6 +132,10 @@ void user_select_files_from_tree(TREE_CTX *tree)
  *  this routine is called once for each file. We do not allow
  *  duplicate filenames, but instead keep the info from the most
  *  recent file entered (i.e. the JobIds are assumed to be sorted)
+ *
+ *   See uar_sel_files in sql_cmds.c for query that calls us.
+ *	row[0]=Path, row[1]=Filename, row[2]=FileIndex
+ *	row[3]=JobId row[4]=LStat
  */
 int insert_tree_handler(void *ctx, int num_fields, char **row)
 {
@@ -166,9 +170,11 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
       tree->avail_node = NULL;
    }
    new_node->FileIndex = atoi(row[2]);
-   new_node->JobId = atoi(row[3]);
+   new_node->JobId = (JobId_t)str_to_int64(row[3]);
    new_node->type = type;
    new_node->extract = true;	      /* extract all by default */
+   new_node->extract_dir = true;      /* if dir, extract it */
+   new_node->have_link = (decode_LinkFI(row[4]) != 0);
    tree->cnt++;
    return 0;
 }
@@ -197,14 +203,15 @@ static int set_extract(UAContext *ua, TREE_NODE *node, TREE_CTX *tree, bool extr
       }
    } else if (extract) {
       char cwd[2000];
-      /* Ordinary file, we get the full path, look up the
+      /*
+       * Ordinary file, we get the full path, look up the
        * attributes, decode them, and if we are hard linked to
        * a file that was saved, we must load that file too.
        */
       tree_getpath(node, cwd, sizeof(cwd));
       fdbr.FileId = 0;
       fdbr.JobId = node->JobId;
-      if (db_get_file_attributes_record(ua->jcr, ua->db, cwd, NULL, &fdbr)) {
+      if (node->have_link && db_get_file_attributes_record(ua->jcr, ua->db, cwd, NULL, &fdbr)) {
 	 int32_t LinkFI;
 	 decode_stat(fdbr.LStat, &statp, &LinkFI); /* decode stat pkt */
 	 /*
