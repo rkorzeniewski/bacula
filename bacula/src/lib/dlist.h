@@ -58,6 +58,8 @@ class dlist {
    uint32_t num_items;
 public:
    dlist(void *item, void *link);
+   dlist(void);
+   ~dlist() { destroy(); }
    void init(void *item, void *link);
    void prepend(void *item);
    void append(void *item);
@@ -92,6 +94,11 @@ inline void dlist::init(void *item, void *link)
 inline dlist::dlist(void *item, void *link)
 {
    this->init(item, link);
+}
+
+inline dlist::dlist(void)
+{
+   memset(this, 0, sizeof(dlist));
 }
 
 inline bool dlist::empty()

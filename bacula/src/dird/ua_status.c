@@ -294,11 +294,21 @@ static void do_client_status(UAContext *ua, CLIENT *client)
 static void prt_runhdr(UAContext *ua)
 {
    bsendmsg(ua, _("\nScheduled Jobs:\n"));
-   bsendmsg(ua, _("Level          Type     Scheduled          Name               Volume\n"));
-   bsendmsg(ua, _("===============================================================================\n"));
+   bsendmsg(ua, _("Level          Type     Pri  Scheduled          Name               Volume\n"));
+   bsendmsg(ua, _("===================================================================================\n"));
 }
 
-static void prt_runtime(UAContext *ua, JOB *job, int level, time_t runtime, POOL *pool)
+/* Scheduling packet */
+struct sched_pkt {
+   dlink link;			      /* keep this as first item!!! */
+   JOB *job;
+   int level;
+   int priority;
+   time_t runtime;
+   POOL *pool;
+};
+
+static void prt_runtime(UAContext *ua, sched_pkt *sp)
 {
    char dt[MAX_TIME_LENGTH];	   
    const char *level_ptr;
@@ -307,9 +317,9 @@ static void prt_runtime(UAContext *ua, JOB *job, int level, time_t runtime, POOL
    JCR *jcr = ua->jcr;
    MEDIA_DBR mr;
    memset(&mr, 0, sizeof(mr));
-   if (job->JobType == JT_BACKUP) {
+   if (sp->job->JobType == JT_BACKUP) {
       jcr->db = NULL;
-      ok = complete_jcr_for_job(jcr, job, pool);
+      ok = complete_jcr_for_job(jcr, sp->job, sp->pool);
       if (jcr->db) {
 	 close_db = true;	      /* new db opened, remember to close it */
       }
@@ -320,23 +330,44 @@ static void prt_runtime(UAContext *ua, JOB *job, int level, time_t runtime, POOL
          bstrncpy(mr.VolumeName, "*unknown*", sizeof(mr.VolumeName));
       }
    }
-   bstrftime_nc(dt, sizeof(dt), runtime);
-   switch (job->JobType) {
+   bstrftime_nc(dt, sizeof(dt), sp->runtime);
+   switch (sp->job->JobType) {
    case JT_ADMIN:
    case JT_RESTORE:
       level_ptr = " ";
       break;
    default:
-      level_ptr = level_to_str(level);
+      level_ptr = level_to_str(sp->level);
       break;
    }
-   bsendmsg(ua, _("%-14s %-8s %-18s %-18s %s\n"), 
-      level_ptr, job_type_to_str(job->JobType), dt, job->hdr.name, mr.VolumeName);
+   bsendmsg(ua, _("%-14s %-8s %3d  %-18s %-18s %s\n"), 
+      level_ptr, job_type_to_str(sp->job->JobType), sp->priority, dt, 
+      sp->job->hdr.name, mr.VolumeName);
    if (close_db) {
       db_close_database(jcr, jcr->db);
    }
    jcr->db = ua->db;		      /* restore ua db to jcr */
 
+}
+
+/*
+ * Sort items by runtime, priority
+ */
+static int my_compare(void *item1, void *item2)
+{
+   sched_pkt *p1 = (sched_pkt *)item1;
+   sched_pkt *p2 = (sched_pkt *)item2;
+   if (p1->runtime < p2->runtime) {
+      return -1;
+   } else if (p1->runtime > p2->runtime) {
+      return 1;
+   }	 
+   if (p1->priority < p2->priority) {
+      return -1;
+   } else if (p1->priority > p2->priority) {
+      return 1;
+   }
+   return 0;
 }
 
 /*	    
@@ -349,7 +380,10 @@ static void list_scheduled_jobs(UAContext *ua)
    RUN *run;
    JOB *job;
    int level, num_jobs = 0;
+   int priority;
    bool hdr_printed = false;
+   dlist sched;
+   sched_pkt *sp;
 
    Dmsg0(200, "enter list_sched_jobs()\n");
 
@@ -364,16 +398,28 @@ static void list_scheduled_jobs(UAContext *ua)
 	 if (run->level) {
 	    level = run->level;
 	 }
+	 priority = job->Priority;   
+	 if (run->Priority) {
+	    priority = run->Priority;
+	 }
 	 if (!hdr_printed) {
 	    prt_runhdr(ua);
 	    hdr_printed = true;
 	 }
-	 prt_runtime(ua, job, level, runtime, run->pool);
+	 sp = (sched_pkt *)malloc(sizeof(sched_pkt));
+	 sp->job = job;
+	 sp->level = level;
+	 sp->priority = priority;
+	 sp->runtime = runtime;
+	 sp->pool = run->pool;
+	 sched.binary_insert(sp, my_compare);
 	 num_jobs++;
       }
-
    } /* end for loop over resources */
    UnlockRes();
+   foreach_dlist(sp, &sched) {
+      prt_runtime(ua, sp);
+   }
    if (num_jobs == 0) {
       bsendmsg(ua, _("No Scheduled Jobs.\n"));
    } 
@@ -392,7 +438,7 @@ static void list_running_jobs(UAContext *ua)
    bool pool_mem = false;
 
    Dmsg0(200, "enter list_run_jobs()\n");
-   bsendmsg(ua, _("Running Jobs:\n"));
+   bsendmsg(ua, _("\nRunning Jobs:\n"));
    lock_jcr_chain();
    foreach_jcr(jcr) {
       njobs++;
