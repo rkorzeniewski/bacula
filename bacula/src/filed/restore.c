@@ -224,8 +224,10 @@ void do_restore(JCR *jcr)
 	       if (fileAddr != faddr) {
 		  fileAddr = faddr;
 		  if (blseek(&bfd, (off_t)fileAddr, SEEK_SET) < 0) {
+		     berrno be;
+		     be.set_errno(bfd.berrno);
                      Jmsg3(jcr, M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"),
-			 edit_uint64(fileAddr, ec1), attr->ofname, berror(&bfd));
+			 edit_uint64(fileAddr, ec1), attr->ofname, be.strerror());
 		     extract = false;
 		     bclose(&bfd);
 		     continue;
@@ -238,7 +240,10 @@ void do_restore(JCR *jcr)
             Dmsg2(30, "Write %u bytes, total before write=%u\n", wsize, total);
 	    if ((uint32_t)bwrite(&bfd, wbuf, wsize) != wsize) {
                Dmsg0(0, "===Write error===\n");
-               Jmsg2(jcr, M_ERROR, 0, _("Write error on %s: ERR=%s\n"), attr->ofname, berror(&bfd));
+	       berrno be;
+	       be.set_errno(bfd.berrno);
+               Jmsg2(jcr, M_ERROR, 0, _("Write error on %s: ERR=%s\n"), attr->ofname, 
+		     be.strerror());
 	       extract = false;
 	       bclose(&bfd);
 	       continue;
@@ -270,8 +275,10 @@ void do_restore(JCR *jcr)
 	       if (fileAddr != faddr) {
 		  fileAddr = faddr;
 		  if (blseek(&bfd, (off_t)fileAddr, SEEK_SET) < 0) {
+		     berrno be;
+		     be.set_errno(bfd.berrno);
                      Jmsg3(jcr, M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"),
-			 edit_uint64(fileAddr, ec1), attr->ofname, berror(&bfd));
+			 edit_uint64(fileAddr, ec1), attr->ofname, be.strerror());
 		     extract = false;
 		     bclose(&bfd);
 		     continue;
@@ -295,7 +302,9 @@ void do_restore(JCR *jcr)
             Dmsg2(100, "Write uncompressed %d bytes, total before write=%d\n", compress_len, total);
 	    if ((uLong)bwrite(&bfd, jcr->compress_buf, compress_len) != compress_len) {
                Dmsg0(0, "===Write error===\n");
-               Jmsg2(jcr, M_ERROR, 0, _("Write error on %s: %s\n"), attr->ofname, berror(&bfd));
+	       berrno be;
+	       be.set_errno(bfd.berrno);
+               Jmsg2(jcr, M_ERROR, 0, _("Write error on %s: %s\n"), attr->ofname, be.strerror());
 	       extract = false;
 	       bclose(&bfd);
 	       continue;

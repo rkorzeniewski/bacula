@@ -52,6 +52,7 @@
 #include "tree.h"
 #include "watchdog.h"
 #include "btimers.h"
+#include "berrno.h"
 #include "bpipe.h"
 #include "attr.h"
 #include "var.h"

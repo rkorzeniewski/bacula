@@ -119,8 +119,9 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
       if (exists) {
 	 /* Get rid of old copy */
 	 if (unlink(attr->ofname) == -1) {
+	    berrno be;
             Jmsg(jcr, M_ERROR, 0, _("File %s already exists and could not be replaced. ERR=%s.\n"),
-	       attr->ofname, strerror(errno));
+	       attr->ofname, be.strerror());
 	    /* Continue despite error */
 	 }
       }
@@ -175,8 +176,10 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
 	    bclose(bfd);
 	 }
 	 if ((bopen(bfd, attr->ofname, mode, S_IRUSR | S_IWUSR)) < 0) {
+	    berrno be;
+	    be.set_errno(bfd->berrno);
             Jmsg2(jcr, M_ERROR, 0, _("Could not create %s: ERR=%s\n"), 
-		  attr->ofname, berror(bfd));
+		  attr->ofname, be.strerror());
 	    return CF_ERROR;
 	 }
 	 return CF_EXTRACT;
@@ -187,15 +190,17 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
 	 if (S_ISFIFO(attr->statp.st_mode)) {
             Dmsg1(200, "Restore fifo: %s\n", attr->ofname);
 	    if (mkfifo(attr->ofname, attr->statp.st_mode) != 0 && errno != EEXIST) {
+	       berrno be;
                Jmsg2(jcr, M_ERROR, 0, _("Cannot make fifo %s: ERR=%s\n"), 
-		     attr->ofname, strerror(errno));
+		     attr->ofname, be.strerror());
 	       return CF_ERROR;
 	    }
 	 } else {	   
             Dmsg1(200, "Restore node: %s\n", attr->ofname);
 	    if (mknod(attr->ofname, attr->statp.st_mode, attr->statp.st_rdev) != 0 && errno != EEXIST) {
+	       berrno be;
                Jmsg2(jcr, M_ERROR, 0, _("Cannot make node %s: ERR=%s\n"), 
-		     attr->ofname, strerror(errno));
+		     attr->ofname, be.strerror());
 	       return CF_ERROR;
 	    }
 	 }	 
@@ -213,8 +218,10 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
                Jmsg1(jcr, M_ERROR, 0, "bpkt already open fid=%d\n", bfd->fid);
 	    }
 	    if ((bopen(bfd, attr->ofname, mode, 0)) < 0) {
+	       berrno be;
+	       be.set_errno(bfd->berrno);
                Jmsg2(jcr, M_ERROR, 0, _("Could not open %s: ERR=%s\n"), 
-		     attr->ofname, berror(bfd));
+		     attr->ofname, be.strerror());
 	       stop_thread_timer(tid);
 	       return CF_ERROR;
 	    }
@@ -227,8 +234,9 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
       case FT_LNK:
          Dmsg2(130, "FT_LNK should restore: %s -> %s\n", attr->ofname, attr->olname);
 	 if (symlink(attr->olname, attr->ofname) != 0 && errno != EEXIST) {
+	    berrno be;
             Jmsg3(jcr, M_ERROR, 0, _("Could not symlink %s -> %s: ERR=%s\n"),
-		  attr->ofname, attr->olname, strerror(errno));
+		  attr->ofname, attr->olname, be.strerror());
 	    return CF_ERROR;
 	 }
 	 return CF_CREATED;
@@ -236,8 +244,9 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
       case FT_LNKSAVED: 		 /* Hard linked, file already saved */
          Dmsg2(130, "Hard link %s => %s\n", attr->ofname, attr->olname);
 	 if (link(attr->olname, attr->ofname) != 0) {
+	    berrno be;
             Jmsg3(jcr, M_ERROR, 0, _("Could not hard link %s -> %s: ERR=%s\n"),
-		  attr->ofname, attr->olname, strerror(errno));
+		  attr->ofname, attr->olname, be.strerror());
 	    return CF_ERROR;
 	 }
 	 return CF_CREATED;
@@ -260,8 +269,10 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
             Jmsg1(jcr, M_ERROR, 0, "bpkt already open fid=%d\n", bfd->fid);
 	 }
 	 if ((bopen(bfd, attr->ofname, O_WRONLY|O_BINARY, 0)) < 0) {
+	    berrno be;
+	    be.set_errno(bfd->berrno);
             Jmsg2(jcr, M_ERROR, 0, _("Could not open %s: ERR=%s\n"), 
-		  attr->ofname, berror(bfd));
+		  attr->ofname, be.strerror());
 	    return CF_ERROR;
 	 }
 	 return CF_EXTRACT;

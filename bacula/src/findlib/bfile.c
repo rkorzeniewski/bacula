@@ -108,6 +108,7 @@ void binit(BFILE *bfd)
    bfd->errmsg = NULL;
    bfd->lpContext = NULL;
    bfd->lerror = 0;
+   bfd->berrno = 0;
 }
 
 /*
@@ -253,6 +254,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 
    if (bfd->fh == INVALID_HANDLE_VALUE) {
       bfd->lerror = GetLastError();
+      bfd->berrno = b_errno_win32;
       bfd->mode = BF_CLOSED;
    }
    bfd->errmsg = NULL;
@@ -348,6 +350,7 @@ ssize_t bread(BFILE *bfd, void *buf, size_t count)
 	   1,				/* Process Security */
 	   &bfd->lpContext)) {		/* Context */
 	 bfd->lerror = GetLastError();
+	 bfd->berrno = b_errno_win32;
 	 return -1;
       }
    } else {
@@ -357,6 +360,7 @@ ssize_t bread(BFILE *bfd, void *buf, size_t count)
 	   &bfd->rw_bytes,
 	   NULL)) {
 	 bfd->lerror = GetLastError();
+	 bfd->berrno = b_errno_win32;
 	 return -1;
       }
    }
@@ -377,6 +381,7 @@ ssize_t bwrite(BFILE *bfd, void *buf, size_t count)
 	   1,				/* Process Security */
 	   &bfd->lpContext)) {		/* Context */
 	 bfd->lerror = GetLastError();
+	 bfd->berrno = b_errno_win32;
 	 return -1;
       }
    } else {
@@ -386,6 +391,7 @@ ssize_t bwrite(BFILE *bfd, void *buf, size_t count)
 	   &bfd->rw_bytes,
 	   NULL)) {
 	 bfd->lerror = GetLastError();
+	 bfd->berrno = b_errno_win32;
 	 return -1;
       }
    }

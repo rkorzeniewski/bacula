@@ -523,8 +523,9 @@ static void add_fname_to_list(JCR *jcr, char *fname, int list)
    case '<':
       p++;			/* skip over < */
       if ((ffd = fopen(p, "r")) == NULL) {
+	 berrno be;
          Jmsg(jcr, M_FATAL, 0, _("Cannot open %s file: %s. ERR=%s\n"),
-            list==INC_LIST?"included":"excluded", p, strerror(errno));
+            list==INC_LIST?"included":"excluded", p, be.strerror());
 	 return;
       }
       /* Copy File options */
@@ -654,8 +655,9 @@ static void add_file_to_fileset(JCR *jcr, const char *fname, findFILESET *filese
    case '<':
       p++;			/* skip over < */
       if ((ffd = fopen(p, "r")) == NULL) {
+	 berrno be;
          Jmsg(jcr, M_FATAL, 0, _("Cannot open FileSet input file: %s. ERR=%s\n"),
-	    p, strerror(errno));
+	    p, be.strerror());
 	 return;
       }
       while (fgets(buf, sizeof(buf), ffd)) {
@@ -932,6 +934,7 @@ static int bootstrap_cmd(JCR *jcr)
    jcr->RestoreBootstrap = fname;
    bs = fopen(fname, "a+");           /* create file */
    if (!bs) {
+      berrno be;
       /* 
        * Suck up what he is sending to us so that he will then
        *   read our error message.
@@ -940,7 +943,7 @@ static int bootstrap_cmd(JCR *jcr)
 	{  }
 
       Jmsg(jcr, M_FATAL, 0, _("Could not create bootstrap file %s: ERR=%s\n"),
-	 jcr->RestoreBootstrap, strerror(errno));
+	 jcr->RestoreBootstrap, be.strerror());
       free_pool_memory(jcr->RestoreBootstrap);
       jcr->RestoreBootstrap = NULL;
       set_jcr_job_status(jcr, JS_ErrorTerminated);
@@ -1548,8 +1551,9 @@ static int send_bootstrap_file(JCR *jcr)
    }
    bs = fopen(jcr->RestoreBootstrap, "r");
    if (!bs) {
+      berrno be;
       Jmsg(jcr, M_FATAL, 0, _("Could not open bootstrap file %s: ERR=%s\n"), 
-	 jcr->RestoreBootstrap, strerror(errno));
+	 jcr->RestoreBootstrap, be.strerror());
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       goto bail_out;
    }
