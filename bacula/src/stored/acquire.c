@@ -214,7 +214,7 @@ default_path:
 
    dev->state &= ~ST_APPEND;	      /* clear any previous append mode */
    dev->state |= ST_READ;	      /* set read mode */
-   attach_jcr_to_device(dev, jcr);    /* attach jcr to device */
+// attach_jcr_to_device(dev, jcr);    /* attach jcr to device */
    set_jcr_job_status(jcr, JS_Running);
    dir_send_job_status(jcr);
    Jmsg(jcr, M_INFO, 0, _("Ready to read from volume \"%s\" on device %s.\n"),
@@ -344,7 +344,7 @@ DCR *acquire_device_for_append(JCR *jcr)
    if (jcr->NumVolumes == 0) {
       jcr->NumVolumes = 1;
    }
-   attach_jcr_to_device(dev, jcr);    /* attach jcr to device */
+// attach_jcr_to_device(dev, jcr);    /* attach jcr to device */
    set_jcr_job_status(jcr, JS_Running);
    dir_send_job_status(jcr);
    goto ok_out;
@@ -411,7 +411,7 @@ bool release_device(JCR *jcr)
       Jmsg2(jcr, M_ERROR, 0, _("BAD ERROR: release_device %s, Volume \"%s\" not in use.\n"), 
 	    dev_name(dev), NPRT(jcr->VolumeName));
    }
-   detach_jcr_from_device(dev, jcr);
+// detach_jcr_from_device(dev, jcr);
    if (dev->prev && !dev_state(dev, ST_READ) && !dev->num_writers) {
       P(mutex);
       unlock_device(dev);

@@ -326,7 +326,6 @@ bool write_block_to_device(DCR *dcr, DEV_BLOCK *block)
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
 
-
    if (dcr->spooling) {
       stat = write_block_to_spool_file(dcr, block);
       return stat;
@@ -503,12 +502,26 @@ bool write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
        * Walk through all attached jcrs indicating the file has changed   
        */
       Dmsg1(100, "Walk attached jcrs. Volume=%s\n", dev->VolCatInfo.VolCatName);
+#ifdef xxx
       for (JCR *mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
 	 if (mjcr->JobId == 0) {
 	    continue;		      /* ignore console */
 	 }
 	 mjcr->dcr->NewFile = true;   /* set reminder to do set_new_file_params */
       }
+#endif
+      /*
+       * Walk through all attached dcrs setting flag to call
+       * set_new_file_parameters() when that dcr is next used.
+       */
+      DCR *mdcr;
+      foreach_dlist(mdcr, dev->attached_dcrs) {
+	 if (mdcr->jcr->JobId == 0) {
+	    continue;
+	 }
+	 mdcr->NewFile = true;	      /* set reminder to do set_new_file_params */
+      }
+      /* Set new file/block parameters for current dcr */
       set_new_file_parameters(dcr);
    }
 

@@ -1152,7 +1152,7 @@ static JCR *create_jcr(JOB_DBR *jr, DEV_RECORD *rec, uint32_t JobId)
    jobjcr->VolSessionId = rec->VolSessionId;
    jobjcr->VolSessionTime = rec->VolSessionTime;
    jobjcr->ClientId = jr->ClientId;
-   attach_jcr_to_device(dev, jobjcr);
+// attach_jcr_to_device(dev, jobjcr);
    new_dcr(jobjcr, dev);
    return jobjcr;
 }
