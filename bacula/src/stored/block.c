@@ -592,6 +592,8 @@ reread:
 
    dev->state &= ~(ST_EOF|ST_SHORT); /* clear EOF and short block */
    dev->block_num++;
+   dev->VolCatInfo.VolCatReads++;   
+   dev->VolCatInfo.VolCatRBytes += block->read_len;
 
    /*
     * If we read a short block on disk,

@@ -37,7 +37,6 @@ For 1.31 release:
   waiting for a connection from the FD that was never coming.
 - Make restore more robust in counting error and not immediately bailing
   out. Also print error message once, but try to continue.
-- Make SD keep track of Files, Bytes during restore.
 - Add code to check that blocks are sequential on restore.
 - File the Automatically selected: xxx
   to say Automatically selected Pool: xxx
@@ -879,3 +878,5 @@ Done: (see kernsdone for more)
 - Bug: fix access problems on files restored on WinXP.
 - Put system type returned by FD into catalog.
 - Finish WIN32_DATA stream code (bextract, check if can handle stream)
+- Make SD keep track of Files, Bytes during restore.
+

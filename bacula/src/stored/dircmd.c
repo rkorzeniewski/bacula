@@ -706,15 +706,27 @@ static int status_cmd(JCR *jcr)
                bnet_fsend(user, _("Device %s open but no Bacula volume is mounted.\n"), dev_name(dev));
 	    }
 	    send_blocked_status(jcr, dev);
-	    bpb = dev->VolCatInfo.VolCatBlocks;
-	    if (bpb <= 0) {
-	       bpb = 1;
+	    if (dev->state & ST_APPEND) {
+	       bpb = dev->VolCatInfo.VolCatBlocks;
+	       if (bpb <= 0) {
+		  bpb = 1;
+	       }
+	       bpb = dev->VolCatInfo.VolCatBytes / bpb;
+               bnet_fsend(user, _("    Total Bytes=%s Blocks=%s Bytes/block=%s\n"),
+		  edit_uint64_with_commas(dev->VolCatInfo.VolCatBytes, b1),
+		  edit_uint64_with_commas(dev->VolCatInfo.VolCatBlocks, b2), 
+		  edit_uint64_with_commas(bpb, b3));
+	    } else {  /* reading */
+	       bpb = dev->VolCatInfo.VolCatReads;
+	       if (bpb <= 0) {
+		  bpb = 1;
+	       }
+	       bpb = dev->VolCatInfo.VolCatRBytes / bpb;
+               bnet_fsend(user, _("    Total Bytes Read=%s Blocks Read=%s Bytes/block=%s\n"),
+		  edit_uint64_with_commas(dev->VolCatInfo.VolCatRBytes, b1),
+		  edit_uint64_with_commas(dev->VolCatInfo.VolCatReads, b2), 
+		  edit_uint64_with_commas(bpb, b3));
 	    }
-	    bpb = dev->VolCatInfo.VolCatBytes / bpb;
-            bnet_fsend(user, _("    Total Bytes=%s Blocks=%s Bytes/block=%s\n"),
-	       edit_uint64_with_commas(dev->VolCatInfo.VolCatBytes, b1),
-	       edit_uint64_with_commas(dev->VolCatInfo.VolCatBlocks, b2), 
-	       edit_uint64_with_commas(bpb, b3));
             bnet_fsend(user, _("    Positioned at File=%s Block=%s\n"), 
 	       edit_uint64_with_commas(dev->file, b1),
 	       edit_uint64_with_commas(dev->block_num, b2));
