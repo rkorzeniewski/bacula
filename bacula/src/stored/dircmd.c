@@ -852,7 +852,8 @@ static void read_volume_label(JCR *jcr, DEVICE *dev, int Slot)
    dev->state &= ~ST_LABEL;	      /* force read of label */
    switch (read_dev_volume_label(jcr, dev, block)) {		    
    case VOL_OK:
-      bnet_fsend(dir, _("3001 Volume=\"%s\" Slot=%d\n"), dev->VolHdr.VolName, Slot);
+      /* DO NOT add quotes around the Volume name. It is scanned in the DIR */
+      bnet_fsend(dir, _("3001 Volume=%s Slot=%d\n"), dev->VolHdr.VolName, Slot);
       Dmsg1(100, "Volume: %s\n", dev->VolHdr.VolName);
       break;
    default:
