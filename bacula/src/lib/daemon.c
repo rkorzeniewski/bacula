@@ -41,7 +41,7 @@ daemon_start()
 {
 #ifndef HAVE_CYGWIN
    int i;
-   int cpid;
+   pid_t cpid;
    mode_t oldmask;
    /*
     *  Become a daemon.
