@@ -72,6 +72,7 @@ autoconf/config.h.in: autoconf/configure.in autoconf/acconfig.h
 installdirs:
 	$(MKDIR) $(DESTDIR)$(sbindir)
 	$(MKDIR) $(DESTDIR)$(sysconfdir)
+	$(MKDIR) $(DESTDIR)$(scriptdir)
 	$(MKDIR) $(DESTDIR)$(working_dir)
 #	$(MKDIR) $(DESTDIR)$(mandir)
 

@@ -528,6 +528,23 @@ AC_ARG_WITH(working-dir,
 
 AC_SUBST(working_dir)
 
+
+# ------------------------------------------
+# Where to place scriptdir (script files)
+# ------------------------------------------
+scriptdir=`eval echo ${sysconfdir}`
+AC_ARG_WITH(scriptdir,
+   [  --with-scriptdir=PATH    specify path of Bacula scripts directory],
+   [
+       if test "x$withval" != "xno" ; then     
+	      scriptdir=$withval
+       fi
+   ]
+)
+
+AC_SUBST(scriptdir)
+
+
 # ------------------------------------------
 # Where to send dump email
 # ------------------------------------------
@@ -1389,6 +1406,8 @@ Configuration on `date`:
   Source code location:       ${srcdir}
   Install binaries:	      ${sbindir}
   Install config files:       ${sysconfdir}
+  Scripts directory	      ${scriptdir}
+  Working directory	      ${working_dir}
   C Compiler:		      ${CC}
   C++ Compiler: 	      ${CXX}
   Compiler flags:	      ${CFLAGS} 
@@ -1408,7 +1427,6 @@ Configuration on `date`:
   Director Port 	      ${dir_port}
   File daemon Port	      ${fd_port}
   Storage daemon Port	      ${sd_port}
-  Working directory	      ${working_dir}
   SQL binaries Directory      ${SQL_BINDIR}
 
   Large file support:	      $largefile_support

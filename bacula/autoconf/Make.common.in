@@ -29,6 +29,7 @@ binprefix =
 manprefix =
 sbindir = @sbindir@
 sysconfdir = @sysconfdir@
+scriptdir = @scriptdir@
 mandir = @mandir@/man1
 manext = 1
 

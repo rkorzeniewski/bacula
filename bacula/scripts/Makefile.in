@@ -29,24 +29,27 @@ depend:
 installdirs:
 	$(MKDIR) $(DESTDIR)$(sysconfdir)
 	$(MKDIR) $(DESTDIR)$(sbindir)
+	$(MKDIR) $(DESTDIR)$(scriptdir)
 
 install: installdirs
-	$(INSTALL_SCRIPT) startmysql $(DESTDIR)$(sysconfdir)/startmysql
-	$(INSTALL_SCRIPT) stopmysql $(DESTDIR)$(sysconfdir)/stopmysql
-	$(INSTALL_SCRIPT) console $(DESTDIR)$(sysconfdir)/console
-	$(INSTALL_SCRIPT) bacula $(DESTDIR)$(sysconfdir)/bacula
-	$(INSTALL_SCRIPT) fd $(DESTDIR)$(sysconfdir)/fd
-	$(INSTALL_SCRIPT) mtx-changer $(DESTDIR)$(sysconfdir)/mtx-changer
+	$(INSTALL_SCRIPT) startmysql $(DESTDIR)$(scriptdir)/startmysql
+	$(INSTALL_SCRIPT) stopmysql $(DESTDIR)$(scriptdir)/stopmysql
+	$(INSTALL_SCRIPT) console $(DESTDIR)$(scriptdir)/console
+	$(INSTALL_SCRIPT) gconsole $(DESTDIR)$(scriptdir)/gconsole
+	$(INSTALL_SCRIPT) bacula $(DESTDIR)$(scriptdir)/bacula
+	$(INSTALL_SCRIPT) fd $(DESTDIR)$(scriptdir)/fd
+	$(INSTALL_SCRIPT) mtx-changer $(DESTDIR)$(scriptdir)/mtx-changer
 	$(INSTALL_SCRIPT) btraceback $(DESTDIR)$(sbindir)/btraceback
 	$(INSTALL_DATA)   btraceback.gdb $(DESTDIR)$(sbindir)/btraceback.gdb
 
 uninstall:
-	(cd $(DESTDIR)$(sysconfdir); $(RMF) startmysql)
-	(cd $(DESTDIR)$(sysconfdir); $(RMF) stopmysql)
-	(cd $(DESTDIR)$(sysconfdir); $(RMF) console)
-	(cd $(DESTDIR)$(sysconfdir); $(RMF) bacula)
-	(cd $(DESTDIR)$(sysconfdir); $(RMF) fd)
-	(cd $(DESTDIR)$(sysconfdir); $(RMF) mtx-changer)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) startmysql)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) stopmysql)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) console)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) gconsole)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) bacula)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) fd)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) mtx-changer)
 	(cd $(DESTDIR)$(sbindir); $(RMF) btraceback)
 	(cd $(DESTDIR)$(sbindir); $(RMF) btraceback.gdb)
 

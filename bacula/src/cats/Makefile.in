@@ -70,22 +70,22 @@ distclean: realclean
 	(cd $(srcdir); $(RMF) Makefile; $(RMF) -r CVS)
 
 install:
-	$(INSTALL_SCRIPT) create_@DB_NAME@_database $(DESTDIR)$(sysconfdir)/create_@DB_NAME@_database
-	$(INSTALL_SCRIPT) drop_@DB_NAME@_tables $(DESTDIR)$(sysconfdir)/drop_@DB_NAME@_tables
-	$(INSTALL_SCRIPT) make_@DB_NAME@_tables $(DESTDIR)$(sysconfdir)/make_@DB_NAME@_tables
-	$(INSTALL_SCRIPT) drop_bacula_tables $(DESTDIR)$(sysconfdir)/drop_bacula_tables
-	$(INSTALL_SCRIPT) make_bacula_tables $(DESTDIR)$(sysconfdir)/make_bacula_tables
-	$(INSTALL_SCRIPT) make_catalog_backup $(DESTDIR)$(sysconfdir)/make_catalog_backup  
-	$(INSTALL_SCRIPT) delete_catalog_backup $(DESTDIR)$(sysconfdir)/delete_catalog_backup  
+	$(INSTALL_SCRIPT) create_@DB_NAME@_database $(DESTDIR)$(scriptdir)/create_@DB_NAME@_database
+	$(INSTALL_SCRIPT) drop_@DB_NAME@_tables $(DESTDIR)$(scriptdir)/drop_@DB_NAME@_tables
+	$(INSTALL_SCRIPT) make_@DB_NAME@_tables $(DESTDIR)$(scriptdir)/make_@DB_NAME@_tables
+	$(INSTALL_SCRIPT) drop_bacula_tables $(DESTDIR)$(scriptdir)/drop_bacula_tables
+	$(INSTALL_SCRIPT) make_bacula_tables $(DESTDIR)$(scriptdir)/make_bacula_tables
+	$(INSTALL_SCRIPT) make_catalog_backup $(DESTDIR)$(scriptdir)/make_catalog_backup  
+	$(INSTALL_SCRIPT) delete_catalog_backup $(DESTDIR)$(scriptdir)/delete_catalog_backup  
 
 uninstall:
-	(cd $(DESTDIR)$(sysconfdir); $(RMF) create_@DB_NAME@_database)
-	(cd $(DESTDIR)$(sysconfdir); $(RMF) drop_@DB_NAME@_tables)
-	(cd $(DESTDIR)$(sysconfdir); $(RMF) make_@DB_NAME@_tables)
-	(cd $(DESTDIR)$(sysconfdir); $(RMF) drop_bacula_tables)
-	(cd $(DESTDIR)$(sysconfdir); $(RMF) make_bacula_tables)
-	(cd $(DESTDIR)$(sysconfdir); $(RMF) make_catalog_backup)
-	(cd $(DESTDIR)$(sysconfdir); $(RMF) delete_catalog_backup)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) create_@DB_NAME@_database)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) drop_@DB_NAME@_tables)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) make_@DB_NAME@_tables)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) drop_bacula_tables)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) make_bacula_tables)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) make_catalog_backup)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) delete_catalog_backup)
 
 
 # Semi-automatic generation of dependencies:

@@ -15,7 +15,7 @@
 Director {                            # define myself
   Name = @hostname@-dir
   DIRport = @dir_port@                # where we listen for UA connections
-  QueryFile = "@sysconfdir@/query.sql"
+  QueryFile = "@scriptdir@/query.sql"
   WorkingDirectory = "@working_dir@"
   PidDirectory = "@piddir@"
   SubSysDirectory = "@subsysdir@"
@@ -48,9 +48,9 @@ Job {
   Messages = Standard
   Pool = Default
   # This creates an ASCII copy of the catalog
-  RunBeforeJob = "@sysconfdir@/make_catalog_backup"
+  RunBeforeJob = "@scriptdir@/make_catalog_backup"
   # This deletes the copy of the catalog
-  RunAfterJob  = "@sysconfdir@/delete_catalog_backup"
+  RunAfterJob  = "@scriptdir@/delete_catalog_backup"
   Write Bootstrap = "@working_dir@/BackupCatalog.bsr"
 }
 
