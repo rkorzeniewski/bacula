@@ -251,7 +251,7 @@ int32_t decode_LinkFI(char *buf, struct stat *statp)
    skip_nonspaces(&p);		      /* st_ino */
    p++;
    p += from_base64(&val, p);
-   statp->st_mode = val;	      /* st_mode */
+   plug(statp->st_mode, val);	      /* st_mode */
    p++;
    skip_nonspaces(&p);		      /* st_nlink */
    p++;
@@ -508,7 +508,7 @@ static bool set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    }
 
    p += from_base64(&val, p);
-   atts.dwFileAttributes = val;
+   plug(atts.dwFileAttributes, val);
    p++; 			      /* skip space */
    p += from_base64(&val, p);
    li.QuadPart = val;
@@ -526,10 +526,10 @@ static bool set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    atts.ftLastWriteTime.dwHighDateTime = li.HighPart;
    p++;   
    p += from_base64(&val, p);
-   atts.nFileSizeHigh = val;
+   plug(atts.nFileSizeHigh, val);
    p++;
    p += from_base64(&val, p);
-   atts.nFileSizeLow = val;
+   plug(atts.nFileSizeLow, val);
 
    /* Convert to Windows path format */
    win32_ofile = get_pool_memory(PM_FNAME);
