@@ -128,7 +128,7 @@ INSERT INTO temp2 SELECT Job.JobId,Job.StartTime,Media.VolumeName,
  AND JobMedia.MediaId=Media.MediaId
  GROUP BY Job.JobId;
 # list results
-SELECT * from temp2;
+SELECT DISTINCT VolumeName from temp2;
 !DROP TABLE temp;
 !DROP TABLE temp2;
 # 10

@@ -146,7 +146,7 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
    char buf[MAXSTRING];
    int recurse = 1;
    if (res == NULL) {
-      sendit(sock, _("Warning: no %s resource (%d) defined.\n"), res_to_str(type), type);
+      sendit(sock, _("Warning: no \"%s\" resource (%d) defined.\n"), res_to_str(type), type);
       return;
    }
    sendit(sock, "dump_resource type=%d\n", type);
@@ -342,13 +342,13 @@ void save_resource(int type, RES_ITEM *items, int pass)
    for (i=0; items[i].name; i++) {
       if (items[i].flags & ITEM_REQUIRED) {
 	 if (!bit_is_set(i, res_all.res_dir.hdr.item_present)) {  
-            Emsg2(M_ABORT, 0, _("%s item is required in %s resource, but not found.\n"),
+            Emsg2(M_ERROR_TERM, 0, _("\"%s\" item is required in \"%s\" resource, but not found.\n"),
 	      items[i].name, resources[rindex]);
 	  }
       }
       /* If this triggers, take a look at lib/parse_conf.h */
       if (i >= MAX_RES_ITEMS) {
-         Emsg1(M_ABORT, 0, _("Too many items in %s resource\n"), resources[rindex]);
+         Emsg1(M_ERROR_TERM, 0, _("Too many items in \"%s\" resource\n"), resources[rindex]);
       }
    }
 
@@ -368,7 +368,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
 	 /* Resources containing a resource */
 	 case R_STORAGE:
 	    if ((res = (URES *)GetResWithName(R_STORAGE, res_all.res_dir.hdr.name)) == NULL) {
-               Emsg1(M_ABORT, 0, "Cannot find Storage resource %s\n", res_all.res_dir.hdr.name);
+               Emsg1(M_ERROR_TERM, 0, "Cannot find Storage resource \"%s\"\n", res_all.res_dir.hdr.name);
 	    }
 	    res->res_store.messages = res_all.res_store.messages;
 	    break;
@@ -422,7 +422,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
 	 for (next=resources[rindex].res_head; next->next; next=next->next) {
 	    if (strcmp(next->name, res->res_dir.hdr.name) == 0) {
 	       Emsg2(M_ERROR_TERM, 0,
-                  _("Attempt to define second %s resource named \"%s\" is not permitted.\n"),
+                  _("Attempt to define second \"%s\" resource named \"%s\" is not permitted.\n"),
 		  resources[rindex].name, res->res_dir.hdr.name);
 	    }
 	 }

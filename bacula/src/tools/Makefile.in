@@ -28,6 +28,8 @@ FINDOBJS = testfind.o
 # these are the objects that are changed by the .configure process
 EXTRAOBJS = @OBJLIST@
 
+DIRCONFOBJS = ../dird/dird_conf.o ../dird/run_conf.o ../dird/inc_conf.o
+
 .SUFFIXES:	.c .o
 .PHONY:
 .DONTCARE:
@@ -43,8 +45,8 @@ all: Makefile bsmtp dbcheck testfind testls
 bsmtp:	bsmtp.o ../lib/libbac.a        
 	$(CXX) $(LDFLAGS) -L../lib -o $@ bsmtp.o -lbac -lm $(LIBS) $(DLIB)
 
-dbcheck: dbcheck.o ../lib/libbac.a ../cats/libsql.a
-	$(CXX) $(LDFLAGS) -L../lib -L../cats -o $@ dbcheck.o -lsql -lbac -lm $(LIBS) $(DB_LIBS)
+dbcheck: dbcheck.o ../lib/libbac.a ../cats/libsql.a $(DIRCONFOBJS)
+	$(CXX) $(LDFLAGS) -L../lib -L../cats -o $@ dbcheck.o $(DIRCONFOBJS) -lsql -lbac -lm $(LIBS) $(DB_LIBS)
 
 testfind: ../findlib/libfind.a ../lib/libbac.a $(FINDOBJS)
 	$(CXX) -g $(LDFLAGS) -L. -L../lib -L../findlib -o $@ $(FINDOBJS) \

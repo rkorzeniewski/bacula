@@ -1890,8 +1890,8 @@ This may take a long time -- hours! ...\n\n");
 		 strerror(errno));
    }
 
-   /* Release the device */
-   if (!release_device(jcr)) {
+   /* Release the device if multiple tapes being used */
+   if (!simple && !release_device(jcr)) {
       Pmsg0(-1, _("Error in release_device\n"));
       ok = false;
    }

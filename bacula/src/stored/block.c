@@ -689,7 +689,7 @@ int read_block_from_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, bool check_bloc
    DCR *dcr = jcr->dcr;
 
    if (!dcr) {
-      Jmsg(jcr, M_ABORT, 0, _("DCR is NULL!\n"));
+      Jmsg0(jcr, M_ABORT, 0, _("DCR is NULL!\n"));
    }
    if (dev_state(dev, ST_EOT)) {
       return 0;
