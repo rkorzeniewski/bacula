@@ -273,7 +273,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
 	    be.set_errno(bfd->berrno);
 #ifdef HAVE_WIN32
 	    /* Check for trying to create a drive, if so, skip */
-            if (attr->ofname[1] == ':' && attr->ofname[2] = '/' && attr->ofname[3] == 0) {
+            if (attr->ofname[1] == ':' && attr->ofname[2] == '/' && attr->ofname[3] == 0) {
 	       return CF_SKIP;
 	    }
 #endif

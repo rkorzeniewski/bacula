@@ -209,12 +209,12 @@ init_dev(JCR *jcr, DEVICE *dev, DEVRES *device)
 
    if (dev->max_block_size > 1000000) {
       Jmsg3(jcr, M_ERROR, 0, _("Block size %u on device %s is too large, using default %u\n"),
-	 dev->max_block_size, dev->dev_name, DEFAULT_BLOCK_SIZE);
+	 dev->max_block_size, dev->print_name(), DEFAULT_BLOCK_SIZE);
       dev->max_block_size = 0;
    }
    if (dev->max_block_size % TAPE_BSIZE != 0) {
       Jmsg2(jcr, M_WARNING, 0, _("Max block size %u not multiple of device %s block size.\n"),
-	 dev->max_block_size, dev->dev_name);
+	 dev->max_block_size, dev->print_name());
    }
 
    dev->errmsg = get_pool_memory(PM_EMSG);
@@ -286,7 +286,7 @@ open_dev(DEVICE *dev, char *VolName, int mode)
       }
       dev->use_count++;
       Mmsg2(&dev->errmsg, _("WARNING!!!! device %s opened %d times!!!\n"),
-	    dev->dev_name, dev->use_count);
+	    dev->print_name(), dev->use_count);
       Emsg1(M_WARNING, 0, "%s", dev->errmsg);
       return dev->fd;
    }
@@ -301,6 +301,7 @@ open_dev(DEVICE *dev, char *VolName, int mode)
    if (dev->is_tape() || dev->is_fifo()) {
       dev->file_size = 0;
       int timeout;
+      int ioerrcnt = 10;
       Dmsg0(29, "open_dev: device is tape\n");
       if (mode == OPEN_READ_WRITE) {
 	 dev->mode = O_RDWR | O_BINARY;
@@ -323,9 +324,15 @@ open_dev(DEVICE *dev, char *VolName, int mode)
 	 if (errno == EINTR || errno == EAGAIN) {
 	    continue;
 	 }
+	 /* Busy wait for specified time (default = 5 mins) */
 	 if (errno == EBUSY && timeout-- > 0) {
-            Dmsg2(100, "Device %s busy. ERR=%s\n", dev->dev_name, be.strerror());
+            Dmsg2(100, "Device %s busy. ERR=%s\n", dev->print_name(), be.strerror());
 	    bmicrosleep(1, 0);
+	    continue;
+	 }
+	 /* IO error (no volume) try 10 times every 6 seconds */
+	 if (errno == EIO && ioerrcnt-- > 0) {
+	    bmicrosleep(5, 0);
 	    continue;
 	 }
 	 dev->dev_errno = errno;
@@ -371,14 +378,14 @@ open_dev(DEVICE *dev, char *VolName, int mode)
       
       if (VolName == NULL || *VolName == 0) {
          Mmsg(dev->errmsg, _("Could not open file device %s. No Volume name given.\n"),
-	    dev->dev_name);
+	    dev->print_name());
 	 return -1;
       }
       get_filename(dev, VolName, archive_name);
 
       if (mount_dev(dev, 1) < 0) {
-         Mmsg(dev->errmsg, _("Could not mount archive device %s.\n"),
-	      dev->dev_name);
+         Mmsg(dev->errmsg, _("Could not mount device %s.\n"),
+	      dev->print_name());
 	 Emsg0(M_FATAL, 0, dev->errmsg);
 	 dev->fd = -1;
 	 return dev->fd;
@@ -452,11 +459,11 @@ bool rewind_dev(DEVICE *dev)
    struct mtop mt_com;
    unsigned int i;
 
-   Dmsg1(29, "rewind_dev %s\n", dev->dev_name);
+   Dmsg1(29, "rewind_dev %s\n", dev->print_name());
    if (dev->fd < 0) {
       dev->dev_errno = EBADF;
       Mmsg1(&dev->errmsg, _("Bad call to rewind_dev. Device %s not open\n"),
-	    dev->dev_name);
+	    dev->print_name());
       Emsg0(M_ABORT, 0, dev->errmsg);
       return false;
    }
@@ -484,7 +491,7 @@ bool rewind_dev(DEVICE *dev)
 	       continue;
 	    }
             Mmsg2(&dev->errmsg, _("Rewind error on %s. ERR=%s.\n"),
-	       dev->dev_name, be.strerror());
+	       dev->print_name(), be.strerror());
 	    return false;
 	 }
 	 break;
@@ -494,7 +501,7 @@ bool rewind_dev(DEVICE *dev)
 	 berrno be;
 	 dev->dev_errno = errno;
          Mmsg2(&dev->errmsg, _("lseek_dev error on %s. ERR=%s.\n"),
-	    dev->dev_name, be.strerror());
+	    dev->print_name(), be.strerror());
 	 return false;
       }
    }
@@ -537,6 +544,12 @@ eod_dev(DEVICE *dev)
    bool ok = true;
    off_t pos;
 
+   if (dev->fd < 0) {
+      dev->dev_errno = EBADF;
+      Mmsg1(&dev->errmsg, _("Bad call to eod_dev. Device %s not open\n"),
+	    dev->print_name());
+      return false;
+   }
    Dmsg0(29, "eod_dev\n");
    if (dev->at_eot()) {
       return true;
@@ -559,7 +572,7 @@ eod_dev(DEVICE *dev)
       dev->dev_errno = errno;
       berrno be;
       Mmsg2(&dev->errmsg, _("lseek_dev error on %s. ERR=%s.\n"),
-	     dev->dev_name, be.strerror());
+	     dev->print_name(), be.strerror());
       return false;
    }
 #ifdef MTEOM
@@ -595,7 +608,7 @@ eod_dev(DEVICE *dev)
          Dmsg1(50, "ioctl error: %s\n", be.strerror());
 	 update_pos_dev(dev);
          Mmsg2(&dev->errmsg, _("ioctl MTEOM error on %s. ERR=%s.\n"),
-	    dev->dev_name, be.strerror());
+	    dev->print_name(), be.strerror());
 	 return false;
       }
 
@@ -603,7 +616,7 @@ eod_dev(DEVICE *dev)
 	 berrno be;
 	 clrerror_dev(dev, -1);
          Mmsg2(&dev->errmsg, _("ioctl MTIOCGET error on %s. ERR=%s.\n"),
-	    dev->dev_name, be.strerror());
+	    dev->print_name(), be.strerror());
 	 return false;
       }
       Dmsg2(100, "EOD file=%d block=%d\n", mt_stat.mt_fileno, mt_stat.mt_blkno);
@@ -681,7 +694,7 @@ bool update_pos_dev(DEVICE *dev)
 
    if (dev->fd < 0) {
       dev->dev_errno = EBADF;
-      Mmsg0(&dev->errmsg, _("Bad device call. Archive not open\n"));
+      Mmsg0(&dev->errmsg, _("Bad device call. Device not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
       return false;
    }
@@ -696,7 +709,7 @@ bool update_pos_dev(DEVICE *dev)
 	 dev->dev_errno = errno;
          Pmsg1(000, "Seek error: ERR=%s\n", be.strerror());
          Mmsg2(&dev->errmsg, _("lseek_dev error on %s. ERR=%s.\n"),
-	    dev->dev_name, be.strerror());
+	    dev->print_name(), be.strerror());
 	 ok = false;
       } else {
 	 dev->file_addr = pos;
@@ -736,7 +749,7 @@ uint32_t status_dev(DEVICE *dev)
 	 berrno be;
 	 dev->dev_errno = errno;
          Mmsg2(&dev->errmsg, _("ioctl MTIOCGET error on %s. ERR=%s.\n"),
-	    dev->dev_name, be.strerror());
+	    dev->print_name(), be.strerror());
 	 return 0;
       }
       Dmsg0(-20, " Device status:");
@@ -804,7 +817,7 @@ bool load_dev(DEVICE *dev)
 
    if (dev->fd < 0) {
       dev->dev_errno = EBADF;
-      Mmsg0(&dev->errmsg, _("Bad call to load_dev. Archive not open\n"));
+      Mmsg0(&dev->errmsg, _("Bad call to load_dev. Device not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
       return false;
    }
@@ -816,7 +829,7 @@ bool load_dev(DEVICE *dev)
    berrno be;
    dev->dev_errno = ENOTTY;	      /* function not available */
    Mmsg2(&dev->errmsg, _("ioctl MTLOAD error on %s. ERR=%s.\n"),
-	 dev->dev_name, be.strerror());
+	 dev->print_name(), be.strerror());
    return false;
 #else
 
@@ -829,7 +842,7 @@ bool load_dev(DEVICE *dev)
       berrno be;
       dev->dev_errno = errno;
       Mmsg2(&dev->errmsg, _("ioctl MTLOAD error on %s. ERR=%s.\n"),
-	 dev->dev_name, be.strerror());
+	 dev->print_name(), be.strerror());
       return false;
    }
    return true;
@@ -847,7 +860,7 @@ bool offline_dev(DEVICE *dev)
 
    if (dev->fd < 0) {
       dev->dev_errno = EBADF;
-      Mmsg0(&dev->errmsg, _("Bad call to offline_dev. Archive not open\n"));
+      Mmsg0(&dev->errmsg, _("Bad call to offline_dev. Device not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
       return false;
    }
@@ -871,10 +884,10 @@ bool offline_dev(DEVICE *dev)
       berrno be;
       dev->dev_errno = errno;
       Mmsg2(&dev->errmsg, _("ioctl MTOFFL error on %s. ERR=%s.\n"),
-	 dev->dev_name, be.strerror());
+	 dev->print_name(), be.strerror());
       return false;
    }
-   Dmsg1(100, "Offlined device %s\n", dev->dev_name);
+   Dmsg1(100, "Offlined device %s\n", dev->print_name());
    return true;
 }
 
@@ -912,7 +925,7 @@ fsf_dev(DEVICE *dev, int num)
 
    if (dev->fd < 0) {
       dev->dev_errno = EBADF;
-      Mmsg0(&dev->errmsg, _("Bad call to fsf_dev. Archive not open\n"));
+      Mmsg0(&dev->errmsg, _("Bad call to fsf_dev. Device not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
       return false;
    }
@@ -922,7 +935,7 @@ fsf_dev(DEVICE *dev, int num)
    }
    if (dev->state & ST_EOT) {
       dev->dev_errno = 0;
-      Mmsg1(dev->errmsg, _("Device %s at End of Tape.\n"), dev->dev_name);
+      Mmsg1(dev->errmsg, _("Device %s at End of Tape.\n"), dev->print_name());
       return false;
    }
    if (dev->state & ST_EOF) {
@@ -948,7 +961,7 @@ fsf_dev(DEVICE *dev, int num)
          Dmsg0(200, "Set ST_EOT\n");
 	 clrerror_dev(dev, MTFSF);
          Mmsg2(dev->errmsg, _("ioctl MTFSF error on %s. ERR=%s.\n"),
-	    dev->dev_name, be.strerror());
+	    dev->print_name(), be.strerror());
          Dmsg1(200, "%s", dev->errmsg);
 	 return false;
       }
@@ -988,7 +1001,7 @@ fsf_dev(DEVICE *dev, int num)
                Dmsg2(100, "Set ST_EOT read errno=%d. ERR=%s\n", dev->dev_errno,
 		  be.strerror());
                Mmsg2(dev->errmsg, _("read error on %s. ERR=%s.\n"),
-		  dev->dev_name, be.strerror());
+		  dev->print_name(), be.strerror());
                Dmsg1(100, "%s", dev->errmsg);
 	       break;
 	    }
@@ -1017,7 +1030,7 @@ fsf_dev(DEVICE *dev, int num)
             Dmsg0(100, "Set ST_EOT\n");
 	    clrerror_dev(dev, MTFSF);
             Mmsg2(&dev->errmsg, _("ioctl MTFSF error on %s. ERR=%s.\n"),
-	       dev->dev_name, be.strerror());
+	       dev->print_name(), be.strerror());
             Dmsg0(100, "Got < 0 for MTFSF\n");
             Dmsg1(100, "%s", dev->errmsg);
 	 } else {
@@ -1036,7 +1049,7 @@ fsf_dev(DEVICE *dev, int num)
       }
       if (dev->state & ST_EOT) {
 	 dev->dev_errno = 0;
-         Mmsg1(dev->errmsg, _("Device %s at End of Tape.\n"), dev->dev_name);
+         Mmsg1(dev->errmsg, _("Device %s at End of Tape.\n"), dev->print_name());
 	 stat = -1;
       } else {
 	 stat = 0;
@@ -1065,14 +1078,14 @@ bsf_dev(DEVICE *dev, int num)
 
    if (dev->fd < 0) {
       dev->dev_errno = EBADF;
-      Mmsg0(dev->errmsg, _("Bad call to bsf_dev. Archive device not open\n"));
+      Mmsg0(dev->errmsg, _("Bad call to bsf_dev. Device not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
       return false;
    }
 
    if (!dev->is_tape()) {
       Mmsg1(dev->errmsg, _("Device %s cannot BSF because it is not a tape.\n"),
-	 dev->dev_name);
+	 dev->print_name());
       return false;
    }
    Dmsg0(29, "bsf_dev\n");
@@ -1087,7 +1100,7 @@ bsf_dev(DEVICE *dev, int num)
       berrno be;
       clrerror_dev(dev, MTBSF);
       Mmsg2(dev->errmsg, _("ioctl MTBSF error on %s. ERR=%s.\n"),
-	 dev->dev_name, be.strerror());
+	 dev->print_name(), be.strerror());
    }
    update_pos_dev(dev);
    return stat == 0;
@@ -1107,7 +1120,7 @@ fsr_dev(DEVICE *dev, int num)
 
    if (dev->fd < 0) {
       dev->dev_errno = EBADF;
-      Mmsg0(dev->errmsg, _("Bad call to fsr_dev. Archive not open\n"));
+      Mmsg0(dev->errmsg, _("Bad call to fsr_dev. Device not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
       return false;
    }
@@ -1116,7 +1129,7 @@ fsr_dev(DEVICE *dev, int num)
       return false;
    }
    if (!dev_cap(dev, CAP_FSR)) {
-      Mmsg1(dev->errmsg, _("ioctl MTFSR not permitted on %s.\n"), dev->dev_name);
+      Mmsg1(dev->errmsg, _("ioctl MTFSR not permitted on %s.\n"), dev->print_name());
       return false;
    }
 
@@ -1145,7 +1158,7 @@ fsr_dev(DEVICE *dev, int num)
 	 }
       }
       Mmsg2(dev->errmsg, _("ioctl MTFSR error on %s. ERR=%s.\n"),
-	 dev->dev_name, be.strerror());
+	 dev->print_name(), be.strerror());
    }
    update_pos_dev(dev);
    return stat == 0;
@@ -1164,7 +1177,7 @@ bsr_dev(DEVICE *dev, int num)
 
    if (dev->fd < 0) {
       dev->dev_errno = EBADF;
-      Mmsg0(dev->errmsg, _("Bad call to bsr_dev. Archive not open\n"));
+      Mmsg0(dev->errmsg, _("Bad call to bsr_dev. Device not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
       return false;
    }
@@ -1174,7 +1187,7 @@ bsr_dev(DEVICE *dev, int num)
    }
 
    if (!dev_cap(dev, CAP_BSR)) {
-      Mmsg1(dev->errmsg, _("ioctl MTBSR not permitted on %s.\n"), dev->dev_name);
+      Mmsg1(dev->errmsg, _("ioctl MTBSR not permitted on %s.\n"), dev->print_name());
       return false;
    }
 
@@ -1188,7 +1201,7 @@ bsr_dev(DEVICE *dev, int num)
       berrno be;
       clrerror_dev(dev, MTBSR);
       Mmsg2(dev->errmsg, _("ioctl MTBSR error on %s. ERR=%s.\n"),
-	 dev->dev_name, be.strerror());
+	 dev->print_name(), be.strerror());
    }
    update_pos_dev(dev);
    return stat == 0;
@@ -1204,7 +1217,7 @@ reposition_dev(DEVICE *dev, uint32_t file, uint32_t block)
 {
    if (dev->fd < 0) {
       dev->dev_errno = EBADF;
-      Mmsg0(dev->errmsg, _("Bad call to reposition_dev. Archive not open\n"));
+      Mmsg0(dev->errmsg, _("Bad call to reposition_dev. Device not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
       return false;
    }
@@ -1216,7 +1229,7 @@ reposition_dev(DEVICE *dev, uint32_t file, uint32_t block)
 	 berrno be;
 	 dev->dev_errno = errno;
          Mmsg2(dev->errmsg, _("lseek_dev error on %s. ERR=%s.\n"),
-	    dev->dev_name, be.strerror());
+	    dev->print_name(), be.strerror());
 	 return false;
       }
       dev->file = file;
@@ -1272,7 +1285,7 @@ weof_dev(DEVICE *dev, int num)
    
    if (dev->fd < 0) {
       dev->dev_errno = EBADF;
-      Mmsg0(dev->errmsg, _("Bad call to weof_dev. Archive drive not open\n"));
+      Mmsg0(dev->errmsg, _("Bad call to weof_dev. Device not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
       return -1;
    }
@@ -1300,7 +1313,7 @@ weof_dev(DEVICE *dev, int num)
       clrerror_dev(dev, MTWEOF);
       if (stat == -1) {
          Mmsg2(dev->errmsg, _("ioctl MTWEOF error on %s. ERR=%s.\n"),
-	    dev->dev_name, be.strerror());
+	    dev->print_name(), be.strerror());
        }
    }
    return stat;
@@ -1449,13 +1462,13 @@ int flush_dev(DEVICE *dev)
 static void do_close(DEVICE *dev)
 {
 
-   Dmsg1(29, "really close_dev %s\n", dev->dev_name);
+   Dmsg1(29, "really close_dev %s\n", dev->print_name());
    if (dev->fd >= 0) {
       close(dev->fd);
    }
 
    if (unmount_dev(dev, 1) < 0) {
-      Dmsg1(0, "Cannot unmount device %s.\n", dev->dev_name);
+      Dmsg1(0, "Cannot unmount device %s.\n", dev->print_name());
    }
    
    /* Remove the last part file if it is empty */
@@ -1497,7 +1510,7 @@ void
 close_dev(DEVICE *dev)
 {
    if (!dev) {
-      Mmsg0(&dev->errmsg, _("Bad call to close_dev. Archive not open\n"));
+      Mmsg0(&dev->errmsg, _("Bad call to close_dev. Device not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
       return;
    }
@@ -1522,11 +1535,11 @@ close_dev(DEVICE *dev)
 void force_close_dev(DEVICE *dev)
 {
    if (!dev) {
-      Mmsg0(&dev->errmsg, _("Bad call to force_close_dev. Archive not open\n"));
+      Mmsg0(&dev->errmsg, _("Bad call to force_close_dev. Device not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
       return;
    }
-   Dmsg1(29, "Force close_dev %s\n", dev->dev_name);
+   Dmsg1(29, "Force close_dev %s\n", dev->print_name());
    do_close(dev);
 
 #ifdef FULL_DEBUG
@@ -1536,7 +1549,7 @@ void force_close_dev(DEVICE *dev)
 
 bool truncate_dev(DEVICE *dev)
 {
-   Dmsg1(100, "truncate_dev %s\n", dev->dev_name);
+   Dmsg1(100, "truncate_dev %s\n", dev->print_name());
    if (dev->is_tape()) {
       return true;                    /* we don't really truncate tapes */
       /* maybe we should rewind and write and eof ???? */
@@ -1616,7 +1629,7 @@ term_dev(DEVICE *dev)
 {
    if (!dev) {
       dev->dev_errno = EBADF;
-      Mmsg0(&dev->errmsg, _("Bad call to term_dev. Archive not open\n"));
+      Mmsg0(&dev->errmsg, _("Bad call to term_dev. Device not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
       return;
    }
