@@ -1,35 +1,72 @@
 FEATURES
 --------
 
-wxbTableParser : Replace wxHashMap by wxArray
+GTK : Fix 100% CPU usage when waiting for results
+
+wxbRestorePanel : when the director is building tree, change the cursor to a 
+   wait type cursor, make changes to the status in the gauge (need to parse the
+   table).
+
+wxbMainFrame : Add some text in front of the command window such as 
+   "Command: " so that the user knows he can type into the 
+   command window (or command line)
+   
+wxbRestorePanel : Select the first client when clicked on start button.
+
+wxbRestorePanel : Reconsider start button's labels.
 
 console_thread : Show a nice message when config file is not found.
+
+wxbMainFrame : Automatically scroll to the bottom of console control.
+
+wxbMainFrame : use more often the status text
+
+wxbRestorePanel : Add a Cancel Restore button
+   (may need to implement BNET_BREAK to break current command)
+
+wxbRestorePanel : However, if one double clicks on a directory X in the left 
+     "tree" window when the directory is not yet open, instead of 
+     selecting the directory and everything below, it opens the 
+     directory and nothing is selected.
+     
+wxbRestorePanel : abort restore if there's no client.
+
+general : Allow the user to quit however the state is (kill thread if necessary)
+
+[postponed to July:]
 
 wxbRestorePanel : Add buttons to mark/unmark directories/files.
 
 wxbRestorePanel : Add a button to force to refresh the whole tree
 
-wxbRestorePanel : Add a timeout when waiting for commands results
+wxbRestorePanel : Put titles above the Client drop down 
+     box and the Backup date drop down box. It isn't immediately 
+     obvious that the dates correspond to the backup dates.
 
-wxbMainFrame : Automatically scroll to the last lines of console control.
+wxbRestorePanel : There needs to be some way of marking/unmarking a range of 
+     files selected with shift-click or multiple files selected 
+     with ctl-click. The GTX console uses a button to mark/unmark 
+     the selected entries.
+     
+wxbRestorePanel : Is there any way to add a width adjustment handle between 
+     the tree view window and the file view window so that the 
+     width of the tree view can be changed?
 
-wxbRestorePanel : Check if commands ran successfully (cd, mark, mods...).
-
-GTK : Improve look
+general : Implement reconnecting
 
 wxbRestorePanel : Use ".default job=RestoreFiles" to get defaults parameters
 	when changing a restore parameter fails.
 
 console_thread : Allow the user to choose his config file.
 
-wxbRestorePanel : Implement BNET_BREAK to break current command
-
-general : Implement reconnecting
-
-general : Allow the user to quit however the state is (kill thread if necessary)
-
 wxbDataParser : Add a boolean in the constructor to avoid storing data is 
     will not be used.
+
+wxbTableParser : Replace wxHashMap by wxArray
+
+wxbRestorePanel : Check if commands ran successfully (cd, mark, mods...).
+
+GTK : Improve look
 
 wxblistctrl/wxbtreectrl : Find why events are not forwarded correctly 
   to parent' parent, and correct bad actual implementation.
@@ -46,6 +83,8 @@ mingw : correct findlib stat blocks and block size
 
 wxbRestorePanel : Check more carefully which job we just have run
    (needs director modification).
+   
+wxbRestorePanel : Add a timeout when waiting for commands results
 
 general : make a good documentation with snapshots
 
