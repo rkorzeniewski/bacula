@@ -1196,4 +1196,3 @@ Block Position: 0
 - Look at Chris' patch for bscan bug.
 - Fix error handling in spooling both data and attribute.
 - Implement Ignore FileSet Change.
-
