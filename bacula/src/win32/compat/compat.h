@@ -1,6 +1,10 @@
 /*                               -*- Mode: C -*- 
  * compat.h -- 
-// Copyright (C)2004 Raider Solutions, Inc.
+ */
+// Copyright transferred from Raider Solutions, Inc to 
+//   Kern Sibbald and John Walker by express permission.
+//
+// Copyright (C) 2004 Kern Sibbald and John Walker
 // 
 //   This program is free software; you can redistribute it and/or
 //   modify it under the terms of the GNU General Public License as
@@ -81,9 +85,9 @@ typedef long time_t;
 #if __STDC__
 typedef _dev_t dev_t;
 typedef __int64 ino_t;
-typedef __int64 off_t;		/* STDC=1 means we can define this */
+typedef __int64 off_t;          /* STDC=1 means we can define this */
 #else
-typedef long _off_t;		/* must be same as sys/types.h */
+typedef long _off_t;            /* must be same as sys/types.h */
 #endif
 typedef signed char int8_t;
 typedef int BOOL;

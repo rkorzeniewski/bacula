@@ -2,7 +2,10 @@
 // compat.cpp -- compatibilty layer to make bacula-fd run
 //               natively under windows
 //
-// Copyright (C)2004 Raider Solutions, Inc
+// Copyright transferred from Raider Solutions, Inc to 
+//   Kern Sibbald and John Walker by express permission.
+//
+// Copyright (C) 2004 Kern Sibbald and John Walker
 // 
 //   This program is free software; you can redistribute it and/or
 //   modify it under the terms of the GNU General Public License as
@@ -21,9 +24,6 @@
 //
 // Author          : Christopher S. Hull
 // Created On      : Sat Jan 31 15:55:00 2004
-// Last Modified By: Christopher S. Hull
-// Last Modified On: Tue Feb 24 11:27:33 2004
-// Update Count    : 665
 // $Id$
 
 #include <stdio.h>
