@@ -544,6 +544,7 @@ static void capcmd()
    printf("%sFSR ", dev->capabilities & CAP_FSR ? "" : "!");
    printf("%sFSF ", dev->capabilities & CAP_FSF ? "" : "!");
    printf("%sFASTFSF ", dev->capabilities & CAP_FASTFSF ? "" : "!");
+   printf("%sBSFATEOM ", dev->capabilities & CAP_BSFATEOM ? "" : "!");
    printf("%sEOM ", dev->capabilities & CAP_EOM ? "" : "!");
    printf("%sREM ", dev->capabilities & CAP_REM ? "" : "!");
    printf("%sRACCESS ", dev->capabilities & CAP_RACCESS ? "" : "!");
@@ -706,12 +707,14 @@ static int re_read_block_test()
    }
    Pmsg0(0, "Backspace record OK.\n");
    if (!read_block_from_dev(dcr, NO_BLOCK_NUMBER_CHECK)) {
-      Pmsg1(0, _("Read block failed! ERR=%s\n"), strerror(dev->dev_errno));
+      berrno be;
+      Pmsg1(0, _("Read block failed! ERR=%s\n"), be.strerror(dev->dev_errno));
       goto bail_out;
    }
    memset(rec->data, 0, rec->data_len);
    if (!read_record_from_block(block, rec)) {
-      Pmsg1(0, _("Read block failed! ERR=%s\n"), strerror(dev->dev_errno));
+      berrno be;
+      Pmsg1(0, _("Read block failed! ERR=%s\n"), be.strerror(dev->dev_errno));
       goto bail_out;
    }
    for (int i=0; i<len; i++) {
@@ -810,16 +813,20 @@ static int write_read_test()
    for (i=1; i<=2000; i++) {
 read_again:
       if (!read_block_from_dev(dcr, NO_BLOCK_NUMBER_CHECK)) {
+	 berrno be;
 	 if (dev_state(dev, ST_EOF)) {
             Pmsg0(-1, _("Got EOF on tape.\n"));
-	    goto read_again;
+	    if (i == 1001) {
+	       goto read_again;
+	    }
 	 }
-         Pmsg1(0, _("Read block failed! ERR=%s\n"), strerror(dev->dev_errno));
+         Pmsg2(0, _("Read block %d failed! ERR=%s\n"), i, be.strerror(dev->dev_errno));
 	 goto bail_out;
       }
       memset(rec->data, 0, rec->data_len);
       if (!read_record_from_block(block, rec)) {
-         Pmsg1(0, _("Read record failed! ERR=%s\n"), strerror(dev->dev_errno));
+	 berrno be;
+         Pmsg2(0, _("Read record failed. Block %d! ERR=%s\n"), i, be.strerror(dev->dev_errno));
 	 goto bail_out;
       }
       p = (int *)rec->data;
@@ -858,6 +865,7 @@ static int position_test()
    int recno = 0;
    int file = 0, blk = 0;
    int *p;
+   bool got_eof = false;
 
    Pmsg0(-1, _("\n=== Write, rewind, and position test ===\n\n"
       "I'm going to write 1000 records and an EOF\n"
@@ -959,20 +967,33 @@ static int position_test()
       }
 read_again:
       if (!read_block_from_dev(dcr, NO_BLOCK_NUMBER_CHECK)) {
+	 berrno be;
 	 if (dev_state(dev, ST_EOF)) {
             Pmsg0(-1, _("Got EOF on tape.\n"));
-	    goto read_again;
+	    if (!got_eof) {
+	       got_eof = true;
+	       goto read_again;
+	    }
 	 }
-         Pmsg1(0, _("Read block failed! ERR=%s\n\n"), strerror(dev->dev_errno));
+         Pmsg4(0, _("Read block %d failed! file=%d blk=%d. ERR=%s\n\n"), 
+	    recno, file, blk, be.strerror(dev->dev_errno));
          Pmsg0(0, _("This may be because the tape drive block size is not\n"
                     " set to variable blocking as normally used by Bacula.\n"
                     " Please see the Tape Testing chapter in the manual and \n"
-                    " look for using mt with defblksize and setoptions\n"));
+                    " look for using mt with defblksize and setoptions\n"
+                    "If your tape drive block size is correct, then perhaps\n"
+                    " your SCSI driver is *really* stupid and does not\n"
+                    " correctly report the file:block after a FSF. In this\n"
+                    " case try setting:\n"
+                    "    Fast Forward Space File = no\n"
+                    " in your Device resource.\n"));
+
 	 goto bail_out;
       }
       memset(rec->data, 0, rec->data_len);
       if (!read_record_from_block(block, rec)) {
-         Pmsg1(0, _("Read record failed! ERR=%s\n"), strerror(dev->dev_errno));
+	 berrno be;
+         Pmsg1(0, _("Read record failed! ERR=%s\n"), be.strerror(dev->dev_errno));
 	 goto bail_out;
       }
       p = (int *)rec->data;
@@ -983,7 +1004,7 @@ read_again:
 	    goto bail_out;
 	 }
       }
-      Pmsg0(-1, _("Block re-read correctly.\n"));
+      Pmsg1(-1, _("Block %d re-read correctly.\n"), recno);
    }
    Pmsg0(-1, _("=== Test Succeeded. End Write, rewind, and re-read test ===\n\n"));
    stat = 1;
