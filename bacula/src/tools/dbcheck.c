@@ -515,8 +515,8 @@ static void eliminate_duplicate_filenames()
    printf("Checking for duplicate Filename entries.\n");
    
    /* Make list of duplicated names */
-   query = "SELECT Name,count(Name) as Count FROM Filename GROUP BY Name "
-           "HAVING Count > 1";
+   query = "SELECT Name, count(Name) as Count FROM Filename GROUP BY  Name "
+           "HAVING count(Name) > 1";
 
    if (!make_name_list(query, &name_list)) {
       exit(1);
@@ -569,8 +569,8 @@ static void eliminate_duplicate_paths()
    
    /* Make list of duplicated names */
 
-   query = "SELECT Path,count(Path) as Count FROM Path "
-           "GROUP BY Path HAVING Count > 1";
+   query = "SELECT Path, count(Path) as Count FROM Path "
+           "GROUP BY Path HAVING count(Path) > 1";
 
    if (!make_name_list(query, &name_list)) {
       exit(1);
@@ -680,9 +680,9 @@ static void eliminate_orphaned_path_records()
    const char *query;
 
    printf("Checking for orphaned Path entries. This may take some time!\n");
-   query = "SELECT Path.PathId,File.PathId FROM Path "
+   query = "SELECT DISTINCT Path.PathId,File.PathId FROM Path "
            "LEFT OUTER JOIN File ON (Path.PathId=File.PathId) "
-           "GROUP BY Path.PathId HAVING File.PathId IS NULL";
+           "HAVING File.PathId IS NULL";
    if (verbose > 1) {
       printf("%s\n", query);
    }
