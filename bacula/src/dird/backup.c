@@ -228,7 +228,7 @@ int wait_for_job_termination(JCR *jcr)
 {
    int32_t n = 0;
    BSOCK *fd = jcr->file_bsock;
-   int fd_ok = FALSE;
+   bool fd_ok = false;
    uint32_t JobFiles, Errors;
    uint64_t ReadBytes, JobBytes;
 
@@ -237,7 +237,7 @@ int wait_for_job_termination(JCR *jcr)
    while ((n = bget_dirmsg(fd)) >= 0) {
       if (!fd_ok && sscanf(fd->msg, EndJob, &jcr->FDJobStatus, &JobFiles,
 	  &ReadBytes, &JobBytes, &Errors) == 5) {
-	 fd_ok = TRUE;
+	 fd_ok = true;
 	 set_jcr_job_status(jcr, jcr->FDJobStatus);
          Dmsg1(100, "FDStatus=%c\n", (char)jcr->JobStatus);
       } else {
@@ -264,6 +264,8 @@ int wait_for_job_termination(JCR *jcr)
       jcr->Errors = Errors;
       jcr->ReadBytes = ReadBytes;
       jcr->JobBytes = JobBytes;
+   } else {
+      Jmsg(jcr, M_FATAL, 0, _("No Job status returned from FD.\n"));
    }
 
 // Dmsg4(000, "fd_ok=%d FDJS=%d JS=%d SDJS=%d\n", fd_ok, jcr->FDJobStatus,
