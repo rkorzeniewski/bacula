@@ -88,13 +88,13 @@ wxString wxbConfigParam::GetTitle() {
 wxString wxbConfigParam::GetValue() {
    switch (type) {
    case text:
-      return (statictext) ? statictext->GetLabel() : "";
+      return (statictext != NULL) ? statictext->GetLabel() : "";
       break;
    case modifiableText:
-      return (textctrl) ? textctrl->GetValue() : "";      
+      return (textctrl != NULL) ? textctrl->GetValue() : "";      
       break;
    case choice:
-      return (choicectrl) ? choicectrl->GetStringSelection() : "";
+      return (choicectrl != NULL) ? choicectrl->GetStringSelection() : "";
       break;      
    }
    return "";
