@@ -23,6 +23,7 @@ tests/span-vol-test
 tests/restore-by-file-test
 tests/restore2-by-file-test
 tests/four-jobs-test
+tests/incremental-test
 echo " "
 echo " "
 echo "Test results"
