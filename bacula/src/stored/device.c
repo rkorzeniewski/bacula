@@ -100,7 +100,7 @@ int acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    int do_mount = 0;
 
    lock_device(dev);
-   Dmsg1(90, "acquire_append device is %s\n", dev_is_tape(dev)?"tape":"disk");
+   Dmsg1(190, "acquire_append device is %s\n", dev_is_tape(dev)?"tape":"disk");
 
 
    if (dev->state & ST_APPEND) {
@@ -187,7 +187,7 @@ int release_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 
    } else if (dev->num_writers > 0) {
       dev->num_writers--;
-      Dmsg1(90, "There are %d writers in release_device\n", dev->num_writers);
+      Dmsg1(00, "There are %d writers in release_device\n", dev->num_writers);
       if (dev->num_writers == 0) {
 	 weof_dev(dev, 1);
          Dmsg0(100, "dir_create_jobmedia_record. Release\n");
@@ -234,7 +234,7 @@ static int mount_next_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, int releas
 {
    int recycle, ask, retry = 0, autochanger;
 
-   Dmsg0(90, "Enter mount_next_volume()\n");
+   Dmsg0(190, "Enter mount_next_volume()\n");
 
 mount_next_vol:
    if (retry++ > 5) {
@@ -415,7 +415,7 @@ read_volume:
             Dmsg1(500, "Vol NO_LABEL or IO_ERROR name=%s\n", jcr->VolumeName);
 	    /* If permitted, create a label */
 	    if (dev->capabilities & CAP_LABEL) {
-               Dmsg0(90, "Create volume label\n");
+               Dmsg0(190, "Create volume label\n");
 	       if (!write_volume_label_to_dev(jcr, (DEVRES *)dev->device, jcr->VolumeName,
 		      jcr->pool_name)) {
 		  goto mount_next_vol;
@@ -454,7 +454,7 @@ read_volume:
     *  If the tape is marked as Recycle, we rewrite the label.
     */
    if (dev->VolHdr.LabelType == PRE_LABEL || recycle) {
-      Dmsg1(90, "ready_for_append found freshly labeled volume. dev=%x\n", dev);
+      Dmsg1(190, "ready_for_append found freshly labeled volume. dev=%x\n", dev);
       dev->VolHdr.LabelType = VOL_LABEL; /* set Volume label */
       write_volume_label_to_block(jcr, dev, block);
       /*
@@ -514,7 +514,7 @@ read_volume:
        * we need to position to the end of the volume, since we are
        * just now putting it into append mode.
        */
-      Dmsg0(20, "Device previously written, moving to end of data\n");
+      Dmsg0(200, "Device previously written, moving to end of data\n");
       Jmsg(jcr, M_INFO, 0, _("Volume %s previously written, moving to end of data.\n"),
 	 jcr->VolumeName);
       if (!eod_dev(dev)) {
@@ -562,13 +562,13 @@ read_volume:
 int ready_dev_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 {
    if (!(dev->state & ST_OPENED)) {
-       Dmsg1(20, "bstored: open vol=%s\n", jcr->VolumeName);
+       Dmsg1(120, "bstored: open vol=%s\n", jcr->VolumeName);
        if (open_dev(dev, jcr->VolumeName, READ_ONLY) < 0) {
           Jmsg(jcr, M_FATAL, 0, _("Open device %s volume %s failed, ERR=%s\n"), 
 	      dev_name(dev), jcr->VolumeName, strerror_dev(dev));
 	  return 0;
        }
-       Dmsg1(29, "open_dev %s OK\n", dev_name(dev));
+       Dmsg1(129, "open_dev %s OK\n", dev_name(dev));
    }
 
    for (;;) {
@@ -627,7 +627,7 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    wait_time = time(NULL);
    status_dev(dev, &stat);
    if (stat & MT_EOD) {
-      Dmsg0(90, "======= Got EOD ========\n");
+      Dmsg0(190, "======= Got EOD ========\n");
 
       block_device(dev, BST_DOING_ACQUIRE);
 
@@ -654,7 +654,7 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	    dev->VolCatInfo.VolCatName, jcr->Job);
 	 return 0;		      /* device locked */
       }
-      Dmsg0(90, "Back from update_vol_info\n");
+      Dmsg0(190, "Back from update_vol_info\n");
 
       strcpy(PrevVolName, dev->VolCatInfo.VolCatName);
       strcpy(dev->VolHdr.PrevVolName, PrevVolName);
@@ -685,9 +685,9 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
        *  used tape, mount_next_volume() will return an
        *  empty label_blk, and nothing will be written.
        */
-      Dmsg0(90, "write label block to dev\n");
+      Dmsg0(190, "write label block to dev\n");
       if (!write_block_to_dev(dev, label_blk)) {
-         Dmsg1(0, "write_block_to_device Volume label failed. ERR=%s",
+         Pmsg1(0, "write_block_to_device Volume label failed. ERR=%s",
 	   strerror_dev(dev));
 	 free_block(label_blk);
 	 unblock_device(dev);
@@ -695,9 +695,9 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       }
 
       /* Write overflow block to tape */
-      Dmsg0(90, "Write overflow block to dev\n");
+      Dmsg0(190, "Write overflow block to dev\n");
       if (!write_block_to_dev(dev, block)) {
-         Dmsg1(0, "write_block_to_device overflow block failed. ERR=%s",
+         Pmsg1(0, "write_block_to_device overflow block failed. ERR=%s",
 	   strerror_dev(dev));
 	 free_block(label_blk);
 	 unblock_device(dev);
@@ -705,7 +705,7 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       }
 
       jcr->NumVolumes++;
-      Dmsg0(90, "Wake up any waiting threads.\n");
+      Dmsg0(190, "Wake up any waiting threads.\n");
       free_block(label_blk);
       for (JCR *mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
 	 /* Set new start/end positions */
@@ -740,7 +740,7 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
  */
 int open_device(DEVICE *dev)
 {
-   Dmsg0(20, "start open_output_device()\n");
+   Dmsg0(120, "start open_output_device()\n");
    if (!dev) {
       return 0;
    }
@@ -749,20 +749,20 @@ int open_device(DEVICE *dev)
 
    /* Defer opening files */
    if (!dev_is_tape(dev)) {
-      Dmsg0(29, "Device is file, deferring open.\n");
+      Dmsg0(129, "Device is file, deferring open.\n");
       unlock_device(dev);
       return 1;
    }
 
    if (!(dev->state & ST_OPENED)) {
-      Dmsg0(29, "Opening device.\n");
+      Dmsg0(129, "Opening device.\n");
       if (open_dev(dev, NULL, READ_WRITE) < 0) {
          Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), dev->errmsg);
 	 unlock_device(dev);
 	 return 0;
       }
    }
-   Dmsg1(29, "open_dev %s OK\n", dev_name(dev));
+   Dmsg1(129, "open_dev %s OK\n", dev_name(dev));
 
    unlock_device(dev);
    return 1;
@@ -778,7 +778,7 @@ void lock_device(DEVICE *dev)
 {
    int stat;
 
-   Dmsg1(90, "lock %d\n", dev->dev_blocked);
+   Dmsg1(190, "lock %d\n", dev->dev_blocked);
    P(dev->mutex);
    if (dev->dev_blocked && !pthread_equal(dev->no_wait_id, pthread_self())) {
       dev->num_waiting++;	      /* indicate that I am waiting */
@@ -795,7 +795,7 @@ void lock_device(DEVICE *dev)
 
 void unlock_device(DEVICE *dev) 
 {
-   Dmsg0(90, "unlock\n");
+   Dmsg0(190, "unlock\n");
    V(dev->mutex);
 }
 
@@ -809,7 +809,7 @@ void unlock_device(DEVICE *dev)
  */
 void block_device(DEVICE *dev, int state)
 {
-   Dmsg1(90, "block set %d\n", state);
+   Dmsg1(190, "block set %d\n", state);
    ASSERT(dev->dev_blocked == BST_NOT_BLOCKED);
    dev->dev_blocked = state;	      /* make other threads wait */
    dev->no_wait_id = pthread_self();  /* allow us to continue */
@@ -820,7 +820,7 @@ void block_device(DEVICE *dev, int state)
  */
 void unblock_device(DEVICE *dev)
 {
-   Dmsg1(90, "unblock %d\n", dev->dev_blocked);
+   Dmsg1(190, "unblock %d\n", dev->dev_blocked);
    ASSERT(dev->dev_blocked);
    dev->dev_blocked = BST_NOT_BLOCKED;
    if (dev->num_waiting > 0) {

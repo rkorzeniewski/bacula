@@ -111,7 +111,7 @@ void run_job(JCR *jcr)
    char ec1[30];
 
 
-   Dmsg1(20, "Start run Job=%s\n", jcr->Job);
+   Dmsg1(120, "Start run Job=%s\n", jcr->Job);
    bnet_fsend(dir, Job_start, jcr->Job); 
    time(&jcr->start_time);
    jcr->run_time = jcr->start_time;
@@ -164,7 +164,7 @@ static int append_data_cmd(JCR *jcr)
 
    Dmsg1(120, "Append data: %s", fd->msg);
    if (jcr->session_opened) {
-      Dmsg1(10, "<bfiled: %s", fd->msg);
+      Dmsg1(110, "<bfiled: %s", fd->msg);
       if (do_append_data(jcr)) {
 	 bnet_fsend(fd, OK_append);
 	 jcr->JobType = JT_BACKUP;
@@ -296,7 +296,7 @@ static int read_open_session(JCR *jcr)
 	 jcr->read_EndBlock);
    }
 
-   Dmsg1(10, "Read open session: %s\n", dev_name(jcr->device->dev));
+   Dmsg1(110, "Read open session: %s\n", dev_name(jcr->device->dev));
 
    jcr->session_opened = TRUE;
    jcr->JobType = JT_RESTORE;

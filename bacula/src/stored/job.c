@@ -75,7 +75,7 @@ int job_cmd(JCR *jcr)
     * Get JobId and permissions from Director
     */
 
-   Dmsg1(30, "Job_cmd: %s\n", dir->msg);
+   Dmsg1(130, "Job_cmd: %s\n", dir->msg);
    job = get_memory(dir->msglen);
    job_name = get_memory(dir->msglen);
    client_name = get_memory(dir->msglen);
@@ -126,7 +126,7 @@ int job_cmd(JCR *jcr)
    srandom(tv.tv_usec + tv.tv_sec);
    sprintf(auth_key, "%ld", (long)random());
    bnet_fsend(dir, OKjob, jcr->VolSessionId, jcr->VolSessionTime, auth_key);
-   Dmsg1(10, ">dird: %s", dir->msg);
+   Dmsg1(110, ">dird: %s", dir->msg);
    jcr->sd_auth_key = bstrdup(auth_key);
 
    /*
@@ -172,7 +172,7 @@ void connection_from_filed(void *arg)
    BSOCK *fd = (BSOCK *)arg;
    char job_name[MAX_NAME_LENGTH];
 
-   Dmsg0(10, "enter connection_from_filed\n");
+   Dmsg0(110, "enter connection_from_filed\n");
    if (bnet_recv(fd) <= 0) {
       Emsg0(M_FATAL, 0, _("Unable to authenticate Client.\n"));
       return;
@@ -198,7 +198,7 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
 
    jcr->file_bsock = fd;
 
-   Dmsg1(10, "Found Job %s\n", job_name);
+   Dmsg1(110, "Found Job %s\n", job_name);
 
    if (jcr->authenticated) {
       Pmsg2(000, "Hey!!!! JobId %d Job %s already authenticated.\n", 
@@ -213,7 +213,7 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
       Jmsg(jcr, M_FATAL, 0, _("Unable to authenticate File daemon\n"));
    } else {
       jcr->authenticated = TRUE;
-      Dmsg1(10, "OK Authentication Job %s\n", jcr->Job);
+      Dmsg1(110, "OK Authentication Job %s\n", jcr->Job);
    }
 
    P(jcr->mutex);
@@ -246,7 +246,7 @@ static int use_device_cmd(JCR *jcr)
       return 0;
    }
    
-   Dmsg1(20, "Use device: %s", dir->msg);
+   Dmsg1(120, "Use device: %s", dir->msg);
    dev_name = get_memory(dir->msglen);
    media_type = get_memory(dir->msglen);
    pool_name = get_memory(dir->msglen);
@@ -261,7 +261,7 @@ static int use_device_cmd(JCR *jcr)
       while ((device=(DEVRES *)GetNextRes(R_DEVICE, (RES *)device))) {
 	 /* Find resource, and make sure we were able to open it */
 	 if (strcmp(device->hdr.name, dev_name) == 0 && device->dev) {
-            Dmsg1(20, "Found device %s\n", device->hdr.name);
+            Dmsg1(120, "Found device %s\n", device->hdr.name);
 	    jcr->pool_name = get_memory(strlen(pool_name) + 1);
 	    strcpy(jcr->pool_name, pool_name);
 	    jcr->pool_type = get_memory(strlen(pool_type) + 1);
@@ -271,7 +271,7 @@ static int use_device_cmd(JCR *jcr)
 	    jcr->dev_name = get_memory(strlen(dev_name) + 1);
 	    strcpy(jcr->dev_name, dev_name);
 	    jcr->device = device;
-	    Dmsg4(20, use_device, dev_name, media_type, pool_name, pool_type);
+	    Dmsg4(120, use_device, dev_name, media_type, pool_name, pool_type);
 	    free_memory(dev_name);
 	    free_memory(media_type);
 	    free_memory(pool_name);

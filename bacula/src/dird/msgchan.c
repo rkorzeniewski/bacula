@@ -112,14 +112,14 @@ int start_storage_daemon_job(JCR *jcr)
    unbash_spaces(jcr->client->hdr.name);
    unbash_spaces(jcr->fileset->hdr.name);
    if (bnet_recv(sd) > 0) {
-       Dmsg1(10, "<stored: %s", sd->msg);
+       Dmsg1(110, "<stored: %s", sd->msg);
        if (sscanf(sd->msg, OKjob, &jcr->VolSessionId, 
 		  &jcr->VolSessionTime, &auth_key) != 3) {
           Jmsg(jcr, M_FATAL, 0, _("Storage daemon rejected Job command: %s\n"), sd->msg);
 	  return 0;
        } else {
 	  jcr->sd_auth_key = bstrdup(auth_key);
-          Dmsg1(50, "sd_auth_key=%s\n", jcr->sd_auth_key);
+          Dmsg1(150, "sd_auth_key=%s\n", jcr->sd_auth_key);
        }
    } else {
       Jmsg(jcr, M_FATAL, 0, _("<stored: bad response to Job command: %s\n"),
@@ -149,7 +149,7 @@ int start_storage_daemon_job(JCR *jcr)
    sd->msg = (char *) check_pool_memory_size(sd->msg, sizeof(device_name) +
       device_name_len + media_type_len + pool_type_len + pool_name_len);
    bnet_fsend(sd, use_device, device_name, media_type, pool_name, pool_type);
-   Dmsg1(10, ">stored: %s", sd->msg);
+   Dmsg1(110, ">stored: %s", sd->msg);
    status = response(sd, OK_device, "Use Device");
 
    free_memory(device_name);

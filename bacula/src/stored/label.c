@@ -481,16 +481,20 @@ int write_session_label(JCR *jcr, DEV_BLOCK *block, int label)
    create_session_label(jcr, rec, label);
    rec->FileIndex = label;
 
-   if (!write_record_device(jcr, dev, block, rec)) {
-      Jmsg(jcr, M_FATAL, 0, _("Error writing Session label to %s: %s\n"), 
-			dev_vol_name(dev), strerror(errno));
-      free_record(rec);
-      return 0;
+   while (!write_record_to_block(block, rec)) {
+      Dmsg2(190, "!write_record data_len=%d rem=%d\n", rec->data_len,
+		 rec->remainder);
+      if (!write_block_to_device(jcr, dev, block)) {
+         Dmsg0(90, "Got session label write_block_to_dev error.\n");
+         Jmsg(jcr, M_FATAL, 0, _("Error writing Session label to %s: %s\n"), 
+			   dev_vol_name(dev), strerror(errno));
+	 free_record(rec);
+	 return 0;
+      }
    }
 
-   Dmsg1(90, "session_label record=%x\n", rec);
-   Dmsg5(90, "sesson_label record FI=%s SessId=%d Strm=%s len=%d\n\
-remainder=%d\n",
+   Dmsg6(20, "Write sesson_label record JobId=%d FI=%s SessId=%d Strm=%s len=%d\n\
+remainder=%d\n", jcr->JobId,
       FI_to_ascii(rec->FileIndex), rec->VolSessionId, 
       stream_to_ascii(rec->Stream), rec->data_len,
       rec->remainder);

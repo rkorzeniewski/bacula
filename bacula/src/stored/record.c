@@ -143,32 +143,6 @@ int read_record(DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *record)
 
 
 /*
- * Write a record to block 
- *   if necessary, write the block to the device with locking
- *   if necessary, handle getting a new Volume
- *
- *  Returns: 0 on failure
- *	     1 on success
- */
-int write_record_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *record)
-{
-   Dmsg2(190, "write_device() dev=%x state=%x\n", dev, dev->state);
-
-   while (!write_record_to_block(block, record)) {
-      Dmsg2(190, "!write_record data_len=%d rem=%d\n", record->data_len,
-		 record->remainder);
-      if (!write_block_to_device(jcr, dev, block)) {
-         Dmsg0(90, "Got write_block_to_dev error.\n");
-	 return 0;
-      }
-   }
-   Dmsg4(190, "write_record FI=%s SessId=%d Strm=%s len=%d\n",
-      FI_to_ascii(record->FileIndex), record->VolSessionId, 
-      stream_to_ascii(record->Stream), record->data_len);
-   return 1;
-}
-
-/*
  * Write a Record to the block
  *
  *  Returns: 0 on failure (none or partially written)

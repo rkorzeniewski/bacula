@@ -99,7 +99,7 @@ int do_backup(JCR *jcr)
       goto bail_out;
    }   
    jcr->jr.FileSetId = fsr.FileSetId;
-   Dmsg2(9, "Created FileSet %s record %d\n", jcr->fileset->hdr.name, 
+   Dmsg2(119, "Created FileSet %s record %d\n", jcr->fileset->hdr.name, 
       jcr->jr.FileSetId);
 
    /* Look up the last
@@ -121,7 +121,7 @@ int do_backup(JCR *jcr)
             strcpy(since, ", since=");
 	    strcat(since, jcr->stime);
 	 }
-         Dmsg1(15, "Last start time = %s\n", jcr->stime);
+         Dmsg1(115, "Last start time = %s\n", jcr->stime);
 	 break;
    }
 
@@ -162,7 +162,7 @@ int do_backup(JCR *jcr)
     * will be contacting him for a backup  session.
     *
     */
-   Dmsg0(10, "Open connection with storage daemon\n");
+   Dmsg0(110, "Open connection with storage daemon\n");
    jcr->JobStatus = JS_Blocked;
    /*
     * Start conversation with Storage daemon  
@@ -182,7 +182,7 @@ int do_backup(JCR *jcr)
    if (!start_storage_daemon_message_thread(jcr)) {
       goto bail_out;
    }
-   Dmsg0(50, "Storage daemon connection OK\n");
+   Dmsg0(150, "Storage daemon connection OK\n");
 
    jcr->JobStatus = JS_Blocked;
    if (!connect_to_file_daemon(jcr, 10, FDConnectTimeout, 1)) {
@@ -230,7 +230,7 @@ int do_backup(JCR *jcr)
 	    jcr->JobLevel, jcr->JobLevel);
 	 goto bail_out;
    }
-   Dmsg1(20, ">filed: %s", fd->msg);
+   Dmsg1(120, ">filed: %s", fd->msg);
    if (!response(fd, OKlevel, "Level")) {
       goto bail_out;
    }

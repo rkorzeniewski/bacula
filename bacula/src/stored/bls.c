@@ -54,14 +54,17 @@ extern char BaculaId[];
 
 static FF_PKT ff;
 
+static BSR *bsr = NULL;
+
 static void usage()
 {
    fprintf(stderr,
 "Usage: bls [-d debug_level] <physical-device-name>\n"
-"       -b              list blocks\n"
+"       -b <file>       specify a bootstrap file\n"
 "       -e <file>       exclude list\n"
 "       -i <file>       include list\n"
 "       -j              list jobs\n"
+"       -k              list blocks\n"
 "       -L              list tape label\n"
 "    (none of above)    list saved files\n"
 "       -t              use default tape device\n"
@@ -83,11 +86,12 @@ int main (int argc, char *argv[])
    memset(&ff, 0, sizeof(ff));
    init_include_exclude_files(&ff);
 
-   while ((ch = getopt(argc, argv, "bd:e:i:jLtv?")) != -1) {
+   while ((ch = getopt(argc, argv, "b:d:e:i:jkLtv?")) != -1) {
       switch (ch) {
          case 'b':
-	    list_blocks = TRUE;
+	    bsr = parse_bsr(NULL, optarg);
 	    break;
+
          case 'd':                    /* debug level */
 	    debug_level = atoi(optarg);
 	    if (debug_level <= 0)
@@ -124,6 +128,10 @@ int main (int argc, char *argv[])
 
          case 'j':
 	    list_jobs = TRUE;
+	    break;
+
+         case 'k':
+	    list_blocks = TRUE;
 	    break;
 
          case 'L':
@@ -172,6 +180,9 @@ int main (int argc, char *argv[])
 	 do_ls(argv[i]);
       }
       do_close();
+   }
+   if (bsr) {
+      free_bsr(bsr);
    }
    return 0;
 }
@@ -310,10 +321,12 @@ Warning, this Volume is a continuation of Volume %s\n",
 		dev->VolHdr.PrevVolName);
    }
  
+   if (verbose) {
+      rec = new_record();
+   }
    for ( ;; ) {
-
       if (!read_block_from_device(dev, block)) {
-         Dmsg0(20, "!read_record()\n");
+         Dmsg0(20, "!read_block()\n");
 	 if (dev->state & ST_EOT) {
 	    if (!mount_next_volume(infname)) {
 	       break;
@@ -333,7 +346,16 @@ Warning, this Volume is a continuation of Volume %s\n",
 	 break;
       }
 
-      printf("Block: %d size=%d\n", block->BlockNumber, block->block_len);
+      if (verbose) {
+	 read_record_from_block(block, rec);
+         Pmsg6(-1, "Block: %d blen=%d First rec FI=%s SessId=%d Strm=%s rlen=%d\n",
+	      block->BlockNumber, block->block_len,
+	      FI_to_ascii(rec->FileIndex), rec->VolSessionId, 
+	      stream_to_ascii(rec->Stream), rec->data_len);
+	 rec->remainder = 0;
+      } else {
+         printf("Block: %d size=%d\n", block->BlockNumber, block->block_len);
+      }
 
    }
    return;
@@ -353,8 +375,8 @@ Warning, this Volume is a continuation of Volume %s\n",
    }
  
    for ( ;; ) {
-      if (!read_record(dev, block, rec)) {
-         Dmsg0(20, "!read_record()\n");
+      if (!read_block_from_device(dev, block)) {
+         Dmsg0(20, "!read_block()\n");
 	 if (dev->state & ST_EOT) {
 	    if (!mount_next_volume(infname)) {
 	       break;
@@ -367,36 +389,39 @@ Warning, this Volume is a continuation of Volume %s\n",
 	    continue;
 	 }
 	 if (dev->state & ST_SHORT) {
+            Pmsg0(000, "Got short block.\n");
 	    Emsg0(M_INFO, 0, dev->errmsg);
 	    continue;
 	 }
 	 display_error_status();
 	 break;
       }
+      while (read_record_from_block(block, rec)) {
+	 if (debug_level >= 30) {
+            Dmsg4(30, "VolSId=%ld FI=%s Strm=%s Size=%ld\n", rec->VolSessionId,
+		  FI_to_ascii(rec->FileIndex), stream_to_ascii(rec->Stream), 
+		  rec->data_len);
+	 }
 
-      if (debug_level >= 30) {
-         Dmsg4(30, "VolSId=%ld FI=%s Strm=%s Size=%ld\n", rec->VolSessionId,
-	       FI_to_ascii(rec->FileIndex), stream_to_ascii(rec->Stream), 
-	       rec->data_len);
+
+	 /*  
+	  * Check for End of File record (all zeros)
+	  *    NOTE: this no longer exists
+	  */
+	 if (rec->VolSessionId == 0 && rec->VolSessionTime == 0) {
+            Emsg0(M_ERROR_TERM, 0, "Zero VolSessionId and VolSessionTime. This shouldn't happen\n");
+	 }
+
+	 /* 
+	  * Check for Start or End of Session Record 
+	  *
+	  */
+	 if (rec->FileIndex < 0) {
+	    dump_label_record(dev, rec, verbose);
+	    continue;
+	 }
       }
-
-
-      /*  
-       * Check for End of File record (all zeros)
-       *    NOTE: this no longer exists
-       */
-      if (rec->VolSessionId == 0 && rec->VolSessionTime == 0) {
-         Emsg0(M_ERROR_TERM, 0, "Zero VolSessionId and VolSessionTime. This shouldn't happen\n");
-      }
-
-      /* 
-       * Check for Start or End of Session Record 
-       *
-       */
-      if (rec->FileIndex < 0) {
-	 dump_label_record(dev, rec, verbose);
-	 continue;
-      }
+      rec->remainder = 0;
    }
    return;
 }
@@ -424,6 +449,8 @@ Warning, this Volume is a continuation of Volume %s\n",
    }
  
    for ( ;; ) {
+      SESSION_LABEL sessrec;
+
       if (!read_record(dev, block, rec)) {
          Dmsg0(20, "!read_record()\n");
 	 if (dev->state & ST_EOT) {
@@ -465,7 +492,47 @@ Warning, this Volume is a continuation of Volume %s\n",
        *
        */
       if (rec->FileIndex < 0) {
-	 dump_label_record(dev, rec, 0);
+	 char *rtype;
+	 memset(&sessrec, 0, sizeof(sessrec));
+	 switch (rec->FileIndex) {
+	    case PRE_LABEL:
+               rtype = "Fresh Volume Label";   
+	       break;
+	    case VOL_LABEL:
+               rtype = "Volume Label";
+	       unser_volume_label(dev, rec);
+	       break;
+	    case SOS_LABEL:
+               rtype = "Begin Session";
+	       unser_session_label(&sessrec, rec);
+	       break;
+	    case EOS_LABEL:
+               rtype = "End Session";
+	       break;
+	    case EOM_LABEL:
+               rtype = "End of Media";
+	       break;
+	    default:
+               rtype = "Unknown";
+	       break;
+	 }
+	 if (debug_level > 0) {
+            printf("%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
+	       rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
+	 }
+
+         Dmsg1(40, "Got label = %d\n", rec->FileIndex);
+	 if (rec->FileIndex == EOM_LABEL) { /* end of tape? */
+            Dmsg0(40, "Get EOM LABEL\n");
+	    break;			   /* yes, get out */
+	 }
+	 continue;			   /* ignore other labels */
+      } /* end if label record */
+
+      /* 
+       * Apply BSR filter
+       */
+      if (bsr && !match_bsr(bsr, rec, &dev->VolHdr, &sessrec)) {
 	 continue;
       }
 

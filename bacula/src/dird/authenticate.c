@@ -68,13 +68,13 @@ int authenticate_storage_daemon(JCR *jcr)
       Jmsg0(jcr, M_FATAL, 0, _("Director and Storage daemon passwords not the same.\n"));
       return 0;
    }
-   Dmsg1(6, ">stored: %s", sd->msg);
+   Dmsg1(116, ">stored: %s", sd->msg);
    if (bnet_recv(sd) <= 0) {
       Emsg1(M_FATAL, 0, _("bdird<stored: bad response to Hello command: ERR=%s\n"),
 	 bnet_strerror(sd));
       return 0;
    }
-   Dmsg1(10, "<stored: %s", sd->msg);
+   Dmsg1(110, "<stored: %s", sd->msg);
    if (strncmp(sd->msg, OKhello, sizeof(OKhello)) != 0) {
       Emsg0(M_FATAL, 0, _("Storage daemon rejected Hello command\n"));
       return 0;
@@ -101,13 +101,13 @@ int authenticate_file_daemon(JCR *jcr)
       Jmsg(jcr, M_FATAL, 0, _("Director and File daemon passwords not the same.\n"));
       return 0;
    }
-   Dmsg1(6, ">filed: %s", fd->msg);
+   Dmsg1(116, ">filed: %s", fd->msg);
    if (bnet_recv(fd) <= 0) {
       Jmsg(jcr, M_FATAL, 0, _("bdird<filed: bad response to Hello command: ERR=%s\n"),
 	 bnet_strerror(fd));
       return 0;
    }
-   Dmsg1(10, "<stored: %s", fd->msg);
+   Dmsg1(110, "<stored: %s", fd->msg);
    if (strncmp(fd->msg, FDOKhello, sizeof(FDOKhello)) != 0) {
       Jmsg(jcr, M_FATAL, 0, _("File daemon rejected Hello command\n"));
       return 0;

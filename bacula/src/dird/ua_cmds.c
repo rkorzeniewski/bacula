@@ -113,7 +113,7 @@ int do_a_command(UAContext *ua, char *cmd)
    found = 0;
    stat = 1;
 
-   Dmsg1(20, "Command: %s\n", ua->UA_sock->msg);
+   Dmsg1(120, "Command: %s\n", ua->UA_sock->msg);
    if (ua->argc == 0) {
       return 1;
    }
@@ -162,7 +162,7 @@ static int addcmd(UAContext *ua, char *cmd)
       return 1;
    }
 
-   Dmsg4(20, "id=%d Num=%d Max=%d type=%s\n", pr.PoolId, pr.NumVols,
+   Dmsg4(120, "id=%d Num=%d Max=%d type=%s\n", pr.PoolId, pr.NumVols,
       pr.MaxVols, pr.PoolType);
 
    while (pr.MaxVols > 0 && pr.NumVols >= pr.MaxVols) {
@@ -753,7 +753,7 @@ static void do_storage_setdebug(UAContext *ua, STORE *store, int level)
       bsendmsg(ua, _("Failed to connect to Storage daemon.\n"));
       return;
    }
-   Dmsg0(20, _("Connected to storage daemon\n"));
+   Dmsg0(120, _("Connected to storage daemon\n"));
    sd = ua->jcr->store_bsock;
    bnet_fsend(sd, "setdebug=%d\n", level);
    if (bnet_recv(sd) > 0) {
@@ -779,7 +779,7 @@ static void do_client_setdebug(UAContext *ua, CLIENT *client, int level)
       bsendmsg(ua, _("Failed to connect to Client.\n"));
       return;
    }
-   Dmsg0(20, "Connected to file daemon\n");
+   Dmsg0(120, "Connected to file daemon\n");
    fd = ua->jcr->file_bsock;
    bnet_fsend(fd, "setdebug=%d\n", level);
    if (bnet_recv(fd) > 0) {
@@ -823,7 +823,7 @@ static void do_all_setdebug(UAContext *ua, int level)
       }
       if (!found) {
 	 unique_store[i++] = store;
-         Dmsg2(40, "Stuffing: %s:%d\n", store->address, store->SDport);
+         Dmsg2(140, "Stuffing: %s:%d\n", store->address, store->SDport);
       }
    }
    UnlockRes();
@@ -855,7 +855,7 @@ static void do_all_setdebug(UAContext *ua, int level)
       }
       if (!found) {
 	 unique_client[i++] = client;
-         Dmsg2(40, "Stuffing: %s:%d\n", client->address, client->FDport);
+         Dmsg2(140, "Stuffing: %s:%d\n", client->address, client->FDport);
       }
    }
    UnlockRes();
@@ -880,7 +880,7 @@ static int setdebugcmd(UAContext *ua, char *cmd)
    if (!open_db(ua)) {
       return 1;
    }
-   Dmsg1(20, "setdebug:%s:\n", cmd);
+   Dmsg1(120, "setdebug:%s:\n", cmd);
 
    level = -1;
    for (i=1; i<ua->argc; i++) {
@@ -1201,14 +1201,14 @@ static void do_mount_cmd(int mount, UAContext *ua, char *cmd)
    if (!open_db(ua)) {
       return;
    }
-   Dmsg1(20, "mount: %s\n", ua->UA_sock->msg);
+   Dmsg1(120, "mount: %s\n", ua->UA_sock->msg);
 
    store = get_storage_resource(ua, cmd);
    if (!store) {
       return;
    }
 
-   Dmsg2(20, "Found storage, MediaType=%s DevName=%s\n",
+   Dmsg2(120, "Found storage, MediaType=%s DevName=%s\n",
       store->media_type, store->dev_name);
 
    ua->jcr->store = store;
@@ -1327,7 +1327,7 @@ int open_db(UAContext *ua)
       }
    }
 
-   Dmsg0(50, "Open database\n");
+   Dmsg0(150, "Open database\n");
    ua->db = db_init_database(ua->catalog->db_name, ua->catalog->db_user,
 			     ua->catalog->db_password);
    if (!db_open_database(ua->db)) {
@@ -1337,7 +1337,7 @@ int open_db(UAContext *ua)
       return 0;
    }
    ua->jcr->db = ua->db;
-   Dmsg1(50, "DB %s opened\n", ua->catalog->db_name);
+   Dmsg1(150, "DB %s opened\n", ua->catalog->db_name);
    return 1;
 }
 

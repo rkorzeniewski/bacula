@@ -202,11 +202,11 @@ void *handle_client_request(void *dirp)
  */
 static int hello_cmd(JCR *jcr)
 {
-   Dmsg0(20, "Calling Authenticate\n");
+   Dmsg0(120, "Calling Authenticate\n");
    if (!authenticate_director(jcr)) {
       return 0;
    }
-   Dmsg0(20, "OK Authenticate\n");
+   Dmsg0(120, "OK Authenticate\n");
    jcr->authenticated = TRUE;
    return 1;
 }
@@ -245,7 +245,7 @@ static int setdebug_cmd(JCR *jcr)
    BSOCK *dir = jcr->dir_bsock;
    int level;
 
-   Dmsg1(10, "setdebug_cmd: %s", dir->msg);
+   Dmsg1(110, "setdebug_cmd: %s", dir->msg);
    if (sscanf(dir->msg, "setdebug=%d", &level) != 1 || level < 0) {
       bnet_fsend(dir, "2991 Bad setdebug command: %s\n", dir->msg);
       return 0;   
@@ -281,7 +281,7 @@ static int job_cmd(JCR *jcr)
    }
    jcr->sd_auth_key = bstrdup(sd_auth_key);
    free_pool_memory(sd_auth_key);
-   Dmsg2(20, "JobId=%d Auth=%s\n", jcr->JobId, jcr->sd_auth_key);
+   Dmsg2(120, "JobId=%d Auth=%s\n", jcr->JobId, jcr->sd_auth_key);
    return bnet_fsend(dir, OKjob);
 }
 
@@ -450,7 +450,7 @@ static int storage_cmd(JCR *jcr)
       Jmsg(jcr, M_FATAL, 0, _("Bad storage command: %s"), dir->msg);
       return 0;
    }
-   Dmsg2(10, "Open storage: %s:%d\n", jcr->stored_addr, stored_port);
+   Dmsg2(110, "Open storage: %s:%d\n", jcr->stored_addr, stored_port);
    /* Open command communications with Storage daemon */
    /* Try to connect for 1 hour at 10 second intervals */
    sd = bnet_connect(jcr, 10, 3600, _("Storage daemon"), 
@@ -468,7 +468,7 @@ static int storage_cmd(JCR *jcr)
       Jmsg(jcr, M_FATAL, 0, _("Failed to authenticate Storage daemon.\n"));
       return 0;
    }
-   Dmsg0(10, "Authenticated with SD.\n");
+   Dmsg0(110, "Authenticated with SD.\n");
 
    /* Send OK to Director */
    return bnet_fsend(dir, OKstore);
@@ -512,7 +512,7 @@ static int backup_cmd(JCR *jcr)
 	 jcr->JobStatus = JS_ErrorTerminated;
 	 goto cleanup;
       }
-      Dmsg1(10, "Got Ticket=%d\n", jcr->Ticket);
+      Dmsg1(110, "Got Ticket=%d\n", jcr->Ticket);
    } else {
       Jmsg(jcr, M_FATAL, 0, _("Bad response from stored to open command\n"));
       jcr->JobStatus = JS_ErrorTerminated;
@@ -537,7 +537,7 @@ static int backup_cmd(JCR *jcr)
    /*
     * Send Files to Storage daemon
     */
-   Dmsg1(10, "begin blast ff=%p\n", jcr->ff);
+   Dmsg1(110, "begin blast ff=%p\n", jcr->ff);
    if (!blast_data_to_storage_daemon(jcr, NULL)) {
       jcr->JobStatus = JS_ErrorTerminated;
    } else {

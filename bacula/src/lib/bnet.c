@@ -349,7 +349,7 @@ static uint32_t *bget_host_ip(char *host)
    } else {
       /******FIXME***** use gethostbyname_r or mutex ****/
       if ((hp = gethostbyname(host)) == NULL) {
-         Dmsg2(0, "gethostbyname() for %s failed: ERR=%s\n", host, strerror(errno));
+         Pmsg2(0, "gethostbyname() for %s failed: ERR=%s\n", host, strerror(errno));
 	 return NULL;
       }
       if (hp->h_length != sizeof(inaddr.s_addr) || hp->h_addrtype != AF_INET) {
@@ -528,7 +528,7 @@ int bnet_set_buffer_size(BSOCK *bs, uint32_t size, int rw)
          Emsg1(M_ERROR, 0, "sockopt error: %s\n", strerror(errno));
 	 dbuf_size -= TAPE_BSIZE;
       }
-      Dmsg1(20, "set network buffer size=%d\n", dbuf_size);
+      Dmsg1(200, "set network buffer size=%d\n", dbuf_size);
       if (dbuf_size != MAX_NETWORK_BUFFER_SIZE)
          Emsg1(M_WARNING, 0, "Warning network buffer = %d bytes not max size.\n", dbuf_size);
       if (dbuf_size % TAPE_BSIZE != 0) {
@@ -543,7 +543,7 @@ int bnet_set_buffer_size(BSOCK *bs, uint32_t size, int rw)
          Emsg1(M_ERROR, 0, "sockopt error: %s\n", strerror(errno));
 	 dbuf_size -= TAPE_BSIZE;
       }
-      Dmsg1(20, "set network buffer size=%d\n", dbuf_size);
+      Dmsg1(200, "set network buffer size=%d\n", dbuf_size);
       if (dbuf_size != MAX_NETWORK_BUFFER_SIZE)
          Emsg1(M_WARNING, 0, "Warning network buffer = %d bytes not max size.\n", dbuf_size);
       if (dbuf_size % TAPE_BSIZE != 0) {

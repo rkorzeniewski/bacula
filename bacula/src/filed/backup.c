@@ -46,7 +46,7 @@ int blast_data_to_storage_daemon(JCR *jcr, char *addr)
 
    jcr->JobStatus = JS_Running;
 
-   Dmsg1(10, "bfiled: opened data connection %d to stored\n", sd->fd);
+   Dmsg1(110, "bfiled: opened data connection %d to stored\n", sd->fd);
 
    if (!bnet_set_buffer_size(sd, MAX_NETWORK_BUFFER_SIZE, BNET_SETBUF_WRITE)) {
       return 0;
@@ -63,7 +63,7 @@ int blast_data_to_storage_daemon(JCR *jcr, char *addr)
 
    Dmsg1(100, "set_find_options ff=%p\n", jcr->ff);
    set_find_options(jcr->ff, jcr->incremental, jcr->mtime);
-   Dmsg0(10, "start find files\n");
+   Dmsg0(110, "start find files\n");
 
    /* Subroutine save_file() is called for each file */
    /* ***FIXME**** add FSM code */
