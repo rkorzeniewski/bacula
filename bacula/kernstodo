@@ -16,6 +16,7 @@ Documentation to do: (any release a little bit at a time)
 - Document FInclude ...
 - Document need to add "-u root" to most of MySQL script calls
   (./create_mys... ./make_my...).
+- Document recycling algorithm.
 
           
 Testing to do: (painful)
@@ -28,6 +29,8 @@ Testing to do: (painful)
 - Test multiple simultaneous Volumes
 - Test of last block is correct in JobMedia when splitting file 
   over two volumes.
+- Test recycling and purging (code changed in db_find_next_volume and
+  in recycle.c).
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:

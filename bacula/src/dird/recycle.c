@@ -47,7 +47,7 @@ static int oldest_handler(void *ctx, int num_fields, char **row)
    /* Find oldest Media record */
    if (row[1] && strcmp(row[1], oldest->LastWritten) < 0) {
       oldest->MediaId = atoi(row[0]);
-      strcpy(oldest->LastWritten, row[1]);
+      bstrncpy(oldest->LastWritten, row[1], sizeof(oldest->LastWritten));
       Dmsg1(100, "New oldest %s\n", row[1]);
    }
    return 1;
@@ -61,7 +61,7 @@ int find_recycled_volume(JCR *jcr, MEDIA_DBR *mr)
    if (db_find_next_volume(jcr, jcr->db, 1, mr)) {
       jcr->MediaId = mr->MediaId;
       Dmsg1(20, "Find_next_vol MediaId=%d\n", jcr->MediaId);
-      strcpy(jcr->VolumeName, mr->VolumeName);
+      pm_strcpy(&jcr->VolumeName, mr->VolumeName);
       return 1;
    }
    return 0;
@@ -77,7 +77,7 @@ int recycle_oldest_purged_volume(JCR *jcr, MEDIA_DBR *mr)
    POOLMEM *query = get_pool_memory(PM_EMSG);
    char *select =
           "SELECT MediaId, LastWritten FROM Media "
-          "WHERE PoolId=%d AND Recycle=1 AND VolStatus=\"Purged\" "
+          "WHERE PoolId=%u AND Recycle=1 AND VolStatus=\"Purged\" "
           "AND MediaType=\"%s\"";
 
    Dmsg0(100, "Enter recycle_oldest_purged_volume\n");
