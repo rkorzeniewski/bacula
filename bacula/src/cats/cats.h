@@ -241,7 +241,7 @@ typedef struct s_db {
    PGresult *result;
    int status;
    POSTGRESQL_ROW row;
-   POSTGRESQL_FIELD field;
+   POSTGRESQL_FIELD *fields;
    int num_rows;
    int num_fields;
    int row_number;            /* what row number did we get via my_postgresql_data_seek? */
