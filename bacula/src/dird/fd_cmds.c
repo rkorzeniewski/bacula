@@ -181,6 +181,7 @@ int send_include_list(JCR *jcr)
       default:
 	 strcpy(fd->msg, ie->opts);
 	 pm_strcat(&fd->msg, ie->name);
+         Dmsg1(000, "Include name=%s\n", ie->name);
 	 fd->msglen = strlen(fd->msg);
 	 if (!bnet_send(fd)) {
             Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
@@ -218,7 +219,7 @@ int send_exclude_list(JCR *jcr)
    for (i=0; i < fileset->num_excludes; i++) {
       pm_strcpy(&fd->msg, fileset->exclude_array[i]->name);
       fd->msglen = strlen(fd->msg);
-      Dmsg1(120, "dird>filed: exclude file: %s\n", fileset->exclude_array[i]->name);
+      Dmsg1(000, "dird>filed: exclude file: %s\n", fileset->exclude_array[i]->name);
       if (!bnet_send(fd)) {
          Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
 	 set_jcr_job_status(jcr, JS_ErrorTerminated);

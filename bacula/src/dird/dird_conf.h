@@ -185,19 +185,19 @@ typedef struct s_res_job JOB;
  * File Options Resource (options for Includes)
  */
 #define MAX_FO_OPTS 30
-struct s_res_fo {
+struct s_res_fopts {
    RES  hdr;
 
    char opts[MAX_FO_OPTS];            /* Options string */
    int  replace;                      /* How (overwrite, ...) */
-   char **applyto;                    /* applyto strings */
-   int num_applyto;                   /* number of appyto strings */
+   char **match;                      /* match strings */
+   int num_match;                     /* number of match strings */
 }; 
-typedef struct s_res_fo FILEOPTIONS;
+typedef struct s_res_fopts FILEOPTIONS;
 
 struct s_incexc_item {
-   char opts[20];                     /* options string */
-   FILEOPTIONS **fileopts;            /* file options array */
+   char opts[MAX_FO_OPTS];            /* options string */
+   struct s_res_fopts *fileopts;      /* File Options resource */
    int num_fileopts;                  /* number of above */
    char name[1];                      /* include/exclude name */
 };
@@ -297,7 +297,7 @@ union u_res {
    struct s_res_pool    res_pool;
    struct s_res_msgs    res_msgs;
    struct s_res_counter res_counter;
-   struct s_res_fo      res_fo;
+   struct s_res_fopts   res_fopts;
    RES hdr;
 };
 
