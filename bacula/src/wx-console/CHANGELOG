@@ -1,3 +1,7 @@
+18-04-2004 :
+ - wxbRestorePanel : The user can now change a part of restore
+    configuration
+
 17-04-2004 :
  - wxbRestorePanel modified to use wxbDataParsers
  - created wxbDataTokenizer, which fetches commands results

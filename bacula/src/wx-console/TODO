@@ -3,21 +3,26 @@ FEATURES
 
 wxbRestorePanel : Add buttons to mark/unmark directories/files.
 
-wxbRestorePanel : Allow the user to choose where he wants to restore his files
-
 wxbRestorePanel : Add a button to force the refreshing of the whole tree
 
 wxbRestorePanel : Add a timeout when waiting for commands results
 
 wxbRestorePanel : Check more carefully which job we just have run.
 
-wxbRestorePanel : Check if commands run successfully (cd, mark...).
+wxbRestorePanel : Check if commands run successfully (cd, mark, mods...).
+
+general : Don't concatenate lines in csprint, but in wxbDataTokenizer
+         (necessary for dot commands)
+         
+general : use dot commands
 
 wxbTableParser : Replace wxHashMap by wxArray
 
 console_thread : Allow the user to choose his config file.
 
-general : use dot commands
+wxblistctrl/wxbtreectrl : Find why events are not forwarded correctly 
+  to parent' parent, and correct bad actual implementation.
+   (remove wxbTreeListPanel)
 
 BUGS
 ----
