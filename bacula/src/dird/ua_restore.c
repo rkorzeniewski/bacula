@@ -714,7 +714,7 @@ static int write_bsr_file(UAContext *ua, RBSR *bsr)
 	 add_prompt(ua, nbsr->VolParams[i].VolumeName);
       }
    }
-   for (int i=1; i < ua->num_prompts; i++) {
+   for (int i=0; i < ua->num_prompts; i++) {
       bsendmsg(ua, "   %s\n", ua->prompt[i]);
       free(ua->prompt[i]);
    }
