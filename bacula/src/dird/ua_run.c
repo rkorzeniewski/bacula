@@ -534,7 +534,6 @@ JobName:    %s\n\
 Bootstrap:  %s\n\
 Where:      %s\n\
 Replace:    %s\n\
-FileSet:    %s\n\
 Client:     %s\n\
 Storage:    %s\n\
 JobId:      %s\n\
@@ -544,7 +543,6 @@ Priority:   %d\n"),
 	      NPRT(jcr->RestoreBootstrap),
 	      jcr->where?jcr->where:NPRT(job->RestoreWhere),
 	      replace,
-	      jcr->fileset->hdr.name,
 	      jcr->client->hdr.name,
 	      jcr->store->hdr.name, 
               jcr->RestoreJobId==0?"*None*":edit_uint64(jcr->RestoreJobId, ec1), 

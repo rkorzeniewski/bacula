@@ -87,6 +87,8 @@ static bool trace = false;
 
 /* Static storage */
 
+/* Used to allow only one thread close the daemon messages at a time */
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static MSGS *daemon_msgs;	       /* global messages */
 
 /* Define if e_msg must exit when M_ERROR_TERM is received */
@@ -416,6 +418,7 @@ void close_msg(JCR *jcr)
 
    if (jcr == NULL) {		     /* NULL -> global chain */
       msgs = daemon_msgs;
+      P(mutex); 		      /* only one thread walking the chain */
    } else {
       msgs = jcr->jcr_msgs;
       jcr->jcr_msgs = NULL;
@@ -502,6 +505,8 @@ rem_temp_file:
    if (jcr) {
       free_msgs_res(msgs);
       msgs = NULL;
+   } else {
+      V(mutex);
    }
    Dmsg0(150, "===End close msg resource\n");
 }
