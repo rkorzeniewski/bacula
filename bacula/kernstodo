@@ -18,10 +18,8 @@ Version 1.35                Kern (see below)
 - Look at patches/bacula_db.b2z postgresql that loops during restore.
   See Gregory Wright.
 - Perhaps add read/write programs and/or plugins to FileSets.
-- Make sure Qmsgs are dequeued by FD and SD.
-- Check if ACLs allocated at dird_conf.c:1214 are being properly
-  released.
 
+- Add delete JobId to regression.
 - Add bscan to four-concurrent-jobs regression.
 - Add IPv6 to regression
 - Alternative to static linking "ldd prog" save all binaries listed,
@@ -33,6 +31,7 @@ Version 1.35                Kern (see below)
 - Doc update AllFromVol
 - Doc dbcheck eliminate orphaned clients.
 - Doc -p option in stored
+- Doc Phil's new delete job jobid scanning code.
 - Document that console commands can be abbreviated.
 - New IP address specification is used as follows:
     [sdaddresses|diraddresses|fdaddresses] = { [[ip|ipv4|ipv6] = { 
@@ -1296,4 +1295,7 @@ Block Position: 0
 - Implement Ignore FileSet Change.
 - Doc new duration time input editing.
 - Bacula rescue CDROM implement isolinux
+- Make sure Qmsgs are dequeued by FD and SD.
+- Check if ACLs allocated at dird_conf.c:1214 are being properly
+  released.
  

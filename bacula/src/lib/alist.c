@@ -145,9 +145,11 @@ void alist::destroy()
       if (own_items) {
 	 for (int i=0; i<num_items; i++) {
 	    free(items[i]);
+	    items[i] = NULL;
 	 }
       }
       free(items);
+      items = NULL;
    }
 }
 

@@ -150,6 +150,7 @@ void run_job(JCR *jcr)
    }
    bnet_sig(fd, BNET_TERMINATE);      /* signal to FD job is done */
    jcr->end_time = time(NULL);
+   dequeue_messages(jcr);	      /* send any queued messages */
    set_jcr_job_status(jcr, JS_Terminated);
    bnet_fsend(dir, Job_end, jcr->Job, jcr->JobStatus, jcr->JobFiles,
       edit_uint64(jcr->JobBytes, ec1));

@@ -60,6 +60,7 @@ class alist : public SMARTALLOC {
    void grow_list(void);
 public:
    alist(int num = 1, bool own=true);
+   ~alist();
    void init(int num = 1, bool own=true);
    void append(void *item);
    void prepend(void *item);
@@ -103,7 +104,12 @@ inline void alist::init(int num, bool own) {
 
 /* Constructor */
 inline alist::alist(int num, bool own) {
-   this->init(num, own);
+   init(num, own);
+}
+
+/* Destructor */
+inline alist::~alist() {
+   destroy();
 }
    
 
