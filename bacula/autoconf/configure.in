@@ -698,6 +698,7 @@ AC_CHECK_HEADERS( \
 	limits.h \
 	stdarg.h \
 	stdlib.h \
+	stdint.h \
 	string.h \
 	termios.h \
 	unistd.h \
@@ -1317,4 +1318,3 @@ cat config.out
 # old stuff
 # cweb support: 	      ${got_cweb} ${CWEB_SRC}
 # gmp support:		      ${got_gmp} ${GMP_SRC}
-

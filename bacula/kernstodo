@@ -20,6 +20,7 @@ For 1.27 release:
 - Fix intmax_t on FreeBSD.
 
 After 1.27
+- Ensure that restore of differential jobs works (check SQL).
 - Enhance schedule to have 1stSat, ...
 - Make sure the MaxVolFiles is fully implemented in SD
 - Make Job err if WriteBootstrap fails.

@@ -34,9 +34,14 @@
 #define _POSIX_PTHREAD_SEMANTICS 1
 
 /* System includes */
+#if HAVE_STDINT_H
+#include <stdint.h>
+#endif
+#if HAVE_STDARG_H
 #include <stdarg.h>
+#endif
 #include <stdio.h>
-#if STDC_HEADERS
+#if HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
 #if HAVE_UNISTD_H
