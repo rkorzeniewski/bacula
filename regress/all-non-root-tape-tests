@@ -5,6 +5,7 @@
 tests/test0
 tests/backup-bacula-tape
 tests/small-file-size-tape
+tests/two-volume-tape
 echo " "
 echo " "
 echo "Test results"
