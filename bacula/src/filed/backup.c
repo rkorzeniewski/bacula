@@ -161,7 +161,17 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       break;
    case FT_DIRBEGIN:
       return 1; 		      /* not used */
+   case FT_NORECURSE:
+   case FT_NOFSCHG:
    case FT_DIREND:
+      if (ff_pkt->type == FT_NORECURSE) {
+         Jmsg(jcr, M_INFO, 1, _("     Recursion turned off. Will not descend into %s\n"), 
+	    ff_pkt->fname);
+      } else if (ff_pkt->type == FT_NOFSCHG) {
+         Jmsg(jcr, M_INFO, 1, _("     File system change prohibited. Will not descend into %s\n"), 
+	    ff_pkt->fname);
+      }
+      ff_pkt->type = FT_DIREND;       /* value is used below */
       Dmsg1(130, "FT_DIR saving: %s\n", ff_pkt->link);
       break;
    case FT_SPEC:
@@ -203,14 +213,6 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       return 1;
    case FT_ISARCH:
       Jmsg(jcr, M_NOTSAVED, 0, _("     Archive file not saved: %s\n"), ff_pkt->fname);
-      return 1;
-   case FT_NORECURSE:
-      Jmsg(jcr, M_SKIPPED, 1, _("     Recursion turned off. Directory skipped: %s\n"), 
-	 ff_pkt->fname);
-      return 1;
-   case FT_NOFSCHG:
-      Jmsg(jcr, M_SKIPPED, 1, _("     File system change prohibited. Directory skipped. %s\n"), 
-	 ff_pkt->fname);
       return 1;
    case FT_NOOPEN: {
       berrno be;

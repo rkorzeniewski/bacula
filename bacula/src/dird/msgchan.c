@@ -94,13 +94,13 @@ bool connect_to_storage_daemon(JCR *jcr, int retry_interval,
  */
 int start_storage_daemon_job(JCR *jcr)
 {
-   int status;
+   int status = 0;
    STORE *storage;
    BSOCK *sd;
    char auth_key[100];
    POOL_MEM device_name, pool_name, pool_type, media_type;
+   int i;
 
-   storage = jcr->store;
    sd = jcr->store_bsock;
    /*
     * Now send JobId and permissions, and get back the authorization key.
@@ -139,23 +139,29 @@ int start_storage_daemon_job(JCR *jcr)
    /*
     * Send use device = xxx media = yyy pool = zzz
     */
-   pm_strcpy(device_name, storage->dev_name);
-   pm_strcpy(media_type, storage->media_type);
-   pm_strcpy(pool_type, jcr->pool->pool_type);
-   pm_strcpy(pool_name, jcr->pool->hdr.name);
-   bash_spaces(device_name);
-   bash_spaces(media_type);
-   bash_spaces(pool_type);
-   bash_spaces(pool_name);
-   bnet_fsend(sd, use_device, device_name.c_str(), 
-	      media_type.c_str(), pool_name.c_str(), pool_type.c_str());
-   Dmsg1(110, ">stored: %s", sd->msg);
-   status = response(jcr, sd, OK_device, "Use Device", NO_DISPLAY);
-   if (!status) {
-      pm_strcpy(pool_type, sd->msg); /* save message */
-      Jmsg(jcr, M_FATAL, 0, _("\n"
-         "     Storage daemon didn't accept Device \"%s\" because:\n     %s"),
-	 device_name.c_str(), pool_type.c_str()/* sd->msg */);
+
+   for (i=0; i < 1; /* MAX_STORE */ i++) {
+      if (jcr->storage[i]) {
+	 storage = (STORE *)jcr->storage[i]->first();
+	 pm_strcpy(device_name, storage->dev_name);
+	 pm_strcpy(media_type, storage->media_type);
+	 pm_strcpy(pool_type, jcr->pool->pool_type);
+	 pm_strcpy(pool_name, jcr->pool->hdr.name);
+	 bash_spaces(device_name);
+	 bash_spaces(media_type);
+	 bash_spaces(pool_type);
+	 bash_spaces(pool_name);
+	 bnet_fsend(sd, use_device, device_name.c_str(), 
+		    media_type.c_str(), pool_name.c_str(), pool_type.c_str());
+         Dmsg1(110, ">stored: %s", sd->msg);
+         status = response(jcr, sd, OK_device, "Use Device", NO_DISPLAY);
+	 if (!status) {
+	    pm_strcpy(pool_type, sd->msg); /* save message */
+            Jmsg(jcr, M_FATAL, 0, _("\n"
+               "     Storage daemon didn't accept Device \"%s\" because:\n     %s"),
+	       device_name.c_str(), pool_type.c_str()/* sd->msg */);
+	 }
+      }
    }
    return status;
 }

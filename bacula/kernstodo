@@ -10,20 +10,40 @@ Communication encryption    Meno Abels
 Version 1.37                Kern (see below)
 ========================================================
 
-For 1.36.1:
-- Fix orphanned buffers:
-   Orphaned buffer:      24 bytes allocated at line 808 of rufus-dir job.c
-   Orphaned buffer:      40 bytes allocated at line 45 of rufus-dir alist.c
-- Add dump of VolSessionId/Time and FileIndex with bls.
-
-1.37 Projects:
+1.37 Major Projects:
 #3   Migration (Move, Copy, Archive Jobs)
-#4   Embedded Python Scripting
-#5   Events that call a Python program
+#4   Embedded Python Scripting (implemented in Dir)
+#5   Events that call a Python program (Implemented in Dir)
 #6   Select one from among Multiple Storage Devices for Job
 #7   Single Job Writing to Multiple Storage Devices
 
-Regression tests:
+##   Integrate web-bacula into a new Bacula project with
+     bimagemgr.
+##   Consider moving docs to their own project.
+
+For 1.37:
+- Tell the "restore" user when browsing is no longer possible.
+- Add disk seeking on restore.  
+- Cancel command should include JobId in list of Jobs.
+- Require restore via the restore command or make a restore Job
+  get the bootstrap file.
+- Add dump of VolSessionId/Time and FileIndex with bls.
+- Make bootstrap file handle multiple MediaTypes (SD)
+- Add offline command to Bacula console.
+- Implement WildFile and WildDir to solve problem of 
+  saving only *.doc files.
+- Add performance testing hooks
+- Add Python writable variable for changing the Priority.
+- Document that Bootstrap files can be written with cataloging
+  turned off.
+- Look at adding full Volume and Pool information to a Volume 
+  label so that bscan can get *all* the info. 
+- Scratch Pool where the volumes can be re-assigned to any Pool.
+- Fix orphanned buffers:
+   Orphaned buffer:      24 bytes allocated at line 808 of rufus-dir job.c
+   Orphaned buffer:      40 bytes allocated at line 45 of rufus-dir alist.c
+
+Regression tests (Jo):
 - Add Pool/Storage override regression test.
 - Add delete JobId to regression.
 - Add a regression test for dbcheck.  
@@ -40,11 +60,9 @@ Regression tests:
 
 
 1.37 Possibilities:
-- Add Python writable variable for changing the Priority.
 - Document security problems with the same password for everyone in
   rpm and Win32 releases.
 - Browse generations of files.
-- Add offline command to Bacula console.
 - I've seen an error when my catalog's File table fills up.  I
    then have to recreate the File table with a larger maximum row
    size.  Relevant information is at
@@ -63,42 +81,22 @@ Cap: 200GB
 - Supported drive:
   Wangtek 6525ES (SCSI-1 QIC drive, 525MB), under Linux 2.4.something, 
   bacula 1.36.0/1 works with blocksize 16k INSIDE bacula-sd.conf.
-- Save mount point for directories not traversed with  
-  onefs=yes.
-- Implement WildFile and WildDir to solve problem of 
-  saving only *.doc files.
 - Add regex from http://www.pcre.org to Bacula for Win32.
-- Cancel command should include JobId in list of Jobs.
-- Require restore via the restore command or make a restore Job
-  get the bootstrap file.
 - Use only shell tools no make in CDROM package.
 - Document PostgreSQL performance problems bug 131.
 - Document testing
-- Add performance testing hooks
-- if 2 concurrent backups are attempted on the same tape
-  drive (autoloader) into different tape pools, one of them will exit
-  fatally instead of halting until the drive is idle
-- Add seconds to start and end times in the Job report output.
-- Add disk seeking on restore.  
 - Document that ChangerDevice is used for Alert command.
 - Include within include does it work?
 - Implement a Pool of type Cleaning?
 - Implement VolReadTime and VolWriteTime in SD
 - Modify Backing up Your Database to include a bootstrap file.
 - Think about making certain database errors fatal.
-- Look at correcting the time jump in the sceduler for daylight
+- Look at correcting the time jump in the scheduler for daylight
   savings time changes.
 - Add a "real" timer to network connections.
-- Tell the "restore" user when browsing is no longer possible.
 - Write non-optimized bsrs from the JobMedia and Media records,
   even after Files are pruned.
-- Document that Bootstrap files can be written with cataloging
-  turned off.
-- Look at adding full Volume and Pool information to a Volume 
-  label so that bscan can get *all* the info. 
 - Promote to Full = Time period 
-- Scratch Pool where the volumes can be re-assigned to any Pool.
-- Update StartTime if job held in Job Queue.
 - Despool attributes simultaneously with data in a separate
   thread, rejoined at end of data spooling.
 - Implement Files/Bytes,... stats for restore job.
@@ -361,8 +359,6 @@ For 1.37 Testing/Documentation:
     is contained in only one device.
   In SD allow Device to have Multiple MediaTypes
 
-- Look at www.nu2.nu/pebuilder as a helper for full windows
-  bare metal restore.
 - Ideas from Jerry Scharf:
   First let's point out some big pluses that bacula has for this
         it's open source
@@ -1036,7 +1032,11 @@ Block Position: 0
 
 
 === Done
-- Add "Rerun failed levels = yes/no" to Job resource.
-- Fix CDROM make script to permit picking up already installed
-  static FD.
-- Add date/time to each Jmsg.
+- Save mount point for directories not traversed with onefs=yes.
+- Add seconds to start and end times in the Job report output.
+- if 2 concurrent backups are attempted on the same tape
+  drive (autoloader) into different tape pools, one of them will exit
+  fatally instead of halting until the drive is idle
+- Update StartTime if job held in Job Queue.
+- Look at www.nu2.nu/pebuilder as a helper for full windows
+  bare metal restore. (done by Scott)
