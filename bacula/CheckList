@@ -4,13 +4,15 @@
 - Build it on Win32
 - Build it on Sun
 - Build FD on Irix
-- Update ChangeLog
 - Make new .pdf manual
+- Update ChangeLog (add release date)
 - Do a cvs commit
 - Do a cvs -q export -D now -d bacula-1.nn bacula
 - Build new bacula-1.nn to ensure everything is committed
 - Write ReleaseNotes
 - If everything is good
-- cvs -q tag Release_1_nn
+- cd bacula/k
+- cvs -q tag Release-1_nn
+- cd bacula
 - rm -rf bacula-1.nn
-- cvs -q export -r Release_1_nn -d bacula-1.nn bacula
+- cvs -q export -r Release-1_nn -d bacula-1.nn bacula
