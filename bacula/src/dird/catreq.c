@@ -392,7 +392,7 @@ void catalog_update(JCR *jcr, BSOCK *bs, char *msg)
    Dmsg5(99, "UpdCat VolSessId=%d VolSessT=%d FI=%d Strm=%d data_len=%d\n",
       VolSessionId, VolSessionTime, FileIndex, Stream, data_len);
 
-   if (Stream == STREAM_UNIX_ATTRIBUTES || Stream == STREAM_WIN32_ATTRIBUTES) {
+   if (Stream == STREAM_UNIX_ATTRIBUTES || Stream == STREAM_UNIX_ATTRIBUTES_EX) {
       skip_nonspaces(&p);	      /* skip FileIndex */
       skip_spaces(&p);
       skip_nonspaces(&p);	      /* skip FileType */

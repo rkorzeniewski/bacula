@@ -162,6 +162,7 @@ struct JCR {
    /*********FIXME********* add missing files and files to be retried */
    int incremental;                   /* set if incremental for SINCE */
    time_t mtime;                      /* begin time for SINCE */
+   int mtime_only;                    /* compare only mtime and not ctime as well */
    int mode;                          /* manual/auto run */
    int status;                        /* job status */
    long Ticket;                       /* Ticket */

@@ -361,7 +361,7 @@ msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
       *fn = *p++;		      /* term filename and point to attribs */
       attr = p;
 
-      if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_WIN32_ATTRIBUTES) {
+      if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_UNIX_ATTRIBUTES_EX) {
 	 jcr->JobFiles++;
 	 jcr->FileIndex = file_index;
 	 ar.attr = attr;

@@ -471,7 +471,8 @@ int db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    /*
     * Make sure we have an acceptable attributes record.
     */
-   if (!(ar->Stream == STREAM_UNIX_ATTRIBUTES || ar->Stream == STREAM_WIN32_ATTRIBUTES)) {
+   if (!(ar->Stream == STREAM_UNIX_ATTRIBUTES || 
+	 ar->Stream == STREAM_UNIX_ATTRIBUTES_EX)) {
       Mmsg0(&mdb->errmsg, _("Attempt to put non-attributes into catalog\n"));
       Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
       return 0;

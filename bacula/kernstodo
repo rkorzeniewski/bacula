@@ -34,6 +34,8 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
+- lstat() is not going to work on Win32 for testing date.
+- Implement a Recycle command
 - Something is not right in last block of fill command.
 - Check this below from Phil.
   > When the job was done, Bacula reported 11084 files restored:
@@ -57,7 +59,7 @@ For 1.31 release:
   user had re-linked the file between the backup and the restore.
   Do lstat() to see if it is already properly linked.
   Same for symlinked file.
-- Remove the Jmsg() in sql_find.c:102 or only print on hard error.
+  Make sure ifnewer, ifolder, never, ... apply correctly.
 - Implement List Volume Job=xxx  or List scheduled volumes or
   Status Director 
 - Instrument use_count on DEVICE packets and ensure that the device is
@@ -967,3 +969,5 @@ Done: (see kernsdone for more)
   It doesnt show the last 20 jobs , but some older ones.
 - Fix Verify VolumeToCatalog to use BSRs -- it is broken.
 - Implement Release Storage=xxx
+- Fix restore on Win95/98  
+- Remove the Jmsg() in sql_find.c:102 or only print on hard error.

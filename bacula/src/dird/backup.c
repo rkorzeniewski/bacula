@@ -41,7 +41,7 @@
 /* Commands sent to File daemon */
 static char backupcmd[] = "backup\n";
 static char storaddr[]  = "storage address=%s port=%d ssl=%d\n";
-static char levelcmd[]  = "level = %s%s\n";
+static char levelcmd[]  = "level = %s%s mtime_only=%d\n";
 
 /* Responses received from File daemon */
 static char OKbackup[]   = "2000 OK backup\n";
@@ -224,14 +224,14 @@ int do_backup(JCR *jcr)
     */
    switch (jcr->JobLevel) {
       case L_BASE:
-         bnet_fsend(fd, levelcmd, "base", " ");
+         bnet_fsend(fd, levelcmd, "base", " ", 0);
 	 break;
       case L_FULL:
-         bnet_fsend(fd, levelcmd, "full", " ");
+         bnet_fsend(fd, levelcmd, "full", " ", 0);
 	 break;
       case L_DIFFERENTIAL:
       case L_INCREMENTAL:
-         bnet_fsend(fd, levelcmd, "since ", jcr->stime);
+         bnet_fsend(fd, levelcmd, "since ", jcr->stime, 0);
 	 free_pool_memory(jcr->stime);
 	 jcr->stime = NULL;
 	 break;

@@ -502,7 +502,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
       /*
        * Got attributes stream, decode it
        */
-      if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_WIN32_ATTRIBUTES) {
+      if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_UNIX_ATTRIBUTES_EX) {
 	 uint32_t LinkFIf, LinkFIc;
          Dmsg2(400, "file_index=%d attr=%s\n", file_index, attr);
 	 jcr->JobFiles++;

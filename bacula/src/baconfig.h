@@ -97,18 +97,18 @@
 /* Stream definitions.  Once defined these must NEVER
  *   change as they go on the storage media.
  */
-#define STREAM_UNIX_ATTRIBUTES   1    /* Generic Unix attributes */
-#define STREAM_FILE_DATA         2    /* Standard uncompressed data */
-#define STREAM_MD5_SIGNATURE     3    /* MD5 signature for the file */
-#define STREAM_GZIP_DATA         4    /* GZip compressed file data */
-#define STREAM_WIN32_ATTRIBUTES  5    /* Windows attributes (superset of Unix) */
-#define STREAM_SPARSE_DATA       6    /* Sparse data stream */
-#define STREAM_SPARSE_GZIP_DATA  7
-#define STREAM_PROGRAM_NAMES     8    /* program names for program data */
-#define STREAM_PROGRAM_DATA      9    /* Data needing program */
-#define STREAM_SHA1_SIGNATURE   10    /* SHA1 signature for the file */
-#define STREAM_WIN32_DATA       11    /* Win32 BackupRead data */
-#define STREAM_WIN32_GZIP_DATA  12    /* Gzipped Win32 BackupRead data */
+#define STREAM_UNIX_ATTRIBUTES    1    /* Generic Unix attributes */
+#define STREAM_FILE_DATA          2    /* Standard uncompressed data */
+#define STREAM_MD5_SIGNATURE      3    /* MD5 signature for the file */
+#define STREAM_GZIP_DATA          4    /* GZip compressed file data */
+#define STREAM_UNIX_ATTRIBUTES_EX 5    /* Extended Unix attr. Win32Ex/FreeBSD */
+#define STREAM_SPARSE_DATA        6    /* Sparse data stream */
+#define STREAM_SPARSE_GZIP_DATA   7
+#define STREAM_PROGRAM_NAMES      8    /* program names for program data */
+#define STREAM_PROGRAM_DATA       9    /* Data needing program */
+#define STREAM_SHA1_SIGNATURE    10    /* SHA1 signature for the file */
+#define STREAM_WIN32_DATA        11    /* Win32 BackupRead data */
+#define STREAM_WIN32_GZIP_DATA   12    /* Gzipped Win32 BackupRead data */
 
 /*
  * Internal code for Signature types
