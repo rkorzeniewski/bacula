@@ -247,6 +247,7 @@ struct JCR {
    int CurVol;                        /* Current Volume count */
    DIRRES* director;                  /* Director resource */
    bool write_part_after_job;         /* Set to write part after job */
+   bool NewVolEachJob;                /* Allow using new volume */
    
    uint32_t FileId;                   /* Last file id inserted */
 

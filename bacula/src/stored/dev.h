@@ -236,7 +236,6 @@ public:
 
    VOLUME_CAT_INFO VolCatInfo;        /* Volume Catalog Information */
    VOLUME_LABEL VolHdr;               /* Actual volume label */
-   uint64_t PoolId;                   /* DB PoolId */
    char pool_name[MAX_NAME_LENGTH];   /* pool name */
    char pool_type[MAX_NAME_LENGTH];   /* pool type */
 
@@ -342,7 +341,6 @@ public:
    uint32_t EndBlock;                 /* Ending block written */
    int64_t spool_size;                /* Current spool size */
    int64_t max_spool_size;            /* Max job spool size */
-   uint64_t PoolId;                   /* PoolId from DB */
    char VolumeName[MAX_NAME_LENGTH];  /* Volume name */
    char pool_name[MAX_NAME_LENGTH];   /* pool name */
    char pool_type[MAX_NAME_LENGTH];   /* pool type */

@@ -20,12 +20,10 @@ Version 1.37                Kern (see below)
 
 Autochangers:
 - 3. Prevent two drives requesting the same Volume in any given
-     autochanger.
-- 3. Check if a Volume is mounted on another drive in an Autochanger.
+     autochanger, by checking if a Volume is mounted on another drive
+     in an Autochanger.
 - 7. Implement new Console commands to allow offlining/reserving drives,
      and possibly manipulating the autochanger (much asked for).
-- 8. Automatic updating of Drive status from SD to DIR when something
-     changes (Volume, offline, append, read, ...).
   
 For 1.37:
 - If the user puts "Purge Oldest Volume = yes" or "Recycle Oldest Volume = yes"
@@ -35,7 +33,6 @@ For 1.37:
 - Implement "NewVolumeEachJob = yes|no" in Dir.
 - Make "update slots" when pointing to Autochanger, remove
   all Volumes from other drives.
-- Don't start a second file job if one is already running.
 - Add Python writable variable for changing the Priority,
     Client, Storage, JobStatus (error), ...
 - SD Python
@@ -43,17 +40,21 @@ For 1.37:
 - FD Python
   - Python script to save with Python, not save, save with Bacula.
   - Python script to do backup.
-- When Python creates a new label, the tape is immediately
-  recycled and no label created. This happens when using   
-  autolabeling -- even when Python doesn't generate the name.
 - Create a new GUI chapter explaining all the GUI programs.
 - Look at Preben's acl.c error handling code.
 - Look at adding full Volume and Pool information to a Volume 
   label so that bscan can get *all* the info. 
 - Scratch Pool where the volumes can be re-assigned to any Pool.
 - Implement Maximum Job Spool Size
-- Implement EOF/EOV labels for ANSI labels
-- Implement IBM labels.
+- 28-Mar 23:19 rufus-sd: acquire.c:379 Device "DDS-4" (/dev/nst0) 
+  is busy reading. Job 6 canceled.
+- Remove all old Device resource code in Dir and code to pass it
+  back in SD.
+- Fix code to either handle updating NumVol or to calculate it in
+  Dir next_vol.c
+- Finish implementation of passing all Storage and Device needs to
+  the SD.
+
 
 Maybe in 1.37:
 - By the way: on page http://www.bacula.org/?page=tapedrives , at the 
@@ -1268,3 +1269,9 @@ Block Position: 0
 #5   Events that call a Python program 
      (Implemented in Dir/SD)
 - Make sure the Device name is in the Query packet returned.
+- Don't start a second file job if one is already running.
+- Implement EOF/EOV labels for ANSI labels
+- Implement IBM labels.
+- When Python creates a new label, the tape is immediately
+  recycled and no label created. This happens when using   
+  autolabeling -- even when Python doesn't generate the name.

@@ -36,15 +36,16 @@ extern uint32_t VolSessionTime;
 extern uint32_t newVolSessionId();
 
 /* Forward referenced functions */
-static bool use_device_cmd(JCR *jcr);
+static bool use_storage_cmd(JCR *jcr);
 
 /* Requests from the Director daemon */
 static char jobcmd[] = "JobId=%d job=%127s job_name=%127s client_name=%127s "
       "type=%d level=%d FileSet=%127s NoAttr=%d SpoolAttr=%d FileSetMD5=%127s "
-      "SpoolData=%d  WritePartAfterJob=%d";
-static char use_device[]  = "use device=%127s media_type=%127s "
-   "pool_name=%127s pool_type=%127s PoolId=%lld append=%d";
-static char query_device[] = "query device=%127s";
+      "SpoolData=%d WritePartAfterJob=%d NewVol=%d\n";
+static char use_storage[]  = "use storage media_type=%127s "
+   "pool_name=%127s pool_type=%127s append=%d\n";
+static char use_device[]  = "use device=%127s\n";
+//static char query_device[] = "query device=%127s";
 
 
 /* Responses sent to Director daemon */
@@ -54,9 +55,9 @@ static char NO_device[] = "3924 Device \"%s\" not in SD Device resources.\n";
 static char NOT_open[]  = "3925 Device \"%s\" could not be opened or does not exist.\n";
 static char BAD_use[]   = "3913 Bad use command: %s\n";
 static char BAD_job[]   = "3915 Bad Job command: %s\n";
-static char OK_query[]  = "3001 OK query\n";
-static char NO_query[]  = "3918 Query failed\n";
-static char BAD_query[] = "3917 Bad query command: %s\n";
+//static char OK_query[]  = "3001 OK query\n";
+//static char NO_query[]  = "3918 Query failed\n";
+//static char BAD_query[] = "3917 Bad query command: %s\n";
 
 /*
  * Director requests us to start a job
@@ -74,7 +75,9 @@ bool job_cmd(JCR *jcr)
    char auth_key[100];
    BSOCK *dir = jcr->dir_bsock;
    POOL_MEM job_name, client_name, job, fileset_name, fileset_md5;
-   int JobType, level, spool_attributes, no_attributes, spool_data, write_part_after_job;
+   int JobType, level, spool_attributes, no_attributes, spool_data;
+   int write_part_after_job, NewVol;
+
    JCR *ojcr;
 
    /*
@@ -84,7 +87,8 @@ bool job_cmd(JCR *jcr)
    if (sscanf(dir->msg, jobcmd, &JobId, job.c_str(), job_name.c_str(),
 	      client_name.c_str(),
 	      &JobType, &level, fileset_name.c_str(), &no_attributes,
-	      &spool_attributes, fileset_md5.c_str(), &spool_data, &write_part_after_job) != 12) {
+	      &spool_attributes, fileset_md5.c_str(), &spool_data, 
+	      &write_part_after_job, &NewVol) != 13) {
       pm_strcpy(jcr->errmsg, dir->msg);
       bnet_fsend(dir, BAD_job, jcr->errmsg);
       Dmsg1(100, ">dird: %s\n", dir->msg);
@@ -123,6 +127,7 @@ bool job_cmd(JCR *jcr)
    jcr->write_part_after_job = write_part_after_job;
    jcr->fileset_md5 = get_pool_memory(PM_NAME);
    pm_strcpy(jcr->fileset_md5, fileset_md5);
+   jcr->NewVolEachJob = NewVol;
 
    jcr->authenticated = false;
 
@@ -142,7 +147,7 @@ bool use_cmd(JCR *jcr)
    /*
     * Wait for the device, media, and pool information
     */
-   if (!use_device_cmd(jcr)) {
+   if (!use_storage_cmd(jcr)) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       memset(jcr->sd_auth_key, 0, strlen(jcr->sd_auth_key));
       return false;
@@ -256,12 +261,11 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
  *    Ensure that the device exists and is opened, then store
  *	the media and pool info in the JCR.
  */
-static bool use_device_cmd(JCR *jcr)
+static bool use_storage_cmd(JCR *jcr)
 {
    POOL_MEM dev_name, media_type, pool_name, pool_type;
    BSOCK *dir = jcr->dir_bsock;
    DEVRES *device;
-   uint64_t PoolId;
    AUTOCHANGER *changer;
    int append;
    bool ok;
@@ -271,13 +275,22 @@ static bool use_device_cmd(JCR *jcr)
     *	use_device for each device that it wants to use.
     */
    Dmsg1(100, "<dird: %s", dir->msg);
-   ok = sscanf(dir->msg, use_device, dev_name.c_str(), media_type.c_str(),
-	       pool_name.c_str(), pool_type.c_str(), &PoolId, &append) == 6;
+   ok = sscanf(dir->msg, use_storage, media_type.c_str(),
+	       pool_name.c_str(), pool_type.c_str(), &append) == 4;
    if (ok) {
-      unbash_spaces(dev_name);
       unbash_spaces(media_type);
       unbash_spaces(pool_name);
       unbash_spaces(pool_type);
+      if (bnet_recv(dir) <= 0) {
+	 return false;	 
+      }
+      ok = sscanf(dir->msg, use_device, dev_name.c_str()) == 1;
+      if (!ok) {
+	 return false;
+      }
+      /* Eat to BNET_EOD */
+      while (bnet_recv(dir) > 0) {
+      }
       LockRes();
       foreach_res(device, R_DEVICE) {
 	 /* Find resource, and make sure we were able to open it */
@@ -308,7 +321,6 @@ static bool use_device_cmd(JCR *jcr)
 	    bstrncpy(dcr->pool_type, pool_type, name_len);
 	    bstrncpy(dcr->media_type, media_type, name_len);
 	    bstrncpy(dcr->dev_name, dev_name, name_len);
-	    dcr->PoolId = PoolId;
 	    jcr->dcr = dcr;
 	    if (append == SD_APPEND) {
 	       ok = reserve_device_for_append(dcr);
@@ -410,6 +422,7 @@ static bool use_device_cmd(JCR *jcr)
    return false;		      /* ERROR return */
 }
 
+#ifdef needed
 /*
  *   Query Device command from Director
  *   Sends Storage Daemon's information on the device to the
@@ -482,6 +495,8 @@ bool query_cmd(JCR *jcr)
 
    return true;
 }
+
+#endif
 
 
 /*

@@ -98,6 +98,32 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, bool create)
 	    }
 	 }
 
+	 if (!ok) {
+	    MEDIA_DBR smr;
+	    POOL_DBR pr;
+	    POOLMEM *query;
+	    char ed1[50], ed2[50];
+	    /*
+	     * 6. Try pulling a volume from the Scratch pool
+	     */ 
+	     memset(&pr, 0, sizeof(pr));
+             bstrncpy(pr.Name, "Scratch", 7);
+	     if (db_get_pool_record(jcr, jcr->db, &pr)) {
+		memset(&smr, 0, sizeof(smr));
+		smr.PoolId = pr.PoolId;
+                bstrncpy(smr.VolStatus, "Append", sizeof(smr.VolStatus));  /* want only appendable volumes */
+		bstrncpy(smr.MediaType, mr->MediaType, sizeof(smr.MediaType));
+		if (db_find_next_volume(jcr, jcr->db, 1, InChanger, &smr)) {
+		   query = get_pool_memory(PM_MESSAGE);
+		   db_lock(jcr->db);
+                   Mmsg(query, "UPDATE Media SET PoolId=%s WHERE MediaId=%s",
+			edit_int64(mr->PoolId, ed1),
+			edit_int64(mr->MediaId, ed2));
+		   ok = db_sql_query(jcr->db, query, NULL, NULL);  
+		   db_unlock(jcr->db);
+		}
+	     }
+	 }
 	 /*
 	  *  Look at more drastic ways to find an Appendable Volume
 	  */

@@ -42,13 +42,6 @@ static char Create_job_media[] = "CatReq Job=%s CreateJobMedia"
    " StartBlock=%u EndBlock=%u\n";
 static char FileAttributes[] = "UpdCat Job=%s FileAttributes ";
 static char Job_status[]     = "Status Job=%s JobStatus=%d\n";
-static char Device_update[] = "DevUpd Job=%s device=%s "
-   "append=%d read=%d num_writers=%d "
-   "open=%d labeled=%d offline=%d "
-   "reserved=%d max_writers=%d "
-   "autoselect=%d autochanger=%d "
-   "poolid=%s "
-   "changer_name=%s media_type=%s volume_name=%s\n";
 
 
 
@@ -63,6 +56,16 @@ static char OK_media[] = "1000 OK VolName=%127s VolJobs=%u VolFiles=%u"
 
 static char OK_create[] = "1000 OK CreateJobMedia\n";
 
+#ifdef needed
+
+static char Device_update[] = "DevUpd Job=%s device=%s "
+   "append=%d read=%d num_writers=%d "
+   "open=%d labeled=%d offline=%d "
+   "reserved=%d max_writers=%d "
+   "autoselect=%d autochanger=%d "
+   "changer_name=%s media_type=%s volume_name=%s\n";
+
+
 /* Send update information about a device to Director */
 bool dir_update_device(JCR *jcr, DEVICE *dev)
 {
@@ -70,7 +73,6 @@ bool dir_update_device(JCR *jcr, DEVICE *dev)
    POOL_MEM dev_name, VolumeName, MediaType, ChangerName;
    DEVRES *device = dev->device;
    bool ok;
-   char ed1[50];
    
    pm_strcpy(dev_name, device->hdr.name);
    bash_spaces(dev_name);
@@ -97,7 +99,6 @@ bool dir_update_device(JCR *jcr, DEVICE *dev)
       dev->is_offline()!=0, dev->reserved_device, 
       dev->is_tape()?100000:1,
       dev->autoselect, 0, 
-      edit_uint64(dev->PoolId, ed1),
       ChangerName.c_str(), MediaType.c_str(), VolumeName.c_str());
    Dmsg1(100, ">dird: %s\n", dir->msg);
    return ok;
@@ -131,6 +132,7 @@ bool dir_update_changer(JCR *jcr, AUTOCHANGER *changer)
    Dmsg1(100, ">dird: %s\n", dir->msg);
    return ok;
 }
+#endif
 
 
 /*

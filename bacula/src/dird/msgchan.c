@@ -41,10 +41,11 @@
 /* Commands sent to Storage daemon */
 static char jobcmd[]     = "JobId=%d job=%s job_name=%s client_name=%s "
    "type=%d level=%d FileSet=%s NoAttr=%d SpoolAttr=%d FileSetMD5=%s "
-   "SpoolData=%d WritePartAfterJob=%d";
-static char use_device[] = "use device=%s media_type=%s pool_name=%s "
-   "pool_type=%s PoolId=%s append=%d\n";
-static char query_device[] = "query device=%s";
+   "SpoolData=%d WritePartAfterJob=%d NewVol=%d\n";
+static char use_storage[] = "use storage media_type=%s pool_name=%s "
+   "pool_type=%s append=%d\n";
+static char use_device[] = "use device=%s\n";
+//static char query_device[] = "query device=%s";
 
 /* Response from Storage daemon */
 static char OKjob[]      = "3000 OK Job SDid=%d SDtime=%d Authorization=%100s\n";
@@ -99,6 +100,7 @@ bool connect_to_storage_daemon(JCR *jcr, int retry_interval,
  * Here we ask the SD to send us the info for a 
  *  particular device resource.
  */
+#ifdef needed
 bool update_device_res(JCR *jcr, DEVICE *dev)
 {
    POOL_MEM device_name; 
@@ -117,6 +119,7 @@ bool update_device_res(JCR *jcr, DEVICE *dev)
    }
    return true;
 }
+#endif
 
 /*
  * Start a job with the Storage daemon
@@ -143,7 +146,8 @@ int start_storage_daemon_job(JCR *jcr, alist *store, int append)
    bnet_fsend(sd, jobcmd, jcr->JobId, jcr->Job, jcr->job->hdr.name,
 	      jcr->client->hdr.name, jcr->JobType, jcr->JobLevel,
 	      jcr->fileset->hdr.name, !jcr->pool->catalog_files,
-	      jcr->job->SpoolAttributes, jcr->fileset->MD5, jcr->spool_data, jcr->write_part_after_job);
+	      jcr->job->SpoolAttributes, jcr->fileset->MD5, jcr->spool_data, 
+	      jcr->write_part_after_job, jcr->job->NewVolEachJob);
    Dmsg1(100, ">stored: %s\n", sd->msg);
    unbash_spaces(jcr->job->hdr.name);
    unbash_spaces(jcr->client->hdr.name);
@@ -183,31 +187,30 @@ int start_storage_daemon_job(JCR *jcr, alist *store, int append)
     */
 // foreach_alist(storage, store) {
       storage = (STORE *)store->first();
+      pm_strcpy(media_type, storage->media_type);
+      bash_spaces(media_type);
+      bnet_fsend(sd, use_storage, media_type.c_str(), pool_name.c_str(), 
+		 pool_type.c_str(), append);
+
       DEVICE *dev;
-      /* Loop over alternative storages until one is OK */
+      /* Loop over alternative storage Devices until one is OK */
       foreach_alist(dev, storage->device) {
 	 pm_strcpy(device_name, dev->hdr.name);
-	 pm_strcpy(media_type, storage->media_type);
 	 bash_spaces(device_name);
-	 bash_spaces(media_type);
-	 bnet_fsend(sd, use_device, device_name.c_str(),
-		    media_type.c_str(), pool_name.c_str(), pool_type.c_str(),
-		    PoolId, append);
+	 bnet_fsend(sd, use_device, device_name.c_str());
          Dmsg1(100, ">stored: %s", sd->msg);
-	 if (bget_dirmsg(sd) > 0) {
-            Dmsg1(100, "<stored: %s", sd->msg);
-	    /* ****FIXME**** save actual device name */
-	    ok = sscanf(sd->msg, OK_device, device_name.c_str()) == 1;
-	    if (ok) {
-	       break;
-	    }
-	 } else {
-	    POOL_MEM err_msg;
-	    pm_strcpy(err_msg, sd->msg); /* save message */
-            Jmsg(jcr, M_WARNING, 0, _("\n"
-               "     Storage daemon didn't accept Device \"%s\" because:\n     %s"),
-	       device_name.c_str(), err_msg.c_str()/* sd->msg */);
-	 }
+      }
+      bnet_sig(sd, BNET_EOD);
+      if (bget_dirmsg(sd) > 0) {
+         Dmsg1(100, "<stored: %s", sd->msg);
+	 /* ****FIXME**** save actual device name */
+	 ok = sscanf(sd->msg, OK_device, device_name.c_str()) == 1;
+      } else {
+	 POOL_MEM err_msg;
+	 pm_strcpy(err_msg, sd->msg); /* save message */
+         Jmsg(jcr, M_WARNING, 0, _("\n"
+            "     Storage daemon didn't accept Device \"%s\" because:\n     %s"),
+	    device_name.c_str(), err_msg.c_str()/* sd->msg */);
       }
 //    if (!ok) {
 //	 break;
@@ -331,7 +334,7 @@ void wait_for_storage_daemon_termination(JCR *jcr)
    set_jcr_job_status(jcr, JS_Terminated);
 }
 
-
+#ifdef needed
 #define MAX_TRIES 30
 #define WAIT_TIME 2
 extern "C" void *device_thread(void *arg)
@@ -381,3 +384,4 @@ void init_device_resources()
       Jmsg1(NULL, M_ABORT, 0, _("Cannot create message thread: %s\n"), be.strerror(status));
    }
 }
+#endif

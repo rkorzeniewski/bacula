@@ -172,6 +172,7 @@ bool wait_for_device(DCR *dcr, const char *msg, bool first)
    JCR *jcr = dcr->jcr;
    bool ok = false;
 
+   Dmsg0(100, "Enter wait_for_device\n");
    P(device_release_mutex);
 
    if (first) {
@@ -196,12 +197,12 @@ bool wait_for_device(DCR *dcr, const char *msg, bool first)
       timeout.tv_nsec = tv.tv_usec * 1000;
       timeout.tv_sec = tv.tv_sec + add_wait;
 
-      Dmsg3(000, "I'm going to sleep on device %s. HB=%d wait=%d\n", dev->print_name(),
-	 (int)me->heartbeat_interval, dev->wait_sec);
+      Dmsg4(100, "I'm going to sleep on device %s. HB=%d wait=%d remwait=%d\n", dev->print_name(),
+	 (int)me->heartbeat_interval, jcr->wait_sec, jcr->rem_wait_sec);
       start = time(NULL);
       /* Wait required time */
       stat = pthread_cond_timedwait(&wait_device_release, &device_release_mutex, &timeout);
-      Dmsg1(000, "Wokeup from sleep on device stat=%d\n", stat);
+      Dmsg1(100, "Wokeup from sleep on device stat=%d\n", stat);
 
       now = time(NULL);
       jcr->rem_wait_sec -= (now - start);
@@ -245,7 +246,7 @@ bool wait_for_device(DCR *dcr, const char *msg, bool first)
    }
 
    V(device_release_mutex);
-   Dmsg1(000, "Return from wait_device ok=%d\n", ok);
+   Dmsg1(100, "Return from wait_device ok=%d\n", ok);
    return ok;
 }
 
