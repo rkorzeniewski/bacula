@@ -1,3 +1,5 @@
+console.conf
+test-console.conf
 test-bconsole.conf
 Makefile
 btraceback
