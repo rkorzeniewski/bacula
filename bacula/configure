@@ -7042,6 +7042,10 @@ echo "$as_me: error: \"You can configure for only one database.\"" >&2;}
               POSTGRESQL_INCDIR=/usr/include
               POSTGRESQL_LIBDIR=/usr/lib
               POSTGRESQL_BINDIR=/usr/bin
+          elif test -f /usr/include/pgsql/libpq-fe.h; then
+              POSTGRESQL_INCDIR=/usr/include/pgsql
+              POSTGRESQL_LIBDIR=/usr/lib/pgsql
+              POSTGRESQL_BINDIR=/usr/bin
           else
               echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
@@ -17792,7 +17796,7 @@ WLDFLAGS=
 PFILES="platforms/Makefile"
 PSCMD="ps -e"
 WIN32=
-hostname=`uname -n`
+hostname=`uname -n | cut -d '.' -f 1`
 case "$DISTNAME" in
 aix)
 	DISTVER=`uname -r`
@@ -17826,7 +17830,6 @@ bsdi)
 	    platforms/bsdi/bacula-fd \
 	    platforms/bsdi/bacula-sd \
 	    platforms/bsdi/bacula-dir"
-	hostname=`hostname -s`
 	largefile_support="yes"
   ;;
 cygwin)
@@ -17840,7 +17843,6 @@ darwin)
 	DISTVER=`uname -r`
 	TAPEDRIVE="/dev/nst0"
 	PSCMD="ps -e -o pid,command"
-	hostname=`hostname -s`
 	PFILES="${PFILES} \
 	   platforms/darwin/Makefile"
   ;;
@@ -17848,7 +17850,6 @@ debian)
 	DISTVER=`cat /etc/debian_version`
 	TAPEDRIVE="/dev/nrst0"
 	PSCMD="ps -e -o pid,command"
-	hostname=`hostname -s`
   ;;
 freebsd)
 	DISTVER=`uname -a |awk '{print $3}'`
@@ -17866,7 +17867,6 @@ freebsd)
 	    platforms/freebsd/bacula-fd \
 	    platforms/freebsd/bacula-sd \
 	    platforms/freebsd/bacula-dir"
-	hostname=`hostname -s`
 	largefile_support="yes"
   ;;
 hpux)
@@ -17938,7 +17938,6 @@ mandrake)
 	    platforms/mandrake/bacula-dir \
 	    platforms/mandrake/bacula.spec \
 	    "
-	hostname=`hostname -s`
   ;;
 gentoo)
 	DISTVER=`awk '/version / {print $5}' < /etc/gentoo-release`
@@ -17949,7 +17948,6 @@ gentoo)
 	    platforms/gentoo/bacula-fd \
 	    platforms/gentoo/bacula-sd \
 	    platforms/gentoo/bacula-dir"
-	hostname=`hostname -s`
   ;;
 
 slackware)
@@ -17978,7 +17976,6 @@ suse)
 	    cut -f 3 -d ' '`
 	TAPEDRIVE="/dev/nst0"
 	PSCMD="ps -e -o pid,command"
-	hostname=`hostname -s`
 	PFILES="${PFILES} \
 	    platforms/suse/Makefile \
 	    platforms/suse/bacula-fd \
@@ -17990,7 +17987,6 @@ suse5)
 	DISTVER=5.x
 	TAPEDRIVE="/dev/nst0"
 	PSCMD="ps -e -o pid,command"
-	hostname=`hostname -s`
 	PFILES="${PFILES} \
 	    platforms/suse/Makefile \
 	    platforms/suse/bacula-fd \
