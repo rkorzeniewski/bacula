@@ -90,7 +90,7 @@ struct RESTORE_CTX {
 /* Forward referenced functions */
 static int last_full_handler(void *ctx, int num_fields, char **row);
 static int jobid_handler(void *ctx, int num_fields, char **row);
-static int next_jobid_from_list(char **p, uint32_t *JobId);
+static int get_next_jobid_from_list(char **p, uint32_t *JobId);
 static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx);
 static int fileset_handler(void *ctx, int num_fields, char **row);
 static void print_name_list(UAContext *ua, NAME_LIST *name_list);
@@ -285,11 +285,11 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
    JobId_t JobId;
    JOB_DBR jr;
    bool done = false;
-   int i;
+   int i, j;
    char *list[] = { 
       "List last 20 Jobs run",
       "List Jobs where a given File is saved",
-      "Enter list of JobIds to select",
+      "Enter list of comma separated JobIds to select",
       "Enter SQL list command", 
       "Select the most recent backup for a client",
       "Select backup for a client before a specified time",
@@ -305,76 +305,94 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
       "file",      /* 3 */
       "select",    /* 4 */
       "pool",      /* 5 */
+      "client",    /* 6 */
+      "storage",   /* 7 */
+      "where",     /* 8 */
+      "all",       /* 9 */
+      "yes",       /* 10 */
       NULL
    };
 
    *rx->JobIds = 0;
-   switch (find_arg_keyword(ua, kw)) {
-   case 0:			      /* jobid */
-      for ( ;; ) {
-         i = find_arg_with_value(ua, _("jobid"));
-	 if (i < 0) {
+
+   for (i=1; i<ua->argc; i++) {       /* loop through arguments */
+      bool found_kw = false;
+      for (j=0; kw[j]; j++) {	      /* loop through keywords */
+	 if (strcasecmp(kw[j], ua->argk[i]) == 0) {
+	    found_kw = true;
 	    break;
 	 }
-	 pm_strcpy(&rx->JobIds, ua->argv[i]);
-         ua->argk[i][0] = 0;          /* "consume" jobid= */
       }
-      done = true;
-      break;
-   case 1:			      /* current */
-      bstrutime(date, sizeof(date), time(NULL));
-      have_date = true;
-      break;
-   case 2:			      /* before */
-      i = find_arg_with_value(ua, _("before"));
-      if (i < 0) {
+      if (!found_kw) {
+         bsendmsg(ua, _("Unknown keyword: %s\n"), ua->argk[i]);
 	 return 0;
       }
-      if (str_to_utime(ua->argv[i]) == 0) {
-         bsendmsg(ua, _("Improper date format: %s\n"), ua->argv[i]);
-	 return 0;
-      }
-      bstrncpy(date, ua->argv[i], sizeof(date));
-      have_date = true;
-      break;
-   case 3:			      /* file */
-      if (!have_date) {
+      /* Found keyword in kw[] list, process it */
+      switch (j) {
+      case 0:				 /* jobid */
+	 if (*rx->JobIds != 0) {
+            pm_strcat(&rx->JobIds, ",");
+	 }
+	 pm_strcat(&rx->JobIds, ua->argv[i]);
+	 done = true;
+	 break;
+      case 1:				 /* current */
 	 bstrutime(date, sizeof(date), time(NULL));
-      }
-      if (!get_client_name(ua, rx)) {
-	 return 0;
-      }
-      for ( ;; ) {
-         i = find_arg_with_value(ua, _("file"));
-	 if (i < 0) {
-	    break;
+	 have_date = true;
+	 break;
+      case 2:				 /* before */
+	 if (str_to_utime(ua->argv[i]) == 0) {
+            bsendmsg(ua, _("Improper date format: %s\n"), ua->argv[i]);
+	    return 0;
+	 }
+	 bstrncpy(date, ua->argv[i], sizeof(date));
+	 have_date = true;
+	 break;
+      case 3:				 /* file */
+	 if (!have_date) {
+	    bstrutime(date, sizeof(date), time(NULL));
+	 }
+	 if (!get_client_name(ua, rx)) {
+	    return 0;
 	 }
 	 pm_strcpy(&ua->cmd, ua->argv[i]);
 	 insert_one_file(ua, rx, date);
-         ua->argk[i][0] = 0;          /* "consume" the file= */
-      }
-      /* Check MediaType and select storage that corresponds */
-      get_storage_from_mediatype(ua, &rx->name_list, rx);
-      return 2;
-   case 4:			      /* select */
-      if (!have_date) {
-	 bstrutime(date, sizeof(date), time(NULL));
-      }
-      if (!select_backups_before_date(ua, rx, date)) {
-	 return 0;
-      }
-      done = true;
-      break;
-   case 5:			      /* pool specified */
-      i = find_arg_with_value(ua, "pool");
-      if (i >= 0 && acl_access_ok(ua, Pool_ACL, ua->argv[i])) {
+	 if (rx->name_list.num_ids) {
+	    /* Check MediaType and select storage that corresponds */
+	    get_storage_from_mediatype(ua, &rx->name_list, rx);
+	    done = true;
+	 }
+	 break;
+      case 4:				 /* select */
+	 if (!have_date) {
+	    bstrutime(date, sizeof(date), time(NULL));
+	 }
+	 if (!select_backups_before_date(ua, rx, date)) {
+	    return 0;
+	 }
+	 done = true;
+	 break;
+      case 5:				 /* pool specified */
 	 rx->pool = (POOL *)GetResWithName(R_POOL, ua->argv[i]);
-      } else {
-         bsendmsg(ua, _("Error: Pool resource \"%s\" does not exist.\n"), ua->argv[i]);
+	 if (!rx->pool) {
+            bsendmsg(ua, _("Error: Pool resource \"%s\" does not exist.\n"), ua->argv[i]);
+	    return 0;
+	 }
+	 if (!acl_access_ok(ua, Pool_ACL, ua->argv[i])) {
+	    rx->pool = NULL;
+            bsendmsg(ua, _("Error: Pool resource \"%s\" access not allowed.\n"), ua->argv[i]);
+	    return 0;
+	 }
+	 break;
+      /*     
+       * All keywords 6 or greater are ignored or handled by a select prompt
+       */
+      default:
+	 break;
       }
-      break;
-   default:
-      break;
+   }
+   if (rx->name_list.num_ids) {
+      return 2; 		      /* filename list made */
    }
        
    if (!done) {
@@ -459,7 +477,9 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
 	    insert_one_file(ua, rx, date);
 	 }
 	 /* Check MediaType and select storage that corresponds */
-	 get_storage_from_mediatype(ua, &rx->name_list, rx);
+	 if (rx->name_list.num_ids) {
+	    get_storage_from_mediatype(ua, &rx->name_list, rx);
+	 }
 	 return 2;
        case 7:			      /* enter files backed up before specified time */
 	 if (!get_date(ua, date, sizeof(date))) {
@@ -482,7 +502,9 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
 	    insert_one_file(ua, rx, date);
 	 }
 	 /* Check MediaType and select storage that corresponds */
-	 get_storage_from_mediatype(ua, &rx->name_list, rx);
+	 if (rx->name_list.num_ids) {
+	    get_storage_from_mediatype(ua, &rx->name_list, rx);
+	 }
 	 return 2;
 
       
@@ -502,7 +524,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
 
    rx->TotalFiles = 0;
    for (p=rx->JobIds; ; ) {
-      int stat = next_jobid_from_list(&p, &JobId);
+      int stat = get_next_jobid_from_list(&p, &JobId);
       if (stat < 0) {
          bsendmsg(ua, _("Invalid JobId in list.\n"));
 	 return 0;
@@ -592,7 +614,6 @@ static int insert_file_into_findex_list(UAContext *ua, RESTORE_CTX *rx, char *fi
    strip_trailing_junk(file);
    split_path_and_filename(rx, file);
    Mmsg(&rx->query, uar_jobid_fileindex, date, rx->path, rx->fname, rx->ClientName);
-   Dmsg1(000, "Query=%s\n", rx->query);
    rx->found = false;
    /* Find and insert jobid and File Index */
    if (!db_sql_query(ua->db, rx->query, jobid_fileindex_handler, (void *)rx)) {
@@ -687,7 +708,7 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
     * appear more than once, however, we only insert it once.
     */
    int items = 0;
-   for (p=rx->JobIds; next_jobid_from_list(&p, &JobId) > 0; ) {
+   for (p=rx->JobIds; get_next_jobid_from_list(&p, &JobId) > 0; ) {
 
       if (JobId == last_JobId) {	     
 	 continue;		      /* eliminate duplicate JobIds */
@@ -891,7 +912,7 @@ bail_out:
 
 
 /* Return next JobId from comma separated list */
-static int next_jobid_from_list(char **p, uint32_t *JobId)
+static int get_next_jobid_from_list(char **p, uint32_t *JobId)
 {
    char jobid[30];
    char *q = *p;
@@ -1029,6 +1050,8 @@ static void free_name_list(NAME_LIST *name_list)
 
 static void get_storage_from_mediatype(UAContext *ua, NAME_LIST *name_list, RESTORE_CTX *rx)
 {
+   STORE *store;
+
    if (name_list->num_ids > 1) {
       bsendmsg(ua, _("Warning, the JobIds that you selected refer to more than one MediaType.\n"
          "Restore is not possible. The MediaTypes used are:\n"));
@@ -1042,12 +1065,28 @@ static void get_storage_from_mediatype(UAContext *ua, NAME_LIST *name_list, REST
       rx->store = select_storage_resource(ua);
       return;
    }
+   if (rx->store) {
+      return;
+   }
+   /*
+    * We have a single MediaType, look it up in our Storage resource 
+    */
+   LockRes();
+   foreach_res(store, R_STORAGE) {
+      if (strcmp(name_list->name[0], store->media_type) == 0) {
+	 rx->store = store;
+	 UnlockRes();
+	 return;
+      }
+   }
+   UnlockRes();
 
+   /* Try asking user */
    rx->store = get_storage_resource(ua, false /* don't use default */);
 
    if (!rx->store) {
       bsendmsg(ua, _("\nWarning. Unable to find Storage resource for\n"
-         "MediaType %s, needed by the Jobs you selected.\n"
+         "MediaType \"%s\", needed by the Jobs you selected.\n"
          "You will be allowed to select a Storage device later.\n"),
 	 name_list->name[0]); 
    }
