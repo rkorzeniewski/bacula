@@ -72,21 +72,22 @@ protected:
 protected:
 
    // About dialog for this server
-   bacAbout                m_about;
+   bacAbout  m_about;
 
    // Status dialog for this server
-   bacStatus               m_status;
+   bacStatus m_status;
 
-   bacEvents               m_events;
+   bacEvents m_events;
 
-   HWND                    m_hwnd;
-   HMENU                   m_hmenu;
-   NOTIFYICONDATA          m_nid;
+   HWND  m_hwnd;
+   HMENU m_hmenu;
+   NOTIFYICONDATA m_nid;
 
    // The icon handles
-   HICON                   m_idle_icon;
-   HICON                   m_running_icon;
-   HICON                   m_error_icon;
+   HICON m_idle_icon;
+   HICON m_running_icon;
+   HICON m_error_icon;
+   HICON m_warn_icon;
 };
 
 

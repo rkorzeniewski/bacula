@@ -7,7 +7,9 @@
 #define IDI_IDLE                        101
 #define IDI_RUNNING                     102
 #define IDI_JOB_ERROR                   103
-#define IDR_TRAYMENU                    104
+#define IDI_JOB_WARNING                 104
+#define IDR_TRAYMENU                    105
+#define IDB_BACULABMP                   106
 
 #define IDC_LIST                        1000
 #define IDC_NONYET_LABEL                1006
@@ -42,4 +44,3 @@
 #define IDD_EVENTS                      203
 
 
-#define IDB_BACULABMP                   106

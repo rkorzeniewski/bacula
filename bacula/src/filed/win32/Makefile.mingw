@@ -46,7 +46,7 @@ win32: winlib.a
 winlib.a: $(BACOBJS) winres.res
 	ar rcs $@ $(BACOBJS)
 
-winres.res: winres.rc bacula.ico winres.h idle.ico running.ico error.ico
+winres.res: winres.rc bacula.ico winres.h idle.ico running.ico error.ico warn.ico
 	windres -DHAVE_MINGW $< -O coff -o $@
 
 winmain.o: winmain.cpp winbacula.h

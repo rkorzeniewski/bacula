@@ -38,6 +38,7 @@
 
 
 #include <lmcons.h>
+#undef PASCAL
 #include "winbacula.h"
 #include "winservice.h"
 #include "wintray.h"

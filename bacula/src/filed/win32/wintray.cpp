@@ -25,7 +25,7 @@
 // by Kern E. Sibbald.  Many thanks to ATT and James Weatherall,
 // the original author, for providing an excellent template.
 //
-// Copyright (2000-2003) Kern E. Sibbald
+// Copyright 2000-2004, Kern E. Sibbald
 //
 
 
@@ -41,6 +41,8 @@
 // Header
 
 #include "wintray.h"
+#include "bacula.h"
+#include "jcr.h"
 
 // Constants
 #ifdef properties_implemented
@@ -55,7 +57,7 @@ const UINT MENU_ADD_CLIENT_MSG = RegisterWindowMessage("Bacula.AddClient.Message
 const char *MENU_CLASS_NAME = "Bacula Tray Icon";
 
 extern void terminate_filed(int sig);
-extern char *bac_status(int stat);
+extern char *bac_status(char *buf, int buf_len);
 extern int bacstat;
 
 // Implementation
@@ -102,9 +104,10 @@ bacMenu::bacMenu()
    SetTimer(m_hwnd, 1, 5000, NULL);
 
    // Load the icons for the tray
-   m_idle_icon = LoadIcon(hAppInstance, MAKEINTRESOURCE(IDI_IDLE));
+   m_idle_icon    = LoadIcon(hAppInstance, MAKEINTRESOURCE(IDI_IDLE));
    m_running_icon = LoadIcon(hAppInstance, MAKEINTRESOURCE(IDI_RUNNING));
-   m_error_icon = LoadIcon(hAppInstance, MAKEINTRESOURCE(IDI_JOB_ERROR));
+   m_error_icon   = LoadIcon(hAppInstance, MAKEINTRESOURCE(IDI_JOB_ERROR));
+   m_warn_icon    = LoadIcon(hAppInstance, MAKEINTRESOURCE(IDI_JOB_WARNING));
 
    // Load the popup menu
    m_hmenu = LoadMenu(hAppInstance, MAKEINTRESOURCE(IDR_TRAYMENU));
@@ -139,23 +142,42 @@ bacMenu::DelTrayIcon()
 void
 bacMenu::UpdateTrayIcon(int bacstat)
 {
-   (void *)bac_status(0);
+   (void *)bac_status(NULL, 0);
    SendTrayMsg(NIM_MODIFY, bacstat);
 }
 
 void
 bacMenu::SendTrayMsg(DWORD msg, int bacstat)
 {
+   struct s_last_job *job;
+   
    // Create the tray icon message
    m_nid.hWnd = m_hwnd;
    m_nid.cbSize = sizeof(m_nid);
    m_nid.uID = IDI_BACULA;                  // never changes after construction
-   if (bacstat == 0)
+   switch (bacstat) {
+   case 0:
       m_nid.hIcon = m_idle_icon;
-   else if (bacstat == 1)
+      break;
+   case JS_Running:
       m_nid.hIcon = m_running_icon;
-   else if (bacstat < 0)
+      break;
+   case JS_ErrorTerminated:
       m_nid.hIcon = m_error_icon;
+      break;
+   default:
+      if (last_jobs->size() > 0) {
+         job = (struct s_last_job *)last_jobs->last();
+         if (job->Errors) {
+            m_nid.hIcon = m_warn_icon;
+         } else {
+            m_nid.hIcon = m_idle_icon;
+         }
+      } else {
+         m_nid.hIcon = m_idle_icon;
+      }
+      break;
+   }
 
    m_nid.uFlags = NIF_ICON | NIF_MESSAGE;
    m_nid.uCallbackMessage = WM_TRAYNOTIFY;
@@ -168,7 +190,7 @@ bacMenu::SendTrayMsg(DWORD msg, int bacstat)
 
    // Try to add the Bacula status to the tip string, if possible
    if (m_nid.uFlags & NIF_TIP) {
-       strncpy(m_nid.szTip, bac_status(0), (sizeof(m_nid.szTip)-1));
+       bac_status(m_nid.szTip, sizeof(m_nid.szTip));
    }
 
    // Send the message
@@ -201,23 +223,11 @@ LRESULT CALLBACK bacMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
       if (bacService::RunningAsService()) {
           // Attempt to add the icon if it's not already there
           _this->AddTrayIcon();
-          // Trigger a check of the current user
-//        PostMessage(hwnd, WM_USERCHANGED, 0, 0);
       }
 
       // Update the icon
       _this->UpdateTrayIcon(bacstat);
      break;
-
-#ifdef xxx_needed
-
-   // DEAL WITH NOTIFICATIONS FROM THE SERVER:
-   case WM_SRV_CLIENT_AUTHENTICATED:
-   case WM_SRV_CLIENT_DISCONNECT:
-      // Adjust the icon accordingly
-      _this->UpdateTrayIcon(bacstat);
-      return 0;
-#endif
 
    // STANDARD MESSAGE HANDLING
    case WM_CREATE:
@@ -311,61 +321,32 @@ LRESULT CALLBACK bacMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
       return 0;
 
    case WM_QUERYENDSESSION:
-           // Are we running as a system service?
-           // Or is the system shutting down (in which case we should check anyway!)
-           if ((!bacService::RunningAsService()) || (lParam == 0)) {
-                   // No, so we are about to be killed
+      // Are we running as a system service?
+      // Or is the system shutting down (in which case we should check anyway!)
+      if ((!bacService::RunningAsService()) || (lParam == 0)) {
+         // No, so we are about to be killed
 
-                   // If there are remote connections then we should verify
-                   // that the user is happy about killing them.
+         // If there are remote connections then we should verify
+         // that the user is happy about killing them.
 
-                   // Finally, post a quit message, just in case
-                   PostQuitMessage(0);
-                   return TRUE;
-           }
-
-           // Tell the OS that we've handled it anyway
-//         PostQuitMessage(0);
-           return TRUE;
+         // Finally, post a quit message, just in case
+         PostQuitMessage(0);
+         return TRUE;
+      }
+      return TRUE;
 
    
    default:
-           if (iMsg == MENU_ABOUTBOX_SHOW) {
-                   // External request to show our About dialog
-                   PostMessage(hwnd, WM_COMMAND, MAKELONG(ID_ABOUT, 0), 0);
-                   return 0;
-           }
-           if (iMsg == MENU_STATUS_SHOW) {
-                   // External request to show our status
-                   PostMessage(hwnd, WM_COMMAND, MAKELONG(ID_STATUS, 0), 0);
-                   return 0;
-           }
-
-#ifdef xxx_needed
-           if (iMsg == MENU_EVENTS_SHOW) {
-                   // External request to show our Events dialogue
-                   PostMessage(hwnd, WM_COMMAND, MAKELONG(ID_EVENTS, 0), 0);
-                   return 0;
-           }
-
-           if (iMsg == MENU_SERVICEHELPER_MSG) {
-                   // External ServiceHelper message.
-                   // This message holds a process id which we can use to
-                   // impersonate a specific user.  In doing so, we can load their
-                   // preferences correctly
-                   bacService::ProcessUserHelperMessage(wParam, lParam);
-
-                   // - Trigger a check of the current user
-                   PostMessage(hwnd, WM_USERCHANGED, 0, 0);
-                   return 0;
-           }
-           if (iMsg == MENU_ADD_CLIENT_MSG) {
-                   // Add Client message.  This message includes an IP address
-                   // of a listening client, to which we should connect.
-
-                   return 0;
-           }
-#endif
+      if (iMsg == MENU_ABOUTBOX_SHOW) {
+         // External request to show our About dialog
+         PostMessage(hwnd, WM_COMMAND, MAKELONG(ID_ABOUT, 0), 0);
+         return 0;
+      }
+      if (iMsg == MENU_STATUS_SHOW) {
+         // External request to show our status
+         PostMessage(hwnd, WM_COMMAND, MAKELONG(ID_STATUS, 0), 0);
+         return 0;
+      }
    }
 
    // Message not recognised

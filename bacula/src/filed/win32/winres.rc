@@ -14,6 +14,7 @@ IDI_BACULA              ICON    DISCARDABLE     "bacula.ico"
 IDI_IDLE                ICON    DISCARDABLE     "idle.ico"
 IDI_RUNNING             ICON    DISCARDABLE     "running.ico"
 IDI_JOB_ERROR           ICON    DISCARDABLE     "error.ico"
+IDI_JOB_WARNING         ICON    DISCARDABLE     "warn.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //

@@ -134,7 +134,7 @@ bnet_thread_server(char *bind_addr, int port, int max_clients, workq_t *client_w
    for (;!quit;) {
       fd_set sockset;
       FD_ZERO(&sockset);
-      FD_SET(sockfd, &sockset);
+      FD_SET((unsigned)sockfd, &sockset);
       errno = 0;
       if ((stat = select(sockfd+1, &sockset, NULL, NULL, NULL)) < 0) {
 	 if (errno == EINTR || errno == EAGAIN) {
@@ -281,7 +281,7 @@ bnet_accept(BSOCK *bsock, char *who)
     * Wait for a connection from the client process.
     */
    FD_ZERO(&sockset);
-   FD_SET(bsock->fd, &sockset);
+   FD_SET((unsigned)bsock->fd, &sockset);
 
    for (;;) {
       /* 
