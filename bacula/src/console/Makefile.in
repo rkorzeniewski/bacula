@@ -59,7 +59,7 @@ Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 
 clean:
 	@$(RMF) console core core.* a.out *.o *.bak *~ *.intpro *.extpro 1 2 3
-	@$(RMF) static-console
+	@$(RMF) static-console gmon.out
 
 realclean: clean
 	@$(RMF) tags console.conf
