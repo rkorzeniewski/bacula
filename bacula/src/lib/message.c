@@ -571,7 +571,10 @@ void dispatch_message(JCR *jcr, int type, int level, char *msg)
 #endif
 #if !defined(HAVE_CONSOLE)
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
-       MessageBox(NULL, msg, "Bacula", MB_OK);
+       /* If we don't exit on error, error messages are parsed by UA */
+       if (exit_on_error) {
+          MessageBox(NULL, msg, "Bacula", MB_OK);
+       }
 #endif
 #endif
     }
