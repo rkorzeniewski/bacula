@@ -87,7 +87,7 @@ extern void create_unique_job_name(JCR *jcr, const char *base_name);
 extern void update_job_end_record(JCR *jcr);
 extern bool get_or_create_client_record(JCR *jcr);
 extern bool get_or_create_fileset_record(JCR *jcr, FILESET_DBR *fsr);
-extern void run_job(JCR *jcr);
+extern JobId_t run_job(JCR *jcr);
 extern int cancel_job(UAContext *ua, JCR *jcr);
 extern void init_jcr_job_record(JCR *jcr);
 

@@ -169,6 +169,7 @@ static bool accept_file(FF_PKT *ff)
 	    return true;	      /* accept file */
 	 }
       }
+#ifndef WIN32
       for (k=0; k<fo->regex.size(); k++) {
 	 const int nmatch = 30;
 	 regmatch_t pmatch[nmatch];
@@ -181,6 +182,7 @@ static bool accept_file(FF_PKT *ff)
 	    return true;	      /* accept file */
 	 }
       }
+#endif
    }
 
    for (i=0; i<fileset->exclude_list.size(); i++) {
