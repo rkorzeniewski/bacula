@@ -156,3 +156,14 @@ SELECT Path.Path,Filename.Name FROM File,
  AND Filename.FilenameId=File.FilenameId 
  AND Path.PathId=File.PathId ORDER BY
  Path.Path,Filename.Name;
+# 14
+:List Jobs stored in a selected MediaId:
+*Enter MediaId:
+SELECT Job.JobId,Job.Name,Job.StartTime,Job.Type,
+ Job.Level,Job.JobFiles,Job.JobBytes,Job.JobStatus
+  FROM JobMedia,Job
+  WHERE JobMedia.JobId = Job.JobId
+  AND JobMedia.MediaId = %1;
+SELECT MediaId,VolumeName,VolStatus,VolBytes,VolFiles,
+ VolRetention,Recycle,Slot,MediaType,LastWritten
+ FROM Media WHERE MediaId = %1;

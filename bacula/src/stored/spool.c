@@ -66,13 +66,17 @@ enum {
 void list_spool_stats(BSOCK *bs)
 {
    char ed1[30], ed2[30];
-   bnet_fsend(bs, "Data spooling: %d active jobs %s bytes; %d total jobs %s max bytes/job.\n",
-      spool_stats.data_jobs, edit_uint64_with_commas(spool_stats.data_size, ed1),
-      spool_stats.total_data_jobs, 
-      edit_uint64_with_commas(spool_stats.max_data_size, ed2));
-   bnet_fsend(bs, "Attr spooling: %d active jobs; %d total jobs %s max bytes/job.\n",
-      spool_stats.attr_jobs, spool_stats.total_attr_jobs, 
-      edit_uint64_with_commas(spool_stats.max_attr_size, ed1));
+   if (spool_stats.data_jobs || spool_stats.max_data_size) {
+      bnet_fsend(bs, "Data spooling: %d active jobs %s bytes; %d total jobs %s max bytes/job.\n",
+	 spool_stats.data_jobs, edit_uint64_with_commas(spool_stats.data_size, ed1),
+	 spool_stats.total_data_jobs, 
+	 edit_uint64_with_commas(spool_stats.max_data_size, ed2));
+   }
+   if (spool_stats.attr_jobs || spool_stats.max_attr_size) {
+      bnet_fsend(bs, "Attr spooling: %d active jobs; %d total jobs %s max bytes/job.\n",
+	 spool_stats.attr_jobs, spool_stats.total_attr_jobs, 
+	 edit_uint64_with_commas(spool_stats.max_attr_size, ed1));
+   }
 }
 
 bool begin_data_spool(JCR *jcr)
