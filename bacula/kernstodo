@@ -16,6 +16,8 @@ Version 1.35                Kern (see below)
   
 
 Maybe for 1.35:
+- Scratch Pool where the volumes can be re-assigned to any Pool.
+- Update StartTime if job held in Job Queue.
 - Despool attributes simultaneously with data in a separate
   thread, rejoined at end of data spooling.
 - Implement Files/Bytes,... stats for restore job.
@@ -475,7 +477,6 @@ Ideas from Jerry Scharf:
 - Implement dump/print label to UA
 - Spool to disk only when the tape is full, then when a tape is hung move
   it to tape.
-- Scratch Pool where the volumes can be re-assigned to any Pool.
 - bextract is sending everything to the log file ****FIXME****
 - Add Progress command that periodically reports the progress of
   a job or all jobs.
