@@ -479,8 +479,11 @@ gettimeofday(struct timeval *tv, struct timezone *)
 }
 
 int
-syslog(int, const char *, const char *)
+syslog(int type, const char *fmt, const char *msg)
 {
+#ifndef HAVE_CONSOLE
+    MessageBox(NULL, msg, "Bacula", MB_OK);
+#endif
     return 0;
 }
 
@@ -1166,7 +1169,7 @@ write(int fd, const void *buf, size_t len)
 off_t
 lseek(int fd, off_t offset, int whence)
 {
-    return _lseeki64(fd, offset, whence);
+    return (off_t)_lseeki64(fd, offset, whence);
 }
 
 int

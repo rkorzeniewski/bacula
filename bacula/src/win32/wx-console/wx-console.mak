@@ -92,7 +92,7 @@ CLEAN :
 	-@erase "$(INTDIR)\wxbtableparser.obj"
 	-@erase "$(INTDIR)\wxbtreectrl.obj"
 	-@erase "$(INTDIR)\wxbutils.obj"
-	-@erase "$(OUTDIR)\wx-console.exe"
+        -@erase "$(OUTDIR)\wx-console.exe"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
@@ -102,7 +102,7 @@ RSC_PROJ=/l 0x409 /fo"$(INTDIR)\winres.res" /d "NDEBUG"
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\wx-console.bsc" 
 BSC32_SBRS= \
-	
+        
 LINK32=link.exe
 LINK32_FLAGS=wxmsw.lib rpcrt4.lib oleaut32.lib ole32.lib uuid.lib winspool.lib winmm.lib \
   comctl32.lib comdlg32.lib Shell32.lib AdvAPI32.lib User32.lib Gdi32.lib wsock32.lib \
@@ -161,7 +161,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\wxbtableparser.obj" \
 	"$(INTDIR)\wxbtreectrl.obj" \
 	"$(INTDIR)\wxbutils.obj" \
-	"$(INTDIR)\wx-console_private.res"
+        "$(INTDIR)\wx-console_private.res"
 
 "$(OUTDIR)\wx-console.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -283,14 +283,14 @@ CLEAN :
 	-@erase "$(INTDIR)\wxbtreectrl.sbr"
 	-@erase "$(INTDIR)\wxbutils.obj
 	-@erase "$(INTDIR)\wxbutils.sbr"
-	-@erase "$(OUTDIR)\wx-console.exe"
-	-@erase "$(OUTDIR)\wx-console.bsc"
+        -@erase "$(OUTDIR)\wx-console.exe"
+        -@erase "$(OUTDIR)\wx-console.bsc"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 
-CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I "../compat" /I "../.." /I "../../../depkgs-win32/wx/include" /I "../../../../depkgs-win32/wx/include" /I "../../../../depkgs-win32/wx/lib/msw" /I "../../../../depkgs-win32/pthreads" /I "../../../../depkgs-win32/zlib" /I "." /D "_DEBUG" /D "WIN32" /D "__WXMSW__" /D "_CONSOLE" /D "_MBCS" /D "HAVE_WIN32" /D "HAVE_WXCONSOLE" /FR"$(INTDIR)\\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
+CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I "../compat" /I "../.." /I "../../../depkgs-win32/wx/include" /I "../../../../depkgs-win32/wx/include" /I "../../../../depkgs-win32/wx/lib/mswd" /I "../../../../depkgs-win32/pthreads" /I "../../../../depkgs-win32/zlib" /I "." /D "_DEBUG" /D "WIN32" /D "__WXMSW__" /D "_CONSOLE" /D "_MBCS" /D "HAVE_WIN32" /D "HAVE_WXCONSOLE" /FR"$(INTDIR)\\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
 RSC_PROJ=/l 0x409 /fo"$(INTDIR)\winres.res" /d "_DEBUG"
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\wx-console.bsc" 
@@ -411,7 +411,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\wxbtableparser.obj" \
 	"$(INTDIR)\wxbtreectrl.obj" \
 	"$(INTDIR)\wxbutils.obj" \
-	"$(INTDIR)\wx-console_private.res"
+        "$(INTDIR)\wx-console_private.res"
 
 "$(OUTDIR)\wx-console.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -462,7 +462,7 @@ LINK32_OBJS= \
 SOURCE=..\..\wx-console\wx-console_private.rc
 
 "$(INTDIR)\wx-console_private.res" : $(SOURCE) "$(INTDIR)"
-	$(RSC) /l 0x409 /fo"$(INTDIR)\wx-console_private.res" /d "NDEBUG" $(SOURCE)
+        $(RSC) /l 0x409 /fo"$(INTDIR)\wx-console_private.res" /d "NDEBUG" $(SOURCE)
 
 FILENAME=alist
 SOURCE=..\lib\alist.cpp
@@ -1450,7 +1450,6 @@ SOURCE=..\..\wx-console\wxbutils.cpp
 
 
 !ENDIF 
-
 
 
 

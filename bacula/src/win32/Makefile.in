@@ -65,6 +65,8 @@ Makefile: $(srcdir)/Makefile.in $(topdir)/config.status winbacula.nsi.in
 
 clean:
 	(cd baculafd; make clean)
+	(cd console; make clean)
+	(cd wx-console; make clean)
 
 distclean: clean
 	rm -rf baculafd/Release baculafd/Debug

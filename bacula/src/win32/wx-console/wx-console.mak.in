@@ -40,8 +40,8 @@ ALL : "$(OUTDIR)\wx-console.exe"
 
 
 CLEAN :
-	@@REL-CLEAN@@
-	-@erase "$(OUTDIR)\wx-console.exe"
+        @@REL-CLEAN@@
+        -@erase "$(OUTDIR)\wx-console.exe"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
@@ -51,15 +51,15 @@ RSC_PROJ=/l 0x409 /fo"$(INTDIR)\winres.res" /d "NDEBUG"
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\wx-console.bsc" 
 BSC32_SBRS= \
-	
+        
 LINK32=link.exe
 LINK32_FLAGS=wxmsw.lib rpcrt4.lib oleaut32.lib ole32.lib uuid.lib winspool.lib winmm.lib \
   comctl32.lib comdlg32.lib Shell32.lib AdvAPI32.lib User32.lib Gdi32.lib wsock32.lib \
   wldap32.lib pthreadVCE.lib zlib.lib /nodefaultlib:libcmt.lib \
   /nologo /subsystem:windows /machine:I386 /out:"$(OUTDIR)\wx-console.exe" /libpath:"../../../../depkgs-win32/wx/lib" /libpath:"../../../../depkgs-win32/pthreads" /libpath:"../../../../depkgs-win32/zlib" 
 LINK32_OBJS= \
-	@@REL-OBJS@@
-	"$(INTDIR)\wx-console_private.res"
+        @@REL-OBJS@@
+        "$(INTDIR)\wx-console_private.res"
 
 "$(OUTDIR)\wx-console.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -77,20 +77,20 @@ OutDir=.\Debug
 ALL : "$(OUTDIR)\wx-console.exe" "$(OUTDIR)\wx-console.bsc"
 
 CLEAN :
-	@@DEB-CLEAN@@
-	-@erase "$(OUTDIR)\wx-console.exe"
-	-@erase "$(OUTDIR)\wx-console.bsc"
+        @@DEB-CLEAN@@
+        -@erase "$(OUTDIR)\wx-console.exe"
+        -@erase "$(OUTDIR)\wx-console.bsc"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 
-CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I "../compat" /I "../.." /I "../../../depkgs-win32/wx/include" /I "../../../../depkgs-win32/wx/include" /I "../../../../depkgs-win32/wx/lib/msw" /I "../../../../depkgs-win32/pthreads" /I "../../../../depkgs-win32/zlib" /I "." /D "_DEBUG" /D "WIN32" /D "__WXMSW__" /D "_CONSOLE" /D "_MBCS" /D "HAVE_WIN32" /D "HAVE_WXCONSOLE" /FR"$(INTDIR)\\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
+CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I "../compat" /I "../.." /I "../../../depkgs-win32/wx/include" /I "../../../../depkgs-win32/wx/include" /I "../../../../depkgs-win32/wx/lib/mswd" /I "../../../../depkgs-win32/pthreads" /I "../../../../depkgs-win32/zlib" /I "." /D "_DEBUG" /D "WIN32" /D "__WXMSW__" /D "_CONSOLE" /D "_MBCS" /D "HAVE_WIN32" /D "HAVE_WXCONSOLE" /FR"$(INTDIR)\\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
 RSC_PROJ=/l 0x409 /fo"$(INTDIR)\winres.res" /d "_DEBUG"
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\wx-console.bsc" 
 BSC32_SBRS= \
-	@@DEB-SBRS@@
+        @@DEB-SBRS@@
 
 "$(OUTDIR)\wx-console.bsc" : "$(OUTDIR)" $(BSC32_SBRS)
     $(BSC32) @<<
@@ -103,8 +103,8 @@ LINK32_FLAGS=wxmswd.lib rpcrt4.lib oleaut32.lib ole32.lib uuid.lib winspool.lib 
   wldap32.lib pthreadVCE.lib zlib.lib /nodefaultlib:libcmtd.lib \
   /nologo /subsystem:windows /pdb:none /debug /machine:I386 /out:"$(OUTDIR)\wx-console.exe" /libpath:"../../../../depkgs-win32/wx/lib" /libpath:"../../../../depkgs-win32/pthreads" /libpath:"../../../../depkgs-win32/zlib" 
 LINK32_OBJS= \
-	@@DEB-OBJS@@
-	"$(INTDIR)\wx-console_private.res"
+        @@DEB-OBJS@@
+        "$(INTDIR)\wx-console_private.res"
 
 "$(OUTDIR)\wx-console.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -155,8 +155,7 @@ LINK32_OBJS= \
 SOURCE=..\..\wx-console\wx-console_private.rc
 
 "$(INTDIR)\wx-console_private.res" : $(SOURCE) "$(INTDIR)"
-	$(RSC) /l 0x409 /fo"$(INTDIR)\wx-console_private.res" /d "NDEBUG" $(SOURCE)
+        $(RSC) /l 0x409 /fo"$(INTDIR)\wx-console_private.res" /d "NDEBUG" $(SOURCE)
 
 @@OBJTARGETS@@
-
 
