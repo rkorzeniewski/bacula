@@ -58,7 +58,7 @@
  */
 int create_file(void *jcr, char *fname, char *ofile, char *lname,
 		int type, int stream, struct stat *statp, 
-		char *attribsEx, int *ofd)
+		char *attribsEx, int *ofd, int replace)
 {
    int new_mode, parent_mode, mode;
    uid_t uid;
@@ -68,9 +68,6 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
    char *f, *p, savechr;
 
    *ofd = -1;
-/*
- * new_mode = S_IRWXUGO & ~umask(0);
- */
    new_mode = statp->st_mode;
    Dmsg2(300, "newmode=%x file=%s\n", new_mode, ofile);
    parent_mode = S_IWUSR | S_IXUSR | new_mode;
@@ -81,12 +78,35 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
    case FT_LNKSAVED:		      /* Hard linked, file already saved */
       Dmsg2(130, "Hard link %s => %s\n", ofile, lname);
       if (link(lname, ofile) != 0) {
-         Jmsg3(jcr, M_ERROR, 0, "Could not hard link %s ==> %s: ERR=%s\n", 
+         Jmsg3(jcr, M_ERROR, 0, _("Could not hard link %s ==> %s: ERR=%s\n"), 
 	       ofile, lname, strerror(errno));
       }
       break;
    case FT_REGE:		      /* empty file */
    case FT_REG: 		      /* regular file */
+      /* If not always replacing, do a stat and decide */
+      if (replace != REPLACE_ALWAYS) {
+	 struct stat mstatp;
+	 if (lstat(ofile, &mstatp) == 0) {
+	    switch (replace) {
+	    case REPLACE_IFNEWER:
+	       if (statp->st_mtime < mstatp.st_mtime) {
+                  Jmsg1(jcr, M_INFO, 0, _("File %s skipped. Not newer.\n"), ofile);
+		  return 0;
+	       }
+	       break;
+	    case REPLACE_IFOLDER:
+	       if (statp->st_mtime > mstatp.st_mtime) {
+                  Jmsg1(jcr, M_INFO, 0, _("File %s skipped. Not older.\n"), ofile);
+		  return 0;
+	       }
+	       break;
+	    case REPLACE_NEVER:
+               Jmsg1(jcr, M_INFO, 0, _("File %s skipped. Already exists.\n"), ofile);
+	       return 0;
+	    }
+	 }
+      }
       /* Separate pathname and filename */
       for (p=f=ofile; *p; p++) {
          if (*p == '/') {
@@ -99,13 +119,13 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
 
       fnl = p - f;
       if (fnl == 0) {
-         Jmsg1(jcr, M_ERROR, 0, "Zero length filename: %s\n", fname);
+         Jmsg1(jcr, M_ERROR, 0, _("Zero length filename: %s\n"), fname);
 	 return 0;
       }
 
       pnl = f - ofile - 1;    
       if (pnl <= 0) {
-         Jmsg1(jcr, M_ERROR, 0, "Zero length path: %s\n", fname);
+         Jmsg1(jcr, M_ERROR, 0, _("Zero length path: %s\n"), fname);
 	 return 0;
       }
       savechr = ofile[pnl];
@@ -131,34 +151,34 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
       }
       Dmsg1(50, "Create file: %s\n", ofile);
       if ((*ofd = open(ofile, mode, S_IRUSR | S_IWUSR)) < 0) {
-         Jmsg2(jcr, M_ERROR, 0, "Could not create %s: ERR=%s\n", ofile, strerror(errno));
+         Jmsg2(jcr, M_ERROR, 0, _("Could not create %s: ERR=%s\n"), ofile, strerror(errno));
 	 return 0;
       }
       return 1;
    case FT_LNK:
       Dmsg2(130, "FT_LNK should restore: %s -> %s\n", ofile, lname);
       if (symlink(lname, ofile) != 0 && errno != EEXIST) {
-         Jmsg3(jcr, M_ERROR, 0, "Could not symlink %s -> %s: ERR=%s\n", 
+         Jmsg3(jcr, M_ERROR, 0, _("Could not symlink %s -> %s: ERR=%s\n"), 
 	    ofile, lname, strerror(errno));
       }
       return 0;
    case FT_DIR:
       Dmsg2(300, "Make dir mode=%o dir=%s\n", new_mode, ofile);
       if (make_path(jcr, ofile, new_mode, parent_mode, uid, gid, 0, NULL) != 0) {
-         Jmsg1(jcr, M_ERROR, 0, "Could not make directory: %s\n", ofile);
+         Jmsg1(jcr, M_ERROR, 0, _("Could not make directory: %s\n"), ofile);
       }
       return 0;
    case FT_SPEC:
       if (S_ISFIFO(statp->st_mode)) {
          Dmsg1(0, "Restore fifo: %s\n", ofile);
 	 if (mkfifo(ofile, statp->st_mode) != 0) {
-            Jmsg2(jcr, M_ERROR, 0, "Cannot make fifo %s: ERR=%s\n", ofile, strerror(errno));
+            Jmsg2(jcr, M_ERROR, 0, _("Cannot make fifo %s: ERR=%s\n"), ofile, strerror(errno));
 	    return 0;
 	 }
       } else {		
          Dmsg1(0, "Restore node: %s\n", ofile);
 	 if (mknod(ofile, statp->st_mode, statp->st_rdev) != 0) {
-            Jmsg2(jcr, M_ERROR, 0, "Cannot make node %s: ERR=%s\n", ofile, strerror(errno));
+            Jmsg2(jcr, M_ERROR, 0, _("Cannot make node %s: ERR=%s\n"), ofile, strerror(errno));
 	    return 0;
 	 }
       }       
@@ -175,10 +195,10 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
    case FT_NORECURSE:
    case FT_NOFSCHG:
    case FT_NOOPEN:
-      Jmsg2(jcr, M_ERROR, 0, "Original file %s not saved. Stat=%d\n", fname, type);
+      Jmsg2(jcr, M_ERROR, 0, _("Original file %s not saved. Stat=%d\n"), fname, type);
       return 0;
    default:
-      Jmsg2(jcr, M_ERROR, 0, "Unknown file type %d; not restored: %s\n", type, fname);
+      Jmsg2(jcr, M_ERROR, 0, _("Unknown file type %d; not restored: %s\n"), type, fname);
       return 0;
    }
 

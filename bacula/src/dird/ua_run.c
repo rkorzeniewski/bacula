@@ -281,7 +281,7 @@ int runcmd(UAContext *ua, char *cmd)
    } else if (job->replace) {
       jcr->replace = job->replace;
    } else {
-      jcr->replace = 'a';
+      jcr->replace = REPLACE_ALWAYS;
    }
    replace = ReplaceOptions[0].name;
    for (i=0; ReplaceOptions[i].name; i++) {

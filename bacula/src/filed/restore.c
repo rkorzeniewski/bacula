@@ -248,7 +248,7 @@ void do_restore(JCR *jcr)
 	 print_ls_output(jcr, ofile, lname, type, &statp);
 
 	 extract = create_file(jcr, fname, ofile, lname, type, 
-			       stream, &statp, attribsEx, &ofd);
+			       stream, &statp, attribsEx, &ofd, jcr->replace);
          Dmsg1(40, "Extract=%d\n", extract);
 	 if (extract) {
 	    jcr->JobFiles++;

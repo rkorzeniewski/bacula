@@ -233,7 +233,7 @@ int do_restore(JCR *jcr)
    if (jcr->job->replace != 0) {
       replace = jcr->job->replace;
    } else {
-      replace = 'a';                  /* always replace */
+      replace = REPLACE_ALWAYS;       /* always replace */
    }
    if (jcr->RestoreWhere) {
       where = jcr->RestoreWhere;      /* override */

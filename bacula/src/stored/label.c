@@ -662,6 +662,8 @@ int unser_session_label(SESSION_LABEL *label, DEV_RECORD *rec)
    }
    if (label->VerNum >= 11) {
       unser_string(label->FileSetMD5);
+   } else {
+      label->FileSetMD5[0] = 0;
    }
    if (rec->FileIndex == EOS_LABEL) {
       unser_uint32(label->JobFiles);

@@ -362,7 +362,7 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
          /*          Pmsg1(000, "Restoring: %s\n", ofile); */
 
 	 extract = create_file(jcr, fname, ofile, lname, type, stream,
-			       &statp, attribsEx, &ofd);
+			       &statp, attribsEx, &ofd, REPLACE_ALWAYS);
 	 num_files++;
 
 	 if (extract) {

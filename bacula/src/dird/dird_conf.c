@@ -174,7 +174,7 @@ static struct res_items job_items[] = {
    {"client",   store_res,     ITEM(res_job.client),   R_CLIENT, 0, 0},
    {"fileset",  store_res,     ITEM(res_job.fileset),  R_FILESET, 0, 0},
    {"where",    store_dir,     ITEM(res_job.RestoreWhere), 0, 0, 0},
-   {"replace",  store_replace, ITEM(res_job.replace), 'a', ITEM_DEFAULT, 0},
+   {"replace",  store_replace, ITEM(res_job.replace), REPLACE_ALWAYS, ITEM_DEFAULT, 0},
    {"bootstrap",store_dir,     ITEM(res_job.RestoreBootstrap), 0, 0, 0},
    {"maxruntime", store_time,  ITEM(res_job.MaxRunTime), 0, 0, 0},
    {"maxstartdelay", store_time,ITEM(res_job.MaxStartDelay), 0, 0, 0},
@@ -333,9 +333,10 @@ static struct s_kw RestoreFields[] = {
 
 /* Options permitted in Restore replace= */
 struct s_kw ReplaceOptions[] = {
-   {"always",         'a'},           /* always */
-   {"ifnewer",        'w'},
-   {"never",          'n'},
+   {"always",         REPLACE_ALWAYS},
+   {"ifnewer",        REPLACE_IFNEWER},
+   {"ifolder",        REPLACE_IFOLDER},
+   {"never",          REPLACE_NEVER},
    {NULL,		0}
 };
 
@@ -1216,10 +1217,9 @@ static void store_restore(LEX *lc, struct res_items *item, int index, int pass)
  * Scan for Include options (keyword=option) is converted into one or
  *  two characters. Verifyopts=xxxx is Vxxxx:
  */
-static char *scan_include_options(LEX *lc, int keyword)
+static void scan_include_options(LEX *lc, int keyword, char *opts, int optlen)
 {
    int token, i;
-   static char opts[100];
    char option[3];
 
    option[0] = 0;		      /* default option = none */
@@ -1228,12 +1228,13 @@ static char *scan_include_options(LEX *lc, int keyword)
       token = lex_get_token(lc, T_NAME);	     /* expect at least one option */	    
       if (keyword == INC_KW_VERIFY) { /* special case */
 	 /* ***FIXME**** ensure these are in permitted set */
-         strcpy(option, "V");         /* indicate Verify */
-	 strcat(option, lc->str);
-         strcat(option, ":");         /* terminate it */
+         bstrncat(opts, "V", optlen);         /* indicate Verify */
+	 bstrncat(opts, lc->str, optlen);
+         bstrncat(opts, ":", optlen);         /* terminate it */
       } else {
 	 for (i=0; FS_options[i].name; i++) {
 	    if (strcasecmp(lc->str, FS_options[i].name) == 0 && FS_options[i].keyword == keyword) {
+	       /* NOTE! maximum 2 letters here or increase option[3] */
 	       option[0] = FS_options[i].option[0];
 	       option[1] = FS_options[i].option[1];
 	       i = 0;
@@ -1243,8 +1244,8 @@ static char *scan_include_options(LEX *lc, int keyword)
 	 if (i != 0) {
             scan_err1(lc, "Expected a FileSet option keyword, got: %s", lc->str);
 	 }
+	 bstrncat(opts, option, optlen);
       }
-      strcat(opts, option);
 
       /* check if more options are specified */
       if (lc->ch != ',') {
@@ -1252,8 +1253,6 @@ static char *scan_include_options(LEX *lc, int keyword)
       }
       token = lex_get_token(lc, T_ALL);      /* yes, eat comma */
    }
-
-   return opts;
 }
 
 
@@ -1286,7 +1285,7 @@ static void store_inc(LEX *lc, struct res_items *item, int index, int pass)
       if ((token=lex_get_token(lc, T_ALL)) != T_EQUALS) {
          scan_err1(lc, "expected an = following keyword, got: %s", lc->str);
       }
-      strcat(inc_opts, scan_include_options(lc, keyword));
+      scan_include_options(lc, keyword, inc_opts, sizeof(inc_opts));
       if (token == T_BOB) {
 	 break;
       }

@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                 30 October 2002
+                 1 November 2002
 
 To do:    
 - Document that two Verifys at same time on same client do not work.
@@ -9,6 +9,7 @@ To do:
 - Document buffer size considerations with Sparse files --
 - Document saving MySQL databases, where to find code for shutting 
   down and saving other databases.
+- Test restore options. Test bscan and MD5 in FileSet.
 
 For 1.27 release:
 - Continue improving the restore process (handling
@@ -16,10 +17,10 @@ For 1.27 release:
   position the tape, ...)
 - Work more on how to to a Bacula restore beginning with
   just a Bacula tape and a boot floppy (bare metal recovery).
+- Try bare metal Windows restore
 
-- Finish implementation of restore "replace" options, and document.
-- Write bcopy program.
-- Recovery of a bad tape (bcopy)
+- Write bcopy program -- recovery of bad tape.
+- Fix read_record to handle multiple sessions.
 
 - Program files (i.e. execute a program to read/write files).
   Pass read date of last backup, size of file last time.
@@ -34,11 +35,8 @@ For 1.27 release:
 - Add code to reject whole blocks if not wanted on restore.
 - Possibly add email to Watchdog if drive is unmounted too
   long and a job is waiting on the drive.
-- What to do with btime and JobTDate?
-- Add FileSet MD5 to bscan.
 - Strip trailing slashes from Include directory names in the FD.
 - Use read_record.c in SD code.
-- Try bare metal Windows restore
 - Add EOM records ???????
 - Why don't we get an error message from Win32 FD when bootstrap 
   file cannot be created for restore command?
@@ -555,4 +553,5 @@ Done: (see kernsdone for more)
   create_volume_list) -- also in restore command?
 - File system type from File daemon
 - Move block size code from block.c to init_dev().
-
+- Add FileSet MD5 to bscan.
+- Finish implementation of restore "replace" options, and document.

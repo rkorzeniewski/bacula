@@ -34,7 +34,7 @@ int set_attributes(void *jcr, char *fname, char *ofile, char *lname,
 /* from create_file.c */
 int create_file(void *jcr, char *fname, char *ofile, char *lname,
                 int type, int stream, struct stat *statp, 
-                char *attribsEx, int *ofd);
+                char *attribsEx, int *ofd, int replace);
 
 /* From find.c */
 FF_PKT *init_find_files();

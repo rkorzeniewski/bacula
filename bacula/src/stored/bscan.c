@@ -398,6 +398,7 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 
 	    /* Create FileSet record */
 	    strcpy(fsr.FileSet, label.FileSetName);
+	    strcpy(fsr.MD5, label.FileSetMD5);
 	    create_fileset_record(db, &fsr);
 	    jr.FileSetId = fsr.FileSetId;
 
@@ -763,8 +764,10 @@ static int create_fileset_record(B_DB *db, FILESET_DBR *fsr)
       return 1;
    }
    fsr->FileSetId = 0;
-   fsr->MD5[0] = ' ';                 /* ***FIXME*** */
-   fsr->MD5[1] = 0;
+   if (fsr->MD5[0] == 0) {
+      fsr->MD5[0] = ' ';              /* Equivalent to nothing */
+      fsr->MD5[1] = 0;
+   }
    if (db_get_fileset_record(db, fsr)) {
       if (verbose) {
          Pmsg1(000, _("Fileset \"%s\" already exists.\n"), fsr->FileSet);
