@@ -30,6 +30,8 @@ Suggestions for Preben:
 - Optimized bootstrap.
 
 For 1.37:
+- Implement "update device" from SD so that DIR will
+  always have current version of device.
 - Add disk seeking on restore.  
 - Add Python writable variable for changing the Priority,
     Client, Storage, JobStatus (error), ...
@@ -1218,4 +1220,3 @@ Block Position: 0
 - Try to open a device on each Job if it was not opened
   when the SD started.
 - Add dump of VolSessionId/Time and FileIndex with bls.
-

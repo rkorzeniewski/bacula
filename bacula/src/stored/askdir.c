@@ -307,6 +307,10 @@ bool dir_update_file_attributes(DCR *dcr, DEV_RECORD *rec)
    BSOCK *dir = jcr->dir_bsock;
    ser_declare;
 
+#ifdef NO_ATTRIBUTES_TEST
+   return true;
+#endif
+
    dir->msglen = sprintf(dir->msg, FileAttributes, jcr->Job);
    dir->msg = check_pool_memory_size(dir->msg, dir->msglen +
 		sizeof(DEV_RECORD) + rec->data_len);

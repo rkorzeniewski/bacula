@@ -30,11 +30,11 @@
 #include "bacula.h"
 #include "filed.h"
 
+/* Forward referenced functions */
 static int save_file(FF_PKT *ff_pkt, void *pkt);
 static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, struct CHKSUM *chksum);
-#ifdef HAVE_ACL
-static int read_and_send_acl(JCR *jcr, int acltype, int stream);
-#endif
+static bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream);
+static bool read_and_send_acl(JCR *jcr, int acltype, int stream);
 
 /*
  * Find all the requested files and send them
@@ -129,9 +129,7 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
  */
 static int save_file(FF_PKT *ff_pkt, void *vjcr)
 {
-   char attribs[MAXSTRING];
-   char attribsEx[MAXSTRING];
-   int stat, attr_stream, data_stream;
+   int stat, data_stream;
    struct CHKSUM chksum;
    BSOCK *sd;
    JCR *jcr = (JCR *)vjcr;
@@ -227,65 +225,9 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 
    Dmsg1(130, "bfiled: sending %s to stored\n", ff_pkt->fname);
 
-   /* Find what data stream we will use, then encode the attributes */
-   data_stream = select_data_stream(ff_pkt);
-   encode_stat(attribs, ff_pkt, data_stream);
-
-   /* Now possibly extend the attributes */
-   attr_stream = encode_attribsEx(jcr, attribsEx, ff_pkt);
-
-   Dmsg3(300, "File %s\nattribs=%s\nattribsEx=%s\n", ff_pkt->fname, attribs, attribsEx);
-
-   P(jcr->mutex);
-   jcr->JobFiles++;		       /* increment number of files sent */
-   ff_pkt->FileIndex = jcr->JobFiles;  /* return FileIndex */
-   pm_strcpy(jcr->last_fname, ff_pkt->fname);
-   V(jcr->mutex);
-
-   /*
-    * Send Attributes header to Storage daemon
-    *	 <file-index> <stream> <info>
-    */
-   if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, attr_stream)) {
-      Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-	    bnet_strerror(sd));
+   if (!encode_and_send_attributes(jcr, ff_pkt, data_stream)) {
       return 0;
    }
-   Dmsg1(300, ">stored: attrhdr %s\n", sd->msg);
-
-   /*
-    * Send file attributes to Storage daemon
-    *	File_index
-    *	File type
-    *	Filename (full path)
-    *	Encoded attributes
-    *	Link name (if type==FT_LNK or FT_LNKSAVED)
-    *	Encoded extended-attributes (for Win32)
-    *
-    * For a directory, link is the same as fname, but with trailing
-    * slash. For a linked file, link is the link.
-    */
-   if (ff_pkt->type == FT_LNK || ff_pkt->type == FT_LNKSAVED) {
-      Dmsg2(300, "Link %s to %s\n", ff_pkt->fname, ff_pkt->link);
-      stat = bnet_fsend(sd, "%ld %d %s%c%s%c%s%c%s%c", jcr->JobFiles,
-	       ff_pkt->type, ff_pkt->fname, 0, attribs, 0, ff_pkt->link, 0,
-	       attribsEx, 0);
-   } else if (ff_pkt->type == FT_DIREND) {
-      /* Here link is the canonical filename (i.e. with trailing slash) */
-      stat = bnet_fsend(sd, "%ld %d %s%c%s%c%c%s%c", jcr->JobFiles,
-	       ff_pkt->type, ff_pkt->link, 0, attribs, 0, 0, attribsEx, 0);
-   } else {
-      stat = bnet_fsend(sd, "%ld %d %s%c%s%c%c%s%c", jcr->JobFiles,
-	       ff_pkt->type, ff_pkt->fname, 0, attribs, 0, 0, attribsEx, 0);
-   }
-
-   Dmsg2(300, ">stored: attr len=%d: %s\n", sd->msglen, sd->msg);
-   if (!stat) {
-      Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-	    bnet_strerror(sd));
-      return 0;
-   }
-   bnet_sig(sd, BNET_EOD);	      /* indicate end of attributes data */
 
    /*
     * Setup for signature handling.
@@ -378,7 +320,6 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
    }
 #endif
 
-#ifdef HAVE_ACL
    if (ff_pkt->flags & FO_ACL) {
       /* Read access ACLs for files, dirs and links */
       if (!read_and_send_acl(jcr, BACL_TYPE_ACCESS, STREAM_UNIX_ATTRIBUTES_ACCESS_ACL)) {
@@ -391,7 +332,6 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	 }
       }
    }
-#endif
 
    /* Terminate any signature and send it to Storage daemon and the Director */
    if (chksum.updated) {
@@ -571,12 +511,12 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, struct CHKSUM *chksum)
    return 1;
 }
 
-#ifdef HAVE_ACL
 /*
  * Read and send an ACL for the last encountered file.
  */
-static int read_and_send_acl(JCR *jcr, int acltype, int stream)
+static bool read_and_send_acl(JCR *jcr, int acltype, int stream)
 {
+#ifdef HAVE_ACL
    BSOCK *sd = jcr->store_bsock;
    POOLMEM *msgsave;
    int len;
@@ -584,17 +524,17 @@ static int read_and_send_acl(JCR *jcr, int acltype, int stream)
    len = bacl_get(jcr, acltype);
    if (len < 0) {
       Jmsg1(jcr, M_WARNING, 0, "Error reading ACL of %s\n", jcr->last_fname);
-      return 1;
+      return true; 
    }
    if (len == 0) {
-      return 1; 		      /* no ACL */
+      return true;		      /* no ACL */
    }
 
    /* Send header */
    if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, stream)) {
       Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
 	    bnet_strerror(sd));
-      return 0;
+      return false;
    }
 
    /* Send the buffer to the storage deamon */
@@ -607,7 +547,7 @@ static int read_and_send_acl(JCR *jcr, int acltype, int stream)
       sd->msglen = 0;
       Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
 	    bnet_strerror(sd));
-      return 0;
+      return false;
    }
 
    jcr->JobBytes += sd->msglen;
@@ -615,10 +555,83 @@ static int read_and_send_acl(JCR *jcr, int acltype, int stream)
    if (!bnet_sig(sd, BNET_EOD)) {
       Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
 	    bnet_strerror(sd));
-      return 0;
+      return false;
    }
 
    Dmsg1(200, "ACL of file: %s successfully backed up!\n", jcr->last_fname);
-   return 1;
-}
 #endif
+   return true;
+}
+
+static bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream) 
+{
+   BSOCK *sd = jcr->store_bsock;
+   char attribs[MAXSTRING];
+   char attribsEx[MAXSTRING];
+   int attr_stream;
+   int stat;
+#ifdef FD_NO_SEND_TEST
+   return true;
+#endif
+
+   /* Find what data stream we will use, then encode the attributes */
+   data_stream = select_data_stream(ff_pkt);
+   encode_stat(attribs, ff_pkt, data_stream);
+
+   /* Now possibly extend the attributes */
+   attr_stream = encode_attribsEx(jcr, attribsEx, ff_pkt);
+
+   Dmsg3(300, "File %s\nattribs=%s\nattribsEx=%s\n", ff_pkt->fname, attribs, attribsEx);
+
+   P(jcr->mutex);
+   jcr->JobFiles++;		       /* increment number of files sent */
+   ff_pkt->FileIndex = jcr->JobFiles;  /* return FileIndex */
+   pm_strcpy(jcr->last_fname, ff_pkt->fname);
+   V(jcr->mutex);
+
+   /*
+    * Send Attributes header to Storage daemon
+    *	 <file-index> <stream> <info>
+    */
+   if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, attr_stream)) {
+      Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+	    bnet_strerror(sd));
+      return false;
+   }
+   Dmsg1(300, ">stored: attrhdr %s\n", sd->msg);
+
+   /*
+    * Send file attributes to Storage daemon
+    *	File_index
+    *	File type
+    *	Filename (full path)
+    *	Encoded attributes
+    *	Link name (if type==FT_LNK or FT_LNKSAVED)
+    *	Encoded extended-attributes (for Win32)
+    *
+    * For a directory, link is the same as fname, but with trailing
+    * slash. For a linked file, link is the link.
+    */
+   if (ff_pkt->type == FT_LNK || ff_pkt->type == FT_LNKSAVED) {
+      Dmsg2(300, "Link %s to %s\n", ff_pkt->fname, ff_pkt->link);
+      stat = bnet_fsend(sd, "%ld %d %s%c%s%c%s%c%s%c", jcr->JobFiles,
+	       ff_pkt->type, ff_pkt->fname, 0, attribs, 0, ff_pkt->link, 0,
+	       attribsEx, 0);
+   } else if (ff_pkt->type == FT_DIREND) {
+      /* Here link is the canonical filename (i.e. with trailing slash) */
+      stat = bnet_fsend(sd, "%ld %d %s%c%s%c%c%s%c", jcr->JobFiles,
+	       ff_pkt->type, ff_pkt->link, 0, attribs, 0, 0, attribsEx, 0);
+   } else {
+      stat = bnet_fsend(sd, "%ld %d %s%c%s%c%c%s%c", jcr->JobFiles,
+	       ff_pkt->type, ff_pkt->fname, 0, attribs, 0, 0, attribsEx, 0);
+   }
+
+   Dmsg2(300, ">stored: attr len=%d: %s\n", sd->msglen, sd->msg);
+   if (!stat) {
+      Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+	    bnet_strerror(sd));
+      return false;
+   }
+   bnet_sig(sd, BNET_EOD);	      /* indicate end of attributes data */
+   return true;
+}

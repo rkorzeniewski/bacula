@@ -21,6 +21,7 @@
 /* #define TRACE_JCR_CHAIN 1 */
 /* #define TRACE_RES 1 */
 /* #define DEBUG_MEMSET 1 */
+/* #define DEBUG_MUTEX 1 */
 
 /* Check if header of tape block is zero before writing */
 #define DEBUG_BLOCK_ZEROING 1
@@ -33,7 +34,7 @@
 /*  #define SEND_DMSG_TO_FILE 1 */
 
 
+/* The following are turned on for performance testing */
 /* #define NO_ATTRIBUTES_TEST 1 */
 /* #define NO_TAPE_WRITE_TEST 1 */
 /* #define FD_NO_SEND TEST 1 */
-/* #define DEBUG_MUTEX 1 */

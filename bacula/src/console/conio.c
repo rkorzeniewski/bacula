@@ -59,6 +59,8 @@ extern "C" int tgetent(void *, const char *);
 extern "C" int tgetnum(const char *);
 extern "C" char *tgetstr (const char*, char**);
 extern "C" char *tgoto (const char *, int, int);
+#elif HAVE_HPUX_OS
+#include <term.h>
 #else
 #include <termcap.h>
 #endif
@@ -66,8 +68,13 @@ extern "C" char *tgoto (const char *, int, int);
 
 
 /* From termios library */
+#ifdef HAVE_HPUX_OS
+static char *BC;
+static char *UP;
+#else
 extern char *BC;
 extern char *UP;
+#endif
 
 /* Forward referenced functions */
 extern "C" {
@@ -362,7 +369,7 @@ static void dump_stab()
 	  for (j=0; j<tstab->len; j++) {
 	     c = tstab->str[j];
 	     if (c < 0x20 || c > 0x7F) {
-		sprintf(buf, " 0x%x ", c);
+                sprintf(buf, " 0x%x ", c);
 		t_send(buf);
 	     } else {
 		buf[0] = c;
@@ -370,7 +377,7 @@ static void dump_stab()
 		t_sendl(buf, 1);
 	     }
 	  }
-	  sprintf(buf, " func=%d len=%d\n\r", tstab->func, tstab->len);
+          sprintf(buf, " func=%d len=%d\n\r", tstab->func, tstab->len);
 	  t_send(buf);
        }
     }
@@ -460,7 +467,7 @@ input_line(char *string, int length)
        }
        switch (c=input_char()) {
        case F_RETURN:		     /* CR */
-	   t_sendl("\r\n", 2);       /* yes, print it and */
+           t_sendl("\r\n", 2);       /* yes, print it and */
 	   goto done;		     /* get out */
        case F_CLRSCRN:		     /* clear screen */
 	  asclrs();
@@ -496,7 +503,7 @@ input_line(char *string, int length)
 	   backup(curline);
 	   delchr(1, curline, sizeof(curline));
 	   if (cp == 0) {
-	      t_char(' ');
+              t_char(' ');
 	      t_char(0x8);
 	   }
 	   break;
@@ -534,7 +541,7 @@ input_line(char *string, int length)
 	   t_clrline(0, t_width);     /* erase line */
 	   cp = 0;
 	   cl = 0;		     /* reset cursor counter */
-	   t_char(' ');
+           t_char(' ');
 	   t_char(0x8);
 	   break;
        case F_SOL:
@@ -873,7 +880,7 @@ dump(struct lstr *ptr, char *msg)
     printf("%s buf=%x nextl=%x prevl=%x len=%d used=%d\n",
 	msg,ptr,ptr->nextl,ptr->prevl,ptr->len,ptr->used);
     if (ptr->used)
-	printf("line=%s\n",&ptr->line);
+        printf("line=%s\n",&ptr->line);
 }
 #endif	/* DEBUGOUT */
 
