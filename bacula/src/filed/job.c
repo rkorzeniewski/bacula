@@ -438,6 +438,11 @@ static int run_cmd(JCR *jcr, char *cmd, const char *name)
    ecmd = edit_job_codes(jcr, ecmd, cmd, "");
    bpipe = open_bpipe(ecmd, 0, "r");
    free_pool_memory(ecmd);
+   if (bpipe == NULL) {
+      Jmsg(jcr, M_FATAL, 0, _("%s could not execute\n"), name);
+      set_jcr_job_status(jcr, JS_FatalError);
+      return 0;
+   }
    while (fgets(line, sizeof(line), bpipe->rfd)) {
       Jmsg(jcr, M_INFO, 0, _("%s: %s"), name, line);
    }
