@@ -1,5 +1,29 @@
 
-Version 1.36.1 released xxNov04:
+Version 1.36.1 released 26Nov04:
+24Nov04
+- Take Dan's fix to the fix_postgresql_tables (thanks Dan)
+- Increase Maximum Concurrent Jobs to 20 in SD and FD!
+- Fix improper handling of autochanger Volumes that are not
+  marked InChanger.
+22Nov04
+- Update authentication failure message to indicate possible
+  problem with Maximum Concurrent Jobs. Add to doc too.
+- Commit PostgreSQL BIGINT fix -- apparently some people didn't
+  get it.
+- Do not use a slot unless it is InChanger in the autochanger
+  code, otherwise autochanger gets upset not finding the Volume.
+21Nov04
+- Make authentication timeout compile time configurable.
+  The value is set in src/baconfig.h
+- Fix removing items from watchdog queue, which apparently
+  screwed up if there was more than one item.
+- Rework mediaformat part of manual to separate out old
+  tape format for easier reading.
+- Add a lot of debug code to the authentication code.
+- Add seconds to the start/end times printed in the job report.
+19Nov04
+- Fix mutex deadlock in dequeue of messages.
+- Add debug code to FD authorization.
 18Nov04
 - Increase authentication timeouts to 10 minutes.  
 15Nov04
