@@ -96,7 +96,6 @@ wxString console_thread::LoadConfig(wxString configfile) {
    init_msg(NULL, msgs);
    init_console_msg(".");
 
-   /* TODO (#4#): Allow the user to choose his config file. */
    if (!parse_config(configfile.c_str(), 0)) {
       configloaded = false;
       wxFile file("./wx-console.conmsg");

@@ -586,12 +586,17 @@ void wxbRestorePanel::CmdStart() {
       
       SetStatus(choosing);
       
-      wxbUtils::WaitForPrompt(wxString("restore") <<
+      wxbTableParser* tableparser = new wxbTableParser();
+      wxbDataTokenizer* dt = new wxbDataTokenizer(true);
+      
+      wxbMainFrame::GetInstance()->Send(wxString("restore") <<
          " client=\"" << configPanel->GetRowString("Client") <<
          "\" fileset=\"" << configPanel->GetRowString("Fileset") <<
          "\" pool=\"" << configPanel->GetRowString("Pool") <<
-         "\" storage=\"" << configPanel->GetRowString("Storage") << "\"\n");
-      wxbUtils::WaitForPrompt("6\n");
+         "\" storage=\"" << configPanel->GetRowString("Storage") <<
+         "\" before=\"" << configPanel->GetRowString("Before") <<
+         "\" select\n");
+      //wxbUtils::WaitForPrompt("6\n");
       //WaitForEnd();
       /*wxbPromptParser *pp = wxbUtils::WaitForPrompt(wxString() << configPanel->GetRowString("Before") << "\n", true);
       int client = pp->getChoices()->Index(configPanel->GetRowString("Client"));
@@ -601,10 +606,7 @@ void wxbRestorePanel::CmdStart() {
       }
       delete pp;*/
       
-      wxbTableParser* tableparser = new wxbTableParser();
-      wxbDataTokenizer* dt = new wxbDataTokenizer(true);
-      
-      wxbMainFrame::GetInstance()->Send(wxString() << configPanel->GetRowString("Before") << "\n");
+      //wxbMainFrame::GetInstance()->Send(wxString() << configPanel->GetRowString("Before") << "\n");
    
       while (!tableparser->hasFinished() && !dt->hasFinished()) {
          wxTheApp->Yield(true);
@@ -651,14 +653,16 @@ void wxbRestorePanel::CmdStart() {
       
       int var = 0;
       
-      while (!dt->hasFinished()) {
+      int i1, i2;
+      
+      while (true) {
          newdate = wxDateTime::Now();
          if (newdate.Subtract(base).GetMilliseconds() > 10 ) {
             base = newdate;
             for (; lastindex < dt->GetCount(); lastindex++) {
-               if (((*dt)[lastindex].Find("Building directory tree for JobId ") == 0) && 
-                     ((i = (*dt)[lastindex].Find(" ...")) > 0)) {
-                  str = (*dt)[lastindex].Mid(34, i-34);
+               if (((i1 = (*dt)[lastindex].Find("Building directory tree for JobId ")) >= 0) && 
+                     ((i2 = (*dt)[lastindex].Find(" ...")) > 0)) {
+                  str = (*dt)[lastindex].Mid(i1+34, i2-(i1+34));
                   for (i = 0; i < tableparser->GetCount(); i++) {
                      if (str == (*tableparser)[i][0]) {
                         str = (*tableparser)[i][2];
@@ -686,6 +690,10 @@ void wxbRestorePanel::CmdStart() {
             }
             
             gauge->SetValue(gauge->GetValue()+var);
+            
+            if (dt->hasFinished()) {
+               break;
+            }
             
             /*wxbMainFrame::GetInstance()->Print(
                wxString("[") << gauge->GetValue() << "/" << done

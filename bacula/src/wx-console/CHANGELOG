@@ -1,3 +1,6 @@
+28-07-2004 :
+ - wxbRestorePanel : implemented restore before=<Date> parameter.
+
 17-07-2004 :
  - wxbRestorePanel & wxbHistoryTextCtrl : Fixed unsigned comparisons.
  - wxbRestorePanel : Fixed problem when the newly created job is not

@@ -1,5 +1,11 @@
 general : Show nice messages boxes when errors occurs.
 
+wxbRestorePanel : Be sure of which job we just have run (not suppositions
+   as I'm doing now): implement the director modification.
+   
+wxbRestorePanel : list jobs and list jobid=# will probably crash if there
+   is nothing to show (db error or empty table)
+   
 GTK2 : The console control is not scrolled correctly (wxGTK bug)
 
 Win32 : Crash when quitting while trying to connect
@@ -72,9 +78,6 @@ wxbRestorePanel : The + only appears when one selects a directory,
    to indicate it has subdirectories
 
 wxbRestorePanel : Add a timeout when waiting for commands results
-
-wxbRestorePanel : Be sure of which job we just have run (not suppositions
-   as I'm doing now) : needs director modification.
 
 bacula-dir : Progress status when building tree.
 
