@@ -20,9 +20,6 @@
 /* Define to `int' if <sys/types.h> doesn't define.  */
 #undef ssize_t
 
-/* Set if socklen_t is not defined  in sys/types.h */
-#undef socklen_t
-
 /* Define if you want to use MySQL */
 #undef HAVE_MYSQL
 
@@ -202,5 +199,7 @@
 #undef HAVE_INET_PTON
 
 #undef HAVE_SOCKLEN_T
+
+#undef HAVE_OLD_SOCKOPT
  
 #undef HAVE_BIGENDIAN

@@ -468,7 +468,7 @@ bnet_open(void *jcr, char *name, char *host, char *service, int port)
    /*
     * Receive notification when connection dies.
     */
-   if (setsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, &turnon, sizeof(turnon)) < 0) {
+   if (setsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, (sockopt_val_t)&turnon, sizeof(turnon)) < 0) {
       Jmsg(jcr, M_WARNING, 0, _("Cannot set SO_KEEPALIVE on socket: %s\n"), strerror(errno));
    }
    
@@ -572,7 +572,7 @@ int bnet_set_buffer_size(BSOCK *bs, uint32_t size, int rw)
    int opt;
 
     opt = IPTOS_THROUGHPUT;
-    setsockopt(bs->fd, IPPROTO_IP, IP_TOS, (char *)&opt, sizeof(opt));
+    setsockopt(bs->fd, IPPROTO_IP, IP_TOS, (sockopt_val_t)&opt, sizeof(opt));
 #endif
 
    dbuf_size = size;
@@ -582,7 +582,7 @@ int bnet_set_buffer_size(BSOCK *bs, uint32_t size, int rw)
    }
    if (rw & BNET_SETBUF_READ) {
       while ((dbuf_size > TAPE_BSIZE) &&
-	 (setsockopt(bs->fd, SOL_SOCKET, SO_RCVBUF, (char *)&dbuf_size, sizeof(dbuf_size)) < 0)) {
+	 (setsockopt(bs->fd, SOL_SOCKET, SO_RCVBUF, (sockopt_val_t)&dbuf_size, sizeof(dbuf_size)) < 0)) {
          Jmsg1(bs->jcr, M_ERROR, 0, _("sockopt error: %s\n"), strerror(errno));
 	 dbuf_size -= TAPE_BSIZE;
       }
@@ -597,7 +597,7 @@ int bnet_set_buffer_size(BSOCK *bs, uint32_t size, int rw)
    dbuf_size = size;
    if (rw & BNET_SETBUF_WRITE) {
       while ((dbuf_size > TAPE_BSIZE) &&
-	 (setsockopt(bs->fd, SOL_SOCKET, SO_SNDBUF, (char *)&dbuf_size, sizeof(dbuf_size)) < 0)) {
+	 (setsockopt(bs->fd, SOL_SOCKET, SO_SNDBUF, (sockopt_val_t)&dbuf_size, sizeof(dbuf_size)) < 0)) {
          Jmsg1(bs->jcr, M_ERROR, 0, _("sockopt error: %s\n"), strerror(errno));
 	 dbuf_size -= TAPE_BSIZE;
       }

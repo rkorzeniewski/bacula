@@ -75,7 +75,7 @@ bnet_thread_server(char *bind_addr, int port, int max_clients, workq_t *client_w
    /*
     * Reuse old sockets 
     */
-   if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &turnon, sizeof(turnon)) < 0) {
+   if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (sockopt_val_t)&turnon, sizeof(turnon)) < 0) {
       Emsg1(M_WARNING, 0, _("Cannot set SO_REUSEADDR on socket: %s\n"), strerror(errno));
    }
 
@@ -154,7 +154,7 @@ bnet_thread_server(char *bind_addr, int port, int max_clients, workq_t *client_w
       /*
        * Receive notification when connection dies.
        */
-      if (setsockopt(newsockfd, SOL_SOCKET, SO_KEEPALIVE, &turnon, sizeof(turnon)) < 0) {
+      if (setsockopt(newsockfd, SOL_SOCKET, SO_KEEPALIVE, (sockopt_val_t)&turnon, sizeof(turnon)) < 0) {
          Emsg1(M_WARNING, 0, _("Cannot set SO_KEEPALIVE on socket: %s\n") , strerror(errno));
       }
 
@@ -200,7 +200,7 @@ bnet_bind(int port)
    /*
     * Reuse old sockets 
     */
-   if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &turnon, sizeof(turnon)) < 0) {
+   if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (sockopt_val_t)&turnon, sizeof(turnon)) < 0) {
       Emsg1(M_WARNING, 0, _("Cannot set SO_REUSEADDR on socket: %s\n") , strerror(errno));
    }
 
@@ -282,7 +282,7 @@ bnet_accept(BSOCK *bsock, char *who)
    /*
     * Receive notification when connection dies.
     */
-   if (setsockopt(newsockfd, SOL_SOCKET, SO_KEEPALIVE, &turnon, sizeof(turnon)) < 0) {
+   if (setsockopt(newsockfd, SOL_SOCKET, SO_KEEPALIVE, (sockopt_val_t)&turnon, sizeof(turnon)) < 0) {
       Emsg1(M_WARNING, 0, _("Cannot set SO_KEEPALIVE on socket: %s\n"), strerror(errno));
    }
 

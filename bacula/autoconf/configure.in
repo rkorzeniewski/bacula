@@ -1299,7 +1299,7 @@ slackware)
 	hostname=`hostname -s`
   ;;
 solaris)
-	DISTVER=Solaris
+	DISTVER=`uname -r`
 	TAPEDRIVE="/dev/rmt/0cbn"
 	PSCMD="ps -e -o pid,comm"
 	PFILES="${PFILES} \
@@ -1307,6 +1307,9 @@ solaris)
 	    platforms/solaris/bacula-fd \
 	    platforms/solaris/bacula-sd \
 	    platforms/solaris/bacula-dir"
+	if test x$DISTVER = x2.6 ; then
+	    AC_DEFINE(HAVE_OLD_SOCKOPT)
+	fi
   ;;
 suse)
 	DISTVER=`cat /etc/SuSE-release |grep VERSION|\
@@ -1343,7 +1346,6 @@ AC_SUBST(PSCMD)
 AC_SUBST(WIN32)
 AC_SUBST(DISTNAME)
 AC_SUBST(DISTVER)
-
 
 dnl# common parts of the Makefile
 MCOMMON=./autoconf/Make.common

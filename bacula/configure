@@ -9433,7 +9433,7 @@ slackware)
 	hostname=`hostname -s`
   ;;
 solaris)
-	DISTVER=Solaris
+	DISTVER=`uname -r`
 	TAPEDRIVE="/dev/rmt/0cbn"
 	PSCMD="ps -e -o pid,comm"
 	PFILES="${PFILES} \
@@ -9441,6 +9441,12 @@ solaris)
 	    platforms/solaris/bacula-fd \
 	    platforms/solaris/bacula-sd \
 	    platforms/solaris/bacula-dir"
+	if test x$DISTVER = x2.6 ; then
+	    cat >> confdefs.h <<\EOF
+#define HAVE_OLD_SOCKOPT 1
+EOF
+
+	fi
   ;;
 suse)
 	DISTVER=`cat /etc/SuSE-release |grep VERSION|\
@@ -9477,7 +9483,6 @@ EOF
 cat >> confdefs.h <<EOF
 #define llu "$llu"
 EOF
-
 
 
 

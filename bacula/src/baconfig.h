@@ -367,6 +367,7 @@ extern int thr_setconcurrency(int);
 
 #else
 
+
 /* Not needed on most systems */
 #define set_thread_concurrency(x)
 

@@ -184,3 +184,8 @@ typedef float             float32_t;
 #define socklen_t int
 #endif
 
+#ifdef HAVE_OLD_SOCKOPT
+#define sockopt_val_t char *
+#else
+#define sockopt_val_t void *
+#endif
