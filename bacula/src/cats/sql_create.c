@@ -250,11 +250,6 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       sql_free_result(mdb);
    }
 
-   /* Make sure that if InChanger is non-zero any other identical slot
-    *	has InChanger zero.
-    */
-   db_make_inchanger_unique(jcr, mdb, mr);
-
    /* Must create it */
    Mmsg(&mdb->cmd, 
 "INSERT INTO Media (VolumeName,MediaType,PoolId,MaxVolBytes,VolCapacityBytes," 
@@ -295,6 +290,13 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 	 stat = UPDATE_DB(jcr, mdb, mdb->cmd);
       }
    }
+
+   /*
+    * Make sure that if InChanger is non-zero any other identical slot
+    *	has InChanger zero.
+    */
+   db_make_inchanger_unique(jcr, mdb, mr);
+
    db_unlock(mdb);
    return stat;
 }
