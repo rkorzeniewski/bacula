@@ -21,9 +21,9 @@ dummy:
 
 #
 CONSSRCS = main.cpp console_thread.cpp authenticate.c console_conf.c wxbrestorepanel.cpp \
-	     wxbmainframe.cpp wxbtableparser.cpp wxbtreectrl.cpp
+	     wxbmainframe.cpp wxbtableparser.cpp wxbtreectrl.cpp wxblistctrl.cpp
 CONSOBJS = main.o console_thread.o authenticate.o console_conf.o wxbrestorepanel.o \
-	     wxbmainframe.o wxbtableparser.o wxbtreectrl.o
+	     wxbmainframe.o wxbtableparser.o wxbtreectrl.o wxblistctrl.o
 
 @if test "@DISTNAME@" = "cygwin" then \
 RES = wx-console_private.res; \

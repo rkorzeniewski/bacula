@@ -145,7 +145,7 @@ BEGIN_EVENT_TABLE(wxbRestorePanel, wxPanel)
    EVT_LIST_ITEM_ACTIVATED(ListCtrl, wxbRestorePanel::OnListActivated)
 
    EVT_TREE_MARKED_EVENT(wxID_ANY, wxbRestorePanel::OnTreeMarked)
-   EVT_LIST_ITEM_RIGHT_CLICK(ListCtrl, wxbRestorePanel::OnListRightClicked)   
+   EVT_LIST_MARKED_EVENT(wxID_ANY, wxbRestorePanel::OnListMarked)   
   
    EVT_CHOICE(ClientChoice, wxbRestorePanel::OnClientChoiceChanged)
 END_EVENT_TABLE()
@@ -185,7 +185,7 @@ wxbRestorePanel::wxbRestorePanel(wxWindow* parent): wxbPanel(parent) {
 
    tree->SetImageList(imagelist);
 
-   list = new wxListCtrl(this, ListCtrl, wxDefaultPosition, wxDefaultSize, wxLC_REPORT);
+   list = new wxbListCtrl(this, ListCtrl, wxDefaultPosition, wxDefaultSize);
    secondSizer->Add(list, 1, wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL | wxEXPAND, 10);
 
    list->SetImageList(imagelist, wxIMAGE_LIST_SMALL);
@@ -403,7 +403,7 @@ void wxbRestorePanel::CmdStart() {
    }
    else if (status == entered) {
       if (jobChoice->GetStringSelection().Length() < 1) {
-         wxbMainFrame::GetInstance()->SetStatusText("Please select a client.\n");
+         wxbMainFrame::GetInstance()->SetStatusText("Please select a client.");
          return;
       }
       WaitForEnd("restore\n");
@@ -415,13 +415,13 @@ void wxbRestorePanel::CmdStart() {
       wxTreeItemId root = tree->AddRoot(clientChoice->GetStringSelection(), -1, -1, new wxbTreeItemData("/", clientChoice->GetStringSelection(), 0));
       tree->Refresh();
       WaitForList(root, true);
-      wxbMainFrame::GetInstance()->SetStatusText("Right click on a file or on a directory to add it to the restore list.\n");
+      wxbMainFrame::GetInstance()->SetStatusText("Right click on a file or on a directory, or double-click on its mark to add it to the restore list.");
       tree->Expand(root);
    }
    else if (status == choosing) {
       setStatus(restoring);
 
-      wxbMainFrame::GetInstance()->SetStatusText("Restoring, please wait...\n");
+      wxbMainFrame::GetInstance()->SetStatusText("Restoring, please wait...");
 
       totfilemessages = 0;
       WaitForEnd("estimate\n");
@@ -429,7 +429,7 @@ void wxbRestorePanel::CmdStart() {
 
       if (totfilemessages == 0) {
          wxbMainFrame::GetInstance()->Print("Restore failed : no file selected.\n", CS_DEBUG);
-         wxbMainFrame::GetInstance()->SetStatusText("Restore failed : no file selected.\n");
+         wxbMainFrame::GetInstance()->SetStatusText("Restore failed : no file selected.");
          setStatus(finished);
          return;
       }
@@ -455,7 +455,7 @@ void wxbRestorePanel::CmdStart() {
 
          WaitForEnd("messages\n");
 
-         wxbMainFrame::GetInstance()->SetStatusText(wxString("Restoring, please wait (") << filemessages << " of " << totfilemessages << " files done)...\n");
+         wxbMainFrame::GetInstance()->SetStatusText(wxString("Restoring, please wait (") << filemessages << " of " << totfilemessages << " files done)...");
 
          time_t start = wxDateTime::Now().GetTicks();
          while (((wxDateTime::Now().GetTicks())-start) < 3) {
@@ -469,11 +469,11 @@ void wxbRestorePanel::CmdStart() {
 
       if ((*tableParser)[0][7] == "T") {
          wxbMainFrame::GetInstance()->Print("Restore done successfully.\n", CS_DEBUG);
-         wxbMainFrame::GetInstance()->SetStatusText("Restore done successfully.\n");
+         wxbMainFrame::GetInstance()->SetStatusText("Restore done successfully.");
       }
       else {
          wxbMainFrame::GetInstance()->Print("Restore failed, please look at messages.\n", CS_DEBUG);
-         wxbMainFrame::GetInstance()->SetStatusText("Restore failed, please look at messages in console.\n");
+         wxbMainFrame::GetInstance()->SetStatusText("Restore failed, please look at messages in console.");
       }
       setStatus(finished);
    }
@@ -964,12 +964,13 @@ void wxbRestorePanel::OnTreeMarked(wxbTreeMarkedEvent& event) {
    working = false;
 }
 
-void wxbRestorePanel::OnListRightClicked(wxListEvent& event) {
+void wxbRestorePanel::OnListMarked(wxbListMarkedEvent& event) {
    if (working) {
       event.Skip();
       return;
    }
    working = true;
+   //long item = event.GetId(); 
    long item = list->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_FOCUSED);
    CmdMark(wxTreeItemId(), item);
    event.Skip();

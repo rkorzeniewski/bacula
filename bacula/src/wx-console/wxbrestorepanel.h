@@ -35,6 +35,7 @@
 #include "wxbpanel.h"
 
 #include "wxbtreectrl.h"
+#include "wxblistctrl.h"
 
 /*
  * wxbPanel for restoring files
@@ -127,7 +128,7 @@ class wxbRestorePanel : public wxbPanel
       void OnTreeExpanding(wxTreeEvent& event);
       void OnTreeChanged(wxTreeEvent& event);
       void OnTreeMarked(wxbTreeMarkedEvent& event);
-      void OnListRightClicked(wxListEvent& event);
+      void OnListMarked(wxbListMarkedEvent& event);
       void OnListActivated(wxListEvent& event);
       void OnClientChoiceChanged(wxCommandEvent& event);
 
@@ -138,7 +139,7 @@ class wxbRestorePanel : public wxbPanel
       wxChoice* clientChoice;
       wxChoice* jobChoice;
       wxbTreeCtrl* tree;
-      wxListCtrl* list;
+      wxbListCtrl* list;
       wxGauge* gauge;
 
       DECLARE_EVENT_TABLE();
