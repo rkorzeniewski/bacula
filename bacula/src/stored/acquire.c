@@ -187,7 +187,7 @@ default_path:
 	 }
 	 /* Mount a specific volume and no other */
          Dmsg0(200, "calling dir_ask_sysop\n");
-	 if (!dir_ask_sysop_to_mount_volume(jcr, dev)) {
+	 if (!dir_ask_sysop_to_mount_volume(jcr)) {
 	    goto get_out;	      /* error return */
 	 }
 	 try_autochanger = true;      /* permit using autochanger again */
@@ -358,7 +358,7 @@ ok_out:
  *  the device remains open.
  *
  */
-int release_device(JCR *jcr)
+bool release_device(JCR *jcr)
 {
    DEVICE *dev = jcr->dcr->dev;   
    lock_device(dev);
@@ -388,7 +388,7 @@ int release_device(JCR *jcr)
 	 dev->VolCatInfo.VolCatJobs++;		    /* increment number of jobs */
 	 /* Note! do volume update before close, which zaps VolCatInfo */
          Dmsg0(100, "dir_update_vol_info. Release0\n");
-	 dir_update_volume_info(jcr, dev, 0); /* send Volume info to Director */
+	 dir_update_volume_info(jcr, false); /* send Volume info to Director */
       }
 
       if (!dev->num_writers && (!dev_is_tape(dev) || !dev_cap(dev, CAP_ALWAYSOPEN))) {
@@ -411,5 +411,5 @@ int release_device(JCR *jcr)
    }
    free_dcr(jcr->dcr);
    jcr->dcr = NULL;
-   return 1;
+   return true;
 }

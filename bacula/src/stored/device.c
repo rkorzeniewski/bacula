@@ -113,7 +113,7 @@ bool fixup_device_block_write_error(DCR *dcr, DEV_BLOCK *block)
       dev->VolCatInfo.VolCatStatus, dev->VolCatInfo.VolCatName);
    dev->VolCatInfo.VolCatFiles = dev->file;   /* set number of files */
    dev->VolCatInfo.VolCatJobs++;	      /* increment number of jobs */
-   if (!dir_update_volume_info(jcr, dev, 0)) {	  /* send Volume info to Director */
+   if (!dir_update_volume_info(jcr, false)) {	 /* send Volume info to Director */
       P(dev->mutex);
       unblock_device(dev);
       return false;		   /* device locked */

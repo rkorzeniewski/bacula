@@ -206,10 +206,10 @@ void ser_block_header(DEV_BLOCK *block)
  * Unserialize the block header for reading block.
  *  This includes setting all the buffer pointers correctly.
  *
- *  Returns: 0 on failure (not a block)
- *	     1 on success
+ *  Returns: false on failure (not a block)
+ *	     true  on success
  */
-static int unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
+static bool unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 {
    ser_declare;
    char Id[BLKHDR_ID_LENGTH+1];
@@ -233,14 +233,14 @@ static int unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       block->bufp = block->buf + bhl;
       if (strncmp(Id, BLKHDR1_ID, BLKHDR_ID_LENGTH) != 0) {
 	 dev->dev_errno = EIO;
-         Mmsg2(&dev->errmsg, _("Volume data error! Wanted ID: %s, got %s. Buffer discarded.\n"),
-	    BLKHDR1_ID, Id);
+         Mmsg4(&dev->errmsg, _("Volume data error at %u:%u! Wanted ID: %s, got %s. Buffer discarded.\n"),
+	    dev->file, dev->block_num, BLKHDR1_ID, Id);
 	 if (block->read_errors == 0 || verbose >= 2) {
             Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
 	 }
 	 block->read_errors++;
 	 if (!forge_on) {
-	    return 0;
+	    return false;
 	 }
       }
    } else if (Id[3] == '2') {
@@ -251,25 +251,26 @@ static int unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       block->bufp = block->buf + bhl;
       if (strncmp(Id, BLKHDR2_ID, BLKHDR_ID_LENGTH) != 0) {
 	 dev->dev_errno = EIO;
-         Mmsg2(&dev->errmsg, _("Volume data error! Wanted ID: %s, got %s. Buffer discarded.\n"),
-	    BLKHDR2_ID, Id);
+         Mmsg4(&dev->errmsg, _("Volume data error at %u:%u! Wanted ID: %s, got %s. Buffer discarded.\n"),
+	    dev->file, dev->block_num, BLKHDR2_ID, Id);
 	 if (block->read_errors == 0 || verbose >= 2) {
             Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
 	 }
 	 block->read_errors++;
 	 if (!forge_on) {
-	    return 0;
+	    return false;
 	 }
       }
    } else {
       dev->dev_errno = EIO;
-      Mmsg1(&dev->errmsg, _("Volume data error! Wanted block-id BB02, got %s. Buffer discarded.\n"), Id);
+      Mmsg4(&dev->errmsg, _("Volume data error at %u:%u! Wanted ID: %s, got %s. Buffer discarded.\n"),
+	  dev->file, dev->block_num, BLKHDR2_ID, Id);
       if (block->read_errors == 0 || verbose >= 2) {
          Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       }
       block->read_errors++;
       if (!forge_on) {
-	 return 0;
+	 return false;
       }
       unser_uint32(block->VolSessionId);
       unser_uint32(block->VolSessionTime);
@@ -281,14 +282,14 @@ static int unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    /* Sanity check */
    if (block_len > MAX_BLOCK_LENGTH) {
       dev->dev_errno = EIO;
-      Mmsg1(&dev->errmsg,  _("Volume data error! Block length %u is insane (too large), probably due to a bad archive.\n"),
-	 block_len);
+      Mmsg3(&dev->errmsg,  _("Volume data error at %u:%u! Block length %u is insane (too large), probably due to a bad archive.\n"),
+	 dev->file, dev->block_num, block_len);
       if (block->read_errors == 0 || verbose >= 2) {
          Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       }
       block->read_errors++;
       if (!forge_on) {
-	 return 0;
+	 return false;
       }
    }
 
@@ -309,30 +310,30 @@ static int unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 			 block_len-BLKHDR_CS_LENGTH);
       if (BlockCheckSum != CheckSum) {
 	 dev->dev_errno = EIO;
-         Mmsg3(&dev->errmsg, _("Volume data error! Block checksum mismatch in block %u: calc=%x blk=%x\n"), 
-	    (unsigned)BlockNumber, BlockCheckSum, CheckSum);
+         Mmsg5(&dev->errmsg, _("Volume data error at %u:%u! Block checksum mismatch in block %u: calc=%x blk=%x\n"), 
+	    dev->file, dev->block_num, (unsigned)BlockNumber, BlockCheckSum, CheckSum);
 	 if (block->read_errors == 0 || verbose >= 2) {
             Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
 	 }
 	 block->read_errors++;
 	 if (!forge_on) {
-	    return 0;
+	    return false;
 	 }
       }
    }
-   return 1;
+   return true;
 }
 
 /*  
  * Write a block to the device, with locking and unlocking
  *
- * Returns: 1 on success
- *	  : 0 on failure
+ * Returns: true  on success
+ *	  : false on failure
  *
  */
-int write_block_to_device(DCR *dcr, DEV_BLOCK *block)
+bool write_block_to_device(DCR *dcr, DEV_BLOCK *block)
 {
-   int stat = 1;
+   bool stat = true;
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
 
@@ -359,7 +360,7 @@ int write_block_to_device(DCR *dcr, DEV_BLOCK *block)
          Jmsg(jcr, M_ERROR, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
 	    jcr->VolCatInfo.VolCatName, jcr->Job);
 	 set_new_volume_parameters(jcr, dev);
-	 stat = 0;
+	 stat = false;
 	 goto bail_out;
       }
       if (dcr->NewVol) {
@@ -469,7 +470,7 @@ bool write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
       /* Don't do update after second EOF or file count will be wrong */
       Dmsg0(100, "dir_update_volume_info\n");
       dev->VolCatInfo.VolCatFiles = dev->file;
-      dir_update_volume_info(jcr, dev, 0);
+      dir_update_volume_info(jcr, false);
       if (dev_cap(dev, CAP_TWOEOF) && weof_dev(dev, 1) != 0) {	/* write eof */
          Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
 	 dev->VolCatInfo.VolCatErrors++;
@@ -491,7 +492,7 @@ bool write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
 	 dev->state |= (ST_EOF | ST_EOT | ST_WEOT);
          Dmsg0(100, "dir_update_volume_info\n");
 	 dev->VolCatInfo.VolCatFiles = dev->file;
-	 dir_update_volume_info(jcr, dev, 0);
+	 dir_update_volume_info(jcr, false);
 	 dev->dev_errno = ENOSPC;
 	 return false;
       }
@@ -499,7 +500,7 @@ bool write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
       /* Create a JobMedia record so restore can seek */
       Dmsg0(100, "dir_update_volume_info\n");
       dev->VolCatInfo.VolCatFiles = dev->file;
-      dir_update_volume_info(jcr, dev, 0);
+      dir_update_volume_info(jcr, false);
       if (!dir_create_jobmedia_record(jcr)) {
 	 dev->dev_errno = EIO;
           Jmsg(jcr, M_ERROR, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
@@ -563,7 +564,7 @@ bool write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
       }
       Dmsg0(100, "dir_update_volume_info\n");
       dev->VolCatInfo.VolCatFiles = dev->file;
-      dir_update_volume_info(jcr, dev, 0);
+      dir_update_volume_info(jcr, false);
       if (dev_cap(dev, CAP_TWOEOF) && weof_dev(dev, 1) != 0) {	/* end the tape */
 	 dev->VolCatInfo.VolCatErrors++;
          Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
@@ -799,8 +800,8 @@ reread:
 
    if (block->block_len > block->read_len) {
       dev->dev_errno = EIO;
-      Mmsg3(&dev->errmsg, _("Volume data error! Short block at %u of %d bytes on device %s discarded.\n"), 
-	 dev->block_num, block->read_len, dev->dev_name);
+      Mmsg4(&dev->errmsg, _("Volume data error at %u:%u! Short block of %d bytes on device %s discarded.\n"), 
+	 dev->file, dev->block_num, block->read_len, dev->dev_name);
       Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       dev->state |= ST_SHORT;	/* set short block */
       block->read_len = block->binbuf = 0;

@@ -8,7 +8,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2003 Kern Sibbald and John Walker
+   Copyright (C) 2000-2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -751,73 +751,82 @@ void dump_label_record(DEVICE *dev, DEV_RECORD *rec, int verbose)
    dbl = debug_level;
    debug_level = 1;
    switch (rec->FileIndex) {
-      case PRE_LABEL:
-         type = _("Fresh Volume");   
-	 break;
-      case VOL_LABEL:
-         type = _("Volume");
-	 break;
-      case SOS_LABEL:
-         type = _("Begin Session");
-	 break;
-      case EOS_LABEL:
-         type = _("End Session");
-	 break;
-      case EOM_LABEL:
-         type = _("End of Media");
-	 break;
-      case EOT_LABEL:
-         type = ("End of Tape");
-	 break;
-      default:
-         type = _("Unknown");
-	 break;
+   case PRE_LABEL:
+      type = _("Fresh Volume");   
+      break;
+   case VOL_LABEL:
+      type = _("Volume");
+      break;
+   case SOS_LABEL:
+      type = _("Begin Job Session");
+      break;
+   case EOS_LABEL:
+      type = _("End Job Session");
+      break;
+   case EOM_LABEL:
+      type = _("End of Media");
+      break;
+   case EOT_LABEL:
+      type = ("End of Tape");
+      break;
+   default:
+      type = _("Unknown");
+      break;
    }
    if (verbose) {
       switch (rec->FileIndex) {
-	 case PRE_LABEL:
-	 case VOL_LABEL:
-	    unser_volume_label(dev, rec);
-	    dump_volume_label(dev);
-	    break;
-	 case SOS_LABEL:
-	    dump_session_label(rec, type);
-	    break;
-	 case EOS_LABEL:
-	    dump_session_label(rec, type);
-	    break;
-	 case EOM_LABEL:
-            Pmsg5(-1, "%s Record: SessId=%d SessTime=%d JobId=%d DataLen=%d\n",
-	       type, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
-	    break;
-	 case EOT_LABEL:
-            Pmsg0(-1, _("End of physical tape.\n"));
-	    break;
-	 default:
-            Pmsg5(-1, "%s Record: SessId=%d SessTime=%d JobId=%d DataLen=%d\n",
-	       type, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
-	    break;
+      case PRE_LABEL:
+      case VOL_LABEL:
+	 unser_volume_label(dev, rec);
+	 dump_volume_label(dev);
+	 break;
+      case SOS_LABEL:
+	 dump_session_label(rec, type);
+	 break;
+      case EOS_LABEL:
+	 dump_session_label(rec, type);
+	 break;
+      case EOM_LABEL:
+         Pmsg5(-1, "%s Record: SessId=%d SessTime=%d JobId=%d DataLen=%d\n",
+	    type, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
+	 break;
+      case EOT_LABEL:
+         Pmsg0(-1, _("End of physical tape.\n"));
+	 break;
+      default:
+         Pmsg5(-1, "%s Record: SessId=%d SessTime=%d JobId=%d DataLen=%d\n",
+	    type, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
+	 break;
       }
    } else {
+      SESSION_LABEL label;
       switch (rec->FileIndex) {
-	 case SOS_LABEL:
-	 case EOS_LABEL:
-	    SESSION_LABEL label;
-	    unser_session_label(&label, rec);
-            Pmsg6(-1, "%s Record: SessId=%d SessTime=%d JobId=%d Level=%c \
-Type=%c\n",
-	       type, rec->VolSessionId, rec->VolSessionTime, rec->Stream, 
-	       label.JobLevel, label.JobType);
-	    break;
-	 case EOM_LABEL:
-	 case PRE_LABEL:
-	 case VOL_LABEL:
-	 default:
-            Pmsg5(-1, "%s Record: SessId=%d SessTime=%d JobId=%d DataLen=%d\n",
-	 type, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
-	    break;
-	 case EOT_LABEL:
-	    break;
+      case SOS_LABEL:
+	 unser_session_label(&label, rec);
+         Pmsg6(-1, "%s Record: SessId=%d SessTime=%d JobId=%d Level=%c Type=%c\n",
+	    type, rec->VolSessionId, rec->VolSessionTime, rec->Stream, 
+	    label.JobLevel, label.JobType);
+	 break;
+      case EOS_LABEL:
+	 char ed1[30], ed2[30];
+	 unser_session_label(&label, rec);
+         Pmsg6(-1, "%s Record: SessId=%d SessTime=%d JobId=%d Level=%c Type=%c\n",
+	    type, rec->VolSessionId, rec->VolSessionTime, rec->Stream, 
+	    label.JobLevel, label.JobType);
+         Pmsg4(-1, "   Files=%s Bytes=%s Errors=%d Status=%c\n",
+	    edit_uint64_with_commas(label.JobFiles, ed1),
+	    edit_uint64_with_commas(label.JobBytes, ed2),
+	    label.JobErrors, (char)label.JobStatus);
+	 break;
+      case EOM_LABEL:
+      case PRE_LABEL:
+      case VOL_LABEL:
+      default:
+         Pmsg5(-1, "%s Record: SessId=%d SessTime=%d JobId=%d DataLen=%d\n",
+      type, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
+	 break;
+      case EOT_LABEL:
+	 break;
       }
    }
    debug_level = dbl;

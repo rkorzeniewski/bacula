@@ -42,9 +42,9 @@ static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sess
 static bool record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
 
 static DEVICE *dev;
-static int dump_label = FALSE;
-static int list_blocks = FALSE;
-static int list_jobs = FALSE;
+static bool dump_label = false;
+static bool list_blocks = false;
+static bool list_jobs = false;
 static DEV_RECORD *rec;
 static DEV_BLOCK *block;
 static JCR *jcr;
@@ -147,15 +147,15 @@ int main (int argc, char *argv[])
 	 break;
 
       case 'j':
-	 list_jobs = TRUE;
+	 list_jobs = true;
 	 break;
 
       case 'k':
-	 list_blocks = TRUE;
+	 list_blocks = true;
 	 break;
 
       case 'L':
-	 dump_label = TRUE;
+	 dump_label = true;
 	 break;
 
       case 'p':
@@ -361,6 +361,8 @@ static bool record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 if (!forge_on) {
             Emsg0(M_ERROR_TERM, 0, _("Cannot continue.\n"));
 	 }
+	 num_files++;
+	 return true;
       }
 
       if (attr->file_index != rec->FileIndex) {
@@ -393,11 +395,11 @@ static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sess
       unser_volume_label(dev, rec);
       break;
    case SOS_LABEL:
-      rtype = "Begin Session";
+      rtype = "Begin Job Session";
       unser_session_label(sessrec, rec);
       break;
    case EOS_LABEL:
-      rtype = "End Session";
+      rtype = "End Job Session";
       break;
    case EOM_LABEL:
       rtype = "End of Medium";
@@ -416,19 +418,20 @@ static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sess
 
 
 /* Dummies to replace askdir.c */
-int	dir_get_volume_info(JCR *jcr, enum get_vol_info_rw  writing) { return 1;}
-int	dir_find_next_appendable_volume(JCR *jcr) { return 1;}
-int	dir_update_volume_info(JCR *jcr, DEVICE *dev, int relabel) { return 1; }
-int	dir_create_jobmedia_record(JCR *jcr) { return 1; }
-int	dir_ask_sysop_to_create_appendable_volume(JCR *jcr, DEVICE *dev) { return 1; }
-int	dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec) { return 1;}
-int	dir_send_job_status(JCR *jcr) {return 1;}
+bool	dir_get_volume_info(JCR *jcr, enum get_vol_info_rw  writing) { return 1;}
+bool	dir_find_next_appendable_volume(JCR *jcr) { return 1;}
+bool	dir_update_volume_info(JCR *jcr, bool relabel) { return 1; }
+bool	dir_create_jobmedia_record(JCR *jcr) { return 1; }
+bool	dir_ask_sysop_to_create_appendable_volume(JCR *jcr) { return 1; }
+bool	dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec) { return 1;}
+bool	dir_send_job_status(JCR *jcr) {return 1;}
 
 
-int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
+bool dir_ask_sysop_to_mount_volume(JCR *jcr)
 {
+   DEVICE *dev = jcr->dcr->dev;
    fprintf(stderr, "Mount Volume \"%s\" on device %s and press return when ready: ",
       jcr->VolumeName, dev_name(dev));
    getchar();	
-   return 1;
+   return true;
 }

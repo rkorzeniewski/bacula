@@ -7,7 +7,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2003 Kern Sibbald and John Walker
+   Copyright (C) 2000-2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -176,7 +176,7 @@ void invalid_slot_in_catalog(JCR *jcr, DEVICE *dev)
    jcr->VolCatInfo.InChanger = false;
    dev->VolCatInfo.InChanger = false;
    Dmsg0(100, "update vol info in mount\n");
-   dir_update_volume_info(jcr, dev, 1);  /* set new status */
+   dir_update_volume_info(jcr, true);  /* set new status */
 }
 
 /*

@@ -41,7 +41,7 @@ static int  create_file_attributes_record(B_DB *db, JCR *mjcr,
 			       char *fname, char *lname, int type,
 			       char *ap, DEV_RECORD *rec);
 static int  create_media_record(B_DB *db, MEDIA_DBR *mr, VOLUME_LABEL *vl);
-static int  update_media_record(B_DB *db, MEDIA_DBR *mr);
+static bool update_media_record(B_DB *db, MEDIA_DBR *mr);
 static int  create_pool_record(B_DB *db, POOL_DBR *pr);
 static JCR *create_job_record(B_DB *db, JOB_DBR *mr, SESSION_LABEL *label, DEV_RECORD *rec);
 static int  update_job_record(B_DB *db, JOB_DBR *mr, SESSION_LABEL *elabel, 
@@ -85,9 +85,9 @@ static const char *db_user = "bacula";
 static const char *db_password = "";
 static const char *db_host = NULL;
 static const char *wd = NULL;
-static int update_db = 0;
-static int update_vol_info = 0;
-static int list_records = 0;
+static bool update_db = false;
+static bool update_vol_info = false;
+static bool list_records = false;
 static int ignored_msgs = 0;
 
 static int num_jobs = 0;
@@ -157,7 +157,7 @@ int main (int argc, char *argv[])
 	 break;
 
       case 'm':
-	 update_vol_info = 1;
+	 update_vol_info = true;
 	 break;
 
       case 'n':
@@ -177,11 +177,11 @@ int main (int argc, char *argv[])
 	 break;
 
       case 'r':
-	 list_records = 1;
+	 list_records = true;
 	 break;
 
       case 's':
-	 update_db = 1;
+	 update_db = true;
 	 break;
 
       case 'v':
@@ -261,7 +261,8 @@ int main (int argc, char *argv[])
    }
 
    do_scan();
-   printf("Records added to catalog:\n%7d Media\n%7d Pool\n%7d Job\n%7d File\n",
+   printf("Records %sadded to catalog:\n%7d Media\n%7d Pool\n%7d Job\n%7d File\n",
+      update_db?"":"would have been ",
       num_media, num_pools, num_jobs, num_files);
 
    free_jcr(bjcr);
@@ -347,7 +348,7 @@ static bool record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
     *
     */
    if (rec->FileIndex < 0) {
-      int save_update_db = update_db;
+      bool save_update_db = update_db;
 
       if (verbose > 1) {
 	 dump_label_record(dev, rec, 1);
@@ -434,7 +435,7 @@ static bool record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 jr.JobId = label.JobId;
 	 if (db_get_job_record(bjcr, db, &jr)) {
 	    /* Job record already exists in DB */
-            update_db = 0;  /* don't change db in create_job_record */
+            update_db = false;  /* don't change db in create_job_record */
 	    if (verbose) {
                Pmsg1(000, _("SOS_LABEL: Found Job record for JobId: %d\n"), jr.JobId);
 	    }
@@ -608,6 +609,14 @@ static bool record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
       fr.JobId = mjcr->JobId;
       fr.FileId = 0;
       num_files++;
+      if (verbose && (num_files & 0x7FFF) == 0) {
+	 char ed1[30], ed2[30], ed3[30], ed4[30];
+         Pmsg4(000, _("%s file records. At file:blk=%s:%s bytes=%s\n"),
+		     edit_uint64_with_commas(num_files, ed1),
+		     edit_uint64_with_commas(rec->File, ed2),
+		     edit_uint64_with_commas(rec->Block, ed3),
+		     edit_uint64_with_commas(mr.VolBytes, ed4));
+      } 
       if (db_get_file_attributes_record(bjcr, db, attr->fname, NULL, &fr)) {
 	 if (verbose > 1) {
             Pmsg1(000, _("File record already exists for: %s\n"), attr->fname);
@@ -798,21 +807,21 @@ static int create_media_record(B_DB *db, MEDIA_DBR *mr, VOLUME_LABEL *vl)
 /*
  * Called at end of media to update it
  */
-static int update_media_record(B_DB *db, MEDIA_DBR *mr)
+static bool update_media_record(B_DB *db, MEDIA_DBR *mr)
 {
    if (!update_db && !update_vol_info) {
-      return 1;
+      return true;
    }
 
    mr->LastWritten = lasttime;
    if (!db_update_media_record(bjcr, db, mr)) {
       Pmsg1(0, _("Could not update media record. ERR=%s\n"), db_strerror(db));
-      return 0;
+      return false;;
    }
    if (verbose) {
       Pmsg1(000, _("Updated Media record at end of Volume: %s\n"), mr->VolumeName);
    }
-   return 1;
+   return true;
 
 }
 
@@ -1149,17 +1158,18 @@ static JCR *create_jcr(JOB_DBR *jr, DEV_RECORD *rec, uint32_t JobId)
 }
 
 /* Dummies to replace askdir.c */
-int	dir_get_volume_info(JCR *jcr, enum get_vol_info_rw  writing) { return 1;}
-int	dir_find_next_appendable_volume(JCR *jcr) { return 1;}
-int	dir_update_volume_info(JCR *jcr, DEVICE *dev, int relabel) { return 1; }
-int	dir_create_jobmedia_record(JCR *jcr) { return 1; }
-int	dir_ask_sysop_to_create_appendable_volume(JCR *jcr, DEVICE *dev) { return 1; }
-int	dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec) { return 1;}
-int	dir_send_job_status(JCR *jcr) {return 1;}
+bool	dir_get_volume_info(JCR *jcr, enum get_vol_info_rw  writing) { return 1;}
+bool	dir_find_next_appendable_volume(JCR *jcr) { return 1;}
+bool	dir_update_volume_info(JCR *jcr, bool relabel) { return 1; }
+bool	dir_create_jobmedia_record(JCR *jcr) { return 1; }
+bool	dir_ask_sysop_to_create_appendable_volume(JCR *jcr) { return 1; }
+bool	dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec) { return 1;}
+bool	dir_send_job_status(JCR *jcr) {return 1;}
 
 
-int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
+bool dir_ask_sysop_to_mount_volume(JCR *jcr)
 {
+   DEVICE *dev = jcr->dcr->dev;
    fprintf(stderr, _("Mount Volume \"%s\" on device \"%s\" and press return when ready: "),
       jcr->VolumeName, dev_name(dev));
    getchar();	

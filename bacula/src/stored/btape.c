@@ -2507,40 +2507,41 @@ get_cmd(const char *prompt)
 }
 
 /* Dummies to replace askdir.c */
-int	dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec) { return 1;}
-int	dir_send_job_status(JCR *jcr) {return 1;}
+bool	dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec) { return 1;}
+bool	dir_send_job_status(JCR *jcr) {return 1;}
 
-int dir_update_volume_info(JCR *jcr, DEVICE *dev, int relabel) 
+bool dir_update_volume_info(JCR *jcr, bool relabel) 
 { 
    return 1;
 }
 
 
-int dir_get_volume_info(JCR *jcr, enum get_vol_info_rw	writing)	     
+bool dir_get_volume_info(JCR *jcr, enum get_vol_info_rw  writing)	      
 {
    Dmsg0(20, "Enter dir_get_volume_info\n");
    bstrncpy(jcr->VolCatInfo.VolCatName, jcr->VolumeName, sizeof(jcr->VolCatInfo.VolCatName));
    return 1;
 }
 
-int dir_create_jobmedia_record(JCR *jcr)
+bool dir_create_jobmedia_record(JCR *jcr)
 {
    jcr->dcr->WroteVol = false;
    return 1;
 }
 
 
-int dir_find_next_appendable_volume(JCR *jcr) 
+bool dir_find_next_appendable_volume(JCR *jcr) 
 { 
    Dmsg1(20, "Enter dir_find_next_appendable_volume. stop=%d\n", stop);
    return jcr->VolumeName[0] != 0;
 }
 
-int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
+bool dir_ask_sysop_to_mount_volume(JCR *jcr)
 {
+   DEVICE *dev = jcr->dcr->dev;
    Dmsg0(20, "Enter dir_ask_sysop_to_mount_volume\n");
    if (jcr->VolumeName[0] == 0) {
-      return dir_ask_sysop_to_create_appendable_volume(jcr, dev);
+      return dir_ask_sysop_to_create_appendable_volume(jcr);
    }
    /* Close device so user can use autochanger if desired */
    if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
@@ -2556,12 +2557,13 @@ int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
 	 jcr->VolumeName, dev_name(dev));
    }
    getchar();	
-   return 1;
+   return true;
 }
 
-int dir_ask_sysop_to_create_appendable_volume(JCR *jcr, DEVICE *dev)
+bool dir_ask_sysop_to_create_appendable_volume(JCR *jcr)
 {
    bool autochanger;
+   DEVICE *dev = jcr->dcr->dev;
    Dmsg0(20, "Enter dir_ask_sysop_to_create_appendable_volume\n");
    if (stop == 0) {
       set_volume_name("TestVolume1", 1);
@@ -2583,7 +2585,7 @@ int dir_ask_sysop_to_create_appendable_volume(JCR *jcr, DEVICE *dev)
    labelcmd();
    VolumeName = NULL;
    BlockNumber = 0;
-   return 1;
+   return true;
 }
 
 static bool my_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
