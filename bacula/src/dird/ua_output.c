@@ -454,7 +454,7 @@ RUN *find_next_run(RUN *run, JOB *job, time_t &runtime)
    mday = tm.tm_mday - 1;
    wday = tm.tm_wday;
    month = tm.tm_mon;
-   wom = tm_wom(tm.tm_mday, tm.tm_wday);
+   wom = mday / 7;
    woy = tm_woy(now);
 
    /* Break down tomorrow into components */
@@ -463,7 +463,7 @@ RUN *find_next_run(RUN *run, JOB *job, time_t &runtime)
    tmday = tm.tm_mday - 1;
    twday = tm.tm_wday;
    tmonth = tm.tm_mon;
-   twom  = tm_wom(tm.tm_mday, tm.tm_wday);
+   twom = tmday / 7;
    twoy  = tm_woy(tomorrow);
 
    if (run == NULL) {
@@ -483,7 +483,9 @@ RUN *find_next_run(RUN *run, JOB *job, time_t &runtime)
 	     bit_is_set(tmonth, run->month) && bit_is_set(twom, run->wom) &&
 	     bit_is_set(twoy, run->woy);
 
-      Dmsg2(200, "tod=%d tom=%d\n", tod, tom);
+//    Dmsg2(200, "tod=%d tom=%d\n", tod, tom);
+//    Dmsg2(200, "wom=%d twom=%d\n", wom, twom);
+//    Dmsg1(200, "bit_set_wom=%d\n", bit_is_set(wom, run->wom));
       if (tod) {		   /* Jobs scheduled today (next 24 hours) */
 	 /* find time (time_t) job is to be run */
 	 localtime_r(&now, &tm);
@@ -495,6 +497,7 @@ RUN *find_next_run(RUN *run, JOB *job, time_t &runtime)
 	       tm.tm_sec = 0;
 	       runtime = mktime(&tm);
 	       if (runtime > now) {
+                  Dmsg2(000, "Found it level=%d %c\n", run->level, run->level);
 		  return run;	      /* found it, return run resource */
 	       }
 	    }

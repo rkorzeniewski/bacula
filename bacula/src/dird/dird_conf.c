@@ -586,7 +586,7 @@ next_run:
          bstrncpy(buf, "      mday=", sizeof(buf));
 	 for (i=0; i<31; i++) {
 	    if (bit_is_set(i, run->mday)) {
-               sprintf(num, "%d ", i+1);
+               sprintf(num, "%d ", i);
 	       bstrncat(buf, num, sizeof(buf));
 	    }
 	 }
@@ -595,7 +595,7 @@ next_run:
          bstrncpy(buf, "      month=", sizeof(buf));
 	 for (i=0; i<12; i++) {
 	    if (bit_is_set(i, run->month)) {
-               sprintf(num, "%d ", i+1);
+               sprintf(num, "%d ", i);
 	       bstrncat(buf, num, sizeof(buf));
 	    }
 	 }
@@ -604,7 +604,7 @@ next_run:
          bstrncpy(buf, "      wday=", sizeof(buf));
 	 for (i=0; i<7; i++) {
 	    if (bit_is_set(i, run->wday)) {
-               sprintf(num, "%d ", i+1);
+               sprintf(num, "%d ", i);
 	       bstrncat(buf, num, sizeof(buf));
 	    }
 	 }
@@ -613,7 +613,7 @@ next_run:
          bstrncpy(buf, "      wom=", sizeof(buf));
 	 for (i=0; i<5; i++) {
 	    if (bit_is_set(i, run->wom)) {
-               sprintf(num, "%d ", i+1);
+               sprintf(num, "%d ", i);
 	       bstrncat(buf, num, sizeof(buf));
 	    }
 	 }

@@ -136,7 +136,7 @@ utime_t btime_to_utime(btime_t bt)
 }
 
 /*
- * Return the week of the month, base 0 (wpos)
+ * Return the week of the month, base 0 (wom)
  *   given tm_mday and tm_wday. Value returned
  *   can be from 0 to 4 => week1, ... week5
  */
@@ -148,11 +148,11 @@ int tm_wom(int mday, int wday)
       fs += 7;
    }
    if (mday <= fs) {
-//    Dmsg2(100, "wom=0 wday=%d <= fs=%d\n", wday, fs);
+//    Dmsg3(100, "mday=%d wom=0 wday=%d <= fs=%d\n", mday, wday, fs);
       return 0;
    }
    int wom = 1 + (mday - fs - 1) / 7;
-// Dmsg3(100, "wom=%d wday=%d fs=%d\n", wom, wday, fs);
+// Dmsg4(100, "mday=%d wom=%d wday=%d fs=%d\n", mday, wom, wday, fs);
    return wom;
 }  
 
