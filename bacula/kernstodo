@@ -1,5 +1,5 @@
-                 Kern's ToDo List
-                   06 Septermber 2004
+                    Kern's ToDo List
+                   07 Septermber 2004
 
 Major development:      
 Project                     Developer
@@ -11,60 +11,14 @@ Version 1.35                Kern (see below)
 ========================================================
 
 1.35 Items to do for release:
-- Fix silly restriction requiring Include { Options { xxx } } to be
-  on separate lines.
-- Improve error message if old/new FileSet syntax mixed.
 - Restore c: with a prefix into /prefix/c/ to prevent c: and d:
   files with the same name from overwritting each other.
 - Add new DCR calling sequences everywhere in SD. This will permit 
   simultaneous use of multiple devices by a single job.
 
-
 - Document a get out of jail procedure if everything breaks if 
   you lost/broke the Catalog -- do the same for "I know my
   file is there how do I get it back?".
-
-- New IP address specification is used as follows:
-    [sdaddresses|diraddresses|fdaddresses] = { [[ip|ipv4|ipv6] = { 
-           [[addr|port] = [^ ]+[\n;]+] }] }
-
-  so it could look for example like this:
-     SDaddresses  = { ip = {
-            addr = 1.2.3.4; port = 1205; }
-        ipv4 = {
-            addr = 1.2.3.4; port = http; }
-        ipv6 = {
-            addr = 1.2.3.4;
-            port = 1205;
-        }
-        ip = {
-            addr = 1.2.3.4
-            port = 1205
-        }
-        ip = {
-            addr = 1.2.3.4
-        }
-        ip = {
-            addr = 201:220:222::2
-        }
-        ip = {
-            addr = bluedot.thun.net
-        }
-     }
-  as a consequence, you can now specify multiple IP addresses and
-  ports to be used. In the case of a server, it will listen on
-  all those that you specify. In the case of connecting to the server,
-  Bacula will attempt connecting to one at a time until it succeeds.
-  And, in a few other special cases, Bacula will use only the first
-  address specified.
-
-  The default port numbers are still the same and the services and hosts 
-  are also resolved by name. So now  you could use the real names for the 
-  port numbers.
-
-  An ip section will allow resolution to either an ipv4 or an ipv6 address.
-  An ipv4 section forces the resolution to be only ipv4, and an ipv6 section
-  forces the resolution to be only ipv6.
 
    
 Maybe for 1.35:
@@ -74,7 +28,7 @@ Maybe for 1.35:
 - Add bscan to four-concurrent-jobs regression.
 - Add IPv6 to regression
 - Perhaps add read/write programs and/or plugins to FileSets.
-
+- How to handle backing up portables ...
 
 Documentation to do: (any release a little bit at a time)
 - Alternative to static linking "ldd prog" save all binaries listed,
@@ -1405,4 +1359,48 @@ Block Position: 0
 - Document that console commands can be abbreviated.
 - Doc update AllFromVol
 - Doc -p option in stored
+- New IP address specification is used as follows:
+    [sdaddresses|diraddresses|fdaddresses] = { [[ip|ipv4|ipv6] = { 
+           [[addr|port] = [^ ]+[\n;]+] }] }
+
+  so it could look for example like this:
+     SDaddresses  = { ip = {
+            addr = 1.2.3.4; port = 1205; }
+        ipv4 = {
+            addr = 1.2.3.4; port = http; }
+        ipv6 = {
+            addr = 1.2.3.4;
+            port = 1205;
+        }
+        ip = {
+            addr = 1.2.3.4
+            port = 1205
+        }
+        ip = {
+            addr = 1.2.3.4
+        }
+        ip = {
+            addr = 201:220:222::2
+        }
+        ip = {
+            addr = bluedot.thun.net
+        }
+     }
+  as a consequence, you can now specify multiple IP addresses and
+  ports to be used. In the case of a server, it will listen on
+  all those that you specify. In the case of connecting to the server,
+  Bacula will attempt connecting to one at a time until it succeeds.
+  And, in a few other special cases, Bacula will use only the first
+  address specified.
+
+  The default port numbers are still the same and the services and hosts 
+  are also resolved by name. So now  you could use the real names for the 
+  port numbers.
+
+  An ip section will allow resolution to either an ipv4 or an ipv6 address.
+  An ipv4 section forces the resolution to be only ipv4, and an ipv6 section
+  forces the resolution to be only ipv6.
+- Fix silly restriction requiring Include { Options { xxx } } to be
+  on separate lines.
+
  
