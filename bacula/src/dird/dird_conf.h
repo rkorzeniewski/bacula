@@ -235,7 +235,7 @@ struct INCEXE {
 struct FILESET {
    RES   hdr;
 
-   int finclude;                      /* Set if finclude/fexclude used */
+   int new_include;                   /* Set if new include used */
    INCEXE **include_items;            /* array of incexe structures */
    int num_includes;                  /* number in array */
    INCEXE **exclude_items;

@@ -1,6 +1,6 @@
 /*
- *   Configuration file parser for Include, Exclude, Finclude
- *    and FExclude records.
+ *   Configuration file parser for new and old Include and
+ *	Exclude records
  *
  *     Kern Sibbald, March MMIII
  *
@@ -32,8 +32,8 @@
 /* Forward referenced subroutines */
 
 void store_inc(LEX *lc, struct res_items *item, int index, int pass);
-void store_finc(LEX *lc, struct res_items *item, int index, int pass);
 
+static void store_newinc(LEX *lc, struct res_items *item, int index, int pass);
 static void store_match(LEX *lc, struct res_items *item, int index, int pass);
 static void store_opts(LEX *lc, struct res_items *item, int index, int pass);
 static void store_fname(LEX *lc, struct res_items *item, int index, int pass);
@@ -49,14 +49,14 @@ static void setup_current_opts(void);
 extern URES res_all;
 extern int  res_all_size;
 
-/* We build the current Finclude Fexclude item here */
+/* We build the current new Include and Exclude items here */
 static INCEXE res_incexe;
 
 /* 
- * FInclude/FExclude items
+ * new Include/Exclude items
  *   name	      handler	  value 		       code flags default_value
  */
-static struct res_items finc_items[] = {
+static struct res_items newinc_items[] = {
    {"compression",     store_opts,    NULL,     0, 0, 0},
    {"signature",       store_opts,    NULL,     0, 0, 0},
    {"verify",          store_opts,    NULL,     0, 0, 0},
@@ -87,7 +87,7 @@ static struct res_items finc_items[] = {
 #define INC_KW_PORTABLE    10
 
 /* Include keywords -- these are keywords that can appear
- *    in the options lists of an include ( Include = compression= ...)
+ *    in the options lists of an old include ( Include = compression= ...)
  */
 static struct s_kw FS_option_kw[] = {
    {"compression", INC_KW_COMPRESSION},
@@ -151,7 +151,7 @@ static struct s_fs_opt FS_options[] = {
 
 
 /* 
- * Scan for Include options (keyword=option) is converted into one or
+ * Scan for old Include options (keyword=option) is converted into one or
  *  two characters. Verifyopts=xxxx is Vxxxx:
  */
 static void scan_include_options(LEX *lc, int keyword, char *opts, int optlen)
@@ -204,12 +204,26 @@ void store_inc(LEX *lc, struct res_items *item, int index, int pass)
    char inc_opts[100];
    int inc_opts_len;
 
+   /*
+    * Decide if we are doing a new Include or an old include. The
+    *  new Include is followed immediately by {, whereas the
+    *  old include has options following the Include.
+    */
+   token = lex_get_token(lc, T_ALL);		
+   if (token == T_BOB) {
+      store_newinc(lc, item, index, pass);
+      return;
+   }
+   if (token != T_EQUALS) {
+      scan_err1(lc, _("Expecting an equals sign, got: %s\n"), lc->str);
+   }
    lc->options |= LOPT_NO_IDENT;      /* make spaces significant */
    memset(&res_incexe, 0, sizeof(INCEXE));
 
    /* Get include options */
    inc_opts[0] = 0;
    while ((token=lex_get_token(lc, T_ALL)) != T_BOB) {
+	 
       keyword = INC_KW_NONE;
       for (i=0; FS_option_kw[i].name; i++) {
 	 if (strcasecmp(lc->str, FS_option_kw[i].name) == 0) {
@@ -230,6 +244,7 @@ void store_inc(LEX *lc, struct res_items *item, int index, int pass)
 	 break;
       }
    }
+
    if (!inc_opts[0]) {
       strcat(inc_opts, "0");          /* set no options */
    }
@@ -312,7 +327,7 @@ void store_inc(LEX *lc, struct res_items *item, int index, int pass)
  *  resource.  We treat the Finclude/Fexeclude like a sort of
  *  mini-resource within the FileSet resource.
  */
-void store_finc(LEX *lc, struct res_items *item, int index, int pass)
+static void store_newinc(LEX *lc, struct res_items *item, int index, int pass)
 {
    int token, i;
    INCEXE *incexe;
@@ -321,12 +336,8 @@ void store_finc(LEX *lc, struct res_items *item, int index, int pass)
       MD5Init(&res_all.res_fs.md5c);
       res_all.res_fs.have_MD5 = TRUE;
    }
-   res_all.res_fs.finclude = TRUE;
-   token = lex_get_token(lc, T_ALL);		
-   if (token != T_BOB) {
-      scan_err1(lc, _("Expecting a beginning brace, got: %s\n"), lc->str);
-   }
    memset(&res_incexe, 0, sizeof(INCEXE));
+   res_all.res_fs.new_include = TRUE;
    while ((token = lex_get_token(lc, T_ALL)) != T_EOF) {
       if (token == T_EOL) {
 	 continue;
@@ -337,14 +348,14 @@ void store_finc(LEX *lc, struct res_items *item, int index, int pass)
       if (token != T_IDENTIFIER) {
          scan_err1(lc, _("Expecting keyword, got: %s\n"), lc->str);
       }
-      for (i=0; finc_items[i].name; i++) {
-	 if (strcasecmp(finc_items[i].name, lc->str) == 0) {
+      for (i=0; newinc_items[i].name; i++) {
+	 if (strcasecmp(newinc_items[i].name, lc->str) == 0) {
 	    token = lex_get_token(lc, T_ALL);
 	    if (token != T_EQUALS) {
                scan_err1(lc, "expected an equals, got: %s", lc->str);
 	    }
 	    /* Call item handler */
-	    finc_items[i].handler(lc, &finc_items[i], i, pass);
+	    newinc_items[i].handler(lc, &newinc_items[i], i, pass);
 	    i = -1;
 	    break;
 	 }

@@ -1277,6 +1277,10 @@ static int setdebug_cmd(UAContext *ua, char *cmd)
 static int var_cmd(UAContext *ua, char *cmd)
 {
    POOLMEM *var = get_pool_memory(PM_FNAME);
+
+   if (!open_db(ua)) {
+      return 1;
+   }
    for (int i=1; i<ua->argc; i++) {
       if (ua->argk[i] && variable_expansion(ua->jcr, ua->argk[i], &var)) {
          bsendmsg(ua, "%s\n", var);
