@@ -410,6 +410,7 @@ bool release_device(JCR *jcr)
    } else {
       Jmsg2(jcr, M_ERROR, 0, _("BAD ERROR: release_device %s, Volume \"%s\" not in use.\n"), 
 	    dev_name(dev), NPRT(jcr->VolumeName));
+      Jmsg2(jcr, M_ERROR, 0, _("num_writers=%d state=%x\n"), dev->num_writers, dev->state);
    }
 // detach_jcr_from_device(dev, jcr);
    if (dev->prev && !dev_state(dev, ST_READ) && !dev->num_writers) {

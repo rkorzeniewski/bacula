@@ -708,7 +708,7 @@ again:
    va_start(arg_ptr, fmt);
    bs->msglen = bvsnprintf(mp_chr(bs->msg), maxlen, fmt, arg_ptr);
    va_end(arg_ptr);
-   if (bs->msglen < 0 || bs->msglen >= maxlen) {
+   if (bs->msglen < 0 || bs->msglen >= (maxlen-5)) {
       bs->msg = realloc_pool_memory(bs->msg, maxlen + maxlen / 2);
       goto again;
    }

@@ -144,7 +144,10 @@ int get_cmd(const char *prompt);
  */
 int main(int margc, char *margv[])
 {
-   int ch;
+   int ch, i;
+   uint32_t x32, y32;
+   uint64_t x64, y64;
+   char buf[1000];
 
    /* Sanity checks */
    if (TAPE_BSIZE % DEV_BSIZE != 0 || TAPE_BSIZE / DEV_BSIZE == 0) {
@@ -153,6 +156,24 @@ int main(int margc, char *margv[])
    }
    if (TAPE_BSIZE != (1 << (ffs(TAPE_BSIZE)-1))) {
       Emsg1(M_ABORT, 0, "Tape block size (%d) is not a power of 2\n", TAPE_BSIZE);
+   }
+   if (sizeof(off_t) < 8) {
+      Pmsg1(-1, "\n\n!!!! Warning large disk addressing disabled. off_t=%d should be 8 or more !!!!!\n\n\n",
+	 sizeof(off_t));
+   }
+   x32 = 123456789;
+   bsnprintf(buf, sizeof(buf), "%u", x32);
+   i = bsscanf(buf, "%u", &y32);
+   if (i != 1 || x32 != y32) {
+      Pmsg3(-1, "32 bit printf/scanf problem. i=%d x32=%u y32=%u\n", i, x32, y32);
+      exit(1);
+   }
+   x64 = 123456789012345678;
+   bsnprintf(buf, sizeof(buf), "%" llu, x64);
+   i = bsscanf(buf, "%llu", &y64);
+   if (i != 1 || x64 != y64) {
+      Pmsg3(-1, "64 bit printf/scanf problem. i=%d x64=%" llu " y64=%" llu "\n", i, x64, y64);
+      exit(1);
    }
 
    printf("Tape block granularity is %d bytes.\n", TAPE_BSIZE);

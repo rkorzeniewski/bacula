@@ -1068,7 +1068,7 @@ void j_msg(const char *file, int line, JCR *jcr, int type, int level, const char
       va_start(arg_ptr, fmt);
       len = bvsnprintf(pool_buf+i, maxlen, fmt, arg_ptr);
       va_end(arg_ptr);
-      if (len < 0 || len >= maxlen) {
+      if (len < 0 || len >= (maxlen-5)) {
 	 pool_buf = realloc_pool_memory(pool_buf, maxlen + i + maxlen/2);
 	 continue;
       }
@@ -1082,7 +1082,7 @@ void j_msg(const char *file, int line, JCR *jcr, int type, int level, const char
 
 /*
  * Edit a message into a Pool memory buffer, with file:lineno
- */
+ */						     
 int m_msg(const char *file, int line, POOLMEM **pool_buf, const char *fmt, ...)
 {
    va_list   arg_ptr;
@@ -1095,7 +1095,7 @@ int m_msg(const char *file, int line, POOLMEM **pool_buf, const char *fmt, ...)
       va_start(arg_ptr, fmt);
       len = bvsnprintf(*pool_buf+i, maxlen, fmt, arg_ptr);
       va_end(arg_ptr);
-      if (len < 0 || len >= maxlen) {
+      if (len < 0 || len >= (maxlen-5)) {
 	 *pool_buf = realloc_pool_memory(*pool_buf, maxlen + i + maxlen/2);
 	 continue;
       }
@@ -1118,7 +1118,7 @@ int Mmsg(POOLMEM **pool_buf, const char *fmt, ...)
       va_start(arg_ptr, fmt);
       len = bvsnprintf(*pool_buf, maxlen, fmt, arg_ptr);
       va_end(arg_ptr);
-      if (len < 0 || len >= maxlen) {
+      if (len < 0 || len >= (maxlen-5)) {
 	 *pool_buf = realloc_pool_memory(*pool_buf, maxlen + maxlen/2);
 	 continue;
       }
@@ -1150,7 +1150,7 @@ void Qmsg(JCR *jcr, int type, int level, const char *fmt,...)
       va_start(arg_ptr, fmt);
       len = bvsnprintf(pool_buf, maxlen, fmt, arg_ptr);
       va_end(arg_ptr);
-      if (len < 0 || len >= maxlen) {
+      if (len < 0 || len >= (maxlen-5)) {
 	 pool_buf = realloc_pool_memory(pool_buf, maxlen + maxlen/2);
 	 continue;
       }
@@ -1190,7 +1190,7 @@ void dequeue_messages(JCR *jcr)
    jcr->msg_queue->destroy();
    jcr->dequeuing = false;
    V(msg_queue_mutex);
-}
+}						  
 
 
 /*
@@ -1211,7 +1211,7 @@ void q_msg(const char *file, int line, JCR *jcr, int type, int level, const char
       va_start(arg_ptr, fmt);
       len = bvsnprintf(pool_buf+i, maxlen, fmt, arg_ptr);
       va_end(arg_ptr);
-      if (len < 0 || len >= maxlen) {
+      if (len < 0 || len >= (maxlen-5)) {
 	 pool_buf = realloc_pool_memory(pool_buf, maxlen + i + maxlen/2);
 	 continue;
       }

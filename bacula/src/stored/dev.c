@@ -1418,6 +1418,7 @@ term_dev(DEVICE *dev)
    }
 }
 
+#ifdef xxxx
 /*
  * We attach a jcr to the device so that when
  *   the Volume is full during writing, a  
@@ -1456,6 +1457,7 @@ JCR *next_attached_jcr(DEVICE *dev, JCR *jcr)
    }
    return jcr->next_dev;
 }
+#endif
 
 /*
  * This routine initializes the device wait timers

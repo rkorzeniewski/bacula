@@ -162,14 +162,17 @@ bool fixup_device_block_write_error(DCR *dcr, DEV_BLOCK *block)
     * Walk through all attached jcrs indicating the volume has changed	 
     */
    Dmsg1(100, "Walk attached jcrs. Volume=%s\n", dev->VolCatInfo.VolCatName);
-   for (JCR *mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
+// for (JCR *mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
+   DCR *mdcr;
+   foreach_dlist(mdcr, dev->attached_dcrs) {
+      JCR *mjcr = mdcr->jcr;
       if (mjcr->JobId == 0) {
 	 continue;		   /* ignore console */
       }
-      mjcr->dcr->NewVol = true;
+      mdcr->NewVol = true;
       if (jcr != mjcr) {
 	 pm_strcpy(&mjcr->VolumeName, jcr->VolumeName);  /* get a copy of the new volume */
-	 bstrncpy(mjcr->dcr->VolumeName, jcr->VolumeName, sizeof(mjcr->dcr->VolumeName));
+	 bstrncpy(mdcr->VolumeName, jcr->VolumeName, sizeof(mdcr->VolumeName));
       }
    }
 
