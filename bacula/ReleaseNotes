@@ -1,7 +1,7 @@
 
           Release Notes for Bacula 1.33.4
 
-  Bacula code: Total files = 306 Total lines = 90,715 (*.h *.c *.in)
+  Bacula code: Total files = 306 Total lines = 91,112 (*.h *.c *.in)
 
 Major Features:
 - Data spooling which eliminates tape shoe-shine during Inc backups,         
@@ -12,7 +12,7 @@ Major Features:
 - Polling of devices eliminating need to unmount and mount from
   console.
 - Improved Autochange support of Slots (update slots scan).
-- Autochanger support for multiple drives.
+- Autochanger support for multiple drives (I think).
 - New conio code to implement Console command line editing and history.
 - JobDefs resource permits smaller .conf files for Director
 - Access console lists for the Console
@@ -41,9 +41,11 @@ Items to note:  !!!!!
 
   The "Fast Forward Space File" is surely needed, and the TWOEOF          
   is needed on some systems and not others. Running the btape
-  "test" command will tell you.
+  "test" command will tell you. If you get an error with TWOEOF set   
+  to yes, set it to no.
 
-- The daemon protocol has changed, you must update everything at once.
+- The daemon protocol has changed from version 1.32, you must update 
+  everything at once.
 - The database level has been updated. You must either re-initialize
   your databases with:
    
@@ -51,12 +53,15 @@ Items to note:  !!!!!
     ./make_bacula_tables
 
   which will delete ALL prior catalog information, or you can
-  update your database with:
+  update your 1.32 database with:
 
     ./update_bacula_tables
 
   Please save your old database before dropping the tables or doing
   an upgrade or you may regret it later.
+- If you are updating versions older than 1.32, you can look in
+  the updatedb directory for scripts that you can use. You will need
+  to manually set the paths for your system.
 
 - smtp has now become bsmtp -- you *must* modify your .conf files.
 - console has now become bconsole.
