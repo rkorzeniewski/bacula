@@ -443,12 +443,14 @@ make \
         mtx-install
 cd ${cwd}
 
-# setup the manual for the doc dir
+# setup the manual for the doc dir and correct some broken CVS permissions
 mkdir html-manual
 cp -p doc/html-manual/*.html html-manual/
 cp -p doc/html-manual/*.jpg html-manual/
 cp -p doc/html-manual/*.gif html-manual/
 cp -p doc/html-manual/*.css html-manual/
+chmod 644 html-manual/*
+chmod 644 doc/bacula.pdf
 
 # fixme - make installs the mysql scripts for sqlite build
 %if %{sqlite}
@@ -964,6 +966,8 @@ rm -f /usr/bin/gnome-console
 %endif
 
 %changelog
+* Sun Apr 11 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
+- fix some minor permissions issues on doc files that CVS won't let us fix
 * Sun Apr 04 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - add pkgconfig to BuildRequires
 - clean up gnome1/2 menu entries for appropriate packages
