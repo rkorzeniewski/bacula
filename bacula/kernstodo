@@ -37,7 +37,6 @@ Testing to do: (painful)
 - Test cancel at EOM.       
 
 For 1.33 Testing/Documentation:
-- Document new Include/Exclude ...
 - Add counter variable test.
 - Document ln -sf /usr/lib/libncurses.so /usr/lib/libtermcap.so
   and install the esound-dev  package for compiling Console on SuSE.
@@ -51,7 +50,6 @@ For 1.33 Testing/Documentation:
   Add Dan's work to manual See ssl.txt
 - Add db check test to regression. Test each function like delete,
   purge, ...
-- Add subsections to the Disaster Recovery index section.
 - Document Pool keyword for restore.
 - If you use restore replace=never, the directory attributes for
   non-existent directories will not be restored properly.
@@ -64,12 +62,6 @@ For 1.33 Testing/Documentation:
   "soft" and "intr"remount options may well help you.  The only way of
   being sure would be totry it.See, for example,
      http://howtos.linux.com/guides/nag2/x-087-2-nfs.mountd.shtml
-- Add the following devices as working:
-   Adic Scalar 100 DLT
-   Adic Fastor 22 DLT
-   (both HVD)
-   Overland LoaderXpress LTO (LVD)
-   Overland Neo2000 (LVD)
 
 For 1.33
 - Null dlist head and tail pointers if all items are removed.

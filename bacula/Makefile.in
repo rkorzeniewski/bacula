@@ -109,7 +109,7 @@ install-menu-consolehelper: installdirs gnomedirs
 	${INSTALL_DATA} scripts/bacula.desktop.gnome2.consolehelper $(DESTDIR)/usr/share/applications/bacula.desktop
 	${INSTALL_DATA} scripts/gnome-console.console_apps $(DESTDIR)/etc/security/console.apps/gnome-console
 	${INSTALL_DATA} scripts/gnome-console.pamd $(DESTDIR)/etc/pam.d/gnome-console
-	ln -s $(DESTDIR)$(sbindir)/consolehelper $(DESTDIR)$(sbindir)/gnome-console
+	ln -s $(DESTDIR)/usr/bin/consolehelper $(DESTDIR)/usr/bin/gnome-console
 
 install: installdirs
 	@for I in $(all_subdirs); do (cd $$I; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1); done
