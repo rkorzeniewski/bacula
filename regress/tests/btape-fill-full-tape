@@ -8,8 +8,8 @@ scripts/cleanup-tape
 
 echo " "
 echo " "
-echo " === Starting btape fill test `date +%R:%S` ==="
-echo " === Starting btape fill test `date +%R:%S` ===" >>working/log
+echo " === Starting btape fill test at `date +%R:%S` ==="
+echo " === Starting btape fill test at `date +%R:%S` ===" >>working/log
 echo " "
 
 bin/btape -c bin/bacula-sd.conf DDS-4 <<END_OF_DATA 2>&1 >tmp/log1.out

@@ -19,8 +19,8 @@ echo "largefile created"
 
 echo " "
 echo " "
-echo " === Starting six-vol-test `date +%R:%S` ==="
-echo " === Starting six-vol-test `date +%R:%S` ===" >>working/log
+echo " === Starting six-vol-test at `date +%R:%S` ==="
+echo " === Starting six-vol-test at `date +%R:%S` ===" >>working/log
 echo " "
 
 bin/bacula start 2>&1 >/dev/null

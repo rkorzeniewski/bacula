@@ -17,8 +17,8 @@ echo "${cwd}/weird-files2" >/tmp/file-list
 
 echo " "
 echo " "
-echo " === Starting weird filenames2 test `date +%R:%S` ==="
-echo " === Starting weird filenames2 test `date +%R:%S` ===" >>working/log
+echo " === Starting weird filenames2 test at `date +%R:%S` ==="
+echo " === Starting weird filenames2 test at `date +%R:%S` ===" >>working/log
 echo " "
 
 bin/testls weird-files2 >${cwd}/tmp/original

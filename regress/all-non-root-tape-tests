@@ -12,6 +12,7 @@ tests/four-jobs-tape
 tests/fixed-block-size-tape
 tests/bscan-tape
 tests/btape-fill-tape
+tests/truncate-bug-tape
 echo " "
 echo " "
 echo "Test results"

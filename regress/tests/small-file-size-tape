@@ -13,8 +13,8 @@ sed "s%# Maximum File Size%  Maximum File Size%" ${cwd}/tmp/1 >${cwd}/bin/bacula
 
 echo " "
 echo " "
-echo " === Starting Small File Size test `date +%R:%S` ==="
-echo " === Starting Small File Size test `date +%R:%S` ===" >>working/log
+echo " === Starting Small File Size test at `date +%R:%S` ==="
+echo " === Starting Small File Size test at `date +%R:%S` ===" >>working/log
 echo " "
 
 bin/bacula start 2>&1 >/dev/null

@@ -18,8 +18,8 @@ cd ${cwd}
 
 echo " "
 echo " "
-echo " === Starting restore-by-file-test `date +%R:%S` ==="
-echo " === Starting restore-by-file-test `date +%R:%S` ===" >>working/log
+echo " === Starting restore-by-file-test at `date +%R:%S` ==="
+echo " === Starting restore-by-file-test at `date +%R:%S` ===" >>working/log
 echo " "
 
 bin/bacula start 2>&1 >/dev/null

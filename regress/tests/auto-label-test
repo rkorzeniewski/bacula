@@ -12,8 +12,8 @@ sed "s%# Label Format%  Label Format%" ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
 
 echo " "
 echo " "
-echo " === Starting auto-label-test `date +%R:%S` ==="
-echo " === Starting auto-label-test `date +%R:%S` ===" >>working/log
+echo " === Starting auto-label-test at `date +%R:%S` ==="
+echo " === Starting auto-label-test at `date +%R:%S` ===" >>working/log
 echo " "
 
 bin/bacula start 2>&1 >/dev/null

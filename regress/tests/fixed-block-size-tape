@@ -24,8 +24,8 @@ rm -f ${cwd}/tmp/1 ${cwd}/tmp/2
 
 echo " "
 echo " "
-echo " === Starting Fixed Block Size test `date +%R:%S` ==="
-echo " === Starting Fixed Block Size test `date +%R:%S` ===" >>working/log
+echo " === Starting Fixed Block Size test at `date +%R:%S` ==="
+echo " === Starting Fixed Block Size test at `date +%R:%S` ===" >>working/log
 echo " "
 
 bin/bacula start 2>&1 >/dev/null
