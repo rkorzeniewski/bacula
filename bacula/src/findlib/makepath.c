@@ -200,6 +200,12 @@ make_path(
 	 re_protect = 0;
       }
 
+#ifdef HAVE_CYGWIN
+      /* Because of silly Win32 security, we allow everything */
+      tmp_mode = S_IRWXUGO;
+      re_protect = 0;
+#endif
+
       /* If we can record the current working directory, we may be able
 	 to do the chdir optimization.	*/
       cwd.do_chdir = !save_cwd(&cwd);
@@ -312,7 +318,7 @@ make_path(
 #endif
 	      )
 	    {
-              Jmsg(jcr, M_ERROR, 0, _("Cannot change owner and/or group of %s: ERR=%s\n"),
+              Jmsg(jcr, M_WARNING, 0, _("Cannot change owner and/or group of %s: ERR=%s\n"),
 		     quote(dirpath), strerror(errno));
 	    }
       }
@@ -326,7 +332,7 @@ make_path(
          Dmsg1(300, "Final chmod mode=%o\n", mode);
       }
       if ((mode & ~S_IRWXUGO) && chmod(basename_dir, mode)) {
-          Jmsg(jcr, M_ERROR, 0, _("Cannot change permissions of %s: ERR=%s\n"), 
+          Jmsg(jcr, M_WARNING, 0, _("Cannot change permissions of %s: ERR=%s\n"), 
 	     quote(dirpath), strerror(errno));
       }
 
@@ -341,8 +347,8 @@ make_path(
           *(p->dirname_end) = '\0';
           Dmsg2(300, "Reset parent mode=%o dir=%s\n", parent_mode, dirpath);
 	  if (chmod(dirpath, parent_mode)) {
-              Jmsg(jcr, M_ERROR, 0, _("Cannot change permissions of %s: ERR=%s\n"),
-		     quote (dirpath), strerror(errno));
+              Jmsg(jcr, M_WARNING, 0, _("Cannot change permissions of %s: ERR=%s\n"),
+		     quote(dirpath), strerror(errno));
 	  }
       }
   } else {
@@ -369,11 +375,11 @@ make_path(
 	      && errno != EPERM
 #endif
 	      ) {
-              Jmsg(jcr, M_ERROR, 0, _("Cannot change owner and/or group of %s: ERR=%s\n"),
+              Jmsg(jcr, M_WARNING, 0, _("Cannot change owner and/or group of %s: ERR=%s\n"),
 		     quote(dirpath), strerror(errno));
 	    }
 	  if (chmod(dirpath, mode)) {
-              Jmsg(jcr, M_ERROR, 0, _("Cannot change permissions of %s: ERR=%s\n"),
+              Jmsg(jcr, M_WARNING, 0, _("Cannot change permissions of %s: ERR=%s\n"),
 				 quote(dirpath), strerror(errno));
 	  }
           Dmsg2(300, "pathexists chmod mode=%o dir=%s\n", mode, dirpath);
