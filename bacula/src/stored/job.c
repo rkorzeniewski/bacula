@@ -44,9 +44,9 @@ static char use_device[] = "use device=%s media_type=%s pool_name=%s pool_type=%
 /* Responses sent to Director daemon */
 static char OKjob[]     = "3000 OK Job SDid=%u SDtime=%u Authorization=%s\n";
 static char OK_device[] = "3000 OK use device\n";
-static char NO_device[] = "3904 Device not available\n";
-static char BAD_use[]   = "3903 Bad use command\n";
-static char BAD_job[]   = "3905 Bad Job command\n";
+static char NO_device[] = "3904 Device %s not available\n";
+static char BAD_use[]   = "3903 Bad use command: %s\n";
+static char BAD_job[]   = "3905 Bad Job command: %s\n";
 
 
 
@@ -82,7 +82,7 @@ int job_cmd(JCR *jcr)
    fileset_name = get_memory(dir->msglen);
    if (sscanf(dir->msg, jobcmd, &JobId, job, job_name, client_name,
 	      &JobType, &level, fileset_name) != 7) {
-      bnet_fsend(dir, BAD_job);
+      bnet_fsend(dir, BAD_job, dir->msg);
       Emsg1(M_FATAL, 0, _("Bad Job Command from Director: %s\n"), dir->msg);
       free_memory(job);
       free_memory(job_name);
@@ -283,10 +283,10 @@ static int use_device_cmd(JCR *jcr)
       UnlockRes();
       Jmsg(jcr, M_FATAL, 0, _("Requested device %s not found. Cannot continue.\n"),
 	   dev_name);
-      bnet_fsend(dir, NO_device);
+      bnet_fsend(dir, NO_device, dev_name);
    } else {
       Emsg1(M_FATAL, 0, _("store<dir: Bad Use Device command: %s\n"), dir->msg);
-      bnet_fsend(dir, BAD_use);
+      bnet_fsend(dir, BAD_use, dir->msg);
    }
 
    free_memory(dev_name);

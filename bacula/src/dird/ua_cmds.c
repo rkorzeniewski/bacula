@@ -341,6 +341,7 @@ static int cancelcmd(UAContext *ua, char *cmd)
 	 free_locked_jcr(jcr);
       }
       unlock_jcr_chain();
+
       if (njobs == 0) {
          bsendmsg(ua, _("No Jobs running.\n"));
 	 return 1;
@@ -356,6 +357,7 @@ static int cancelcmd(UAContext *ua, char *cmd)
 	 free_locked_jcr(jcr);
       }
       unlock_jcr_chain();
+
       if (do_prompt(ua, _("Choose Job to cancel"), JobName) < 0) {
 	 return 1;
       }

@@ -219,7 +219,7 @@ void store_msgs(LEX *lc, struct res_items *item, int index, int pass)
 	       }
 	       strcat(dest, lc->str);
 	       dest_len += lc->str_len;
-               Dmsg2(100, "store_msgs newdest=%s: dest=%s:\n", lc->str, dest);
+               Dmsg2(100, "store_msgs newdest=%s: dest=%s:\n", lc->str, NPRT(dest));
 	       token = lex_get_token(lc, T_ALL);
 	       if (token == T_COMMA) { 
 		  continue;	      /* get another destination */
@@ -229,7 +229,7 @@ void store_msgs(LEX *lc, struct res_items *item, int index, int pass)
 	       }
 	       break;
 	    }
-            Dmsg1(200, "mail_cmd=%s\n", cmd);
+            Dmsg1(200, "mail_cmd=%s\n", NPRT(cmd));
 	    scan_types(lc, (MSGS *)(item->value), item->code, dest, cmd);
 	    free_pool_memory(dest);
             Dmsg0(200, "done with dest codes\n");
@@ -243,7 +243,7 @@ void store_msgs(LEX *lc, struct res_items *item, int index, int pass)
 	    strcpy(dest, lc->str);
 	    dest_len = lc->str_len;
 	    token = lex_get_token(lc, T_ALL);
-            Dmsg1(200, "store_msgs dest=%s:\n", dest);
+            Dmsg1(200, "store_msgs dest=%s:\n", NPRT(dest));
 	    if (token != T_EQUALS) {
                scan_err1(lc, "expected an =, got: %s", lc->str); 
 	    }

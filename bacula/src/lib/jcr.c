@@ -50,14 +50,8 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    jcr = (JCR *) malloc(size);
    memset(jcr, 0, size);
    jcr->my_thread_id = pthread_self();
-   P(mutex);
    jcr->sched_time = time(NULL);
    jcr->daemon_free_jcr = daemon_free_jcr;    /* plug daemon free routine */
-   jcr->prev = NULL;
-   jcr->next = jobs;
-   if (jobs) {
-      jobs->prev = jcr;
-   }
    jcr->use_count = 1;
    pthread_mutex_init(&(jcr->mutex), NULL);
    jcr->JobStatus = JS_Created;       /* ready to run */
@@ -65,6 +59,13 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    jcr->VolumeName[0] = 0;
    jcr->errmsg = get_pool_memory(PM_MESSAGE);
    jcr->errmsg[0] = 0;
+
+   P(mutex);
+   jcr->prev = NULL;
+   jcr->next = jobs;
+   if (jobs) {
+      jobs->prev = jcr;
+   }
    jobs = jcr;
    V(mutex);
    return jcr;
@@ -165,6 +166,7 @@ void free_jcr(JCR *jcr)
    }
    remove_jcr(jcr);
    V(mutex);
+
    jcr->daemon_free_jcr(jcr);	      /* call daemon free routine */
    free_common_jcr(jcr);
    Dmsg0(200, "Exit free_jcr\n");

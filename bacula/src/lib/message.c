@@ -97,6 +97,7 @@ void my_name_is(int argc, char *argv[], char *name)
       }
       exename = (char *)malloc(len);
       strcpy(exename, l);
+
       if (exepath) {
 	 free(exepath);
       }

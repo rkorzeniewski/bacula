@@ -150,31 +150,37 @@ static void *watchdog_thread(void *arg)
 	    continue;
 	 }
 	 fd = jcr->store_bsock;
-	 timer_start = fd->timer_start;
-	 if (fd && timer_start && (watchdog_time - timer_start) > fd->timeout) {
-	    fd->timed_out = TRUE;
-	    Jmsg(jcr, M_ERROR, 0, _(
+	 if (fd) {
+	    timer_start = fd->timer_start;
+	    if (timer_start && (watchdog_time - timer_start) > fd->timeout) {
+	       fd->timed_out = TRUE;
+	       Jmsg(jcr, M_ERROR, 0, _(
 "Watchdog sending kill after %d secs to thread stalled reading Storage daemon.\n"),
-		 watchdog_time - timer_start);
-	    pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
+		    watchdog_time - timer_start);
+	       pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
+	    }
 	 }
 	 fd = jcr->file_bsock;
-	 timer_start = fd->timer_start;
-	 if (fd && timer_start && (watchdog_time - timer_start) > fd->timeout) {
-	    fd->timed_out = TRUE;
-	    Jmsg(jcr, M_ERROR, 0, _(
+	 if (fd) {
+	    timer_start = fd->timer_start;
+	    if (timer_start && (watchdog_time - timer_start) > fd->timeout) {
+	       fd->timed_out = TRUE;
+	       Jmsg(jcr, M_ERROR, 0, _(
 "Watchdog sending kill after %d secs to thread stalled reading File daemon.\n"),
-		 watchdog_time - timer_start);
-	    pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
+		    watchdog_time - timer_start);
+	       pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
+	    }
 	 }
 	 fd = jcr->dir_bsock;
-	 timer_start = fd->timer_start;
-	 if (fd && timer_start && (watchdog_time - timer_start) > fd->timeout) {
-	    fd->timed_out = TRUE;
-	    Jmsg(jcr, M_ERROR, 0, _(
+	 if (fd) {
+	    timer_start = fd->timer_start;
+	    if (timer_start && (watchdog_time - timer_start) > fd->timeout) {
+	       fd->timed_out = TRUE;
+	       Jmsg(jcr, M_ERROR, 0, _(
 "Watchdog sending kill after %d secs to thread stalled reading Director.\n"),
-		 watchdog_time - timer_start);
-	    pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
+		    watchdog_time - timer_start);
+	       pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
+	    }
 	 }
 
       }
