@@ -80,7 +80,7 @@ void init_job_server(int max_workers)
 
 #else
 #ifdef JOB_QUEUE
-   if ((stat = job_init(&job_queue, max_workers, job_thread)) != 0) {
+   if ((stat = jobq_init(&job_queue, max_workers, job_thread)) != 0) {
       Emsg1(M_ABORT, 0, _("Could not init job queue: ERR=%s\n"), strerror(stat));
    }
 #else
@@ -329,7 +329,9 @@ bail_out:
       db_close_database(jcr, jcr->db);
       jcr->db = NULL;
    }
+#ifndef JOB_QUEUE
    free_jcr(jcr);
+#endif
    Dmsg0(50, "======== End Job ==========\n");
    sm_check(__FILE__, __LINE__, True);
    return NULL;
@@ -342,6 +344,7 @@ bail_out:
  */
 static int acquire_resource_locks(JCR *jcr)
 {
+#ifndef JOB_QUEUE
    time_t now = time(NULL);
    time_t wtime = jcr->sched_time - now;
 
@@ -363,6 +366,7 @@ static int acquire_resource_locks(JCR *jcr)
       }
       wtime = jcr->sched_time - time(NULL);
    }
+#endif
 
 
 #ifdef USE_SEMAPHORE
@@ -657,6 +661,7 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    jcr->job = job;
    jcr->JobType = job->JobType;
    jcr->JobLevel = job->level;
+   jcr->JobPriority = job->Priority;
    jcr->store = job->storage;
    jcr->client = job->client;
    if (!jcr->client_name) {
