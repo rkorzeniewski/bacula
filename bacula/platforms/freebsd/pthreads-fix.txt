@@ -11,8 +11,8 @@ PROBLEM DESCRIPTION:
 
 The FreeBSD pthreads library does not properly handle End Of Tape.
 This problem will be fixed in FreeBSD 4.9. (note, the problem
-was apparently not fixed in 4.9, and version prior to 4.10-RELEASE
-and 5.2.1-RELEASE need to be patched. The bug results in more
+was apparently not fixed in 4.9, and versions prior to 4.10-RELEASE
+and 5.2.1-RELEASE need to be patched). The bug results in more
 data being written to the tape than could be read.  Any backup which
 involved more than one tape would be incomplete.
 
@@ -109,6 +109,8 @@ choices to ensure proper backups.  These instructions assume you
 are familiar with patching FreeBSD and already have the FreeBSD
 source code installed on your machine.
 
+For FreeBSD 4.x:
+
 Do one of the following:
 
 - cvsup and build your system to FreeBSD 4.x-STABLE after the
@@ -127,7 +129,30 @@ Do one of the following:
     cd ..
     make all install
 
-You should then recompile Bacula to get the new library
+For FreeBSD 5.x:
+
+Do one of the following:
+
+- cvsup and build your >= 5.2 system to FreeBSD 5.x after the
+  date  Wed Dec 17 16:44:03 2003 UTC
+
+- Apply this patch.
+
+  http://www.freebsd.org/cgi/cvsweb.cgi/src/lib/libc_r/uthread/uthread_write.c.diff?r1=1.22&r2=1.23
+
+ Wed Dec 17 16:44:03 2003 UTC
+
+  To apply the patch, follow these instructions as root.  
+
+    fetch -o pthread.diff 'http://www.freebsd.org/cgi/cvsweb.cgi/src/lib/libc_r/uthread/uthread_write.c.diff?r1=1.22&r2=1.23'
+
+    cd /usr/src/lib/libc_r/uthread/
+    patch < /path/to/pthread.diff
+    cd ..
+    make all install
+
+After patching your system as shown above, 
+you should then recompile Bacula to get the new library
 code included by doing:
 
   cd <bacula-source>
