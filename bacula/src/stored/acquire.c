@@ -32,6 +32,9 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 DCR *new_dcr(JCR *jcr, DEVICE *dev)
 {
+   if (jcr && jcr->dcr) {
+      return jcr->dcr;
+   }
    DCR *dcr = (DCR *)malloc(sizeof(DCR));
    memset(dcr, 0, sizeof(DCR));
    if (jcr) {
