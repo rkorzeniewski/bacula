@@ -111,7 +111,7 @@ because:\n   %s"), dev_name(dev), strerror_dev(dev));
    }
    if (!ok) {
       free_record(record);
-      if (jcr->ignore_label_errors) {
+      if (forge_on || jcr->ignore_label_errors) {
 	 dev->state |= ST_LABEL;      /* set has Bacula label */
          Jmsg(jcr, M_ERROR, 0, "%s", jcr->errmsg);
 	 return jcr->label_status = VOL_OK;
@@ -190,7 +190,9 @@ int unser_volume_label(DEVICE *dev, DEV_RECORD *rec)
 	      FI_to_ascii(rec->FileIndex), 
 	      stream_to_ascii(rec->Stream, rec->FileIndex),
 	      rec->data_len);
-      return 0;
+      if (!forge_on) {
+	 return 0;
+      }
    }
 
    dev->VolHdr.LabelType = rec->FileIndex;
@@ -385,7 +387,9 @@ int write_volume_label_to_dev(JCR *jcr, DEVRES *device, char *VolName, char *Poo
    if (!rewind_dev(dev)) {
       memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
       Dmsg2(30, "Bad status on %s from rewind. ERR=%s\n", dev_name(dev), strerror_dev(dev));
-      return 0;
+      if (!forge_on) {
+	 return 0;
+      }
    }
 
    block = new_block(dev);

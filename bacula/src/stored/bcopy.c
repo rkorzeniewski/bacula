@@ -48,6 +48,7 @@ static DEV_BLOCK *out_block;
 
 #define CONFIG_FILE "bacula-sd.conf"
 char *configfile;
+bool forge_on = true;
 
 
 static void usage()
@@ -106,6 +107,7 @@ int main (int argc, char *argv[])
 
       case 'p':
 	 ignore_label_errors = true;
+	 forge_on = true;
 	 break;
   
       case 'v':

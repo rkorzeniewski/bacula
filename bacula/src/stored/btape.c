@@ -45,6 +45,7 @@ int quit = 0;
 char buf[100000];
 int bsize = TAPE_BSIZE;
 char VolName[MAX_NAME_LENGTH];
+bool forge_on = false;
 
 /*
  * If you change the format of the state file, 
@@ -162,7 +163,7 @@ int main(int margc, char *margv[])
    my_name_is(margc, margv, "btape");
    init_msg(NULL, NULL);
 
-   while ((ch = getopt(margc, margv, "b:c:d:sv?")) != -1) {
+   while ((ch = getopt(margc, margv, "b:c:d:psv?")) != -1) {
       switch (ch) {
       case 'b':                    /* bootstrap file */
 	 bsr = parse_bsr(NULL, optarg);
@@ -181,6 +182,10 @@ int main(int margc, char *margv[])
 	 if (debug_level <= 0) {
 	    debug_level = 1; 
 	 }
+	 break;
+
+      case 'p':
+	 forge_on = true;
 	 break;
 
       case 's':
@@ -2446,6 +2451,7 @@ static void usage()
 "       -b <file>   specify bootstrap file\n"
 "       -c <file>   set configuration file to file\n"
 "       -d <nn>     set debug level to nn\n"
+"       -p          proceed inspite of I/O errors\n"
 "       -s          turn off signals\n"
 "       -v          be verbose\n"
 "       -?          print this message.\n"  

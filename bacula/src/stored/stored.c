@@ -46,7 +46,8 @@ static void *device_allocation(void *arg);
 /* Global variables exported */
 char OK_msg[]   = "3000 OK\n";
 char TERM_msg[] = "3999 Terminate\n";
-STORES *me;			      /* our Global resource */
+STORES *me = NULL;		      /* our Global resource */
+bool forge_on = false;		      /* proceed inspite of I/O errors */
 
 static uint32_t VolSessionId = 0;
 uint32_t VolSessionTime;
@@ -57,18 +58,20 @@ static int foreground = 0;
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static workq_t dird_workq;	      /* queue for processing connections */
 
+
 static void usage()
 {
    fprintf(stderr, _(
 "\nVersion: " VERSION " (" BDATE ")\n\n"
-"Usage: stored [-s -f ] [-c config_file] [-d debug_level]  [config_file]\n"
+"Usage: stored [options] [-c config_file] [config_file]\n"
 "        -c <file>   use <file> as configuration file\n"
 "        -dnn        set debug level to nn\n"
 "        -f          run in foreground (for debugging)\n"
-"        -g          groupid\n"
+"        -g <group>  set groupid to group\n"
+"        -p          proceed despite I/O errors\n"
 "        -s          no signals (for debugging)\n"
 "        -t          test - read config and exit\n"
-"        -u          userid\n"
+"        -u <user>   userid to <user>\n"
 "        -v          verbose user messages\n"
 "        -?          print this message.\n"
 "\n"));
@@ -104,7 +107,7 @@ int main (int argc, char *argv[])
       Emsg1(M_ABORT, 0, "Tape block size (%d) is not a power of 2\n", TAPE_BSIZE);
    }
 
-   while ((ch = getopt(argc, argv, "c:d:fg:stu:v?")) != -1) {
+   while ((ch = getopt(argc, argv, "c:d:fg:pstu:v?")) != -1) {
       switch (ch) {
       case 'c':                    /* configuration file */
 	 if (configfile != NULL) {
@@ -126,6 +129,10 @@ int main (int argc, char *argv[])
 
       case 'g':                    /* set group id */
 	 gid = optarg;
+	 break;
+
+      case 'p':                    /* proceed in spite of I/O errors */
+	 forge_on = true;
 	 break;
 
       case 's':                    /* no signals */

@@ -42,14 +42,13 @@
 #include "jcr.h"
 #include "protos.h"
 #ifdef HAVE_LIBZ
-#include <zlib.h>                     /* compression headers */
+#include <zlib.h>		      /* compression headers */
 #else
 #define uLongf uint32_t
 #endif
 
-extern char errmsg[];                 /* general error message */
-
 extern STORES *me;                    /* "Global" daemon resource */
+extern bool forge_on;		      /* proceed inspite of I/O errors */
 
 #ifdef debug_tracing
 extern int _rewind_dev(char *file, int line, DEVICE *dev);

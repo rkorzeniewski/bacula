@@ -64,7 +64,7 @@ static uint64_t fileAddr = 0;	      /* file write address */
 
 #define CONFIG_FILE "bacula-sd.conf"
 char *configfile;
-
+bool forge_on = false;
 
 static void usage()
 {
@@ -76,6 +76,7 @@ static void usage()
 "       -d <nn>         set debug level to nn\n"
 "       -e <file>       exclude list\n"
 "       -i <file>       include list\n"
+"       -p              proceed inspite of I/O errors\n"
 "       -V <volumes>    specify Volume names (separated by |)\n"
 "       -?              print this message\n\n");
    exit(1);
@@ -97,7 +98,7 @@ int main (int argc, char *argv[])
    init_include_exclude_files(ff);
    binit(&bfd);
 
-   while ((ch = getopt(argc, argv, "b:c:d:e:i:V:?")) != -1) {
+   while ((ch = getopt(argc, argv, "b:c:d:e:i:pV:?")) != -1) {
       switch (ch) {
       case 'b':                    /* bootstrap file */
 	 bsr = parse_bsr(NULL, optarg);
@@ -144,6 +145,10 @@ int main (int argc, char *argv[])
 	 }
 	 fclose(fd);
 	 got_inc = TRUE;
+	 break;
+
+      case 'p':
+	 forge_on = true;
 	 break;
 
       case 'V':                    /* Volume name */
