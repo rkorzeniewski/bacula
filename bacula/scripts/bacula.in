@@ -190,7 +190,7 @@ failure() {
 case "$1" in
     start)
        [ -x ${BACSDBIN}/bacula-sd ] && {
-	  echo "Starting the Storage daemon"
+	  echo "Starting the Bacula Storage daemon"
 	  OPTIONS=''
 	  if [ "${SD_USER}" != '' ]; then
 	     OPTIONS="${OPTIONS} -u ${SD_USER}"
@@ -204,7 +204,7 @@ case "$1" in
        }
 
        [ -x ${BACFDBIN}/bacula-fd ] && {
-	  echo "Starting the File daemon"
+	  echo "Starting the Bacula File daemon"
 	  OPTIONS=''
 	  if [ "${FD_USER}" != '' ]; then
 	     OPTIONS="${OPTIONS} -u ${FD_USER}"
@@ -219,7 +219,7 @@ case "$1" in
 
        [ -x ${BACDIRBIN}/bacula-dir ] && { 
 	   sleep 2
-	   echo "Starting the Director daemon"
+	   echo "Starting the Bacula Director daemon"
 	  OPTIONS=''
 	  if [ "${DIR_USER}" != '' ]; then
 	     OPTIONS="${OPTIONS} -u ${DIR_USER}"
@@ -236,17 +236,17 @@ case "$1" in
     stop)
        # Stop the FD first so that SD will fail jobs and update catalog
        [ -x ${BACFDBIN}/bacula-fd ] && {
-	  echo "Stopping the File daemon"
+	  echo "Stopping the Bacula File daemon"
 	  killproc ${BACFDBIN}/bacula-fd ${FD_PORT}
        }
 
        [ -x ${BACSDBIN}/bacula-sd ] && {
-	  echo "Stopping the Storage daemon"
+	  echo "Stopping the Bacula Storage daemon"
 	  killproc ${BACSDBIN}/bacula-sd ${SD_PORT}
        }
 
        [ -x ${BACDIRBIN}/bacula-dir ] && {
-	  echo "Stopping the Director daemon"
+	  echo "Stopping the Bacula Director daemon"
 	  killproc ${BACDIRBIN}/bacula-dir ${DIR_PORT}
        }
        echo
