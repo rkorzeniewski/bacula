@@ -93,7 +93,7 @@ int unpack_attributes_record(JCR *jcr, int32_t stream, char *rec, ATTR *attr)
    attr->lname = p;		      /* set link position */
    while (*p++ != 0)		      /* skip link */
       { }
-   pm_strcpy(&attr->attrEx, p);       /* copy extended attributes, if any */
+   pm_strcpy(attr->attrEx, p);	      /* copy extended attributes, if any */
 
    if (attr->data_stream) {
       int64_t val;
@@ -121,27 +121,27 @@ void build_attr_output_fnames(JCR *jcr, ATTR *attr)
     * files are put where the user wants.
     *
     * We do a little jig here to handle Win32 files with
-    *	a drive letter -- we simply strip the drive: from
+    *	a drive letter -- we simply change the drive
+    *	from, for example, c: to c/ for
     *	every filename if a prefix is supplied.
     *	  
     */
    if (jcr->where[0] == 0) {
-      pm_strcpy(&attr->ofname, attr->fname);
-      pm_strcpy(&attr->olname, attr->lname);
+      pm_strcpy(attr->ofname, attr->fname);
+      pm_strcpy(attr->olname, attr->lname);
    } else {
       const char *fn;
       int wherelen = strlen(jcr->where);
-      pm_strcpy(&attr->ofname, jcr->where);  /* copy prefix */
+      pm_strcpy(attr->ofname, jcr->where);  /* copy prefix */
       if (win32_client && attr->fname[1] == ':') {
-	 fn = attr->fname+2;	      /* skip over drive: */
-      } else {
-	 fn = attr->fname;	      /* take whole name */
+         attr->fname[1] = '/';     /* convert : to / */
       }
+      fn = attr->fname; 	   /* take whole name */
       /* Ensure where is terminated with a slash */
       if (jcr->where[wherelen-1] != '/' && fn[0] != '/') {
-         pm_strcat(&attr->ofname, "/");
+         pm_strcat(attr->ofname, "/");
       }   
-      pm_strcat(&attr->ofname, fn); /* copy rest of name */
+      pm_strcat(attr->ofname, fn); /* copy rest of name */
       /*
        * Fixup link name -- if it is an absolute path
        */
@@ -152,22 +152,21 @@ void build_attr_output_fnames(JCR *jcr, ATTR *attr)
 	  */
          if (attr->lname[0] == '/' &&
 	     (attr->type == FT_LNKSAVED || jcr->prefix_links)) {
-	    pm_strcpy(&attr->olname, jcr->where);
+	    pm_strcpy(attr->olname, jcr->where);
 	    add_link = true;
 	 } else {
 	    mp_chr(attr->olname)[0] = 0;
 	    add_link = false;
 	 }
          if (win32_client && attr->lname[1] == ':') {
-	    fn = attr->lname+2;     /* skip over drive: */
-	 } else {
-	    fn = attr->lname;	    /* take whole name */
+            attr->lname[1] = '/';    /* turn : into / */
 	 }
+	 fn = attr->lname;	 /* take whole name */
 	 /* Ensure where is terminated with a slash */
          if (add_link && jcr->where[wherelen-1] != '/' && fn[0] != '/') {
-            pm_strcat(&attr->olname, "/");
+            pm_strcat(attr->olname, "/");
 	 }   
-	 pm_strcat(&attr->olname, fn);	   /* copy rest of link */
+	 pm_strcat(attr->olname, fn);	  /* copy rest of link */
       }
    }
 }

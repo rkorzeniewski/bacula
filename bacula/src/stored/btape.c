@@ -72,9 +72,9 @@ static void qfillcmd();
 static void statcmd();
 static void unfillcmd();
 static int flush_block(DEV_BLOCK *block, int dump);
-static bool quickie_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
+static bool quickie_cb(DCR *dcr, DEV_RECORD *rec);
 static bool compare_blocks(DEV_BLOCK *last_block, DEV_BLOCK *block);
-static bool my_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
+static bool my_mount_next_read_volume(DCR *dcr);
 static void scan_blocks();
 static void set_volume_name(const char *VolName, int volnum);
 static void rawfill_cmd();
@@ -253,8 +253,11 @@ int main(int margc, char *margv[])
       exit(1);
    }
 
-   jcr = setup_jcr("btape", margv[0], bsr, NULL);
-   dev = setup_to_access_device(jcr, 0);     /* acquire for write */
+   jcr = setup_jcr("btape", margv[0], bsr, NULL, 0); /* write */
+   if (!jcr) {
+      exit(1);
+   }
+   dev = jcr->dcr->dev;
    if (!dev) {
       exit(1);
    }
@@ -320,8 +323,8 @@ static bool open_the_device()
    block = new_block(dev);
    lock_device(dev);
    if (!(dev->state & ST_OPENED)) {
-      Dmsg1(200, "Opening device %s\n", jcr->VolumeName);
-      if (open_dev(dev, jcr->VolumeName, OPEN_READ_WRITE) < 0) {
+      Dmsg1(200, "Opening device %s\n", dcr->VolumeName);
+      if (open_dev(dev, dcr->VolumeName, OPEN_READ_WRITE) < 0) {
          Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), dev->errmsg);
 	 unlock_device(dev);
 	 free_block(block);
@@ -370,10 +373,8 @@ static void readlabelcmd()
 {
    int save_debug_level = debug_level;
    int stat;
-   DEV_BLOCK *block;
 
-   block = new_block(dev);
-   stat = read_dev_volume_label(dcr, block);
+   stat = read_dev_volume_label(dcr);
    switch (stat) {
    case VOL_NO_LABEL:
       Pmsg0(0, "Volume has no label.\n");
@@ -404,7 +405,6 @@ static void readlabelcmd()
    debug_level = 20;
    dump_volume_label(dev); 
    debug_level = save_debug_level;
-   free_block(block);
 }
 
 
@@ -629,7 +629,7 @@ static void rectestcmd()
  */
 static int re_read_block_test()
 {
-   DEV_BLOCK *block;
+   DEV_BLOCK *block = dcr->block;
    DEV_RECORD *rec;
    int stat = 0;
    int len;
@@ -646,7 +646,6 @@ static int re_read_block_test()
       "tape to verify that the block was written correctly.\n\n"
       "This is not an *essential* feature ...\n\n")); 
    rewindcmd();
-   block = new_block(dev);
    rec = new_record();
    rec->data = check_pool_memory_size(rec->data, block->buf_len);
    len = rec->data_len = block->buf_len-100;
@@ -655,7 +654,7 @@ static int re_read_block_test()
       Pmsg0(0, _("Error writing record to block.\n")); 
       goto bail_out;
    }
-   if (!write_block_to_dev(dcr, block)) {
+   if (!write_block_to_dev(dcr)) {
       Pmsg0(0, _("Error writing block to device.\n")); 
       goto bail_out;
    } else {
@@ -666,7 +665,7 @@ static int re_read_block_test()
       Pmsg0(0, _("Error writing record to block.\n")); 
       goto bail_out;
    }
-   if (!write_block_to_dev(dcr, block)) {
+   if (!write_block_to_dev(dcr)) {
       Pmsg0(0, _("Error writing block to device.\n")); 
       goto bail_out;
    } else {
@@ -677,7 +676,7 @@ static int re_read_block_test()
       Pmsg0(0, _("Error writing record to block.\n")); 
       goto bail_out;
    }
-   if (!write_block_to_dev(dcr, block)) {
+   if (!write_block_to_dev(dcr)) {
       Pmsg0(0, _("Error writing block to device.\n")); 
       goto bail_out;
    } else {
@@ -703,7 +702,7 @@ static int re_read_block_test()
       goto bail_out;
    }
    Pmsg0(0, "Backspace record OK.\n");
-   if (!read_block_from_dev(dcr, block, NO_BLOCK_NUMBER_CHECK)) {
+   if (!read_block_from_dev(dcr, NO_BLOCK_NUMBER_CHECK)) {
       Pmsg1(0, _("Read block failed! ERR=%s\n"), strerror(dev->dev_errno));
       goto bail_out;
    }
@@ -724,7 +723,6 @@ static int re_read_block_test()
    stat = 1;
 
 bail_out:
-   free_block(block);
    free_record(rec);
    if (stat == 0) {
       Pmsg0(0, _("This is not terribly serious since Bacula only uses\n"
@@ -774,7 +772,7 @@ static int write_read_test()
          Pmsg0(0, _("Error writing record to block.\n")); 
 	 goto bail_out;
       }
-      if (!write_block_to_dev(dcr, block)) {
+      if (!write_block_to_dev(dcr)) {
          Pmsg0(0, _("Error writing block to device.\n")); 
 	 goto bail_out;
       }
@@ -790,7 +788,7 @@ static int write_read_test()
          Pmsg0(0, _("Error writing record to block.\n")); 
 	 goto bail_out;
       }
-      if (!write_block_to_dev(dcr, block)) {
+      if (!write_block_to_dev(dcr)) {
          Pmsg0(0, _("Error writing block to device.\n")); 
 	 goto bail_out;
       }
@@ -808,7 +806,7 @@ static int write_read_test()
    }
    for (i=1; i<=2000; i++) {
 read_again:
-      if (!read_block_from_dev(dcr, block, NO_BLOCK_NUMBER_CHECK)) {
+      if (!read_block_from_dev(dcr, NO_BLOCK_NUMBER_CHECK)) {
 	 if (dev_state(dev, ST_EOF)) {
             Pmsg0(-1, _("Got EOF on tape.\n"));
 	    goto read_again;
@@ -882,7 +880,7 @@ static int position_test()
          Pmsg0(0, _("Error writing record to block.\n")); 
 	 goto bail_out;
       }
-      if (!write_block_to_dev(dcr, block)) {
+      if (!write_block_to_dev(dcr)) {
          Pmsg0(0, _("Error writing block to device.\n")); 
 	 goto bail_out;
       }
@@ -898,7 +896,7 @@ static int position_test()
          Pmsg0(0, _("Error writing record to block.\n")); 
 	 goto bail_out;
       }
-      if (!write_block_to_dev(dcr, block)) {
+      if (!write_block_to_dev(dcr)) {
          Pmsg0(0, _("Error writing block to device.\n")); 
 	 goto bail_out;
       }
@@ -958,7 +956,7 @@ static int position_test()
 	 goto bail_out;
       }
 read_again:
-      if (!read_block_from_dev(dcr, block, NO_BLOCK_NUMBER_CHECK)) {
+      if (!read_block_from_dev(dcr, NO_BLOCK_NUMBER_CHECK)) {
 	 if (dev_state(dev, ST_EOF)) {
             Pmsg0(-1, _("Got EOF on tape.\n"));
 	    goto read_again;
@@ -1095,7 +1093,7 @@ static int autochanger_test()
 
 try_again:
    slot = 1;
-   jcr->VolCatInfo.Slot = slot;
+   dcr->VolCatInfo.Slot = slot;
    /* Find out what is loaded, zero means device is unloaded */
    Pmsg0(-1, _("3301 Issuing autochanger \"loaded\" command.\n"));
    changer = edit_device_codes(jcr, changer, jcr->device->changer_command, 
@@ -1118,7 +1116,7 @@ try_again:
    }
    Dmsg1(100, "Results from loaded query=%s\n", results);
    if (loaded) {
-      jcr->VolCatInfo.Slot = loaded;
+      dcr->VolCatInfo.Slot = loaded;
       offline_or_rewind_dev(dev);
       /* We are going to load a new tape, so close the device */
       force_close_dev(dev);
@@ -1141,7 +1139,7 @@ try_again:
     */
    
    slot = 1;
-   jcr->VolCatInfo.Slot = slot;
+   dcr->VolCatInfo.Slot = slot;
    Pmsg2(-1, _("3303 Issuing autochanger \"load slot %d %d\" command.\n"), 
       slot, dev->drive_index);
    changer = edit_device_codes(jcr, changer, jcr->device->changer_command, "load");
@@ -1457,13 +1455,11 @@ static void fsrcmd()
  */
 static void wrcmd()
 {
-   DEV_BLOCK *block;
-   DEV_RECORD *rec;
+   DEV_BLOCK *block = dcr->block;
+   DEV_RECORD *rec = dcr->rec;
    int i;
 
    sm_check(__FILE__, __LINE__, false);
-   block = new_block(dev);
-   rec = new_record();
    dump_block(block, "test");
 
    i = block->buf_len - 100;
@@ -1476,7 +1472,7 @@ static void wrcmd()
       Pmsg0(0, _("Error writing record to block.\n")); 
       goto bail_out;
    }
-   if (!write_block_to_dev(dcr, block)) {
+   if (!write_block_to_dev(dcr)) {
       Pmsg0(0, _("Error writing block to device.\n")); 
       goto bail_out;
    } else {
@@ -1486,8 +1482,6 @@ static void wrcmd()
 
 bail_out:
    sm_check(__FILE__, __LINE__, false);
-   free_record(rec);
-   free_block(block);
    sm_check(__FILE__, __LINE__, false);
 }
 
@@ -1612,7 +1606,7 @@ static void scan_blocks()
    update_pos_dev(dev);
    tot_files = dev->file;
    for (;;) {
-      if (!read_block_from_device(dcr, block, NO_BLOCK_NUMBER_CHECK)) {
+      if (!read_block_from_device(dcr, NO_BLOCK_NUMBER_CHECK)) {
          Dmsg1(100, "!read_block(): ERR=%s\n", strerror_dev(dev));
 	 if (dev->state & ST_EOT) {
 	    if (blocks > 0) {
@@ -1698,7 +1692,7 @@ static void statcmd()
 static void fillcmd()
 {
    DEV_RECORD rec;
-   DEV_BLOCK  *block;
+   DEV_BLOCK  *block = dcr->block;
    char ec1[50];
    int fd;
    uint32_t i;
@@ -1764,7 +1758,7 @@ This may take a long time -- hours! ...\n\n");
    /*
     * Write Begin Session Record
     */
-   if (!write_session_label(dcr, block, SOS_LABEL)) {
+   if (!write_session_label(dcr, SOS_LABEL)) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       Jmsg1(jcr, M_FATAL, 0, _("Write session label failed. ERR=%s\n"),
 	 strerror_dev(dev));
@@ -1881,12 +1875,12 @@ This may take a long time -- hours! ...\n\n");
       } else if (!ok) {
 	 set_jcr_job_status(jcr, JS_ErrorTerminated);
       }
-      if (!write_session_label(dcr, block, EOS_LABEL)) {
+      if (!write_session_label(dcr, EOS_LABEL)) {
          Pmsg1(000, _("Error writting end session label. ERR=%s\n"), strerror_dev(dev));
 	 ok = false;
       }
       /* Write out final block of this session */
-      if (!write_block_to_device(dcr, block)) {
+      if (!write_block_to_device(dcr)) {
          Pmsg0(-1, _("Set ok=false after write_block_to_device.\n"));
 	 ok = false;
       }
@@ -1979,13 +1973,12 @@ static void unfillcmd()
 
 static void do_unfill()
 {
-   DEV_BLOCK *block;
+   DEV_BLOCK *block = dcr->block;
    bool autochanger;
 
    dumped = 0;
    VolBytes = 0;
    LastBlock = 0;
-   block = new_block(dev);
 
    Dmsg0(20, "Enter do_unfill\n");
    dev->capabilities |= CAP_ANONVOLS; /* allow reading any volume */
@@ -2041,7 +2034,7 @@ static void do_unfill()
       Pmsg1(-1, "Reposition error. ERR=%s\n", strerror_dev(dev));
    }
    Pmsg1(-1, _("Reading block %u.\n"), last_block_num);
-   if (!read_block_from_device(dcr, block, NO_BLOCK_NUMBER_CHECK)) {
+   if (!read_block_from_device(dcr, NO_BLOCK_NUMBER_CHECK)) {
       Pmsg1(-1, _("Error reading block: ERR=%s\n"), strerror_dev(dev));
       goto bail_out;
    }
@@ -2092,7 +2085,7 @@ static void do_unfill()
       goto bail_out;
    }
    Pmsg1(-1, _("Reading block %d.\n"), dev->block_num);
-   if (!read_block_from_device(dcr, block, NO_BLOCK_NUMBER_CHECK)) {
+   if (!read_block_from_device(dcr, NO_BLOCK_NUMBER_CHECK)) {
       Pmsg1(-1, _("Error reading block: ERR=%s\n"), strerror_dev(dev));
       goto bail_out;
    }
@@ -2108,7 +2101,7 @@ static void do_unfill()
       goto bail_out;
    }
    Pmsg1(-1, _("Reading block %d.\n"), dev->block_num);
-   if (!read_block_from_device(dcr, block, NO_BLOCK_NUMBER_CHECK)) {
+   if (!read_block_from_device(dcr, NO_BLOCK_NUMBER_CHECK)) {
       Pmsg1(-1, _("Error reading block: ERR=%s\n"), strerror_dev(dev));
       goto bail_out;
    }
@@ -2117,14 +2110,13 @@ static void do_unfill()
    }
 
 bail_out:
-   free_block(block);
    free_block(last_block1);
    free_block(last_block2);
    free_block(first_block);
 }
 
 /* Read 1000 records then stop */
-static bool quickie_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
+static bool quickie_cb(DCR *dcr, DEV_RECORD *rec)
 {
    quickie_count++;
    return quickie_count <= 1000;
@@ -2190,7 +2182,7 @@ static int flush_block(DEV_BLOCK *block, int dump)
    /* Copy block */
    this_file = dev->file;
    this_block_num = dev->block_num;
-   if (!write_block_to_dev(dcr, block)) {
+   if (!write_block_to_dev(dcr)) {
       Pmsg3(000, "Last block at: %u:%u this_dev_block_num=%d\n", 
 		  last_file, last_block_num, this_block_num);
       if (vol_num == 1) {
@@ -2231,7 +2223,7 @@ static int flush_block(DEV_BLOCK *block, int dump)
 	 stop = -1;		      /* stop, but do simplified test */
       } else {
 	 /* Full test in progress */
-	 if (!fixup_device_block_write_error(jcr->dcr, block)) {
+	 if (!fixup_device_block_write_error(jcr->dcr)) {
             Pmsg1(000, _("Cannot fixup device error. %s\n"), strerror_dev(dev));
 	    ok = false;
 	    unlock_device(dev);
@@ -2268,8 +2260,8 @@ static int flush_block(DEV_BLOCK *block, int dump)
  */			       
 static void qfillcmd()
 {
-   DEV_BLOCK *block;
-   DEV_RECORD *rec;
+   DEV_BLOCK *block = dcr->block;
+   DEV_RECORD *rec = dcr->rec;
    int i, count;
 
    Pmsg0(0, "Test writing blocks of 64512 bytes to tape.\n");
@@ -2282,8 +2274,6 @@ static void qfillcmd()
    }
 
    sm_check(__FILE__, __LINE__, false);
-   block = new_block(dev);
-   rec = new_record();
 
    i = block->buf_len - 100;
    ASSERT (i > 0);
@@ -2301,7 +2291,7 @@ static void qfillcmd()
          Pmsg0(0, _("Error writing record to block.\n")); 
 	 goto bail_out;
       }
-      if (!write_block_to_dev(dcr, block)) {
+      if (!write_block_to_dev(dcr)) {
          Pmsg0(0, _("Error writing block to device.\n")); 
 	 goto bail_out;
       }
@@ -2316,10 +2306,6 @@ static void qfillcmd()
 
 bail_out:
    sm_check(__FILE__, __LINE__, false);
-   free_record(rec);
-   free_block(block);
-   sm_check(__FILE__, __LINE__, false);
-
 }
 
 /*
@@ -2327,7 +2313,7 @@ bail_out:
  */
 static void rawfill_cmd()
 {
-   DEV_BLOCK *block;
+   DEV_BLOCK *block = dcr->block;
    int stat;
    int fd;
    uint32_t block_num = 0;
@@ -2335,7 +2321,6 @@ static void rawfill_cmd()
    int my_errno;
    uint32_t i;
 
-   block = new_block(dev);
    fd = open("/dev/urandom", O_RDONLY);
    if (fd) {
       read(fd, block->buf, block->buf_len);
@@ -2370,7 +2355,6 @@ static void rawfill_cmd()
    printf("Write failed at block %u. stat=%d ERR=%s\n", block_num, stat,
       strerror(my_errno));
    weofcmd();
-   free_block(block);
 }
 
 
@@ -2379,14 +2363,13 @@ static void rawfill_cmd()
  */
 static void bfill_cmd()
 {
-   DEV_BLOCK *block;
+   DEV_BLOCK *block = dcr->block;
    uint32_t block_num = 0;
    uint32_t *p;
    int my_errno;
    int fd;   
    uint32_t i;
 
-   block = new_block(dev);
    fd = open("/dev/urandom", O_RDONLY);
    if (fd) {
       read(fd, block->buf, block->buf_len);
@@ -2404,7 +2387,7 @@ static void bfill_cmd()
       *p = block_num;
       block->binbuf = block->buf_len;
       block->bufp = block->buf + block->binbuf;
-      if (!write_block_to_dev(dcr, block)) {
+      if (!write_block_to_dev(dcr)) {
 	 break;
       }
       if ((block_num++ % 100) == 0) {
@@ -2420,7 +2403,6 @@ static void bfill_cmd()
    printf("\n");
    printf("Write failed at block %u.\n", block_num);     
    weofcmd();
-   free_block(block);
 }
 
 
@@ -2553,9 +2535,8 @@ bool dir_update_volume_info(DCR *dcr, bool relabel)
 
 bool dir_get_volume_info(DCR *dcr, enum get_vol_info_rw  writing)	      
 {
-   JCR *jcr = dcr->jcr;
    Dmsg0(20, "Enter dir_get_volume_info\n");
-   bstrncpy(jcr->VolCatInfo.VolCatName, jcr->VolumeName, sizeof(jcr->VolCatInfo.VolCatName));
+   bstrncpy(dcr->VolCatInfo.VolCatName, dcr->VolumeName, sizeof(dcr->VolCatInfo.VolCatName));
    return 1;
 }
 
@@ -2568,17 +2549,15 @@ bool dir_create_jobmedia_record(DCR *dcr)
 
 bool dir_find_next_appendable_volume(DCR *dcr) 
 { 
-   JCR *jcr = dcr->jcr;
    Dmsg1(20, "Enter dir_find_next_appendable_volume. stop=%d\n", stop);
-   return jcr->VolumeName[0] != 0;
+   return dcr->VolumeName[0] != 0;
 }
 
 bool dir_ask_sysop_to_mount_volume(DCR *dcr)
 {
    DEVICE *dev = dcr->dev;
-   JCR *jcr = dcr->jcr;
    Dmsg0(20, "Enter dir_ask_sysop_to_mount_volume\n");
-   if (jcr->VolumeName[0] == 0) {
+   if (dcr->VolumeName[0] == 0) {
       return dir_ask_sysop_to_create_appendable_volume(dcr);
    }
    /* Close device so user can use autochanger if desired */
@@ -2587,12 +2566,12 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
    }
    force_close_dev(dev);
    Pmsg1(-1, "%s", dev->errmsg);           /* print reason */
-   if (jcr->VolumeName[0] == 0 || strcmp(jcr->VolumeName, "TestVolume2") == 0) {
+   if (dcr->VolumeName[0] == 0 || strcmp(dcr->VolumeName, "TestVolume2") == 0) {
       fprintf(stderr, "Mount second Volume on device %s and press return when ready: ",
 	 dev_name(dev));
    } else {
       fprintf(stderr, "Mount Volume \"%s\" on device %s and press return when ready: ",
-	 jcr->VolumeName, dev_name(dev));
+	 dcr->VolumeName, dev_name(dev));
    }
    getchar();	
    return true;
@@ -2602,7 +2581,6 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
 {
    bool autochanger;
    DEVICE *dev = dcr->dev;
-   JCR *jcr = dcr->jcr;
    Dmsg0(20, "Enter dir_ask_sysop_to_create_appendable_volume\n");
    if (stop == 0) {
       set_volume_name("TestVolume1", 1);
@@ -2620,19 +2598,21 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
 	 dev_name(dev));
       getchar();   
    }
-   open_device(jcr, dev);
+   open_device(dcr);
    labelcmd();
    VolumeName = NULL;
    BlockNumber = 0;
    return true;
 }
 
-static bool my_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
+static bool my_mount_next_read_volume(DCR *dcr)
 {
    char ec1[50];
+   JCR *jcr = dcr->jcr;
+   DEV_BLOCK *block = dcr->block;
 
    Dmsg0(20, "Enter my_mount_next_read_volume\n");
-   Pmsg1(000, "End of Volume \"%s\"\n", jcr->VolumeName);
+   Pmsg1(000, "End of Volume \"%s\"\n", dcr->VolumeName);
 
    if (LastBlock != block->BlockNumber) {
       VolBytes += block->block_len;
@@ -2647,7 +2627,7 @@ static bool my_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    Pmsg3(-1, "Read block=%u, VolBytes=%s rate=%.1f KB/s\n", block->BlockNumber,
 	    edit_uint64_with_commas(VolBytes, ec1), (float)kbs);
 
-   if (strcmp(jcr->VolumeName, "TestVolume2") == 0) {
+   if (strcmp(dcr->VolumeName, "TestVolume2") == 0) {
       end_of_tape = 1;
       return false;
    }
@@ -2659,7 +2639,7 @@ static bool my_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    close_dev(dev);
    dev->state &= ~ST_READ; 
    if (!acquire_device_for_read(jcr)) {
-      Pmsg2(0, "Cannot open Dev=%s, Vol=%s\n", dev_name(dev), jcr->VolumeName);
+      Pmsg2(0, "Cannot open Dev=%s, Vol=%s\n", dev_name(dev), dcr->VolumeName);
       return false;
    }
    return true; 		   /* next volume mounted */
@@ -2670,11 +2650,8 @@ static void set_volume_name(const char *VolName, int volnum)
    DCR *dcr = jcr->dcr;
    VolumeName = VolName;
    vol_num = volnum;
-   pm_strcpy(&jcr->VolumeName, VolName);
    bstrncpy(dev->VolCatInfo.VolCatName, VolName, sizeof(dev->VolCatInfo.VolCatName));
-   bstrncpy(jcr->VolCatInfo.VolCatName, VolName, sizeof(jcr->VolCatInfo.VolCatName));
    bstrncpy(dcr->VolCatInfo.VolCatName, VolName, sizeof(dcr->VolCatInfo.VolCatName));
    bstrncpy(dcr->VolumeName, VolName, sizeof(dcr->VolumeName));
-   jcr->VolCatInfo.Slot = volnum;
    dcr->VolCatInfo.Slot = volnum;
 }

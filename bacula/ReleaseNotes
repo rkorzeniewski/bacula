@@ -1,9 +1,9 @@
 
-          Release Notes for Bacula 1.35.2
+          Release Notes for Bacula 1.35.3
 
   Bacula code: Total files = 395 Total lines = 115,062 (*.h *.c *.in)
 
-Changes for 1.35.1
+Changes for 1.35.3
 Major Changes:
 - Tray monitor program
 - Bacula Rescue CDROM     
@@ -20,16 +20,87 @@ Items to note!!!
 - Regular expressions are not implemented in the Win32 FD.
 
 Other Items:
+- See below
+
+Changes to 1.35.3:
+09Sep04
+- Add "Multiple Connections = yes/no" in catalog record. Only
+  the variable is implemented, no code yet.
+- Close *all* FD unless debug on. 
+08Sep04
+- Add first cut of UTF-8 support to conio. It "seems" to be working
+  pretty well. Moving by words will definitely not work though.
+- Improve detection and setting of gateway in the 
+  network_start script.
+07Sep04
+- Modify scan code so that in most places scanning will
+  continue across the end of a line.
+05Sep04
+- Begin major phase of 1.35 documentation.
+- All outstanding bugs are fixed.
+- Implement changes and improvements to rescue scripts as
+  proposed by Gaurav.
+05Sep04
+- Add correction to Phil's previous patch.
+- Send all queued messages in SD and FD prior to closing down    
+  the job.
+- Send queued messages in Jobs before terminating the job 
+  so that the messages print before the job report.
+- Add a destructor so that the Console ACLs are properly
+  freed.
+04Sep04
+- Implement isolinux boot disk.
+- Integrate Phil Stracchino's code (thanks for Matt's help).
+  It permits lists and ranges of jobids on the delete as in:
+  delete job jobid=1,3,5,11-16
+03Sep04
+- Apply Mike Acar's suggestion when looking for the next volume
+  to check purged volumes for recycling before doing a purge.
+- Make some improvements to CDROM disk.
+- Take another crack at ignoring drive open() errors during
+  polling.
+02Sep04
+- Add eliminate orphaned job records; eliminate admin records,
+  and eliminate restore records to dbcheck.
+- replace sprintf by bsnprintf() in dbcheck.
+- Added scan target to makefile in rescue cd to print scsi
+  devices.
+- Added argument to berrno::strerror() to pass errno.
+- Cleaned up a few more old strerror() calls and eliminated a
+  few of the now unnecessary set_errno() calls.
+- Fixed a bug in the polling code that prevented more than 100
+  label reads (insanity check disabled if polling).
+- Ignore bad return from open_device() if polling.
+- Short circuit code if fatal error return from read_label() in
+  mount.c
+01Sep04
+- Add index file to JobId field of File records for PostgreSQL.
+- Correct several bugs in the job queue scheduler concerning   
+  rescheduled jobs: 1. The SD status was not cleared causing a
+  wrong status to be displayed by Dir after rescheduling. 2. All
+  rescheduled jobs became zombies because the jcr use_count was
+  not decremented properly.
+- Make the Catalog resource required in Client records.
+- Order the listing of where a file is (item 2 on the restore
+  menu) by StartTime.
+- Clarify when a filename only and a full path + filename must
+  be entered in items 2 and 8 of the restore menu.
 - Fix logic error in resolution of names on IPv4 systems.
+
+Changes to 1.35.2 released 01Sep04:
+30Aug04
 - Inhibit printing of FileSet for a restore as it is misleading.
 - Cleaned up a number of minor scripting problems with the CDROM
   creation.
 - Fixed a race condition causing a Director crash on termination,
   if a large number of SIGHUPs were sent during a multiple concurrent
   set of backups.
+28Aug04
 - Completed integration of Rescue CD scripts with Bacula source.
+28Aug04
 - Added Ignore FileSet Changes = yes
 - Added more error checking to the spooling code.
+24Aug04
 - Applied a patch from Peter Eriksson that removes a dynamic stack
   allocation (replaced by alloca) and fixes some const problems.
 - Fixed a free() of a static variable in the new IP code bnet.c
@@ -40,12 +111,49 @@ Other Items:
 - Changed a Dmsgx(000, to Dmsgx(100 in dev.c that was dumping
   debug output on a user.
 - Integrated patch from 1.34.6 block.c to 1.35
+17Aug04
 - Fix conio.c problem on Solaris.
 - Add debug code to lock_jcr_chain().
 - Lock jcr chain around less code.
 - Implement call by reference for Mmsg() and pm_strxxx() to
   simplify calls.
+- New IP address specification is used as follows:
+    [sdaddresses|diraddresses|fdaddresses] = { [[ip|ipv4|ipv6] = { 
+           [[addr|port] = [^ ]+[\n;]+] }] }
 
+  so it could look for example like this:
+     SDaddresses  = { ip = {
+            addr = 1.2.3.4; port = 1205; }
+        ipv4 = {
+            addr = 1.2.3.4; port = http; }
+        ipv6 = {
+            addr = 1.2.3.4;
+            port = 1205;
+        }
+        ip = {
+            addr = 1.2.3.4
+            port = 1205
+        }
+        ip = {
+            addr = 1.2.3.4
+        }
+        ip = {
+            addr = 2001:220:222::2
+        }
+        ip = {
+            addr = bluedot.thun.net
+        }
+     }
+  as a consequence, you can now specify multiple IP addresses and
+  ports to be used. In the case of a server, it will listen on
+  all those that you specify. In the case of connecting to the server,
+  Bacula will attempt connecting to one at a time until it succeeds.
+  And, in a few other special cases, Bacula will use only the first
+  address specified.
+
+  The default port numbers are still the same and the services and hosts 
+  are also resolved by name. So now  you could use the real names for the 
+  port numbers.
 
 Release 1.35.1 16 August 2004:
 - Added Tape Alert feature (see Alert Command).

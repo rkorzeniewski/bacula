@@ -52,7 +52,7 @@ static char Dir_sorry[]  = "1999 You are not authorized.\n";
 /*
  * Authenticate Storage daemon connection
  */
-int authenticate_storage_daemon(JCR *jcr)
+bool authenticate_storage_daemon(JCR *jcr, STORE *store) 
 {
    BSOCK *sd = jcr->store_bsock;
    char dirname[MAX_NAME_LENGTH];
@@ -63,15 +63,15 @@ int authenticate_storage_daemon(JCR *jcr)
     */
    bstrncpy(dirname, director->hdr.name, sizeof(dirname));
    bash_spaces(dirname);
-   /* Timeout Hello after 5 mins */
-   btimer_t *tid = start_bsock_timer(sd, 60 * 5);
+   /* Timeout Hello after 1 min */
+   btimer_t *tid = start_bsock_timer(sd, 60);
    if (!bnet_fsend(sd, hello, dirname)) {
       stop_bsock_timer(tid);
       Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to Storage daemon. ERR=%s\n"), bnet_strerror(sd));
       return 0;
    }
-   if (!cram_md5_get_auth(sd, jcr->store->password, ssl_need) || 
-       !cram_md5_auth(sd, jcr->store->password, ssl_need)) {
+   if (!cram_md5_get_auth(sd, store->password, ssl_need) || 
+       !cram_md5_auth(sd, store->password, ssl_need)) {
       stop_bsock_timer(tid);
       Jmsg0(jcr, M_FATAL, 0, _("Director and Storage daemon passwords or names not the same.\n"   
        "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"));

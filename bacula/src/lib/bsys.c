@@ -45,12 +45,30 @@ char *bstrncpy(char *dest, const char *src, int maxlen)
    return dest;
 }
 
+/*
+ * Guarantee that the string is properly terminated */
+char *bstrncpy(char *dest, POOL_MEM &src, int maxlen)
+{
+   strncpy(dest, src.c_str(), maxlen-1);
+   dest[maxlen-1] = 0;
+   return dest;
+}
+
+
 char *bstrncat(char *dest, const char *src, int maxlen)
 {
    strncat(dest, src, maxlen-1);
    dest[maxlen-1] = 0;
    return dest;
 }
+
+char *bstrncat(char *dest, POOL_MEM &src, int maxlen)
+{
+   strncat(dest, src.c_str(), maxlen-1);
+   dest[maxlen-1] = 0;
+   return dest;
+}
+
 
 
 #ifndef DEBUG

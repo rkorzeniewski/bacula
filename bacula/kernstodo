@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                   08 Septermber 2004
+                   17 Septermber 2004
 
 Major development:      
 Project                     Developer
@@ -11,16 +11,12 @@ Version 1.35                Kern (see below)
 ========================================================
 
 1.35 Items to do for release:
-- Restore c: with a prefix into /prefix/c/ to prevent c: and d:
-  files with the same name from overwritting each other.
-- Add new DCR calling sequences everywhere in SD. This will permit 
-  simultaneous use of multiple devices by a single job.
+- Backspace to beginning of line (conio) does not erase first char.
 
 - Document a get out of jail procedure if everything breaks if 
   you lost/broke the Catalog -- do the same for "I know my
   file is there how do I get it back?".
 
-- Add "Multiple connections = yes/no" to catalog resource.
 - Add "Rerun failed levels = yes/no" to Job resource.
 
    
@@ -363,6 +359,11 @@ Wish list:
    from one backup Volume to another.
 
 - New Storage specifications:
+  - Want to write to multiple storage devices simultaneously
+  - Want to write to multiple storage devices sequentially (in one job)
+  - Want to read/write simultaneously
+  - Key is MediaType -- it must match
+
   Passed to SD as a sort of BSR record called Storage Specification
     Record or SSR.
     SSR                    
@@ -370,7 +371,6 @@ Wish list:
       MediaType -> Next MediaType
       Pool -> Next Pool
       Device -> Next Device
-  Write Copy Resource that makes a copy of a resource.
   Job Resource
      Allow multiple Storage specifications
      New flags
@@ -382,8 +382,8 @@ Wish list:
   Storage
      Allow Multiple Pool specifications (note, Pool currently
        in Job resource).
-     Allow Multiple MediaType specifications
-     Allow Multiple Device specifications
+     Allow Multiple MediaType specifications in Dir conf
+     Allow Multiple Device specifications in Dir conf
      Perhaps keep this in a single SSR
   Tie a Volume to a specific device by using a MediaType that 
     is contained in only one device.
@@ -1346,5 +1346,9 @@ Block Position: 0
   forces the resolution to be only ipv6.
 - Fix silly restriction requiring Include { Options { xxx } } to be
   on separate lines.
+- Restore c: with a prefix into /prefix/c/ to prevent c: and d:
+  files with the same name from overwritting each other.
+- Add "Multiple connections = yes/no" to catalog resource.
+- Add new DCR calling sequences everywhere in SD. This will permit 
+  simultaneous use of multiple devices by a single job.
 
- 

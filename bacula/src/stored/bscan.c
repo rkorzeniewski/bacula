@@ -36,7 +36,7 @@
 
 /* Forward referenced functions */
 static void do_scan(void);
-static bool record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
+static bool record_cb(DCR *dcr, DEV_RECORD *rec);
 static int  create_file_attributes_record(B_DB *db, JCR *mjcr, 
 			       char *fname, char *lname, int type,
 			       char *ap, DEV_RECORD *rec);
@@ -250,11 +250,11 @@ int main (int argc, char *argv[])
 	 working_directory);
    }
 
-   bjcr = setup_jcr("bscan", argv[0], bsr, VolumeName);
-   dev = setup_to_access_device(bjcr, 1);   /* read device */
-   if (!dev) { 
+   bjcr = setup_jcr("bscan", argv[0], bsr, VolumeName, 1); /* read device */
+   if (!bjcr) { 
       exit(1);
    }
+   dev = bjcr->dcr->dev;
    if (showProgress) {
       struct stat sb;
       fstat(dev->fd, &sb);
@@ -262,7 +262,8 @@ int main (int argc, char *argv[])
       Pmsg1(000, _("Current Volume Size = %" llu "\n"), currentVolumeSize);
    }
 
-   if ((db=db_init_database(NULL, db_name, db_user, db_password, db_host, 0, NULL)) == NULL) {
+   if ((db=db_init_database(NULL, db_name, db_user, db_password, 
+	db_host, 0, NULL, 0)) == NULL) {
       Emsg0(M_ERROR_TERM, 0, _("Could not init Bacula database\n"));
    }
    if (!db_open_database(NULL, db)) {
@@ -288,12 +289,13 @@ int main (int argc, char *argv[])
  *   the end of writing a tape by wiffling through the attached
  *   jcrs creating jobmedia records.
  */
-static bool bscan_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
+static bool bscan_mount_next_read_volume(DCR *dcr)
 {
+   DEVICE *dev = dcr->dev;
+   DCR *mdcr;
    Dmsg1(100, "Walk attached jcrs. Volume=%s\n", dev->VolCatInfo.VolCatName);
-   DCR *dcr;
-   foreach_dlist(dcr, dev->attached_dcrs) {
-      JCR *mjcr = dcr->jcr;
+   foreach_dlist(mdcr, dev->attached_dcrs) {
+      JCR *mjcr = mdcr->jcr;
       if (mjcr->JobId == 0) {
 	 continue;
       }
@@ -301,11 +303,11 @@ static bool bscan_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block
          Pmsg1(000, _("Create JobMedia for Job %s\n"), mjcr->Job);
       }
       if (dev->state & ST_TAPE) {
-	 dcr->EndBlock = dev->EndBlock;
-	 dcr->EndFile = dev->EndFile;
+	 mdcr->EndBlock = dev->EndBlock;
+	 mdcr->EndFile = dev->EndFile;
       } else {
-	 dcr->EndBlock = (uint32_t)dev->file_addr;
-	 dcr->EndFile = (uint32_t)(dev->file_addr >> 32);
+	 mdcr->EndBlock = (uint32_t)dev->file_addr;
+	 mdcr->EndFile = (uint32_t)(dev->file_addr >> 32);
       }
       if (!create_jobmedia_record(db, mjcr)) {
          Pmsg2(000, _("Could not create JobMedia record for Volume=%s Job=%s\n"),
@@ -316,7 +318,7 @@ static bool bscan_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block
     * we call mount_next... with bscan's jcr because that is where we
     * have the Volume list, but we get attached.
     */
-   bool stat = mount_next_read_volume(jcr, dev, block);
+   bool stat = mount_next_read_volume(dcr);
 
    if (showProgress) {
       struct stat sb;
@@ -341,7 +343,6 @@ static void do_scan()
    /* Detach bscan's jcr as we are not a real Job on the tape */
 
    read_records(bjcr->dcr, record_cb, bscan_mount_next_read_volume);
-// release_device(bjcr);
 
    free_attr(attr);
 }
@@ -350,11 +351,13 @@ static void do_scan()
  * Returns: true  if OK
  *	    false if error
  */
-static bool record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
+static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 {
    JCR *mjcr;
-   DCR *dcr;
    char ec1[30];
+   DEVICE *dev = dcr->dev;
+   JCR *bjcr = dcr->jcr;
+   DEV_BLOCK *block = dcr->block;
 
    if (rec->data_len > 0) {
       mr.VolBytes += rec->data_len + WRITE_RECHDR_LENGTH; /* Accumulate Volume bytes */
@@ -502,13 +505,11 @@ static bool record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 mjcr->JobLevel = jr.JobLevel;
 
 	 mjcr->client_name = get_pool_memory(PM_FNAME);
-	 pm_strcpy(&mjcr->client_name, label.ClientName);
-	 mjcr->pool_type = get_pool_memory(PM_FNAME);
-	 pm_strcpy(&mjcr->pool_type, label.PoolType);
+	 pm_strcpy(mjcr->client_name, label.ClientName);
 	 mjcr->fileset_name = get_pool_memory(PM_FNAME);
-	 pm_strcpy(&mjcr->fileset_name, label.FileSetName);
-	 mjcr->pool_name = get_pool_memory(PM_FNAME);
-	 pm_strcpy(&mjcr->pool_name, label.PoolName);
+	 pm_strcpy(mjcr->fileset_name, label.FileSetName);
+	 bstrncpy(dcr->pool_type, label.PoolType, sizeof(dcr->pool_type));
+	 bstrncpy(dcr->pool_name, label.PoolName, sizeof(dcr->pool_name));
 
 	 if (rec->VolSessionId != jr.VolSessionId) {
             Pmsg3(000, _("SOS_LABEL: VolSessId mismatch for JobId=%u. DB=%d Vol=%d\n"),

@@ -336,6 +336,10 @@ int file_is_excluded(FF_PKT *ff, const char *file)
 {
    const char *p;
 
+   /* 
+    *  ***NB*** this removes the drive from the exclude
+    *  rule.  Why?????
+    */
    if (win32_client && file[1] == ':') {
       file += 2;
    }

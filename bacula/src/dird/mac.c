@@ -1,8 +1,9 @@
 /*
  *
- *   Bacula Director -- backup.c -- responsible for doing backup jobs
+ *   Bacula Director -- mac.c -- responsible for doing 
+ *     migration, archive, and copy jobs.
  *
- *     Kern Sibbald, March MM
+ *     Kern Sibbald, September MMIV
  *
  *  Basic tasks done here:
  *     Open DB and create records for this job.
@@ -15,7 +16,7 @@
  */
 
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -38,38 +39,43 @@
 #include "dird.h"
 #include "ua.h"
 
-/* Commands sent to File daemon */
-static char backupcmd[] = "backup\n";
-static char storaddr[]  = "storage address=%s port=%d ssl=%d\n";
-
-/* Responses received from File daemon */
-static char OKbackup[]   = "2000 OK backup\n";
-static char OKstore[]    = "2000 OK storage\n";
-static char EndJob[]     = "2800 End Job TermCode=%d JobFiles=%u "
-                           "ReadBytes=%" lld " JobBytes=%" lld " Errors=%u\n";
-
-
 /* Forward referenced functions */
-static void backup_cleanup(JCR *jcr, int TermCode, char *since, FILESET_DBR *fsr);
+static void mac_cleanup(JCR *jcr, int TermCode, char *since, FILESET_DBR *fsr,
+			const char *Type);
 
 /* External functions */
 
 /* 
- * Do a backup of the specified FileSet
+ * Do a Migration, Archive, or Copy of a previous job
  *    
- *  Returns:  0 on failure
- *	      1 on success
+ *  Returns:  false on failure
+ *	      true  on success
  */
-int do_backup(JCR *jcr) 
+bool do_mac(JCR *jcr) 
 {
    char since[MAXSTRING];
    int stat;
-   BSOCK   *fd;
    POOL_DBR pr;
+   JOB_DBR jr;
    FILESET_DBR fsr;
-   STORE *store;
+   JobId_t input_jobid;
+   char *Name;
+   const char *Type;
 
-   since[0] = 0;
+   switch(jcr->JobType) {
+   case JT_MIGRATION:
+      Type = "Migration";
+      break;
+   case JT_ARCHIVE:
+      Type = "Archive";
+      break;
+   case JT_COPY:
+      Type = "Copy";
+      break;
+   default:
+      Type = "Unknown";
+      break;
+   }
 
    if (!get_or_create_client_record(jcr)) {
       goto bail_out;
@@ -79,7 +85,20 @@ int do_backup(JCR *jcr)
       goto bail_out;
    }
 
-   get_level_since_time(jcr, since, sizeof(since));
+   /*
+    * Find JobId of last job that ran.
+    */
+   memcpy(&jr, &jcr->jr, sizeof(jr));
+   Name = jcr->job->hdr.name;
+   Dmsg1(100, "find last jobid for: %s\n", NPRT(Name));
+   if (!db_find_last_jobid(jcr, jcr->db, Name, &jr)) {
+      Jmsg(jcr, M_FATAL, 0, _(
+           "Unable to find JobId of previous Job for this client.\n"));
+      goto bail_out;
+   }
+   input_jobid = jr.JobId;
+   jcr->JobLevel = jr.JobLevel;
+   Dmsg1(100, "Last jobid=%d\n", input_jobid);
 
    jcr->fname = get_pool_memory(PM_FNAME);
 
@@ -121,8 +140,8 @@ int do_backup(JCR *jcr)
 
 
    /* Print Job Start message */
-   Jmsg(jcr, M_INFO, 0, _("Start Backup JobId %u, Job=%s\n"),
-	jcr->JobId, jcr->Job);
+   Jmsg(jcr, M_INFO, 0, _("Start %s JobId %u, Job=%s\n"),
+	Type, jcr->JobId, jcr->Job);
 
    set_jcr_job_status(jcr, JS_Running);
    Dmsg2(100, "JobId=%d JobLevel=%c\n", jcr->jr.JobId, jcr->jr.JobLevel);
@@ -160,130 +179,31 @@ int do_backup(JCR *jcr)
    }
    Dmsg0(150, "Storage daemon connection OK\n");
 
-   set_jcr_job_status(jcr, JS_WaitFD);
-   if (!connect_to_file_daemon(jcr, 10, FDConnectTimeout, 1)) {
-      goto bail_out;
-   }
-
-   set_jcr_job_status(jcr, JS_Running);
-   fd = jcr->file_bsock;
-
-   if (!send_include_list(jcr)) {
-      goto bail_out;
-   }
-
-   if (!send_exclude_list(jcr)) {
-      goto bail_out;
-   }
-
-   if (!send_level_command(jcr)) {
-      goto bail_out;
-   }
-
-   /* 
-    * send Storage daemon address to the File daemon
-    */
-   store = (STORE *)jcr->storage[0]->first();
-   if (store->SDDport == 0) {
-      store->SDDport = store->SDport;
-   }
-   bnet_fsend(fd, storaddr, store->address, store->SDDport,
-	      store->enable_ssl);
-   if (!response(jcr, fd, OKstore, "Storage", DISPLAY_ERROR)) {
-      goto bail_out;
-   }
-
-
-   if (!send_run_before_and_after_commands(jcr)) {
-      goto bail_out;
-   }
-
-   /* Send backup command */
-   bnet_fsend(fd, backupcmd);
-   if (!response(jcr, fd, OKbackup, "backup", DISPLAY_ERROR)) {
-      goto bail_out;
-   }
-
    /* Pickup Job termination data */	    
-   stat = wait_for_job_termination(jcr);
-   backup_cleanup(jcr, stat, since, &fsr);
-   return 1;
-
-bail_out:
-   backup_cleanup(jcr, JS_ErrorTerminated, since, &fsr);
-   return 0;
-}
-
-/*
- * Here we wait for the File daemon to signal termination,
- *   then we wait for the Storage daemon.  When both
- *   are done, we return the job status.
- * Also used by restore.c 
- */
-int wait_for_job_termination(JCR *jcr)
-{
-   int32_t n = 0;
-   BSOCK *fd = jcr->file_bsock;
-   bool fd_ok = false;
-   uint32_t JobFiles, Errors;
-   uint64_t ReadBytes, JobBytes;
-
    set_jcr_job_status(jcr, JS_Running);
-   /* Wait for Client to terminate */
-   while ((n = bget_dirmsg(fd)) >= 0) {
-      if (!fd_ok && sscanf(fd->msg, EndJob, &jcr->FDJobStatus, &JobFiles,
-	  &ReadBytes, &JobBytes, &Errors) == 5) {
-	 fd_ok = true;
-	 set_jcr_job_status(jcr, jcr->FDJobStatus);
-         Dmsg1(100, "FDStatus=%c\n", (char)jcr->JobStatus);
-      } else {
-         Jmsg(jcr, M_WARNING, 0, _("Unexpected Client Job message: %s\n"),
-	    fd->msg);
-      }
-      if (job_canceled(jcr)) {
-	 break;
-      }
-   }
-   if (is_bnet_error(fd)) {
-      Jmsg(jcr, M_FATAL, 0, _("Network error with FD during %s: ERR=%s\n"),
-	  job_type_to_str(jcr->JobType), bnet_strerror(fd));
-   }
-   bnet_sig(fd, BNET_TERMINATE);   /* tell Client we are terminating */
 
    /* Note, the SD stores in jcr->JobFiles/ReadBytes/JobBytes/Errors */
    wait_for_storage_daemon_termination(jcr);
 
-
-   /* Return values from FD */
-   if (fd_ok) {
-      jcr->JobFiles = JobFiles;
-      jcr->Errors = Errors;
-      jcr->ReadBytes = ReadBytes;
-      jcr->JobBytes = JobBytes;
-   } else {
-      Jmsg(jcr, M_FATAL, 0, _("No Job status returned from FD.\n"));
-   }
-
-// Dmsg4(100, "fd_ok=%d FDJS=%d JS=%d SDJS=%d\n", fd_ok, jcr->FDJobStatus,
-//   jcr->JobStatus, jcr->SDJobStatus);
-
-   /* Return the first error status we find Dir, FD, or SD */
-   if (!fd_ok || is_bnet_error(fd)) {			       
-      jcr->FDJobStatus = JS_ErrorTerminated;
-   }
    if (jcr->JobStatus != JS_Terminated) {
-      return jcr->JobStatus;
+      stat = jcr->JobStatus;
+   } else {
+      stat = jcr->SDJobStatus;
    }
-   if (jcr->FDJobStatus != JS_Terminated) {
-      return jcr->FDJobStatus;
-   }
-   return jcr->SDJobStatus;
+   mac_cleanup(jcr, stat, since, &fsr, Type);
+   return true;
+
+bail_out:
+   mac_cleanup(jcr, JS_ErrorTerminated, since, &fsr, Type);
+   return false;
 }
+
 
 /*
  * Release resources allocated during backup.
  */
-static void backup_cleanup(JCR *jcr, int TermCode, char *since, FILESET_DBR *fsr) 
+static void mac_cleanup(JCR *jcr, int TermCode, char *since, FILESET_DBR *fsr,
+		       const char *Type)
 {
    char sdt[50], edt[50];
    char ec1[30], ec2[30], ec3[30], ec4[30], ec5[30], compress[50];
@@ -294,7 +214,7 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since, FILESET_DBR *fsr
    double kbps, compression;
    utime_t RunTime;
 
-   Dmsg2(100, "Enter backup_cleanup %d %c\n", TermCode, TermCode);
+   Dmsg2(100, "Enter mac_cleanup %d %c\n", TermCode, TermCode);
    dequeue_messages(jcr);	      /* display any queued messages */
    memset(&mr, 0, sizeof(mr));
    set_jcr_job_status(jcr, TermCode);
@@ -491,5 +411,5 @@ Termination:            %s\n\n"),
 	sd_term_msg,
 	term_msg);
 
-   Dmsg0(100, "Leave backup_cleanup()\n");
+   Dmsg0(100, "Leave mac_cleanup()\n");
 }

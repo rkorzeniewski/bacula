@@ -2,6 +2,8 @@
  *
  *  Utility routines for "tool" programs such as bscan, bls,
  *    bextract, ...  Some routines also used by Bacula.
+ *
+ *    Kern Sibbald, MM
  * 
  *  Normally nothing in this file is called by the Storage   
  *    daemon because we interact more directly with the user
@@ -10,7 +12,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -31,6 +33,11 @@
 
 #include "bacula.h"
 #include "stored.h"
+
+/* Forward referenced functions */
+static DCR *setup_to_access_device(JCR *jcr, char *dev_name, const char *VolumeName, int mode);
+static DEVRES *find_device_res(char *device_name, int mode);
+static void my_free_jcr(JCR *jcr);
 
 /* Imported variables -- eliminate some day */
 extern char *configfile;
@@ -62,64 +69,143 @@ char *rec_state_to_str(DEV_RECORD *rec)
 }
 #endif
 
+/*
+ * Setup a "daemon" JCR for the various standalone
+ *  tools (e.g. bls, bextract, bscan, ...)
+ */
+JCR *setup_jcr(const char *name, char *dev_name, BSR *bsr,
+	       const char *VolumeName, int mode)
+{
+   DCR *dcr;
+   JCR *jcr = new_jcr(sizeof(JCR), my_free_jcr);
+   jcr->bsr = bsr;
+   jcr->VolSessionId = 1;
+   jcr->VolSessionTime = (uint32_t)time(NULL);
+   jcr->NumVolumes = 0;
+   jcr->JobId = 0;
+   jcr->JobType = JT_CONSOLE;
+   jcr->JobLevel = L_FULL;
+   jcr->JobStatus = JS_Terminated;
+   jcr->where = bstrdup("");
+   jcr->job_name = get_pool_memory(PM_FNAME);
+   pm_strcpy(jcr->job_name, "Dummy.Job.Name");
+   jcr->client_name = get_pool_memory(PM_FNAME);
+   pm_strcpy(jcr->client_name, "Dummy.Client.Name");
+   bstrncpy(jcr->Job, name, sizeof(jcr->Job));
+   jcr->fileset_name = get_pool_memory(PM_FNAME);
+   pm_strcpy(jcr->fileset_name, "Dummy.fileset.name");
+   jcr->fileset_md5 = get_pool_memory(PM_FNAME);
+   pm_strcpy(jcr->fileset_md5, "Dummy.fileset.md5");
+
+   dcr = setup_to_access_device(jcr, dev_name, VolumeName, mode);
+   if (!dcr) {
+      return NULL;
+   }
+   if (!bsr && VolumeName) {
+      bstrncpy(dcr->VolumeName, VolumeName, sizeof(dcr->VolumeName));
+   }
+   strcpy(dcr->pool_name, "Default");
+   strcpy(dcr->pool_type, "Backup");
+   return jcr;
+}
 
 /*
  * Setup device, jcr, and prepare to access device.
  *   If the caller wants read access, acquire the device, otherwise,
  *     the caller will do it.
  */
-DEVICE *setup_to_access_device(JCR *jcr, int read_access)
+static DCR *setup_to_access_device(JCR *jcr, char *dev_name, const char *VolumeName, int mode)
 {
    DEVICE *dev;
    char *p;
    DEVRES *device;
+   DCR *dcr;
+   char VolName[MAX_NAME_LENGTH];
 
    /*
     * If no volume name already given and no bsr, and it is a file,
     * try getting name from Filename  
     */
-   if (!jcr->bsr && jcr->VolumeName[0] == 0) {
-      if (strncmp(jcr->dev_name, "/dev/", 5) != 0) {
+   VolName[0] = 0;
+   if (!jcr->bsr && VolumeName[0] == 0) {
+      if (strncmp(dev_name, "/dev/", 5) != 0) {
 	 /* Try stripping file part */
-	 p = jcr->dev_name + strlen(jcr->dev_name);
-         while (p >= jcr->dev_name && *p != '/')
+	 p = dev_name + strlen(dev_name);
+
+         while (p >= dev_name && *p != '/')
 	    p--;
          if (*p == '/') {
-	    pm_strcpy(&jcr->VolumeName, p+1);
+	    bstrncpy(VolName, p+1, sizeof(VolName));
 	    *p = 0;
 	 }
       }
    }
 
-   if ((device=find_device_res(jcr->dev_name, read_access)) == NULL) {
+   if ((device=find_device_res(dev_name, mode)) == NULL) {
       Jmsg2(jcr, M_FATAL, 0, _("Cannot find device \"%s\" in config file %s.\n"), 
-	   jcr->dev_name, configfile);
+	   dev_name, configfile);
       return NULL;
    }
    jcr->device = device;
-   pm_strcpy(&jcr->dev_name, device->device_name);
    
    dev = init_dev(NULL, device);
    if (!dev) {
-      Jmsg1(jcr, M_FATAL, 0, _("Cannot init device %s\n"), jcr->dev_name);
+      Jmsg1(jcr, M_FATAL, 0, _("Cannot init device %s\n"), dev_name);
       return NULL;
    }
-   jcr->device->dev = dev;
-   new_dcr(jcr, dev);	     
-   if (!dev || !first_open_device(dev)) {
-      Jmsg1(jcr, M_FATAL, 0, _("Cannot open %s\n"), jcr->dev_name);
+   device->dev = dev;
+   dcr = new_dcr(jcr, dev);	   
+   if (VolName[0]) {
+      bstrncpy(dcr->VolumeName, VolName, sizeof(dcr->VolumeName));
+   }
+   bstrncpy(dcr->dev_name, device->device_name, sizeof(dcr->dev_name));
+   if (!first_open_device(dev)) {
+      Jmsg1(jcr, M_FATAL, 0, _("Cannot open %s\n"), dcr->dev_name);
       return NULL;
    }
    Dmsg0(90, "Device opened for read.\n");
 
    create_vol_list(jcr);
 
-   if (read_access) {
+   if (mode) {			      /* read only access? */
       if (!acquire_device_for_read(jcr)) {
 	 return NULL;
       }
    }
-   return dev;
+   return dcr;
+}
+
+
+/*
+ * Called here when freeing JCR so that we can get rid 
+ *  of "daemon" specific memory allocated.
+ */
+static void my_free_jcr(JCR *jcr)
+{
+   if (jcr->job_name) {
+      free_pool_memory(jcr->job_name);
+      jcr->job_name = NULL;
+   }
+   if (jcr->client_name) {
+      free_pool_memory(jcr->client_name);
+      jcr->client_name = NULL;
+   }
+   if (jcr->fileset_name) {
+      free_pool_memory(jcr->fileset_name);
+      jcr->fileset_name = NULL;
+   }
+   if (jcr->fileset_md5) {
+      free_pool_memory(jcr->fileset_md5);
+      jcr->fileset_md5 = NULL;
+   }
+   if (jcr->VolList) {
+      free_vol_list(jcr);
+   }  
+   if (jcr->dcr) {
+      free_dcr(jcr->dcr);
+      jcr->dcr = NULL;
+   }
+   return;
 }
 
 
@@ -130,7 +216,7 @@ DEVICE *setup_to_access_device(JCR *jcr, int read_access)
  * Returns: NULL on failure
  *	    Device resource pointer on success
  */
-DEVRES *find_device_res(char *device_name, int read_access)
+static DEVRES *find_device_res(char *device_name, int read_access)
 {
    bool found = false;
    DEVRES *device;
@@ -148,7 +234,7 @@ DEVRES *find_device_res(char *device_name, int read_access)
 	 strcpy(device_name, device_name+1);
 	 int len = strlen(device_name);
 	 if (len > 0) {
-	    device_name[len-1] = 0;
+            device_name[len-1] = 0;   /* zap trailing " */
 	 }
       }
       foreach_res(device, R_DEVICE) {
@@ -170,89 +256,6 @@ DEVRES *find_device_res(char *device_name, int read_access)
 }
 
 
-
-/*
- * Called here when freeing JCR so that we can get rid 
- *  of "daemon" specific memory allocated.
- */
-static void my_free_jcr(JCR *jcr)
-{
-   if (jcr->pool_name) {
-      free_pool_memory(jcr->pool_name);
-      jcr->pool_name = NULL;
-   }
-   if (jcr->pool_type) {
-      free_pool_memory(jcr->pool_type);
-      jcr->pool_type = NULL;
-   }
-   if (jcr->job_name) {
-      free_pool_memory(jcr->job_name);
-      jcr->job_name = NULL;
-   }
-   if (jcr->client_name) {
-      free_pool_memory(jcr->client_name);
-      jcr->client_name = NULL;
-   }
-   if (jcr->fileset_name) {
-      free_pool_memory(jcr->fileset_name);
-      jcr->fileset_name = NULL;
-   }
-   if (jcr->fileset_md5) {
-      free_pool_memory(jcr->fileset_md5);
-      jcr->fileset_md5 = NULL;
-   }
-   if (jcr->dev_name) {
-      free_pool_memory(jcr->dev_name);
-      jcr->dev_name = NULL;
-   }
-   if (jcr->VolList) {
-      free_vol_list(jcr);
-   }  
-   if (jcr->dcr) {
-      free_dcr(jcr->dcr);
-      jcr->dcr = NULL;
-   }
-   return;
-}
-
-/*
- * Setup a "daemon" JCR for the various standalone
- *  tools (e.g. bls, bextract, bscan, ...)
- */
-JCR *setup_jcr(const char *name, const char *device, BSR *bsr, const char *VolumeName)
-{
-   JCR *jcr = new_jcr(sizeof(JCR), my_free_jcr);
-   jcr->VolSessionId = 1;
-   jcr->VolSessionTime = (uint32_t)time(NULL);
-   jcr->bsr = bsr;
-   jcr->NumVolumes = 0;
-   jcr->pool_name = get_pool_memory(PM_FNAME);
-   strcpy(jcr->pool_name, "Default");
-   jcr->pool_type = get_pool_memory(PM_FNAME);
-   strcpy(jcr->pool_type, "Backup");
-   jcr->job_name = get_pool_memory(PM_FNAME);
-   pm_strcpy(&jcr->job_name, "Dummy.Job.Name");
-   jcr->client_name = get_pool_memory(PM_FNAME);
-   pm_strcpy(&jcr->client_name, "Dummy.Client.Name");
-   bstrncpy(jcr->Job, name, sizeof(jcr->Job));
-   jcr->fileset_name = get_pool_memory(PM_FNAME);
-   pm_strcpy(&jcr->fileset_name, "Dummy.fileset.name");
-   jcr->fileset_md5 = get_pool_memory(PM_FNAME);
-   pm_strcpy(&jcr->fileset_md5, "Dummy.fileset.md5");
-   jcr->JobId = 0;
-   jcr->JobType = JT_CONSOLE;
-   jcr->JobLevel = L_FULL;
-   jcr->JobStatus = JS_Terminated;
-   jcr->dev_name = get_pool_memory(PM_FNAME);
-   pm_strcpy(&jcr->dev_name, device);
-   if (!bsr && VolumeName) {
-      pm_strcpy(&jcr->VolumeName, VolumeName);
-   }
-   jcr->where = bstrdup("");
-   return jcr;
-}
-
-
 /*
  * Device got an error, attempt to analyse it
  */
@@ -264,7 +267,7 @@ void display_tape_error_status(JCR *jcr, DEVICE *dev)
    Dmsg1(20, "Device status: %x\n", status);
    if (status & BMT_EOD)
       Jmsg(jcr, M_ERROR, 0, _("Unexpected End of Data\n"));
-  else if (status & BMT_EOT)
+   else if (status & BMT_EOT)
       Jmsg(jcr, M_ERROR, 0, _("Unexpected End of Tape\n"));
    else if (status & BMT_EOF)
       Jmsg(jcr, M_ERROR, 0, _("Unexpected End of File\n"));

@@ -29,7 +29,7 @@
 #include "stored.h"
 
 /* Forward referenced subroutines */
-static bool record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
+static bool record_cb(DCR *dcr, DEV_RECORD *rec);
 
 
 /* Responses sent to the File daemon */
@@ -66,8 +66,6 @@ bool do_read_data(JCR *jcr)
    Dmsg2(200, "Found %d volumes names to restore. First=%s\n", jcr->NumVolumes, 
       jcr->VolList->VolumeName);
 
-   pm_strcpy(&jcr->VolumeName, jcr->VolList->VolumeName);
-
    /* 
     * Ready device for reading, and read records
     */
@@ -97,8 +95,9 @@ bool do_read_data(JCR *jcr)
  *  Returns: true if OK
  *	     false if error
  */
-static bool record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
+static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 {
+   JCR *jcr = dcr->jcr;
    BSOCK *fd = jcr->file_bsock;
    bool ok = true;
    POOLMEM *save_msg;

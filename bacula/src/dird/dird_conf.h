@@ -191,6 +191,8 @@ struct STORE {
 };
 
 
+#define MAX_STORE 2                   /* Max storage directives in Job */
+
 /*
  *   Job Resource
  */
@@ -198,7 +200,7 @@ struct JOB {
    RES   hdr;
 
    int   JobType;                     /* job type (backup, verify, restore */
-   int   level;                       /* default backup/verify level */
+   int   JobLevel;                    /* default backup/verify level */
    int   Priority;                    /* Job priority */
    int   RestoreJobId;                /* What -- JobId to restore */
    char *RestoreWhere;                /* Where on disk to restore -- directory */
@@ -229,7 +231,7 @@ struct JOB {
    SCHED     *schedule;               /* When -- Automatic schedule */
    CLIENT    *client;                 /* Who to backup */
    FILESET   *fileset;                /* What to backup -- Fileset */
-   STORE     *storage;                /* Where is device -- Storage daemon */
+   alist     *storage[MAX_STORE];     /* Where is device -- Storage daemon */
    POOL      *pool;                   /* Where is media -- Media Pool */
    POOL      *full_pool;              /* Pool for Full backups */
    POOL      *inc_pool;               /* Pool for Incremental backups */

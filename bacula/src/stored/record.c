@@ -155,6 +155,15 @@ DEV_RECORD *new_record(void)
    return rec;
 }
 
+void empty_record(DEV_RECORD *rec)
+{
+   rec->File = rec->Block = 0;
+   rec->VolSessionId = rec->VolSessionTime = 0;
+   rec->FileIndex = rec->Stream = 0;
+   rec->data_len = rec->remainder = 0;
+   rec->state &= ~(REC_PARTIAL_RECORD|REC_BLOCK_EMPTY|REC_NO_MATCH|REC_CONTINUATION);
+}
+
 /*
  * Free the record entity 
  *
@@ -174,8 +183,8 @@ void free_record(DEV_RECORD *rec)
 /*
  * Write a Record to the block
  *
- *  Returns: 0 on failure (none or partially written)
- *	     1 on success (all bytes written)
+ *  Returns: false on failure (none or partially written)
+ *	     true  on success (all bytes written)
  *
  *  and remainder returned in packet.
  *
@@ -185,7 +194,7 @@ void free_record(DEV_RECORD *rec)
  *  non-zero), and 2. The remaining bytes to write may not
  *  all fit into the block.
  */
-int write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec)
+bool write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec)
 {
    ser_declare;
    uint32_t remlen;
@@ -234,7 +243,7 @@ rem=%d remainder=%d\n",
 	 }
       } else {
 	 rec->remainder = rec->data_len + WRITE_RECHDR_LENGTH;
-	 return 0;
+	 return false;
       }
    } else {
       /* 
@@ -285,7 +294,7 @@ rem=%d remainder=%d\n",
       }
    }
    if (remlen == 0) {
-      return 0; 		      /* partial transfer */
+      return false;		      /* partial transfer */
    }
 
    /*
@@ -324,21 +333,21 @@ rem=%d remainder=%d\n",
 	 block->bufp += remlen;
 	 block->binbuf += remlen;
 	 rec->remainder -= remlen;
-	 return 0;		      /* did partial transfer */
+	 return false;		      /* did partial transfer */
       }
    }
    rec->remainder = 0;		      /* did whole transfer */
-   return 1;
+   return true;
 }
 
 
 /*
  * Test if we can write whole record to the block
  *
- *  Returns: 0 on failure 
- *	     1 on success (all bytes can be written)
+ *  Returns: false on failure 
+ *	     true  on success (all bytes can be written)
  */
-int can_write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec)
+bool can_write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec)
 {
    uint32_t remlen;
 
@@ -348,27 +357,27 @@ int can_write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec)
 	 remlen -= WRITE_RECHDR_LENGTH;
 	 rec->remainder = rec->data_len;
       } else {
-	 return 0;
+	 return false;
       }
    } else {
-      return 0;
+      return false;
    }
    if (rec->remainder > 0 && remlen < rec->remainder) {
-      return 0;
+      return false;
    }
-   return 1;
+   return true;
 }
 
 
 /*
  * Read a Record from the block
- *  Returns: 0 if nothing read or if the continuation record does not match.
- *	       In both of these cases, a block read must be done.
- *	     1 if at least the record header was read, this 
- *	       routine may have to be called again with a new
- *	       block if the entire record was not read.
+ *  Returns: false if nothing read or if the continuation record does not match.
+ *		   In both of these cases, a block read must be done.
+ *	     true  if at least the record header was read, this 
+ *		   routine may have to be called again with a new
+ *		   block if the entire record was not read.
  */
-int read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
+bool read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
 {
    ser_declare;
    uint32_t remlen;
@@ -427,7 +436,8 @@ int read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
       if (rec->remainder && (rec->VolSessionId != VolSessionId || 
 			     rec->VolSessionTime != VolSessionTime)) {
 	 rec->state |= REC_NO_MATCH;
-	 return 0;		   /* This is from some other Session */
+         Dmsg0(500, "remainder and VolSession doesn't match\n");
+	 return false;		   /* This is from some other Session */
       }
 
       /* if Stream is negative, it means that this is a continuation
@@ -441,7 +451,7 @@ int read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
 	    rec->data_len = 0;	      /* return data as if no continuation */
 	 } else if (rec->Stream != -Stream) {
 	    rec->state |= REC_NO_MATCH;
-	    return 0;		      /* This is from some other Session */
+	    return false;	      /* This is from some other Session */
 	 }
 	 rec->Stream = -Stream;       /* set correct Stream */
       } else {			      /* Regular record */
@@ -481,7 +491,7 @@ int read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
 #endif
       rec->state |= (REC_NO_HEADER | REC_BLOCK_EMPTY);
       empty_block(block);		       /* mark block empty */
-      return 0;
+      return false;
    }
 
    ASSERT(data_bytes < MAX_BLOCK_LENGTH);	/* temp sanity check */
@@ -517,5 +527,5 @@ int read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
    Dmsg4(90, "Rtn full rd_rec_blk FI=%s SessId=%d Strm=%s len=%d\n",
       FI_to_ascii(rec->FileIndex), rec->VolSessionId, 
       stream_to_ascii(rec->Stream, rec->FileIndex), rec->data_len);
-   return 1;			      /* transferred full record */
+   return true; 		      /* transferred full record */
 }

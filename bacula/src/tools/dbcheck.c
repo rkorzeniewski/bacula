@@ -228,7 +228,7 @@ int main (int argc, char *argv[])
    }
 
    /* Open database */
-   db = db_init_database(NULL, db_name, user, password, dbhost, 0, NULL);
+   db = db_init_database(NULL, db_name, user, password, dbhost, 0, NULL, 0);
    if (!db_open_database(NULL, db)) {
       Emsg1(M_FATAL, 0, "%s", db_strerror(db));
 	  return 1;

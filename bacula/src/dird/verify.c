@@ -379,9 +379,13 @@ static void verify_cleanup(JCR *jcr, int TermCode)
    case JS_Terminated:
       term_msg = _("Verify OK");
       break;
+   case JS_FatalError:
    case JS_ErrorTerminated:
       term_msg = _("*** Verify Error ***"); 
       msg_type = M_ERROR;	   /* Generate error message */
+      break;
+   case JS_Error:
+      term_msg = _("Verify warnings");
       break;
    case JS_Canceled:
       term_msg = _("Verify Canceled");

@@ -70,7 +70,7 @@ bool dir_send_job_status(JCR *jcr)
  * and
  *   dir_find_next_appendable_volume()
  * 
- *  Returns: true  on success and vol info in jcr->VolCatInfo
+ *  Returns: true  on success and vol info in dcr->VolCatInfo
  *	     false on failure
  */
 static bool do_get_volume_info(DCR *dcr)
@@ -81,7 +81,6 @@ static bool do_get_volume_info(DCR *dcr)
     int n;
     int InChanger;
 
-    jcr->VolumeName[0] = 0;	      /* No volume */
     dcr->VolumeName[0] = 0;	      /* No volume */
     if (bnet_recv(dir) <= 0) {
        Dmsg0(200, "getvolname error bnet_recv\n");
@@ -105,9 +104,7 @@ static bool do_get_volume_info(DCR *dcr)
     }
     vol.InChanger = InChanger;	      /* bool in structure */
     unbash_spaces(vol.VolCatName);
-    pm_strcpy(&jcr->VolumeName, vol.VolCatName); /* set desired VolumeName */
     bstrncpy(dcr->VolumeName, vol.VolCatName, sizeof(dcr->VolumeName));
-    memcpy(&jcr->VolCatInfo, &vol, sizeof(jcr->VolCatInfo));
     memcpy(&dcr->VolCatInfo, &vol, sizeof(dcr->VolCatInfo));
     
     Dmsg2(200, "do_reqest_vol_info got slot=%d Volume=%s\n", 
@@ -131,10 +128,10 @@ bool dir_get_volume_info(DCR *dcr, enum get_vol_info_rw writing)
     JCR *jcr = dcr->jcr;
     BSOCK *dir = jcr->dir_bsock;
 
-    bstrncpy(jcr->VolCatInfo.VolCatName, jcr->VolumeName, sizeof(jcr->VolCatInfo.VolCatName));
-    Dmsg1(200, "dir_get_volume_info=%s\n", jcr->VolCatInfo.VolCatName);
-    bash_spaces(jcr->VolCatInfo.VolCatName);
-    bnet_fsend(dir, Get_Vol_Info, jcr->Job, jcr->VolCatInfo.VolCatName, 
+    bstrncpy(dcr->VolCatInfo.VolCatName, dcr->VolumeName, sizeof(dcr->VolCatInfo.VolCatName));
+    Dmsg1(200, "dir_get_volume_info=%s\n", dcr->VolCatInfo.VolCatName);
+    bash_spaces(dcr->VolCatInfo.VolCatName);
+    bnet_fsend(dir, Get_Vol_Info, jcr->Job, dcr->VolCatInfo.VolCatName, 
        writing==GET_VOL_INFO_FOR_WRITE?1:0);
     return do_get_volume_info(dcr);
 }
@@ -159,7 +156,7 @@ bool dir_find_next_appendable_volume(DCR *dcr)
     for (int vol_index=1;  vol_index < 3; vol_index++) {
        bnet_fsend(dir, Find_media, jcr->Job, vol_index);
        if (do_get_volume_info(dcr)) {
-          Dmsg2(200, "JobId=%d got possible Vol=%s\n", jcr->JobId, jcr->VolumeName);
+          Dmsg2(200, "JobId=%d got possible Vol=%s\n", jcr->JobId, dcr->VolumeName);
 	  bool found = false;
 	  /* 
 	   * Walk through all jobs and see if the volume is   
@@ -173,8 +170,8 @@ bool dir_find_next_appendable_volume(DCR *dcr)
 		free_locked_jcr(njcr);
 		continue;	      /* us */
 	     }
-             Dmsg2(200, "Compare to JobId=%d using Vol=%s\n", njcr->JobId, njcr->VolumeName);
-	     if (strcmp(jcr->VolumeName, njcr->VolumeName) == 0) {
+             Dmsg2(200, "Compare to JobId=%d using Vol=%s\n", njcr->JobId, njcr->dcr->VolumeName);
+	     if (njcr->dcr && strcmp(dcr->VolumeName, njcr->dcr->VolumeName) == 0) {
 		found = true;
                 Dmsg1(200, "Vol in use by JobId=%u\n", njcr->JobId);
 		free_locked_jcr(njcr);
@@ -213,11 +210,11 @@ bool dir_update_volume_info(DCR *dcr, bool label)
    int InChanger;
 
    if (vol->VolCatName[0] == 0) {
-      Jmsg0(jcr, M_ERROR, 0, _("NULL Volume name. This shouldn't happen!!!\n"));
+      Jmsg0(jcr, M_FATAL, 0, _("NULL Volume name. This shouldn't happen!!!\n"));
       return false;
    }
    if (dev_state(dev, ST_READ)) {
-      Jmsg0(jcr, M_ERROR, 0, _("Attempt to update_volume_info in read mode!!!\n"));
+      Jmsg0(jcr, M_FATAL, 0, _("Attempt to update_volume_info in read mode!!!\n"));
       return false;
    }
 
@@ -243,12 +240,12 @@ bool dir_update_volume_info(DCR *dcr, bool label)
    unbash_spaces(vol->VolCatName);
 
    if (!do_get_volume_info(dcr)) {
-      Jmsg(jcr, M_ERROR, 0, "%s", jcr->errmsg);
+      Jmsg(jcr, M_FATAL, 0, "%s", jcr->errmsg);
       return false;
    }
    Dmsg1(120, "get_volume_info(): %s", dir->msg);
    /* Update dev Volume info in case something changed (e.g. expired) */
-   memcpy(&dev->VolCatInfo, &jcr->VolCatInfo, sizeof(dev->VolCatInfo));
+   memcpy(&dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dev->VolCatInfo));
    return true;
 }
 
@@ -272,14 +269,14 @@ bool dir_create_jobmedia_record(DCR *dcr)
    Dmsg1(100, "create_jobmedia(): %s", dir->msg);
    if (bnet_recv(dir) <= 0) {
       Dmsg0(190, "create_jobmedia error bnet_recv\n");
-      Jmsg(jcr, M_ERROR, 0, _("Error creating JobMedia record: ERR=%s\n"), 
+      Jmsg(jcr, M_FATAL, 0, _("Error creating JobMedia record: ERR=%s\n"), 
 	   bnet_strerror(dir));
       return false;
    }
    Dmsg1(120, "Create_jobmedia: %s", dir->msg);
    if (strcmp(dir->msg, OK_create) != 0) {
       Dmsg1(130, "Bad response from Dir: %s\n", dir->msg);
-      Jmsg(jcr, M_ERROR, 0, _("Error creating JobMedia record: %s\n"), dir->msg);
+      Jmsg(jcr, M_FATAL, 0, _("Error creating JobMedia record: %s\n"), dir->msg);
       return false;
    }
    return true;
@@ -320,7 +317,7 @@ bool dir_update_file_attributes(DCR *dcr, DEV_RECORD *rec)
  *	      false on failure
  *		Note, must create dev->errmsg on error return.
  *
- *    On success, jcr->VolumeName and jcr->VolCatInfo contain
+ *    On success, dcr->VolumeName and dcr->VolCatInfo contain
  *	information on suggested volume, but this may not be the
  *	same as what is actually mounted.
  *
@@ -342,7 +339,7 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
       if (job_canceled(jcr)) {
 	 Mmsg(dev->errmsg,
               _("Job %s canceled while waiting for mount on Storage Device \"%s\".\n"), 
-	      jcr->Job, jcr->dev_name);
+	      jcr->Job, dcr->dev_name);
          Jmsg(jcr, M_INFO, 0, "%s", dev->errmsg);
 	 return false;
       }
@@ -356,9 +353,9 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
 	  *   Slot for an autochanger, otherwise wait
 	  *   for the operator to mount the media.
 	  */
-	 if (!unmounted && ((jcr->VolumeName[0] && !dev_cap(dev, CAP_REM) && 
+	 if (!unmounted && ((dcr->VolumeName[0] && !dev_cap(dev, CAP_REM) && 
 		dev_cap(dev, CAP_LABEL)) ||
-		 (jcr->VolumeName[0] && jcr->VolCatInfo.Slot))) {
+		 (dcr->VolumeName[0] && dcr->VolCatInfo.Slot))) {
             Dmsg0(200, "Return 1 from mount without wait.\n");
 	    return true;
 	 }
@@ -367,9 +364,9 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
 	    Jmsg(jcr, M_MOUNT, 0, _(
 "Please mount Volume \"%s\" on Storage Device \"%s\" for Job %s\n"
 "Use \"mount\" command to release Job.\n"),
-	      jcr->VolumeName, jcr->dev_name, jcr->Job);
+	      dcr->VolumeName, dcr->dev_name, jcr->Job);
             Dmsg3(200, "Mount %s on %s for Job %s\n",
-		  jcr->VolumeName, jcr->dev_name, jcr->Job);
+		  dcr->VolumeName, dcr->dev_name, jcr->Job);
 	 }
       } else {
 	 jstat = JS_WaitMedia;
@@ -381,9 +378,9 @@ Please use the \"label\"  command to create a new Volume for:\n\
     Media type:   %s\n\
     Pool:         %s\n"),
 	       jcr->Job, 
-	       jcr->dev_name, 
-	       jcr->media_type,
-	       jcr->pool_name);
+	       dcr->dev_name, 
+	       dcr->media_type,
+	       dcr->pool_name);
 	 }
       }
       first = false;
@@ -422,7 +419,7 @@ Please use the \"label\"  command to create a new Volume for:\n\
       Dmsg1(200, "Someone woke me for device %s\n", dev_name(dev));
 
       /* If no VolumeName, and cannot get one, try again */
-      if (jcr->VolumeName[0] == 0 && !job_canceled(jcr) &&
+      if (dcr->VolumeName[0] == 0 && !job_canceled(jcr) &&
 	  !dir_find_next_appendable_volume(dcr)) {
 	 Jmsg(jcr, M_MOUNT, 0, _(
 "Someone woke me up, but I cannot find any appendable\n\
@@ -451,13 +448,13 @@ volumes for Job=%s.\n"), jcr->Job);
 /*
  *   Request to mount specific Volume
  *
- *   Entered with device blocked and jcr->VolumeName is desired
+ *   Entered with device blocked and dcr->VolumeName is desired
  *	volume.
  *   Leaves with device blocked.
  *
- *   Returns: 1 on success (operator issues a mount command)
- *	      0 on failure
- *		Note, must create dev->errmsg on error return.
+ *   Returns: true  on success (operator issues a mount command)
+ *	      false on failure
+ *		    Note, must create dev->errmsg on error return.
  *
  */
 bool dir_ask_sysop_to_mount_volume(DCR *dcr)
@@ -468,24 +465,24 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
    JCR *jcr = dcr->jcr;
 
    Dmsg0(200, "enter dir_ask_sysop_to_mount_volume\n");
-   if (!jcr->VolumeName[0]) {
+   if (!dcr->VolumeName[0]) {
       Mmsg0(dev->errmsg, _("Cannot request another volume: no volume name given.\n"));
-      return 0;
+      return false;
    }
    ASSERT(dev->dev_blocked);
    for ( ;; ) {
       if (job_canceled(jcr)) {
          Mmsg(dev->errmsg, _("Job %s canceled while waiting for mount on Storage Device \"%s\".\n"), 
-	      jcr->Job, jcr->dev_name);
+	      jcr->Job, dcr->dev_name);
 	 return false;
       }
 
       if (!dev->poll) {
          msg = _("Please mount");
          Jmsg(jcr, M_MOUNT, 0, _("%s Volume \"%s\" on Storage Device \"%s\" for Job %s\n"),
-	      msg, jcr->VolumeName, jcr->dev_name, jcr->Job);
-         Dmsg3(200, "Mount %s on %s for Job %s\n",
-	       jcr->VolumeName, jcr->dev_name, jcr->Job);
+	      msg, dcr->VolumeName, dcr->dev_name, jcr->Job);
+         Dmsg3(200, "Mount \"%s\" on device \"%s\" for Job %s\n",
+	       dcr->VolumeName, dcr->dev_name, jcr->Job);
       }
 
       jcr->JobStatus = JS_WaitMount;
@@ -517,7 +514,7 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
       }
       if (stat != 0) {
 	 berrno be;
-         Jmsg(jcr, M_ERROR, 0, _("pthread error in mount_next_volume stat=%d ERR=%s\n"), stat,
+         Jmsg(jcr, M_FATAL, 0, _("pthread error in mount_next_volume stat=%d ERR=%s\n"), stat,
 	    be.strerror(stat));
       }
       Dmsg1(200, "Someone woke me for device %s\n", dev_name(dev));

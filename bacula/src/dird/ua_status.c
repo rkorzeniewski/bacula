@@ -67,18 +67,18 @@ int qstatus_cmd(UAContext *ua, const char *cmd)
       bsendmsg(ua, OKqstatus, ua->argk[2]);
       lock_jcr_chain();
       foreach_jcr(njcr) {
-         if (njcr->JobId != 0) {
-            bsendmsg(ua, DotStatusJob, njcr->JobId, njcr->JobStatus, njcr->JobErrors);
-         }
-         free_locked_jcr(njcr);
+	 if (njcr->JobId != 0) {
+	    bsendmsg(ua, DotStatusJob, njcr->JobId, njcr->JobStatus, njcr->JobErrors);
+	 }
+	 free_locked_jcr(njcr);
       }
       unlock_jcr_chain();
    }
    else if (strcasecmp(ua->argk[2], "last") == 0) {
       bsendmsg(ua, OKqstatus, ua->argk[2]);
       if ((last_jobs) && (last_jobs->size() > 0)) {
-         job = (s_last_job*)last_jobs->last();
-         bsendmsg(ua, DotStatusJob, job->JobId, job->JobStatus, job->Errors);
+	 job = (s_last_job*)last_jobs->last();
+	 bsendmsg(ua, DotStatusJob, job->JobId, job->JobStatus, job->Errors);
       }
    }
    else {
@@ -449,7 +449,7 @@ static void list_scheduled_jobs(UAContext *ua)
 	 continue;
       }
       for (run=NULL; (run = find_next_run(run, job, runtime)); ) {
-	 level = job->level;   
+	 level = job->JobLevel;
 	 if (run->level) {
 	    level = run->level;
 	 }

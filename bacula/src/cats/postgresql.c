@@ -9,7 +9,7 @@
  */
 
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2003-2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -59,7 +59,8 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
  */
 B_DB *
 db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char *db_password, 
-		 const char *db_address, int db_port, const char *db_socket) 
+		 const char *db_address, int db_port, const char *db_socket, 
+		 int mult_db_connections)
 {
    B_DB *mdb;
 
@@ -68,17 +69,19 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
       return NULL;
    }
    P(mutex);			      /* lock DB queue */
-   /* Look to see if DB already open */
-   for (mdb=NULL; (mdb=(B_DB *)qnext(&db_list, &mdb->bq)); ) {
-      if (strcmp(mdb->db_name, db_name) == 0) {
-         Dmsg2(100, "DB REopen %d %s\n", mdb->ref_count, db_name);
-	 mdb->ref_count++;
-	 V(mutex);
-	 return mdb;		      /* already open */
+   if (!mult_db_connections) {
+      /* Look to see if DB already open */
+      for (mdb=NULL; (mdb=(B_DB *)qnext(&db_list, &mdb->bq)); ) {
+	 if (strcmp(mdb->db_name, db_name) == 0) {
+            Dmsg2(100, "DB REopen %d %s\n", mdb->ref_count, db_name);
+	    mdb->ref_count++;
+	    V(mutex);
+	    return mdb; 		 /* already open */
+	 }
       }
    }
    Dmsg0(100, "db_open first time\n");
-   mdb = (B_DB *) malloc(sizeof(B_DB));
+   mdb = (B_DB *)malloc(sizeof(B_DB));
    memset(mdb, 0, sizeof(B_DB));
    mdb->db_name = bstrdup(db_name);
    mdb->db_user = bstrdup(db_user);

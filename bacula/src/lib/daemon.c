@@ -44,7 +44,11 @@ daemon_start()
    int i;
    pid_t cpid;
    mode_t oldmask;
+#ifdef DEVELOPER
+   int low_fd = 2;
+#else
    int low_fd = -1;
+#endif
    /*
     *  Become a daemon.
     */

@@ -42,12 +42,12 @@ static char *rec_state_to_str(DEV_RECORD *rec);
 #endif
 
 bool read_records(DCR *dcr,
-       bool record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec),
-       bool mount_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block))
+       bool record_cb(DCR *dcr, DEV_RECORD *rec),
+       bool mount_cb(DCR *dcr))
 {
    JCR *jcr = dcr->jcr;
    DEVICE *dev = dcr->dev;
-   DEV_BLOCK *block;
+   DEV_BLOCK *block = dcr->block;
    DEV_RECORD *rec = NULL;
    uint32_t record;
    bool ok = true;
@@ -55,7 +55,6 @@ bool read_records(DCR *dcr,
    SESSION_LABEL sessrec;
    dlist *recs; 			/* linked list of rec packets open */
 
-   block = new_block(dev);
    recs = New(dlist(rec, &rec->link));
    position_to_first_file(jcr, dev);
 
@@ -64,13 +63,13 @@ bool read_records(DCR *dcr,
 	 ok = false;
 	 break;
       }
-      if (!read_block_from_device(dcr, block, CHECK_BLOCK_NUMBERS)) {
+      if (!read_block_from_device(dcr, CHECK_BLOCK_NUMBERS)) {
 	 if (dev_state(dev, ST_EOT)) {
 	    DEV_RECORD *trec = new_record();
 
             Jmsg(jcr, M_INFO, 0, "End of Volume at file %u on device %s, Volume \"%s\"\n", 
-		 dev->file, dev_name(dev), jcr->VolumeName);
-	    if (!mount_cb(jcr, dev, block)) {
+		 dev->file, dev_name(dev), dcr->VolumeName);
+	    if (!mount_cb(dcr)) {
                Jmsg(jcr, M_INFO, 0, "End of all volumes.\n");
 	       ok = false;
 	       /*
@@ -80,7 +79,7 @@ bool read_records(DCR *dcr,
 		*/
 	       trec->FileIndex = EOT_LABEL;
 	       trec->File = dev->file;
-	       ok = record_cb(jcr, dev, block, trec);
+	       ok = record_cb(dcr, trec);
 	       free_record(trec);
 	       break;
 	    }
@@ -89,10 +88,10 @@ bool read_records(DCR *dcr,
 	     *	and pass it off to the callback routine, then continue
 	     *	most likely reading the previous record.
 	     */
-	    read_block_from_device(dcr, block, NO_BLOCK_NUMBER_CHECK);
+	    read_block_from_device(dcr, NO_BLOCK_NUMBER_CHECK);
 	    read_record_from_block(block, trec);
 	    handle_session_record(dev, trec, &sessrec);
-	    ok = record_cb(jcr, dev, block, trec);
+	    ok = record_cb(dcr, trec);
 	    free_record(trec);
 	    position_to_first_file(jcr, dev);
 	    /* After reading label, we must read first data block */
@@ -101,10 +100,10 @@ bool read_records(DCR *dcr,
 	 } else if (dev_state(dev, ST_EOF)) {
 	    if (verbose) {
                Jmsg(jcr, M_INFO, 0, "Got EOF at file %u  on device %s, Volume \"%s\"\n", 
-		  dev->file, dev_name(dev), jcr->VolumeName);
+		  dev->file, dev_name(dev), dcr->VolumeName);
 	    }
             Dmsg3(100, "Got EOF at file %u  on device %s, Volume \"%s\"\n", 
-		  dev->file, dev_name(dev), jcr->VolumeName);
+		  dev->file, dev_name(dev), dcr->VolumeName);
 	    continue;
 	 } else if (dev_state(dev, ST_SHORT)) {
             Jmsg1(jcr, M_ERROR, 0, "%s", dev->errmsg);
@@ -190,7 +189,7 @@ bool read_records(DCR *dcr,
 	 /* Some sort of label? */ 
 	 if (rec->FileIndex < 0) {
 	    handle_session_record(dev, rec, &sessrec);
-	    ok = record_cb(jcr, dev, block, rec);
+	    ok = record_cb(dcr, rec);
 	    if (rec->FileIndex == EOS_LABEL) {
                Dmsg2(100, "Remove rec. SI=%d ST=%d\n", rec->VolSessionId,
 		  rec->VolSessionTime);
@@ -226,7 +225,7 @@ bool read_records(DCR *dcr,
 	       rec->VolSessionId, rec->VolSessionTime, rec->FileIndex);
 	    break;		      /* read second part of record */
 	 }
-	 ok = record_cb(jcr, dev, block, rec);
+	 ok = record_cb(dcr, rec);
 	 if (rec->Stream == STREAM_MD5_SIGNATURE || rec->Stream == STREAM_SHA1_SIGNATURE) {
             Dmsg3(100, "Done FI=%d before set_eof pos %d:%d\n", rec->FileIndex,
 		  dev->file, dev->block_num);
@@ -250,7 +249,6 @@ bool read_records(DCR *dcr,
    }
    delete recs;
    print_block_read_errors(jcr, block);
-   free_block(block);
    return ok;
 }
 

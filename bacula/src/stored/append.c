@@ -46,7 +46,6 @@ bool do_append_data(JCR *jcr)
    bool ok = true;
    DEVICE *dev;
    DEV_RECORD rec;
-   DEV_BLOCK  *block;
    DCR *dcr;
    
    Dmsg0(10, "Start append data.\n");
@@ -70,7 +69,6 @@ bool do_append_data(JCR *jcr)
       return false;
    }
    dev = dcr->dev;
-   block = dcr->block;
    memset(&rec, 0, sizeof(rec));
 
    Dmsg1(20, "Begin append device=%s\n", dev_name(dev));
@@ -82,7 +80,7 @@ bool do_append_data(JCR *jcr)
    /*
     * Write Begin Session Record
     */
-   if (!write_session_label(dcr, block, SOS_LABEL)) {
+   if (!write_session_label(dcr, SOS_LABEL)) {
       Jmsg1(jcr, M_FATAL, 0, _("Write session label failed. ERR=%s\n"),
 	 strerror_dev(dev));
       set_jcr_job_status(jcr, JS_ErrorTerminated);
@@ -180,10 +178,10 @@ bool do_append_data(JCR *jcr)
 	    rec.FileIndex, rec.VolSessionId, stream_to_ascii(rec.Stream,rec.FileIndex), 
 	    rec.data_len);
 	  
-	 while (!write_record_to_block(block, &rec)) {
+	 while (!write_record_to_block(dcr->block, &rec)) {
             Dmsg2(150, "!write_record_to_block data_len=%d rem=%d\n", rec.data_len,
 		       rec.remainder);
-	    if (!write_block_to_device(jcr->dcr, block)) {
+	    if (!write_block_to_device(dcr)) {
                Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
 		  dev_name(dev), strerror_dev(dev));
                Jmsg(jcr, M_FATAL, 0, _("Fatal device error: ERR=%s\n"),
@@ -238,7 +236,7 @@ bool do_append_data(JCR *jcr)
     *  if we are at the end of the tape or we got a fatal I/O error.
     */
    if (ok || dev_can_write(dev)) {
-      if (!write_session_label(dcr, block, EOS_LABEL)) {
+      if (!write_session_label(dcr, EOS_LABEL)) {
          Jmsg1(jcr, M_FATAL, 0, _("Error writting end session label. ERR=%s\n"),
 	     strerror_dev(dev));
 	 set_jcr_job_status(jcr, JS_ErrorTerminated);
@@ -246,7 +244,7 @@ bool do_append_data(JCR *jcr)
       }
       Dmsg0(90, "back from write_end_session_label()\n");
       /* Flush out final partial block of this session */
-      if (!write_block_to_device(dcr, block)) {
+      if (!write_block_to_device(dcr)) {
          Dmsg0(100, _("Set ok=FALSE after write_block_to_device.\n"));
 	 set_jcr_job_status(jcr, JS_ErrorTerminated);
 	 ok = false;

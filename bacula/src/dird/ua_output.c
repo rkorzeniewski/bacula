@@ -586,7 +586,8 @@ int complete_jcr_for_job(JCR *jcr, JOB *job, POOL *pool)
    }
    jcr->db = jcr->db=db_init_database(jcr, jcr->catalog->db_name, jcr->catalog->db_user,
 		      jcr->catalog->db_password, jcr->catalog->db_address,
-		      jcr->catalog->db_port, jcr->catalog->db_socket);
+		      jcr->catalog->db_port, jcr->catalog->db_socket,	
+		      jcr->catalog->mult_db_connections);
    if (!jcr->db || !db_open_database(jcr, jcr->db)) {
       Jmsg(jcr, M_FATAL, 0, _("Could not open database \"%s\".\n"),
 		 jcr->catalog->db_name);

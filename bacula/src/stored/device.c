@@ -62,11 +62,11 @@ extern int debug_level;
  * Attempt to "recover" by obtaining a new Volume.
  *
  * Here are a few things to know:
- *  jcr->VolCatInfo contains the info on the "current" tape for this job.
+ *  dcr->VolCatInfo contains the info on the "current" tape for this job.
  *  dev->VolCatInfo contains the info on the tape in the drive.
  *    The tape in the drive could have changed several times since 
  *    the last time the job used it (jcr->VolCatInfo).
- *  jcr->VolumeName is the name of the current/desired tape in the drive.
+ *  dcr->VolumeName is the name of the current/desired tape in the drive.
  *
  * We enter with device locked, and 
  *     exit with device locked.
@@ -76,11 +76,12 @@ extern int debug_level;
  *  Returns: true  on success
  *	     false on failure
  */
-bool fixup_device_block_write_error(DCR *dcr, DEV_BLOCK *block)
+bool fixup_device_block_write_error(DCR *dcr)
 {
    uint32_t stat;
    char PrevVolName[MAX_NAME_LENGTH];
    DEV_BLOCK *label_blk;
+   DEV_BLOCK *block = dcr->block;
    char b1[30], b2[30];
    time_t wait_time;
    char dt[MAX_TIME_LENGTH];
@@ -102,7 +103,7 @@ bool fixup_device_block_write_error(DCR *dcr, DEV_BLOCK *block)
    /* Create a jobmedia record for this job */
    if (!dir_create_jobmedia_record(dcr)) {
        Jmsg(jcr, M_ERROR, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
-	    jcr->VolCatInfo.VolCatName, jcr->Job);
+	    dcr->VolCatInfo.VolCatName, jcr->Job);
        P(dev->mutex);
        unblock_device(dev);
        return false;
@@ -124,6 +125,7 @@ bool fixup_device_block_write_error(DCR *dcr, DEV_BLOCK *block)
    bstrncpy(dev->VolHdr.PrevVolName, PrevVolName, sizeof(dev->VolHdr.PrevVolName));
 
    label_blk = new_block(dev);
+   dcr->block = label_blk;
 
    /* Inform User about end of medium */
    Jmsg(jcr, M_INFO, 0, _("End of medium on Volume \"%s\" Bytes=%s Blocks=%s at %s.\n"), 
@@ -131,8 +133,9 @@ bool fixup_device_block_write_error(DCR *dcr, DEV_BLOCK *block)
 	edit_uint64_with_commas(dev->VolCatInfo.VolCatBlocks, b2),
 	bstrftime(dt, sizeof(dt), time(NULL)));
 
-   if (!mount_next_write_volume(dcr, label_blk, 1)) {
+   if (!mount_next_write_volume(dcr, 1)) {
       free_block(label_blk);
+      dcr->block = block;
       P(dev->mutex);
       unblock_device(dev);
       return false;		   /* device locked */
@@ -140,7 +143,7 @@ bool fixup_device_block_write_error(DCR *dcr, DEV_BLOCK *block)
    P(dev->mutex);		   /* lock again */
 
    Jmsg(jcr, M_INFO, 0, _("New volume \"%s\" mounted on device %s at %s.\n"),
-      jcr->VolumeName, dev_name(dev), bstrftime(dt, sizeof(dt), time(NULL)));
+      dcr->VolumeName, dev_name(dev), bstrftime(dt, sizeof(dt), time(NULL)));
 
    /* 
     * If this is a new tape, the label_blk will contain the
@@ -149,14 +152,16 @@ bool fixup_device_block_write_error(DCR *dcr, DEV_BLOCK *block)
     *  empty label_blk, and nothing will be written.
     */
    Dmsg0(190, "write label block to dev\n");
-   if (!write_block_to_dev(dcr, label_blk)) {
+   if (!write_block_to_dev(dcr)) {
       Pmsg1(0, "write_block_to_device Volume label failed. ERR=%s",
 	strerror_dev(dev));
       free_block(label_blk);
+      dcr->block = block;
       unblock_device(dev);
       return false;		   /* device locked */
    }
    free_block(label_blk);
+   dcr->block = block;
 
    /* 
     * Walk through all attached jcrs indicating the volume has changed	 
@@ -171,8 +176,7 @@ bool fixup_device_block_write_error(DCR *dcr, DEV_BLOCK *block)
       }
       mdcr->NewVol = true;
       if (jcr != mjcr) {
-	 pm_strcpy(&mjcr->VolumeName, jcr->VolumeName);  /* get a copy of the new volume */
-	 bstrncpy(mdcr->VolumeName, jcr->VolumeName, sizeof(mdcr->VolumeName));
+	 bstrncpy(mdcr->VolumeName, dcr->VolumeName, sizeof(mdcr->VolumeName));
       }
    }
 
@@ -184,7 +188,7 @@ bool fixup_device_block_write_error(DCR *dcr, DEV_BLOCK *block)
 
    /* Write overflow block to device */
    Dmsg0(190, "Write overflow block to dev\n");
-   if (!write_block_to_dev(dcr, block)) {
+   if (!write_block_to_dev(dcr)) {
       Pmsg1(0, "write_block_to_device overflow block failed. ERR=%s",
 	strerror_dev(dev));
       unblock_device(dev);
@@ -302,8 +306,9 @@ bool first_open_device(DEVICE *dev)
 /* 
  * Make sure device is open, if not do so 
  */
-bool open_device(JCR *jcr, DEVICE *dev)
+bool open_device(DCR *dcr)
 {
+   DEVICE *dev = dcr->dev;
    /* Open device */
    if  (!(dev_state(dev, ST_OPENED))) {
        int mode;
@@ -312,10 +317,10 @@ bool open_device(JCR *jcr, DEVICE *dev)
        } else {
 	  mode = OPEN_READ_WRITE;
        }
-       if (open_dev(dev, jcr->VolCatInfo.VolCatName, mode) < 0) {
+       if (open_dev(dev, dcr->VolCatInfo.VolCatName, mode) < 0) {
 	  /* If polling, ignore the error */
 	  if (!dev->poll) {
-             Jmsg2(jcr, M_FATAL, 0, _("Unable to open device %s. ERR=%s\n"), 
+             Jmsg2(dcr->jcr, M_FATAL, 0, _("Unable to open device %s. ERR=%s\n"), 
 		dev_name(dev), strerror_dev(dev));
 	  }
 	  return false;

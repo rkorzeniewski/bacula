@@ -2,7 +2,7 @@
  *
  *  Dumb program to extract files from a Bacula backup.
  *
- *   Kern E. Sibbald, 2000
+ *   Kern E. Sibbald, MM
  *
  *   Version $Id$
  *
@@ -38,7 +38,7 @@ int win32_client = 0;
 #endif
 
 static void do_extract(char *fname);
-static bool record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
+static bool record_cb(DCR *dcr, DEV_RECORD *rec);
 
 static DEVICE *dev = NULL;
 static DCR *dcr;
@@ -79,6 +79,7 @@ static void usage()
 "       -e <file>       exclude list\n"
 "       -i <file>       include list\n"
 "       -p              proceed inspite of I/O errors\n"
+"       -v              verbose\n"
 "       -V <volumes>    specify Volume names (separated by |)\n"
 "       -?              print this message\n\n");
    exit(1);
@@ -100,7 +101,7 @@ int main (int argc, char *argv[])
    init_include_exclude_files(ff);
    binit(&bfd);
 
-   while ((ch = getopt(argc, argv, "b:c:d:e:i:pV:?")) != -1) {
+   while ((ch = getopt(argc, argv, "b:c:d:e:i:pvV:?")) != -1) {
       switch (ch) {
       case 'b':                    /* bootstrap file */
 	 bsr = parse_bsr(NULL, optarg);
@@ -155,6 +156,10 @@ int main (int argc, char *argv[])
 	 forge_on = true;
 	 break;
 
+      case 'v':
+	 verbose++;
+	 break;
+
       case 'V':                    /* Volume name */
 	 VolumeName = optarg;
 	 break;
@@ -203,8 +208,11 @@ int main (int argc, char *argv[])
 static void do_extract(char *devname)
 {
    struct stat statp;
-   jcr = setup_jcr("bextract", devname, bsr, VolumeName);
-   dev = setup_to_access_device(jcr, 1);    /* acquire for read */
+   jcr = setup_jcr("bextract", devname, bsr, VolumeName, 1); /* acquire for read */
+   if (!jcr) {
+      exit(1);
+   }
+   dev = jcr->dcr->dev;
    if (!dev) {
       exit(1);
    }
@@ -245,9 +253,10 @@ static void do_extract(char *devname)
 /*
  * Called here for each record from read_records()
  */
-static bool record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
+static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 {
    int stat;
+   JCR *jcr = dcr->jcr;
 
    if (rec->FileIndex < 0) {
       return true;                    /* we don't want labels */
@@ -455,10 +464,9 @@ bool	dir_send_job_status(JCR *jcr) {return 1;}
 
 bool dir_ask_sysop_to_mount_volume(DCR *dcr)
 {
-   JCR *jcr = dcr->jcr;
    DEVICE *dev = dcr->dev;
    fprintf(stderr, "Mount Volume \"%s\" on device %s and press return when ready: ",
-      jcr->VolumeName, dev_name(dev));
+      dcr->VolumeName, dev_name(dev));
    getchar();	
    return true;
 }

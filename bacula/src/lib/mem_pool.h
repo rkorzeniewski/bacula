@@ -1,12 +1,12 @@
 /*
  * Memory Pool prototypes
  *
- *  Kern Sibbald, 2000
+ *  Kern Sibbald, MM
  *
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -66,11 +66,39 @@ extern void   free_pool_memory(POOLMEM *buf);
 extern void  close_memory_pool();
 extern void  print_memory_pool_stats();
 
+   
+
 #define PM_NOPOOL  0                  /* nonpooled memory */
 #define PM_NAME    1                  /* Bacula name */
 #define PM_FNAME   2                  /* file name buffer */
 #define PM_MESSAGE 3                  /* daemon message */
 #define PM_EMSG    4                  /* error message */
 #define PM_MAX     PM_EMSG            /* Number of types */
+
+class POOL_MEM {
+   char *mem;
+public:
+   POOL_MEM() { mem = get_pool_memory(PM_NAME); *mem = 0; }
+   POOL_MEM(int pool) { mem = get_pool_memory(pool); *mem = 0; }
+   ~POOL_MEM() { free_pool_memory(mem); mem = NULL; }
+   char *c_str() const { return mem; }
+   int size() const { return sizeof_pool_memory(mem); }
+   char *check_size(int32_t size) { 
+      mem = check_pool_memory_size(mem, size);
+      return mem;
+   }
+   int strcpy(const char *str);
+   int strcat(const char *str);
+};
+
+int pm_strcat (POOLMEM **pm, const char *str);
+int pm_strcat (POOLMEM *&pm, const char *str);
+int pm_strcat (POOL_MEM &pm, const char *str);
+int pm_strcat (POOLMEM *&pm, POOL_MEM &str);
+int pm_strcpy (POOLMEM **pm, const char *str);
+int pm_strcpy (POOLMEM *&pm, const char *str);
+int pm_strcpy (POOL_MEM &pm, const char *str);
+int pm_strcpy (POOLMEM *&pm, POOL_MEM &str);
+
 
 #endif

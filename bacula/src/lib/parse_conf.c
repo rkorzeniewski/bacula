@@ -12,7 +12,7 @@
  *	lib/parse_conf.h.
  *	These files contain the parser code, some utility
  *	routines, and the common store routines (name, int,
- *	string).
+ *	string, time, int64, size, ...).
  *
  *   3. The daemon specific file, which contains the Resource
  *	definitions as well as any specific store routines
@@ -439,20 +439,63 @@ void store_res(LEX *lc, RES_ITEM *item, int index, int pass)
 
    lex_get_token(lc, T_NAME);
    if (pass == 2) {
-     res = GetResWithName(item->code, lc->str);
-     if (res == NULL) {
-        scan_err3(lc, _("Could not find config Resource %s referenced on line %d : %s\n"), 
-	   lc->str, lc->line_no, lc->line);
-     }
-     if (*(item->value)) {
-        scan_err3(lc, _("Attempt to redefine resource \"%s\" referenced on line %d : %s\n"), 
-	   lc->str, lc->line_no, lc->line);
-     }
-     *(item->value) = (char *)res;
+      res = GetResWithName(item->code, lc->str);
+      if (res == NULL) {
+         scan_err3(lc, _("Could not find config Resource %s referenced on line %d : %s\n"), 
+	    lc->str, lc->line_no, lc->line);
+      }
+      if (*(item->value)) {
+         scan_err3(lc, _("Attempt to redefine resource \"%s\" referenced on line %d : %s\n"), 
+	    item->name, lc->line_no, lc->line);
+      }
+      *(item->value) = (char *)res;
    }
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
 }
+
+/*
+ * Store a resource in an alist. default_value indicates how many
+ *   times this routine can be called -- i.e. how many alists
+ *   there are.
+ * If we are in pass 2, do a lookup of the 
+ *   resource.
+ */
+void store_alist_res(LEX *lc, RES_ITEM *item, int index, int pass)
+{
+   RES *res;
+   int count = item->default_value;
+   int i = 0;
+   alist *list;
+
+   if (pass == 2) {
+      /* Find empty place to store this directive */
+      while ((item->value)[i] != NULL && i++ < count) { }
+      if (i >= count) {
+         scan_err3(lc, _("Too many Storage directives. Max. is %d. line %d: %s\n"),
+	    count, lc->line_no, lc->line);
+      }
+      list = New(alist(10, not_owned_by_alist));
+
+      for (;;) {
+	 lex_get_token(lc, T_NAME);   /* scan next item */
+	 res = GetResWithName(item->code, lc->str);
+	 if (res == NULL) {
+            scan_err3(lc, _("Could not find config Resource \"%s\" referenced on line %d : %s\n"), 
+	       lc->str, lc->line_no, lc->line);
+	 }
+	 list->append(res);
+	 (item->value)[i] = (char *)list;
+         if (lc->ch != ',') {         /* if no other item follows */
+	    break;		      /* get out */
+	 }
+	 lex_get_token(lc, T_ALL);    /* eat comma */
+      }
+   }
+   scan_to_eol(lc);
+   set_bit(index, res_all.hdr.item_present);
+}
+
 
 /*
  * Store default values for Resource from xxxDefs

@@ -88,6 +88,11 @@ bash_spaces(char *str)
    }
 }
 
+void bash_spaces(POOL_MEM &pm)
+{
+   bash_spaces(pm.c_str());
+}
+
 /* Convert non-space characters (0x1) back into spaces */
 void
 unbash_spaces(char *str)
@@ -98,6 +103,14 @@ unbash_spaces(char *str)
      str++;
    }
 }
+
+/* Convert non-space characters (0x1) back into spaces */
+void
+unbash_spaces(POOL_MEM &pm)
+{
+   unbash_spaces(pm.c_str());
+}
+
 
 
 char *encode_time(time_t time, char *buf)
@@ -113,56 +126,6 @@ char *encode_time(time_t time, char *buf)
    return buf+n;
 }
 
-/*
- * Concatenate a string (str) onto a pool memory buffer pm
- *   Returns: length of concatenated string
- */
-int pm_strcat(POOLMEM **pm, const char *str)
-{
-   int pmlen = strlen(*pm);
-   int len = strlen(str) + 1;
-
-   *pm = check_pool_memory_size(*pm, pmlen + len);
-   memcpy(*pm+pmlen, str, len);
-   return pmlen + len - 1;
-}
-
-int pm_strcat(POOLMEM *&pm, const char *str)
-{
-   int pmlen = strlen(pm);
-   int len = strlen(str) + 1;
-
-   pm = check_pool_memory_size(pm, pmlen + len);
-   memcpy(pm+pmlen, str, len);
-   return pmlen + len - 1;
-}
-
-
-
-/*
- * Copy a string (str) into a pool memory buffer pm
- *   Returns: length of string copied
- */
-int pm_strcpy(POOLMEM **pm, const char *str)
-{
-   int len = strlen(str) + 1;
-
-   *pm = check_pool_memory_size(*pm, len);
-   memcpy(*pm, str, len);
-   return len - 1;
-}
-
-int pm_strcpy(POOLMEM *&pm, const char *str)
-{
-   int len = strlen(str) + 1;
-
-   pm = check_pool_memory_size(pm, len);
-   memcpy(pm, str, len);
-   return len - 1;
-}
-
-
- 
 
 
 /*
