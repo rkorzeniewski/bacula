@@ -67,31 +67,32 @@ static void set_options(findFOPTS *fo, const char *opts);
 struct s_cmds {
    const char *cmd;
    int (*func)(JCR *);
+   int monitoraccess; /* specify if monitors have access to this function */
 };
 
 /*  
  * The following are the recognized commands from the Director. 
  */
 static struct s_cmds cmds[] = {
-   {"backup",       backup_cmd},
-   {"cancel",       cancel_cmd},
-   {"setdebug=",    setdebug_cmd},
-   {"estimate",     estimate_cmd},
-   {"exclude",      exclude_cmd},
-   {"Hello",        hello_cmd},
-   {"include",      include_cmd},
-   {"fileset",      fileset_cmd},
-   {"JobId=",       job_cmd},
-   {"level = ",     level_cmd},
-   {"restore",      restore_cmd},
-   {"session",      session_cmd},
-   {"status",       status_cmd},
-   {".status",      qstatus_cmd},
-   {"storage ",     storage_cmd},
-   {"verify",       verify_cmd},
-   {"bootstrap",    bootstrap_cmd},
-   {"RunBeforeJob", runbefore_cmd},
-   {"RunAfterJob",  runafter_cmd},
+   {"backup",       backup_cmd,    0},
+   {"cancel",       cancel_cmd,    0},
+   {"setdebug=",    setdebug_cmd,  0},
+   {"estimate",     estimate_cmd,  0},
+   {"exclude",      exclude_cmd,   0},
+   {"Hello",        hello_cmd,     1},
+   {"include",      include_cmd,   0},
+   {"fileset",      fileset_cmd,   0},
+   {"JobId=",       job_cmd,       0},
+   {"level = ",     level_cmd,     0},
+   {"restore",      restore_cmd,   0},
+   {"session",      session_cmd,   0},
+   {"status",       status_cmd,    1},
+   {".status",      qstatus_cmd,   1},
+   {"storage ",     storage_cmd,   0},
+   {"verify",       verify_cmd,    0},
+   {"bootstrap",    bootstrap_cmd, 0},
+   {"RunBeforeJob", runbefore_cmd, 0},
+   {"RunAfterJob",  runafter_cmd,  0},
    {NULL,	NULL}		       /* list terminator */
 };
 
@@ -109,6 +110,7 @@ static char runafter[]    = "RunAfterJob %s\n";
 /* Responses sent to Director */
 static char errmsg[]      = "2999 Invalid command\n";
 static char no_auth[]     = "2998 No Authorization\n";
+static char illegal_cmd[] = "2997 Illegal command for a Director with Monitor directive enabled\n";
 static char OKinc[]       = "2000 OK include\n";
 static char OKest[]       = "2000 OK estimate files=%u bytes=%s\n";
 static char OKexc[]       = "2000 OK exclude\n";
@@ -185,30 +187,37 @@ void *handle_client_request(void *dirp)
 
       /* Read command */
       if (bnet_recv(dir) < 0) {
-	 break; 		      /* connection terminated */
+         break;               /* connection terminated */
       }
       dir->msg[dir->msglen] = 0;
       Dmsg1(100, "<dird: %s", dir->msg);
       found = false;
       for (i=0; cmds[i].cmd; i++) {
-	 if (strncmp(cmds[i].cmd, dir->msg, strlen(cmds[i].cmd)) == 0) {
-	    if (!jcr->authenticated && cmds[i].func != hello_cmd) {
-	       bnet_fsend(dir, no_auth);
-	       break;
-	    }
-	    found = true;		 /* indicate command found */
+         if (strncmp(cmds[i].cmd, dir->msg, strlen(cmds[i].cmd)) == 0) {
+            found = true;         /* indicate command found */
+            if (!jcr->authenticated && cmds[i].func != hello_cmd) {
+               bnet_fsend(dir, no_auth);
+               bnet_sig(dir, BNET_EOD);
+               break;
+            }
+            if ((jcr->authenticated) && (!cmds[i].monitoraccess) && (jcr->director->monitor)) {
+               Dmsg1(100, "Command %s illegal.\n", cmds[i].cmd);
+               bnet_fsend(dir, illegal_cmd);
+               bnet_sig(dir, BNET_EOD);
+               break;
+            }
             Dmsg1(100, "Executing %s command.\n", cmds[i].cmd);
-	    if (!cmds[i].func(jcr)) {	 /* do command */
-	       quit = true;		 /* error or fully terminated,	get out */
+            if (!cmds[i].func(jcr)) {         /* do command */
+               quit = true;         /* error or fully terminated,	get out */
                Dmsg0(20, "Quit command loop due to command error or Job done.\n");
-	    }
-	    break;
-	 }
+            }
+            break;
+         }
       }
-      if (!found) {		      /* command not found */
-	 bnet_fsend(dir, errmsg);
-	 quit = true;
-	 break;
+      if (!found) {              /* command not found */
+         bnet_fsend(dir, errmsg);
+         quit = true;
+         break;
       }
    }
 

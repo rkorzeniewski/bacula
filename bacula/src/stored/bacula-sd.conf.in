@@ -27,6 +27,16 @@ Director {
 }
 
 #
+# Restricted Director, used by tray-monitor to get the
+#   status of the storage daemon
+#
+Director {
+  Name = @hostname@-mon
+  Password = "@mon_sd_password@"
+  Monitor = yes
+}
+
+#
 # Devices supported by this Storage daemon
 # To connect, the Director's bacula-dir.conf must have the
 #  same Name and MediaType. 

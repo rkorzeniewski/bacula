@@ -51,6 +51,7 @@ struct DIRRES {
    char *password;                    /* Director password */
    char *address;                     /* Director address or zero */
    int enable_ssl;                    /* Use SSL for this Director */
+   int monitor;                       /* Have only access to status and .status functions */
 };
 
 struct CLIENT {

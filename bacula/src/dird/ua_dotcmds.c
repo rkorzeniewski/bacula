@@ -45,6 +45,7 @@ extern const char *client_backups;
 extern int qmessagescmd(UAContext *ua, const char *cmd);
 extern int quit_cmd(UAContext *ua, const char *cmd);
 extern int qhelp_cmd(UAContext *ua, const char *cmd);
+extern int qstatus_cmd(UAContext *ua, const char *cmd);
 
 /* Forward referenced functions */
 static int diecmd(UAContext *ua, const char *cmd);
@@ -70,6 +71,7 @@ static struct cmdstruct commands[] = {
  { N_(".types"),      typescmd,     NULL},
  { N_(".backups"),    backupscmd,   NULL},
  { N_(".levels"),     levelscmd,    NULL},
+ { N_(".status"),     qstatus_cmd,  NULL},
  { N_(".storage"),    storagecmd,   NULL},
  { N_(".defaults"),   defaultscmd,  NULL},
  { N_(".messages"),   qmessagescmd, NULL},

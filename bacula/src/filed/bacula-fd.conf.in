@@ -16,6 +16,16 @@ Director {
 }
 
 #
+# Restricted Director, used by tray-monitor to get the
+#   status of the file daemon
+#
+Director {
+  Name = @hostname@-mon
+  Password = "@mon_fd_password@"
+  Monitor = yes
+}
+
+#
 # "Global" File daemon configuration specifications
 #
 FileDaemon {                          # this is me
