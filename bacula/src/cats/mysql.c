@@ -136,7 +136,7 @@ db_open_database(void *jcr, B_DB *mdb)
 	mdb->db_name,		      /* database name */
 	mdb->db_port,		      /* default port */
 	mdb->db_socket, 	      /* default = socket */
-	0);			      /* flags = none */
+	CLIENT_FOUND_ROWS);	      /* flags */
 
    /* If no connect, try once more incase it is a timing problem */
    if (mdb->db == NULL) {

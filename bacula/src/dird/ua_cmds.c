@@ -47,6 +47,7 @@ extern char *list_pool;
 /* Imported functions */
 extern int statuscmd(UAContext *ua, char *cmd);
 extern int listcmd(UAContext *ua, char *cmd);
+extern int llistcmd(UAContext *ua, char *cmd);
 extern int showcmd(UAContext *ua, char *cmd);
 extern int messagescmd(UAContext *ua, char *cmd);
 extern int autodisplaycmd(UAContext *ua, char *cmd);
@@ -66,6 +67,7 @@ static int deletecmd(UAContext *ua, char *cmd);
 static int usecmd(UAContext *ua, char *cmd),  unmountcmd(UAContext *ua, char *cmd);
 static int labelcmd(UAContext *ua, char *cmd), mountcmd(UAContext *ua, char *cmd), updatecmd(UAContext *ua, char *cmd);
 static int versioncmd(UAContext *ua, char *cmd), automountcmd(UAContext *ua, char *cmd);
+static int timecmd(UAContext *ua, char *cmd);
 static int update_volume(UAContext *ua);
 static int update_pool(UAContext *ua);
 static int delete_volume(UAContext *ua);
@@ -85,6 +87,7 @@ static struct cmdstruct commands[] = {
  { N_("help"),       helpcmd,      _("print this command")},
  { N_("label"),      labelcmd,     _("label a tape")},
  { N_("list"),       listcmd,      _("list [pools | jobs | jobtotals | media <pool> | files job=<nn>]; from catalog")},
+ { N_("llist"),      llistcmd,     _("full or long list like list command")},
  { N_("messages"),   messagescmd,  _("messages")},
  { N_("mount"),      mountcmd,     _("mount <storage-name>")},
  { N_("restore"),    restorecmd,   _("restore files")},
@@ -101,6 +104,7 @@ static struct cmdstruct commands[] = {
  { N_("version"),    versioncmd,   _("print Director version")},
  { N_("quit"),       quitcmd,      _("quit")},
  { N_("query"),      querycmd,     _("query catalog")},
+ { N_("time"),       timecmd,      _("print current time")},
  { N_("exit"),       quitcmd,      _("exit = quit")},
 	     };
 #define comsize (sizeof(commands)/sizeof(struct cmdstruct))
@@ -1154,6 +1158,20 @@ static int setdebugcmd(UAContext *ua, char *cmd)
       default:
 	 break;
    }
+   return 1;
+}
+
+/*
+ * print time
+ */
+static int timecmd(UAContext *ua, char *cmd)
+{
+   char sdt[50];
+   time_t ttime = time(NULL);
+   struct tm tm;
+   localtime_r(&ttime, &tm);
+   strftime(sdt, sizeof(sdt), "%d-%b-%Y %H:%M:%S", &tm);
+   bsendmsg(ua, "%s\n", sdt);
    return 1;
 }
 

@@ -76,7 +76,9 @@ _("Wanted to create Volume \"%s\", but it already exists. Trying again.\n"),
 		    tmr.VolumeName);
 	       continue;
 	    }
-	    bstrncpy(mr->VolumeName, tmr.VolumeName, sizeof(mr->VolumeName));
+	    bstrncpy(mr->VolumeName, name, sizeof(mr->VolumeName));
+	    bstrncat(mr->VolumeName, num, sizeof(mr->VolumeName));
+	    break;		      /* Got good name */
 	 }
 	 if (mr->VolumeName[0] == 0) {
             Jmsg(jcr, M_ERROR, 0, _("Too many failures. Giving up creating Volume.\n"));
@@ -86,6 +88,7 @@ _("Wanted to create Volume \"%s\", but it already exists. Trying again.\n"),
 	 if (db_create_media_record(jcr, jcr->db, mr) &&
 	    db_update_pool_record(jcr, jcr->db, &pr)) {
 	    db_unlock(jcr->db);
+            Jmsg(jcr, M_INFO, 0, _("Created new Volume \"%s\" in catalog.\n"), mr->VolumeName);
             Dmsg1(90, "Created new Volume=%s\n", mr->VolumeName);
 	    return 1;
 	 } else {

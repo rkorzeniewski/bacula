@@ -46,6 +46,7 @@ extern brwlock_t con_lock;
 /* Imported functions */
 
 /* Forward referenced functions */
+static int do_listcmd(UAContext *ua, char *cmd, int llist);
 
 
 /*
@@ -189,7 +190,20 @@ int showcmd(UAContext *ua, char *cmd)
  *  list clients	- list clients
  *
  */
-int listcmd(UAContext *ua, char *cmd) 
+
+/* Do long or full listing */
+int llistcmd(UAContext *ua, char *cmd)
+{
+   return do_listcmd(ua, cmd, 1);
+}
+
+/* Do short or summary listing */
+int listcmd(UAContext *ua, char *cmd)
+{
+   return do_listcmd(ua, cmd, 0);
+}
+
+static int do_listcmd(UAContext *ua, char *cmd, int llist) 
 {
    POOLMEM *VolumeName;
    int jobid, n;

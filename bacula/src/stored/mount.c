@@ -190,7 +190,7 @@ read_volume:
 	    if (!dir_get_volume_info(jcr, 1)) {
                Mmsg(&jcr->errmsg, _("Wanted Volume \"%s\".\n"
                     "    Actual Volume \"%s\" not acceptable because:\n"
-                    "    %s\n"),
+                    "    %s"),
 		   dev->VolCatInfo.VolCatName, dev->VolHdr.VolName,
 		   jcr->dir_bsock->msg);
 	       /* Restore desired volume name, note device info out of sync */
@@ -212,7 +212,7 @@ read_volume:
                   Dmsg0(100, "!write_vol_label\n");
 		  goto mount_next_vol;
 	       }
-               Jmsg(jcr, M_INFO, 0, _("Created Volume label %s on device %s.\n"),
+               Jmsg(jcr, M_INFO, 0, _("Labeled new Volume \"%s\" on device %s.\n"),
 		  jcr->VolumeName, dev_name(dev));
 	       goto read_volume;      /* read label we just wrote */
 	    } 
@@ -302,10 +302,10 @@ mount_error:
       Dmsg0(200, "dir_update_vol_info. Set Append\n");
       dir_update_volume_info(jcr, &dev->VolCatInfo, 1);  /* indicate doing relabel */
       if (recycle) {
-         Jmsg(jcr, M_INFO, 0, _("Recycled volume %s on device %s, all previous data lost.\n"),
+         Jmsg(jcr, M_INFO, 0, _("Recycled volume \"%s\" on device %s, all previous data lost.\n"),
 	    jcr->VolumeName, dev_name(dev));
       } else {
-         Jmsg(jcr, M_INFO, 0, _("Wrote label to prelabeled Volume %s on device %s\n"),
+         Jmsg(jcr, M_INFO, 0, _("Wrote label to prelabeled Volume \"%s\" on device %s\n"),
 	    jcr->VolumeName, dev_name(dev));
       }
 
@@ -316,12 +316,12 @@ mount_error:
        * just now putting it into append mode.
        */
       Dmsg0(200, "Device previously written, moving to end of data\n");
-      Jmsg(jcr, M_INFO, 0, _("Volume %s previously written, moving to end of data.\n"),
+      Jmsg(jcr, M_INFO, 0, _("Volume \"%s\" previously written, moving to end of data.\n"),
 	 jcr->VolumeName);
       if (!eod_dev(dev)) {
          Jmsg(jcr, M_ERROR, 0, _("Unable to position to end of data %s. ERR=%s\n"),
 	    dev_name(dev), strerror_dev(dev));
-         Jmsg(jcr, M_INFO, 0, _("Marking Volume %s in Error in Catalog.\n"),
+         Jmsg(jcr, M_INFO, 0, _("Marking Volume \"%s\" in Error in Catalog.\n"),
 	    jcr->VolumeName);
          strcpy(dev->VolCatInfo.VolCatStatus, "Error");
          Dmsg0(200, "dir_update_vol_info. Set Error.\n");

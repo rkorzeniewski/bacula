@@ -123,6 +123,9 @@ InsertDB(char *file, int line, void *jcr, B_DB *mdb, char *cmd)
       char ed1[30];
       m_msg(file, line, &mdb->errmsg, _("Insertion problem: affected_rows=%s\n"), 
 	 edit_uint64(mdb->num_rows, ed1));
+      if (verbose) {
+         j_msg(file, line, jcr, M_INFO, 0, "%s\n", cmd);
+      }
       return 0;
    }
    mdb->changes++;
@@ -148,8 +151,11 @@ UpdateDB(char *file, int line, void *jcr, B_DB *mdb, char *cmd)
    mdb->num_rows = sql_affected_rows(mdb);
    if (mdb->num_rows != 1) {
       char ed1[30];
-      m_msg(file, line, &mdb->errmsg, _("Update problem: affect_rows=%s\n"), 
+      m_msg(file, line, &mdb->errmsg, _("Update problem: affected_rows=%s\n"), 
 	 edit_uint64(mdb->num_rows, ed1));
+      if (verbose) {
+         j_msg(file, line, jcr, M_INFO, 0, "%s\n", cmd);
+      }
       return 0;
    }
    mdb->changes++;
