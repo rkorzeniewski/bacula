@@ -469,8 +469,15 @@ eod_dev(DEVICE *dev)
 	  *   to set EOD or to turn off CAP_FASTFSF if on.
 	  */
 	 if (file_num == (int)dev->file) {
+	    struct mtget mt_stat;
             Dmsg1(000, "fsf_dev did not advance from file %d\n", file_num);
-	    return 0;		      /* we are not progressing, bail out */
+	    if (ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) == 0 && 
+		      mt_stat.mt_fileno >= 0) {
+               Dmsg2(000, "Adjust file from %d to %d\n", dev->file , mt_stat.mt_fileno);
+	       dev->file = mt_stat.mt_fileno;
+	    }
+	    stat = 0;
+	    break;		      /* we are not progressing, bail out */
 	 }
       }
    }
@@ -484,9 +491,11 @@ eod_dev(DEVICE *dev)
       /* Backup over EOF */
       stat = bsf_dev(dev, 1);
       /* If BSF worked and fileno is known (not -1), set file */
-      if (stat == 0 && ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) == 0 &&
-	  mt_stat.mt_fileno >= 0) {
+      if (ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) == 0 && mt_stat.mt_fileno >= 0) {
+         Dmsg2(000, "Adjust file from %d to %d\n", dev->file , mt_stat.mt_fileno);
 	 dev->file = mt_stat.mt_fileno;
+      } else {
+	 dev->file++;		      /* wing it -- not correct on all OSes */
       }
    } else {
       update_pos_dev(dev);		     /* update position */
@@ -560,7 +569,7 @@ status_dev(DEVICE *dev, uint32_t *status)
    }
    if (dev->state & ST_TAPE) {
       stat |= BMT_TAPE;
-      Dmsg0(-20," Driver status:");
+      Dmsg0(-20," Bacula status:");
       Dmsg2(-20," file=%d block=%d\n", dev->file, dev->block_num);
       if (ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) < 0) {
 	 dev->dev_errno = errno;

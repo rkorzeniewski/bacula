@@ -724,6 +724,9 @@ static int append_test()
    wrcmd();
    wrcmd();
    weofcmd();	  /* end file 2 */
+   if (dev_cap(dev, CAP_TWOEOF)) {
+      weofcmd();
+   }
    rewindcmd();
    Pmsg0(0, _("Now moving to end of medium.\n"));
    eodcmd();
@@ -737,6 +740,9 @@ static int append_test()
    Pmsg0(-1, _("\nNow the important part, I am going to attempt to append to the tape.\n\n"));
    wrcmd(); 
    weofcmd();
+   if (dev_cap(dev, CAP_TWOEOF)) {
+      weofcmd();
+   }
    rewindcmd();
    Pmsg0(-1, _("Done appending, there should be no I/O errors\n\n"));
    Pmsg0(-1, "Doing Bacula scan of blocks:\n");
@@ -909,6 +915,9 @@ static int fsf_test()
    weofcmd();	  /* end file 3 */
    wrcmd();
    weofcmd();	  /* end file 4 */
+   if (dev_cap(dev, CAP_TWOEOF)) {
+      weofcmd();
+   }
 
 test_again:
    rewindcmd();
