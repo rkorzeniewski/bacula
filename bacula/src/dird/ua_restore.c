@@ -48,7 +48,7 @@ extern char *uar_create_temp1,	 *uar_last_full,   *uar_full;
 extern char *uar_inc,		 *uar_list_temp,   *uar_sel_jobid_temp;
 extern char *uar_sel_all_temp1,  *uar_sel_fileset, *uar_mediatype;
 extern char *uar_jobid_fileindex, *uar_dif,	   *uar_sel_all_temp;
-extern char *uar_count_files;
+extern char *uar_count_files,	  *uar_jobids_fileindex;
 
 
 struct NAME_LIST {
@@ -632,7 +632,12 @@ static int insert_file_into_findex_list(UAContext *ua, RESTORE_CTX *rx, char *fi
 {
    strip_trailing_junk(file);
    split_path_and_filename(rx, file);
-   Mmsg(rx->query, uar_jobid_fileindex, date, rx->path, rx->fname, rx->ClientName);
+   if (*rx->JobIds == 0) {
+      Mmsg(rx->query, uar_jobid_fileindex, date, rx->path, rx->fname, rx->ClientName);
+   } else {
+      Mmsg(rx->query, uar_jobids_fileindex, rx->JobIds, date, 
+	   rx->path, rx->fname, rx->ClientName);
+   }
    rx->found = false;
    /* Find and insert jobid and File Index */
    if (!db_sql_query(ua->db, rx->query, jobid_fileindex_handler, (void *)rx)) {
