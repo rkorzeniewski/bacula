@@ -101,6 +101,8 @@ From Chris Hull:
   then list last 20 backups.
 - Add all pools in Dir conf to DB also update them to catch changed
   LabelFormats and such.
+- Update volume FromPool (or FromPool=xxx) refreshes the Volume defaults from Pool.
+- Update volumes FromPool=xxx does all volumes.
 
 
 For version 1.35:
