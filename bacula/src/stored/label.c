@@ -414,7 +414,7 @@ int write_volume_label_to_dev(JCR *jcr, DEVRES *device, char *VolName, char *Poo
    free_pool_memory(rec.data);
       
    Dmsg0(99, "Call write_block_to_device()\n");
-   if (!write_block_to_dev(dev, block)) {
+   if (!write_block_to_dev(jcr, dev, block)) {
       Dmsg2(30, "Bad Label write on %s. ERR=%s\n", dev_name(dev), strerror_dev(dev));
       stat = 9;
    }

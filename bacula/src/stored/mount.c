@@ -249,7 +249,8 @@ mount_error:
 		  dev_name(dev), strerror_dev(dev));
 	 }
       }
-      if (!write_block_to_dev(dev, block)) {
+      /* Attempt write to check write permission */
+      if (!write_block_to_dev(jcr, dev, block)) {
          Jmsg2(jcr, M_ERROR, 0, _("Unable to write device %s. ERR=%s\n"),
 	    dev_name(dev), strerror_dev(dev));
 	 goto mount_next_vol;
@@ -259,6 +260,7 @@ mount_error:
 	    dev_name(dev), strerror_dev(dev));
 	 goto mount_next_vol;
       }
+
       /* Recreate a correct volume label and return it in the block */
       write_volume_label_to_block(jcr, dev, block);
       /* Set or reset Volume statistics */

@@ -53,7 +53,7 @@ void	init_block_write(DEV_BLOCK *block);
 void	empty_block(DEV_BLOCK *block);
 void	free_block(DEV_BLOCK *block);
 int	write_block_to_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
-int	write_block_to_dev(DEVICE *dev, DEV_BLOCK *block);
+int	write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
 int	read_block_from_device(DEVICE *dev, DEV_BLOCK *block);
 int	read_block_from_dev(DEVICE *dev, DEV_BLOCK *block);
 

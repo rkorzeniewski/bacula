@@ -555,9 +555,6 @@ int get_job_dbr(UAContext *ua, JOB_DBR *jr)
    return jr->JobId;
 }
 
-
-
-
 /*
  * Implement unique set of prompts 
  */

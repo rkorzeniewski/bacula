@@ -275,7 +275,7 @@ int write_block_to_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 {
    int stat = 1;
    lock_device(dev);
-   if (!write_block_to_dev(dev, block)) {
+   if (!write_block_to_dev(jcr, dev, block)) {
        stat = fixup_device_block_write_error(jcr, dev, block);
    }
    unlock_device(dev);
@@ -288,11 +288,12 @@ int write_block_to_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
  *  Returns: 1 on success or EOT
  *	     0 on hard error
  */
-int write_block_to_dev(DEVICE *dev, DEV_BLOCK *block)
+int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 {
    size_t stat = 0;
    uint32_t wlen;		      /* length to write */
    int hit_max1, hit_max2;
+   int ok;
 
 #ifdef NO_TAPE_WRITE_TEST
    empty_block(block);
@@ -354,7 +355,6 @@ int write_block_to_dev(DEVICE *dev, DEV_BLOCK *block)
 	    edit_uint64(dev->VolCatInfo.VolCatMaxBytes, ed1),  dev->dev_name);
       }
       block->failed_write = TRUE;
-/* ****FIXME**** write EOD record here */
       weof_dev(dev, 1); 	      /* end the tape */
       weof_dev(dev, 1); 	      /* write second eof */
       return 0;
@@ -370,7 +370,6 @@ int write_block_to_dev(DEVICE *dev, DEV_BLOCK *block)
        * conditions.  In any case, we probably want to
        * simulate an End of Medium.
        */
-/***FIXME**** if we wrote a partial record, back up over it */
       dev->state |= ST_EOF | ST_EOT | ST_WEOT;
       clrerror_dev(dev, -1);
 
@@ -386,6 +385,52 @@ int write_block_to_dev(DEVICE *dev, DEV_BLOCK *block)
       block->failed_write = TRUE;
       weof_dev(dev, 1); 	      /* end the tape */
       weof_dev(dev, 1); 	      /* write second eof */
+	
+      ok = TRUE;
+#define CHECK_LAST_BLOCK
+#ifdef	CHECK_LAST_BLOCK
+      /* 
+       * If the device is a tape and it supports backspace record,
+       *   we backspace over two eof marks and over the last record,
+       *   then re-read it and verify that the block number is
+       *   correct.
+       */
+      if (dev->state & ST_TAPE && dev->capabilities & CAP_BSR) {
+	 uint32_t file, block_num;
+
+	 file = dev->file;
+	 block_num = dev->block_num;
+	 
+	 /* Now back up over what we wrote and read the last block */
+	 if (bsf_dev(dev, 1) != 0 || bsf_dev(dev, 1) != 0) {
+	    ok = FALSE;
+            Jmsg(jcr, M_ERROR, 0, _("Back space file at EOT failed. ERR=%s\n"), strerror(dev->dev_errno));
+	 }
+	 /* Backspace over record */
+	 if (ok && bsr_dev(dev, 1) != 0) {
+	    ok = FALSE;
+            Jmsg(jcr, M_ERROR, 0, _("Back space record at EOT failed. ERR=%s\n"), strerror(dev->dev_errno));
+	 }
+	 if (ok) {
+	    DEV_BLOCK *lblock = new_block(dev);
+	    /* Note, this can destroy dev->errmsg */
+	    if (!read_block_from_dev(dev, lblock)) {
+               Jmsg(jcr, M_ERROR, 0, _("Re-read last block at EOT failed. ERR=%s"), dev->errmsg);
+	    } else {
+	       if (lblock->BlockNumber+1 == block->BlockNumber) {
+                  Jmsg(jcr, M_INFO, 0, _("Re-read of last block succeeded.\n"));
+	       } else {
+		  Jmsg(jcr, M_ERROR, 0, _(
+"Re-read of last block failed. Last block=%u Current block=%u.\n"),
+		       lblock->BlockNumber, block->BlockNumber);
+	       }
+	    }
+	    free_block(lblock);
+	 }
+	 dev->file = file;
+	 dev->block_num = block_num;
+      }
+#endif
       return 0;
    }
    dev->VolCatInfo.VolCatBytes += block->binbuf;

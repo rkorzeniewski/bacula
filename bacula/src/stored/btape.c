@@ -655,7 +655,7 @@ static void wrcmd()
       Pmsg0(0, "Error writing record to block.\n"); 
       goto bail_out;
    }
-   if (!write_block_to_dev(dev, block)) {
+   if (!write_block_to_dev(jcr, dev, block)) {
       Pmsg0(0, "Error writing block to device.\n"); 
       goto bail_out;
    } else {
@@ -1067,7 +1067,7 @@ static int flush_block(DEV_BLOCK *block, int dump)
 {
    char ec1[50];
    lock_device(dev);
-   if (!write_block_to_dev(dev, block)) {
+   if (!write_block_to_dev(jcr, dev, block)) {
       Pmsg0(000, strerror_dev(dev));		
       Pmsg3(000, "Block not written: FileIndex=%u Block=%u Size=%u\n", 
 	 (unsigned)file_index, block->BlockNumber, block->block_len);
