@@ -259,6 +259,10 @@ int write_block_to_dev(DEVICE *dev, DEV_BLOCK *block)
    int stat = 0;
    uint32_t wlen;		      /* length to write */
 
+#ifdef NO_TAPE_WRITE_TEST
+   empty_block(block);
+   return 1;
+#endif
    ASSERT(block->binbuf == ((uint32_t) (block->bufp - block->buf)));
 
    /* dump_block(block, "before write"); */

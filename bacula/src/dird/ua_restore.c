@@ -245,12 +245,12 @@ int restorecmd(UAContext *ua, char *cmd)
 
    if (ji.client) {
       Mmsg(&ua->cmd, 
-         "run job=%s client=\"%s\" storage=\"%s\" bootstrap=\"%s/restore.bsr\"",
+         "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s/restore.bsr\"",
          job->hdr.name, ji.client->hdr.name, ji.store?ji.store->hdr.name:"",
 	 working_directory);
    } else {
       Mmsg(&ua->cmd, 
-         "run job=%s storage=\"%s\" bootstrap=\"%s/restore.bsr\"",
+         "run job=\"%s\" storage=\"%s\" bootstrap=\"%s/restore.bsr\"",
          job->hdr.name, ji.store?ji.store->hdr.name:"", working_directory);
    }
    

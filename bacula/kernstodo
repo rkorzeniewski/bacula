@@ -28,6 +28,7 @@ From Chuck:
 --sd.conf password does not match dir.conf storage password
 =======
 
+- Volume Bytes shows bytes on last volume written in Job summary.
 - Fix catalog filename truncation in sql_get and sql_create. Use
   only a single filename split routine.
 - Add command to reset VolFiles to a larger value (don't allow

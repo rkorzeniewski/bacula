@@ -187,6 +187,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
     * Send Attributes header to Storage daemon
     *	 <file-index> <stream> <info>
     */
+#ifndef NO_FD_SEND_TEST
    if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_UNIX_ATTRIBUTES)) {
       if (fid >= 0) {
 	 close(fid);
@@ -225,6 +226,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
    }
    /* send data termination sentinel */
    bnet_sig(sd, BNET_EOD);
+#endif
 
    /* 
     * If the file has data, read it and send to the Storage daemon
@@ -246,11 +248,13 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
       }
 #endif
 
+#ifndef NO_FD_SEND_TEST
       if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, stream)) {
 	 close(fid);
 	 return 0;
       }
       Dmsg1(10, ">stored: datahdr %s\n", sd->msg);
+#endif
 
       if (ff_pkt->flags & FO_MD5) {
 	 MD5Init(&md5c);
@@ -281,6 +285,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 
 	    sd->msg = jcr->compress_buf; /* write compressed buffer */
 	    sd->msglen = compress_len;
+#ifndef NO_FD_SEND_TEST
 	    if (!bnet_send(sd)) {
 	       sd->msg = msgsave;     /* restore read buffer */
 	       sd->msglen = 0;
@@ -288,16 +293,19 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 	       return 0;
 	    }
             Dmsg1(30, "Send data to FD len=%d\n", sd->msglen);
+#endif
 	    jcr->JobBytes += sd->msglen;
 	    sd->msg = msgsave;	      /* restore read buffer */
 	    continue;
 	 }
 #endif
+#ifndef NO_FD_SEND_TEST
 	 if (!bnet_send(sd)) {
 	    close(fid);
 	    return 0;
 	 }
          Dmsg1(30, "Send data to FD len=%d\n", sd->msglen);
+#endif
 	 jcr->JobBytes += sd->msglen;
       } /* end while */
 
@@ -311,6 +319,8 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
        *  by the user to improve efficiency (i.e. poll every
        *  other file, every third file, ... 
        */
+#ifndef NO_FD_SEND_TEST
+#ifndef NO_POLL_TEST
       bnet_sig(sd, BNET_EOD_POLL);
       Dmsg0(30, "Send EndData_Poll\n");
       /* ***FIXME**** change to use bget_msg() */
@@ -324,6 +334,10 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 	   return 0;
 	 }
       }
+#else 
+      bnet_sig(sd, BNET_EOD);
+#endif
+#endif /* NO_FD_SEND_TEST */
       close(fid);			 /* close file */
    }
 
@@ -331,12 +345,14 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
    /* Terminate any MD5 signature and send it to Storage daemon and the Director */
    if (gotMD5 && ff_pkt->flags & FO_MD5) {
       MD5Final(signature, &md5c);
+#ifndef NO_FD_SEND_TEST
       bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_MD5_SIGNATURE);
       Dmsg1(10, "bfiled>stored:header %s\n", sd->msg);
       memcpy(sd->msg, signature, 16);
       sd->msglen = 16;
       bnet_send(sd);
       bnet_sig(sd, BNET_EOD);	      /* end of MD5 */
+#endif
       gotMD5 = 0;
    }
 #ifdef really_needed

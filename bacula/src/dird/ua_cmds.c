@@ -978,7 +978,7 @@ static int setdebugcmd(UAContext *ua, char *cmd)
 static int deletecmd(UAContext *ua, char *cmd)
 {
    static char *keywords[] = {
-      N_("media"),
+      N_("volume"),
       N_("pool"),
       NULL};
 
@@ -988,8 +988,7 @@ static int deletecmd(UAContext *ua, char *cmd)
 
    bsendmsg(ua, _(
 "In general it is not a good idea to delete either a\n"
-"Pool or Media since in both cases, you may delete Media\n"
-"that contain data.\n\n"));
+"Pool or a Volume since they may contain data.\n\n"));
      
    switch (find_arg_keyword(ua, keywords)) {
       case 0:

@@ -369,7 +369,7 @@ int select_pool_and_media_dbr(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
    }
    if (mr->VolumeName[0] == 0) {
       db_list_media_records(ua->db, mr, prtit, ua);
-      if (!get_cmd(ua, _("Enter MediaId or Volume name to update: "))) {
+      if (!get_cmd(ua, _("Enter MediaId or Volume name: "))) {
 	 return 0;
       }
       if (is_a_number(ua->cmd)) {
