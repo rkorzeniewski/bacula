@@ -95,7 +95,7 @@ int main (int argc, char *argv[])
       case 'd':                    /* debug level */
 	 debug_level = atoi(optarg);
 	 if (debug_level <= 0)
-	    debug_level = 1; 
+	    debug_level = 1;
 	 break;
 
       case 'i':                    /* input Volume name */
@@ -110,7 +110,7 @@ int main (int argc, char *argv[])
 	 ignore_label_errors = true;
 	 forge_on = true;
 	 break;
-  
+
       case 'v':
 	 verbose++;
 	 break;
@@ -123,7 +123,7 @@ int main (int argc, char *argv[])
       default:
 	 usage();
 
-      }  
+      }
    }
    argc -= optind;
    argv += optind;
@@ -148,7 +148,7 @@ int main (int argc, char *argv[])
    }
    in_jcr->ignore_label_errors = ignore_label_errors;
    in_dev = in_jcr->dcr->dev;
-   if (!in_dev) { 
+   if (!in_dev) {
       exit(1);
    }
 
@@ -158,8 +158,8 @@ int main (int argc, char *argv[])
       exit(1);
    }
    out_dev = out_jcr->dcr->dev;
-   if (!out_dev) { 
-      exit(1);	    
+   if (!out_dev) {
+      exit(1);
    }
    /* For we must now acquire the device for writing */
    lock_device(out_dev);
@@ -189,7 +189,7 @@ int main (int argc, char *argv[])
    term_dev(out_dev);
    return 0;
 }
-  
+
 
 /*
  * read_records() calls back here for each record it gets
@@ -198,11 +198,11 @@ static bool record_cb(DCR *in_dcr, DEV_RECORD *rec)
 {
    if (list_records) {
       Pmsg5(000, _("Record: SessId=%u SessTim=%u FileIndex=%d Stream=%d len=%u\n"),
-	    rec->VolSessionId, rec->VolSessionTime, rec->FileIndex, 
+	    rec->VolSessionId, rec->VolSessionTime, rec->FileIndex,
 	    rec->Stream, rec->data_len);
    }
-   /* 
-    * Check for Start or End of Session Record 
+   /*
+    * Check for Start or End of Session Record
     *
     */
    if (rec->FileIndex < 0) {
@@ -212,37 +212,37 @@ static bool record_cb(DCR *in_dcr, DEV_RECORD *rec)
       }
       switch (rec->FileIndex) {
       case PRE_LABEL:
-         Pmsg0(000, "Volume is prelabeled. This volume cannot be copied.\n");
+	 Pmsg0(000, "Volume is prelabeled. This volume cannot be copied.\n");
 	 return false;
       case VOL_LABEL:
-         Pmsg0(000, "Volume label not copied.\n");
+	 Pmsg0(000, "Volume label not copied.\n");
 	 return true;
       case SOS_LABEL:
 	 jobs++;
 	 break;
       case EOS_LABEL:
 	 while (!write_record_to_block(out_block, rec)) {
-            Dmsg2(150, "!write_record_to_block data_len=%d rem=%d\n", rec->data_len,
+	    Dmsg2(150, "!write_record_to_block data_len=%d rem=%d\n", rec->data_len,
 		       rec->remainder);
 	    if (!write_block_to_device(out_jcr->dcr)) {
-               Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
+	       Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
 		  dev_name(out_dev), strerror_dev(out_dev));
-               Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
+	       Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
 		     strerror_dev(out_dev));
 	    }
 	 }
 	 if (!write_block_to_device(out_jcr->dcr)) {
-            Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
+	    Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
 	       dev_name(out_dev), strerror_dev(out_dev));
-            Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
+	    Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
 		  strerror_dev(out_dev));
 	 }
 	 break;
       case EOM_LABEL:
-         Pmsg0(000, "EOM label not copied.\n");
+	 Pmsg0(000, "EOM label not copied.\n");
 	 return true;
       case EOT_LABEL:		   /* end of all tapes */
-         Pmsg0(000, "EOT label not copied.\n");
+	 Pmsg0(000, "EOT label not copied.\n");
 	 return true;
       default:
 	 break;
@@ -255,9 +255,9 @@ static bool record_cb(DCR *in_dcr, DEV_RECORD *rec)
       Dmsg2(150, "!write_record_to_block data_len=%d rem=%d\n", rec->data_len,
 		 rec->remainder);
       if (!write_block_to_device(out_jcr->dcr)) {
-         Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
+	 Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
 	    dev_name(out_dev), strerror_dev(out_dev));
-         Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
+	 Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
 	       strerror_dev(out_dev));
 	 break;
       }
@@ -281,6 +281,6 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
    DEVICE *dev = dcr->dev;
    fprintf(stderr, "Mount Volume \"%s\" on device %s and press return when ready: ",
       dcr->VolumeName, dev_name(dev));
-   getchar();	
+   getchar();
    return true;
 }

@@ -1,10 +1,10 @@
 /*
- *  Bacula memory pool routines. 
+ *  Bacula memory pool routines.
  *
  *  The idea behind these routines is that there will be
  *  pools of memory that are pre-allocated for quick
  *  access. The pools will have a fixed memory size on allocation
- *  but if need be, the size can be increased. This is 
+ *  but if need be, the size can be increased. This is
  *  particularly useful for filename
  *  buffers where 256 bytes should be sufficient in 99.99%
  *  of the cases, but when it isn't we want to be able to
@@ -112,7 +112,7 @@ POOLMEM *sm_get_pool_memory(const char *fname, int lineno, int pool)
       sm_new_owner(fname, lineno, (char *)buf);
       return (POOLMEM *)((char *)buf+HEAD_SIZE);
    }
-      
+
    if ((buf = (struct abufhead *)sm_malloc(fname, lineno, pool_ctl[pool].size+HEAD_SIZE)) == NULL) {
       V(mutex);
       Emsg1(M_ABORT, 0, "Out of memory requesting %d bytes\n", pool_ctl[pool].size);
@@ -238,7 +238,7 @@ POOLMEM *get_pool_memory(int pool)
       V(mutex);
       return (POOLMEM *)((char *)buf+HEAD_SIZE);
    }
-      
+
    if ((buf=malloc(pool_ctl[pool].size+HEAD_SIZE)) == NULL) {
       V(mutex);
       Emsg1(M_ABORT, 0, "Out of memory requesting %d bytes\n", pool_ctl[pool].size);
@@ -390,9 +390,9 @@ static const char *pool_name(int pool)
    sprintf(buf, "%-6d", pool);
    return buf;
 }
-   
-/* Print staticstics on memory pool usage   
- */ 
+
+/* Print staticstics on memory pool usage
+ */
 void print_memory_pool_stats()
 {
    Dmsg0(-1, "Pool   Maxsize  Maxused  Inuse\n");
@@ -404,7 +404,7 @@ void print_memory_pool_stats()
 }
 
 #else
-void print_memory_pool_stats() {} 
+void print_memory_pool_stats() {}
 #endif /* DEBUG */
 
 
@@ -487,7 +487,7 @@ int pm_strcpy(POOLMEM *&pm, POOL_MEM &str)
 
 
 int pm_strcpy(POOL_MEM &pm, const char *str)
-{  
+{
    int len = strlen(str) + 1;
    pm.check_size(len);
    memcpy(pm.c_str(), str, len);
@@ -543,7 +543,7 @@ int POOL_MEM::strcat(const char *str)
 
 
 int POOL_MEM::strcpy(const char *str)
-{  
+{
    int len = strlen(str) + 1;
    check_size(len);
    memcpy(mem, str, len);

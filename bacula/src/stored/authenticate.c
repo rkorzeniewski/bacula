@@ -4,7 +4,7 @@
  *   Kern Sibbald, October 2000
  *
  *   Version $Id$
- * 
+ *
  */
 /*
    Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
@@ -25,7 +25,7 @@
    MA 02111-1307, USA.
 
  */
-  
+
 #include "bacula.h"
 #include "stored.h"
 
@@ -33,7 +33,7 @@ static char Dir_sorry[] = "3999 No go\n";
 static char OK_hello[]  = "3000 OK Hello\n";
 
 
-/********************************************************************* 
+/*********************************************************************
  *
  *
  */
@@ -50,9 +50,9 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
       return 0;
    }
    if (bs->msglen < 25 || bs->msglen > 200) {
-      Dmsg2(50, _("Bad Hello command from Director at %s. Len=%d.\n"), 
+      Dmsg2(50, _("Bad Hello command from Director at %s. Len=%d.\n"),
 	    bs->who, bs->msglen);
-      Emsg2(M_FATAL, 0, _("Bad Hello command from Director at %s. Len=%d.\n"), 
+      Emsg2(M_FATAL, 0, _("Bad Hello command from Director at %s. Len=%d.\n"),
 	    bs->who, bs->msglen);
       return 0;
    }
@@ -61,9 +61,9 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
 
    if (sscanf(bs->msg, "Hello Director %127s calling\n", dirname) != 1) {
       bs->msg[100] = 0;
-      Dmsg2(50, _("Bad Hello command from Director at %s: %s\n"), 
+      Dmsg2(50, _("Bad Hello command from Director at %s: %s\n"),
 	    bs->who, bs->msg);
-      Emsg2(M_FATAL, 0, _("Bad Hello command from Director at %s: %s\n"), 
+      Emsg2(M_FATAL, 0, _("Bad Hello command from Director at %s: %s\n"),
 	    bs->who, bs->msg);
       return 0;
    }
@@ -76,10 +76,10 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
    }
    UnlockRes();
    if (!director) {
-      Dmsg2(50, _("Connection from unknown Director %s at %s rejected.\n"), 
+      Dmsg2(50, _("Connection from unknown Director %s at %s rejected.\n"),
 	    dirname, bs->who);
-      Emsg2(M_FATAL, 0, _("Connection from unknown Director %s at %s rejected.\n"   
-       "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"), 
+      Emsg2(M_FATAL, 0, _("Connection from unknown Director %s at %s rejected.\n"
+       "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"),
 	    dirname, bs->who);
       free_pool_memory(dirname);
       return 0;
@@ -91,14 +91,14 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
    if (auth) {
       get_auth = cram_md5_get_auth(bs, director->password, ssl_need);
       if (!get_auth) {
-         Dmsg1(50, "cram_get_auth failed with %s\n", bs->who);
+	 Dmsg1(50, "cram_get_auth failed with %s\n", bs->who);
       }
    } else {
       Dmsg1(50, "cram_auth failed with %s\n", bs->who);
    }
    if (!auth || !get_auth) {
       stop_bsock_timer(tid);
-      Emsg0(M_FATAL, 0, _("Incorrect password given by Director.\n"   
+      Emsg0(M_FATAL, 0, _("Incorrect password given by Director.\n"
        "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"));
       free_pool_memory(dirname);
       return 0;
@@ -112,7 +112,7 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
 /*
  * Inititiate the message channel with the Director.
  * He has made a connection to our server.
- * 
+ *
  * Basic tasks done here:
  *   Assume the Hello message is already in the input
  *     buffer.	We then authenticate him.
@@ -147,7 +147,7 @@ int authenticate_filed(JCR *jcr)
    if (auth) {
        get_auth = cram_md5_get_auth(fd, jcr->sd_auth_key, ssl_need);
        if (!get_auth) {
-          Dmsg1(50, "cram-get-auth failed with %s\n", fd->who);
+	  Dmsg1(50, "cram-get-auth failed with %s\n", fd->who);
        }
    } else {
       Dmsg1(50, "cram-auth failed with %s\n", fd->who);

@@ -2,7 +2,7 @@
  *
  *   Bacula Director -- User Agent Access Control List (ACL) handling
  *
- *     Kern Sibbald, January MMIV  
+ *     Kern Sibbald, January MMIV
  *
  *   Version  $Id$
  */
@@ -30,8 +30,8 @@
 #include "bacula.h"
 #include "dird.h"
 
-/*  
- * Check if access is permitted to item in acl	  
+/*
+ * Check if access is permitted to item in acl
  */
 bool acl_access_ok(UAContext *ua, int acl, char *item)
 {
@@ -61,7 +61,7 @@ bool acl_access_ok(UAContext *ua, int acl, char *item, int len)
    /* Search list for item */
    for (int i=0; i<list->size(); i++) {
       if (strncasecmp(item, (char *)list->get(i), len) == 0) {
-         Dmsg3(400, "Found %s in %d %s\n", item, acl, (char *)list->get(i));
+	 Dmsg3(400, "Found %s in %d %s\n", item, acl, (char *)list->get(i));
 	 return true;
       }
    }

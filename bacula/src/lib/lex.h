@@ -1,15 +1,15 @@
 /*
- *   lex.h  
+ *   lex.h
  *
  *    Lexical scanning of configuration files, used by parsers.
  *
- *   Kern Sibbald, MM  
+ *   Kern Sibbald, MM
  *
  *   Version $Id$
  *
  */
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2004 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -36,7 +36,7 @@
 #define L_EOL                         (-2)
 
 /* Internal tokens */
-#define T_NONE                        100                              
+#define T_NONE                        100
 
 /* Tokens returned by get_token() */
 #define T_EOF                         101
@@ -53,7 +53,7 @@
 #define T_ERROR                       200
 /*
  * The following will be returned only if
- * the appropriate expect flag has been set   
+ * the appropriate expect flag has been set
  */
 #define T_SKIP_EOL                    113  /* scan through EOLs */
 #define T_PINT32                      114  /* positive integer */
@@ -79,6 +79,7 @@ enum lex_state {
 
 /* Lex scan options */
 #define LOPT_NO_IDENT            0x1  /* No Identifiers -- use string */
+#define LOPT_STRING              0x2  /* Force scan for string */
 
 /* Lexical context */
 typedef struct s_lex_context {

@@ -1,6 +1,6 @@
 /*
  * Bacula Catalog Database Update record interface routines
- * 
+ *
  *    Kern Sibbald, March 2000
  *
  *    Version $Id$
@@ -70,7 +70,7 @@ db_add_SIG_to_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, char *SIG,
 /* Mark the file record as being visited during database
  * verify compare. Stuff JobId into MarkedId field
  */
-int db_mark_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, JobId_t JobId) 
+int db_mark_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, JobId_t JobId)
 {
    int stat;
 
@@ -96,7 +96,7 @@ db_update_job_start_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    btime_t JobTDate;
    int stat;
    char ed1[30];
-       
+
    stime = jr->StartTime;
    localtime_r(&stime, &tm);
    strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
@@ -105,7 +105,7 @@ db_update_job_start_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    db_lock(mdb);
    Mmsg(mdb->cmd, "UPDATE Job SET JobStatus='%c',Level='%c',StartTime='%s',"
 "ClientId=%u,JobTDate=%s WHERE JobId=%u",
-      (char)(jcr->JobStatus), 
+      (char)(jcr->JobStatus),
       (char)(jr->JobLevel), dt, jr->ClientId, edit_uint64(JobTDate, ed1), jr->JobId);
 
    stat = UPDATE_DB(jcr, mdb, mdb->cmd);
@@ -120,7 +120,7 @@ db_update_job_start_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
  *
  */
 void edit_num_or_null(char *s, size_t n, uint32_t id) {
-        bsnprintf(s, n, id ? "%u" : "NULL", id);
+	bsnprintf(s, n, id ? "%u" : "NULL", id);
 }
 
 
@@ -148,7 +148,7 @@ db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    edit_num_or_null(PoolId,    sizeof(PoolId),	  jr->PoolId);
    edit_num_or_null(FileSetId, sizeof(FileSetId), jr->FileSetId);
    edit_num_or_null(ClientId,  sizeof(ClientId),  jr->ClientId);
-       
+
    ttime = jr->EndTime;
    localtime_r(&ttime, &tm);
    strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
@@ -156,11 +156,11 @@ db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 
    db_lock(mdb);
    Mmsg(mdb->cmd,
-      "UPDATE Job SET JobStatus='%c', EndTime='%s', \
-ClientId=%s, JobBytes=%s, JobFiles=%u, JobErrors=%u, VolSessionId=%u, \
-VolSessionTime=%u, PoolId=%s, FileSetId=%s, JobTDate=%s WHERE JobId=%u",
-      (char)(jr->JobStatus), dt, ClientId, edit_uint64(jr->JobBytes, ed1), 
-      jr->JobFiles, jr->JobErrors, jr->VolSessionId, jr->VolSessionTime, 
+      "UPDATE Job SET JobStatus='%c', EndTime='%s', "
+"ClientId=%s, JobBytes=%s, JobFiles=%u, JobErrors=%u, VolSessionId=%u, "
+"VolSessionTime=%u, PoolId=%s, FileSetId=%s, JobTDate=%s WHERE JobId=%u",
+      (char)(jr->JobStatus), dt, ClientId, edit_uint64(jr->JobBytes, ed1),
+      jr->JobFiles, jr->JobErrors, jr->VolSessionId, jr->VolSessionTime,
       PoolId, FileSetId, edit_uint64(JobTDate, ed2), jr->JobId);
 
    stat = UPDATE_DB(jcr, mdb, mdb->cmd);
@@ -170,7 +170,7 @@ VolSessionTime=%u, PoolId=%s, FileSetId=%s, JobTDate=%s WHERE JobId=%u",
 
 
 /*
- * Update Client record 
+ * Update Client record
  *   Returns: 0 on failure
  *	      1 on success
  */
@@ -189,7 +189,7 @@ db_update_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr)
    }
 
    Mmsg(mdb->cmd,
-"UPDATE Client SET AutoPrune=%d,FileRetention=%s,JobRetention=%s," 
+"UPDATE Client SET AutoPrune=%d,FileRetention=%s,JobRetention=%s,"
 "Uname='%s' WHERE Name='%s'",
       cr->AutoPrune,
       edit_uint64(cr->FileRetention, ed1),
@@ -212,7 +212,7 @@ int db_update_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr)
    db_lock(mdb);
 
    Mmsg(mdb->cmd,
-"UPDATE Counters SET MinValue=%d,MaxValue=%d,CurrentValue=%d," 
+"UPDATE Counters SET MinValue=%d,MaxValue=%d,CurrentValue=%d,"
 "WrapCounter='%s' WHERE Counter='%s'",
       cr->MinValue, cr->MaxValue, cr->CurrentValue,
       cr->WrapCounter, cr->Counter);
@@ -231,7 +231,7 @@ db_update_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
 
    db_lock(mdb);
    Mmsg(mdb->cmd,
-"UPDATE Pool SET NumVols=%u,MaxVols=%u,UseOnce=%d,UseCatalog=%d," 
+"UPDATE Pool SET NumVols=%u,MaxVols=%u,UseOnce=%d,UseCatalog=%d,"
 "AcceptAnyVolume=%d,VolRetention='%s',VolUseDuration='%s',"
 "MaxVolJobs=%u,MaxVolFiles=%u,MaxVolBytes=%s,Recycle=%d,"
 "AutoPrune=%d,LabelFormat='%s' WHERE PoolId=%u",
@@ -248,21 +248,21 @@ db_update_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
    return stat;
 }
 
-/* 
+/*
  * Update the Media Record at end of Session
  *
  * Returns: 0 on failure
  *	    numrows on success
  */
 int
-db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr) 
+db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 {
    char dt[MAX_TIME_LENGTH];
    time_t ttime;
    struct tm tm;
    int stat;
    char ed1[30], ed2[30], ed3[30], ed4[30];
-       
+
 
    Dmsg1(100, "update_media: FirstWritten=%d\n", mr->FirstWritten);
    db_lock(mdb);
@@ -271,8 +271,8 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       ttime = mr->FirstWritten;
       localtime_r(&ttime, &tm);
       strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
-      Mmsg(mdb->cmd, "UPDATE Media SET FirstWritten='%s'\
- WHERE VolumeName='%s'", dt, mr->VolumeName);
+      Mmsg(mdb->cmd, "UPDATE Media SET FirstWritten='%s'"
+" WHERE VolumeName='%s'", dt, mr->VolumeName);
       stat = UPDATE_DB(jcr, mdb, mdb->cmd);
       Dmsg1(400, "Firstwritten stat=%d\n", stat);
    }
@@ -286,37 +286,37 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       localtime_r(&ttime, &tm);
       strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
       Mmsg(mdb->cmd, "UPDATE Media SET LabelDate='%s' "
-           "WHERE VolumeName='%s'", dt, mr->VolumeName);
+	   "WHERE VolumeName='%s'", dt, mr->VolumeName);
       stat = UPDATE_DB(jcr, mdb, mdb->cmd);
    }
-   
+
    if (mr->LastWritten != 0) {
       ttime = mr->LastWritten;
       localtime_r(&ttime, &tm);
       strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
 
       Mmsg(mdb->cmd, "UPDATE Media SET VolJobs=%u,"
-           "VolFiles=%u,VolBlocks=%u,VolBytes=%s,VolMounts=%u,VolErrors=%u,"
-           "VolWrites=%u,MaxVolBytes=%s,LastWritten='%s',VolStatus='%s',"
-           "Slot=%d,InChanger=%d,VolReadTime=%s,VolWriteTime=%s "
-           " WHERE VolumeName='%s'",
+	   "VolFiles=%u,VolBlocks=%u,VolBytes=%s,VolMounts=%u,VolErrors=%u,"
+	   "VolWrites=%u,MaxVolBytes=%s,LastWritten='%s',VolStatus='%s',"
+	   "Slot=%d,InChanger=%d,VolReadTime=%s,VolWriteTime=%s "
+	   " WHERE VolumeName='%s'",
 	   mr->VolJobs, mr->VolFiles, mr->VolBlocks, edit_uint64(mr->VolBytes, ed1),
-	   mr->VolMounts, mr->VolErrors, mr->VolWrites, 
-	   edit_uint64(mr->MaxVolBytes, ed2), dt, 
-	   mr->VolStatus, mr->Slot, mr->InChanger, 
+	   mr->VolMounts, mr->VolErrors, mr->VolWrites,
+	   edit_uint64(mr->MaxVolBytes, ed2), dt,
+	   mr->VolStatus, mr->Slot, mr->InChanger,
 	   edit_uint64(mr->VolReadTime, ed3),
 	   edit_uint64(mr->VolWriteTime, ed4),
 	   mr->VolumeName);
    } else {
       Mmsg(mdb->cmd, "UPDATE Media SET VolJobs=%u,"
-           "VolFiles=%u,VolBlocks=%u,VolBytes=%s,VolMounts=%u,VolErrors=%u,"
-           "VolWrites=%u,MaxVolBytes=%s,VolStatus='%s',"
-           "Slot=%d,InChanger=%d,VolReadTime=%s,VolWriteTime=%s "
-           " WHERE VolumeName='%s'",
+	   "VolFiles=%u,VolBlocks=%u,VolBytes=%s,VolMounts=%u,VolErrors=%u,"
+	   "VolWrites=%u,MaxVolBytes=%s,VolStatus='%s',"
+	   "Slot=%d,InChanger=%d,VolReadTime=%s,VolWriteTime=%s "
+	   " WHERE VolumeName='%s'",
 	   mr->VolJobs, mr->VolFiles, mr->VolBlocks, edit_uint64(mr->VolBytes, ed1),
-	   mr->VolMounts, mr->VolErrors, mr->VolWrites, 
-	   edit_uint64(mr->MaxVolBytes, ed2), 
-	   mr->VolStatus, mr->Slot, mr->InChanger, 
+	   mr->VolMounts, mr->VolErrors, mr->VolWrites,
+	   edit_uint64(mr->MaxVolBytes, ed2),
+	   mr->VolStatus, mr->Slot, mr->InChanger,
 	   edit_uint64(mr->VolReadTime, ed3),
 	   edit_uint64(mr->VolWriteTime, ed4),
 	   mr->VolumeName);
@@ -333,36 +333,36 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    return stat;
 }
 
-/* 
+/*
  * Update the Media Record Default values from Pool
  *
  * Returns: 0 on failure
  *	    numrows on success
  */
 int
-db_update_media_defaults(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr) 
+db_update_media_defaults(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 {
    int stat;
    char ed1[30], ed2[30], ed3[30];
-       
+
 
    db_lock(mdb);
    if (mr->VolumeName[0]) {
       Mmsg(mdb->cmd, "UPDATE Media SET "
-           "Recycle=%d,VolRetention=%s,VolUseDuration=%s,"
-           "MaxVolJobs=%u,MaxVolFiles=%u,MaxVolBytes=%s"
-           " WHERE VolumeName='%s'",
-	   mr->Recycle,edit_uint64(mr->VolRetention, ed1), 
+	   "Recycle=%d,VolRetention=%s,VolUseDuration=%s,"
+	   "MaxVolJobs=%u,MaxVolFiles=%u,MaxVolBytes=%s"
+	   " WHERE VolumeName='%s'",
+	   mr->Recycle,edit_uint64(mr->VolRetention, ed1),
 	   edit_uint64(mr->VolUseDuration, ed2),
 	   mr->MaxVolJobs, mr->MaxVolFiles,
 	   edit_uint64(mr->VolBytes, ed3),
 	   mr->VolumeName);
    } else {
       Mmsg(mdb->cmd, "UPDATE Media SET "
-           "Recycle=%d,VolRetention=%s,VolUseDuration=%s,"
-           "MaxVolJobs=%u,MaxVolFiles=%u,MaxVolBytes=%s"
-           " WHERE PoolId=%u",
-	   mr->Recycle,edit_uint64(mr->VolRetention, ed1), 
+	   "Recycle=%d,VolRetention=%s,VolUseDuration=%s,"
+	   "MaxVolJobs=%u,MaxVolFiles=%u,MaxVolBytes=%s"
+	   " WHERE PoolId=%u",
+	   mr->Recycle,edit_uint64(mr->VolRetention, ed1),
 	   edit_uint64(mr->VolUseDuration, ed2),
 	   mr->MaxVolJobs, mr->MaxVolFiles,
 	   edit_uint64(mr->VolBytes, ed3),
@@ -378,18 +378,18 @@ db_update_media_defaults(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 }
 
 
-/* 
+/*
  * If we have a non-zero InChanger, ensure that no other Media
  *  record has InChanger set on the same Slot.
  *
  * This routine assumes the database is already locked.
  */
 void
-db_make_inchanger_unique(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr) 
+db_make_inchanger_unique(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 {
    if (mr->InChanger != 0 && mr->Slot != 0) {
       Mmsg(mdb->cmd, "UPDATE Media SET InChanger=0 WHERE "
-           "Slot=%d AND PoolId=%u AND MediaId!=%u", 
+	   "Slot=%d AND PoolId=%u AND MediaId!=%u",
 	    mr->Slot, mr->PoolId, mr->MediaId);
       Dmsg1(400, "%s\n", mdb->cmd);
       UPDATE_DB(jcr, mdb, mdb->cmd);

@@ -8,8 +8,8 @@
 #undef  DEBUG
 #define DEBUG 1
 #define TRACEBACK 1
-#define SMCHECK     
-#define TRACE_FILE 1  
+#define SMCHECK
+#define TRACE_FILE 1
 
 /* If this is set stdout will not be closed on startup */
 #define DEVELOPER 1

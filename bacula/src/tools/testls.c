@@ -1,4 +1,4 @@
-/*  
+/*
  * Test program for listing files during regression testing
  */
 
@@ -84,7 +84,7 @@ main (int argc, char *const *argv)
       case 'd':                       /* set debug level */
 	 debug_level = atoi(optarg);
 	 if (debug_level <= 0) {
-	    debug_level = 1; 
+	    debug_level = 1;
 	 }
 	 break;
 
@@ -100,7 +100,7 @@ main (int argc, char *const *argv)
       default:
 	 usage();
 
-      }  
+      }
    }
    argc -= optind;
    argv += optind;
@@ -110,22 +110,22 @@ main (int argc, char *const *argv)
    ff = init_find_files();
    if (argc == 0 && !inc) {
       add_fname_to_include_list(ff, 0, "/"); /* default to / */
-   } else {   
+   } else {
       for (i=0; i < argc; i++) {
-         if (strcmp(argv[i], "-") == 0) {
+	 if (strcmp(argv[i], "-") == 0) {
 	     while (fgets(name, sizeof(name)-1, stdin)) {
 		strip_trailing_junk(name);
-		add_fname_to_include_list(ff, 0, name); 
+		add_fname_to_include_list(ff, 0, name);
 	      }
 	      continue;
 	 }
-	 add_fname_to_include_list(ff, 0, argv[i]); 
+	 add_fname_to_include_list(ff, 0, argv[i]);
       }
    }
    if (inc) {
       fd = fopen(inc, "r");
       if (!fd) {
-         printf("Could not open include file: %s\n", inc);
+	 printf("Could not open include file: %s\n", inc);
 	 exit(1);
       }
       while (fgets(name, sizeof(name)-1, fd)) {
@@ -138,7 +138,7 @@ main (int argc, char *const *argv)
    if (exc) {
       fd = fopen(exc, "r");
       if (!fd) {
-         printf("Could not open exclude file: %s\n", exc);
+	 printf("Could not open exclude file: %s\n", exc);
 	 exit(1);
       }
       while (fgets(name, sizeof(name)-1, fd)) {
@@ -149,7 +149,7 @@ main (int argc, char *const *argv)
    }
    find_files(jcr, ff, print_file, NULL);
    hard_links = term_find_files(ff);
-  
+
    free_jcr(jcr);
    close_memory_pool();
    sm_dump(false);
@@ -203,7 +203,7 @@ static int print_file(FF_PKT *ff, void *pkt)
 
 static void print_ls_output(char *fname, char *link, int type, struct stat *statp)
 {
-   char buf[1000]; 
+   char buf[1000];
    char ec1[30];
    char *p, *f;
    int n;
@@ -221,7 +221,7 @@ static void print_ls_output(char *fname, char *link, int type, struct stat *stat
    p += n;
    if (S_ISCHR(statp->st_mode) || S_ISBLK(statp->st_mode)) {
       n = sprintf(p, "%4x ", (int)statp->st_rdev);
-   } else { 
+   } else {
       n = sprintf(p, "     ");
    }
    p += n;

@@ -44,7 +44,7 @@ extern int debug_level;
 /* Commands sent to File daemon */
 static char verifycmd[]    = "verify level=%s\n";
 static char storaddr[]     = "storage address=%s port=%d ssl=0\n";
-static char sessioncmd[]   = "session %s %ld %ld %ld %ld %ld %ld\n";  
+static char sessioncmd[]   = "session %s %ld %ld %ld %ld %ld %ld\n";
 
 /* Responses received from File daemon */
 static char OKverify[]    = "2000 OK verify\n";
@@ -56,13 +56,13 @@ static void verify_cleanup(JCR *jcr, int TermCode);
 static void prt_fname(JCR *jcr);
 static int missing_handler(void *ctx, int num_fields, char **row);
 
-/* 
+/*
  * Do a verification of the specified files against the Catlaog
- *    
+ *
  *  Returns:  false on failure
  *	      true  on success
  */
-bool do_verify(JCR *jcr) 
+bool do_verify(JCR *jcr)
 {
    const char *level, *Name;
    BSOCK   *fd;
@@ -81,12 +81,12 @@ bool do_verify(JCR *jcr)
    Dmsg1(9, "bdird: created client %s record\n", jcr->client->hdr.name);
 
    /*
-    * Find JobId of last job that ran.	E.g. 
+    * Find JobId of last job that ran.	E.g.
     *	for VERIFY_CATALOG we want the JobId of the last INIT.
-    *	for VERIFY_VOLUME_TO_CATALOG, we want the JobId of the 
+    *	for VERIFY_VOLUME_TO_CATALOG, we want the JobId of the
     *	    last backup Job.
     */
-   if (jcr->JobLevel == L_VERIFY_CATALOG || 
+   if (jcr->JobLevel == L_VERIFY_CATALOG ||
        jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG ||
        jcr->JobLevel == L_VERIFY_DISK_TO_CATALOG) {
       memcpy(&jr, &jcr->jr, sizeof(jr));
@@ -101,18 +101,18 @@ bool do_verify(JCR *jcr)
       if (!db_find_last_jobid(jcr, jcr->db, Name, &jr)) {
 	 if (jcr->JobLevel == L_VERIFY_CATALOG) {
 	    Jmsg(jcr, M_FATAL, 0, _(
-                 "Unable to find JobId of previous InitCatalog Job.\n"
-                 "Please run a Verify with Level=InitCatalog before\n"
-                 "running the current Job.\n"));
+		 "Unable to find JobId of previous InitCatalog Job.\n"
+		 "Please run a Verify with Level=InitCatalog before\n"
+		 "running the current Job.\n"));
 	  } else {
 	    Jmsg(jcr, M_FATAL, 0, _(
-                 "Unable to find JobId of previous Job for this client.\n"));
-	 }   
+		 "Unable to find JobId of previous Job for this client.\n"));
+	 }
 	 goto bail_out;
       }
       verify_jobid = jr.JobId;
       Dmsg1(100, "Last full jobid=%d\n", verify_jobid);
-   } 
+   }
 
    if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
@@ -131,25 +131,25 @@ bool do_verify(JCR *jcr)
     * Now get the job record for the previous backup that interests
     *	us. We use the verify_jobid that we found above.
     */
-   if (jcr->JobLevel == L_VERIFY_CATALOG || 
+   if (jcr->JobLevel == L_VERIFY_CATALOG ||
        jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG ||
        jcr->JobLevel == L_VERIFY_DISK_TO_CATALOG) {
       verify_jr.JobId = verify_jobid;
       if (!db_get_job_record(jcr, jcr->db, &verify_jr)) {
-         Jmsg(jcr, M_FATAL, 0, _("Could not get job record for previous Job. ERR=%s"), 
+	 Jmsg(jcr, M_FATAL, 0, _("Could not get job record for previous Job. ERR=%s"),
 	      db_strerror(jcr->db));
 	 goto bail_out;
       }
       if (verify_jr.JobStatus != 'T') {
-         Jmsg(jcr, M_FATAL, 0, _("Last Job %d did not terminate normally. JobStatus=%c\n"),
+	 Jmsg(jcr, M_FATAL, 0, _("Last Job %d did not terminate normally. JobStatus=%c\n"),
 	    verify_jobid, verify_jr.JobStatus);
 	 goto bail_out;
       }
       Jmsg(jcr, M_INFO, 0, _("Verifying against JobId=%d Job=%s\n"),
-	 verify_jr.JobId, verify_jr.Job); 
+	 verify_jr.JobId, verify_jr.Job);
    }
 
-   /* 
+   /*
     * If we are verifying a Volume, we need the Storage
     *	daemon, so open a connection, otherwise, just
     *	create a dummy authorization key (passed to
@@ -181,7 +181,7 @@ bool do_verify(JCR *jcr)
       free_pool_memory(fname);
 
       /*
-       * Start conversation with Storage daemon  
+       * Start conversation with Storage daemon
        */
       set_jcr_job_status(jcr, JS_Blocked);
       if (!connect_to_storage_daemon(jcr, 10, SDConnectTimeout, 1)) {
@@ -232,7 +232,7 @@ bool do_verify(JCR *jcr)
       goto bail_out;
    }
 
-   /* 
+   /*
     * Send Level command to File daemon, as well
     *	as the Storage address if appropriate.
     */
@@ -244,7 +244,7 @@ bool do_verify(JCR *jcr)
       level = "catalog";
       break;
    case L_VERIFY_VOLUME_TO_CATALOG:
-      /* 
+      /*
        * send Storage daemon address to the File daemon
        */
       if (jcr->store->SDDport == 0) {
@@ -255,27 +255,27 @@ bool do_verify(JCR *jcr)
 	 goto bail_out;
       }
 
-      /* 
+      /*
        * Send the bootstrap file -- what Volumes/files to restore
        */
       if (!send_bootstrap_file(jcr)) {
 	 goto bail_out;
       }
 
-      /* 
-       * The following code is deprecated   
+      /*
+       * The following code is deprecated
        */
       if (!jcr->RestoreBootstrap) {
 	 /*
 	  * Pass the VolSessionId, VolSessionTime, Start and
 	  * end File and Blocks on the session command.
 	  */
-	 bnet_fsend(fd, sessioncmd, 
+	 bnet_fsend(fd, sessioncmd,
 		   jcr->VolumeName,
-		   jr.VolSessionId, jr.VolSessionTime, 
-		   jr.StartFile, jr.EndFile, jr.StartBlock, 
+		   jr.VolSessionId, jr.VolSessionTime,
+		   jr.StartFile, jr.EndFile, jr.StartBlock,
 		   jr.EndBlock);
-         if (!response(jcr, fd, OKsession, "Session", DISPLAY_ERROR)) {
+	 if (!response(jcr, fd, OKsession, "Session", DISPLAY_ERROR)) {
 	    goto bail_out;
 	 }
       }
@@ -297,7 +297,7 @@ bool do_verify(JCR *jcr)
       goto bail_out;
    }
 
-   /* 
+   /*
     * Send verify command/level to File daemon
     */
    bnet_fsend(fd, verifycmd, level);
@@ -311,7 +311,7 @@ bool do_verify(JCR *jcr)
     *  catalog depending on the run type.
     */
    /* Compare to catalog */
-   switch (jcr->JobLevel) { 
+   switch (jcr->JobLevel) {
    case L_VERIFY_CATALOG:
       Dmsg0(10, "Verify level=catalog\n");
       jcr->sd_msg_thread_done = true;	/* no SD msg thread, so it is done */
@@ -389,7 +389,7 @@ static void verify_cleanup(JCR *jcr, int TermCode)
       break;
    case JS_FatalError:
    case JS_ErrorTerminated:
-      term_msg = _("*** Verify Error ***"); 
+      term_msg = _("*** Verify Error ***");
       msg_type = M_ERROR;	   /* Generate error message */
       break;
    case JS_Error:
@@ -403,8 +403,8 @@ static void verify_cleanup(JCR *jcr, int TermCode)
       break;
    default:
       term_msg = term_code;
-      bsnprintf(term_code, sizeof(term_code), 
-                _("Inappropriate term code: %d %c\n"), TermCode, TermCode);
+      bsnprintf(term_code, sizeof(term_code),
+		_("Inappropriate term code: %d %c\n"), TermCode, TermCode);
       break;
    }
    bstrftimes(sdt, sizeof(sdt), jcr->jr.StartTime);
@@ -418,22 +418,22 @@ static void verify_cleanup(JCR *jcr, int TermCode)
    jobstatus_to_ascii(jcr->FDJobStatus, fd_term_msg, sizeof(fd_term_msg));
    if (jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG) {
       jobstatus_to_ascii(jcr->SDJobStatus, sd_term_msg, sizeof(sd_term_msg));
-      Jmsg(jcr, msg_type, 0, _("Bacula " VERSION " (" LSMDATE "): %s\n\
-  JobId:                  %d\n\
-  Job:                    %s\n\
-  FileSet:                %s\n\
-  Verify Level:           %s\n\
-  Client:                 %s\n\
-  Verify JobId:           %d\n\
-  Verify Job:             %s\n\
-  Start time:             %s\n\
-  End time:               %s\n\
-  Files Expected:         %s\n\
-  Files Examined:         %s\n\
-  Non-fatal FD errors:    %d\n\
-  FD termination status:  %s\n\
-  SD termination status:  %s\n\
-  Termination:            %s\n\n"),
+      Jmsg(jcr, msg_type, 0, _("Bacula " VERSION " (" LSMDATE "): %s\n"
+"  JobId:                  %d\n"
+"  Job:                    %s\n"
+"  FileSet:                %s\n"
+"  Verify Level:           %s\n"
+"  Client:                 %s\n"
+"  Verify JobId:           %d\n"
+"  Verify Job:             %s\n"
+"  Start time:             %s\n"
+"  End time:               %s\n"
+"  Files Expected:         %s\n"
+"  Files Examined:         %s\n"
+"  Non-fatal FD errors:    %d\n"
+"  FD termination status:  %s\n"
+"  SD termination status:  %s\n"
+"  Termination:            %s\n\n"),
 	 edt,
 	 jcr->jr.JobId,
 	 jcr->jr.Job,
@@ -451,20 +451,20 @@ static void verify_cleanup(JCR *jcr, int TermCode)
 	 sd_term_msg,
 	 term_msg);
    } else {
-      Jmsg(jcr, msg_type, 0, _("Bacula " VERSION " (" LSMDATE "): %s\n\
-  JobId:                  %d\n\
-  Job:                    %s\n\
-  FileSet:                %s\n\
-  Verify Level:           %s\n\
-  Client:                 %s\n\
-  Verify JobId:           %d\n\
-  Verify Job:             %s\n\
-  Start time:             %s\n\
-  End time:               %s\n\
-  Files Examined:         %s\n\
-  Non-fatal FD errors:    %d\n\
-  FD termination status:  %s\n\
-  Termination:            %s\n\n"),
+      Jmsg(jcr, msg_type, 0, _("Bacula " VERSION " (" LSMDATE "): %s\n"
+"  JobId:                  %d\n"
+"  Job:                    %s\n"
+"  FileSet:                %s\n"
+"  Verify Level:           %s\n"
+"  Client:                 %s\n"
+"  Verify JobId:           %d\n"
+"  Verify Job:             %s\n"
+"  Start time:             %s\n"
+"  End time:               %s\n"
+"  Files Examined:         %s\n"
+"  Non-fatal FD errors:    %d\n"
+"  FD termination status:  %s\n"
+"  Termination:            %s\n\n"),
 	 edt,
 	 jcr->jr.JobId,
 	 jcr->jr.Job,
@@ -507,7 +507,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
    fd = jcr->file_bsock;
    fdbr.JobId = JobId;
    jcr->FileIndex = 0;
-   
+
    Dmsg0(20, "bdird: waiting to receive file attributes\n");
    /*
     * Get Attributes and Signature from File daemon
@@ -527,14 +527,14 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
       fname = check_pool_memory_size(fname, fd->msglen);
       jcr->fname = check_pool_memory_size(jcr->fname, fd->msglen);
       Dmsg1(200, "Atts+SIG=%s\n", fd->msg);
-      if ((len = sscanf(fd->msg, "%ld %d %100s", &file_index, &stream, 
+      if ((len = sscanf(fd->msg, "%ld %d %100s", &file_index, &stream,
 	    fname)) != 3) {
-         Jmsg3(jcr, M_FATAL, 0, _("bird<filed: bad attributes, expected 3 fields got %d\n\
- mslen=%d msg=%s\n"), len, fd->msglen, fd->msg);
+	 Jmsg3(jcr, M_FATAL, 0, _("bird<filed: bad attributes, expected 3 fields got %d\n"
+" mslen=%d msg=%s\n"), len, fd->msglen, fd->msg);
 	 goto bail_out;
       }
       /*
-       * We read the Options or Signature into fname				    
+       * We read the Options or Signature into fname
        *  to prevent overrun, now copy it to proper location.
        */
       bstrncpy(Opts_SIG, fname, sizeof(Opts_SIG));
@@ -543,7 +543,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
       skip_spaces(&p);
       skip_nonspaces(&p);	      /* skip Stream */
       skip_spaces(&p);
-      skip_nonspaces(&p);	      /* skip Opts_SIG */   
+      skip_nonspaces(&p);	      /* skip Opts_SIG */
       p++;			      /* skip space */
       fn = fname;
       while (*p != 0) {
@@ -556,7 +556,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
        */
       if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_UNIX_ATTRIBUTES_EX) {
 	 int32_t LinkFIf, LinkFIc;
-         Dmsg2(400, "file_index=%d attr=%s\n", file_index, attr);
+	 Dmsg2(400, "file_index=%d attr=%s\n", file_index, attr);
 	 jcr->JobFiles++;
 	 jcr->FileIndex = file_index;	 /* remember attribute file_index */
 	 decode_stat(attr, &statf, &LinkFIf);  /* decode file stat packet */
@@ -564,28 +564,28 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
 	 jcr->fn_printed = false;
 	 pm_strcpy(jcr->fname, fname);	/* move filename into JCR */
 
-         Dmsg2(040, "dird<filed: stream=%d %s\n", stream, jcr->fname);
-         Dmsg1(020, "dird<filed: attr=%s\n", attr);
+	 Dmsg2(040, "dird<filed: stream=%d %s\n", stream, jcr->fname);
+	 Dmsg1(020, "dird<filed: attr=%s\n", attr);
 
-	 /* 
-	  * Find equivalent record in the database 
+	 /*
+	  * Find equivalent record in the database
 	  */
 	 fdbr.FileId = 0;
-	 if (!db_get_file_attributes_record(jcr, jcr->db, jcr->fname, 
+	 if (!db_get_file_attributes_record(jcr, jcr->db, jcr->fname,
 	      jcr->verify_jr, &fdbr)) {
-            Jmsg(jcr, M_INFO, 0, _("New file: %s\n"), jcr->fname);
-            Dmsg1(020, _("File not in catalog: %s\n"), jcr->fname);
+	    Jmsg(jcr, M_INFO, 0, _("New file: %s\n"), jcr->fname);
+	    Dmsg1(020, _("File not in catalog: %s\n"), jcr->fname);
 	    stat = JS_Differences;
 	    continue;
 	 } else {
-	    /* 
+	    /*
 	     * mark file record as visited by stuffing the
 	     * current JobId, which is unique, into the MarkId field.
 	     */
 	    db_mark_file_record(jcr, jcr->db, fdbr.FileId, jcr->JobId);
 	 }
 
-         Dmsg3(400, "Found %s in catalog. inx=%d Opts=%s\n", jcr->fname, 
+	 Dmsg3(400, "Found %s in catalog. inx=%d Opts=%s\n", jcr->fname,
 	    file_index, Opts_SIG);
 	 decode_stat(fdbr.LStat, &statc, &LinkFIc); /* decode catalog stat */
 	 /*
@@ -595,95 +595,95 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
 	 for (p=Opts_SIG; *p; p++) {
 	    char ed1[30], ed2[30];
 	    switch (*p) {
-            case 'i':                /* compare INODEs */
+	    case 'i':                /* compare INODEs */
 	       if (statc.st_ino != statf.st_ino) {
 		  prt_fname(jcr);
-                  Jmsg(jcr, M_INFO, 0, _("      st_ino   differ. Cat: %s File: %s\n"), 
+		  Jmsg(jcr, M_INFO, 0, _("      st_ino   differ. Cat: %s File: %s\n"),
 		     edit_uint64((uint64_t)statc.st_ino, ed1),
 		     edit_uint64((uint64_t)statf.st_ino, ed2));
 		  stat = JS_Differences;
 	       }
 	       break;
-            case 'p':                /* permissions bits */
+	    case 'p':                /* permissions bits */
 	       if (statc.st_mode != statf.st_mode) {
 		  prt_fname(jcr);
-                  Jmsg(jcr, M_INFO, 0, _("      st_mode  differ. Cat: %x File: %x\n"), 
+		  Jmsg(jcr, M_INFO, 0, _("      st_mode  differ. Cat: %x File: %x\n"),
 		     (uint32_t)statc.st_mode, (uint32_t)statf.st_mode);
 		  stat = JS_Differences;
 	       }
 	       break;
-            case 'n':                /* number of links */
+	    case 'n':                /* number of links */
 	       if (statc.st_nlink != statf.st_nlink) {
 		  prt_fname(jcr);
-                  Jmsg(jcr, M_INFO, 0, _("      st_nlink differ. Cat: %d File: %d\n"), 
+		  Jmsg(jcr, M_INFO, 0, _("      st_nlink differ. Cat: %d File: %d\n"),
 		     (uint32_t)statc.st_nlink, (uint32_t)statf.st_nlink);
 		  stat = JS_Differences;
 	       }
 	       break;
-            case 'u':                /* user id */
+	    case 'u':                /* user id */
 	       if (statc.st_uid != statf.st_uid) {
 		  prt_fname(jcr);
-                  Jmsg(jcr, M_INFO, 0, _("      st_uid   differ. Cat: %u File: %u\n"), 
+		  Jmsg(jcr, M_INFO, 0, _("      st_uid   differ. Cat: %u File: %u\n"),
 		     (uint32_t)statc.st_uid, (uint32_t)statf.st_uid);
 		  stat = JS_Differences;
 	       }
 	       break;
-            case 'g':                /* group id */
+	    case 'g':                /* group id */
 	       if (statc.st_gid != statf.st_gid) {
 		  prt_fname(jcr);
-                  Jmsg(jcr, M_INFO, 0, _("      st_gid   differ. Cat: %u File: %u\n"), 
+		  Jmsg(jcr, M_INFO, 0, _("      st_gid   differ. Cat: %u File: %u\n"),
 		     (uint32_t)statc.st_gid, (uint32_t)statf.st_gid);
 		  stat = JS_Differences;
 	       }
 	       break;
-            case 's':                /* size */
+	    case 's':                /* size */
 	       if (statc.st_size != statf.st_size) {
 		  prt_fname(jcr);
-                  Jmsg(jcr, M_INFO, 0, _("      st_size  differ. Cat: %s File: %s\n"), 
+		  Jmsg(jcr, M_INFO, 0, _("      st_size  differ. Cat: %s File: %s\n"),
 		     edit_uint64((uint64_t)statc.st_size, ed1),
 		     edit_uint64((uint64_t)statf.st_size, ed2));
 		  stat = JS_Differences;
 	       }
 	       break;
-            case 'a':                /* access time */
+	    case 'a':                /* access time */
 	       if (statc.st_atime != statf.st_atime) {
 		  prt_fname(jcr);
-                  Jmsg(jcr, M_INFO, 0, _("      st_atime differs\n"));
+		  Jmsg(jcr, M_INFO, 0, _("      st_atime differs\n"));
 		  stat = JS_Differences;
 	       }
 	       break;
-            case 'm':
+	    case 'm':
 	       if (statc.st_mtime != statf.st_mtime) {
 		  prt_fname(jcr);
-                  Jmsg(jcr, M_INFO, 0, _("      st_mtime differs\n"));
+		  Jmsg(jcr, M_INFO, 0, _("      st_mtime differs\n"));
 		  stat = JS_Differences;
 	       }
 	       break;
-            case 'c':                /* ctime */
+	    case 'c':                /* ctime */
 	       if (statc.st_ctime != statf.st_ctime) {
 		  prt_fname(jcr);
-                  Jmsg(jcr, M_INFO, 0, _("      st_ctime differs\n"));
+		  Jmsg(jcr, M_INFO, 0, _("      st_ctime differs\n"));
 		  stat = JS_Differences;
 	       }
 	       break;
-            case 'd':                /* file size decrease */
+	    case 'd':                /* file size decrease */
 	       if (statc.st_size > statf.st_size) {
 		  prt_fname(jcr);
-                  Jmsg(jcr, M_INFO, 0, _("      st_size  decrease. Cat: %s File: %s\n"), 
+		  Jmsg(jcr, M_INFO, 0, _("      st_size  decrease. Cat: %s File: %s\n"),
 		     edit_uint64((uint64_t)statc.st_size, ed1),
 		     edit_uint64((uint64_t)statf.st_size, ed2));
 		  stat = JS_Differences;
 	       }
 	       break;
-            case '5':                /* compare MD5 */
-               Dmsg1(500, "set Do_MD5 for %s\n", jcr->fname);
+	    case '5':                /* compare MD5 */
+	       Dmsg1(500, "set Do_MD5 for %s\n", jcr->fname);
 	       do_SIG = MD5_SIG;
 	       break;
-            case '1':                 /* compare SHA1 */
+	    case '1':                 /* compare SHA1 */
 	       do_SIG = SHA1_SIG;
 	       break;
-            case ':':
-            case 'V':
+	    case ':':
+	    case 'V':
 	    default:
 	       break;
 	    }
@@ -693,26 +693,26 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
        *  It came across in the Opts_SIG field.
        */
       } else if (stream == STREAM_MD5_SIGNATURE || stream == STREAM_SHA1_SIGNATURE) {
-         Dmsg2(400, "stream=SIG inx=%d SIG=%s\n", file_index, Opts_SIG);
-	 /* 
+	 Dmsg2(400, "stream=SIG inx=%d SIG=%s\n", file_index, Opts_SIG);
+	 /*
 	  * When ever we get a signature is MUST have been
 	  * preceded by an attributes record, which sets attr_file_index
 	  */
 	 if (jcr->FileIndex != (uint32_t)file_index) {
-            Jmsg2(jcr, M_FATAL, 0, _("MD5/SHA1 index %d not same as attributes %d\n"),
+	    Jmsg2(jcr, M_FATAL, 0, _("MD5/SHA1 index %d not same as attributes %d\n"),
 	       file_index, jcr->FileIndex);
 	    goto bail_out;
-	 } 
+	 }
 	 if (do_SIG) {
 	    db_escape_string(buf, Opts_SIG, strlen(Opts_SIG));
 	    if (strcmp(buf, fdbr.SIG) != 0) {
 	       prt_fname(jcr);
 	       if (debug_level >= 10) {
-                  Jmsg(jcr, M_INFO, 0, _("      %s not same. File=%s Cat=%s\n"), 
-                       stream==STREAM_MD5_SIGNATURE?"MD5":"SHA1", buf, fdbr.SIG);
+		  Jmsg(jcr, M_INFO, 0, _("      %s not same. File=%s Cat=%s\n"),
+		       stream==STREAM_MD5_SIGNATURE?"MD5":"SHA1", buf, fdbr.SIG);
 	       } else {
-                  Jmsg(jcr, M_INFO, 0, _("      %s differs.\n"), 
-                       stream==STREAM_MD5_SIGNATURE?"MD5":"SHA1");
+		  Jmsg(jcr, M_INFO, 0, _("      %s differs.\n"),
+		       stream==STREAM_MD5_SIGNATURE?"MD5":"SHA1");
 	       }
 	       stat = JS_Differences;
 	    }
@@ -720,7 +720,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
 	 }
       }
       jcr->JobFiles = file_index;
-   } 
+   }
    if (is_bnet_error(fd)) {
       Jmsg2(jcr, M_FATAL, 0, _("bdird<filed: bad attributes from filed n=%d : %s\n"),
 			n, strerror(errno));
@@ -731,11 +731,11 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
     *  the database where the MarkedId != current JobId
     */
    jcr->fn_printed = false;
-   sprintf(buf, 
+   sprintf(buf,
 "SELECT Path.Path,Filename.Name FROM File,Path,Filename "
 "WHERE File.JobId=%d "
 "AND File.MarkedId!=%d AND File.PathId=Path.PathId "
-"AND File.FilenameId=Filename.FilenameId", 
+"AND File.FilenameId=Filename.FilenameId",
       JobId, jcr->JobId);
    /* missing_handler is called for each file found */
    db_sql_query(jcr->db, buf, missing_handler, (void *)jcr);
@@ -745,7 +745,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
    free_pool_memory(fname);
    set_jcr_job_status(jcr, stat);
    return 1;
-    
+
 bail_out:
    free_pool_memory(fname);
    set_jcr_job_status(jcr, JS_ErrorTerminated);
@@ -772,7 +772,7 @@ static int missing_handler(void *ctx, int num_fields, char **row)
 }
 
 
-/* 
+/*
  * Print filename for verify
  */
 static void prt_fname(JCR *jcr)

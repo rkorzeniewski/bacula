@@ -34,7 +34,7 @@
  * A more generalized way of handling errno that works with Unix, Windows,
  *  and with Bacula bpipes.
  *
- * It works by picking up errno and creating a memory pool buffer 
+ * It works by picking up errno and creating a memory pool buffer
  *  for editing the message. strerror() does the actual editing, and
  *  it is thread safe.
  *
@@ -55,14 +55,14 @@ public:
 };
 
 /* Constructor */
-inline berrno::berrno(int pool) 
+inline berrno::berrno(int pool)
 {
    berrno_ = errno;
    buf_ = get_pool_memory(pool);
 }
-   
+
 inline berrno::~berrno()
-{   
+{
    free_pool_memory(buf_);
 }
 

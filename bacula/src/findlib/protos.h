@@ -46,11 +46,11 @@ void  add_fname_to_include_list(FF_PKT *ff, int prefixed, const char *fname);
 void  add_fname_to_exclude_list(FF_PKT *ff, const char *fname);
 int   file_is_excluded(FF_PKT *ff, const char *file);
 int   file_is_included(FF_PKT *ff, const char *file);
-struct s_included_file *get_next_included_file(FF_PKT *ff, 
+struct s_included_file *get_next_included_file(FF_PKT *ff,
 			   struct s_included_file *inc);
 
 /* From find_one.c */
-int   find_one_file(JCR *jcr, FF_PKT *ff, int handle_file(FF_PKT *ff_pkt, void *hpkt), 
+int   find_one_file(JCR *jcr, FF_PKT *ff, int handle_file(FF_PKT *ff_pkt, void *hpkt),
 	       void *pkt, char *p, dev_t parent_device, int top_level);
 int   term_find_one(FF_PKT *ff);
 

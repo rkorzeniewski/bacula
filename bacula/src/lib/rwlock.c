@@ -34,7 +34,7 @@
 
 #include "bacula.h"
 
-/*   
+/*
  * Initialize a read/write lock
  *
  *  Returns: 0 on success
@@ -43,7 +43,7 @@
 int rwl_init(brwlock_t *rwl)
 {
    int stat;
-			
+
    rwl->r_active = rwl->w_active = 0;
    rwl->r_wait = rwl->w_wait = 0;
    if ((stat = pthread_mutex_init(&rwl->mutex, NULL)) != 0) {
@@ -79,7 +79,7 @@ int rwl_destroy(brwlock_t *rwl)
      return stat;
   }
 
-  /* 
+  /*
    * If any threads are active, report EBUSY
    */
   if (rwl->r_active > 0 || rwl->w_active) {
@@ -90,7 +90,7 @@ int rwl_destroy(brwlock_t *rwl)
   /*
    * If any threads are waiting, report EBUSY
    */
-  if (rwl->r_wait > 0 || rwl->w_wait > 0) { 
+  if (rwl->r_wait > 0 || rwl->w_wait > 0) {
      pthread_mutex_unlock(&rwl->mutex);
      return EBUSY;
   }
@@ -135,7 +135,7 @@ static void rwl_write_release(void *arg)
 int rwl_readlock(brwlock_t *rwl)
 {
    int stat;
-    
+
    if (rwl->valid != RWLOCK_VALID) {
       return EINVAL;
    }
@@ -161,13 +161,13 @@ int rwl_readlock(brwlock_t *rwl)
    return stat;
 }
 
-/* 
+/*
  * Attempt to lock for read access, don't wait
  */
 int rwl_readtrylock(brwlock_t *rwl)
 {
    int stat, stat2;
-    
+
    if (rwl->valid != RWLOCK_VALID) {
       return EINVAL;
    }
@@ -182,14 +182,14 @@ int rwl_readtrylock(brwlock_t *rwl)
    stat2 = pthread_mutex_unlock(&rwl->mutex);
    return (stat == 0 ? stat2 : stat);
 }
-   
-/* 
+
+/*
  * Unlock read lock
  */
 int rwl_readunlock(brwlock_t *rwl)
 {
    int stat, stat2;
-    
+
    if (rwl->valid != RWLOCK_VALID) {
       return EINVAL;
    }
@@ -212,7 +212,7 @@ int rwl_readunlock(brwlock_t *rwl)
 int rwl_writelock(brwlock_t *rwl)
 {
    int stat;
-    
+
    if (rwl->valid != RWLOCK_VALID) {
       return EINVAL;
    }
@@ -243,13 +243,13 @@ int rwl_writelock(brwlock_t *rwl)
    return stat;
 }
 
-/* 
+/*
  * Attempt to lock for write access, don't wait
  */
 int rwl_writetrylock(brwlock_t *rwl)
 {
    int stat, stat2;
-    
+
    if (rwl->valid != RWLOCK_VALID) {
       return EINVAL;
    }
@@ -270,15 +270,15 @@ int rwl_writetrylock(brwlock_t *rwl)
    stat2 = pthread_mutex_unlock(&rwl->mutex);
    return (stat == 0 ? stat2 : stat);
 }
-   
-/* 
+
+/*
  * Unlock write lock
  *  Start any waiting writers in preference to waiting readers
  */
 int rwl_writeunlock(brwlock_t *rwl)
 {
    int stat, stat2;
-    
+
    if (rwl->valid != RWLOCK_VALID) {
       return EINVAL;
    }
@@ -323,7 +323,7 @@ typedef struct thread_tag {
    int interval;
 } thread_t;
 
-/* 
+/*
  * Read/write lock and shared data.
  */
 typedef struct data_tag {
@@ -335,7 +335,7 @@ typedef struct data_tag {
 thread_t threads[THREADS];
 data_t data[DATASIZE];
 
-/* 
+/*
  * Thread start routine that uses read/write locks.
  */
 void *thread_routine(void *arg)
@@ -355,14 +355,14 @@ void *thread_routine(void *arg)
       if ((iteration % self->interval) == 0) {
 	 status = rwl_writelock(&data[element].lock);
 	 if (status != 0) {
-            Emsg1(M_ABORT, 0, "Write lock failed. ERR=%s\n", strerror(status));
+	    Emsg1(M_ABORT, 0, "Write lock failed. ERR=%s\n", strerror(status));
 	 }
 	 data[element].data = self->thread_num;
 	 data[element].writes++;
 	 self->writes++;
 	 status = rwl_writeunlock(&data[element].lock);
 	 if (status != 0) {
-            Emsg1(M_ABORT, 0, "Write unlock failed. ERR=%s\n", strerror(status));
+	    Emsg1(M_ABORT, 0, "Write unlock failed. ERR=%s\n", strerror(status));
 	 }
       } else {
 	 /*
@@ -372,14 +372,14 @@ void *thread_routine(void *arg)
 	  */
 	  status = rwl_readlock(&data[element].lock);
 	  if (status != 0) {
-             Emsg1(M_ABORT, 0, "Read lock failed. ERR=%s\n", strerror(status));
+	     Emsg1(M_ABORT, 0, "Read lock failed. ERR=%s\n", strerror(status));
 	  }
 	  self->reads++;
 	  if (data[element].data == self->thread_num)
 	     repeats++;
 	  status = rwl_readunlock(&data[element].lock);
 	  if (status != 0) {
-             Emsg1(M_ABORT, 0, "Read unlock failed. ERR=%s\n", strerror(status));
+	     Emsg1(M_ABORT, 0, "Read unlock failed. ERR=%s\n", strerror(status));
 	  }
       }
       element++;
@@ -420,7 +420,7 @@ int main (int argc, char *argv[])
 	data[data_count].writes = 0;
 	status = rwl_init (&data[data_count].lock);
 	if (status != 0) {
-           Emsg1(M_ABORT, 0, "Init rwlock failed. ERR=%s\n", strerror(status));
+	   Emsg1(M_ABORT, 0, "Init rwlock failed. ERR=%s\n", strerror(status));
 	}
     }
 
@@ -435,7 +435,7 @@ int main (int argc, char *argv[])
 	status = pthread_create (&threads[count].thread_id,
 	    NULL, thread_routine, (void*)&threads[count]);
 	if (status != 0) {
-           Emsg1(M_ABORT, 0, "Create thread failed. ERR=%s\n", strerror(status));
+	   Emsg1(M_ABORT, 0, "Create thread failed. ERR=%s\n", strerror(status));
 	}
     }
 
@@ -446,10 +446,10 @@ int main (int argc, char *argv[])
     for (count = 0; count < THREADS; count++) {
 	status = pthread_join (threads[count].thread_id, NULL);
 	if (status != 0) {
-           Emsg1(M_ABORT, 0, "Join thread failed. ERR=%s\n", strerror(status));
+	   Emsg1(M_ABORT, 0, "Join thread failed. ERR=%s\n", strerror(status));
 	}
 	thread_writes += threads[count].writes;
-        printf ("%02d: interval %d, writes %d, reads %d\n",
+	printf ("%02d: interval %d, writes %d, reads %d\n",
 	    count, threads[count].interval,
 	    threads[count].writes, threads[count].reads);
     }
@@ -459,7 +459,7 @@ int main (int argc, char *argv[])
      */
     for (data_count = 0; data_count < DATASIZE; data_count++) {
 	data_writes += data[data_count].writes;
-        printf ("data %02d: value %d, %d writes\n",
+	printf ("data %02d: value %d, %d writes\n",
 	    data_count, data[data_count].data, data[data_count].writes);
 	rwl_destroy (&data[data_count].lock);
     }
@@ -536,16 +536,16 @@ void *thread_routine (void *arg)
 		self->updates++;
 		rwl_writeunlock (&data[element].lock);
 	    } else
-                err_abort (status, "Try write lock");
+		err_abort (status, "Try write lock");
 	} else {
 	    status = rwl_readtrylock (&data[element].lock);
 	    if (status == EBUSY)
 		self->r_collisions++;
 	    else if (status != 0) {
-                err_abort (status, "Try read lock");
+		err_abort (status, "Try read lock");
 	    } else {
 		if (data[element].data != data[element].updates)
-                    printf ("%d: data[%d] %d != %d\n",
+		    printf ("%d: data[%d] %d != %d\n",
 			self->thread_num, element,
 			data[element].data, data[element].updates);
 		rwl_readunlock (&data[element].lock);
@@ -597,7 +597,7 @@ int main (int argc, char *argv[])
 	status = pthread_create (&threads[count].thread_id,
 	    NULL, thread_routine, (void*)&threads[count]);
 	if (status != 0)
-            err_abort (status, "Create thread");
+	    err_abort (status, "Create thread");
     }
 
     /*
@@ -607,10 +607,10 @@ int main (int argc, char *argv[])
     for (count = 0; count < THREADS; count++) {
 	status = pthread_join (threads[count].thread_id, NULL);
 	if (status != 0)
-            err_abort (status, "Join thread");
+	    err_abort (status, "Join thread");
 	thread_updates += threads[count].updates;
-        printf ("%02d: interval %d, updates %d, "
-                "r_collisions %d, w_collisions %d\n",
+	printf ("%02d: interval %d, updates %d, "
+		"r_collisions %d, w_collisions %d\n",
 	    count, threads[count].interval,
 	    threads[count].updates,
 	    threads[count].r_collisions, threads[count].w_collisions);
@@ -621,7 +621,7 @@ int main (int argc, char *argv[])
      */
     for (data_count = 0; data_count < DATASIZE; data_count++) {
 	data_updates += data[data_count].updates;
-        printf ("data %02d: value %d, %d updates\n",
+	printf ("data %02d: value %d, %d updates\n",
 	    data_count, data[data_count].data, data[data_count].updates);
 	rwl_destroy (&data[data_count].lock);
     }

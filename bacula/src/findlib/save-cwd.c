@@ -45,7 +45,7 @@ save_cwd(struct saved_cwd *cwd)
       cwd->desc = open(".", O_RDONLY);
       if (cwd->desc < 0) {
 	 berrno be;
-         Emsg1(M_ERROR, 0, "Cannot open current directory: %s\n", be.strerror());
+	 Emsg1(M_ERROR, 0, "Cannot open current directory: %s\n", be.strerror());
 	 return 1;
       }
 
@@ -59,7 +59,7 @@ save_cwd(struct saved_cwd *cwd)
 	      have_working_fchdir = 0;
 	  } else {
 	      berrno be;
-              Emsg1(M_ERROR, 0, "Current directory: %s\n", be.strerror());
+	      Emsg1(M_ERROR, 0, "Current directory: %s\n", be.strerror());
 	      close(cwd->desc);
 	      cwd->desc = -1;
 	      return 1;
@@ -81,7 +81,7 @@ save_cwd(struct saved_cwd *cwd)
       cwd->name = (POOLMEM *)getcwd(buf, sizeof_pool_memory(buf));
       if (cwd->name == NULL) {
 	 berrno be;
-         Emsg1(M_ERROR, 0, "Cannot get current directory: %s\n", be.strerror());
+	 Emsg1(M_ERROR, 0, "Cannot get current directory: %s\n", be.strerror());
 	 free_pool_memory(buf);
 	 return 1;
       }
@@ -100,10 +100,10 @@ restore_cwd(const struct saved_cwd *cwd, const char *dest, const char *from)
   if (cwd->desc >= 0) {
       if (fchdir(cwd->desc)) {
 	 berrno be;
-         Emsg4(M_ERROR, 0, "Cannot return to %s%s%s: %s\n", 
-                 (dest ? dest : "saved working directory"),
-                 (from ? " from " : ""),
-                 (from ? from : ""), be.strerror());
+	 Emsg4(M_ERROR, 0, "Cannot return to %s%s%s: %s\n",
+		 (dest ? dest : "saved working directory"),
+		 (from ? " from " : ""),
+		 (from ? from : ""), be.strerror());
 	 fail = 1;
       }
   } else if (chdir(cwd->name) < 0) {

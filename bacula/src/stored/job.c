@@ -40,8 +40,8 @@ static bool use_device_cmd(JCR *jcr);
 
 /* Requests from the Director daemon */
 static char jobcmd[] = "JobId=%d job=%127s job_name=%127s client_name=%127s "
-         "type=%d level=%d FileSet=%127s NoAttr=%d SpoolAttr=%d FileSetMD5=%127s "
-         "SpoolData=%d";
+	 "type=%d level=%d FileSet=%127s NoAttr=%d SpoolAttr=%d FileSetMD5=%127s "
+	 "SpoolData=%d";
 static char use_device[]  = "use device=%127s media_type=%127s pool_name=%127s pool_type=%127s\n";
 static char use_devices[] = "use devices=%127s media_type=%127s pool_name=%127s pool_type=%127s\n";
 
@@ -78,7 +78,7 @@ bool job_cmd(JCR *jcr)
     * Get JobId and permissions from Director
     */
    Dmsg1(100, "Job_cmd: %s\n", dir->msg);
-   if (sscanf(dir->msg, jobcmd, &JobId, job.c_str(), job_name.c_str(), 
+   if (sscanf(dir->msg, jobcmd, &JobId, job.c_str(), job_name.c_str(),
 	      client_name.c_str(),
 	      &JobType, &level, fileset_name.c_str(), &no_attributes,
 	      &spool_attributes, fileset_md5.c_str(), &spool_data) != 11) {
@@ -88,7 +88,7 @@ bool job_cmd(JCR *jcr)
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       return false;
    }
-   /*	      
+   /*
     * Since this job could be rescheduled, we
     *  check to see if we have it already. If so
     *  free the old jcr and use the new one.
@@ -128,7 +128,7 @@ bool job_cmd(JCR *jcr)
    bnet_fsend(dir, OKjob, jcr->VolSessionId, jcr->VolSessionTime, auth_key);
    Dmsg1(110, ">dird: %s", dir->msg);
    jcr->sd_auth_key = bstrdup(auth_key);
-   memset(auth_key, 0, sizeof(auth_key));    
+   memset(auth_key, 0, sizeof(auth_key));
 
    /*
     * Wait for the device, media, and pool information
@@ -153,7 +153,7 @@ bool job_cmd(JCR *jcr)
    dir_send_job_status(jcr);
 
    gettimeofday(&tv, &tz);
-   timeout.tv_nsec = tv.tv_usec * 1000; 
+   timeout.tv_nsec = tv.tv_usec * 1000;
    timeout.tv_sec = tv.tv_sec + 30 * 60;	/* wait 30 minutes */
 
    Dmsg1(100, "%s waiting on FD to contact SD\n", jcr->Job);
@@ -183,7 +183,7 @@ bool job_cmd(JCR *jcr)
 /*
  * After receiving a connection (in job.c) if it is
  *   from the File daemon, this routine is called.
- */  
+ */
 void handle_filed_connection(BSOCK *fd, char *job_name)
 {
    JCR *jcr;
@@ -201,12 +201,12 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
    Dmsg1(110, "Found Job %s\n", job_name);
 
    if (jcr->authenticated) {
-      Jmsg2(jcr, M_FATAL, 0, "Hey!!!! JobId %u Job %s already authenticated.\n", 
+      Jmsg2(jcr, M_FATAL, 0, "Hey!!!! JobId %u Job %s already authenticated.\n",
 	 jcr->JobId, jcr->Job);
       free_jcr(jcr);
       return;
    }
-  
+
    /*
     * Authenticate the File daemon
     */
@@ -229,9 +229,9 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
 }
 
 
-/*  
+/*
  *   Use Device command from Director
- *   He tells is what Device Name to use, the Media Type, 
+ *   He tells is what Device Name to use, the Media Type,
  *	the Pool Name, and the Pool Type.
  *
  *    Ensure that the device exists and is opened, then store
@@ -243,27 +243,27 @@ static bool use_device_cmd(JCR *jcr)
    BSOCK *dir = jcr->dir_bsock;
    DEVRES *device;
    bool quit = false;
-   
+
    while (!quit) {
       bool ok;
       if (bnet_recv(dir) <= 0) {
-         Jmsg0(jcr, M_FATAL, 0, _("No Device from Director\n"));
+	 Jmsg0(jcr, M_FATAL, 0, _("No Device from Director\n"));
 	 return false;
       }
-   
+
       Dmsg1(120, "Use device: %s", dir->msg);
-      /* 
-       * If there are multiple devices, the director sends us 
+      /*
+       * If there are multiple devices, the director sends us
        *   use_devices (note plurel) until the last one, at which
        *   time, it sends us a use_device command (note singlular)
        *   so we stop looking after getting the use_device.
        */
-      ok = sscanf(dir->msg, use_device, dev_name.c_str(), media_type.c_str(), 
+      ok = sscanf(dir->msg, use_device, dev_name.c_str(), media_type.c_str(),
 		  pool_name.c_str(), pool_type.c_str()) == 4;
       if (ok) {
 	 quit = true;		      /* got last device */
       } else {
-	 ok = sscanf(dir->msg, use_devices, dev_name.c_str(), media_type.c_str(), 
+	 ok = sscanf(dir->msg, use_devices, dev_name.c_str(), media_type.c_str(),
 		     pool_name.c_str(), pool_type.c_str()) == 4;
       }
       if (ok) {
@@ -274,7 +274,7 @@ static bool use_device_cmd(JCR *jcr)
 	 LockRes();
 	 foreach_res(device, R_DEVICE) {
 	    /* Find resource, and make sure we were able to open it */
-	    if (fnmatch(dev_name.c_str(), device->hdr.name, 0) == 0 && 
+	    if (fnmatch(dev_name.c_str(), device->hdr.name, 0) == 0 &&
 		device->dev && strcmp(device->media_type, media_type.c_str()) == 0) {
 	       const int name_len = MAX_NAME_LENGTH;
 	       DCR *dcr;
@@ -283,13 +283,13 @@ static bool use_device_cmd(JCR *jcr)
 	       if (!dcr) {
 		  return false;
 	       }
-               Dmsg1(120, "Found device %s\n", device->hdr.name);
+	       Dmsg1(120, "Found device %s\n", device->hdr.name);
 	       bstrncpy(dcr->pool_name, pool_name, name_len);
 	       bstrncpy(dcr->pool_type, pool_type, name_len);
 	       bstrncpy(dcr->media_type, media_type, name_len);
 	       bstrncpy(dcr->dev_name, dev_name, name_len);
 	       jcr->device = device;
-               Dmsg1(220, "Got: %s", dir->msg);
+	       Dmsg1(220, "Got: %s", dir->msg);
 	       return bnet_fsend(dir, OK_device);
 	    }
 	 }
@@ -297,19 +297,19 @@ static bool use_device_cmd(JCR *jcr)
 	 if (verbose) {
 	    unbash_spaces(dir->msg);
 	    pm_strcpy(jcr->errmsg, dir->msg);
-            Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), jcr->errmsg);
+	    Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), jcr->errmsg);
 	 }
-         Jmsg(jcr, M_FATAL, 0, _("\n"
-            "     Device \"%s\" with MediaType \"%s\" requested by Dir not found in SD Device resources.\n"),
+	 Jmsg(jcr, M_FATAL, 0, _("\n"
+	    "     Device \"%s\" with MediaType \"%s\" requested by Dir not found in SD Device resources.\n"),
 	      dev_name.c_str(), media_type.c_str());
 	 bnet_fsend(dir, NO_device, dev_name.c_str());
       } else {
 	 unbash_spaces(dir->msg);
 	 pm_strcpy(jcr->errmsg, dir->msg);
 	 if (verbose) {
-            Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), jcr->errmsg);
+	    Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), jcr->errmsg);
 	 }
-         Jmsg(jcr, M_FATAL, 0, _("Bad Use Device command: %s\n"), jcr->errmsg);
+	 Jmsg(jcr, M_FATAL, 0, _("Bad Use Device command: %s\n"), jcr->errmsg);
 	 bnet_fsend(dir, BAD_use, jcr->errmsg);
       }
    }
@@ -317,11 +317,11 @@ static bool use_device_cmd(JCR *jcr)
    return false;		      /* ERROR return */
 }
 
-/* 
+/*
  * Destroy the Job Control Record and associated
  * resources (sockets).
  */
-void stored_free_jcr(JCR *jcr) 
+void stored_free_jcr(JCR *jcr)
 {
    if (jcr->file_bsock) {
       bnet_close(jcr->file_bsock);

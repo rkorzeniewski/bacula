@@ -1,5 +1,5 @@
 
-/*  
+/*
 
   See btime.c for defintions.
 

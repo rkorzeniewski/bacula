@@ -41,7 +41,7 @@ extern int execvp_errors[];
 
 const char *berrno::strerror()
 {
-   int stat = 0; 
+   int stat = 0;
 #ifdef HAVE_WIN32
    LPVOID msg;
 
@@ -63,17 +63,17 @@ const char *berrno::strerror()
    if (berrno_ & b_errno_exit) {
       stat = (berrno_ & ~b_errno_exit);       /* remove bit */
       if (stat == 0) {
-         return "Child exited normally.";    /* this really shouldn't happen */
+	 return "Child exited normally.";    /* this really shouldn't happen */
       } else {
 	 /* Maybe an execvp failure */
 	 if (stat >= 200) {
 	    if (stat < 200 + num_execvp_errors) {
 	       berrno_ = execvp_errors[stat - 200];
 	    } else {
-               return "Unknown error during program execvp";
+	       return "Unknown error during program execvp";
 	    }
 	 } else {
-            Mmsg(&buf_, "Child exited with code %d", stat);
+	    Mmsg(&buf_, "Child exited with code %d", stat);
 	    return buf_;
 	 }
 	 /* If we drop out here, berrno_ is set to an execvp errno */
@@ -87,7 +87,7 @@ const char *berrno::strerror()
 #endif
    /* Normal errno */
    if (bstrerror(berrno_, buf_, 1024) < 0) {
-      return "Invalid errno. No error message possible."; 
+      return "Invalid errno. No error message possible.";
    }
    return buf_;
 }

@@ -16,7 +16,7 @@
  *    Just create a new larger table, walk the old table and
  *    re-hash insert each entry into the new table.
  *
- *		  
+ *
  *   Kern Sibbald, July MMIII
  *
  *   Version $Id$
@@ -96,7 +96,7 @@ void * htable::operator new(size_t)
    return malloc(sizeof(htable));
 }
 
-void htable::operator delete(void *tbl) 
+void htable::operator delete(void *tbl)
 {
    ((htable *)tbl)->destroy();
    free(tbl);
@@ -108,7 +108,7 @@ uint32_t htable::size()
    return num_items;
 }
 
-void htable::stats() 
+void htable::stats()
 {
    int count[10];
    int max = 0;
@@ -120,7 +120,7 @@ void htable::stats()
    }
    for (i=0; i<(int)buckets; i++) {
       p = table[i];
-      j = 0;	 
+      j = 0;
       while (p) {
 	 p = (hlink *)(p->next);
 	 j++;
@@ -155,7 +155,7 @@ void htable::grow_table()
    big->walk_index = 0;
    /* Insert all the items in the new hash table */
    Dmsg1(100, "Before copy num_items=%d\n", num_items);
-   /* 
+   /*
     * We walk through the old smaller tree getting items,
     * but since we are overwriting the colision links, we must
     * explicitly save the item->next pointer and walk each
@@ -169,7 +169,7 @@ void htable::grow_table()
       if (ni) {
 	 item = (void *)((char *)ni-loffset);
       } else {
-	 walkptr = NULL;       
+	 walkptr = NULL;
 	 item = next();
       }
    }
@@ -217,7 +217,7 @@ void *htable::lookup(char *key)
    for (hlink *hp=table[index]; hp; hp=(hlink *)hp->next) {
 //    Dmsg2(100, "hp=0x%x key=%s\n", (long)hp, hp->key);
       if (hash == hp->hash && strcmp(key, hp->key) == 0) {
-         Dmsg1(100, "lookup return %x\n", ((char *)hp)-loffset);
+	 Dmsg1(100, "lookup return %x\n", ((char *)hp)-loffset);
 	 return ((char *)hp)-loffset;
       }
    }
@@ -233,15 +233,15 @@ void *htable::next()
    while (!walkptr && walk_index < buckets) {
       walkptr = table[walk_index++];
       if (walkptr) {
-         Dmsg3(100, "new walkptr=0x%x next=0x%x inx=%d\n", (unsigned)walkptr,
+	 Dmsg3(100, "new walkptr=0x%x next=0x%x inx=%d\n", (unsigned)walkptr,
 	    (unsigned)(walkptr->next), walk_index-1);
       }
    }
    if (walkptr) {
-      Dmsg2(100, "next: rtn 0x%x walk_index=%d\n", 
+      Dmsg2(100, "next: rtn 0x%x walk_index=%d\n",
 	 (unsigned)(((char *)walkptr)-loffset), walk_index);
       return ((char *)walkptr)-loffset;
-   } 
+   }
    Dmsg0(100, "next: return NULL\n");
    return NULL;
 }
@@ -254,14 +254,14 @@ void *htable::first()
    while (!walkptr && walk_index < buckets) {
       walkptr = table[walk_index++];  /* go to next bucket */
       if (walkptr) {
-         Dmsg3(100, "first new walkptr=0x%x next=0x%x inx=%d\n", (unsigned)walkptr,
+	 Dmsg3(100, "first new walkptr=0x%x next=0x%x inx=%d\n", (unsigned)walkptr,
 	    (unsigned)(walkptr->next), walk_index-1);
       }
    }
    if (walkptr) {
       Dmsg1(100, "Leave first walkptr=0x%x\n", (unsigned)walkptr);
       return ((char *)walkptr)-loffset;
-   } 
+   }
    Dmsg0(100, "Leave first walkptr=NULL\n");
    return NULL;
 }
@@ -300,10 +300,10 @@ int main()
    MYJCR *save_jcr = NULL, *item;
    MYJCR *jcr = NULL;
    int count = 0;
-    
+
    jcrtbl = (htable *)malloc(sizeof(htable));
    jcrtbl->init(jcr, &jcr->link, NITEMS);
-    
+
    Dmsg1(000, "Inserting %d items\n", NITEMS);
    for (int i=0; i<NITEMS; i++) {
       sprintf(mkey, "This is htable item %d", i);

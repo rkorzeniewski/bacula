@@ -28,7 +28,7 @@
 #ifndef __WINAPI_H
 #define __WINAPI_H
 #if defined(HAVE_WIN32)
-/* Commented out native.h include statement, which is not distributed with the 
+/* Commented out native.h include statement, which is not distributed with the
  * free version of VC++, and which is not used in bacula. */
 /*#if !defined(HAVE_MINGW) // native.h not present on mingw
 #include <native.h>
@@ -40,7 +40,7 @@
 
 typedef BOOL (WINAPI * t_OpenProcessToken)(HANDLE, DWORD, PHANDLE);
 typedef BOOL (WINAPI * t_AdjustTokenPrivileges)(HANDLE, BOOL,
-          PTOKEN_PRIVILEGES, DWORD, PTOKEN_PRIVILEGES, PDWORD);
+	  PTOKEN_PRIVILEGES, DWORD, PTOKEN_PRIVILEGES, PDWORD);
 typedef BOOL (WINAPI * t_LookupPrivilegeValue)(LPCTSTR, LPCTSTR, PLUID);
 
 extern t_OpenProcessToken      p_OpenProcessToken;

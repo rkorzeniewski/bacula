@@ -7,7 +7,7 @@
  *
  *   1. The generic lexical scanner in lib/lex.c and lib/lex.h
  *
- *   2. The generic config  scanner in lib/parse_config.c and 
+ *   2. The generic config  scanner in lib/parse_config.c and
  *	lib/parse_config.h.
  *	These files contain the parser code, some utility
  *	routines, and the common store routines (name, int,
@@ -69,9 +69,9 @@ int  res_all_size = sizeof(res_all);
 #endif
 
 /* Definition of records permitted within each
- * resource with the routine to process the record 
+ * resource with the routine to process the record
  * information.
- */ 
+ */
 
 /*  Console "globals" */
 static RES_ITEM cons_items[] = {
@@ -81,7 +81,7 @@ static RES_ITEM cons_items[] = {
    {"historyfile", store_dir,      ITEM(res_cons.hist_file), 0, 0, 0},
    {"requiressl",  store_yesno,    ITEM(res_cons.require_ssl), 1, ITEM_DEFAULT, 0},
    {"password",    store_password, ITEM(res_cons.password), 0, ITEM_REQUIRED, 0},
-   {NULL, NULL, NULL, 0, 0, 0} 
+   {NULL, NULL, NULL, 0, 0, 0}
 };
 
 
@@ -93,15 +93,15 @@ static RES_ITEM dir_items[] = {
    {"address",     store_str,      ITEM(res_dir.address),  0, 0, 0},
    {"password",    store_password, ITEM(res_dir.password), 0, ITEM_REQUIRED, 0},
    {"enablessl",   store_yesno,    ITEM(res_dir.enable_ssl), 1, ITEM_DEFAULT, 0},
-   {NULL, NULL, NULL, 0, 0, 0} 
+   {NULL, NULL, NULL, 0, 0, 0}
 };
 
-/* 
- * This is the master resource definition.  
+/*
+ * This is the master resource definition.
  * It must have one item for each of the resources.
  */
 RES_TABLE resources[] = {
-   {"console",       cons_items,  R_CONSOLE},        
+   {"console",       cons_items,  R_CONSOLE},
    {"director",      dir_items,   R_DIRECTOR},
    {NULL,	     NULL,	  0}
 };
@@ -127,7 +127,7 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
 	     res->res_cons.rc_file, res->res_cons.hist_file);
       break;
    case R_DIRECTOR:
-      printf("Director: name=%s address=%s DIRport=%d\n", reshdr->name, 
+      printf("Director: name=%s address=%s DIRport=%d\n", reshdr->name,
 	      res->res_dir.address, res->res_dir.DIRport);
       break;
    default:
@@ -138,10 +138,10 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
    }
 }
 
-/* 
- * Free memory of resource.  
+/*
+ * Free memory of resource.
  * NB, we don't need to worry about freeing any references
- * to other resources as they will be freed when that 
+ * to other resources as they will be freed when that
  * resource chain is traversed.  Mainly we worry about freeing
  * allocated strings (names).
  */
@@ -192,16 +192,16 @@ void save_resource(int type, RES_ITEM *items, int pass)
 {
    URES *res;
    int rindex = type - r_first;
-   int i, size;    
+   int i, size;
    int error = 0;
 
-   /* 
+   /*
     * Ensure that all required items are present
     */
    for (i=0; items[i].name; i++) {
       if (items[i].flags & ITEM_REQUIRED) {
-	    if (!bit_is_set(i, res_all.res_dir.hdr.item_present)) {  
-               Emsg2(M_ABORT, 0, "%s item is required in %s resource, but not found.\n",
+	    if (!bit_is_set(i, res_all.res_dir.hdr.item_present)) {
+	       Emsg2(M_ABORT, 0, "%s item is required in %s resource, but not found.\n",
 		 items[i].name, resources[rindex]);
 	     }
       }
@@ -220,7 +220,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
 	    break;
 
 	 default:
-            Emsg1(M_ERROR, 0, "Unknown resource type %d\n", type);
+	    Emsg1(M_ERROR, 0, "Unknown resource type %d\n", type);
 	    error = 1;
 	    break;
       }
@@ -263,12 +263,12 @@ void save_resource(int type, RES_ITEM *items, int pass)
 	 for (next=res_head[rindex]; next->next; next=next->next) {
 	    if (strcmp(next->name, res->res_dir.hdr.name) == 0) {
 	       Emsg2(M_ERROR_TERM, 0,
-                  _("Attempt to define second %s resource named \"%s\" is not permitted.\n"),
+		  _("Attempt to define second %s resource named \"%s\" is not permitted.\n"),
 		  resources[rindex].name, res->res_dir.hdr.name);
 	    }
 	 }
 	 next->next = (RES *)res;
-         Dmsg2(90, "Inserting %s res: %s\n", res_to_str(type),
+	 Dmsg2(90, "Inserting %s res: %s\n", res_to_str(type),
 	       res->res_dir.hdr.name);
       }
    }

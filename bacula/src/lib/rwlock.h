@@ -1,6 +1,6 @@
 /*
  * Bacula Thread Read/Write locking code. It permits
- *  multiple readers but only one writer.                 
+ *  multiple readers but only one writer.
  *
  *  Kern Sibbald, January MMI
  *
@@ -30,7 +30,7 @@
 
  */
 
-#ifndef __RWLOCK_H 
+#ifndef __RWLOCK_H
 #define __RWLOCK_H 1
 
 typedef struct s_rwlock_tag {
@@ -57,7 +57,7 @@ typedef struct s_rwsteal_tag {
    {PTHREAD_MUTEX_INITIALIZER, PTHREAD_COND_INITIALIZER, \
     PTHREAD_COND_INITIALIZER, RWLOCK_VALID, 0, 0, 0, 0}
 
-/* 
+/*
  * read/write lock prototypes
  */
 extern int rwl_init(brwlock_t *wrlock);

@@ -56,13 +56,13 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
  * never have errors, or it is really fatal.
  */
 B_DB *
-db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char *db_password, 
+db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char *db_password,
 		 const char *db_address, int db_port, const char *db_socket,
 		 int mult_db_connections)
 {
    B_DB *mdb;
 
-   if (!db_user) {		
+   if (!db_user) {
       Jmsg(jcr, M_FATAL, 0, _("A user name for MySQL must be supplied.\n"));
       return NULL;
    }
@@ -71,7 +71,7 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
    if (!mult_db_connections) {
       for (mdb=NULL; (mdb=(B_DB *)qnext(&db_list, &mdb->bq)); ) {
 	 if (strcmp(mdb->db_name, db_name) == 0) {
-            Dmsg2(100, "DB REopen %d %s\n", mdb->ref_count, db_name);
+	    Dmsg2(100, "DB REopen %d %s\n", mdb->ref_count, db_name);
 	    mdb->ref_count++;
 	    V(mutex);
 	    return mdb; 		 /* already open */
@@ -127,7 +127,7 @@ db_open_database(JCR *jcr, B_DB *mdb)
    mdb->connected = FALSE;
 
    if ((errstat=rwl_init(&mdb->lock)) != 0) {
-      Mmsg1(&mdb->errmsg, _("Unable to initialize DB lock. ERR=%s\n"), 
+      Mmsg1(&mdb->errmsg, _("Unable to initialize DB lock. ERR=%s\n"),
 	    strerror(errstat));
       V(mutex);
       return 0;
@@ -157,15 +157,15 @@ db_open_database(JCR *jcr, B_DB *mdb)
       }
       bmicrosleep(5,0);
    }
-    
+
    Dmsg0(50, "mysql_real_connect done\n");
-   Dmsg3(50, "db_user=%s db_name=%s db_password=%s\n", mdb->db_user, mdb->db_name, 
-            mdb->db_password==NULL?"(NULL)":mdb->db_password);
-  
+   Dmsg3(50, "db_user=%s db_name=%s db_password=%s\n", mdb->db_user, mdb->db_name,
+	    mdb->db_password==NULL?"(NULL)":mdb->db_password);
+
    if (mdb->db == NULL) {
-      Mmsg2(&mdb->errmsg, _("Unable to connect to MySQL server. \n\
-Database=%s User=%s\n\
-It is probably not running or your password is incorrect.\n"), 
+      Mmsg2(&mdb->errmsg, _("Unable to connect to MySQL server. \n"
+"Database=%s User=%s\n"
+"It is probably not running or your password is incorrect.\n"),
 	 mdb->db_name, mdb->db_user);
       V(mutex);
       return 0;
@@ -204,7 +204,7 @@ db_close_database(JCR *jcr, B_DB *mdb)
 	 mysql_server_end();
 #endif
       }
-      rwl_destroy(&mdb->lock);	     
+      rwl_destroy(&mdb->lock);
       free_pool_memory(mdb->errmsg);
       free_pool_memory(mdb->cmd);
       free_pool_memory(mdb->cached_path);
@@ -234,7 +234,7 @@ db_close_database(JCR *jcr, B_DB *mdb)
 /*
  * Return the next unique index (auto-increment) for
  * the given table.  Return NULL on error.
- *  
+ *
  * For MySQL, NULL causes the auto-increment value
  *  to be updated.
  */
@@ -242,7 +242,7 @@ int db_next_index(JCR *jcr, B_DB *mdb, char *table, char *index)
 {
    strcpy(index, "NULL");
    return 1;
-}   
+}
 
 
 /*
@@ -269,38 +269,38 @@ unsigned long mysql_real_escape_string(MYSQL *mysql, char *to, const char *from,
    while (len--) {
       switch (*o) {
       case 0:
-         *n++= '\\';
-         *n++= '0';
+	 *n++= '\\';
+	 *n++= '0';
 	 o++;
 	 break;
       case '\n':
-         *n++= '\\';
-         *n++= 'n';
+	 *n++= '\\';
+	 *n++= 'n';
 	 o++;
 	 break;
       case '\r':
-         *n++= '\\';
-         *n++= 'r';
+	 *n++= '\\';
+	 *n++= 'r';
 	 o++;
 	 break;
       case '\\':
-         *n++= '\\';
-         *n++= '\\';
+	 *n++= '\\';
+	 *n++= '\\';
 	 o++;
 	 break;
       case '\'':
-         *n++= '\\';
-         *n++= '\'';
+	 *n++= '\\';
+	 *n++= '\'';
 	 o++;
 	 break;
       case '"':
-         *n++= '\\';
-         *n++= '"';
+	 *n++= '\\';
+	 *n++= '"';
 	 o++;
 	 break;
       case '\032':
-         *n++= '\\';
-         *n++= 'Z';
+	 *n++= '\\';
+	 *n++= 'Z';
 	 o++;
 	 break;
       default:
@@ -318,7 +318,7 @@ unsigned long mysql_real_escape_string(MYSQL *mysql, char *to, const char *from,
 int db_sql_query(B_DB *mdb, const char *query, DB_RESULT_HANDLER *result_handler, void *ctx)
 {
    SQL_ROW row;
-  
+
    db_lock(mdb);
    if (sql_query(mdb, query) != 0) {
       Mmsg(mdb->errmsg, _("Query failed: %s: ERR=%s\n"), query, sql_strerror(mdb));

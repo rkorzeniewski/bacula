@@ -4,8 +4,8 @@
  *    bextract, ...  Some routines also used by Bacula.
  *
  *    Kern Sibbald, MM
- * 
- *  Normally nothing in this file is called by the Storage   
+ *
+ *  Normally nothing in this file is called by the Storage
  *    daemon because we interact more directly with the user
  *    i.e. printf, ...
  *
@@ -45,7 +45,7 @@ extern char *configfile;
 #ifdef DEBUG
 char *rec_state_to_str(DEV_RECORD *rec)
 {
-   static char buf[200]; 
+   static char buf[200];
    buf[0] = 0;
    if (rec->state & REC_NO_HEADER) {
       strcat(buf, "Nohdr,");
@@ -124,7 +124,7 @@ static DCR *setup_to_access_device(JCR *jcr, char *dev_name, const char *VolumeN
 
    /*
     * If no volume name already given and no bsr, and it is a file,
-    * try getting name from Filename  
+    * try getting name from Filename
     */
    if (VolumeName) {
       bstrncpy(VolName, VolumeName, sizeof(VolName));
@@ -136,9 +136,9 @@ static DCR *setup_to_access_device(JCR *jcr, char *dev_name, const char *VolumeN
 	 /* Try stripping file part */
 	 p = dev_name + strlen(dev_name);
 
-         while (p >= dev_name && *p != '/')
+	 while (p >= dev_name && *p != '/')
 	    p--;
-         if (*p == '/') {
+	 if (*p == '/') {
 	    bstrncpy(VolName, p+1, sizeof(VolName));
 	    *p = 0;
 	 }
@@ -146,19 +146,19 @@ static DCR *setup_to_access_device(JCR *jcr, char *dev_name, const char *VolumeN
    }
 
    if ((device=find_device_res(dev_name, mode)) == NULL) {
-      Jmsg2(jcr, M_FATAL, 0, _("Cannot find device \"%s\" in config file %s.\n"), 
+      Jmsg2(jcr, M_FATAL, 0, _("Cannot find device \"%s\" in config file %s.\n"),
 	   dev_name, configfile);
       return NULL;
    }
    jcr->device = device;
-   
+
    dev = init_dev(NULL, device);
    if (!dev) {
       Jmsg1(jcr, M_FATAL, 0, _("Cannot init device %s\n"), dev_name);
       return NULL;
    }
    device->dev = dev;
-   dcr = new_dcr(jcr, dev);	   
+   dcr = new_dcr(jcr, dev);
    if (VolName[0]) {
       bstrncpy(dcr->VolumeName, VolName, sizeof(dcr->VolumeName));
    }
@@ -181,7 +181,7 @@ static DCR *setup_to_access_device(JCR *jcr, char *dev_name, const char *VolumeN
 
 
 /*
- * Called here when freeing JCR so that we can get rid 
+ * Called here when freeing JCR so that we can get rid
  *  of "daemon" specific memory allocated.
  */
 static void my_free_jcr(JCR *jcr)
@@ -204,7 +204,7 @@ static void my_free_jcr(JCR *jcr)
    }
    if (jcr->VolList) {
       free_vol_list(jcr);
-   }  
+   }
    if (jcr->dcr) {
       free_dcr(jcr->dcr);
       jcr->dcr = NULL;
@@ -214,9 +214,9 @@ static void my_free_jcr(JCR *jcr)
 
 
 /*
- * Search for device resource that corresponds to 
+ * Search for device resource that corresponds to
  * device name on command line (or default).
- *	 
+ *
  * Returns: NULL on failure
  *	    Device resource pointer on success
  */
@@ -231,14 +231,14 @@ static DEVRES *find_device_res(char *device_name, int read_access)
 	 found = true;
 	 break;
       }
-   } 
+   }
    if (!found) {
       /* Search for name of Device resource rather than archive name */
       if (device_name[0] == '"') {
 	 strcpy(device_name, device_name+1);
 	 int len = strlen(device_name);
 	 if (len > 0) {
-            device_name[len-1] = 0;   /* zap trailing " */
+	    device_name[len-1] = 0;   /* zap trailing " */
 	 }
       }
       foreach_res(device, R_DEVICE) {
@@ -246,7 +246,7 @@ static DEVRES *find_device_res(char *device_name, int read_access)
 	    found = true;
 	    break;
 	 }
-      } 
+      }
    }
    UnlockRes();
    if (!found) {
@@ -255,7 +255,7 @@ static DEVRES *find_device_res(char *device_name, int read_access)
       return NULL;
    }
    Pmsg2(0, _("Using device: \"%s\" for %s.\n"), device_name,
-             read_access?"reading":"writing");
+	     read_access?"reading":"writing");
    return device;
 }
 

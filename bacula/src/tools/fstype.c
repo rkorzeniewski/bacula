@@ -1,14 +1,14 @@
-/*  
+/*
  * Program for determining file system type
  *
  *   Written by Preben 'Peppe' Guldberg, December MMIV
- * 
+ *
  *   Version $Id$
- *   
+ *
  */
 
 /*
-   Copyright (C) 2004 Kern Sibbald		  
+   Copyright (C) 2004 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -57,14 +57,14 @@ main (int argc, char *const *argv)
 
    while ((ch = getopt(argc, argv, "v?")) != -1) {
       switch (ch) {
-         case 'v':
+	 case 'v':
 	    verbose = 1;
 	    break;
-         case '?':
+	 case '?':
 	 default:
 	    usage();
 
-      }  
+      }
    }
    argc -= optind;
    argv += optind;
@@ -76,13 +76,13 @@ main (int argc, char *const *argv)
    for (i = 0; i < argc; --argc, ++argv) {
       if ((fs = fstype(*argv)) != NULL) {
 	 if (verbose) {
-            printf("%s: %s\n", *argv, fs);
+	    printf("%s: %s\n", *argv, fs);
 	 } else {
 	    puts(fs);
 	 }
 	 free(fs);
       } else {
-         fprintf(stderr, "%s: unknown\n", *argv);
+	 fprintf(stderr, "%s: unknown\n", *argv);
 	 status = 1;
       }
    }

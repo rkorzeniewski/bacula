@@ -3,7 +3,7 @@
  *
  *  by Kern Sibbald
  *
- * Adapted and enhanced for Bacula, originally written 
+ * Adapted and enhanced for Bacula, originally written
  * for inclusion in the Apcupsd package
  *
  *   Version $Id$
@@ -109,9 +109,9 @@ static int32_t write_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes)
       if (nwritten != nbytes) {
 	 berrno be;
 	 bsock->b_errno = errno;
-         Qmsg1(bsock->jcr, M_FATAL, 0, _("Attr spool write error. ERR=%s\n"),
+	 Qmsg1(bsock->jcr, M_FATAL, 0, _("Attr spool write error. ERR=%s\n"),
 	       be.strerror());
-         Dmsg2(400, "nwritten=%d nbytes=%d.\n", nwritten, nbytes);
+	 Dmsg2(400, "nwritten=%d nbytes=%d.\n", nwritten, nbytes);
 	 errno = bsock->b_errno;
 	 return -1;
       }
@@ -151,12 +151,12 @@ static int32_t write_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes)
    return nbytes - nleft;
 }
 
-/* 
+/*
  * Receive a message from the other end. Each message consists of
  * two packets. The first is a header that contains the size
  * of the data that follows in the second packet.
  * Returns number of bytes read (may return zero)
- * Returns -1 on signal (BNET_SIGNAL) 
+ * Returns -1 on signal (BNET_SIGNAL)
  * Returns -2 on hard end of file (BNET_HARDEOF)
  * Returns -3 on error	(BNET_ERROR)
  *
@@ -164,7 +164,7 @@ static int32_t write_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes)
  *    four return types:
  *    1. Normal data
  *    2. Signal including end of data stream
- *    3. Hard end of file		  
+ *    3. Hard end of file
  *    4. Error
  *  Using is_bnet_stop() and is_bnet_error() you can figure this all out.
  */
@@ -217,7 +217,7 @@ int32_t bnet_recv(BSOCK * bsock)
    if (pktsiz < 0 || pktsiz > 1000000) {
       if (pktsiz > 0) { 	   /* if packet too big */
 	 Qmsg3(bsock->jcr, M_FATAL, 0,
-               _("Packet size too big from \"%s:%s:%d. Terminating connection.\n"),
+	       _("Packet size too big from \"%s:%s:%d. Terminating connection.\n"),
 	       bsock->who, bsock->host, bsock->port);
 	 pktsiz = BNET_TERMINATE;  /* hang up */
       }
@@ -271,7 +271,7 @@ int32_t bnet_recv(BSOCK * bsock)
 
 
 /*
- * Return 1 if there are errors on this bsock or it is closed,	
+ * Return 1 if there are errors on this bsock or it is closed,
  *   i.e. stop communicating on this line.
  */
 bool is_bnet_stop(BSOCK * bsock)
@@ -280,7 +280,7 @@ bool is_bnet_stop(BSOCK * bsock)
 }
 
 /*
- * Return number of errors on socket 
+ * Return number of errors on socket
  */
 int is_bnet_error(BSOCK * bsock)
 {
@@ -320,8 +320,8 @@ int bnet_despool_to_bsock(BSOCK * bsock, void update_attr_spool_size(ssize_t siz
 	 nbytes = fread(bsock->msg, 1, bsock->msglen, bsock->spool_fd);
 	 if (nbytes != (size_t) bsock->msglen) {
 	    berrno be;
-            Dmsg2(400, "nbytes=%d msglen=%d\n", nbytes, bsock->msglen);
-            Qmsg1(bsock->jcr, M_FATAL, 0, _("fread attr spool error. ERR=%s\n"),
+	    Dmsg2(400, "nbytes=%d msglen=%d\n", nbytes, bsock->msglen);
+	    Qmsg1(bsock->jcr, M_FATAL, 0, _("fread attr spool error. ERR=%s\n"),
 		  be.strerror());
 	    update_attr_spool_size(tsize - last);
 	    return 0;
@@ -381,12 +381,12 @@ bool bnet_send(BSOCK * bsock)
       if (rc < 0) {
 	 if (!bsock->suppress_error_msgs && !bsock->timed_out) {
 	    Qmsg4(bsock->jcr, M_ERROR, 0,
-                  _("Write error sending to %s:%s:%d: ERR=%s\n"), bsock->who,
+		  _("Write error sending to %s:%s:%d: ERR=%s\n"), bsock->who,
 		  bsock->host, bsock->port, bnet_strerror(bsock));
 	 }
       } else {
 	 Qmsg5(bsock->jcr, M_ERROR, 0,
-               _("Wrote %d bytes to %s:%s:%d, but only %d accepted.\n"), bsock->who,
+	       _("Wrote %d bytes to %s:%s:%d, but only %d accepted.\n"), bsock->who,
 	       bsock->host, bsock->port, bsock->msglen, rc);
       }
       return false;
@@ -412,12 +412,12 @@ bool bnet_send(BSOCK * bsock)
       if (rc < 0) {
 	 if (!bsock->suppress_error_msgs) {
 	    Qmsg4(bsock->jcr, M_ERROR, 0,
-                  _("Write error sending to %s:%s:%d: ERR=%s\n"), bsock->who,
+		  _("Write error sending to %s:%s:%d: ERR=%s\n"), bsock->who,
 		  bsock->host, bsock->port, bnet_strerror(bsock));
 	 }
       } else {
 	 Qmsg5(bsock->jcr, M_ERROR, 0,
-               _("Wrote %d bytes to %s:%s:%d, but only %d accepted.\n"),
+	       _("Wrote %d bytes to %s:%s:%d, but only %d accepted.\n"),
 	       bsock->msglen, bsock->who, bsock->host, bsock->port, rc);
       }
       return false;
@@ -426,7 +426,7 @@ bool bnet_send(BSOCK * bsock)
 }
 
 /*
- * Establish an SSL connection -- server side	      
+ * Establish an SSL connection -- server side
  *  Codes that ssl_need and ssl_has can take
  *    BNET_SSL_NONE	 I cannot do ssl
  *    BNET_SSL_OK	 I can do ssl, but it is not required on my end
@@ -440,7 +440,7 @@ int bnet_ssl_server(BSOCK * bsock, char *password, int ssl_need, int ssl_has)
 }
 
 /*
- * Establish an SSL connection -- client side	
+ * Establish an SSL connection -- client side
  */
 int bnet_ssl_client(BSOCK * bsock, char *password, int ssl_need)
 {
@@ -669,7 +669,7 @@ dlist *bnet_host2ipaddrs(const char *host, int family, const char **errstr)
    return addr_list;
 }
 
-/*     
+/*
  * Open a TCP connection to the UPS network server
  * Returns NULL
  * Returns BSOCK * pointer on success
@@ -686,7 +686,7 @@ static BSOCK *bnet_open(JCR * jcr, const char *name, char *host, char *service,
    const char *errstr;
    int save_errno = 0;
 
-   /* 
+   /*
     * Fill in the structure serv_addr with the address of
     * the server that we want to connect with.
     */
@@ -704,15 +704,15 @@ static BSOCK *bnet_open(JCR * jcr, const char *name, char *host, char *service,
       ipaddr->set_port_net(htons(port));
       char allbuf[256 * 10];
       char curbuf[256];
-      Dmsg2(100, "Current %sAll %s\n", 
-		   ipaddr->build_address_str(curbuf, sizeof(curbuf)), 
+      Dmsg2(100, "Current %sAll %s\n",
+		   ipaddr->build_address_str(curbuf, sizeof(curbuf)),
 		   build_addresses_str(addr_list, allbuf, sizeof(allbuf)));
       /* Open a TCP socket */
       if ((sockfd = socket(ipaddr->get_family(), SOCK_STREAM, 0)) < 0) {
 	 berrno be;
 	 save_errno = errno;
 	 *fatal = 1;
-         Pmsg3(000, "Socket open error. proto=%d port=%d. ERR=%s\n", 
+	 Pmsg3(000, "Socket open error. proto=%d port=%d. ERR=%s\n",
 	    ipaddr->get_family(), ipaddr->get_port_host_order(), be.strerror());
 	 continue;
       }
@@ -721,7 +721,7 @@ static BSOCK *bnet_open(JCR * jcr, const char *name, char *host, char *service,
        */
       if (setsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, (sockopt_val_t)&turnon, sizeof(turnon)) < 0) {
 	 berrno be;
-         Qmsg1(jcr, M_WARNING, 0, _("Cannot set SO_KEEPALIVE on socket: %s\n"),
+	 Qmsg1(jcr, M_WARNING, 0, _("Cannot set SO_KEEPALIVE on socket: %s\n"),
 	       be.strerror());
       }
       /* connect to server */
@@ -776,13 +776,13 @@ BSOCK *bnet_connect(JCR * jcr, int retry_interval, int max_retry_time,
       if (i < 0) {
 	 i = 60 * 5;		   /* complain again in 5 minutes */
 	 if (verbose)
-            Qmsg4(jcr, M_WARNING, 0, "Could not connect to %s on %s:%d. ERR=%s\n\
-Retrying ...\n", name, host, port, be.strerror());
+	    Qmsg4(jcr, M_WARNING, 0, "Could not connect to %s on %s:%d. ERR=%s\n"
+"Retrying ...\n", name, host, port, be.strerror());
       }
       bmicrosleep(retry_interval, 0);
       max_retry_time -= retry_interval;
       if (max_retry_time <= 0) {
-         Qmsg4(jcr, M_FATAL, 0, _("Unable to connect to %s on %s:%d. ERR=%s\n"),
+	 Qmsg4(jcr, M_FATAL, 0, _("Unable to connect to %s on %s:%d. ERR=%s\n"),
 	       name, host, port, be.strerror());
 	 return NULL;
       }
@@ -836,7 +836,7 @@ bool bnet_fsend(BSOCK * bs, const char *fmt, ...)
    return bnet_send(bs);
 }
 
-/* 
+/*
  * Set the network buffer size, suggested size is in size.
  *  Actual size obtained is returned in bs->msglen
  *
@@ -864,20 +864,20 @@ bool bnet_set_buffer_size(BSOCK * bs, uint32_t size, int rw)
       return false;
    }
    if (rw & BNET_SETBUF_READ) {
-      while ((dbuf_size > TAPE_BSIZE) && (setsockopt(bs->fd, SOL_SOCKET, 
+      while ((dbuf_size > TAPE_BSIZE) && (setsockopt(bs->fd, SOL_SOCKET,
 	      SO_RCVBUF, (sockopt_val_t) & dbuf_size, sizeof(dbuf_size)) < 0)) {
 	 berrno be;
-         Qmsg1(bs->jcr, M_ERROR, 0, _("sockopt error: %s\n"), be.strerror());
+	 Qmsg1(bs->jcr, M_ERROR, 0, _("sockopt error: %s\n"), be.strerror());
 	 dbuf_size -= TAPE_BSIZE;
       }
       Dmsg1(200, "set network buffer size=%d\n", dbuf_size);
       if (dbuf_size != start_size) {
 	 Qmsg1(bs->jcr, M_WARNING, 0,
-               _("Warning network buffer = %d bytes not max size.\n"), dbuf_size);
+	       _("Warning network buffer = %d bytes not max size.\n"), dbuf_size);
       }
       if (dbuf_size % TAPE_BSIZE != 0) {
 	 Qmsg1(bs->jcr, M_ABORT, 0,
-               _("Network buffer size %d not multiple of tape block size.\n"),
+	       _("Network buffer size %d not multiple of tape block size.\n"),
 	       dbuf_size);
       }
    }
@@ -888,20 +888,20 @@ bool bnet_set_buffer_size(BSOCK * bs, uint32_t size, int rw)
    }
    start_size = dbuf_size;
    if (rw & BNET_SETBUF_WRITE) {
-      while ((dbuf_size > TAPE_BSIZE) && (setsockopt(bs->fd, SOL_SOCKET, 
+      while ((dbuf_size > TAPE_BSIZE) && (setsockopt(bs->fd, SOL_SOCKET,
 	      SO_SNDBUF, (sockopt_val_t) & dbuf_size, sizeof(dbuf_size)) < 0)) {
 	 berrno be;
-         Qmsg1(bs->jcr, M_ERROR, 0, _("sockopt error: %s\n"), be.strerror());
+	 Qmsg1(bs->jcr, M_ERROR, 0, _("sockopt error: %s\n"), be.strerror());
 	 dbuf_size -= TAPE_BSIZE;
       }
       Dmsg1(200, "set network buffer size=%d\n", dbuf_size);
       if (dbuf_size != start_size) {
 	 Qmsg1(bs->jcr, M_WARNING, 0,
-               _("Warning network buffer = %d bytes not max size.\n"), dbuf_size);
+	       _("Warning network buffer = %d bytes not max size.\n"), dbuf_size);
       }
       if (dbuf_size % TAPE_BSIZE != 0) {
 	 Qmsg1(bs->jcr, M_ABORT, 0,
-               _("Network buffer size %d not multiple of tape block size.\n"),
+	       _("Network buffer size %d not multiple of tape block size.\n"),
 	       dbuf_size);
       }
    }
@@ -911,7 +911,7 @@ bool bnet_set_buffer_size(BSOCK * bs, uint32_t size, int rw)
 }
 
 /*
- * Send a network "signal" to the other end 
+ * Send a network "signal" to the other end
  *  This consists of sending a negative packet length
  *
  *  Returns: false on failure
@@ -954,7 +954,7 @@ const char *bnet_sig_to_ascii(BSOCK * bs)
 }
 
 
-/* Initialize internal socket structure.  
+/* Initialize internal socket structure.
  *  This probably should be done in net_open
  */
 BSOCK *init_bsock(JCR * jcr, int sockfd, const char *who, const char *host, int port,
@@ -972,7 +972,7 @@ BSOCK *init_bsock(JCR * jcr, int sockfd, const char *who, const char *host, int 
    bsock->port = port;
    memcpy(&bsock->client_addr, client_addr, sizeof(bsock->client_addr));
    /*
-    * ****FIXME**** reduce this to a few hours once   
+    * ****FIXME**** reduce this to a few hours once
     *	heartbeats are implemented
     */
    bsock->timeout = 60 * 60 * 6 * 24;	/* 6 days timeout */

@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Bacula interface to Python for the Director
  *
  * Kern Sibbald, November MMIV
@@ -9,7 +9,7 @@
  */
 
 /*
-   
+
    Copyright (C) 2004 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
@@ -46,7 +46,7 @@ PyObject *bacula_run(PyObject *self, PyObject *args);
 PyMethodDef BaculaMethods[] = {
     {"get", bacula_get, METH_VARARGS, "Get Bacula variables."},
     {"set", (PyCFunction)bacula_set, METH_VARARGS|METH_KEYWORDS,
-        "Set Bacula variables."}, 
+	"Set Bacula variables."},
     {"run", (PyCFunction)bacula_run, METH_VARARGS, "Run a Bacula command."},
     {NULL, NULL, 0, NULL}	      /* last item */
 };
@@ -55,7 +55,7 @@ PyMethodDef BaculaMethods[] = {
 struct s_vars {
    const char *name;
    char *fmt;
-};     
+};
 
 static struct s_vars vars[] = {
    { N_("Job"),        "s"},
@@ -71,7 +71,7 @@ static struct s_vars vars[] = {
    { N_("MediaType"),  "s"},
    { N_("JobName"),    "s"},
    { N_("JobStatus"),  "s"},
-   
+
    { NULL,	       NULL}
 };
 
@@ -139,7 +139,7 @@ PyObject *bacula_set(PyObject *self, PyObject *args, PyObject *keyw)
    char *msg = NULL;
    char *VolumeName = NULL;
    static char *kwlist[] = {"jcr", "JobReport", "VolumeName", NULL};
-   if (!PyArg_ParseTupleAndKeywords(args, keyw, "O|ss:set", kwlist, 
+   if (!PyArg_ParseTupleAndKeywords(args, keyw, "O|ss:set", kwlist,
 	&CObject, &msg, &VolumeName)) {
       return NULL;
    }

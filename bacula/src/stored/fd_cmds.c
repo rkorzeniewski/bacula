@@ -6,11 +6,11 @@
  * We get here because the Director has initiated a Job with
  *  the Storage daemon, then done the same with the File daemon,
  *  then when the Storage daemon receives a proper connection from
- *  the File daemon, control is passed here to handle the 
+ *  the File daemon, control is passed here to handle the
  *  subsequent File daemon commands.
  *
  *   Version $Id$
- * 
+ *
  */
 /*
    Copyright (C) 2000-2004 Kern Sibbald and John Walker
@@ -62,7 +62,7 @@ struct s_cmds {
    bool (*func)(JCR *jcr);
 };
 
-/*  
+/*
  * The following are the recognized commands from the File daemon
  */
 static struct s_cmds fd_cmds[] = {
@@ -93,7 +93,7 @@ static char ERROR_bootstrap[] = "3904 Error bootstrap\n";
 
 /* Information sent to the Director */
 static char Job_start[] = "3010 Job %s start\n";
-static char Job_end[]	= 
+static char Job_end[]	=
    "3099 Job %s end JobStatus=%d JobFiles=%d JobBytes=%s\n";
 
 /*
@@ -116,7 +116,7 @@ void run_job(JCR *jcr)
    fd->jcr = jcr;
    dir->jcr = jcr;
    Dmsg1(120, "Start run Job=%s\n", jcr->Job);
-   bnet_fsend(dir, Job_start, jcr->Job); 
+   bnet_fsend(dir, Job_start, jcr->Job);
    jcr->start_time = time(NULL);
    jcr->run_time = jcr->start_time;
    set_jcr_job_status(jcr, JS_Running);
@@ -145,7 +145,7 @@ void run_job(JCR *jcr)
 	 }
       }
       if (!found) {		      /* command not found */
-         Dmsg1(110, "<filed: Command not found: %s\n", fd->msg);
+	 Dmsg1(110, "<filed: Command not found: %s\n", fd->msg);
 	 bnet_fsend(fd, ferrmsg);
 	 break;
       }
@@ -160,7 +160,7 @@ void run_job(JCR *jcr)
    return;
 }
 
-	
+
 /*
  *   Append Data command
  *     Open Data Channel and receive Data for archiving
@@ -200,7 +200,7 @@ static bool append_end_session(JCR *jcr)
 }
 
 
-/* 
+/*
  * Append Open session command
  *
  */
@@ -226,7 +226,7 @@ static bool append_open_session(JCR *jcr)
 
 /*
  *   Append Close session command
- *	Close the append session and send back Statistics     
+ *	Close the append session and send back Statistics
  *	   (need to fix statistics)
  */
 static bool append_close_session(JCR *jcr)
@@ -243,7 +243,7 @@ static bool append_close_session(JCR *jcr)
    Dmsg1(120, ">filed: %s", fd->msg);
 
    bnet_sig(fd, BNET_EOD);	      /* send EOD to File daemon */
-       
+
    Dmsg1(110, "Append close session: %s\n", dev_name(jcr->device->dev));
 
    jcr->session_opened = false;
@@ -252,7 +252,7 @@ static bool append_close_session(JCR *jcr)
 
 /*
  *   Read Data command
- *     Open Data Channel, read the data from  
+ *     Open Data Channel, read the data from
  *     the archive device and send to File
  *     daemon.
  */
@@ -270,7 +270,7 @@ static bool read_data_cmd(JCR *jcr)
    }
 }
 
-/* 
+/*
  * Read Open session command
  *
  *  We need to scan for the parameters of the job
@@ -294,7 +294,7 @@ static bool read_open_session(JCR *jcr)
 	 return false;
       }
       Dmsg4(100, "read_open_session got: JobId=%d Vol=%s VolSessId=%ld VolSessT=%ld\n",
-	 jcr->JobId, jcr->dcr->VolumeName, jcr->read_VolSessionId, 
+	 jcr->JobId, jcr->dcr->VolumeName, jcr->read_VolSessionId,
 	 jcr->read_VolSessionTime);
       Dmsg4(100, "  StartF=%ld EndF=%ld StartB=%ld EndB=%ld\n",
 	 jcr->read_StartFile, jcr->read_EndFile, jcr->read_StartBlock,
@@ -379,7 +379,7 @@ static bool read_close_session(JCR *jcr)
    Dmsg1(160, ">filed: %s\n", fd->msg);
 
    bnet_sig(fd, BNET_EOD);	    /* send EOD to File daemon */
-       
+
    jcr->session_opened = FALSE;
    return true;
 }

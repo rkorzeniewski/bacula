@@ -69,7 +69,7 @@ int get_cmd(UAContext *ua, const char *prompt)
    return 1;
 }
 
-/* 
+/*
  * Get a positive integer
  *  Returns:  0 if failure
  *	      1 if success => value in ua->pint32_val
@@ -83,13 +83,13 @@ int get_pint(UAContext *ua, const char *prompt)
 	 return 0;
       }
       if (!is_a_number(ua->cmd)) {
-         bsendmsg(ua, "Expected a positive integer, got: %s\n", ua->cmd);
+	 bsendmsg(ua, "Expected a positive integer, got: %s\n", ua->cmd);
 	 continue;
       }
       errno = 0;
       dval = strtod(ua->cmd, NULL);
       if (errno != 0 || dval < 0) {
-         bsendmsg(ua, "Expected a positive integer, got: %s\n", ua->cmd);
+	 bsendmsg(ua, "Expected a positive integer, got: %s\n", ua->cmd);
 	 continue;
       }
       ua->pint32_val = (uint32_t)dval;
@@ -97,7 +97,7 @@ int get_pint(UAContext *ua, const char *prompt)
    }
 }
 
-/* 
+/*
  * Gets a yes or no response
  *  Returns:  0 if failure
  *	      1 if success => ua->pint32_val == 1 for yes
@@ -126,7 +126,7 @@ int get_yesno(UAContext *ua, const char *prompt)
       bsendmsg(ua, _("Invalid response. You must answer yes or no.\n"));
    }
 }
-  
+
 
 void parse_ua_args(UAContext *ua)
 {

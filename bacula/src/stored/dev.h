@@ -35,7 +35,7 @@
 
 /* #define NEW_LOCK 1 */
 
-#define new_lock_device(dev)             _new_lock_device(__FILE__, __LINE__, (dev)) 
+#define new_lock_device(dev)             _new_lock_device(__FILE__, __LINE__, (dev))
 #define new_lock_device_state(dev,state) _new_lock_device(__FILE__, __LINE__, (dev), (state))
 #define new_unlock_device(dev)           _new_unlock_device(__FILE__, __LINE__, (dev))
 
@@ -50,7 +50,7 @@
 enum {
    OPEN_READ_WRITE = 0,
    OPEN_READ_ONLY,
-   OPEN_WRITE_ONLY   
+   OPEN_WRITE_ONLY
 };
 
 /* Generic status bits returned from status_dev() */
@@ -97,7 +97,7 @@ enum {
 
 /* Device state bits */
 #define ST_OPENED          (1<<0)     /* set when device opened */
-#define ST_TAPE            (1<<1)     /* is a tape device */  
+#define ST_TAPE            (1<<1)     /* is a tape device */
 #define ST_FILE            (1<<2)     /* is a file device */
 #define ST_FIFO            (1<<3)     /* is a fifo device */
 #define ST_PROG            (1<<4)     /* is a program device */
@@ -117,7 +117,7 @@ enum {
    BST_UNMOUNTED,                     /* User unmounted device */
    BST_WAITING_FOR_SYSOP,             /* Waiting for operator to mount tape */
    BST_DOING_ACQUIRE,                 /* Opening/validating/moving tape */
-   BST_WRITING_LABEL,                  /* Labeling a tape */  
+   BST_WRITING_LABEL,                  /* Labeling a tape */
    BST_UNMOUNTED_WAITING_FOR_SYSOP,    /* Closed by user during mount request */
    BST_MOUNT                           /* Mount request */
 };
@@ -147,7 +147,7 @@ struct VOLUME_CAT_INFO {
    uint64_t VolWriteTime;             /* time spent writing this Volume */
    char VolCatStatus[20];             /* Volume status */
    char VolCatName[MAX_NAME_LENGTH];  /* Desired volume to mount */
-};                
+};
 
 
 typedef struct s_steal_lock {
@@ -160,7 +160,7 @@ struct DEVRES;                        /* Device resource defined in stored_conf.
 
 /*
  * Device structure definition. There is one of these for
- *  each physical device. Everything here is "global" to 
+ *  each physical device. Everything here is "global" to
  *  that device and effects all jobs using the device.
  */
 struct DEVICE {
@@ -213,7 +213,7 @@ public:
 
    VOLUME_CAT_INFO VolCatInfo;        /* Volume Catalog Information */
    VOLUME_LABEL VolHdr;               /* Actual volume label */
-   
+
    /* Device wait times ***FIXME*** look at durations */
    char BadVolName[MAX_NAME_LENGTH];  /* Last wrong Volume mounted */
    bool poll;                         /* set to poll Volume */
@@ -226,8 +226,8 @@ public:
 };
 
 /*
- * Device Context (or Control) Record.  
- *  There is one of these records for each Job that is using    
+ * Device Context (or Control) Record.
+ *  There is one of these records for each Job that is using
  *  the device. Items in this record are "local" to the Job and
  *  do not affect other Jobs.
  */

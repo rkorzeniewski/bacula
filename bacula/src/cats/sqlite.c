@@ -60,7 +60,7 @@ int QueryDB(const char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
  */
 B_DB *
 db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char *db_password,
-		 const char *db_address, int db_port, const char *db_socket, 
+		 const char *db_address, int db_port, const char *db_socket,
 		 int mult_db_connections)
 {
    B_DB *mdb;
@@ -70,7 +70,7 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
    if (!mult_db_connections) {
       for (mdb=NULL; (mdb=(B_DB *)qnext(&db_list, &mdb->bq)); ) {
 	 if (strcmp(mdb->db_name, db_name) == 0) {
-            Dmsg2(300, "DB REopen %d %s\n", mdb->ref_count, db_name);
+	    Dmsg2(300, "DB REopen %d %s\n", mdb->ref_count, db_name);
 	    mdb->ref_count++;
 	    V(mutex);
 	    return mdb; 		 /* already open */
@@ -81,7 +81,7 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
    mdb = (B_DB *) malloc(sizeof(B_DB));
    memset(mdb, 0, sizeof(B_DB));
    mdb->db_name = bstrdup(db_name);
-   mdb->have_insert_id = TRUE; 
+   mdb->have_insert_id = TRUE;
    mdb->errmsg = get_pool_memory(PM_EMSG); /* get error message buffer */
    *mdb->errmsg = 0;
    mdb->cmd = get_pool_memory(PM_EMSG);    /* get command buffer */
@@ -119,21 +119,21 @@ db_open_database(JCR *jcr, B_DB *mdb)
    mdb->connected = FALSE;
 
    if ((errstat=rwl_init(&mdb->lock)) != 0) {
-      Mmsg1(&mdb->errmsg, _("Unable to initialize DB lock. ERR=%s\n"), 
+      Mmsg1(&mdb->errmsg, _("Unable to initialize DB lock. ERR=%s\n"),
 	    strerror(errstat));
       V(mutex);
       return 0;
    }
 
    /* open the database */
-   len = strlen(working_directory) + strlen(mdb->db_name) + 5; 
+   len = strlen(working_directory) + strlen(mdb->db_name) + 5;
    db_name = (char *)malloc(len);
    strcpy(db_name, working_directory);
    strcat(db_name, "/");
    strcat(db_name, mdb->db_name);
    strcat(db_name, ".db");
    if (stat(db_name, &statbuf) != 0) {
-      Mmsg1(&mdb->errmsg, _("Database %s does not exist, please create it.\n"), 
+      Mmsg1(&mdb->errmsg, _("Database %s does not exist, please create it.\n"),
 	 db_name);
       free(db_name);
       V(mutex);
@@ -145,10 +145,10 @@ db_open_database(JCR *jcr, B_DB *mdb)
 	&mdb->sqlite_errmsg);	      /* error message */
 
    Dmsg0(300, "sqlite_open\n");
-  
+
    if (mdb->db == NULL) {
       Mmsg2(&mdb->errmsg, _("Unable to open Database=%s. ERR=%s\n"),
-         db_name, mdb->sqlite_errmsg ? mdb->sqlite_errmsg : _("unknown"));
+	 db_name, mdb->sqlite_errmsg ? mdb->sqlite_errmsg : _("unknown"));
       free(db_name);
       V(mutex);
       return 0;
@@ -177,7 +177,7 @@ db_close_database(JCR *jcr, B_DB *mdb)
       if (mdb->connected && mdb->db) {
 	 sqlite_close(mdb->db);
       }
-      rwl_destroy(&mdb->lock);	     
+      rwl_destroy(&mdb->lock);
       free_pool_memory(mdb->errmsg);
       free_pool_memory(mdb->cmd);
       free_pool_memory(mdb->cached_path);
@@ -228,7 +228,7 @@ int db_next_index(JCR *jcr, B_DB *mdb, char *table, char *index)
 
    db_unlock(mdb);
    return 1;
-}   
+}
 
 
 /*
@@ -248,12 +248,12 @@ db_escape_string(char *snew, char *old, int len)
    while (len--) {
       switch (*o) {
       case '\'':
-         *n++ = '\'';
-         *n++ = '\'';
+	 *n++ = '\'';
+	 *n++ = '\'';
 	 o++;
 	 break;
       case 0:
-         *n++ = '\\';
+	 *n++ = '\\';
 	 *n++ = 0;
 	 o++;
 	 break;
@@ -270,12 +270,12 @@ struct rh_data {
    void *ctx;
 };
 
-/*  
- * Convert SQLite's callback into Bacula DB callback  
+/*
+ * Convert SQLite's callback into Bacula DB callback
  */
 static int sqlite_result(void *arh_data, int num_fields, char **rows, char **col_names)
 {
-   struct rh_data *rh_data = (struct rh_data *)arh_data;   
+   struct rh_data *rh_data = (struct rh_data *)arh_data;
 
    if (rh_data->result_handler) {
       (*(rh_data->result_handler))(rh_data->ctx, num_fields, rows);
@@ -312,7 +312,7 @@ int db_sql_query(B_DB *mdb, const char *query, DB_RESULT_HANDLER *result_handler
 /*
  * Submit a sqlite query and retrieve all the data
  */
-int my_sqlite_query(B_DB *mdb, char *cmd) 
+int my_sqlite_query(B_DB *mdb, char *cmd)
 {
    int stat;
 
@@ -348,7 +348,7 @@ void my_sqlite_free_table(B_DB *mdb)
       mdb->fields_defined = false;
    }
    sqlite_free_table(mdb->result);
-   mdb->nrow = mdb->ncolumn = 0; 
+   mdb->nrow = mdb->ncolumn = 0;
 }
 
 void my_sqlite_field_seek(B_DB *mdb, int field)

@@ -12,3 +12,9 @@
  This patch fixes the despooling size printed in the Job 
  report. Previously, it reported the total size for the
  device. This patch makes it report the size for the job.
+
+21Dec04
+ This patch fixes a problem with overriding storage daemon
+ specifications. Previously they were not always honored.
+ This implements more uniform handling. It also eliminates
+ an orphaned buffer situation using JobDefs.

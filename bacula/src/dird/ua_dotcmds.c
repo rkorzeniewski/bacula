@@ -60,7 +60,7 @@ static int typescmd(UAContext *ua, const char *cmd);
 static int backupscmd(UAContext *ua, const char *cmd);
 static int levelscmd(UAContext *ua, const char *cmd);
 
-struct cmdstruct { const char *key; int (*func)(UAContext *ua, const char *cmd); const char *help; }; 
+struct cmdstruct { const char *key; int (*func)(UAContext *ua, const char *cmd); const char *help; };
 static struct cmdstruct commands[] = {
  { N_(".die"),        diecmd,       NULL},
  { N_(".jobs"),       jobscmd,      NULL},
@@ -77,7 +77,7 @@ static struct cmdstruct commands[] = {
  { N_(".messages"),   qmessagescmd, NULL},
  { N_(".help"),       qhelp_cmd,    NULL},
  { N_(".quit"),       quit_cmd,     NULL},
- { N_(".exit"),       quit_cmd,     NULL} 
+ { N_(".exit"),       quit_cmd,     NULL}
 	     };
 #define comsize (sizeof(commands)/sizeof(struct cmdstruct))
 
@@ -87,7 +87,7 @@ static struct cmdstruct commands[] = {
 int do_a_dot_command(UAContext *ua, const char *cmd)
 {
    int i;
-   int len, stat;  
+   int len, stat;
    bool found = false;
 
    stat = 1;
@@ -117,13 +117,13 @@ int do_a_dot_command(UAContext *ua, const char *cmd)
 }
 
 /*
- * Create segmentation fault 
+ * Create segmentation fault
  */
 static int diecmd(UAContext *ua, const char *cmd)
 {
    JCR *jcr = NULL;
    int a;
-   
+
    bsendmsg(ua, "The Director will segment fault.\n");
    a = jcr->JobId; /* ref NULL pointer */
    jcr->JobId = 1000; /* another ref NULL pointer */
@@ -249,21 +249,21 @@ static int levelscmd(UAContext *ua, const char *cmd)
  */
 static int defaultscmd(UAContext *ua, const char *cmd)
 {
-   JOB *job;	   
+   JOB *job;
    if (ua->argc == 2 && strcmp(ua->argk[1], "job") == 0) {
       job = (JOB *)GetResWithName(R_JOB, ua->argv[1]);
       if (job) {
 	 STORE *store;
-         bsendmsg(ua, "job=%s", job->hdr.name);
-         bsendmsg(ua, "pool=%s", job->pool->hdr.name);
-         bsendmsg(ua, "messages=%s", job->messages->hdr.name);
-         bsendmsg(ua, "client=%s", job->client->hdr.name);
+	 bsendmsg(ua, "job=%s", job->hdr.name);
+	 bsendmsg(ua, "pool=%s", job->pool->hdr.name);
+	 bsendmsg(ua, "messages=%s", job->messages->hdr.name);
+	 bsendmsg(ua, "client=%s", job->client->hdr.name);
 	 store = (STORE *)job->storage[0]->first();
-         bsendmsg(ua, "storage=%s", store->hdr.name);
-         bsendmsg(ua, "where=%s", job->RestoreWhere?job->RestoreWhere:"");
-         bsendmsg(ua, "level=%s", level_to_str(job->JobLevel));
-         bsendmsg(ua, "type=%s", job_type_to_str(job->JobType));
-         bsendmsg(ua, "fileset=%s", job->fileset->hdr.name);
+	 bsendmsg(ua, "storage=%s", store->hdr.name);
+	 bsendmsg(ua, "where=%s", job->RestoreWhere?job->RestoreWhere:"");
+	 bsendmsg(ua, "level=%s", level_to_str(job->JobLevel));
+	 bsendmsg(ua, "type=%s", job_type_to_str(job->JobType));
+	 bsendmsg(ua, "fileset=%s", job->fileset->hdr.name);
       }
    }
    return 1;

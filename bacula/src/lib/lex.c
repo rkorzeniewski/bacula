@@ -8,7 +8,7 @@
  */
 
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2004 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -43,8 +43,8 @@ void scan_to_eol(LEX *lc)
    Dmsg0(2000, "start scan to eof\n");
    while ((token = lex_get_token(lc, T_ALL)) != T_EOL) {
       if (token == T_EOB) {
-	 lex_unget_char(lc);
-	 return;
+         lex_unget_char(lc);
+         return;
       }
    }
 }
@@ -61,9 +61,9 @@ int scan_to_next_not_eol(LEX * lc)
    return token;
 }
 
-   
+
 /*
- * Format a scanner error message 
+ * Format a scanner error message
  */
 static void s_err(const char *file, int line, LEX *lc, const char *msg, ...)
 {
@@ -74,15 +74,15 @@ static void s_err(const char *file, int line, LEX *lc, const char *msg, ...)
    va_start(arg_ptr, msg);
    bvsnprintf(buf, sizeof(buf), msg, arg_ptr);
    va_end(arg_ptr);
-     
+
    if (lc->line_no > lc->begin_line_no) {
-      bsnprintf(more, sizeof(more), 
+      bsnprintf(more, sizeof(more),
                 _("Problem probably begins at line %d.\n"), lc->begin_line_no);
    } else {
       more[0] = 0;
    }
-   e_msg(file, line, M_ERROR_TERM, 0, _("Config error: %s\n\
-            : line %d, col %d of file %s\n%s\n%s"),
+   e_msg(file, line, M_ERROR_TERM, 0, _("Config error: %s\n"
+"            : line %d, col %d of file %s\n%s\n%s"),
       buf, lc->line_no, lc->col_no, lc->fname, lc->line, more);
 }
 
@@ -115,7 +115,7 @@ LEX *lex_close_file(LEX *lf)
    return lf;
 }
 
-/*     
+/*
  * Open a new configuration file. We push the
  * state of the current file (lf) so that we
  * can do includes.  This is a bit of a hammer.
@@ -126,29 +126,29 @@ LEX *lex_close_file(LEX *lf)
  * the next field.
  *
  */
-LEX *lex_open_file(LEX *lf, const char *filename, LEX_ERROR_HANDLER *scan_error) 
-	      
+LEX *lex_open_file(LEX *lf, const char *filename, LEX_ERROR_HANDLER *scan_error)
+
 {
    LEX *nf;
    FILE *fd;
    char *fname = bstrdup(filename);
 
-   
+
    if ((fd = fopen(fname, "r")) == NULL) {
       berrno be;
-      Emsg2(M_ERROR_TERM, 0, _("Cannot open config file %s: %s\n"), 
-	    fname, be.strerror());
+      Emsg2(M_ERROR_TERM, 0, _("Cannot open config file %s: %s\n"),
+            fname, be.strerror());
       return NULL; /* Never reached if exit_on_error == 1 */
    }
    Dmsg1(2000, "Open config file: %s\n", fname);
    nf = (LEX *)malloc(sizeof(LEX));
-   if (lf) {	 
+   if (lf) {
       memcpy(nf, lf, sizeof(LEX));
       memset(lf, 0, sizeof(LEX));
-      lf->next = nf;		      /* if have lf, push it behind new one */
+      lf->next = nf;                  /* if have lf, push it behind new one */
       lf->options = nf->options;      /* preserve user options */
    } else {
-      lf = nf;			      /* start new packet */
+      lf = nf;                        /* start new packet */
       memset(lf, 0, sizeof(LEX));
    }
    lf->fd = fd;
@@ -164,7 +164,7 @@ LEX *lex_open_file(LEX *lf, const char *filename, LEX_ERROR_HANDLER *scan_error)
    return lf;
 }
 
-/*    
+/*
  * Get the next character from the input.
  *  Returns the character or
  *    L_EOF if end of file
@@ -177,11 +177,11 @@ int lex_get_char(LEX *lf)
    }
    if (lf->ch == L_EOL) {
       if (bfgets(lf->line, MAXSTRING, lf->fd) == NULL) {
-	 lf->ch = L_EOF;
-	 if (lf->next) {
-	    lex_close_file(lf);
-	 }
-	 return lf->ch;
+         lf->ch = L_EOF;
+         if (lf->next) {
+            lex_close_file(lf);
+         }
+         return lf->ch;
       }
       lf->line_no++;
       lf->col_no = 0;
@@ -198,7 +198,7 @@ int lex_get_char(LEX *lf)
 
 void lex_unget_char(LEX *lf)
 {
-   lf->col_no--;      
+   lf->col_no--;
    if (lf->ch == L_EOL)
       lf->ch = 0;
 }
@@ -211,8 +211,8 @@ static void add_str(LEX *lf, int ch)
 {
    if (lf->str_len >= MAXSTRING-3) {
       Emsg3(M_ERROR_TERM, 0, _(
-           _("Config token too long, file: %s, line %d, begins at line %d\n")), 
-	     lf->fname, lf->line_no, lf->begin_line_no);
+           _("Config token too long, file: %s, line %d, begins at line %d\n")),
+             lf->fname, lf->line_no, lf->begin_line_no);
    }
    lf->str[lf->str_len++] = ch;
    lf->str[lf->str_len] = 0;
@@ -221,7 +221,7 @@ static void add_str(LEX *lf, int ch)
 /*
  * Begin the string
  */
-static void begin_str(LEX *lf, int ch)	
+static void begin_str(LEX *lf, int ch)
 {
    lf->str_len = 0;
    lf->str[0] = 0;
@@ -284,14 +284,14 @@ static uint32_t scan_pint(LEX *lf, char *str)
       val = str_to_int64(str);
       if (errno != 0 || val < 0) {
          scan_err1(lf, _("expected a postive integer number, got: %s"), str);
-	 /* NOT REACHED */
+         /* NOT REACHED */
       }
    }
    return (uint32_t)val;
 }
 
-/*	  
- * 
+/*
+ *
  * Get the next token from the input
  *
  */
@@ -308,199 +308,204 @@ lex_get_token(LEX *lf, int expect)
       switch (lf->state) {
       case lex_none:
          Dmsg2(2000, "Lex state lex_none ch=%d,%x\n", ch, ch);
-	 if (B_ISSPACE(ch))  
-	    break;
-	 if (B_ISALPHA(ch)) {
-	    if (lf->options & LOPT_NO_IDENT)
-	       lf->state = lex_string;
-	    else
-	       lf->state = lex_identifier;
-	    begin_str(lf, ch);
-	    break;
-	 }
-	 if (B_ISDIGIT(ch)) {
-	    lf->state = lex_number;
-	    begin_str(lf, ch);
-	    break;
-	 }
+         if (B_ISSPACE(ch))
+            break;
+         if (B_ISALPHA(ch)) {
+            if (lf->options & LOPT_NO_IDENT || lf->options & LOPT_STRING) {
+               lf->state = lex_string;
+            } else {
+               lf->state = lex_identifier;
+            }
+            begin_str(lf, ch);
+            break;
+         }
+         if (B_ISDIGIT(ch)) {
+            if (lf->options & LOPT_STRING) {
+               lf->state = lex_string;
+            } else {
+               lf->state = lex_number;
+            }
+            begin_str(lf, ch);
+            break;
+         }
          Dmsg0(2000, "Enter lex_none switch\n");
-	 switch (ch) {
-	 case L_EOF:
-	    token = T_EOF;
+         switch (ch) {
+         case L_EOF:
+            token = T_EOF;
             Dmsg0(2000, "got L_EOF set token=T_EOF\n");
-	    break;
+            break;
          case '#':
-	    lf->state = lex_comment;
-	    break;
+            lf->state = lex_comment;
+            break;
          case '{':
-	    token = T_BOB;
-	    begin_str(lf, ch);
-	    break;
+            token = T_BOB;
+            begin_str(lf, ch);
+            break;
          case '}':
-	    token = T_EOB;
-	    begin_str(lf, ch);
-	    break;
+            token = T_EOB;
+            begin_str(lf, ch);
+            break;
          case '"':
-	    lf->state = lex_quoted_string;
-	    begin_str(lf, 0);
-	    break;
-         case '=': 
-	    token = T_EQUALS;
-	    begin_str(lf, ch);
-	    break;
+            lf->state = lex_quoted_string;
+            begin_str(lf, 0);
+            break;
+         case '=':
+            token = T_EQUALS;
+            begin_str(lf, ch);
+            break;
          case ',':
-	    token = T_COMMA;
-	    begin_str(lf, ch);
-	    break;
+            token = T_COMMA;
+            begin_str(lf, ch);
+            break;
          case ';':
-	    if (expect != T_SKIP_EOL) {
-	       token = T_EOL;	   /* treat ; like EOL */
-	    }
-	    break;
-	 case L_EOL:
+            if (expect != T_SKIP_EOL) {
+               token = T_EOL;      /* treat ; like EOL */
+            }
+            break;
+         case L_EOL:
             Dmsg0(2000, "got L_EOL set token=T_EOL\n");
-	    if (expect != T_SKIP_EOL) {
-	       token = T_EOL;
-	    }
-	    break;
+            if (expect != T_SKIP_EOL) {
+               token = T_EOL;
+            }
+            break;
          case '@':
-	    lf->state = lex_include;
-	    begin_str(lf, 0);
-	    break;
-	 default:
-	    lf->state = lex_string;
-	    begin_str(lf, ch);
-	    break;
-	 }
-	 break;
+            lf->state = lex_include;
+            begin_str(lf, 0);
+            break;
+         default:
+            lf->state = lex_string;
+            begin_str(lf, ch);
+            break;
+         }
+         break;
       case lex_comment:
          Dmsg1(2000, "Lex state lex_comment ch=%x\n", ch);
-	 if (ch == L_EOL) {
-	    lf->state = lex_none;
-	    if (expect != T_SKIP_EOL) {
-	       token = T_EOL;
-	    }
-	 } else if (ch == L_EOF) {
-	    token = T_ERROR;
-	 }
-	 break;
+         if (ch == L_EOL) {
+            lf->state = lex_none;
+            if (expect != T_SKIP_EOL) {
+               token = T_EOL;
+            }
+         } else if (ch == L_EOF) {
+            token = T_ERROR;
+         }
+         break;
       case lex_number:
          Dmsg2(2000, "Lex state lex_number ch=%x %c\n", ch, ch);
-	 if (ch == L_EOF) {
-	    token = T_ERROR;
-	    break;
-	 }
-	 /* Might want to allow trailing specifications here */
-	 if (B_ISDIGIT(ch)) {
-	    add_str(lf, ch);
-	    break;
-	 }
+         if (ch == L_EOF) {
+            token = T_ERROR;
+            break;
+         }
+         /* Might want to allow trailing specifications here */
+         if (B_ISDIGIT(ch)) {
+            add_str(lf, ch);
+            break;
+         }
 
-	 /* A valid number can be terminated by the following */
+         /* A valid number can be terminated by the following */
          if (B_ISSPACE(ch) || ch == L_EOL || ch == ',' || ch == ';') {
-	    token = T_NUMBER;
-	    lf->state = lex_none;
-	 } else {
-	    lf->state = lex_string;
-	 }
-	 lex_unget_char(lf);
-	 break;
+            token = T_NUMBER;
+            lf->state = lex_none;
+         } else {
+            lf->state = lex_string;
+         }
+         lex_unget_char(lf);
+         break;
       case lex_ip_addr:
-	 if (ch == L_EOF) {
-	    token = T_ERROR;
-	    break;
-	 }
+         if (ch == L_EOF) {
+            token = T_ERROR;
+            break;
+         }
          Dmsg1(2000, "Lex state lex_ip_addr ch=%x\n", ch);
-	 break;
+         break;
       case lex_string:
          Dmsg1(2000, "Lex state lex_string ch=%x\n", ch);
-	 if (ch == L_EOF) {
-	    token = T_ERROR;
-	    break;
-	 }
+         if (ch == L_EOF) {
+            token = T_ERROR;
+            break;
+         }
          if (ch == '\n' || ch == L_EOL || ch == '=' || ch == '}' || ch == '{' ||
              ch == '\r' || ch == ';' || ch == ',' || ch == '#' || (B_ISSPACE(ch)) ) {
-	    lex_unget_char(lf);    
-	    token = T_UNQUOTED_STRING;
-	    lf->state = lex_none;
-	    break;
-	 } 
-	 add_str(lf, ch);
-	 break;
+            lex_unget_char(lf);
+            token = T_UNQUOTED_STRING;
+            lf->state = lex_none;
+            break;
+         }
+         add_str(lf, ch);
+         break;
       case lex_identifier:
          Dmsg2(2000, "Lex state lex_identifier ch=%x %c\n", ch, ch);
-	 if (B_ISALPHA(ch)) {
-	    add_str(lf, ch);
-	    break;
-	 } else if (B_ISSPACE(ch)) {
-	    break;
+         if (B_ISALPHA(ch)) {
+            add_str(lf, ch);
+            break;
+         } else if (B_ISSPACE(ch)) {
+            break;
          } else if (ch == '\n' || ch == L_EOL || ch == '=' || ch == '}' || ch == '{' ||
                     ch == '\r' || ch == ';' || ch == ','   || ch == '"' || ch == '#') {
-	    lex_unget_char(lf);    
-	    token = T_IDENTIFIER;
-	    lf->state = lex_none;
-	    break;
-	 } else if (ch == L_EOF) {
-	    token = T_ERROR;
-	    lf->state = lex_none;
-	    begin_str(lf, ch);
-	    break;
-	 }
-	 /* Some non-alpha character => string */
-	 lf->state = lex_string;
-	 add_str(lf, ch);
-	 break;
+            lex_unget_char(lf);
+            token = T_IDENTIFIER;
+            lf->state = lex_none;
+            break;
+         } else if (ch == L_EOF) {
+            token = T_ERROR;
+            lf->state = lex_none;
+            begin_str(lf, ch);
+            break;
+         }
+         /* Some non-alpha character => string */
+         lf->state = lex_string;
+         add_str(lf, ch);
+         break;
       case lex_quoted_string:
          Dmsg2(2000, "Lex state lex_quoted_string ch=%x %c\n", ch, ch);
-	 if (ch == L_EOF) {
-	    token = T_ERROR;
-	    break;
-	 }
-	 if (ch == L_EOL) {
-	    esc_next = false;
-	    break;
-	 }
-	 if (esc_next) {
-	    add_str(lf, ch);
-	    esc_next = false;
-	    break;
-	 }
+         if (ch == L_EOF) {
+            token = T_ERROR;
+            break;
+         }
+         if (ch == L_EOL) {
+            esc_next = false;
+            break;
+         }
+         if (esc_next) {
+            add_str(lf, ch);
+            esc_next = false;
+            break;
+         }
          if (ch == '\\') {
-	    esc_next = true;
-	    break;
-	 }
+            esc_next = true;
+            break;
+         }
          if (ch == '"') {
-	    token = T_QUOTED_STRING;
-	    lf->state = lex_none;
-	    break;
-	 }
-	 add_str(lf, ch);
-	 break;
-      case lex_include: 	   /* scanning a filename */
-	 if (ch == L_EOF) {
-	    token = T_ERROR;
-	    break;
-	 }
+            token = T_QUOTED_STRING;
+            lf->state = lex_none;
+            break;
+         }
+         add_str(lf, ch);
+         break;
+      case lex_include:            /* scanning a filename */
+         if (ch == L_EOF) {
+            token = T_ERROR;
+            break;
+         }
          if (B_ISSPACE(ch) || ch == '\n' || ch == L_EOL || ch == '}' || ch == '{' ||
              ch == ';' || ch == ','   || ch == '"' || ch == '#') {
-	    lf->state = lex_none;
-	    lf = lex_open_file(lf, lf->str, NULL);
+            lf->state = lex_none;
+            lf = lex_open_file(lf, lf->str, NULL);
        if (lf == NULL) {
-	 return T_ERROR;
+         return T_ERROR;
        }
-	    break;
-	 }
-	 add_str(lf, ch);
-	 break;
+            break;
+         }
+         add_str(lf, ch);
+         break;
       }
       Dmsg4(2000, "ch=%d state=%s token=%s %c\n", ch, lex_state_to_str(lf->state),
-	lex_tok_to_str(token), ch);
+        lex_tok_to_str(token), ch);
    }
    Dmsg2(2000, "lex returning: line %d token: %s\n", lf->line_no, lex_tok_to_str(token));
    lf->token = token;
 
-   /* 
-    * Here is where we check to see if the user has set certain 
+   /*
+    * Here is where we check to see if the user has set certain
     *  expectations (e.g. 32 bit integer). If so, we do type checking
     *  and possible additional scanning (e.g. for range).
     */
@@ -513,87 +518,87 @@ lex_get_token(LEX *lf, int expect)
 
    case T_PINT32_RANGE:
       if (token == T_NUMBER) {
-	 lf->pint32_val = scan_pint(lf, lf->str);
-	 lf->pint32_val2 = lf->pint32_val;
-	 token = T_PINT32;
+         lf->pint32_val = scan_pint(lf, lf->str);
+         lf->pint32_val2 = lf->pint32_val;
+         token = T_PINT32;
       } else {
          char *p = strchr(lf->str, '-');
-	 if (!p) {
-            scan_err2(lf, _("expected an integer or a range, got %s: %s"), 
-	       lex_tok_to_str(token), lf->str);
-	    token = T_ERROR;
-	    break;
-	 }
-	 *p++ = 0;			 /* terminate first half of range */
-	 lf->pint32_val  = scan_pint(lf, lf->str);
-	 lf->pint32_val2 = scan_pint(lf, p);
-	 token = T_PINT32_RANGE;
+         if (!p) {
+            scan_err2(lf, _("expected an integer or a range, got %s: %s"),
+               lex_tok_to_str(token), lf->str);
+            token = T_ERROR;
+            break;
+         }
+         *p++ = 0;                       /* terminate first half of range */
+         lf->pint32_val  = scan_pint(lf, lf->str);
+         lf->pint32_val2 = scan_pint(lf, p);
+         token = T_PINT32_RANGE;
       }
       break;
 
    case T_INT32:
       if (token != T_NUMBER || !is_a_number(lf->str)) {
          scan_err2(lf, _("expected an integer number, got %s: %s"),
-	       lex_tok_to_str(token), lf->str);
-	 token = T_ERROR;
-	 break;
+               lex_tok_to_str(token), lf->str);
+         token = T_ERROR;
+         break;
       }
       errno = 0;
       lf->int32_val = (int32_t)str_to_int64(lf->str);
       if (errno != 0) {
          scan_err2(lf, _("expected an integer number, got %s: %s"),
-	       lex_tok_to_str(token), lf->str);
-	 token = T_ERROR;
+               lex_tok_to_str(token), lf->str);
+         token = T_ERROR;
       } else {
-	 token = T_INT32;
+         token = T_INT32;
       }
       break;
 
    case T_INT64:
-      Dmsg2(2000, "int64=:%s: %f\n", lf->str, strtod(lf->str, NULL)); 
+      Dmsg2(2000, "int64=:%s: %f\n", lf->str, strtod(lf->str, NULL));
       if (token != T_NUMBER || !is_a_number(lf->str)) {
          scan_err2(lf, _("expected an integer number, got %s: %s"),
-	       lex_tok_to_str(token), lf->str);
-	 token = T_ERROR;
-	 break;
+               lex_tok_to_str(token), lf->str);
+         token = T_ERROR;
+         break;
       }
       errno = 0;
       lf->int64_val = str_to_int64(lf->str);
       if (errno != 0) {
          scan_err2(lf, _("expected an integer number, got %s: %s"),
-	       lex_tok_to_str(token), lf->str);
-	 token = T_ERROR;
+               lex_tok_to_str(token), lf->str);
+         token = T_ERROR;
       } else {
-	 token = T_INT64;
+         token = T_INT64;
       }
       break;
 
    case T_NAME:
       if (token != T_IDENTIFIER && token != T_UNQUOTED_STRING && token != T_QUOTED_STRING) {
          scan_err2(lf, _("expected a name, got %s: %s"),
-	       lex_tok_to_str(token), lf->str);
-	 token = T_ERROR;
+               lex_tok_to_str(token), lf->str);
+         token = T_ERROR;
       } else if (lf->str_len > MAX_RES_NAME_LENGTH) {
-         scan_err3(lf, _("name %s length %d too long, max is %d\n"), lf->str, 
-	    lf->str_len, MAX_RES_NAME_LENGTH);
-	 token = T_ERROR;
+         scan_err3(lf, _("name %s length %d too long, max is %d\n"), lf->str,
+            lf->str_len, MAX_RES_NAME_LENGTH);
+         token = T_ERROR;
       }
       break;
 
    case T_STRING:
       if (token != T_IDENTIFIER && token != T_UNQUOTED_STRING && token != T_QUOTED_STRING) {
          scan_err2(lf, _("expected a string, got %s: %s"),
-	       lex_tok_to_str(token), lf->str);
-	 token = T_ERROR;
+               lex_tok_to_str(token), lf->str);
+         token = T_ERROR;
       } else {
-	 token = T_STRING;
+         token = T_STRING;
       }
       break;
 
 
    default:
-      break;			      /* no expectation given */
+      break;                          /* no expectation given */
    }
-   lf->token = token;		      /* set possible new token */
+   lf->token = token;                 /* set possible new token */
    return token;
 }

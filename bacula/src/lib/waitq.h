@@ -30,10 +30,10 @@
 
  */
 
-#ifndef __WAITQ_H 
+#ifndef __WAITQ_H
 #define __WAITQ_H 1
 
-/* 
+/*
  * Structure to keep track of wait queue request
  */
 typedef struct waitq_ele_tag {
@@ -43,7 +43,7 @@ typedef struct waitq_ele_tag {
    void 	    *msg;	      /* message to be passed */
 } waitq_ele_t;
 
-/* 
+/*
  * Structure describing a wait queue
  */
 typedef struct workq_tag {

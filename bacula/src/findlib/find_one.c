@@ -1,4 +1,4 @@
-/* 
+/*
    Copyright (C) 2000-2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
@@ -37,7 +37,7 @@ extern int32_t name_max;	      /* filename max length */
 extern int32_t path_max;	      /* path name max length */
 
 /*
- * Structure for keeping track of hard linked files, we   
+ * Structure for keeping track of hard linked files, we
  *   keep an entry for each hardlinked file that we save,
  *   which is the first one found. For all the other files that
  *   are linked to this one, we save only the directory
@@ -73,15 +73,15 @@ static int accept_fstype(FF_PKT *ff, void *dummy) {
       accept = false;
       fs = fstype(ff->fname);
       if (fs == NULL) {
-         Dmsg1(50, "Cannot determine file system type for \"%s\"\n", ff->fname);
+	 Dmsg1(50, "Cannot determine file system type for \"%s\"\n", ff->fname);
       } else {
 	 for (i = 0; i < ff->fstypes.size(); ++i) {
 	    if (strcmp(fs, (char *)ff->fstypes.get(i)) == 0) {
-               Dmsg2(100, "Accepting fstype %s for \"%s\"\n", fs, ff->fname);
+	       Dmsg2(100, "Accepting fstype %s for \"%s\"\n", fs, ff->fname);
 	       accept = true;
 	       break;
 	    }
-            Dmsg3(200, "fstype %s for \"%s\" does not match %s\n", fs,
+	    Dmsg3(200, "fstype %s for \"%s\" does not match %s\n", fs,
 		  ff->fname, ff->fstypes.get(i));
 	 }
 	 free(fs);
@@ -91,15 +91,15 @@ static int accept_fstype(FF_PKT *ff, void *dummy) {
 }
 
 /*
- * Find a single file.			      
+ * Find a single file.
  * handle_file is the callback for handling the file.
  * p is the filename
- * parent_device is the device we are currently on 
- * top_level is 1 when not recursing or 0 when 
+ * parent_device is the device we are currently on
+ * top_level is 1 when not recursing or 0 when
  *  descending into a directory.
  */
 int
-find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), 
+find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
 	       void *pkt, char *fname, dev_t parent_device, int top_level)
 {
    struct utimbuf restore_times;
@@ -134,7 +134,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
       return 1;      /* Just ignore this error - or the whole backup is cancelled */
    }
 
-   /* 
+   /*
     * If this is an Incremental backup, see if file was modified
     * since our last "save_time", presumably the last Full save
     * or Incremental.
@@ -143,7 +143,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
       Dmsg1(300, "Non-directory incremental: %s\n", ff_pkt->fname);
       /* Not a directory */
       if (ff_pkt->statp.st_mtime < ff_pkt->save_time
-	  && ((ff_pkt->flags & FO_MTIMEONLY) || 
+	  && ((ff_pkt->flags & FO_MTIMEONLY) ||
 	      ff_pkt->statp.st_ctime < ff_pkt->save_time)) {
 	 /* Incremental option, file not changed */
 	 ff_pkt->type = FT_NOCHG;
@@ -177,11 +177,11 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
    }
 #endif
    ff_pkt->LinkFI = 0;
-   /* 
+   /*
     * Handle hard linked files
     *
     * Maintain a list of hard linked files already backed up. This
-    *  allows us to ensure that the data of each file gets backed 
+    *  allows us to ensure that the data of each file gets backed
     *  up only once.
     */
    if (!(ff_pkt->flags & FO_NO_HARDLINK)
@@ -196,11 +196,11 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
 
       /* Search link list of hard linked files */
       for (lp = ff_pkt->linklist; lp; lp = lp->next)
-	 if (lp->ino == (ino_t)ff_pkt->statp.st_ino && 
+	 if (lp->ino == (ino_t)ff_pkt->statp.st_ino &&
 	     lp->dev == (dev_t)ff_pkt->statp.st_dev) {
-             /* If we have already backed up the hard linked file don't do it again */
+	     /* If we have already backed up the hard linked file don't do it again */
 	     if (strcmp(lp->name, fname) == 0) {
-                Jmsg1(jcr, M_WARNING, 0, _("Attempt to backup hard linked file %s twice ignored.\n"),
+		Jmsg1(jcr, M_WARNING, 0, _("Attempt to backup hard linked file %s twice ignored.\n"),
 		   fname);
 		return 1;	      /* ignore */
 	     }
@@ -249,7 +249,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
 
       size = readlink(fname, buffer, path_max + name_max + 101);
       if (size < 0) {
-	 /* Could not follow link */				 
+	 /* Could not follow link */
 	 ff_pkt->type = FT_NOFOLLOW;
 	 ff_pkt->ff_errno = errno;
 	 rtn_stat = handle_file(ff_pkt, pkt);
@@ -272,12 +272,12 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
       struct dirent *entry, *result;
       char *link;
       int link_len;
-      int len;	 
+      int len;
       int status;
       dev_t our_device = ff_pkt->statp.st_dev;
       bool recurse = true;
 
-      /*  
+      /*
        * If we are using Win32 (non-portable) backup API, don't check
        *  access as everything is more complicated, and
        *  in principle, we should be able to access everything.
@@ -315,9 +315,9 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
       } else {
 	 ff_pkt->type = FT_DIRBEGIN;
       }
-      /* 
+      /*
        * Note, we return the directory to the calling program (handle_file)
-       * when we first see the directory (FT_DIRBEGIN. 
+       * when we first see the directory (FT_DIRBEGIN.
        * This allows the program to apply matches and make a
        * choice whether or not to accept it.  If it is accepted, we
        * do not immediately save it, but do so only after everything
@@ -352,7 +352,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
       dir_ff_pkt->excluded_paths_list = NULL;
       dir_ff_pkt->linklist = NULL;
 
-      /* 
+      /*
        * Do not descend into subdirectories (recurse) if the
        * user has turned it off for this directory.
        *
@@ -379,7 +379,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
 	 }
 	 free(link);
 	 free_dir_ff_pkt(dir_ff_pkt);
-         ff_pkt->link = ff_pkt->fname;     /* reset "link" */
+	 ff_pkt->link = ff_pkt->fname;     /* reset "link" */
 	 if (ff_pkt->flags & FO_KEEPATIME) {
 	    utime(fname, &restore_times);
 	 }
@@ -388,7 +388,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
 
       ff_pkt->link = ff_pkt->fname;     /* reset "link" */
 
-      /* 
+      /*
        * Descend into or "recurse" into the directory to read
        *   all the files in it.
        */
@@ -424,9 +424,9 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
 	 }
 	 ASSERT(name_max+1 > (int)sizeof(struct dirent) + (int)NAMELEN(entry));
 	 p = entry->d_name;
-         /* Skip `.', `..', and excluded file names.  */
-         if (p[0] == '\0' || (p[0] == '.' && (p[1] == '\0' ||
-             (p[1] == '.' && p[2] == '\0')))) {
+	 /* Skip `.', `..', and excluded file names.  */
+	 if (p[0] == '\0' || (p[0] == '.' && (p[1] == '\0' ||
+	     (p[1] == '.' && p[2] == '\0')))) {
 	    continue;
 	 }
 
@@ -505,7 +505,7 @@ int term_find_one(FF_PKT *ff)
 {
    struct f_link *lp, *lc;
    int count = 0;
-  
+
    /* Free up list of hard linked files */
    for (lp = ff->linklist; lp;) {
       lc = lp;

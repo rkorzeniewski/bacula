@@ -40,7 +40,7 @@
 #undef  M_ALERT
 
 /*
- * Most of these message levels are more or less obvious. 
+ * Most of these message levels are more or less obvious.
  * They have evolved somewhat during the development of Bacula,
  * and here are some of the details of where I am trying to
  * head (in the process of changing the code) as of 15 June 2002.
@@ -57,7 +57,7 @@
  *  M_FATAL       Bacula detected a fatal Job error. The Job will be killed,
  *                  but Bacula continues running.
  *  M_ERROR       Bacula detected a Job error. The Job will continue running
- *                  but the termination status will be error. 
+ *                  but the termination status will be error.
  *  M_WARNING     Job warning message.
  *  M_INFO        Job information message.
  *

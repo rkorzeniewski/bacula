@@ -4,11 +4,11 @@
  *   Kern Sibbald, April 2000
  *
  *   Version $Id$
- * 
+ *
  * Note, we probably should do a core dump for the serious
- * signals such as SIGBUS, SIGPFE, ... 
- * Also, for SIGHUP and SIGUSR1, we should re-read the 
- * configuration file.  However, since this is a "general"  
+ * signals such as SIGBUS, SIGPFE, ...
+ * Also, for SIGHUP and SIGUSR1, we should re-read the
+ * configuration file.  However, since this is a "general"
  * routine, we leave it to the individual daemons to
  * tweek their signals after calling this routine.
  *
@@ -64,7 +64,7 @@ const char *get_signal_name(int sig)
    }
 }
 
-/* 
+/*
  * Handle signals here
  */
 extern "C" void signal_handler(int sig)
@@ -97,21 +97,21 @@ extern "C" void signal_handler(int sig)
       pid_t pid;
       int exelen = strlen(exepath);
 
-      fprintf(stderr, "Kaboom! %s, %s got signal %d. Attempting traceback.\n", 
+      fprintf(stderr, "Kaboom! %s, %s got signal %d. Attempting traceback.\n",
 	      exename, my_name, sig);
       fprintf(stderr, "Kaboom! exepath=%s\n", exepath);
 
       if (exelen + 12 > (int)sizeof(btpath)) {
-         bstrncpy(btpath, "btraceback", sizeof(btpath));
+	 bstrncpy(btpath, "btraceback", sizeof(btpath));
       } else {
 	 bstrncpy(btpath, exepath, sizeof(btpath));
-         if (btpath[exelen-1] == '/') {
+	 if (btpath[exelen-1] == '/') {
 	    btpath[exelen-1] = 0;
 	 }
-         bstrncat(btpath, "/btraceback", sizeof(btpath));
+	 bstrncat(btpath, "/btraceback", sizeof(btpath));
       }
       if (exepath[exelen-1] != '/') {
-         strcat(exepath, "/");
+	 strcat(exepath, "/");
       }
       strcat(exepath, exename);
       if (!working_directory) {
@@ -119,12 +119,12 @@ extern "C" void signal_handler(int sig)
 	 *buf = 0;
       }
       if (*working_directory == 0) {
-         strcpy((char *)working_directory, "/tmp/");
+	 strcpy((char *)working_directory, "/tmp/");
       }
       if (chdir(working_directory) != 0) {  /* dump in working directory */
 	 berrno be;
-         Pmsg2(000, "chdir to %s failed. ERR=%s\n", working_directory,  be.strerror());
-         strcpy((char *)working_directory, "/tmp/");
+	 Pmsg2(000, "chdir to %s failed. ERR=%s\n", working_directory,  be.strerror());
+	 strcpy((char *)working_directory, "/tmp/");
       }
       unlink("./core");               /* get rid of any old core file */
       sprintf(pid_buf, "%d", (int)main_pid);
@@ -133,16 +133,16 @@ extern "C" void signal_handler(int sig)
       Dmsg1(300, "exepath=%s\n", exepath);
       switch (pid = fork()) {
       case -1:			      /* error */
-         fprintf(stderr, "Fork error: ERR=%s\n", strerror(errno));
+	 fprintf(stderr, "Fork error: ERR=%s\n", strerror(errno));
 	 break;
       case 0:			      /* child */
 	 argv[0] = btpath;	      /* path to btraceback */
 	 argv[1] = exepath;	      /* path to exe */
 	 argv[2] = pid_buf;
 	 argv[3] = (char *)NULL;
-         fprintf(stderr, "Calling: %s %s %s\n", btpath, exepath, pid_buf);
+	 fprintf(stderr, "Calling: %s %s %s\n", btpath, exepath, pid_buf);
 	 if (execv(btpath, argv) != 0) {
-            printf("execv: %s failed: ERR=%s\n", btpath, strerror(errno));
+	    printf("execv: %s failed: ERR=%s\n", btpath, strerror(errno));
 	 }
 	 exit(-1);
       default:			      /* parent */
@@ -155,14 +155,14 @@ extern "C" void signal_handler(int sig)
 
       sigaction(sig,  &sigdefault, NULL);
       if (pid > 0) {
-         Dmsg0(500, "Doing waitpid\n");
+	 Dmsg0(500, "Doing waitpid\n");
 	 waitpid(pid, NULL, 0);       /* wait for child to produce dump */
-         fprintf(stderr, "Traceback complete, attempting cleanup ...\n");
-         Dmsg0(500, "Done waitpid\n");
+	 fprintf(stderr, "Traceback complete, attempting cleanup ...\n");
+	 Dmsg0(500, "Done waitpid\n");
 	 exit_handler(sig);	      /* clean up if possible */
-         Dmsg0(500, "Done exit_handler\n");
+	 Dmsg0(500, "Done exit_handler\n");
       } else {
-         Dmsg0(500, "Doing sleep\n");
+	 Dmsg0(500, "Doing sleep\n");
 	 bmicrosleep(30, 0);
       }
       fprintf(stderr, "It looks like the traceback worked ...\n");
@@ -267,7 +267,7 @@ void init_signals(void terminate(int sig))
    sighandle.sa_handler = signal_handler;
    sigfillset(&sighandle.sa_mask);
    sigignore.sa_flags = 0;
-   sigignore.sa_handler = SIG_IGN;	 
+   sigignore.sa_handler = SIG_IGN;
    sigfillset(&sigignore.sa_mask);
    sigdefault.sa_flags = 0;
    sigdefault.sa_handler = SIG_DFL;
@@ -279,16 +279,16 @@ void init_signals(void terminate(int sig))
    sigaction(SIGCONT,	&sigignore, NULL);
    sigaction(SIGPROF,	&sigignore, NULL);
    sigaction(SIGWINCH,	&sigignore, NULL);
-   sigaction(SIGIO,	&sighandle, NULL);     
+   sigaction(SIGIO,	&sighandle, NULL);
 
-   sigaction(SIGINT,	&sigdefault, NULL);    
+   sigaction(SIGINT,	&sigdefault, NULL);
    sigaction(SIGXCPU,	&sigdefault, NULL);
    sigaction(SIGXFSZ,	&sigdefault, NULL);
 
    sigaction(SIGHUP,	&sigignore, NULL);
-   sigaction(SIGQUIT,	&sighandle, NULL);   
-   sigaction(SIGILL,	&sighandle, NULL);    
-   sigaction(SIGTRAP,	&sighandle, NULL);   
+   sigaction(SIGQUIT,	&sighandle, NULL);
+   sigaction(SIGILL,	&sighandle, NULL);
+   sigaction(SIGTRAP,	&sighandle, NULL);
 /* sigaction(SIGABRT,	&sighandle, NULL);   */
 #ifdef SIGEMT
    sigaction(SIGEMT,	&sighandle, NULL);
@@ -296,25 +296,25 @@ void init_signals(void terminate(int sig))
 #ifdef SIGIOT
 /* sigaction(SIGIOT,	&sighandle, NULL);  used by debugger */
 #endif
-   sigaction(SIGBUS,	&sighandle, NULL);    
-   sigaction(SIGFPE,	&sighandle, NULL);    
-   sigaction(SIGKILL,	&sighandle, NULL);   
-   sigaction(SIGUSR1,	&sighandle, NULL);   
-   sigaction(SIGSEGV,	&sighandle, NULL);   
+   sigaction(SIGBUS,	&sighandle, NULL);
+   sigaction(SIGFPE,	&sighandle, NULL);
+   sigaction(SIGKILL,	&sighandle, NULL);
+   sigaction(SIGUSR1,	&sighandle, NULL);
+   sigaction(SIGSEGV,	&sighandle, NULL);
    sigaction(SIGUSR2,	&sighandle, NULL);
-   sigaction(SIGALRM,	&sighandle, NULL);   
-   sigaction(SIGTERM,	&sighandle, NULL);   
+   sigaction(SIGALRM,	&sighandle, NULL);
+   sigaction(SIGTERM,	&sighandle, NULL);
 #ifdef SIGSTKFLT
-   sigaction(SIGSTKFLT, &sighandle, NULL); 
+   sigaction(SIGSTKFLT, &sighandle, NULL);
 #endif
-   sigaction(SIGSTOP,	&sighandle, NULL);   
-   sigaction(SIGTSTP,	&sighandle, NULL);   
-   sigaction(SIGTTIN,	&sighandle, NULL);   
-   sigaction(SIGTTOU,	&sighandle, NULL);   
-   sigaction(SIGURG,	&sighandle, NULL);    
-   sigaction(SIGVTALRM, &sighandle, NULL); 
+   sigaction(SIGSTOP,	&sighandle, NULL);
+   sigaction(SIGTSTP,	&sighandle, NULL);
+   sigaction(SIGTTIN,	&sighandle, NULL);
+   sigaction(SIGTTOU,	&sighandle, NULL);
+   sigaction(SIGURG,	&sighandle, NULL);
+   sigaction(SIGVTALRM, &sighandle, NULL);
 #ifdef SIGPWR
-   sigaction(SIGPWR,	&sighandle, NULL);    
+   sigaction(SIGPWR,	&sighandle, NULL);
 #endif
 #ifdef SIGWAITING
    sigaction(SIGWAITING,&sighandle, NULL);

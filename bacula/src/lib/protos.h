@@ -73,11 +73,11 @@ bool       bnet_sig              (BSOCK *bs, int sig);
 int        bnet_ssl_server       (BSOCK *bsock, char *password, int ssl_need, int ssl_has);
 int        bnet_ssl_client       (BSOCK *bsock, char *password, int ssl_need);
 BSOCK *    bnet_connect            (JCR *jcr, int retry_interval,
-               int max_retry_time, const char *name, char *host, char *service, 
-               int port, int verbose);
+	       int max_retry_time, const char *name, char *host, char *service,
+	       int port, int verbose);
 void       bnet_close            (BSOCK *bsock);
-BSOCK *    init_bsock            (JCR *jcr, int sockfd, const char *who, const char *ip, 
-                                  int port, struct sockaddr *client_addr);
+BSOCK *    init_bsock            (JCR *jcr, int sockfd, const char *who, const char *ip,
+				  int port, struct sockaddr *client_addr);
 BSOCK *    dup_bsock             (BSOCK *bsock);
 void       term_bsock            (BSOCK *bsock);
 const char *bnet_strerror         (BSOCK *bsock);
@@ -102,7 +102,7 @@ int              close_bpipe(BPIPE *bpipe);
 int cram_md5_get_auth(BSOCK *bs, char *password, int ssl_need);
 int cram_md5_auth(BSOCK *bs, char *password, int ssl_need);
 void hmac_md5(uint8_t* text, int text_len, uint8_t*  key,
-              int key_len, uint8_t *hmac);
+	      int key_len, uint8_t *hmac);
 
 /* crc32.c */
 
@@ -159,8 +159,8 @@ void       set_trace             (int trace_flag);
 void       set_exit_on_error     (int value);
 
 /* bnet_server.c */
-void       bnet_thread_server(dlist *addr, int max_clients, workq_t *client_wq, 
-                   void *handle_client_request(void *bsock));
+void       bnet_thread_server(dlist *addr, int max_clients, workq_t *client_wq,
+		   void *handle_client_request(void *bsock));
 void       bnet_stop_thread_server(pthread_t tid);
 void             bnet_server             (int port, void handle_client_request(BSOCK *bsock));
 int              net_connect             (int port);
@@ -190,10 +190,10 @@ bool             skip_spaces             (char **msg);
 bool             skip_nonspaces          (char **msg);
 int              fstrsch                 (const char *a, const char *b);
 char            *next_arg(char **s);
-int              parse_args(POOLMEM *cmd, POOLMEM **args, int *argc, 
-                        char **argk, char **argv, int max_args);
-void            split_path_and_filename(const char *fname, POOLMEM **path, 
-                        int *pnl, POOLMEM **file, int *fnl);
+int              parse_args(POOLMEM *cmd, POOLMEM **args, int *argc,
+			char **argk, char **argv, int max_args);
+void            split_path_and_filename(const char *fname, POOLMEM **path,
+			int *pnl, POOLMEM **file, int *fnl);
 int             bsscanf(const char *buf, const char *fmt, ...);
 
 

@@ -63,7 +63,7 @@
  *  Note, when written, it is serialized.
 
    uint32_t CheckSum;
-   uint32_t block_len; 
+   uint32_t block_len;
    uint32_t BlockNumber;
    char     Id[BLKHDR_ID_LENGTH];
 

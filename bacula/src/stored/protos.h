@@ -23,7 +23,7 @@
    MA 02111-1307, USA.
 
  */
-   
+
 /* From stored.c */
 uint32_t new_VolSessionId();
 
@@ -139,7 +139,7 @@ void	 dev_unlock(DEVICE *dev);
 const char *edit_blocked_reason(DEVICE *dev);
 
 /* From dircmd.c */
-void	 *handle_connection_request(void *arg); 
+void	 *handle_connection_request(void *arg);
 
 
 /* From fd_cmds.c */
@@ -148,7 +148,7 @@ bool	 bootstrap_cmd(JCR *jcr);
 
 /* From job.c */
 void	 stored_free_jcr(JCR *jcr);
-void	 connection_from_filed(void *arg);     
+void	 connection_from_filed(void *arg);
 void	 handle_filed_connection(BSOCK *fd, char *job_name);
 
 /* From label.c */
@@ -164,7 +164,7 @@ bool	 unser_volume_label(DEVICE *dev, DEV_RECORD *rec);
 bool	 unser_session_label(SESSION_LABEL *label, DEV_RECORD *rec);
 
 /* From match_bsr.c */
-int	 match_bsr(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, 
+int	 match_bsr(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
 	      SESSION_LABEL *sesrec);
 int	 match_bsr_block(BSR *bsr, DEV_BLOCK *block);
 void	 position_bsr_block(BSR *bsr, DEV_BLOCK *block);
@@ -191,7 +191,7 @@ const char *FI_to_ascii(int fi);
 const char *stream_to_ascii(int stream, int fi);
 bool	    write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec);
 bool	    can_write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec);
-bool	    read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec); 
+bool	    read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec);
 DEV_RECORD *new_record();
 void	    free_record(DEV_RECORD *rec);
 void	    empty_record(DEV_RECORD *rec);

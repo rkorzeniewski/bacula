@@ -1,12 +1,12 @@
-/*	  
-      Generalized console input/output handler			   
+/*
+      Generalized console input/output handler
       A maintanable replacement for readline()
 
 	 Updated for Bacula, Kern Sibbald, December MMIII
 
       This code is in part derived from code that I wrote in
       1981, so some of it is a bit old and could use a cleanup.
-	 
+
 */
 /*
    Copyright (C) 1981-2004 Kern Sibbald and John Walker
@@ -29,7 +29,7 @@
 
  */
 
-/* 
+/*
  * UTF-8
  *  If the top bit of a UTF-8 string is 0 (8 bits), then it
  *    is a normal ASCII character.
@@ -45,7 +45,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <string.h>
-#include <ctype.h> 
+#include <ctype.h>
 #else
 
 /* We are in Bacula */
@@ -243,10 +243,10 @@ void con_term();
 void trapctlc();
 int usrbrk();
 void clrbrk();
-    
+
 void con_init(FILE *input)
 {
-   atexit(con_term); 
+   atexit(con_term);
    rawmode(input);
    trapctlc();
 }
@@ -313,7 +313,7 @@ char *bstrncpy(char *dest, const char *src, int maxlen)
 static unsigned do_smap(unsigned c)
 {
     char str[MAX_STAB];
-    int len = 0; 
+    int len = 0;
     stab_t *tstab;
     int i, found;
     unsigned cm;
@@ -362,7 +362,7 @@ static void dump_stab()
 	  for (j=0; j<tstab->len; j++) {
 	     c = tstab->str[j];
 	     if (c < 0x20 || c > 0x7F) {
-                sprintf(buf, " 0x%x ", c);
+		sprintf(buf, " 0x%x ", c);
 		t_send(buf);
 	     } else {
 		buf[0] = c;
@@ -370,7 +370,7 @@ static void dump_stab()
 		t_sendl(buf, 1);
 	     }
 	  }
-          sprintf(buf, " func=%d len=%d\n\r", tstab->func, tstab->len);
+	  sprintf(buf, " func=%d len=%d\n\r", tstab->func, tstab->len);
 	  t_send(buf);
        }
     }
@@ -384,7 +384,7 @@ static void add_smap(char *str, int func)
 {
    stab_t *tstab;
    int len;
-  
+
    if (!str) {
       return;
    }
@@ -405,7 +405,7 @@ static void add_smap(char *str, int func)
    }
    tstab->next = stab[tstab->len-1];
    stab[tstab->len-1] = tstab;
-/* printf("Add_smap tstab=%x len=%d func=%d tstab->next=%x\n\r", tstab, len, 
+/* printf("Add_smap tstab=%x len=%d func=%d tstab->next=%x\n\r", tstab, len,
 	  func, tstab->next); */
 
 }
@@ -460,7 +460,7 @@ input_line(char *string, int length)
        }
        switch (c=input_char()) {
        case F_RETURN:		     /* CR */
-           t_sendl("\r\n", 2);       /* yes, print it and */
+	   t_sendl("\r\n", 2);       /* yes, print it and */
 	   goto done;		     /* get out */
        case F_CLRSCRN:		     /* clear screen */
 	  asclrs();
@@ -496,7 +496,7 @@ input_line(char *string, int length)
 	   backup(curline);
 	   delchr(1, curline, sizeof(curline));
 	   if (cp == 0) {
-              t_char(' ');
+	      t_char(' ');
 	      t_char(0x8);
 	   }
 	   break;
@@ -534,7 +534,7 @@ input_line(char *string, int length)
 	   t_clrline(0, t_width);     /* erase line */
 	   cp = 0;
 	   cl = 0;		     /* reset cursor counter */
-           t_char(' ');
+	   t_char(' ');
 	   t_char(0x8);
 	   break;
        case F_SOL:
@@ -582,7 +582,7 @@ input_line(char *string, int length)
 	       curline[cp++] = c;    /* store character in line being built */
 	       t_char(c);      /* echo character to terminal */
 	       while (more--) {
-		  c= input_char();  
+		  c= input_char();
 		  insert_hole(curline, sizeof(curline));
 		  curline[cp++] = c;	/* store character in line being built */
 		  t_char(c);	  /* echo character to terminal */
@@ -670,7 +670,7 @@ forward(char *str, int str_len)
 }
 
 /* How many characters under the cursor */
-static int 
+static int
 char_count(int cptr, char *str)
 {
    int cnt = 1;
@@ -689,7 +689,7 @@ char_count(int cptr, char *str)
 
 /* Backup cursor keeping characters under it */
 static void
-backup(char *str) 
+backup(char *str)
 {
     if (cp == 0) {
        return;
@@ -703,7 +703,7 @@ backup(char *str)
 
 /* Delete the character under the cursor */
 static void
-delchr(int del, char *curline, int line_len) 
+delchr(int del, char *curline, int line_len)
 {
    int i, cnt;
 
@@ -873,7 +873,7 @@ dump(struct lstr *ptr, char *msg)
     printf("%s buf=%x nextl=%x prevl=%x len=%d used=%d\n",
 	msg,ptr,ptr->nextl,ptr->prevl,ptr->len,ptr->used);
     if (ptr->used)
-        printf("line=%s\n",&ptr->line);
+	printf("line=%s\n",&ptr->line);
 }
 #endif	/* DEBUGOUT */
 
@@ -906,7 +906,7 @@ t_clrline(int pos, int width)
     asclrl(pos, width); 	  /* clear to end of line */
 }
 
-/* Helper function to add string preceded by 
+/* Helper function to add string preceded by
  *  ESC to smap table */
 static void add_esc_smap(const char *str, int func)
 {
@@ -936,11 +936,11 @@ static void rawmode(FILE *input)
       exit(1);
    }
    old_term_params_set = true;
-   t = old_term_params; 			
+   t = old_term_params;
    t.c_cc[VMIN] = 1; /* satisfy read after 1 char */
    t.c_cc[VTIME] = 0;
-   t.c_iflag &= ~(BRKINT | IGNPAR | PARMRK | INPCK | 
-		  ISTRIP | ICRNL | IXON | IXOFF | INLCR | IGNCR);     
+   t.c_iflag &= ~(BRKINT | IGNPAR | PARMRK | INPCK |
+		  ISTRIP | ICRNL | IXON | IXOFF | INLCR | IGNCR);
    t.c_iflag |= IGNBRK;
    t.c_oflag |= ONLCR;
    t.c_lflag &= ~(ECHO | ECHOE | ECHOK | ECHONL | ICANON |
@@ -955,7 +955,7 @@ static void rawmode(FILE *input)
    signal(SIGHUP, SIG_IGN);
 // signal(SIGSTOP, SIG_IGN);
    signal(SIGINT, sigintcatcher);
-   signal(SIGWINCH, SIG_IGN);	
+   signal(SIGWINCH, SIG_IGN);
    signal(SIGQUIT, SIG_IGN);
    signal(SIGCHLD, SIG_IGN);
 // signal(SIGTSTP, SIG_IGN);
@@ -1054,9 +1054,9 @@ static unsigned t_getch(void)
    if (read(0, &c, 1) != 1) {
       c = 0;
    }
-   return (unsigned)c;	 
+   return (unsigned)c;
 }
-    
+
 /* Send message to terminal - primitive routine */
 void
 t_sendl(const char *msg, int len)
@@ -1116,7 +1116,7 @@ void trapctlc()
 
 
 /* ASCLRL() -- Clear to end of line from current position */
-static void asclrl(int pos, int width) 
+static void asclrl(int pos, int width)
 {
    int i;
 
@@ -1134,7 +1134,7 @@ static void asclrl(int pos, int width)
    for (i=1; i<=width-pos+1; i++)    /* backspace to original position */
        t_char(0x8);
    return;
-  
+
 }
 
 
@@ -1143,10 +1143,10 @@ static void ascurs(int y, int x)
 {
    t_send((char *)tgoto(t_cm, x, y));
 }
-											
+
 
 /* ASCLRS -- Clear whole screen */
-static void asclrs() 
+static void asclrs()
 {
    ascurs(0,0);
    t_send(t_cs);

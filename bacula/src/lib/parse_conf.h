@@ -21,7 +21,7 @@
 
  */
 
-struct RES_ITEM;		    /* Declare forward referenced structure */ 
+struct RES_ITEM;		    /* Declare forward referenced structure */
 typedef void (MSG_RES_HANDLER)(LEX *lc, RES_ITEM *item, int index, int pass);
 
 /* This is the structure that defines
@@ -57,12 +57,12 @@ struct RES {
 };
 
 
-/* 
+/*
  * Master Resource configuration structure definition
  * This is the structure that defines the
  * resources that are available to this daemon.
  */
-struct RES_TABLE {	 
+struct RES_TABLE {
    const char *name;		      /* resource name */
    RES_ITEM *items;		      /* list of resource keywords */
    int rcode;			      /* code if needed */
@@ -115,11 +115,11 @@ const char *res_to_str(int rcode);
 
 /* Loop through each resource of type, returning in var */
 #define foreach_res(var, type) \
-    for(var=NULL; (*((void **)&(var))=(void *)GetNextRes((type), (RES *)var));) 
+    for(var=NULL; (*((void **)&(var))=(void *)GetNextRes((type), (RES *)var));)
 
 #ifdef the_old_way
 #define foreach_res(var, type) \
-	for((var)=NULL; (((void *)(var))=GetNextRes((type), (RES *)var));) 
+	for((var)=NULL; (((void *)(var))=GetNextRes((type), (RES *)var));)
 #endif
 
 

@@ -32,23 +32,23 @@
 static int verify_file(FF_PKT *ff_pkt, void *my_pkt);
 static int read_chksum(BFILE *bfd, CHKSUM *chksum, JCR *jcr, char *fname);
 
-/* 
+/*
  * Find all the requested files and send attributes
  * to the Director.
- * 
+ *
  */
 void do_verify(JCR *jcr)
 {
    set_jcr_job_status(jcr, JS_Running);
    jcr->buf_size = DEFAULT_NETWORK_BUFFER_SIZE;
    if ((jcr->big_buf = (char *) malloc(jcr->buf_size)) == NULL) {
-      Jmsg1(jcr, M_ABORT, 0, _("Cannot malloc %d network read buffer\n"), 
+      Jmsg1(jcr, M_ABORT, 0, _("Cannot malloc %d network read buffer\n"),
 	 DEFAULT_NETWORK_BUFFER_SIZE);
    }
    set_find_options((FF_PKT *)jcr->ff, jcr->incremental, jcr->mtime);
    Dmsg0(10, "Start find files\n");
    /* Subroutine verify_file() is called for each file */
-   find_files(jcr, (FF_PKT *)jcr->ff, verify_file, (void *)jcr);  
+   find_files(jcr, (FF_PKT *)jcr->ff, verify_file, (void *)jcr);
    Dmsg0(10, "End find files\n");
 
    if (jcr->big_buf) {
@@ -56,14 +56,14 @@ void do_verify(JCR *jcr)
       jcr->big_buf = NULL;
    }
    set_jcr_job_status(jcr, JS_Terminated);
-}	   
+}
 
-/* 
+/*
  * Called here by find() for each file.
  *
  *  Find the file, compute the MD5 or SHA1 and send it back to the Director
  */
-static int verify_file(FF_PKT *ff_pkt, void *pkt) 
+static int verify_file(FF_PKT *ff_pkt, void *pkt)
 {
    char attribs[MAXSTRING];
    char attribsEx[MAXSTRING];
@@ -76,7 +76,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
    if (job_canceled(jcr)) {
       return 0;
    }
-   
+
    dir = jcr->dir_bsock;
    jcr->num_files_examined++;	      /* bump total file count */
 
@@ -163,7 +163,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
    pm_strcpy(jcr->last_fname, ff_pkt->fname);
    V(jcr->mutex);
 
-   /* 
+   /*
     * Send file attributes to Director
     *	File_index
     *	Stream
@@ -178,16 +178,16 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
    Dmsg2(400, "send ATTR inx=%d fname=%s\n", jcr->JobFiles, ff_pkt->fname);
    if (ff_pkt->type == FT_LNK || ff_pkt->type == FT_LNKSAVED) {
       stat = bnet_fsend(dir, "%d %d %s %s%c%s%c%s%c", jcr->JobFiles,
-	    STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->fname, 
+	    STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->fname,
 	    0, attribs, 0, ff_pkt->link, 0);
    } else if (ff_pkt->type == FT_DIREND) {
 	 /* Here link is the canonical filename (i.e. with trailing slash) */
-         stat = bnet_fsend(dir,"%d %d %s %s%c%s%c%c", jcr->JobFiles,
-	       STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->link, 
+	 stat = bnet_fsend(dir,"%d %d %s %s%c%s%c%c", jcr->JobFiles,
+	       STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->link,
 	       0, attribs, 0, 0);
    } else {
       stat = bnet_fsend(dir,"%d %d %s %s%c%s%c%c", jcr->JobFiles,
-	    STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->fname, 
+	    STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->fname,
 	    0, attribs, 0, 0);
    }
    Dmsg2(20, "bfiled>bdird: attribs len=%d: msg=%s\n", dir->msglen, dir->msg);
@@ -200,7 +200,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
     * The remainder of the function is all about getting the checksum.
     * First we initialise, then we read files, other streams and Finder Info.
     */
-   if (ff_pkt->type != FT_LNKSAVED && (S_ISREG(ff_pkt->statp.st_mode) && 
+   if (ff_pkt->type != FT_LNKSAVED && (S_ISREG(ff_pkt->statp.st_mode) &&
 	    ff_pkt->flags & (FO_MD5|FO_SHA1))) {
       chksum_init(&chksum, ff_pkt->flags);
       binit(&bfd);
@@ -211,7 +211,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
 	    ff_pkt->ff_errno = errno;
 	    berrno be;
 	    be.set_errno(bfd.berrno);
-            Jmsg(jcr, M_NOTSAVED, 1, _("     Cannot open %s: ERR=%s.\n"),
+	    Jmsg(jcr, M_NOTSAVED, 1, _("     Cannot open %s: ERR=%s.\n"),
 		 ff_pkt->fname, be.strerror());
 	    jcr->Errors++;
 	    return 1;
@@ -226,7 +226,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
 	 if (bopen_rsrc(&bfd, ff_pkt->fname, O_RDONLY | O_BINARY, 0) < 0) {
 	    ff_pkt->ff_errno = errno;
 	    berrno be;
-            Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open resource fork for %s: ERR=%s\n"),
+	    Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open resource fork for %s: ERR=%s\n"),
 		  ff_pkt->fname, be.strerror());
 	    jcr->Errors++;
 	    if (is_bopen(&ff_pkt->bfd)) {
@@ -254,10 +254,10 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
 	    stream = STREAM_SHA1_SIGNATURE;
 	 }
 	 bin_to_base64(chksumbuf, (char *)chksum.signature, chksum.length);
-         Dmsg3(400, "send inx=%d %s=%s\n", jcr->JobFiles, chksum.name, chksumbuf);
-         bnet_fsend(dir, "%d %d %s *%s-%d*", jcr->JobFiles, stream, chksumbuf,
+	 Dmsg3(400, "send inx=%d %s=%s\n", jcr->JobFiles, chksum.name, chksumbuf);
+	 bnet_fsend(dir, "%d %d %s *%s-%d*", jcr->JobFiles, stream, chksumbuf,
 	       chksum.name, jcr->JobFiles);
-         Dmsg3(20, "bfiled>bdird: %s len=%d: msg=%s\n", chksum.name,
+	 Dmsg3(20, "bfiled>bdird: %s len=%d: msg=%s\n", chksum.name,
 	       dir->msglen, dir->msg);
       }
    }
@@ -281,7 +281,7 @@ int read_chksum(BFILE *bfd, CHKSUM *chksum, JCR *jcr, char *fname)
    if (n < 0) {
       berrno be;
       be.set_errno(bfd->berrno);
-      Jmsg(jcr, M_ERROR, 1, _("Error reading file %s: ERR=%s\n"), 
+      Jmsg(jcr, M_ERROR, 1, _("Error reading file %s: ERR=%s\n"),
 	    fname, be.strerror());
       jcr->Errors++;
       return -1;

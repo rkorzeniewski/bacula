@@ -40,11 +40,11 @@ static void admin_cleanup(JCR *jcr, int TermCode);
 
 /* External functions */
 
-/* 
+/*
  *  Returns:  0 on failure
  *	      1 on success
  */
-int do_admin(JCR *jcr) 
+int do_admin(JCR *jcr)
 {
 
    jcr->jr.JobId = jcr->JobId;
@@ -76,9 +76,9 @@ static void admin_cleanup(JCR *jcr, int TermCode)
    set_jcr_job_status(jcr, TermCode);
 
    update_job_end_record(jcr);	      /* update database */
-   
+
    if (!db_get_job_record(jcr, jcr->db, &jcr->jr)) {
-      Jmsg(jcr, M_WARNING, 0, _("Error getting job record for stats: %s"), 
+      Jmsg(jcr, M_WARNING, 0, _("Error getting job record for stats: %s"),
 	 db_strerror(jcr->db));
       set_jcr_job_status(jcr, JS_ErrorTerminated);
    }
@@ -90,7 +90,7 @@ static void admin_cleanup(JCR *jcr, int TermCode)
       break;
    case JS_FatalError:
    case JS_ErrorTerminated:
-      term_msg = _("*** Admin Error ***"); 
+      term_msg = _("*** Admin Error ***");
       msg_type = M_ERROR;	   /* Generate error message */
       break;
    case JS_Canceled:
@@ -104,12 +104,12 @@ static void admin_cleanup(JCR *jcr, int TermCode)
    bstrftime(sdt, sizeof(sdt), jcr->jr.StartTime);
    bstrftime(edt, sizeof(edt), jcr->jr.EndTime);
 
-   Jmsg(jcr, msg_type, 0, _("Bacula " VERSION " (" LSMDATE "): %s\n\
-  JobId:                  %d\n\
-  Job:                    %s\n\
-  Start time:             %s\n\
-  End time:               %s\n\
-  Termination:            %s\n\n"),
+   Jmsg(jcr, msg_type, 0, _("Bacula " VERSION " (" LSMDATE "): %s\n"
+"  JobId:                  %d\n"
+"  Job:                    %s\n"
+"  Start time:             %s\n"
+"  End time:               %s\n"
+"  Termination:            %s\n\n"),
 	edt,
 	jcr->jr.JobId,
 	jcr->jr.Job,
@@ -118,4 +118,4 @@ static void admin_cleanup(JCR *jcr, int TermCode)
 	term_msg);
 
    Dmsg0(100, "Leave admin_cleanup()\n");
-}   
+}

@@ -41,7 +41,7 @@ typedef struct s_vol_list {
 /* Forward referenced functions */
 static int do_label(UAContext *ua, const char *cmd, int relabel);
 static void label_from_barcodes(UAContext *ua);
-static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr, 
+static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
 	       POOL_DBR *pr, int relabel, bool media_record_exits);
 static vol_list_t *get_vol_list_from_SD(UAContext *ua, bool scan);
 static void free_vol_list(vol_list_t *vol_list);
@@ -52,8 +52,8 @@ static char *get_volume_name_from_SD(UAContext *ua, int Slot);
 
 
 /*
- * Label a tape 
- *  
+ * Label a tape
+ *
  *   label storage=xxx volume=vvv
  */
 int label_cmd(UAContext *ua, const char *cmd)
@@ -85,54 +85,54 @@ static bool get_user_slot_list(UAContext *ua, char *slot_list, int num_slots)
       strip_trailing_junk(ua->argv[i]);
       for (p=ua->argv[i]; p && *p; p=e) {
 	 /* Check for list */
-         e = strchr(p, ',');
+	 e = strchr(p, ',');
 	 if (e) {
 	    *e++ = 0;
 	 }
 	 /* Check for range */
-         h = strchr(p, '-');             /* range? */
+	 h = strchr(p, '-');             /* range? */
 	 if (h == p) {
-            msg = _("Negative numbers not permitted\n");
+	    msg = _("Negative numbers not permitted\n");
 	    goto bail_out;
 	 }
 	 if (h) {
 	    *h++ = 0;
 	    if (!is_an_integer(h)) {
-               msg = _("Range end is not integer.\n");
+	       msg = _("Range end is not integer.\n");
 	       goto bail_out;
 	    }
 	    skip_spaces(&p);
 	    if (!is_an_integer(p)) {
-               msg = _("Range start is not an integer.\n");
+	       msg = _("Range start is not an integer.\n");
 	       goto bail_out;
 	    }
 	    beg = atoi(p);
 	    end = atoi(h);
 	    if (end < beg) {
-               msg = _("Range end not bigger than start.\n");
+	       msg = _("Range end not bigger than start.\n");
 	       goto bail_out;
 	    }
 	 } else {
 	    skip_spaces(&p);
 	    if (!is_an_integer(p)) {
-               msg = _("Input value is not an integer.\n");
+	       msg = _("Input value is not an integer.\n");
 	       goto bail_out;
 	    }
 	    beg = end = atoi(p);
 	 }
 	 if (beg <= 0 || end <= 0) {
-            msg = _("Values must be be greater than zero.\n");
+	    msg = _("Values must be be greater than zero.\n");
 	    goto bail_out;
 	 }
 	 if (end >= num_slots) {
-            msg = _("Slot too large.\n");
+	    msg = _("Slot too large.\n");
 	    goto bail_out;
 	 }
 	 for (i=beg; i<=end; i++) {
 	    slot_list[i] = 1;	      /* Turn on specified range */
 	 }
       }
-   } else { 
+   } else {
       /* Turn everything on */
       for (i=0; i<num_slots; i++) {
 	 slot_list[i] = 1;
@@ -142,7 +142,7 @@ static bool get_user_slot_list(UAContext *ua, char *slot_list, int num_slots)
    printf("Slots turned on:\n");
    for (i=1; i<num_slots; i++) {
       if (slot_list[i]) {
-         printf("%d\n", i); 
+	 printf("%d\n", i);
       }
    }
 #endif
@@ -153,7 +153,7 @@ bail_out:
 }
 
 /*
- * Update Slots corresponding to Volumes in autochanger 
+ * Update Slots corresponding to Volumes in autochanger
  */
 int update_slots(UAContext *ua)
 {
@@ -161,7 +161,7 @@ int update_slots(UAContext *ua)
    vol_list_t *vl, *vol_list = NULL;
    MEDIA_DBR mr;
    char *slot_list;
-   bool scan;	     
+   bool scan;
 
    if (!open_db(ua)) {
       return 1;
@@ -190,12 +190,12 @@ int update_slots(UAContext *ua)
    /* Walk through the list updating the media records */
    for (vl=vol_list; vl; vl=vl->next) {
       if (vl->Slot >= max_slots) {
-         bsendmsg(ua, _("Slot %d larger than max %d ignored.\n"));
+	 bsendmsg(ua, _("Slot %d larger than max %d ignored.\n"));
 	 continue;
       }
       /* Check if user wants us to look at this slot */
       if (!slot_list[vl->Slot]) {
-         Dmsg1(100, "Skipping slot=%d\n", vl->Slot);
+	 Dmsg1(100, "Skipping slot=%d\n", vl->Slot);
 	 continue;
       }
       /* If scanning, we read the label rather than the barcode */
@@ -205,11 +205,11 @@ int update_slots(UAContext *ua)
 	    vl->VolName = NULL;
 	 }
 	 vl->VolName = get_volume_name_from_SD(ua, vl->Slot);
-         Dmsg2(100, "Got Vol=%s from SD for Slot=%d\n", vl->VolName, vl->Slot);
+	 Dmsg2(100, "Got Vol=%s from SD for Slot=%d\n", vl->VolName, vl->Slot);
       }
       slot_list[vl->Slot] = 0;	      /* clear Slot */
       if (!vl->VolName) {
-         Dmsg1(100, "No VolName for Slot=%d setting InChanger to zero.\n", vl->Slot);
+	 Dmsg1(100, "No VolName for Slot=%d setting InChanger to zero.\n", vl->Slot);
 	 memset(&mr, 0, sizeof(mr));
 	 mr.Slot = vl->Slot;
 	 mr.InChanger = 1;
@@ -217,7 +217,7 @@ int update_slots(UAContext *ua)
 	 db_lock(ua->db);
 	 db_make_inchanger_unique(ua->jcr, ua->db, &mr);
 	 db_unlock(ua->db);
-         bsendmsg(ua, _("No VolName for Slot=%d set InChanger to zero.\n"), vl->Slot);
+	 bsendmsg(ua, _("No VolName for Slot=%d set InChanger to zero.\n"), vl->Slot);
 	 continue;
       }
       memset(&mr, 0, sizeof(mr));
@@ -228,20 +228,20 @@ int update_slots(UAContext *ua)
 	     mr.Slot = vl->Slot;
 	     mr.InChanger = 1;
 	     if (!db_update_media_record(ua->jcr, ua->db, &mr)) {
-                bsendmsg(ua, "%s", db_strerror(ua->db));
+		bsendmsg(ua, "%s", db_strerror(ua->db));
 	     } else {
 		bsendmsg(ua, _(
-                  "Catalog record for Volume \"%s\" updated to reference slot %d.\n"),
+		  "Catalog record for Volume \"%s\" updated to reference slot %d.\n"),
 		  mr.VolumeName, mr.Slot);
 	     }
 	  } else {
-             bsendmsg(ua, _("Catalog record for Volume \"%s\" is up to date.\n"),
+	     bsendmsg(ua, _("Catalog record for Volume \"%s\" is up to date.\n"),
 		mr.VolumeName);
-	  }   
+	  }
 	  db_unlock(ua->db);
 	  continue;
       } else {
-          bsendmsg(ua, _("Record for Volume \"%s\" not found in catalog.\n"), 
+	  bsendmsg(ua, _("Record for Volume \"%s\" not found in catalog.\n"),
 	     mr.VolumeName);
       }
       db_unlock(ua->db);
@@ -257,7 +257,7 @@ int update_slots(UAContext *ua)
       }
    }
    db_unlock(ua->db);
-      
+
 bail_out:
 
    free_vol_list(vol_list);
@@ -306,14 +306,14 @@ static int do_label(UAContext *ua, const char *cmd, int relabel)
    /* If relabel get name of Volume to relabel */
    if (relabel) {
       /* Check for oldvolume=name */
-      i = find_arg_with_value(ua, "oldvolume"); 
+      i = find_arg_with_value(ua, "oldvolume");
       if (i >= 0) {
 	 memset(&omr, 0, sizeof(omr));
 	 bstrncpy(omr.VolumeName, ua->argv[i], sizeof(omr.VolumeName));
 	 if (db_get_media_record(ua->jcr, ua->db, &omr)) {
 	    goto checkVol;
-	 } 
-         bsendmsg(ua, "%s", db_strerror(ua->db));
+	 }
+	 bsendmsg(ua, "%s", db_strerror(ua->db));
       }
       /* No keyword or Vol not found, ask user to select */
       if (!select_media_dbr(ua, &omr)) {
@@ -323,7 +323,7 @@ static int do_label(UAContext *ua, const char *cmd, int relabel)
       /* Require Volume to be Purged or Recycled */
 checkVol:
       if (strcmp(omr.VolStatus, "Purged") != 0 && strcmp(omr.VolStatus, "Recycle") != 0) {
-         bsendmsg(ua, _("Volume \"%s\" has VolStatus %s. It must be Purged or Recycled before relabeling.\n"),
+	 bsendmsg(ua, _("Volume \"%s\" has VolStatus %s. It must be Purged or Recycled before relabeling.\n"),
 	    omr.VolumeName, omr.VolStatus);
 	 return 1;
       }
@@ -352,7 +352,7 @@ checkName:
       /* If VolBytes are zero the Volume is not labeled */
       if (db_get_media_record(ua->jcr, ua->db, &mr)) {
 	 if (mr.VolBytes != 0) {
-             bsendmsg(ua, _("Media record for new Volume \"%s\" already exists.\n"), 
+	     bsendmsg(ua, _("Media record for new Volume \"%s\" already exists.\n"),
 		mr.VolumeName);
 	     continue;
 	  }
@@ -363,7 +363,7 @@ checkName:
 
    /* If autochanger, request slot */
    if (store->autochanger) {
-      i = find_arg_with_value(ua, "slot"); 
+      i = find_arg_with_value(ua, "slot");
       if (i >= 0) {
 	 mr.Slot = atoi(ua->argv[i]);
       } else if (!get_pint(ua, _("Enter slot (0 for none): "))) {
@@ -392,34 +392,34 @@ checkName:
       if (relabel) {
 	 /* Delete the old media record */
 	 if (!db_delete_media_record(ua->jcr, ua->db, &omr)) {
-            bsendmsg(ua, _("Delete of Volume \"%s\" failed. ERR=%s"),
+	    bsendmsg(ua, _("Delete of Volume \"%s\" failed. ERR=%s"),
 	       omr.VolumeName, db_strerror(ua->db));
 	 } else {
-            bsendmsg(ua, _("Old volume \"%s\" deleted from catalog.\n"), 
+	    bsendmsg(ua, _("Old volume \"%s\" deleted from catalog.\n"),
 	       omr.VolumeName);
 	    /* Update the number of Volumes in the pool */
 	    pr.NumVols--;
 	    if (!db_update_pool_record(ua->jcr, ua->db, &pr)) {
-               bsendmsg(ua, "%s", db_strerror(ua->db));
+	       bsendmsg(ua, "%s", db_strerror(ua->db));
 	    }
 	 }
       }
       if (ua->automount) {
 	 bstrncpy(dev_name, store->dev_name, sizeof(dev_name));
-         bsendmsg(ua, _("Requesting to mount %s ...\n"), dev_name);
+	 bsendmsg(ua, _("Requesting to mount %s ...\n"), dev_name);
 	 bash_spaces(dev_name);
-         bnet_fsend(sd, "mount %s", dev_name);
+	 bnet_fsend(sd, "mount %s", dev_name);
 	 unbash_spaces(dev_name);
 	 while (bnet_recv(sd) >= 0) {
-            bsendmsg(ua, "%s", sd->msg);
+	    bsendmsg(ua, "%s", sd->msg);
 	    /* Here we can get
 	     *	3001 OK mount. Device=xxx      or
 	     *	3001 Mounted Volume vvvv
 	     *	3906 is cannot mount non-tape
 	     * So for those, no need to print a reminder
 	     */
-            if (strncmp(sd->msg, "3001 ", 5) == 0 ||
-                strncmp(sd->msg, "3906 ", 5) == 0) {
+	    if (strncmp(sd->msg, "3001 ", 5) == 0 ||
+		strncmp(sd->msg, "3906 ", 5) == 0) {
 	       print_reminder = false;
 	    }
 	 }
@@ -460,8 +460,8 @@ static void label_from_barcodes(UAContext *ua)
 
    /* Display list of Volumes and ask if he really wants to proceed */
    bsendmsg(ua, _("The following Volumes will be labeled:\n"
-                  "Slot  Volume\n"
-                  "==============\n"));
+		  "Slot  Volume\n"
+		  "==============\n"));
    for (vl=vol_list; vl; vl=vl->next) {
       if (!vl->VolName || !slot_list[vl->Slot]) {
 	 continue;
@@ -489,16 +489,16 @@ static void label_from_barcodes(UAContext *ua)
       media_record_exists = false;
       if (db_get_media_record(ua->jcr, ua->db, &mr)) {
 	  if (mr.VolBytes != 0) {
-             bsendmsg(ua, _("Media record for Slot %d Volume \"%s\" already exists.\n"), 
+	     bsendmsg(ua, _("Media record for Slot %d Volume \"%s\" already exists.\n"),
 		vl->Slot, mr.VolumeName);
 	     if (!mr.InChanger) {
 		mr.InChanger = 1;
 		if (!db_update_media_record(ua->jcr, ua->db, &mr)) {
-                   bsendmsg(ua, "Error setting InChanger: ERR=%s", db_strerror(ua->db));
+		   bsendmsg(ua, "Error setting InChanger: ERR=%s", db_strerror(ua->db));
 		}
 	     }
 	     continue;
-	  } 
+	  }
 	  media_record_exists = true;
       }
       mr.InChanger = 1;
@@ -510,19 +510,19 @@ static void label_from_barcodes(UAContext *ua)
 	 if (media_record_exists) {	 /* we update it */
 	    mr.VolBytes = 1;
 	    if (!db_update_media_record(ua->jcr, ua->db, &mr)) {
-                bsendmsg(ua, "%s", db_strerror(ua->db));
+		bsendmsg(ua, "%s", db_strerror(ua->db));
 	    }
 	 } else {			 /* create the media record */
 	    set_pool_dbr_defaults_in_media_dbr(&mr, &pr);
 	    if (db_create_media_record(ua->jcr, ua->db, &mr)) {
-               bsendmsg(ua, _("Catalog record for cleaning tape \"%s\" successfully created.\n"),
+	       bsendmsg(ua, _("Catalog record for cleaning tape \"%s\" successfully created.\n"),
 		  mr.VolumeName);
 	       pr.NumVols++;	      /* this is a bit suspect */
 	       if (!db_update_pool_record(ua->jcr, ua->db, &pr)) {
-                  bsendmsg(ua, "%s", db_strerror(ua->db));
+		  bsendmsg(ua, "%s", db_strerror(ua->db));
 	       }
 	    } else {
-               bsendmsg(ua, "Catalog error on cleaning tape: %s", db_strerror(ua->db));
+	       bsendmsg(ua, "Catalog error on cleaning tape: %s", db_strerror(ua->db));
 	    }
 	 }
 	 continue;		      /* done, go handle next volume */
@@ -542,7 +542,7 @@ bail_out:
    return;
 }
 
-/* 
+/*
  * Check if the Volume name has legal characters
  * If ua is non-NULL send the message
  */
@@ -558,20 +558,20 @@ bool is_volume_name_legal(UAContext *ua, const char *name)
 	 continue;
       }
       if (ua) {
-         bsendmsg(ua, _("Illegal character \"%c\" in a volume name.\n"), *p);
+	 bsendmsg(ua, _("Illegal character \"%c\" in a volume name.\n"), *p);
       }
       return 0;
    }
    len = strlen(name);
    if (len >= MAX_NAME_LENGTH) {
       if (ua) {
-         bsendmsg(ua, _("Volume name too long.\n"));
+	 bsendmsg(ua, _("Volume name too long.\n"));
       }
       return 0;
    }
    if (len == 0) {
       if (ua) {
-         bsendmsg(ua, _("Volume name must be at least one character long.\n"));
+	 bsendmsg(ua, _("Volume name must be at least one character long.\n"));
       }
       return 0;
    }
@@ -581,7 +581,7 @@ bool is_volume_name_legal(UAContext *ua, const char *name)
 /*
  * NOTE! This routine opens the SD socket but leaves it open
  */
-static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr, 
+static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
 			       POOL_DBR *pr, int relabel, bool media_record_exists)
 {
    BSOCK *sd;
@@ -598,16 +598,16 @@ static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
    bash_spaces(pr->Name);
    if (relabel) {
       bash_spaces(omr->VolumeName);
-      bnet_fsend(sd, "relabel %s OldName=%s NewName=%s PoolName=%s MediaType=%s Slot=%d", 
+      bnet_fsend(sd, "relabel %s OldName=%s NewName=%s PoolName=%s MediaType=%s Slot=%d",
 	 dev_name, omr->VolumeName, mr->VolumeName, pr->Name, mr->MediaType, mr->Slot);
       bsendmsg(ua, _("Sending relabel command from \"%s\" to \"%s\" ...\n"),
 	 omr->VolumeName, mr->VolumeName);
    } else {
-      bnet_fsend(sd, "label %s VolumeName=%s PoolName=%s MediaType=%s Slot=%d", 
+      bnet_fsend(sd, "label %s VolumeName=%s PoolName=%s MediaType=%s Slot=%d",
 	 dev_name, mr->VolumeName, pr->Name, mr->MediaType, mr->Slot);
-      bsendmsg(ua, _("Sending label command for Volume \"%s\" Slot %d ...\n"), 
+      bsendmsg(ua, _("Sending label command for Volume \"%s\" Slot %d ...\n"),
 	 mr->VolumeName, mr->Slot);
-      Dmsg5(200, "label %s VolumeName=%s PoolName=%s MediaType=%s Slot=%d\n", 
+      Dmsg5(200, "label %s VolumeName=%s PoolName=%s MediaType=%s Slot=%d\n",
 	 dev_name, mr->VolumeName, pr->Name, mr->MediaType, mr->Slot);
    }
 
@@ -615,7 +615,7 @@ static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
       bsendmsg(ua, "%s", sd->msg);
       if (strncmp(sd->msg, "3000 OK label.", 14) == 0) {
 	 ok = true;
-      } 
+      }
    }
    unbash_spaces(mr->VolumeName);
    unbash_spaces(mr->MediaType);
@@ -626,7 +626,7 @@ static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
 	 mr->VolBytes = 1;
 	 mr->InChanger = 1;
 	 if (!db_update_media_record(ua->jcr, ua->db, mr)) {
-             bsendmsg(ua, "%s", db_strerror(ua->db));
+	     bsendmsg(ua, "%s", db_strerror(ua->db));
 	     ok = false;
 	 }
       } else {			      /* create the media record */
@@ -634,15 +634,15 @@ static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
 	 mr->VolBytes = 1;		 /* flag indicating Volume labeled */
 	 mr->InChanger = 1;
 	 if (db_create_media_record(ua->jcr, ua->db, mr)) {
-            bsendmsg(ua, _("Catalog record for Volume \"%s\", Slot %d  successfully created.\n"),
+	    bsendmsg(ua, _("Catalog record for Volume \"%s\", Slot %d  successfully created.\n"),
 	    mr->VolumeName, mr->Slot);
 	    /* Update number of volumes in pool */
 	    pr->NumVols++;
 	    if (!db_update_pool_record(ua->jcr, ua->db, pr)) {
-               bsendmsg(ua, "%s", db_strerror(ua->db));
+	       bsendmsg(ua, "%s", db_strerror(ua->db));
 	    }
 	 } else {
-            bsendmsg(ua, "%s", db_strerror(ua->db));
+	    bsendmsg(ua, "%s", db_strerror(ua->db));
 	    ok = false;
 	 }
       }
@@ -652,15 +652,15 @@ static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
    return ok;
 }
 
-static BSOCK *open_sd_bsock(UAContext *ua) 
+static BSOCK *open_sd_bsock(UAContext *ua)
 {
    STORE *store = ua->jcr->store;
 
    if (!ua->jcr->store_bsock) {
-      bsendmsg(ua, _("Connecting to Storage daemon %s at %s:%d ...\n"), 
+      bsendmsg(ua, _("Connecting to Storage daemon %s at %s:%d ...\n"),
 	 store->hdr.name, store->address, store->SDport);
       if (!connect_to_storage_daemon(ua->jcr, 10, SDConnectTimeout, 1)) {
-         bsendmsg(ua, _("Failed to connect to Storage daemon.\n"));
+	 bsendmsg(ua, _("Failed to connect to Storage daemon.\n"));
 	 return NULL;
       }
    }
@@ -676,7 +676,7 @@ static void close_sd_bsock(UAContext *ua)
    }
 }
 
-static char *get_volume_name_from_SD(UAContext *ua, int Slot) 
+static char *get_volume_name_from_SD(UAContext *ua, int Slot)
 {
    STORE *store = ua->jcr->store;
    BSOCK *sd;
@@ -700,7 +700,7 @@ static char *get_volume_name_from_SD(UAContext *ua, int Slot)
       Dmsg1(100, "Got: %s", sd->msg);
       if (strncmp(sd->msg, "3001 Volume=", 12) == 0) {
 	 VolName = (char *)malloc(sd->msglen);
-         if (sscanf(sd->msg, "3001 Volume=%s Slot=%d", VolName, &rtn_slot) == 2) {
+	 if (sscanf(sd->msg, "3001 Volume=%s Slot=%d", VolName, &rtn_slot) == 2) {
 	    break;
 	 }
 	 free(VolName);
@@ -717,7 +717,7 @@ static char *get_volume_name_from_SD(UAContext *ua, int Slot)
  *  If scan is set, we return all slots found,
  *  otherwise, we return only slots with valid barcodes (Volume names)
  */
-static vol_list_t *get_vol_list_from_SD(UAContext *ua, bool scan) 
+static vol_list_t *get_vol_list_from_SD(UAContext *ua, bool scan)
 {
    STORE *store = ua->jcr->store;
    char dev_name[MAX_NAME_LENGTH];
@@ -744,8 +744,8 @@ static vol_list_t *get_vol_list_from_SD(UAContext *ua, bool scan)
       /* Check for returned SD messages */
       if (sd->msg[0] == '3'     && B_ISDIGIT(sd->msg[1]) &&
 	  B_ISDIGIT(sd->msg[2]) && B_ISDIGIT(sd->msg[3]) &&
-          sd->msg[4] == ' ') {
-         bsendmsg(ua, "%s\n", sd->msg);   /* pass them on to user */
+	  sd->msg[4] == ' ') {
+	 bsendmsg(ua, "%s\n", sd->msg);   /* pass them on to user */
 	 continue;
       }
 
@@ -756,8 +756,8 @@ static vol_list_t *get_vol_list_from_SD(UAContext *ua, bool scan)
 	 Slot = atoi(sd->msg);
 	 if (Slot <= 0) {
 	    p--;
-            *p = ':';
-            bsendmsg(ua, _("Invalid Slot number: %s\n"), sd->msg); 
+	    *p = ':';
+	    bsendmsg(ua, _("Invalid Slot number: %s\n"), sd->msg);
 	    continue;
 	 }
       } else {
@@ -766,8 +766,8 @@ static vol_list_t *get_vol_list_from_SD(UAContext *ua, bool scan)
 	    *p++ = 0;
 	    if (!is_an_integer(sd->msg) || (Slot=atoi(sd->msg)) <= 0) {
 	       p--;
-               *p = ':';
-               bsendmsg(ua, _("Invalid Slot number: %s\n"), sd->msg); 
+	       *p = ':';
+	       bsendmsg(ua, _("Invalid Slot number: %s\n"), sd->msg);
 	       continue;
 	    }
 	 } else {
@@ -775,8 +775,8 @@ static vol_list_t *get_vol_list_from_SD(UAContext *ua, bool scan)
 	 }
 	 if (!is_volume_name_legal(ua, p)) {
 	    p--;
-            *p = ':';
-            bsendmsg(ua, _("Invalid Volume name: %s\n"), sd->msg); 
+	    *p = ':';
+	    bsendmsg(ua, _("Invalid Volume name: %s\n"), sd->msg);
 	    continue;
 	 }
       }
@@ -785,7 +785,7 @@ static vol_list_t *get_vol_list_from_SD(UAContext *ua, bool scan)
       vl = (vol_list_t *)malloc(sizeof(vol_list_t));
       vl->Slot = Slot;
       if (p) {
-         if (*p == ':') {
+	 if (*p == ':') {
 	    p++;		      /* skip separator */
 	 }
 	 vl->VolName = bstrdup(p);
@@ -830,7 +830,7 @@ static void free_vol_list(vol_list_t *vol_list)
 
 /*
  * Check if this is a cleaning tape by comparing the Volume name
- *  with the Cleaning Prefix. If they match, this is a cleaning 
+ *  with the Cleaning Prefix. If they match, this is a cleaning
  *  tape.
  */
 static bool is_cleaning_tape(UAContext *ua, MEDIA_DBR *mr, POOL_DBR *pr)
@@ -846,7 +846,7 @@ static bool is_cleaning_tape(UAContext *ua, MEDIA_DBR *mr, POOL_DBR *pr)
    }
    Dmsg4(100, "CLNprefix=%s: Vol=%s: len=%d strncmp=%d\n",
       ua->jcr->pool->cleaning_prefix, mr->VolumeName,
-      strlen(ua->jcr->pool->cleaning_prefix), 
+      strlen(ua->jcr->pool->cleaning_prefix),
       strncmp(mr->VolumeName, ua->jcr->pool->cleaning_prefix,
 		  strlen(ua->jcr->pool->cleaning_prefix)));
    return strncmp(mr->VolumeName, ua->jcr->pool->cleaning_prefix,

@@ -52,14 +52,14 @@ static char Dir_sorry[]  = "1999 You are not authorized.\n";
 /*
  * Authenticate Storage daemon connection
  */
-bool authenticate_storage_daemon(JCR *jcr, STORE *store) 
+bool authenticate_storage_daemon(JCR *jcr, STORE *store)
 {
    BSOCK *sd = jcr->store_bsock;
    char dirname[MAX_NAME_LENGTH];
    int ssl_need = BNET_SSL_NONE;
    bool get_auth, auth = false;
 
-   /* 
+   /*
     * Send my name to the Storage daemon then do authentication
     */
    bstrncpy(dirname, director->hdr.name, sizeof(dirname));
@@ -72,11 +72,11 @@ bool authenticate_storage_daemon(JCR *jcr, STORE *store)
       Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to Storage daemon. ERR=%s\n"), bnet_strerror(sd));
       return 0;
    }
-   get_auth = cram_md5_get_auth(sd, store->password, ssl_need);   
+   get_auth = cram_md5_get_auth(sd, store->password, ssl_need);
    if (get_auth) {
-      auth = cram_md5_auth(sd, store->password, ssl_need);  
+      auth = cram_md5_auth(sd, store->password, ssl_need);
       if (!auth) {
-         Dmsg1(50, "cram_auth failed for %s\n", sd->who);
+	 Dmsg1(50, "cram_auth failed for %s\n", sd->who);
       }
    } else {
       Dmsg1(50, "cram_get_auth failed for %s\n", sd->who);
@@ -85,11 +85,11 @@ bool authenticate_storage_daemon(JCR *jcr, STORE *store)
       stop_bsock_timer(tid);
       Dmsg0(50, _("Director and Storage daemon passwords or names not the same.\n"));
       Jmsg0(jcr, M_FATAL, 0,
-            _("Unable to authenticate with Storage daemon. Possible causes:\n"
-            "Passwords or names not the same or\n"
-            "Maximum Concurrent Jobs exceeded on the SD or\n"
-            "SD networking messed up (restart daemon).\n"
-            "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"));
+	    _("Unable to authenticate with Storage daemon. Possible causes:\n"
+	    "Passwords or names not the same or\n"
+	    "Maximum Concurrent Jobs exceeded on the SD or\n"
+	    "SD networking messed up (restart daemon).\n"
+	    "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"));
       return 0;
    }
    Dmsg1(116, ">stored: %s", sd->msg);
@@ -119,7 +119,7 @@ int authenticate_file_daemon(JCR *jcr)
    int ssl_need = BNET_SSL_NONE;
    bool get_auth, auth = false;
 
-   /* 
+   /*
     * Send my name to the File daemon then do authentication
     */
    bstrncpy(dirname, director->hdr.name, sizeof(dirname));
@@ -131,11 +131,11 @@ int authenticate_file_daemon(JCR *jcr)
       Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to File daemon. ERR=%s\n"), bnet_strerror(fd));
       return 0;
    }
-   get_auth = cram_md5_get_auth(fd, jcr->client->password, ssl_need);	
+   get_auth = cram_md5_get_auth(fd, jcr->client->password, ssl_need);
    if (get_auth) {
-      auth = cram_md5_auth(fd, jcr->client->password, ssl_need);  
+      auth = cram_md5_auth(fd, jcr->client->password, ssl_need);
       if (!auth) {
-         Dmsg1(50, "cram_auth failed for %s\n", fd->who);
+	 Dmsg1(50, "cram_auth failed for %s\n", fd->who);
       }
    } else {
       Dmsg1(50, "cram_get_auth failed for %s\n", fd->who);
@@ -144,11 +144,11 @@ int authenticate_file_daemon(JCR *jcr)
       stop_bsock_timer(tid);
       Dmsg0(50, _("Director and File daemon passwords or names not the same.\n"));
       Jmsg(jcr, M_FATAL, 0,
-            _("Unable to authenticate with File daemon. Possible causes:\n"
-            "Passwords or names not the same or\n"
-            "Maximum Concurrent Jobs exceeded on the FD or\n"
-            "FD networking messed up (restart daemon).\n"
-            "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"));
+	    _("Unable to authenticate with File daemon. Possible causes:\n"
+	    "Passwords or names not the same or\n"
+	    "Maximum Concurrent Jobs exceeded on the FD or\n"
+	    "FD networking messed up (restart daemon).\n"
+	    "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"));
       return 0;
    }
    Dmsg1(116, ">filed: %s", fd->msg);
@@ -170,14 +170,14 @@ int authenticate_file_daemon(JCR *jcr)
    return 1;
 }
 
-/********************************************************************* 
+/*********************************************************************
  *
  */
-int authenticate_user_agent(UAContext *uac) 
+int authenticate_user_agent(UAContext *uac)
 {
    char name[MAX_NAME_LENGTH];
    int ssl_need = BNET_SSL_NONE;
-   bool ok;    
+   bool ok;
    BSOCK *ua = uac->UA_sock;
 
 //  Emsg4(M_INFO, 0, _("UA Hello from %s:%s:%d is invalid. Len=%d\n"), ua->who,
@@ -199,7 +199,7 @@ int authenticate_user_agent(UAContext *uac)
       ok = cram_md5_auth(ua, director->password, ssl_need) &&
 	   cram_md5_get_auth(ua, director->password, ssl_need);
    } else {
-      unbash_spaces(name); 
+      unbash_spaces(name);
       CONRES *cons = (CONRES *)GetResWithName(R_CONSOLE, name);
       if (cons) {
 	 ok = cram_md5_auth(ua, cons->password, ssl_need) &&

@@ -88,7 +88,7 @@ static void usage()
 
 int main (int argc, char *argv[])
 {
-   int ch;   
+   int ch;
    FILE *fd;
    char line[1000];
    int got_inc = FALSE;
@@ -118,34 +118,34 @@ int main (int argc, char *argv[])
       case 'd':                    /* debug level */
 	 debug_level = atoi(optarg);
 	 if (debug_level <= 0)
-	    debug_level = 1; 
+	    debug_level = 1;
 	 break;
 
       case 'e':                    /* exclude list */
-         if ((fd = fopen(optarg, "r")) == NULL) {
+	 if ((fd = fopen(optarg, "r")) == NULL) {
 	    berrno be;
-            Pmsg2(0, "Could not open exclude file: %s, ERR=%s\n",
+	    Pmsg2(0, "Could not open exclude file: %s, ERR=%s\n",
 	       optarg, be.strerror());
 	    exit(1);
 	 }
 	 while (fgets(line, sizeof(line), fd) != NULL) {
 	    strip_trailing_junk(line);
-            Dmsg1(900, "add_exclude %s\n", line);
+	    Dmsg1(900, "add_exclude %s\n", line);
 	    add_fname_to_exclude_list(ff, line);
 	 }
 	 fclose(fd);
 	 break;
 
       case 'i':                    /* include list */
-         if ((fd = fopen(optarg, "r")) == NULL) {
+	 if ((fd = fopen(optarg, "r")) == NULL) {
 	    berrno be;
-            Pmsg2(0, "Could not open include file: %s, ERR=%s\n",
+	    Pmsg2(0, "Could not open include file: %s, ERR=%s\n",
 	       optarg, be.strerror());
 	    exit(1);
 	 }
 	 while (fgets(line, sizeof(line), fd) != NULL) {
 	    strip_trailing_junk(line);
-            Dmsg1(900, "add_include %s\n", line);
+	    Dmsg1(900, "add_include %s\n", line);
 	    add_fname_to_include_list(ff, 0, line);
 	 }
 	 fclose(fd);
@@ -236,7 +236,7 @@ static void do_extract(char *devname)
 
    read_records(dcr, record_cb, mount_next_read_volume);
    /* If output file is still open, it was the last one in the
-    * archive since we just hit an end of file, so close the file. 
+    * archive since we just hit an end of file, so close the file.
     */
    if (is_bopen(&bfd)) {
       set_attributes(jcr, attr, &bfd);
@@ -266,34 +266,34 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 
    switch (rec->Stream) {
    case STREAM_UNIX_ATTRIBUTES:
-   case STREAM_UNIX_ATTRIBUTES_EX:  
+   case STREAM_UNIX_ATTRIBUTES_EX:
 
       /* If extracting, it was from previous stream, so
        * close the output file.
        */
       if (extract) {
 	 if (!is_bopen(&bfd)) {
-            Emsg0(M_ERROR, 0, _("Logic error output file should be open but is not.\n"));
+	    Emsg0(M_ERROR, 0, _("Logic error output file should be open but is not.\n"));
 	 }
 	 set_attributes(jcr, attr, &bfd);
 	 extract = false;
       }
 
       if (!unpack_attributes_record(jcr, rec->Stream, rec->data, attr)) {
-         Emsg0(M_ERROR_TERM, 0, _("Cannot continue.\n"));
+	 Emsg0(M_ERROR_TERM, 0, _("Cannot continue.\n"));
       }
 
       if (attr->file_index != rec->FileIndex) {
-         Emsg2(M_ERROR_TERM, 0, _("Record header file index %ld not equal record index %ld\n"),
+	 Emsg2(M_ERROR_TERM, 0, _("Record header file index %ld not equal record index %ld\n"),
 	    rec->FileIndex, attr->file_index);
       }
-	 
+
       if (file_is_included(ff, attr->fname) && !file_is_excluded(ff, attr->fname)) {
 
 	 attr->data_stream = decode_stat(attr->attr, &attr->statp, &attr->LinkFI);
 	 if (!is_stream_supported(attr->data_stream)) {
 	    if (!non_support_data++) {
-               Jmsg(jcr, M_ERROR, 0, _("%s stream not supported on this Client.\n"),
+	       Jmsg(jcr, M_ERROR, 0, _("%s stream not supported on this Client.\n"),
 		  stream_to_ascii(attr->data_stream));
 	    }
 	    extract = false;
@@ -304,7 +304,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 	 build_attr_output_fnames(jcr, attr);
 
 	 extract = false;
-	 stat = create_file(jcr, attr, &bfd, REPLACE_ALWAYS);	
+	 stat = create_file(jcr, attr, &bfd, REPLACE_ALWAYS);
 	 switch (stat) {
 	 case CF_ERROR:
 	 case CF_SKIP:
@@ -321,14 +321,14 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 	    num_files++;
 	    fileAddr = 0;
 	    break;
-	 }  
+	 }
       }
       break;
 
    /* Data stream and extracting */
    case STREAM_FILE_DATA:
    case STREAM_SPARSE_DATA:
-   case STREAM_WIN32_DATA:  
+   case STREAM_WIN32_DATA:
 
       if (extract) {
 	 if (rec->Stream == STREAM_SPARSE_DATA) {
@@ -342,7 +342,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 	       fileAddr = faddr;
 	       if (blseek(&bfd, (off_t)fileAddr, SEEK_SET) < 0) {
 		  berrno be;
-                  Emsg2(M_ERROR_TERM, 0, _("Seek error on %s: %s\n"), 
+		  Emsg2(M_ERROR_TERM, 0, _("Seek error on %s: %s\n"),
 		     attr->ofname, be.strerror());
 	       }
 	    }
@@ -351,10 +351,10 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 	    wsize = rec->data_len;
 	 }
 	 total += wsize;
-         Dmsg2(8, "Write %u bytes, total=%u\n", wsize, total);
+	 Dmsg2(8, "Write %u bytes, total=%u\n", wsize, total);
 	 if ((uint32_t)bwrite(&bfd, wbuf, wsize) != wsize) {
 	    berrno be;
-            Emsg2(M_ERROR_TERM, 0, _("Write error on %s: %s\n"), 
+	    Emsg2(M_ERROR_TERM, 0, _("Write error on %s: %s\n"),
 	       attr->ofname, be.strerror());
 	 }
 	 fileAddr += wsize;
@@ -363,8 +363,8 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 
    /* GZIP data stream */
    case STREAM_GZIP_DATA:
-   case STREAM_SPARSE_GZIP_DATA: 
-   case STREAM_WIN32_GZIP_DATA:  
+   case STREAM_SPARSE_GZIP_DATA:
+   case STREAM_WIN32_GZIP_DATA:
 #ifdef HAVE_LIBZ
       if (extract) {
 	 uLong compress_len;
@@ -382,7 +382,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 	       fileAddr = faddr;
 	       if (blseek(&bfd, (off_t)fileAddr, SEEK_SET) < 0) {
 		  berrno be;
-                  Emsg3(M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"), 
+		  Emsg3(M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"),
 		     edit_uint64(fileAddr, ec1), attr->ofname, be.strerror());
 		  extract = false;
 		  return true;
@@ -393,30 +393,30 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 	    wsize = rec->data_len;
 	 }
 	 compress_len = compress_buf_size;
-	 if ((stat=uncompress((Bytef *)compress_buf, &compress_len, 
+	 if ((stat=uncompress((Bytef *)compress_buf, &compress_len,
 	       (const Bytef *)wbuf, (uLong)wsize) != Z_OK)) {
-            Emsg1(M_ERROR, 0, _("Uncompression error. ERR=%d\n"), stat);
+	    Emsg1(M_ERROR, 0, _("Uncompression error. ERR=%d\n"), stat);
 	    extract = false;
 	    return true;
 	 }
 
-         Dmsg2(100, "Write uncompressed %d bytes, total before write=%d\n", compress_len, total);
+	 Dmsg2(100, "Write uncompressed %d bytes, total before write=%d\n", compress_len, total);
 	 if ((uLongf)bwrite(&bfd, compress_buf, (size_t)compress_len) != compress_len) {
 	    berrno be;
-            Pmsg0(0, "===Write error===\n");
-            Emsg2(M_ERROR, 0, _("Write error on %s: %s\n"), 
+	    Pmsg0(0, "===Write error===\n");
+	    Emsg2(M_ERROR, 0, _("Write error on %s: %s\n"),
 	       attr->ofname, be.strerror());
 	    extract = false;
 	    return true;
 	 }
 	 total += compress_len;
 	 fileAddr += compress_len;
-         Dmsg2(100, "Compress len=%d uncompressed=%d\n", rec->data_len,
+	 Dmsg2(100, "Compress len=%d uncompressed=%d\n", rec->data_len,
 	    compress_len);
       }
 #else
       if (extract) {
-         Emsg0(M_ERROR, 0, "GZIP data stream found, but GZIP not configured!\n");
+	 Emsg0(M_ERROR, 0, "GZIP data stream found, but GZIP not configured!\n");
 	 extract = false;
 	 return true;
       }
@@ -430,7 +430,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    case STREAM_PROGRAM_NAMES:
    case STREAM_PROGRAM_DATA:
       if (!prog_name_msg) {
-         Pmsg0(000, "Got Program Name or Data Stream. Ignored.\n");
+	 Pmsg0(000, "Got Program Name or Data Stream. Ignored.\n");
 	 prog_name_msg++;
       }
       break;
@@ -439,15 +439,15 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       /* If extracting, wierd stream (not 1 or 2), close output file anyway */
       if (extract) {
 	 if (!is_bopen(&bfd)) {
-            Emsg0(M_ERROR, 0, "Logic error output file should be open but is not.\n");
+	    Emsg0(M_ERROR, 0, "Logic error output file should be open but is not.\n");
 	 }
 	 set_attributes(jcr, attr, &bfd);
 	 extract = false;
       }
-      Jmsg(jcr, M_ERROR, 0, _("Unknown stream=%d ignored. This shouldn't happen!\n"), 
+      Jmsg(jcr, M_ERROR, 0, _("Unknown stream=%d ignored. This shouldn't happen!\n"),
 	 rec->Stream);
       break;
-      
+
    } /* end switch */
    return true;
 }
@@ -467,6 +467,6 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
    DEVICE *dev = dcr->dev;
    fprintf(stderr, "Mount Volume \"%s\" on device %s and press return when ready: ",
       dcr->VolumeName, dev_name(dev));
-   getchar();	
+   getchar();
    return true;
 }

@@ -1,6 +1,6 @@
 /*
  *   bpipe.c bi-directional pipe
- * 
+ *
  *    Kern Sibbald, November MMII
  *
  *   Version $Id$
@@ -29,7 +29,7 @@
 #include "bacula.h"
 #include "jcr.h"
 
-int execvp_errors[] = {EACCES, ENOEXEC, EFAULT, EINTR, E2BIG, 
+int execvp_errors[] = {EACCES, ENOEXEC, EFAULT, EINTR, E2BIG,
 		     ENAMETOOLONG, ENOMEM, ETXTBSY, ENOENT};
 int num_execvp_errors = (int)(sizeof(execvp_errors)/sizeof(int));
 
@@ -41,7 +41,7 @@ static void build_argc_argv(char *cmd, int *bargc, char *bargv[], int max_arg);
  * Run an external program. Optionally wait a specified number
  *   of seconds. Program killed if wait exceeded. We open
  *   a bi-directional pipe so that the user can read from and
- *   write to the program. 
+ *   write to the program.
  */
 BPIPE *open_bpipe(char *prog, int wait, const char *mode)
 {
@@ -161,16 +161,16 @@ int close_wpipe(BPIPE *bpipe)
    return stat;
 }
 
-/* 
- * Close both pipes and free resources	 
+/*
+ * Close both pipes and free resources
  *
  *  Returns: 0 on success
  *	     berrno on failure
  */
-int close_bpipe(BPIPE *bpipe) 
+int close_bpipe(BPIPE *bpipe)
 {
    int chldstatus = 0;
-   int stat = 0;    
+   int stat = 0;
    int wait_option;
    int remaining_wait;
    pid_t wpid = 0;
@@ -201,35 +201,35 @@ int close_bpipe(BPIPE *bpipe)
       } while (wpid == -1 && (errno == EINTR || errno == EAGAIN));
       if (wpid == bpipe->worker_pid || wpid == -1) {
 	 stat = errno;
-         Dmsg3(200, "Got break wpid=%d status=%d ERR=%s\n", wpid, chldstatus,
-            wpid==-1?strerror(errno):"none");
+	 Dmsg3(200, "Got break wpid=%d status=%d ERR=%s\n", wpid, chldstatus,
+	    wpid==-1?strerror(errno):"none");
 	 break;
       }
       Dmsg3(200, "Got wpid=%d status=%d ERR=%s\n", wpid, chldstatus,
-            wpid==-1?strerror(errno):"none");
+	    wpid==-1?strerror(errno):"none");
       if (remaining_wait > 0) {
 	 bmicrosleep(1, 0);	      /* wait one second */
 	 remaining_wait--;
       } else {
 	 stat = ETIME;		      /* set error status */
 	 wpid = -1;
-         break;                       /* don't wait any longer */
+	 break;                       /* don't wait any longer */
       }
    }
    if (wpid > 0) {
       if (WIFEXITED(chldstatus)) {    /* process exit()ed */
 	 stat = WEXITSTATUS(chldstatus);
 	 if (stat != 0) {
-            Dmsg1(200, "Non-zero status %d returned from child.\n", stat);
+	    Dmsg1(200, "Non-zero status %d returned from child.\n", stat);
 	    stat |= b_errno_exit;	 /* exit status returned */
 	 }
-         Dmsg1(200, "child status=%d\n", stat & ~b_errno_exit);
+	 Dmsg1(200, "child status=%d\n", stat & ~b_errno_exit);
       } else if (WIFSIGNALED(chldstatus)) {  /* process died */
 	 stat = WTERMSIG(chldstatus);
-         Dmsg1(200, "Child died from signale %d\n", stat);
+	 Dmsg1(200, "Child died from signale %d\n", stat);
 	 stat |= b_errno_signal;      /* exit signal returned */
       }
-   }	   
+   }
    if (bpipe->timer_id) {
       stop_child_timer(bpipe->timer_id);
    }
@@ -244,7 +244,7 @@ int close_bpipe(BPIPE *bpipe)
  *   of seconds. Program killed if wait exceeded. Optionally
  *   return the output from the program (normally a single line).
  *
- * Contrary to my normal calling conventions, this program 
+ * Contrary to my normal calling conventions, this program
  *
  *  Returns: 0 on success
  *	     non-zero on error == berrno status
@@ -262,16 +262,16 @@ int run_program(char *prog, int wait, POOLMEM *results)
    }
    if (results) {
       results[0] = 0;
-      fgets(results, sizeof_pool_memory(results), bpipe->rfd);	      
+      fgets(results, sizeof_pool_memory(results), bpipe->rfd);
       if (feof(bpipe->rfd)) {
 	 stat1 = 0;
       } else {
 	 stat1 = ferror(bpipe->rfd);
       }
       if (stat1 < 0) {
-         Dmsg2(100, "Run program fgets stat=%d ERR=%s\n", stat1, strerror(errno));
+	 Dmsg2(100, "Run program fgets stat=%d ERR=%s\n", stat1, strerror(errno));
       } else if (stat1 != 0) {
-         Dmsg1(100, "Run program fgets stat=%d\n", stat1);
+	 Dmsg1(100, "Run program fgets stat=%d\n", stat1);
       }
    } else {
       stat1 = 0;
@@ -288,7 +288,7 @@ int run_program(char *prog, int wait, POOLMEM *results)
  */
 static void build_argc_argv(char *cmd, int *bargc, char *bargv[], int max_argv)
 {
-   int i;	
+   int i;
    char *p, *q, quote;
    int argc = 0;
 
@@ -312,16 +312,16 @@ static void build_argc_argv(char *cmd, int *bargc, char *bargv[], int max_argv)
 	    q++;
 	    quote = 0;
 	 } else {
-            while (*q && *q != ' ')
+	    while (*q && *q != ' ')
 	    q++;
 	 }
 	 if (*q)
-            *(q++) = '\0';
+	    *(q++) = '\0';
 	 bargv[argc++] = p;
 	 p = q;
-         while (*p && (*p == ' ' || *p == '\t'))
+	 while (*p && (*p == ' ' || *p == '\t'))
 	    p++;
-         if (*p == '\"' || *p == '\'') {
+	 if (*p == '\"' || *p == '\'') {
 	    quote = *p;
 	    p++;
 	 }

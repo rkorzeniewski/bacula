@@ -28,7 +28,7 @@
 /* NOTE:  #includes at the end of this file */
 
 /*
- * Resource codes -- they must be sequential for indexing   
+ * Resource codes -- they must be sequential for indexing
  */
 enum {
    R_DIRECTOR = 1001,
@@ -61,9 +61,9 @@ enum {
 
 
 /* Used for certain KeyWord tables */
-struct s_kw {       
+struct s_kw {
    const char *name;
-   int token;   
+   int token;
 };
 
 /* Job Level keyword structure */
@@ -87,8 +87,8 @@ struct FILESET;
 struct POOL;
 struct RUN;
 
-/* 
- *   Director Resource  
+/*
+ *   Director Resource
  *
  */
 struct DIRRES {
@@ -125,7 +125,7 @@ enum {
    Num_ACL                            /* keep last */
 };
 
-/* 
+/*
  *    Console Resource
  */
 struct CONRES {
@@ -174,7 +174,7 @@ struct CLIENT {
 
 /*
  *   Store Resource
- * 
+ *
  */
 struct STORE {
    RES   hdr;
@@ -184,7 +184,7 @@ struct STORE {
    char *address;
    char *password;
    char *media_type;
-   char *dev_name;   
+   char *dev_name;
    int  autochanger;                  /* set if autochanger */
    uint32_t MaxConcurrentJobs;        /* Maximume concurrent jobs */
    uint32_t NumConcurrentJobs;        /* number of concurrent jobs running */
@@ -228,7 +228,7 @@ struct JOB {
    int RescheduleTimes;               /* Number of times to reschedule job */
    utime_t RescheduleInterval;        /* Reschedule interval */
    utime_t JobRetention;              /* job retention period in seconds */
-  
+
    MSGS      *messages;               /* How and where to send messages */
    SCHED     *schedule;               /* When -- Automatic schedule */
    CLIENT    *client;                 /* Who to backup */
@@ -266,7 +266,7 @@ struct INCEXE {
    alist name_list;                   /* filename list -- holds char * */
 };
 
-/* 
+/*
  *   FileSet Resource
  *
  */
@@ -284,8 +284,8 @@ struct FILESET {
    int ignore_fs_changes;             /* Don't force Full if FS changed */
 };
 
- 
-/* 
+
+/*
  *   Schedule Resource
  *
  */
@@ -310,7 +310,7 @@ struct COUNTER {
 };
 
 /*
- *   Pool Resource   
+ *   Pool Resource
  *
  */
 struct POOL {
@@ -362,7 +362,7 @@ struct RUN {
    RUN *next;                         /* points to next run record */
    int level;                         /* level override */
    int Priority;                      /* priority override */
-   int job_type;  
+   int job_type;
    bool spool_data;                   /* Data spooling override */
    bool spool_data_set;               /* Data spooling override given */
    POOL *pool;                        /* Pool override */

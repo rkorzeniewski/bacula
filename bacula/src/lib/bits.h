@@ -30,7 +30,7 @@
 #define __BITS_H_
 
 /* number of bytes to hold n bits */
-#define nbytes_for_bits(n) ((((n)-1)>>3)+1) 
+#define nbytes_for_bits(n) ((((n)-1)>>3)+1)
 
 /* test if bit is set */
 #define bit_is_set(b, var) (((var)[(b)>>3] & (1<<((b)&0x7))) != 0)
@@ -50,7 +50,7 @@
    for (i=f; i<=l; i++)  \
       set_bit(i, var); \
 }
- 
+
 /* clear range of bits */
 #define clear_bits(f, l, var) { \
    int i; \

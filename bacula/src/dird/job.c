@@ -56,7 +56,7 @@ void init_job_server(int max_workers)
 {
    int stat;
    watchdog_t *wd;
-   
+
    if ((stat = jobq_init(&job_queue, max_workers, job_thread)) != 0) {
       berrno be;
       Emsg1(M_ABORT, 0, _("Could not init job queue: ERR=%s\n"), be.strerror(stat));
@@ -121,7 +121,7 @@ JobId_t run_job(JCR *jcr)
    Dmsg0(50, "DB opened\n");
 
    /*
-    * Create Job record  
+    * Create Job record
     */
    create_unique_job_name(jcr, jcr->job->hdr.name);
    set_jcr_job_status(jcr, JS_Created);
@@ -132,7 +132,7 @@ JobId_t run_job(JCR *jcr)
    }
    JobId = jcr->JobId = jcr->jr.JobId;
 
-   Dmsg4(100, "Created job record JobId=%d Name=%s Type=%c Level=%c\n", 
+   Dmsg4(100, "Created job record JobId=%d Name=%s Type=%c Level=%c\n",
        jcr->JobId, jcr->Job, jcr->jr.JobType, jcr->jr.JobLevel);
    Dmsg0(200, "Add jrc to work queue\n");
 
@@ -156,8 +156,8 @@ bail_out:
 }
 
 
-/* 
- * This is the engine called by jobq.c:jobq_add() when we were pulled		     
+/*
+ * This is the engine called by jobq.c:jobq_add() when we were pulled
  *  from the work queue.
  *  At this point, we are running in our own thread and all
  *    necessary resources are allocated -- see jobq.c
@@ -195,7 +195,7 @@ static void *job_thread(void *arg)
 	    int status;
 	    BPIPE *bpipe;
 	    char line[MAXSTRING];
-	    
+
             before = edit_job_codes(jcr, before, jcr->job->RunBeforeJob, "");
             bpipe = open_bpipe(before, 0, "r");
 	    free_pool_memory(before);
@@ -254,7 +254,7 @@ static void *job_thread(void *arg)
 	    int status;
 	    BPIPE *bpipe;
 	    char line[MAXSTRING];
-	    
+
 	    if (jcr->JobStatus == JS_Terminated) {
                after = edit_job_codes(jcr, after, jcr->job->RunAfterJob, "");
 	    } else {
@@ -268,7 +268,7 @@ static void *job_thread(void *arg)
 	    status = close_bpipe(bpipe);
 	    /*
 	     * Note, if we get an error here, do not mark the
-	     *	job in error, simply report the error condition.   
+	     *	job in error, simply report the error condition.
 	     */
 	    if (status != 0) {
 	       berrno be;
@@ -298,7 +298,7 @@ bail_out:
 /*
  * Cancel a job -- typically called by the UA (Console program), but may also
  *		be called by the job watchdog.
- * 
+ *
  *  Returns: 1 if cancel appears to be successful
  *	     0 on failure. Message sent to ua->jcr.
  */
@@ -319,7 +319,7 @@ int cancel_job(UAContext *ua, JCR *jcr)
 	      jcr->JobId, jcr->Job);
       jobq_remove(&job_queue, jcr); /* attempt to remove it from queue */
       return 1;
-	 
+
    default:
       set_jcr_job_status(jcr, JS_Canceled);
 
@@ -550,7 +550,7 @@ bool get_or_create_client_record(JCR *jcr)
    }
    pm_strcpy(jcr->client_name, jcr->client->hdr.name);
    if (!db_create_client_record(jcr, jcr->db, &cr)) {
-      Jmsg(jcr, M_FATAL, 0, _("Could not create Client record. ERR=%s\n"), 
+      Jmsg(jcr, M_FATAL, 0, _("Could not create Client record. ERR=%s\n"),
 	 db_strerror(jcr->db));
       return false;
    }
@@ -561,7 +561,7 @@ bool get_or_create_client_record(JCR *jcr)
       }
       pm_strcpy(jcr->client_uname, cr.Uname);
    }
-   Dmsg2(100, "Created Client %s record %d\n", jcr->client->hdr.name, 
+   Dmsg2(100, "Created Client %s record %d\n", jcr->client->hdr.name,
       jcr->jr.ClientId);
    return true;
 }
@@ -586,17 +586,17 @@ bool get_or_create_fileset_record(JCR *jcr, FILESET_DBR *fsr)
    if (!jcr->fileset->ignore_fs_changes ||
        !db_get_fileset_record(jcr, jcr->db, fsr)) {
       if (!db_create_fileset_record(jcr, jcr->db, fsr)) {
-         Jmsg(jcr, M_ERROR, 0, _("Could not create FileSet \"%s\" record. ERR=%s\n"), 
+         Jmsg(jcr, M_ERROR, 0, _("Could not create FileSet \"%s\" record. ERR=%s\n"),
 	    fsr->FileSet, db_strerror(jcr->db));
 	 return false;
-      }   
+      }
    }
    jcr->jr.FileSetId = fsr->FileSetId;
    if (fsr->created) {
-      Jmsg(jcr, M_INFO, 0, _("Created new FileSet record \"%s\" %s\n"), 
+      Jmsg(jcr, M_INFO, 0, _("Created new FileSet record \"%s\" %s\n"),
 	 fsr->FileSet, fsr->cCreateTime);
    }
-   Dmsg2(119, "Created FileSet %s record %u\n", jcr->fileset->hdr.name, 
+   Dmsg2(119, "Created FileSet %s record %u\n", jcr->fileset->hdr.name,
       jcr->jr.FileSetId);
    return true;
 }
@@ -628,7 +628,7 @@ void update_job_end_record(JCR *jcr)
    jcr->jr.VolSessionId = jcr->VolSessionId;
    jcr->jr.VolSessionTime = jcr->VolSessionTime;
    if (!db_update_job_end_record(jcr, jcr->db, &jcr->jr)) {
-      Jmsg(jcr, M_WARNING, 0, _("Error updating job record. %s"), 
+      Jmsg(jcr, M_WARNING, 0, _("Error updating job record. %s"),
 	 db_strerror(jcr->db));
    }
 }
@@ -652,7 +652,7 @@ void create_unique_job_name(JCR *jcr, const char *base_name)
    char *p;
 
    /* Guarantee unique start time -- maximum one per second, and
-    * thus unique Job Name 
+    * thus unique Job Name
     */
    P(mutex);			      /* lock creation of jobs */
    now = time(NULL);
@@ -666,7 +666,7 @@ void create_unique_job_name(JCR *jcr, const char *base_name)
    /* Form Unique JobName */
    localtime_r(&now, &tm);
    /* Use only characters that are permitted in Windows filenames */
-   strftime(dt, sizeof(dt), "%Y-%m-%d_%H.%M.%S", &tm); 
+   strftime(dt, sizeof(dt), "%Y-%m-%d_%H.%M.%S", &tm);
    bstrncpy(name, base_name, sizeof(name));
    name[sizeof(name)-22] = 0;	       /* truncate if too long */
    bsnprintf(jcr->Job, sizeof(jcr->Job), "%s.%s", name, dt); /* add date & time */
@@ -705,7 +705,7 @@ void dird_free_jcr(JCR *jcr)
       bnet_close(jcr->store_bsock);
       jcr->store_bsock = NULL;
    }
-   if (jcr->fname) {  
+   if (jcr->fname) {
       Dmsg0(200, "Free JCR fname\n");
       free_pool_memory(jcr->fname);
       jcr->fname = NULL;
@@ -758,9 +758,12 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    }
    jcr->JobPriority = job->Priority;
    /* Copy storage definitions -- deleted in dir_free_jcr above */
-   for (int i=0; i<MAX_STORE; i++) {
+   for (int i=0; i < MAX_STORE; i++) {
       STORE *st;
       if (job->storage[i]) {
+	 if (jcr->storage[i]) {
+	    delete jcr->storage[i];
+	 }
 	 jcr->storage[i] = New(alist(10, not_owned_by_alist));
 	 foreach_alist(st, job->storage[i]) {
 	    jcr->storage[i]->append(st);
@@ -781,7 +784,7 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    jcr->dif_pool = job->dif_pool;
    jcr->catalog = job->client->catalog;
    jcr->fileset = job->fileset;
-   jcr->messages = job->messages; 
+   jcr->messages = job->messages;
    jcr->spool_data = job->spool_data;
    if (jcr->RestoreBootstrap) {
       free(jcr->RestoreBootstrap);
@@ -812,10 +815,10 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    }
 }
 
-/* 
+/*
  * copy the storage definitions from an old JCR to a new one
  */
-void copy_storage(JCR *new_jcr, JCR *old_jcr)  
+void copy_storage(JCR *new_jcr, JCR *old_jcr)
 {
    for (int i=0; i < MAX_STORE; i++) {
       if (old_jcr->storage[i]) {

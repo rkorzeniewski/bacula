@@ -4,10 +4,10 @@
  * It accepts a number of simple commands from the File daemon
  * and acts on them. When a request to append data is made,
  * it opens a data channel and accepts data from the
- * File daemon. 
+ * File daemon.
  *
  *   Version $Id$
- * 
+ *
  */
 /*
    Copyright (C) 2000-2004 Kern Sibbald and John Walker
@@ -82,14 +82,14 @@ static void usage()
    exit(1);
 }
 
-/********************************************************************* 
+/*********************************************************************
  *
  *  Main Bacula Unix Storage Daemon
  *
  */
 int main (int argc, char *argv[])
 {
-   int ch;   
+   int ch;
    int no_signals = FALSE;
    int test_config = FALSE;
    pthread_t thid;
@@ -123,7 +123,7 @@ int main (int argc, char *argv[])
       case 'd':                    /* debug level */
 	 debug_level = atoi(optarg);
 	 if (debug_level <= 0) {
-	    debug_level = 1; 
+	    debug_level = 1;
 	 }
 	 break;
 
@@ -159,7 +159,7 @@ int main (int argc, char *argv[])
       default:
 	 usage();
 	 break;
-      }  
+      }
    }
    argc -= optind;
    argv += optind;
@@ -169,7 +169,7 @@ int main (int argc, char *argv[])
 	 free(configfile);
       }
       configfile = bstrdup(*argv);
-      argc--; 
+      argc--;
       argv++;
    }
    if (argc)
@@ -223,12 +223,12 @@ int main (int argc, char *argv[])
 
    init_jcr_subsystem();	      /* start JCR watchdogs etc. */
 
-   /* 
+   /*
     * Sleep a bit to give device thread a chance to lock the resource
     * chain before we start the server.
     */
    bmicrosleep(1, 0);
-				 
+
    /* Single server used for Director and File daemon */
    bnet_thread_server(me->sdaddrs, me->max_concurrent_jobs * 2 + 1,
 		      &dird_workq, handle_connection_request);
@@ -262,7 +262,7 @@ static void check_config()
 
    if (GetNextRes(R_STORAGE, (RES *)me) != NULL) {
       UnlockRes();
-      Emsg1(M_ERROR_TERM, 0, _("Only one Storage resource permitted in %s\n"), 
+      Emsg1(M_ERROR_TERM, 0, _("Only one Storage resource permitted in %s\n"),
 	 configfile);
    }
    if (GetNextRes(R_DIRECTOR, NULL) == NULL) {
@@ -278,7 +278,7 @@ static void check_config()
    if (!me->messages) {
       me->messages = (MSGS *)GetNextRes(R_MSGS, NULL);
       if (!me->messages) {
-         Emsg1(M_ERROR_TERM, 0, _("No Messages resource defined in %s. Cannot continue.\n"),
+	 Emsg1(M_ERROR_TERM, 0, _("No Messages resource defined in %s. Cannot continue.\n"),
 	    configfile);
       }
    }
@@ -291,7 +291,7 @@ static void check_config()
       Emsg1(M_ERROR_TERM, 0, _("No Working Directory defined in %s. Cannot continue.\n"),
 	 configfile);
    }
-   
+
    set_working_directory(me->working_directory);
 }
 
@@ -312,17 +312,17 @@ void *device_allocation(void *arg)
       device->dev = init_dev(NULL, device);
       Dmsg1(10, "SD init done %s\n", device->device_name);
       if (!device->dev) {
-         Emsg1(M_ERROR, 0, _("Could not initialize %s\n"), device->device_name);
+	 Emsg1(M_ERROR, 0, _("Could not initialize %s\n"), device->device_name);
 	 continue;
       }
 
       if (device->cap_bits & CAP_ALWAYSOPEN) {
-         Dmsg1(20, "calling first_open_device %s\n", device->device_name);
+	 Dmsg1(20, "calling first_open_device %s\n", device->device_name);
 	 if (!first_open_device(device->dev)) {
-            Emsg1(M_ERROR, 0, _("Could not open device %s\n"), device->device_name);
+	    Emsg1(M_ERROR, 0, _("Could not open device %s\n"), device->device_name);
 	 }
       }
-      if (device->cap_bits & CAP_AUTOMOUNT && device->dev && 
+      if (device->cap_bits & CAP_AUTOMOUNT && device->dev &&
 	  device->dev->state & ST_OPENED) {
 	 JCR *jcr;
 	 DCR *dcr;
@@ -331,7 +331,7 @@ void *device_allocation(void *arg)
 	 /* Initialize FD start condition variable */
 	 int errstat = pthread_cond_init(&jcr->job_start_wait, NULL);
 	 if (errstat != 0) {
-            Jmsg1(jcr, M_ABORT, 0, _("Unable to init job cond variable: ERR=%s\n"), strerror(errstat));
+	    Jmsg1(jcr, M_ABORT, 0, _("Unable to init job cond variable: ERR=%s\n"), strerror(errstat));
 	 }
 	 jcr->device = device;
 	 dcr = new_dcr(jcr, device->dev);
@@ -340,12 +340,12 @@ void *device_allocation(void *arg)
 	       memcpy(&dcr->dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dcr->dev->VolCatInfo));
 	       break;
 	    default:
-               Emsg1(M_WARNING, 0, _("Could not mount device %s\n"), device->device_name);
+	       Emsg1(M_WARNING, 0, _("Could not mount device %s\n"), device->device_name);
 	       break;
 	 }
 	 free_jcr(jcr);
       }
-   } 
+   }
    UnlockRes();
    return NULL;
 }
@@ -378,10 +378,10 @@ void terminate_stored(int sig)
 	    continue;		      /* ignore console */
 	 }
 	 set_jcr_job_status(jcr, JS_Canceled);
-	 fd = jcr->file_bsock;	
+	 fd = jcr->file_bsock;
 	 if (fd) {
 	    fd->timed_out = true;
-            Dmsg1(100, "term_stored killing JobId=%d\n", jcr->JobId);
+	    Dmsg1(100, "term_stored killing JobId=%d\n", jcr->JobId);
 	    pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
 	    if (jcr->device && jcr->device->dev && jcr->device->dev->dev_blocked) {
 	       pthread_cond_signal(&jcr->device->dev->wait_next_vol);
@@ -403,7 +403,7 @@ void terminate_stored(int sig)
       if (device->dev) {
 	 term_dev(device->dev);
       }
-   } 
+   }
    UnlockRes();
 
    if (configfile)

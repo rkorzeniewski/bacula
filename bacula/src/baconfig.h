@@ -55,7 +55,7 @@
 #endif
 
 /* Allow printing of NULL pointers */
-#define NPRT(x) (x)?(x):"*None*" 
+#define NPRT(x) (x)?(x):"*None*"
 
 #ifdef ENABLE_NLS
 #include <libintl.h>
@@ -76,7 +76,7 @@
 #define MAXSTRING 500
 
 /* Maximum length to edit time/date */
-#define MAX_TIME_LENGTH 50  
+#define MAX_TIME_LENGTH 50
 
 /* Maximum Name length including EOS */
 #define MAX_NAME_LENGTH 128
@@ -141,8 +141,8 @@
 /*** FIXME ***/
 
 
-/* 
- *  File type (Bacula defined).           
+/*
+ *  File type (Bacula defined).
  *  NOTE!!! These are saved in the Attributes record on the tape, so
  *          do not change them. If need be, add to them.
  *
@@ -151,7 +151,7 @@
  *    additional optional fields in the attribute record.
  */
 #define FT_MASK       0xFFFF          /* Bits used by FT (type) */
-#define FT_LNKSAVED   1               /* hard link to file already saved */  
+#define FT_LNKSAVED   1               /* hard link to file already saved */
 #define FT_REGE       2               /* Regular file but empty */
 #define FT_REG        3               /* Regular file */
 #define FT_LNK        4               /* Soft Link */
@@ -260,13 +260,13 @@ extern void _v(char *file, int line, pthread_mutex_t *m);
 #define P(x) \
    do { int errstat; if ((errstat=pthread_mutex_lock(&(x)))) \
       e_msg(__FILE__, __LINE__, M_ABORT, 0, "Mutex lock failure. ERR=%s\n",\
-           strerror(errstat)); \
+	   strerror(errstat)); \
    } while(0)
 
 #define V(x) \
    do { int errstat; if ((errstat=pthread_mutex_unlock(&(x)))) \
-         e_msg(__FILE__, __LINE__, M_ABORT, 0, "Mutex unlock failure. ERR=%s\n",\
-           strerror(errstat)); \
+	 e_msg(__FILE__, __LINE__, M_ABORT, 0, "Mutex unlock failure. ERR=%s\n",\
+	   strerror(errstat)); \
    } while(0)
 
 #endif /* DEBUG_MUTEX */
@@ -275,13 +275,13 @@ extern void _v(char *file, int line, pthread_mutex_t *m);
 #define Pw(x) \
    do { int errstat; if ((errstat=rwl_writelock(&(x)))) \
       e_msg(__FILE__, __LINE__, M_ABORT, 0, "Write lock lock failure. ERR=%s\n",\
-           strerror(errstat)); \
+	   strerror(errstat)); \
    } while(0)
 
 #define Vw(x) \
    do { int errstat; if ((errstat=rwl_writeunlock(&(x)))) \
-         e_msg(__FILE__, __LINE__, M_ABORT, 0, "Write lock unlock failure. ERR=%s\n",\
-           strerror(errstat)); \
+	 e_msg(__FILE__, __LINE__, M_ABORT, 0, "Write lock unlock failure. ERR=%s\n",\
+	   strerror(errstat)); \
    } while(0)
 
 #define LockRes()   b_LockRes(__FILE__, __LINE__)
@@ -378,7 +378,7 @@ void b_memset(const char *file, int line, void *mem, int val, size_t num);
 #define Pmsg13(lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13) p_msg(__FILE__,__LINE__,lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13)
 #define Pmsg14(lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14) p_msg(__FILE__,__LINE__,lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14)
 
-       
+
 /* Daemon Error Messages that are delivered according to the message resource */
 #define Emsg0(typ, lvl, msg)             e_msg(__FILE__, __LINE__, typ, lvl, msg)
 #define Emsg1(typ, lvl, msg, a1)         e_msg(__FILE__, __LINE__, typ, lvl, msg, a1)
@@ -463,7 +463,7 @@ int  m_msg(const char *file, int line, POOLMEM *&pool_buf, const char *fmt, ...)
 #endif
 
 #ifdef HAVE_SUN_OS
-   /* 
+   /*
     * On Solaris 2.5, threads are not timesliced by default, so we need to
     * explictly increase the conncurrency level.
     */
@@ -504,7 +504,7 @@ extern "C" int getdomainname(char *name, int len);
 extern "C" int fchdir(int filedes);
 extern "C" long gethostid(void);
 #endif
- 
+
 /* This probably should be done on a machine by machine basic, but it works */
 #define ALIGN_SIZE (sizeof(double))
 #define BALIGN(x) (((x) + ALIGN_SIZE - 1) & ~(ALIGN_SIZE -1))
@@ -517,7 +517,7 @@ extern "C" long gethostid(void);
 
 /*
  * Replace codes needed in both file routines and non-file routines
- * Job replace codes -- in "replace"   
+ * Job replace codes -- in "replace"
  */
 #define REPLACE_ALWAYS   'a'
 #define REPLACE_IFNEWER  'w'
@@ -532,7 +532,7 @@ extern "C" long gethostid(void);
 #endif
 #ifdef HAVE_NL_LANGINFO
 #include <langinfo.h>
-#else 
+#else
 #define nl_langinfo(x) ("ANSI_X3.4-1968")
 #endif
 

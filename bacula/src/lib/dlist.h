@@ -23,7 +23,7 @@
  */
 
 /* ========================================================================
- * 
+ *
  *   Doubly linked list  -- dlist
  *
  *    Kern Sibbald, MMIV
@@ -34,7 +34,7 @@
 
 /* In case you want to specifically specify the offset to the link */
 #define OFFSET(item, link) ((char *)(link) - (char *)(item))
-/* 
+/*
  * There is a lot of extra casting here to work around the fact
  * that some compilers (Sun and Visual C++) do not accept
  * (void *) as an lvalue on the left side of an equal.
@@ -46,7 +46,7 @@
 
 #ifdef the_old_way
 #define foreach_dlist(var, list) \
-        for((var)=NULL; (((void *)(var))=(list)->next(var)); )
+	for((var)=NULL; (((void *)(var))=(list)->next(var)); )
 #endif
 
 
@@ -82,12 +82,12 @@ public:
 };
 
 
-/*                            
+/*
  * This allows us to do explicit initialization,
  *   allowing us to mix C++ classes inside malloc'ed
  *   C structures. Define before called in constructor.
  */
-inline void dlist::init(void *item, dlink *link) 
+inline void dlist::init(void *item, dlink *link)
 {
    head = tail = NULL;
    loffset = (char *)link - (char *)item;
@@ -97,12 +97,12 @@ inline void dlist::init(void *item, dlink *link)
    num_items = 0;
 }
 
-/*             
- * Constructor called with the address of a 
+/*
+ * Constructor called with the address of a
  *   member of the list (not the list head), and
  *   the address of the link within that member.
  * If the link is at the beginning of the list member,
- *   then there is no need to specify the link address 
+ *   then there is no need to specify the link address
  *   since the offset is zero.
  */
 inline dlist::dlist(void *item, dlink *link)
@@ -125,7 +125,7 @@ inline int dlist::size() const
    return num_items;
 }
 
-   
+
 
 inline void * dlist::first() const
 {

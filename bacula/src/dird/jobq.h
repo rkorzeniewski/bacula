@@ -1,5 +1,5 @@
 /*
- * Bacula job queue routines. 
+ * Bacula job queue routines.
  *
  *  Kern Sibbald, July MMIII
  *
@@ -29,10 +29,10 @@
 
  */
 
-#ifndef __JOBQ_H 
+#ifndef __JOBQ_H
 #define __JOBQ_H 1
 
-/* 
+/*
  * Structure to keep track of job queue request
  */
 struct jobq_item_t {
@@ -40,7 +40,7 @@ struct jobq_item_t {
    JCR *jcr;
 };
 
-/* 
+/*
  * Structure describing a work queue
  */
 struct jobq_t {

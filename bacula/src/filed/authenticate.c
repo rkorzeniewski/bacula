@@ -4,7 +4,7 @@
  *   Kern Sibbald, October 2000
  *
  *   Version $Id$
- * 
+ *
  */
 /*
    Copyright (C) 2000-2004 Kern Sibbald and John Walker
@@ -25,7 +25,7 @@
    MA 02111-1307, USA.
 
  */
-  
+
 #include "bacula.h"
 #include "filed.h"
 
@@ -33,7 +33,7 @@ static char OK_hello[]  = "2000 OK Hello\n";
 static char Dir_sorry[] = "2999 No go\n";
 
 
-/********************************************************************* 
+/*********************************************************************
  *
  */
 static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
@@ -49,9 +49,9 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
       return 0;
    }
    if (bs->msglen < 25 || bs->msglen > 200) {
-      Dmsg2(50, _("Bad Hello command from Director at %s. Len=%d.\n"), 
+      Dmsg2(50, _("Bad Hello command from Director at %s. Len=%d.\n"),
 	    bs->who, bs->msglen);
-      Emsg2(M_FATAL, 0, _("Bad Hello command from Director at %s. Len=%d.\n"), 
+      Emsg2(M_FATAL, 0, _("Bad Hello command from Director at %s. Len=%d.\n"),
 	    bs->who, bs->msglen);
       return 0;
    }
@@ -61,9 +61,9 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
    if (sscanf(bs->msg, "Hello Director %s calling\n", dirname) != 1) {
       free_pool_memory(dirname);
       bs->msg[100] = 0;
-      Dmsg2(50, _("Bad Hello command from Director at %s: %s\n"), 
+      Dmsg2(50, _("Bad Hello command from Director at %s: %s\n"),
 	    bs->who, bs->msg);
-      Emsg2(M_FATAL, 0, _("Bad Hello command from Director at %s: %s\n"), 
+      Emsg2(M_FATAL, 0, _("Bad Hello command from Director at %s: %s\n"),
 	    bs->who, bs->msg);
       return 0;
    }
@@ -77,25 +77,25 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
    if (!director) {
       Dmsg2(50, _("Connection from unknown Director %s at %s rejected.\n"),
 	    dirname, bs->who);
-      Emsg2(M_FATAL, 0, _("Connection from unknown Director %s at %s rejected.\n"   
-       "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"), 
+      Emsg2(M_FATAL, 0, _("Connection from unknown Director %s at %s rejected.\n"
+       "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"),
 	    dirname, bs->who);
       free_pool_memory(dirname);
       return 0;
    }
    btimer_t *tid = start_bsock_timer(bs, AUTH_TIMEOUT);
-   auth = cram_md5_auth(bs, director->password, ssl_need);  
+   auth = cram_md5_auth(bs, director->password, ssl_need);
    if (auth) {
-      get_auth = cram_md5_get_auth(bs, director->password, ssl_need);  
+      get_auth = cram_md5_get_auth(bs, director->password, ssl_need);
       if (!get_auth) {
-         Dmsg1(50, "cram_get_auth failed for %s\n", bs->who);
+	 Dmsg1(50, "cram_get_auth failed for %s\n", bs->who);
       }
    } else {
       Dmsg1(50, "cram_auth failed for %s\n", bs->who);
    }
    if (!auth || !get_auth) {
-      Emsg1(M_FATAL, 0, _("Incorrect password given by Director at %s.\n"  
-       "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"), 
+      Emsg1(M_FATAL, 0, _("Incorrect password given by Director at %s.\n"
+       "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"),
 	    bs->who);
       director = NULL;
    }
@@ -108,7 +108,7 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
 /*
  * Inititiate the communications with the Director.
  * He has made a connection to our server.
- * 
+ *
  * Basic tasks done here:
  *   We read Director's initial message and authorize him.
  *
@@ -137,19 +137,19 @@ int authenticate_storagedaemon(JCR *jcr)
    bool get_auth, auth = false;
 
    btimer_t *tid = start_bsock_timer(sd, AUTH_TIMEOUT);
-   get_auth = cram_md5_get_auth(sd, jcr->sd_auth_key, ssl_need);  
+   get_auth = cram_md5_get_auth(sd, jcr->sd_auth_key, ssl_need);
    if (!get_auth) {
       Dmsg1(50, "cram_get_auth failed for %s\n", sd->who);
    } else {
       auth = cram_md5_auth(sd, jcr->sd_auth_key, ssl_need);
       if (!auth) {
-         Dmsg1(50, "cram_auth failed for %s\n", sd->who);
+	 Dmsg1(50, "cram_auth failed for %s\n", sd->who);
       }
    }
    stop_bsock_timer(tid);
    memset(jcr->sd_auth_key, 0, strlen(jcr->sd_auth_key));
    if (!get_auth || !auth) {
-      Jmsg(jcr, M_FATAL, 0, _("Authorization key rejected by Storage daemon.\n"   
+      Jmsg(jcr, M_FATAL, 0, _("Authorization key rejected by Storage daemon.\n"
        "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"));
    }
    return get_auth && auth;

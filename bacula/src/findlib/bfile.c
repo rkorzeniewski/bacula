@@ -36,7 +36,7 @@
 #endif
 
 /* ===============================================================
- * 
+ *
  *	      U N I X	AND   W I N D O W S
  *
  * ===============================================================
@@ -94,7 +94,7 @@ const char *stream_to_ascii(int stream)
 
 
 /* ===============================================================
- * 
+ *
  *	      W I N D O W S
  *
  * ===============================================================
@@ -120,7 +120,7 @@ void binit(BFILE *bfd)
  *   Returns 1 if function worked
  *   Returns 0 if failed (i.e. do not have Backup API on this machine)
  */
-int set_win32_backup(BFILE *bfd) 
+int set_win32_backup(BFILE *bfd)
 {
    /* We enable if possible here */
    bfd->use_backup_api = have_win32_api();
@@ -141,10 +141,10 @@ void set_prog(BFILE *bfd, char *prog, JCR *jcr)
 }
 
 /*
- * Return 1 if we are NOT using Win32 BackupWrite() 
+ * Return 1 if we are NOT using Win32 BackupWrite()
  * return 0 if are
  */
-int is_portable_backup(BFILE *bfd) 
+int is_portable_backup(BFILE *bfd)
 {
    return !bfd->use_backup_api;
 }
@@ -212,7 +212,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 
    if (flags & O_CREAT) {	      /* Create */
       if (bfd->use_backup_api) {
-	 dwaccess = GENERIC_WRITE|FILE_ALL_ACCESS|WRITE_OWNER|WRITE_DAC|ACCESS_SYSTEM_SECURITY; 	       
+	 dwaccess = GENERIC_WRITE|FILE_ALL_ACCESS|WRITE_OWNER|WRITE_DAC|ACCESS_SYSTEM_SECURITY;
 	 dwflags = FILE_FLAG_BACKUP_SEMANTICS;
       } else {
 	 dwaccess = GENERIC_WRITE;
@@ -276,12 +276,12 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
    return bfd->mode == BF_CLOSED ? -1 : 1;
 }
 
-/* 
+/*
  * Returns  0 on success
  *	   -1 on error
  */
 int bclose(BFILE *bfd)
-{ 
+{
    int stat = 0;
 
    if (bfd->errmsg) {
@@ -293,7 +293,7 @@ int bclose(BFILE *bfd)
    }
    if (bfd->use_backup_api && bfd->mode == BF_READ) {
       BYTE buf[10];
-      if (!bfd->lpContext && !p_BackupRead(bfd->fh,   
+      if (!bfd->lpContext && !p_BackupRead(bfd->fh,
 	      buf,		      /* buffer */
 	      (DWORD)0, 	      /* bytes to read */
 	      &bfd->rw_bytes,	      /* bytes read */
@@ -302,10 +302,10 @@ int bclose(BFILE *bfd)
 	      &bfd->lpContext)) {     /* Read context */
 	 errno = b_errno_win32;
 	 stat = -1;
-      } 
+      }
    } else if (bfd->use_backup_api && bfd->mode == BF_WRITE) {
       BYTE buf[10];
-      if (!bfd->lpContext && !p_BackupWrite(bfd->fh,   
+      if (!bfd->lpContext && !p_BackupWrite(bfd->fh,
 	      buf,		      /* buffer */
 	      (DWORD)0, 	      /* bytes to read */
 	      &bfd->rw_bytes,	      /* bytes written */
@@ -314,7 +314,7 @@ int bclose(BFILE *bfd)
 	      &bfd->lpContext)) {     /* Write context */
 	 errno = b_errno_win32;
 	 stat = -1;
-      } 
+      }
    }
    if (!CloseHandle(bfd->fh)) {
       stat = -1;
@@ -408,7 +408,7 @@ off_t blseek(BFILE *bfd, off_t offset, int whence)
 #else  /* Unix systems */
 
 /* ===============================================================
- * 
+ *
  *	      U N I X
  *
  * ===============================================================
@@ -420,16 +420,16 @@ void binit(BFILE *bfd)
 }
 
 int have_win32_api()
-{ 
+{
    return 0;			      /* no can do */
-} 
+}
 
 /*
  * Enables using the Backup API (win32_data).
  *   Returns 1 if function worked
  *   Returns 0 if failed (i.e. do not have Backup API on this machine)
  */
-int set_win32_backup(BFILE *bfd) 
+int set_win32_backup(BFILE *bfd)
 {
    return 0;			      /* no can do */
 }
@@ -444,7 +444,7 @@ int set_portable_backup(BFILE *bfd)
  * Return 1 if we are writing in portable format
  * return 0 if not
  */
-int is_portable_backup(BFILE *bfd) 
+int is_portable_backup(BFILE *bfd)
 {
    return 1;			      /* portable by definition */
 }
@@ -500,9 +500,9 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
       ecmd = edit_job_codes(bfd->jcr, ecmd, bfd->prog, fname);
       const char *pmode;
       if (flags & O_RDONLY) {
-         pmode = "r";
+	 pmode = "r";
       } else {
-         pmode = "w";
+	 pmode = "w";
       }
       bfd->bpipe = open_bpipe(ecmd, 0, pmode);
       if (bfd->bpipe == NULL) {
@@ -548,8 +548,8 @@ int bopen_rsrc(BFILE *bfd, const char *fname, int flags, mode_t mode)
 #endif
 
 int bclose(BFILE *bfd)
-{ 
-   int stat;  
+{
+   int stat;
    Dmsg1(400, "Close file %d\n", bfd->fid);
    if (bfd->fid == -1) {
       return 0;
@@ -562,7 +562,7 @@ int bclose(BFILE *bfd)
       bfd->bpipe = NULL;
       return stat;
    }
-   
+
    /* Close normal file */
    stat = close(bfd->fid);
    bfd->berrno = errno;

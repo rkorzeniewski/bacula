@@ -56,7 +56,7 @@ struct BSOCK {
    FILE *spool_fd;                    /* spooling file */
    JCR *jcr;                          /* jcr or NULL for error msgs */
    struct sockaddr client_addr;    /* client's IP address */
-};      
+};
 
 /* Signal definitions for use in bnet_sig() */
 enum {
@@ -95,11 +95,11 @@ typedef struct s_bpkt {
    void *value;                       /* pointer to value */
 } BPKT;
 
-/*  
+/*
  * These are the data types that can be sent.
  * For all values other than string, the storage space
  *  is assumed to be allocated in the receiving packet.
- *  For BP_STRING if the *value is non-zero, it is a        
+ *  For BP_STRING if the *value is non-zero, it is a
  *  pointer to a POOLMEM buffer, and the Memory Pool
  *  routines will be used to assure that the length is
  *  adequate. NOTE!!! This pointer will be changed

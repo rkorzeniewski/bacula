@@ -1,9 +1,9 @@
 /*
- *  Bacula doubly linked list routines. 	 
+ *  Bacula doubly linked list routines.
  *
  *    dlist is a doubly linked list with the links being in the
  *	 list data item.
- *		  
+ *
  *   Kern Sibbald, July MMIII
  *
  *   Version $Id$
@@ -38,7 +38,7 @@
 /*
  * Append an item to the list
  */
-void dlist::append(void *item) 
+void dlist::append(void *item)
 {
    ((dlink *)(((char *)item)+loffset))->next = NULL;
    ((dlink *)(((char *)item)+loffset))->prev = tail;
@@ -55,7 +55,7 @@ void dlist::append(void *item)
 /*
  * Append an item to the list
  */
-void dlist::prepend(void *item) 
+void dlist::prepend(void *item)
 {
    ((dlink *)(((char *)item)+loffset))->next = head;
    ((dlink *)(((char *)item)+loffset))->prev = NULL;
@@ -63,15 +63,15 @@ void dlist::prepend(void *item)
       ((dlink *)(((char *)head)+loffset))->prev = item;
    }
    head = item;
-   if (tail == NULL) {		      /* if empty list, */		      
+   if (tail == NULL) {		      /* if empty list, */
       tail = item;		      /* item is tail too */
    }
    num_items++;
 }
 
-void dlist::insert_before(void *item, void *where)	 
+void dlist::insert_before(void *item, void *where)
 {
-   dlink *where_link = (dlink *)((char *)where+loffset);     
+   dlink *where_link = (dlink *)((char *)where+loffset);
 
    ((dlink *)(((char *)item)+loffset))->next = where;
    ((dlink *)(((char *)item)+loffset))->prev = where_link->prev;
@@ -86,9 +86,9 @@ void dlist::insert_before(void *item, void *where)
    num_items++;
 }
 
-void dlist::insert_after(void *item, void *where)	
+void dlist::insert_after(void *item, void *where)
 {
-   dlink *where_link = (dlink *)((char *)where+loffset);     
+   dlink *where_link = (dlink *)((char *)where+loffset);
 
    ((dlink *)(((char *)item)+loffset))->next = where_link->next;
    ((dlink *)(((char *)item)+loffset))->prev = where;
@@ -122,7 +122,7 @@ void *dlist::unique_binary_insert(void *item, int compare(void *item1, void *ite
       return item;
    }
    if (num_items == 1) {
-      comp = compare(item, first());	  
+      comp = compare(item, first());
       if (comp < 0) {
 	 prepend(item);
        //Dmsg0(000, "Insert before first.\n");
@@ -173,7 +173,7 @@ void *dlist::unique_binary_insert(void *item, int compare(void *item1, void *ite
 	 cur++;
       }
       while (nxt < cur) {
-	 cur_item = prev(cur_item); 
+	 cur_item = prev(cur_item);
 	 cur--;
       }
     //Dmsg1(000, "Compare item to %d\n", cur);
@@ -304,7 +304,7 @@ int main()
 
    jcr_chain = (dlist *)malloc(sizeof(dlist));
    jcr_chain->init(jcr, &jcr->link);
-    
+
    printf("Prepend 20 items 0-19\n");
    for (int i=0; i<20; i++) {
       sprintf(buf, "This is dlist item %d", i);
@@ -324,7 +324,7 @@ int main()
    jcr_chain->remove(save_jcr);
    printf("Re-insert 10th item\n");
    jcr_chain->insert_before(jcr, next_jcr);
-   
+
    printf("Print remaining list.\n");
    foreach_dlist (jcr, jcr_chain) {
       printf("Dlist item = %s\n", jcr->buf);
@@ -353,7 +353,7 @@ int main()
    jcr_chain->remove(save_jcr);
    printf("Re-insert 10th item\n");
    jcr_chain->insert_before(jcr, next_jcr);
-   
+
    printf("Print remaining list.\n");
    foreach_dlist (jcr, jcr_chain) {
       printf("Dlist item = %s\n", jcr->buf);
@@ -374,17 +374,17 @@ int main()
 	 for (int k=0; k<CNT; k++) {
 	    count++;
 	    if ((count & 0x3FF) == 0) {
-               Dmsg1(000, "At %d\n", count);
+	       Dmsg1(000, "At %d\n", count);
 	    }
 	    jcr = (MYJCR *)malloc(sizeof(MYJCR));
 	    jcr->buf = bstrdup(buf);
 	    jcr1 = (MYJCR *)jcr_chain->binary_insert(jcr, my_compare);
 	    if (jcr != jcr1) {
-               Dmsg2(000, "Insert of %s vs %s failed.\n", jcr->buf, jcr1->buf);
+	       Dmsg2(000, "Insert of %s vs %s failed.\n", jcr->buf, jcr1->buf);
 	    }
 	    buf[1]--;
 	 }
-         buf[1] = 'Z';
+	 buf[1] = 'Z';
 	 buf[2]--;
       }
       buf[2] = 'Z';

@@ -1,4 +1,4 @@
-/* 
+/*
  *   Bi-directional pipe structure
  *
  *   Version $Id$

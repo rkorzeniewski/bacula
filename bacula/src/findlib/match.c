@@ -3,7 +3,7 @@
  *   filename/pathname patterns.
  *
  *  Note, this file is used for the old style include and
- *   excludes, so is deprecated. The new style code is	
+ *   excludes, so is deprecated. The new style code is
  *   found in find.c
  *
  *   Kern E. Sibbald, December MMI
@@ -52,7 +52,7 @@ static const int fnmode = 0;
 #define bmalloc(x) sm_malloc(__FILE__, __LINE__, x)
 
 extern const int win32_client;
-       
+
 /*
  * Initialize structures for filename matching
  */
@@ -61,7 +61,7 @@ void init_include_exclude_files(FF_PKT *ff)
 }
 
 /*
- * Done doing filename matching, release all 
+ * Done doing filename matching, release all
  *  resources used.
  */
 void term_include_exclude_files(FF_PKT *ff)
@@ -86,7 +86,7 @@ void term_include_exclude_files(FF_PKT *ff)
       free(exc);
       exc = next_exc;
    }
-   
+
 }
 
 /*
@@ -103,7 +103,7 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, const char *fname)
 
    inc =(struct s_included_file *)bmalloc(sizeof(struct s_included_file) + len + 1);
    inc->options = 0;
-   inc->VerifyOpts[0] = 'V'; 
+   inc->VerifyOpts[0] = 'V';
    inc->VerifyOpts[1] = ':';
    inc->VerifyOpts[2] = 0;
 
@@ -111,42 +111,42 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, const char *fname)
    if (prefixed) {
       for (rp=fname; *rp && *rp != ' '; rp++) {
 	 switch (*rp) {
-         case 'a':                 /* alway replace */
-         case '0':                 /* no option */
+	 case 'a':                 /* alway replace */
+	 case '0':                 /* no option */
 	    break;
-         case 'f':
+	 case 'f':
 	    inc->options |= FO_MULTIFS;
 	    break;
-         case 'h':                 /* no recursion */
+	 case 'h':                 /* no recursion */
 	    inc->options |= FO_NO_RECURSION;
 	    break;
-         case 'M':                 /* MD5 */
+	 case 'M':                 /* MD5 */
 	    inc->options |= FO_MD5;
 	    break;
-         case 'n':
+	 case 'n':
 	    inc->options |= FO_NOREPLACE;
 	    break;
-         case 'p':                 /* use portable data format */
+	 case 'p':                 /* use portable data format */
 	    inc->options |= FO_PORTABLE;
 	    break;
-         case 'r':                 /* read fifo */
+	 case 'r':                 /* read fifo */
 	    inc->options |= FO_READFIFO;
 	    break;
-         case 'S':
+	 case 'S':
 	    inc->options |= FO_SHA1;
 	    break;
-         case 's':
+	 case 's':
 	    inc->options |= FO_SPARSE;
 	    break;
-         case 'm':
+	 case 'm':
 	    inc->options |= FO_MTIMEONLY;
 	    break;
-         case 'k':
+	 case 'k':
 	    inc->options |= FO_KEEPATIME;
 	    break;
-         case 'V':                  /* verify options */
+	 case 'V':                  /* verify options */
 	    /* Copy Verify Options */
-            for (j=0; *rp && *rp != ':'; rp++) {
+	    for (j=0; *rp && *rp != ':'; rp++) {
 	       inc->VerifyOpts[j] = *rp;
 	       if (j < (int)sizeof(inc->VerifyOpts) - 1) {
 		  j++;
@@ -154,19 +154,19 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, const char *fname)
 	    }
 	    inc->VerifyOpts[j] = 0;
 	    break;
-         case 'w':
+	 case 'w':
 	    inc->options |= FO_IF_NEWER;
 	    break;
-         case 'A':
+	 case 'A':
 	    inc->options |= FO_ACL;
 	    break;
-         case 'Z':                 /* gzip compression */
+	 case 'Z':                 /* gzip compression */
 	    inc->options |= FO_GZIP;
-            inc->level = *++rp - '0';
-            Dmsg1(200, "Compression level=%d\n", inc->level);
+	    inc->level = *++rp - '0';
+	    Dmsg1(200, "Compression level=%d\n", inc->level);
 	    break;
 	 default:
-            Emsg1(M_ERROR, 0, "Unknown include/exclude option: %c\n", *rp);
+	    Emsg1(M_ERROR, 0, "Unknown include/exclude option: %c\n", *rp);
 	    break;
 	 }
       }
@@ -177,7 +177,7 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, const char *fname)
       rp = fname;
    }
 
-   strcpy(inc->fname, rp);		  
+   strcpy(inc->fname, rp);
    p = inc->fname;
    len = strlen(p);
    /* Zap trailing slashes.  */
@@ -199,7 +199,7 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, const char *fname)
    /* Convert any \'s into /'s */
    for (p=inc->fname; *p; p++) {
       if (*p == '\\') {
-         *p = '/';
+	 *p = '/';
       }
    }
 #endif
@@ -214,7 +214,7 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, const char *fname)
       for (next=ff->included_files_list; next->next; next=next->next)
 	 { }
       next->next = inc;
-   }  
+   }
    Dmsg1(50, "add_fname_to_include fname=%s\n", inc->fname);
 }
 
@@ -238,18 +238,18 @@ void add_fname_to_exclude_list(FF_PKT *ff, const char *fname)
    } else {
       list = &ff->excluded_files_list;
    }
-  
+
    len = strlen(fname);
 
    exc = (struct s_excluded_file *)bmalloc(sizeof(struct s_excluded_file) + len + 1);
    exc->next = *list;
    exc->len = len;
-   strcpy(exc->fname, fname);		      
+   strcpy(exc->fname, fname);
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
    /* Convert any \'s into /'s */
    for (char *p=exc->fname; *p; p++) {
       if (*p == '\\') {
-         *p = '/';
+	 *p = '/';
       }
    }
 #endif
@@ -264,7 +264,7 @@ struct s_included_file *get_next_included_file(FF_PKT *ff, struct s_included_fil
 {
    struct s_included_file *inc;
 
-   if (ainc == NULL) { 
+   if (ainc == NULL) {
       inc = ff->included_files_list;
    } else {
       inc = ainc->next;
@@ -295,7 +295,7 @@ int file_is_included(FF_PKT *ff, const char *file)
 	    return 1;
 	 }
 	 continue;
-      } 			    
+      }
       /*
        * No wild cards. We accept a match to the
        *  end of any component.
@@ -305,7 +305,7 @@ int file_is_included(FF_PKT *ff, const char *file)
       if (inc->len == len && strcmp(inc->fname, file) == 0) {
 	 return 1;
       }
-      if (inc->len < len && file[inc->len] == '/' && 
+      if (inc->len < len && file[inc->len] == '/' &&
 	  strncmp(inc->fname, file, inc->len) == 0) {
 	 return 1;
       }
@@ -329,7 +329,7 @@ file_in_excluded_list(struct s_excluded_file *exc, const char *file)
    }
    for ( ; exc; exc=exc->next ) {
       if (fnmatch(exc->fname, file, fnmode|FNM_PATHNAME) == 0) {
-         Dmsg2(900, "Match exc pat=%s: file=%s:\n", exc->fname, file);
+	 Dmsg2(900, "Match exc pat=%s: file=%s:\n", exc->fname, file);
 	 return 1;
       }
       Dmsg2(900, "No match exc pat=%s: file=%s:\n", exc->fname, file);
@@ -348,7 +348,7 @@ int file_is_excluded(FF_PKT *ff, const char *file)
 {
    const char *p;
 
-   /* 
+   /*
     *  ***NB*** this removes the drive from the exclude
     *  rule.  Why?????
     */
@@ -365,7 +365,7 @@ int file_is_excluded(FF_PKT *ff, const char *file)
       /* Match from the beginning of a component only */
       if ((p == file || (*p != '/' && *(p-1) == '/'))
 	   && file_in_excluded_list(ff->excluded_files_list, p)) {
-	 return 1;   
+	 return 1;
       }
    }
    return 0;

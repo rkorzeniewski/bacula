@@ -40,12 +40,12 @@ static int get_autochanger_loaded_slot(JCR *jcr);
  *  On success this routine loads the indicated tape, but the
  *  label is not read, so it must be verified.
  *
- *  Note if dir is not NULL, it is the console requesting the 
+ *  Note if dir is not NULL, it is the console requesting the
  *   autoload for labeling, so we respond directly to the
  *   dir bsock.
  *
  *  Returns: 1 on success
- *	     0 on failure (no changer available) 
+ *	     0 on failure (no changer available)
  *	    -1 on error on autochanger
  */
 int autoload_device(DCR *dcr, int writing, BSOCK *dir)
@@ -55,7 +55,7 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
    int slot;
    int drive = jcr->device->drive_index;
    int rtn_stat = -1;		      /* error status */
-     
+
    slot = dcr->VolCatInfo.InChanger ? dcr->VolCatInfo.Slot : 0;
    /*
     * Handle autoloaders here.	If we cannot autoload it, we
@@ -76,57 +76,57 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
    if (slot > 0 && jcr->device->changer_name && jcr->device->changer_command) {
       uint32_t timeout = jcr->device->max_changer_wait;
       POOLMEM *changer;
-      int loaded, status;     
+      int loaded, status;
 
       changer = get_pool_memory(PM_FNAME);
 
       loaded = get_autochanger_loaded_slot(jcr);
 
       /* If tape we want is not loaded, load it. */
-      if (loaded != slot) { 
+      if (loaded != slot) {
 	 offline_or_rewind_dev(dev);
 	 /* We are going to load a new tape, so close the device */
 	 force_close_dev(dev);
 	 if (loaded != 0 && loaded != -1) {	   /* must unload drive */
-            Dmsg0(400, "Doing changer unload.\n");
-	    Jmsg(jcr, M_INFO, 0, 
-                 _("3303 Issuing autochanger \"unload slot %d, drive %d\" command.\n"),
+	    Dmsg0(400, "Doing changer unload.\n");
+	    Jmsg(jcr, M_INFO, 0,
+		 _("3303 Issuing autochanger \"unload slot %d, drive %d\" command.\n"),
 		 loaded, drive);
 	    dcr->VolCatInfo.Slot = loaded;   /* slot to be unloaded */
-	    changer = edit_device_codes(jcr, changer, 
-                        jcr->device->changer_command, "unload");
+	    changer = edit_device_codes(jcr, changer,
+			jcr->device->changer_command, "unload");
 	    status = run_program(changer, timeout, NULL);
 	    if (status != 0) {
 	       berrno be;
 	       be.set_errno(status);
-               Jmsg(jcr, M_INFO, 0, _("3992 Bad autochanger \"unload slot %d, drive %d\": ERR=%s.\n"),
+	       Jmsg(jcr, M_INFO, 0, _("3992 Bad autochanger \"unload slot %d, drive %d\": ERR=%s.\n"),
 		    slot, drive, be.strerror());
 	    }
 
-            Dmsg1(400, "unload status=%d\n", status);
+	    Dmsg1(400, "unload status=%d\n", status);
 	 }
 	 /*
-	  * Load the desired cassette	 
+	  * Load the desired cassette
 	  */
-         Dmsg1(400, "Doing changer load slot %d\n", slot);
-	 Jmsg(jcr, M_INFO, 0, 
-              _("3304 Issuing autochanger \"load slot %d, drive %d\" command.\n"), 
+	 Dmsg1(400, "Doing changer load slot %d\n", slot);
+	 Jmsg(jcr, M_INFO, 0,
+	      _("3304 Issuing autochanger \"load slot %d, drive %d\" command.\n"),
 	      slot, drive);
 	 dcr->VolCatInfo.Slot = slot;	 /* slot to be loaded */
-	 changer = edit_device_codes(jcr, changer, 
-                      jcr->device->changer_command, "load");
+	 changer = edit_device_codes(jcr, changer,
+		      jcr->device->changer_command, "load");
 	 status = run_program(changer, timeout, NULL);
 	 if (status == 0) {
-            Jmsg(jcr, M_INFO, 0, _("3305 Autochanger \"load slot %d, drive %d\", status is OK.\n"),
+	    Jmsg(jcr, M_INFO, 0, _("3305 Autochanger \"load slot %d, drive %d\", status is OK.\n"),
 		    slot, drive);
 	 } else {
 	   berrno be;
 	   be.set_errno(status);
-            Jmsg(jcr, M_INFO, 0, _("3992 Bad autochanger \"load slot %d, drive %d\": ERR=%s.\n"),
+	    Jmsg(jcr, M_INFO, 0, _("3992 Bad autochanger \"load slot %d, drive %d\": ERR=%s.\n"),
 		    slot, drive, be.strerror());
 	 }
-         Dmsg2(400, "load slot %d status=%d\n", slot, status);
-      } else { 
+	 Dmsg2(400, "load slot %d status=%d\n", slot, status);
+      } else {
 	 status = 0;		      /* we got what we want */
       }
       free_pool_memory(changer);
@@ -153,7 +153,7 @@ static int get_autochanger_loaded_slot(JCR *jcr)
    /* Find out what is loaded, zero means device is unloaded */
    Jmsg(jcr, M_INFO, 0, _("3301 Issuing autochanger \"loaded drive %d\" command.\n"),
 	drive);
-   changer = edit_device_codes(jcr, changer, jcr->device->changer_command, 
+   changer = edit_device_codes(jcr, changer, jcr->device->changer_command,
                 "loaded");
    status = run_program(changer, timeout, results);
    Dmsg3(50, "run_prog: %s stat=%d result=%s\n", changer, status, results);
@@ -169,7 +169,7 @@ static int get_autochanger_loaded_slot(JCR *jcr)
    } else {
       berrno be;
       be.set_errno(status);
-      Jmsg(jcr, M_INFO, 0, _("3991 Bad autochanger \"loaded drive %d\" command: ERR=%s.\n"), 
+      Jmsg(jcr, M_INFO, 0, _("3991 Bad autochanger \"loaded drive %d\" command: ERR=%s.\n"),
 	   drive, be.strerror());
       loaded = -1;		/* force unload */
    }
@@ -179,7 +179,7 @@ static int get_autochanger_loaded_slot(JCR *jcr)
 }
 
 /*
- * The Volume is not in the correct slot, so mark this 
+ * The Volume is not in the correct slot, so mark this
  *   Volume as not being in the Changer.
  */
 void invalid_slot_in_catalog(DCR *dcr)
@@ -225,14 +225,14 @@ bool autochanger_list(DCR *dcr, BSOCK *dir)
    loaded = get_autochanger_loaded_slot(jcr);
    if (loaded > 0) {
       bnet_fsend(dir, _("3305 Issuing autochanger \"unload slot %d\" command.\n"), loaded);
-      slot = dcr->VolCatInfo.Slot; 
+      slot = dcr->VolCatInfo.Slot;
       dcr->VolCatInfo.Slot = loaded;
       changer = edit_device_codes(jcr, changer, jcr->device->changer_command, "unload");
       int stat = run_program(changer, timeout, NULL);
       if (stat != 0) {
 	 berrno be;
 	 be.set_errno(stat);
-         Jmsg(jcr, M_INFO, 0, _("3995 Bad autochanger \"unload slot %d\" command: ERR=%s.\n"), 
+	 Jmsg(jcr, M_INFO, 0, _("3995 Bad autochanger \"unload slot %d\" command: ERR=%s.\n"),
 	      loaded, be.strerror());
       }
       dcr->VolCatInfo.Slot = slot;
@@ -248,7 +248,7 @@ bool autochanger_list(DCR *dcr, BSOCK *dir)
       return false;
    }
    /* Get output from changer */
-   while (fgets(dir->msg, len, bpipe->rfd)) { 
+   while (fgets(dir->msg, len, bpipe->rfd)) {
       dir->msglen = strlen(dir->msg);
       bnet_send(dir);
    }
@@ -270,7 +270,7 @@ bool autochanger_list(DCR *dcr, BSOCK *dir)
  *  %% = %
  *  %a = archive device name
  *  %c = changer device name
- *  %d = changer drive index	    
+ *  %d = changer drive index
  *  %f = Client's name
  *  %j = Job name
  *  %o = command
@@ -281,10 +281,10 @@ bool autochanger_list(DCR *dcr, BSOCK *dir)
  *
  *  omsg = edited output message
  *  imsg = input string containing edit codes (%x)
- *  cmd = command string (load, unload, ...) 
+ *  cmd = command string (load, unload, ...)
  *
  */
-char *edit_device_codes(JCR *jcr, char *omsg, const char *imsg, const char *cmd) 
+char *edit_device_codes(JCR *jcr, char *omsg, const char *imsg, const char *cmd)
 {
    const char *p;
    const char *str;
@@ -295,42 +295,42 @@ char *edit_device_codes(JCR *jcr, char *omsg, const char *imsg, const char *cmd)
    for (p=imsg; *p; p++) {
       if (*p == '%') {
 	 switch (*++p) {
-         case '%':
-            str = "%";
+	 case '%':
+	    str = "%";
 	    break;
-         case 'a':
+	 case 'a':
 	    str = dev_name(jcr->device->dev);
 	    break;
-         case 'c':
+	 case 'c':
 	    str = NPRT(jcr->device->changer_name);
 	    break;
-         case 'd':
-            sprintf(add, "%d", jcr->device->dev->drive_index);
+	 case 'd':
+	    sprintf(add, "%d", jcr->device->dev->drive_index);
 	    str = add;
 	    break;
-         case 'o':
+	 case 'o':
 	    str = NPRT(cmd);
 	    break;
-         case 's':
-            sprintf(add, "%d", jcr->dcr->VolCatInfo.Slot - 1);
+	 case 's':
+	    sprintf(add, "%d", jcr->dcr->VolCatInfo.Slot - 1);
 	    str = add;
 	    break;
-         case 'S':
-            sprintf(add, "%d", jcr->dcr->VolCatInfo.Slot);
+	 case 'S':
+	    sprintf(add, "%d", jcr->dcr->VolCatInfo.Slot);
 	    str = add;
 	    break;
-         case 'j':                    /* Job name */
+	 case 'j':                    /* Job name */
 	    str = jcr->Job;
 	    break;
-         case 'v':
+	 case 'v':
 	    str = NPRT(jcr->dcr->VolumeName);
 	    break;
-         case 'f':
+	 case 'f':
 	    str = NPRT(jcr->client_name);
 	    break;
 
 	 default:
-            add[0] = '%';
+	    add[0] = '%';
 	    add[1] = *p;
 	    add[2] = 0;
 	    str = add;

@@ -1,6 +1,6 @@
 /*
  * Process and thread timer routines, built on top of watchdogs.
- * 
+ *
  *    Nic Bellamy <nic@bellamy.co.nz>, October 2004.
  *
 */
@@ -39,7 +39,7 @@ static void destructor_thread_timer(watchdog_t *self);
 static void destructor_child_timer(watchdog_t *self);
 #endif
 
-/* 
+/*
  * Start a timer on a child process of pid, kill it after wait seconds.
  *
  *  Returns: btimer_t *(pointer to btimer_t struct) on success
@@ -116,7 +116,7 @@ static void callback_child_timer(watchdog_t *self)
    }
 }
 
-/* 
+/*
  * Start a timer on a thread. kill it after wait seconds.
  *
  *  Returns: btimer_t *(pointer to btimer_t struct) on success
@@ -143,7 +143,7 @@ btimer_t *start_thread_timer(pthread_t tid, uint32_t wait)
    return wid;
 }
 
-/* 
+/*
  * Start a timer on a BSOCK. kill it after wait seconds.
  *
  *  Returns: btimer_t *(pointer to btimer_t struct) on success
@@ -165,7 +165,7 @@ btimer_t *start_bsock_timer(BSOCK *bsock, uint32_t wait)
    wid->wd->interval = wait;
    register_watchdog(wid->wd);
 
-   Dmsg4(50, "Start bsock timer %p tid=%p for %d secs at %d\n", wid, 
+   Dmsg4(50, "Start bsock timer %p tid=%p for %d secs at %d\n", wid,
 	 wid->tid, wait, time(NULL));
 
    return wid;
@@ -211,7 +211,7 @@ static void callback_thread_timer(watchdog_t *self)
 {
    btimer_t *wid = (btimer_t *)self->data;
 
-   Dmsg4(50, "thread timer %p kill %s tid=%p at %d.\n", self, 
+   Dmsg4(50, "thread timer %p kill %s tid=%p at %d.\n", self,
       wid->type == TYPE_BSOCK ? "bsock" : "thread", wid->tid, time(NULL));
 
    if (wid->type == TYPE_BSOCK && wid->bsock) {

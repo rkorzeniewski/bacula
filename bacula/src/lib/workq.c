@@ -52,7 +52,7 @@
 /* Forward referenced functions */
 extern "C" void *workq_server(void *arg);
 
-/*   
+/*
  * Initialize a work queue
  *
  *  Returns: 0 on success
@@ -61,7 +61,7 @@ extern "C" void *workq_server(void *arg);
 int workq_init(workq_t *wq, int threads, void *(*engine)(void *arg))
 {
    int stat;
-			
+
    if ((stat = pthread_attr_init(&wq->attr)) != 0) {
       return stat;
    }
@@ -84,7 +84,7 @@ int workq_init(workq_t *wq, int threads, void *(*engine)(void *arg))
    wq->num_workers = 0; 	      /* no threads yet */
    wq->idle_workers = 0;	      /* no idle threads */
    wq->engine = engine; 	      /* routine to run */
-   wq->valid = WORKQ_VALID; 
+   wq->valid = WORKQ_VALID;
    return 0;
 }
 
@@ -106,8 +106,8 @@ int workq_destroy(workq_t *wq)
   }
   wq->valid = 0;		      /* prevent any more operations */
 
-  /* 
-   * If any threads are active, wake them 
+  /*
+   * If any threads are active, wake them
    */
   if (wq->num_workers > 0) {
      wq->quit = 1;
@@ -137,7 +137,7 @@ int workq_destroy(workq_t *wq)
 /*
  *  Add work to a queue
  *    wq is a queue that was created with workq_init
- *    element is a user unique item that will be passed to the 
+ *    element is a user unique item that will be passed to the
  *	  processing routine
  *    work_item will get internal work queue item -- if it is not NULL
  *    priority if non-zero will cause the item to be placed on the
@@ -148,7 +148,7 @@ int workq_add(workq_t *wq, void *element, workq_ele_t **work_item, int priority)
    int stat;
    workq_ele_t *item;
    pthread_t id;
-    
+
    Dmsg0(400, "workq_add\n");
    if (wq->valid != WORKQ_VALID) {
       return EINVAL;
@@ -224,7 +224,7 @@ int workq_remove(workq_t *wq, workq_ele_t *work_item)
    int stat, found = 0;
    pthread_t id;
    workq_ele_t *item, *prev;
-    
+
    Dmsg0(400, "workq_remove\n");
    if (wq->valid != WORKQ_VALID) {
       return EINVAL;
@@ -244,10 +244,10 @@ int workq_remove(workq_t *wq, workq_ele_t *work_item)
    if (!found) {
       return EINVAL;
    }
-   
+
    /* Move item to be first on list */
    if (wq->first != work_item) {
-      prev->next = work_item->next;   
+      prev->next = work_item->next;
       if (wq->last == work_item) {
 	 wq->last = prev;
       }
@@ -278,7 +278,7 @@ int workq_remove(workq_t *wq, workq_ele_t *work_item)
 }
 
 
-/* 
+/*
  * This is the worker thread that serves the work queue.
  * In due course, it will call the user's engine.
  */
@@ -310,7 +310,7 @@ void *workq_server(void *arg)
 	 /*
 	  * Wait 2 seconds, then if no more work, exit
 	  */
-         Dmsg0(400, "pthread_cond_timedwait()\n");
+	 Dmsg0(400, "pthread_cond_timedwait()\n");
 #ifdef xxxxxxxxxxxxxxxx_was_HAVE_CYGWIN
 	 /* CYGWIN dies with a page fault the second
 	  * time that pthread_cond_timedwait() is called
@@ -321,18 +321,18 @@ void *workq_server(void *arg)
 #else
 	 stat = pthread_cond_timedwait(&wq->work, &wq->mutex, &timeout);
 #endif
-         Dmsg1(400, "timedwait=%d\n", stat);
+	 Dmsg1(400, "timedwait=%d\n", stat);
 	 if (stat == ETIMEDOUT) {
 	    timedout = 1;
 	    break;
 	 } else if (stat != 0) {
-            /* This shouldn't happen */
-            Dmsg0(400, "This shouldn't happen\n");
+	    /* This shouldn't happen */
+	    Dmsg0(400, "This shouldn't happen\n");
 	    wq->num_workers--;
 	    pthread_mutex_unlock(&wq->mutex);
 	    return NULL;
 	 }
-      } 
+      }
       we = wq->first;
       if (we != NULL) {
 	 wq->first = we->next;
@@ -342,16 +342,16 @@ void *workq_server(void *arg)
 	 if ((stat = pthread_mutex_unlock(&wq->mutex)) != 0) {
 	    return NULL;
 	 }
-         /* Call user's routine here */
-         Dmsg0(400, "Calling user engine.\n");
+	 /* Call user's routine here */
+	 Dmsg0(400, "Calling user engine.\n");
 	 wq->engine(we->data);
-         Dmsg0(400, "Back from user engine.\n");
+	 Dmsg0(400, "Back from user engine.\n");
 	 free(we);		      /* release work entry */
-         Dmsg0(400, "relock mutex\n"); 
+	 Dmsg0(400, "relock mutex\n");
 	 if ((stat = pthread_mutex_lock(&wq->mutex)) != 0) {
 	    return NULL;
 	 }
-         Dmsg0(400, "Done lock mutex\n");
+	 Dmsg0(400, "Done lock mutex\n");
       }
       /*
        * If no more work request, and we are asked to quit, then do it
@@ -359,23 +359,23 @@ void *workq_server(void *arg)
       if (wq->first == NULL && wq->quit) {
 	 wq->num_workers--;
 	 if (wq->num_workers == 0) {
-            Dmsg0(400, "Wake up destroy routine\n");
+	    Dmsg0(400, "Wake up destroy routine\n");
 	    /* Wake up destroy routine if he is waiting */
 	    pthread_cond_broadcast(&wq->work);
 	 }
-         Dmsg0(400, "Unlock mutex\n");
+	 Dmsg0(400, "Unlock mutex\n");
 	 pthread_mutex_unlock(&wq->mutex);
-         Dmsg0(400, "Return from workq_server\n");
+	 Dmsg0(400, "Return from workq_server\n");
 	 return NULL;
       }
       Dmsg0(400, "Check for work request\n");
-      /* 
+      /*
        * If no more work requests, and we waited long enough, quit
        */
       Dmsg1(400, "wq->first==NULL = %d\n", wq->first==NULL);
       Dmsg1(400, "timedout=%d\n", timedout);
       if (wq->first == NULL && timedout) {
-         Dmsg0(400, "break big loop\n");
+	 Dmsg0(400, "break big loop\n");
 	 wq->num_workers--;
 	 break;
       }
