@@ -264,10 +264,6 @@ DCR *acquire_device_for_read(JCR *jcr, DEVICE *dev)
 	 vol_label_status = read_dev_volume_label(dcr);
       }
       
-      /****FIXME***** do not reread label if ioctl() says we are
-       *  correctly possitioned.  Possibly have way user can turn
-       *  this optimization (to be implemented) off.
-       */
       Dmsg0(200, "calling read-vol-label\n");
       switch (vol_label_status) {
       case VOL_OK:
@@ -309,7 +305,7 @@ default_path:
 	    stat = autoload_device(dcr, 0, NULL);
 	    if (stat > 0) {
 	       try_autochanger = false;
-	       continue;
+	       continue;	      /* try reading volume mounted */
 	    }
 	 }
 	 

@@ -629,7 +629,7 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
 }
 
 /*
- * Wait for SysOp to mount a tape
+ * Wait for SysOp to mount a tape on a specific device
  */
 static int wait_for_sysop(DCR *dcr)
 {

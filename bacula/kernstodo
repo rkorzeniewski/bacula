@@ -28,7 +28,11 @@ Autochangers:
      changes (Volume, offline, append, read, ...).
   
 For 1.37:
+- If the user puts "Purge Oldest Volume = yes" or "Recycle Oldest Volume = yes"
+  and there is only one volume in the pool, refuse to do it -- otherwise
+  he fills the Volume, then immediately starts reusing it.
 - Add disk seeking on restore.  
+- Implement "NewVolumeEachJob = yes|no" in Dir.
 - Make "update slots" when pointing to Autochanger, remove
   all Volumes from other drives.
 - Don't start a second file job if one is already running.

@@ -357,7 +357,7 @@ read_volume:
             Jmsg(jcr, M_INFO, 0, _("Ready to append to end of Volume \"%s\" at file=%d.\n"),
 		 dcr->VolumeName, dev_file(dev));
 	 } else {
-            Jmsg(jcr, M_ERROR, 0, _("I canot write on Volume \"%s\" because:\n"
+            Jmsg(jcr, M_ERROR, 0, _("I cannot write on Volume \"%s\" because:\n"
 "The number of files mismatch! Volume=%u Catalog=%u\n"),
 		 dcr->VolumeName, dev_file(dev), dev->VolCatInfo.VolCatFiles);
 	    mark_volume_in_error(dcr);
