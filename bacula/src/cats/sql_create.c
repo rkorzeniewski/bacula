@@ -510,8 +510,8 @@ static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar)
    SQL_ROW row;
    int stat;
 
-   mdb->esc_name = check_pool_memory_size(mdb->esc_name, mdb->pnl+1);
-   db_escape_string(mdb->esc_name, mdb->path, mdb->pnl);
+   mdb->esc_name = check_pool_memory_size(mdb->esc_name, mdb->pnl+101);
+   db_escape_string(mdb->esc_name, mdb->path, mdb->pnl+100);
 
    if (mdb->cached_path_id != 0 && mdb->cached_path_len == mdb->pnl &&
        strcmp(mdb->cached_path, mdb->path) == 0) {
@@ -520,7 +520,7 @@ static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar)
       return 1;
    }	      
 
-   Mmsg(&mdb->cmd, "SELECT PathId FROM Path WHERE Path='%s'", mdb->path);
+   Mmsg(&mdb->cmd, "SELECT PathId FROM Path WHERE Path='%s'", mdb->esc_name);
 
    if (QUERY_DB(mdb, mdb->cmd)) {
 
@@ -585,8 +585,8 @@ static int db_create_filename_record(B_DB *mdb, ATTR_DBR *ar)
    SQL_ROW row;
 
    
-   mdb->esc_name = check_pool_memory_size(mdb->esc_name, mdb->fnl+1);
-   db_escape_string(mdb->esc_name, mdb->fname, mdb->fnl);
+   mdb->esc_name = check_pool_memory_size(mdb->esc_name, mdb->fnl+101);
+   db_escape_string(mdb->esc_name, mdb->fname, mdb->fnl+100);
 
    Mmsg(&mdb->cmd, "SELECT FilenameId FROM Filename WHERE Name='%s'", mdb->esc_name);
 
@@ -594,7 +594,7 @@ static int db_create_filename_record(B_DB *mdb, ATTR_DBR *ar)
       mdb->num_rows = sql_num_rows(mdb);
       if (mdb->num_rows > 1) {
          Mmsg2(&mdb->errmsg, _("More than one Filename!: %d File=%s\n"), 
-	    (int)(mdb->num_rows), mdb->esc_name);
+	    (int)(mdb->num_rows), mdb->fname);
          Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
       }
       if (mdb->num_rows >= 1) {
@@ -612,8 +612,7 @@ static int db_create_filename_record(B_DB *mdb, ATTR_DBR *ar)
       sql_free_result(mdb);
    }
 
-   Mmsg(&mdb->cmd, "INSERT INTO Filename (Name) \
-VALUES ('%s')", mdb->fname);
+   Mmsg(&mdb->cmd, "INSERT INTO Filename (Name) VALUES ('%s')", mdb->esc_name);
 
    if (!INSERT_DB(mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db Filename record %s failed. ERR=%s\n"), 
