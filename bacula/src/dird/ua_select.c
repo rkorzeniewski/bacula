@@ -144,11 +144,11 @@ int do_keyword_prompt(UAContext *ua, char *msg, char **list)
 STORE *select_storage_resource(UAContext *ua)
 {
    char name[MAX_NAME_LENGTH];	  
-   STORE *store = NULL;
+   STORE *store;
 
    start_prompt(ua, _("The defined Storage resources are:\n"));
    LockRes();
-   while ((store = (STORE *)GetNextRes(R_STORAGE, (RES *)store))) {
+   foreach_res(store, R_STORAGE) {
       add_prompt(ua, store->hdr.name);
    }
    UnlockRes();
@@ -163,11 +163,11 @@ STORE *select_storage_resource(UAContext *ua)
 FILESET *select_fileset_resource(UAContext *ua)
 {
    char name[MAX_NAME_LENGTH];	  
-   FILESET *fs = NULL;
+   FILESET *fs;
 
    start_prompt(ua, _("The defined FileSet resources are:\n"));
    LockRes();
-   while ((fs = (FILESET *)GetNextRes(R_FILESET, (RES *)fs))) {
+   foreach_res(fs, R_FILESET) {
       add_prompt(ua, fs->hdr.name);
    }
    UnlockRes();
@@ -195,7 +195,7 @@ CAT *get_catalog_resource(UAContext *ua)
    if (!catalog) {
       start_prompt(ua, _("The defined Catalog resources are:\n"));
       LockRes();
-      while ((catalog = (CAT *)GetNextRes(R_CATALOG, (RES *)catalog))) {
+      foreach_res(catalog, R_CATALOG) {
 	 add_prompt(ua, catalog->hdr.name);
       }
       UnlockRes();
@@ -212,11 +212,11 @@ CAT *get_catalog_resource(UAContext *ua)
 JOB *select_job_resource(UAContext *ua)
 {
    char name[MAX_NAME_LENGTH];	  
-   JOB *job = NULL;
+   JOB *job;
 
    start_prompt(ua, _("The defined Job resources are:\n"));
    LockRes();
-   while ( (job = (JOB *)GetNextRes(R_JOB, (RES *)job)) ) {
+   foreach_res(job, R_JOB) {
       add_prompt(ua, job->hdr.name);
    }
    UnlockRes();
@@ -231,11 +231,11 @@ JOB *select_job_resource(UAContext *ua)
 JOB *select_restore_job_resource(UAContext *ua)
 {
    char name[MAX_NAME_LENGTH];	  
-   JOB *job = NULL;
+   JOB *job;
 
    start_prompt(ua, _("The defined Restore Job resources are:\n"));
    LockRes();
-   while ( (job = (JOB *)GetNextRes(R_JOB, (RES *)job)) ) {
+   foreach_res(job, R_JOB) {
       if (job->JobType == JT_RESTORE) {
 	 add_prompt(ua, job->hdr.name);
       }
@@ -254,11 +254,11 @@ JOB *select_restore_job_resource(UAContext *ua)
 CLIENT *select_client_resource(UAContext *ua)
 {
    char name[MAX_NAME_LENGTH];	  
-   CLIENT *client = NULL;
+   CLIENT *client;
 
    start_prompt(ua, _("The defined Client resources are:\n"));
    LockRes();
-   while ( (client = (CLIENT *)GetNextRes(R_CLIENT, (RES *)client)) ) {
+   foreach_res(client, R_CLIENT) {
       add_prompt(ua, client->hdr.name);
    }
    UnlockRes();
@@ -316,7 +316,7 @@ int get_client_dbr(UAContext *ua, CLIENT_DBR *cr)
            strcasecmp(ua->argk[i], _("fd")) == 0) && ua->argv[i]) {
 	 bstrncpy(cr->Name, ua->argv[i], sizeof(cr->Name));
 	 if (!db_get_client_record(ua->jcr, ua->db, cr)) {
-            bsendmsg(ua, _("Could not find Client %s: ERR=%s"), ua->argv[i],
+            bsendmsg(ua, _("Could not find Client \"%s\": ERR=%s"), ua->argv[i],
 		     db_strerror(ua->db));
 	    cr->ClientId = 0;
 	    break;
@@ -369,7 +369,7 @@ int select_client_dbr(UAContext *ua, CLIENT_DBR *cr)
    bstrncpy(ocr.Name, name, sizeof(ocr.Name));
 
    if (!db_get_client_record(ua->jcr, ua->db, &ocr)) {
-      bsendmsg(ua, _("Could not find Client %s: ERR=%s"), name, db_strerror(ua->db));
+      bsendmsg(ua, _("Could not find Client \"%s\": ERR=%s"), name, db_strerror(ua->db));
       return 0;
    }
    memcpy(cr, &ocr, sizeof(ocr));
@@ -394,7 +394,7 @@ int get_pool_dbr(UAContext *ua, POOL_DBR *pr)
       if (db_get_pool_record(ua->jcr, ua->db, pr)) {
 	 return pr->PoolId;
       }
-      bsendmsg(ua, _("Could not find Pool %s: ERR=%s"), pr->Name, db_strerror(ua->db));
+      bsendmsg(ua, _("Could not find Pool \"%s\": ERR=%s"), pr->Name, db_strerror(ua->db));
    }
    if (!select_pool_dbr(ua, pr)) {  /* try once more */
       return 0;
@@ -416,7 +416,7 @@ int select_pool_dbr(UAContext *ua, POOL_DBR *pr)
       if (strcasecmp(ua->argk[i], _("pool")) == 0 && ua->argv[i]) {
 	 bstrncpy(pr->Name, ua->argv[i], sizeof(pr->Name));
 	 if (!db_get_pool_record(ua->jcr, ua->db, pr)) {
-            bsendmsg(ua, _("Could not find Pool %s: ERR=%s"), ua->argv[i],
+            bsendmsg(ua, _("Could not find Pool \"%s\": ERR=%s"), ua->argv[i],
 		     db_strerror(ua->db));
 	    pr->PoolId = 0;
 	    break;
@@ -451,7 +451,7 @@ int select_pool_dbr(UAContext *ua, POOL_DBR *pr)
    bstrncpy(opr.Name, name, sizeof(opr.Name));
 
    if (!db_get_pool_record(ua->jcr, ua->db, &opr)) {
-      bsendmsg(ua, _("Could not find Pool %s: ERR=%s"), name, db_strerror(ua->db));
+      bsendmsg(ua, _("Could not find Pool \"%s\": ERR=%s"), name, db_strerror(ua->db));
       return 0;
    }
    memcpy(pr, &opr, sizeof(opr));
@@ -520,11 +520,11 @@ int select_media_dbr(UAContext *ua, MEDIA_DBR *mr)
 POOL *select_pool_resource(UAContext *ua)
 {
    char name[MAX_NAME_LENGTH];	  
-   POOL *pool = NULL;
+   POOL *pool;
 
    start_prompt(ua, _("The defined Pool resources are:\n"));
    LockRes();
-   while ((pool = (POOL *)GetNextRes(R_POOL, (RES *)pool))) {
+   foreach_res(pool, R_POOL) {
       add_prompt(ua, pool->hdr.name);
    }
    UnlockRes();
@@ -550,7 +550,7 @@ POOL *get_pool_resource(UAContext *ua)
       if (pool) {
 	 return pool;
       }
-      bsendmsg(ua, _("Error: Pool resource %s does not exist.\n"), ua->argv[i]);
+      bsendmsg(ua, _("Error: Pool resource \"%s\" does not exist.\n"), ua->argv[i]);
    }
    return select_pool_resource(ua);
 }
@@ -598,7 +598,7 @@ int get_job_dbr(UAContext *ua, JOB_DBR *jr)
 	 continue;
       }
       if (!db_get_job_record(ua->jcr, ua->db, jr)) {
-         bsendmsg(ua, _("Could not find Job %s: ERR=%s"), ua->argv[i],
+         bsendmsg(ua, _("Could not find Job \"%s\": ERR=%s"), ua->argv[i],
 		  db_strerror(ua->db));
 	 jr->JobId = 0;
 	 break;
@@ -775,7 +775,7 @@ STORE *get_storage_resource(UAContext *ua, int use_default)
 
          } else if (strcasecmp(ua->argk[i], _("job")) == 0) {
 	    if (!(jcr=get_jcr_by_partial_name(ua->argv[i]))) {
-               bsendmsg(ua, _("Job %s is not running.\n"), ua->argv[i]);
+               bsendmsg(ua, _("Job \"%s\" is not running.\n"), ua->argv[i]);
 	       return NULL;
 	    }
 	    store = jcr->store;
@@ -788,7 +788,7 @@ STORE *get_storage_resource(UAContext *ua, int use_default)
    if (!store && store_name) {
       store = (STORE *)GetResWithName(R_STORAGE, store_name);
       if (!store) {
-         bsendmsg(ua, "Storage resource %s: not found\n", store_name);
+         bsendmsg(ua, "Storage resource \"%s\": not found\n", store_name);
       }
    }
    /* No keywords found, so present a selection list */

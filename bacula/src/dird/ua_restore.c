@@ -69,6 +69,7 @@ struct RESTORE_CTX {
    POOLMEM *JobIds;		      /* User entered string of JobIds */
    STORE  *store;
    JOB *restore_job;
+   POOL *pool;
    int restore_jobs;
    uint32_t selected_files;
    char *where;
@@ -301,6 +302,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
       "before",    /* 2 */
       "file",      /* 3 */
       "select",    /* 4 */
+      "pool",      /* 5 */
       NULL
    };
 
@@ -360,6 +362,14 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
 	 return 0;
       }
       done = true;
+      break;
+   case 5:			      /* pool specified */
+      i = find_arg_with_value(ua, "pool");
+      if (i >= 0) {
+	 rx->pool = (POOL *)GetResWithName(R_POOL, ua->argv[i]);
+      } else {
+         bsendmsg(ua, _("Error: Pool resource \"%s\" does not exist.\n"), ua->argv[i]);
+      }
       break;
    default:
       break;
@@ -503,7 +513,8 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
       }
       jr.JobId = JobId;
       if (!db_get_job_record(ua->jcr, ua->db, &jr)) {
-         bsendmsg(ua, _("Unable to get Job record. ERR=%s\n"), db_strerror(ua->db));
+         bsendmsg(ua, _("Unable to get Job record for JobId=%u: ERR=%s\n"), 
+	    JobId, db_strerror(ua->db));
 	 return 0;
       }
       rx->TotalFiles += jr.JobFiles;
@@ -511,6 +522,9 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
    return 1;
 }
 
+/* 
+ * Get date from user
+ */
 static int get_date(UAContext *ua, char *date, int date_len)
 {
    bsendmsg(ua, _("The restored files will the most current backup\n"
@@ -528,6 +542,9 @@ static int get_date(UAContext *ua, char *date, int date_len)
    return 1;
 }
 
+/*
+ * Insert a single file, or read a list of files from a file 
+ */
 static void insert_one_file(UAContext *ua, RESTORE_CTX *rx, char *date)
 {
    FILE *ffd;
@@ -723,6 +740,7 @@ static int select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *date
    CLIENT_DBR cr;
    char fileset_name[MAX_NAME_LENGTH];
    char ed1[50];
+   char pool_select[MAX_NAME_LENGTH];
    int i;
 
 
@@ -776,9 +794,22 @@ static int select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *date
       }
    }
 
+   /* If Pool specified, add PoolId specification */
+   pool_select[0] = 0;
+   if (rx->pool) {
+      POOL_DBR pr;
+      memset(&pr, 0, sizeof(pr));
+      bstrncpy(pr.Name, rx->pool->hdr.name, sizeof(pr.Name));
+      if (db_get_pool_record(ua->jcr, ua->db, &pr)) {
+         bsnprintf(pool_select, sizeof(pool_select), "AND Media.PoolId=%u ", pr.PoolId);
+      } else {
+         bsendmsg(ua, _("Pool \"%s\" not found, using any pool.\n"), pr.Name);
+      }
+   }
 
    /* Find JobId of last Full backup for this client, fileset */
-   Mmsg(&rx->query, uar_last_full, cr.ClientId, cr.ClientId, date, fsr.FileSet);
+   Mmsg(&rx->query, uar_last_full, cr.ClientId, cr.ClientId, date, fsr.FileSet,
+	 pool_select);
    if (!db_sql_query(ua->db, rx->query, NULL, NULL)) {
       bsendmsg(ua, "%s\n", db_strerror(ua->db));
       goto bail_out;
@@ -803,7 +834,7 @@ static int select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *date
 
    /* Now find all Incremental/Decremental Jobs after Full save */
    Mmsg(&rx->query, uar_inc_dec, edit_uint64(rx->JobTDate, ed1), date,
-	cr.ClientId, fsr.FileSet);
+	cr.ClientId, fsr.FileSet, pool_select);
    if (!db_sql_query(ua->db, rx->query, NULL, NULL)) {
       bsendmsg(ua, "%s\n", db_strerror(ua->db));
    }
@@ -892,8 +923,7 @@ static int last_full_handler(void *ctx, int num_fields, char **row)
 {
    RESTORE_CTX *rx = (RESTORE_CTX *)ctx;
 
-   rx->JobTDate = strtoll(row[1], NULL, 10);
-
+   rx->JobTDate = str_to_int64(row[1]); 
    return 0;
 }
 
@@ -902,7 +932,6 @@ static int last_full_handler(void *ctx, int num_fields, char **row)
  */
 static int fileset_handler(void *ctx, int num_fields, char **row)
 {
-
    /* row[0] = FileSet (name) */
    if (row[0]) {
       add_prompt((UAContext *)ctx, row[0]);

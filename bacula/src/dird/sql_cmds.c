@@ -231,6 +231,7 @@ char *uar_last_full =
    "AND JobMedia.MediaId=Media.MediaId "
    "AND Job.FileSetId=FileSet.FileSetId "
    "AND FileSet.FileSet='%s' "
+   "%s"                               /* dynamically added PoolId selection */
    "ORDER BY Job.JobTDate DESC LIMIT 1";
 
 char *uar_full = 
@@ -253,6 +254,7 @@ char *uar_inc_dec =
    "AND JobMedia.MediaId=Media.MediaId "
    "AND Job.Level IN ('I', 'D') AND JobStatus='T' "
    "AND Job.FileSetId=FileSet.FileSetId "
+   "%s"                               /* dynamically added PoolId selection */
    "AND FileSet.FileSet='%s' ";
 
 char *uar_list_temp = 
