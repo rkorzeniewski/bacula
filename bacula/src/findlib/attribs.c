@@ -300,6 +300,7 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    struct utimbuf ut;	 
    mode_t old_mask;
    bool ok = true;
+   off_t fsize;
 
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
    if (attr->stream == STREAM_UNIX_ATTRIBUTES_EX &&
@@ -307,7 +308,7 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
        if (is_bopen(ofd)) {
 	   bclose(ofd); 
        }
-       pm_strcpy(&attr->ofname, "*none*");
+       pm_strcpy(attr->ofname, "*none*");
        return true;
    }
    if (attr->data_stream == STREAM_WIN32_DATA ||
@@ -315,7 +316,7 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
       if (is_bopen(ofd)) {
 	 bclose(ofd); 
       }
-      pm_strcpy(&attr->ofname, "*none*");
+      pm_strcpy(attr->ofname, "*none*");
       return true;
    }
 
@@ -329,7 +330,14 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
 
    old_mask = umask(0);
    if (is_bopen(ofd)) {
+      char ec1[50], ec2[50];
+      fsize = blseek(ofd, 0, SEEK_CUR);
       bclose(ofd);		      /* first close file */
+      if (fsize > 0 && fsize != attr->statp.st_size) {
+         Jmsg3(jcr, M_ERROR, 0, _("File size of restored file %s not correct. Original %s, restored %s.\n"),
+	    attr->ofname, edit_uint64(attr->statp.st_size, ec1),
+	    edit_uint64(fsize, ec2));
+      }
    }
 
    ut.actime = attr->statp.st_atime;
@@ -387,7 +395,7 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
       }
 #endif
    }
-   pm_strcpy(&attr->ofname, "*none*");
+   pm_strcpy(attr->ofname, "*none*");
    umask(old_mask);
    return ok;
 }

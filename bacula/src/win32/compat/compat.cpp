@@ -1181,6 +1181,9 @@ utime(const char *fname, struct utimbuf *times)
 
     int rval = SetFileTime(h, NULL, &acc, &mod) ? 0 : -1;
     CloseHandle(h);
+    if (rval == -1) {
+       errno = b_errno_win32;
+    }
     return rval;
 }
 

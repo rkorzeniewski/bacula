@@ -2,7 +2,7 @@
       Generalized console input/output handler			   
       A maintanable replacement for readline()
 
-	 Kern Sibbald, December MMIII
+	 Updated for Bacula, Kern Sibbald, December MMIII
 
       This code is in part derived from code that I wrote in
       1981, so some of it is a bit old and could use a cleanup.
@@ -495,6 +495,10 @@ input_line(char *string, int length)
        case F_ERSCHR:		     /* Rubout */
 	   backup(curline);
 	   delchr(1, curline, sizeof(curline));
+	   if (cp == 0) {
+              t_char(' ');
+	      t_char(0x8);
+	   }
 	   break;
        case F_DELEOL:
 	   t_clrline(0, t_width);
@@ -527,9 +531,11 @@ input_line(char *string, int length)
 	   while (cp > 0) {
 	      backup(curline);	    /* backup to beginning of line */
 	   }
-	   t_clrline(0,t_width);     /* erase line */
+	   t_clrline(0, t_width);     /* erase line */
 	   cp = 0;
 	   cl = 0;		     /* reset cursor counter */
+           t_char(' ');
+	   t_char(0x8);
 	   break;
        case F_SOL:
 	   while (cp > 0) {

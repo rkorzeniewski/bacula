@@ -135,7 +135,6 @@ void do_restore(JCR *jcr)
       switch (stream) {
       case STREAM_UNIX_ATTRIBUTES:
       case STREAM_UNIX_ATTRIBUTES_EX:
-
          Dmsg1(30, "Stream=Unix Attributes. extract=%d\n", extract);
 	 /* If extracting, it was from previous stream, so
 	  * close the output file.
@@ -186,7 +185,7 @@ void do_restore(JCR *jcr)
 	 case CF_EXTRACT:
 	    extract = true;
 	    P(jcr->mutex);
-	    pm_strcpy(&jcr->last_fname, attr->ofname);
+	    pm_strcpy(jcr->last_fname, attr->ofname);
 	    V(jcr->mutex);
 	    jcr->JobFiles++;
 	    fileAddr = 0;
@@ -195,7 +194,7 @@ void do_restore(JCR *jcr)
 	    break;
 	 case CF_CREATED:
 	    P(jcr->mutex);
-	    pm_strcpy(&jcr->last_fname, attr->ofname);
+	    pm_strcpy(jcr->last_fname, attr->ofname);
 	    V(jcr->mutex);
 	    jcr->JobFiles++;
 	    fileAddr = 0;
@@ -210,7 +209,6 @@ void do_restore(JCR *jcr)
       case STREAM_FILE_DATA:
       case STREAM_SPARSE_DATA:	
       case STREAM_WIN32_DATA:  
-
 	 if (extract) {
 	    if (stream == STREAM_SPARSE_DATA) {
 	       ser_declare;
