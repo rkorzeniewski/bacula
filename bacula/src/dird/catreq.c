@@ -83,7 +83,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
    Dmsg1(200, "catreq %s", bs->msg);
    if (sscanf(bs->msg, Find_media, &Job, &index) == 2) {
       mr.PoolId = jcr->PoolId;
-      strcpy(mr.MediaType, jcr->store->media_type);
+      bstrncpy(mr.MediaType, jcr->store->media_type, sizeof(mr.MediaType));
       Dmsg2(120, "CatReq FindMedia: Id=%d, MediaType=%s\n",
 	 mr.PoolId, mr.MediaType);
       /*
@@ -94,10 +94,22 @@ next_volume:
       ok = db_find_next_volume(jcr, jcr->db, index, &mr);  
       Dmsg2(100, "catreq after find_next_vol ok=%d FW=%d\n", ok, mr.FirstWritten);
       if (!ok) {
-         Dmsg1(200, "No next volume found. RecycleOldest=%d\n",
-	     jcr->pool->recycle_oldest_volume);
-	 if (jcr->pool->recycle_oldest_volume) {
-            Dmsg0(200, "Request to find oldest volume.\n");
+	 /* Well, try finding recycled tapes */
+	 ok = find_recycled_volume(jcr, &mr);
+         Dmsg2(100, "find_recycled_volume1 %d FW=%d\n", ok, mr.FirstWritten);
+	 if (!ok) {
+	    prune_volumes(jcr);  
+	    ok = recycle_oldest_purged_volume(jcr, &mr);
+            Dmsg2(200, "find_recycled_volume2 %d FW=%d\n", ok, mr.FirstWritten);
+	    if (!ok) {
+	       /* See if we can create a new Volume */
+	       ok = newVolume(jcr, &mr);
+	    }
+	 }
+
+	 if (!ok && jcr->pool->recycle_oldest_volume) {
+            Dmsg1(200, "No next volume found. RecycleOldest=%d\n",
+		jcr->pool->recycle_oldest_volume);
 	    /* Find oldest volume to recycle */
 	    ok = db_find_next_volume(jcr, jcr->db, -1, &mr);
             Dmsg1(400, "Find oldest=%d\n", ok);
@@ -106,25 +118,12 @@ next_volume:
                Dmsg0(400, "Try purge.\n");
 	       /* Try to purge oldest volume */
 	       create_ua_context(jcr, &ua);
+               Jmsg(jcr, M_INFO, 0, _("Purging oldest volume \"%s\"\n"), mr.VolumeName);
 	       ok = purge_jobs_from_volume(&ua, &mr);
 	       free_ua_context(&ua);
 	       if (ok) {
 		  ok = recycle_oldest_purged_volume(jcr, &mr);
                   Dmsg1(400, "Recycle after recycle oldest=%d\n", ok);
-	       }
-	    }
-	 }
-	 if (!ok) {
-	    /* Well, try finding recycled tapes */
-	    ok = find_recycled_volume(jcr, &mr);
-            Dmsg2(100, "find_recycled_volume1 %d FW=%d\n", ok, mr.FirstWritten);
-	    if (!ok) {
-	       prune_volumes(jcr);  
-	       ok = recycle_oldest_purged_volume(jcr, &mr);
-               Dmsg2(200, "find_recycled_volume2 %d FW=%d\n", ok, mr.FirstWritten);
-	       if (!ok) {
-		  /* See if we can create a new Volume */
-		  ok = newVolume(jcr, &mr);
 	       }
 	    }
 	 }
