@@ -58,24 +58,16 @@ static pid_t main_pid = 0;
 /* 
  * Handle signals here
  */
-extern "C" {
-    static void signal_handler(int sig);
-}
-
-static void signal_handler(int sig)
+extern "C" void signal_handler(int sig)
 {
    static int already_dead = 0;
 
    /* If we come back more than once, get out fast! */
-   if (already_dead > 1) {
-      exit(1);
-   }
-   /* If we come back once, take normal exit */
    if (already_dead) {
       exit(1);
    }
    Dmsg2(200, "sig=%d %s\n", sig, sig_names[sig]);
-   /* Ignore certain signals */
+   /* Ignore certain signals -- SIGUSR2 used to interrupt threads */
    if (sig == SIGCHLD || sig == SIGUSR2) {
       return;
    }
