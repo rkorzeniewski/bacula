@@ -29,6 +29,15 @@
 
  */
 
+/* 
+ * UTF-8
+ *  If the top bit of a UTF-8 string is 0 (8 bits), then it
+ *    is a normal ASCII character.
+ *  If the top two bits are 11 (i.e. (c & 0xC0) == 0xC0 then
+ *    it is the start of a series of chars (up to 5)
+ *  Each subsequent character starts with 10 (i.e. (c & 0xC0) == 0x80)
+ */
+
 
 #ifdef	TEST_PROGRAM
 #include <stdio.h>
@@ -192,11 +201,12 @@ static short char_map[600]= {
 
 /* Function Prototypes */
 
-static int input_char(void);
-static int t_gnc(void);
+static unsigned int input_char(void);
+static unsigned int t_gnc(void);
 static void insert_space(char *curline, int line_len);
-static void forward(int i, char *str, int str_len);
-static void backup(int i);
+static void insert_hole(char *curline, int line_len);
+static void forward(char *str, int str_len);
+static void backup(char *curline);
 static void delchr(int cnt, char *curline, int line_len);
 static int iswordc(char c);
 static int  next_word(char *ldb_buf);
@@ -210,7 +220,7 @@ static void t_honk_horn(void);
 static void t_insert_line(void);
 static void t_delete_line(void);
 static void t_clrline(int pos, int width);
-void t_sendl(char *msg, int len);
+void t_sendl(const char *msg, int len);
 void t_send(char *msg);
 void t_char(char c);
 static void asclrs();
@@ -218,7 +228,7 @@ static void ascurs(int y, int x);
 
 static void rawmode(FILE *input);
 static void normode(void);
-static int t_getch();
+static unsigned t_getch();
 static void asclrl(int pos, int width);
 static void asinsl();
 static void asdell();
@@ -295,22 +305,23 @@ char *bstrncpy(char *dest, const char *src, int maxlen)
 /*
  * New style string mapping to function code
  */
-static int do_smap(int c)
+static unsigned do_smap(unsigned c)
 {
     char str[MAX_STAB];
     int len = 0; 
     stab_t *tstab;
     int i, found;
+    unsigned cm;
 
     len = 1;
     str[0] = c;
     str[1] = 0;
 
-    if (c != 27) {
-       c = char_map[c];
-    }
-    if (c <= 0) {
+    cm = char_map[c];
+    if (cm == 0) {
        return c;
+    } else {
+       c = cm;
     }
     for ( ;; ) {
        found = 0;
@@ -397,10 +408,10 @@ static void add_smap(char *str, int func)
 
 /* Get the next character from the terminal - performs table lookup on
    the character to do the desired translation */
-static int
+static unsigned int
 input_char()
 {
-    int c;
+    unsigned c;
 
     if ((c=t_gnc()) <= 599) {	      /* IBM generates codes up to 260 */
 	  c = do_smap(c);
@@ -428,7 +439,9 @@ input_line(char *string, int length)
 {
    char curline[2000];		      /* edit buffer */
    int noline;
-   int c;
+   unsigned c;
+   int more;
+   int i;
 
     if (first) {
        poolinit();		     /* build line pool */
@@ -440,7 +453,7 @@ input_line(char *string, int length)
 	  clrbrk();
 	  break;
        }
-       switch (c=(int)input_char()) {
+       switch (c=input_char()) {
        case F_RETURN:		     /* CR */
            t_sendl("\r\n", 2);       /* yes, print it and */
 	   goto done;		     /* get out */
@@ -469,13 +482,13 @@ input_line(char *string, int length)
 	   delchr(1, curline, sizeof(curline));       /* delete one character */
 	   break;
        case F_CSRLFT:		     /* Backspace */
-	   backup(1);
+	   backup(curline);
 	   break;
        case F_CSRRGT:
-	   forward(1,curline, sizeof(curline));
+	   forward(curline, sizeof(curline));
 	   break;
        case F_ERSCHR:		     /* Rubout */
-	   backup(1);
+	   backup(curline);
 	   delchr(1, curline, sizeof(curline));
 	   break;
        case F_DELEOL:
@@ -484,10 +497,16 @@ input_line(char *string, int length)
 	       cl = cp;
 	   break;
        case F_NXTWRD:
-	   forward(next_word(curline),curline, sizeof(curline));
+	   i = next_word(curline);
+	   while (i--) {
+	      forward(curline, sizeof(curline));
+	   }
 	   break;
        case F_PRVWRD:
-	   backup(prev_word(curline));
+	   i = prev_word(curline);
+	   while (i--) {
+	      backup(curline);
+	   }
 	   break;
        case F_DELWRD:
 	   delchr(next_word(curline), curline, sizeof(curline)); /* delete word */
@@ -500,20 +519,24 @@ input_line(char *string, int length)
 	   /* Note fall through */
        case F_DELLIN:
        case F_ERSLIN:
-	   backup(cp);		     /* backup to beginning of line */
+	   while (cp > 0) {
+	      backup(curline);	    /* backup to beginning of line */
+	   }
 	   t_clrline(0,t_width);     /* erase line */
 	   cp = 0;
 	   cl = 0;		     /* reset cursor counter */
 	   break;
        case F_SOL:
-	   backup(cp);
+	   while (cp > 0) {
+	      backup(curline);
+	   }
 	   break;
        case F_EOL:
 	   while (cp < cl) {
-	       forward(1,curline, sizeof(curline));
+	       forward(curline, sizeof(curline));
 	   }
 	   while (cp > cl) {
-	       backup(1);
+	       backup(curline);
 	   }
 	   break;
        case F_TINS:		     /* toggle insert mode */
@@ -527,13 +550,35 @@ input_line(char *string, int length)
 	       }
 	       t_honk_horn();	     /* complain */
 	   } else {
+	       if ((c & 0xC0) == 0xC0) {
+		  if ((c & 0xFC) == 0xFC) {
+		     more = 5;
+		  } else if ((c & 0xF8) == 0xF8) {
+		     more = 4;
+		  } else if ((c & 0xF0) == 0xF0) {
+		     more = 3;
+		  } else if ((c & 0xE0) == 0xE0) {
+		     more = 2;
+		  } else {
+		     more = 1;
+		  }
+	       } else {
+		  more = 0;
+	       }
 	       if (mode_insert) {
 		  insert_space(curline, sizeof(curline));
 	       }
 	       curline[cp++] = c;    /* store character in line being built */
-	       t_char((char)c);      /* echo character to terminal */
+	       t_char(c);      /* echo character to terminal */
+	       while (more--) {
+		  c= input_char();  
+		  insert_hole(curline, sizeof(curline));
+		  curline[cp++] = c;	/* store character in line being built */
+		  t_char(c);	  /* echo character to terminal */
+	       }
 	       if (cp > cl) {
 		  cl = cp;	     /* keep current length */
+		  curline[cp] = 0;
 	       }
 	   }
 	   break;
@@ -555,60 +600,121 @@ insert_space(char *curline, int curline_len)
 {
    int i;
 
-   if (cp > cl || cl+1 > curline_len) return;
+   if (cp > cl || cl+1 > curline_len) {
+      return;
+   }
    /* Note! source and destination overlap */
    memmove(&curline[cp+1],&curline[cp],i=cl-cp);
    cl++;
-   i++;
    curline[cp] = ' ';
-   forward(i,curline, curline_len);
-   backup(i);
+   i = 0;
+   while (cl > cp) {
+      forward(curline, curline_len);
+      i++;
+   }
+   while (i--) {
+      backup(curline);
+   }
+}
+
+
+static void
+insert_hole(char *curline, int curline_len)
+{
+   int i;
+
+   if (cp > cl || cl+1 > curline_len) {
+      return;
+   }
+   /* Note! source and destination overlap */
+   memmove(&curline[cp+1], &curline[cp], i=cl-cp);
+   cl++;
+   curline[cl] = 0;
 }
 
 
 /* Move cursor forward keeping characters under it */
 static void
-forward(int i, char *str, int str_len)
+forward(char *str, int str_len)
 {
-   while (i--) {
-      if (cp > str_len) {
-	 return;
-      }
-      if (cp>=cl) {
-          t_char(' ');
-          str[cp+1] = ' ';
-      } else {
-	  t_char(str[cp]);
-      }
-      cp++;
+   if (cp > str_len) {
+      return;
    }
+   if (cp >= cl) {
+       t_char(' ');
+       str[cp+1] = ' ';
+       str[cp+2] = 0;
+   } else {
+       t_char(str[cp]);
+       if ((str[cp] & 0xC0) == 0xC0) {
+	  cp++;
+	  while ((str[cp] & 0xC0) == 0x80) {
+	     t_char(str[cp]);
+	     cp++;
+	  }
+	  cp--;
+       }
+   }
+   cp++;
+}
+
+/* How many characters under the cursor */
+static int 
+char_count(int cptr, char *str)
+{
+   int cnt = 1;
+   if (cptr > cl) {
+      return 0;
+   }
+   if ((str[cptr] & 0xC0) == 0xC0) {
+      cptr++;
+      while ((str[cptr] & 0xC0) == 0x80) {
+	 cnt++;
+	 cptr++;
+      }
+   }
+   return cnt;
 }
 
 /* Backup cursor keeping characters under it */
 static void
-backup(int i)
+backup(char *str) 
 {
-    for ( ; i && cp; i--,cp--) {
-       t_char('\010');
+    if (cp == 0) {
+       return;
     }
+    while ((str[cp] & 0xC0) == 0x80) {
+       cp--;
+    }
+    t_char('\010');
+    cp--;
 }
 
 /* Delete the character under the cursor */
 static void
-delchr(int cnt, char *curline, int line_len) 
+delchr(int del, char *curline, int line_len) 
 {
-   register int i;
+   int i, cnt;
 
-   if (cp > cl)
+   if (cp > cl || del == 0) {
       return;
-   if ((i=cl-cp-cnt+1) > 0) {
-      memcpy(&curline[cp], &curline[cp+cnt],i);
    }
-   curline[cl -= cnt] = EOS;
-   t_clrline(0,t_width);
-   if (cl > cp) {
-      forward(i=cl-cp,curline, line_len);
-      backup(i);
+   while (del-- && cp > 0) {
+      cnt = char_count(cp, curline);
+      if ((i=cl-cp-cnt) > 0) {
+	 memcpy(&curline[cp], &curline[cp+cnt], i);
+      }
+      cl -= cnt;
+      curline[cl] = EOS;
+      t_clrline(0, t_width);
+      i = 0;
+      while (cl > cp) {
+	 forward(curline, line_len);
+	 i++;
+      }
+      while (i--) {
+	 backup(curline);
+      }
    }
 }
 
@@ -619,9 +725,9 @@ iswordc(char c)
    if (mode_wspace)
       return !isspace(c);
    if (c >= '0' && c <= '9')
-      return TRUE;
+      return true;
    if (c == '$' || c == '%')
-      return TRUE;
+      return true;
    return isalpha(c);
 }
 
@@ -668,10 +774,12 @@ prev_word(char *ldb_buf)
 static void
 prtcur(char *str)
 {
-    backup(cp);
+    while (cp > 0) {
+       backup(str);
+    }
     t_clrline(0,t_width);
     cp = cl = strlen(str);
-    t_sendl(str,cl);
+    t_sendl(str, cl);
 }
 
 
@@ -920,7 +1028,7 @@ static void normode()
 }
 
 /* Get next character from terminal/script file/unget buffer */
-static int
+static unsigned
 t_gnc()
 {
     return t_getch();
@@ -928,19 +1036,19 @@ t_gnc()
 
 
 /* Get next character from OS */
-static int t_getch(void)
+static unsigned t_getch(void)
 {
-   char c;
+   unsigned char c;
 
    if (read(0, &c, 1) != 1) {
       c = 0;
    }
-   return (int)c;   
+   return (unsigned)c;	 
 }
     
 /* Send message to terminal - primitive routine */
 void
-t_sendl(char *msg, int len)
+t_sendl(const char *msg, int len)
 {
    write(1, msg, len);
 }
