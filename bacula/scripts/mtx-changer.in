@@ -29,6 +29,14 @@
 
 MTX=@MTX@
 
+wait_for_drive() {
+  while ! mt -f $1 status >/dev/null 2>&1; do
+#   echo "Device $1 - not ready, retrying..."
+    sleep 5
+  done
+}
+
+
 if test $# -lt 2 ; then
   echo "usage: mtx-changer ctl-device command slot archive-device drive"
   echo "  Insufficient number of arguments arguments given."
@@ -90,6 +98,8 @@ case $cmd in
       rtn=$?
 #
 # Increase the sleep time if you have a slow device
+# or remove the sleep and add the following:
+#     wait_for_drive $device
       sleep 15
       exit $rtn
       ;;
