@@ -26,9 +26,13 @@
 %{?build_su9:%define su9 1}
 
 # database defines
-# set mysql for MySQL support, leave unset for sqlite support
+# set for database support desired
 %define mysql 0
 %{?build_mysql:%define mysql 1}
+%define sqlite 0
+%{?build_sqlite:%define sqlite 1}
+%define postgresql 0
+%{?build_postgresql:%define postgresql 1}
 
 Summary: Bacula - The Network Backup Solution
 Name: bacula
@@ -86,6 +90,14 @@ BuildRequires: linc-devel
 BuildRequires: mysql-devel >= 3.23
 %endif
 
+%if %{postgresql} && %{wb3}
+BuildRequires: rh-postgresql-devel >= 7
+%endif
+
+%if %{postgresql} && ! %{wb3}
+BuildRequires: postgresql-devel >= 7
+%endif
+
 %description
 Bacula - It comes by night and sucks the vital essence from your computers.
 
@@ -99,8 +111,12 @@ Bacula source code has been released under the GPL version 2 license.
 
 %if %{mysql}
 %package mysql
-%else
+%endif
+%if %{sqlite}
 %package sqlite
+%endif
+%if %{postgresql}
+%package postgresql
 %endif
 
 Summary: Bacula - The Network Backup Solution
@@ -147,11 +163,23 @@ Requires: libtermcap
 Requires: mysql >= 3.23
 Requires: mysql-server >= 3.23
 %endif
+%if %{postgresql} && %{wb3}
+Requires: rh-postgresql >= 7
+Requires: rh-postgresql-server >= 7
+%endif
+%if %{postgresql} && ! %{wb3}
+Requires: postgresql >= 7
+Requires: postgresql-server >= 7
+%endif
 
 %if %{mysql}
 %description mysql
-%else
+%endif
+%if %{sqlite}
 %description sqlite
+%endif
+%if %{postgresql}
+%description postgresql
 %endif
 
 Bacula - It comes by night and sucks the vital essence from your computers.
@@ -166,7 +194,11 @@ Bacula source code has been released under the GPL version 2 license.
 
 %if %{mysql}
 This build requires MySQL to be installed separately as the catalog database.
-%else
+%endif
+%if %{postgresql}
+This build requires PostgreSQL to be installed separately as the catalog database.
+%endif
+%if %{sqlite}
 This build incorporates sqlite as the catalog database, statically compiled.
 %endif
 
@@ -236,7 +268,7 @@ export LDFLAGS="-L/usr/lib/termcap"
 
 cwd=${PWD}
 cd %{depkgs}
-%if ! %{mysql}
+%if %{sqlite}
 make sqlite
 %endif
 make mtx
@@ -266,8 +298,12 @@ patch src/cats/update_sqlite_tables.in src/cats/update_sqlite_tables.in.patch
 	   --enable-static-fd \
 %if %{mysql}
         --with-mysql \
-%else
+%endif
+%if %{sqlite}
         --with-sqlite=${cwd}/../depkgs/sqlite \
+%endif
+%if %{postgresql}
+        --with-postgresql \
 %endif
         --with-working-dir=%{working_dir} \
         --with-pid-dir=/var/run \
@@ -311,11 +347,17 @@ make \
         mtx-install
 cd ${cwd}
 
-%if ! %{mysql}
 # fixme - make installs the mysql scripts for sqlite build
+%if %{sqlite}
 rm -f $RPM_BUILD_ROOT/etc/bacula/startmysql
 rm -f $RPM_BUILD_ROOT/etc/bacula/stopmysql
 rm -f $RPM_BUILD_ROOT/etc/bacula/grant_mysql_privileges
+%endif
+
+# fixme - make installs the mysql scripts for postgresql build
+%if %{postgresql}
+rm -f $RPM_BUILD_ROOT/etc/bacula/startmysql
+rm -f $RPM_BUILD_ROOT/etc/bacula/stopmysql
 %endif
 
 # install the init scripts
@@ -335,7 +377,7 @@ cp scripts/bacula.desktop.gnome1 $RPM_BUILD_ROOT/usr/share/gnome/apps/System/bac
 cp scripts/bacula.desktop.gnome2 $RPM_BUILD_ROOT/usr/share/applications/bacula.desktop
 
 # install sqlite
-%if ! %{mysql}
+%if %{sqlite}
 cp ../depkgs/sqlite/sqlite $RPM_BUILD_ROOT%{sqlite_bindir}/sqlite
 cp ../depkgs/sqlite/sqlite.h $RPM_BUILD_ROOT%{sqlite_bindir}/sqlite.h
 cp ../depkgs/sqlite/libsqlite.a $RPM_BUILD_ROOT%{sqlite_bindir}/libsqlite.a
@@ -475,7 +517,9 @@ fi
 /sbin/chkconfig --del bacula-fd
 /sbin/chkconfig --del bacula-sd
 
-%else
+%endif
+
+%if %{sqlite}
 
 %files sqlite
 %defattr(-,root,root)
@@ -584,6 +628,86 @@ fi
 
 %endif
 
+%if %{postgresql}
+
+%files postgresql
+%defattr(-,root,root)
+
+%attr(0754,root,root) /etc/bacula/bacula
+%attr(0754,root,root) /etc/bacula/bconsole
+%attr(0754,root,root) /etc/bacula/fd
+%attr(0754,root,root) /etc/bacula/gconsole
+%attr(0754,root,root) /etc/bacula/create_postgresql_database
+%attr(0754,root,root) /etc/bacula/drop_postgresql_database
+%attr(0754,root,root) /etc/bacula/make_postgresql_tables
+%attr(0754,root,root) /etc/bacula/drop_postgresql_tables
+%attr(0754,root,root) /etc/bacula/update_postgresql_tables
+%attr(0754,root,root) /etc/bacula/grant_postgresql_privileges
+%attr(0754,root,root) /etc/bacula/create_bacula_database
+%attr(0754,root,root) /etc/bacula/drop_bacula_database
+%attr(0754,root,root) /etc/bacula/grant_bacula_privileges
+%attr(0754,root,root) /etc/bacula/make_bacula_tables
+%attr(0754,root,root) /etc/bacula/drop_bacula_tables
+%attr(0754,root,root) /etc/bacula/update_bacula_tables
+%attr(0754,root,root) /etc/bacula/make_catalog_backup
+%attr(0754,root,root) /etc/bacula/delete_catalog_backup
+%attr(0754,root,root) /etc/bacula/mtx-changer
+%attr(0754,root,root) /etc/init.d/bacula-dir
+%attr(0754,root,root) /etc/init.d/bacula-fd
+%attr(0754,root,root) /etc/init.d/bacula-sd
+
+%attr(0644,root,root) %doc COPYING ChangeLog INSTALL README ReleaseNotes doc/*
+%attr(0644,root,root) /usr/man/man1/*
+%attr(0644,root,root) /usr/share/pixmaps/bacula.png
+%attr(0644,root,root) /usr/share/gnome/apps/System/bacula.desktop
+%attr(0644,root,root) /usr/share/applications/bacula.desktop
+%attr(0644,root,root) %config(noreplace) /etc/bacula/gnome-console.conf
+%attr(0644,root,root) /etc/logrotate.d/bacula
+
+%attr(0640,root,root) %config(noreplace) /etc/bacula/bacula-dir.conf
+%attr(0640,root,root) %config(noreplace) /etc/bacula/bacula-fd.conf
+%attr(0640,root,root) %config(noreplace) /etc/bacula/bacula-sd.conf
+%attr(0640,root,root) %config(noreplace) /etc/bacula/bconsole.conf
+%attr(0640,root,root) /etc/bacula/query.sql
+%attr(0640,root,root) %dir %{working_dir}
+
+%attr(0750,root,root) /usr/sbin/*
+%attr(0750,root,root) /etc/bacula/btraceback.gdb
+
+%post postgresql
+# delete then add our links
+/sbin/chkconfig --del bacula-dir
+/sbin/chkconfig --del bacula-fd
+/sbin/chkconfig --del bacula-sd
+/sbin/chkconfig --add bacula-dir
+/sbin/chkconfig --add bacula-fd
+/sbin/chkconfig --add bacula-sd
+
+# add execute permissions for console
+chmod 0755 /usr/sbin/gnome-console
+
+# test for an existing database
+# note: this ASSUMES no password has been set for bacula database
+DB_VER=`echo 'select * from Version;' | psql bacula | tail -3 | head -1 2>/dev/null`
+
+# grant privileges and create tables if they do not exist
+if [ -z "$DB_VER" ]; then
+	echo "Hmm, doesn't look like you have an existing database."
+	echo "Granting privileges for PostgreSQL user bacula..."
+	/etc/bacula/grant_postgresql_privileges
+	echo "Creating PostgreSQL bacula database..."
+	/etc/bacula/create_postgresql_database
+	echo "Creating bacula tables..."
+	/etc/bacula/make_postgresql_tables
+
+%preun postgresql
+# delete our links
+/sbin/chkconfig --del bacula-dir
+/sbin/chkconfig --del bacula-fd
+/sbin/chkconfig --del bacula-sd
+
+%endif
+
 %files client
 %defattr(-,root,root)
 
@@ -660,6 +784,8 @@ rm -f /etc/bacula/rescue/sfdisk
 rm -rf /etc/bacula/rescue/diskinfo/*
 
 %changelog
+* Thu Feb 12 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
+- added postgresql package
 * Wed Feb 11 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - corrected the if else logic in the dependancy sections
 - changes for 1.34 release
