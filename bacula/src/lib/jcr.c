@@ -51,7 +51,7 @@ void init_last_jobs_list()
    int errstat;
    struct s_last_job *job_entry = NULL;
    if (!last_jobs) {
-      last_jobs = new dlist(job_entry, &job_entry->link);
+      last_jobs = New(dlist(job_entry, &job_entry->link));
       if ((errstat=rwl_init(&lock)) != 0) {
          Emsg1(M_ABORT, 0, _("Unable to initialize jcr_chain lock. ERR=%s\n"), 
 	       strerror(errstat));
@@ -191,7 +191,7 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    Dmsg0(400, "Enter new_jcr\n");
    jcr = (JCR *)malloc(size);
    memset(jcr, 0, size);
-   jcr->msg_queue = new dlist(item, &item->link);
+   jcr->msg_queue = New(dlist(item, &item->link));
    jcr->job_end_push.init(1, false);
    jcr->sched_time = time(NULL);
    jcr->daemon_free_jcr = daemon_free_jcr;    /* plug daemon free routine */

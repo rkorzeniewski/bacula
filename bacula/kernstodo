@@ -11,6 +11,14 @@ Version 1.35                Kern (see below)
 ========================================================
 
 1.35 Items to do for release:
+- Find memory leaks in address_conf.c
+- Network order of port and ip addresses.
+- SetIP in dird/fd_cmds.c is broken.
+- don't use inet_addr() it is deprecated.
+- Fix code in filed.c for init_bsock();
+- Fix code in console.c for init_bsock();
+
+
 - Knoppix CDROM
 - Make Verify jobs require exclusive use of Volume as Restore 
   jobs do.
@@ -19,6 +27,7 @@ Version 1.35                Kern (see below)
   simultaneous use of multiple devices by a single job.
 - Fix restore ++++ that get intermingled with "Building directory tree"
 - Solve the termcap.h problem on Solaris configure.
+
 
 - Test Win32 errno handling.
 - Add bscan to four-concurrent-jobs regression.

@@ -65,13 +65,13 @@ public:
    void prepend(void *item);
    void *remove(int index);
    void *get(int index);
-   bool empty();
+   bool empty() const;
    void *prev();
    void *next();
    void *first();
    void *last();
    void * operator [](int index) const;
-   int size();
+   int size() const;
    void destroy();
    void grow(int num);
    void * operator new(size_t);
@@ -85,7 +85,7 @@ inline void * alist::operator [](int index) const {
    return items[index];
 }
 
-inline bool alist::empty()
+inline bool alist::empty() const
 {
    return num_items == 0;
 }
@@ -111,7 +111,7 @@ inline alist::alist(int num, bool own) {
 
 
 /* Current size of list */
-inline int alist::size()
+inline int alist::size() const 
 {
    return num_items;
 }
@@ -132,3 +132,4 @@ inline void alist::operator delete(void  *item)
    ((alist *)item)->destroy();
    free(item);
 }
+

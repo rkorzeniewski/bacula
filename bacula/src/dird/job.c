@@ -72,6 +72,16 @@ void init_job_server(int max_workers)
    register_watchdog(wd);
 }
 
+void term_job_server()
+{
+   int stat;
+   if ((stat=jobq_destroy(&job_queue)) != 0) {
+      berrno be;
+      be.set_errno(stat);
+      Emsg1(M_INFO, 0, _("Could not term job queue: ERR=%s\n"), be.strerror());
+   }
+}
+
 /*
  * Run a job -- typically called by the scheduler, but may also
  *		be called by the UA (Console program).

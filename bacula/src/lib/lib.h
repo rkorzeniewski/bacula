@@ -28,11 +28,11 @@
 
  */
 
+#include "smartall.h"
 #include "alist.h"
 #include "dlist.h"
 #include "bits.h"
 #include "btime.h"
-#include "smartall.h"
 #include "mem_pool.h"
 #include "message.h"
 #include "lex.h"

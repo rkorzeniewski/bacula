@@ -212,16 +212,15 @@ bnet_thread_server(dlist *addrs, int max_clients, workq_t *client_wq,
 
 	    /* see who client is. i.e. who connected to us. */
 	    P(mutex);
-#ifndef HAVE_INET_NTOP
-	    bstrncpy(buf, inet_ntoa(((sockaddr_in *) & cli_addr)->sin_addr), sizeof(buf));	/* NOT thread safe, use mutex */
-#else
+#ifdef HAVE_INET_NTOP
 	    inet_ntop(clilen == sizeof(sockaddr_in) ? AF_INET : AF_INET6, &clilen,
-		      buf, clilen);
+		      buf, sizeof(buf));
+#else
+	    bstrncpy(buf, inet_ntoa(((sockaddr_in *)&cli_addr)->sin_addr), sizeof(buf));      /* NOT thread safe, use mutex */
 #endif
-	    /* possible release of the mutex */
-
-	    BSOCK *bs =
-               init_bsock(NULL, newsockfd, "client", buf, fd_ptr->port, &cli_addr);
+	    V(mutex);
+	    BSOCK *bs; 
+            bs = init_bsock(NULL, newsockfd, "client", buf, fd_ptr->port, &cli_addr);
 	    if (bs == NULL) {
                Jmsg0(NULL, M_ABORT, 0, _("Could not create client BSOCK.\n"));
 	    }
@@ -229,13 +228,10 @@ bnet_thread_server(dlist *addrs, int max_clients, workq_t *client_wq,
 	    /* Queue client to be served */
 	    if ((stat = workq_add(client_wq, (void *)bs, NULL, 0)) != 0) {
 	       berrno be;
-	       V(mutex);
 	       be.set_errno(stat);
-	       Jmsg1(NULL, M_ABORT, 0,
-                     _("Could not add job to client queue: ERR=%s\n"),
+               Jmsg1(NULL, M_ABORT, 0, _("Could not add job to client queue: ERR=%s\n"),
 		     be.strerror());
 	    }
-	    V(mutex);
 	 }
       }
    }

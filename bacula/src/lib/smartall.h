@@ -7,7 +7,7 @@
 */
 
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -32,6 +32,7 @@ extern uint32_t sm_max_buffers;
 extern uint32_t sm_buffers;
 
 #ifdef SMARTALLOC
+
 
 extern void *sm_malloc(const char *fname, int lineno, unsigned int nbytes),
             *sm_calloc(const char *fname, int lineno,
@@ -84,4 +85,67 @@ extern void *b_malloc();
 #define malloc(x) b_malloc(__FILE__, __LINE__, (x))                  
 
 
+#endif
+
+#ifdef SMARTALLOC
+
+#define New(type) new(__FILE__, __LINE__ type
+
+#undef SMARTALLOC 
+#define SMARTALLOC SMARTALLOC
+
+class SMARTALLOC
+{
+private:
+public:
+
+void *operator new(size_t s, const char *fname, int line)
+{
+  void *p = sm_malloc(fname, line, s > sizeof(int) ? s : sizeof(int));
+  return p;
+}
+void *operator new[](size_t s, const char *fname, int line)
+{
+   void *p = sm_malloc(fname, line, s > sizeof(int) ? s : sizeof(int));
+   return p;
+}
+void  operator delete(void *ptr)
+{
+   free(ptr);
+}
+void  operator delete[](void *ptr, size_t i)
+{
+   free(ptr);
+}
+
+private:
+void *operator new(size_t s) throw() { return 0; }
+void *operator new[](size_t s) throw() { return 0; }
+};
+ 
+
+#else
+
+#define New(type) new type
+
+class SMARTALLOC
+{
+   public:
+      void *operator new(size_t s)
+      {
+          return malloc(s);
+      }
+      void *operator new[](size_t s)
+      {
+          return malloc(s);
+      }
+      void  operator delete(void *ptr)
+      {
+          free(ptr);
+      }
+      void  operator delete[](void *ptr, size_t i)
+      {
+          free(ptr);
+      }
+};
 #endif

@@ -46,6 +46,7 @@ int do_backup(JCR *jcr);
 void backup_cleanup(void);
 void start_UA_server(dlist *addrs);
 void init_job_server(int max_workers);
+void term_job_server();
 void store_jobtype(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_level(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_replace(LEX *lc, RES_ITEM *item, int index, int pass);
@@ -260,6 +261,7 @@ static void terminate_dird(int sig)
    delete_pid_file(director->pid_directory, "bacula-dir", get_first_port(director->DIRaddrs));
 // signal(SIGCHLD, SIG_IGN);          /* don't worry about children now */
    term_scheduler();
+   term_job_server();
    if (runjob) {
       free(runjob);
    }

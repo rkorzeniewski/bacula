@@ -912,8 +912,9 @@ const char *bnet_sig_to_ascii(BSOCK * bs)
  *  This probably should be done in net_open
  */
 BSOCK *init_bsock(JCR * jcr, int sockfd, const char *who, const char *host, int port,
-		  struct sockaddr * client_addr)
+		  struct sockaddr *client_addr)
 {
+   Dmsg3(100, "who=%s host=%s port=%d\n", who, host, port);
    BSOCK *bsock = (BSOCK *)malloc(sizeof(BSOCK));
    memset(bsock, 0, sizeof(BSOCK));
    bsock->fd = sockfd;
