@@ -63,26 +63,6 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
-- Backup on havana gave:
-   *status storage
-   The defined Storage resources are:
-        1: File
-        2: DDS-3
-   Select Storage resource (1-2): 2
-   Connecting to Storage daemon DDS-3 at havana:9103
-
-   havana-sd Version: 1.31 (08 Jul 2003)
-   Daemon started 10-Jul-2003 19:06, 0 Jobs run.
-   Device /tmp is not open.
-   Device /dev/nst0 is mounted with Volume "msu-8Jul03"
-       Device is being initialized.
-       Total Bytes Read=4,629,249,084,728,272,628 Blocks Read=0 Bytes/block=134,735,604
-       Positioned at File=0 Block=0
-   Full Backup job msu-8Jul03 using Volume "msu-backup.2003-07-10_19.06.42" on device /dev/nst0
-       Files=0 Bytes=0 Bytes/sec=0
-       FDReadSeqNo=6 in_msg=6 out_msg=6 fd=7
-   ====
-
 - Do full check the command line args in update (e.g. VolStatus ...).
 - Maybe remove multiple simultaneous devices code in SD.
 - Increment DB version prior to releasing.
@@ -91,7 +71,6 @@ For 1.31 release:
   a file (and thus restore it) because the total length is too long.
   We must cd into the directory then create the file without the
   full path name.
-- Move JobFiles and JobBytes to SD rather than FD -- more correct.
 - lstat() is not going to work on Win32 for testing date.
 - Implement a Recycle command
 - Something is not right in last block of fill command.
@@ -102,8 +81,6 @@ For 1.31 release:
 
 
 For 1.32:
-- Implement a Recycle or Prune Current Volume (as from Nic Bellamy),
-  possibly implement Prune Oldest Volume.
 - Allow multiple Storage specifications (or multiple names on
   a single Storage specification) in the Job record. Thus a job 
   can be backed up to a number of storage devices.
@@ -1077,3 +1054,9 @@ Done: (see kernsdone for more)
 - Update Automatic Volume Labeling in disk.wml
 - Figure out how to handle DHCP IP addresses -- use dynamic DNS.
 - Add OS, GCC version to traceback output.
+- Implement a Recycle or Prune Current Volume (as from Nic Bellamy),
+  possibly implement Prune Oldest Volume.
+- Backup on havana gave:
+  Total Bytes Read=4,629,249,084,728,272,628 Blocks Read=0 Bytes/block=134,735,604
+- Move JobFiles and JobBytes to SD rather than FD -- more correct.
+

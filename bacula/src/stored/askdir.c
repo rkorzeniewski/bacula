@@ -79,6 +79,7 @@ static int do_request_volume_info(JCR *jcr)
        Mmsg(&jcr->errmsg, _("Network error on bnet_recv in req_vol_info.\n"));
        return 0;
     }
+    memset(&vol, 0, sizeof(vol));
     if (sscanf(dir->msg, OK_media, vol.VolCatName, 
 	       &vol.VolCatJobs, &vol.VolCatFiles,
 	       &vol.VolCatBlocks, &vol.VolCatBytes,
