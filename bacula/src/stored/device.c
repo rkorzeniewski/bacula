@@ -307,6 +307,19 @@ void _lock_device(char *file, int line, DEVICE *dev)
    }
 }
 
+/*
+ * Check if the device is blocked or not
+ */
+int device_is_unmounted(DEVICE *dev)
+{
+   int stat;
+   P(dev->mutex);
+   stat = (dev->dev_blocked == BST_UNMOUNTED) ||
+	  (dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP);
+   V(dev->mutex);
+   return stat;
+}
+
 void _unlock_device(char *file, int line, DEVICE *dev) 
 {
    Dmsg2(100, "unlock from %s:%d\n", file, line);

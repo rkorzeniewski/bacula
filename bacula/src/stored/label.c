@@ -319,7 +319,7 @@ static void create_volume_label_record(JCR *jcr, DEVICE *dev, DEV_RECORD *rec)
  *  Returns: 0 on error
  *	     1 on success
  */
-void create_volume_label(DEVICE *dev, char *VolName)
+void create_volume_label(DEVICE *dev, char *VolName, char *PoolName)
 {
    struct date_time dt;
    DEVRES *device = (DEVRES *)dev->device;
@@ -332,14 +332,14 @@ void create_volume_label(DEVICE *dev, char *VolName)
 
    /* ***FIXME*** we really need to get the volume name,    
     * pool name, and pool type from the database.
-    * We also need to pickup the MediaType.
     */
    strcpy(dev->VolHdr.Id, BaculaId);
    dev->VolHdr.VerNum = BaculaTapeVersion;
    dev->VolHdr.LabelType = PRE_LABEL;  /* Mark tape as unused */
    bstrncpy(dev->VolHdr.VolName, VolName, sizeof(dev->VolHdr.VolName));
-   strcpy(dev->VolHdr.PoolName, "Default");
+   bstrncpy(dev->VolHdr.PoolName, PoolName, sizeof(dev->VolHdr.PoolName));
    bstrncpy(dev->VolHdr.MediaType, device->media_type, sizeof(dev->VolHdr.MediaType));
+
    strcpy(dev->VolHdr.PoolType, "Backup");
 
    /* Put label time/date in header */
@@ -386,10 +386,7 @@ int write_volume_label_to_dev(JCR *jcr, DEVRES *device, char *VolName, char *Poo
 
 
    Dmsg0(99, "write_volume_label()\n");
-   create_volume_label(dev, VolName);
-   bstrncpy(dev->VolHdr.MediaType, device->media_type, sizeof(dev->VolHdr.MediaType));
-   bstrncpy(dev->VolHdr.VolName, VolName, sizeof(dev->VolHdr.VolName));
-   bstrncpy(dev->VolHdr.PoolName, PoolName, sizeof(dev->VolHdr.PoolName));
+   create_volume_label(dev, VolName, PoolName);
 
    if (!rewind_dev(dev)) {
       memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));

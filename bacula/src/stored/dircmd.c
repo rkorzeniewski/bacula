@@ -648,7 +648,7 @@ static int unmount_cmd(JCR *jcr)
 	    /* On FreeBSD, I am having ASSERT() failures in block_device()
 	     * and I can only imagine that the thread id that we are
 	     * leaving in no_wait_id is being re-used. So here,
-	     * we simply do it by hand.  Gross, but maybe a solutions
+	     * we simply do it by hand.  Gross, but a solution.
 	     */
 	    /*	block_device(dev, BST_UNMOUNTED); replace with 2 lines below */
 	    dev->dev_blocked = BST_UNMOUNTED;
