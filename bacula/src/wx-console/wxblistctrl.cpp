@@ -63,12 +63,9 @@ void wxbListCtrl::OnDoubleClicked(wxMouseEvent& event) {
  * Send mark event if the user right clicked on an item.
  */
 void wxbListCtrl::OnRightClicked(wxMouseEvent& event) {
-   if (event.GetX() < GetColumnWidth(0)) {
-      wxbListMarkedEvent evt(GetId());
+   wxbListMarkedEvent evt(GetId());
 
-      GetParent()->GetEventHandler()->ProcessEvent(evt);
-   }
-   event.Skip();
+   GetParent()->GetEventHandler()->ProcessEvent(evt);
 }
 
 /* Customized tree event, used for marking events */
