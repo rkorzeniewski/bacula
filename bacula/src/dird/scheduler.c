@@ -101,7 +101,8 @@ JCR *wait_for_next_job(char *one_shot_job_to_run)
 
 #define list_chain
 #ifdef	list_chain
-   for (job_item *je=NULL; (je=(job_item *)jobs_to_run->next(je)); ) {
+   job_item *je;
+   foreach_dlist(je, jobs_to_run) {
       dump_job(je, "Walk queue");
    }
 #endif
@@ -164,11 +165,14 @@ JCR *wait_for_next_job(char *one_shot_job_to_run)
  */
 void term_scheduler()
 {
-   /* Release all queued job entries to be run */
-   for (void *je=NULL; (je=jobs_to_run->next(je)); ) {
-      free(je);
+   if (jobs_to_run) {
+      job_item *je;
+      /* Release all queued job entries to be run */
+      foreach_dlist(je, jobs_to_run) {
+	 free(je);
+      }
+      delete jobs_to_run;
    }
-   delete jobs_to_run;
 }
 
 /*	    
@@ -217,7 +221,7 @@ static void find_runs()
 
    /* Loop through all jobs */
    LockRes();
-   for (job=NULL; (job=(JOB *)GetNextRes(R_JOB, (RES *)job)); ) {
+   foreach_res(job, R_JOB) {
       sched = job->schedule;
       if (sched == NULL) {	      /* scheduled? */
 	 continue;		      /* no, skip this job */
@@ -291,7 +295,7 @@ static void find_runs()
 
 static void add_job(JOB *job, RUN *run, time_t now, time_t runtime)
 {
-   job_item *ji = NULL;
+   job_item *ji;
    bool inserted = false;
    /*
     * Don't run any job that ran less than a minute ago, but
@@ -320,7 +324,7 @@ static void add_job(JOB *job, RUN *run, time_t now, time_t runtime)
    }
 
    /* Add this job to the wait queue in runtime, priority sorted order */
-   while ( (ji=(job_item *)jobs_to_run->next(ji)) ) {
+   foreach_dlist(ji, jobs_to_run) {
       if (ji->runtime > je->runtime || 
 	  (ji->runtime == je->runtime && ji->Priority > je->Priority)) {
 	 jobs_to_run->insert_before(je, ji);

@@ -59,8 +59,7 @@ static void do_status(void sendit(char *msg, int len, void *sarg), void *arg)
    len = Mmsg(&msg, "%s Version: " VERSION " (" BDATE ") %s %s %s\n", my_name,
 	      HOST_OS, DISTNAME, DISTVER);
    sendit(msg, len, arg);
-   bstrftime(dt, sizeof(dt), daemon_start_time);
-   strcpy(dt+7, dt+9);		      /* cut century */
+   bstrftime_nc(dt, sizeof(dt), daemon_start_time);
    len = Mmsg(&msg, _("Daemon started %s, %d Job%s run.\n"), dt, last_job.NumJobs,
         last_job.NumJobs == 1 ? "" : "s");
    sendit(msg, len, arg);
@@ -89,8 +88,7 @@ static void do_status(void sendit(char *msg, int len, void *sarg), void *arg)
       struct s_last_job *je;
       lock_last_jobs_list();
       for (je=NULL; (je=(s_last_job *)last_jobs->next(je)); ) {
-	 bstrftime(dt, sizeof(dt), je->end_time);
-	 strcpy(dt+7, dt+9);		/* cut century */
+	 bstrftime_nc(dt, sizeof(dt), je->end_time);
          len = Mmsg(&msg, _("Last Job %s finished at %s\n"), je->Job, dt);
 	 sendit(msg, len, arg);
 
@@ -110,8 +108,7 @@ static void do_status(void sendit(char *msg, int len, void *sarg), void *arg)
    Dmsg0(200, "Begin status jcr loop.\n");
    lock_jcr_chain();
    for (njcr=NULL; (njcr=get_next_jcr(njcr)); ) {
-      bstrftime(dt, sizeof(dt), njcr->start_time);
-      strcpy(dt+7, dt+9);	      /* cut century */
+      bstrftime_nc(dt, sizeof(dt), njcr->start_time);
       if (njcr->JobId == 0) {
          len = Mmsg(&msg, _("Director connected at: %s\n"), dt);
       } else {
@@ -190,8 +187,7 @@ static void list_terminated_jobs(void *arg)
       char *termstat;
       char buf[1000];
 
-      bstrftime(dt, sizeof(dt), je->end_time);
-      strcpy(dt+7, dt+9);     /* cut century */
+      bstrftime_nc(dt, sizeof(dt), je->end_time);
       switch (je->JobType) {
       case JT_ADMIN:
       case JT_RESTORE:
