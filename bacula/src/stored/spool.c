@@ -140,10 +140,10 @@ static bool despool_data(DCR *dcr)
    JCR *jcr = dcr->jcr;
    int stat;
 
+   Dmsg0(100, "Despooling data\n");
    dcr->spooling = false;
    lock_device(dcr->dev);
    dcr->dev_locked = true; 
-   Dmsg0(100, "Despooling data\n");
    /* Set up a dev structure to read */
    rdev = (DEVICE *)malloc(sizeof(DEVICE));
    memset(rdev, 0, sizeof(DEVICE));
@@ -157,6 +157,7 @@ static bool despool_data(DCR *dcr)
    rdcr->jcr = jcr;		      /* set a valid jcr */
    block = rdcr->block;
    lseek(rdcr->spool_fd, 0, SEEK_SET); /* rewind */
+
    for ( ; ok; ) {
       if (job_canceled(jcr)) {
 	 ok = false;
@@ -172,6 +173,7 @@ static bool despool_data(DCR *dcr)
       ok = write_block_to_device(dcr, block);
       Dmsg3(100, "Write block ok=%d FI=%d LI=%d\n", ok, block->FirstIndex, block->LastIndex);
    }
+
    lseek(rdcr->spool_fd, 0, SEEK_SET); /* rewind */
    if (ftruncate(rdcr->spool_fd, 0) != 0) {
       Dmsg1(000, "Bad return from ftruncate. ERR=%s\n", strerror(errno));
@@ -190,6 +192,7 @@ static bool despool_data(DCR *dcr)
    free_dcr(rdcr);
    unlock_device(dcr->dev);
    dcr->dev_locked = false;
+   dcr->spooling = true;	   /* turn on spooling again */
    return ok;
 }
 
@@ -239,7 +242,7 @@ static int read_block_from_spool_file(DCR *dcr, DEV_BLOCK *block)
    block->LastIndex = hdr.LastIndex;
    block->VolSessionId = dcr->jcr->VolSessionId;
    block->VolSessionTime = dcr->jcr->VolSessionTime;
-   Dmsg2(400, "Read block FI=%d LI=%d\n", block->FirstIndex, block->LastIndex);
+   Dmsg2(100, "Read block FI=%d LI=%d\n", block->FirstIndex, block->LastIndex);
    return RB_OK;
 }
 
@@ -258,18 +261,32 @@ bool write_block_to_spool_file(DCR *dcr, DEV_BLOCK *block)
    bool despool = false;
 
    ASSERT(block->binbuf == ((uint32_t) (block->bufp - block->buf)));
+   if (block->binbuf <= WRITE_BLKHDR_LENGTH) {	/* Does block have data in it? */
+      Dmsg0(100, "return write_block_to_dev no data to write\n");
+      return true;
+   }
+
    hlen = sizeof(hdr);
    wlen = block->binbuf;
    P(dcr->dev->spool_mutex);
    dcr->spool_size += hlen + wlen;
    dcr->dev->spool_size += hlen + wlen;
    if ((dcr->max_spool_size > 0 && dcr->spool_size >= dcr->max_spool_size) ||
-       (dcr->dev->spool_size > 0 && dcr->dev->spool_size >= dcr->dev->max_spool_size)) {
+       (dcr->dev->max_spool_size > 0 && dcr->dev->spool_size >= dcr->dev->max_spool_size)) {
       despool = true;
    }
    V(dcr->dev->spool_mutex);
    if (despool) {
+      char ec1[30], ec2[30], ec3[30], ec4[30];
+      Dmsg4(100, "Despool in write_block_to_spool_file max_size=%s size=%s "
+            "max_job_size=%s job_size=%s\n", 
+	    edit_uint64_with_commas(dcr->max_spool_size, ec1),
+	    edit_uint64_with_commas(dcr->spool_size, ec2),
+	    edit_uint64_with_commas(dcr->dev->max_spool_size, ec3),
+	    edit_uint64_with_commas(dcr->dev->spool_size, ec4));
+      despool = false;
       if (!despool_data(dcr)) {
+         Dmsg0(000, "Bad return from despool in write_block.\n");
 	 return false;
       }
       P(dcr->dev->spool_mutex);
@@ -277,40 +294,41 @@ bool write_block_to_spool_file(DCR *dcr, DEV_BLOCK *block)
       dcr->dev->spool_size += hlen + wlen;
       V(dcr->dev->spool_mutex);
    }  
-   if (block->binbuf <= WRITE_BLKHDR_LENGTH) {	/* Does block have data in it? */
-      Dmsg0(100, "return write_block_to_dev no data to write\n");
-      return true;
-   }
 
    hdr.FirstIndex = block->FirstIndex;
    hdr.LastIndex = block->LastIndex;
    hdr.len = block->binbuf;
-write_hdr_again:
-   stat = write(dcr->spool_fd, (char*)&hdr, (size_t)hlen);
-   if (stat != (ssize_t)hlen) {
-      if (!despool_data(dcr)) {
-	 return false;
+
+   /* Write header */
+   for ( ;; ) {
+      stat = write(dcr->spool_fd, (char*)&hdr, (size_t)hlen);
+      if (stat != (ssize_t)hlen) {
+	 if (!despool_data(dcr)) {
+	    return false;
+	 }
+	 if (retry++ > 1) {
+	    return false;
+	 }
+	 continue;
       }
-      if (retry++ > 1) {
-	 return false;
-      }
-      goto write_hdr_again;
+      break;
    }
 
-
-   Dmsg2(300, "Wrote block FI=%d LI=%d\n", block->FirstIndex, block->LastIndex);
-write_again:
-   stat = write(dcr->spool_fd, block->buf, (size_t)wlen);
-   if (stat != (ssize_t)wlen) {
-      if (!despool_data(dcr)) {
-	 return false;
+   /* Write data */
+   for ( ;; ) {
+      stat = write(dcr->spool_fd, block->buf, (size_t)wlen);
+      if (stat != (ssize_t)wlen) {
+	 if (!despool_data(dcr)) {
+	    return false;
+	 }
+	 if (retry++ > 1) {
+	    return false;
+	 }
+	 continue;
       }
-      if (retry++ > 1) {
-	 return false;
-      }
-      goto write_again;
+      break;
    }
-
+   Dmsg2(100, "Wrote block FI=%d LI=%d\n", block->FirstIndex, block->LastIndex);
 
    empty_block(block);
    return true;
