@@ -2,4 +2,8 @@
 #
 # First argument is expected to be a user's configuration file
 #
+if ! test -e $1 ; then
+   echo "Arg1 must specify a config file (e.g. prototype.conf)"
+   exit 1
+fi
 sed -e "/@CONFIG@/r $1" -e "s/@CONFIG@//" Makefile.in >Makefile
