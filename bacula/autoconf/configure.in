@@ -972,6 +972,7 @@ AC_CHECK_HEADERS( \
 	string.h \
 	termios.h \
 	unistd.h \
+	sys/bitypes.h \
 	sys/byteorder.h \
 	sys/ioctl.h \
 	sys/select.h \
@@ -1227,6 +1228,38 @@ if test -z "$have_u_intxx_t" ; then
       AC_DEFINE(HAVE_UINTXX_T)
    fi
 fi
+
+if (test -z "$have_u_int64_t" || test -z "$have_int64_t" && \
+	  test "x$ac_cv_header_sys_bitypes_h" = "xyes")
+then
+   AC_MSG_CHECKING([for int64_t and u_int64_t types in sys/bitypes.h])
+   AC_TRY_COMPILE(
+      [ #include <sys/bitypes.h>  ], 
+      [ int64_t a; u_int64_t b; 
+       a = b = 1;  ], 
+      [ AC_DEFINE(HAVE_U_INT64_T)
+       AC_DEFINE(HAVE_INT64_T)
+       AC_MSG_RESULT(yes) ],
+      [ AC_MSG_RESULT(no)]
+   ) 
+fi
+
+if (test -z "$have_uintxx_t" && \
+	  test "x$ac_cv_header_sys_bitypes_h" = "xyes")
+then
+   AC_MSG_CHECKING([for uintXX_t types in sys/bitypes.h])
+   AC_TRY_COMPILE(
+      [ #include <sys/bitypes.h>  ], 
+	[ uint8_t a; uint16_t b; 
+	  uint32_t c; a = b = c = 1; ], 
+      [ AC_DEFINE(HAVE_UINTXX_T)
+       AC_MSG_RESULT(yes) ],
+      [ AC_MSG_RESULT(no)]
+   ) 
+
+fi
+
+
 
 
 dnl# --------------------------------------------------------------------------

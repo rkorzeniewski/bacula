@@ -318,7 +318,7 @@ static void free_saved_resources(int table)
  */
 static void reload_job_end_cb(JCR *jcr, void *ctx)
 {
-   int reload_id = (int)ctx;
+   int reload_id = (int)((long int)ctx);
    Dmsg3(100, "reload job_end JobId=%d table=%d cnt=%d\n", jcr->JobId,
       reload_id, reload_table[reload_id].job_count);
    lock_jcr_chain();
@@ -419,7 +419,7 @@ void reload_config(int sig)
       foreach_jcr(jcr) {
 	 if (jcr->JobType != JT_SYSTEM) {
 	    reload_table[table].job_count++;
-	    job_end_push(jcr, reload_job_end_cb, (void *)table);
+	    job_end_push(jcr, reload_job_end_cb, (void *)((long int)table));
 	    njobs++;
 	 }
 	 free_locked_jcr(jcr);

@@ -32,7 +32,7 @@
 
 /* Exported globals */
 time_t watchdog_time = 0;	      /* this has granularity of SLEEP_TIME */
-time_t watchdog_sleep_time = 1;       /* examine things every second */
+time_t watchdog_sleep_time = 10;      /* examine things every 10 seconds */
 
 
 /* Forward referenced functions */

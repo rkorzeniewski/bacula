@@ -127,6 +127,7 @@ btimer_t *start_thread_timer(pthread_t tid, uint32_t wait)
    btimer_t *wid;
    wid = btimer_start_common(wait);
    if (wid == NULL) {
+      Dmsg1(200, "start_thread_timer return NULL from common. wait=%d.\n", wait);
       return NULL;
    }
    wid->type = TYPE_PTHREAD;

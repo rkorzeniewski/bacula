@@ -239,10 +239,16 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
          Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open %s: ERR=%s.\n"), ff_pkt->fname, 
 	      berror(&ff_pkt->bfd));
 	 jcr->Errors++;
-	 stop_thread_timer(tid);
+	 if (tid) {
+	    stop_thread_timer(tid);
+	    tid = NULL;
+	 }
 	 return 1;
       }
-      stop_thread_timer(tid);
+      if (tid) {
+	 stop_thread_timer(tid);
+	 tid = NULL;
+      }
    }
 
    Dmsg1(130, "bfiled: sending %s to stored\n", ff_pkt->fname);

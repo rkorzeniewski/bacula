@@ -284,7 +284,7 @@ const char *uar_list_temp =
    "ORDER BY StartTime ASC";
 
 
-const char *uar_sel_jobid_temp = "SELECT JobId FROM temp";
+const char *uar_sel_jobid_temp = "SELECT JobId FROM temp ORDER BY StartTime ASC";
 
 const char *uar_sel_all_temp1 = "SELECT * FROM temp1";
 
