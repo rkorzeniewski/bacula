@@ -288,8 +288,6 @@ void rem_msg_dest(MSGS *msg, int dest_code, int msg_type, char *where)
    }
 }
 
-
-
 static void make_unique_spool_filename(JCR *jcr, POOLMEM **name, int fd)
 {
    Mmsg(name, "%s/%s.spool.%s.%d", working_directory, my_name,
@@ -325,7 +323,6 @@ int close_spool_file(void *vjcr, BSOCK *bs)
     bs->spool = 0;
     return 1;
 }
-
 
 /*
  * Create a unique filename for the mail command
