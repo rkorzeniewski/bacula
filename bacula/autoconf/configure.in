@@ -1699,6 +1699,7 @@ gentoo)
 	PSCMD="ps -e -o pid,command"
 	PFILES="${PFILES} \
 	    platforms/gentoo/Makefile \
+         platforms/gentoo/bacula-init \
 	    platforms/gentoo/bacula-fd \
 	    platforms/gentoo/bacula-sd \
 	    platforms/gentoo/bacula-dir"
@@ -1818,6 +1819,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   scripts/bacula.desktop.gnome2.xsu \
 	   scripts/gnome-console.console_apps \
 	   scripts/mtx-changer \
+        scripts/bacula-tray-monitor.desktop \
 	   doc/Makefile \
 	   src/Makefile \
 	   src/host.h \
