@@ -49,8 +49,8 @@ install-autostart-sd:
 	    rm -f /etc/rc.local.$$today; \
 	    cp -p /etc/rc.local /etc/rc.local.$$today; \
 	    ( echo "Start the Bacula Storage daemon. Do not remove the 'TAG_BACULA_SD' text"; \
-	      echo "if [ -x /etc/rc.bacula-fd ]; then	  # TAG_BACULA_SD"; \
-	      echo "	    /etc/rc.bacula-fd start	  # TAG_BACULA_SD"; \
+	      echo "if [ -x /etc/rc.bacula-sd ]; then	  # TAG_BACULA_SD"; \
+	      echo "	    /etc/rc.bacula-sd start	  # TAG_BACULA_SD"; \
 	      echo "fi					  # TAG_BACULA_SD"; \
 	    ) >> /etc/rc.local; \
 	    echo ""; \
@@ -137,4 +137,3 @@ distclean: clean
 
 devclean: clean
 	@rm -f Makefile bacula-*.spec
-

@@ -31,7 +31,7 @@
 
 /* Forward referenced subroutines */
 static TREE_NODE *search_and_insert_tree_node(char *fname, int type, 
-	       TREE_NODE *node, TREE_ROOT *root, TREE_NODE *parent);
+	       TREE_ROOT *root, TREE_NODE *parent);
 static char *tree_alloc(TREE_ROOT *root, int size);
 
 /*
@@ -96,7 +96,7 @@ TREE_ROOT *new_tree(int count)
 /* 
  * Create a new tree node.
  */
-static TREE_NODE *new_tree_node(TREE_ROOT *root, int type)
+static TREE_NODE *new_tree_node(TREE_ROOT *root)
 {
    TREE_NODE *node;
    int size = sizeof(TREE_NODE);
@@ -104,6 +104,19 @@ static TREE_NODE *new_tree_node(TREE_ROOT *root, int type)
    memset(node, 0, size);
    return node;
 }
+
+#ifdef USE_DLIST
+/*
+ * This routine can be called to release the 
+ *  previously allocated tree node.
+ */
+static void free_tree_node(TREE_ROOT *root)
+{
+   int asize = BALIGN(sizeof(TREE_NODE));
+   root->mem->rem += asize;
+   root->mem->mem -= asize;
+}
+#endif
 
 
 
@@ -158,11 +171,12 @@ void free_tree(TREE_ROOT *root)
  *   called when building a tree.
  *
  */
-TREE_NODE *insert_tree_node(char *path, char *fname, TREE_NODE *node, 
+TREE_NODE *insert_tree_node(char *path, char *fname, int type,
 			    TREE_ROOT *root, TREE_NODE *parent)
 {
    char *p, *q;
    int path_len = strlen(path);
+   TREE_NODE *node;
 
    Dmsg1(100, "insert_tree_node: %s\n", path);
    /*
@@ -207,12 +221,12 @@ TREE_NODE *insert_tree_node(char *path, char *fname, TREE_NODE *node,
       fname = path;
       if (!parent) {
 	 parent = (TREE_NODE *)root;
-	 node->type = TN_DIR_NLS;
+	 type = TN_DIR_NLS;
       }
       Dmsg1(100, "No / found: %s\n", path);
    }
 
-   node = search_and_insert_tree_node(fname, 0, node, root, parent);
+   node = search_and_insert_tree_node(fname, 0, root, parent);
    if (q) {			      /* if trailing slash on entry */
       *q = '/';                       /*  restore it */
    }
@@ -248,16 +262,59 @@ TREE_NODE *make_tree_path(char *path, TREE_ROOT *root)
       parent = (TREE_NODE *)root;
       type = TN_DIR_NLS;
    }
-   node = search_and_insert_tree_node(fname, type, NULL, root, parent);
+   node = search_and_insert_tree_node(fname, type, root, parent);
    return node;
 }  
+
+#ifdef USE_DLIST
+static int node_compare(void *item1, void *item2)
+{
+   TREE_NODE *tn1 = (TREE_NODE *)item1;
+   TREE_NODE *tn2 = (TREE_NODE *)item2;
+   if (tn1->fname[0] > tn2->fname[0]) {
+      return 1;
+   } else if (tn1->fname[0] < tn2->fname[0]) {
+      return -1;
+   }
+   return strcmp(tn1->fname, tn2->fname);
+}
+#endif
 
 /*
  *  See if the fname already exists. If not insert a new node for it.
  */
 static TREE_NODE *search_and_insert_tree_node(char *fname, int type, 
-	       TREE_NODE *node, TREE_ROOT *root, TREE_NODE *parent)
+	       TREE_ROOT *root, TREE_NODE *parent)
 {
+#ifdef USE_DLIST
+   TREE_NODE *node, *found_node;
+   node = new_tree_node(root);
+   node->fname = fname;
+   found_node = (TREE_NODE *)parent->child.binary_insert(node, node_compare);
+   if (found_node != node) {	      /* already in list */
+      free_tree_node(root);	      /* free node allocated above */
+      found_node->inserted = false;
+      return found_node;
+   }
+   /* It was not found, but is now inserted */
+   node->fname_len = strlen(fname);
+   node->fname = tree_alloc(root, node->fname_len + 1);
+   strcpy(node->fname, fname);
+   node->parent = parent;
+   node->type = type;
+
+   /* Maintain a linear chain of nodes */
+   if (!root->first) {
+      root->first = node;
+      root->last = node;
+   } else {
+      root->last->next = node;
+      root->last = node;
+   }
+   node->inserted = true;	      /* inserted into tree */
+   return node;
+
+#else
    TREE_NODE *sibling, *last_sibling = NULL;
    uint16_t fname_len = strlen(fname);
    int cmp;
@@ -272,7 +329,7 @@ static TREE_NODE *search_and_insert_tree_node(char *fname, int type,
       if (cmp < 0) {
 	 /* Insert before current sibling */
 	 if (!node) {
-	    node = new_tree_node(root, type);
+	    node = new_tree_node(root);
 	 }
 	 node->sibling_ = sibling;
 	 if (sibling == first_child(parent)) { /* if sibling was at head of list */
@@ -291,13 +348,14 @@ static TREE_NODE *search_and_insert_tree_node(char *fname, int type,
     * At this point, the fname is not found. We must add it 
     */
    if (!node) {
-      node = new_tree_node(root, type);
+      node = new_tree_node(root);
    }
    Dmsg1(000, "append_tree_node: %s\n", fname);
    node->fname_len = fname_len;
    node->fname = tree_alloc(root, node->fname_len + 1);
    strcpy(node->fname, fname);
    node->parent = parent;
+   node->type = type;
    if (!tree_node_has_child(parent)) {
       parent->child_ = node;
    } else {
@@ -314,6 +372,7 @@ static TREE_NODE *search_and_insert_tree_node(char *fname, int type,
    }
    node->inserted = true;	      /* inserted into tree */
    return node;
+#endif
 }
 
 #ifdef SLOW_WAY
@@ -520,7 +579,7 @@ void FillDirectoryTree(char *path, TREE_ROOT *root, TREE_NODE *parent)
       }
 
       Dmsg2(100, "Doing: %d %s\n", type, pathbuf);
-      node = new_tree_node(root, type);
+      node = new_tree_node(root);
       node->FileIndex = ++FileIndex;
       parent = insert_tree_node(pathbuf, node, root, parent);
       if (S_ISDIR(statbuf.st_mode) && !S_ISLNK(statbuf.st_mode)) {

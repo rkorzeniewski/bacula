@@ -144,6 +144,8 @@ const char *select_restore_del =
 
 
 /* ======= ua_restore.c */
+const char *uar_count_files =
+   "SELECT JobFiles FROM Job WHERE JobId=%u";
 
 /* List last 20 Jobs */
 const char *uar_list_jobs = 

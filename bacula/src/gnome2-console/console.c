@@ -330,7 +330,7 @@ static void fill_combo(GtkWidget *dialog, const char *combo_name, GList *options
    GtkWidget *combo;
 
    combo = lookup_widget(dialog, combo_name);
-   if (combo) {
+   if (combo && options) {
       gtk_combo_set_popdown_strings(GTK_COMBO(combo), options);
    }
    return;
@@ -361,7 +361,9 @@ int connect_to_director(gpointer data)
       dir_dialog = create_SelectDirectorDialog();
       combo = lookup_widget(dir_dialog, "combo1");
       dir_select = lookup_widget(dir_dialog, "dirselect");
-      gtk_combo_set_popdown_strings(GTK_COMBO(combo), dirs);   
+      if (dirs) {
+	 gtk_combo_set_popdown_strings(GTK_COMBO(combo), dirs);   
+      }
       gtk_widget_show(dir_dialog);
       gtk_main();
 
