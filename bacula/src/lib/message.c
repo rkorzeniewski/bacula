@@ -477,8 +477,9 @@ void close_msg(JCR *jcr)
 	    stat = close_bpipe(bpipe);
 	    if (stat != 0 && msgs != daemon_msgs) {
                Dmsg1(150, "Calling emsg. CMD=%s\n", cmd);
-               Jmsg2(jcr, M_ERROR, 0, _("Mail program terminated in error. stat=%d\n"
-                                        "CMD=%s\n"), stat, cmd);
+               Jmsg3(jcr, M_ERROR, 0, _("Mail program terminated in error. stat=%d\n"
+                                        "CMD=%s\n"
+                                        "ERR=%s\n"), stat, cmd, strerror(stat));
 	    }
 	    free_memory(line);
 rem_temp_file:
@@ -636,8 +637,9 @@ void dispatch_message(JCR *jcr, int type, int level, char *msg)
 		   /* Messages to the operator go one at a time */
 		   stat = close_bpipe(bpipe);
 		   if (stat != 0) {
-                      Emsg1(M_ERROR, 0, _("Operator mail program terminated in error.\nCMD=%s\n"),
-			 mcmd);
+                      Jmsg2(jcr, M_ERROR, 0, _("Operator mail program terminated in error.\n"
+                            "CMD=%s\n"
+                            "ERR=%s\n"), mcmd, strerror(stat));
 		   }
 		}
 		free_pool_memory(mcmd);
@@ -651,7 +653,7 @@ void dispatch_message(JCR *jcr, int type, int level, char *msg)
                    d->fd = fopen(mp_chr(name), "w+");
 		   if (!d->fd) {
 		      d->fd = stdout;
-                      Emsg2(M_ERROR, 0, "fopen %s failed: ERR=%s\n", name, strerror(errno));
+                      Jmsg2(jcr, M_ERROR, 0, "fopen %s failed: ERR=%s\n", name, strerror(errno));
 		      d->fd = NULL;
 		      free_pool_memory(name);
 		      break;
@@ -670,7 +672,7 @@ void dispatch_message(JCR *jcr, int type, int level, char *msg)
                    d->fd = fopen(d->where, "w+");
 		   if (!d->fd) {
 		      d->fd = stdout;
-                      Emsg2(M_ERROR, 0, "fopen %s failed: ERR=%s\n", d->where, strerror(errno));
+                      Jmsg2(jcr, M_ERROR, 0, "fopen %s failed: ERR=%s\n", d->where, strerror(errno));
 		      d->fd = NULL;
 		      break;
 		   }
@@ -683,7 +685,7 @@ void dispatch_message(JCR *jcr, int type, int level, char *msg)
                    d->fd = fopen(d->where, "a");
 		   if (!d->fd) {
 		      d->fd = stdout;
-                      Emsg2(M_ERROR, 0, "fopen %s failed: ERR=%s\n", d->where, strerror(errno));
+                      Jmsg2(jcr, M_ERROR, 0, "fopen %s failed: ERR=%s\n", d->where, strerror(errno));
 		      d->fd = NULL;
 		      break;
 		   }
@@ -744,7 +746,7 @@ d_msg(char *file, int line, int level, char *fmt,...)
           bsnprintf(buf, sizeof(buf), "%s/bacula.trace", working_directory);
           trace_fd = fopen(buf, "a+");
 	  if (!trace_fd) {
-             Emsg2(M_ABORT, 0, _("Cannot open %s: ERR=%s\n"),
+             Emsg2(M_ABORT, 0, _("Cannot open trace file \"%s\": ERR=%s\n"),
 		  buf, strerror(errno));
 	  }
        }
@@ -830,7 +832,7 @@ t_msg(char *file, int line, int level, char *fmt,...)
           bsnprintf(buf, sizeof(buf), "%s/bacula.trace", working_directory);
           trace_fd = fopen(buf, "a+");
 	  if (!trace_fd) {
-             Emsg2(M_ABORT, 0, _("Cannot open %s: ERR=%s\n"),
+             Emsg2(M_ABORT, 0, _("Cannot open trace file \"%s\": ERR=%s\n"),
 		  buf, strerror(errno));
 	  }
        }

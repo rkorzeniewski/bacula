@@ -9,6 +9,7 @@
 #else
 #include <stdio.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <signal.h>
 #include <string.h>
 #include <ctype.h> 
@@ -780,7 +781,7 @@ static void add_esc_smap(char *str, int func)
       return;
    }
    if (tcgetattr(0, &old_term_params) != 0) {
-      printf(_("conio: Cannot tcgetattr()\n"));
+      printf("conio: Cannot tcgetattr()\n");
       exit(1);
    }
    old_term_params_set = true;
@@ -789,8 +790,7 @@ static void add_esc_smap(char *str, int func)
    t.c_cc[VTIME] = 0;
    t.c_iflag &= ~(BRKINT | IGNPAR | PARMRK | INPCK | 
 		  ISTRIP | ICRNL | IXON | IXOFF | INLCR | IGNCR);     
-   t.c_iflag |= IGNBRK | ISIG;
-// t.c_oflag &= ~(OPOST);    /* no output processing */       
+   t.c_iflag |= IGNBRK;
    t.c_oflag |= ONLCR;
    t.c_lflag &= ~(ECHO | ECHOE | ECHOK | ECHONL | ICANON |
 		  NOFLSH | TOSTOP);
@@ -799,13 +799,13 @@ static void add_esc_smap(char *str, int func)
       printf("Cannot tcsetattr()\n");
    }
 
-// signal(SIGQUIT, SIG_IGN);
-// signal(SIGHUP, SIG_IGN);
+   signal(SIGQUIT, SIG_IGN);
+   signal(SIGHUP, SIG_IGN);
 // signal(SIGSTOP, SIG_IGN);
    signal(SIGINT, sigintcatcher);
-// signal(SIGWINCH, SIG_IGN);	
-// signal(SIGQUIT, SIG_IGN);
-// signal(SIGCHLD, SIG_IGN);
+   signal(SIGWINCH, SIG_IGN);	
+   signal(SIGQUIT, SIG_IGN);
+   signal(SIGCHLD, SIG_IGN);
 // signal(SIGTSTP, SIG_IGN);
 
    if (!termtype) {
@@ -894,10 +894,7 @@ static void add_esc_smap(char *str, int func)
 static int
 /*FCN*/t_gnc()
 {
-    int ch;
-
-    while ((ch=t_getch()) == 0) ;     /* get next input character */
-    return(ch);
+    return t_getch();
 }
 
 
@@ -1028,4 +1025,3 @@ static void asdell()
 {
    t_send(t_dl);
 }
-

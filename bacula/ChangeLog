@@ -1,5 +1,27 @@
 
 2003-12-xxx Version 1.33  xxNov03
+28Dec03
+- Find commonset of c_iflags that work with FreeBSD tcsetattr on terminals.
+- Remove comments from string concatenation -- doesn't work on FreeBSD
+  compiler.
+- Moderately improve bpipe_close() errors. Must rethink status return.
+- Eliminate some Emsgs in favor of Jmsgs.
+27Dec03
+- Add optional Pool keyword on restore command line. If specified, the pool
+  used will be restricted to the specified pool.
+- "Finish" implementation of JobDefs.
+- Fix directory for chmod of cats scripts.
+26Dec03
+- Implement foreach_res() #define and start replacing old code.
+- Work some more on jobdefs -- more to be done.
+- Implement bstrftime_nc() bstrftime with no century.
+- Fix static console problem in gnome2 and gnome directories reported by Alan 
+  Brown.
+- Add code to test for valid Resource Names. Permitted characters are now
+  alpha, numeric, colon, period, minus, underscore, space.
+- Turnoff some unused code in timers.c
+- Start adding code to dev.c to prevent infinite loops if fast forward space
+  file (MTFSF) is configured on but not properly supported by OS.
 24Nov03
 - Sort FileSet selection list by CreateTime.
 - Add "lsmark", and "estimate" to tree routines.

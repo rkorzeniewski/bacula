@@ -1,7 +1,7 @@
 
           Release Notes for Bacula 1.33
 
-  Bacula code: Total files = 281 Total lines = 83,612 (*.h *.c *.in)
+  Bacula code: Total files = 281 Total lines = 83,815 (*.h *.c *.in)
 
 Most Significant Changes since 1.32d
 - Implement "update slots scan" that reads the volume label(s).
@@ -24,6 +24,7 @@ Most Significant Changes since 1.32d
   tape block, so the tape is not recognized.
 
 Other Changes since 1.32d
+- Implement conio.c to use in console program -- mini-readline.
 - Enhance "fill" command of btape -- simpler output. Use -v to
   cause last block to be dumped after write and after re-read.
 - Added an autochanger test to the btape "test" command. It is 
