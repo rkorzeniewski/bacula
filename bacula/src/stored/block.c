@@ -290,7 +290,7 @@ int write_block_to_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
  */
 int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 {
-   size_t stat = 0;
+   ssize_t stat = 0;
    uint32_t wlen;		      /* length to write */
    int hit_max1, hit_max2;
    int ok;
@@ -364,7 +364,7 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 
    dev->VolCatInfo.VolCatWrites++;
    Dmsg1(500, "Write block of %u bytes\n", wlen);      
-   if ((uint32_t) (stat=write(dev->fd, block->buf, (size_t)wlen)) != wlen) {
+   if ((uint32_t)(stat=write(dev->fd, block->buf, (size_t)wlen)) != wlen) {
       /* We should check for errno == ENOSPC, BUT many 
        * devices simply report EIO when it is full.
        * with a little more thought we may be able to check
@@ -474,7 +474,7 @@ int read_block_from_device(DEVICE *dev, DEV_BLOCK *block)
  */
 int read_block_from_dev(DEVICE *dev, DEV_BLOCK *block)
 {
-   size_t stat;
+   ssize_t stat;
    int looping;
 
    looping = 0;

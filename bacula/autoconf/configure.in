@@ -1335,6 +1335,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   scripts/bacula \
 	   scripts/fd \
 	   scripts/Makefile \
+	   scripts/logrotate \
 	   doc/Makefile \
 	   src/Makefile \
 	   src/console/Makefile \
