@@ -1,7 +1,7 @@
 #
 # Default Bacula Storage Daemon Configuration file
 #
-#  For Bacula release 1.32 (20 Sep 2003) -- redhat 9
+#  For Bacula release 1.33
 #
 # You may need to change the name of your tape drive
 #   on the "Archive Device" directive in the Device
