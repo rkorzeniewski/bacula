@@ -99,6 +99,15 @@ JCR *new_control_jcr(const char *base_name, int job_type)
 {
    JCR *jcr;
    jcr = new_jcr(sizeof(JCR), dird_free_jcr);
+   /*
+    * The job and defaults are not really used, but
+    *  we set them up to ensure that everything is correctly
+    *  initialized.
+    */
+   LockRes();
+   jcr->job = (JOB *)GetNextRes(R_JOB, NULL);
+   set_jcr_defaults(jcr, jcr->job);
+   UnlockRes();
    jcr->sd_auth_key = bstrdup("dummy"); /* dummy Storage daemon key */
    create_unique_job_name(jcr, base_name);
    jcr->sched_time = jcr->start_time;
@@ -106,20 +115,6 @@ JCR *new_control_jcr(const char *base_name, int job_type)
    jcr->JobLevel = L_NONE;
    jcr->JobStatus = JS_Running;
    jcr->JobId = 0;
-   /*
-    * None of these are really defined for control JCRs, so we
-    * simply take the first of each one. This ensures that there
-    * will be no null pointer references.
-    */
-   LockRes();
-   jcr->job = (JOB *)GetNextRes(R_JOB, NULL);
-   jcr->messages = (MSGS *)GetNextRes(R_MSGS, NULL);
-   jcr->client = (CLIENT *)GetNextRes(R_CLIENT, NULL);
-   jcr->pool = (POOL *)GetNextRes(R_POOL, NULL);
-   jcr->catalog = (CAT *)GetNextRes(R_CATALOG, NULL);
-   jcr->store = (STORE *)GetNextRes(R_STORAGE, NULL);
-   jcr->fileset = (FILESET *)GetNextRes(R_FILESET, NULL);
-   UnlockRes();
    return jcr;
 }
 

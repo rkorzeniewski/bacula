@@ -8,7 +8,7 @@
  */
 
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2004 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -170,7 +170,7 @@ int update_slots(UAContext *ua)
    if (!store) {
       return 1;
    }
-   ua->jcr->store = store;
+   set_storage(ua->jcr, store);
 
    scan = find_arg(ua, _("scan")) >= 0;
 
@@ -296,7 +296,7 @@ static int do_label(UAContext *ua, const char *cmd, int relabel)
    if (!store) {
       return 1;
    }
-   ua->jcr->store = store;
+   set_storage(ua->jcr, store);
 
    if (!relabel && find_arg_keyword(ua, barcode_keyword) >= 0) {
       label_from_barcodes(ua);

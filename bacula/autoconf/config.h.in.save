@@ -188,6 +188,7 @@
 #undef llu
 
 #undef HAVE_READLINE 
+#undef HAVE_PYTHON
 
 #undef HAVE_GMP
 
@@ -262,9 +263,6 @@
 
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
-
-/* Define to 1 if your system has a working POSIX `fnmatch' function. */
-#undef HAVE_FNMATCH
 
 /* Define to 1 if you have the `fork' function. */
 #undef HAVE_FORK
