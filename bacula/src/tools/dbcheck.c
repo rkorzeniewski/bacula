@@ -168,12 +168,24 @@ int main (int argc, char *argv[])
 	 } else {
             Pmsg1(0, "Error there is no Catalog section in the given config file [%s]\n", configfile);
 	 }
-	 return 1;
+	 exit(1);
       } else {
-	  db_name = catalog->db_name;
-	  user = catalog->db_user;
-	  password = catalog->db_password;
-          dbhost = (catalog->db_address[0] == '\0') ? NULL : catalog->db_address;
+	 DIRRES *director;
+	 LockRes();
+	 director = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);
+	 UnlockRes();
+	 if (!director) {
+            Pmsg0(0, "Error no Director resource defined.\n");
+	    exit(1);
+	 }
+	 set_working_directory(director->working_directory);
+	 db_name = catalog->db_name;
+	 user = catalog->db_user;
+	 password = catalog->db_password;
+	 dbhost = catalog->db_address;
+	 if (dbhost && dbhost[0] == 0) {
+	    dbhost = NULL;
+	 }
       }
    } else {
       if (argc > 5) {
