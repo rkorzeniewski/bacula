@@ -60,6 +60,11 @@ Regression tests (Jo):
 
 
 1.37 Possibilities:
+- FileSet implement "default = include" or "default = exclude"
+  as a solution to being able to include only certain files??????
+- Implement Preben's suggestion to add
+  File System Types = ext2, ext3 
+  to FileSets, thus simplifying backup of *all* local partitions.
 - Implement Maximum Job Spool Size
 - Document security problems with the same password for everyone in
   rpm and Win32 releases.
