@@ -713,9 +713,12 @@ void dump_bsr(BSR *bsr, bool recurse)
    }
    if (bsr->count) {
       Dmsg1(-1, "count       : %u\n", bsr->count);
+      Dmsg1(-1, "found       : %u\n", bsr->found);
    }
+
    Dmsg1(-1,    "done        : %s\n", bsr->done?"yes":"no");
    Dmsg1(-1,    "positioning : %d\n", bsr->use_positioning);
+   Dmsg1(-1,    "fast_reject : %d\n", bsr->use_fast_rejection);
    if (recurse && bsr->next) {
       Dmsg0(-1, "\n");
       dump_bsr(bsr->next, true);

@@ -77,10 +77,16 @@ int match_bsr_block(BSR *bsr, DEV_BLOCK *block)
       return 1; 		      /* cannot fast reject */
    }
 
-   if (!match_block_sesstime(bsr, bsr->sesstime, block)) {
-      return 0;
+   for ( ; bsr; bsr=bsr->next) {
+      if (!match_block_sesstime(bsr, bsr->sesstime, block)) {
+	 continue;
+      }
+      if (!match_block_sessid(bsr, bsr->sessid, block)) {
+	 continue;
+      }
+      return 1;
    }
-   return match_block_sessid(bsr, bsr->sessid, block);
+   return 0;
 }
 
 static int match_block_sesstime(BSR *bsr, BSR_SESSTIME *sesstime, DEV_BLOCK *block)
