@@ -472,7 +472,7 @@ cp -p ../depkgs/sqlite/libsqlite.a $RPM_BUILD_ROOT%{sqlite_bindir}/libsqlite.a
 %endif
 
 # install the logrotate file
-cp scripts/logrotate $RPM_BUILD_ROOT/etc/logrotate.d/bacula
+cp -p scripts/logrotate $RPM_BUILD_ROOT/etc/logrotate.d/bacula
 
 # install the rescue stuff
 # these are the rescue scripts
