@@ -981,7 +981,7 @@ bail_out:
    Pmsg0(-1, _("\nThe forward space file test failed.\n"));
    if (dev_cap(dev, CAP_FASTFSF)) {
       Pmsg0(-1, "You have Fast Forward Space File enabled.\n"
-              "I am turning it off then retring the test.\n");
+              "I am turning it off then retrying the test.\n");
       dev->capabilities &= ~CAP_FASTFSF;
       set_off = true;
       goto test_again;
