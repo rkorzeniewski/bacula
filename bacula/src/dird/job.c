@@ -747,6 +747,9 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    for (int i=0; i<MAX_STORE; i++) {
       jcr->storage[i] = job->storage[i];
    }
+   if (jcr->storage[0]) {
+      jcr->store = (STORE *)jcr->storage[0]->first();
+   }
    jcr->client = job->client;
    if (!jcr->client_name) {
       jcr->client_name = get_pool_memory(PM_NAME);
@@ -783,6 +786,27 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
 	 break;
       default:
 	 break;
+      }
+   }
+}
+
+/* 
+ * copy the storage definitions from an old JCR to a new one
+ */
+void copy_storage(JCR *new_jcr, JCR *old_jcr)  
+{
+   for (int i=0; i < MAX_STORE; i++) {
+      if (old_jcr->storage[i]) {
+	 STORE *st;
+	 new_jcr->storage[i] = New(alist(10, not_owned_by_alist));
+	 foreach_alist(st, old_jcr->storage[i]) {
+	    new_jcr->storage[i]->append(st);
+	 }
+      }
+      if (old_jcr->store) {
+	 new_jcr->store = old_jcr->store;
+      } else if (new_jcr->storage[0]) {
+	 new_jcr->store = (STORE *)new_jcr->storage[0]->first();
       }
    }
 }

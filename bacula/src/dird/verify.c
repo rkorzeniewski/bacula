@@ -59,10 +59,10 @@ static int missing_handler(void *ctx, int num_fields, char **row);
 /* 
  * Do a verification of the specified files against the Catlaog
  *    
- *  Returns:  0 on failure
- *	      1 on success
+ *  Returns:  false on failure
+ *	      true  on success
  */
-int do_verify(JCR *jcr) 
+bool do_verify(JCR *jcr) 
 {
    const char *level, *Name;
    BSOCK   *fd;
@@ -345,11 +345,11 @@ int do_verify(JCR *jcr)
 
    stat = wait_for_job_termination(jcr);
    verify_cleanup(jcr, stat);
-   return 1;
+   return true;
 
 bail_out:
    verify_cleanup(jcr, JS_ErrorTerminated);
-   return 0;
+   return false;
 }
 
 /*

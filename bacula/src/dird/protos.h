@@ -90,6 +90,7 @@ extern bool get_or_create_fileset_record(JCR *jcr, FILESET_DBR *fsr);
 extern JobId_t run_job(JCR *jcr);
 extern int cancel_job(UAContext *ua, JCR *jcr);
 extern void init_jcr_job_record(JCR *jcr);
+extern void copy_storage(JCR *new_jcr, JCR *old_jcr);
 
 /* mountreq.c */
 extern void mount_request(JCR *jcr, BSOCK *bs, char *buf);

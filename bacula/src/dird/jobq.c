@@ -500,8 +500,7 @@ void *jobq_server(void *arg)
 	    njcr->reschedule_count = jcr->reschedule_count;
 	    njcr->JobLevel = jcr->JobLevel;
 	    njcr->JobStatus = jcr->JobStatus;
-	    njcr->pool = jcr->pool;
-	    njcr->store = jcr->store;
+	    copy_storage(njcr, jcr);
 	    njcr->messages = jcr->messages;
             Dmsg0(300, "Call to run new job\n");
 	    V(jq->mutex);
