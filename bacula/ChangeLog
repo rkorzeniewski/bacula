@@ -1,4 +1,26 @@
 
+19Mar04
+- Hunt down missing free_locked_jcr() in SD that caused zombies.
+- Modify status outputs to be more consistent for zombie checking.
+- Add tests to regression script for zombie jobs.
+- Set EIO in dev_errno for all error returns when bad data found. This
+  fixes ERR=Success messages.
+- Make error messages all contain ERROR for easy regression testing.
+- Add sanity check in DIR for VolFiles becoming smaller.
+18Mar04
+- Second cut GTK+ restore GUI. Ready for testing but much more to do.
+- Phil reported an sql path length=0 message. This broke saves of 
+  /  -- fixed in scan.c
+- Fixed seg fault in btape "test" due to missing allocation of dcr.
+- Tweaked some btape messages.
+- Sort Volume names in Job report according to the order they were
+  written -- user request.
+17Mar04
+- First cut GTK+ restore GUI.
+- Applied bsmtp patch supplied by a user. Thanks.
+- Made a new split_path_and_filename() subroutine -- in lib/scan.c
+15Mar04
+- Fix "typos" in RedHat install-autostart Makefile.in
 13Mar04
 - Added two tar files that Phil sent for adding slackware support.
   Thanks Phil and Matt Howard.

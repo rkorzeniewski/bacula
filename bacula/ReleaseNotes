@@ -42,6 +42,11 @@ New Commands:
 
 
 Most Significant Changes since 1.32f-4
+- Native Win32 Client -- much faster and does better restores than old
+  Cygwin Win32 Client.
+- Implement Gnome 2.0 restore GUI
+- Implement data spooling
+- Implement Volume Polling
 - Add a missing unlock in the jobq handler.
 - Fix bug where a soft linked file and a directory had the same name
   by treating the soft link as a directory and putting the entries under
