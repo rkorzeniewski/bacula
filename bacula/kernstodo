@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                   10 July 2003 
+                   14 July 2003 
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -17,6 +17,7 @@ Documentation to do: (any release a little bit at a time)
 - Document need to add "-u root" to most of MySQL script calls
   (./create_mys... ./make_my...).
 - Document all the status codes JobLevel, JobType, JobStatus.
+- Document dynamic DNS
 
           
 Testing to do: (painful)
@@ -71,7 +72,8 @@ For 1.31 release:
 
 
 For 1.32:
-- Figure out how to handle DHCP IP addresses.
+- Implement a Recycle or Prune Current Volume (as from Nic Bellamy),
+  possibly implement Prune Oldest Volume.
 - Allow multiple Storage specifications (or multiple names on
   a single Storage specification) in the Job record. Thus a job 
   can be backed up to a number of storage devices.
@@ -1043,3 +1045,6 @@ Done: (see kernsdone for more)
 - Document update volume: jobid, current, before, all
 - Document that bscan does not work with multiple simultaneous jobs.
 - Update Automatic Volume Labeling in disk.wml
+- Figure out how to handle DHCP IP addresses -- use dynamic DNS.
+- Add OS, GCC version to traceback output.
+

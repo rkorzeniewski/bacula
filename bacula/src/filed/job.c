@@ -28,7 +28,6 @@
 
 #include "bacula.h"
 #include "filed.h"
-#include "host.h"
 
 extern char my_name[];
 extern CLIENT *me;		      /* our client resource */
@@ -108,7 +107,7 @@ static char OKverify[]    = "2000 OK verify\n";
 static char OKrestore[]   = "2000 OK restore\n";
 static char OKsession[]   = "2000 OK session\n";
 static char OKstore[]     = "2000 OK storage\n";
-static char OKjob[]       = "2000 OK Job " FDHOST "," DISTNAME "," DISTVER;
+static char OKjob[]       = "2000 OK Job " HOST_OS "," DISTNAME "," DISTVER;
 static char OKsetdebug[]  = "2000 OK setdebug=%d\n";
 static char BADjob[]      = "2901 Bad Job\n";
 static char EndJob[]      = "2800 End Job TermCode=%d JobFiles=%u ReadBytes=%s JobBytes=%s Errors=%u\n";

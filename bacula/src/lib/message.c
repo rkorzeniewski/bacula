@@ -61,6 +61,9 @@ char catalog_db[] = "Internal";
 #endif
 #endif
 
+char *host_os = HOST_OS;
+char *distname = DISTNAME;
+char *distver = DISTVER;
 
 /* Forward referenced functions */
 

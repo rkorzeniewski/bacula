@@ -4,3 +4,4 @@
 Makefile
 config.h
 testprogs
+host.h

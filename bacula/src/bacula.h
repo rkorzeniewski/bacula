@@ -28,6 +28,7 @@
 #define _BACULA_H 1
 
 #include "config.h"
+#include "host.h"
 
 #define _REENTRANT    1
 #define _THREAD_SAFE  1

@@ -1422,6 +1422,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   scripts/mtx-changer \
 	   doc/Makefile \
 	   src/Makefile \
+	   src/host.h \
 	   src/console/Makefile \
 	   src/console/console.conf \
 	   src/gnome-console/Makefile \
@@ -1435,7 +1436,6 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/stored/Makefile \
 	   src/stored/bacula-sd.conf \
 	   src/filed/Makefile \
-	   src/filed/host.h \
 	   src/filed/bacula-fd.conf \
 	   src/filed/win32/Makefile \
 	   src/cats/Makefile \
