@@ -899,6 +899,11 @@ Which DBMS do you want to use (please select only one):
                           a number of common places for the MySQL files.
 
 Which DBMS do you want to use (please select only one):
+  --with-postgresql=DIR Include PostgreSQL support.  DIR is the PostgreSQL base
+                          install directory, default is to search through
+                          a number of common places for the PostgreSQL files.
+
+Which DBMS do you want to use (please select only one):
   --with-embedded-mysql=DIR Include MySQL support.  DIR is the MySQL base
                           install directory, default is to search through
                           a number of common places for the MySQL files.
@@ -4316,6 +4321,7 @@ fi
 
 support_mysql=no
 support_sqlite=no
+support_postgresql=no
 support_smartalloc=yes
 support_readline=yes
 support_gnome=no
@@ -6775,6 +6781,87 @@ fi;
 # ------------------------------------------------
 
 db_found=no
+echo "$as_me:$LINENO: checking for PostgreSQL support" >&5
+echo $ECHO_N "checking for PostgreSQL support... $ECHO_C" >&6
+
+# Check whether --with-postgresql was given.
+if test "${with_postgresql+set}" = set; then
+  withval="$with_postgresql"
+
+  if test "$withval" != "no"; then
+        if test "$withval" = "yes"; then
+                if test -f /usr/local/postgresql/include/postgresql/libpq-fe.h; then
+                        POSTGRESQL_INCDIR=/usr/local/postgresql/include/postgresql
+                        POSTGRESQL_LIBDIR=/usr/local/postgresql/lib/postgresql
+                        POSTGRESQL_BINDIR=/usr/local/postgresql/bin
+                elif test -f /usr/include/postgresql/libpq-fe.h; then
+                        POSTGRESQL_INCDIR=/usr/include/postgresql
+                        POSTGRESQL_LIBDIR=/usr/lib/postgresql
+                        POSTGRESQL_BINDIR=/usr/bin
+                elif test -f /usr/include/libpq-fe.h; then
+                        POSTGRESQL_INCDIR=/usr/include
+                        POSTGRESQL_LIBDIR=/usr/lib
+                        POSTGRESQL_BINDIR=/usr/bin
+                elif test -f /usr/local/include/postgresql/libpq-fe.h; then
+                        POSTGRESQL_INCDIR=/usr/local/include/postgresql
+                        POSTGRESQL_LIBDIR=/usr/local/lib/postgresql
+                        POSTGRESQL_BINDIR=/usr/local/bin
+                elif test -f /usr/local/include/libpq-fe.h; then
+                        POSTGRESQL_INCDIR=/usr/local/include
+                        POSTGRESQL_LIBDIR=/usr/local/lib
+                        POSTGRESQL_BINDIR=/usr/local/bin
+                else
+                   echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+                   { { echo "$as_me:$LINENO: error: Unable to find libpq-fe.h in standard locations" >&5
+echo "$as_me: error: Unable to find libpq-fe.h in standard locations" >&2;}
+   { (exit 1); exit 1; }; }
+                fi
+        else
+                if test -f $withval/include/postgresql/libpq-fe.h; then
+                        POSTGRESQL_INCDIR=$withval/include/postgresql
+                        POSTGRESQL_LIBDIR=$withval/lib/postgresql
+                        POSTGRESQL_BINDIR=$withval/bin
+                elif test -f $withval/include/libpq-fe.h; then
+                        POSTGRESQL_INCDIR=$withval/include
+                        POSTGRESQL_LIBDIR=$withval/lib
+                        POSTGRESQL_BINDIR=$withval/bin
+                else
+                   echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+                   { { echo "$as_me:$LINENO: error: Invalid PostgreSQL directory $withval - unable to find libpq-fe.h under $withval" >&5
+echo "$as_me: error: Invalid PostgreSQL directory $withval - unable to find libpq-fe.h under $withval" >&2;}
+   { (exit 1); exit 1; }; }
+                fi
+        fi
+    SQL_INCLUDE=-I$POSTGRESQL_INCDIR
+    SQL_LFLAGS="-L$POSTGRESQL_LIBDIR -lpq -lz"
+    SQL_BINDIR=$POSTGRESQL_BINDIR
+
+    cat >>confdefs.h <<\_ACEOF
+#define HAVE_POSTGRESQL 1
+_ACEOF
+
+    echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+    db_found=yes
+    support_postgresql=yes
+    db_name=PostgreSQL
+    DB_NAME=postgresql
+
+  else
+        echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+  fi
+
+else
+
+    echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+
+fi;
+
+
 echo "$as_me:$LINENO: checking for MySQL support" >&5
 echo $ECHO_N "checking for MySQL support... $ECHO_C" >&6
 
@@ -19014,7 +19101,7 @@ Configuration on `date`:
   Director User:	    ${dir_user}
   Director Group:	    ${dir_group}
   Storage Daemon User:	    ${dir_user}
-  Storage DaemonGroup:	    ${dir_group}
+  Storage Daemon Group:	    ${dir_group}
   File Daemon User:	    ${dir_user}
   File Daemon Group:	    ${dir_group}
 
