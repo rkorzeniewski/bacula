@@ -26,9 +26,9 @@ wxbMainFrame : When exiting using menu, a messagebox is shown to ask the
 
 wxbUtils : add clients, jobs, filesets, pools... list, merge patch file (wxbnewutils.patch)
 
-general : add a tab containing messages
+general : do not show some commands results (for example .help)
 
-wxbMainFrame : Implement command completion (tab)
+general : add a tab containing messages
 
 wxbConfigFileEditor : create a more precise editor, with something like
    a tree structure

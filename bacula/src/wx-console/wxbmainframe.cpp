@@ -37,7 +37,7 @@
 #include <wx/arrimpl.cpp>
 
 #include <wx/stattext.h>
-
+#include <wx/statline.h>
 #include <wx/config.h>
 
 #include <wx/filename.h>
@@ -261,23 +261,27 @@ wxbMainFrame::wxbMainFrame(const wxString& title, const wxPoint& pos, const wxSi
    consoleCtrl->SetDefaultStyle(wxTextAttr(*wxBLACK, wxNullColour, font));
 #endif
 
-   wxFlexGridSizer *consoleSizer = new wxFlexGridSizer(2, 1, 0, 0);
+   helpCtrl = new wxStaticText(consolePanel, -1, "Type your command below:");
+
+   wxFlexGridSizer *consoleSizer = new wxFlexGridSizer(4, 1, 0, 0);
    consoleSizer->AddGrowableCol(0);
    consoleSizer->AddGrowableRow(0);
 
-   typeCtrl = new wxbHistoryTextCtrl(consolePanel,TypeText,"",wxDefaultPosition,wxSize(200,20));
+   typeCtrl = new wxbHistoryTextCtrl(helpCtrl, consolePanel,TypeText,"",wxDefaultPosition,wxSize(200,20));
    sendButton = new wxButton(consolePanel, SendButton, "Send");
    
-   wxFlexGridSizer *typeSizer = new wxFlexGridSizer(1, 3, 0, 0);
-   typeSizer->AddGrowableCol(1);
+   wxFlexGridSizer *typeSizer = new wxFlexGridSizer(1, 2, 0, 0);
+   typeSizer->AddGrowableCol(0);
    typeSizer->AddGrowableRow(0);
 
-   typeSizer->Add(new wxStaticText(consolePanel, -1, "Command: "), 0, wxALIGN_CENTER | wxALL, 0);
+   //typeSizer->Add(new wxStaticText(consolePanel, -1, "Command: "), 0, wxALIGN_CENTER | wxALL, 0);
    typeSizer->Add(typeCtrl, 1, wxEXPAND | wxALL, 0);
    typeSizer->Add(sendButton, 1, wxEXPAND | wxLEFT, 5);
 
    consoleSizer->Add(consoleCtrl, 1, wxEXPAND | wxALL, 0);
-   consoleSizer->Add(typeSizer, 0, wxEXPAND | wxALL, 0);
+   consoleSizer->Add(new wxStaticLine(consolePanel, -1), 0, wxEXPAND | wxALL, 0);
+   consoleSizer->Add(helpCtrl, 1, wxEXPAND | wxALL, 2);
+   consoleSizer->Add(typeSizer, 0, wxEXPAND | wxALL, 2);
 
    consolePanel->SetAutoLayout( TRUE );
    consolePanel->SetSizer( consoleSizer );
@@ -561,6 +565,17 @@ void wxbMainFrame::Print(wxString str, int status)
    
    if (status == CS_CONNECTED) {
       SetStatusText("Connected to the director.");
+      typeCtrl->ClearCommandList();
+      wxbDataTokenizer* dt = wxbUtils::WaitForEnd(".help", true);
+      int i, j;
+      wxString str;
+      for (i = 0; i < dt->GetCount(); i++) {
+         str = (*dt)[i];
+         str.RemoveLast();
+         if ((j = str.Find(' ')) > -1) {
+            typeCtrl->AddCommand(str.Mid(0, j), str.Mid(j+1));
+         }
+      }
       EnablePanels();
       menuFile->Enable(MenuConnect, true);
       menuFile->SetLabel(MenuConnect, "Reconnect");

@@ -144,6 +144,7 @@ private:
 
    wxNotebook *notebook; /* main notebook */
    wxTextCtrl *consoleCtrl; /* wxTextCtrl containing graphical console */
+   wxStaticText *helpCtrl; /* wxStaticText showing help messages */
    wxbHistoryTextCtrl *typeCtrl; /* wxbHistoryTextCtrl for console user input */
    wxButton *sendButton; /* wxButton used to send data */
 
