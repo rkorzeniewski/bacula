@@ -54,7 +54,7 @@ bool mount_next_write_volume(DCR *dcr, bool release)
 
    Dmsg0(100, "Enter mount_next_volume()\n");
 
-   init_dev_wait_timers(dev);
+   init_device_wait_timers(dcr);
 
    /*
     * Attempt to mount the next volume. If something non-fatal goes

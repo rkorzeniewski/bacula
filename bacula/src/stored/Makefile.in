@@ -45,31 +45,31 @@ TAPESRCS = btape.c block.c butil.c dev.c device.c label.c \
 TAPEOBJS = btape.o block.o butil.o dev.o device.o label.o \
 	   ansi_label.o dvd.o ebcdic.o \
 	   autochanger.o acquire.o mount.o record.o read_record.o \
-	   stored_conf.o match_bsr.o parse_bsr.o spool.o
+	   stored_conf.o match_bsr.o parse_bsr.o spool.o wait.o
 
 # bls
 BLSOBJS = bls.o block.o butil.o device.o dev.o label.o match_bsr.o \
 	  ansi_label.o dvd.o ebcdic.o \
 	  autochanger.o acquire.o mount.o parse_bsr.o record.o	\
-	  read_record.o stored_conf.o spool.o
+	  read_record.o stored_conf.o spool.o wait.o
 
 # bextract
 BEXTOBJS = bextract.o block.o device.o dev.o label.o record.o \
 	   ansi_label.o dvd.o ebcdic.o \
 	   autochanger.o acquire.o mount.o match_bsr.o parse_bsr.o butil.o \
-	   read_record.o stored_conf.o spool.o
+	   read_record.o stored_conf.o spool.o wait.o
 
 # bscan
 SCNOBJS = bscan.o block.o device.o dev.o label.o \
 	  ansi_label.o dvd.o ebcdic.o \
 	  autochanger.o acquire.o mount.o record.o match_bsr.o parse_bsr.o \
-	  butil.o read_record.o stored_conf.o spool.o
+	  butil.o read_record.o stored_conf.o spool.o wait.o
 
 # bcopy
 COPYOBJS = bcopy.o block.o device.o dev.o label.o \
 	   ansi_label.o dvd.o ebcdic.o \
 	   autochanger.o acquire.o mount.o record.o match_bsr.o parse_bsr.o \
-	   butil.o read_record.o stored_conf.o spool.o
+	   butil.o read_record.o stored_conf.o spool.o wait.o
 
 
 

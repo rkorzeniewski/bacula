@@ -54,7 +54,6 @@ static int update_SIG_record(B_DB *db, char *SIGbuf, DEV_RECORD *rec, int type);
 
 
 /* Global variables */
-STORES *me;
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
 int win32_client = 1;
 #else
@@ -100,7 +99,10 @@ static int num_files = 0;
 
 #define CONFIG_FILE "bacula-sd.conf"
 char *configfile;
-bool forge_on = false;
+STORES *me = NULL;		      /* our Global resource */
+bool forge_on = false;		      /* proceed inspite of I/O errors */
+pthread_mutex_t device_release_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t wait_device_release = PTHREAD_COND_INITIALIZER;
 
 
 static void usage()

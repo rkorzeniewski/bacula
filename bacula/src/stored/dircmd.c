@@ -272,6 +272,7 @@ static bool cancel_cmd(JCR *cjcr)
 	 /* If thread waiting on mount, wake him */
 	 if (jcr->dcr && jcr->dcr->dev && jcr->dcr->dev->waiting_for_mount()) {
 	     pthread_cond_signal(&jcr->dcr->dev->wait_next_vol);
+	     pthread_cond_broadcast(&wait_device_release);
 	 }
          bnet_fsend(dir, _("3000 Job %s marked to be canceled.\n"), jcr->Job);
 	 free_jcr(jcr);
@@ -553,6 +554,7 @@ static bool mount_cmd(JCR *jcr)
             bnet_fsend(dir, "3001 OK mount. Device=%s\n", 
 	       dev->print_name());
 	    pthread_cond_signal(&dev->wait_next_vol);
+	    pthread_cond_broadcast(&wait_device_release);
 	    break;
 
 	 /* In both of these two cases, we (the user) unmounted the Volume */
@@ -583,6 +585,7 @@ static bool mount_cmd(JCR *jcr)
 			  dev->print_name());
 	    }
 	    pthread_cond_signal(&dev->wait_next_vol);
+	    pthread_cond_broadcast(&wait_device_release);
 	    break;
 
 	 case BST_DOING_ACQUIRE:
