@@ -39,6 +39,19 @@ Job {
 }
 
 Job {
+  Name = "VerifyVolume"
+  Type = Verify
+  Level = VolumeToCatalog
+  Client=rufus-fd 
+  FileSet="Full Set"
+  Storage = File
+  Messages = Standard
+  Pool = Default
+  Write Bootstrap = "@working_dir@/NightlySave.bsr"
+}
+
+
+Job {
   Name = "SparseTest"
   Type = Backup
   Client=rufus-fd 
@@ -70,8 +83,6 @@ Job {
   Pool = Default
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
 }
-
-
 
 
 # Backup the catalog database (after the nightly save)

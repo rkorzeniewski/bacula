@@ -4,6 +4,7 @@
 #
 tests/test0
 tests/backup-bacula-test
+tests/verify-vol-test
 tests/sparse-test
 tests/compressed-test
 tests/sparse-compressed-test
