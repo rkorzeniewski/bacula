@@ -49,7 +49,7 @@ extern int do_verify(JCR *jcr);
 /* Imported variables */
 extern time_t watchdog_time;
 
-jobq_t	job_queue;
+jobq_t job_queue;
 
 void init_job_server(int max_workers)
 {
@@ -73,11 +73,7 @@ void init_job_server(int max_workers)
 
 void term_job_server()
 {
-   int stat;
-   if ((stat=jobq_destroy(&job_queue)) != 0) {
-      berrno be;
-      Emsg1(M_INFO, 0, _("Could not term job queue: ERR=%s\n"), be.strerror(stat));
-   }
+   jobq_destroy(&job_queue);	      /* ignore any errors */
 }
 
 /*
