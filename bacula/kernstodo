@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                26 September 2003 
+                30 September 2003 
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -26,21 +26,11 @@ Testing to do: (painful)
 For 1.32 Testing/Documentation:
 - Document new records in Director. SDAddress SDDeviceName, SDPassword.
   FDPassword, FDAddress, DBAddress, DBPort, DBPassword.
-- Document that it is safe to use the drive when the lights stop flashing.
 - Document new Include/Exclude ...
-- Document all the status codes JobLevel, JobType, JobStatus.
 - Add test of exclusion, test multiple Include {} statements.
 - Add counter variable test.
                 
 For 1.32:
-- Add GUI interface to manual
-- Document that Volume pruning can delete last Full backup and
-  hence you will not have a valid backup.
-- Clarify the fact that having the Bacula cygwin1.dll loaded
-  is not the same as having cygwin installed.
-- Fix sparse file handeling so that it always reads a multiple
-  of 512. Currently, it subtracts 8 bytes (for faddr).
-- Separate Dir heartbeat in FD from the SD heartbeat.
 
 For 1.33
 - When job rescheduled, status gives is waiting for Client Rufus 
@@ -957,3 +947,15 @@ Done: (see kernsdone for more)
 - Add regression testing to the manual
 - End time: in job output of rescheduled job is time of first run.
 - Document list nextvol and status output.
+- Separate Dir heartbeat in FD from the SD heartbeat.
+- Fix sparse file handeling so that it always reads a multiple
+  of 512. Currently, it subtracts 8 bytes (for faddr).
+  Kludged with #ifdef for FreeBSD.
+- Document that Volume pruning can delete last Full backup and
+  hence you will not have a valid backup.
+- Clarify the fact that having the Bacula cygwin1.dll loaded
+  is not the same as having cygwin installed.
+- Document that it is safe to use the drive when the lights stop flashing.
+- Document all the status codes JobLevel, JobType, JobStatus.
+- Add GUI interface to manual
+

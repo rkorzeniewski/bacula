@@ -1,4 +1,21 @@
 
+2003-10-01 Version 1.32 30Sep03 Release
+28Sep03
+- Enhance manual faq, regression ...
+- Make FreeBSD read sizes always be a multiple of 512. Needed
+  to read raw disks.
+- Make FreeBSD accept block AND character devices for raw
+  disk reads.  On FreeBSD there are no block devices.
+27Sep03
+- Fix printing of EndTime on job report after rescheduling.
+- Fix jobq.c error returns to clean up before returning.
+- Make Cleaning tape aware of "unlabeled" volumes.
+- If a job is rescheduled, ensure that old job is
+  removed from SD's jcr queue -- i.e. it is still waiting
+  for FD connection.
+- Test rescheduling code.
+- Change ./configure to detect Cygwin enviornments.
+
 2003-09-26 Version 1.32 26Sep03 Beta
 - Add regression and GUI-interface chapters to the manual.
 - Fix "label" of a volume that is already in the catalog,
