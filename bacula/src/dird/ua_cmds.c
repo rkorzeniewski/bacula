@@ -88,6 +88,7 @@ static int update_cmd(UAContext *ua, const char *cmd);
 static int wait_cmd(UAContext *ua, const char *cmd);
 static int setip_cmd(UAContext *ua, const char *cmd);
 
+int qhelp_cmd(UAContext *ua, const char *cmd);
 int quit_cmd(UAContext *ua, const char *cmd);
 
 
@@ -1884,6 +1885,16 @@ static int help_cmd(UAContext *ua, const char *cmd)
       bsendmsg(ua, _("  %-10s %s\n"), _(commands[i].key), _(commands[i].help));
    }
    bsendmsg(ua, _("\nWhen at a prompt, entering a period cancels the command.\n\n"));
+   return 1;
+}
+
+int qhelp_cmd(UAContext *ua, const char *cmd)
+{
+   unsigned int i;
+
+   for (i=0; i<comsize; i++) {
+      bsendmsg(ua, _("%s %s\n"), _(commands[i].key), _(commands[i].help));
+   }
    return 1;
 }
 
