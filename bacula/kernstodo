@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                 2 December 2002
+                 5 December 2002
 
 Documentation to do: (a little bit at a time)
 - Document running a test version.
@@ -8,7 +8,6 @@ Documentation to do: (a little bit at a time)
 
 Testing to do: (painful)
 - that restore options work in FD.
-- that mod of restore options works.
 - that console command line options work
 - blocksize recognition code.
 - Test new BSR code
@@ -618,3 +617,5 @@ Done: (see kernsdone for more)
 - Put Bacula version somewhere in Job stream, probably Start Session Labels.
 - Fix start/end blocks for File devices
 - Make Job err if WriteBootstrap fails.
+- Test that mod of restore options works.
+- Test that week position schedule code works.

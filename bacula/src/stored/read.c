@@ -55,6 +55,7 @@ int do_read_data(JCR *jcr)
    BSOCK *ds;
    BSOCK *fd_sock = jcr->file_bsock;
    int ok = TRUE;
+   int done = FALSE;
    DEVICE *dev;
    DEV_RECORD *rec;
    DEV_BLOCK *block;
@@ -112,7 +113,7 @@ int do_read_data(JCR *jcr)
     *	Read records, apply BSR filtering, and return any that are 
     *	 matched.
     */
-   for ( ;ok; ) {
+   for ( ;ok && !done; ) {
       if (job_cancelled(jcr)) {
 	 ok = FALSE;
 	 break;
@@ -171,7 +172,7 @@ int do_read_data(JCR *jcr)
 	 if (jcr->bsr) {
 	    int stat = match_bsr(jcr->bsr, rec, &dev->VolHdr, &sessrec);
 	    if (stat == -1) {	      /* no more possible matches */
-	       ok = FALSE;
+	       done = TRUE;
 	       break;
 	    } else if (stat == 0) {   /* no match */
                Dmsg0(50, "BSR rejected record\n");
@@ -197,6 +198,9 @@ int do_read_data(JCR *jcr)
 	  * out the data record
 	  */
 	 ds->msg = hdr;
+         Dmsg5(400, "Send to FD: SessId=%u SessTim=%u FI=%d Strm=%d, len=%d\n",
+	    rec->VolSessionId, rec->VolSessionTime, rec->FileIndex, rec->Stream,
+	    rec->data_len);
 	 if (!bnet_fsend(ds, rec_header, rec->VolSessionId, rec->VolSessionTime,
 		rec->FileIndex, rec->Stream, rec->data_len)) {
             Dmsg1(30, ">filed: Error Hdr=%s\n", ds->msg);

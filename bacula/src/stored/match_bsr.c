@@ -55,10 +55,15 @@ static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, SESSION_LA
  */
 int match_bsr(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, SESSION_LABEL *sessrec)
 {
-   if (!bsr) {
-      return 0;
+   int stat;
+
+   if (bsr) {
+      stat = match_all(bsr, rec, volrec, sessrec, 1);
+   } else {
+      stat = 0;
    }
-   return match_all(bsr, rec, volrec, sessrec, 1);
+// Dmsg1(000, "BSR returning %d\n", stat);
+   return stat;
 }
 
 /* 

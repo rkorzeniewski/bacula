@@ -44,11 +44,12 @@ int read_records(JCR *jcr,  DEVICE *dev,
    uint32_t record, num_files = 0;
    int verbose = FALSE;
    int ok = TRUE;
+   int done = FALSE;
    SESSION_LABEL sessrec;
 
    block = new_block(dev);
    rec = new_record();
-   for ( ;ok; ) {
+   for ( ;ok && !done; ) {
       if (job_cancelled(jcr)) {
 	 ok = FALSE;
 	 break;
@@ -158,7 +159,7 @@ next_record:
 	 if (jcr->bsr) {
 	    int stat = match_bsr(jcr->bsr, rec, &dev->VolHdr, &sessrec);
 	    if (stat == -1) { /* no more possible matches */
-	       ok = FALSE;
+	       done = TRUE;   /* all items found, stop */
 	       break;
 	    } else if (stat == 0) {  /* no match */
 	       if (verbose) {
