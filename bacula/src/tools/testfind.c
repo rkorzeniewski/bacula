@@ -98,6 +98,7 @@ Paths truncated: %d\n"),
      num_files, max_file_len, max_path_len,
      trunc_fname, trunc_path);
   
+  close_memory_pool();
   sm_dump(False);
   exit(0);
 }
