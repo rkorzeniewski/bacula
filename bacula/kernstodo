@@ -28,6 +28,8 @@ From Chuck:
 --sd.conf password does not match dir.conf storage password
 =======
 
+- Correct Warning: Volume name mismatch. Wanted test2 got test1
+  when reading a tape and want the next one.
 - Create all pools when Director starts
 - Implement autochanger for restore. ARRRGGG! I forgot!
 - Make BSR accept count (total files to be restored).

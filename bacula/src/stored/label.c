@@ -489,6 +489,7 @@ int write_session_label(JCR *jcr, DEV_BLOCK *block, int label)
     *  read the next block).
     */
    if (!can_write_record_to_block(block, rec)) {
+      Dmsg0(100, "Cannot write session label to block.\n");
       if (!write_block_to_device(jcr, dev, block)) {
          Dmsg0(90, "Got session label write_block_to_dev error.\n");
          Jmsg(jcr, M_FATAL, 0, _("Error writing Session label to %s: %s\n"), 
@@ -497,7 +498,12 @@ int write_session_label(JCR *jcr, DEV_BLOCK *block, int label)
 	 return 0;
       }
    }
-   write_record_to_block(block, rec);
+   if (!write_record_to_block(block, rec)) {
+      Jmsg(jcr, M_FATAL, 0, _("Error writing Session label to %s: %s\n"), 
+			dev_vol_name(dev), strerror(errno));
+      free_record(rec);
+      return 0;
+   }
 
    Dmsg6(20, "Write sesson_label record JobId=%d FI=%s SessId=%d Strm=%s len=%d\n\
 remainder=%d\n", jcr->JobId,

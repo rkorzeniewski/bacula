@@ -202,7 +202,7 @@ int do_read_data(JCR *jcr)
 	 ds->msglen = rec->data_len;
          Dmsg1(40, ">filed: send %d bytes data.\n", ds->msglen);
 	 if (!bnet_send(ds)) {
-            Dmsg1(000, "Error sending to FD. ERR=%s\n", bnet_strerror(ds));
+            Pmsg1(000, "Error sending to FD. ERR=%s\n", bnet_strerror(ds));
             Dmsg1(100, "Hdr=%s\n", hdr);
             Dmsg1(100, "data=%s\n", ds->msg);
             Jmsg1(jcr, M_FATAL, 0, _("Error sending to File daemon. ERR=%s\n"),
