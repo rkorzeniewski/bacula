@@ -792,7 +792,9 @@ getArgv0(const char *cmdline)
 {
 
     int inquote = 0;
-    for (const char *cp = cmdline; *cp; cp++)
+
+    const char *cp = cmdline;
+    for (; *cp; cp++)
     {
         if (*cp == '"') {
             inquote = !inquote;
