@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # This routine makes the appropriately configured
-#  Bacula tables for either MySQL or SQLite
+#  Bacula tables for PostgreSQL, MySQL, or SQLite.
 #
 if test xsqlite = x@DB_NAME@ ; then
   echo "Making SQLite tables"
@@ -12,6 +12,7 @@ else
     . ./make_mysql_tables
   else
     echo "Making PostgreSQL tables"
-    . ./make_postgresql_tables
+    # hard coded database name
+    . ./make_postgresql_tables bacula
   fi
 fi
