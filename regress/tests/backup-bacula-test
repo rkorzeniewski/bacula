@@ -32,6 +32,12 @@ status storage=File
 status storage=File
 status storage=File
 status storage=File
+sleep 1
+status storage=File
+status storage=File
+status storage=File
+status storage=File
+status storage=File
 wait
 messages
 @# 

@@ -36,6 +36,15 @@ messages
 restore where=${cwd}/tmp/bacula-restores select storage=File
 unmark *
 mark *
+count
+ls *
+dir *
+find Makefile
+pwd
+lsmark
+estimate
+?
+help
 done
 yes
 wait
