@@ -44,16 +44,21 @@ dlist *last_jobs = NULL;
 
 static JCR *jobs = NULL;	      /* pointer to JCR chain */
 
-/* Mutex for locking various jcr chains while updating */
-static pthread_mutex_t jcr_chain_mutex = PTHREAD_MUTEX_INITIALIZER;
+static brwlock_t lock;		      /* lock for last jobs and JCR chain */
 
 void init_last_jobs_list()
 {
+   int errstat;
    struct s_last_job *job_entry;
    if (!last_jobs) {
       last_jobs = new dlist(job_entry,	&job_entry->link);
       memset(&last_job, 0, sizeof(last_job));
    }
+   if ((errstat=rwl_init(&lock)) != 0) {
+      Emsg1(M_ABORT, 0, _("Unable to initialize jcr_chain lock. ERR=%s\n"), 
+	    strerror(errstat));
+   }
+
 }
 
 void term_last_jobs_list()
@@ -66,18 +71,19 @@ void term_last_jobs_list()
       delete last_jobs;
       last_jobs = NULL;
    }
+   rwl_destroy(&lock);
 }
 
 void lock_last_jobs_list() 
 {
    /* Use jcr chain mutex */
-   P(jcr_chain_mutex);
+   lock_jcr_chain();
 }
 
 void unlock_last_jobs_list() 
 {
    /* Use jcr chain mutex */
-   V(jcr_chain_mutex);
+   unlock_jcr_chain();
 }
 
 /*
@@ -111,14 +117,14 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    sigfillset(&sigtimer.sa_mask);
    sigaction(TIMEOUT_SIGNAL, &sigtimer, NULL);
 
-   P(jcr_chain_mutex);
+   lock_jcr_chain();
    jcr->prev = NULL;
    jcr->next = jobs;
    if (jobs) {
       jobs->prev = jcr;
    }
    jobs = jcr;
-   V(jcr_chain_mutex);
+   unlock_jcr_chain();
    return jcr;
 }
 
@@ -232,11 +238,11 @@ void free_jcr(JCR *jcr)
 #endif
    struct s_last_job *je;
 
-   P(jcr_chain_mutex);
+   lock_jcr_chain();
    jcr->use_count--;		      /* decrement use count */
    Dmsg3(200, "Dec free_jcr 0x%x use_count=%d jobid=%d\n", jcr, jcr->use_count, jcr->JobId);
    if (jcr->use_count > 0) {	      /* if in use */
-      V(jcr_chain_mutex);
+      unlock_jcr_chain();
       Dmsg2(200, "free_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
       return;
    }
@@ -263,7 +269,7 @@ void free_jcr(JCR *jcr)
       last_job.JobId = 0;	      /* zap last job */
    }
    close_msg(NULL);		      /* flush any daemon messages */
-   V(jcr_chain_mutex);
+   unlock_jcr_chain();
    Dmsg0(200, "Exit free_jcr\n");
 }
 
@@ -296,7 +302,7 @@ JCR *get_jcr_by_id(uint32_t JobId)
 {
    JCR *jcr;	   
 
-   P(jcr_chain_mutex);			/* lock chain */
+   lock_jcr_chain();			/* lock chain */
    for (jcr = jobs; jcr; jcr=jcr->next) {
       if (jcr->JobId == JobId) {
 	 P(jcr->mutex);
@@ -306,7 +312,7 @@ JCR *get_jcr_by_id(uint32_t JobId)
 	 break;
       }
    }
-   V(jcr_chain_mutex);
+   unlock_jcr_chain();
    return jcr; 
 }
 
@@ -319,7 +325,7 @@ JCR *get_jcr_by_session(uint32_t SessionId, uint32_t SessionTime)
 {
    JCR *jcr;	   
 
-   P(jcr_chain_mutex);
+   lock_jcr_chain();
    for (jcr = jobs; jcr; jcr=jcr->next) {
       if (jcr->VolSessionId == SessionId && 
 	  jcr->VolSessionTime == SessionTime) {
@@ -330,7 +336,7 @@ JCR *get_jcr_by_session(uint32_t SessionId, uint32_t SessionTime)
 	 break;
       }
    }
-   V(jcr_chain_mutex);
+   unlock_jcr_chain();
    return jcr; 
 }
 
@@ -350,7 +356,7 @@ JCR *get_jcr_by_partial_name(char *Job)
    if (!Job) {
       return NULL;
    }
-   P(jcr_chain_mutex);
+   lock_jcr_chain();
    len = strlen(Job);
    for (jcr = jobs; jcr; jcr=jcr->next) {
       if (strncmp(Job, jcr->Job, len) == 0) {
@@ -361,7 +367,7 @@ JCR *get_jcr_by_partial_name(char *Job)
 	 break;
       }
    }
-   V(jcr_chain_mutex);
+   unlock_jcr_chain();
    return jcr; 
 }
 
@@ -379,7 +385,7 @@ JCR *get_jcr_by_full_name(char *Job)
    if (!Job) {
       return NULL;
    }
-   P(jcr_chain_mutex);
+   lock_jcr_chain();
    for (jcr = jobs; jcr; jcr=jcr->next) {
       if (strcmp(jcr->Job, Job) == 0) {
 	 P(jcr->mutex);
@@ -389,7 +395,7 @@ JCR *get_jcr_by_full_name(char *Job)
 	 break;
       }
    }
-   V(jcr_chain_mutex);
+   unlock_jcr_chain();
    return jcr; 
 }
 
@@ -416,7 +422,11 @@ void set_jcr_job_status(JCR *jcr, int JobStatus)
  */
 void lock_jcr_chain()
 {
-   P(jcr_chain_mutex);
+   int errstat;
+   if ((errstat=rwl_writelock(&lock)) != 0) {
+      Emsg1(M_ABORT, 0, "rwl_writelock failure. ERR=%s\n",
+	   strerror(errstat));
+   }
 }
 
 /*
@@ -424,7 +434,11 @@ void lock_jcr_chain()
  */
 void unlock_jcr_chain()
 {
-   V(jcr_chain_mutex);
+   int errstat;
+   if ((errstat=rwl_writeunlock(&lock)) != 0) {
+      Emsg1(M_ABORT, 0, "rwl_writeunlock failure. ERR=%s\n",
+	   strerror(errstat));
+   }
 }
 
 
@@ -472,7 +486,7 @@ static void jcr_timeout_check(watchdog_t *self)
     * blocked for more than specified max time.
     */
    lock_jcr_chain();
-   for (jcr=NULL; (jcr=get_next_jcr(jcr)); ) {
+   foreach_jcr(jcr) {
       free_locked_jcr(jcr);	      /* OK to free now cuz chain is locked */
       if (jcr->JobId == 0) {
 	 continue;

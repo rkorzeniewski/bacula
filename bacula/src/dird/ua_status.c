@@ -391,7 +391,8 @@ static void list_running_jobs(UAContext *ua)
 
    Dmsg0(200, "enter list_run_jobs()\n");
    lock_jcr_chain();
-   for (jcr=NULL; (jcr=get_next_jcr(jcr)); njobs++) {
+   foreach_jcr(jcr) {
+      njobs++;
       if (jcr->JobId == 0) {	  /* this is us */
 	 /* this is a console or other control job. We only show console
 	  * jobs in the status output.
@@ -414,12 +415,12 @@ static void list_running_jobs(UAContext *ua)
    bsendmsg(ua, _("\nRunning Jobs:\n"));
    bsendmsg(ua, _("Level JobId  Job                        Status\n"));
    bsendmsg(ua, _("====================================================================\n"));
-   for (jcr=NULL; (jcr=get_next_jcr(jcr)); njobs++) {
+   foreach_jcr(jcr) {
       if (jcr->JobId == 0 || !acl_access_ok(ua, Job_ACL, jcr->job->hdr.name)) {
-	 njobs--;
 	 free_locked_jcr(jcr);
 	 continue;
       }
+      njobs++;
       switch (jcr->JobStatus) {
       case JS_Created:
          msg = _("is waiting execution");

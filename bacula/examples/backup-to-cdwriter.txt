@@ -1,68 +1,15 @@
-From bacula-users-admin@lists.sourceforge.net Sat Jan 31 05:42:42 2004
-Return-Path: <bacula-users-admin@lists.sourceforge.net>
-Received: from sc8-sf-list2.sourceforge.net (lists.sourceforge.net
-	[66.35.250.206]) by matou.sibbald.com (8.12.10/8.12.10) with ESMTP id
-	i0V4ggtH005859 for <kern@sibbald.com>; Sat, 31 Jan 2004 05:42:42 +0100
-Received: from localhost ([127.0.0.1] helo=projects.sourceforge.net) by
-	sc8-sf-list2.sourceforge.net with esmtp (Exim 4.30) id 1Amms2-0004RT-4e;
-	Fri, 30 Jan 2004 20:36:38 -0800
-Received: from sc8-sf-mx1-b.sourceforge.net ([10.3.1.11]
-	helo=sc8-sf-mx1.sourceforge.net) by sc8-sf-list2.sourceforge.net with esmtp
-	(Exim 4.30) id 1Ammo5-0002Tt-2F for bacula-users@lists.sourceforge.net;
-	Fri, 30 Jan 2004 20:32:33 -0800
-Received: from www.abis.be ([195.0.32.120] helo=xenophon.abis.be) by
-	sc8-sf-mx1.sourceforge.net with esmtp (Exim 4.30) id 1AmbFN-0008Hu-99 for
-	bacula-users@lists.sourceforge.net; Fri, 30 Jan 2004 08:11:57 -0800
-Received: from tosfeb32.abis.be ([194.78.5.1]) by xenophon.abis.be
-	(8.11.6/8.11.6) with SMTP id i0UGBI715849 for
-	<bacula-users@lists.sourceforge.net>; Fri, 30 Jan 2004 17:11:18 +0100
-Received: by tosfeb32.abis.be(Lotus SMTP MTA v4.6.5  (863.2 5-20-1999))  id
-	C1256E2B.0058F4EE ; Fri, 30 Jan 2004 17:11:38 +0100
-X-Lotus-FromDomain: ABIS
 From: "Johan Decock" <jdecock@abis.be>
 To: bacula-users@lists.sourceforge.net
-Message-ID: <C1256E2B.0058F381.00@tosfeb32.abis.be>
 Subject: Re: [Bacula-users] cdwriter
-Mime-Version: 1.0
-Content-type: multipart/mixed;  Boundary="0__=dQlRuu8umGKzn67woQcbAbtp1kVJLJuYIqUZPSjcX1GgjEHuWdvHDqOX"
-Content-Disposition: inline
-X-Spam-Score: 1.1 (+)
-X-Spam-Report: Spam Filtering performed by sourceforge.net. See
-	http://spamassassin.org/tag/ for more details. Report problems to
-	http://sf.net/tracker/?func=add&group_id=1&atid=200001 1.1
-	MIME_BASE64_LATIN      RAW: Latin alphabet text using base64 encoding
-Sender: bacula-users-admin@lists.sourceforge.net
-Errors-To: bacula-users-admin@lists.sourceforge.net
-X-BeenThere: bacula-users@lists.sourceforge.net
-X-Mailman-Version: 2.0.9-sf.net
-Precedence: bulk
-List-Unsubscribe:
-	<https://lists.sourceforge.net/lists/listinfo/bacula-users>,
-	<mailto:bacula-users-request@lists.sourceforge.net?subject=unsubscribe>
-List-Id: Bacula user's email list for support and discussions
-	<bacula-users.lists.sourceforge.net>
-List-Post: <mailto:bacula-users@lists.sourceforge.net>
-List-Help: <mailto:bacula-users-request@lists.sourceforge.net?subject=help>
-List-Subscribe:
-	<https://lists.sourceforge.net/lists/listinfo/bacula-users>,
-	<mailto:bacula-users-request@lists.sourceforge.net?subject=subscribe>
-List-Archive:
-	<http://sourceforge.net/mailarchive/forum.php?forum=bacula-users>
 Date: Fri, 30 Jan 2004 17:11:34 +0100
 
+I thought it would be easy to find them in the archives.  I'll post them
+again.  I changed some things in them anyway in the mean time.  I also
+include the Director config.  Then you see how they are to be used in
+Runbefore- and RunafterJobs
 
---0__=dQlRuu8umGKzn67woQcbAbtp1kVJLJuYIqUZPSjcX1GgjEHuWdvHDqOX
-Content-type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-
-
-Hi Alex,
-
-I thought it would be easy to find them in the archives. I'll post them again. I changed some things in them anyway in the mean time. I also include the Director config. Then you see how they are to be used in Runbefore- and RunafterJobs
-
-I'm interested in any remarks or improvements you might have. (I'm still getting started in shell scripting)
+I'm interested in any remarks or improvements you might have.  (I'm
+still getting started in shell scripting)
 
 
 #
@@ -859,93 +806,8 @@ else
   echo "hello"
 fi
 
-# This is run as a RunAfterJob of the catalog backup. It already had a RunAfterJob, so we execute that here
+# This is run as a RunAfterJob of the catalog backup.  It already had a
+# RunAfterJob, so we execute that here 
+
 /etc/bacula/delete_catalog_backup
 
-
-
-
-
-
-From: "Alex Federau" <alex.federau@gmx.ch> on 30/01/2004 15:57 GMT
-
-To:   Johan Decock/Abis@Abis
-cc:
-Subject:  Re: [Bacula-users] cdwriter
-
-
-
---0__=dQlRuu8umGKzn67woQcbAbtp1kVJLJuYIqUZPSjcX1GgjEHuWdvHDqOX
-Content-type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-
-Hi Johan,
-Could you send me the scripts or tell me where they are located. I am
-browsing the mail archive,
-and while I can find several of your mails, I am unable to find your
-scripts. Probably they would be very useful for us.
-
-Cheers
-Alex
-
-
->
->
-> Hi Alex,
->
-> Bacula isn't able to write to CD-R or DVD+/-R directly. This isn't needed
-> though. If you look in the mailing list archive, you will find that I have
-> implemented a solution where the backup volume files are written to DVD+R
-> with some bash scripts. A caveat is that files on an ISO9660 can't be
-larger
-> than 2 GB (Not on Linux anyway). This has kept me busy for a while,
-> looking what was going on and why I wasn't able to read back my DVD's.
->
-> I hope my scripts are of help to you.
->
-> Johan
->
->
->
->
-> From: "Alex Federau" <alex.federau@gmx.ch> on 30/01/2004 14:29 GMT
->
-> To:   bacula-users@lists.sourceforge.net
-> cc:    (bcc: Johan Decock/Abis)
-> Subject:  [Bacula-users] cdwriter
->
->
->
-
---
-+++ Mailpower für Multimedia-Begeisterte: http://www.gmx.net/topmail +++
-250 MB Mailbox, 1 GB Online-Festplatte, 100 FreeSMS. Jetzt kostenlos testen!
-
-
-
-
-
-
-
-
---------------------------------------------------------------------------
-ABIS Training & Consulting
-website: http://www.abis.be   -   e-mail: training@abis.be
-tel: Belgium: (+32)-16-245610   -   The Netherlands: (+31)-348-435570
-fax: Belgium: (+32)-16-245691   -   The Netherlands: (+31)-348-432493
---------------------------------------------------------------------------
---0__=dQlRuu8umGKzn67woQcbAbtp1kVJLJuYIqUZPSjcX1GgjEHuWdvHDqOX--
-
-
-
--------------------------------------------------------
-The SF.Net email is sponsored by EclipseCon 2004
-Premiere Conference on Open Tools Development and Integration
-See the breadth of Eclipse activity. February 3-5 in Anaheim, CA.
-http://www.eclipsecon.org/osdn
-_______________________________________________
-Bacula-users mailing list
-Bacula-users@lists.sourceforge.net
-https://lists.sourceforge.net/lists/listinfo/bacula-users

@@ -388,13 +388,13 @@ static int cancel_cmd(UAContext *ua, char *cmd)
    if (!jcr) {
       /* Count Jobs running */
       lock_jcr_chain();
-      for (jcr=NULL; (jcr=get_next_jcr(jcr)); njobs++) {
+      foreach_jcr(jcr) {
 	 if (jcr->JobId == 0) {      /* this is us */
 	    free_locked_jcr(jcr);
-	    njobs--;
 	    continue;
 	 }
 	 free_locked_jcr(jcr);
+	 njobs++;
       }
       unlock_jcr_chain();
 
@@ -404,7 +404,7 @@ static int cancel_cmd(UAContext *ua, char *cmd)
       }
       start_prompt(ua, _("Select Job:\n"));
       lock_jcr_chain();
-      for (jcr=NULL; (jcr=get_next_jcr(jcr)); ) {
+      foreach_jcr(jcr) {
 	 if (jcr->JobId == 0) {      /* this is us */
 	    free_locked_jcr(jcr);
 	    continue;
@@ -1674,13 +1674,14 @@ int quit_cmd(UAContext *ua, char *cmd)
  */
 int wait_cmd(UAContext *ua, char *cmd) 
 {
+   JCR *jcr;
    bmicrosleep(0, 200000);	      /* let job actually start */
-   for (int running=1; running; ) {
-      running = 0;
+   for (bool running=true; running; ) {
+      running = false;
       lock_jcr_chain();
-      for (JCR *jcr=NULL; (jcr=get_next_jcr(jcr)); ) {
+      foreach_jcr(jcr) {
 	 if (jcr->JobId != 0) {
-	    running = 1;
+	    running = true;
 	    free_locked_jcr(jcr);
 	    break;
 	 }

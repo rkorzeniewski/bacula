@@ -116,11 +116,6 @@ DEV_BLOCK *new_block(DEVICE *dev)
    block->dev = dev;
    block->block_len = block->buf_len;  /* default block size */
    block->buf = get_memory(block->buf_len); 
-   if (block->buf == NULL) {
-      Mmsg0(&dev->errmsg, _("Unable to malloc block buffer.\n"));
-      Emsg0(M_FATAL, 0, dev->errmsg);
-      return NULL;
-   }
    empty_block(block);
    block->BlockVer = BLOCK_VER;       /* default write version */
    Dmsg1(90, "Returning new block=%x\n", block);
@@ -134,7 +129,7 @@ DEV_BLOCK *new_block(DEVICE *dev)
 void print_block_read_errors(JCR *jcr, DEV_BLOCK *block)
 {
    if (block->read_errors > 1) {
-      Jmsg(jcr, M_ERROR, 0, _("%d block read errors ignored.\n"),
+      Jmsg(jcr, M_ERROR, 0, _("%d block read errors not printed.\n"),
 	 block->read_errors);
    }
 }
@@ -221,7 +216,7 @@ static int unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       block->BlockVer = 1;
       block->bufp = block->buf + bhl;
       if (strncmp(Id, BLKHDR1_ID, BLKHDR_ID_LENGTH) != 0) {
-         Mmsg2(&dev->errmsg, _("Buffer ID error. Wanted: %s, got %s. Buffer discarded.\n"),
+         Mmsg2(&dev->errmsg, _("Volume data error! Wanted ID: %s, got %s. Buffer discarded.\n"),
 	    BLKHDR1_ID, Id);
 	 if (block->read_errors == 0 || verbose >= 2) {
             Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
@@ -236,7 +231,7 @@ static int unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       block->BlockVer = 2;
       block->bufp = block->buf + bhl;
       if (strncmp(Id, BLKHDR2_ID, BLKHDR_ID_LENGTH) != 0) {
-         Mmsg2(&dev->errmsg, _("Buffer ID error. Wanted: %s, got %s. Buffer discarded.\n"),
+         Mmsg2(&dev->errmsg, _("Volume data error! Wanted ID: %s, got %s. Buffer discarded.\n"),
 	    BLKHDR2_ID, Id);
 	 if (block->read_errors == 0 || verbose >= 2) {
             Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
@@ -245,7 +240,7 @@ static int unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	 return 0;
       }
    } else {
-      Mmsg1(&dev->errmsg, _("Expected block-id BB01 or BB02, got %s. Buffer discarded.\n"), Id);
+      Mmsg1(&dev->errmsg, _("Volume data error! Wanted block-id BB02, got %s. Buffer discarded.\n"), Id);
       if (block->read_errors == 0 || verbose >= 2) {
          Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       }
@@ -255,7 +250,7 @@ static int unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 
    /* Sanity check */
    if (block_len > MAX_BLOCK_LENGTH) {
-      Mmsg1(&dev->errmsg,  _("Block length %u is insane (too large), probably due to a bad archive.\n"),
+      Mmsg1(&dev->errmsg,  _("Volume data error! Block length %u is insane (too large), probably due to a bad archive.\n"),
 	 block_len);
       if (block->read_errors == 0 || verbose >= 2) {
          Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
@@ -280,7 +275,7 @@ static int unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       BlockCheckSum = bcrc32((uint8_t *)block->buf+BLKHDR_CS_LENGTH,
 			 block_len-BLKHDR_CS_LENGTH);
       if (BlockCheckSum != CheckSum) {
-         Mmsg3(&dev->errmsg, _("Block checksum mismatch in block %u: calc=%x blk=%x\n"), 
+         Mmsg3(&dev->errmsg, _("Volume data error! Block checksum mismatch in block %u: calc=%x blk=%x\n"), 
 	    (unsigned)BlockNumber, BlockCheckSum, CheckSum);
 	 if (block->read_errors == 0 || verbose >= 2) {
             Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
@@ -308,7 +303,7 @@ int write_block_to_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
     * If a new volume has been mounted since our last write
     *	Create a JobMedia record for the previous volume written,
     *	and set new parameters to write this volume   
-    * The saem applies for if we are in a new file.
+    * The same applies for if we are in a new file.
     */
    if (jcr->NewVol || jcr->NewFile) {
       /* Create a jobmedia record for this job */
@@ -680,7 +675,7 @@ reread:
    /* Continue here for successful read */
    block->read_len = stat;	/* save length read */
    if (block->read_len < BLKHDR2_LENGTH) {
-      Mmsg2(&dev->errmsg, _("Very short block of %d bytes on device %s discarded.\n"), 
+      Mmsg2(&dev->errmsg, _("Volume data error! Very short block of %d bytes on device %s discarded.\n"), 
 	 block->read_len, dev->dev_name);
       Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       dev->state |= ST_SHORT;	/* set short block */
@@ -732,7 +727,7 @@ reread:
    }
 
    if (block->block_len > block->read_len) {
-      Mmsg3(&dev->errmsg, _("Short block at %u of %d bytes on device %s discarded.\n"), 
+      Mmsg3(&dev->errmsg, _("Volume data error! Short block at %u of %d bytes on device %s discarded.\n"), 
 	 dev->block_num, block->read_len, dev->dev_name);
       Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       dev->state |= ST_SHORT;	/* set short block */

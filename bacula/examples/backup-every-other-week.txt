@@ -1,11 +1,7 @@
 
-From bacula-users-admin@lists.sourceforge.net Wed Aug 13 19:22:21 2003
 From: Robert L Mathews <lists@tigertech.com>
 To: <bacula-users@lists.sourceforge.net>
-Content-Type: text/plain; charset="US-ASCII"
-Message-Id: <20030813170422.E48403FC65F@fry.tigertech.net>
 Subject: [Bacula-users] Making Backups Run Every Other Week
-Sender: bacula-users-admin@lists.sourceforge.net
 Date: Wed, 13 Aug 2003 10:04:23 -0700
 
 In case anyone is interested, here's a tip I came up with.
@@ -78,15 +74,3 @@ while before coming up with this.
 
 -- 
 Robert L Mathews, Tiger Technologies
-
-
-
--------------------------------------------------------
-This SF.Net email sponsored by: Free pre-built ASP.NET sites including
-Data Reports, E-commerce, Portals, and Forums are available now.
-Download today and enter to win an XBOX or Visual Studio .NET.
-http://aspnet.click-url.com/go/psa00100003ave/direct;at.aspnet_072303_01/01
-_______________________________________________
-Bacula-users mailing list
-Bacula-users@lists.sourceforge.net
-https://lists.sourceforge.net/lists/listinfo/bacula-users

@@ -1352,15 +1352,9 @@ bail_out:
 
 static void statcmd()
 {
-   int stat = 0;
-   int debug;
-   uint32_t status;
-
-   debug = debug_level;
+   int debug = debug_level;
    debug_level = 30;
-   if (!status_dev(dev, &status)) {
-      Pmsg2(0, "Bad status from status %d. ERR=%s\n", stat, strerror_dev(dev));
-   }
+   Pmsg2(0, "Device status: %u. ERR=%s\n", status_dev(dev), strerror_dev(dev));
 #ifdef xxxx
    dump_volume_label(dev);
 #endif

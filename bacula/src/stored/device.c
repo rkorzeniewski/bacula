@@ -78,7 +78,7 @@ extern int debug_level;
  */
 int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 {
-   uint32_t stat = 0;			
+   uint32_t stat;
    char PrevVolName[MAX_NAME_LENGTH];
    DEV_BLOCK *label_blk;
    char b1[30], b2[30];
@@ -86,7 +86,7 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    char dt[MAX_TIME_LENGTH];
 
    wait_time = time(NULL);
-   status_dev(dev, &stat);
+   stat = status_dev(dev);
    if (!(stat & BMT_EOD)) {
       return 0;                       /* this really shouldn't happen */
    }

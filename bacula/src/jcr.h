@@ -81,6 +81,10 @@
    jcr->JobStatus == JS_ErrorTerminated || \
    jcr->JobStatus == JS_FatalError)
 
+#define foreach_jcr(jcr) \
+   for ((jcr)=NULL; ((jcr)=get_next_jcr(jcr)); ) 
+
+
 
 struct JCR;
 typedef void (JCR_free_HANDLER)(JCR *jcr);

@@ -37,17 +37,15 @@ time_t watchdog_time = 0;	      /* this has granularity of SLEEP_TIME */
 
 /* Forward referenced functions */
 static void *watchdog_thread(void *arg);
+static void wd_lock();
+static void wd_unlock();
 
 /* Static globals */
-static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t  timer = PTHREAD_COND_INITIALIZER;
-static bool quit;
+static bool quit = false;;
 static bool wd_is_init = false;
+static brwlock_t lock;		      /* watchdog lock */
 
-/* Forward referenced callback functions */
 static pthread_t wd_tid;
-
-/* Static globals */
 static dlist *wd_queue;
 static dlist *wd_inactive;
 
@@ -61,14 +59,18 @@ int start_watchdog(void)
 {
    int stat;
    watchdog_t *dummy = NULL;
+   int errstat;
 
    if (wd_is_init) {
       return 0;
    }
    Dmsg0(200, "Initialising NicB-hacked watchdog thread\n");
    watchdog_time = time(NULL);
-   quit = false;
 
+   if ((errstat=rwl_init(&lock)) != 0) {
+      Emsg1(M_ABORT, 0, _("Unable to initialize watchdog lock. ERR=%s\n"), 
+	    strerror(errstat));
+   }
    wd_queue = new dlist(wd_queue, &dummy->link);
    wd_inactive = new dlist(wd_inactive, &dummy->link);
 
@@ -94,12 +96,7 @@ int stop_watchdog(void)
       return 0;
    }
 
-   Dmsg0(200, "Sending stop signal to NicB-hacked watchdog thread\n");
-   P(mutex);
-   quit = true;
-   stat = pthread_cond_signal(&timer);
-   V(mutex);
-
+   quit = true; 		      /* notify watchdog thread to stop */
    wd_is_init = false;
 
    stat = pthread_join(wd_tid, NULL);
@@ -119,8 +116,10 @@ int stop_watchdog(void)
       }
       free(p);
    }
+
    delete wd_inactive;
    wd_inactive = NULL;
+   rwl_destroy(&lock);
 
    return stat;
 }
@@ -131,9 +130,6 @@ watchdog_t *new_watchdog(void)
 
    if (!wd_is_init) {
       start_watchdog();
-      if (!wd_is_init) {
-         Emsg0(M_ABORT, 0, "BUG! new_watchdog called before start_watchdog\n");
-      }
    }
 
    if (wd == NULL) {
@@ -160,12 +156,12 @@ bool register_watchdog(watchdog_t *wd)
       Emsg1(M_ABORT, 0, "BUG! Watchdog %p has zero interval\n", wd);
    }
 
-   P(mutex);
+   wd_lock();
    wd->next_fire = watchdog_time + wd->interval;
    wd_queue->append(wd);
    Dmsg3(200, "Registered watchdog %p, interval %d%s\n",
          wd, wd->interval, wd->one_shot ? " one shot" : "");
-   V(mutex);
+   wd_unlock();
 
    return false;
 }
@@ -206,9 +202,9 @@ bool unregister_watchdog(watchdog_t *wd)
       Emsg0(M_ABORT, 0, "BUG! unregister_watchdog called before start_watchdog\n");
    }
 
-   P(mutex);
+   wd_lock();
    ret = unregister_watchdog_unlocked(wd);
-   V(mutex);
+   wd_unlock();
 
    return ret;
 }
@@ -217,15 +213,20 @@ static void *watchdog_thread(void *arg)
 {
    Dmsg0(200, "NicB-reworked watchdog thread entered\n");
 
-   while (true) {
+   while (!quit) {
       watchdog_t *p;
 
-      P(mutex);
-      if (quit) {
-	 V(mutex);
-	 break;
-      }
-
+      /* 
+       * We lock the jcr chain here because a good number of the
+       *   callback routines lock the jcr chain. We need to lock
+       *   it here *before* the watchdog lock because the SD message
+       *   thread first locks the jcr chain, then when closing the
+       *   job locks the watchdog chain. If the two thread do not
+       *   lock in the same order, we get a deadlock -- each holds
+       *   the other's needed lock.
+       */
+      lock_jcr_chain();
+      wd_lock();
       watchdog_time = time(NULL);
 
       foreach_dlist(p, wd_queue) {
@@ -242,10 +243,39 @@ static void *watchdog_thread(void *arg)
 	    }
 	 }
       }
-      V(mutex);
+      wd_unlock();
+      unlock_jcr_chain();
       bmicrosleep(SLEEP_TIME, 0);
    }
 
    Dmsg0(200, "NicB-reworked watchdog thread exited\n");
    return NULL;
 }
+
+/*
+ * Watchdog lock, this can be called multiple times by the same
+ *   thread without blocking, but must be unlocked the number of
+ *   times it was locked.
+ */
+static void wd_lock()
+{
+   int errstat;
+   if ((errstat=rwl_writelock(&lock)) != 0) {
+      Emsg1(M_ABORT, 0, "rwl_writelock failure. ERR=%s\n",
+	   strerror(errstat));
+   }
+}    
+
+/*
+ * Unlock the watchdog. This can be called multiple times by the
+ *   same thread up to the number of times that thread called
+ *   wd_ lock()/
+ */
+static void wd_unlock()
+{
+   int errstat;
+   if ((errstat=rwl_writeunlock(&lock)) != 0) {
+      Emsg1(M_ABORT, 0, "rwl_writeunlock failure. ERR=%s\n",
+	   strerror(errstat));
+   }
+}    

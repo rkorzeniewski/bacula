@@ -258,7 +258,9 @@ int run_cmd(UAContext *ua, char *cmd)
       /* Find Job */
       job = (JOB *)GetResWithName(R_JOB, job_name);
       if (!job) {
-         bsendmsg(ua, _("Job \"%s\" not found\n"), job_name);
+	 if (*job_name != 0) {
+            bsendmsg(ua, _("Job \"%s\" not found\n"), job_name);
+	 }
 	 job = select_job_resource(ua);
       } else {
          Dmsg1(200, "Found job=%s\n", job_name);
@@ -274,7 +276,9 @@ int run_cmd(UAContext *ua, char *cmd)
    if (store_name) {
       store = (STORE *)GetResWithName(R_STORAGE, store_name);
       if (!store) {
-         bsendmsg(ua, _("Storage \"%s\" not found.\n"), store_name);
+	 if (*store_name != 0) {
+            bsendmsg(ua, _("Storage \"%s\" not found.\n"), store_name);
+	 }
 	 store = select_storage_resource(ua);
       }
    } else {
@@ -288,7 +292,9 @@ int run_cmd(UAContext *ua, char *cmd)
    if (pool_name) {
       pool = (POOL *)GetResWithName(R_POOL, pool_name);
       if (!pool) {
-         bsendmsg(ua, _("Pool \"%s\" not found.\n"), pool_name);
+	 if (*pool_name != 0) {
+            bsendmsg(ua, _("Pool \"%s\" not found.\n"), pool_name);
+	 }
 	 pool = select_pool_resource(ua);
       }
    } else {
@@ -301,7 +307,9 @@ int run_cmd(UAContext *ua, char *cmd)
    if (client_name) {
       client = (CLIENT *)GetResWithName(R_CLIENT, client_name);
       if (!client) {
-         bsendmsg(ua, _("Client \"%s\" not found.\n"), client_name);
+	 if (*client_name != 0) {
+            bsendmsg(ua, _("Client \"%s\" not found.\n"), client_name);
+	 }
 	 client = select_client_resource(ua);
       }
    } else {
