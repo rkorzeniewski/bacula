@@ -1,0 +1,11 @@
+#!/bin/sh
+#
+# shell script to drop Bacula SQLite tables
+
+bindir=@SQL_BINDIR@
+cd @working_dir@
+
+# how do we drop an sqlite database?
+#$bindir/sqlite $* bacula.db <<END-OF-DATA
+#END-OF-DATA
+exit 0

@@ -1,0 +1,16 @@
+#!/bin/sh
+#
+# shell script to drop Bacula database(s)
+#
+
+bindir=@SQL_BINDIR@
+
+if $bindir/mysql $* -f <<END-OF-DATA
+DROP DATABASE bacula;
+END-OF-DATA
+then
+   echo "Drop of bacula database succeeded."
+else
+   echo "Drop of bacula database failed."
+fi
+exit 0
