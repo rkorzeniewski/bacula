@@ -340,7 +340,6 @@ int dir_ask_sysop_to_create_appendable_volume(JCR *jcr, DEVICE *dev)
       }
       /* First pass, we *know* there are no appendable volumes, so no need to call */
       if (!first && dir_find_next_appendable_volume(jcr)) { /* get suggested volume */
-	 jstat = JS_WaitMount;
 	 unmounted = (dev->dev_blocked == BST_UNMOUNTED) ||
 		     (dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP);
 	 /*
@@ -355,6 +354,7 @@ int dir_ask_sysop_to_create_appendable_volume(JCR *jcr, DEVICE *dev)
             Dmsg0(100, "Return 1 from mount without wait.\n");
 	    return 1;
 	 }
+	 jstat = JS_WaitMount;
 	 if (!dev->poll) {
 	    Jmsg(jcr, M_MOUNT, 0, _(
 "Please mount Volume \"%s\" on Storage Device \"%s\" for Job %s\n"

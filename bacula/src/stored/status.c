@@ -156,7 +156,8 @@ static void send_blocked_status(JCR *jcr, DEVICE *dev)
       break;
    case BST_WAITING_FOR_SYSOP:
       if (jcr->JobStatus == JS_WaitMount) {
-         bnet_fsend(user, _("    Device is BLOCKED waiting for mount.\n"));
+         bnet_fsend(user, _("    Device is BLOCKED waiting for mount of volume \"%s\".\n"),
+	    jcr->VolumeName);
       } else {
          bnet_fsend(user, _("    Device is BLOCKED waiting for appendable media.\n"));
       }
