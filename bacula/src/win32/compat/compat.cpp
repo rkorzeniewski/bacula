@@ -17,7 +17,7 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 //   General Public License for more details.
 //
-//   You should have received a copy of the GNU General Public
+//   You should have received a copcloy of the GNU General Public
 //   License along with this program; if not, write to the Free
 //   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 //   MA 02111-1307, USA.
@@ -1162,7 +1162,10 @@ open(const char *file, int flags, int mode)
 int
 close(int fd)
 {
-    return _close(fd);
+    int rval = _close(fd);
+    if (rval == -1)
+	rval = closesocket(fd);
+    return rval;
 }
 
 #ifndef HAVE_WXCONSOLE
