@@ -35,9 +35,12 @@ cp src/tools/testls ../bin
 
 cd ..
 bin/bacula stop
-bin/create_sqlite_database
-bin/drop_sqlite_tables
-bin/make_sqlite_tables
+cd bin
+#./create_bacula_database
+./drop_bacula_tables
+./make_bacula_tables
+./grant_bacula_privileges
+cd ..
 # Start and stop Bacula to ensure conf files are OK
 bin/bacula start
 bin/bacula stop
