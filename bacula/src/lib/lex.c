@@ -120,6 +120,7 @@ LEX *lex_open_file(LEX *lf, const char *filename, LEX_ERROR_HANDLER *scan_error)
    if ((fd = fopen(fname, "r")) == NULL) {
       Emsg2(M_ERROR_TERM, 0, _("Cannot open config file %s: %s\n"), 
 	    fname, strerror(errno));
+      return NULL; /* Never reached if exit_on_error == 1 */
    }
    Dmsg1(900, "Open config file: %s\n", fname);
    nf = (LEX *)malloc(sizeof(LEX));

@@ -89,6 +89,9 @@ static bool trace = false;
 
 static MSGS *daemon_msgs;	       /* global messages */
 
+/* Define if e_msg must exit when M_ERROR_TERM is received */
+static int exit_on_error = 1;
+
 /* 
  * Set daemon name. Also, find canonical execution
  *  path.  Note, exepath has spare room for tacking on
@@ -930,7 +933,7 @@ e_msg(const char *file, int line, int type, int level, const char *fmt,...)
        char *p = 0;
        p[0] = 0;		      /* generate segmentation violation */
     }
-    if (type == M_ERROR_TERM) {
+    if ((type == M_ERROR_TERM) && exit_on_error) {
        exit(1);
     }
 }
@@ -1027,7 +1030,7 @@ Jmsg(JCR *jcr, int type, int level, const char *fmt,...)
        char *p = 0;
        p[0] = 0;		      /* generate segmentation violation */
     }
-    if (type == M_ERROR_TERM) {
+    if ((type == M_ERROR_TERM) && exit_on_error) {
        exit(1);
     }
 }
@@ -1200,4 +1203,11 @@ void q_msg(const char *file, int line, JCR *jcr, int type, int level, const char
 
    Qmsg(jcr, type, level, "%s", pool_buf);
    free_memory(pool_buf);
+}
+
+/* 
+ * Define if e_msg must exit when M_ERROR_TERM is received
+ */
+void set_exit_on_error(int value) {
+   exit_on_error = value;
 }

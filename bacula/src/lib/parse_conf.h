@@ -97,7 +97,7 @@ union CURES {
 
 
 /* Configuration routines */
-void  parse_config(const char *cf);
+int   parse_config(const char *cf, int exit_on_error = 1);
 void  free_config_resources(void);
 RES   **save_config_resources(void);
 
