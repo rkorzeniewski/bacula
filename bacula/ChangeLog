@@ -1,4 +1,4 @@
-2002-06-xx Release 1.21
+2002-06-12 Release 1.21
 - Fixed several problems with filenames being truncated if
   they contain spaces. Thanks to the user that reported this.
 - N.B. To get the new queries, after the "make" and 
@@ -13,8 +13,7 @@
 - MUST UPDATE ALL DAEMONS due to protocol change to handle new
   tape format.
 
-
-  kes11Jun02:
+  From kes11Jun02:
 - Updated examples directory with my most recent config files.
 - Modified the M_TERM meaning to mean that Bacula has
   terminated in error without producing a dump. Previously,
@@ -39,7 +38,7 @@
 - Modified bextract to default to extracting all files (i.e. /).
 - Cleaned up the code in bextract a bit.
 
-  kes03Jun02:
+  From kes03Jun02:
 - Improve Verify command to include files examined.
 - Eliminate fcntl() locking of the console file and replaced
   it with a pthreads mutex.
