@@ -197,8 +197,9 @@ CREATE TABLE pool
     recycle	      smallint	  not null default 0,
     pooltype	      text			    
 	check (pooltype is null or (pooltype in ('Backup','Copy','Cloned','Archive','Migration'))),
-    labelformat       text		    not null,
-    enabled	      smallint		    not null default 1,
+    labeltype	      integer	  not null default 0,
+    labelformat       text	  not null,
+    enabled	      smallint	  not null default 1,
     scratchpoolid     integer,			     
     recyclepoolid     integer,
     primary key (poolid)

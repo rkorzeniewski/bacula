@@ -185,6 +185,7 @@ CREATE TABLE Pool (
    AutoPrune TINYINT DEFAULT 0,
    Recycle TINYINT DEFAULT 0,
    PoolType ENUM('Backup', 'Copy', 'Cloned', 'Archive', 'Migration', 'Scratch') NOT NULL,
+   LabelType TINYINT NOT NULL DEFAULT 0,
    LabelFormat TINYBLOB,
    Enabled TINYINT DEFAULT 1,
    ScratchPoolId INTEGER UNSIGNED DEFAULT 0 REFERENCES Pool,

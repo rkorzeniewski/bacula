@@ -619,7 +619,7 @@ bool write_session_label(DCR *dcr, int label)
    Dmsg1(90, "session_label record=%x\n", rec);
    switch (label) {
    case SOS_LABEL:
-      if (dev->state & ST_TAPE) {
+      if (dev->is_tape()) {
 	 dcr->StartBlock = dev->block_num;
 	 dcr->StartFile  = dev->file;
       } else {
@@ -628,7 +628,7 @@ bool write_session_label(DCR *dcr, int label)
       }
       break;
    case EOS_LABEL:
-      if (dev->state & ST_TAPE) {
+      if (dev->is_tape()) {
 	 dcr->EndBlock = dev->EndBlock;
 	 dcr->EndFile  = dev->EndFile;
       } else {
@@ -971,13 +971,14 @@ bool write_ansi_ibm_label(DCR *dcr, const char *VolName)
    int len;
    int stat;
 
+   Dmsg1(100, "LabelType=%d\n", dcr->VolCatInfo.LabelType); 
    switch (dcr->VolCatInfo.LabelType) {
    case B_BACULA_LABEL:
       return true;
    case B_ANSI_LABEL:
    case B_IBM_LABEL:
       ser_declare;
-      Dmsg0(000, "Write ansi label.\n");
+      Dmsg0(100, "Write ansi label.\n");
       len = strlen(VolName);
       if (len > 6) {
 	 len = 6;			 /* max len ANSI label */
@@ -1060,8 +1061,8 @@ static int read_ansi_ibm_label(DCR *dcr)
     *  If tape read the following EOF mark, on disk do
     *  not read.
     */
-   Dmsg0(000, "Read ansi label.\n");
-   if (dev->state & ST_TAPE) {
+   Dmsg0(100, "Read ansi label.\n");
+   if (dev->is_tape()) {
       num_rec = 4;
    } else {
       num_rec = 3;
@@ -1081,12 +1082,11 @@ static int read_ansi_ibm_label(DCR *dcr)
          Mmsg2(dev->errmsg, _("Read error on device %s in ANSI/IBM label. ERR=%s\n"),
 	    dev->dev_name, be.strerror());
          Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
-	 if (dev->state & ST_EOF) {  /* EOF just seen? */
+	 if (dev->at_eof()) {	     /* EOF just seen? */
 	    dev->state |= ST_EOT;    /* yes, error => EOT */
 	 }
 	 return VOL_IO_ERROR;
       }
-      Dmsg1(000, "ANSI label=%80s\n", label);
    }
    return VOL_OK;
 }  
@@ -1100,6 +1100,6 @@ static char *ansi_date(time_t td, char *buf)
       td = time(NULL);
    }
    tm = gmtime(&td);
-   bsnprintf(buf, 6, "%d", 1000 * (tm->tm_year + 1900 - 2000) + tm->tm_yday);
+   bsnprintf(buf, 10, "%d  ", 1000 * (tm->tm_year + 1900 - 2000) + tm->tm_yday);
    return buf;
 }

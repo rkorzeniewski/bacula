@@ -103,14 +103,18 @@ int db_get_file_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr, FILE_DBR *fdbr)
 {
    SQL_ROW row;
    int stat = 0;
+   char ed1[50], ed2[50], ed3[50];
 
    if (jcr->JobLevel == L_VERIFY_DISK_TO_CATALOG) {
    Mmsg(mdb->cmd,
 "SELECT FileId, LStat, MD5 FROM File,Job WHERE "
-"File.JobId=Job.JobId AND File.PathId=%u AND "
-"File.FilenameId=%u AND Job.Type='B' AND Job.JobSTATUS='T' AND "
-"ClientId=%u ORDER BY StartTime DESC LIMIT 1",
-      fdbr->PathId, fdbr->FilenameId, jr->ClientId);
+"File.JobId=Job.JobId AND File.PathId=%s AND "
+"File.FilenameId=%s AND Job.Type='B' AND Job.JobSTATUS='T' AND "
+"ClientId=%s ORDER BY StartTime DESC LIMIT 1",
+      edit_int64(fdbr->PathId, ed1), 
+      edit_int64(fdbr->FilenameId, ed2), 
+      edit_int64(jr->ClientId,ed3));
+
    } else {
       Mmsg(mdb->cmd,
 "SELECT FileId, LStat, MD5 FROM File WHERE File.JobId=%u AND File.PathId=%u AND "
@@ -260,6 +264,7 @@ static int db_get_path_record(JCR *jcr, B_DB *mdb)
 int db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 {
    SQL_ROW row;
+   char ed1[50];
 
    db_lock(mdb);
    if (jr->JobId == 0) {
@@ -271,7 +276,8 @@ int db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
       Mmsg(mdb->cmd, "SELECT VolSessionId,VolSessionTime,"
 "PoolId,StartTime,EndTime,JobFiles,JobBytes,JobTDate,Job,JobStatus,"
 "Type,Level,ClientId "
-"FROM Job WHERE JobId=%u", jr->JobId);
+"FROM Job WHERE JobId=%s", 
+	  edit_int64(jr->JobId, ed1));
     }
 
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
@@ -287,7 +293,7 @@ int db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 
    jr->VolSessionId = str_to_uint64(row[0]);
    jr->VolSessionTime = str_to_uint64(row[1]);
-   jr->PoolId = str_to_uint64(row[2]);
+   jr->PoolId = str_to_int64(row[2]);
    bstrncpy(jr->cStartTime, row[3]!=NULL?row[3]:"", sizeof(jr->cStartTime));
    bstrncpy(jr->cEndTime, row[4]!=NULL?row[4]:"", sizeof(jr->cEndTime));
    jr->JobFiles = atol(row[5]);
@@ -327,7 +333,7 @@ int db_get_job_volume_names(JCR *jcr, B_DB *mdb, JobId_t JobId, POOLMEM **Volume
         "SELECT VolumeName,MAX(VolIndex) FROM JobMedia,Media WHERE "
         "JobMedia.JobId=%s AND JobMedia.MediaId=Media.MediaId "
         "GROUP BY VolumeName "
-        "ORDER BY 2 ASC", edit_uint64(JobId,ed1));
+        "ORDER BY 2 ASC", edit_int64(JobId,ed1));
 
    Dmsg1(130, "VolNam=%s\n", mdb->cmd);
    *VolumeNames[0] = 0;
@@ -527,18 +533,21 @@ int db_get_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pdbr)
 {
    SQL_ROW row;
    int stat = 0;
+   char ed1[50];
 
    db_lock(mdb);
    if (pdbr->PoolId != 0) {		  /* find by id */
       Mmsg(mdb->cmd,
 "SELECT PoolId,Name,NumVols,MaxVols,UseOnce,UseCatalog,AcceptAnyVolume,"
 "AutoPrune,Recycle,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,"
-"MaxVolBytes,PoolType,LabelFormat FROM Pool WHERE Pool.PoolId=%u", pdbr->PoolId);
+"MaxVolBytes,PoolType,LabelType,LabelFormat FROM Pool WHERE Pool.PoolId=%s", 
+	 edit_int64(pdbr->PoolId, ed1));
    } else {			      /* find by name */
       Mmsg(mdb->cmd,
 "SELECT PoolId,Name,NumVols,MaxVols,UseOnce,UseCatalog,AcceptAnyVolume,"
 "AutoPrune,Recycle,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,"
-"MaxVolBytes,PoolType,LabelFormat FROM Pool WHERE Pool.Name='%s'", pdbr->Name);
+"MaxVolBytes,PoolType,LabelType,LabelFormat FROM Pool WHERE Pool.Name='%s'", 
+	 pdbr->Name);
    }
 
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
@@ -567,8 +576,9 @@ int db_get_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pdbr)
 	    pdbr->MaxVolJobs = str_to_int64(row[11]);
 	    pdbr->MaxVolFiles = str_to_int64(row[12]);
 	    pdbr->MaxVolBytes = str_to_uint64(row[13]);
-            bstrncpy(pdbr->PoolType, row[13]!=NULL?row[14]:"", sizeof(pdbr->PoolType));
-            bstrncpy(pdbr->LabelFormat, row[14]!=NULL?row[15]:"", sizeof(pdbr->LabelFormat));
+            bstrncpy(pdbr->PoolType, row[14]!=NULL?row[14]:"", sizeof(pdbr->PoolType));
+	    pdbr->LabelType = str_to_int64(row[15]);
+            bstrncpy(pdbr->LabelFormat, row[16]!=NULL?row[16]:"", sizeof(pdbr->LabelFormat));
 	    stat = pdbr->PoolId;
 	 }
       } else {
@@ -593,12 +603,14 @@ int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cdbr)
 {
    SQL_ROW row;
    int stat = 0;
+   char ed1[50];
 
    db_lock(mdb);
    if (cdbr->ClientId != 0) {		    /* find by id */
       Mmsg(mdb->cmd,
 "SELECT ClientId,Name,Uname,AutoPrune,FileRetention,JobRetention "
-"FROM Client WHERE Client.ClientId=%u", cdbr->ClientId);
+"FROM Client WHERE Client.ClientId=%s", 
+	edit_int64(cdbr->ClientId, ed1));
    } else {			      /* find by name */
       Mmsg(mdb->cmd,
 "SELECT ClientId,Name,Uname,AutoPrune,FileRetention,JobRetention "
@@ -608,7 +620,6 @@ int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cdbr)
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       mdb->num_rows = sql_num_rows(mdb);
       if (mdb->num_rows > 1) {
-	 char ed1[30];
          Mmsg1(&mdb->errmsg, _("More than one Client!: %s\n"),
 	    edit_uint64(mdb->num_rows, ed1));
          Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
@@ -698,12 +709,14 @@ int db_get_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
 {
    SQL_ROW row;
    int stat = 0;
+   char ed1[50];
 
    db_lock(mdb);
    if (fsr->FileSetId != 0) {		    /* find by id */
       Mmsg(mdb->cmd,
            "SELECT FileSetId,FileSet,MD5,CreateTime FROM FileSet "
-           "WHERE FileSetId=%u", fsr->FileSetId);
+           "WHERE FileSetId=%s", 
+	   edit_int64(fsr->FileSetId, ed1));
    } else {			      /* find by name */
       Mmsg(mdb->cmd,
            "SELECT FileSetId,FileSet,CreateTime,MD5 FROM FileSet "
@@ -721,7 +734,7 @@ int db_get_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
       if ((row = sql_fetch_row(mdb)) == NULL) {
          Mmsg1(&mdb->errmsg, _("FileSet record \"%s\" not found.\n"), fsr->FileSet);
       } else {
-	 fsr->FileSetId = atoi(row[0]);
+	 fsr->FileSetId = str_to_int64(row[0]);
          bstrncpy(fsr->FileSet, row[1]!=NULL?row[1]:"", sizeof(fsr->FileSet));
          bstrncpy(fsr->MD5, row[2]!=NULL?row[2]:"", sizeof(fsr->MD5));
          bstrncpy(fsr->cCreateTime, row[3]!=NULL?row[3]:"", sizeof(fsr->cCreateTime));
@@ -768,10 +781,12 @@ int db_get_media_ids(JCR *jcr, B_DB *mdb, uint32_t PoolId, int *num_ids, uint32_
    int stat = 0;
    int i = 0;
    uint32_t *id;
+   char ed1[50];
 
    db_lock(mdb);
    *ids = NULL;
-   Mmsg(mdb->cmd, "SELECT MediaId FROM Media WHERE PoolId=%u", PoolId);
+   Mmsg(mdb->cmd, "SELECT MediaId FROM Media WHERE PoolId=%s", 
+       edit_int64(PoolId, ed1));
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       *num_ids = sql_num_rows(mdb);
       if (*num_ids > 0) {
@@ -802,6 +817,7 @@ int db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 {
    SQL_ROW row;
    int stat = 0;
+   char ed1[50];
 
    db_lock(mdb);
    if (mr->MediaId == 0 && mr->VolumeName[0] == 0) {
@@ -816,7 +832,8 @@ int db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
          "MediaType,VolStatus,PoolId,VolRetention,VolUseDuration,MaxVolJobs,"
          "MaxVolFiles,Recycle,Slot,FirstWritten,LastWritten,InChanger,"
          "EndFile,EndBlock,VolParts,LabelType "
-         "FROM Media WHERE MediaId=%u", mr->MediaId);
+         "FROM Media WHERE MediaId=%s", 
+	 edit_int64(mr->MediaId, ed1));
    } else {			      /* find by name */
       Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
          "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"

@@ -227,21 +227,22 @@ int
 db_update_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
 {
    int stat;
-   char ed1[50], ed2[50], ed3[50];
+   char ed1[50], ed2[50], ed3[50], ed4[50];
 
    db_lock(mdb);
    Mmsg(mdb->cmd,
 "UPDATE Pool SET NumVols=%u,MaxVols=%u,UseOnce=%d,UseCatalog=%d,"
 "AcceptAnyVolume=%d,VolRetention='%s',VolUseDuration='%s',"
 "MaxVolJobs=%u,MaxVolFiles=%u,MaxVolBytes=%s,Recycle=%d,"
-"AutoPrune=%d,LabelFormat='%s' WHERE PoolId=%u",
+"AutoPrune=%d,LabelType=%d,LabelFormat='%s' WHERE PoolId=%s",
       pr->NumVols, pr->MaxVols, pr->UseOnce, pr->UseCatalog,
       pr->AcceptAnyVolume, edit_uint64(pr->VolRetention, ed1),
       edit_uint64(pr->VolUseDuration, ed2),
       pr->MaxVolJobs, pr->MaxVolFiles,
       edit_uint64(pr->MaxVolBytes, ed3),
-      pr->Recycle, pr->AutoPrune,
-      pr->LabelFormat, pr->PoolId);
+      pr->Recycle, pr->AutoPrune, pr->LabelType,
+      pr->LabelFormat, 
+      edit_int64(pr->PoolId, ed4));
 
    stat = UPDATE_DB(jcr, mdb, mdb->cmd);
    db_unlock(mdb);
@@ -272,7 +273,7 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       localtime_r(&ttime, &tm);
       strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
       Mmsg(mdb->cmd, "UPDATE Media SET FirstWritten='%s'"
-" WHERE VolumeName='%s'", dt, mr->VolumeName);
+           " WHERE VolumeName='%s'", dt, mr->VolumeName);
       stat = UPDATE_DB(jcr, mdb, mdb->cmd);
       Dmsg1(400, "Firstwritten stat=%d\n", stat);
    }
