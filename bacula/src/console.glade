@@ -1052,11 +1052,6 @@
 	      <class>GtkCombo</class>
 	      <name>combo_type</name>
 	      <width>131</width>
-	      <signal>
-		<name>selection_received</name>
-		<handler>on_type_combo_selection_received</handler>
-		<last_modification_time>Tue, 29 Apr 2003 15:01:06 GMT</last_modification_time>
-	      </signal>
 	      <value_in_list>True</value_in_list>
 	      <ok_if_empty>False</ok_if_empty>
 	      <case_sensitive>False</case_sensitive>
@@ -1715,11 +1710,11 @@
 
 <widget>
   <class>GtkWindow</class>
-  <name>Restore_tree</name>
-  <title>Restore</title>
+  <name>restore_files</name>
+  <title>Restore File Selection</title>
   <type>GTK_WINDOW_TOPLEVEL</type>
-  <position>GTK_WIN_POS_NONE</position>
-  <modal>False</modal>
+  <position>GTK_WIN_POS_CENTER</position>
+  <modal>True</modal>
   <allow_shrink>True</allow_shrink>
   <allow_grow>True</allow_grow>
   <auto_shrink>False</auto_shrink>
@@ -1860,7 +1855,7 @@
       <widget>
 	<class>GtkLabel</class>
 	<name>label88</name>
-	<label> Command: </label>
+	<label> cwd:</label>
 	<justify>GTK_JUSTIFY_CENTER</justify>
 	<wrap>False</wrap>
 	<xalign>0.5</xalign>
@@ -1901,6 +1896,316 @@
 	  <expand>True</expand>
 	  <fill>True</fill>
 	</child>
+      </widget>
+    </widget>
+
+    <widget>
+      <class>GtkHBox</class>
+      <name>hbox44</name>
+      <homogeneous>False</homogeneous>
+      <spacing>0</spacing>
+      <child>
+	<padding>0</padding>
+	<expand>False</expand>
+	<fill>True</fill>
+      </child>
+
+      <widget>
+	<class>GtkLabel</class>
+	<name>label105</name>
+	<label> </label>
+	<justify>GTK_JUSTIFY_FILL</justify>
+	<wrap>False</wrap>
+	<xalign>0.5</xalign>
+	<yalign>0.5</yalign>
+	<xpad>59</xpad>
+	<ypad>0</ypad>
+	<child>
+	  <padding>0</padding>
+	  <expand>True</expand>
+	  <fill>False</fill>
+	</child>
+      </widget>
+
+      <widget>
+	<class>GtkButton</class>
+	<name>restore_file</name>
+	<border_width>9</border_width>
+	<width>108</width>
+	<height>47</height>
+	<can_focus>True</can_focus>
+	<signal>
+	  <name>clicked</name>
+	  <handler>on_restore_file_clicked</handler>
+	  <last_modification_time>Wed, 30 Apr 2003 19:38:50 GMT</last_modification_time>
+	</signal>
+	<stock_button>GNOME_STOCK_BUTTON_OK</stock_button>
+	<relief>GTK_RELIEF_NORMAL</relief>
+	<child>
+	  <padding>0</padding>
+	  <expand>True</expand>
+	  <fill>False</fill>
+	</child>
+      </widget>
+    </widget>
+  </widget>
+</widget>
+
+<widget>
+  <class>GtkDialog</class>
+  <name>restore_dialog</name>
+  <title>Restore Files</title>
+  <type>GTK_WINDOW_TOPLEVEL</type>
+  <position>GTK_WIN_POS_CENTER</position>
+  <modal>True</modal>
+  <allow_shrink>False</allow_shrink>
+  <allow_grow>False</allow_grow>
+  <auto_shrink>False</auto_shrink>
+
+  <widget>
+    <class>GtkVBox</class>
+    <child_name>Dialog:vbox</child_name>
+    <name>dialog-vbox8</name>
+    <homogeneous>False</homogeneous>
+    <spacing>0</spacing>
+
+    <widget>
+      <class>GtkHBox</class>
+      <child_name>Dialog:action_area</child_name>
+      <name>dialog-action_area7</name>
+      <border_width>10</border_width>
+      <homogeneous>True</homogeneous>
+      <spacing>5</spacing>
+      <child>
+	<padding>0</padding>
+	<expand>False</expand>
+	<fill>True</fill>
+	<pack>GTK_PACK_END</pack>
+      </child>
+
+      <widget>
+	<class>GtkHButtonBox</class>
+	<name>hbuttonbox2</name>
+	<layout_style>GTK_BUTTONBOX_END</layout_style>
+	<spacing>8</spacing>
+	<child_min_width>85</child_min_width>
+	<child_min_height>27</child_min_height>
+	<child_ipad_x>7</child_ipad_x>
+	<child_ipad_y>0</child_ipad_y>
+	<child>
+	  <padding>0</padding>
+	  <expand>True</expand>
+	  <fill>True</fill>
+	</child>
+
+	<widget>
+	  <class>GtkButton</class>
+	  <name>restore_ok</name>
+	  <can_default>True</can_default>
+	  <can_focus>True</can_focus>
+	  <signal>
+	    <name>clicked</name>
+	    <handler>on_restore_ok_clicked</handler>
+	    <last_modification_time>Wed, 30 Apr 2003 17:39:22 GMT</last_modification_time>
+	  </signal>
+	  <stock_button>GNOME_STOCK_BUTTON_OK</stock_button>
+	  <relief>GTK_RELIEF_NORMAL</relief>
+	</widget>
+
+	<widget>
+	  <class>GtkButton</class>
+	  <name>restore_cancel</name>
+	  <can_default>True</can_default>
+	  <can_focus>True</can_focus>
+	  <signal>
+	    <name>clicked</name>
+	    <handler>on_restore_cancel_clicked</handler>
+	    <last_modification_time>Wed, 30 Apr 2003 17:39:44 GMT</last_modification_time>
+	  </signal>
+	  <stock_button>GNOME_STOCK_BUTTON_CANCEL</stock_button>
+	  <relief>GTK_RELIEF_NORMAL</relief>
+	</widget>
+      </widget>
+    </widget>
+
+    <widget>
+      <class>GtkHBox</class>
+      <name>hbox42</name>
+      <homogeneous>False</homogeneous>
+      <spacing>0</spacing>
+      <child>
+	<padding>0</padding>
+	<expand>True</expand>
+	<fill>True</fill>
+      </child>
+
+      <widget>
+	<class>GtkFrame</class>
+	<name>frame3</name>
+	<border_width>8</border_width>
+	<label>Select by:</label>
+	<label_xalign>0</label_xalign>
+	<shadow_type>GTK_SHADOW_ETCHED_IN</shadow_type>
+	<child>
+	  <padding>0</padding>
+	  <expand>True</expand>
+	  <fill>True</fill>
+	</child>
+
+	<widget>
+	  <class>GtkHBox</class>
+	  <name>hbox43</name>
+	  <homogeneous>False</homogeneous>
+	  <spacing>0</spacing>
+
+	  <widget>
+	    <class>GtkLabel</class>
+	    <name>label102</name>
+	    <label>         </label>
+	    <justify>GTK_JUSTIFY_CENTER</justify>
+	    <wrap>False</wrap>
+	    <xalign>0.5</xalign>
+	    <yalign>0.5</yalign>
+	    <xpad>0</xpad>
+	    <ypad>0</ypad>
+	    <child>
+	      <padding>0</padding>
+	      <expand>False</expand>
+	      <fill>False</fill>
+	      <pack>GTK_PACK_END</pack>
+	    </child>
+	  </widget>
+
+	  <widget>
+	    <class>GtkVBox</class>
+	    <name>vbox15</name>
+	    <homogeneous>False</homogeneous>
+	    <spacing>0</spacing>
+	    <child>
+	      <padding>0</padding>
+	      <expand>True</expand>
+	      <fill>True</fill>
+	    </child>
+
+	    <widget>
+	      <class>GtkLabel</class>
+	      <name>label103</name>
+	      <label></label>
+	      <justify>GTK_JUSTIFY_CENTER</justify>
+	      <wrap>False</wrap>
+	      <xalign>0.5</xalign>
+	      <yalign>0.5</yalign>
+	      <xpad>0</xpad>
+	      <ypad>2</ypad>
+	      <child>
+		<padding>0</padding>
+		<expand>False</expand>
+		<fill>False</fill>
+	      </child>
+	    </widget>
+
+	    <widget>
+	      <class>GtkRadioButton</class>
+	      <name>rb_most_recent</name>
+	      <border_width>3</border_width>
+	      <can_focus>True</can_focus>
+	      <label>Select most recent backup</label>
+	      <active>True</active>
+	      <draw_indicator>True</draw_indicator>
+	      <child>
+		<padding>0</padding>
+		<expand>False</expand>
+		<fill>False</fill>
+	      </child>
+	    </widget>
+
+	    <widget>
+	      <class>GtkRadioButton</class>
+	      <name>rb_jobs</name>
+	      <border_width>5</border_width>
+	      <can_focus>True</can_focus>
+	      <label>Select list of Jobs</label>
+	      <active>False</active>
+	      <draw_indicator>True</draw_indicator>
+	      <child>
+		<padding>0</padding>
+		<expand>False</expand>
+		<fill>False</fill>
+	      </child>
+	    </widget>
+
+	    <widget>
+	      <class>GtkRadioButton</class>
+	      <name>rb_file</name>
+	      <border_width>4</border_width>
+	      <can_focus>True</can_focus>
+	      <label>Find a specific file</label>
+	      <active>False</active>
+	      <draw_indicator>True</draw_indicator>
+	      <child>
+		<padding>0</padding>
+		<expand>False</expand>
+		<fill>False</fill>
+	      </child>
+	    </widget>
+
+	    <widget>
+	      <class>GtkLabel</class>
+	      <name>label104</name>
+	      <label></label>
+	      <justify>GTK_JUSTIFY_CENTER</justify>
+	      <wrap>False</wrap>
+	      <xalign>0.5</xalign>
+	      <yalign>0.5</yalign>
+	      <xpad>0</xpad>
+	      <ypad>0</ypad>
+	      <child>
+		<padding>0</padding>
+		<expand>False</expand>
+		<fill>False</fill>
+	      </child>
+	    </widget>
+	  </widget>
+	</widget>
+      </widget>
+
+      <widget>
+	<class>GtkVBox</class>
+	<name>vbox14</name>
+	<homogeneous>False</homogeneous>
+	<spacing>0</spacing>
+	<child>
+	  <padding>0</padding>
+	  <expand>False</expand>
+	  <fill>False</fill>
+	</child>
+
+	<widget>
+	  <class>Placeholder</class>
+	</widget>
+
+	<widget>
+	  <class>GtkButton</class>
+	  <name>apply_button</name>
+	  <border_width>50</border_width>
+	  <can_focus>True</can_focus>
+	  <signal>
+	    <name>clicked</name>
+	    <handler>on_apply_button_clicked</handler>
+	    <last_modification_time>Wed, 30 Apr 2003 19:17:49 GMT</last_modification_time>
+	  </signal>
+	  <stock_button>GNOME_STOCK_BUTTON_APPLY</stock_button>
+	  <relief>GTK_RELIEF_NORMAL</relief>
+	  <child>
+	    <padding>0</padding>
+	    <expand>False</expand>
+	    <fill>False</fill>
+	  </child>
+	</widget>
+
+	<widget>
+	  <class>Placeholder</class>
+	</widget>
       </widget>
     </widget>
   </widget>
