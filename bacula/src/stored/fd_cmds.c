@@ -40,8 +40,8 @@ extern STORES *me;
 static char ferrmsg[]      = "3900 Invalid command\n";
 
 /* Imported functions */
-extern int do_append_data(JCR *jcr);
-extern int do_read_data(JCR *jcr);
+extern bool do_append_data(JCR *jcr);
+extern bool do_read_data(JCR *jcr);
 
 /* Forward referenced functions */
 

@@ -42,6 +42,7 @@ void terminate_filed(int sig);
 CLIENT *me;			      /* my resource */
 char OK_msg[]   = "2000 OK\n";
 char TERM_msg[] = "2999 Terminate\n";
+bool no_signals = false;
 
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
 const int win32_client = 1;
@@ -91,7 +92,6 @@ static void usage()
 int main (int argc, char *argv[])
 {
    int ch;
-   bool no_signals = false;
    bool test_config = false;
    DIRRES *director;
    char *uid = NULL;

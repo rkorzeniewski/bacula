@@ -1002,6 +1002,10 @@ static int append_test()
    if (dev_cap(dev, CAP_TWOEOF)) {
       weofcmd();
    }
+   force_close_dev(dev);	      /* release device */
+   if (!open_the_device()) {
+      return -1;
+   }
    rewindcmd();
    Pmsg0(0, _("Now moving to end of medium.\n"));
    eodcmd();

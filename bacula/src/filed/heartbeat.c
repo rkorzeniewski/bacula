@@ -43,7 +43,7 @@
 
 extern "C" void *sd_heartbeat_thread(void *arg);
 extern "C" void *dir_heartbeat_thread(void *arg);
-
+extern bool no_signals;
 
 /* 
  * Listen on the SD socket for heartbeat signals.
@@ -94,14 +94,24 @@ extern "C" void *sd_heartbeat_thread(void *arg)
 /* Startup the heartbeat thread -- see above */
 void start_heartbeat_monitor(JCR *jcr)
 {
-   jcr->hb_bsock = NULL;
-   pthread_create(&jcr->heartbeat_id, NULL, sd_heartbeat_thread, (void *)jcr);
+   /* 
+    * If no signals are set, do not start the heartbeat because
+    * it gives a constant stream of TIMEOUT_SIGNAL signals that
+    * make debugging impossible.
+    */
+   if (!no_signals) {
+      jcr->hb_bsock = NULL;
+      pthread_create(&jcr->heartbeat_id, NULL, sd_heartbeat_thread, (void *)jcr);
+   }
 }
 
 /* Terminate the heartbeat thread. Used for both SD and DIR */
 void stop_heartbeat_monitor(JCR *jcr) 
 {
    int cnt = 0;
+   if (no_signals) {
+      return;
+   }
    /* Wait max 10 secs for heartbeat thread to start */
    while (jcr->hb_bsock == NULL && cnt++ < 200) {
       bmicrosleep(0, 50);	      /* avoid race */

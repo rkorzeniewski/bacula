@@ -34,7 +34,7 @@
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
 
 /* Forward referenced subroutines */
-static int set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd);
+static bool set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd);
 void unix_name_to_win32(POOLMEM **win32_name, char *name);
 void win_error(JCR *jcr, char *prefix, POOLMEM *ofile);
 HANDLE bget_handle(BFILE *bfd);
@@ -284,14 +284,14 @@ int32_t decode_LinkFI(char *buf, struct stat *statp)
  *  fname is the original filename  
  *  ofile is the output filename (may be in a different directory)
  *
- * Returns:  1 on success
- *	     0 on failure
+ * Returns:  true  on success
+ *	     false on failure
  */
-int set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
+bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
 {
    struct utimbuf ut;	 
    mode_t old_mask;
-   int stat = 1;
+   bool ok = true;
 
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
    if (attr->stream == STREAM_UNIX_ATTRIBUTES_EX &&
@@ -300,7 +300,7 @@ int set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
 	   bclose(ofd); 
        }
        pm_strcpy(&attr->ofname, "*none*");
-       return 1;
+       return true;
    }
    if (attr->data_stream == STREAM_WIN32_DATA ||
        attr->data_stream == STREAM_WIN32_GZIP_DATA) {
@@ -308,7 +308,7 @@ int set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
 	 bclose(ofd); 
       }
       pm_strcpy(&attr->ofname, "*none*");
-      return 1;
+      return true;
    }
 
 
@@ -337,40 +337,46 @@ int set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
       if (lchown(attr->ofname, attr->statp.st_uid, attr->statp.st_gid) < 0) {
          Jmsg2(jcr, M_ERROR, 0, _("Unable to set file owner %s: ERR=%s\n"),
 	    attr->ofname, strerror(errno));
-	 stat = 0;
+	 ok = false;
       }
    } else {
       if (chown(attr->ofname, attr->statp.st_uid, attr->statp.st_gid) < 0) {
          Jmsg2(jcr, M_ERROR, 0, _("Unable to set file owner %s: ERR=%s\n"),
 	    attr->ofname, strerror(errno));
-	 stat = 0;
+	 ok = false;
       }
       if (chmod(attr->ofname, attr->statp.st_mode) < 0) {
          Jmsg2(jcr, M_ERROR, 0, _("Unable to set file modes %s: ERR=%s\n"),
 	    attr->ofname, strerror(errno));
-	 stat = 0;
+	 ok = false;
       }
 
-      /* FreeBSD user flags */
-#ifdef HAVE_CHFLAGS
-      if (chflags(attr->ofname, attr->statp.st_flags) < 0) {
-         Jmsg2(jcr, M_ERROR, 0, _("Unable to set file flags %s: ERR=%s\n"),
-	    attr->ofname, strerror(errno));
-	 stat = 0;
-      }
-#endif
       /*
        * Reset file times.
        */
       if (utime(attr->ofname, &ut) < 0) {
          Jmsg2(jcr, M_ERROR, 0, _("Unable to set file times %s: ERR=%s\n"),
 	    attr->ofname, strerror(errno));
-	 stat = 0;
+	 ok = false;
       }
+#ifdef HAVE_CHFLAGS
+      /*
+       * FreeBSD user flags
+       *
+       * Note, this should really be done before the utime() above,
+       *  but if the immutable bit is set, it will make the utimes()
+       *  fail.
+       */
+      if (chflags(attr->ofname, attr->statp.st_flags) < 0) {
+         Jmsg2(jcr, M_ERROR, 0, _("Unable to set file flags %s: ERR=%s\n"),
+	    attr->ofname, strerror(errno));
+	 ok = false;
+      }
+#endif
    }
    pm_strcpy(&attr->ofname, "*none*");
    umask(old_mask);
-   return stat;
+   return ok;
 }
 
 
@@ -467,10 +473,10 @@ int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
  *  fname is the original filename  
  *  ofile is the output filename (may be in a different directory)
  *
- * Returns:  1 on success
- *	     0 on failure
+ * Returns:  true  on success
+ *	     false on failure
  */
-static int set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
+static bool set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
 {
    char *p = attr->attrEx;
    int64_t val;
@@ -479,7 +485,7 @@ static int set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    POOLMEM *win32_ofile;
 
    if (!p_GetFileAttributesEx) {				 
-      return 0;
+      return false;
    }
 
    if (!p || !*p) {		      /* we should have attributes */
@@ -487,7 +493,7 @@ static int set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
       if (is_bopen(ofd)) {
 	 bclose(ofd);
       }
-      return 0;
+      return false;
    } else {
       Dmsg2(100, "Attribs %s = %s\n", attr->ofname, attr->attrEx);
    }
@@ -547,7 +553,7 @@ static int set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
       }
    }
    free_pool_memory(win32_ofile);
-   return 1;
+   return true;
 }
 
 void win_error(JCR *jcr, char *prefix, POOLMEM *win32_ofile)

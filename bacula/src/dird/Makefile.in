@@ -96,16 +96,17 @@ devclean: realclean
 install: all
 	$(INSTALL_PROGRAM) bacula-dir $(DESTDIR)$(sbindir)/bacula-dir
 	@srcconf=bacula-dir.conf; \
-	if  test -f ${DESTDIR}${sysconfdir}/$$srcconf; then \
-	   destconf=$$srcconf.new; \
-	   echo "  ==> Found existing $$srcconf, installing new conf file as $$destconf"; \
-	else \
-	   destconf=$$srcconf; \
-	fi; \
-	echo "${INSTALL_CONFIG} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf"; \
-	${INSTALL_CONFIG} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf
-	if  test -f ${DESTDIR}${scriptdir}/query.sql; then \
-	   $(MV) -f ${DESTDIR}${scriptdir}/query.sql ${DESTDIR}${scriptdir}/query.sql.save; \
+	   if  test -f ${DESTDIR}${sysconfdir}/$$srcconf; then \
+	      destconf=$$srcconf.new; \
+	      echo "  ==> Found existing $$srcconf, installing new conf file as $$destconf"; \
+	   else \
+	      destconf=$$srcconf; \
+	   fi; \
+	   echo "${INSTALL_CONFIG} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf"; \
+	   ${INSTALL_CONFIG} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf
+	@if  test -f ${DESTDIR}${scriptdir}/query.sql; then \
+	   echo "  ==> Saving existing query.sql to query.sql.old"; \
+	   $(MV) -f ${DESTDIR}${scriptdir}/query.sql ${DESTDIR}${scriptdir}/query.sql.old; \
 	fi 
 	${INSTALL_DATA} query.sql ${DESTDIR}${scriptdir}/query.sql
 	@if test -f static-bacula-dir; then \
