@@ -65,6 +65,7 @@ static struct res_items finc_items[] = {
    {"sparse",          store_opts,    NULL,     0, 0, 0},
    {"readfifo",        store_opts,    NULL,     0, 0, 0},
    {"replace",         store_opts,    NULL,     0, 0, 0},
+   {"portable",        store_opts,    NULL,     0, 0, 0},
    {"match",           store_match,   NULL,     0, 0, 0},
    {"file",            store_fname,   NULL,     0, 0, 0},
    {"base",            store_base,    NULL,     0, 0, 0},
@@ -83,6 +84,7 @@ static struct res_items finc_items[] = {
 #define INC_KW_SPARSE	    7
 #define INC_KW_REPLACE	    8	      /* restore options */
 #define INC_KW_READFIFO     9	      /* Causes fifo data to be read */
+#define INC_KW_PORTABLE    10
 
 /* Include keywords -- these are keywords that can appear
  *    in the options lists of an include ( Include = compression= ...)
@@ -97,6 +99,7 @@ static struct s_kw FS_option_kw[] = {
    {"sparse",      INC_KW_SPARSE},
    {"replace",     INC_KW_REPLACE},
    {"readfifo",    INC_KW_READFIFO},
+   {"portable",    INC_KW_PORTABLE},
    {NULL,	   0}
 };
 
@@ -140,6 +143,8 @@ static struct s_fs_opt FS_options[] = {
    {"never",    INC_KW_REPLACE,       "n"},
    {"yes",      INC_KW_READFIFO,      "r"},
    {"no",       INC_KW_READFIFO,      "0"},
+   {"yes",      INC_KW_PORTABLE,      "p"},
+   {"no",       INC_KW_PORTABLE,      "0"},
    {NULL,	0,		     0}
 };
 
