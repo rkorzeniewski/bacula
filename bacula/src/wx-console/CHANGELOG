@@ -1,3 +1,6 @@
+03-07-2004 :
+ - wxbConfigPanel : Fixed ?: operator cast problem with gcc 2.95.
+
 25-06-2004 :
  - wxbRestorePanel : Fix file size truncated if >100mb.
 
