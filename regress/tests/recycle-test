@@ -66,7 +66,7 @@ list volumes
 @# now do a restore
 @#
 @output tmp/log2.out
-restore where=${cwd}/tmp/bacula-restores select all
+restore where=${cwd}/tmp/bacula-restores select all storage=File1
 yes
 wait
 messages
