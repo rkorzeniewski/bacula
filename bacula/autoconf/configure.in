@@ -1217,6 +1217,7 @@ AC_OUTPUT([autoconf/Make.common \
 )
 
 chmod 755 startmysql stopmysql bacula startit stopit btraceback mtx-changer
+chmod 755 console gconsole
 cp -f startit stopit btraceback btraceback.gdb src/console
 cp -f startit stopit btraceback btraceback.gdb src/dird
 cp -f startit stopit btraceback btraceback.gdb src/filed
