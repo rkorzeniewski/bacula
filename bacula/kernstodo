@@ -11,12 +11,14 @@ Version 1.37                Kern (see below)
 ========================================================
 
 For 1.36.1:
-- Fix CDROM make script to permit picking up already installed
-  static FD.
+- Fix orphanned buffers:
+   Orphaned buffer:      24 bytes allocated at line 808 of rufus-dir job.c
+   Orphaned buffer:      40 bytes allocated at line 45 of rufus-dir alist.c
 - Add dump of VolSessionId/Time and FileIndex with bls.
 - Add date/time to each Jmsg.
 
 1.37 Items:
+- Include within include
 - Implement a Pool of type Cleaning?
 - Implement VolReadTime and VolWriteTime in SD
 - Modify Backing up Your Database to include a bootstrap file.
@@ -981,3 +983,6 @@ Block Position: 0
 
 === Done
 - Add "Rerun failed levels = yes/no" to Job resource.
+- Fix CDROM make script to permit picking up already installed
+  static FD.
+

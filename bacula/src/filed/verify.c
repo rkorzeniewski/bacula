@@ -111,41 +111,41 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
    case FT_NOACCESS: {
       berrno be;
       be.set_errno(ff_pkt->ff_errno);
-      Jmsg(jcr, M_NOTSAVED, -1, _("     Could not access %s: ERR=%s\n"), ff_pkt->fname, be.strerror());
+      Jmsg(jcr, M_NOTSAVED, 1, _("     Could not access %s: ERR=%s\n"), ff_pkt->fname, be.strerror());
       jcr->Errors++;
       return 1;
    }
    case FT_NOFOLLOW: {
       berrno be;
       be.set_errno(ff_pkt->ff_errno);
-      Jmsg(jcr, M_NOTSAVED, -1, _("     Could not follow link %s: ERR=%s\n"), ff_pkt->fname, be.strerror());
+      Jmsg(jcr, M_NOTSAVED, 1, _("     Could not follow link %s: ERR=%s\n"), ff_pkt->fname, be.strerror());
       jcr->Errors++;
       return 1;
    }
    case FT_NOSTAT: {
       berrno be;
       be.set_errno(ff_pkt->ff_errno);
-      Jmsg(jcr, M_NOTSAVED, -1, _("     Could not stat %s: ERR=%s\n"), ff_pkt->fname, be.strerror());
+      Jmsg(jcr, M_NOTSAVED, 1, _("     Could not stat %s: ERR=%s\n"), ff_pkt->fname, be.strerror());
       jcr->Errors++;
       return 1;
    }
    case FT_DIRNOCHG:
    case FT_NOCHG:
-      Jmsg(jcr, M_SKIPPED, -1, _("     Unchanged file skipped: %s\n"), ff_pkt->fname);
+      Jmsg(jcr, M_SKIPPED, 1, _("     Unchanged file skipped: %s\n"), ff_pkt->fname);
       return 1;
    case FT_ISARCH:
-      Jmsg(jcr, M_SKIPPED, -1, _("     Archive file skipped: %s\n"), ff_pkt->fname);
+      Jmsg(jcr, M_SKIPPED, 1, _("     Archive file skipped: %s\n"), ff_pkt->fname);
       return 1;
    case FT_NORECURSE:
-      Jmsg(jcr, M_SKIPPED, -1, _("     Recursion turned off. Directory skipped: %s\n"), ff_pkt->fname);
+      Jmsg(jcr, M_SKIPPED, 1, _("     Recursion turned off. Directory skipped: %s\n"), ff_pkt->fname);
       return 1;
    case FT_NOFSCHG:
-      Jmsg(jcr, M_SKIPPED, -1, _("     File system change prohibited. Directory skipped: %s\n"), ff_pkt->fname);
+      Jmsg(jcr, M_SKIPPED, 1, _("     File system change prohibited. Directory skipped: %s\n"), ff_pkt->fname);
       return 1;
    case FT_NOOPEN: {
       berrno be;
       be.set_errno(ff_pkt->ff_errno);
-      Jmsg(jcr, M_NOTSAVED, -1, _("     Could not open directory %s: ERR=%s\n"), ff_pkt->fname, be.strerror());
+      Jmsg(jcr, M_NOTSAVED, 1, _("     Could not open directory %s: ERR=%s\n"), ff_pkt->fname, be.strerror());
       jcr->Errors++;
       return 1;
    }
@@ -164,7 +164,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
 	 ff_pkt->ff_errno = errno;
 	 berrno be;
 	 be.set_errno(bfd.berrno);
-         Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open %s: ERR=%s.\n"),
+         Jmsg(jcr, M_NOTSAVED, 1, _("     Cannot open %s: ERR=%s.\n"),
 	      ff_pkt->fname, be.strerror());
 	 jcr->Errors++;
 	 return 1;
@@ -226,7 +226,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
       if (n < 0) {
 	 berrno be;
 	 be.set_errno(bfd.berrno);
-         Jmsg(jcr, M_ERROR, -1, _("Error reading file %s: ERR=%s\n"), 
+         Jmsg(jcr, M_ERROR, 1, _("Error reading file %s: ERR=%s\n"), 
 	      ff_pkt->fname, be.strerror());
 	 jcr->Errors++;
       }
@@ -248,7 +248,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
       if (n < 0) {
 	 berrno be;
 	 be.set_errno(bfd.berrno);
-         Jmsg(jcr, M_ERROR, -1, _("Error reading file %s: ERR=%s\n"), 
+         Jmsg(jcr, M_ERROR, 1, _("Error reading file %s: ERR=%s\n"), 
 	      ff_pkt->fname, be.strerror());
 	 jcr->Errors++;
       }

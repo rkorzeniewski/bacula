@@ -176,7 +176,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
    case FT_NOACCESS: {
       berrno be;
       be.set_errno(ff_pkt->ff_errno);
-      Jmsg(jcr, M_NOTSAVED, -1, _("     Could not access %s: ERR=%s\n"), ff_pkt->fname, 
+      Jmsg(jcr, M_NOTSAVED, 0, _("     Could not access %s: ERR=%s\n"), ff_pkt->fname, 
 	 be.strerror());
       jcr->Errors++;
       return 1;
@@ -184,7 +184,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
    case FT_NOFOLLOW: {
       berrno be;
       be.set_errno(ff_pkt->ff_errno);
-      Jmsg(jcr, M_NOTSAVED, -1, _("     Could not follow link %s: ERR=%s\n"), ff_pkt->fname, 
+      Jmsg(jcr, M_NOTSAVED, 0, _("     Could not follow link %s: ERR=%s\n"), ff_pkt->fname, 
 	 be.strerror());
       jcr->Errors++;
       return 1;
@@ -192,30 +192,30 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
    case FT_NOSTAT: {
       berrno be;
       be.set_errno(ff_pkt->ff_errno);
-      Jmsg(jcr, M_NOTSAVED, -1, _("     Could not stat %s: ERR=%s\n"), ff_pkt->fname, 
+      Jmsg(jcr, M_NOTSAVED, 0, _("     Could not stat %s: ERR=%s\n"), ff_pkt->fname, 
 	 be.strerror());
       jcr->Errors++;
       return 1;
    }
    case FT_DIRNOCHG:
    case FT_NOCHG:
-      Jmsg(jcr, M_SKIPPED, -1,  _("     Unchanged file skipped: %s\n"), ff_pkt->fname);
+      Jmsg(jcr, M_SKIPPED, 1, _("     Unchanged file skipped: %s\n"), ff_pkt->fname);
       return 1;
    case FT_ISARCH:
-      Jmsg(jcr, M_NOTSAVED, -1, _("     Archive file not saved: %s\n"), ff_pkt->fname);
+      Jmsg(jcr, M_NOTSAVED, 0, _("     Archive file not saved: %s\n"), ff_pkt->fname);
       return 1;
    case FT_NORECURSE:
-      Jmsg(jcr, M_SKIPPED, -1,  _("     Recursion turned off. Directory skipped: %s\n"), 
+      Jmsg(jcr, M_SKIPPED, 1, _("     Recursion turned off. Directory skipped: %s\n"), 
 	 ff_pkt->fname);
       return 1;
    case FT_NOFSCHG:
-      Jmsg(jcr, M_SKIPPED, -1,  _("     File system change prohibited. Directory skipped. %s\n"), 
+      Jmsg(jcr, M_SKIPPED, 1, _("     File system change prohibited. Directory skipped. %s\n"), 
 	 ff_pkt->fname);
       return 1;
    case FT_NOOPEN: {
       berrno be;
       be.set_errno(ff_pkt->ff_errno);
-      Jmsg(jcr, M_NOTSAVED, -1, _("     Could not open directory %s: ERR=%s\n"), ff_pkt->fname, 
+      Jmsg(jcr, M_NOTSAVED, 0, _("     Could not open directory %s: ERR=%s\n"), ff_pkt->fname, 
 	 be.strerror());
       jcr->Errors++;
       return 1;
@@ -252,7 +252,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       if (bopen(&ff_pkt->bfd, ff_pkt->fname, O_RDONLY | O_BINARY, 0) < 0) {
 	 ff_pkt->ff_errno = errno;
 	 berrno be;
-         Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open %s: ERR=%s.\n"), ff_pkt->fname, 
+         Jmsg(jcr, M_NOTSAVED, 0, _("     Cannot open %s: ERR=%s.\n"), ff_pkt->fname, 
 	      be.strerror());
 	 jcr->Errors++;
 	 if (tid) {

@@ -105,11 +105,11 @@ static void admin_cleanup(JCR *jcr, int TermCode)
    bstrftime(edt, sizeof(edt), jcr->jr.EndTime);
 
    Jmsg(jcr, msg_type, 0, _("Bacula " VERSION " (" LSMDATE "): %s\n\
-JobId:                  %d\n\
-Job:                    %s\n\
-Start time:             %s\n\
-End time:               %s\n\
-Termination:            %s\n\n"),
+  JobId:                  %d\n\
+  Job:                    %s\n\
+  Start time:             %s\n\
+  End time:               %s\n\
+  Termination:            %s\n\n"),
 	edt,
 	jcr->jr.JobId,
 	jcr->jr.Job,
@@ -118,4 +118,4 @@ Termination:            %s\n\n"),
 	term_msg);
 
    Dmsg0(100, "Leave admin_cleanup()\n");
-}
+}   
