@@ -1,6 +1,9 @@
 /*
  * Main routine for finding files on a file system.
- *  The heart of the work is done in find_one.c
+ *  The heart of the work to find the files on the
+ *    system is done in find_one.c. Here we have the
+ *    higher level control as well as the matching
+ *    routines for the new syntax Options resource.
  *
  *  Kern E. Sibbald, MM
  */
@@ -37,6 +40,13 @@ int32_t path_max;	       /* path name max length */
 #define bmalloc(x) sm_malloc(__FILE__, __LINE__, x)
 static int our_callback(FF_PKT *ff, void *hpkt);
 static bool accept_file(FF_PKT *ff);
+
+/* Fold case in fnmatch() on Win32 */
+#ifdef WIN32
+static const int fnmode = FNM_CASEFOLD;
+#else
+static const int fnmode = 0;
+#endif
 
 
 /* 
@@ -165,7 +175,7 @@ static bool accept_file(FF_PKT *ff)
       ff->reader = fo->reader;
       ff->writer = fo->writer;
       for (k=0; k<fo->wild.size(); k++) {
-	 if (fnmatch((char *)fo->wild.get(k), ff->fname, 0) == 0) {
+	 if (fnmatch((char *)fo->wild.get(k), ff->fname, fnmode) == 0) {
 	    if (ff->flags & FO_EXCLUDE) {
 	       return false;	      /* reject file */
 	    }
@@ -191,14 +201,14 @@ static bool accept_file(FF_PKT *ff)
       for (j=0; j<incexe->opts_list.size(); j++) {
 	 findFOPTS *fo = (findFOPTS *)incexe->opts_list.get(j);
 	 for (k=0; k<fo->wild.size(); k++) {
-	    if (fnmatch((char *)fo->wild.get(k), ff->fname, 0) == 0) {
+	    if (fnmatch((char *)fo->wild.get(k), ff->fname, fnmode) == 0) {
                Dmsg1(400, "Reject wild1: %s\n", ff->fname);
 	       return false;	      /* reject file */
 	    }
 	 }
       }
       for (j=0; j<incexe->name_list.size(); j++) {
-	 if (fnmatch((char *)incexe->name_list.get(j), ff->fname, 0) == 0) {
+	 if (fnmatch((char *)incexe->name_list.get(j), ff->fname, fnmode) == 0) {
             Dmsg1(400, "Reject wild2: %s\n", ff->fname);
 	    return false;	   /* reject file */
 	 }
@@ -223,7 +233,7 @@ static int our_callback(FF_PKT *ff, void *hpkt)
    case FT_NORECURSE:
    case FT_NOFSCHG:
    case FT_NOOPEN:
-      return ff->callback(ff, hpkt);
+//    return ff->callback(ff, hpkt);
 
    /* These items can be filtered */
    case FT_LNKSAVED:

@@ -366,7 +366,7 @@ bool write_block_to_device(DCR *dcr)
    }
 
    if (!write_block_to_dev(dcr)) {
-       if (job_canceled(jcr)) {
+       if (job_canceled(jcr) || jcr->JobType == JT_SYSTEM) {
 	  stat = false;
        } else {
 	  stat = fixup_device_block_write_error(dcr);

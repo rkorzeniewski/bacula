@@ -2,6 +2,10 @@
  *  Routines used to keep and match include and exclude
  *   filename/pathname patterns.
  *
+ *  Note, this file is used for the old style include and
+ *   excludes, so is deprecated. The new style code is	
+ *   found in find.c
+ *
  *   Kern E. Sibbald, December MMI
  *
  */
@@ -35,6 +39,14 @@
 #ifndef FNM_LEADING_DIR
 #define FNM_LEADING_DIR 0
 #endif
+
+/* Fold case in fnmatch() on Win32 */
+#ifdef WIN32
+static const int fnmode = FNM_CASEFOLD;
+#else
+static const int fnmode = 0;
+#endif
+
 
 #undef bmalloc
 #define bmalloc(x) sm_malloc(__FILE__, __LINE__, x)
@@ -279,7 +291,7 @@ int file_is_included(FF_PKT *ff, const char *file)
 
    for ( ; inc; inc=inc->next ) {
       if (inc->pattern) {
-	 if (fnmatch(inc->fname, file, FNM_LEADING_DIR) == 0) {
+	 if (fnmatch(inc->fname, file, fnmode|FNM_LEADING_DIR) == 0) {
 	    return 1;
 	 }
 	 continue;
@@ -316,7 +328,7 @@ file_in_excluded_list(struct s_excluded_file *exc, const char *file)
       Dmsg0(900, "exc is NULL\n");
    }
    for ( ; exc; exc=exc->next ) {
-      if (fnmatch(exc->fname, file, FNM_PATHNAME) == 0) {
+      if (fnmatch(exc->fname, file, fnmode|FNM_PATHNAME) == 0) {
          Dmsg2(900, "Match exc pat=%s: file=%s:\n", exc->fname, file);
 	 return 1;
       }
