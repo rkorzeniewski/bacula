@@ -1,3 +1,54 @@
+
+2003-07-xx Version 1.31 Beta xxJul03
+- Rework the find next volume code in catreq.c to correct some minor
+  but subtle logic errors and to eliminate a goto.
+- Did spell check on manual.
+- Removed bindtextdomain() as it conflicted with RH8.0 headers
+- Fixed parse_args to pass address of POOLMEM struct.
+- Constrain FileIndexes written to BSR to be within range of Volume.
+- Suppress writing volumes to BSR if they are not actually referenced.
+- Make FOPTS use alist for match and base entries.
+- Pass prefix_links to SD.
+- Add command line interface to most items in "update volume=xxx"
+- Add command line interface to restore "jobid", "current", "before", "all".
+- Add command line "yes" to run command to supress prompt.
+- In new alist code, free only if allocated.
+- Overload [] with get() code for alist.
+- Fixed the code that wrote FirstIndex and LastIndex to the database. It
+  was not correct at the end of a volume (basically included indexes in
+  the second volume).
+- Fixed bscan to work with the new code and to properly build JobMedia
+  records.
+- Added code to the read end of block.c to properly track Volume bytes,
+  blocks, and files. I thought this was not necessary, but it is critical
+  for bscan to work correctly.
+- Modified read_record to properly track First/LastIndex -- needed by
+  bscan.
+- Eliminated some old Volume write code.
+- Changed RecycleOldestVolume to PurgeOldestVolume
+- Added what I hope are the "final" touches for Win32 stuff.  There
+  are still a lot of annoying little problems.
+- Added the "portable=yes/no" option to Include. If set, it disables
+  use of BackupRead/Write for Win32, so in principle, the data should
+  be portable.
+- Pulled in more recent config.sub and config.guess from /usr/share/libtool
+- Replaced the system fgets() by a Bacula version that ignores
+  interrupts (i.e. signals).  This truncated output from child processes.
+- Make file_index int32_t everywhere.
+- Moved LinkFI into ATTR structure.  Also integrated data_stream there too.
+- Moved code that sets the stream for writing into create_file.
+- Removed a signal(SIG_IGN, SIGCHLD) from dird.c that prevented getting
+  the status of child processes.  This allowed removing the FreeBSD 
+  kludge to bpipe.c -- the status is now obtained correctly.
+- Hand scan the stream header that arrives in append.c to avoid machine
+  dependencies of sscanf().
+- Implemented code to put Data stream in Attributes record. 
+- Check if data stream is supported, if not, ignore.
+- Fix crash when multiple Includes are given (missing parens).
+- Clear WroteVol in askdir.c when JobMedia record is created.
+- Implement simple array list class for use in Bacula.  New files
+  are lib/list.c lib/list.h. Probably will not use until version 1.32.
+
 2003-06-24 Version 1.31 Beta 22Jun03
 - Change Purging Oldest Volume message to Recycling Oldest Volume.
 - Limit results from find_oldest_volume to one.
