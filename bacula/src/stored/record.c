@@ -204,7 +204,7 @@ bool write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec)
    ASSERT(block->binbuf == (uint32_t) (block->bufp - block->buf));
    ASSERT(block->buf_len >= block->binbuf);
 
-   Dmsg6(490, "write_record_to_block() FI=%s SessId=%d Strm=%s len=%d\n\
+   Dmsg6(890, "write_record_to_block() FI=%s SessId=%d Strm=%s len=%d\n\
 rem=%d remainder=%d\n",
       FI_to_ascii(rec->FileIndex), rec->VolSessionId, 
       stream_to_ascii(rec->Stream, rec->FileIndex), rec->data_len,

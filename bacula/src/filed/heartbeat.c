@@ -69,7 +69,7 @@ extern "C" void *sd_heartbeat_thread(void *arg)
    /* Hang reading the socket to the SD, and every time we get
     *	a heartbeat or we get a wait timeout (1 minute), we
     *	check to see if we need to send a heartbeat to the
-    *	Directory.
+    *	Director.
     */
    for ( ; !is_bnet_stop(sd); ) {
       n = bnet_wait_data_intr(sd, WAIT_INTERVAL);
@@ -82,7 +82,11 @@ extern "C" void *sd_heartbeat_thread(void *arg)
       }
       if (n == 1) {		      /* input waiting */
 	 bnet_recv(sd); 	      /* read it -- probably heartbeat from sd */
-         Dmsg1(100, "Got %d from SD\n", sd->msglen);     
+	 if (sd->msglen <= 0) {
+            Dmsg1(100, "Got BNET_SIG %d from SD\n", sd->msglen);     
+	 } else {
+            Dmsg2(100, "Got %d bytes from SD. MSG=%s\n", sd->msglen, sd->msg);
+	 }
       }
    }
    bnet_close(sd);

@@ -6,6 +6,11 @@ dnl For more details about this brain damage please see:
 dnl http://www.sas.com/standards/large.file/x_open.20Mar96.html
 
 dnl Written by Paul Eggert <eggert@twinsun.com>.
+dnl 
+dnl Modified by Kern Sibbald to turn on the large file
+dnl   flags on all machines. Otherwise functions such as
+dnl   fseek are not large file capable.
+dnl
 
 dnl Internal subroutine of AC_SYS_LARGEFILE.
 dnl AC_SYS_LARGEFILE_FLAGS(FLAGSNAME)
@@ -90,27 +95,15 @@ AC_DEFUN(AC_BAC_LARGEFILE,
      AC_SYS_LARGEFILE_MACRO_VALUE(_FILE_OFFSET_BITS,
        ac_cv_sys_file_offset_bits,
        [Number of bits in a file offset, on hosts where this is settable.],
-       [case "$host_os" in
-        # HP-UX 10.20 and later
-        hpux10.[2-9][0-9]* | hpux1[1-9]* | hpux[2-9][0-9]*)
-          ac_cv_sys_file_offset_bits=64 ;;
-        esac])
+       [ac_cv_sys_file_offset_bits=64])
      AC_SYS_LARGEFILE_MACRO_VALUE(_LARGEFILE_SOURCE,
        ac_cv_sys_largefile_source,
        [Define to make fseeko etc. visible, on some hosts.],
-       [case "$host_os" in
-        # HP-UX 10.20 and later
-        hpux10.[2-9][0-9]* | hpux1[1-9]* | hpux[2-9][0-9]*)
-          ac_cv_sys_largefile_source=1 ;;
-        esac])
+       [ac_cv_sys_largefile_source=1]) 
      AC_SYS_LARGEFILE_MACRO_VALUE(_LARGE_FILES,
        ac_cv_sys_large_files,
        [Define for large files, on AIX-style hosts.],
-       [case "$host_os" in
-        # AIX 4.2 and later
-        aix4.[2-9]* | aix4.1[0-9]* | aix[5-9].* | aix[1-9][0-9]*)
-          ac_cv_sys_large_files=1 ;;
-        esac])
+          [ac_cv_sys_large_files=1])
    fi
   ])
 dnl ==========================================================

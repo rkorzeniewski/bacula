@@ -398,7 +398,7 @@ if test x$support_conio = xyes; then
        ])
      ],
      [
-         AC_CHECK_HEADERS(curses.h)
+	 AC_CHECK_HEADERS(curses.h)
 	 AC_CHECK_HEADER(term.h,
 	       [ AC_CHECK_LIB(curses, tgetent, 
 		 [ CONS_LIBS="-lcurses"
@@ -408,7 +408,7 @@ if test x$support_conio = xyes; then
 		   support_readline=no
 		   AC_DEFINE(HAVE_CONIO, 1, [Set if Bacula conio support enabled]) 
 		 ])
-               ],
+	       ],
 	       [ echo " "; echo "Required libraries not found. CONIO turned off ..."; echo " "],
 [#if HAVE_CURSES_H
 #include <curses.h>

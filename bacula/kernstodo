@@ -16,6 +16,8 @@ Version 1.35                Kern (see below)
   
 
 Maybe for 1.35:
+- Despool attributes simultaneously with data in a separate
+  thread, rejoined at end of data spooling.
 - Implement Files/Bytes,... stats for restore job.
 - Implement Total Bytes Written, ... for restore job.
 - Check dates entered by user for correctness (month/day/... ranges)
@@ -1384,3 +1386,5 @@ Block Position: 0
   scripts to add them.
 - Modify postgresql update script to remove bigint FilenameId           
   reference.
+- Kill daemons at levels in the teens rather than late.
+

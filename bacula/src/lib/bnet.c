@@ -162,6 +162,7 @@ int32_t bnet_recv(BSOCK * bsock)
 
    ASSERT(bsock != NULL);
    bsock->msg[0] = 0;
+   bsock->msglen = 0;
    if (bsock->errors || bsock->terminated) {
       return BNET_HARDEOF;
    }
