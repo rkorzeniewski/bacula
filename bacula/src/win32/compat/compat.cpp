@@ -22,8 +22,8 @@
 // Author          : Christopher S. Hull
 // Created On      : Sat Jan 31 15:55:00 2004
 // Last Modified By: Christopher S. Hull
-// Last Modified On: Mon Feb  9 17:22:31 2004
-// Update Count    : 591
+// Last Modified On: Wed Feb 18 09:12:15 2004
+// Update Count    : 593
 // $Id$
 
 #include <stdio.h>
@@ -31,7 +31,7 @@
 #include "compat.h"
 #include "pthread.h"
 
-extern void d_msg(char *file, int line, int level, char *fmt,...);
+extern void d_msg(const char *file, int line, int level, const char *fmt,...);
 extern DWORD   g_platform_id;
 
 
@@ -930,7 +930,7 @@ int __cdecl _open_osfhandle(long, int);
 }
 
 BPIPE *
-open_bpipe(char *prog, int wait, char *mode)
+open_bpipe(char *prog, int wait, const char *mode)
 {
     HANDLE hChildStdinRd, hChildStdinWr, hChildStdinWrDup, 
 	hChildStdoutRd, hChildStdoutWr, hChildStdoutRdDup, 
