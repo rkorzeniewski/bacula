@@ -104,7 +104,7 @@ Schedule {
 FileSet {
   Name = "Catalog"
   Include = signature=MD5 {
-     @working_directory@/bacula.sql
+     @working_dir@/bacula.sql
   }
 }
 
