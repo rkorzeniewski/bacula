@@ -36,6 +36,12 @@ static bool are_attributes_spooled(JCR *jcr);
 static int begin_attribute_spool(JCR *jcr);
 static int discard_attribute_spool(JCR *jcr);
 static int commit_attribute_spool(JCR *jcr);
+static int open_data_spool_file(JCR *jcr);
+static int close_data_spool_file(JCR *jcr);
+static int begin_data_spool(JCR *jcr);
+static int discard_data_spool(JCR *jcr);
+static int commit_data_spool(JCR *jcr);
+
 
 /* 
  *  Append Data sent from File daemon	
@@ -48,30 +54,20 @@ int do_append_data(JCR *jcr)
    BSOCK *ds;
    BSOCK *fd_sock = jcr->file_bsock;
    bool ok = true;
-   DEVICE *dev = jcr->device->dev;
+   DEVICE *dev;
    DEV_RECORD rec;
    DEV_BLOCK  *block;
+   DCR *dcr;
    
    Dmsg0(10, "Start append data.\n");
 
-   /* Tell File daemon to send data */
-   bnet_fsend(fd_sock, OK_data);
-
-   begin_attribute_spool(jcr);
-
    ds = fd_sock;
 
-   if (!bnet_set_buffer_size(ds, dev->device->max_network_buffer_size, BNET_SETBUF_WRITE)) {
+   if (!bnet_set_buffer_size(ds, jcr->device->max_network_buffer_size, BNET_SETBUF_WRITE)) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       Jmsg(jcr, M_FATAL, 0, _("Unable to set network buffer size.\n"));
-      discard_attribute_spool(jcr);
       return 0;
    }
-
-   Dmsg1(20, "Begin append device=%s\n", dev_name(dev));
-
-   block = new_block(dev);
-   memset(&rec, 0, sizeof(rec));
 
    /* 
     * Acquire output device for writing.  Note, after acquiring a
@@ -79,12 +75,18 @@ int do_append_data(JCR *jcr)
     *	subroutine.
     */
    Dmsg0(100, "just before acquire_device\n");
-   if (!(dev=acquire_device_for_append(jcr, dev, block))) {
+   if (!(dcr=acquire_device_for_append(jcr))) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
-      free_block(block);
-      discard_attribute_spool(jcr);
       return 0;
    }
+   dev = dcr->dev;
+   block = dcr->block;
+
+   Dmsg1(20, "Begin append device=%s\n", dev_name(dev));
+
+   begin_data_spool(jcr);
+   begin_attribute_spool(jcr);
+
    Dmsg0(100, "Just after acquire_device_for_append\n");
    /*
     * Write Begin Session Record
@@ -96,6 +98,8 @@ int do_append_data(JCR *jcr)
       ok = false;
    }
 
+   /* Tell File daemon to send data */
+   bnet_fsend(fd_sock, OK_data);
 
    /* 
     * Get Data from File daemon, write to device.  To clarify what is
@@ -114,7 +118,7 @@ int do_append_data(JCR *jcr)
     *	file. 1. for the Attributes, 2. for the file data if any, 
     *	and 3. for the MD5 if any.
     */
-   jcr->VolFirstIndex = jcr->VolLastIndex = 0;
+   dcr->VolFirstIndex = dcr->VolLastIndex = 0;
    jcr->run_time = time(NULL);		    /* start counting time for rates */
    for (last_file_index = 0; ok && !job_canceled(jcr); ) {
 
@@ -174,7 +178,6 @@ int do_append_data(JCR *jcr)
        *  The data stream is just raw bytes
        */
       while ((n=bget_msg(ds)) > 0 && !job_canceled(jcr)) {
-
 	 rec.VolSessionId = jcr->VolSessionId;
 	 rec.VolSessionTime = jcr->VolSessionTime;
 	 rec.FileIndex = file_index;
@@ -259,23 +262,95 @@ int do_append_data(JCR *jcr)
       }
    }
 
+   if (!ok) {
+      discard_data_spool(jcr);
+   } else {
+      commit_data_spool(jcr);
+   }
+
    Dmsg1(200, "calling release device JobStatus=%d\n", jcr->JobStatus);
    /* Release the device */
-   if (!release_device(jcr, dev)) {
+   if (!release_device(jcr)) {
       Pmsg0(000, _("Error in release_device\n"));
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       ok = false;
    }
 
-   free_block(block);
-
-   commit_attribute_spool(jcr);
+   if (!ok) {
+      discard_attribute_spool(jcr);
+   } else {
+      commit_attribute_spool(jcr);
+   }
 
    dir_send_job_status(jcr);	      /* update director */
 
    Dmsg1(100, "return from do_append_data() stat=%d\n", ok);
    return ok ? 1 : 0;
 }
+
+
+static int begin_data_spool(JCR *jcr)
+{
+   if (jcr->dcr->spool_data) {
+      return open_data_spool_file(jcr);
+   }
+   return 1;
+}
+
+static int discard_data_spool(JCR *jcr)
+{
+   if (jcr->dcr->spool_data && jcr->dcr->spool_fd >= 0) {
+      return close_data_spool_file(jcr);
+   }
+   return 1;
+}
+
+static int commit_data_spool(JCR *jcr)
+{
+   if (jcr->dcr->spool_data && jcr->dcr->spool_fd >= 0) {
+//	despool_data(jcr);
+      return close_data_spool_file(jcr);
+   }
+   return 1;
+}
+
+static void make_unique_data_spool_filename(JCR *jcr, POOLMEM **name)
+{
+   Mmsg(name, "%s/%s.data.spool.%s.%s", working_directory, my_name,
+      jcr->Job, jcr->device->hdr.name);
+}
+
+
+static int open_data_spool_file(JCR *jcr)
+{
+   POOLMEM *name  = get_pool_memory(PM_MESSAGE);
+   int spool_fd;
+
+   make_unique_data_spool_filename(jcr, &name);
+   if ((spool_fd = open(name, O_CREAT|O_TRUNC|O_RDWR|O_BINARY, 0640)) >= 0) {
+      jcr->dcr->spool_fd = spool_fd;
+      jcr->spool_attributes = true;
+   } else {
+      Jmsg(jcr, M_ERROR, 0, "open data spool file %s failed: ERR=%s\n", name, strerror(errno));
+      free_pool_memory(name);
+      return 0;
+    }
+    free_pool_memory(name);
+    return 1;
+}
+
+static int close_data_spool_file(JCR *jcr)
+{
+    POOLMEM *name  = get_pool_memory(PM_MESSAGE);
+
+    make_unique_data_spool_filename(jcr, &name);
+    close(jcr->dcr->spool_fd);
+    jcr->dcr->spool_fd = -1;
+    unlink(name);
+    free_pool_memory(name);
+    return 1;
+}
+
 
 static bool are_attributes_spooled(JCR *jcr)
 {

@@ -380,10 +380,10 @@ static void make_unique_mail_filename(JCR *jcr, POOLMEM **name, DEST *d)
 {
    if (jcr) {
       Mmsg(name, "%s/%s.mail.%s.%d", working_directory, my_name,
-		 jcr->Job, (int)d);
+		 jcr->Job, (int)(long)d);
    } else {
       Mmsg(name, "%s/%s.mail.%s.%d", working_directory, my_name,
-		 my_name, (int)d);
+		 my_name, (int)(long)d);
    }
    Dmsg1(200, "mailname=%s\n", *name);
 }

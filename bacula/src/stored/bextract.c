@@ -222,7 +222,7 @@ static void do_extract(char *devname)
    if (is_bopen(&bfd)) {
       set_attributes(jcr, attr, &bfd);
    }
-   release_device(jcr, dev);
+   release_device(jcr);
 
    free_attr(attr);
    term_dev(dev);

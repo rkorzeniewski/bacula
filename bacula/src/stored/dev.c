@@ -101,6 +101,7 @@ init_dev(DEVICE *dev, DEVRES *device)
    struct stat statp;
    int tape, fifo;
    int errstat;
+   DCR *dcr = NULL;
 
    /* Check that device is available */
    if (stat(device->device_name, &statp) < 0) {
@@ -192,7 +193,9 @@ init_dev(DEVICE *dev, DEVRES *device)
       Emsg0(M_FATAL, 0, dev->errmsg);
    }
    dev->fd = -1;
+   dev->attached_dcrs = new dlist(dcr, &dcr->dev_link);
    Dmsg2(29, "init_dev: tape=%d dev_name=%s\n", dev_is_tape(dev), dev->dev_name);
+
    return dev;
 }
 
@@ -1388,6 +1391,10 @@ term_dev(DEVICE *dev)
    pthread_mutex_destroy(&dev->mutex);
    pthread_cond_destroy(&dev->wait);
    pthread_cond_destroy(&dev->wait_next_vol);
+   if (dev->attached_dcrs) {
+      delete dev->attached_dcrs;
+      dev->attached_dcrs = NULL;
+   }
    if (dev->state & ST_MALLOC) {
       free_pool_memory((POOLMEM *)dev);
    }

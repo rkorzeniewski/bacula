@@ -71,7 +71,6 @@ char *rec_state_to_str(DEV_RECORD *rec)
 DEVICE *setup_to_access_device(JCR *jcr, int read_access)
 {
    DEVICE *dev;
-   DEV_BLOCK *block;
    char *p;
    DEVRES *device;
 
@@ -107,17 +106,13 @@ DEVICE *setup_to_access_device(JCR *jcr, int read_access)
    }
    Dmsg0(90, "Device opened for read.\n");
 
-   block = new_block(dev);
-
    create_vol_list(jcr);
 
    if (read_access) {
-      if (!acquire_device_for_read(jcr, dev, block)) {
-	 free_block(block);
+      if (!acquire_device_for_read(jcr)) {
 	 return NULL;
       }
    }
-   free_block(block);
    return dev;
 }
 
@@ -191,6 +186,10 @@ static void my_free_jcr(JCR *jcr)
    if (jcr->VolList) {
       free_vol_list(jcr);
    }  
+   if (jcr->dcr) {
+      free_dcr(jcr->dcr);
+      jcr->dcr = NULL;
+   }
      
    return;
 }

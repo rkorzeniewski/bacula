@@ -183,14 +183,21 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
    } else {
       tree->avail_node = NULL;	      /* added node to tree */
    }
-   new_node->FileIndex = atoi(row[2]);
-   new_node->JobId = (JobId_t)str_to_int64(row[3]);
-   new_node->type = type;
-   new_node->extract = true;	      /* extract all by default */
-   new_node->hard_link = hard_link;
-   new_node->soft_link = S_ISLNK(statp.st_mode) != 0;
-   if (type == TN_DIR || type == TN_DIR_NLS) {
-      new_node->extract_dir = true;   /* if dir, extract it */
+   /*
+    * If the user has backed up a hard linked file twice, the
+    *  second copy will be a pointer (i.e. hard link will be set),
+    *  so we do not overwrite the original file with a pointer file.
+    */
+   if (!new_node->hard_link || hard_link) {
+      new_node->hard_link = hard_link;
+      new_node->FileIndex = atoi(row[2]);
+      new_node->JobId = (JobId_t)str_to_int64(row[3]);
+      new_node->type = type;
+      new_node->extract = true; 	 /* extract all by default */
+      new_node->soft_link = S_ISLNK(statp.st_mode) != 0;
+      if (type == TN_DIR || type == TN_DIR_NLS) {
+	 new_node->extract_dir = true;	 /* if dir, extract it */
+      }
    }
    tree->cnt++;
    return 0;

@@ -30,6 +30,32 @@
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
+DCR *new_dcr(JCR *jcr, DEVICE *dev)
+{
+   DCR *dcr = (DCR *)malloc(sizeof(DCR));
+   memset(dcr, 0, sizeof(DCR));
+   jcr->dcr = dcr;
+   dcr->jcr = jcr;
+   dcr->dev = dev;
+   dcr->block = new_block(dev);
+   dcr->record = new_record();
+   dcr->spool_fd = -1;
+   return dcr;
+}
+
+void free_dcr(DCR *dcr)
+{
+   if (dcr->block) {
+      free_block(dcr->block);
+   }
+   if (dcr->record) {
+      free_record(dcr->record);
+   }
+   dcr->jcr->dcr = NULL;
+   free(dcr);
+}
+
+
 /********************************************************************* 
  * Acquire device for reading.	We permit (for the moment)
  *  only one reader.  We read the Volume label from the block and
@@ -38,7 +64,7 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
  *  Returns: 0 if failed for any reason
  *	     1 if successful
  */
-int acquire_device_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
+DCR *acquire_device_for_read(JCR *jcr)
 {
    bool vol_ok = false;
    bool tape_previously_mounted;
@@ -46,7 +72,14 @@ int acquire_device_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    VOL_LIST *vol;
    int autochanger = 0;
    int i;
-
+   DCR *dcr = jcr->dcr;
+   DEVICE *dev;
+   
+   /* Called for each volume */
+   if (!dcr) {
+      dcr = new_dcr(jcr, jcr->device->dev);
+   }
+   dev = dcr->dev;
    if (device_is_unmounted(dev)) {
       Jmsg(jcr, M_WARNING, 0, _("device %s is BLOCKED due to user unmount.\n"),
 	 dev_name(dev));
@@ -77,6 +110,7 @@ int acquire_device_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       vol = vol->next;
    }
    pm_strcpy(&jcr->VolumeName, vol->VolumeName);
+   bstrncpy(dcr->VolumeName, vol->VolumeName, sizeof(dcr->VolumeName));
 
    for (i=0; i<5; i++) {
       if (job_canceled(jcr)) {
@@ -90,9 +124,9 @@ int acquire_device_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
        */
       for ( ; !(dev->state & ST_OPENED); ) {
          Dmsg1(120, "bstored: open vol=%s\n", jcr->VolumeName);
-	 if (open_dev(dev, jcr->VolumeName, READ_ONLY) < 0) {
+	 if (open_dev(dev, dcr->VolumeName, READ_ONLY) < 0) {
             Jmsg(jcr, M_FATAL, 0, _("Open device %s volume %s failed, ERR=%s\n"), 
-		dev_name(dev), jcr->VolumeName, strerror_dev(dev));
+		dev_name(dev), dcr->VolumeName, strerror_dev(dev));
 	    goto get_out;
 	 }
          Dmsg1(129, "open_dev %s OK\n", dev_name(dev));
@@ -101,9 +135,9 @@ int acquire_device_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
        *  correctly possitioned.  Possibly have way user can turn
        *  this optimization (to be implemented) off.
        */
-      dev->state &= ~ST_LABEL;		 /* force reread of label */
+      dcr->dev->state &= ~ST_LABEL;	      /* force reread of label */
       Dmsg0(200, "calling read-vol-label\n");
-      switch (read_dev_volume_label(jcr, dev, block)) {
+      switch (read_dev_volume_label(jcr, dev, dcr->block)) {
       case VOL_OK:
 	 vol_ok = true;
 	 break; 		   /* got it */
@@ -165,7 +199,11 @@ get_out:
    P(dev->mutex); 
    unblock_device(dev);
    V(dev->mutex);
-   return vol_ok;
+   if (!vol_ok) {
+      free_dcr(dcr);
+      dcr = NULL;
+   }
+   return dcr;
 }
 
 /*
@@ -178,13 +216,15 @@ get_out:
  *   multiple devices (for files), thus we have our own mutex 
  *   on top of the device mutex.
  */
-DEVICE *acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
+DCR *acquire_device_for_append(JCR *jcr)
 {
    int release = 0;
    bool recycle = false;
    bool do_mount = false;
-   DEVICE *rtn_dev = NULL;
+   DCR *dcr;
+   DEVICE *dev = jcr->device->dev;
 
+   dcr = new_dcr(jcr, dev);
    if (device_is_unmounted(dev)) {
       Jmsg(jcr, M_WARNING, 0, _("device %s is BLOCKED due to user unmount.\n"),
 	 dev_name(dev));
@@ -207,6 +247,7 @@ DEVICE *acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
        *    dir_find_next_appendable_volume
        */
       pm_strcpy(&jcr->VolumeName, dev->VolHdr.VolName);
+      bstrncpy(dcr->VolumeName, dev->VolHdr.VolName, sizeof(dcr->VolumeName));
       if (!dir_get_volume_info(jcr, GET_VOL_INFO_FOR_WRITE) &&
 	  !(dir_find_next_appendable_volume(jcr) &&
 	    strcmp(dev->VolHdr.VolName, jcr->VolumeName) == 0)) { /* wrong tape mounted */
@@ -262,7 +303,7 @@ DEVICE *acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    }
 
    if (do_mount || recycle) {
-      if (!mount_next_write_volume(jcr, dev, block, release)) {
+      if (!mount_next_write_volume(jcr, dev, dcr->block, release)) {
 	 if (!job_canceled(jcr)) {
             /* Reduce "noise" -- don't print if job canceled */
             Jmsg(jcr, M_FATAL, 0, _("Could not ready device \"%s\" for append.\n"),
@@ -277,18 +318,21 @@ DEVICE *acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       jcr->NumVolumes = 1;
    }
    attach_jcr_to_device(dev, jcr);    /* attach jcr to device */
-   rtn_dev = dev;		      /* return device */
+   goto ok_out;
 
 /*
  * If we jump here, it is an error return because
  *  rtn_dev will still be NULL
  */
 get_out:
+   free_dcr(dcr);
+   dcr = NULL;
+ok_out:
    P(dev->mutex); 
    unblock_device(dev);
    V(dev->mutex);
    V(mutex);			      /* unlock other threads */
-   return rtn_dev;
+   return dcr;
 }
 
 /*
@@ -296,8 +340,9 @@ get_out:
  *  the device remains open.
  *
  */
-int release_device(JCR *jcr, DEVICE *dev)
+int release_device(JCR *jcr)
 {
+   DEVICE *dev = jcr->dcr->dev;   
    lock_device(dev);
    Dmsg1(100, "release_device device is %s\n", dev_is_tape(dev)?"tape":"disk");
    if (dev_state(dev, ST_READ)) {
@@ -346,5 +391,7 @@ int release_device(JCR *jcr, DEVICE *dev)
    } else {
       unlock_device(dev);
    }
+   free_dcr(jcr->dcr);
+   jcr->dcr = NULL;
    return 1;
 }

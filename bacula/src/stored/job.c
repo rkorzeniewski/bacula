@@ -103,7 +103,7 @@ int job_cmd(JCR *jcr)
     */
    ojcr = get_jcr_by_full_name(job);
    if (ojcr && !ojcr->authenticated) {
-      Dmsg2(100, "Found ojcr=0x%x Job %s\n", (unsigned)ojcr, job);
+      Dmsg2(100, "Found ojcr=0x%x Job %s\n", (unsigned)(long)ojcr, job);
       free_jcr(ojcr);
    }
    jcr->JobId = JobId;
@@ -362,5 +362,9 @@ void stored_free_jcr(JCR *jcr)
       Emsg0(M_FATAL, 0, _("In free_jcr(), but still attached to device!!!!\n"));
    }
    pthread_cond_destroy(&jcr->job_start_wait);
+   if (jcr->dcr) {
+      free_dcr(jcr->dcr);
+      jcr->dcr = NULL;
+   }
    return;
 }

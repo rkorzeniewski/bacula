@@ -313,6 +313,8 @@ static int unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 int write_block_to_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 {
    int stat = 1;
+   DCR *dcr = jcr->dcr;
+
    lock_device(dev);
 
    /*
@@ -321,7 +323,7 @@ int write_block_to_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
     *	and set new parameters to write this volume   
     * The same applies for if we are in a new file.
     */
-   if (jcr->NewVol || jcr->NewFile) {
+   if (dcr->NewVol || dcr->NewFile) {
       /* Create a jobmedia record for this job */
       if (!dir_create_jobmedia_record(jcr)) {
          Jmsg(jcr, M_ERROR, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
@@ -330,10 +332,10 @@ int write_block_to_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	 unlock_device(dev);
 	 return 0;
       }
-      if (jcr->NewVol) {
+      if (dcr->NewVol) {
 	 /* Note, setting a new volume also handles any pending new file */
 	 set_new_volume_parameters(jcr, dev);
-	 jcr->NewFile = false;	      /* this handled for new file too */
+	 dcr->NewFile = false;	      /* this handled for new file too */
       } else {
 	 set_new_file_parameters(jcr, dev);
       }
@@ -359,6 +361,7 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    uint32_t wlen;		      /* length to write */
    int hit_max1, hit_max2;
    bool ok;
+   DCR *dcr = jcr->dcr;
 
 #ifdef NO_TAPE_WRITE_TEST
    empty_block(block);
@@ -459,7 +462,7 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       dir_update_volume_info(jcr, dev, 0);
       if (!dir_create_jobmedia_record(jcr)) {
           Jmsg(jcr, M_ERROR, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
-	       jcr->VolCatInfo.VolCatName, jcr->Job);
+	       dcr->VolCatInfo.VolCatName, jcr->Job);
 	  return 0;
       }
       dev->file_size = 0;	      /* reset file size */
@@ -471,7 +474,7 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	 if (mjcr->JobId == 0) {
 	    continue;		      /* ignore console */
 	 }
-	 mjcr->NewFile = true;	      /* set reminder to do set_new_file_params */
+	 mjcr->dcr->NewFile = true;   /* set reminder to do set_new_file_params */
       }
       set_new_file_parameters(jcr, dev);
    }
@@ -591,20 +594,20 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 
    /* Update jcr values */
    if (dev_state(dev, ST_TAPE)) {
-      jcr->EndBlock = dev->EndBlock;
-      jcr->EndFile  = dev->EndFile;
+      dcr->EndBlock = dev->EndBlock;
+      dcr->EndFile  = dev->EndFile;
    } else {
       /* Save address of start of block just written */
-      jcr->EndBlock = (uint32_t)dev->file_addr;
-      jcr->EndFile = (uint32_t)(dev->file_addr >> 32);
+      dcr->EndBlock = (uint32_t)dev->file_addr;
+      dcr->EndFile = (uint32_t)(dev->file_addr >> 32);
    }
-   if (jcr->VolFirstIndex == 0 && block->FirstIndex > 0) {
-      jcr->VolFirstIndex = block->FirstIndex;
+   if (dcr->VolFirstIndex == 0 && block->FirstIndex > 0) {
+      dcr->VolFirstIndex = block->FirstIndex;
    }
    if (block->LastIndex > 0) {
-      jcr->VolLastIndex = block->LastIndex;
+      dcr->VolLastIndex = block->LastIndex;
    }
-   jcr->WroteVol = true;
+   dcr->WroteVol = true;
    dev->file_addr += wlen;	      /* update file address */
    dev->file_size += wlen;
 
@@ -640,6 +643,7 @@ int read_block_from_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, bool check_bloc
    int looping;
    uint32_t BlockNumber;
    int retry;
+   DCR *dcr = jcr->dcr;
 
    if (dev_state(dev, ST_EOT)) {
       return 0;
@@ -765,13 +769,13 @@ reread:
 
    /* Update jcr values */
    if (dev->state & ST_TAPE) {
-      jcr->EndBlock = dev->EndBlock;
-      jcr->EndFile  = dev->EndFile;
+      dcr->EndBlock = dev->EndBlock;
+      dcr->EndFile  = dev->EndFile;
    } else {
-      jcr->EndBlock = (uint32_t)dev->file_addr;
-      jcr->EndFile = (uint32_t)(dev->file_addr >> 32);
-      dev->block_num = jcr->EndBlock;
-      dev->file = jcr->EndFile;
+      dcr->EndBlock = (uint32_t)dev->file_addr;
+      dcr->EndFile = (uint32_t)(dev->file_addr >> 32);
+      dev->block_num = dcr->EndBlock;
+      dev->file = dcr->EndFile;
    }
    dev->file_addr += block->block_len;
    dev->file_size += block->block_len;

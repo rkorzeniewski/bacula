@@ -1692,7 +1692,6 @@ This may take a long time -- hours! ...\n\n");
    /* Use fixed block size to simplify read back */
    min_block_size = dev->min_block_size;
    dev->min_block_size = dev->max_block_size;
-   block = new_block(dev);
 
    /* 
     * Acquire output device for writing.  Note, after acquiring a
@@ -1700,11 +1699,11 @@ This may take a long time -- hours! ...\n\n");
     *	subroutine.
     */
    Dmsg0(100, "just before acquire_device\n");
-   if (!(dev=acquire_device_for_append(jcr, dev, block))) {
+   if (!acquire_device_for_append(jcr)) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
-      free_block(block);
       return;
    }
+   block = jcr->dcr->block;
 
    Dmsg0(100, "Just after acquire_device_for_append\n");
    /*
@@ -1742,7 +1741,7 @@ This may take a long time -- hours! ...\n\n");
    /* 
     * Generate data as if from File daemon, write to device   
     */
-   jcr->VolFirstIndex = 0;
+   jcr->dcr->VolFirstIndex = 0;
    time(&jcr->run_time);	      /* start counting time for rates */
    if (simple) {
       Pmsg0(-1, "Begin writing Bacula records to tape ...\n");
@@ -1868,7 +1867,7 @@ This may take a long time -- hours! ...\n\n");
    }
 
    /* Release the device */
-   if (!release_device(jcr, dev)) {
+   if (!release_device(jcr)) {
       Pmsg0(-1, _("Error in release_device\n"));
       ok = FALSE;
    }
@@ -1880,7 +1879,6 @@ This may take a long time -- hours! ...\n\n");
    do_unfill();
 
    dev->min_block_size = min_block_size;
-   free_block(block);
    free_memory(rec.data);
 }
 
@@ -1969,7 +1967,7 @@ static void do_unfill()
       create_vol_list(jcr);
       close_dev(dev);
       dev->state &= ~ST_READ;
-      if (!acquire_device_for_read(jcr, dev, block)) {
+      if (!acquire_device_for_read(jcr)) {
          Pmsg1(-1, "%s", dev->errmsg);
 	 goto bail_out;
       }
@@ -2026,7 +2024,7 @@ static void do_unfill()
    }
 
    dev->state &= ~ST_READ;
-   if (!acquire_device_for_read(jcr, dev, block)) {
+   if (!acquire_device_for_read(jcr)) {
       Pmsg1(-1, "%s", dev->errmsg);
       goto bail_out;
    }
@@ -2506,7 +2504,7 @@ int dir_get_volume_info(JCR *jcr, enum get_vol_info_rw	writing)
 
 int dir_create_jobmedia_record(JCR *jcr)
 {
-   jcr->WroteVol = false;
+   jcr->dcr->WroteVol = false;
    return 1;
 }
 
@@ -2598,7 +2596,7 @@ static int my_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    create_vol_list(jcr);
    close_dev(dev);
    dev->state &= ~ST_READ; 
-   if (!acquire_device_for_read(jcr, dev, block)) {
+   if (!acquire_device_for_read(jcr)) {
       Pmsg2(0, "Cannot open Dev=%s, Vol=%s\n", dev_name(dev), jcr->VolumeName);
       return 0;
    }
@@ -2607,12 +2605,16 @@ static int my_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 
 static void set_volume_name(char *VolName, int volnum) 
 {
+   DCR *dcr = jcr->dcr;
    VolumeName = VolName;
    vol_num = volnum;
    pm_strcpy(&jcr->VolumeName, VolName);
    bstrncpy(dev->VolCatInfo.VolCatName, VolName, sizeof(dev->VolCatInfo.VolCatName));
    bstrncpy(jcr->VolCatInfo.VolCatName, VolName, sizeof(jcr->VolCatInfo.VolCatName));
+   bstrncpy(dcr->VolCatInfo.VolCatName, VolName, sizeof(dcr->VolCatInfo.VolCatName));
+   bstrncpy(dcr->VolumeName, VolName, sizeof(dcr->VolumeName));
    jcr->VolCatInfo.Slot = volnum;
+   dcr->VolCatInfo.Slot = volnum;
 }
 
 /*

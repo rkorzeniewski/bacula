@@ -35,6 +35,9 @@ uint64_t str_to_uint64(char *str)
    register char *p = str;
    register uint64_t value = 0;
 
+   if (!p) {
+      return 0;
+   }
    while (B_ISSPACE(*p)) {
       p++;
    }
@@ -52,15 +55,18 @@ int64_t str_to_int64(char *str)
 {
    register char *p = str;
    register int64_t value;
-   int negative = FALSE;
+   bool negative = false;
 
+   if (!p) {
+      return 0;
+   }
    while (B_ISSPACE(*p)) {
       p++;
    }
    if (*p == '+') {
       p++;
    } else if (*p == '-') {
-      negative = TRUE;
+      negative = true;
       p++;
    }
    value = str_to_uint64(p);

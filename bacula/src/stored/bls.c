@@ -234,7 +234,7 @@ Warning, this Volume is a continuation of Volume %s\n",
 
 static void do_close(JCR *jcr)
 {
-   release_device(jcr, dev);
+   release_device(jcr);
    free_attr(attr);
    term_dev(dev);
    free_record(rec);
