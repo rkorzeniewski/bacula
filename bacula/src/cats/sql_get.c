@@ -304,7 +304,7 @@ int db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 }
 
 /*
- * Find VolumeNames for a give JobId
+ * Find VolumeNames for a given JobId
  *  Returns: 0 on error or no Volumes found
  *	     number of volumes on success
  *		Volumes are concatenated in VolumeNames
