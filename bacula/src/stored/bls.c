@@ -471,16 +471,25 @@ Warning, this Volume is a continuation of Volume %s\n",
 
       /* File Attributes stream */
       if (rec->Stream == STREAM_UNIX_ATTRIBUTES) {
-	 char *ap;
-         sscanf(rec->data, "%ld %d %s", &record_file_index, &type, fname);
+	 char *ap, *fp;
+         sscanf(rec->data, "%ld %d", &record_file_index, &type);
 	 if (record_file_index != rec->FileIndex) {
             Emsg2(M_ERROR_TERM, 0, "Record header file index %ld not equal record index %ld\n",
 	       rec->FileIndex, record_file_index);
 	 }
 	 ap = rec->data;
-	 /* Skip to attributes */
-	 while (*ap++ != 0)
+
+         while (*ap++ != ' ')         /* skip record file index */
 	    ;
+         while (*ap++ != ' ')         /* skip type */
+	    ;
+	 /* Save filename and position to attributes */
+	 fp = fname;
+	 while (*ap != 0) {
+	    *fp++  = *ap++;
+	 }
+	 *fp = *ap++;		      /* terminate filename & point to attribs */
+
 	 decode_stat(ap, &statp);
 	 /* Skip to link name */  
 	 while (*ap++ != 0)

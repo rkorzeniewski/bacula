@@ -51,14 +51,16 @@ SELECT count(*) AS Jobs, sum(JobFiles) AS Files,
  AND JobMedia.MediaId=Media.MediaId
  GROUP by VolumeName;  
 #
-:List last 10 Full Backups for a Client:
+:List last 20 Full Backups for a Client:
 *Enter Client name:
-Select JobId,Client.Name as Client,StartTime,JobFiles,JobBytes
- FROM Client,Job
+Select Job.JobId,Client.Name as Client,StartTime,JobFiles,JobBytes,
+JobMedia.StartFile as VolFile, VolumeName
+ FROM Client,Job,JobMedia,Media
  WHERE Client.Name="%1"
  AND Client.ClientId=Job.ClientId
  AND Level='F' AND JobStatus='T'
- LIMIT 10;
+ AND JobMedia.JobId=Job.JobId AND JobMedia.MediaId=Media.MediaId
+ ORDER BY JobId DESC LIMIT 20;
 #
 :List Volumes used by selected JobId:
 *Enter JobId:
@@ -75,6 +77,7 @@ SELECT Job.JobId,VolumeName
 CREATE TABLE temp (JobId INTEGER UNSIGNED NOT NULL,
  JobTDate BIGINT UNSIGNED,
  ClientId INTEGER UNSIGNED,
+ Level CHAR,
  StartTime TEXT,
  VolumeName TEXT,
  StartFile INTEGER UNSIGNED, 
@@ -83,30 +86,44 @@ CREATE TABLE temp (JobId INTEGER UNSIGNED NOT NULL,
 CREATE TABLE temp2 (JobId INTEGER UNSIGNED NOT NULL,
  StartTime TEXT,
  VolumeName TEXT,
+ Level CHAR,
  StartFile INTEGER UNSIGNED, 
  VolSessionId INTEGER UNSIGNED,
  VolSessionTime INTEGER UNSIGNED);
-INSERT INTO temp SELECT Job.JobId,MAX(JobTDate),Job.ClientId,StartTime,VolumeName,
-   JobMedia.StartFile,VolSessionId,VolSessionTime
+# Select last Full save
+INSERT INTO temp SELECT Job.JobId,JobTDate,Job.ClientId,Job.Level,
+   StartTime,VolumeName,JobMedia.StartFile,VolSessionId,VolSessionTime
  FROM Client,Job,JobMedia,Media WHERE Client.Name="%1"
  AND Client.ClientId=Job.ClientId
  AND Level='F' AND JobStatus='T'
  AND JobMedia.JobId=Job.JobId 
  AND JobMedia.MediaId=Media.MediaId
- GROUP BY Job.JobTDate LIMIT 1;
-INSERT INTO temp2 SELECT JobId,StartTime,VolumeName,StartFile, 
+ ORDER BY Job.JobTDate DESC LIMIT 1;
+# Copy into temp 2
+INSERT INTO temp2 SELECT JobId,StartTime,VolumeName,Level,StartFile, 
    VolSessionId,VolSessionTime
  FROM temp;
+# Now add subsequent incrementals
 INSERT INTO temp2 SELECT Job.JobId,Job.StartTime,Media.VolumeName,
-   JobMedia.StartFile,Job.VolSessionId,Job.VolSessionTime
+   Job.Level,JobMedia.StartFile,Job.VolSessionId,Job.VolSessionTime
  FROM Job,temp,JobMedia,Media
  WHERE Job.JobTDate>temp.JobTDate 
  AND Job.ClientId=temp.ClientId
- AND Level='I' AND JobStatus='T'
+ AND Job.Level='I' AND JobStatus='T'
  AND JobMedia.JobId=Job.JobId 
  AND JobMedia.MediaId=Media.MediaId
  GROUP BY Job.JobId;
+# list results
 SELECT * from temp2;
 !DROP TABLE temp;
 !DROP TABLE temp2;
 #
+:List where a File is saved:
+*Enter Filename (no path):
+SELECT Job.JobId as JobId, Client.Name as Client,
+ CONCAT(Path.Path,Filename.Name) as Name,
+ StartTime,Level,JobFiles,JobBytes
+ FROM Client,Job,File,Filename,Path WHERE Client.ClientId=Job.ClientId
+ AND JobStatus='T' AND Job.JobId=File.JobId
+ AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId
+ AND Filename.Name='%1' LIMIT 20;
