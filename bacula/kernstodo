@@ -15,6 +15,9 @@ Test:
 - blocksize recognition code.
 
 For 1.27 release:
+- Implement VolumeUsePeriod (maximum duration/period) a volume can be used).
+  Possibly VolumeUseTimes (VolumeMaxJobs) This permits a volume to be
+  recycled even if it is not full.
 - Implement FileOptions.
 - Need return status on read_cb() from read_records(). Need multiple
   records -- one per Job, maybe a JCR or some other structure with
@@ -68,6 +71,7 @@ After 1.27
 - Fix db_get_fileset in cats/sql_get.c for multiple records.
 - Fix start/end blocks for File devices
 - Add new code to scheduler.c and run_conf.c
+    schedule options (1-sat, 2-sat, ...).
 - Fix catalog filename truncation in sql_get and sql_create. Use
   only a single filename split routine.
 - Add command to reset VolFiles to a larger value (don't allow
@@ -567,4 +571,3 @@ Done: (see kernsdone for more)
 - that Bacula won't write on tape where tape/catalog files differ.
 - Document how to recycle a tape in 7 days even if the backup takes a long time.
 - Document tape cycling 
-

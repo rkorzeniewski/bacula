@@ -51,7 +51,7 @@ typedef struct s_name_ctx {
 
 /* Global variables */
 static int fix = FALSE;
-static int interactive = FALSE;
+static int batch = FALSE;
 static int verbose = FALSE;
 static B_DB *db;
 static ID_LIST id_list;
@@ -66,10 +66,14 @@ static int delete_id_list(char *query, ID_LIST *id_list);
 static int make_name_list(char *query, NAME_LIST *name_list);
 static void print_name_list(NAME_LIST *name_list);
 static void free_name_list(NAME_LIST *name_list);
+static char *get_cmd(char *prompt);
 static void eliminate_duplicate_filenames();
 static void eliminate_duplicate_paths();
 static void eliminate_orphaned_jobmedia_records();
 static void eliminate_orphaned_file_records();
+static void eliminate_orphaned_path_records();
+static void eliminate_orphaned_filename_records();
+static void do_interactive_mode();
 
 #ifdef xxxx
 static void prtit(void *ctx, char *msg)
@@ -82,9 +86,10 @@ static void usage()
 {
    fprintf(stderr,
 "Usage: dbcheck [-d debug_level] <working-directory> <bacula-databse> <user> <password>\n"
+"       -b              batch mode\n"
 "       -dnn            set debug level to nn\n"
 "       -f              fix inconsistencies\n"
-"       -i              interactive mode\n"
+"       -v              verbose\n"
 "       -?              print this message\n\n");
    exit(1);
 }
@@ -101,8 +106,12 @@ int main (int argc, char *argv[])
    memset(&name_list, 0, sizeof(name_list));
 
 
-   while ((ch = getopt(argc, argv, "d:fi?")) != -1) {
+   while ((ch = getopt(argc, argv, "d:fiv?")) != -1) {
       switch (ch) {
+         case 'b':                    /* batch */
+	    batch = TRUE;
+	    break;
+
          case 'd':                    /* debug level */
 	    debug_level = atoi(optarg);
 	    if (debug_level <= 0)
@@ -113,8 +122,8 @@ int main (int argc, char *argv[])
 	    fix = TRUE;
 	    break;
 
-         case 'i':                    /* interactive */
-	    interactive = TRUE;
+         case 'v':
+	    verbose++;
 	    break;
 
          case '?':
@@ -160,19 +169,88 @@ int main (int argc, char *argv[])
       Emsg1(M_FATAL, 0, "%s", db_strerror(db));
    }
 
-   eliminate_duplicate_filenames();
-
-   eliminate_duplicate_paths();
-
-   eliminate_orphaned_jobmedia_records();
-
-   eliminate_orphaned_file_records();
+   if (batch) {
+      eliminate_duplicate_filenames();
+      eliminate_duplicate_paths();
+      eliminate_orphaned_jobmedia_records();
+      eliminate_orphaned_file_records();
+      eliminate_orphaned_path_records();
+      eliminate_orphaned_filename_records();
+   } else {
+      do_interactive_mode();
+   }
 
    db_close_database(db);
-
    close_msg(NULL);
    term_msg();
    return 0;
+}
+
+static void do_interactive_mode()
+{
+   int quit = FALSE;
+   char *cmd;
+
+   printf("Hello, this is the database check/correct program.\n\
+Please select the fuction you want to perform.\n");
+
+   while (!quit) {
+      printf(_("\n\
+ 1) Toggle modify database flag\n\
+ 2) Toggle verbose flag\n\
+ 3) Eliminate duplicate Filename records\n\
+ 4) Eliminate duplicate Path records\n\
+ 5) Eliminate orphaned Jobmedia records\n\
+ 6) Eliminate orphaned File records\n\
+ 7) Eliminate orphaned Path records\n\
+ 8) Eliminate orphaned Filename records\n\
+ 9) All (3-8)\n\
+10) Quit\n\n"));
+
+      cmd = get_cmd(_("Select function number: "));
+      if (cmd) {
+	 int item = atoi(cmd);
+	 switch (item) {
+	 case 1:
+	    fix = !fix;
+            printf(_("Database will %sbe modified.\n"), fix?"":_("not "));
+	    break;
+	 case 2:
+	    verbose = verbose?0:1;
+            printf(_("Verbose is %s\n"), verbose?_("On"):_("Off"));
+	    break;
+	 case 3:
+	    eliminate_duplicate_filenames();
+	    break;
+	 case 4:
+	    eliminate_duplicate_paths();
+	    break;
+	 case 5:
+	    eliminate_orphaned_jobmedia_records();
+	    break;
+	 case 6:
+	    eliminate_orphaned_file_records();
+	    break;
+	 case 7:
+	    eliminate_orphaned_path_records();
+	    break;
+	 case 8:
+	    eliminate_orphaned_filename_records();
+	    break;
+	 case 9:
+	    eliminate_duplicate_filenames();
+	    eliminate_duplicate_paths();
+	    eliminate_orphaned_jobmedia_records();
+	    eliminate_orphaned_file_records();
+	    eliminate_orphaned_path_records();
+	    eliminate_orphaned_filename_records();
+	    break;
+	 case 10:
+	    quit = 1;
+	    break;
+	 }
+      }
+   }
 }
   
 /*
@@ -223,6 +301,9 @@ static int delete_id_list(char *query, ID_LIST *id_list)
 
    for (i=0; i < id_list->num_ids; i++) {
       sprintf(buf, query, id_list->Id[i]);
+      if (verbose) {
+         printf("Deleting: %s\n", buf);
+      }
       db_sql_query(db, buf, NULL, NULL);
    }
    return 1;
@@ -302,8 +383,8 @@ static void eliminate_duplicate_filenames()
    printf("Checking for duplicate Filename entries.\n");
    
    /* Make list of duplicated names */
-   query = "SELECT Name FROM Filename "
-           "GROUP BY Name HAVING COUNT(FilenameId) > 1";
+   query = "SELECT Name FROM (SELECT COUNT(Name) as Count,Name from Filename "
+           "GROUP BY Name) WHERE Count > 1";
    if (!make_name_list(query, &name_list)) {
       exit(1);
    }
@@ -341,8 +422,8 @@ static void eliminate_duplicate_paths()
    printf("Checking for duplicate Path entries.\n");
    
    /* Make list of duplicated names */
-   query = "SELECT Path FROM Path "
-           "GROUP BY Path HAVING COUNT(PathId) > 1";
+   query = "SELECT Path FROM (SELECT COUNT(Path) AS Count,Path FROM Path "
+           "GROUP BY Path) WHERE Count > 1";
    if (!make_name_list(query, &name_list)) {
       exit(1);
    }
@@ -395,7 +476,7 @@ static void eliminate_orphaned_file_records()
 {
    char *query;
 
-   printf("Checking for orphaned File entries.\n");
+   printf("Checking for orphaned File entries. This takes some time!\n");
    query = "SELECT FileId,Job FROM File LEFT OUTER JOIN Job ON"
            " (Job.JobId=File.JobId) GROUP BY FileId HAVING Job IS NULL";
    if (!make_id_list(query, &id_list)) {
@@ -405,6 +486,58 @@ static void eliminate_orphaned_file_records()
    
    if (fix && id_list.num_ids > 0) {
       printf("Deleting %d orphaned File records.\n", id_list.num_ids);
-      delete_id_list("DELETE FROM File WHERE FileIdId=%u", &id_list);
+      delete_id_list("DELETE FROM File WHERE FileId=%u", &id_list);
    }
+}
+
+static void eliminate_orphaned_path_records()
+{
+   char *query;
+
+   printf("Checking for orphaned Path entries. This may take some time!\n");
+   query = "SELECT Path.PathId,File.JobId FROM Path LEFT OUTER JOIN File ON"
+           " (File.PathId=Path.PathId) GROUP BY Path.PathId HAVING File.JobId IS NULL";
+   if (!make_id_list(query, &id_list)) {
+      exit(1);
+   }
+   printf("Found %d orphaned Path records.\n", id_list.num_ids);
+   
+   if (fix && id_list.num_ids > 0) {
+      printf("Deleting %d orphaned Path records.\n", id_list.num_ids);
+      delete_id_list("DELETE FROM Path WHERE PathId=%u", &id_list);
+   }
+}
+
+static void eliminate_orphaned_filename_records()
+{
+   char *query;
+
+   printf("Checking for orphaned Filename entries. This may take some time!\n");
+   query = "SELECT Filename.FilenameId,File.JobId FROM Filename "
+           "LEFT OUTER JOIN File ON  (File.FilenameId=Filename.FilenameId) "
+           "GROUP BY Filename.FilenameId HAVING File.JobId IS NULL";
+   if (!make_id_list(query, &id_list)) {
+      exit(1);
+   }
+   printf("Found %d orphaned Filename records.\n", id_list.num_ids);
+   
+   if (fix && id_list.num_ids > 0) {
+      printf("Deleting %d orphaned Filename records.\n", id_list.num_ids);
+      delete_id_list("DELETE FROM Filename WHERE FilenameId=%u", &id_list);
+   }
+}
+
+/*
+ * Gen next input command from the terminal
+ */
+static char *get_cmd(char *prompt)
+{
+   static char cmd[1000];
+
+   printf("%s", prompt);
+   if (fgets(cmd, sizeof(cmd), stdin) == NULL)
+      return NULL;
+   printf("\n");
+   strip_trailing_junk(cmd);
+   return cmd;
 }

@@ -261,6 +261,7 @@ mount_error:
       }
       /* Recreate a correct volume label and return it in the block */
       write_volume_label_to_block(jcr, dev, block);
+      /* Set or reset Volume statistics */
       dev->VolCatInfo.VolCatJobs = 1;
       dev->VolCatInfo.VolCatFiles = 1;
       dev->VolCatInfo.VolCatErrors = 0;
@@ -323,9 +324,8 @@ The number of files mismatch! Volume=%d Catalog=%d\n"),
 	    goto mount_next_vol;
 	 }
       }
-      /* Update Volume Info -- will be written at end of Job */
       dev->VolCatInfo.VolCatMounts++;	   /* Update mounts */
-      dev->VolCatInfo.VolCatJobs++;
+      dir_update_volume_info(jcr, &dev->VolCatInfo, 0);
       /* Return an empty block */
       empty_block(block);	      /* we used it for reading so set for write */
    }
