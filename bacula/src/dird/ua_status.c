@@ -413,8 +413,8 @@ static void list_running_jobs(UAContext *ua)
    }
    njobs = 0;
    bsendmsg(ua, _("\nRunning Jobs:\n"));
-   bsendmsg(ua, _("Level JobId  Job                        Status\n"));
-   bsendmsg(ua, _("====================================================================\n"));
+   bsendmsg(ua, _(" JobId Level   Name                       Status\n"));
+   bsendmsg(ua, _("======================================================================\n"));
    foreach_jcr(jcr) {
       if (jcr->JobId == 0 || !acl_access_ok(ua, Job_ACL, jcr->job->hdr.name)) {
 	 free_locked_jcr(jcr);
@@ -514,17 +514,17 @@ static void list_running_jobs(UAContext *ua)
       switch (jcr->JobType) {
       case JT_ADMIN:
       case JT_RESTORE:
-         bstrncpy(level, "    ", sizeof(level));
+         bstrncpy(level, "      ", sizeof(level));
 	 break;
       default:
 	 bstrncpy(level, level_to_str(jcr->JobLevel), sizeof(level));
-	 level[4] = 0;
+	 level[7] = 0;
 	 break;
       }
 
-      bsendmsg(ua, _("%-4s %6d  %-20s %s\n"), 
-	 level, 
+      bsendmsg(ua, _("%6d %-6s  %-20s %s\n"), 
 	 jcr->JobId,
+	 level, 
 	 jcr->Job,
 	 msg);
 
@@ -551,8 +551,8 @@ static void list_terminated_jobs(UAContext *ua)
    lock_last_jobs_list();
    struct s_last_job *je;
    bsendmsg(ua, _("\nTerminated Jobs:\n"));
-   bsendmsg(ua, _(" JobId  Level   Files      Bytes     Status   Finished        Name \n"));
-   bsendmsg(ua, _("======================================================================\n"));
+   bsendmsg(ua, _(" JobId  Level     Files      Bytes     Status   Finished        Name \n"));
+   bsendmsg(ua, _("========================================================================\n"));
    foreach_dlist(je, last_jobs) {
       char JobName[MAX_NAME_LENGTH];
       char *termstat;
@@ -597,7 +597,7 @@ static void list_terminated_jobs(UAContext *ua)
 	    *p = 0;
 	 }
       }
-      bsendmsg(ua, _("%6d  %-4s %8s %14s %-7s  %-8s %s\n"), 
+      bsendmsg(ua, _("%6d  %-6s %8s %14s %-7s  %-8s %s\n"), 
 	 je->JobId,
 	 level, 
 	 edit_uint64_with_commas(je->JobFiles, b1),

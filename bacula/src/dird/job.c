@@ -253,7 +253,7 @@ static void *job_thread(void *arg)
 	     */
 	    if (status != 0) {
 	       if (jcr->JobStatus == JS_Terminated) {
-                  Jmsg(jcr, M_ERROR, 0, _("RunAfterJob returned non-zero status=%d\n"),
+                  Jmsg(jcr, M_WARNING, 0, _("RunAfterJob returned non-zero status=%d\n"),
 		       status);
 	       } else {
                   Jmsg(jcr, M_FATAL, 0, _("RunAfterFailedJob returned non-zero status=%d\n"),

@@ -184,6 +184,8 @@ int send_level_command(JCR *jcr)
    case L_BASE:
       bnet_fsend(fd, levelcmd, "base", " ", 0);
       break;
+   /* L_NONE is the console, sending something off to the FD */
+   case L_NONE:
    case L_FULL:
       bnet_fsend(fd, levelcmd, "full", " ", 0);
       break;

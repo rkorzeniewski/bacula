@@ -49,7 +49,6 @@ For 1.33 Testing/Documentation:
 - Add an example of using a FIFO in dirdconf.wml 
 - Add an item to the FAQ about running jobs in different timezones.
 - Add some examples of job editing codes.
-
 - Document Dan's new --with-dir-user, ... options.
   See userid.txt
 - Figure out how to use ssh or stunnel to protect Bacula communications.
@@ -71,24 +70,44 @@ For 1.33 Testing/Documentation:
      http://howtos.linux.com/guides/nag2/x-087-2-nfs.mountd.shtml
 
 For 1.33
+- Check: Run = Level=Differential feb-dec 1 at 1:05 to see if wday is empty.
 - Look at installation file permissions with Scott so that make install
   and the rpms agree.
+- Restore attributes of directory if replace=never set but directory
+  did not exist.
+- Allow "delete job jobid=xx jobid=xxx".   
+- Allow "delete job jobid=xxx,yyy,aaa-bbb" i.e. list + ranges.
+- Implement multiple Volume in "purge jobs volume=".
+- Rescue builds incorrect script files on Rufus.  
+- Fix option 2 of restore -- list where file is backed up -- require Client,
+  then list last 20 backups.
+- Allow browsing the catalog to see all versions of a file (with 
+  stat data on each file).
+- Finish code passing files=nnn to restore start.
+- Add level to estimate command.
+- Symbolic link a directory to another one, then backup the symbolic link.
+- Check and possibly fix problems with hard links.
+- Fix "llist jobid=xx" where no fileset or client exists.
+- Release SQLite 2.8.9
+- Add all pools in Dir conf to DB also update them to catch changed
+  LabelFormats and such.
+- Build console in client-only build.
+- Write a Qmsg() to be used in bnet.c to prevent recursion.  Queue the
+  message. If dequeueing toss the messages. Lock while dequeuing so that
+  it cannot be called recursively and set dequeuing flag.
+- Add a .list all files in the restore tree (probably also a list all files)
+  Do both a long and short form.
+
+- Later:
 - Add a regression test for dbcheck.
 - Add disk seeking on restore.
-- Add atime preservation.
 - Allow for optional cancelling of SD and FD in case DIR
   gets a fatal error. Requested by Jesse Guardiani <jesse@wingnet.net>
-- Do not err job if could not write bootstrap file.
 - Bizarre message: Error: Could not open WriteBootstrap file:
 - Build console in client only build.
-- For "list jobs" order by EndTime.
 - Add "limit=n" for "list jobs"
 - Check new HAVE_WIN32 open bits.    
-- Make column listing for running jobs.    
-  JobId Level Type Started Name  Status
-- Make two tape fill test work.
 - Check if the tape has moved before writing.  
-- Save and restore last_job across executions.
 - Implement restart of daemon.
 - Handling removable disks -- see below:
 - Multiple drive autochanger support -- see below.
@@ -97,17 +116,10 @@ For 1.33
 - See comtest-xxx.zip for Windows code to talk to USB.
 - Fix FreeBSD mt_count problem.
 - During install, copy any console.conf to bconsole.conf.
-- Have each daemon save the last_jobs structure when exiting and
-  read it back in when starting up.
-- "restore jobid=1 select" calls get_storage_xxx, which prints "JobId 1 is
-  not running."
 - Add FromClient and ToClient keywords on restore command (or
   BackupClient RestoreClient).
 - Automatic "update slots" on user configuration directive when a
   slot error occurs.
-- Allow "delete job jobid=xx jobid=xxx".   
-- Allow "delete job jobid=xxx,yyy,aaa-bbb" i.e. list + ranges.
-- Implement multiple Volume in "purge jobs volume=".
 - Implement a JobSet, which groups any number of jobs. If the
   JobSet is started, all the jobs are started together.
   Allow Pool, Level, and Schedule overrides.
@@ -116,31 +128,12 @@ For 1.33
   those of the time of the restore, not those of the originalfile.  
   The dates you will find in your restore log seem to be the original
    creation dates
-- Rescue builds incorrect script files on Rufus.  
-- Write a Qmsg() to be used in bnet.c to prevent recursion.  Queue the
-  message. If dequeueing toss the messages. Lock while dequeuing so that
-  it cannot be called recursively and set dequeuing flag.
-- Add all pools in Dir conf to DB also update them to catch changed
-  LabelFormats and such.
-- Symbolic link a directory to another one, then backup the symbolic
-  link.
-- Build console in client-only build.
-- Restore attributes of directory if replace=never set but directory
-  did not exist.
 - Check why Phil's Verify exclude does not work.
 - Phil says that Windows file sizes mismatch in Verify when they should,
   and that either the file size or the catalog size was zero.
-- Fix option 2 of restore -- list where file is backed up -- require Client,
-  then list last 20 backups.
-- Allow browsing the catalog to see all versions of a file (with 
-  stat data on each file).
-- Finish code passing files=nnn to restore start.
-- Add level to estimate command.
 - Check time/dates printed during restore when using Win32 API.
 - Volume "add"ed to Pool gets recycled in first use. VolBytes=0
 - Get rid of 0 dates in LastWritten, ...
-- Fix "llist jobid=xx" where no fileset or client exists.
-- Release SQLite 2.8.9
 - If a tape is recycled while it is mounted, Stanislav Tvrudy must do an
   additional mount to deblock the job.
 - From Johan Decock:
@@ -153,9 +146,6 @@ For 1.33
 - Correct code so that FileSet MD5 is calculated for < and | filename   
   generation.
 - Mark Volume in error on error from WEOF.
-- Why does Bacula need the drive open to do "autochanger list" ?
-- Add a .list all files in the restore tree (probably also a list all files)
-  Do both a long and short form.
 - Implement the Media record flag that indicates that the Volume does disk 
   addressing.
 - Implement VolAddr, which is used when Volume is addressed like a disk,
@@ -168,7 +158,6 @@ For 1.33
 - Look at extracting Win data from BackupRead.
 - Having dashes in filenames apparently creates problems for restore
   by filename.
-- Add data compare on write/read in btape "test". 
 - Implement RestoreJobRetention? Maybe better "JobRetention" in a Job,
   which would take precidence over the Catalog "JobRetention".
 - Implement Label Format in Add and Label console commands.
@@ -1238,7 +1227,7 @@ Block Position: 0
 ====
 
 
-=== for 1.33
+=== Done in 1.33
 - Change console to bconsole.
 - Change smtp to bsmtp.
 - Fix time difference problem between Bacula and Client
@@ -1394,4 +1383,16 @@ Block Position: 0
 - Dates are wrong in restore list from Win32 FD.
 - Dates are wrong in catalog from Win32 FD.
 - Remove h_errno from bnet.c by including proper header.
+- For "list jobs" order by EndTime.
+- Make two tape fill test work.
+- Add atime preservation.
+- Do not err job if could not write bootstrap file.
+- Save and restore last_job across executions.
+- Have each daemon save the last_jobs structure when exiting and
+  read it back in when starting up.
+- "restore jobid=1 select" calls get_storage_xxx, which prints "JobId 1 is
+  not running."
+- Make column listing for running jobs JobId Level Type Started Name  Status
+- Why does Bacula need the drive open to do "autochanger list" ?
+- Add data compare on write/read in btape "test". 
 

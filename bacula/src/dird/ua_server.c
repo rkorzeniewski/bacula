@@ -103,7 +103,7 @@ JCR *new_control_jcr(char *base_name, int job_type)
    create_unique_job_name(jcr, base_name);
    jcr->sched_time = jcr->start_time;
    jcr->JobType = job_type;
-   jcr->JobLevel = L_FULL;
+   jcr->JobLevel = L_NONE;
    jcr->JobStatus = JS_Running;
    jcr->JobId = 0;
    /*
