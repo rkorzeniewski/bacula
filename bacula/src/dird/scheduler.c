@@ -269,13 +269,15 @@ static void find_runs()
 #endif
 
 	 run_now = bit_is_set(hour, run->hour) &&
-	    (bit_is_set(mday, run->mday) || bit_is_set(wday, run->wday)) &&
+	    bit_is_set(mday, run->mday) && 
+	    bit_is_set(wday, run->wday) &&
 	    bit_is_set(month, run->month) &&
 	    bit_is_set(wom, run->wom) &&
 	    bit_is_set(woy, run->woy);
 
 	 run_nh = bit_is_set(nh_hour, run->hour) &&
-	    (bit_is_set(nh_mday, run->mday) || bit_is_set(nh_wday, run->wday)) &&
+	    bit_is_set(nh_mday, run->mday) && 
+	    bit_is_set(nh_wday, run->wday) &&
 	    bit_is_set(nh_month, run->month) &&
 	    bit_is_set(nh_wom, run->wom) &&
 	    bit_is_set(nh_woy, run->woy);

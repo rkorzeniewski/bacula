@@ -204,7 +204,7 @@ void store_msgs(LEX *lc, RES_ITEM *item, int index, int pass)
    POOLMEM *dest;
    int dest_len;    
 
-   Dmsg2(200, "store_msgs pass=%d code=%d\n", pass, item->code);
+   Dmsg2(300, "store_msgs pass=%d code=%d\n", pass, item->code);
    if (pass == 1) {
       switch (item->code) {
       case MD_STDOUT:
@@ -245,10 +245,10 @@ void store_msgs(LEX *lc, RES_ITEM *item, int index, int pass)
 	    }
 	    break;
 	 }
-         Dmsg1(200, "mail_cmd=%s\n", NPRT(cmd));
+         Dmsg1(300, "mail_cmd=%s\n", NPRT(cmd));
 	 scan_types(lc, (MSGS *)(item->value), item->code, dest, cmd);
 	 free_pool_memory(dest);
-         Dmsg0(200, "done with dest codes\n");
+         Dmsg0(300, "done with dest codes\n");
 	 break;
       case MD_FILE:		   /* file */
       case MD_APPEND:		   /* append */
@@ -258,13 +258,13 @@ void store_msgs(LEX *lc, RES_ITEM *item, int index, int pass)
 	 pm_strcpy(&dest, lc->str);
 	 dest_len = lc->str_len;
 	 token = lex_get_token(lc, T_ALL);
-         Dmsg1(200, "store_msgs dest=%s:\n", NPRT(dest));
+         Dmsg1(300, "store_msgs dest=%s:\n", NPRT(dest));
 	 if (token != T_EQUALS) {
             scan_err1(lc, _("expected an =, got: %s"), lc->str); 
 	 }
 	 scan_types(lc, (MSGS *)(item->value), item->code, dest, NULL);
 	 free_pool_memory(dest);
-         Dmsg0(200, "done with dest codes\n");
+         Dmsg0(300, "done with dest codes\n");
 	 break;
 
       default:
@@ -274,7 +274,7 @@ void store_msgs(LEX *lc, RES_ITEM *item, int index, int pass)
    }
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
-   Dmsg0(200, "Done store_msgs\n");
+   Dmsg0(300, "Done store_msgs\n");
 }
 
 /* 
@@ -325,10 +325,10 @@ static void scan_types(LEX *lc, MSGS *msg, int dest_code, char *where, char *cmd
       if (lc->ch != ',') {
 	 break;
       }
-      Dmsg0(200, "call lex_get_token() to eat comma\n");
+      Dmsg0(300, "call lex_get_token() to eat comma\n");
       lex_get_token(lc, T_ALL); 	 /* eat comma */
    }
-   Dmsg0(200, "Done scan_types()\n");
+   Dmsg0(300, "Done scan_types()\n");
 }
 
 
@@ -461,7 +461,7 @@ void store_defs(LEX *lc, RES_ITEM *item, int index, int pass)
 
    lex_get_token(lc, T_NAME);
    if (pass == 2) {
-     Dmsg2(200, "Code=%d name=%s\n", item->code, lc->str);
+     Dmsg2(300, "Code=%d name=%s\n", item->code, lc->str);
      res = GetResWithName(item->code, lc->str);
      if (res == NULL) {
         scan_err3(lc, _("Missing config Resource \"%s\" referenced on line %d : %s\n"), 
@@ -471,9 +471,9 @@ void store_defs(LEX *lc, RES_ITEM *item, int index, int pass)
 #ifdef xxx
      for (int i=0; item->name;; i++, item++) {
 	if (bit_is_set(i, res->item_present)) {
-           Dmsg2(000, "Item %d is present in %s\n", i, res->name);
+           Dmsg2(300, "Item %d is present in %s\n", i, res->name);
 	} else {
-           Dmsg2(000, "Item %d is not present in %s\n", i, res->name);
+           Dmsg2(300, "Item %d is not present in %s\n", i, res->name);
 	}
      }
      /* ***FIXME **** add code */
@@ -695,12 +695,12 @@ parse_config(char *cf)
    /* Make two passes. The first builds the name symbol table,
     * and the second picks up the items. 
     */
-   Dmsg0(200, "Enter parse_config()\n");
+   Dmsg0(300, "Enter parse_config()\n");
    for (pass=1; pass <= 2; pass++) {
-      Dmsg1(200, "parse_config pass %d\n", pass);
+      Dmsg1(300, "parse_config pass %d\n", pass);
       lc = lex_open_file(lc, cf, NULL);
       while ((token=lex_get_token(lc, T_ALL)) != T_EOF) {
-         Dmsg1(150, "parse got token=%s\n", lex_tok_to_str(token));
+         Dmsg1(300, "parse got token=%s\n", lex_tok_to_str(token));
 	 switch (state) {
 	    case p_none:
 	       if (token == T_EOL) {
@@ -739,13 +739,13 @@ parse_config(char *cf)
 			    *	scan for = after the keyword  */
 			   if (!(items[i].flags & ITEM_NO_EQUALS)) {
 			      token = lex_get_token(lc, T_ALL);
-                              Dmsg1 (150, "in T_IDENT got token=%s\n", lex_tok_to_str(token));
+                              Dmsg1 (300, "in T_IDENT got token=%s\n", lex_tok_to_str(token));
 			      if (token != T_EQUALS) {
                                  scan_err1(lc, _("expected an equals, got: %s"), lc->str);
 				 /* NOT REACHED */
 			      }
 			   }
-                           Dmsg1(150, "calling handler for %s\n", items[i].name);
+                           Dmsg1(300, "calling handler for %s\n", items[i].name);
 			   /* Call item handler */
 			   items[i].handler(lc, &items[i], i, pass);
 			   i = -1;
@@ -753,8 +753,8 @@ parse_config(char *cf)
 			}
 		     }
 		     if (i >= 0) {
-                        Dmsg2(150, "level=%d id=%s\n", level, lc->str);
-                        Dmsg1(150, "Keyword = %s\n", lc->str);
+                        Dmsg2(300, "level=%d id=%s\n", level, lc->str);
+                        Dmsg1(300, "Keyword = %s\n", lc->str);
                         scan_err1(lc, _("Keyword \"%s\" not permitted in this resource.\n"
                            "Perhaps you left the trailing brace off of the previous resource."), lc->str);
 			/* NOT REACHED */
@@ -764,7 +764,7 @@ parse_config(char *cf)
 		  case T_EOB:
 		     level--;
 		     state = p_none;
-                     Dmsg0(150, "T_EOB => define new resource\n");
+                     Dmsg0(300, "T_EOB => define new resource\n");
 		     save_resource(res_type, items, pass);  /* save resource */
 		     break;
 
@@ -793,7 +793,7 @@ parse_config(char *cf)
       }
       lc = lex_close_file(lc);
    }
-   Dmsg0(200, "Leave parse_config()\n");
+   Dmsg0(300, "Leave parse_config()\n");
 }
 
 /*********************************************************************
