@@ -48,11 +48,11 @@ int confirm_retention(UAContext *ua, utime_t *ret, const char *msg)
 	  return 0;
        }
        if (strcasecmp(ua->cmd, _("mod")) == 0) {
-	  if (!get_cmd(ua, _("Enter new retention period: "))) {
+          if (!get_cmd(ua, _("Enter new retention period: "))) {
 	     return 0;
 	  }
 	  if (!duration_to_utime(ua->cmd, ret)) {
-	     bsendmsg(ua, _("Invalid period.\n"));
+             bsendmsg(ua, _("Invalid period.\n"));
 	     continue;
 	  }
 	  continue;
@@ -292,7 +292,7 @@ CLIENT *get_client_resource(UAContext *ua)
 
    for (i=1; i<ua->argc; i++) {
       if ((strcasecmp(ua->argk[i], _("client")) == 0 ||
-	   strcasecmp(ua->argk[i], _("fd")) == 0) && ua->argv[i]) {
+           strcasecmp(ua->argk[i], _("fd")) == 0) && ua->argv[i]) {
 	 if (!acl_access_ok(ua, Client_ACL, ua->argv[i])) {
 	    break;
 	 }
@@ -300,7 +300,7 @@ CLIENT *get_client_resource(UAContext *ua)
 	 if (client) {
 	    return client;
 	 }
-	 bsendmsg(ua, _("Error: Client resource %s does not exist.\n"), ua->argv[i]);
+         bsendmsg(ua, _("Error: Client resource %s does not exist.\n"), ua->argv[i]);
 	 break;
       }
    }
@@ -329,13 +329,13 @@ int get_client_dbr(UAContext *ua, CLIENT_DBR *cr)
    }
    for (i=1; i<ua->argc; i++) {
       if ((strcasecmp(ua->argk[i], _("client")) == 0 ||
-	   strcasecmp(ua->argk[i], _("fd")) == 0) && ua->argv[i]) {
+           strcasecmp(ua->argk[i], _("fd")) == 0) && ua->argv[i]) {
 	 if (!acl_access_ok(ua, Client_ACL, ua->argv[i])) {
 	    break;
 	 }
 	 bstrncpy(cr->Name, ua->argv[i], sizeof(cr->Name));
 	 if (!db_get_client_record(ua->jcr, ua->db, cr)) {
-	    bsendmsg(ua, _("Could not find Client \"%s\": ERR=%s"), ua->argv[i],
+            bsendmsg(ua, _("Could not find Client \"%s\": ERR=%s"), ua->argv[i],
 		     db_strerror(ua->db));
 	    cr->ClientId = 0;
 	    break;
@@ -438,7 +438,7 @@ bool select_pool_dbr(UAContext *ua, POOL_DBR *pr)
 	  acl_access_ok(ua, Pool_ACL, ua->argv[i])) {
 	 bstrncpy(pr->Name, ua->argv[i], sizeof(pr->Name));
 	 if (!db_get_pool_record(ua->jcr, ua->db, pr)) {
-	    bsendmsg(ua, _("Could not find Pool \"%s\": ERR=%s"), ua->argv[i],
+            bsendmsg(ua, _("Could not find Pool \"%s\": ERR=%s"), ua->argv[i],
 		     db_strerror(ua->db));
 	    pr->PoolId = 0;
 	    break;
@@ -527,7 +527,7 @@ int select_media_dbr(UAContext *ua, MEDIA_DBR *mr)
 	 return 0;
       }
       if (is_a_number(ua->cmd)) {
-	 mr->MediaId = atoi(ua->cmd);
+	 mr->MediaId = str_to_int64(ua->cmd);
       } else {
 	 bstrncpy(mr->VolumeName, ua->cmd, sizeof(mr->VolumeName));
       }
@@ -593,7 +593,7 @@ int select_job_dbr(UAContext *ua, JOB_DBR *jr)
    if (!get_pint(ua, _("Enter the JobId to select: "))) {
       return 0;
    }
-   jr->JobId = ua->pint32_val;
+   jr->JobId = ua->int64_val;
    if (!db_get_job_record(ua->jcr, ua->db, jr)) {
       bsendmsg(ua, "%s", db_strerror(ua->db));
       return 0;
@@ -627,7 +627,7 @@ int get_job_dbr(UAContext *ua, JOB_DBR *jr)
 	 continue;
       }
       if (!db_get_job_record(ua->jcr, ua->db, jr)) {
-	 bsendmsg(ua, _("Could not find Job \"%s\": ERR=%s"), ua->argv[i],
+         bsendmsg(ua, _("Could not find Job \"%s\": ERR=%s"), ua->argv[i],
 		  db_strerror(ua->db));
 	 jr->JobId = 0;
 	 break;
@@ -711,29 +711,29 @@ int do_prompt(UAContext *ua, const char *automsg, const char *msg, char *prompt,
    for ( ;; ) {
       /* First item is the prompt string, not the items */
       if (ua->num_prompts == 1) {
-	 bsendmsg(ua, _("Selection is empty!\n"));
+         bsendmsg(ua, _("Selection is empty!\n"));
 	 item = 0;		      /* list is empty ! */
 	 break;
       }
       if (ua->num_prompts == 2) {
 	 item = 1;
-	 bsendmsg(ua, _("Item 1 selected automatically.\n"));
+         bsendmsg(ua, _("Item 1 selected automatically.\n"));
 	 if (prompt) {
 	    bstrncpy(prompt, ua->prompt[1], max_prompt);
 	 }
 	 break;
       } else {
-	 sprintf(pmsg, "%s (1-%d): ", msg, ua->num_prompts-1);
+         sprintf(pmsg, "%s (1-%d): ", msg, ua->num_prompts-1);
       }
       /* Either a . or an @ will get you out of the loop */
       if (!get_pint(ua, pmsg)) {
 	 item = -1;		      /* error */
-	 bsendmsg(ua, _("Selection aborted, nothing done.\n"));
+         bsendmsg(ua, _("Selection aborted, nothing done.\n"));
 	 break;
       }
       item = ua->pint32_val;
       if (item < 1 || item >= ua->num_prompts) {
-	 bsendmsg(ua, _("Please enter a number between 1 and %d\n"), ua->num_prompts-1);
+         bsendmsg(ua, _("Please enter a number between 1 and %d\n"), ua->num_prompts-1);
 	 continue;
       }
       if (prompt) {
@@ -774,48 +774,48 @@ STORE *get_storage_resource(UAContext *ua, int use_default)
    for (i=1; i<ua->argc; i++) {
       if (use_default && !ua->argv[i]) {
 	 /* Ignore slots, scan and barcode(s) keywords */
-	 if (strncasecmp("scan", ua->argk[i], 4) == 0 ||
-	     strncasecmp("barcode", ua->argk[i], 7) == 0 ||
-	     strncasecmp("slots", ua->argk[i], 5) == 0) {
+         if (strncasecmp("scan", ua->argk[i], 4) == 0 ||
+             strncasecmp("barcode", ua->argk[i], 7) == 0 ||
+             strncasecmp("slots", ua->argk[i], 5) == 0) {
 	    continue;
 	 }
 	 /* Default argument is storage */
 	 if (store_name) {
-	    bsendmsg(ua, _("Storage name given twice.\n"));
+            bsendmsg(ua, _("Storage name given twice.\n"));
 	    return NULL;
 	 }
 	 store_name = ua->argk[i];
-	 if (*store_name == '?') {
+         if (*store_name == '?') {
 	    *store_name = 0;
 	    break;
 	 }
       } else {
-	 if (strcasecmp(ua->argk[i], _("storage")) == 0 ||
-	     strcasecmp(ua->argk[i], _("sd")) == 0) {
+         if (strcasecmp(ua->argk[i], _("storage")) == 0 ||
+             strcasecmp(ua->argk[i], _("sd")) == 0) {
 	    store_name = ua->argv[i];
 	    break;
 
-	 } else if (strcasecmp(ua->argk[i], _("jobid")) == 0) {
+         } else if (strcasecmp(ua->argk[i], _("jobid")) == 0) {
 	    jobid = str_to_int64(ua->argv[i]);
 	    if (jobid <= 0) {
-	       bsendmsg(ua, _("Expecting jobid=nn command, got: %s\n"), ua->argk[i]);
+               bsendmsg(ua, _("Expecting jobid=nn command, got: %s\n"), ua->argk[i]);
 	       return NULL;
 	    }
 	    if (!(jcr=get_jcr_by_id(jobid))) {
-	       bsendmsg(ua, _("JobId %d is not running.\n"), jobid);
+               bsendmsg(ua, _("JobId %d is not running.\n"), jobid);
 	       return NULL;
 	    }
 	    store = jcr->store;
 	    free_jcr(jcr);
 	    break;
 
-	 } else if (strcasecmp(ua->argk[i], _("job")) == 0) {
+         } else if (strcasecmp(ua->argk[i], _("job")) == 0) {
 	    if (!ua->argv[i]) {
-	       bsendmsg(ua, _("Expecting job=xxx, got: %s.\n"), ua->argk[i]);
+               bsendmsg(ua, _("Expecting job=xxx, got: %s.\n"), ua->argk[i]);
 	       return NULL;
 	    }
 	    if (!(jcr=get_jcr_by_partial_name(ua->argv[i]))) {
-	       bsendmsg(ua, _("Job \"%s\" is not running.\n"), ua->argv[i]);
+               bsendmsg(ua, _("Job \"%s\" is not running.\n"), ua->argv[i]);
 	       return NULL;
 	    }
 	    store = jcr->store;
@@ -831,7 +831,7 @@ STORE *get_storage_resource(UAContext *ua, int use_default)
    if (!store && store_name) {
       store = (STORE *)GetResWithName(R_STORAGE, store_name);
       if (!store) {
-	 bsendmsg(ua, "Storage resource \"%s\": not found\n", store_name);
+         bsendmsg(ua, "Storage resource \"%s\": not found\n", store_name);
       }
    }
    if (store && !acl_access_ok(ua, Storage_ACL, store->hdr.name)) {

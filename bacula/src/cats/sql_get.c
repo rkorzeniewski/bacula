@@ -117,8 +117,11 @@ int db_get_file_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr, FILE_DBR *fdbr)
 
    } else {
       Mmsg(mdb->cmd,
-"SELECT FileId, LStat, MD5 FROM File WHERE File.JobId=%u AND File.PathId=%u AND "
-"File.FilenameId=%u", fdbr->JobId, fdbr->PathId, fdbr->FilenameId);
+"SELECT FileId, LStat, MD5 FROM File WHERE File.JobId=%s AND File.PathId=%s AND "
+"File.FilenameId=%s", 
+      edit_int64(fdbr->JobId, ed1), 
+      edit_int64(fdbr->PathId, ed2), 
+      edit_int64(fdbr->FilenameId,ed3));
    }
    Dmsg3(050, "Get_file_record JobId=%u FilenameId=%u PathId=%u\n",
       fdbr->JobId, fdbr->FilenameId, fdbr->PathId);
@@ -142,8 +145,9 @@ int db_get_file_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr, FILE_DBR *fdbr)
 	    stat = 1;
 	 }
       } else {
-         Mmsg2(&mdb->errmsg, _("File record for PathId=%u FilenameId=%u not found.\n"),
-	    fdbr->PathId, fdbr->FilenameId);
+         Mmsg2(&mdb->errmsg, _("File record for PathId=%s FilenameId=%s not found.\n"),
+	    edit_int64(fdbr->PathId, ed1), 
+	    edit_int64(fdbr->FilenameId, ed2));
       }
       sql_free_result(mdb);
    } else {
@@ -233,8 +237,8 @@ static int db_get_path_record(JCR *jcr, B_DB *mdb)
 	 } else {
 	    PathId = atoi(row[0]);
 	    if (PathId <= 0) {
-               Mmsg2(&mdb->errmsg, _("Get DB path record %s found bad record: %u\n"),
-		  mdb->cmd, PathId);
+               Mmsg2(&mdb->errmsg, _("Get DB path record %s found bad record: %s\n"),
+		  mdb->cmd, edit_int64(PathId, ed1));
 	       PathId = 0;
 	    } else {
 	       /* Cache path */
@@ -285,7 +289,7 @@ int db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
       return 0; 		      /* failed */
    }
    if ((row = sql_fetch_row(mdb)) == NULL) {
-      Mmsg1(&mdb->errmsg, _("No Job found for JobId %u\n"), jr->JobId);
+      Mmsg1(&mdb->errmsg, _("No Job found for JobId %s\n"), edit_int64(jr->JobId, ed1));
       sql_free_result(mdb);
       db_unlock(mdb);
       return 0; 		      /* failed */
@@ -844,9 +848,9 @@ int db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    }
 
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
+      char ed1[50];
       mdb->num_rows = sql_num_rows(mdb);
       if (mdb->num_rows > 1) {
-	 char ed1[30];
          Mmsg1(&mdb->errmsg, _("More than one Volume!: %s\n"),
 	    edit_uint64(mdb->num_rows, ed1));
          Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
@@ -889,7 +893,8 @@ int db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 	 }
       } else {
 	 if (mr->MediaId != 0) {
-            Mmsg1(&mdb->errmsg, _("Media record MediaId=%u not found.\n"), mr->MediaId);
+            Mmsg1(&mdb->errmsg, _("Media record MediaId=%s not found.\n"), 
+	       edit_int64(mr->MediaId, ed1));
 	 } else {
             Mmsg1(&mdb->errmsg, _("Media record for Volume \"%s\" not found.\n"),
 		  mr->VolumeName);

@@ -62,20 +62,20 @@ struct cmdstruct { const char *key; int (*func)(UAContext *ua, TREE_CTX *tree); 
 static struct cmdstruct commands[] = {
  { N_("cd"),         cdcmd,        _("change current directory")},
  { N_("count"),      countcmd,     _("count marked files in and below the cd")},
- { N_("dir"),        dircmd,       _("list current directory")},
+ { N_("dir"),        dircmd,       _("long list current directory, wildcards allowed")},
  { N_("done"),       donecmd,      _("leave file selection mode")},
  { N_("estimate"),   estimatecmd,  _("estimate restore size")},
- { N_("exit"),       donecmd,      _("exit = done")},
- { N_("find"),       findcmd,      _("find files -- wildcards allowed")},
+ { N_("exit"),       donecmd,      _("same as done command")},
+ { N_("find"),       findcmd,      _("find files, wildcards allowed")},
  { N_("help"),       helpcmd,      _("print help")},
- { N_("ls"),         lscmd,        _("list current directory -- wildcards allowed")},
+ { N_("ls"),         lscmd,        _("list current directory, wildcards allowed")},
  { N_("lsmark"),     lsmarkcmd,    _("list the marked files in and below the cd")},
- { N_("mark"),       markcmd,      _("mark dir/file to be restored -- recursively in dirs")},
+ { N_("mark"),       markcmd,      _("mark dir/file to be restored recursively in dirs")},
  { N_("markdir"),    markdircmd,   _("mark directory name to be restored (no files)")},
  { N_("pwd"),        pwdcmd,       _("print current working directory")},
- { N_("unmark"),     unmarkcmd,    _("unmark dir/file to be restored -- recursively in dir")},
- { N_("unmarkdir"),  unmarkdircmd, _("unmark directory name only -- no recursion")},
- { N_("quit"),       quitcmd,      _("quit")},
+ { N_("unmark"),     unmarkcmd,    _("unmark dir/file to be restored recursively in dir")},
+ { N_("unmarkdir"),  unmarkdircmd, _("unmark directory name only no recursion")},
+ { N_("quit"),       quitcmd,      _("quit and do not do restore")},
  { N_("?"),          helpcmd,      _("print help")},
 	     };
 #define comsize (sizeof(commands)/sizeof(struct cmdstruct))
@@ -173,7 +173,7 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
    }
    hard_link = (decode_LinkFI(row[4], &statp) != 0);
    node = insert_tree_node(row[0], row[1], type, tree->root, NULL);
-   JobId = (JobId_t)str_to_int64(row[3]);
+   JobId = str_to_int64(row[3]);
    FileIndex = str_to_int64(row[2]);
    /*
     * - The first time we see a file (node->inserted==true), we accept it.
@@ -591,7 +591,6 @@ static int helpcmd(UAContext *ua, TREE_CTX *tree)
 {
    unsigned int i;
 
-/* usage(); */
    bsendmsg(ua, _("  Command    Description\n  =======    ===========\n"));
    for (i=0; i<comsize; i++) {
       bsendmsg(ua, _("  %-10s %s\n"), _(commands[i].key), _(commands[i].help));

@@ -9,7 +9,7 @@
  */
 
 /*
-   Copyright (C) 2002-2004 Kern Sibbald and John Walker
+   Copyright (C) 2002-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -89,7 +89,7 @@ static int count_handler(void *ctx, int num_fields, char **row)
    struct s_count_ctx *cnt = (struct s_count_ctx *)ctx;
 
    if (row[0]) {
-      cnt->count = atoi(row[0]);
+      cnt->count = str_to_int64(row[0]);
    } else {
       cnt->count = 0;
    }
@@ -249,7 +249,7 @@ int prune_files(UAContext *ua, CLIENT *client)
    Dmsg1(050, "select sql=%s\n", query);
    if (!db_sql_query(ua->db, query, file_count_handler, (void *)&del)) {
       if (ua->verbose) {
-	 bsendmsg(ua, "%s", db_strerror(ua->db));
+         bsendmsg(ua, "%s", db_strerror(ua->db));
       }
       Dmsg0(050, "Count failed\n");
       goto bail_out;
@@ -257,7 +257,7 @@ int prune_files(UAContext *ua, CLIENT *client)
 
    if (del.tot_ids == 0) {
       if (ua->verbose) {
-	 bsendmsg(ua, _("No Files found to prune.\n"));
+         bsendmsg(ua, _("No Files found to prune.\n"));
       }
       goto bail_out;
    }
@@ -322,8 +322,8 @@ static int create_temp_tables(UAContext *ua)
    /* Create temp tables and indicies */
    for (i=0; create_deltabs[i]; i++) {
       if (!db_sql_query(ua->db, create_deltabs[i], NULL, (void *)NULL)) {
-	 bsendmsg(ua, "%s", db_strerror(ua->db));
-	 Dmsg0(050, "create DelTables table failed\n");
+         bsendmsg(ua, "%s", db_strerror(ua->db));
+         Dmsg0(050, "create DelTables table failed\n");
 	 return 0;
       }
    }
@@ -382,7 +382,7 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
    Mmsg(query, insert_delcand, (char)JobType, ed1, cr.ClientId);
    if (!db_sql_query(ua->db, query, NULL, (void *)NULL)) {
       if (ua->verbose) {
-	 bsendmsg(ua, "%s", db_strerror(ua->db));
+         bsendmsg(ua, "%s", db_strerror(ua->db));
       }
       Dmsg0(050, "insert delcand failed\n");
       goto bail_out;
@@ -400,7 +400,7 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
 
    if (cnt.count == 0) {
       if (ua->verbose) {
-	 bsendmsg(ua, _("No Jobs found to prune.\n"));
+         bsendmsg(ua, _("No Jobs found to prune.\n"));
       }
       goto bail_out;
    }
@@ -441,20 +441,20 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
       if (!del.PurgedFiles[i]) {
 	 Mmsg(query, del_File, del.JobId[i]);
 	 if (!db_sql_query(ua->db, query, NULL, (void *)NULL)) {
-	    bsendmsg(ua, "%s", db_strerror(ua->db));
+            bsendmsg(ua, "%s", db_strerror(ua->db));
 	 }
-	 Dmsg1(050, "Del sql=%s\n", query);
+         Dmsg1(050, "Del sql=%s\n", query);
       }
 
       Mmsg(query, del_Job, del.JobId[i]);
       if (!db_sql_query(ua->db, query, NULL, (void *)NULL)) {
-	 bsendmsg(ua, "%s", db_strerror(ua->db));
+         bsendmsg(ua, "%s", db_strerror(ua->db));
       }
       Dmsg1(050, "Del sql=%s\n", query);
 
       Mmsg(query, del_JobMedia, del.JobId[i]);
       if (!db_sql_query(ua->db, query, NULL, (void *)NULL)) {
-	 bsendmsg(ua, "%s", db_strerror(ua->db));
+         bsendmsg(ua, "%s", db_strerror(ua->db));
       }
       Dmsg1(050, "Del sql=%s\n", query);
    }
@@ -504,7 +504,7 @@ int prune_volume(UAContext *ua, MEDIA_DBR *mr)
 
    if (cnt.count == 0) {
       if (strcmp(mr->VolStatus, "Purged") != 0 && verbose) {
-	 bsendmsg(ua, "There are no Jobs associated with Volume \"%s\". Marking it purged.\n",
+         bsendmsg(ua, "There are no Jobs associated with Volume \"%s\". Marking it purged.\n",
 	    mr->VolumeName);
       }
       stat = mark_media_purged(ua, mr);
@@ -525,7 +525,7 @@ int prune_volume(UAContext *ua, MEDIA_DBR *mr)
    Mmsg(query, sel_JobMedia, mr->MediaId);
    if (!db_sql_query(ua->db, query, file_delete_handler, (void *)&del)) {
       if (ua->verbose) {
-	 bsendmsg(ua, "%s", db_strerror(ua->db));
+         bsendmsg(ua, "%s", db_strerror(ua->db));
       }
       Dmsg0(050, "Count failed\n");
       goto bail_out;
@@ -562,7 +562,7 @@ int prune_volume(UAContext *ua, MEDIA_DBR *mr)
    }
    if (ua->verbose && del.num_del != 0) {
       bsendmsg(ua, _("Pruned %d %s on Volume \"%s\" from catalog.\n"), del.num_del,
-	 del.num_del == 1 ? "Job" : "Jobs", mr->VolumeName);
+         del.num_del == 1 ? "Job" : "Jobs", mr->VolumeName);
    }
 
    /* If purged, mark it so */

@@ -2,8 +2,8 @@
  *
  *   Bootstrap Record header file
  *
- *	BSR (bootstrap record) handling routines split from
- *	  ua_restore.c July MMIII
+ *      BSR (bootstrap record) handling routines split from
+ *        ua_restore.c July MMIII
  *
  *     Kern Sibbald, July MMII
  *
@@ -11,7 +11,7 @@
  */
 
 /*
-   Copyright (C) 2002-2004 Kern Sibbald and John Walker
+   Copyright (C) 2002-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -47,11 +47,11 @@ struct RBSR_FINDEX {
  *    on which the Job is stored to the BSR.
  */
 struct RBSR {
-   RBSR *next;			      /* next JobId */
-   uint32_t JobId;		      /* JobId this bsr */
+   RBSR *next;                        /* next JobId */
+   uint32_t JobId;                    /* JobId this bsr */
    uint32_t VolSessionId;
    uint32_t VolSessionTime;
-   int	    VolCount;		      /* Volume parameter count */
-   VOL_PARAMS *VolParams;	      /* Volume, start/end file/blocks */
-   RBSR_FINDEX *fi;		      /* File indexes this JobId */
+   int      VolCount;                 /* Volume parameter count */
+   VOL_PARAMS *VolParams;             /* Volume, start/end file/blocks */
+   RBSR_FINDEX *fi;                   /* File indexes this JobId */
 };

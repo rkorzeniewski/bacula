@@ -32,14 +32,14 @@ case "$1" in
 	  OPTIONS="${OPTIONS} -g ${SD_GROUP}"
        fi
 										      
-       echo -n "Starting the Bacula Storage daemon: "
+       echo -n "Starting Bacula Storage services: "
        daemon @sbindir@/bacula-sd $2 ${OPTIONS} -c @sysconfdir@/bacula-sd.conf
        RETVAL=$?
        echo
        [ $RETVAL -eq 0 ] && touch @subsysdir@/bacula-sd
        ;;
     stop)
-       echo -n "Stopping the Bacula Storage daemon: "
+       echo -n "Stopping Bacula Storage services: "
        killproc @sbindir@/bacula-sd
        RETVAL=$?
        echo

@@ -220,6 +220,7 @@ const char *uar_create_temp =
    "ClientId INTEGER,"
    "Level CHAR,"
    "JobFiles INTEGER,"
+   "JobBytes BIGINT,"
    "StartTime TEXT,"
    "VolumeName TEXT,"
    "StartFile INTEGER,"
@@ -231,6 +232,7 @@ const char *uar_create_temp =
    "ClientId INTEGER UNSIGNED,"
    "Level CHAR,"
    "JobFiles INTEGER UNSIGNED,"
+   "JobBytes BIGINT UNSIGNED,"
    "StartTime TEXT,"
    "VolumeName TEXT,"
    "StartFile INTEGER UNSIGNED,"
@@ -263,8 +265,8 @@ const char *uar_last_full =
 
 const char *uar_full =
    "INSERT INTO temp SELECT Job.JobId,Job.JobTDate,"
-   " Job.ClientId,Job.Level,Job.JobFiles,"
-   " StartTime,VolumeName,JobMedia.StartFile,VolSessionId,VolSessionTime "
+   "Job.ClientId,Job.Level,Job.JobFiles,Job.JobBytes,"
+   "StartTime,VolumeName,JobMedia.StartFile,VolSessionId,VolSessionTime "
    "FROM temp1,Job,JobMedia,Media WHERE temp1.JobId=Job.JobId "
    "AND Level='F' AND JobStatus='T' "
    "AND JobMedia.JobId=Job.JobId "
@@ -272,7 +274,8 @@ const char *uar_full =
 
 const char *uar_dif =
    "INSERT INTO temp SELECT Job.JobId,Job.JobTDate,Job.ClientId,"
-   "Job.Level,Job.JobFiles,Job.StartTime,Media.VolumeName,JobMedia.StartFile,"
+   "Job.Level,Job.JobFiles,Job.JobBytes,"
+   "Job.StartTime,Media.VolumeName,JobMedia.StartFile,"
    "Job.VolSessionId,Job.VolSessionTime "
    "FROM Job,JobMedia,Media,FileSet "
    "WHERE Job.JobTDate>%s AND Job.StartTime<'%s' "
@@ -287,7 +290,8 @@ const char *uar_dif =
 
 const char *uar_inc =
    "INSERT INTO temp SELECT Job.JobId,Job.JobTDate,Job.ClientId,"
-   "Job.Level,Job.JobFiles,Job.StartTime,Media.VolumeName,JobMedia.StartFile,"
+   "Job.Level,Job.JobFiles,Job.JobBytes,"
+   "Job.StartTime,Media.VolumeName,JobMedia.StartFile,"
    "Job.VolSessionId,Job.VolSessionTime "
    "FROM Job,JobMedia,Media,FileSet "
    "WHERE Job.JobTDate>%s AND Job.StartTime<'%s' "
@@ -300,9 +304,9 @@ const char *uar_inc =
    "%s";
 
 const char *uar_list_temp =
-   "SELECT JobId,Level,JobFiles,StartTime,VolumeName,StartFile,"
-   "VolSessionId,VolSessionTime FROM temp "
-   "ORDER BY StartTime ASC";
+   "SELECT JobId,Level,JobFiles,JobBytes,StartTime,VolumeName,StartFile"
+   " FROM temp"
+   " GROUP BY JobId ORDER BY StartTime,StartFile ASC";
 
 
 const char *uar_sel_jobid_temp = "SELECT JobId FROM temp ORDER BY StartTime ASC";
@@ -353,3 +357,17 @@ const char *uar_jobids_fileindex =
    "AND Path.PathId=File.PathId "
    "AND Filename.FilenameId=File.FilenameId "
    "ORDER BY Job.StartTime DESC LIMIT 1";
+
+/* Query to get all files in a directory -- no recursing */
+// cleanup needed -- add client, ...
+const char *uar_jobid_fileindex_from_dir = 
+   "SELECT Job.JobId,File.FileIndex FROM Job,File,Path,Filename,Client "
+   "WHERE Job.JobId IN (%s) "
+   "WHERE Job.JobId=File.JobId "
+   "AND Path.Path='%s' "
+   "AND Client.Name='%s' "
+   "AND Job.ClientId=Client.ClientId "
+   "AND Path.PathId=File.Pathid "
+   "AND Filename.FilenameId=File.FilenameId "
+   "GROUP BY File.FileIndex ";
+ 

@@ -310,6 +310,8 @@ void print_bsr(UAContext *ua, RBSR *bsr)
 }
 
 
+
+
 /*
  * Add a FileIndex to the list of BootStrap records.
  *  Here we are only dealing with JobId's and the FileIndexes
@@ -406,3 +408,54 @@ void add_findex(RBSR *bsr, uint32_t JobId, int32_t findex)
    lfi->next = fi;
    return;
 }
+
+/*
+ * Add all possible  FileIndexes to the list of BootStrap records.
+ *  Here we are only dealing with JobId's and the FileIndexes
+ *  associated with those JobIds.
+ */
+void add_findex_all(RBSR *bsr, uint32_t JobId)
+{
+   RBSR *nbsr;
+   RBSR_FINDEX *fi;
+
+   if (bsr->fi == NULL) {	      /* if no FI add one */
+      /* This is the first FileIndex item in the chain */
+      bsr->fi = new_findex();
+      bsr->JobId = JobId;
+      bsr->fi->findex = 1;
+      bsr->fi->findex2 = INT32_MAX;
+      return;
+   }
+   /* Walk down list of bsrs until we find the JobId */
+   if (bsr->JobId != JobId) {
+      for (nbsr=bsr->next; nbsr; nbsr=nbsr->next) {
+	 if (nbsr->JobId == JobId) {
+	    bsr = nbsr;
+	    break;
+	 }
+      }
+
+      if (!nbsr) {		      /* Must add new JobId */
+	 /* Add new JobId at end of chain */
+	 for (nbsr=bsr; nbsr->next; nbsr=nbsr->next)
+	    {  }
+	 nbsr->next = new_bsr();
+	 nbsr->next->JobId = JobId;
+	 nbsr->next->fi = new_findex();
+	 nbsr->next->fi->findex = 1;
+	 nbsr->next->fi->findex2 = INT32_MAX;
+	 return;
+      }
+   }
+
+   /*
+    * At this point, bsr points to bsr containing this JobId,
+    *  and we are sure that there is at least one fi record.
+    */
+   fi = bsr->fi;
+   fi->findex = 1;
+   fi->findex2 = INT32_MAX;
+   return;
+}
+

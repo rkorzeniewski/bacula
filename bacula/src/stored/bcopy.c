@@ -8,7 +8,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2002-2004 Kern Sibbald and John Walker
+   Copyright (C) 2002-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -54,7 +54,7 @@ bool forge_on = true;
 static void usage()
 {
    fprintf(stderr, _(
-"Copyright (C) 2002-2004 Kern Sibbald and John Walker.\n"
+"Copyright (C) 2002-2005 Kern Sibbald.\n"
 "\nVersion: " VERSION " (" BDATE ")\n\n"
 "Usage: bcopy [-d debug_level] <input-archive> <output-archive>\n"
 "       -b bootstrap      specify a bootstrap file\n"

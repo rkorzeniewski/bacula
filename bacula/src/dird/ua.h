@@ -6,7 +6,7 @@
  *     Version $Id$
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -51,6 +51,7 @@ struct UAContext {
    bool batch;                        /* set for non-interactive mode */
    uint32_t pint32_val;               /* positive integer */
    int32_t  int32_val;                /* positive/negative */
+   int64_t  int64_val;                /* big int */
 };
 
 /* Context for insert_tree_handler() */

@@ -31,14 +31,14 @@ case "$1" in
        if [ "${DIR_GROUP}" != '' ]; then
 	  OPTIONS="${OPTIONS} -g ${DIR_GROUP}"
        fi
-       echo -n "Starting the Bacula Director: "
+       echo -n "Starting Bacula Director services: "
        daemon @sbindir@/bacula-dir $2 ${OPTIONS} -c @sysconfdir@/bacula-dir.conf
        RETVAL=$?
        echo
        [ $RETVAL -eq 0 ] && touch @subsysdir@/bacula-dir
        ;;
     stop)
-       echo -n "Stopping the Director daemon: "
+       echo -n "Stopping Bacula Director services: "
        killproc @sbindir@/bacula-dir
        RETVAL=$?
        echo
