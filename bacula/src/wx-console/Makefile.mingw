@@ -1,5 +1,5 @@
-CPP  = g++.exe -D__DEBUG__ -DHAVE_MINGW
-CC   = gcc.exe -D__DEBUG__ -DHAVE_MINGW
+CPP  = g++.exe -D__DEBUG__ -DHAVE_MINGW -DHAVE_WIN32
+CC   = gcc.exe -D__DEBUG__ -DHAVE_MINGW -DHAVE_WIN32
 WINDRES = windres.exe
 RES  = wx-console_private.res
 OBJ  = main.o console_thread.o authenticate.o console_conf.o wxbrestorepanel.o wxbmainframe.o wxbtableparser.o wxbtreectrl.o wxblistctrl.o wxbutils.o $(RES)
