@@ -154,7 +154,7 @@ int main (int argc, char *argv[])
    }
    /* For we must now acquire the device for writing */
    lock_device(out_dev);
-   if (open_dev(out_dev, out_jcr->VolumeName, READ_WRITE) < 0) {
+   if (open_dev(out_dev, out_jcr->VolumeName, OPEN_READ_WRITE) < 0) {
       Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), out_dev->errmsg);
       unlock_device(out_dev);
       exit(1);

@@ -339,39 +339,6 @@ void rem_msg_dest(MSGS *msg, int dest_code, int msg_type, char *where)
    }
 }
 
-static void make_unique_spool_filename(JCR *jcr, POOLMEM **name, int fd)
-{
-   Mmsg(name, "%s/%s.spool.%s.%d", working_directory, my_name,
-      jcr->Job, fd);
-}
-
-int open_spool_file(JCR *jcr, BSOCK *bs)
-{
-    POOLMEM *name  = get_pool_memory(PM_MESSAGE);
-
-    make_unique_spool_filename(jcr, &name, bs->fd);
-    bs->spool_fd = fopen(mp_chr(name), "w+");
-    if (!bs->spool_fd) {
-       Jmsg(jcr, M_ERROR, 0, "fopen spool file %s failed: ERR=%s\n", name, strerror(errno));
-       free_pool_memory(name);
-       return 0;
-    }
-    free_pool_memory(name);
-    return 1;
-}
-
-int close_spool_file(JCR *jcr, BSOCK *bs)
-{
-    POOLMEM *name  = get_pool_memory(PM_MESSAGE);
-
-    make_unique_spool_filename(jcr, &name, bs->fd);
-    fclose(bs->spool_fd);
-    unlink(mp_chr(name));
-    free_pool_memory(name);
-    bs->spool_fd = NULL;
-    bs->spool = 0;
-    return 1;
-}
 
 /*
  * Create a unique filename for the mail command
