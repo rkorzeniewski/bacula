@@ -207,7 +207,7 @@ int bstrerror(int errnum, char *buf, size_t bufsiz)
     static pthread_mutex_t mutex;
     static int first = 1;
     int stat = 0;
-    char *msg;
+    const char *msg;
 
     if (first) {
        pthread_mutex_init(&mutex, NULL);

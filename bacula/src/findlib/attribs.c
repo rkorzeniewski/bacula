@@ -151,8 +151,12 @@ void encode_stat(char *buf, FF_PKT *ff_pkt, int data_stream)
 
 
 /* Do casting according to unknown type to keep compiler happy */
+#if !HAVE_GCC & HAVE_SUN_OS
+#define plug(st, val) st = val	      /* brain damaged compiler */
+#else
 template <class T> void plug(T &st, uint64_t val)
     { st = static_cast<T>(val); }
+#endif
 
 
 /* Decode a stat packet from base64 characters */

@@ -509,7 +509,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
    if (bfd->prog) {
       POOLMEM *ecmd = get_pool_memory(PM_FNAME);
       ecmd = edit_job_codes(bfd->jcr, ecmd, bfd->prog, fname);
-      char *pmode;
+      const char *pmode;
       if (flags & O_RDONLY) {
          pmode = "r";
       } else {

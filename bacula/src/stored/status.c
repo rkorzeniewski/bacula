@@ -425,10 +425,12 @@ static void sendit(const char *msg, int len, void *arg)
 int qstatus_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
-   char time[dir->msglen+1];
+   char *time;
    JCR *njcr;
    s_last_job* job;
-      
+
+   time = (char *) alloca(dir->msglen+1);
+   
    if (sscanf(dir->msg, qstatus, time) != 1) {
       pm_strcpy(&jcr->errmsg, dir->msg);
       Jmsg1(jcr, M_FATAL, 0, _("Bad .status command: %s\n"), jcr->errmsg);

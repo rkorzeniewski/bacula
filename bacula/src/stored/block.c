@@ -345,7 +345,7 @@ bool write_block_to_device(DCR *dcr, DEV_BLOCK *block)
       /* Create a jobmedia record for this job */
       if (!dir_create_jobmedia_record(dcr)) {
 	 dev->dev_errno = EIO;
-         Jmsg(jcr, M_ERROR, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
+         Jmsg(jcr, M_FATAL, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
 	    jcr->VolCatInfo.VolCatName, jcr->Job);
 	 set_new_volume_parameters(dcr);
 	 stat = false;
@@ -361,7 +361,11 @@ bool write_block_to_device(DCR *dcr, DEV_BLOCK *block)
    }
 
    if (!write_block_to_dev(dcr, block)) {
-       stat = fixup_device_block_write_error(dcr, block);
+       if (job_canceled(jcr)) {
+	  stat = 0;
+       } else {
+	  stat = fixup_device_block_write_error(dcr, block);
+       }
    }
 
 bail_out:
@@ -382,7 +386,7 @@ bool write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
    ssize_t stat = 0;
    uint32_t wlen;		      /* length to write */
    int hit_max1, hit_max2;
-   bool ok;
+   bool ok = true;
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
 
@@ -452,7 +456,7 @@ bool write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
 	    edit_uint64_with_commas(max_cap, ed1),  dev->dev_name);
       block->write_failed = true;
       if (weof_dev(dev, 1) != 0) {	      /* end tape */
-         Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
+         Jmsg(jcr, M_FATAL, 0, "%s", dev->errmsg);
 	 dev->VolCatInfo.VolCatErrors++;
       }
       /* Don't do update after second EOF or file count will be wrong */
@@ -460,6 +464,7 @@ bool write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
       dev->VolCatInfo.VolCatFiles = dev->file;
       dir_update_volume_info(dcr, false);
       if (dev_cap(dev, CAP_TWOEOF) && weof_dev(dev, 1) != 0) {	/* write eof */
+	 /* This may not be fatal since we already wrote an EOF */
          Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
 	 dev->VolCatInfo.VolCatErrors++;
       }
@@ -474,7 +479,7 @@ bool write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
 
       if (dev_state(dev, ST_TAPE) && weof_dev(dev, 1) != 0) {		 /* write eof */
 	 /* Write EOF */
-         Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
+         Jmsg(jcr, M_FATAL, 0, "%s", dev->errmsg);
 	 block->write_failed = true;
 	 dev->VolCatInfo.VolCatErrors++;
 	 dev->state |= (ST_EOF | ST_EOT | ST_WEOT);
@@ -543,14 +548,14 @@ bool write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
 #endif
 
    if (stat != (ssize_t)wlen) {
-      /* We should check for errno == ENOSPC, BUT many 
-       * devices simply report EIO when the volume is full.
+      /* Some devices simply report EIO when the volume is full.
        * With a little more thought we may be able to check
        * capacity and distinguish real errors and EOT
        * conditions.  In any case, we probably want to
        * simulate an End of Medium.
        */
       if (stat == -1) {
+	 berrno be;
 	 /* I have added the ifdefing here because it appears on
 	  * FreeBSD where MTIOCERRSTAT is defined, this not only
 	  * clears the error but clears the residual unwritten
@@ -562,33 +567,37 @@ bool write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
 	 if (dev->dev_errno == 0) {
 	    dev->dev_errno = ENOSPC;	    /* out of space */
 	 }
-         Jmsg4(jcr, M_ERROR, 0, _("Write error at %u:%u on device %s. ERR=%s.\n"), 
-	    dev->file, dev->block_num, dev->dev_name, strerror(dev->dev_errno));
+	 if (dev->dev_errno != ENOSPC) {
+            Jmsg4(jcr, M_ERROR, 0, _("Write error at %u:%u on device %s. ERR=%s.\n"), 
+	       dev->file, dev->block_num, dev->dev_name, be.strerror());
+	 }
       } else {
 	dev->dev_errno = ENOSPC;	    /* out of space */
+      }  
+      if (dev->dev_errno == ENOSPC) {
          Jmsg(jcr, M_INFO, 0, _("End of Volume \"%s\" at %u:%u on device %s. Write of %u bytes got %d.\n"), 
 	    dev->VolCatInfo.VolCatName,
 	    dev->file, dev->block_num, dev->dev_name, wlen, stat);
-      }  
-
+      }
       Dmsg6(100, "=== Write error. size=%u rtn=%d dev_blk=%d blk_blk=%d errno=%d: ERR=%s\n", 
 	 wlen, stat, dev->block_num, block->BlockNumber, dev->dev_errno, strerror(dev->dev_errno));
 
       block->write_failed = true;
       if (weof_dev(dev, 1) != 0) {	   /* end the tape */
 	 dev->VolCatInfo.VolCatErrors++;
-         Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
+         Jmsg(jcr, M_FATAL, 0, "%s", dev->errmsg);
+	 ok = false;
       }
       Dmsg0(100, "dir_update_volume_info\n");
       dev->VolCatInfo.VolCatFiles = dev->file;
       dir_update_volume_info(dcr, false);
-      if (dev_cap(dev, CAP_TWOEOF) && weof_dev(dev, 1) != 0) {	/* end the tape */
+      if (ok && dev_cap(dev, CAP_TWOEOF) && weof_dev(dev, 1) != 0) {  /* end the tape */
 	 dev->VolCatInfo.VolCatErrors++;
+	 /* This may not be fatal since we already wrote an EOF */
          Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       }
       dev->state |= (ST_EOF | ST_EOT | ST_WEOT);
 	
-      ok = true;
 #define CHECK_LAST_BLOCK
 #ifdef	CHECK_LAST_BLOCK
       /* 
@@ -598,8 +607,7 @@ bool write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
        *   then re-read it and verify that the block number is
        *   correct.
        */
-      if ((dev->state & ST_TAPE) && dev_cap(dev, CAP_BSR)) {
-
+      if (ok && (dev->state & ST_TAPE) && dev_cap(dev, CAP_BSR)) {
 	 /* Now back up over what we wrote and read the last block */
 	 if (!bsf_dev(dev, 1)) {
 	    ok = false;

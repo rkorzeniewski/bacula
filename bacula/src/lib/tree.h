@@ -72,7 +72,7 @@ struct s_tree_root {
     *  do initialization of child */
    dlink sibling;
    dlist child;
-   char *fname; 		      /* file name */
+   const char *fname; 		      /* file name */
    int32_t FileIndex;		      /* file index */
    uint32_t JobId;		      /* JobId */
    uint16_t fname_len;		      /* filename length */
