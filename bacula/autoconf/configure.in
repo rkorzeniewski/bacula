@@ -1237,7 +1237,7 @@ gentoo)
 	DISTVER=`awk '/version / {print $5}' < /etc/gentoo-release`
 	TAPEDRIVE="/dev/nst0"
 	PSCMD="ps -e -o pid,command"
-	PFILES="\
+	PFILES="${PFILES} \
 	    platforms/gentoo/Makefile \
 	    platforms/gentoo/bacula-fd \
 	    platforms/gentoo/bacula-sd \
