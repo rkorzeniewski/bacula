@@ -85,19 +85,25 @@ installdirs:
 	$(MKDIR) $(DESTDIR)$(scriptdir)
 	$(MKDIR) $(DESTDIR)$(working_dir)
 #	$(MKDIR) $(DESTDIR)$(mandir)
+	$(MKDIR) $(DESTDIR)/usr/share/pixmaps
+	$(MKDIR) $(DESTDIR)/usr/share/gnome/apps/System
+	$(MKDIR) $(DESTDIR)/usr/share/applications
+	$(MKDIR) $(DESTDIR)/etc/security/console.apps
+	$(MKDIR) $(DESTDIR)/etc/pam.d
+	$(MKDIR) $(DESTDIR)/usr/bin
 
 install-menu: installdirs
-	${INSTALL_DATA} scripts/bacula.png $DESTDIR/usr/share/pixmaps/bacula.png
-	${INSTALL_DATA} scripts/bacula.desktop.gnome1 $DESTDIR/usr/share/gnome/apps/System/bacula.desktop
-	${INSTALL_DATA} scripts/bacula.desktop.gnome2 $DESTDIRusr/share/applications/bacula.desktop
+	${INSTALL_DATA} scripts/bacula.png $(DESTDIR)/usr/share/pixmaps/bacula.png
+	${INSTALL_DATA} scripts/bacula.desktop.gnome1 $(DESTDIR)/usr/share/gnome/apps/System/bacula.desktop
+	${INSTALL_DATA} scripts/bacula.desktop.gnome2 $(DESTDIR)/usr/share/applications/bacula.desktop
 
 install-menu-consolehelper: installdirs
-	${INSTALL_DATA} scripts/bacula.png $DESTDIR/usr/share/pixmaps/bacula.png
-	${INSTALL_DATA} scripts/bacula.desktop.gnome1.consolehelper $DESTDIR/usr/share/gnome/apps/System/bacula.desktop
-	${INSTALL_DATA} scripts/bacula.desktop.gnome2.consolehelper $DESTDIR/usr/share/applications/bacula.desktop
-	${INSTALL_DATA} scripts/gnome-console.console_apps $DESTDIR/etc/security/console.apps/gnome-console
-	${INSTALL_DATA} scripts/gnome-console.pamd $DESTDIR/etc/pam.d/gnome-console
-	ln -s $DESTDIR/usr/bin/consolehelper $DESTDIR/usr/bin/gnome-console
+	${INSTALL_DATA} scripts/bacula.png $(DESTDIR)/usr/share/pixmaps/bacula.png
+	${INSTALL_DATA} scripts/bacula.desktop.gnome1.consolehelper $(DESTDIR)/usr/share/gnome/apps/System/bacula.desktop
+	${INSTALL_DATA} scripts/bacula.desktop.gnome2.consolehelper $(DESTDIR)/usr/share/applications/bacula.desktop
+	${INSTALL_DATA} scripts/gnome-console.console_apps $(DESTDIR)/etc/security/console.apps/gnome-console
+	${INSTALL_DATA} scripts/gnome-console.pamd $(DESTDIR)/etc/pam.d/gnome-console
+	ln -s /usr/bin/consolehelper $(DESTDIR)/usr/bin/gnome-console
 
 install: installdirs
 	@for I in $(all_subdirs); do (cd $$I; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1); done
