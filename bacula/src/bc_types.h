@@ -181,4 +181,5 @@ typedef float             float32_t;
 
 #ifdef HAVE_CYGWIN
 #define socklen_t int
+#define int_least16_t int32_t
 #endif
