@@ -1,4 +1,7 @@
 2003-01-24 Version 1.29 released
+23Jan03
+- Tightened up permissions on all .conf files to be 640 so they are not
+  world readable.
 22Jan03
 - Added prefixlinks=yes/no Job record to specify applying the Where
   prefix to absolute soft links.  Code is not yet passed to FD, because
