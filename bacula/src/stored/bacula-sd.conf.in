@@ -49,6 +49,7 @@ Device {
 #  AutomaticMount = yes;               # when device opened, read it
 #  AlwaysOpen = yes;
 #  RemovableMedia = yes;
+#  RandomAccess = no;
 #}
 
 #
@@ -62,6 +63,7 @@ Device {
 #  AutomaticMount = yes;               # when device opened, read it
 #  AlwaysOpen = Yes;
 #  RemovableMedia = yes;
+#  RandomAccess = no;
 #}
 
 # 

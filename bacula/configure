@@ -18940,9 +18940,10 @@ chmod 755 src/cats/create_mysql_database
 chmod 755 src/cats/make_catalog_backup src/cats/delete_catalog_backup
 chmod 755 src/cats/grant_mysql_privileges
 chmod 755 src/cats/make_sqlite_tables src/cats/drop_sqlite_tables
+chmod 755 src/cats/update_sqlite_tables
 chmod 755 src/cats/make_bacula_tables src/cats/drop_bacula_tables
+chmod 755 src/cats/update_mysql_tables
 chmod 755 src/cats/update_bacula_tables src/cats/update_mysql_tables
-chmod 755 src/cats/update/mysql_tables
 chmod 755 src/cats/create_sqlite_database
 chmod 755 src/cats/sqlite
 chmod 755 src/cats/make_bdb_tables src/cats/drop_bdb_tables
