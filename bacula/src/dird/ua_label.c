@@ -189,6 +189,10 @@ int update_slots(UAContext *ua)
 
    /* Walk through the list updating the media records */
    for (vl=vol_list; vl; vl=vl->next) {
+      if (vl->Slot >= max_slots) {
+         bsendmsg(ua, _("Slot %d larger than max %d ignored.\n"));
+	 continue;
+      }
       /* Check if user wants us to look at this slot */
       if (!slot_list[vl->Slot]) {
          Dmsg1(100, "Skipping slot=%d\n", vl->Slot);
@@ -203,8 +207,17 @@ int update_slots(UAContext *ua)
 	 vl->VolName = get_volume_name_from_SD(ua, vl->Slot);
          Dmsg2(100, "Got Vol=%s from SD for Slot=%d\n", vl->VolName, vl->Slot);
       }
+      slot_list[vl->Slot] = 0;	      /* clear Slot */
       if (!vl->VolName) {
-         Dmsg1(100, "No VolName for Slot=%d skipping.\n", vl->Slot);
+         Dmsg1(100, "No VolName for Slot=%d setting InChanger to zero.\n", vl->Slot);
+	 memset(&mr, 0, sizeof(mr));
+	 mr.Slot = vl->Slot;
+	 mr.InChanger = 1;
+	 /* Set InChanger to zero for this Slot */
+	 db_lock(ua->db);
+	 db_make_inchanger_unique(ua->jcr, ua->db, &mr);
+	 db_unlock(ua->db);
+         bsendmsg(ua, _("No VolName for Slot=%d set InChanger to zero.\n"), vl->Slot);
 	 continue;
       }
       memset(&mr, 0, sizeof(mr));
@@ -233,8 +246,19 @@ int update_slots(UAContext *ua)
       }
       db_unlock(ua->db);
    }
-
-
+   memset(&mr, 0, sizeof(mr));
+   mr.InChanger = 1;
+   for (int i=1; i<max_slots; i++) {
+      if (slot_list[i]) {
+	 mr.Slot = i;
+	 /* Set InChanger to zero for this Slot */
+	 db_lock(ua->db);
+	 db_make_inchanger_unique(ua->jcr, ua->db, &mr);
+	 db_unlock(ua->db);
+         bsendmsg(ua, _("No VolName for Slot=%d set InChanger to zero.\n"), i);
+      }
+   }
+      
 bail_out:
 
    free_vol_list(vol_list);
@@ -419,8 +443,7 @@ static void label_from_barcodes(UAContext *ua)
 
    slot_list = (char *)malloc(max_slots);
    if (!get_user_slot_list(ua, slot_list, max_slots)) {
-      free(slot_list);
-      return;
+      goto bail_out;
    }
 
    vol_list = get_vol_list_from_SD(ua, false /*no scan*/);
@@ -498,13 +521,12 @@ static void label_from_barcodes(UAContext *ua)
       bstrncpy(mr.MediaType, store->media_type, sizeof(mr.MediaType));
 
       mr.Slot = vl->Slot;
-      if (!send_label_request(ua, &mr, &omr, &pr, 0, media_record_exists)) {
-	 goto bail_out;
-      }
+      send_label_request(ua, &mr, &omr, &pr, 0, media_record_exists);
    }
 
 
 bail_out:
+   free(slot_list);
    free_vol_list(vol_list);
    close_sd_bsock(ua);
 
@@ -611,7 +633,7 @@ static int send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
 	 }
       }
    } else {
-      bsendmsg(ua, _("Label command failed.\n"));
+      bsendmsg(ua, _("Label command failed for Volume %s.\n"), mr->VolumeName);
    }
    return ok;
 }
@@ -778,6 +800,7 @@ static vol_list_t *get_vol_list_from_SD(UAContext *ua, bool scan)
 static void free_vol_list(vol_list_t *vol_list)
 {
    vol_list_t *vl;
+
    /* Free list */
    for (vl=vol_list; vl; ) {
       vol_list_t *ovl;
