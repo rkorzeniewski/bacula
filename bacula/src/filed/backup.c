@@ -162,13 +162,13 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
    case FT_INVALIDFS:
    case FT_DIREND:
       if (ff_pkt->type == FT_NORECURSE) {
-	 Jmsg(jcr, M_INFO, 1, _("     Recursion turned off. Will not descend into %s\n"),
+         Jmsg(jcr, M_INFO, 1, _("     Recursion turned off. Will not descend into %s\n"),
 	    ff_pkt->fname);
       } else if (ff_pkt->type == FT_NOFSCHG) {
-	 Jmsg(jcr, M_INFO, 1, _("     File system change prohibited. Will not descend into %s\n"),
+         Jmsg(jcr, M_INFO, 1, _("     File system change prohibited. Will not descend into %s\n"),
 	    ff_pkt->fname);
       } else if (ff_pkt->type == FT_INVALIDFS) {
-	 Jmsg(jcr, M_INFO, 1, _("     Disallowed filesystem. Will not descend into %s\n"),
+         Jmsg(jcr, M_INFO, 1, _("     Disallowed filesystem. Will not descend into %s\n"),
 	    ff_pkt->fname);
       }
       ff_pkt->type = FT_DIREND;       /* value is used below */
@@ -325,7 +325,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       if (bopen(&ff_pkt->bfd, ff_pkt->fname, O_RDONLY | O_BINARY, 0) < 0) {
 	 ff_pkt->ff_errno = errno;
 	 berrno be;
-	 Jmsg(jcr, M_NOTSAVED, 0, _("     Cannot open %s: ERR=%s.\n"), ff_pkt->fname,
+         Jmsg(jcr, M_NOTSAVED, 0, _("     Cannot open %s: ERR=%s.\n"), ff_pkt->fname,
 	      be.strerror());
 	 jcr->Errors++;
 	 if (tid) {
@@ -354,7 +354,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	 if (!bopen_rsrc(&ff_pkt->bfd, ff_pkt->fname, O_RDONLY | O_BINARY, 0) < 0) {
 	    ff_pkt->ff_errno = errno;
 	    berrno be;
-	    Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open resource fork for %s: ERR=%s.\n"), ff_pkt->fname,
+            Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open resource fork for %s: ERR=%s.\n"), ff_pkt->fname,
 		  be.strerror());
 	    jcr->Errors++;
 	    if (is_bopen(&ff_pkt->bfd)) {
@@ -397,24 +397,24 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	 /* Check for Access ACL */
 	 acl_t myAccAcl = acl_get_file(ff_pkt->fname, ACL_TYPE_ACCESS);
 	 if (!myDefAcl || !myAccAcl) {
-	    Jmsg1(jcr, M_WARNING, 0, "Error while trying to get ACL of directory: %s!\n", ff_pkt->fname);
+            Jmsg1(jcr, M_WARNING, 0, "Error while trying to get ACL of directory: %s!\n", ff_pkt->fname);
 	 }
 	 if(myDefAcl){
-	    aclDef_text = acl_to_any_text(myDefAcl, NULL, ',', TEXT_ABBREVIATE);
+            aclDef_text = acl_to_any_text(myDefAcl, NULL, ',', TEXT_ABBREVIATE);
 	    acl_free(myDefAcl);
 	 }
 	 if(myAccAcl){
-	    acl_text = acl_to_any_text(myAccAcl, NULL, ',', TEXT_ABBREVIATE);
+            acl_text = acl_to_any_text(myAccAcl, NULL, ',', TEXT_ABBREVIATE);
 	    acl_free(myAccAcl);
 	 }
       } else {
 	 /* Files or links */
 	 acl_t myAcl = acl_get_file(ff_pkt->fname, ACL_TYPE_ACCESS);
 	 if (!myAcl) {
-	    Jmsg1(jcr, M_WARNING, 0, "Error while trying to get ACL of file: %s!\n", ff_pkt->fname);
+            Jmsg1(jcr, M_WARNING, 0, "Error while trying to get ACL of file: %s!\n", ff_pkt->fname);
 	    acl_free(myAcl);
 	 }
-	 acl_text = acl_to_any_text(myAcl, NULL, ',', TEXT_ABBREVIATE);
+         acl_text = acl_to_any_text(myAcl, NULL, ',', TEXT_ABBREVIATE);
 	 acl_free(myAcl);
       }
 
@@ -427,9 +427,9 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 
 
 	 // Send ACL header
-	 if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_UNIX_ATTRIBUTES_ACCESS_ACL)) {
+         if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_UNIX_ATTRIBUTES_ACCESS_ACL)) {
 	    berrno be;
-	    Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+            Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
 		  bnet_strerror(sd));
 	    return 0;
 	 }
@@ -442,17 +442,17 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	    berrno be;
 	    sd->msg = msgsave;
 	    sd->msglen = 0;
-	    Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+            Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
 		  bnet_strerror(sd));
 	 } else {
 	    jcr->JobBytes += sd->msglen;
 	    sd->msg = msgsave;
 	    if (!bnet_sig(sd, BNET_EOD)) {
 	       berrno be;
-	       Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+               Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
 		     bnet_strerror(sd));
 	    } else {
-	       Dmsg1(200, "ACL of file: %s successfully backed up!\n", ff_pkt->fname);
+               Dmsg1(200, "ACL of file: %s successfully backed up!\n", ff_pkt->fname);
 	    }
 	 }
       }
@@ -463,9 +463,9 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 
 
 	 // Send ACL header
-	 if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_UNIX_ATTRIBUTES_DEFAULT_ACL)) {
+         if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_UNIX_ATTRIBUTES_DEFAULT_ACL)) {
 	    berrno be;
-	    Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+            Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
 		  bnet_strerror(sd));
 	    return 0;
 	 }
@@ -478,17 +478,17 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	    berrno be;
 	    sd->msg = msgsave;
 	    sd->msglen = 0;
-	    Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+            Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
 		  bnet_strerror(sd));
 	 } else {
 	    jcr->JobBytes += sd->msglen;
 	    sd->msg = msgsave;
 	    if (!bnet_sig(sd, BNET_EOD)) {
 	       berrno be;
-	       Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+               Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
 		     bnet_strerror(sd));
 	    } else {
-	       Dmsg1(200, "ACL of file: %s successfully backed up!\n", ff_pkt->fname);
+               Dmsg1(200, "ACL of file: %s successfully backed up!\n", ff_pkt->fname);
 	    }
 	 }
       }
@@ -504,11 +504,11 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       } else if (chksum.type == CHKSUM_SHA1) {
 	 stream = STREAM_SHA1_SIGNATURE;
       } else {
-	 Jmsg1(jcr, M_WARNING, 0, _("Unknown signature type %i."), chksum.type);
+         Jmsg1(jcr, M_WARNING, 0, _("Unknown signature type %i."), chksum.type);
       }
       if (stream != 0) {
-	 bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, stream);
-	 Dmsg1(300, "bfiled>stored:header %s\n", sd->msg);
+         bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, stream);
+         Dmsg1(300, "bfiled>stored:header %s\n", sd->msg);
 	 memcpy(sd->msg, chksum.signature, chksum.length);
 	 sd->msglen = chksum.length;
 	 bnet_send(sd);
@@ -617,19 +617,19 @@ int send_data(int stream, FF_PKT *ff_pkt, BSOCK *sd, JCR *jcr, struct CHKSUM *ch
       if (!sparseBlock && ff_pkt->flags & FO_GZIP) {
 	 int zstat;
 	 compress_len = max_compress_len;
-	 Dmsg4(400, "cbuf=0x%x len=%u rbuf=0x%x len=%u\n", cbuf, compress_len,
+         Dmsg4(400, "cbuf=0x%x len=%u rbuf=0x%x len=%u\n", cbuf, compress_len,
 	    rbuf, sd->msglen);
 	 /* NOTE! This call modifies compress_len !!! */
 	 if ((zstat=compress2((Bytef *)cbuf, &compress_len,
 	       (const Bytef *)rbuf, (uLong)sd->msglen,
 	       ff_pkt->GZIP_level)) != Z_OK) {
-	    Jmsg(jcr, M_FATAL, 0, _("Compression error: %d\n"), zstat);
+            Jmsg(jcr, M_FATAL, 0, _("Compression error: %d\n"), zstat);
 	    sd->msg = msgsave;
 	    sd->msglen = 0;
 	    set_jcr_job_status(jcr, JS_ErrorTerminated);
 	    return 0;
 	 }
-	 Dmsg2(400, "compressed len=%d uncompressed len=%d\n",
+         Dmsg2(400, "compressed len=%d uncompressed len=%d\n",
 	    compress_len, sd->msglen);
 
 	 sd->msglen = compress_len;	 /* set compressed length */
@@ -644,7 +644,7 @@ int send_data(int stream, FF_PKT *ff_pkt, BSOCK *sd, JCR *jcr, struct CHKSUM *ch
 	 sd->msg = wbuf;	      /* set correct write buffer */
 	 if (!bnet_send(sd)) {
 	    berrno be;
-	    Jmsg2(jcr, M_FATAL, 0, _("Network send error %d to SD. ERR=%s\n"),
+            Jmsg2(jcr, M_FATAL, 0, _("Network send error %d to SD. ERR=%s\n"),
 		  sd->msglen, bnet_strerror(sd));
 	    sd->msg = msgsave;	   /* restore bnet buffer */
 	    sd->msglen = 0;
@@ -661,13 +661,11 @@ int send_data(int stream, FF_PKT *ff_pkt, BSOCK *sd, JCR *jcr, struct CHKSUM *ch
 
    if (sd->msglen < 0) {
       berrno be;
-      be.set_errno(ff_pkt->bfd.berrno);
       Jmsg(jcr, M_ERROR, 0, _("Read error on file %s. ERR=%s\n"),
-	 ff_pkt->fname, be.strerror());
+	 ff_pkt->fname, be.strerror(ff_pkt->bfd.berrno));
    }
 
    if (!bnet_sig(sd, BNET_EOD)) {	 /* indicate end of file data */
-      berrno be;
       Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
 	    bnet_strerror(sd));
       return 0;
