@@ -201,7 +201,7 @@ static void find_runs()
    mday = tm.tm_mday - 1;
    wday = tm.tm_wday;
    month = tm.tm_mon;
-   wom = tm_wom(tm.tm_mday, tm.tm_wday);  /* get week of month */
+   wom = mday / 7;
    woy = tm_woy(now);			  /* get week of year */
 
    /* 
@@ -216,7 +216,7 @@ static void find_runs()
    nh_wday = tm.tm_wday;
    nh_month = tm.tm_mon;
    nh_year  = tm.tm_year;
-   nh_wom = tm_wom(tm.tm_mday, tm.tm_wday);  /* get week of month */
+   nh_wom = nh_mday / 7;
    nh_woy = tm_woy(now);		     /* get week of year */
 
    /* Loop through all jobs */
