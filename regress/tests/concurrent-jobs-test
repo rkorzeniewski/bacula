@@ -58,9 +58,9 @@ END_OF_DATA
 scripts/check_for_zombie_jobs storage=File
 
 bin/bacula stop 2>&1 >/dev/null
-grep "^Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
+grep "^ Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
 bstat=$?
-grep "^Termination: *Restore OK" tmp/log2.out 2>&1 >/dev/null
+grep "^ Termination: *Restore OK" tmp/log2.out 2>&1 >/dev/null
 rstat=$?
 diff tmp/largefile  tmp/bacula-restores${cwd}/tmp/largefile 2>&1 >/dev/null
 if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
