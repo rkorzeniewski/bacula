@@ -226,7 +226,7 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
       Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
           "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
           "VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,Recycle,Slot,"
-          "FirstWritten,LastWritten,VolStatus "
+          "FirstWritten,IFNULL(LastWritten,0),VolStatus "
           "FROM Media WHERE PoolId=%u AND MediaType='%s' AND VolStatus IN ('Full',"
           "'Recycle','Purged','Used','Append') "
           "ORDER BY LastWritten LIMIT 1", mr->PoolId, mr->MediaType); 
