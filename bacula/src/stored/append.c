@@ -205,17 +205,17 @@ int do_append_data(JCR *jcr)
 	     stream == STREAM_UNIX_ATTRIBUTES_EX || stream == STREAM_SHA1_SIGNATURE) { 
 	    if (!jcr->no_attributes) {
 	       if (are_attributes_spooled(jcr)) {
-		  jcr->dir_bsock->spool = 1;
+		  jcr->dir_bsock->spool = true;
 	       }
                Dmsg0(200, "Send attributes.\n");
 	       if (!dir_update_file_attributes(jcr, &rec)) {
+		  jcr->dir_bsock->spool = false;
                   Jmsg(jcr, M_FATAL, 0, _("Error updating file attributes. ERR=%s\n"),
 		     bnet_strerror(jcr->dir_bsock));
 		  ok = false;
-		  jcr->dir_bsock->spool = 0;
 		  break;
 	       }
-	       jcr->dir_bsock->spool = 0;
+	       jcr->dir_bsock->spool = false;
 	    }
 	 }
       }

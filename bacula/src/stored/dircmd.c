@@ -362,7 +362,7 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
 
    /* Ensure that the device is open -- autoload_device() closes it */
    for ( ; !(dev->state & ST_OPENED); ) {
-      if (open_dev(dev, jcr->VolumeName, READ_WRITE) < 0) {
+      if (open_dev(dev, jcr->VolumeName, OPEN_READ_WRITE) < 0) {
          bnet_fsend(dir, _("3910 Unable to open device %s. ERR=%s\n"), 
 	    dev_name(dev), strerror_dev(dev));
 	 goto bail_out;
@@ -498,7 +498,7 @@ static int mount_cmd(JCR *jcr)
 	 case BST_UNMOUNTED_WAITING_FOR_SYSOP:
 	 case BST_UNMOUNTED:
 	    /* We freed the device, so reopen it and wake any waiting threads */
-	    if (open_dev(dev, NULL, READ_WRITE) < 0) {
+	    if (open_dev(dev, NULL, OPEN_READ_WRITE) < 0) {
                bnet_fsend(dir, _("3901 open device failed: ERR=%s\n"), 
 		  strerror_dev(dev));
 	       break;
@@ -550,7 +550,7 @@ static int mount_cmd(JCR *jcr)
                   bnet_fsend(dir, _("3906 cannot mount non-tape.\n"));
 		  break;
 	       }
-	       if (open_dev(dev, NULL, READ_WRITE) < 0) {
+	       if (open_dev(dev, NULL, OPEN_READ_WRITE) < 0) {
                   bnet_fsend(dir, _("3901 open device failed: ERR=%s\n"), 
 		     strerror_dev(dev));
 		  break;
@@ -838,7 +838,7 @@ static void read_volume_label(JCR *jcr, DEVICE *dev, int Slot)
 
    /* Ensure that the device is open -- autoload_device() closes it */
    for ( ; !dev_state(dev, ST_OPENED); ) {
-      if (open_dev(dev, jcr->VolumeName, READ_WRITE) < 0) {
+      if (open_dev(dev, jcr->VolumeName, OPEN_READ_WRITE) < 0) {
          bnet_fsend(dir, _("3910 Unable to open device \"%s\". ERR=%s\n"), 
 	    dev_name(dev), strerror_dev(dev));
 	 goto bail_out;

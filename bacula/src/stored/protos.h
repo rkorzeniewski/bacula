@@ -200,11 +200,13 @@ int read_records(JCR *jcr,  DEVICE *dev,
        int mount_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block));
 
 /* From spool.c */
-int begin_data_spool(JCR *jcr);
-int discard_data_spool(JCR *jcr);
-int commit_data_spool(JCR *jcr);
-bool are_attributes_spooled(JCR *jcr);
-int begin_attribute_spool(JCR *jcr);
-int discard_attribute_spool(JCR *jcr);
-int commit_attribute_spool(JCR *jcr);
-bool write_block_to_spool_file(DCR *dcr, DEV_BLOCK *block);
+bool	begin_data_spool	  (JCR *jcr);
+bool	discard_data_spool	  (JCR *jcr);
+bool	commit_data_spool	  (JCR *jcr);
+bool	are_attributes_spooled	  (JCR *jcr);
+bool	begin_attribute_spool	  (JCR *jcr);
+bool	discard_attribute_spool   (JCR *jcr);
+bool	commit_attribute_spool	  (JCR *jcr);
+bool	write_block_to_spool_file (DCR *dcr, DEV_BLOCK *block);
+bool	open_spool_file 	  (JCR *jcr, BSOCK *bs);
+bool	close_spool_file	  (JCR *jcr, BSOCK *bs);

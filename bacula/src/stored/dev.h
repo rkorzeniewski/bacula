@@ -43,11 +43,11 @@
 #define give_back_device_lock(d, p) _give_back_device_lock(__FILE__, __LINE__, (d), (p))
 
 /* Arguments to open_dev() */
-#define READ_WRITE       0
-#define READ_ONLY        1
-#define OPEN_READ_WRITE  0
-#define OPEN_READ_ONLY   1
-#define OPEN_WRITE_ONLY  2
+enum {
+   OPEN_READ_WRITE = 0,
+   OPEN_READ_ONLY,
+   OPEN_WRITE_ONLY   
+};
 
 /* Generic status bits returned from status_dev() */
 #define BMT_TAPE           (1<<0)     /* is tape device */
@@ -106,13 +106,15 @@
 #define ST_SHORT           (1<<13)    /* Short block read */
 
 /* dev_blocked states (mutually exclusive) */
-#define BST_NOT_BLOCKED       0       /* not blocked */
-#define BST_UNMOUNTED         1       /* User unmounted device */
-#define BST_WAITING_FOR_SYSOP 2       /* Waiting for operator to mount tape */
-#define BST_DOING_ACQUIRE     3       /* Opening/validating/moving tape */
-#define BST_WRITING_LABEL     4       /* Labeling a tape */  
-#define BST_UNMOUNTED_WAITING_FOR_SYSOP 5 /* Closed by user during mount request */
-#define BST_MOUNT             6       /* Mount request */
+enum {
+   BST_NOT_BLOCKED = 0,               /* not blocked */
+   BST_UNMOUNTED,                     /* User unmounted device */
+   BST_WAITING_FOR_SYSOP,             /* Waiting for operator to mount tape */
+   BST_DOING_ACQUIRE,                 /* Opening/validating/moving tape */
+   BST_WRITING_LABEL,                  /* Labeling a tape */  
+   BST_UNMOUNTED_WAITING_FOR_SYSOP,    /* Closed by user during mount request */
+   BST_MOUNT                           /* Mount request */
+};
 
 /* Volume Catalog Information structure definition */
 struct VOLUME_CAT_INFO {
@@ -141,9 +143,9 @@ struct VOLUME_CAT_INFO {
 
 
 typedef struct s_steal_lock {
-   pthread_t         no_wait_id;      /* id of no wait thread */
-   int               dev_blocked;     /* state */
-   int               dev_prev_blocked; /* previous blocked state */
+   pthread_t  no_wait_id;             /* id of no wait thread */
+   int        dev_blocked;            /* state */
+   int        dev_prev_blocked;       /* previous blocked state */
 } bsteal_lock_t;
 
 struct DEVRES;                        /* Device resource defined in stored_conf.h */
@@ -160,6 +162,7 @@ public:
    JCR *attached_jcrs;                /* attached JCR list */
    dlist *attached_dcrs;              /* attached DCR list */
    pthread_mutex_t mutex;             /* access control */
+   pthread_mutex_t spool_mutex;       /* mutex for updating spool_size */
    pthread_cond_t wait;               /* thread wait variable */
    pthread_cond_t wait_next_vol;      /* wait for tape to be mounted */
    pthread_t no_wait_id;              /* this thread must not wait */
@@ -186,6 +189,8 @@ public:
    uint64_t max_volume_size;          /* max bytes to put on one volume */
    uint64_t max_file_size;            /* max file size to put in one file on volume */
    uint64_t volume_capacity;          /* advisory capacity */
+   uint64_t max_spool_size;           /* maximum spool file size */
+   uint64_t spool_size;               /* curren spool size */
    uint32_t max_rewind_wait;          /* max secs to allow for rewind */
    uint32_t max_open_wait;            /* max secs to allow for open */
    uint32_t max_open_vols;            /* max simultaneous open volumes */
@@ -221,6 +226,7 @@ struct DCR {
    DEV_RECORD *record;                /* pointer to record */
    bool spool_data;                   /* set to spool data */
    bool spooling;                     /* set when actually spooling */
+   bool dev_locked;                   /* set if dev already locked */
    int spool_fd;                      /* fd if spooling */
    bool NewVol;                       /* set if new Volume mounted */
    bool WroteVol;                     /* set if Volume written */
@@ -232,6 +238,8 @@ struct DCR {
    uint32_t StartFile;                /* Start write file */
    uint32_t StartBlock;               /* Start write block */
    uint32_t EndBlock;                 /* Ending block written */
+   uint64_t spool_size;               /* Current spool size */
+   uint64_t max_spool_size;           /* Max job spool size */
    char VolumeName[MAX_NAME_LENGTH];  /* Volume name */
    VOLUME_CAT_INFO VolCatInfo;        /* Catalog info for desired volume */
 };

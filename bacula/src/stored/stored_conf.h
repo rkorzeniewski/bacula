@@ -23,21 +23,22 @@
 
  */
 
-#define R_FIRST                       3001
+enum {
+   R_DIRECTOR = 3001,
+   R_STORAGE,
+   R_DEVICE,
+   R_MSGS,
+   R_FIRST = R_DIRECTOR,
+   R_LAST  = R_MSGS                   /* keep this updated */
+};
 
-#define R_DIRECTOR                    3001
-#define R_STORAGE                     3002
-#define R_DEVICE                      3003
-#define R_MSGS                        3004
-
-#define R_LAST                        R_MSGS
-
-
-#define R_NAME                        3020
-#define R_ADDRESS                     3021
-#define R_PASSWORD                    3022
-#define R_TYPE                        3023
-#define R_BACKUP                      3024
+enum {
+   R_NAME = 3020,
+   R_ADDRESS,
+   R_PASSWORD,
+   R_TYPE,
+   R_BACKUP
+};
 
 /* Definition of the contents of each Resource */
 struct DIRRES {
@@ -75,6 +76,7 @@ struct DEVRES {
    char *device_name;                 /* Archive device name */
    char *changer_name;                /* Changer device name */
    char *changer_command;             /* Changer command  -- external program */
+   char *spool_directory;             /* Spool file directory */
    uint32_t cap_bits;                 /* Capabilities of this device */
    uint32_t max_changer_wait;         /* Changer timeout */
    uint32_t max_rewind_wait;          /* maximum secs to wait for rewind */
@@ -89,6 +91,8 @@ struct DEVRES {
    int64_t max_volume_size;           /* max bytes to put on one volume */
    int64_t max_file_size;             /* max file size in bytes */
    int64_t volume_capacity;           /* advisory capacity */
+   int64_t max_spool_size;            /* Max spool size for all jobs */
+   int64_t max_job_spool_size;        /* Max spool size for any single job */
    DEVICE *dev;                       /* Pointer to phyical dev -- set at runtime */
 };
 

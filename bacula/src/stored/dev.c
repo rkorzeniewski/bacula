@@ -2,7 +2,7 @@
  *
  *   dev.c  -- low level operations on device (storage device)
  *
- *		Kern Sibbald
+ *		Kern Sibbald, MM 
  *
  *     NOTE!!!! None of these routines are reentrant. You must
  *	  use lock_device() and unlock_device() at a higher level,
@@ -57,15 +57,13 @@
  * to include ST_EOT, which is ephimeral, and ST_WEOT, which is
  * persistent. Lots of routines clear ST_EOT, but ST_WEOT is
  * cleared only when the problem goes away.  Now when ST_WEOT
- * is set all calls to write_dev() are handled as usual. However,
- * in write_block() instead of attempting to write the block to
- * the physical device, it is chained into a list of blocks written
- * after the EOT condition.  In addition, all threads are blocked
- * from writing on the tape by calling lock(), and thread other
+ * is set all calls to write_block_to_device() call the fix_up
+ * routine. In addition, all threads are blocked
+ * from writing on the tape by calling lock_dev(), and thread other
  * than the first thread to hit the EOT will block on a condition
  * variable. The first thread to hit the EOT will continue to
  * be able to read and write the tape (he sort of tunnels through
- * the locking mechanism -- see lock() for details).
+ * the locking mechanism -- see lock_dev() for details).
  *
  * Now presumably somewhere higher in the chain of command 
  * (device.c), someone will notice the EOT condition and 
@@ -149,6 +147,7 @@ init_dev(DEVICE *dev, DEVRES *device)
    dev->max_open_wait = device->max_open_wait;
    dev->max_open_vols = device->max_open_vols;
    dev->vol_poll_interval = device->vol_poll_interval;
+   dev->max_spool_size = device->max_spool_size;
    /* Sanity check */
    if (dev->vol_poll_interval && dev->vol_poll_interval < 60) {
       dev->vol_poll_interval = 60;
@@ -190,6 +189,11 @@ init_dev(DEVICE *dev, DEVRES *device)
    if ((errstat = pthread_cond_init(&dev->wait_next_vol, NULL)) != 0) {
       dev->dev_errno = errstat;
       Mmsg1(&dev->errmsg, _("Unable to init cond variable: ERR=%s\n"), strerror(errstat));
+      Emsg0(M_FATAL, 0, dev->errmsg);
+   }
+   if ((errstat = pthread_mutex_init(&dev->spool_mutex, NULL)) != 0) {
+      dev->dev_errno = errstat;
+      Mmsg1(&dev->errmsg, _("Unable to init mutex: ERR=%s\n"), strerror(errstat));
       Emsg0(M_FATAL, 0, dev->errmsg);
    }
    dev->fd = -1;
@@ -1391,6 +1395,7 @@ term_dev(DEVICE *dev)
    pthread_mutex_destroy(&dev->mutex);
    pthread_cond_destroy(&dev->wait);
    pthread_cond_destroy(&dev->wait_next_vol);
+   pthread_mutex_destroy(&dev->spool_mutex);
    if (dev->attached_dcrs) {
       delete dev->attached_dcrs;
       dev->attached_dcrs = NULL;

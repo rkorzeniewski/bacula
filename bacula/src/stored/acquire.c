@@ -42,6 +42,7 @@ DCR *new_dcr(JCR *jcr, DEVICE *dev)
    dcr->block = new_block(dev);
    dcr->record = new_record();
    dcr->spool_fd = -1;
+   dcr->max_spool_size = dev->device->max_spool_size;
    return dcr;
 }
 
@@ -129,7 +130,7 @@ DCR *acquire_device_for_read(JCR *jcr)
        */
       for ( ; !(dev->state & ST_OPENED); ) {
          Dmsg1(120, "bstored: open vol=%s\n", jcr->VolumeName);
-	 if (open_dev(dev, dcr->VolumeName, READ_ONLY) < 0) {
+	 if (open_dev(dev, dcr->VolumeName, OPEN_READ_ONLY) < 0) {
             Jmsg(jcr, M_FATAL, 0, _("Open device %s volume %s failed, ERR=%s\n"), 
 		dev_name(dev), dcr->VolumeName, strerror_dev(dev));
 	    goto get_out;

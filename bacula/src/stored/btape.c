@@ -295,7 +295,7 @@ static bool open_the_device()
    lock_device(dev);
    if (!(dev->state & ST_OPENED)) {
       Dmsg1(200, "Opening device %s\n", jcr->VolumeName);
-      if (open_dev(dev, jcr->VolumeName, READ_WRITE) < 0) {
+      if (open_dev(dev, jcr->VolumeName, OPEN_READ_WRITE) < 0) {
          Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), dev->errmsg);
 	 unlock_device(dev);
 	 free_block(block);

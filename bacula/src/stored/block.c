@@ -322,7 +322,9 @@ int write_block_to_device(DCR *dcr, DEV_BLOCK *block)
       return stat;
    }
 
-   lock_device(dev);
+   if (!dcr->dev_locked) {
+      lock_device(dev);
+   }
 
    /*
     * If a new volume has been mounted since our last write
@@ -336,8 +338,8 @@ int write_block_to_device(DCR *dcr, DEV_BLOCK *block)
          Jmsg(jcr, M_ERROR, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
 	    jcr->VolCatInfo.VolCatName, jcr->Job);
 	 set_new_volume_parameters(jcr, dev);
-	 unlock_device(dev);
-	 return 0;
+	 stat = 0;
+	 goto bail_out;
       }
       if (dcr->NewVol) {
 	 /* Note, setting a new volume also handles any pending new file */
@@ -352,7 +354,10 @@ int write_block_to_device(DCR *dcr, DEV_BLOCK *block)
        stat = fixup_device_block_write_error(jcr, dev, block);
    }
 
-   unlock_device(dev);
+bail_out:
+   if (!dcr->dev_locked) {
+      unlock_device(dev);
+   }
    return stat;
 }
 
