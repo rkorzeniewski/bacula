@@ -327,6 +327,11 @@ create table unsavedfiles
 --    add foreign key  (filenameid)
 --	 references filename (filenameid) on update restrict on delete restrict;
 
+-- See http://bugs.bacula.org/bug_view_advanced_page.php?bug_id=0000106
+-- Improve speed of VolumeToCatalog
+
+create index file_pathid on file(pathid);
+
 END-OF-DATA
 then
    echo "Creation of Bacula PostgreSQL tables succeeded."
