@@ -6,4 +6,4 @@ rm -rf /tmp/TestVolume001 /tmp/bacula-restores /tmp/Small*
 rm -rf tmp/original tmp/bacula-restores tmp/Small* tmp/TestVolume*
 rm -rf tmp/restored tmp/largefile tmp/bscan.bsr tmp/log*.out
 rm -rf /tmp/sed_tmp /tmp/file-list
-rm -rf tmp/build tmp/restore-list
+rm -rf tmp/build tmp/restore-list tmp/restore2-list

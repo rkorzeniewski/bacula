@@ -1,0 +1,16 @@
+/build/doc/bacula.pdf
+/build/configure
+/build/src/stored/bextract
+/build/src/tools/testfind
+/build/Makefile.in
+/build/src/dird/bacula-dir
+/build/src/console/console
+/build/src/filed/bacula-fd
+/build/src/findlib/find_one.c
+/build/src/jcr.h
+/build/platforms/Makefile.in
+/build/platforms/redhat/Makefile.in
+/build/scripts/Makefile.in
+/build/src/filed/win32/bin/cygwin1.dll
+/build/src/filed/win32/winservice.cpp
+/build/src/filed/restore.c
