@@ -205,7 +205,9 @@ init_msg(JCR *jcr, MSGS *msg)
       daemon_msgs = (MSGS *)malloc(sizeof(MSGS));
       memset(daemon_msgs, 0, sizeof(MSGS));
       for (i=1; i<=M_MAX; i++) {
+#ifndef WIN32
 	 add_msg_dest(daemon_msgs, MD_STDOUT, i, NULL, NULL);
+#endif
 	 add_msg_dest(daemon_msgs, MD_SYSLOG, i, NULL, NULL);
       }
       Dmsg1(050, "Create daemon global message resource 0x%x\n", daemon_msgs);
@@ -560,8 +562,10 @@ void dispatch_message(JCR *jcr, int type, int level, char *msg)
     Dmsg2(800, "Enter dispatch_msg type=%d msg=%s\n", type, msg);
 
     if (type == M_ABORT || type == M_ERROR_TERM) {
+#ifndef HAVE_WIN32
        fputs(msg, stdout);	   /* print this here to INSURE that it is printed */
        fflush(stdout);
+#endif
 #if !defined(HAVE_CONSOLE)
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
        MessageBox(NULL, msg, "Bacula", MB_OK);
