@@ -14,6 +14,11 @@
 # fix post script so it doesn't talk about server config for client-only build
 # bug #181 - unable to reproduce on 2.4 kernel system so add FEATURES="-sandbox"
 # 04 Dec 2004 D. Scott Barninger <barninger at fairfieldcomputers dot com>
+#
+# more  on bug #181 - another user has reported a sandbox violation trying to
+# write to /dev/sg0 - still can't reproduce this behavior
+# add an 'addpredict /dev/sg0'
+# 08 Dec 2004 D. Scott Barninger
 
 DESCRIPTION="featureful client/server network backup suite"
 HOMEPAGE="http://www.bacula.org/"
@@ -24,20 +29,11 @@ SLOT="0"
 KEYWORDS="x86 ~ppc ~sparc"
 IUSE="readline tcpd gnome mysql sqlite X static postgres wxwindows"
 
-# 2.6 kernel user reports sandbox error with client build
-# can't replicate this on 2.4 soo...
-KERNEL=`uname -r | head -c 3`
-if [ $KERNEL = "2.6" ]; then
-	if [ -n $BUILD_CLIENT_ONLY ]; then
-		FEATURES="-sandbox"
-	fi
-fi
-
 inherit eutils
 
-#theres a local sqlite use flag. use it -OR- mysql, not both.
-#mysql is the recommended choice ...
-#may need sys-libs/libtermcap-compat but try without first
+# there is a local sqlite use flag. use it -OR- mysql, not both.
+# mysql is the recommended choice ...
+# may need sys-libs/libtermcap-compat but try without first
 DEPEND=">=sys-libs/zlib-1.1.4
 	sys-apps/mtx
 	readline? ( >=sys-libs/readline-4.1 )
@@ -59,7 +55,7 @@ src_compile() {
 
 	local myconf=""
 
-	#define this to skip building the other daemons ...
+	# define this to skip building the other daemons ...
 	[ -n "$BUILD_CLIENT_ONLY" ] \
 		&& myconf="${myconf} --enable-client-only"
 
@@ -72,7 +68,7 @@ src_compile() {
 	[ -n "$BUILD_CLIENT_ONLY" ] \
 		 && myconf="${myconf} --enable-client-only"
 
-	# mysql is the reccomended choice ...
+	# mysql is the recomended choice ...
 	if use mysql
 	then
 		myconf="${myconf} --with-mysql=/usr"
@@ -102,6 +98,8 @@ src_compile() {
 	myconf="${myconf} --enable-tray-monitor"
 	fi
 
+	# some users report sandbox violations
+	addpredict /dev/sg0
 
 	./configure \
 		--enable-smartalloc \
