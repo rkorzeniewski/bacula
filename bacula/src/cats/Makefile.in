@@ -79,7 +79,7 @@ realclean: clean
 	$(RMF) create_sqlite_database	   update_sqlite_tables     make_sqlite_tables
 	$(RMF) grant_sqlite_privileges	   drop_sqlite_tables	    drop_sqlite_database
 
-	$(RMF) mysql sqlite
+	$(RMF) mysql sqlite postgresql
 	$(RMF) make_catalog_backup delete_catalog_backup
 
 distclean: realclean

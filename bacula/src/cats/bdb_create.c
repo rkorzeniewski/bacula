@@ -105,7 +105,7 @@ int db_create_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
  * Returns: 0 on failure
  *	    record-id on success
  */
-int db_create_jobmedia_record(JCR *jcr, B_DB *mdb, JOBMEDIA_DBR *jm)
+bool db_create_jobmedia_record(JCR *jcr, B_DB *mdb, JOBMEDIA_DBR *jm)
 {
    int len;
 
