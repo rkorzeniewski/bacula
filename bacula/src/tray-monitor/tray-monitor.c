@@ -39,6 +39,7 @@
 #include "warn.xpm"
 
 /* Imported functions */
+int authenticate_director(JCR *jcr, MONITOR *monitor, DIRRES *director);
 int authenticate_file_daemon(JCR *jcr, MONITOR *monitor, CLIENT* client);
 int authenticate_storage_daemon(JCR *jcr, MONITOR *monitor, STORE* store);
 
@@ -57,8 +58,8 @@ static int fullitem = -1; //Item to be display in detailled status window
 static int lastupdated = -1; //Last item updated
 static monitoritem items[32];
 
-/* Data received from FD/SD */
-static char OKqstatus[]   = "2000 OK .status\n";
+/* Data received from DIR/FD/SD */
+static char OKqstatus[]   = "%c000 OK .status\n";
 static char DotStatusJob[] = "JobId=%d JobStatus=%c JobErrors=%d\n";
 
 /* UI variables and functions */
@@ -136,6 +137,7 @@ int main(int argc, char *argv[])
 {
    int ch, i;
    bool test_config = false;
+   DIRRES* dird;
    CLIENT* filed;
    STORE* stored;
 
@@ -189,6 +191,13 @@ int main(int argc, char *argv[])
    
    LockRes();
    nitems = 0;
+   foreach_res(dird, R_DIRECTOR) {
+      items[nitems].type = R_DIRECTOR;
+      items[nitems].resource = dird;
+      items[nitems].D_sock = NULL;
+      items[nitems].state = warn;
+      nitems++;
+   }
    foreach_res(filed, R_CLIENT) {
       items[nitems].type = R_CLIENT;
       items[nitems].resource = filed;
@@ -287,6 +296,10 @@ Without that I don't how to get status from the File or Storage Daemon :-(\n"), 
    GString *str;   
    for (int i = 0; i < nitems; i++) {
       switch (items[i].type) {
+      case R_DIRECTOR:
+         str = g_string_new(((DIRRES*)(items[i].resource))->hdr.name);
+         g_string_append(str, _(" (DIR)"));
+         break;
       case R_CLIENT:
          str = g_string_new(((CLIENT*)(items[i].resource))->hdr.name);
          g_string_append(str, _(" (FD)"));
@@ -304,10 +317,12 @@ Without that I don't how to get status from the File or Storage Daemon :-(\n"), 
       items[i].image = gtk_image_new_from_pixbuf(pixbuf);
       
       items[i].label =  gtk_label_new(_("Unknown status."));
-      
+      GtkWidget* align = gtk_alignment_new(0.0, 0.5, 0.0, 1.0);
+      gtk_container_add(GTK_CONTAINER(align), items[i].label);
+            
       gtk_table_attach_defaults(GTK_TABLE(daemon_table), label, 0, 1, (i*2)+1, (i*2)+2);
       gtk_table_attach_defaults(GTK_TABLE(daemon_table), items[i].image, 1, 2, (i*2)+1, (i*2)+2);
-      gtk_table_attach_defaults(GTK_TABLE(daemon_table), items[i].label, 2, 3, (i*2)+1, (i*2)+2);
+      gtk_table_attach_defaults(GTK_TABLE(daemon_table), align, 2, 3, (i*2)+1, (i*2)+2);
    
       GtkWidget* separator = gtk_hseparator_new();
       gtk_table_attach_defaults(GTK_TABLE(daemon_table), separator, 0, 3, (i*2)+2, (i*2)+3);
@@ -390,6 +405,9 @@ static void TrayIconExit(unsigned int activateTime, unsigned int button) {
 
 static int authenticate_daemon(monitoritem* item, JCR *jcr) {
    switch (item->type) {
+   case R_DIRECTOR:
+      return authenticate_director(jcr, monitor, (DIRRES*)item->resource);
+      break;      
    case R_CLIENT:
       return authenticate_file_daemon(jcr, monitor, (CLIENT*)item->resource);
       break;
@@ -465,19 +483,26 @@ stateenum getstatus(monitoritem* item, int current, GString** str) {
    stateenum ret = error;
    int jobid = 0, joberrors = 0;
    char jobstatus = JS_ErrorTerminated;
+   char num;
    int k;
    
    *str = g_string_sized_new(128);
    
    if (current) {
-      docmd(&items[lastupdated], ".status current", &list);
+      if (item->type == R_DIRECTOR)
+         docmd(&items[lastupdated], ".status dir current", &list);
+      else
+         docmd(&items[lastupdated], ".status current", &list);
    }
    else {
-      docmd(&items[lastupdated], ".status last", &list);
+      if (item->type == R_DIRECTOR)
+         docmd(&items[lastupdated], ".status dir last", &list);
+      else
+         docmd(&items[lastupdated], ".status last", &list);
    }
 
    it = list->next;
-   if ((it == NULL) || (strcmp(((GString*)it->data)->str, OKqstatus) != 0)) {
+   if ((it == NULL) || (sscanf(((GString*)it->data)->str, OKqstatus, &num) != 1)) {
       g_string_append_printf(*str, ".status error : %s", (it == NULL) ? "" : ((GString*)it->data)->str);
       ret = error;
    }
@@ -556,10 +581,18 @@ int docmd(monitoritem* item, const char* command, GSList** list) {
    if (!item->D_sock) {
       memset(&jcr, 0, sizeof(jcr));
       
+      DIRRES* dird;
       CLIENT* filed;
       STORE* stored;
       
       switch (item->type) {
+      case R_DIRECTOR:
+         dird = (DIRRES*)item->resource;      
+         trayMessage("Connecting to Director %s:%d\n", dird->address, dird->DIRport);
+         changeStatusMessage(item, "Connecting to Director %s:%d", dird->address, dird->DIRport);
+         item->D_sock = bnet_connect(NULL, 0, 0, "Director daemon", dird->address, NULL, dird->DIRport, 0);
+         jcr.dir_bsock = item->D_sock;
+         break;
       case R_CLIENT:
          filed = (CLIENT*)item->resource;      
          trayMessage("Connecting to Client %s:%d\n", filed->address, filed->FDport);
@@ -575,7 +608,7 @@ int docmd(monitoritem* item, const char* command, GSList** list) {
          jcr.store_bsock = item->D_sock;
          break;
       default:
-         printf("Error, currentitem is not a Client or a Storage..\n");
+         printf("Error, currentitem is not a Client, a Storage or a Director..\n");
          gtk_main_quit();
          return 0;
       }
@@ -596,9 +629,26 @@ int docmd(monitoritem* item, const char* command, GSList** list) {
          item->D_sock = NULL;
          return 0;
       }
-   
-      trayMessage("Opened connection with File daemon.\n");
-      changeStatusMessage(item, "Opened connection with File daemon.");
+      
+      switch (item->type) {
+      case R_DIRECTOR:
+         trayMessage("Opened connection with Director daemon.\n");
+         changeStatusMessage(item, "Opened connection with Director daemon.");
+         break;
+      case R_CLIENT:
+         trayMessage("Opened connection with File daemon.\n");
+         changeStatusMessage(item, "Opened connection with File daemon.");
+         break;
+      case R_STORAGE:
+         trayMessage("Opened connection with Storage daemon.\n");
+         changeStatusMessage(item, "Opened connection with Storage daemon.");
+         break;
+      default:
+         printf("Error, currentitem is not a Client, a Storage or a Director..\n");
+         gtk_main_quit();
+         return 0;
+         break;
+      }
    }
       
    writecmd(item, command);

@@ -39,8 +39,8 @@ enum stateenum {
 };
 
 struct monitoritem {
-   rescode type; /* R_CLIENT or R_STORAGE */
-   void* resource; /* CLIENT* or STORE* */
+   rescode type; /* R_DIRECTOR, R_CLIENT or R_STORAGE */
+   void* resource; /* DIRRES*, CLIENT* or STORE* */
    BSOCK *D_sock;
    stateenum state;
    GtkWidget* image;

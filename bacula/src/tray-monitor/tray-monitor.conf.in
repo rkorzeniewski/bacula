@@ -4,6 +4,7 @@
 
 Monitor {
   Name = @hostname@-mon
+  Password = "@mon_dir_password@"         # password for the Directors   
 }
    
 Client {
@@ -21,9 +22,7 @@ Storage {
 }
 
 Director {
-  ConsoleName = Monitor
   Name = @hostname@-dir
   DIRport = @dir_port@
   address = @hostname@
-  Password = "@mon_dir_password@"             # password for Director
 }

@@ -1,4 +1,14 @@
 general : Show nice messages boxes when errors occurs.
+
+general : Bug reported by Kern:
+  I tried loading my current backup into the restore window. It
+  consisted of something like 10 jobs and was pretty big.  It was all
+  loaded, I double clicked on a directory, which was then marked, then
+  I opened it and clicked on subdirectory to unmark it, and I saw the
+  X appear on the top directory with a small check, then I'm not sure if I
+  clicked again, but my whole OS froze -- at first I could still move the
+  mouse a bit (very slowly) then after 30 seconds *everything* was dead.
+  I had to do a power off to get my system back.
    
 wxbRestorePanel : list jobs and list jobid=# will probably crash if there
    is nothing to show (db error or empty table)

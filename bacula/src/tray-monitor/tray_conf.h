@@ -34,6 +34,7 @@
  */
 enum rescode {
    R_MONITOR = 1001,
+   R_DIRECTOR,
    R_CLIENT,
    R_STORAGE,
    R_FIRST = R_MONITOR,
@@ -52,6 +53,14 @@ enum {
    R_BACKUP
 };
 
+/* Director */
+struct DIRRES {
+   RES   hdr;
+   int   DIRport;                     /* UA server port */
+   char *address;                     /* UA server address */
+   int enable_ssl;                    /* Use SSL */
+};
+
 /* 
  *   Tray Monitor Resource  
  *
@@ -60,6 +69,7 @@ struct MONITOR {
    RES   hdr;
    int require_ssl;                   /* Require SSL for all connections */
    MSGS *messages;                    /* Daemon message handler */
+   char *password;                    /* UA server password */
    utime_t FDConnectTimeout;          /* timeout for connect in seconds */
    utime_t SDConnectTimeout;          /* timeout in seconds */
 };
@@ -98,6 +108,7 @@ struct STORE {
  */
 union URES {
    MONITOR    res_monitor;
+   DIRRES     res_dir;
    CLIENT     res_client;
    STORE      res_store;
    RES        hdr;

@@ -36,16 +36,67 @@
 void senditf(const char *fmt, ...);
 void sendit(const char *buf); 
 
+/* Commands sent to Director */
+static char DIRhello[]    = "Hello %s calling\n";
+
+/* Response from Director */
+static char DIROKhello[]   = "1000 OK:";
+
 /* Commands sent to Storage daemon and File daemon and received
  *  from the User Agent */
-static char hello[]    = "Hello Director %s calling\n";
+static char SDFDhello[]    = "Hello Director %s calling\n";
 
 /* Response from SD */
-static char OKhello[]   = "3000 OK Hello\n";
+static char SDOKhello[]   = "3000 OK Hello\n";
 /* Response from FD */
 static char FDOKhello[] = "2000 OK Hello\n";
 
 /* Forward referenced functions */
+
+/*
+ * Authenticate Director
+ */
+int authenticate_director(JCR *jcr, MONITOR *mon, DIRRES *director)
+{
+   BSOCK *dir = jcr->dir_bsock;
+   int ssl_need = BNET_SSL_NONE;
+   char bashed_name[MAX_NAME_LENGTH];
+   char *password;
+
+   bstrncpy(bashed_name, mon->hdr.name, sizeof(bashed_name));
+   bash_spaces(bashed_name);
+   password = mon->password;
+   
+   /* Timeout Hello after 5 mins */
+   btimer_t *tid = start_bsock_timer(dir, 60 * 5);
+   bnet_fsend(dir, DIRhello, bashed_name);
+
+   if (!cram_md5_get_auth(dir, password, ssl_need) || 
+       !cram_md5_auth(dir, password, ssl_need)) {
+      stop_bsock_timer(tid);
+      Jmsg0(jcr, M_FATAL, 0, _("Director authorization problem.\n"
+            "Most likely the passwords do not agree.\n"     
+       "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"));
+      return 0;
+   }
+
+   Dmsg1(6, ">dird: %s", dir->msg);
+   if (bnet_recv(dir) <= 0) {
+      stop_bsock_timer(tid);
+      Jmsg1(jcr, M_FATAL, 0, _("Bad response to Hello command: ERR=%s\n"),
+	 bnet_strerror(dir));
+      return 0;
+   }
+   Dmsg1(10, "<dird: %s", dir->msg);
+   stop_bsock_timer(tid);
+   if (strncmp(dir->msg, DIROKhello, sizeof(DIROKhello)-1) != 0) {
+      Jmsg0(jcr, M_FATAL, 0, _("Director rejected Hello command\n"));
+      return 0;
+   } else {
+      Jmsg0(jcr, M_FATAL, 0, dir->msg);
+   }
+   return 1;
+}
 
 /*
  * Authenticate Storage daemon connection
@@ -63,7 +114,7 @@ int authenticate_storage_daemon(JCR *jcr, MONITOR *monitor, STORE* store)
    bash_spaces(dirname);
    /* Timeout Hello after 5 mins */
    btimer_t *tid = start_bsock_timer(sd, 60 * 5);
-   if (!bnet_fsend(sd, hello, dirname)) {
+   if (!bnet_fsend(sd, SDFDhello, dirname)) {
       stop_bsock_timer(tid);
       Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to Storage daemon. ERR=%s\n"), bnet_strerror(sd));
       return 0;
@@ -84,7 +135,7 @@ int authenticate_storage_daemon(JCR *jcr, MONITOR *monitor, STORE* store)
    }
    Dmsg1(110, "<stored: %s", sd->msg);
    stop_bsock_timer(tid);
-   if (strncmp(sd->msg, OKhello, sizeof(OKhello)) != 0) {
+   if (strncmp(sd->msg, SDOKhello, sizeof(SDOKhello)) != 0) {
       Jmsg0(jcr, M_FATAL, 0, _("Storage daemon rejected Hello command\n"));
       return 0;
    }
@@ -107,7 +158,7 @@ int authenticate_file_daemon(JCR *jcr, MONITOR *monitor, CLIENT* client)
    bash_spaces(dirname);
    /* Timeout Hello after 5 mins */
    btimer_t *tid = start_bsock_timer(fd, 60 * 5);
-   if (!bnet_fsend(fd, hello, dirname)) {
+   if (!bnet_fsend(fd, SDFDhello, dirname)) {
       stop_bsock_timer(tid);
       Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to File daemon. ERR=%s\n"), bnet_strerror(fd));
       return 0;

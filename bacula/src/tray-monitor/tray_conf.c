@@ -71,13 +71,24 @@ int  res_all_size = sizeof(res_all);
 *
 *   name	   handler     value		     code flags    default_value
 */
-static RES_ITEM dir_items[] = {
+static RES_ITEM mon_items[] = {
    {"name",        store_name,     ITEM(res_monitor.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,      ITEM(res_monitor.hdr.desc), 0, 0, 0},
    {"requiressl",  store_yesno,    ITEM(res_monitor.require_ssl), 1, ITEM_DEFAULT, 0},
+   {"password",    store_password, ITEM(res_monitor.password), 0, ITEM_REQUIRED, 0},
    {"fdconnecttimeout", store_time,ITEM(res_monitor.FDConnectTimeout), 0, ITEM_DEFAULT, 60 * 30},
    {"sdconnecttimeout", store_time,ITEM(res_monitor.SDConnectTimeout), 0, ITEM_DEFAULT, 60 * 30},
    {NULL, NULL, NULL, 0, 0, 0}
+};
+
+/*  Director's that we can contact */
+static RES_ITEM dir_items[] = {
+   {"name",        store_name,     ITEM(res_dir.hdr.name), 0, ITEM_REQUIRED, 0},
+   {"description", store_str,      ITEM(res_dir.hdr.desc), 0, 0, 0},
+   {"dirport",     store_int,      ITEM(res_dir.DIRport),  0, ITEM_DEFAULT, 9101},
+   {"address",     store_str,      ITEM(res_dir.address),  0, 0, 0},
+   {"enablessl",   store_yesno,    ITEM(res_dir.enable_ssl), 1, ITEM_DEFAULT, 0},
+   {NULL, NULL, NULL, 0, 0, 0} 
 };
 
 /* 
@@ -124,10 +135,11 @@ static RES_ITEM store_items[] = {
 *  name	     items	  rcode        res_head
 */
 RES_TABLE resources[] = {
-   {"monitor",      dir_items,    R_MONITOR},
-   {"client",        cli_items,   R_CLIENT},
-   {"storage",       store_items, R_STORAGE},
-   {NULL,	     NULL,	  0}
+   {"monitor",      mon_items,    R_MONITOR},
+   {"director",     dir_items,    R_DIRECTOR},
+   {"client",       cli_items,    R_CLIENT},
+   {"storage",      store_items,  R_STORAGE},
+   {NULL,           NULL,         0}
 };
 
 /* Dump contents of resource */
@@ -147,10 +159,14 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
    }
    switch (type) {
    case R_MONITOR:
-      sendit(sock, "Director: name=%s FDtimeout=%s SDtimeout=%s\n", 
+      sendit(sock, "Monitor: name=%s FDtimeout=%s SDtimeout=%s\n", 
    reshdr->name, 
    edit_uint64(res->res_monitor.FDConnectTimeout, ed1),
    edit_uint64(res->res_monitor.SDConnectTimeout, ed2));
+      break;
+   case R_DIRECTOR:
+      sendit(sock, "Director: name=%s address=%s FDport=%d\n",
+   res->res_dir.hdr.name, res->res_dir.address, res->res_dir.DIRport);
       break;
    case R_CLIENT:
       sendit(sock, "Client: name=%s address=%s FDport=%d\n",
@@ -266,6 +282,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
       case R_MONITOR:
       case R_CLIENT:
       case R_STORAGE:
+      case R_DIRECTOR:
          break;
       default:
          Emsg1(M_ERROR, 0, "Unknown resource type %d in save_resource.\n", type);
@@ -293,8 +310,11 @@ void save_resource(int type, RES_ITEM *items, int pass)
    case R_MONITOR:
       size = sizeof(MONITOR);
       break;
+   case R_DIRECTOR:
+      size = sizeof(DIRRES);
+      break;
    case R_CLIENT:
-      size =sizeof(CLIENT);
+      size = sizeof(CLIENT);
       break;
    case R_STORAGE:
       size = sizeof(STORE); 
