@@ -448,7 +448,7 @@ static pthread_mutex_t ip_mutex = PTHREAD_MUTEX_INITIALIZER;
  * Convert a hostname or dotted IP address into   
  * a s_addr.  We handle only IPv4.
  */
-static uint32_t *bget_host_ip(void *jcr, char *host)
+static uint32_t *bget_host_ip(JCR *jcr, char *host)
 {
    struct in_addr inaddr;
    uint32_t *addr_list; 	      /* this really should be struct in_addr */
@@ -498,7 +498,7 @@ Wanted %d got %d bytes for s_addr.\n"), sizeof(inaddr.s_addr), hp->h_length);
  *  ***FIXME*** implement service from /etc/services
  */
 static BSOCK *
-bnet_open(void *jcr, char *name, char *host, char *service, int port, int *fatal)
+bnet_open(JCR *jcr, char *name, char *host, char *service, int port, int *fatal)
 {
    int sockfd;
    struct sockaddr_in tcp_serv_addr;	 /* socket information */
@@ -555,12 +555,11 @@ bnet_open(void *jcr, char *name, char *host, char *service, int port, int *fatal
  * Try to connect to host for max_retry_time at retry_time intervals.
  */
 BSOCK *
-bnet_connect(void *vjcr, int retry_interval, int max_retry_time, char *name,
+bnet_connect(JCR *jcr, int retry_interval, int max_retry_time, char *name,
 	     char *host, char *service, int port, int verbose)
 {
    int i;
    BSOCK *bsock;
-   JCR *jcr = (JCR *)vjcr;
    int fatal = 0;
 
    for (i=0; (bsock = bnet_open(jcr, name, host, service, port, &fatal)) == NULL; i -= retry_interval) {
@@ -728,7 +727,7 @@ char *bnet_sig_to_ascii(BSOCK *bs)
  *  This probably should be done in net_open
  */
 BSOCK *
-init_bsock(void *jcr, int sockfd, char *who, char *host, int port) 
+init_bsock(JCR *jcr, int sockfd, char *who, char *host, int port) 
 {
    BSOCK *bsock = (BSOCK *)malloc(sizeof(BSOCK));
    memset(bsock, 0, sizeof(BSOCK));

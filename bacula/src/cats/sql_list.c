@@ -45,13 +45,13 @@
 
 /* Imported subroutines */
 extern void list_result(B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, int full_list);
-extern int QueryDB(char *file, int line, void *jcr, B_DB *db, char *select_cmd);
+extern int QueryDB(char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
 
 
 /* 
  * Submit general SQL query
  */
-int db_list_sql_query(void *jcr, B_DB *mdb, char *query, DB_LIST_HANDLER *sendit, 
+int db_list_sql_query(JCR *jcr, B_DB *mdb, char *query, DB_LIST_HANDLER *sendit, 
 		      void *ctx, int verbose, int full)
 {
    db_lock(mdb);
@@ -75,7 +75,7 @@ int db_list_sql_query(void *jcr, B_DB *mdb, char *query, DB_LIST_HANDLER *sendit
 }
 
 void
-db_list_pool_records(void *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, int full) 
+db_list_pool_records(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, int full) 
 {
    db_lock(mdb);
    if (full) {
@@ -100,7 +100,7 @@ db_list_pool_records(void *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, i
 }
 
 void
-db_list_client_records(void *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, int full)
+db_list_client_records(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, int full)
 {
    db_lock(mdb);
    if (full) {
@@ -129,7 +129,7 @@ db_list_client_records(void *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx,
  *   otherwise, list the Volumes in the Pool specified by PoolId
  */
 void
-db_list_media_records(void *jcr, B_DB *mdb, MEDIA_DBR *mdbr, 
+db_list_media_records(JCR *jcr, B_DB *mdb, MEDIA_DBR *mdbr, 
 		      DB_LIST_HANDLER *sendit, void *ctx, int full)
 {
    db_lock(mdb);
@@ -172,7 +172,7 @@ db_list_media_records(void *jcr, B_DB *mdb, MEDIA_DBR *mdbr,
    db_unlock(mdb);
 }
 
-void db_list_jobmedia_records(void *jcr, B_DB *mdb, uint32_t JobId, 
+void db_list_jobmedia_records(JCR *jcr, B_DB *mdb, uint32_t JobId, 
 			      DB_LIST_HANDLER *sendit, void *ctx, int full)
 {
    db_lock(mdb);
@@ -218,7 +218,7 @@ void db_list_jobmedia_records(void *jcr, B_DB *mdb, uint32_t JobId,
  *  only the job with the specified id.
  */
 void
-db_list_job_records(void *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, 
+db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, 
 		    void *ctx, int full)
 {
    db_lock(mdb);
@@ -269,7 +269,7 @@ db_list_job_records(void *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit,
  *
  */
 void
-db_list_job_totals(void *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, void *ctx)
+db_list_job_totals(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, void *ctx)
 {
    db_lock(mdb);
 
@@ -303,7 +303,7 @@ AS Files,sum(JobBytes) As Bytes FROM Job");
 
 
 void
-db_list_files_for_job(void *jcr, B_DB *mdb, uint32_t jobid, DB_LIST_HANDLER *sendit, void *ctx)
+db_list_files_for_job(JCR *jcr, B_DB *mdb, uint32_t jobid, DB_LIST_HANDLER *sendit, void *ctx)
 {
    db_lock(mdb);
 

@@ -48,15 +48,15 @@
  */
 
 /* Forward referenced functions */
-static int db_get_file_record(void *jcr, B_DB *mdb, FILE_DBR *fdbr);
-static int db_get_filename_record(void *jcr, B_DB *mdb);
-static int db_get_path_record(void *jcr, B_DB *mdb);
+static int db_get_file_record(JCR *jcr, B_DB *mdb, FILE_DBR *fdbr);
+static int db_get_filename_record(JCR *jcr, B_DB *mdb);
+static int db_get_path_record(JCR *jcr, B_DB *mdb);
 
 
 /* Imported subroutines */
 extern void print_result(B_DB *mdb);
-extern int QueryDB(char *file, int line, void *jcr, B_DB *db, char *select_cmd);
-extern void split_path_and_filename(void *jcr, B_DB *mdb, char *fname);
+extern int QueryDB(char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
+extern void split_path_and_filename(JCR *jcr, B_DB *mdb, char *fname);
 
 
 
@@ -67,7 +67,7 @@ extern void split_path_and_filename(void *jcr, B_DB *mdb, char *fname);
  *  Returns: 0 on failure
  *	     1 on success with the File record in FILE_DBR
  */
-int db_get_file_attributes_record(void *jcr, B_DB *mdb, char *fname, FILE_DBR *fdbr)
+int db_get_file_attributes_record(JCR *jcr, B_DB *mdb, char *fname, FILE_DBR *fdbr)
 {
    int stat;
    Dmsg1(20, "Enter get_file_from_catalog fname=%s \n", fname);
@@ -99,7 +99,7 @@ int db_get_file_attributes_record(void *jcr, B_DB *mdb, char *fname, FILE_DBR *f
  *    "normal" if a new file is found during Verify.
  */
 static
-int db_get_file_record(void *jcr, B_DB *mdb, FILE_DBR *fdbr)
+int db_get_file_record(JCR *jcr, B_DB *mdb, FILE_DBR *fdbr)
 {
    SQL_ROW row;
    int stat = 0;
@@ -147,7 +147,7 @@ File.FilenameId=%u", fdbr->JobId, fdbr->PathId, fdbr->FilenameId);
  *
  *   DO NOT use Jmsg in this routine (see notes for get_file_record)
  */
-static int db_get_filename_record(void *jcr, B_DB *mdb)
+static int db_get_filename_record(JCR *jcr, B_DB *mdb)
 {
    SQL_ROW row;
    int FilenameId = 0;
@@ -191,7 +191,7 @@ static int db_get_filename_record(void *jcr, B_DB *mdb)
  *
  *   DO NOT use Jmsg in this routine (see notes for get_file_record)
  */
-static int db_get_path_record(void *jcr, B_DB *mdb)
+static int db_get_path_record(JCR *jcr, B_DB *mdb)
 {
    SQL_ROW row;
    uint32_t PathId = 0;
@@ -248,7 +248,7 @@ static int db_get_path_record(void *jcr, B_DB *mdb)
  * Returns: 0 on failure
  *	    1 on success
  */
-int db_get_job_record(void *jcr, B_DB *mdb, JOB_DBR *jr)
+int db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 {
    SQL_ROW row;
 
@@ -303,7 +303,7 @@ FROM Job WHERE JobId=%u", jr->JobId);
  *
  *  Returns: number of volumes on success
  */
-int db_get_job_volume_names(void *jcr, B_DB *mdb, uint32_t JobId, POOLMEM **VolumeNames)
+int db_get_job_volume_names(JCR *jcr, B_DB *mdb, uint32_t JobId, POOLMEM **VolumeNames)
 {
    SQL_ROW row;
    int stat = 0;
@@ -352,7 +352,7 @@ AND JobMedia.MediaId=Media.MediaId", JobId);
  *
  *  Returns: number of volumes on success
  */
-int db_get_job_volume_parameters(void *jcr, B_DB *mdb, uint32_t JobId, VOL_PARAMS **VolParams)
+int db_get_job_volume_parameters(JCR *jcr, B_DB *mdb, uint32_t JobId, VOL_PARAMS **VolParams)
 {
    SQL_ROW row;
    int stat = 0;
@@ -408,7 +408,7 @@ int db_get_job_volume_parameters(void *jcr, B_DB *mdb, uint32_t JobId, VOL_PARAM
  * Returns: -1 on failure
  *	    number on success
  */
-int db_get_num_pool_records(void *jcr, B_DB *mdb)
+int db_get_num_pool_records(JCR *jcr, B_DB *mdb)
 {
    int stat = 0;
 
@@ -426,7 +426,7 @@ int db_get_num_pool_records(void *jcr, B_DB *mdb)
  *  Returns 0: on failure
  *	    1: on success
  */
-int db_get_pool_ids(void *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
+int db_get_pool_ids(JCR *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
 {
    SQL_ROW row;
    int stat = 0;
@@ -463,7 +463,7 @@ int db_get_pool_ids(void *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
  *  Returns 0: on failure
  *	    1: on success
  */
-int db_get_client_ids(void *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
+int db_get_client_ids(JCR *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
 {
    SQL_ROW row;
    int stat = 0;
@@ -502,7 +502,7 @@ int db_get_client_ids(void *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
  * Returns: 0 on failure
  *	    id on success 
  */
-int db_get_pool_record(void *jcr, B_DB *mdb, POOL_DBR *pdbr)
+int db_get_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pdbr)
 {
    SQL_ROW row;
    int stat = 0;
@@ -564,7 +564,7 @@ MaxVolBytes,PoolType,LabelFormat FROM Pool WHERE Pool.Name='%s'", pdbr->Name);
  * Returns: 0 on failure
  *	    1 on success 
  */
-int db_get_client_record(void *jcr, B_DB *mdb, CLIENT_DBR *cdbr)
+int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cdbr)
 {
    SQL_ROW row;
    int stat = 0;
@@ -615,7 +615,7 @@ int db_get_client_record(void *jcr, B_DB *mdb, CLIENT_DBR *cdbr)
  * Returns: 0 on failure
  *	    id on success 
  */
-int db_get_fileset_record(void *jcr, B_DB *mdb, FILESET_DBR *fsr)
+int db_get_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
 {
    SQL_ROW row;
    int stat = 0;
@@ -660,7 +660,7 @@ int db_get_fileset_record(void *jcr, B_DB *mdb, FILESET_DBR *fsr)
  * Returns: -1 on failure
  *	    number on success
  */
-int db_get_num_media_records(void *jcr, B_DB *mdb)
+int db_get_num_media_records(JCR *jcr, B_DB *mdb)
 {
    int stat = 0;
 
@@ -679,7 +679,7 @@ int db_get_num_media_records(void *jcr, B_DB *mdb)
  *  Returns 0: on failure
  *	    1: on success
  */
-int db_get_media_ids(void *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
+int db_get_media_ids(JCR *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
 {
    SQL_ROW row;
    int stat = 0;
@@ -715,7 +715,7 @@ int db_get_media_ids(void *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
  * Returns: 0 on failure
  *	    id on success 
  */
-int db_get_media_record(void *jcr, B_DB *mdb, MEDIA_DBR *mr)
+int db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 {
    SQL_ROW row;
    int stat = 0;

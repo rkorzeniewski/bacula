@@ -111,8 +111,8 @@ void run_job(JCR *jcr)
    char ec1[30];
 
 
-   fd->jcr = (void *)jcr;
-   dir->jcr = (void *)jcr;
+   fd->jcr = jcr;
+   dir->jcr = jcr;
    Dmsg1(120, "Start run Job=%s\n", jcr->Job);
    bnet_fsend(dir, Job_start, jcr->Job); 
    jcr->start_time = time(NULL);

@@ -183,7 +183,7 @@ int main (int argc, char *argv[])
    parse_config(configfile);
 
    if (!check_resources()) {
-      Jmsg(NULL, M_ERROR_TERM, 0, "Please correct configuration file: %s\n", configfile);
+      Jmsg((JCR *)NULL, M_ERROR_TERM, 0, _("Please correct configuration file: %s\n"), configfile);
    }
 
    if (test_config) {

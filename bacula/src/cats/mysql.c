@@ -56,7 +56,7 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
  * never have errors, or it is really fatal.
  */
 B_DB *
-db_init_database(void *jcr, char *db_name, char *db_user, char *db_password, 
+db_init_database(JCR *jcr, char *db_name, char *db_user, char *db_password, 
 		 char *db_address, int db_port, char *db_socket) 
 {
    B_DB *mdb;
@@ -104,7 +104,7 @@ db_init_database(void *jcr, char *db_name, char *db_user, char *db_password,
  * which are returned in the errmsg
  */
 int
-db_open_database(void *jcr, B_DB *mdb)
+db_open_database(JCR *jcr, B_DB *mdb)
 {
    int errstat;
 
@@ -178,7 +178,7 @@ It is probably not running or your password is incorrect.\n"),
 }
 
 void
-db_close_database(void *jcr, B_DB *mdb)
+db_close_database(JCR *jcr, B_DB *mdb)
 {
    P(mutex);
    mdb->ref_count--;
@@ -225,7 +225,7 @@ db_close_database(void *jcr, B_DB *mdb)
  * For MySQL, NULL causes the auto-increment value
  *  to be updated.
  */
-int db_next_index(void *jcr, B_DB *mdb, char *table, char *index)
+int db_next_index(JCR *jcr, B_DB *mdb, char *table, char *index)
 {
    strcpy(index, "NULL");
    return 1;

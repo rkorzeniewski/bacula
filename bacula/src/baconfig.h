@@ -336,9 +336,10 @@ extern void _v(char *file, int line, pthread_mutex_t *m);
 int  Mmsg(char **msgbuf, char *fmt,...);
 
 
+struct JCR;
 void d_msg(char *file, int line, int level, char *fmt,...);
 void e_msg(char *file, int line, int type, int level, char *fmt,...);
-void j_msg(char *file, int line, void *vjcr, int type, int level, char *fmt,...);
+void j_msg(char *file, int line, JCR *jcr, int type, int level, char *fmt,...);
 int  m_msg(char *file, int line, char **msgbuf, char *fmt,...);
 
 

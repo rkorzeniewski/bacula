@@ -44,17 +44,17 @@
  */
 
 /* Forward referenced subroutines */
-static int db_create_file_record(void *jcr, B_DB *mdb, ATTR_DBR *ar);
-static int db_create_filename_record(void *jcr, B_DB *mdb, ATTR_DBR *ar);
-static int db_create_path_record(void *jcr, B_DB *mdb, ATTR_DBR *ar);
+static int db_create_file_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
+static int db_create_filename_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
+static int db_create_path_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
 
 
 /* Imported subroutines */
 extern void print_dashes(B_DB *mdb);
 extern void print_result(B_DB *mdb);
-extern int QueryDB(char *file, int line, void *jcr, B_DB *db, char *select_cmd);
-extern int InsertDB(char *file, int line, void *jcr, B_DB *db, char *select_cmd);
-extern void split_path_and_filename(void *jcr, B_DB *mdb, char *fname);
+extern int QueryDB(char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
+extern int InsertDB(char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
+extern void split_path_and_filename(JCR *jcr, B_DB *mdb, char *fname);
 
 
 /* Create a new record for the Job
@@ -62,7 +62,7 @@ extern void split_path_and_filename(void *jcr, B_DB *mdb, char *fname);
  *	    1 on success
  */
 int
-db_create_job_record(void *jcr, B_DB *mdb, JOB_DBR *jr)
+db_create_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 {
    char dt[MAX_TIME_LENGTH];
    time_t stime;
@@ -111,7 +111,7 @@ db_create_job_record(void *jcr, B_DB *mdb, JOB_DBR *jr)
  *	    1 on success
  */
 int
-db_create_jobmedia_record(void *jcr, B_DB *mdb, JOBMEDIA_DBR *jm)
+db_create_jobmedia_record(JCR *jcr, B_DB *mdb, JOBMEDIA_DBR *jm)
 {
    int stat;
 
@@ -160,7 +160,7 @@ VALUES (%u,%u,%u,%u,%u,%u,%u,%u)",
  *	    1 on success
  */
 int
-db_create_pool_record(void *jcr, B_DB *mdb, POOL_DBR *pr)
+db_create_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
 {
    int stat;
    char ed1[30], ed2[30], ed3[50];
@@ -221,7 +221,7 @@ VALUES ('%s',%u,%u,%d,%d,%d,%d,%d,%s,%s,%u,%u,%s,'%s','%s')",
  *	    1 on success
  */ 
 int
-db_create_media_record(void *jcr, B_DB *mdb, MEDIA_DBR *mr)
+db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 {
    int stat;
    char ed1[30], ed2[30], ed3[30], ed4[30];
@@ -288,7 +288,7 @@ db_create_media_record(void *jcr, B_DB *mdb, MEDIA_DBR *mr)
  * Returns: 0 on failure
  *	    1 on success with id in cr->ClientId
  */
-int db_create_client_record(void *jcr, B_DB *mdb, CLIENT_DBR *cr)
+int db_create_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr)
 {
    SQL_ROW row;
    int stat;
@@ -356,7 +356,7 @@ FileRetention, JobRetention) VALUES \
  *  Returns: 0 on failure
  *	     1 on success with FileSetId in record
  */
-int db_create_fileset_record(void *jcr, B_DB *mdb, FILESET_DBR *fsr)
+int db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
 {
    SQL_ROW row;
    int stat;
@@ -440,7 +440,7 @@ FileSet='%s' and MD5='%s'", fsr->FileSet, fsr->MD5);
  *  how many times it occurs.  This is this subroutine, we separate
  *  the file and the path and create three database records.
  */
-int db_create_file_attributes_record(void *jcr, B_DB *mdb, ATTR_DBR *ar)
+int db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 {
 
    Dmsg1(100, "Fname=%s\n", ar->fname);
@@ -487,7 +487,7 @@ int db_create_file_attributes_record(void *jcr, B_DB *mdb, ATTR_DBR *ar)
  * This is the master File entry containing the attributes.
  *  The filename and path records have already been created.
  */
-static int db_create_file_record(void *jcr, B_DB *mdb, ATTR_DBR *ar)
+static int db_create_file_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 {
    int stat;
 
@@ -516,7 +516,7 @@ LStat, MD5) VALUES (%u, %u, %u, %u, '%s', '0')",
 }
 
 /* Create a Unique record for the Path -- no duplicates */
-static int db_create_path_record(void *jcr, B_DB *mdb, ATTR_DBR *ar)
+static int db_create_path_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 {
    SQL_ROW row;
    int stat;
@@ -588,7 +588,7 @@ static int db_create_path_record(void *jcr, B_DB *mdb, ATTR_DBR *ar)
 }
 
 /* Create a Unique record for the filename -- no duplicates */
-static int db_create_filename_record(void *jcr, B_DB *mdb, ATTR_DBR *ar) 
+static int db_create_filename_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar) 
 {
    SQL_ROW row;
 

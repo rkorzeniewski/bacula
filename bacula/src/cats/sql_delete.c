@@ -48,8 +48,8 @@
 /* Imported subroutines */
 extern void print_dashes(B_DB *mdb);
 extern void print_result(B_DB *mdb);
-extern int QueryDB(char *file, int line, void *jcr, B_DB *db, char *select_cmd);
-extern int DeleteDB(char *file, int line, void *jcr, B_DB *db, char *delete_cmd);
+extern int QueryDB(char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
+extern int DeleteDB(char *file, int line, JCR *jcr, B_DB *db, char *delete_cmd);
        
 /*
  * Delete Pool record, must also delete all associated
@@ -61,7 +61,7 @@ extern int DeleteDB(char *file, int line, void *jcr, B_DB *db, char *delete_cmd)
  *	     NumVols = number of Media records deleted
  */
 int
-db_delete_pool_record(void *jcr, B_DB *mdb, POOL_DBR *pr)
+db_delete_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
 {
    SQL_ROW row;
 
@@ -188,7 +188,7 @@ static int do_media_purge(B_DB *mdb, MEDIA_DBR *mr)
 /* Delete Media record and all records that
  * are associated with it.
  */
-int db_delete_media_record(void *jcr, B_DB *mdb, MEDIA_DBR *mr)
+int db_delete_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 {
    db_lock(mdb);
    if (mr->MediaId == 0 && !db_get_media_record(jcr, mdb, mr)) {
@@ -213,7 +213,7 @@ int db_delete_media_record(void *jcr, B_DB *mdb, MEDIA_DBR *mr)
  * media record itself. But the media status
  * is changed to "Purged".
  */
-int db_purge_media_record(void *jcr, B_DB *mdb, MEDIA_DBR *mr)
+int db_purge_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 {
    db_lock(mdb);
    if (mr->MediaId == 0 && !db_get_media_record(jcr, mdb, mr)) {

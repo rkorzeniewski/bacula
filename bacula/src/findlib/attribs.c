@@ -35,11 +35,11 @@
 
 /* Forward referenced subroutines */
 static
-int set_win32_attributes(void *jcr, char *fname, char *ofile, char *lname, 
+int set_win32_attributes(JCR *jcr, char *fname, char *ofile, char *lname, 
 			 int type, int stream, struct stat *statp,
 			 char *attribsEx, BFILE *ofd);
 void unix_name_to_win32(POOLMEM **win32_name, char *name);
-void win_error(void *jcr, char *prefix, POOLMEM *ofile);
+void win_error(JCR *jcr, char *prefix, POOLMEM *ofile);
 HANDLE bget_handle(BFILE *bfd);
 #endif
 
@@ -180,7 +180,7 @@ decode_stat(char *buf, struct stat *statp, uint32_t *LinkFI)
  * Returns:  1 on success
  *	     0 on failure
  */
-int set_attributes(void *jcr, char *fname, char *ofile, char *lname, 
+int set_attributes(JCR *jcr, char *fname, char *ofile, char *lname, 
 		   int type, int stream, struct stat *statp,
 		   char *attribsEx, BFILE *ofd)
 {
@@ -266,7 +266,7 @@ int set_attributes(void *jcr, char *fname, char *ofile, char *lname,
  * If you have a Unix system with extended attributes (e.g.
  *  ACLs for Solaris, do it here.
  */
-int encode_attribsEx(void *jcr, char *attribsEx, FF_PKT *ff_pkt)
+int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
 {
    *attribsEx = 0;		      /* no extended attributes */
    return STREAM_UNIX_ATTRIBUTES;
@@ -284,7 +284,7 @@ int encode_attribsEx(void *jcr, char *attribsEx, FF_PKT *ff_pkt)
 
 #ifdef HAVE_CYGWIN
 
-int encode_attribsEx(void *jcr, char *attribsEx, FF_PKT *ff_pkt)
+int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
 {
    char *p = attribsEx;
    WIN32_FILE_ATTRIBUTE_DATA atts;
@@ -346,7 +346,7 @@ int encode_attribsEx(void *jcr, char *attribsEx, FF_PKT *ff_pkt)
  *	     0 on failure
  */
 static
-int set_win32_attributes(void *jcr, char *fname, char *ofile, char *lname, 
+int set_win32_attributes(JCR *jcr, char *fname, char *ofile, char *lname, 
 			 int type, int stream, struct stat *statp,
 			 char *attribsEx, BFILE *ofd)
 {
@@ -425,9 +425,8 @@ int set_win32_attributes(void *jcr, char *fname, char *ofile, char *lname,
    return 1;
 }
 
-void win_error(void *vjcr, char *prefix, POOLMEM *win32_ofile)
+void win_error(JCR *jcr, char *prefix, POOLMEM *win32_ofile)
 {
-   JCR *jcr = (JCR *)vjcr; 
    DWORD lerror = GetLastError();
    LPTSTR msg;
    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER|
@@ -444,9 +443,8 @@ void win_error(void *vjcr, char *prefix, POOLMEM *win32_ofile)
    LocalFree(msg);
 }
 
-void win_error(void *vjcr, char *prefix, DWORD lerror)
+void win_error(JCR *jcr, char *prefix, DWORD lerror)
 {
-   JCR *jcr = (JCR *)vjcr; 
    LPTSTR msg;
    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER|
 		 FORMAT_MESSAGE_FROM_SYSTEM,

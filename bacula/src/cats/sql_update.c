@@ -45,7 +45,7 @@
 
 /* Imported subroutines */
 extern void print_result(B_DB *mdb);
-extern int UpdateDB(char *file, int line, void *jcr, B_DB *db, char *update_cmd);
+extern int UpdateDB(char *file, int line, JCR *jcr, B_DB *db, char *update_cmd);
 
 /* -----------------------------------------------------------------------
  *
@@ -55,7 +55,7 @@ extern int UpdateDB(char *file, int line, void *jcr, B_DB *db, char *update_cmd)
  */
 /* Update the attributes record by adding the MD5 signature */
 int
-db_add_SIG_to_file_record(void *jcr, B_DB *mdb, FileId_t FileId, char *SIG,
+db_add_SIG_to_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, char *SIG,
 			  int type)
 {
    int stat;
@@ -70,7 +70,7 @@ db_add_SIG_to_file_record(void *jcr, B_DB *mdb, FileId_t FileId, char *SIG,
 /* Mark the file record as being visited during database
  * verify compare. Stuff JobId into MarkedId field
  */
-int db_mark_file_record(void *jcr, B_DB *mdb, FileId_t FileId, JobId_t JobId) 
+int db_mark_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, JobId_t JobId) 
 {
    int stat;
 
@@ -88,7 +88,7 @@ int db_mark_file_record(void *jcr, B_DB *mdb, FileId_t FileId, JobId_t JobId)
  *	     1 on success
  */
 int
-db_update_job_start_record(void *jcr, B_DB *mdb, JOB_DBR *jr)
+db_update_job_start_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 {
    char dt[MAX_TIME_LENGTH];
    time_t stime;
@@ -121,7 +121,7 @@ ClientId=%u, JobTDate=%s WHERE JobId=%u",
  *	     1 on success
  */
 int
-db_update_job_end_record(void *jcr, B_DB *mdb, JOB_DBR *jr)
+db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 {
    char dt[MAX_TIME_LENGTH];
    time_t ttime;
@@ -151,7 +151,7 @@ VolSessionTime=%u, PoolId=%u, FileSetId=%u, JobTDate=%s WHERE JobId=%u",
 
 
 int
-db_update_client_record(void *jcr, B_DB *mdb, CLIENT_DBR *cr)
+db_update_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr)
 {
    int stat;
    char ed1[50], ed2[50];
@@ -179,7 +179,7 @@ db_update_client_record(void *jcr, B_DB *mdb, CLIENT_DBR *cr)
 
 
 int
-db_update_pool_record(void *jcr, B_DB *mdb, POOL_DBR *pr)
+db_update_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
 {
    int stat;
    char ed1[50], ed2[50], ed3[50];
@@ -210,7 +210,7 @@ db_update_pool_record(void *jcr, B_DB *mdb, POOL_DBR *pr)
  *	    numrows on success
  */
 int
-db_update_media_record(void *jcr, B_DB *mdb, MEDIA_DBR *mr) 
+db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr) 
 {
    char dt[MAX_TIME_LENGTH];
    time_t ttime;

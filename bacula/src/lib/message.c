@@ -139,10 +139,9 @@ void my_name_is(int argc, char *argv[], char *name)
  *   non-NULL	  -> initialize jcr using Message resource
  */
 void
-init_msg(void *vjcr, MSGS *msg)
+init_msg(JCR *jcr, MSGS *msg)
 {
    DEST *d, *dnew, *temp_chain = NULL;
-   JCR *jcr = (JCR *)vjcr;
 
    /*
     * If msg is NULL, initialize global chain for STDOUT and syslog
@@ -298,10 +297,9 @@ static void make_unique_spool_filename(JCR *jcr, POOLMEM **name, int fd)
       jcr->Job, fd);
 }
 
-int open_spool_file(void *vjcr, BSOCK *bs)
+int open_spool_file(JCR *jcr, BSOCK *bs)
 {
     POOLMEM *name  = get_pool_memory(PM_MESSAGE);
-    JCR *jcr = (JCR *)vjcr;
 
     make_unique_spool_filename(jcr, &name, bs->fd);
     bs->spool_fd = fopen(name, "w+");
@@ -314,10 +312,9 @@ int open_spool_file(void *vjcr, BSOCK *bs)
     return 1;
 }
 
-int close_spool_file(void *vjcr, BSOCK *bs)
+int close_spool_file(JCR *jcr, BSOCK *bs)
 {
     POOLMEM *name  = get_pool_memory(PM_MESSAGE);
-    JCR *jcr = (JCR *)vjcr;
 
     make_unique_spool_filename(jcr, &name, bs->fd);
     fclose(bs->spool_fd);
@@ -367,10 +364,9 @@ static BPIPE *open_mail_pipe(JCR *jcr, POOLMEM **cmd, DEST *d)
  * Close the messages for this Messages resource, which means to close
  *  any open files, and dispatch any pending email messages.
  */
-void close_msg(void *vjcr)
+void close_msg(JCR *jcr)
 {
    MSGS *msgs;
-   JCR *jcr = (JCR *)vjcr;
    DEST *d;
    BPIPE *bpipe;
    POOLMEM *cmd, *line;
@@ -528,12 +524,11 @@ void term_msg()
 /*
  * Handle sending the message to the appropriate place
  */
-void dispatch_message(void *vjcr, int type, int level, char *msg)
+void dispatch_message(JCR *jcr, int type, int level, char *msg)
 {
     DEST *d;   
     char dt[MAX_TIME_LENGTH];
     POOLMEM *mcmd;
-    JCR *jcr = (JCR *) vjcr;
     int len;
     MSGS *msgs;
     BPIPE *bpipe;
@@ -863,12 +858,11 @@ e_msg(char *file, int line, int type, int level, char *fmt,...)
  *
  */
 void 
-Jmsg(void *vjcr, int type, int level, char *fmt,...)
+Jmsg(JCR *jcr, int type, int level, char *fmt,...)
 {
     char     rbuf[5000];
     va_list   arg_ptr;
     int len;
-    JCR *jcr = (JCR *)vjcr;
     MSGS *msgs;
     char *job;
 
@@ -999,7 +993,7 @@ again:
  * If we come here, prefix the message with the file:line-number,
  *  then pass it on to the normal Jmsg routine.
  */
-void j_msg(char *file, int line, void *jcr, int type, int level, char *fmt,...)
+void j_msg(char *file, int line, JCR *jcr, int type, int level, char *fmt,...)
 {
    va_list   arg_ptr;
    int i, len, maxlen;

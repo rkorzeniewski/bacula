@@ -162,7 +162,7 @@ void *handle_client_request(void *dirp)
    jcr->last_fname[0] = 0;
    jcr->client_name = get_memory(strlen(my_name) + 1);
    pm_strcpy(&jcr->client_name, my_name);
-   dir->jcr = (void *)jcr;
+   dir->jcr = jcr;
    get_backup_privileges(NULL, 1 /* ignore_errors */);
 
    /**********FIXME******* add command handler error code */

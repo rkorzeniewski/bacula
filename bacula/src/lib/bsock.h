@@ -54,7 +54,7 @@ typedef struct s_bsock {
    struct s_bsock *next;              /* next BSOCK if duped */
    int spool;                         /* set for spooling */
    FILE *spool_fd;                    /* spooling file */
-   void *jcr;                         /* jcr or NULL for error msgs */
+   JCR *jcr;                          /* jcr or NULL for error msgs */
 } BSOCK;
 
 /* Signal definitions for use in bnet_sig() */

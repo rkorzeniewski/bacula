@@ -589,11 +589,10 @@ void makeSessionKey(char *key, char *seed, int mode)
  *  to = recepients list 
  *
  */
-POOLMEM *edit_job_codes(void *mjcr, char *omsg, char *imsg, char *to)	
+POOLMEM *edit_job_codes(JCR *jcr, char *omsg, char *imsg, char *to)   
 {
    char *p, *str;
    char add[20];
-   JCR *jcr = (JCR *)mjcr;
 
    *omsg = 0;
    Dmsg1(200, "edit_job_codes: %s\n", imsg);

@@ -90,7 +90,7 @@ cleanup(struct saved_cwd *cwd)
    (indicating success) and will set *CREATED_DIR_P to zero.  */
 
 static int
-make_dir(void *jcr, const char *dir, const char *dirpath, mode_t mode, int *created_dir_p)
+make_dir(JCR *jcr, const char *dir, const char *dirpath, mode_t mode, int *created_dir_p)
 {
   int fail = 0;
   int created_dir;
@@ -154,7 +154,7 @@ make_dir(void *jcr, const char *dir, const char *dirpath, mode_t mode, int *crea
 
 int
 make_path(
-	   void *jcr,
+	   JCR *jcr,
 	   const char *argpath,
 	   int mode,
 	   int parent_mode,

@@ -304,7 +304,7 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    /* dump_block(block, "before write"); */
    if (dev->state & ST_WEOT) {
       Dmsg0(100, "return write_block_to_dev with ST_WEOT\n");
-      Jmsg(&dev->errmsg, M_FATAL, 0,  _("Cannot write block. Device at EOM.\n"));
+      Jmsg(jcr, M_FATAL, 0,  _("Cannot write block. Device at EOM.\n"));
       return 0;
    }
    wlen = block->binbuf;
@@ -349,10 +349,10 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       dev->state |= ST_WEOT;
       Dmsg0(10, "==== Output bytes Triggered medium max capacity.\n");
       if (hit_max1) {
-         Jmsg(&dev->errmsg, M_INFO, 0, _("Max. Volume capacity %s exceeded on device %s.\n"),
+         Jmsg(jcr, M_INFO, 0, _("Max. Volume capacity %s exceeded on device %s.\n"),
 	    edit_uint64(dev->max_volume_size, ed1),  dev->dev_name);
       } else {
-         Jmsg(&dev->errmsg, M_INFO, 0,  _("Max. Volume capacity %s exceeded on device %s.\n"),
+         Jmsg(jcr, M_INFO, 0,  _("Max. Volume capacity %s exceeded on device %s.\n"),
 	    edit_uint64(dev->VolCatInfo.VolCatMaxBytes, ed1),  dev->dev_name);
       }
       block->failed_write = TRUE;
@@ -395,10 +395,10 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	 wlen, stat, dev->dev_errno, strerror(dev->dev_errno));
 
       if (stat == -1) {
-         Jmsg2(&dev->errmsg, M_ERROR, 0, _("Write error on device %s. ERR=%s.\n"), 
+         Jmsg2(jcr, M_ERROR, 0, _("Write error on device %s. ERR=%s.\n"), 
 	    dev->dev_name, strerror(dev->dev_errno));
       } else {
-         Jmsg3(&dev->errmsg, M_INFO, 0, _("End of media on device %s. Write of %u bytes got %d.\n"), 
+         Jmsg3(jcr, M_INFO, 0, _("End of media on device %s. Write of %u bytes got %d.\n"), 
 	    dev->dev_name, wlen, stat);
       }  
       block->failed_write = TRUE;

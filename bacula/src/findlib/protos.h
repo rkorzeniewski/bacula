@@ -26,13 +26,13 @@
 /* from attribs.c */
 void      encode_stat            (char *buf, struct stat *statp, uint32_t LinkFI);
 void      decode_stat            (char *buf, struct stat *statp, uint32_t *LinkFI);
-int       encode_attribsEx       (void *jcr, char *attribsEx, FF_PKT *ff_pkt);
-int set_attributes(void *jcr, char *fname, char *ofile, char *lname,
+int       encode_attribsEx       (JCR *jcr, char *attribsEx, FF_PKT *ff_pkt);
+int set_attributes(JCR *jcr, char *fname, char *ofile, char *lname,
                    int type, int stream, struct stat *statp, 
                    char *attribsEx, BFILE *ofd);
 
 /* from create_file.c */
-int create_file(void *jcr, char *fname, char *ofile, char *lname,
+int create_file(JCR *jcr, char *fname, char *ofile, char *lname,
                 int type, int stream, struct stat *statp, 
                 char *attribsEx, BFILE *ofd, int replace);
 
@@ -59,11 +59,11 @@ int term_find_one(FF_PKT *ff);
 
 
 /* From get_priv.c */
-int get_backup_privileges(void *jcr, int ignore_errors);
+int get_backup_privileges(JCR *jcr, int ignore_errors);
 
 
 /* from makepath.c */
-int make_path(void *jcr, const char *argpath, int mode,
+int make_path(JCR *jcr, const char *argpath, int mode,
            int parent_mode, uid_t owner, gid_t group,
            int preserve_existing, char *verbose_fmt_string);
 

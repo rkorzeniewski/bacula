@@ -78,13 +78,14 @@
    jcr->JobStatus == JS_FatalError)
 
 
-typedef void (JCR_free_HANDLER)(struct s_jcr *jcr);
+struct JCR;
+typedef void (JCR_free_HANDLER)(JCR *jcr);
 
 /* Job Control Record (JCR) */
-struct s_jcr {
+struct JCR {
    /* Global part of JCR common to all daemons */
-   struct s_jcr *next;
-   struct s_jcr *prev;
+   JCR *next;
+   JCR *prev;
    pthread_t my_thread_id;            /* id of thread controlling jcr */
    pthread_mutex_t mutex;             /* jcr mutex */
    BSOCK *dir_bsock;                  /* Director bsock or NULL if we are him */
@@ -185,8 +186,8 @@ struct s_jcr {
 
 #ifdef STORAGE_DAEMON
    /* Storage Daemon specific part of JCR */
-   struct s_jcr *next_dev;            /* next JCR attached to device */
-   struct s_jcr *prev_dev;            /* previous JCR attached to device */
+   JCR *next_dev;                     /* next JCR attached to device */
+   JCR *prev_dev;                     /* previous JCR attached to device */
    pthread_cond_t job_start_wait;     /* Wait for FD to start Job */
    int type;
    DEVRES *device;                    /* device to use */
@@ -251,9 +252,6 @@ struct s_last_job {
 };
 
 extern struct s_last_job last_job;
-
-#undef JCR
-typedef struct s_jcr JCR;
 
 
 /* The following routines are found in lib/jcr.c */

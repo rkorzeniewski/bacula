@@ -71,7 +71,7 @@ static int int_handler(void *ctx, int num_fields, char **row)
  */
 
 /* Check that the tables correspond to the version we want */
-int check_tables_version(void *jcr, B_DB *mdb)
+int check_tables_version(JCR *jcr, B_DB *mdb)
 {
    uint32_t version;
    char *query = "SELECT VersionId FROM Version";
@@ -89,7 +89,7 @@ int check_tables_version(void *jcr, B_DB *mdb)
 
 /* Utility routine for queries. The database MUST be locked before calling here. */
 int
-QueryDB(char *file, int line, void *jcr, B_DB *mdb, char *cmd)
+QueryDB(char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
 {
    int status;
    if ((status=sql_query(mdb, cmd)) != 0) {
@@ -112,7 +112,7 @@ QueryDB(char *file, int line, void *jcr, B_DB *mdb, char *cmd)
  *	    1 on success
  */
 int
-InsertDB(char *file, int line, void *jcr, B_DB *mdb, char *cmd)
+InsertDB(char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
 {
    if (sql_query(mdb, cmd)) {
       m_msg(file, line, &mdb->errmsg,  _("insert %s failed:\n%s\n"), cmd, sql_strerror(mdb));
@@ -145,7 +145,7 @@ InsertDB(char *file, int line, void *jcr, B_DB *mdb, char *cmd)
  *	     1 on success  
  */
 int
-UpdateDB(char *file, int line, void *jcr, B_DB *mdb, char *cmd)
+UpdateDB(char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
 {
 
    if (sql_query(mdb, cmd)) {
@@ -176,7 +176,7 @@ UpdateDB(char *file, int line, void *jcr, B_DB *mdb, char *cmd)
  *	     n number of rows affected
  */
 int
-DeleteDB(char *file, int line, void *jcr, B_DB *mdb, char *cmd)
+DeleteDB(char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
 {
 
    if (sql_query(mdb, cmd)) {
@@ -199,7 +199,7 @@ DeleteDB(char *file, int line, void *jcr, B_DB *mdb, char *cmd)
  * Returns: -1 on failure
  *	    count on success
  */
-int get_sql_record_max(void *jcr, B_DB *mdb)
+int get_sql_record_max(JCR *jcr, B_DB *mdb)
 {
    SQL_ROW row;
    int stat = 0;
@@ -247,7 +247,7 @@ void _db_unlock(char *file, int line, B_DB *mdb)
  *  much more efficient. Usually started when inserting 
  *  file attributes.
  */
-void db_start_transaction(void *jcr, B_DB *mdb)
+void db_start_transaction(JCR *jcr, B_DB *mdb)
 {
 #ifdef xAVE_SQLITE
    db_lock(mdb);
@@ -265,7 +265,7 @@ void db_start_transaction(void *jcr, B_DB *mdb)
 
 }
 
-void db_end_transaction(void *jcr, B_DB *mdb)
+void db_end_transaction(JCR *jcr, B_DB *mdb)
 {
 #ifdef xAVE_SQLITE
    db_lock(mdb);
@@ -284,7 +284,7 @@ void db_end_transaction(void *jcr, B_DB *mdb)
  *  and filename parts. They are returned in pool memory
  *  in the mdb structure.
  */
-void split_path_and_filename(void *jcr, B_DB *mdb, char *fname)
+void split_path_and_filename(JCR *jcr, B_DB *mdb, char *fname)
 {
    char *p, *f;
 

@@ -25,7 +25,11 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
+- Look at ALL higher level routines that call block.c to be sure
+  they don't expect something in errmsg.
+- Fix Verify VolumeToCatalog to use BSRs -- it is broken.
 - Use switch() in backup.c and restore.c in FD instead of giant if statement.
+- Replace do_shell_expansion() with bpipe code.
 - Investigate doing RAW backup of Win32 partition.
 - Add JobName= to VerifyToCatalog so that all verifies can be done at the end.
 - Add thread specific data to hold the jcr -- send error messages from

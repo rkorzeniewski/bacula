@@ -38,7 +38,7 @@
 #define O_CTG 0
 #endif
 
-static int separate_path_and_file(void *jcr, char *fname, char *ofile);
+static int separate_path_and_file(JCR *jcr, char *fname, char *ofile);
 static int path_already_seen(char *path, int pnl);
 
 
@@ -61,7 +61,7 @@ static int path_already_seen(char *path, int pnl);
  *     files.
  *
  */
-int create_file(void *jcr, char *fname, char *ofile, char *lname,
+int create_file(JCR *jcr, char *fname, char *ofile, char *lname,
 		int type, int stream, struct stat *statp, 
 		char *attribsEx, BFILE *ofd, int replace)
 {
@@ -264,7 +264,7 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
  *	     0	no path
  *	     -1 filename is zero length
  */ 
-static int separate_path_and_file(void *jcr, char *fname, char *ofile)
+static int separate_path_and_file(JCR *jcr, char *fname, char *ofile)
 {
    char *f, *p;
    int fnl, pnl;

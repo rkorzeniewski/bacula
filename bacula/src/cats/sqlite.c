@@ -51,7 +51,7 @@ static BQUEUE db_list = {&db_list, &db_list};
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
-int QueryDB(char *file, int line, void *jcr, B_DB *db, char *select_cmd);
+int QueryDB(char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
 
 
 /*
@@ -59,7 +59,7 @@ int QueryDB(char *file, int line, void *jcr, B_DB *db, char *select_cmd);
  * never have errors, or it is really fatal.
  */
 B_DB *
-db_init_database(void *jcr, char *db_name, char *db_user, char *db_password,
+db_init_database(JCR *jcr, char *db_name, char *db_user, char *db_password,
 		 char *db_address, int db_port, char *db_socket) 
 {
    B_DB *mdb;
@@ -98,7 +98,7 @@ db_init_database(void *jcr, char *db_name, char *db_user, char *db_password,
  * which are returned in the errmsg
  */
 int
-db_open_database(void *jcr, B_DB *mdb)
+db_open_database(JCR *jcr, B_DB *mdb)
 {
    char *db_name;
    int len;
@@ -159,7 +159,7 @@ db_open_database(void *jcr, B_DB *mdb)
 }
 
 void
-db_close_database(void *jcr, B_DB *mdb)
+db_close_database(JCR *jcr, B_DB *mdb)
 {
    P(mutex);
    mdb->ref_count--;
@@ -187,7 +187,7 @@ db_close_database(void *jcr, B_DB *mdb)
  * Return the next unique index (auto-increment) for
  * the given table.  Return 0 on error.
  */
-int db_next_index(void *jcr, B_DB *mdb, char *table, char *index)
+int db_next_index(JCR *jcr, B_DB *mdb, char *table, char *index)
 {
    SQL_ROW row;
 
