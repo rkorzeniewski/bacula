@@ -374,9 +374,8 @@ static void list_scheduled_jobs(UAContext *ua)
    UnlockRes();
    if (num_jobs == 0) {
       bsendmsg(ua, _("No Scheduled Jobs.\n"));
-   } else {
-      bsendmsg(ua, "\n");
-   }
+   } 
+   bsendmsg(ua, "====\n");
    Dmsg0(200, "Leave list_sched_jobs_runs()\n");
 }
 
@@ -390,7 +389,7 @@ static void list_running_jobs(UAContext *ua)
    bool pool_mem = false;
 
    Dmsg0(200, "enter list_run_jobs()\n");
-   bsendmsg(ua, _("\nRunning Jobs:\n"));
+   bsendmsg(ua, _("Running Jobs:\n"));
    lock_jcr_chain();
    foreach_jcr(jcr) {
       njobs++;

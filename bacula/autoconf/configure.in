@@ -367,7 +367,9 @@ if test x$support_readline = xyes; then
 	       CONS_LIBS="-lreadline -ltermcap"
 	       got_readline="yes"   
 	     ],
-	     [ AC_MSG_ERROR([*** readline library missing]) 
+	     [ echo " "
+	       echo "readline.h not found. readline turned off ..."
+	       echo " "
 	     ]
 	  )
 	  ;;
@@ -389,7 +391,9 @@ if test x$support_readline = xyes; then
 		 CONS_LDFLAGS="-L${TOP_DIR}/depkgs/readline"
 		 PRTREADLINE_SRC="${TOP_DIR}/depkgs/readline"
 	      ],
-	      [ AC_MSG_ERROR([*** readline library missing]) 
+	      [ echo " "
+		echo "readline.h not found. readline turned off ..."
+		echo " "
 	      ]
 	    )
 	 ]

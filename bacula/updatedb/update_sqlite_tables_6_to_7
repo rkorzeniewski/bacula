@@ -14,15 +14,15 @@ bindir=/usr/lib/sqlite
 cd /var/bacula
 
 if [ -s bacula.db ];then
-	DB_VER=`echo "select * from Version;" | $bindir/sqlite bacula.db | tail -n 1 2>/dev/null`
-	if [ -n "$DB_VER" ] && [ "$DB_VER" -ne "6" ]; then
-		echo "Sorry, this script is designed to update a version 6 database"
-		echo "and you have a version $DB_VER database."
-		exit 1
-	fi
+        DB_VER=`echo "select * from Version;" | $bindir/sqlite bacula.db | tail -n 1 2>/dev/null`
+        if [ -n "$DB_VER" ] && [ "$DB_VER" -ne "6" ]; then
+                echo "Sorry, this script is designed to update a version 6 database"
+                echo "and you have a version $DB_VER database."
+                exit 1
+        fi
 else
-	echo "Sorry, I can't seem to locate a bacula database."
-	exit 1
+        echo "Sorry, I can't seem to locate a bacula database."
+        exit 1
 fi
 
 $bindir/sqlite $* bacula.db <<END-OF-DATA
@@ -112,7 +112,7 @@ INSERT INTO Media (
    VolRetention, VolUseDuration, MaxVolJobs,
    MaxVolFiles, MaxVolBytes,
    InChanger, MediaAddressing,
-   VolReadTime, VolWriteTime,
+   VolReadTime, VolWriteTime)
    SELECT * FROM Media_backup;
 
 DROP TABLE Media_backup;
