@@ -239,7 +239,9 @@ static int unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
             Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
 	 }
 	 block->read_errors++;
-	 return 0;
+	 if (!forge_on) {
+	    return 0;
+	 }
       }
    } else if (Id[3] == '2') {
       unser_uint32(block->VolSessionId);
@@ -255,7 +257,9 @@ static int unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
             Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
 	 }
 	 block->read_errors++;
-	 return 0;
+	 if (!forge_on) {
+	    return 0;
+	 }
       }
    } else {
       dev->dev_errno = EIO;
@@ -264,7 +268,14 @@ static int unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
          Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       }
       block->read_errors++;
-      return 0;
+      if (!forge_on) {
+	 return 0;
+      }
+      unser_uint32(block->VolSessionId);
+      unser_uint32(block->VolSessionTime);
+      bhl = BLKHDR2_LENGTH;
+      block->BlockVer = 2;
+      block->bufp = block->buf + bhl;
    }
 
    /* Sanity check */
@@ -276,7 +287,9 @@ static int unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
          Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       }
       block->read_errors++;
-      return 0;
+      if (!forge_on) {
+	 return 0;
+      }
    }
 
    Dmsg1(190, "unser_block_header block_len=%d\n", block_len);
@@ -302,7 +315,9 @@ static int unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
             Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
 	 }
 	 block->read_errors++;
-	 return 0;
+	 if (!forge_on) {
+	    return 0;
+	 }
       }
    }
    return 1;
@@ -486,7 +501,9 @@ int write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
 	 dev->dev_errno = EIO;
           Jmsg(jcr, M_ERROR, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
 	       dcr->VolCatInfo.VolCatName, jcr->Job);
-	  return 0;
+	  if (!forge_on) {
+	     return 0;
+	  }
       }
       dev->file_size = 0;	      /* reset file size */
       /* 

@@ -92,7 +92,7 @@ static int ignored_msgs = 0;
 
 #define CONFIG_FILE "bacula-sd.conf"
 char *configfile;
-
+bool forge_on = false;
 
 
 static void usage()
@@ -106,8 +106,9 @@ static void usage()
 "       -m                update media info in database\n"
 "       -n <name>         specify the database name (default bacula)\n"
 "       -u <user>         specify database user name (default bacula)\n"
-"       -p <password      specify database password (default none)\n"
+"       -P <password      specify database password (default none)\n"
 "       -h <host>         specify database host (default NULL)\n"
+"       -p                proceed inspite of I/O errors\n"
 "       -r                list records\n"
 "       -s                synchronize or store in database\n"
 "       -v                verbose\n"
@@ -127,7 +128,7 @@ int main (int argc, char *argv[])
    init_msg(NULL, NULL);
 
 
-   while ((ch = getopt(argc, argv, "b:c:d:h:mn:p:rsu:vV:w:?")) != -1) {
+   while ((ch = getopt(argc, argv, "b:c:d:h:mn:pP:rsu:vV:w:?")) != -1) {
       switch (ch) {
       case 'b':
 	 bsr = parse_bsr(NULL, optarg);
@@ -162,8 +163,12 @@ int main (int argc, char *argv[])
 	 db_user = optarg;
 	 break;
 
-      case 'p':
+      case 'P':
 	 db_password = optarg;
+	 break;
+
+      case 'p':
+	 forge_on = true;
 	 break;
 
       case 'r':

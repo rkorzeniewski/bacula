@@ -54,6 +54,7 @@ static ATTR *attr;
 
 #define CONFIG_FILE "bacula-sd.conf"
 char *configfile;
+bool forge_on = false;
 
 
 static FF_PKT ff;
@@ -159,6 +160,7 @@ int main (int argc, char *argv[])
 
       case 'p':
 	 ignore_label_errors = true;
+	 forge_on = true;
 	 break;
 
       case 'v':
