@@ -101,7 +101,7 @@ static RES_ITEM dir_items[] = {
 RES_TABLE resources[] = {
    {"console",       cons_items,  R_CONSOLE,   NULL},
    {"director",      dir_items,   R_DIRECTOR,  NULL},
-   {NULL,        NULL,    0,         NULL}
+   {NULL,	 NULL,	  0,	     NULL}
 };
 
 
@@ -115,7 +115,7 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
       printf("No record for %d %s\n", type, res_to_str(type));
       return;
    }
-   if (type < 0) {            /* no recursion */
+   if (type < 0) {	      /* no recursion */
       type = - type;
       recurse = 0;
    }
@@ -201,7 +201,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
        if (!bit_is_set(i, res_all.res_dir.hdr.item_present)) {
                Emsg2(M_ABORT, 0, "%s item is required in %s resource, but not found.\n",
        items[i].name, resources[rindex]);
-        }
+	}
       }
    }
 
@@ -260,14 +260,14 @@ void save_resource(int type, RES_ITEM *items, int pass)
     RES *next;
     for (next=resources[rindex].res_head; next->next; next=next->next) {
        if (strcmp(next->name, res->res_dir.hdr.name) == 0) {
-          Emsg2(M_ERROR_TERM, 0,
+	  Emsg2(M_ERROR_TERM, 0,
                   _("Attempt to define second %s resource named \"%s\" is not permitted.\n"),
-        resources[rindex].name, res->res_dir.hdr.name);
+	resources[rindex].name, res->res_dir.hdr.name);
        }
     }
     next->next = (RES *)res;
          Dmsg2(90, "Inserting %s res: %s\n", res_to_str(type),
-          res->res_dir.hdr.name);
+	  res->res_dir.hdr.name);
       }
    }
 }

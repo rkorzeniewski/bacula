@@ -109,7 +109,11 @@ void* console_thread::Entry() {
    csprint("Connected\n");
 
    jcr.dir_bsock = UA_sock;
-   if (!authenticate_director(&jcr, dir, NULL)) {
+   LockRes();
+   /* If cons==NULL, default console will be used */
+   CONRES *cons = (CONRES *)GetNextRes(R_CONSOLE, (RES *)NULL);
+   UnlockRes();
+   if (!authenticate_director(&jcr, dir, cons)) {
       csprint("ERR=");
       csprint(UA_sock->msg);
       csprint(NULL, CS_END);
@@ -191,4 +195,3 @@ void console_thread::Delete() {
       UA_sock = NULL;
    }
 }
-
