@@ -1,8 +1,15 @@
           Release Notes for Bacula 1.29
 
-  Bacula code: Total files = 228 Total lines = 62,042 (*.h *.c *.in)
+  Bacula code: Total files = 228 Total lines = 62,662 (*.h *.c *.in)
 
 Major Changes this Release:
+- This release is primarily a bug fix release. I spent a great
+  deal of time searching for any possible buffer overflow, stress
+  testing the memory allocator, and eliminating places where bad
+  input or strange characters could cause a crash.  
+- All known 1.28 bugs have been fixed.
+
+
 
 Other Changes this Release:
 

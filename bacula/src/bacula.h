@@ -65,7 +65,9 @@
 #include <strings.h>
 #include <signal.h>
 #include <ctype.h>
+#ifndef _SPLINT_
 #include <syslog.h>
+#endif
 #if HAVE_LIMITS_H
 #include <limits.h>
 #endif
