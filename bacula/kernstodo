@@ -42,6 +42,8 @@ For 1.33 Testing/Documentation:
 1.34 Cleanup
 - Add multiple-media-types.txt
 - look at mxt-changer.html
+- Document a get out of jail procedure if everything breaks if you lost/broke
+  the Catalog.
 
 1.34.3 Items:
 - Document dbcheck conf changes.
@@ -51,6 +53,8 @@ For 1.33 Testing/Documentation:
 - Document vendor database repair.
 
 For version 1.35:
+- Implement "label slots=1,2... pool=yyy barcodes"
+- Make ? do a help command (no return needed).
 - Do tape alerts -- see tapealert.txt
 - Implement restore directory.
 - Add All Local Partitions = yes to new style saves.
