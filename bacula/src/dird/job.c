@@ -72,7 +72,6 @@ void init_job_server(int max_workers)
    return;
 }
 
-
 /*
  * Run a job -- typically called by the scheduler, but may also
  *		be called by the UA (Console program).

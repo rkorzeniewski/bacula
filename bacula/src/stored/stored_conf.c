@@ -50,7 +50,7 @@ int res_all_size = sizeof(res_all);
  */ 
 
 /* Globals for the Storage daemon. */
-static struct res_items store_items[] = {
+static RES_ITEM store_items[] = {
    {"name",                  store_name, ITEM(res_store.hdr.name),   0, ITEM_REQUIRED, 0},
    {"description",           store_str,  ITEM(res_dir.hdr.desc),     0, 0, 0},
    {"address",               store_str,  ITEM(res_store.address),    0, 0, 0}, /* deprecated */
@@ -69,7 +69,7 @@ static struct res_items store_items[] = {
 
 
 /* Directors that can speak to the Storage daemon */
-static struct res_items dir_items[] = {
+static RES_ITEM dir_items[] = {
    {"name",        store_name,     ITEM(res_dir.hdr.name),   0, ITEM_REQUIRED, 0},
    {"description", store_str,      ITEM(res_dir.hdr.desc),   0, 0, 0},
    {"password",    store_password, ITEM(res_dir.password),   0, ITEM_REQUIRED, 0},
@@ -79,7 +79,7 @@ static struct res_items dir_items[] = {
 };
 
 /* Device definition */
-static struct res_items dev_items[] = {
+static RES_ITEM dev_items[] = {
    {"name",                  store_name,   ITEM(res_dev.hdr.name),        0, ITEM_REQUIRED, 0},
    {"description",           store_str,    ITEM(res_dir.hdr.desc),        0, 0, 0},
    {"mediatype",             store_strname,ITEM(res_dev.media_type),      0, ITEM_REQUIRED, 0},
@@ -121,11 +121,11 @@ static struct res_items dev_items[] = {
 
 
 /* Message resource */
-extern struct res_items msgs_items[];
+extern RES_ITEM msgs_items[];
 
 
 /* This is the master resource definition */
-struct s_res resources[] = {
+RES_TABLE resources[] = {
    {"director",      dir_items,   R_DIRECTOR,  NULL},
    {"storage",       store_items, R_STORAGE,   NULL},
    {"device",        dev_items,   R_DEVICE,    NULL},
@@ -234,18 +234,16 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
  * resource chain is traversed.  Mainly we worry about freeing
  * allocated strings (names).
  */
-void free_resource(int type)
+void free_resource(RES *sres, int type)
 {
-   URES *nres;
-   URES *res;
-   int rindex = type - r_first;
-   res = (URES *)resources[rindex].res_head;
+   RES *nres;
+   URES *res = (URES *)sres;
 
    if (res == NULL)
       return;
 
    /* common stuff -- free the resource name */
-   nres = (URES *)res->res_dir.hdr.next;
+   nres = (RES *)res->res_dir.hdr.next;
    if (res->res_dir.hdr.name) {
       free(res->res_dir.hdr.name);
    }
@@ -312,9 +310,8 @@ void free_resource(int type)
    if (res) {
       free(res);
    }
-   resources[rindex].res_head = (RES *)nres;
    if (nres) {
-      free_resource(type);
+      free_resource(nres, type);
    }
 }
 
@@ -322,7 +319,7 @@ void free_resource(int type)
  * the resource. If this is pass 2, we update any resource
  * pointers (currently only in the Job resource).
  */
-void save_resource(int type, struct res_items *items, int pass)
+void save_resource(int type, RES_ITEM *items, int pass)
 {
    URES *res;
    int rindex = type - r_first;

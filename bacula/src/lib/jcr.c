@@ -152,6 +152,24 @@ void unlock_last_jobs_list()
 }
 
 /*
+ * Push a subroutine address into the job end callback stack
+ */
+void job_end_push(JCR *jcr, void job_end_cb(JCR *jcr))
+{
+   jcr->job_end_push.prepend((void *)job_end_cb);
+}
+
+/* Pop each job_end subroutine and call it */
+static void job_end_pop(JCR *jcr)
+{
+   void (*job_end_cb)(JCR *jcr);
+   for (int i=0; i<jcr->job_end_push.size(); i++) {
+      job_end_cb = (void (*)(JCR *))jcr->job_end_push.get(i);
+      job_end_cb(jcr);
+   }
+}
+
+/*
  * Create a Job Control Record and link it into JCR chain
  * Returns newly allocated JCR
  * Note, since each daemon has a different JCR, he passes
@@ -167,6 +185,7 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    jcr = (JCR *)malloc(size);
    memset(jcr, 0, size);
    jcr->msg_queue = new dlist(item, &item->link);
+   jcr->job_end_push.init(1, false);
    jcr->my_thread_id = pthread_self();
    jcr->sched_time = time(NULL);
    jcr->daemon_free_jcr = daemon_free_jcr;    /* plug daemon free routine */
@@ -332,6 +351,7 @@ void free_jcr(JCR *jcr)
       return;
    }
    remove_jcr(jcr);
+   job_end_pop(jcr);		      /* pop and call hooked routines */
 
    Dmsg1(200, "End job=%d\n", jcr->JobId);
    if (jcr->daemon_free_jcr) {
@@ -361,7 +381,6 @@ void free_locked_jcr(JCR *jcr)
    jcr->daemon_free_jcr(jcr);	      /* call daemon free routine */
    free_common_jcr(jcr);
 }
-
 
 
 

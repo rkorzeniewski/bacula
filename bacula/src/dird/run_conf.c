@@ -174,7 +174,7 @@ static struct s_kw RunFields[] = {
  *   together.
  *
  */
-void store_run(LEX *lc, struct res_items *item, int index, int pass)
+void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int i, j;
    bool found;

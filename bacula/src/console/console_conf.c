@@ -65,7 +65,7 @@ int  res_all_size = sizeof(res_all);
  */ 
 
 /*  Console "globals" */
-static struct res_items cons_items[] = {
+static RES_ITEM cons_items[] = {
    {"name",        store_name,     ITEM(res_cons.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,      ITEM(res_cons.hdr.desc), 0, 0, 0},
    {"rcfile",      store_dir,      ITEM(res_cons.rc_file), 0, 0, 0},
@@ -77,7 +77,7 @@ static struct res_items cons_items[] = {
 
 
 /*  Director's that we can contact */
-static struct res_items dir_items[] = {
+static RES_ITEM dir_items[] = {
    {"name",        store_name,     ITEM(res_dir.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,      ITEM(res_dir.hdr.desc), 0, 0, 0},
    {"dirport",     store_int,      ITEM(res_dir.DIRport),  0, ITEM_DEFAULT, 9101},
@@ -91,7 +91,7 @@ static struct res_items dir_items[] = {
  * This is the master resource definition.  
  * It must have one item for each of the resources.
  */
-struct s_res resources[] = {
+RES_TABLE resources[] = {
    {"console",       cons_items,  R_CONSOLE,   NULL},
    {"director",      dir_items,   R_DIRECTOR,  NULL},
    {NULL,	     NULL,	  0,	       NULL}
@@ -136,13 +136,10 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
  * resource chain is traversed.  Mainly we worry about freeing
  * allocated strings (names).
  */
-void free_resource(int type)
+void free_resource(RES *sres, int type)
 {
-   URES *res;
    RES *nres;
-   int rindex = type - r_first;
-
-   res = (URES *)resources[rindex].res_head;
+   URES *res = (URES *)sres;
 
    if (res == NULL)
       return;
@@ -173,16 +170,16 @@ void free_resource(int type)
    }
    /* Common stuff again -- free the resource, recurse to next one */
    free(res);
-   resources[rindex].res_head = nres;
-   if (nres)
-      free_resource(type);
+   if (nres) {
+      free_resource(nres, type);
+   }
 }
 
 /* Save the new resource by chaining it into the head list for
  * the resource. If this is pass 2, we update any resource
  * pointers (currently only in the Job resource).
  */
-void save_resource(int type, struct res_items *items, int pass)
+void save_resource(int type, RES_ITEM *items, int pass)
 {
    URES *res;
    int rindex = type - r_first;

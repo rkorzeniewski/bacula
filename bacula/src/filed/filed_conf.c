@@ -76,7 +76,7 @@ int  res_all_size = sizeof(res_all);
  */ 
 
 /* Client or File daemon "Global" resources */
-static struct res_items cli_items[] = {
+static RES_ITEM cli_items[] = {
    {"name",        store_name,  ITEM(res_client.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,   ITEM(res_client.hdr.desc), 0, 0, 0},
    {"fdport",      store_pint,  ITEM(res_client.FDport),  0, ITEM_DEFAULT, 9102},
@@ -94,7 +94,7 @@ static struct res_items cli_items[] = {
 };
 
 /* Directors that can use our services */
-static struct res_items dir_items[] = {
+static RES_ITEM dir_items[] = {
    {"name",        store_name,     ITEM(res_dir.hdr.name),  0, ITEM_REQUIRED, 0},
    {"description", store_str,      ITEM(res_dir.hdr.desc),  0, 0, 0},
    {"password",    store_password, ITEM(res_dir.password),  0, ITEM_REQUIRED, 0},
@@ -104,13 +104,13 @@ static struct res_items dir_items[] = {
 };
 
 /* Message resource */
-extern struct res_items msgs_items[];
+extern RES_ITEM msgs_items[];
 
 /* 
  * This is the master resource definition.  
  * It must have one item for each of the resources.
  */
-struct s_res resources[] = {
+RES_TABLE resources[] = {
    {"director",      dir_items,   R_DIRECTOR,  NULL},
    {"filedaemon",    cli_items,   R_CLIENT,    NULL},
    {"client",        cli_items,   R_CLIENT,    NULL}, /* alias for filedaemon */
@@ -163,13 +163,10 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
  * resource chain is traversed.  Mainly we worry about freeing
  * allocated strings (names).
  */
-void free_resource(int type)
+void free_resource(RES *sres, int type)
 {
-   URES *res;
    RES *nres;
-   int rindex = type - r_first;
-
-   res = (URES *)resources[rindex].res_head;
+   URES *res = (URES *)sres;
 
    if (res == NULL) {
       return;
@@ -222,9 +219,8 @@ void free_resource(int type)
    if (res) {
       free(res);
    }
-   resources[rindex].res_head = nres;
    if (nres) {
-      free_resource(type);
+      free_resource(nres, type);
    }
 }
 
@@ -232,7 +228,7 @@ void free_resource(int type)
  * the resource. If this is pass 2, we update any resource
  * pointers (currently only in the Job resource).
  */
-void save_resource(int type, struct res_items *items, int pass)
+void save_resource(int type, RES_ITEM *items, int pass)
 {
    URES *res;
    int rindex = type - r_first;
