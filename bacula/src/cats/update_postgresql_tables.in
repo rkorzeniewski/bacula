@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Shell script to update PostgreSQL tables from version 1.36 to 1.37.3
+# Shell script to update PostgreSQL tables from version 1.36 to 1.37.12
 #
 echo " "
 echo "This script will update a Bacula PostgreSQL database from version 8 to 9"
@@ -28,6 +28,12 @@ ALTER TABLE pool ADD COLUMN MigrationLowBytes  BIGINT;
 ALTER TABLE pool SET MigrationLowBytes=0;
 ALTER TABLE pool ADD COLUMN MigrationTime      BIGINT;
 ALTER TABLE pool SET MigrationTime=0;
+
+
+ALTER TABLE jobmedia ADD COLUMN Copy integer;
+UPDATE jobmedia SET Copy=0;
+ALTER TABLE jobmedia ADD COLUMN Stripe integer;
+UPDATE jobmedia SET Stripe=0;
 
 
 ALTER TABLE media ADD COLUMN volparts integer;
@@ -66,6 +72,9 @@ CREATE TABLE Storage (
    AutoChanger INTEGER DEFAULT 0,
    PRIMARY KEY(StorageId)
    );
+
+DELETE FROM version;
+INSERT INTO version (versionId) VALUES (9);
 
 vacuum;
 

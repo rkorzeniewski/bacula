@@ -340,6 +340,8 @@ public:
    char pool_type[MAX_NAME_LENGTH];   /* pool type */
    char media_type[MAX_NAME_LENGTH];  /* media type */
    char dev_name[MAX_NAME_LENGTH];    /* dev name */
+   int Copy;                          /* identical copy number */
+   int Stripe;                        /* RAIT stripe */
    VOLUME_CAT_INFO VolCatInfo;        /* Catalog info for desired volume */
 };
 

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# shell script to update SQLite from version 1.36 to 1.37.3
+# shell script to update SQLite from version 1.36 to 1.37.12
 #
 echo " "
 echo "This script will update a Bacula SQLite database from version 8 to 9"
@@ -20,6 +20,7 @@ CREATE TEMPORARY TABLE Media_backup (
    Slot INTEGER DEFAULT 0,
    PoolId INTEGER UNSIGNED REFERENCES Pool NOT NULL,
    MediaType VARCHAR(128) NOT NULL,
+   LabelType TINYINT DEFAULT 0,
    FirstWritten DATETIME DEFAULT 0,
    LastWritten DATETIME DEFAULT 0,
    LabelDate DATETIME DEFAULT 0,
@@ -101,7 +102,7 @@ CREATE TABLE Media (
 
 INSERT INTO Media (
    MediaId, VolumeName, Slot, PoolId,
-   MediaType, FirstWritten, LastWritten,
+   MediaType, LabelType, FirstWritten, LastWritten,
    LabelDate, VolJobs, VolFiles, VolBlocks,
    VolMounts, VolBytes, VolParts, VolErrors, VolWrites,
    VolCapacityBytes, VolStatus, Recycle,
@@ -113,6 +114,58 @@ INSERT INTO Media (
    SELECT * FROM Media_backup;
 
 DROP TABLE Media_backup;
+CREATE INDEX inx8 ON Media (PoolId);
+
+
+CREATE TEMPORARY TABLE JobMedia_backup (
+   JobMediaId INTEGER,
+   JobId INTEGER UNSIGNED REFERENCES Job NOT NULL,
+   MediaId INTEGER UNSIGNED REFERENCES Media NOT NULL,
+   FirstIndex INTEGER UNSIGNED NOT NULL,
+   LastIndex INTEGER UNSIGNED NOT NULL,
+   StartFile INTEGER UNSIGNED DEFAULT 0,
+   EndFile INTEGER UNSIGNED DEFAULT 0,
+   StartBlock INTEGER UNSIGNED DEFAULT 0,
+   EndBlock INTEGER UNSIGNED DEFAULT 0,
+   VolIndex INTEGER UNSIGNED DEFAULT 0,
+   Copy     INTEGER UNSIGNED DEFAULT 0,
+   Stripe   INTEGER UNSIGNED DEFAULT 0,
+   PRIMARY KEY(JobMediaId) 
+   );
+
+INSERT INTO JobMedia_backup SELECT
+   JobMediaId, JobId, MediaId,
+   FirstIndex, LastIndex, StartFile,
+   EndFile, StartBlock, EndBlock,
+   VolIndex, 0, 0 
+   FROM JobMedia;
+
+DROP TABLE JobMedia;
+
+CREATE TABLE JobMedia (
+   JobMediaId INTEGER,
+   JobId INTEGER UNSIGNED REFERENCES Job NOT NULL,
+   MediaId INTEGER UNSIGNED REFERENCES Media NOT NULL,
+   FirstIndex INTEGER UNSIGNED NOT NULL,
+   LastIndex INTEGER UNSIGNED NOT NULL,
+   StartFile INTEGER UNSIGNED DEFAULT 0,
+   EndFile INTEGER UNSIGNED DEFAULT 0,
+   StartBlock INTEGER UNSIGNED DEFAULT 0,
+   EndBlock INTEGER UNSIGNED DEFAULT 0,
+   VolIndex INTEGER UNSIGNED DEFAULT 0,
+   Copy     INTEGER UNSIGNED DEFAULT 0,
+   Stripe   INTEGER UNSIGNED DEFAULT 0,
+   PRIMARY KEY(JobMediaId) 
+   );
+
+INSERT INTO JobMedia (
+   JobMediaId, JobId, MediaId,
+   FirstIndex, LastIndex, StartFile,
+   EndFile, StartBlock, EndBlock,
+   VolIndex, Copy, Stripe)
+   SELECT * FROM JobMedia_backup;
+
+DROP TABLE JobMedia_backup;
 
 CREATE TEMPORARY TABLE Pool_backup (
    PoolId INTEGER,
@@ -198,7 +251,7 @@ INSERT INTO Pool (
 DROP TABLE Pool_backup;
 
 CREATE TABLE MediaType (
-   MediaTypeId INTERGER,
+   MediaTypeId INTEGER,
    MediaType VARCHAR(128) NOT NULL,
    ReadOnly TINYINT DEFAULT 0,
    PRIMARY KEY(MediaTypeId)
@@ -229,6 +282,10 @@ CREATE TABLE Device (
    CleaningPeriod BIGINT UNSIGNED DEFAULT 0,
    PRIMARY KEY(DeviceId)
    );
+
+
+DELETE FROM Version;
+INSERT INTO Version (VersionId) VALUES (9);
 
 COMMIT;
 

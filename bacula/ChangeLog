@@ -1,4 +1,549 @@
 
+Changes to 1.37.12:
+02Apr05
+- Reset NumVols in Pool record from database on every update
+  Pool.
+- Modify DB to support multiple simultaneous copies and
+  RAIT stiping.
+- Pass copy and stripe between DIR and SD and put into
+  the JobMedia DB record.
+- Update and test SQLite and MySQL datebase creation and
+  update scripts.
+- Implement version 9 of the DB.
+31Mar05
+- Convert more atoi to str_to_int64() for DB.
+- Implement filling in NumVols by querying DB rather
+  than trying to keep track of it.
+- Add storage name to string passed to in use storage=
+- Fix newVolume() so that the Python script is always
+  called.
+- Fix handling of pool,PoolId, and storage in ua_output.
+- Same fix in ua_status.c
+- Remove required locking of resources
+- Replace pthread_cond_signal() by pthread_cond_broadcast()
+  hoping to fix the /lib/tls hang problems (lost signal).
+- Move resource locking seaching from parse_conf.c to res.c
+  in src/lib.
+- Modify end of volume handling so that fixup_... does not
+  redo what block.c has already done -- writing Vol info to
+  DIR. This fixes a bug with bad numbers of files on a tape
+  when it filled as reported by Peter.
+- In release_device() do not update the DIR on the Volume
+  info if the the information was already written at the
+  end of the tape.
+28Mar05
+- NOTE!!!! This version has a new DIR <--> SD protocol. Both 
+  must be updated at the same time.
+- Begin implementation of passing all the Storage and Device
+  possibilities to the SD for examination during the reserve 
+  phase.
+- Modify the reserve and acquire code in the SD to make a 
+  job wait if the device is not available.
+- Implement New Volume Each Job in DIR and pass to SD, not yet
+  used.
+- Remove init/update of the Device resource in DIR
+- Remove passing PoolId to SD and back.
+26Mar05
+- Remove \a and -e from error echos in most Makefiles.
+- Add more debug code when there are errors on the tape 
+  to try to find Peter's tape problem.
+- Add wait.c (oops forgot previously).
+- Move all the reserve/acquire_device_for_read/append to have
+  only a DCR as the argument.
+- Rework the reserve_device_for_append() in stored to wait
+  if the drive is not available.  Note! This is a short
+  term solution.
+25Mar05
+- Comment out Multiple Connections in the document.
+- Move the P() and V() to subroutines so that they can be accessed
+  from class methods. The reference to strerror() caused problems.
+- Implement new DEVICE class methods block() and unblock() that
+  do what was previously done in 3 lines of code.
+- Implement wait_for_device(), which will wait for any device
+  to be released then return. This requires a new global mutex
+  and condition variable, and is implemented in src/stored/wait.c
+- Change the code in reserve_device_for_read(), which previously
+  failed the job to use the new device wait code.
+22Mar05
+- Apply reschedule patch to 1.37 code.
+- Add copyright to title page of manual so it is clear.
+- Create patch for rescheduling problem found by Ludovic. Storage
+  pointers were lost during rescheduling.
+- Attempt to fix 2.6 rescue disk -- failed!
+- Start working on adding a wait routine in the SD.
+- Cleanup some old invalid doc in watchdog.
+- Convert a number of references to dev->dev_name to dev->print_name().
+- Add new wait.c file to SD.
+- Add a few more methods to DEVICE in SD to cleanup code a
+  bit -- implement a few of the methods.
+18Mar05
+- Fix more print_name()s for printing device name.
+- Modify open_dev to try 10 times every 6 seconds to
+  open the device if it gets an I/O error (meaning no
+  volume mounted). This gives a bit of settling in time
+  for an autochanger and avoids spurious messages.
+- Change all yes/no to yes|no in the manual.
+- Fix win32 create_file.c typo.
+- Fix a typo in an error message.
+17Mar05
+- Detect if fseeko exists with autoconf. If so, use it 
+  and ftello.
+- Remove old bacula-*.conf from examples directory (out
+  of date).
+- Remove latex-fr index files from CVS.
+- Rewrite code that stops reading the tape so that the
+  tape is marked at EOT, then once the work is done,
+  the EOT flag is removed.
+- Flush output to file after every send in console.
+- Make setting VolFiles to smaller number fatal.
+- Disable Multiple Connections code.
+- Add patch from user for NetBSD statvsfs() fix to
+  fstype.c
+- Take more care with errors in acquire.c
+- Don't run through dvd code in append.c if bad status
+  returned.
+- Modify code so that an autochanger fault is fatal.
+- Use dev->print_name() in more places.
+- Implement dev->can_steal_lock() to simplify code.
+- Make btape re-read first 10000 records on fill command.
+- Check error return and fail job from fseeko and ftello
+  in spool.c.  Don't let a -1 slip in as size.
+
+Changes to 1.37.7:
+15Mar05
+- Apply NetBSD patch from kardel in bug 258.
+14Mar05
+- Add a second job and a second client to the default
+  bacula-dir.conf file.
+- Remove old style Include/Excludes.
+- Fix ANSI labels to put EOF1 and EOF2 after each file mark.
+- Add Python to SD and FD.
+12Mar05
+- Implement IBM labels
+- Implement EOF and EOV labels at the end of a volume.
+- Fix a rather ugly problem with the PoolId not getting
+  passed correctly. Now the DIR passes the Pool name and
+  Media Type to the SD, who passes them back when requesting
+  the next Volume. The DIR then looks up the correct PoolId.
+  This takes more time, but always works, AND allows wild
+  card Media Types (i.e. the SD can decide).
+- The DIR <==> SD protocol has changed.
+
+Changes to 1.37.6:
+11Mar05
+- Fix scanf of PoolId in catreq to handle 64 bit Ids.
+10Mar05
+- Add new ua_update.c file and move update_cmd there.
+- Modify "update slots" to obtain actual number of slots.
+- Tweak autochanger code to handle new slots request.
+- Modify autochanger code to lock/unlock around slots and
+  update slots code.
+09Mar05
+- Patch the FD so that it does not issue an error message if
+  it attempts to restore the permissions on a Win32 drive.
+- Edit "Resource-name" (physical-name) for the device name
+  everywhere in the SD.
+- Remove .linked.tex files in preparation for cutover to
+  using .tex in place of .wml.
+08Mar05
+- Copy latest config.sub and config.guess from autoconf.
+- Try new way of identifying drives with:
+   "resource-name" (physical-name)
+  More work need to a complete conversion.
+07Mar05
+- Rework some of the autochanger data so that the DIR has   
+  the number of drives.
+- Modify the way the Device info is returned so that it comes
+  back as a special message type and can be sent anytime the
+  Device status changes.
+- Copy the change name and changer command into the device
+  record if none is specified.
+- Require the change command and changer name to be specified in
+  and AutoChanger resource.
+- Force all the Media Type records of all devices in an Autochanger
+  to be the same.
+06Mar05
+- Add new "run" command to Job resource in DIR. This permits
+  cloning a job as many times as you want.
+- Pass PoolId to SD on Query request. It is now used in the
+  Find_media catalog request.
+- Reworked the Device resource in the DIR. Eliminated num_waiting
+  and use_count, but added max_writers, reserved, and PoolId.
+- This DIR is nolonger compatible with previous SDs.
+- Add since and cloned keywords to the Console run command
+  to support cloning.
+- Implemented store_alist_str() to allow multiple string items
+  to be specified in a .conf file.
+- Added %s (since time) to Job code editing.
+- Reworked reserving drives in the SD. It now does it much simpler
+  and correctly. 
+05Mar05
+- Integrate HP-UX patch from  Olivier Mehani <olivier.mehani@linbox.com>
+- Fix FD job.c to test correctly for no level.
+
+Changes to 1.37.4:
+04Mar05
+- Change Developers to Developer's Guide as requested by Michael.
+- Fix developers link in manual
+- Add additional dcr changes in SD to allow multiple dcrs.
+02Mar05
+- Fix a few problems with the MySQL table create in 1.37.
+- Delete the new tables in the table delete files.
+- Increase the number of items permitted in a conf table.
+- Make Director loop over alternative Devices specified in the
+  Storage resource until one is reserved by SD.
+- Fix storing of StorageId in Media records.
+- Add AutoSelect = yes|no in bacula-sd.conf
+- Add Autochanger support to Label command.
+- Do not autoselect devices with autoselect set false 
+01Mar05
+- Implement setting DIR Storage device to Autochanger
+  name. 
+- Select first available device in Autochanger.
+- Pass back actual device name used.
+- Allow Query of AutoChanger.
+- Modify Query to include name of AutoChanger if 
+  Device belongs to one.
+- Remove old Pool code in jobq.c
+- Add Autoselect flag to query and DEVICE class (still
+  need Directive).
+28Feb05
+- Lock autochanger script when running.
+- Mark Volume not InChanger if correct volume is not     
+  autoloaded.
+- Corrected some typos in the make_xxx_tables.in files.
+- Made preliminary split of pre-run and run code for each
+  job type. This will permit early opening of SD for reserving
+  drives.
+- Add offline and autochanger fields to Device Query record.
+- Correct pthread_mutex_init() for autochanger in SD.
+- Tweak Makefile for LaTeX manual, plus add nav buttons.
+26Feb05
+- Clean up drive reservation system. Add more sanity checks.
+- Implement a few more methods for the DEVICE class in SD.
+- Add latex directories to make clean
+- move DEV_BSIZE to B_DEV_BSIZE to avoid conflicts with
+  certain header files (FreeBSD).
+24Feb05
+- Fix an ASSERT that was triggering in stored/acquire.c
+  attempt to fix a bug report.
+23Feb05
+- Corrected SunOs to SunOS in btraceback (user submitted).
+- Applied patch from Roger Håkansson <hson@ludd.luth.se>
+  to warn the user of defective AWKs during ./configure.
+20Feb05
+- Add some changes submitted by a user for HP client build.
+  Not all changes accepted.
+- Rework code in filed/backup.c to ease #ifdefing and make
+  program flow more obvious.
+- Split DVD code out of dev.c into dvd.c
+- Tweak #ifdefing to add back all the performance measurement
+  #defines in version.h
+- Put most of MTIOCGET code in a subroutine to simplify the
+  mainline code.
+- Make clean remove old CVS files
+- Remove unnecessary image files from Latex directory
+- Implement remaining parts of Storage DB record and
+  its use in the Director.
+- Implement
+  FullMaxWaitTime, Differential Max Wait Time, and               
+  Incremental Max Wait time in Job resource.
+- Start work on SD Autochanger code.
+19Feb05
+- Add back JobId index for MySQL as default -- speeds up 
+  pruning.
+- Add more database fields and fix the update scripts to
+  include the new items.
+- Pass actual level to FD so that ClientRun editing can reflect
+  correct level -- ditto for job status. This makes the DIR
+  incompatible with older clients!
+- Move jobq.c acquire resources to static subroutine so that
+  the code logic becomes clearer. This is in preparation for
+  actually using the new Device resources.
+- Fix some lower case problems in sql_cmds.c reported by
+  Debian.
+- Correct a seg fault in the SD reported by a user. Occurred
+  only when a high debug level was set.
+- Modify init_dev() in dev.c to take JCR as first arg so that
+  proper error messages can be reported in next item.
+- Modify the query and use device SD commands to attempt to
+  open the device if it could not previously be opened.
+- Correct error message for Could not reserve device.
+- Correct some minor details with Autochanger resource in SD.
+18Feb05
+- Fix seg fault if debug level 900 set in SD.
+- Truncate Win32 child return code to 8 bits.
+- Remove some old lld's.
+
+Changes to 1.37.3:
+16Feb05
+- Make another attempt at fixing the ClientRunXXX return code 
+  bug on Win32 machines.
+- Apply ua_status patch from Carsten Paeth <calle@calle.in-berlin.de>
+  which enforces console ACLs in the status command for Jobs.
+15Feb05
+- Fix Media LabelDate and FirstWritten to be correctly set.
+- Fix deadlock in multiple simultaneous jobs.
+- Fix tape "truncation"/"number of files" after restore bug.
+10Feb05
+- Ensure that correct error messages are returned when
+  reading an ANSI label.
+09Feb05
+- Modified ANSI label code to preserve any ANSI label 
+  already found by skipping over it rather than rewriting
+  it.
+- Split the ANSI label code into ansi_label.c
+- Do not let user relabel an ANSI labeled tape.
+- Applied a patch for the console help command supplied
+  in a bug report. 
+- Added some new dev methods. Most notably was
+  set_eof(), which handles setting all the dev variables
+  when an EOF is just read. This is now used most everywhere
+  in the code.
+07Feb05
+- Added code to detect that no files were inserted into the 
+  tree for a restore. If a specific JobId was specified, the
+  user has the option of restoring everything.
+- More progress in implementing 64 bit DB Ids.
+- Modified the daemon start messages for RH.
+- Implement update scripts for all database types.
+- First cut at implementing restore directory (it will not
+  recurse).
+04Feb05
+- OK, I think ANSI labels work.
+- Added Label Type = ANSI|IBM|Bacula to Device resource in SD.
+  If this is set, it will force writing of the appropriate
+  label type.
+- Added Check Labels = yes|no to Device resource in SD. If this
+  is set, Bacula will check for ANSI labels and accept them,      
+  otherwise, ANSI labels will not be accepted when the tape
+  is first mounted.
+02Feb05
+- Second cut ANSI labels.
+01Feb05
+- Merge Preben's patch for ACLs and for Mac OS X resource forks.
+- Some doc updates.
+- Display more informative message when a device was not
+  found or could not be opened.
+- Add the sqlite3 database scripts. 
+- Add some patches for 1.36.1 (note, I have now prepared
+  a 1.36.2 with all the patches and some new features --
+  to be documented).
+- Some minor doc updates.
+- Add Arno's baculareport.pl script to the examples directory.
+29Jan05 -- after vacation
+- Add support for SQLite3 (it seems to run at 1/2 the speed
+  of SQLite2).  Use --with-sqlite3 instead of --with-sqlite
+  to get SQLite3.
+- Add target for running qemu to boot Rescue CDROM
+- Add code to support kernel 2.6 in Rescue CDROM -- does NOT yet
+  boot correctly.
+- Implement ANSI labels -- not yet tested.
+  This required changes to DB format. No upgrade script yet.
+  Note, more work needed to modify "update" command to handle
+  changing label types, also must restrict volume name lengths
+  to 6 characters.
+- Add new Device, Storage, and MediaType records to DB. No
+  upgrade script yet.
+- Add MediaType to bsr file record types. Not yet used in SD.
+- Permit multiple device specifications in Storage resource in 
+  Dir conf file.
+- Implement Device resources. Director requests Device resource
+  info from SD on startup. 
+- Note!!!! DIR->SD incompatible with previous versions.
+- Remove multiple Storage definitions in Job resource.  One can
+  still specify multiple Storage resources, but they all go into
+  a single alist, and imply sending data to each Storage daemon 
+  simultaneously.
+- Implement Device query command between DIR and SD.
+- Allow DIR to "reserve" a Device. It will then be acquired
+  when the FD connects to the SD.
+- Turn all DIR resources into classes, and implement a few class
+  methods -- more to come.
+- Turn DEVICE in SD into a class, and implement a number of inline
+  class methods -- more to come.
+- I had serious problems with ACL errors on my Laptop, and so had
+  to add the following patch:
+  @@ -181,7 +181,7 @@
+      }
+      /***** Do we really want to silently ignore errors from acl_get_file
+        and acl_to_text?  *****/
+  -   return -1;
+  +   return 0;
+   }
+- Added edit_int64()
+- Reworked and tested a bit the htable routines.
+- Major changes to SD acquire.c -- DIR can now reserve devices. Needs
+  lots of testing!!!!
+- Made a special state code for DVD -- this simplifies the logic
+  of the code, but I probably broke it. Testing needed!!!!
+- Add AutoChanger resource to SD, but not yet used.
+
+Changes to 1.37.2:
+12Jan05
+- Integrate Preben 'Peppe' Guldberg <peppe@wielders.org>'s
+  acl patch. Fix case where configured but no ACL exists.
+  Rework calling arguments to be shorter and positioned
+  more typically in Bacula usage.
+11Jan05
+- Fix scripts/bacula.in to have awk on an environment variable
+  and add comments for Solaris users.
+- Turn off inet_aton in src/lib/address_conf.c for Win32
+- Add new files to win32 build and eliminate a compiler warning.
+- Add sample DVD Device resource to bacula-sd.conf
+08Jan05
+- Integrate Nicolas' patch for direct DVD support.        
+07Jan05
+- Fix fstype error returns.
+- Apply Preben's cleanup.patch which puts back much of the
+  cleanup code in src/filed/restore.c
+06Jan05
+- Apply all of Preben's patches, but revert to old backup.c
+  and old restore.c in filed. Also turn off code in new
+  acl.c because of errors.  The new code, when fully implemented
+  moves platform specific code into acl.c.
+  One of the patches also implements WildFile and WildDir -- thanks.
+01Jan05
+- Implement Python in the SD (no events yet though).
+- Fix some typos in the previous commit.
+30Dec04
+- Enhance CDROM boot to include some documentation at boot time.
+- NOTE!!!!! The CDROM will not boot 2.6 kernels because the
+    boot sequence has changed significantly. Updates to come
+    later.
+- Add memtest option to CDROM boot.
+- Include Nicolas' changes to fix llist JobMedia records.
+- Make sure that ClientRunBefore/After messages from the program
+  are terminated with a newline. Add strerror to output error
+  messages.
+- Return program exit status code in Win32.
+29Dec04
+- Add memtest86 to Bacula Rescue disk
+- Enhance Rescue disk startup screen
+24Dec04
+- Move some variables to eliminate Solaris 2.6 compiler warnings.
+- Fix the seg fault at the end of a job in the FD when using
+  old style include/excludes.
+22Dec04
+- Apply Preben's ACL patch.
+- Integrate Preben's restore patch.
+- Integrate Preben's verify teaks.
+- Fix doc/latex/Makefile to copy/remove .eps files when building
+  html and web outputs.
+21Dec04
+- Fix Bacula so that it does not exit if there is a syntax error
+  in its conf file during a reload command. Bug 182.
+- Apply fixes suggested for old Solaris networking.
+  Fixes bug 190.
+- Apply Preben 'Peppe' Guldberg <peppe@wielders.org>
+  three patches that clean up white space:
+  ws.patch.02.strings:
+    Breaks strings that span lines into concatenated strings. I am not sure
+    if you like this one. Other code works with concatenated strings, though.
+  ws.patch.03.trailing:
+    This removes trailing whitespace. No changes resulted from this for
+    my setup.
+  ws.patch.04.leading:
+    This replaces space runs at the start of line with tabs. No changes
+    again.
+- Fix overriding storage specification to be done
+  through a subroutine.
+- Fix autoconf so it runs with FC3. 
+- Add Python4.3 to configure search paths.
+- Always copy and delete storage definitions into jcr.
+- Check that VolumeName supplied by Python is valid. 
+  Return 0 if not.
+19Dec04
+- Fix undefined in non-Python build.
+- Update rescue disk to include mkinitrd
+- Fix umount_drives in rescue disk (only one arg to umount)
+- Ensure that if SD is manually set in Console, it is used.
+- Put generate_event on pointer and plug it in init. This
+  permits using it in /lib
+- Correct despooling size reported to be Job specific rather
+  than for the whole drive.
+18Dec04
+- Fix bug 207. jcr use count off by one when manually
+  scheduling jobs.
+- Remove FNMATCH test in configure.in and always use
+  the one in our library to get the FN_CASEFOLD GNU
+  extensions on all platforms.
+- While using the rescue CDROM after my computer would not
+  boot, I realized that it would be very useful to have
+  a umount_disks. So, it is not implemented, along with
+  updates to the READMEs and some minor tweaks.
+- Moved mounting the CDROM in the rescue boot from /cdrom
+  to /mnt/cdrom (more standard location).
+- Reboot in CDROM rescue should now work -- requires -d
+  option (no write) to work.
+- Hopefully fixed all the IPV6/4 problems and buffer
+  problems with networking in lib. Bugs 190 and 204.
+  Cleaned up a lot of #ifdefing problems by using routines
+  in address_conf.c
+17Dec04
+- Apply Preben 'Peppe' Guldberg <peppe@wielders.org>
+  alist fix patch.
+- Remove duplicate code from chksum.h (mentioned by Preben).
+13Dec04
+- Integrate Tim Oberfoell <oberfoell@web.de> patch to ACLs
+  to handle both the "standard" and "default" ACLs.
+12Dec04
+- Integrated Preben 'Peppe' Guldberg <peppe@wielders.org>
+  three cleanup patches (btest, verify, find).
+- Integrated Preben 'Peppe' Guldberg <peppe@wielders.org>
+  three cleanup patches (backup, chksum, and verify)
+09Dec04
+- Integrated Preben 'Peppe' Guldberg <peppe@wielders.org>
+  patch to avoid doing MTIOCGET on OSes that do not support
+  it such as OpenBSD.
+- Integrated Preben 'Peppe' Guldberg <peppe@wielders.org>
+  patch to add filesystem type matching to FileSets in the
+  Options resource.
+- Integrated Preben 'Peppe' Guldberg <peppe@wielders.org>
+  patch to add Mac OSX resource fork support (save/restore)
+  to Bacula -- HFS Plus support.
+- Add FileSet to client Job listing query.
+06Dec04
+- Integrated Preben 'Peppe' Guldberg <peppe@wielders.org>
+  patch to backup directories skipped (due to no file system
+  changes or no recursion), and to add a slash to the end
+  of the directory name during the match process.
+- Implement Jamie ffolliott <jamieff@inline.net>
+  patch to dird_conf.c that enables Multiple Connections and
+  fixes a typo in show. The rest of his patch awaits my suggested
+  changes.
+05Dec04 
+- Implement run command in Python
+04Dec04 
+- Implement conversion of the manual, and some minor
+  tweaks to the script tags.
+- Apply a patch supplied by Preben 'Peppe' Guldberg that implements
+  ignore case in wild cards and regexes.
+- Fix a truncated line in the above patch due to my cut and paste.
+03Dec04
+- Fix it so that the InChanger flag is only changed for Volumes
+  in the same Pool.
+- Add PIDOF configuration path and apply to bacula.in
+- Add user supplied patch to add inet_aton() of old Solaris
+  systems.
+- Require pools to match before allowing multiple simultaneous
+  accesses to same storage resource.
+- Add patch supplied by Martin to correct buffer overrun in
+  bsnprintf() with no library snprintf().
+02Dec04
+- Apply user supplied patch that implements No Hard Links.
+- Document Python interface
+- Add hardlink keyword patch supplied by David R Bosso <dbosso@lsit.ucsb.edu>
+01Dec04
+- Fix non-python prototypes in dummy routines.
+- Add python 2.3 to config search list (user submitted patch)
+- Add JobStatus to Python variables.
+28Nov04
+- Add "python restart" command in Console.
+- Make built-in variables table driven.
+- First cut of Python Events for Bacula. Director only.
+  StartJob, EndJob, NewVolume events.
+
 Version 1.36.1 released 26Nov04:
 24Nov04
 - Take Dan's fix to the fix_postgresql_tables (thanks Dan)

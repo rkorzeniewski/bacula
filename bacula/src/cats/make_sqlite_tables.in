@@ -92,6 +92,8 @@ CREATE TABLE JobMedia (
    StartBlock INTEGER UNSIGNED DEFAULT 0,
    EndBlock INTEGER UNSIGNED DEFAULT 0,
    VolIndex INTEGER UNSIGNED DEFAULT 0,
+   Copy     INTEGER UNSIGNED DEFAULT 0,
+   Stripe   INTEGER UNSIGNED DEFAULT 0,
    PRIMARY KEY(JobMediaId) 
    );
 
@@ -242,8 +244,6 @@ CREATE TABLE Version (
    VersionId INTEGER UNSIGNED NOT NULL 
    );
 
--- Initialize Version		 
-INSERT INTO Version (VersionId) VALUES (8);
 
 CREATE TABLE Counters (
    Counter TEXT NOT NULL,     
@@ -260,6 +260,8 @@ CREATE TABLE CDImages (
    PRIMARY KEY (MediaId)
    );
 
+-- Initialize Version		 
+INSERT INTO Version (VersionId) VALUES (9);
 
 PRAGMA default_synchronous = OFF;
 PRAGMA default_cache_size = 10000;

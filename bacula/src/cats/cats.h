@@ -73,7 +73,7 @@ typedef int (DB_RESULT_HANDLER)(void *, int, char **);
 
 #ifdef HAVE_SQLITE
 
-#define BDB_VERSION 8
+#define BDB_VERSION 9
 
 #include <sqlite.h>
 
@@ -181,7 +181,7 @@ SQL_FIELD *my_sqlite_fetch_field(B_DB *mdb);
 #ifdef HAVE_SQLITE3
 
 
-#define BDB_VERSION 8
+#define BDB_VERSION 9
 
 #include <sqlite3.h>
 
@@ -296,7 +296,7 @@ SQL_FIELD *my_sqlite_fetch_field(B_DB *mdb);
 
 #ifdef HAVE_MYSQL
 
-#define BDB_VERSION 8
+#define BDB_VERSION 9
 
 #include <mysql.h>
 
@@ -360,13 +360,13 @@ typedef struct s_db {
 
 #ifdef HAVE_POSTGRESQL
 
-#define BDB_VERSION 8
+#define BDB_VERSION 9
 
 #include <libpq-fe.h>
 
 /* TEMP: the following is taken from select OID, typname from pg_type; */
-#define IS_NUM(x)             ((x) == 20 || (x) == 21 || (x) == 23 || (x) == 700 || (x) == 701)
-#define IS_NOT_NULL(x)        ((x) == 1)
+#define IS_NUM(x)        ((x) == 20 || (x) == 21 || (x) == 23 || (x) == 700 || (x) == 701)
+#define IS_NOT_NULL(x)   ((x) == 1)
 
 typedef char **POSTGRESQL_ROW;
 typedef struct pg_field {
@@ -583,6 +583,8 @@ struct JOBMEDIA_DBR {
    uint32_t EndFile;                  /* End file on Volume */
    uint32_t StartBlock;               /* start block on tape */
    uint32_t EndBlock;                 /* last block */
+   uint32_t Copy;                     /* identical copy */
+   uint32_t Stripe;                   /* RAIT strip number */
 };
 
 
@@ -597,6 +599,8 @@ struct VOL_PARAMS {
    uint32_t EndFile;                  /* End file on Volume */
    uint32_t StartBlock;               /* start block on tape */
    uint32_t EndBlock;                 /* last block */
+   uint32_t Copy;                     /* identical copy */
+   uint32_t Stripe;                   /* RAIT strip number */
 };
 
 

@@ -126,6 +126,8 @@ CREATE TABLE JobMedia (
    StartBlock INTEGER UNSIGNED NOT NULL DEFAULT 0,
    EndBlock INTEGER UNSIGNED NOT NULL DEFAULT 0,
    VolIndex INTEGER UNSIGNED NOT NULL DEFAULT 0,
+   Copy INTEGER UNSIGNED NOT NULL DEFAULT 0,
+   Stripe INTEGER UNSIGNED NOT NULL DEFAULT 0,
    PRIMARY KEY(JobMediaId),
    INDEX (JobId, MediaId)
    );
@@ -232,12 +234,6 @@ CREATE TABLE UnsavedFiles (
    );
 
 
-CREATE TABLE Version (
-   VersionId INTEGER UNSIGNED NOT NULL 
-   );
-
--- Initialize Version		 
-INSERT INTO Version (VersionId) VALUES (8);
 
 CREATE TABLE Counters (
    Counter TINYBLOB NOT NULL,
@@ -254,6 +250,12 @@ CREATE TABLE CDImages (
    PRIMARY KEY (MediaId)
    );
 
+CREATE TABLE Version (
+   VersionId INTEGER UNSIGNED NOT NULL 
+   );
+
+-- Initialize Version		 
+INSERT INTO Version (VersionId) VALUES (9);
 
 END-OF-DATA
 then

@@ -43,7 +43,7 @@ static char jobcmd[] = "JobId=%d job=%127s job_name=%127s client_name=%127s "
       "type=%d level=%d FileSet=%127s NoAttr=%d SpoolAttr=%d FileSetMD5=%127s "
       "SpoolData=%d WritePartAfterJob=%d NewVol=%d\n";
 static char use_storage[]  = "use storage=%127s media_type=%127s "
-   "pool_name=%127s pool_type=%127s append=%d\n";
+   "pool_name=%127s pool_type=%127s append=%d copy=%d stripe=%d\n";
 static char use_device[]  = "use device=%127s\n";
 //static char query_device[] = "query device=%127s";
 
@@ -85,10 +85,10 @@ bool job_cmd(JCR *jcr)
     */
    Dmsg1(100, "<dird: %s\n", dir->msg);
    if (sscanf(dir->msg, jobcmd, &JobId, job.c_str(), job_name.c_str(),
-	      client_name.c_str(),
-	      &JobType, &level, fileset_name.c_str(), &no_attributes,
-	      &spool_attributes, fileset_md5.c_str(), &spool_data, 
-	      &write_part_after_job, &NewVol) != 13) {
+              client_name.c_str(),
+              &JobType, &level, fileset_name.c_str(), &no_attributes,
+              &spool_attributes, fileset_md5.c_str(), &spool_data, 
+              &write_part_after_job, &NewVol) != 13) {
       pm_strcpy(jcr->errmsg, dir->msg);
       bnet_fsend(dir, BAD_job, jcr->errmsg);
       Dmsg1(100, ">dird: %s\n", dir->msg);
@@ -173,12 +173,12 @@ bool run_cmd(JCR *jcr)
       return false;
    }
 
-   set_jcr_job_status(jcr, JS_WaitFD);		/* wait for FD to connect */
+   set_jcr_job_status(jcr, JS_WaitFD);          /* wait for FD to connect */
    dir_send_job_status(jcr);
 
    gettimeofday(&tv, &tz);
    timeout.tv_nsec = tv.tv_usec * 1000;
-   timeout.tv_sec = tv.tv_sec + 30 * 60;	/* wait 30 minutes */
+   timeout.tv_sec = tv.tv_sec + 30 * 60;        /* wait 30 minutes */
 
    Dmsg1(100, "%s waiting on FD to contact SD\n", jcr->Job);
    /*
@@ -190,7 +190,7 @@ bool run_cmd(JCR *jcr)
    for ( ;!job_canceled(jcr); ) {
       errstat = pthread_cond_timedwait(&jcr->job_start_wait, &jcr->mutex, &timeout);
       if (errstat == 0 || errstat == ETIMEDOUT) {
-	 break;
+         break;
       }
    }
    V(jcr->mutex);
@@ -199,7 +199,7 @@ bool run_cmd(JCR *jcr)
 
    if (jcr->authenticated && !job_canceled(jcr)) {
       Dmsg1(100, "Running job %s\n", jcr->Job);
-      run_job(jcr);		      /* Run the job */
+      run_job(jcr);                   /* Run the job */
    }
    return false;
 }
@@ -212,7 +212,7 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
 {
    JCR *jcr;
 
-   bmicrosleep(0, 50000);	      /* wait 50 millisecs */
+   bmicrosleep(0, 50000);             /* wait 50 millisecs */
    if (!(jcr=get_jcr_by_full_name(job_name))) {
       Jmsg1(NULL, M_FATAL, 0, _("Job name not found: %s\n"), job_name);
       Dmsg1(100, "Job name not found: %s\n", job_name);
@@ -226,7 +226,7 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
 
    if (jcr->authenticated) {
       Jmsg2(jcr, M_FATAL, 0, "Hey!!!! JobId %u Job %s already authenticated.\n",
-	 jcr->JobId, jcr->Job);
+         jcr->JobId, jcr->Job);
       free_jcr(jcr);
       return;
    }
@@ -256,10 +256,10 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
 /*
  *   Use Device command from Director
  *   He tells is what Device Name to use, the Media Type,
- *	the Pool Name, and the Pool Type.
+ *      the Pool Name, and the Pool Type.
  *
  *    Ensure that the device exists and is opened, then store
- *	the media and pool info in the JCR.
+ *      the media and pool info in the JCR.
  */
 class DIRSTORE {
 public:
@@ -282,145 +282,148 @@ static bool use_storage_cmd(JCR *jcr)
    AUTOCHANGER *changer;
    int append;
    bool ok;
+   int Copy, Stripe;
 
    /*
     * If there are multiple devices, the director sends us
-    *	use_device for each device that it wants to use.
+    *   use_device for each device that it wants to use.
     */
    Dmsg1(100, "<dird: %s", dir->msg);
    ok = sscanf(dir->msg, use_storage, store_name.c_str(), 
                media_type.c_str(), pool_name.c_str(), 
-	       pool_type.c_str(), &append) == 5;
+               pool_type.c_str(), &append, &Copy, &Stripe) == 7;
    if (ok) {
       unbash_spaces(store_name);
       unbash_spaces(media_type);
       unbash_spaces(pool_name);
       unbash_spaces(pool_type);
       if (bnet_recv(dir) <= 0) {
-	 return false;	 
+         return false;   
       }
       ok = sscanf(dir->msg, use_device, dev_name.c_str()) == 1;
       if (!ok) {
-	 return false;
+         return false;
       }
       /* Eat to BNET_EOD */
       while (bnet_recv(dir) > 0) {
       }
       LockRes();
       foreach_res(device, R_DEVICE) {
-	 /* Find resource, and make sure we were able to open it */
-	 if (fnmatch(dev_name.c_str(), device->hdr.name, 0) == 0 &&
-	     strcmp(device->media_type, media_type.c_str()) == 0) {
-	    const int name_len = MAX_NAME_LENGTH;
-	    DCR *dcr;
-	    UnlockRes();
-	    if (!device->dev) {
-	       device->dev = init_dev(jcr, NULL, device);
-	    }
-	    if (!device->dev) {
+         /* Find resource, and make sure we were able to open it */
+         if (fnmatch(dev_name.c_str(), device->hdr.name, 0) == 0 &&
+             strcmp(device->media_type, media_type.c_str()) == 0) {
+            const int name_len = MAX_NAME_LENGTH;
+            DCR *dcr;
+            UnlockRes();
+            if (!device->dev) {
+               device->dev = init_dev(jcr, NULL, device);
+            }
+            if (!device->dev) {
                Jmsg(jcr, M_WARNING, 0, _("\n"
                   "     Device \"%s\" requested by DIR could not be opened or does not exist.\n"),
-		    dev_name.c_str());
-	       bnet_fsend(dir, NOT_open, dev_name.c_str());
+                    dev_name.c_str());
+               bnet_fsend(dir, NOT_open, dev_name.c_str());
                Dmsg1(100, ">dird: %s\n", dir->msg);
-	       return false;
-	    }  
-	    dcr = new_dcr(jcr, device->dev);
-	    if (!dcr) {
+               return false;
+            }  
+            dcr = new_dcr(jcr, device->dev);
+            if (!dcr) {
                bnet_fsend(dir, _("3926 Could not get dcr for device: %s\n"), dev_name.c_str());
                Dmsg1(100, ">dird: %s\n", dir->msg);
-	       return false;
-	    }
+               return false;
+            }
             Dmsg1(100, "Found device %s\n", device->hdr.name);
-	    bstrncpy(dcr->pool_name, pool_name, name_len);
-	    bstrncpy(dcr->pool_type, pool_type, name_len);
-	    bstrncpy(dcr->media_type, media_type, name_len);
-	    bstrncpy(dcr->dev_name, dev_name, name_len);
-	    jcr->dcr = dcr;
-	    if (append == SD_APPEND) {
-	       ok = reserve_device_for_append(dcr);
-	    } else {
-	       ok = reserve_device_for_read(dcr);
-	    }
-	    if (!ok) {
+            bstrncpy(dcr->pool_name, pool_name, name_len);
+            bstrncpy(dcr->pool_type, pool_type, name_len);
+            bstrncpy(dcr->media_type, media_type, name_len);
+            bstrncpy(dcr->dev_name, dev_name, name_len);
+            dcr->Copy = Copy;
+            dcr->Stripe = Stripe;
+            jcr->dcr = dcr;
+            if (append == SD_APPEND) {
+               ok = reserve_device_for_append(dcr);
+            } else {
+               ok = reserve_device_for_read(dcr);
+            }
+            if (!ok) {
                bnet_fsend(dir, _("3927 Could not reserve device: %s\n"), dev_name.c_str());
                Dmsg1(100, ">dird: %s\n", dir->msg);
-	       free_dcr(jcr->dcr);
-	       return false;
-	    }
+               free_dcr(jcr->dcr);
+               return false;
+            }
             Dmsg1(220, "Got: %s", dir->msg);
-	    bash_spaces(dev_name);
-	    ok = bnet_fsend(dir, OK_device, dev_name.c_str());
+            bash_spaces(dev_name);
+            ok = bnet_fsend(dir, OK_device, dev_name.c_str());
             Dmsg1(100, ">dird: %s\n", dir->msg);
-	    return ok;
-	 }
+            return ok;
+         }
       }
 
       foreach_res(changer, R_AUTOCHANGER) {
-	 /* Find resource, and make sure we were able to open it */
-	 if (fnmatch(dev_name.c_str(), changer->hdr.name, 0) == 0) {
-	    const int name_len = MAX_NAME_LENGTH;
-	    DCR *dcr;
-	    /* Try each device in this AutoChanger */
-	    foreach_alist(device, changer->device) {
+         /* Find resource, and make sure we were able to open it */
+         if (fnmatch(dev_name.c_str(), changer->hdr.name, 0) == 0) {
+            const int name_len = MAX_NAME_LENGTH;
+            DCR *dcr;
+            /* Try each device in this AutoChanger */
+            foreach_alist(device, changer->device) {
                Dmsg1(100, "Try changer device %s\n", device->hdr.name);
-	       if (!device->dev) {
-		  device->dev = init_dev(jcr, NULL, device);
-	       }
-	       if (!device->dev) {
+               if (!device->dev) {
+                  device->dev = init_dev(jcr, NULL, device);
+               }
+               if (!device->dev) {
                   Dmsg1(100, "Device %s could not be opened. Skipped\n", dev_name.c_str());
                   Jmsg(jcr, M_WARNING, 0, _("\n"
                      "     Device \"%s\" in changer \"%s\" requested by DIR could not be opened or does not exist.\n"),
-		       device->hdr.name, dev_name.c_str());
-		  continue;
-	       }
-	       if (!device->dev->autoselect) {
-		  continue;	      /* device is not available */
-	       }
-	       dcr = new_dcr(jcr, device->dev);
-	       if (!dcr) {
+                       device->hdr.name, dev_name.c_str());
+                  continue;
+               }
+               if (!device->dev->autoselect) {
+                  continue;           /* device is not available */
+               }
+               dcr = new_dcr(jcr, device->dev);
+               if (!dcr) {
                   bnet_fsend(dir, _("3926 Could not get dcr for device: %s\n"), dev_name.c_str());
                   Dmsg1(100, ">dird: %s\n", dir->msg);
-		  UnlockRes();
-		  return false;
-	       }
+                  UnlockRes();
+                  return false;
+               }
                Dmsg1(100, "Found changer device %s\n", device->hdr.name);
-	       bstrncpy(dcr->pool_name, pool_name, name_len);
-	       bstrncpy(dcr->pool_type, pool_type, name_len);
-	       bstrncpy(dcr->media_type, media_type, name_len);
-	       bstrncpy(dcr->dev_name, dev_name, name_len);
-	       jcr->dcr = dcr;
-	       if (append == SD_APPEND) {
-		  ok = reserve_device_for_append(dcr);
-	       } else {
-		  ok = reserve_device_for_read(dcr);
-	       }
-	       if (!ok) {
+               bstrncpy(dcr->pool_name, pool_name, name_len);
+               bstrncpy(dcr->pool_type, pool_type, name_len);
+               bstrncpy(dcr->media_type, media_type, name_len);
+               bstrncpy(dcr->dev_name, dev_name, name_len);
+               jcr->dcr = dcr;
+               if (append == SD_APPEND) {
+                  ok = reserve_device_for_append(dcr);
+               } else {
+                  ok = reserve_device_for_read(dcr);
+               }
+               if (!ok) {
                   Jmsg(jcr, M_WARNING, 0, _("Could not reserve device: %s\n"), dev_name.c_str());
-		  free_dcr(jcr->dcr);
-		  continue;
-	       }
+                  free_dcr(jcr->dcr);
+                  continue;
+               }
                Dmsg1(100, "Device %s opened.\n", dev_name.c_str());
-	       UnlockRes();
-	       pm_strcpy(dev_name, device->hdr.name);
-	       bash_spaces(dev_name);
-	       ok = bnet_fsend(dir, OK_device, dev_name.c_str());
+               UnlockRes();
+               pm_strcpy(dev_name, device->hdr.name);
+               bash_spaces(dev_name);
+               ok = bnet_fsend(dir, OK_device, dev_name.c_str());
                Dmsg1(100, ">dird: %s\n", dir->msg);
-	       return ok;
-	    }
-	    break;		      /* we found it but could not open a device */
-	 }
+               return ok;
+            }
+            break;                    /* we found it but could not open a device */
+         }
       }
 
       UnlockRes();
       if (verbose) {
-	 unbash_spaces(dir->msg);
-	 pm_strcpy(jcr->errmsg, dir->msg);
+         unbash_spaces(dir->msg);
+         pm_strcpy(jcr->errmsg, dir->msg);
          Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), jcr->errmsg);
       }
       Jmsg(jcr, M_FATAL, 0, _("\n"
          "     Device \"%s\" with MediaType \"%s\" requested by DIR not found in SD Device resources.\n"),
-	   dev_name.c_str(), media_type.c_str());
+           dev_name.c_str(), media_type.c_str());
       bnet_fsend(dir, NO_device, dev_name.c_str());
       Dmsg1(100, ">dird: %s\n", dir->msg);
    } else {
@@ -434,7 +437,7 @@ static bool use_storage_cmd(JCR *jcr)
       Dmsg1(100, ">dird: %s\n", dir->msg);
    }
 
-   return false;		      /* ERROR return */
+   return false;                      /* ERROR return */
 }
 
 #ifdef needed
@@ -461,39 +464,39 @@ bool query_cmd(JCR *jcr)
       unbash_spaces(dev_name);
       LockRes();
       foreach_res(device, R_DEVICE) {
-	 /* Find resource, and make sure we were able to open it */
-	 if (fnmatch(dev_name.c_str(), device->hdr.name, 0) == 0) {
-	    if (!device->dev) {
-	       device->dev = init_dev(jcr, NULL, device);
-	    }
-	    if (!device->dev) {
-	       break;
-	    }  
-	    UnlockRes();
-	    ok = dir_update_device(jcr, device->dev);
-	    if (ok) {
-	       ok = bnet_fsend(dir, OK_query);
-	    } else {
-	       bnet_fsend(dir, NO_query);
-	    }
-	    return ok;
-	 }
+         /* Find resource, and make sure we were able to open it */
+         if (fnmatch(dev_name.c_str(), device->hdr.name, 0) == 0) {
+            if (!device->dev) {
+               device->dev = init_dev(jcr, NULL, device);
+            }
+            if (!device->dev) {
+               break;
+            }  
+            UnlockRes();
+            ok = dir_update_device(jcr, device->dev);
+            if (ok) {
+               ok = bnet_fsend(dir, OK_query);
+            } else {
+               bnet_fsend(dir, NO_query);
+            }
+            return ok;
+         }
       }
       foreach_res(changer, R_AUTOCHANGER) {
-	 /* Find resource, and make sure we were able to open it */
-	 if (fnmatch(dev_name.c_str(), changer->hdr.name, 0) == 0) {
-	    UnlockRes();
-	    if (!changer->device || changer->device->size() == 0) {
-	       continue;	      /* no devices */
-	    }
-	    ok = dir_update_changer(jcr, changer);
-	    if (ok) {
-	       ok = bnet_fsend(dir, OK_query);
-	    } else {
-	       bnet_fsend(dir, NO_query);
-	    }
-	    return ok;
-	 }
+         /* Find resource, and make sure we were able to open it */
+         if (fnmatch(dev_name.c_str(), changer->hdr.name, 0) == 0) {
+            UnlockRes();
+            if (!changer->device || changer->device->size() == 0) {
+               continue;              /* no devices */
+            }
+            ok = dir_update_changer(jcr, changer);
+            if (ok) {
+               ok = bnet_fsend(dir, OK_query);
+            } else {
+               bnet_fsend(dir, NO_query);
+            }
+            return ok;
+         }
       }
       /* If we get here, the device/autochanger was not found */
       UnlockRes();
