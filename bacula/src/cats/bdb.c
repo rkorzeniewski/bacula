@@ -140,21 +140,11 @@ db_open_database(B_DB *mdb)
 {
    char *dbf;
    int fd, badctl;
-   int errstat;
    off_t filend;
 
    Dmsg1(200, "db_open_database() %s\n", mdb->db_name);
 
    P(mutex);
-#ifdef needed
-   if ((errstat = pthread_mutex_init(&(mdb->mutex), NULL)) != 0) {
-      Mmsg1(&mdb->errmsg, "Unable to initialize DB mutex. ERR=%s\n", strerror(errstat));
-      V(mutex);
-      return 0;
-   }
-   db_lock(mdb);		     /* test it once */
-   db_unlock(mdb);
-#endif
 
    if (rwl_init(&mdb->lock) != 0) {
       Mmsg1(&mdb->errmsg, "Unable to initialize DB lock. ERR=%s\n", strerror(errno));
