@@ -1,3 +1,5 @@
+
+
 /*
  * Bacula Catalog Database Create record interface routines
  * 
@@ -34,7 +36,7 @@
 #include "bacula.h"
 #include "cats.h"
 
-#if    HAVE_MYSQL || HAVE_SQLITE
+#if    HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL
 
 /* -----------------------------------------------------------------------
  *
@@ -706,4 +708,4 @@ static int db_create_filename_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    return ar->FilenameId > 0;
 }
 
-#endif /* HAVE_MYSQL || HAVE_SQLITE */
+#endif /* HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL */

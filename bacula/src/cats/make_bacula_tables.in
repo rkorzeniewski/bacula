@@ -7,6 +7,11 @@ if test xsqlite = x@DB_NAME@ ; then
   echo "Making SQLite tables"
   . ./make_sqlite_tables
 else
-  echo "Making MySQL tables"
-  . ./make_mysql_tables
+  if test xmysql = x@DB_NAME@ ; then 
+    echo "Making MySQL tables"
+    . ./make_mysql_tables
+  else
+    echo "Making PostgreSQL tables"
+    . ./make_postgresql_tables
+  fi
 fi

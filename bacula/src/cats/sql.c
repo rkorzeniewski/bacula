@@ -37,7 +37,7 @@
 #include "bacula.h"
 #include "cats.h"
 
-#if    HAVE_MYSQL | HAVE_SQLITE
+#if    HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL
 
 uint32_t bacula_db_version = 0;
 
@@ -52,11 +52,16 @@ static int int_handler(void *ctx, int num_fields, char **row)
 {
    uint32_t *val = (uint32_t *)ctx;
 
+   Dmsg1(50, "int_handler starts with row pointing at %x\n", row);
+
    if (row[0]) {
+      Dmsg1(50, "int_handler finds '%s'\n", row[0]);
       *val = atoi(row[0]);
    } else {
+      Dmsg0(50, "int_handler finds zero\n");
       *val = 0;
    }
+   Dmsg0(50, "int_handler finishes\n");
    return 0;
 }
        
@@ -75,7 +80,7 @@ int check_tables_version(JCR *jcr, B_DB *mdb)
    db_sql_query(mdb, query, int_handler, (void *)&bacula_db_version);
    if (bacula_db_version != BDB_VERSION) {
       Mmsg(&mdb->errmsg, "Version error for database \"%s\". Wanted %d, got %d\n",
-	 mdb->db_name, BDB_VERSION, bacula_db_version);
+          mdb->db_name, BDB_VERSION, bacula_db_version);
       Jmsg(jcr, M_FATAL, 0, "%s", mdb->errmsg);
       return 0;
    }
@@ -332,4 +337,4 @@ void split_path_and_filename(JCR *jcr, B_DB *mdb, char *fname)
    Dmsg2(100, "sllit path=%s file=%s\n", mdb->path, mdb->fname);
 }
 
-#endif /* HAVE_MYSQL | HAVE_SQLITE */
+#endif /* HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL */

@@ -39,7 +39,7 @@
 #include "bacula.h"
 #include "cats.h"
 
-#if    HAVE_MYSQL || HAVE_SQLITE
+#if    HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL
 
 /* -----------------------------------------------------------------------
  *
@@ -306,4 +306,4 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
 }
 
 
-#endif /* HAVE_MYSQL || HAVE_SQLITE */
+#endif /* HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL */
