@@ -3,7 +3,7 @@
  *   wxbDataParser, class that receives and analyses data
  *   wxbPanel, main frame's notebook panels
  *
- *    Nicolas Boichat, April 2004
+ *    Nicolas Boichat, April-July 2004
  *
  */
 /*
@@ -176,16 +176,19 @@ class wxbPromptParser: public wxbDataParser
       /* Returns question string */
       wxString getQuestionString();
       
-      /* Return a wxArrayString containing the indexed choices we have
+      /* Returns a wxArrayString containing the indexed choices we have
        * to answer the question, or NULL if this question is not a multiple
        * choice one. */
       wxArrayString* getChoices();
       
-      
+      /* Returns true if the expected answer to the choice list is a number,
+       * false if it is a string (for example yes/mod/no). */
+      bool isNumericalChoice();
       
    private:
       bool finished;
       bool prompt;
+      bool numerical;      
       wxString introStr;
       wxArrayString* choices;
       wxString questionStr;

@@ -2,7 +2,7 @@
  *
  *   wxbDataParser, class that receives and analyses data
  *
- *    Nicolas Boichat, April 2004
+ *    Nicolas Boichat, April-July 2004
  *
  */
 /*
@@ -216,6 +216,7 @@ wxbPromptParser::wxbPromptParser(): wxbDataParser(false) {
    prompt = false;
    introStr = "";
    choices = NULL;
+   numerical = false;
    questionStr = "";
 }
 
@@ -237,6 +238,7 @@ bool wxbPromptParser::Analyse(wxString str, int status) {
          if (choices) {
             delete choices;
             choices = NULL;
+            numerical = false;
          }
          questionStr = "";
          introStr = "";
@@ -248,12 +250,14 @@ bool wxbPromptParser::Analyse(wxString str, int status) {
          if (!choices) {
             choices = new wxArrayString();
             choices->Add(""); /* index 0 is never used by multiple choice questions */
+            numerical = true;
          }
          
          if ((long)choices->GetCount() != num) { /* new choice has begun */
             delete choices;
-            choices = new wxArrayString(num);
+            choices = new wxArrayString();
             choices->Add("", num); /* fill until this number */
+            numerical = true;
          }
          
          choices->Add(str.Mid(i+2).RemoveLast());
@@ -270,19 +274,29 @@ bool wxbPromptParser::Analyse(wxString str, int status) {
    else {
       finished = ((status == CS_PROMPT) || (status == CS_END) || (status == CS_DISCONNECTED));
       if (prompt = ((status == CS_PROMPT) && (questionStr != "$ "))) { // && (str.Find(": ") == str.Length())
+         if (introStr.Last() == '\n') {
+            introStr.RemoveLast();
+         }
          if ((introStr != "") && (questionStr == "")) {
             questionStr = introStr;
             introStr = "";
          }
-         if (introStr.Last() == '\n') {
-            introStr.RemoveLast();
+         
+         if ((!choices) && (questionStr.Find("(yes/mod/no)") > -1)) {
+            choices = new wxArrayString();
+            choices->Add("yes");
+            choices->Add("mod");
+            choices->Add("no");
+            numerical = false;
          }
+         
          return true;
       }
       else { /* ended or (dis)connected */
          if (choices) {
             delete choices;
             choices = NULL;
+            numerical = false;
          }
          questionStr = "";
          introStr = "";
@@ -312,9 +326,16 @@ wxString wxbPromptParser::getQuestionString() {
    return questionStr;
 }
 
-/* Return a wxArrayString containing the indexed choices we have
+/* Returns a wxArrayString containing the indexed choices we have
  * to answer the question, or NULL if this question is not a multiple
  * choice one. */
 wxArrayString* wxbPromptParser::getChoices() {
    return choices;
 }
+
+/* Returns true if the expected answer to the choice list is a number,
+ * false if it is a string (for example yes/mod/no). */
+bool wxbPromptParser::isNumericalChoice() {
+   return numerical;
+}
+

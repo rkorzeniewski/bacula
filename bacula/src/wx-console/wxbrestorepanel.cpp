@@ -2,7 +2,7 @@
  *
  *   wxbPanel for restoring files
  *
- *    Nicolas Boichat, April-May 2004
+ *    Nicolas Boichat, April-July 2004
  *
  */
 /*
@@ -1110,7 +1110,28 @@ void wxbRestorePanel::CmdListJobs() {
       configPanel->ClearRowChoices("Before");
       wxbUtils::WaitForPrompt("query\n");
       wxbUtils::WaitForPrompt("6\n");
-      wxbTableParser* tableparser = wxbUtils::CreateAndWaitForParser(configPanel->GetRowString("Client") + "\n");
+      wxbTableParser* tableparser = new wxbTableParser();
+      wxbDataTokenizer* dt = wxbUtils::WaitForEnd(configPanel->GetRowString("Client") + "\n", true);
+
+      if (!tableparser->hasFinished()) {
+         for (int i = 0; i < dt->Count(); i++) {
+            if ((*dt)[i].Index("No results to list.") == 0) {
+               configPanel->AddRowChoice("Before", "No backup found for this client.");
+               configPanel->SetRowSelection("Before", 0);
+               configPanel->EnableApply(true); // Enabling the not existing apply button disables the ok button.
+               delete tableparser;
+               delete dt;
+               return;
+            }
+         }
+      }
+      
+      while (!tableparser->hasFinished()) {
+         wxTheApp->Yield(true);
+         ::wxUsleep(100);
+      }
+      
+      delete dt;
 
       for (int i = tableparser->GetCount()-1; i > -1; i--) {
          wxString str = (*tableparser)[i][3];
@@ -1125,10 +1146,11 @@ void wxbRestorePanel::CmdListJobs() {
          jobChoice->Append("Invalid");
          }*/
       }
-      
+           
       delete tableparser;
 
       configPanel->SetRowSelection("Before", 0);
+      configPanel->EnableApply(false); // Disabling the not existing apply button enables the ok button.
    }
 }
 

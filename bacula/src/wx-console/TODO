@@ -1,8 +1,6 @@
 general : Show nice messages boxes when errors occurs.
 
-wxbRestorePanel : Crashing when there is no backup to show (fresh install)
-
-GTK2 : The console control is not scrolled correctly
+GTK2 : The console control is not scrolled correctly (wxGTK bug)
 
 Win32 : Crash when quitting while trying to connect
 
@@ -20,16 +18,14 @@ wxbRestorePanel : disable controls when working or (better) queue events
   (see commented out code in wxbrestorepanel (marked with EVTQUEUE))
 
 wxbMainFrame : When exiting using menu, a messagebox is shown to ask the
-  user if he want to quit because the connection is lost.
+  user if he want to quit because the connection is lost. (doesn't
+  happen on Linux)
 
 wxbUtils : add clients, jobs, filesets, pools... list, merge patch file (wxbnewutils.patch)
 
 general : add a tab containing messages
 
 wxbMainFrame : Implement command completion (tab)
-
-wxbMainFrame : When an unexpected question is in this format (***? (yes/mod/no):),
-   show a list to choose one of these possibilities.
 
 wxbConfigFileEditor : create a more precise editor, with something like
    a tree structure
@@ -63,7 +59,7 @@ wxblistctrl/wxbtreectrl : Find why events are not forwarded correctly
   to parent' parent, and correct bad actual implementation.
    (remove handler parameter in wxTreeCtrl/wxListCtrl constructor)
 
-general : find out why I had to modify string.cpp and string.h
+Win32 : find out why I had to modify string.cpp and string.h
   + In include/wx/string.h, replace line 195 by
       #if defined(__VISUALC__) // && defined(_MT) && !defined(_DLL)
   + In src/common/string.cpp, replace line 167 by

@@ -620,7 +620,12 @@ void wxbMainFrame::Print(wxString str, int status)
                Send("\n");
             }
             else {
-               Send(wxString() << numbers[res] << "\n");
+               if (promptparser->isNumericalChoice()) {
+                  Send(wxString() << numbers[res] << "\n");
+               }
+               else {
+                  Send(wxString() << choices[res] << "\n");
+               }
             }
          }
          else {

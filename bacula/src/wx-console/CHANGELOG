@@ -1,4 +1,9 @@
 15-07-2004 :
+ - wxbMainFrame : When an unexpected question is in this format 
+    (***? (yes/mod/no):), a list is shown to choose one of these 
+    possibilities.
+ - wxbRestorePanel : Fixed crash when there is no backup available
+     (fresh install) 
  - wxbHistoryTextCtrl : Created a new text control that keep an history
      of typed commands.
 
