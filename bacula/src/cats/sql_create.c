@@ -54,6 +54,7 @@ extern void print_dashes(B_DB *mdb);
 extern void print_result(B_DB *mdb);
 extern int QueryDB(char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
 extern int InsertDB(char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
+extern int UpdateDB(char *file, int line, JCR *jcr, B_DB *db, char *update_cmd);
 extern void split_path_and_filename(JCR *jcr, B_DB *mdb, char *fname);
 
 
@@ -234,7 +235,6 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 {
    int stat;
    char ed1[30], ed2[30], ed3[30], ed4[30], ed5[30];
-   char dt[MAX_TIME_LENGTH];
    struct tm tm;
 
    db_lock(mdb);
@@ -259,14 +259,7 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    db_make_inchanger_unique(jcr, mdb, mr);
 
    /* Must create it */
-   if (mr->LabelDate) {
-      localtime_r(&mr->LabelDate, &tm); 
-      strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
-   } else {
-      bstrncpy(dt, "0000-00-00 00:00:00", sizeof(dt));
-   }
    Mmsg(&mdb->cmd, 
-#ifdef HAVE_POSTGRESQL
 "INSERT INTO Media (VolumeName,MediaType,PoolId,MaxVolBytes,VolCapacityBytes," 
 "Recycle,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,"
 "VolStatus,Slot,VolBytes,Drive,InChanger) "
@@ -285,26 +278,6 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 		  edit_uint64(mr->VolBytes, ed5),
 		  mr->Drive,
 		  mr->InChanger);
-#else
-"INSERT INTO Media (VolumeName,MediaType,PoolId,MaxVolBytes,VolCapacityBytes," 
-"Recycle,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,"
-"VolStatus,LabelDate,Slot,VolBytes,Drive,InChanger) "
-"VALUES ('%s','%s',%u,%s,%s,%d,%s,%s,%u,%u,'%s','%s',%d,%s,%d,%d)", 
-		  mr->VolumeName,
-		  mr->MediaType, mr->PoolId, 
-		  edit_uint64(mr->MaxVolBytes,ed1),
-		  edit_uint64(mr->VolCapacityBytes, ed2),
-		  mr->Recycle,
-		  edit_uint64(mr->VolRetention, ed3),
-		  edit_uint64(mr->VolUseDuration, ed4),
-		  mr->MaxVolJobs,
-		  mr->MaxVolFiles,
-		  mr->VolStatus, dt,
-		  mr->Slot,
-		  edit_uint64(mr->VolBytes, ed5),
-		  mr->Drive,
-		  mr->InChanger);
-#endif
 
    Dmsg1(500, "Create Volume: %s\n", mdb->cmd);
    sql_table_name(mdb, _("Media"));
@@ -315,6 +288,14 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    } else {
       mr->MediaId = sql_insert_id(mdb);
       stat = 1;
+      if (mr->LabelDate) {
+	 char dt[MAX_TIME_LENGTH];
+	 localtime_r(&mr->LabelDate, &tm);
+         strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
+         Mmsg(&mdb->cmd, "UPDATE Media SET LabelDate='%s' "
+              "WHERE MediaId=%d", dt, mr->MediaId);
+	 stat = UPDATE_DB(jcr, mdb, mdb->cmd);
+      }
    }
    db_unlock(mdb);
    return stat;

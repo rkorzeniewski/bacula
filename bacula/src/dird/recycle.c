@@ -60,7 +60,7 @@ int find_recycled_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
    bstrncpy(mr->VolStatus, "Recycle", sizeof(mr->VolStatus));
    if (db_find_next_volume(jcr, jcr->db, 1, InChanger, mr)) {
       jcr->MediaId = mr->MediaId;
-      Dmsg1(20, "Find_next_vol MediaId=%d\n", jcr->MediaId);
+      Dmsg1(20, "Find_next_vol MediaId=%u\n", jcr->MediaId);
       pm_strcpy(&jcr->VolumeName, mr->VolumeName);
       return 1;
    }
@@ -106,7 +106,7 @@ int recycle_oldest_purged_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
       mr->MediaId = oldest.MediaId;
       if (db_get_media_record(jcr, jcr->db, mr)) {
 	 if (recycle_volume(jcr, mr)) {
-            Jmsg(jcr, M_INFO, 0, "Recycled volume '%s'\n", mr->VolumeName);
+            Jmsg(jcr, M_INFO, 0, "Recycled volume \"%s\"\n", mr->VolumeName);
             Dmsg1(100, "Exit 1  recycle_oldest_purged_volume Vol=%s\n", mr->VolumeName);
 	    return 1;
 	 }
