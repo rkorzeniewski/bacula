@@ -23,11 +23,11 @@ dummy:
 
 #
 SVRSRCS = dird.c authenticate.c autoprune.c \
-	  autorecycle.c backup.c \
+	  backup.c \
 	  catreq.c dird_conf.c \
 	  fd_cmds.c getmsg.c job.c \
 	  mountreq.c msgchan.c newvol.c \
-	  run_conf.c restore.c \
+	  recycle.c restore.c run_conf.c \
 	  scheduler.c ua_cmds.c \
 	  ua_dotcmds.c \
 	  ua_db_query.c ua_retention.c \
@@ -36,11 +36,11 @@ SVRSRCS = dird.c authenticate.c autoprune.c \
 	  ua_select.c ua_server.c \
 	  ua_status.c verify.c
 SVROBJS = dird.o authenticate.o autoprune.o \
-	  autorecycle.o backup.o \
+	  backup.o \
 	  catreq.o dird_conf.o \
 	  fd_cmds.o getmsg.o job.o \
 	  mountreq.o msgchan.o newvol.o \
-	  run_conf.o restore.o \
+	  recycle.o restore.o run_conf.o \
 	  scheduler.o ua_cmds.o \
 	  ua_dotcmds.o \
 	  ua_db_query.o ua_retention.o \
