@@ -1281,6 +1281,11 @@ static void unfillcmd()
 
    end_of_tape = 0;
 
+   /* Close device so user can use autochanger if desired */
+   if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
+      offline_dev(dev);
+   }
+   force_close_dev(dev);
    get_cmd(_("Mount first tape. Press enter when ready: ")); 
    
    free_vol_list(jcr);
@@ -1652,6 +1657,7 @@ int	dir_find_next_appendable_volume(JCR *jcr)
 
 int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
 {
+   /* Close device so user can use autochanger if desired */
    if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
       offline_dev(dev);
    }
@@ -1665,6 +1671,7 @@ int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
 
 int dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev)
 {
+   /* Close device so user can use autochanger if desired */
    if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
       offline_dev(dev);
    }
