@@ -36,7 +36,7 @@ EXTRAOBJS = @OBJLIST@
 .c.o:
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
-all: Makefile smtp dbcheck testfind
+all: Makefile smtp dbcheck testfind testls
 	@echo "==== Make of tools is good ===="
 	@echo " "
 
@@ -49,6 +49,11 @@ dbcheck: dbcheck.o ../lib/libbac.a ../cats/libsql.a
 testfind: ../findlib/libfind.a ../lib/libbac.a $(FINDOBJS)
 	$(CXX) -g $(LDFLAGS) -L. -L../lib -L../findlib -o $@ $(FINDOBJS) \
 	  $(LIBS) $(DLIB) -lfind -lbac -lm
+
+testls: ../findlib/libfind.a ../lib/libbac.a testls.o
+	$(CXX) -g $(LDFLAGS) -L. -L../lib -L../findlib -o $@ testls.o \
+	  $(LIBS) $(DLIB) -lfind -lbac -lm
+
  
 
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
@@ -57,7 +62,7 @@ Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 
 clean:
 	@$(RMF) smtp core core.* a.out *.o *.bak *~ *.intpro *.extpro 1 2 3
-	@$(RMF) testfind dbcheck
+	@$(RMF) testfind dbcheck testls
 
 realclean: clean
 	@$(RMF) tags

@@ -244,7 +244,7 @@ void init_signals(void terminate(int sig))
 
 
    sigaction(SIGPIPE,	&sigignore, NULL);
-   sigaction(SIGCHLD,	&sigignore, NULL);
+   sigaction(SIGCHLD,	&sighandle, NULL);
    sigaction(SIGCONT,	&sigignore, NULL);
    sigaction(SIGPROF,	&sigignore, NULL);
    sigaction(SIGWINCH,	&sigignore, NULL);

@@ -364,8 +364,8 @@ char *encode_mode(mode_t mode, char *buf)
 {
   char *cp = buf;  
 
-  *cp++ = S_ISDIR(mode) ? 'd' : S_ISBLK(mode) ? 'b' : S_ISCHR(mode) ? 'c' :
-          S_ISLNK(mode) ? 'l' : '-';
+  *cp++ = S_ISDIR(mode) ? 'd' : S_ISBLK(mode)  ? 'b' : S_ISCHR(mode)  ? 'c' :
+          S_ISLNK(mode) ? 'l' : S_ISFIFO(mode) ? 'f' : S_ISSOCK(mode) ? 's' : '-';
   *cp++ = mode & S_IRUSR ? 'r' : '-';
   *cp++ = mode & S_IWUSR ? 'w' : '-';
   *cp++ = (mode & S_ISUID

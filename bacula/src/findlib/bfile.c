@@ -73,10 +73,10 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
    if (flags & O_WRONLY) {	      /* creating */
       bfd->fh = CreateFile(win32_fname,
 		   WRITE_OWNER|WRITE_DAC|ACCESS_SYSTEM_SECURITY,    /* access */
-		   0,					   /* shared mode */
+		   FILE_SHARE_READ | FILE_SHARE_WRITE,	   /* shared mode */
 		   NULL,				   /* SecurityAttributes */
 		   CREATE_ALWAYS,			   /* CreationDisposition */
-		   FILE_FLAG_BACKUP_SEMANTICS,		   /* Flags and attributes */
+		   FILE_ATTRIBUTE_NORMAL|FILE_FLAG_BACKUP_SEMANTICS,   /* Flags and attributes */
 		   NULL);				   /* TemplateFile */
 
       if (bfd->fh == INVALID_HANDLE_VALUE) {
@@ -88,10 +88,10 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
    } else {
       bfd->fh = CreateFile(win32_fname,
 		   READ_CONTROL|ACCESS_SYSTEM_SECURITY,    /* access */
-		   0,					   /* shared mode */
+		   FILE_SHARE_READ | FILE_SHARE_WRITE,	   /* shared mode */
 		   NULL,				   /* SecurityAttributes */
 		   OPEN_EXISTING,			   /* CreationDisposition */
-		   FILE_FLAG_BACKUP_SEMANTICS,		   /* Flags and attributes */
+		   FILE_ATTRIBUTE_NORMAL|FILE_FLAG_BACKUP_SEMANTICS,  /* Flags and attributes */
 		   NULL);				   /* TemplateFile */
 
       if (bfd->fh == INVALID_HANDLE_VALUE) {

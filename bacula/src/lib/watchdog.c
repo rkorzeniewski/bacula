@@ -101,9 +101,8 @@ int stop_watchdog(void)
 {
    int stat;
 
-   P(mutex);
    quit = TRUE;
-
+   P(mutex);
    if ((stat = pthread_cond_signal(&timer)) != 0) {
       V(mutex);
       return stat;

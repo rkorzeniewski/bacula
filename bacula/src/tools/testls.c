@@ -1,5 +1,5 @@
 /*  
- * Test program for find files
+ * Test program for listing files during regression testing
  */
 
 /*
@@ -27,23 +27,19 @@
 
 
 /* Global variables */
-static int num_files = 0;
-static int max_file_len = 0;
-static int max_path_len = 0;
-static int trunc_fname = 0;
-static int trunc_path = 0;
-static int attrs = 0;
+int attrs = 0;
 
 static JCR *jcr;
 
+
 static int print_file(FF_PKT *ff, void *pkt);
-static void count_files(FF_PKT *ff);
+static void print_ls_output(char *fname, char *link, int type, struct stat *statp);
 
 static void usage()
 {
    fprintf(stderr, _(
 "\n"
-"Usage: testfind [-d debug_level] [-] [pattern1 ...]\n"
+"Usage: testls [-d debug_level] [-] [pattern1 ...]\n"
 "       -a          print extended attributes (Win32 debug)\n"
 "       -dnn        set debug level to nn\n"
 "       -e          specify file of exclude patterns\n"
@@ -148,20 +144,10 @@ main (int argc, char *const *argv)
    find_files(jcr, ff, print_file, NULL);
    hard_links = term_find_files(ff);
   
-   printf(_("\
-Total files    : %d\n\
-Max file length: %d\n\
-Max path length: %d\n\
-Files truncated: %d\n\
-Paths truncated: %d\n\
-Hard links     : %d\n"),
-     num_files, max_file_len, max_path_len,
-     trunc_fname, trunc_path, hard_links);
-  
-  free_jcr(jcr);
-  close_memory_pool();
-  sm_dump(False);
-  exit(0);
+   free_jcr(jcr);
+   close_memory_pool();
+   sm_dump(False);
+   exit(0);
 }
 
 static int print_file(FF_PKT *ff, void *pkt)
@@ -169,51 +155,12 @@ static int print_file(FF_PKT *ff, void *pkt)
 
    switch (ff->type) {
    case FT_LNKSAVED:
-      if (debug_level == 1) {
-         printf("%s\n", ff->fname);
-      } else if (debug_level > 1) {
-         printf("Lnka: %s -> %s\n", ff->fname, ff->link);
-      }
-      break;
    case FT_REGE:
-      if (debug_level == 1) {
-         printf("%s\n", ff->fname);
-      } else if (debug_level > 1) {
-         printf("Empty: %s\n", ff->fname);
-      }
-      count_files(ff);
-      break; 
    case FT_REG:
-      if (debug_level == 1) {
-         printf("%s\n", ff->fname);
-      } else if (debug_level > 1) {
-         printf("Reg: %s\n", ff->fname);
-      }
-      count_files(ff);
-      break;
    case FT_LNK:
-      if (debug_level == 1) {
-         printf("%s\n", ff->fname);
-      } else if (debug_level > 1) {
-         printf("Lnk: %s -> %s\n", ff->fname, ff->link);
-      }
-      count_files(ff);
-      break;
    case FT_DIR:
-      if (debug_level == 1) {
-         printf("%s\n", ff->fname);
-      } else if (debug_level > 1) {
-         printf("Dir: %s\n", ff->fname);
-      }
-      count_files(ff);
-      break;
    case FT_SPEC:
-      if (debug_level == 1) {
-         printf("%s\n", ff->fname);
-      } else if (debug_level > 1) {
-         printf("Spec: %s\n", ff->fname);
-      }
-      count_files(ff);
+      print_ls_output(ff->fname, ff->link, ff->type, &ff->statp);
       break;
    case FT_NOACCESS:
       printf(_("Err: Could not access %s: %s\n"), ff->fname, strerror(errno));
@@ -243,84 +190,47 @@ static int print_file(FF_PKT *ff, void *pkt)
       printf(_("Err: Unknown file ff->type %d: %s\n"), ff->type, ff->fname);
       break;
    }
-   if (attrs) {
-      char attr[200];
-      encode_attribsEx(NULL, attr, ff);
-      if (*attr != 0) {
-         printf("AttrEx=%s\n", attr);
-      }
-//    set_attribsEx(NULL, ff->fname, NULL, NULL, ff->type, attr);
-   }
    return 1;
 }
 
-static void count_files(FF_PKT *ar) 
+static void print_ls_output(char *fname, char *link, int type, struct stat *statp)
 {
-   int fnl, pnl;
-   char *l, *p;
-   char file[MAXSTRING];
-   char spath[MAXSTRING];
+   char buf[1000]; 
+   char ec1[30];
+   char *p, *f;
+   int n;
 
-   num_files++;
-
-   /* Find path without the filename.  
-    * I.e. everything after the last / is a "filename".
-    * OK, maybe it is a directory name, but we treat it like
-    * a filename. If we don't find a / then the whole name
-    * must be a path name (e.g. c:).
-    */
-   for (p=l=ar->fname; *p; p++) {
-      if (*p == '/') {
-	 l = p; 		      /* set pos of last slash */
-      }
+   p = encode_mode(statp->st_mode, buf);
+   n = sprintf(p, " %2d ", (uint32_t)statp->st_nlink);
+   p += n;
+   n = sprintf(p, "%-4d %-4d", (int)statp->st_uid, (int)statp->st_gid);
+   p += n;
+   n = sprintf(p, "%7.7s ", edit_uint64(statp->st_size, ec1));
+   p += n;
+   if (S_ISCHR(statp->st_mode) || S_ISBLK(statp->st_mode)) {
+      n = sprintf(p, "%4x ", (int)statp->st_rdev);
+   } else { 
+      n = sprintf(p, "     ");
    }
-   if (*l == '/') {                   /* did we find a slash? */
-      l++;			      /* yes, point to filename */
-   } else {			      /* no, whole thing must be path name */
-      l = p;
-   }
-
-   /* If filename doesn't exist (i.e. root directory), we
-    * simply create a blank name consisting of a single 
-    * space. This makes handling zero length filenames
-    * easier.
-    */
-   fnl = p - l;
-   if (fnl > max_file_len) {
-      max_file_len = fnl;
-   }
-   if (fnl > 255) {
-      printf(_("===== Filename truncated to 255 chars: %s\n"), l);
-      fnl = 255;
-      trunc_fname++;
-   }
-   if (fnl > 0) {
-      strncpy(file, l, fnl);	      /* copy filename */
-      file[fnl] = 0;
+   p += n;
+   if (type != FT_LNK) {
+      p = encode_time(statp->st_mtime, p);
    } else {
-      file[0] = ' ';                  /* blank filename */
-      file[1] = 0;
+      p = encode_time(0, p);
    }
-
-   pnl = l - ar->fname;    
-   if (pnl > max_path_len) {
-      max_path_len = pnl;
+   *p++ = ' ';
+   /* Copy file name */
+   for (f=fname; *f && (p-buf) < (int)sizeof(buf); )
+      *p++ = *f++;
+   if (type == FT_LNK) {
+      *p++ = '-';
+      *p++ = '>';
+      *p++ = ' ';
+      /* Copy link name */
+      for (f=link; *f && (p-buf) < (int)sizeof(buf); )
+	 *p++ = *f++;
    }
-   if (pnl > 255) {
-      printf(_("========== Path name truncated to 255 chars: %s\n"), ar->fname);
-      pnl = 255;
-      trunc_path++;
-   }
-   strncpy(spath, ar->fname, pnl);
-   spath[pnl] = 0;
-   if (pnl == 0) {
-      spath[0] = ' ';
-      spath[1] = 0;
-      printf(_("========== Path length is zero. File=%s\n"), ar->fname);
-   }
-   if (debug_level >= 10) {
-      printf("Path: %s\n", spath);
-      printf("File: %s\n", file);
-   }
-
+   *p++ = '\n';
+   *p = 0;
+   fputs(buf, stdout);
 }
