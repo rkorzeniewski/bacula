@@ -39,7 +39,6 @@ DEFINE_LOCAL_EVENT_TYPE(wxbTREE_MARKED_EVENT)
 wxbTreeCtrl::wxbTreeCtrl(
       wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size): 
             wxTreeCtrl(parent, id, pos, size) {
-   marked = false;
 }
 
 wxbTreeCtrl::~wxbTreeCtrl() {}

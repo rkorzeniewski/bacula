@@ -68,8 +68,6 @@ class wxbTreeCtrl: public wxTreeCtrl {
       ~wxbTreeCtrl();
       
    private:
-      bool marked;
-   
       void OnDoubleClicked(wxMouseEvent& event);
       void OnRightClicked(wxMouseEvent& event);
       
