@@ -1,7 +1,8 @@
 #!/bin/sh
 #
 # Run a simple backup of the Bacula build directory 
-#   to a tape then restore it.
+#   to a tape then restore it, we do that twice to ensure that
+#   we can correctly append to a tape.
 #
 cwd=`pwd`
 bin/bacula stop  2>&1 >/dev/null
@@ -28,6 +29,24 @@ wait
 messages
 @# 
 @# now do a restore
+@#
+@output tmp/log2.out
+restore where=${cwd}/tmp/bacula-restores select all
+yes
+wait
+messages
+@#
+@# Now do a second backup
+@#
+@output /dev/null
+messages
+@output tmp/log1.out
+label storage=DDS-4 volume=TestVolume001 slot=0
+run job=NightlySave yes
+wait
+messages
+@# 
+@# now do a second restore
 @#
 @output tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores select all

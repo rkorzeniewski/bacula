@@ -48,14 +48,14 @@ messages
 quit
 END_OF_DATA
 bin/bacula stop 2>&1 >/dev/null
-grep TestVolume001 working/restore.bsr
+grep TestVolume001 working/restore.bsr 2>&1 >/dev/null
 bsrstat=$?
 grep "^Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
 bstat=$?
 grep "^Termination: *Restore OK" tmp/log2.out 2>&1 >/dev/null
 rstat=$?
 diff -r build/src/cats  tmp/bacula-restores${cwd}/build/src/cats 2>&1 >/dev/null
-if [ $? != 0 -o $bsrstat != 1 -o $bstat != 0 -o $rstat != 0 ] ; then
+if [ $? != 0 -o $bsrstat != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
    echo " "
    echo " "
    echo "  !!!!! bsr-opt-test Bacula source failed!!! !!!!! "
