@@ -30,7 +30,7 @@ typedef void (MSG_RES_HANDLER)(LEX *lc, struct res_items *item, int index, int p
  * tables.
  */
 struct res_items {
-   char *name;                        /* Resource name i.e. Director, ... */
+   const char *name;                  /* Resource name i.e. Director, ... */
    MSG_RES_HANDLER *handler;          /* Routine storing the resource item */
    void **value;                      /* Where to store the item */
    int  code;                         /* item code/additional info */
@@ -63,7 +63,7 @@ struct RES {
  * resources that are available to this daemon.
  */
 struct s_res {       
-   char *name;                        /* resource name */
+   const char *name;                  /* resource name */
    struct res_items *items;           /* list of resource keywords */
    int rcode;                         /* code if needed */
    RES *res_head;                     /* where to store it */
@@ -109,7 +109,7 @@ void dump_resource(int type, RES *res, void sendmsg(void *sock, char *fmt, ...),
 void free_resource(int type);
 void init_resource(int type, struct res_items *item);
 void save_resource(int type, struct res_items *item, int pass);
-char *res_to_str(int rcode);
+const char *res_to_str(int rcode);
 
 /* Loop through each resource of type, returning in var */
 #define foreach_res(var, type) \

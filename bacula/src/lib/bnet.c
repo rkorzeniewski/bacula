@@ -502,7 +502,7 @@ extern int h_errno;		/* On error has one of the above */
 /*
  * Get human readable error for gethostbyname()
  */
-static char *gethost_strerror() 
+static const char *gethost_strerror() 
 {
    switch (h_errno) {
    case NETDB_INTERNAL:
@@ -579,7 +579,7 @@ Wanted %d got %d bytes for s_addr.\n"), sizeof(inaddr.s_addr), hp->h_length);
  *  ***FIXME*** implement service from /etc/services
  */
 static BSOCK *
-bnet_open(JCR *jcr, char *name, char *host, char *service, int port, int *fatal)
+bnet_open(JCR *jcr, const char *name, char *host, char *service, int port, int *fatal)
 {
    int sockfd;
    struct sockaddr_in tcp_serv_addr;	 /* socket information */
@@ -636,7 +636,7 @@ bnet_open(JCR *jcr, char *name, char *host, char *service, int port, int *fatal)
  * Try to connect to host for max_retry_time at retry_time intervals.
  */
 BSOCK *
-bnet_connect(JCR *jcr, int retry_interval, int max_retry_time, char *name,
+bnet_connect(JCR *jcr, int retry_interval, int max_retry_time, const char *name,
 	     char *host, char *service, int port, int verbose)
 {
    int i;
@@ -823,7 +823,7 @@ char *bnet_sig_to_ascii(BSOCK *bs)
  *  This probably should be done in net_open
  */
 BSOCK *
-init_bsock(JCR *jcr, int sockfd, char *who, char *host, int port, 
+init_bsock(JCR *jcr, int sockfd, const char *who, char *host, int port, 
 	   struct sockaddr_in *client_addr) 
 {
    BSOCK *bsock = (BSOCK *)malloc(sizeof(BSOCK));

@@ -50,13 +50,13 @@ static int verify_cmd(JCR *jcr);
 static int restore_cmd(JCR *jcr);
 static int storage_cmd(JCR *jcr);
 static int session_cmd(JCR *jcr);
-static int response(JCR *jcr, BSOCK *sd, char *resp, char *cmd);
+static int response(JCR *jcr, BSOCK *sd, char *resp, const char *cmd);
 static void filed_free_jcr(JCR *jcr);
 static int open_sd_read_session(JCR *jcr);
 static int send_bootstrap_file(JCR *jcr);
 static int runbefore_cmd(JCR *jcr);
 static int runafter_cmd(JCR *jcr);
-static int run_cmd(JCR *jcr, char *cmd, char *name);
+static int run_cmd(JCR *jcr, char *cmd, const char *name);
 
 
 /* Exported functions */
@@ -264,10 +264,10 @@ static int cancel_cmd(JCR *jcr)
 	 }
 	 set_jcr_job_status(cjcr, JS_Canceled);
 	 free_jcr(cjcr);
-         bnet_fsend(dir, "2001 Job %s marked to be canceled.\n", Job);
+         bnet_fsend(dir, _("2001 Job %s marked to be canceled.\n"), Job);
       }
    } else {
-      bnet_fsend(dir, "2902 Error scanning cancel command.\n");
+      bnet_fsend(dir, _("2902 Error scanning cancel command.\n"));
    }
    bnet_sig(dir, BNET_EOD);
    return 1;
@@ -387,7 +387,7 @@ static int runafter_cmd(JCR *jcr)
    return bnet_fsend(dir, OKRunAfter);
 }
 
-static int run_cmd(JCR *jcr, char *cmd, char *name)
+static int run_cmd(JCR *jcr, char *cmd, const char *name)
 {
    POOLMEM *ecmd = get_pool_memory(PM_FNAME);
    int status;
@@ -1133,7 +1133,7 @@ static void filed_free_jcr(JCR *jcr)
  *  Returns: 0 on failure
  *	     1 on success
  */
-int response(JCR *jcr, BSOCK *sd, char *resp, char *cmd)
+int response(JCR *jcr, BSOCK *sd, char *resp, const char *cmd)
 {
    if (sd->errors) {
       return 0;

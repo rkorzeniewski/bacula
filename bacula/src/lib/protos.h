@@ -50,8 +50,8 @@ void     *bcalloc                (size_t size1, size_t size2);
 int       bsnprintf              (char *str, int32_t size, const char *format, ...);
 int       bvsnprintf             (char *str, int32_t size, const char *format, va_list ap);
 int       pool_sprintf           (char *pool_buf, const char *fmt, ...);
-void      create_pid_file        (char *dir, char *progname, int port);
-int       delete_pid_file        (char *dir, char *progname, int port);
+void      create_pid_file        (char *dir, const char *progname, int port);
+int       delete_pid_file        (char *dir, const char *progname, int port);
 void      drop                   (char *uid, char *gid);
 int       bmicrosleep            (time_t sec, long usec);
 char     *bfgets                 (char *s, int size, FILE *fd);
@@ -69,10 +69,10 @@ int        bnet_sig              (BSOCK *bs, int sig);
 int        bnet_ssl_server       (BSOCK *bsock, char *password, int ssl_need, int ssl_has);
 int        bnet_ssl_client       (BSOCK *bsock, char *password, int ssl_need);
 BSOCK *    bnet_connect            (JCR *jcr, int retry_interval,
-               int max_retry_time, char *name, char *host, char *service, 
+               int max_retry_time, const char *name, char *host, char *service, 
                int port, int verbose);
 void       bnet_close            (BSOCK *bsock);
-BSOCK *    init_bsock            (JCR *jcr, int sockfd, char *who, char *ip, 
+BSOCK *    init_bsock            (JCR *jcr, int sockfd, const char *who, char *ip, 
                                   int port, struct sockaddr_in *client_addr);
 BSOCK *    dup_bsock             (BSOCK *bsock);
 void       term_bsock            (BSOCK *bsock);
@@ -89,7 +89,7 @@ void       bnet_suppress_error_messages(BSOCK *bsock, int flag);
 int      bget_msg(BSOCK *sock);
 
 /* bpipe.c */
-BPIPE *          open_bpipe(char *prog, int wait, char *mode);
+BPIPE *          open_bpipe(char *prog, int wait, const char *mode);
 int              close_wpipe(BPIPE *bpipe);
 int              close_bpipe(BPIPE *bpipe);
 
@@ -131,7 +131,7 @@ LEX *     lex_close_file         (LEX *lf);
 LEX *     lex_open_file          (LEX *lf, char *fname, LEX_ERROR_HANDLER *scan_error);
 int       lex_get_char           (LEX *lf);
 void      lex_unget_char         (LEX *lf);
-char *    lex_tok_to_str         (int token);
+const char *  lex_tok_to_str     (int token);
 int       lex_get_token          (LEX *lf, int expect);
 
 /* message.c */
@@ -188,14 +188,14 @@ char *           encode_time             (time_t time, char *buf);
 char *           encode_mode             (mode_t mode, char *buf);
 int              do_shell_expansion      (char *name, int name_len);
 void             jobstatus_to_ascii      (int JobStatus, char *msg, int maxlen);
-int              pm_strcat               (POOLMEM **pm, char *str);
-int              pm_strcpy               (POOLMEM **pm, char *str);
+int              pm_strcat               (POOLMEM **pm, const char *str);
+int              pm_strcpy               (POOLMEM **pm, const char *str);
 int              run_program             (char *prog, int wait, POOLMEM *results);
 char *           job_type_to_str         (int type);
 char *           job_status_to_str       (int stat);
 char *           job_level_to_str        (int level);
 void             make_session_key        (char *key, char *seed, int mode);
-POOLMEM         *edit_job_codes(JCR *jcr, char *omsg, char *imsg, char *to);
+POOLMEM         *edit_job_codes(JCR *jcr, char *omsg, char *imsg, const char *to);
 void             set_working_directory(char *wd);
 
 

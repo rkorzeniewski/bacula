@@ -48,7 +48,7 @@ int is_win32_stream(int stream)
    return 0;
 }
 
-char *stream_to_ascii(int stream)
+const char *stream_to_ascii(int stream)
 {
    static char buf[20];
 
@@ -79,7 +79,7 @@ char *stream_to_ascii(int stream)
       return "SHA1 signature";
    default:
       sprintf(buf, "%d", stream);
-      return buf;
+      return (const char *)buf;
    }
 }
 

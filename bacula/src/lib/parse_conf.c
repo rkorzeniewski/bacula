@@ -72,7 +72,7 @@ extern struct s_res resources[];
 extern "C" CURES res_all;
 extern "C" int res_all_size;
 #else
-extern  CURES res_all;
+extern	CURES res_all;
 extern int res_all_size;
 #endif
 
@@ -107,7 +107,7 @@ struct res_items msgs_items[] = {
 };
 
 struct s_mtypes {	
-   char *name;
+   const char *name;
    int token;	
 };
 /* Various message types */
@@ -139,10 +139,10 @@ static void prtmsg(void *sock, char *fmt, ...)
    va_end(arg_ptr);
 }
 
-char *res_to_str(int rcode)
+const char *res_to_str(int rcode)
 {
    if (rcode < r_first || rcode > r_last) {
-      return "***UNKNOWN***";
+      return _("***UNKNOWN***");
    } else {
       return resources[rcode-r_first].name;
    }
@@ -233,7 +233,7 @@ void store_msgs(LEX *lc, struct res_items *item, int index, int pass)
 	       continue;	   /* get another destination */
 	    }
 	    if (token != T_EQUALS) {
-               scan_err1(lc, "expected an =, got: %s", lc->str); 
+               scan_err1(lc, _("expected an =, got: %s"), lc->str); 
 	    }
 	    break;
 	 }
@@ -252,7 +252,7 @@ void store_msgs(LEX *lc, struct res_items *item, int index, int pass)
 	 token = lex_get_token(lc, T_ALL);
          Dmsg1(200, "store_msgs dest=%s:\n", NPRT(dest));
 	 if (token != T_EQUALS) {
-            scan_err1(lc, "expected an =, got: %s", lc->str); 
+            scan_err1(lc, _("expected an =, got: %s"), lc->str); 
 	 }
 	 scan_types(lc, (MSGS *)(item->value), item->code, dest, NULL);
 	 free_pool_memory(dest);
@@ -260,7 +260,7 @@ void store_msgs(LEX *lc, struct res_items *item, int index, int pass)
 	 break;
 
       default:
-         scan_err1(lc, "Unknown item code: %d\n", item->code);
+         scan_err1(lc, _("Unknown item code: %d\n"), item->code);
 	 break;
       }
    }
@@ -518,12 +518,12 @@ void store_size(LEX *lc, struct res_items *item, int index, int pass)
    case T_IDENTIFIER:
    case T_UNQUOTED_STRING:
       if (!size_to_uint64(lc->str, lc->str_len, &uvalue)) {
-         scan_err1(lc, "expected a size number, got: %s", lc->str);
+         scan_err1(lc, _("expected a size number, got: %s"), lc->str);
       }
       *(uint64_t *)(item->value) = uvalue;
       break;
    default:
-      scan_err1(lc, "expected a size, got: %s", lc->str);
+      scan_err1(lc, _("expected a size, got: %s"), lc->str);
       break;
    }
    scan_to_eol(lc);
@@ -556,12 +556,12 @@ void store_time(LEX *lc, struct res_items *item, int index, int pass)
 	 }
       }
       if (!duration_to_utime(period, &utime)) {
-         scan_err1(lc, "expected a time period, got: %s", period);
+         scan_err1(lc, _("expected a time period, got: %s"), period);
       }
       *(utime_t *)(item->value) = utime;
       break;
    default:
-      scan_err1(lc, "expected a time period, got: %s", lc->str);
+      scan_err1(lc, _("expected a time period, got: %s"), lc->str);
       break;
    }
    if (token != T_EOL) {
@@ -580,7 +580,7 @@ void store_yesno(LEX *lc, struct res_items *item, int index, int pass)
    } else if (strcasecmp(lc->str, "no") == 0) {
       *(int *)(item->value) &= ~(item->code);
    } else {
-      scan_err1(lc, "Expect a YES or NO, got: %s", lc->str);
+      scan_err1(lc, _("Expect a YES or NO, got: %s"), lc->str);
    }
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
@@ -682,7 +682,7 @@ parse_config(char *cf)
 		  break;
 	       }
 	       if (token != T_IDENTIFIER) {
-                  scan_err1(lc, "Expected a Resource name identifier, got: %s", lc->str);
+                  scan_err1(lc, _("Expected a Resource name identifier, got: %s"), lc->str);
 		  /* NOT REACHED */
 	       }
 	       for (i=0; resources[i].name; i++)
@@ -694,7 +694,7 @@ parse_config(char *cf)
 		     break;
 		  }
 	       if (state == p_none) {
-                  scan_err1(lc, "expected resource name, got: %s", lc->str);
+                  scan_err1(lc, _("expected resource name, got: %s"), lc->str);
 		  /* NOT REACHED */
 	       }
 	       break;
@@ -705,7 +705,7 @@ parse_config(char *cf)
 		     break;
 		  case T_IDENTIFIER:
 		     if (level != 1) {
-                        scan_err1(lc, "not in resource definition: %s", lc->str);
+                        scan_err1(lc, _("not in resource definition: %s"), lc->str);
 			/* NOT REACHED */
 		     }
 		     for (i=0; items[i].name; i++) {
@@ -716,7 +716,7 @@ parse_config(char *cf)
 			      token = lex_get_token(lc, T_ALL);
                               Dmsg1 (150, "in T_IDENT got token=%s\n", lex_tok_to_str(token));
 			      if (token != T_EQUALS) {
-                                 scan_err1(lc, "expected an equals, got: %s", lc->str);
+                                 scan_err1(lc, _("expected an equals, got: %s"), lc->str);
 				 /* NOT REACHED */
 			      }
 			   }
@@ -730,8 +730,8 @@ parse_config(char *cf)
 		     if (i >= 0) {
                         Dmsg2(150, "level=%d id=%s\n", level, lc->str);
                         Dmsg1(150, "Keyword = %s\n", lc->str);
-                        scan_err1(lc, "Keyword \"%s\" not permitted in this resource.\n"
-                           "Perhaps you left the trailing brace off of the previous resource.", lc->str);
+                        scan_err1(lc, _("Keyword \"%s\" not permitted in this resource.\n"
+                           "Perhaps you left the trailing brace off of the previous resource."), lc->str);
 			/* NOT REACHED */
 		     }
 		     break;
@@ -747,18 +747,18 @@ parse_config(char *cf)
 		     break;
 
 		  default:
-                     scan_err2(lc, "unexpected token %d %s in resource definition",    
+                     scan_err2(lc, _("unexpected token %d %s in resource definition"),    
 			token, lex_tok_to_str(token));
 		     /* NOT REACHED */
 	       }
 	       break;
 	    default:
-               scan_err1(lc, "Unknown parser state %d\n", state);
+               scan_err1(lc, _("Unknown parser state %d\n"), state);
 	       /* NOT REACHED */
 	 }
       }
       if (state != p_none) {
-         scan_err0(lc, "End of conf file reached with unclosed resource.");
+         scan_err0(lc, _("End of conf file reached with unclosed resource."));
       }
       if (debug_level > 50 && pass == 2) {
 	 int i;

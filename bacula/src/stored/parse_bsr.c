@@ -92,7 +92,7 @@ static BSR *new_bsr()
 /*
  * Format a scanner error message 
  */
-static void s_err(char *file, int line, LEX *lc, char *msg, ...)
+static void s_err(const char *file, int line, LEX *lc, const char *msg, ...)
 {
    JCR *jcr = (JCR *)(lc->caller_ctx);
    va_list arg_ptr;

@@ -227,7 +227,7 @@ static void free_common_jcr(JCR *jcr)
  * Global routine to free a jcr
  */
 #ifdef DEBUG
-void b_free_jcr(char *file, int line, JCR *jcr)
+void b_free_jcr(const char *file, int line, JCR *jcr)
 {
    Dmsg3(200, "Enter free_jcr 0x%x from %s:%d\n", jcr, file, line);
 
@@ -540,7 +540,7 @@ static void jcr_timeout_check(watchdog_t *self)
 /*
  * Timeout signal comes here
  */
-void timeout_handler(int sig)
+static void timeout_handler(int sig)
 {
    return;			      /* thus interrupting the function */
 }

@@ -41,7 +41,7 @@ static void build_argc_argv(char *cmd, int *bargc, char *bargv[], int max_arg);
  *   a bi-directional pipe so that the user can read from and
  *   write to the program. 
  */
-BPIPE *open_bpipe(char *prog, int wait, char *mode)
+BPIPE *open_bpipe(char *prog, int wait, const char *mode)
 {
    char *bargv[MAX_ARGV];
    int bargc, i;
