@@ -53,8 +53,7 @@ For 1.33 Testing/Documentation:
 - Document Dan's new --with-dir-user, ... options.
   See userid.txt
 - Figure out how to use ssh or stunnel to protect Bacula communications.
-  Add Dan's work to manual
-  See ssl.txt
+  Add Dan's work to manual See ssl.txt
 - Add db check test to regression. Test each function like delete,
   purge, ...
 - Add subsections to the Disaster Recovery index section.
@@ -72,6 +71,9 @@ For 1.33 Testing/Documentation:
      http://howtos.linux.com/guides/nag2/x-087-2-nfs.mountd.shtml
 
 For 1.33
+- Check new HAVE_WIN32 open bits.    
+- Make column listing for running jobs.    
+  JobId Level Type Started Name  Status
 - Make two tape fill test work.
 - Check if the tape has moved before writing.  
 - Save and restore last_job across executions.

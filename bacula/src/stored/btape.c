@@ -2444,10 +2444,11 @@ static void usage()
    fprintf(stderr, _(
 "\nVersion: " VERSION " (" BDATE ")\n\n"
 "Usage: btape <options> <device_name>\n"
+"       -b <file>   specify bootstrap file\n"
 "       -c <file>   set configuration file to file\n"
 "       -d <nn>     set debug level to nn\n"
 "       -s          turn off signals\n"
-"       -t          open the default tape device\n"
+"       -v          be verbose\n"
 "       -?          print this message.\n"  
 "\n"));
 
