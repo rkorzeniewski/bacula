@@ -267,7 +267,7 @@ AC_CHECK_FUNC(getopt_long, AC_DEFINE(HAVE_GETOPT_LONG))
 AC_FUNC_STRCOLL
 
 AC_CHECK_HEADERS(varargs.h \
-		sys/ptem.h sys/pte.h sys/stream.h) 
+		sys/ptem.h sys/pte.h sys/stream.h)	
 
 # End of readline stuff
 # -----------------------------------------------------------------------
@@ -967,6 +967,8 @@ AC_CHECK_LIB(xpg4, setlocale, [LIBS="$LIBS -lxpg4"])
 
 
 AC_CHECK_LIB(sun, getpwnam)
+
+AC_CHECK_HEADERS(zlib.h)
 AC_CHECK_LIB(z, deflate, [FDLIBS="-lz"])
 have_zlib=no
 if test x$FDLIBS = x-lz; then
@@ -1074,6 +1076,17 @@ freebsd)
 hpux)
 	DISTVER=`uname -r`
 	TAPEDRIVE="/dev/rmt/0hnb"
+  ;;
+irix)
+	DISTVER=`uname -r`
+	TAPEDRIVE="/dev/rmt/0cbn"
+	PSCMD="ps -e -o pid,comm"
+	hostname=`/usr/bsd/hostname -s`
+	PFILES="${PFILES} \
+	    platforms/irix/Makefile \
+	    platforms/irix/bacula-fd \
+	    platforms/irix/bacula-sd \
+	    platforms/irix/bacula-dir"
   ;;
 netbsd)
 	DISTVER=`uname -a |awk '{print $3}'`

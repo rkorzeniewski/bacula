@@ -37,7 +37,7 @@ static int save_file(FF_PKT *ff_pkt, void *pkt);
  * to the Storage daemon.
  * 
  */
-int blast_data_to_storage_daemon(JCR *jcr, char *addr, int port)
+int blast_data_to_storage_daemon(JCR *jcr, char *addr) 
 {
    BSOCK *sd;
    int stat = 1;
@@ -98,7 +98,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
    struct MD5Context md5c;
    int gotMD5 = 0;
    unsigned char signature[16];
-   BSOCK *sd, *dir;
+   BSOCK *sd;
    JCR *jcr = (JCR *)ijcr;
    POOLMEM *msgsave;
 
@@ -107,7 +107,6 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
    }
 
    sd = jcr->store_bsock;
-   dir = jcr->dir_bsock;
    jcr->num_files_examined++;	      /* bump total file count */
 
    switch (ff_pkt->type) {

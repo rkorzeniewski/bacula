@@ -168,6 +168,7 @@
 #undef HAVE_BSDI_OS
 #undef HAVE_HPUX_OS
 #undef HAVE_SUN_OS
+#undef HAVE_IRIX_OS
 #undef HAVE_AIX_OS
 #undef HAVE_SGI_OS
 #undef HAVE_CYGWIN

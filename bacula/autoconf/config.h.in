@@ -257,6 +257,7 @@
 #undef HAVE_BSDI_OS
 #undef HAVE_HPUX_OS
 #undef HAVE_SUN_OS
+#undef HAVE_IRIX_OS
 #undef HAVE_AIX_OS
 #undef HAVE_SGI_OS
 #undef HAVE_CYGWIN
@@ -443,6 +444,9 @@
 
 /* Define if you have the <varargs.h> header file.  */
 #undef HAVE_VARARGS_H
+
+/* Define if you have the <zlib.h> header file.  */
+#undef HAVE_ZLIB_H
 
 /* Define if you have the inet library (-linet).  */
 #undef HAVE_LIBINET

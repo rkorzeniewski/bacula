@@ -301,6 +301,10 @@ extern int thr_setconcurrency(int);
 
 #endif
 
+#ifdef HAVE_IRIX_OS
+#define socklen_t int
+#endif
+
 #define ALIGN_SIZE (sizeof(double))
 #define BALIGN(x) (((x) + ALIGN_SIZE - 1) & ~(ALIGN_SIZE -1))
 

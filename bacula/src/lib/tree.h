@@ -25,48 +25,48 @@
  */
 
 struct s_mem {
-   struct s_mem *next;		      /* next buffer */
-   int rem;			      /* remaining bytes */
-   char *mem;			      /* memory pointer */
-   char first[];		      /* first byte */
+   struct s_mem *next;                /* next buffer */
+   int rem;                           /* remaining bytes */
+   char *mem;                         /* memory pointer */
+   char first[1];                     /* first byte */
 };
 
 struct s_tree_node {
-   char *fname; 		      /* file name */
-   uint32_t FileIndex;		      /* file index */
-   uint32_t JobId;		      /* JobId */
-   short type;			      /* node type */
-   short extract;		      /* set if extracting */
+   char *fname;                       /* file name */
+   uint32_t FileIndex;                /* file index */
+   uint32_t JobId;                    /* JobId */
+   short type;                        /* node type */
+   short extract;                     /* set if extracting */
    struct s_tree_node *parent;
    struct s_tree_node *sibling;
    struct s_tree_node *child;
-   struct s_tree_node *next;	      /* next hash of FileIndex */
+   struct s_tree_node *next;          /* next hash of FileIndex */
 };
 typedef struct s_tree_node TREE_NODE;
 
 struct s_tree_root {
-   char *fname; 		      /* file name */
-   uint32_t FileIndex;		      /* file index */
-   uint32_t JobId;		      /* JobId */
-   short type;			      /* node type */
-   short extract;		      /* set if extracting */
+   char *fname;                       /* file name */
+   uint32_t FileIndex;                /* file index */
+   uint32_t JobId;                    /* JobId */
+   short type;                        /* node type */
+   short extract;                     /* set if extracting */
    struct s_tree_node *parent;
    struct s_tree_node *sibling;
    struct s_tree_node *child;
-   struct s_tree_node *next;	      /* next hash of FileIndex */
+   struct s_tree_node *next;          /* next hash of FileIndex */
 
    /* The above ^^^ must be identical to a TREE_NODE structure */
-   struct s_tree_node *first;	      /* first entry in the tree */
-   struct s_tree_node *last;	      /* last entry in tree */
-   struct s_mem *mem;		      /* tree memory */
+   struct s_tree_node *first;         /* first entry in the tree */
+   struct s_tree_node *last;          /* last entry in tree */
+   struct s_mem *mem;                 /* tree memory */
 };
 typedef struct s_tree_root TREE_ROOT;
 
 /* type values */
-#define TN_ROOT    1		      /* root node */
-#define TN_NEWDIR  2		      /* created directory to fill path */
-#define TN_DIR	   3		      /* directory entry */
-#define TN_FILE    4		      /* file entry */
+#define TN_ROOT    1                  /* root node */
+#define TN_NEWDIR  2                  /* created directory to fill path */
+#define TN_DIR     3                  /* directory entry */
+#define TN_FILE    4                  /* file entry */
 
 TREE_ROOT *new_tree(int count);
 TREE_NODE *new_tree_node(TREE_ROOT *root, int type);
@@ -77,6 +77,6 @@ TREE_NODE *next_tree_node(TREE_NODE *node);
 TREE_NODE *tree_cwd(char *path, TREE_ROOT *root, TREE_NODE *node);
 TREE_NODE *tree_relcwd(char *path, TREE_ROOT *root, TREE_NODE *node);
 void append_tree_node(char *fname, TREE_NODE *node, TREE_ROOT *root, TREE_NODE *parent);
-void print_tree(char *path, TREE_NODE *root);	 
+void print_tree(char *path, TREE_NODE *root);    
 void free_tree(TREE_ROOT *root);
 int tree_getpath(TREE_NODE *node, char *buf, int buf_size);

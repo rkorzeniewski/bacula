@@ -170,6 +170,15 @@ then
 else
         BA_CONDITIONAL(HAVE_SGI_OS, $FALSEPRG)
 fi
+
+if test $HAVE_UNAME=yes -a x`uname -s` = xIRIX
+then
+        BA_CONDITIONAL(HAVE_IRIX_OS, $TRUEPRG)
+        AC_DEFINE(HAVE_IRIX_OS)
+else
+        BA_CONDITIONAL(HAVE_IRIX_OS, $FALSEPRG)
+fi
+
 AC_MSG_RESULT(" ")
 ])
 
@@ -196,6 +205,9 @@ then
 elif test $HAVE_UNAME=yes -a x`uname -s` = xOpenBSD
 then
         DISTNAME=openbsd
+elif test $HAVE_UNAME=yes -a x`uname -s` = xIRIX
+then
+        DISTNAME=irix
 elif test $HAVE_UNAME=yes -a x`uname -s` = xBSD/OS
 then
         DISTNAME=bsdi

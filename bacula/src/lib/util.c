@@ -43,7 +43,7 @@
 int string_to_btime(char *str, btime_t *value)
 {
    int i, ch, len;
-   btime_t val;
+   double val;
    static int  mod[] = {'*', 's', 'n', 'h', 'd', 'w', 'm', 'q', 'y', 0};
    static int mult[] = {1,    1,  60, 60*60, 60*60*24, 60*60*24*7, 60*60*24*30, 
 		  60*60*24*91, 60*60*24*365};
@@ -67,11 +67,11 @@ int string_to_btime(char *str, btime_t *value)
    if (mod[i] == 0 || !is_a_number(str)) {
       return 0;
    }
-   val = (btime_t)strtod(str, NULL);
+   val = strtod(str, NULL);
    if (errno != 0 || val < 0) {
       return 0;
    }
-   *value = val * mult[i];
+   *value = (btime_t)(val * mult[i]);
    return 1;
 
 }

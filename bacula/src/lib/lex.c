@@ -36,9 +36,8 @@ extern int debug_level;
  */
 void scan_to_eol(LEX *lc)
 {
-   int token;
    Dmsg0(150, "start scan to eof\n");
-   while ((token = lex_get_token(lc, T_ALL)) != T_EOL)
+   while (lex_get_token(lc, T_ALL) != T_EOL)
       { }
    Dmsg0(150, "done scan to eof\n");
 }

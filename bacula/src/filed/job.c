@@ -479,7 +479,6 @@ static int storage_cmd(JCR *jcr)
  */
 static int backup_cmd(JCR *jcr)
 { 
-   int data_port;
    BSOCK *dir = jcr->dir_bsock;
    BSOCK *sd = jcr->store_bsock;
    int len;
@@ -538,7 +537,7 @@ static int backup_cmd(JCR *jcr)
     * Send Files to Storage daemon
     */
    Dmsg1(100, "begin blast ff=%p\n", jcr->ff);
-   if (!blast_data_to_storage_daemon(jcr, NULL, data_port)) {
+   if (!blast_data_to_storage_daemon(jcr, NULL)) {
       jcr->JobStatus = JS_ErrorTerminated;
    } else {
       jcr->JobStatus = JS_Terminated;
@@ -706,7 +705,6 @@ static int restore_cmd(JCR *jcr)
 
 static int open_sd_read_session(JCR *jcr)
 {
-   int len;
    BSOCK *sd = jcr->store_bsock;
 
    if (!sd) {
@@ -727,7 +725,7 @@ static int open_sd_read_session(JCR *jcr)
    /* 
     * Get ticket number
     */
-   if ((len = bnet_recv(sd)) > 0) {
+   if (bnet_recv(sd) > 0) {
       Dmsg1(10, "bfiled<stored: %s", sd->msg);
       if (sscanf(sd->msg, OK_open, &jcr->Ticket) != 1) {
          Jmsg(jcr, M_FATAL, 0, _("Bad response to SD read open: %s\n"), sd->msg);

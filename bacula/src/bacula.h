@@ -48,11 +48,13 @@
 #include <errno.h>
 #include <fcntl.h>
 
+#ifdef xxxxx
 #ifdef HAVE_GETOPT_LONG
 #include <getopt.h>
 #else
 #include "lib/getopt.h"
 #endif
+#endif 
 
 #include <string.h>
 #include <strings.h>
@@ -87,5 +89,9 @@
 #include "baconfig.h"
 #include "bc_types.h"
 #include "lib/lib.h"
+
+#ifndef HAVE_ZLIB_H
+#undef HAVE_LIBZ                      /* no good without headers */
+#endif
 
 #endif

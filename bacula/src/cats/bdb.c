@@ -438,4 +438,18 @@ void _db_unlock(char *file, int line, B_DB *mdb)
    }
 }    
 
+/*
+ * Start a transaction. This groups inserts and makes things
+ *  much more efficient. Usually started when inserting 
+ *  file attributes.
+ */
+void db_start_transaction(B_DB *mdb)
+{
+}
+
+void db_end_transaction(B_DB *mdb)
+{
+}
+
+
 #endif /* HAVE_BACULA_DB */

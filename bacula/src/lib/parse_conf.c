@@ -268,12 +268,12 @@ void store_msgs(LEX *lc, struct res_items *item, int index, int pass)
  */
 static void scan_types(LEX *lc, MSGS *msg, int dest_code, char *where, char *cmd)
 {
-   int token, i, found, quit, is_not;
+   int i, found, quit, is_not;
    int msg_type;
    char *str;
 
    for (quit=0; !quit;) {
-      token = lex_get_token(lc, T_NAME);	    /* expect at least one type */	 
+      lex_get_token(lc, T_NAME);	    /* expect at least one type */	 
       found = FALSE;
       if (lc->str[0] == '!') {
 	 is_not = TRUE;
@@ -308,7 +308,7 @@ static void scan_types(LEX *lc, MSGS *msg, int dest_code, char *where, char *cmd
 	 break;
       }
       Dmsg0(200, "call lex_get_token() to eat comma\n");
-      token = lex_get_token(lc, T_ALL); 	 /* eat comma */
+      lex_get_token(lc, T_ALL); 	 /* eat comma */
    }
    Dmsg0(200, "Done scan_types()\n");
 }
@@ -320,9 +320,7 @@ static void scan_types(LEX *lc, MSGS *msg, int dest_code, char *where, char *cmd
  */
 void store_name(LEX *lc, struct res_items *item, int index, int pass)
 {
-   int token;
-
-   token = lex_get_token(lc, T_NAME);
+   lex_get_token(lc, T_NAME);
    /* Store the name both pass 1 and pass 2 */
    *(item->value) = bstrdup(lc->str);
    scan_to_eol(lc);
@@ -336,9 +334,7 @@ void store_name(LEX *lc, struct res_items *item, int index, int pass)
  */
 void store_strname(LEX *lc, struct res_items *item, int index, int pass)
 {
-   int token;
-
-   token = lex_get_token(lc, T_NAME);
+   lex_get_token(lc, T_NAME);
    /* Store the name */
    if (pass == 1) {
       *(item->value) = bstrdup(lc->str);
@@ -352,9 +348,7 @@ void store_strname(LEX *lc, struct res_items *item, int index, int pass)
 /* Store a string at specified address */
 void store_str(LEX *lc, struct res_items *item, int index, int pass)
 {
-   int token;
-
-   token = lex_get_token(lc, T_STRING);
+   lex_get_token(lc, T_STRING);
    if (pass == 1) {
       *(item->value) = bstrdup(lc->str);
    }
@@ -365,9 +359,7 @@ void store_str(LEX *lc, struct res_items *item, int index, int pass)
 /* Store a directory name at specified address */
 void store_dir(LEX *lc, struct res_items *item, int index, int pass)
 {
-   int token;
-
-   token = lex_get_token(lc, T_STRING);
+   lex_get_token(lc, T_STRING);
    if (pass == 1) {
       do_shell_expansion(lc->str);
       *(item->value) = bstrdup(lc->str);
@@ -380,13 +372,13 @@ void store_dir(LEX *lc, struct res_items *item, int index, int pass)
 /* Store a password specified address in MD5 coding */
 void store_password(LEX *lc, struct res_items *item, int index, int pass)
 {
-   unsigned int token, i, j;
+   unsigned int i, j;
    struct MD5Context md5c;
    unsigned char signature[16];
    char sig[100];
 
 
-   token = lex_get_token(lc, T_STRING);
+   lex_get_token(lc, T_STRING);
    if (pass == 1) {
       MD5Init(&md5c);
       MD5Update(&md5c, (unsigned char *) (lc->str), lc->str_len);
@@ -408,10 +400,9 @@ void store_password(LEX *lc, struct res_items *item, int index, int pass)
  */
 void store_res(LEX *lc, struct res_items *item, int index, int pass)
 {
-   int token;
    RES *res;
 
-   token = lex_get_token(lc, T_NAME);
+   lex_get_token(lc, T_NAME);
    if (pass == 2) {
      res = GetResWithName(item->code, lc->str);
      if (res == NULL) {
@@ -428,9 +419,7 @@ void store_res(LEX *lc, struct res_items *item, int index, int pass)
 /* Store an integer at specified address */
 void store_int(LEX *lc, struct res_items *item, int index, int pass)
 {
-   int token;
-
-   token = lex_get_token(lc, T_INT32);
+   lex_get_token(lc, T_INT32);
    *(int *)(item->value) = lc->int32_val;
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
@@ -439,9 +428,7 @@ void store_int(LEX *lc, struct res_items *item, int index, int pass)
 /* Store a positive integer at specified address */
 void store_pint(LEX *lc, struct res_items *item, int index, int pass)
 {
-   int token;
-
-   token = lex_get_token(lc, T_PINT32);
+   lex_get_token(lc, T_PINT32);
    *(int *)(item->value) = lc->pint32_val;
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
@@ -451,9 +438,7 @@ void store_pint(LEX *lc, struct res_items *item, int index, int pass)
 /* Store an 64 bit integer at specified address */
 void store_int64(LEX *lc, struct res_items *item, int index, int pass)
 {
-   int token;
-
-   token = lex_get_token(lc, T_INT64);
+   lex_get_token(lc, T_INT64);
    *(int64_t *)(item->value) = lc->int64_val;
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
@@ -463,7 +448,7 @@ void store_int64(LEX *lc, struct res_items *item, int index, int pass)
 void store_size(LEX *lc, struct res_items *item, int index, int pass)
 {
    int token, i, ch;
-   uint64_t value;
+   double value;
    int mod[]  = {'*', 'k', 'm', 'g', 0}; /* first item * not used */
    uint64_t mult[] = {1,	     /* byte */
 		      1024,	     /* kilobyte */
@@ -485,11 +470,11 @@ void store_size(LEX *lc, struct res_items *item, int index, int pass)
    switch (token) {
    case T_NUMBER:
       Dmsg2(400, "size num=:%s: %f\n", lc->str, strtod(lc->str, NULL)); 
-      value = (uint64_t)strtod(lc->str, NULL);
+      value = strtod(lc->str, NULL);
       if (errno != 0 || token < 0) {
          scan_err1(lc, "expected a size number, got: %s", lc->str);
       }
-      *(uint64_t *)(item->value) = value;
+      *(uint64_t *)(item->value) = (uint64_t)value;
       break;
    case T_IDENTIFIER:
    case T_UNQUOTED_STRING:
@@ -518,7 +503,7 @@ void store_size(LEX *lc, struct res_items *item, int index, int pass)
       if (errno != 0 || value < 0) {
          scan_err1(lc, "expected a size number, got: %s", lc->str);
       }
-      *(uint64_t *)(item->value) = value * mult[i];
+      *(uint64_t *)(item->value) = (uint64_t)(value * mult[i]);
       Dmsg2(400, "Full value = %f %" lld "\n", strtod(lc->str, NULL) * mult[i],
 	  value *mult[i]);
       break;
@@ -536,24 +521,25 @@ void store_size(LEX *lc, struct res_items *item, int index, int pass)
 void store_time(LEX *lc, struct res_items *item, int index, int pass)
 {
    int token; 
-   btime_t value;
+   double value;
+   btime_t btime;
 
    token = lex_get_token(lc, T_ALL);
    errno = 0;
    switch (token) {
    case T_NUMBER:
-      value = (btime_t)strtod(lc->str, NULL);
+      value = strtod(lc->str, NULL);
       if (errno != 0 || value < 0) {
          scan_err1(lc, "expected a time period, got: %s", lc->str);
       }
-      *(btime_t *)(item->value) = value;
+      *(btime_t *)(item->value) = (btime_t)value;
       break;
    case T_IDENTIFIER:
    case T_UNQUOTED_STRING:
-      if (!string_to_btime(lc->str, &value)) {
+      if (!string_to_btime(lc->str, &btime)) {
          scan_err1(lc, "expected a time period, got: %s", lc->str);
       }
-      *(btime_t *)(item->value) = value;
+      *(btime_t *)(item->value) = btime;
       break;
    default:
       scan_err1(lc, "expected a time period, got: %s", lc->str);
@@ -567,9 +553,7 @@ void store_time(LEX *lc, struct res_items *item, int index, int pass)
 /* Store a yes/no in a bit field */
 void store_yesno(LEX *lc, struct res_items *item, int index, int pass)
 {
-   int token;
-
-   token = lex_get_token(lc, T_NAME);
+   lex_get_token(lc, T_NAME);
    if (strcasecmp(lc->str, "yes") == 0) {
       *(int *)(item->value) |= item->code;
    } else if (strcasecmp(lc->str, "no") == 0) {

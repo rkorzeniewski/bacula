@@ -73,14 +73,13 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
    int fid, stat, len;
    struct MD5Context md5c;
    unsigned char signature[16];
-   BSOCK *sd, *dir;
+   BSOCK *dir;
    JCR *jcr = (JCR *)pkt;
 
    if (job_cancelled(jcr)) {
       return 0;
    }
    
-   sd = jcr->store_bsock;
    dir = jcr->dir_bsock;
    jcr->num_files_examined++;	      /* bump total file count */
 
