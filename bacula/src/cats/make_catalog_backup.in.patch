@@ -1,7 +1,7 @@
 9c9
-<   echo ".dump" | @SQL_BINDIR@/sqlite bacula.db >bacula.sql
+<   echo ".dump" | @SQL_BINDIR@/sqlite $* bacula.db >bacula.sql
 ---
->   echo ".dump" | /usr/lib/sqlite/sqlite bacula.db >bacula.sql
+>   echo ".dump" | /usr/lib/sqlite/sqlite $* bacula.db >bacula.sql
 12c12
 <     @SQL_BINDIR@/mysqldump $* -f --opt bacula >bacula.sql
 ---
