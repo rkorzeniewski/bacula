@@ -642,6 +642,16 @@ AC_SUBST(CDSTL)
 # End of CWEB stuff
 # -----------------------------------------------------------------------
 
+#
+# Find where sockets are (especially for Solaris)
+# Do this before the TCP Wrappers test since tcp wrappers
+# uses the socket library and some linkers are stupid.
+#
+AC_CHECK_FUNC(socket,
+    AC_MSG_RESULT(using libc's socket),
+    AC_CHECK_LIB(xnet,socket)
+    AC_CHECK_LIB(socket,socket)
+    AC_CHECK_LIB(inet,socket))
 
 
 # -----------------------------------------------------------
@@ -1422,12 +1432,6 @@ AC_CHECK_FUNC(gethostbyname_r,
     AC_CHECK_LIB(resolv,gethostbyname_r))
 
 
-# Find where sockets are (especially for Solaris)
-AC_CHECK_FUNC(socket,
-    AC_MSG_RESULT(using libc's socket),
-    AC_CHECK_LIB(xnet,socket)
-    AC_CHECK_LIB(socket,socket)
-    AC_CHECK_LIB(inet,socket))
 
 AC_CHECK_FUNCS(inet_pton, [AC_DEFINE(HAVE_INET_PTON)])
 AC_CHECK_FUNCS(inet_ntop, [AC_DEFINE(HAVE_INET_NTOP)])
