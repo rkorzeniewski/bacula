@@ -62,37 +62,57 @@ char *create_deltabs[] = {
    "CREATE TABLE DelCandidates ("
       "JobId INTEGER UNSIGNED NOT NULL, "
       "PurgedFiles TINYINT, "
-      "FileSetId INTEGER UNSIGNED)",
+      "FileSetId INTEGER UNSIGNED, "
+      "JobFiles INTEGER UNSIGNED, "
+#ifdef HAVE_MYSQL
+      "JobStatus BINARY(1))",
+#else
+      "JobStatus CHAR)",
+#endif
    "CREATE INDEX DelInx1 ON DelCandidates (JobId)",
    NULL};
 
-/* Fill candidates table with all Files subject to being deleted.
+/* Fill candidates table with all Jobs subject to being deleted.
  *  This is used for pruning Jobs (first the files, then the Jobs).
  */
 char *insert_delcand = 
    "INSERT INTO DelCandidates "
-   "SELECT JobId, PurgedFiles, FileSetId FROM Job "
+   "SELECT JobId,PurgedFiles,FileSetId,JobFiles,JobStatus FROM Job "
    "WHERE Type='%c' "
    "AND JobTDate<%s " 
    "AND ClientId=%u";
 
-/* Select files from the DelCandidates table that have a
+/* Select Jobs from the DelCandidates table that have a
  * more recent backup -- i.e. are not the only backup.
- * This is the list of files to delete for a Backup Job.
+ * This is the list of Jobs to delete for a Backup Job.
  */
+#ifdef xxx
 char *select_backup_del =
    "SELECT DelCandidates.JobId "
    "FROM Job,DelCandidates "
-   "WHERE Job.JobTDate>%s "
+   "WHERE (DelCandidates.JobFiles=0) OR "
+   "(NOT DelCandidates.JobStatus='T') OR "
+   "(Job.JobTDate>%s "
    "AND Job.ClientId=%u "
    "AND Job.Type='B' "
    "AND Job.Level='F' "
    "AND Job.JobStatus='T' "
-   "AND Job.FileSetId=DelCandidates.FileSetId";
+   "AND Job.FileSetId=DelCandidates.FileSetId)";
+#else
+char *select_backup_del =
+   "SELECT DelCandidates.JobId "
+   "FROM Job,DelCandidates "
+   "WHERE (Job.JobTDate>%s "
+   "AND Job.ClientId=%u "
+   "AND Job.Type='B' "
+   "AND Job.Level='F' "
+   "AND Job.JobStatus='T' "
+   "AND Job.FileSetId=DelCandidates.FileSetId)";
+#endif
 
-/* Select files from the DelCandidates table that have a
+/* Select Jobs from the DelCandidates table that have a
  * more recent InitCatalog -- i.e. are not the only InitCatalog
- * This is the list of files to delete for a Verify Job.
+ * This is the list of Jobs to delete for a Verify Job.
  */
 char *select_verify_del =
    "SELECT DelCandidates.JobId "
@@ -105,8 +125,8 @@ char *select_verify_del =
    "AND Job.FileSetId=DelCandidates.FileSetId";
 
 
-/* Select files from the DelCandidates table.
- * This is the list of files to delete for a Restore Job.
+/* Select Jobs from the DelCandidates table.
+ * This is the list of Jobs to delete for a Restore Job.
  */
 char *select_restore_del =
    "SELECT DelCandidates.JobId "

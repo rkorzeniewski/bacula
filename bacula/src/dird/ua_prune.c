@@ -184,14 +184,14 @@ int prunecmd(UAContext *ua, char *cmd)
     
    switch (kw) {
    case 0:  /* prune files */
-      client = select_client_resource(ua);
+      client = get_client_resource(ua);
       if (!client || !confirm_retention(ua, &client->FileRetention, "File")) {
 	 return 0;
       }
       prune_files(ua, client);
       return 1;
    case 1:  /* prune jobs */
-      client = select_client_resource(ua);
+      client = get_client_resource(ua);
       if (!client || !confirm_retention(ua, &client->JobRetention, "Job")) {
 	 return 0;
       }
@@ -437,7 +437,8 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
     * Then delete the Job entry, and finally and JobMedia records.
     */
    for (i=0; i < del.num_ids; i++) {
-      Dmsg1(050, "Delete JobId=%d\n", del.JobId[i]);
+      Dmsg1(000, "Delete JobId=%d\n", del.JobId[i]);
+#ifdef xxx
       if (!del.PurgedFiles[i]) {
 	 Mmsg(&query, del_File, del.JobId[i]);
 	 if (!db_sql_query(ua->db, query, NULL, (void *)NULL)) {
@@ -457,6 +458,7 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
          bsendmsg(ua, "%s", db_strerror(ua->db));
       }
       Dmsg1(050, "Del sql=%s\n", query);
+#endif
    }
    bsendmsg(ua, _("Pruned %d %s for client %s from catalog.\n"), del.num_ids,
       del.num_ids==1?_("Job"):_("Jobs"), client->hdr.name);

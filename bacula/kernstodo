@@ -19,6 +19,12 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
+- Document what characters can go into Volume names.
+- Implement Volume name checking.
+- Default duration with no qualifier is sec should be 1 day
+- Getting the following on all directories on Win32
+  19-May-2003 01:14 tibs-fd:      Could not access c:/cygwin/home/kern/rxvt: ERR=Permission denied
+- Make sure Bacula prunes/purges canceled and failed jobs too!
 - Find a solution for the multiple FileSet problem (when it is changed).
   Add date?
 - Cancel waiting for Client connect in SD if FD goes away.
@@ -34,6 +40,38 @@ For 1.31 release:
 - Possibly update all client records at startup.
 - Volume names with spaces get jammed into the catalog with 0x1 
   i.e. the SD bashes the Volume but they are not unbased by Dir.
+  jerom-dir: MonthlySave.2003-05-10_17.12.01 Error: Unable to get Media
+  record for Volume Tape^A1: ERR=sql_get.c:788 Media record for Volume
+  "Tape^A1" not found.
+   jerom-sd: MonthlySave.2003-05-10_17.12.01 Error: Error updating Volume
+   Info: 1991 Catalog Request failed: sql_get.c:788 Media record for Volume
+   "Tape^A1" not found.
+
+- Cancellation caused JobMedia error:
+     babylon5-dir: Last FULL backup time not found. Doing FULL backup.               
+     babylon5-dir: Start Backup JobId 416, Job=Zocalo_Save.2003-05-19_02.15.06       
+     babylon5-sd: End of media on Volume VXA-V17-Inc-001 Bytes=31,982,900,672 Blocks=495,781.
+     babylon5-sd: Job Zocalo_Save.2003-05-19_02.15.06 waiting. Cannot find any appendable volumes.
+     babylon5-sd: Someone woke me up, but I cannot find any appendable volumes
+       for Job=Zocalo_Save.2003-05-19_02.15.06.                                
+     babylon5-sd: Zocalo_Save.2003-05-19_02.15.06 Fatal error: Job
+       Zocalo_Save.2003-05-19_02.15.06 canceled while waiting for mount on
+       Storage Device "Ecrix_VXA-1".
+     babylon5-sd: Zocalo_Save.2003-05-19_02.15.06 Fatal error: Cannot fixup device
+       error. Job Zocalo_Save.2003-05-19_02.15.06 canceled while waiting for
+       mount on Storage Device "Ecrix_VXA-1".
+                                                                                     
+     babylon5-dir: Zocalo_Save.2003-05-19_02.15.06 Error: Catalog error creating
+       JobMedia record. sql_create.c:125 Create JobMedia failed. Record already
+       exists.
+     babylon5-sd: Zocalo_Save.2003-05-19_02.15.06 Error: Error creating JobMedia
+       record: 1991 Update JobMedia error
+                                                                                     
+     babylon5-sd: Zocalo_Save.2003-05-19_02.15.06 Error: askdir.c:158 NULL Volume
+       name. This shouldn't happen!!!
+     zocalo-fd: Zocalo_Save.2003-05-19_02.15.06 Error: bnet.c:310 Write error
+       sending to Storage daemon:babylon5:9103: ERR=Broken pipe
+     
 
 - ChangeServiceConfig2A does not exist on WinNT (ADVAPI32.DLL).
 

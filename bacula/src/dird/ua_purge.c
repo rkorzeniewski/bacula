@@ -261,7 +261,7 @@ int purgecmd(UAContext *ua, char *cmd)
 }
 
 /*
- * Prune File records from the database. For any Job which
+ * Purge File records from the database. For any Job which
  * is older than the retention period, we unconditionally delete
  * all File records for that Job.  This is simple enough that no
  * temporary tables are needed. We simply make an in memory list of
@@ -338,12 +338,12 @@ bail_out:
 
 
 /*
- * Purging Jobs is a bit more complicated than purging Files
- * because we delete Job records only if there is a more current
- * backup of the FileSet. Otherwise, we keep the Job record.
- * In other words, we never delete the only Job record that
- * contains a current backup of a FileSet. This prevents the
- * Volume from being recycled and destroying a current backup.
+ * Purge Job records from the database. For any Job which
+ * is older than the retention period, we unconditionally delete
+ * it and all File records for that Job.  This is simple enough that no
+ * temporary tables are needed. We simply make an in memory list of
+ * the JobIds meeting the prune conditions, then delete the Job,
+ * Files, and JobMedia records in that list.
  */
 int purge_jobs_from_client(UAContext *ua, CLIENT *client)
 {

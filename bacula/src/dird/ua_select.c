@@ -57,7 +57,10 @@ int confirm_retention(UAContext *ua, utime_t *ret, char *msg)
 	  continue;
        }
        if (strcasecmp(ua->cmd, _("yes")) == 0) {
-	  break;
+	  return 1;
+       }
+       if (strcasecmp(ua->cmd, _("no")) == 0) {
+	  return 0;
        }
     }
     return 1;
