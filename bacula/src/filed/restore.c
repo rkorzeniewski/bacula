@@ -29,6 +29,11 @@
 #include "bacula.h"
 #include "filed.h"
 
+#ifdef HAVE_ACL
+#include <sys/acl.h>
+#include <acl/libacl.h>
+#endif
+
 /* Data received from Storage Daemon */
 static char rec_header[] = "rechdr %ld %ld %ld %ld %ld";
 
@@ -59,9 +64,12 @@ void do_restore(JCR *jcr)
    uint64_t fileAddr = 0;	      /* file write address */
    int non_support_data = 0;
    int non_support_attr = 0;
+   int non_support_acl = 0;
    int prog_name_msg = 0;
    ATTR *attr;
-   
+#ifdef HAVE_ACL
+   acl_t acl;
+#endif
 
    binit(&bfd);
    sd = jcr->store_bsock;
@@ -307,6 +315,38 @@ void do_restore(JCR *jcr)
 #endif
 	 break;
 
+#ifdef HAVE_ACL
+      case STREAM_UNIX_ATTRIBUTES_ACL:	 
+	 /* Recover ACL from stream and check it */
+	 acl = acl_from_text(sd->msg);
+	 if(acl_valid(acl) != 0) {
+            Emsg1(M_WARNING, 0, "Failure in the ACL of %s! FD is not able to restore it!\n", jcr->last_fname);
+	    acl_free(acl);
+	 }
+	 
+	 /* Try to restore ACL */
+	 if(attr->type == FT_DIREND) {
+	    /* Directory */
+	    if(acl_set_file(jcr->last_fname, ACL_TYPE_DEFAULT, acl) != 0) {
+	       if(acl_set_file(jcr->last_fname, ACL_TYPE_ACCESS, acl) != 0) {
+                  Emsg1(M_WARNING, 0, "Error! Can't restore ACL of directory: %s! Maybe system does not support ACLs!\n", jcr->last_fname);
+	       }
+	    }
+	 } else {
+	    /* File or Link */
+	    if(acl_set_file(jcr->last_fname, ACL_TYPE_ACCESS, acl) != 0) {
+               Emsg1(M_WARNING, 0, "Error! Can't restore ACL of file: %s! Maybe system does not support ACLs!\n", jcr->last_fname);
+	    }
+	 }
+	 acl_free(acl);
+         Dmsg1(200, "ACL of file: %s successfully restored!", jcr->last_fname);
+	 break;
+#else 
+      case STREAM_UNIX_ATTRIBUTES_ACL:	 
+	 non_support_acl++;
+	 break; 		      /* unconfigured, ignore */
+#endif	 
+	 
       case STREAM_MD5_SIGNATURE:
       case STREAM_SHA1_SIGNATURE:
 	 break;
@@ -360,6 +400,10 @@ ok_out:
       Jmsg(jcr, M_ERROR, 0, _("%d non-supported data streams and %d non-supported attrib streams ignored.\n"),
 	 non_support_data, non_support_attr);
    }
+   if (non_support_acl) {
+      Jmsg(jcr, M_INFO, 0, _("%d non-supported acl streams ignored.\n"), non_support_acl);
+   }
+
 }	   
 
 #ifdef HAVE_LIBZ

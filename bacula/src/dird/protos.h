@@ -101,12 +101,12 @@ extern int bget_dirmsg(BSOCK *bs);
 extern void wait_for_storage_daemon_termination(JCR *jcr);
 
 /* next_vol.c */
-int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int create);
+int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, bool create);
 bool has_volume_expired(JCR *jcr, MEDIA_DBR *mr);
 void check_if_volume_valid_or_recyclable(JCR *jcr, MEDIA_DBR *mr, char **reason);
 
 /* newvol.c */
-int newVolume(JCR *jcr, MEDIA_DBR *mr);
+bool newVolume(JCR *jcr, MEDIA_DBR *mr);
 
 /* ua_acl.c */
 bool acl_access_ok(UAContext *ua, int acl, char *item);

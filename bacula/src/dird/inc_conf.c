@@ -103,7 +103,8 @@ enum {
    INC_KW_PORTABLE,
    INC_KW_MTIMEONLY,
    INC_KW_KEEPATIME,
-   INC_KW_EXCLUDE
+   INC_KW_EXCLUDE,
+   INC_KW_ACL
 };
 
 /*
@@ -124,6 +125,7 @@ static struct s_kw FS_option_kw[] = {
    {"mtimeonly",   INC_KW_MTIMEONLY},
    {"keepatime",   INC_KW_KEEPATIME},
    {"exclude",     INC_KW_EXCLUDE},
+   {"aclsupport",  INC_KW_ACL},
    {NULL,	   0}
 };
 
@@ -175,6 +177,8 @@ static struct s_fs_opt FS_options[] = {
    {"no",       INC_KW_KEEPATIME,     "0"},
    {"yes",      INC_KW_EXCLUDE,       "e"},
    {"no",       INC_KW_EXCLUDE,       "0"},
+   {"yes",           INC_KW_ACL,        "A"},
+   {"no",           INC_KW_ACL,         "0"},
    {NULL,	0,		     0}
 };
 

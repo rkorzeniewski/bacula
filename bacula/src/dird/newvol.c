@@ -43,7 +43,7 @@ static int perform_full_name_substitution(JCR *jcr, MEDIA_DBR *mr, POOL_DBR *pr)
 /*
  * Automatic Volume name creation using the LabelFormat
  */
-int newVolume(JCR *jcr, MEDIA_DBR *mr)
+bool newVolume(JCR *jcr, MEDIA_DBR *mr)
 {
    POOL_DBR pr;
 
@@ -81,7 +81,7 @@ int newVolume(JCR *jcr, MEDIA_DBR *mr)
 	    db_unlock(jcr->db);
             Jmsg(jcr, M_INFO, 0, _("Created new Volume \"%s\" in catalog.\n"), mr->VolumeName);
             Dmsg1(90, "Created new Volume=%s\n", mr->VolumeName);
-	    return 1;
+	    return true;
 	 } else {
             Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
 	 }
@@ -89,7 +89,7 @@ int newVolume(JCR *jcr, MEDIA_DBR *mr)
    }
 bail_out:
    db_unlock(jcr->db);
-   return 0;   
+   return false;
 }
 
 static int create_simple_name(JCR *jcr, MEDIA_DBR *mr, POOL_DBR *pr)

@@ -1286,6 +1286,14 @@ if test x$FDLIBS = x-lz; then
   have_zlib=yes
 fi
 
+AC_CHECK_HEADER(sys/acl.h)
+AC_CHECK_LIB(acl, acl_get_file, [FDLIBS="-lacl $FDLIBS"])
+have_acl=no
+if test $ac_cv_lib_acl_acl_get_file = yes; then
+   AC_DEFINE(HAVE_ACL)
+   have_acl=yes
+fi
+
 dnl Check for pthread libraries
 PTHREAD_LIB=""
 AC_CHECK_LIB(pthread, pthread_create, PTHREAD_LIB="-lpthread",
@@ -1779,6 +1787,7 @@ Configuration on `date`:
   enable-gnome: 	      ${support_gnome} ${gnome_version}
   enable-wx-console:	      ${support_wx_console}
   client-only:		      ${build_client_only}
+  ACL support:		      ${have_acl}
 
   " > config.out
 

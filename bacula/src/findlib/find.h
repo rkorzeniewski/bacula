@@ -86,6 +86,7 @@ enum {
 #define FO_MTIMEONLY    (1<<11)       /* Use mtime rather than mtime & ctime */
 #define FO_KEEPATIME    (1<<12)       /* Reset access time */
 #define FO_EXCLUDE      (1<<13)       /* Exclude file */
+#define FO_ACL		(1<<14)		/* Backup ACLs */
 
 struct s_included_file {
    struct s_included_file *next;
