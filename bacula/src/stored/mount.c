@@ -44,7 +44,6 @@
  * This routine returns a 0 only if it is REALLY
  *  impossible to get the requested Volume.
  *
- *    *****FIXME****** handle "Recycle" volume ******
  */
 int mount_next_write_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, int release)
 {

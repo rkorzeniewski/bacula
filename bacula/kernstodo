@@ -23,16 +23,16 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 - Test connect timeouts.
 
-For 1.32 Testing/Documentation:
+For 1.33 Testing/Documentation:
 - Document new records in Director. SDAddress SDDeviceName, SDPassword.
   FDPassword, FDAddress, DBAddress, DBPort, DBPassword.
 - Document new Include/Exclude ...
 - Add test of exclusion, test multiple Include {} statements.
 - Add counter variable test.
                 
-For 1.32:
-
 For 1.33
+- Implement scan: for every slot it finds, zero the slot of
+  Volume other volume having that slot.
 - When job rescheduled, status gives is waiting for Client Rufus 
   to connect to Storage File. Dir needs to inform SD that job
   is rescheduled.
@@ -958,4 +958,3 @@ Done: (see kernsdone for more)
 - Document that it is safe to use the drive when the lights stop flashing.
 - Document all the status codes JobLevel, JobType, JobStatus.
 - Add GUI interface to manual
-

@@ -22,6 +22,10 @@ Major Changes this Release:
   be used is also added to the "status dir" output.
 - Lots of fixes with variable expansion and counter variables
 - Implemented a new Include/Exclude syntax.
+- While writing a tape, an end of file mark will be written
+  every 1Gb. This makes restores faster. If you want to
+  change this use "Maximum File Size" in the SD Device
+  resource.
 
 
 Other Changes this Release:
