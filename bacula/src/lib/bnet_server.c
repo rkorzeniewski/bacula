@@ -25,6 +25,7 @@
   */
 
 #include "bacula.h"
+#undef DEV_BSIZE
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -35,6 +36,7 @@
 #ifdef HAVE_RESOLV_H
 #include <resolv.h>
 #endif
+
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 

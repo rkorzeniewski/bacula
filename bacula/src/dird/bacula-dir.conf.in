@@ -94,7 +94,7 @@ FileSet {
 # If you backup the root directory, the following two excluded
 #   files can be useful
 #
-  Exclude = { /proc; /tmp }
+  Exclude = { /proc /tmp /.journal /.fsck }
 }
 
 #

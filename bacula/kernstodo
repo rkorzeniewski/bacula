@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                  18 April 2003 
+                  22 April 2003 
 
 Documentation to do: (a little bit at a time)
 - Document running a test version.
@@ -22,8 +22,7 @@ For 1.30 release:
 
 - Document new transparent Console commands and wait command.
 - Document new immediate File save configuration (walk user
-  through first save to file Volume with automatic Volume
-  labeling?).
+  through first save to file Volume with automatic Volume labeling?).
 - Document OPTIMIZE TABLE in MySQL
 - Document labeling a whole magazine using "cat"
 - Document Lutz Kittler's trick of using "Run Before Job" to
@@ -31,8 +30,7 @@ For 1.30 release:
 - Document Ludovic Strappazon's Win32 raw device save/restore.
 - Document not to restore .journal .autofsck
 - Document logrotate
-- Document default file backup
-- Document . command
+- Document . and @ commands
 - Document run when.
 
 - Figure out how to use ssh or stunnel to protect Bacula communications.
@@ -974,4 +972,3 @@ rufus-dir: Volume used once. Marking Volume "File0003" as Used.
 - Do not ignore SIGCHLD
 - Add Cleaning to list of volume statuses 
 - Implement run at "xxx"
-

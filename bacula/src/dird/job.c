@@ -125,7 +125,6 @@ void run_job(JCR *jcr)
 			    jcr->catalog->db_port, jcr->catalog->db_socket);
    if (!db_open_database(jcr, jcr->db)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
-      db_close_database(jcr, jcr->db);
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       free_jcr(jcr);
       return;
@@ -138,7 +137,6 @@ void run_job(JCR *jcr)
    jcr->jr.JobStatus = jcr->JobStatus;
    if (!db_create_job_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
-      db_close_database(jcr, jcr->db);
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       free_jcr(jcr);
       return;
@@ -589,6 +587,10 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
 	 break;
       case JT_BACKUP:
 	 jcr->JobLevel = L_INCREMENTAL;
+	 break;
+      case JT_RESTORE:
+      case JT_ADMIN:
+	 jcr->JobLevel = L_FULL;
 	 break;
       default:
 	 break;
