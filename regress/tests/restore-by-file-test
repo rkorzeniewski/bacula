@@ -57,6 +57,13 @@ if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
    echo " "
    echo "  !!!!! restore-by-file-test Bacula source failed!!! !!!!! "
    echo "  !!!!! restore-by-file-test failed!!! !!!!! " >>test.out
+   if [ $bstat != 0 -o $rstat != 0 ] ; then
+      echo "  !!!!! Bad Job termination status     !!!!! "
+      echo "  !!!!! Bad Job termination status     !!!!! " >>test.out
+   else
+      echo "  !!!!! Restored files differ          !!!!! "
+      echo "  !!!!! Restored files differ          !!!!! " >>test.out
+   fi
    echo " "
 else
    echo "  ===== restore-by-file-test Bacula source OK ===== "

@@ -49,6 +49,13 @@ if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
    echo " "
    echo "  !!!!! sparse-test Bacula source failed!!! !!!!! "
    echo "  !!!!! sparse-test failed!!! !!!!! " >>test.out
+   if [ $bstat != 0 -o $rstat != 0 ] ; then
+      echo "  !!!!! Bad Job termination status     !!!!! "
+      echo "  !!!!! Bad Job termination status     !!!!! " >>test.out
+   else
+      echo "  !!!!! Restored files differ          !!!!! "
+      echo "  !!!!! Restored files differ          !!!!! " >>test.out
+   fi
    echo " "
 else
    echo "  ===== sparse-test Bacula source OK ===== "
