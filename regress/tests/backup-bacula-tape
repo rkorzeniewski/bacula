@@ -1,20 +1,20 @@
 #!/bin/sh
 #
-# Run a simple backup of the Bacula build directory using the Sparse option
-#   then restore it.
+# Run a simple backup of the Bacula build directory 
+#   to a tape then restore it.
 #
 cwd=`pwd`
-scripts/copy-test-confs
-scripts/cleanup
+bin/bacula stop  2>&1 >/dev/null
+scripts/copy-tape-confs
+scripts/cleanup-tape
 echo "${cwd}/build" >/tmp/file-list
-bin/bacula stop 2>&1 >/dev/null
 bin/drop_sqlite_tables
 bin/make_sqlite_tables
 
 echo " "
 echo " "
-echo " === Starting sparse-compressed-test ==="
-echo " === Starting sparse-compressed-test ===" >>working/log
+echo " === Starting Bacula tape test ==="
+echo " === Starting Bacula tape test ===" >>working/log
 echo " "
 
 bin/bacula start 2>&1 >/dev/null
@@ -22,14 +22,14 @@ bin/console -c bin/console.conf <<END_OF_DATA
 @output /dev/null
 messages
 @output tmp/log1.out
-label storage=File volume=TestVolume001
-run job=SparseCompressedTest yes
+label storage=DDS-4 volume=TestVolume001 slot=0
+run job=NightlySave yes
 wait
 messages
 @# 
 @# now do a restore
 @#
-@output tmp/log2.out   
+@output tmp/log2.out
 restore current all
 yes
 wait
@@ -46,11 +46,11 @@ diff -r build /tmp/bacula-restores${cwd}/build
 if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
    echo " "
    echo " "
-   echo "  !!!!! sparse-compressed-test Bacula source failed!!! !!!!! "
-   echo "  !!!!! sparse-compressed-test failed!!! !!!!! " >>test.out
+   echo "  !!!!! Bacula tape test Bacula source failed!!! !!!!! "
+   echo "  !!!!! Bacula tape test failed!!! !!!!! " >>test.out
    echo " "
 else
-   echo "  ===== sparse-compressed-test Bacula source OK ===== "
-   echo "  ===== sparse-compressed-test OK ===== " >>test.out
+   echo "  ===== Bacula tape test Bacula source OK ===== "
+   echo "  ===== Bacula tape test OK ===== " >>test.out
    scripts/cleanup
 fi
