@@ -58,7 +58,7 @@ BPIPE *open_bpipe(char *prog, int wait, char *mode)
    tprog = get_pool_memory(PM_FNAME);
    pm_strcpy(&tprog, prog);
    build_argc_argv(tprog, &bargc, bargv, MAX_ARGV);
-#ifdef xxxxxx
+#ifdef	xxxxxx
    printf("argc=%d\n", bargc);
    int i;
    for (i=0; i<bargc; i++) {
@@ -220,8 +220,8 @@ int run_program(char *prog, int wait, POOLMEM *results)
  */
 static void build_argc_argv(char *cmd, int *bargc, char *bargv[], int max_argv)
 {
-   int i, quote;
-   char *p, *q;
+   int i;	
+   char *p, *q, quote;
    int argc = 0;
 
    argc = 0;
@@ -232,15 +232,15 @@ static void build_argc_argv(char *cmd, int *bargc, char *bargv[], int max_argv)
    quote = 0;
    while  (*p && (*p == ' ' || *p == '\t'))
       p++;
-   if (*p == '\"') {
-      quote = 1;
+   if (*p == '\"' || *p == '\'') {
+      quote = *p;
       p++;
    }
    if (*p) {
       while (*p && argc < MAX_ARGV) {
 	 q = p;
 	 if (quote) {
-            while (*q && *q != '\"')
+	    while (*q && *q != quote)
 	    q++;
 	    quote = 0;
 	 } else {
@@ -253,8 +253,8 @@ static void build_argc_argv(char *cmd, int *bargc, char *bargv[], int max_argv)
 	 p = q;
          while (*p && (*p == ' ' || *p == '\t'))
 	    p++;
-         if (*p == '\"') {
-	    quote = 1;
+         if (*p == '\"' || *p == '\'') {
+	    quote = *p;
 	    p++;
 	 }
       }
