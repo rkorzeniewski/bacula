@@ -73,7 +73,7 @@ int  res_all_size = sizeof(res_all);
 static struct res_items cli_items[] = {
    {"name",     store_name,     ITEM(res_client.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,   ITEM(res_client.hdr.desc), 0, 0, 0},
-   {"fdport",   store_pint,     ITEM(res_client.FDport),  0, ITEM_REQUIRED, 0},
+   {"fdport",   store_pint,     ITEM(res_client.FDport),  0, ITEM_DEFAULT, 9102},
    {"workingdirectory",  store_dir, ITEM(res_client.working_directory), 0, ITEM_REQUIRED, 0}, 
    {"piddirectory",  store_dir, ITEM(res_client.pid_directory), 0, ITEM_REQUIRED, 0}, 
    {"subsysdirectory",  store_dir,  ITEM(res_client.subsys_directory), 0, ITEM_REQUIRED, 0}, 

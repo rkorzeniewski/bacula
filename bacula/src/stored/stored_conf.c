@@ -54,9 +54,9 @@ int res_all_size = sizeof(res_all);
 static struct res_items store_items[] = {
    {"name",                  store_name, ITEM(res_store.hdr.name),   0, ITEM_REQUIRED, 0},
    {"description",           store_str,  ITEM(res_dir.hdr.desc),     0, 0, 0},
-   {"address",               store_str,  ITEM(res_store.address),    0, ITEM_REQUIRED, 0},
+   {"address",               store_str,  ITEM(res_store.address),    0, 0, 0},
    {"messages",              store_res,  ITEM(res_store.messages),   0, R_MSGS, 0},
-   {"sdport",                store_int,  ITEM(res_store.SDport),     0, ITEM_REQUIRED, 0},
+   {"sdport",                store_int,  ITEM(res_store.SDport),     0, ITEM_DEFAULT, 9103},
    {"sddport",               store_int,  ITEM(res_store.SDDport),    0, 0, 0}, /* depricated */
    {"workingdirectory",      store_dir,  ITEM(res_store.working_directory), 0, ITEM_REQUIRED, 0},
    {"piddirectory",          store_dir,  ITEM(res_store.pid_directory), 0, ITEM_REQUIRED, 0},
