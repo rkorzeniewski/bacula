@@ -20,6 +20,8 @@ Testing to do: (painful)
 - multiple simultaneous Volumes
 
 For 1.30 release:
+- add #define ENABLE_NLS for Gnome compile on SuSE.
+- Need define of int_least16_t in sha1.h for SuSE.
 - Figure out how to use ssh to protect Bacula communications.
 - Fix "access not allowed" for backup of files on WinXP.
 - Issue message to mount a new tape before the rewind.

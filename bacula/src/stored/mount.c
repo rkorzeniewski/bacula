@@ -53,7 +53,8 @@ int mount_next_write_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, int release
 
 mount_next_vol:
    if (retry++ > 5) {
-      Jmsg(jcr, M_FATAL, 0, _("Too many errors trying to mount device %s.\n"), dev_name(dev));
+      Jmsg(jcr, M_FATAL, 0, _("Too many errors trying to mount device %s.\n"), 
+	   dev_name(dev));
       return 0;
    }
    if (job_cancelled(jcr)) {
@@ -187,9 +188,11 @@ read_volume:
 	    /* Check if this is a valid Volume in the pool */
 	    strcpy(jcr->VolumeName, dev->VolHdr.VolName);
 	    if (!dir_get_volume_info(jcr, 1)) {
-               Mmsg(&jcr->errmsg, _("Wanted Volume \"%s\".\n\
-    Actual Volume \"%s\" not acceptable.\n"),
-		  dev->VolCatInfo.VolCatName, dev->VolHdr.VolName);
+               Mmsg(&jcr->errmsg, _("Wanted Volume \"%s\".\n"
+                    "    Actual Volume \"%s\" not acceptable because:\n"
+                    "    %s\n"),
+		   dev->VolCatInfo.VolCatName, dev->VolHdr.VolName,
+		   jcr->dir_bsock->msg);
 	       /* Restore desired volume name, note device info out of sync */
 	       memcpy(&jcr->VolCatInfo, &dev->VolCatInfo, sizeof(jcr->VolCatInfo));
 	       goto mount_error;

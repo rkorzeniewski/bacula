@@ -67,7 +67,7 @@ int acquire_device_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    }
    pm_strcpy(&jcr->VolumeName, vol->VolumeName);
 
-   for (;;) {
+   for (int i=0; i<5; i++) {
       if (job_cancelled(jcr)) {
          Mmsg0(&dev->errmsg, _("Job cancelled.\n"));
 	 goto get_out;		      /* error return */
@@ -90,6 +90,7 @@ int acquire_device_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       Dmsg0(200, "calling read-vol-label\n");
       switch (read_dev_volume_label(jcr, dev, block)) {
 	 case VOL_OK:
+	    stat = 1;
 	    break;		      /* got it */
 	 case VOL_IO_ERROR:
 	    /*
@@ -123,10 +124,14 @@ default_path:
       }
       break;
    }
+   if (stat == 0) {
+      Jmsg1(jcr, M_FATAL, 0, _("Too many errors trying to mount device \"%s\".\n"),
+	    dev_name(dev));
+      goto get_out;
+   }
 
    dev->state |= ST_READ;
    attach_jcr_to_device(dev, jcr);    /* attach jcr to device */
-   stat = 1;			      /* good return */
    if ((dev->state & ST_TAPE) && vol->start_file > 0) {
       Dmsg1(200, "====== Got start_file = %d\n", vol->start_file);
       Jmsg(jcr, M_INFO, 0, _("Forward spacing to file %d.\n"), vol->start_file);
