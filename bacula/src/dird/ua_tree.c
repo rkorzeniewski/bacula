@@ -154,7 +154,9 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
    char fname[5000];
    TREE_NODE *node, *new_node;
    int type;
-   bool hard_link;
+   bool hard_link, first_time, ok;
+   int FileIndex;
+   JobId_t JobId;
 
    strip_trailing_junk(row[1]);
    if (*row[1] == 0) {		      /* no filename => directory */
@@ -174,24 +176,39 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
    }
    hard_link = (decode_LinkFI(row[4], &statp) != 0);
    bsnprintf(fname, sizeof(fname), "%s%s%s", row[0], row[1], "");
-//    S_ISLNK(statp.st_mode)?" ->":"");
    Dmsg3(200, "FI=%d type=%d fname=%s\n", node->FileIndex, type, fname);
    new_node = insert_tree_node(fname, node, tree->root, NULL);
    /* Note, if node already exists, save new one for next time */
    if (new_node != node) {
+      first_time = false;	      /* we saw this file before */
       tree->avail_node = node;	      /* node already exists */
    } else {
+      first_time = true;	      /* first time we saw this file */
       tree->avail_node = NULL;	      /* added node to tree */
    }
+   JobId = (JobId_t)str_to_int64(row[3]);
+   FileIndex = atoi(row[2]);
    /*
-    * If the user has backed up a hard linked file twice, the
-    *  second copy will be a pointer (i.e. hard link will be set),
-    *  so we do not overwrite the original file with a pointer file.
+    * - The first time we see a file, we accept it.
+    * - In the same JobId, we accept only the first copy of a
+    *	hard linked file (the others are simply pointers).
+    * - In the same JobId, we accept the last copy of any other
+    *	file -- in particular directories.
+    *
+    * All the code to set ok could be condensed to a single
+    *  line, but it would be even harder to read.
     */
-   if (!new_node->hard_link || hard_link) {
+   ok = true;
+   if (!first_time && JobId == new_node->JobId) {
+      if ((hard_link && FileIndex > new_node->FileIndex) ||
+	  (!hard_link && FileIndex < new_node->FileIndex)) {
+	 ok = false;
+      }
+   }
+   if (ok) {
       new_node->hard_link = hard_link;
-      new_node->FileIndex = atoi(row[2]);
-      new_node->JobId = (JobId_t)str_to_int64(row[3]);
+      new_node->FileIndex = FileIndex;
+      new_node->JobId = JobId;
       new_node->type = type;
       new_node->soft_link = S_ISLNK(statp.st_mode) != 0;
       if (tree->all) {

@@ -4,10 +4,11 @@
   Bacula code: Total files = 306 Total lines = 91,112 (*.h *.c *.in)
 
 Major Features:
-- Data spooling which eliminates tape shoe-shine during Inc backups,         
+- Data spooling which reduces tape shoe-shine during Inc backups,         
   and permits multiple simultaneous backups without interleaved blocks.
 - Native Win32 client -- much faster and restores permissions correctly
   (thanks to Christopher Hull)
+- New Windows style installer for the Win32 Client.
 - PostgreSQL database driver (thanks to Dan Langille).
 - Polling of devices eliminating need to unmount and mount from
   console.
@@ -17,11 +18,13 @@ Major Features:
 - JobDefs resource permits smaller .conf files for Director
 - Access console lists for the Console
 - Pool level overrides.
-- Daemon statistics memory.
+- Daemon "status" is recovered across daemon executions.
 - Improved btape "test" and "fill" commands.
 
 
 Items to note:  !!!!!
+- If you have a RedHat system, be sure to delete the /lib/tls
+  directory from your system. It contains defective pthreads code.
 - The restore default is changed to have nothing selected by default.
   You must either enter: "restore all" or after getting into the tree
   selection prompt enter "mark *" to have everything selected.
@@ -44,6 +47,9 @@ Items to note:  !!!!!
   "test" command will tell you. If you get an error with TWOEOF set   
   to yes, set it to no.
 
+- If you want either bsmtp or bconsole on Win32, you will need
+  to load the 1.32 version along with cygwin1.dll. Some solution
+  for this will be forthcoming in a future update.
 - The daemon protocol has changed from version 1.32, you must update 
   everything at once.
 - The database level has been updated. You must either re-initialize
@@ -113,7 +119,14 @@ New Commands:
 
 
 Additional changes:
-- Implement Gnome 2.0 restore GUI
+- Slackware support
+- On multiple ctl-c, exit from console quickly.
+- Implement "delete job jobid=xxx jobid=yyy ..."
+- Implement "purge volume=xxx volume=yyy ..."
+- Add -p option to all SD programs including bacula-sd. It causes
+  Bacula to proceed or forge on in case of I/O errors. It is unlikely
+  this will help, and it is strongly recommended against running
+  the daemon with this option in production.
 - Add a missing unlock in the jobq handler.
 - Fix bug where a soft linked file and a directory had the same name
   by treating the soft link as a directory and putting the entries under
