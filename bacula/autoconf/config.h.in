@@ -21,6 +21,9 @@
 /* Define to `int' if <sys/types.h> doesn't define.  */
 #undef ssize_t
 
+/* Define if you want to use PostgreSQL */
+#undef HAVE_POSTGRESQL
+
 /* Define if you want to use MySQL */
 #undef HAVE_MYSQL
 
@@ -38,7 +41,7 @@
 
 
 /* Define if you want to use PostgreSQL */
-#undef HAVE_PGSQL
+#undef HAVE_POSTGRESQL
 
 /* Define if you want to use mSQL */
 #undef HAVE_MSQL
@@ -121,7 +124,7 @@
 /* Define to 1 if utime.h exists and declares struct utimbuf.  */
 #undef HAVE_UTIME_H
 
-#if (HAVE_MYSQL||HAVE_PGSQL||HAVE_MSQL||HAVE_IODBC||HAVE_UNIXODBC||HAVE_SOLID||HAVE_VIRT||HAVE_IBASE||HAVE_ORACLE8||HAVE_ORACLE7||HAVE_EASYSOFT)
+#if (HAVE_MYSQL||HAVE_POSTGRESQL||HAVE_MSQL||HAVE_IODBC||HAVE_UNIXODBC||HAVE_SOLID||HAVE_VIRT||HAVE_IBASE||HAVE_ORACLE8||HAVE_ORACLE7||HAVE_EASYSOFT)
 #define HAVE_SQL
 #endif
 

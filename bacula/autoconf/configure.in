@@ -140,6 +140,7 @@ fi
 
 support_mysql=no
 support_sqlite=no
+support_postgresql=no
 support_smartalloc=yes
 support_readline=yes
 support_gnome=no
@@ -813,6 +814,12 @@ AC_SUBST(sd_user)
 AC_SUBST(sd_group)
 AC_SUBST(fd_user)
 AC_SUBST(fd_group)
+
+# ------------------------------------------------
+# Bacula check for various SQL database engines
+# ------------------------------------------------
+BA_CHECK_POSTGRESQL_DB
+
 
 # ------------------------------------------------
 # Bacula check for various SQL database engines
@@ -1518,6 +1525,10 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/cats/Makefile \
 	   src/cats/make_catalog_backup \
 	   src/cats/delete_catalog_backup \
+	   src/cats/make_postgresql_tables \
+	   src/cats/drop_postgresql_tables \
+	   src/cats/create_postgresql_database \
+	   src/cats/grant_postgresql_privileges \
 	   src/cats/make_mysql_tables \
 	   src/cats/drop_mysql_tables \
 	   src/cats/update_mysql_tables \
@@ -1546,9 +1557,12 @@ chmod 755 startmysql stopmysql bacula startit stopit btraceback mtx-changer
 chmod 755 bconsole gconsole mtx-changer
 cd ..
 chmod 755 src/cats/make_mysql_tables src/cats/drop_mysql_tables
+chmod 755 src/cats/make_postgresql_tables src/cats/drop_postgresql_tables
 chmod 755 src/cats/make_test_tables src/cats/drop_test_tables
+chmod 755 src/cats/create_postgresql_database 
 chmod 755 src/cats/create_mysql_database 
 chmod 755 src/cats/make_catalog_backup src/cats/delete_catalog_backup
+chmod 755 src/cats/grant_postgresql_privileges
 chmod 755 src/cats/grant_mysql_privileges
 chmod 755 src/cats/make_sqlite_tables src/cats/drop_sqlite_tables 
 chmod 755 src/cats/update_sqlite_tables
@@ -1625,7 +1639,7 @@ Configuration on `date`:
   Director User:	    ${dir_user}
   Director Group:	    ${dir_group}
   Storage Daemon User:	    ${dir_user}
-  Storage DaemonGroup:	    ${dir_group}
+  Storage Daemon Group:	    ${dir_group}
   File Daemon User:	    ${dir_user}
   File Daemon Group:	    ${dir_group}
 

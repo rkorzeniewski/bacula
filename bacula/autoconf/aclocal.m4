@@ -615,8 +615,8 @@ fi
 
 
 AC_MSG_CHECKING(for PostgreSQL support)
-AC_ARG_WITH(pgsql,
-[  --with-pgsql[=DIR]      Include PostgreSQL support.  DIR is the PostgreSQL
+AC_ARG_WITH(postgresql,
+[  --with-postgresql[=DIR]      Include PostgreSQL support.  DIR is the PostgreSQL
                           base install directory, defaults to /usr/local/pgsql.],
 [
   if test "$withval" != "no"; then
@@ -626,26 +626,33 @@ AC_ARG_WITH(pgsql,
       fi
         if test "$withval" = "yes"; then
                 if test -f /usr/include/pgsql/libpq-fe.h; then
-                        PGSQL_INCDIR=/usr/include/pgsql
+                        POSTGRESQL_INCDIR=/usr/include/pgsql
                 else
-                        PGSQL_INCDIR=/usr/local/pgsql/include
+                        if test -f /usr/include/libpq-fe.h; then
+                        else
+                            POSTGRESQL_INCDIR=/usr/local/pgsql/include
+                        fi
                 fi
                 if test -f /usr/lib/libpq.a; then
-                        PGSQL_LIBDIR=/usr/lib
+                        POSTGRESQL_LIBDIR=/usr/lib
                 else
-                        PGSQL_LIBDIR=/usr/local/pgsql/lib
+                        if test -f /usr/local/lib/libpq.a; then
+                            POSTGRESQL_LIBDIR=/usr/local/lib
+                        else
+                            POSTGRESQL_LIBDIR=/usr/local/pgsql/lib
+                        fi
                 fi
         else
-                PGSQL_INCDIR=$withval/include
-                test -d $withval/include/pgsql && PGSQL_INCDIR=$withval/include/pgsql
-                PGSQL_LIBDIR=$withval/lib
-                test -d $withval/lib/pgsql && PGSQL_LIBDIR=$withval/lib/pgsql
+                POSTGRESQL_INCDIR=$withval/include
+                test -d $withval/include/pgsql && POSTGRESQL_INCDIR=$withval/include/pgsql
+                POSTGRESQL_LIBDIR=$withval/lib
+                test -d $withval/lib/pgsql && POSTGRESQL_LIBDIR=$withval/lib/pgsql
         fi
-    PGSQL_INCLUDE=-I$PGSQL_INCDIR
-    PGSQL_LFLAGS="-L$PGSQL_LIBDIR -lpq"
+    POSTGRESQL_INCLUDE=-I$POSTGRESQL_INCDIR
+    POSTGRESQL_LFLAGS="-L$POSTGRESQL_LIBDIR -lpq"
     AC_CHECK_FUNC(crypt, , AC_CHECK_LIB(crypt, crypt, [LIBS="-lcrypt $LIBS"]))
 
-    AC_DEFINE(HAVE_PGSQL)
+    AC_DEFINE(HAVE_POSTGRESQL)
     AC_MSG_RESULT(yes)
     have_db=yes
   else
@@ -654,8 +661,8 @@ AC_ARG_WITH(pgsql,
 ],[
   AC_MSG_RESULT(no)
 ])
-AC_SUBST(PGSQL_LFLAGS)
-AC_SUBST(PGSQL_INCLUDE)
+AC_SUBST(POSTGRESQL_LFLAGS)
+AC_SUBST(POSTGRESQL_INCLUDE)
 
 
 AC_MSG_CHECKING(for mSQL support)
