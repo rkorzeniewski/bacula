@@ -380,6 +380,9 @@ extern int thr_setconcurrency(int);
 #define socklen_t int
 /* Apparently someone forgot to wrap getdomainname as a C function */
 extern "C" int getdomainname(char *name, size_t len);
+
+/* Darwin lib fnmatch() doesn't work, so use our own */
+#undef HAVE_FNMATCH
 #endif
 
 #ifdef HAVE_CYGWIN
