@@ -286,8 +286,8 @@ static void free_common_jcr(JCR *jcr)
    }
    pthread_mutex_destroy(&jcr->mutex);
 
-   close_msg(jcr);		      /* close messages for this job */
    delete jcr->msg_queue;
+   close_msg(jcr);		      /* close messages for this job */
 
    /* do this after closing messages */
    if (jcr->client_name) {
@@ -355,6 +355,7 @@ void free_jcr(JCR *jcr)
       Dmsg2(400, "free_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
       return;
    }
+   dequeue_messages(jcr);
    remove_jcr(jcr);
    job_end_pop(jcr);		      /* pop and call hooked routines */
 

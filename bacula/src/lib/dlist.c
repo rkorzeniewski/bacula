@@ -155,6 +155,7 @@ void dlist::destroy()
       n = ni;
    }
    num_items = 0;
+   head = tail = NULL;
 }
 
 

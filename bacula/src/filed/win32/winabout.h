@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -18,7 +18,7 @@
 
    This file was inspired by the VNC Win32 code by ATT
   
-   Copyright (2000) Kern E. Sibbald
+   Kern E. Sibbald, 2000
 */
 
 
@@ -34,7 +34,7 @@ class bacAbout
 {
 public:
    bacAbout();
-   ~bacAbout();
+  ~bacAbout();
 
    /* The dialog box window proc */
    static BOOL CALLBACK DialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -42,7 +42,7 @@ public:
    void Show(BOOL show);
 
    /* Object local storage */
-   BOOL visible;
+   bool visible;
 };
 
 #endif

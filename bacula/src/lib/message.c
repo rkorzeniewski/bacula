@@ -1033,14 +1033,16 @@ void j_msg(const char *file, int line, JCR *jcr, int type, int level, const char
    pool_buf = get_pool_memory(PM_EMSG);
    i = Mmsg(&pool_buf, "%s:%d ", file, line);
 
-again:
-   maxlen = sizeof_pool_memory(pool_buf) - i - 1; 
-   va_start(arg_ptr, fmt);
-   len = bvsnprintf(pool_buf+i, maxlen, fmt, arg_ptr);
-   va_end(arg_ptr);
-   if (len < 0 || len >= maxlen) {
-      pool_buf = realloc_pool_memory(pool_buf, maxlen + i + maxlen/2);
-      goto again;
+   for (;;) {
+      maxlen = sizeof_pool_memory(pool_buf) - i - 1; 
+      va_start(arg_ptr, fmt);
+      len = bvsnprintf(pool_buf+i, maxlen, fmt, arg_ptr);
+      va_end(arg_ptr);
+      if (len < 0 || len >= maxlen) {
+	 pool_buf = realloc_pool_memory(pool_buf, maxlen + i + maxlen/2);
+	 continue;
+      }
+      break;
    }
 
    Jmsg(jcr, type, level, "%s", pool_buf);
@@ -1058,14 +1060,16 @@ int m_msg(const char *file, int line, POOLMEM **pool_buf, const char *fmt, ...)
 
    i = sprintf(mp_chr(*pool_buf), "%s:%d ", file, line);
 
-again:
-   maxlen = sizeof_pool_memory(*pool_buf) - i - 1; 
-   va_start(arg_ptr, fmt);
-   len = bvsnprintf(*pool_buf+i, maxlen, fmt, arg_ptr);
-   va_end(arg_ptr);
-   if (len < 0 || len >= maxlen) {
-      *pool_buf = realloc_pool_memory(*pool_buf, maxlen + i + maxlen/2);
-      goto again;
+   for (;;) {
+      maxlen = sizeof_pool_memory(*pool_buf) - i - 1; 
+      va_start(arg_ptr, fmt);
+      len = bvsnprintf(*pool_buf+i, maxlen, fmt, arg_ptr);
+      va_end(arg_ptr);
+      if (len < 0 || len >= maxlen) {
+	 *pool_buf = realloc_pool_memory(*pool_buf, maxlen + i + maxlen/2);
+	 continue;
+      }
+      break;
    }
    return len;
 }
@@ -1079,14 +1083,16 @@ int Mmsg(POOLMEM **pool_buf, const char *fmt, ...)
    va_list   arg_ptr;
    int len, maxlen;
 
-again:
-   maxlen = sizeof_pool_memory(*pool_buf) - 1; 
-   va_start(arg_ptr, fmt);
-   len = bvsnprintf(*pool_buf, maxlen, fmt, arg_ptr);
-   va_end(arg_ptr);
-   if (len < 0 || len >= maxlen) {
-      *pool_buf = realloc_pool_memory(*pool_buf, maxlen + maxlen/2);
-      goto again;
+   for (;;) {
+      maxlen = sizeof_pool_memory(*pool_buf) - 1; 
+      va_start(arg_ptr, fmt);
+      len = bvsnprintf(*pool_buf, maxlen, fmt, arg_ptr);
+      va_end(arg_ptr);
+      if (len < 0 || len >= maxlen) {
+	 *pool_buf = realloc_pool_memory(*pool_buf, maxlen + maxlen/2);
+	 continue;
+      }
+      break;
    }
    return len;
 }
@@ -1096,7 +1102,9 @@ static pthread_mutex_t msg_queue_mutex = PTHREAD_MUTEX_INITIALIZER;
 /*
  * We queue messages rather than print them directly. This
  *  is generally used in low level routines (msg handler, bnet)
- *  to prevent recursion.
+ *  to prevent recursion (i.e. if you are in the middle of 
+ *  sending a message, it is a bit messy to recursively call
+ *  yourself when the bnet packet is not reentrant).
  */
 void Qmsg(JCR *jcr, int type, int level, const char *fmt,...)
 {
@@ -1105,26 +1113,33 @@ void Qmsg(JCR *jcr, int type, int level, const char *fmt,...)
    POOLMEM *pool_buf;
    MQUEUE_ITEM *item;
 
-   if (jcr->dequeuing) {	      /* do not allow recursion */
-      return;
-   }
    pool_buf = get_pool_memory(PM_EMSG);
 
-again:
-   maxlen = sizeof_pool_memory(pool_buf) - 1; 
-   va_start(arg_ptr, fmt);
-   len = bvsnprintf(pool_buf, maxlen, fmt, arg_ptr);
-   va_end(arg_ptr);
-   if (len < 0 || len >= maxlen) {
-      pool_buf = realloc_pool_memory(pool_buf, maxlen + maxlen/2);
-      goto again;
+   for (;;) {
+      maxlen = sizeof_pool_memory(pool_buf) - 1; 
+      va_start(arg_ptr, fmt);
+      len = bvsnprintf(pool_buf, maxlen, fmt, arg_ptr);
+      va_end(arg_ptr);
+      if (len < 0 || len >= maxlen) {
+	 pool_buf = realloc_pool_memory(pool_buf, maxlen + maxlen/2);
+	 continue;
+      }
+      break;
    }
    item = (MQUEUE_ITEM *)malloc(sizeof(MQUEUE_ITEM) + strlen(pool_buf) + 1);
    item->type = type;
    item->level = level;
    strcpy(item->msg, pool_buf);  
    P(msg_queue_mutex);
-   jcr->msg_queue->append(item);
+   /* If no jcr or dequeuing send to daemon to avoid recursion */
+   if (!jcr || jcr->dequeuing) {
+      /* jcr==NULL => daemon message, safe to send now */
+      Jmsg(NULL, item->type, item->level, "%s", item->msg);
+      free(item);
+   } else {
+      /* Queue message for later sending */
+      jcr->msg_queue->append(item);
+   }
    V(msg_queue_mutex);
    free_memory(pool_buf);
 }
@@ -1159,14 +1174,16 @@ void q_msg(const char *file, int line, JCR *jcr, int type, int level, const char
    pool_buf = get_pool_memory(PM_EMSG);
    i = Mmsg(&pool_buf, "%s:%d ", file, line);
 
-again:
-   maxlen = sizeof_pool_memory(pool_buf) - i - 1; 
-   va_start(arg_ptr, fmt);
-   len = bvsnprintf(pool_buf+i, maxlen, fmt, arg_ptr);
-   va_end(arg_ptr);
-   if (len < 0 || len >= maxlen) {
-      pool_buf = realloc_pool_memory(pool_buf, maxlen + i + maxlen/2);
-      goto again;
+   for (;;) {
+      maxlen = sizeof_pool_memory(pool_buf) - i - 1; 
+      va_start(arg_ptr, fmt);
+      len = bvsnprintf(pool_buf+i, maxlen, fmt, arg_ptr);
+      va_end(arg_ptr);
+      if (len < 0 || len >= maxlen) {
+	 pool_buf = realloc_pool_memory(pool_buf, maxlen + i + maxlen/2);
+	 continue;
+      }
+      break;
    }
 
    Qmsg(jcr, type, level, "%s", pool_buf);

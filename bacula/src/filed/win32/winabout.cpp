@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2000-2003 Kern Sibbald and John Walker
+   Copyright (C) 2000-2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -18,7 +18,7 @@
 
    This file is patterned after the VNC Win32 code by ATT
   
-   Copyright (2000) Kern E. Sibbald
+   Kern E. Sibbald, 2000
 */
 
 #include "winbacula.h"
@@ -26,12 +26,10 @@
 
 bacAbout::bacAbout()
 {
-   visible = FALSE;
+   visible = false;
 }
 
-bacAbout::~bacAbout()
-{
-}
+bacAbout::~bacAbout() { };
 
 void bacAbout::Show(BOOL show)
 {
@@ -41,21 +39,22 @@ void bacAbout::Show(BOOL show)
    }
 }
 
+
 BOOL CALLBACK
 bacAbout::DialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
-   /* The dialog-box this pointer is in USERDATA */
-   bacAbout *_this = (bacAbout *)GetWindowLong(hwnd, GWL_USERDATA);
+   /* Get the dialog class pointer from USERDATA */
+   bacAbout *_this;
 
    switch (uMsg) {
    case WM_INITDIALOG:
-      /* Retrieve the Dialog box parameter */
+      /* save the dialog class pointer */
       SetWindowLong(hwnd, GWL_USERDATA, lParam);
       _this = (bacAbout *)lParam;
 
       /* Show the dialog */
       SetForegroundWindow(hwnd);
-      _this->visible = TRUE;
+      _this->visible = true;
       return TRUE;
 
    case WM_COMMAND:
@@ -63,14 +62,16 @@ bacAbout::DialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
       case IDCANCEL:
       case IDOK:
          EndDialog(hwnd, TRUE);
-         _this->visible = FALSE;
+         _this = (bacAbout *)GetWindowLong(hwnd, GWL_USERDATA);
+         _this->visible = false;
          return TRUE;
       }
       break;
 
    case WM_DESTROY:
       EndDialog(hwnd, FALSE);
-      _this->visible = FALSE;
+      _this = (bacAbout *)GetWindowLong(hwnd, GWL_USERDATA);
+      _this->visible = false;
       return TRUE;
    }
    return 0;

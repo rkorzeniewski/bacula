@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                  25 March 2004
+                  28 March 2004
 
 Documentation to do: (any release a little bit at a time)
 - DB upgrade to version 5 in bacula-1.27b, DB upgrade to
@@ -72,6 +72,7 @@ For 1.33 Testing/Documentation:
    Overland Neo2000 (LVD)
 
 For 1.33
+- Null dlist head and tail pointers if all items are removed.
 - Complete Win32 installer
 - Finish work on Gnome restore GUI.
 - On unknown client in restore "client=xxx"
@@ -79,9 +80,6 @@ For 1.33
      ERR=no such table: temp1
 - Fix "llist jobid=xx" where no fileset or client exists.
 - Build console in client-only build.
-- Test Qmsg() code to be used in bnet.c to prevent recursion.  Queue the
-  message. If dequeueing toss the messages. Lock while dequeuing so that
-  it cannot be called recursively and set dequeuing flag.
 - Test work on conio.c -- particularly linking.
 - Phil says that Windows file sizes mismatch in Verify when they should,
   and that either the file size or the catalog size was zero.
@@ -1428,3 +1426,6 @@ Block Position: 0
 - Allow "delete job jobid=xx jobid=xxx".   
 - Update volume FromPool (or FromPool=xxx) refreshes the Volume defaults from Pool.
 - Implement multiple Volume in "purge jobs volume=".
+- Test Qmsg() code to be used in bnet.c to prevent recursion.  Queue the
+  message. If dequeueing toss the messages. Lock while dequeuing so that
+  it cannot be called recursively and set dequeuing flag.
