@@ -88,6 +88,9 @@ mount_next_vol:
 	 return 0;
        }
    }
+   if (job_canceled(jcr)) {
+      return 0;
+   }
    Dmsg2(100, "After find_next_append. Vol=%s Slot=%d\n",
 	 jcr->VolCatInfo.VolCatName, jcr->VolCatInfo.Slot);
 
@@ -123,6 +126,9 @@ mount_next_vol:
    if (ask && !dir_ask_sysop_to_mount_next_volume(jcr, dev)) {
       Dmsg0(100, "Error return ask_sysop ...\n");
       return 0; 	     /* error return */
+   }
+   if (job_canceled(jcr)) {
+      return 0;
    }
    Dmsg1(100, "want vol=%s\n", jcr->VolumeName);
 
