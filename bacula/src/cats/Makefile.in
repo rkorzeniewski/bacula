@@ -105,8 +105,24 @@ install:
 	$(INSTALL_SCRIPT) drop_bacula_tables $(DESTDIR)$(scriptdir)/drop_bacula_tables
 	$(INSTALL_SCRIPT) drop_bacula_database $(DESTDIR)$(scriptdir)/drop_bacula_database
 
-	$(INSTALL_SCRIPT) make_catalog_backup $(DESTDIR)$(scriptdir)/make_catalog_backup  
-	$(INSTALL_SCRIPT) delete_catalog_backup $(DESTDIR)$(scriptdir)/delete_catalog_backup  
+	@filename=make_catalog_backup; \
+	   if  test -f ${DESTDIR}${scriptdir}/$$filename; then \
+	      destname=$$filename.new; \
+	      echo "  ==> Found existing $$filename, installing new file as $$destname"; \
+	   else \
+	      destname=$$filename; \
+	   fi; \
+	   echo "${INSTALL_SCRIPT} $$filename ${DESTDIR}${scriptdir}/$$destname"; \
+	   ${INSTALL_SCRIPT} $$filename ${DESTDIR}${scriptdir}/$$destname
+	@filename=delete_catalog_backup; \
+	   if  test -f ${DESTDIR}${scriptdir}/$$filename; then \
+	      destname=$$filename.new; \
+	      echo "  ==> Found existing $$filename, installing new file as $$destname"; \
+	   else \
+	      destname=$$filename; \
+	   fi; \
+	   echo "${INSTALL_SCRIPT} $$filename ${DESTDIR}${scriptdir}/$$destname"; \
+	   ${INSTALL_SCRIPT} $$filename ${DESTDIR}${scriptdir}/$$destname
 
 uninstall:
 	(cd $(DESTDIR)$(scriptdir); $(RMF) create_@DB_NAME@_database)

@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     04 October 2004
+                     20 October 2004
 
 Major development:      
 Project                     Developer
@@ -1387,4 +1387,3 @@ Block Position: 0
 - Modify postgresql update script to remove bigint FilenameId           
   reference.
 - Kill daemons at levels in the teens rather than late.
-
