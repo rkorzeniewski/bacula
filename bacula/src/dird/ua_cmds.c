@@ -241,11 +241,11 @@ static int addcmd(UAContext *ua, char *cmd)
    }
 getVolName:
    if (num == 0) {
-      if (!get_cmd(ua, _("Enter Volume name: "))) {
+      if (!get_cmd(ua, _("Enter Volume name: ")) || ua->cmd[0] == '.') {
 	 return 1;
       }
    } else {
-      if (!get_cmd(ua, _("Enter base volume name: "))) {
+      if (!get_cmd(ua, _("Enter base volume name: ")) || ua->cmd[0] == '.') {
 	 return 1;
       }
    }
@@ -284,7 +284,7 @@ getVolName:
    }
 
    if (store && store->autochanger) {
-      if (!get_cmd(ua, _("Enter slot (0 for none): "))) {
+      if (!get_cmd(ua, _("Enter slot (0 for none): ")) || ua->cmd[0] == '.') {
 	 return 1;
       }
       slot = atoi(ua->cmd);

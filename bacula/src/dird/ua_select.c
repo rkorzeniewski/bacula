@@ -366,25 +366,11 @@ int select_client_dbr(UAContext *ua, CLIENT_DBR *cr)
  */
 int get_pool_dbr(UAContext *ua, POOL_DBR *pr)
 {
-   int i;
-
    if (pr->Name[0]) {		      /* If name already supplied */
       if (db_get_pool_record(ua->jcr, ua->db, pr)) {
 	 return pr->PoolId;
       }
       bsendmsg(ua, _("Could not find Pool %s: ERR=%s"), pr->Name, db_strerror(ua->db));
-   }
-   for (i=1; i<ua->argc; i++) {
-      if (strcasecmp(ua->argk[i], _("pool")) == 0 && ua->argv[i]) {
-	 bstrncpy(pr->Name, ua->argv[i], sizeof(pr->Name));
-	 if (!db_get_pool_record(ua->jcr, ua->db, pr)) {
-            bsendmsg(ua, _("Could not find Pool %s: ERR=%s"), ua->argv[i],
-		     db_strerror(ua->db));
-	    pr->PoolId = 0;
-	    break;
-	 }
-	 return pr->PoolId;
-      }
    }
    if (!select_pool_dbr(ua, pr)) {  /* try once more */
       return 0;
@@ -402,6 +388,18 @@ int select_pool_dbr(UAContext *ua, POOL_DBR *pr)
    int num_pools, i;
    uint32_t *ids; 
 
+   for (i=1; i<ua->argc; i++) {
+      if (strcasecmp(ua->argk[i], _("pool")) == 0 && ua->argv[i]) {
+	 bstrncpy(pr->Name, ua->argv[i], sizeof(pr->Name));
+	 if (!db_get_pool_record(ua->jcr, ua->db, pr)) {
+            bsendmsg(ua, _("Could not find Pool %s: ERR=%s"), ua->argv[i],
+		     db_strerror(ua->db));
+	    pr->PoolId = 0;
+	    break;
+	 }
+	 return 1;
+      }
+   }
 
    pr->PoolId = 0;
    if (!db_get_pool_ids(ua->jcr, ua->db, &num_pools, &ids)) {
