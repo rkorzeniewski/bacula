@@ -651,11 +651,12 @@ again:
    len = bvsnprintf(msg, maxlen, fmt, arg_ptr);
    va_end(arg_ptr);
    if (len < 0 || len >= maxlen) {
-      msg = realloc_pool_memory(msg, maxlen + 200);
+      msg = realloc_pool_memory(msg, maxlen + maxlen/2);
       goto again;
    }
 
    if (bs) {
+      bs->msg = msg;
       bs->msglen = len;
       bnet_send(bs);
    } else {			      /* No UA, send to Job */

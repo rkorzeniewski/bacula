@@ -60,6 +60,12 @@ For 1.33 Testing/Documentation:
 - Document lsmark command in tree.
                 
 For 1.33
+- Fix fast block rejection (stored/read_record.c:118). It passes a null
+  pointer (rec) to try_repositioning().
+- See if a restore job can add a file to the tape (prohibit this).
+- Look at extracting Win data from BackupRead.
+- Having dashes in filenames apparently creates problems for restore
+  by filename.
 - Add data compare on write/read in btape "test". 
 - Make sure that 64 bit I/O packets are used on Cygwin.
 - Implement RestoreJobRetention? Maybe better "JobRetention" in a Job,
@@ -73,9 +79,13 @@ For 1.33
   resources, like Level? If so, I think I'd make it an optional directive
   in Job, Client, and Pool, with precedence such that Job overrides Client
   which in turn overrides Pool.
+- Fix Ctl-C crashing the Console (readline?).
 
 
 After 1.33:
+- Restore: Enter Filename: 'C:/Documents and Settings/Comercial/My
+  Documents/MOP/formulário de registro BELAS ARTES.doc' causes Bacula to
+  crash.
 - Each DVD-RAM disk would be a volume, just like each tape is 
   a volume. It's a 4.7GB media with random access, but there's nothing about 
   it that I can see that makes it so different than a tape from  bacula's 

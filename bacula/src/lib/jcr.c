@@ -327,6 +327,9 @@ JCR *get_jcr_by_partial_name(char *Job)
    JCR *jcr;	   
    int len;
 
+   if (!Job) {
+      return NULL;
+   }
    P(mutex);
    len = strlen(Job);
    for (jcr = jobs; jcr; jcr=jcr->next) {
@@ -351,6 +354,9 @@ JCR *get_jcr_by_full_name(char *Job)
 {
    JCR *jcr;	   
 
+   if (!Job) {
+      return NULL;
+   }
    P(mutex);
    for (jcr = jobs; jcr; jcr=jcr->next) {
       if (strcmp(jcr->Job, Job) == 0) {

@@ -1025,7 +1025,7 @@ again:
    len = bvsnprintf(*pool_buf+i, maxlen, fmt, arg_ptr);
    va_end(arg_ptr);
    if (len < 0 || len >= maxlen) {
-      *pool_buf = realloc_pool_memory(*pool_buf, maxlen + i + 200);
+      *pool_buf = realloc_pool_memory(*pool_buf, maxlen + i + maxlen/2);
       goto again;
    }
    return len;
@@ -1046,7 +1046,7 @@ again:
    len = bvsnprintf(*pool_buf, maxlen, fmt, arg_ptr);
    va_end(arg_ptr);
    if (len < 0 || len >= maxlen) {
-      *pool_buf = realloc_pool_memory(*pool_buf, maxlen + 200);
+      *pool_buf = realloc_pool_memory(*pool_buf, maxlen + maxlen/2);
       goto again;
    }
    return len;
@@ -1072,7 +1072,7 @@ again:
    len = bvsnprintf(pool_buf+i, maxlen, fmt, arg_ptr);
    va_end(arg_ptr);
    if (len < 0 || len >= maxlen) {
-      pool_buf = realloc_pool_memory(pool_buf, maxlen + i + 200);
+      pool_buf = realloc_pool_memory(pool_buf, maxlen + i + maxlen/2);
       goto again;
    }
 

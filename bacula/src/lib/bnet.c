@@ -284,7 +284,7 @@ int bnet_despool(BSOCK *bsock)
       bsock->msglen = ntohl(pktsiz);
       if (bsock->msglen > 0) {
 	 if (bsock->msglen > (int32_t)sizeof_pool_memory(bsock->msg)) {
-	    bsock->msg = realloc_pool_memory(bsock->msg, bsock->msglen);
+	    bsock->msg = realloc_pool_memory(bsock->msg, bsock->msglen + 1);
 	 }
 	 nbytes = fread(bsock->msg, 1, bsock->msglen, bsock->spool_fd);
 	 if (nbytes != (size_t)bsock->msglen) {
@@ -697,7 +697,7 @@ again:
    bs->msglen = bvsnprintf(mp_chr(bs->msg), maxlen, fmt, arg_ptr);
    va_end(arg_ptr);
    if (bs->msglen < 0 || bs->msglen >= maxlen) {
-      bs->msg = realloc_pool_memory(bs->msg, maxlen + 200);
+      bs->msg = realloc_pool_memory(bs->msg, maxlen + maxlen / 2);
       goto again;
    }
    return bnet_send(bs);

@@ -108,7 +108,7 @@ void *bcalloc (size_t size1, size_t size2)
 /*
  * Implement snprintf
  */
-int bsnprintf(char *str, size_t size, const  char  *fmt,  ...) 
+int bsnprintf(char *str, int32_t size, const  char  *fmt,  ...) 
 {
 #ifdef HAVE_VSNPRINTF
    va_list   arg_ptr;
@@ -143,7 +143,7 @@ int bsnprintf(char *str, size_t size, const  char  *fmt,  ...)
 /*
  * Implement vsnprintf()
  */
-int bvsnprintf(char *str, size_t size, const char  *format, va_list ap)
+int bvsnprintf(char *str, int32_t size, const char  *format, va_list ap)
 {
 #ifdef HAVE_VSNPRINTF
    int len;
