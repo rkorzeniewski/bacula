@@ -347,7 +347,7 @@ static void do_scan(char *devname)
       }
    }
 
-   release_device(jcr, dev, block);
+   release_device(jcr, dev);
 
    free_pool_memory(fname);
    free_pool_memory(ofile);

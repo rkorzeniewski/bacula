@@ -231,7 +231,7 @@ int do_append_data(JCR *jcr)
    }
 
    /* Release the device */
-   if (!release_device(jcr, dev, block)) {
+   if (!release_device(jcr, dev)) {
       Pmsg0(000, "Error in release_device\n");
       ok = FALSE;
    }

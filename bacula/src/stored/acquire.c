@@ -142,7 +142,7 @@ int acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
  *  the device remains open.
  *
  */
-int release_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
+int release_device(JCR *jcr, DEVICE *dev)
 {
    P(dev->mutex);
    Dmsg1(100, "release_device device is %s\n", dev_is_tape(dev)?"tape":"disk");

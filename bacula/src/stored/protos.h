@@ -31,7 +31,7 @@ uint32_t new_VolSessionId();
 int	 acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
 int	 acquire_device_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
 int	 ready_dev_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
-int	 release_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
+int	 release_device(JCR *jcr, DEVICE *dev);
 
 /* From askdir.c */
 int	dir_get_volume_info(JCR *jcr);
@@ -62,6 +62,7 @@ int	read_block_from_dev(DEVICE *dev, DEV_BLOCK *block);
 void print_ls_output(char *fname, char *link, int type, struct stat *statp);
 JCR *setup_jcr(char *name, char *device, BSR *bsr); 
 DEVICE *setup_to_read_device(JCR *jcr);
+void display_error_status(DEVICE *dev);
 
 
 /* From dev.c */
@@ -169,3 +170,8 @@ int	can_write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec);
 int	read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec); 
 DEV_RECORD *new_record();
 void	free_record(DEV_RECORD *rec);
+
+/* From read_record.c */
+int read_records(JCR *jcr,  DEVICE *dev, 
+       void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec),
+       int mount_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block));

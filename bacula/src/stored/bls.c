@@ -31,8 +31,9 @@
 static void do_blocks(char *infname);
 static void do_jobs(char *infname);
 static void do_ls(char *fname);
-static void do_close();
+static void do_close(JCR *jcr);
 static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sessrec);
+static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
 
 static DEVICE *dev;
 static int default_tape = FALSE;
@@ -44,7 +45,8 @@ static DEV_RECORD *rec;
 static DEV_BLOCK *block;
 static JCR *jcr;
 static SESSION_LABEL sessrec;
-
+static uint32_t num_files = 0;
+static long record_file_index;
 
 extern char BaculaId[];
 
@@ -69,32 +71,6 @@ static void usage()
 "       -?              print this message\n\n");
    exit(1);
 }
-
-static char *rec_state_to_str(DEV_RECORD *rec)
-{
-   static char buf[200]; 
-   buf[0] = 0;
-   if (rec->state & REC_NO_HEADER) {
-      strcat(buf, "Nohdr,");
-   }
-   if (is_partial_record(rec)) {
-      strcat(buf, "partial,");
-   }
-   if (rec->state & REC_BLOCK_EMPTY) {
-      strcat(buf, "empty,");
-   }
-   if (rec->state & REC_NO_MATCH) {
-      strcat(buf, "Nomatch,");
-   }
-   if (rec->state & REC_CONTINUATION) {
-      strcat(buf, "cont,");
-   }
-   if (buf[0]) {
-      buf[strlen(buf)-1] = 0;
-   }
-   return buf;
-}
-
 
 
 int main (int argc, char *argv[])
@@ -201,6 +177,16 @@ int main (int argc, char *argv[])
       }
       rec = new_record();
       block = new_block(dev);
+      /*
+       * Assume that we have already read the volume label.
+       * If on second or subsequent volume, adjust buffer pointer 
+       */
+      if (dev->VolHdr.PrevVolName[0] != 0) { /* second volume */
+         Pmsg1(0, "\n\
+Warning, this Volume is a continuation of Volume %s\n",
+		dev->VolHdr.PrevVolName);
+      }
+
       if (list_blocks) {
 	 do_blocks(argv[i]);
       } else if (list_jobs) {
@@ -208,7 +194,7 @@ int main (int argc, char *argv[])
       } else {
 	 do_ls(argv[i]);
       }
-      do_close();
+      do_close(jcr);
    }
    if (bsr) {
       free_bsr(bsr);
@@ -217,37 +203,13 @@ int main (int argc, char *argv[])
 }
 
 
-static void do_close()
+static void do_close(JCR *jcr)
 {
+   release_device(jcr, dev);
    term_dev(dev);
    free_record(rec);
    free_block(block);
    free_jcr(jcr);
-}
-
-
-/*
- * Device got an error, attempt to analyse it
- */
-static void display_error_status()
-{
-   uint32_t status;
-
-   Emsg0(M_ERROR, 0, dev->errmsg);
-   status_dev(dev, &status);
-   Dmsg1(20, "Device status: %x\n", status);
-   if (status & MT_EOD)
-      Emsg0(M_ERROR_TERM, 0, "Unexpected End of Data\n");
-   else if (status & MT_EOT)
-      Emsg0(M_ERROR_TERM, 0, "Unexpected End of Tape\n");
-   else if (status & MT_EOF)
-      Emsg0(M_ERROR_TERM, 0, "Unexpected End of File\n");
-   else if (status & MT_DR_OPEN)
-      Emsg0(M_ERROR_TERM, 0, "Tape Door is Open\n");
-   else if (!(status & MT_ONLINE))
-      Emsg0(M_ERROR_TERM, 0, "Unexpected Tape is Off-line\n");
-   else
-      Emsg2(M_ERROR_TERM, 0, "Read error on Record Header %s: %s\n", dev_name(dev), strerror(errno));
 }
 
 
@@ -257,15 +219,6 @@ static void do_blocks(char *infname)
 
    dump_volume_label(dev);
 
-   /* Assume that we have already read the volume label.
-    * If on second or subsequent volume, adjust buffer pointer 
-    */
-   if (dev->VolHdr.PrevVolName[0] != 0) { /* second volume */
-      Pmsg1(0, "\n\
-Warning, this Volume is a continuation of Volume %s\n",
-		dev->VolHdr.PrevVolName);
-   }
- 
    if (verbose) {
       rec = new_record();
    }
@@ -295,7 +248,7 @@ Warning, this Volume is a continuation of Volume %s\n",
 	    Emsg0(M_INFO, 0, dev->errmsg);
 	    continue;
 	 }
-	 display_error_status();
+	 display_error_status(dev);
 	 break;
       }
 
@@ -314,230 +267,75 @@ Warning, this Volume is a continuation of Volume %s\n",
    return;
 }
 
+/*
+ * We are only looking for labels or in particula Job Session records
+ */
+static void jobs_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
+{
+   if (rec->FileIndex < 0) {
+      dump_label_record(dev, rec, verbose);
+   }
+   rec->remainder = 0;
+}
+
 /* Do list job records */
 static void do_jobs(char *infname)
 {
-
-   /* Assume that we have already read the volume label.
-    * If on second or subsequent volume, adjust buffer pointer 
-    */
-   if (dev->VolHdr.PrevVolName[0] != 0) { /* second volume */
-      Pmsg1(0, "\n\
-Warning, this Volume is a continuation of Volume %s\n",
-		dev->VolHdr.PrevVolName);
-   }
- 
-   for ( ;; ) {
-      if (!read_block_from_device(dev, block)) {
-         Dmsg0(20, "!read_block()\n");
-	 if (dev->state & ST_EOT) {
-	    DEV_RECORD *record;
-	    if (!mount_next_read_volume(jcr, dev, block)) {
-               printf("Got EOF on device %s\n", dev_name(dev));
-	       break;
-	    }
-	    record = new_record();
-	    read_block_from_device(dev, block);
-	    read_record_from_block(block, record);
-	    get_session_record(dev, record, &sessrec);
-	    free_record(record);
-            printf("Volume %s mounted.\n", jcr->VolumeName);
-	    continue;
-	 }
-	 if (dev->state & ST_EOF) {
-            Emsg1(M_INFO, 0, "Got EOF on device %s\n", dev_name(dev));
-            Dmsg0(20, "read_record got eof. try again\n");
-	    continue;
-	 }
-	 if (dev->state & ST_SHORT) {
-            Pmsg0(000, "Got short block.\n");
-	    Emsg0(M_INFO, 0, dev->errmsg);
-	    continue;
-	 }
-	 display_error_status();
-	 break;
-      }
-      while (read_record_from_block(block, rec)) {
-	 if (debug_level >= 30) {
-            Dmsg4(30, "VolSId=%ld FI=%s Strm=%s Size=%ld\n", rec->VolSessionId,
-		  FI_to_ascii(rec->FileIndex), stream_to_ascii(rec->Stream), 
-		  rec->data_len);
-	 }
-
-
-	 /*  
-	  * Check for End of File record (all zeros)
-	  *    NOTE: this no longer exists
-	  */
-	 if (rec->VolSessionId == 0 && rec->VolSessionTime == 0) {
-            Emsg0(M_ERROR_TERM, 0, "Zero VolSessionId and VolSessionTime. This shouldn't happen\n");
-	 }
-
-	 /* 
-	  * Check for Start or End of Session Record 
-	  *
-	  */
-	 if (rec->FileIndex < 0) {
-	    dump_label_record(dev, rec, verbose);
-	    continue;
-	 }
-      }
-      rec->remainder = 0;
-   }
-   return;
+   read_records(jcr, dev, jobs_cb, mount_next_read_volume);
 }
 
 /* Do an ls type listing of an archive */
 static void do_ls(char *infname)
 {
-   char fname[2000];
-   struct stat statp;
-   int type;
-   long record_file_index;
-   uint32_t num_files = 0;
-   int record;
-
    if (dump_label) {
       dump_volume_label(dev);
       return;
    }
 
-   /* Assume that we have already read the volume label.
-    * If on second or subsequent volume, adjust buffer pointer 
-    */
-   if (dev->VolHdr.PrevVolName[0] != 0) { /* second volume */
-      Pmsg1(0, "\n\
-Warning, this Volume is a continuation of Volume %s\n",
-		dev->VolHdr.PrevVolName);
+   read_records(jcr, dev, record_cb, mount_next_read_volume);
+}
+
+/*
+ * Called here for each record from read_records()
+ */
+static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
+{
+   char fname[2000];
+   struct stat statp;
+   int type;
+
+   if (rec->FileIndex < 0) {
+      get_session_record(dev, rec, &sessrec);
+      return;
    }
- 
-   for ( ;; ) {
-
-      if (!read_block_from_device(dev, block)) {
-         Dmsg0(20, "!read_record()\n");
-	 if (dev->state & ST_EOT) {
-	    DEV_RECORD *record;
-            Dmsg3(100, "EOT. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
-		  block->BlockNumber, rec->remainder);
-	    if (!mount_next_read_volume(jcr, dev, block)) {
-               Dmsg3(100, "After mount next vol. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
-		  block->BlockNumber, rec->remainder);
-	       break;
-	    }
-            Dmsg3(100, "After mount next vol. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
-		  block->BlockNumber, rec->remainder);
-	    record = new_record();
-	    read_block_from_device(dev, block);
-	    read_record_from_block(block, record);
-	    get_session_record(dev, record, &sessrec);
-	    free_record(record);
-	    goto next_record;
-	 }
-	 if (dev->state & ST_EOF) {
-            Emsg1(M_INFO, 0, "Got EOF on device %s\n", dev_name(dev));
-            Dmsg0(20, "read_record got eof. try again\n");
-	    continue;
-	 }
-	 if (dev->state & ST_SHORT) {
-	    Emsg0(M_INFO, 0, dev->errmsg);
-	    continue;
-	 }
-	 display_error_status();
-	 break;
+   /* File Attributes stream */
+   if (rec->Stream == STREAM_UNIX_ATTRIBUTES) {
+      char *ap, *fp;
+      sscanf(rec->data, "%ld %d", &record_file_index, &type);
+      if (record_file_index != rec->FileIndex) {
+         Emsg2(M_ERROR_TERM, 0, "Record header file index %ld not equal record index %ld\n",
+	    rec->FileIndex, record_file_index);
       }
-      if (verbose) {
-         Dmsg2(10, "Block: %d blen=%d\n", block->BlockNumber, block->block_len);
+      ap = rec->data;
+
+      while (*ap++ != ' ')         /* skip record file index */
+	 ;
+      while (*ap++ != ' ')         /* skip type */
+	 ;
+      /* Save filename and position to attributes */
+      fp = fname;
+      while (*ap != 0) {
+	 *fp++	= *ap++;
       }
+      *fp = *ap++;		   /* terminate filename & point to attribs */
 
-next_record:
-      record = 0;
-      for (rec->state=0; !is_block_empty(rec); ) {
-	 if (!read_record_from_block(block, rec)) {
-            Dmsg3(10, "!read-break. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
-		  block->BlockNumber, rec->remainder);
-	    break;
-	 }
-         Dmsg3(10, "read-OK. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
-		  block->BlockNumber, rec->remainder);
-	 /*
-	  * At this point, we have at least a record header.
-	  *  Now decide if we want this record or not, but remember
-	  *  before accessing the record, we may need to read again to
-	  *  get all the data.
-	  */
-	 record++;
-	 if (verbose) {
-            Dmsg6(30, "recno=%d state=%s blk=%d SI=%d ST=%d FI=%d\n", record,
-	       rec_state_to_str(rec), block->BlockNumber,
-	       rec->VolSessionId, rec->VolSessionTime, rec->FileIndex);
-	 }
-	 if (debug_level >= 30) {
-            Dmsg4(30, "VolSId=%ld FI=%s Strm=%s Size=%ld\n", rec->VolSessionId,
-		  FI_to_ascii(rec->FileIndex), stream_to_ascii(rec->Stream), 
-		  rec->data_len);
-	 }
-
-	 if (rec->FileIndex == EOM_LABEL) { /* end of tape? */
-            Dmsg0(40, "Get EOM LABEL\n");
-	    rec->remainder = 0;
-	    break;			   /* yes, get out */
-	 }
-
-	 /* Some sort of label? */ 
-	 if (rec->FileIndex < 0) {
-	    get_session_record(dev, rec, &sessrec);
-	    continue;
-	 } /* end if label record */
-
-	 /* 
-	  * Apply BSR filter
-	  */
-	 if (bsr && !match_bsr(bsr, rec, &dev->VolHdr, &sessrec)) {
-	    if (verbose) {
-               Dmsg5(10, "BSR no match rec=%d block=%d SessId=%d SessTime=%d FI=%d\n",
-		  record, block->BlockNumber, rec->VolSessionId, rec->VolSessionTime, 
-		  rec->FileIndex);
-	    }
-	    rec->remainder = 0;
-            continue;              /* we don't want record, read next one */
-	 }
-	 if (is_partial_record(rec)) {
-            Dmsg6(10, "Partial, break. recno=%d state=%s blk=%d SI=%d ST=%d FI=%d\n", record,
-	       rec_state_to_str(rec), block->BlockNumber,
-	       rec->VolSessionId, rec->VolSessionTime, rec->FileIndex);
-	    break;		      /* read second part of record */
-	 }
-
-	 /* File Attributes stream */
-	 if (rec->Stream == STREAM_UNIX_ATTRIBUTES) {
-	    char *ap, *fp;
-            sscanf(rec->data, "%ld %d", &record_file_index, &type);
-	    if (record_file_index != rec->FileIndex) {
-               Emsg2(M_ERROR_TERM, 0, "Record header file index %ld not equal record index %ld\n",
-		  rec->FileIndex, record_file_index);
-	    }
-	    ap = rec->data;
-
-            while (*ap++ != ' ')         /* skip record file index */
-	       ;
-            while (*ap++ != ' ')         /* skip type */
-	       ;
-	    /* Save filename and position to attributes */
-	    fp = fname;
-	    while (*ap != 0) {
-	       *fp++  = *ap++;
-	    }
-	    *fp = *ap++;		 /* terminate filename & point to attribs */
-
-	    decode_stat(ap, &statp);
-	    /* Skip to link name */  
-	    while (*ap++ != 0)
-	       ;
-	    if (file_is_included(&ff, fname) && !file_is_excluded(&ff, fname)) {
-	       print_ls_output(fname, ap, type, &statp);
-	       num_files++;
-	    }
-	 }
+      decode_stat(ap, &statp);
+      /* Skip to link name */  
+      while (*ap++ != 0)
+	 ;
+      if (file_is_included(&ff, fname) && !file_is_excluded(&ff, fname)) {
+	 print_ls_output(fname, ap, type, &statp);
+	 num_files++;
       }
    }
    if (verbose) {

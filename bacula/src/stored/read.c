@@ -215,7 +215,7 @@ int do_read_data(JCR *jcr)
    /* Send end of data to FD */
    bnet_sig(ds, BNET_EOD);
 
-   if (!release_device(jcr, dev, block)) {
+   if (!release_device(jcr, dev)) {
       ok = FALSE;
    }
    free_pool_memory(hdr);

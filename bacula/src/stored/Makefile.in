@@ -42,14 +42,16 @@ TAPEOBJS = btape.o block.o dev.o device.o askdir.o label.o \
 	   acquire.o mount.o record.o stored_conf.o 
 
 BLSOBJS = bls.o block.o device.o dev.o label.o match_bsr.o \
-	  acquire.o mount.o parse_bsr.o record.o butil.o
+	  acquire.o mount.o parse_bsr.o record.o butil.o \
+	  read_record.o 
 
 BEXTOBJS = bextract.o block.o device.o dev.o label.o record.o \
-	   acquire.o mount.o match_bsr.o parse_bsr.o butil.o
+	   acquire.o mount.o match_bsr.o parse_bsr.o butil.o \
+	   read_record.o
 
 SCNOBJS = bscan.o block.o device.o dev.o label.o \
 	  acquire.o mount.o record.o match_bsr.o parse_bsr.o \
-	  butil.o 
+	  butil.o read_record.o
 
 
 
