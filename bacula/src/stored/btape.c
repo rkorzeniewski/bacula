@@ -511,10 +511,10 @@ static void rectestcmd()
    DEV_RECORD *rec;
    int i, blkno = 0;
 
-   Pmsg0(0, "Test writting larger and larger records.\n\
-This is a torture test for records.\nI am going to write\n\
-larger and larger records. It will stop when the record size\n\
-plus the header exceeds the block size (by default about 64K\n");
+   Pmsg0(0, "Test writting larger and larger records.\n"
+"This is a torture test for records.\nI am going to write\n"
+"larger and larger records. It will stop when the record size\n"
+"plus the header exceeds the block size (by default about 64K)\n");
 
 
    get_cmd("Do you want to continue? (y/n): ");
@@ -546,6 +546,13 @@ plus the header exceeds the block size (by default about 64K\n");
    sm_check(__FILE__, __LINE__, False);
 }
 
+/*
+ * This test attempts to re-read a block written by Bacula
+ *   normally at the end of the tape. Bacula will then back up
+ *   over the two eof marks, backup over the record and reread
+ *   it to make sure it is valid.  Bacula can skip this validation
+ *   if you set "Backward space record = no"
+ */
 static int re_read_block_test()
 {
    DEV_BLOCK *block;
@@ -553,14 +560,17 @@ static int re_read_block_test()
    int stat = 0;
    int len;
 
-   if (!(dev->capabilities & CAP_EOM)) {
-      Pmsg0(-1, _("Skipping read backwards test because MT_EOM turned off.\n"));
+   if (!(dev->capabilities & CAP_BSR)) {
+      Pmsg0(-1, _("Skipping read backwards test because BSR turned off.\n"));
       return 0;
    }
 
-   Pmsg0(-1, _("\nWrite, backup, and re-read test.\n\n"
+   Pmsg0(-1, _("\n=== Write, backup, and re-read test ===\n\n"
       "I'm going to write three records and two eof's\n"
-      "then backup over the eof's and re-read the last record.\n\n"));
+      "then backup over the eof's and re-read the last record.\n"     
+      "Bacula does this after writing the last block on the\n"
+      "tape to verify that the block was written correctly.\n"
+      "It is not an *essential* feature ...\n\n")); 
    rewindcmd();
    block = new_block(dev);
    rec = new_record();
@@ -626,14 +636,19 @@ static int re_read_block_test()
    }
    for (int i=0; i<len; i++) {
       if (rec->data[i] != 3) {
-         Pmsg0(0, _("Bad data in record. Test failed!\n"));
-         Pmsg0(0, _("You might try adding:\n\n"
-               "Hardware End of File = No\n\n"
+         Pmsg0(0, _("Bad data in record. Test failed!\n"
+                    "This is not terribly serious since Bacula only uses\n"
+                    "This function to verify the last block written to the\n"
+                    "tape. Bacula will skip the last block verification\n"
+                    "if you add:\n\n"
+               "Backward Space Record = No\n\n"
                "to your Storage daemon's Device resource definition.\n"));
 	 goto bail_out;
       }
    }
-   Pmsg0(0, _("Re-read test succeeded!\n\n"));
+   Pmsg0(0, _("\nBlock re-read correct. Test succeeded!\n"));
+   Pmsg0(-1, _("=== End Write, backup, and re-read test ===\n\n"));
+
    stat = 1;
 
 bail_out:
@@ -642,9 +657,16 @@ bail_out:
    return stat;
 }
 
+/*
+ * This test writes some records, then writes an end of file,
+ *   rewinds the tape, moves to the end of the data and attepts
+ *   to append to the tape.  This function is essential for
+ *   Bacula to be able to write multiple jobs to the tape.
+ */
 static int append_test()
 {
-   Pmsg0(-1, _("\n\n=== Append files test. ===\n\n"
+   Pmsg0(-1, _("\n\n=== Append files test ===\n\n"
+               "This test is essential to Bacula.\n\n"
 "I'm going to write one record  in file 0,\n"
 "                   two records in file 1,\n"
 "             and three records in file 2\n\n"));
@@ -661,62 +683,55 @@ static int append_test()
    rewindcmd();
    Pmsg0(0, _("Now moving to end of media.\n"));
    eodcmd();
-   Pmsg2(-1, _("End Append files test.\n\
-We should be in file 3. I am at file %d. This is %s\n\n"), 
+   Pmsg2(-1, _("We should be in file 3. I am at file %d. This is %s\n"), 
       dev->file, dev->file == 3 ? "correct!" : "NOT correct!!!!");
 
    if (dev->file != 3) {
-      Pmsg0(-1, _("To correct this problem, you might try adding:\n\n"
+      Pmsg0(-1, _("\nYou MUST correct this problem. Try adding:\n\n"
             "Hardware End of Medium = No\n\n"
-            "to your Storage daemon's Device resource definition.\n"));
+            "to your Storage daemon's Device resource definition.\n"
+            "Then re-run this test. If it still fails, there is a\n"
+            "a problem with your tape driver that must be corrected\n"
+            "before continuing.\n"));
       return 0;
    }
 
-   Pmsg0(-1, _("\nNow I am going to attempt to append to the tape.\n"));
+   Pmsg0(-1, _("\nNow the important part, I am going to attempt to append to the tape.\n\n"));
    wrcmd(); 
    weofcmd();
    rewindcmd();
-   Pmsg0(0, _("Done writing, scanning results ...\n\n"));
+   Pmsg0(-1, _("Done appending, there should be no I/O errors\n\n"));
+   Pmsg0(-1, "Doing Bacula scan of blocks:\n");
    scan_blocks();
-   Pmsg0(-1, _("End Append to the tape test.\n\
-The above scan should have four files of:\n\
-One record, two records, three records, and one record \n\
-respectively each with 64,448 bytes.\n\n"));
-   Pmsg0(-1, _("If the above is not correct, you might try running Bacula\n"
-              "in fixed block mode by setting:\n\n"
-              "Minimum Block Size = nnn\n"
-              "Maximum Block Size = nnn\n\n"
-              "in your Storage daemon's Device definition.\n"
-              "nnn must match your tape driver's block size.\n"));
+   Pmsg0(-1, _("End scanning the tape.\n\n"
+        "The above scan should have output identical to what follows:\n\n"
+        "=== Sample correct output ===\n"
+        "1 block of 64448 bytes in file 1\n"
+        "End of File mark.\n"
+        "2 blocks of 64448 bytes in file 2\n"
+        "End of File mark.\n"
+        "3 blocks of 64448 bytes in file 3\n"
+        "End of File mark.\n"
+        "1 block of 64448 bytes in file 4\n" 
+        "End of File mark.\n"
+        "Total files=4, blocks=7, bytes = 451136\n"
+        "=== End sample correct output ===\n\n"));
 
+   Pmsg0(-1, _("If the above scan output is not identical to the\n"
+               "sample output, you MUST correct the problem\n"
+               "or Bacula will not be able to write multiple Jobs to \n"
+               "the tape.\n\n"
+               "If the output is incorrect, you might\n"
+               "be able to run in fixed block mode by setting:\n\n"
+               "Minimum Block Size = nnn\n"
+               "Maximum Block Size = nnn\n\n"
+               "in your Storage daemon's Device definition.\n"
+               "nnn must match your tape driver's block size.\n"
+               "This, however, is not really an ideal solution.\n"));
+
+   Pmsg0(-1, _("\n=== End Append files test ===\n"));
    return 1;
 }
-
-void append_block_test()  
-{
-   Pmsg0(-1, "\n\n=== Append block test. ===\n\n\
-I'm going to write a block, an EOF, rewind, go to EOM,\n\
-then backspace over the EOF and attempt to append a second\n\
-block in the first file.\n\n");
-   rewindcmd();
-   wrcmd();
-   weofcmd();
-   rewindcmd();
-   eodcmd();
-   Pmsg2(-1, _("We should be at file 1. I am at EOM File=%d. This is %s\n"),
-      dev->file, dev->file == 1 ? "correct!" : "NOT correct!!!!");
-   Pmsg0(0, "Doing backspace file.\n");
-   bsfcmd();
-   Pmsg0(0, _("Write second block, hoping to append to first file.\n"));
-   wrcmd();
-   weofcmd();
-   rewindcmd();
-   Pmsg0(0, _("Done writing, scanning results ...\n\n"));
-   scan_blocks();
-   Pmsg0(-1, _("\nThe above should have one file of two blocks 64,448 bytes each.\n"));
-}
-
-
 
 /* 
  * This is a general test of Bacula's functions
@@ -729,10 +744,6 @@ static void testcmd()
    if (!append_test()) {
       return;
    }
-
-   append_block_test();
-
-
 }
 
 /* Forward space a file */
@@ -755,22 +766,6 @@ static void fsrcmd()
       return;
    }
    Pmsg0(0, "Forward spaced one record.\n");
-}
-
-/* DEPRECATED DO NOT USE */
-static void rdcmd()
-{
-#ifdef xxxxx
-   int stat;
-
-   if (!read_dev(dev, buf, 512*126)) {
-      Pmsg1(0, "Bad status from read. ERR=%s\n", strerror_dev(dev));
-      return;
-   }
-   Pmsg1(10, "Read %d bytes\n", stat);
-#else
-   printf("Rdcmd no longer implemented.\n");
-#endif
 }
 
 
@@ -1446,7 +1441,6 @@ static struct cmdstruct commands[] = {
  {"label",      labelcmd,     "write a Bacula label to the tape"},
  {"load",       loadcmd,      "load a tape"},
  {"quit",       quitcmd,      "quit btape"},   
- {"rd",         rdcmd,        "read tape"},
  {"readlabel",  readlabelcmd, "read and print the Bacula tape label"},
  {"rectest",    rectestcmd,   "test record handling functions"},
  {"rewind",     rewindcmd,    "rewind the tape"},
