@@ -28,11 +28,13 @@
 %define fc3 0
 %{?build_fc3:%define fc3 1}
 # Whitebox Enterprise build
-# this should also work for RHEL
 %define wb3 0
 %{?build_wb3:%define wb3 1}
+# RedHat Enterprise build
+%define rhel3 0
+%{?build_rhel3:%define rhel3 1}
+%{?build_rhel3:%define wb3 1}
 # SuSE build
-# this is known to build on SuSE 8.2 and 9.0
 %define su9 0
 %{?build_su9:%define su9 1}
 # Mandrake build
@@ -50,6 +52,7 @@ exit 1
 %define mysql 0
 %{?build_mysql:%define mysql 1}
 # if using mysql 4.x define this and mysql above
+# currently only Mandrake 10.1 uses this
 %define mysql4 0
 %{?build_mysql4:%define mysql4 1}
 %define sqlite 0
@@ -64,13 +67,13 @@ exit 1
 %endif
 
 # check what distribution we are
-%if %{rh7} || %{rh8} || %{rh9}
+%if %{rh7} || %{rh8} || %{rh9} || %{rhel3}
 %define _dist %(grep Red /etc/redhat-release)
 %endif
 %if %{fc1} || %{fc3}
 %define _dist %(grep Fedora /etc/redhat-release)
 %endif
-%if %{wb3}
+%if %{wb3} && ! %{rhel3}
 %define _dist %(grep White /etc/whitebox-release)
 %endif
 %if %{su9}
@@ -1215,6 +1218,8 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 
 
 %changelog
+* Sun Mar 06 2005 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- add rhel3 build tag
 * Tue Mar 01 2005 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - fix tray-monitor.conf for noreplace
 * Mon Feb 28 2005 D. Scott Barninger <barninger@fairfieldcomputers.com>
