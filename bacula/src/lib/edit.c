@@ -128,6 +128,7 @@ int duration_to_utime(char *str, utime_t *value)
    if (mod[i] == 0 || !is_a_number(str)) {
       return 0;
    }
+   errno = 0;
    val = strtod(str, NULL);
    if (errno != 0 || val < 0) {
       return 0;
@@ -212,6 +213,7 @@ int size_to_uint64(char *str, int str_len, uint64_t *rtn_value)
    }
    Dmsg3(400, "size str=:%s: %lf i=%d\n", str, strtod(str, NULL), i);
 
+   errno = 0;
    value = strtod(str, NULL);
    if (errno != 0 || value < 0) {
       return 0;

@@ -37,6 +37,7 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
+- Complete (or turn off) the command line code in update.
 - In Win portable restore the directory is not create    
    27-Jun-2003 16:52 tibs-fd: kernsrestore.2003-06-27_16.52.20 Error:
    create_file.c:175 Could not create
@@ -1017,4 +1018,3 @@ Done: (see kernsdone for more)
   Constrain FileIndex to be within range for Volume.
 - Pass prefix_links to FD.
 - Fix restore list of volumes if Volume not selected.
-

@@ -52,12 +52,12 @@ static int is_cleaning_tape(UAContext *ua, MEDIA_DBR *mr, POOL_DBR *pr);
  *  
  *   label storage=xxx volume=vvv
  */
-int labelcmd(UAContext *ua, char *cmd)
+int label_cmd(UAContext *ua, char *cmd)
 {
    return do_label(ua, cmd, 0);       /* standard label */
 }
 
-int relabelcmd(UAContext *ua, char *cmd)
+int relabel_cmd(UAContext *ua, char *cmd)
 {
    return do_label(ua, cmd, 1);      /* relabel tape */
 }
@@ -94,6 +94,7 @@ int update_slots(UAContext *ua)
 
       memset(&mr, 0, sizeof(mr));
       bstrncpy(mr.VolumeName, vl->VolName, sizeof(mr.VolumeName));
+      db_lock(ua->db);
       if (db_get_media_record(ua->jcr, ua->db, &mr)) {
 	  if (mr.Slot != vl->Slot) {
 	     mr.Slot = vl->Slot;
@@ -108,11 +109,13 @@ int update_slots(UAContext *ua)
              bsendmsg(ua, _("Catalog record for Volume \"%s\" is up to date.\n"),
 		mr.VolumeName);
 	  }   
+	  db_unlock(ua->db);
 	  continue;
       } else {
           bsendmsg(ua, _("Record for Volume \"%s\" not found in catalog.\n"), 
 	     mr.VolumeName);
       }
+      db_unlock(ua->db);
    }
 
 
@@ -171,8 +174,8 @@ static int do_label(UAContext *ua, char *cmd, int relabel)
 
    /* If relabel get name of Volume to relabel */
    if (relabel) {
-      /* Check for volume=OldVolume */
-      i = find_arg_with_value(ua, "volume"); 
+      /* Check for oldvolume=name */
+      i = find_arg_with_value(ua, "oldvolume"); 
       if (i >= 0) {
 	 memset(&omr, 0, sizeof(omr));
 	 bstrncpy(omr.VolumeName, ua->argv[i], sizeof(omr.VolumeName));
@@ -195,8 +198,8 @@ checkVol:
       }
    }
 
-   /* Check for name=NewVolume */
-   i = find_arg_with_value(ua, "name");
+   /* Check for volume=NewVolume */
+   i = find_arg_with_value(ua, "volume");
    if (i >= 0) {
       pm_strcpy(&ua->cmd, ua->argv[i]);
       goto checkName;

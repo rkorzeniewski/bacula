@@ -137,22 +137,22 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
    jcr->stime[0] = 0;
    since[0] = 0;
    switch (jcr->JobLevel) {
-      case L_DIFFERENTIAL:
-      case L_INCREMENTAL:
-	 /* Look up start time of last job */
-	 jcr->jr.JobId = 0;
-	 if (!db_find_job_start_time(jcr, jcr->db, &jcr->jr, &jcr->stime)) {
-            Jmsg(jcr, M_INFO, 0, "%s", db_strerror(jcr->db));
-            Jmsg(jcr, M_INFO, 0, _("No prior or suitable Full backup found. Doing FULL backup.\n"));
-            bsnprintf(since, since_len, " (upgraded from %s)", 
-	       level_to_str(jcr->JobLevel));
-	    jcr->JobLevel = jcr->jr.Level = L_FULL;
-	 } else {
-            bstrncpy(since, ", since=", sizeof(since));
-	    bstrncat(since, jcr->stime, sizeof(since));
-	 }
-         Dmsg1(115, "Last start time = %s\n", jcr->stime);
-	 break;
+   case L_DIFFERENTIAL:
+   case L_INCREMENTAL:
+      /* Look up start time of last job */
+      jcr->jr.JobId = 0;
+      if (!db_find_job_start_time(jcr, jcr->db, &jcr->jr, &jcr->stime)) {
+         Jmsg(jcr, M_INFO, 0, "%s", db_strerror(jcr->db));
+         Jmsg(jcr, M_INFO, 0, _("No prior or suitable Full backup found. Doing FULL backup.\n"));
+         bsnprintf(since, since_len, " (upgraded from %s)", 
+	    level_to_str(jcr->JobLevel));
+	 jcr->JobLevel = jcr->jr.Level = L_FULL;
+      } else {
+         bstrncpy(since, ", since=", since_len);
+	 bstrncat(since, jcr->stime, since_len);
+      }
+      Dmsg1(115, "Last start time = %s\n", jcr->stime);
+      break;
    }
 }
 
@@ -226,7 +226,7 @@ static int send_list(JCR *jcr, int list)
       }
       fo = ie->opts_list[0];
       for (int j=0; j<fo->match.size(); j++) {
-         Dmsg1(000, "Match=%s\n", fo->match.get(j));
+         Dmsg1(100, "Match=%s\n", fo->match.get(j));
       }
       for (int j=0; j<ie->num_names; j++) {
 	 p = ie->name_list[j];

@@ -69,6 +69,7 @@ int runcmd(UAContext *ua, char *cmd)
       N_("bootstrap"),
       N_("replace"),
       N_("when"),
+      N_("yes"),          /* 11 -- see below */
       NULL};
 
    if (!open_db(ua)) {
@@ -92,7 +93,8 @@ int runcmd(UAContext *ua, char *cmd)
       Dmsg2(200, "Doing arg %d = %s\n", i, ua->argk[i]);
       for (j=0; !found && kw[j]; j++) {
 	 if (strcasecmp(ua->argk[i], _(kw[j])) == 0) {
-	    if (!ua->argv[i]) {
+	    /* Note, yes has no value, so do not err */
+	    if (!ua->argv[i] && j != 11 /*yes*/) {
                bsendmsg(ua, _("Value missing for keyword %s\n"), ua->argk[i]);
 	       return 1;
 	    }
@@ -184,6 +186,9 @@ int runcmd(UAContext *ua, char *cmd)
 		     return 1;
 		  }
 		  when = ua->argv[i];
+		  found = True;
+		  break;
+	       case 11: /* yes */
 		  found = True;
 		  break;
 	       default:
