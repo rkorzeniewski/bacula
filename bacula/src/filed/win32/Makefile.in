@@ -68,6 +68,9 @@ distclean: clean
 	@rm -f Makefile
 	@rm -rf bin/CVS CVS
 
+devclean: clean
+	@rm -f Makefile
+
 install:
 	@mkdir -p $(DESTDIR)$(sbindir) $(DESTDIR)/tmp $(DESTDIR)$(sbindir)/../working
 	@echo "Installing system binary files ..."

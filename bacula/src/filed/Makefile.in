@@ -101,6 +101,13 @@ distclean: realclean
 	   (cd win32; $(MAKE) distclean); \
 	fi
 
+devclean: realclean
+	if test $(srcdir) = .; then $(MAKE) realclean; fi
+	(cd $(srcdir); $(RMF) Makefile)
+	if test -f win32/Makefile; then \
+	   (cd win32; $(MAKE) devclean); \
+	fi
+
 install: all
 	$(INSTALL_PROGRAM) bacula-fd $(DESTDIR)$(sbindir)/bacula-fd 
 	@srcconf=bacula-fd.conf; \

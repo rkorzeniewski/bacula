@@ -14,7 +14,7 @@ nothing:
 
 install: install-autostart
 
-install-autostart: install-autostart-fd install-autostart-sd install-autostart-dir install-logrotate
+install-autostart: install-autostart-fd install-autostart-sd install-autostart-dir
 
 install_logrotate:
        @$(INSTALL_PROGRAM) ../../scripts/logrotate $(DESTDIR)/etc/logrotate.d/bacula
@@ -54,7 +54,7 @@ install-autostart-dir:
 
 uninstall: uninstall-autostart
 
-uninstall-autostart: uninstall-autostart-fd uninstall-autostart-sd uninstall-autostart-dir uninstall-logrotate
+uninstall-autostart: uninstall-autostart-fd uninstall-autostart-sd uninstall-autostart-dir
 
 uninstall-logrotate:
 	@rm -f $(DESTDIR)/etc/logrotate.d/bacula
@@ -85,3 +85,8 @@ distclean: clean
 	@rm -f Makefile bacula-*.spec bacula.*.spec bacula.spec
 	@rm -f bacula-sd bacula-fd bacula-dir
 	@rm -rf CVS
+
+devclean: clean
+	@rm -f Makefile bacula-*.spec bacula.*.spec bacula.spec
+	@rm -f bacula-sd bacula-fd bacula-dir
+

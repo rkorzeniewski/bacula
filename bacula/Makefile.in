@@ -92,7 +92,8 @@ install: installdirs
 uninstall:
 	@for I in $(all_subdirs); do (cd $$I; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1); done
 
-install-autostart: install-autostart-dir install-autostart-fd install-autostart-sd
+install-autostart:
+	(cd platforms; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1) 
 
 install-autostart-dir:
 	(cd platforms; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1) 
@@ -103,7 +104,8 @@ install-autostart-fd:
 install-autostart-sd:
 	(cd platforms; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1) 
 
-uninstall-autostart: uninstall-autostart-dir uninstall-autostart-fd uninstall-autrun-sd
+uninstall-autostart:
+	(cd platforms; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1)
 
 uninstall-autostart-dir:
 	(cd platforms; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1)
@@ -157,6 +159,17 @@ distclean:
 	@$(RMF) -r examples/CVS intl/CVS scripts/CVS
 	@$(RMF) -r po/CVS src/immortal/CVS rescue/freebsd/CVS rescue/solaris/CVS
 	@$(RMF) -r CVS src/gnome-console/CVS src/tconsole/CVS
+
+devclean:
+	@for I in $(all_subdirs); do (cd $$I; $(MAKE) $@ || exit 1); done
+	@for I in $(all_subdirs); do (cd $$I; $(RMF) startit stopit btraceback); done
+	@(cd $(srcdir); $(RMF) *~ config.cache config.h config.log config.status config.out)
+	@(cd $(srcdir); $(RMF) Makefile autoconf/Make.common)
+	@(cd platforms; echo "==>Entering directory `pwd`"; ${MAKE} $@ || exit 1)
+	@$(RMF) bacula fd Makefile startmysql stopmysql startit stopit btraceback
+	@$(RMF) bconsole gconsole
+	@$(RMF) *~ 1 2 3 core core.* config.guess console.log console.sum
+	@$(RMF) working/*
 
 distdirs:
 	mkdir ../$(VERNAME);
