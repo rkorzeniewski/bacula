@@ -72,6 +72,10 @@ For 1.33 Testing/Documentation:
      http://howtos.linux.com/guides/nag2/x-087-2-nfs.mountd.shtml
 
 For 1.33
+- Make two tape fill test work.
+- Check if the tape has moved before writing.  
+- Save and restore last_job across executions.
+- Implement restart of daemon.
 - Handling removable disks -- see below:
 - Multiple drive autochanger support -- see below.
 - Keep track of tape use time, and report when cleaning is necessary.

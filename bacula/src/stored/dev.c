@@ -972,13 +972,14 @@ fsr_dev(DEVICE *dev, int num)
    stat = ioctl(dev->fd, MTIOCTOP, (char *)&mt_com);
    if (stat == 0) {
       dev->state &= ~ST_EOF;
+      dev->block_num += num;
    } else {
       if (dev->state & ST_EOF) {
 	 dev->state |= ST_EOT;
       } else {
-	 dev->state |= ST_EOF;		 /* assume EOF */
-	 dev->file++;
-	 dev->file_addr = 0;
+//	 dev->state |= ST_EOF;		 /* assume EOF */
+//	 dev->file++;
+//	 dev->file_addr = 0;
       }
       clrerror_dev(dev, MTFSR);
       Mmsg2(&dev->errmsg, _("ioctl MTFSR error on %s. ERR=%s.\n"),

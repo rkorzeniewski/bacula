@@ -105,11 +105,16 @@ int read_records(JCR *jcr,  DEVICE *dev,
 		  dev->file, dev_name(dev), jcr->VolumeName);
 	    continue;
 	 } else if (dev_state(dev, ST_SHORT)) {
-            Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
+            Jmsg1(jcr, M_ERROR, 0, "%s", dev->errmsg);
 	    continue;
 	 } else {
 	    /* I/O error or strange end of tape */
 	    display_tape_error_status(jcr, dev);
+	    if (jcr->ignore_label_errors) {
+	       fsr_dev(dev, 1);       /* try skipping bad record */
+               Dmsg0(000, "Did fsr\n");
+	       continue;	      /* try to continue */
+	    }
 	    ok = FALSE;
 	    break;
 	 }
@@ -344,19 +349,19 @@ static char *rec_state_to_str(DEV_RECORD *rec)
    static char buf[200]; 
    buf[0] = 0;
    if (rec->state & REC_NO_HEADER) {
-      strcat(buf, "Nohdr,");
+      bstrncat(buf, "Nohdr,", sizeof(buf));
    }
    if (is_partial_record(rec)) {
-      strcat(buf, "partial,");
+      bstrncat(buf, "partial,", sizeof(buf));
    }
    if (rec->state & REC_BLOCK_EMPTY) {
-      strcat(buf, "empty,");
+      bstrncat(buf, "empty,", sizeof(buf));
    }
    if (rec->state & REC_NO_MATCH) {
-      strcat(buf, "Nomatch,");
+      bstrncat(buf, "Nomatch,", sizeof(buf));
    }
    if (rec->state & REC_CONTINUATION) {
-      strcat(buf, "cont,");
+      bstrncat(buf, "cont,", sizeof(buf));
    }
    if (buf[0]) {
       buf[strlen(buf)-1] = 0;

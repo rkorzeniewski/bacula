@@ -113,7 +113,7 @@ static DEV_BLOCK *this_block = NULL;
 static uint32_t last_file = 0;
 static uint32_t last_block_num = 0;
 static uint32_t BlockNumber = 0;
-static int simple = FALSE;
+static bool simple = true; 
 
 static char *VolumeName = NULL;
 static int vol_num;
@@ -1614,19 +1614,23 @@ blocks, it will stop.  Then it will begin re-reading the\n\
 two tapes.\n\n\
 This may take a long time -- hours! ...\n\n");
 
+/*
    get_cmd("Insert a blank tape then indicate if you want\n"
            "to run the simplified test (s) with one tape or\n"
            "the complete multiple tape (m) test: (s/m) ");
    if (cmd[0] == 's') {
       Pmsg0(-1, "Simple test (single tape) selected.\n");
-      simple = TRUE;
+      simple = true;
    } else if (cmd[0] == 'm') {
       Pmsg0(-1, "Complete multiple tape test selected.\n"); 
-      simple = FALSE;
+      simple = false;
    } else {
       Pmsg0(000, "Command aborted.\n");
       return;
    }
+*/
+   get_cmd("Insert a blank tape then indicate when you are ready ...\n");
+   simple = true;
 
    set_volume_name("TestVolume1", 1);
    labelcmd();
