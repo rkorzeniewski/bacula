@@ -6,7 +6,7 @@
 #  e.g.  rpmbuild -ba --define "build_rh7 1" bacula.spec
 #
 # If you want the MySQL version, use:
-#        rpmbuild -ba --define "mysql 1" --define "build_rh7 1" bacula.spec
+#        rpmbuild -ba --define "build_mysql 1" --define "build_rh7 1" bacula.spec
 #
 
 %define rh7 0
@@ -35,7 +35,7 @@
 Summary: Bacula - The Network Backup Solution
 Name: bacula
 Version: @VERSION@
-Release: %{rh_version}
+Release: 1
 Group: System Environment/Daemons
 Copyright: GPL v2
 Source: http://www.prdownloads.sourceforge.net/bacula/%{name}-%{version}.tar.gz
@@ -50,7 +50,7 @@ BuildRequires: gnome-libs-devel >= 1.4
 BuildRequires: readline-devel
 %if %{mysql}
 Requires: mysql >= 3.23
-Requires: mysql-server >= 2.23
+Requires: mysql-server >= 3.23
 BuildRequires: mysql-devel >= 3.23
 %endif
 
@@ -66,13 +66,21 @@ easy to use and efficient, while offering many advanced storage management
 features that make it easy to find and recover lost or damaged files. 
 Bacula source code has been released under the GPL version 2 license.
 
-This build incorporates sqlite as the catalog database, statically compiled.
+%if %{mysql}
+%package mysql-%{rh_version}
+%else
+%package sqlite-%{rh_version}
+%endif
 
-
-%package sqlite
 Summary: Bacula - The Network Backup Solution
 Group: System Environment/Daemons
-%description sqlite
+
+%if %{mysql}
+%description mysql-%{rh_version}
+%else
+%description sqlite-%{rh_version}
+%endif
+
 Bacula - It comes by night and sucks the vital essence from your computers.
 
 Bacula is a set of computer programs that permit you (or the system 
@@ -89,10 +97,10 @@ This build requires MySQL to be installed separately as the catalog database.
 This build incorporates sqlite as the catalog database, statically compiled.
 %endif
 
-%package client
+%package client-%{rh_version}
 Summary: Bacula - The Network Backup Solution
 Group: System Environment/Daemons
-%description client
+%description client-%{rh_version}
 Bacula - It comes by night and sucks the vital essence from your computers.
 
 Bacula is a set of computer programs that permit you (or the system 
@@ -114,12 +122,14 @@ This is the File daemon (Client) only package.
 
 cwd=${PWD}
 cd %{depkgs}
+%if ! %{mysql}
 make sqlite
+%endif
 make mtx
 cd ${cwd}
 
 # patch the make_sqlite_tables script for installation bindir
-#patch src/cats/make_sqlite_tables.in make_sqlite_tables.in.patch
+patch src/cats/make_sqlite_tables.in src/cats/make_sqlite_tables.in.patch
 
 %configure \
         --prefix=/usr \
@@ -143,7 +153,10 @@ make
 cwd=${PWD}
 mkdir -p $RPM_BUILD_ROOT/etc/rc.d/init.d
 mkdir -p $RPM_BUILD_ROOT/usr/share/pixmaps
+
 mkdir -p $RPM_BUILD_ROOT/usr/share/gnome/apps/System
+mkdir -p $RPM_BUILD_ROOT/usr/share/applications
+
 %if ! %{mysql}
 mkdir -p $RPM_BUILD_ROOT/usr/lib/sqlite
 %endif
@@ -162,37 +175,43 @@ make \
         sbindir=$RPM_BUILD_ROOT/usr/sbin \
         sysconfdir=$RPM_BUILD_ROOT/etc/bacula \
         working_dir=$RPM_BUILD_ROOT/var/bacula \
-        mandir=$RPM_BUILD_ROOT/usr/man/man1 \
+        mandir=$RPM_BUILD_ROOT/usr/man \
         mtx-install
 cd ${cwd}
 
+%if ! %{mysql}
 # fixme - make installs the mysql start/stop scripts for sqlite build
 rm -f $RPM_BUILD_ROOT/etc/bacula/startmysql
 rm -f $RPM_BUILD_ROOT/etc/bacula/stopmysql
+rm -f $RPM_BUILD_ROOT/etc/bacula/grant_mysql_privileges
+%endif
+
+# fixme - make installs test script /etc/bacula/gconsole
+rm -f $RPM_BUILD_ROOT/etc/bacula/gconsole
 
 # install the init scripts
 cp platforms/redhat/bacula-dir $RPM_BUILD_ROOT/etc/rc.d/init.d/bacula-dir
 cp platforms/redhat/bacula-fd $RPM_BUILD_ROOT/etc/rc.d/init.d/bacula-fd
 cp platforms/redhat/bacula-sd $RPM_BUILD_ROOT/etc/rc.d/init.d/bacula-sd
-%if %{mysql}
-cp src/cats/grant_mysql_privileges $RPM_BUILD_ROOT/etc/bacula/grant_mysql_privileges
-%endif
 
 # install the menu stuff
 cp scripts/bacula.png $RPM_BUILD_ROOT/usr/share/pixmaps/bacula.png
-cp scripts/bacula.desktop $RPM_BUILD_ROOT/usr/share/gnome/apps/System/bacula.desktop
+cp scripts/bacula.desktop.gnome1 $RPM_BUILD_ROOT/usr/share/gnome/apps/System/bacula.desktop
+cp scripts/bacula.desktop.gnome2 $RPM_BUILD_ROOT/usr/share/applications/bacula.desktop
 
 # install sqlite
+%if ! %{mysql}
 cp ../depkgs/sqlite/sqlite $RPM_BUILD_ROOT/usr/lib/sqlite/sqlite
 cp ../depkgs/sqlite/sqlite.h $RPM_BUILD_ROOT/usr/lib/sqlite/sqlite.h
 cp ../depkgs/sqlite/libsqlite.a $RPM_BUILD_ROOT/usr/lib/sqlite/libsqlite.a
+%endif
 
 %clean
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf "$RPM_BUILD_ROOT"
 
 %if %{mysql}
 
-%files mysql
+%files mysql-%{rh_version}
 %defattr(-,root,root)
 
 %attr(0754,root,root) /etc/bacula/bacula
@@ -216,7 +235,10 @@ cp ../depkgs/sqlite/libsqlite.a $RPM_BUILD_ROOT/usr/lib/sqlite/libsqlite.a
 %attr(0644,root,root) %doc COPYING ChangeLog INSTALL README ReleaseNotes doc/*
 %attr(0644,root,root) /usr/man/man1/*
 %attr(0644,root,root) /usr/share/pixmaps/bacula.png
+
 %attr(0644,root,root) /usr/share/gnome/apps/System/bacula.desktop
+%attr(0644,root,root) /usr/share/applications/bacula.desktop
+
 %attr(0644,root,root) %config(noreplace) /etc/bacula/gnome-console.conf
 
 %attr(0640,root,root) %config(noreplace) /etc/bacula/bacula-dir.conf
@@ -228,7 +250,7 @@ cp ../depkgs/sqlite/libsqlite.a $RPM_BUILD_ROOT/usr/lib/sqlite/libsqlite.a
 
 %attr(0750,root,root) /usr/sbin/*
 
-%post mysql
+%post mysql-%{rh_version}
 # delete then add our links
 /sbin/chkconfig --del bacula-dir
 /sbin/chkconfig --del bacula-fd
@@ -241,6 +263,7 @@ cp ../depkgs/sqlite/libsqlite.a $RPM_BUILD_ROOT/usr/lib/sqlite/libsqlite.a
 chmod 0755 /usr/sbin/gnome-console
 
 # grant privileges and create tables
+# this will error out harmlessly if tables already exist
 echo "Granting privileges for MySQL user bacula..."
 /etc/bacula/grant_mysql_privileges
 echo "Creating MySQL bacula database..."
@@ -248,7 +271,7 @@ echo "Creating MySQL bacula database..."
 echo "Creating bacula tables..."
 /etc/bacula/make_mysql_tables
 
-%preun mysql
+%preun mysql-%{rh_version}
 # delete our links
 /sbin/chkconfig --del bacula-dir
 /sbin/chkconfig --del bacula-fd
@@ -256,7 +279,7 @@ echo "Creating bacula tables..."
 
 %else
 
-%files sqlite
+%files sqlite-%{rh_version}
 %defattr(-,root,root)
 
 %attr(0754,root,root) /etc/bacula/bacula
@@ -277,7 +300,10 @@ echo "Creating bacula tables..."
 %attr(0644,root,root) %doc COPYING ChangeLog INSTALL README ReleaseNotes doc/*
 %attr(0644,root,root) /usr/man/man1/*
 %attr(0644,root,root) /usr/share/pixmaps/bacula.png
+
 %attr(0644,root,root) /usr/share/gnome/apps/System/bacula.desktop
+%attr(0644,root,root) /usr/share/applications/bacula.desktop
+
 %attr(0644,root,root) %config(noreplace) /etc/bacula/gnome-console.conf
 
 %attr(0640,root,root) %config(noreplace) /etc/bacula/bacula-dir.conf
@@ -292,7 +318,7 @@ echo "Creating bacula tables..."
 %attr(0750,root,root) /usr/sbin/*
 %attr(0750,root,root) /usr/lib/sqlite/sqlite
 
-%post sqlite
+%post sqlite-%{rh_version}
 # delete then add our links
 /sbin/chkconfig --del bacula-dir
 /sbin/chkconfig --del bacula-fd
@@ -307,7 +333,7 @@ chmod 0755 /usr/sbin/gnome-console
 # create the tables
 /etc/bacula/make_sqlite_tables
 
-%preun sqlite
+%preun sqlite-%{rh_version}
 # delete our links
 /sbin/chkconfig --del bacula-dir
 /sbin/chkconfig --del bacula-fd
@@ -315,7 +341,7 @@ chmod 0755 /usr/sbin/gnome-console
 
 %endif
 
-%files client
+%files client-%{rh_version}
 %defattr(-,root,root)
 
 %attr(0754,root,root) /etc/bacula/fd
@@ -332,16 +358,19 @@ chmod 0755 /usr/sbin/gnome-console
 %attr(0750,root,root) /usr/sbin/smtp
 
 
-%post client
+%post client-%{rh_version}
 # delete then add our links
 /sbin/chkconfig --del bacula-fd
 /sbin/chkconfig --add bacula-fd
 
-%preun client
+%preun client-%{rh_version}
 # delete our links
 /sbin/chkconfig --del bacula-fd
 
 %changelog
+* Mon May 11 2003 D. Scott Barninger <barninger at fairfieldcomputers.com>
+- Misc changes to mysql/sqlite build and rh7/8 menu differences
+- Added rh_version to sub-package names
 * Thu May 08 2003 Kern Sibbald <kern at sibbald.com>
 - Update spec for version 1.31 and combine client
 * Sun Mar 30 2003 D. Scott Barninger <barninger at fairfieldcomputers.com>

@@ -1,5 +1,5 @@
 [Desktop Entry]
-Name=Bacula
+Name=Bacula Console
 Comment=Bacula Director Console
 Icon=/usr/share/pixmaps/bacula.png
 Exec=@sbindir@/gnome-console -c @sysconfdir@/gnome-console.conf

@@ -19,7 +19,6 @@ Testing to do: (painful)
 
 
 For 1.31 release:
-- Merge SQLite, MySQL, and Rel spec into a single file.
 - Implement "Reschedule OnError=yes interval=nnn times=xxx"
 - Fix config of "console"
 - Shell character expansion is failing occassionally.
@@ -91,7 +90,7 @@ For 1.31 release:
   all Differential and Incremental jobs obsoleted by that Full backup.
   This would let people minimize the number of tapes they're keeping on
   hand without having to master the art of retention times.
-
+- Implement a relocatable bacula.spec 
 - Allow multiple Storage specifications (or multiple names on
   a single Storage specification) in the Job record. Thus a job 
   can be backed up to a number of storage devices.
@@ -776,3 +775,5 @@ Done: (see kernsdone for more)
   stream.
 - Change M_INFO to M_RESTORED for all restored files.
 - Fix command prompt in gnome-console by checking on Ready.
+- Merge SQLite, MySQL, and Rel spec into a single file.
+
