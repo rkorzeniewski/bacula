@@ -93,20 +93,13 @@ install: all
 	fi; \
 	echo "${INSTALL_DATA} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf"; \
 	${INSTALL_DATA} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf
-	@srcconf=query.sql; \
-	if  test -f ${DESTDIR}${sysconfdir}/$$srcconf; then \
-	   destconf=$$srcconf.new; \
-	   echo "  ==> Found existing $$srcconf, installing new conf file as $$destconf"; \
-	else \
-	   destconf=$$srcconf; \
-	fi; \
-	echo "${INSTALL_DATA} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf"; \
-	${INSTALL_DATA} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf
+	${INSTALL_DATA} query.sql ${DESTDIR}${sysconfdir}/query.sql
 
 
 uninstall:
 	(cd $(DESTDIR)$(sbindir); $(RMF) bacula-dir)
 	(cd $(DESTDIR)$(sysconfdir); $(RMF) bacula-dir.conf)
+	(cd $(DESTDIR)$(sysconfdir); $(RMF) query.sql)
 
 
 

@@ -13,7 +13,9 @@ To do:
 - Document better includes (does it cross file systems ?).
 - Document specifically how to add new File daemon to config files.
 - Document forcing a new tape to be used.
+- Document "Error in message.c:500 Mail program terminated in error.
 
+- Report volume write rate.
 - Fix db_get_job_volume_names() to return array of strings.
 - Report compression % and other compression statistics if turned on.
 - Add JobLevel in FD status (but make sure it is defined).

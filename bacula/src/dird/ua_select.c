@@ -197,6 +197,28 @@ JOB *select_job_resource(UAContext *ua)
    return job;
 }
 
+/* 
+ * Select a Restore Job resource from prompt list
+ */
+JOB *select_restore_job_resource(UAContext *ua)
+{
+   char name[MAX_NAME_LENGTH];	  
+   JOB *job = NULL;
+
+   start_prompt(ua, _("The defined Restore Job resources are:\n"));
+   LockRes();
+   while ( (job = (JOB *)GetNextRes(R_JOB, (RES *)job)) ) {
+      if (job->JobType == JT_RESTORE) {
+	 add_prompt(ua, job->hdr.name);
+      }
+   }
+   UnlockRes();
+   do_prompt(ua, _("Select Restore Job"), name);
+   job = (JOB *)GetResWithName(R_JOB, name);
+   return job;
+}
+
+
 
 /* 
  * Select a client resource from prompt list

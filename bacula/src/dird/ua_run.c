@@ -77,13 +77,14 @@ int runcmd(UAContext *ua, char *cmd)
    where = NULL;
    client_name = NULL;
    fileset_name = NULL;
+   bootstrap = NULL;
 
    Dmsg1(20, "run: %s\n", ua->UA_sock->msg);
 
    for (i=1; i<ua->argc; i++) {
       found = False;
       Dmsg2(200, "Doing arg %d = %s\n", i, ua->argk[i]);
-      for (j=0; kw[j]; j++) {
+      for (j=0; !found && kw[j]; j++) {
 	 if (strcasecmp(ua->argk[i], _(kw[j])) == 0) {
 	    if (!ua->argv[i]) {
                bsendmsg(ua, _("Value missing for keyword %s\n"), ua->argk[i]);
@@ -145,20 +146,20 @@ int runcmd(UAContext *ua, char *cmd)
 		     return 1;
 		  }
 		  where = ua->argv[i];
-		  break;
 		  found = True;
+		  break;
 	       case 7: /* bootstrap */
 		  if (bootstrap) {
                      bsendmsg(ua, _("Bootstrap specified twice.\n"));
 		     return 1;
 		  }
 		  bootstrap = ua->argv[i];
-		  break;
 		  found = True;
+		  break;
 	       default:
 		  break;
 	    }
-	 }
+	 } /* end strcase compare */
       } /* end keyword loop */
       if (!found) {
          Dmsg1(200, "%s not found\n", ua->argk[i]);
@@ -170,7 +171,7 @@ int runcmd(UAContext *ua, char *cmd)
 	    job_name = ua->argk[i];   /* use keyword as job name */
             Dmsg1(200, "Set jobname=%s\n", job_name);
 	 } else {
-            bsendmsg(ua, _("Invalid keyword %s\n"), ua->argk[i]);
+            bsendmsg(ua, _("Invalid keyword: %s\n"), ua->argk[i]);
 	    return 1;
 	 }
       }
@@ -278,7 +279,6 @@ Storage:  %s\n"),
 JobName:    %s\n\
 Bootstrap:  %s\n\
 Where:      %s\n\
-Level:      %s\n\
 FileSet:    %s\n\
 Client:     %s\n\
 Storage:    %s\n\
@@ -286,7 +286,6 @@ JobId:      %s\n"),
 		 job->hdr.name,
 		 NPRT(jcr->RestoreBootstrap),
 		 jcr->RestoreWhere?jcr->RestoreWhere:NPRT(job->RestoreWhere),
-		 level_to_str(jcr->JobLevel),
 		 jcr->fileset->hdr.name,
 		 jcr->client->hdr.name,
 		 jcr->store->hdr.name, 
@@ -371,6 +370,8 @@ JobId:      %s\n"),
 	       break;
 	    }
 	    goto try_again;
+	 } else {
+            bsendmsg(ua, _("Level not appropriate for this Job. Cannot be changed.\n"));
 	 }
 	 goto try_again;
       case 1:

@@ -51,7 +51,7 @@ int get_cmd(UAContext *ua, char *prompt)
       if (bnet_recv(sock) < 0) {
 	 return 0;
       }
-      ua->cmd = (char *) check_pool_memory_size(ua->cmd, sock->msglen+1);
+      ua->cmd = check_pool_memory_size(ua->cmd, sock->msglen+1);
       bstrncpy(ua->cmd, sock->msg, sock->msglen+1);
       strip_trailing_junk(ua->cmd);
       if (strcmp(ua->cmd, ".messages") == 0) {
@@ -131,12 +131,12 @@ char *next_arg(char **s)
 
 void parse_command_args(UAContext *ua)
 {
-   BSOCK *sock = ua->UA_sock;
    char *p, *n;
-   int i;
+   int i, len;
 
-   ua->args = (char *) check_pool_memory_size(ua->args, sock->msglen+1);
-   bstrncpy(ua->args, sock->msg, sock->msglen+1);
+   len = strlen(ua->cmd) + 1;
+   ua->args = check_pool_memory_size(ua->args, len);
+   bstrncpy(ua->args, ua->cmd, len);
    strip_trailing_junk(ua->args);
    ua->argc = 0;
    p = ua->args;

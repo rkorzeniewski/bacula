@@ -91,7 +91,6 @@ static void *connect_thread(void *arg)
 static void handle_UA_client_request(void *arg)
 {
    int stat;
-   static char cmd[1000];
    UAContext ua;
    BSOCK *UA_sock = (BSOCK *) arg;
 
@@ -118,17 +117,18 @@ static void handle_UA_client_request(void *arg)
    while (!ua.quit) {
       stat = bnet_recv(ua.UA_sock);
       if (stat > 0) {
-	 bstrncpy(cmd, ua.UA_sock->msg, sizeof(cmd));
+	 ua.cmd = check_pool_memory_size(ua.cmd, ua.UA_sock->msglen+1);
+	 bstrncpy(ua.cmd, ua.UA_sock->msg, ua.UA_sock->msglen+1);
 	 parse_command_args(&ua);
          if (ua.argc > 0 && ua.argk[0][0] == '.') {
-	    do_a_dot_command(&ua, cmd);
+	    do_a_dot_command(&ua, ua.cmd);
 	 } else {
-	    do_a_command(&ua, cmd);
+	    do_a_command(&ua, ua.cmd);
 	 }
 	 if (!ua.quit) {
 	    if (ua.auto_display_messages) {
-               strcpy(cmd, "messages");
-	       qmessagescmd(&ua, cmd);
+               strcpy(ua.cmd, "messages");
+	       qmessagescmd(&ua, ua.cmd);
 	       ua.user_notified_msg_pending = FALSE;
 	    } else if (!ua.user_notified_msg_pending && console_msg_pending) {
                bsendmsg(&ua, _("You have messages.\n"));

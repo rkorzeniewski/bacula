@@ -189,4 +189,6 @@ char *uar_list_temp =
    "SELECT JobId,Level,JobFiles,StartTime,VolumeName,StartFile,"
    "VolSessionId,VolSessionTime FROM temp";
 
-char *uar_sel_jobid_temp = "SELECT JobId from temp";
+char *uar_sel_jobid_temp = "SELECT JobId FROM temp";
+
+char *uar_sel_all_temp1 = "SELECT * FROM temp1";
