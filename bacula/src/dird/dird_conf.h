@@ -148,6 +148,7 @@ struct CAT {
    char *db_password;
    char *db_user;
    char *db_name;
+   int   mult_db_connections;         /* set if multiple connections wanted */
 };
 
 
