@@ -28,8 +28,9 @@
 
 #define CS_DATA          1 /* data has been received */
 #define CS_END           2 /* no data to receive anymore */
-#define CS_CONNECTED     3 /* the socket is now connected */
-#define CS_DISCONNECTED  4 /* the socket is now disconnected */
+#define CS_PROMPT        3 /* prompt signal received */
+#define CS_CONNECTED     4 /* the socket is now connected */
+#define CS_DISCONNECTED  5 /* the socket is now disconnected */
 #define CS_DEBUG        10 /* used to print debug messages */
 
 /* function called by console_thread to send events back to the GUI */

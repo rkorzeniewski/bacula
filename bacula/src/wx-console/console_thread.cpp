@@ -63,15 +63,13 @@ console_thread::~console_thread() {
  * Thread entry point
  */
 void* console_thread::Entry() {
-#ifdef HAVE_WIN32
    if (WSA_Init() == 0) {
-      csprint("Windows sockets initialized successfully...\n");
+      //csprint("Windows sockets initialized successfully...\n");
    }
    else {
       csprint("Error while initializing windows sockets...\n");
       return 0;
    }
-#endif
    
    csprint("Connecting...\n");
 
@@ -115,10 +113,28 @@ void* console_thread::Entry() {
       if ((stat = bnet_recv(UA_sock)) >= 0) {
          csprint(UA_sock->msg);
       }
-      else {
-         csprint(NULL, CS_END);
+      else if (stat == BNET_SIGNAL) {
+         if (UA_sock->msglen == BNET_PROMPT) {
+            csprint(NULL, CS_PROMPT);
+         }
+         else if (UA_sock->msglen == BNET_EOD) {
+            csprint(NULL, CS_END);
+         }
+         else if (UA_sock->msglen == BNET_HEARTBEAT) {
+            bnet_sig(UA_sock, BNET_HB_RESPONSE);
+            csprint("<< Heartbeat signal received, answered. >>\n", CS_DEBUG);
+         }
+         else {
+            csprint("<< Unexpected signal received : ", CS_DEBUG);
+            csprint(bnet_sig_to_ascii(UA_sock), CS_DEBUG);
+            csprint(">>\n", CS_DEBUG);
+         }
       }
-
+      else { /* BNET_HARDEOF || BNET_ERROR */
+         csprint(NULL, CS_END);
+         break;
+      }
+           
       if (is_bnet_stop(UA_sock)) {
          csprint(NULL, CS_END);
          break;            /* error or term */
@@ -128,6 +144,15 @@ void* console_thread::Entry() {
    csprint(NULL, CS_DISCONNECTED);
 
    csprint("Connection terminated\n");
+   
+   UA_sock = NULL;
+   
+   if (WSACleanup() == 0) {
+      //csprint("Windows sockets cleaned up successfully...\n");
+   }
+   else {
+      csprint("Error while cleaning up windows sockets...\n");
+   }
 
    return 0;
 }
