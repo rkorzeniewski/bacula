@@ -1,4 +1,12 @@
 25-04-2003 :
+ - general : status text is more often used
+ - wxbRestorePanel : restore aborted if there's no client or no fileset
+ - wxbRestorePanel : corrected problem if one double clicks on a
+     directory X in the left "tree" window when the directory is 
+     not yet open, instead of selecting the directory and everything 
+     below, it opens the directory and nothing is selected.
+ - wxbRestorePanel : first client is selected when restore
+     mode starts.
  - wxbRestorePanel : when the director is building tree, 
      changes are made to the status in the gauge.
  - wxbRestorePanel : Cursor set to hourglass when working

@@ -134,6 +134,7 @@ class wxbRestorePanel : public wxbPanel
 
 /* UI related */
       bool working; // A command is running, discard GUI events
+      bool markWhenListingDone;
       wxTreeItemId currentTreeItem; // Currently selected tree item
 
       /* Enable or disable config controls status */

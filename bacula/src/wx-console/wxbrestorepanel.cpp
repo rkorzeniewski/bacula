@@ -365,6 +365,8 @@ wxbRestorePanel::wxbRestorePanel(wxWindow* parent): wxbPanel(parent) {
 
    working = false;
    SetCursor(*wxSTANDARD_CURSOR);
+
+   markWhenListingDone = false;
 }
 
 /*
@@ -401,11 +403,18 @@ void wxbRestorePanel::EnablePanel(bool enable) {
 void wxbRestorePanel::CmdStart() {
    unsigned int i;
    if (status == activable) {
+      wxbMainFrame::GetInstance()->SetStatusText("Getting clients and filesets list.");
       wxbDataTokenizer* dt = WaitForEnd(".clients\n", true, false);
       wxString str;
 
       clientChoice->Clear();
       cfgClient->Clear();
+      
+      if (dt->GetCount() == 0) {
+         wxbMainFrame::GetInstance()->SetStatusText("Error : no clients returned by the director.");
+         return;
+      }
+      
       for (i = 0; i < dt->GetCount(); i++) {
          str = (*dt)[i];
          str.RemoveLast();
@@ -418,6 +427,12 @@ void wxbRestorePanel::CmdStart() {
       dt = WaitForEnd(".filesets\n", true, false);
 
       cfgFileset->Clear();
+      
+      if (dt->GetCount() == 0) {
+         wxbMainFrame::GetInstance()->SetStatusText("Error : no filesets returned by the director.");
+         return;
+      }
+      
       for (i = 0; i < dt->GetCount(); i++) {
          str = (*dt)[i];
          str.RemoveLast();
@@ -427,12 +442,27 @@ void wxbRestorePanel::CmdStart() {
       delete dt;
 
       SetStatus(entered);
+      
+      clientChoice->Enable(false);
+      jobChoice->Enable(false);      
+      clientChoice->SetSelection(0);
+      CmdListJobs();
+      jobChoice->Enable(true);
+      clientChoice->Enable(true);
+      
+      wxbMainFrame::GetInstance()->SetStatusText("Please select a client and a date at which the files you'll select were backed up.");
    }
    else if (status == entered) {
-      if (jobChoice->GetStringSelection().Length() < 1) {
+      if (clientChoice->GetStringSelection().Length() < 1) {
          wxbMainFrame::GetInstance()->SetStatusText("Please select a client.");
          return;
       }
+      if (jobChoice->GetStringSelection().Length() < 1) {
+         wxbMainFrame::GetInstance()->SetStatusText("Please select a restore date.");
+         return;
+      }
+      wxbMainFrame::GetInstance()->SetStatusText("Building restore tree...");
+      
       WaitForPrompt("restore\n");
       WaitForPrompt("6\n");
       wxbPromptParser *pp = WaitForPrompt(wxString() << jobChoice->GetStringSelection() << "\n", true);
@@ -449,7 +479,6 @@ void wxbRestorePanel::CmdStart() {
       long l;
       wxString str;
       
-      unsigned int i;
       for (i = 0; i < tableparser->size(); i++) {
          str = (*tableparser)[i][2];
          str.Replace(",", "");
@@ -481,7 +510,7 @@ void wxbRestorePanel::CmdStart() {
                if (((*dt)[lastindex].Find("Building directory tree for JobId ") == 0) && 
                      ((i = (*dt)[lastindex].Find(" ...")) > 0)) {
                   str = (*dt)[lastindex].Mid(34, i-34);
-                  for (unsigned int i = 0; i < tableparser->size(); i++) {
+                  for (i = 0; i < tableparser->size(); i++) {
                      if (str == (*tableparser)[i][0]) {
                         str = (*tableparser)[i][2];
                         str.Replace(",", "");
@@ -515,7 +544,9 @@ void wxbRestorePanel::CmdStart() {
          }
          wxTheApp->Yield(true);
       }
-      
+
+      gauge->SetValue(tot);
+      wxTheApp->Yield();
       gauge->SetValue(0);
       
       delete dt;
@@ -530,9 +561,7 @@ void wxbRestorePanel::CmdStart() {
    }
    else if (status == choosing) {
       SetStatus(configuring);
-      
-      wxbMainFrame::GetInstance()->SetStatusText("Please configure your restore...");
-      
+           
       EnableConfig(false);
       
       totfilemessages = 0;
@@ -543,7 +572,7 @@ void wxbRestorePanel::CmdStart() {
       dt = new wxbDataTokenizer(true);
       WaitForPrompt("done\n");
 
-      for (unsigned int i = 0; i < dt->GetCount(); i++) {
+      for (i = 0; i < dt->GetCount(); i++) {
          if ((j = (*dt)[i].Find(" files selected to be restored.")) > -1) {
             (*dt)[i].Mid(0, j).ToLong(&totfilemessages);
             break;
@@ -554,6 +583,10 @@ void wxbRestorePanel::CmdStart() {
             break;
          }
       }
+      
+      wxbMainFrame::GetInstance()->SetStatusText(
+         wxString("Please configure your restore (") 
+            << totfilemessages <<  " files selected to be restored)...");
       
       UpdateConfig(dt);
       
@@ -677,6 +710,8 @@ void wxbRestorePanel::CmdStart() {
 void wxbRestorePanel::CmdConfigApply() {
    if (cfgUpdated == 0) return;
    
+   wxbMainFrame::GetInstance()->SetStatusText("Applying restore configuration changes...");
+   
    EnableConfig(false);
    
    wxbDataTokenizer* dt = NULL;
@@ -763,7 +798,9 @@ void wxbRestorePanel::CmdConfigApply() {
    UpdateConfig(dt); /* TODO: Check result */
    
    EnableConfig(true);
-   
+
+   wxbMainFrame::GetInstance()->SetStatusText("Restore configuration changes were applied.");
+
    delete dt;
 }
 
@@ -1496,15 +1533,22 @@ void wxbRestorePanel::OnTreeChanged(wxTreeEvent& event) {
       return;
    }
    SetCursor(*wxHOURGLASS_CURSOR);
+   markWhenListingDone = false;
    working = true;
    CmdList(event.GetItem());
+   if (markWhenListingDone) {
+      CmdMark(event.GetItem(), -1);
+      tree->Refresh();
+   }
    working = false;
    SetCursor(*wxSTANDARD_CURSOR);
 }
 
 void wxbRestorePanel::OnTreeMarked(wxbTreeMarkedEvent& event) {
    if (working) {
-      //event.Skip();
+      if (tree->GetSelection() == event.GetItem()) {
+         markWhenListingDone = !markWhenListingDone;
+      }
       return;
    }
    SetCursor(*wxHOURGLASS_CURSOR);

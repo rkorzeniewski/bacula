@@ -200,9 +200,8 @@ wxbMainFrame::wxbMainFrame(const wxString& title, const wxPoint& pos, const wxSi
 #endif // wxUSE_MENUS
 
 #if wxUSE_STATUSBAR
-   // create a status bar just for fun (by default with 1 pane only)
-   CreateStatusBar(2);
-   SetStatusText(_T("Welcome to Bacula wx-console!"));
+   CreateStatusBar(1);
+   SetStatusText(wxString("Welcome to bacula wx-console ") << VERSION << " (" << BDATE << ")!\n");
 #endif // wxUSE_STATUSBAR
 
    wxPanel* global = new wxPanel(this, -1);
@@ -271,6 +270,7 @@ void wxbMainFrame::StartConsoleThread()
    ct = new console_thread();
    ct->Create();
    ct->Run();
+   SetStatusText("Connecting to the director...");
 }
 
 /* Register a new wxbDataParser */
@@ -326,10 +326,12 @@ void wxbMainFrame::OnPrint(wxbThreadEvent& event) {
 void wxbMainFrame::Print(wxString str, int status)
 {
    if (status == CS_CONNECTED) {
+      SetStatusText("Connected to the director.");
       EnablePanels();
       return;
    }
    if (status == CS_DISCONNECTED) {
+      SetStatusText("Disconnected of the director.");
       DisablePanels();
       return;
    }
