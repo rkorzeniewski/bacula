@@ -74,7 +74,7 @@ void run_job(JCR *jcr)
    jcr->jr.SchedTime = jcr->sched_time;
    jcr->jr.StartTime = jcr->start_time;
    jcr->jr.Type = jcr->JobType;
-   jcr->jr.Level = jcr->level;
+   jcr->jr.Level = jcr->JobLevel;
    strcpy(jcr->jr.Name, jcr->job->hdr.name);
    strcpy(jcr->jr.Job, jcr->Job);
 
@@ -194,9 +194,10 @@ int get_or_create_client_record(JCR *jcr)
    cr.FileRetention = jcr->client->FileRetention;
    cr.JobRetention = jcr->client->JobRetention;
    if (jcr->client_name) {
-      free(jcr->client_name);
+      free_pool_memory(jcr->client_name);
    }
-   jcr->client_name = bstrdup(jcr->client->hdr.name);
+   jcr->client_name = get_memory(strlen(jcr->client->hdr.name) + 1);
+   strcpy(jcr->client_name, jcr->client->hdr.name);
    if (!db_create_client_record(jcr->db, &cr)) {
       Jmsg(jcr, M_ERROR, 0, _("Could not create Client record. %s"), 
 	 db_strerror(jcr->db));
@@ -320,25 +321,26 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
 {
    jcr->job = job;
    jcr->JobType = job->JobType;
-   jcr->level = job->level;
+   jcr->JobLevel = job->level;
    jcr->store = job->storage;
    jcr->client = job->client;
    if (jcr->client_name) {
-      free(jcr->client_name);
+      free_pool_memory(jcr->client_name);
    }
-   jcr->client_name = bstrdup(job->client->hdr.name);
+   jcr->client_name = get_memory(strlen(jcr->client->hdr.name) + 1);
+   strcpy(jcr->client_name, jcr->client->hdr.name);
    jcr->pool = job->pool;
    jcr->catalog = job->client->catalog;
    jcr->fileset = job->fs;
    jcr->msgs = job->messages; 
    /* If no default level given, set one */
-   if (jcr->level == 0) {
+   if (jcr->JobLevel == 0) {
       switch (jcr->JobType) {
       case JT_VERIFY:
-	 jcr->level = L_VERIFY_CATALOG;
+	 jcr->JobLevel = L_VERIFY_CATALOG;
 	 break;
       case JT_BACKUP:
-	 jcr->level = L_INCREMENTAL;
+	 jcr->JobLevel = L_INCREMENTAL;
 	 break;
       default:
 	 break;

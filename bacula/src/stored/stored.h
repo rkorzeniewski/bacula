@@ -33,6 +33,11 @@
 #include "stored_conf.h"
 #include "jcr.h"
 #include "protos.h"
+#ifdef HAVE_LIBZ
+#include <zlib.h>                     /* compression headers */
+#else
+#define uLongf uint32_t
+#endif
 
 /* **** FIXME make this dynamic ****/
 #define MAX_DEVICES 20
@@ -47,6 +52,6 @@ struct s_shm {
    DEVICE dev[MAX_DEVICES];
 };
 
-extern char errmsg[];		     /* general error message */
+extern char errmsg[];                /* general error message */
 
 #endif /* __STORED_H_ */

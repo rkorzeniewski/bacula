@@ -39,7 +39,8 @@
 #include "dird.h"
 
 /* Commands sent to Storage daemon */
-static char jobcmd[]     = "JobId=%d job=%s job_name=%s client_name=%s Allow=%s Session=%s\n";
+static char jobcmd[]     = "JobId=%d job=%s job_name=%s client_name=%s \
+type=%d level=%d FileSet=%s Allow=%s Session=%s\n";
 static char use_device[] = "use device=%s media_type=%s pool_name=%s pool_type=%s\n";
 
 /* Response from Storage daemon */
@@ -103,10 +104,13 @@ int start_storage_daemon_job(JCR *jcr)
     */
    bash_spaces(jcr->job->hdr.name);
    bash_spaces(jcr->client->hdr.name);
+   bash_spaces(jcr->client->hdr.name);
    bnet_fsend(sd, jobcmd, jcr->JobId, jcr->Job, jcr->job->hdr.name, 
-              jcr->client->hdr.name, "append", "*");
+	      jcr->client->hdr.name, jcr->JobType, jcr->JobLevel, 
+              jcr->fileset->hdr.name, "append", "*");
    unbash_spaces(jcr->job->hdr.name);
    unbash_spaces(jcr->client->hdr.name);
+   unbash_spaces(jcr->fileset->hdr.name);
    if (bnet_recv(sd) > 0) {
        Dmsg1(10, "<stored: %s", sd->msg);
        if (sscanf(sd->msg, OKjob, &jcr->VolSessionId, 

@@ -111,6 +111,8 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, char *fname)
 	       break;
             case 'Z':                  /* gzip compression */
 	       inc->options |= OPT_GZIP_compression;
+               inc->level = *++p - '0';
+               Dmsg1(200, "Compression level=%d\n", inc->level);
 	       break;
             case 'h':                  /* no recursion */
 	       inc->options |= OPT_no_recursion;
@@ -205,6 +207,7 @@ struct s_included_file *get_next_included_file(FF_PKT *ff, struct s_included_fil
       }
       if (inc->options & OPT_GZIP_compression) {
 	 ff->GZIP_compression = 1;
+	 ff->GZIP_level = inc->level;
       } else {
 	 ff->GZIP_compression = 0;
       }

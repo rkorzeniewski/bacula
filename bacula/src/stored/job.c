@@ -37,7 +37,8 @@ extern uint32_t newVolSessionId();
 static int use_device_cmd(JCR *jcr);
 
 /* Requests from the Director daemon */
-static char jobcmd[]     = "JobId=%d job=%127s job_name=%127s client_name=%127s Allow=";
+static char jobcmd[]     = "JobId=%d job=%127s job_name=%127s client_name=%127s \
+type=%d level=%d FileSet=%127s Allow=";
 static char use_device[] = "use device=%s media_type=%s pool_name=%s pool_type=%s\n";
 
 /* Responses sent to Director daemon */
@@ -64,7 +65,8 @@ int job_cmd(JCR *jcr)
    int JobId, errstat;
    char auth_key[100];
    BSOCK *dir = jcr->dir_bsock;
-   char *job_name, *client_name, *job;
+   POOLMEM *job_name, *client_name, *job, *fileset_name;
+   int JobType, level;
    struct timeval tv;
    struct timezone tz;
    struct timespec timeout;
@@ -74,15 +76,18 @@ int job_cmd(JCR *jcr)
     */
 
    Dmsg1(30, "Job_cmd: %s\n", dir->msg);
-   job = (char *) get_memory(dir->msglen);
-   job_name = (char *) get_memory(dir->msglen);
-   client_name = (char *)get_memory(dir->msglen);
-   if (sscanf(dir->msg, jobcmd, &JobId, job, job_name, client_name) != 4) {
+   job = get_memory(dir->msglen);
+   job_name = get_memory(dir->msglen);
+   client_name = get_memory(dir->msglen);
+   fileset_name = get_memory(dir->msglen);
+   if (sscanf(dir->msg, jobcmd, &JobId, job, job_name, client_name,
+	      &JobType, &level, fileset_name) != 7) {
       bnet_fsend(dir, BAD_job);
       Emsg1(M_FATAL, 0, _("Bad Job Command from Director: %s\n"), dir->msg);
       free_memory(job);
       free_memory(job_name);
       free_memory(client_name);
+      free_memory(fileset_name);
       jcr->JobStatus = JS_ErrorTerminated;
       return 0;
    }
@@ -91,13 +96,20 @@ int job_cmd(JCR *jcr)
    jcr->VolSessionTime = VolSessionTime;
    strcpy(jcr->Job, job);
    unbash_spaces(job_name);
-   jcr->job_name = (char *) get_memory(strlen(job_name) + 1);
+   jcr->job_name = get_memory(strlen(job_name) + 1);
    strcpy(jcr->job_name, job_name);
    unbash_spaces(client_name);
-   jcr->client_name = bstrdup(client_name);
+   jcr->client_name = get_memory(strlen(client_name) + 1);
+   strcpy(jcr->client_name, client_name);
+   unbash_spaces(fileset_name);
+   jcr->fileset_name = get_memory(strlen(fileset_name) + 1);
+   strcpy(jcr->fileset_name, fileset_name);
+   jcr->JobType = JobType;
+   jcr->JobLevel = level;
    free_memory(job);
    free_memory(job_name);
    free_memory(client_name);
+   free_memory(fileset_name);
 
    /* Initialize FD start condition variable */
    if ((errstat = pthread_cond_init(&jcr->job_start_wait, NULL)) != 0) {
@@ -225,7 +237,7 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
  */
 static int use_device_cmd(JCR *jcr)
 {
-   char *dev_name, *media_type, *pool_name, *pool_type;
+   POOLMEM *dev_name, *media_type, *pool_name, *pool_type;
    BSOCK *dir = jcr->dir_bsock;
    DEVRES *device;
 
@@ -235,10 +247,10 @@ static int use_device_cmd(JCR *jcr)
    }
    
    Dmsg1(20, "Use device: %s", dir->msg);
-   dev_name = (char *) get_memory(dir->msglen);
-   media_type = (char *) get_memory(dir->msglen);
-   pool_name = (char *) get_memory(dir->msglen);
-   pool_type = (char *) get_memory(dir->msglen);
+   dev_name = get_memory(dir->msglen);
+   media_type = get_memory(dir->msglen);
+   pool_name = get_memory(dir->msglen);
+   pool_type = get_memory(dir->msglen);
    if (sscanf(dir->msg, use_device, dev_name, media_type, pool_name, pool_type) == 4) {
       unbash_spaces(dev_name);
       unbash_spaces(media_type);
@@ -250,13 +262,13 @@ static int use_device_cmd(JCR *jcr)
 	 /* Find resource, and make sure we were able to open it */
 	 if (strcmp(device->hdr.name, dev_name) == 0 && device->dev) {
             Dmsg1(20, "Found device %s\n", device->hdr.name);
-	    jcr->pool_name = (char *) get_memory(strlen(pool_name) + 1);
+	    jcr->pool_name = get_memory(strlen(pool_name) + 1);
 	    strcpy(jcr->pool_name, pool_name);
-	    jcr->pool_type = (char *) get_memory(strlen(pool_type) + 1);
+	    jcr->pool_type = get_memory(strlen(pool_type) + 1);
 	    strcpy(jcr->pool_type, pool_type);
-	    jcr->media_type = (char *) get_memory(strlen(media_type) + 1);
+	    jcr->media_type = get_memory(strlen(media_type) + 1);
 	    strcpy(jcr->media_type, media_type);
-	    jcr->dev_name = (char *) get_memory(strlen(dev_name) + 1);
+	    jcr->dev_name = get_memory(strlen(dev_name) + 1);
 	    strcpy(jcr->dev_name, dev_name);
 	    jcr->device = device;
 	    Dmsg4(20, use_device, dev_name, media_type, pool_name, pool_type);
@@ -307,6 +319,13 @@ void stored_free_jcr(JCR *jcr)
    }
    if (jcr->job_name) {
       free_pool_memory(jcr->job_name);
+   }
+   if (jcr->client_name) {
+      free_memory(jcr->client_name);
+      jcr->client_name = NULL;
+   }
+   if (jcr->fileset_name) {
+      free_memory(jcr->fileset_name);
    }
    return;
 }

@@ -213,7 +213,7 @@ try_again:
 	    found = 0;
 	    for (i=0; joblevels[i].level_name; i++) {
 	       if (strcasecmp(level_name, _(joblevels[i].level_name)) == 0) {
-		  jcr->level = joblevels[i].level;
+		  jcr->JobLevel = joblevels[i].level;
 		  found = 1;
 		  break;
 	       }
@@ -234,7 +234,7 @@ Storage:  %s\n"),
                  jcr->JobType==JT_BACKUP?_("Backup"):_("Verify"),
 		 job->hdr.name,
 		 jcr->fileset->hdr.name,
-		 level_to_str(jcr->level),
+		 level_to_str(jcr->JobLevel),
 		 jcr->client->hdr.name,
 		 jcr->store->hdr.name);
 	 break;
@@ -250,7 +250,7 @@ Storage:  %s\n"),
 	       jcr->RestoreJobId = atoi(ua->cmd);
 	    }
 	 }
-         jcr->level = 'F';            /* ***FIXME*** */
+         jcr->JobLevel = 'F';            /* ***FIXME*** */
          Dmsg1(20, "JobId to restore=%d\n", jcr->RestoreJobId);
          bsendmsg(ua, _("Run Restore job\n\
 JobName:    %s\n\
@@ -263,7 +263,7 @@ Storage:    %s\n"),
 		 job->hdr.name,
 		 jcr->RestoreWhere?jcr->RestoreWhere:job->RestoreWhere,
 		 jcr->RestoreJobId,
-		 level_to_str(jcr->level),
+		 level_to_str(jcr->JobLevel),
 		 jcr->fileset->hdr.name,
 		 jcr->client->hdr.name,
 		 jcr->store->hdr.name);
@@ -309,19 +309,19 @@ Storage:    %s\n"),
             add_prompt(ua, _("Since"));
             switch (do_prompt(ua, _("Select level"), NULL)) {
 	    case 0:
-	       jcr->level = L_FULL;
+	       jcr->JobLevel = L_FULL;
 	       break;
 	    case 1:
-	       jcr->level = L_INCREMENTAL;
+	       jcr->JobLevel = L_INCREMENTAL;
 	       break;
 	    case 2:
-	       jcr->level = L_DIFFERENTIAL;
+	       jcr->JobLevel = L_DIFFERENTIAL;
 	       break;
 	    case 3:
-	       jcr->level = L_LEVEL;
+	       jcr->JobLevel = L_LEVEL;
 	       break;
 	    case 4:
-	       jcr->level = L_SINCE;
+	       jcr->JobLevel = L_SINCE;
 	       break;
 	    default:
 	       break;
@@ -335,16 +335,16 @@ Storage:    %s\n"),
             add_prompt(ua, _("Verify Volume Data"));
             switch (do_prompt(ua, _("Select level"), NULL)) {
 	    case 0:
-	       jcr->level = L_VERIFY_INIT;
+	       jcr->JobLevel = L_VERIFY_INIT;
 	       break;
 	    case 1:
-	       jcr->level = L_VERIFY_CATALOG;
+	       jcr->JobLevel = L_VERIFY_CATALOG;
 	       break;
 	    case 2:
-	       jcr->level = L_VERIFY_VOLUME;
+	       jcr->JobLevel = L_VERIFY_VOLUME;
 	       break;
 	    case 3:
-	       jcr->level = L_VERIFY_DATA;
+	       jcr->JobLevel = L_VERIFY_DATA;
 	       break;
 	    default:
 	       break;

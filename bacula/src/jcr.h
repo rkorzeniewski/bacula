@@ -85,7 +85,7 @@ struct s_jcr {
    JCR_free_HANDLER *daemon_free_jcr; /* Local free routine */
    int use_count;                     /* use count */
    POOLMEM *errmsg;                   /* edited error message */
-   char Job[MAX_NAME_LENGTH];         /* Job name */
+   char Job[MAX_NAME_LENGTH];         /* Unique name of this Job */
    uint32_t JobId;                    /* Director's JobId */
    uint32_t VolSessionId;
    uint32_t VolSessionTime;
@@ -95,14 +95,14 @@ struct s_jcr {
    uint32_t Errors;                   /* Number of non-fatal errors */
    int JobStatus;                     /* ready, running, blocked, terminated */ 
    int JobType;                       /* backup, restore, verify ... */
-   int level;
+   int JobLevel;                      /* Job level */
    int authenticated;                 /* set when client authenticated */
    time_t sched_time;                 /* job schedule time, i.e. when it should start */
    time_t start_time;                 /* when job actually started */
    time_t run_time;                   /* used for computing speed */
    time_t end_time;                   /* job end time */
    POOLMEM *VolumeName;               /* Volume name desired -- pool_memory */
-   char *client_name;                 /* client name */
+   POOLMEM *client_name;              /* client name */
    char *sd_auth_key;                 /* SD auth key */
    MSGS *msgs;                        /* Message resource */
 
@@ -149,7 +149,8 @@ struct s_jcr {
    long Ticket;                       /* Ticket */
    int save_level;                    /* save level */
    char *big_buf;                     /* I/O buffer */
-   char *compress_buf;                /* Compression buffer */
+   POOLMEM *compress_buf;             /* Compression buffer */
+   int32_t compress_buf_size;         /* Length of compression buffer */
    char *where;                       /* Root where to restore */
    int buf_size;                      /* length of buffer */
    FF_PKT *ff;                        /* Find Files packet */
@@ -166,11 +167,12 @@ struct s_jcr {
    int type;
    DEVRES *device;                    /* device to use */
    VOLUME_CAT_INFO VolCatInfo;        /* Catalog info for desired volume */
-   char *pool_name;                   /* pool to use */
-   char *pool_type;                   /* pool type to use */
-   char *job_name;                    /* job name */
-   char *media_type;                  /* media type */
-   char *dev_name;                    /* device name */
+   POOLMEM *job_name;                    /* base Job name (not unique) */
+   POOLMEM *fileset_name;                /* FileSet */
+   POOLMEM *pool_name;                   /* pool to use */
+   POOLMEM *pool_type;                   /* pool type to use */
+   POOLMEM *media_type;                  /* media type */
+   POOLMEM *dev_name;                    /* device name */
    long NumVolumes;                   /* number of volumes used */
    long CurVolume;                    /* current volume number */
    int mode;                          /* manual/auto run */

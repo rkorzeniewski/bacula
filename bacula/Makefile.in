@@ -142,7 +142,7 @@ clean:
 distclean:
 	@for I in $(subdirs); do (cd $$I; $(MAKE) $@ || exit 1); done
 	@for I in $(subdirs); do (cd $$I; $(RMF) startit stopit btraceback btraceback.gdb); done
-	@(cd $(srcdir); $(RMF) *~ config.cache config.h config.log config.status)
+	@(cd $(srcdir); $(RMF) *~ config.cache config.h config.log config.status config.out)
 	@(cd $(srcdir); $(RMF) Makefile autoconf/Make.common)
 	@(cd platforms; echo "==>Entering directory `pwd`"; ${MAKE} $@ || exit 1)
 	@$(RMF) bacula fd Makefile startmysql stopmysql startit stopit btraceback

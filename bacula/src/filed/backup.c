@@ -51,9 +51,15 @@ int blast_data_to_storage_daemon(JCR *jcr, char *addr, int port)
    if (!bnet_set_buffer_size(sd, MAX_NETWORK_BUFFER_SIZE, BNET_SETBUF_WRITE)) {
       return 0;
    }
-   jcr->buf_size = sd->msglen;		   
 
-   jcr->compress_buf = (char *) bmalloc(jcr->buf_size);
+   jcr->buf_size = sd->msglen;		   
+   /* Adjust for compression so that output buffer is
+    * 12 bytes + 0.1% larger than input buffer plus 2 bytes.
+    * Note, we adjust the read size to be smaller so that the
+    * same output buffer can be used without growing it.
+    */
+   jcr->compress_buf_size = jcr->buf_size + ((jcr->buf_size+999) / 1000) + 14;
+   jcr->compress_buf = get_memory(jcr->compress_buf_size);
 
    Dmsg1(100, "set_find_options ff=%p\n", jcr->ff);
    set_find_options(jcr->ff, jcr->incremental, jcr->mtime);
@@ -72,7 +78,7 @@ int blast_data_to_storage_daemon(JCR *jcr, char *addr, int port)
       jcr->big_buf = NULL;
    }
    if (jcr->compress_buf) {
-      free(jcr->compress_buf);
+      free_pool_memory(jcr->compress_buf);
       jcr->compress_buf = NULL;
    }
    return stat;
@@ -89,13 +95,12 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 {
    char attribs[MAXSTRING];
    int fid, stat, stream;
-   size_t read_size;
    struct MD5Context md5c;
    int gotMD5 = 0;
    unsigned char signature[16];
    BSOCK *sd, *dir;
    JCR *jcr = (JCR *)ijcr;
-   char *msgsave;
+   POOLMEM *msgsave;
 
    sd = jcr->store_bsock;
    dir = jcr->dir_bsock;
@@ -227,16 +232,15 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
        * Send Data header to Storage daemon
        *    <file-index> <stream> <info>
        */
+
+      stream = STREAM_FILE_DATA;
+
+#ifdef HAVE_LIBZ
       if (ff_pkt->flags & FO_GZIP) {
 	 stream = STREAM_GZIP_DATA;
-	 /* Adjust for compression so that output buffer is
-	  * 12 bytes + 0.1% larger than input buffer
-	  */
-	 read_size = jcr->buf_size - 12 - (jcr->buf_size / 1000) - 1;
-      } else {
-	 stream = STREAM_FILE_DATA;
-	 read_size = jcr->buf_size;
       }
+#endif
+
       if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, stream)) {
 	 close(fid);
 	 return 0;
@@ -248,44 +252,54 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
       }
 
       msgsave = sd->msg;
-      while ((sd->msglen=read(fid, sd->msg, read_size)) > 0) {
-#ifdef HAVE_LIBZ
-	 uLongf compress_len;
-#endif
-
+      while ((sd->msglen=read(fid, sd->msg, jcr->buf_size)) > 0) {
 	 if (ff_pkt->flags & FO_MD5) {
-	    MD5Update(&md5c, (unsigned char *) (sd->msg), sd->msglen);
+	    MD5Update(&md5c, (unsigned char *)(sd->msg), sd->msglen);
 	    gotMD5 = 1;
 	 }
-	 /* ***FIXME*** add compression level options */
 #ifdef HAVE_LIBZ
+	 /* ***FIXME*** add compression level options */
 	 if (ff_pkt->flags & FO_GZIP) {
-	    if (compress((Bytef *)jcr->compress_buf, &compress_len, 
-		  (const Bytef *)sd->msg, (uLong)sd->msglen) != Z_OK) {
+	    uLong compress_len;
+	    compress_len = jcr->compress_buf_size; /* set max length */
+	    if (compress2((Bytef *)jcr->compress_buf, &compress_len, 
+		  (const Bytef *)sd->msg, (uLong)sd->msglen,
+		  ff_pkt->GZIP_level)  != Z_OK) {
                Jmsg(jcr, M_ERROR, 0, _("Compression error\n"));
 	       sd->msg = msgsave;
 	       sd->msglen = 0;
 	       close(fid);
 	       return 0;
 	    }
-	    sd->msg = jcr->compress_buf;
+            Dmsg2(100, "compressed len=%d uncompressed len=%d\n", 
+	       compress_len, sd->msglen);
+
+	    sd->msg = jcr->compress_buf; /* write compressed buffer */
 	    sd->msglen = compress_len;
+	    if (!bnet_send(sd)) {
+	       sd->msg = msgsave;     /* restore read buffer */
+	       sd->msglen = 0;
+	       close(fid);
+	       return 0;
+	    }
+            Dmsg1(30, "Send data to FD len=%d\n", sd->msglen);
+	    jcr->JobBytes += sd->msglen;
+	    sd->msg = msgsave;	      /* restore read buffer */
+	    continue;
 	 }
 #endif
 	 if (!bnet_send(sd)) {
-	    sd->msg = msgsave;
-	    sd->msglen = 0;
 	    close(fid);
 	    return 0;
 	 }
          Dmsg1(30, "Send data to FD len=%d\n", sd->msglen);
 	 jcr->JobBytes += sd->msglen;
-      }
+      } /* end while */
+
       if (sd->msglen < 0) {
          Jmsg(jcr, M_ERROR, 0, _("Error during save reading ERR=%s\n"), ff_pkt->fname, 
 	    strerror(ff_pkt->ff_errno));
       }
-      sd->msg = msgsave;
 
       /* Send data termination poll signal to Storage daemon.
        *  NOTE possibly put this poll on a counter as specified

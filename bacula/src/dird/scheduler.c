@@ -134,7 +134,7 @@ JCR *wait_for_next_job(char *job_to_run)
    sm_check(__FILE__, __LINE__, False);
    set_jcr_defaults(jcr, job);
    if (run->level) {
-      jcr->level = run->level;	      /* override run level */
+      jcr->JobLevel = run->level;	 /* override run level */
    }
    if (run->pool) {
       jcr->pool = run->pool;	      /* override pool */

@@ -183,6 +183,7 @@ static void do_extract(char *devname, char *where)
    block = new_block(dev);
 
    strcpy(jcr->VolumeName, VolName);
+   Dmsg1(100, "Volume=%s\n", jcr->VolumeName);
 
    if (!acquire_device_for_read(jcr, dev, block)) {
       Emsg1(M_ABORT, 0, "Cannot open %s\n", devname);
@@ -190,6 +191,9 @@ static void do_extract(char *devname, char *where)
 
    memset(&rec, 0, sizeof(rec));
    rec.data = get_memory(70000);
+
+   uint32_t compress_buf_size = 70000;
+   POOLMEM *compress_buf = get_memory(compress_buf_size);
 
    for ( ;; ) {
 
@@ -357,6 +361,33 @@ static void do_extract(char *devname, char *where)
                Emsg1(M_ABORT, 0, "Write error: %s\n", strerror(errno));
 	    }
 	 }
+ 
+      } else if (rec.Stream == STREAM_GZIP_DATA) {
+#ifdef HAVE_LIBZ
+	 if (extract) {
+	    uLongf compress_len;
+
+	    compress_len = compress_buf_size;
+	    if (uncompress((Bytef *)compress_buf, &compress_len, 
+		  (const Bytef *)rec.data, (uLong)rec.data_len) != Z_OK) {
+               Emsg0(M_ABORT, 0, _("Uncompression error.\n"));
+	    }
+
+            Dmsg2(100, "Write uncompressed %d bytes, total before write=%d\n", compress_len, total);
+	    if ((uLongf)write(ofd, compress_buf, (size_t)compress_len) != compress_len) {
+               Dmsg0(0, "===Write error===\n");
+               Emsg2(M_ABORT, 0, "Write error on %s: %s\n", ofile, strerror(errno));
+	    }
+	    total += compress_len;
+            Dmsg2(100, "Compress len=%d uncompressed=%d\n", rec.data_len,
+	       compress_len);
+	 }
+#else
+	 if (extract) {
+            Emsg0(M_ABORT, 0, "GZIP data stream found, but GZIP not configured!\n");
+	 }
+#endif
+
 
       /* If extracting, wierd stream (not 1 or 2), close output file anyway */
       } else if (extract) {
@@ -384,6 +415,7 @@ static void do_extract(char *devname, char *where)
    free_pool_memory(fname);
    free_pool_memory(ofile);
    free_pool_memory(lname);
+   free_pool_memory(compress_buf);
    term_dev(dev);
    free_block(block);
    return;

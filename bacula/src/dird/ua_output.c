@@ -41,6 +41,7 @@ extern int r_last;
 extern struct s_res resources[];
 extern int console_msg_pending;
 extern FILE *con_fd;
+extern pthread_mutex_t con_mutex;
 
 
 /* Imported functions */
@@ -325,7 +326,7 @@ void do_messages(UAContext *ua, char *cmd)
    char msg[2000];
    int mlen; 
 
-   fcntl(fileno(con_fd), F_SETLKW);
+   P(con_mutex);
    rewind(con_fd);
    while (fgets(msg, sizeof(msg), con_fd)) {
       mlen = strlen(msg);
@@ -336,8 +337,8 @@ void do_messages(UAContext *ua, char *cmd)
    }
    ftruncate(fileno(con_fd), 0L);
    console_msg_pending = FALSE;
-   fcntl(fileno(con_fd), F_UNLCK);
    ua->user_notified_msg_pending = FALSE;
+   V(con_mutex);
 }
 
 

@@ -41,13 +41,13 @@ static void print_ls_output(JCR *jcr, char *fname, char *lname, int type, struct
  * Restore the requested files.
  * 
  */
-void do_restore(JCR *jcr, char *addr, int port)
+void do_restore(JCR *jcr)
 {
    int wherelen;
    BSOCK *sd;
-   char *fname; 		      /* original file name */
-   char *ofile; 		      /* output name with possible prefix */
-   char *lname; 		      /* link name */
+   POOLMEM *fname;		      /* original file name */
+   POOLMEM *ofile;		      /* output name with possible prefix */
+   POOLMEM *lname;		      /* link name */
    int32_t stream;
    uint32_t size;
    uint32_t VolSessionId, VolSessionTime, file_index;
@@ -66,10 +66,16 @@ void do_restore(JCR *jcr, char *addr, int port)
    if (!bnet_set_buffer_size(sd, MAX_NETWORK_BUFFER_SIZE, BNET_SETBUF_READ)) {
       return;
    }
+   jcr->buf_size = sd->msglen;
 
-   fname = (char *) get_pool_memory(PM_FNAME);
-   ofile = (char *) get_pool_memory(PM_FNAME);
-   lname = (char *) get_pool_memory(PM_FNAME);
+   fname = get_pool_memory(PM_FNAME);
+   ofile = get_pool_memory(PM_FNAME);
+   lname = get_pool_memory(PM_FNAME);
+
+#ifdef HAVE_LIBZ
+   uint32_t compress_buf_size = jcr->buf_size + 12 + ((jcr->buf_size+999) / 1000) + 100;
+   jcr->compress_buf = (char *)bmalloc(compress_buf_size);
+#endif
 
    /* 
     * Get a record from the Storage daemon
@@ -81,10 +87,7 @@ void do_restore(JCR *jcr, char *addr, int port)
       if (sscanf(sd->msg, rec_header, &VolSessionId, &VolSessionTime, &file_index,
 	  &stream, &size) != 5) {
          Jmsg1(jcr, M_FATAL, 0, _("Record header scan error: %s\n"), sd->msg);
-	 free_pool_memory(fname);
-	 free_pool_memory(ofile);
-	 free_pool_memory(lname);
-	 return;
+	 goto bail_out;
       }
       Dmsg2(30, "Got hdr: FilInx=%d Stream=%d.\n", file_index, stream);
 
@@ -96,10 +99,7 @@ void do_restore(JCR *jcr, char *addr, int port)
       }
       if (size != ((uint32_t) sd->msglen)) {
          Jmsg2(jcr, M_FATAL, 0, _("Actual data size %d not same as header %d\n"), sd->msglen, size);
-	 free_pool_memory(fname);
-	 free_pool_memory(ofile);
-	 free_pool_memory(lname);
-	 return;
+	 goto bail_out;
       }
       Dmsg1(30, "Got stream data, len=%d\n", sd->msglen);
 
@@ -144,17 +144,17 @@ void do_restore(JCR *jcr, char *addr, int port)
 	  *
 	  */
          if (sscanf(sd->msg, "%d %d %s", &record_file_index, &type, fname) != 3) {
-            Emsg1(M_FATAL, 0, _("Error scanning record header: %s\n"), sd->msg);
-	    /** ****FIXME**** need to cleanup */
+            Jmsg(jcr, M_FATAL, 0, _("Error scanning record header: %s\n"), sd->msg);
             Dmsg0(0, "\nError scanning header\n");
-	    return;  
+	    goto bail_out;
 	 }
          Dmsg3(30, "Got Attr: FilInx=%d type=%d fname=%s\n", record_file_index,
 	    type, fname);
 	 if (record_file_index != file_index) {
-            Emsg2(M_ABORT, 0, _("Record header file index %ld not equal record index %ld\n"),
+            Jmsg(jcr, M_FATAL, 0, _("Record header file index %ld not equal record index %ld\n"),
 	       file_index, record_file_index);
             Dmsg0(0, "File index error\n");
+	    goto bail_out;
 	 }
 	 ap = sd->msg;
 	 /* Skip to attributes */
@@ -215,15 +215,42 @@ void do_restore(JCR *jcr, char *addr, int port)
 	    if (write(ofd, sd->msg, sd->msglen) != sd->msglen) {
                Dmsg0(0, "===Write error===\n");
                Jmsg2(jcr, M_ERROR, 0, "Write error on %s: %s\n", ofile, strerror(errno));
-	       free_pool_memory(fname);
-	       free_pool_memory(ofile);
-	       free_pool_memory(lname);
-	       return;
+	       goto bail_out;
 	    }
 	    total += sd->msglen;
 	    jcr->JobBytes += sd->msglen;
 	 }
+	
+      /* GZIP data stream */
+      } else if (stream == STREAM_GZIP_DATA) {
+#ifdef HAVE_LIBZ
+	 if (extract) {
+	    uLong compress_len;
+	    int stat;
 
+	    compress_len = compress_buf_size;
+            Dmsg2(100, "Comp_len=%d msglen=%d\n", compress_len, sd->msglen);
+	    if ((stat=uncompress((Byte *)jcr->compress_buf, &compress_len, 
+		  (const Byte *)sd->msg, (uLong)sd->msglen)) != Z_OK) {
+               Jmsg(jcr, M_ERROR, 0, _("Uncompression error. ERR=%d\n"), stat);
+	       goto bail_out;
+	    }
+
+            Dmsg2(100, "Write uncompressed %d bytes, total before write=%d\n", compress_len, total);
+	    if ((uLong)write(ofd, jcr->compress_buf, compress_len) != compress_len) {
+               Dmsg0(0, "===Write error===\n");
+               Jmsg2(jcr, M_ERROR, 0, "Write error on %s: %s\n", ofile, strerror(errno));
+	       goto bail_out;
+	    }
+	    total += compress_len;
+	    jcr->JobBytes += compress_len;
+	 }
+#else
+	 if (extract) {
+            Jmsg(jcr, M_ERROR, 0, "GZIP data stream found, but GZIP not configured!\n");
+	    goto bail_out;
+	 }
+#endif
       /* If extracting, wierd stream (not 1 or 2), close output file anyway */
       } else if (extract) {
          Dmsg1(30, "Found wierd stream %d\n", stream);
@@ -247,6 +274,11 @@ void do_restore(JCR *jcr, char *addr, int port)
       set_statp(jcr, fname, ofile, lname, type, &statp);
    }
 
+bail_out:
+   if (jcr->compress_buf) {
+      free(jcr->compress_buf);
+      jcr->compress_buf = NULL;
+   }
    free_pool_memory(fname);
    free_pool_memory(ofile);
    free_pool_memory(lname);

@@ -35,7 +35,10 @@ extern int debug_level;
 
 /*
  * Convert a FileIndex into a printable
- * ASCII string.  Not reentrant.
+ *   ASCII string.  Not reentrant.
+ * If the FileIndex is negative, it flags the
+ *   record as a Label, otherwise it is simply
+ *   the FileIndex of the current file.
  */
 char *FI_to_ascii(int fi)
 {
@@ -126,7 +129,6 @@ int read_record(DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *record)
       Dmsg2(90, "!read_record_from_block data_len=%d rem=%d\n", record->data_len,
 		record->remainder);
       if (!read_block_from_dev(dev, block)) {
-	 /**** ****FIXME**** handle getting a new Volume */
          Dmsg0(200, "===== Got read block I/O error ======\n");
 	 return 0;
       }
@@ -195,6 +197,11 @@ rem=%d remainder=%d\n",
       stream_to_ascii(rec->Stream), rec->data_len,
       remlen, rec->remainder);
 
+   /*
+    * If rec->remainder is non-zero, we have been called a
+    *  second (or subsequent) time to finish writing a record
+    *  that did not previously fit into the block.
+    */
    if (rec->remainder == 0) {
       /* Require enough room to write a full header */
       if (remlen >= RECHDR_LENGTH) {
@@ -224,8 +231,12 @@ rem=%d remainder=%d\n",
        * an error.  Note, we may have to continue splitting the
        * data record though.
        * 
-       *  First, write the header, then write as much as 
+       * First, write the header, then write as much as 
        * possible of the data record.
+       *
+       * Every time we write a header and it is a continuation
+       * of a previous partially written record, we store the
+       * Stream as -Stream in the record header.
        */
       ser_begin(block->bufp, RECHDR_LENGTH);
       ser_uint32(rec->VolSessionId);
@@ -253,7 +264,8 @@ rem=%d remainder=%d\n",
       return 0; 		      /* partial transfer */
    }
 
-   /* Now deal with data record.
+   /*
+    * Now deal with data record.
     * Part of it may have already been transferred, and we 
     * may not have enough room to transfer the whole this time.
     */
@@ -303,9 +315,12 @@ rem=%d remainder=%d\n",
 int read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
 {
    ser_declare;
-   uint32_t data_bytes;
-   int32_t Stream;
    uint32_t remlen;
+   uint32_t VolSessionId;
+   uint32_t VolSessionTime;
+   int32_t  FileIndex;
+   int32_t  Stream;
+   uint32_t data_bytes;
 
    remlen = block->binbuf;
 
@@ -316,12 +331,11 @@ int read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
    if (remlen >= RECHDR_LENGTH) {
       Dmsg3(90, "read_record_block: remlen=%d data_len=%d rem=%d\n", 
 	    remlen, rec->data_len, rec->remainder);
-/*    memcpy(rec->ser_buf, block->bufp, RECHDR_LENGTH); */
 
       unser_begin(block->bufp, RECHDR_LENGTH);
-      unser_uint32(rec->VolSessionId);
-      unser_uint32(rec->VolSessionTime);
-      unser_int32(rec->FileIndex);
+      unser_uint32(VolSessionId);
+      unser_uint32(VolSessionTime);
+      unser_int32(FileIndex);
       unser_int32(Stream);
       unser_uint32(data_bytes);
 
@@ -330,26 +344,42 @@ int read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
       block->binbuf -= RECHDR_LENGTH;
       remlen -= RECHDR_LENGTH;
 
+      /*    
+       * if Stream is negative, it means that this is a continuation
+       * of a previous partially written record.
+       */
       if (Stream < 0) { 	      /* continuation record? */
          Dmsg1(500, "Got negative Stream => continuation. remainder=%d\n", 
 	    rec->remainder);
-	 /* ****FIXME**** add code to verify that this
-	  *  is the correct continuation of the previous
-	  *  record.
-	  */
          if (!rec->remainder) {       /* if we didn't read previously */
-	    rec->data_len = 0;	      /* simply return data */
+	    rec->data_len = 0;	      /* return data as if no continuation */
+	 } else if (rec->VolSessionId != VolSessionId || 
+		    rec->VolSessionTime != VolSessionTime ||
+		    rec->Stream != -Stream) {
+	    return 0;		      /* This is from some other Session */
 	 }
 	 rec->Stream = -Stream;       /* set correct Stream */
       } else {			      /* Regular record */
 	 rec->Stream = Stream;
 	 rec->data_len = 0;	      /* transfer to beginning of data */
       }
+      rec->VolSessionId = VolSessionId;
+      rec->VolSessionTime = VolSessionTime;
+      rec->FileIndex = FileIndex;
+
       Dmsg6(90, "rd_rec_blk() got FI=%s SessId=%d Strm=%s len=%d\n\
 remlen=%d data_len=%d\n",
 	 FI_to_ascii(rec->FileIndex), rec->VolSessionId, 
 	 stream_to_ascii(rec->Stream), data_bytes, remlen, rec->data_len);
    } else {
+      /*    
+       * No more records in this block because the number   
+       * of remaining bytes are less than a record header 
+       * length, so return empty handed, but indicate that
+       * he must read again. By returning, we allow the
+       * higher level routine to fetch the next block and
+       * then reread.
+       */
       Dmsg0(90, "read_record_block: nothing\n");
       if (!rec->remainder) {
 	 rec->remainder = 1;	      /* set to expect continuation */

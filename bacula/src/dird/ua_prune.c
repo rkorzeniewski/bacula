@@ -582,8 +582,8 @@ int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
       free(del.JobId);
    }
    if (ua->verbose && del.num_del != 0) {
-      bsendmsg(ua, _("Pruned %d Jobs on Volume %s from catalog.\n"), del.num_del,
-	 mr->VolumeName);
+      bsendmsg(ua, _("Pruned %d %s on Volume %s from catalog.\n"), del.num_del,
+         del.num_del == 1 ? "Job" : "Jobs", mr->VolumeName);
    }
 
    /* If purged, mark it so */

@@ -24,7 +24,7 @@
 
 extern int blast_data_to_storage_daemon(JCR *jcr, char *addr, int port);
 extern void do_verify(JCR *jcr);
-extern void do_restore(JCR *jcr, char *addr, int port);
+extern void do_restore(JCR *jcr);
 extern int authenticate_director(JCR *jcr);
 extern int authenticate_storagedaemon(JCR *jcr);
 extern int make_estimate(JCR *jcr);

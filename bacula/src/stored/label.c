@@ -38,7 +38,8 @@ extern char my_name[];
 extern int debug_level;
 
 char BaculaId[] =  "Bacula 0.9 mortal\n";
-unsigned int BaculaTapeVersion = 9;
+unsigned int BaculaTapeVersion = 10;
+unsigned int OldCompatableBaculaTapeVersion = 9;
 
 
 /*
@@ -116,7 +117,8 @@ because:\n   %s"), dev_name(dev), strerror_dev(dev));
    empty_block(block);
    rewind_dev(dev);
 
-   if (dev->VolHdr.VerNum != BaculaTapeVersion) {
+   if (dev->VolHdr.VerNum != BaculaTapeVersion && 
+       dev->VolHdr.VerNum != OldCompatableBaculaTapeVersion) {
       Mmsg(&jcr->errmsg, _("Volume on %s has wrong Bacula version. Wanted %d got %d\n"),
 	 dev_name(dev), BaculaTapeVersion, dev->VolHdr.VerNum);
       return jcr->label_status = VOL_VERSION_ERROR;
@@ -431,8 +433,14 @@ void create_session_label(JCR *jcr, DEV_RECORD *rec, int label)
 
    ser_string(jcr->pool_name);
    ser_string(jcr->pool_type);
-   ser_string(jcr->job_name);
+   ser_string(jcr->job_name);	      /* base Job name */
    ser_string(jcr->client_name);
+   /* Added in VerNum 10 */
+   ser_string(jcr->Job);	      /* Unique name of this Job */
+   ser_string(jcr->fileset_name);
+   ser_uint32(jcr->JobType);
+   ser_uint32(jcr->JobLevel);
+
    if (label == EOS_LABEL) {
       ser_uint32(jcr->JobFiles);
       ser_uint64(jcr->JobBytes);
@@ -569,6 +577,12 @@ int unser_session_label(SESSION_LABEL *label, DEV_RECORD *rec)
    unser_string(label->PoolType);
    unser_string(label->JobName);
    unser_string(label->ClientName);
+   if (label->VerNum > 9) {
+      unser_string(label->Job); 	 /* Unique name of this Job */
+      unser_string(label->FileSetName);
+      unser_uint32(label->JobType);
+      unser_uint32(label->JobLevel);
+   }
    if (rec->FileIndex == EOS_LABEL) {
       unser_uint32(label->JobFiles);
       unser_uint64(label->JobBytes);
@@ -603,6 +617,15 @@ ClientName        : %s\n\
 ",    type, 
       label.JobId, label.PoolName, label.PoolType,
       label.JobName, label.ClientName);
+
+   if (label.VerNum >= 10) {
+      Dmsg4(-1, "\
+Job (unique name) : %s\n\
+FileSet           : %s\n\
+JobType           : %c\n\
+JobLevel          : %c\n\
+", label.Job, label.FileSetName, label.JobType, label.JobLevel);
+   }
 
    if (rec->FileIndex == EOS_LABEL) {
       Dmsg7(-1, "\

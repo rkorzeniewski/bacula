@@ -181,7 +181,7 @@ bnet_recv(BSOCK *bsock)
    }
    /* always add a zero by to properly terminate any
     * string that was send to us. Note, we ensured above that the
-    * buffer is atleast one byte longer than the message length.
+    * buffer is at least one byte longer than the message length.
     */
    bsock->msg[nbytes] = 0;	      /* terminate in case it is a string */
    sm_check(__FILE__, __LINE__, False);

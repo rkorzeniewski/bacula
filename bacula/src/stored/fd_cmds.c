@@ -283,10 +283,10 @@ static int read_open_session(JCR *jcr)
 	 bnet_fsend(fd, NOT_opened);
 	 return 0;
       }
-      Dmsg4(0, "Got: JobId=%d Vol=%s VolSessId=%ld VolSessT=%ld\n",
+      Dmsg4(100, "read_open_session got: JobId=%d Vol=%s VolSessId=%ld VolSessT=%ld\n",
 	 jcr->JobId, jcr->VolumeName, jcr->read_VolSessionId, 
 	 jcr->read_VolSessionTime);
-      Dmsg4(0, "  StartF=%ld EndF=%ld StartB=%ld EndB=%ld\n",
+      Dmsg4(100, "  StartF=%ld EndF=%ld StartB=%ld EndB=%ld\n",
 	 jcr->read_StartFile, jcr->read_EndFile, jcr->read_StartBlock,
 	 jcr->read_EndBlock);
    }

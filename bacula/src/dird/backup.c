@@ -110,14 +110,14 @@ int do_backup(JCR *jcr)
    jcr->stime = (char *) get_pool_memory(PM_MESSAGE);
    jcr->stime[0] = 0;
    since[0] = 0;
-   switch (jcr->level) {
+   switch (jcr->JobLevel) {
       case L_DIFFERENTIAL:
       case L_INCREMENTAL:
 	 /* Look up start time of last job */
 	 jcr->jr.JobId = 0;
 	 if (!db_find_job_start_time(jcr->db, &jcr->jr, jcr->stime)) {
             Jmsg(jcr, M_INFO, 0, _("Last FULL backup time not found. Doing FULL backup.\n"));
-	    jcr->level = L_FULL;
+	    jcr->JobLevel = L_FULL;
 	    jcr->jr.Level = L_FULL;
 	 } else {
             strcpy(since, ", since=");
@@ -246,7 +246,7 @@ int do_backup(JCR *jcr)
    /* 
     * Send Level command to File daemon
     */
-   switch (jcr->level) {
+   switch (jcr->JobLevel) {
       case L_FULL:
          bnet_fsend(fd, levelcmd, "full", " ");
 	 break;
@@ -258,7 +258,7 @@ int do_backup(JCR *jcr)
 	 break;
       case L_SINCE:
       default:
-         Emsg1(M_FATAL, 0, _("Unimplemented backup level %d\n"), jcr->level);
+         Emsg1(M_FATAL, 0, _("Unimplemented backup level %d\n"), jcr->JobLevel);
 	 backup_cleanup(jcr, JS_ErrorTerminated, since);
 	 return 0;
    }
@@ -404,7 +404,7 @@ Termination:            %s\n\n"),
 	jcr->jr.JobId,
 	jcr->jr.Job,
 	jcr->fileset->hdr.name,
-	level_to_str(jcr->level), since,
+	level_to_str(jcr->JobLevel), since,
 	jcr->client->hdr.name,
 	sdt,
 	edt,

@@ -350,7 +350,7 @@ int select_pool_and_media_dbr(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
       strcpy(mr->VolumeName, ua->argv[i]);
    } else {
       db_list_media_records(ua->db, mr, prtit, ua);
-      if (!get_cmd(ua, _("Enter the Volume name to delete: "))) {
+      if (!get_cmd(ua, _("Enter the Volume name: "))) {
 	 return 01;
       }
       strcpy(mr->VolumeName, ua->cmd);

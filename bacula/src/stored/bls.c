@@ -32,6 +32,8 @@ static void do_blocks(char *infname);
 static void do_jobs(char *infname);
 static void do_ls(char *fname);
 static void print_ls_output(char *fname, char *link, int type, struct stat *statp);
+static void do_setup(char *infname);
+static void do_close();
 
 static DEVICE *dev;
 static int default_tape = FALSE;
@@ -39,6 +41,14 @@ static int dump_label = FALSE;
 static int list_blocks = FALSE;
 static int list_jobs = FALSE;
 static int verbose = 0;
+static char Vol[2000];
+static char *VolName;
+static char *p;
+static DEV_RECORD *rec;
+static DEV_BLOCK *block;
+static int NumVolumes, CurVolume;
+static JCR *jcr;
+
 
 extern char BaculaId[];
 
@@ -153,6 +163,7 @@ int main (int argc, char *argv[])
    }
 
    for (i=0; i < argc; i++) {
+      do_setup(argv[i]);
       if (list_blocks) {
 	 do_blocks(argv[i]);
       } else if (list_jobs) {
@@ -160,8 +171,8 @@ int main (int argc, char *argv[])
       } else {
 	 do_ls(argv[i]);
       }
+      do_close();
    }
-
    return 0;
 }
 
@@ -170,17 +181,11 @@ static void my_free_jcr(JCR *jcr)
    return;
 }
 
-/* List just block information */
-static void do_blocks(char *infname)
+/*
+ * Setup device, jcr, and prepare to read
+ */
+static void do_setup(char *infname) 
 {
-   char Vol[2000];
-   char *VolName;
-   char *p;
-   DEV_RECORD *rec;
-   DEV_BLOCK *block;
-   int NumVolumes, CurVolume;
-   JCR *jcr;
-
    jcr = new_jcr(sizeof(JCR), my_free_jcr);
    VolName = Vol;
    VolName[0] = 0;
@@ -224,6 +229,74 @@ static void do_blocks(char *infname)
       Emsg0(M_ERROR, 0, dev->errmsg);
       exit(1);
    }
+}
+
+static void do_close()
+{
+   term_dev(dev);
+   free_record(rec);
+   free_block(block);
+   free_jcr(jcr);
+}
+
+static int mount_next_volume(char *infname)
+{
+   if (rec->remainder) {
+      Dmsg0(20, "Not end of record. Next volume has more data for current record.\n");
+   }
+   Dmsg2(20, "NumVolumes=%d CurVolume=%d\n", NumVolumes, CurVolume);
+   if (NumVolumes > 1 && CurVolume < NumVolumes) {
+      p = VolName;
+      while (*p++)  
+	 { }
+      CurVolume++;
+      Dmsg1(20, "There is another volume %s.\n", p);
+      VolName = p;
+      close_dev(dev);
+      jcr->VolumeName = check_pool_memory_size(jcr->VolumeName, 
+			  strlen(VolName)+1);
+      strcpy(jcr->VolumeName, VolName);
+      printf("Mount Volume %s on device %s and press return when ready.",
+	 VolName, infname);
+      getchar();   
+      block->binbuf = 0;     /* consumed all bytes */
+      if (!ready_dev_for_read(jcr, dev, block)) {
+         Emsg2(M_ABORT, 0, "Cannot open Dev=%s, Vol=%s\n", infname, VolName);
+      }
+      return 1; 	     /* Next volume mounted */
+   }
+   printf("End of Device reached.\n");
+   return 0;		     /* EOT */
+}
+
+/*
+ * Device got an error, attempt to analyse it
+ */
+static void display_error_status()
+{
+   uint32_t status;
+
+   Emsg0(M_ERROR, 0, dev->errmsg);
+   status_dev(dev, &status);
+   Dmsg1(20, "Device status: %x\n", status);
+   if (status & MT_EOD)
+      Emsg0(M_ABORT, 0, "Unexpected End of Data\n");
+   else if (status & MT_EOT)
+      Emsg0(M_ABORT, 0, "Unexpected End of Tape\n");
+   else if (status & MT_EOF)
+      Emsg0(M_ABORT, 0, "Unexpected End of File\n");
+   else if (status & MT_DR_OPEN)
+      Emsg0(M_ABORT, 0, "Tape Door is Open\n");
+   else if (!(status & MT_ONLINE))
+      Emsg0(M_ABORT, 0, "Unexpected Tape is Off-line\n");
+   else
+      Emsg2(M_ABORT, 0, "Read error on Record Header %s: %s\n", dev_name(dev), strerror(errno));
+}
+
+
+/* List just block information */
+static void do_blocks(char *infname)
+{
 
    dump_volume_label(dev);
 
@@ -239,35 +312,12 @@ Warning, this Volume is a continuation of Volume %s\n",
    for ( ;; ) {
 
       if (!read_block_from_device(dev, block)) {
-	 uint32_t status;
          Dmsg0(20, "!read_record()\n");
 	 if (dev->state & ST_EOT) {
-	    if (rec->remainder) {
-               Dmsg0(20, "Not end of record.\n");
+	    if (!mount_next_volume(infname)) {
+	       break;
 	    }
-            Dmsg2(20, "NumVolumes=%d CurVolume=%d\n", NumVolumes, CurVolume);
-	    if (NumVolumes > 1 && CurVolume < NumVolumes) {
-	       p = VolName;
-	       while (*p++)  
-		  { }
-	       CurVolume++;
-               Dmsg1(20, "There is another volume %s.\n", p);
-	       VolName = p;
-	       close_dev(dev);
-	       jcr->VolumeName = (char *)check_pool_memory_size(jcr->VolumeName, 
-				   strlen(VolName)+1);
-	       strcpy(jcr->VolumeName, VolName);
-               printf("Mount Volume %s on device %s and press return when ready.",
-		  VolName, infname);
-	       getchar();   
-	       block->binbuf = 0;     /* consumed all bytes */
-	       if (!ready_dev_for_read(jcr, dev, block)) {
-                  Emsg2(M_ABORT, 0, "Cannot open Dev=%s, Vol=%s\n", infname, VolName);
-	       }
-	       continue;
-	    }
-            printf("End of Device reached.\n");
-	    break;
+	    continue;
 	 }
 	 if (dev->state & ST_EOF) {
             Emsg1(M_INFO, 0, "Got EOF on device %s\n", dev_name(dev));
@@ -278,88 +328,19 @@ Warning, this Volume is a continuation of Volume %s\n",
 	    Emsg0(M_INFO, 0, dev->errmsg);
 	    continue;
 	 }
-	 Emsg0(M_ERROR, 0, dev->errmsg);
-	 status_dev(dev, &status);
-         Dmsg1(20, "Device status: %x\n", status);
-	 if (status & MT_EOD)
-            Emsg0(M_ABORT, 0, "Unexpected End of Data\n");
-	 else if (status & MT_EOT)
-            Emsg0(M_ABORT, 0, "Unexpected End of Tape\n");
-	 else if (status & MT_EOF)
-            Emsg0(M_ABORT, 0, "Unexpected End of File\n");
-	 else if (status & MT_DR_OPEN)
-            Emsg0(M_ABORT, 0, "Tape Door is Open\n");
-	 else if (!(status & MT_ONLINE))
-            Emsg0(M_ABORT, 0, "Unexpected Tape is Off-line\n");
-	 else
-            Emsg2(M_ABORT, 0, "Read error on Record Header %s: %s\n", dev_name(dev), strerror(errno));
+	 display_error_status();
 	 break;
       }
 
       printf("Block: %d size=%d\n", block->BlockNumber, block->block_len);
 
    }
-   term_dev(dev);
-   free_record(rec);
-   free_block(block);
-   free_jcr(jcr);
    return;
 }
 
 /* Do list job records */
 static void do_jobs(char *infname)
 {
-   char Vol[2000];
-   char *VolName;
-   char *p;
-   DEV_RECORD *rec;
-   DEV_BLOCK *block;
-   int NumVolumes, CurVolume;
-   JCR *jcr;
-
-   jcr = new_jcr(sizeof(JCR), my_free_jcr);
-   VolName = Vol;
-   VolName[0] = 0;
-   if (strncmp(infname, "/dev/", 5) != 0) {
-      /* Try stripping file part */
-      p = infname + strlen(infname);
-      while (p >= infname && *p != '/')
-	 p--;
-      if (*p == '/') {
-	 strcpy(VolName, p+1);
-	 *p = 0;
-      }
-   }
-   Dmsg2(10, "Device=%s, Vol=%s.\n", infname, VolName);
-   dev = init_dev(NULL, infname);
-   if (!dev) {
-      Emsg1(M_ABORT, 0, "Cannot open %s\n", infname);
-   }
-   /* ***FIXME**** init capabilities */
-   if (!open_device(dev)) {
-      Emsg1(M_ABORT, 0, "Cannot open %s\n", infname);
-   }
-   Dmsg0(90, "Device opened for read.\n");
-
-   rec = new_record();
-   block = new_block(dev);
-
-   NumVolumes = 0;
-   CurVolume = 1;
-   for (p = VolName; p && *p; ) {
-      p = strchr(p, '^');
-      if (p) {
-	 *p++ = 0;
-      }
-      NumVolumes++;
-   }
-
-   jcr->VolumeName = (char *)check_pool_memory_size(jcr->VolumeName, strlen(VolName)+1);
-   strcpy(jcr->VolumeName, VolName);
-   if (!acquire_device_for_read(jcr, dev, block)) {
-      Emsg0(M_ERROR, 0, dev->errmsg);
-      exit(1);
-   }
 
    /* Assume that we have already read the volume label.
     * If on second or subsequent volume, adjust buffer pointer 
@@ -371,41 +352,13 @@ Warning, this Volume is a continuation of Volume %s\n",
    }
  
    for ( ;; ) {
-      DEV_RECORD *record;
-
       if (!read_record(dev, block, rec)) {
-	 uint32_t status;
          Dmsg0(20, "!read_record()\n");
 	 if (dev->state & ST_EOT) {
-	    if (rec->remainder) {
-               Dmsg0(20, "Not end of record.\n");
+	    if (!mount_next_volume(infname)) {
+	       break;
 	    }
-            Dmsg2(20, "NumVolumes=%d CurVolume=%d\n", NumVolumes, CurVolume);
-	    if (NumVolumes > 1 && CurVolume < NumVolumes) {
-	       p = VolName;
-	       while (*p++)  
-		  { }
-	       CurVolume++;
-               Dmsg1(20, "There is another volume %s.\n", p);
-	       VolName = p;
-	       close_dev(dev);
-	       jcr->VolumeName = (char *)check_pool_memory_size(jcr->VolumeName, 
-		     strlen(VolName)+1);
-	       strcpy(jcr->VolumeName, VolName);
-               printf("Mount Volume %s on device %s and press return when ready.",
-		  VolName, infname);
-	       getchar();   
-	       if (!ready_dev_for_read(jcr, dev, block)) {
-                  Emsg2(M_ABORT, 0, "Cannot open Dev=%s, Vol=%s\n", infname, VolName);
-	       }
-	       record = new_record();
-	       read_record(dev, block, record); /* read vol label */
-	       dump_label_record(dev, record, verbose);
-	       free_record(record);
-	       continue;
-	    }
-            printf("End of Device reached.\n");
-	    break;
+	    continue;
 	 }
 	 if (dev->state & ST_EOF) {
             Emsg1(M_INFO, 0, "Got EOF on device %s\n", dev_name(dev));
@@ -416,21 +369,7 @@ Warning, this Volume is a continuation of Volume %s\n",
 	    Emsg0(M_INFO, 0, dev->errmsg);
 	    continue;
 	 }
-	 Emsg0(M_ERROR, 0, dev->errmsg);
-	 status_dev(dev, &status);
-         Dmsg1(20, "Device status: %x\n", status);
-	 if (status & MT_EOD)
-            Emsg0(M_ABORT, 0, "Unexpected End of Data\n");
-	 else if (status & MT_EOT)
-            Emsg0(M_ABORT, 0, "Unexpected End of Tape\n");
-	 else if (status & MT_EOF)
-            Emsg0(M_ABORT, 0, "Unexpected End of File\n");
-	 else if (status & MT_DR_OPEN)
-            Emsg0(M_ABORT, 0, "Tape Door is Open\n");
-	 else if (!(status & MT_ONLINE))
-            Emsg0(M_ABORT, 0, "Unexpected Tape is Off-line\n");
-	 else
-            Emsg2(M_ABORT, 0, "Read error on Record Header %s: %s\n", dev_name(dev), strerror(errno));
+	 display_error_status();
 	 break;
       }
 
@@ -458,78 +397,19 @@ Warning, this Volume is a continuation of Volume %s\n",
 	 continue;
       }
    }
-   term_dev(dev);
-   free_record(rec);
-   free_block(block);
-   free_jcr(jcr);
    return;
 }
 
 /* Do an ls type listing of an archive */
 static void do_ls(char *infname)
 {
-   char fname[1000];
-   char Vol[2000];
-   char *VolName;
-   char *p;
+   char fname[2000];
    struct stat statp;
    int type;
    long record_file_index;
-   DEV_RECORD *rec;
-   DEV_BLOCK *block;
-   int NumVolumes, CurVolume;
-   JCR *jcr;
-
-   jcr = new_jcr(sizeof(JCR), my_free_jcr);
-   VolName = Vol;
-   VolName[0] = 0;
-   if (strncmp(infname, "/dev/", 5) != 0) {
-      /* Try stripping file part */
-      p = infname + strlen(infname);
-      while (p >= infname && *p != '/')
-	 p--;
-      if (*p == '/') {
-	 strcpy(VolName, p+1);
-	 *p = 0;
-      }
-   }
-   Dmsg2(10, "Device=%s, Vol=%s.\n", infname, VolName);
-   dev = init_dev(NULL, infname);
-   if (!dev) {
-      Emsg1(M_ABORT, 0, "Cannot open %s\n", infname);
-   }
-   /* ***FIXME**** init capabilities */
-   if (!open_device(dev)) {
-      Emsg1(M_ERROR, 0, "Cannot open %s\n", infname);
-      exit(1);
-   }
-   Dmsg0(90, "Device opened for read.\n");
-
-   rec = new_record();
-   block = new_block(dev);
-
-   NumVolumes = 0;
-   CurVolume = 1;
-   for (p = VolName; p && *p; ) {
-      p = strchr(p, '^');
-      if (p) {
-	 *p++ = 0;
-      }
-      NumVolumes++;
-   }
-
-   jcr->VolumeName = (char *)check_pool_memory_size(jcr->VolumeName, strlen(VolName)+1);
-   strcpy(jcr->VolumeName, VolName);
-   if (!acquire_device_for_read(jcr, dev, block)) {
-      Emsg0(M_ERROR, 0, dev->errmsg);
-      exit(1);
-   }
 
    if (dump_label) {
       dump_volume_label(dev);
-      term_dev(dev);
-      free_record(rec);
-      free_block(block);
       return;
    }
 
@@ -543,41 +423,13 @@ Warning, this Volume is a continuation of Volume %s\n",
    }
  
    for ( ;; ) {
-      DEV_RECORD *record;
-
       if (!read_record(dev, block, rec)) {
-	 uint32_t status;
          Dmsg0(20, "!read_record()\n");
 	 if (dev->state & ST_EOT) {
-	    if (rec->remainder) {
-               Dmsg0(20, "Not end of record.\n");
+	    if (!mount_next_volume(infname)) {
+	       break;
 	    }
-            Dmsg2(20, "NumVolumes=%d CurVolume=%d\n", NumVolumes, CurVolume);
-	    if (NumVolumes > 1 && CurVolume < NumVolumes) {
-	       p = VolName;
-	       while (*p++)  
-		  { }
-	       CurVolume++;
-               Dmsg1(20, "There is another volume %s.\n", p);
-	       VolName = p;
-	       close_dev(dev);
-	       jcr->VolumeName = (char *)check_pool_memory_size(jcr->VolumeName, 
-		    strlen(VolName)+1);
-	       strcpy(jcr->VolumeName, VolName);
-               printf("Mount Volume %s on device %s and press return when ready.",
-		  VolName, infname);
-	       getchar();   
-	       if (!ready_dev_for_read(jcr, dev, block)) {
-                  Emsg2(M_ABORT, 0, "Cannot open Dev=%s, Vol=%s\n", infname, VolName);
-	       }
-	       record = new_record();
-	       read_record(dev, block, record); /* read vol label */
-	       dump_label_record(dev, record, 0);
-	       free_record(record);
-	       continue;
-	    }
-            printf("End of Device reached.\n");
-	    break;
+	    continue;
 	 }
 	 if (dev->state & ST_EOF) {
             Emsg1(M_INFO, 0, "Got EOF on device %s\n", dev_name(dev));
@@ -588,21 +440,7 @@ Warning, this Volume is a continuation of Volume %s\n",
 	    Emsg0(M_INFO, 0, dev->errmsg);
 	    continue;
 	 }
-	 Emsg0(M_ERROR, 0, dev->errmsg);
-	 status_dev(dev, &status);
-         Dmsg1(20, "Device status: %x\n", status);
-	 if (status & MT_EOD)
-            Emsg0(M_ABORT, 0, "Unexpected End of Data\n");
-	 else if (status & MT_EOT)
-            Emsg0(M_ABORT, 0, "Unexpected End of Tape\n");
-	 else if (status & MT_EOF)
-            Emsg0(M_ABORT, 0, "Unexpected End of File\n");
-	 else if (status & MT_DR_OPEN)
-            Emsg0(M_ABORT, 0, "Tape Door is Open\n");
-	 else if (!(status & MT_ONLINE))
-            Emsg0(M_ABORT, 0, "Unexpected Tape is Off-line\n");
-	 else
-            Emsg2(M_ABORT, 0, "Read error on Record Header %s: %s\n", dev_name(dev), strerror(errno));
+	 display_error_status();
 	 break;
       }
 
@@ -649,10 +487,6 @@ Warning, this Volume is a continuation of Volume %s\n",
 	 print_ls_output(fname, ap, type, &statp);
       }
    }
-   term_dev(dev);
-   free_record(rec);
-   free_block(block);
-   free_jcr(jcr);
    return;
 }
 

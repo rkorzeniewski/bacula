@@ -965,6 +965,7 @@ AC_CHECK_LIB(sun, getpwnam)
 AC_CHECK_LIB(z, deflate, [FDLIBS="-lz"])
 have_zlib=no
 if test x$FDLIBS = x-lz; then
+  AC_DEFINE(HAVE_LIBZ)
   have_zlib=yes
 fi
 
@@ -1203,7 +1204,7 @@ chmod 755 src/cats/sqlite
 
 
 echo "
-Configuration:
+Configuration on `date`:
 
   Host: 		      ${DISTNAME} ${DISTVER}
   Bacula version:	      ${VERSION} (${DATE})
@@ -1235,4 +1236,6 @@ Configuration:
   enable-gnome: 	      ${support_gnome}
   gmp support:		      ${got_gmp} ${GMP_SRC}
 
-  "
+  " > config.out
+
+cat config.out

@@ -43,6 +43,7 @@ char *exename = (char *)NULL;
 int console_msg_pending = 0;
 char con_fname[1000];
 FILE *con_fd = NULL;
+pthread_mutex_t con_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /* Forward referenced functions */
 
@@ -434,7 +435,7 @@ static char *edit_job_codes(JCR *jcr, char *omsg, char *imsg, char *to)
 	    str = to;
 	    break;
          case 'l':
-	    str = job_level_to_str(jcr->level);
+	    str = job_level_to_str(jcr->JobLevel);
 	    break;
          case 'c':
 	    str = jcr->client_name;
@@ -666,7 +667,7 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
                    Dmsg0(200, "Console file not open.\n");
 		}
 		if (con_fd) {
-		   fcntl(fileno(con_fd), F_SETLKW);
+		   P(con_mutex);
 		   errno = 0;
 		   bstrftime(cmd, sizeof(cmd), time(NULL));
 		   len = strlen(cmd);
@@ -679,8 +680,8 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
 		   }
 		   fwrite(msg, len, 1, con_fd);
 		   fflush(con_fd);
-		   fcntl(fileno(con_fd), F_UNLCK);
 		   console_msg_pending = TRUE;
+		   V(con_mutex);
 		}
 		break;
 	     case MD_SYSLOG:

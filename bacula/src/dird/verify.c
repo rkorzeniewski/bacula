@@ -47,7 +47,7 @@
 extern int debug_level;
 
 /* Commands sent to File daemon */
-static char verifycmd[]   = "verify";
+static char verifycmd[]   = "verify level=%s\n";
 static char levelcmd[]    = "level = %s%s\n";
 
 /* Responses received from File daemon */
@@ -82,7 +82,7 @@ int do_verify(JCR *jcr)
     * we must look up the time and date of the
     * last full verify.
     */
-   if (jcr->level == L_VERIFY_CATALOG) {
+   if (jcr->JobLevel == L_VERIFY_CATALOG) {
       memcpy(&jr, &(jcr->jr), sizeof(jr));
       if (!db_find_last_full_verify(jcr->db, &jr)) {
          Jmsg(jcr, M_FATAL, 0, _("Unable to find last full verify. %s"),
@@ -95,7 +95,7 @@ int do_verify(JCR *jcr)
 
    jcr->jr.JobId = jcr->JobId;
    jcr->jr.StartTime = jcr->start_time;
-   jcr->jr.Level = jcr->level;
+   jcr->jr.Level = jcr->JobLevel;
    if (!db_update_job_start_record(jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
       goto bail_out;
@@ -111,7 +111,7 @@ int do_verify(JCR *jcr)
    Jmsg(jcr, M_INFO, 0, _("Start Verify JobId %d Job=%s\n"),
       jcr->JobId, jcr->Job);
 
-   if (jcr->level == L_VERIFY_CATALOG) {
+   if (jcr->JobLevel == L_VERIFY_CATALOG) {
       memset(&jr, 0, sizeof(jr));
       jr.JobId = last_full_id;
       if (!db_get_job_record(jcr->db, &jr)) {
@@ -147,7 +147,7 @@ int do_verify(JCR *jcr)
     * Send Level command to File daemon
     *
     */
-   switch (jcr->level) {
+   switch (jcr->JobLevel) {
       case L_VERIFY_INIT:
          level = "init";
 	 break;
@@ -161,7 +161,7 @@ int do_verify(JCR *jcr)
          level = "data";
 	 break;
       default:
-         Jmsg1(jcr, M_FATAL, 0, _("Unimplemented save level %d\n"), jcr->level);
+         Jmsg1(jcr, M_FATAL, 0, _("Unimplemented save level %d\n"), jcr->JobLevel);
 	 goto bail_out;
    }
    Dmsg1(20, ">filed: %s", fd->msg);
@@ -173,7 +173,7 @@ int do_verify(JCR *jcr)
    /* 
     * Send verify command to File daemon
     */
-   bnet_fsend(fd, verifycmd);
+   bnet_fsend(fd, verifycmd, level);
    if (!response(fd, OKverify, "Verify")) {
       goto bail_out;
    }
@@ -184,7 +184,7 @@ int do_verify(JCR *jcr)
     *  catalog depending on the run type.
     */
    /* Compare to catalog */
-   switch (jcr->level) { 
+   switch (jcr->JobLevel) { 
    case L_VERIFY_CATALOG:
       Dmsg0(10, "Verify level=catalog\n");
       get_attributes_and_compare_to_catalog(jcr, last_full_id);
@@ -197,7 +197,7 @@ int do_verify(JCR *jcr)
       break;
 
    default:
-      Jmsg1(jcr, M_FATAL, 0, _("Unimplemented save level %d\n"), jcr->level);
+      Jmsg1(jcr, M_FATAL, 0, _("Unimplemented verify level %d\n"), jcr->JobLevel);
       goto bail_out;
    }
 
@@ -266,7 +266,7 @@ Termination:            %s\n\n"),
 	jcr->jr.JobId,
 	jcr->jr.Job,
 	jcr->fileset->hdr.name,
-	level_to_str(jcr->level),
+	level_to_str(jcr->JobLevel),
 	jcr->client->hdr.name,
 	sdt,
 	edt,

@@ -64,6 +64,7 @@
 struct s_included_file {
    struct s_included_file *next;
    int options;                       /* backup options */
+   int level;                         /* compression level */
    int len;                           /* length of fname */
    int pattern;                       /* set if pattern */
    char VerifyOpts[20];               /* Options for verify */
@@ -95,6 +96,7 @@ typedef struct ff {
    int dereference;                   /* follow links */
    int compute_MD5;                   /* compute MD5 checksum */
    int GZIP_compression;              /* compress the file */
+   int GZIP_level;                    /* compression level */
    int one_file_system;               /* do not traverse file systems */
    int atime_preserve;                /* preserve access times */
    int null_output_device;            /* using null output device */

@@ -336,15 +336,24 @@ static struct s_kw FS_option_kw[] = {
 struct s_fs_opt {
    char *name;
    int keyword;
-   char option;
+   char *option;
 };
 
 /* Options permitted for each keyword and resulting value */
 static struct s_fs_opt FS_options[] = {
-   {"md5",      FS_KW_SIGNATURE,    'M'},
-   {"gzip",     FS_KW_COMPRESSION,  'Z'},
-   {"blowfish", FS_KW_ENCRYPTION,   'B'},   /* ***FIXME*** not implemented */
-   {"3des",     FS_KW_ENCRYPTION,   '3'},   /* ***FIXME*** not implemented */
+   {"md5",      FS_KW_SIGNATURE,    "M"},
+   {"gzip",     FS_KW_COMPRESSION,  "Z6"},
+   {"gzip1",    FS_KW_COMPRESSION,  "Z1"},
+   {"gzip2",    FS_KW_COMPRESSION,  "Z2"},
+   {"gzip3",    FS_KW_COMPRESSION,  "Z3"},
+   {"gzip4",    FS_KW_COMPRESSION,  "Z4"},
+   {"gzip5",    FS_KW_COMPRESSION,  "Z5"},
+   {"gzip6",    FS_KW_COMPRESSION,  "Z6"},
+   {"gzip7",    FS_KW_COMPRESSION,  "Z7"},
+   {"gzip8",    FS_KW_COMPRESSION,  "Z8"},
+   {"gzip9",    FS_KW_COMPRESSION,  "Z9"},
+   {"blowfish", FS_KW_ENCRYPTION,   "B"},   /* ***FIXME*** not implemented */
+   {"3des",     FS_KW_ENCRYPTION,   "3"},   /* ***FIXME*** not implemented */
    {NULL,	0,		     0}
 };
 
@@ -1104,16 +1113,17 @@ static void store_restore(LEX *lc, struct res_items *item, int index, int pass)
 
 
 /* 
- * Scan for FileSet options
+ * Scan for FileSet options (keyword=option) is converted into one or
+ *  two characters. Verifyopts=xxxx is Vxxxx:
  */
 static char *scan_fs_options(LEX *lc, int keyword)
 {
    int token, i;
    static char opts[100];
-   char option[2];
+   char option[3];
 
    option[0] = 0;		      /* default option = none */
-   opts[0] = option[1] = 0;	      /* terminate options */
+   opts[0] = option[2] = 0;	      /* terminate options */
    for (;;) {
       token = lex_get_token(lc);	     /* expect at least one option */	    
       if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
@@ -1127,7 +1137,8 @@ static char *scan_fs_options(LEX *lc, int keyword)
       } else {
 	 for (i=0; FS_options[i].name; i++) {
 	    if (strcasecmp(lc->str, FS_options[i].name) == 0 && FS_options[i].keyword == keyword) {
-	       option[0] = FS_options[i].option;
+	       option[0] = FS_options[i].option[0];
+	       option[1] = FS_options[i].option[1];
 	       i = 0;
 	       break;
 	    }

@@ -124,7 +124,7 @@ static void free_common_jcr(JCR *jcr)
 
    /* do this after closing messages */
    if (jcr->client_name) {
-      free(jcr->client_name);
+      free_pool_memory(jcr->client_name);
       jcr->client_name = NULL;
    }
 

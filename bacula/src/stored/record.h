@@ -146,8 +146,13 @@ struct Session_Label {
 
   char PoolName[MAX_NAME_LENGTH];     /* Pool name */
   char PoolType[MAX_NAME_LENGTH];     /* Pool type */
-  char JobName[MAX_NAME_LENGTH];
+  char JobName[MAX_NAME_LENGTH];      /* base Job name */
   char ClientName[MAX_NAME_LENGTH];
+  char Job[MAX_NAME_LENGTH];          /* Unique name of this Job */
+  char FileSetName[MAX_NAME_LENGTH];
+  uint32_t JobType;
+  uint32_t JobLevel;
+  /* The remainder are part of EOS label only */
   uint32_t JobFiles;
   uint64_t JobBytes;
   uint32_t start_block;

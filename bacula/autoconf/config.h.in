@@ -233,6 +233,9 @@
 /* Directory for PID files */
 #undef _PATH_BACULA_PIDDIR
 
+/* Define if you have zlib */
+#undef HAVE_LIBZ
+
 /* File daemon specif libraries */
 #undef FDLIBS
 
