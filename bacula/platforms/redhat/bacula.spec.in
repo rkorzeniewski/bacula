@@ -160,9 +160,13 @@ Requires: GConf2
 Requires: linc
 Requires: libtermcap
 %endif
-%if %{mysql}
+%if %{mysql} && ! %{su9}
 Requires: mysql >= 3.23
 Requires: mysql-server >= 3.23
+%endif
+%if %{mysql} && %{su9}
+Requires: mysql >= 3.23
+Requires: mysql-client >= 3.23
 %endif
 %if %{postgresql} && %{wb3}
 Requires: rh-postgresql >= 7
@@ -885,6 +889,8 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 
 
 %changelog
+* Sat Mar 13 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
+- corrected mysql prerequisites for suse
 * Mon Mar 1 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - replaced all cp commands with cp -p
 - removed addition of a+x permissions on gnome-console

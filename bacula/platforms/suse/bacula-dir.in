@@ -8,8 +8,12 @@
 #
 #  For Bacula release @VERSION@ (@DATE@) -- @DISTNAME@
 # Modified to work on SuSE 1/31/2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
+# Added rc.status functions 3/13/2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
 #
 
+# source process status functions
+# this gives us funtion rc_status -v to tell us if we succeed or fail
+. /etc/rc.status
 
 RETVAL=0
 case "$1" in
@@ -17,6 +21,7 @@ case "$1" in
        echo -n "Starting the Bacula Director: "
        /sbin/startproc @sbindir@/bacula-dir $2 -c @sysconfdir@/bacula-dir.conf
        RETVAL=$?
+       rc_status -v
        echo
        [ $RETVAL -eq 0 ] && touch @subsysdir@/bacula-dir
        ;;
@@ -24,6 +29,7 @@ case "$1" in
        echo -n "Stopping the Director daemon: "
        /sbin/killproc @sbindir@/bacula-dir
        RETVAL=$?
+       rc_status -v
        echo
        [ $RETVAL -eq 0 ] && rm -f @subsysdir@/bacula-dir
        ;;
@@ -34,6 +40,7 @@ case "$1" in
        ;;
     status)
        /sbin/checkproc @sbindir@/bacula-dir
+       rc_status -v
        ;;
     *)
        echo "Usage: $0 {start|stop|restart|status}"
