@@ -65,6 +65,8 @@ For 1.37 Testing/Documentation:
   non-existent directories will not be restored properly.
 
 Wish list:  
+- Implement "from ISO-date/time every x hours/days/weeks/months" in
+  schedules.
 - Compaction of Disk space by "migrating" Volumes that have pruned
   Jobs (what criteria? size, #jobs, time).
 - Add prune all command
