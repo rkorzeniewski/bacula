@@ -374,7 +374,6 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
       case s_mday:		   /* day of month */
 	 if (!have_mday) {
 	    clear_bits(0, 30, lrun.mday);
-	    clear_bits(0, 6, lrun.wday);
 	    have_mday = true;
 	 }
 	 set_bit(code, lrun.mday);
@@ -389,7 +388,6 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
       case s_wday:		   /* week day */
 	 if (!have_wday) {
 	    clear_bits(0, 6, lrun.wday);
-	    clear_bits(0, 30, lrun.mday);
 	    have_wday = true;
 	 }
 	 set_bit(code, lrun.wday);
@@ -468,7 +466,6 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
 	    }
 	    if (!have_mday) {
 	       clear_bits(0, 30, lrun.mday);
-	       clear_bits(0, 6, lrun.wday);
 	       have_mday = true;
 	    }
 	    if (code < code2) {
@@ -533,7 +530,6 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
 	 if (state == s_wday) {
 	    if (!have_wday) {
 	       clear_bits(0, 6, lrun.wday);
-	       clear_bits(0, 30, lrun.mday);
 	       have_wday = true;
 	    }
 	    if (code < code2) {
@@ -544,14 +540,14 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
 	    }
 	 } else if (state == s_month) {
 	    if (!have_month) {
-	       clear_bits(0, 30, lrun.month);
+	       clear_bits(0, 11, lrun.month);
 	       have_month = true;
 	    }
 	    if (code < code2) {
 	       set_bits(code, code2, lrun.month);
 	    } else {
 	       /* this is a bit odd, but we accept it anyway */
-	       set_bits(code, 30, lrun.month);
+	       set_bits(code, 11, lrun.month);
 	       set_bits(0, code2, lrun.month);
 	    }
 	 } else {
