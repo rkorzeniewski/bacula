@@ -391,7 +391,7 @@ lex_get_token(LEX *lf, int expect)
 	    break;
 	 }
          if (ch == '\n' || ch == L_EOL || ch == '=' || ch == '}' || ch == '{' ||
-             ch == ';' || ch == ',' || ch == '#' || (B_ISSPACE(ch)) ) {
+             ch == '\r' || ch == ';' || ch == ',' || ch == '#' || (B_ISSPACE(ch)) ) {
 	    lex_unget_char(lf);    
 	    token = T_UNQUOTED_STRING;
 	    lf->state = lex_none;
@@ -407,7 +407,7 @@ lex_get_token(LEX *lf, int expect)
 	 } else if (B_ISSPACE(ch)) {
 	    break;
          } else if (ch == '\n' || ch == L_EOL || ch == '=' || ch == '}' || ch == '{' ||
-                    ch == ';' || ch == ','   || ch == '"' || ch == '#') {
+                    ch == '\r' || ch == ';' || ch == ','   || ch == '"' || ch == '#') {
 	    lex_unget_char(lf);    
 	    token = T_IDENTIFIER;
 	    lf->state = lex_none;

@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                18 September 2003 
+                20 September 2003 
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -929,4 +929,3 @@ Done: (see kernsdone for more)
 - Require some modifer.
 - Restrict characters permitted in a Resource name, and don't permit
   duplicate names.
-
