@@ -304,8 +304,11 @@ static bool use_storage_cmd(JCR *jcr)
       if (!ok) {
          return false;
       }
-      /* Eat to BNET_EOD */
+      /* Eat to BNET_EOD -- end of Devices */
       while (bnet_recv(dir) > 0) {
+      }
+      /* Eat to end of Devices */
+      while (bnet_recv(dir) > 0) {         
       }
       LockRes();
       foreach_res(device, R_DEVICE) {
