@@ -73,9 +73,12 @@ mount_next_vol:
    /* 
     * Get Director's idea of what tape we should have mounted. 
     */
-   if (!dir_find_next_appendable_volume(jcr) &&
-       !dir_ask_sysop_to_mount_next_volume(jcr, dev)) {
-      return 0;
+   Dmsg0(100, "Before dir_find_next\n");
+   if (!dir_find_next_appendable_volume(jcr)) {
+       Dmsg0(100, "not dir_find_next\n");
+       if (!dir_ask_sysop_to_mount_next_volume(jcr, dev)) {
+	 return 0;
+       }
    }
    Dmsg2(100, "After find_next_append. Vol=%s Slot=%d\n",
 	 jcr->VolCatInfo.VolCatName, jcr->VolCatInfo.Slot);
@@ -94,7 +97,6 @@ mount_next_vol:
     *
     */
 
-   Dmsg0(100, "Enter ready_dev_for_append\n");
 
    dev->state &= ~(ST_APPEND|ST_READ|ST_EOT|ST_WEOT|ST_EOF);
 
@@ -112,10 +114,9 @@ mount_next_vol:
       if (autochanger || (!release && dev_is_tape(dev) && dev_cap(dev, CAP_AUTOMOUNT))) {
          ask = false;                 /* don't ask SYSOP this time */
       }
-
+      Dmsg2(100, "Ask=%d autochanger=%d\n", ask, autochanger);
       release = 1;                    /* release next time if we "recurse" */
 
-// ask_again:
       if (ask && !dir_ask_sysop_to_mount_next_volume(jcr, dev)) {
          Dmsg0(100, "Error return ask_sysop ...\n");
 	 return 0;		/* error return */

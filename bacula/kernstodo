@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                30 September 2003 
+                05 November 2003  
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -24,6 +24,44 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.33 Testing/Documentation:
+- Define week of year for scheduler.  W01, W02, ...
+  Week 01 of a year is per definition the first week that has the
+  Thursday in this year, which is equivalent to the week that contains the
+  fourth day of January.  In other words, the first week of a new year is
+  the week that has the majority of its days in the new year.  Week 01
+  might also contain days from the previous year and the week before week
+  01 of a year is the last week (52 or 53) of the previous year even if it
+  contains days from the new year.  A week starts with Monday (day 1) and
+  ends with Sunday (day 7).  For example, the first week of the year 1997
+  lasts from 1996-12-30 to 1997-01-05 and can be written in standard
+  notation as
+
+    1997-W01 or 1997W01
+
+  The week notation can also be extended by a number indicating the day
+  of the week.  For example, the day 1996-12-31, which is the Tuesday (day
+  2) of the first week of 1997, can also be written as
+
+    1997-W01-2 or 1997W012
+
+- Implement a Mount Command and an Unmount Command where
+  the users could specify a system command to be performed
+  to do the mount, after which Bacula could attempt to
+  read the device. This is for Removeable media such as a CDROM.
+  - Most likely, this mount command would be invoked explicitly
+  by the user using the current Console "mount" and "unmount" 
+  commands -- the Storage Daemon would do the right thing 
+  depending on the exact nature of the device.
+  - As with tape drives, when Bacula wanted a new removable
+  disk mounted, it would unmount the old one, and send a message
+  to the user, who would then use "mount" as described above 
+  once he had actually inserted the disk.
+- Implement dump/print label to UA
+- Implement disk spooling. Two parts: 1. Spool to disk then
+  immediately to tape to speed up tape operations. 2. Spool to
+  disk only when the tape is full, then when a tape is hung move
+  it to tape.
+- Scratch Pool where the volumes can be re-assigned to any Pool.
 - bextract is sending everything to the log file ****FIXME****
 - Document new alias records in Director. SDAddress SDDeviceName, SDPassword.
   FDPassword, FDAddress, DBAddress, DBPort, DBPassword.
@@ -42,19 +80,58 @@ For 1.33 Testing/Documentation:
     Manufufactur  : Qualstar
     Tapes         : 12 (AIT1: 36GB, AIT2: 50GB all uncompressed)
     Drives        : 2xAIT2 (installed in the Qualstar: SONY SDX-500C AIT2)
-
-
+- Setup a standard job that builds a bootstrap file and saves
+  it with the catalog database.
+- Document Dan's new --with-dir-user, ... options.
                 
 For 1.33
-- Estimate to Tibs never returns.
+- Add Progress command that periodically reports the progress of
+  a job or all jobs.
+- Restrict characters permitted in a Resource name, and don't permit
+  duplicate names.
+- Allow multiple Storage specifications (or multiple names on
+  a single Storage specification) in the Job record. Thus a job 
+  can be backed up to a number of storage devices.
+- Implement some way for the File daemon to contact the Director 
+  to start a job or pass its DHCP obtained IP number.
+- Implement multiple Consoles.
+- Implement a query tape prompt/replace feature for a console
+- Make sure that Volumes are recycled based on "Least recently used"
+  rather than lowest MediaId.
+- Implement RestoreJobRetention? Maybe better "JobRetention" in a Job,
+  which would take precidence over the Catalog "JobRetention".
+- Implement Label Format in Add and Label console commands.
+- Enhance "update slots" to include a "scan" feature
+  scan 1; scan 1-5; scan 1,2,4 ...  to update the catalog 
+- Allow a slot or range of slots on the label barcodes command.
+- Fix time difference problem between Bacula and Client
+  so that everything is in GMT.
+- Finish implementation of Verify=DiskToCatalog
+- Change console to bconsole.
+- Change smtp to bsmtp.
+- Possibly up network buffers to 65K.
+- Keep last 5 or 10 completed jobs and show them in a similar list.
+- Make a Running Jobs: output similar to current Scheduled Jobs:
 - Fix TimeZone problem!
-- Recycling volume with a Slot requires an operator intervention:
-    rufus-dir: Start Backup JobId 18, Job=kernsave.2003-11-01_21.23.52
-    rufus-dir: Pruned 1 Job on Volume Vol01 from catalog.
-    rufus-dir: There are no Jobs associated with Volume Vol01. Marking it purged.
-    rufus-dir: Recycled volume "Vol01"
-    rufus-sd: Please mount Volume "Vol01" on Storage Device "DDS-4" for Job kernsave.2003-11-01_21.23.52
-    Use "mount" command to release Job.
+- Optimize fsf not to read.
+- Use ioctl() fsf if it exists. Figure out where we are from
+  the mt_status command. Use slow fsf only if other does
+  not work.
+- Add flag to write only one EOF mark on the tape.
+- Implement autochange testing in btape.
+- From Johan?
+    Two jobs ready to go, first one blocked waiting for media
+    Cancel 2nd job ("waiting execution" one)
+    Cancel blocked job
+    boom - segfault*
+- Copy console @ code to gnome2-console
+- Make AES the only encryption algorithm see 
+  http://csrc.nist.gov/CryptoToolkit/aes/).  It's
+  an officially adopted standard, has survived peer
+  review, and provides keys up to 256 bits.
+- Add ctl-c to console to stop current command and discard buffered
+  output.
+- Estimate to Tibs never returns.
 - Think about how space could be freed up on a tape -- perhaps this
   is a Merge or Compact feature that is needed.
 - Modify FileSet, did not upgrade the current Increment job, but
@@ -64,14 +141,11 @@ For 1.33
   is located.
 - Take a careful look at Level for the estimate command, maybe make
   it a command line option.
-- Optimize fsf not to read.
-- Implement Dan's bacula script (email of 26 Oct).
-- Implement autochange testing in btape.
 - Add Volume name to "I cannot write on this volume because"
 - Make restore job check if all the files are actually restored.
 - Make tree walk routines like cd, ls, ... more user friendly
   by handling spaces better.
-- Write your PID file and chwon root:wheel before drop.
+- Write your PID file and chown root:wheel before drop.
 - Make sure there is no symlink in a file before creating a
   file (attack).
 - Look at mktemp or mkstemp(3).
@@ -89,13 +163,6 @@ For 1.33
     gotten the CPU and created the file.  You must use atomic functions
     (those that don't get interrupted by other processes) and O_EXCL is
     the only way for this particular example.
-- Keep last 5 or 10 completed jobs and show them in a similar
-  list.
-- Make a Running Jobs: output similar to current Scheduled Jobs:
-- Use ioctl() fsf if it exists. Figure out where we are from
-  the mt_status command. Use slow fsf only if other does
-  not work.
-- Add flag to write only one EOF mark on the tape.
 - Mount a tape that is not right for the job (wrong # files on tape)
   Bacula asks for another tape, fix problems with first tape and
   say "mount". All works OK, but status shows:
@@ -109,12 +176,6 @@ For 1.33
   in in Job records, walk through the pool resources.
 - Check and double check tree code, why does it take so long?
 - Upgrade to cygwin 1.5
-- Fix time difference problem between Bacula and Client
-  so that everything is in GMT.
-- Finish implementation of Verify=DiskToCatalog
-- Change console to bconsole.
-- Change smtp to bsmtp.
-- Possibly up network buffers to 65K.
 - Add device name to "Current Volume not acceptable because ..."
 - Make sure that Bacula rechecks the tape after the 20 min wait.
 - Set IO_NOWAIT on Bacula TCP/IP packets.
@@ -122,17 +183,13 @@ For 1.33
   Windows partition.
 - Report CVS problems to SourceForge.
 - Implement .consolerc for Console
-- Is it really important to make Job name the same to find the
-  Full backup to avoid promoting an Incremental job?
-- Start label, then run job when tape labeled, it should broadcast.
-- Zap illegal characters in job name for mail files (e.g. /).
 - From Lars Köllers:
     Yes, it would allow to highly automatic the request for new tapes. If a 
     tape is empty, bacula reads the barcodes (native or simulated), and if 
     an unused tape is found, it runs the label command with all the 
     necessary parameters.
 
-    By the way can bacula automatically "move" an empry/purged volume say 
+    By the way can bacula automatically "move" an empty/purged volume say 
     in the "short" pool to the "long" pool if this pool runs out of volume 
     space?
 - Either restrict the characters in a name, or fix the problem 
@@ -180,9 +237,6 @@ For 1.33
      I think Restore jobs also fall into category 2 above ....  so one might
      want to make that "The Job record has an EndTime,, but no associated
      JobMedia record, and is not a Restore job."  
-- Implement RestoreJobRetention? Maybe better "JobRetention" in a Job,
-  which would take precidence over the Catalog "JobRetention".
-- Implement Label Format in Add and Label console commands.
 - make "btape /tmp" work.
 - Make sure a rescheduled job is properly reported by status.
 - Walk through the Pool records rather than the Job records
@@ -195,17 +249,11 @@ For 1.33
   is rescheduled.
 - Fix get_storage_from_media_type (ua_restore) to use command line     
   storage=
-- Enhance "update slots" to include a "scan" feature
-  scan 1; scan 1-5; scan 1,2,4 ...  to update the catalog 
-- Allow a slot or range of slots on the label barcodes command.
 - Don't print "Warning: Wrong Volume mounted ..." if mounting second volume.
 - Make Dmsg look at global before calling subroutine.
 - Enable trace output at runtime for Win32
-- Make sure that Volumes are recycled based on "Least recently used"
-  rather than lowest MediaId.
 - Available volumes for autochangers (see patrick@baanboard.com 3 Sep 03 
   and 4 Sep) scan slots.
-- Get MySQL 3.23.58
 - Get and test MySQL 4.0
 - Do a complete audit of all pthreads_mutex, cond, ... to ensure that
   any that are dynamically initialized are destroyed when no longer used.
@@ -247,9 +295,6 @@ For 1.33
   time as the user walks through the tree).
 - Possibly use the hash code if the user selects all for a restore command.
 - Orphaned Dir buffer at parse_conf.c:373 =>  store_dir
-- Implement some way for the File daemon to contact the Director 
-  to start a job or pass its DHCP obtained IP number.
-- Implement multiple Consoles.
 - Add Console usr permissions.
 - Fix "restore all" to bypass building the tree.
 - Fix restore to list errors if Invalid block found, and if # files
@@ -260,11 +305,9 @@ For 1.33
   be sure this works with admin jobs so that the user can get
   prompted to insert the correct tape.  Possibly some way to say to
   run the job but don't save the files.
-- Add JobName= to VerifyToCatalog so that all verifies can be done at the end.
 - Implement FileOptions (see end of this document)
 - Make things like list where a file is saved case independent for
   Windows.
-- Edit the Client/Storage name into authentication failure messages.
 - Implement migrate
 - Implement a PostgreSQL driver.
 - Bacula needs to propagate SD errors.
@@ -276,8 +319,6 @@ For 1.33
   > > prod4-sd: End of medium on Volume "REU007" Bytes=16,303,521,933 
 
 - Use autochanger to handle multiple devices.
-- Fix packet too big problem. This is most likely a Windows TCP stack 
-  problem.
 - Add SuSE install doc to list.
 - Check and rechedk "Invalid block number"
 - Make bextract release the drive properly between tapes 
@@ -292,16 +333,10 @@ For 1.33
 - Something is not right in last block of fill command.
 - Implement a Recycle command
 - Add FileSet to command line arguments for restore.
-- Allow multiple Storage specifications (or multiple names on
-  a single Storage specification) in the Job record. Thus a job 
-  can be backed up to a number of storage devices.
 - Add client name to cram-md5 challenge so Director can immediately
   verify if it is the correct client.
-- Implement ClientRunBeforeJob and ClientRunAfterJob.
 - Add JobLevel in FD status (but make sure it is defined).
 - Audit all UA commands to ensure that we always prompt where possible.
-- Restrict characters permitted in a Resource name, and don't permit
-  duplicate names.
 - Check Jmsg in bnet, may not work, must dup bsock.
 - Suppress Job Name in Jmsg for console
 - Create Pools that are referenced in a Run statement at startup if possible.
@@ -327,12 +362,7 @@ For 1.33
   all Differential and Incremental jobs obsoleted by that Full backup.
   This would let people minimize the number of tapes they're keeping on
   hand without having to master the art of retention times.
-- Implement new serialize subroutines
-   send(socket, "string", &Vol, "uint32", &i, NULL)
-- Scratch Pool where the volumes can be re-assigned to any Pool.
 - Implement a M_SECURITY message class.
-- Implement forward spacing block/file: position_device(bsr) --
-  just before read_block_from_device();
 - When doing a Backup send all attributes back to the Director, who
   would then figure out what files have been deleted.
 - Currently in mount.c:236 the SD simply creates a Volume. It should have
@@ -346,11 +376,6 @@ For 1.33
 - Add thread specific data to hold the jcr -- send error messages from
   low level routines by accessing it and using Jmsg().
 - Cancel waiting for Client connect in SD if FD goes away.
-
-- Add Progress command that periodically reports the progress of
-  a job or all jobs.
-- One block was orphaned in the SD probably after cancel.
-
 
 - Examine Bare Metal restore problem (a FD crash exists somewhere ...).
 - Implement timeout in response() when it should come quickly.
@@ -366,30 +391,12 @@ For 1.33
 - Implement restore "current system", but take all files without
   doing selection tree -- so that jobs without File records can
   be restored.
-- Implement disk spooling. Two parts: 1. Spool to disk then
-  immediately to tape to speed up tape operations. 2. Spool to
-  disk only when the tape is full, then when a tape is hung move
-  it to tape.
 - Implement a relocatable bacula.spec 
-- Implement dump/print label to UA
 - Add prefixlinks to where or not where absolute links to FD.
 - Issue message to mount a new tape before the rewind.
 - Simplified client job initiation for portables.
 - If SD cannot open a drive, make it periodically retry.
-- Implement LabelTemplate (at least first cut).
 - Add more of the config info to the tape label.
-- Implement a Mount Command and an Unmount Command where
-  the users could specify a system command to be performed
-  to do the mount, after which Bacula could attempt to
-  read the device. This is for Removeable media such as a CDROM.
-  - Most likely, this mount command would be invoked explicitly
-  by the user using the current Console "mount" and "unmount" 
-  commands -- the Storage Daemon would do the right thing 
-  depending on the exact nature of the device.
-  - As with tape drives, when Bacula wanted a new removable
-  disk mounted, it would unmount the old one, and send a message
-  to the user, who would then use "mount" as described above 
-  once he had actually inserted the disk.
 
 - If tape is marked read-only, then try opening it read-only rather than
   failing, and remember that it cannot be written.
@@ -441,7 +448,6 @@ For 1.33
 - Compare tape to Client files (attributes, or attributes and data) 
 - Make all database Ids 64 bit.
 - Write an applet for Linux.
-- Implement new inter-daemon communications protocol.
 - Allow console commands to detach or run in background.
 - Fix status delay on storage daemon during rewind.
 - Add SD message variables to control operator wait time
@@ -614,113 +620,6 @@ Migration triggered by:
   Highwater mark (keep total size)
   Lowwater mark
   
-Projects:
-            Bacula Projects Roadmap 
-               17 August 2002
-           last update 8 May 2003
-
-Item 1:   Multiple simultaneous Jobs. (done)
-Done
-
-Item 3:   Write the bscan program -- also write a bcopy program.
-Done
-
-Item 5:   Implement Label templates
-Done 
-
-Item 6:   Write a regression script.
-Done --   Continue to expand its testing.
-
-Item 9:   Add SSL to daemon communications.
-For now, implement with stunnel
-
-Item 10:  Define definitive tape format.
-Done (version 1.27)
-
---- Not completed
-Item 4:   Implement Base jobs.
-
-  What:   A base job is sort of like a Full save except that you 
-          will want the FileSet to contain only files that are unlikely
-          to change in the future (i.e. a snapshot of most of your
-          system after installing it). After the base job has been run,
-          when you are doing a Full save, you can specify to exclude
-          all files saved by the base job that have not been modified.
-
-  Why:    This is something none of the competition does, as far as we know
-          (except BackupPC, which is a Perl program that saves to disk
-          only).  It is big win for the user, it makes Bacula stand out
-          as offering a unique optimization that immediately saves time
-          and money.
-
-  Notes:  Big savings in tape usage. Will require more resources because
-          the e. DIR must send FD a list of files/attribs, and the FD must
-          search the list and compare it for each file to be saved.
-
-Item 2:   Make the Storage daemon use intermediate file storage to buffer data.
-Deferred -- not necessary yet -- possibly implement with Migration.
-
-  What:   If data is coming into the SD too fast, buffer it to 
-          disk if the user has configured this option.
-
-  Why:    This would be nice, especially if it more or less falls out
-          when implementing (1) above.  If not, it probably should not
-          be given a high priority because fundamentally the backup time
-          is limited by the tape bandwidth.  Even though you may finish a
-          client job quicker by spilling to disk, you still have to
-          eventually get it onto tape.  If intermediate disk buffering
-          allows us to improve write bandwidth to tape, it may make
-          sense.
-
-  Notes:  Whether or not this is implemented will depend upon performance
-          testing after item 1 is implemented.
-
-Item 7:   GUI for interactive restore
-Item 8:   GUI for interactive backup
-
-  What:   The current interactive restore is implemented with a tty
-          interface. It would be much nicer to be able to "see" the
-          list of files backed up in typical GUI tree format.
-          The same mechanism could also be used for creating 
-          ad-hoc backup FileSets (item 8).
-
-  Why:    Ease of use -- especially for the end user.
-
-  Notes:  Rather than implementing in Gtk, we probably should go directly
-          for a Browser implementation, even if doing so meant the
-          capability wouldn't be available until much later.  Not only
-          is there the question of Windows sites, most
-          Solaris/HP/IRIX, etc,  shops can't currently run Gtk programs
-          without installing lots of stuff admins are very wary about.
-          Real sysadmins will always use the command line anyway, and
-          the user who's doing an interactive restore or backup of his
-          own files will in most cases be on a Windows machine running
-          Exploder.
-
-Item 11:  New daemon communication protocol.
-
-  What:   The current daemon to daemon protocol is basically an ASCII
-          printf() and sending the buffer. On the receiving end, the
-          buffer is sscanf()ed to unpack it. The new scheme would
-          be a binary format that allows quick packing and unpacking
-          of any data type with named fields.
-
-  Why:    Using binary packing would be faster. Named fields will permit
-          error checking to ensure that what is sent is what the 
-          receiver really wants.
-
-  Notes:  These are internal improvements in the interest of the
-          long-term stability and evolution of the program.  On the one
-          hand, the sooner they're done, the less code we have to rip
-          up when the time comes to install them.  On the other hand, they
-          don't bring an immediately perceptible benefit to potential
-          users.  Item 10 and possibly item 11 should be deferred until Bacula
-          is well established with a growing user community more or
-          less happy with the feature set.  At that time, it will make a
-          good "next generation" upgrade in the interest of data
-          immortality.
-
-
 
 
 ======================================================
@@ -954,4 +853,19 @@ Done: (see kernsdone for more)
 === after 1.32c
 - John's Full save failed with 1.32c FD and 1.31 Dir no FD status,
   and no error message.
-
+- Add fd and st as Console keywords.
+- Recycling volume with a Slot requires an operator intervention:
+    rufus-dir: Start Backup JobId 18, Job=kernsave.2003-11-01_21.23.52
+    rufus-dir: Pruned 1 Job on Volume Vol01 from catalog.
+    rufus-dir: There are no Jobs associated with Volume Vol01. Marking it purged.
+    rufus-dir: Recycled volume "Vol01"
+    rufus-sd: Please mount Volume "Vol01" on Storage Device "DDS-4" for Job kernsave.2003-11-01_21.23.52
+    Use "mount" command to release Job.
+- Implement Dan's bacula script (email of 26 Oct).
+- Add JobName= to VerifyToCatalog so that all verifies can be done at the end.
+- Edit the Client/Storage name into authentication failure messages.
+- Fix packet too big problem. This is most likely a Windows TCP stack 
+  problem.
+- Implement ClientRunBeforeJob and ClientRunAfterJob.
+- Implement forward spacing block/file: position_device(bsr) --
+  just before read_block_from_device();

@@ -286,11 +286,13 @@ int dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev)
 	 jstat = JS_WaitMount;
 	 /*
 	  * If we have a valid volume name and we are not
-	  * removable media, return now, otherwise wait
-	  * for the operator to mount the media.
+	  *   removable media, return now, or if we have a
+	  *   Slot for an autochanger, otherwise wait
+	  *   for the operator to mount the media.
 	  */
-	 if (jcr->VolumeName[0] && !dev_cap(dev, CAP_REM) && dev_cap(dev, CAP_LABEL)) {
-            Dmsg0(190, "Return 1 from mount without wait.\n");
+	 if ((jcr->VolumeName[0] && !dev_cap(dev, CAP_REM) && dev_cap(dev, CAP_LABEL)) ||
+	     (jcr->VolumeName[0] && jcr->VolCatInfo.Slot)) {
+            Dmsg0(100, "Return 1 from mount without wait.\n");
 	    return 1;
 	 }
 	 Jmsg(jcr, M_MOUNT, 0, _(

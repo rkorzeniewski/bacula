@@ -115,6 +115,7 @@ char *encode_time(time_t time, char *buf)
 
 /*
  * Concatenate a string (str) onto a pool memory buffer pm
+ *   Returns: length of concatenated string
  */
 int pm_strcat(POOLMEM **pm, char *str)
 {
@@ -129,6 +130,7 @@ int pm_strcat(POOLMEM **pm, char *str)
 
 /*
  * Copy a string (str) into a pool memory buffer pm
+ *   Returns: length of string copied
  */
 int pm_strcpy(POOLMEM **pm, char *str)
 {

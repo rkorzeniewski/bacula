@@ -66,6 +66,7 @@ struct BSOCK {
 #define BNET_HEARTBEAT   -6           /* Heartbeat Response requested */
 #define BNET_HB_RESPONSE -7           /* Only response permited to HB */
 #define BNET_PROMPT      -8           /* Prompt for UA */
+#define BNET_BTIME       -9           /* Send UTC btime */
 
 #define BNET_SETBUF_READ  1           /* Arg for bnet_set_buffer_size */
 #define BNET_SETBUF_WRITE 2           /* Arg for bnet_set_buffer_size */

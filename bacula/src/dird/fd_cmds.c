@@ -65,7 +65,8 @@ extern int FDConnectTimeout;
 
 /*
  * Open connection with File daemon. 
- * Try connecting every 10 seconds, give up after 1 hour.
+ * Try connecting every retry_interval (default 10 sec), and
+ *   give up after max_retry_time (default 30 mins).
  */
 
 int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
@@ -128,7 +129,13 @@ int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
    return 1;
 }
 
-
+/*
+ * This subroutine edits the last job start time into a
+ *   "since=date/time" buffer that is returned in the  
+ *   variable since.  This is used for display purposes in
+ *   the job report.  The time in jcr->stime is later 
+ *   passed to tell the File daemon what to do.
+ */
 void get_level_since_time(JCR *jcr, char *since, int since_len)
 {
    /* Lookup the last
@@ -162,11 +169,14 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
 
 
 /*
- * Send level command for backup and estimate	
+ * Send level command to FD. 
+ * Used for backup jobs and estimate command.
  */
 int send_level_command(JCR *jcr) 
 {
    BSOCK   *fd = jcr->file_bsock;
+   utime_t stime;
+   char ed1[50];
    /* 
     * Send Level command to File daemon
     */
@@ -179,7 +189,12 @@ int send_level_command(JCR *jcr)
       break;
    case L_DIFFERENTIAL:
    case L_INCREMENTAL:
-      bnet_fsend(fd, levelcmd, "since ", jcr->stime, 0);
+//    bnet_fsend(fd, levelcmd, "since ", jcr->stime, 0); /* old code, deprecated */
+      stime = str_to_utime(jcr->stime);
+      bnet_fsend(fd, levelcmd, "since_utime ", edit_uint64(stime, ed1), 0);
+      while (bget_dirmsg(fd) >= 0) {  /* allow him to poll us to sync clocks */
+         Jmsg(jcr, M_INFO, 0, "%s\n", fd->msg);
+      }
       break;
    case L_SINCE:
    default:

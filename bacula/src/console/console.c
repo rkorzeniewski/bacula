@@ -260,31 +260,31 @@ int main(int argc, char *argv[])
 
    while ((ch = getopt(argc, argv, "bc:d:r:st?")) != -1) {
       switch (ch) {
-         case 'c':                    /* configuration file */
-	    if (configfile != NULL) {
-	       free(configfile);
-	    }
-	    configfile = bstrdup(optarg);
-	    break;
+      case 'c':                    /* configuration file */
+	 if (configfile != NULL) {
+	    free(configfile);
+	 }
+	 configfile = bstrdup(optarg);
+	 break;
 
-         case 'd':
-	    debug_level = atoi(optarg);
-	    if (debug_level <= 0) {
-	       debug_level = 1;
-	    }
-	    break;
+      case 'd':
+	 debug_level = atoi(optarg);
+	 if (debug_level <= 0) {
+	    debug_level = 1;
+	 }
+	 break;
 
-         case 's':                    /* turn off signals */
-	    no_signals = TRUE;
-	    break;
+      case 's':                    /* turn off signals */
+	 no_signals = TRUE;
+	 break;
 
-         case 't':
-	    test_config = TRUE;
-	    break;
+      case 't':
+	 test_config = TRUE;
+	 break;
 
-         case '?':
-	 default:
-	    usage();
+      case '?':
+      default:
+	 usage();
 
       }  
    }
@@ -377,6 +377,8 @@ try_again:
 
    Dmsg0(40, "Opened connection with Director daemon\n");
 
+   sendit(_("Enter a period to cancel a command.\n"));
+
    read_and_process_input(stdin, UA_sock);
 
    if (UA_sock) {
@@ -423,9 +425,8 @@ get_cmd(FILE *input, char *prompt, BSOCK *sock, int sec)
    if (!line) {
       exit(1);
    }
-   strcpy(sock->msg, line);
-   strip_trailing_junk(sock->msg);
-   sock->msglen = strlen(sock->msg);
+   strip_trailing_junk(line);
+   sock->msglen = pm_strcpy(&sock->msg, line);
    if (sock->msglen) {
       add_history(sock->msg);
    }

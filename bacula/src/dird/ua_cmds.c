@@ -95,23 +95,23 @@ static struct cmdstruct commands[] = {
  { N_("estimate"),   estimate_cmd,  _("performs FileSet estimate, listing gives full listing")},
  { N_("exit"),       quit_cmd,      _("exit = quit")},
  { N_("help"),       help_cmd,      _("print this command")},
- { N_("label"),      label_cmd,     _("label a tape")},
  { N_("list"),       list_cmd,      _("list [pools | jobs | jobtotals | media <pool> | files job=<nn>]; from catalog")},
+ { N_("label"),      label_cmd,     _("label a tape")},
  { N_("llist"),      llist_cmd,     _("full or long list like list command")},
  { N_("messages"),   messagescmd,   _("messages")},
  { N_("mount"),      mount_cmd,     _("mount <storage-name>")},
  { N_("prune"),      prunecmd,      _("prune expired records from catalog")},
  { N_("purge"),      purgecmd,      _("purge records from catalog")},
- { N_("query"),      querycmd,      _("query catalog")},
  { N_("quit"),       quit_cmd,      _("quit")},
+ { N_("query"),      querycmd,      _("query catalog")},
+ { N_("restore"),    restore_cmd,   _("restore files")},
  { N_("relabel"),    relabel_cmd,   _("relabel a tape")},
  { N_("release"),    release_cmd,   _("release <storage-name>")},
- { N_("restore"),    restore_cmd,   _("restore files")},
  { N_("run"),        run_cmd,       _("run <job-name>")},
+ { N_("status"),     status_cmd,    _("status [storage | client]=<name>")},
  { N_("setdebug"),   setdebug_cmd,  _("sets debug level")},
  { N_("show"),       show_cmd,      _("show (resource records) [jobs | pools | ... | all]")},
  { N_("sqlquery"),   sqlquerycmd,   _("use SQL to query catalog")}, 
- { N_("status"),     status_cmd,    _("status [storage | client]=<name>")},
  { N_("time"),       time_cmd,      _("print current time")},
  { N_("unmount"),    unmount_cmd,   _("unmount <storage-name>")},
  { N_("update"),     update_cmd,    _("update Volume or Pool")},
@@ -1245,7 +1245,8 @@ static int setdebug_cmd(UAContext *ua, char *cmd)
 	 debug_level = level;
 	 return 1;
       }
-      if (strcasecmp(ua->argk[i], _("client")) == 0) {
+      if (strcasecmp(ua->argk[i], _("client")) == 0 ||
+          strcasecmp(ua->argk[i], _("fd")) == 0) {
 	 client = NULL;
 	 if (ua->argv[i]) {
 	    client = (CLIENT *)GetResWithName(R_CLIENT, ua->argv[i]);
@@ -1262,7 +1263,8 @@ static int setdebug_cmd(UAContext *ua, char *cmd)
       }
 
       if (strcasecmp(ua->argk[i], _("store")) == 0 ||
-          strcasecmp(ua->argk[i], _("storage")) == 0) {
+          strcasecmp(ua->argk[i], _("storage")) == 0 ||
+          strcasecmp(ua->argk[i], _("sd")) == 0) {
 	 store = NULL;
 	 if (ua->argv[i]) {
 	    store = (STORE *)GetResWithName(R_STORAGE, ua->argv[i]);
@@ -1343,7 +1345,8 @@ static int estimate_cmd(UAContext *ua, char *cmd)
    char since[MAXSTRING];
 
    for (int i=1; i<ua->argc; i++) {
-      if (strcasecmp(ua->argk[i], _("client")) == 0) {
+      if (strcasecmp(ua->argk[i], _("client")) == 0 ||
+          strcasecmp(ua->argk[i], _("fd")) == 0) {
 	 if (ua->argv[i]) {
 	    client = (CLIENT *)GetResWithName(R_CLIENT, ua->argv[i]);
 	    continue;
@@ -1691,12 +1694,11 @@ static int help_cmd(UAContext *ua, char *cmd)
 {
    unsigned int i;
 
-/* usage(); */
    bsendmsg(ua, _("  Command    Description\n  =======    ===========\n"));
    for (i=0; i<comsize; i++) {
       bsendmsg(ua, _("  %-10s %s\n"), _(commands[i].key), _(commands[i].help));
    }
-   bsendmsg(ua, "\n");
+   bsendmsg(ua, _("\nWhen at a prompt, entering a period cancels the command.\n\n"));
    return 1;
 }
 

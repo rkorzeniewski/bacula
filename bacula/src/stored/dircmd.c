@@ -451,7 +451,7 @@ static int read_label(JCR *jcr, DEVICE *dev)
       stat = 1;
       break;
    default:
-      bnet_fsend(dir, _("3902 Cannot mount Volume on Storage Device \"%s\" because:\n%s\n"),
+      bnet_fsend(dir, _("3902 Cannot mount Volume on Storage Device \"%s\" because:\n%s"),
 	 dev->dev_name, jcr->errmsg);
       stat = 0;
       break;
@@ -487,17 +487,17 @@ static int mount_cmd(JCR *jcr)
       }
       UnlockRes();
       if (found) {
+	 DEV_BLOCK *block;
 	 jcr->device = device;
 	 dev = device->dev;
 	 P(dev->mutex); 	      /* Use P to avoid indefinite block */
 	 switch (dev->dev_blocked) {	     /* device blocked? */
-	    DEV_BLOCK *block;
 	 case BST_WAITING_FOR_SYSOP:
 	    /* Someone is waiting, wake him */
             Dmsg0(100, "Waiting for mount. Attempting to wake thread\n");
 	    dev->dev_blocked = BST_MOUNT;
-	    pthread_cond_signal(&dev->wait_next_vol);
             bnet_fsend(dir, "3001 OK mount. Device=%s\n", dev->dev_name);
+	    pthread_cond_signal(&dev->wait_next_vol);
 	    break;
 
 	 case BST_UNMOUNTED_WAITING_FOR_SYSOP:
@@ -518,7 +518,6 @@ static int mount_cmd(JCR *jcr)
 	    } else {
                Dmsg0(100, "Unmounted waiting for mount. Attempting to wake thread\n");
 	       dev->dev_blocked = BST_MOUNT;
-	       pthread_cond_signal(&dev->wait_next_vol);
 	    }
 	    if (dev->state & ST_LABEL) {
                bnet_fsend(dir, _("3001 Device %s is mounted with Volume \"%s\"\n"), 
@@ -528,6 +527,7 @@ static int mount_cmd(JCR *jcr)
                                  "If this is not a blank tape, try unmounting and remounting the Volume.\n"),
 			  dev->dev_name);
 	    }
+	    pthread_cond_signal(&dev->wait_next_vol);
 	    break;
 
 	 case BST_DOING_ACQUIRE:

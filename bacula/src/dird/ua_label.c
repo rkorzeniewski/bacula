@@ -275,7 +275,7 @@ checkName:
       }
       if (ua->automount) {
 	 bstrncpy(dev_name, store->dev_name, sizeof(dev_name));
-         bsendmsg(ua, _("Requesting mount %s ...\n"), dev_name);
+         bsendmsg(ua, _("Requesting to mount %s ...\n"), dev_name);
 	 bash_spaces(dev_name);
          bnet_fsend(sd, "mount %s", dev_name);
 	 unbash_spaces(dev_name);

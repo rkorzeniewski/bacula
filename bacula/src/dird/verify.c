@@ -368,7 +368,7 @@ static void verify_cleanup(JCR *jcr, int TermCode)
    JobId_t JobId;
    char *Name;
 
-// Dmsg1(000, "Enter verify_cleanup() TermCod=%d\n", TermCode);
+// Dmsg1(100, "Enter verify_cleanup() TermCod=%d\n", TermCode);
 
    JobId = jcr->jr.JobId;
    set_jcr_job_status(jcr, TermCode);

@@ -60,21 +60,23 @@ int run_cmd(UAContext *ua, char *cmd)
    FILESET *fileset = NULL;
    POOL *pool = NULL;
    static char *kw[] = {	      /* command line arguments */
-      N_("job"),
-      N_("jobid"),
-      N_("client"),
-      N_("fileset"),
+      N_("job"),                      /*  Used in a switch() */
+      N_("jobid"),                    /* 1 */
+      N_("client"),                   /* 2 */
+      N_("fd"), 
+      N_("fileset"),                  /* 4 */
       N_("level"),
-      N_("storage"),
+      N_("storage"),                  /* 6 */
+      N_("sd"),                       /* 7 */
       N_("pool"), 
       N_("where"),
       N_("bootstrap"),
       N_("replace"),
       N_("when"),
       N_("priority"),
-      N_("yes"),          /* 12 -- if you change this change YES_POS too */
-      N_("run"),          /* 13 -- if you change this change RUN_POS too */
-      N_("verifyjob"),
+      N_("yes"),          /* 14 -- if you change this change YES_POS too */
+      N_("run"),          /* 15 -- if you change this change RUN_POS too */
+      N_("verifyjob"),                /* 16 */
       NULL};
 
 #define YES_POS 12
@@ -126,6 +128,7 @@ int run_cmd(UAContext *ua, char *cmd)
 	       found = true;
 	       break;
 	    case 2: /* client */
+	    case 3: /* fd */
 	       if (client_name) {
                   bsendmsg(ua, _("Client specified twice.\n"));
 		  return 1;
@@ -133,7 +136,7 @@ int run_cmd(UAContext *ua, char *cmd)
 	       client_name = ua->argv[i];
 	       found = true;
 	       break;
-	    case 3: /* fileset */
+	    case 4: /* fileset */
 	       if (fileset_name) {
                   bsendmsg(ua, _("FileSet specified twice.\n"));
 		  return 1;
@@ -141,7 +144,7 @@ int run_cmd(UAContext *ua, char *cmd)
 	       fileset_name = ua->argv[i];
 	       found = true;
 	       break;
-	    case 4: /* level */
+	    case 5: /* level */
 	       if (level_name) {
                   bsendmsg(ua, _("Level specified twice.\n"));
 		  return 1;
@@ -149,7 +152,8 @@ int run_cmd(UAContext *ua, char *cmd)
 	       level_name = ua->argv[i];
 	       found = true;
 	       break;
-	    case 5: /* storage */
+	    case 6: /* storage */
+	    case 7: /* sd */
 	       if (store_name) {
                   bsendmsg(ua, _("Storage specified twice.\n"));
 		  return 1;
@@ -157,7 +161,7 @@ int run_cmd(UAContext *ua, char *cmd)
 	       store_name = ua->argv[i];
 	       found = true;
 	       break;
-	    case 6: /* pool */
+	    case 8: /* pool */
 	       if (pool_name) {
                   bsendmsg(ua, _("Pool specified twice.\n"));
 		  return 1;
@@ -165,7 +169,7 @@ int run_cmd(UAContext *ua, char *cmd)
 	       pool_name = ua->argv[i];
 	       found = true;
 	       break;
-	    case 7: /* where */
+	    case 9: /* where */
 	       if (where) {
                   bsendmsg(ua, _("Where specified twice.\n"));
 		  return 1;
@@ -173,7 +177,7 @@ int run_cmd(UAContext *ua, char *cmd)
 	       where = ua->argv[i];
 	       found = true;
 	       break;
-	    case 8: /* bootstrap */
+	    case 10: /* bootstrap */
 	       if (bootstrap) {
                   bsendmsg(ua, _("Bootstrap specified twice.\n"));
 		  return 1;
@@ -181,7 +185,7 @@ int run_cmd(UAContext *ua, char *cmd)
 	       bootstrap = ua->argv[i];
 	       found = true;
 	       break;
-	    case 9: /* replace */
+	    case 11: /* replace */
 	       if (replace) {
                   bsendmsg(ua, _("Replace specified twice.\n"));
 		  return 1;
@@ -189,7 +193,7 @@ int run_cmd(UAContext *ua, char *cmd)
 	       replace = ua->argv[i];
 	       found = true;
 	       break;
-	    case 10: /* When */
+	    case 12: /* When */
 	       if (when) {
                   bsendmsg(ua, _("When specified twice.\n"));
 		  return 1;
@@ -197,7 +201,7 @@ int run_cmd(UAContext *ua, char *cmd)
 	       when = ua->argv[i];
 	       found = true;
 	       break;
-	    case 11:  /* Priority */
+	    case 13:  /* Priority */
 	       if (Priority) {
                   bsendmsg(ua, _("Priority specified twice.\n"));
 		  return 1;
@@ -208,11 +212,11 @@ int run_cmd(UAContext *ua, char *cmd)
 		  Priority = 10;
 	       }
 	       break;
-	    case 12: /* yes */
-	    case 13: /* run */
+	    case 14: /* yes */
+	    case 15: /* run */
 	       found = true;
 	       break;
-	    case 14: /* Verify Job */
+	    case 16: /* Verify Job */
 	       if (verify_job_name) {
                   bsendmsg(ua, _("Verify Job specified twice.\n"));
 		  return 1;
@@ -243,8 +247,6 @@ int run_cmd(UAContext *ua, char *cmd)
    } /* end argc loop */
 	     
    Dmsg0(200, "Done scan.\n");
-
-
 
    if (job_name) {
       /* Find Job */

@@ -51,12 +51,12 @@ static void usage()
 "       -           read pattern(s) from stdin\n"
 "       -?          print this message.\n"
 "\n"
-"Patterns are file inclusion -- normally directories.\n"
+"Patterns are used for file inclusion -- normally directories.\n"
 "Debug level >= 1 prints each file found.\n"
 "Debug level >= 10 prints path/file for catalog.\n"
-"Errors always printed.\n"
-"Files/paths truncated is number with len > 255.\n"
-"Truncation is only in catalog.\n"
+"Errors are always printed.\n"
+"Files/paths truncated is the number of files/paths with len > 255.\n"
+"Truncation is only in the catalog.\n"
 "\n"));
 
    exit(1);
