@@ -165,11 +165,13 @@ typedef float             float32_t;
 #endif /* __bc_types_INCLUDED */
 
 /* Define the uint versions actually used in Bacula */
+#ifndef uint8_t
 #define uint8_t u_int8_t
 #define uint16_t u_int16_t
 #define uint32_t u_int32_t
 #define uint64_t u_int64_t
 #define uintmax_t u_intmax_t
+#endif
 
 /* Bacula time -- Unix time with microseconds */
 #define btime_t int64_t
