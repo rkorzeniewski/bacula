@@ -58,7 +58,7 @@ int newVolume(JCR *jcr, MEDIA_DBR *mr)
 	 mr->LabelDate = time(NULL);
 	 bstrncpy(mr->MediaType, jcr->store->media_type, sizeof(mr->MediaType));
 	 bstrncpy(name, pr.LabelFormat, sizeof(name));
-         if (strchr(name, (int)'%') != NULL) {
+	 if (!is_volume_name_legal(NULL, name)) {
             Jmsg(jcr, M_ERROR, 0, _("Illegal character in Label Format\n"));
 	    goto bail_out;
 	 }

@@ -245,8 +245,7 @@ getVolName:
       }
    }
    /* Don't allow | in Volume name because it is the volume separator character */
-   if (strchr(ua->cmd, '|')) {
-      bsendmsg(ua, _("Illegal character | in a volume name.\n"));
+   if (!is_volume_name_legal(ua, ua->cmd)) {
       goto getVolName;
    }
    if (strlen(ua->cmd) >= MAX_NAME_LENGTH-10) {

@@ -41,7 +41,6 @@ typedef struct s_vol_list {
 /* Forward referenced functions */
 static int do_label(UAContext *ua, char *cmd, int relabel);
 static void label_from_barcodes(UAContext *ua);
-static int is_legal_volume_name(UAContext *ua, char *name);
 static int send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr, 
 	       POOL_DBR *pr, int relabel);
 static vol_list_t *get_slot_list_from_SD(UAContext *ua);
@@ -173,8 +172,8 @@ static int do_label(UAContext *ua, char *cmd, int relabel)
    /* If relabel get name of Volume to relabel */
    if (relabel) {
       /* Check for volume=OldVolume */
-      i = find_arg(ua, "volume"); 
-      if (i >= 0 && ua->argv[i]) {
+      i = find_arg_with_value(ua, "volume"); 
+      if (i >= 0) {
 	 memset(&omr, 0, sizeof(omr));
 	 bstrncpy(omr.VolumeName, ua->argv[i], sizeof(omr.VolumeName));
 	 if (db_get_media_record(ua->jcr, ua->db, &omr)) {
@@ -197,8 +196,8 @@ checkVol:
    }
 
    /* Check for name=NewVolume */
-   i = find_arg(ua, "name");
-   if (i >= 0 && ua->argv[i]) {
+   i = find_arg_with_value(ua, "name");
+   if (i >= 0) {
       pm_strcpy(&ua->cmd, ua->argv[i]);
       goto checkName;
    }
@@ -209,7 +208,7 @@ checkVol:
 	 return 1;
       }
 checkName:
-      if (!is_legal_volume_name(ua, ua->cmd)) {
+      if (!is_volume_name_legal(ua, ua->cmd)) {
 	 continue;
       }
 
@@ -225,8 +224,8 @@ checkName:
 
    /* If autochanger, request slot */
    if (store->autochanger) {
-      i = find_arg(ua, "slot"); 
-      if (i >= 0 && ua->argv[i]) {
+      i = find_arg_with_value(ua, "slot"); 
+      if (i >= 0) {
 	 mr.Slot = atoi(ua->argv[i]);
       } else if (!get_pint(ua, _("Enter slot (0 for none): "))) {
 	 return 1;
@@ -384,21 +383,37 @@ bail_out:
    return;
 }
 
-static int is_legal_volume_name(UAContext *ua, char *name)
+/* 
+ * Check if the Volume name has legal characters
+ * If ua is non-NULL send the message
+ */
+int is_volume_name_legal(UAContext *ua, char *name)
 {
    int len;
+   char *p;
+   char *accept = ":.-_";
+
    /* Restrict the characters permitted in the Volume name */
-   if (strpbrk(name, "`~!@#$%^&*()[]{}|\\;'\"<>?,/")) {
-      bsendmsg(ua, _("Illegal character | in a volume name.\n"));
+   for (p=name; *p; p++) {
+      if (B_ISALPHA(*p) || B_ISDIGIT(*p) || strchr(accept, (int)(*p))) {
+	 continue;
+      }
+      if (ua) {
+         bsendmsg(ua, _("Illegal character \"%c\" in a volume name.\n"), *p);
+      }
       return 0;
    }
    len = strlen(name);
    if (len >= MAX_NAME_LENGTH) {
-      bsendmsg(ua, _("Volume name too long.\n"));
+      if (ua) {
+         bsendmsg(ua, _("Volume name too long.\n"));
+      }
       return 0;
    }
    if (len == 0) {
-      bsendmsg(ua, _("Volume name must be at least one character long.\n"));
+      if (ua) {
+         bsendmsg(ua, _("Volume name must be at least one character long.\n"));
+      }
       return 0;
    }
    return 1;
@@ -504,7 +519,7 @@ static vol_list_t *get_slot_list_from_SD(UAContext *ua)
 	 continue;
       }
       Slot = atoi(sd->msg);
-      if (Slot <= 0 || !is_legal_volume_name(ua, p)) {
+      if (Slot <= 0 || !is_volume_name_legal(ua, p)) {
 	 continue;
       }
 
