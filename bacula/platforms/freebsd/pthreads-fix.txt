@@ -98,25 +98,28 @@ pthreads, then you've been correctly patched.
 
 SOLUTION:
 
-For FreeBSD prior to 4.9, you have two choices to ensure proper
+For FreeBSD prior to and including 4.9, you have two choices to ensure proper
 backups.  These instructions assume you are familiar with patching
 FreeBSD and already have the FreeBSD source code installed on your
-machine.  
+machine.
 
-1 - cvsup and build your system to FreeBSD 4.8-STABLE
+Do one of the following:
 
-2 - Apply this patch.
+- cvsup and build your system to FreeBSD 4.x-STABLE after the
+  date Mon Dec 29 15:18:01 2003 UTC
 
-http://www.freebsd.org/cgi/cvsweb.cgi/src/lib/libc_r/uthread/uthread_write.c?rev=1.16.2.8&content-type=text/x-cvsweb-markup
+- Apply this patch.
 
-To apply the patch, follow these instructions as root.  
+  http://www.freebsd.org/cgi/cvsweb.cgi/src/lib/libc_r/uthread/uthread_write.c.diff?r1=1.16.2.6&r2=1.16.2.8
 
-fetch -o pthread.diff http://www.freebsd.org/cgi/cvsweb.cgi/src/lib/libc_r/uthread/uthread_write.c?rev=1.16.2.8                 
+  To apply the patch, follow these instructions as root.  
 
-cd /usr/src/lib/libc_r/uthread/
-patch < /path/to/pthread.diff
-cd ..
-make all install
+    fetch -o pthread.diff http://www.freebsd.org/cgi/cvsweb.cgi/src/lib/libc_r/uthread/uthread_write.c.diff?r1=1.16.2.6\&r2=1.16.2.8
+
+    cd /usr/src/lib/libc_r/uthread/
+    patch < /path/to/pthread.diff
+    cd ..
+    make all install
 
 I recommend restarting Bacula.
 
