@@ -114,13 +114,13 @@ next_volume:
 	    ok = db_find_next_volume(jcr, jcr->db, -1, &mr);
             Dmsg1(400, "Find oldest=%d\n", ok);
 	    if (ok) {
-	       UAContext ua;
+	       UAContext *ua;
                Dmsg0(400, "Try purge.\n");
 	       /* Try to purge oldest volume */
-	       create_ua_context(jcr, &ua);
+	       ua = new_ua_context(jcr);
                Jmsg(jcr, M_INFO, 0, _("Purging oldest volume \"%s\"\n"), mr.VolumeName);
-	       ok = purge_jobs_from_volume(&ua, &mr);
-	       free_ua_context(&ua);
+	       ok = purge_jobs_from_volume(ua, &mr);
+	       free_ua_context(ua);
 	       if (ok) {
 		  ok = recycle_oldest_purged_volume(jcr, &mr);
                   Dmsg1(400, "Recycle after recycle oldest=%d\n", ok);

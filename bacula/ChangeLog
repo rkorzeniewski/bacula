@@ -1,4 +1,9 @@
-2003-xx-xx Version 1.31 Beta xxJun03
+2003-xx-xx Version 1.31 Beta 20Jun03
+- Change find_next_volume() for oldest to use LastWritten instead of
+  FirstWritten -- also add Append to volumes slected.
+- Do normal recycling before checking for RecycleOldestVolume.
+- Implemented block rejection on read. This should make restores run
+  much faster. Next release will have block positioning -- even faster.
 - Very preliminary support for Gnome-2.0.  Text does not yet work.
 - Correct buffer corruption in find_one.c with long directory names (Win32).
 - Make setting owner on directories M_ERROR rather than M_WARNING.

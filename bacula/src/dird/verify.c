@@ -143,19 +143,19 @@ int do_verify(JCR *jcr)
     */
    if (jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG) {
       RBSR *bsr = new_bsr();
-      UAContext ua;
+      UAContext *ua;
       bsr->JobId = jr.JobId;
-      create_ua_context(jcr, &ua);
-      complete_bsr(&ua, bsr);
+      ua = new_ua_context(jcr);
+      complete_bsr(ua, bsr);
       bsr->fi = new_findex();
       bsr->fi->findex = 1;
       bsr->fi->findex2 = jr.JobFiles;
-      if (!write_bsr_file(&ua, bsr)) {
-	 free_ua_context(&ua);
+      if (!write_bsr_file(ua, bsr)) {
+	 free_ua_context(ua);
 	 free_bsr(bsr);
 	 goto bail_out;
       }
-      free_ua_context(&ua);
+      free_ua_context(ua);
       free_bsr(bsr);
       if (jcr->RestoreBootstrap) {
 	 free(jcr->RestoreBootstrap);
