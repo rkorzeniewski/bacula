@@ -54,14 +54,9 @@ static char NO_device[] = "3924 Device \"%s\" not in SD Device resources.\n";
 static char NOT_open[]  = "3925 Device \"%s\" could not be opened or does not exist.\n";
 static char BAD_use[]   = "3913 Bad use command: %s\n";
 static char BAD_job[]   = "3915 Bad Job command: %s\n";
-static char OK_query[]  = "3001 OK query "
-   "append=%d read=%d num_writers=%d "
-   "open=%d labeled=%d offline=%d "
-   "reserved=%d max_writers=%d "
-   "autoselect=%d autochanger=%d "
-   "poolid=%s "
-   "changer_name=%s media_type=%s volume_name=%s";
-static char BAD_query[]   = "3917 Bad query command: %s\n";
+static char OK_query[]  = "3001 OK query\n";
+static char NO_query[]  = "3918 Query failed\n";
+static char BAD_query[] = "3917 Bad query command: %s\n";
 
 /*
  * Director requests us to start a job
@@ -425,12 +420,11 @@ static bool use_device_cmd(JCR *jcr)
  */
 bool query_cmd(JCR *jcr)
 {
-   POOL_MEM dev_name;		   
+   POOL_MEM dev_name, VolumeName, MediaType, ChangerName;
    BSOCK *dir = jcr->dir_bsock;
    DEVRES *device;
    AUTOCHANGER *changer;
    bool ok;
-   char ed1[50];
 
    Dmsg1(100, "Query_cmd: %s", dir->msg);
    ok = sscanf(dir->msg, query_device, dev_name.c_str()) == 1;
@@ -447,33 +441,13 @@ bool query_cmd(JCR *jcr)
 	    if (!device->dev) {
 	       break;
 	    }  
-	    DEVICE *dev = device->dev;
-	    POOL_MEM VolumeName, MediaType, ChangerName;
 	    UnlockRes();
-	    if (dev->is_labeled()) {
-	       pm_strcpy(VolumeName, dev->VolHdr.VolName);
+	    ok = dir_update_device(jcr, device->dev);
+	    if (ok) {
+	       ok = bnet_fsend(dir, OK_query);
 	    } else {
-               pm_strcpy(VolumeName, "*");
+	       bnet_fsend(dir, NO_query);
 	    }
-	    bash_spaces(VolumeName);
-	    pm_strcpy(MediaType, device->media_type);
-	    bash_spaces(MediaType);
-	    if (device->changer_res) {
-	       pm_strcpy(ChangerName, device->changer_res->hdr.name);
-	       bash_spaces(ChangerName);
-	    } else {
-               pm_strcpy(ChangerName, "*");
-	    }
-	    ok =bnet_fsend(dir, OK_query, 
-	       dev->can_append()!=0,
-	       dev->can_read()!=0, dev->num_writers, 
-	       dev->is_open()!=0, dev->is_labeled()!=0,
-	       dev->is_offline()!=0, dev->reserved_device, 
-	       dev->is_tape()?100000:1,
-	       dev->autoselect, 0, 
-	       edit_uint64(dev->PoolId, ed1),
-	       ChangerName.c_str(), MediaType.c_str(), VolumeName.c_str());
-            Dmsg1(100, ">dird: %s\n", dir->msg);
 	    return ok;
 	 }
       }
@@ -481,15 +455,15 @@ bool query_cmd(JCR *jcr)
 	 /* Find resource, and make sure we were able to open it */
 	 if (fnmatch(dev_name.c_str(), changer->hdr.name, 0) == 0) {
 	    UnlockRes();
-	    /* This is mostly to indicate that we are here */
-	    ok = bnet_fsend(dir, OK_query, 
-	       0, 0, 0, 		 /* append, read, num_writers */
-	       0, 0, 0, 		 /* is_open, is_labeled, offline */
-	       0, 0,			 /* reserved, max_writers */
-	       0, 1,			 /* autoselect, AutoChanger = 1 */   
-               "0",                      /* PoolId */
-               "*", "*", "*");           /* ChangerName, MediaType, VolName */
-            Dmsg1(100, ">dird: %s\n", dir->msg);
+	    if (!changer->device || changer->device->size() == 0) {
+	       continue;	      /* no devices */
+	    }
+	    ok = dir_update_changer(jcr, changer);
+	    if (ok) {
+	       ok = bnet_fsend(dir, OK_query);
+	    } else {
+	       bnet_fsend(dir, NO_query);
+	    }
 	    return ok;
 	 }
       }

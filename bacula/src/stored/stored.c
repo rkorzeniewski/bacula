@@ -249,6 +249,8 @@ uint32_t newVolSessionId()
 /* Check Configuration file for necessary info */
 static void check_config()
 {
+   AUTOCHANGER *changer;
+
    LockRes();
    me = (STORES *)GetNextRes(R_STORAGE, NULL);
    if (!me) {
@@ -256,7 +258,6 @@ static void check_config()
       Jmsg1(NULL, M_ERROR_TERM, 0, _("No Storage resource defined in %s. Cannot continue.\n"),
 	 configfile);
    }
-
    my_name_is(0, (char **)NULL, me->hdr.name);	   /* Set our real name */
 
    if (GetNextRes(R_STORAGE, (RES *)me) != NULL) {
@@ -284,14 +285,40 @@ static void check_config()
    close_msg(NULL);		      /* close temp message handler */
    init_msg(NULL, me->messages);      /* open daemon message handler */
 
-   UnlockRes();
 
    if (!me->working_directory) {
       Jmsg1(NULL, M_ERROR_TERM, 0, _("No Working Directory defined in %s. Cannot continue.\n"),
 	 configfile);
    }
-
    set_working_directory(me->working_directory);
+
+   /* Ensure that the media_type for each device is the same */
+   foreach_res(changer, R_AUTOCHANGER) {
+      DEVRES *device;
+      char *media_type = NULL;
+      foreach_alist(device, changer->device) {
+	 if (media_type == NULL) {
+	    media_type = device->media_type;
+	    continue;
+	 }     
+	 if (strcmp(media_type, device->media_type) != 0) {
+	    Jmsg(NULL, M_ERROR_TERM, 0, 
+               _("Media Type not the same for all devices in changer %s. Cannot continue.\n"),
+	       changer->hdr.name);
+	 }
+	 /*
+	  * If the device does not have a changer name or changer command
+	  * defined, used the one from the Autochanger resource 
+	  */
+	 if (!device->changer_name) {
+	    device->changer_name = bstrdup(changer->changer_name);
+	 }
+	 if (!device->changer_command) {
+	    device->changer_command = bstrdup(changer->changer_command);
+	 }
+      }
+   }
+   UnlockRes();
 }
 
 /*

@@ -204,7 +204,7 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    jcr->errmsg = get_pool_memory(PM_MESSAGE);
    jcr->errmsg[0] = 0;
    /* Setup some dummy values */
-   jcr->Job[0] = 0;		      /* no job name by default */
+   bstrncpy(jcr->Job, "*System*", sizeof(jcr->Job));
    jcr->JobId = 0;
    jcr->JobType = JT_SYSTEM;	      /* internal job until defined */
    jcr->JobLevel = L_NONE;
