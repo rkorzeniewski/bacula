@@ -108,7 +108,7 @@ POOLMEM *sm_get_pool_memory(const char *fname, int lineno, int pool)
 	 pool_ctl[pool].max_used = pool_ctl[pool].in_use;
       }
       V(mutex);
-      Dmsg3(800, "sm_get_pool_memory reuse %x to %s:%d\n", buf, fname, lineno);
+      Dmsg3(1800, "sm_get_pool_memory reuse %x to %s:%d\n", buf, fname, lineno);
       sm_new_owner(fname, lineno, (char *)buf);
       return (POOLMEM *)((char *)buf+HEAD_SIZE);
    }
@@ -124,7 +124,7 @@ POOLMEM *sm_get_pool_memory(const char *fname, int lineno, int pool)
       pool_ctl[pool].max_used = pool_ctl[pool].in_use;
    }
    V(mutex);
-   Dmsg3(800, "sm_get_pool_memory give %x to %s:%d\n", buf, fname, lineno);
+   Dmsg3(1800, "sm_get_pool_memory give %x to %s:%d\n", buf, fname, lineno);
    return (POOLMEM *)((char *)buf+HEAD_SIZE);
 }
 
@@ -209,7 +209,7 @@ void sm_free_pool_memory(const char *fname, int lineno, POOLMEM *obuf)
       /* Don't let him free the same buffer twice */
       for (next=pool_ctl[pool].free_buf; next; next=next->next) {
 	 if (next == buf) {
-            Dmsg4(800, "bad free_pool_memory %x pool=%d from %s:%d\n", buf, pool, fname, lineno);
+            Dmsg4(1800, "bad free_pool_memory %x pool=%d from %s:%d\n", buf, pool, fname, lineno);
 	    V(mutex);		      /* unblock the pool */
 	    ASSERT(next != buf);      /* attempt to free twice */
 	 }
@@ -218,7 +218,7 @@ void sm_free_pool_memory(const char *fname, int lineno, POOLMEM *obuf)
       buf->next = pool_ctl[pool].free_buf;
       pool_ctl[pool].free_buf = buf;
    }
-   Dmsg4(800, "free_pool_memory %x pool=%d from %s:%d\n", buf, pool, fname, lineno);
+   Dmsg4(1800, "free_pool_memory %x pool=%d from %s:%d\n", buf, pool, fname, lineno);
    V(mutex);
 }
 
@@ -347,7 +347,7 @@ void free_pool_memory(POOLMEM *obuf)
       buf->next = pool_ctl[pool].free_buf;
       pool_ctl[pool].free_buf = buf;
    }
-   Dmsg2(800, "free_pool_memory %x pool=%d\n", buf, pool);
+   Dmsg2(1800, "free_pool_memory %x pool=%d\n", buf, pool);
    V(mutex);
 }
 

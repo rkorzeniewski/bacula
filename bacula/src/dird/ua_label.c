@@ -49,6 +49,7 @@ static bool is_cleaning_tape(UAContext *ua, MEDIA_DBR *mr, POOL_DBR *pr);
 static BSOCK *open_sd_bsock(UAContext *ua);
 static void close_sd_bsock(UAContext *ua);
 static char *get_volume_name_from_SD(UAContext *ua, int Slot);
+static int get_num_slots_from_SD(UAContext *ua);
 
 
 /*
@@ -66,14 +67,12 @@ int relabel_cmd(UAContext *ua, const char *cmd)
    return do_label(ua, cmd, 1);      /* relabel tape */
 }
 
-static int const max_slots = 5000;
-
 static bool get_user_slot_list(UAContext *ua, char *slot_list, int num_slots)
 {
    int i;
    const char *msg;
 
-   for (int i=0; i<num_slots; i++) {
+   for (int i=0; i <= num_slots; i++) {
       slot_list[i] = 0;
    }
    i = find_arg_with_value(ua, "slots");
@@ -134,13 +133,13 @@ static bool get_user_slot_list(UAContext *ua, char *slot_list, int num_slots)
       }
    } else {
       /* Turn everything on */
-      for (i=0; i<num_slots; i++) {
+      for (i=0; i <= num_slots; i++) {
 	 slot_list[i] = 1;
       }
    }
 #ifdef xxx_debug
    printf("Slots turned on:\n");
-   for (i=1; i<num_slots; i++) {
+   for (i=1; i <= num_slots; i++) {
       if (slot_list[i]) {
          printf("%d\n", i);
       }
@@ -162,6 +161,8 @@ int update_slots(UAContext *ua)
    MEDIA_DBR mr;
    char *slot_list;
    bool scan;
+   int max_slots;
+
 
    if (!open_db(ua)) {
       return 1;
@@ -174,7 +175,12 @@ int update_slots(UAContext *ua)
 
    scan = find_arg(ua, _("scan")) >= 0;
 
-   slot_list = (char *)malloc(max_slots);
+   max_slots = get_num_slots_from_SD(ua);
+   if (max_slots <= 0) {
+      bsendmsg(ua, _("No slots in changer to scan.\n"));
+      return 1;
+   }
+   slot_list = (char *)malloc(max_slots+1);
    if (!get_user_slot_list(ua, slot_list, max_slots)) {
       free(slot_list);
       return 1;
@@ -189,8 +195,9 @@ int update_slots(UAContext *ua)
 
    /* Walk through the list updating the media records */
    for (vl=vol_list; vl; vl=vl->next) {
-      if (vl->Slot >= max_slots) {
-         bsendmsg(ua, _("Slot %d larger than max %d ignored.\n"));
+      if (vl->Slot > max_slots) {
+         bsendmsg(ua, _("Slot %d larger than max %d ignored.\n"),
+	    vl->Slot, max_slots);
 	 continue;
       }
       /* Check if user wants us to look at this slot */
@@ -252,7 +259,7 @@ int update_slots(UAContext *ua)
    mr.InChanger = 1;
    mr.StorageId = store->StorageId;
    db_lock(ua->db);
-   for (int i=1; i<max_slots; i++) {
+   for (int i=1; i <= max_slots; i++) {
       if (slot_list[i]) {
 	 mr.Slot = i;
 	 /* Set InChanger to zero for this Slot */
@@ -448,8 +455,15 @@ static void label_from_barcodes(UAContext *ua)
    vol_list_t *vl, *vol_list = NULL;
    bool media_record_exists;
    char *slot_list;
+   int max_slots;
 
-   slot_list = (char *)malloc(max_slots);
+  
+   max_slots = get_num_slots_from_SD(ua);
+   if (max_slots <= 0) {
+      bsendmsg(ua, _("No slots in changer to scan.\n"));
+      return;
+   }
+   slot_list = (char *)malloc(max_slots+1);
    if (!get_user_slot_list(ua, slot_list, max_slots)) {
       goto bail_out;
    }
@@ -831,6 +845,39 @@ static void free_vol_list(vol_list_t *vol_list)
       free(ovl);
    }
 }
+
+/*
+ * We get the number of slots in the changer from the SD
+ */
+static int get_num_slots_from_SD(UAContext *ua)
+{
+   STORE *store = ua->jcr->store;
+   char dev_name[MAX_NAME_LENGTH];
+   BSOCK *sd;
+   int slots = 0;
+
+
+   if (!(sd=open_sd_bsock(ua))) {
+      return 0;
+   }
+
+   bstrncpy(dev_name, store->dev_name(), sizeof(dev_name));
+   bash_spaces(dev_name);
+   /* Ask for autochanger list of volumes */
+   bnet_fsend(sd, _("autochanger slots %s \n"), dev_name);
+
+   while (bnet_recv(sd) >= 0) {
+      if (sscanf(sd->msg, "slots=%d\n", &slots) == 1) {
+	 break;
+      } else {
+         bsendmsg(ua, "%s", sd->msg);
+      }
+   }
+   close_sd_bsock(ua);
+   bsendmsg(ua, _("Device \"%s\" has %d slots.\n"), store->dev_name(), slots);
+   return slots;
+}
+
 
 
 /*

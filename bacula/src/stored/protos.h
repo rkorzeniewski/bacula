@@ -58,7 +58,7 @@ int     authenticate_filed(JCR *jcr);
 
 /* From autochanger.c */
 int      autoload_device(DCR *dcr, int writing, BSOCK *dir);
-bool     autochanger_list(DCR *dcr, BSOCK *dir);
+bool     autochanger_cmd(DCR *dcr, BSOCK *dir, const char *cmd);
 void     mark_volume_not_inchanger(DCR *dcr);
 char    *edit_device_codes(DCR *dcr, char *omsg, const char *cmd);
 

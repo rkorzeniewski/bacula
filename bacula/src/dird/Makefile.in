@@ -39,7 +39,7 @@ SVRSRCS = dird.c admin.c authenticate.c \
 	  ua_input.c ua_label.c ua_output.c ua_prune.c \
 	  ua_purge.c ua_restore.c ua_run.c \
 	  ua_select.c ua_server.c \
-	  ua_status.c ua_tree.c verify.c
+	  ua_status.c ua_tree.c ua_update.c verify.c
 SVROBJS = dird.o admin.o authenticate.o \
 	  autoprune.o backup.o bsr.o \
 	  catreq.o dird_conf.o expand.o \
@@ -54,7 +54,7 @@ SVROBJS = dird.o admin.o authenticate.o \
 	  ua_input.o ua_label.o ua_output.o ua_prune.o \
 	  ua_purge.o ua_restore.o ua_run.o \
 	  ua_select.o ua_server.o \
-	  ua_status.o ua_tree.o verify.o
+	  ua_status.o ua_tree.o ua_update.o verify.o
 
 # these are the objects that are changed by the .configure process
 EXTRAOBJS = @OBJLIST@

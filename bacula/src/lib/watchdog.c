@@ -283,7 +283,7 @@ walk_list:
 	 timeout.tv_sec++;
       }
 
-      Dmsg1(900, "pthread_cond_timedwait %d\n", timeout.tv_sec - tv.tv_sec);
+      Dmsg1(1900, "pthread_cond_timedwait %d\n", timeout.tv_sec - tv.tv_sec);
       /* Note, this unlocks mutex during the sleep */
       P(timer_mutex);
       pthread_cond_timedwait(&timer, &timer_mutex, &timeout);
