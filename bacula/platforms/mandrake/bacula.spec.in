@@ -22,9 +22,11 @@
 %{?build_rh8:%define rh8 1}
 %define rh9 0
 %{?build_rh9:%define rh9 1}
-# Fedora Core 1 build
+# Fedora Core build
 %define fc1 0
 %{?build_fc1:%define fc1 1}
+%define fc3 0
+%{?build_fc3:%define fc3 1}
 # Whitebox Enterprise build
 # this should also work for RHEL
 %define wb3 0
@@ -38,7 +40,7 @@
 %{?build_mdk:%define mdk 1}
 
 # test for a platform definition
-%if ! %{rh7} && ! %{rh8} && ! %{rh9} && ! %{fc1} && ! %{wb3} && ! %{su9} && ! %{mdk}
+%if ! %{rh7} && ! %{rh8} && ! %{rh9} && ! %{fc1} && ! %{fc3} && ! %{wb3} && ! %{su9} && ! %{mdk}
 %{error: You must specify a platform. Please examine the spec file.}
 exit 1
 %endif
@@ -47,6 +49,9 @@ exit 1
 # set for database support desired or define the build_xxx on the command line
 %define mysql 0
 %{?build_mysql:%define mysql 1}
+# if using mysql 4.x define this and mysql above
+%define mysql4 0
+%{?build_mysql4:%define mysql4 1}
 %define sqlite 0
 %{?build_sqlite:%define sqlite 1}
 %define postgresql 0
@@ -59,7 +64,7 @@ exit 1
 %endif
 
 # check what distribution we are
-%if %{rh7} || %{rh8} || %{rh9} || %{fc1} || %{wb3}
+%if %{rh7} || %{rh8} || %{rh9} || %{fc1} || %{fc3} || %{wb3}
 %define _dist %(grep Red /etc/redhat-release)
 %endif
 %if %{su9}
@@ -126,7 +131,20 @@ BuildRequires: libstdc++-static-devel
 BuildRequires: glibc-static-devel
 BuildRequires: freetype2-devel
 %endif
-%if ! %{rh7} && ! %{su9} && ! %{mdk}
+%if %{fc3}
+BuildRequires: libtermcap-devel
+BuildRequires: gtk2-devel >= 2.4
+BuildRequires: libgnomeui-devel >= 2.8
+BuildRequires: glibc-devel >= 2.3
+BuildRequires: ORBit2-devel
+BuildRequires: libart_lgpl-devel >= 2.3
+BuildRequires: libbonobo-devel >= 2.8
+BuildRequires: libbonoboui-devel >= 2.8
+BuildRequires: bonobo-activation-devel
+BuildRequires: GConf2-devel
+BuildRequires: freetype-devel
+%endif
+%if ! %{rh7} && ! %{su9} && ! %{mdk} && ! %{fc3}
 BuildRequires: libtermcap-devel
 BuildRequires: gtk2-devel >= 2.0
 BuildRequires: libgnomeui-devel >= 2.0
@@ -141,8 +159,12 @@ BuildRequires: linc-devel
 BuildRequires: freetype-devel
 %endif
 
-%if %{mysql}
+%if %{mysql} && ! %{mysql4}
 BuildRequires: mysql-devel >= 3.23
+%endif
+
+%if %{mysql} && %{mysql4}
+BuildRequires: mysql-devel >= 4.0
 %endif
 
 %if %{postgresql} && %{wb3}
@@ -202,9 +224,13 @@ Requires: mysql-server >= 3.23
 Requires: mysql >= 3.23
 Requires: mysql-client >= 3.23
 %endif
-%if %{mysql} && %{mdk}
+%if %{mysql} && %{mdk} && ! %{mysql4}
 Requires: mysql >= 3.23
 Requires: mysql-client >= 3.23
+%endif
+%if %{mysql} && %{mdk} && %{mysql4}
+Requires: mysql >= 4.0
+Requires: mysql-client >= 4.0
 %endif
 %if %{postgresql} && %{wb3}
 Requires: rh-postgresql >= 7
@@ -376,7 +402,19 @@ Requires: libbonoboui >= 2.0
 Requires: GConf2
 Requires: freetype2
 %endif
-%if ! %{rh7} && ! %{su9} && ! %{mdk}
+%if %{fc3}
+Requires: gtk2 >= 2.4
+Requires: libgnomeui >= 2.8
+Requires: glibc >= 2.3
+Requires: ORBit2
+Requires: libart_lgpl >= 2.3
+Requires: libbonobo >= 2.8
+Requires: libbonoboui >= 2.8
+Requires: bonobo-activation
+Requires: GConf2
+Requires: freetype
+%endif
+%if ! %{rh7} && ! %{su9} && ! %{mdk} && ! %{fc3}
 Requires: gtk2 >= 2.0
 Requires: libgnomeui >= 2.0
 Requires: glibc >= 2.3
@@ -490,6 +528,9 @@ cwd=${PWD}
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf "$RPM_BUILD_ROOT"
 mkdir -p $RPM_BUILD_ROOT/etc/init.d
 mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d
+mkdir -p $RPM_BUILD_ROOT/etc/log.d/conf/logfiles
+mkdir -p $RPM_BUILD_ROOT/etc/log.d/conf/services
+mkdir -p $RPM_BUILD_ROOT/etc/log.d/scripts/services
 mkdir -p $RPM_BUILD_ROOT/usr/share/pixmaps
 %if %{rh7}
 mkdir -p $RPM_BUILD_ROOT/usr/share/gnome/apps/System
@@ -582,7 +623,7 @@ cp -p scripts/gnome-console.console_apps $RPM_BUILD_ROOT/etc/security/console.ap
 cp -p scripts/gnome-console.pamd $RPM_BUILD_ROOT/etc/pam.d/gnome-console
 ln -sf consolehelper $RPM_BUILD_ROOT/usr/bin/gnome-console
 %endif
-%if %{rh8} || %{rh9} || %{wb3} || %{fc1} || %{mdk}
+%if %{rh8} || %{rh9} || %{wb3} || %{fc1} || %{fc3} || %{mdk}
 cp -p scripts/bacula.png $RPM_BUILD_ROOT/usr/share/pixmaps/bacula.png
 cp -p scripts/bacula.desktop.gnome2.consolehelper $RPM_BUILD_ROOT/usr/share/applications/bacula.desktop
 cp -p scripts/gnome-console.console_apps $RPM_BUILD_ROOT/etc/security/console.apps/gnome-console
@@ -633,6 +674,14 @@ cp -p ../%{tomsrtbt}/* $RPM_BUILD_ROOT/etc/bacula/rescue/floppy/tomsrtbt/
 # install the updatedb scripts
 cp -p updatedb/* $RPM_BUILD_ROOT/etc/bacula/updatedb/
 
+# install the logwatch scripts
+cp -p scripts/logwatch/bacula $RPM_BUILD_ROOT/etc/log.d/scripts/services/bacula
+cp -p scripts/logwatch/logfile.bacula.conf $RPM_BUILD_ROOT/etc/log.d/conf/logfiles/bacula.conf
+cp -p scripts/logwatch/services.bacula.conf $RPM_BUILD_ROOT/etc/log.d/conf/services/bacula.conf
+chmod 755 $RPM_BUILD_ROOT/etc/log.d/scripts/services/bacula
+chmod 644 $RPM_BUILD_ROOT/etc/log.d/conf/logfiles/bacula.conf
+chmod 644 $RPM_BUILD_ROOT/etc/log.d/conf/services/bacula.conf
+
 # now clean up permissions that are left broken by the install
 chmod o-r $RPM_BUILD_ROOT/etc/bacula/query.sql
 chmod o-rwx $RPM_BUILD_ROOT/var/bacula
@@ -670,6 +719,8 @@ chmod 644 $RPM_BUILD_ROOT/etc/bacula/tray-monitor.conf
 /etc/bacula/mtx-changer
 /etc/bacula/btraceback.dbx
 /etc/bacula/btraceback.gdb
+/etc/bacula/dvd-freespace
+/etc/bacula/dvd-writepart
 /etc/init.d/bacula-dir
 /etc/init.d/bacula-fd
 /etc/init.d/bacula-sd
@@ -678,11 +729,13 @@ chmod 644 $RPM_BUILD_ROOT/etc/bacula/tray-monitor.conf
 /usr/man/man1/*
 
 /etc/logrotate.d/bacula
-
+/etc/log.d/scripts/services/bacula
 %config(noreplace) /etc/bacula/bacula-dir.conf
 %config(noreplace) /etc/bacula/bacula-fd.conf
 %config(noreplace) /etc/bacula/bacula-sd.conf
 %config(noreplace) /etc/bacula/bconsole.conf
+%config(noreplace) /etc/log.d/conf/logfiles/bacula.conf
+%config(noreplace) /etc/log.d/conf/services/bacula.conf
 /etc/bacula/query.sql
 %dir %{working_dir}
 
@@ -799,6 +852,8 @@ fi
 /etc/bacula/mtx-changer
 /etc/bacula/btraceback.dbx
 /etc/bacula/btraceback.gdb
+/etc/bacula/dvd-freespace
+/etc/bacula/dvd-writepart
 /etc/init.d/bacula-dir
 /etc/init.d/bacula-fd
 /etc/init.d/bacula-sd
@@ -807,11 +862,13 @@ fi
 /usr/man/man1/*
 
 /etc/logrotate.d/bacula
-
+/etc/log.d/scripts/services/bacula
 %config(noreplace) /etc/bacula/bacula-dir.conf
 %config(noreplace) /etc/bacula/bacula-fd.conf
 %config(noreplace) /etc/bacula/bacula-sd.conf
 %config(noreplace) /etc/bacula/bconsole.conf
+%config(noreplace) /etc/log.d/conf/logfiles/bacula.conf
+%config(noreplace) /etc/log.d/conf/services/bacula.conf
 /etc/bacula/query.sql
 %{sqlite_bindir}/libsqlite.a
 %{sqlite_bindir}/sqlite.h
@@ -936,6 +993,8 @@ fi
 /etc/bacula/mtx-changer
 /etc/bacula/btraceback.dbx
 /etc/bacula/btraceback.gdb
+/etc/bacula/dvd-freespace
+/etc/bacula/dvd-writepart
 /etc/init.d/bacula-dir
 /etc/init.d/bacula-fd
 /etc/init.d/bacula-sd
@@ -944,11 +1003,13 @@ fi
 /usr/man/man1/*
 
 /etc/logrotate.d/bacula
-
+/etc/log.d/scripts/services/bacula
 %config(noreplace) /etc/bacula/bacula-dir.conf
 %config(noreplace) /etc/bacula/bacula-fd.conf
 %config(noreplace) /etc/bacula/bacula-sd.conf
 %config(noreplace) /etc/bacula/bconsole.conf
+%config(noreplace) /etc/log.d/conf/logfiles/bacula.conf
+%config(noreplace) /etc/log.d/conf/services/bacula.conf
 /etc/bacula/query.sql
 %dir %{working_dir}
 
@@ -1148,6 +1209,12 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 
 
 %changelog
+* Sun Feb 06 2005 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- add logwatch script
+- add dvd scripts
+* Sat Jan 15 2005 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- add build for Fedora Core 3 (linc now included in ORDit2)
+- add mysql4 define for Mandrake 10.1
 * Fri Jan 14 2005 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - fix {group_file} variable in post scripts
 * Thu Dec 30 2004 D. Scott Barninger <barninger@fairfieldcomputers.com>
