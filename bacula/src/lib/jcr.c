@@ -75,11 +75,18 @@ void term_last_jobs_list()
 void read_last_jobs_list(int fd, uint64_t addr)
 {
    struct s_last_job *je, job;
+   uint32_t num;
 
    if (addr == 0 || lseek(fd, addr, SEEK_SET) < 0) {
       return;
    }
-   for ( ;; ) {
+   if (read(fd, &num, sizeof(num)) < 0) {
+      return;
+   }
+   if (num > 4 * MAX_LAST_JOBS) {  /* sanity check */
+      return;
+   }
+   for ( ; num; num--) {
       if (read(fd, &job, sizeof(job)) < 0) {
 	 return;
       }
@@ -93,32 +100,34 @@ void read_last_jobs_list(int fd, uint64_t addr)
 	 if (last_jobs->size() > MAX_LAST_JOBS) {
 	    last_jobs->remove(last_jobs->first());
 	 }
-	 job.JobId = 0; 		/* zap last job */
-      } else {
-	 break;
       }
    }
 }
 
 uint64_t write_last_jobs_list(int fd, uint64_t addr)
 {
-   struct s_last_job *je, job;
+   struct s_last_job *je;
+   uint32_t num;
+
    if (lseek(fd, addr, SEEK_SET) < 0) {
       return 0;
    }
    if (last_jobs) {
+      /* First record is number of entires */
+      num = last_jobs->size();
+      if (write(fd, &num, sizeof(num)) < 0) {
+	 return 0;
+      }
       foreach_dlist(je, last_jobs) {
 	 if (write(fd, je, sizeof(struct s_last_job)) < 0) {
 	    return 0;
 	 }
       }
    }
-   /* Write a zero record to terminate list */
-   memset(&job, 0, sizeof(job));
-   write(fd, &job, sizeof(job));
+   /* Return current address */
    ssize_t stat = lseek(fd, 0, SEEK_CUR);
    if (stat < 0) {
-      return 0;
+      stat = 0;
    }
    return stat;
       

@@ -583,6 +583,9 @@ void dispatch_message(JCR *jcr, int type, int level, char *msg)
 
     if (type == M_ABORT || type == M_ERROR_TERM) {
        fputs(msg, stdout);	   /* print this here to INSURE that it is printed */
+#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
+       MessageBox(NULL, msg, "Bacula", MB_OK);
+#endif
     }
 
     /* Now figure out where to send the message */

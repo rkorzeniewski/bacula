@@ -46,6 +46,15 @@ int allow_severity = LOG_NOTICE;
 int deny_severity = LOG_WARNING;
 #endif
 
+static bool quit = false;
+
+void
+bnet_stop_thread_server(pthread_t tid)
+{
+   quit = true;
+   pthread_kill(tid, TIMEOUT_SIGNAL);
+}
+
 /* Become Threaded Network Server */
 void
 bnet_thread_server(char *bind_addr, int port, int max_clients, workq_t *client_wq, 
@@ -122,7 +131,7 @@ bnet_thread_server(char *bind_addr, int port, int max_clients, workq_t *client_w
    /* 
     * Wait for a connection from the client process.
     */
-   for (;;) {
+   for (;!quit;) {
       fd_set sockset;
       FD_ZERO(&sockset);
       FD_SET(sockfd, &sockset);
