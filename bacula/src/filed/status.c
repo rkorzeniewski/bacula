@@ -75,7 +75,7 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
 	 privs = enable_backup_privileges(NULL, 1);
       }
       len = Mmsg(&msg, 
-         _("Priv 0x%x APIs=%sOPT,%sATP,%sLPV,%sGFAE,%sBR,%sBW,%sSPSP\n"), privs,
+         _(" Priv 0x%x APIs=%sOPT,%sATP,%sLPV,%sGFAE,%sBR,%sBW,%sSPSP\n"), privs,
          p_OpenProcessToken?"":"!",
          p_AdjustTokenPrivileges?"":"!",
          p_LookupPrivilegeValue?"":"!",
@@ -97,7 +97,7 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
     }
 #endif
    if (debug_level > 0) {
-      len = Mmsg(&msg, _("Sizeof: off_t=%d size_t=%d\n"), sizeof(off_t),
+      len = Mmsg(&msg, _(" Sizeof: off_t=%d size_t=%d\n"), sizeof(off_t),
 	    sizeof(size_t));
       sendit(msg, len, arg);
    }
@@ -398,11 +398,12 @@ char *bac_status(char *buf, int buf_len)
          termstat = _("Last Job Canceled");
 	 break;
       case JS_ErrorTerminated:
+      case JS_FatalError:  
          termstat = _("Last Job Failed");
 	 break;
       default:
 	 if (job->Errors) {
-            termstat = _("Last Job had Errors");
+            termstat = _("Last Job had Warnings");
 	 }
 	 break;
       }
