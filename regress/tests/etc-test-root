@@ -61,5 +61,6 @@ if [ $? != 0 ] ; then
 else
    echo "  ===== Test4 /etc OK ===== "
    echo "  ===== Test4 OK ===== " >>test.out
+   cd ${cwd}
    scripts/cleanup
 fi
