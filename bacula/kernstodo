@@ -16,13 +16,16 @@ Testing to do: (painful)
 - test and fix < code and | code.
 
 For 1.29 release:
+- Add include list to end of chain in findlib
+- Look into Pruning/purging problems or why there seem to
+  be so many files listed each night.
+- Check out DB errors seen during recover.
 - Write Unix emulator for Windows.
 - Why is catreq.c:111 Find vol called twice for a job?
-- Add include list to end of chain in findlib
 - Fix cancel in find_one -- need jcr.
+- Cancel does not work for restore in FD.
 - Write SetJobStatus() function so cancel status not lost.
 - Find out why Full saves run slower and slower (hashing?)
-- Test size of hash table needed in find_one using testfind.
 - Make 1.28c release
 - Rewrite find_one.c to use only pool_memory instead of 
   alloca and malloc.
@@ -33,9 +36,7 @@ For 1.29 release:
 - Why are save/restore of device different sizes (sparse?)
   Yup! Fix it.
 
-- Implement some why for the Console to dynamically create
-  a job.
-- Cancel does not work for restore in FD.
+- Implement some why for the Console to dynamically create a job.
 - Restore to a particular time -- e.g. before date, after date. 
 - Implement SHA1
 - Implement disk spooling
@@ -725,4 +726,4 @@ Done: (see kernsdone for more)
 - Figure out how to restore the catalog.
 - Make sure differential handled correctly
 - Look at ua_prune.c in detail. Why did JobType work at all??????
-    
+- Test size of hash table needed in find_one using testfind (about 1300).

@@ -50,6 +50,7 @@ struct s_pool_ctl {
    struct abufhead *free_buf;	      /* pointer to free buffers */
 };
 
+/* #define STRESS_TEST_POOL */
 #ifndef STRESS_TEST_POOL
 /*
  * Define default Pool buffer sizes
@@ -64,10 +65,10 @@ static struct s_pool_ctl pool_ctl[] = {
 
 /* This is used ONLY when stress testing the code */
 static struct s_pool_ctl pool_ctl[] = {
-   {   10,   10, 0, 0, NULL },	      /* PM_NOPOOL no pooling */
-   {   10,   10, 0, 0, NULL },	      /* PM_FNAME filename buffers */
-   {   10,   10, 0, 0, NULL },	      /* PM_MESSAGE message buffer */
-   {   10,   10, 0, 0, NULL }	      /* PM_EMSG error message buffer */
+   {   20,   20, 0, 0, NULL },	      /* PM_NOPOOL no pooling */
+   {   20,   20, 0, 0, NULL },	      /* PM_FNAME filename buffers */
+   {   20,   20, 0, 0, NULL },	      /* PM_MESSAGE message buffer */
+   {   20,   20, 0, 0, NULL }	      /* PM_EMSG error message buffer */
 };
 #endif
 

@@ -178,9 +178,9 @@ find_one_file(FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), void *pkt
 
    } else if (S_ISLNK(ff_pkt->statp.st_mode)) {
        int size;
-       char *buffer = (char *)alloca(PATH_MAX + 1);
+       char *buffer = (char *)alloca(path_max + name_max + 2);
 
-       size = readlink(fname, buffer, PATH_MAX + 1);
+       size = readlink(fname, buffer, path_max + name_max + 1);
        if (size < 0) {
 	   /* Could not follow link */				   
 	   ff_pkt->type = FT_NOFOLLOW;
@@ -195,9 +195,9 @@ find_one_file(FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), void *pkt
    } else if (S_ISDIR(ff_pkt->statp.st_mode)) {
        DIR *directory;
        struct dirent *entry, *result;
-       char *namebuf;
-       size_t namebuf_len;
-       size_t len;
+       char *link;
+       int link_len;
+       int len;
        int status;
        dev_t our_device = ff_pkt->statp.st_dev;
 
@@ -210,15 +210,16 @@ find_one_file(FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), void *pkt
 
        /* Build a canonical directory name with a trailing slash. */
        len = strlen(fname);
-       namebuf_len = len + DEFAULT_NAMEBUF_LEN;
-       namebuf = (char *)bmalloc(namebuf_len + 2);
-       bstrncpy(namebuf, fname, namebuf_len);
-       while (len >= 1 && namebuf[len - 1] == '/')
+       link_len = len + 200;
+       link = (char *)bmalloc(link_len + 2);
+       bstrncpy(link, fname, link_len);
+       /* Strip all trailing slashes */
+       while (len >= 1 && link[len - 1] == '/')
 	 len--;
-       namebuf[len++] = '/';
-       namebuf[len] = '\0';
+       link[len++] = '/';             /* add back one */
+       link[len] = 0;
 
-       ff_pkt->link = namebuf;
+       ff_pkt->link = link;
        if (ff_pkt->incremental &&
 	   (ff_pkt->statp.st_mtime < ff_pkt->save_time &&
 	    ff_pkt->statp.st_ctime < ff_pkt->save_time)) {
@@ -236,7 +237,7 @@ find_one_file(FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), void *pkt
 	* user has turned it off for this directory.
 	*/
        if (ff_pkt->flags & FO_NO_RECURSION) {
-	  free(namebuf);
+	  free(link);
 	  /* No recursion into this directory */
 	  ff_pkt->type = FT_NORECURSE;
 	  return handle_file(ff_pkt, pkt);
@@ -248,7 +249,7 @@ find_one_file(FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), void *pkt
 	*/
        if (!top_level && !(ff_pkt->flags & FO_MULTIFS) &&
 	    parent_device != ff_pkt->statp.st_dev) {
-	  free(namebuf);
+	  free(link);
 	  /* returning here means we do not handle this directory */
 	  ff_pkt->type = FT_NOFSCHG;
 	  return handle_file(ff_pkt, pkt);
@@ -258,7 +259,7 @@ find_one_file(FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), void *pkt
 	*/
        errno = 0;
        if ((directory = opendir(fname)) == NULL) {
-	  free(namebuf);
+	  free(link);
 	  ff_pkt->type = FT_NOOPEN;
 	  ff_pkt->ff_errno = errno;
 	  return handle_file(ff_pkt, pkt);
@@ -269,16 +270,19 @@ find_one_file(FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), void *pkt
 	* before traversing it.
 	*/
        rtn_stat = 1;
-       entry = (struct dirent *)malloc(sizeof(struct dirent) + name_max + 10);
+       entry = (struct dirent *)malloc(sizeof(struct dirent) + name_max + 100);
        for ( ;; ) {
-	   char *p;
+	   char *p, *q;
+	   int i;
 
 	   status  = readdir_r(directory, entry, &result);
+	   sm_check(__FILE__, __LINE__, False);
            Dmsg3(200, "readdir stat=%d result=%x name=%s\n", status, result,
 	      entry->d_name);
 	   if (status != 0 || result == NULL) {
 	      break;
 	   }
+	   ASSERT(name_max+1 > sizeof(struct dirent) + (int)NAMELEN(entry));
 	   p = entry->d_name;
            /* Skip `.', `..', and excluded file names.  */
            if (p[0] == '\0' || (p[0] == '.' && (p[1] == '\0' ||
@@ -286,18 +290,24 @@ find_one_file(FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), void *pkt
 	      continue;
 	   }
 
-	   if ((int)NAMELEN(entry) + len >= namebuf_len) {
-	       namebuf_len = len + NAMELEN(entry);
-	       namebuf = (char *)brealloc(namebuf, namebuf_len + 2);
+	   if ((int)NAMELEN(entry) + len >= link_len) {
+	       link_len = len + NAMELEN(entry) + 1;
+	       link = (char *)brealloc(link, link_len + 1);
 	   }
-	   strcpy(namebuf + len, entry->d_name);
-	   if (!file_is_excluded(ff_pkt, namebuf)) {
-	      rtn_stat = find_one_file(ff_pkt, handle_file, pkt, namebuf, our_device, 0);
+	   q = link + len;
+	   for (i=0; i < (int)NAMELEN(entry); i++) {
+	      *q++ = *p++;
+	   }
+	   *q = 0;
+	   sm_check(__FILE__, __LINE__, False);
+	   if (!file_is_excluded(ff_pkt, link)) {
+	      rtn_stat = find_one_file(ff_pkt, handle_file, pkt, link, our_device, 0);
 	   }
        }
        closedir(directory);
-       free(namebuf);
+       free(link);
        free(entry);
+
        if (ff_pkt->atime_preserve) {
 	  utime(fname, &restore_times);
        }

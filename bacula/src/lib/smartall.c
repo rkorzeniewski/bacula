@@ -19,7 +19,7 @@
 */
 
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -45,10 +45,11 @@
 #undef malloc
 #undef free
       
-/*LINTLIBRARY*/
 
 
 #ifdef SMARTALLOC
+
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 extern char my_name[];		      /* daemon name */
 
@@ -95,7 +96,8 @@ static void *smalloc(char *fname, int lineno, unsigned int nbytes)
 	ASSERT(nbytes > 0);
 
 	nbytes += HEAD_SIZE + 1;
-	if ((buf = (char *) malloc(nbytes)) != NULL) {
+	if ((buf = (char *)malloc(nbytes)) != NULL) {
+	   P(mutex);
 	   /* Enqueue buffer on allocated list */
 	   qinsert(&abqueue, (struct b_queue *) buf);
 	   ((struct abufhead *) buf)->ablen = nbytes;
@@ -104,10 +106,11 @@ static void *smalloc(char *fname, int lineno, unsigned int nbytes)
 	   /* Emplace end-clobber detector at end of buffer */
 	   buf[nbytes - 1] = (((long) buf) & 0xFF) ^ 0xC5;
 	   buf += HEAD_SIZE;  /* Increment to user data start */
+	   V(mutex);
 	}
 	sm_check(fname, lineno, True);
         Dmsg4(1150, "smalloc %d at %x from %s:%d\n", nbytes, buf, fname, lineno);
-	return (void *) buf;
+	return (void *)buf;
 }
 
 /*  SM_NEW_OWNER -- Update the File and line number for a buffer
@@ -116,8 +119,8 @@ static void *smalloc(char *fname, int lineno, unsigned int nbytes)
 void sm_new_owner(char *fname, int lineno, char *buf)
 {
 	buf -= HEAD_SIZE;  /* Decrement to header */
-	((struct abufhead *) buf)->abfname = bufimode ? NULL : fname;
-	((struct abufhead *) buf)->ablineno = (sm_ushort) lineno;
+	((struct abufhead *)buf)->abfname = bufimode ? NULL : fname;
+	((struct abufhead *)buf)->ablineno = (sm_ushort) lineno;
 	return;
 }
 
@@ -139,6 +142,7 @@ void sm_free(char *file, int line, void *fp)
 	cp -= HEAD_SIZE;
 	qp = (struct b_queue *) cp;
 
+	P(mutex);
         Dmsg4(1150, "sm_free %d at %x from %s:%d\n", 
 	      ((struct abufhead *)cp)->ablen, fp, 
 	      ((struct abufhead *)cp)->abfname, ((struct abufhead *)cp)->ablineno);
@@ -146,9 +150,11 @@ void sm_free(char *file, int line, void *fp)
 	/* The following assertions will catch virtually every release
            of an address which isn't an allocated buffer. */
 	if (qp->qnext->qprev != qp) {
+	   V(mutex);
            Emsg2(M_ABORT, 0, "qp->qnext->qprev != qp called from %s:%d\n", file, line);
 	}
 	if (qp->qprev->qnext != qp) {
+	   V(mutex);
            Emsg2(M_ABORT, 0, "qp->qprev->qnext != qp called from %s:%d\n", file, line);
 	}
 
@@ -158,11 +164,13 @@ void sm_free(char *file, int line, void *fp)
 
 	if (((unsigned char *) cp)[((struct abufhead *) cp)->ablen - 1] !=
 		 ((((long) cp) & 0xFF) ^ 0xC5)) {
+	   V(mutex);
            Emsg2(M_ABORT, 0, "Buffer overrun called from %s:%d\n", file, line);
 	}
 
 
 	qdchain(qp);
+	V(mutex);
 
 	/* Now we wipe the contents of	the  just-released  buffer  with
            "designer  garbage"  (Duff  Kurland's  phrase) of alternating
@@ -238,8 +246,7 @@ void *sm_realloc(char *fname, int lineno, void *ptr, unsigned int size)
 	   return the buffer passed in.  */
 
 	cp -= HEAD_SIZE;
-	osize = ((struct abufhead *) cp)->ablen -
-		(HEAD_SIZE + 1);
+	osize = ((struct abufhead *) cp)->ablen - (HEAD_SIZE + 1);
 	if (size == osize) {
 	   return ptr;
 	}
@@ -312,7 +319,11 @@ void actuallyfree(void *cp)
  */
 void sm_dump(Boolean bufdump)
 {
-	struct abufhead *ap = (struct abufhead *) abqueue.qnext;
+	struct abufhead *ap;
+
+	P(mutex);
+
+	ap = (struct abufhead *)abqueue.qnext;
 
 	while (ap != (struct abufhead *) &abqueue) {
 
@@ -359,6 +370,7 @@ void sm_dump(Boolean bufdump)
 	   }
 	   ap = (struct abufhead *) ap->abq.qnext;
 	}
+	V(mutex);
 }
 
 #undef sm_check
@@ -375,9 +387,11 @@ void sm_check(char *fname, int lineno, Boolean bufdump)
 /*  SM_CHECK_RTN -- Check the buffers and return 1 if OK otherwise 0 */
 int sm_check_rtn(char *fname, int lineno, Boolean bufdump)
 {
-	struct abufhead *ap = (struct abufhead *) abqueue.qnext;
+	struct abufhead *ap;
 	int bad, badbuf = 0;
 
+	P(mutex);
+	ap = (struct abufhead *) abqueue.qnext;
 	while (ap != (struct abufhead *) &abqueue) {
 	   bad = 0;
 	   if ((ap == NULL) ||
@@ -393,30 +407,29 @@ int sm_check_rtn(char *fname, int lineno, Boolean bufdump)
 	   }
 	   badbuf |= bad;
 	   if (bad) {
-	      Emsg2(M_FATAL, 0, 
+	      fprintf(stderr,
                  "\nDamaged buffers found at %s:%d\n", fname, lineno);
 
 	      if (bad & 0x1) {
-                 Emsg0(M_FATAL, 0, "  discovery of bad prev link.\n");
+                 fprintf(stderr, "  discovery of bad prev link.\n");
 	      }
 	      if (bad & 0x2) {
-                 Emsg0(M_FATAL, 0, "  discovery of bad next link.\n");
+                 fprintf(stderr, "  discovery of bad next link.\n");
 	      }
 	      if (bad & 0x4) {
-                 Emsg0(M_FATAL, 0, "  discovery of data overrun.\n");
+                 fprintf(stderr, "  discovery of data overrun.\n");
 	      }
 
-              Emsg1(M_FATAL, 0, "  Buffer address: %lx\n", (long) ap);
+              fprintf(stderr, "  Buffer address: %lx\n", (long) ap);
 
 	      if (ap->abfname != NULL) {
 		 unsigned memsize = ap->ablen - (HEAD_SIZE + 1);
 		 char errmsg[80];
 
-		 sprintf(errmsg,
+		 fprintf(stderr,
                    "Damaged buffer:  %6u bytes allocated at line %d of %s %s\n",
 		    memsize, ap->ablineno, my_name, ap->abfname
 		 );
-                 Emsg1(M_FATAL, 0, "%s", errmsg);
 		 if (bufdump) {
 		    unsigned llen = 0;
 		    char *cp = ((char *) ap) + HEAD_SIZE;
@@ -439,12 +452,13 @@ int sm_check_rtn(char *fname, int lineno, Boolean bufdump)
 		       llen++;
 		       memsize--;
 		    }
-                    Emsg1(M_FATAL, 0, "%s\n", errmsg);
+                    fprintf(stderr, "%s\n", errmsg);
 		 }
 	      }
 	   }
 	   ap = (struct abufhead *) ap->abq.qnext;
 	}
+	V(mutex);
 	return badbuf ? 0 : 1;
 }
 
