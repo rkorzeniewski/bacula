@@ -103,7 +103,7 @@ struct JCR {
    JCR_free_HANDLER *daemon_free_jcr; /* Local free routine */
    dlist *msg_queue;                  /* Queued messages */
    alist job_end_push;                /* Job end pushed calls */
-   int restart_count;                 /* SIGHUP restart count */
+   int reload_id;                     /* SIGHUP reload table id */
    bool dequeuing;                    /* dequeuing messages */
    POOLMEM *errmsg;                   /* edited error message */
    char Job[MAX_NAME_LENGTH];         /* Unique name of this Job */

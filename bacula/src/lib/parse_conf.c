@@ -801,13 +801,21 @@ parse_config(char *cf)
  *	Free configuration resources
  *
  */
-void 
-free_config_resources()
+void free_config_resources()
 {
-   RES *res;
    for (int i=r_first; i<=r_last; i++) {
-      res = resources[i-r_first].res_head;
-      free_resource(res, i);
-      res = NULL;
+      free_resource(resources[i-r_first].res_head, i);
+      resources[i-r_first].res_head = NULL;
    }
+}
+
+RES **save_config_resources() 
+{
+   int num = r_last - r_first + 1;
+   RES **res = (RES **)malloc(num*sizeof(RES *));
+   for (int i=0; i<num; i++) {
+      res[i] = resources[i].res_head; 
+      resources[i].res_head = NULL;
+   }
+   return res;
 }

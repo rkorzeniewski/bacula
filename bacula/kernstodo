@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                 27 January 2004
+                 28 February 2004
 
 Documentation to do: (any release a little bit at a time)
 - DB upgrade to version 5 in bacula-1.27b, DB upgrade to
@@ -71,12 +71,13 @@ For 1.33 Testing/Documentation:
      http://howtos.linux.com/guides/nag2/x-087-2-nfs.mountd.shtml
 
 For 1.33
+- Look at installation file permissions with Scott so that make install
+  and the rpms agree.
 - Add a regression test for dbcheck.
 - Add disk seeking on restore.
 - Add atime preservation.
 - Allow for optional cancelling of SD and FD in case DIR
   gets a fatal error. Requested by Jesse Guardiani <jesse@wingnet.net>
-- Remove h_errno from bnet.c by including proper header.
 - Do not err job if could not write bootstrap file.
 - Bizarre message: Error: Could not open WriteBootstrap file:
 - Build console in client only build.
@@ -1392,3 +1393,5 @@ Block Position: 0
 - Look at ASSERT() at 384 src/lib/bnet.c
 - Dates are wrong in restore list from Win32 FD.
 - Dates are wrong in catalog from Win32 FD.
+- Remove h_errno from bnet.c by including proper header.
+
