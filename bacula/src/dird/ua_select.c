@@ -39,11 +39,11 @@ extern struct s_jl joblevels[];
  */
 int confirm_retention(UAContext *ua, utime_t *ret, const char *msg)
 {
-   char ed1[30];
+   char ed1[100];
 
    for ( ;; ) {
        bsendmsg(ua, _("The current %s retention period is: %s\n"), 
-	  msg, edit_utime(*ret, ed1));
+	  msg, edit_utime(*ret, ed1, sizeof(ed1)));
        if (!get_cmd(ua, _("Continue? (yes/mod/no): "))) {
 	  return 0;
        }
