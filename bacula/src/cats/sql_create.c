@@ -231,7 +231,7 @@ int
 db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 {
    int stat;
-   char ed1[30], ed2[30], ed3[30], ed4[30], ed5[30];
+   char ed1[30], ed2[30], ed3[30], ed4[30], ed5[30], ed6[50], ed7[50];
    struct tm tm;
 
    db_lock(mdb);
@@ -259,8 +259,8 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    Mmsg(&mdb->cmd, 
 "INSERT INTO Media (VolumeName,MediaType,PoolId,MaxVolBytes,VolCapacityBytes," 
 "Recycle,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,"
-"VolStatus,Slot,VolBytes,Drive,InChanger) "
-"VALUES ('%s','%s',%u,%s,%s,%d,%s,%s,%u,%u,'%s',%d,%s,%d,%d)", 
+"VolStatus,Slot,VolBytes,InChanger,VolReadTime,VolWriteTime) "
+"VALUES ('%s','%s',%u,%s,%s,%d,%s,%s,%u,%u,'%s',%d,%s,%d,%s,%s)", 
 		  mr->VolumeName,
 		  mr->MediaType, mr->PoolId, 
 		  edit_uint64(mr->MaxVolBytes,ed1),
@@ -273,8 +273,10 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 		  mr->VolStatus,
 		  mr->Slot,
 		  edit_uint64(mr->VolBytes, ed5),
-		  mr->Drive,
-		  mr->InChanger);
+		  mr->InChanger,
+		  edit_uint64(mr->VolReadTime, ed6),
+		  edit_uint64(mr->VolWriteTime, ed7));
+
 
    Dmsg1(500, "Create Volume: %s\n", mdb->cmd);
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {

@@ -1,5 +1,8 @@
 /*
  *
+ *  Database routines that are exported by the cats library for
+ *    use elsewhere in Bacula (mainly the Director).
+ *
  *    Version $Id$
  */
 /*
@@ -32,18 +35,15 @@
 /* sql.c */
 B_DB *db_init_database(JCR *jcr, char *db_name, char *db_user, char *db_password, 
                        char *db_address, int db_port, char *db_socket);
-int db_open_database(JCR *jcr, B_DB *db);
+int  db_open_database(JCR *jcr, B_DB *db);
 void db_close_database(JCR *jcr, B_DB *db);
 void db_escape_string(char *snew, char *old, int len);
 char *db_strerror(B_DB *mdb);
-int get_sql_record_max(JCR *jcr, B_DB *mdb);
-int db_next_index(JCR *jcr, B_DB *mdb, char *table, char *index);
-int db_sql_query(B_DB *mdb, char *cmd, DB_RESULT_HANDLER *result_handler, void *ctx);
-int check_tables_version(JCR *jcr, B_DB *mdb);
-void _db_unlock(char *file, int line, B_DB *mdb);
-void _db_lock(char *file, int line, B_DB *mdb);
+int  db_next_index(JCR *jcr, B_DB *mdb, char *table, char *index);
+int  db_sql_query(B_DB *mdb, char *cmd, DB_RESULT_HANDLER *result_handler, void *ctx);
 void db_start_transaction(JCR *jcr, B_DB *mdb);
 void db_end_transaction(JCR *jcr, B_DB *mdb);
+
 
 /* create.c */
 int db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);

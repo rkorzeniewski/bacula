@@ -35,7 +35,7 @@ static char Get_Vol_Info[] = "CatReq Job=%s GetVolInfo VolName=%s write=%d\n";
 static char Update_media[] = "CatReq Job=%s UpdateMedia VolName=%s"
    " VolJobs=%u VolFiles=%u VolBlocks=%u VolBytes=%s VolMounts=%u"
    " VolErrors=%u VolWrites=%u MaxVolBytes=%s EndTime=%d VolStatus=%s"
-   " Slot=%d relabel=%d Drive=%d InChanger=%d\n";
+   " Slot=%d relabel=%d InChanger=%d VolReadTime=%s VolWriteTime=%s\n";
 static char Create_job_media[] = "CatReq Job=%s CreateJobMedia" 
    " FirstIndex=%u LastIndex=%u StartFile=%u EndFile=%u" 
    " StartBlock=%u EndBlock=%u\n";
@@ -47,7 +47,9 @@ static char Job_status[]     = "3012 Job %s jobstatus %d\n";
 static char OK_media[] = "1000 OK VolName=%127s VolJobs=%u VolFiles=%u"
    " VolBlocks=%u VolBytes=%" lld " VolMounts=%u VolErrors=%u VolWrites=%u"
    " MaxVolBytes=%" lld " VolCapacityBytes=%" lld " VolStatus=%20s"
-   " Slot=%d MaxVolJobs=%u MaxVolFiles=%u Drive=%d InChanger=%d";
+   " Slot=%d MaxVolJobs=%u MaxVolFiles=%u InChanger=%d"
+   " VolReadTime=%" lld " VolWriteTime=%" lld;
+
 
 static char OK_create[] = "1000 OK CreateJobMedia\n";
 
@@ -75,6 +77,7 @@ static int do_get_volume_info(JCR *jcr)
 {
     BSOCK *dir = jcr->dir_bsock;
     VOLUME_CAT_INFO vol;
+    int n;
 
     jcr->VolumeName[0] = 0;	      /* No volume */
     if (bnet_recv(dir) <= 0) {
@@ -83,16 +86,17 @@ static int do_get_volume_info(JCR *jcr)
        return 0;
     }
     memset(&vol, 0, sizeof(vol));
-    if (sscanf(dir->msg, OK_media, vol.VolCatName, 
+    Dmsg1(200, "Get vol info=%s\n", dir->msg);
+    n = sscanf(dir->msg, OK_media, vol.VolCatName, 
 	       &vol.VolCatJobs, &vol.VolCatFiles,
 	       &vol.VolCatBlocks, &vol.VolCatBytes,
 	       &vol.VolCatMounts, &vol.VolCatErrors,
 	       &vol.VolCatWrites, &vol.VolCatMaxBytes,
 	       &vol.VolCatCapacityBytes, vol.VolCatStatus,
 	       &vol.Slot, &vol.VolCatMaxJobs, &vol.VolCatMaxFiles,
-	       &vol.Drive, &vol.InChanger) != 16) {
-
-       Dmsg1(200, "Bad response from Dir: %s\n", dir->msg);
+	       &vol.InChanger, &vol.VolReadTime, &vol.VolWriteTime);
+    if (n != 17) {
+       Dmsg2(100, "Bad response from Dir fields=%d: %s\n", n, dir->msg);
        Mmsg(&jcr->errmsg, _("Error getting Volume info: %s\n"), dir->msg);
        return 0;
     }
@@ -156,7 +160,7 @@ int dir_update_volume_info(JCR *jcr, DEVICE *dev, int label)
 {
    BSOCK *dir = jcr->dir_bsock;
    time_t EndTime = time(NULL);
-   char ed1[50], ed2[50];
+   char ed1[50], ed2[50], ed3[50], ed4[50];
    VOLUME_CAT_INFO *vol = &dev->VolCatInfo;
 
    if (vol->VolCatName[0] == 0) {
@@ -184,8 +188,11 @@ int dir_update_volume_info(JCR *jcr, DEVICE *dev, int label)
       vol->VolCatBlocks, edit_uint64(vol->VolCatBytes, ed1),
       vol->VolCatMounts, vol->VolCatErrors,
       vol->VolCatWrites, edit_uint64(vol->VolCatMaxBytes, ed2), 
-      EndTime, vol->VolCatStatus, vol->Slot, label, vol->Drive, 
-      vol->InChanger);
+      EndTime, vol->VolCatStatus, vol->Slot, label,
+      vol->InChanger,
+      edit_uint64(vol->VolReadTime, ed3), 
+      edit_uint64(vol->VolWriteTime, ed4) );
+
    Dmsg1(120, "update_volume_info(): %s", dir->msg);
    unbash_spaces(vol->VolCatName);
 
