@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                 09 January 2004
+                 13 January 2004
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -55,8 +55,13 @@ For 1.33 Testing/Documentation:
 - Add db check test to regression. Test each function like delete,
   purge, ...
 - Add subsections to the Disaster Recovery index section.
+- Document Pool keyword for restore.
                 
 For 1.33
+- Finish code passing files=nnn to restore start.
+- Add Console usr permissions -- do by adding regex filters for
+  jobs, clients, storage, ...
+- Put max network buffer size on a directive.
 - Why does "mark cygwin" take so long!!!!!!!!
 - When a file is set for restore, walk back up the chain of 
   directories, setting them to be restored.
@@ -184,7 +189,6 @@ After 1.33:
   Job report (Volker Sauer).
 - Client does not show busy during Estimate command.
 - Implement Console mtx commands.
-- Look at 2Gb limit for SQLite.
 - Implement 3 Pools for a Job:
    Job {
      Name = ...
@@ -196,26 +200,6 @@ After 1.33:
   GRANT all privileges ON bacula.* TO bacula@localhost IDENTIFIED BY 
      'bacula_password';
   FLUSH PRIVILEGES;
-- Define week of year for scheduler.  W01, W02, ...
-  Week 01 of a year is per definition the first week that has the
-  Thursday in this year, which is equivalent to the week that contains the
-  fourth day of January.  In other words, the first week of a new year is
-  the week that has the majority of its days in the new year.  Week 01
-  might also contain days from the previous year and the week before week
-  01 of a year is the last week (52 or 53) of the previous year even if it
-  contains days from the new year.  A week starts with Monday (day 1) and
-  ends with Sunday (day 7).  For example, the first week of the year 1997
-  lasts from 1996-12-30 to 1997-01-05 and can be written in standard
-  notation as
-
-    1997-W01 or 1997W01
-
-  The week notation can also be extended by a number indicating the day
-  of the week.  For example, the day 1996-12-31, which is the Tuesday (day
-  2) of the first week of 1997, can also be written as
-
-    1997-W01-2 or 1997W012
-
 - Implement a Mount Command and an Unmount Command where
   the users could specify a system command to be performed
   to do the mount, after which Bacula could attempt to
@@ -269,7 +253,6 @@ After 1.33:
 - Take a careful look at Level for the estimate command, maybe make
   it a command line option.
 - Add Volume name to "I cannot write on this volume because"
-- Make restore job check if all the files are actually restored.
 - Make tree walk routines like cd, ls, ... more user friendly
   by handling spaces better.
 - Write your PID file and chown root:wheel before drop.
@@ -298,9 +281,7 @@ After 1.33:
 - Set IO_NOWAIT on Bacula TCP/IP packets.
 - Try doing a raw partition backup and restore by mounting a
   Windows partition.
-- Report CVS problems to SourceForge.
-- Implement .consolerc for Console
-- From Lars Köllers:
+- From Lars Kellers:
     Yes, it would allow to highly automatic the request for new tapes. If a 
     tape is empty, bacula reads the barcodes (native or simulated), and if 
     an unused tape is found, it runs the label command with all the 
@@ -309,8 +290,6 @@ After 1.33:
     By the way can bacula automatically "move" an empty/purged volume say 
     in the "short" pool to the "long" pool if this pool runs out of volume 
     space?
-- Either restrict the characters in a name, or fix the problem 
-  emailing with names containing / (smtp command line breaks).
 - Eliminate orphaned jobs: dbcheck, normal pruning, delete job command.
   Hm.  Well, there are the remaining orphaned job records:
 
@@ -359,14 +338,9 @@ After 1.33:
 - Walk through the Pool records rather than the Job records
   in dird.c to create/update pools.
 - What to do about "list files job=xxx".
-- Implement scan: for every slot it finds, zero the slot of
-  Volume other volume having that slot.
 - When job rescheduled, status gives is waiting for Client Rufus 
   to connect to Storage File. Dir needs to inform SD that job
   is rescheduled.
-- Fix get_storage_from_media_type (ua_restore) to use command line     
-  storage=
-- Don't print "Warning: Wrong Volume mounted ..." if mounting second volume.
 - Make Dmsg look at global before calling subroutine.
 - Enable trace output at runtime for Win32
 - Available volumes for autochangers (see patrick@baanboard.com 3 Sep 03 
@@ -374,7 +348,6 @@ After 1.33:
 - Get and test MySQL 4.0
 - Do a complete audit of all pthreads_mutex, cond, ... to ensure that
   any that are dynamically initialized are destroyed when no longer used.
-- Write a mini-readline with history and editing.
 - Look at how fuser works and /proc/PID/fd that is how Nic found the
   file descriptor leak in Bacula.
 - Implement WrapCounters in Counters.
@@ -385,24 +358,7 @@ After 1.33:
 - Can we dynamically change FileSets?
 - If pool specified to label command and Label Format is specified,
   automatically generate the Volume name.
-- Take a careful look a the Basic recycling algorithm.  When Bacula
-  chooses, the order should be:
-   - Look for Append
-   - Look for Recycle or Purged
-   - Prune volumes
-   - Look for purged
-  Instead of using lowest media Id, find the least recently used
-  volume.
-
-  When the tape is mounted and Bacula requests the status
-  - Do everything possible to use it.
-
-  Define a "available" status, which is the currently mounted 
-  Volume and all volumes that are currently in the autochanger.
-
 - Why can't SQL do the filename sort for restore?
-- Is a pool specification really needed for a restore?  Yes, and
-  you may want to exclude archive Pools.
 - Look at libkse (man kse) for FreeBSD threading.
 - Look into Microsoft Volume Shadowcopy Service VSS for backing
   up system state components (Active Directory, System Volume, ...)
@@ -412,10 +368,7 @@ After 1.33:
   time as the user walks through the tree).
 - Possibly use the hash code if the user selects all for a restore command.
 - Orphaned Dir buffer at parse_conf.c:373 =>  store_dir
-- Add Console usr permissions.
 - Fix "restore all" to bypass building the tree.
-- Fix restore to list errors if Invalid block found, and if # files
-  restored does not match # expected.
 - Prohibit backing up archive device (findlib/find_one.c:128)
 - Implement Release Device in the Job resource to unmount a drive.
 - Implement Acquire Device in the Job resource to mount a drive,
@@ -426,7 +379,6 @@ After 1.33:
 - Make things like list where a file is saved case independent for
   Windows.
 - Implement migrate
-- Implement a PostgreSQL driver.
 - Bacula needs to propagate SD errors.
   > > cluster-dir: Start Backup JobId 252, Job=REUTERS.2003-08-11_15.04.12
   > > prod4-sd: REUTERS.2003-08-11_15.04.12 Error: Write error on device 
@@ -447,9 +399,7 @@ After 1.33:
   We must cd into the directory then create the file without the
   full path name.
 - lstat() is not going to work on Win32 for testing date.
-- Something is not right in last block of fill command.
 - Implement a Recycle command
-- Add FileSet to command line arguments for restore.
 - Add client name to cram-md5 challenge so Director can immediately
   verify if it is the correct client.
 - Add JobLevel in FD status (but make sure it is defined).
@@ -508,7 +458,6 @@ After 1.33:
 - Implement restore "current system", but take all files without
   doing selection tree -- so that jobs without File records can
   be restored.
-- Implement a relocatable bacula.spec 
 - Add prefixlinks to where or not where absolute links to FD.
 - Issue message to mount a new tape before the rewind.
 - Simplified client job initiation for portables.
@@ -559,7 +508,6 @@ After 1.33:
 - Add UA rc and history files.
 - put termcap (used by console) in ./configure and
   allow -with-termcap-dir.
-- Enhance time and size scanning routines.
 - Fix Autoprune for Volumes to respect need for full save.
 - Fix Win32 config file definition name on /install
 - Compare tape to Client files (attributes, or attributes and data) 
@@ -794,7 +742,7 @@ Need:
 
 =============================================================
 
-                Request For Comments For File Backup Options
+          Request For Comments For File Backup Options
                    10 November 2002
 
 Subject: File Backup Options
@@ -1000,6 +948,7 @@ Done: (see kernsdone for more)
 - Implement ClientRunBeforeJob and ClientRunAfterJob.
 - Implement forward spacing block/file: position_device(bsr) --
   just before read_block_from_device();
+
 === for 1.33
 - Change console to bconsole.
 - Change smtp to bsmtp.
@@ -1086,3 +1035,52 @@ Done: (see kernsdone for more)
   Could I get you to double check the switch () statements in the
   job_check_maxwaittime and job_check_maxruntime functions in
   src/dird/job.c?
+- Define week of year for scheduler.  W01, W02, ...
+  Week 01 of a year is per definition the first week that has the
+  Thursday in this year, which is equivalent to the week that contains the
+  fourth day of January.  In other words, the first week of a new year is
+  the week that has the majority of its days in the new year.  Week 01
+  might also contain days from the previous year and the week before week
+  01 of a year is the last week (52 or 53) of the previous year even if it
+  contains days from the new year.  A week starts with Monday (day 1) and
+  ends with Sunday (day 7).  For example, the first week of the year 1997
+  lasts from 1996-12-30 to 1997-01-05 and can be written in standard
+  notation as
+    1997-W01 or 1997W01
+  The week notation can also be extended by a number indicating the day
+  of the week.  For example, the day 1996-12-31, which is the Tuesday (day
+  2) of the first week of 1997, can also be written as
+    1997-W01-2 or 1997W012
+- Either restrict the characters in a name, or fix the problem 
+  emailing with names containing / (smtp command line breaks).
+- Implement .consolerc for Console
+- Implement scan: for every slot it finds, zero the slot of
+  Volume other volume having that slot.
+- Make restore job check if all the files are actually restored.
+- Look at 2Gb limit for SQLite.
+- Fix get_storage_from_media_type (ua_restore) to use command line     
+  storage=
+- Don't print "Warning: Wrong Volume mounted ..." if mounting second volume.
+- Write a mini-readline with history and editing.
+- Take a careful look a the Basic recycling algorithm.  When Bacula
+  chooses, the order should be:
+   - Look for Append
+   - Look for Recycle or Purged
+   - Prune volumes
+   - Look for purged
+  Instead of using lowest media Id, find the least recently used
+  volume.
+
+  When the tape is mounted and Bacula requests the status
+  - Do everything possible to use it.
+
+  Define a "available" status, which is the currently mounted 
+  Volume and all volumes that are currently in the autochanger.
+- Is a pool specification really needed for a restore?  Yes, and
+  you may want to exclude archive Pools.
+- Implement a PostgreSQL driver.
+- Fix restore to list errors if Invalid block found, and if # files
+  restored does not match # expected.
+- Something is not right in last block of fill command.
+- Add FileSet to command line arguments for restore.
+- Enhance time and size scanning routines.

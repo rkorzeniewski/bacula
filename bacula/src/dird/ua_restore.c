@@ -98,7 +98,7 @@ static int unique_name_list_handler(void *ctx, int num_fields, char **row);
 static void free_name_list(NAME_LIST *name_list);
 static void get_storage_from_mediatype(UAContext *ua, NAME_LIST *name_list, RESTORE_CTX *rx);
 static int select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *date);
-static void build_directory_tree(UAContext *ua, RESTORE_CTX *rx);
+static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx);
 static void free_rx(RESTORE_CTX *rx);
 static void split_path_and_filename(RESTORE_CTX *rx, char *fname);
 static int jobid_fileindex_handler(void *ctx, int num_fields, char **row);
@@ -163,7 +163,10 @@ int restore_cmd(UAContext *ua, char *cmd)
    case 0:
       goto bail_out;
    case 1:			      /* select by jobid */
-      build_directory_tree(ua, &rx);
+      if (!build_directory_tree(ua, &rx)) {
+         bsendmsg(ua, _("Restore not done.\n"));
+	 goto bail_out;
+      }
       break;
    case 2:			      /* select by filename, no tree needed */
       break;
@@ -201,17 +204,17 @@ int restore_cmd(UAContext *ua, char *cmd)
    if (rx.where) {
       Mmsg(&ua->cmd, 
           "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s/restore.bsr\""
-          " where=\"%s\"",
+          " where=\"%s\" files=%d",
           job->hdr.name, rx.ClientName, rx.store?rx.store->hdr.name:"",
-	  working_directory, rx.where);
+	  working_directory, rx.where, rx.selected_files);
    } else {
       Mmsg(&ua->cmd, 
           "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s/restore.bsr\"",
           job->hdr.name, rx.ClientName, rx.store?rx.store->hdr.name:"",
 	  working_directory);
    }
-   if (find_arg(ua, _("run")) >= 0) {
-      pm_strcat(&ua->cmd, " run");    /* pass it on to the run command */
+   if (find_arg(ua, _("run")) >= 0 || find_arg(ua, _("yes"))) {
+      pm_strcat(&ua->cmd, " yes");    /* pass it on to the run command */
    }
    Dmsg1(400, "Submitting: %s\n", ua->cmd);
    parse_ua_args(ua);
@@ -658,12 +661,13 @@ static void split_path_and_filename(RESTORE_CTX *rx, char *name)
    Dmsg2(100, "sllit path=%s file=%s\n", rx->path, rx->fname);
 }
 
-static void build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
+static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
 {
    TREE_CTX tree;
    JobId_t JobId, last_JobId;
    char *p;
    char *nofname = "";
+   bool OK = true;
 
    memset(&tree, 0, sizeof(TREE_CTX));
    /* 
@@ -708,24 +712,27 @@ static void build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
    get_storage_from_mediatype(ua, &rx->name_list, rx);
 
    if (find_arg(ua, _("all")) < 0) {
-      /* Let the user select which files to restore */
-      user_select_files_from_tree(&tree);
+      /* Let the user interact in selecting which files to restore */
+      OK = user_select_files_from_tree(&tree);
    }
 
    /*
     * Walk down through the tree finding all files marked to be 
     *  extracted making a bootstrap file.
     */
-   for (TREE_NODE *node=first_tree_node(tree.root); node; node=next_tree_node(node)) {
-      Dmsg2(400, "FI=%d node=0x%x\n", node->FileIndex, node);
-      if (node->extract) {
-         Dmsg2(400, "type=%d FI=%d\n", node->type, node->FileIndex);
-	 add_findex(rx->bsr, node->JobId, node->FileIndex);
-	 rx->selected_files++;
+   if (OK) {
+      for (TREE_NODE *node=first_tree_node(tree.root); node; node=next_tree_node(node)) {
+         Dmsg2(400, "FI=%d node=0x%x\n", node->FileIndex, node);
+	 if (node->extract || node->extract_dir) {
+            Dmsg2(400, "type=%d FI=%d\n", node->type, node->FileIndex);
+	    add_findex(rx->bsr, node->JobId, node->FileIndex);
+	    rx->selected_files++;
+	 }
       }
    }
 
    free_tree(tree.root);	      /* free the directory tree */
+   return OK;
 }
 
 

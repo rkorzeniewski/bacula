@@ -1,5 +1,100 @@
 
-2003-12-xxx Version 1.33  xxNov03
+
+
+14Jan04
+- Update kernstodo
+- Add quit command to restore tree handler.
+- Make restore tree handler remember if a hard link is present, and
+  in doing a mark, only get database entry if there is a hard link.
+  mark commands thus run at least 2 orders of magnitude faster.
+- Add files=xxx field to run command submitted for restore.   
+- Add yes to restore run command if either yes or run is command line
+  argument.
+- Make "yes" on command line argument skip prompt for modification of
+  run job.
+- Add markdir and unmarkdir -- both affect only the directory in
+  question and do not do a recursive descent.
+- Make tree command automatically mark all higher level directories to
+  be restored when a directory or a file is selected.  Such directories
+  are indicated by preceding the name with a + to indicate that only
+  the directory entry is selected and not the whole directory tree.
+- Modify a few tree commands to walk through all arguments rather than
+  just taking the first one.
+13Jan04
+- Update copyright date on changed files.
+- Make mark command in restore tree run *much* faster by accessing database only
+  if the file actually is hard linked -- determined at time tree it built by
+  keeping a has_link bit in the tree entry.
+12Jan04 
+- Modify findlib/makepath.c to create all parent directories with full permissions.
+  This should solve the access problems on restoring files on Win32 systems.
+- Modify restore to report **** Restore Error **** if any error are found.
+  I.e. a file could not be created.
+- Change a few errors into warnings -- e.g. if permissions could not be set, but
+  the file is actually restored.
+11Jan04
+- Replace bsd_queue with dlist in lib/watchdog.c
+- Add Date: header to bsmtp.  Thanks to Meno Abels (abels) on SourceForge
+  for reporting this.
+- Remove ap==NULL check in src/lib/var.c as suggested by Christoph Barbian
+  because ap (va_list) is a struct on the Alpha, so the code does not
+  compile.
+10Jan04
+- Implement first cut of polling for a Volume.  New Device directive
+   "Volume Poll Interval = xxx" where xxx is a time specification      
+   (e.g. 5min). Default is off.
+- Call pthread_cancel on SD msgchan only if the threadid is non-zero.
+07Jan04
+- Change RH autostart scripts to start in Dan's order.
+06Jan04
+- Correct calculation of week of month in scheduler and in scheduled
+  listing.
+04Jan04
+- Fix cancel of job waiting on mount to be a bit cleaner.
+03Jan04
+- Fix seg fault -- don't close db in db_open_database(). It must explicitly
+  be called.
+- Doc updates
+- Allow purge of a single JobId from a Volume (code untested)
+- Implement fix to keep SD from looping complaining about the wrong volume
+  at the end of a tape -- reported by Phil, and fix confirmed by him. I cannot
+  seem to reproduce the bug here.
+- Clean up a few more strcpy()s.
+01Jan04
+- Fix configure.in FD User print per Lars.
+- Doc update.
+- New bacula.spec.in from Scott. Nice!
+- Make RunAfterJob non-fatal if it errs since the Job has really  
+  already completed the save.
+- Replace sprintf with bsnprintf in message.c
+31Dec03
+- Note, this change affects only the Win32 FD.
+- Fixed Win32 FD crash due to missing argument in status command. It
+  always crashed if there was a job that had previously run.  Thanks to
+  Christopher Hull for finding and diagnosing this problem.
+29Dec03
+- Fix SELECT as indicated by Dan in sql_get.c for returning Volume names.
+- Fix last_jobs list crash for utility programs (btape, ...).
+- Correct editing of FileSet name into SQL command.
+- Allow calling watchdog stop without initialization for utility programs.
+- Enhance btape test by attempting to forward space past the end of the tape.
+- Detect CAP_FASTFSF in btape test as possible reason for failure.
+- Attempt to prevent infinite loops in fsf_dev() if device not properly
+  configured.
+- Attempt to get correct file number on tape after backspacing at EOM. The    
+  correction should resolve differences in OS tape driver implementations.
+- Add ctl-c detection to bconsole. When reading from tty, interrupts any
+  output from Bacula, when reading from a file, it terminates the reading
+  and returns possibly exiting if it is a batch job.
+- Create devel_bacula.in script and make it configure itself. Very similar
+  to the new bacula.in.  
+- Modify bacula.in to have separate file locations for each daemon -- makes
+  it easier to make a new devel_bacula.in when there are changes.
+- Remove old config files when rebuilding configure to avoid error msgs.
+- Fix btape "test" to respect TWO EOF.
+- Fix fsf_dev() to use system notion of file if it is valid after bsf_dev().
+- Move btraceback.gdb to scripts directory on installl.
+- Add new mandrake bacula.spec.in
 28Dec03
 - Find commonset of c_iflags that work with FreeBSD tcsetattr on terminals.
 - Remove comments from string concatenation -- doesn't work on FreeBSD
