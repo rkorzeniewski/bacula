@@ -329,6 +329,7 @@ static int do_listcmd(UAContext *ua, char *cmd, int llist)
 	    for (i=1; i<ua->argc; i++) {
                if (strcasecmp(ua->argk[i], _("pool")) == 0) {
 		  if (!get_pool_dbr(ua, &pr)) {
+                     bsendmsg(ua, _("No Pool specified.\n"));
 		     return 1;
 		  }
 		  mr.PoolId = pr.PoolId;
@@ -356,6 +357,15 @@ static int do_listcmd(UAContext *ua, char *cmd, int llist)
 	    free(ids);
 	    return 1;
 	 }
+      /* List a specific volume */
+      } else if (strcasecmp(ua->argk[i], _("volume")) == 0) {
+	 if (!ua->argv[i]) {
+            bsendmsg(ua, _("No Volume Name specified.\n"));
+	    return 1;
+	 }
+	 bstrncpy(mr.VolumeName, ua->argv[i], sizeof(mr.VolumeName));
+	 db_list_media_records(ua->jcr, ua->db, &mr, prtit, ua, llist);
+	 return 1;
       } else {
          bsendmsg(ua, _("Unknown list keyword: %s\n"), NPRT(ua->argk[i]));
       }

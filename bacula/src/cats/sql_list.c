@@ -124,21 +124,40 @@ db_list_client_records(void *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx,
 }
 
 
+/*
+ * If VolumeName is non-zero, list the record for that Volume
+ *   otherwise, list the Volumes in the Pool specified by PoolId
+ */
 void
 db_list_media_records(void *jcr, B_DB *mdb, MEDIA_DBR *mdbr, 
 		      DB_LIST_HANDLER *sendit, void *ctx, int full)
 {
    if (full) {
-      Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,Slot,PoolId,"
-         "MediaType,FirstWritten,LastWritten,LabelDate,VolJobs,"
-         "VolFiles,VolBlocks,VolMounts,VolBytes,VolErrors,VolWrites,"
-         "VolCapacityBytes,VolStatus,Recycle,VolRetention,"
-         "VolUseDuration,MaxVolJobs,MaxVolFiles,MaxVolBytes "
-         "FROM Media WHERE Media.PoolId=%u ORDER BY MediaId", mdbr->PoolId);
+      if (mdbr->VolumeName[0] != 0) {
+         Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,Slot,PoolId,"
+            "MediaType,FirstWritten,LastWritten,LabelDate,VolJobs,"
+            "VolFiles,VolBlocks,VolMounts,VolBytes,VolErrors,VolWrites,"
+            "VolCapacityBytes,VolStatus,Recycle,VolRetention,"
+            "VolUseDuration,MaxVolJobs,MaxVolFiles,MaxVolBytes "
+            "FROM Media WHERE Media.VolumeName='%s'", mdbr->VolumeName);
+      } else {
+         Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,Slot,PoolId,"
+            "MediaType,FirstWritten,LastWritten,LabelDate,VolJobs,"
+            "VolFiles,VolBlocks,VolMounts,VolBytes,VolErrors,VolWrites,"
+            "VolCapacityBytes,VolStatus,Recycle,VolRetention,"
+            "VolUseDuration,MaxVolJobs,MaxVolFiles,MaxVolBytes "
+            "FROM Media WHERE Media.PoolId=%u ORDER BY MediaId", mdbr->PoolId);
+      }
    } else {
-      Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,MediaType,VolStatus,"
-         "VolBytes,LastWritten,VolRetention,Recycle,Slot "
-         "FROM Media WHERE Media.PoolId=%u ORDER BY MediaId", mdbr->PoolId);
+      if (mdbr->VolumeName[0] != 0) {
+         Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,MediaType,VolStatus,"
+            "VolBytes,LastWritten,VolRetention,Recycle,Slot "
+            "FROM Media WHERE Media.VolumeName='%s'", mdbr->VolumeName);
+      } else {
+         Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,MediaType,VolStatus,"
+            "VolBytes,LastWritten,VolRetention,Recycle,Slot "
+            "FROM Media WHERE Media.PoolId=%u ORDER BY MediaId", mdbr->PoolId);
+      }
    }
 
    db_lock(mdb);
