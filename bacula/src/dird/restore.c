@@ -272,6 +272,7 @@ static void restore_cleanup(JCR *jcr, int TermCode)
    double kbps;
 
    Dmsg0(20, "In restore_cleanup\n");
+   dequeue_messages(jcr);	      /* display any queued messages */
    set_jcr_job_status(jcr, TermCode);
 
    update_job_end_record(jcr);

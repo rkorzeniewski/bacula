@@ -293,6 +293,7 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since, FILESET_DBR *fsr
    utime_t RunTime;
 
    Dmsg2(100, "Enter backup_cleanup %d %c\n", TermCode, TermCode);
+   dequeue_messages(jcr);	      /* display any queued messages */
    memset(&mr, 0, sizeof(mr));
    set_jcr_job_status(jcr, TermCode);
 

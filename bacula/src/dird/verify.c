@@ -367,6 +367,7 @@ static void verify_cleanup(JCR *jcr, int TermCode)
    const char *Name;
 
 // Dmsg1(100, "Enter verify_cleanup() TermCod=%d\n", TermCode);
+   dequeue_messages(jcr);	      /* display any queued messages */
 
    JobId = jcr->jr.JobId;
    set_jcr_job_status(jcr, TermCode);

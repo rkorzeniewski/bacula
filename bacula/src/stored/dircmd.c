@@ -101,7 +101,7 @@ static struct s_cmds cmds[] = {
    {"autochanger", autochanger_cmd, 0},
    {"release",   release_cmd,   0},
    {"readlabel", readlabel_cmd, 0},
-   {NULL,	 NULL}                      /* list terminator */
+   {NULL,	 NULL}			    /* list terminator */
 };
 
 
@@ -181,32 +181,33 @@ void *handle_connection_request(void *arg)
    for (quit=0; !quit;) {
       /* Read command */
       if ((bnet_stat = bnet_recv(bs)) <= 0) {
-         break;               /* connection terminated */
+	 break; 	      /* connection terminated */
       }
       Dmsg1(9, "<dird: %s\n", bs->msg);
       found = false;
       for (i=0; cmds[i].cmd; i++) {
-        if (strncmp(cmds[i].cmd, bs->msg, strlen(cmds[i].cmd)) == 0) {
-           if ((!cmds[i].monitoraccess) && (jcr->director->monitor)) {
+	if (strncmp(cmds[i].cmd, bs->msg, strlen(cmds[i].cmd)) == 0) {
+	   if ((!cmds[i].monitoraccess) && (jcr->director->monitor)) {
               Dmsg1(100, "Command %s illegal.\n", cmds[i].cmd);
-              bnet_fsend(bs, illegal_cmd);
-              bnet_sig(bs, BNET_EOD);
-              break;
-           }
-           if (!cmds[i].func(jcr)) { /* do command */
-              quit = true; /* error, get out */
+	      bnet_fsend(bs, illegal_cmd);
+	      bnet_sig(bs, BNET_EOD);
+	      break;
+	   }
+	   if (!cmds[i].func(jcr)) { /* do command */
+	      quit = true; /* error, get out */
               Dmsg1(90, "Command %s requsts quit\n", cmds[i].cmd);
-           }
-           found = true;	     /* indicate command found */
-           break;
-        }
+	   }
+	   found = true;	     /* indicate command found */
+	   break;
+	}
       }
       if (!found) {		      /* command not found */
-        bnet_fsend(bs, derrmsg);
-        quit = true;
-        break;
+	bnet_fsend(bs, derrmsg);
+	quit = true;
+	break;
       }
    }
+   dequeue_messages(jcr);	      /* send any queued messages */
    bnet_sig(bs, BNET_TERMINATE);
    free_jcr(jcr);
    return NULL;

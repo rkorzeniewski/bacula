@@ -187,37 +187,37 @@ void *handle_client_request(void *dirp)
 
       /* Read command */
       if (bnet_recv(dir) < 0) {
-         break;               /* connection terminated */
+	 break; 	      /* connection terminated */
       }
       dir->msg[dir->msglen] = 0;
       Dmsg1(100, "<dird: %s", dir->msg);
       found = false;
       for (i=0; cmds[i].cmd; i++) {
-         if (strncmp(cmds[i].cmd, dir->msg, strlen(cmds[i].cmd)) == 0) {
-            found = true;         /* indicate command found */
-            if (!jcr->authenticated && cmds[i].func != hello_cmd) {
-               bnet_fsend(dir, no_auth);
-               bnet_sig(dir, BNET_EOD);
-               break;
-            }
-            if ((jcr->authenticated) && (!cmds[i].monitoraccess) && (jcr->director->monitor)) {
+	 if (strncmp(cmds[i].cmd, dir->msg, strlen(cmds[i].cmd)) == 0) {
+	    found = true;	  /* indicate command found */
+	    if (!jcr->authenticated && cmds[i].func != hello_cmd) {
+	       bnet_fsend(dir, no_auth);
+	       bnet_sig(dir, BNET_EOD);
+	       break;
+	    }
+	    if ((jcr->authenticated) && (!cmds[i].monitoraccess) && (jcr->director->monitor)) {
                Dmsg1(100, "Command %s illegal.\n", cmds[i].cmd);
-               bnet_fsend(dir, illegal_cmd);
-               bnet_sig(dir, BNET_EOD);
-               break;
-            }
+	       bnet_fsend(dir, illegal_cmd);
+	       bnet_sig(dir, BNET_EOD);
+	       break;
+	    }
             Dmsg1(100, "Executing %s command.\n", cmds[i].cmd);
-            if (!cmds[i].func(jcr)) {         /* do command */
-               quit = true;         /* error or fully terminated,	get out */
+	    if (!cmds[i].func(jcr)) {	      /* do command */
+	       quit = true;	    /* error or fully terminated,	get out */
                Dmsg0(20, "Quit command loop due to command error or Job done.\n");
-            }
-            break;
-         }
+	    }
+	    break;
+	 }
       }
-      if (!found) {              /* command not found */
-         bnet_fsend(dir, errmsg);
-         quit = true;
-         break;
+      if (!found) {		 /* command not found */
+	 bnet_fsend(dir, errmsg);
+	 quit = true;
+	 break;
       }
    }
 
@@ -229,6 +229,7 @@ void *handle_client_request(void *dirp)
    if (jcr->RunAfterJob && !job_canceled(jcr)) {
       run_cmd(jcr, jcr->RunAfterJob, "ClientRunAfterJob");
    }
+   dequeue_messages(jcr);	      /* send any queued messages */
 
    /* Inform Director that we are done */
    bnet_sig(dir, BNET_TERMINATE);

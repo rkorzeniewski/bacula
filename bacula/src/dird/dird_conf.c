@@ -1209,10 +1209,10 @@ void store_acl(LEX *lc, RES_ITEM *item, int index, int pass)
       if (pass == 1) {
 	 if (((alist **)item->value)[item->code] == NULL) {   
 	    ((alist **)item->value)[item->code] = New(alist(10, owned_by_alist)); 
-//          Dmsg1(900, "Defined new ACL alist at %d\n", item->code);
+            Dmsg1(900, "Defined new ACL alist at %d\n", item->code);
 	 }
 	 ((alist **)item->value)[item->code]->append(bstrdup(lc->str));
-//       Dmsg2(900, "Appended to %d %s\n", item->code, lc->str);
+         Dmsg2(900, "Appended to %d %s\n", item->code, lc->str);
       }
       token = lex_get_token(lc, T_ALL);
       if (token == T_COMMA) {
