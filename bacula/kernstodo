@@ -1,11 +1,10 @@
                  Kern's ToDo List
-                  22 April 2003 
+                  28 April 2003 
 
-Documentation to do: (a little bit at a time)
+Documentation to do: (any release a little bit at a time)
 - Document running a test version.
 - Document query file format.
 - Document static linking
-- Document how to automatically backup all local partitions
 - Document problems with Verify and pruning.
 - Document how to use multiple databases.
 - Add a section to the doc on Manual cycling of Volumes.
@@ -22,16 +21,14 @@ For 1.30 release:
        this in a later update.
 - Fix Bare Metal restore problem.
 - Test multiple simultaneous Volumes
-
-- Document new immediate File save configuration (walk user
-  through first save to file Volume with automatic Volume labeling?).
-- Document OPTIMIZE TABLE in MySQL
-- Document logrotate
+- Document FInclude ...
 
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 After 1.30:
 - Implement a Slot priority (loaded/not loaded).
+- Implement "vacation" Incremental only saves.
+- Implement single pane restore (much like the Gftp panes).
 - Implement Automatic Mount even in operator wait.
 - Implement create "FileSet"?
 - Implement Release Device in the Job resource to unmount a drive.
@@ -49,8 +46,6 @@ After 1.30:
 - Implement restore "current system", but take all files without
   doing selection tree -- so that jobs without File records can
   be restored.
-- Implement scheduling of one time "run" jobs (i.e. instead of
-  starting immediately start at some specified time).
 - Make | and < work on FD side.
 - Pass prefix_links to FD.
 - Implement a M_SECURITY message class.
@@ -975,4 +970,11 @@ rufus-dir: Volume used once. Marking Volume "File0003" as Used.
 - Document Ludovic Strappazon's Win32 raw device save/restore.
 - Document not to restore .journal .autofsck
 - Document labeling a whole magazine using "cat"
+- Document how to automatically backup all local partitions
+- Document logrotate
+- Document OPTIMIZE TABLE in MySQL
+- Document new immediate File save configuration (walk user
+  through first save to file Volume with automatic Volume labeling?).
+- Implement scheduling of one time "run" jobs (i.e. instead of
+  starting immediately start at some specified time).
 
