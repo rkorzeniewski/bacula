@@ -4341,7 +4341,7 @@ if test x$support_gnome = xyes; then
   pkg=$?
   if test $pkg = 0; then
      GNOME_INCLUDEDIR=`pkg-config --cflags-only-I libgnomeui-2.0`
-     GNOMEUI_LIBS=`pkg-config --libs-only-other libgnomeui-2.0`
+     GNOMEUI_LIBS=`pkg-config --libs-only libgnomeui-2.0`
      GNOME_LIBDIR=`pkg-config --libs libgnomeui-2.0`
      GNOME_LIBS=`pkg-config --libs-only-l libgnomeui-2.0`
 

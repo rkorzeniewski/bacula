@@ -1,5 +1,11 @@
 
-2003-10-15 Version 1.32b 20Oct03 Beta
+2003-10-15 Version 1.32c 22Oct03 Beta
+23Oct03
+- Correct a typo in configure.in when configuring GNOME.
+- In doing a "status dir" make it loop over all the run
+  commands in the Schedule rather than doing on the first one.
+- Close all unused file descriptors in bpipe.c otherwise if
+  a daemon is started, it will keep our TCP/IP port open.
 22Oct03
 - Print block read error (checksum, I/O, BB01, ...) once then
   the number found at the end of the reading.

@@ -452,19 +452,17 @@ static void print_jobs_scheduled(UAContext *ua)
    /* Loop through all jobs */
    LockRes();
    for (job=NULL; (job=(JOB *)GetNextRes(R_JOB, (RES *)job)); ) {
-      level = job->level;   
-      run = find_next_run(job, runtime);
-      if (!run) {
-	 continue;
+      for (run=NULL; (run = find_next_run(run, job, runtime)); ) {
+	 level = job->level;   
+	 if (run->level) {
+	    level = run->level;
+	 }
+	 if (!hdr_printed) {
+	    hdr_printed = true;
+	    prt_runhdr(ua);
+	 }
+	 prt_runtime(ua, job, level, runtime, run->pool);
       }
-      if (run->level) {
-	 level = run->level;
-      }
-      if (!hdr_printed) {
-	 hdr_printed = true;
-	 prt_runhdr(ua);
-      }
-      prt_runtime(ua, job, level, runtime, run->pool);
 
    } /* end for loop over resources */
    UnlockRes();

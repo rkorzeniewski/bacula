@@ -11,6 +11,8 @@ Most Significant Changes since 1.32b
 - Implemented VerifyJob record that tells Verify which
   job to verify (JobId not required).
 - First cut Verify Disk to Catalog
+- Fix "status dir" to examine all run commands in sched.
+- Close unused file descriptors in bpipe.c
 
 Most Significant Changes since 1.32a:
 - Improve forward space file/block during restore, many
