@@ -8,7 +8,6 @@
 
     int8_t,  int16_t,  int32_t,  int64_t
     uint8_t, uint16_t, uint32_t, uint64_t
-    float32_t, float64_t
 
     Also, we define types such as file address lengths.
 
@@ -43,8 +42,12 @@ typedef char POOLMEM;
 #define mp_chr(x) x
 #ifdef xxxxx
 #define mp_chr(x) ((char*)(x))
-struct POOLMEM { };
+struct POOLMEM { 
+   POOLMEM() {}
+   operator const char*() const { return (char *)this; }
+};
 #endif
+
 
 /* Types */
 

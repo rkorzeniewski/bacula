@@ -108,7 +108,7 @@ int do_append_data(JCR *jcr)
     *	file. 1. for the Attributes, 2. for the file data if any, 
     *	and 3. for the MD5 if any.
     */
-   jcr->VolFirstIndex = 0;
+   jcr->VolFirstIndex = jcr->VolLastIndex = 0;
    jcr->run_time = time(NULL);		    /* start counting time for rates */
    for (last_file_index = 0; ok && !job_canceled(jcr); ) {
 
@@ -161,10 +161,6 @@ int do_append_data(JCR *jcr)
       }
       if (file_index != last_file_index) {
 	 jcr->JobFiles = file_index;
-	 if (jcr->VolFirstIndex == 0) {
-	    jcr->VolFirstIndex = file_index;
-	 }
-	 jcr->VolLastIndex = file_index;
 	 last_file_index = file_index;
       }
       

@@ -74,9 +74,8 @@ int confirm_retention(UAContext *ua, utime_t *ret, char *msg)
  */
 int find_arg_keyword(UAContext *ua, char **list)
 {
-   int i, j;
-   for (i=1; i<ua->argc; i++) {
-      for(j=0; list[j]; j++) {
+   for (int i=1; i<ua->argc; i++) {
+      for(int j=0; list[j]; j++) {
 	 if (strcasecmp(_(list[j]), ua->argk[i]) == 0) {
 	    return j;
 	 }
@@ -85,11 +84,6 @@ int find_arg_keyword(UAContext *ua, char **list)
    return -1;
 }
 
-/* 
- * Given a single keyword, find it in the argument list.
- * Returns: -1 if not found
- *	     list index (base 0) on success
- */
 int find_arg(UAContext *ua, char *keyword)
 {
    for (int i=1; i<ua->argc; i++) {
@@ -100,6 +94,12 @@ int find_arg(UAContext *ua, char *keyword)
    return -1;
 }
 
+/* 
+ * Given a single keyword, find it in the argument list, but
+ *   it must have a value
+ * Returns: -1 if not found or no value
+ *	     list index (base 0) on success
+ */
 int find_arg_with_value(UAContext *ua, char *keyword)
 {
    for (int i=1; i<ua->argc; i++) {
@@ -113,8 +113,6 @@ int find_arg_with_value(UAContext *ua, char *keyword)
    }
    return -1;
 }
-
-
 
 /* 
  * Given a list of keywords, prompt the user 

@@ -103,54 +103,54 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, char *fname)
    if (prefixed) {
       for (p=fname; *p && *p != ' '; p++) {
 	 switch (*p) {
-            case 'a':                 /* alway replace */
-            case '0':                 /* no option */
-	       break;
-            case 'f':
-	       inc->options |= FO_MULTIFS;
-	       break;
-            case 'h':                 /* no recursion */
-	       inc->options |= FO_NO_RECURSION;
-	       break;
-            case 'M':                 /* MD5 */
-	       inc->options |= FO_MD5;
-	       break;
-            case 'n':
-	       inc->options |= FO_NOREPLACE;
-	       break;
-            case 'p':                 /* use portable data format */
-	       inc->options |= FO_PORTABLE;
-	       break;
-            case 'r':                 /* read fifo */
-	       inc->options |= FO_READFIFO;
-	       break;
-            case 'S':
-	       inc->options |= FO_SHA1;
-	       break;
-            case 's':
-	       inc->options |= FO_SPARSE;
-	       break;
-            case 'V':                  /* verify options */
-	       /* Copy Verify Options */
-               for (j=0; *p && *p != ':'; p++) {
-		  inc->VerifyOpts[j] = *p;
-		  if (j < (int)sizeof(inc->VerifyOpts) - 1) {
-		     j++;
-		  }
+         case 'a':                 /* alway replace */
+         case '0':                 /* no option */
+	    break;
+         case 'f':
+	    inc->options |= FO_MULTIFS;
+	    break;
+         case 'h':                 /* no recursion */
+	    inc->options |= FO_NO_RECURSION;
+	    break;
+         case 'M':                 /* MD5 */
+	    inc->options |= FO_MD5;
+	    break;
+         case 'n':
+	    inc->options |= FO_NOREPLACE;
+	    break;
+         case 'p':                 /* use portable data format */
+	    inc->options |= FO_PORTABLE;
+	    break;
+         case 'r':                 /* read fifo */
+	    inc->options |= FO_READFIFO;
+	    break;
+         case 'S':
+	    inc->options |= FO_SHA1;
+	    break;
+         case 's':
+	    inc->options |= FO_SPARSE;
+	    break;
+         case 'V':                  /* verify options */
+	    /* Copy Verify Options */
+            for (j=0; *p && *p != ':'; p++) {
+	       inc->VerifyOpts[j] = *p;
+	       if (j < (int)sizeof(inc->VerifyOpts) - 1) {
+		  j++;
 	       }
-	       inc->VerifyOpts[j] = 0;
-	       break;
-            case 'w':
-	       inc->options |= FO_IF_NEWER;
-	       break;
-            case 'Z':                 /* gzip compression */
-	       inc->options |= FO_GZIP;
-               inc->level = *++p - '0';
-               Dmsg1(200, "Compression level=%d\n", inc->level);
-	       break;
-	    default:
-               Emsg1(M_ERROR, 0, "Unknown include/exclude option: %c\n", *p);
-	       break;
+	    }
+	    inc->VerifyOpts[j] = 0;
+	    break;
+         case 'w':
+	    inc->options |= FO_IF_NEWER;
+	    break;
+         case 'Z':                 /* gzip compression */
+	    inc->options |= FO_GZIP;
+            inc->level = *++p - '0';
+            Dmsg1(200, "Compression level=%d\n", inc->level);
+	    break;
+	 default:
+            Emsg1(M_ERROR, 0, "Unknown include/exclude option: %c\n", *p);
+	    break;
 	 }
       }
       /* Skip past space(s) */

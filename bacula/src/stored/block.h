@@ -99,6 +99,8 @@ struct DEV_BLOCK {
    int      BlockVer;                 /* block version 1 or 2 */
    bool     write_failed;             /* set if write failed */
    bool     block_read;               /* set when block read */
+   int32_t  FirstIndex;               /* first index this block */
+   int32_t  LastIndex;                /* last index this block */
    char    *bufp;                     /* pointer into buffer */
    POOLMEM *buf;                      /* actual data buffer */
 };

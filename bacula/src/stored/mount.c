@@ -95,7 +95,6 @@ mount_next_vol:
 
    dev->state &= ~(ST_APPEND|ST_READ|ST_EOT|ST_WEOT|ST_EOF);
 
-   jcr->VolFirstIndex = jcr->JobFiles; /* first update of Vol FileIndex */
    for ( ;; ) {
       int vol_label_status;
       autochanger = autoload_device(jcr, dev, 1, NULL);

@@ -18,6 +18,9 @@ Documentation to do: (any release a little bit at a time)
   (./create_mys... ./make_my...).
 - Document c:/working directory better than /working directory.
 - Document all the status codes JobLevel, JobType, JobStatus.
+- Document update volume: jobid, current, before, all
+- Document run "yes".
+- Document that bscan does not work with multiple simultaneous jobs.
 
           
 Testing to do: (painful)
@@ -33,7 +36,6 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
-- Non-fatal errors are not correct counting attribs.c:277
 - In Win portable restore the directory is not create    
    27-Jun-2003 16:52 tibs-fd: kernsrestore.2003-06-27_16.52.20 Error:
    create_file.c:175 Could not create
@@ -1013,4 +1015,5 @@ Done: (see kernsdone for more)
 - Make Restore report an error if FD or SD term codes are not OK.
 - To link with mysqlclient_r may require -lssl -lcrypto
 - Document Heart beat code 
+- Non-fatal errors are not correct counting attribs.c:277
  

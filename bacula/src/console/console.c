@@ -196,7 +196,7 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
 	 at_prompt = FALSE;
 	 /* @ => internal command for us */
          if (UA_sock->msg[0] == '@') {
-	    parse_args(UA_sock->msg, args, &argc, argk, argv, MAX_CMD_ARGS);
+	    parse_args(UA_sock->msg, &args, &argc, argk, argv, MAX_CMD_ARGS);
 	    if (!do_a_command(input, UA_sock)) {
 	       break;
 	    }

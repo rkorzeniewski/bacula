@@ -210,17 +210,16 @@ struct JOB {
 
 #define MAX_FOPTS 30
 
-struct s_fopts_item {
+/* File options structure */
+struct FOPTS {
    char opts[MAX_FOPTS];              /* options string */
-   char *match;                       /* match string */
-   char **base_list;                  /* list of base job names */
-   int  num_base;                     /* number of bases in list */
+   alist match;                       /* match string(s) */
+   alist base_list;                   /* list of base names */
 };
-typedef struct s_fopts_item FOPTS;
 
 
 /* This is either an include item or an exclude item */
-struct s_incexc_item {
+struct INCEXE {
    FOPTS *current_opts;               /* points to current options structure */
    FOPTS **opts_list;                 /* options list */
    int num_opts;                      /* number of options items */
@@ -228,7 +227,6 @@ struct s_incexc_item {
    int max_names;                     /* malloc'ed size of name list */
    int num_names;                     /* number of names in the list */
 };
-typedef struct s_incexc_item INCEXE;
 
 /* 
  *   FileSet Resource
@@ -294,7 +292,7 @@ struct POOL {
    int   catalog_files;               /* maintain file entries in catalog */
    int   use_volume_once;             /* write on volume only once */
    int   accept_any_volume;           /* accept any volume */
-   int   recycle_oldest_volume;       /* recycle oldest volume */
+   int   purge_oldest_volume;        /* purge oldest volume */
    uint32_t max_volumes;              /* max number of volumes */
    utime_t VolRetention;              /* volume retention period in seconds */
    utime_t VolUseDuration;            /* duration volume can be used */

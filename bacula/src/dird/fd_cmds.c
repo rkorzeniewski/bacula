@@ -167,21 +167,21 @@ int send_level_command(JCR *jcr)
     * Send Level command to File daemon
     */
    switch (jcr->JobLevel) {
-      case L_BASE:
-         bnet_fsend(fd, levelcmd, "base", " ", 0);
-	 break;
-      case L_FULL:
-         bnet_fsend(fd, levelcmd, "full", " ", 0);
-	 break;
-      case L_DIFFERENTIAL:
-      case L_INCREMENTAL:
-         bnet_fsend(fd, levelcmd, "since ", jcr->stime, 0);
-	 break;
-      case L_SINCE:
-      default:
-         Jmsg2(jcr, M_FATAL, 0, _("Unimplemented backup level %d %c\n"), 
-	    jcr->JobLevel, jcr->JobLevel);
-	 return 0;
+   case L_BASE:
+      bnet_fsend(fd, levelcmd, "base", " ", 0);
+      break;
+   case L_FULL:
+      bnet_fsend(fd, levelcmd, "full", " ", 0);
+      break;
+   case L_DIFFERENTIAL:
+   case L_INCREMENTAL:
+      bnet_fsend(fd, levelcmd, "since ", jcr->stime, 0);
+      break;
+   case L_SINCE:
+   default:
+      Jmsg2(jcr, M_FATAL, 0, _("Unimplemented backup level %d %c\n"), 
+	 jcr->JobLevel, jcr->JobLevel);
+      return 0;
    }
    Dmsg1(120, ">filed: %s", fd->msg);
    if (!response(jcr, fd, OKlevel, "Level", DISPLAY_ERROR)) {
@@ -216,11 +216,17 @@ static int send_list(JCR *jcr, int list)
       char *p;
       int optlen, stat;
       INCEXE *ie;
+      FOPTS  *fo;
+
 
       if (list == INC_LIST) {
 	 ie = fileset->include_items[i];
       } else {
 	 ie = fileset->exclude_items[i];
+      }
+      fo = ie->opts_list[0];
+      for (int j=0; j<fo->match.size(); j++) {
+         Dmsg1(000, "Match=%s\n", fo->match.get(j));
       }
       for (int j=0; j<ie->num_names; j++) {
 	 p = ie->name_list[j];

@@ -447,6 +447,15 @@ When:       %s\n"),
 	 free_jcr(jcr);
 	 return 0;
    }
+
+   /* Run without prompting? */
+   if (find_arg(ua, _("yes")) > 0) {
+      Dmsg1(200, "Calling run_job job=%x\n", jcr->job);
+      run_job(jcr);
+      bsendmsg(ua, _("Run command submitted.\n"));
+      return 1;
+   }
+
    if (!get_cmd(ua, _("OK to run? (yes/mod/no): "))) {
       free_jcr(jcr);
       return 0; 		      /* do not run */
@@ -655,6 +664,7 @@ When:       %s\n"),
       free_jcr(jcr);
       return 0; 		      /* error do no run Job */
    }
+
    if (strncasecmp(ua->cmd, _("yes"), strlen(ua->cmd)) == 0) {
       Dmsg1(200, "Calling run_job job=%x\n", jcr->job);
       run_job(jcr);

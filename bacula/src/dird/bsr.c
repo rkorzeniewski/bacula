@@ -34,7 +34,6 @@
 #include "dird.h"
 
 /* Forward referenced functions */
-static RBSR *sort_bsr(RBSR *bsr);
 static void write_bsr(UAContext *ua, RBSR *bsr, FILE *fd);
 
 
@@ -57,17 +56,42 @@ static void free_findex(RBSR_FINDEX *fi)
    }
 }
 
-static void write_findex(UAContext *ua, RBSR_FINDEX *fi, FILE *fd) 
+/*
+ * Our data structures were not designed completely
+ *  correctly, so the file indexes cover the full
+ *  range regardless of volume. The FirstIndex and LastIndex
+ *  passed in here are for the current volume, so when 
+ *  writing out the fi, constrain them to those values.
+ */
+static void write_findex(UAContext *ua, RBSR_FINDEX *fi, 
+	      int32_t FirstIndex, int32_t LastIndex, FILE *fd) 
 {
    if (fi) {
-      if (fi->findex == fi->findex2) {
-         fprintf(fd, "FileIndex=%d\n", fi->findex);
+      int32_t findex, findex2;
+      findex = fi->findex < FirstIndex ? FirstIndex : fi->findex;
+      findex2 = fi->findex2 > LastIndex ? LastIndex : fi->findex2;
+      if (findex == findex2) {
+         fprintf(fd, "FileIndex=%d\n", findex);
       } else {
-         fprintf(fd, "FileIndex=%d-%d\n", fi->findex, fi->findex2);
+         fprintf(fd, "FileIndex=%d-%d\n", findex, findex2);
       }
-      write_findex(ua, fi->next, fd);
+      write_findex(ua, fi->next, FirstIndex, LastIndex, fd);
    }
 }
+
+static bool is_volume_selected(RBSR_FINDEX *fi, 
+	      int32_t FirstIndex, int32_t LastIndex) 
+{
+   if (fi) {
+      if ((fi->findex >= FirstIndex && fi->findex <= LastIndex) ||
+	  (fi->findex2 >= FirstIndex && fi->findex2 <= LastIndex)) {
+	 return true;
+      }
+      return is_volume_selected(fi->next, FirstIndex, LastIndex);
+   }
+   return false;
+}
+
 
 
 static void print_findex(UAContext *ua, RBSR_FINDEX *fi)
@@ -109,9 +133,8 @@ void free_bsr(RBSR *bsr)
  */
 int complete_bsr(UAContext *ua, RBSR *bsr)
 {
-   JOB_DBR jr;
-
    if (bsr) {
+      JOB_DBR jr;
       memset(&jr, 0, sizeof(jr));
       jr.JobId = bsr->JobId;
       if (!db_get_job_record(ua->jcr, ua->db, &jr)) {
@@ -151,8 +174,6 @@ int write_bsr_file(UAContext *ua, RBSR *bsr)
       free_pool_memory(fname);
       return 0;
    }
-   /* Sort the bsr chain */
-   bsr = sort_bsr(bsr);
    /* Write them to file */
    write_bsr(ua, bsr, fd);
    stat = !ferror(fd);
@@ -179,24 +200,14 @@ int write_bsr_file(UAContext *ua, RBSR *bsr)
    return stat;
 }
 
-/*
- * First sort the bsr chain, then sort the VolParams   
- */
-static RBSR *sort_bsr(RBSR *bsr)
-{
-   if (!bsr) {
-      return bsr;
-   }
-   /* ****FIXME**** sort the bsr chain */
-   for (RBSR *nbsr=bsr; nbsr; nbsr=nbsr->next) {
-   }
-   return bsr;
-}
-
 static void write_bsr(UAContext *ua, RBSR *bsr, FILE *fd)
 {
    if (bsr) {
       for (int i=0; i < bsr->VolCount; i++) {
+	 if (!is_volume_selected(bsr->fi, bsr->VolParams[i].FirstIndex,
+	      bsr->VolParams[i].LastIndex)) {
+	    continue;
+	 }
          fprintf(fd, "Volume=\"%s\"\n", bsr->VolParams[i].VolumeName);
          fprintf(fd, "VolSessionId=%u\n", bsr->VolSessionId);
          fprintf(fd, "VolSessionTime=%u\n", bsr->VolSessionTime);
@@ -204,7 +215,11 @@ static void write_bsr(UAContext *ua, RBSR *bsr, FILE *fd)
 		 bsr->VolParams[i].EndFile);
          fprintf(fd, "VolBlock=%u-%u\n", bsr->VolParams[i].StartBlock,
 		 bsr->VolParams[i].EndBlock);
-	 write_findex(ua, bsr->fi, fd);
+
+//       Dmsg2(000, "bsr VolParam FI=%u LI=%u\n",
+//	    bsr->VolParams[i].FirstIndex, bsr->VolParams[i].LastIndex);
+	 write_findex(ua, bsr->fi, bsr->VolParams[i].FirstIndex,
+	    bsr->VolParams[i].LastIndex, fd);
       }
       write_bsr(ua, bsr->next, fd);
    }

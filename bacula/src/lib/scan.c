@@ -188,18 +188,15 @@ char *next_arg(char **s)
  *  argv[2] = 
  */
 
-int parse_args(POOLMEM *cmd, POOLMEM *args, int *argc, 
+int parse_args(POOLMEM *cmd, POOLMEM **args, int *argc, 
 	       char **argk, char **argv, int max_args) 
 {
    char *p, *q, *n;
-   int len;
 
-   len = strlen(cmd) + 1;
-   args = check_pool_memory_size(args, len);
-   bstrncpy(args, cmd, len);
-   strip_trailing_junk(args);
+   pm_strcpy(args, cmd);
+   strip_trailing_junk(*args);
+   p = *args;
    *argc = 0;
-   p = args;
    /* Pick up all arguments */
    while (*argc < max_args) {
       n = next_arg(&p);   
@@ -232,10 +229,10 @@ int parse_args(POOLMEM *cmd, POOLMEM *args, int *argc,
       }
       argv[i] = p;		      /* save ptr to value or NULL */
    }
-   return 1;
 #ifdef xxxx
-   for (i=0; i<argc; i++) {
+   for (int i=0; i < *argc; i++) {
       Dmsg3(000, "Arg %d: kw=%s val=%s\n", i, argk[i], argv[i]?argv[i]:"NULL");
    }
 #endif
+   return 1;
 }
