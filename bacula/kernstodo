@@ -43,6 +43,24 @@ For 1.33 Testing/Documentation:
 
 
 For version 1.35:
+- Try not to re-backup a file if a new hard link is added.
+- Backup hard links only, but not the data.
+- Add "All Local = yes" option to save to include all local partitions.
+- Fix stream handling to be simpler.
+- Add Priority and Bootstrap to Run a Job.
+- Eliminate Restore "Run Restore Job" prompt by allowing new "run command
+  to be issued"
+- Remove View FileSet button from Run a Job dialog.
+- Don't count higher level non-saved directories in Files expected
+  in restore report.
+- Handle prompt for restore job at end of Restore command.
+- Add display of total selected files to Restore window.
+- Add tree pane to left of window.
+- Add progress meter.
+- Polling does not work for restore. It tries a number of times,
+  gives up, and crashes the FD.
+- Lock jcr_chain when doing attach/detach in acquire.c
+- Add assert in free_jcr if attach/detach chain active.
 - Max wait time or max run time causes seg fault -- see runtime-bug.txt
 - Document writing to a CD/DVD with Bacula.
 - Add check for tape alerts.
@@ -1017,4 +1035,3 @@ Block Position: 0
   F Number         Number of filenames to follow
   <file-name>
   ...
-
