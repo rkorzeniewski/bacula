@@ -380,28 +380,28 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    Dmsg1(300, "Write block of %u bytes\n", wlen);      
    if ((uint32_t)(stat=write(dev->fd, block->buf, (size_t)wlen)) != wlen) {
       /* We should check for errno == ENOSPC, BUT many 
-       * devices simply report EIO when it is full.
-       * with a little more thought we may be able to check
+       * devices simply report EIO when the volume is full.
+       * With a little more thought we may be able to check
        * capacity and distinguish real errors and EOT
        * conditions.  In any case, we probably want to
        * simulate an End of Medium.
        */
-      clrerror_dev(dev, -1);
-
-      if (dev->dev_errno == 0) {
-	 dev->dev_errno = ENOSPC;	 /* out of space */
-      }
+      if (stat == -1) {
+	 clrerror_dev(dev, -1);
+	 if (dev->dev_errno == 0) {
+	    dev->dev_errno = ENOSPC;	    /* out of space */
+	 }
+         Jmsg(jcr, M_ERROR, 0, _("Write error on device %s. ERR=%s.\n"), 
+	    dev->dev_name, strerror(dev->dev_errno));
+      } else {
+	dev->dev_errno = ENOSPC;	    /* out of space */
+         Jmsg3(jcr, M_INFO, 0, _("End of medium on device %s. Write of %u bytes got %d.\n"), 
+	    dev->dev_name, wlen, stat);
+      }  
 
       Dmsg4(10, "=== Write error. size=%u rtn=%d  errno=%d: ERR=%s\n", 
 	 wlen, stat, dev->dev_errno, strerror(dev->dev_errno));
 
-      if (stat == -1) {
-         Jmsg(jcr, M_ERROR, 0, _("Write error on device %s. ERR=%s.\n"), 
-	    dev->dev_name, strerror(dev->dev_errno));
-      } else {
-         Jmsg3(jcr, M_INFO, 0, _("End of medium on device %s. Write of %u bytes got %d.\n"), 
-	    dev->dev_name, wlen, stat);
-      }  
       block->write_failed = true;
       dev->EndBlock = dev->block_num;
       dev->EndFile  = dev->file;
@@ -466,7 +466,6 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    dev->EndFile  = dev->file;
    dev->block_num++;
    block->BlockNumber++;
-
 
    Dmsg2(190, "write_block: wrote block %d bytes=%d\n", dev->block_num,
       wlen);

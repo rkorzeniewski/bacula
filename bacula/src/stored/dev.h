@@ -40,7 +40,7 @@
 #define block_device(d, s) _block_device(__FILE__, __LINE__, (d), s)
 #define unblock_device(d) _unblock_device(__FILE__, __LINE__, (d))
 #define steal_device_lock(d, p, s) _steal_device_lock(__FILE__, __LINE__, (d), (p), s)
-#define return_device_lock(d, p) _return_device_lock(__FILE__, __LINE__, (d), (p))
+#define give_back_device_lock(d, p) _give_back_device_lock(__FILE__, __LINE__, (d), (p))
 
 /* Arguments to open_dev() */
 #define READ_WRITE       0

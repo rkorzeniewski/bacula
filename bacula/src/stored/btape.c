@@ -60,6 +60,7 @@ static void wrcmd();
 static void rrcmd();
 static void eodcmd();
 static void fillcmd();
+static void qfillcmd();
 static void statcmd();
 static void unfillcmd();
 static int flush_block(DEV_BLOCK *block, int dump);
@@ -906,6 +907,7 @@ static void scancmd()
    int blocks, tot_blocks, tot_files;
    int block_size;
    uint64_t bytes;
+   char ec1[50];
 
 
    blocks = block_size = tot_blocks = 0;
@@ -961,7 +963,8 @@ static void scancmd()
    }
    update_pos_dev(dev);
    tot_files = dev->file - tot_files;
-   printf("Total files=%d, blocks=%d, bytes = %" lld "\n", tot_files, tot_blocks, bytes);
+   printf("Total files=%d, blocks=%d, bytes = %s\n", tot_files, tot_blocks, 
+      edit_uint64_with_commas(bytes, ec1));
 }
 
 
@@ -977,6 +980,7 @@ static void scan_blocks()
    uint32_t block_size;
    uint64_t bytes;
    DEV_BLOCK *block;
+   char ec1[50];
 
    block = new_block(dev);
    blocks = block_size = tot_blocks = 0;
@@ -1047,7 +1051,8 @@ static void scan_blocks()
 bail_out:
    free_block(block);
    tot_files = dev->file - tot_files;
-   printf("Total files=%d, blocks=%d, bytes = %" lld "\n", tot_files, tot_blocks, bytes);
+   printf("Total files=%d, blocks=%d, bytes = %s\n", tot_files, tot_blocks, 
+      edit_uint64_with_commas(bytes, ec1));
 }
 
 
@@ -1350,7 +1355,6 @@ bail_out:
    Pmsg0(000, _("Done with reread of fill data.\n"));
 }
 
-
 /* 
  * We are called here from "unfill" for each record on the tape.
  */
@@ -1534,6 +1538,65 @@ static int flush_block(DEV_BLOCK *block, int dump)
 }
 
 
+/* 
+ * First we label the tape, then we fill
+ *  it with data get a new tape and write a few blocks.
+ */			       
+static void qfillcmd()
+{
+   DEV_BLOCK *block;
+   DEV_RECORD *rec;
+   int i, count;
+
+   Pmsg0(0, "Test writing blocks of 64512 bytes to tape.\n");
+
+   get_cmd("How many blocks do you want to write? (1000): ");
+
+   count = atoi(cmd);
+   if (count <= 0) {
+      count = 1000;
+   }
+
+   sm_check(__FILE__, __LINE__, False);
+   block = new_block(dev);
+   rec = new_record();
+
+   i = block->buf_len - 100;
+   ASSERT (i > 0);
+   rec->data = check_pool_memory_size(rec->data, i);
+   memset(rec->data, i & 0xFF, i);
+   rec->data_len = i;
+   rewindcmd();
+   Pmsg1(0, "Begin writing %d blocks to tape ...\n", count);
+   for (i=0; i < count; i++) {
+      if (i % 100 == 0) {
+         printf("+");
+      }
+      if (!write_record_to_block(block, rec)) {
+         Pmsg0(0, _("Error writing record to block.\n")); 
+	 goto bail_out;
+      }
+      if (!write_block_to_dev(jcr, dev, block)) {
+         Pmsg0(0, _("Error writing block to device.\n")); 
+	 goto bail_out;
+      }
+   }
+   printf("\n");
+   weofcmd();
+   weofcmd();
+   rewindcmd();
+   scan_blocks();
+
+bail_out:
+   sm_check(__FILE__, __LINE__, False);
+   free_record(rec);
+   free_block(block);
+   sm_check(__FILE__, __LINE__, False);
+
+}
+
+
+
 struct cmdstruct { char *key; void (*func)(); char *help; }; 
 static struct cmdstruct commands[] = {
  {"bsf",        bsfcmd,       "backspace file"},
@@ -1559,6 +1622,7 @@ static struct cmdstruct commands[] = {
  {"weof",       weofcmd,      "write an EOF on the tape"},
  {"wr",         wrcmd,        "write a single Bacula block"}, 
  {"rr",         rrcmd,        "read a single record"},
+ {"qfill",      qfillcmd,     "quick fill command"},
 	     };
 #define comsize (sizeof(commands)/sizeof(struct cmdstruct))
 

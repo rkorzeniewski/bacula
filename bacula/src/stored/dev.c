@@ -1004,38 +1004,38 @@ clrerror_dev(DEVICE *dev, int func)
    }
    if (errno == ENOTTY || errno == ENOSYS) { /* Function not implemented */
       switch (func) {
-	 case -1:
-            Emsg0(M_ABORT, 0, "Got ENOTTY on read/write!\n");
-	    break;
-	 case MTWEOF:
-            msg = "WTWEOF";
-	    dev->capabilities &= ~CAP_EOF; /* turn off feature */
-	    break;
+      case -1:
+         Emsg0(M_ABORT, 0, "Got ENOTTY on read/write!\n");
+	 break;
+      case MTWEOF:
+         msg = "WTWEOF";
+	 dev->capabilities &= ~CAP_EOF; /* turn off feature */
+	 break;
 #ifdef MTEOM
-	 case MTEOM:
-            msg = "WTEOM";
-	    dev->capabilities &= ~CAP_EOM; /* turn off feature */
-	    break;
+      case MTEOM:
+         msg = "WTEOM";
+	 dev->capabilities &= ~CAP_EOM; /* turn off feature */
+	 break;
 #endif 
-	 case MTFSF:
-            msg = "MTFSF";
-	    dev->capabilities &= ~CAP_FSF; /* turn off feature */
-	    break;
-	 case MTBSF:
-            msg = "MTBSF";
-	    dev->capabilities &= ~CAP_BSF; /* turn off feature */
-	    break;
-	 case MTFSR:
-            msg = "MTFSR";
-	    dev->capabilities &= ~CAP_FSR; /* turn off feature */
-	    break;
-	 case MTBSR:
-            msg = "MTBSR";
-	    dev->capabilities &= ~CAP_BSR; /* turn off feature */
-	    break;
-	 default:
-            msg = "Unknown";
-	    break;
+      case MTFSF:
+         msg = "MTFSF";
+	 dev->capabilities &= ~CAP_FSF; /* turn off feature */
+	 break;
+      case MTBSF:
+         msg = "MTBSF";
+	 dev->capabilities &= ~CAP_BSF; /* turn off feature */
+	 break;
+      case MTFSR:
+         msg = "MTFSR";
+	 dev->capabilities &= ~CAP_FSR; /* turn off feature */
+	 break;
+      case MTBSR:
+         msg = "MTBSR";
+	 dev->capabilities &= ~CAP_BSR; /* turn off feature */
+	 break;
+      default:
+         msg = "Unknown";
+	 break;
       }
       if (msg != NULL) {
 	 dev->dev_errno = ENOSYS;

@@ -318,7 +318,7 @@ void _steal_device_lock(char *file, int line, DEVICE *dev, bsteal_lock_t *hold, 
  * Enter with device blocked by us but not locked
  * Exit with device locked, and blocked by previous owner 
  */
-void _return_device_lock(char *file, int line, DEVICE *dev, bsteal_lock_t *hold)	   
+void _give_back_device_lock(char *file, int line, DEVICE *dev, bsteal_lock_t *hold)	      
 {
    Dmsg4(100, "return lock. old=%d new=%d from %s:%d\n", 
       dev->dev_blocked, hold->dev_blocked, file, line);
@@ -326,4 +326,3 @@ void _return_device_lock(char *file, int line, DEVICE *dev, bsteal_lock_t *hold)
    dev->dev_blocked = hold->dev_blocked;
    dev->no_wait_id = hold->no_wait_id;
 }
-

@@ -380,43 +380,45 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
 
    /* See what we have for a Volume */
    switch (read_dev_volume_label(jcr, dev, block)) {		    
-      case VOL_NAME_ERROR:
-      case VOL_VERSION_ERROR:
-      case VOL_LABEL_ERROR:
-      case VOL_OK:
-	 if (!relabel) {
-	    bnet_fsend(dir, _(
-               "3911 Cannot label Volume because it is already labeled: %s\n"), 
-		dev->VolHdr.VolName);
-	    break;
-	 }
-	 /* Relabel request. If oldname matches, continue */
-	 if (strcmp(oldname, dev->VolHdr.VolName) != 0) {
-            bnet_fsend(dir, _("Wrong volume mounted.\n"));
-	    break;
-	 }
-	 /* Fall through wanted! */
-      case VOL_IO_ERROR:
-      case VOL_NO_LABEL:
-	 if (!write_volume_label_to_dev(jcr, jcr->device, newname, poolname)) {
-            bnet_fsend(dir, _("3912 Failed to label Volume: ERR=%s\n"), strerror_dev(dev));
-	    break;
-	 }
-	 strcpy(jcr->VolumeName, newname);
-         bnet_fsend(dir, _("3000 OK label. Volume=%s Device=%s\n"), 
-	    newname, dev->dev_name);
+   case VOL_NAME_ERROR:
+   case VOL_VERSION_ERROR:
+   case VOL_LABEL_ERROR:
+   case VOL_OK:
+      if (!relabel) {
+	 bnet_fsend(dir, _(
+            "3911 Cannot label Volume because it is already labeled: %s\n"), 
+	     dev->VolHdr.VolName);
 	 break;
-      case VOL_NO_MEDIA:
+      }
+      /* Relabel request. If oldname matches, continue */
+      if (strcmp(oldname, dev->VolHdr.VolName) != 0) {
+         bnet_fsend(dir, _("Wrong volume mounted.\n"));
+	 break;
+      }
+      /* Fall through wanted! */
+   case VOL_IO_ERROR:
+   case VOL_NO_LABEL:
+      if (!write_volume_label_to_dev(jcr, jcr->device, newname, poolname)) {
          bnet_fsend(dir, _("3912 Failed to label Volume: ERR=%s\n"), strerror_dev(dev));
 	 break;
-      default:
-         bnet_fsend(dir, _("3913 Cannot label Volume. \
+      }
+      strcpy(jcr->VolumeName, newname);
+      bnet_fsend(dir, _("3000 OK label. Volume=%s Device=%s\n"), 
+	 newname, dev->dev_name);
+      break;
+   case VOL_NO_MEDIA:
+      bnet_fsend(dir, _("3912 Failed to label Volume: ERR=%s\n"), strerror_dev(dev));
+      break;
+   default:
+      bnet_fsend(dir, _("3913 Cannot label Volume. \
 Unknown status %d from read_volume_label()\n"), jcr->label_status);
-	 break;
+      break;
    }
 bail_out:
    free_block(block);
-   return_device_lock(dev, &hold);
+   give_back_device_lock(dev, &hold);
+
+   return;
 }
 
 
@@ -438,18 +440,18 @@ static int read_label(JCR *jcr, DEVICE *dev)
    block = new_block(dev);
    dev->state &= ~ST_LABEL;	      /* force read of label */
    switch (read_dev_volume_label(jcr, dev, block)) {		    
-      case VOL_OK:
-         bnet_fsend(dir, _("3001 Mounted Volume: %s\n"), dev->VolHdr.VolName);
-	 stat = 1;
-	 break;
-      default:
-         bnet_fsend(dir, _("3902 Cannot mount Volume on Storage Device \"%s\" because:\n%s\n"),
-	    dev->dev_name, jcr->errmsg);
-	 stat = 0;
-	 break;
+   case VOL_OK:
+      bnet_fsend(dir, _("3001 Mounted Volume: %s\n"), dev->VolHdr.VolName);
+      stat = 1;
+      break;
+   default:
+      bnet_fsend(dir, _("3902 Cannot mount Volume on Storage Device \"%s\" because:\n%s\n"),
+	 dev->dev_name, jcr->errmsg);
+      stat = 0;
+      break;
    }
    free_block(block);
-   return_device_lock(dev, &hold);
+   give_back_device_lock(dev, &hold);
    return stat;
 }
 
@@ -484,34 +486,74 @@ static int mount_cmd(JCR *jcr)
 	 P(dev->mutex); 	      /* Use P to avoid indefinite block */
 	 switch (dev->dev_blocked) {	     /* device blocked? */
 	    DEV_BLOCK *block;
-	    case BST_WAITING_FOR_SYSOP:
-	       /* Someone is waiting, wake him */
-               Dmsg0(100, "Waiting for mount. Attempting to wake thread\n");
+	 case BST_WAITING_FOR_SYSOP:
+	    /* Someone is waiting, wake him */
+            Dmsg0(100, "Waiting for mount. Attempting to wake thread\n");
+	    dev->dev_blocked = BST_MOUNT;
+	    pthread_cond_signal(&dev->wait_next_vol);
+            bnet_fsend(dir, "3001 OK mount. Device=%s\n", dev->dev_name);
+	    break;
+
+	 case BST_UNMOUNTED_WAITING_FOR_SYSOP:
+	 case BST_UNMOUNTED:
+	    /* We freed the device, so reopen it and wake any waiting threads */
+	    if (open_dev(dev, NULL, READ_WRITE) < 0) {
+               bnet_fsend(dir, _("3901 open device failed: ERR=%s\n"), 
+		  strerror_dev(dev));
+	       break;
+	    }
+	    block = new_block(dev);
+	    read_dev_volume_label(jcr, dev, block);
+	    free_block(block);
+	    if (dev->dev_blocked == BST_UNMOUNTED) {
+               Dmsg0(100, "Unmounted. Unblocking device\n");
+	       read_label(jcr, dev);
+	       unblock_device(dev);
+	    } else {
+               Dmsg0(100, "Unmounted waiting for mount. Attempting to wake thread\n");
 	       dev->dev_blocked = BST_MOUNT;
 	       pthread_cond_signal(&dev->wait_next_vol);
-               bnet_fsend(dir, "3001 OK mount. Device=%s\n", dev->dev_name);
-	       break;
+	    }
+	    if (dev->state & ST_LABEL) {
+               bnet_fsend(dir, _("3001 Device %s is mounted with Volume \"%s\"\n"), 
+		  dev->dev_name, dev->VolHdr.VolName);
+	    } else {
+               bnet_fsend(dir, _("3905 Device %s open but no Bacula volume is mounted.\n"
+                                 "Try unmounting and remounting the Volume.\n"),
+			  dev->dev_name);
+	    }
+	    break;
 
-	    case BST_UNMOUNTED_WAITING_FOR_SYSOP:
-	    case BST_UNMOUNTED:
-	       /* We freed the device, so reopen it and wake any waiting threads */
+	 case BST_DOING_ACQUIRE:
+            bnet_fsend(dir, _("3001 Device %s is mounted; doing acquire.\n"), 
+		       dev->dev_name);
+	    break;
+
+	 case BST_WRITING_LABEL:
+            bnet_fsend(dir, _("3903 Device %s is being labeled.\n"), dev->dev_name);
+	    break;
+
+	 case BST_NOT_BLOCKED:
+	    if (dev->state & ST_OPENED) {
+	       if (dev->state & ST_LABEL) {
+                  bnet_fsend(dir, _("3001 Device %s is mounted with Volume \"%s\"\n"),
+		     dev->dev_name, dev->VolHdr.VolName);
+	       } else {
+                  bnet_fsend(dir, _("3905 Device %s open but no Bacula volume is mounted.\n"   
+                                 "Try unmounting and remounting the Volume.\n"),
+			     dev->dev_name);
+	       }
+	    } else {
+	       if (!dev_is_tape(dev)) {
+                  bnet_fsend(dir, _("3906 cannot mount non-tape.\n"));
+		  break;
+	       }
 	       if (open_dev(dev, NULL, READ_WRITE) < 0) {
                   bnet_fsend(dir, _("3901 open device failed: ERR=%s\n"), 
 		     strerror_dev(dev));
 		  break;
 	       }
-	       block = new_block(dev);
-	       read_dev_volume_label(jcr, dev, block);
-	       free_block(block);
-	       if (dev->dev_blocked == BST_UNMOUNTED) {
-                  Dmsg0(100, "Unmounted. Unblocking device\n");
-		  read_label(jcr, dev);
-		  unblock_device(dev);
-	       } else {
-                  Dmsg0(100, "Unmounted waiting for mount. Attempting to wake thread\n");
-		  dev->dev_blocked = BST_MOUNT;
-		  pthread_cond_signal(&dev->wait_next_vol);
-	       }
+	       read_label(jcr, dev);
 	       if (dev->state & ST_LABEL) {
                   bnet_fsend(dir, _("3001 Device %s is mounted with Volume \"%s\"\n"), 
 		     dev->dev_name, dev->VolHdr.VolName);
@@ -520,52 +562,12 @@ static int mount_cmd(JCR *jcr)
                                     "Try unmounting and remounting the Volume.\n"),
 			     dev->dev_name);
 	       }
-	       break;
+	    }
+	    break;
 
-	    case BST_DOING_ACQUIRE:
-               bnet_fsend(dir, _("3001 Device %s is mounted; doing acquire.\n"), 
-			  dev->dev_name);
-	       break;
-
-	    case BST_WRITING_LABEL:
-               bnet_fsend(dir, _("3903 Device %s is being labeled.\n"), dev->dev_name);
-	       break;
-
-	    case BST_NOT_BLOCKED:
-	       if (dev->state & ST_OPENED) {
-		  if (dev->state & ST_LABEL) {
-                     bnet_fsend(dir, _("3001 Device %s is mounted with Volume \"%s\"\n"),
-			dev->dev_name, dev->VolHdr.VolName);
-		  } else {
-                     bnet_fsend(dir, _("3905 Device %s open but no Bacula volume is mounted.\n"   
-                                    "Try unmounting and remounting the Volume.\n"),
-				dev->dev_name);
-		  }
-	       } else {
-		  if (!dev_is_tape(dev)) {
-                     bnet_fsend(dir, _("3906 cannot mount non-tape.\n"));
-		     break;
-		  }
-		  if (open_dev(dev, NULL, READ_WRITE) < 0) {
-                     bnet_fsend(dir, _("3901 open device failed: ERR=%s\n"), 
-			strerror_dev(dev));
-		     break;
-		  }
-		  read_label(jcr, dev);
-		  if (dev->state & ST_LABEL) {
-                     bnet_fsend(dir, _("3001 Device %s is mounted with Volume \"%s\"\n"), 
-			dev->dev_name, dev->VolHdr.VolName);
-		  } else {
-                     bnet_fsend(dir, _("3905 Device %s open but no Bacula volume is mounted.\n"
-                                       "Try unmounting and remounting the Volume.\n"),
-				dev->dev_name);
-		  }
-	       }
-	       break;
-
-	    default:
-               bnet_fsend(dir, _("3905 Bizarre wait state %d\n"), dev->dev_blocked);
-	       break;
+	 default:
+            bnet_fsend(dir, _("3905 Bizarre wait state %d\n"), dev->dev_blocked);
+	    break;
 	 }
 	 V(dev->mutex);
       } else {
@@ -643,7 +645,14 @@ static int unmount_cmd(JCR *jcr)
 
 	 } else {		      /* device not being used */
             Dmsg0(90, "Device not in use, unmounting\n");
-	    block_device(dev, BST_UNMOUNTED);
+	    /* On FreeBSD, I am having ASSERT() failures in block_device()
+	     * and I can only imagine that the thread id that we are
+	     * leaving in no_wait_id is being re-used. So here,
+	     * we simply do it by hand.  Gross, but maybe a solutions
+	     */
+	    /*	block_device(dev, BST_UNMOUNTED); replace with 2 lines below */
+	    dev->dev_blocked = BST_UNMOUNTED;
+	    dev->no_wait_id = 0;
 	    open_dev(dev, NULL, 0);	/* fake open for close */
 	    offline_or_rewind_dev(dev);
 	    force_close_dev(dev);
