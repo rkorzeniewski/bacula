@@ -1461,6 +1461,11 @@ suse)
 	TAPEDRIVE="/dev/nst0"
 	PSCMD="ps -e -o pid,command"
 	hostname=`hostname -s`
+	PFILES="${PFILES} \
+	    platforms/suse/Makefile \
+	    platforms/suse/bacula-fd \
+	    platforms/suse/bacula-sd \
+	    platforms/suse/bacula-dir"
   ;;
 suse5)
 	DISTNAME=suse
@@ -1468,6 +1473,11 @@ suse5)
 	TAPEDRIVE="/dev/nst0"
 	PSCMD="ps -e -o pid,command"
 	hostname=`hostname -s`
+	PFILES="${PFILES} \
+	    platforms/suse/Makefile \
+	    platforms/suse/bacula-fd \
+	    platforms/suse/bacula-sd \
+	    platforms/suse/bacula-dir"
   ;;
 unknown)
 	DISTVER=unknown
