@@ -7,15 +7,15 @@
  *
  *   1. The generic lexical scanner in lib/lex.c and lib/lex.h
  *
- *   2. The generic config  scanner in lib/parse_config.c and 
- *	lib/parse_config.h.
- *	These files contain the parser code, some utility
- *	routines, and the common store routines (name, int,
- *	string).
+ *   2. The generic config  scanner in lib/parse_config.c and
+ * lib/parse_config.h.
+ * These files contain the parser code, some utility
+ * routines, and the common store routines (name, int,
+ * string).
  *
  *   3. The daemon specific file, which contains the Resource
- *	definitions as well as any specific store routines
- *	for the resource records.
+ * definitions as well as any specific store routines
+ * for the resource records.
  *
  *     Kern Sibbald, January MM, September MM
  */
@@ -56,13 +56,20 @@ int r_last  = R_LAST;
  * then move it to allocated memory when the resource
  * scan is complete.
  */
+#if defined(HAVE_WIN32) && !defined(HAVE_CYGWIN)  && !defined(HAVE_MINGW)
+extern "C" { // work around visual compiler mangling variables
+    URES res_all;
+    int  res_all_size = sizeof(res_all);
+}
+#else
 URES res_all;
 int  res_all_size = sizeof(res_all);
+#endif
 
 /* Definition of records permitted within each
- * resource with the routine to process the record 
+ * resource with the routine to process the record
  * information.
- */ 
+ */
 
 /*  Console "globals" */
 static RES_ITEM cons_items[] = {
@@ -72,7 +79,7 @@ static RES_ITEM cons_items[] = {
    {"historyfile", store_dir,      ITEM(res_cons.hist_file), 0, 0, 0},
    {"requiressl",  store_yesno,    ITEM(res_cons.require_ssl), 1, ITEM_DEFAULT, 0},
    {"password",    store_password, ITEM(res_cons.password), 0, ITEM_REQUIRED, 0},
-   {NULL, NULL, NULL, 0, 0, 0} 
+   {NULL, NULL, NULL, 0, 0, 0}
 };
 
 
@@ -84,17 +91,17 @@ static RES_ITEM dir_items[] = {
    {"address",     store_str,      ITEM(res_dir.address),  0, 0, 0},
    {"password",    store_password, ITEM(res_dir.password), 0, ITEM_REQUIRED, 0},
    {"enablessl",   store_yesno,    ITEM(res_dir.enable_ssl), 1, ITEM_DEFAULT, 0},
-   {NULL, NULL, NULL, 0, 0, 0} 
+   {NULL, NULL, NULL, 0, 0, 0}
 };
 
-/* 
- * This is the master resource definition.  
+/*
+ * This is the master resource definition.
  * It must have one item for each of the resources.
  */
 RES_TABLE resources[] = {
    {"console",       cons_items,  R_CONSOLE,   NULL},
    {"director",      dir_items,   R_DIRECTOR,  NULL},
-   {NULL,	     NULL,	  0,	       NULL}
+   {NULL,        NULL,    0,         NULL}
 };
 
 
@@ -108,19 +115,19 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
       printf("No record for %d %s\n", type, res_to_str(type));
       return;
    }
-   if (type < 0) {		      /* no recursion */
+   if (type < 0) {            /* no recursion */
       type = - type;
       recurse = 0;
    }
    switch (type) {
       case R_CONSOLE:
          printf("Console: name=%s rcfile=%s histfile=%s\n", reshdr->name,
-		res->res_cons.rc_file, res->res_cons.hist_file);
-	 break;
+      res->res_cons.rc_file, res->res_cons.hist_file);
+    break;
       case R_DIRECTOR:
-         printf("Director: name=%s address=%s DIRport=%d\n", reshdr->name, 
-		 res->res_dir.address, res->res_dir.DIRport);
-	 break;
+         printf("Director: name=%s address=%s DIRport=%d\n", reshdr->name,
+       res->res_dir.address, res->res_dir.DIRport);
+    break;
       default:
          printf("Unknown resource type %d\n", type);
    }
@@ -129,10 +136,10 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
    }
 }
 
-/* 
- * Free memory of resource.  
+/*
+ * Free memory of resource.
  * NB, we don't need to worry about freeing any references
- * to other resources as they will be freed when that 
+ * to other resources as they will be freed when that
  * resource chain is traversed.  Mainly we worry about freeing
  * allocated strings (names).
  */
@@ -155,16 +162,16 @@ void free_resource(RES *sres, int type)
 
    switch (type) {
       case R_CONSOLE:
-	 if (res->res_cons.rc_file) {
-	    free(res->res_cons.rc_file);
-	 }
-	 if (res->res_cons.hist_file) {
-	    free(res->res_cons.hist_file);
-	 }
+    if (res->res_cons.rc_file) {
+       free(res->res_cons.rc_file);
+    }
+    if (res->res_cons.hist_file) {
+       free(res->res_cons.hist_file);
+    }
       case R_DIRECTOR:
-	 if (res->res_dir.address)
-	    free(res->res_dir.address);
-	 break;
+    if (res->res_dir.address)
+       free(res->res_dir.address);
+    break;
       default:
          printf("Unknown resource type %d\n", type);
    }
@@ -183,18 +190,18 @@ void save_resource(int type, RES_ITEM *items, int pass)
 {
    URES *res;
    int rindex = type - r_first;
-   int i, size;    
+   int i, size;
    int error = 0;
 
-   /* 
+   /*
     * Ensure that all required items are present
     */
    for (i=0; items[i].name; i++) {
       if (items[i].flags & ITEM_REQUIRED) {
-	    if (!bit_is_set(i, res_all.res_dir.hdr.item_present)) {  
+       if (!bit_is_set(i, res_all.res_dir.hdr.item_present)) {
                Emsg2(M_ABORT, 0, "%s item is required in %s resource, but not found.\n",
-		 items[i].name, resources[rindex]);
-	     }
+       items[i].name, resources[rindex]);
+        }
       }
    }
 
@@ -205,26 +212,26 @@ void save_resource(int type, RES_ITEM *items, int pass)
     */
    if (pass == 2) {
       switch (type) {
-	 /* Resources not containing a resource */
-	 case R_CONSOLE:
-	 case R_DIRECTOR:
-	    break;
+    /* Resources not containing a resource */
+    case R_CONSOLE:
+    case R_DIRECTOR:
+       break;
 
-	 default:
+    default:
             Emsg1(M_ERROR, 0, "Unknown resource type %d\n", type);
-	    error = 1;
-	    break;
+       error = 1;
+       break;
       }
       /* Note, the resoure name was already saved during pass 1,
        * so here, we can just release it.
        */
       if (res_all.res_dir.hdr.name) {
-	 free(res_all.res_dir.hdr.name);
-	 res_all.res_dir.hdr.name = NULL;
+    free(res_all.res_dir.hdr.name);
+    res_all.res_dir.hdr.name = NULL;
       }
       if (res_all.res_dir.hdr.desc) {
-	 free(res_all.res_dir.hdr.desc);
-	 res_all.res_dir.hdr.desc = NULL;
+    free(res_all.res_dir.hdr.desc);
+    res_all.res_dir.hdr.desc = NULL;
       }
       return;
    }
@@ -232,35 +239,35 @@ void save_resource(int type, RES_ITEM *items, int pass)
    /* The following code is only executed during pass 1 */
    switch (type) {
       case R_CONSOLE:
-	 size = sizeof(CONRES);
-	 break;
+    size = sizeof(CONRES);
+    break;
       case R_DIRECTOR:
-	 size = sizeof(DIRRES);
-	 break;
+    size = sizeof(DIRRES);
+    break;
       default:
          printf("Unknown resource type %d\n", type);
-	 error = 1;
-	 size = 1;
-	 break;
+    error = 1;
+    size = 1;
+    break;
    }
    /* Common */
    if (!error) {
       res = (URES *)malloc(size);
       memcpy(res, &res_all, size);
       if (!resources[rindex].res_head) {
-	 resources[rindex].res_head = (RES *)res; /* store first entry */
+    resources[rindex].res_head = (RES *)res; /* store first entry */
       } else {
-	 RES *next;
-	 for (next=resources[rindex].res_head; next->next; next=next->next) {
-	    if (strcmp(next->name, res->res_dir.hdr.name) == 0) {
-	       Emsg2(M_ERROR_TERM, 0,
+    RES *next;
+    for (next=resources[rindex].res_head; next->next; next=next->next) {
+       if (strcmp(next->name, res->res_dir.hdr.name) == 0) {
+          Emsg2(M_ERROR_TERM, 0,
                   _("Attempt to define second %s resource named \"%s\" is not permitted.\n"),
-		  resources[rindex].name, res->res_dir.hdr.name);
-	    }
-	 }
-	 next->next = (RES *)res;
+        resources[rindex].name, res->res_dir.hdr.name);
+       }
+    }
+    next->next = (RES *)res;
          Dmsg2(90, "Inserting %s res: %s\n", res_to_str(type),
-	       res->res_dir.hdr.name);
+          res->res_dir.hdr.name);
       }
    }
 }

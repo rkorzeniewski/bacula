@@ -35,6 +35,13 @@
 
 #include "csprint.h"
 
+#ifdef HAVE_WIN32
+#include <windows.h>
+DWORD  g_platform_id = VER_PLATFORM_WIN32_WINDOWS;
+char OK_msg[]   = "2000 OK\n";
+char TERM_msg[] = "2999 Terminate\n";
+#endif
+
 /* Imported functions */
 int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons);
 

@@ -25,6 +25,8 @@ general : Create a more complicated director config file, to check what
 
 wxbTableParser : Replace wxHashMap by wxArray
 
+console_thread : Show a nice message when config file is not found.
+
 console_thread : Allow the user to choose his config file.
 
 wxblistctrl/wxbtreectrl : Find why events are not forwarded correctly 
@@ -32,6 +34,9 @@ wxblistctrl/wxbtreectrl : Find why events are not forwarded correctly
    (remove wxbTreeListPanel)
    
 general : make a good documentation with snapshots
+
+mingw : correct findlib stat blocks and block size
+        (Note : nothing to do with wx-console)
 
 BUGS
 ----

@@ -232,7 +232,7 @@ wxbMainFrame::wxbMainFrame(const wxString& title, const wxPoint& pos, const wxSi
 
    // Creates the list of panels which are included in notebook, and that need to receive director information
 
-   panels = new (wxbPanel*)[2];
+   panels = new wxbPanel* [2];
    panels[0] = new wxbRestorePanel(notebook);
    panels[1] = NULL;
 
