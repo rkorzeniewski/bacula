@@ -246,7 +246,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
       }
       bfd->fh = CreateFile(win32_fname,
 	     dwaccess,		      /* Requested access */
-	     FILE_SHARE_READ,	      /* Shared mode */
+	     FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
 	     NULL,		      /* SecurityAttributes */
 	     OPEN_EXISTING,	      /* CreationDisposition */
 	     dwflags,		      /* Flags and attributes */

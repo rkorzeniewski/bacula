@@ -17,13 +17,12 @@ Version 1.35                Kern (see below)
   block numbers in btape "test".  Possibly adjust in Bacula.
 - Fix possible bug in update volumefrompool (email 9/28 from
   jesk@killall.org
-- Fix storage overrides in Run directives.
+- Look into failing Excludes in Win32
 
 - Document a get out of jail procedure if everything breaks if 
   you lost/broke the Catalog -- do the same for "I know my
   file is there how do I get it back?".
 
-- Add "Rerun failed levels = yes/no" to Job resource.
 
    
 Maybe for 1.35:
@@ -34,6 +33,8 @@ Maybe for 1.35:
 - Add IPv6 to regression
 - Perhaps add read/write programs and/or plugins to FileSets.
 - How to handle backing up portables ...
+- Add "Rerun failed levels = yes/no" to Job resource.
+- Add some sort of guaranteed Interval for upgrading jobs.
 
 Documentation to do: (any release a little bit at a time)
 - Alternative to static linking "ldd prog" save all binaries listed,
@@ -68,6 +69,8 @@ Testing to do: (painful)
 
 
 For 1.37 Testing/Documentation:
+- Fix list volumes to output volume retention in some other
+  units, perhaps via a directive.
 - If opening a tape in read/write mode fails attempt to open
   it in read-only mode, and mark the tape for read only.
 - Add a read-only mode to the mount option.
@@ -1363,3 +1366,4 @@ Block Position: 0
 - Fix bscan so that it releases the drive when requesting a new tape.
 - List verify options for DiskToCatalog in doc.
 - Turn on transactions if multiple connections are on in DB.
+- Fix storage overrides in Run directives.

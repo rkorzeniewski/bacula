@@ -369,6 +369,7 @@ int run_cmd(UAContext *ua, const char *cmd)
    jcr = new_jcr(sizeof(JCR), dird_free_jcr);
    set_jcr_defaults(jcr, job);
 
+   jcr->verify_job = verify_job;
    jcr->store = store;
    jcr->client = client;
    jcr->fileset = fileset;
@@ -492,8 +493,8 @@ Priority: %d\n"),
 		 jcr->JobPriority);
       } else {	/* JT_VERIFY */
 	 const char *Name;
-	 if (jcr->job->verify_job) {
-	    Name = jcr->job->verify_job->hdr.name;
+	 if (jcr->verify_job) {
+	    Name = jcr->verify_job->hdr.name;
 	 } else {
             Name = "";
 	 }
@@ -768,11 +769,9 @@ Priority:   %d\n"),
       case 8:
 	 /* Verify Job */
 	 if (jcr->JobType == JT_VERIFY) {
-	    JOB *job = select_job_resource(ua);
-	    if (job) {
-	       jcr->job->verify_job = job;
-	    } else {
-	       jcr->job->verify_job = NULL;
+	    verify_job = select_job_resource(ua);
+	    if (verify_job) {
+	      jcr->verify_job = verify_job;
 	    }
 	    goto try_again;
 	 }
