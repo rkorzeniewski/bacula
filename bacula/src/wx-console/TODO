@@ -1,3 +1,6 @@
+console_thread: Find an alternate way to get error messages, without using
+  a temporary file. (See Kern's mail 15.11.04 - 17:32)
+
 general : Show nice messages boxes when errors occurs.
 
 general : Bug reported by Kern:

@@ -51,6 +51,16 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons);
 
 bool console_thread::inited = false;
 bool console_thread::configloaded = false;
+wxString console_thread::working_dir = ".";
+
+void console_thread::SetWorkingDirectory(wxString w_dir) {
+   if ((w_dir.Last() == '/') || (w_dir.Last() == '\\')) {
+      console_thread::working_dir = w_dir.Mid(0, w_dir.Length()-1);
+   }
+   else {
+      console_thread::working_dir = w_dir;
+   }
+}
 
 void console_thread::InitLib() {
    if (WSA_Init() != 0) {
@@ -62,7 +72,7 @@ void console_thread::InitLib() {
    init_stack_dump();
    my_name_is(0, NULL, "wx-console");
    //textdomain("bacula-console");
-   working_directory = ".";
+   working_directory = console_thread::working_dir;
    
    inited = true;
 }
@@ -95,11 +105,11 @@ wxString console_thread::LoadConfig(wxString configfile) {
    }
    
    init_msg(NULL, msgs);
-   init_console_msg(".");
+   init_console_msg(console_thread::working_dir);
 
    if (!parse_config(configfile.c_str(), 0)) {
       configloaded = false;
-      wxFile file("./wx-console.conmsg");
+      wxFile file(console_thread::working_dir + "/wx-console.conmsg");
       if (!file.IsOpened())
          return "Unable to retrieve error message.";
       wxString err = "";
@@ -113,12 +123,12 @@ wxString console_thread::LoadConfig(wxString configfile) {
       }
       file.Close();
       term_msg();
-      wxRemoveFile("./wx-console.conmsg");
+      wxRemoveFile(console_thread::working_dir + "/wx-console.conmsg");
       return err;
    }
    
    term_msg();
-   wxRemoveFile("./wx-console.conmsg");
+   wxRemoveFile(console_thread::working_dir + "/wx-console.conmsg");
    init_msg(NULL, NULL);
    
    configloaded = true;

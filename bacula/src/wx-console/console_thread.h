@@ -51,11 +51,14 @@ class console_thread : public wxThread
       static void InitLib();
       static void FreeLib();
       static wxString LoadConfig(wxString configfile);
+      static void SetWorkingDirectory(wxString w_dir);
    private:
       static bool inited;
       static bool configloaded;
       
       bool choosingdirector;
+      
+      static wxString working_dir;
       
       int directorchoosen;
       

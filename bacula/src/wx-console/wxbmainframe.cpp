@@ -339,11 +339,30 @@ void wxbMainFrame::StartConsoleThread(const wxString& config) {
       promptparser = new wxbPromptParser();      
    }
    
-   if (config == "") {   
-      if ((wxTheApp->argc == 3) && (wxString(wxTheApp->argv[1]) == "-c")) {
-         configfile = wxTheApp->argv[2];
+   if (config == "") {
+      configfile = "";
+      
+      if (((wxTheApp->argc % 2) != 1)) {
+         Print("Error while parsing command line arguments, using defaults.\n", CS_DEBUG);
+         Print("Usage: wx-console [-c configfile] [-w tmp]\n", CS_DEBUG);
       }
       else {
+         for (int c = 1; c < wxTheApp->argc; c += 2) {
+            if ((wxTheApp->argc >= c+2) && (wxString(wxTheApp->argv[c]) == "-c")) {
+               configfile = wxTheApp->argv[c+1];
+            }
+            if ((wxTheApp->argc >= c+2) && (wxString(wxTheApp->argv[c]) == "-w")) {
+               console_thread::SetWorkingDirectory(wxTheApp->argv[c+1]);
+            }
+            if (wxTheApp->argv[c][0] != '-') {
+               Print("Error while parsing command line arguments, using defaults.\n", CS_DEBUG);
+               Print("Usage: wx-console [-c configfile] [-w tmp]\n", CS_DEBUG);
+               break;
+            }
+         }
+      }
+      
+      if (configfile == "") {
          wxConfig::Set(new wxConfig("wx-console", "bacula"));
          if (!wxConfig::Get()->Read("/ConfigFile", &configfile)) {
 #ifdef HAVE_MACOSX
@@ -362,10 +381,6 @@ void wxbMainFrame::StartConsoleThread(const wxString& config) {
 #endif //HAVE_WIN32
 #endif //HAVE_MACOSX
             wxConfig::Get()->Write("/ConfigFile", configfile);
-            if (wxTheApp->argc > 1) {
-               Print("Error while parsing command line arguments, using defaults.\n", CS_DEBUG);
-               Print("Usage: wx-console [-c configfile]\n", CS_DEBUG);
-            }
    
             int answer = wxMessageBox(
                               wxString("It seems that it is the first time you run wx-console.\n") <<
