@@ -6,7 +6,7 @@
 #
 if test xmysql = x@DB_NAME@ ; then 
   echo "Granting MySQL privileges"
-  @scriptdir@/grant_mysql_privileges
+  @scriptdir@/grant_mysql_privileges $*
 else
   if test xpostgresql = x@DB_NAME@ ; then 
     echo "Granting PostgreSQL privileges"
