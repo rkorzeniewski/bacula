@@ -13,6 +13,7 @@ fi
 #
 #  To read back a MySQL database use: 
 #     cd @working_dir@
+#     rm -f @SQL_BINDIR@/../var/bacula/*
 #     mysql <bacula.sql
 #
 #  To read back a SQLite database use:

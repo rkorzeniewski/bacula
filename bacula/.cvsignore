@@ -1,5 +1,8 @@
 1
 2
+set-gnome2
+set-gnome1.4
+kerns-gprof-config
 autom4te.cache
 Makefile
 bacula
