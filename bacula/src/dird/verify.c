@@ -310,7 +310,10 @@ Termination:            %s\n"),
 	term_msg);
 
    Dmsg0(100, "Leave verify_cleanup()\n");
-
+   if (jcr->fname) {
+      free_memory(jcr->fname);
+      jcr->fname = NULL;
+   }
 }
 
 /*
@@ -326,6 +329,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, int last_full_id)
    int stat = JS_Terminated;
    char buf[MAXSTRING];
    char *fname = (char *)get_pool_memory(PM_MESSAGE);
+   int do_MD5 = FALSE;
 
    memset(&fdbr, 0, sizeof(FILE_DBR));
    fd = jcr->file_bsock;
@@ -336,176 +340,181 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, int last_full_id)
     * Get Attributes and MD5 Signature from File daemon
     */
    while ((n=bget_msg(fd, 0)) > 0) {
-       long file_index, attr_file_index;
-       int stream;
-       char *attr, *p;
-       char Opts_MD5[MAXSTRING];	/* Verify Opts or MD5 signature */
-       int do_MD5;
+      long file_index, attr_file_index;
+      int stream;
+      char *attr, *p;
+      char Opts_MD5[MAXSTRING];        /* Verify Opts or MD5 signature */
 
-       fname = (char *)check_pool_memory_size(fname, fd->msglen);
-       jcr->fname = (char *)check_pool_memory_size(fname, fd->msglen);
-       Dmsg1(50, "Atts+MD5=%s\n", fd->msg);
-       if ((len = sscanf(fd->msg, "%ld %d %100s %s", &file_index, &stream, 
-	     Opts_MD5, fname)) != 4) {
-          Jmsg3(jcr, M_FATAL, 0, _("bird<filed: bad attributes, expected 4 fields got %d\n\
-msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
-	  jcr->JobStatus = JS_ErrorTerminated;
-	  return 0;
-       }
-       /*
-	* Got attributes stream, decode it
-	*/
-       if (stream == STREAM_UNIX_ATTRIBUTES) {
-	  attr_file_index = file_index;    /* remember attribute file_index */
-	  len = strlen(fd->msg);
-	  attr = &fd->msg[len+1];
-	  decode_stat(attr, &statf);  /* decode file stat packet */
-	  do_MD5 = FALSE;
-	  jcr->fn_printed = FALSE;
-	  strcpy(jcr->fname, fname);  /* move filename into JCR */
+      fname = (char *)check_pool_memory_size(fname, fd->msglen);
+      jcr->fname = (char *)check_pool_memory_size(jcr->fname, fd->msglen);
+      Dmsg1(50, "Atts+MD5=%s\n", fd->msg);
+      if ((len = sscanf(fd->msg, "%ld %d %100s %s", &file_index, &stream, 
+	    Opts_MD5, fname)) != 4) {
+         Jmsg3(jcr, M_FATAL, 0, _("bird<filed: bad attributes, expected 4 fields got %d\n\
+ mslen=%d msg=%s\n"), len, fd->msglen, fd->msg);
+	 jcr->JobStatus = JS_ErrorTerminated;
+	 return 0;
+      }
+      /*
+       * Got attributes stream, decode it
+       */
+      if (stream == STREAM_UNIX_ATTRIBUTES) {
+	 attr_file_index = file_index;	  /* remember attribute file_index */
+	 len = strlen(fd->msg);
+	 attr = &fd->msg[len+1];
+	 decode_stat(attr, &statf);  /* decode file stat packet */
+	 do_MD5 = FALSE;
+	 jcr->fn_printed = FALSE;
+	 strip_trailing_junk(fname);
+	 strcpy(jcr->fname, fname);  /* move filename into JCR */
 
-          Dmsg2(11, "dird<filed: stream=%d %s\n", stream, jcr->fname);
-          Dmsg1(20, "dird<filed: attr=%s\n", attr);
+         Dmsg2(040, "dird<filed: stream=%d %s\n", stream, jcr->fname);
+         Dmsg1(20, "dird<filed: attr=%s\n", attr);
 
-	  /* 
-	   * Find equivalent record in the database 
-	   */
-	  fdbr.FileId = 0;
-	  db_get_file_attributes_record(jcr->db, jcr->fname, &fdbr);
+	 /* 
+	  * Find equivalent record in the database 
+	  */
+	 fdbr.FileId = 0;
+	 if (!db_get_file_attributes_record(jcr->db, jcr->fname, &fdbr)) {
+            Jmsg(jcr, M_INFO, 0, _("New file: %s\n"), jcr->fname);
+            Dmsg1(020, _("File not in catalog: %s\n"), jcr->fname);
+	    stat = JS_Differences;
+	    continue;
+	 } else {
+	    /* 
+	     * mark file record as visited by stuffing the
+	     * current JobId, which is unique, into the FileIndex
+	     */
+	    db_mark_file_record(jcr->db, fdbr.FileId, jcr->JobId);
+	 }
 
-	  if (fdbr.FileId == 0) {
-             Jmsg(jcr, M_INFO, 0, _("New file: %s\n"), jcr->fname);
-             Dmsg1(20, _("File not in catalog: %s\n"), jcr->fname);
-	     stat = JS_Differences;
-	     continue;
-	  } else {
-	     /* 
-	      * mark file record as visited by stuffing the
-	      * current JobId, which is unique, into the FileIndex
-	      */
-	     db_mark_file_record(jcr->db, fdbr.FileId, jcr->JobId);
-	  }
-
-          Dmsg2(20, "Found %s in catalog. Opts=%s\n", jcr->fname, Opts_MD5);
-	  decode_stat(fdbr.LStat, &statc); /* decode catalog stat */
-	  strip_trailing_junk(jcr->fname);
-	  /*
-	   * Loop over options supplied by user and verify the
-	   * fields he requests.
-	   */
-	  for (p=Opts_MD5; *p; p++) {
-	     switch (*p) {
-             case 'i':                /* compare INODEs */
-		if (statc.st_ino != statf.st_ino) {
-		   prt_fname(jcr);
-                   Jmsg(jcr, M_INFO, 0, _("      st_ino   differ. Cat: %x File: %x\n"), 
-		      statc.st_ino, statf.st_ino);
-		   stat = JS_Differences;
-		}
-		break;
-             case 'p':                /* permissions bits */
-		if (statc.st_mode != statf.st_mode) {
-		   prt_fname(jcr);
-                   Jmsg(jcr, M_INFO, 0, _("      st_mode  differ. Cat: %x File: %x\n"), 
-		      statc.st_mode, statf.st_mode);
-		   stat = JS_Differences;
-		}
-		break;
-             case 'n':                /* number of links */
-		if (statc.st_nlink != statf.st_nlink) {
-		   prt_fname(jcr);
-                   Jmsg(jcr, M_INFO, 0, _("      st_nlink differ. Cat: %d File: %d\n"), 
-		      statc.st_nlink, statf.st_nlink);
-		   stat = JS_Differences;
-		}
-		break;
-             case 'u':                /* user id */
-		if (statc.st_uid != statf.st_uid) {
-		   prt_fname(jcr);
-                   Jmsg(jcr, M_INFO, 0, _("      st_uid   differ. Cat: %d File: %d\n"), 
-		      statc.st_uid, statf.st_uid);
-		   stat = JS_Differences;
-		}
-		break;
-             case 'g':                /* group id */
-		if (statc.st_gid != statf.st_gid) {
-		   prt_fname(jcr);
-                   Jmsg(jcr, M_INFO, 0, _("      st_gid   differ. Cat: %d File: %d\n"), 
-		      statc.st_gid, statf.st_gid);
-		   stat = JS_Differences;
-		}
-		break;
-             case 's':                /* size */
-		if (statc.st_size != statf.st_size) {
-		   prt_fname(jcr);
-                   Jmsg(jcr, M_INFO, 0, _("      st_size  differ. Cat: %d File: %d\n"), 
-		      statc.st_size, statf.st_size);
-		   stat = JS_Differences;
-		}
-		break;
-             case 'a':                /* access time */
-		if (statc.st_atime != statf.st_atime) {
-		   prt_fname(jcr);
-                   Jmsg(jcr, M_INFO, 0, _("      st_atime differs\n"));
-		   stat = JS_Differences;
-		}
-		break;
-             case 'm':
-		if (statc.st_mtime != statf.st_mtime) {
-		   prt_fname(jcr);
-                   Jmsg(jcr, M_INFO, 0, _("      st_mtime differs\n"));
-		   stat = JS_Differences;
-		}
-		break;
-             case 'c':                /* ctime */
-		if (statc.st_ctime != statf.st_ctime) {
-		   prt_fname(jcr);
-                   Jmsg(jcr, M_INFO, 0, _("      st_ctime differs\n"));
-		   stat = JS_Differences;
-		}
-		break;
-             case 'd':                /* file size decrease */
-		if (statc.st_size > statf.st_size) {
-		   prt_fname(jcr);
-                   Jmsg(jcr, M_INFO, 0, _("      st_size  decrease. Cat: %d File: %d\n"), 
-		      statc.st_size, statf.st_size);
-		   stat = JS_Differences;
-		}
-		break;
-             case '5':                /* compare MD5 */
-		do_MD5 = TRUE;
-		break;
-             case ':':
-             case 'V':
-	     default:
-		break;
-	     }
-	  }
-       /*
-	* Got MD5 Signature from Storage daemon
-	*  It came across in the Opts_MD5 field.
-	*/
-       } else if (stream == STREAM_MD5_SIGNATURE) {
-	  if (attr_file_index != file_index) {
-             Jmsg2(jcr, M_FATAL, 0, _("MD5 index %d not same as attributes %d\n"),
-		file_index, attr_file_index);
-	     jcr->JobStatus = JS_ErrorTerminated;
-	     return 0;
-	  } else if (do_MD5) {
-	     db_escape_string(buf, Opts_MD5, strlen(Opts_MD5));
-	     if (strcmp(buf, fdbr.MD5) != 0) {
-		prt_fname(jcr);
-		if (debug_level >= 10) {
-                   Jmsg(jcr, M_INFO, 0, _("      MD5 not same. File=%s Cat=%s\n"), buf, fdbr.MD5);
-		} else {
-                   Jmsg(jcr, M_INFO, 0, _("      MD5 differs.\n"));
-		}
-		stat = JS_Differences;
-	     }
-	  }
-       }
-       jcr->jr.JobFiles = file_index;
-
+         Dmsg3(100, "Found %s in catalog. inx=%d Opts=%s\n", jcr->fname, 
+	    file_index, Opts_MD5);
+	 decode_stat(fdbr.LStat, &statc); /* decode catalog stat */
+	 /*
+	  * Loop over options supplied by user and verify the
+	  * fields he requests.
+	  */
+	 for (p=Opts_MD5; *p; p++) {
+	    switch (*p) {
+            case 'i':                /* compare INODEs */
+	       if (statc.st_ino != statf.st_ino) {
+		  prt_fname(jcr);
+                  Jmsg(jcr, M_INFO, 0, _("      st_ino   differ. Cat: %x File: %x\n"), 
+		     statc.st_ino, statf.st_ino);
+		  stat = JS_Differences;
+	       }
+	       break;
+            case 'p':                /* permissions bits */
+	       if (statc.st_mode != statf.st_mode) {
+		  prt_fname(jcr);
+                  Jmsg(jcr, M_INFO, 0, _("      st_mode  differ. Cat: %x File: %x\n"), 
+		     statc.st_mode, statf.st_mode);
+		  stat = JS_Differences;
+	       }
+	       break;
+            case 'n':                /* number of links */
+	       if (statc.st_nlink != statf.st_nlink) {
+		  prt_fname(jcr);
+                  Jmsg(jcr, M_INFO, 0, _("      st_nlink differ. Cat: %d File: %d\n"), 
+		     statc.st_nlink, statf.st_nlink);
+		  stat = JS_Differences;
+	       }
+	       break;
+            case 'u':                /* user id */
+	       if (statc.st_uid != statf.st_uid) {
+		  prt_fname(jcr);
+                  Jmsg(jcr, M_INFO, 0, _("      st_uid   differ. Cat: %d File: %d\n"), 
+		     statc.st_uid, statf.st_uid);
+		  stat = JS_Differences;
+	       }
+	       break;
+            case 'g':                /* group id */
+	       if (statc.st_gid != statf.st_gid) {
+		  prt_fname(jcr);
+                  Jmsg(jcr, M_INFO, 0, _("      st_gid   differ. Cat: %d File: %d\n"), 
+		     statc.st_gid, statf.st_gid);
+		  stat = JS_Differences;
+	       }
+	       break;
+            case 's':                /* size */
+	       if (statc.st_size != statf.st_size) {
+		  prt_fname(jcr);
+                  Jmsg(jcr, M_INFO, 0, _("      st_size  differ. Cat: %d File: %d\n"), 
+		     statc.st_size, statf.st_size);
+		  stat = JS_Differences;
+	       }
+	       break;
+            case 'a':                /* access time */
+	       if (statc.st_atime != statf.st_atime) {
+		  prt_fname(jcr);
+                  Jmsg(jcr, M_INFO, 0, _("      st_atime differs\n"));
+		  stat = JS_Differences;
+	       }
+	       break;
+            case 'm':
+	       if (statc.st_mtime != statf.st_mtime) {
+		  prt_fname(jcr);
+                  Jmsg(jcr, M_INFO, 0, _("      st_mtime differs\n"));
+		  stat = JS_Differences;
+	       }
+	       break;
+            case 'c':                /* ctime */
+	       if (statc.st_ctime != statf.st_ctime) {
+		  prt_fname(jcr);
+                  Jmsg(jcr, M_INFO, 0, _("      st_ctime differs\n"));
+		  stat = JS_Differences;
+	       }
+	       break;
+            case 'd':                /* file size decrease */
+	       if (statc.st_size > statf.st_size) {
+		  prt_fname(jcr);
+                  Jmsg(jcr, M_INFO, 0, _("      st_size  decrease. Cat: %d File: %d\n"), 
+		     statc.st_size, statf.st_size);
+		  stat = JS_Differences;
+	       }
+	       break;
+            case '5':                /* compare MD5 */
+               Dmsg1(500, "set Do_MD5 for %s\n", jcr->fname);
+	       do_MD5 = TRUE;
+	       break;
+            case ':':
+            case 'V':
+	    default:
+	       break;
+	    }
+	 }
+      /*
+       * Got MD5 Signature from Storage daemon
+       *  It came across in the Opts_MD5 field.
+       */
+      } else if (stream == STREAM_MD5_SIGNATURE) {
+         Dmsg2(100, "stream=MD5 inx=%d fname=%s\n", file_index, jcr->fname);
+	 /* 
+	  * When ever we get an MD5 signature is MUST have been
+	  * preceded by an attributes record, which sets attr_file_index
+	  */
+	 if (attr_file_index != file_index) {
+            Jmsg2(jcr, M_FATAL, 0, _("MD5 index %d not same as attributes %d\n"),
+	       file_index, attr_file_index);
+	    jcr->JobStatus = JS_ErrorTerminated;
+	    return 0;
+	 } 
+	 if (do_MD5) {
+	    db_escape_string(buf, Opts_MD5, strlen(Opts_MD5));
+	    if (strcmp(buf, fdbr.MD5) != 0) {
+	       prt_fname(jcr);
+	       if (debug_level >= 10) {
+                  Jmsg(jcr, M_INFO, 0, _("      MD5 not same. File=%s Cat=%s\n"), buf, fdbr.MD5);
+	       } else {
+                  Jmsg(jcr, M_INFO, 0, _("      MD5 differs.\n"));
+	       }
+	       stat = JS_Differences;
+	    }
+	    do_MD5 = FALSE;
+	 }
+      }
+      jcr->jr.JobFiles = file_index;
    } 
    if (n < 0) {
       Jmsg2(jcr, M_FATAL, 0, _("bdird<filed: bad attributes from filed n=%d : %s\n"),

@@ -45,14 +45,11 @@ void do_verify(JCR *jcr)
    set_find_options(jcr->ff, jcr->incremental, jcr->mtime);
    Dmsg0(10, "Start find files\n");
    /* Subroutine verify_file() is called for each file */
-   if (!find_files(jcr->ff, verify_file, (void *)jcr)) {
-      /****FIXME**** error termination */
-      Dmsg0(0, "========= Error return from find_files\n");
-   }
+   find_files(jcr->ff, verify_file, (void *)jcr);  
    Dmsg0(10, "End find files\n");
 
-   dir->msglen = 0;
-   bnet_send(dir);		      /* signal end attributes to director */
+   bnet_sig(dir, BNET_EOD);	      /* signal end of data */
+
    if (jcr->big_buf) {
       free(jcr->big_buf);
       jcr->big_buf = NULL;
@@ -71,7 +68,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
 {
    char attribs[MAXSTRING];
    int32_t n;
-   int fid;
+   int fid, stat;
    struct MD5Context md5c;
    unsigned char signature[16];
    BSOCK *sd, *dir;
@@ -128,14 +125,18 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
       return 1;
    }
 
-   if ((fid = open(ff_pkt->fname, O_RDONLY | O_BINARY)) < 0) {
-      ff_pkt->ff_errno = errno;
-      Jmsg(jcr, M_ERROR, -1, _("  Cannot open %s: ERR=%s.\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));
-      return 1;
+
+   if (ff_pkt->type != FT_LNKSAVED && S_ISREG(ff_pkt->statp.st_mode) && 
+	 ff_pkt->statp.st_size > 0) {
+      if ((fid = open(ff_pkt->fname, O_RDONLY | O_BINARY)) < 0) {
+	 ff_pkt->ff_errno = errno;
+         Jmsg(jcr, M_NOTSAVED, -1, _("Cannot open %s: ERR=%s.\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));
+	 return 1;
+      }
+   } else {
+      fid = -1;
    }
 
-   Dmsg2(50, "opened %s fid=%d\n", ff_pkt->fname, fid);
-   Dmsg1(10, "bfiled: sending %s to Director\n", ff_pkt->fname);
    encode_stat(attribs, &ff_pkt->statp);
      
    jcr->JobFiles++;		     /* increment number of files sent */
@@ -144,48 +145,63 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
       ff_pkt->VerifyOpts[0] = 'V';
       ff_pkt->VerifyOpts[1] = 0;
    }
+
+
+   /* 
+    * Send file attributes to Director
+    *	File_index
+    *	Stream
+    *	Verify Options
+    *	Filename (full path)
+    *	Encoded attributes
+    *	Link name (if type==FT_LNK)
+    * For a directory, link is the same as fname, but with trailing
+    * slash. For a linked file, link is the link.
+    */
    /* Send file attributes to Director (note different format than for Storage) */
+   Dmsg2(400, "send ATTR inx=%d fname=%s\n", jcr->JobFiles, ff_pkt->fname);
    if (ff_pkt->type == FT_LNK) {
-      dir->msglen = sprintf(dir->msg,"%d %d %s %s%c%s%c%s%c", jcr->JobFiles,
+      stat = bnet_fsend(dir, "%d %d %s %s%c%s%c%s%c", jcr->JobFiles,
 		    STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->fname, 
 		    0, attribs, 0, ff_pkt->link, 0);
    } else {
-      dir->msglen = sprintf(dir->msg,"%d %d %s %s%c%s%c%c", jcr->JobFiles,
+      stat = bnet_fsend(dir,"%d %d %s %s%c%s%c%c", jcr->JobFiles,
 		    STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->fname, 
 		    0, attribs, 0, 0);
    }
    Dmsg2(20, "bfiled>bdird: attribs len=%d: msg=%s\n", dir->msglen, dir->msg);
-   bnet_send(dir);	      /* send to Director */
+   if (!stat) {
+      Jmsg(jcr, M_ERROR, 0, _("Network error in send to Director: ERR=%s\n"), bnet_strerror(dir));
+      if (fid >= 0) {
+	 close(fid);
+      }
+      return 0;
+   }
 
-
-   /* 
-    * If MD5 is requested, read the file and compute the MD5   
-    *
-    */
-   if (ff_pkt->flags & FO_MD5) {
+   /* If file opened, compute MD5 */
+   if (fid >= 0  && ff_pkt->flags & FO_MD5) {
       char MD5buf[50];		      /* 24 should do */
 
       MD5Init(&md5c);
 
-      if (ff_pkt->type != FT_LNKSAVED && S_ISREG(ff_pkt->statp.st_mode) && 
-	    ff_pkt->statp.st_size > 0) {
-	 while ((n=read(fid, jcr->big_buf, jcr->buf_size)) > 0) {
-	    MD5Update(&md5c, ((unsigned char *) jcr->big_buf), n);
-	    jcr->JobBytes += n;
-	 }
-	 if (n < 0) {
-            Jmsg(jcr, M_ERROR, -1, _("  Error reading %s: ERR=%s\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));
-	 }
+      while ((n=read(fid, jcr->big_buf, jcr->buf_size)) > 0) {
+	 MD5Update(&md5c, ((unsigned char *) jcr->big_buf), n);
+	 jcr->JobBytes += n;
+      }
+      if (n < 0) {
+         Jmsg(jcr, M_WARNING, -1, _("  Error reading file %s: ERR=%s\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));
       }
 
       MD5Final(signature, &md5c);
 
       bin_to_base64(MD5buf, (char *)signature, 16); /* encode 16 bytes */
-      dir->msglen = sprintf(dir->msg, "%d %d %s X", jcr->JobFiles, 
-	 STREAM_MD5_SIGNATURE, MD5buf);
+      Dmsg2(400, "send inx=%d MD5=%s\n", jcr->JobFiles, MD5buf);
+      bnet_fsend(dir, "%d %d %s *MD5-%d*", jcr->JobFiles, STREAM_MD5_SIGNATURE, MD5buf,
+	 jcr->JobFiles);
       Dmsg2(20, "bfiled>bdird: MD5 len=%d: msg=%s\n", dir->msglen, dir->msg);
-      bnet_send(dir);		     /* send MD5 signature to Director */
    }
-   close(fid);
+   if (fid >= 0) {
+      close(fid);
+   }
    return 1;
 }

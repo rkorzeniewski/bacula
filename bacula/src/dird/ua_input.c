@@ -42,13 +42,24 @@ int get_cmd(UAContext *ua, char *prompt)
    ua->cmd[0] = 0;
    bnet_fsend(sock, "%s", prompt);
    bnet_sig(sock, BNET_PROMPT);       /* request more input */
-   if (bnet_recv(sock) < 0) {
-      return 0;
+   for ( ;; ) {
+      if (bnet_recv(sock) < 0) {
+	 return 0;
+      }
+      ua->cmd = (char *) check_pool_memory_size(ua->cmd, sock->msglen+1);
+      strcpy(ua->cmd, sock->msg);
+      ua->cmd[sock->msglen] = 0;
+      strip_trailing_junk(ua->cmd);
+      if (strcmp(ua->cmd, ".messages") == 0) {
+	 qmessagescmd(ua, ua->cmd);
+      }
+      /* ****FIXME**** if .command, go off and do it. For now ignore it. */
+      if (ua->cmd[0] == '.' && ua->cmd[1] != 0) {
+	 continue;		      /* dot command */
+      }
+      /* Lone dot => break or actual response */
+      break;
    }
-   ua->cmd = (char *) check_pool_memory_size(ua->cmd, sock->msglen+1);
-   strcpy(ua->cmd, sock->msg);
-   ua->cmd[sock->msglen] = 0;
-   strip_trailing_junk(ua->cmd);
    return 1;
 }
 

@@ -309,26 +309,13 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 
    /* Terminate any MD5 signature and send it to Storage daemon and the Director */
    if (gotMD5 && ff_pkt->flags & FO_MD5) {
-#ifdef really_needed
-      char MD5buf[50];		      /* 24 bytes should do */
-#endif
-
       MD5Final(signature, &md5c);
-
-      /* First do Storage daemon */
       bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_MD5_SIGNATURE);
       Dmsg1(10, "bfiled>stored:header %s\n", sd->msg);
       memcpy(sd->msg, signature, 16);
       sd->msglen = 16;
       bnet_send(sd);
       bnet_sig(sd, BNET_EOD);	      /* end of MD5 */
-
-#ifdef really_needed
-      /* Now do Director (single record) */
-      bin_to_base64(MD5buf, (char *)signature, 16); /* encode 16 bytes */
-      bnet_fsend(dir, "%ld %d %s X", jcr->JobFiles, STREAM_MD5_SIGNATURE, 
-		 MD5buf);
-#endif
       gotMD5 = 0;
    }
 #ifdef really_needed

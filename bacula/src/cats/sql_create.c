@@ -502,7 +502,7 @@ static int db_create_file_record(B_DB *mdb, ATTR_DBR *ar)
    /* Must create it */
    Mmsg(&mdb->cmd,
 "INSERT INTO File (FileIndex, JobId, PathId, FilenameId, \
-LStat, MD5) VALUES (%d, %d, %d, %d, \"%s\", \" \")", 
+LStat, MD5) VALUES (%d, %d, %d, %d, \"%s\", \"0\")", 
      (int)ar->FileIndex, ar->JobId, ar->PathId, ar->FilenameId, 
       ar->attr);
 
