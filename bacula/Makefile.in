@@ -57,7 +57,7 @@ bacula-fd: Makefile
 configure: autoconf/configure.in autoconf/aclocal.m4 autoconf/acconfig.h autoconf/config.h.in
 	cd $(srcdir);
 	${RMF} -f config.cache config.log config.out config.status src/config.h
-	autoconf --prepend-include=$(srcdir)/autoconf \
+	WANT_AUTOCONF=2.5 autoconf --prepend-include=$(srcdir)/autoconf \
 	autoconf/configure.in > configure
 	chmod 755 configure
 
@@ -76,7 +76,7 @@ config.status:
 autoconf/config.h.in: autoconf/configure.in autoconf/acconfig.h
 	cd $(srcdir);
 	${RMF} -f config.cache config.log config.out config.status src/config.h
-	autoheader --prepend-include=$(srcdir)/autoconf \
+	WANT_AUTOCONF=2.5 autoheader --prepend-include=$(srcdir)/autoconf \
 	autoconf/configure.in > autoconf/config.h.in
 	chmod 644 autoconf/config.h.in
 
