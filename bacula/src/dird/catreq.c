@@ -195,11 +195,12 @@ next_volume:
 MediaType=%s\n", mr.PoolId, jcr->PoolId, mr.VolStatus, mr.Slot, mr.MediaType);
 	 } else { 
 	    /* Not suitable volume */
-            bnet_fsend(bs, "1998 Volume not appropriate.\n");
+            bnet_fsend(bs, "1998 Volume \"%s\"not appropriate.\n",
+	       mr.VolumeName);
 	 }
 
       } else {
-         bnet_fsend(bs, "1999 Volume Not Found.\n");
+         bnet_fsend(bs, "1999 Volume \"%s\" not found.\n", mr.VolumeName);
       }
 
    

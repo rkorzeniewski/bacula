@@ -24,6 +24,7 @@ static void usage()
    fprintf(stderr, _(
 "\n"
 "Usage: testfind [-d debug_level] [-] [pattern1 ...]\n"
+"       -a          print extended attributes (Win32 debug)\n"
 "       -dnn        set debug level to nn\n"
 "       -           read pattern(s) from stdin\n"
 "       -?          print this message.\n"
@@ -186,7 +187,7 @@ static int print_file(FF_PKT *ff, void *pkt)
       if (*attr != 0) {
          printf("AttrEx=%s\n", attr);
       }
-      set_attribsEx(NULL, ff->fname, NULL, NULL, ff->type, attr);
+//    set_attribsEx(NULL, ff->fname, NULL, NULL, ff->type, attr);
    }
    return 1;
 }

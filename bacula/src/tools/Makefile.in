@@ -36,7 +36,7 @@ EXTRAOBJS = @OBJLIST@
 .c.o:
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
-all: Makefile smtp dbcheck
+all: Makefile smtp dbcheck testfind
 	@echo "==== Make of tools is good ===="
 	@echo " "
 

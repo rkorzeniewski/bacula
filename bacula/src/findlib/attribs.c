@@ -40,9 +40,9 @@ static
 int set_win32_attributes(void *jcr, char *fname, char *ofile, char *lname, 
 			 int type, int stream, struct stat *statp,
 			 char *attribsEx, int *ofd);
-void unix_name_to_win32(char *name);
+void unix_name_to_win32(POOLMEM **win32_name, char *name);
 extern "C" HANDLE get_osfhandle(int fd);
-void win_error(void *jcr, char *prefix, char *ofile);
+void win_error(void *jcr, char *prefix, POOLMEM *ofile);
 #endif
 
 
@@ -247,8 +247,7 @@ int encode_attribsEx(void *jcr, char *attribsEx, FF_PKT *ff_pkt)
 
    attribsEx[0] = 0;		      /* no extended attributes */
 
-   pm_strcpy(&ff_pkt->sys_fname, ff_pkt->fname);
-   unix_name_to_win32(ff_pkt->sys_fname);
+   unix_name_to_win32(&ff_pkt->sys_fname, ff_pkt->fname);
    if (!GetFileAttributesEx(ff_pkt->sys_fname, GetFileExInfoStandard,
 			    (LPVOID)&atts)) {
       win_error(jcr, "GetFileAttributesEx:", ff_pkt->sys_fname);
@@ -307,6 +306,7 @@ int set_win32_attributes(void *jcr, char *fname, char *ofile, char *lname,
    WIN32_FILE_ATTRIBUTE_DATA atts;
    ULARGE_INTEGER li;
    int fid, stat;
+   POOLMEM *win32_ofile;
 
    if (!p || !*p) {		      /* we should have attributes */
       Dmsg2(100, "Attributes missing. of=%s ofd=%d\n", ofile, *ofd);
@@ -345,6 +345,10 @@ int set_win32_attributes(void *jcr, char *fname, char *ofile, char *lname,
 
    /* At this point, we have reconstructed the WIN32_FILE_ATTRIBUTE_DATA pkt */
 
+   /* Convert to Windows path format */
+   win32_ofile = get_pool_memory(PM_FNAME);
+   unix_name_to_win32(&win32_ofile, ofile);
+
    if (*ofd == -1) {
       Dmsg1(100, "File not open: %s\n", ofile);
       fid = open(ofile, O_RDWR|O_BINARY);   /* attempt to open the file */
@@ -360,23 +364,22 @@ int set_win32_attributes(void *jcr, char *fname, char *ofile, char *lname,
 			 &atts.ftLastAccessTime,
 			 &atts.ftLastWriteTime);
       if (stat != 1) {
-         win_error(jcr, "SetFileTime:", ofile);
+         win_error(jcr, "SetFileTime:", win32_ofile);
       }
       close(*ofd);
       *ofd = -1;
    }
 
-   /* Bash name to Windows format */
-   unix_name_to_win32(ofile);
    Dmsg1(100, "SetFileAtts %s\n", ofile);
-   stat = SetFileAttributes(ofile, atts.dwFileAttributes & SET_ATTRS);
+   stat = SetFileAttributes(win32_ofile, atts.dwFileAttributes & SET_ATTRS);
    if (stat != 1) {
-      win_error(jcr, "SetFileAttributes:", ofile);
+      win_error(jcr, "SetFileAttributes:", win32_ofile);
    }
+   free_pool_memory(win32_ofile);
    return 1;
 }
 
-void win_error(void *vjcr, char *prefix, char *ofile)
+void win_error(void *vjcr, char *prefix, POOLMEM *win32_ofile)
 {
    JCR *jcr = (JCR *)vjcr; 
    DWORD lerror = GetLastError();
@@ -389,19 +392,19 @@ void win_error(void *vjcr, char *prefix, char *ofile)
 		 (LPTSTR)&msg,
 		 0,
 		 NULL);
-   Dmsg3(100, "Error in %s on file %s: ERR=%s\n", prefix, ofile, msg);
-   Jmsg3(jcr, M_INFO, 0, "Error in %s file %s: ERR=%s\n", prefix, ofile, msg);
+   Dmsg3(100, "Error in %s on file %s: ERR=%s\n", prefix, win32_ofile, msg);
+   Jmsg3(jcr, M_INFO, 0, _("Error in %s file %s: ERR=%s\n"), prefix, win32_ofile, msg);
    LocalFree(msg);
 }
 
-void unix_name_to_win32(char *name)
+/* Cygwin API definition */
+extern "C" void cygwin_conv_to_win32_path(const char *path, char *win32_path);
+
+void unix_name_to_win32(POOLMEM **win32_name, char *name)
 {
-   char *p;
-   for (p=name; *p; p++) {
-      if (*p == '/') {
-         *p = '\\';
-      }
-   }
+   /* One extra byte should suffice, but we take 10 */
+   *win32_name = check_pool_memory_size(*win32_name, strlen(name)+10);
+   cygwin_conv_to_win32_path(name, *win32_name);
 }
 
 #endif	/* HAVE_CYGWIN */

@@ -49,7 +49,7 @@
 #ifdef HAVE_BACULA_DB
 
 /* Forward referenced functions */
-int db_find_job_start_time(B_DB *mdb, JOB_DBR *jr, char *stime);
+int db_find_job_start_time(B_DB *mdb, JOB_DBR *jr, POOLMEM **stime);
 
 /* -----------------------------------------------------------------------
  *
@@ -66,7 +66,7 @@ int db_find_job_start_time(B_DB *mdb, JOB_DBR *jr, char *stime);
  * Returns: 0 on failure
  *	    1 on success, jr unchanged, but stime set
  */
-int db_find_job_start_time(B_DB *mdb, JOB_DBR *jr, char *stime)
+int db_find_job_start_time(B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
 {
    char cmd[MAXSTRING], Name[MAX_NAME_LENGTH], StartTime[MAXSTRING];
    int Type, Level;
@@ -76,7 +76,7 @@ int db_find_job_start_time(B_DB *mdb, JOB_DBR *jr, char *stime)
    int found;
    long addr;
 
-   strcpy(stime, "0000-00-00 00:00:00");   /* default */
+   pm_strcpy(stime, "0000-00-00 00:00:00");   /* default */
    db_lock(mdb);
    if (!bdb_open_jobs_file(mdb)) {
       db_unlock(mdb);
@@ -124,7 +124,7 @@ StartTime=%100s", &JobId, Name, cType, cLevel, StartTime) == 5) {
 	    /* Reset for next read */
 	    fseek(mdb->jobfd, addr, SEEK_SET);
 	    if (found) {
-	       strcpy(stime, StartTime);
+	       pm_strcpy(stime, StartTime);
 	       stat = 1;	      /* Got a candidate */
                Dmsg5(200, "Got candidate JobId=%d Type=%c Level=%c Name=%s StartTime=%s\n",
 		  JobId, Type, Level, Name, StartTime);

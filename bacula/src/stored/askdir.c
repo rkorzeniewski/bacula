@@ -90,7 +90,7 @@ static int do_request_volume_info(JCR *jcr)
 	       &vol->VolCatCapacityBytes, vol->VolCatStatus,
 	       &vol->Slot, &vol->VolCatMaxJobs, &vol->VolCatMaxFiles) != 14) {
 
-       Dmsg1(000, "Bad response from Dir: %s\n", dir->msg);
+       Dmsg1(200, "Bad response from Dir: %s\n", dir->msg);
        Mmsg(&jcr->errmsg, _("Error scanning Dir response: %s\n"), dir->msg);
        return 0;
     }
