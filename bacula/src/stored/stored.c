@@ -186,6 +186,7 @@ int main (int argc, char *argv[])
    }
 
    create_pid_file(me->pid_directory, "bacula-sd", me->SDport);
+   read_state_file(me->working_directory, "bacula-sd", me->SDport);
 
    drop(uid, gid);
 
@@ -373,6 +374,7 @@ void terminate_stored(int sig)
       bmicrosleep(0, 500000);	      /* give them 1/2 sec to clean up */
    }
 
+   write_state_file(me->working_directory, "bacula-sd", me->SDport);
    delete_pid_file(me->pid_directory, "bacula-sd", me->SDport);
 
    Dmsg1(200, "In terminate_stored() sig=%d\n", sig);
