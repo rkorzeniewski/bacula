@@ -314,7 +314,7 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    ssize_t stat = 0;
    uint32_t wlen;		      /* length to write */
    int hit_max1, hit_max2;
-   int ok;
+   bool ok;
 
 #ifdef NO_TAPE_WRITE_TEST
    empty_block(block);
@@ -396,7 +396,8 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 
    dev->VolCatInfo.VolCatWrites++;
    Dmsg1(300, "Write block of %u bytes\n", wlen);      
-   if ((uint32_t)(stat=write(dev->fd, block->buf, (size_t)wlen)) != wlen) {
+   stat = write(dev->fd, block->buf, (size_t)wlen);
+   if (stat != (ssize_t)wlen) {
       /* We should check for errno == ENOSPC, BUT many 
        * devices simply report EIO when the volume is full.
        * With a little more thought we may be able to check
@@ -412,11 +413,7 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	  * systems (FreeBSD like), do the clrerror() only after
 	  * the weof_dev() call.
 	  */
-#ifndef MTIOCERRSTAT
 	 clrerror_dev(dev, -1);
-#else
-	 dev->dev_errno = errno;      /* save errno */
-#endif
 	 if (dev->dev_errno == 0) {
 	    dev->dev_errno = ENOSPC;	    /* out of space */
 	 }
@@ -428,18 +425,16 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	    dev->dev_name, wlen, stat);
       }  
 
-      Dmsg4(10, "=== Write error. size=%u rtn=%d  errno=%d: ERR=%s\n", 
-	 wlen, stat, dev->dev_errno, strerror(dev->dev_errno));
+      Dmsg6(100, "=== Write error. size=%u rtn=%d dev_blk=%d blk_blk=%d errno=%d: ERR=%s\n", 
+	 wlen, stat, dev->block_num, block->BlockNumber, dev->dev_errno, strerror(dev->dev_errno));
 
       block->write_failed = true;
-      weof_dev(dev, 1); 	      /* end the tape */
-      weof_dev(dev, 1); 	      /* write second eof */
-#ifdef MTIOCERRSTAT
-      clrerror_dev(dev, -1);
-#endif
+      if (weof_dev(dev, 2) != 0) {	   /* end the tape */
+         Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
+      }
       dev->state |= (ST_EOF | ST_EOT | ST_WEOT);
 	
-      ok = TRUE;
+      ok = true;
 #define CHECK_LAST_BLOCK
 #ifdef	CHECK_LAST_BLOCK
       /* 
@@ -452,12 +447,12 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 
 	 /* Now back up over what we wrote and read the last block */
 	 if (bsf_dev(dev, 1) != 0 || bsf_dev(dev, 1) != 0) {
-	    ok = FALSE;
+	    ok = false;
             Jmsg(jcr, M_ERROR, 0, _("Backspace file at EOT failed. ERR=%s\n"), strerror(dev->dev_errno));
 	 }
 	 /* Backspace over record */
 	 if (ok && bsr_dev(dev, 1) != 0) {
-	    ok = FALSE;
+	    ok = false;
             Jmsg(jcr, M_ERROR, 0, _("Backspace record at EOT failed. ERR=%s\n"), strerror(dev->dev_errno));
 	    /*
 	     *	On FreeBSD systems, if the user got here, it is likely that his/her

@@ -27,6 +27,7 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.32:
+- Edit the Client/Storage name into authentication failure messages.
 - Implement job in VerifyToCatalog
 - Implement migrate
 - Implement List Volume Job=xxx  or List scheduled volumes or Status Director 
@@ -797,4 +798,3 @@ Done: (see kernsdone for more)
 - Add user configurable timeout for connecting to SD.
 - Unsaved Flag in Job record (use JobMissingFiles).
 - Base Flag in Job record.
-

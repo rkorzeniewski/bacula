@@ -69,6 +69,7 @@ static int my_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
 static void scan_blocks();
 static void set_volume_name(char *VolName, int volnum);
 static void rawfill_cmd();
+static void bfill_cmd();
 
 
 /* Static variables */
@@ -136,37 +137,37 @@ int main(int argc, char *argv[])
 
    while ((ch = getopt(argc, argv, "b:c:d:sv?")) != -1) {
       switch (ch) {
-         case 'b':                    /* bootstrap file */
-	    bsr = parse_bsr(NULL, optarg);
-//	    dump_bsr(bsr);
-	    break;
+      case 'b':                    /* bootstrap file */
+	 bsr = parse_bsr(NULL, optarg);
+//	 dump_bsr(bsr);
+	 break;
 
-         case 'c':                    /* specify config file */
-	    if (configfile != NULL) {
-	       free(configfile);
-	    }
-	    configfile = bstrdup(optarg);
-	    break;
+      case 'c':                    /* specify config file */
+	 if (configfile != NULL) {
+	    free(configfile);
+	 }
+	 configfile = bstrdup(optarg);
+	 break;
 
-         case 'd':                    /* set debug level */
-	    debug_level = atoi(optarg);
-	    if (debug_level <= 0) {
-	       debug_level = 1; 
-	    }
-	    break;
+      case 'd':                    /* set debug level */
+	 debug_level = atoi(optarg);
+	 if (debug_level <= 0) {
+	    debug_level = 1; 
+	 }
+	 break;
 
-         case 's':
-	    signals = FALSE;
-	    break;
+      case 's':
+	 signals = FALSE;
+	 break;
 
-         case 'v':
-	    verbose++;
-	    break;
+      case 'v':
+	 verbose++;
+	 break;
 
-         case '?':
-	 default:
-	    helpcmd();
-	    exit(0);
+      case '?':
+      default:
+	 helpcmd();
+	 exit(0);
 
       }  
    }
@@ -1020,14 +1021,14 @@ static void scan_blocks()
       blocks++;
       tot_blocks++;
       bytes += block->block_len;
-      Dmsg5(100, "Blk=%u blen=%u bVer=%d SessId=%u SessTim=%u\n",
-	 block->BlockNumber, block->block_len, block->BlockVer,
+      Dmsg6(100, "Blk_blk=%u dev_blk=%u blen=%u bVer=%d SessId=%u SessTim=%u\n",
+	 block->BlockNumber, dev->block_num, block->block_len, block->BlockVer,
 	 block->VolSessionId, block->VolSessionTime);
       if (verbose == 1) {
 	 DEV_RECORD *rec = new_record();
 	 read_record_from_block(block, rec);
-         Pmsg7(-1, "Block: %u blen=%u First rec FI=%s SessId=%u SessTim=%u Strm=%s rlen=%d\n",
-	      block->BlockNumber, block->block_len,
+         Pmsg8(-1, "Blk_block: %u dev_blk=%u blen=%u First rec FI=%s SessId=%u SessTim=%u Strm=%s rlen=%d\n",
+	      block->BlockNumber, dev->block_num, block->block_len,
 	      FI_to_ascii(rec->FileIndex), rec->VolSessionId, rec->VolSessionTime,
 	      stream_to_ascii(rec->Stream, rec->FileIndex), rec->data_len);
 	 rec->remainder = 0;
@@ -1148,7 +1149,8 @@ This may take a long time -- hours! ...\n\n");
     */
    jcr->VolFirstIndex = 0;
    time(&jcr->run_time);	      /* start counting time for rates */
-   Pmsg0(-1, "Begin writing records to first tape ...\n");
+   Pmsg0(-1, "Begin writing Bacula records to first tape ...\n");
+   Pmsg1(-1, "Block num = %d\n", dev->block_num);
    for (file_index = 0; ok && !job_canceled(jcr); ) {
       rec.VolSessionId = jcr->VolSessionId;
       rec.VolSessionTime = jcr->VolSessionTime;
@@ -1177,7 +1179,7 @@ This may take a long time -- hours! ...\n\n");
 
 	 /* Write block to tape */
 	 if (!flush_block(block, 1)) {
-	    return;
+	    break;
 	 }
 
 	 /* Every 5000 blocks (approx 322MB) report where we are.
@@ -1189,7 +1191,8 @@ This may take a long time -- hours! ...\n\n");
 	       now = 1;
 	    }
 	    kbs = (double)dev->VolCatInfo.VolCatBytes / (1000.0 * (double)now);
-            Pmsg3(-1, "Wrote block=%u, VolBytes=%s rate=%.1f KB/s\n", block->BlockNumber,
+            Pmsg4(-1, "Wrote block=%u, blk_num=%d VolBytes=%s rate=%.1f KB/s\n", block->BlockNumber,
+	       dev->block_num,
 	       edit_uint64_with_commas(dev->VolCatInfo.VolCatBytes, ec1), (float)kbs);
 	 }
 	 /* Every 15000 blocks (approx 1GB) write an EOF.
@@ -1248,9 +1251,10 @@ This may take a long time -- hours! ...\n\n");
 
    free_block(block);
    free_memory(rec.data);
-   Pmsg0(-1, _("\n\nDone filling tape. Now beginning re-read of tape ...\n"));
 
    dump_block(last_block, _("Last block written to tape.\n"));
+
+   Pmsg0(-1, _("\n\nDone filling tape. Now beginning re-read of tape ...\n"));
 
    unfillcmd();
 }
@@ -1476,7 +1480,6 @@ static int flush_block(DEV_BLOCK *block, int dump)
    this_file = dev->file;
    this_block_num = dev->block_num;
    if (!write_block_to_dev(jcr, dev, block)) {
-      Pmsg0(000, strerror_dev(dev));		
       Pmsg3(000, "Block not written: FileIndex=%u Block=%u Size=%u\n", 
 	 (unsigned)file_index, block->BlockNumber, block->block_len);
       Pmsg2(000, "last_block_num=%u this_block_num=%d\n", last_block_num,
@@ -1561,10 +1564,11 @@ static void qfillcmd()
    memset(rec->data, i & 0xFF, i);
    rec->data_len = i;
    rewindcmd();
-   Pmsg1(0, "Begin writing %d blocks to tape ...\n", count);
+   Pmsg1(0, "Begin writing %d Bacula blocks to tape ...\n", count);
    for (i=0; i < count; i++) {
       if (i % 100 == 0) {
          printf("+");
+	 fflush(stdout);
       }
       if (!write_record_to_block(block, rec)) {
          Pmsg0(0, _("Error writing record to block.\n")); 
@@ -1589,6 +1593,9 @@ bail_out:
 
 }
 
+/*
+ * Fill a tape using raw write() command
+ */
 static void rawfill_cmd()
 {
    DEV_BLOCK *block;
@@ -1608,13 +1615,14 @@ static void rawfill_cmd()
       return;
    }
    p = (uint32_t *)block->buf;
-   Pmsg1(0, "Begin writing blocks of %u bytes.\n", block->buf_len);
+   Pmsg1(0, "Begin writing raw blocks of %u bytes.\n", block->buf_len);
    for ( ;; ) {
       *p = block_num;
       stat = write(dev->fd, block->buf, block->buf_len);
       if (stat == (int)block->buf_len) {
 	 if ((block_num++ % 100) == 0) {
             printf("+");
+	    fflush(stdout);
 	 }
 	 continue;
       }
@@ -1622,17 +1630,60 @@ static void rawfill_cmd()
    }
    my_errno = errno;
    printf("\n");
-   weofcmd();
    printf("Write failed at block %u. stat=%d ERR=%s\n", block_num, stat,
       strerror(my_errno));
+   weofcmd();
    free_block(block);
-
 }
+
+
+/*
+ * Fill a tape using raw write() command
+ */
+static void bfill_cmd()
+{
+   DEV_BLOCK *block;
+   uint32_t block_num = 0;
+   uint32_t *p;
+   int my_errno;
+   int fd;
+
+   block = new_block(dev);
+   fd = open("/dev/urandom", O_RDONLY);
+   if (fd) {
+      read(fd, block->buf, block->buf_len);
+   } else {
+      Pmsg0(0, "Cannot open /dev/urandom.\n");
+      free_block(block);
+      return;
+   }
+   p = (uint32_t *)block->buf;
+   Pmsg1(0, "Begin writing Bacula blocks of %u bytes.\n", block->buf_len);
+   for ( ;; ) {
+      *p = block_num;
+      block->binbuf = block->buf_len;
+      block->bufp = block->buf + block->binbuf;
+      if (!write_block_to_dev(jcr, dev, block)) {
+	 break;
+      }
+      if ((block_num++ % 100) == 0) {
+         printf("+");
+	 fflush(stdout);
+      }
+   }
+   my_errno = errno;
+   printf("\n");
+   printf("Write failed at block %u.\n", block_num);     
+   weofcmd();
+   free_block(block);
+}
+
 
 struct cmdstruct { char *key; void (*func)(); char *help; }; 
 static struct cmdstruct commands[] = {
  {"bsf",        bsfcmd,       "backspace file"},
  {"bsr",        bsrcmd,       "backspace record"},
+ {"bfill",      bfill_cmd,    "fill tape using Bacula writes"},
  {"cap",        capcmd,       "list device capabilities"},
  {"clear",      clearcmd,     "clear tape errors"},
  {"eod",        eodcmd,       "go to end of Bacula data for append"},

@@ -312,8 +312,8 @@ static int job_cmd(JCR *jcr)
 	      &jcr->VolSessionId, &jcr->VolSessionTime,
 	      sd_auth_key) != 5) {
       pm_strcpy(&jcr->errmsg, dir->msg);
-      bnet_fsend(dir, BADjob);
       Jmsg(jcr, M_FATAL, 0, _("Bad Job Command: %s"), jcr->errmsg);
+      bnet_fsend(dir, BADjob);
       free_pool_memory(sd_auth_key);
       return 0;
    }
@@ -943,7 +943,7 @@ static int send_bootstrap_file(JCR *jcr)
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       return 0;
    }
-   strcpy(sd->msg, bootstrap);	
+   pm_strcpy(&sd->msg, bootstrap);  
    sd->msglen = strlen(sd->msg);
    bnet_send(sd);
    while (fgets(buf, sizeof(buf), bs)) {
