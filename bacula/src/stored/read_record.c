@@ -112,7 +112,8 @@ int read_records(JCR *jcr,  DEVICE *dev,
 	 }
       }
       if (verbose) {
-         Dmsg2(10, "Block: %d blen=%d\n", block->BlockNumber, block->block_len);
+         Dmsg4(000, "Block: %d VI=%u VT=%u blen=%d\n", block->BlockNumber, 
+	    block->VolSessionId, block->VolSessionTime, block->block_len);
       }
 
 next_record:

@@ -287,9 +287,6 @@ static int match_sessid(BSR *bsr, BSR_SESSID *sessid, DEV_RECORD *rec, int done)
    if (sessid->sessid <= rec->VolSessionId && sessid->sessid2 >= rec->VolSessionId) {
       return 1;
    }
-   if (rec->VolSessionId > sessid->sessid2) {
-      sessid->done = 1;
-   }
    if (sessid->next) {
       return match_sessid(bsr, sessid->next, rec, sessid->done && done);
    }

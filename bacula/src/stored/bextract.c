@@ -60,9 +60,9 @@ static int prog_name_msg = 0;
 static int win32_data_msg = 0;
 static char *VolumeName = NULL;
 
-static char *wbuf;                    /* write buffer address */
-static uint32_t wsize;                /* write size */
-static uint64_t fileAddr = 0;         /* file write address */
+static char *wbuf;		      /* write buffer address */
+static uint32_t wsize;		      /* write size */
+static uint64_t fileAddr = 0;	      /* file write address */
 
 #define CONFIG_FILE "bacula-sd.conf"
 char *configfile;
@@ -93,7 +93,7 @@ int main (int argc, char *argv[])
 
    working_directory = "/tmp";
    my_name_is(argc, argv, "bextract");
-   init_msg(NULL, NULL);              /* setup message handler */
+   init_msg(NULL, NULL);	      /* setup message handler */
 
    memset(ff, 0, sizeof(FF_PKT));
    init_include_exclude_files(ff);
@@ -102,59 +102,59 @@ int main (int argc, char *argv[])
    while ((ch = getopt(argc, argv, "b:c:d:e:i:?")) != -1) {
       switch (ch) {
       case 'b':                    /* bootstrap file */
-         bsr = parse_bsr(NULL, optarg);
-//       dump_bsr(bsr);
-         break;
+	 bsr = parse_bsr(NULL, optarg);
+//	 dump_bsr(bsr);
+	 break;
 
       case 'c':                    /* specify config file */
-         if (configfile != NULL) {
-            free(configfile);
-         }
-         configfile = bstrdup(optarg);
-         break;
+	 if (configfile != NULL) {
+	    free(configfile);
+	 }
+	 configfile = bstrdup(optarg);
+	 break;
 
       case 'd':                    /* debug level */
-         debug_level = atoi(optarg);
-         if (debug_level <= 0)
-            debug_level = 1; 
-         break;
+	 debug_level = atoi(optarg);
+	 if (debug_level <= 0)
+	    debug_level = 1; 
+	 break;
 
       case 'e':                    /* exclude list */
          if ((fd = fopen(optarg, "r")) == NULL) {
             Pmsg2(0, "Could not open exclude file: %s, ERR=%s\n",
-               optarg, strerror(errno));
-            exit(1);
-         }
-         while (fgets(line, sizeof(line), fd) != NULL) {
-            strip_trailing_junk(line);
+	       optarg, strerror(errno));
+	    exit(1);
+	 }
+	 while (fgets(line, sizeof(line), fd) != NULL) {
+	    strip_trailing_junk(line);
             Dmsg1(900, "add_exclude %s\n", line);
-            add_fname_to_exclude_list(ff, line);
-         }
-         fclose(fd);
-         break;
+	    add_fname_to_exclude_list(ff, line);
+	 }
+	 fclose(fd);
+	 break;
 
       case 'i':                    /* include list */
          if ((fd = fopen(optarg, "r")) == NULL) {
             Pmsg2(0, "Could not open include file: %s, ERR=%s\n",
-               optarg, strerror(errno));
-            exit(1);
-         }
-         while (fgets(line, sizeof(line), fd) != NULL) {
-            strip_trailing_junk(line);
+	       optarg, strerror(errno));
+	    exit(1);
+	 }
+	 while (fgets(line, sizeof(line), fd) != NULL) {
+	    strip_trailing_junk(line);
             Dmsg1(900, "add_include %s\n", line);
-            add_fname_to_include_list(ff, 0, line);
-         }
-         fclose(fd);
-         got_inc = TRUE;
-         break;
+	    add_fname_to_include_list(ff, 0, line);
+	 }
+	 fclose(fd);
+	 got_inc = TRUE;
+	 break;
 
       case 'V':                    /* Volume name */
-         VolumeName = optarg;
-         break;
+	 VolumeName = optarg;
+	 break;
 
       case '?':
       default:
-         usage();
+	 usage();
 
       } /* end switch */
    } /* end while */
@@ -172,7 +172,7 @@ int main (int argc, char *argv[])
 
    parse_config(configfile);
 
-   if (!got_inc) {                            /* If no include file, */
+   if (!got_inc) {			      /* If no include file, */
       add_fname_to_include_list(ff, 0, "/");  /*   include everything */
    }
 
@@ -184,11 +184,11 @@ int main (int argc, char *argv[])
    }
    if (prog_name_msg) {
       Pmsg1(000, "%d Program Name and/or Program Data Stream records ignored.\n",
-         prog_name_msg);
+	 prog_name_msg);
    }
    if (win32_data_msg) {
       Pmsg1(000, "%d Win32 data or Win32 gzip data stream records. Ignored.\n",
-         win32_data_msg);
+	 win32_data_msg);
    }
    return 0;
 }
@@ -205,7 +205,7 @@ static void do_extract(char *devname)
    /* Make sure where directory exists and that it is a directory */
    if (stat(where, &statp) < 0) {
       Emsg2(M_ERROR_TERM, 0, "Cannot stat %s. It must exist. ERR=%s\n",
-         where, strerror(errno));
+	 where, strerror(errno));
    }
    if (!S_ISDIR(statp.st_mode)) {
       Emsg1(M_ERROR_TERM, 0, "%s must be a directory.\n", where);
@@ -254,11 +254,11 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
        * close the output file.
        */
       if (extract) {
-         if (!is_bopen(&bfd)) {
+	 if (!is_bopen(&bfd)) {
             Emsg0(M_ERROR, 0, _("Logic error output file should be open but is not.\n"));
-         }
-         extract = FALSE;
-         set_attributes(jcr, attr, &bfd);
+	 }
+	 extract = FALSE;
+	 set_attributes(jcr, attr, &bfd);
       }
 
       if (!unpack_attributes_record(jcr, rec->Stream, rec->data, attr)) {
@@ -267,46 +267,45 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 
       if (attr->file_index != rec->FileIndex) {
          Emsg2(M_ERROR_TERM, 0, _("Record header file index %ld not equal record index %ld\n"),
-            rec->FileIndex, attr->file_index);
+	    rec->FileIndex, attr->file_index);
       }
-         
+	 
       if (file_is_included(ff, attr->fname) && !file_is_excluded(ff, attr->fname)) {
-         uint32_t LinkFI;
+	 uint32_t LinkFI;
 
-         decode_stat(attr->attr, &attr->statp, &LinkFI);
+	 decode_stat(attr->attr, &attr->statp, &LinkFI);
+	 build_attr_output_fnames(jcr, attr);
 
-         build_attr_output_fnames(jcr, attr);
-
-         extract = FALSE;
-         stat = create_file(jcr, attr, &bfd, REPLACE_ALWAYS);   
-         switch (stat) {
-         case CF_ERROR:
-         case CF_SKIP:
-            break;
-         case CF_EXTRACT:
-            extract = TRUE;
-            print_ls_output(jcr, attr);
-            num_files++;
-            fileAddr = 0;
-            break;
-         case CF_CREATED:
-            set_attributes(jcr, attr, &bfd);
-            print_ls_output(jcr, attr);
-            num_files++;
-            fileAddr = 0;
-            break;
-         }  
+	 extract = FALSE;
+	 stat = create_file(jcr, attr, &bfd, REPLACE_ALWAYS);	
+	 switch (stat) {
+	 case CF_ERROR:
+	 case CF_SKIP:
+	    break;
+	 case CF_EXTRACT:
+	    extract = TRUE;
+	    print_ls_output(jcr, attr);
+	    num_files++;
+	    fileAddr = 0;
+	    break;
+	 case CF_CREATED:
+	    set_attributes(jcr, attr, &bfd);
+	    print_ls_output(jcr, attr);
+	    num_files++;
+	    fileAddr = 0;
+	    break;
+	 }  
       }
 
    /* Windows Backup data stream */
    case STREAM_WIN32_DATA:  
       if (!is_win32_backup()) {
-         if (!non_support_data) {
+	 if (!non_support_data) {
             Jmsg(jcr, M_ERROR, 0, _("Win32 backup data not supported on this Client.\n"));
-         }
-         extract = FALSE;
-         non_support_data++;
-         return;
+	 }
+	 extract = FALSE;
+	 non_support_data++;
+	 return;
       }
       goto extract_data;
    
@@ -317,42 +316,42 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 
 extract_data:
       if (extract) {
-         if (rec->Stream == STREAM_SPARSE_DATA) {
-            ser_declare;
-            uint64_t faddr;
-            wbuf = rec->data + SPARSE_FADDR_SIZE;
-            wsize = rec->data_len - SPARSE_FADDR_SIZE;
-            ser_begin(rec->data, SPARSE_FADDR_SIZE);
-            unser_uint64(faddr);
-            if (fileAddr != faddr) {
-               fileAddr = faddr;
-               if (blseek(&bfd, (off_t)fileAddr, SEEK_SET) < 0) {
+	 if (rec->Stream == STREAM_SPARSE_DATA) {
+	    ser_declare;
+	    uint64_t faddr;
+	    wbuf = rec->data + SPARSE_FADDR_SIZE;
+	    wsize = rec->data_len - SPARSE_FADDR_SIZE;
+	    ser_begin(rec->data, SPARSE_FADDR_SIZE);
+	    unser_uint64(faddr);
+	    if (fileAddr != faddr) {
+	       fileAddr = faddr;
+	       if (blseek(&bfd, (off_t)fileAddr, SEEK_SET) < 0) {
                   Emsg2(M_ERROR_TERM, 0, _("Seek error on %s: %s\n"), 
-                     attr->ofname, strerror(errno));
-               }
-            }
-         } else {
-            wbuf = rec->data;
-            wsize = rec->data_len;
-         }
-         total += wsize;
+		     attr->ofname, strerror(errno));
+	       }
+	    }
+	 } else {
+	    wbuf = rec->data;
+	    wsize = rec->data_len;
+	 }
+	 total += wsize;
          Dmsg2(8, "Write %u bytes, total=%u\n", wsize, total);
-         if ((uint32_t)bwrite(&bfd, wbuf, wsize) != wsize) {
+	 if ((uint32_t)bwrite(&bfd, wbuf, wsize) != wsize) {
             Emsg2(M_ERROR_TERM, 0, _("Write error on %s: %s\n"), 
-               attr->ofname, strerror(errno));
-         }
-         fileAddr += wsize;
+	       attr->ofname, strerror(errno));
+	 }
+	 fileAddr += wsize;
       }
 
    /* Windows Backup GZIP data stream */
    case STREAM_WIN32_GZIP_DATA:  
       if (!is_win32_backup()) {
-         if (!non_support_attr) {
+	 if (!non_support_attr) {
             Jmsg(jcr, M_ERROR, 0, _("Win32 GZIP backup data not supported on this Client.\n"));
-         }
-         extract = FALSE;
-         non_support_attr++;
-         return;
+	 }
+	 extract = FALSE;
+	 non_support_attr++;
+	 return;
       }
       /* Fall through desired */
 
@@ -361,49 +360,49 @@ extract_data:
    case STREAM_SPARSE_GZIP_DATA: 
 #ifdef HAVE_LIBZ
       if (extract) {
-         uLongf compress_len;
-         int stat;
+	 uLongf compress_len;
+	 int stat;
 
-         if (rec->Stream == STREAM_SPARSE_GZIP_DATA) {
-            ser_declare;
-            uint64_t faddr;
-            wbuf = rec->data + SPARSE_FADDR_SIZE;
-            wsize = rec->data_len - SPARSE_FADDR_SIZE;
-            ser_begin(rec->data, SPARSE_FADDR_SIZE);
-            unser_uint64(faddr);
-            if (fileAddr != faddr) {
-               fileAddr = faddr;
-               if (blseek(&bfd, (off_t)fileAddr, SEEK_SET) < 0) {
+	 if (rec->Stream == STREAM_SPARSE_GZIP_DATA) {
+	    ser_declare;
+	    uint64_t faddr;
+	    wbuf = rec->data + SPARSE_FADDR_SIZE;
+	    wsize = rec->data_len - SPARSE_FADDR_SIZE;
+	    ser_begin(rec->data, SPARSE_FADDR_SIZE);
+	    unser_uint64(faddr);
+	    if (fileAddr != faddr) {
+	       fileAddr = faddr;
+	       if (blseek(&bfd, (off_t)fileAddr, SEEK_SET) < 0) {
                   Emsg2(M_ERROR, 0, _("Seek error on %s: %s\n"), 
-                     attr->ofname, strerror(errno));
-               }
-            }
-         } else {
-            wbuf = rec->data;
-            wsize = rec->data_len;
-         }
-         compress_len = compress_buf_size;
-         if ((stat=uncompress((Bytef *)compress_buf, &compress_len, 
-               (const Bytef *)wbuf, (uLong)wsize) != Z_OK)) {
+		     attr->ofname, strerror(errno));
+	       }
+	    }
+	 } else {
+	    wbuf = rec->data;
+	    wsize = rec->data_len;
+	 }
+	 compress_len = compress_buf_size;
+	 if ((stat=uncompress((Bytef *)compress_buf, &compress_len, 
+	       (const Bytef *)wbuf, (uLong)wsize) != Z_OK)) {
             Emsg1(M_ERROR_TERM, 0, _("Uncompression error. ERR=%d\n"), stat);
-         }
+	 }
 
          Dmsg2(100, "Write uncompressed %d bytes, total before write=%d\n", compress_len, total);
-         if ((uLongf)bwrite(&bfd, compress_buf, (size_t)compress_len) != compress_len) {
+	 if ((uLongf)bwrite(&bfd, compress_buf, (size_t)compress_len) != compress_len) {
             Pmsg0(0, "===Write error===\n");
             Emsg2(M_ERROR_TERM, 0, _("Write error on %s: %s\n"), 
-               attr->ofname, strerror(errno));
-         }
-         total += compress_len;
-         fileAddr += compress_len;
+	       attr->ofname, strerror(errno));
+	 }
+	 total += compress_len;
+	 fileAddr += compress_len;
          Dmsg2(100, "Compress len=%d uncompressed=%d\n", rec->data_len,
-            compress_len);
+	    compress_len);
       }
 #else
       if (extract) {
          Emsg0(M_ERROR, 0, "GZIP data stream found, but GZIP not configured!\n");
-         extract = FALSE;
-         return;
+	 extract = FALSE;
+	 return;
       }
 #endif
 
@@ -415,21 +414,21 @@ extract_data:
    case STREAM_PROGRAM_DATA:
       if (!prog_name_msg) {
          Pmsg0(000, "Got Program Name or Data Stream. Ignored.\n");
-         prog_name_msg++;
+	 prog_name_msg++;
       }
       break;
 
    default:
       /* If extracting, wierd stream (not 1 or 2), close output file anyway */
       if (extract) {
-         if (!is_bopen(&bfd)) {
+	 if (!is_bopen(&bfd)) {
             Emsg0(M_ERROR, 0, "Logic error output file should be open but is not.\n");
-         }
-         extract = FALSE;
-         set_attributes(jcr, attr, &bfd);
+	 }
+	 extract = FALSE;
+	 set_attributes(jcr, attr, &bfd);
       }
       Jmsg(jcr, M_ERROR, 0, _("Unknown stream=%d ignored. This shouldn't happen!\n"), 
-         rec->Stream);
+	 rec->Stream);
       break;
       
    } /* end switch */
@@ -439,19 +438,19 @@ extract_data:
 
 
 /* Dummies to replace askdir.c */
-int     dir_get_volume_info(JCR *jcr, enum get_vol_info_rw  writing) { return 1;}
-int     dir_find_next_appendable_volume(JCR *jcr) { return 1;}
-int     dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int relabel) { return 1; }
-int     dir_create_jobmedia_record(JCR *jcr) { return 1; }
-int     dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev) { return 1; }
-int     dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec) { return 1;}
-int     dir_send_job_status(JCR *jcr) {return 1;}
+int	dir_get_volume_info(JCR *jcr, enum get_vol_info_rw  writing) { return 1;}
+int	dir_find_next_appendable_volume(JCR *jcr) { return 1;}
+int	dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int relabel) { return 1; }
+int	dir_create_jobmedia_record(JCR *jcr) { return 1; }
+int	dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev) { return 1; }
+int	dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec) { return 1;}
+int	dir_send_job_status(JCR *jcr) {return 1;}
 
 
 int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
 {
    fprintf(stderr, "Mount Volume %s on device %s and press return when ready: ",
       jcr->VolumeName, dev_name(dev));
-   getchar();   
+   getchar();	
    return 1;
 }
