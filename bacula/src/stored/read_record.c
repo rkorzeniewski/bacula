@@ -135,7 +135,7 @@ int read_records(JCR *jcr,  DEVICE *dev,
        *   VolSessionId and VolSessionTime 
        */
       bool found = false;
-      for (rec=(DEV_RECORD *)recs->first(); rec; rec=(DEV_RECORD *)recs->next(rec)) {
+      foreach_dlist(rec, recs) {
 	 if (rec->VolSessionId == block->VolSessionId &&
 	     rec->VolSessionTime == block->VolSessionTime) {
 	    found = true;
@@ -241,11 +241,10 @@ int read_records(JCR *jcr,  DEVICE *dev,
 // Dmsg2(100, "Position=(file:block) %d:%d\n", dev->file, dev->block_num);
 
    /* Walk down list and free all remaining allocated recs */
-   for (rec=(DEV_RECORD *)recs->first(); rec; ) {
-      DEV_RECORD *nrec = (DEV_RECORD *)recs->next(rec);
+   while (!recs->empty()) {
+      rec = (DEV_RECORD *)recs->first();
       recs->remove(rec);
       free_record(rec);
-      rec = nrec;
    }
    delete recs;
    print_block_read_errors(jcr, block);

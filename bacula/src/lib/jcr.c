@@ -62,6 +62,9 @@ void init_last_jobs_list()
 void term_last_jobs_list()
 {
    if (last_jobs) {
+      while (!last_jobs->empty()) {
+	 free(last_jobs->first());     
+      }
       delete last_jobs;
       last_jobs = NULL;
       rwl_destroy(&lock);

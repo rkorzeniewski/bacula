@@ -149,7 +149,7 @@ DEV_RECORD *new_record(void)
 {
    DEV_RECORD *rec;
 
-   rec = (DEV_RECORD *) get_memory(sizeof(DEV_RECORD));
+   rec = (DEV_RECORD *)get_memory(sizeof(DEV_RECORD));
    memset(rec, 0, sizeof(DEV_RECORD));
    rec->data = get_pool_memory(PM_MESSAGE);
    return rec;
