@@ -39,7 +39,7 @@ static void timeout_handler(int sig);
 static void jcr_timeout_check(watchdog_t *self);
 
 struct s_last_job last_job;    /* last job run by this daemon */
-dlist *last_jobs;
+dlist *last_jobs = NULL;
 #define MAX_LAST_JOBS 10
 
 static JCR *jobs = NULL;	      /* pointer to JCR chain */
@@ -50,16 +50,22 @@ static pthread_mutex_t jcr_chain_mutex = PTHREAD_MUTEX_INITIALIZER;
 void init_last_jobs_list()
 {
    struct s_last_job *job_entry;
-   last_jobs = new dlist(job_entry,  &job_entry->link);
-   memset(&last_job, 0, sizeof(last_job));
+   if (!last_jobs) {
+      last_jobs = new dlist(job_entry,	&job_entry->link);
+      memset(&last_job, 0, sizeof(last_job));
+   }
 }
 
 void term_last_jobs_list()
 {
-   for (void *je=NULL; (je=last_jobs->next(je)); ) {
-      free(je); 		    
+   char *je;
+   if (last_jobs) {
+      foreach_dlist(je, last_jobs) {
+	 free(je);		       
+      }
+      delete last_jobs;
+      last_jobs = NULL;
    }
-   delete last_jobs;
 }
 
 void lock_last_jobs_list() 
@@ -247,6 +253,9 @@ void free_jcr(JCR *jcr)
    if (last_job.JobId > 0) {
       je = (struct s_last_job *)malloc(sizeof(struct s_last_job));
       memcpy((char *)je, (char *)&last_job, sizeof(last_job));
+      if (!last_jobs) {
+	 init_last_jobs_list();
+      }
       last_jobs->append(je);
       if (last_jobs->size() > MAX_LAST_JOBS) {
 	 last_jobs->remove(last_jobs->first());

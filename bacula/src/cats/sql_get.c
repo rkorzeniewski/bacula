@@ -321,9 +321,9 @@ int db_get_job_volume_names(JCR *jcr, B_DB *mdb, uint32_t JobId, POOLMEM **Volum
 
    db_lock(mdb);
    Mmsg(&mdb->cmd, 
-        "SELECT VolumeName,JobMedia.VolIndex FROM JobMedia,Media WHERE "
-        "JobMedia.JobId=%u AND JobMedia.MediaId=Media.MediaId "
-        "ORDER BY JobMedia.VolIndex",  JobId);
+        "SELECT DISTINCT VolumeName FROM JobMedia,Media WHERE "
+        "JobMedia.JobId=%u AND JobMedia.MediaId=Media.MediaId ",
+	JobId);
 
    Dmsg1(130, "VolNam=%s\n", mdb->cmd);
    *VolumeNames[0] = 0;
