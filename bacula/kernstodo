@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                 11 January 2003 
+                 12 January 2003 
 
 Documentation to do: (a little bit at a time)
 - Document running a test version.
@@ -16,8 +16,8 @@ Testing to do: (painful)
 - test and fix < code and | code.
 
 For 1.29 release:
+- Write Unix emulator for Windows.
 - Why is catreq.c:111 Find vol called twice for a job?
-- Why is FirstWritten = -1 after label?
 - Add include list to end of chain in findlib
 - Fix cancel in find_one -- need jcr.
 - Write SetJobStatus() function so cancel status not lost.

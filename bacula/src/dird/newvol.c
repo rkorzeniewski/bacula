@@ -51,14 +51,12 @@ int newVolume(JCR *jcr, MEDIA_DBR *mr)
    if (db_get_pool_record(jcr->db, &pr) && pr.LabelFormat[0] &&
        pr.LabelFormat[0] != '*') {
       if (pr.MaxVols == 0 || pr.NumVols < pr.MaxVols) {
-	 mr->PoolId = jcr->PoolId;
+	 set_pool_dbr_defaults_in_media_dbr(mr, &pr);
+	 mr->LabelDate = 0;
 	 strcpy(mr->MediaType, jcr->store->media_type);
 	 strcpy(name, pr.LabelFormat);	 
          strcat(name, "%04d");
 	 sprintf(mr->VolumeName, name, ++pr.NumVols);
-         strcpy(mr->VolStatus, "Append");
-	 mr->Recycle = pr.Recycle;
-	 mr->VolRetention = pr.VolRetention;
 	 if (db_create_media_record(jcr->db, mr) &&
 	    db_update_pool_record(jcr->db, &pr) == 1) {
             Dmsg1(90, "Created new Volume=%s\n", mr->VolumeName);

@@ -138,7 +138,7 @@ int do_a_command(UAContext *ua, char *cmd)
  *   into the Media DB record just before creating a media (Volume) 
  *   record.
  */
-static void set_pool_dbr_defaults_in_media_dbr(MEDIA_DBR *mr, POOL_DBR *pr)
+void set_pool_dbr_defaults_in_media_dbr(MEDIA_DBR *mr, POOL_DBR *pr)
 {
    mr->PoolId = pr->PoolId;
    strcpy(mr->VolStatus, "Append");

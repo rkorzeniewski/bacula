@@ -103,7 +103,6 @@ next_volume:
             Dmsg1(100, "find_recycled_volume2 %d\n", ok);
 	    if (!ok) {
 	       /* See if we can create a new Volume */
-	       mr.LabelDate = 0;
 	       ok = newVolume(jcr, &mr);
 	    }
 	 }
