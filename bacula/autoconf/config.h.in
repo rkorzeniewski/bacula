@@ -300,6 +300,9 @@
 /* The number of bytes in a short int.  */
 #undef SIZEOF_SHORT_INT
 
+/* Define if you have the chflags function.  */
+#undef HAVE_CHFLAGS
+
 /* Define if you have the fchdir function.  */
 #undef HAVE_FCHDIR
 

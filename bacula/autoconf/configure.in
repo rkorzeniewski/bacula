@@ -1072,6 +1072,8 @@ AC_CHECK_FUNCS( \
 
 AC_CHECK_FUNCS(fchdir, [AC_DEFINE(HAVE_FCHDIR)])
 
+AC_CHECK_FUNCS(chflags) 
+
 AC_CHECK_FUNCS(snprintf vsnprintf gethostid getdomainname)
 
 dnl# --------------------------------------------------------------------------

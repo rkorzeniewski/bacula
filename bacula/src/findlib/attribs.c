@@ -95,6 +95,11 @@ void encode_stat(char *buf, struct stat *statp, uint32_t LinkFI)
    p += to_base64((int64_t)statp->st_ctime, p);
    *p++ = ' ';
    p += to_base64((int64_t)LinkFI, p);
+/* FreeBSD function */
+#ifdef HAVE_CHFLAGS
+   *p++ = ' ';
+   p += to_base64((int64_t)statp->st_flags, p);
+#endif
    *p = 0;
    return;
 }
@@ -154,6 +159,16 @@ decode_stat(char *buf, struct stat *statp, uint32_t *LinkFI)
   } else {
       *LinkFI = 0;
   }
+/* FreeBSD user flags */
+#ifdef HAVE_CHFLAGS
+   if (*p == ' ' || (*p != 0 && *(p+1) == ' ')) {
+      p++;
+      p += from_base64(&val, p);
+      statp->st_flags = (uint32_t)val;
+  } else {
+      statp->st_flags  = 0;
+  }
+#endif
 }
 
 /*
@@ -209,11 +224,20 @@ int set_attributes(void *jcr, char *fname, char *ofile, char *lname,
       }
    }
    if (chmod(ofile, statp->st_mode) < 0) {
-      Jmsg2(jcr, M_ERROR, 0, "Unable to set file modes %s: ERR=%s\n",
+      Jmsg2(jcr, M_WARNING, 0, "Unable to set file modes %s: ERR=%s\n",
 	 ofile, strerror(errno));
       stat = 0;
    }
 
+   /* FreeBSD user flags */
+#ifdef HAVE_CHFLAGS
+   if (chflags(ofile, statp->st_flags) < 0) {
+      Jmsg2(jcr, M_WARNING, 0, "Unable to set file flags %s: ERR=%s\n",
+	 ofile, strerror(errno));
+      stat = 0;
+   }
+
+#endif
    /*
     * Reset file times.
     */
