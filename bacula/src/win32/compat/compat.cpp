@@ -1093,19 +1093,19 @@ utime(const char *fname, struct utimbuf *times)
     cvt_utime_to_ftime(times->modtime, mod);
 
     HANDLE h = CreateFile(tmpbuf,
-			  FILE_WRITE_ATTRIBUTES,
-			  FILE_SHARE_WRITE,
-			  NULL,
-			  OPEN_EXISTING,
-			  0,
-			  NULL);
+                          FILE_WRITE_ATTRIBUTES,
+                          FILE_SHARE_WRITE,
+                          NULL,
+                          OPEN_EXISTING,
+                          0,
+                          NULL);
 
     if (h == INVALID_HANDLE_VALUE) {
         const char *err = errorString();
         d_msg(__FILE__, __LINE__, 99,
               "Cannot open file for stat (%s):%s\n", tmpbuf, err);
         LocalFree((void *)err);
-	return -1;
+        return -1;
     }
 
     int rval = SetFileTime(h, NULL, &acc, &mod) ? 0 : -1;
@@ -1120,7 +1120,7 @@ utime(const char *fname, struct utimbuf *times)
 int
 open(const char *file, int flags, int mode)
 {
-    return _open(file, flags, mode);
+    return _open(file, flags, mode|_O_BINARY);
 
 }
 
