@@ -529,18 +529,23 @@ void wxbRestorePanel::CmdStart() {
       }*/
       wxbMainFrame::GetInstance()->SetStatusText("Building restore tree...");
       
-      WaitForPrompt("restore\n");
+      WaitForPrompt(wxString("restore") <<
+         " client=\"" << configPanel->GetRowString("Client") <<
+         "\" fileset=\"" << configPanel->GetRowString("Fileset") <<
+         "\" pool=\"" << configPanel->GetRowString("Pool") <<
+         "\" storage=\"" << configPanel->GetRowString("Storage") << "\"\n");
       WaitForPrompt("6\n");
-      wxbPromptParser *pp = WaitForPrompt(wxString() << configPanel->GetRowString("Before") << "\n", true);
+      //WaitForEnd();
+      /*wxbPromptParser *pp = WaitForPrompt(wxString() << configPanel->GetRowString("Before") << "\n", true);
       int client = pp->getChoices()->Index(configPanel->GetRowString("Client"));
       if (client == wxNOT_FOUND) {
          wxbMainFrame::GetInstance()->SetStatusText("Failed to find the selected client.");
          return;
       }
-      delete pp;
+      delete pp;*/
       
       wxbDataTokenizer* dt = new wxbDataTokenizer(true);
-      wxbTableParser* tableparser = CreateAndWaitForParser(wxString() << client << "\n");
+      wxbTableParser* tableparser = CreateAndWaitForParser(wxString() << configPanel->GetRowString("Before") << "\n");
       int tot = 0;
       long l;
       wxString str;

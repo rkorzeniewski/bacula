@@ -9,7 +9,11 @@ wxbMainFrame : Add some text in front of the command window such as
    
 wxbRestorePanel : Reconsider start button's labels.
 
-wxbRestorePanel : Implement cancel button when configuring
+wxbRestorePanel : Implement cancel button when first configuring
+
+wxbRestorePanel : Change defaults values when Job Name changes (first configure)
+
+wxbRestorePanel : Add titles to configuration panel
 
 general : Show nice messages when errors occurs.
 
