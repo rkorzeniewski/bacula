@@ -116,8 +116,6 @@ mount_next_vol:
     * It assumes that the device is not already in use!
     *
     */
-   dev->state &= ~(ST_APPEND|ST_READ|ST_EOT|ST_WEOT|ST_EOF);
-
    if (autoload_device(dcr, 1, NULL) > 0) {
       autochanger = true;
       ask = false;
@@ -268,7 +266,9 @@ read_volume:
          Dmsg0(100, "dir_update_vol_info. Set Append\n");
          /* Copy Director's info into the device info */
 	 memcpy(&dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dev->VolCatInfo));
-	 dir_update_volume_info(dcr, true);  /* indicate tape labeled */
+	 if (!dir_update_volume_info(dcr, true)) {  /* indicate tape labeled */
+	    return false;
+	 }
          Jmsg(jcr, M_INFO, 0, _("Labeled new Volume \"%s\" on device %s.\n"),
 	    dcr->VolumeName, dev_name(dev));
 	 goto read_volume;	/* read label we just wrote */
@@ -344,12 +344,14 @@ The number of files mismatch! Volume=%u Catalog=%u\n"),
       }
       dev->VolCatInfo.VolCatMounts++;	   /* Update mounts */
       Dmsg1(100, "update volinfo mounts=%d\n", dev->VolCatInfo.VolCatMounts);
-      dir_update_volume_info(dcr, false);
+      if (!dir_update_volume_info(dcr, false)) {
+	 return false;
+      }
       /* Return an empty block */
       empty_block(block);	      /* we used it for reading so set for write */
    }
    dev->state |= ST_APPEND;
-   Dmsg0(100, "Normal return from read_dev_for_append\n");
+   Dmsg0(100, "set APPEND, normal return from read_dev_for_append\n");
    return true;
 }
 
@@ -363,9 +365,11 @@ static bool rewrite_volume_label(DCR *dcr, bool recycle)
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
 
-   Dmsg1(190, "ready_for_append found freshly labeled volume. dev=%x\n", dev);
+   Dmsg1(190, "set append found freshly labeled volume. dev=%x\n", dev);
    dev->VolHdr.LabelType = VOL_LABEL; /* set Volume label */
+   dev->state |= ST_APPEND;
    if (!write_volume_label_to_block(dcr)) {
+      Dmsg0(200, "Error from write volume label.\n");
       return false;
    }
    /*
@@ -385,9 +389,11 @@ static bool rewrite_volume_label(DCR *dcr, bool recycle)
 	 }
       }
       /* Attempt write to check write permission */
+      Dmsg0(200, "Attempt to write to device.\n");
       if (!write_block_to_dev(dcr)) {
          Jmsg2(jcr, M_ERROR, 0, _("Unable to write device \"%s\". ERR=%s\n"),
 	    dev_name(dev), strerror_dev(dev));
+         Dmsg0(200, "===ERROR write block to dev\n");
 	 return false;
       }
    }
@@ -409,7 +415,9 @@ static bool rewrite_volume_label(DCR *dcr, bool recycle)
    }
    Dmsg0(100, "dir_update_vol_info. Set Append\n");
    bstrncpy(dev->VolCatInfo.VolCatStatus, "Append", sizeof(dev->VolCatInfo.VolCatStatus));
-   dir_update_volume_info(dcr, true);  /* indicate doing relabel */
+   if (!dir_update_volume_info(dcr, true)) {  /* indicate doing relabel */
+      return false;
+   }
    if (recycle) {
       Jmsg(jcr, M_INFO, 0, _("Recycled volume \"%s\" on device \"%s\", all previous data lost.\n"),
 	 dcr->VolumeName, dev_name(dev));
@@ -421,7 +429,8 @@ static bool rewrite_volume_label(DCR *dcr, bool recycle)
     * End writing real Volume label (from pre-labeled tape), or recycling
     *  the volume.
     */
-    return true;
+   Dmsg0(200, "OK from rewite vol label.\n");
+   return true;
 }
 
 
@@ -474,6 +483,7 @@ void release_volume(DCR *dcr)
    DEVICE *dev = dcr->dev;
    if (dcr->WroteVol) {
       Jmsg0(jcr, M_ERROR, 0, "Hey!!!!! WroteVol non-zero !!!!!\n");
+      Dmsg0(190, "Hey!!!!! WroteVol non-zero !!!!!\n");
    }
    /* 
     * First erase all memory of the current volume   
@@ -497,4 +507,5 @@ void release_volume(DCR *dcr)
    if (dev->state & ST_OPENED) {
       offline_or_rewind_dev(dev);
    }
+   Dmsg0(190, "===== release_volume ---");
 }

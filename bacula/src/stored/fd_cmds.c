@@ -233,14 +233,14 @@ static bool append_close_session(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
 
-   Dmsg1(120, "<filed: %s\n", fd->msg);
+   Dmsg1(120, "<filed: %s", fd->msg);
    if (!jcr->session_opened) {
       bnet_fsend(fd, NOT_opened);
       return false;
    }
    /* Send final statistics to File daemon */
    bnet_fsend(fd, OK_close, jcr->JobStatus);
-   Dmsg1(120, ">filed: %s\n", fd->msg);
+   Dmsg1(120, ">filed: %s", fd->msg);
 
    bnet_sig(fd, BNET_EOD);	      /* send EOD to File daemon */
        
@@ -260,7 +260,7 @@ static bool read_data_cmd(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
 
-   Dmsg1(120, "Read data: %s\n", fd->msg);
+   Dmsg1(120, "Read data: %s", fd->msg);
    if (jcr->session_opened) {
       Dmsg1(120, "<bfiled: %s", fd->msg);
       return do_read_data(jcr);

@@ -33,6 +33,7 @@
 #include "stored.h"
 
 extern int debug_level;
+static bool terminate_writing_volume(DCR *dcr);
 
 /*
  * Dump the block header, then walk through
@@ -183,7 +184,7 @@ void ser_block_header(DEV_BLOCK *block)
    uint32_t CheckSum = 0;
    uint32_t block_len = block->binbuf;
    
-   Dmsg1(190, "ser_block_header: block_len=%d\n", block_len);
+   Dmsg1(390, "ser_block_header: block_len=%d\n", block_len);
    ser_begin(block->buf, BLKHDR2_LENGTH);
    ser_uint32(CheckSum);
    ser_uint32(block_len);
@@ -197,7 +198,7 @@ void ser_block_header(DEV_BLOCK *block)
    /* Checksum whole block except for the checksum */
    CheckSum = bcrc32((uint8_t *)block->buf+BLKHDR_CS_LENGTH, 
 		 block_len-BLKHDR_CS_LENGTH);
-   Dmsg1(190, "ser_bloc_header: checksum=%x\n", CheckSum);
+   Dmsg1(390, "ser_bloc_header: checksum=%x\n", CheckSum);
    ser_begin(block->buf, BLKHDR2_LENGTH);
    ser_uint32(CheckSum);	      /* now add checksum to block header */
 }
@@ -282,7 +283,7 @@ static bool unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       return false;
    }
 
-   Dmsg1(190, "unser_block_header block_len=%d\n", block_len);
+   Dmsg1(390, "unser_block_header block_len=%d\n", block_len);
    /* Find end of block or end of buffer whichever is smaller */
    if (block_len > block->read_len) {
       block_end = block->read_len;
@@ -292,7 +293,7 @@ static bool unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    block->binbuf = block_end - bhl;
    block->block_len = block_len;
    block->BlockNumber = BlockNumber;
-   Dmsg3(190, "Read binbuf = %d %d block_len=%d\n", block->binbuf,
+   Dmsg3(390, "Read binbuf = %d %d block_len=%d\n", block->binbuf,
       bhl, block_len);
    if (block_len <= block->read_len) {
       BlockCheckSum = bcrc32((uint8_t *)block->buf+BLKHDR_CS_LENGTH,
@@ -342,6 +343,10 @@ bool write_block_to_device(DCR *dcr)
     * The same applies for if we are in a new file.
     */
    if (dcr->NewVol || dcr->NewFile) {
+      if (job_canceled(jcr)) {
+	 stat = false;
+	 goto bail_out;
+      }
       /* Create a jobmedia record for this job */
       if (!dir_create_jobmedia_record(dcr)) {
 	 dev->dev_errno = EIO;
@@ -362,7 +367,7 @@ bool write_block_to_device(DCR *dcr)
 
    if (!write_block_to_dev(dcr)) {
        if (job_canceled(jcr)) {
-	  stat = 0;
+	  stat = false;
        } else {
 	  stat = fixup_device_block_write_error(dcr);
        }
@@ -402,6 +407,11 @@ bool write_block_to_dev(DCR *dcr)
       Dmsg0(100, "return write_block_to_dev with ST_WEOT\n");
       dev->dev_errno = ENOSPC;
       Jmsg(jcr, M_FATAL, 0,  _("Cannot write block. Device at EOM.\n"));
+      return false;
+   }
+   if (!(dev->state & ST_APPEND)) {
+      dev->dev_errno = EIO;
+      Jmsg(jcr, M_FATAL, 0, _("Attempt to write on read-only Volume.\n"));
       return false;
    }
    wlen = block->binbuf;
@@ -455,21 +465,7 @@ bool write_block_to_dev(DCR *dcr)
       }
       Jmsg(jcr, M_INFO, 0, _("User defined maximum volume capacity %s exceeded on device %s.\n"),
 	    edit_uint64_with_commas(max_cap, ed1),  dev->dev_name);
-      block->write_failed = true;
-      if (weof_dev(dev, 1) != 0) {	      /* end tape */
-         Jmsg(jcr, M_FATAL, 0, "%s", dev->errmsg);
-	 dev->VolCatInfo.VolCatErrors++;
-      }
-      /* Don't do update after second EOF or file count will be wrong */
-      Dmsg0(100, "dir_update_volume_info\n");
-      dev->VolCatInfo.VolCatFiles = dev->file;
-      dir_update_volume_info(dcr, false);
-      if (dev_cap(dev, CAP_TWOEOF) && weof_dev(dev, 1) != 0) {	/* write eof */
-	 /* This may not be fatal since we already wrote an EOF */
-         Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
-	 dev->VolCatInfo.VolCatErrors++;
-      }
-      dev->state |= (ST_EOF | ST_EOT | ST_WEOT);
+      terminate_writing_volume(dcr);
       dev->dev_errno = ENOSPC;
       return false;
    }
@@ -477,45 +473,35 @@ bool write_block_to_dev(DCR *dcr)
    /* Limit maximum File size on volume to user specified value */
    if ((dev->max_file_size > 0) && 
        (dev->file_size+block->binbuf) >= dev->max_file_size) {
+      dev->file_size = 0;	      /* reset file size */
 
       if (dev_state(dev, ST_TAPE) && weof_dev(dev, 1) != 0) {		 /* write eof */
-	 /* Write EOF */
-         Jmsg(jcr, M_FATAL, 0, "%s", dev->errmsg);
-	 block->write_failed = true;
-	 dev->VolCatInfo.VolCatErrors++;
-	 dev->state |= (ST_EOF | ST_EOT | ST_WEOT);
-         Dmsg0(100, "dir_update_volume_info\n");
-	 dev->VolCatInfo.VolCatFiles = dev->file;
-	 dir_update_volume_info(dcr, false);
+         Dmsg0(190, "WEOF error in max file size.\n");
+	 terminate_writing_volume(dcr);
 	 dev->dev_errno = ENOSPC;
 	 return false;
       }
 
       /* Create a JobMedia record so restore can seek */
-      Dmsg0(100, "dir_update_volume_info\n");
-      dev->VolCatInfo.VolCatFiles = dev->file;
-      dir_update_volume_info(dcr, false);
       if (!dir_create_jobmedia_record(dcr)) {
+         Dmsg0(190, "Error from create_job_media.\n");
 	 dev->dev_errno = EIO;
-          Jmsg(jcr, M_ERROR, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
+          Jmsg(jcr, M_FATAL, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
 	       dcr->VolCatInfo.VolCatName, jcr->Job);
-	  if (!forge_on) {
-	     return false;
-	  }
+	  terminate_writing_volume(dcr);
+	  dev->dev_errno = EIO;
+	  return false;
       }
-      dev->file_size = 0;	      /* reset file size */
-      /* 
-       * Walk through all attached jcrs indicating the file has changed   
-       */
-      Dmsg1(100, "Walk attached jcrs. Volume=%s\n", dev->VolCatInfo.VolCatName);
-#ifdef xxx
-      for (JCR *mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
-	 if (mjcr->JobId == 0) {
-	    continue;		      /* ignore console */
-	 }
-	 mjcr->dcr->NewFile = true;   /* set reminder to do set_new_file_params */
+      dev->VolCatInfo.VolCatFiles = dev->file;
+      if (!dir_update_volume_info(dcr, false)) {
+         Dmsg0(190, "Error from update_vol_info.\n");
+	 terminate_writing_volume(dcr);
+	 dev->dev_errno = EIO;
+	 return false;
       }
-#endif
+      Dmsg0(100, "dir_update_volume_info max file size -- OK\n");
+
+
       /*
        * Walk through all attached dcrs setting flag to call
        * set_new_file_parameters() when that dcr is next used.
@@ -532,7 +518,7 @@ bool write_block_to_dev(DCR *dcr)
    }
 
    dev->VolCatInfo.VolCatWrites++;
-   Dmsg1(200, "Write block of %u bytes\n", wlen);      
+   Dmsg1(300, "Write block of %u bytes\n", wlen);      
 #ifdef DEBUG_BLOCK_ZEROING
    uint32_t *bp = (uint32_t *)block->buf;
    if (bp[0] == 0 && bp[1] == 0 && bp[2] == 0 && block->buf[12] == 0) {
@@ -557,13 +543,6 @@ bool write_block_to_dev(DCR *dcr)
        */
       if (stat == -1) {
 	 berrno be;
-	 /* I have added the ifdefing here because it appears on
-	  * FreeBSD where MTIOCERRSTAT is defined, this not only
-	  * clears the error but clears the residual unwritten
-	  * buffers -> data loss. As a consequence, on those
-	  * systems (FreeBSD like), do the clrerror() only after
-	  * the weof_dev() call.
-	  */
 	 clrerror_dev(dev, -1);
 	 if (dev->dev_errno == 0) {
 	    dev->dev_errno = ENOSPC;	    /* out of space */
@@ -583,22 +562,11 @@ bool write_block_to_dev(DCR *dcr)
       Dmsg6(100, "=== Write error. size=%u rtn=%d dev_blk=%d blk_blk=%d errno=%d: ERR=%s\n", 
 	 wlen, stat, dev->block_num, block->BlockNumber, dev->dev_errno, strerror(dev->dev_errno));
 
-      block->write_failed = true;
-      if (weof_dev(dev, 1) != 0) {	   /* end the tape */
-	 dev->VolCatInfo.VolCatErrors++;
-         Jmsg(jcr, M_FATAL, 0, "%s", dev->errmsg);
-	 ok = false;
+      ok = terminate_writing_volume(dcr);
+      if (!ok && !forge_on) {
+	 return false;
       }
-      Dmsg0(100, "dir_update_volume_info\n");
-      dev->VolCatInfo.VolCatFiles = dev->file;
-      dir_update_volume_info(dcr, false);
-      if (ok && dev_cap(dev, CAP_TWOEOF) && weof_dev(dev, 1) != 0) {  /* end the tape */
-	 dev->VolCatInfo.VolCatErrors++;
-	 /* This may not be fatal since we already wrote an EOF */
-         Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
-      }
-      dev->state |= (ST_EOF | ST_EOT | ST_WEOT);
-	
+
 #define CHECK_LAST_BLOCK
 #ifdef	CHECK_LAST_BLOCK
       /* 
@@ -683,11 +651,67 @@ bool write_block_to_dev(DCR *dcr)
    dev->file_addr += wlen;	      /* update file address */
    dev->file_size += wlen;
 
-   Dmsg2(190, "write_block: wrote block %d bytes=%d\n", dev->block_num,
-      wlen);
+   Dmsg2(300, "write_block: wrote block %d bytes=%d\n", dev->block_num, wlen);
    empty_block(block);
    return true;
 }
+
+static bool terminate_writing_volume(DCR *dcr)
+{
+   DEVICE *dev = dcr->dev;
+   bool ok = true;
+
+   /* Create a JobMedia record to indicated end of tape */
+   dev->VolCatInfo.VolCatFiles = dev->file;
+   if (!dir_create_jobmedia_record(dcr)) {
+      Dmsg0(190, "Error from create JobMedia\n");
+      dev->dev_errno = EIO;
+       Jmsg(dcr->jcr, M_FATAL, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
+	    dcr->VolCatInfo.VolCatName, dcr->jcr->Job);
+       ok = false;
+       goto bail_out;
+   }
+   dcr->block->write_failed = true;
+   if (weof_dev(dev, 1) != 0) { 	/* end the tape */
+      dev->VolCatInfo.VolCatErrors++;
+      Jmsg(dcr->jcr, M_ERROR, 0, "Error writing final EOF to tape. This tape may not be readable.\n"
+           "%s", dev->errmsg);
+      ok = false;
+      Dmsg0(100, "WEOF error.\n");
+   }
+   dev->VolCatInfo.VolCatFiles = dev->file;
+   if (!dir_update_volume_info(dcr, false)) {
+      ok = false;
+   }
+   Dmsg1(100, "dir_update_volume_info terminate writing -- %s\n", ok?"OK":"ERROR");
+
+
+   /*
+    * Walk through all attached dcrs setting flag to call
+    * set_new_file_parameters() when that dcr is next used.
+    */
+   DCR *mdcr;
+   foreach_dlist(mdcr, dev->attached_dcrs) {
+      if (mdcr->jcr->JobId == 0) {
+	 continue;
+      }
+      mdcr->NewFile = true;	   /* set reminder to do set_new_file_params */
+   }
+   /* Set new file/block parameters for current dcr */
+   set_new_file_parameters(dcr);
+
+   if (ok && dev_cap(dev, CAP_TWOEOF) && weof_dev(dev, 1) != 0) {  /* end the tape */
+      dev->VolCatInfo.VolCatErrors++;
+      /* This may not be fatal since we already wrote an EOF */
+      Jmsg(dcr->jcr, M_ERROR, 0, "%s", dev->errmsg);
+   }
+bail_out:
+   dev->state |= (ST_EOF|ST_EOT|ST_WEOT);
+   dev->state &= ~ST_APPEND;	      /* make tape read-only */
+   Dmsg1(100, "Leave terminate_writing_volume -- %s\n", ok?"OK":"ERROR");
+   return ok;
+}
+
 
 /*  
  * Read block with locking

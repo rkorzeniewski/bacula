@@ -71,12 +71,18 @@ bool do_append_data(JCR *jcr)
    dev = dcr->dev;
    memset(&rec, 0, sizeof(rec));
 
+   if (dev->VolCatInfo.VolCatName[0] == 0) {
+      Dmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
+   }
    Dmsg1(20, "Begin append device=%s\n", dev_name(dev));
 
    begin_data_spool(jcr);
    begin_attribute_spool(jcr);
 
    Dmsg0(100, "Just after acquire_device_for_append\n");
+   if (dev->VolCatInfo.VolCatName[0] == 0) {
+      Dmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
+   }
    /*
     * Write Begin Session Record
     */
@@ -85,6 +91,9 @@ bool do_append_data(JCR *jcr)
 	 strerror_dev(dev));
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       ok = false;
+   }
+   if (dev->VolCatInfo.VolCatName[0] == 0) {
+      Dmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
    }
 
    /* Tell File daemon to send data */
@@ -150,7 +159,7 @@ bool do_append_data(JCR *jcr)
       }
       stream = (int32_t)str_to_int64(p);
 
-      Dmsg2(190, "<filed: Header FilInx=%d stream=%d\n", file_index, stream);
+      Dmsg2(490, "<filed: Header FilInx=%d stream=%d\n", file_index, stream);
 
       if (!(file_index > 0 && (file_index == last_file_index ||
 	  file_index == last_file_index + 1))) {
@@ -174,12 +183,12 @@ bool do_append_data(JCR *jcr)
 	 rec.data_len = ds->msglen;
 	 rec.data = ds->msg;		/* use message buffer */
 
-         Dmsg4(250, "before writ_rec FI=%d SessId=%d Strm=%s len=%d\n",
+         Dmsg4(450, "before writ_rec FI=%d SessId=%d Strm=%s len=%d\n",
 	    rec.FileIndex, rec.VolSessionId, stream_to_ascii(rec.Stream,rec.FileIndex), 
 	    rec.data_len);
 	  
 	 while (!write_record_to_block(dcr->block, &rec)) {
-            Dmsg2(150, "!write_record_to_block data_len=%d rem=%d\n", rec.data_len,
+            Dmsg2(650, "!write_record_to_block data_len=%d rem=%d\n", rec.data_len,
 		       rec.remainder);
 	    if (!write_block_to_device(dcr)) {
                Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
@@ -195,7 +204,7 @@ bool do_append_data(JCR *jcr)
 	    break;
 	 }
 	 jcr->JobBytes += rec.data_len;   /* increment bytes this job */
-         Dmsg4(200, "write_record FI=%s SessId=%d Strm=%s len=%d\n",
+         Dmsg4(350, "write_record FI=%s SessId=%d Strm=%s len=%d\n",
 	    FI_to_ascii(rec.FileIndex), rec.VolSessionId, 
 	    stream_to_ascii(rec.Stream, rec.FileIndex), rec.data_len);
 
@@ -206,7 +215,7 @@ bool do_append_data(JCR *jcr)
 	       if (are_attributes_spooled(jcr)) {
 		  jcr->dir_bsock->spool = true;
 	       }
-               Dmsg0(200, "Send attributes.\n");
+               Dmsg0(350, "Send attributes.\n");
 	       if (!dir_update_file_attributes(dcr, &rec)) {
 		  jcr->dir_bsock->spool = false;
                   Jmsg(jcr, M_FATAL, 0, _("Error updating file attributes. ERR=%s\n"),
@@ -230,6 +239,9 @@ bool do_append_data(JCR *jcr)
    set_jcr_job_status(jcr, ok?JS_Terminated:JS_ErrorTerminated);
 
    Dmsg1(200, "Write session label JobStatus=%d\n", jcr->JobStatus);
+   if (dev->VolCatInfo.VolCatName[0] == 0) {
+      Dmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
+   }
 
    /*
     * If !OK, check if we can still write. This may not be the case
@@ -242,6 +254,9 @@ bool do_append_data(JCR *jcr)
 	 set_jcr_job_status(jcr, JS_ErrorTerminated);
 	 ok = false;
       }
+      if (dev->VolCatInfo.VolCatName[0] == 0) {
+         Dmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
+      }
       Dmsg0(90, "back from write_end_session_label()\n");
       /* Flush out final partial block of this session */
       if (!write_block_to_device(dcr)) {
@@ -249,6 +264,9 @@ bool do_append_data(JCR *jcr)
 	 set_jcr_job_status(jcr, JS_ErrorTerminated);
 	 ok = false;
       }
+   }
+   if (dev->VolCatInfo.VolCatName[0] == 0) {
+      Dmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
    }
 
    if (!ok) {

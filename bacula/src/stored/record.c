@@ -170,13 +170,13 @@ void empty_record(DEV_RECORD *rec)
  */
 void free_record(DEV_RECORD *rec) 
 {
-   Dmsg0(150, "Enter free_record.\n");
+   Dmsg0(350, "Enter free_record.\n");
    if (rec->data) {
       free_pool_memory(rec->data);
    }
-   Dmsg0(150, "Data buf is freed.\n");
+   Dmsg0(350, "Data buf is freed.\n");
    free_pool_memory((POOLMEM *)rec);
-   Dmsg0(150, "Leave free_record.\n");
+   Dmsg0(350, "Leave free_record.\n");
 } 
 
 
@@ -204,7 +204,7 @@ bool write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec)
    ASSERT(block->binbuf == (uint32_t) (block->bufp - block->buf));
    ASSERT(block->buf_len >= block->binbuf);
 
-   Dmsg6(190, "write_record_to_block() FI=%s SessId=%d Strm=%s len=%d\n\
+   Dmsg6(490, "write_record_to_block() FI=%s SessId=%d Strm=%s len=%d\n\
 rem=%d remainder=%d\n",
       FI_to_ascii(rec->FileIndex), rec->VolSessionId, 
       stream_to_ascii(rec->Stream, rec->FileIndex), rec->data_len,
@@ -403,7 +403,7 @@ bool read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
     * Get the header. There is always a full header,
     * otherwise we find it in the next block.
     */
-   Dmsg3(100, "Block=%d Ver=%d size=%u\n", block->BlockNumber, block->BlockVer,
+   Dmsg3(450, "Block=%d Ver=%d size=%u\n", block->BlockNumber, block->BlockVer,
 	 block->block_len);
    if (block->BlockVer == 1) {
       rhl = RECHDR1_LENGTH;
@@ -411,7 +411,7 @@ bool read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
       rhl = RECHDR2_LENGTH;
    }
    if (remlen >= rhl) {
-      Dmsg4(90, "Enter read_record_block: remlen=%d data_len=%d rem=%d blkver=%d\n", 
+      Dmsg4(450, "Enter read_record_block: remlen=%d data_len=%d rem=%d blkver=%d\n", 
 	    remlen, rec->data_len, rec->remainder, block->BlockVer);
 
       unser_begin(block->bufp, WRITE_RECHDR_LENGTH);
@@ -436,7 +436,7 @@ bool read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
       if (rec->remainder && (rec->VolSessionId != VolSessionId || 
 			     rec->VolSessionTime != VolSessionTime)) {
 	 rec->state |= REC_NO_MATCH;
-         Dmsg0(500, "remainder and VolSession doesn't match\n");
+         Dmsg0(450, "remainder and VolSession doesn't match\n");
 	 return false;		   /* This is from some other Session */
       }
 
@@ -468,7 +468,7 @@ bool read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
 	 block->LastIndex = FileIndex;
       }
 
-      Dmsg6(100, "rd_rec_blk() got FI=%s SessId=%d Strm=%s len=%u\n"
+      Dmsg6(450, "rd_rec_blk() got FI=%s SessId=%d Strm=%s len=%u\n"
                  "remlen=%d data_len=%d\n",
 	 FI_to_ascii(rec->FileIndex), rec->VolSessionId, 
 	 stream_to_ascii(rec->Stream, rec->FileIndex), data_bytes, remlen, 
@@ -482,7 +482,7 @@ bool read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
        * higher level routine to fetch the next block and
        * then reread.
        */
-      Dmsg0(90, "read_record_block: nothing\n");
+      Dmsg0(450, "read_record_block: nothing\n");
 #ifdef xxx
       if (!rec->remainder) {
 	 rec->remainder = 1;	      /* set to expect continuation */
@@ -519,12 +519,12 @@ bool read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
       block->binbuf -= remlen;
       rec->data_len += remlen;
       rec->remainder = 1;	      /* partial record transferred */
-      Dmsg1(90, "read_record_block: partial xfered=%d\n", rec->data_len);
+      Dmsg1(450, "read_record_block: partial xfered=%d\n", rec->data_len);
       rec->state |= (REC_PARTIAL_RECORD | REC_BLOCK_EMPTY);
       return 1;
    }
    rec->remainder = 0;
-   Dmsg4(90, "Rtn full rd_rec_blk FI=%s SessId=%d Strm=%s len=%d\n",
+   Dmsg4(450, "Rtn full rd_rec_blk FI=%s SessId=%d Strm=%s len=%d\n",
       FI_to_ascii(rec->FileIndex), rec->VolSessionId, 
       stream_to_ascii(rec->Stream, rec->FileIndex), rec->data_len);
    return true; 		      /* transferred full record */

@@ -242,14 +242,14 @@ static bool despool_data(DCR *dcr, bool commit)
 	 break;
       }
       ok = write_block_to_device(dcr);
-      Dmsg3(100, "Write block ok=%d FI=%d LI=%d\n", ok, block->FirstIndex, block->LastIndex);
+      Dmsg3(800, "Write block ok=%d FI=%d LI=%d\n", ok, block->FirstIndex, block->LastIndex);
    }
    dcr->block = block;		      /* reset block */
 
    lseek(rdcr->spool_fd, 0, SEEK_SET); /* rewind */
    if (ftruncate(rdcr->spool_fd, 0) != 0) {
       berrno be;
-      Jmsg(dcr->jcr, M_FATAL, 0, _("Ftruncate spool file failed: ERR=%s\n"), 
+      Jmsg(dcr->jcr, M_ERROR, 0, _("Ftruncate spool file failed: ERR=%s\n"), 
 	 be.strerror());
       Pmsg1(000, "Bad return from ftruncate. ERR=%s\n", be.strerror());
       ok = false;
@@ -327,7 +327,7 @@ static int read_block_from_spool_file(DCR *dcr)
    block->LastIndex = hdr.LastIndex;
    block->VolSessionId = dcr->jcr->VolSessionId;
    block->VolSessionTime = dcr->jcr->VolSessionTime;
-   Dmsg2(100, "Read block FI=%d LI=%d\n", block->FirstIndex, block->LastIndex);
+   Dmsg2(800, "Read block FI=%d LI=%d\n", block->FirstIndex, block->LastIndex);
    return RB_OK;
 }
 
@@ -395,7 +395,7 @@ bool write_block_to_spool_file(DCR *dcr)
      return false;
    }
 
-   Dmsg2(100, "Wrote block FI=%d LI=%d\n", block->FirstIndex, block->LastIndex);
+   Dmsg2(800, "Wrote block FI=%d LI=%d\n", block->FirstIndex, block->LastIndex);
    empty_block(block);
    return true;
 }

@@ -540,8 +540,7 @@ int  sockaddr_to_ascii(const struct sockaddr *sa, char *buf, int len)
 	     sa->sa_family == AF_INET ? 
 		 (void*)&(((struct sockaddr_in*)sa)->sin_addr) :
 		 (void*)&(((struct sockaddr_in6*)sa)->sin6_addr),
-	     buf,
-	     sizeof(buf));
+	     buf, len);
 #else
    bstrncpy(buf, inet_ntoa(((struct sockaddr_in *)sa)->sin_addr), len);
 #endif

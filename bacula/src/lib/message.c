@@ -108,7 +108,7 @@ static int exit_on_error = 1;
 void my_name_is(int argc, char *argv[], const char *name)
 {
    char *l, *p, *q;
-   char cpath[400], npath[400];
+   char cpath[1024], npath[1024];
    int len;
 
    bstrncpy(my_name, name, sizeof(my_name));
@@ -414,7 +414,7 @@ void close_msg(JCR *jcr)
    POOLMEM *cmd, *line;
    int len, stat;
    
-   Dmsg1(050, "Close_msg jcr=0x%x\n", jcr);
+   Dmsg1(350, "Close_msg jcr=0x%x\n", jcr);
 
    if (jcr == NULL) {		     /* NULL -> global chain */
       msgs = daemon_msgs;
@@ -426,7 +426,7 @@ void close_msg(JCR *jcr)
    if (msgs == NULL) {
       return;
    }
-   Dmsg1(150, "===Begin close msg resource at 0x%x\n", msgs);
+   Dmsg1(350, "===Begin close msg resource at 0x%x\n", msgs);
    cmd = get_pool_memory(PM_MESSAGE);
    for (d=msgs->dest_chain; d; ) {
       if (d->fd) {
@@ -439,7 +439,7 @@ void close_msg(JCR *jcr)
 	    break;
 	 case MD_MAIL:
 	 case MD_MAIL_ON_ERROR:
-            Dmsg0(150, "Got MD_MAIL or MD_MAIL_ON_ERROR\n");
+            Dmsg0(350, "Got MD_MAIL or MD_MAIL_ON_ERROR\n");
 	    if (!d->fd) {
 	       break;
 	    }
@@ -452,7 +452,7 @@ void close_msg(JCR *jcr)
                Pmsg0(000, "open mail pipe failed.\n");
 	       goto rem_temp_file;
 	    }
-            Dmsg0(150, "Opened mail pipe\n");
+            Dmsg0(350, "Opened mail pipe\n");
 	    len = d->max_len+10;
 	    line = get_memory(len);
 	    rewind(d->fd);
@@ -479,7 +479,7 @@ void close_msg(JCR *jcr)
 	    if (stat != 0 && msgs != daemon_msgs) {
 	       berrno be;
 	       be.set_errno(stat);
-               Dmsg1(150, "Calling emsg. CMD=%s\n", cmd);
+               Dmsg1(350, "Calling emsg. CMD=%s\n", cmd);
                Jmsg2(jcr, M_ERROR, 0, _("Mail program terminated in error.\n"
                                         "CMD=%s\n"
                                         "ERR=%s\n"), cmd, be.strerror());
@@ -491,7 +491,7 @@ rem_temp_file:
 	    unlink(d->mail_filename);
 	    free_pool_memory(d->mail_filename);
 	    d->mail_filename = NULL;
-            Dmsg0(150, "end mail or mail on error\n");
+            Dmsg0(350, "end mail or mail on error\n");
 	    break;
 	 default:
 	    break;
@@ -501,14 +501,14 @@ rem_temp_file:
       d = d->next;		      /* point to next buffer */
    }
    free_pool_memory(cmd);
-   Dmsg0(150, "Done walking message chain.\n");
+   Dmsg0(350, "Done walking message chain.\n");
    if (jcr) {
       free_msgs_res(msgs);
       msgs = NULL;
    } else {
       V(mutex);
    }
-   Dmsg0(150, "===End close msg resource\n");
+   Dmsg0(350, "===End close msg resource\n");
 }
 
 /*
@@ -544,7 +544,7 @@ void free_msgs_res(MSGS *msgs)
  */
 void term_msg()
 {
-   Dmsg0(100, "Enter term_msg\n");
+   Dmsg0(300, "Enter term_msg\n");
    close_msg(NULL);		      /* close global chain */
    free_msgs_res(daemon_msgs);	      /* free the resources */
    daemon_msgs = NULL;
