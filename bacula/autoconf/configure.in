@@ -1798,6 +1798,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   rescue/linux/Makefile \
 	   rescue/linux/floppy/Makefile \
 	   rescue/linux/cdrom/Makefile \
+	   rescue/linux/cdrom/bacula/Makefile \
 	   rescue/freebsd/Makefile \
 	   rescue/solaris/Makefile \
 	   scripts/startmysql \
@@ -1819,7 +1820,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   scripts/bacula.desktop.gnome2.xsu \
 	   scripts/gnome-console.console_apps \
 	   scripts/mtx-changer \
-	scripts/bacula-tray-monitor.desktop \
+	   scripts/bacula-tray-monitor.desktop \
 	   doc/Makefile \
 	   src/Makefile \
 	   src/host.h \
