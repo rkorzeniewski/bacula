@@ -149,6 +149,7 @@ distclean:
 	@$(RMF) -r doc/techlogs/2002/CVS doc/techlogs/2001/CVS doc/techlogs/1.27/CVS
 	@$(RMF) -r examples/CVS intl/CVS scripts/CVS
 	@$(RMF) -r po/CVS src/immortal/CVS rescue/freebsd/CVS rescue/solaris/CVS
+	@$(RMF) -r CVS src/gnome-console/CVS src/tconsole/CVS
 
 distdirs:
 	mkdir ../$(VERNAME);
