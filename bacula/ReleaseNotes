@@ -8,7 +8,7 @@ Changes since 1.32a:
   optimizations.
 - Fix a bug that did not allow appending to a tape    
   on FreeBSD systems.
-  
+- Fix pruning so that it will not prune the current job.
 
 Major Changes 1.32a Release:
 - Implemented forward space file/block whenever possible 
