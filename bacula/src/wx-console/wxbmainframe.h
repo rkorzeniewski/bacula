@@ -123,6 +123,8 @@ public:
    /* Unregister a wxbDataParser */
    void Unregister(wxbDataParser* dp);
 
+   console_thread* ct; /* thread interacting with the director */
+
 private:
    /* private constructor, singleton */
    wxbMainFrame(const wxString& title, const wxPoint& pos, const wxSize& size, long style);
@@ -134,8 +136,6 @@ private:
 
    wxbPanel **panels; /* panels array, contained in the notebook */
    wxbDataParsers parsers; /* Data parsers, which need to receive director informations */
-
-   console_thread* ct; /* thread interacting with the director */
 
    wxbPromptParser* promptparser; /* prompt parser catching uncatched questions */
 

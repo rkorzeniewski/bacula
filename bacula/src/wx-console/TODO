@@ -18,8 +18,8 @@ wxbRestorePanel : Add a Cancel Restore button
 
 general : Allow the user to quit however the state is (kill thread if necessary)
 
-VC++ : crashing when there's no configuration file, or server is unreachable
-       (on every error ?)
+VC++ : crashing when there's no configuration file, when server is unreachable,
+       when connection has been interrupted and wants to quit (on every error ?)
 
 [postponed to July:]
 
@@ -82,6 +82,10 @@ wxbRestorePanel : Check more carefully which job we just have run
    (needs director modification).
    
 wxbRestorePanel : Add a timeout when waiting for commands results
+
+bacula-dir : correct director to handle correctly + marked status
+   (In fact there is a bug in the director : If you mark a directory
+   (not a file), and then unmark it, its parents keep the "+" status.)
 
 general : make a good documentation with snapshots
 

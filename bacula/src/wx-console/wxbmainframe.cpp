@@ -164,7 +164,7 @@ wxbMainFrame* wxbMainFrame::GetInstance()
  */
 wxbMainFrame::~wxbMainFrame()
 {
-   if ((ct != NULL) && (!ct->IsRunning())) {
+   if (ct != NULL) { // && (!ct->IsRunning())
       ct->Delete();
    }
 }
@@ -325,6 +325,13 @@ void wxbMainFrame::OnPrint(wxbThreadEvent& event) {
  */
 void wxbMainFrame::Print(wxString str, int status)
 {
+   if (status == CS_TERMINATED) {
+      SetStatusText("Console thread terminated.");
+      ct = NULL;
+      DisablePanels();
+      return;
+   }
+   
    if (status == CS_CONNECTED) {
       SetStatusText("Connected to the director.");
       EnablePanels();

@@ -1,4 +1,8 @@
-25-04-2003 :
+26-04-2004 :
+ - Corrected a bug in Windows which causes wx-console to crash when
+     typing quit before exiting the application.
+
+25-04-2004 :
  - general : status text is more often used
  - wxbRestorePanel : restore aborted if there's no client or no fileset
  - wxbRestorePanel : corrected problem if one double clicks on a
@@ -13,7 +17,7 @@
  - wxbMainFrame : Automatically scrolling to the bottom of 
      console text control.
 
-24-04-2003 :
+24-04-2004 :
  - wxbMainFrame : When starting wx-console, the initial key 
       input focus is set into the command window.
  - wxbMainFrame : the user is now prompted when an 
@@ -22,11 +26,11 @@
  - wxbRestorePanel : using dot commands (.clients, .filesets)
  - console_thread : implemented prompt and heartbeat messages
 
-23-04-2003 :
+23-04-2004 :
  - general : Don't concatenate lines in csprint, but in wxbDataParser
          (necessary for dot commands)
 
-22-04-2003 :
+22-04-2004 :
  - wxbRestorePanel : improved restore appearance
  - wxbRestorePanel : configure is allowed to change client
 

@@ -80,7 +80,7 @@ void* console_thread::Entry() {
 
    init_stack_dump();
    my_name_is(0, NULL, "wx-console");
-   textdomain("bacula-console");
+   //textdomain("bacula-console");
    init_msg(NULL, NULL);
 
    /* TODO (#4#): Allow the user to choose his config file. */
@@ -99,6 +99,8 @@ void* console_thread::Entry() {
       csprint("Failed to connect to the director\n");
       csprint(NULL, CS_END);
       csprint(NULL, CS_DISCONNECTED);
+      csprint(NULL, CS_TERMINATED);
+      Exit();
       return NULL;
    }
 
@@ -110,6 +112,8 @@ void* console_thread::Entry() {
       csprint(UA_sock->msg);
       csprint(NULL, CS_END);
       csprint(NULL, CS_DISCONNECTED);
+      csprint(NULL, CS_TERMINATED);
+      Exit();
       return NULL;
    }
    
@@ -157,8 +161,12 @@ void* console_thread::Entry() {
    csprint("Connection terminated\n");
    
    UA_sock = NULL;
+
+   csprint(NULL, CS_TERMINATED);
    
-   return 0;
+   Exit();
+   
+   return NULL;
 }
 
 void console_thread::Write(const char* str) {
