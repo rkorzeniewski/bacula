@@ -70,6 +70,7 @@ clean:
 # clean for distribution
 distclean: clean
 	@$(RMF) startmysql stopmysql bacula fd startit stopit btraceback
-	@$(RMF) console gconsole
+	@$(RMF) console gconsole logrotate bacula.desktop 
+	@$(RMF) bacula.desktop.gnome1 bacula.desktop.gnome2
 
 # ------------------------------------------------------------------------

@@ -64,6 +64,9 @@ realclean: clean
 	$(RMF) create_mysql_database make_sqlite_tables sqlite
 	$(RMF) create_bdb_database drop_bdb_tables make_dbd_tables
 	$(RMF) make_catalog_backup delete_catalog_backup
+	$(RMF) alter_mysql_tables alter_sqlite_tables create_sqlite_database
+	$(RMF) drop_bacula_tables drop_sqlite_tables make_bacula_tables
+	$(RMF) drop_bdb_tables make_bdb_tables mysql
 
 distclean: realclean
 	if test $(srcdir) = .; then $(MAKE) realclean; fi

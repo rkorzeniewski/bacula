@@ -1270,9 +1270,7 @@ redhat)
 	    platforms/redhat/bacula-fd \
 	    platforms/redhat/bacula-sd \
 	    platforms/redhat/bacula-dir \
-	    platforms/redhat/bacula.mysql.spec \
-	    platforms/redhat/bacula.sqlite.spec \
-	    platforms/redhat/bacula.sqlite.rel.spec \
+	    platforms/redhat/bacula.spec \
 	    "
 	hostname=`hostname -s`
   ;;
@@ -1378,6 +1376,8 @@ AC_OUTPUT([autoconf/Make.common \
 	   scripts/Makefile \
 	   scripts/logrotate \
 	   scripts/bacula.desktop \
+	   scripts/bacula.desktop.gnome1 \
+	   scripts/bacula.desktop.gnome2 \
 	   doc/Makefile \
 	   src/Makefile \
 	   src/console/Makefile \

@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                  28 April 2003 
+                  11 May  2003 
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -19,6 +19,9 @@ Testing to do: (painful)
 
 
 For 1.31 release:
+- Merge SQLite, MySQL, and Rel spec into a single file.
+- Implement "Reschedule OnError=yes interval=nnn times=xxx"
+- Fix config of "console"
 - Shell character expansion is failing occassionally.
 - One block was orphaned in the SD probably after cancel.
 - Test if rewind at end of tape waits for tape to rewind.
@@ -333,6 +336,18 @@ Longer term to do:
   someway to do so with every volume that has less than x% valid 
   files.
 
+
+Migration: Move a backup from one Volume to another
+Clone:     Copy a backup -- two Volumes
+
+Bacula Migration is based on Jobs (apparently Networker is file by file).
+
+Migration triggered by:
+  Number of Jobs
+  Number of Volumes
+  Age of Jobs
+  Highwater mark (keep total size)
+  Lowwater mark
   
 Projects:
             Bacula Projects Roadmap 

@@ -1,3 +1,7 @@
 .xvpics
 logrotate
 bacula.desktop
+bacula.desktop.gnome1  
+bacula.desktop.gnome2
+console
+gconsole

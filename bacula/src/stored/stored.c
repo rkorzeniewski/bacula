@@ -90,7 +90,8 @@ int main (int argc, char *argv[])
    char *gid = NULL;
 
    init_stack_dump();
-   my_name_is(argc, argv, "stored");
+   my_name_is(argc, argv, "bacula-sd");
+   textdomain("bacula-sd");
    init_msg(NULL, NULL);
    daemon_start_time = time(NULL);
    memset(&last_job, 0, sizeof(last_job));

@@ -246,6 +246,7 @@ int main(int argc, char *argv[])
 
    init_stack_dump();
    my_name_is(argc, argv, "console");
+   textdomain("bacula-console");
    init_msg(NULL, NULL);
    working_directory = "/tmp";
    args = get_pool_memory(PM_FNAME);

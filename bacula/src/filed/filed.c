@@ -94,7 +94,8 @@ int main (int argc, char *argv[])
    char *gid = NULL;
 
    init_stack_dump();
-   my_name_is(argc, argv, "filed");
+   my_name_is(argc, argv, "bacula-fd");
+   textdomain("bacula-fd");
    init_msg(NULL, NULL);
    daemon_start_time = time(NULL);
 
