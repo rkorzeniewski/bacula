@@ -68,6 +68,12 @@ bacula-fd:  $(SVROBJS) ../findlib/libfind.a ../lib/libbac.a @WIN32@
 	$(CXX) $(LDFLAGS) $(FD_LDFLAGS) -L../lib -L../findlib -o $@ $(SVROBJS) \
 	  $(WIN32LIBS) $(FDLIBS) -lfind -lbac -lm $(LIBS) $(DLIB)
 
+static-bacula-fd:  $(SVROBJS) ../findlib/libfind.a ../lib/libbac.a @WIN32@
+	$(CXX) $(LDFLAGS) -static -L../lib -L../findlib -o $@ $(SVROBJS) \
+	   $(WIN32LIBS) $(FDLIBS) -lfind -lbac -lm $(LIBS) $(DLIB)
+	strip $@
+
+
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	cd $(topdir) \
 	  && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status

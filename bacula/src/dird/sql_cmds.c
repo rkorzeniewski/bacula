@@ -69,7 +69,7 @@ char *create_deltabs[] = {
 char *insert_delcand = 
    "INSERT INTO DelCandidates "
    "SELECT JobId, PurgedFiles, FileSetId FROM Job "
-   "WHERE JobType='%c' "
+   "WHERE Type='%c' "
    "AND JobTDate<%s " 
    "AND ClientId=%u";
 
@@ -82,7 +82,7 @@ char *select_backup_del =
    "FROM Job,DelCandidates "
    "WHERE Job.JobTDate>%s "
    "AND Job.ClientId=%u "
-   "AND Job.JobType='B' "
+   "AND Job.Type='B' "
    "AND Job.Level='F' "
    "AND Job.JobStatus='T' "
    "AND Job.FileSetId=DelCandidates.FileSetId";
@@ -96,7 +96,7 @@ char *select_verify_del =
    "FROM Job,DelCandidates "
    "WHERE Job.JobTDate>%s "
    "AND Job.ClientId=%u "
-   "AND Job.JobType='V' "
+   "AND Job.Type='V' "
    "AND Job.Level='V' "
    "AND Job.JobStatus='T' "
    "AND Job.FileSetId=DelCandidates.FileSetId";
@@ -110,7 +110,7 @@ char *select_restore_del =
    "FROM Job,DelCandidates "
    "WHERE Job.JobTDate>%s "
    "AND Job.ClientId=%u "   
-   "AND Job.JobType='R'";
+   "AND Job.Type='R'";
 
 
 

@@ -410,9 +410,7 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
    strcpy(query, cnt_DelCand);
    Dmsg1(100, "select sql=%s\n", query);
    if (!db_sql_query(ua->db, query, count_handler, (void *)&cnt)) {
-      if (ua->verbose) {
-         bsendmsg(ua, "%s", db_strerror(ua->db));
-      }
+      bsendmsg(ua, "%s", db_strerror(ua->db));
       Dmsg0(050, "Count failed\n");
       goto bail_out;
    }
@@ -444,7 +442,9 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
       Mmsg(&query, select_verify_del, ed1, cr.ClientId);
       break;
    }
-   db_sql_query(ua->db, query, job_delete_handler, (void *)&del);
+   if (!db_sql_query(ua->db, query, job_delete_handler, (void *)&del)) {
+      bsendmsg(ua, "%s", db_strerror(ua->db));
+   }
 
    /* 
     * OK, now we have the list of JobId's to be pruned, first check
@@ -455,16 +455,22 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
       Dmsg1(050, "Delete JobId=%d\n", del.JobId[i]);
       if (!del.PurgedFiles[i]) {
 	 Mmsg(&query, del_File, del.JobId[i]);
-	 db_sql_query(ua->db, query, NULL, (void *)NULL);
+	 if (!db_sql_query(ua->db, query, NULL, (void *)NULL)) {
+            bsendmsg(ua, "%s", db_strerror(ua->db));
+	 }
          Dmsg1(050, "Del sql=%s\n", query);
       }
 
       Mmsg(&query, del_Job, del.JobId[i]);
-      db_sql_query(ua->db, query, NULL, (void *)NULL);
+      if (!db_sql_query(ua->db, query, NULL, (void *)NULL)) {
+         bsendmsg(ua, "%s", db_strerror(ua->db));
+      }
       Dmsg1(050, "Del sql=%s\n", query);
 
       Mmsg(&query, del_JobMedia, del.JobId[i]);
-      db_sql_query(ua->db, query, NULL, (void *)NULL);
+      if (!db_sql_query(ua->db, query, NULL, (void *)NULL)) {
+         bsendmsg(ua, "%s", db_strerror(ua->db));
+      }
       Dmsg1(050, "Del sql=%s\n", query);
    }
    bsendmsg(ua, _("Pruned %d %s for client %s from catalog.\n"), del.num_ids,

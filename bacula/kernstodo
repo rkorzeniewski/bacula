@@ -12,6 +12,7 @@ Testing to do: (painful)
 - blocksize recognition code.
 
 For 1.28 release:
+- Look at ua_prune.c in detail. Why did JobType work at all??????
 - Implement FileOptions (see end of this document)
 - Make hash table for linked files in findlib/find_one.c:161
 - Make bcopy read through bad tape records.

@@ -9411,6 +9411,9 @@ ac_given_INSTALL="$INSTALL"
 
 trap 'rm -fr `echo "autoconf/Make.common \
 	   Makefile \
+	   rescue/Makefile \
+	   rescue/linux/Makefile \
+	   rescue/freebsd/Makefile \
 	   scripts/startmysql \
 	   scripts/stopmysql \
 	   scripts/btraceback \
@@ -9664,6 +9667,9 @@ cat >> $CONFIG_STATUS <<EOF
 
 CONFIG_FILES=\${CONFIG_FILES-"autoconf/Make.common \
 	   Makefile \
+	   rescue/Makefile \
+	   rescue/linux/Makefile \
+	   rescue/freebsd/Makefile \
 	   scripts/startmysql \
 	   scripts/stopmysql \
 	   scripts/btraceback \

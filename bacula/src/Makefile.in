@@ -14,18 +14,10 @@ topdir = ..
 # this dir relative to top dir
 thisdir = src
 
-DEBUG=-DDEBUG_STRICT @DEBUG@
 
 first_rule: all
 dummy:
 
-#
-# these are the objects that are changed by the .configure process
-EXTRAOBJS = @OBJLIST@
-
-# it's ``be kind to gmake week''
-#EXTPROS = $(SRCS:S,.c,.extpro,)
-EXTPROS = 
 
 .SUFFIXES:	.c .o
 .PHONY:

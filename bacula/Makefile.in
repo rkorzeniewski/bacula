@@ -17,7 +17,8 @@ dummy:
 
 subdirs = src scripts doc src/lib src/findlib src/cats \
 	  @READLINE_SRC@ src/console src/dird src/filed \
-	  src/stored @GNOME_DIR@ src/tools
+	  src/stored @GNOME_DIR@ src/tools \
+	  rescue rescue/linux
 
 FDsubdirs = src/lib src/findlib src/filed
 

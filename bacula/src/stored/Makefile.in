@@ -81,6 +81,10 @@ all: Makefile bacula-sd bls bextract bscan btape bcopy
 bacula-sd: $(SVROBJS) ../lib/libbac.a
 	$(CXX) $(LDFLAGS) $(SD_LDFLAGS) -L../lib -o $@ $(SVROBJS) $(FDLIBS) -lbac -lm $(LIBS) $(DLIB)
 
+static-bacula-sd: $(SVROBJS) ../lib/libbac.a
+	$(CXX) $(LDFLAGS) $(SD_LDFLAGS) -L../lib -o $@ $(SVROBJS) $(FDLIBS) -lbac -lm $(LIBS) $(DLIB)
+	strip $@
+
 btape:	$(TAPEOBJS) ../lib/libbac.a ../cats/libsql.a
 	$(CXX) $(TTOOL_LDFLSGS) $(LDFLAGS) -L../lib -L../cats  -o $@ $(TAPEOBJS) -lsql $(LIBS) $(DLIB) -lbac -lm
 

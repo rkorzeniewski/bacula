@@ -47,6 +47,12 @@ console: $(CONSOBJS) ../lib/libbac.a ../cats/libsql.a
 	$(CXX) $(LDFLAGS) $(CONS_LDFLAGS) -L../lib -L../cats -o $@ $(CONSOBJS) \
 	      $(LIBS) $(DLIB) $(CONS_LIBS) -lbac -lsql -lm
 
+static-console: $(CONSOBJS) ../lib/libbac.a ../cats/libsql.a
+	$(CXX) $(LDFLAGS) $(CONS_LDFLAGS) -L../lib -L../cats -o $@ $(CONSOBJS) \
+	      $(LIBS) $(DLIB) $(CONS_LIBS) -lbac -lsql -lm
+	strip $@
+
+
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	cd $(topdir) \
 	  && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status

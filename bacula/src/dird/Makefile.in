@@ -68,6 +68,12 @@ bacula-dir:  $(SVROBJS) ../lib/libbac.a ../cats/libsql.a ../findlib/libfind.a
 	$(CXX) $(LDFLAGS) $(DIR_LDFLAGS) -L../lib -L../cats -L../findlib -o $@ $(SVROBJS) \
 	      -lsql -lbac -lfind -lm $(LIBS) $(DLIB) $(DB_LIBS)
 
+static-bacula-dir:  $(SVROBJS) ../lib/libbac.a ../cats/libsql.a ../findlib/libfind.a
+	$(CXX) $(LDFLAGS) $(DIR_LDFLAGS) -L../lib -L../cats -L../findlib -o $@ $(SVROBJS) \
+	      -lsql -lbac -lfind -lm $(LIBS) $(DLIB) $(DB_LIBS)
+	strip $@
+
+
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	cd $(topdir) \
 	  && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
