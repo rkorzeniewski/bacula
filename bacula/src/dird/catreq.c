@@ -59,7 +59,7 @@ static char OK_media[] = "1000 OK VolName=%s VolJobs=%u VolFiles=%u"
    " VolBlocks=%u VolBytes=%s VolMounts=%u VolErrors=%u VolWrites=%u"
    " MaxVolBytes=%s VolCapacityBytes=%s VolStatus=%s Slot=%d"
    " MaxVolJobs=%u MaxVolFiles=%u InChanger=%d VolReadTime=%s"
-   " VolWriteTime=%s\n";
+   " VolWriteTime=%s EndFile=%u EndBlock=%u\n";
 
 static char OK_create[] = "1000 OK CreateJobMedia\n";
 
@@ -80,7 +80,8 @@ static int send_volume_info_to_storage_daemon(JCR *jcr, BSOCK *sd, MEDIA_DBR *mr
       mr->VolStatus, mr->Slot, mr->MaxVolJobs, mr->MaxVolFiles,
       mr->InChanger,
       edit_uint64(mr->VolReadTime, ed4),
-      edit_uint64(mr->VolWriteTime, ed5));
+      edit_uint64(mr->VolWriteTime, ed5),
+      mr->EndFile, mr->EndBlock);
    unbash_spaces(mr->VolumeName);
    Dmsg2(200, "Vol Info for %s: %s", jcr->Job, sd->msg);
    return stat;
