@@ -32,6 +32,7 @@
 extern char my_name[];
 extern int num_jobs_run;
 extern time_t daemon_start_time;
+extern bool get_trace(void);
 
 /* Forward referenced functions */
 static void  list_terminated_jobs(void sendit(const char *msg, int len, void *sarg), void *arg);
@@ -91,11 +92,9 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
 	    edit_uint64_with_commas(sm_max_bytes, b2),
 	    edit_uint64_with_commas(sm_buffers, b3),
 	    edit_uint64_with_commas(sm_max_buffers, b4));
-       sendit(msg, len, arg);
-    }
-   if (debug_level > 0) {
-      len = Mmsg(msg, _(" Sizeof: off_t=%d size_t=%d\n"), sizeof(off_t),
-	    sizeof(size_t));
+      sendit(msg, len, arg);
+      len = Mmsg(msg, _(" Sizeof: off_t=%d size_t=%d debug=%d trace=%d\n"), 
+	    sizeof(off_t), sizeof(size_t), debug_level, get_trace());
       sendit(msg, len, arg);
    }
 
@@ -298,18 +297,18 @@ int qstatus_cmd(JCR *jcr)
       bnet_fsend(dir, OKqstatus, time);
       lock_jcr_chain();
       foreach_jcr(njcr) {
-         if (njcr->JobId != 0) {
-            bnet_fsend(dir, DotStatusJob, njcr->JobId, njcr->JobStatus, njcr->JobErrors);
-         }
-         free_locked_jcr(njcr);
+	 if (njcr->JobId != 0) {
+	    bnet_fsend(dir, DotStatusJob, njcr->JobId, njcr->JobStatus, njcr->JobErrors);
+	 }
+	 free_locked_jcr(njcr);
       }
       unlock_jcr_chain();
    }
    else if (strcmp(time, "last") == 0) {
       bnet_fsend(dir, OKqstatus, time);
       if ((last_jobs) && (last_jobs->size() > 0)) {
-         job = (s_last_job*)last_jobs->last();
-         bnet_fsend(dir, DotStatusJob, job->JobId, job->JobStatus, job->Errors);
+	 job = (s_last_job*)last_jobs->last();
+	 bnet_fsend(dir, DotStatusJob, job->JobId, job->JobStatus, job->Errors);
       }
    }
    else {

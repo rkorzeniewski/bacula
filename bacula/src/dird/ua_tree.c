@@ -451,8 +451,8 @@ static int lsmarkcmd(UAContext *ua, TREE_CTX *tree)
 
 
 
-extern char *getuser(uid_t uid);
-extern char *getgroup(gid_t gid);
+extern char *getuser(uid_t uid, char *name, int len);
+extern char *getgroup(gid_t gid, char *name, int len);
 
 /*
  * This is actually the long form used for "dir"
@@ -462,12 +462,14 @@ static void ls_output(char *buf, const char *fname, const char *tag, struct stat
    char *p;
    const char *f;
    char ec1[30];
+   char en1[30], en2[30];
    int n;
 
    p = encode_mode(statp->st_mode, buf);
    n = sprintf(p, "  %2d ", (uint32_t)statp->st_nlink);
    p += n;
-   n = sprintf(p, "%-8.8s %-8.8s", getuser(statp->st_uid), getgroup(statp->st_gid));
+   n = sprintf(p, "%-8.8s %-8.8s", getuser(statp->st_uid, en1, sizeof(en1)),
+	       getgroup(statp->st_gid, en2, sizeof(en2)));
    p += n;
    n = sprintf(p, "%8.8s  ", edit_uint64(statp->st_size, ec1));
    p += n;

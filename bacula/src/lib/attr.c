@@ -171,8 +171,8 @@ void build_attr_output_fnames(JCR *jcr, ATTR *attr)
    }
 }
 
-extern char *getuser(uid_t uid);
-extern char *getgroup(gid_t gid);
+extern char *getuser(uid_t uid, char *name, int len);
+extern char *getgroup(gid_t gid, char *name, int len);
 
 /*
  * Print an ls style message, also send M_RESTORED
@@ -181,11 +181,13 @@ void print_ls_output(JCR *jcr, ATTR *attr)
 {
    char buf[5000]; 
    char ec1[30];
+   char en1[30], en2[30];
    char *p, *f;
 
    p = encode_mode(attr->statp.st_mode, buf);
    p += sprintf(p, "  %2d ", (uint32_t)attr->statp.st_nlink);
-   p += sprintf(p, "%-8.8s %-8.8s", getuser(attr->statp.st_uid), getgroup(attr->statp.st_gid));
+   p += sprintf(p, "%-8.8s %-8.8s", getuser(attr->statp.st_uid, en1, sizeof(en1)),
+		getgroup(attr->statp.st_gid, en2, sizeof(en2)));
    p += sprintf(p, "%8.8s ", edit_uint64(attr->statp.st_size, ec1));
    p = encode_time(attr->statp.st_ctime, p);
    *p++ = ' ';

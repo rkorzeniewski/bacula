@@ -816,6 +816,11 @@ void set_trace(int trace_flag)
    }
 }
 
+bool get_trace(void)
+{
+   return trace;
+}
+
 /*********************************************************************
  *
  *  This subroutine prints a message regardless of the debug level

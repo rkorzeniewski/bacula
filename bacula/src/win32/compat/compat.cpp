@@ -284,6 +284,9 @@ stat2(const char *file, struct stat *sb)
     sb->st_ino <<= 32;
     sb->st_ino |= info.nFileIndexLow;
     sb->st_nlink = (short)info.nNumberOfLinks;
+    if (sb->st_nlink > 1) {
+       d_msg(__FILE__, __LINE__, 99,  "st_nlink=%d\n", sb->st_nlink);
+    }
 
     sb->st_mode = 0777;               /* start with everything */
     if (info.dwFileAttributes & FILE_ATTRIBUTE_READONLY)
@@ -1173,7 +1176,7 @@ utime(const char *fname, struct utimbuf *times)
     if (h == INVALID_HANDLE_VALUE) {
         const char *err = errorString();
         d_msg(__FILE__, __LINE__, 99,
-              "Cannot open file for utime(%s,...):%s\n", tmpbuf, err);
+              "Cannot open file \"%s\" for utime(): ERR=%s", tmpbuf, err);
         LocalFree((void *)err);
         errno = b_errno_win32;
         return -1;

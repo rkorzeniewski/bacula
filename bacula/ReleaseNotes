@@ -24,7 +24,9 @@ Major Changes:
   to files written to an alternate directory (i.e. using a where=).
 - Certain open files (Word for example) can now be saved on
   Win32 systems.
-- Default for Wild-cards on Win32 systems is to fold case.
+- Default for Wild-cards on Win32 systems is to fold case this       
+  should correct most of the problems users are having with
+  exclusion on Win32.
 
 New Directives:
 - Added "Rerun Failed levels = yes/no" in the Job resource

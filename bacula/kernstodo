@@ -11,6 +11,12 @@ Version 1.35                Kern (see below)
 ========================================================
 
 1.35 Items to do for release:
+- Remove documentation for readline.
+- Add File indexes as suggested by Martin -- modify update
+  scripts to add them.
+- Modify postgresql update script to remove bigint FilenameId           
+  reference.
+  
 
 Maybe for 1.35:
 - Add Pool/Storage override regression test.
@@ -1370,4 +1376,3 @@ Block Position: 0
 - Document a get out of jail procedure if everything breaks if 
   you lost/broke the Catalog -- do the same for "I know my
   file is there how do I get it back?".
-
