@@ -1,7 +1,57 @@
 
           Release Notes for Bacula 1.34.2
 
-  Bacula code: Total files = 345 Total lines = 99,835 (*.h *.c *.in)
+  Bacula code: Total files = 364 Total lines = 102,925 (*.h *.c *.in)
+
+Changes for 1.34.3:
+Major Features:
+- Implemented and documented the first cut of the new FileSet directives.
+  The first cut permits using wild-card matches for including files in
+  addition to excluding files.    
+- The Windows rescue procedure is confirmed for WinXP/2K (probably not NT).
+- Modification of the PostgreSQL database creation scripts to improve
+  performance by removing foreign keys.
+- Use trasactions on PostgreSQL to improve performance.
+- Restore jobs will now not start until they can get exclusive use
+  of the Storage daemon Device previously they erred.
+- Permit execution of more kinds of Win32 files with ClientRunxxxJob.
+  If an absolute path is specified, the filename must contain the correct
+  extention.
+
+Items to note!!!!
+- If you are upgrading from 1.32, please be sure to see the database
+  upgrade procedure under the 1.34.0 notes.
+- Although the daemons are compatible for all 1.34.2 features,
+  the new FileSet directives are not compatible with 1.34.2 daemons.
+- Fixed several query.sql bugs.
+- The behavior of the hourly, daily, weekly, and monthly keywords in
+  the Run directive have been changed to be more logical -- they only
+  affect the one item mentioned rather than all items.
+
+Other items:
+- The wx-console has had significant improvements.
+- Upgraded to latest autoconf files.
+- Added BaculaRoadmap_v1.1.pdf in doc directory
+- Fixed a crash in the btape "fill" command.
+- Added a new alpha directory to platforms -- first cut.
+- The mtx-changer script was broken in 1.34.2 -- it is now fixed.
+- Pass all arguments on database creation scripts.
+- I finally found and fixed the bug that in some cases required a double
+  mount to get Bacula to look at the tape again.
+- Thanks to user input corrected (I think) the negative values that
+  sometimes occurred in the spooling statistics.
+- Fixed several bsmpt bugs thanks to user input.
+- Added user supplied code to read the Directors's conf file in dbcheck so
+  that remote databases could be contacted as well as the working directory
+  and other catalog parameters obtained.
+
+
+
+
+
+
+
+
 
 Changes for 1.34.2:
 Major Features:

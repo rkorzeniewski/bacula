@@ -250,11 +250,19 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
       } else {
 	 ff_pkt->type = FT_DIRBEGIN;
       }
-      /* Send off Directory packet now */
+      /* 
+       * Note, we return the directory to the calling program (handle_file)
+       * when we first see the directory (FT_DIRBEGIN. 
+       * This allows the program to apply matches and make a
+       * choice whether or not to accept it.  If it is accepted, we
+       * do not immediately save it, but do so only after everything
+       * in the directory is seen (i.e. the FT_DIREND).
+       */
       if (!handle_file(ff_pkt, pkt)) {
 	 free(link);
 	 return 0;		      /* Do not save this directory */
       }
+      /* Done with DIRBEGIN, next call will be DIREND */
       if (ff_pkt->type == FT_DIRBEGIN) {
 	 ff_pkt->type = FT_DIREND;
       }
