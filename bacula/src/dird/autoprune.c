@@ -122,7 +122,7 @@ int prune_volumes(JCR *jcr)
    pr.PoolId = jcr->PoolId;
    if (!db_get_pool_record(jcr->db, &pr) || !db_get_media_ids(jcr->db, &num_ids, &ids)) {
       Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
-      goto rtn;
+      goto bail_out;
    }
 
 
@@ -144,7 +144,8 @@ int prune_volumes(JCR *jcr)
       stat += prune_volume(&ua, &pr, &mr); 
       Dmsg1(200, "Num pruned = %d\n", stat);
    }   
-rtn:
+
+bail_out:
    db_unlock(jcr->db);
    free_ua_context(&ua);
    if (ids) {

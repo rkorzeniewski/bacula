@@ -129,7 +129,7 @@ struct s_jcr {
    uint32_t PoolId;                   /* Pool record id */
    FileId_t FileId;                   /* Last file id inserted */
    uint32_t FileIndex;                /* Last FileIndex processed */
-   char *fname;                       /* name to put into catalog */
+   POOLMEM *fname;                    /* name to put into catalog */
    int fn_printed;                    /* printed filename */
    char *stime;                       /* start time for incremental/differential */
    JOB_DBR jr;                        /* Job record in Database */

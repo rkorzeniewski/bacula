@@ -510,6 +510,10 @@ static int db_create_file_record(B_DB *mdb, ATTR_DBR *ar)
 {
    int stat;
 
+   ASSERT(ar->JobId);
+   ASSERT(ar->PathId);
+   ASSERT(ar->FilenameId);
+
    db_lock(mdb);
    /* Must create it */
    Mmsg(&mdb->cmd,
@@ -535,8 +539,6 @@ LStat, MD5) VALUES (%d, %d, %d, %d, \"%s\", \"0\")",
 static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar, char *path)
 {
    SQL_ROW row;
-   static uint32_t cached_id = 0;
-   static char cached_path[MAXSTRING];
    int stat;
 
    if (*path == 0) {
@@ -547,11 +549,11 @@ static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar, char *path)
 
    db_lock(mdb);
 
-   if (cached_id != 0 && strcmp(cached_path, path) == 0) {
-      ar->PathId = cached_id;
+   if (mdb->cached_path_id != 0 && strcmp(mdb->cached_path, path) == 0) {
+      ar->PathId = mdb->cached_path_id;
       db_unlock(mdb);
       return 1;
-   }
+   }	      
 
    Mmsg(&mdb->cmd, "SELECT PathId FROM Path WHERE Path=\"%s\"", path);
 
@@ -576,10 +578,12 @@ static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar, char *path)
 	 }
 	 sql_free_result(mdb);
 	 ar->PathId = atoi(row[0]);
-	 if (ar->PathId != cached_id) {
-	    cached_id = ar->PathId;
-	    strncpy(cached_path, path, sizeof(cached_path));
-	    cached_path[sizeof(cached_path)-1] = 0;
+	 /* Cache path */
+	 if (ar->PathId != mdb->cached_path_id) {
+	    mdb->cached_path_id = ar->PathId;
+	    mdb->cached_path = check_pool_memory_size(mdb->cached_path,
+	       strlen(path)+1);
+	    strcpy(mdb->cached_path, path);
 	 }
 	 db_unlock(mdb);
 	 return 1;
@@ -600,10 +604,12 @@ static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar, char *path)
       stat = 1;
    }
 
-   if (ar->PathId != cached_id) {
-      cached_id = ar->PathId;
-      strncpy(cached_path, path, sizeof(cached_path));
-      cached_path[sizeof(cached_path)-1] = 0;
+   /* Cache path */
+   if (ar->PathId != mdb->cached_path_id) {
+      mdb->cached_path_id = ar->PathId;
+      mdb->cached_path = check_pool_memory_size(mdb->cached_path,
+	 strlen(path)+1);
+      strcpy(mdb->cached_path, path);
    }
    db_unlock(mdb);
    return stat;
@@ -613,7 +619,6 @@ static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar, char *path)
 static int db_create_filename_record(B_DB *mdb, ATTR_DBR *ar, char *fname) 
 {
    SQL_ROW row;
-   int stat;
 
    db_lock(mdb);
    Mmsg(&mdb->cmd, "SELECT FilenameId FROM Filename WHERE Name=\"%s\"", fname);
@@ -630,15 +635,13 @@ static int db_create_filename_record(B_DB *mdb, ATTR_DBR *ar, char *fname)
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
             Mmsg2(&mdb->errmsg, _("error fetching row for file=%s: ERR=%s\n"), 
 		fname, sql_strerror(mdb));
-	    sql_free_result(mdb);
-	    db_unlock(mdb);
 	    ar->FilenameId = 0;
-	    return 0;
+	 } else {
+	    ar->FilenameId = atoi(row[0]);
 	 }
 	 sql_free_result(mdb);
-	 ar->FilenameId = atoi(row[0]);
 	 db_unlock(mdb);
-	 return 1;
+	 return ar->FilenameId > 0;
       }
       sql_free_result(mdb);
    }
@@ -650,14 +653,12 @@ VALUES (\"%s\")", fname);
       Mmsg2(&mdb->errmsg, _("Create db Filename record %s failed. ERR=%s\n"), 
 	    mdb->cmd, sql_strerror(mdb));
       ar->FilenameId = 0;
-      stat = 0;
    } else {
       ar->FilenameId = sql_insert_id(mdb);
-      stat = 1;
    }
 
    db_unlock(mdb);
-   return stat;
+   return ar->FilenameId > 0;
 }
 
 #endif /* HAVE_MYSQL || HAVE_SQLITE */

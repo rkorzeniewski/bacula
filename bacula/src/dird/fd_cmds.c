@@ -212,6 +212,7 @@ msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
        }
 
        if (stream == STREAM_UNIX_ATTRIBUTES) {
+	  jcr->jr.JobFiles++;
 	  len = strlen(fd->msg);      /* length before attributes */
 	  ar.attr = &fd->msg[len+1];
 	  ar.fname = jcr->fname;

@@ -74,7 +74,7 @@ int db_get_file_attributes_record(B_DB *mdb, char *fname, FILE_DBR *fdbr)
    char file[MAXSTRING];
    char spath[MAXSTRING];
    char buf[MAXSTRING];
-   Dmsg0(20, "get_file_from_catalog\n");
+   Dmsg1(20, "Enter get_file_from_catalog fname=%s \n", fname);
 
    /* Find path without the filename */
    for (p=l=fname; *p; p++) {
@@ -109,7 +109,7 @@ int db_get_file_attributes_record(B_DB *mdb, char *fname, FILE_DBR *fdbr)
 
    db_escape_string(buf, spath, pnl);
    fdbr->PathId = db_get_path_record(mdb, buf);
-   Dmsg1(50, "db_get_path_record PathId=%d\n", fdbr->PathId);
+   Dmsg2(50, "db_get_path_record PathId=%d path=%s\n", fdbr->PathId, buf);
 
    id = db_get_file_record(mdb, fdbr);
 
@@ -133,9 +133,15 @@ int db_get_file_record(B_DB *mdb, FILE_DBR *fdbr)
 "SELECT FileId, LStat, MD5 from File where File.JobId=%d and File.PathId=%d and \
 File.FilenameId=%d", fdbr->JobId, fdbr->PathId, fdbr->FilenameId);
 
+   Dmsg3(050, "Get_file_record JobId=%d FilenameId=%d PathId=%d\n",
+      fdbr->JobId, fdbr->FilenameId, fdbr->PathId);
+      
+   Dmsg1(100, "Query=%s\n", mdb->cmd);
+
    if (QUERY_DB(mdb, mdb->cmd)) {
 
       mdb->num_rows = sql_num_rows(mdb);
+      Dmsg1(050, "get_file_record num_rows=%d\n", (int)mdb->num_rows);
 
       /* 
        * Note, we can find more than one File record with the same
@@ -143,7 +149,7 @@ File.FilenameId=%d", fdbr->JobId, fdbr->PathId, fdbr->FilenameId);
        */
       if (mdb->num_rows > 1) {
          Emsg1(M_WARNING, 0, _("get_file_record want 1 got rows=%d\n"), mdb->num_rows);
-         Emsg1(M_ERROR, 0, "%s\n", mdb->cmd);
+         Emsg1(M_ERROR, 0, "%s", mdb->cmd);
       }
       if (mdb->num_rows >= 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
@@ -171,7 +177,7 @@ File.FilenameId=%d", fdbr->JobId, fdbr->PathId, fdbr->FilenameId);
 static int db_get_filename_record(B_DB *mdb, char *fname) 
 {
    SQL_ROW row;
-   int FilenameId;
+   int FilenameId = 0;
 
    if (*fname == 0) {
       Mmsg0(&mdb->errmsg, _("Null name given to db_get_filename_record\n"));
@@ -186,25 +192,27 @@ static int db_get_filename_record(B_DB *mdb, char *fname)
 
       if (mdb->num_rows > 1) {
          Mmsg1(&mdb->errmsg, _("More than one Filename!: %d\n"), (int)(mdb->num_rows));
-      } else if (mdb->num_rows == 1) {
+         Emsg1(M_WARNING, 0, _("get_filename_record want 1 got rows=%d\n"), mdb->num_rows);
+         Emsg1(M_ERROR, 0, "%s", mdb->errmsg);
+      }
+      if (mdb->num_rows >= 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
             Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
-	    FilenameId = 0;
+            Emsg1(M_ERROR, 0, "%s", mdb->errmsg);
 	 } else {
 	    FilenameId = atoi(row[0]);
 	    if (FilenameId <= 0) {
-               Mmsg2(&mdb->errmsg, _("Create db Filename record %s found bad record: %d\n"),
+               Mmsg2(&mdb->errmsg, _("Get DB Filename record %s found bad record: %d\n"),
 		  mdb->cmd, FilenameId); 
+               Emsg1(M_ERROR, 0, "%s", mdb->errmsg);
+	       FilenameId = 0;
 	    }
 	 }
-	 sql_free_result(mdb);
-	 db_unlock(mdb);
-	 return FilenameId;
       }
       sql_free_result(mdb);
    }
    db_unlock(mdb);
-   return 0;			      /* failed */
+   return FilenameId;
 }
 
 /* Get path record   
@@ -215,18 +223,18 @@ static int db_get_path_record(B_DB *mdb, char *path)
 {
    SQL_ROW row;
    uint32_t PathId = 0;
-   /*******FIXME***** move into mdb record and allocate */
-   static uint32_t cached_id = 0;
-   static char cached_path[MAXSTRING];
 
    if (*path == 0) {
       Emsg0(M_ABORT, 0, _("Null path given to db_get_path_record\n"));
    }
-   if (cached_id != 0 && strcmp(cached_path, path) == 0) {
-      return cached_id;
-   }	      
 
    db_lock(mdb);
+
+   if (mdb->cached_path_id != 0 && strcmp(mdb->cached_path, path) == 0) {
+      db_unlock(mdb);
+      return mdb->cached_path_id;
+   }	      
+
    Mmsg(&mdb->cmd, "SELECT PathId FROM Path WHERE Path=\"%s\"", path);
 
    if (QUERY_DB(mdb, mdb->cmd)) {
@@ -241,17 +249,25 @@ static int db_get_path_record(B_DB *mdb, char *path)
             Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
 	 } else {
 	    PathId = atoi(row[0]);
-	    /* Cache path if it will fit in our static buffer */
-	    if (PathId != cached_id && strlen(path) < sizeof(cached_path)+2) {
-	       cached_id = PathId;
-	       strcpy(cached_path, path);
+	    if (PathId <= 0) {
+               Mmsg2(&mdb->errmsg, _("Get DB path record %s found bad record: %d\n"),
+		  mdb->cmd, PathId); 
+	       PathId = 0;
+	    } else {
+	       /* Cache path */
+	       if (PathId != mdb->cached_path_id) {
+		  mdb->cached_path_id = PathId;
+		  mdb->cached_path = check_pool_memory_size(mdb->cached_path,
+		     strlen(path)+1);
+		  strcpy(mdb->cached_path, path);
+	       }
 	    }
 	 }
       }
       sql_free_result(mdb);
    }
    db_unlock(mdb);
-   return 0;			      /* failed */
+   return PathId;
 }
 
 

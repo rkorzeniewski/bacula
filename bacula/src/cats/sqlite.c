@@ -81,6 +81,8 @@ db_init_database(char *db_name, char *db_user, char *db_password)
    mdb->errmsg = get_pool_memory(PM_EMSG); /* get error message buffer */
    *mdb->errmsg = 0;
    mdb->cmd = get_pool_memory(PM_EMSG);    /* get command buffer */
+   mdb->cached_path = get_pool_memory(PM_FNAME);
+   mdb->cached_path_id = 0;
    mdb->ref_count = 1;
    qinsert(&db_list, &mdb->bq); 	   /* put db in list */
    V(mutex);
@@ -171,6 +173,7 @@ db_close_database(B_DB *mdb)
       rwl_destroy(&mdb->lock);	     
       free_pool_memory(mdb->errmsg);
       free_pool_memory(mdb->cmd);
+      free_pool_memory(mdb->cached_path);
       if (mdb->db_name) {
 	 free(mdb->db_name);
       }

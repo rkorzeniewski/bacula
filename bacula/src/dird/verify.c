@@ -73,8 +73,7 @@ int do_verify(JCR *jcr)
    int last_full_id;
 
    if (!get_or_create_client_record(jcr)) {
-      verify_cleanup(jcr, JS_ErrorTerminated);			  
-      return 0;
+      goto bail_out;
    }
 
    Dmsg1(9, "bdird: created client %s record\n", jcr->client->hdr.name);
@@ -88,8 +87,7 @@ int do_verify(JCR *jcr)
       if (!db_find_last_full_verify(jcr->db, &jr)) {
          Jmsg(jcr, M_FATAL, 0, _("Unable to find last full verify. %s"),
 	    db_strerror(jcr->db));
-	 verify_cleanup(jcr, JS_ErrorTerminated);		     
-	 return 0;
+	 goto bail_out;
       }
       last_full_id = jr.JobId;
       Dmsg1(20, "Last full id=%d\n", last_full_id);
@@ -100,8 +98,7 @@ int do_verify(JCR *jcr)
    jcr->jr.Level = jcr->level;
    if (!db_update_job_start_record(jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
-      verify_cleanup(jcr, JS_ErrorTerminated);			  
-      return 0;
+      goto bail_out;
    }
 
    if (!jcr->fname) {
@@ -119,8 +116,7 @@ int do_verify(JCR *jcr)
       jr.JobId = last_full_id;
       if (!db_get_job_record(jcr->db, &jr)) {
          Jmsg(jcr, M_ERROR, 0, _("Could not get job record. %s"), db_strerror(jcr->db));
-	 verify_cleanup(jcr, JS_ErrorTerminated);		     
-	 return 0;
+	 goto bail_out;
       }
       Jmsg(jcr, M_INFO, 0, _("Verifying against Init JobId %d run %s\n"),
 	 last_full_id, jr.cStartTime); 
@@ -132,22 +128,19 @@ int do_verify(JCR *jcr)
     */
    jcr->sd_auth_key = bstrdup("dummy");    /* dummy Storage daemon key */
    if (!connect_to_file_daemon(jcr, 10, FDConnectTimeout, 1)) {
-      verify_cleanup(jcr, JS_ErrorTerminated);			  
-      return 0;
+      goto bail_out;
    }
 
    fd = jcr->file_bsock;
 
    Dmsg0(30, ">filed: Send include list\n");
    if (!send_include_list(jcr)) {
-      verify_cleanup(jcr, JS_ErrorTerminated);			  
-      return 0;
+      goto bail_out;
    }
 
    Dmsg0(30, ">filed: Send exclude list\n");
    if (!send_exclude_list(jcr)) {
-      verify_cleanup(jcr, JS_ErrorTerminated);			  
-      return 0;
+      goto bail_out;
    }
 
    /* 
@@ -169,14 +162,12 @@ int do_verify(JCR *jcr)
 	 break;
       default:
          Jmsg1(jcr, M_FATAL, 0, _("Unimplemented save level %d\n"), jcr->level);
-	 verify_cleanup(jcr, JS_ErrorTerminated);		     
-	 return 0;
+	 goto bail_out;
    }
    Dmsg1(20, ">filed: %s", fd->msg);
    bnet_fsend(fd, levelcmd, level, " ");
    if (!response(fd, OKlevel, "Level")) {
-      verify_cleanup(jcr, JS_ErrorTerminated);			  
-      return 0;
+      goto bail_out;
    }
 
    /* 
@@ -184,8 +175,7 @@ int do_verify(JCR *jcr)
     */
    bnet_fsend(fd, verifycmd);
    if (!response(fd, OKverify, "Verify")) {
-      verify_cleanup(jcr, JS_ErrorTerminated);			  
-      return 0;
+      goto bail_out;
    }
 
    /*
@@ -194,23 +184,29 @@ int do_verify(JCR *jcr)
     *  catalog depending on the run type.
     */
    /* Compare to catalog */
-   if (jcr->level == L_VERIFY_CATALOG) {
+   switch (jcr->level) { 
+   case L_VERIFY_CATALOG:
       Dmsg0(10, "Verify level=catalog\n");
       get_attributes_and_compare_to_catalog(jcr, last_full_id);
+      break;
 
-   /* Build catalog */
-   } else if (jcr->level == L_VERIFY_INIT) {
+   case L_VERIFY_INIT:
+      /* Build catalog */
       Dmsg0(10, "Verify level=init\n");
       get_attributes_and_put_in_catalog(jcr);
+      break;
 
-   } else {
+   default:
       Jmsg1(jcr, M_FATAL, 0, _("Unimplemented save level %d\n"), jcr->level);
-      verify_cleanup(jcr, JS_ErrorTerminated);			  
-      return 0;
+      goto bail_out;
    }
 
    verify_cleanup(jcr, JS_Terminated);
    return 1;
+
+bail_out:
+   verify_cleanup(jcr, JS_Terminated);
+   return 0;
 }
 
 /*
@@ -296,7 +292,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, int last_full_id)
    struct stat statc;		      /* catalog stat */
    int stat = JS_Terminated;
    char buf[MAXSTRING];
-   char *fname = (char *)get_pool_memory(PM_MESSAGE);
+   POOLMEM *fname = get_pool_memory(PM_MESSAGE);
    int do_MD5 = FALSE;
 
    memset(&fdbr, 0, sizeof(FILE_DBR));
@@ -313,20 +309,20 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, int last_full_id)
       char *attr, *p;
       char Opts_MD5[MAXSTRING];        /* Verify Opts or MD5 signature */
 
-      fname = (char *)check_pool_memory_size(fname, fd->msglen);
-      jcr->fname = (char *)check_pool_memory_size(jcr->fname, fd->msglen);
+      fname = check_pool_memory_size(fname, fd->msglen);
+      jcr->fname = check_pool_memory_size(jcr->fname, fd->msglen);
       Dmsg1(50, "Atts+MD5=%s\n", fd->msg);
       if ((len = sscanf(fd->msg, "%ld %d %100s %s", &file_index, &stream, 
 	    Opts_MD5, fname)) != 4) {
          Jmsg3(jcr, M_FATAL, 0, _("bird<filed: bad attributes, expected 4 fields got %d\n\
  mslen=%d msg=%s\n"), len, fd->msglen, fd->msg);
-	 jcr->JobStatus = JS_ErrorTerminated;
-	 return 0;
+	 goto bail_out;
       }
       /*
        * Got attributes stream, decode it
        */
       if (stream == STREAM_UNIX_ATTRIBUTES) {
+	 jcr->jr.JobFiles++;
 	 attr_file_index = file_index;	  /* remember attribute file_index */
 	 len = strlen(fd->msg);
 	 attr = &fd->msg[len+1];
@@ -465,8 +461,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, int last_full_id)
 	 if (attr_file_index != file_index) {
             Jmsg2(jcr, M_FATAL, 0, _("MD5 index %d not same as attributes %d\n"),
 	       file_index, attr_file_index);
-	    jcr->JobStatus = JS_ErrorTerminated;
-	    return 0;
+	    goto bail_out;
 	 } 
 	 if (do_MD5) {
 	    db_escape_string(buf, Opts_MD5, strlen(Opts_MD5));
@@ -487,8 +482,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, int last_full_id)
    if (n < 0) {
       Jmsg2(jcr, M_FATAL, 0, _("bdird<filed: bad attributes from filed n=%d : %s\n"),
 			n, strerror(errno));
-      jcr->JobStatus = JS_ErrorTerminated;
-      return 0;
+      goto bail_out;
    }
 
    /* Now find all the files that are missing -- i.e. all files in
@@ -506,8 +500,14 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, int last_full_id)
    if (jcr->fn_printed) {
       stat = JS_Differences;
    }
+   free_pool_memory(fname);
    jcr->JobStatus = stat;
    return 1;
+    
+bail_out:
+   free_pool_memory(fname);
+   jcr->JobStatus = JS_ErrorTerminated;
+   return 0;
 }
 
 /*

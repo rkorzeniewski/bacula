@@ -158,11 +158,11 @@ static void job_thread(void *arg)
 	    break;
 	 case JT_VERIFY:
 	    do_verify(jcr);
-	    do_autoprune(jcr);
+//	    do_autoprune(jcr);
 	    break;
 	 case JT_RESTORE:
 	    do_restore(jcr);
-	    do_autoprune(jcr);
+//	    do_autoprune(jcr);
 	    break;
 	 case JT_ADMIN:
 	    /* No actual job */

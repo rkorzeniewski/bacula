@@ -113,6 +113,8 @@ typedef struct s_db {
    char *sqlite_errmsg;               /* error message returned by sqlite */
    POOLMEM *errmsg;                   /* nicely edited error message */
    POOLMEM *cmd;                      /* SQL command string */
+   POOLMEM *cached_path;
+   uint32_t cached_path_id;
 } B_DB;
 
 
@@ -174,6 +176,8 @@ typedef struct s_db {
    int connected;
    POOLMEM *errmsg;                   /* nicely edited error message */
    POOLMEM *cmd;                      /* SQL command string */
+   POOLMEM *cached_path;
+   uint32_t cached_path_id;
 } B_DB;
 
 
@@ -234,6 +238,8 @@ typedef struct s_db {
    char *db_name;                     /* name of database */
    POOLMEM *errmsg;                   /* nicely edited error message */
    POOLMEM *cmd;                      /* Command string */
+   POOLMEM *cached_path;
+   uint32_t cached_path_id;
 } B_DB;
 
 #endif /* HAVE_MYSQL */

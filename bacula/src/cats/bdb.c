@@ -122,6 +122,8 @@ db_init_database(char *db_name, char *db_user, char *db_password)
    *mdb->errmsg = 0;
    mdb->cmd = get_pool_memory(PM_EMSG);  /* command buffer */
    mdb->ref_count = 1;
+   mdb->cached_path = get_pool_memory(PM_FNAME);
+   mdb->cached_path_id = 0;
    qinsert(&db_list, &mdb->bq);       /* put db in list */
    Dmsg0(200, "Done db_open_database()\n");
    mdb->cfd = -1;
@@ -270,6 +272,7 @@ void db_close_database(B_DB *mdb)
       rwl_destroy(&mdb->lock);	     
       free_pool_memory(mdb->errmsg);
       free_pool_memory(mdb->cmd);
+      free_pool_memory(mdb->cached_path);
       free(mdb);
    }
    V(mutex);

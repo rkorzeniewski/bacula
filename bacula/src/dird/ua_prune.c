@@ -523,7 +523,7 @@ int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
    if (!db_sql_query(ua->db, query, count_handler, (void *)&cnt)) {
       bsendmsg(ua, "%s", db_strerror(ua->db));
       Dmsg0(050, "Count failed\n");
-      goto rtn;
+      goto bail_out;
    }
       
    if (cnt.count == 0) {
@@ -532,7 +532,7 @@ int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
 	    mr->VolumeName);
       }
       stat = mark_media_purged(ua, mr);
-      goto rtn;
+      goto bail_out;
    }
 
    if (cnt.count < MAX_DEL_LIST_LEN) {
@@ -550,7 +550,7 @@ int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
          bsendmsg(ua, "%s", db_strerror(ua->db));
       }
       Dmsg0(050, "Count failed\n");
-      goto rtn;
+      goto bail_out;
    }
 
    /* Use Volume Retention to prune Jobs and Files */
@@ -592,7 +592,7 @@ int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
       stat = mark_media_purged(ua, mr);
    }
 
-rtn:
+bail_out:
    db_unlock(ua->db);
    free_pool_memory(query);
    return stat;
