@@ -57,7 +57,7 @@ int cram_md5_auth(BSOCK *bs, char *password, int ssl_need)
       return 0;
    }
 
-   Dmsg1(99, "%s", bs->msg);
+   Dmsg1(99, "sent challenge: %s", bs->msg);
    if (bnet_wait_data(bs, 180) <= 0 || bnet_recv(bs) <= 0) {
       bmicrosleep(5, 0);
       return 0;
@@ -70,6 +70,7 @@ int cram_md5_auth(BSOCK *bs, char *password, int ssl_need)
    if (ok) {
       bnet_fsend(bs, "1000 OK auth\n");
    } else {
+      Dmsg1(100, "PW: %s\n", password);
       bnet_fsend(bs, "1999 Authorization failed.\n");
       bmicrosleep(5, 0);
    }
@@ -95,6 +96,7 @@ int cram_md5_get_auth(BSOCK *bs, char *password, int ssl_need)
    if (sscanf(mp_chr(bs->msg), "auth cram-md5 %s ssl=%d\n", chal, &ssl_has) != 2) {
       ssl_has = BNET_SSL_NONE;
       if (sscanf(mp_chr(bs->msg), "auth cram-md5 %s\n", chal) != 1) {
+         Dmsg1(100, "Cannot scan challenge: %s\n", bs->msg);
 	 bmicrosleep(5, 0);
 	 return 0;
       }
@@ -106,6 +108,7 @@ int cram_md5_get_auth(BSOCK *bs, char *password, int ssl_need)
    hmac_md5((uint8_t *)chal, strlen(chal), (uint8_t *)password, strlen(password), hmac);
    bs->msglen = bin_to_base64(mp_chr(bs->msg), (char *)hmac, 16) + 1;
    if (!bnet_send(bs)) {
+      Dmsg0(100, "Send response failed.\n");
       return 0;
    }
    Dmsg1(99, "sending resp to challenge: %s\n", bs->msg);
@@ -116,6 +119,7 @@ int cram_md5_get_auth(BSOCK *bs, char *password, int ssl_need)
    if (strcmp(mp_chr(bs->msg), "1000 OK auth\n") == 0) {
       return 1;
    }
+   Dmsg1(100, "PW: %s\n", password);
    bmicrosleep(5, 0);
    return 0;
 }

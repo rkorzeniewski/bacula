@@ -128,19 +128,20 @@ bnet_thread_server(char *bind_addr, int port, int max_clients, workq_t *client_w
        * Wait for a connection from a client process.
        */
       ready = sockset;
-      if ((stat = select(sockfd+1, &ready, NULL, NULL, NULL)) < 0) {
-	 if (errno == EINTR || errno == EAGAIN) {
-	    errno = 0;
-	    continue;
-	 }
+      do {
+	 errno = 0;
+	 stat = select(sockfd+1, &ready, NULL, NULL, NULL);	  
+      } while(stat == -1 && (errno == EINTR || errno == EAGAIN));
+      if (stat < 0) {
 	 close(sockfd);
          Emsg1(M_FATAL, 0, _("Error in select: %s\n"), strerror(errno));
 	 break;
       }
       do {
 	 clilen = sizeof(cli_addr);
+	 errno = 0;
 	 newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, &clilen);
-      } while (newsockfd < 0 && errno == EINTR);
+      } while (newsockfd < 0 && (errno == EINTR || errno == EAGAIN));
       if (newsockfd < 0) {
 	 continue;
       }
@@ -173,9 +174,13 @@ bnet_thread_server(char *bind_addr, int port, int max_clients, workq_t *client_w
          caller = "unknown client";
       }
 
+      BSOCK *bs = init_bsock(NULL, newsockfd, "client", caller, port);
+      if (bs == NULL) {
+         Jmsg0(NULL, M_ABORT, 0, _("Could not create client BSOCK.\n"));
+      }
+
       /* Queue client to be served */
-      if ((stat = workq_add(client_wq, 
-            (void *)init_bsock(NULL, newsockfd, "client", caller, port), NULL, 0)) != 0) {
+      if ((stat = workq_add(client_wq, (void *)bs, NULL, 0)) != 0) {
 	 V(mutex);
          Jmsg1(NULL, M_ABORT, 0, _("Could not add job to client queue: ERR=%s\n"), strerror(stat));
       }
