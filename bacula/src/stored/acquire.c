@@ -170,7 +170,7 @@ DEVICE * acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
        *    dir_find_next_appendable_volume
        */
       strcpy(jcr->VolumeName, dev->VolHdr.VolName);
-      if (!dir_get_volume_info(jcr, 1) ||
+      if (!dir_get_volume_info(jcr, 1) &&
 	  !(dir_find_next_appendable_volume(jcr) &&
 	    strcmp(dev->VolHdr.VolName, jcr->VolumeName) == 0)) { /* wrong tape mounted */
 	 if (dev->num_writers != 0) {

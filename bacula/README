@@ -29,6 +29,23 @@ To Configure it:
     --with-job-email=YOUR_EMAIL_ADDRESS \
     --with-smtp-host=YOUR_SMTP_SERVER_ADDRESS
 
+Note, if you do not have readline installed on your
+system, you either need to add:
+     
+     --disable-readline 
+
+or add:
+
+     --with-readline=$HOME/bacula/depkgs1/readline
+
+where I assume you have loaded depkgs1 into $HOME/bacula
+and built the readline routine.      
+
+If you want to use SQLite, please download depkgs and
+build sqlite, then add something like:
+
+    --with-sqlite=$HOME/depkgs/sqlite
+
 
 Build Bacula:
 

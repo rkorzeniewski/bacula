@@ -16,6 +16,11 @@ Testing to do: (painful)
 - multiple simultaneous Volumes
 
 For 1.30 release:
+- Add a section to the doc on Manual cycling
+- Look at purge jobs volume (at least document it, and see if it is
+  logical).
+- Add list volumes pool=*
+- Add pool= to "list media" in ua_output.c
 - Figure out some way to specify a retention period for files
   that no longer exist on the machine -- so that we maintain
   say backups for 30 days, but if the file is deleted, we maintain
@@ -871,4 +876,3 @@ Done: (see kernsdone for more)
   scheduled.
 - Implement TCP/IP connection for MySQL
 - Pull a canceled job from the Scheduling queue.
-

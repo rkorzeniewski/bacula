@@ -25,6 +25,9 @@ Using GNU autoconfig
         A typical Bacula development configuration for Linux is:
 
         CFLAGS="-g -Wall" ./configure --enable-smartalloc --enable-mysql
+
+        see README for a few additional details and the online manual
+        for all the gory details:  http://www.bacula.org/html-manual
           
 
   3.    set any other main preferences (normally, you don't do this):
