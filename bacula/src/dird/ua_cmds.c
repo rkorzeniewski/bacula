@@ -95,7 +95,7 @@ static struct cmdstruct commands[] = {
  { N_("estimate"),   estimate_cmd,  _("performs FileSet estimate, listing gives full listing")},
  { N_("exit"),       quit_cmd,      _("exit = quit")},
  { N_("help"),       help_cmd,      _("print this command")},
- { N_("list"),       list_cmd,      _("list [pools | jobs | jobtotals | media <pool> | files job=<nn>]; from catalog")},
+ { N_("list"),       list_cmd,      _("list [pools | jobs | jobtotals | media <pool> | files jobid=<nn>]; from catalog")},
  { N_("label"),      label_cmd,     _("label a tape")},
  { N_("llist"),      llist_cmd,     _("full or long list like list command")},
  { N_("messages"),   messagescmd,   _("messages")},

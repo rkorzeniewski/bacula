@@ -62,7 +62,7 @@ int db_delete_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr);
 /* find.c */
 int db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime);
 int db_find_last_jobid(JCR *jcr, B_DB *mdb, char *Name, JOB_DBR *jr);
-int db_find_next_volume(JCR *jcr, B_DB *mdb, int index, MEDIA_DBR *mr);
+int db_find_next_volume(JCR *jcr, B_DB *mdb, int index, bool InChanger, MEDIA_DBR *mr);
 
 /* get.c */
 int db_get_pool_record(JCR *jcr, B_DB *db, POOL_DBR *pdbr);

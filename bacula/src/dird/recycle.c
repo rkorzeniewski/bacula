@@ -55,10 +55,10 @@ static int oldest_handler(void *ctx, int num_fields, char **row)
 
 /* Forward referenced functions */
 
-int find_recycled_volume(JCR *jcr, MEDIA_DBR *mr)
+int find_recycled_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
 {
-   strcpy(mr->VolStatus, "Recycle");
-   if (db_find_next_volume(jcr, jcr->db, 1, mr)) {
+   bstrncpy(mr->VolStatus, "Recycle", sizeof(mr->VolStatus));
+   if (db_find_next_volume(jcr, jcr->db, 1, InChanger, mr)) {
       jcr->MediaId = mr->MediaId;
       Dmsg1(20, "Find_next_vol MediaId=%d\n", jcr->MediaId);
       pm_strcpy(&jcr->VolumeName, mr->VolumeName);
@@ -71,19 +71,29 @@ int find_recycled_volume(JCR *jcr, MEDIA_DBR *mr)
 /*
  *   Look for oldest Purged volume
  */
-int recycle_oldest_purged_volume(JCR *jcr, MEDIA_DBR *mr)
+int recycle_oldest_purged_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
 {
    struct s_oldest_ctx oldest;
    POOLMEM *query = get_pool_memory(PM_EMSG);
-   char *select =
-          "SELECT MediaId, LastWritten FROM Media "
+   char *select1 =
+          "SELECT MediaId,LastWritten FROM Media "
+          "WHERE PoolId=%u AND Recycle=1 AND VolStatus=\"Purged\" "
+          "AND MediaType=\"%s\" AND InChanger=1";
+   char *select2 =
+          "SELECT MediaId,LastWritten FROM Media "
           "WHERE PoolId=%u AND Recycle=1 AND VolStatus=\"Purged\" "
           "AND MediaType=\"%s\"";
+
 
    Dmsg0(100, "Enter recycle_oldest_purged_volume\n");
    oldest.MediaId = 0;
    bstrncpy(oldest.LastWritten, "9999-99-99 99:99:99", sizeof(oldest.LastWritten));
-   Mmsg(&query, select, mr->PoolId, mr->MediaType);
+   if (InChanger) {
+      Mmsg(&query, select1, mr->PoolId, mr->MediaType);
+   } else {
+      Mmsg(&query, select2, mr->PoolId, mr->MediaType);
+   }
+
    if (!db_sql_query(jcr->db, query, oldest_handler, (void *)&oldest)) {
       Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
       Dmsg0(100, "Exit 0  recycle_oldest_purged_volume query\n");

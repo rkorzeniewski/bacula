@@ -64,13 +64,9 @@ For 1.33
 - Possibly up network buffers to 65K.
 - Keep last 5 or 10 completed jobs and show them in a similar list.
 - Make a Running Jobs: output similar to current Scheduled Jobs:
-- Optimize fsf not to read.
-- Use ioctl() fsf if it exists. Figure out where we are from
-  the mt_status command. Use slow fsf only if other does not work.
-- Add flag to write only one EOF mark on the tape.
-- Implement autochanger testing in btape "test" command.
 
 After 1.33:
+- Don't continue Restore if no files selected.
 - Print warning message if FileId > 4 billion
 - do a "messages" before the first prompt in Console
 - Add a date and time stamp at the beginning of every line in the 
