@@ -32,8 +32,9 @@
 #include "stored.h"
 
 static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sessrec);
+#ifdef DEBUG
 static char *rec_state_to_str(DEV_RECORD *rec);
-
+#endif
 
 int read_records(JCR *jcr,  DEVICE *dev, 
        void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec),
@@ -217,6 +218,7 @@ static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sess
 	 rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
 }
 
+#ifdef DEBUG
 static char *rec_state_to_str(DEV_RECORD *rec)
 {
    static char buf[200]; 
@@ -241,3 +243,4 @@ static char *rec_state_to_str(DEV_RECORD *rec)
    }
    return buf;
 }
+#endif

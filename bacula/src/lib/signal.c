@@ -61,7 +61,6 @@ static pid_t main_pid = 0;
 static void signal_handler(int sig)
 {
    static int already_dead = FALSE;
-   struct sigaction sigdefault;
 
    if (already_dead) {
       _exit(1);
@@ -75,6 +74,7 @@ static void signal_handler(int sig)
 
 #ifdef TRACEBACK
    if (sig != SIGTERM) {
+      struct sigaction sigdefault;
       static char *argv[4];
       static char pid_buf[20];
       static char btpath[400];

@@ -9,6 +9,7 @@
 #define TRACEBACK 1
 #define SMCHECK     
 
+/* IF you undefine this, Bacula will run 10X slower */
 #define NO_POLL_TEST 1
 
 /* #define NO_ATTRIBUTES_TEST 1 */
