@@ -452,7 +452,7 @@ static bool read_label(DCR *dcr)
    steal_device_lock(dev, &hold, BST_DOING_ACQUIRE);
 
    dcr->VolumeName[0] = 0;
-   dev->state &= ~ST_LABEL;	      /* force read of label */
+   dev->clear_labeled();	      /* force read of label */
    switch (read_dev_volume_label(dcr)) {
    case VOL_OK:
       bnet_fsend(dir, _("3001 Mounted Volume: %s\n"), dev->VolHdr.VolName);
@@ -878,7 +878,7 @@ static void read_volume_label(JCR *jcr, DEVICE *dev, int Slot)
       goto bail_out;		      /* error */
    }
 
-   dev->state &= ~ST_LABEL;	      /* force read of label */
+   dev->clear_labeled();	      /* force read of label */
    switch (read_dev_volume_label(dcr)) {
    case VOL_OK:
       /* DO NOT add quotes around the Volume name. It is scanned in the DIR */

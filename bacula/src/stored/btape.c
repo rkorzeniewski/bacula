@@ -336,7 +336,7 @@ static bool open_the_device()
       }
    }
    Pmsg1(000, "open_dev %s OK\n", dev->print_name());
-   dev->state |= ST_APPEND;
+   dev->set_append();		      /* put volume in append mode */
    unlock_device(dev);
    free_block(block);
    return true;
@@ -1794,7 +1794,7 @@ static void fillcmd()
     *	subroutine.
     */
    Dmsg0(100, "just before acquire_device\n");
-   if (!acquire_device_for_append(jcr, dev)) {
+   if (!acquire_device_for_append(dcr)) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       return;
    }
@@ -2058,7 +2058,7 @@ static void do_unfill()
       close_dev(dev);
       dev->state &= ~(ST_READ|ST_APPEND);
       dev->num_writers = 0;
-      if (!acquire_device_for_read(jcr, dev)) {
+      if (!acquire_device_for_read(dcr)) {
          Pmsg1(-1, "%s", dev->errmsg);
 	 goto bail_out;
       }
@@ -2118,8 +2118,8 @@ static void do_unfill()
       get_cmd(_("Mount second tape. Press enter when ready: "));
    }
 
-   dev->state &= ~ST_READ;
-   if (!acquire_device_for_read(jcr, dev)) {
+   dev->clear_read();
+   if (!acquire_device_for_read(dcr)) {
       Pmsg1(-1, "%s", dev->errmsg);
       goto bail_out;
    }
@@ -2697,8 +2697,8 @@ static bool my_mount_next_read_volume(DCR *dcr)
    jcr->bsr = NULL;
    create_vol_list(jcr);
    close_dev(dev);
-   dev->state &= ~ST_READ;
-   if (!acquire_device_for_read(jcr, dev)) {
+   dev->clear_read();
+   if (!acquire_device_for_read(dcr)) {
       Pmsg2(0, "Cannot open Dev=%s, Vol=%s\n", dev->print_name(), dcr->VolumeName);
       return false;
    }

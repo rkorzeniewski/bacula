@@ -311,9 +311,9 @@ static bool use_device_cmd(JCR *jcr)
 	    dcr->PoolId = PoolId;
 	    jcr->dcr = dcr;
 	    if (append == SD_APPEND) {
-	       ok = reserve_device_for_append(jcr, device->dev);
+	       ok = reserve_device_for_append(dcr);
 	    } else {
-	       ok = reserve_device_for_read(jcr, device->dev);
+	       ok = reserve_device_for_read(dcr);
 	    }
 	    if (!ok) {
                bnet_fsend(dir, _("3927 Could not reserve device: %s\n"), dev_name.c_str());
@@ -364,9 +364,9 @@ static bool use_device_cmd(JCR *jcr)
 	       bstrncpy(dcr->dev_name, dev_name, name_len);
 	       jcr->dcr = dcr;
 	       if (append == SD_APPEND) {
-		  ok = reserve_device_for_append(jcr, device->dev);
+		  ok = reserve_device_for_append(dcr);
 	       } else {
-		  ok = reserve_device_for_read(jcr, device->dev);
+		  ok = reserve_device_for_read(dcr);
 	       }
 	       if (!ok) {
                   Jmsg(jcr, M_WARNING, 0, _("Could not reserve device: %s\n"), dev_name.c_str());

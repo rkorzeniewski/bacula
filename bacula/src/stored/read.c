@@ -67,7 +67,7 @@ bool do_read_data(JCR *jcr)
       jcr->VolList->VolumeName);
 
    /* Ready device for reading */
-   if (!acquire_device_for_read(jcr, dcr->dev)) {
+   if (!acquire_device_for_read(dcr)) {
       free_vol_list(jcr);
       bnet_fsend(fd, FD_error);
       return false;
