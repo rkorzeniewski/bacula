@@ -843,6 +843,8 @@ static int verify_cmd(JCR *jcr)
       jcr->JobLevel = L_VERIFY_VOLUME_TO_CATALOG;
    } else if (strcasecmp(level, "data") == 0){
       jcr->JobLevel = L_VERIFY_DATA;
+   } else if (strcasecmp(level, "disk_to_catalog") == 0) {
+      jcr->JobLevel = L_VERIFY_DISK_TO_CATALOG;
    } else {   
       bnet_fsend(dir, "2994 Bad verify level: %s\n", dir->msg);
       return 0;   
@@ -875,6 +877,9 @@ static int verify_cmd(JCR *jcr)
       /* Inform Storage daemon that we are done */
       bnet_sig(sd, BNET_TERMINATE);
 
+      break;
+   case L_VERIFY_DISK_TO_CATALOG:
+      do_verify(jcr);
       break;
    default:
       bnet_fsend(dir, "2994 Bad verify level: %s\n", dir->msg);

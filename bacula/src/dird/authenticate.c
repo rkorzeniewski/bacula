@@ -69,7 +69,7 @@ int authenticate_storage_daemon(JCR *jcr)
    }
    if (!cram_md5_get_auth(sd, jcr->store->password, ssl_need) || 
        !cram_md5_auth(sd, jcr->store->password, ssl_need)) {
-      Jmsg0(jcr, M_FATAL, 0, _("Director and Storage daemon passwords not the same.\n"));
+      Jmsg0(jcr, M_FATAL, 0, _("Director and Storage daemon passwords or names not the same.\n"));
       return 0;
    }
    Dmsg1(116, ">stored: %s", sd->msg);
@@ -106,7 +106,7 @@ int authenticate_file_daemon(JCR *jcr)
    }
    if (!cram_md5_get_auth(fd, jcr->client->password, ssl_need) || 
        !cram_md5_auth(fd, jcr->client->password, ssl_need)) {
-      Jmsg(jcr, M_FATAL, 0, _("Director and File daemon passwords not the same.\n"));
+      Jmsg(jcr, M_FATAL, 0, _("Director and File daemon passwords or names not the same.\n"));
       return 0;
    }
    Dmsg1(116, ">filed: %s", fd->msg);

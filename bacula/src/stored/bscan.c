@@ -575,7 +575,7 @@ static int record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
       }
       fr.JobId = mjcr->JobId;
       fr.FileId = 0;
-      if (db_get_file_attributes_record(bjcr, db, attr->fname, &fr)) {
+      if (db_get_file_attributes_record(bjcr, db, attr->fname, NULL, &fr)) {
 	 if (verbose > 1) {
             Pmsg1(000, _("File record already exists for: %s\n"), attr->fname);
 	 }

@@ -207,6 +207,7 @@ struct JOB {
    FILESET   *fileset;                /* What to backup -- Fileset */
    STORE     *storage;                /* Where is device -- Storage daemon */
    POOL      *pool;                   /* Where is media -- Media Pool */
+   JOB       *verify_job;             /* Job name to verify */
    uint32_t NumConcurrentJobs;        /* number of concurrent jobs running */
 };
 

@@ -6734,7 +6734,15 @@ echo "$as_me: error: Invalid MySQL directory $withval - unable to find mysql.h u
                 fi
         fi
     SQL_INCLUDE=-I$MYSQL_INCDIR
-    SQL_LFLAGS="-L$MYSQL_LIBDIR -lmysqlclient_r -lz"
+    if test -f $MYSQL_LIBDIR/libmysqlclient_r.a; then
+       SQL_LFLAGS="-L$MYSQL_LIBDIR -lmysqlclient_r -lz"
+       cat >>confdefs.h <<\_ACEOF
+#define HAVE_THREAD_SAFE_MYSQL 1
+_ACEOF
+
+    else
+       SQL_LFLAGS="-L$MYSQL_LIBDIR -lmysqlclient -lz"
+    fi
     SQL_BINDIR=$MYSQL_BINDIR
 
     cat >>confdefs.h <<\_ACEOF

@@ -1,5 +1,18 @@
 
-2003-10-10 Version 1.32b 10Oct03 Release
+2003-10-15 Version 1.32b 14Oct03 Release
+14Oct03
+- Modify configure so that if threaded MySQL client library
+  is not present, Bacula will link with the non-threaded 
+  version.
+- Updates to the Web pages and to the manual.
+- Remove trademark symbol from title. Phil pointed out that it
+  does not display correctly in a title.
+11Oct03
+- Implement restore by file before date. 
+- Change restore arguments a bit so that you can feed it
+  multiple jobid= specifications or multiple file= specifications.
+- Pass restore with run option on to run_cmd.
+- Make run-cmd not prompt if it has a "run" on the command line.
 10Oct03
 - When pruning, select only old orphanned jobs to delete so that
   the current job is not pruned too.

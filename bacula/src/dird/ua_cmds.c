@@ -799,6 +799,26 @@ static void update_volrecycle(UAContext *ua, char *val, MEDIA_DBR *mr)
    free_pool_memory(query);
 }
 
+/* Modify the Pool in which this Volume is located */
+static void update_volpool(UAContext *ua, char *val, MEDIA_DBR *mr)
+{
+   POOL_DBR pr;
+   POOLMEM *query;
+   memset(&pr, 0, sizeof(pr));
+   bstrncpy(pr.Name, val, sizeof(pr.Name));
+   if (!get_pool_dbr(ua, &pr)) {
+      return;
+   }
+   query = get_pool_memory(PM_MESSAGE);
+   Mmsg(&query, "UPDATE Media SET PoolId=%u WHERE MediaId=%u", pr.PoolId, mr->MediaId);
+   if (!db_sql_query(ua->db, query, NULL, NULL)) {  
+      bsendmsg(ua, "%s", db_strerror(ua->db));
+   } else {	  
+      bsendmsg(ua, _("New Pool is: %s\n"), pr.Name);
+   }
+   free_pool_memory(query);
+}
+
 /*
  * Update a media record -- allows you to change the
  *  Volume status. E.g. if you want Bacula to stop
@@ -808,6 +828,7 @@ static void update_volrecycle(UAContext *ua, char *val, MEDIA_DBR *mr)
 static int update_volume(UAContext *ua)
 {
    MEDIA_DBR mr;
+   POOL_DBR pr;
    POOLMEM *query;
    char ed1[30];
    bool done = false;
@@ -819,6 +840,7 @@ static int update_volume(UAContext *ua)
       N_("MaxVolFiles"),              /* 4 */
       N_("MaxVolBytes"),              /* 5 */
       N_("Recycle"),                  /* 6 */
+      N_("Pool"),                     /* 7 */
       NULL };
 
    for (int i=0; kw[i]; i++) {
@@ -849,6 +871,8 @@ static int update_volume(UAContext *ua)
 	 case 6:
 	    update_volrecycle(ua, ua->argv[j], &mr);
 	    break;
+	 case 7:
+	    update_volpool(ua, ua->argv[j], &mr);
 	 }
 	 done = true;
       }
@@ -869,6 +893,7 @@ static int update_volume(UAContext *ua)
       add_prompt(ua, _("Recycle Flag"));
       add_prompt(ua, _("Slot"));
       add_prompt(ua, _("Volume Files"));
+      add_prompt(ua, _("Pool"));
       add_prompt(ua, _("Done"));
       switch (do_prompt(ua, "", _("Select parameter to modify"), NULL, 0)) {
       case 0:			      /* Volume Status */
@@ -944,7 +969,6 @@ static int update_volume(UAContext *ua)
 
       case 7:			      /* Slot */
 	 int slot;
-	 POOL_DBR pr;
 
 	 memset(&pr, 0, sizeof(POOL_DBR));
 	 pr.PoolId = mr.PoolId;
@@ -999,6 +1023,19 @@ static int update_volume(UAContext *ua)
 	 free_pool_memory(query);
 	 break;
 
+      case 9:                         /* Volume's Pool */
+	 memset(&pr, 0, sizeof(POOL_DBR));
+	 pr.PoolId = mr.PoolId;
+	 if (!db_get_pool_record(ua->jcr, ua->db, &pr)) {
+            bsendmsg(ua, "%s", db_strerror(ua->db));
+	    return 0;
+	 }
+         bsendmsg(ua, _("Current Pool is: %s\n"), pr.Name);
+         if (!get_cmd(ua, _("Enter new Pool name: "))) {
+	    return 0;
+	 }
+	 update_volpool(ua, ua->cmd, &mr);
+	 return 1;
       default:			      /* Done or error */
          bsendmsg(ua, "Selection done.\n");
 	 return 1;

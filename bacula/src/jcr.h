@@ -40,6 +40,7 @@
 #define L_VERIFY_CATALOG         'C'  /* verify from catalog */
 #define L_VERIFY_INIT            'V'  /* verify save (init DB) */
 #define L_VERIFY_VOLUME_TO_CATALOG 'O'  /* verify Volume to catalog entries */
+#define L_VERIFY_DISK_TO_CATALOG 'd'  /* verify Disk attributes to catalog */
 #define L_VERIFY_DATA            'A'  /* verify data on volume */
 #define L_BASE                   'B'  /* Base level job */
 
@@ -154,7 +155,8 @@ struct JCR {
    POOLMEM *fname;                    /* name to put into catalog */
    int fn_printed;                    /* printed filename */
    POOLMEM *stime;                    /* start time for incremental/differential */
-   JOB_DBR jr;                        /* Job record in Database */
+   JOB_DBR jr;                        /* Job DB record for current job */
+   JOB_DBR *verify_jr;                /* Pointer to target job */
    uint32_t RestoreJobId;             /* Id specified by UA */
    POOLMEM *client_uname;             /* client uname */ 
    int replace;                       /* Replace option */

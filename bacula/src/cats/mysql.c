@@ -176,7 +176,9 @@ It is probably not running or your password is incorrect.\n"),
       return 0;
    }
 
+#ifdef HAVE_TREAD_SAFE_MYSQL
    my_thread_init();
+#endif
 
    mdb->connected = TRUE;
    V(mutex);
@@ -188,7 +190,9 @@ db_close_database(JCR *jcr, B_DB *mdb)
 {
    P(mutex);
    mdb->ref_count--;
+#ifdef HAVE_TREAD_SAFE_MYSQL
    my_thread_end();
+#endif
    if (mdb->ref_count == 0) {
       qdchain(&mdb->bq);
       if (mdb->connected && mdb->db) {

@@ -203,6 +203,7 @@ static struct res_items job_items[] = {
    {"pool",     store_res,     ITEM(res_job.pool),     R_POOL, 0, 0},
    {"client",   store_res,     ITEM(res_job.client),   R_CLIENT, 0, 0},
    {"fileset",  store_res,     ITEM(res_job.fileset),  R_FILESET, 0, 0},
+   {"verifyjob",  store_res,   ITEM(res_job.verify_job), R_JOB, 0, 0},
    {"where",    store_dir,     ITEM(res_job.RestoreWhere), 0, 0, 0},
    {"replace",  store_replace, ITEM(res_job.replace), 0, ITEM_DEFAULT, REPLACE_ALWAYS},
    {"bootstrap",store_dir,     ITEM(res_job.RestoreBootstrap), 0, 0, 0},
@@ -345,6 +346,7 @@ struct s_jl joblevels[] = {
    {"Catalog",       L_VERIFY_CATALOG,  JT_VERIFY},
    {"InitCatalog",   L_VERIFY_INIT,     JT_VERIFY},
    {"VolumeToCatalog", L_VERIFY_VOLUME_TO_CATALOG,   JT_VERIFY},
+   {"DiskToCatalog", L_VERIFY_DISK_TO_CATALOG,   JT_VERIFY},
    {"Data",          L_VERIFY_DATA,     JT_VERIFY},
    {NULL,	     0}
 };
@@ -410,7 +412,7 @@ char *level_to_str(int level)
 void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...), void *sock)
 {
    URES *res = (URES *)reshdr;
-   int recurse = 1;
+   bool recurse = true;
    char ed1[100], ed2[100];
 
    if (res == NULL) {
@@ -419,7 +421,7 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
    }
    if (type < 0) {		      /* no recursion */
       type = - type;
-      recurse = 0;
+      recurse = false;
    }
    switch (type) {
    case R_DIRECTOR:
@@ -527,6 +529,11 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
       } else {
          sendit(sock, "!!! No Pool resource\n");
       }
+      if (res->res_job.verify_job) {
+         sendit(sock, "  --> ");
+	 dump_resource(-R_JOB, (RES *)res->res_job.verify_job, sendit, sock);
+      }
+      break;
       if (res->res_job.messages) {
          sendit(sock, "  --> ");
 	 dump_resource(-R_MSGS, (RES *)res->res_job.messages, sendit, sock);
@@ -919,12 +926,13 @@ void save_resource(int type, struct res_items *items, int pass)
 	 if ((res = (URES *)GetResWithName(R_JOB, res_all.res_dir.hdr.name)) == NULL) {
             Emsg1(M_ERROR_TERM, 0, "Cannot find Job resource %s\n", res_all.res_dir.hdr.name);
 	 }
-	 res->res_job.messages = res_all.res_job.messages;
-	 res->res_job.schedule = res_all.res_job.schedule;
-	 res->res_job.client   = res_all.res_job.client;
-	 res->res_job.fileset  = res_all.res_job.fileset;
-	 res->res_job.storage  = res_all.res_job.storage;
-	 res->res_job.pool     = res_all.res_job.pool;
+	 res->res_job.messages	 = res_all.res_job.messages;
+	 res->res_job.schedule	 = res_all.res_job.schedule;
+	 res->res_job.client	 = res_all.res_job.client;
+	 res->res_job.fileset	 = res_all.res_job.fileset;
+	 res->res_job.storage	 = res_all.res_job.storage;
+	 res->res_job.pool	 = res_all.res_job.pool;
+	 res->res_job.verify_job = res_all.res_job.verify_job;
 	 if (res->res_job.JobType == 0) {
             Emsg1(M_ERROR_TERM, 0, "Job Type not defined for Job resource %s\n", res_all.res_dir.hdr.name);
 	 }
