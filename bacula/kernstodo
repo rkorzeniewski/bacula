@@ -16,6 +16,9 @@ Testing to do: (painful)
 - multiple simultaneous Volumes
 
 For 1.30 release:
+- Have SD compute MD5 or SHA1 and compare to what FD computes.
+- Make VolumeToCatalog calculate an MD5 or SHA1 from the 
+  actual data on the Volume and compare it.                  
 - Implement FileOptions (see end of this document)
 - Implement Bacula plugins -- design API
 - Make bcopy read through bad tape records.
@@ -831,4 +834,3 @@ Done: (see kernsdone for more)
 - Fix restore of hard linked file.
 - Figure out how to allow multiple simultaneous file Volumes on a single device.
 - Cleanup db_update_media and db_update_pool
-

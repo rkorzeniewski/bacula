@@ -217,6 +217,8 @@ struct s_jcr {
 
 }; 
 
+
+
 /* 
  * Structure for all daemons that keeps some summary
  *  info on the last job run.

@@ -9520,12 +9520,14 @@ trap 'rm -fr `echo "autoconf/Make.common \
 	   scripts/bacula \
 	   scripts/fd \
 	   scripts/Makefile \
+	   scripts/logrotate \
 	   doc/Makefile \
 	   src/Makefile \
 	   src/console/Makefile \
 	   src/console/console.conf \
 	   src/gnome-console/Makefile \
 	   src/gnome-console/gnome-console.conf \
+	   src/tconsole/Makefile \
 	   src/dird/Makefile \
 	   src/dird/bacula-dir.conf \
 	   src/lib/Makefile \
@@ -9782,12 +9784,14 @@ CONFIG_FILES=\${CONFIG_FILES-"autoconf/Make.common \
 	   scripts/bacula \
 	   scripts/fd \
 	   scripts/Makefile \
+	   scripts/logrotate \
 	   doc/Makefile \
 	   src/Makefile \
 	   src/console/Makefile \
 	   src/console/console.conf \
 	   src/gnome-console/Makefile \
 	   src/gnome-console/gnome-console.conf \
+	   src/tconsole/Makefile \
 	   src/dird/Makefile \
 	   src/dird/bacula-dir.conf \
 	   src/lib/Makefile \
