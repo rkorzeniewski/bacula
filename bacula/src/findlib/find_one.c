@@ -381,7 +381,18 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
     *  a block device, we do a raw backup of it or if it is
     *  a fifo, we simply read it.
     */
+#ifdef HAVE_FREEBSD_OS
+   /*
+    * On FreeBSD, all block devices are character devices, so
+    *	to be able to read a raw disk, we need the check for
+    *	a character device.
+    * crw-r-----  1 root  operator  - 116, 0x00040002 Jun  9 19:32 /dev/ad0s3
+    * crw-r-----  1 root  operator  - 116, 0x00040002 Jun  9 19:32 /dev/rad0s3
+    */
+   if (top_level && (S_ISBLK(ff_pkt->statp.st_mode) || S_ISCHR(ff_pkt->statp.st_mode))) {
+#else
    if (top_level && S_ISBLK(ff_pkt->statp.st_mode)) {
+#endif
       ff_pkt->type = FT_RAW;	      /* raw partition */
    } else if (top_level && S_ISFIFO(ff_pkt->statp.st_mode) &&
 	      ff_pkt->flags & FO_READFIFO) {

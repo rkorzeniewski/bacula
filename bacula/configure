@@ -4186,7 +4186,7 @@ then
 elif test -f /etc/engarde-version
 then
         DISTNAME=engarde
-elif test "$ac_cv_cygwin" = yes
+elif test "$CYGWIN" = yes
 then
         DISTNAME=cygwin
         cat >>confdefs.h <<\_ACEOF

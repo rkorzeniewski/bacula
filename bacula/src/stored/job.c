@@ -70,6 +70,7 @@ int job_cmd(JCR *jcr)
    struct timeval tv;
    struct timezone tz;
    struct timespec timeout;
+   JCR *ojcr;
 
    /*
     * Get JobId and permissions from Director
@@ -94,6 +95,16 @@ int job_cmd(JCR *jcr)
       free_memory(fileset_md5);
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       return 0;
+   }
+   /*	      
+    * Since this job could be rescheduled, we
+    *  check to see if we have it already. If so
+    *  free the old jcr and use the new one.
+    */
+   ojcr = get_jcr_by_full_name(job);
+   if (ojcr && !ojcr->authenticated) {
+      Dmsg2(000, "Found ojcr=0x%x Job %s\n", (unsigned)ojcr, job);
+      free_jcr(ojcr);
    }
    jcr->JobId = JobId;
    jcr->VolSessionId = newVolSessionId();

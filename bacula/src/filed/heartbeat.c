@@ -63,8 +63,9 @@ static void *sd_heartbeat_thread(void *arg)
    jcr->hb_bsock = sd;
 
    /* Hang reading the socket to the SD, and every time we get
-    *	a heartbeat, we simply send it on to the Director to
-    *	keep him alive.
+    *	a heartbeat or we get a wait timeout (1 minute), we
+    *	check to see if we need to send a heartbeat to the
+    *	Directory.
     */
    for ( ; !is_bnet_stop(sd); ) {
       n = bnet_wait_data_intr(sd, WAIT_INTERVAL);

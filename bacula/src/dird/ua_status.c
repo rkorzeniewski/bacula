@@ -223,84 +223,86 @@ static void do_director_status(UAContext *ua, char *cmd)
 	 continue;
       }
       switch (jcr->JobStatus) {
-	 case JS_Created:
-            msg = _("is waiting execution");
-	    break;
-	 case JS_Running:
-            msg = _("is running");
-	    break;
-	 case JS_Blocked:
-            msg = _("is blocked");
-	    break;
-	 case JS_Terminated:
-            msg = _("has terminated");
-	    break;
-	 case JS_ErrorTerminated:
-            msg = _("has erred");
-	    break;
-	 case JS_Canceled:
-            msg = _("has been canceled");
-	    break;
-	 case JS_WaitFD:
-	    msg = (char *) get_pool_memory(PM_FNAME);
-            Mmsg(&msg, _("is waiting on Client %s"), jcr->client->hdr.name);
-	    pool_mem = TRUE;
-	    break;
-	 case JS_WaitSD:
-	    msg = (char *) get_pool_memory(PM_FNAME);
-            Mmsg(&msg, _("is waiting on Storage %s"), jcr->store->hdr.name);
-	    pool_mem = TRUE;
-	    break;
-	 case JS_WaitStoreRes:
-            msg = _("is waiting on max Storage jobs");
-	    break;
-	 case JS_WaitClientRes:
-            msg = _("is waiting on max Client jobs");
-	    break;
-	 case JS_WaitJobRes:
-            msg = _("is waiting on max Job jobs");
-	    break;
-	 case JS_WaitPriority:
-            msg = _("is waiting for higher priority jobs to finish");
-	    break;
-	 case JS_WaitMaxJobs:
-            msg = _("is waiting on max total jobs");
-	    break;
-	 case JS_WaitStartTime:
-            msg = _("is waiting for its start time");
-	    break;
+      case JS_Created:
+         msg = _("is waiting execution");
+	 break;
+      case JS_Running:
+         msg = _("is running");
+	 break;
+      case JS_Blocked:
+         msg = _("is blocked");
+	 break;
+      case JS_Terminated:
+         msg = _("has terminated");
+	 break;
+      case JS_ErrorTerminated:
+         msg = _("has erred");
+	 break;
+      case JS_Canceled:
+         msg = _("has been canceled");
+	 break;
+      case JS_WaitFD:
+	 msg = (char *) get_pool_memory(PM_FNAME);
+         Mmsg(&msg, _("is waiting on Client %s"), jcr->client->hdr.name);
+	 pool_mem = TRUE;
+	 break;
+      case JS_WaitSD:
+	 msg = (char *) get_pool_memory(PM_FNAME);
+         Mmsg(&msg, _("is waiting on Storage %s"), jcr->store->hdr.name);
+	 pool_mem = TRUE;
+	 break;
+      case JS_WaitStoreRes:
+         msg = _("is waiting on max Storage jobs");
+	 break;
+      case JS_WaitClientRes:
+         msg = _("is waiting on max Client jobs");
+	 break;
+      case JS_WaitJobRes:
+         msg = _("is waiting on max Job jobs");
+	 break;
+      case JS_WaitPriority:
+         msg = _("is waiting for higher priority jobs to finish");
+	 break;
+      case JS_WaitMaxJobs:
+         msg = _("is waiting on max total jobs");
+	 break;
+      case JS_WaitStartTime:
+         msg = _("is waiting for its start time");
+	 break;
 
 
-	 default:
-	    msg = (char *) get_pool_memory(PM_FNAME);
-            Mmsg(&msg, _("is in unknown state %c"), jcr->JobStatus);
-	    pool_mem = TRUE;
-	    break;
+      default:
+	 msg = (char *) get_pool_memory(PM_FNAME);
+         Mmsg(&msg, _("is in unknown state %c"), jcr->JobStatus);
+	 pool_mem = TRUE;
+	 break;
       }
+      /* 
+       * Now report Storage daemon status code 
+       */
       switch (jcr->SDJobStatus) {
-	 case JS_WaitMount:
-	    if (pool_mem) {
-	       free_pool_memory(msg);
-	       pool_mem = FALSE;
-	    }
-            msg = _("is waiting for a mount request");
-	    break;
-	 case JS_WaitMedia:
-	    if (pool_mem) {
-	       free_pool_memory(msg);
-	       pool_mem = FALSE;
-	    }
-            msg = _("is waiting for an appendable Volume");
-	    break;
-	 case JS_WaitFD:
-	    if (!pool_mem) {
-	       msg = (char *) get_pool_memory(PM_FNAME);
-	       pool_mem = TRUE;
-	    }
-            Mmsg(&msg, _("is waiting for Client %s to connect to Storage %s"),
-		 jcr->client->hdr.name, jcr->store->hdr.name);
-	    break;
-
+      case JS_WaitMount:
+	 if (pool_mem) {
+	    free_pool_memory(msg);
+	    pool_mem = FALSE;
+	 }
+         msg = _("is waiting for a mount request");
+	 break;
+      case JS_WaitMedia:
+	 if (pool_mem) {
+	    free_pool_memory(msg);
+	    pool_mem = FALSE;
+	 }
+         msg = _("is waiting for an appendable Volume");
+	 break;
+      case JS_WaitFD:
+	 if (!pool_mem) {
+	    msg = (char *) get_pool_memory(PM_FNAME);
+	    pool_mem = TRUE;
+	 }
+         Mmsg(&msg, _("is waiting for Client %s to connect to Storage %s"),
+	      jcr->client->hdr.name, jcr->store->hdr.name);
+	 break;
       }
       bsendmsg(ua, _("JobId %d Job %s %s.\n"), jcr->JobId, jcr->Job, msg);
       if (pool_mem) {

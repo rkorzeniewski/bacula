@@ -346,6 +346,13 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       if (ff_pkt->flags & FO_SPARSE) {
 	 rbuf += SPARSE_FADDR_SIZE;
 	 rsize -= SPARSE_FADDR_SIZE;
+#ifdef HAVE_FREEBSD_OS
+	 /* 
+	  * To read FreeBSD partitions, the read size must be
+	  *  a multiple of 512.
+	  */
+	 rsize = (rsize/512) * 512;
+#endif
       }
 
       /* 

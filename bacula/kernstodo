@@ -33,15 +33,21 @@ For 1.32 Testing/Documentation:
 - Add counter variable test.
                 
 For 1.32:
-- Look at Cleaning tape in ua_label.c for media create/update 
-- Fix get_storage_from_media_type (ua_restore) to use command line     
-  storage=
-- Document list nextvol and status output.
 - Add GUI interface to manual
-- Add regression testing to the manual
-
+- Document that Volume pruning can delete last Full backup and
+  hence you will not have a valid backup.
+- Clarify the fact that having the Bacula cygwin1.dll loaded
+  is not the same as having cygwin installed.
+- Fix sparse file handeling so that it always reads a multiple
+  of 512. Currently, it subtracts 8 bytes (for faddr).
+- Separate Dir heartbeat in FD from the SD heartbeat.
 
 For 1.33
+- When job rescheduled, status gives is waiting for Client Rufus 
+  to connect to Storage File. Dir needs to inform SD that job
+  is rescheduled.
+- Fix get_storage_from_media_type (ua_restore) to use command line     
+  storage=
 - Enhance "update slots" to include a "scan" feature
   scan 1; scan 1-5; scan 1,2,4 ...  to update the catalog 
 - Allow a slot or range of slots on the label barcodes command.
@@ -947,3 +953,7 @@ Done: (see kernsdone for more)
 - Figure out some way to ignore or get past checksum errors in
   reading.
 - The SD spooling file gets created even if it is not used.
+- Look at Cleaning tape in ua_label.c for media create/update 
+- Add regression testing to the manual
+- End time: in job output of rescheduled job is time of first run.
+- Document list nextvol and status output.
