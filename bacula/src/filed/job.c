@@ -668,7 +668,9 @@ static int verify_cmd(JCR *jcr)
       if (!open_sd_read_session(jcr)) {
 	 return 0;
       }
+      start_dir_heartbeat(jcr);
       do_verify_volume(jcr);
+      stop_dir_heartbeat(jcr);
       /* 
        * Send Close session command to Storage daemon
        */
@@ -744,8 +746,10 @@ static int restore_cmd(JCR *jcr)
    /* 
     * Do restore of files and data
     */
+   start_dir_heartbeat(jcr);
    do_restore(jcr);
-
+   stop_dir_heartbeat(jcr);
+   
    set_jcr_job_status(jcr, JS_Terminated);
    if (jcr->JobStatus != JS_Terminated) {
       bnet_suppress_error_messages(sd, 1);

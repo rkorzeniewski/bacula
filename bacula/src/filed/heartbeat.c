@@ -67,7 +67,7 @@ static void *heartbeat_thread(void *arg)
       }
       if (n == 1) {		      /* input waiting */
 	 bnet_recv(sd); 	      /* read it -- probably heartbeat from sd */
-         Dmsg1(000, "Got %d from SD\n", sd->msglen);
+/*       Dmsg1(000, "Got %d from SD\n", sd->msglen); */
       }
    }
    bnet_close(sd);
@@ -98,4 +98,17 @@ void stop_heartbeat_monitor(JCR *jcr)
       pthread_kill(jcr->heartbeat_id, TIMEOUT_SIGNAL);	/* make heartbeat thread go away */
       bmicrosleep(0, 20);
    }
+}
+
+/*
+ * Same as above but we don't listen to the SD
+ */
+void start_dir_heartbeat(JCR *jcr)
+{
+   /* ***FIXME*** implement */
+}
+
+void stop_dir_heartbeat(JCR *jcr)
+{
+   /* ***FIXME*** implement */
 }
