@@ -76,8 +76,8 @@ int read_dev_volume_label(DCR *dcr, DEV_BLOCK *block)
 	  * Cancel Job if too many label errors
 	  *  => we are in a loop
 	  */
-	 if (jcr->label_errors++ > 100) {
-            Jmsg(jcr, M_FATAL, 0, "%s", jcr->errmsg);
+	 if (!dev->poll && jcr->label_errors++ > 100) {
+            Jmsg(jcr, M_FATAL, 0, "Too many tries: %s", jcr->errmsg);
 	 }
 	 return jcr->label_status = VOL_NAME_ERROR;
       }
@@ -159,8 +159,8 @@ int read_dev_volume_label(DCR *dcr, DEV_BLOCK *block)
        * Cancel Job if too many label errors
        *  => we are in a loop
        */
-      if (jcr->label_errors++ > 100) {
-         Jmsg(jcr, M_FATAL, 0, "%s", jcr->errmsg);
+      if (!dev->poll && jcr->label_errors++ > 100) {
+         Jmsg(jcr, M_FATAL, 0, "Too many tries: %s", jcr->errmsg);
       }
       return jcr->label_status = VOL_NAME_ERROR;
    }

@@ -277,9 +277,8 @@ static int send_list(JCR *jcr, int list)
 	    }
 	    if ((stat=close_bpipe(bpipe)) != 0) {
 	       berrno be;
-	       be.set_errno(stat);
                Jmsg(jcr, M_FATAL, 0, _("Error running program %p: ERR=%s\n"),
-		  p, be.strerror());
+		  p, be.strerror(stat));
 	       goto bail_out;
 	    }
 	    break;
@@ -407,8 +406,9 @@ static int send_fileset(JCR *jcr)
                fd->msg = edit_job_codes(jcr, fd->msg, p, "");
                bpipe = open_bpipe(fd->msg, 0, "r");
 	       if (!bpipe) {
+		  berrno be;
                   Jmsg(jcr, M_FATAL, 0, _("Cannot run program: %s. ERR=%s\n"),
-		     p, strerror(errno));
+		     p, be.strerror());
 		  goto bail_out;
 	       }
                bstrncpy(buf, "F ", sizeof(buf));
@@ -424,17 +424,17 @@ static int send_fileset(JCR *jcr)
 	       }
 	       if ((stat=close_bpipe(bpipe)) != 0) {
 		  berrno be;
-		  be.set_errno(stat);
                   Jmsg(jcr, M_FATAL, 0, _("Error running program: %s. ERR=%s\n"),
-		     p, be.strerror());
+		     p, be.strerror(stat));
 		  goto bail_out;
 	       }
 	       break;
             case '<':
 	       p++;			 /* skip over < */
                if ((ffd = fopen(p, "r")) == NULL) {
+		  berrno be;
                   Jmsg(jcr, M_FATAL, 0, _("Cannot open included file: %s. ERR=%s\n"),
-		     p, strerror(errno));
+		     p, be.strerror());
 		  goto bail_out;
 	       }
                bstrncpy(buf, "F ", sizeof(buf));
@@ -531,8 +531,9 @@ int send_bootstrap_file(JCR *jcr)
    }
    bs = fopen(jcr->RestoreBootstrap, "r");
    if (!bs) {
+      berrno be;
       Jmsg(jcr, M_FATAL, 0, _("Could not open bootstrap file %s: ERR=%s\n"), 
-	 jcr->RestoreBootstrap, strerror(errno));
+	 jcr->RestoreBootstrap, be.strerror());
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       return 0;
    }

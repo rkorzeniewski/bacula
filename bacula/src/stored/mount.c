@@ -156,7 +156,11 @@ mount_next_vol:
 
    /* Ensure the device is open */
    if (!open_device(jcr, dev)) {
-      return false;
+      if (dev->poll) {
+	 goto mount_next_vol;
+      } else {
+	 return false;
+      }
    }
 
    /*
@@ -173,6 +177,9 @@ read_volume:
       dev->VolHdr.LabelType = PRE_LABEL;
    } else {
       vol_label_status = read_dev_volume_label(jcr->dcr, block);
+   }
+   if (job_canceled(jcr)) {
+      return false;
    }
 
    Dmsg2(100, "dirVol=%s dirStat=%s\n", jcr->VolumeName,
