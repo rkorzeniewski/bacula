@@ -33,7 +33,7 @@
 #define nbytes_for_bits(n) ((((n)-1)>>3)+1) 
 
 /* test if bit is set */
-#define bit_is_set(b, var) ((var)[(b)>>3] & (1<<((b)&0x7)))
+#define bit_is_set(b, var) (((var)[(b)>>3] & (1<<((b)&0x7))) != 0)
 
 /* set bit */
 #define set_bit(b, var) ((var)[(b)>>3] |= (1<<((b)&0x7)))
