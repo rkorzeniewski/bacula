@@ -74,7 +74,7 @@ Client {
 # Definition of DLT tape storage device
 Storage {
   Name = DLTDrive
-  Address = @hostname@
+  Address = @hostname@                # N.B. Use a fully qualified name here
   SDPort = @sd_port@
   Password = "@sd_password@"          # password for Storage daemon
   Device = "HP DLT 80"                # must be same as Device in Storage daemon
@@ -84,7 +84,7 @@ Storage {
 # Definition of DDS tape storage device
 Storage {
   Name = SDT-10000
-  Address = @hostname@
+  Address = @hostname@                # N.B. Use a fully qualified name here
   SDPort = @sd_port@
   Password = "@sd_password@"          # password for Storage daemon
   Device = SDT-10000                  # must be same as Device in Storage daemon
@@ -94,7 +94,7 @@ Storage {
 # Definition of 8mm tape storage device
 Storage {
   Name = "8mmDrive"
-  Address = @hostname@
+  Address = @hostname@                # N.B. Use a fully qualified name here
   SDPort = @sd_port@
   Password = "@sd_password@"
   Device = "Exabyte 8mm"
@@ -104,7 +104,7 @@ Storage {
 # Definiton of file storage device
 Storage {
   Name = File
-  Address = @hostname@
+  Address = @hostname@                # N.B. Use a fully qualified name here
   SDPort = @sd_port@
   Password = "@sd_password@"
   Device = FileStorage
