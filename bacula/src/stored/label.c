@@ -370,7 +370,7 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *Po
    Dmsg0(99, "write_volume_label()\n");
    empty_block(dcr->block);
 
-   Dmsg1(000, "Label type=%d\n", dev->label_type);
+   Dmsg1(100, "Label type=%d\n", dev->label_type);
    if (!rewind_dev(dev)) {
       memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
       Dmsg2(30, "Bad status on %s from rewind. ERR=%s\n", dev_name(dev), strerror_dev(dev));
