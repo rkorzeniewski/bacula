@@ -8,7 +8,7 @@
 #
 
 INSTALL = @INSTALL@
-INSTALL_PROGRAM = "@INSTALL_PROGRAM@ -m 754"
+INSTALL_PROGRAM = @INSTALL_PROGRAM@ -m 754
 
 nothing:
 
@@ -17,7 +17,7 @@ install: install-autostart
 install-autostart: install-autostart-fd install-autostart-sd install-autostart-dir
 
 install_logrotate:
-       @$(INSTALL_PROGRAM) ../../scripts/logrotate $(DESTDIR)/etc/logrotate.d/bacula
+	@$(INSTALL_PROGRAM) ../../scripts/logrotate $(DESTDIR)/etc/logrotate.d/bacula
 	
 install-autostart-fd:
 	@if test x$(DESTDIR) = x -a  -f /etc/rc.d/init.d/bacula-fd; then \
@@ -89,4 +89,3 @@ distclean: clean
 devclean: clean
 	@rm -f Makefile bacula-*.spec bacula.*.spec bacula.spec
 	@rm -f bacula-sd bacula-fd bacula-dir
-
