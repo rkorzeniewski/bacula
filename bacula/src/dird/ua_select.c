@@ -84,6 +84,12 @@ int find_arg_keyword(UAContext *ua, char **list)
    return -1;
 }
 
+/* 
+ * Given one keyword, find the first one that
+ *   is in the argument list.
+ * Returns: argk index (always gt 0)
+ *	    -1 if not found
+ */
 int find_arg(UAContext *ua, char *keyword)
 {
    for (int i=1; i<ua->argc; i++) {
