@@ -61,7 +61,7 @@ static struct res_items store_items[] = {
    {"sddport",               store_int,  ITEM(res_store.SDDport),    0, 0, 0}, /* deprecated */
    {"workingdirectory",      store_dir,  ITEM(res_store.working_directory), 0, ITEM_REQUIRED, 0},
    {"piddirectory",          store_dir,  ITEM(res_store.pid_directory), 0, ITEM_REQUIRED, 0},
-   {"subsysdirectory",       store_dir,  ITEM(res_store.subsys_directory), 0, ITEM_REQUIRED, 0},
+   {"subsysdirectory",       store_dir,  ITEM(res_store.subsys_directory), 0, 0, 0},
    {"requiressl",            store_yesno,ITEM(res_store.require_ssl), 1, ITEM_DEFAULT, 0},
    {"maximumconcurrentjobs", store_pint, ITEM(res_store.max_concurrent_jobs), 0, ITEM_DEFAULT, 5},
    {"heartbeatinterval",     store_time, ITEM(res_store.heartbeat_interval), 0, ITEM_DEFAULT, 20*60},

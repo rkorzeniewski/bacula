@@ -74,11 +74,7 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
       changer = get_pool_memory(PM_FNAME);
 
       /* Find out what is loaded, zero means device is unloaded */
-      if (dir) {
-         bnet_fsend(dir, _("3301 Issuing autochanger \"loaded\" command.\n"));
-      } else {
-         Jmsg(jcr, M_INFO, 0, _("Issuing autochanger \"loaded\" command.\n"));
-      }
+      Jmsg(jcr, M_INFO, 0, _("3301 Issuing autochanger \"loaded\" command.\n"));
       changer = edit_device_codes(jcr, changer, jcr->device->changer_command, 
                    "loaded");
       status = run_program(changer, timeout, results);
@@ -86,13 +82,7 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
       if (status == 0) {
 	 loaded = atoi(results);
       } else {
-	 if (dir) {
-            bnet_fsend(dir, _("3991 Bad autochanger \"loaded\" status=%d.\n"),
-	       status);
-	 } else {
-            Jmsg(jcr, M_INFO, 0, _("Bad autochanger \"load slot\" status=%d.\n"),
-	       status);
-	 }
+         Jmsg(jcr, M_INFO, 0, _("3991 Bad autochanger \"load slot\" status=%d.\n"), status);
 	 loaded = -1;		   /* force unload */
       }
       Dmsg1(100, "loaded=%s\n", results);
@@ -106,11 +96,7 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
 	 force_close_dev(dev);
 	 if (loaded != 0) {	   /* must unload drive */
             Dmsg0(100, "Doing changer unload.\n");
-	    if (dir) {
-               bnet_fsend(dir, _("3302 Issuing autochanger \"unload\" command.\n"));
-	    } else {
-               Jmsg(jcr, M_INFO, 0, _("Issuing autochanger \"unload\" command.\n"));
-	    }
+            Jmsg(jcr, M_INFO, 0, _("3302 Issuing autochanger \"unload\" command.\n"));
 	    changer = edit_device_codes(jcr, changer, 
                         jcr->device->changer_command, "unload");
 	    status = run_program(changer, timeout, NULL);
@@ -120,32 +106,17 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
 	  * Load the desired cassette	 
 	  */
          Dmsg1(100, "Doing changer load slot %d\n", slot);
-	 if (dir) {
-            bnet_fsend(dir, _("3303 Issuing autochanger \"load slot %d\" command.\n"),
-		 slot);
-	 } else {
-            Jmsg(jcr, M_INFO, 0, _("Issuing autochanger \"load slot %d\" command.\n"),
-		 slot);
-	 }
+         Jmsg(jcr, M_INFO, 0, _("3303 Issuing autochanger \"load slot %d\" command.\n"), 
+	      slot);
 	 changer = edit_device_codes(jcr, changer, 
                       jcr->device->changer_command, "load");
 	 status = run_program(changer, timeout, NULL);
 	 if (status == 0) {
-	    if (dir) {
-               bnet_fsend(dir, _("3304 Autochanger \"load slot %d\" status is OK.\n"),
+            Jmsg(jcr, M_INFO, 0, _("3304 Autochanger \"load slot %d\" status is OK.\n"),
 		    slot);
-	    } else {
-               Jmsg(jcr, M_INFO, 0, _("Autochanger \"load slot %d\" status is OK.\n"),
-		    slot);
-	    }
 	 } else {
-	    if (dir) {
-               bnet_fsend(dir, _("3992 Bad autochanger \"load slot\" status=%d.\n"),
+            Jmsg(jcr, M_INFO, 0, _("3992 Bad autochanger \"load slot\" status=%d.\n"),
 		    status);
-	    } else {
-               Jmsg(jcr, M_INFO, 0, _("Bad autochanger \"load slot\" status=%d.\n"),
-		    status);
-	    }
 	 }
          Dmsg2(100, "load slot %d status=%d\n", slot, status);
       }
@@ -185,16 +156,16 @@ int autochanger_list(JCR *jcr, DEVICE *dev, BSOCK *dir)
    force_close_dev(dev);
 
    /* First unload any tape */
-   bnet_fsend(dir, _("3902 Issuing autochanger \"unload\" command.\n"));
+   bnet_fsend(dir, _("3305 Issuing autochanger \"unload\" command.\n"));
    changer = edit_device_codes(jcr, changer, jcr->device->changer_command, "unload");
    run_program(changer, timeout, NULL);
 
    /* Now list slots occupied */
    changer = edit_device_codes(jcr, changer, jcr->device->changer_command, "list");
-   bnet_fsend(dir, _("3305 Issuing autochanger \"list\" command.\n"));
+   bnet_fsend(dir, _("3306 Issuing autochanger \"list\" command.\n"));
    bpipe = open_bpipe(changer, timeout, "r");
    if (!bpipe) {
-      bnet_fsend(dir, _("3994 Open bpipe failed.\n"));
+      bnet_fsend(dir, _("3993 Open bpipe failed.\n"));
       goto bail_out;
    }
    /* Get output from changer */

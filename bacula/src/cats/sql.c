@@ -39,6 +39,12 @@
 
 #if    HAVE_MYSQL | HAVE_SQLITE
 
+#ifdef HAVE_MYSQL
+char catalog_db[] = "MySQL";
+#else
+char catalog_db[] = "SQLite";
+#endif
+
 /* Forward referenced subroutines */
 void print_dashes(B_DB *mdb);
 void print_result(B_DB *mdb);

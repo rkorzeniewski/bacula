@@ -393,11 +393,11 @@ When:     %s\n"),
 	    if (jid) {
 	       jcr->RestoreJobId = atoi(jid);
 	    } else {
-               if (!get_cmd(ua, _("Please enter a JobId for restore: "))) {
+               if (!get_pint(ua, _("Please enter a JobId for restore: "))) {
 		  free_jcr(jcr);
 		  return 1;
 	       }  
-	       jcr->RestoreJobId = atoi(ua->cmd);
+	       jcr->RestoreJobId = ua->pint32_val;
 	    }
 	 }
 	 jcr->JobLevel = L_FULL;      /* default level */
@@ -634,6 +634,7 @@ When:       %s\n"),
    if (strncasecmp(ua->cmd, _("yes"), strlen(ua->cmd)) == 0) {
       Dmsg1(200, "Calling run_job job=%x\n", jcr->job);
       run_job(jcr);
+      bsendmsg(ua, _("Run Job command submitted.\n"));
       return 1;
    }
 

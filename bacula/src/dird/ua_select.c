@@ -552,10 +552,10 @@ POOL *get_pool_resource(UAContext *ua)
 int select_job_dbr(UAContext *ua, JOB_DBR *jr)
 {
    db_list_job_records(ua->jcr, ua->db, jr, prtit, ua, 0);
-   if (!get_cmd(ua, _("Enter the JobId to select: "))) {
+   if (!get_pint(ua, _("Enter the JobId to select: "))) {
       return 0;
    }
-   jr->JobId = atoi(ua->cmd);
+   jr->JobId = ua->pint32_val;
    if (!db_get_job_record(ua->jcr, ua->db, jr)) {
       bsendmsg(ua, "%s", db_strerror(ua->db));
       return 0;
@@ -647,6 +647,14 @@ int do_prompt(UAContext *ua, char *msg, char *prompt, int max_prompt)
    int i, item;
    char pmsg[MAXSTRING];
 
+   if (ua->num_prompts == 2) {
+      item = 1;
+      if (prompt) {
+	 bstrncpy(prompt, ua->prompt[1], max_prompt);
+      }
+      bsendmsg(ua, _("Automatically selected: %s\n"), ua->prompt[1]);
+      goto done;
+   }
    bsendmsg(ua, ua->prompt[0]);
    for (i=1; i < ua->num_prompts; i++) {
       bsendmsg(ua, "%6d: %s\n", i, ua->prompt[i]);
@@ -674,12 +682,12 @@ int do_prompt(UAContext *ua, char *msg, char *prompt, int max_prompt)
          sprintf(pmsg, "%s (1-%d): ", msg, ua->num_prompts-1);
       }
       /* Either a . or an @ will get you out of the loop */
-      if (!get_cmd(ua, pmsg) || *ua->cmd == '@') {
+      if (!get_pint(ua, pmsg)) {
 	 item = -1;		      /* error */
          bsendmsg(ua, _("Selection aborted, nothing done.\n"));
 	 break;
       }
-      item = atoi(ua->cmd);
+      item = ua->pint32_val;
       if (item < 1 || item >= ua->num_prompts) {
          bsendmsg(ua, _("Please enter a number between 1 and %d\n"), ua->num_prompts-1);
 	 continue;
@@ -690,6 +698,7 @@ int do_prompt(UAContext *ua, char *msg, char *prompt, int max_prompt)
       break;
    }
 			      
+done:
    for (i=0; i < ua->num_prompts; i++) {
       free(ua->prompt[i]);
    }

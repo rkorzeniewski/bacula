@@ -1,6 +1,8 @@
 print my_name
 print exename
 print exepath
+print catalog_db
+print version
 bt
 thread apply all bt
 f 0

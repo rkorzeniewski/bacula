@@ -428,6 +428,16 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	 if (ok && bsr_dev(dev, 1) != 0) {
 	    ok = FALSE;
             Jmsg(jcr, M_ERROR, 0, _("Back space record at EOT failed. ERR=%s\n"), strerror(dev->dev_errno));
+	    /* ****FIXME*****
+	     *	On FreeBSD systems, if the user got here, it is likely that his/her
+             *    tape drive is "frozen".  The correct thing to do is a 
+	     *	  rewind(), but if we do that, higher levels in cleaning up, will
+	     *	  most likely write the EOS record over the beginning of the
+	     *	  tape.  The rewind *is* done later in mount.c when another
+	     *	  tape is requested. However, it should be done here. In that
+	     *	  case, we need to send back some fatal error status to avoid
+	     *	  future writes.
+	     */
 	 }
 	 if (ok) {
 	    DEV_BLOCK *lblock = new_block(dev);

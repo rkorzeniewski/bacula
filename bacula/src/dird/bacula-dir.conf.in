@@ -18,7 +18,6 @@ Director {                            # define myself
   QueryFile = "@scriptdir@/query.sql"
   WorkingDirectory = "@working_dir@"
   PidDirectory = "@piddir@"
-  SubSysDirectory = "@subsysdir@"
   Maximum Concurrent Jobs = 1
   Password = "@dir_password@"         # Console password
   Messages = Standard

@@ -152,8 +152,8 @@ make
  
 cwd=${PWD}
 mkdir -p $RPM_BUILD_ROOT/etc/rc.d/init.d
+mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d
 mkdir -p $RPM_BUILD_ROOT/usr/share/pixmaps
-
 mkdir -p $RPM_BUILD_ROOT/usr/share/gnome/apps/System
 mkdir -p $RPM_BUILD_ROOT/usr/share/applications
 
@@ -180,14 +180,11 @@ make \
 cd ${cwd}
 
 %if ! %{mysql}
-# fixme - make installs the mysql start/stop scripts for sqlite build
+# fixme - make installs the mysql scripts for sqlite build
 rm -f $RPM_BUILD_ROOT/etc/bacula/startmysql
 rm -f $RPM_BUILD_ROOT/etc/bacula/stopmysql
 rm -f $RPM_BUILD_ROOT/etc/bacula/grant_mysql_privileges
 %endif
-
-# fixme - make installs test script /etc/bacula/gconsole
-rm -f $RPM_BUILD_ROOT/etc/bacula/gconsole
 
 # install the init scripts
 cp platforms/redhat/bacula-dir $RPM_BUILD_ROOT/etc/rc.d/init.d/bacula-dir
@@ -206,6 +203,9 @@ cp ../depkgs/sqlite/sqlite.h $RPM_BUILD_ROOT/usr/lib/sqlite/sqlite.h
 cp ../depkgs/sqlite/libsqlite.a $RPM_BUILD_ROOT/usr/lib/sqlite/libsqlite.a
 %endif
 
+# install the logrotate file
+cp scripts/logrotate $RPM_BUILD_ROOT/etc/logrotate.d/bacula
+
 %clean
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf "$RPM_BUILD_ROOT"
 
@@ -217,6 +217,7 @@ cp ../depkgs/sqlite/libsqlite.a $RPM_BUILD_ROOT/usr/lib/sqlite/libsqlite.a
 %attr(0754,root,root) /etc/bacula/bacula
 %attr(0754,root,root) /etc/bacula/console
 %attr(0754,root,root) /etc/bacula/fd
+%attr(0754,root,root) /etc/bacula/gconsole
 %attr(0754,root,root) /etc/bacula/create_mysql_database
 %attr(0754,root,root) /etc/bacula/delete_catalog_backup
 %attr(0754,root,root) /etc/bacula/drop_bacula_tables
@@ -235,11 +236,10 @@ cp ../depkgs/sqlite/libsqlite.a $RPM_BUILD_ROOT/usr/lib/sqlite/libsqlite.a
 %attr(0644,root,root) %doc COPYING ChangeLog INSTALL README ReleaseNotes doc/*
 %attr(0644,root,root) /usr/man/man1/*
 %attr(0644,root,root) /usr/share/pixmaps/bacula.png
-
 %attr(0644,root,root) /usr/share/gnome/apps/System/bacula.desktop
 %attr(0644,root,root) /usr/share/applications/bacula.desktop
-
 %attr(0644,root,root) %config(noreplace) /etc/bacula/gnome-console.conf
+%attr(0644,root,root) /etc/logrotate.d/bacula
 
 %attr(0640,root,root) %config(noreplace) /etc/bacula/bacula-dir.conf
 %attr(0640,root,root) %config(noreplace) /etc/bacula/bacula-fd.conf
@@ -285,6 +285,7 @@ echo "Creating bacula tables..."
 %attr(0754,root,root) /etc/bacula/bacula
 %attr(0754,root,root) /etc/bacula/console
 %attr(0754,root,root) /etc/bacula/fd
+%attr(0754,root,root) /etc/bacula/gconsole
 %attr(0754,root,root) /etc/bacula/create_sqlite_database
 %attr(0754,root,root) /etc/bacula/delete_catalog_backup
 %attr(0754,root,root) /etc/bacula/drop_bacula_tables
@@ -300,11 +301,10 @@ echo "Creating bacula tables..."
 %attr(0644,root,root) %doc COPYING ChangeLog INSTALL README ReleaseNotes doc/*
 %attr(0644,root,root) /usr/man/man1/*
 %attr(0644,root,root) /usr/share/pixmaps/bacula.png
-
 %attr(0644,root,root) /usr/share/gnome/apps/System/bacula.desktop
 %attr(0644,root,root) /usr/share/applications/bacula.desktop
-
 %attr(0644,root,root) %config(noreplace) /etc/bacula/gnome-console.conf
+%attr(0644,root,root) /etc/logrotate.d/bacula
 
 %attr(0640,root,root) %config(noreplace) /etc/bacula/bacula-dir.conf
 %attr(0640,root,root) %config(noreplace) /etc/bacula/bacula-fd.conf
@@ -348,6 +348,7 @@ chmod 0755 /usr/sbin/gnome-console
 %attr(0754,root,root) /etc/rc.d/init.d/bacula-fd
 
 %attr(0644,root,root) %doc COPYING ChangeLog INSTALL README ReleaseNotes doc/*
+%attr(0644,root,root) /etc/logrotate.d/bacula
 
 %attr(0640,root,root) %config(noreplace) /etc/bacula/bacula-fd.conf
 %attr(0640,root,root) %dir /var/bacula
@@ -371,6 +372,8 @@ chmod 0755 /usr/sbin/gnome-console
 * Mon May 11 2003 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - Misc changes to mysql/sqlite build and rh7/8 menu differences
 - Added rh_version to sub-package names
+- Added installed but missing file /etc/bacula/gconsole
+- rm'd /etc/bacula/grant_mysql_privileges on sqlite builds
 * Thu May 08 2003 Kern Sibbald <kern at sibbald.com>
 - Update spec for version 1.31 and combine client
 * Sun Mar 30 2003 D. Scott Barninger <barninger at fairfieldcomputers.com>

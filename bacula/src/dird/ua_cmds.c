@@ -202,15 +202,10 @@ static int addcmd(UAContext *ua, char *cmd)
    while (pr.MaxVols > 0 && pr.NumVols >= pr.MaxVols) {
       bsendmsg(ua, _("Pool already has maximum volumes = %d\n"), pr.MaxVols);
       for (;;) {
-         if (!get_cmd(ua, _("Enter new maximum (zero for unlimited): "))) {
+         if (!get_pint(ua, _("Enter new maximum (zero for unlimited): "))) {
 	    return 1;
 	 }
-	 pr.MaxVols = atoi(ua->cmd);
-	 if (pr.MaxVols < 0) {
-            bsendmsg(ua, _("Max vols must be zero or greater.\n"));
-	    continue;
-	 }
-	 break;
+	 pr.MaxVols = ua->pint32_val;
       }
    }
 
@@ -229,10 +224,10 @@ static int addcmd(UAContext *ua, char *cmd)
    for (;;) {
       char buf[100]; 
       sprintf(buf, _("Enter number of Volumes to create. 0=>fixed name. Max=%d: "), max);
-      if (!get_cmd(ua, buf)) {
+      if (!get_pint(ua, buf)) {
 	 return 1;
       }
-      num = atoi(ua->cmd);
+      num = ua->pint32_val;
       if (num < 0 || num > max) {
          bsendmsg(ua, _("The number must be between 0 and %d\n"), max);
 	 continue;
@@ -268,10 +263,10 @@ getVolName:
       strcat(name, "%04d");
 
       for (;;) {
-         if (!get_cmd(ua, _("Enter the starting number: "))) {
+         if (!get_pint(ua, _("Enter the starting number: "))) {
 	    return 1;
 	 }
-	 startnum = atoi(ua->cmd);
+	 startnum = ua->pint32_val;
 	 if (startnum < 1) {
             bsendmsg(ua, _("Start number must be greater than zero.\n"));
 	    continue;
@@ -284,10 +279,10 @@ getVolName:
    }
 
    if (store && store->autochanger) {
-      if (!get_cmd(ua, _("Enter slot (0 for none): "))) {
+      if (!get_pint(ua, _("Enter slot (0 for none): "))) {
 	 return 1;
       }
-      slot = atoi(ua->cmd);
+      slot = ua->pint32_val;
    }
 	   
    set_pool_dbr_defaults_in_media_dbr(&mr, &pr);
@@ -755,14 +750,10 @@ static int update_volume(UAContext *ua)
       case 3:			      /* Max Jobs */
 	 int32_t maxjobs;
          bsendmsg(ua, _("Current max jobs is: %u\n"), mr.MaxVolJobs);
-         if (!get_cmd(ua, _("Enter new Maximum Jobs: "))) {
+         if (!get_pint(ua, _("Enter new Maximum Jobs: "))) {
 	    return 0;
 	 }
-	 maxjobs = atoi(ua->cmd);
-	 if (maxjobs < 0) {
-            bsendmsg(ua, _("Invalid number, it must be 0 or greater\n"));
-	    break;
-	 } 
+	 maxjobs = ua->pint32_val;
 	 query = get_pool_memory(PM_MESSAGE);
          Mmsg(&query, "UPDATE Media SET MaxVolJobs=%u WHERE MediaId=%u",
 	    maxjobs, mr.MediaId);
@@ -777,14 +768,10 @@ static int update_volume(UAContext *ua)
       case 4:			      /* Max Files */
 	 int32_t maxfiles;
          bsendmsg(ua, _("Current max files is: %u\n"), mr.MaxVolFiles);
-         if (!get_cmd(ua, _("Enter new Maximum Files: "))) {
+         if (!get_pint(ua, _("Enter new Maximum Files: "))) {
 	    return 0;
 	 }
-	 maxfiles = atoi(ua->cmd);
-	 if (maxfiles < 0) {
-            bsendmsg(ua, _("Invalid number, it must be 0 or greater\n"));
-	    break;
-	 } 
+	 maxfiles = ua->pint32_val;
 	 query = get_pool_memory(PM_MESSAGE);
          Mmsg(&query, "UPDATE Media SET MaxVolFiles=%u WHERE MediaId=%u",
 	    maxfiles, mr.MediaId);
@@ -822,17 +809,10 @@ static int update_volume(UAContext *ua)
 	 int recycle;
          bsendmsg(ua, _("Current recycle flag is: %s\n"),
             mr.Recycle==1?_("yes"):_("no"));
-         if (!get_cmd(ua, _("Enter new Recycle status: "))) {
+         if (!get_yesno(ua, _("Enter new Recycle status: "))) {
 	    return 0;
 	 }
-         if (strcasecmp(ua->cmd, _("yes")) == 0) {
-	    recycle = 1;
-         } else if (strcasecmp(ua->cmd, _("no")) == 0) {
-	    recycle = 0;
-	 } else {
-            bsendmsg(ua, _("Invalid recycle status specified.\n"));
-	    break;
-	 }
+	 recycle = ua->pint32_val;
 	 query = get_pool_memory(PM_MESSAGE);
          Mmsg(&query, "UPDATE Media SET Recycle=%d WHERE MediaId=%u",
 	    recycle, mr.MediaId);
@@ -856,14 +836,11 @@ static int update_volume(UAContext *ua)
 	    return 0;
 	 }
          bsendmsg(ua, _("Current Slot is: %d\n"), mr.Slot);
-         if (!get_cmd(ua, _("Enter new Slot: "))) {
+         if (!get_pint(ua, _("Enter new Slot: "))) {
 	    return 0;
 	 }
-	 slot = atoi(ua->cmd);
-	 if (slot < 0) {
-            bsendmsg(ua, _("Invalid slot, it must be 0 or greater\n"));
-	    break;
-	 } else if (pr.MaxVols > 0 && slot >(int)pr.MaxVols) {
+	 slot = ua->pint32_val;
+	 if (pr.MaxVols > 0 && slot > (int)pr.MaxVols) {
             bsendmsg(ua, _("Invalid slot, it must be between 0 and %d\n"),
 	       pr.MaxVols);
 	    break;
@@ -884,18 +861,13 @@ static int update_volume(UAContext *ua)
          bsendmsg(ua, _("Warning changing Volume Files can result\n"
                         "in loss of data on your Volume\n\n"));
          bsendmsg(ua, _("Current Volume Files is: %u\n"), mr.VolFiles);
-         if (!get_cmd(ua, _("Enter new number of Files for Volume: "))) {
+         if (!get_pint(ua, _("Enter new number of Files for Volume: "))) {
 	    return 0;
 	 }
-	 VolFiles = atoi(ua->cmd);
-	 if (VolFiles < 0) {
-            bsendmsg(ua, _("Invalid number, it must be 0 or greater\n"));
-	    break;
-	 } 
+	 VolFiles = ua->pint32_val;
 	 if (VolFiles != (int)(mr.VolFiles + 1)) {
             bsendmsg(ua, _("Normally, you should only increase Volume Files by one!\n"));
-            if (!get_cmd(ua, _("Continue? (yes/no): ")) || 
-                 strcasecmp(ua->cmd, "yes") != 0) {
+            if (!get_yesno(ua, _("Continue? (yes/no): ")) || ua->pint32_val == 0) {
 	       break;
 	    }
 	 }
@@ -1103,14 +1075,10 @@ static int setdebugcmd(UAContext *ua, char *cmd)
       level = atoi(ua->argv[i]);
    }
    if (level < 0) {
-      if (!get_cmd(ua, _("Enter new debug level: "))) {
+      if (!get_pint(ua, _("Enter new debug level: "))) {
 	 return 1;
       }
-      level = atoi(ua->cmd);
-   }
-   if (level < 0) {
-      bsendmsg(ua, _("level cannot be negative.\n"));
-      return 1;
+      level = ua->pint32_val;
    }
 
    /* General debug? */
@@ -1266,10 +1234,10 @@ static int delete_volume(UAContext *ua)
       "and all Jobs saved on that volume from the Catalog\n"),
       mr.VolumeName);
 
-   if (!get_cmd(ua, _("Are you sure you want to delete this Volume? (yes/no): "))) {
+   if (!get_yesno(ua, _("Are you sure you want to delete this Volume? (yes/no): "))) {
       return 1;
    }
-   if (strcasecmp(ua->cmd, _("yes")) == 0) {
+   if (ua->pint32_val) {
       db_delete_media_record(ua->jcr, ua->db, &mr);
    }
    return 1;
@@ -1287,10 +1255,10 @@ static int delete_pool(UAContext *ua)
    if (!get_pool_dbr(ua, &pr)) {
       return 1;
    }
-   if (!get_cmd(ua, _("Are you sure you want to delete this Pool? (yes/no): "))) {
+   if (!get_yesno(ua, _("Are you sure you want to delete this Pool? (yes/no): "))) {
       return 1;
    }
-   if (strcasecmp(ua->cmd, _("yes")) == 0) {
+   if (ua->pint32_val) {
       db_delete_pool_record(ua->jcr, ua->db, &pr);
    }
    return 1;

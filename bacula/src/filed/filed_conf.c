@@ -8,14 +8,14 @@
  *   1. The generic lexical scanner in lib/lex.c and lib/lex.h
  *
  *   2. The generic config  scanner in lib/parse_config.c and 
- *      lib/parse_config.h.
- *      These files contain the parser code, some utility
- *      routines, and the common store routines (name, int,
- *      string).
+ *	lib/parse_config.h.
+ *	These files contain the parser code, some utility
+ *	routines, and the common store routines (name, int,
+ *	string).
  *
  *   3. The daemon specific file, which contains the Resource
- *      definitions as well as any specific store routines
- *      for the resource records.
+ *	definitions as well as any specific store routines
+ *	for the resource records.
  *
  *     Kern Sibbald, September MM
  *
@@ -77,7 +77,7 @@ static struct res_items cli_items[] = {
    {"fdaddress",   store_str,   ITEM(res_client.FDaddr),  0, 0, 0},
    {"workingdirectory",  store_dir, ITEM(res_client.working_directory), 0, ITEM_REQUIRED, 0}, 
    {"piddirectory",  store_dir,     ITEM(res_client.pid_directory),     0, ITEM_REQUIRED, 0}, 
-   {"subsysdirectory",  store_dir,  ITEM(res_client.subsys_directory),  0, ITEM_REQUIRED, 0}, 
+   {"subsysdirectory",  store_dir,  ITEM(res_client.subsys_directory),  0, 0, 0}, 
    {"requiressl",  store_yesno,     ITEM(res_client.require_ssl),       1, ITEM_DEFAULT, 0},
    {"maximumconcurrentjobs", store_pint,  ITEM(res_client.MaxConcurrentJobs), 0, ITEM_DEFAULT, 5},
    {"messages",      store_res, ITEM(res_client.messages), R_MSGS, 0, 0},
@@ -107,7 +107,7 @@ struct s_res resources[] = {
    {"filedaemon",    cli_items,   R_CLIENT,    NULL},
    {"client",        cli_items,   R_CLIENT,    NULL}, /* alias for filedaemon */
    {"messages",      msgs_items,  R_MSGS,      NULL},
-   {NULL,            NULL,        0,           NULL}
+   {NULL,	     NULL,	  0,	       NULL}
 };
 
 
@@ -121,26 +121,26 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
       sendit(sock, "No record for %d %s\n", type, res_to_str(type));
       return;
    }
-   if (type < 0) {                    /* no recursion */
+   if (type < 0) {		      /* no recursion */
       type = - type;
       recurse = 0;
    }
    switch (type) {
       case R_DIRECTOR:
          sendit(sock, "Director: name=%s password=%s\n", reshdr->name, 
-                 res->res_dir.password);
-         break;
+		 res->res_dir.password);
+	 break;
       case R_CLIENT:
          sendit(sock, "Client: name=%s FDport=%d\n", reshdr->name,
-                 res->res_client.FDport);
-         break;
+		 res->res_client.FDport);
+	 break;
       case R_MSGS:
          sendit(sock, "Messages: name=%s\n", res->res_msgs.hdr.name);
-         if (res->res_msgs.mail_cmd) 
+	 if (res->res_msgs.mail_cmd) 
             sendit(sock, "      mailcmd=%s\n", res->res_msgs.mail_cmd);
-         if (res->res_msgs.operator_cmd) 
+	 if (res->res_msgs.operator_cmd) 
             sendit(sock, "      opcmd=%s\n", res->res_msgs.operator_cmd);
-         break;
+	 break;
       default:
          sendit(sock, "Unknown resource type %d\n", type);
    }
@@ -178,35 +178,35 @@ void free_resource(int type)
 
    switch (type) {
       case R_DIRECTOR:
-         if (res->res_dir.password) {
-            free(res->res_dir.password);
-         }
-         if (res->res_dir.address) {
-            free(res->res_dir.address);
-         }
-         break;
+	 if (res->res_dir.password) {
+	    free(res->res_dir.password);
+	 }
+	 if (res->res_dir.address) {
+	    free(res->res_dir.address);
+	 }
+	 break;
       case R_CLIENT:
-         if (res->res_client.working_directory) {
-            free(res->res_client.working_directory);
-         }
-         if (res->res_client.pid_directory) {
-            free(res->res_client.pid_directory);
-         }
-         if (res->res_client.subsys_directory) {
-            free(res->res_client.subsys_directory);
-         }
-         if (res->res_client.FDaddr) {
-            free(res->res_client.FDaddr);
-         }
-         break;
+	 if (res->res_client.working_directory) {
+	    free(res->res_client.working_directory);
+	 }
+	 if (res->res_client.pid_directory) {
+	    free(res->res_client.pid_directory);
+	 }
+	 if (res->res_client.subsys_directory) {
+	    free(res->res_client.subsys_directory);
+	 }
+	 if (res->res_client.FDaddr) {
+	    free(res->res_client.FDaddr);
+	 }
+	 break;
       case R_MSGS:
-         if (res->res_msgs.mail_cmd)
-            free(res->res_msgs.mail_cmd);
-         if (res->res_msgs.operator_cmd)
-            free(res->res_msgs.operator_cmd);
-         free_msgs_res((MSGS *)res);  /* free message resource */
-         res = NULL;
-         break;
+	 if (res->res_msgs.mail_cmd)
+	    free(res->res_msgs.mail_cmd);
+	 if (res->res_msgs.operator_cmd)
+	    free(res->res_msgs.operator_cmd);
+	 free_msgs_res((MSGS *)res);  /* free message resource */
+	 res = NULL;
+	 break;
       default:
          printf("Unknown resource type %d\n", type);
    }
@@ -236,10 +236,10 @@ void save_resource(int type, struct res_items *items, int pass)
     */
    for (i=0; items[i].name; i++) {
       if (items[i].flags & ITEM_REQUIRED) {
-            if (!bit_is_set(i, res_all.res_dir.hdr.item_present)) {  
+	    if (!bit_is_set(i, res_all.res_dir.hdr.item_present)) {  
                Emsg2(M_ABORT, 0, _("%s item is required in %s resource, but not found.\n"),
-                 items[i].name, resources[rindex]);
-             }
+		 items[i].name, resources[rindex]);
+	     }
       }
    }
 
@@ -250,33 +250,33 @@ void save_resource(int type, struct res_items *items, int pass)
     */
    if (pass == 2) {
       switch (type) {
-         /* Resources not containing a resource */
-         case R_MSGS:
-         case R_DIRECTOR:
-            break;
+	 /* Resources not containing a resource */
+	 case R_MSGS:
+	 case R_DIRECTOR:
+	    break;
 
-         /* Resources containing another resource */
-         case R_CLIENT:
-            if ((res = (URES *)GetResWithName(R_CLIENT, res_all.res_dir.hdr.name)) == NULL) {
+	 /* Resources containing another resource */
+	 case R_CLIENT:
+	    if ((res = (URES *)GetResWithName(R_CLIENT, res_all.res_dir.hdr.name)) == NULL) {
                Emsg1(M_ABORT, 0, "Cannot find Client resource %s\n", res_all.res_dir.hdr.name);
-            }
-            res->res_client.messages = res_all.res_client.messages;
-            break;
-         default:
+	    }
+	    res->res_client.messages = res_all.res_client.messages;
+	    break;
+	 default:
             Emsg1(M_ERROR, 0, _("Unknown resource type %d\n"), type);
-            error = 1;
-            break;
+	    error = 1;
+	    break;
       }
       /* Note, the resoure name was already saved during pass 1,
        * so here, we can just release it.
        */
       if (res_all.res_dir.hdr.name) {
-         free(res_all.res_dir.hdr.name);
-         res_all.res_dir.hdr.name = NULL;
+	 free(res_all.res_dir.hdr.name);
+	 res_all.res_dir.hdr.name = NULL;
       }
       if (res_all.res_dir.hdr.desc) {
-         free(res_all.res_dir.hdr.desc);
-         res_all.res_dir.hdr.desc = NULL;
+	 free(res_all.res_dir.hdr.desc);
+	 res_all.res_dir.hdr.desc = NULL;
       }
       return;
    }
@@ -284,34 +284,34 @@ void save_resource(int type, struct res_items *items, int pass)
    /* The following code is only executed on pass 1 */
    switch (type) {
       case R_DIRECTOR:
-         size = sizeof(DIRRES);
-         break;
+	 size = sizeof(DIRRES);
+	 break;
       case R_CLIENT:
-         size = sizeof(CLIENT);
-         break;
+	 size = sizeof(CLIENT);
+	 break;
       case R_MSGS:
-         size = sizeof(MSGS);
-         break;
+	 size = sizeof(MSGS);
+	 break;
       default:
          printf(_("Unknown resource type %d\n"), type);
-         error = 1;
-         size = 1;
-         break;
+	 error = 1;
+	 size = 1;
+	 break;
    }
    /* Common */
    if (!error) {
       res = (URES *)malloc(size);
       memcpy(res, &res_all, size);
       if (!resources[rindex].res_head) {
-         resources[rindex].res_head = (RES *)res; /* store first entry */
+	 resources[rindex].res_head = (RES *)res; /* store first entry */
       } else {
-         RES *next;
-         /* Add new res to end of chain */
-         for (next=resources[rindex].res_head; next->next; next=next->next)
-            { }
-         next->next = (RES *)res;
+	 RES *next;
+	 /* Add new res to end of chain */
+	 for (next=resources[rindex].res_head; next->next; next=next->next)
+	    { }
+	 next->next = (RES *)res;
          Dmsg2(90, "Inserting %s res: %s\n", res_to_str(type),
-               res->res_dir.hdr.name);
+	       res->res_dir.hdr.name);
       }
    }
 }

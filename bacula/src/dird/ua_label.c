@@ -225,24 +225,13 @@ checkName:
 
    /* If autochanger, request slot */
    if (store->autochanger) {
-      int first = 1;
-      for ( ;; ) {
-	 if (first) {
-            i = find_arg(ua, "slot"); 
-	    if (i >= 0 && ua->argv[i]) {
-	       mr.Slot = atoi(ua->argv[i]);
-	    }
-	    first = 0;
-	 } else {
-            if (!get_cmd(ua, _("Enter slot (0 for none): "))) {
-	       return 1;
-	    }
-	    mr.Slot = atoi(ua->cmd);
-	 }
-	 if (mr.Slot >= 0) {	      /* OK */
-	    break;
-	 }
-         bsendmsg(ua, _("Slot numbers must be positive.\n"));
+      i = find_arg(ua, "slot"); 
+      if (i >= 0 && ua->argv[i]) {
+	 mr.Slot = atoi(ua->argv[i]);
+      } else if (!get_pint(ua, _("Enter slot (0 for none): "))) {
+	 return 1;
+      } else {
+	 mr.Slot = ua->pint32_val;
       }
    }
 
@@ -443,7 +432,7 @@ static int send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
 	 dev_name, mr->VolumeName, pr->Name, mr->MediaType, mr->Slot);
    }
 
-   while (bget_dirmsg(sd) >= 0) {
+   while (bnet_recv(sd) >= 0) {
       bsendmsg(ua, "%s", sd->msg);
       if (strncmp(sd->msg, "3000 OK label.", 14) == 0) {
 	 ok = TRUE;
@@ -491,7 +480,7 @@ static vol_list_t *get_slot_list_from_SD(UAContext *ua)
    bnet_fsend(sd, _("autochanger list %s \n"), dev_name);
 
    /* Read and organize list of Volumes */
-   while (bget_dirmsg(sd) >= 0) {
+   while (bnet_recv(sd) >= 0) {
       char *p;
       int Slot;
       strip_trailing_junk(sd->msg);

@@ -37,6 +37,7 @@ char *working_directory = NULL;       /* working directory path stored here */
 int verbose = 0;		      /* increase User messages */
 int debug_level = 0;		      /* debug level */
 time_t daemon_start_time = 0;	      /* Daemon start time */
+char *version = VERSION " (" BDATE ")";
 
 char my_name[20];		      /* daemon name is stored here */
 char *exepath = (char *)NULL;
@@ -874,6 +875,19 @@ Jmsg(void *vjcr, int type, int level, char *fmt,...)
     
     Dmsg1(800, "Enter Jmsg type=%d\n", type);
 
+    /* Special case for the console, which has a dir_bsock and JobId==0,
+     *	in that case, we send the message directly back to the
+     *	dir_bsock.  
+     */
+    if (jcr && jcr->JobId == 0 && jcr->dir_bsock) {
+       BSOCK *dir = jcr->dir_bsock;
+       va_start(arg_ptr, fmt);
+       dir->msglen = bvsnprintf(dir->msg, sizeof_pool_memory(dir->msg), fmt, arg_ptr);
+       va_end(arg_ptr);
+       bnet_send(jcr->dir_bsock);
+       return;
+    }
+
     msgs = NULL;
     job = NULL;
     if (jcr) {
@@ -896,30 +910,30 @@ Jmsg(void *vjcr, int type, int level, char *fmt,...)
        return;			      /* no destination */
     }
     switch (type) {
-       case M_ABORT:
-          len = sprintf(rbuf, "%s ABORTING due to ERROR\n", my_name);
-	  break;
-       case M_ERROR_TERM:
-          len = sprintf(rbuf, "%s ERROR TERMINATION\n", my_name);
-	  break;
-       case M_FATAL:
-          len = sprintf(rbuf, "%s: %s Fatal error: ", my_name, job);
-	  if (jcr) {
-	     set_jcr_job_status(jcr, JS_FatalError);
-	  }
-	  break;
-       case M_ERROR:
-          len = sprintf(rbuf, "%s: %s Error: ", my_name, job);
-	  if (jcr) {
-	     jcr->Errors++;
-	  }
-	  break;
-       case M_WARNING:
-          len = sprintf(rbuf, "%s: %s Warning: ", my_name, job);
-	  break;
-       default:
-          len = sprintf(rbuf, "%s: ", my_name);
-	  break;
+    case M_ABORT:
+       len = sprintf(rbuf, "%s ABORTING due to ERROR\n", my_name);
+       break;
+    case M_ERROR_TERM:
+       len = sprintf(rbuf, "%s ERROR TERMINATION\n", my_name);
+       break;
+    case M_FATAL:
+       len = sprintf(rbuf, "%s: %s Fatal error: ", my_name, job);
+       if (jcr) {
+	  set_jcr_job_status(jcr, JS_FatalError);
+       }
+       break;
+    case M_ERROR:
+       len = sprintf(rbuf, "%s: %s Error: ", my_name, job);
+       if (jcr) {
+	  jcr->Errors++;
+       }
+       break;
+    case M_WARNING:
+       len = sprintf(rbuf, "%s: %s Warning: ", my_name, job);
+       break;
+    default:
+       len = sprintf(rbuf, "%s: ", my_name);
+       break;
     }
 
     va_start(arg_ptr, fmt);

@@ -431,11 +431,9 @@ static int read_label(JCR *jcr, DEVICE *dev)
    int stat;
    BSOCK *dir = jcr->dir_bsock;
    DEV_BLOCK *block;
-#ifndef NEW_LOCK
    bsteal_lock_t hold;
    
    steal_device_lock(dev, &hold, BST_DOING_ACQUIRE);
-#endif
    
    jcr->VolumeName[0] = 0;
    block = new_block(dev);
@@ -452,9 +450,7 @@ static int read_label(JCR *jcr, DEVICE *dev)
 	 break;
    }
    free_block(block);
-#ifndef NEW_LOCK
    return_device_lock(dev, &hold);
-#endif
    return stat;
 }
 

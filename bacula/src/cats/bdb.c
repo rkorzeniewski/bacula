@@ -44,6 +44,8 @@
 
 #ifdef HAVE_BACULA_DB
 
+char catalog_db[] = "Interal";
+
 /* Forward referenced functions */
 
 extern char *working_directory;

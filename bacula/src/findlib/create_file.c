@@ -68,7 +68,6 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
    int new_mode, parent_mode, mode;
    uid_t uid;
    gid_t gid;
-   int stat = 0;
    int pnl;
 
    binit(ofd, win_io);
@@ -137,7 +136,7 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
 	     * execute bit set (i.e. parent_mode), and preserve what already
 	     * exists. Normally, this should do nothing.
 	     */
-	    if (!make_path(jcr, ofile, parent_mode, parent_mode, uid, gid, 1, NULL)) {
+	    if (make_path(jcr, ofile, parent_mode, parent_mode, uid, gid, 1, NULL) != 0) {
                Dmsg1(0, "Could not make path. %s\n", ofile);
 	       return CF_ERROR;
 	    }
@@ -224,7 +223,7 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
 
    case FT_DIR:
       Dmsg2(300, "Make dir mode=%o dir=%s\n", new_mode, ofile);
-      if (!make_path(jcr, ofile, new_mode, parent_mode, uid, gid, 0, NULL)) {
+      if (make_path(jcr, ofile, new_mode, parent_mode, uid, gid, 0, NULL) != 0) {
 	 return CF_ERROR;
       }
       return CF_CREATED;

@@ -77,6 +77,13 @@ mount_next_vol:
       if (!dev_is_tape(dev) || !dev_cap(dev, CAP_ALWAYSOPEN)) {
 	 if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
 	    offline_dev(dev);
+	 /*	       
+          * Note, this rewind probably should not be here (it wasn't
+	  *  in prior versions of Bacula), but on FreeBSD, this is
+          *  needed in the case the tape was "frozen" due to an error
+	  *  such as backspacing after writing and EOF. If it is not
+	  *  done, all future references to the drive get and I/O error.
+	  */
 	 } else if (!rewind_dev(dev)) {
             Jmsg2(jcr, M_WARNING, 0, _("Rewind error on device %s. ERR=%s\n"), 
 		  dev_name(dev), strerror_dev(dev));
@@ -99,9 +106,9 @@ mount_next_vol:
    /* 
     * Get Director's idea of what tape we should have mounted. 
     */
-   if (!dir_find_next_appendable_volume(jcr)) {
-      ask = 1;			   /* we must ask */
-      Dmsg0(100, "did not find next volume. Must ask.\n");
+   if (!dir_find_next_appendable_volume(jcr) &&
+       !dir_ask_sysop_to_mount_next_volume(jcr, dev)) {
+      return 0;
    }
    Dmsg2(100, "After find_next_append. Vol=%s Slot=%d\n",
 	 jcr->VolCatInfo.VolCatName, jcr->VolCatInfo.Slot);
@@ -177,69 +184,75 @@ read_volume:
       } else {
 	 vol_label_status = read_dev_volume_label(jcr, dev, block);
       }
+      /*
+       * At this point, dev->VolCatInfo has what is in the drive, if anything,
+       *	  and	jcr->VolCatInfo has what the Director wants.
+       */
       switch (vol_label_status) {
-	 case VOL_OK:
-            Dmsg1(100, "Vol OK name=%s\n", jcr->VolumeName);
-	    memcpy(&dev->VolCatInfo, &jcr->VolCatInfo, sizeof(jcr->VolCatInfo));
-            if (strcmp(dev->VolCatInfo.VolCatStatus, "Recycle") == 0) {
-	       recycle = 1;
-	    }
-	    break;		      /* got it */
-	 case VOL_NAME_ERROR:
-            Dmsg1(100, "Vol NAME Error Name=%s\n", jcr->VolumeName);
-	    /* 
-	     * OK, we got a different volume mounted. First save the
-	     *	requested Volume info in the dev structure, then query if
-	     *	this volume is really OK. If not, put back the desired
-	     *	volume name and continue.
-	     */
-	    memcpy(&dev->VolCatInfo, &jcr->VolCatInfo, sizeof(jcr->VolCatInfo));
-	    /* Check if this is a valid Volume in the pool */
-	    pm_strcpy(&jcr->VolumeName, dev->VolHdr.VolName);			      
-	    if (!dir_get_volume_info(jcr, 1)) {
-               Mmsg(&jcr->errmsg, _("Wanted Volume \"%s\".\n"
-                    "    Current Volume \"%s\" not acceptable because:\n"
-                    "    %s"),
-		   dev->VolCatInfo.VolCatName, dev->VolHdr.VolName,
-		   jcr->dir_bsock->msg);
-	       /* Restore desired volume name, note device info out of sync */
-	       memcpy(&jcr->VolCatInfo, &dev->VolCatInfo, sizeof(jcr->VolCatInfo));
-	       goto mount_error;
-	    }
-            Dmsg1(100, "want new name=%s\n", jcr->VolumeName);
-	    memcpy(&dev->VolCatInfo, &jcr->VolCatInfo, sizeof(jcr->VolCatInfo));
-	    break;
+      case VOL_OK:
+         Dmsg1(100, "Vol OK name=%s\n", jcr->VolumeName);
+	 memcpy(&dev->VolCatInfo, &jcr->VolCatInfo, sizeof(jcr->VolCatInfo));
+         if (strcmp(dev->VolCatInfo.VolCatStatus, "Recycle") == 0) {
+	    recycle = 1;
+	 }
+	 break; 		   /* got a Volume */
+      case VOL_NAME_ERROR:
+	 VOLUME_CAT_INFO VolCatInfo;
 
-	 case VOL_NO_LABEL:
-	 case VOL_IO_ERROR:
-            Dmsg1(500, "Vol NO_LABEL or IO_ERROR name=%s\n", jcr->VolumeName);
-	    /* If permitted, create a label */
-	    if (dev_cap(dev, CAP_LABEL)) {
-               Dmsg0(100, "Create volume label\n");
-	       if (!write_volume_label_to_dev(jcr, (DEVRES *)dev->device, jcr->VolumeName,
-		      jcr->pool_name)) {
-                  Dmsg0(100, "!write_vol_label\n");
-		  goto mount_next_vol;
-	       }
-               Jmsg(jcr, M_INFO, 0, _("Labeled new Volume \"%s\" on device %s.\n"),
-		  jcr->VolumeName, dev_name(dev));
-	       goto read_volume;      /* read label we just wrote */
-	    } 
-	    /* NOTE! Fall-through wanted. */
-	 default:
-mount_error:
-	    /* Send error message */
-            Jmsg1(jcr, M_WARNING, 0, "%s", jcr->errmsg);                         
-	    if (autochanger) {
-               Jmsg(jcr, M_ERROR, 0, _("Autochanger Volume \"%s\" not found in slot %d.\n\
-    Setting slot to zero in catalog.\n"),
-		  jcr->VolCatInfo.VolCatName, jcr->VolCatInfo.Slot);
-	       jcr->VolCatInfo.Slot = 0; /* invalidate slot */
-               Dmsg0(200, "update vol info in mount\n");
-	       dir_update_volume_info(jcr, &jcr->VolCatInfo, 1);  /* set slot */
+         Dmsg1(100, "Vol NAME Error Name=%s\n", jcr->VolumeName);
+	 /* 
+	  * OK, we got a different volume mounted. First save the
+	  *  requested Volume info (jcr) structure, then query if
+	  *  this volume is really OK. If not, put back the desired
+	  *  volume name and continue.
+	  */
+	 memcpy(&VolCatInfo, &jcr->VolCatInfo, sizeof(jcr->VolCatInfo));
+	 /* Check if this is a valid Volume in the pool */
+	 pm_strcpy(&jcr->VolumeName, dev->VolHdr.VolName);			   
+	 if (!dir_get_volume_info(jcr, 1)) {
+            Mmsg(&jcr->errmsg, _("Director wanted Volume \"%s\".\n"
+                 "    Current Volume \"%s\" not acceptable because:\n"
+                 "    %s"),
+		VolCatInfo.VolCatName, dev->VolHdr.VolName,
+		jcr->dir_bsock->msg);
+	    /* Restore desired volume name, note device info out of sync */
+	    memcpy(&jcr->VolCatInfo, &VolCatInfo, sizeof(jcr->VolCatInfo));
+	    goto mount_error;
+	 }
+         Dmsg1(100, "want new name=%s\n", jcr->VolumeName);
+	 memcpy(&dev->VolCatInfo, &jcr->VolCatInfo, sizeof(jcr->VolCatInfo));
+	 break; 	       /* got a Volume */
+
+      case VOL_NO_LABEL:
+      case VOL_IO_ERROR:
+         Dmsg1(500, "Vol NO_LABEL or IO_ERROR name=%s\n", jcr->VolumeName);
+	 /* If permitted, create a label */
+	 if (dev_cap(dev, CAP_LABEL)) {
+            Dmsg0(100, "Create volume label\n");
+	    if (!write_volume_label_to_dev(jcr, (DEVRES *)dev->device, jcr->VolumeName,
+		   jcr->pool_name)) {
+               Dmsg0(100, "!write_vol_label\n");
+	       goto mount_next_vol;
 	    }
-            Dmsg0(100, "Default\n");
-	    goto mount_next_vol;
+            Jmsg(jcr, M_INFO, 0, _("Labeled new Volume \"%s\" on device %s.\n"),
+	       jcr->VolumeName, dev_name(dev));
+	    goto read_volume;	   /* read label we just wrote */
+	 } 
+	 /* NOTE! Fall-through wanted. */
+      default:
+mount_error:
+	 /* Send error message */
+         Jmsg1(jcr, M_WARNING, 0, "%s", jcr->errmsg);                         
+	 if (autochanger) {
+            Jmsg(jcr, M_ERROR, 0, _("Autochanger Volume \"%s\" not found in slot %d.\n\
+    Setting slot to zero in catalog.\n"),
+	       jcr->VolCatInfo.VolCatName, jcr->VolCatInfo.Slot);
+	    jcr->VolCatInfo.Slot = 0; /* invalidate slot */
+            Dmsg0(200, "update vol info in mount\n");
+	    dir_update_volume_info(jcr, &jcr->VolCatInfo, 1);  /* set slot */
+	 }
+         Dmsg0(100, "Default\n");
+	 goto mount_next_vol;
       }
       break;
    }

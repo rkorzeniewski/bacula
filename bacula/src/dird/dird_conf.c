@@ -94,7 +94,7 @@ static struct res_items dir_items[] = {
    {"queryfile",   store_dir,      ITEM(res_dir.query_file), 0, ITEM_REQUIRED, 0},
    {"workingdirectory", store_dir, ITEM(res_dir.working_directory), 0, ITEM_REQUIRED, 0},
    {"piddirectory",store_dir,     ITEM(res_dir.pid_directory), 0, ITEM_REQUIRED, 0},
-   {"subsysdirectory", store_dir,  ITEM(res_dir.subsys_directory), 0, ITEM_REQUIRED, 0},
+   {"subsysdirectory", store_dir,  ITEM(res_dir.subsys_directory), 0, 0, 0},
    {"requiressl",  store_yesno,    ITEM(res_dir.require_ssl), 1, ITEM_DEFAULT, 0},
    {"enablessl",   store_yesno,    ITEM(res_dir.enable_ssl), 1, ITEM_DEFAULT, 0},
    {"maximumconcurrentjobs", store_pint, ITEM(res_dir.MaxConcurrentJobs), 0, ITEM_DEFAULT, 1},

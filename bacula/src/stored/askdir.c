@@ -71,7 +71,7 @@ int dir_send_job_status(JCR *jcr)
 static int do_request_volume_info(JCR *jcr)
 {
     BSOCK *dir = jcr->dir_bsock;
-    VOLUME_CAT_INFO *vol = &jcr->VolCatInfo;
+    VOLUME_CAT_INFO vol;
 
     jcr->VolumeName[0] = 0;	      /* No volume */
     if (bnet_recv(dir) <= 0) {
@@ -79,23 +79,24 @@ static int do_request_volume_info(JCR *jcr)
        Mmsg(&jcr->errmsg, _("Network error on bnet_recv in req_vol_info.\n"));
        return 0;
     }
-    if (sscanf(dir->msg, OK_media, vol->VolCatName, 
-	       &vol->VolCatJobs, &vol->VolCatFiles,
-	       &vol->VolCatBlocks, &vol->VolCatBytes,
-	       &vol->VolCatMounts, &vol->VolCatErrors,
-	       &vol->VolCatWrites, &vol->VolCatMaxBytes,
-	       &vol->VolCatCapacityBytes, vol->VolCatStatus,
-	       &vol->Slot, &vol->VolCatMaxJobs, &vol->VolCatMaxFiles) != 14) {
+    if (sscanf(dir->msg, OK_media, vol.VolCatName, 
+	       &vol.VolCatJobs, &vol.VolCatFiles,
+	       &vol.VolCatBlocks, &vol.VolCatBytes,
+	       &vol.VolCatMounts, &vol.VolCatErrors,
+	       &vol.VolCatWrites, &vol.VolCatMaxBytes,
+	       &vol.VolCatCapacityBytes, vol.VolCatStatus,
+	       &vol.Slot, &vol.VolCatMaxJobs, &vol.VolCatMaxFiles) != 14) {
 
        Dmsg1(200, "Bad response from Dir: %s\n", dir->msg);
        Mmsg(&jcr->errmsg, _("Error scanning Dir response: %s\n"), dir->msg);
        return 0;
     }
-    unbash_spaces(vol->VolCatName);
-    pm_strcpy(&jcr->VolumeName, vol->VolCatName); /* set desired VolumeName */
+    unbash_spaces(vol.VolCatName);
+    pm_strcpy(&jcr->VolumeName, vol.VolCatName); /* set desired VolumeName */
+    memcpy(&jcr->VolCatInfo, &vol, sizeof(jcr->VolCatInfo));
     
     Dmsg2(200, "do_reqest_vol_info got slot=%d Volume=%s\n", 
-	  vol->Slot, vol->VolCatName);
+	  vol.Slot, vol.VolCatName);
     return 1;
 }
 
@@ -166,14 +167,15 @@ int dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int relabel)
    unbash_spaces(vol->VolCatName);
    if (bnet_recv(dir) <= 0) {
       Dmsg0(190, "updateVolCatInfo error bnet_recv\n");
-      Jmsg(jcr, M_ERROR, 0, _("Error updating Volume Info: %s\n"), 
-	   bnet_strerror(dir));
+      Jmsg(jcr, M_ERROR, 0, _("Error updating Volume info Vol=\"%s\": ERR=%s\n"), 
+	   vol->VolCatName, bnet_strerror(dir));
       return 0;
    }
    Dmsg1(120, "Updatevol: %s", dir->msg);
    if (strcmp(dir->msg, OK_update) != 0) {
       Dmsg1(130, "Bad response from Dir: %s\n", dir->msg);
-      Jmsg(jcr, M_ERROR, 0, _("Error updating Volume Info: %s\n"), dir->msg);
+      Jmsg(jcr, M_ERROR, 0, _("Error updating Volume info Vol=\"%s\": %s\n"), 
+	   vol->VolCatName, dir->msg);
       return 0;
    }
    return 1;
@@ -193,7 +195,7 @@ int dir_create_jobmedia_record(JCR *jcr)
    Dmsg1(100, "create_jobmedia(): %s", dir->msg);
    if (bnet_recv(dir) <= 0) {
       Dmsg0(190, "create_jobmedia error bnet_recv\n");
-      Jmsg(jcr, M_ERROR, 0, _("Error creating JobMedia record: %s\n"), 
+      Jmsg(jcr, M_ERROR, 0, _("Error creating JobMedia record: ERR=%s\n"), 
 	   bnet_strerror(dir));
       return 0;
    }

@@ -113,8 +113,6 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       Dmsg2(200, "Call update_vol_info Stat=%s Vol=%s\n", 
 	 dev->VolCatInfo.VolCatStatus, dev->VolCatInfo.VolCatName);
       if (!dir_update_volume_info(jcr, &dev->VolCatInfo, 0)) {	  /* send Volume info to Director */
-         Jmsg(jcr, M_ERROR, 0, _("Could not update Volume info Volume=%s Job=%s\n"),
-	    dev->VolCatInfo.VolCatName, jcr->Job);
 	 P(dev->mutex);
 	 unblock_device(dev);
 	 return 0;		      /* device locked */

@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                  11 May  2003 
+                  13 May  2003 
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -14,45 +14,38 @@ Testing to do: (painful)
 - that ALL console command line options work and are always implemented
 - blocksize recognition code.
 - multiple simultaneous Volumes
+- Test if rewind at end of tape waits for tape to rewind.
 
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
-
 For 1.31 release:
+- Check if Job/File retentions apply to multivolume jobs.
+- Add Progress command that periodically reports the progress of
+  a job or all jobs.
 - Implement "Reschedule OnError=yes interval=nnn times=xxx"
-- Fix config of "console"
 - Shell character expansion is failing occassionally.
 - One block was orphaned in the SD probably after cancel.
-- Test if rewind at end of tape waits for tape to rewind.
-- Check if cancel works with FD.
-- Error labeling tape from console gets Jmsg error because of no Job.
+
 - Fix the following:
   rufus-dir: Max configured use duration exceeded. Marking Volume "MatouBackup" as Used.
    rufus-sd: Volume "" previously written, moving to end of data.
    rufus-sd: Matou.2003-05-10_10.39.18 Error: I canot write on this volume because:
       The number of files mismatch! Volume=1 Catalog=0
    rufus-sd: Matou.2003-05-10_10.39.18 Error: askdir.c:155 NULL Volume name. This shouldn't happen!!!
-- Properly configure console and gconsole (currently for source not
-  configured for installation).
+
 - Fix "access not allowed" for backup of files on WinXP.
 - Check for existence of all new Win32 API's.  See LoadLibrary in 
   winservice.cpp
-- Add Progress command that periodically reports the progress of
-  a job or all jobs.
 - Fix problem reported by Christopher McCurdy <cmccurdy@eecis.udel.edu>
    xeon-fd:      Could not stat c:/Documents and Settings/All 
    Users/Application Data/Humc:\Documents and Settings\All User98_AIX.kbf: 
    ERR=No such file or directory
 - Implement argv/argk in place of sscanf in the daemon protocol.
-- Examine Bare Metal restore problem.
+- Examine Bare Metal restore problem (a FD crash exists somewhere ...).
 - Test multiple simultaneous Volumes
 - Document FInclude ...
-- Test and implement get_pint and get_yesno.
 - Implement timeout in response() when it should come quickly.
-- Check if Job/File retentions apply to multivolume jobs.
-- Remove subsysdir from conf files (used only in autostart scripts).
 - Implement console @echo command.
-- Implement global with DB name and add to btraceback.gdb
 - Bug: fix access problems on files restored on WinXP.
 - Implement a Slot priority (loaded/not loaded).
 - Implement "vacation" Incremental only saves.
@@ -776,4 +769,11 @@ Done: (see kernsdone for more)
 - Change M_INFO to M_RESTORED for all restored files.
 - Fix command prompt in gnome-console by checking on Ready.
 - Merge SQLite, MySQL, and Rel spec into a single file.
-
+- Fix config of "console"
+- Check if cancel works with FD (fixed).
+- Properly configure console and gconsole (currently for source not
+  configured for installation).
+- Error labeling tape from console gets Jmsg error because of no Job.
+- Test and implement get_pint and get_yesno.
+- Implement global with DB name and add to btraceback.gdb
+- Remove subsysdir from conf files (used only in autostart scripts).
