@@ -158,7 +158,7 @@ int read_records(JCR *jcr,  DEVICE *dev,
       Dmsg1(100, "Block empty %d\n", is_block_empty(rec));
       for (rec->state=0; !is_block_empty(rec); ) {
 	 if (!read_record_from_block(block, rec)) {
-            Dmsg3(00, "!read-break. state=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
+            Dmsg3(100, "!read-break. state=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
 		  block->BlockNumber, rec->remainder);
 	    break;
 	 }

@@ -241,7 +241,7 @@ static void terminate_dird(int sig)
    delete_pid_file(director->pid_directory, "bacula-dir",  
 		   director->DIRport);
    stop_watchdog();
-   signal(SIGCHLD, SIG_IGN);          /* don't worry about children now */
+// signal(SIGCHLD, SIG_IGN);          /* don't worry about children now */
    term_scheduler();
    if (runjob) {
       free(runjob);
