@@ -156,7 +156,7 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
       }
 
       Dmsg1(100, "Create file %s\n", ofile);
-      mode =  O_WRONLY | O_CREAT | O_TRUNC | O_BINARY | O_NOFOLLOW;
+      mode =  O_WRONLY | O_CREAT | O_TRUNC | O_BINARY; /*  O_NOFOLLOW; */
       if (IS_CTG(statp->st_mode)) {
 	 mode |= O_CTG; 	      /* set contiguous bit if needed */
       }
