@@ -170,6 +170,8 @@ static struct res_items job_items[] = {
    {"pool",     store_res,     ITEM(res_job.pool),     R_POOL, 0, 0},
    {"client",   store_res,     ITEM(res_job.client),   R_CLIENT, 0, 0},
    {"fileset",  store_res,     ITEM(res_job.fs),       R_FILESET, 0, 0},
+   {"where",    store_dir,     ITEM(res_job.RestoreWhere), 0, 0, 0},
+   {"bootstrap",store_dir,     ITEM(res_job.RestoreBootstrap), 0, 0, 0},
    {"maxruntime", store_time,  ITEM(res_job.MaxRunTime), 0, 0, 0},
    {"maxstartdelay", store_time,ITEM(res_job.MaxStartDelay), 0, 0, 0},
    {"prunejobs",   store_yesno, ITEM(res_job.PruneJobs), 1, ITEM_DEFAULT, 0},
@@ -301,6 +303,7 @@ static struct s_kw RestoreFields[] = {
    {"jobid",         'J'},            /* JobId to restore */
    {"where",         'W'},            /* root of restore */
    {"replace",       'R'},            /* replacement options */
+   {"bootstrap",     'B'},            /* bootstrap file */
    {NULL,	       0}
 };
 
@@ -444,7 +447,10 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
 	    dump_resource(-R_SCHEDULE, (RES *)res->res_job.schedule, sendit, sock);
 	 }
 	 if (res->res_job.RestoreWhere) {
-            sendit(sock, "  --> Where=%s\n", res->res_job.RestoreWhere);
+            sendit(sock, "  --> Where=%s\n", NPRT(res->res_job.RestoreWhere));
+	 }
+	 if (res->res_job.RestoreBootstrap) {
+            sendit(sock, "  --> Bootstrap=%s\n", NPRT(res->res_job.RestoreBootstrap));
 	 }
 	 if (res->res_job.storage) {
             sendit(sock, "  --> ");
@@ -670,6 +676,9 @@ void free_resource(int type)
 	 if (res->res_job.RestoreWhere) {
 	    free(res->res_job.RestoreWhere);
 	 }
+	 if (res->res_job.RestoreBootstrap) {
+	    free(res->res_job.RestoreBootstrap);
+	 }
 	 break;
       case R_MSGS:
 	 if (res->res_msgs.mail_cmd)
@@ -851,12 +860,18 @@ void save_resource(int type, struct res_items *items, int pass)
    if (!error) {
       res = (URES *)malloc(size);
       memcpy(res, &res_all, size);
-      res->res_dir.hdr.next = resources[rindex].res_head;
-      resources[rindex].res_head = (RES *)res;
-      Dmsg2(90, "dir_conf: inserting %s res: %s\n", res_to_str(type),
-	 res->res_dir.hdr.name);
+      if (!resources[rindex].res_head) {
+	 resources[rindex].res_head = (RES *)res; /* store first entry */
+      } else {
+	 RES *next;
+	 /* Add new res to end of chain */
+	 for (next=resources[rindex].res_head; next->next; next=next->next)
+	    { }
+	 next->next = (RES *)res;
+         Dmsg2(90, "Inserting %s res: %s\n", res_to_str(type),
+	       res->res_dir.hdr.name);
+      }
    }
-
 }
 
 /* 
@@ -996,7 +1011,7 @@ static void store_backup(LEX *lc, struct res_items *item, int index, int pass)
 /* 
  * Store restore info for Job record 
  *
- *    Restore = JobId=<job-id> Where=<root-directory> Replace=<options>
+ *    Restore = JobId=<job-id> Where=<root-directory> Replace=<options> Bootstrap=<file>
  *
  */
 static void store_restore(LEX *lc, struct res_items *item, int index, int pass)
@@ -1027,6 +1042,15 @@ static void store_restore(LEX *lc, struct res_items *item, int index, int pass)
 	    token = lex_get_token(lc, T_ALL);
             Dmsg1(190, "Restore value=%s\n", lc->str);
 	    switch (RestoreFields[i].token) {
+               case 'B':
+		  /* Bootstrap */
+		  if (token != T_IDENTIFIER && token != T_UNQUOTED_STRING && token != T_QUOTED_STRING) {
+                     scan_err1(lc, "Expected a Restore bootstrap file, got: %s", lc->str);
+		  }
+		  if (pass == 1) {
+		     res_all.res_job.RestoreBootstrap = bstrdup(lc->str);
+		  }
+		  break;
                case 'C':
 		  /* Find Client Resource */
 		  if (pass == 2) {

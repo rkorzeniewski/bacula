@@ -669,7 +669,7 @@ parse_config(char *cf)
    Dmsg0(200, "Enter parse_config()\n");
    for (pass=1; pass <= 2; pass++) {
       Dmsg1(200, "parse_config pass %d\n", pass);
-      lc = lex_open_file(lc, cf);
+      lc = lex_open_file(lc, cf, NULL);
       while ((token=lex_get_token(lc, T_ALL)) != T_EOF) {
          Dmsg1(150, "parse got token=%s\n", lex_tok_to_str(token));
 	 switch (state) {

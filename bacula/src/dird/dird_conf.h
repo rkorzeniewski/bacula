@@ -154,6 +154,7 @@ struct s_res_job {
    int	 level; 		      /* default backup/verify level */
    int	 RestoreJobId;		      /* What -- JobId to restore */
    char *RestoreWhere;		      /* Where on disk to restore -- directory */
+   char *RestoreBootstrap;	      /* Bootstrap file */
    int	 RestoreOptions;	      /* How (overwrite, ..) */
    btime_t MaxRunTime;		      /* max run time in seconds */
    btime_t MaxStartDelay;	      /* max start delay in seconds */

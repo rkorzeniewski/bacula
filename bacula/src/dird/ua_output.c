@@ -242,7 +242,7 @@ int listcmd(UAContext *ua, char *cmd)
 
 	 for (j=i+1; j<ua->argc; j++) {
             if (strcasecmp(ua->argk[j], _("job")) == 0 && ua->argv[j]) {
-	       strncpy(jr.Job, ua->argv[i], MAX_NAME_LENGTH);
+	       strncpy(jr.Job, ua->argv[j], MAX_NAME_LENGTH);
 	       jr.Job[MAX_NAME_LENGTH-1] = 0;
 	       jr.JobId = 0;
 	       db_get_job_record(ua->db, &jr);
@@ -262,7 +262,7 @@ int listcmd(UAContext *ua, char *cmd)
 	 int done = FALSE;
 	 for (j=i+1; j<ua->argc; j++) {
             if (strcasecmp(ua->argk[j], _("job")) == 0 && ua->argv[j]) {
-	       strncpy(jr.Job, ua->argv[i], MAX_NAME_LENGTH);
+	       strncpy(jr.Job, ua->argv[j], MAX_NAME_LENGTH);
 	       jr.Job[MAX_NAME_LENGTH-1] = 0;
 	       jr.JobId = 0;
 	       db_get_job_record(ua->db, &jr);
@@ -290,7 +290,7 @@ int listcmd(UAContext *ua, char *cmd)
 	 int done = FALSE;
 	 for (j=i+1; j<ua->argc; j++) {
             if (strcasecmp(ua->argk[j], _("job")) == 0 && ua->argv[j]) {
-	       strncpy(jr.Job, ua->argv[i], MAX_NAME_LENGTH);
+	       strncpy(jr.Job, ua->argv[j], MAX_NAME_LENGTH);
 	       jr.Job[MAX_NAME_LENGTH-1] = 0;
 	       jr.JobId = 0;
 	       db_get_job_record(ua->db, &jr);
@@ -315,7 +315,7 @@ int listcmd(UAContext *ua, char *cmd)
 	    db_list_media_records(ua->db, &mr, prtit, ua);
 	 }
       } else {
-         bsendmsg(ua, _("Unknown list keyword: %s\n"), ua->argk[i]);
+         bsendmsg(ua, _("Unknown list keyword: %s\n"), NPRT(ua->argk[i]));
       }
    }
    return 1;

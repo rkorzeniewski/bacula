@@ -51,7 +51,7 @@ BSHM bshm;			      /* shared memory control packet */
 
 
 /* This is our own global resource */
-static STORES *me;
+STORES *me;
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static uint32_t VolSessionId = 0;

@@ -44,7 +44,6 @@ static FF_PKT my_ff;
 static FF_PKT *ff = &my_ff;
 
 static BSR *bsr = NULL;
-static SESSION_LABEL sesrec;
 
 static void usage()
 {
@@ -62,6 +61,7 @@ static void my_free_jcr(JCR *jcr)
 {
    return;
 }
+
 
 int main (int argc, char *argv[])
 {
@@ -138,7 +138,10 @@ int main (int argc, char *argv[])
    jcr = new_jcr(sizeof(JCR), my_free_jcr);
    jcr->VolSessionId = 1;
    jcr->VolSessionTime = (uint32_t)time(NULL);
-   jcr->NumVolumes = 1;
+   jcr->bsr = bsr;
+   strcpy(jcr->Job, "bextract");
+   jcr->dev_name = get_pool_memory(PM_FNAME);
+   strcpy(jcr->dev_name, argv[0]);
 
    do_extract(argv[0], argv[1]);
 
@@ -166,6 +169,7 @@ static void do_extract(char *devname, char *where)
    POOLMEM *ofile;		      /* output name with prefix */
    POOLMEM *lname;		      /* link name */
    int wherelen;		      /* prefix length */
+   SESSION_LABEL sessrec;
 
    if (strncmp(devname, "/dev/", 5) != 0) {
       /* Try stripping file part */
@@ -178,19 +182,20 @@ static void do_extract(char *devname, char *where)
 	 *p = 0;
       }
    }
+   strcpy(jcr->VolumeName, VolName);
 
    dev = init_dev(NULL, devname);
    if (!dev || !open_device(dev)) {
-      Emsg1(M_ABORT, 0, "Cannot open %s\n", devname);
+      Emsg1(M_ERROR_TERM, 0, "Cannot open %s\n", devname);
    }
    Dmsg0(90, "Device opened for read.\n");
 
    if (stat(where, &statp) < 0) {
-      Emsg2(M_ABORT, 0, "Cannot stat %s. It must exist. ERR=%s\n",
+      Emsg2(M_ERROR_TERM, 0, "Cannot stat %s. It must exist. ERR=%s\n",
 	 where, strerror(errno));
    }
    if (!S_ISDIR(statp.st_mode)) {
-      Emsg1(M_ABORT, 0, "%s must be a directory.\n", where);
+      Emsg1(M_ERROR_TERM, 0, "%s must be a directory.\n", where);
    }
 
    wherelen = strlen(where);
@@ -200,11 +205,17 @@ static void do_extract(char *devname, char *where)
 
    block = new_block(dev);
 
-   strcpy(jcr->VolumeName, VolName);
-   Dmsg1(100, "Volume=%s\n", jcr->VolumeName);
+   create_vol_list(jcr);
 
+   Dmsg1(20, "Found %d volumes names to restore.\n", jcr->NumVolumes);
+
+   /* 
+    * Ready device for reading, and read records
+    */
    if (!acquire_device_for_read(jcr, dev, block)) {
-      Emsg1(M_ABORT, 0, "Cannot open %s\n", devname);
+      free_block(block);
+      free_vol_list(jcr);
+      return;
    }
 
    memset(&rec, 0, sizeof(rec));
@@ -215,11 +226,46 @@ static void do_extract(char *devname, char *where)
 
    for ( ;; ) {
       int ok;
+      DEV_RECORD *record;	      /* for reading label of multi-volumes */
 
       if (!read_record(dev, block, &rec)) {
 	 uint32_t status;
+         Dmsg1(500, "Main read record failed. rem=%d\n", rec.remainder);
 	 if (dev->state & ST_EOT) {
-	    break;
+	    if (rec.remainder) {
+               Dmsg0(500, "Not end of record.\n");
+	    }
+            Dmsg2(90, "NumVolumes=%d CurVolume=%d\n", jcr->NumVolumes, jcr->CurVolume);
+	    /*
+	     * End Of Tape -- mount next Volume (if another specified)
+	     */
+	    if (jcr->NumVolumes > 1 && jcr->CurVolume < jcr->NumVolumes) {
+	       VOL_LIST *vol = jcr->VolList;
+	       /* Find next Volume */
+	       jcr->CurVolume++;
+	       for (int i=1; i<jcr->CurVolume; i++) {
+		  vol = vol->next;
+	       }
+	       strcpy(jcr->VolumeName, vol->VolumeName);
+               Dmsg1(400, "There is another volume %s.\n", jcr->VolumeName);
+
+	       close_dev(dev);
+	       dev->state &= ~ST_READ; 
+	       if (!acquire_device_for_read(jcr, dev, block)) {
+                  Emsg2(M_FATAL, 0, "Cannot open Dev=%s, Vol=%s\n", dev_name(dev),
+			jcr->VolumeName);
+		  ok = FALSE;
+		  break;
+	       }
+	       record = new_record();
+               Dmsg1(500, "read record after new tape. rem=%d\n", record->remainder);
+	       read_record(dev, block, record); /* read vol label */
+	       dump_label_record(dev, record, 0);
+	       free_record(record);
+	       continue;
+	    }
+            Dmsg0(90, "End of Device reached.\n");
+	    break;		      /* End of Tape */
 	 }
 	 if (dev->state & ST_EOF) {
 	    continue;		      /* try again */
@@ -228,17 +274,17 @@ static void do_extract(char *devname, char *where)
 	 status_dev(dev, &status);
          Dmsg1(20, "Device status: %x\n", status);
 	 if (status & MT_EOD)
-            Emsg0(M_ABORT, 0, "Unexpected End of Data\n");
+            Emsg0(M_ERROR_TERM, 0, "Unexpected End of Data\n");
 	 else if (status & MT_EOT)
-            Emsg0(M_ABORT, 0, "Unexpected End of Tape\n");
+            Emsg0(M_ERROR_TERM, 0, "Unexpected End of Tape\n");
 	 else if (status & MT_EOF)
-            Emsg0(M_ABORT, 0, "Unexpected End of File\n");
+            Emsg0(M_ERROR_TERM, 0, "Unexpected End of File\n");
 	 else if (status & MT_DR_OPEN)
-            Emsg0(M_ABORT, 0, "Tape Door is Open\n");
+            Emsg0(M_ERROR_TERM, 0, "Tape Door is Open\n");
 	 else if (!(status & MT_ONLINE))
-            Emsg0(M_ABORT, 0, "Unexpected Tape is Off-line\n");
+            Emsg0(M_ERROR_TERM, 0, "Unexpected Tape is Off-line\n");
 	 else
-            Emsg3(M_ABORT, 0, "Read error %d on Record Header %s: %s\n", n, dev_name(dev), strerror(errno));
+            Emsg3(M_ERROR_TERM, 0, "Read error %d on Record Header %s: %s\n", n, dev_name(dev), strerror(errno));
       }
 
 
@@ -254,6 +300,7 @@ static void do_extract(char *devname, char *where)
        */
       if (rec.FileIndex < 0) {
 	 char *rtype;
+	 memset(&sessrec, 0, sizeof(sessrec));
 	 switch (rec.FileIndex) {
 	    case PRE_LABEL:
                rtype = "Fresh Volume Label";   
@@ -264,7 +311,7 @@ static void do_extract(char *devname, char *where)
 	       break;
 	    case SOS_LABEL:
                rtype = "Begin Session";
-	       unser_session_label(&sesrec, &rec);
+	       unser_session_label(&sessrec, &rec);
 	       break;
 	    case EOS_LABEL:
                rtype = "End Session";
@@ -280,6 +327,17 @@ static void do_extract(char *devname, char *where)
             printf("%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
 	       rtype, rec.VolSessionId, rec.VolSessionTime, rec.Stream, rec.data_len);
 	 }
+
+         Dmsg1(40, "Got label = %d\n", rec.FileIndex);
+	 if (rec.FileIndex == EOM_LABEL) { /* end of tape? */
+            Dmsg0(40, "Get EOM LABEL\n");
+	    break;			   /* yes, get out */
+	 }
+	 continue;			   /* ignore other labels */
+      } /* end if label record */
+
+      /* Is this the file we want? */
+      if (bsr && !match_bsr(bsr, &rec, &dev->VolHdr, &sessrec)) {
 	 continue;
       }
 
@@ -292,7 +350,7 @@ static void do_extract(char *devname, char *where)
 	  */
 	 if (extract) {
 	    if (ofd < 0) {
-               Emsg0(M_ABORT, 0, "Logic error output file should be open\n");
+               Emsg0(M_ERROR_TERM, 0, "Logic error output file should be open\n");
 	    }
 	    close(ofd);
 	    ofd = -1;
@@ -323,7 +381,7 @@ static void do_extract(char *devname, char *where)
 	  */
          sscanf(rec.data, "%ld %d", &record_file_index, &type);
 	 if (record_file_index != rec.FileIndex)
-            Emsg2(M_ABORT, 0, "Record header file index %ld not equal record index %ld\n",
+            Emsg2(M_ERROR_TERM, 0, "Record header file index %ld not equal record index %ld\n",
 	       rec.FileIndex, record_file_index);
 	 ap = rec.data;
          while (*ap++ != ' ')         /* skip record file index */
@@ -348,14 +406,8 @@ static void do_extract(char *devname, char *where)
 	    *lname = 0;
 	 }
 
-	 /* Is this the file we want? */
-	 if (bsr) {
-	    ok = match_bsr(bsr, &rec, &dev->VolHdr, &sesrec);
-	 } else {
-	    ok = TRUE;
-	 }
 	    
-	 if (ok && file_is_included(ff, fname) && !file_is_excluded(ff, fname)) {
+	 if (file_is_included(ff, fname) && !file_is_excluded(ff, fname)) {
 
 	    decode_stat(ap, &statp);
 	    /*
@@ -393,7 +445,7 @@ static void do_extract(char *devname, char *where)
 	    total += rec.data_len;
             Dmsg2(8, "Write %ld bytes, total=%ld\n", rec.data_len, total);
 	    if ((uint32_t)write(ofd, rec.data, rec.data_len) != rec.data_len) {
-               Emsg1(M_ABORT, 0, "Write error: %s\n", strerror(errno));
+               Emsg1(M_ERROR_TERM, 0, "Write error: %s\n", strerror(errno));
 	    }
 	 }
  
@@ -405,13 +457,13 @@ static void do_extract(char *devname, char *where)
 	    compress_len = compress_buf_size;
 	    if (uncompress((Bytef *)compress_buf, &compress_len, 
 		  (const Bytef *)rec.data, (uLong)rec.data_len) != Z_OK) {
-               Emsg0(M_ABORT, 0, _("Uncompression error.\n"));
+               Emsg0(M_ERROR_TERM, 0, _("Uncompression error.\n"));
 	    }
 
             Dmsg2(100, "Write uncompressed %d bytes, total before write=%d\n", compress_len, total);
 	    if ((uLongf)write(ofd, compress_buf, (size_t)compress_len) != compress_len) {
                Dmsg0(0, "===Write error===\n");
-               Emsg2(M_ABORT, 0, "Write error on %s: %s\n", ofile, strerror(errno));
+               Emsg2(M_ERROR_TERM, 0, "Write error on %s: %s\n", ofile, strerror(errno));
 	    }
 	    total += compress_len;
             Dmsg2(100, "Compress len=%d uncompressed=%d\n", rec.data_len,
@@ -419,7 +471,7 @@ static void do_extract(char *devname, char *where)
 	 }
 #else
 	 if (extract) {
-            Emsg0(M_ABORT, 0, "GZIP data stream found, but GZIP not configured!\n");
+            Emsg0(M_ERROR_TERM, 0, "GZIP data stream found, but GZIP not configured!\n");
 	 }
 #endif
 
@@ -427,7 +479,7 @@ static void do_extract(char *devname, char *where)
       /* If extracting, wierd stream (not 1 or 2), close output file anyway */
       } else if (extract) {
 	 if (ofd < 0) {
-            Emsg0(M_ABORT, 0, "Logic error output file should be open\n");
+            Emsg0(M_ERROR_TERM, 0, "Logic error output file should be open\n");
 	 }
 	 close(ofd);
 	 ofd = -1;
@@ -491,4 +543,21 @@ static void print_ls_output(char *fname, char *link, int type, struct stat *stat
    *p++ = '\n';
    *p = 0;
    fputs(buf, stdout);
+}
+
+/* Dummies to replace askdir.c */
+int	dir_get_volume_info(JCR *jcr) { return 1;}
+int	dir_find_next_appendable_volume(JCR *jcr) { return 1;}
+int	dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int relabel) { return 1; }
+int	dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev) { return 1; }
+int	dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec) { return 1;}
+int	dir_send_job_status(JCR *jcr) {return 1;}
+
+
+int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
+{
+   fprintf(stderr, "Mount Volume %s on device %s and press return when ready: ",
+      jcr->VolumeName, dev_name(dev));
+   getchar();	
+   return 1;
 }

@@ -52,9 +52,11 @@ static char sessioncmd[]   = "session %s %ld %ld %ld %ld %ld %ld\n";
 static char OKrestore[]   = "2000 OK restore\n";
 static char OKstore[]     = "2000 OK storage\n";
 static char OKsession[]   = "2000 OK session\n";
+static char OKbootstrap[] = "2000 OK bootstrap\n";
 
 /* Forward referenced functions */
 static void restore_cleanup(JCR *jcr, int status);
+static int send_bootstrap_file(JCR *jcr);
 
 /* External functions */
 
@@ -89,37 +91,39 @@ int do_restore(JCR *jcr)
 
    Dmsg1(20, "RestoreJobId=%d\n", jcr->job->RestoreJobId);
 
-   /*
-    * Find Job Record for Files to be restored
+   /* 
+    * The following code is kept temporarily for compatibility.
+    * It is the predecessor to the Bootstrap file.
     */
-   if (jcr->RestoreJobId != 0) {
-      rjr.JobId = jcr->RestoreJobId;	 /* specified by UA */
-   } else {
-      rjr.JobId = jcr->job->RestoreJobId; /* specified by Job Resource */
-   }
-   if (!db_get_job_record(jcr->db, &rjr)) {
-      Jmsg2(jcr, M_FATAL, 0, _("Cannot get job record id=%d %s"), rjr.JobId,
-	 db_strerror(jcr->db));
-      restore_cleanup(jcr, JS_ErrorTerminated);
-      return 0;
-   }
-   Dmsg3(20, "Got JobId=%d VolSessId=%ld, VolSesTime=%ld\n", 
-	     rjr.JobId, rjr.VolSessionId, rjr.VolSessionTime);
-   Dmsg4(20, "StartFile=%ld, EndFile=%ld StartBlock=%ld EndBlock=%ld\n", 
-	     rjr.StartFile, rjr.EndFile, rjr.StartBlock, rjr.EndBlock);
+   if (!jcr->RestoreBootstrap) {
+      /*
+       * Find Job Record for Files to be restored
+       */
+      if (jcr->RestoreJobId != 0) {
+	 rjr.JobId = jcr->RestoreJobId;     /* specified by UA */
+      } else {
+	 rjr.JobId = jcr->job->RestoreJobId; /* specified by Job Resource */
+      }
+      if (!db_get_job_record(jcr->db, &rjr)) {
+         Jmsg2(jcr, M_FATAL, 0, _("Cannot get job record id=%d %s"), rjr.JobId,
+	    db_strerror(jcr->db));
+	 restore_cleanup(jcr, JS_ErrorTerminated);
+	 return 0;
+      }
 
-   /*
-    * Now find the Volumes we will need for the Restore
-    */
-   jcr->VolumeName[0] = 0;
-   if (!db_get_job_volume_names(jcr->db, rjr.JobId, jcr->VolumeName) ||
-	jcr->VolumeName[0] == 0) {
-      Jmsg(jcr, M_FATAL, 0, _("Cannot find Volume Name for restore Job %d. %s"), 
-	 rjr.JobId, db_strerror(jcr->db));
-      restore_cleanup(jcr, JS_ErrorTerminated);
-      return 0;
+      /*
+       * Now find the Volumes we will need for the Restore
+       */
+      jcr->VolumeName[0] = 0;
+      if (!db_get_job_volume_names(jcr->db, rjr.JobId, jcr->VolumeName) ||
+	   jcr->VolumeName[0] == 0) {
+         Jmsg(jcr, M_FATAL, 0, _("Cannot find Volume Name for restore Job %d. %s"), 
+	    rjr.JobId, db_strerror(jcr->db));
+	 restore_cleanup(jcr, JS_ErrorTerminated);
+	 return 0;
+      }
+      Dmsg1(20, "Got job Volume Names: %s\n", jcr->VolumeName);
    }
-   Dmsg1(20, "Got job Volume Names: %s\n", jcr->VolumeName);
       
 
    /* Print Job Start message */
@@ -180,6 +184,7 @@ int do_restore(JCR *jcr)
       return 0;
    }
 
+
    /* 
     * send Storage daemon address to the File daemon,
     *	then wait for File daemon to make connection
@@ -197,26 +202,39 @@ int do_restore(JCR *jcr)
    }
    jcr->JobStatus = JS_Running;
 
-   /*
-    * Pass the VolSessionId, VolSessionTime, Start and
-    * end File and Blocks on the session command.
+   /* 
+    * Send the bootstrap file -- what Volumes/files to restore
     */
-   bnet_fsend(fd, sessioncmd, 
-	     jcr->VolumeName,
-	     rjr.VolSessionId, rjr.VolSessionTime, 
-	     rjr.StartFile, rjr.EndFile, rjr.StartBlock, 
-	     rjr.EndBlock);
-   if (!response(fd, OKsession, "Session")) {
+   if (!send_bootstrap_file(jcr)) {
       restore_cleanup(jcr, JS_ErrorTerminated);
       return 0;
+   }
+
+   /* 
+    * The following code is deprecated	 
+    */
+   if (!jcr->RestoreBootstrap) {
+      /*
+       * Pass the VolSessionId, VolSessionTime, Start and
+       * end File and Blocks on the session command.
+       */
+      bnet_fsend(fd, sessioncmd, 
+		jcr->VolumeName,
+		rjr.VolSessionId, rjr.VolSessionTime, 
+		rjr.StartFile, rjr.EndFile, rjr.StartBlock, 
+		rjr.EndBlock);
+      if (!response(fd, OKsession, "Session")) {
+	 restore_cleanup(jcr, JS_ErrorTerminated);
+	 return 0;
+      }
    }
 
    /* Send restore command */
    if (jcr->RestoreWhere) {
       bnet_fsend(fd, restorecmd, jcr->RestoreWhere);
    } else {
-      bnet_fsend(fd, restorecmd,			       
-         jcr->job->RestoreWhere==NULL ? "" : jcr->job->RestoreWhere);
+      bnet_fsend(fd, restorecmd, 
+                 jcr->job->RestoreWhere ? jcr->job->RestoreWhere : "");
    }
    if (!response(fd, OKrestore, "Restore")) {
       restore_cleanup(jcr, JS_ErrorTerminated);
@@ -224,7 +242,7 @@ int do_restore(JCR *jcr)
    }
 
    /* Wait for Job Termination */
-   /*** ****FIXME**** get job termination data */
+   /*** ****FIXME**** get job termination status */
    Dmsg0(20, "wait for job termination\n");
    while (bget_msg(fd, 0) >  0) {
       Dmsg1(0, "dird<filed: %s\n", fd->msg);
@@ -253,4 +271,38 @@ static void restore_cleanup(JCR *jcr, int status)
       dt, jcr->Job);
 
    Dmsg0(20, "Leaving restore_cleanup\n");
+}
+
+static int send_bootstrap_file(JCR *jcr)
+{
+   FILE *bs;
+   char buf[1000];
+   BSOCK *fd = jcr->file_bsock;
+   char *bootstrap = "bootstrap\n";
+
+   Dmsg1(400, "send_bootstrap_file: %s\n", jcr->RestoreBootstrap);
+   if (!jcr->RestoreBootstrap) {
+      return 1;
+   }
+   bs = fopen(jcr->RestoreBootstrap, "r");
+   if (!bs) {
+      Jmsg(jcr, M_FATAL, 0, _("Could not open bootstrap file %s: ERR=%s\n"), 
+	 jcr->RestoreBootstrap, strerror(errno));
+      jcr->JobStatus = JS_ErrorTerminated;
+      return 0;
+   }
+   strcpy(fd->msg, bootstrap);	
+   fd->msglen = strlen(fd->msg);
+   bnet_send(fd);
+   while (fgets(buf, sizeof(buf), bs)) {
+      fd->msglen = Mmsg(&fd->msg, "%s", buf);
+      bnet_send(fd);	   
+   }
+   bnet_sig(fd, BNET_EOF);
+   fclose(bs);
+   if (!response(fd, OKbootstrap, "Bootstrap")) {
+      jcr->JobStatus = JS_ErrorTerminated;
+      return 0;
+   }
+   return 1;
 }

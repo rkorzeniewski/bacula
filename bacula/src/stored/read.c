@@ -1,5 +1,6 @@
 /*
  * Read code for Storage daemon
+ *
  *     Kern Sibbald, November MM
  *
  *   Version $Id$
@@ -42,6 +43,7 @@ extern int  FiledDataChan;	      /* File daemon data channel (port) */
 static char OK_data[]    = "3000 OK data\n";
 static char rec_header[] = "rechdr %ld %ld %ld %ld %ld";
 
+
 /* 
  *  Read Data and send to File Daemon
  *   Returns: 0 on failure
@@ -55,12 +57,13 @@ int do_read_data(JCR *jcr)
    DEVICE *dev;
    DEV_RECORD rec;
    DEV_BLOCK *block;
-   char *hdr, *p;
-
+   POOLMEM *hdr; 
+   SESSION_LABEL sessrec;	       /* session record */
    
    Dmsg0(20, "Start read data.\n");
 
    dev = jcr->device->dev;
+   memset(&sessrec, 0, sizeof(sessrec));
 
    /* Tell File daemon we will send data */
    bnet_fsend(fd_sock, OK_data);
@@ -77,17 +80,7 @@ int do_read_data(JCR *jcr)
 
    block = new_block(dev);
 
-   /* Find out if we were passed multiple volumes */
-   jcr->NumVolumes = 1;
-   jcr->CurVolume = 1;
-   /* Scan through VolumeNames terminating them and counting them */
-   for (p = jcr->VolumeName; p && *p; ) {
-      p = strchr(p, '|');             /* volume name separator */
-      if (p) {
-	 *p++ = 0;		      /* Terminate name */
-	 jcr->NumVolumes++;
-      }
-   }
+   create_vol_list(jcr);
 
    Dmsg1(20, "Found %d volumes names to restore.\n", jcr->NumVolumes);
 
@@ -96,20 +89,20 @@ int do_read_data(JCR *jcr)
     */
    if (!acquire_device_for_read(jcr, dev, block)) {
       free_block(block);
+      free_vol_list(jcr);
       return 0;
    }
 
    memset(&rec, 0, sizeof(rec));
    rec.data = ds->msg;		      /* use socket message buffer */
-   hdr = (char *) get_pool_memory(PM_MESSAGE);
+   hdr = get_pool_memory(PM_MESSAGE);
 
    /*
-    * ****FIXME**** enhance this to look for 
-    *		    more things than just a session.
+    *	Read records, apply BSR filtering, and return any that are 
+    *	 matched.
     */
    for ( ;ok; ) {
       DEV_RECORD *record;	      /* for reading label of multi-volumes */
-      SESSION_LABEL sessrec;	       /* session record */
 
       if (job_cancelled(jcr)) {
 	 ok = FALSE;
@@ -124,16 +117,21 @@ int do_read_data(JCR *jcr)
                Dmsg0(500, "Not end of record.\n");
 	    }
             Dmsg2(90, "NumVolumes=%d CurVolume=%d\n", jcr->NumVolumes, jcr->CurVolume);
+	    /*
+	     * End Of Tape -- mount next Volume (if another specified)
+	     */
 	    if (jcr->NumVolumes > 1 && jcr->CurVolume < jcr->NumVolumes) {
+	       VOL_LIST *vol = jcr->VolList;
 	       close_dev(dev);
-	       for (p=jcr->VolumeName; *p++; ) /* skip to next volume name */
-		  { }
 	       jcr->CurVolume++;
-               Dmsg1(20, "There is another volume %s.\n", p);
-	       strcpy(jcr->VolumeName, p);
+	       for (int i=1; i<jcr->CurVolume; i++) {
+		  vol = vol->next;
+	       }
+	       strcpy(jcr->VolumeName, vol->VolumeName);
+               Dmsg1(000, "There is another volume %s.\n", jcr->VolumeName);
 	       dev->state &= ~ST_READ; 
 	       if (!acquire_device_for_read(jcr, dev, block)) {
-                  Emsg2(M_ERROR, 0, "Cannot open Dev=%s, Vol=%s\n", dev_name(dev), p);
+                  Emsg2(M_ERROR, 0, "Cannot open Dev=%s, Vol=%s\n", dev_name(dev), jcr->VolumeName);
 		  ok = FALSE;
 		  break;
 	       }
@@ -152,12 +150,15 @@ int do_read_data(JCR *jcr)
 	    continue;		      /* End of File */
 	 }
 
-         Emsg2(M_ABORT, 0, "Read error on Record Header %s ERR=%s\n", dev_name(dev), strerror(errno));
+         Jmsg2(jcr, M_FATAL, 0, "Read error on Record Header %s ERR=%s\n", dev_name(dev), strerror(errno));
+	 ok = FALSE;
+	 break;
       }
 
       /* Some sort of label? */ 
       if (rec.FileIndex < 0) {
 	 char *rtype;
+	 memset(&sessrec, 0, sizeof(sessrec));
 	 switch (rec.FileIndex) {
 	    case PRE_LABEL:
                rtype = "Fresh Volume Label";   
@@ -191,18 +192,21 @@ int do_read_data(JCR *jcr)
 	    break;			   /* yes, get out */
 	 }
 	 continue;			   /* ignore other labels */
-      }
+      } /* end if label record */
 
-      /* ****FIXME***** make sure we REALLY have a session record */
-      if (jcr->bsr && !match_bsr(jcr->bsr, &rec, &dev->VolHdr, &sessrec)) {
-         Dmsg0(50, "BSR rejected record\n");
-	 continue;
-      }
-
-      if (rec.VolSessionId != jcr->read_VolSessionId ||
-	  rec.VolSessionTime != jcr->read_VolSessionTime) {
-         Dmsg0(50, "Ignore record ids not equal\n");
-	 continue;		      /* ignore */
+      if (jcr->bsr) {
+	 /* Match BSR against current record */
+	 if (!match_bsr(jcr->bsr, &rec, &dev->VolHdr, &sessrec)) {
+            Dmsg0(50, "BSR rejected record\n");
+	    continue;
+	 }
+      } else { 
+	 /* Old way, deprecated */
+	 if (rec.VolSessionId != jcr->read_VolSessionId ||
+	     rec.VolSessionTime != jcr->read_VolSessionTime) {
+            Dmsg0(50, "Ignore record ids not equal\n");
+	    continue;			 /* ignore */
+	 }
       }
        
       /* Generate Header parameters and send to File daemon
@@ -240,6 +244,7 @@ int do_read_data(JCR *jcr)
    }
    free_pool_memory(hdr);
    free_block(block);
+   free_vol_list(jcr);
    Dmsg0(30, "Done reading.\n");
    return ok ? 1 : 0;
 }

@@ -30,12 +30,14 @@
 #include "filed.h"
 
 extern char my_name[];
+extern CLIENT *me;		      /* our client resource */
 			
 /* Imported functions */
 extern int status_cmd(JCR *jcr);
 				   
 /* Forward referenced functions */
 static int backup_cmd(JCR *jcr);
+static int bootstrap_cmd(JCR *jcr);
 static int cancel_cmd(JCR *jcr);
 static int setdebug_cmd(JCR *jcr);
 static int estimate_cmd(JCR *jcr);
@@ -51,6 +53,7 @@ static int session_cmd(JCR *jcr);
 static int response(BSOCK *sd, char *resp, char *cmd);
 static void filed_free_jcr(JCR *jcr);
 static int open_sd_read_session(JCR *jcr);
+static int send_bootstrap_file(JCR *jcr);
 
 
 /* Exported functions */
@@ -78,6 +81,7 @@ static struct s_cmds cmds[] = {
    {"status",   status_cmd},
    {"storage ", storage_cmd},
    {"verify",   verify_cmd},
+   {"bootstrap",bootstrap_cmd},
    {NULL,	NULL}		       /* list terminator */
 };
 
@@ -96,6 +100,7 @@ static char OKest[]        = "2000 OK estimate files=%ld bytes=%ld\n";
 static char OKexc[]        = "2000 OK exclude\n";
 static char OKlevel[]      = "2000 OK level\n";
 static char OKbackup[]     = "2000 OK backup\n";
+static char OKbootstrap[]  = "2000 OK bootstrap\n";
 static char OKverify[]     = "2000 OK verify\n";
 static char OKrestore[]    = "2000 OK restore\n";
 static char OKsession[]    = "2000 OK session\n";
@@ -109,6 +114,7 @@ static char OK_end[]       = "3000 OK end\n";
 static char OK_open[]      = "3000 OK open ticket = %d\n";
 static char OK_data[]      = "3000 OK data\n";
 static char OK_append[]    = "3000 OK append data\n";
+static char OKSDbootstrap[] = "3000 OK bootstrap\n";
 
 
 /* Commands sent to Storage Daemon */
@@ -141,7 +147,7 @@ void *handle_client_request(void *dirp)
 {
    int i, found, quit;
    JCR *jcr;
-   BSOCK *dir = (BSOCK *) dirp;
+   BSOCK *dir = (BSOCK *)dirp;
 
    jcr = new_jcr(sizeof(JCR), filed_free_jcr); /* create JCR */
    jcr->dir_bsock = dir;
@@ -262,9 +268,9 @@ static int estimate_cmd(JCR *jcr)
 static int job_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
-   char *sd_auth_key;
+   POOLMEM *sd_auth_key;
 
-   sd_auth_key = (char *) get_memory(dir->msglen);
+   sd_auth_key = get_memory(dir->msglen);
    if (sscanf(dir->msg, jobcmd,  &jcr->JobId, jcr->Job,  
 	      &jcr->VolSessionId, &jcr->VolSessionTime,
 	      sd_auth_key) != 5) {
@@ -322,6 +328,40 @@ static int exclude_cmd(JCR *jcr)
 
    return bnet_fsend(dir, OKexc);
 }
+
+
+static int bootstrap_cmd(JCR *jcr)
+{
+   BSOCK *dir = jcr->dir_bsock;
+   POOLMEM *fname = get_pool_memory(PM_FNAME);
+   FILE *bs;
+
+   if (jcr->RestoreBootstrap) {
+      unlink(jcr->RestoreBootstrap);
+      free_pool_memory(jcr->RestoreBootstrap);
+   }
+   Mmsg(&fname, "%s/%s.%s.bootstrap", me->working_directory, me->hdr.name,
+      jcr->Job);
+   Dmsg1(400, "bootstrap=%s\n", fname);
+   jcr->RestoreBootstrap = fname;
+   bs = fopen(fname, "a+");           /* create file */
+   if (!bs) {
+      Jmsg(jcr, M_FATAL, 0, _("Could not create bootstrap file %s: ERR=%s\n"),
+	 jcr->RestoreBootstrap, strerror(errno));
+      free_pool_memory(jcr->RestoreBootstrap);
+      jcr->RestoreBootstrap = NULL;
+      return 0;
+   }
+
+   while (bnet_recv(dir) > 0) {
+       Dmsg1(200, "filed<dird: bootstrap file %s\n", dir->msg);
+       fputs(dir->msg, bs);
+   }
+   fclose(bs);
+
+   return bnet_fsend(dir, OKbootstrap);
+}
+
 
 /*
  * Get backup level from Director
@@ -670,6 +710,10 @@ static int open_sd_read_session(JCR *jcr)
       return 0;
    }
 
+   if (!send_bootstrap_file(jcr)) {
+      return 0;
+   }
+
    /* 
     * Start read of data with Storage daemon
     */
@@ -696,6 +740,10 @@ static void filed_free_jcr(JCR *jcr)
    }
    if (jcr->where) {
       free_pool_memory(jcr->where);
+   }
+   if (jcr->RestoreBootstrap) {
+      unlink(jcr->RestoreBootstrap);
+      free_pool_memory(jcr->RestoreBootstrap);
    }
    if (jcr->last_fname) {
       free_pool_memory(jcr->last_fname);
@@ -732,4 +780,38 @@ int response(BSOCK *sd, char *resp, char *cmd)
 	 cmd, bnet_strerror(sd));
    }
    return 0;
+}
+
+static int send_bootstrap_file(JCR *jcr)
+{
+   FILE *bs;
+   char buf[1000];
+   BSOCK *sd = jcr->store_bsock;
+   char *bootstrap = "bootstrap\n";
+
+   Dmsg1(400, "send_bootstrap_file: %s\n", jcr->RestoreBootstrap);
+   if (!jcr->RestoreBootstrap) {
+      return 1;
+   }
+   bs = fopen(jcr->RestoreBootstrap, "r");
+   if (!bs) {
+      Jmsg(jcr, M_FATAL, 0, _("Could not open bootstrap file %s: ERR=%s\n"), 
+	 jcr->RestoreBootstrap, strerror(errno));
+      jcr->JobStatus = JS_ErrorTerminated;
+      return 0;
+   }
+   strcpy(sd->msg, bootstrap);	
+   sd->msglen = strlen(sd->msg);
+   bnet_send(sd);
+   while (fgets(buf, sizeof(buf), bs)) {
+      sd->msglen = Mmsg(&sd->msg, "%s", buf);
+      bnet_send(sd);	   
+   }
+   bnet_sig(sd, BNET_EOF);
+   fclose(bs);
+   if (!response(sd, OKSDbootstrap, "Bootstrap")) {
+      jcr->JobStatus = JS_ErrorTerminated;
+      return 0;
+   }
+   return 1;
 }

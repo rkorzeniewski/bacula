@@ -98,6 +98,20 @@ typedef struct s_lex_context {
    uint32_t pint32_val2;
    int32_t int32_val;
    int64_t int64_val;
+   void (*scan_error)(char *file, int line, struct s_lex_context *lc, char *msg, ...);
 } LEX;
+
+typedef void (LEX_ERROR_HANDLER)(char *file, int line, LEX *lc, char *msg, ...);
+
+/* Lexical scanning errors in parsing conf files */
+#define scan_err0(lc, msg) lc->scan_error(__FILE__, __LINE__, lc, msg)
+#define scan_err1(lc, msg, a1) lc->scan_error(__FILE__, __LINE__, lc, msg, a1)
+#define scan_err2(lc, msg, a1, a2) lc->scan_error(__FILE__, __LINE__, lc, msg, a1, a2)
+#define scan_err3(lc, msg, a1, a2, a3) lc->scan_error(__FILE__, __LINE__, lc, msg, a1, a2, a3)
+#define scan_err4(lc, msg, a1, a2, a3, a4) lc->scan_error(__FILE__, __LINE__, lc, msg, a1, a2, a3, a4)
+#define scan_err5(lc, msg, a1, a2, a3, a4, a5) lc->scan_error(__FILE__, __LINE__, lc, msg, a1, a2, a3, a4, a5)
+#define scan_err6(lc, msg, a1, a2, a3, a4, a5, a6) lc->scan_error(__FILE__, __LINE__, lc, msg, a1, a2, a3, a4, a5, a6)
+
+void scan_to_eol(LEX *lc);
 
 #endif /* _LEX_H */

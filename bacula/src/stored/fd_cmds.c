@@ -34,6 +34,7 @@
 #include "stored.h"
 
 /* Imported variables */
+extern STORES *me;
 
 /* Static variables */
 static char ferrmsg[]      = "3900 Invalid command\n";
@@ -53,6 +54,7 @@ static int append_end_session(JCR *jcr);
 static int read_open_session(JCR *jcr);
 static int read_data_cmd(JCR *jcr);
 static int read_close_session(JCR *jcr);
+static int bootstrap_cmd(JCR *jcr);
 
 struct s_cmds {
    char *cmd;
@@ -70,26 +72,28 @@ static struct s_cmds fd_cmds[] = {
    {"read open",    read_open_session},
    {"read data",    read_data_cmd},
    {"read close",   read_close_session},
+   {"bootstrap",    bootstrap_cmd},
    {NULL,	    NULL}		   /* list terminator */
 };
 
 /* Commands from the File daemon that require additional scanning */
-/*  static char append_open[]  = "append open session\n"; */
-static char read_open[]    = "read open session = %s %ld %ld %ld %ld %ld %ld\n";
+static char read_open[]       = "read open session = %s %ld %ld %ld %ld %ld %ld\n";
 
 /* Responses sent to the File daemon */
-static char NO_open[]      = "3901 Error session already open\n";
-static char NOT_opened[]   = "3902 Error session not opened\n";
-static char OK_end[]       = "3000 OK end\n";
-static char OK_close[]     = "3000 OK close Volumes = %d\n";
-static char OK_open[]      = "3000 OK open ticket = %d\n";
-static char OK_append[]    = "3000 OK append data\n";
-static char ERROR_append[] = "3903 Error append data\n";
+static char NO_open[]         = "3901 Error session already open\n";
+static char NOT_opened[]      = "3902 Error session not opened\n";
+static char OK_end[]          = "3000 OK end\n";
+static char OK_close[]        = "3000 OK close Volumes = %d\n";
+static char OK_open[]         = "3000 OK open ticket = %d\n";
+static char OK_append[]       = "3000 OK append data\n";
+static char ERROR_append[]    = "3903 Error append data\n";
+static char OK_bootstrap[]    = "3000 OK bootstrap\n";
+static char ERROR_bootstrap[] = "3904 Error bootstrap\n";
 
 /* Information sent to the Director */
 static char Job_start[] = "3010 Job %s start\n";
 static char Job_end[]	= 
-   "3099 Job %s end JobStatus=%d JobFiles=%d JobBytes=%" lld "\n";
+   "3099 Job %s end JobStatus=%d JobFiles=%d JobBytes=%s\n";
 
 /*
  * Run a File daemon Job -- File daemon already authorized
@@ -104,6 +108,7 @@ void run_job(JCR *jcr)
    int i, found, quit;
    BSOCK *fd = jcr->file_bsock;
    BSOCK *dir = jcr->dir_bsock;
+   char ec1[30];
 
 
    Dmsg1(20, "Start run Job=%s\n", jcr->Job);
@@ -141,7 +146,7 @@ void run_job(JCR *jcr)
       jcr->JobStatus = JS_Terminated;
    }
    bnet_fsend(dir, Job_end, jcr->Job, jcr->JobStatus, jcr->JobFiles,
-      jcr->JobBytes);
+      edit_uint64(jcr->JobBytes, ec1));
 
    bnet_sig(dir, BNET_EOF);	      /* send EOF to Director daemon */
    return;
@@ -302,6 +307,50 @@ static int read_open_session(JCR *jcr)
 
    return 1;
 }
+
+static int bootstrap_cmd(JCR *jcr)
+{
+   BSOCK *fd = jcr->file_bsock;
+   POOLMEM *fname = get_pool_memory(PM_FNAME);
+   FILE *bs;
+
+   if (jcr->RestoreBootstrap) {
+      unlink(jcr->RestoreBootstrap);
+      free_pool_memory(jcr->RestoreBootstrap);
+   }
+   Mmsg(&fname, "%s/%s.%s.bootstrap", me->working_directory, me->hdr.name,
+      jcr->Job);
+   Dmsg1(400, "bootstrap=%s\n", fname);
+   jcr->RestoreBootstrap = fname;
+   bs = fopen(fname, "a+");           /* create file */
+   if (!bs) {
+      Jmsg(jcr, M_FATAL, 0, _("Could not create bootstrap file %s: ERR=%s\n"),
+	 jcr->RestoreBootstrap, strerror(errno));
+      goto bail_out;
+   }
+   while (bnet_recv(fd) > 0) {
+       Dmsg1(200, "stored<filed: bootstrap file %s\n", fd->msg);
+       fputs(fd->msg, bs);
+   }
+   fclose(bs);
+   jcr->bsr = parse_bsr(jcr->RestoreBootstrap);
+   if (!jcr->bsr) {
+      goto bail_out;
+   }
+   if (debug_level > 20) {
+      dump_bsr(jcr->bsr);
+   }
+   return bnet_fsend(fd, OK_bootstrap);
+
+bail_out:
+   unlink(jcr->RestoreBootstrap);
+   free_pool_memory(jcr->RestoreBootstrap);
+   jcr->RestoreBootstrap = NULL;
+   bnet_fsend(fd, ERROR_bootstrap);
+   return 0;
+
+}
+
 
 /*
  *   Read Close session command

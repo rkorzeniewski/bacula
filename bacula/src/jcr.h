@@ -103,6 +103,7 @@ struct s_jcr {
    time_t end_time;                   /* job end time */
    POOLMEM *VolumeName;               /* Volume name desired -- pool_memory */
    POOLMEM *client_name;              /* client name */
+   char *RestoreBootstrap;            /* Bootstrap file to restore */
    char *sd_auth_key;                 /* SD auth key */
    MSGS *msgs;                        /* Message resource */
 
@@ -151,7 +152,7 @@ struct s_jcr {
    char *big_buf;                     /* I/O buffer */
    POOLMEM *compress_buf;             /* Compression buffer */
    int32_t compress_buf_size;         /* Length of compression buffer */
-   char *where;                       /* Root where to restore */
+   POOLMEM *where;                    /* Root where to restore */
    int buf_size;                      /* length of buffer */
    FF_PKT *ff;                        /* Find Files packet */
    char stored_addr[MAX_NAME_LENGTH]; /* storage daemon address */
@@ -167,12 +168,13 @@ struct s_jcr {
    int type;
    DEVRES *device;                    /* device to use */
    VOLUME_CAT_INFO VolCatInfo;        /* Catalog info for desired volume */
-   POOLMEM *job_name;                    /* base Job name (not unique) */
-   POOLMEM *fileset_name;                /* FileSet */
-   POOLMEM *pool_name;                   /* pool to use */
-   POOLMEM *pool_type;                   /* pool type to use */
-   POOLMEM *media_type;                  /* media type */
-   POOLMEM *dev_name;                    /* device name */
+   POOLMEM *job_name;                 /* base Job name (not unique) */
+   POOLMEM *fileset_name;             /* FileSet */
+   POOLMEM *pool_name;                /* pool to use */
+   POOLMEM *pool_type;                /* pool type to use */
+   POOLMEM *media_type;               /* media type */
+   POOLMEM *dev_name;                 /* device name */
+   VOL_LIST *VolList;                 /* list to read */
    long NumVolumes;                   /* number of volumes used */
    long CurVolume;                    /* current volume number */
    int mode;                          /* manual/auto run */

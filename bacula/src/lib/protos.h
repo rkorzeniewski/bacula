@@ -84,7 +84,7 @@ void     daemon_start            ();
 
 /* lex.c */
 LEX *     lex_close_file         (LEX *lf);
-LEX *     lex_open_file          (LEX *lf, char *fname);
+LEX *     lex_open_file          (LEX *lf, char *fname, LEX_ERROR_HANDLER *scan_error);
 int       lex_get_char           (LEX *lf);
 void      lex_unget_char         (LEX *lf);
 char *    lex_tok_to_str         (int token);

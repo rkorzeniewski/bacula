@@ -50,7 +50,7 @@ int runcmd(UAContext *ua, char *cmd)
    JOB *job;
    JCR *jcr;
    char *job_name, *level_name, *jid, *store_name;
-   char *where, *fileset_name, *client_name;
+   char *where, *fileset_name, *client_name, *bootstrap;
    int i, j, found;
    STORE *store;
    CLIENT *client;
@@ -63,6 +63,7 @@ int runcmd(UAContext *ua, char *cmd)
       N_("level"),
       N_("storage"),
       N_("where"),
+      N_("bootstrap"),
       NULL};
 
    if (!open_db(ua)) {
@@ -146,6 +147,14 @@ int runcmd(UAContext *ua, char *cmd)
 		  where = ua->argv[i];
 		  break;
 		  found = True;
+	       case 7: /* bootstrap */
+		  if (bootstrap) {
+                     bsendmsg(ua, _("Bootstrap specified twice.\n"));
+		     return 1;
+		  }
+		  bootstrap = ua->argv[i];
+		  break;
+		  found = True;
 	       default:
 		  break;
 	    }
@@ -205,6 +214,7 @@ int runcmd(UAContext *ua, char *cmd)
 try_again:
    Dmsg1(20, "JobType=%c\n", jcr->JobType);
    switch (jcr->JobType) {
+      char ec1[30];
       case JT_BACKUP:
       case JT_VERIFY:
 	 if (level_name) {
@@ -239,7 +249,7 @@ Storage:  %s\n"),
 		 jcr->store->hdr.name);
 	 break;
       case JT_RESTORE:
-	 if (jcr->RestoreJobId == 0) {
+	 if (jcr->RestoreJobId == 0 && !jcr->RestoreBootstrap) {
 	    if (jid) {
 	       jcr->RestoreJobId = atoi(jid);
 	    } else {
@@ -250,23 +260,25 @@ Storage:  %s\n"),
 	       jcr->RestoreJobId = atoi(ua->cmd);
 	    }
 	 }
-         jcr->JobLevel = 'F';            /* ***FIXME*** */
+         jcr->JobLevel = 'F';         /* default level */
          Dmsg1(20, "JobId to restore=%d\n", jcr->RestoreJobId);
          bsendmsg(ua, _("Run Restore job\n\
 JobName:    %s\n\
+Bootstrap:  %s\n\
 Where:      %s\n\
-RestoreId:  %d\n\
 Level:      %s\n\
 FileSet:    %s\n\
 Client:     %s\n\
-Storage:    %s\n"),
+Storage:    %s\n\
+JobId:      %s\n"),
 		 job->hdr.name,
-		 jcr->RestoreWhere?jcr->RestoreWhere:job->RestoreWhere,
-		 jcr->RestoreJobId,
+		 NPRT(jcr->RestoreBootstrap),
+		 jcr->RestoreWhere?jcr->RestoreWhere:NPRT(job->RestoreWhere),
 		 level_to_str(jcr->JobLevel),
 		 jcr->fileset->hdr.name,
 		 jcr->client->hdr.name,
-		 jcr->store->hdr.name);
+		 jcr->store->hdr.name, 
+                 jcr->RestoreJobId==0?"*None*":edit_uint64(jcr->RestoreJobId, ec1));
 	 break;
       default:
          bsendmsg(ua, _("Unknown Job Type=%d\n"), jcr->JobType);
@@ -278,15 +290,18 @@ Storage:    %s\n"),
       return 1;
    }
    if (strcasecmp(ua->cmd, _("mod")) == 0) {
+      FILE *fd;
+
       start_prompt(ua, _("Parameters to modify:\n"));
-      add_prompt(ua, _("Job"));
-      add_prompt(ua, _("Level"));
-      add_prompt(ua, _("FileSet"));
-      add_prompt(ua, _("Client"));
-      add_prompt(ua, _("Storage"));
+      add_prompt(ua, _("Job"));              /* 0 */
+      add_prompt(ua, _("Level"));            /* 1 */
+      add_prompt(ua, _("FileSet"));          /* 2 */
+      add_prompt(ua, _("Client"));           /* 3 */
+      add_prompt(ua, _("Storage"));          /* 4 */
       if (jcr->JobType == JT_RESTORE) {
-         add_prompt(ua, _("Where"));
-         add_prompt(ua, _("JobId"));
+         add_prompt(ua, _("Bootstrap"));     /* 5 */
+         add_prompt(ua, _("Where"));         /* 6 */
+         add_prompt(ua, _("JobId"));         /* 7 */
       }
       switch (do_prompt(ua, _("Select parameter to modify"), NULL)) {
       case 0:
@@ -375,10 +390,33 @@ Storage:    %s\n"),
 	 }
 	 break;
       case 5:
+	 /* Bootstrap */
+         if (!get_cmd(ua, _("Please enter the Bootstrap file name: "))) {
+	    break;
+	 }
+	 if (jcr->RestoreBootstrap) {
+	    free(jcr->RestoreBootstrap);
+	    jcr->RestoreBootstrap = NULL;
+	 }
+	 if (ua->cmd[0] != 0) {
+	    jcr->RestoreBootstrap = bstrdup(ua->cmd);
+            fd = fopen(jcr->RestoreBootstrap, "r");
+	    if (!fd) {
+               bsendmsg(ua, _("Warning cannot open %s: ERR=%s\n"),
+		  jcr->RestoreBootstrap, strerror(errno));
+	       free(jcr->RestoreBootstrap);
+	       jcr->RestoreBootstrap = NULL;
+	    } else {
+	       fclose(fd);
+	    }
+	 }
+	 goto try_again;
+      case 6:
 	 /* Where */
          if (!get_cmd(ua, _("Please enter path prefix (where) for restore: "))) {
 	    break;
 	 }
+	 /* ***FIXME*** allow drive:/ for Windows */
          if (ua->cmd[0] != '/') {
             bsendmsg(ua, _("Prefix must begin with a /\n"));
 	 } else {
@@ -388,10 +426,13 @@ Storage:    %s\n"),
 	    jcr->RestoreWhere = bstrdup(ua->cmd);
 	 }  
 	 goto try_again;
-      case 6:
+      case 7:
 	 /* JobId */
 	 jid = NULL;		      /* force reprompt */
 	 jcr->RestoreJobId = 0;
+	 if (jcr->RestoreBootstrap) {
+            bsendmsg(ua, _("You must set the bootstrap file to NULL to be able to specify a JobId.\n"));
+	 }
 	 goto try_again;
       default: 
 	 goto try_again;

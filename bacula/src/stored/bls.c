@@ -202,11 +202,13 @@ static void do_setup(char *infname)
    Dmsg2(10, "Device=%s, Vol=%s.\n", infname, VolName);
    dev = init_dev(NULL, infname);
    if (!dev) {
-      Emsg1(M_ABORT, 0, "Cannot open %s\n", infname);
+      Emsg1(M_FATAL, 0, "Cannot open %s\n", infname);
+      exit(1);
    }
    /* ***FIXME**** init capabilities */
    if (!open_device(dev)) {
-      Emsg1(M_ABORT, 0, "Cannot open %s\n", infname);
+      Emsg1(M_FATAL, 0, "Cannot open %s\n", infname);
+      exit(1);
    }
    Dmsg0(90, "Device opened for read.\n");
 
@@ -252,16 +254,15 @@ static int mount_next_volume(char *infname)
       CurVolume++;
       Dmsg1(20, "There is another volume %s.\n", p);
       VolName = p;
-      close_dev(dev);
       jcr->VolumeName = check_pool_memory_size(jcr->VolumeName, 
 			  strlen(VolName)+1);
       strcpy(jcr->VolumeName, VolName);
-      printf("Mount Volume %s on device %s and press return when ready.",
-	 VolName, infname);
-      getchar();   
-      block->binbuf = 0;     /* consumed all bytes */
-      if (!ready_dev_for_read(jcr, dev, block)) {
-         Emsg2(M_ABORT, 0, "Cannot open Dev=%s, Vol=%s\n", infname, VolName);
+
+      close_dev(dev);
+      dev->state &= ~ST_READ; 
+      if (!acquire_device_for_read(jcr, dev, block)) {
+         Emsg2(M_FATAL, 0, "Cannot open Dev=%s, Vol=%s\n", infname, VolName);
+	 exit(1);
       }
       return 1; 	     /* Next volume mounted */
    }
@@ -280,17 +281,17 @@ static void display_error_status()
    status_dev(dev, &status);
    Dmsg1(20, "Device status: %x\n", status);
    if (status & MT_EOD)
-      Emsg0(M_ABORT, 0, "Unexpected End of Data\n");
+      Emsg0(M_ERROR_TERM, 0, "Unexpected End of Data\n");
    else if (status & MT_EOT)
-      Emsg0(M_ABORT, 0, "Unexpected End of Tape\n");
+      Emsg0(M_ERROR_TERM, 0, "Unexpected End of Tape\n");
    else if (status & MT_EOF)
-      Emsg0(M_ABORT, 0, "Unexpected End of File\n");
+      Emsg0(M_ERROR_TERM, 0, "Unexpected End of File\n");
    else if (status & MT_DR_OPEN)
-      Emsg0(M_ABORT, 0, "Tape Door is Open\n");
+      Emsg0(M_ERROR_TERM, 0, "Tape Door is Open\n");
    else if (!(status & MT_ONLINE))
-      Emsg0(M_ABORT, 0, "Unexpected Tape is Off-line\n");
+      Emsg0(M_ERROR_TERM, 0, "Unexpected Tape is Off-line\n");
    else
-      Emsg2(M_ABORT, 0, "Read error on Record Header %s: %s\n", dev_name(dev), strerror(errno));
+      Emsg2(M_ERROR_TERM, 0, "Read error on Record Header %s: %s\n", dev_name(dev), strerror(errno));
 }
 
 
@@ -385,7 +386,7 @@ Warning, this Volume is a continuation of Volume %s\n",
        *    NOTE: this no longer exists
        */
       if (rec->VolSessionId == 0 && rec->VolSessionTime == 0) {
-         Emsg0(M_ABORT, 0, "Zero VolSessionId and VolSessionTime. This shouldn't happen\n");
+         Emsg0(M_ERROR_TERM, 0, "Zero VolSessionId and VolSessionTime. This shouldn't happen\n");
       }
 
       /* 
@@ -456,7 +457,7 @@ Warning, this Volume is a continuation of Volume %s\n",
        *    NOTE: this no longer exists
        */
       if (rec->VolSessionId == 0 && rec->VolSessionTime == 0) {
-         Emsg0(M_ABORT, 0, "Zero VolSessionId and VolSessionTime. This shouldn't happen\n");
+         Emsg0(M_ERROR_TERM, 0, "Zero VolSessionId and VolSessionTime. This shouldn't happen\n");
       }
 
       /* 
@@ -473,7 +474,7 @@ Warning, this Volume is a continuation of Volume %s\n",
 	 char *ap;
          sscanf(rec->data, "%ld %d %s", &record_file_index, &type, fname);
 	 if (record_file_index != rec->FileIndex) {
-            Emsg2(M_ABORT, 0, "Record header file index %ld not equal record index %ld\n",
+            Emsg2(M_ERROR_TERM, 0, "Record header file index %ld not equal record index %ld\n",
 	       rec->FileIndex, record_file_index);
 	 }
 	 ap = rec->data;
@@ -528,4 +529,21 @@ static void print_ls_output(char *fname, char *link, int type, struct stat *stat
    *p++ = '\n';
    *p = 0;
    fputs(buf, stdout);
+}
+
+/* Dummies to replace askdir.c */
+int	dir_get_volume_info(JCR *jcr) { return 1;}
+int	dir_find_next_appendable_volume(JCR *jcr) { return 1;}
+int	dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int relabel) { return 1; }
+int	dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev) { return 1; }
+int	dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec) { return 1;}
+int	dir_send_job_status(JCR *jcr) {return 1;}
+
+
+int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
+{
+   fprintf(stderr, "Mount Volume %s on device %s and press return when ready: ",
+      jcr->VolumeName, dev_name(dev));
+   getchar();	
+   return 1;
 }

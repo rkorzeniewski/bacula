@@ -50,7 +50,8 @@ int win32_client = 0;
 static char *configfile = NULL;
 static int foreground = 0;
 static workq_t dir_workq;	      /* queue of work from Director */
-static CLIENT *me;		      /* my resource */
+
+CLIENT *me;			      /* my resource */
 
 static void usage()
 {

@@ -125,6 +125,7 @@ int send_include_list(JCR *jcr)
       Dmsg1(20, "dird>filed: include file: %s\n", fileset->include_array[i]);
       fd->msg = fileset->include_array[i];
       if (!bnet_send(fd)) {
+	 fd->msg = msgsave;
          Emsg0(M_FATAL, 0, _(">filed: write error on socket\n"));
 	 jcr->JobStatus = JS_ErrorTerminated;
 	 return 0;

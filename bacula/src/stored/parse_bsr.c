@@ -73,6 +73,24 @@ static BSR *new_bsr()
    return bsr;
 }
 
+/*
+ * Format a scanner error message 
+ */
+static void s_err(char *file, int line, LEX *lc, char *msg, ...)
+{
+   va_list arg_ptr;
+   char buf[MAXSTRING];
+
+   va_start(arg_ptr, msg);
+   bvsnprintf(buf, sizeof(buf), msg, arg_ptr);
+   va_end(arg_ptr);
+     
+   e_msg(file, line, M_FATAL, 0, "Config error: %s\n\
+            : Line %d, col %d of file %s\n%s\n",
+      buf, lc->line_no, lc->col_no, lc->fname, lc->line);
+}
+
+
 /*********************************************************************
  *
  *	Parse Bootstrap file
@@ -86,7 +104,7 @@ BSR *parse_bsr(char *cf)
    BSR *bsr = root_bsr;
 
    Dmsg0(200, "Enter parse_bsf()\n");
-   lc = lex_open_file(lc, cf);
+   lc = lex_open_file(lc, cf, s_err);
    while ((token=lex_get_token(lc, T_ALL)) != T_EOF) {
       Dmsg1(150, "parse got token=%s\n", lex_tok_to_str(token));
       if (token == T_EOL) {
@@ -98,6 +116,8 @@ BSR *parse_bsr(char *cf)
             Dmsg1 (150, "in T_IDENT got token=%s\n", lex_tok_to_str(token));
 	    if (token != T_EQUALS) {
                scan_err1(lc, "expected an equals, got: %s", lc->str);
+	       bsr = NULL;
+	       break;
 	    }
             Dmsg1(100, "calling handler for %s\n", items[i].name);
 	    /* Call item handler */
@@ -109,11 +129,18 @@ BSR *parse_bsr(char *cf)
       if (i >= 0) {
          Dmsg1(150, "Keyword = %s\n", lc->str);
          scan_err1(lc, "Keyword %s not found", lc->str);
+	 break;
       }
-
+      if (!bsr) {
+	 break;
+      }
    }
    lc = lex_close_file(lc);
    Dmsg0(200, "Leave parse_bsf()\n");
+   if (!bsr) {
+      free_bsr(root_bsr);
+      root_bsr = NULL;
+   }
    return root_bsr;
 }
 
@@ -122,6 +149,9 @@ static BSR *store_vol(LEX *lc, BSR *bsr)
    int token;
     
    token = lex_get_token(lc, T_NAME);
+   if (token == T_ERROR) {
+      return NULL;
+   }
    if (bsr->VolumeName) {
       bsr->next = new_bsr();
       bsr = bsr->next;
@@ -138,9 +168,12 @@ static BSR *store_client(LEX *lc, BSR *bsr)
     
    for (;;) {
       token = lex_get_token(lc, T_NAME);
+      if (token == T_ERROR) {
+	 return NULL;
+      }
       client = (BSR_CLIENT *)malloc(sizeof(BSR_CLIENT));
       memset(client, 0, sizeof(BSR_CLIENT));
-      client->ClientName = bstrdup(lc->str);
+      strcpy(client->ClientName, lc->str);
       /* Add it to the end of the client chain */
       if (!bsr->client) {
 	 bsr->client = client;
@@ -165,9 +198,12 @@ static BSR *store_job(LEX *lc, BSR *bsr)
     
    for (;;) {
       token = lex_get_token(lc, T_NAME);
+      if (token == T_ERROR) {
+	 return NULL;
+      }
       job = (BSR_JOB *)malloc(sizeof(BSR_JOB));
       memset(job, 0, sizeof(BSR_JOB));
-      job->Job = bstrdup(lc->str);
+      strcpy(job->Job, lc->str);
       /* Add it to the end of the client chain */
       if (!bsr->job) {
 	 bsr->job = job;
@@ -193,6 +229,9 @@ static BSR *store_findex(LEX *lc, BSR *bsr)
 
    for (;;) {
       token = lex_get_token(lc, T_PINT32_RANGE);
+      if (token == T_ERROR) {
+	 return NULL;
+      }
       findex = (BSR_FINDEX *)malloc(sizeof(BSR_FINDEX));
       memset(findex, 0, sizeof(BSR_FINDEX));
       findex->findex = lc->pint32_val;
@@ -223,6 +262,9 @@ static BSR *store_jobid(LEX *lc, BSR *bsr)
 
    for (;;) {
       token = lex_get_token(lc, T_PINT32_RANGE);
+      if (token == T_ERROR) {
+	 return NULL;
+      }
       jobid = (BSR_JOBID *)malloc(sizeof(BSR_JOBID));
       memset(jobid, 0, sizeof(BSR_JOBID));
       jobid->JobId = lc->pint32_val;
@@ -273,6 +315,9 @@ static BSR *store_volfile(LEX *lc, BSR *bsr)
 
    for (;;) {
       token = lex_get_token(lc, T_PINT32_RANGE);
+      if (token == T_ERROR) {
+	 return NULL;
+      }
       volfile = (BSR_VOLFILE *)malloc(sizeof(BSR_VOLFILE));
       memset(volfile, 0, sizeof(BSR_VOLFILE));
       volfile->sfile = lc->pint32_val;
@@ -304,6 +349,9 @@ static BSR *store_sessid(LEX *lc, BSR *bsr)
 
    for (;;) {
       token = lex_get_token(lc, T_PINT32_RANGE);
+      if (token == T_ERROR) {
+	 return NULL;
+      }
       sid = (BSR_SESSID *)malloc(sizeof(BSR_SESSID));
       memset(sid, 0, sizeof(BSR_SESSID));
       sid->sessid = lc->pint32_val;
@@ -333,6 +381,9 @@ static BSR *store_sesstime(LEX *lc, BSR *bsr)
 
    for (;;) {
       token = lex_get_token(lc, T_PINT32);
+      if (token == T_ERROR) {
+	 return NULL;
+      }
       stime = (BSR_SESSTIME *)malloc(sizeof(BSR_SESSTIME));
       memset(stime, 0, sizeof(BSR_SESSTIME));
       stime->sesstime = lc->pint32_val;
@@ -497,4 +548,97 @@ void free_bsr(BSR *bsr)
    }
    free_bsr(bsr->next);
    free(bsr);
+}
+
+/*****************************************************************
+ * Routines for handling volumes     
+ */
+VOL_LIST *new_vol()
+{
+   VOL_LIST *vol;
+   vol = (VOL_LIST *)malloc(sizeof(VOL_LIST));
+   memset(vol, 0, sizeof(VOL_LIST));
+   return vol;
+}
+
+/* 
+ * Add current volume to end of list, only if the Volume
+ * is not already in the list.
+ *
+ *   returns: 1 if volume added
+ *	      0 if volume already in list
+ */
+int add_vol(JCR *jcr, VOL_LIST *vol)
+{
+   VOL_LIST *next = jcr->VolList;
+
+   if (!next) { 		      /* list empty ? */
+      jcr->VolList = vol;	      /* yes, add volume */
+   } else {
+      for ( ; next->next; next=next->next) {
+	 if (strcmp(vol->VolumeName, next->VolumeName) == 0) {
+	    return 0;		      /* already in list */
+	 }
+      }
+      if (strcmp(vol->VolumeName, next->VolumeName) == 0) {
+	 return 0;		      /* already in list */
+      }
+      next->next = vol; 	      /* add volume */
+   }
+   return 1;
+}
+
+void free_vol_list(JCR *jcr)
+{
+   VOL_LIST *next = jcr->VolList;
+   VOL_LIST *tmp;
+
+   for ( ; next; ) {
+      tmp = next->next;
+      free(next);
+      next = tmp;
+   }
+}
+
+void create_vol_list(JCR *jcr)
+{
+   char *p, *n;
+   VOL_LIST *vol;
+
+   /* 
+    * Build a list of volume to be processed
+    */
+   jcr->NumVolumes = 0;
+   jcr->CurVolume = 1;
+   if (jcr->bsr) {
+      BSR *bsr = jcr->bsr;
+      strcpy(jcr->VolumeName, bsr->VolumeName); /* setup first volume */
+      for ( ; bsr; bsr=bsr->next) {
+	 vol = new_vol();
+	 strcpy(vol->VolumeName, bsr->VolumeName);
+	 if (add_vol(jcr, vol)) {
+	    jcr->NumVolumes++;
+            Dmsg1(400, "Added volume %s\n", vol->VolumeName);
+	 } else {
+            Dmsg1(400, "Duplicate volume %s\n", vol->VolumeName);
+	    free((char *)vol);
+	 }
+      }
+   } else {
+      /* This is the old way -- deprecated */ 
+      for (p = jcr->VolumeName; p && *p; ) {
+         n = strchr(p, '|');             /* volume name separator */
+	 if (n) {
+	    *n++ = 0;			 /* Terminate name */
+	 }
+	 vol = new_vol();
+	 strcpy(vol->VolumeName, p);
+	 if (add_vol(jcr, vol)) {
+	    jcr->NumVolumes++;
+	 } else {
+	    free((char *)vol);
+	 }
+	 p = n;
+      }
+   }
 }

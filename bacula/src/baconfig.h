@@ -30,8 +30,6 @@
 
 /* Bacula common configuration defines */
 
-#define DEBUG 1                       /* turn on debug code */
-
 #define TRUE  1
 #define FALSE 0
 
@@ -48,7 +46,7 @@
    jcr[0] = 0; }
 
 /* Allow printing of NULL pointers */
-#define NPRT(x) (x)?(x):"(NULL)" 
+#define NPRT(x) (x)?(x):"*None*" 
 
 #ifdef ENABLE_NLS
 #include <libintl.h>

@@ -363,9 +363,18 @@ void save_resource(int type, struct res_items *items, int pass)
    }
    /* Common */
    if (!error) {
-      res = (URES *) malloc(size);
+      res = (URES *)malloc(size);
       memcpy(res, &res_all, size);
-      res->res_dir.hdr.next = resources[rindex].res_head;
-      resources[rindex].res_head = (RES *)res;
+      if (!resources[rindex].res_head) {
+	 resources[rindex].res_head = (RES *)res; /* store first entry */
+      } else {
+	 RES *next;
+	 /* Add new res to end of chain */
+	 for (next=resources[rindex].res_head; next->next; next=next->next)
+	    { }
+	 next->next = (RES *)res;
+         Dmsg2(90, "Inserting %s res: %s\n", res_to_str(type),
+	       res->res_dir.hdr.name);
+      }
    }
 }

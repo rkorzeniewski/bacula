@@ -327,5 +327,14 @@ void stored_free_jcr(JCR *jcr)
    if (jcr->fileset_name) {
       free_memory(jcr->fileset_name);
    }
+   if (jcr->bsr) {
+      free_bsr(jcr->bsr);
+   }
+   if (jcr->RestoreBootstrap) {
+      unlink(jcr->RestoreBootstrap);
+      free_pool_memory(jcr->RestoreBootstrap);
+      jcr->RestoreBootstrap = NULL;
+   }
+		      
    return;
 }

@@ -307,6 +307,9 @@ void dird_free_jcr(JCR *jcr)
    if (jcr->RestoreWhere) {
       free(jcr->RestoreWhere);
    }
+   if (jcr->RestoreBootstrap) {
+      free(jcr->RestoreBootstrap);
+   }
    Dmsg0(200, "End dird free_jcr\n");
 }
 
@@ -333,6 +336,13 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    jcr->catalog = job->client->catalog;
    jcr->fileset = job->fs;
    jcr->msgs = job->messages; 
+   if (jcr->RestoreBootstrap) {
+      free(jcr->RestoreBootstrap);
+   }
+   /* This can be overridden by Console program */
+   if (job->RestoreBootstrap) {
+      jcr->RestoreBootstrap = bstrdup(job->RestoreBootstrap);
+   }
    /* If no default level given, set one */
    if (jcr->JobLevel == 0) {
       switch (jcr->JobType) {

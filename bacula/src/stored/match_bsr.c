@@ -157,7 +157,7 @@ static int match_jobid(BSR_JOBID *jobid, SESSION_LABEL *sessrec)
    if (!jobid) {
       return 1; 		      /* no specification matches all */
    }
-   if (jobid->JobId >= sessrec->JobId && jobid->JobId2 <= sessrec->JobId) {
+   if (jobid->JobId <= sessrec->JobId && jobid->JobId2 >= sessrec->JobId) {
       jobid->found++;
       return 1;
    }
@@ -173,7 +173,7 @@ static int match_volfile(BSR_VOLFILE *volfile, DEV_RECORD *rec)
    if (!volfile) {
       return 1; 		      /* no specification matches all */
    }
-   if (volfile->sfile >= rec->File && volfile->efile <= rec->File) {
+   if (volfile->sfile <= rec->File && volfile->efile >= rec->File) {
       volfile->found++;
       return 1;
    }
@@ -189,7 +189,7 @@ static int match_findex(BSR_FINDEX *findex, DEV_RECORD *rec)
    if (!findex) {
       return 1; 		      /* no specification matches all */
    }
-   if (findex->findex >= rec->FileIndex && findex->findex2 <= rec->FileIndex) {
+   if (findex->findex <= rec->FileIndex && findex->findex2 >= rec->FileIndex) {
       findex->found++;
       return 1;
    }
@@ -205,7 +205,7 @@ static int match_sessid(BSR_SESSID *sessid, DEV_RECORD *rec)
    if (!sessid) {
       return 1; 		      /* no specification matches all */
    }
-   if (sessid->sessid >= rec->VolSessionId && sessid->sessid2 <= rec->VolSessionId) {
+   if (sessid->sessid <= rec->VolSessionId && sessid->sessid2 >= rec->VolSessionId) {
       sessid->found++;
       return 1;
    }
