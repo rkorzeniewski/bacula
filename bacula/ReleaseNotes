@@ -1,12 +1,17 @@
 
           Release Notes for Bacula 1.34.1
 
-  Bacula code: Total files = 343 Total lines = 98,503 (*.h *.c *.in)
+  Bacula code: Total files = 344 Total lines = 98,746 (*.h *.c *.in)
 
 Changes for 1.34.1:  
 - Autochanger users, please note you must add %d to the end of the
   changer command line in your Device resource in your bacula-sd.conf
   file.
+- There is a new wx-console program that does restores with a    
+  tree allowing you to visually select what files are to be restored.
+  It is in a preliminary stage of development, but can be easily
+  be built under Linux with GTK, and with just a bit more difficulty
+  under Win32 with MinGW.
 - Fixed a major race condition in the job scheduler when multiple
   simultaneous jobs is enabled. This occurred only when on job had
   blocked another because of resource usage.
