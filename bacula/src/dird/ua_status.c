@@ -433,103 +433,31 @@ static void prt_runtime(UAContext *ua, JOB *job, int level, time_t runtime, POOL
  */
 static void print_jobs_scheduled(UAContext *ua)
 {
-   time_t now, runtime, tomorrow;
+   time_t runtime;
    RUN *run;
    JOB *job;
-   SCHED *sched;
-   struct tm tm;
-   int mday, wday, month, wpos, tmday, twday, tmonth, twpos, i, hour;
-   int tod, tom;
-   int found;
-   int hdr_printed = FALSE;
+   bool hdr_printed = false;
    int level;
 
    Dmsg0(200, "enter find_runs()\n");
-
-   now = time(NULL);
-   localtime_r(&now, &tm);
-   mday = tm.tm_mday - 1;
-   wday = tm.tm_wday;
-   month = tm.tm_mon;
-   wpos = (tm.tm_mday - 1) / 7;
-
-   tomorrow = now + 60 * 60 * 24;
-   localtime_r(&tomorrow, &tm);
-   tmday = tm.tm_mday - 1;
-   twday = tm.tm_wday;
-   tmonth = tm.tm_mon;
-   twpos  = (tm.tm_mday - 1) / 7;
 
    /* Loop through all jobs */
    LockRes();
    for (job=NULL; (job=(JOB *)GetNextRes(R_JOB, (RES *)job)); ) {
       level = job->level;   
-      sched = job->schedule;
-      if (sched == NULL) {	      /* scheduled? */
-	 continue;		      /* no, skip this job */
+      run = find_next_run(job, runtime);
+      if (!run) {
+	 continue;
       }
-      for (run=sched->run; run; run=run->next) {
-	 if (run->level) {
-	    level = run->level;
-	 }
-	 /* 
-	  * Find runs in next 24 hours
-	  */
-	 tod = (bit_is_set(mday, run->mday) || bit_is_set(wday, run->wday)) && 
-		bit_is_set(month, run->month) && bit_is_set(wpos, run->wpos);
+      if (run->level) {
+	 level = run->level;
+      }
+      if (!hdr_printed) {
+	 hdr_printed = true;
+	 prt_runhdr(ua);
+      }
+      prt_runtime(ua, job, level, runtime, run->pool);
 
-	 tom = (bit_is_set(tmday, run->mday) || bit_is_set(twday, run->wday)) &&
-		bit_is_set(tmonth, run->month) && bit_is_set(wpos, run->wpos);
-
-         Dmsg2(200, "tod=%d tom=%d\n", tod, tom);
-	 found = FALSE;
-	 if (tod) {		      /* Jobs scheduled today (next 24 hours) */
-	    /* find time (time_t) job is to be run */
-	    localtime_r(&now, &tm);
-	    hour = 0;
-	    for (i=tm.tm_hour; i < 24; i++) {
-	       if (bit_is_set(i, run->hour)) {
-		  tm.tm_hour = i;
-		  tm.tm_min = run->minute;
-		  tm.tm_sec = 0;
-		  runtime = mktime(&tm);
-		  if (runtime > now) {
-		     if (!hdr_printed) {
-			hdr_printed = TRUE;
-			prt_runhdr(ua);
-		     }
-		     prt_runtime(ua, job, level, runtime, run->pool);
-		     found = TRUE;
-		     break;
-		  }
-	       }
-	    }
-	 }
-
-//       Dmsg2(200, "runtime=%d now=%d\n", runtime, now);
-	 if (!found && tom) {		 /* look at jobs scheduled tomorrow */
-	    localtime_r(&tomorrow, &tm);
-	    hour = 0;
-	    for (i=0; i < 24; i++) {
-	       if (bit_is_set(i, run->hour)) {
-		  hour = i;
-		  break;
-	       }
-	    }
-	    tm.tm_hour = hour;
-	    tm.tm_min = run->minute;
-	    tm.tm_sec = 0;
-	    runtime = mktime(&tm);
-            Dmsg2(200, "truntime=%d now=%d\n", runtime, now);
-	    if (runtime < tomorrow) {
-	       if (!hdr_printed) {
-		  hdr_printed = TRUE;
-		  prt_runhdr(ua);
-	       }
-	       prt_runtime(ua, job, level, runtime, run->pool);
-	    }
-	 }
-      } /* end for loop over runs */ 
    } /* end for loop over resources */
    UnlockRes();
    Dmsg0(200, "Leave find_runs()\n");

@@ -132,6 +132,7 @@ int is_volume_name_legal(UAContext *ua, char *name);
 /* ua_output.c */
 void prtit(void *ctx, char *msg);
 int complete_jcr_for_job(JCR *jcr, JOB *job, POOL *pool);
+RUN *find_next_run(JOB *job, time_t &runtime);
 
 /* ua_server.c */
 void bsendmsg(void *sock, char *fmt, ...);
