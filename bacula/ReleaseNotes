@@ -1,9 +1,10 @@
 
           Release Notes for Bacula 1.31
 
-  Bacula code: Total files = 253 Total lines = 75,240 (*.h *.c *.in)
+  Bacula code: Total files = 258 Total lines = 76,596 (*.h *.c *.in)
 
 Major Changes this Release:
+- Implemented a new job scheduling algorithm with priorities.
 - The database format has changed from version 1.30a. Please see below.
 - Support to save and restore all files on WinNT/2K/XP systems 
   including the permissions. Unfortunately files that are in use by another
@@ -17,13 +18,17 @@ Major Changes this Release:
   it is not installed in your system libraries.
 - Implemented generalized tape label formats including counter variables 
   for automatic naming of Volumes.
-- Multiple simultaneous jobs now work. However, I still don't highly
-  recommend it.
+- Multiple simultaneous jobs now work. However, I still don't
+  using recommend it.
 - Implemented tape block rejection, which means that restores with
   several incremental backups will run orders of magnitude faster.
 
 
 Other Changes this Release:
+- New Priority record in Jobs for setting job priorities.
+- The name of Recycle Oldest Volume has now become Purge Oldest Volume.
+- Implemented a Recycle Oldest Volume, which respects Retention periods.
+- Implemented a Recycle Current Volume, which respects Retention periods.
 - Restore checks block numbers to ensure that no block is lost.
 - The new console var command allows testing variable expansion
   used in automatic tape name generation.
@@ -39,7 +44,8 @@ Other Changes this Release:
   in progress.
 - Improvements to gnome-console.
 - Prune orphaned jobs (no files saved, no Volume used).
-- Added non-fatal errors to Job reports.
+- Added non-fatal errors to Job reports and statistics from both
+  the FD and SD for backups.
 - Eliminate need for SubsysDirectory in each daemon -- please remove
   these records from your .conf files.
 - Add a lot more "command line" options to console commands.

@@ -18,37 +18,6 @@ Documentation to do: (any release a little bit at a time)
   (./create_mys... ./make_my...).
 - Document all the status codes JobLevel, JobType, JobStatus.
 - Document dynamic DNS
-- Document using multiple Pools for daily rotating tapes.
-- Fix default time in seconds without qualifier -- bacula-dir.conf
-- From Marc Brueckner der Megauser
-   Backup OS       Restore OS      Result
-   -------------------------------------------------------------------------------
-   WinME           WinME           Works
-   WinME           WinNT           Works (minor problems with rights)
-   WinME           WINXP           Works (minor problems with rights)
-   WinME           Linux           Works (minor problems with rights) 
-
-
-   WinXP           WinXP           Works
-   WinXP           WinNT           Works  *
-   WinXP           WinME           Error: Win32 data stream not supported on this Client
-   WinXP           Linux           Error: Win32 data stream not supported on this Client
-
-   WinNT           WinNT           Works
-   WinNT           WinXP           Works
-   WinNT           WinME           Error: Win32 data stream not supported on this Client
-   WinNT           Linux           Error: Win32 data stream not supported on this Client
-
-   Linux           Linux           Works
-   Linux           WinNT           Works (minor problems with rights)
-   Linux           WinME           Client hangs
-   * When restoring files on WinNT previously backed up on XP I get the following 
-   Message for some files.
-   But any file was restored correctly !
-
-   Write error on c:/tmp/transfer/WinSCP2.exe: ERR=Die Daten sind unzulassig. (the
-   data is invalid).
-- Add Nic Bellamy's backup scheme.
           
 Testing to do: (painful)
 - that ALL console command line options work and are always implemented
@@ -56,31 +25,27 @@ Testing to do: (painful)
 - Test if rewind at end of tape waits for tape to rewind.
 - Test cancel at EOM.       
 - Test not zeroing Autochanger slot when it is wrong.
-- Test of last block is correct in JobMedia when splitting file 
-  over two volumes.
 - Test recycling and purging (code changed in db_find_next_volume and
   in recycle.c).
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
-- Do full check the command line args in update (e.g. VolStatus ...).
-- Maybe remove multiple simultaneous devices code in SD.
 - Increment DB version prior to releasing.
 - Turn off FULL_DEBUG prior to releasing.
+
+
+For 1.32:
+- Maybe remove multiple simultaneous devices code in SD.
 - On Windows with very long path names, it may be impossible to create 
   a file (and thus restore it) because the total length is too long.
   We must cd into the directory then create the file without the
   full path name.
 - lstat() is not going to work on Win32 for testing date.
-- Implement a Recycle command
 - Something is not right in last block of fill command.
+- Implement a Recycle command
 - Implement List Volume Job=xxx  or List scheduled volumes or Status Director 
-- Check if Incremental is working correctly when it looks for the previous Job 
-  (Phil's problem).
 - Add FileSet to command line arguments for restore.
-
-
-For 1.32:
+- Do full check the command line args in update (e.g. VolStatus ...).
 - Allow multiple Storage specifications (or multiple names on
   a single Storage specification) in the Job record. Thus a job 
   can be backed up to a number of storage devices.
@@ -1059,4 +1024,11 @@ Done: (see kernsdone for more)
 - Backup on havana gave:
   Total Bytes Read=4,629,249,084,728,272,628 Blocks Read=0 Bytes/block=134,735,604
 - Move JobFiles and JobBytes to SD rather than FD -- more correct.
-
+- Test of last block is correct in JobMedia when splitting file 
+  over two volumes.
+- Doc win32 table from Marc Brueckner der Megauser
+- Fix default time in seconds without qualifier -- bacula-dir.conf
+- Add Nic Bellamy's backup scheme.
+- Document using multiple Pools for daily rotating tapes.
+- Check if Incremental is working correctly when it looks for the previous Job 
+  (Phil's problem).
