@@ -3,6 +3,11 @@
 # Create a 60MB file with random bytes. Back it up to 6 Volumes
 #   each constrained to 10MB using the automatic labeling feature.
 #
+
+if test ! -e /dev/urandom ; then
+   echo "No random device. Test skipped.\n"
+   exit 0
+fi
 cwd=`pwd`
 scripts/copy-testa-confs
 scripts/cleanup
@@ -17,8 +22,8 @@ bin/make_sqlite_tables
 
 echo " "
 echo " "
-echo " === Starting two-vol-test  ==="
-echo " === Starting two-vol-test  ===" >>working/log
+echo " === Starting six-vol-test  ==="
+echo " === Starting six-vol-test  ===" >>working/log
 echo " "
 
 bin/bacula start
