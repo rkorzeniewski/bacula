@@ -328,29 +328,62 @@ POSTGRESQL_ROW my_postgresql_fetch_row(B_DB *mdb)
 	return row;
 }
 
+int my_postgresql_max_length(B_DB *mdb, int field_num) {
+	//
+	// for a given column, find the max length
+	//
+	int	max_length;
+	int i;
+	int	this_length;
+
+	max_length = 0;
+	for (i = 0; i < mdb->num_rows; i++) {
+		if (PQgetisnull(mdb->result, i, field_num)) {
+			this_length = 4;	// "NULL"
+		} else {
+			this_length = strlen(PQgetvalue(mdb->result, i, field_num));
+		}
+				
+		if (max_length < this_length) {
+			max_length = this_length;
+		}
+	}
+
+	return max_length;
+}
+
 POSTGRESQL_FIELD * my_postgresql_fetch_field(B_DB *mdb) 
 {
-	mdb->field.name       = PQfname    (mdb->result, mdb->field_number);
+	int	i;
 
-	// I am not sure this returns the max width of the result set
-	mdb->field.max_length = PQfsize    (mdb->result, mdb->field_number);
+	Dmsg0(50, "my_postgresql_fetch_field starts\n");
+	if (mdb->fields == NULL) {
+		Dmsg1(50, "allocating space for %d fields\n", mdb->num_fields);
+		mdb->fields = (POSTGRESQL_FIELD *)
+		                 malloc(sizeof(POSTGRESQL_FIELD) * mdb->num_fields);
 
-	// I am not sure this returns what we can use
-	mdb->field.type       = PQftype    (mdb->result, mdb->field_number);
+		for (i = 0; i < mdb->num_fields; i++) {
+			Dmsg1(50, "filling field %d\n", i);
+			mdb->fields[i].name	      = PQfname    (mdb->result, i);
 
-//	if (mdb->num_rows > 0) {
-//              Dmsg1(50, "asking for information on field '%d' type='%d' and IsNull=%d\n",
-//		mdb->field.flags  = PQgetisnull(mdb->result, mdb->row_number, mdb->field_number);
-//	}
-	mdb->field.flags = 0;
+			// I am not sure this returns the max width of the result set
+			mdb->fields[i].max_length = my_postgresql_max_length(mdb, i);
 
-	Dmsg4(50, "my_postgresql_fetch_field finds field '%s' has length='%d' type='%d' and IsNull=%d\n", 
-	mdb->field.name, mdb->field.max_length, mdb->field.type, mdb->field.flags);
+			// I am not sure this returns what we can use
+			mdb->fields[i].type       = PQftype    (mdb->result, i);
 
-	// increment this for the next time around
-	mdb->field_number++;
+			mdb->fields[i].flags = 0;
 
-	return &mdb->field;
+			Dmsg4(50, "my_postgresql_fetch_field finds field '%s' has length='%d' type='%d' and IsNull=%d\n", 
+			   mdb->fields[i].name, mdb->fields[i].max_length, mdb->fields[i].type,
+			   mdb->fields[i].flags);
+		} // end for
+	} // end if
+
+	// increment field number for the next time around
+
+	Dmsg0(50, "my_postgresql_fetch_field finishes\n");
+	return &mdb->fields[mdb->field_number++];
 }
 
 void my_postgresql_data_seek(B_DB *mdb, int row) 
@@ -406,6 +439,11 @@ void my_postgresql_free_result (B_DB *mdb)
 	if (mdb->row) {
 		free(mdb->row);
 		mdb->row = NULL;
+	}
+
+	if (mdb->fields) {
+		free(mdb->fields);
+		mdb->fields = NULL;
 	}
 }
 
