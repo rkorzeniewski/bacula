@@ -1,0 +1,7 @@
+Makefile
+bacula-fd
+bacula-fd.conf
+btraceback
+btraceback.gdb
+startit
+stopit

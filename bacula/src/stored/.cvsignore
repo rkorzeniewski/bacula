@@ -1,0 +1,17 @@
+1
+Makefile
+bacula-sd
+bacula-sd.conf
+bextract
+bls
+bscan
+btape
+btraceback
+btraceback.gdb
+file1Job1.bsr
+file1Job2.bsr
+job1.bsr
+job2.bsr
+restore.bsr
+startit
+stopit
