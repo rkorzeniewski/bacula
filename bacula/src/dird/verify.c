@@ -90,10 +90,10 @@ bool do_verify(JCR *jcr)
        jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG ||
        jcr->JobLevel == L_VERIFY_DISK_TO_CATALOG) {
       memcpy(&jr, &jcr->jr, sizeof(jr));
-      if (jcr->job->verify_job &&
+      if (jcr->verify_job &&
 	  (jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG ||
 	   jcr->JobLevel == L_VERIFY_DISK_TO_CATALOG)) {
-	 Name = jcr->job->verify_job->hdr.name;
+	 Name = jcr->verify_job->hdr.name;
       } else {
 	 Name = NULL;
       }
@@ -204,8 +204,8 @@ bool do_verify(JCR *jcr)
       jcr->sd_auth_key = bstrdup("dummy");    /* dummy Storage daemon key */
    }
 
-   if (jcr->JobLevel == L_VERIFY_DISK_TO_CATALOG && jcr->job->verify_job) {
-      jcr->fileset = jcr->job->verify_job->fileset;
+   if (jcr->JobLevel == L_VERIFY_DISK_TO_CATALOG && jcr->verify_job) {
+      jcr->fileset = jcr->verify_job->fileset;
    }
    Dmsg2(100, "ClientId=%u JobLevel=%c\n", verify_jr.ClientId, jcr->JobLevel);
 
@@ -409,8 +409,8 @@ static void verify_cleanup(JCR *jcr, int TermCode)
    }
    bstrftime(sdt, sizeof(sdt), jcr->jr.StartTime);
    bstrftime(edt, sizeof(edt), jcr->jr.EndTime);
-   if (jcr->job->verify_job) {
-      Name = jcr->job->verify_job->hdr.name;
+   if (jcr->verify_job) {
+      Name = jcr->verify_job->hdr.name;
    } else {
       Name = "";
    }

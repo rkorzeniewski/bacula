@@ -149,6 +149,7 @@ struct JCR {
    volatile bool sd_msg_thread_done;  /* Set when Storage message thread terms */
    BSOCK *ua;                         /* User agent */
    JOB *job;                          /* Job resource */
+   JOB *verify_job;                   /* Job resource of verify target job */
    alist *storage[MAX_STORE];         /* Storage possibilities */
    STORE *store;                      /* Storage daemon selected */
    CLIENT *client;                    /* Client resource */

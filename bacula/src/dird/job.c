@@ -772,6 +772,8 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    if (job->RestoreBootstrap) {
       jcr->RestoreBootstrap = bstrdup(job->RestoreBootstrap);
    }
+   /* This can be overridden by Console program */
+   jcr->verify_job = job->verify_job;
    /* If no default level given, set one */
    if (jcr->JobLevel == 0) {
       switch (jcr->JobType) {
