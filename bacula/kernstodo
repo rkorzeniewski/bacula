@@ -11,6 +11,7 @@ Version 1.35                Kern (see below)
 ========================================================
 
 1.35 Items to do for release:
+- Improve error message if old/new FileSet syntax mixed.
 - Restore c: with a prefix into /prefix/c/ to prevent c: and d:
   files with the same name from overwritting each other.
 - Add new DCR calling sequences everywhere in SD. This will permit 
@@ -33,6 +34,7 @@ Version 1.35                Kern (see below)
 - Doc -p option in stored
 - Doc Phil's new delete job jobid scanning code.
 - Document that console commands can be abbreviated.
+- Document add "</dev/null >/dev/null 2>&1" to the bacula-fd command line
 - New IP address specification is used as follows:
     [sdaddresses|diraddresses|fdaddresses] = { [[ip|ipv4|ipv6] = { 
            [[addr|port] = [^ ]+[\n;]+] }] }
@@ -950,6 +952,105 @@ Ideas from Jerry Scharf:
    owner, group, user, quotas
 - Store info on each file system type (probably in the job header on tape.
   This could be the output of df; or perhaps some sort of /etc/mtab record.
+
+========= ideas ===============
+From: "Jerry K. Schieffer" <jerry@skylinetechnology.com>
+To: <kern@sibbald.com>
+Subject: RE: [Bacula-users] future large programming jobs
+Date: Thu, 26 Feb 2004 11:34:54 -0600
+
+I noticed the subject thread and thought I would offer the following
+merely as sources of ideas, i.e. something to think about, not even as
+strong as a request.  In my former life (before retiring) I often
+dealt with backups and storage management issues/products as a
+developer and as a consultant.  I am currently migrating my personal
+network from amanda to bacula specifically because of the ability to
+cross media boundaries during storing backups.
+Are you familiar with the commercial product called ADSM (I think IBM
+now sells it under the Tivoli label)?  It has a couple of interesting
+ideas that may apply to the following topics.
+
+1. Migration:  Consider that when you need to restore a system, there
+may be pressure to hurry.  If all the information for a single client
+can eventually end up on the same media (and in chronological order),
+the restore is facillitated by not having to search past information
+from other clients.  ADSM has the concept of "client affinity" that
+may be associated with it's storage pools.  It seems to me that this
+concept (as an optional feature) might fit in your architecture for
+migration.
+
+ADSM also has the concept of defining one or more storage pools as
+"copy pools" (almost mirrors, but only in the sense of contents).
+These pools provide the ability to have duplicte data stored both
+onsite and offsite.  The copy process can be scheduled to be handled
+by their storage manager during periods when there is no backup
+activity.  Again, the migration process might be a place to consider
+implementing something like this.
+
+>
+> It strikes me that it would be very nice to be able to do things
+like
+> have the Job(s) backing up the machines run, and once they have all
+> completed, start a migration job to copy the data from disks Volumes
+to
+> a tape library and then to offsite storage. Maybe this can already
+be
+> done with some careful scheduling and Job prioritzation; the events
+> mechanism described below would probably make it very easy.
+
+This is the goal. In the first step (before events), you simply
+schedule
+the Migration to tape later.
+
+2. Base jobs:  In ADSM, each copy of each stored file is tracked in
+the database.  Once a file (unique by path and metadata such as dates,
+size, ownership, etc.) is in a copy pool, no more copies are made.  In
+other words, when you start ADSM, it begins like your concept of a
+base job.  After that it is in the "incremental" mode.  You can
+configure the number of "generations" of files to be retained, plus a
+retention date after which even old generations are purged.  The
+database tracks the contents of media and projects the percentage of
+each volume that is valid.  When the valid content of a volume drops
+below a configured percentage, the valid data are migrated to another
+volume and the old volume is marked as empty.  Note, this requires
+ADSM to have an idea of the contents of a client, i.e. marking the
+database when an existing file was deleted, but this would solve your
+issue of restoring a client without restoring deleted files.
+
+This is pretty far from what bacula now does, but if you are going to
+rip things up for Base jobs,.....
+Also, the benefits of this are huge for very large shops, especially
+with media robots, but are a pain for shops with manual media
+mounting.
+
+>
+> Base jobs sound pretty useful, but I'm not dying for them.
+
+Nobody is dying for them, but when you see what it does, you will die
+without it.
+
+3. Restoring deleted files:  Since I think my comments in (2) above
+have low probability of implementation, I'll also suggest that you
+could approach the issue of deleted files by a mechanism of having the
+fd report to the dir, a list of all files on the client for every
+backup job.  The dir could note in the database entry for each file
+the date that the file was seen.  Then if a restore as of date X takes
+place, only files that exist from before X until after X would be
+restored.  Probably the major cost here is the extra date container in
+each row of the files table.
+
+Thanks for "listening".  I hope some of this helps.  If you want to
+contact me, please send me an email - I read some but not all of the
+mailing list traffic and might miss a reply there.
+
+Please accept my compliments for bacula.  It is doing a great job for
+me!!  I sympathize with you in the need to wrestle with excelence in
+execution vs. excelence in feature inclusion.
+
+Regards,
+Jerry Schieffer
+
+==============================
 
 Longer term to do:
 - Design at hierarchial storage for Bacula. Migration and Clone. 
