@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     18 November 2004
+                     08 December 2004
 
 Major development:      
 Project                     Developer
@@ -60,6 +60,7 @@ Regression tests (Jo):
 
 
 1.37 Possibilities:
+- Implement Maximum Job Spool Size
 - Document security problems with the same password for everyone in
   rpm and Win32 releases.
 - Browse generations of files.
