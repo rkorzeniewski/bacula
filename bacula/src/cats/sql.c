@@ -88,6 +88,9 @@ QueryDB(char *file, int line, void *jcr, B_DB *mdb, char *cmd)
    if (sql_query(mdb, cmd)) {
       m_msg(file, line, &mdb->errmsg, _("query %s failed:\n%s\n"), cmd, sql_strerror(mdb));
       j_msg(file, line, jcr, M_FATAL, 0, "%s", mdb->errmsg);
+      if (verbose) {
+         j_msg(file, line, jcr, M_INFO, 0, "%s\n", cmd);
+      }
       return 0;
    }
    mdb->result = sql_store_result(mdb);
@@ -106,6 +109,9 @@ InsertDB(char *file, int line, void *jcr, B_DB *mdb, char *cmd)
    if (sql_query(mdb, cmd)) {
       m_msg(file, line, &mdb->errmsg,  _("insert %s failed:\n%s\n"), cmd, sql_strerror(mdb));
       j_msg(file, line, jcr, M_FATAL, 0, "%s", mdb->errmsg);
+      if (verbose) {
+         j_msg(file, line, jcr, M_INFO, 0, "%s\n", cmd);
+      }
       return 0;
    }
    if (mdb->have_insert_id) {
@@ -115,7 +121,7 @@ InsertDB(char *file, int line, void *jcr, B_DB *mdb, char *cmd)
    }
    if (mdb->num_rows != 1) {
       char ed1[30];
-      m_msg(file, line, &mdb->errmsg, _("Insertion problem: affect_rows=%s\n"), 
+      m_msg(file, line, &mdb->errmsg, _("Insertion problem: affected_rows=%s\n"), 
 	 edit_uint64(mdb->num_rows, ed1));
       return 0;
    }
@@ -134,7 +140,9 @@ UpdateDB(char *file, int line, void *jcr, B_DB *mdb, char *cmd)
    if (sql_query(mdb, cmd)) {
       m_msg(file, line, &mdb->errmsg, _("update %s failed:\n%s\n"), cmd, sql_strerror(mdb));
       j_msg(file, line, jcr, M_ERROR, 0, "%s", mdb->errmsg);
-      j_msg(file, line, jcr, M_ERROR, 0, "%s\n", cmd);
+      if (verbose) {
+         j_msg(file, line, jcr, M_INFO, 0, "%s\n", cmd);
+      }
       return 0;
    }
    mdb->num_rows = sql_affected_rows(mdb);
@@ -160,6 +168,9 @@ DeleteDB(char *file, int line, void *jcr, B_DB *mdb, char *cmd)
    if (sql_query(mdb, cmd)) {
       m_msg(file, line, &mdb->errmsg, _("delete %s failed:\n%s\n"), cmd, sql_strerror(mdb));
       j_msg(file, line, jcr, M_ERROR, 0, "%s", mdb->errmsg);
+      if (verbose) {
+         j_msg(file, line, jcr, M_INFO, 0, "%s\n", cmd);
+      }
       return -1;
    }
    mdb->changes++;

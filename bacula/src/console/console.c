@@ -136,12 +136,12 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
       while ((stat = bnet_recv(UA_sock)) >= 0) {
 	 if (at_prompt) {
 	    if (!stop) {
-               fprintf(output, "\n");
+               putc('\n', output);
 	    }
 	    at_prompt = FALSE;
 	 }
 	 if (!stop) {
-            fprintf(output, "%s", UA_sock->msg);
+	    fputs(UA_sock->msg, output);
 	 }
       }
       if (!stop) {
@@ -179,15 +179,17 @@ int main(int argc, char *argv[])
    while ((ch = getopt(argc, argv, "bc:d:r:st?")) != -1) {
       switch (ch) {
          case 'c':                    /* configuration file */
-	    if (configfile != NULL)
+	    if (configfile != NULL) {
 	       free(configfile);
+	    }
 	    configfile = bstrdup(optarg);
 	    break;
 
          case 'd':
 	    debug_level = atoi(optarg);
-	    if (debug_level <= 0)
+	    if (debug_level <= 0) {
 	       debug_level = 1;
+	    }
 	    break;
 
          case 's':                    /* turn off signals */
@@ -233,7 +235,7 @@ int main(int argc, char *argv[])
    }
    UnlockRes();
    if (ndir == 0) {
-      Emsg1(M_ABORT, 0, "No Director resource defined in %s\n\
+      Emsg1(M_ERROR_TERM, 0, "No Director resource defined in %s\n\
 Without that I don't how to speak to the Director :-(\n", configfile);
    }
 
@@ -286,7 +288,7 @@ try_again:
    }
    jcr.dir_bsock = UA_sock;
    if (!authenticate_director(&jcr, dir)) {
-      fprintf(stderr, "ERR: %s", UA_sock->msg);
+      fprintf(stderr, "ERR=%s", UA_sock->msg);
       terminate_console(0);
       return 1;
    }
@@ -310,8 +312,9 @@ static void terminate_console(int sig)
 {
    static int already_here = FALSE;
 
-   if (already_here)		      /* avoid recursive temination problems */
+   if (already_here) {		      /* avoid recursive temination problems */
       exit(1);
+   }
    already_here = TRUE;
    exit(0);
 }
@@ -387,7 +390,7 @@ get_cmd(FILE *input, char *prompt, BSOCK *sock, int sec)
 {
    int len;  
    if (!stop) {
-      fprintf(output, prompt);
+      puts(prompt, output);
       fflush(output);
    }
 again:

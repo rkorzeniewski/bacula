@@ -34,7 +34,8 @@
 #define FULL_LOCATION 1 	      /* set for file:line in Debug messages */
 
 char *working_directory = NULL;       /* working directory path stored here */
-int debug_level = 5;		      /* debug level */
+int verbose = 0;		      /* increase User messages */
+int debug_level = 0;		      /* debug level */
 time_t daemon_start_time = 0;	      /* Daemon start time */
 
 char my_name[20];		      /* daemon name is stored here */

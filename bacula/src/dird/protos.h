@@ -71,7 +71,7 @@ extern int connect_to_storage_daemon(JCR *jcr, int retry_interval,
 extern int start_storage_daemon_job(JCR *jcr);
 extern int start_storage_daemon_message_thread(JCR *jcr);
 extern int32_t bget_msg(BSOCK *bs, int type);
-extern int response(BSOCK *fd, char *resp, char *cmd);
+extern int response(BSOCK *fd, char *resp, char *cmd, int prtmsg);
 extern void wait_for_storage_daemon_termination(JCR *jcr);
 
 /* newvol.c */

@@ -151,6 +151,32 @@ VolSessionTime=%u, PoolId=%u, FileSetId=%u, JobTDate=%s WHERE JobId=%u",
 
 
 int
+db_update_client_record(void *jcr, B_DB *mdb, CLIENT_DBR *cr)
+{
+   int stat;
+   char ed1[50], ed2[50];
+
+   db_lock(mdb);
+   if (!db_create_client_record(jcr, mdb, cr)) {
+      db_unlock(mdb);
+      return 0;
+   }
+
+   Mmsg(&mdb->cmd,
+"UPDATE Client SET AutoPrune=%d,FileRetention=%s,JobRetention=%s," 
+"Uname='%s' WHERE Name='%s'",
+      cr->AutoPrune,
+      edit_uint64(cr->FileRetention, ed1),
+      edit_uint64(cr->JobRetention, ed2),
+      cr->Uname, cr->Name);
+
+   stat = UPDATE_DB(jcr, mdb, mdb->cmd);
+   db_unlock(mdb);
+   return stat;
+}
+
+
+int
 db_update_pool_record(void *jcr, B_DB *mdb, POOL_DBR *pr)
 {
    int stat;

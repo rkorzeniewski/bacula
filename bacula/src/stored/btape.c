@@ -82,7 +82,6 @@ static uint64_t VolBytes;
 static time_t now;
 static double kbs;
 static long file_index;
-static int verbose = 0;
 static int end_of_tape = 0;
 static uint32_t LastBlock = 0;
 static uint32_t eot_block;

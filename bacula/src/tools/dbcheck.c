@@ -52,7 +52,6 @@ typedef struct s_name_ctx {
 /* Global variables */
 static int fix = FALSE;
 static int batch = FALSE;
-static int verbose = FALSE;
 static B_DB *db;
 static ID_LIST id_list;
 static NAME_LIST name_list;

@@ -71,6 +71,7 @@ static void usage()
 "       -s          no signals\n"
 "       -t          test - read configuration and exit\n"
 "       -u          userid\n"
+"       -v          verbose user messages\n"
 "       -?          print this message.\n"  
 "\n"));
 
@@ -98,7 +99,7 @@ int main (int argc, char *argv[])
    daemon_start_time = time(NULL);
    memset(&last_job, 0, sizeof(last_job));
 
-   while ((ch = getopt(argc, argv, "c:d:fg:r:stu:?")) != -1) {
+   while ((ch = getopt(argc, argv, "c:d:fg:r:stu:v?")) != -1) {
       switch (ch) {
          case 'c':                    /* specify config file */
 	    if (configfile != NULL) {
@@ -142,6 +143,10 @@ int main (int argc, char *argv[])
 
          case 'u':                    /* set uid */
 	    uid = optarg;
+	    break;
+
+         case 'v':                    /* verbose */
+	    verbose++;
 	    break;
 
          case '?':

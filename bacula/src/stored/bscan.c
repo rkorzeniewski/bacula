@@ -81,7 +81,6 @@ static char *db_name = "bacula";
 static char *db_user = "bacula";
 static char *db_password = "";
 static char *wd = NULL;
-static int verbose = 0;
 static int update_db = 0;
 static int update_vol_info = 0;
 static int list_records = 0;

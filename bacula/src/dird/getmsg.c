@@ -207,7 +207,7 @@ static char *find_msg_start(char *msg)
  *  Returns: 0 on failure
  *	     1 on success
  */
-int response(BSOCK *fd, char *resp, char *cmd)
+int response(BSOCK *fd, char *resp, char *cmd, int prtmsg)
 {
    int n;
 
@@ -219,11 +219,13 @@ int response(BSOCK *fd, char *resp, char *cmd)
       if (strcmp(fd->msg, resp) == 0) {
 	 return 1;
       }
-      Emsg3(M_FATAL, 0, _("<filed: bad response to %s command: wanted %s got: %s\n"),
-	 cmd, resp, fd->msg);
+      if (prtmsg) {
+         Emsg3(M_FATAL, 0, _("FD gave bad response to %s command: wanted %s got: %s\n"),
+	    cmd, resp, fd->msg);
+      }
       return 0;
    } 
-   Emsg2(M_FATAL, 0, _("<filed: Socket error from Filed on %s command: ERR=%s\n"),
+   Emsg2(M_FATAL, 0, _("Socket error from Filed on %s command: ERR=%s\n"),
 	 cmd, bnet_strerror(fd));
    return 0;
 }

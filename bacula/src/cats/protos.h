@@ -93,6 +93,7 @@ void db_list_client_records(void *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void 
 /* update.c */
 int  db_update_job_start_record(void *jcr, B_DB *db, JOB_DBR *jr);
 int  db_update_job_end_record(void *jcr, B_DB *db, JOB_DBR *jr);
+int  db_update_client_record(void *jcr, B_DB *mdb, CLIENT_DBR *cr);
 int  db_update_pool_record(void *jcr, B_DB *db, POOL_DBR *pr);
 int  db_update_media_record(void *jcr, B_DB *db, MEDIA_DBR *mr);
 int  db_add_SIG_to_file_record(void *jcr, B_DB *mdb, FileId_t FileId, char *SIG, int type);  

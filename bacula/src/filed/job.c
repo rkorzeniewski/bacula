@@ -293,6 +293,25 @@ static int job_cmd(JCR *jcr)
    return bnet_fsend(dir, OKjob);
 }
 
+#define INC_LIST 0
+#define EXC_LIST 1
+
+static void add_fname_to_list(JCR *jcr, char *fname, int list)
+{
+   char *p;  
+   if (list == INC_LIST) {
+      add_fname_to_include_list((FF_PKT *)jcr->ff, 1, fname);
+   } else {
+      /* Skip leading options -- currently ignored */
+      for (p=fname; *p && *p != ' '; p++)
+	 { }
+      /* Skip spaces */
+      for ( ; *p && *p == ' '; p++)
+	 { }
+      add_fname_to_exclude_list((FF_PKT *)jcr->ff, p);
+   }
+}
+
 /* 
  * 
  * Get list of files/directories to include from Director
@@ -303,10 +322,10 @@ static int include_cmd(JCR *jcr)
    BSOCK *dir = jcr->dir_bsock;
 
    while (bnet_recv(dir) >= 0) {
-       dir->msg[dir->msglen] = 0;
-       strip_trailing_junk(dir->msg);
-       Dmsg1(010, "include file: %s\n", dir->msg);
-       add_fname_to_include_list((FF_PKT *)jcr->ff, 1, dir->msg);
+      dir->msg[dir->msglen] = 0;
+      strip_trailing_junk(dir->msg);
+      Dmsg1(010, "include file: %s\n", dir->msg);
+      add_fname_to_list(jcr, dir->msg, INC_LIST);
    }
 
    return bnet_fsend(dir, OKinc);
@@ -319,19 +338,12 @@ static int include_cmd(JCR *jcr)
 static int exclude_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
-   char *p;  
 
    while (bnet_recv(dir) >= 0) {
-       dir->msg[dir->msglen] = 0;
-       strip_trailing_junk(dir->msg);
-       /* Skip leading options -- currently ignored */
-       for (p=dir->msg; *p && *p != ' '; p++)
-	  { }
-       /* Skip spaces */
-       for ( ; *p && *p == ' '; p++)
-	  { }
-       add_fname_to_exclude_list((FF_PKT *)jcr->ff, p);
-       Dmsg1(110, "<dird: exclude file %s\n", dir->msg);
+      dir->msg[dir->msglen] = 0;
+      strip_trailing_junk(dir->msg);
+      add_fname_to_list(jcr, dir->msg, EXC_LIST);
+      Dmsg1(110, "<dird: exclude file %s\n", dir->msg);
    }
 
    return bnet_fsend(dir, OKexc);

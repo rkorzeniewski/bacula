@@ -106,6 +106,7 @@ void e_msg(char *file, int line, int type, int level, char *fmt,...);
 void Jmsg(void *vjcr, int type, int level, char *fmt,...);
 
 extern int debug_level;
+extern int verbose;
 extern char my_name[];
 extern char *working_directory;
 extern time_t daemon_start_time;

@@ -210,7 +210,7 @@ int do_backup(JCR *jcr)
       jcr->store->SDDport = jcr->store->SDport;
    }
    bnet_fsend(fd, storaddr, jcr->store->address, jcr->store->SDDport);
-   if (!response(fd, OKstore, "Storage")) {
+   if (!response(fd, OKstore, "Storage", 1)) {
       goto bail_out;
    }
 
@@ -234,13 +234,13 @@ int do_backup(JCR *jcr)
 	 goto bail_out;
    }
    Dmsg1(120, ">filed: %s", fd->msg);
-   if (!response(fd, OKlevel, "Level")) {
+   if (!response(fd, OKlevel, "Level", 1)) {
       goto bail_out;
    }
 
    /* Send backup command */
    bnet_fsend(fd, backupcmd);
-   if (!response(fd, OKbackup, "backup")) {
+   if (!response(fd, OKbackup, "backup", 1)) {
       goto bail_out;
    }
 

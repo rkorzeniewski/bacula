@@ -44,7 +44,7 @@ static char use_device[] = "use device=%s media_type=%s pool_name=%s pool_type=%
 /* Responses sent to Director daemon */
 static char OKjob[]     = "3000 OK Job SDid=%u SDtime=%u Authorization=%s\n";
 static char OK_device[] = "3000 OK use device\n";
-static char NO_device[] = "3914 Device %s does not exist\n";
+static char NO_device[] = "3914 Device \"%s\" not in SD Device resources.\n";
 static char BAD_use[]   = "3913 Bad use command: %s\n";
 static char BAD_job[]   = "3915 Bad Job command: %s\n";
 
@@ -297,10 +297,19 @@ static int use_device_cmd(JCR *jcr)
 	 }
       }
       UnlockRes();
-      Jmsg(jcr, M_FATAL, 0, _("Requested device %s not found. Cannot continue.\n"),
+      if (verbose) {
+	 unbash_spaces(dir->msg);
+         Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), dir->msg);
+      }
+      Jmsg(jcr, M_FATAL, 0, _("\n"
+         "     Device \"%s\" requested by Dir not found in SD Device resources.\n"),
 	   dev_name);
       bnet_fsend(dir, NO_device, dev_name);
    } else {
+      if (verbose) {
+	 unbash_spaces(dir->msg);
+         Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), dir->msg);
+      }
       Jmsg(jcr, M_FATAL, 0, _("store<dir: Bad Use Device command: %s\n"), dir->msg);
       bnet_fsend(dir, BAD_use, dir->msg);
    }

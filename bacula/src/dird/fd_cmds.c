@@ -100,10 +100,20 @@ int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
 	  set_jcr_job_status(jcr, JS_ErrorTerminated);
 	  return 0;
        } else {
-	  /***** ***FIXME***** update Client Uname */
+	  CLIENT_DBR cr;
+	  memset(&cr, 0, sizeof(cr));
+	  bstrncpy(cr.Name, jcr->client->hdr.name, sizeof(cr.Name));
+	  cr.AutoPrune = jcr->client->AutoPrune;
+	  cr.FileRetention = jcr->client->FileRetention;
+	  cr.JobRetention = jcr->client->JobRetention;
+	  bstrncpy(cr.Uname, fd->msg+strlen(OKjob)+1, sizeof(cr.Uname));
+	  if (!db_update_client_record(jcr, jcr->db, &cr)) {
+             Jmsg(jcr, M_WARNING, 0, _("Error updating Client record. ERR=%s\n"),
+		db_strerror(jcr->db));
+	  }
        }
    } else {
-      Jmsg(jcr, M_FATAL, 0, _("<filed: bad response to JobId command: %s\n"),
+      Jmsg(jcr, M_FATAL, 0, _("FD gave bad response to JobId command: %s\n"),
 	 bnet_strerror(fd));
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       return 0;
@@ -113,7 +123,7 @@ int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
 
 
 /*
- * Send either an Included or an Excluded list
+ * Send either an Included or an Excluded list to FD
  */
 static int send_list(JCR *jcr, int list)
 {
@@ -145,7 +155,7 @@ static int send_list(JCR *jcr, int list)
       }
       for (int j=0; j<ie->num_names; j++) {
 	 p = ie->name_list[j];
-	 switch (*p++) {
+	 switch (*p) {
          case '|':
             fd->msg = edit_job_codes(jcr, fd->msg, p, "");
             bpipe = open_bpipe(fd->msg, 0, "r");
@@ -199,6 +209,9 @@ static int send_list(JCR *jcr, int list)
 	    }
 	    fclose(ffd);
 	    break;
+         case '\\':
+            p++;                      /* skip over \ */
+	    /* Note, fall through wanted */
 	 default:
 	    if (ie->num_opts) {
 	       pm_strcpy(&fd->msg, ie->opts_list[0]->opts);
@@ -206,7 +219,7 @@ static int send_list(JCR *jcr, int list)
 	    } else {
                pm_strcpy(&fd->msg, "0 ");
 	    }
-	    pm_strcat(&fd->msg, ie->name_list[j]);
+	    pm_strcat(&fd->msg, p);
             Dmsg1(100, "Inc/Exc name=%s\n", fd->msg);
 	    fd->msglen = strlen(fd->msg);
 	    if (!bnet_send(fd)) {
@@ -219,10 +232,10 @@ static int send_list(JCR *jcr, int list)
    }
    bnet_sig(fd, BNET_EOD);	      /* end of data */
    if (list == INC_LIST) {
-      if (!response(fd, OKinc, "Include")) {
+      if (!response(fd, OKinc, "Include", 1)) {
 	 goto bail_out;
       }
-   } else if (!response(fd, OKexc, "Exclude")) {
+   } else if (!response(fd, OKexc, "Exclude", 1)) {
 	goto bail_out;
    }
    return 1;

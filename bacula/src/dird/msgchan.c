@@ -156,8 +156,14 @@ int start_storage_daemon_job(JCR *jcr)
       device_name_len + media_type_len + pool_type_len + pool_name_len);
    bnet_fsend(sd, use_device, device_name, media_type, pool_name, pool_type);
    Dmsg1(110, ">stored: %s", sd->msg);
-   status = response(sd, OK_device, "Use Device");
-
+   status = response(sd, OK_device, "Use Device", 0);
+   if (!status) {
+      pm_strcpy(&pool_type, sd->msg); /* save message */
+      Jmsg(jcr, M_FATAL, 0, _("\n"
+         "     Storage daemon didn't accept Device \"%s\" because:\n     %s"),
+	 device_name, pool_type/* sd->msg */);
+   }
+	  
    free_memory(device_name);
    free_memory(media_type);
    free_memory(pool_name);

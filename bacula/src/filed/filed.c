@@ -67,6 +67,7 @@ static void usage()
 "        -s          no signals (for debugging)\n"
 "        -t          test configuration file and exit\n"
 "        -u          userid\n"
+"        -v          verbose user messages\n"
 "        -?          print this message.\n"
 "\n"));         
    exit(1);
@@ -97,7 +98,7 @@ int main (int argc, char *argv[])
 
    memset(&last_job, 0, sizeof(last_job));
 
-   while ((ch = getopt(argc, argv, "c:d:fg:istu:?")) != -1) {
+   while ((ch = getopt(argc, argv, "c:d:fg:istu:v?")) != -1) {
       switch (ch) {
          case 'c':                    /* configuration file */
 	    if (configfile != NULL) {
@@ -134,6 +135,10 @@ int main (int argc, char *argv[])
 
          case 'u':                    /* set userid */
 	    uid = optarg;
+	    break;
+
+         case 'v':                    /* verbose */
+	    verbose++;
 	    break;
 
          case '?':

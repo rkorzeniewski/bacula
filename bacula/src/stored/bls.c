@@ -39,7 +39,6 @@ static DEVICE *dev;
 static int dump_label = FALSE;
 static int list_blocks = FALSE;
 static int list_jobs = FALSE;
-static int verbose = 0;
 static DEV_RECORD *rec;
 static DEV_BLOCK *block;
 static JCR *jcr;

@@ -43,7 +43,6 @@ int read_records(JCR *jcr,  DEVICE *dev,
    DEV_BLOCK *block;
    DEV_RECORD *rec;
    uint32_t record, num_files = 0;
-   int verbose = FALSE;
    int ok = TRUE;
    int done = FALSE;
    SESSION_LABEL sessrec;

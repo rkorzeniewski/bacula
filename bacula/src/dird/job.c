@@ -385,7 +385,7 @@ int get_or_create_client_record(JCR *jcr)
    CLIENT_DBR cr;
 
    memset(&cr, 0, sizeof(cr));
-   strcpy(cr.Name, jcr->client->hdr.name);
+   bstrncpy(cr.Name, jcr->client->hdr.name, sizeof(cr.Name));
    cr.AutoPrune = jcr->client->AutoPrune;
    cr.FileRetention = jcr->client->FileRetention;
    cr.JobRetention = jcr->client->JobRetention;
@@ -395,7 +395,7 @@ int get_or_create_client_record(JCR *jcr)
    jcr->client_name = get_memory(strlen(jcr->client->hdr.name) + 1);
    strcpy(jcr->client_name, jcr->client->hdr.name);
    if (!db_create_client_record(jcr, jcr->db, &cr)) {
-      Jmsg(jcr, M_FATAL, 0, _("Could not create Client record. ERR=%s"), 
+      Jmsg(jcr, M_FATAL, 0, _("Could not create Client record. ERR=%s\n"), 
 	 db_strerror(jcr->db));
       return 0;
    }
@@ -513,6 +513,9 @@ void dird_free_jcr(JCR *jcr)
    }
    if (jcr->RestoreBootstrap) {
       free(jcr->RestoreBootstrap);
+   }
+   if (jcr->client_uname) {
+      free_pool_memory(jcr->client_uname);
    }
    Dmsg0(200, "End dird free_jcr\n");
 }
