@@ -1,10 +1,10 @@
 
-          Release Notes for Bacula 1.35.6
+          Release Notes for Bacula 1.35.7
 
   Bacula code: Total files = 396 Total lines = 116,116 (*.h *.c *.in)
 
 
-Changes for 1.35.6
+Changes for 1.35.7
 Major Changes:
 - Tray monitor program
 - Bacula Rescue CDROM     
