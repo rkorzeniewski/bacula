@@ -350,98 +350,114 @@ static int send_fileset(JCR *jcr)
 {
    FILESET *fileset = jcr->fileset;
    BSOCK   *fd = jcr->file_bsock;
-   int num = fileset->num_includes;
+   int num;
+   bool include = true;
 
-   for (int i=0; i<num; i++) {
-      BPIPE *bpipe;
-      FILE *ffd;
-      char buf[2000];
-      char *p;
-      int optlen, stat;
-      INCEXE *ie;
-      int j, k;
+   for ( ;; ) {
+      if (include) {
+	 num = fileset->num_includes;
+      } else {
+	 num = fileset->num_excludes;
+      }  
+      for (int i=0; i<num; i++) {
+	 BPIPE *bpipe;
+	 FILE *ffd;
+	 char buf[2000];
+	 char *p;
+	 int optlen, stat;
+	 INCEXE *ie;
+	 int j, k;
 
-      ie = fileset->include_items[i];
-      bnet_fsend(fd, "I\n");
-
-      for (j=0; j<ie->num_opts; j++) {
-	 FOPTS *fo = ie->opts_list[j];
-         bnet_fsend(fd, "O %s\n", fo->opts);
-	 for (k=0; k<fo->regex.size(); k++) {
-            bnet_fsend(fd, "R %s\n", fo->regex.get(k));
+	 if (include) {
+	    ie = fileset->include_items[i];
+            bnet_fsend(fd, "I\n");
+	 } else {
+	    ie = fileset->exclude_items[i];
+            bnet_fsend(fd, "E\n");
+	 }	 
+	 for (j=0; j<ie->num_opts; j++) {
+	    FOPTS *fo = ie->opts_list[j];
+            bnet_fsend(fd, "O %s\n", fo->opts);
+	    for (k=0; k<fo->regex.size(); k++) {
+               bnet_fsend(fd, "R %s\n", fo->regex.get(k));
+	    }
+	    for (k=0; k<fo->wild.size(); k++) {
+               bnet_fsend(fd, "W %s\n", fo->wild.get(k));
+	    }
+	    for (k=0; k<fo->base.size(); k++) {
+               bnet_fsend(fd, "B %s\n", fo->base.get(k));
+	    }
+            bnet_fsend(fd, "N\n");
 	 }
-	 for (k=0; k<fo->wild.size(); k++) {
-            bnet_fsend(fd, "W %s\n", fo->wild.get(k));
-	 }
-	 for (k=0; k<fo->base.size(); k++) {
-            bnet_fsend(fd, "B %s\n", fo->base.get(k));
+
+	 for (j=0; j<ie->name_list.size(); j++) {
+	    p = (char *)ie->name_list.get(j);
+	    switch (*p) {
+            case '|':
+	       p++;			 /* skip over the | */
+               fd->msg = edit_job_codes(jcr, fd->msg, p, "");
+               bpipe = open_bpipe(fd->msg, 0, "r");
+	       if (!bpipe) {
+                  Jmsg(jcr, M_FATAL, 0, _("Cannot run program: %s. ERR=%s\n"),
+		     p, strerror(errno));
+		  goto bail_out;
+	       }
+               bstrncpy(buf, "F ", sizeof(buf));
+               Dmsg1(100, "Opts=%s\n", buf);
+	       optlen = strlen(buf);
+	       while (fgets(buf+optlen, sizeof(buf)-optlen, bpipe->rfd)) {
+                  fd->msglen = Mmsg(&fd->msg, "%s", buf);
+                  Dmsg2(200, "Inc/exc len=%d: %s", fd->msglen, fd->msg);
+		  if (!bnet_send(fd)) {
+                     Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
+		     goto bail_out;
+		  }
+	       }
+	       if ((stat=close_bpipe(bpipe)) != 0) {
+                  Jmsg(jcr, M_FATAL, 0, _("Error running program: %s. RtnStat=%d ERR=%s\n"),
+		     p, stat, strerror(errno));
+		  goto bail_out;
+	       }
+	       break;
+            case '<':
+	       p++;			 /* skip over < */
+               if ((ffd = fopen(p, "r")) == NULL) {
+                  Jmsg(jcr, M_FATAL, 0, _("Cannot open included file: %s. ERR=%s\n"),
+		     p, strerror(errno));
+		  goto bail_out;
+	       }
+               bstrncpy(buf, "F ", sizeof(buf));
+               Dmsg1(100, "Opts=%s\n", buf);
+	       optlen = strlen(buf);
+	       while (fgets(buf+optlen, sizeof(buf)-optlen, ffd)) {
+                  fd->msglen = Mmsg(&fd->msg, "%s", buf);
+		  if (!bnet_send(fd)) {
+                     Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
+		     goto bail_out;
+		  }
+	       }
+	       fclose(ffd);
+	       break;
+            case '\\':
+               p++;                      /* skip over \ */
+	       /* Note, fall through wanted */
+	    default:
+               pm_strcpy(&fd->msg, "F ");
+	       fd->msglen = pm_strcat(&fd->msg, p);
+               Dmsg1(100, "Inc/Exc name=%s\n", fd->msg);
+	       if (!bnet_send(fd)) {
+                  Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
+		  goto bail_out;
+	       }
+	       break;
+	    }
 	 }
          bnet_fsend(fd, "N\n");
       }
-
-      for (j=0; j<ie->name_list.size(); j++) {
-	 p = (char *)ie->name_list.get(j);
-	 switch (*p) {
-         case '|':
-	    p++;		      /* skip over the | */
-            fd->msg = edit_job_codes(jcr, fd->msg, p, "");
-            bpipe = open_bpipe(fd->msg, 0, "r");
-	    if (!bpipe) {
-               Jmsg(jcr, M_FATAL, 0, _("Cannot run program: %s. ERR=%s\n"),
-		  p, strerror(errno));
-	       goto bail_out;
-	    }
-            bstrncpy(buf, "F ", sizeof(buf));
-            Dmsg1(100, "Opts=%s\n", buf);
-	    optlen = strlen(buf);
-	    while (fgets(buf+optlen, sizeof(buf)-optlen, bpipe->rfd)) {
-               fd->msglen = Mmsg(&fd->msg, "%s", buf);
-               Dmsg2(200, "Inc/exc len=%d: %s", fd->msglen, fd->msg);
-	       if (!bnet_send(fd)) {
-                  Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
-		  goto bail_out;
-	       }
-	    }
-	    if ((stat=close_bpipe(bpipe)) != 0) {
-               Jmsg(jcr, M_FATAL, 0, _("Error running program: %s. RtnStat=%d ERR=%s\n"),
-		  p, stat, strerror(errno));
-	       goto bail_out;
-	    }
-	    break;
-         case '<':
-	    p++;		      /* skip over < */
-            if ((ffd = fopen(p, "r")) == NULL) {
-               Jmsg(jcr, M_FATAL, 0, _("Cannot open included file: %s. ERR=%s\n"),
-		  p, strerror(errno));
-	       goto bail_out;
-	    }
-            bstrncpy(buf, "F ", sizeof(buf));
-            Dmsg1(100, "Opts=%s\n", buf);
-	    optlen = strlen(buf);
-	    while (fgets(buf+optlen, sizeof(buf)-optlen, ffd)) {
-               fd->msglen = Mmsg(&fd->msg, "%s", buf);
-	       if (!bnet_send(fd)) {
-                  Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
-		  goto bail_out;
-	       }
-	    }
-	    fclose(ffd);
-	    break;
-         case '\\':
-            p++;                      /* skip over \ */
-	    /* Note, fall through wanted */
-	 default:
-            pm_strcpy(&fd->msg, "F ");
-	    fd->msglen = pm_strcat(&fd->msg, p);
-            Dmsg1(100, "Inc/Exc name=%s\n", fd->msg);
-	    if (!bnet_send(fd)) {
-               Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
-	       goto bail_out;
-	    }
-	    break;
-	 }
+      if (!include) {		      /* If we just did excludes */
+	 break; 		      /*   all done */
       }
-      bnet_fsend(fd, "N\n");
+      include = false;		      /* Now do excludes */
    }
 
    bnet_sig(fd, BNET_EOD);	      /* end of data */

@@ -81,27 +81,32 @@ static RES_ITEM options_items[] = {
    {"regex",           store_regex,   NULL,     0, 0, 0},
    {"base",            store_base,    NULL,     0, 0, 0},
    {"wild",            store_wild,    NULL,     0, 0, 0},
+   {"exclude",         store_opts,    NULL,     0, 0, 0},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 
 
 /* Define FileSet KeyWord values */
 
-#define INC_KW_NONE	    0
-#define INC_KW_COMPRESSION  1
-#define INC_KW_SIGNATURE    2
-#define INC_KW_ENCRYPTION   3
-#define INC_KW_VERIFY	    4
-#define INC_KW_ONEFS	    5
-#define INC_KW_RECURSE	    6
-#define INC_KW_SPARSE	    7
-#define INC_KW_REPLACE	    8	      /* restore options */
-#define INC_KW_READFIFO     9	      /* Causes fifo data to be read */
-#define INC_KW_PORTABLE    10
-#define INC_KW_MTIMEONLY   11
-#define INC_KW_KEEPATIME   12
+enum {
+   INC_KW_NONE,
+   INC_KW_COMPRESSION,
+   INC_KW_SIGNATURE,
+   INC_KW_ENCRYPTION,
+   INC_KW_VERIFY,
+   INC_KW_ONEFS,
+   INC_KW_RECURSE,
+   INC_KW_SPARSE,
+   INC_KW_REPLACE,		 /* restore options */
+   INC_KW_READFIFO,		 /* Causes fifo data to be read */
+   INC_KW_PORTABLE,
+   INC_KW_MTIMEONLY,
+   INC_KW_KEEPATIME,
+   INC_KW_EXCLUDE
+};
 
-/* Include keywords -- these are keywords that can appear
+/*
+ * Include keywords -- these are keywords that can appear
  *    in the options lists of an old include ( Include = compression= ...)
  */
 static struct s_kw FS_option_kw[] = {
@@ -117,6 +122,7 @@ static struct s_kw FS_option_kw[] = {
    {"portable",    INC_KW_PORTABLE},
    {"mtimeonly",   INC_KW_MTIMEONLY},
    {"keepatime",   INC_KW_KEEPATIME},
+   {"exclude",     INC_KW_EXCLUDE},
    {NULL,	   0}
 };
 
@@ -166,6 +172,8 @@ static struct s_fs_opt FS_options[] = {
    {"no",       INC_KW_MTIMEONLY,     "0"},
    {"yes",      INC_KW_KEEPATIME,     "k"},
    {"no",       INC_KW_KEEPATIME,     "0"},
+   {"yes",      INC_KW_EXCLUDE,       "e"},
+   {"no",       INC_KW_EXCLUDE,       "0"},
    {NULL,	0,		     0}
 };
 

@@ -85,6 +85,7 @@ enum {
 #define FO_PORTABLE     (1<<10)       /* Use portable data format -- no BackupWrite */
 #define FO_MTIMEONLY    (1<<11)       /* Use mtime rather than mtime & ctime */
 #define FO_KEEPATIME    (1<<12)       /* Reset access time */
+#define FO_EXCLUDE      (1<<13)       /* Exclude file */
 
 struct s_included_file {
    struct s_included_file *next;
@@ -141,6 +142,7 @@ struct findFILESET {
    int state;
    findINCEXE *incexe;                /* current item */
    alist include_list;
+   alist exclude_list;
 };
 
 
