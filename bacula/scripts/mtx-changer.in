@@ -30,9 +30,12 @@
 MTX=@MTX@
 
 wait_for_drive() {
-  while ! mt -f $1 status >/dev/null 2>&1; do
+  for i in $(seq 180); do   # Wait max 180 seconds
+    if mt -f $1 status >/dev/null 2>&1; then
+      break
+    fi
 #   echo "Device $1 - not ready, retrying..."
-    sleep 5
+    sleep 1
   done
 }
 
