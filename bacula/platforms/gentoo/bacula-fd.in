@@ -1,7 +1,7 @@
-#! /bin/sh
+#!/sbin/runscript
 #
 # bacula       This shell script takes care of starting and stopping
-#	       the bacula File daemon.
+#	       the bacula File daemon for the Gentoo release.
 #
 # chkconfig: 2345 20 99
 # description: It comes by night and sucks the vital essence from your computers.
@@ -9,35 +9,20 @@
 #  For Bacula release @VERSION@ (@DATE@) -- @DISTNAME@
 #
 
-# Source function library
-. /etc/rc.d/init.d/functions
+start() {
+       ebegin "Starting the Bacula File daemon"
+       start-stop-daemon --start --quiet --exec @sbindir@/bacula-fd -- $2 -c @sysconfdir@/bacula-fd.conf
+       eend $?
+}
 
-case "$1" in
-    start)
-       echo -n "Starting the Bacula File daemon: "
-       daemon @sbindir@/bacula-fd $2 -c @sysconfdir@/bacula-fd.conf
-       RETVAL=$?
-       echo
-       [ $RETVAL -eq 0 ] && touch @subsysdir@/bacula-fd
-       ;;
-    stop)
-       echo -n "Stopping the Bacula File daemon: "
-       killproc @sbindir@/bacula-fd
-       RETVAL=$?
-       echo
-       [ $RETVAL -eq 0 ] && rm -f @subsysdir@/bacula-fd
-       ;;
-    restart)
-       $0 stop
+stop() {
+       ebegin "Stopping the Bacula File daemon"
+       start-stop-daemon --stop --quiet --exec @sbindir@/bacula-fd
+       eend $?
+}
+
+restart() {
+       stop
        sleep 5
-       $0 start
-       ;;
-    status)
-       status @sbindir@/bacula-fd
-       ;;
-    *)
-       echo "Usage: $0 {start|stop|restart|status}"
-       exit 1
-       ;;
-esac
-exit 0
+       start
+}

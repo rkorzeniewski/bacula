@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                 20 January 2003 
+                 25 January 2003 
 
 Documentation to do: (a little bit at a time)
 - Document running a test version.
@@ -14,11 +14,10 @@ Testing to do: (painful)
 - that console command line options work
 - blocksize recognition code.
 
-For 1.29 release:
-- Add prefixlinks to where or not where absolute links (DIR part done,
-  do FD part in release 1.30).
-
 For 1.30 release:
+- CD into subdirectory when open()ing files for backup to
+  speed up things.  Test with testfind().
+- Add prefixlinks to where or not where absolute links to FD.
 - Get correct error status from run_program or open_bpipe().
 - Look at handling <> in smtp doesn't work with exim.
 - Priority job to go to top of list.
@@ -826,4 +825,3 @@ Done: (see kernsdone for more)
 - Set timeout on opening fifo for save or restore (findlib)
 - Document FIFO storage device.
 - Document fifo and | and <
-

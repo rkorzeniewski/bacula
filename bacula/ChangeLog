@@ -1,3 +1,4 @@
+=============================================================================
 2003-01-24 Version 1.29 released
 23Jan03
 - Tightened up permissions on all .conf files to be 640 so they are not
