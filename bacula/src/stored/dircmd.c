@@ -733,12 +733,7 @@ static int autochanger_cmd(JCR *jcr)
 	 if (!dev_is_tape(dev)) {
             bnet_fsend(dir, _("3995 Device %s is not an autochanger.\n"), dev_name(dev));
 	 } else if (!(dev->state & ST_OPENED)) {
-	    if (open_dev(dev, NULL, READ_WRITE) < 0) {
-               bnet_fsend(dir, _("3994 Connot open device: %s\n"), strerror_dev(dev));
-	    } else {
-	       autochanger_list(jcr, dev, dir);
-	       force_close_dev(dev);
-	    }
+	    autochanger_list(jcr, dev, dir);
          /* Under certain "safe" conditions, we can steal the lock */
 	 } else if (dev->dev_blocked && 
 		    (dev->dev_blocked == BST_UNMOUNTED ||
