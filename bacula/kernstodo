@@ -18,59 +18,16 @@ Testing to do: (painful)
 - that ALL console command line options work and are always implemented
 - blocksize recognition code.
 - multiple simultaneous Volumes
-- ***test GetFileAttributexEx, and remove MessageBox at 335 of winservice.cpp ****
 
 For 1.30 release:
-- If tape is marked read-only, then try opening it read-only rather than
-  failing, and remember that it cannot be written.
-- Refine SD waiting output:
-    Device is being positioned
-    >     Device is being positioned for append
-    >     Device is being positioned to file x
-    > 
-- > Hello,
->
-> Possibly your /etc/bacula/my_exclude is not
-> marked as executable. It MUST be executable.
-
-the script is executeabe (0777 for testing) 
-
-> Another solution is simply to include the
-> find command in the exclude:
->   Exclude = {
->     "|find / -iname *.avi -o -iname *.mpg -o -iname *.mp3"
->   }
-
-it doesn't work :(
-
-i tried it on two different systems with bacula 1.29
-
-this works:
-Exclude {
-  <file.list
-  }
-
-Exclude {
-  *.avi
-  }
-
-this doesn't:
-Exclude {
- "|find / -iname *.avi"
- }
-
-Exclude {
- "|/etc/bacula/my_exclude
- } 
-
-
-i dont understand it anymore :(
-
+- Fix "access not allowed" for backup of files on WinXP.
+- Implement | and < in Exclude statements.
+- Fix restoring c: to an alternate directory.  Windows
+  does not accept /tmp/c:/....
 - Issue message to mount a new tape before the rewind.
 - Simplified client job initiation for portables.
 - If SD cannot open a drive, make it periodically retry.
 - Implement LabelTemplate (at least first cut).
-- Fix "access not allowed" for backup of files on WinXP.
 - Figure out some way to specify a retention period for files
   that no longer exist on the machine -- so that we maintain
   say backups for 30 days, but if the file is deleted, we maintain
@@ -96,6 +53,13 @@ i dont understand it anymore :(
 - Make some way so that if a machine is skipped because it is not up 
   that Bacula will continue retrying for a specified period of time --
   periodically.
+- If tape is marked read-only, then try opening it read-only rather than
+  failing, and remember that it cannot be written.
+- Refine SD waiting output:
+    Device is being positioned
+    >     Device is being positioned for append
+    >     Device is being positioned to file x
+    > 
 - Figure out some way to estimate output size and to avoid splitting
   a backup across two Volumes -- this could be useful for writing CDROMs
   where you really prefer not to have it split -- not serious.
@@ -120,7 +84,6 @@ i dont understand it anymore :(
 - Implement some way for the Console to dynamically create a job.
 - Restore to a particular time -- e.g. before date, after date. 
 - Implement disk spooling
-- Implement finer multiprocessing options.
 - Solaris -I on tar for include list
 - Enable avoid backing up archive device (findlib/find_one.c:128)
 - Need a verbose mode in restore, perhaps to bsr.
@@ -943,4 +906,6 @@ rufus-dir: Volume used once. Marking Volume "File0003" as Used.
   to a different Volume.
 - Look at handling <> in smtp doesn't work with exim.
 - Need to specify MaximumConcurrentJobs in the Job resource.
+- ***test GetFileAttributexEx, and remove MessageBox at 335 of winservice.cpp ****
+- Implement finer multiprocessing options.
 
