@@ -537,7 +537,7 @@ void lock_jcr_chain()
 {
    int errstat;
 #ifdef TRACE_JCR_CHAIN 
-   Dmsg3(000, "Lock jcr chain %d from %s:%d\n", ++lock_count,
+   Dmsg3(400, "Lock jcr chain %d from %s:%d\n", ++lock_count,
       fname, line);
 #endif
    if ((errstat=rwl_writelock(&lock)) != 0) {
@@ -557,7 +557,7 @@ void unlock_jcr_chain()
 {
    int errstat;
 #ifdef TRACE_JCR_CHAIN 
-   Dmsg3(000, "Unlock jcr chain %d from %s:%d\n", lock_count--,
+   Dmsg3(400, "Unlock jcr chain %d from %s:%d\n", lock_count--,
       fname, line);
 #endif
    if ((errstat=rwl_writeunlock(&lock)) != 0) {
