@@ -1,0 +1,14 @@
+#
+# Bacula Tray Monitor Configuration File
+#
+
+Monitor {
+  Name = @hostname@-dir
+}
+   
+Client {
+  Name = @hostname@-fd
+  Address = @hostname@
+  FDPort = @fd_port@
+  Password = "@fd_password@"          # password for FileDaemon
+}
