@@ -83,6 +83,7 @@ static RES_ITEM options_items[] = {
    {"base",            store_base,    NULL,     0, 0, 0},
    {"wild",            store_wild,    NULL,     0, 0, 0},
    {"exclude",         store_opts,    NULL,     0, 0, 0},
+   {"aclsupport",      store_opts,    NULL,     0, 0, 0},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 

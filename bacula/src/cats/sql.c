@@ -276,7 +276,11 @@ void db_start_transaction(JCR *jcr, B_DB *mdb)
    db_unlock(mdb);
 #endif
 
-#ifdef HAVE_POSTGRESQL
+/*
+ * This is turned off because transactions break
+ * if multiple simultaneous jobs are run.    
+ */
+#ifdef xAVE_POSTGRESQL
    db_lock(mdb);
    /* Allow only 25,000 changes per transaction */
    if (mdb->transaction && mdb->changes > 25000) {
@@ -284,7 +288,7 @@ void db_start_transaction(JCR *jcr, B_DB *mdb)
    }
    if (!mdb->transaction) {   
       db_sql_query(mdb, "BEGIN", NULL, NULL);  /* begin transaction */
-      Dmsg0(400, "Start SQLite transaction\n");
+      Dmsg0(400, "Start PosgreSQL transaction\n");
       mdb->transaction = 1;
    }
    db_unlock(mdb);
@@ -304,12 +308,12 @@ void db_end_transaction(JCR *jcr, B_DB *mdb)
    db_unlock(mdb);
 #endif
 
-#ifdef HAVE_POSTGRESQL
+#ifdef xAVE_POSTGRESQL
    db_lock(mdb);
    if (mdb->transaction) {
       db_sql_query(mdb, "COMMIT", NULL, NULL); /* end transaction */
       mdb->transaction = 0;
-      Dmsg1(400, "End SQLite transaction changes=%d\n", mdb->changes);
+      Dmsg1(400, "End PostgreSQL transaction changes=%d\n", mdb->changes);
    }
    mdb->changes = 0;
    db_unlock(mdb);
