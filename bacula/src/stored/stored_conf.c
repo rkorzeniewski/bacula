@@ -86,6 +86,7 @@ static struct res_items dev_items[] = {
    {"hardwareendofmedium",   store_yesno,  ITEM(res_dev.cap_bits), CAP_EOM,  ITEM_DEFAULT, 1},
    {"backwardspacerecord",   store_yesno,  ITEM(res_dev.cap_bits), CAP_BSR,  ITEM_DEFAULT, 1},
    {"backwardspacefile",     store_yesno,  ITEM(res_dev.cap_bits), CAP_BSF,  ITEM_DEFAULT, 1},
+   {"bsfateom",              store_yesno,  ITEM(res_dev.cap_bits), CAP_BSFATEOM, ITEM_DEFAULT, 0},
    {"forwardspacerecord",    store_yesno,  ITEM(res_dev.cap_bits), CAP_FSR,  ITEM_DEFAULT, 1},
    {"forwardspacefile",      store_yesno,  ITEM(res_dev.cap_bits), CAP_FSF,  ITEM_DEFAULT, 1},
    {"removablemedia",        store_yesno,  ITEM(res_dev.cap_bits), CAP_REM,  ITEM_DEFAULT, 1},

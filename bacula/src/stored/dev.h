@@ -81,6 +81,7 @@
 #define CAP_AUTOCHANGER    0x1000     /* AutoChanger */
 #define CAP_OFFLINEUNMOUNT 0x2000     /* Offline before unmount */
 #define CAP_STREAM         0x4000     /* Stream device */
+#define CAP_BSFATEOM       0x8000     /* Backspace file at EOM */
 
 /* Test state */
 #define dev_state(dev, state) ((dev)->state & (state))

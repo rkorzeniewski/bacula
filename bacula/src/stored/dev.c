@@ -412,7 +412,7 @@ eod_dev(DEVICE *dev)
       }
       return 0;
    }
-   if (dev->capabilities & CAP_EOM) {
+   if (dev_cap(dev, CAP_EOM)) {
       mt_com.mt_op = MTEOM;
       mt_com.mt_count = 1;
       if ((stat=ioctl(dev->fd, MTIOCTOP, (char *)&mt_com)) < 0) {
@@ -447,9 +447,20 @@ eod_dev(DEVICE *dev)
 	 }
       }
    }
-   update_pos_dev(dev); 		     /* update position */
+   /*
+    * Some drivers leave us after second EOF when doing
+    * MTEOM, so we must backup so that appending overwrites
+    * the second EOF.
+    */
+   if (dev_cap(dev, CAP_BSFATEOM)) {
+      stat =  (bsf_dev(dev, 1) == 0);
+      dev->file++;		      /* keep same file */
+   } else {
+      update_pos_dev(dev);		     /* update position */
+      stat = 1;
+   }
    Dmsg1(200, "EOD dev->file=%d\n", dev->file);
-   return 1;
+   return stat;
 }
 
 /*
@@ -663,7 +674,6 @@ fsf_dev(DEVICE *dev, int num)
 { 
    struct mtop mt_com;
    int stat = 0;
-   char rbuf[1024];
 
    if (dev->fd < 0) {
       dev->dev_errno = EBADF;
@@ -680,26 +690,37 @@ fsf_dev(DEVICE *dev, int num)
       Mmsg1(&dev->errmsg, _("Device %s at End of Tape.\n"), dev->dev_name);
       return 0;
    }
-   if (dev->state & ST_EOF)
+   if (dev->state & ST_EOF) {
       Dmsg0(200, "ST_EOF set on entry to FSF\n");
-   if (dev->state & ST_EOT)
+   }
+   if (dev->state & ST_EOT) {
       Dmsg0(200, "ST_EOT set on entry to FSF\n");
+   }
       
    Dmsg0(29, "fsf_dev\n");
    dev->block_num = 0;
-   if (dev->capabilities & CAP_FSF) {
+   if (dev_cap(dev, CAP_FSF)) {
+      POOLMEM *rbuf;
+      int rbuf_len;
       Dmsg0(200, "FSF has cap_fsf\n");
+      if (dev->max_block_size == 0) {
+	 rbuf_len = DEFAULT_BLOCK_SIZE;
+      } else {
+	 rbuf_len = dev->max_block_size;
+      }
+      rbuf = get_memory(rbuf_len);
       mt_com.mt_op = MTFSF;
       mt_com.mt_count = 1;
       while (num-- && !(dev->state & ST_EOT)) {
-         Dmsg0(200, "Doing read for fsf\n");
-	 if ((stat = read(dev->fd, rbuf, sizeof(rbuf))) < 0) {
+         Dmsg0(200, "Doing read before fsf\n");
+	 if ((stat = read(dev->fd, (char *)rbuf, rbuf_len)) < 0) {
 	    if (errno == ENOMEM) {     /* tape record exceeds buf len */
-	       stat = sizeof(rbuf);   /* This is OK */
+	       stat = rbuf_len;        /* This is OK */
 	    } else {
 	       dev->state |= ST_EOT;
 	       clrerror_dev(dev, -1);
-               Dmsg1(200, "Set ST_EOT read error %d\n", dev->dev_errno);
+               Dmsg2(200, "Set ST_EOT read errno=%d. ERR=%s\n", dev->dev_errno,
+		  strerror(dev->dev_errno));
                Mmsg2(&dev->errmsg, _("read error on %s. ERR=%s.\n"),
 		  dev->dev_name, strerror(dev->dev_errno));
                Dmsg1(200, "%s", dev->errmsg);
@@ -740,6 +761,7 @@ fsf_dev(DEVICE *dev, int num)
 	    dev->file_addr = 0;
 	 }   
       }
+      free_memory(rbuf);
    
    /*
     * No FSF, so use FSR to simulate it

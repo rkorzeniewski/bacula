@@ -57,8 +57,10 @@ static void scancmd();
 static void rewindcmd();
 static void clearcmd();
 static void wrcmd();
+static void rrcmd();
 static void eodcmd();
 static void fillcmd();
+static void statcmd();
 static void unfillcmd();
 static int flush_block(DEV_BLOCK *block, int dump);
 static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
@@ -499,6 +501,14 @@ static void capcmd()
    printf("%sSHORT ", dev->state & ST_SHORT ? "" : "!");
    printf("\n");
 
+   printf(_("Device parameters:\n"));
+   printf("Device name: %s\n", dev->dev_name);
+   printf("File=%u block=%u\n", dev->file, dev->block_num);
+   printf("Min block=%u Max block=%u\n", dev->min_block_size, dev->max_block_size);
+
+   printf("Status:\n");
+   statcmd();
+
 }
 
 /*
@@ -607,7 +617,7 @@ static int re_read_block_test()
       Pmsg0(0, _("Error writing block to device.\n")); 
       goto bail_out;
    } else {
-      Pmsg1(0, _("Wrote fourth record of %d bytes.\n"), rec->data_len);
+      Pmsg1(0, _("Wrote third record of %d bytes.\n"), rec->data_len);
    }
    weofcmd();
    weofcmd();
@@ -687,13 +697,7 @@ static int append_test()
       dev->file, dev->file == 3 ? "correct!" : "NOT correct!!!!");
 
    if (dev->file != 3) {
-      Pmsg0(-1, _("\nYou MUST correct this problem. Try adding:\n\n"
-            "Hardware End of Medium = No\n\n"
-            "to your Storage daemon's Device resource definition.\n"
-            "Then re-run this test. If it still fails, there is a\n"
-            "a problem with your tape driver that must be corrected\n"
-            "before continuing.\n"));
-      return 0;
+      return -1;
    }
 
    Pmsg0(-1, _("\nNow the important part, I am going to attempt to append to the tape.\n\n"));
@@ -703,8 +707,77 @@ static int append_test()
    Pmsg0(-1, _("Done appending, there should be no I/O errors\n\n"));
    Pmsg0(-1, "Doing Bacula scan of blocks:\n");
    scan_blocks();
-   Pmsg0(-1, _("End scanning the tape.\n\n"
-        "The above scan should have output identical to what follows:\n\n"
+   Pmsg0(-1, _("End scanning the tape.\n"));
+   Pmsg2(-1, _("We should be in file 4. I am at file %d. This is %s\n"), 
+      dev->file, dev->file == 4 ? "correct!" : "NOT correct!!!!");
+
+   if (dev->file != 4) {
+      return -2;
+   }
+
+   return 1;
+}
+
+/* 
+ * This is a general test of Bacula's functions
+ *   needed to read and write the tape.
+ */
+static void testcmd()
+{
+   int stat;
+   re_read_block_test();
+
+   stat = append_test();
+   if (stat == 1) {		      /* OK get out */
+      goto all_done;
+   }
+   if (stat == -1) {		      /* first test failed */
+      if (dev_cap(dev, CAP_EOM)) {
+         Pmsg0(-1, "\nAppend test failed. Attempting again.\n"
+                   "Setting \"Hardware End of Medium = no\" and retrying append test.\n\n");
+	 dev->capabilities &= ~CAP_EOM; /* turn off eom */
+	 stat = append_test();
+	 if (stat == 1) {
+            Pmsg0(-1, "\n\nIt looks like the test worked this time, please add:\n\n"
+                     "    Hardware End of Medium = No\n\n"
+                     "to your Device resource in the Storage conf file.\n");
+	    goto all_done;
+	 }
+	 if (stat == -1) {
+            Pmsg0(-1, "\n\nThat appears not to have corrected the problem.\n");
+	    goto all_done;
+	 }
+	 /* Wrong count after append */
+	 if (stat == -2) {
+            Pmsg0(-1, "\n\nIt looks like the append failed. Attempting again.\n"
+                     "Setting \"BSF at EOM = yes\" and retrying append test.\n");
+	    dev->capabilities |= CAP_BSFATEOM; /* backspace on eom */
+	    stat = append_test();
+	    if (stat == 1) {
+               Pmsg0(-1, "\n\nIt looks like the test worked this time, please add:\n\n"
+                     "    Hardware End of Medium = No\n"
+                     "    BSR at EOM = yes\n\n"
+                     "to your Device resource in the Storage conf file.\n");
+	       goto all_done;
+	    }
+	 }
+
+         Pmsg0(-1, "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+               "Unable to correct the problem. You MUST fix this\n"
+                "problem before Bacula can use your tape drive correctly\n");
+         Pmsg0(-1, "\nPerhaps running Bacula in fixed block mode will work.\n"
+               "Do so by setting:\n\n"
+               "Minimum Block Size = nnn\n"
+               "Maximum Block Size = nnn\n\n"
+               "in your Storage daemon's Device definition.\n"
+               "nnn must match your tape driver's block size.\n"
+               "This, however, is not really an ideal solution.\n");
+      }
+   }
+
+all_done:
+   Pmsg0(-1, _("\nThe above Bacula scan should have output identical to what follows.\n"
+        "Please double check it ...\n"
         "=== Sample correct output ===\n"
         "1 block of 64448 bytes in file 1\n"
         "End of File mark.\n"
@@ -720,30 +793,10 @@ static int append_test()
    Pmsg0(-1, _("If the above scan output is not identical to the\n"
                "sample output, you MUST correct the problem\n"
                "or Bacula will not be able to write multiple Jobs to \n"
-               "the tape.\n\n"
-               "If the output is incorrect, you might\n"
-               "be able to run in fixed block mode by setting:\n\n"
-               "Minimum Block Size = nnn\n"
-               "Maximum Block Size = nnn\n\n"
-               "in your Storage daemon's Device definition.\n"
-               "nnn must match your tape driver's block size.\n"
-               "This, however, is not really an ideal solution.\n"));
+               "the tape.\n\n"));
 
    Pmsg0(-1, _("\n=== End Append files test ===\n"));
-   return 1;
-}
-
-/* 
- * This is a general test of Bacula's functions
- *   needed to read and write the tape.
- */
-static void testcmd()
-{
-   re_read_block_test();
-
-   if (!append_test()) {
-      return;
-   }
+   
 }
 
 /* Forward space a file */
@@ -806,6 +859,32 @@ bail_out:
    free_record(rec);
    free_block(block);
    sm_check(__FILE__, __LINE__, False);
+}
+
+/* 
+ * Read a record from the tape
+ */
+static void rrcmd()
+{
+   char *buf;
+   int stat, len;
+
+   if (!get_cmd("Enter length to read: ")) {
+      return;
+   }
+   len = atoi(cmd);
+   if (len < 0 || len > 1000000) {
+      Pmsg0(0, _("Bad length entered, using default of 1024 bytes.\n"));
+      len = 1024;
+   }
+   buf = (char *)malloc(len);
+   stat = read(dev->fd, buf, len);
+   if (stat > 0 && stat <= len) {
+      errno = 0;
+   }
+   Pmsg3(0, _("Read of %d bytes gives stat=%d. ERR=%s\n"),
+      len, stat, strerror(errno));
+   free(buf);
 }
 
 
@@ -1448,7 +1527,8 @@ static struct cmdstruct commands[] = {
  {"status",     statcmd,      "print tape status"},
  {"test",       testcmd,      "General test Bacula tape functions"},
  {"weof",       weofcmd,      "write an EOF on the tape"},
- {"wr",         wrcmd,        "write a single record of 2048 bytes"}, 
+ {"wr",         wrcmd,        "write a single Bacula block"}, 
+ {"rr",         rrcmd,        "read a single record"},
 	     };
 #define comsize (sizeof(commands)/sizeof(struct cmdstruct))
 
