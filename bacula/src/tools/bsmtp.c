@@ -127,6 +127,8 @@ int main (int argc, char *argv[])
     int s, r, i, ch;
     struct passwd *pwd;
     char *cp, *p;
+    time_t now = time(NULL);
+    struct tm tm;
 
    my_name_is(argc, argv, "bsmtp");
 
@@ -314,6 +316,11 @@ hp:
    if (cc_addr) {
       fprintf(sfp, "Cc: %s\r\n", cc_addr);
    }
+
+   /* Add RFC822 date */
+   localtime_r(&now, &tm);
+   strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S %z", &tm);
+   fprintf(sfp, "Date: %s\r\n", buf);
 
    fprintf(sfp, "\r\n");
 
