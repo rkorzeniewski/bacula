@@ -1,0 +1,59 @@
+#!/bin/sh
+#
+# Run a simple backup of the Bacula build directory but 
+#   split the archive into two volumes
+#
+cwd=`pwd`
+scripts/copy-test-confs
+rm -rf tmp/TestVolume001 tmp/TestVolume002 tmp/bacula-restores
+echo "${cwd}/build" >/tmp/file-list
+bin/bacula stop 2>&1 >/dev/null
+bin/drop_sqlite_tables
+bin/make_sqlite_tables
+
+echo " "
+echo " "
+echo " === Starting two-vol-test  ==="
+echo " "
+
+bin/bacula start
+bin/console -c bin/console.conf <<END_OF_DATA
+@output /dev/null
+messages
+label storage=File1
+TestVolume001
+label storage=File1
+TestVolume002
+update Volume=TestVolume001
+6
+3000000
+10
+@output
+run job=NightlySave storage=File1
+yes
+wait
+messages
+@# 
+@# now do a restore
+@#
+restore where=${cwd}/tmp/bacula-restores
+5
+done
+yes
+wait
+messages
+quit
+END_OF_DATA
+bin/bacula stop
+diff -ur build  tmp/bacula-restores${cwd}/build
+if [ $? != 0 ] ; then
+   echo " "
+   echo " "
+   echo "  ===== two-vol-test Bacula source failed!!! ===== "
+   echo "  ===== two-vol-test failed!!! ===== " >>test.out
+   echo " "
+else
+   echo "  ===== two-vol-test Bacula source OK ===== "
+   echo "  ===== two-vol-test OK ===== " >>test.out
+   rm -rf tmp/bacula-restores tmp/TestVolume001 tmp/TestVolume002
+fi

@@ -10,6 +10,7 @@ tests/compressed-test
 tests/sparse-compressed-test
 tests/wierd-files-test
 tests/two-jobs-test
+tests/two-vol-test
 echo " "
 echo " "
 echo "Test results"
