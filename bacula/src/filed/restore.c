@@ -448,5 +448,5 @@ static void print_ls_output(JCR *jcr, char *fname, char *lname, int type, struct
    *p++ = '\n';
    *p = 0;
    Dmsg0(20, buf);
-   Jmsg(jcr, M_INFO, 0, "%s", buf);
+   Jmsg(jcr, M_RESTORED, 0, "%s", buf);
 }

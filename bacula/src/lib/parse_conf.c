@@ -115,6 +115,7 @@ static struct s_mtypes msg_types[] = {
    {"skipped",       M_SKIPPED},
    {"mount",         M_MOUNT},
    {"terminate",     M_TERM},
+   {"restored",      M_RESTORED},
    {"all",           M_MAX+1},
    {NULL,	     0}
 };

@@ -51,7 +51,7 @@ FF_PKT *init_find_files()
   ff->sys_fname = get_pool_memory(PM_FNAME);
 
   init_include_exclude_files(ff);	    /* init lists */
-  ff->mtime_only = 1;
+  ff->mtime_only = 0;			    /* use both st_mtime and st_ctime */
 
    /* Get system path and filename maximum lengths */
    path_max = pathconf(".", _PC_PATH_MAX);

@@ -35,6 +35,7 @@
 #undef  M_MOUNT
 #undef  M_ERROR_TERM
 #undef  M_TERM
+#undef  M_RESTORED
 
 /*
  * Most of these message levels are more or less obvious. 
@@ -58,6 +59,8 @@
  *  M_WARNING     Job warning message.
  *  M_INFO        Job information message.
  *
+ *  M_RESTORED    An ls -l of each restored file.
+ *
  */
 
 #define M_DEBUG       1               /* debug message */
@@ -72,8 +75,9 @@
 #define M_MOUNT      10               /* Mount requests */
 #define M_ERROR_TERM 11               /* Error termination request (no dump) */
 #define M_TERM       12               /* Terminating daemon */
+#define M_RESTORED   13               /* ls -l of restored files */
 
-#define M_MAX      M_TERM             /* keep this updated ! */
+#define M_MAX      M_RESTORED         /* keep this updated ! */
 
 /* Define message destination structure */
 /* *** FIXME **** where should be extended to handle multiple values */

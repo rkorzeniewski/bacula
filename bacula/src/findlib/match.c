@@ -158,6 +158,7 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, char *fname)
    }
 
    strcpy(inc->fname, p);		  
+   p = inc->fname;
    len = strlen(p);
    /* Zap trailing slashes.  */
    p += len - 1;
@@ -174,6 +175,14 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, char *fname)
 	 break;
       }
    }
+#ifdef HAVE_CYGWIN
+   /* Convert any \'s into /'s */
+   for (p=inc->fname; *p; p++) {
+      if (*p == '\\') {
+         *p = '/';
+      }
+   }
+#endif
    inc->next = NULL;
    /* Chain this one on the end of the list */
    if (!ff->included_files_list) {
@@ -198,6 +207,14 @@ void add_fname_to_exclude_list(FF_PKT *ff, char *fname)
    int len;
    struct s_excluded_file *exc, **list;
 
+#ifdef HAVE_CYGWIN
+   /* Convert any \'s into /'s */
+   for (char *p=fname; *p; p++) {
+      if (*p == '\\') {
+         *p = '/';
+      }
+   }
+#endif
    Dmsg1(20, "Add name to exclude: %s\n", fname);
 
    if (strchr(fname, '/')) {
