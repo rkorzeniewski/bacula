@@ -429,7 +429,7 @@ patch src/cats/update_sqlite_tables.in src/cats/update_sqlite_tables.in.patch
         --enable-smartalloc \
         --enable-gnome \
 	--enable-static-fd \
-%if ! %{rh7}
+%if ! %{rh7} && ! %{rh8}
 	--enable-tray-monitor \
 %endif
 %if %{mysql}
@@ -559,6 +559,8 @@ cp -p scripts/bacula.desktop.gnome2.consolehelper $RPM_BUILD_ROOT/usr/share/appl
 cp -p scripts/gnome-console.console_apps $RPM_BUILD_ROOT/etc/security/console.apps/gnome-console
 cp -p scripts/gnome-console.pamd $RPM_BUILD_ROOT/etc/pam.d/gnome-console
 ln -sf consolehelper $RPM_BUILD_ROOT/usr/bin/gnome-console
+%endif
+%if ! %{rh7} && ! %{rh8}
 cp -p src/tray-monitor/generic.xpm $RPM_BUILD_ROOT/usr/share/pixmaps/bacula-tray-monitor.xpm
 cp -p scripts/bacula-tray-monitor.desktop $RPM_BUILD_ROOT/usr/share/applications/bacula-tray-monitor.desktop
 %endif
@@ -1072,10 +1074,14 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 /etc/bacula/gconsole
 %config(noreplace) /etc/bacula/gnome-console.conf
 /usr/share/pixmaps/bacula.png
+
 %if %{rh7}
 /usr/share/gnome/apps/System/bacula.desktop
 %else
 /usr/share/applications/bacula.desktop
+%endif
+
+%if ! %{rh7} && ! %{rh8}
 /usr/sbin/bacula-tray-monitor
 /etc/bacula/tray-monitor.conf
 /usr/share/pixmaps/bacula-tray-monitor.xpm
@@ -1091,6 +1097,8 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 
 
 %changelog
+* Fri Oct 22 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
+- remove tray-monitor from RH8 build
 * Wed Oct 13 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - add Mandrake support and tray-monitor, misc changes for 1.35.8/1.36.0,
 - change database update to 7 to 8 upgrade,
