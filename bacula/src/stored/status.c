@@ -76,17 +76,17 @@ int status_cmd(JCR *jcr)
     * List devices
     */
    LockRes();
-   for (device=NULL;  (device=(DEVRES *)GetNextRes(R_DEVICE, (RES *)device)); ) {
+   foreach_res(device, R_DEVICE) {
       for (dev=device->dev; dev; dev=dev->next) {
-	 if (dev->state & ST_OPENED) {
-	    if (dev->state & ST_LABEL) {
-               bnet_fsend(user, _("Device %s is mounted with Volume \"%s\"\n"), 
+	 if (dev_state(dev, ST_OPENED)) {
+	    if (dev_state(dev, ST_LABEL)) {
+               bnet_fsend(user, _("Device \"%s\" is mounted with Volume \"%s\"\n"), 
 		  dev_name(dev), dev->VolHdr.VolName);
 	    } else {
-               bnet_fsend(user, _("Device %s open but no Bacula volume is mounted.\n"), dev_name(dev));
+               bnet_fsend(user, _("Device \"%s\" open but no Bacula volume is mounted.\n"), dev_name(dev));
 	    }
 	    send_blocked_status(jcr, dev);
-	    if (dev->state & ST_APPEND) {
+	    if (dev_state(dev, ST_APPEND)) {
 	       bpb = dev->VolCatInfo.VolCatBlocks;
 	       if (bpb <= 0) {
 		  bpb = 1;
@@ -116,7 +116,7 @@ int status_cmd(JCR *jcr)
 	       edit_uint64_with_commas(dev->block_num, b2));
 
 	 } else {
-            bnet_fsend(user, _("Device %s is not open.\n"), dev_name(dev));
+            bnet_fsend(user, _("Device \"%s\" is not open.\n"), dev_name(dev));
 	    send_blocked_status(jcr, dev);
 	 }
       }
@@ -132,7 +132,7 @@ int status_cmd(JCR *jcr)
 	    job_type_to_str(jcr->JobType), jcr->Job);
       }
       if (jcr->device) {
-         bnet_fsend(user, _("%s %s job %s using Volume \"%s\" on device %s\n"), 
+         bnet_fsend(user, _("%s %s job %s using Volume \"%s\" on device \"%s\"\n"), 
 		   job_level_to_str(jcr->JobLevel),
 		   job_type_to_str(jcr->JobType),
 		   jcr->Job,

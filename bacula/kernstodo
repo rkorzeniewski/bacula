@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                22 December 2003  
+                 09 January 2004
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -41,6 +41,7 @@ For 1.33 Testing/Documentation:
 - Add counter variable test.
 - Document ln -sf /usr/lib/libncurses.so /usr/lib/libtermcap.so
   and install the esound-dev  package for compiling Console on SuSE.
+  This should read 'Document LDFLAGS="-L/usr/lib/termcap" ... '
 - Add an example of using a FIFO in dirdconf.wml 
 - Add an item to the FAQ about running jobs in different timezones.
 - Add some examples of job editing codes.
@@ -55,19 +56,13 @@ For 1.33 Testing/Documentation:
 - Add subsections to the Disaster Recovery index section.
                 
 For 1.33
-- Look at code in recycle_oldes_purged_volume() recycle.c. Why not
-  let SQL do ORDER BY LastWritten ASC?
-- Look at find_next_volume() algorithm. Currently, it selects:
-    +---------+------------+---------------------+-----------+
-    | MediaId | VolumeName | LastWritten         | VolBytes  |
-    +---------+------------+---------------------+-----------+
-    |       3 | Test13     | 0000-00-00 00:00:00 |         1 |
-    |       4 | Test14     | 0000-00-00 00:00:00 |         1 |
-    |       1 | test11     | 2003-12-03 18:39:55 | 4,004,926 |
-    |       2 | test12     | 2004-01-04 15:25:56 | 2,078,691 |
-    +---------+------------+---------------------+-----------+
-  but perhaps it should fill already used Volumes first, and use
-  Append volumes before Purged, or Recycled, ...
+- Add level to estimate command.
+- Check time/dates printed during restore when using Win32 API.
+- Possibly remove the "|| ap == NULL" on lines 123 and 207 of lib/var.c,
+  which creates compile problems on alpha systems.
+  var.c:123: no match for `va_list & == long int'
+- Check "restore" 3 (JobId), then it asks for Storage resource. Does
+  it verify that the correct volume is chosen?
 - Volume "add"ed to Pool gets recycled in first use. VolBytes=0
 - Get rid of 0 dates in LastWritten, ...
 - Make Bacula "poll a drive".
@@ -116,6 +111,7 @@ For 1.33
   resources, like Level? If so, I think I'd make it an optional directive
   in Job, Client, and Pool, with precedence such that Job overrides Client
   which in turn overrides Pool.
+- Print a message when a job starts if the conf file is not current.
 - Finish work on conio.c
 - To pass Include 1 or two letter commands
   I Name           Include name - first record
@@ -1071,3 +1067,16 @@ Done: (see kernsdone for more)
     gnome-console is built, but the binary and .conf are not being installed.
 - Permit Bacula and apcupsd donations (not done for apcupsd).
 - Fix Ctl-C crashing the Console (readline?).
+- Look at code in recycle_oldes_purged_volume() recycle.c. Why not
+  let SQL do ORDER BY LastWritten ASC?
+- Look at find_next_volume() algorithm. Currently, it selects:
+    +---------+------------+---------------------+-----------+
+    | MediaId | VolumeName | LastWritten         | VolBytes  |
+    +---------+------------+---------------------+-----------+
+    |       3 | Test13     | 0000-00-00 00:00:00 |         1 |
+    |       4 | Test14     | 0000-00-00 00:00:00 |         1 |
+    |       1 | test11     | 2003-12-03 18:39:55 | 4,004,926 |
+    |       2 | test12     | 2004-01-04 15:25:56 | 2,078,691 |
+    +---------+------------+---------------------+-----------+
+  but perhaps it should fill already used Volumes first, and use
+  Append volumes before Purged, or Recycled, ...

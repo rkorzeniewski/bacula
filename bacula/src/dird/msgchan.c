@@ -196,6 +196,7 @@ static void msg_thread_cleanup(void *arg)
    P(jcr->mutex);
    jcr->sd_msg_thread_done = true;
    pthread_cond_broadcast(&jcr->term_wait); /* wakeup any waiting threads */
+   jcr->SD_msg_chan = 0;
    V(jcr->mutex);
    free_jcr(jcr);		      /* release jcr */
 }

@@ -142,6 +142,7 @@ struct VOLUME_CAT_INFO {
 typedef struct s_steal_lock {
    pthread_t         no_wait_id;      /* id of no wait thread */
    int               dev_blocked;     /* state */
+   int               dev_prev_blocked; /* previous blocked state */
 } bsteal_lock_t;
 
 struct DEVRES;                        /* Device resource defined in stored_conf.h */
@@ -157,6 +158,7 @@ public:
    pthread_cond_t wait_next_vol;      /* wait for tape to be mounted */
    pthread_t no_wait_id;              /* this thread must not wait */
    int dev_blocked;                   /* set if we must wait (i.e. change tape) */
+   int dev_prev_blocked;              /* previous blocked state */
    int num_waiting;                   /* number of threads waiting */
    int num_writers;                   /* number of writing threads */
    int use_count;                     /* usage count on this device */
@@ -180,12 +182,22 @@ public:
    uint32_t max_rewind_wait;          /* max secs to allow for rewind */
    uint32_t max_open_wait;            /* max secs to allow for open */
    uint32_t max_open_vols;            /* max simultaneous open volumes */
+   utime_t  vol_poll_interval;        /* interval between polling Vol mount */
    DEVRES *device;                    /* pointer to Device Resource */
    btimer_id tid;                     /* timer id */
 
    VOLUME_CAT_INFO VolCatInfo;        /* Volume Catalog Information */
    VOLUME_LABEL VolHdr;               /* Actual volume label */
    
+   /* Device wait times ***FIXME*** look at durations */
+   char BadVolName[MAX_NAME_LENGTH];  /* Last wrong Volume mounted */
+   bool poll;                         /* set to poll Volume */
+   int min_wait;
+   int max_wait;
+   int max_num_wait;
+   int wait_sec;
+   int rem_wait_sec;
+   int num_wait;
 };
 
 

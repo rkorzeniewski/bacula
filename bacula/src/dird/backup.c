@@ -385,14 +385,18 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since, FILESET_DBR *fsr
 	 msg_type = M_ERROR;	      /* Generate error message */
 	 if (jcr->store_bsock) {
 	    bnet_sig(jcr->store_bsock, BNET_TERMINATE);
-	    pthread_cancel(jcr->SD_msg_chan);
+	    if (jcr->SD_msg_chan) {
+	       pthread_cancel(jcr->SD_msg_chan);
+	    }
 	 }
 	 break;
       case JS_Canceled:
          term_msg = _("Backup Canceled");
 	 if (jcr->store_bsock) {
 	    bnet_sig(jcr->store_bsock, BNET_TERMINATE);
-	    pthread_cancel(jcr->SD_msg_chan);
+	    if (jcr->SD_msg_chan) {
+	       pthread_cancel(jcr->SD_msg_chan);
+	    }
 	 }
 	 break;
       default:
