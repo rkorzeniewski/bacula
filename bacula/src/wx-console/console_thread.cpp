@@ -100,7 +100,9 @@ void* console_thread::Entry() {
       csprint(NULL, CS_END);
       csprint(NULL, CS_DISCONNECTED);
       csprint(NULL, CS_TERMINATED);
-      Exit();
+      #ifdef HAVE_WIN32
+         Exit();
+      #endif
       return NULL;
    }
 
@@ -113,7 +115,9 @@ void* console_thread::Entry() {
       csprint(NULL, CS_END);
       csprint(NULL, CS_DISCONNECTED);
       csprint(NULL, CS_TERMINATED);
-      Exit();
+      #ifdef HAVE_WIN32
+         Exit();
+      #endif
       return NULL;
    }
    
@@ -163,8 +167,10 @@ void* console_thread::Entry() {
    UA_sock = NULL;
 
    csprint(NULL, CS_TERMINATED);
-   
-   Exit();
+
+   #ifdef HAVE_WIN32
+      Exit();
+   #endif
    
    return NULL;
 }
