@@ -9,7 +9,7 @@
  *
  */
 /*
-   Copyright (C) 2000-2003 Kern Sibbald and John Walker
+   Copyright (C) 2000-2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -30,6 +30,7 @@
 
 #include "bacula.h"
 #include "cats/cats.h"
+#include "dird/dird_conf.h"
 
 typedef struct s_id_ctx {
    uint32_t *Id;		      /* ids to be modified */
@@ -82,8 +83,10 @@ static int yes_no(char *prompt);
 static void usage()
 {
    fprintf(stderr,
-"Usage: dbcheck [-d debug_level] <working-directory> <bacula-databse> <user> <password>\n"
+"Usage: dbcheck [-c config] [-C catalogname] [-d debug_level] <working-directory> <bacula-database> <user> <password> [<dbhost>]\n"
 "       -b              batch mode\n"
+"       -C              catalogname in the director configfile\n"
+"       -c              director configfilename\n"
 "       -dnn            set debug level to nn\n"
 "       -f              fix inconsistencies\n"
 "       -v              verbose\n"
@@ -94,7 +97,9 @@ static void usage()
 int main (int argc, char *argv[])
 {
    int ch;
-   char *user, *password, *db_name;
+   char *user, *password, *db_name, *dbhost;
+   char *configfile = NULL;
+   char *catalogname = NULL;
 
    my_name_is(argc, argv, "dbcheck");
    init_msg(NULL, NULL);	      /* setup message handler */
@@ -103,10 +108,18 @@ int main (int argc, char *argv[])
    memset(&name_list, 0, sizeof(name_list));
 
 
-   while ((ch = getopt(argc, argv, "bd:fv?")) != -1) {
+   while ((ch = getopt(argc, argv, "bc:C:d:fv?")) != -1) {
       switch (ch) {
       case 'b':                    /* batch */
 	 batch = true;
+	 break;
+
+      case 'C':                    /* CatalogName */
+	  catalogname = optarg;
+	 break;
+
+      case 'c':                    /* configfile */
+	  configfile = optarg;
 	 break;
 
       case 'd':                    /* debug level */
@@ -131,38 +144,78 @@ int main (int argc, char *argv[])
    argc -= optind;
    argv += optind;
 
-   if (argc > 4) {
-      Pmsg0(0, _("Wrong number of arguments.\n"));
-      usage();
-   }
+   if (configfile) {
+      CAT *catalog = NULL;
+      int found = 0;
+      if (argc > 0) {
+         Pmsg0(0, _("Warning skipping the additional parameters for working directory/dbname/user/password/host.\n"));
+      }
+      parse_config(configfile);
+      LockRes();
+      foreach_res(catalog, R_CATALOG) {
+	 if (catalogname && !strcmp(catalog->hdr.name, catalogname)) { 
+	    ++found;
+	    break;
+	 } else if (!catalogname) { // stop on first if no catalogname is given
+	   ++found;
+	   break;
+	 }
+      }
+      UnlockRes();
+      if (!found) {
+	 if (catalogname) {
+            Pmsg2(0, "Error can not find the Catalog name[%s] in the given config file [%s]\n", catalogname, configfile);
+	 } else {
+            Pmsg1(0, "Error there is no Catalog section in the given config file [%s]\n", configfile);
+	 }
+	 return 1;
+      } else {
+	  db_name = catalog->db_name;
+	  user = catalog->db_user;
+	  password = catalog->db_password;
+          dbhost = (catalog->db_address[0] == '\0') ? NULL : catalog->db_address;
+      }
+   } else {
+      if (argc > 5) {
+         Pmsg0(0, _("Wrong number of arguments.\n"));
+	 usage();
+      }
 
-   if (argc < 1) {
-      Pmsg0(0, _("Working directory not supplied.\n"));
-      usage();
-   }
+      if (argc < 1) {
+         Pmsg0(0, _("Working directory not supplied.\n"));
+	 usage();
+      }
 
-   /* This is needed by SQLite to find the db */
-   working_directory = argv[0];
-   db_name = "bacula";
-   user = db_name;
-   password = "";
-
-   if (argc == 2) {
-      db_name = argv[1];
+      /* This is needed by SQLite to find the db */
+      working_directory = argv[0];
+      db_name = "bacula";
       user = db_name;
-   } else if (argc == 3) {
-      db_name = argv[1];
-      user = argv[2];
-   } else if (argc == 4) {
-      db_name = argv[1];
-      user = argv[2];
-      password = argv[3];
+      password = "";
+      dbhost = NULL;
+
+      if (argc == 2) {
+	 db_name = argv[1];
+	 user = db_name;
+      } else if (argc == 3) {
+	 db_name = argv[1];
+	 user = argv[2];
+      } else if (argc == 4) {
+	 db_name = argv[1];
+	 user = argv[2];
+	 password = argv[3];
+      } else if (argc == 5) {
+	 db_name = argv[1];
+	 user = argv[2];
+	 password = argv[3];
+	 dbhost = argv[4];
+      }
    }
 
    /* Open database */
-   db = db_init_database(NULL, db_name, user, password, NULL, 0, NULL);
+   db = db_init_database(NULL, db_name, user, password, dbhost, 0, NULL);
    if (!db_open_database(NULL, db)) {
       Emsg1(M_FATAL, 0, "%s", db_strerror(db));
+	  return 1;
    }
 
    if (batch) {

@@ -100,6 +100,10 @@ DEVICE *setup_to_access_device(JCR *jcr, int read_access)
    pm_strcpy(&jcr->dev_name, device->device_name);
    
    dev = init_dev(NULL, device);
+   if (!dev) {
+      Jmsg1(jcr, M_FATAL, 0, _("Cannot init device %s\n"), jcr->dev_name);
+      return NULL;
+   }
    jcr->device->dev = dev;
    new_dcr(jcr, dev);	     
    if (!dev || !first_open_device(dev)) {

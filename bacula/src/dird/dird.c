@@ -349,6 +349,9 @@ void reload_config(int sig)
    int njobs = 0;
    int table, rtable;
 
+   Jmsg(NULL, M_ERROR, 0, _("Command not implemented\n"));
+   return;
+
    if (already_here) {
       abort();			      /* Oops, recursion -> die */
    }
