@@ -410,7 +410,8 @@ static int user_select_jobids(UAContext *ua, JOBIDS *ji)
       bsendmsg(ua, _("No Jobs selected.\n"));
       return 0;
    }
-   bsendmsg(ua, _("You have selected the following JobId: %s\n"), ji->JobIds);
+   bsendmsg(ua, _("You have selected the following JobId%s: %s\n"), 
+      strchr(ji->JobIds,',')?"s":"",ji->JobIds);
 
    memset(&jr, 0, sizeof(JOB_DBR));
 

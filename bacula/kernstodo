@@ -27,6 +27,9 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.32:
+- Look at libkse (man kse) for FreeBSD threading.
+- Look into Microsoft Volume Shadowcopy Service VSS for backing
+  up system state components (Active Directory, System Volume, ...)
 - Add ExhautiveRestoreSearch and use repositioning at the beginning
   of the tape.
 - Add Machine type (Linux/Windows) to Status report for daemons.
