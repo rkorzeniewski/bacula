@@ -37,7 +37,6 @@ install: installdirs
 	$(INSTALL_SCRIPT) bconsole $(DESTDIR)$(scriptdir)/bconsole
 	$(INSTALL_SCRIPT) gconsole $(DESTDIR)$(scriptdir)/gconsole
 	$(INSTALL_SCRIPT) bacula $(DESTDIR)$(scriptdir)/bacula
-	$(INSTALL_SCRIPT) fd $(DESTDIR)$(scriptdir)/fd
 	$(INSTALL_SCRIPT) mtx-changer $(DESTDIR)$(scriptdir)/mtx-changer
 	$(INSTALL_DATA)   btraceback.gdb $(DESTDIR)$(scriptdir)/btraceback.gdb
 	$(INSTALL_SCRIPT) btraceback $(DESTDIR)$(sbindir)/btraceback
@@ -57,12 +56,12 @@ uninstall:
 Makefile: Makefile.in
 	cd $(topdir) \
 	    && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
-	chmod 755 startmysql stopmysql bacula fd startit stopit btraceback
+	chmod 755 startmysql stopmysql bacula startit stopit btraceback
 	chmod 755 mtx-changer bconsole gconsole
 
 Makefiles:
 	$(SHELL) config.status
-	chmod 755 startmysql stopmysql bacula fd startit stopit btraceback
+	chmod 755 startmysql stopmysql bacula startit stopit btraceback
 	chmod 755 mtx-changer bconsole gconsole
 
 clean:
