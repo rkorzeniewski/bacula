@@ -405,7 +405,18 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
        * simulate an End of Medium.
        */
       if (stat == -1) {
+	 /* I have added the ifdefing here because it appears on
+	  * FreeBSD where MTIOCERRSTAT is defined, this not only
+	  * clears the error but clears the residual unwritten
+	  * buffers -> data loss. As a consequence, on those
+	  * systems (FreeBSD like), do the clrerror() only after
+	  * the weof_dev() call.
+	  */
+#ifndef MTIOCERRSTAT
 	 clrerror_dev(dev, -1);
+#else
+	 dev->dev_errno = errno;      /* save errno */
+#endif
 	 if (dev->dev_errno == 0) {
 	    dev->dev_errno = ENOSPC;	    /* out of space */
 	 }
@@ -423,6 +434,9 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       block->write_failed = true;
       weof_dev(dev, 1); 	      /* end the tape */
       weof_dev(dev, 1); 	      /* write second eof */
+#ifdef MTIOCERRSTAT
+      clrerror_dev(dev, -1);
+#endif
       dev->state |= (ST_EOF | ST_EOT | ST_WEOT);
 	
       ok = TRUE;
