@@ -568,7 +568,7 @@ static int update_volume(UAContext *ua)
    static char *kw[] = {
       "volume",
       NULL};
-   char *query;
+   POOLMEM *query;
    char ed1[30];
 
    memset(&pr, 0, sizeof(pr));
@@ -600,6 +600,7 @@ static int update_volume(UAContext *ua)
       start_prompt(ua, _("Parameters to modify:\n"));
       add_prompt(ua, _("Volume Status"));
       add_prompt(ua, _("Volume Retention"));
+      add_prompt(ua, _("Recycle"));
       add_prompt(ua, _("Done"));
       switch (do_prompt(ua, _("Select paramter to modify"), NULL)) {
       case 0:			      /* Volume Status */
@@ -618,7 +619,7 @@ static int update_volume(UAContext *ua)
 	    return 1;
 	 }
 	 strcpy(mr.VolStatus, ua->cmd);
-	 query = (char *)get_pool_memory(PM_MESSAGE);
+	 query = get_pool_memory(PM_MESSAGE);
          Mmsg(&query, "UPDATE Media SET VolStatus=\"%s\" WHERE MediaId=%d",
 	    mr.VolStatus, mr.MediaId);
 	 if (!db_sql_query(ua->db, query, NULL, NULL)) {  
@@ -636,7 +637,7 @@ static int update_volume(UAContext *ua)
             bsendmsg(ua, _("Invalid retention period specified.\n"));
 	    break;
 	 }
-	 query = (char *)get_pool_memory(PM_MESSAGE);
+	 query = get_pool_memory(PM_MESSAGE);
          Mmsg(&query, "UPDATE Media SET VolRetention=%s WHERE MediaId=%d",
 	    edit_uint64(mr.VolRetention, ed1), mr.MediaId);
 	 if (!db_sql_query(ua->db, query, NULL, NULL)) {  
@@ -644,6 +645,30 @@ static int update_volume(UAContext *ua)
 	 }	 
 	 free_pool_memory(query);
 	 break;
+      case 2:			      /* Recycle */
+	 int recycle;
+         bsendmsg(ua, _("Current value is: %s\n"),
+            mr.Recycle==1?_("yes"):_("no"));
+         if (!get_cmd(ua, _("Enter new Recycle status: "))) {
+	    return 0;
+	 }
+         if (strcasecmp(ua->cmd, _("yes")) == 0) {
+	    recycle = 1;
+         } else if (strcasecmp(ua->cmd, _("no")) == 0) {
+	    recycle = 0;
+	 } else {
+            bsendmsg(ua, _("Invalid recycle status specified.\n"));
+	    break;
+	 }
+	 query = get_pool_memory(PM_MESSAGE);
+         Mmsg(&query, "UPDATE Media SET Recycle=%d WHERE MediaId=%d",
+	    recycle, mr.MediaId);
+	 if (!db_sql_query(ua->db, query, NULL, NULL)) {  
+            bsendmsg(ua, "%s", db_strerror(ua->db));
+	 }	 
+	 free_pool_memory(query);
+	 break;
+	 
       default:			      /* Done or error */
 	 return 0;
       }

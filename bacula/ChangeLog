@@ -1,3 +1,86 @@
+2002-05-27 Release 1.20
+- Started documenting Catalog Pruning and Recycling.
+  Added catmaintenance.html and recycling.html
+- Fixed the query command bug.
+- Implemented PID files to prevent two copies of Bacula
+  from running at the same time. Be sure you --with-pid-dir
+  points to a working directory.
+- Modified ASSERT() to cause a segmentation violation. This
+  permits a core dump.
+- Worked on gnome-console. It paints better, it tells you if it
+  is ready to accept a command or processing one, and it is
+  almost entirely GTK+ (rather than GNOME, I'm removing GNOME
+  a bit at a time).
+- Limit to 100 the number of tape labeling errors in a single Job.
+- Add some additional ASSERT()s to the database routines. I don't
+  like ASSERTs but they do catch bugs.
+- Tested and debugged recycling of Volumes.  Needed to change
+  the Director-SD protocol slightly.
+- Removed the experimental SIGHUP in the Director as it is a
+  potential source of errors.
+- Added Level, Pool, Messages, and Storage keyword/value scanning
+  to the Schedule Run record.
+- Improved printing of Schedule resources with "show schedules"
+- Do not autoprune Jobs/Files if the Job errs.
+- Updated newvol() to pass back the updated Media record.   
+- Fixed the "update pool" command, which was broken during a much
+  earlier code reorganization.
+- Improved a few of the pruning messages.
+- Removed readline inclusions from gnome-console (hang over from console).
+- Make Jmsg use daemon message handler if no message handler is defined.
+  This is always the case in the SD and FD.
+- Started removing __PROTO(). With C++ prototypes are manditory, so why
+  keep around legacy code.
+- Added a good deal of message internationalization -- more to be done.
+- Move cached Path into mdb structure and use POOLMEM.
+- Fix verify bug introduced last update causing incorrect diffs 
+  by turning off autopruning.
+- Started adding code to distinguish Errors from Fatal Errors.
+- Errors are now counted in message.c for a Job.
+- More POOLMEM cleanups.
+- Implemented Automatic pruning.
+- Implemented Automatic recycling of Volumes.
+- Added PruneJobs/Files/Volumes=yes or no to Job resource. If set,
+  it forces the specified pruning.
+- Modified rwlock to accept multiple nested write lock
+  requests.
+- Modified the cats directory to use the new rwlock mechanism
+  in place of P() and V(). 
+- Defined db_lock(mdb) and db_unlock(mdb). They are in effect
+  transaction locks. 
+- Add CVS Id's to most files.
+- Made first cut at AutoPrune
+- Added new autoprune file that is called at the end of
+  each Job. It then decides when and what to prune and
+  calls the UA prune routines.
+- Modified Run (in Schedule resource) to permit overrides of
+  Level, Pool, Storage, and Messages. (not tested).
+- Added more POOLMEM in place of char.
+- Implemented daemon pid files. This prevents multiple 
+  daemons from running simultaneously. You can run multiple
+  daemons if they listen on different ports.
+- Documented the Schedule resource a bit better.
+- Began gently adding a POOLMEM type (perviously void).
+  For the moment it is a #define to char, but long term
+  it should be its own typedef.
+- Corrected a bit of spacing on the status bar of gnome-console
+- Added Admin and Archive Job types.
+- Implemented multiple Messages resources. Each daemon has
+  its own message resource, which defaults if not defined.
+  Jobs may now have different message handlers.
+- Cleaned up a bit of duplicate code in backup, verify, and
+  restore by creating appropriate subroutines in job.c
+- Added Type, Client, FileSet, and Level resource record
+  definitions to the Director. These can be used in place
+  of the Backup = ..., Verify = ..., ... commands.  This needs
+  documenting.
+- Corrected an incorrect message in the prune code and added
+  the number of Files pruned in the message.
+- Corrected several paint problems with gnome-console.
+- Added a bit of printout in signal handler during traceback.
+- Cleaned up most of sm_check() to be turned on/off by define
+  in version.h
+
 2002-05-10 Release 1.19
 - Allow the user to select a new period for pruning.
 - Lots of additions to the manual -- prune and purge
