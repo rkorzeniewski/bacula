@@ -630,9 +630,9 @@ void getstatus(monitoritem* item, int current, GString** str) {
          ret = (joberrors > 0) ? warn : running;
          g_string_append_printf(*str, _("Job status: Running (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
          break;
-      case JS_Error:
-         ret = (joberrors > 0) ? warn : running;
-         g_string_append_printf(*str, _("Job status: Error (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+      case JS_Blocked:
+         g_string_append_printf(*str, _("Job status: Blocked (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+         ret = warn;
          break;
       case JS_Terminated:
          g_string_append_printf(*str, _("Job status: Terminated (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
@@ -642,19 +642,64 @@ void getstatus(monitoritem* item, int current, GString** str) {
          g_string_append_printf(*str, _("Job status: Terminated in error (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
          ret = error;
          break;
+      case JS_Error:
+         ret = (joberrors > 0) ? warn : running;
+         g_string_append_printf(*str, _("Job status: Error (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+         break;
       case JS_FatalError:
          g_string_append_printf(*str, _("Job status: Fatal error (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
          ret = error;
          break;
-      case JS_Blocked:
-         g_string_append_printf(*str, _("Job status: Blocked (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+      case JS_Differences:
+         g_string_append_printf(*str, _("Job status: Verify differences (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
          ret = warn;
          break;
       case JS_Canceled:
          g_string_append_printf(*str, _("Job status: Canceled (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
          ret = warn;
          break;
+      case JS_WaitFD:
+         g_string_append_printf(*str, _("Job status: Waiting on File daemon (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+         ret = warn;
+         break;
+      case JS_WaitSD:
+         g_string_append_printf(*str, _("Job status: Waiting on the Storage daemon (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+         ret = warn;
+         break;
+      case JS_WaitMedia:
+         g_string_append_printf(*str, _("Job status: Waiting for new media (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+         ret = warn;
+         break;
+      case JS_WaitMount:
+         g_string_append_printf(*str, _("Job status: Waiting for Mount (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+         ret = warn;
+         break;
+      case JS_WaitStoreRes:
+         g_string_append_printf(*str, _("Job status: Waiting for storage resource (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+         ret = warn;
+         break;
+      case JS_WaitJobRes:
+         g_string_append_printf(*str, _("Job status: Waiting for job resource (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+         ret = warn;
+         break;
+      case JS_WaitClientRes:
+         g_string_append_printf(*str, _("Job status: Waiting for Client resource (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+         ret = warn;
+         break;
+      case JS_WaitMaxJobs:
+         g_string_append_printf(*str, _("Job status: Waiting for maximum jobs (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+         ret = warn;
+         break;
+      case JS_WaitStartTime:
+         g_string_append_printf(*str, _("Job status: Waiting for start time (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+         ret = warn;
+         break;
+      case JS_WaitPriority:
+         g_string_append_printf(*str, _("Job status: Waiting for higher priority jobs to finish (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+         ret = warn;
+         break;
       default:
+         g_warning("Unknown job status %c.", jobstatus);
          g_string_append_printf(*str, _("Job status: Unknown(%c) (%d error%s)"), jobstatus, joberrors, (joberrors > 1) ? "s" : "");
          ret = warn;
          break;
