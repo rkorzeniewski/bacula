@@ -30,4 +30,8 @@
  introduction of the bug was caused by a patch that fixed 
  Bacula truncating tapes after a restore.
  Note that all source files will be rebuilt during the make.
+   
 
+18Mar05 1.36.2-store.patch
+ This patch fails a job if no Storage resource is specified and
+ the job attempts to call the SD.
