@@ -31,6 +31,10 @@
 #include "bacula.h"
 #include "jcr.h"
 
+#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
+#include <windows.h>
+#endif
+
 #define FULL_LOCATION 1 	      /* set for file:line in Debug messages */
 
 /* 
