@@ -83,7 +83,7 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
       free_pool_memory(dirname);
       return 0;
    }
-   btimer_t *tid = start_bsock_timer(bs, 60 * 10);
+   btimer_t *tid = start_bsock_timer(bs, AUTH_TIMEOUT);
    auth = cram_md5_auth(bs, director->password, ssl_need);  
    if (auth) {
       get_auth = cram_md5_get_auth(bs, director->password, ssl_need);  
@@ -136,7 +136,7 @@ int authenticate_storagedaemon(JCR *jcr)
    int ssl_need = BNET_SSL_NONE;
    bool get_auth, auth = false;
 
-   btimer_t *tid = start_bsock_timer(sd, 60 * 10);
+   btimer_t *tid = start_bsock_timer(sd, AUTH_TIMEOUT);
    get_auth = cram_md5_get_auth(sd, jcr->sd_auth_key, ssl_need);  
    if (!get_auth) {
       Dmsg1(50, "cram_get_auth failed for %s\n", sd->who);

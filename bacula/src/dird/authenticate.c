@@ -65,7 +65,7 @@ bool authenticate_storage_daemon(JCR *jcr, STORE *store)
    bstrncpy(dirname, director->hdr.name, sizeof(dirname));
    bash_spaces(dirname);
    /* Timeout Hello after 1 min */
-   btimer_t *tid = start_bsock_timer(sd, 60 * 10);
+   btimer_t *tid = start_bsock_timer(sd, AUTH_TIMEOUT);
    if (!bnet_fsend(sd, hello, dirname)) {
       stop_bsock_timer(tid);
       Dmsg1(50, _("Error sending Hello to Storage daemon. ERR=%s\n"), bnet_strerror(sd));
@@ -121,7 +121,7 @@ int authenticate_file_daemon(JCR *jcr)
    bstrncpy(dirname, director->hdr.name, sizeof(dirname));
    bash_spaces(dirname);
    /* Timeout Hello after 10 mins */
-   btimer_t *tid = start_bsock_timer(fd, 60 * 10);
+   btimer_t *tid = start_bsock_timer(fd, AUTH_TIMEOUT);
    if (!bnet_fsend(fd, hello, dirname)) {
       stop_bsock_timer(tid);
       Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to File daemon. ERR=%s\n"), bnet_strerror(fd));
