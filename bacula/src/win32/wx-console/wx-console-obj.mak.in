@@ -1,0 +1,2 @@
+"$(INTDIR)\$(FILENAME).obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
