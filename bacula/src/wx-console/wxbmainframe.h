@@ -151,7 +151,9 @@ private:
    
    bool lockedbyconsole; /* true if the panels have been locked by something typed in the console */
    
-   wxString consoleBuffer;
+   wxString configfile; /* configfile used */
+   
+   wxString consoleBuffer; /* Buffer used to print in the console line by line */
    
    // any class wishing to process wxWindows events must use this macro
    DECLARE_EVENT_TABLE()

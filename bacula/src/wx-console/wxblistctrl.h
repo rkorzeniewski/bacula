@@ -61,12 +61,14 @@ typedef void (wxEvtHandler::*wxListMarkedEventFunction)(wxbListMarkedEvent&);
 /* Customized list, which transmit double clicks on images */
 class wxbListCtrl: public wxListCtrl {
    public:
-      wxbListCtrl(wxWindow* parent, wxWindowID id, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+      wxbListCtrl(wxWindow* parent, wxEvtHandler* handler, wxWindowID id, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
       ~wxbListCtrl();
       
    private:
       void OnDoubleClicked(wxMouseEvent& event);
       void OnRightClicked(wxMouseEvent& event);
+      
+      wxEvtHandler* handler;
       
       DECLARE_EVENT_TABLE();
 };

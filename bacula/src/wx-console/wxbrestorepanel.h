@@ -47,8 +47,6 @@
 #include "wxbtreectrl.h"
 #include "wxblistctrl.h"
 
-class wxbSplitterWindow;
-
 /*
  * wxbPanel for restoring files
  */
@@ -83,8 +81,9 @@ class wxbRestorePanel : public wxbPanel
       /* List files and directories for a specified tree item */
       void CmdList(wxTreeItemId item);
 
-      /* Mark a treeitem (directory) or a listitem (file or directory) */
-      void CmdMark(wxTreeItemId treeitem, long listitem);
+      /* Mark a treeitem (directory) or several listitems (file or directory),
+       * state defines if it should mark (1), unmark (0), or switch state (-1) */
+      void CmdMark(wxTreeItemId treeitem, long* listitems, int listsize, int state = -1);
 
 /* General functions and variables */
       //bool ended; /* The last command send has finished */
@@ -165,12 +164,22 @@ class wxbRestorePanel : public wxbPanel
 /* Event handling */
       void OnStart(wxCommandEvent& WXUNUSED(event));
       void OnCancel(wxCommandEvent& WXUNUSED(event));
+      
       void OnTreeChanging(wxTreeEvent& event);
       void OnTreeExpanding(wxTreeEvent& event);
       void OnTreeChanged(wxTreeEvent& event);
       void OnTreeMarked(wxbTreeMarkedEvent& event);
+      void OnTreeAdd(wxCommandEvent& WXUNUSED(event));
+      void OnTreeRemove(wxCommandEvent& WXUNUSED(event));
+      void OnTreeRefresh(wxCommandEvent& WXUNUSED(event));
+      
       void OnListMarked(wxbListMarkedEvent& event);
       void OnListActivated(wxListEvent& event);
+      void OnListChanged(wxListEvent& event);
+      void OnListAdd(wxCommandEvent& WXUNUSED(event));
+      void OnListRemove(wxCommandEvent& WXUNUSED(event));
+      void OnListRefresh(wxCommandEvent& WXUNUSED(event));
+      
       void OnConfigUpdated(wxCommandEvent& event);
       void OnConfigOk(wxCommandEvent& WXUNUSED(event));
       void OnConfigApply(wxCommandEvent& WXUNUSED(event));
@@ -178,7 +187,7 @@ class wxbRestorePanel : public wxbPanel
 
 /* Components */
       wxBoxSizer *centerSizer; /* Center sizer */
-      wxbSplitterWindow *treelistPanel; /* Panel which contains tree and list */
+      wxSplitterWindow *treelistPanel; /* Panel which contains tree and list */
       wxbConfigPanel *configPanel; /* Panel which contains initial restore options */
       wxbConfigPanel *restorePanel; /* Panel which contains final restore options */
 
@@ -186,39 +195,24 @@ class wxbRestorePanel : public wxbPanel
 
       wxButton* start;
       wxButton* cancel;
+      
       wxbTreeCtrl* tree;
+      wxButton* treeadd;
+      wxButton* treeremove;
+      wxButton* treerefresh;
+      
       wxbListCtrl* list;
+      wxButton* listadd;
+      wxButton* listremove;
+      wxButton* listrefresh;
+      
       wxGauge* gauge;
-
-      /*wxButton*     cfgOk;
-      wxButton*     cfgApply;
-      wxButton*     cfgCancel;*/
-      
+     
       long cfgUpdated; //keeps which config fields have been updated
-      
-      /*wxStaticText* cfgJobname;
-      wxStaticText* cfgBootstrap;
-      wxTextCtrl*   cfgWhere;
-      wxChoice*     cfgReplace;
-      wxChoice*     cfgFileset;
-      wxChoice*     cfgClient;
-      wxStaticText* cfgStorage;
-      wxTextCtrl*   cfgWhen;
-      wxTextCtrl*   cfgPriority;*/
 
       friend class wxbSplitterWindow;
 
       DECLARE_EVENT_TABLE();    
-};
-
-class wxbSplitterWindow: public wxSplitterWindow {
-public:
-     wxbSplitterWindow(wxbRestorePanel* parent);
-private:
-     void OnTreeMarked(wxbTreeMarkedEvent& event);
-     void OnListMarked(wxbListMarkedEvent& event);
-     DECLARE_EVENT_TABLE(); 
-     wxbRestorePanel* parent;
 };
 
 #endif // WXBRESTOREPANEL_H

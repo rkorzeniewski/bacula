@@ -34,11 +34,12 @@ BEGIN_EVENT_TABLE(wxbTreeCtrl, wxTreeCtrl)
    EVT_RIGHT_DOWN(wxbTreeCtrl::OnRightClicked)
 END_EVENT_TABLE()
 
-DEFINE_LOCAL_EVENT_TYPE(wxbTREE_MARKED_EVENT)
+DEFINE_EVENT_TYPE(wxbTREE_MARKED_EVENT)
 
 wxbTreeCtrl::wxbTreeCtrl(
-      wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size): 
+      wxWindow* parent, wxEvtHandler* handler, wxWindowID id, const wxPoint& pos, const wxSize& size): 
             wxTreeCtrl(parent, id, pos, size, wxSUNKEN_BORDER | wxTR_HAS_BUTTONS) {
+   this->handler = handler;
 }
 
 wxbTreeCtrl::~wxbTreeCtrl() {}
@@ -52,7 +53,7 @@ void wxbTreeCtrl::OnDoubleClicked(wxMouseEvent& event) {
    if ((flags & wxTREE_HITTEST_ONITEMICON) && (treeid.IsOk())) {
       wxbTreeMarkedEvent evt(GetId(), treeid);
 
-      GetParent()->GetEventHandler()->ProcessEvent(evt);
+      handler->ProcessEvent(evt);
       
       //No Skip : we don't want this item to be collapsed or expanded
    }
@@ -70,7 +71,7 @@ void wxbTreeCtrl::OnRightClicked(wxMouseEvent& event) {
    if (treeid.IsOk()) {
       wxbTreeMarkedEvent evt(GetId(), treeid);
 
-      GetParent()->GetEventHandler()->ProcessEvent(evt);
+      handler->ProcessEvent(evt);
    }
    event.Skip();
 }

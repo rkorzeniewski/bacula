@@ -36,7 +36,7 @@
 #include <wx/treectrl.h>
 
 BEGIN_DECLARE_EVENT_TYPES()
-   DECLARE_LOCAL_EVENT_TYPE(wxbTREE_MARKED_EVENT,       1)
+   DECLARE_EVENT_TYPE(wxbTREE_MARKED_EVENT,       618)
 END_DECLARE_EVENT_TYPES()
 
 /* Customized tree event, used for marking events */
@@ -64,12 +64,14 @@ typedef void (wxEvtHandler::*wxTreeMarkedEventFunction)(wxbTreeMarkedEvent&);
 /* Customized tree, which transmit double clicks on images */
 class wxbTreeCtrl: public wxTreeCtrl {
    public:
-      wxbTreeCtrl(wxWindow* parent, wxWindowID id, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+      wxbTreeCtrl(wxWindow* parent, wxEvtHandler* handler, wxWindowID id, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
       ~wxbTreeCtrl();
       
    private:
       void OnDoubleClicked(wxMouseEvent& event);
       void OnRightClicked(wxMouseEvent& event);
+      
+      wxEvtHandler* handler;
       
       DECLARE_EVENT_TABLE();
 };

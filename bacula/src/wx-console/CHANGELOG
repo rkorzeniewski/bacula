@@ -1,3 +1,17 @@
+15-05-2004 :
+ - wxbRestorePanel : The user can now mark/unmark a range of files selected
+     with shift-click or multiple files selected with ctl-click, by
+     right-clicking or using buttons.
+ - wxbRestorePanel : Added buttons to mark/unmark directories/files.
+ - wxbRestorePanel : Added buttons to force to refresh the whole tree/list
+
+14-05-2004 :
+ - wxbMainFrame : Fixed various reconnecting and disconnecting problems.
+ - console_thread : The user can now choose the director to use
+    when there's multiple directors in the configuration file.
+ - wxbRestorePanel : List's columns are now resized correctly in the
+     first directory.
+
 13-05-2004 :
  - wxbRestorePanel : Width adjustments between the tree view window
      and the file view window are now possible.

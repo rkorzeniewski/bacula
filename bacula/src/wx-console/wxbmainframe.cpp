@@ -41,6 +41,8 @@
 
 #include <wx/filename.h>
 
+#undef Yield /* MinGW defines Yield */
+
 // ----------------------------------------------------------------------------
 // event tables and other macros for wxWindows
 // ----------------------------------------------------------------------------
@@ -309,6 +311,8 @@ wxbMainFrame::wxbMainFrame(const wxString& title, const wxPoint& pos, const wxSi
    lockedbyconsole = false;
    
    consoleBuffer = "";
+   
+   configfile = "";
 }
 
 /*
@@ -324,13 +328,12 @@ void wxbMainFrame::StartConsoleThread(const wxString& config) {
    if (ct != NULL) {
       ct->Delete();
       ct = NULL;
+      wxTheApp->Yield();
    }
    if (promptparser == NULL) {
       promptparser = new wxbPromptParser();      
    }
    
-   wxString configfile;
-
    if (config == "") {   
       if ((wxTheApp->argc == 3) && (wxString(wxTheApp->argv[1]) == "-c")) {
          configfile = wxTheApp->argv[2];
@@ -448,9 +451,11 @@ void wxbMainFrame::OnQuit(wxCommandEvent& WXUNUSED(event))
    if (ct != NULL) {
       ct->Delete();
       ct = NULL;
+      wxTheApp->Yield();
    }
    console_thread::FreeLib();
    frame = NULL;
+   wxTheApp->Yield();
    Close(TRUE);
 }
 
@@ -493,23 +498,7 @@ void wxbMainFrame::OnEditConfig(wxCommandEvent& event) {
 }
 
 void wxbMainFrame::OnConnect(wxCommandEvent& event) {
-   menuFile->Enable(MenuConnect, false);
-   menuFile->Enable(MenuDisconnect, false);
-   menuFile->Enable(ChangeConfigFile, false);
-   menuFile->Enable(EditConfigFile, false);
-
-   if (ct != NULL) {
-      ct->Delete();
-      ct = NULL;
-   }
-   if (promptparser == NULL) {
-      promptparser = new wxbPromptParser();      
-   }
-
-   ct = new console_thread();
-   ct->Create();
-   ct->Run();
-   SetStatusText("Connecting to the director...");
+   StartConsoleThread(configfile);
 }
 
 void wxbMainFrame::OnDisconnect(wxCommandEvent& event) {
@@ -572,7 +561,7 @@ void wxbMainFrame::Print(wxString str, int status)
       menuFile->Enable(MenuConnect, true);
       menuFile->SetLabel(MenuConnect, "Reconnect");
       menuFile->SetHelpString(MenuConnect, "Reconnect to the director");
-      menuFile->Enable(MenuDisconnect, false);
+      menuFile->Enable(MenuDisconnect, true);
       menuFile->Enable(ChangeConfigFile, true);
       menuFile->Enable(EditConfigFile, true);
       return;
@@ -658,7 +647,7 @@ void wxbMainFrame::Print(wxString str, int status)
       if (lockedbyconsole) {
          EnableConsole(true);
       }
-      consoleBuffer << "<P>";
+      //consoleBuffer << "<P>";
    }
    
    if ((status == CS_END) || (status == CS_PROMPT) || (str.Find("\n") > -1)) {

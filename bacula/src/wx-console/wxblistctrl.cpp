@@ -37,8 +37,9 @@ END_EVENT_TABLE()
 DEFINE_LOCAL_EVENT_TYPE(wxbLIST_MARKED_EVENT)
 
 wxbListCtrl::wxbListCtrl(
-      wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size): 
+      wxWindow* parent, wxEvtHandler* handler, wxWindowID id, const wxPoint& pos, const wxSize& size): 
             wxListCtrl(parent, id, pos, size, wxLC_REPORT | wxSUNKEN_BORDER) {
+   this->handler = handler;
 }
 
 wxbListCtrl::~wxbListCtrl() {}
@@ -50,7 +51,7 @@ void wxbListCtrl::OnDoubleClicked(wxMouseEvent& event) {
    if (event.GetX() < GetColumnWidth(0)) {
       wxbListMarkedEvent evt(GetId());
 
-      GetParent()->GetEventHandler()->ProcessEvent(evt);
+      handler->ProcessEvent(evt);
       
       //No Skip : we don't want to go in this directory (if it is a directory)
    }
@@ -65,7 +66,7 @@ void wxbListCtrl::OnDoubleClicked(wxMouseEvent& event) {
 void wxbListCtrl::OnRightClicked(wxMouseEvent& event) {
    wxbListMarkedEvent evt(GetId());
 
-   GetParent()->GetEventHandler()->ProcessEvent(evt);
+   handler->ProcessEvent(evt);
 }
 
 /* Customized tree event, used for marking events */

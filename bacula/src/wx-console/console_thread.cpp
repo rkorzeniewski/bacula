@@ -80,6 +80,8 @@ wxString console_thread::LoadConfig(wxString configfile) {
          return "Error while initializing library.";
    }
    
+   free_config_resources();
+   
    MSGS* msgs = (MSGS *)malloc(sizeof(MSGS));
    memset(msgs, 0, sizeof(MSGS));
    for (int i=1; i<=M_MAX; i++) {
@@ -126,6 +128,7 @@ wxString console_thread::LoadConfig(wxString configfile) {
 // class constructor
 console_thread::console_thread() {
    UA_sock = NULL;
+   choosingdirector = false;
 }
 
 // class destructor
@@ -165,15 +168,66 @@ void* console_thread::Entry() {
    
    csprint("Connecting...\n");
   
+   int count = 0;
+   DIRRES* res[16]; /* Maximum 16 directors */
+   
    LockRes();
-   DIRRES *dir = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);
+   DIRRES* dir;
+   foreach_res(dir, R_DIRECTOR) {
+      res[count] = dir;
+      count++;
+      if (count == 16) {
+         break;
+      }
+   }
    UnlockRes();
+   
+   if (count == 0) {
+      csprint("Error : No director defined in config file.\n");
+      csprint(NULL, CS_END);
+      csprint(NULL, CS_DISCONNECTED);
+      csprint(NULL, CS_TERMINATED);
+      #ifdef HAVE_WIN32
+         Exit();
+      #endif
+      return NULL;
+   }
+   else if (count == 1) {
+      directorchoosen = 1;
+   }
+   else {
+      while (true) {
+         csprint("Multiple directors found in your config file.\n");
+         for (int i = 0; i < count; i++) {
+            if (i < 9) {
+               csprint(wxString("    ") << (i+1) << ": " << res[i]->hdr.name << "\n");
+            }
+            else {
+               csprint(wxString("   ") <<  (i+1) << ": " << res[i]->hdr.name << "\n");
+            }
+         }
+         csprint(wxString("Please choose a director (1-") << count << ") : ");
+         csprint(NULL, CS_PROMPT);
+         choosingdirector = true;
+         directorchoosen = -1;
+         while(directorchoosen == -1) {
+            bmicrosleep(0, 2000);
+            Yield();
+         }      
+         choosingdirector = false;
+         if (directorchoosen != 0) {
+            break;
+         }
+      }
+   }
 
    memset(&jcr, 0, sizeof(jcr));
    
    jcr.dequeuing = 1; /* TODO: catch messages */
 
-   UA_sock = bnet_connect(&jcr, 3, 3, "Director daemon", dir->address, NULL, dir->DIRport, 0);
+   UA_sock = bnet_connect(&jcr, 3, 3, "Director daemon",
+      res[directorchoosen-1]->address, NULL, res[directorchoosen-1]->DIRport, 0);
+      
    if (UA_sock == NULL) {
       csprint("Failed to connect to the director\n");
       csprint(NULL, CS_END);
@@ -192,7 +246,7 @@ void* console_thread::Entry() {
    /* If cons==NULL, default console will be used */
    CONRES *cons = (CONRES *)GetNextRes(R_CONSOLE, (RES *)NULL);
    UnlockRes();
-   if (!authenticate_director(&jcr, dir, cons)) {
+   if (!authenticate_director(&jcr, res[directorchoosen-1], cons)) {
       csprint("ERR=");
       csprint(UA_sock->msg);
       csprint(NULL, CS_END);
@@ -264,6 +318,17 @@ void console_thread::Write(const char* str) {
        pm_strcpy(&UA_sock->msg, str);
        bnet_send(UA_sock);
    }
+   else if (choosingdirector) {
+      wxString number = str;
+      number.RemoveLast(); /* Removes \n */
+      long val;
+      if (number.ToLong(&val)) {
+         directorchoosen = (int)val;
+      }
+      else {
+         directorchoosen = 0;
+      }
+   }
 }
 
 void console_thread::Delete() {
@@ -272,8 +337,8 @@ void console_thread::Delete() {
       bnet_sig(UA_sock, BNET_TERMINATE); /* send EOF */
       bnet_close(UA_sock);
       UA_sock = NULL;
-      csprint(NULL, CS_END);
+      /*csprint(NULL, CS_END);
       csprint(NULL, CS_DISCONNECTED);
-      csprint(NULL, CS_TERMINATED);
+      csprint(NULL, CS_TERMINATED);*/
    }
 }

@@ -24,13 +24,13 @@
  */
 /* Note concerning "done" output (modifiable marked with +)
 Run Restore job
-JobName:    RestoreFiles
++JobName:    RestoreFiles
 Bootstrap:  /var/lib/bacula/restore.bsr
 +Where:      /tmp/bacula-restores
 +Replace:    always
-FileSet:    Full Set
-Client:     tom-fd
-Storage:    File
++FileSet:    Full Set
++Client:     tom-fd
++Storage:    File
 +When:       2004-04-18 01:18:56
 +Priority:   10
 OK to run? (yes/mod/no):mod
@@ -38,7 +38,7 @@ Parameters to modify:
      1: Level (not appropriate)
      2: Storage (automatic ?)
      3: Job (no)
-     4: FileSet (no)
+     4: FileSet (yes)
      5: Client (yes : "The defined Client resources are:\n\t1: velours-fd\n\t2: tom-fd\nSelect Client (File daemon) resource (1-2):")
      6: When (yes : "Please enter desired start time as YYYY-MM-DD HH:MM:SS (return for now):")
      7: Priority (yes : "Enter new Priority: (positive integer)")
@@ -185,7 +185,13 @@ enum
    ConfigFileset = 13,
    ConfigStorage = 14,
    ConfigJobName = 15,
-   ConfigPool = 16
+   ConfigPool = 16,
+   TreeAdd = 17,
+   TreeRemove = 18,
+   TreeRefresh = 19,
+   ListAdd = 20,
+   ListRemove = 21,
+   ListRefresh = 22
 };
 
 BEGIN_EVENT_TABLE(wxbRestorePanel, wxPanel)
@@ -195,10 +201,18 @@ BEGIN_EVENT_TABLE(wxbRestorePanel, wxPanel)
    EVT_TREE_SEL_CHANGING(TreeCtrl, wxbRestorePanel::OnTreeChanging)
    EVT_TREE_SEL_CHANGED(TreeCtrl, wxbRestorePanel::OnTreeChanged)
    EVT_TREE_ITEM_EXPANDING(TreeCtrl, wxbRestorePanel::OnTreeExpanding)
+   EVT_TREE_MARKED_EVENT(TreeCtrl, wxbRestorePanel::OnTreeMarked)
+   EVT_BUTTON(TreeAdd, wxbRestorePanel::OnTreeAdd)
+   EVT_BUTTON(TreeRemove, wxbRestorePanel::OnTreeRemove)
+   EVT_BUTTON(TreeRefresh, wxbRestorePanel::OnTreeRefresh)
+
    EVT_LIST_ITEM_ACTIVATED(ListCtrl, wxbRestorePanel::OnListActivated)
-     
-   /*EVT_TREE_MARKED_EVENT(wxID_ANY, wxbRestorePanel::OnTreeMarked)
-   EVT_LIST_MARKED_EVENT(wxID_ANY, wxbRestorePanel::OnListMarked)*/
+   EVT_LIST_MARKED_EVENT(ListCtrl, wxbRestorePanel::OnListMarked)
+   EVT_LIST_ITEM_SELECTED(ListCtrl, wxbRestorePanel::OnListChanged)
+   EVT_LIST_ITEM_DESELECTED(ListCtrl, wxbRestorePanel::OnListChanged)
+   EVT_BUTTON(ListAdd, wxbRestorePanel::OnListAdd)
+   EVT_BUTTON(ListRemove, wxbRestorePanel::OnListRemove)
+   EVT_BUTTON(ListRefresh, wxbRestorePanel::OnListRefresh)
   
    EVT_TEXT(ConfigWhere, wxbRestorePanel::OnConfigUpdated)
    EVT_TEXT(ConfigWhen, wxbRestorePanel::OnConfigUpdated)
@@ -214,11 +228,6 @@ BEGIN_EVENT_TABLE(wxbRestorePanel, wxPanel)
    EVT_BUTTON(ConfigOk, wxbRestorePanel::OnConfigOk)
    EVT_BUTTON(ConfigApply, wxbRestorePanel::OnConfigApply)
    EVT_BUTTON(ConfigCancel, wxbRestorePanel::OnConfigCancel)
-END_EVENT_TABLE()
-
-BEGIN_EVENT_TABLE(wxbSplitterWindow, wxSplitterWindow)
-   EVT_TREE_MARKED_EVENT(wxID_ANY, wxbSplitterWindow::OnTreeMarked)
-   EVT_LIST_MARKED_EVENT(wxID_ANY, wxbSplitterWindow::OnListMarked)   
 END_EVENT_TABLE()
 
 /*
@@ -255,17 +264,36 @@ wxbRestorePanel::wxbRestorePanel(wxWindow* parent): wxbPanel(parent) {
 
    mainSizer->Add(firstSizer, 1, wxEXPAND, 10);
 
-   //treelistPanel = new wxbTreeListPanel(this);
-   
-   //wxFlexGridSizer* treelistSizer = new wxFlexGridSizer(1, 2, 10, 10);
-   treelistPanel = new wxbSplitterWindow(this);
+   treelistPanel = new wxSplitterWindow(this);
 
-   tree = new wxbTreeCtrl(treelistPanel, TreeCtrl, wxDefaultPosition, wxSize(200,50));
-   //treelistSizer->Add(tree, 1, wxEXPAND, 10);
-   
+   wxPanel* treePanel = new wxPanel(treelistPanel);
+   wxFlexGridSizer *treeSizer = new wxFlexGridSizer(2, 1, 0, 0);
+   treeSizer->AddGrowableCol(0);
+   treeSizer->AddGrowableRow(0);
+
+   tree = new wxbTreeCtrl(treePanel, this, TreeCtrl, wxDefaultPosition, wxSize(200,50));  
    tree->SetImageList(imagelist);
    
-   list = new wxbListCtrl(treelistPanel, ListCtrl, wxDefaultPosition, wxSize(200,50));
+   treeSizer->Add(tree, 1, wxEXPAND, 0);
+   
+   wxBoxSizer *treeCtrlSizer = new wxBoxSizer(wxHORIZONTAL);
+   treeadd = new wxButton(treePanel, TreeAdd, "Add", wxDefaultPosition, wxSize(60, 25));
+   treeCtrlSizer->Add(treeadd, 0, wxLEFT | wxRIGHT, 3);
+   treeremove = new wxButton(treePanel, TreeRemove, "Remove", wxDefaultPosition, wxSize(60, 25));
+   treeCtrlSizer->Add(treeremove, 0, wxLEFT | wxRIGHT, 3);
+   treerefresh = new wxButton(treePanel, TreeRefresh, "Refresh", wxDefaultPosition, wxSize(60, 25));
+   treeCtrlSizer->Add(treerefresh, 0, wxLEFT | wxRIGHT, 3);
+   
+   treeSizer->Add(treeCtrlSizer, 1, wxALIGN_CENTER_HORIZONTAL, 0);
+   
+   treePanel->SetSizer(treeSizer);
+   
+   wxPanel* listPanel = new wxPanel(treelistPanel);
+   wxFlexGridSizer *listSizer = new wxFlexGridSizer(2, 1, 0, 0);
+   listSizer->AddGrowableCol(0);
+   listSizer->AddGrowableRow(0);
+   
+   list = new wxbListCtrl(listPanel, this, ListCtrl, wxDefaultPosition, wxSize(200,50));
    //treelistSizer->Add(list, 1, wxEXPAND, 10);
 
    list->SetImageList(imagelist, wxIMAGE_LIST_SMALL);
@@ -299,14 +327,24 @@ wxbRestorePanel::wxbRestorePanel(wxWindow* parent): wxbPanel(parent) {
    info.SetText("Group");
    info.SetAlign(wxLIST_FORMAT_RIGHT);
    list->InsertColumn(6, info);
+    
+   listSizer->Add(list, 1, wxEXPAND, 0);
    
-   treelistPanel->SplitVertically(tree, list, 200);
+   wxBoxSizer *listCtrlSizer = new wxBoxSizer(wxHORIZONTAL);
+   listadd = new wxButton(listPanel, ListAdd, "Add", wxDefaultPosition, wxSize(60, 25));
+   listCtrlSizer->Add(listadd, 0, wxLEFT | wxRIGHT, 5);
+   listremove = new wxButton(listPanel, ListRemove, "Remove", wxDefaultPosition, wxSize(60, 25));
+   listCtrlSizer->Add(listremove, 0, wxLEFT | wxRIGHT, 5);
+   listrefresh = new wxButton(listPanel, ListRefresh, "Refresh", wxDefaultPosition, wxSize(60, 25));
+   listCtrlSizer->Add(listrefresh, 0, wxLEFT | wxRIGHT, 5);
    
-   //treelistSizer->AddGrowableCol(1);
-   //treelistSizer->AddGrowableRow(0);
+   listSizer->Add(listCtrlSizer, 1, wxALIGN_CENTER_HORIZONTAL, 0);
    
-   //treelistPanel->SetSizer(treelistSizer);
-   //treelistSizer->SetSizeHints(treelistPanel);
+   listPanel->SetSizer(listSizer);
+   
+   treelistPanel->SplitVertically(treePanel, listPanel, 210);
+   
+   treelistPanel->SetMinimumPaneSize(210);
      
    treelistPanel->Show(false);
    
@@ -665,7 +703,8 @@ void wxbRestorePanel::CmdStart() {
       wxTreeItemId root = tree->AddRoot(configPanel->GetRowString("Client"), -1, -1, new wxbTreeItemData("/", configPanel->GetRowString("Client"), 0));
       currentTreeItem = root;
       tree->Refresh();
-      UpdateTreeItem(root, true);
+      tree->SelectItem(root);
+      CmdList(root);
       wxbMainFrame::GetInstance()->SetStatusText("Right click on a file or on a directory, or double-click on its mark to add it to the restore list.");
       tree->Expand(root);
    }
@@ -1114,23 +1153,38 @@ void wxbRestorePanel::CmdList(wxTreeItemId item) {
 }
 
 /* Mark a treeitem (directory) or a listitem (file or directory) */
-void wxbRestorePanel::CmdMark(wxTreeItemId treeitem, long listitem) {
+void wxbRestorePanel::CmdMark(wxTreeItemId treeitem, long* listitems, int listsize, int state) {
    if (status == choosing) {
-      wxbTreeItemData* itemdata = NULL;
-      if (listitem != -1) {
-         itemdata = (wxbTreeItemData*)list->GetItemData(listitem);
-      }
-      else if (treeitem.IsOk()) {
-         itemdata = (wxbTreeItemData*)tree->GetItemData(treeitem);
+      wxbTreeItemData** itemdata;
+      int itemdatasize = 0;
+      if (listsize == 0) {
+         itemdata = new wxbTreeItemData*[1];
+         itemdatasize = 1;
       }
       else {
+         itemdata = new wxbTreeItemData*[listsize];
+         itemdatasize = listsize;
+      }
+      
+      if (listitems != NULL) {
+         for (int i = 0; i < listsize; i++) {
+            itemdata[i] = (wxbTreeItemData*)list->GetItemData(listitems[i]);
+         }
+      }
+      else if (treeitem.IsOk()) {
+         itemdata[0] = (wxbTreeItemData*)tree->GetItemData(treeitem);
+      }
+      else {
+         delete[] itemdata;
          return;
       }
 
-      if (itemdata == NULL) //Should never happen
+      if (itemdata[0] == NULL) { //Should never happen
+         delete[] itemdata;
          return;
+      }
 
-      wxString dir = itemdata->GetPath();
+      wxString dir = itemdata[0]->GetPath();
       wxString file;
 
       if (dir != "/") {
@@ -1153,8 +1207,43 @@ void wxbRestorePanel::CmdMark(wxTreeItemId treeitem, long listitem) {
          file = "*";
       }
 
+      if (state == -1) {
+         bool marked = false;
+         bool unmarked = false;
+         state = 0;
+         for (int i = 0; i < itemdatasize; i++) {
+            switch(itemdata[i]->GetMarked()) {
+            case 0:
+               unmarked = true;
+               break;
+            case 1:
+               marked = true;
+               break;
+            case 2:
+               marked = true;
+               unmarked = true;
+               break;
+            default:
+               break;
+            }
+            if (marked && unmarked)
+               break;
+         }
+         if (marked) {
+            if (unmarked) {
+               state = 1;
+            }
+            else {
+               state = 0;
+            }
+         }
+         else {
+            state = 1;
+         }
+      }
+
       WaitForEnd(wxString("cd \"") << dir << "\"\n");
-      WaitForEnd(wxString((itemdata->GetMarked() == 1) ? "unmark" : "mark") << " \"" << file << "\"\n");
+      WaitForEnd(wxString((state==1) ? "mark" : "unmark") << " \"" << file << "\"\n");
 
       /* TODO: Check commands results */
 
@@ -1162,14 +1251,16 @@ void wxbRestorePanel::CmdMark(wxTreeItemId treeitem, long listitem) {
             itemdata->SetMarked((itemdata->GetMarked() == 1) ? 0 : 1);
       }*/
 
-      if (listitem == -1) { /* tree item state changed */
-         SetTreeItemState(treeitem, (itemdata->GetMarked() == 1) ? 0 : 1);
+      if (listitems == NULL) { /* tree item state changed */
+         SetTreeItemState(treeitem, state);
          /*treeitem = tree->GetSelection();
          UpdateTree(treeitem, true);
          treeitem = tree->GetItemParent(treeitem);*/
       }
       else {
-         SetListItemState(listitem, (itemdata->GetMarked() == 1) ? 0 : 1);
+         for (int i = 0; i < listsize; i++) {
+            SetListItemState(listitems[i], state);
+         }
          /*UpdateTree(treeitem, (tree->GetSelection() == treeitem));
          treeitem = tree->GetItemParent(treeitem);*/
       }
@@ -1178,6 +1269,8 @@ void wxbRestorePanel::CmdMark(wxTreeItemId treeitem, long listitem) {
          WaitForList(treeitem, false);
          treeitem = tree->GetItemParent(treeitem);
       }*/
+      
+      delete[] itemdata;
    }
 }
 
@@ -1815,20 +1908,30 @@ void wxbRestorePanel::OnTreeChanged(wxTreeEvent& event) {
    if (currentTreeItem == event.GetItem()) {
       return;
    }
+   treeadd->Enable(false);
+   treeremove->Enable(false);
+   treerefresh->Enable(false);
    SetCursor(*wxHOURGLASS_CURSOR);
    markWhenListingDone = false;
    working = true;
    currentTreeItem = event.GetItem();
    CmdList(event.GetItem());
    if (markWhenListingDone) {
-      CmdMark(event.GetItem(), -1);
+      CmdMark(event.GetItem(), NULL, 0);
       tree->Refresh();
    }
    working = false;
    SetCursor(*wxSTANDARD_CURSOR);
+   if (event.GetItem().IsOk()) {
+      int status = ((wxbTreeItemData*)tree->GetItemData(event.GetItem()))->GetMarked();
+      treeadd->Enable(status != 1);
+      treeremove->Enable(status != 0);
+   }
+   treerefresh->Enable(true);
 }
 
 void wxbRestorePanel::OnTreeMarked(wxbTreeMarkedEvent& event) {
+   csprint("Tree marked", CS_DEBUG);
    if (working) {
       if (tree->GetSelection() == event.GetItem()) {
          markWhenListingDone = !markWhenListingDone;
@@ -1837,11 +1940,57 @@ void wxbRestorePanel::OnTreeMarked(wxbTreeMarkedEvent& event) {
    }
    SetCursor(*wxHOURGLASS_CURSOR);
    working = true;
-   CmdMark(event.GetItem(), -1);
+   CmdMark(event.GetItem(), NULL, 0);
    //event.Skip();
    tree->Refresh();
    working = false;
+   if (event.GetItem().IsOk()) {
+      int status = ((wxbTreeItemData*)tree->GetItemData(event.GetItem()))->GetMarked();
+      treeadd->Enable(status != 1);
+      treeremove->Enable(status != 0);
+   }
    SetCursor(*wxSTANDARD_CURSOR);
+}
+
+void wxbRestorePanel::OnTreeAdd(wxCommandEvent& event) {
+   if (working) {
+      return;
+   }
+   
+   if (currentTreeItem.IsOk()) {
+      SetCursor(*wxHOURGLASS_CURSOR);
+      working = true;
+      CmdMark(currentTreeItem, NULL, 0, 1);
+      tree->Refresh();
+      working = false;
+      treeadd->Enable(0);
+      treeremove->Enable(1);
+      SetCursor(*wxSTANDARD_CURSOR);
+   }
+}
+
+void wxbRestorePanel::OnTreeRemove(wxCommandEvent& event) {
+   if (working) {
+      return;
+   }
+   
+   if (currentTreeItem.IsOk()) {
+      SetCursor(*wxHOURGLASS_CURSOR);
+      working = true;
+      CmdMark(currentTreeItem, NULL, 0, 0);
+      tree->Refresh();
+      working = false;
+      treeadd->Enable(1);
+      treeremove->Enable(0);
+      SetCursor(*wxSTANDARD_CURSOR);
+   }
+}
+
+void wxbRestorePanel::OnTreeRefresh(wxCommandEvent& event) {
+   if (working) {
+      return;
+   }
+   
 }
 
 void wxbRestorePanel::OnListMarked(wxbListMarkedEvent& event) {
@@ -1851,9 +2000,24 @@ void wxbRestorePanel::OnListMarked(wxbListMarkedEvent& event) {
    }
    SetCursor(*wxHOURGLASS_CURSOR);
    working = true;
-   //long item = event.GetId(); 
-   long item = list->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_FOCUSED);
-   CmdMark(wxTreeItemId(), item);
+     
+   long* items = new long[list->GetSelectedItemCount()];
+   
+   int num = 0;
+   
+   long item = list->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+   while (item != -1) {
+      items[num] = item;
+      num++;
+      item = list->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+   }
+     
+   CmdMark(wxTreeItemId(), items, num);
+   
+   delete[] items;
+   
+   OnListChanged(wxListEvent());
+   
    event.Skip();
    tree->Refresh();
    working = false;
@@ -1867,7 +2031,8 @@ void wxbRestorePanel::OnListActivated(wxListEvent& event) {
    }
    SetCursor(*wxHOURGLASS_CURSOR);
    working = true;
-   long item = list->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_FOCUSED);
+   long item = event.GetIndex();
+//   long item = list->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_FOCUSED);
    if (item > -1) {
       wxbTreeItemData* itemdata = (wxbTreeItemData*)list->GetItemData(item);
       wxString name = itemdata->GetName();
@@ -1897,6 +2062,108 @@ void wxbRestorePanel::OnListActivated(wxListEvent& event) {
    }
    working = false;
    SetCursor(*wxSTANDARD_CURSOR);
+}
+
+void wxbRestorePanel::OnListChanged(wxListEvent& event) {
+   listadd->Enable(false);
+   listremove->Enable(false);
+   
+   bool marked = false;
+   bool unmarked = false;
+   
+   long item = list->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+   while (item != -1) {
+      switch (((wxbTreeItemData*)list->GetItemData(item))->GetMarked()) {
+      case 0:
+         unmarked = true;
+         break;
+      case 1:
+         marked = true;
+         break;
+      case 2:
+         marked = true;
+         unmarked = true;
+         break;
+      default:
+         break;
+         // Should never happen
+      }
+      if (marked && unmarked) break;
+      item = list->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+   }
+   
+   listadd->Enable(unmarked);
+   listremove->Enable(marked);
+}
+
+void wxbRestorePanel::OnListAdd(wxCommandEvent& WXUNUSED(event)) {
+   if (working) {
+      return;
+   }
+   
+   SetCursor(*wxHOURGLASS_CURSOR);
+   working = true;
+   
+   long* items = new long[list->GetSelectedItemCount()];
+   
+   int num = 0;
+   
+   long item = list->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+   while (item != -1) {
+      items[num] = item;
+      num++;
+      item = list->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+   }
+     
+   CmdMark(wxTreeItemId(), items, num, 1);
+   
+   delete[] items;
+   
+   tree->Refresh();
+   working = false;
+   SetCursor(*wxSTANDARD_CURSOR);
+   
+   listadd->Enable(false);
+   listremove->Enable(true);
+}
+
+void wxbRestorePanel::OnListRemove(wxCommandEvent& WXUNUSED(event)) {
+   if (working) {
+      return;
+   }
+   
+   SetCursor(*wxHOURGLASS_CURSOR);
+   working = true;
+   
+   long* items = new long[list->GetSelectedItemCount()];
+   
+   int num = 0;
+   
+   long item = list->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+   while (item != -1) {
+      items[num] = item;
+      num++;
+      item = list->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+   }
+     
+   CmdMark(wxTreeItemId(), items, num, 0);
+   
+   delete[] items;
+   
+   tree->Refresh();
+   working = false;
+   SetCursor(*wxSTANDARD_CURSOR);
+   
+   listadd->Enable(true);
+   listremove->Enable(false);
+}
+
+void wxbRestorePanel::OnListRefresh(wxCommandEvent& WXUNUSED(event)) {
+   if (working) {
+      return;
+   }
+   
+   
 }
 
 void wxbRestorePanel::OnConfigUpdated(wxCommandEvent& event) {
@@ -1970,16 +2237,3 @@ void wxbRestorePanel::OnConfigCancel(wxCommandEvent& WXUNUSED(event)) {
    SetCursor(*wxSTANDARD_CURSOR);
 }
 
-/* TODO : correct that bad implementation of tree marked event forwarding */
-
-wxbSplitterWindow::wxbSplitterWindow(wxbRestorePanel* parent): wxSplitterWindow(parent, -1) {
-   this->parent = parent;
-}
-
-void wxbSplitterWindow::OnTreeMarked(wxbTreeMarkedEvent& event) {
-   parent->OnTreeMarked(event);
-}
-
-void wxbSplitterWindow::OnListMarked(wxbListMarkedEvent& event) {
-   parent->OnListMarked(event);
-}

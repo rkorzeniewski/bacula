@@ -53,6 +53,11 @@ class console_thread : public wxThread
    private:
       static bool inited;
       static bool configloaded;
+      
+      bool choosingdirector;
+      
+      int directorchoosen;
+      
       BSOCK* UA_sock;
       JCR jcr;
 };
