@@ -74,6 +74,9 @@ static struct cmdstruct commands[] = {
 void user_select_files_from_tree(TREE_CTX *tree)
 {
    char cwd[2000];
+   /* Get a new context so we don't destroy restore command args */
+   UAContext *ua = new_ua_context(ua->jcr);
+   ua->UA_sock = tree->ua->UA_sock;   /* patch in UA socket */
 
    bsendmsg(tree->ua, _( 
       "\nYou are now entering file selection mode where you add and\n"
@@ -88,20 +91,20 @@ void user_select_files_from_tree(TREE_CTX *tree)
    bsendmsg(tree->ua, _("cwd is: %s\n"), cwd);
    for ( ;; ) {       
       int found, len, stat, i;
-      if (!get_cmd(tree->ua, "$ ")) {
+      if (!get_cmd(ua, "$ ")) {
 	 break;
       }
-      parse_ua_args(tree->ua);
-      if (tree->ua->argc == 0) {
+      parse_ua_args(ua);
+      if (ua->argc == 0) {
 	 return;
       }
 
-      len = strlen(tree->ua->argk[0]);
+      len = strlen(ua->argk[0]);
       found = 0;
       stat = 0;
       for (i=0; i<(int)comsize; i++)	   /* search for command */
-	 if (strncasecmp(tree->ua->argk[0],  _(commands[i].key), len) == 0) {
-	    stat = (*commands[i].func)(tree->ua, tree);   /* go execute command */
+	 if (strncasecmp(ua->argk[0],  _(commands[i].key), len) == 0) {
+	    stat = (*commands[i].func)(ua, tree);   /* go execute command */
 	    found = 1;
 	    break;
 	 }
@@ -113,6 +116,8 @@ void user_select_files_from_tree(TREE_CTX *tree)
 	 break;
       }
    }
+   ua->UA_sock = NULL;                /* don't release restore socket */
+   free_ua_context(ua); 	      /* get rid of temp UA context */
 }
 
 

@@ -236,6 +236,7 @@ int do_restore(JCR *jcr)
    } else {
       where = "";                     /* None */
    }
+   jcr->prefix_links = jcr->job->PrefixLinks;
    bash_spaces(where);
    bnet_fsend(fd, restorecmd, replace, jcr->prefix_links, where);
    unbash_spaces(where);

@@ -79,7 +79,7 @@ static struct res_items cli_items[] = {
    {"piddirectory",  store_dir,     ITEM(res_client.pid_directory),     0, ITEM_REQUIRED, 0}, 
    {"subsysdirectory",  store_dir,  ITEM(res_client.subsys_directory),  0, 0, 0}, 
    {"requiressl",  store_yesno,     ITEM(res_client.require_ssl),       1, ITEM_DEFAULT, 0},
-   {"maximumconcurrentjobs", store_pint,  ITEM(res_client.MaxConcurrentJobs), 0, ITEM_DEFAULT, 5},
+   {"maximumconcurrentjobs", store_pint,  ITEM(res_client.MaxConcurrentJobs), 0, ITEM_DEFAULT, 10},
    {"messages",      store_res, ITEM(res_client.messages), R_MSGS, 0, 0},
    {"heartbeatinterval", store_time, ITEM(res_client.heartbeat_interval), 0, ITEM_DEFAULT, 20*60},
    {NULL, NULL, NULL, 0, 0, 0} 
