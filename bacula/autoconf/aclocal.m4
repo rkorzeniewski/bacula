@@ -328,7 +328,7 @@ then
 elif test -f /etc/engarde-version
 then
         DISTNAME=engarde
-elif test "$ac_cv_cygwin" = yes
+elif test "$CYGWIN" = yes
 then
         DISTNAME=cygwin
         AC_DEFINE(HAVE_CYGWIN)
@@ -1428,4 +1428,3 @@ AC_DEFUN(PKG_CHECK_MODULES, [
      ifelse([$4], , AC_MSG_ERROR([Library requirements ($2) not met; consider adjusting the PKG_CONFIG_PATH environment variable if your libraries are in a nonstandard prefix so pkg-config can find them.]), [$4])
   fi
 ])
-

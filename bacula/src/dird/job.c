@@ -69,6 +69,7 @@ void run_job(JCR *jcr)
    set_jcr_job_status(jcr, JS_Created);
    jcr->jr.SchedTime = jcr->sched_time;
    jcr->jr.StartTime = jcr->start_time;
+   jcr->jr.EndTime = 0; 	      /* perhaps rescheduled, clear it */
    jcr->jr.Type = jcr->JobType;
    jcr->jr.Level = jcr->JobLevel;
    jcr->jr.JobStatus = jcr->JobStatus;

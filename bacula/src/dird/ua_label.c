@@ -355,14 +355,21 @@ static void label_from_barcodes(UAContext *ua)
        *  send_label_request() below
        */
       if (is_cleaning_tape(ua, &mr, &pr)) {
-	 set_pool_dbr_defaults_in_media_dbr(&mr, &pr);
-	 if (db_create_media_record(ua->jcr, ua->db, &mr)) {
-            bsendmsg(ua, _("Catalog record for cleaning tape \"%s\" successfully created.\n"),
-	       mr.VolumeName);
-	 } else {
-            bsendmsg(ua, "Catalog error on cleaning tape: %s", db_strerror(ua->db));
+	 if (media_record_exists) {	 /* we update it */
+	    mr.VolBytes = 1;
+	    if (!db_update_media_record(ua->jcr, ua->db, &mr)) {
+                bsendmsg(ua, "%s", db_strerror(ua->db));
+	    }
+	 } else {			 /* create the media record */
+	    set_pool_dbr_defaults_in_media_dbr(&mr, &pr);
+	    if (db_create_media_record(ua->jcr, ua->db, &mr)) {
+               bsendmsg(ua, _("Catalog record for cleaning tape \"%s\" successfully created.\n"),
+		  mr.VolumeName);
+	    } else {
+               bsendmsg(ua, "Catalog error on cleaning tape: %s", db_strerror(ua->db));
+	    }
 	 }
-	 continue;
+	 continue;		      /* done, go handle next volume */
       }
       bstrncpy(mr.MediaType, store->media_type, sizeof(mr.MediaType));
       if (ua->jcr->store_bsock) {
