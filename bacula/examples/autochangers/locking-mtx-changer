@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/ksh
 #
 # Bacula interface to mtx autoloader
 #
@@ -27,7 +27,8 @@
 #   exit code, Bacula will assume the request failed.
 #
 
-MTX=@MTX@
+MTX=/lysator/bin/mtx
+LOCKDIR=/tmp
 
 if test $# -lt 2 ; then
   echo "usage: mtx-changer ctl-device command slot archive-device drive"
@@ -47,6 +48,36 @@ if test $# = 5 ; then
 else
   drive=0
 fi
+
+wait_for_drive() {
+    while ! mt -f $1 status >/dev/null 2>/dev/null; do
+#	echo "Device $1 - not ready, retrying..."
+	sleep 5
+    done
+}
+
+LOCKFILE="${LOCKDIR}/mtx-changer:`echo $ctl | tr / _'"
+
+changer_lock() {
+    echo "$$" >$LOCKFILE.$$
+    
+    while ! ln -n $LOCKFILE.$$ $LOCKFILE 2>/dev/null; do
+       echo "$0: changer lock busy, retrying in 30 seconds..."
+       sleep 30
+    done
+
+    rm $LOCKFILE.$$
+}
+
+changer_unlock() {
+    LOCKPID="`cat $LOCKFILE 2>/dev/null`"
+    if [ "$LOCKPID" != $$ ]; then
+	echo "$0: Invalid lock file (${LOCKFILE}) - not owned by us!"
+	exit 1
+    fi
+}
+
+
 
 #
 # Check for special cases where only 2 arguments are needed, 
@@ -70,17 +101,20 @@ case $cmd in
      ;;
 esac
 
+changer_lock $ctl
 
 case $cmd in 
    unload)
 #     echo "Doing mtx -f $ctl unload $slot $drive"
 #
 # enable the following line if you need to eject the cartridge
-#     mt -f $device offline
+      mt -f $device offline
       if test x$slot = x; then
 	 ${MTX} -f $ctl unload
+	 rtn=$?
       else
 	 ${MTX} -f $ctl unload $slot $drive
+	 rtn=$?
       fi
       ;;
 
@@ -88,17 +122,16 @@ case $cmd in
 #     echo "Doing mtx -f $ctl load $slot $drive"
       ${MTX} -f $ctl load $slot $drive
       rtn=$?
-#
-# Increase the sleep time if you have a slow device
-      sleep 15
+
+      wait_for_drive $device
+      changer_unlock $ctl
       exit $rtn
       ;;
 
    list) 
 #     echo "Requested list"
-      ${MTX} -f $ctl status | grep " *Storage Element [0-9]*:.*Full" | awk "{print \$3 \$4}" | sed "s/Full *\(:VolumeTag=\)*//"
-# Comment out the previous line and add a line here
-# to print "fake" barcodes.
+      ${MTX} -f $ctl status | tr ':=' '  ' | nawk '($1 == "Storage" && $2 == "Element" && $4 == "Full") { printf "%s:%s\n", $3, $6 }'
+      rtn=$?
       ;;
 
    loaded)
@@ -107,11 +140,16 @@ case $cmd in
       cat /tmp/mtx.$$ | grep "^Data Transfer Element $drive:Full" | awk "{print \$7}"
       cat /tmp/mtx.$$ | grep "^Data Transfer Element $drive:Empty" | awk "{print 0}"
       rm -f /tmp/mtx.$$
+      changer_unlock $ctl
       exit $rtn
       ;;
 
    slots)
 #     echo "Request slots"
       ${MTX} -f $ctl status | grep " *Storage Changer" | awk "{print \$5}"
+      rtn=$?
       ;;
 esac
+
+changer_unlock $ctl
+exit $rtn
