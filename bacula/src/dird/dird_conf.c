@@ -310,11 +310,13 @@ extern struct res_items msgs_items[];
  * This is the master resource definition.  
  * It must have one item for each of the resources.
  *
+ *  NOTE!!! keep it in the same order as the R_codes
+ *    or eliminate all resources[rindex].name
+ *
  *  name	     items	  rcode        res_head
  */
 struct s_res resources[] = {
    {"director",      dir_items,   R_DIRECTOR,  NULL},
-   {"console",       con_items,   R_CONSOLE,   NULL},
    {"client",        cli_items,   R_CLIENT,    NULL},
    {"job",           job_items,   R_JOB,       NULL},
    {"storage",       store_items, R_STORAGE,   NULL},
@@ -325,6 +327,7 @@ struct s_res resources[] = {
    {"pool",          pool_items,  R_POOL,      NULL},
    {"messages",      msgs_items,  R_MSGS,      NULL},
    {"counter",       counter_items, R_COUNTER, NULL},
+   {"console",       con_items,   R_CONSOLE,   NULL},
    {NULL,	     NULL,	  0,	       NULL}
 };
 
@@ -408,7 +411,7 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
 {
    URES *res = (URES *)reshdr;
    int recurse = 1;
-   char ed1[30], ed2[30];
+   char ed1[100], ed2[100];
 
    if (res == NULL) {
       sendit(sock, "No %s resource defined\n", res_to_str(type));
@@ -457,8 +460,9 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
       sendit(sock, "Client: name=%s address=%s FDport=%d MaxJobs=%u\n",
 	 res->res_client.hdr.name, res->res_client.address, res->res_client.FDport,
 	 res->res_client.MaxConcurrentJobs);
-      sendit(sock, "      JobRetention=%" lld " FileRetention=%" lld " AutoPrune=%d\n",
-	 res->res_client.JobRetention, res->res_client.FileRetention,
+      sendit(sock, "      JobRetention=%s FileRetention=%s AutoPrune=%d\n",
+	 edit_utime(res->res_client.JobRetention, ed1), 
+	 edit_utime(res->res_client.FileRetention, ed2),
 	 res->res_client.AutoPrune);
       if (res->res_client.catalog) {
          sendit(sock, "  --> ");
@@ -554,11 +558,11 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
 	 }
 next_run:
          sendit(sock, "  --> Run Level=%s\n", level_to_str(run->level));
-         strcpy(buf, "      hour=");
+         bstrncpy(buf, "      hour=", sizeof(buf));
 	 for (i=0; i<24; i++) {
 	    if (bit_is_set(i, run->hour)) {
                sprintf(num, "%d ", i);
-	       strcat(buf, num);
+	       bstrncat(buf, num, sizeof(buf));
 	    }
 	 }
          strcat(buf, "\n");
@@ -630,10 +634,12 @@ next_run:
       sendit(sock, "      use_cat=%d use_once=%d acpt_any=%d cat_files=%d\n",
 	      res->res_pool.use_catalog, res->res_pool.use_volume_once,
 	      res->res_pool.accept_any_volume, res->res_pool.catalog_files);
-      sendit(sock, "      max_vols=%d auto_prune=%d VolRetention=%" lld "\n",
+      sendit(sock, "      max_vols=%d auto_prune=%d VolRetention=%s\n",
 	      res->res_pool.max_volumes, res->res_pool.AutoPrune,
-	      res->res_pool.VolRetention);
-      sendit(sock, "      recycle=%d LabelFormat=%s\n", res->res_pool.Recycle,
+	      edit_utime(res->res_pool.VolRetention, ed1));
+      sendit(sock, "      VolUse=%s recycle=%d LabelFormat=%s\n", 
+	      edit_utime(res->res_pool.VolUseDuration, ed1),
+	      res->res_pool.Recycle,
 	      NPRT(res->res_pool.label_format));
       sendit(sock, "      CleaningPrefix=%s\n",
 	      NPRT(res->res_pool.cleaning_prefix));
@@ -981,7 +987,9 @@ void save_resource(int type, struct res_items *items, int pass)
       return;
    }
 
-   /* The following code is only executed for pass 1 */
+   /*
+    * The following code is only executed during pass 1   
+    */
    switch (type) {
    case R_DIRECTOR:
       size = sizeof(DIRRES);
@@ -1036,11 +1044,16 @@ void save_resource(int type, struct res_items *items, int pass)
       } else {
 	 RES *next;
 	 /* Add new res to end of chain */
-	 for (next=resources[rindex].res_head; next->next; next=next->next)
-	    { }
+	 for (next=resources[rindex].res_head; next->next; next=next->next) {
+	    if (strcmp(next->name, res->res_dir.hdr.name) == 0) {
+	       Emsg2(M_ERROR_TERM, 0,
+                  _("Attempt to define second %s resource named \"%s\" is not permitted.\n"),
+		  resources[rindex].name, res->res_dir.hdr.name);
+	    }
+	 }
 	 next->next = (RES *)res;
-         Dmsg3(200, "Inserting %s res: %s index=%d\n", res_to_str(type),
-	       res->res_dir.hdr.name, rindex);
+         Dmsg4(200, "Inserting %s res: %s index=%d pass=%d\n", res_to_str(type),
+	       res->res_dir.hdr.name, rindex, pass);
       }
    }
 }

@@ -245,10 +245,10 @@ static int send_list(JCR *jcr, int list)
 	    }
 	    /* Copy File options */
 	    if (ie->num_opts) {
-	       strcpy(buf, ie->opts_list[0]->opts);
-               strcat(buf, " ");
+	       bstrncpy(buf, ie->opts_list[0]->opts, sizeof(buf));
+               bstrncat(buf, " ", sizeof(buf));
 	    } else {
-               strcpy(buf, "0 ");
+               bstrncpy(buf, "0 ", sizeof(buf));
 	    }
 	    optlen = strlen(buf);
 	    while (fgets(buf+optlen, sizeof(buf)-optlen, bpipe->rfd)) {
@@ -274,10 +274,10 @@ static int send_list(JCR *jcr, int list)
 	    }
 	    /* Copy File options */
 	    if (ie->num_opts) {
-	       strcpy(buf, ie->opts_list[0]->opts);
-               strcat(buf, " ");
+	       bstrncpy(buf, ie->opts_list[0]->opts, sizeof(buf));
+               bstrncat(buf, " ", sizeof(buf));
 	    } else {
-               strcpy(buf, "0 ");
+               bstrncpy(buf, "0 ", sizeof(buf));
 	    }
 	    optlen = strlen(buf);
 	    while (fgets(buf+optlen, sizeof(buf)-optlen, ffd)) {

@@ -284,183 +284,183 @@ lex_get_token(LEX *lf, int expect)
    while (token == T_NONE) {
       ch = lex_get_char(lf);
       switch (lf->state) {
-	 case lex_none:
-            Dmsg2(900, "Lex state lex_none ch=%d,%x\n", ch, ch);
-	    if (B_ISSPACE(ch))	
-	       break;
-	    if (B_ISALPHA(ch)) {
-	       if (lf->options & LOPT_NO_IDENT)
-		  lf->state = lex_string;
-	       else
-		  lf->state = lex_identifier;
-	       begin_str(lf, ch);
-	       break;
-	    }
-	    if (B_ISDIGIT(ch)) {
-	       lf->state = lex_number;
-	       begin_str(lf, ch);
-	       break;
-	    }
-            Dmsg0(900, "Enter lex_none switch\n");
-	    switch (ch) {
-	       case L_EOF:
-		  token = T_EOF;
-                  Dmsg0(900, "got L_EOF set token=T_EOF\n");
-		  break;
-               case '#':
-		  lf->state = lex_comment;
-		  break;
-               case '{':
-		  token = T_BOB;
-		  begin_str(lf, ch);
-		  break;
-               case '}':
-		  token = T_EOB;
-		  begin_str(lf, ch);
-		  break;
-               case '"':
-		  lf->state = lex_quoted_string;
-		  begin_str(lf, 0);
-		  break;
-               case '=': 
-		  token = T_EQUALS;
-		  begin_str(lf, ch);
-		  break;
-               case ',':
-		  token = T_COMMA;
-		  begin_str(lf, ch);
-		  break;
-               case ';':
-		  token = T_EOL;      /* treat ; like EOL */
-		  break;
-	       case L_EOL:
-                  Dmsg0(900, "got L_EOL set token=T_EOL\n");
-		  token = T_EOL;
-		  break;
-               case '@':
-		  lf->state = lex_include;
-		  begin_str(lf, 0);
-		  break;
-	       default:
-		  lf->state = lex_string;
-		  begin_str(lf, ch);
-		  break;
-	    }
+      case lex_none:
+         Dmsg2(900, "Lex state lex_none ch=%d,%x\n", ch, ch);
+	 if (B_ISSPACE(ch))  
 	    break;
-	 case lex_comment:
-            Dmsg1(900, "Lex state lex_comment ch=%x\n", ch);
-	    if (ch == L_EOL) {
-	       lf->state = lex_none;
-	       token = T_EOL;
-	    } else if (ch == L_EOF) {
-	       token = T_ERROR;
-	    }
-	    break;
-	 case lex_number:
-            Dmsg2(900, "Lex state lex_number ch=%x %c\n", ch, ch);
-	    if (ch == L_EOF) {
-	       token = T_ERROR;
-	       break;
-	    }
-	    /* Might want to allow trailing specifications here */
-	    if (B_ISDIGIT(ch)) {
-	       add_str(lf, ch);
-	       break;
-	    }
-
-	    /* A valid number can be terminated by the following */
-            if (B_ISSPACE(ch) || ch == L_EOL || ch == ',' || ch == ';') {
-	       token = T_NUMBER;
-	       lf->state = lex_none;
-	    } else {
+	 if (B_ISALPHA(ch)) {
+	    if (lf->options & LOPT_NO_IDENT)
 	       lf->state = lex_string;
-	    }
-	    lex_unget_char(lf);
+	    else
+	       lf->state = lex_identifier;
+	    begin_str(lf, ch);
 	    break;
-	 case lex_ip_addr:
-	    if (ch == L_EOF) {
-	       token = T_ERROR;
-	       break;
-	    }
-            Dmsg1(900, "Lex state lex_ip_addr ch=%x\n", ch);
+	 }
+	 if (B_ISDIGIT(ch)) {
+	    lf->state = lex_number;
+	    begin_str(lf, ch);
 	    break;
-	 case lex_string:
-            Dmsg1(900, "Lex state lex_string ch=%x\n", ch);
-	    if (ch == L_EOF) {
-	       token = T_ERROR;
-	       break;
-	    }
-            if (ch == '\n' || ch == L_EOL || ch == '=' || ch == '}' || ch == '{' ||
-                ch == ';' || ch == ',' || ch == '#' || (B_ISSPACE(ch)) ) {
-	       lex_unget_char(lf);    
-	       token = T_UNQUOTED_STRING;
-	       lf->state = lex_none;
-	       break;
-	    } 
-	    add_str(lf, ch);
+	 }
+         Dmsg0(900, "Enter lex_none switch\n");
+	 switch (ch) {
+	 case L_EOF:
+	    token = T_EOF;
+            Dmsg0(900, "got L_EOF set token=T_EOF\n");
 	    break;
-	 case lex_identifier:
-            Dmsg2(900, "Lex state lex_identifier ch=%x %c\n", ch, ch);
-	    if (B_ISALPHA(ch)) {
-	       add_str(lf, ch);
-	       break;
-	    } else if (B_ISSPACE(ch)) {
-	       break;
-            } else if (ch == '\n' || ch == L_EOL || ch == '=' || ch == '}' || ch == '{' ||
-                       ch == ';' || ch == ','   || ch == '"' || ch == '#') {
-	       lex_unget_char(lf);    
-	       token = T_IDENTIFIER;
-	       lf->state = lex_none;
-	       break;
-	    } else if (ch == L_EOF) {
-	       token = T_ERROR;
-	       lf->state = lex_none;
-	       begin_str(lf, ch);
-	       break;
-	    }
-	    /* Some non-alpha character => string */
+         case '#':
+	    lf->state = lex_comment;
+	    break;
+         case '{':
+	    token = T_BOB;
+	    begin_str(lf, ch);
+	    break;
+         case '}':
+	    token = T_EOB;
+	    begin_str(lf, ch);
+	    break;
+         case '"':
+	    lf->state = lex_quoted_string;
+	    begin_str(lf, 0);
+	    break;
+         case '=': 
+	    token = T_EQUALS;
+	    begin_str(lf, ch);
+	    break;
+         case ',':
+	    token = T_COMMA;
+	    begin_str(lf, ch);
+	    break;
+         case ';':
+	    token = T_EOL;	/* treat ; like EOL */
+	    break;
+	 case L_EOL:
+            Dmsg0(900, "got L_EOL set token=T_EOL\n");
+	    token = T_EOL;
+	    break;
+         case '@':
+	    lf->state = lex_include;
+	    begin_str(lf, 0);
+	    break;
+	 default:
 	    lf->state = lex_string;
+	    begin_str(lf, ch);
+	    break;
+	 }
+	 break;
+      case lex_comment:
+         Dmsg1(900, "Lex state lex_comment ch=%x\n", ch);
+	 if (ch == L_EOL) {
+	    lf->state = lex_none;
+	    token = T_EOL;
+	 } else if (ch == L_EOF) {
+	    token = T_ERROR;
+	 }
+	 break;
+      case lex_number:
+         Dmsg2(900, "Lex state lex_number ch=%x %c\n", ch, ch);
+	 if (ch == L_EOF) {
+	    token = T_ERROR;
+	    break;
+	 }
+	 /* Might want to allow trailing specifications here */
+	 if (B_ISDIGIT(ch)) {
 	    add_str(lf, ch);
 	    break;
-	 case lex_quoted_string:
-            Dmsg2(900, "Lex state lex_quoted_string ch=%x %c\n", ch, ch);
-	    if (ch == L_EOF) {
-	       token = T_ERROR;
-	       break;
-	    }
-	    if (ch == L_EOL) {
-	       esc_next = FALSE;
-	       break;
-	    }
-	    if (esc_next) {
-	       add_str(lf, ch);
-	       esc_next = FALSE;
-	       break;
-	    }
-            if (ch == '\\') {
-	       esc_next = TRUE;
-	       break;
-	    }
-            if (ch == '"') {
-	       token = T_QUOTED_STRING;
-	       lf->state = lex_none;
-	       break;
-	    }
+	 }
+
+	 /* A valid number can be terminated by the following */
+         if (B_ISSPACE(ch) || ch == L_EOL || ch == ',' || ch == ';') {
+	    token = T_NUMBER;
+	    lf->state = lex_none;
+	 } else {
+	    lf->state = lex_string;
+	 }
+	 lex_unget_char(lf);
+	 break;
+      case lex_ip_addr:
+	 if (ch == L_EOF) {
+	    token = T_ERROR;
+	    break;
+	 }
+         Dmsg1(900, "Lex state lex_ip_addr ch=%x\n", ch);
+	 break;
+      case lex_string:
+         Dmsg1(900, "Lex state lex_string ch=%x\n", ch);
+	 if (ch == L_EOF) {
+	    token = T_ERROR;
+	    break;
+	 }
+         if (ch == '\n' || ch == L_EOL || ch == '=' || ch == '}' || ch == '{' ||
+             ch == ';' || ch == ',' || ch == '#' || (B_ISSPACE(ch)) ) {
+	    lex_unget_char(lf);    
+	    token = T_UNQUOTED_STRING;
+	    lf->state = lex_none;
+	    break;
+	 } 
+	 add_str(lf, ch);
+	 break;
+      case lex_identifier:
+         Dmsg2(900, "Lex state lex_identifier ch=%x %c\n", ch, ch);
+	 if (B_ISALPHA(ch)) {
 	    add_str(lf, ch);
 	    break;
-	 case lex_include:	      /* scanning a filename */
-	    if (ch == L_EOF) {
-	       token = T_ERROR;
-	       break;
-	    }
-            if (B_ISSPACE(ch) || ch == '\n' || ch == L_EOL || ch == '}' || ch == '{' ||
-                ch == ';' || ch == ','   || ch == '"' || ch == '#') {
-	       lf->state = lex_none;
-	       lf = lex_open_file(lf, lf->str, NULL);
-	       break;
-	    }
-	    add_str(lf, ch);
+	 } else if (B_ISSPACE(ch)) {
 	    break;
+         } else if (ch == '\n' || ch == L_EOL || ch == '=' || ch == '}' || ch == '{' ||
+                    ch == ';' || ch == ','   || ch == '"' || ch == '#') {
+	    lex_unget_char(lf);    
+	    token = T_IDENTIFIER;
+	    lf->state = lex_none;
+	    break;
+	 } else if (ch == L_EOF) {
+	    token = T_ERROR;
+	    lf->state = lex_none;
+	    begin_str(lf, ch);
+	    break;
+	 }
+	 /* Some non-alpha character => string */
+	 lf->state = lex_string;
+	 add_str(lf, ch);
+	 break;
+      case lex_quoted_string:
+         Dmsg2(900, "Lex state lex_quoted_string ch=%x %c\n", ch, ch);
+	 if (ch == L_EOF) {
+	    token = T_ERROR;
+	    break;
+	 }
+	 if (ch == L_EOL) {
+	    esc_next = FALSE;
+	    break;
+	 }
+	 if (esc_next) {
+	    add_str(lf, ch);
+	    esc_next = FALSE;
+	    break;
+	 }
+         if (ch == '\\') {
+	    esc_next = TRUE;
+	    break;
+	 }
+         if (ch == '"') {
+	    token = T_QUOTED_STRING;
+	    lf->state = lex_none;
+	    break;
+	 }
+	 add_str(lf, ch);
+	 break;
+      case lex_include: 	   /* scanning a filename */
+	 if (ch == L_EOF) {
+	    token = T_ERROR;
+	    break;
+	 }
+         if (B_ISSPACE(ch) || ch == '\n' || ch == L_EOL || ch == '}' || ch == '{' ||
+             ch == ';' || ch == ','   || ch == '"' || ch == '#') {
+	    lf->state = lex_none;
+	    lf = lex_open_file(lf, lf->str, NULL);
+	    break;
+	 }
+	 add_str(lf, ch);
+	 break;
       }
       Dmsg4(900, "ch=%d state=%s token=%s %c\n", ch, lex_state_to_str(lf->state),
 	lex_tok_to_str(token), ch);

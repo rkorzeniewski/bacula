@@ -102,38 +102,82 @@ char *edit_uint64(uint64_t val, char *buf)
  */
 int duration_to_utime(char *str, utime_t *value)
 {
-   int i, ch, len;
+   int i, len;
    double val;
-   /* Default to 1 day if no modifier given */
-   static int  mod[] = {'*',       's', 'n', 'h', 'd',      'w',    'm', 'q', 'y', 0};
-   static int mult[] = {60*60*24,   1,	60, 60*60, 60*60*24, 60*60*24*7, 60*60*24*30, 
-		  60*60*24*91, 60*60*24*365};
+   /*
+    * The "n" = mins and months appears before minutes so that m maps
+    *   to months. These "kludges" make it compatible with pre 1.31 
+    *	Baculas.
+    */
+   static char *mod[] = {"n", "seconds", "months", "minutes", 
+                 "hours", "days", "weeks",   "quarters",   "years", NULL};
+   static int32_t mult[] = {60,   1, 60*60*24*30, 60, 
+		  60*60, 60*60*24, 60*60*24*7, 60*60*24*91, 60*60*24*365};
+   char mod_str[20];
+   int mod_len;
 
-   /* Look for modifier */
+   /*
+    * Look for modifier by walking back looking for the first
+    *	space or digit.
+    */
+   strip_trailing_junk(str);
    len = strlen(str);
-   ch = str[len - 1];
-   i = 0;
-   if (B_ISALPHA(ch)) {
-      if (B_ISUPPER(ch)) {
-	 ch = tolower(ch);
+   /* Strip trailing spaces */
+   for (i=len; i>0; i--) {
+      if (!B_ISSPACE(str[i-1])) {
+	 break;
       }
-      while (mod[++i] != 0) {
-	 if (ch == mod[i]) {
-	    len--;
-	    str[len] = 0; /* strip modifier */
-	    break;
-	 }
+      str[i-1] = 0;
+   }
+   /* Find beginning of the modifier */
+   for ( ; i>0; i--) {
+      if (!B_ISALPHA(str[i-1])) {
+	 break;
       }
    }
-   if (mod[i] == 0 || !is_a_number(str)) {
+   /* If not found, error */
+   if (i == 0 || i == len) {
+      Dmsg2(200, "error i=%d len=%d\n", i, len);
       return 0;
    }
+   /* Move modifier to mod_str */
+   bstrncpy(mod_str, &str[i], sizeof(mod_str));
+   mod_len = strlen(mod_str);
+   if (mod_len == 0) {		      /* Make sure we have a modifier */
+      Dmsg0(200, "No modifier found\n");
+      return 0;
+   }
+   Dmsg2(200, "in=%s  mod=%s:\n", str, mod_str);
+   /* Backup over any spaces in front of modifier */
+   for ( ; i>0; i--) {
+      if (B_ISSPACE(str[i-1])) {
+	 continue;
+      }
+      str[i] = 0;
+      break;
+   }
+   /* The remainder (beginning) should be our number */
+   if (!is_a_number(str)) {
+      Dmsg0(200, "input not a number\n");
+      return 0;
+   }
+   /* Now find the multiplier corresponding to the modifier */
+   for (i=0; mod[i]; i++) {
+      if (strncasecmp(mod_str, mod[i], mod_len) == 0) {
+	 break;
+      }
+   }
+   if (mod[i] == NULL) {
+      Dmsg0(200, "Modifier not found\n");
+      return 0; 		      /* modifer not found */
+   }
+   Dmsg2(200, "str=%s: mult=%d\n", str, mult[i]);
    errno = 0;
    val = strtod(str, NULL);
    if (errno != 0 || val < 0) {
       return 0;
    }
-   *value = (utime_t)(val * mult[i]);
+  *value = (utime_t)(val * mult[i]);
    return 1;
 
 }
@@ -293,3 +337,25 @@ char *add_commas(char *val, char *buf)
    }   
    return buf;
 }
+
+#ifdef TEST_PROGRAM
+void d_msg(char*, int, int, char*, ...)
+{}
+int main(int argc, char *argv[])
+{
+   char *str[] = {"3", "3n", "3 hours", "3.5 day", "3 week", "3 m", "3 q", "3 years"};
+   utime_t val;
+   char buf[100];
+   char outval[100];
+
+   for (int i=0; i<8; i++) {
+      strcpy(buf, str[i]);
+      if (!duration_to_utime(buf, &val)) {
+         printf("Error return from duration_to_utime for in=%s\n", str[i]);
+	 continue;
+      }
+      edit_utime(val, outval);
+      printf("in=%s val=%lld outval=%s\n", str[i], val, outval);
+   }
+}
+#endif

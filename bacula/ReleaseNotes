@@ -17,6 +17,8 @@ Major Changes this Release:
 - Lots of fixes with variable expansion and counter variables
 - Automatic labeling of tape Volumes is fixed.
 - Recycling has been completely restructured and should work.
+- Implemented full length time interval qualifiers (e.g
+  "5n is now "5 min" or "5 minutes". A modifier is now required!
 
 
 Other Changes this Release:
@@ -46,3 +48,6 @@ Other Changes this Release:
 
 
 Items to note:  !!!!!
+- Modifiers (sec, min, hour, day, ...) are now required on conf file
+  time interval specifications.
+- Duplicate names within the same conf resource are prohibited.

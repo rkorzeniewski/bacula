@@ -485,6 +485,7 @@ void store_time(LEX *lc, struct res_items *item, int index, int pass)
 {
    int token; 
    utime_t utime;
+   char period[500];
 
    token = lex_get_token(lc, T_ALL);
    errno = 0;
@@ -492,8 +493,18 @@ void store_time(LEX *lc, struct res_items *item, int index, int pass)
    case T_NUMBER:
    case T_IDENTIFIER:
    case T_UNQUOTED_STRING:
-      if (!duration_to_utime(lc->str, &utime)) {
-         scan_err1(lc, "expected a time period, got: %s", lc->str);
+      bstrncpy(period, lc->str, sizeof(period));
+      if (lc->ch == ' ') {
+	 token = lex_get_token(lc, T_ALL);
+	 switch (token) {
+	 case T_IDENTIFIER:
+	 case T_UNQUOTED_STRING:
+	    bstrncat(period, lc->str, sizeof(period));
+	    break;
+	 }
+      }
+      if (!duration_to_utime(period, &utime)) {
+         scan_err1(lc, "expected a time period, got: %s", period);
       }
       *(utime_t *)(item->value) = utime;
       break;
@@ -501,7 +512,9 @@ void store_time(LEX *lc, struct res_items *item, int index, int pass)
       scan_err1(lc, "expected a time period, got: %s", lc->str);
       break;
    }
-   scan_to_eol(lc);
+   if (token != T_EOL) {
+      scan_to_eol(lc);
+   }
    set_bit(index, res_all.hdr.item_present);
 }
 

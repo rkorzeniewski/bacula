@@ -408,8 +408,13 @@ void save_resource(int type, struct res_items *items, int pass)
       } else {
 	 RES *next;
 	 /* Add new res to end of chain */
-	 for (next=resources[rindex].res_head; next->next; next=next->next)
-	    { }
+	 for (next=resources[rindex].res_head; next->next; next=next->next) {
+	    if (strcmp(next->name, res->res_dir.hdr.name) == 0) {
+	       Emsg2(M_ERROR_TERM, 0,
+                  _("Attempt to define second %s resource named \"%s\" is not permitted.\n"),
+		  resources[rindex].name, res->res_dir.hdr.name);
+	    }
+	 }
 	 next->next = (RES *)res;
          Dmsg2(90, "Inserting %s res: %s\n", res_to_str(type),
 	       res->res_dir.hdr.name);

@@ -23,18 +23,14 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.32 Testing/Documentation:
-- Document list nextvol and new format status dir.
 - Document new records in Director. SDAddress SDDeviceName, SDPassword.
   FDPassword, FDAddress, DBAddress, DBPort, DBPassword.
 - Document that it is safe to use the drive when the lights stop flashing.
 - Document new Include/Exclude ...
 - Document all the status codes JobLevel, JobType, JobStatus.
 - Add test of exclusion, test multiple Include {} statements.
-- Client files in Win32 with Unix eol conventions doesn't work.
                 
 For 1.32:
-- Add multiple character duration qualifiers.
-- Require some modifer.
 - Enhance "update slots" to include a "scan" feature
   scan 1; scan 1-5; scan 1,2,4 ...  to update the catalog 
 - Allow a slot or range of slots on the label barcodes command.
@@ -42,6 +38,8 @@ For 1.32:
 
 
 For 1.33
+- Get MySQL 3.23.58
+- Get and test MySQL 4.0
 - Do a complete audit of all pthreads_mutex, cond, ... to ensure that
   any that are dynamically initialized are destroyed when no longer used.
 - Write a mini-readline with history and editing.
@@ -923,3 +921,12 @@ Done: (see kernsdone for more)
 - LabelFormat on tape volume apparently creates the db record but 
   never actually labels the volume.
 - Recycling a volume when two jobs are using it is going to break. Fixed.
+- Document list nextvol and new format status dir.
+- Client files in Win32 with Unix eol conventions doesn't work.
+- Either fix or document that fill command in btape can be
+  compressed enormously by the hardware - a 36GB tape wrote 750GB!
+- Add multiple character duration qualifiers.
+- Require some modifer.
+- Restrict characters permitted in a Resource name, and don't permit
+  duplicate names.
+
