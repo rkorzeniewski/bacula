@@ -268,7 +268,7 @@ console program.
 
 Summary: Bacula - The Network Backup Solution
 Group: System Environment/Daemons
-Requires: coreutils, util-linux, libc5, bacula-fd
+Requires: coreutils, util-linux, libc5, bacula-fd, cdrecord, mkisofs, make
 
 %description rescue
 Bacula - It comes by night and sucks the vital essence from your computers.
