@@ -250,7 +250,7 @@ static int send_list(JCR *jcr, int list)
 	    } else {
                bstrncpy(buf, "0 ", sizeof(buf));
 	    }
-            Dmsg1(000, "Opts=%s\n", buf);
+            Dmsg1(100, "Opts=%s\n", buf);
 	    optlen = strlen(buf);
 	    while (fgets(buf+optlen, sizeof(buf)-optlen, bpipe->rfd)) {
                fd->msglen = Mmsg(&fd->msg, "%s", buf);
@@ -280,7 +280,7 @@ static int send_list(JCR *jcr, int list)
 	    } else {
                bstrncpy(buf, "0 ", sizeof(buf));
 	    }
-            Dmsg1(000, "Opts=%s\n", buf);
+            Dmsg1(100, "Opts=%s\n", buf);
 	    optlen = strlen(buf);
 	    while (fgets(buf+optlen, sizeof(buf)-optlen, ffd)) {
                fd->msglen = Mmsg(&fd->msg, "%s", buf);

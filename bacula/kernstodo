@@ -13,6 +13,7 @@ Documentation to do: (any release a little bit at a time)
   hours of operation.
 - Lookup HP cleaning recommendations.
 - Lookup HP tape replacement recommendations (see trouble shooting autochanger)
+- Create a man page for each binary (Debian package requirement).
           
 Testing to do: (painful)
 - that ALL console command line options work and are always implemented
@@ -36,12 +37,11 @@ For 1.33 Testing/Documentation:
   SuSE.
                 
 For 1.33
-- Limit the number of block checksum/header BB01, ... errors 
-  printed.
+- Limit the number of block checksum/header BB01, ... errors printed.
 - Add VerifyJob to "run" summary (yes/mod/no) prompt.
 - Add device name to "Current Volume not acceptable because ..."
 - Make sure that Bacula rechecks the tape after the 20 min wait.
-- Set IO_NOWAIT on Bacula packets
+- Set IO_NOWAIT on Bacula TCP/IP packets.
 - Try doing a raw partition backup and restore by mounting a
   Windows partition.
 - Implement Verify=DiskToCatalog
