@@ -397,7 +397,7 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
     *  and stuff them into the "DeletionCandidates" table.
     */
    edit_uint64(now - period, ed1);
-   Mmsg(&query, insert_delcand, ed1, cr.ClientId);
+   Mmsg(&query, insert_delcand, (char)JobType, ed1, cr.ClientId);
    if (!db_sql_query(ua->db, query, NULL, (void *)NULL)) {
       if (ua->verbose) {
          bsendmsg(ua, "%s", db_strerror(ua->db));

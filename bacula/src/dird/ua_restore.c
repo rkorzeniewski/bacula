@@ -201,7 +201,7 @@ int restorecmd(UAContext *ua, char *cmd)
       }
 
    }
-   bsendmsg(ua, "\n");
+   bsendmsg(ua, "%d items inserted into the tree and marked for extraction.\n");
    free_pool_memory(query);
 
    /* Check MediaType and select storage that corresponds */

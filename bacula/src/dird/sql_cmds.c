@@ -69,7 +69,8 @@ char *create_deltabs[] = {
 char *insert_delcand = 
    "INSERT INTO DelCandidates "
    "SELECT JobId, PurgedFiles, FileSetId FROM Job "
-   "WHERE JobTDate < %s " 
+   "WHERE JobType='%c' "
+   "AND JobTDate<%s " 
    "AND ClientId=%u";
 
 /* Select files from the DelCandidates table that have a
@@ -79,7 +80,7 @@ char *insert_delcand =
 char *select_backup_del =
    "SELECT DelCandidates.JobId "
    "FROM Job,DelCandidates "
-   "WHERE Job.JobTDate >= %s "
+   "WHERE Job.JobTDate>%s "
    "AND Job.ClientId=%u "
    "AND Job.JobType='B' "
    "AND Job.Level='F' "
@@ -93,7 +94,7 @@ char *select_backup_del =
 char *select_verify_del =
    "SELECT DelCandidates.JobId "
    "FROM Job,DelCandidates "
-   "WHERE Job.JobTDate >= %s "
+   "WHERE Job.JobTDate>%s "
    "AND Job.ClientId=%u "
    "AND Job.JobType='V' "
    "AND Job.Level='V' "
@@ -107,7 +108,7 @@ char *select_verify_del =
 char *select_restore_del =
    "SELECT DelCandidates.JobId "
    "FROM Job,DelCandidates "
-   "WHERE Job.JobTDate >= %s "
+   "WHERE Job.JobTDate>%s "
    "AND Job.ClientId=%u "   
    "AND Job.JobType='R'";
 
