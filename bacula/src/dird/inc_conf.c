@@ -204,7 +204,7 @@ static void scan_include_options(LEX *lc, int keyword, char *opts, int optlen)
       bstrncat(opts, "V", optlen);         /* indicate Verify */
       bstrncat(opts, lc->str, optlen);
       bstrncat(opts, ":", optlen);         /* terminate it */
-      Dmsg3(100, "Catopts=%s option=%s optlen=%d\n", opts, option,optlen);
+      Dmsg3(900, "Catopts=%s option=%s optlen=%d\n", opts, option,optlen);
 
    /*
     * Standard keyword options for Include/Exclude 
@@ -223,7 +223,7 @@ static void scan_include_options(LEX *lc, int keyword, char *opts, int optlen)
          scan_err1(lc, "Expected a FileSet option keyword, got:%s:", lc->str);
       } else { /* add option */
 	 bstrncat(opts, option, optlen);
-         Dmsg3(100, "Catopts=%s option=%s optlen=%d\n", opts, option,optlen);
+         Dmsg3(900, "Catopts=%s option=%s optlen=%d\n", opts, option,optlen);
       }
    }
 
@@ -300,10 +300,10 @@ void store_inc(LEX *lc, RES_ITEM *item, int index, int pass)
       }
       setup_current_opts();
       bstrncpy(res_incexe.current_opts->opts, inc_opts, MAX_FOPTS);
-      Dmsg2(100, "old pass=%d incexe opts=%s\n", pass, res_incexe.current_opts->opts);
+      Dmsg2(900, "old pass=%d incexe opts=%s\n", pass, res_incexe.current_opts->opts);
 
       /* Create incexe structure */
-      Dmsg0(200, "Create INCEXE structure\n");
+      Dmsg0(900, "Create INCEXE structure\n");
       incexe = (INCEXE *)malloc(sizeof(INCEXE));
       memcpy(incexe, &res_incexe, sizeof(INCEXE));
       memset(&res_incexe, 0, sizeof(INCEXE));
@@ -315,7 +315,7 @@ void store_inc(LEX *lc, RES_ITEM *item, int index, int pass)
 			   sizeof(INCEXE *) * (res_all.res_fs.num_includes + 1));
 	  }
 	  res_all.res_fs.include_items[res_all.res_fs.num_includes++] = incexe;
-          Dmsg1(200, "num_includes=%d\n", res_all.res_fs.num_includes);
+          Dmsg1(900, "num_includes=%d\n", res_all.res_fs.num_includes);
       } else {	  /* exclude */
 	 if (res_all.res_fs.num_excludes == 0) {
 	    res_all.res_fs.exclude_items = (INCEXE **)malloc(sizeof(INCEXE *));
@@ -324,7 +324,7 @@ void store_inc(LEX *lc, RES_ITEM *item, int index, int pass)
 			   sizeof(INCEXE *) * (res_all.res_fs.num_excludes + 1));
 	  }
 	  res_all.res_fs.exclude_items[res_all.res_fs.num_excludes++] = incexe;
-          Dmsg1(200, "num_excludes=%d\n", res_all.res_fs.num_excludes);
+          Dmsg1(900, "num_excludes=%d\n", res_all.res_fs.num_excludes);
       }
 
       /* Pickup include/exclude names.	They are stored in INCEXE
@@ -346,7 +346,7 @@ void store_inc(LEX *lc, RES_ITEM *item, int index, int pass)
 	       incexe->name_list.init(10, true);
 	    }
 	    incexe->name_list.append(bstrdup(lc->str));
-            Dmsg1(200, "Add to name_list %s\n", lc->str);
+            Dmsg1(900, "Add to name_list %s\n", lc->str);
 	    break;
 	 default:
             scan_err1(lc, "Expected a filename, got: %s", lc->str);
@@ -422,7 +422,7 @@ static void store_newinc(LEX *lc, RES_ITEM *item, int index, int pass)
 			   sizeof(INCEXE *) * (res_all.res_fs.num_includes + 1));
 	 }
 	 res_all.res_fs.include_items[res_all.res_fs.num_includes++] = incexe;
-         Dmsg1(200, "num_includes=%d\n", res_all.res_fs.num_includes);
+         Dmsg1(900, "num_includes=%d\n", res_all.res_fs.num_includes);
       } else {	  /* exclude */
 	 if (res_all.res_fs.num_excludes == 0) {
 	    res_all.res_fs.exclude_items = (INCEXE **)malloc(sizeof(INCEXE *));
@@ -431,7 +431,7 @@ static void store_newinc(LEX *lc, RES_ITEM *item, int index, int pass)
 			   sizeof(INCEXE *) * (res_all.res_fs.num_excludes + 1));
 	 }
 	 res_all.res_fs.exclude_items[res_all.res_fs.num_excludes++] = incexe;
-         Dmsg1(200, "num_excludes=%d\n", res_all.res_fs.num_excludes);
+         Dmsg1(900, "num_excludes=%d\n", res_all.res_fs.num_excludes);
       }
    }
    scan_to_eol(lc);
@@ -453,7 +453,7 @@ static void store_regex(LEX *lc, RES_ITEM *item, int index, int pass)
       case T_UNQUOTED_STRING:
       case T_QUOTED_STRING:
 	 res_incexe.current_opts->regex.append(bstrdup(lc->str));
-         Dmsg3(200, "set regex %p size=%d %s\n", 
+         Dmsg3(900, "set regex %p size=%d %s\n", 
 	    res_incexe.current_opts, res_incexe.current_opts->regex.size(),lc->str);
 	 break;
       default:
@@ -498,7 +498,7 @@ static void store_wild(LEX *lc, RES_ITEM *item, int index, int pass)
       case T_UNQUOTED_STRING:
       case T_QUOTED_STRING:
 	 res_incexe.current_opts->wild.append(bstrdup(lc->str));
-         Dmsg3(200, "set wild %p size=%d %s\n", 
+         Dmsg3(900, "set wild %p size=%d %s\n", 
 	    res_incexe.current_opts, res_incexe.current_opts->wild.size(),lc->str);
 	 break;
       default:
@@ -537,7 +537,7 @@ static void store_fname(LEX *lc, RES_ITEM *item, int index, int pass)
 	       incexe->name_list.init(10, true);
 	    }
 	    incexe->name_list.append(bstrdup(lc->str));
-            Dmsg1(200, "Add to name_list %s\n", lc->str);
+            Dmsg1(900, "Add to name_list %s\n", lc->str);
 	    break;
 	 default:
             scan_err1(lc, _("Expected a filename, got: %s"), lc->str);
@@ -619,7 +619,7 @@ static void store_opts(LEX *lc, RES_ITEM *item, int index, int pass)
    scan_include_options(lc, keyword, inc_opts, sizeof(inc_opts));
    if (pass == 1) {
       bstrncat(res_incexe.current_opts->opts, inc_opts, MAX_FOPTS);
-      Dmsg2(100, "new pass=%d incexe opts=%s\n", pass, res_incexe.current_opts->opts);
+      Dmsg2(900, "new pass=%d incexe opts=%s\n", pass, res_incexe.current_opts->opts);
    }
    scan_to_eol(lc);
 }

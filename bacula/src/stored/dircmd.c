@@ -118,7 +118,7 @@ static struct s_cmds cmds[] = {
  *  - We execute the command
  *  - We continue or exit depending on the return status
  */
-void *connection_request(void *arg)
+void *handle_connection_request(void *arg)
 {
    BSOCK *bs = (BSOCK *)arg;
    JCR *jcr;
@@ -129,6 +129,7 @@ void *connection_request(void *arg)
 
    if (bnet_recv(bs) <= 0) {
       Emsg0(M_ERROR, 0, _("Connection request failed.\n"));
+      bnet_close(bs);
       return NULL;
    }
 
@@ -137,6 +138,8 @@ void *connection_request(void *arg)
     */
    if (bs->msglen < 25 || bs->msglen > (int)sizeof(name)-25) {
       Emsg1(M_ERROR, 0, _("Invalid Dir connection. Len=%d\n"), bs->msglen);
+      bnet_close(bs);
+      return NULL;
    }
    /* 
     * See if this is a File daemon connection. If so
@@ -152,6 +155,13 @@ void *connection_request(void *arg)
    jcr = new_jcr(sizeof(JCR), stored_free_jcr);     /* create Job Control Record */
    jcr->dir_bsock = bs; 	      /* save Director bsock */
    jcr->dir_bsock->jcr = jcr;
+   /* Initialize FD start condition variable */
+   int errstat = pthread_cond_init(&jcr->job_start_wait, NULL);
+   if (errstat != 0) {
+      Jmsg1(jcr, M_FATAL, 0, _("Unable to init job cond variable: ERR=%s\n"), strerror(errstat));
+      free_jcr(jcr);
+      return NULL;
+   }
 
    Dmsg0(1000, "stored in start_job\n");
 
@@ -393,7 +403,7 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
       /* Fall through wanted! */
    case VOL_IO_ERROR:
    case VOL_NO_LABEL:
-      if (!write_volume_label_to_dev(jcr, jcr->device, newname, poolname)) {
+      if (!write_new_volume_label_to_dev(jcr, jcr->device, newname, poolname)) {
          bnet_fsend(dir, _("3912 Failed to label Volume: ERR=%s\n"), strerror_dev(dev));
 	 break;
       }

@@ -31,9 +31,9 @@
 #include "jcr.h"
 
 /* Exported globals */
-time_t watchdog_time = 0;	      /* this has granularity of SLEEP_TIME */
+time_t watchdog_time = 0;             /* this has granularity of SLEEP_TIME */
 
-#define SLEEP_TIME 1		      /* examine things every second */
+#define SLEEP_TIME 1                  /* examine things every second */
 
 /* Forward referenced functions */
 extern "C" void *watchdog_thread(void *arg);
@@ -44,7 +44,7 @@ static void wd_unlock();
 /* Static globals */
 static bool quit = false;;
 static bool wd_is_init = false;
-static brwlock_t lock;		      /* watchdog lock */
+static brwlock_t lock;                /* watchdog lock */
 
 static pthread_t wd_tid;
 static dlist *wd_queue;
@@ -54,7 +54,7 @@ static dlist *wd_inactive;
  * Start watchdog thread
  *
  *  Returns: 0 on success
- *	     errno on failure
+ *           errno on failure
  */
 int start_watchdog(void)
 {
@@ -70,7 +70,7 @@ int start_watchdog(void)
 
    if ((errstat=rwl_init(&lock)) != 0) {
       Emsg1(M_ABORT, 0, _("Unable to initialize watchdog lock. ERR=%s\n"), 
-	    strerror(errstat));
+            strerror(errstat));
    }
    wd_queue = new dlist(wd_queue, &dummy->link);
    wd_inactive = new dlist(wd_inactive, &dummy->link);
@@ -86,7 +86,7 @@ int start_watchdog(void)
  * Terminate the watchdog thread
  *
  * Returns: 0 on success
- *	    errno on failure
+ *          errno on failure
  */
 int stop_watchdog(void)
 {
@@ -97,7 +97,7 @@ int stop_watchdog(void)
       return 0;
    }
 
-   quit = true; 		      /* notify watchdog thread to stop */
+   quit = true;                       /* notify watchdog thread to stop */
    wd_is_init = false;
 
    stat = pthread_join(wd_tid, NULL);
@@ -107,7 +107,7 @@ int stop_watchdog(void)
       wd_queue->remove(item);
       p = (watchdog_t *)item;
       if (p->destructor != NULL) {
-	 p->destructor(p);
+         p->destructor(p);
       }
       free(p);
    }
@@ -119,7 +119,7 @@ int stop_watchdog(void)
       wd_inactive->remove(item);
       p = (watchdog_t *)item;
       if (p->destructor != NULL) {
-	 p->destructor(p);
+         p->destructor(p);
       }
       free(p);
    }
@@ -182,17 +182,17 @@ bool unregister_watchdog_unlocked(watchdog_t *wd)
 
    foreach_dlist(p, wd_queue) {
       if (wd == p) {
-	 wd_queue->remove(wd);
+         wd_queue->remove(wd);
          Dmsg1(400, "Unregistered watchdog %p\n", wd);
-	 return true;
+         return true;
       }
    }
 
    foreach_dlist(p, wd_inactive) {
       if (wd == p) {
-	 wd_inactive->remove(wd);
+         wd_inactive->remove(wd);
          Dmsg1(400, "Unregistered inactive watchdog %p\n", wd);
-	 return true;
+         return true;
       }
    }
 
@@ -236,27 +236,27 @@ extern "C" void *watchdog_thread(void *arg)
       watchdog_time = time(NULL);
 
       foreach_dlist(p, wd_queue) {
-	 if (p->next_fire < watchdog_time) {
-	    /* Run the callback */
-	    p->callback(p);
+         if (p->next_fire < watchdog_time) {
+            /* Run the callback */
+            p->callback(p);
 
             /* Reschedule (or move to inactive list if it's a one-shot timer) */
-	    if (p->one_shot) {
-	       /* 
-		* Note, when removing an item while walking the list
-		*  we must get the previous pointer (q) and set the
-		*  current pointer (p) to this previous pointer after
+            if (p->one_shot) {
+               /* 
+                * Note, when removing an item while walking the list
+                *  we must get the previous pointer (q) and set the
+                *  current pointer (p) to this previous pointer after
                 *  removing the current pointer, otherwise, we won't
-		*  walk the rest of the list.
-		*/
-	       q = (watchdog_t *)wd_queue->prev(p);
-	       wd_queue->remove(p);
-	       wd_inactive->append(p);
-	       p = q;
-	    } else {
-	       p->next_fire = watchdog_time + p->interval;
-	    }
-	 }
+                *  walk the rest of the list.
+                */
+               q = (watchdog_t *)wd_queue->prev(p);
+               wd_queue->remove(p);
+               wd_inactive->append(p);
+               p = q;
+            } else {
+               p->next_fire = watchdog_time + p->interval;
+            }
+         }
       }
       wd_unlock();
       unlock_jcr_chain();
@@ -277,7 +277,7 @@ static void wd_lock()
    int errstat;
    if ((errstat=rwl_writelock(&lock)) != 0) {
       Emsg1(M_ABORT, 0, "rwl_writelock failure. ERR=%s\n",
-	   strerror(errstat));
+           strerror(errstat));
    }
 }    
 
@@ -291,6 +291,6 @@ static void wd_unlock()
    int errstat;
    if ((errstat=rwl_writeunlock(&lock)) != 0) {
       Emsg1(M_ABORT, 0, "rwl_writeunlock failure. ERR=%s\n",
-	   strerror(errstat));
+           strerror(errstat));
    }
 }    

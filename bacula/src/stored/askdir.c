@@ -216,10 +216,6 @@ int dir_update_volume_info(JCR *jcr, DEVICE *dev, int label)
       Jmsg0(jcr, M_ERROR, 0, _("Attempt to update_volume_info in read mode!!!\n"));
       return 0;
    }
-   if (!dev_state(dev, ST_LABEL)) {
-      Jmsg0(jcr, M_ERROR, 0, _("Attempt to update_volume_info on non-labeled Volume!!!\n"));
-      return 0;
-   }
 
    Dmsg1(100, "Update cat VolFiles=%d\n", dev->file);
    /* Just labeled or relabeled the tape */

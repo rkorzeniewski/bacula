@@ -123,13 +123,13 @@ static bool get_modifier(char *str, char *mod, int mod_len)
 
    /* If nothing found, error */
    if (i == 0) {
-      Dmsg2(200, "error i=%d len=%d\n", i, len);
+      Dmsg2(900, "error i=%d len=%d\n", i, len);
       return false;
    }
 
    /* Move modifier to its location */
    bstrncpy(mod, &str[i], mod_len);
-   Dmsg2(200, "in=%s  mod=%s:\n", str, mod);
+   Dmsg2(900, "in=%s  mod=%s:\n", str, mod);
 
    /* Backup over any spaces in front of modifier */
    for ( ; i > 0; i--) {
@@ -141,7 +141,7 @@ static bool get_modifier(char *str, char *mod, int mod_len)
    }
    /* The remainder (beginning) should be our number */
    if (!is_a_number(str)) {
-      Dmsg0(200, "input not a number\n");
+      Dmsg0(900, "input not a number\n");
       return false;
    }
    return true;
@@ -180,7 +180,7 @@ int duration_to_utime(char *str, utime_t *value)
    if (mod[i] == NULL) {
       i = 1;			      /* no modifier, assume 1 */
    }
-   Dmsg2(200, "str=%s: mult=%d\n", str, mult[i]);
+   Dmsg2(900, "str=%s: mult=%d\n", str, mult[i]);
    errno = 0;
    val = strtod(str, NULL);
    if (errno != 0 || val < 0) {
@@ -251,7 +251,7 @@ int size_to_uint64(char *str, int str_len, uint64_t *value)
    if (mod[i] == NULL) {
       i = 0;			      /* no modifier found, assume 1 */
    }
-   Dmsg2(200, "str=%s: mult=%d\n", str, mult[i]);
+   Dmsg2(900, "str=%s: mult=%d\n", str, mult[i]);
    errno = 0;
    val = strtod(str, NULL);
    if (errno != 0 || val < 0) {

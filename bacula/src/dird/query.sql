@@ -12,7 +12,9 @@ SELECT Job.JobId as JobId, Client.Name as Client,
  FROM Client,Job,File,Filename,Path WHERE Client.ClientId=Job.ClientId
  AND JobStatus='T' AND Job.JobId=File.JobId
  AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId
- AND Filename.Name='%1' ORDER BY Job.StartTime LIMIT 20;
+ AND Filename.Name='%1' 
+ GROUP BY Job.JobId
+ ORDER BY Job.StartTime LIMIT 20;
 # 3
 :List where the most recent copies of a file are saved:
 *Enter path with trailing slash:
@@ -29,23 +31,25 @@ SELECT Job.JobId,StartTime AS JobStartTime,VolumeName,Client.Name AS ClientName
  AND JobMedia.JobId=Job.JobId
  AND JobMedia.MediaId=Media.MediaId
  AND Client.ClientId=Job.ClientId
+ GROUP BY Job.JobId
  ORDER BY Job.StartTime DESC LIMIT 5;
 # 4
 :List last 20 Full Backups for a Client:
 *Enter Client name:
-Select Job.JobId,Client.Name as Client,StartTime,JobFiles,JobBytes,
+SELECT Job.JobId,Client.Name AS Client,StartTime,JobFiles,JobBytes,
 JobMedia.StartFile as VolFile,VolumeName
  FROM Client,Job,JobMedia,Media
  WHERE Client.Name='%1'
  AND Client.ClientId=Job.ClientId
  AND Level='F' AND JobStatus='T'
  AND JobMedia.JobId=Job.JobId AND JobMedia.MediaId=Media.MediaId
+ GROUP BY Job.JobId
  ORDER BY Job.StartTime DESC LIMIT 20;
 # 5
 :List all backups for a Client after a specified time
 *Enter Client Name:
 *Enter time in YYYY-MM-DD HH:MM:SS format:
-Select Job.JobId,Client.Name as Client,Level,StartTime,JobFiles,JobBytes,VolumeName
+SELECT Job.JobId,Client.Name as Client,Level,StartTime,JobFiles,JobBytes,VolumeName
   FROM Client,Job,JobMedia,Media
   WHERE Client.Name='%1'
   AND Client.ClientId=Job.ClientId
@@ -57,7 +61,7 @@ Select Job.JobId,Client.Name as Client,Level,StartTime,JobFiles,JobBytes,VolumeN
 # 6
 :List all backups for a Client
 *Enter Client Name:
-Select Job.JobId,Client.Name as Client,Level,StartTime,JobFiles,JobBytes,VolumeName
+SELECT Job.JobId,Client.Name as Client,Level,StartTime,JobFiles,JobBytes,VolumeName
   FROM Client,Job,JobMedia,Media
   WHERE Client.Name='%1'
   AND Client.ClientId=Job.ClientId
@@ -71,7 +75,7 @@ Select Job.JobId,Client.Name as Client,Level,StartTime,JobFiles,JobBytes,VolumeN
 SELECT Slot,MaxVolBytes,VolCapacityBytes,VolStatus,Recycle,VolRetention,
  VolUseDuration,MaxVolJobs,MaxVolFiles
  FROM Media   
- WHERE Volumename='%1';
+ WHERE VolumeName='%1';
 # 8
 :List Volumes used by selected JobId:
 *Enter JobId:
@@ -79,7 +83,8 @@ SELECT Job.JobId,VolumeName
  FROM Job,JobMedia,Media 
  WHERE Job.JobId=%1 
  AND Job.JobId=JobMedia.JobId 
- AND JobMedia.MediaId=Media.MediaId;
+ AND JobMedia.MediaId=Media.MediaId 
+ GROUP BY VolumeName;
 # 9
 :List Volumes to Restore All Files:
 *Enter Client Name:
@@ -164,8 +169,16 @@ SELECT Path.Path,Filename.Name FROM File,
 SELECT Job.JobId,Job.Name,Job.StartTime,Job.Type,
  Job.Level,Job.JobFiles,Job.JobBytes,Job.JobStatus
   FROM JobMedia,Job
-  WHERE JobMedia.JobId = Job.JobId
-  AND JobMedia.MediaId = %1;
-SELECT MediaId,VolumeName,VolStatus,VolBytes,VolFiles,
- VolRetention,Recycle,Slot,MediaType,LastWritten
- FROM Media WHERE MediaId = %1;
+  WHERE JobMedia.JobId=Job.JobId
+  AND JobMedia.MediaId=%1 
+  GROUP BY Job.JobId;
+# 15  
+:List Jobs stored for a given Volume name:
+*Enter Volume name:
+SELECT Job.JobId,Job.Name,Job.StartTime,Job.Type,
+ Job.Level,Job.JobFiles,Job.JobBytes,Job.JobStatus
+  FROM Media,JobMedia,Job
+  WHERE Media.VolumeName='%1'
+  AND Media.MediaId=JobMedia.MediaId              
+  AND JobMedia.JobId=Job.JobId
+  GROUP BY Job.JobId;

@@ -228,7 +228,7 @@ int main (int argc, char *argv[])
 				 
    /* Single server used for Director and File daemon */
    bnet_thread_server(me->SDaddr, me->SDport, me->max_concurrent_jobs * 2 + 1,
-		      &dird_workq, connection_request);
+		      &dird_workq, handle_connection_request);
    exit(1);			      /* to keep compiler quiet */
 }
 
@@ -324,6 +324,12 @@ void *device_allocation(void *arg)
 	 JCR *jcr;
 	 DCR *dcr;
 	 jcr = new_jcr(sizeof(JCR), stored_free_jcr);
+	 jcr->JobType = JT_SYSTEM;
+	 /* Initialize FD start condition variable */
+	 int errstat = pthread_cond_init(&jcr->job_start_wait, NULL);
+	 if (errstat != 0) {
+            Jmsg1(jcr, M_ABORT, 0, _("Unable to init job cond variable: ERR=%s\n"), strerror(errstat));
+	 }
 	 jcr->device = device;
 	 dcr = new_dcr(jcr, device->dev);
 	 switch (read_dev_volume_label(jcr, device->dev, dcr->block)) {

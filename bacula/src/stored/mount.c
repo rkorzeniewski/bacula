@@ -30,6 +30,9 @@
 #include "bacula.h"                   /* pull in global headers */
 #include "stored.h"                   /* pull in Storage Deamon headers */
 
+static bool rewrite_volume_label(JCR *jcr, DEVICE *dev, DEV_BLOCK *bloc, bool recycle);
+
+
 /*
  * If release is set, we rewind the current volume, 
  * which we no longer want, and ask the user (console) 
@@ -42,7 +45,7 @@
  *  impossible to get the requested Volume.
  *
  */
-int mount_next_write_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, int release)
+int mount_next_write_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, bool release)
 {
    int retry = 0;
    bool ask = false, recycle, autochanger;
@@ -187,12 +190,9 @@ read_volume:
 
       /* If not removable, Volume is broken */
       if (!dev_cap(dev, CAP_REM)) {
-         bstrncpy(jcr->VolCatInfo.VolCatStatus, "Error",
-	    sizeof(jcr->VolCatInfo.VolCatStatus));
-	 memcpy(&dev->VolCatInfo, &jcr->VolCatInfo, sizeof(dev->VolCatInfo));
-	 dir_update_volume_info(jcr, dev, 1);  /* indicate tape labeled */
-         Jmsg(jcr, M_WARNING, 0, _("Volume \"%s\" not on device %s. Volume marked in error.\n"),
+         Jmsg(jcr, M_WARNING, 0, _("Volume \"%s\" not on device %s.\n"),
 	    jcr->VolumeName, dev_name(dev));
+	 mark_volume_in_error(jcr, dev);
 	 goto mount_next_vol;
       }
 	 
@@ -249,7 +249,8 @@ read_volume:
 	    (!dev_is_tape(dev) && strcmp(jcr->VolCatInfo.VolCatStatus, 
                                    "Recycle") == 0))) {
          Dmsg0(100, "Create volume label\n");
-	 if (!write_volume_label_to_dev(jcr, (DEVRES *)dev->device, jcr->VolumeName,
+	 /* Create a new Volume label and write it to the device */
+	 if (!write_new_volume_label_to_dev(jcr, (DEVRES *)dev->device, jcr->VolumeName,
 		jcr->pool_name)) {
             Dmsg0(100, "!write_vol_label\n");
 	    goto mount_next_vol;
@@ -264,12 +265,9 @@ read_volume:
       } 
       /* If not removable, Volume is broken */
       if (!dev_cap(dev, CAP_REM)) {
-         bstrncpy(jcr->VolCatInfo.VolCatStatus, "Error",
-	    sizeof(jcr->VolCatInfo.VolCatStatus));
-	 memcpy(&dev->VolCatInfo, &jcr->VolCatInfo, sizeof(dev->VolCatInfo));
-	 dir_update_volume_info(jcr, dev, 1);  /* indicate tape labeled */
-         Jmsg(jcr, M_WARNING, 0, _("Volume \"%s\" not on device %s. Volume marked in error.\n"),
+         Jmsg(jcr, M_WARNING, 0, _("Volume \"%s\" not on device %s.\n"),
 	    jcr->VolumeName, dev_name(dev));
+	 mark_volume_in_error(jcr, dev);
 	 goto mount_next_vol;
       }
       /* NOTE! Fall-through wanted. */
@@ -299,63 +297,9 @@ read_volume:
     *  If the tape is marked as Recycle, we rewrite the label.
     */
    if (dev->VolHdr.LabelType == PRE_LABEL || recycle) {
-      Dmsg1(190, "ready_for_append found freshly labeled volume. dev=%x\n", dev);
-      dev->VolHdr.LabelType = VOL_LABEL; /* set Volume label */
-      write_volume_label_to_block(jcr, dev, block);
-      /*
-       * If we are not dealing with a streaming device,
-       *  write the block now to ensure we have write permission.
-       *  It is better to find out now rather than later.
-       */
-      if (!dev_cap(dev, CAP_STREAM)) {
-	 if (!rewind_dev(dev)) {
-            Jmsg2(jcr, M_WARNING, 0, _("Rewind error on device \"%s\". ERR=%s\n"), 
-		  dev_name(dev), strerror_dev(dev));
-	 }
-	 if (recycle) {
-	    if (!truncate_dev(dev)) {
-               Jmsg2(jcr, M_WARNING, 0, _("Truncate error on device \"%s\". ERR=%s\n"), 
-		     dev_name(dev), strerror_dev(dev));
-	    }
-	 }
-	 /* Attempt write to check write permission */
-	 if (!write_block_to_dev(jcr->dcr, block)) {
-            Jmsg2(jcr, M_ERROR, 0, _("Unable to write device \"%s\". ERR=%s\n"),
-	       dev_name(dev), strerror_dev(dev));
-	    goto mount_next_vol;
-	 }
+      if (!rewrite_volume_label(jcr, dev, block, recycle)) {
+	 goto mount_next_vol;
       }
-      /* Set or reset Volume statistics */
-      dev->VolCatInfo.VolCatJobs = 0;
-      dev->VolCatInfo.VolCatFiles = 0;
-      dev->VolCatInfo.VolCatBytes = 1;
-      dev->VolCatInfo.VolCatErrors = 0;
-      dev->VolCatInfo.VolCatBlocks = 0;
-      dev->VolCatInfo.VolCatRBytes = 0;
-      if (recycle) {
-	 dev->VolCatInfo.VolCatMounts++;  
-	 dev->VolCatInfo.VolCatRecycles++;
-      } else {
-	 dev->VolCatInfo.VolCatMounts = 1;
-	 dev->VolCatInfo.VolCatRecycles = 0;
-	 dev->VolCatInfo.VolCatWrites = 1;
-	 dev->VolCatInfo.VolCatReads = 1;
-      }
-      Dmsg0(100, "dir_update_vol_info. Set Append\n");
-      bstrncpy(dev->VolCatInfo.VolCatStatus, "Append", sizeof(dev->VolCatInfo.VolCatStatus));
-      dir_update_volume_info(jcr, dev, 1);  /* indicate doing relabel */
-      if (recycle) {
-         Jmsg(jcr, M_INFO, 0, _("Recycled volume \"%s\" on device \"%s\", all previous data lost.\n"),
-	    jcr->VolumeName, dev_name(dev));
-      } else {
-         Jmsg(jcr, M_INFO, 0, _("Wrote label to prelabeled Volume \"%s\" on device \"%s\"\n"),
-	    jcr->VolumeName, dev_name(dev));
-      }
-      /*
-       * End writing real Volume label (from pre-labeled tape), or recycling
-       *  the volume.
-       */
-
    } else {
       /*
        * OK, at this point, we have a valid Bacula label, but
@@ -398,6 +342,75 @@ The number of files mismatch! Volume=%u Catalog=%u\n"),
    Dmsg0(100, "Normal return from read_dev_for_append\n");
    return 1; 
 }
+
+/*
+ * Write a volume label. 
+ *  Returns: true if OK
+ *	     false if unable to write it
+ */
+static bool rewrite_volume_label(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, bool recycle)
+{
+   Dmsg1(190, "ready_for_append found freshly labeled volume. dev=%x\n", dev);
+   dev->VolHdr.LabelType = VOL_LABEL; /* set Volume label */
+   if (!write_volume_label_to_block(jcr, dev, block)) {
+      return false;
+   }
+   /*
+    * If we are not dealing with a streaming device,
+    *  write the block now to ensure we have write permission.
+    *  It is better to find out now rather than later.
+    */
+   if (!dev_cap(dev, CAP_STREAM)) {
+      if (!rewind_dev(dev)) {
+         Jmsg2(jcr, M_WARNING, 0, _("Rewind error on device \"%s\". ERR=%s\n"), 
+	       dev_name(dev), strerror_dev(dev));
+      }
+      if (recycle) {
+	 if (!truncate_dev(dev)) {
+            Jmsg2(jcr, M_WARNING, 0, _("Truncate error on device \"%s\". ERR=%s\n"), 
+		  dev_name(dev), strerror_dev(dev));
+	 }
+      }
+      /* Attempt write to check write permission */
+      if (!write_block_to_dev(jcr->dcr, block)) {
+         Jmsg2(jcr, M_ERROR, 0, _("Unable to write device \"%s\". ERR=%s\n"),
+	    dev_name(dev), strerror_dev(dev));
+	 return false;
+      }
+   }
+   /* Set or reset Volume statistics */
+   dev->VolCatInfo.VolCatJobs = 0;
+   dev->VolCatInfo.VolCatFiles = 0;
+   dev->VolCatInfo.VolCatBytes = 1;
+   dev->VolCatInfo.VolCatErrors = 0;
+   dev->VolCatInfo.VolCatBlocks = 0;
+   dev->VolCatInfo.VolCatRBytes = 0;
+   if (recycle) {
+      dev->VolCatInfo.VolCatMounts++;  
+      dev->VolCatInfo.VolCatRecycles++;
+   } else {
+      dev->VolCatInfo.VolCatMounts = 1;
+      dev->VolCatInfo.VolCatRecycles = 0;
+      dev->VolCatInfo.VolCatWrites = 1;
+      dev->VolCatInfo.VolCatReads = 1;
+   }
+   Dmsg0(100, "dir_update_vol_info. Set Append\n");
+   bstrncpy(dev->VolCatInfo.VolCatStatus, "Append", sizeof(dev->VolCatInfo.VolCatStatus));
+   dir_update_volume_info(jcr, dev, 1);  /* indicate doing relabel */
+   if (recycle) {
+      Jmsg(jcr, M_INFO, 0, _("Recycled volume \"%s\" on device \"%s\", all previous data lost.\n"),
+	 jcr->VolumeName, dev_name(dev));
+   } else {
+      Jmsg(jcr, M_INFO, 0, _("Wrote label to prelabeled Volume \"%s\" on device \"%s\"\n"),
+	 jcr->VolumeName, dev_name(dev));
+   }
+   /*
+    * End writing real Volume label (from pre-labeled tape), or recycling
+    *  the volume.
+    */
+    return true;
+}
+
 
 /*
  * Mark volume in error in catalog 

@@ -265,11 +265,11 @@ static int send_list(JCR *jcr, int list)
 	    } else {
                bstrncpy(buf, "0 ", sizeof(buf));
 	    }
-            Dmsg1(100, "Opts=%s\n", buf);
+            Dmsg1(500, "Opts=%s\n", buf);
 	    optlen = strlen(buf);
 	    while (fgets(buf+optlen, sizeof(buf)-optlen, bpipe->rfd)) {
                fd->msglen = Mmsg(&fd->msg, "%s", buf);
-               Dmsg2(200, "Inc/exc len=%d: %s", fd->msglen, fd->msg);
+               Dmsg2(500, "Inc/exc len=%d: %s", fd->msglen, fd->msg);
 	       if (!bnet_send(fd)) {
                   Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
 		  goto bail_out;
@@ -295,7 +295,7 @@ static int send_list(JCR *jcr, int list)
 	    } else {
                bstrncpy(buf, "0 ", sizeof(buf));
 	    }
-            Dmsg1(100, "Opts=%s\n", buf);
+            Dmsg1(500, "Opts=%s\n", buf);
 	    optlen = strlen(buf);
 	    while (fgets(buf+optlen, sizeof(buf)-optlen, ffd)) {
                fd->msglen = Mmsg(&fd->msg, "%s", buf);
@@ -311,14 +311,14 @@ static int send_list(JCR *jcr, int list)
 	    /* Note, fall through wanted */
 	 default:
 	    if (ie->num_opts) {
-               Dmsg2(100, "numopts=%d opts=%s\n", ie->num_opts, NPRT(ie->opts_list[0]->opts));
+               Dmsg2(500, "numopts=%d opts=%s\n", ie->num_opts, NPRT(ie->opts_list[0]->opts));
 	       pm_strcpy(&fd->msg, ie->opts_list[0]->opts);
                pm_strcat(&fd->msg, " ");
 	    } else {
                pm_strcpy(&fd->msg, "0 ");
 	    }
 	    fd->msglen = pm_strcat(&fd->msg, p);
-            Dmsg1(100, "Inc/Exc name=%s\n", fd->msg);
+            Dmsg1(500, "Inc/Exc name=%s\n", fd->msg);
 	    if (!bnet_send(fd)) {
                Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
 	       goto bail_out;
@@ -404,11 +404,11 @@ static int send_fileset(JCR *jcr)
 		  goto bail_out;
 	       }
                bstrncpy(buf, "F ", sizeof(buf));
-               Dmsg1(100, "Opts=%s\n", buf);
+               Dmsg1(500, "Opts=%s\n", buf);
 	       optlen = strlen(buf);
 	       while (fgets(buf+optlen, sizeof(buf)-optlen, bpipe->rfd)) {
                   fd->msglen = Mmsg(&fd->msg, "%s", buf);
-                  Dmsg2(200, "Inc/exc len=%d: %s", fd->msglen, fd->msg);
+                  Dmsg2(500, "Inc/exc len=%d: %s", fd->msglen, fd->msg);
 		  if (!bnet_send(fd)) {
                      Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
 		     goto bail_out;
@@ -428,7 +428,7 @@ static int send_fileset(JCR *jcr)
 		  goto bail_out;
 	       }
                bstrncpy(buf, "F ", sizeof(buf));
-               Dmsg1(100, "Opts=%s\n", buf);
+               Dmsg1(500, "Opts=%s\n", buf);
 	       optlen = strlen(buf);
 	       while (fgets(buf+optlen, sizeof(buf)-optlen, ffd)) {
                   fd->msglen = Mmsg(&fd->msg, "%s", buf);
@@ -445,7 +445,7 @@ static int send_fileset(JCR *jcr)
 	    default:
                pm_strcpy(&fd->msg, "F ");
 	       fd->msglen = pm_strcat(&fd->msg, p);
-               Dmsg1(100, "Inc/Exc name=%s\n", fd->msg);
+               Dmsg1(500, "Inc/Exc name=%s\n", fd->msg);
 	       if (!bnet_send(fd)) {
                   Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
 		  goto bail_out;

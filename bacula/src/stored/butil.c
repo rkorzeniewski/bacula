@@ -212,7 +212,6 @@ static void my_free_jcr(JCR *jcr)
       free_dcr(jcr->dcr);
       jcr->dcr = NULL;
    }
-     
    return;
 }
 
