@@ -82,7 +82,7 @@ int recycle_oldest_purged_volume(JCR *jcr, MEDIA_DBR *mr)
 
    Dmsg0(100, "Enter recycle_oldest_purged_volume\n");
    oldest.MediaId = 0;
-   strcpy(oldest.LastWritten, "9999-99-99 99:99:99");
+   bstrncpy(oldest.LastWritten, "9999-99-99 99:99:99", sizeof(oldest.LastWritten));
    Mmsg(&query, select, mr->PoolId, mr->MediaType);
    if (!db_sql_query(jcr->db, query, oldest_handler, (void *)&oldest)) {
       Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));

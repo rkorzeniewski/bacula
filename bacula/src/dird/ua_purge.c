@@ -429,10 +429,10 @@ void purge_files_from_job(UAContext *ua, JOB_DBR *jr)
 {
    char *query = (char *)get_pool_memory(PM_MESSAGE);
    
-   Mmsg(&query, "DELETE FROM File WHERE JobId=%d", jr->JobId);
+   Mmsg(&query, "DELETE FROM File WHERE JobId=%u", jr->JobId);
    db_sql_query(ua->db, query, NULL, (void *)NULL);
 
-   Mmsg(&query, "UPDATE Job Set PurgedFiles=1 WHERE JobId=%d", jr->JobId);
+   Mmsg(&query, "UPDATE Job Set PurgedFiles=1 WHERE JobId=%u", jr->JobId);
    db_sql_query(ua->db, query, NULL, (void *)NULL);
 
    free_pool_memory(query);
