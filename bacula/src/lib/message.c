@@ -878,10 +878,13 @@ Jmsg(void *vjcr, int type, int level, char *fmt,...)
  *  Tmsg5(000, "jcr=%x msgs=%x type=%d send_msg=%x *msg=%x\n",
  *	  jcr, msgs, type, msgs->send_msg, (int)msgs->send_msg[0]);
  */
-
-    if ((type != M_ABORT && type != M_ERROR_TERM) && msgs && 
+    /* There is an apparent compiler bug with the following if
+     *	statement, so the set_jcr... is simply a noop to reload 
+     *	registers.
+     */
+    set_jcr_job_status(jcr, jcr->JobStatus);
+    if (msgs && (type != M_ABORT && type != M_ERROR_TERM) &&
 	 !bit_is_set(type, msgs->send_msg)) {
-       Dmsg1(200, "No bit set for type %d\n", type);
        return;			      /* no destination */
     }
     switch (type) {
