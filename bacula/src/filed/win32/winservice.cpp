@@ -41,17 +41,15 @@
 #include "winbacula.h"
 #include "winservice.h"
 #include "wintray.h"
+                       
 
 void set_service_description(SC_HANDLE hSCManager, SC_HANDLE hService,
                              LPSTR lpDesc);
-
 
 // OS-SPECIFIC ROUTINES
 
 // Create an instance of the bacService class to cause the static fields to be
 // initialised properly
-
-extern int NoGetFileAttributesEx;      /* set if function no avail -- Win95 */
 
 bacService init;
 
@@ -69,11 +67,14 @@ bacService::bacService()
    } else {
       g_platform_id = osversioninfo.dwPlatformId;
    }
+#ifdef xxx
+   /* Rewritten to lookup entry point */
    if (osversioninfo.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS &&
        osversioninfo.dwMinorVersion == 0) {
        /* Running Win95 so no GetFileAttributesEx available */
        NoGetFileAttributesEx = 1;
    }
+#endif
 }
 
 
@@ -115,13 +116,6 @@ PostToBacula(UINT message, WPARAM wParam, LPARAM lParam)
 BOOL
 bacService::ShowProperties()
 {
-#ifdef properties_implemented
-   // Post to the Bacula menu window
-   if (!PostToBacula(MENU_PROPERTIES_SHOW, 0, 0)) {
-      MessageBox(NULL, "No existing instance of Bacula could be contacted", szAppName, MB_ICONEXCLAMATION | MB_OK);
-      return FALSE;
-   }
-#endif
    return TRUE;
 }
 
@@ -131,14 +125,6 @@ bacService::ShowProperties()
 BOOL
 bacService::ShowDefaultProperties()
 {
-#ifdef properties_implemented
-   // Post to the Bacula menu window
-   if (!PostToBacula(MENU_DEFAULT_PROPERTIES_SHOW, 0, 0)) {
-      MessageBox(NULL, "No existing instance of Bacula could be contacted", szAppName, MB_ICONEXCLAMATION | MB_OK);
-      return FALSE;
-   }
-
-#endif
    return TRUE;
 }
 
@@ -278,43 +264,6 @@ bacService::PostUserHelperMessage()
 // ROUTINE TO PROCESS AN INCOMING INSTANCE OF THE ABOVE MESSAGE
 BOOL
 bacService::ProcessUserHelperMessage(WPARAM wParam, LPARAM lParam) {
-   // - Check the platform type
-   if (!IsWinNT() || !bacService::RunningAsService()) {
-      return TRUE;
-   }
-
-   // - Close the HKEY_CURRENT_USER key, to force NT to reload it for the new user
-   // NB: Note that this is _really_ dodgy if ANY other thread is accessing the key!
-   if (RegCloseKey(HKEY_CURRENT_USER) != ERROR_SUCCESS) {
-           return FALSE;
-   }
-
-   // - Revert to our own identity
-   RevertToSelf();
-   g_impersonating_user = FALSE;
-
-   // - Open the specified process
-   HANDLE processHandle = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, (DWORD)lParam);
-   if (processHandle == NULL) {
-           return FALSE;
-   }
-
-   // - Get the token for the given process
-   HANDLE userToken = NULL;
-   if (!OpenProcessToken(processHandle, TOKEN_QUERY | TOKEN_DUPLICATE | TOKEN_IMPERSONATE, &userToken)) {
-      CloseHandle(processHandle);
-      return FALSE;
-   }
-   CloseHandle(processHandle);
-
-   // - Set this thread to impersonate them
-   if (!ImpersonateLoggedOnUser(userToken)) {
-       CloseHandle(userToken);
-       return FALSE;
-   }
-   CloseHandle(userToken);
-
-   g_impersonating_user = TRUE;
    return TRUE;
 }
 
@@ -328,7 +277,7 @@ bacService::BaculaServiceMain()
    // How to run as a service depends upon the OS being used
    switch (g_platform_id) {
 
-   // Windows 95/98
+   // Windows 95/98/Me
    case VER_PLATFORM_WIN32_WINDOWS:
       {
       // Obtain a handle to the kernel library
@@ -365,13 +314,13 @@ bacService::BaculaServiceMain()
       }
 
 
-   // Windows NT
+   // Windows NT, Win2K, WinXP 
    case VER_PLATFORM_WIN32_NT:
       {
       // Create a service entry table
       SERVICE_TABLE_ENTRY dispatchTable[] = {
-              {BAC_SERVICENAME, (LPSERVICE_MAIN_FUNCTION)ServiceMain},
-              {NULL, NULL}
+         {BAC_SERVICENAME, (LPSERVICE_MAIN_FUNCTION)ServiceMain},
+         {NULL, NULL}
       };
 
       // Call the service control dispatcher with our entry table
@@ -431,11 +380,11 @@ DWORD WINAPI ServiceWorkThread(LPVOID lpwThreadParam)
     // report the status to the service control manager.
     //
     if (!ReportStatus(
-        SERVICE_RUNNING,       // service state
-        NO_ERROR,              // exit code
-        0)) {                  // wait hint
+          SERVICE_RUNNING,       // service state
+          NO_ERROR,              // exit code
+          0)) {                  // wait hint
        MessageBox(NULL, "Report Service failure", "Bacula Service", MB_OK);
-        log_error_message("ReportStatus RUNNING failed"); 
+       log_error_message("ReportStatus RUNNING failed"); 
        return 0;
     }
 
@@ -498,7 +447,7 @@ bacService::InstallService()
    // How to add the Bacula service depends upon the OS
    switch (g_platform_id) {
 
-           // Windows 95/98
+   // Windows 95/98/Me
    case VER_PLATFORM_WIN32_WINDOWS:
       // Locate the RunService registry entry
       HKEY runservices;
@@ -530,7 +479,7 @@ bacService::InstallService()
               MB_ICONINFORMATION | MB_OK);
       break;
 
-           // Windows NT
+   // Windows NT, Win2K, WinXP
    case VER_PLATFORM_WIN32_NT:
       SC_HANDLE   hservice;
       SC_HANDLE   hsrvmanager;
@@ -571,7 +520,7 @@ bacService::InstallService()
       }
 
       set_service_description(hsrvmanager,hservice, 
-"Provides file backup and restore services. Bacula -- the Network Backup Solution.");
+"Provides file backup and restore services. Bacula -- the network backup solution.");
 
       CloseServiceHandle(hsrvmanager);
       CloseServiceHandle(hservice);
@@ -628,7 +577,7 @@ bacService::RemoveService()
    // How to remove the Bacula service depends upon the OS
    switch (g_platform_id) {
 
-   // Windows 95/98
+   // Windows 95/98/Me
    case VER_PLATFORM_WIN32_WINDOWS:
       // Locate the RunService registry entry
       HKEY runservices;
@@ -660,7 +609,7 @@ bacService::RemoveService()
       MessageBox(NULL, "The Bacula service has been removed", szAppName, MB_ICONINFORMATION | MB_OK);
       break;
 
-   // Windows NT
+   // Windows NT, Win2K, WinXP
    case VER_PLATFORM_WIN32_NT:
       SC_HANDLE   hservice;
       SC_HANDLE   hsrvmanager;
@@ -690,11 +639,11 @@ bacService::RemoveService()
             // Try to stop the Bacula service
             if (ControlService(hservice, SERVICE_CONTROL_STOP, &status)) {
                while(QueryServiceStatus(hservice, &status)) {
-                       if (status.dwCurrentState == SERVICE_STOP_PENDING) {
-                          Sleep(1000);
-                       } else {
-                          break;
-                       }
+                  if (status.dwCurrentState == SERVICE_STOP_PENDING) {
+                     Sleep(1000);
+                  } else {
+                     break;
+                  }
                }
 
                if (status.dwCurrentState != SERVICE_STOPPED) {
@@ -741,9 +690,8 @@ void WINAPI ServiceCtrl(DWORD ctrlcode)
         break;
 
      default:
-         // Control code not recognised
-         break;
-
+        // Control code not recognised
+        break;
     }
 
     // Tell the control manager what we're up to.
@@ -798,19 +746,19 @@ void LogErrorMsg(char *message, char *fname, int lineno)
    // Get the error code
    g_error = GetLastError();
    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER|
-                FORMAT_MESSAGE_FROM_SYSTEM,
-                NULL,
-                g_error,
-                0,
-                (LPTSTR)&msg,
-                0,
-                NULL);
+                 FORMAT_MESSAGE_FROM_SYSTEM,
+                 NULL,
+                 g_error,
+                 0,
+                 (LPTSTR)&msg,
+                 0,
+                 NULL);
 
    // Use event logging to log the error
    heventsrc = RegisterEventSource(NULL, BAC_SERVICENAME);
 
    sprintf(msgbuff, "\n\n%s error: %ld at %s:%d", 
-     BAC_SERVICENAME, g_error, fname, lineno);
+      BAC_SERVICENAME, g_error, fname, lineno);
    strings[0] = msgbuff;
    strings[1] = message;
    strings[2] = msg;
@@ -833,8 +781,8 @@ void LogErrorMsg(char *message, char *fname, int lineno)
    }
    LocalFree(msg);
 }
+typedef BOOL (*WinAPI)(SC_HANDLE, DWORD, LPVOID);
 
-/* ================== Not yet implemented ===================== */
 void set_service_description(SC_HANDLE hSCManager, SC_HANDLE hService,
                              LPSTR lpDesc) 
 { 
@@ -842,63 +790,71 @@ void set_service_description(SC_HANDLE hSCManager, SC_HANDLE hService,
     LPQUERY_SERVICE_LOCK_STATUS lpqslsBuf; 
     SERVICE_DESCRIPTION sdBuf;
     DWORD dwBytesNeeded;
+    WinAPI ChangeServiceDescription;
  
+    HINSTANCE hLib = LoadLibrary("ADVAPI32.DLL");
+    if (!hLib) {
+       return;
+    }
+    ChangeServiceDescription = (WinAPI)GetProcAddress(hLib,
+       "ChangeServiceConfig2A");
+    FreeLibrary(hLib);
+    if (!ChangeServiceDescription) {
+       return;
+    }
+    
     // Need to acquire database lock before reconfiguring. 
- 
     sclLock = LockServiceDatabase(hSCManager); 
  
     // If the database cannot be locked, report the details. 
- 
     if (sclLock == NULL) {
-        // Exit if the database is not locked by another process. 
+       // Exit if the database is not locked by another process. 
+       if (GetLastError() != ERROR_SERVICE_DATABASE_LOCKED) {
+          log_error_message("LockServiceDatabase"); 
+          return;
+       }
  
-        if (GetLastError() != ERROR_SERVICE_DATABASE_LOCKED) {
-            log_error_message("LockServiceDatabase"); 
-            return;
-        }
- 
-        // Allocate a buffer to get details about the lock. 
-        lpqslsBuf = (LPQUERY_SERVICE_LOCK_STATUS)LocalAlloc( 
+       // Allocate a buffer to get details about the lock. 
+       lpqslsBuf = (LPQUERY_SERVICE_LOCK_STATUS)LocalAlloc( 
             LPTR, sizeof(QUERY_SERVICE_LOCK_STATUS)+256); 
-        if (lpqslsBuf == NULL) {
-            log_error_message("LocalAlloc"); 
-            return;
-        }
+       if (lpqslsBuf == NULL) {
+          log_error_message("LocalAlloc"); 
+          return;
+       }
  
-        // Get and print the lock status information. 
+       // Get and print the lock status information. 
+       if (!QueryServiceLockStatus( 
+              hSCManager, 
+              lpqslsBuf, 
+              sizeof(QUERY_SERVICE_LOCK_STATUS)+256, 
+              &dwBytesNeeded)) {
+          log_error_message("QueryServiceLockStatus"); 
+       }
  
-        if (!QueryServiceLockStatus( 
-            hSCManager, 
-            lpqslsBuf, 
-            sizeof(QUERY_SERVICE_LOCK_STATUS)+256, 
-            &dwBytesNeeded)) {
-           log_error_message("QueryServiceLockStatus"); 
-        }
- 
-        if (lpqslsBuf->fIsLocked) {
-            printf("Locked by: %s, duration: %ld seconds\n", 
+       if (lpqslsBuf->fIsLocked) {
+          printf("Locked by: %s, duration: %ld seconds\n", 
                 lpqslsBuf->lpLockOwner, 
                 lpqslsBuf->dwLockDuration); 
-        } else {
-            printf("No longer locked\n"); 
-        }
+       } else {
+          printf("No longer locked\n"); 
+       }
  
-        LocalFree(lpqslsBuf); 
-        log_error_message("Could not lock database"); 
-        return;
+       LocalFree(lpqslsBuf); 
+       log_error_message("Could not lock database"); 
+       return;
     } 
  
     // The database is locked, so it is safe to make changes. 
  
     sdBuf.lpDescription = lpDesc;
 
-    if(!ChangeServiceConfig2(
-        hService,                   // handle to service
-        SERVICE_CONFIG_DESCRIPTION, // change: description
-        &sdBuf) ) {                 // value: new description
+    if(!ChangeServiceDescription(
+         hService,                   // handle to service
+         SERVICE_CONFIG_DESCRIPTION, // change: description
+         &sdBuf) ) {                 // value: new description
        log_error_message("ChangeServiceConfig2");
     } else {
-        printf("ChangeServiceConfig2 SUCCESS\n");
+       printf("ChangeServiceConfig2 SUCCESS\n");
     }
 
     // Release the database lock. 

@@ -64,7 +64,7 @@ void do_restore(JCR *jcr)
    
    wherelen = strlen(jcr->where);
 
-   binit(&bfd, jcr->use_win_backup_api);
+   binit(&bfd);
    sd = jcr->store_bsock;
    set_jcr_job_status(jcr, JS_Running);
 
@@ -269,8 +269,8 @@ void do_restore(JCR *jcr)
          Dmsg1(30, "Outfile=%s\n", ofile);
 	 extract = FALSE;
 	 stat = create_file(jcr, fname, ofile, lname, type, 
-			    stream, &statp, attribsEx, &bfd, jcr->replace, 
-			    jcr->use_win_backup_api);
+			    stream, &statp, attribsEx, &bfd, 
+			    jcr->replace);
 	 switch (stat) {
 	 case CF_ERROR:
 	 case CF_SKIP:

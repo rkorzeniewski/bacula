@@ -273,6 +273,7 @@
 
 #undef HAVE_GETOPT_LONG
 
+#undef HAVE_STRTOLL
 #undef HAVE_INET_PTON
 
 #undef HAVE_SOCKLEN_T

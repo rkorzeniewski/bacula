@@ -26,10 +26,14 @@ For 1.31 release:
 
 - Implement MTIOCERRSTAT on FreeBSD to clear tape error conditions.
 
-- BSD (probably) does not have strtoll()
-- BSD does not have ioctl() MTEOM
-- BSD defines a number of MT_xxx variables which conflict
-  with those defined by Bacula.
+- BSDI
+  cut: illegal option -- b
+  usage:  cut -c list [file1 ...]
+        cut -f list [-s] [-d delim] [file ...]
+  cut: illegal option -- b
+  usage:  cut -c list [file1 ...]
+        cut -f list [-s] [-d delim] [file ...]
+
 
 
 - Add Progress command that periodically reports the progress of
@@ -816,3 +820,8 @@ Done: (see kernsdone for more)
 - The following  Re-read last block at EOT failed. ERR=block.c:523 Read zero bytes on device /dev/nrsa0.
     undef-sd: block.c:523 Read zero bytes on device /dev/nrsa0.
   apparently masks the standard EOM message.
+- BSD (probably) does not have strtoll()
+- BSD does not have ioctl() MTEOM
+- BSD defines a number of MT_xxx variables which conflict
+  with those defined by Bacula.
+

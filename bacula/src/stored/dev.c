@@ -410,6 +410,7 @@ eod_dev(DEVICE *dev)
       }
       return 0;
    }
+#ifdef MTEOM
    if (dev_cap(dev, CAP_EOM)) {
       mt_com.mt_op = MTEOM;
       mt_com.mt_count = 1;
@@ -434,6 +435,9 @@ eod_dev(DEVICE *dev)
     * Rewind then use FSF until EOT reached
     */
    } else {
+#else
+   {
+#endif
       if (!rewind_dev(dev)) {
 	 return 0;
       }
@@ -980,10 +984,12 @@ clrerror_dev(DEVICE *dev, int func)
             msg = "WTWEOF";
 	    dev->capabilities &= ~CAP_EOF; /* turn off feature */
 	    break;
+#ifdef MTEOM
 	 case MTEOM:
             msg = "WTEOM";
 	    dev->capabilities &= ~CAP_EOM; /* turn off feature */
 	    break;
+#endif 
 	 case MTFSF:
             msg = "MTFSF";
 	    dev->capabilities &= ~CAP_FSF; /* turn off feature */

@@ -285,8 +285,6 @@ int encode_attribsEx(void *jcr, char *attribsEx, FF_PKT *ff_pkt)
 
 #ifdef HAVE_CYGWIN
 
-int NoGetFileAttributesEx = 0;
-
 int encode_attribsEx(void *jcr, char *attribsEx, FF_PKT *ff_pkt)
 {
    char *p = attribsEx;
@@ -295,12 +293,12 @@ int encode_attribsEx(void *jcr, char *attribsEx, FF_PKT *ff_pkt)
 
    attribsEx[0] = 0;		      /* no extended attributes */
 
-   if (NoGetFileAttributesEx) {
+   if (!p_GetFileAttributesEx) {
       return STREAM_UNIX_ATTRIBUTES;
    }
 
    unix_name_to_win32(&ff_pkt->sys_fname, ff_pkt->fname);
-   if (!GetFileAttributesEx(ff_pkt->sys_fname, GetFileExInfoStandard,
+   if (!p_GetFileAttributesEx(ff_pkt->sys_fname, GetFileExInfoStandard,
 			    (LPVOID)&atts)) {
       win_error(jcr, "GetFileAttributesEx:", ff_pkt->sys_fname);
       return STREAM_WIN32_ATTRIBUTES;

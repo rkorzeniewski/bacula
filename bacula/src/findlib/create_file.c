@@ -63,14 +63,14 @@ static int path_already_seen(char *path, int pnl);
  */
 int create_file(void *jcr, char *fname, char *ofile, char *lname,
 		int type, int stream, struct stat *statp, 
-		char *attribsEx, BFILE *ofd, int replace, int win_io)
+		char *attribsEx, BFILE *ofd, int replace)
 {
    int new_mode, parent_mode, mode;
    uid_t uid;
    gid_t gid;
    int pnl;
 
-   binit(ofd, win_io);
+   binit(ofd);
    new_mode = statp->st_mode;
    Dmsg2(300, "newmode=%x file=%s\n", new_mode, ofile);
    parent_mode = S_IWUSR | S_IXUSR | new_mode;

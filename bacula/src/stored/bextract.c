@@ -102,7 +102,7 @@ int main (int argc, char *argv[])
 
    memset(ff, 0, sizeof(FF_PKT));
    init_include_exclude_files(ff);
-   binit(&bfd, 0);
+   binit(&bfd);
 
    while ((ch = getopt(argc, argv, "b:c:d:e:i:?")) != -1) {
       switch (ch) {
@@ -374,7 +374,7 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 
 	 extract = FALSE;
 	 stat = create_file(jcr, fname, ofile, lname, type, stream,
-			    &statp, attribsEx, &bfd, REPLACE_ALWAYS, 0);
+			    &statp, attribsEx, &bfd, REPLACE_ALWAYS);	
 	 switch (stat) {
 	 case CF_ERROR:
 	 case CF_SKIP:

@@ -37,11 +37,11 @@ void unix_name_to_win32(POOLMEM **win32_name, char *name);
 extern "C" HANDLE get_osfhandle(int fd);
 
 
-void binit(BFILE *bfd, int use_win_api)
+void binit(BFILE *bfd)
 {
    bfd->fid = -1;
    bfd->mode = BF_CLOSED;
-   bfd->use_win_api = use_win_api;
+   bfd->use_win_api = p_BackupRead && p_BackupWrite;
    bfd->errmsg = NULL;
    bfd->lpContext = NULL;
    bfd->lerror = 0;
@@ -129,7 +129,7 @@ int bclose(BFILE *bfd)
    }
    if (bfd->mode == BF_READ) {
       BYTE buf[10];
-      if (!bfd->lpContext && !BackupRead(bfd->fh,   
+      if (!bfd->lpContext && !p_BackupRead(bfd->fh,   
 	      buf,		      /* buffer */
 	      (DWORD)0, 	      /* bytes to read */
 	      &bfd->rw_bytes,	      /* bytes read */
@@ -140,7 +140,7 @@ int bclose(BFILE *bfd)
       } 
    } else {
       BYTE buf[10];
-      if (!bfd->lpContext && !BackupWrite(bfd->fh,   
+      if (!bfd->lpContext && !p_BackupWrite(bfd->fh,   
 	      buf,		      /* buffer */
 	      (DWORD)0, 	      /* bytes to read */
 	      &bfd->rw_bytes,	      /* bytes written */
@@ -196,7 +196,7 @@ ssize_t bread(BFILE *bfd, void *buf, size_t count)
    }
 
    bfd->rw_bytes = 0;
-   if (!BackupRead(bfd->fh, 
+   if (!p_BackupRead(bfd->fh, 
 	(BYTE *)buf,
 	count,
 	&bfd->rw_bytes,
@@ -216,7 +216,7 @@ ssize_t bwrite(BFILE *bfd, void *buf, size_t count)
    }
 
    bfd->rw_bytes = 0;
-   if (!BackupWrite(bfd->fh,
+   if (!p_BackupWrite(bfd->fh,
 	(BYTE *)buf,
 	count,
 	&bfd->rw_bytes,
@@ -250,7 +250,7 @@ off_t blseek(BFILE *bfd, off_t offset, int whence)
  *
  * ===============================================================
  */
-void binit(BFILE *bfd, int use_win_api)
+void binit(BFILE *bfd)
 {
    bfd->fid = -1;
 }

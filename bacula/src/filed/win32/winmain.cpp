@@ -21,6 +21,8 @@
    Copyright (2000) Kern E. Sibbald
 */
 
+#define HAVE_CYGWIN 1
+
 #include <unistd.h>
 #include <lmcons.h>
 #include <ctype.h>
@@ -29,13 +31,14 @@
 #include "winservice.h"
 #include <signal.h>
 #include <pthread.h>
+#include "../../findlib/winapi.h"
 
 extern int BaculaMain(int argc, char **argv);
 extern int terminate_filed(int sig);
 extern DWORD g_error;
 extern BOOL ReportStatus(DWORD state, DWORD exitcode, DWORD waithint);
 
-
+/* Globals */
 HINSTANCE       hAppInstance;
 const char      *szAppName = "Bacula";
 DWORD           mainthreadId;
@@ -310,6 +313,30 @@ int BaculaAppMain()
 {
 // DWORD dwThreadID;
    pthread_t tid;
+
+   HINSTANCE hLib = LoadLibrary("KERNEL32.DLL");
+   if (hLib) {
+      p_GetFileAttributesEx = (t_GetFileAttributesEx)
+          GetProcAddress(hLib, "GetFileFileAttributesExA");
+      p_SetProcessShutdownParameters = (t_SetProcessShutdownParameters)
+          GetProcAddress(hLib, "SetProcessShutdownParameters");
+      p_BackupRead = (t_BackupRead)
+          GetProcAddress(hLib, "BackupRead");
+      p_BackupWrite = (t_BackupWrite)
+          GetProcAddress(hLib, "BackupWrite");
+      FreeLibrary(hLib);
+    }
+    hLib = LoadLibrary("ADVAPI32.DLL");
+    if (hLib) {
+       p_OpenProcessToken = (t_OpenProcessToken)
+          GetProcAddress(hLib, "OpenProcessToken");
+       p_AdjustTokenPrivileges = (t_AdjustTokenPrivileges)
+          GetProcAddress(hLib, "AdjustTokenPrivileges");
+       p_LookupPrivilegeValue = (t_LookupPrivilegeValue)
+          GetProcAddress(hLib, "LookupPrivilegeValueA");
+       FreeLibrary(hLib);
+    }
+
 
    // Set this process to be the last application to be shut down.
    SetProcessShutdownParameters(0x100, 0);

@@ -189,7 +189,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       return 1;
    }
 
-   binit(&ff_pkt->bfd, jcr->use_win_backup_api);
+   binit(&ff_pkt->bfd);
 
    /* Open any file with data that we intend to save */
    if (ff_pkt->type != FT_LNKSAVED && (S_ISREG(ff_pkt->statp.st_mode) && 

@@ -137,7 +137,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
       return 1;
    }
 
-   binit(&bfd, jcr->use_win_backup_api);
+   binit(&bfd);
 
    if (ff_pkt->type != FT_LNKSAVED && (S_ISREG(ff_pkt->statp.st_mode) && 
 	 ff_pkt->statp.st_size > 0) || 

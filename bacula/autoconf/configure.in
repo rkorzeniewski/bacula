@@ -1051,12 +1051,12 @@ AC_CHECK_FUNCS( \
 	strncmp \
 	strncpy \
 	vfprintf \
-	strtoll \
 	,,
 	[echo 'configure: cannot find needed function.'; exit 1]
 )
 
 AC_CHECK_FUNCS(fchdir, [AC_DEFINE(HAVE_FCHDIR)])
+AC_CHECK_FUNCS(strtoll, [AC_DEFINE(HAVE_STRTOLL)])
 
 AC_CHECK_FUNCS(chflags) 
 
@@ -1382,7 +1382,6 @@ AC_OUTPUT([autoconf/Make.common \
 	   scripts/fd \
 	   scripts/Makefile \
 	   scripts/logrotate \
-	   scripts/bacula.desktop \
 	   scripts/bacula.desktop.gnome1 \
 	   scripts/bacula.desktop.gnome2 \
 	   doc/Makefile \
