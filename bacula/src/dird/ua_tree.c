@@ -163,7 +163,7 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
    new_node->FileIndex = atoi(row[2]);
    new_node->JobId = atoi(row[3]);
    new_node->type = type;
-   new_node->extract = 1;	      /* extract all by default */
+   new_node->extract = true;	      /* extract all by default */
    tree->cnt++;
    return 0;
 }
@@ -174,19 +174,19 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
  *  down the tree setting all children if the 
  *  node is a directory.
  */
-static void set_extract(UAContext *ua, TREE_NODE *node, TREE_CTX *tree, int value)
+static void set_extract(UAContext *ua, TREE_NODE *node, TREE_CTX *tree, bool extract)
 {
    TREE_NODE *n;
    FILE_DBR fdbr;
    struct stat statp;
 
-   node->extract = value;
+   node->extract = extract;
    /* For a non-file (i.e. directory), we see all the children */
    if (node->type != TN_FILE) {
       for (n=node->child; n; n=n->sibling) {
-	 set_extract(ua, n, tree, value);
+	 set_extract(ua, n, tree, extract);
       }
-   } else if (value) {
+   } else if (extract) {
       char cwd[2000];
       /* Ordinary file, we get the full path, look up the
        * attributes, decode them, and if we are hard linked to
@@ -206,7 +206,7 @@ static void set_extract(UAContext *ua, TREE_NODE *node, TREE_CTX *tree, int valu
 	 if (LinkFI) {
 	    for (n=first_tree_node(tree->root); n; n=next_tree_node(n)) {
 	       if (n->FileIndex == LinkFI && n->JobId == node->JobId) {
-		  n->extract = 1;
+		  n->extract = true;
 		  break;
 	       }
 	    }
@@ -226,7 +226,7 @@ static int markcmd(UAContext *ua, TREE_CTX *tree)
    }
    for (node = tree->node->child; node; node=node->sibling) {
       if (fnmatch(ua->argk[1], node->fname, 0) == 0) {
-	 set_extract(ua, node, tree, 1);
+	 set_extract(ua, node, tree, true);
       }
    }
    return 1;
@@ -234,18 +234,18 @@ static int markcmd(UAContext *ua, TREE_CTX *tree)
 
 static int countcmd(UAContext *ua, TREE_CTX *tree)
 {
-   int total, extract;
+   int total, num_extract;
 
-   total = extract = 0;
+   total = num_extract = 0;
    for (TREE_NODE *node=first_tree_node(tree->root); node; node=next_tree_node(node)) {
       if (node->type != TN_NEWDIR) {
 	 total++;
 	 if (node->extract) {
-	    extract++;
+	    num_extract++;
 	 }
       }
    }
-   bsendmsg(ua, "%d total files. %d marked for restoration.\n", total, extract);
+   bsendmsg(ua, "%d total files. %d marked for restoration.\n", total, num_extract);
    return 1;
 }
 
@@ -293,7 +293,7 @@ extern char *getgroup(gid_t gid);
 /*
  * This is actually the long form used for "dir"
  */
-static void ls_output(char *buf, char *fname, int extract, struct stat *statp)
+static void ls_output(char *buf, char *fname, bool extract, struct stat *statp)
 {
    char *p, *f;
    char ec1[30];
@@ -421,7 +421,7 @@ static int unmarkcmd(UAContext *ua, TREE_CTX *tree)
    }
    for (node = tree->node->child; node; node=node->sibling) {
       if (fnmatch(ua->argk[1], node->fname, 0) == 0) {
-	 set_extract(ua, node, tree, 0);
+	 set_extract(ua, node, tree, false);
       }
    }
    return 1;

@@ -45,6 +45,7 @@ For 1.33
 - Finish implementation of Verify=DiskToCatalog
 - Change console to bconsole.
 - Change smtp to bsmtp.
+- Possibly up network buffers to 65K.
 - Add device name to "Current Volume not acceptable because ..."
 - Make sure that Bacula rechecks the tape after the 20 min wait.
 - Set IO_NOWAIT on Bacula TCP/IP packets.
@@ -1069,4 +1070,3 @@ Done: (see kernsdone for more)
 - Document need to put LabelFormat in quotes.
 - Implement job in VerifyToCatalog
 - Eliminate ua_retention.c (retentioncmd) if possible.
-

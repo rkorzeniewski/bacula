@@ -76,7 +76,7 @@ Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 
 clean:
 	@$(RMF) gnome-console core core.* a.out *.o *.bak *~ *.intpro *.extpro 1 2 3
-	@$(RMF) static-gnome-console
+	@$(RMF) static-gnome-console gmon.out
 
 realclean: clean
 	@$(RMF) tags
