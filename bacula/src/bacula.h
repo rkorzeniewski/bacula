@@ -72,6 +72,7 @@
 #include <limits.h>
 #endif
 #include <pwd.h>
+#include <grp.h>
 #include <time.h>
 #include <netdb.h>
 #include <sys/types.h>

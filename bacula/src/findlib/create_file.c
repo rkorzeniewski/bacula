@@ -39,7 +39,7 @@
 #endif
 
 static int separate_path_and_file(JCR *jcr, char *fname, char *ofile);
-static int path_already_seen(char *path, int pnl);
+static int path_already_seen(JCR *jcr, char *path, int pnl);
 
 
 /*
@@ -144,7 +144,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
 	 savechr = attr->ofname[pnl];
 	 attr->ofname[pnl] = 0; 		/* terminate path */
 
-	 if (!path_already_seen(attr->ofname, pnl)) {
+	 if (!path_already_seen(jcr, attr->ofname, pnl)) {
             Dmsg1(50, "Make path %s\n", attr->ofname);
 	    /*
 	     * If we need to make the directory, ensure that it is with
@@ -171,9 +171,8 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
 	 }
          Dmsg1(50, "Create file: %s\n", attr->ofname);
 	 if ((bopen(bfd, attr->ofname, mode, S_IRUSR | S_IWUSR)) < 0) {
-            Jmsg2(jcr, M_ERROR, 0, _("Could not create %s: %d ERR=%s\n"), 
+            Jmsg2(jcr, M_ERROR, 0, _("Could not create %s: ERR=%s\n"), 
 		  attr->ofname, berror(bfd));
-
 	    return CF_ERROR;
 	 }
 	 return CF_EXTRACT;
@@ -310,26 +309,19 @@ static int separate_path_and_file(JCR *jcr, char *fname, char *ofile)
    return pnl;
 }
 
-static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-
 /* 
  * Primitive caching of path to prevent recreating a pathname 
  *   each time as long as we remain in the same directory.
  */
-static int path_already_seen(char *path, int pnl)
+static int path_already_seen(JCR *jcr, char *path, int pnl)
 {
-   static int cached_pnl = 0;
-   static char cached_path[1000];
-
-   P(mutex);
-   if (cached_pnl == pnl && strcmp(path, cached_path) == 0) {
-      V(mutex);
+   if (!jcr->cached_path) {
+      jcr->cached_path = get_pool_memory(PM_FNAME);
+   }
+   if (jcr->cached_pnl == pnl && strcmp(path, jcr->cached_path) == 0) {
       return 1;
    }
-   if (pnl < (int)(sizeof(cached_path)-1)) {
-      strcpy(cached_path, path);
-      cached_pnl = pnl;
-   }
-   V(mutex);
+   pm_strcpy(&jcr->cached_path, path);
+   jcr->cached_pnl = pnl;
    return 0;
 }
