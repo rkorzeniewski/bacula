@@ -226,7 +226,7 @@ static void *msg_thread(void *arg)
    /* Read the Storage daemon's output.
     */
    Dmsg0(200, "Start msg_thread loop\n");
-   while ((stat=bget_msg(sd, 0)) >= 0) {
+   while ((stat=bget_dirmsg(sd)) >= 0) {
       Dmsg1(200, "<stored: %s", sd->msg);
       if (sscanf(sd->msg, Job_start, &Job) == 1) {
 	 continue;

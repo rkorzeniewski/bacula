@@ -36,6 +36,9 @@ extern void *handle_client_request(void *dir_sock);
 void terminate_filed(int sig);
 
 /* Exported variables */
+CLIENT *me;			      /* my resource */
+char OK_msg[]   = "2000 OK\n";
+char TERM_msg[] = "2999 Terminate\n";
 
 
 #ifdef HAVE_CYGWIN
@@ -52,7 +55,6 @@ static int foreground = 0;
 static int inetd_request = 0;
 static workq_t dir_workq;	      /* queue of work from Director */
 
-CLIENT *me;			      /* my resource */
 
 static void usage()
 {

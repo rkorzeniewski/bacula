@@ -36,7 +36,7 @@
  * Send heartbeats to the Director every HB_TIME
  *   seconds.
  */
-static void *heartbeat_thread(void *arg)
+static void *sd_heartbeat_thread(void *arg)
 {
    int32_t n;
    JCR *jcr = (JCR *)arg;
@@ -50,7 +50,7 @@ static void *heartbeat_thread(void *arg)
    sd = dup_bsock(jcr->store_bsock);
    dir = dup_bsock(jcr->dir_bsock);
 
-   jcr->duped_sd = sd;
+   jcr->hb_bsock = sd;
 
    /* Hang reading the socket to the SD, and every time we get
     *	a heartbeat, we simply send it on to the Director to
@@ -72,43 +72,80 @@ static void *heartbeat_thread(void *arg)
    }
    bnet_close(sd);
    bnet_close(dir);
-   jcr->duped_sd = NULL;
+   jcr->hb_bsock = NULL;
    return NULL;
 }
 
 /* Startup the heartbeat thread -- see above */
 void start_heartbeat_monitor(JCR *jcr)
 {
-   jcr->duped_sd = NULL;
-   pthread_create(&jcr->heartbeat_id, NULL, heartbeat_thread, (void *)jcr);
+   jcr->hb_bsock = NULL;
+   pthread_create(&jcr->heartbeat_id, NULL, sd_heartbeat_thread, (void *)jcr);
 }
 
-/* Terminate the heartbeat thread */
+/* Terminate the heartbeat thread. Used for both SD and DIR */
 void stop_heartbeat_monitor(JCR *jcr) 
 {
    /* Wait for heartbeat thread to start */
-   while (jcr->duped_sd == NULL) {
+   while (jcr->hb_bsock == NULL) {
       bmicrosleep(0, 50);	      /* avoid race */
    }
-   jcr->duped_sd->timed_out = 1;      /* set timed_out to terminate read */
-   jcr->duped_sd->terminated = 1;     /* set to terminate read */
+   jcr->hb_bsock->timed_out = 1;      /* set timed_out to terminate read */
+   jcr->hb_bsock->terminated = 1;     /* set to terminate read */
 
    /* Wait for heartbeat thread to stop */
-   while (jcr->duped_sd) {
+   while (jcr->hb_bsock) {
       pthread_kill(jcr->heartbeat_id, TIMEOUT_SIGNAL);	/* make heartbeat thread go away */
-      bmicrosleep(0, 20);
+      bmicrosleep(0, 500);
    }
 }
 
+/*
+ * Thread for sending heartbeats to the Director when there
+ *   is no SD monitoring needed -- e.g. restore and verify Vol
+ *   both do their own read() on the SD socket.
+ */
+static void *dir_heartbeat_thread(void *arg)
+{
+   JCR *jcr = (JCR *)arg;
+   BSOCK *dir;
+   time_t last_heartbeat = time(NULL);
+
+   pthread_detach(pthread_self());
+
+   /* Get our own local copy */
+   dir = dup_bsock(jcr->dir_bsock);
+
+   jcr->hb_bsock = dir;
+
+   for ( ; !is_bnet_stop(dir); ) {
+      time_t now, next;
+
+      now = time(NULL);
+      next = now - last_heartbeat;
+      if (next >= me->heartbeat_interval) {
+	 bnet_sig(dir, BNET_HEARTBEAT);
+	 last_heartbeat = now;
+      }
+      bmicrosleep(next, 0);
+   }
+   bnet_close(dir);
+   jcr->hb_bsock = NULL;
+   return NULL;
+}
 /*
  * Same as above but we don't listen to the SD
  */
 void start_dir_heartbeat(JCR *jcr)
 {
-   /* ***FIXME*** implement */
+   if (me->heartbeat_interval) {
+      pthread_create(&jcr->heartbeat_id, NULL, dir_heartbeat_thread, (void *)jcr);
+   }
 }
 
 void stop_dir_heartbeat(JCR *jcr)
 {
-   /* ***FIXME*** implement */
+   if (me->heartbeat_interval) {
+      stop_heartbeat_monitor(jcr);
+   }
 }

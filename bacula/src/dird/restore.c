@@ -253,7 +253,7 @@ int do_restore(JCR *jcr)
 
    /* Wait for Job Termination */
    Dmsg0(20, "wait for job termination\n");
-   while (bget_msg(fd, 0) >= 0) {
+   while (bget_dirmsg(fd) >= 0) {
       Dmsg1(100, "dird<filed: %s\n", fd->msg);
       if (sscanf(fd->msg, EndRestore, &jcr->FDJobStatus, &jcr->JobFiles,
 	  &jcr->JobBytes) == 3) {

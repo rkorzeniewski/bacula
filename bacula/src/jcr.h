@@ -179,7 +179,7 @@ struct s_jcr {
    uint32_t EndBlock;
    int use_win_backup_api;            /* set to use native Win API */
    pthread_t heartbeat_id;            /* id of heartbeat thread */
-   BSOCK *duped_sd;                   /* duped SD socket */
+   BSOCK *hb_bsock;                   /* duped SD socket */
 #endif /* FILE_DAEMON */
 
 

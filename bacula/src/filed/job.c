@@ -531,7 +531,7 @@ static int backup_cmd(JCR *jcr)
    /* 
     * Expect to receive back the Ticket number
     */
-   if (bnet_recv(sd) >= 0) {
+   if (bget_msg(sd) >= 0) {
       Dmsg1(110, "<stored: %s", sd->msg);
       if (sscanf(sd->msg, OK_open, &jcr->Ticket) != 1) {
          Jmsg(jcr, M_FATAL, 0, _("Bad response to append open: %s\n"), sd->msg);
@@ -595,7 +595,7 @@ static int backup_cmd(JCR *jcr)
        * Send Append Close to Storage daemon
        */
       bnet_fsend(sd, append_close, jcr->Ticket);
-      while (bnet_recv(sd) >= 0) {    /* stop on signal or error */
+      while (bget_msg(sd) >= 0) {    /* stop on signal or error */
 	 if (sscanf(sd->msg, OK_close, &SDJobStatus) == 1) {
 	    ok = 1;
             Dmsg2(200, "SDJobStatus = %d %c\n", SDJobStatus, (char)SDJobStatus);
@@ -678,7 +678,7 @@ static int verify_cmd(JCR *jcr)
       Dmsg1(130, "bfiled>stored: %s", sd->msg);
 
       /* ****FIXME**** check response */
-      bnet_recv(sd);			 /* get OK */
+      bget_msg(sd);			 /* get OK */
 
       /* Inform Storage daemon that we are done */
       bnet_sig(sd, BNET_TERMINATE);
@@ -761,7 +761,7 @@ static int restore_cmd(JCR *jcr)
    bnet_fsend(sd, read_close, jcr->Ticket);
    Dmsg1(130, "bfiled>stored: %s", sd->msg);
 
-   bnet_recv(sd);		      /* get OK */
+   bget_msg(sd);		      /* get OK */
 
    /* Inform Storage daemon that we are done */
    bnet_sig(sd, BNET_TERMINATE);
@@ -800,7 +800,7 @@ static int open_sd_read_session(JCR *jcr)
    /* 
     * Get ticket number
     */
-   if (bnet_recv(sd) >= 0) {
+   if (bget_msg(sd) >= 0) {
       Dmsg1(110, "bfiled<stored: %s", sd->msg);
       if (sscanf(sd->msg, OK_open, &jcr->Ticket) != 1) {
          Jmsg(jcr, M_FATAL, 0, _("Bad response to SD read open: %s\n"), sd->msg);
@@ -867,7 +867,7 @@ int response(JCR *jcr, BSOCK *sd, char *resp, char *cmd)
    if (sd->errors) {
       return 0;
    }
-   if ((n = bnet_recv(sd)) > 0) {
+   if ((n = bget_msg(sd)) > 0) {
       Dmsg0(110, sd->msg);
       if (strcmp(sd->msg, resp) == 0) {
 	 return 1;

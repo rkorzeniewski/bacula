@@ -64,7 +64,7 @@ static char OK_msg[] = "1000 OK\n";
  *	 any message beginning with Jmsg will be processed.
  *
  */
-int32_t bget_msg(BSOCK *bs, int rtn)
+int bget_dirmsg(BSOCK *bs)
 {
    int32_t n;
    char Job[MAX_NAME_LENGTH];
@@ -75,7 +75,7 @@ int32_t bget_msg(BSOCK *bs, int rtn)
 
    for (;;) {
       n = bnet_recv(bs);
-      Dmsg2(120, "bget_msg %d: %s\n", n, bs->msg);
+      Dmsg2(120, "bget_dirmsg %d: %s\n", n, bs->msg);
 
       if (is_bnet_stop(bs)) {
 	 return n;		      /* error or terminate */
@@ -105,7 +105,7 @@ int32_t bget_msg(BSOCK *bs, int rtn)
 	    bnet_sig(bs, BNET_EOD);
 	    break;
 	 default:
-            Emsg1(M_WARNING, 0, _("bget_msg: unknown bnet signal %d\n"), bs->msglen);
+            Emsg1(M_WARNING, 0, _("bget_dirmsg: unknown bnet signal %d\n"), bs->msglen);
 	    return n;
 	 }
 	 continue;
@@ -216,7 +216,7 @@ int response(BSOCK *fd, char *resp, char *cmd, int prtmsg)
    if (is_bnet_error(fd)) {
       return 0;
    }
-   if ((n = bget_msg(fd, 0)) >= 0) {
+   if ((n = bget_dirmsg(fd)) >= 0) {
       Dmsg0(110, fd->msg);
       if (strcmp(fd->msg, resp) == 0) {
 	 return 1;

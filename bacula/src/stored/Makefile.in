@@ -21,13 +21,13 @@ dummy:
 SVRSRCS = stored.c autochanger.c acquire.c append.c \
 	  askdir.c authenticate.c \
 	  block.c dev.c \
-	  device.c dircmd.c fd_cmds.c fdmsg.c job.c \
+	  device.c dircmd.c fd_cmds.c job.c \
 	  label.c match_bsr.c parse_bsr.c \
 	  read.c record.c stored_conf.c mount.c
 SVROBJS = stored.o autochanger.o acquire.o append.o \
 	  askdir.o authenticate.o \
 	  block.o dev.o \
-	  device.o dircmd.o fd_cmds.o fdmsg.o job.o \
+	  device.o dircmd.o fd_cmds.o job.o \
 	  label.o match_bsr.o mount.o parse_bsr.o \
 	  read.o record.o stored_conf.o
 

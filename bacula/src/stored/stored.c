@@ -44,20 +44,18 @@ static void *device_allocation(void *arg);
 
 
 /* Global variables exported */
+char OK_msg[]   = "3000 OK\n";
+char TERM_msg[] = "3999 Terminate\n";
+STORES *me;			      /* our Global resource */
 
-
-/* This is our own global resource */
-STORES *me;
-
-static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static uint32_t VolSessionId = 0;
 uint32_t VolSessionTime;
-
 char *configfile;
+
+/* Global static variables */
 static int foreground = 0;
-
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static workq_t dird_workq;	      /* queue for processing connections */
-
 
 static void usage()
 {

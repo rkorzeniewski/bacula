@@ -288,7 +288,7 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
 
    Dmsg0(120, "bdird: waiting to receive file attributes\n");
    /* Pickup file attributes and signature */
-   while (!fd->errors && (n = bget_msg(fd, 0)) > 0) {
+   while (!fd->errors && (n = bget_dirmsg(fd)) > 0) {
 
    /*****FIXME****** improve error handling to stop only on 
     * really fatal problems, or the number of errors is too

@@ -75,7 +75,7 @@ void do_verify_volume(JCR *jcr)
    /* 
     * Get a record from the Storage daemon
     */
-   while (bnet_recv(sd) >= 0 && !job_canceled(jcr)) {
+   while (bget_msg(sd) >= 0 && !job_canceled(jcr)) {
       /*
        * First we expect a Stream Record Header 
        */
@@ -89,7 +89,7 @@ void do_verify_volume(JCR *jcr)
       /* 
        * Now we expect the Stream Data
        */
-      if (bnet_recv(sd) < 0 && !job_canceled(jcr)) {
+      if (bget_msg(sd) < 0) {
          Jmsg1(jcr, M_FATAL, 0, _("Data record error. ERR=%s\n"), bnet_strerror(sd));
 	 goto bail_out;
       }

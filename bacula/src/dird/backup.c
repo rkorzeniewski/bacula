@@ -273,7 +273,7 @@ static int wait_for_job_termination(JCR *jcr)
 
    set_jcr_job_status(jcr, JS_Running);
    /* Wait for Client to terminate */
-   while ((n = bget_msg(fd, 0)) >= 0) {
+   while ((n = bget_dirmsg(fd)) >= 0) {
       if (sscanf(fd->msg, EndBackup, &jcr->FDJobStatus, &jcr->JobFiles,
 	  &jcr->ReadBytes, &jcr->JobBytes) == 4) {
 	 fd_ok = TRUE;

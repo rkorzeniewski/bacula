@@ -396,7 +396,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
     *	Attributes
     *	Link name  ???
     */
-   while ((n=bget_msg(fd, 0)) >= 0 && !job_canceled(jcr)) {
+   while ((n=bget_dirmsg(fd)) >= 0 && !job_canceled(jcr)) {
       int stream;
       char *attr, *p, *fn;
       char Opts_SIG[MAXSTRING];        /* Verify Opts or MD5/SHA1 signature */
