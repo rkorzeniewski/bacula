@@ -170,11 +170,9 @@ void run_job(JCR *jcr)
  */
 static void *job_thread(void *arg)
 {
-   time_t now;
    JCR *jcr = (JCR *)arg;
 
    pthread_detach(pthread_self());
-   time(&now);
    sm_check(__FILE__, __LINE__, True);
 
    if (!acquire_resource_locks(jcr)) {
@@ -182,7 +180,7 @@ static void *job_thread(void *arg)
    }
 
    Dmsg0(200, "=====Start Job=========\n");
-   jcr->start_time = now;	      /* set the real start time */
+   jcr->start_time = time(NULL);      /* set the real start time */
    Dmsg2(200, "jcr->JobStatus=%d %c\n", jcr->JobStatus, (char)jcr->JobStatus);
    if (job_cancelled(jcr)) {
       update_job_end_record(jcr);
