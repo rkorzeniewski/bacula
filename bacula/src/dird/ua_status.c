@@ -69,7 +69,7 @@ int statuscmd(UAContext *ua, char *cmd)
 	 }
 	 return 1;
       } else {
-	 store = get_storage_resource(ua, cmd, 0);
+	 store = get_storage_resource(ua, 0);
 	 if (store) {
 	    do_storage_status(ua, store);
 	 }

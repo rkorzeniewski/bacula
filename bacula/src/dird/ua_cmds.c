@@ -60,6 +60,7 @@ extern int purgecmd(UAContext *ua, char *cmd);
 extern int restorecmd(UAContext *ua, char *cmd);
 extern int labelcmd(UAContext *ua, char *cmd);
 extern int relabelcmd(UAContext *ua, char *cmd);
+extern int update_slots(UAContext *ua);  /* ua_label.c */
 
 /* Forward referenced functions */
 static int addcmd(UAContext *ua, char *cmd),  createcmd(UAContext *ua, char *cmd), cancelcmd(UAContext *ua, char *cmd);
@@ -211,7 +212,7 @@ static int addcmd(UAContext *ua, char *cmd)
    }
 
    /* Get media type */
-   if ((store = get_storage_resource(ua, cmd, 0)) != NULL) {
+   if ((store = get_storage_resource(ua, 0)) != NULL) {
       strcpy(mr.MediaType, store->media_type);
    } else if (!get_media_type(ua, mr.MediaType, sizeof(mr.MediaType))) {
       return 1;
@@ -595,9 +596,10 @@ Use update to change it.\n"), pool->hdr.name);
 static int updatecmd(UAContext *ua, char *cmd) 
 {
    static char *kw[] = {
-      N_("media"),
-      N_("volume"),
-      N_("pool"),
+      N_("media"),  /* 0 */
+      N_("volume"), /* 1 */
+      N_("pool"),   /* 2 */
+      N_("slots"),  /* 3 */
       NULL};
 
    if (!open_db(ua)) {
@@ -612,6 +614,9 @@ static int updatecmd(UAContext *ua, char *cmd)
       case 2:
 	 update_pool(ua);
 	 return 1;
+      case 3:
+	 update_slots(ua);
+	 return 1;
       default:
 	 break;
    }
@@ -619,12 +624,16 @@ static int updatecmd(UAContext *ua, char *cmd)
    start_prompt(ua, _("Update choice:\n"));
    add_prompt(ua, _("Volume parameters"));
    add_prompt(ua, _("Pool from resource"));
+   add_prompt(ua, _("Slots from autochanger"));
    switch (do_prompt(ua, _("Choose catalog item to update"), NULL, 0)) {
       case 0:
 	 update_volume(ua);
 	 break;
       case 1:
 	 update_pool(ua);
+	 break;
+      case 2:
+	 update_slots(ua);
 	 break;
       default:
 	 break;
@@ -1134,7 +1143,7 @@ static int setdebugcmd(UAContext *ua, char *cmd)
 	       return 1;
 	    }
 	 }
-	 store = get_storage_resource(ua, cmd, 0);
+	 store = get_storage_resource(ua, 0);
 	 if (store) {
 	    do_storage_setdebug(ua, store, level);
 	    return 1;
@@ -1155,7 +1164,7 @@ static int setdebugcmd(UAContext *ua, char *cmd)
 	 debug_level = level;
 	 break;
       case 1:
-	 store = get_storage_resource(ua, cmd, 0);
+	 store = get_storage_resource(ua, 0);
 	 if (store) {
 	    do_storage_setdebug(ua, store, level);
 	 }
@@ -1294,7 +1303,7 @@ static void do_mount_cmd(int mount, UAContext *ua, char *cmd)
    }
    Dmsg1(120, "mount: %s\n", ua->UA_sock->msg);
 
-   store = get_storage_resource(ua, cmd, 1);
+   store = get_storage_resource(ua, 1);
    if (!store) {
       return;
    }

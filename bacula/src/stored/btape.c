@@ -645,13 +645,7 @@ static int re_read_block_test()
    }
    for (int i=0; i<len; i++) {
       if (rec->data[i] != 3) {
-         Pmsg0(0, _("Bad data in record. Test failed!\n"
-                    "This is not terribly serious since Bacula only uses\n"
-                    "This function to verify the last block written to the\n"
-                    "tape. Bacula will skip the last block verification\n"
-                    "if you add:\n\n"
-               "Backward Space Record = No\n\n"
-               "to your Storage daemon's Device resource definition.\n"));
+         Pmsg0(0, _("Bad data in record. Test failed!\n"));
 	 goto bail_out;
       }
    }
@@ -663,6 +657,14 @@ static int re_read_block_test()
 bail_out:
    free_block(block);
    free_record(rec);
+   if (stat == 0) {
+      Pmsg0(0, _("This is not terribly serious since Bacula only uses\n"
+                 "this function to verify the last block written to the\n"
+                 "tape. Bacula will skip the last block verification\n"
+                 "if you add:\n\n"
+                  "Backward Space Record = No\n\n"
+                  "to your Storage daemon's Device resource definition.\n"));
+   }   
    return stat;
 }
 

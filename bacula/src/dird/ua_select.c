@@ -669,7 +669,7 @@ int do_prompt(UAContext *ua, char *msg, char *prompt, int max_prompt)
  * If use_default is set, we assume that any keyword without a value
  *   is the name of the Storage resource wanted.
  */
-STORE *get_storage_resource(UAContext *ua, char *cmd, int use_default)
+STORE *get_storage_resource(UAContext *ua, int use_default)
 {
    char *store_name = NULL;
    STORE *store = NULL;

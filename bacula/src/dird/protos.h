@@ -111,7 +111,7 @@ void    start_prompt(UAContext *ua, char *msg);
 void    add_prompt(UAContext *ua, char *prompt);
 int     do_prompt(UAContext *ua, char *msg, char *prompt, int max_prompt);
 CAT    *get_catalog_resource(UAContext *ua);           
-STORE  *get_storage_resource(UAContext *ua, char *cmd, int use_default);
+STORE  *get_storage_resource(UAContext *ua, int use_default);
 int     get_media_type(UAContext *ua, char *MediaType, int max_media);
 int     get_pool_dbr(UAContext *ua, POOL_DBR *pr);
 int     get_client_dbr(UAContext *ua, CLIENT_DBR *cr);

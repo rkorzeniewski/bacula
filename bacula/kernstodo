@@ -20,8 +20,7 @@ Testing to do: (painful)
 - multiple simultaneous Volumes
 
 For 1.30 release:
-- Label barcodes prints 
-   Storage resource barcodes: not found
+- Update volume=Test01 requests pool, then lists volumes.
 - Add IP address to authentication failures. Implement M_SECURITY
   message class.
 - Remove kern and kelvin from mysql_grant...
