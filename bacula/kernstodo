@@ -43,6 +43,10 @@ For 1.33 Testing/Documentation:
 
 
 For version 1.35:
+- Add a "base" package to the window installer for pthreadsVCE.dll
+  which is needed by all packages.
+- Add message to user to check for fixed block size when the forward
+  space test fails in btape.
 - When unmarking a directory check if all files below are unmarked and
   then remove the + flag -- in the restore tree.
 - Possibly implement: Action = Unmount Device="TapeDrive1" in Admin jobs.

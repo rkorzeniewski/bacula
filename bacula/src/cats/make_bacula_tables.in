@@ -5,7 +5,7 @@
 #
 if test xsqlite = x@DB_NAME@ ; then
   echo "Making SQLite tables"
-  @scriptdir@/make_sqlite_tables
+  @scriptdir@/make_sqlite_tables $*
 else
   if test xmysql = x@DB_NAME@ ; then 
     echo "Making MySQL tables"
@@ -13,6 +13,6 @@ else
   else
     echo "Making PostgreSQL tables"
     # hard coded database name
-    @scriptdir@/make_postgresql_tables bacula
+    @scriptdir@/make_postgresql_tables $*
   fi
 fi

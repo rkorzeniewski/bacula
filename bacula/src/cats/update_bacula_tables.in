@@ -5,7 +5,7 @@
 #
 if test xsqlite = x@DB_NAME@ ; then
   echo "Altering SQLite tables"
-  @scriptdir@/update_sqlite_tables
+  @scriptdir@/update_sqlite_tables $*
 fi
 if test xmysql = x@DB_NAME@ ; then
   echo "Altering MySQL tables"
@@ -13,6 +13,5 @@ if test xmysql = x@DB_NAME@ ; then
 fi
 if test xpostgresql = x@DB_NAME@ ; then
   echo "Altering PostgreSQL tables"
-  # we need the bacula datbase name in here... Should not be hardcoded
-  @scriptdir@/update_postgresql_tables bacula
+  @scriptdir@/update_postgresql_tables $*
 fi

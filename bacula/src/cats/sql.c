@@ -276,6 +276,19 @@ void db_start_transaction(JCR *jcr, B_DB *mdb)
    db_unlock(mdb);
 #endif
 
+#ifdef HAVE_POSTGRESQL
+   db_lock(mdb);
+   /* Allow only 25,000 changes per transaction */
+   if (mdb->transaction && mdb->changes > 25000) {
+      db_end_transaction(jcr, mdb);
+   }
+   if (!mdb->transaction) {   
+      db_sql_query(mdb, "BEGIN", NULL, NULL);  /* begin transaction */
+      Dmsg0(400, "Start SQLite transaction\n");
+      mdb->transaction = 1;
+   }
+   db_unlock(mdb);
+#endif
 }
 
 void db_end_transaction(JCR *jcr, B_DB *mdb)
@@ -284,6 +297,17 @@ void db_end_transaction(JCR *jcr, B_DB *mdb)
    db_lock(mdb);
    if (mdb->transaction) {
       my_sqlite_query(mdb, "COMMIT"); /* end transaction */
+      mdb->transaction = 0;
+      Dmsg1(400, "End SQLite transaction changes=%d\n", mdb->changes);
+   }
+   mdb->changes = 0;
+   db_unlock(mdb);
+#endif
+
+#ifdef HAVE_POSTGRESQL
+   db_lock(mdb);
+   if (mdb->transaction) {
+      db_sql_query(mdb, "COMMIT", NULL, NULL); /* end transaction */
       mdb->transaction = 0;
       Dmsg1(400, "End SQLite transaction changes=%d\n", mdb->changes);
    }

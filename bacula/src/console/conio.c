@@ -178,12 +178,6 @@ static short char_map[600]= {
   };
 
 
-#define NVID  0x1E		      /* normal video -- blue */
-#define RVID  0x4F		      /* reverse video -- red */
-#define MNVID 0x07		      /* normal video (monochrome tube) */
-#define MRVID 0x70		      /* reverse video (monochrome tube) */
-
-
 /* Local variables */
 
 #define CR '\r'                       /* carriage return */
@@ -425,189 +419,190 @@ input_char()
 int
 input_line(char *string, int length)
 {
-   char curline[200];		      /* edit buffer */
+   char curline[2000];		      /* edit buffer */
    int noline;
    int c;
 
     if (first) {
-	poolinit();		      /* build line pool */
-	first = 0;
+       poolinit();		     /* build line pool */
+       first = 0;
     }
     noline = 1; 		      /* no line fetched yet */
     for (cl=cp=0; cl<length && cl<(int)sizeof(curline); ) {
-	if (usrbrk()) {
-	   clrbrk();
+       if (usrbrk()) {
+	  clrbrk();
+	  break;
+       }
+       switch (c=(int)input_char()) {
+       case F_RETURN:		     /* CR */
+           t_sendl("\r\n", 2);       /* yes, print it and */
+	   goto done;		     /* get out */
+       case F_CLRSCRN:		     /* clear screen */
+	  asclrs();
+	  t_sendl(curline, cl);
+	  ascurs(0, cp);
+	  break;
+       case F_CSRUP:
+	   if (noline) {	     /* no line fetched yet */
+	       getnext();	     /* getnext so getprev gets current */
+	       noline = 0;	     /* we now have line */
+	   }
+	   bstrncpy(curline, getprev(), sizeof(curline));
+	   prtcur(curline);
 	   break;
-	}
-	switch (c=(int)input_char()) {
-	case F_RETURN:		      /* CR */
-            t_sendl("\r\n", 2);       /* yes, print it and */
-	    goto done;		      /* get out */
-	case F_CLRSCRN: 	      /* clear screen */
-	   asclrs();
-	   t_sendl(curline, cl);
-	   ascurs(0, cp);
+       case F_CSRDWN:
+	   noline = 0;		     /* mark line fetched */
+	   bstrncpy(curline, getnext(), sizeof(curline));
+	   prtcur(curline);
 	   break;
-	case F_CSRUP:
-	    if (noline) {	      /* no line fetched yet */
-		getnext();	      /* getnext so getprev gets current */
-		noline = 0;	      /* we now have line */
-	    }
-	    bstrncpy(curline, getprev(), sizeof(curline));
-	    prtcur(curline);
-	    break;
-	case F_CSRDWN:
-	    noline = 0; 	      /* mark line fetched */
-	    bstrncpy(curline, getnext(), sizeof(curline));
-	    prtcur(curline);
-	    break;
-	case F_INSCHR:
-	    insert_space(curline, sizeof(curline));
-	    break;
-	case F_DELCHR:
-	    delchr(1, curline, sizeof(curline));       /* delete one character */
-	    break;
-	case F_CSRLFT:		      /* Backspace */
-	    backup(1);
-	    break;
-	case F_CSRRGT:
-	    forward(1,curline, sizeof(curline));
-	    break;
-	case F_ERSCHR:		      /* Rubout */
-	    backup(1);
-	    delchr(1, curline, sizeof(curline));
-	    break;
-	case F_DELEOL:
-	    t_clrline(0, t_width);
-	    if (cl > cp)
-		cl = cp;
-	    break;
-	case F_NXTWRD:
-	    forward(next_word(curline),curline, sizeof(curline));
-	    break;
-	case F_PRVWRD:
-	    backup(prev_word(curline));
-	    break;
-	case F_DELWRD:
-	    delchr(next_word(curline), curline, sizeof(curline)); /* delete word */
-	    break;
-	case F_NXTMCH:		      /* Ctl-X */
-	    if (cl==0) {
-		*string = EOS;	      /* terminate string */
-		return(c);	      /* give it to him */
-	    }
-	    /* Note fall through */
-	case F_DELLIN:
-	case F_ERSLIN:
-	    backup(cp); 	      /* backup to beginning of line */
-	    t_clrline(0,t_width);     /* erase line */
-	    cp = 0;
-	    cl = 0;		      /* reset cursor counter */
-	    break;
-	case F_SOL:
-	    backup(cp);
-	    break;
-	case F_EOL:
-	    while (cp < cl) {
-		forward(1,curline, sizeof(curline));
-	    }
-	    while (cp > cl) {
-		backup(1);
-	    }
-	    break;
-	case F_TINS:		      /* toggle insert mode */
-	    mode_insert = !mode_insert;  /* flip bit */
-	    break;
-	default:
-	    if (c > 255) {	      /* function key hit */
-		if (cl==0) {	      /* if first character then */
-		    *string = EOS;	   /* terminate string */
-		    return c;		   /* return it */
-		}
-		t_honk_horn();	      /* complain */
-	    } else {
-		if (mode_insert) {
-		    insert_space(curline, sizeof(curline));
-		}
-		curline[cp++] = c;    /* store character in line being built */
-		t_char((char)c);      /* echo character to terminal */
-		if (cp > cl) {
-		    cl = cp;	      /* keep current length */
-		}
-	    }
-	    break;
-	}			      /* end switch */
+       case F_INSCHR:
+	   insert_space(curline, sizeof(curline));
+	   break;
+       case F_DELCHR:
+	   delchr(1, curline, sizeof(curline));       /* delete one character */
+	   break;
+       case F_CSRLFT:		     /* Backspace */
+	   backup(1);
+	   break;
+       case F_CSRRGT:
+	   forward(1,curline, sizeof(curline));
+	   break;
+       case F_ERSCHR:		     /* Rubout */
+	   backup(1);
+	   delchr(1, curline, sizeof(curline));
+	   break;
+       case F_DELEOL:
+	   t_clrline(0, t_width);
+	   if (cl > cp)
+	       cl = cp;
+	   break;
+       case F_NXTWRD:
+	   forward(next_word(curline),curline, sizeof(curline));
+	   break;
+       case F_PRVWRD:
+	   backup(prev_word(curline));
+	   break;
+       case F_DELWRD:
+	   delchr(next_word(curline), curline, sizeof(curline)); /* delete word */
+	   break;
+       case F_NXTMCH:		     /* Ctl-X */
+	   if (cl==0) {
+	       *string = EOS;	     /* terminate string */
+	       return(c);	     /* give it to him */
+	   }
+	   /* Note fall through */
+       case F_DELLIN:
+       case F_ERSLIN:
+	   backup(cp);		     /* backup to beginning of line */
+	   t_clrline(0,t_width);     /* erase line */
+	   cp = 0;
+	   cl = 0;		     /* reset cursor counter */
+	   break;
+       case F_SOL:
+	   backup(cp);
+	   break;
+       case F_EOL:
+	   while (cp < cl) {
+	       forward(1,curline, sizeof(curline));
+	   }
+	   while (cp > cl) {
+	       backup(1);
+	   }
+	   break;
+       case F_TINS:		     /* toggle insert mode */
+	   mode_insert = !mode_insert;	/* flip bit */
+	   break;
+       default:
+	   if (c > 255) {	     /* function key hit */
+	       if (cl==0) {	     /* if first character then */
+		  *string = EOS;     /* terminate string */
+		  return c;	     /* return it */
+	       }
+	       t_honk_horn();	     /* complain */
+	   } else {
+	       if (mode_insert) {
+		  insert_space(curline, sizeof(curline));
+	       }
+	       curline[cp++] = c;    /* store character in line being built */
+	       t_char((char)c);      /* echo character to terminal */
+	       if (cp > cl) {
+		  cl = cp;	     /* keep current length */
+	       }
+	   }
+	   break;
+       }			     /* end switch */
     }
 /* If we fall through here rather than goto done, the line is too long
    simply return what we have now. */
 done:
-    curline[cl++] = EOS;	      /* terminate */
-    bstrncpy(string,curline,length);	       /* return line to caller */
-    /* Note, put line zaps curline */
-    putline(curline,cl);	      /* save line for posterity */
-    return 0;			      /* give it to him/her */
+   curline[cl++] = EOS; 	     /* terminate */
+   bstrncpy(string,curline,length);	      /* return line to caller */
+   /* Note, put line zaps curline */
+   putline(curline,cl); 	     /* save line for posterity */
+   return 0;			     /* give it to him/her */
 }
 
 /* Insert a space at the current cursor position */
 static void
 insert_space(char *curline, int curline_len)
 {
-    int i;
+   int i;
 
-    if (cp > cl || cl+1 > curline_len) return;
-    /* Note! source and destination overlap */
-    memmove(&curline[cp+1],&curline[cp],i=cl-cp);
-    cl++;
-    i++;
-    curline[cp] = ' ';
-    forward(i,curline, curline_len);
-    backup(i);
+   if (cp > cl || cl+1 > curline_len) return;
+   /* Note! source and destination overlap */
+   memmove(&curline[cp+1],&curline[cp],i=cl-cp);
+   cl++;
+   i++;
+   curline[cp] = ' ';
+   forward(i,curline, curline_len);
+   backup(i);
 }
 
 
 /* Move cursor forward keeping characters under it */
 static void
-forward(int i,char *str, int str_len)
+forward(int i, char *str, int str_len)
 {
-    while (i--) {
-	if (cp > str_len) {
-	   return;
-	}
-	if (cp>=cl) {
-            t_char(' ');
-            str[cp+1] = ' ';
-	} else {
-	    t_char(str[cp]);
-	}
-	cp++;
-    }
+   while (i--) {
+      if (cp > str_len) {
+	 return;
+      }
+      if (cp>=cl) {
+          t_char(' ');
+          str[cp+1] = ' ';
+      } else {
+	  t_char(str[cp]);
+      }
+      cp++;
+   }
 }
 
 /* Backup cursor keeping characters under it */
 static void
 backup(int i)
 {
-    for ( ;i && cp; i--,cp--)
-        t_char('\010');
+    for ( ; i && cp; i--,cp--) {
+       t_char('\010');
+    }
 }
 
 /* Delete the character under the cursor */
 static void
 delchr(int cnt, char *curline, int line_len) 
 {
-    register int i;
+   register int i;
 
-    if (cp > cl)
-	return;
-    if ((i=cl-cp-cnt+1) > 0) {
-	memcpy(&curline[cp],&curline[cp+cnt],i);
-    }
-    curline[cl -= cnt] = EOS;
-    t_clrline(0,t_width);
-    if (cl > cp) {
-	forward(i=cl-cp,curline, line_len);
-	backup(i);
-    }
+   if (cp > cl)
+      return;
+   if ((i=cl-cp-cnt+1) > 0) {
+      memcpy(&curline[cp], &curline[cp+cnt],i);
+   }
+   curline[cl -= cnt] = EOS;
+   t_clrline(0,t_width);
+   if (cl > cp) {
+      forward(i=cl-cp,curline, line_len);
+      backup(i);
+   }
 }
 
 /* Determine if character is part of a word */
@@ -627,14 +622,14 @@ iswordc(char c)
 static int
 next_word(char *ldb_buf)
 {
-    int ncp;
+   int ncp;
 
-    if (cp > cl)
-	return 0;
-    ncp = cp;
-    for ( ; ncp<cl && iswordc(*(ldb_buf+ncp)); ncp++) ;
-    for ( ; ncp<cl && !iswordc(*(ldb_buf+ncp)); ncp++) ;
-    return ncp-cp;
+   if (cp > cl)
+      return 0;
+   ncp = cp;
+   for ( ; ncp<cl && iswordc(*(ldb_buf+ncp)); ncp++) ;
+   for ( ; ncp<cl && !iswordc(*(ldb_buf+ncp)); ncp++) ;
+   return ncp-cp;
 }
 
 /* Return number of characters to get to previous word */
@@ -677,12 +672,12 @@ prtcur(char *str)
 static void
 poolinit()
 {
-    slptr = lptr = (struct lstr *)pool;
-    lptr->nextl = lptr;
-    lptr->prevl = lptr;
-    lptr->used = 1;
-    lptr->line = 0;
-    lptr->len = POOLEN;
+   slptr = lptr = (struct lstr *)pool;
+   lptr->nextl = lptr;
+   lptr->prevl = lptr;
+   lptr->used = 1;
+   lptr->line = 0;
+   lptr->len = POOLEN;
 }
 
 
@@ -690,59 +685,59 @@ poolinit()
 static char *
 getnext()
 {
-    do {			      /* find next used line */
-	lptr = lptr->nextl;
-    } while (!lptr->used);
-    return (char *)&lptr->line;
+   do { 			     /* find next used line */
+      lptr = lptr->nextl;
+   } while (!lptr->used);
+   return (char *)&lptr->line;
 }
 
 /* Return pointer to previous line in the pool */
 static char *
 getprev()
 {
-    do {			      /* find previous used line */
-	lptr = lptr->prevl;
-    } while (!lptr->used);
-    return (char *)&lptr->line;
+   do { 			     /* find previous used line */
+      lptr = lptr->prevl;
+   } while (!lptr->used);
+   return (char *)&lptr->line;
 }
 
 static void
 putline(char *newl, int newlen)
 {
-    struct lstr *nptr;		      /* points to next line */
-    char *p;
+   struct lstr *nptr;		     /* points to next line */
+   char *p;
 
-    lptr = slptr;		      /* get ptr to last line stored */
-    lptr = lptr->nextl; 	      /* advance pointer */
-    if ((char *)lptr-pool+newlen+PHDRL > POOLEN) { /* not enough room */
-	lptr->used = 0; 	      /* delete line */
-	lptr = (struct lstr *)pool;   /* start at beginning of buffer */
-    }
-    while (lptr->len < newlen+PHDRL) { /* concatenate buffers */
-	nptr = lptr->nextl;	      /* point to next line */
-	lptr->nextl = nptr->nextl;    /* unlink it from list */
-	nptr->nextl->prevl = lptr;
-	lptr->len += nptr->len;
-    }
-    if (lptr->len > newlen + 2 * PHDRL) { /* split buffer */
-	nptr = (struct lstr *)((char *)lptr + newlen + PHDRL);
-	/* Appropriate byte alignment - normally 2 byte, but on
-	   sparc we need 4 byte alignment, so we always do 4 */
-	if (((unsigned)nptr & 3) != 0) { /* test four byte alignment */
-	    p = (char *)nptr;
-	    nptr = (struct lstr *)((((unsigned) p) & ~3) + 4);
-	}
-	nptr->len = lptr->len - ((char *)nptr - (char *)lptr);
-	lptr->len -= nptr->len;
-	nptr->nextl = lptr->nextl;    /* link in new buffer */
-	lptr->nextl->prevl = nptr;
-	lptr->nextl = nptr;
-	nptr->prevl = lptr;
-	nptr->used = 0;
-    }
-    memcpy(&lptr->line,newl,newlen);
-    lptr->used = 1;		      /* mark line used */
-    slptr = lptr;		      /* save as stored line */
+   lptr = slptr;		     /* get ptr to last line stored */
+   lptr = lptr->nextl;		     /* advance pointer */
+   if ((char *)lptr-pool+newlen+PHDRL > POOLEN) { /* not enough room */
+       lptr->used = 0;		     /* delete line */
+       lptr = (struct lstr *)pool;   /* start at beginning of buffer */
+   }
+   while (lptr->len < newlen+PHDRL) { /* concatenate buffers */
+       nptr = lptr->nextl;	     /* point to next line */
+       lptr->nextl = nptr->nextl;    /* unlink it from list */
+       nptr->nextl->prevl = lptr;
+       lptr->len += nptr->len;
+   }
+   if (lptr->len > newlen + 2 * PHDRL) { /* split buffer */
+       nptr = (struct lstr *)((char *)lptr + newlen + PHDRL);
+       /* Appropriate byte alignment - normally 2 byte, but on
+	  sparc we need 4 byte alignment, so we always do 4 */
+       if (((unsigned)nptr & 3) != 0) { /* test four byte alignment */
+	   p = (char *)nptr;
+	   nptr = (struct lstr *)((((unsigned) p) & ~3) + 4);
+       }
+       nptr->len = lptr->len - ((char *)nptr - (char *)lptr);
+       lptr->len -= nptr->len;
+       nptr->nextl = lptr->nextl;    /* link in new buffer */
+       lptr->nextl->prevl = nptr;
+       lptr->nextl = nptr;
+       nptr->prevl = lptr;
+       nptr->used = 0;
+   }
+   memcpy(&lptr->line,newl,newlen);
+   lptr->used = 1;		     /* mark line used */
+   slptr = lptr;		     /* save as stored line */
 }
 
 #ifdef	DEBUGOUT
@@ -761,21 +756,21 @@ dump(struct lstr *ptr, char *msg)
 static void
 t_honk_horn()
 {
-    t_send(t_honk);
+   t_send(t_honk);
 }
 
 /* Insert line on terminal */
 static void
 t_insert_line()
 {
-    asinsl();
+   asinsl();
 }
 
 /* Delete line from terminal */
 static void
 t_delete_line()
 {
-    asdell();
+   asdell();
 }
 
 /* clear line from pos to width */
@@ -789,7 +784,7 @@ t_clrline(int pos, int width)
  *  ESC to smap table */
 static void add_esc_smap(char *str, int func)
 {
-   char buf[100];
+   char buf[1000];
    buf[0] = 0x1B;		      /* esc */
    bstrncpy(buf+1, str, sizeof(buf)-1);
    add_smap(buf, func);
@@ -905,13 +900,6 @@ static void rawmode(FILE *input)
    add_esc_smap("[4~",  F_EOF);
    add_esc_smap("f",    F_NXTWRD);
    add_esc_smap("b",    F_PRVWRD);
-
-
-#ifdef needed
-   for (i=301; i<600; i++) {
-      char_map[i] = i;		      /* setup IBM function codes */
-   }
-#endif
 }
 
 
@@ -943,31 +931,20 @@ static int t_getch(void)
    return (int)c;   
 }
     
-#ifdef xxx
-
-/* window_size -- Return window height and width to caller. */
-static int window_size(int *height, int *width) 	/* /window_size/ */
-{
-   *width = tgetnum("co") - 1;
-   *height = tgetnum("li");
-   return 1;
-}
-#endif
-
 /* Send message to terminal - primitive routine */
 void
-t_sendl(char *msg,int len)
+t_sendl(char *msg, int len)
 {
-    write(1, msg, len);
+   write(1, msg, len);
 }
 
 void
 t_send(char *msg)
 {
-    if (msg == NULL) {
-       return;
-    }
-    t_sendl(msg, strlen(msg));	  /* faster than one char at time */
+   if (msg == NULL) {
+      return;
+   }
+   t_sendl(msg, strlen(msg));	 /* faster than one char at time */
 }
 
 /* Send single character to terminal - primitive routine - */
@@ -1015,22 +992,22 @@ void trapctlc()
 /* ASCLRL() -- Clear to end of line from current position */
 static void asclrl(int pos, int width) 
 {
-    int i;
+   int i;
 
-    if (t_cl) {
-	t_send(t_cl);		      /* use clear to eol function */
-	return;
-    }
-    if (pos==1 && linsdel_ok) {
-	t_delete_line();	      /* delete line */
-	t_insert_line();	      /* reinsert it */
-	return;
-    }
-    for (i=1; i<=width-pos+1; i++)
-        t_char(' ');                  /* last resort, blank it out */
-    for (i=1; i<=width-pos+1; i++)    /* backspace to original position */
-	t_char(0x8);
-    return;
+   if (t_cl) {
+       t_send(t_cl);		     /* use clear to eol function */
+       return;
+   }
+   if (pos==1 && linsdel_ok) {
+       t_delete_line(); 	     /* delete line */
+       t_insert_line(); 	     /* reinsert it */
+       return;
+   }
+   for (i=1; i<=width-pos+1; i++)
+       t_char(' ');                  /* last resort, blank it out */
+   for (i=1; i<=width-pos+1; i++)    /* backspace to original position */
+       t_char(0x8);
+   return;
   
 }
 
