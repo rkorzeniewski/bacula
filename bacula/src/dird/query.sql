@@ -6,21 +6,20 @@ SELECT max(JobId) AS Jobs,sum(JobFiles) AS Files,
 # 2 
 :List where a File is saved regardless of the directory:
 *Enter Filename (no path):
-SELECT Job.JobId as JobId, Client.Name as Client,
+SELECT DISTINCT Job.JobId as JobId, Client.Name as Client,
  Path.Path,Filename.Name,
  StartTime,Level,JobFiles,JobBytes
  FROM Client,Job,File,Filename,Path WHERE Client.ClientId=Job.ClientId
  AND JobStatus='T' AND Job.JobId=File.JobId
  AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId
  AND Filename.Name='%1' 
- GROUP BY Job.JobId
  ORDER BY Job.StartTime LIMIT 20;
 # 3
 :List where the most recent copies of a file are saved:
 *Enter path with trailing slash:
 *Enter filename:
 *Enter Client name:
-SELECT Job.JobId,StartTime AS JobStartTime,VolumeName,Client.Name AS ClientName
+SELECT DISTINCT Job.JobId,StartTime AS JobStartTime,VolumeName,Client.Name AS ClientName
  FROM Job,File,Path,Filename,Media,JobMedia,Client
  WHERE File.JobId=Job.JobId
  AND Path.Path='%1'
@@ -31,7 +30,6 @@ SELECT Job.JobId,StartTime AS JobStartTime,VolumeName,Client.Name AS ClientName
  AND JobMedia.JobId=Job.JobId
  AND JobMedia.MediaId=Media.MediaId
  AND Client.ClientId=Job.ClientId
- GROUP BY Job.JobId
  ORDER BY Job.StartTime DESC LIMIT 5;
 # 4
 :List last 20 Full Backups for a Client:
@@ -141,7 +139,7 @@ SELECT Recycle,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,MaxVolBytes
 :List total files/bytes by Job:
 SELECT count(*) AS Jobs, sum(JobFiles) AS Files,
  sum(JobBytes) AS Bytes, Name AS Job
- FROM Job GROUP by Name
+ FROM Job GROUP by Name;
 # 12
 :List total files/bytes by Volume:
 SELECT count(*) AS Jobs, sum(JobFiles) AS Files,
@@ -170,11 +168,11 @@ SELECT DISTINCT Job.JobId,Job.Name,Job.StartTime,Job.Type,
 # 15  
 :List Jobs stored for a given Volume name:
 *Enter Volume name:
-SELECT Job.JobId as JobId,Job.Name as Name,Job.StartTime as StartTime,
+SELECT DISTINCT Job.JobId as JobId,Job.Name as Name,Job.StartTime as StartTime,
   Job.Type as Type,Job.Level as Level,Job.JobFiles as Files,
   Job.JobBytes as Bytes,Job.JobStatus as Status
   FROM Media,JobMedia,Job
   WHERE Media.VolumeName='%1'
   AND Media.MediaId=JobMedia.MediaId              
   AND JobMedia.JobId=Job.JobId
-  GROUP BY Job.JobId ORDER by Job.StartTime;
+  ORDER by Job.StartTime;
