@@ -21323,6 +21323,7 @@ hpux)
 	CFLAGS="$(CFLAGS) -D_XOPEN_SOURCE_EXTENDED=1"
 	DISTVER=`uname -r`
 	TAPEDRIVE="/dev/rmt/0hnb"
+	PTHREAD_LIB="-lpthread"
   ;;
 irix)
 	DISTVER=`uname -r`
