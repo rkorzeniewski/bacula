@@ -163,7 +163,7 @@ void dlist::destroy()
 
 struct MYJCR {
    char *buf;
-   dlist link;
+   dlink link;
 };
 
 int main()
