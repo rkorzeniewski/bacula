@@ -215,11 +215,11 @@ int listcmd(UAContext *ua, char *cmd)
    for (i=1; i<ua->argc; i++) {
       /* List JOBS */
       if (strcasecmp(ua->argk[i], _("jobs")) == 0) {
-	 db_list_job_records(ua->db, &jr, prtit, ua);
+	 db_list_job_records(ua->jcr, ua->db, &jr, prtit, ua);
 
 	 /* List JOBTOTALS */
       } else if (strcasecmp(ua->argk[i], _("jobtotals")) == 0) {
-	 db_list_job_totals(ua->db, &jr, prtit, ua);
+	 db_list_job_totals(ua->jcr, ua->db, &jr, prtit, ua);
 
       /* List JOBID */
       } else if (strcasecmp(ua->argk[i], _("jobid")) == 0) {
@@ -227,7 +227,7 @@ int listcmd(UAContext *ua, char *cmd)
 	    jobid = atoi(ua->argv[i]);
 	    if (jobid > 0) {
 	       jr.JobId = jobid;
-	       db_list_job_records(ua->db, &jr, prtit, ua);
+	       db_list_job_records(ua->jcr, ua->db, &jr, prtit, ua);
 	    }
 	 }
 
@@ -235,7 +235,7 @@ int listcmd(UAContext *ua, char *cmd)
       } else if (strcasecmp(ua->argk[i], _("job")) == 0 && ua->argv[i]) {
 	 bstrncpy(jr.Job, ua->argv[i], MAX_NAME_LENGTH);
 	 jr.JobId = 0;
-	 db_list_job_records(ua->db, &jr, prtit, ua);
+	 db_list_job_records(ua->jcr, ua->db, &jr, prtit, ua);
 
       /* List FILES */
       } else if (strcasecmp(ua->argk[i], _("files")) == 0) {
@@ -244,7 +244,7 @@ int listcmd(UAContext *ua, char *cmd)
             if (strcasecmp(ua->argk[j], _("job")) == 0 && ua->argv[j]) {
 	       bstrncpy(jr.Job, ua->argv[j], MAX_NAME_LENGTH);
 	       jr.JobId = 0;
-	       db_get_job_record(ua->db, &jr);
+	       db_get_job_record(ua->jcr, ua->db, &jr);
 	       jobid = jr.JobId;
             } else if (strcasecmp(ua->argk[j], _("jobid")) == 0 && ua->argv[j]) {
 	       jobid = atoi(ua->argv[j]);
@@ -252,7 +252,7 @@ int listcmd(UAContext *ua, char *cmd)
 	       continue;
 	    }
 	    if (jobid > 0) {
-	       db_list_files_for_job(ua->db, jobid, prtit, ua);
+	       db_list_files_for_job(ua->jcr, ua->db, jobid, prtit, ua);
 	    }
 	 }
       
@@ -263,27 +263,27 @@ int listcmd(UAContext *ua, char *cmd)
             if (strcasecmp(ua->argk[j], _("job")) == 0 && ua->argv[j]) {
 	       bstrncpy(jr.Job, ua->argv[j], MAX_NAME_LENGTH);
 	       jr.JobId = 0;
-	       db_get_job_record(ua->db, &jr);
+	       db_get_job_record(ua->jcr, ua->db, &jr);
 	       jobid = jr.JobId;
             } else if (strcasecmp(ua->argk[j], _("jobid")) == 0 && ua->argv[j]) {
 	       jobid = atoi(ua->argv[j]);
 	    } else {
 	       continue;
 	    }
-	    db_list_jobmedia_records(ua->db, jobid, prtit, ua);
+	    db_list_jobmedia_records(ua->jcr, ua->db, jobid, prtit, ua);
 	    done = TRUE;
 	 }
 	 if (!done) {
 	    /* List for all jobs (jobid=0) */
-	    db_list_jobmedia_records(ua->db, 0, prtit, ua);
+	    db_list_jobmedia_records(ua->jcr, ua->db, 0, prtit, ua);
 	 }
 
       /* List POOLS */
       } else if (strcasecmp(ua->argk[i], _("pools")) == 0) {
-	 db_list_pool_records(ua->db, prtit, ua);
+	 db_list_pool_records(ua->jcr, ua->db, prtit, ua);
 
       } else if (strcasecmp(ua->argk[i], _("clients")) == 0) {
-	 db_list_client_records(ua->db, prtit, ua);
+	 db_list_client_records(ua->jcr, ua->db, prtit, ua);
 
 
       /* List MEDIA or VOLUMES */
@@ -294,7 +294,7 @@ int listcmd(UAContext *ua, char *cmd)
             if (strcasecmp(ua->argk[j], _("job")) == 0 && ua->argv[j]) {
 	       bstrncpy(jr.Job, ua->argv[j], MAX_NAME_LENGTH);
 	       jr.JobId = 0;
-	       db_get_job_record(ua->db, &jr);
+	       db_get_job_record(ua->jcr, ua->db, &jr);
 	       jobid = jr.JobId;
             } else if (strcasecmp(ua->argk[j], _("jobid")) == 0 && ua->argv[j]) {
 	       jobid = atoi(ua->argv[j]);
@@ -302,7 +302,7 @@ int listcmd(UAContext *ua, char *cmd)
 	       continue;
 	    }
 	    VolumeName = get_pool_memory(PM_FNAME);
-	    n = db_get_job_volume_names(ua->db, jobid, &VolumeName);
+	    n = db_get_job_volume_names(ua->jcr, ua->db, jobid, &VolumeName);
             bsendmsg(ua, _("Jobid %d used %d Volume(s): %s\n"), jobid, n, VolumeName);
 	    free_pool_memory(VolumeName);
 	    done = TRUE;
@@ -313,7 +313,7 @@ int listcmd(UAContext *ua, char *cmd)
 	       return 1;
 	    }
 	    mr.PoolId = pr.PoolId;
-	    db_list_media_records(ua->db, &mr, prtit, ua);
+	    db_list_media_records(ua->jcr, ua->db, &mr, prtit, ua);
 	 }
       } else {
          bsendmsg(ua, _("Unknown list keyword: %s\n"), NPRT(ua->argk[i]));

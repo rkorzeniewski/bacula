@@ -50,7 +50,7 @@
 
 /* Imported subroutines */
 extern void print_result(B_DB *mdb);
-extern int QueryDB(char *file, int line, B_DB *db, char *select_cmd);
+extern int QueryDB(char *file, int line, void *jcr, B_DB *db, char *select_cmd);
 
 /*
  * Find job start time. Used to find last full save
@@ -60,7 +60,7 @@ extern int QueryDB(char *file, int line, B_DB *db, char *select_cmd);
  *	    1 on success, jr is unchanged, but stime is set
  */
 int
-db_find_job_start_time(B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
+db_find_job_start_time(void *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
 {
    SQL_ROW row;
    int JobId;
@@ -90,7 +90,7 @@ ORDER BY StartTime DESC LIMIT 1",
 	 return 0;
       }
       Dmsg1(100, "Submitting: %s\n", mdb->cmd);
-      if (!QUERY_DB(mdb, mdb->cmd)) {
+      if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
          Mmsg1(&mdb->errmsg, _("Query error for start time request: %s\n"), mdb->cmd);
 	 db_unlock(mdb);
 	 return 0;
@@ -109,7 +109,7 @@ ORDER BY StartTime DESC LIMIT 1",
    Dmsg1(100, "Submitting: %s\n", mdb->cmd);
    Mmsg(&mdb->cmd, "SELECT StartTime FROM Job WHERE Job.JobId=%d", JobId);
 
-   if (!QUERY_DB(mdb, mdb->cmd)) {
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       Mmsg1(&mdb->errmsg, _("Query error for start time request: %s\n"), mdb->cmd);
       db_unlock(mdb);
       return 0;
@@ -140,7 +140,7 @@ ORDER BY StartTime DESC LIMIT 1",
  *	    0 on failure
  */
 int
-db_find_last_jobid(B_DB *mdb, JOB_DBR *jr)
+db_find_last_jobid(void *jcr, B_DB *mdb, JOB_DBR *jr)
 {
    SQL_ROW row;
 
@@ -162,7 +162,7 @@ ClientId=%d ORDER BY StartTime DESC LIMIT 1",
       return 0;
    }
 
-   if (!QUERY_DB(mdb, mdb->cmd)) {
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);
       return 0;
    }
@@ -196,7 +196,7 @@ ClientId=%d ORDER BY StartTime DESC LIMIT 1",
  *	    numrows on success
  */
 int
-db_find_next_volume(B_DB *mdb, int item, MEDIA_DBR *mr) 
+db_find_next_volume(void *jcr, B_DB *mdb, int item, MEDIA_DBR *mr) 
 {
    SQL_ROW row;
    int numrows;
@@ -209,7 +209,7 @@ FirstWritten,LastWritten \
 FROM Media WHERE PoolId=%d AND MediaType='%s' AND VolStatus='%s' \
 ORDER BY MediaId", mr->PoolId, mr->MediaType, mr->VolStatus); 
 
-   if (!QUERY_DB(mdb, mdb->cmd)) {
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);
       return 0;
    }

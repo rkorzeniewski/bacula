@@ -45,7 +45,7 @@
 
 /* Imported subroutines */
 extern void print_result(B_DB *mdb);
-extern int UpdateDB(char *file, int line, B_DB *db, char *update_cmd);
+extern int UpdateDB(char *file, int line, void *jcr, B_DB *db, char *update_cmd);
 
 /* -----------------------------------------------------------------------
  *
@@ -55,13 +55,13 @@ extern int UpdateDB(char *file, int line, B_DB *db, char *update_cmd);
  */
 /* Update the attributes record by adding the MD5 signature */
 int
-db_add_MD5_to_file_record(B_DB *mdb, FileId_t FileId, char *MD5)
+db_add_MD5_to_file_record(void *jcr, B_DB *mdb, FileId_t FileId, char *MD5)
 {
    int stat;
 
    db_lock(mdb);
    Mmsg(&mdb->cmd, "UPDATE File SET MD5='%s' WHERE FileId=%u", MD5, FileId);
-   stat = UPDATE_DB(mdb, mdb->cmd);
+   stat = UPDATE_DB(jcr, mdb, mdb->cmd);
    db_unlock(mdb);
    return stat;
 }
@@ -69,13 +69,13 @@ db_add_MD5_to_file_record(B_DB *mdb, FileId_t FileId, char *MD5)
 /* Mark the file record as being visited during database
  * verify compare. Stuff JobId into MarkedId field
  */
-int db_mark_file_record(B_DB *mdb, FileId_t FileId, JobId_t JobId) 
+int db_mark_file_record(void *jcr, B_DB *mdb, FileId_t FileId, JobId_t JobId) 
 {
    int stat;
 
    db_lock(mdb);
    Mmsg(&mdb->cmd, "UPDATE File SET MarkId=%u WHERE FileId=%u", JobId, FileId);
-   stat = UPDATE_DB(mdb, mdb->cmd);
+   stat = UPDATE_DB(jcr, mdb, mdb->cmd);
    db_unlock(mdb);
    return stat;
 }
@@ -87,7 +87,7 @@ int db_mark_file_record(B_DB *mdb, FileId_t FileId, JobId_t JobId)
  *	     1 on success
  */
 int
-db_update_job_start_record(B_DB *mdb, JOB_DBR *jr)
+db_update_job_start_record(void *jcr, B_DB *mdb, JOB_DBR *jr)
 {
    char dt[MAX_TIME_LENGTH];
    time_t stime;
@@ -105,7 +105,7 @@ db_update_job_start_record(B_DB *mdb, JOB_DBR *jr)
    Mmsg(&mdb->cmd, "UPDATE Job SET Level='%c', StartTime='%s', \
 ClientId=%u, JobTDate=%s WHERE JobId=%u",
       (char)(jr->Level), dt, jr->ClientId, edit_uint64(JobTDate, ed1), jr->JobId);
-   stat = UPDATE_DB(mdb, mdb->cmd);
+   stat = UPDATE_DB(jcr, mdb, mdb->cmd);
    db_unlock(mdb);
    mdb->changes = 0;
    return stat;
@@ -120,7 +120,7 @@ ClientId=%u, JobTDate=%s WHERE JobId=%u",
  *	     1 on success
  */
 int
-db_update_job_end_record(B_DB *mdb, JOB_DBR *jr)
+db_update_job_end_record(void *jcr, B_DB *mdb, JOB_DBR *jr)
 {
    char dt[MAX_TIME_LENGTH];
    time_t ttime;
@@ -143,14 +143,14 @@ VolSessionTime=%u, PoolId=%u, FileSetId=%u, JobTDate=%s WHERE JobId=%u",
       jr->JobFiles, jr->JobErrors, jr->VolSessionId, jr->VolSessionTime, 
       jr->PoolId, jr->FileSetId, edit_uint64(JobTDate, ed2), jr->JobId);
 
-   stat = UPDATE_DB(mdb, mdb->cmd);
+   stat = UPDATE_DB(jcr, mdb, mdb->cmd);
    db_unlock(mdb);
    return stat;
 }
 
 
 int
-db_update_pool_record(B_DB *mdb, POOL_DBR *pr)
+db_update_pool_record(void *jcr, B_DB *mdb, POOL_DBR *pr)
 {
    int stat;
    char ed1[50], ed2[50], ed3[50];
@@ -169,7 +169,7 @@ db_update_pool_record(B_DB *mdb, POOL_DBR *pr)
       pr->Recycle, pr->AutoPrune,
       pr->LabelFormat, pr->PoolId);
 
-   stat = UPDATE_DB(mdb, mdb->cmd);
+   stat = UPDATE_DB(jcr, mdb, mdb->cmd);
    db_unlock(mdb);
    return stat;
 }
@@ -181,7 +181,7 @@ db_update_pool_record(B_DB *mdb, POOL_DBR *pr)
  *	    numrows on success
  */
 int
-db_update_media_record(B_DB *mdb, MEDIA_DBR *mr) 
+db_update_media_record(void *jcr, B_DB *mdb, MEDIA_DBR *mr) 
 {
    char dt[MAX_TIME_LENGTH];
    time_t ttime;
@@ -199,7 +199,7 @@ db_update_media_record(B_DB *mdb, MEDIA_DBR *mr)
       strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
       Mmsg(&mdb->cmd, "UPDATE Media SET FirstWritten='%s'\
  WHERE VolumeName='%s'", dt, mr->VolumeName);
-      stat = UPDATE_DB(mdb, mdb->cmd);
+      stat = UPDATE_DB(jcr, mdb, mdb->cmd);
       Dmsg1(400, "Firstwritten stat=%d\n", stat);
    }
 
@@ -216,11 +216,9 @@ db_update_media_record(B_DB *mdb, MEDIA_DBR *mr)
    edit_uint64(mr->MaxVolBytes, ed2), dt, 
    mr->VolStatus, mr->Slot, mr->VolumeName);
 
-   sm_check(__FILE__, __LINE__, True);
-
    Dmsg1(400, "%s\n", mdb->cmd);
 
-   stat = UPDATE_DB(mdb, mdb->cmd);
+   stat = UPDATE_DB(jcr, mdb, mdb->cmd);
    db_unlock(mdb);
    return stat;
 }

@@ -306,7 +306,7 @@ msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
          Dmsg2(111, "dird<filed: stream=%d %s\n", stream, jcr->fname);
          Dmsg1(120, "dird<filed: attr=%s\n", attr);
 
-	 if (!db_create_file_attributes_record(jcr->db, &ar)) {
+	 if (!db_create_file_attributes_record(jcr, jcr->db, &ar)) {
             Jmsg1(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
 	    set_jcr_job_status(jcr, JS_Error);
 	    continue;
@@ -321,7 +321,7 @@ msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
 	 }
 	 db_escape_string(MD5, Opts_MD5, strlen(Opts_MD5));
          Dmsg2(120, "MD5len=%d MD5=%s\n", strlen(MD5), MD5);
-	 if (!db_add_MD5_to_file_record(jcr->db, jcr->FileId, MD5)) {
+	 if (!db_add_MD5_to_file_record(jcr, jcr->db, jcr->FileId, MD5)) {
             Jmsg1(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
 	    set_jcr_job_status(jcr, JS_Error);
 	 }

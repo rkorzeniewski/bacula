@@ -48,15 +48,15 @@
  */
 
 /* Forward referenced functions */
-static int db_get_file_record(B_DB *mdb, FILE_DBR *fdbr);
-static int db_get_filename_record(B_DB *mdb);
-static int db_get_path_record(B_DB *mdb);
+static int db_get_file_record(void *jcr, B_DB *mdb, FILE_DBR *fdbr);
+static int db_get_filename_record(void *jcr, B_DB *mdb);
+static int db_get_path_record(void *jcr, B_DB *mdb);
 
 
 /* Imported subroutines */
 extern void print_result(B_DB *mdb);
-extern int QueryDB(char *file, int line, B_DB *db, char *select_cmd);
-extern void split_path_and_filename(B_DB *mdb, char *fname);
+extern int QueryDB(char *file, int line, void *jcr, B_DB *db, char *select_cmd);
+extern void split_path_and_filename(void *jcr, B_DB *mdb, char *fname);
 
 
 
@@ -67,19 +67,19 @@ extern void split_path_and_filename(B_DB *mdb, char *fname);
  *  Returns: 0 on failure
  *	     1 on success with the File record in FILE_DBR
  */
-int db_get_file_attributes_record(B_DB *mdb, char *fname, FILE_DBR *fdbr)
+int db_get_file_attributes_record(void *jcr, B_DB *mdb, char *fname, FILE_DBR *fdbr)
 {
    int stat;
    Dmsg1(20, "Enter get_file_from_catalog fname=%s \n", fname);
 
    db_lock(mdb);
-   split_path_and_filename(mdb, fname);
+   split_path_and_filename(jcr, mdb, fname);
 
-   fdbr->FilenameId = db_get_filename_record(mdb);
+   fdbr->FilenameId = db_get_filename_record(jcr, mdb);
 
-   fdbr->PathId = db_get_path_record(mdb);
+   fdbr->PathId = db_get_path_record(jcr, mdb);
 
-   stat = db_get_file_record(mdb, fdbr);
+   stat = db_get_file_record(jcr, mdb, fdbr);
 
    db_unlock(mdb);
 
@@ -99,7 +99,7 @@ int db_get_file_attributes_record(B_DB *mdb, char *fname, FILE_DBR *fdbr)
  *    "normal" if a new file is found during Verify.
  */
 static
-int db_get_file_record(B_DB *mdb, FILE_DBR *fdbr)
+int db_get_file_record(void *jcr, B_DB *mdb, FILE_DBR *fdbr)
 {
    SQL_ROW row;
    int stat = 0;
@@ -113,7 +113,7 @@ File.FilenameId=%u", fdbr->JobId, fdbr->PathId, fdbr->FilenameId);
       
    Dmsg1(100, "Query=%s\n", mdb->cmd);
 
-   if (QUERY_DB(mdb, mdb->cmd)) {
+   if (QUERY_DB(jcr, mdb, mdb->cmd)) {
 
       mdb->num_rows = sql_num_rows(mdb);
       Dmsg1(050, "get_file_record num_rows=%d\n", (int)mdb->num_rows);
@@ -147,17 +147,16 @@ File.FilenameId=%u", fdbr->JobId, fdbr->PathId, fdbr->FilenameId);
  *
  *   DO NOT use Jmsg in this routine (see notes for get_file_record)
  */
-static int db_get_filename_record(B_DB *mdb)
+static int db_get_filename_record(void *jcr, B_DB *mdb)
 {
    SQL_ROW row;
    int FilenameId = 0;
 
    mdb->esc_name = check_pool_memory_size(mdb->esc_name, 2*mdb->fnl+2);
    db_escape_string(mdb->esc_name, mdb->fname, mdb->fnl);
-   sm_check(__FILE__, __LINE__, True);
    
    Mmsg(&mdb->cmd, "SELECT FilenameId FROM Filename WHERE Name='%s'", mdb->esc_name);
-   if (QUERY_DB(mdb, mdb->cmd)) {
+   if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       char ed1[30];
 
       mdb->num_rows = sql_num_rows(mdb);
@@ -165,7 +164,7 @@ static int db_get_filename_record(B_DB *mdb)
       if (mdb->num_rows > 1) {
          Mmsg2(&mdb->errmsg, _("More than one Filename!: %s for file: %s\n"),
 	    edit_uint64(mdb->num_rows, ed1), mdb->fname);
-         Jmsg(mdb->jcr, M_WARNING, 0, "%s", mdb->errmsg);
+         Jmsg(jcr, M_WARNING, 0, "%s", mdb->errmsg);
       } 
       if (mdb->num_rows >= 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
@@ -192,14 +191,13 @@ static int db_get_filename_record(B_DB *mdb)
  *
  *   DO NOT use Jmsg in this routine (see notes for get_file_record)
  */
-static int db_get_path_record(B_DB *mdb)
+static int db_get_path_record(void *jcr, B_DB *mdb)
 {
    SQL_ROW row;
    uint32_t PathId = 0;
 
    mdb->esc_name = check_pool_memory_size(mdb->esc_name, 2*mdb->pnl+2);
    db_escape_string(mdb->esc_name, mdb->path, mdb->pnl);
-   sm_check(__FILE__, __LINE__, True);
 
    if (mdb->cached_path_id != 0 && mdb->cached_path_len == mdb->pnl &&
        strcmp(mdb->cached_path, mdb->path) == 0) {
@@ -208,14 +206,14 @@ static int db_get_path_record(B_DB *mdb)
 
    Mmsg(&mdb->cmd, "SELECT PathId FROM Path WHERE Path='%s'", mdb->esc_name);
 
-   if (QUERY_DB(mdb, mdb->cmd)) {
+   if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       char ed1[30];
       mdb->num_rows = sql_num_rows(mdb);
 
       if (mdb->num_rows > 1) {
          Mmsg2(&mdb->errmsg, _("More than one Path!: %s for path: %s\n"),
 	    edit_uint64(mdb->num_rows, ed1), mdb->path);
-         Jmsg(mdb->jcr, M_WARNING, 0, "%s", mdb->errmsg);
+         Jmsg(jcr, M_WARNING, 0, "%s", mdb->errmsg);
       } 
       /* Even if there are multiple paths, take the first one */
       if (mdb->num_rows >= 1) {
@@ -250,7 +248,7 @@ static int db_get_path_record(B_DB *mdb)
  * Returns: 0 on failure
  *	    1 on success
  */
-int db_get_job_record(B_DB *mdb, JOB_DBR *jr)
+int db_get_job_record(void *jcr, B_DB *mdb, JOB_DBR *jr)
 {
    SQL_ROW row;
 
@@ -267,7 +265,7 @@ Type,Level \
 FROM Job WHERE JobId=%u", jr->JobId);
     }
 
-   if (!QUERY_DB(mdb, mdb->cmd)) {
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);
       return 0; 		      /* failed */
    }
@@ -305,7 +303,7 @@ FROM Job WHERE JobId=%u", jr->JobId);
  *
  *  Returns: number of volumes on success
  */
-int db_get_job_volume_names(B_DB *mdb, uint32_t JobId, POOLMEM **VolumeNames)
+int db_get_job_volume_names(void *jcr, B_DB *mdb, uint32_t JobId, POOLMEM **VolumeNames)
 {
    SQL_ROW row;
    int stat = 0;
@@ -318,7 +316,7 @@ AND JobMedia.MediaId=Media.MediaId", JobId);
 
    Dmsg1(130, "VolNam=%s\n", mdb->cmd);
    *VolumeNames[0] = 0;
-   if (QUERY_DB(mdb, mdb->cmd)) {
+   if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       mdb->num_rows = sql_num_rows(mdb);
       Dmsg1(130, "Num rows=%d\n", mdb->num_rows);
       if (mdb->num_rows <= 0) {
@@ -329,7 +327,7 @@ AND JobMedia.MediaId=Media.MediaId", JobId);
 	 for (i=0; i < stat; i++) {
 	    if ((row = sql_fetch_row(mdb)) == NULL) {
                Mmsg2(&mdb->errmsg, _("Error fetching row %d: ERR=%s\n"), i, sql_strerror(mdb));
-               Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
+               Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	       stat = 0;
 	       break;
 	    } else {
@@ -354,7 +352,7 @@ AND JobMedia.MediaId=Media.MediaId", JobId);
  *
  *  Returns: number of volumes on success
  */
-int db_get_job_volume_parameters(B_DB *mdb, uint32_t JobId, VOL_PARAMS **VolParams)
+int db_get_job_volume_parameters(void *jcr, B_DB *mdb, uint32_t JobId, VOL_PARAMS **VolParams)
 {
    SQL_ROW row;
    int stat = 0;
@@ -368,7 +366,7 @@ int db_get_job_volume_parameters(B_DB *mdb, uint32_t JobId, VOL_PARAMS **VolPara
 " AND JobMedia.MediaId=Media.MediaId", JobId);
 
    Dmsg1(130, "VolNam=%s\n", mdb->cmd);
-   if (QUERY_DB(mdb, mdb->cmd)) {
+   if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       mdb->num_rows = sql_num_rows(mdb);
       Dmsg1(130, "Num rows=%d\n", mdb->num_rows);
       if (mdb->num_rows <= 0) {
@@ -382,7 +380,7 @@ int db_get_job_volume_parameters(B_DB *mdb, uint32_t JobId, VOL_PARAMS **VolPara
 	 for (i=0; i < stat; i++) {
 	    if ((row = sql_fetch_row(mdb)) == NULL) {
                Mmsg2(&mdb->errmsg, _("Error fetching row %d: ERR=%s\n"), i, sql_strerror(mdb));
-               Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
+               Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	       stat = 0;
 	       break;
 	    } else {
@@ -410,13 +408,13 @@ int db_get_job_volume_parameters(B_DB *mdb, uint32_t JobId, VOL_PARAMS **VolPara
  * Returns: -1 on failure
  *	    number on success
  */
-int db_get_num_pool_records(B_DB *mdb)
+int db_get_num_pool_records(void *jcr, B_DB *mdb)
 {
    int stat = 0;
 
    db_lock(mdb);
    Mmsg(&mdb->cmd, "SELECT count(*) from Pool");
-   stat = get_sql_record_max(mdb);
+   stat = get_sql_record_max(jcr, mdb);
    db_unlock(mdb);
    return stat;
 }
@@ -428,7 +426,7 @@ int db_get_num_pool_records(B_DB *mdb)
  *  Returns 0: on failure
  *	    1: on success
  */
-int db_get_pool_ids(B_DB *mdb, int *num_ids, uint32_t *ids[])
+int db_get_pool_ids(void *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
 {
    SQL_ROW row;
    int stat = 0;
@@ -438,7 +436,7 @@ int db_get_pool_ids(B_DB *mdb, int *num_ids, uint32_t *ids[])
    db_lock(mdb);
    *ids = NULL;
    Mmsg(&mdb->cmd, "SELECT PoolId FROM Pool");
-   if (QUERY_DB(mdb, mdb->cmd)) {
+   if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       *num_ids = sql_num_rows(mdb);
       if (*num_ids > 0) {
 	 id = (uint32_t *)malloc(*num_ids * sizeof(uint32_t));
@@ -451,7 +449,7 @@ int db_get_pool_ids(B_DB *mdb, int *num_ids, uint32_t *ids[])
       stat = 1;
    } else {
       Mmsg(&mdb->errmsg, _("Pool id select failed: ERR=%s\n"), sql_strerror(mdb));
-      Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
+      Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
       stat = 0;
    }
    db_unlock(mdb);
@@ -465,7 +463,7 @@ int db_get_pool_ids(B_DB *mdb, int *num_ids, uint32_t *ids[])
  *  Returns 0: on failure
  *	    1: on success
  */
-int db_get_client_ids(B_DB *mdb, int *num_ids, uint32_t *ids[])
+int db_get_client_ids(void *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
 {
    SQL_ROW row;
    int stat = 0;
@@ -475,7 +473,7 @@ int db_get_client_ids(B_DB *mdb, int *num_ids, uint32_t *ids[])
    db_lock(mdb);
    *ids = NULL;
    Mmsg(&mdb->cmd, "SELECT ClientId FROM Client");
-   if (QUERY_DB(mdb, mdb->cmd)) {
+   if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       *num_ids = sql_num_rows(mdb);
       if (*num_ids > 0) {
 	 id = (uint32_t *)malloc(*num_ids * sizeof(uint32_t));
@@ -488,7 +486,7 @@ int db_get_client_ids(B_DB *mdb, int *num_ids, uint32_t *ids[])
       stat = 1;
    } else {
       Mmsg(&mdb->errmsg, _("Client id select failed: ERR=%s\n"), sql_strerror(mdb));
-      Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
+      Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
       stat = 0;
    }
    db_unlock(mdb);
@@ -504,7 +502,7 @@ int db_get_client_ids(B_DB *mdb, int *num_ids, uint32_t *ids[])
  * Returns: 0 on failure
  *	    id on success 
  */
-int db_get_pool_record(B_DB *mdb, POOL_DBR *pdbr)
+int db_get_pool_record(void *jcr, B_DB *mdb, POOL_DBR *pdbr)
 {
    SQL_ROW row;
    int stat = 0;
@@ -522,17 +520,17 @@ AutoPrune,Recycle,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,\
 MaxVolBytes,PoolType,LabelFormat FROM Pool WHERE Pool.Name='%s'", pdbr->Name);
    }  
 
-   if (QUERY_DB(mdb, mdb->cmd)) {
+   if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       mdb->num_rows = sql_num_rows(mdb);
       if (mdb->num_rows > 1) {
 	 char ed1[30];
          Mmsg1(&mdb->errmsg, _("More than one Pool!: %s\n"), 
 	    edit_uint64(mdb->num_rows, ed1));
-         Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
+         Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
       } else if (mdb->num_rows == 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
             Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
-            Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
+            Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	 } else {
 	    pdbr->PoolId = str_to_int64(row[0]);
             bstrncpy(pdbr->Name, row[1]!=NULL?row[1]:"", sizeof(pdbr->Name));
@@ -566,7 +564,7 @@ MaxVolBytes,PoolType,LabelFormat FROM Pool WHERE Pool.Name='%s'", pdbr->Name);
  * Returns: 0 on failure
  *	    1 on success 
  */
-int db_get_client_record(B_DB *mdb, CLIENT_DBR *cdbr)
+int db_get_client_record(void *jcr, B_DB *mdb, CLIENT_DBR *cdbr)
 {
    SQL_ROW row;
    int stat = 0;
@@ -582,17 +580,17 @@ int db_get_client_record(B_DB *mdb, CLIENT_DBR *cdbr)
 "FROM Client WHERE Client.Name='%s'", cdbr->Name);
    }  
 
-   if (QUERY_DB(mdb, mdb->cmd)) {
+   if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       mdb->num_rows = sql_num_rows(mdb);
       if (mdb->num_rows > 1) {
 	 char ed1[30];
          Mmsg1(&mdb->errmsg, _("More than one Client!: %s\n"), 
 	    edit_uint64(mdb->num_rows, ed1));
-         Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
+         Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
       } else if (mdb->num_rows == 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
             Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
-            Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
+            Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	 } else {
 	    cdbr->ClientId = str_to_int64(row[0]);
             bstrncpy(cdbr->Name, row[1]!=NULL?row[1]:"", sizeof(cdbr->Name));
@@ -617,7 +615,7 @@ int db_get_client_record(B_DB *mdb, CLIENT_DBR *cdbr)
  * Returns: 0 on failure
  *	    id on success 
  */
-int db_get_fileset_record(B_DB *mdb, FILESET_DBR *fsr)
+int db_get_fileset_record(void *jcr, B_DB *mdb, FILESET_DBR *fsr)
 {
    SQL_ROW row;
    int stat = 0;
@@ -633,7 +631,7 @@ int db_get_fileset_record(B_DB *mdb, FILESET_DBR *fsr)
            "WHERE FileSet='%s'", fsr->FileSet);
    }  
 
-   if (QUERY_DB(mdb, mdb->cmd)) {
+   if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       mdb->num_rows = sql_num_rows(mdb);
       if (mdb->num_rows > 1) {
 	 char ed1[30];
@@ -662,13 +660,13 @@ int db_get_fileset_record(B_DB *mdb, FILESET_DBR *fsr)
  * Returns: -1 on failure
  *	    number on success
  */
-int db_get_num_media_records(B_DB *mdb)
+int db_get_num_media_records(void *jcr, B_DB *mdb)
 {
    int stat = 0;
 
    db_lock(mdb);
    Mmsg(&mdb->cmd, "SELECT count(*) from Media");
-   stat = get_sql_record_max(mdb);
+   stat = get_sql_record_max(jcr, mdb);
    db_unlock(mdb);
    return stat;
 }
@@ -681,7 +679,7 @@ int db_get_num_media_records(B_DB *mdb)
  *  Returns 0: on failure
  *	    1: on success
  */
-int db_get_media_ids(B_DB *mdb, int *num_ids, uint32_t *ids[])
+int db_get_media_ids(void *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
 {
    SQL_ROW row;
    int stat = 0;
@@ -691,7 +689,7 @@ int db_get_media_ids(B_DB *mdb, int *num_ids, uint32_t *ids[])
    db_lock(mdb);
    *ids = NULL;
    Mmsg(&mdb->cmd, "SELECT MediaId FROM Media");
-   if (QUERY_DB(mdb, mdb->cmd)) {
+   if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       *num_ids = sql_num_rows(mdb);
       if (*num_ids > 0) {
 	 id = (uint32_t *)malloc(*num_ids * sizeof(uint32_t));
@@ -704,7 +702,7 @@ int db_get_media_ids(B_DB *mdb, int *num_ids, uint32_t *ids[])
       stat = 1;
    } else {
       Mmsg(&mdb->errmsg, _("Media id select failed: ERR=%s\n"), sql_strerror(mdb));
-      Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
+      Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
       stat = 0;
    }
    db_unlock(mdb);
@@ -717,7 +715,7 @@ int db_get_media_ids(B_DB *mdb, int *num_ids, uint32_t *ids[])
  * Returns: 0 on failure
  *	    id on success 
  */
-int db_get_media_record(B_DB *mdb, MEDIA_DBR *mr)
+int db_get_media_record(void *jcr, B_DB *mdb, MEDIA_DBR *mr)
 {
    SQL_ROW row;
    int stat = 0;
@@ -725,7 +723,7 @@ int db_get_media_record(B_DB *mdb, MEDIA_DBR *mr)
    db_lock(mdb);
    if (mr->MediaId == 0 && mr->VolumeName[0] == 0) {
       Mmsg(&mdb->cmd, "SELECT count(*) from Media");
-      mr->MediaId = get_sql_record_max(mdb);
+      mr->MediaId = get_sql_record_max(jcr, mdb);
       db_unlock(mdb);
       return 1;
    }
@@ -743,17 +741,17 @@ Recycle,Slot,FirstWritten,LastWritten \
 FROM Media WHERE VolumeName='%s'", mr->VolumeName);
    }  
 
-   if (QUERY_DB(mdb, mdb->cmd)) {
+   if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       mdb->num_rows = sql_num_rows(mdb);
       if (mdb->num_rows > 1) {
 	 char ed1[30];
          Mmsg1(&mdb->errmsg, _("More than one Volume!: %s\n"), 
 	    edit_uint64(mdb->num_rows, ed1));
-         Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
+         Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
       } else if (mdb->num_rows == 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
             Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
-            Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
+            Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	 } else {
 	    /* return values */
 	    mr->MediaId = str_to_int64(row[0]);

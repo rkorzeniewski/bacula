@@ -145,7 +145,6 @@ JCR *wait_for_next_job(char *job_to_run)
 
    jcr = new_jcr(sizeof(JCR), dird_free_jcr);
    ASSERT(job);
-   sm_check(__FILE__, __LINE__, False);
    set_jcr_defaults(jcr, job);
    if (run->level) {
       jcr->JobLevel = run->level;	 /* override run level */

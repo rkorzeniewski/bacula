@@ -178,7 +178,6 @@ int write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec)
    ser_declare;
    uint32_t remlen;
 
-   sm_check(__FILE__, __LINE__, False);
    remlen = block->buf_len - block->binbuf;
 
    ASSERT(block->binbuf == (uint32_t) (block->bufp - block->buf));
@@ -216,7 +215,6 @@ rem=%d remainder=%d\n",
 	 rec->remainder = rec->data_len;
       } else {
 	 rec->remainder = rec->data_len + WRITE_RECHDR_LENGTH;
-	 sm_check(__FILE__, __LINE__, False);
 	 return 0;
       }
    } else {
@@ -261,7 +259,6 @@ rem=%d remainder=%d\n",
       remlen -= WRITE_RECHDR_LENGTH;
    }
    if (remlen == 0) {
-      sm_check(__FILE__, __LINE__, False);
       return 0; 		      /* partial transfer */
    }
 
@@ -280,7 +277,7 @@ rem=%d remainder=%d\n",
       } else {
 	 memcpy(block->bufp, rec->data+rec->data_len-rec->remainder, 
 		remlen);
-#ifdef SMCHECK
+#ifdef xxxxxSMCHECK
 	 if (!sm_check_rtn(__FILE__, __LINE__, False)) {
 	    /* We damaged a buffer */
             Dmsg6(0, "Damaged block FI=%s SessId=%d Strm=%s len=%d\n\
@@ -305,7 +302,6 @@ rem=%d remainder=%d\n",
       }
    }
    rec->remainder = 0;		      /* did whole transfer */
-   sm_check(__FILE__, __LINE__, False);
    return 1;
 }
 

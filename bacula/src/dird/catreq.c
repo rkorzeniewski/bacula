@@ -91,7 +91,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
        */
 next_volume:
       strcpy(mr.VolStatus, "Append");  /* want only appendable volumes */
-      ok = db_find_next_volume(jcr->db, index, &mr);  
+      ok = db_find_next_volume(jcr, jcr->db, index, &mr);  
       Dmsg1(200, "catreq after find_next_vol ok=%d\n", ok);
       if (!ok) {
 	 /* Well, try finding recycled tapes */
@@ -119,7 +119,7 @@ next_volume:
             Jmsg(jcr, M_INFO, 0, _("Max configured use duration exceeded. "       
                "Marking Volume \"%s\" as Used.\n"), mr.VolumeName);
             strcpy(mr.VolStatus, "Used");  /* yes, mark as used */
-	    if (!db_update_media_record(jcr->db, &mr)) {
+	    if (!db_update_media_record(jcr, jcr->db, &mr)) {
                Jmsg(jcr, M_ERROR, 0, _("Catalog error updating Media record. %s"),
 		    db_strerror(jcr->db));
 	    } else if (retry++ < 200) {     /* sanity check */
@@ -160,7 +160,7 @@ next_volume:
        * Find the Volume
        */
       unbash_spaces(mr.VolumeName);
-      if (db_get_media_record(jcr->db, &mr)) {
+      if (db_get_media_record(jcr, jcr->db, &mr)) {
 	 int VolSuitable = 0;
 	 jcr->MediaId = mr.MediaId;
          Dmsg1(120, "VolumeInfo MediaId=%d\n", jcr->MediaId);
@@ -215,7 +215,7 @@ next_volume:
       &sdmr.Slot, &relabel) == 14) {
 
       bstrncpy(mr.VolumeName, sdmr.VolumeName, sizeof(mr.VolumeName)); /* copy Volume name */
-      if (!db_get_media_record(jcr->db, &mr)) {
+      if (!db_get_media_record(jcr, jcr->db, &mr)) {
          Jmsg(jcr, M_ERROR, 0, _("Unable to get Media record for Volume %s: ERR=%s\n"),
 	      mr.VolumeName, db_strerror(jcr->db));
          bnet_fsend(bs, "1991 Catalog Request failed: %s", db_strerror(jcr->db));
@@ -278,7 +278,7 @@ next_volume:
       }
 
       Dmsg2(200, "db_update_media_record. Stat=%s Vol=%s\n", mr.VolStatus, mr.VolumeName);
-      if (db_update_media_record(jcr->db, &mr)) {
+      if (db_update_media_record(jcr, jcr->db, &mr)) {
 	 bnet_fsend(bs, OK_update);
          Dmsg0(190, "send OK\n");
       } else {
@@ -299,7 +299,7 @@ next_volume:
       jm.MediaId = jcr->MediaId;
       Dmsg6(100, "create_jobmedia JobId=%d MediaId=%d SF=%d EF=%d FI=%d LI=%d\n",
 	 jm.JobId, jm.MediaId, jm.StartFile, jm.EndFile, jm.FirstIndex, jm.LastIndex);
-      if (!db_create_jobmedia_record(jcr->db, &jm)) {
+      if (!db_create_jobmedia_record(jcr, jcr->db, &jm)) {
          Jmsg(jcr, M_ERROR, 0, _("Catalog error creating JobMedia record. %s"),
 	    db_strerror(jcr->db));
          bnet_fsend(bs, "1991 Update JobMedia error\n");
@@ -339,7 +339,7 @@ void catalog_update(JCR *jcr, BSOCK *bs, char *msg)
    if (!jcr->pool->catalog_files) {
       return;
    }
-   db_start_transaction(jcr->db);     /* start transaction if not already open */
+   db_start_transaction(jcr, jcr->db);	   /* start transaction if not already open */
    skip_nonspaces(&p);		      /* UpdCat */
    skip_spaces(&p);
    skip_nonspaces(&p);		      /* Job=nnn */
@@ -379,7 +379,7 @@ void catalog_update(JCR *jcr, BSOCK *bs, char *msg)
       Dmsg2(111, "dird<filed: stream=%d %s\n", Stream, fname);
       Dmsg1(120, "dird<filed: attr=%s\n", attr);
 
-      if (!db_create_file_attributes_record(jcr->db, &ar)) {
+      if (!db_create_file_attributes_record(jcr, jcr->db, &ar)) {
          Jmsg1(jcr, M_FATAL, 0, _("Attribute create error. %s"), db_strerror(jcr->db));
       }
       /* Save values for MD5 update */
@@ -394,7 +394,7 @@ void catalog_update(JCR *jcr, BSOCK *bs, char *msg)
 	 char MD5buf[50];	    /* 24 bytes should be enough */
 	 bin_to_base64(MD5buf, fname, 16);
          Dmsg2(190, "MD5len=%d MD5=%s\n", strlen(MD5buf), MD5buf);
-	 if (!db_add_MD5_to_file_record(jcr->db, jcr->FileId, MD5buf)) {
+	 if (!db_add_MD5_to_file_record(jcr, jcr->db, jcr->FileId, MD5buf)) {
             Jmsg(jcr, M_ERROR, 0, _("Catalog error updating MD5. %s"), 
 	       db_strerror(jcr->db));
 	 }

@@ -161,7 +161,7 @@ int main (int argc, char *argv[])
 
    /* Open database */
    db = db_init_database(NULL, db_name, user, password);
-   if (!db_open_database(db)) {
+   if (!db_open_database(NULL, db)) {
       Emsg1(M_FATAL, 0, "%s", db_strerror(db));
    }
 
@@ -177,7 +177,7 @@ int main (int argc, char *argv[])
       do_interactive_mode();
    }
 
-   db_close_database(db);
+   db_close_database(NULL, db);
    close_msg(NULL);
    term_msg();
    return 0;

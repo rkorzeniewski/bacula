@@ -87,7 +87,7 @@ int do_verify(JCR *jcr)
     */
    if (jcr->JobLevel == L_VERIFY_CATALOG || jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG) {
       memcpy(&jr, &(jcr->jr), sizeof(jr));
-      if (!db_find_last_jobid(jcr->db, &jr)) {
+      if (!db_find_last_jobid(jcr, jcr->db, &jr)) {
 	 Jmsg(jcr, M_FATAL, 0, _(
               "Unable to find JobId of previous InitCatalog Job.\n"
               "Please run a Verify with Level=InitCatalog before\n"
@@ -101,7 +101,7 @@ int do_verify(JCR *jcr)
    jcr->jr.JobId = jcr->JobId;
    jcr->jr.StartTime = jcr->start_time;
    jcr->jr.Level = jcr->JobLevel;
-   if (!db_update_job_start_record(jcr->db, &jcr->jr)) {
+   if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
       goto bail_out;
    }
@@ -119,7 +119,7 @@ int do_verify(JCR *jcr)
    if (jcr->JobLevel == L_VERIFY_CATALOG || jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG) {
       memset(&jr, 0, sizeof(jr));
       jr.JobId = JobId;
-      if (!db_get_job_record(jcr->db, &jr)) {
+      if (!db_get_job_record(jcr, jcr->db, &jr)) {
          Jmsg(jcr, M_FATAL, 0, _("Could not get job record. %s"), db_strerror(jcr->db));
 	 goto bail_out;
       }
@@ -143,7 +143,7 @@ int do_verify(JCR *jcr)
        * Now find the Volumes we will need for the Verify 
        */
       jcr->VolumeName[0] = 0;
-      if (!db_get_job_volume_names(jcr->db, jr.JobId, &jcr->VolumeName) ||
+      if (!db_get_job_volume_names(jcr, jcr->db, jr.JobId, &jcr->VolumeName) ||
 	   jcr->VolumeName[0] == 0) {
          Jmsg(jcr, M_FATAL, 0, _("Cannot find Volume Name for verify JobId=%d. %s"), 
 	    jr.JobId, db_strerror(jcr->db));
@@ -442,7 +442,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
 	  * Find equivalent record in the database 
 	  */
 	 fdbr.FileId = 0;
-	 if (!db_get_file_attributes_record(jcr->db, jcr->fname, &fdbr)) {
+	 if (!db_get_file_attributes_record(jcr, jcr->db, jcr->fname, &fdbr)) {
             Jmsg(jcr, M_INFO, 0, _("New file: %s\n"), jcr->fname);
             Dmsg1(020, _("File not in catalog: %s\n"), jcr->fname);
 	    stat = JS_Differences;
@@ -452,7 +452,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
 	     * mark file record as visited by stuffing the
 	     * current JobId, which is unique, into the MarkId field.
 	     */
-	    db_mark_file_record(jcr->db, fdbr.FileId, jcr->JobId);
+	    db_mark_file_record(jcr, jcr->db, fdbr.FileId, jcr->JobId);
 	 }
 
          Dmsg3(400, "Found %s in catalog. inx=%d Opts=%s\n", jcr->fname, 

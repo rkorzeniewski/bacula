@@ -51,7 +51,7 @@ static BQUEUE db_list = {&db_list, &db_list};
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
-int QueryDB(char *file, int line, B_DB *db, char *select_cmd);
+int QueryDB(char *file, int line, void *jcr, B_DB *db, char *select_cmd);
 
 
 /*
@@ -88,7 +88,6 @@ db_init_database(void *jcr, char *db_name, char *db_user, char *db_password)
    mdb->path = get_pool_memory(PM_FNAME);
    mdb->esc_name = get_pool_memory(PM_FNAME);
    qinsert(&db_list, &mdb->bq); 	   /* put db in list */
-   mdb->jcr = jcr;
    V(mutex);
    return mdb;
 }
@@ -98,7 +97,7 @@ db_init_database(void *jcr, char *db_name, char *db_user, char *db_password)
  * which are returned in the errmsg
  */
 int
-db_open_database(B_DB *mdb)
+db_open_database(void *jcr, B_DB *mdb)
 {
    char *db_name;
    int len;
@@ -148,7 +147,7 @@ db_open_database(B_DB *mdb)
       return 0;
    }
    free(db_name);
-   if (!check_tables_version(mdb)) {
+   if (!check_tables_version(jcr, mdb)) {
       V(mutex);
       return 0;
    }
@@ -159,7 +158,7 @@ db_open_database(B_DB *mdb)
 }
 
 void
-db_close_database(B_DB *mdb)
+db_close_database(void *jcr, B_DB *mdb)
 {
    P(mutex);
    mdb->ref_count--;
@@ -187,7 +186,7 @@ db_close_database(B_DB *mdb)
  * Return the next unique index (auto-increment) for
  * the given table.  Return 0 on error.
  */
-int db_next_index(B_DB *mdb, char *table, char *index)
+int db_next_index(void *jcr, B_DB *mdb, char *table, char *index)
 {
    SQL_ROW row;
 
@@ -195,7 +194,7 @@ int db_next_index(B_DB *mdb, char *table, char *index)
 
    Mmsg(&mdb->cmd,
 "SELECT id FROM NextId WHERE TableName=\"%s\"", table);
-   if (!QUERY_DB(mdb, mdb->cmd)) {
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       Mmsg(&mdb->errmsg, _("next_index query error: ERR=%s\n"), sql_strerror(mdb));
       db_unlock(mdb);
       return 0;
@@ -210,7 +209,7 @@ int db_next_index(B_DB *mdb, char *table, char *index)
 
    Mmsg(&mdb->cmd,
 "UPDATE NextId SET id=id+1 WHERE TableName=\"%s\"", table);
-   if (!QUERY_DB(mdb, mdb->cmd)) {
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       Mmsg(&mdb->errmsg, _("next_index update error: ERR=%s\n"), sql_strerror(mdb));
       db_unlock(mdb);
       return 0;

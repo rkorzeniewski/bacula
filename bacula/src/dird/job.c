@@ -69,6 +69,7 @@ void run_job(JCR *jcr)
 {
    int stat, errstat;
 
+   sm_check(__FILE__, __LINE__, True);
    init_msg(jcr, jcr->messages);
    create_unique_job_name(jcr, jcr->job->hdr.name);
    jcr->jr.SchedTime = jcr->sched_time;
@@ -93,9 +94,9 @@ void run_job(JCR *jcr)
    Dmsg0(50, "Open database\n");
    jcr->db=db_init_database(jcr, jcr->catalog->db_name, jcr->catalog->db_user,
 			    jcr->catalog->db_password);
-   if (!db_open_database(jcr->db)) {
+   if (!db_open_database(jcr, jcr->db)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
-      db_close_database(jcr->db);
+      db_close_database(jcr, jcr->db);
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       free_jcr(jcr);
       return;
@@ -106,9 +107,9 @@ void run_job(JCR *jcr)
     * Create Job record  
     */
    jcr->jr.JobStatus = jcr->JobStatus;
-   if (!db_create_job_record(jcr->db, &jcr->jr)) {
+   if (!db_create_job_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
-      db_close_database(jcr->db);
+      db_close_database(jcr, jcr->db);
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       free_jcr(jcr);
       return;
@@ -139,6 +140,7 @@ static void job_thread(void *arg)
    JCR *jcr = (JCR *)arg;
 
    time(&now);
+   sm_check(__FILE__, __LINE__, True);
 
    Dmsg0(100, "=====Start Job=========\n");
    jcr->start_time = now;	      /* set the real start time */
@@ -200,6 +202,7 @@ static void job_thread(void *arg)
    Dmsg0(50, "Before free jcr\n");
    free_jcr(jcr);
    Dmsg0(50, "======== End Job ==========\n");
+   sm_check(__FILE__, __LINE__, True);
 }
 
 /*
@@ -219,7 +222,7 @@ int get_or_create_client_record(JCR *jcr)
    }
    jcr->client_name = get_memory(strlen(jcr->client->hdr.name) + 1);
    strcpy(jcr->client_name, jcr->client->hdr.name);
-   if (!db_create_client_record(jcr->db, &cr)) {
+   if (!db_create_client_record(jcr, jcr->db, &cr)) {
       Jmsg(jcr, M_FATAL, 0, _("Could not create Client record. %s"), 
 	 db_strerror(jcr->db));
       return 0;
@@ -253,7 +256,7 @@ void update_job_end_record(JCR *jcr)
    jcr->jr.JobBytes = jcr->JobBytes;
    jcr->jr.VolSessionId = jcr->VolSessionId;
    jcr->jr.VolSessionTime = jcr->VolSessionTime;
-   if (!db_update_job_end_record(jcr->db, &jcr->jr)) {
+   if (!db_update_job_end_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_WARNING, 0, _("Error updating job record. %s"), 
 	 db_strerror(jcr->db));
    }
@@ -331,7 +334,7 @@ void dird_free_jcr(JCR *jcr)
    }
    if (jcr->db) {
       Dmsg0(200, "Close DB\n");
-      db_close_database(jcr->db);
+      db_close_database(jcr, jcr->db);
    }
    if (jcr->RestoreWhere) {
       free(jcr->RestoreWhere);

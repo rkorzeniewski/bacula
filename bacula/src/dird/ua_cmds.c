@@ -280,7 +280,7 @@ getVolName:
       sprintf(mr.VolumeName, name, i);
       mr.Slot = slot++;
       Dmsg1(200, "Create Volume %s\n", mr.VolumeName);
-      if (!db_create_media_record(ua->db, &mr)) {
+      if (!db_create_media_record(ua->jcr, ua->db, &mr)) {
 	 bsendmsg(ua, db_strerror(ua->db));
 	 return 1;
       }
@@ -290,7 +290,7 @@ getVolName:
    }
    pr.NumVols += num;
    Dmsg0(200, "Update pool record.\n"); 
-   if (db_update_pool_record(ua->db, &pr) != 1) {
+   if (db_update_pool_record(ua->jcr, ua->db, &pr) != 1) {
       bsendmsg(ua, db_strerror(ua->db));
       return 1;
    }
@@ -506,7 +506,7 @@ void set_pooldbr_from_poolres(POOL_DBR *pr, POOL *pool, int create)
  *	     1	record created
  */
 
-int create_pool(B_DB *db, POOL *pool)
+int create_pool(JCR *jcr, B_DB *db, POOL *pool)
 {
    POOL_DBR  pr;
 
@@ -514,13 +514,13 @@ int create_pool(B_DB *db, POOL *pool)
 
    strcpy(pr.Name, pool->hdr.name);
 
-   if (db_get_pool_record(db, &pr)) {
+   if (db_get_pool_record(jcr, db, &pr)) {
       return 0; 		      /* exists */
    }
 
    set_pooldbr_from_poolres(&pr, pool, 1);
 
-   if (!db_create_pool_record(db, &pr)) {
+   if (!db_create_pool_record(jcr, db, &pr)) {
       return -1;		      /* error */
    }
    return 1;
@@ -545,7 +545,7 @@ static int createcmd(UAContext *ua, char *cmd)
       return 1;
    }
 
-   switch (create_pool(ua->db, pool)) {
+   switch (create_pool(ua->jcr, ua->db, pool)) {
    case 0:
       bsendmsg(ua, _("Error: Pool %s already exists.\n\
 Use update to change it.\n"), pool->hdr.name);
@@ -632,7 +632,7 @@ static int update_volume(UAContext *ua)
    }
 
    for (int done=0; !done; ) {
-      if (!db_get_media_record(ua->db, &mr)) {
+      if (!db_get_media_record(ua->jcr, ua->db, &mr)) {
 	 if (mr.MediaId != 0) {
             bsendmsg(ua, _("Volume record for MediaId %d not found.\n"), mr.MediaId);
 	 } else {
@@ -856,6 +856,13 @@ static int update_volume(UAContext *ua)
             bsendmsg(ua, _("Invalid number, it must be 0 or greater\n"));
 	    break;
 	 } 
+	 if (VolFiles != (int)(mr.VolFiles + 1)) {
+            bsendmsg(ua, _("Normally, you should only increase Volume Files by one!\n"));
+            if (!get_cmd(ua, _("Continue? (yes/no): ")) || 
+                 strcasecmp(ua->cmd, "yes") != 0) {
+	       break;
+	    }
+	 }
 	 query = get_pool_memory(PM_MESSAGE);
          Mmsg(&query, "UPDATE Media SET VolFiles=%u WHERE MediaId=%u",
 	    VolFiles, mr.MediaId);
@@ -898,7 +905,7 @@ static int update_pool(UAContext *ua)
 
    set_pooldbr_from_poolres(&pr, pool, 0); /* update */
 
-   id = db_update_pool_record(ua->db, &pr);
+   id = db_update_pool_record(ua->jcr, ua->db, &pr);
    if (id <= 0) {
       bsendmsg(ua, _("db_update_pool_record returned %d. ERR=%s\n"),
 	 id, db_strerror(ua->db));
@@ -1200,7 +1207,7 @@ static int delete_volume(UAContext *ua)
       return 1;
    }
    if (strcasecmp(ua->cmd, _("yes")) == 0) {
-      db_delete_media_record(ua->db, &mr);
+      db_delete_media_record(ua->jcr, ua->db, &mr);
    }
    return 1;
 }
@@ -1221,7 +1228,7 @@ static int delete_pool(UAContext *ua)
       return 1;
    }
    if (strcasecmp(ua->cmd, _("yes")) == 0) {
-      db_delete_pool_record(ua->db, &pr);
+      db_delete_pool_record(ua->jcr, ua->db, &pr);
    }
    return 1;
 }
@@ -1282,7 +1289,7 @@ gotVol:
 
    memset(&mr, 0, sizeof(mr));
    strcpy(mr.VolumeName, ua->cmd);
-   if (db_get_media_record(ua->db, &mr)) {
+   if (db_get_media_record(ua->jcr, ua->db, &mr)) {
        bsendmsg(ua, _("Media record for Volume %s already exists.\n"), 
 	  mr.VolumeName);
        return 1;
@@ -1333,7 +1340,7 @@ gotVol:
    mr.LabelDate = time(NULL);
    if (ok) {
       set_pool_dbr_defaults_in_media_dbr(&mr, &pr);
-      if (db_create_media_record(ua->db, &mr)) {
+      if (db_create_media_record(ua->jcr, ua->db, &mr)) {
          bsendmsg(ua, _("Media record for Volume=%s successfully created.\n"),
 	    mr.VolumeName);
 	 if (ua->automount) {
@@ -1495,19 +1502,19 @@ int open_db(UAContext *ua)
       ua->catalog = (CAT *)GetNextRes(R_CATALOG, NULL);
       UnlockRes();
       if (!ua->catalog) {    
-         bnet_fsend(ua->UA_sock, _("Could not find a Catalog resource\n"));
+         bsendmsg(ua, _("Could not find a Catalog resource\n"));
 	 return 0;
       } else {
-         bnet_fsend(ua->UA_sock, _("Using default Catalog name=%s DB=%s\n"), 
+         bsendmsg(ua, _("Using default Catalog name=%s DB=%s\n"), 
 	    ua->catalog->hdr.name, ua->catalog->db_name);
       }
    }
 
    Dmsg0(150, "Open database\n");
-   ua->db = db_init_database(NULL, ua->catalog->db_name, ua->catalog->db_user,
+   ua->db = db_init_database(ua->jcr, ua->catalog->db_name, ua->catalog->db_user,
 			     ua->catalog->db_password);
-   if (!db_open_database(ua->db)) {
-      bnet_fsend(ua->UA_sock, _("Could not open DB %s: ERR=%s"), 
+   if (!db_open_database(ua->jcr, ua->db)) {
+      bsendmsg(ua, _("Could not open DB %s: ERR=%s"), 
 	 ua->catalog->db_name, db_strerror(ua->db));
       close_db(ua);
       return 0;
@@ -1520,7 +1527,7 @@ int open_db(UAContext *ua)
 void close_db(UAContext *ua)
 {
    if (ua->db) {
-      db_close_database(ua->db);
+      db_close_database(ua->jcr, ua->db);
    }
    ua->db = NULL;
    ua->jcr->db = NULL;

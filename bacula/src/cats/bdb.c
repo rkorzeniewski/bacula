@@ -14,7 +14,7 @@
 
 
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -114,7 +114,7 @@ db_init_database(void *jcr, char *db_name, char *db_user, char *db_password)
       }
    }
    Dmsg0(200, "db_open first time\n");
-   mdb = (B_DB *) malloc(sizeof(B_DB));
+   mdb = (B_DB *)malloc(sizeof(B_DB));
    memset(mdb, 0, sizeof(B_DB));
    Dmsg0(200, "DB struct init\n");
    mdb->db_name = bstrdup(db_name);
@@ -127,7 +127,6 @@ db_init_database(void *jcr, char *db_name, char *db_user, char *db_password)
    qinsert(&db_list, &mdb->bq);       /* put db in list */
    Dmsg0(200, "Done db_open_database()\n");
    mdb->cfd = -1;
-   mdb->jcr = jcr;
    V(mutex);
    return mdb;
 }
@@ -137,7 +136,7 @@ db_init_database(void *jcr, char *db_name, char *db_user, char *db_password)
  * which are returned in the errmsg
  */
 int
-db_open_database(B_DB *mdb)
+db_open_database(void *jcr, B_DB *mdb)
 {
    char *dbf;
    int fd, badctl;
@@ -231,7 +230,7 @@ Please reinitialize the working directory.\n"),
    return 1;
 }
 
-void db_close_database(B_DB *mdb)	     
+void db_close_database(void *jcr, B_DB *mdb)		
 {
    P(mutex);
    mdb->ref_count--;
@@ -445,11 +444,11 @@ void _db_unlock(char *file, int line, B_DB *mdb)
  *  much more efficient. Usually started when inserting 
  *  file attributes.
  */
-void db_start_transaction(B_DB *mdb)
+void db_start_transaction(void *jcr, B_DB *mdb)
 {
 }
 
-void db_end_transaction(B_DB *mdb)
+void db_end_transaction(void *jcr, B_DB *mdb)
 {
 }
 

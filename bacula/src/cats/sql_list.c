@@ -45,14 +45,14 @@
 
 /* Imported subroutines */
 extern void list_result(B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx);
-extern int QueryDB(char *file, int line, B_DB *db, char *select_cmd);
+extern int QueryDB(char *file, int line, void *jcr, B_DB *db, char *select_cmd);
 
 
 /* 
  * Submit general SQL query
  */
-int db_list_sql_query(B_DB *mdb, char *query, DB_LIST_HANDLER *sendit, void *ctx,
-		      int verbose)
+int db_list_sql_query(void *jcr, B_DB *mdb, char *query, DB_LIST_HANDLER *sendit, 
+		      void *ctx, int verbose)
 {
    db_lock(mdb);
    if (sql_query(mdb, query) != 0) {
@@ -75,13 +75,13 @@ int db_list_sql_query(B_DB *mdb, char *query, DB_LIST_HANDLER *sendit, void *ctx
 }
 
 void
-db_list_pool_records(B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx) 
+db_list_pool_records(void *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx) 
 {
    Mmsg(&mdb->cmd, "SELECT PoolId,Name,NumVols,MaxVols,PoolType,LabelFormat "
 "FROM Pool ORDER BY PoolId");
 
    db_lock(mdb);
-   if (!QUERY_DB(mdb, mdb->cmd)) {
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);
       return;
    }
@@ -93,13 +93,13 @@ db_list_pool_records(B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx)
 }
 
 void
-db_list_client_records(B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx) 
+db_list_client_records(void *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx) 
 {
    Mmsg(&mdb->cmd, "SELECT ClientId,Name,FileRetention,JobRetention "
 "FROM Client ORDER BY ClientId");
 
    db_lock(mdb);
-   if (!QUERY_DB(mdb, mdb->cmd)) {
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);
       return;
    }
@@ -112,14 +112,14 @@ db_list_client_records(B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx)
 
 
 void
-db_list_media_records(B_DB *mdb, MEDIA_DBR *mdbr, DB_LIST_HANDLER *sendit, void *ctx)
+db_list_media_records(void *jcr, B_DB *mdb, MEDIA_DBR *mdbr, DB_LIST_HANDLER *sendit, void *ctx)
 {
    Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,MediaType,VolStatus,\
 VolBytes,LastWritten,VolRetention,Recycle,Slot \
 FROM Media WHERE Media.PoolId=%u ORDER BY MediaId", mdbr->PoolId);
 
    db_lock(mdb);
-   if (!QUERY_DB(mdb, mdb->cmd)) {
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);
       return;
    }
@@ -130,7 +130,7 @@ FROM Media WHERE Media.PoolId=%u ORDER BY MediaId", mdbr->PoolId);
    db_unlock(mdb);
 }
 
-void db_list_jobmedia_records(B_DB *mdb, uint32_t JobId, DB_LIST_HANDLER *sendit, void *ctx)
+void db_list_jobmedia_records(void *jcr, B_DB *mdb, uint32_t JobId, DB_LIST_HANDLER *sendit, void *ctx)
 {
    if (JobId > 0) {		      /* do by JobId */
       Mmsg(&mdb->cmd, "SELECT JobId, Media.VolumeName, FirstIndex, LastIndex \
@@ -142,7 +142,7 @@ FROM JobMedia, Media WHERE Media.MediaId=JobMedia.MediaId");
    }
 
    db_lock(mdb);
-   if (!QUERY_DB(mdb, mdb->cmd)) {
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);
       return;
    }
@@ -162,7 +162,7 @@ FROM JobMedia, Media WHERE Media.MediaId=JobMedia.MediaId");
  *  only the job with the specified id.
  */
 void
-db_list_job_records(B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, void *ctx)
+db_list_job_records(void *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, void *ctx)
 {
    if (jr->JobId == 0 && jr->Job[0] == 0) {
       Mmsg(&mdb->cmd, 
@@ -174,7 +174,7 @@ JobFiles,JobBytes,JobStatus FROM Job WHERE Job.JobId=%u", jr->JobId);
    }
 
    db_lock(mdb);
-   if (!QUERY_DB(mdb, mdb->cmd)) {
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);
       return;
    }
@@ -190,7 +190,7 @@ JobFiles,JobBytes,JobStatus FROM Job WHERE Job.JobId=%u", jr->JobId);
  *
  */
 void
-db_list_job_totals(B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, void *ctx)
+db_list_job_totals(void *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, void *ctx)
 {
    db_lock(mdb);
 
@@ -198,7 +198,7 @@ db_list_job_totals(B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, void *ctx)
    Mmsg(&mdb->cmd, "SELECT  count(*) AS Jobs, sum(JobFiles) \
 AS Files, sum(JobBytes) AS Bytes, Name AS Job FROM Job GROUP BY Name");
 
-   if (!QUERY_DB(mdb, mdb->cmd)) {
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);
       return;
    }
@@ -211,7 +211,7 @@ AS Files, sum(JobBytes) AS Bytes, Name AS Job FROM Job GROUP BY Name");
    Mmsg(&mdb->cmd, "SELECT count(*) AS Jobs,sum(JobFiles) \
 AS Files,sum(JobBytes) As Bytes FROM Job");
 
-   if (!QUERY_DB(mdb, mdb->cmd)) {
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);
       return;
    }
@@ -224,7 +224,7 @@ AS Files,sum(JobBytes) As Bytes FROM Job");
 
 
 void
-db_list_files_for_job(B_DB *mdb, uint32_t jobid, DB_LIST_HANDLER *sendit, void *ctx)
+db_list_files_for_job(void *jcr, B_DB *mdb, uint32_t jobid, DB_LIST_HANDLER *sendit, void *ctx)
 {
 
    Mmsg(&mdb->cmd, "SELECT Path.Path,Filename.Name FROM File,\
@@ -233,7 +233,7 @@ AND Path.PathId=File.PathId",
       jobid);
 
    db_lock(mdb);
-   if (!QUERY_DB(mdb, mdb->cmd)) {
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);
       return;
    }

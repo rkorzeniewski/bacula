@@ -58,7 +58,7 @@ static int oldest_handler(void *ctx, int num_fields, char **row)
 int find_recycled_volume(JCR *jcr, MEDIA_DBR *mr)
 {
    strcpy(mr->VolStatus, "Recycle");
-   if (db_find_next_volume(jcr->db, 1, mr)) {
+   if (db_find_next_volume(jcr, jcr->db, 1, mr)) {
       jcr->MediaId = mr->MediaId;
       Dmsg1(20, "Find_next_vol MediaId=%d\n", jcr->MediaId);
       strcpy(jcr->VolumeName, mr->VolumeName);
@@ -94,9 +94,9 @@ int recycle_a_volume(JCR *jcr, MEDIA_DBR *mr)
    Dmsg1(100, "Oldest mediaid=%d\n", oldest.MediaId);
    if (oldest.MediaId != 0) {
       mr->MediaId = oldest.MediaId;
-      if (db_get_media_record(jcr->db, mr)) {
+      if (db_get_media_record(jcr, jcr->db, mr)) {
          strcpy(mr->VolStatus, "Recycle");
-	 if (db_update_media_record(jcr->db, mr)) {
+	 if (db_update_media_record(jcr, jcr->db, mr)) {
             Jmsg(jcr, M_INFO, 0, "Recycled volume %s\n", mr->VolumeName);
             Dmsg1(100, "Exit 1  recycle_a_volume Vol=%s\n", mr->VolumeName);
 	    return 1;

@@ -120,7 +120,7 @@ int prune_volumes(JCR *jcr)
    db_lock(jcr->db);
 
    pr.PoolId = jcr->PoolId;
-   if (!db_get_pool_record(jcr->db, &pr) || !db_get_media_ids(jcr->db, &num_ids, &ids)) {
+   if (!db_get_pool_record(jcr, jcr->db, &pr) || !db_get_media_ids(jcr, jcr->db, &num_ids, &ids)) {
       Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
       goto bail_out;
    }
@@ -128,7 +128,7 @@ int prune_volumes(JCR *jcr)
 
    for (i=0; i<num_ids; i++) {
       mr.MediaId = ids[i];
-      if (!db_get_media_record(jcr->db, &mr)) {
+      if (!db_get_media_record(jcr, jcr->db, &mr)) {
          Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
 	 continue;
       }

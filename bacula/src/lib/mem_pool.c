@@ -93,7 +93,6 @@ POOLMEM *sm_get_pool_memory(char *fname, int lineno, int pool)
 {
    struct abufhead *buf;
 
-   sm_check(fname, lineno, True);
    if (pool > PM_MAX) {
       Emsg2(M_ABORT, 0, "MemPool index %d larger than max %d\n", pool, PM_MAX);
    }
@@ -132,7 +131,6 @@ POOLMEM *sm_get_memory(char *fname, int lineno, size_t size)
    struct abufhead *buf;
    int pool = 0;
 
-   sm_check(fname, lineno, True);
    if ((buf = (struct abufhead *) sm_malloc(fname, lineno, size+HEAD_SIZE)) == NULL) {
       Emsg1(M_ABORT, 0, "Out of memory requesting %d bytes\n", size);
    }
@@ -151,7 +149,6 @@ size_t sm_sizeof_pool_memory(char *fname, int lineno, POOLMEM *obuf)
 {
    char *cp = (char *)obuf;
 
-   sm_check(fname, lineno, False);
    ASSERT(obuf);
    cp -= HEAD_SIZE;
    return ((struct abufhead *)cp)->ablen;
@@ -164,12 +161,10 @@ POOLMEM *sm_realloc_pool_memory(char *fname, int lineno, POOLMEM *obuf, size_t s
    void *buf;
    int pool;
 
-   sm_check(fname, lineno, False);
    ASSERT(obuf);
    P(mutex);
    cp -= HEAD_SIZE;
    buf = sm_realloc(fname, lineno, cp, size+HEAD_SIZE);
-   sm_check(fname, lineno, True);
    if (buf == NULL) {
       V(mutex);
       Emsg1(M_ABORT, 0, "Out of memory requesting %d bytes\n", size);
@@ -180,13 +175,11 @@ POOLMEM *sm_realloc_pool_memory(char *fname, int lineno, POOLMEM *obuf, size_t s
       pool_ctl[pool].max_size = size;
    }
    V(mutex);
-   sm_check(fname, lineno, False);
    return (POOLMEM *)(((char *)buf)+HEAD_SIZE);
 }
 
 POOLMEM *sm_check_pool_memory_size(char *fname, int lineno, POOLMEM *obuf, size_t size)
 {
-   sm_check(fname, lineno, False);
    ASSERT(obuf);
    if (size <= sizeof_pool_memory(obuf)) {
       return obuf;
@@ -200,7 +193,6 @@ void sm_free_pool_memory(char *fname, int lineno, POOLMEM *obuf)
    struct abufhead *buf;
    int pool;
 
-   sm_check(fname, lineno, True);
    ASSERT(obuf);
    P(mutex);
    buf = (struct abufhead *)((char *)obuf - HEAD_SIZE);
@@ -324,7 +316,6 @@ void free_pool_memory(POOLMEM *obuf)
    struct abufhead *buf;
    int pool;
 
-   sm_check(__FILE__, __LINE__, False);
    ASSERT(obuf);
    P(mutex);
    buf = (struct abufhead *)((char *)obuf - HEAD_SIZE);

@@ -254,7 +254,7 @@ int prune_files(UAContext *ua, CLIENT *client)
    memset(&cr, 0, sizeof(cr));
    memset(&del, 0, sizeof(del));
    strcpy(cr.Name, client->hdr.name);
-   if (!db_create_client_record(ua->db, &cr)) {
+   if (!db_create_client_record(ua->jcr, ua->db, &cr)) {
       db_unlock(ua->db);
       return 0;
    }
@@ -376,7 +376,7 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
    memset(&cr, 0, sizeof(cr));
    memset(&del, 0, sizeof(del));
    strcpy(cr.Name, client->hdr.name);
-   if (!db_create_client_record(ua->db, &cr)) {
+   if (!db_create_client_record(ua->jcr, ua->db, &cr)) {
       db_unlock(ua->db);
       return 0;
    }
@@ -548,7 +548,7 @@ int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
       (int)(now-period));
    for (i=0; i < del.num_ids; i++) {
       jr.JobId = del.JobId[i];
-      if (!db_get_job_record(ua->db, &jr)) {
+      if (!db_get_job_record(ua->jcr, ua->db, &jr)) {
 	 continue;
       }
       Dmsg2(200, "Looking at %s JobTdate=%d\n", jr.Job, (int)jr.JobTDate);

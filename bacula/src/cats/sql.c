@@ -64,8 +64,8 @@ static int int_handler(void *ctx, int num_fields, char **row)
  *  calling subroutine sets and clears the mutex
  */
 
-/* Check that the tables conrrespond to the version we want */
-int check_tables_version(B_DB *mdb)
+/* Check that the tables correspond to the version we want */
+int check_tables_version(void *jcr, B_DB *mdb)
 {
    uint32_t version;
    char *query = "SELECT VersionId FROM Version";
@@ -75,7 +75,7 @@ int check_tables_version(B_DB *mdb)
    if (version != BDB_VERSION) {
       Mmsg(&mdb->errmsg, "Version error for database \"%s\". Wanted %d, got %d\n",
 	 mdb->db_name, BDB_VERSION, version);
-      Jmsg(mdb->jcr, M_FATAL, 0, mdb->errmsg);
+      Jmsg(jcr, M_FATAL, 0, "%s", mdb->errmsg);
       return 0;
    }
    return 1;
@@ -83,11 +83,11 @@ int check_tables_version(B_DB *mdb)
 
 /* Utility routine for queries */
 int
-QueryDB(char *file, int line, B_DB *mdb, char *cmd)
+QueryDB(char *file, int line, void *jcr, B_DB *mdb, char *cmd)
 {
    if (sql_query(mdb, cmd)) {
       m_msg(file, line, &mdb->errmsg, _("query %s failed:\n%s\n"), cmd, sql_strerror(mdb));
-      j_msg(file, line, mdb->jcr, M_FATAL, 0, mdb->errmsg);
+      j_msg(file, line, jcr, M_FATAL, 0, "%s", mdb->errmsg);
       return 0;
    }
    mdb->result = sql_store_result(mdb);
@@ -101,11 +101,11 @@ QueryDB(char *file, int line, B_DB *mdb, char *cmd)
  *	    1 on success
  */
 int
-InsertDB(char *file, int line, B_DB *mdb, char *cmd)
+InsertDB(char *file, int line, void *jcr, B_DB *mdb, char *cmd)
 {
    if (sql_query(mdb, cmd)) {
       m_msg(file, line, &mdb->errmsg,  _("insert %s failed:\n%s\n"), cmd, sql_strerror(mdb));
-      j_msg(file, line, mdb->jcr, M_FATAL, 0, mdb->errmsg);
+      j_msg(file, line, jcr, M_FATAL, 0, "%s", mdb->errmsg);
       return 0;
    }
    if (mdb->have_insert_id) {
@@ -128,13 +128,13 @@ InsertDB(char *file, int line, B_DB *mdb, char *cmd)
  *	     1 on success  
  */
 int
-UpdateDB(char *file, int line, B_DB *mdb, char *cmd)
+UpdateDB(char *file, int line, void *jcr, B_DB *mdb, char *cmd)
 {
 
    if (sql_query(mdb, cmd)) {
       m_msg(file, line, &mdb->errmsg, _("update %s failed:\n%s\n"), cmd, sql_strerror(mdb));
-      j_msg(file, line, mdb->jcr, M_ERROR, 0, mdb->errmsg);
-      j_msg(file, line, mdb->jcr, M_ERROR, 0, "%s\n", cmd);
+      j_msg(file, line, jcr, M_ERROR, 0, "%s", mdb->errmsg);
+      j_msg(file, line, jcr, M_ERROR, 0, "%s\n", cmd);
       return 0;
    }
    mdb->num_rows = sql_affected_rows(mdb);
@@ -154,12 +154,12 @@ UpdateDB(char *file, int line, B_DB *mdb, char *cmd)
  *	     n number of rows affected
  */
 int
-DeleteDB(char *file, int line, B_DB *mdb, char *cmd)
+DeleteDB(char *file, int line, void *jcr, B_DB *mdb, char *cmd)
 {
 
    if (sql_query(mdb, cmd)) {
       m_msg(file, line, &mdb->errmsg, _("delete %s failed:\n%s\n"), cmd, sql_strerror(mdb));
-      j_msg(file, line, mdb->jcr, M_ERROR, 0, mdb->errmsg);
+      j_msg(file, line, jcr, M_ERROR, 0, "%s", mdb->errmsg);
       return -1;
    }
    mdb->changes++;
@@ -174,12 +174,12 @@ DeleteDB(char *file, int line, B_DB *mdb, char *cmd)
  * Returns: -1 on failure
  *	    count on success
  */
-int get_sql_record_max(B_DB *mdb)
+int get_sql_record_max(void *jcr, B_DB *mdb)
 {
    SQL_ROW row;
    int stat = 0;
 
-   if (QUERY_DB(mdb, mdb->cmd)) {
+   if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       if ((row = sql_fetch_row(mdb)) == NULL) {
          Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
 	 stat = -1;
@@ -203,7 +203,7 @@ void _db_lock(char *file, int line, B_DB *mdb)
 {
    int errstat;
    if ((errstat=rwl_writelock(&mdb->lock)) != 0) {
-      j_msg(file, line, mdb->jcr, M_ABORT, 0, "rwl_writelock failure. ERR=%s\n",
+      e_msg(file, line, M_ABORT, 0, "rwl_writelock failure. ERR=%s\n",
 	   strerror(errstat));
    }
 }    
@@ -212,7 +212,7 @@ void _db_unlock(char *file, int line, B_DB *mdb)
 {
    int errstat;
    if ((errstat=rwl_writeunlock(&mdb->lock)) != 0) {
-      j_msg(file, line, mdb->jcr, M_ABORT, 0, "rwl_writeunlock failure. ERR=%s\n",
+      e_msg(file, line, M_ABORT, 0, "rwl_writeunlock failure. ERR=%s\n",
 	   strerror(errstat));
    }
 }    
@@ -222,13 +222,13 @@ void _db_unlock(char *file, int line, B_DB *mdb)
  *  much more efficient. Usually started when inserting 
  *  file attributes.
  */
-void db_start_transaction(B_DB *mdb)
+void db_start_transaction(void *jcr, B_DB *mdb)
 {
 #ifdef xAVE_SQLITE
    db_lock(mdb);
    /* Allow only 10,000 changes per transaction */
    if (mdb->transaction && mdb->changes > 10000) {
-      db_end_transaction(mdb);
+      db_end_transaction(jcr, mdb);
    }
    if (!mdb->transaction) {   
       my_sqlite_query(mdb, "BEGIN");  /* begin transaction */
@@ -240,7 +240,7 @@ void db_start_transaction(B_DB *mdb)
 
 }
 
-void db_end_transaction(B_DB *mdb)
+void db_end_transaction(void *jcr, B_DB *mdb)
 {
 #ifdef xAVE_SQLITE
    db_lock(mdb);
@@ -259,7 +259,7 @@ void db_end_transaction(B_DB *mdb)
  *  and filename parts. They are returned in pool memory
  *  in the mdb structure.
  */
-void split_path_and_filename(B_DB *mdb, char *fname)
+void split_path_and_filename(void *jcr, B_DB *mdb, char *fname)
 {
    char *p, *f;
 
@@ -303,7 +303,7 @@ void split_path_and_filename(B_DB *mdb, char *fname)
       mdb->path[mdb->pnl] = 0;
    } else {
       Mmsg1(&mdb->errmsg, _("Path length is zero. File=%s\n"), fname);
-      Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
+      Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
       mdb->path[0] = ' ';
       mdb->path[1] = 0;
       mdb->pnl = 1;

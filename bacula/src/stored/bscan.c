@@ -228,7 +228,7 @@ int main (int argc, char *argv[])
    if ((db=db_init_database(NULL, db_name, db_user, db_password)) == NULL) {
       Emsg0(M_ERROR_TERM, 0, _("Could not init Bacula database\n"));
    }
-   if (!db_open_database(db)) {
+   if (!db_open_database(NULL, db)) {
       Emsg0(M_ERROR_TERM, 0, db_strerror(db));
    }
    Dmsg0(200, "Database opened\n");
@@ -300,7 +300,7 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	    /* Check Pool info */
 	    strcpy(pr.Name, dev->VolHdr.PoolName);
 	    strcpy(pr.PoolType, dev->VolHdr.PoolType);
-	    if (db_get_pool_record(db, &pr)) {
+	    if (db_get_pool_record(bjcr, db, &pr)) {
 	       if (verbose) {
                   Pmsg1(000, _("Pool record for %s found in DB.\n"), pr.Name);
 	       }
@@ -323,7 +323,7 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	    memset(&mr, 0, sizeof(mr));
 	    strcpy(mr.VolumeName, dev->VolHdr.VolName);
 	    mr.PoolId = pr.PoolId;
-	    if (db_get_media_record(db, &mr)) {
+	    if (db_get_media_record(bjcr, db, &mr)) {
 	       if (verbose) {
                   Pmsg1(000, _("Media record for %s found in DB.\n"), mr.VolumeName);
 	       }
@@ -364,7 +364,7 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	    unser_session_label(&label, rec);
 	    memset(&jr, 0, sizeof(jr));
 	    jr.JobId = label.JobId;
-	    if (db_get_job_record(db, &jr)) {
+	    if (db_get_job_record(bjcr, db, &jr)) {
 	       /* Job record already exists in DB */
                update_db = 0;  /* don't change db in create_job_record */
 	       if (verbose) {
@@ -472,7 +472,7 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 		  jr.JobTDate = (utime_t)mjcr->start_time;
 		  jr.ClientId = mjcr->ClientId;
 		  free_jcr(mjcr);
-		  if (!db_update_job_end_record(db, &jr)) {
+		  if (!db_update_job_end_record(bjcr, db, &jr)) {
                      Pmsg1(0, _("Could not update job record. ERR=%s\n"), db_strerror(db));
 		  }
 	       }
@@ -552,7 +552,7 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
       }
       fr.JobId = mjcr->JobId;
       fr.FileId = 0;
-      if (db_get_file_attributes_record(db, fname, &fr)) {
+      if (db_get_file_attributes_record(bjcr, db, fname, &fr)) {
 	 if (verbose > 1) {
             Pmsg1(000, _("File record already exists for: %s\n"), fname);
 	 }
@@ -690,7 +690,7 @@ static int create_file_attributes_record(B_DB *db, JCR *mjcr,
       return 1;
    }
 
-   if (!db_create_file_attributes_record(db, &ar)) {
+   if (!db_create_file_attributes_record(bjcr, db, &ar)) {
       Pmsg1(0, _("Could not create File Attributes record. ERR=%s\n"), db_strerror(db));
       return 0;
    }
@@ -732,11 +732,11 @@ static int create_media_record(B_DB *db, MEDIA_DBR *mr, VOLUME_LABEL *vl)
       return 1;
    }
 
-   if (!db_create_media_record(db, mr)) {
+   if (!db_create_media_record(bjcr, db, mr)) {
       Pmsg1(0, _("Could not create media record. ERR=%s\n"), db_strerror(db));
       return 0;
    }
-   if (!db_update_media_record(db, mr)) {
+   if (!db_update_media_record(bjcr, db, mr)) {
       Pmsg1(0, _("Could not update media record. ERR=%s\n"), db_strerror(db));
       return 0;
    }
@@ -757,7 +757,7 @@ static int update_media_record(B_DB *db, MEDIA_DBR *mr)
    }
 
    mr->LastWritten = lasttime;
-   if (!db_update_media_record(db, mr)) {
+   if (!db_update_media_record(bjcr, db, mr)) {
       Pmsg1(0, _("Could not update media record. ERR=%s\n"), db_strerror(db));
       return 0;
    }
@@ -778,7 +778,7 @@ static int create_pool_record(B_DB *db, POOL_DBR *pr)
    if (!update_db) {
       return 1;
    }
-   if (!db_create_pool_record(db, pr)) {
+   if (!db_create_pool_record(bjcr, db, pr)) {
       Pmsg1(0, _("Could not create pool record. ERR=%s\n"), db_strerror(db));
       return 0;
    }
@@ -798,7 +798,7 @@ static int create_client_record(B_DB *db, CLIENT_DBR *cr)
    if (!update_db) {
       return 1;
    }
-   if (!db_create_client_record(db, cr)) {
+   if (!db_create_client_record(bjcr, db, cr)) {
       Pmsg1(0, _("Could not create Client record. ERR=%s\n"), db_strerror(db));
       return 0;
    }
@@ -818,12 +818,12 @@ static int create_fileset_record(B_DB *db, FILESET_DBR *fsr)
       fsr->MD5[0] = ' ';              /* Equivalent to nothing */
       fsr->MD5[1] = 0;
    }
-   if (db_get_fileset_record(db, fsr)) {
+   if (db_get_fileset_record(bjcr, db, fsr)) {
       if (verbose) {
          Pmsg1(000, _("Fileset \"%s\" already exists.\n"), fsr->FileSet);
       }
    } else {
-      if (!db_create_fileset_record(db, fsr)) {
+      if (!db_create_fileset_record(bjcr, db, fsr)) {
          Pmsg2(0, _("Could not create FileSet record \"%s\". ERR=%s\n"), 
 	    fsr->FileSet, db_strerror(db));
 	 return 0;
@@ -875,13 +875,13 @@ static JCR *create_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *label,
    }
 
    /* This creates the bare essentials */
-   if (!db_create_job_record(db, jr)) {
+   if (!db_create_job_record(bjcr, db, jr)) {
       Pmsg1(0, _("Could not create JobId record. ERR=%s\n"), db_strerror(db));
       return mjcr;
    }
 
    /* This adds the client, StartTime, JobTDate, ... */
-   if (!db_update_job_start_record(db, jr)) {
+   if (!db_update_job_start_record(bjcr, db, jr)) {
       Pmsg1(0, _("Could not update job start record. ERR=%s\n"), db_strerror(db));
       return mjcr;
    }
@@ -934,7 +934,7 @@ static int update_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *elabel,
       return 1;
    }
    
-   if (!db_update_job_end_record(db, jr)) {
+   if (!db_update_job_end_record(bjcr, db, jr)) {
       Pmsg2(0, _("Could not update JobId=%u record. ERR=%s\n"), jr->JobId,  db_strerror(db));
       free_jcr(mjcr);
       return 0;
@@ -1026,7 +1026,7 @@ static int create_jobmedia_record(B_DB *db, JCR *mjcr)
       return 1;
    }
 
-   if (!db_create_jobmedia_record(db, &jmr)) {
+   if (!db_create_jobmedia_record(bjcr, db, &jmr)) {
       Pmsg1(0, _("Could not create JobMedia record. ERR=%s\n"), db_strerror(db));
       return 0;
    }
@@ -1060,7 +1060,7 @@ static int update_MD5_record(B_DB *db, char *MD5buf, DEV_RECORD *rec)
       return 1;
    }
    
-   if (!db_add_MD5_to_file_record(db, mjcr->FileId, MD5buf)) {
+   if (!db_add_MD5_to_file_record(bjcr, db, mjcr->FileId, MD5buf)) {
       Pmsg1(0, _("Could not add MD5 to File record. ERR=%s\n"), db_strerror(db));
       free_jcr(mjcr);
       return 0;

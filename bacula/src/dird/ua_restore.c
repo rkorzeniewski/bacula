@@ -9,7 +9,7 @@
  */
 
 /*
-   Copyright (C) 2002 Kern Sibbald and John Walker
+   Copyright (C) 2002-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -311,7 +311,7 @@ static int user_select_jobids(UAContext *ua, JobIds *ji)
       case -1:			      /* error */
 	 return 0;
       case 0:			      /* list last 20 Jobs run */
-	 db_list_sql_query(ua->db, uar_list_jobs, prtit, ua, 1);
+	 db_list_sql_query(ua->jcr, ua->db, uar_list_jobs, prtit, ua, 1);
 	 done = 0;
 	 break;
       case 1:			      /* list where a file is saved */
@@ -320,7 +320,7 @@ static int user_select_jobids(UAContext *ua, JobIds *ji)
 	 }
 	 query = get_pool_memory(PM_MESSAGE);
 	 Mmsg(&query, uar_file, ua->cmd);
-	 db_list_sql_query(ua->db, query, prtit, ua, 1);
+	 db_list_sql_query(ua->jcr, ua->db, query, prtit, ua, 1);
 	 free_pool_memory(query);
 	 done = 0;
 	 break;
@@ -334,7 +334,7 @@ static int user_select_jobids(UAContext *ua, JobIds *ji)
          if (!get_cmd(ua, _("Enter SQL list command: "))) {
 	    return 0;
 	 }
-	 db_list_sql_query(ua->db, ua->cmd, prtit, ua, 1);
+	 db_list_sql_query(ua->jcr, ua->db, ua->cmd, prtit, ua, 1);
 	 done = 0;
 	 break;
       case 4:			      /* Select the most recent backups */
@@ -375,8 +375,8 @@ static int user_select_jobids(UAContext *ua, JobIds *ji)
 	    return 0;
 	 }
 	 fsr.FileSetId = atoi(fileset_name);  /* Id is first part of name */
-	 if (!db_get_fileset_record(ua->db, &fsr)) {
-            bsendmsg(ua, "Error getting FileSet record: %s\n", db_strerror(ua->db));
+	 if (!db_get_fileset_record(ua->jcr, ua->db, &fsr)) {
+            bsendmsg(ua, _("Error getting FileSet record: %s\n"), db_strerror(ua->db));
             bsendmsg(ua, _("This probably means you modified the FileSet.\n"
                            "Continuing anyway.\n"));
 	 }
@@ -402,7 +402,7 @@ static int user_select_jobids(UAContext *ua, JobIds *ji)
             bsendmsg(ua, "%s\n", db_strerror(ua->db));
 	 }
 	 free_pool_memory(query);
-	 db_list_sql_query(ua->db, uar_list_temp, prtit, ua, 1);
+	 db_list_sql_query(ua->jcr, ua->db, uar_list_temp, prtit, ua, 1);
 
 	 if (!db_sql_query(ua->db, uar_sel_jobid_temp, jobid_handler, (void *)ji)) {
             bsendmsg(ua, "%s\n", db_strerror(ua->db));
@@ -434,7 +434,7 @@ static int user_select_jobids(UAContext *ua, JobIds *ji)
 	 break;
       }
       jr.JobId = JobId;
-      if (!db_get_job_record(ua->db, &jr)) {
+      if (!db_get_job_record(ua->jcr, ua->db, &jr)) {
          bsendmsg(ua, _("Unable to get Job record. ERR=%s\n"), db_strerror(ua->db));
 	 return 0;
       }
@@ -665,13 +665,13 @@ static int complete_bsr(UAContext *ua, RBSR *bsr)
    if (bsr) {
       memset(&jr, 0, sizeof(jr));
       jr.JobId = bsr->JobId;
-      if (!db_get_job_record(ua->db, &jr)) {
+      if (!db_get_job_record(ua->jcr, ua->db, &jr)) {
          bsendmsg(ua, _("Unable to get Job record. ERR=%s\n"), db_strerror(ua->db));
 	 return 0;
       }
       bsr->VolSessionId = jr.VolSessionId;
       bsr->VolSessionTime = jr.VolSessionTime;
-      if ((bsr->VolCount=db_get_job_volume_parameters(ua->db, bsr->JobId, 
+      if ((bsr->VolCount=db_get_job_volume_parameters(ua->jcr, ua->db, bsr->JobId, 
 	   &(bsr->VolParams))) == 0) {
          bsendmsg(ua, _("Unable to get Job Volume Parameters. ERR=%s\n"), db_strerror(ua->db));
 	 if (bsr->VolParams) {
@@ -1036,7 +1036,7 @@ static int dircmd(UAContext *ua, TREE_CTX *tree)
 	 tree_getpath(node, cwd, sizeof(cwd));
 	 fdbr.FileId = 0;
 	 fdbr.JobId = node->JobId;
-	 if (db_get_file_attributes_record(ua->db, cwd, &fdbr)) {
+	 if (db_get_file_attributes_record(ua->jcr, ua->db, cwd, &fdbr)) {
 	    decode_stat(fdbr.LStat, &statp); /* decode stat pkt */
 	    ls_output(buf, cwd, &statp);
             bsendmsg(ua, "%s\n", buf);

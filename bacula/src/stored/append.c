@@ -51,8 +51,6 @@ int do_append_data(JCR *jcr)
    /* Tell File daemon to send data */
    bnet_fsend(fd_sock, OK_data);
 
-   sm_check(__FILE__, __LINE__, False);
-
    if (!jcr->no_attributes && jcr->spool_attributes) {
       open_spool_file(jcr, jcr->dir_bsock);
    }
@@ -80,8 +78,6 @@ int do_append_data(JCR *jcr)
       free_block(block);
       return 0;
    }
-   sm_check(__FILE__, __LINE__, False);
-
    Dmsg0(100, "Just after acquire_device_for_append\n");
    /*
     * Write Begin Session Record
@@ -92,8 +88,6 @@ int do_append_data(JCR *jcr)
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       ok = FALSE;
    }
-
-   sm_check(__FILE__, __LINE__, False);
 
    memset(&rec, 0, sizeof(rec));
 
@@ -135,7 +129,6 @@ int do_append_data(JCR *jcr)
 	 ok = FALSE;
 	 break;
       }
-      sm_check(__FILE__, __LINE__, False);
       ds->msg[ds->msglen] = 0;
       if (sscanf(ds->msg, "%ld %ld %100s", &file_index, &stream, info) != 3) {
          Jmsg1(jcr, M_FATAL, 0, _("Malformed data header from FD: %s\n"), ds->msg);
@@ -161,10 +154,8 @@ int do_append_data(JCR *jcr)
       /* Read data stream from the File daemon.
        *  The data stream is just raw bytes
        */
-      sm_check(__FILE__, __LINE__, False);
       while ((n=bget_msg(ds)) > 0 && !job_cancelled(jcr)) {
 
-	 sm_check(__FILE__, __LINE__, False);
 	 rec.VolSessionId = jcr->VolSessionId;
 	 rec.VolSessionTime = jcr->VolSessionTime;
 	 rec.FileIndex = file_index;
@@ -188,7 +179,6 @@ int do_append_data(JCR *jcr)
 	       break;
 	    }
 	 }
-	 sm_check(__FILE__, __LINE__, False);
 	 if (!ok) {
             Dmsg0(400, "Not OK\n");
 	    break;
@@ -216,7 +206,6 @@ int do_append_data(JCR *jcr)
 	       jcr->dir_bsock->spool = 0;
 	    }
 	 }
-	 sm_check(__FILE__, __LINE__, False);
       }
       if (is_bnet_error(ds)) {
          Jmsg1(jcr, M_FATAL, 0, _("Network error on data channel. ERR=%s\n"),
@@ -229,7 +218,6 @@ int do_append_data(JCR *jcr)
     *   We probably need a new flag that says "Do not attempt
     *   to write because there is no tape".
     */
-   sm_check(__FILE__, __LINE__, False);
    Dmsg0(90, "Write_end_session_label()\n");
 
    /* Create Job status for end of session label */

@@ -48,7 +48,7 @@ int newVolume(JCR *jcr, MEDIA_DBR *mr)
 
    /* See if we can create a new Volume */
    pr.PoolId = jcr->PoolId;
-   if (db_get_pool_record(jcr->db, &pr) && pr.LabelFormat[0] &&
+   if (db_get_pool_record(jcr, jcr->db, &pr) && pr.LabelFormat[0] &&
        pr.LabelFormat[0] != '*') {
       if (pr.MaxVols == 0 || pr.NumVols < pr.MaxVols) {
 	 set_pool_dbr_defaults_in_media_dbr(mr, &pr);
@@ -61,8 +61,8 @@ int newVolume(JCR *jcr, MEDIA_DBR *mr)
 	 }
          strcat(name, "%04d");
 	 sprintf(mr->VolumeName, name, ++pr.NumVols);
-	 if (db_create_media_record(jcr->db, mr) &&
-	    db_update_pool_record(jcr->db, &pr) == 1) {
+	 if (db_create_media_record(jcr, jcr->db, mr) &&
+	    db_update_pool_record(jcr, jcr->db, &pr) == 1) {
             Dmsg1(90, "Created new Volume=%s\n", mr->VolumeName);
 	    return 1;
 	 } else {

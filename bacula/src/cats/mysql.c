@@ -87,7 +87,6 @@ db_init_database(void *jcr, char *db_name, char *db_user, char *db_password)
    mdb->path = get_pool_memory(PM_FNAME);
    mdb->esc_name = get_pool_memory(PM_FNAME);
    qinsert(&db_list, &mdb->bq); 	   /* put db in list */
-   mdb->jcr = jcr;
    V(mutex);
    return mdb;
 }
@@ -97,7 +96,7 @@ db_init_database(void *jcr, char *db_name, char *db_user, char *db_password)
  * which are returned in the errmsg
  */
 int
-db_open_database(B_DB *mdb)
+db_open_database(void *jcr, B_DB *mdb)
 {
    int errstat;
 
@@ -157,7 +156,7 @@ It is probably not running or your password is incorrect.\n"),
       return 0;
    }
 
-   if (!check_tables_version(mdb)) {
+   if (!check_tables_version(jcr, mdb)) {
       V(mutex);
       return 0;
    }
@@ -168,7 +167,7 @@ It is probably not running or your password is incorrect.\n"),
 }
 
 void
-db_close_database(B_DB *mdb)
+db_close_database(void *jcr, B_DB *mdb)
 {
    P(mutex);
    mdb->ref_count--;
@@ -209,7 +208,7 @@ db_close_database(B_DB *mdb)
  * For MySQL, NULL causes the auto-increment value
  *  to be updated.
  */
-int db_next_index(B_DB *mdb, char *table, char *index)
+int db_next_index(void *jcr, B_DB *mdb, char *table, char *index)
 {
    strcpy(index, "NULL");
    return 1;

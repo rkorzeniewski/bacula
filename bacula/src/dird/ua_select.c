@@ -269,7 +269,7 @@ int get_client_dbr(UAContext *ua, CLIENT_DBR *cr)
    int i;
 
    if (cr->Name[0]) {		      /* If name already supplied */
-      if (db_get_client_record(ua->db, cr)) {
+      if (db_get_client_record(ua->jcr, ua->db, cr)) {
 	 return 1;
       }
       bsendmsg(ua, _("Could not find Client %s: ERR=%s"), cr->Name, db_strerror(ua->db));
@@ -277,7 +277,7 @@ int get_client_dbr(UAContext *ua, CLIENT_DBR *cr)
    for (i=1; i<ua->argc; i++) {
       if (strcasecmp(ua->argk[i], _("client")) == 0 && ua->argv[i]) {
 	 bstrncpy(cr->Name, ua->argv[i], sizeof(cr->Name));
-	 if (!db_get_client_record(ua->db, cr)) {
+	 if (!db_get_client_record(ua->jcr, ua->db, cr)) {
             bsendmsg(ua, _("Could not find Client %s: ERR=%s"), ua->argv[i],
 		     db_strerror(ua->db));
 	    cr->ClientId = 0;
@@ -306,7 +306,7 @@ int select_client_dbr(UAContext *ua, CLIENT_DBR *cr)
 
 
    cr->ClientId = 0;
-   if (!db_get_client_ids(ua->db, &num_clients, &ids)) {
+   if (!db_get_client_ids(ua->jcr, ua->db, &num_clients, &ids)) {
       bsendmsg(ua, _("Error obtaining client ids. ERR=%s\n"), db_strerror(ua->db));
       return 0;
    }
@@ -318,7 +318,7 @@ int select_client_dbr(UAContext *ua, CLIENT_DBR *cr)
    start_prompt(ua, _("Defined Clients:\n"));
    for (i=0; i < num_clients; i++) {
       ocr.ClientId = ids[i];
-      if (!db_get_client_record(ua->db, &ocr)) {
+      if (!db_get_client_record(ua->jcr, ua->db, &ocr)) {
 	 continue;
       }
       add_prompt(ua, ocr.Name);
@@ -330,7 +330,7 @@ int select_client_dbr(UAContext *ua, CLIENT_DBR *cr)
    memset(&ocr, 0, sizeof(ocr));
    bstrncpy(ocr.Name, name, sizeof(ocr.Name));
 
-   if (!db_get_client_record(ua->db, &ocr)) {
+   if (!db_get_client_record(ua->jcr, ua->db, &ocr)) {
       bsendmsg(ua, _("Could not find Client %s: ERR=%s"), name, db_strerror(ua->db));
       return 0;
    }
@@ -355,7 +355,7 @@ int get_pool_dbr(UAContext *ua, POOL_DBR *pr)
    int i;
 
    if (pr->Name[0]) {		      /* If name already supplied */
-      if (db_get_pool_record(ua->db, pr)) {
+      if (db_get_pool_record(ua->jcr, ua->db, pr)) {
 	 return pr->PoolId;
       }
       bsendmsg(ua, _("Could not find Pool %s: ERR=%s"), pr->Name, db_strerror(ua->db));
@@ -363,7 +363,7 @@ int get_pool_dbr(UAContext *ua, POOL_DBR *pr)
    for (i=1; i<ua->argc; i++) {
       if (strcasecmp(ua->argk[i], _("pool")) == 0 && ua->argv[i]) {
 	 bstrncpy(pr->Name, ua->argv[i], sizeof(pr->Name));
-	 if (!db_get_pool_record(ua->db, pr)) {
+	 if (!db_get_pool_record(ua->jcr, ua->db, pr)) {
             bsendmsg(ua, _("Could not find Pool %s: ERR=%s"), ua->argv[i],
 		     db_strerror(ua->db));
 	    pr->PoolId = 0;
@@ -390,7 +390,7 @@ int select_pool_dbr(UAContext *ua, POOL_DBR *pr)
 
 
    pr->PoolId = 0;
-   if (!db_get_pool_ids(ua->db, &num_pools, &ids)) {
+   if (!db_get_pool_ids(ua->jcr, ua->db, &num_pools, &ids)) {
       bsendmsg(ua, _("Error obtaining pool ids. ERR=%s\n"), db_strerror(ua->db));
       return 0;
    }
@@ -402,7 +402,7 @@ int select_pool_dbr(UAContext *ua, POOL_DBR *pr)
    start_prompt(ua, _("Defined Pools:\n"));
    for (i=0; i < num_pools; i++) {
       opr.PoolId = ids[i];
-      if (!db_get_pool_record(ua->db, &opr)) {
+      if (!db_get_pool_record(ua->jcr, ua->db, &opr)) {
 	 continue;
       }
       add_prompt(ua, opr.Name);
@@ -414,7 +414,7 @@ int select_pool_dbr(UAContext *ua, POOL_DBR *pr)
    memset(&opr, 0, sizeof(opr));
    bstrncpy(opr.Name, name, sizeof(opr.Name));
 
-   if (!db_get_pool_record(ua->db, &opr)) {
+   if (!db_get_pool_record(ua->jcr, ua->db, &opr)) {
       bsendmsg(ua, _("Could not find Pool %s: ERR=%s"), name, db_strerror(ua->db));
       return 0;
    }
@@ -446,7 +446,7 @@ int select_pool_and_media_dbr(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
       bstrncpy(mr->VolumeName, ua->argv[i], sizeof(mr->VolumeName));
    }
    if (mr->VolumeName[0] == 0) {
-      db_list_media_records(ua->db, mr, prtit, ua);
+      db_list_media_records(ua->jcr, ua->db, mr, prtit, ua);
       if (!get_cmd(ua, _("Enter MediaId or Volume name: "))) {
 	 return 0;
       }
@@ -457,7 +457,7 @@ int select_pool_and_media_dbr(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
       }
    }
 
-   if (!db_get_media_record(ua->db, mr)) {
+   if (!db_get_media_record(ua->jcr, ua->db, mr)) {
       bsendmsg(ua, "%s", db_strerror(ua->db));
       return 0;
    }
@@ -503,12 +503,12 @@ POOL *get_pool_resource(UAContext *ua)
  */
 int select_job_dbr(UAContext *ua, JOB_DBR *jr)
 {
-   db_list_job_records(ua->db, jr, prtit, ua);
+   db_list_job_records(ua->jcr, ua->db, jr, prtit, ua);
    if (!get_cmd(ua, _("Enter the JobId to select: "))) {
       return 0;
    }
    jr->JobId = atoi(ua->cmd);
-   if (!db_get_job_record(ua->db, jr)) {
+   if (!db_get_job_record(ua->jcr, ua->db, jr)) {
       bsendmsg(ua, "%s", db_strerror(ua->db));
       return 0;
    }
@@ -540,7 +540,7 @@ int get_job_dbr(UAContext *ua, JOB_DBR *jr)
       } else {
 	 continue;
       }
-      if (!db_get_job_record(ua->db, jr)) {
+      if (!db_get_job_record(ua->jcr, ua->db, jr)) {
          bsendmsg(ua, _("Could not find Job %s: ERR=%s"), ua->argv[i],
 		  db_strerror(ua->db));
 	 jr->JobId = 0;

@@ -108,7 +108,6 @@ static void *smalloc(char *fname, int lineno, unsigned int nbytes)
 	   buf += HEAD_SIZE;  /* Increment to user data start */
 	   V(mutex);
 	}
-	sm_check(fname, lineno, True);
         Dmsg4(1150, "smalloc %d at %x from %s:%d\n", nbytes, buf, fname, lineno);
 	return (void *)buf;
 }
@@ -134,7 +133,6 @@ void sm_free(char *file, int line, void *fp)
 	char *cp = (char *) fp;
 	struct b_queue *qp;
 
-	sm_check(__FILE__, __LINE__, True);
 	if (cp == NULL) {
            Emsg2(M_ABORT, 0, "Attempt to free NULL called from %s:%d\n", file, line);
 	}
@@ -230,7 +228,6 @@ void *sm_realloc(char *fname, int lineno, void *ptr, unsigned int size)
 	char *cp = (char *) ptr;
 
         Dmsg4(400, "sm_realloc %s:%d 0x%x %d\n", fname, lineno, ptr, size);
-	sm_check(fname, lineno, True);
 	if (size <= 0) {
            e_msg(fname, lineno, M_ABORT, 0, "sm_realloc size: %d\n", size);
 	}
@@ -269,7 +266,6 @@ void *sm_realloc(char *fname, int lineno, void *ptr, unsigned int size)
 	   sm_free(__FILE__, __LINE__, ptr);
 	}
         Dmsg4(150, "sm_realloc %d at %x from %s:%d\n", size, buf, fname, lineno);
-	sm_check(fname, lineno, True);
 	return buf;
 }
 

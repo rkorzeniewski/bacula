@@ -82,7 +82,7 @@ int do_restore(JCR *jcr)
    memset(&rjr, 0, sizeof(rjr));
    jcr->jr.Level = 'F';            /* Full restore */
    jcr->jr.StartTime = jcr->start_time;
-   if (!db_update_job_start_record(jcr->db, &jcr->jr)) {
+   if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
       restore_cleanup(jcr, JS_ErrorTerminated);
       return 0;
@@ -105,7 +105,7 @@ int do_restore(JCR *jcr)
       } else {
 	 rjr.JobId = jcr->job->RestoreJobId; /* specified by Job Resource */
       }
-      if (!db_get_job_record(jcr->db, &rjr)) {
+      if (!db_get_job_record(jcr, jcr->db, &rjr)) {
          Jmsg2(jcr, M_FATAL, 0, _("Cannot get job record id=%d %s"), rjr.JobId,
 	    db_strerror(jcr->db));
 	 restore_cleanup(jcr, JS_ErrorTerminated);
@@ -116,7 +116,7 @@ int do_restore(JCR *jcr)
        * Now find the Volumes we will need for the Restore
        */
       jcr->VolumeName[0] = 0;
-      if (!db_get_job_volume_names(jcr->db, rjr.JobId, &jcr->VolumeName) ||
+      if (!db_get_job_volume_names(jcr, jcr->db, rjr.JobId, &jcr->VolumeName) ||
 	   jcr->VolumeName[0] == 0) {
          Jmsg(jcr, M_FATAL, 0, _("Cannot find Volume Name for restore Job %d. %s"), 
 	    rjr.JobId, db_strerror(jcr->db));

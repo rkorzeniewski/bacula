@@ -274,7 +274,6 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
 	   int i;
 
 	   status  = readdir_r(directory, entry, &result);
-	   sm_check(__FILE__, __LINE__, False);
            Dmsg3(200, "readdir stat=%d result=%x name=%s\n", status, result,
 	      entry->d_name);
 	   if (status != 0 || result == NULL) {
@@ -297,7 +296,6 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
 	      *q++ = *p++;
 	   }
 	   *q = 0;
-	   sm_check(__FILE__, __LINE__, False);
 	   if (!file_is_excluded(ff_pkt, link)) {
 	      rtn_stat = find_one_file(jcr, ff_pkt, handle_file, pkt, link, our_device, 0);
 	   }

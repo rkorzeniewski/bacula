@@ -16,6 +16,7 @@ Testing to do: (painful)
 - blocksize recognition code.
 
 For 1.29 release:
+- Zap sd_auth_key after use
 - Priority job to go to top of list.
 - Add Bar code reading capabilities (new mtx-changer)
 - Add include list to end of chain in findlib

@@ -352,16 +352,16 @@ Without that I don't know who I am :-(\n"), configfile);
 	  */
 	 db = db_init_database(NULL, catalog->db_name, catalog->db_user,
 			    catalog->db_password);
-	 if (!db_open_database(db)) {
+	 if (!db_open_database(NULL, db)) {
             Jmsg(NULL, M_FATAL,  0, "%s", db_strerror(db));
 	 } else {
 	    /* If a pool is defined for this job, create the pool DB	   
 	     *	record if it is not already created. 
 	     */
 	    if (job->pool) {
-	       create_pool(db, job->pool);
+	       create_pool(NULL, db, job->pool);
 	    }
-	    db_close_database(db);
+	    db_close_database(NULL, db);
 	 }
 
       } else {

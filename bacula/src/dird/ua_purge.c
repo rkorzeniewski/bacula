@@ -268,7 +268,7 @@ int purge_files_from_client(UAContext *ua, CLIENT *client)
    memset(&del, 0, sizeof(del));
 
    strcpy(cr.Name, client->hdr.name);
-   if (!db_create_client_record(ua->db, &cr)) {
+   if (!db_create_client_record(ua->jcr, ua->db, &cr)) {
       return 0;
    }
 
@@ -345,7 +345,7 @@ int purge_jobs_from_client(UAContext *ua, CLIENT *client)
    memset(&del, 0, sizeof(del));
 
    strcpy(cr.Name, client->hdr.name);
-   if (!db_create_client_record(ua->db, &cr)) {
+   if (!db_create_client_record(ua->jcr, ua->db, &cr)) {
       return 0;
    }
 
@@ -506,7 +506,7 @@ int mark_media_purged(UAContext *ua, MEDIA_DBR *mr)
        strcmp(mr->VolStatus, "Full")   == 0 ||
        strcmp(mr->VolStatus, "Used") == 0) {
       strcpy(mr->VolStatus, "Purged");
-      if (!db_update_media_record(ua->db, mr)) {
+      if (!db_update_media_record(ua->jcr, ua->db, mr)) {
 	 if (ua->verbose) {
             bsendmsg(ua, "%s", db_strerror(ua->db));
 	 }

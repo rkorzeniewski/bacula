@@ -44,17 +44,17 @@
  */
 
 /* Forward referenced subroutines */
-static int db_create_file_record(B_DB *mdb, ATTR_DBR *ar);
-static int db_create_filename_record(B_DB *mdb, ATTR_DBR *ar);
-static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar);
+static int db_create_file_record(void *jcr, B_DB *mdb, ATTR_DBR *ar);
+static int db_create_filename_record(void *jcr, B_DB *mdb, ATTR_DBR *ar);
+static int db_create_path_record(void *jcr, B_DB *mdb, ATTR_DBR *ar);
 
 
 /* Imported subroutines */
 extern void print_dashes(B_DB *mdb);
 extern void print_result(B_DB *mdb);
-extern int QueryDB(char *file, int line, B_DB *db, char *select_cmd);
-extern int InsertDB(char *file, int line, B_DB *db, char *select_cmd);
-extern void split_path_and_filename(B_DB *mdb, char *fname);
+extern int QueryDB(char *file, int line, void *jcr, B_DB *db, char *select_cmd);
+extern int InsertDB(char *file, int line, void *jcr, B_DB *db, char *select_cmd);
+extern void split_path_and_filename(void *jcr, B_DB *mdb, char *fname);
 
 
 /* Create a new record for the Job
@@ -62,7 +62,7 @@ extern void split_path_and_filename(B_DB *mdb, char *fname);
  *	    1 on success
  */
 int
-db_create_job_record(B_DB *mdb, JOB_DBR *jr)
+db_create_job_record(void *jcr, B_DB *mdb, JOB_DBR *jr)
 {
    char dt[MAX_TIME_LENGTH];
    time_t stime;
@@ -79,7 +79,7 @@ db_create_job_record(B_DB *mdb, JOB_DBR *jr)
    JobTDate = (utime_t)stime;
 
    db_lock(mdb);
-   if (!db_next_index(mdb, "Job", JobId)) {
+   if (!db_next_index(jcr, mdb, "Job", JobId)) {
       jr->JobId = 0;
       db_unlock(mdb);
       return 0;
@@ -91,7 +91,7 @@ db_create_job_record(B_DB *mdb, JOB_DBR *jr)
 	   JobId, jr->Job, jr->Name, (char)(jr->Type), (char)(jr->Level), 
 	   (char)(jr->JobStatus), dt, edit_uint64(JobTDate, ed1));
 
-   if (!INSERT_DB(mdb, mdb->cmd)) {
+   if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create DB Job record %s failed. ERR=%s\n"), 
 	    mdb->cmd, sql_strerror(mdb));
       jr->JobId = 0;
@@ -109,7 +109,7 @@ db_create_job_record(B_DB *mdb, JOB_DBR *jr)
  *	    1 on success
  */
 int
-db_create_jobmedia_record(B_DB *mdb, JOBMEDIA_DBR *jm)
+db_create_jobmedia_record(void *jcr, B_DB *mdb, JOBMEDIA_DBR *jm)
 {
    int stat;
 
@@ -118,7 +118,7 @@ db_create_jobmedia_record(B_DB *mdb, JOBMEDIA_DBR *jm)
 JobId=%d AND MediaId=%d", jm->JobId, jm->MediaId);
 
    Dmsg0(30, mdb->cmd);
-   if (QUERY_DB(mdb, mdb->cmd)) {
+   if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       mdb->num_rows = sql_num_rows(mdb);
       if (mdb->num_rows > 0) {
          Mmsg0(&mdb->errmsg, _("Create JobMedia failed. Record already exists.\n"));
@@ -139,7 +139,7 @@ VALUES (%u,%u,%u,%u,%u,%u,%u,%u)",
        jm->StartFile, jm->EndFile, jm->StartBlock, jm->EndBlock);
 
    Dmsg0(30, mdb->cmd);
-   if (!INSERT_DB(mdb, mdb->cmd)) {
+   if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db JobMedia record %s failed. ERR=%s\n"), mdb->cmd, 
 	 sql_strerror(mdb));
       stat = 0;
@@ -158,7 +158,7 @@ VALUES (%u,%u,%u,%u,%u,%u,%u,%u)",
  *	    1 on success
  */
 int
-db_create_pool_record(B_DB *mdb, POOL_DBR *pr)
+db_create_pool_record(void *jcr, B_DB *mdb, POOL_DBR *pr)
 {
    int stat;
    char ed1[30], ed2[30], ed3[50];
@@ -168,7 +168,7 @@ db_create_pool_record(B_DB *mdb, POOL_DBR *pr)
    Mmsg(&mdb->cmd, "SELECT PoolId,Name FROM Pool WHERE Name='%s'", pr->Name);
    Dmsg1(200, "selectpool: %s\n", mdb->cmd);
 
-   if (QUERY_DB(mdb, mdb->cmd)) {
+   if (QUERY_DB(jcr, mdb, mdb->cmd)) {
 
       mdb->num_rows = sql_num_rows(mdb);
    
@@ -198,7 +198,7 @@ VALUES ('%s',%u,%u,%d,%d,%d,%d,%d,%s,%s,%u,%u,%s,'%s','%s')",
 		  edit_uint64(pr->MaxVolBytes, ed3),
 		  pr->PoolType, pr->LabelFormat);
    Dmsg1(200, "Create Pool: %s\n", mdb->cmd);
-   if (!INSERT_DB(mdb, mdb->cmd)) {
+   if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db Pool record %s failed: ERR=%s\n"), 
 	    mdb->cmd, sql_strerror(mdb));
       pr->PoolId = 0;
@@ -219,7 +219,7 @@ VALUES ('%s',%u,%u,%d,%d,%d,%d,%d,%s,%s,%u,%u,%s,'%s','%s')",
  *	    1 on success
  */ 
 int
-db_create_media_record(B_DB *mdb, MEDIA_DBR *mr)
+db_create_media_record(void *jcr, B_DB *mdb, MEDIA_DBR *mr)
 {
    int stat;
    char ed1[30], ed2[30], ed3[30], ed4[30];
@@ -231,7 +231,7 @@ db_create_media_record(B_DB *mdb, MEDIA_DBR *mr)
 	   mr->VolumeName);
    Dmsg1(110, "selectpool: %s\n", mdb->cmd);
 
-   if (QUERY_DB(mdb, mdb->cmd)) {
+   if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       mdb->num_rows = sql_num_rows(mdb);
       if (mdb->num_rows > 0) {
          Mmsg1(&mdb->errmsg, _("Media record %s already exists\n"), mr->VolumeName);
@@ -264,7 +264,7 @@ db_create_media_record(B_DB *mdb, MEDIA_DBR *mr)
 		  mr->Slot);
 
    Dmsg1(500, "Create Volume: %s\n", mdb->cmd);
-   if (!INSERT_DB(mdb, mdb->cmd)) {
+   if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create DB Media record %s failed. ERR=%s\n"),
 	    mdb->cmd, sql_strerror(mdb));
       stat = 0;
@@ -283,7 +283,7 @@ db_create_media_record(B_DB *mdb, MEDIA_DBR *mr)
  * Returns: 0 on failure
  *	    1 on success with id in cr->ClientId
  */
-int db_create_client_record(B_DB *mdb, CLIENT_DBR *cr)
+int db_create_client_record(void *jcr, B_DB *mdb, CLIENT_DBR *cr)
 {
    SQL_ROW row;
    int stat;
@@ -293,19 +293,19 @@ int db_create_client_record(B_DB *mdb, CLIENT_DBR *cr)
    Mmsg(&mdb->cmd, "SELECT ClientId,Uname FROM Client WHERE Name='%s'", cr->Name);
 
    cr->ClientId = 0;
-   if (QUERY_DB(mdb, mdb->cmd)) {
+   if (QUERY_DB(jcr, mdb, mdb->cmd)) {
 
       mdb->num_rows = sql_num_rows(mdb);
       
       /* If more than one, report error, but return first row */
       if (mdb->num_rows > 1) {
          Mmsg1(&mdb->errmsg, _("More than one Client!: %d\n"), (int)(mdb->num_rows));
-         Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
+         Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
       }
       if (mdb->num_rows >= 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
             Mmsg1(&mdb->errmsg, _("error fetching Client row: %s\n"), sql_strerror(mdb));
-            Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
+            Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	    sql_free_result(mdb);
 	    db_unlock(mdb);
 	    return 0;
@@ -330,10 +330,10 @@ FileRetention, JobRetention) VALUES \
       edit_uint64(cr->FileRetention, ed1),
       edit_uint64(cr->JobRetention, ed2));
 
-   if (!INSERT_DB(mdb, mdb->cmd)) {
+   if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create DB Client record %s failed. ERR=%s\n"),
 	    mdb->cmd, sql_strerror(mdb));
-      Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
+      Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
       cr->ClientId = 0;
       stat = 0;
    } else {
@@ -351,7 +351,7 @@ FileRetention, JobRetention) VALUES \
  *  Returns: 0 on failure
  *	     1 on success with FileSetId in record
  */
-int db_create_fileset_record(B_DB *mdb, FILESET_DBR *fsr)
+int db_create_fileset_record(void *jcr, B_DB *mdb, FILESET_DBR *fsr)
 {
    SQL_ROW row;
    int stat;
@@ -361,18 +361,18 @@ int db_create_fileset_record(B_DB *mdb, FILESET_DBR *fsr)
 FileSet='%s' and MD5='%s'", fsr->FileSet, fsr->MD5);
 
    fsr->FileSetId = 0;
-   if (QUERY_DB(mdb, mdb->cmd)) {
+   if (QUERY_DB(jcr, mdb, mdb->cmd)) {
 
       mdb->num_rows = sql_num_rows(mdb);
       
       if (mdb->num_rows > 1) {
          Mmsg1(&mdb->errmsg, _("More than one FileSet!: %d\n"), (int)(mdb->num_rows));
-         Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
+         Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
       }
       if (mdb->num_rows >= 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
             Mmsg1(&mdb->errmsg, _("error fetching FileSet row: ERR=%s\n"), sql_strerror(mdb));
-            Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
+            Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	    sql_free_result(mdb);
 	    db_unlock(mdb);
 	    return 0;
@@ -389,10 +389,10 @@ FileSet='%s' and MD5='%s'", fsr->FileSet, fsr->MD5);
    Mmsg(&mdb->cmd, "INSERT INTO FileSet (FileSet, MD5) VALUES \
 ('%s', '%s')", fsr->FileSet, fsr->MD5);
 
-   if (!INSERT_DB(mdb, mdb->cmd)) {
+   if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create DB FileSet record %s failed. ERR=%s\n"),
 	    mdb->cmd, sql_strerror(mdb));
-      Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
+      Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
       fsr->FileSetId = 0;
       stat = 0;
    } else {
@@ -435,7 +435,7 @@ FileSet='%s' and MD5='%s'", fsr->FileSet, fsr->MD5);
  *  how many times it occurs.  This is this subroutine, we separate
  *  the file and the path and create three database records.
  */
-int db_create_file_attributes_record(B_DB *mdb, ATTR_DBR *ar)
+int db_create_file_attributes_record(void *jcr, B_DB *mdb, ATTR_DBR *ar)
 {
 
    Dmsg1(100, "Fname=%s\n", ar->fname);
@@ -445,29 +445,29 @@ int db_create_file_attributes_record(B_DB *mdb, ATTR_DBR *ar)
     */
    if (!(ar->Stream == STREAM_UNIX_ATTRIBUTES || ar->Stream == STREAM_WIN32_ATTRIBUTES)) {
       Mmsg0(&mdb->errmsg, _("Attempt to put non-attributes into catalog\n"));
-      Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
+      Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
       return 0;
    }
 
    db_lock(mdb);
 
-   split_path_and_filename(mdb, ar->fname);
+   split_path_and_filename(jcr, mdb, ar->fname);
 
-   if (!db_create_filename_record(mdb, ar)) {
+   if (!db_create_filename_record(jcr, mdb, ar)) {
       db_unlock(mdb);
       return 0;
    }
    Dmsg1(100, "db_create_filename_record: %s\n", mdb->esc_name);
 
 
-   if (!db_create_path_record(mdb, ar)) {
+   if (!db_create_path_record(jcr, mdb, ar)) {
       db_unlock(mdb);
       return 0;
    }
    Dmsg1(100, "db_create_path_record\n", mdb->esc_name);
 
    /* Now create master File record */
-   if (!db_create_file_record(mdb, ar)) {
+   if (!db_create_file_record(jcr, mdb, ar)) {
       db_unlock(mdb);
       return 0;
    }
@@ -482,7 +482,7 @@ int db_create_file_attributes_record(B_DB *mdb, ATTR_DBR *ar)
  * This is the master File entry containing the attributes.
  *  The filename and path records have already been created.
  */
-static int db_create_file_record(B_DB *mdb, ATTR_DBR *ar)
+static int db_create_file_record(void *jcr, B_DB *mdb, ATTR_DBR *ar)
 {
    int stat;
 
@@ -497,10 +497,10 @@ LStat, MD5) VALUES (%u, %u, %u, %u, '%s', '0')",
       ar->FileIndex, ar->JobId, ar->PathId, ar->FilenameId, 
       ar->attr);
 
-   if (!INSERT_DB(mdb, mdb->cmd)) {
+   if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db File record %s failed. ERR=%s"),       
 	 mdb->cmd, sql_strerror(mdb));
-      Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
+      Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
       ar->FileId = 0;
       stat = 0;
    } else {
@@ -511,7 +511,7 @@ LStat, MD5) VALUES (%u, %u, %u, %u, '%s', '0')",
 }
 
 /* Create a Unique record for the Path -- no duplicates */
-static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar)
+static int db_create_path_record(void *jcr, B_DB *mdb, ATTR_DBR *ar)
 {
    SQL_ROW row;
    int stat;
@@ -527,20 +527,19 @@ static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar)
 
    Mmsg(&mdb->cmd, "SELECT PathId FROM Path WHERE Path='%s'", mdb->esc_name);
 
-   if (QUERY_DB(mdb, mdb->cmd)) {
+   if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       mdb->num_rows = sql_num_rows(mdb);
       if (mdb->num_rows > 1) {
 	 char ed1[30];
          Mmsg2(&mdb->errmsg, _("More than one Path!: %s for path: %s\n"), 
 	    edit_uint64(mdb->num_rows, ed1), mdb->path);
-	 sm_check(__FILE__, __LINE__, True);
-         Jmsg(mdb->jcr, M_WARNING, 0, "%s", mdb->errmsg);
+         Jmsg(jcr, M_WARNING, 0, "%s", mdb->errmsg);
       }
       /* Even if there are multiple paths, take the first one */
       if (mdb->num_rows >= 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
             Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
-            Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
+            Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	    sql_free_result(mdb);
 	    ar->PathId = 0;
 	    ASSERT(ar->PathId);
@@ -563,10 +562,10 @@ static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar)
 
    Mmsg(&mdb->cmd, "INSERT INTO Path (Path)  VALUES ('%s')", mdb->esc_name);
 
-   if (!INSERT_DB(mdb, mdb->cmd)) {
+   if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db Path record %s failed. ERR=%s\n"), 
 	 mdb->cmd, sql_strerror(mdb));
-      Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
+      Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
       ar->PathId = 0;
       stat = 0;
    } else {
@@ -584,29 +583,28 @@ static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar)
 }
 
 /* Create a Unique record for the filename -- no duplicates */
-static int db_create_filename_record(B_DB *mdb, ATTR_DBR *ar) 
+static int db_create_filename_record(void *jcr, B_DB *mdb, ATTR_DBR *ar) 
 {
    SQL_ROW row;
 
    mdb->esc_name = check_pool_memory_size(mdb->esc_name, 2*mdb->fnl+2);
    db_escape_string(mdb->esc_name, mdb->fname, mdb->fnl);
-   sm_check(__FILE__, __LINE__, True);
 
    Mmsg(&mdb->cmd, "SELECT FilenameId FROM Filename WHERE Name='%s'", mdb->esc_name);
 
-   if (QUERY_DB(mdb, mdb->cmd)) {
+   if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       mdb->num_rows = sql_num_rows(mdb);
       if (mdb->num_rows > 1) {
 	 char ed1[30];
          Mmsg2(&mdb->errmsg, _("More than one Filename! %s for file: %s\n"), 
 	    edit_uint64(mdb->num_rows, ed1), mdb->fname);
-         Jmsg(mdb->jcr, M_WARNING, 0, "%s", mdb->errmsg);
+         Jmsg(jcr, M_WARNING, 0, "%s", mdb->errmsg);
       }
       if (mdb->num_rows >= 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
             Mmsg2(&mdb->errmsg, _("Error fetching row for file=%s: ERR=%s\n"), 
 		mdb->fname, sql_strerror(mdb));
-            Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
+            Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	    ar->FilenameId = 0;
 	 } else {
 	    ar->FilenameId = atoi(row[0]);
@@ -619,10 +617,10 @@ static int db_create_filename_record(B_DB *mdb, ATTR_DBR *ar)
 
    Mmsg(&mdb->cmd, "INSERT INTO Filename (Name) VALUES ('%s')", mdb->esc_name);
 
-   if (!INSERT_DB(mdb, mdb->cmd)) {
+   if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db Filename record %s failed. ERR=%s\n"), 
 	    mdb->cmd, sql_strerror(mdb));
-      Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
+      Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
       ar->FilenameId = 0;
    } else {
       ar->FilenameId = sql_insert_id(mdb);

@@ -100,7 +100,6 @@ typedef struct s_db {
    uint32_t cached_path_id;           /* cached path id */
    int transaction;                   /* transaction started */
    int changes;                       /* changes during transaction */
-   void *jcr;                         /* JCR or NULL */
    POOLMEM *fname;                    /* Filename only */
    POOLMEM *path;                     /* Path only */
    POOLMEM *esc_name;                 /* Escaped file/path name */
@@ -170,7 +169,6 @@ typedef struct s_db {
    int cached_path_len;               /* length of cached path */
    uint32_t cached_path_id;
    int changes;                       /* changes made to db */
-   void *jcr;                         /* JCR or NULL */
    POOLMEM *fname;                    /* Filename only */
    POOLMEM *path;                     /* Path only */
    POOLMEM *esc_name;                 /* Escaped file/path name */
@@ -239,17 +237,16 @@ typedef struct s_db {
    POOLMEM *cached_path;
    int cached_path_len;               /* length of cached path */
    uint32_t cached_path_id;
-   void *jcr;                         /* JCR or NULL */
 } B_DB;
 
 #endif /* HAVE_MYSQL */
 #endif /* HAVE_SQLITE */
 
 /* Use for better error location printing */
-#define UPDATE_DB(db, cmd) UpdateDB(__FILE__, __LINE__, db, cmd)
-#define INSERT_DB(db, cmd) InsertDB(__FILE__, __LINE__, db, cmd)
-#define QUERY_DB(db, cmd) QueryDB(__FILE__, __LINE__, db, cmd)
-#define DELETE_DB(db, cmd) DeleteDB(__FILE__, __LINE__, db, cmd)
+#define UPDATE_DB(jcr, db, cmd) UpdateDB(__FILE__, __LINE__, jcr, db, cmd)
+#define INSERT_DB(jcr, db, cmd) InsertDB(__FILE__, __LINE__, jcr, db, cmd)
+#define QUERY_DB(jcr, db, cmd) QueryDB(__FILE__, __LINE__, jcr, db, cmd)
+#define DELETE_DB(jcr, db, cmd) DeleteDB(__FILE__, __LINE__, jcr, db, cmd)
 
 
 #else    /* not __SQL_C */

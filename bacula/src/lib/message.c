@@ -868,12 +868,6 @@ Jmsg(void *vjcr, int type, int level, char *fmt,...)
      * Check if we have a message destination defined.	
      * We always report M_ABORT and M_ERROR_TERM 
      */
-
-    /* There is an apparent compiler bug with the following if
-     *	statement, so the set_jcr... is simply a noop to reload 
-     *	registers.
-     */
-    set_jcr_job_status(jcr, jcr->JobStatus);
     if (msgs && (type != M_ABORT && type != M_ERROR_TERM) &&
 	 !bit_is_set(type, msgs->send_msg)) {
        return;			      /* no destination */

@@ -96,7 +96,7 @@ int do_backup(JCR *jcr)
    } else {
       Jmsg(jcr, M_WARNING, 0, _("FileSet MD5 signature not found.\n"));
    }
-   if (!db_create_fileset_record(jcr->db, &fsr)) {
+   if (!db_create_fileset_record(jcr, jcr->db, &fsr)) {
       Jmsg(jcr, M_ERROR, 0, _("Could not create FileSet record. ERR=%s\n"), 
 	 db_strerror(jcr->db));
       goto bail_out;
@@ -117,7 +117,7 @@ int do_backup(JCR *jcr)
       case L_INCREMENTAL:
 	 /* Look up start time of last job */
 	 jcr->jr.JobId = 0;
-	 if (!db_find_job_start_time(jcr->db, &jcr->jr, &jcr->stime)) {
+	 if (!db_find_job_start_time(jcr, jcr->db, &jcr->jr, &jcr->stime)) {
             Jmsg(jcr, M_INFO, 0, _("Last FULL backup time not found. Doing FULL backup.\n"));
 	    jcr->JobLevel = jcr->jr.Level = L_FULL;
 	 } else {
@@ -130,7 +130,7 @@ int do_backup(JCR *jcr)
 
    jcr->jr.JobId = jcr->JobId;
    jcr->jr.StartTime = jcr->start_time;
-   if (!db_update_job_start_record(jcr->db, &jcr->jr)) {
+   if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
       goto bail_out;
    }
@@ -146,9 +146,9 @@ int do_backup(JCR *jcr)
     */
    memset(&pr, 0, sizeof(pr));
    strcpy(pr.Name, jcr->pool->hdr.name);
-   while (!db_get_pool_record(jcr->db, &pr)) { /* get by Name */
+   while (!db_get_pool_record(jcr, jcr->db, &pr)) { /* get by Name */
       /* Try to create the pool */
-      if (create_pool(jcr->db, jcr->pool) < 0) {
+      if (create_pool(jcr, jcr->db, jcr->pool) < 0) {
          Jmsg(jcr, M_FATAL, 0, _("Pool %s not in database. %s"), pr.Name, 
 	    db_strerror(jcr->db));
 	 goto bail_out;
@@ -321,14 +321,14 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
 
    update_job_end_record(jcr);	      /* update database */
    
-   if (!db_get_job_record(jcr->db, &jcr->jr)) {
+   if (!db_get_job_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_WARNING, 0, _("Error getting job record for stats: %s"), 
 	 db_strerror(jcr->db));
       set_jcr_job_status(jcr, JS_ErrorTerminated);
    }
 
    strcpy(mr.VolumeName, jcr->VolumeName);
-   if (!db_get_media_record(jcr->db, &mr)) {
+   if (!db_get_media_record(jcr, jcr->db, &mr)) {
       Jmsg(jcr, M_WARNING, 0, _("Error getting Media record for stats: %s"), 
 	 db_strerror(jcr->db));
       set_jcr_job_status(jcr, JS_ErrorTerminated);
@@ -352,7 +352,7 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
          fd = fopen(fname, jcr->JobLevel==L_FULL?"w+":"a+");
       }
       if (fd) {
-	 VolCount = db_get_job_volume_parameters(jcr->db, jcr->JobId,
+	 VolCount = db_get_job_volume_parameters(jcr, jcr->db, jcr->JobId,
 		    &VolParams);
 	 if (VolCount == 0) {
             Jmsg(jcr, M_ERROR, 0, _("Could not get Job Volume Parameters. ERR=%s\n"),
@@ -419,7 +419,7 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
    } else {
       kbps = (double)jcr->jr.JobBytes / (1000 * RunTime);
    }
-   if (!db_get_job_volume_names(jcr->db, jcr->jr.JobId, &jcr->VolumeName)) {
+   if (!db_get_job_volume_names(jcr, jcr->db, jcr->jr.JobId, &jcr->VolumeName)) {
       /*
        * Note, if the job has erred, most likely it did not write any
        *  tape, so suppress this "error" message since in that case
