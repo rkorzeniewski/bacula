@@ -164,7 +164,8 @@ bool do_verify(JCR *jcr)
       bsr->fi = new_findex();
       bsr->fi->findex = 1;
       bsr->fi->findex2 = verify_jr.JobFiles;
-      if (!write_bsr_file(ua, bsr)) {
+      jcr->ExpectedFiles = write_bsr_file(ua, bsr);
+      if (jcr->ExpectedFiles == 0) {
 	 free_ua_context(ua);
 	 free_bsr(bsr);
 	 goto bail_out;
@@ -359,7 +360,7 @@ bail_out:
 static void verify_cleanup(JCR *jcr, int TermCode)
 {
    char sdt[50], edt[50];
-   char ec1[30];
+   char ec1[30], ec2[30];
    char term_code[100], fd_term_msg[100], sd_term_msg[100];
    const char *term_msg;
    int msg_type;
@@ -368,6 +369,13 @@ static void verify_cleanup(JCR *jcr, int TermCode)
 
 // Dmsg1(100, "Enter verify_cleanup() TermCod=%d\n", TermCode);
    dequeue_messages(jcr);	      /* display any queued messages */
+
+   Dmsg3(000, "JobLevel=%c Expected=%u JobFiles=%u\n", jcr->JobLevel,
+      jcr->ExpectedFiles, jcr->JobFiles);
+   if (jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG &&
+       jcr->ExpectedFiles != jcr->JobFiles) {
+      TermCode = JS_ErrorTerminated;
+   }
 
    JobId = jcr->jr.JobId;
    set_jcr_job_status(jcr, TermCode);
@@ -420,6 +428,7 @@ Verify JobId:           %d\n\
 Verify Job:             %s\n\
 Start time:             %s\n\
 End time:               %s\n\
+Files Expected:         %s\n\
 Files Examined:         %s\n\
 Non-fatal FD errors:    %d\n\
 FD termination status:  %s\n\
@@ -435,7 +444,8 @@ Termination:            %s\n\n"),
 	 Name,
 	 sdt,
 	 edt,
-	 edit_uint64_with_commas(jcr->JobFiles, ec1),
+	 edit_uint64_with_commas(jcr->ExpectedFiles, ec1),
+	 edit_uint64_with_commas(jcr->JobFiles, ec2),
 	 jcr->Errors,
 	 fd_term_msg,
 	 sd_term_msg,
