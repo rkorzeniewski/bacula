@@ -226,7 +226,14 @@ wxbMainFrame::wxbMainFrame(const wxString& title, const wxPoint& pos, const wxSi
    notebook->AddPage(consolePanel, "Console");
 
    consoleCtrl = new wxTextCtrl(consolePanel,-1,"",wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxTE_READONLY | wxTE_RICH);
-   consoleCtrl->SetDefaultStyle(wxTextAttr(*wxBLACK, wxNullColour, wxFont(10, wxMODERN, wxNORMAL, wxNORMAL)));
+   wxFont font(10, wxMODERN, wxNORMAL, wxNORMAL);
+#if defined __WXGTK12__ && !defined __WXGTK20__ // Fix for "chinese" fonts under gtk+ 1.2
+   font.SetDefaultEncoding(wxFONTENCODING_ISO8859_1);
+   consoleCtrl->SetDefaultStyle(wxTextAttr(*wxBLACK, wxNullColour, font));
+   Print("Warning : Unicode is disabled because you are using wxWidgets for GTK+ 1.2.", CS_DEBUG);
+#else
+   consoleCtrl->SetDefaultStyle(wxTextAttr(*wxBLACK, wxNullColour, font));
+#endif
 
    wxFlexGridSizer *consoleSizer = new wxFlexGridSizer(2, 1, 0, 0);
    consoleSizer->AddGrowableCol(0);
