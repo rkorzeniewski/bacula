@@ -15,197 +15,116 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#define NEEDED 1
-#ifdef NEEDED
+#include "bacula.h"
 
-#include <config.h>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <pwd.h>
-#include <grp.h>
-
-#if defined(STDC_HEADERS) || defined(HAVE_STRING_H)
-#include <string.h>
-#else
-#include <strings.h>
-#endif
-
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-#ifndef _POSIX_VERSION
-struct passwd *getpwuid ();
-struct passwd *getpwnam ();
-struct group *getgrgid ();
-struct group *getgrnam ();
-#endif
-
-#define xstrdup strdup
-#define xmalloc malloc
-//char *xmalloc ();
-//char *xstrdup ();
-
-struct userid
-{
-  union
-    {
+struct userid {
+  union {
       uid_t u;
       gid_t g;
-    } id;
+  } id;
   char *name;
   struct userid *next;
 };
 
-static struct userid *user_alist;
+static struct userid *user_alist = NULL;
+/* Use the same struct as for userids.	*/
+static struct userid *group_alist = NULL;
 
-
-
-/* The members of this list have names not in the local passwd file.  */
-static struct userid *nouser_alist;
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /* Translate UID to a login name or a stringified number,
    with cache.	*/
 
-char *getuser (uid_t uid)
+char *getuser(uid_t uid)
 {
   register struct userid *tail;
   struct passwd *pwent;
   char usernum_string[20];
 
-  for (tail = user_alist; tail; tail = tail->next)
-    if (tail->id.u == uid)
+  P(mutex);
+  for (tail = user_alist; tail; tail = tail->next) {
+    if (tail->id.u == uid) {
+      V(mutex);
       return tail->name;
+    }
+  }
 
-  pwent = getpwuid (uid);
-  tail = (struct userid *) xmalloc (sizeof (struct userid));
+  pwent = getpwuid(uid);
+  tail = (struct userid *)malloc(sizeof (struct userid));
   tail->id.u = uid;
-  if (pwent == 0) {
-      sprintf (usernum_string, "%u", (unsigned) uid);
-      tail->name = xstrdup (usernum_string);
+  if (pwent == 0 || strcmp(pwent->pw_name, "????????") == 0) {
+      sprintf(usernum_string, "%u", (uint32_t)uid);
+      tail->name = bstrdup(usernum_string);
   } else {
-      tail->name = xstrdup (pwent->pw_name);
+      tail->name = bstrdup(pwent->pw_name);
   }
 
   /* Add to the head of the list, so most recently used is first.  */
   tail->next = user_alist;
   user_alist = tail;
+  V(mutex);
   return tail->name;
 }
 
-/* Translate USER to a UID, with cache.
-   Return NULL if there is no such user.
-   (We also cache which user names have no passwd entry,
-   so we don't keep looking them up.)  */
-
-uid_t *
-getuidbyname (char *user)
+void free_getuser_cache()
 {
   register struct userid *tail;
-  struct passwd *pwent;
 
-  for (tail = user_alist; tail; tail = tail->next)
-    /* Avoid a function call for the most common case.	*/
-    if (*tail->name == *user && !strcmp (tail->name, user))
-      return &tail->id.u;
-
-  for (tail = nouser_alist; tail; tail = tail->next)
-    /* Avoid a function call for the most common case.	*/
-    if (*tail->name == *user && !strcmp (tail->name, user))
-      return 0;
-
-  pwent = getpwnam (user);
-
-  tail = (struct userid *) xmalloc (sizeof (struct userid));
-  tail->name = xstrdup (user);
-
-  /* Add to the head of the list, so most recently used is first.  */
-  if (pwent)
-    {
-      tail->id.u = pwent->pw_uid;
-      tail->next = user_alist;
-      user_alist = tail;
-      return &tail->id.u;
-    }
-
-  tail->next = nouser_alist;
-  nouser_alist = tail;
-  return 0;
+  P(mutex);
+  for (tail = user_alist; tail; ) {
+     struct userid *otail = tail;
+     free(tail->name);
+     tail = tail->next;
+     free(otail);
+  }
+  V(mutex);
 }
 
-/* Use the same struct as for userids.	*/
-static struct userid *group_alist;
-static struct userid *nogroup_alist;
+
 
 /* Translate GID to a group name or a stringified number,
    with cache.	*/
-
-char *
-getgroup (gid_t gid)
+char *getgroup(gid_t gid)
 {
   register struct userid *tail;
   struct group *grent;
   char groupnum_string[20];
 
-  for (tail = group_alist; tail; tail = tail->next)
-    if (tail->id.g == gid)
+  P(mutex);
+  for (tail = group_alist; tail; tail = tail->next) {
+    if (tail->id.g == gid) {
+      V(mutex);
       return tail->name;
-
-  grent = getgrgid (gid);
-  tail = (struct userid *) xmalloc (sizeof (struct userid));
-  tail->id.g = gid;
-  if (grent == 0)
-    {
-      sprintf (groupnum_string, "%u", (unsigned int) gid);
-      tail->name = xstrdup (groupnum_string);
     }
-  else
-    tail->name = xstrdup (grent->gr_name);
+  }
+
+  grent = getgrgid(gid);
+  tail = (struct userid *)malloc(sizeof (struct userid));
+  tail->id.g = gid;
+  if (grent == 0 || strcmp(grent->gr_name, "????????") == 0) {
+      sprintf (groupnum_string, "%u", (uint32_t)gid);
+      tail->name = bstrdup(groupnum_string);
+  } else {
+      tail->name = bstrdup(grent->gr_name);
+  }
 
   /* Add to the head of the list, so most recently used is first.  */
   tail->next = group_alist;
   group_alist = tail;
+  V(mutex);
   return tail->name;
 }
 
-/* Translate GROUP to a UID, with cache.
-   Return NULL if there is no such group.
-   (We also cache which group names have no group entry,
-   so we don't keep looking them up.)  */
-
-gid_t *
-getgidbyname (char *group)
+void free_getgroup_cache()
 {
   register struct userid *tail;
-  struct group *grent;
 
-  for (tail = group_alist; tail; tail = tail->next)
-    /* Avoid a function call for the most common case.	*/
-    if (*tail->name == *group && !strcmp (tail->name, group))
-      return &tail->id.g;
-
-  for (tail = nogroup_alist; tail; tail = tail->next)
-    /* Avoid a function call for the most common case.	*/
-    if (*tail->name == *group && !strcmp (tail->name, group))
-      return 0;
-
-  grent = getgrnam (group);
-
-  tail = (struct userid *) xmalloc (sizeof (struct userid));
-  tail->name = xstrdup (group);
-
-  /* Add to the head of the list, so most recently used is first.  */
-  if (grent)
-    {
-      tail->id.g = grent->gr_gid;
-      tail->next = group_alist;
-      group_alist = tail;
-      return &tail->id.g;
-    }
-
-  tail->next = nogroup_alist;
-  nogroup_alist = tail;
-  return 0;
+  P(mutex);
+  for (tail = group_alist; tail; ) {
+     struct userid *otail = tail;
+     free(tail->name);
+     tail = tail->next;
+     free(otail);
+  }
+  V(mutex);
 }
-#endif

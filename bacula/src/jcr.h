@@ -119,6 +119,8 @@ struct JCR {
    uint32_t ClientId;                 /* Client associated with Job */
    char *where;                       /* prefix to restore files to */
    int prefix_links;                  /* Prefix links with Where path */
+   int cached_pnl;                    /* cached path length */
+   POOLMEM *cached_path;              /* cached path */
 
    /* Daemon specific part of JCR */
    /* This should be empty in the library */

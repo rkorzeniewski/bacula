@@ -160,6 +160,13 @@ static void free_common_jcr(JCR *jcr)
       free(jcr->where);
       jcr->where = NULL;
    }
+   if (jcr->cached_path) {
+      free_pool_memory(jcr->cached_path);
+      jcr->cached_path = NULL;
+      jcr->cached_pnl = 0;
+   }
+   free_getuser_cache();
+   free_getgroup_cache();
    free(jcr);
 }
 
