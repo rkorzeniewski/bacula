@@ -1,6 +1,4 @@
 Makefile
-bacula-dir
-bacula-dir.conf
 btraceback
 btraceback.gdb
 startit
