@@ -208,6 +208,7 @@ int main (int argc, char *argv[])
 
    /* Create pid must come after we are a daemon -- so we have our final pid */
    create_pid_file(director->pid_directory, "bacula-dir", director->DIRport);
+   read_state_file(director->working_directory, "bacula-dir", director->DIRport);
 
    drop(uid, gid);		      /* reduce priveleges if requested */
 
@@ -249,8 +250,9 @@ static void terminate_dird(int sig)
       exit(1);
    }
    already_here = TRUE;
-   delete_pid_file(director->pid_directory, "bacula-dir",  
-		   director->DIRport);
+   Dmsg0(000, "write_state_file\n");
+   write_state_file(director->working_directory, "bacula-dir", director->DIRport);
+   delete_pid_file(director->pid_directory, "bacula-dir", director->DIRport);
 // signal(SIGCHLD, SIG_IGN);          /* don't worry about children now */
    term_scheduler();
    if (runjob) {

@@ -53,25 +53,76 @@ void init_last_jobs_list()
    if (!last_jobs) {
       last_jobs = new dlist(job_entry,	&job_entry->link);
       memset(&last_job, 0, sizeof(last_job));
-   }
-   if ((errstat=rwl_init(&lock)) != 0) {
-      Emsg1(M_ABORT, 0, _("Unable to initialize jcr_chain lock. ERR=%s\n"), 
-	    strerror(errstat));
+      if ((errstat=rwl_init(&lock)) != 0) {
+         Emsg1(M_ABORT, 0, _("Unable to initialize jcr_chain lock. ERR=%s\n"), 
+	       strerror(errstat));
+      }
    }
 
 }
 
 void term_last_jobs_list()
 {
-   char *je;
+   struct s_last_job *je;
    if (last_jobs) {
       foreach_dlist(je, last_jobs) {
 	 free(je);		       
       }
       delete last_jobs;
       last_jobs = NULL;
+      rwl_destroy(&lock);
    }
-   rwl_destroy(&lock);
+}
+
+void read_last_jobs_list(int fd, uint64_t addr)
+{
+   struct s_last_job *je;
+
+   if (addr == 0 || lseek(fd, addr, SEEK_SET) < 0) {
+      return;
+   }
+   for ( ;; ) {
+      if (read(fd, &last_job, sizeof(last_job)) < 0) {
+	 return;
+      }
+      if (last_job.JobId > 0) {
+	 je = (struct s_last_job *)malloc(sizeof(struct s_last_job));
+	 memcpy((char *)je, (char *)&last_job, sizeof(last_job));
+	 if (!last_jobs) {
+	    init_last_jobs_list();
+	 }
+	 last_jobs->append(je);
+	 if (last_jobs->size() > MAX_LAST_JOBS) {
+	    last_jobs->remove(last_jobs->first());
+	 }
+	 last_job.JobId = 0;		 /* zap last job */
+      } else {
+	 break;
+      }
+   }
+}
+
+uint64_t write_last_jobs_list(int fd, uint64_t addr)
+{
+   struct s_last_job *je;
+   if (lseek(fd, addr, SEEK_SET) < 0) {
+      return 0;
+   }
+   if (last_jobs) {
+      foreach_dlist(je, last_jobs) {
+	 if (write(fd, je, sizeof(struct s_last_job)) < 0) {
+	    return 0;
+	 }
+      }
+   }
+   memset(&last_job, 0, sizeof(last_job));
+   write(fd, &last_job, sizeof(last_job));
+   ssize_t stat = lseek(fd, 0, SEEK_CUR);
+   if (stat < 0) {
+      return 0;
+   }
+   return stat;
+      
 }
 
 void lock_last_jobs_list() 

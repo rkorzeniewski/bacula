@@ -329,6 +329,7 @@ void create_pid_file(char *dir, const char *progname, int port)
 #endif
 }
 
+
 /*
  * Delete the pid file if we created it
  */
@@ -348,6 +349,78 @@ int delete_pid_file(char *dir, const char *progname, int port)
 #endif
    return 1;
 }
+
+struct s_state_hdr {
+   char id[14];
+   int32_t version;
+   uint32_t last_jobs_addr;
+   uint32_t reserved[20];
+};
+
+static struct s_state_hdr state_hdr = { 
+   "Bacula State\n",
+   1,
+   0
+};
+
+/*
+ * Open and read the state file for the daemon
+ */
+void read_state_file(char *dir, const char *progname, int port)
+{
+   int sfd;
+   POOLMEM *fname = get_pool_memory(PM_FNAME);
+   struct s_state_hdr hdr;
+
+   Mmsg(&fname, "%s/%s.%d.state", dir, progname, port);
+   /* If file exists, see what we have */
+   if ((sfd = open(mp_chr(fname), O_RDONLY)) < 0 ||
+       read(sfd, &hdr, sizeof(hdr)) < 0 ||
+       hdr.version != state_hdr.version) {
+      goto bail_out;
+   }
+   hdr.id[13] = 0;
+   if (strcmp(hdr.id, state_hdr.id) != 0) {
+      goto bail_out;
+   }
+   read_last_jobs_list(sfd, hdr.last_jobs_addr);
+bail_out:
+   if (sfd >= 0) {
+      close(sfd);
+   }
+   free_pool_memory(fname);
+}
+
+/*
+ * Write the state file
+ */
+void write_state_file(char *dir, const char *progname, int port)
+{
+   int sfd;
+   POOLMEM *fname = get_pool_memory(PM_FNAME);
+
+   Mmsg(&fname, "%s/%s.%d.state", dir, progname, port);
+   /* Create new state file */
+   if ((sfd = open(mp_chr(fname), O_CREAT | O_TRUNC | O_WRONLY, 0640)) < 0) {
+      Emsg2(M_ERROR, 0, _("Could not create state file. %s ERR=%s\n"), fname, strerror(errno));
+      goto bail_out;
+   }
+   if (write(sfd, &state_hdr, sizeof(state_hdr)) < 0) {
+      goto bail_out;
+   }
+   state_hdr.last_jobs_addr = sizeof(state_hdr);
+   state_hdr.reserved[0] = write_last_jobs_list(sfd, state_hdr.last_jobs_addr);   
+   if (lseek(sfd, 0, SEEK_SET) < 0) {
+      goto bail_out;
+   }  
+   write(sfd, &state_hdr, sizeof(state_hdr));
+bail_out:
+   if (sfd >= 0) {
+      close(sfd);
+   }
+   free_pool_memory(fname);
+}
+
 
 /*
  * Drop to privilege new userid and new gid if non-NULL
