@@ -95,9 +95,11 @@ static int32_t write_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes)
       nwritten = fwrite(ptr, 1, nbytes, bsock->spool_fd);
       if (nwritten != nbytes) {
 	 berrno be;
+	 bsock->b_errno = errno;
          Qmsg1(bsock->jcr, M_FATAL, 0, _("Attr spool write error. ERR=%s\n"),
 	       be.strerror());
          Dmsg2(400, "nwritten=%d nbytes=%d.\n", nwritten, nbytes);
+	 errno = bsock->b_errno;
 	 return -1;
       }
       return nbytes;
@@ -779,9 +781,10 @@ Retrying ...\n", name, host, port, be.strerror());
  * Return the string for the error that occurred
  * on the socket. Only the first error is retained.
  */
-char *bnet_strerror(BSOCK * bsock)
+const char *bnet_strerror(BSOCK * bsock)
 {
-   return strerror(bsock->b_errno);
+   berrno be;
+   return be.strerror(bsock->b_errno);
 }
 
 /*

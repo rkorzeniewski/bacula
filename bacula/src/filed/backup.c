@@ -281,7 +281,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
    P(jcr->mutex);
    jcr->JobFiles++;		       /* increment number of files sent */
    ff_pkt->FileIndex = jcr->JobFiles;  /* return FileIndex */
-   pm_strcpy(&jcr->last_fname, ff_pkt->fname);
+   pm_strcpy(jcr->last_fname, ff_pkt->fname);
    V(jcr->mutex);
     
    /*
@@ -289,10 +289,12 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
     *	 <file-index> <stream> <info>
     */
    if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, attr_stream)) {
+      berrno be;
       if (is_bopen(&ff_pkt->bfd)) {
 	 bclose(&ff_pkt->bfd);
       }
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+	    bnet_strerror(sd));
       return 0;
    }
    Dmsg1(300, ">stored: attrhdr %s\n", sd->msg);
@@ -325,11 +327,12 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 
    Dmsg2(300, ">stored: attr len=%d: %s\n", sd->msglen, sd->msg);
    if (!stat) {
+      berrno be;
       if (is_bopen(&ff_pkt->bfd)) {
 	 bclose(&ff_pkt->bfd);
       }
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
-      Jmsg0(jcr, M_FATAL, 0, _("Network send error.\n"));
+      Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+	    bnet_strerror(sd));
       return 0;
    }
    bnet_sig(sd, BNET_EOD);	      /* indicate end of attributes data */
@@ -372,9 +375,10 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
        *    <file-index> <stream> <info>
        */
       if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, data_stream)) {
+	 berrno be;
 	 bclose(&ff_pkt->bfd);
-	 set_jcr_job_status(jcr, JS_ErrorTerminated);
-         Jmsg0(jcr, M_FATAL, 0, _("Network send error.\n"));
+         Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+	       bnet_strerror(sd));
 	 return 0;
       }
       Dmsg1(300, ">stored: datahdr %s\n", sd->msg);
@@ -463,11 +467,12 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	    }
 	    sd->msg = wbuf;	      /* set correct write buffer */
 	    if (!bnet_send(sd)) {
+	       berrno be;
 	       sd->msg = msgsave;     /* restore bnet buffer */
 	       sd->msglen = 0;
 	       bclose(&ff_pkt->bfd);
-	       set_jcr_job_status(jcr, JS_ErrorTerminated);
-               Jmsg0(jcr, M_FATAL, 0, _("Network send error.\n"));
+               Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+		     bnet_strerror(sd));
 	       return 0;
 	    }
 	 }
@@ -488,8 +493,9 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 
       bclose(&ff_pkt->bfd);		 /* close file */
       if (!bnet_sig(sd, BNET_EOD)) {	 /* indicate end of file data */
-	 set_jcr_job_status(jcr, JS_ErrorTerminated);
-         Jmsg0(jcr, M_FATAL, 0, _("Network send error.\n"));
+	 berrno be;
+         Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+	       bnet_strerror(sd));
 	 return 0;
       }
    }
@@ -534,7 +540,9 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	 *
 	 */
          if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_UNIX_ATTRIBUTES_ACL)) {
-	    set_jcr_job_status(jcr, JS_ErrorTerminated);
+	    berrno be;
+            Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+		  bnet_strerror(sd));
 	    return 0;
 	 }
       
@@ -543,17 +551,20 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	 sd->msg = acl_text;
 	 sd->msglen = strlen(acl_text) + 1;
 	 if (!bnet_send(sd)) {
+	    berrno be;
 	    sd->msg = msgsave;
 	    sd->msglen = 0;
 	    bclose(&ff_pkt->bfd);
-	    set_jcr_job_status(jcr, JS_ErrorTerminated);
-            Jmsg1(jcr, M_FATAL, 0, "Error while trying to send ACL of %s to SD!\n", ff_pkt->fname);
+            Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+		  bnet_strerror(sd));
 	 } else {
 	    jcr->JobBytes += sd->msglen;
 	    sd->msg = msgsave;
 	    bclose(&ff_pkt->bfd);
 	    if (!bnet_sig(sd, BNET_EOD)) {
-	       set_jcr_job_status(jcr, JS_ErrorTerminated);
+	       berrno be;
+               Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+		     bnet_strerror(sd));
 	    } else {
                Dmsg1(200, "ACL of file: %s successfully backed up!\n", ff_pkt->fname);
 	    }
