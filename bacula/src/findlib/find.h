@@ -83,9 +83,15 @@
 #define FO_SPARSE       0x10          /* do sparse file checking */
 #define FO_IF_NEWER     0x20          /* replace if newer */
 #define FO_NOREPLACE    0x40          /* never replace */
+#define FO_READFIFO     0x80          /* read data from fifo */
 
-/* Options saved in "options" of include list */
-/* ****FIXME**** replace OPT_ flags with FO_ */
+/*
+ * Options saved in "options" of include list
+ * These are now directly jammed into ff->flags, so the above
+ *   FO_xxx options may be used
+ *
+ * ***FIXME*** replace all OPT_xxx with FO_xxx or vise-versa 
+ */
 #define OPT_compute_MD5       0x01    /* compute MD5 of file's data */
 #define OPT_GZIP_compression  0x02    /* use GZIP compression */
 #define OPT_no_recursion      0x04    /* no recursion in directories */
@@ -93,6 +99,8 @@
 #define OPT_sparse            0x10    /* do sparse file checking */
 #define OPT_replace_if_newer  0x20    /* replace file if newer */
 #define OPT_never_replace     0x40    /* never replace */
+#define OPT_read_fifo         0x80    /* read data from fifo (named pipe) */
+
 
 
 struct s_included_file {
@@ -127,13 +135,9 @@ typedef struct ff {
    int ff_errno;                      /* errno */
    int incremental;                   /* do incremental save */
    time_t save_time;                  /* start of incremental time */
-   int no_recursion;                  /* do not recurse into sub directories */
    int mtime_only;                    /* incremental on mtime_only */
    int dereference;                   /* follow links */
-   int compute_MD5;                   /* compute MD5 checksum */
-   int GZIP_compression;              /* compress the file */
    int GZIP_level;                    /* compression level */
-   int one_file_system;               /* do not traverse file systems */
    int atime_preserve;                /* preserve access times */
    int null_output_device;            /* using null output device */
    char VerifyOpts[20];

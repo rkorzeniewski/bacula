@@ -112,7 +112,7 @@ int send_include_list(JCR *jcr)
 {
    FILESET *fileset;
    BSOCK   *fd;
-   int i;
+   int i, j;
    char *msgsave;
 
    fd = jcr->file_bsock;
@@ -124,33 +124,41 @@ int send_include_list(JCR *jcr)
       BPIPE *bpipe;
       FILE *ffd;
       char buf[1000];
-      char *p;
+      char *o, *p, *q;
+      int optlen, stat;
 
       Dmsg1(120, "dird>filed: include file: %s\n", fileset->include_array[i]);
-      p = fileset->include_array[i];
-      skip_nonspaces(&p);
+      o = p = fileset->include_array[i];
+      skip_nonspaces(&p);	      /* skip options */
       skip_spaces(&p);
+      q = p;			      /* save end of options */
       switch (*p++) {
       case '|':
          fd->msg = edit_job_codes(jcr, fd->msg, p, "");
-         Dmsg1(000, "Doing bopen: %s\n", fd->msg);
          bpipe = open_bpipe(fd->msg, 0, "r");
 	 if (!bpipe) {
             Jmsg(jcr, M_FATAL, 0, _("Cannot run program: %s. ERR=%s\n"),
 	       p, strerror(errno));
 	    goto bail_out;
 	 }
-         Dmsg0(000, "Call fgets\n");
-	 while (fgets(buf, sizeof(buf), bpipe->rfd)) {
+	 /* Copy File options */
+	 optlen = q - o;
+	 for (j=0; j < optlen; j++) {
+	    buf[j] = *o++;
+	 }
+	 while (fgets(buf+optlen, sizeof(buf)-optlen, bpipe->rfd)) {
             fd->msglen = Mmsg(&fd->msg, "%s", buf);
-            Dmsg2(000, "Including len=%d: %s", fd->msglen, fd->msg);
+            Dmsg2(200, "Including len=%d: %s", fd->msglen, fd->msg);
 	    if (!bnet_send(fd)) {
                Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
 	       goto bail_out;
 	    }
 	 }
-         Dmsg0(000, "Close bpipe\n");
-	 close_bpipe(bpipe);
+	 if ((stat=close_bpipe(bpipe)) != 0) {
+            Jmsg(jcr, M_FATAL, 0, _("Error running program: %s. RtnStat=%d ERR=%s\n"),
+	       p, stat, strerror(errno));
+	    goto bail_out;
+	 }
 	 break;
       case '<':
          if ((ffd = fopen(p, "r")) == NULL) {
@@ -158,7 +166,12 @@ int send_include_list(JCR *jcr)
 	       p, strerror(errno));
 	    goto bail_out;
 	 }
-	 while (fgets(buf, sizeof(buf), ffd)) {
+	 /* Copy File options */
+	 optlen = q - o;
+	 for (j=0; j < optlen; j++) {
+	    buf[j] = *o++;
+	 }
+	 while (fgets(buf+optlen, sizeof(buf)-optlen, ffd)) {
             fd->msglen = Mmsg(&fd->msg, "%s", buf);
 	    if (!bnet_send(fd)) {
                Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));

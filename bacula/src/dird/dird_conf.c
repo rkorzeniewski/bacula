@@ -356,6 +356,7 @@ struct s_kw ReplaceOptions[] = {
 #define INC_KW_RECURSE	    6
 #define INC_KW_SPARSE	    7
 #define INC_KW_REPLACE	    8	      /* restore options */
+#define INC_KW_READFIFO     9	      /* Causes fifo data to be read */
 
 /* Include keywords */
 static struct s_kw FS_option_kw[] = {
@@ -367,6 +368,7 @@ static struct s_kw FS_option_kw[] = {
    {"recurse",     INC_KW_RECURSE},
    {"sparse",      INC_KW_SPARSE},
    {"replace",     INC_KW_REPLACE},
+   {"readfifo",    INC_KW_READFIFO},
    {NULL,	   0}
 };
 
@@ -402,6 +404,8 @@ static struct s_fs_opt FS_options[] = {
    {"always",   INC_KW_REPLACE,       "a"},
    {"ifnewer",  INC_KW_REPLACE,       "w"},
    {"never",    INC_KW_REPLACE,       "n"},
+   {"yes",      INC_KW_READFIFO,      "r"},
+   {"no",       INC_KW_READFIFO,      "0"},
    {NULL,	0,		     0}
 };
 

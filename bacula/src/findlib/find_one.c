@@ -77,12 +77,6 @@ find_one_file(FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), void *pkt
    int rtn_stat;
 
    ff_pkt->fname = ff_pkt->link = fname;
-   if (ff_pkt->compute_MD5) {
-      ff_pkt->flags |= FO_MD5;
-   }
-   if (ff_pkt->GZIP_compression) {
-      ff_pkt->flags |= FO_GZIP;
-   }
 
    if (lstat(fname, &ff_pkt->statp) != 0) {
        /* Cannot stat file */
@@ -241,7 +235,7 @@ find_one_file(FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), void *pkt
 	* Do not decend into subdirectories (recurse) if the
 	* user has turned it off for this directory.
 	*/
-       if (ff_pkt->no_recursion) {
+       if (ff_pkt->flags & FO_NO_RECURSION) {
 	  free(namebuf);
 	  /* No recursion into this directory */
 	  ff_pkt->type = FT_NORECURSE;
@@ -252,13 +246,13 @@ find_one_file(FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), void *pkt
 	* See if we are crossing file systems, and
 	* avoid doing so if the user only wants to dump one file system.
 	*/
-       if (ff_pkt->one_file_system && !top_level
-	   && parent_device != ff_pkt->statp.st_dev) {
+       if (!top_level && !(ff_pkt->flags & FO_MULTIFS) &&
+	    parent_device != ff_pkt->statp.st_dev) {
 	  free(namebuf);
+	  /* returning here means we do not handle this directory */
 	  ff_pkt->type = FT_NOFSCHG;
 	  return handle_file(ff_pkt, pkt);
        }
-
        /* 
 	* Now process the files in this directory.
 	*/
@@ -317,7 +311,8 @@ find_one_file(FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), void *pkt
     */
    if (top_level && S_ISBLK(ff_pkt->statp.st_mode)) {
       ff_pkt->type = FT_RAW;	      /* raw partition */
-   } else if (top_level && S_ISFIFO(ff_pkt->statp.st_mode)) {
+   } else if (top_level && S_ISFIFO(ff_pkt->statp.st_mode) &&
+	      ff_pkt->flags & FO_READFIFO) {
       ff_pkt->type = FT_FIFO;
    } else {
       /* The only remaining types are special (character, ...) files */

@@ -173,6 +173,9 @@ int close_bpipe(BPIPE *bpipe)
    }
    if (wpid != -1 && WIFEXITED(chldstatus)) {
       stat = WEXITSTATUS(chldstatus);
+      if (stat != 0) {
+	 errno = ECHILD;
+      }
    }
    if (bpipe->timer_id) {
       stop_child_timer(bpipe->timer_id);

@@ -6,7 +6,7 @@
  *
  */
 /*
-   Copyright (C) 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2001-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -107,25 +107,20 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, char *fname)
             case 'a':                 /* alway replace */
             case '0':                 /* no option */
 	       break;
-            case 'w':
-	       inc->options |= OPT_replace_if_newer;
-	       break;
-            case 'n':
-	       inc->options |= OPT_never_replace;
-	       break;
-            case 'M':                 /* MD5 */
-	       inc->options |= OPT_compute_MD5;
-	       break;
-            case 'Z':                 /* gzip compression */
-	       inc->options |= OPT_GZIP_compression;
-               inc->level = *++p - '0';
-               Dmsg1(200, "Compression level=%d\n", inc->level);
+            case 'f':
+	       inc->options |= OPT_multifs;
 	       break;
             case 'h':                 /* no recursion */
 	       inc->options |= OPT_no_recursion;
 	       break;
-            case 'f':
-	       inc->options |= OPT_multifs;
+            case 'M':                 /* MD5 */
+	       inc->options |= OPT_compute_MD5;
+	       break;
+            case 'n':
+	       inc->options |= OPT_never_replace;
+	       break;
+            case 'r':                 /* read fifo */
+	       inc->options |= OPT_read_fifo;
 	       break;
             case 's':
 	       inc->options |= OPT_sparse;
@@ -139,6 +134,14 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, char *fname)
 		  }
 	       }
 	       inc->VerifyOpts[j] = 0;
+	       break;
+            case 'w':
+	       inc->options |= OPT_replace_if_newer;
+	       break;
+            case 'Z':                 /* gzip compression */
+	       inc->options |= OPT_GZIP_compression;
+               inc->level = *++p - '0';
+               Dmsg1(200, "Compression level=%d\n", inc->level);
 	       break;
 	    default:
                Emsg1(M_ERROR, 0, "Unknown include/exclude option: %c\n", *p);
@@ -212,29 +215,12 @@ struct s_included_file *get_next_included_file(FF_PKT *ff, struct s_included_fil
    } else {
       inc = ainc->next;
    }
+   /*
+    * copy inc_options for this file into the ff packet
+    */
    if (inc) {
       ff->flags = inc->options;
-      if (inc->options & OPT_compute_MD5) {
-	 ff->compute_MD5 = 1;
-      } else {
-	 ff->compute_MD5 = 0;
-      }
-      if (inc->options & OPT_GZIP_compression) {
-	 ff->GZIP_compression = 1;
-	 ff->GZIP_level = inc->level;
-      } else {
-	 ff->GZIP_compression = 0;
-      }
-      if (inc->options & OPT_no_recursion) {
-	 ff->no_recursion = 1;
-      } else {
-	 ff->no_recursion = 0;
-      }
-      if (inc->options & OPT_multifs) {
-	 ff->one_file_system = 0;
-      } else {
-	 ff->one_file_system = 1;
-      }
+      ff->GZIP_level = inc->level;
    }
    return inc;
 }

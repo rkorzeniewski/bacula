@@ -56,7 +56,6 @@ FF_PKT *init_find_files()
 
   init_include_exclude_files(ff);	    /* init lists */
   ff->mtime_only = 1;
-  ff->one_file_system = 1;
 
    /* Get system path and filename maximum lengths */
    path_max = pathconf(".", _PC_PATH_MAX);

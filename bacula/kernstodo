@@ -16,6 +16,7 @@ Testing to do: (painful)
 - test and fix < code and | code.
 
 For 1.29 release:
+- Get correct error status from run_program or open_bpipe().
 - Figure out how to allow multiple simultaneous file Volumes on
   a single device.
 - Why are save/restore of device different sizes (sparse?)
