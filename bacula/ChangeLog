@@ -1,6 +1,10 @@
 
 2003-10-15 Version 1.32c 22Oct03 Beta
 23Oct03
+- Document new features.
+- Implement mod of Verify Job at the run prompt.
+- Correct SQL table definitions so that MySQL and SQLite
+  have all the values in the same position.
 - Correct a typo in configure.in when configuring GNOME.
 - In doing a "status dir" make it loop over all the run
   commands in the Schedule rather than doing on the first one.

@@ -608,6 +608,6 @@ static void set_scroll_bar_to_end(void)
       adjusted = true;
       vadj = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scroll1));
       gtk_adjustment_set_value(vadj, vadj->upper);
+      gtk_widget_show(text1);
    }
-   gtk_widget_show(text1);
 }

@@ -35,12 +35,8 @@ For 1.33 Testing/Documentation:
 - Document ln -sf /usr/lib/libncurses.so /usr/lib/libtermcap.so
   and install the esound-dev  package for compiling Console on 
   SuSE.
-- Document delete job command.
-- Document update volume pool and other command line keywords.
-- Document verify_disk_to_catalog
                 
 For 1.32c
-- Add VerifyJob to "run" summary (yes/mod/no) prompt.
 
 For 1.33
 - Finish implementation of Verify=DiskToCatalog
@@ -1063,4 +1059,8 @@ Done: (see kernsdone for more)
 - Limit the number of block checksum/header BB01, ... errors printed.
 - If last Full back is purged and an Incremental or Differential remains,
   Bacula does not promote the Incremental to a Full.
+- Document verify_disk_to_catalog
+- Document delete job command.
+- Document update volume pool and other command line keywords.
+- Add VerifyJob to "run" summary (yes/mod/no) prompt.
 
