@@ -67,86 +67,6 @@ bacService::bacService()
             g_platform_id = osversioninfo.dwPlatformId;
 }
 
-// CurrentUser - fills a buffer with the name of the current user!
-BOOL
-bacService::CurrentUser(char *buffer, UINT size)
-{
-   // How to obtain the name of the current user depends upon the OS being used
-   if ((g_platform_id == VER_PLATFORM_WIN32_NT) && bacService::RunningAsService()) {
-      // Windows NT, service-mode
-
-      // -=- FIRSTLY - verify that a user is logged on
-
-      // Get the current Window station
-      HWINSTA station = GetProcessWindowStation();
-      if (station == NULL)
-              return FALSE;
-
-      // Get the current user SID size
-      DWORD usersize;
-      GetUserObjectInformation(station,
-              UOI_USER_SID, NULL, 0, &usersize);
-
-      // Check the required buffer size isn't zero
-      if (usersize == 0) {
-         // No user is logged in - ensure we're not impersonating anyone
-         RevertToSelf();
-         g_impersonating_user = FALSE;
-
-         // Return "" as the name...
-         if (strlen("") >= size)
-                 return FALSE;
-         strcpy(buffer, "");
-
-         return TRUE;
-      }
-
-      // -=- SECONDLY - a user is logged on but if we're not impersonating
-      //     them then we can't continue!
-      if (!g_impersonating_user) {
-         // Return "" as the name...
-         if (strlen("") >= size)
-                 return FALSE;
-         strcpy(buffer, "");
-         return TRUE;
-      }
-   }
-           
-   // -=- When we reach here, we're either running under Win9x, or we're running
-   //     under NT as an application or as a service impersonating a user
-   // Either way, we should find a suitable user name.
-
-   switch (g_platform_id) {
-
-   case VER_PLATFORM_WIN32_WINDOWS:
-   case VER_PLATFORM_WIN32_NT:
-      // Just call GetCurrentUser
-      DWORD length = size;
-
-      if (GetUserName(buffer, &length) == 0)
-      {
-              UINT error = GetLastError();
-
-              if (error == ERROR_NOT_LOGGED_ON)
-              {
-                      // No user logged on
-                      if (strlen("") >= size)
-                              return FALSE;
-                      strcpy(buffer, "");
-                      return TRUE;
-              }
-              else
-              {
-                      // Genuine error...
-                      return FALSE;
-              }
-      }
-      return TRUE;
-   }
-
-   // OS was not recognised!
-   return FALSE;
-}
 
 // IsWin95 - returns a BOOL indicating whether the current OS is Win95
 BOOL
@@ -494,6 +414,9 @@ void WINAPI ServiceMain(DWORD argc, char **argv)
 //   NT ONLY !!!!
 DWORD WINAPI ServiceWorkThread(LPVOID lpwThreadParam)
 {
+    HANDLE hToken;
+    TOKEN_PRIVILEGES tkp;
+
     // Save the current thread identifier
     g_servicethread = GetCurrentThreadId();
 
@@ -507,10 +430,59 @@ DWORD WINAPI ServiceWorkThread(LPVOID lpwThreadParam)
        return 0;
     }
 
-    // RUN!
-   BaculaAppMain();
+      // Get a token for this process. 
+       
+      if (!OpenProcessToken(GetCurrentProcess(), 
+              TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken)) {
+// Forge onward anyway in the hopes of succeeding.
+//       MessageBox(NULL, "System shutdown failed: OpenProcessToken", "shutdown", MB_OK);
+//       exit(1);
+      } 
 
-   // Mark that we're no longer running
+      // Get the LUID for the backup privilege. 
+       
+      LookupPrivilegeValue(NULL, SE_BACKUP_NAME, 
+              &tkp.Privileges[0].Luid); 
+
+       
+      tkp.PrivilegeCount = 1;  // one privilege to set    
+      tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED; 
+       
+      // Get the shutdown privilege for this process. 
+       
+      AdjustTokenPrivileges(hToken, FALSE, &tkp, 0, 
+              (PTOKEN_PRIVILEGES)NULL, 0); 
+       
+      // Cannot test the return value of AdjustTokenPrivileges. 
+       
+      if (GetLastError() != ERROR_SUCCESS) {
+//       MessageBox(NULL, "System shutdown failed: AdjustTokePrivileges", "shutdown", MB_OK);
+      } 
+     
+      // Get the LUID for the restore privilege. 
+       
+      LookupPrivilegeValue(NULL, SE_RESTORE_NAME, 
+              &tkp.Privileges[0].Luid); 
+
+       
+      tkp.PrivilegeCount = 1;  // one privilege to set    
+      tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED; 
+       
+      // Get the shutdown privilege for this process. 
+       
+      AdjustTokenPrivileges(hToken, FALSE, &tkp, 0, 
+              (PTOKEN_PRIVILEGES)NULL, 0); 
+       
+      // Cannot test the return value of AdjustTokenPrivileges. 
+       
+      if (GetLastError() != ERROR_SUCCESS) {
+//       MessageBox(NULL, "System shutdown failed: AdjustTokePrivileges", "shutdown", MB_OK);
+      } 
+
+    /* Call Bacula main code */
+    BaculaAppMain();
+
+    // Mark that we're no longer running
     g_servicethread = 0;
 
     // Tell the service manager that we've stopped.
