@@ -1016,14 +1016,24 @@ clrerror_dev(DEVICE *dev, int func)
 	 Emsg0(M_ERROR, 0, dev->errmsg);
       }
    }
+/* Found on Linux */
 #ifdef MTIOCLRERR
 {
    struct mtop mt_com;
-   int stat;
    mt_com.mt_op = MTIOCLRERR;
    mt_com.mt_count = 1;
-   stat = ioctl(dev->fd, MTIOCTOP, (char *)&mt_com);
+   /* Clear any error condition on the tape */
+   ioctl(dev->fd, MTIOCTOP, (char *)&mt_com);
    Dmsg0(200, "Did MTIOCLRERR\n");
+}
+#endif
+
+/* Typically on FreeBSD */
+#ifdef MTIOCERRSTAT
+{
+   /* Read and clear SCSI error status */
+   union mterrstat mt_errstat;
+   ioctl(dev->fd, MTIOCERRSTAT, (char *)&mt_errstat);
 }
 #endif
 }
