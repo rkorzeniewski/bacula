@@ -313,13 +313,13 @@ mount_error:
 	  * Check if we are positioned on the tape at the same place
 	  * that the database says we should be.
 	  */
-	 if (dev->VolCatInfo.VolCatFiles == dev_file(dev) + 1) {
+	 if (dev->VolCatInfo.VolCatFiles == dev_file(dev)) {
             Jmsg(jcr, M_INFO, 0, _("Ready to append to end of Volume at file=%d.\n"), 
 		 dev_file(dev));
 	 } else {
             Jmsg(jcr, M_ERROR, 0, _("I canot write on this volume because:\n\
 The number of files mismatch! Volume=%d Catalog=%d\n"), 
-		 dev_file(dev)+1, dev->VolCatInfo.VolCatFiles);
+		 dev_file(dev), dev->VolCatInfo.VolCatFiles);
             strcpy(dev->VolCatInfo.VolCatStatus, "Error");
             Dmsg0(200, "dir_update_vol_info. Set Error.\n");
 	    dir_update_volume_info(jcr, &dev->VolCatInfo, 0);

@@ -250,7 +250,7 @@ int release_device(JCR *jcr, DEVICE *dev)
          Dmsg0(100, "dir_create_jobmedia_record. Release\n");
 	 dir_create_jobmedia_record(jcr);
 	 weof_dev(dev, 1);
-	 dev->VolCatInfo.VolCatFiles++; 	    /* increment number of files */
+	 dev->VolCatInfo.VolCatFiles = dev->file;   /* set number of files */
 	 dev->VolCatInfo.VolCatJobs++;		    /* increment number of jobs */
 	 /* Note! do volume update before close, which zaps VolCatInfo */
          Dmsg0(200, "dir_update_vol_info. Release0\n");
@@ -266,6 +266,7 @@ int release_device(JCR *jcr, DEVICE *dev)
          Dmsg0(100, "dir_create_jobmedia_record. Release\n");
 	 dir_create_jobmedia_record(jcr);
          Dmsg0(200, "dir_update_vol_info. Release1\n");
+	 dev->VolCatInfo.VolCatFiles = dev->file;   /* set number of files */
 	 dev->VolCatInfo.VolCatJobs++;		    /* increment number of jobs */
 	 dir_update_volume_info(jcr, &dev->VolCatInfo, 0); /* send Volume info to Director */
       }
