@@ -368,7 +368,7 @@ Rate:                   %.1f KB/s\n\
 Volume names(s):        %s\n\
 Volume Session Id:      %d\n\
 Volume Session Time:    %d\n\
-Volume Bytes:           %s\n\
+Last Volume Bytes:      %s\n\
 Termination:            %s\n\n"),
 	edt,
 	jcr->jr.JobId,
