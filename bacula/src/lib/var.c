@@ -120,7 +120,7 @@ var_mvxprintf(
     int n;
     int bytes;
 
-    if (format == NULL || ap == NULL)
+    if (format == NULL)
 	return -1;
     bytes = 0;
     while (*format != '\0') {
@@ -204,7 +204,7 @@ var_mvsnprintf(
     int n;
     var_mvsnprintf_cb_t ctx;
 
-    if (format == NULL || ap == NULL)
+    if (format == NULL)
 	return -1;
     if (buffer != NULL && bufsize == 0)
 	return -1;
