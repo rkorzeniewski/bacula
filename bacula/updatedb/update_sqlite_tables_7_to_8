@@ -109,11 +109,7 @@ INSERT INTO Media (
 
 DROP TABLE Media_backup;
 
-CREATE TABLE CDImages (
-   MediaId INTEGER UNSIGNED NOT NULL,
-   LastBurn DATETIME NOT NULL,
-   PRIMARY KEY (MediaId)
-   );
+CREATE INDEX inx9 ON File (JobId, PathId, FileNameId);
 
 COMMIT;
 

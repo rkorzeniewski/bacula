@@ -784,7 +784,11 @@ Retrying ...\n", name, host, port, be.strerror());
 const char *bnet_strerror(BSOCK * bsock)
 {
    berrno be;
-   return be.strerror(bsock->b_errno);
+   if (bsock->errmsg == NULL) {
+      bsock->errmsg = get_pool_memory(PM_MESSAGE);
+   }
+   pm_strcpy(bsock->errmsg, be.strerror(bsock->b_errno));
+   return bsock->errmsg;
 }
 
 /*

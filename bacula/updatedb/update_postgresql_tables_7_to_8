@@ -12,20 +12,24 @@ bindir=/home/kern/bacula/depkgs/sqlite
 if $bindir/psql $* -f - <<END-OF-DATA
 \c bacula
 
-ALTER TABLE Media ADD COLUMN EndFile integer not null default 0;
-ALTER TABLE Media ADD COLUMN EndBlock integer not null default 0;
+ALTER TABLE media ADD COLUMN EndFile integer;
+UPDATE media SET EndFile=0;
+ALTER TABLE media ALTER COLUMN EndFile SET NOT NULL;
+ALTER TABLE media ADD COLUMN EndBlock integer;
+UPDATE media SET EndBlock=0;
+ALTER TABLE media ALTER COLUMN EndBlock SET NOT NULL;
 
 UPDATE Filename SET Name='' WHERE Name=' ';
+
+ALTER TABLE file ALTER COLUMN filenameid SET integer;
 
 DELETE FROM Version;
 INSERT INTO Version (VersionId) VALUES (8);
 
-create table CDImages 
-(
-   MediaId integer not null,
-   LastBurn timestamp without time zone not null,
-   primary key (MediaId)
-);
+create index file_jobid_idx on file (jobid);
+create index file_pathid_idx on file(pathid);
+create index file_filenameid_idx on file(filenameid);
+create index file_jpfid_idx on file (jobid, pathid, filenameid);
 
 END-OF-DATA
 then

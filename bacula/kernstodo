@@ -16,6 +16,10 @@ Version 1.35                Kern (see below)
   
 
 Maybe for 1.35:
+- Implement Files/Bytes,... stats for restore job.
+- Implement Total Bytes Written, ... for restore job.
+- Check dates entered by user for correctness (month/day/... ranges)
+- Compress restore Volume listing by date and first file.
 - Add Pool/Storage override regression test.
 - Add delete JobId to regression.
 - Add bscan to four-concurrent-jobs regression.
@@ -1380,4 +1384,3 @@ Block Position: 0
   scripts to add them.
 - Modify postgresql update script to remove bigint FilenameId           
   reference.
-

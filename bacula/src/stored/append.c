@@ -231,8 +231,11 @@ bool do_append_data(JCR *jcr)
 	       jcr->dir_bsock->spool = false;
 	    }
 	 }
+         Dmsg0(350, "Enter bnet_get\n");
       }
+      Dmsg1(350, "End read loop with FD. Stat=%d\n", n);
       if (is_bnet_error(ds)) {
+         Dmsg1(350, "Network read error from FD. ERR=%s\n", bnet_strerror(ds));
          Jmsg1(jcr, M_FATAL, 0, _("Network error on data channel. ERR=%s\n"),
 	       bnet_strerror(ds));
 	 ok = false;

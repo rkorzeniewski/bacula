@@ -370,7 +370,7 @@ static void verify_cleanup(JCR *jcr, int TermCode)
 // Dmsg1(100, "Enter verify_cleanup() TermCod=%d\n", TermCode);
    dequeue_messages(jcr);	      /* display any queued messages */
 
-   Dmsg3(000, "JobLevel=%c Expected=%u JobFiles=%u\n", jcr->JobLevel,
+   Dmsg3(900, "JobLevel=%c Expected=%u JobFiles=%u\n", jcr->JobLevel,
       jcr->ExpectedFiles, jcr->JobFiles);
    if (jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG &&
        jcr->ExpectedFiles != jcr->JobFiles) {

@@ -468,11 +468,11 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	    sd->msg = wbuf;	      /* set correct write buffer */
 	    if (!bnet_send(sd)) {
 	       berrno be;
+               Jmsg2(jcr, M_FATAL, 0, _("Network send error %d to SD. ERR=%s\n"),
+		     sd->msglen, bnet_strerror(sd));
 	       sd->msg = msgsave;     /* restore bnet buffer */
 	       sd->msglen = 0;
 	       bclose(&ff_pkt->bfd);
-               Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-		     bnet_strerror(sd));
 	       return 0;
 	    }
 	 }
