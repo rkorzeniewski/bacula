@@ -208,9 +208,9 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
 
    for ( ;; ) {
       if (at_prompt) {                /* don't prompt multiple times */
-	 prompt = "";
+         prompt = "";
       } else {
-	 prompt = "*";
+         prompt = "*";
 	 at_prompt = true;
       }
       if (tty_input) {
@@ -239,15 +239,15 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
       if (stat < 0) {
 	 break; 		      /* error or interrupt */
       } else if (stat == 0) {	      /* timeout */
-	 if (strcmp(prompt, "*") == 0) {
-	    bnet_fsend(UA_sock, ".messages");
+         if (strcmp(prompt, "*") == 0) {
+            bnet_fsend(UA_sock, ".messages");
 	 } else {
 	    continue;
 	 }
       } else {
 	 at_prompt = FALSE;
 	 /* @ => internal command for us */
-	 if (UA_sock->msg[0] == '@') {
+         if (UA_sock->msg[0] == '@') {
 	    parse_args(UA_sock->msg, &args, &argc, argk, argv, MAX_CMD_ARGS);
 	    if (!do_a_command(input, UA_sock)) {
 	       break;
@@ -264,7 +264,7 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
       while ((stat = bnet_recv(UA_sock)) >= 0) {
 	 if (at_prompt) {
 	    if (!stop) {
-	       sendit("\n");
+               sendit("\n");
 	    }
 	    at_prompt = false;
 	 }
@@ -287,7 +287,7 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
 	 if (UA_sock->msglen == BNET_PROMPT) {
 	    at_prompt = true;
 	 }
-	 Dmsg1(100, "Got poll %s\n", bnet_sig_to_ascii(UA_sock));
+         Dmsg1(100, "Got poll %s\n", bnet_sig_to_ascii(UA_sock));
       }
    }
 }
@@ -404,7 +404,7 @@ try_again:
       LockRes();
       ndir = 0;
       foreach_res(dir, R_DIRECTOR) {
-	 senditf( _("%d  %s at %s:%d\n"), 1+ndir++, dir->hdr.name, dir->address,
+         senditf( _("%d  %s at %s:%d\n"), 1+ndir++, dir->hdr.name, dir->address,
 	    dir->DIRport);
       }
       UnlockRes();
@@ -414,7 +414,7 @@ try_again:
       }
       item = atoi(UA_sock->msg);
       if (item < 0 || item > ndir) {
-	 senditf(_("You must enter a number between 1 and %d\n"), ndir);
+         senditf(_("You must enter a number between 1 and %d\n"), ndir);
 	 goto try_again;
       }
       LockRes();
@@ -728,7 +728,7 @@ void sendit(const char *buf)
     if (output == stdout || tee) {
        char *p, *q;
        /*
-	* Here, we convert every \n into \r\n because the
+        * Here, we convert every \n into \r\n because the
 	*  terminal is in raw mode when we are using
 	*  conio.
 	*/
@@ -736,8 +736,8 @@ void sendit(const char *buf)
 	  if (p-q > 0) {
 	     t_sendl(q, p-q);
 	  }
-	  t_sendl("\r\n", 2);
-	  q = ++p;                    /* point after \n */
+          t_sendl("\r\n", 2);
+          q = ++p;                    /* point after \n */
        }
        if (*q) {
 	  t_send(q);
@@ -748,10 +748,11 @@ void sendit(const char *buf)
     }
 #else
     fputs(buf, output);
+    fflush(output);
     if (tee) {
        fputs(buf, stdout);
     }
-    if (output == stdout || tee) {
+    if (output != stdout || tee) {
        fflush(stdout);
     }
 #endif

@@ -1776,10 +1776,14 @@ static void fillcmd()
    dev->min_block_size = dev->max_block_size;
    set_volume_name("TestVolume1", 1);
 
-   rewind_dev(dev);
-   weof_dev(dev, 1);
+   if (!dev->rewind()) {
+      Pmsg0(000, "Rewind failed.\n");
+   }
+   if (!dev->weof()) {
+      Pmsg0(000, "Write EOF failed.\n");
+   }
    labelcmd();
-   dev->state &= ~ST_APPEND;	      /* force volume to be relabeled */
+   dev->set_append();		      /* force volume to be relabeled */
 
    /*
     * Acquire output device for writing.  Note, after acquiring a
@@ -1959,12 +1963,6 @@ static void fillcmd()
       simple?"":"s", jcr->dcr->dev->file, jcr->dcr->dev->block_num, simple?"":"first ");
 
    jcr->dcr->block = block;
-   /* Release the device if multiple tapes being used */
-// if (!simple && !release_device(dcr)) {
-//    Pmsg0(-1, _("Error in release_device\n"));
-//    ok = false;
-// }
-
    do_unfill();
 
    dev->min_block_size = min_block_size;
@@ -2070,8 +2068,8 @@ static void do_unfill()
    if (!rewind_dev(dev)) {		  /* get to a known place on tape */
       goto bail_out;
    }
-   /* Read the first 1000 records */
-   Pmsg0(-1, _("Reading the first 1000 records.\n"));
+   /* Read the first 10000 records */
+   Pmsg0(-1, _("Reading the first 10000 records.\n"));
    quickie_count = 0;
    read_records(dcr, quickie_cb, my_mount_next_read_volume);
    Pmsg4(-1, _("Reposition from %u:%u to %u:%u\n"), dev->file, dev->block_num,
@@ -2162,7 +2160,7 @@ bail_out:
    free_block(first_block);
 }
 
-/* Read 1000 records then stop */
+/* Read 10000 records then stop */
 static bool quickie_cb(DCR *dcr, DEV_RECORD *rec)
 {
    DEVICE *dev = dcr->dev;
@@ -2172,10 +2170,10 @@ static bool quickie_cb(DCR *dcr, DEV_RECORD *rec)
       return false;
    }
    quickie_count++;
-   if (quickie_count == 1000) {
+   if (quickie_count == 10000) {
       Pmsg2(-1, "1000 records read now at %d:%d\n", dev->file, dev->block_num);
    }
-   return quickie_count < 1000;
+   return quickie_count < 10000;
 }
 
 static bool compare_blocks(DEV_BLOCK *last_block, DEV_BLOCK *block)
@@ -2418,7 +2416,7 @@ static void rawfill_cmd()
 
 
 /*
- * Fill a tape using raw write() command
+ * Fill a tape using Bacula block writes
  */
 static void bfill_cmd()
 {

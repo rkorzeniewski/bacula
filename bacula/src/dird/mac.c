@@ -187,8 +187,11 @@ bool do_mac(JCR *jcr)
    } else {
       stat = jcr->SDJobStatus;
    }
-   mac_cleanup(jcr, stat);
-   return jcr->JobStatus == JS_Terminated;
+   if (stat == JS_Terminated) {
+      mac_cleanup(jcr, stat);
+      return true;
+   }
+   return false;
 }
 
 

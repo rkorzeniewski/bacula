@@ -125,7 +125,7 @@ bool do_restore(JCR *jcr)
     */
    if (!connect_to_storage_daemon(jcr, 10, SDConnectTimeout, 1)) {
       restore_cleanup(jcr, JS_ErrorTerminated);
-      return 0;
+      return false;
    }
    /*
     * Now start a job with the Storage daemon

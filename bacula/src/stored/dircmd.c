@@ -335,10 +335,7 @@ static bool do_label(JCR *jcr, int relabel)
 	    label_volume_if_ok(jcr, dev, oldname, newname, poolname, slot, relabel);
 	    force_close_dev(dev);
          /* Under certain "safe" conditions, we can steal the lock */
-	 } else if (dev->dev_blocked &&
-		    (dev->dev_blocked == BST_UNMOUNTED ||
-		     dev->dev_blocked == BST_WAITING_FOR_SYSOP ||
-		     dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP)) {
+	 } else if (dev->can_steal_lock()) {
 	    label_volume_if_ok(jcr, dev, oldname, newname, poolname, slot, relabel);
 	 } else if (dev->is_busy()) {
 	    send_dir_busy_message(dir, dev);
@@ -803,10 +800,7 @@ static bool autochanger_cmd(JCR *jcr)
 	 } else if (!dev->is_open()) {
 	    autochanger_cmd(dcr, dir, cmd);
          /* Under certain "safe" conditions, we can steal the lock */
-	 } else if (dev->dev_blocked &&
-		    (dev->dev_blocked == BST_UNMOUNTED ||
-		     dev->dev_blocked == BST_WAITING_FOR_SYSOP ||
-		     dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP)) {
+	 } else if (dev->can_steal_lock()) {
 	    autochanger_cmd(dcr, dir, cmd);
 	 } else if (dev->is_busy()) {
 	    send_dir_busy_message(dir, dev);
@@ -844,10 +838,7 @@ static bool readlabel_cmd(JCR *jcr)
 	    read_volume_label(jcr, dev, Slot);
 	    force_close_dev(dev);
          /* Under certain "safe" conditions, we can steal the lock */
-	 } else if (dev->dev_blocked &&
-		    (dev->dev_blocked == BST_UNMOUNTED ||
-		     dev->dev_blocked == BST_WAITING_FOR_SYSOP ||
-		     dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP)) {
+	 } else if (dev->can_steal_lock()) {
 	    read_volume_label(jcr, dev, Slot);
 	 } else if (dev->is_busy()) {
 	    send_dir_busy_message(dir, dev);

@@ -470,6 +470,32 @@ int  m_msg(const char *file, int line, POOLMEM *&pool_buf, const char *fmt, ...)
 #define bmalloc(size) b_malloc(__FILE__, __LINE__, (size))
 #endif
 
+/*
+ * Replace codes needed in both file routines and non-file routines
+ * Job replace codes -- in "replace"
+ */
+#define REPLACE_ALWAYS   'a'
+#define REPLACE_IFNEWER  'w'
+#define REPLACE_NEVER    'n'
+#define REPLACE_IFOLDER  'o'
+
+/* This probably should be done on a machine by machine basic, but it works */
+/* This is critical for the smartalloc routines to properly align memory */
+#define ALIGN_SIZE (sizeof(double))
+#define BALIGN(x) (((x) + ALIGN_SIZE - 1) & ~(ALIGN_SIZE -1))
+
+
+/* =============================================================
+ *               OS Dependent defines
+ * ============================================================= 
+ */
+
+#ifndef HAVE_FSEEKO
+/* Bad news. This OS cannot handle 64 bit fseeks and ftells */
+#define fseeko fseek
+#define ftello ftell
+#endif
+
 #ifdef __alpha__
 #define OSF 1
 #endif
@@ -533,24 +559,12 @@ extern "C" int fchdir(int filedes);
 extern "C" long gethostid(void);
 #endif
 
-/* This probably should be done on a machine by machine basic, but it works */
-#define ALIGN_SIZE (sizeof(double))
-#define BALIGN(x) (((x) + ALIGN_SIZE - 1) & ~(ALIGN_SIZE -1))
-
 
 /* Added by KES to deal with Win32 systems */
 #ifndef S_ISWIN32
 #define S_ISWIN32 020000
 #endif
 
-/*
- * Replace codes needed in both file routines and non-file routines
- * Job replace codes -- in "replace"
- */
-#define REPLACE_ALWAYS   'a'
-#define REPLACE_IFNEWER  'w'
-#define REPLACE_NEVER    'n'
-#define REPLACE_IFOLDER  'o'
 
 #undef HAVE_SETLOCALE
 #ifdef HAVE_SETLOCALE

@@ -334,8 +334,11 @@ bool do_verify(JCR *jcr)
    }
 
    stat = wait_for_job_termination(jcr);
-   verify_cleanup(jcr, stat);
-   return true;
+   if (stat == JS_Terminated) {
+      verify_cleanup(jcr, stat);
+      return true;
+   }
+   return false;
 }
 
 

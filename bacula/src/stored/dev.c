@@ -329,8 +329,8 @@ open_dev(DEVICE *dev, char *VolName, int mode)
 	    continue;
 	 }
 	 dev->dev_errno = errno;
-         Mmsg2(&dev->errmsg, _("stored: unable to open device %s: ERR=%s\n"),
-	       dev->dev_name, be.strerror());
+         Mmsg2(&dev->errmsg, _("Unable to open device %s: ERR=%s\n"),
+	       dev->print_name(), be.strerror(dev->dev_errno));
 	 /* Stop any open timer we set */
 	 if (dev->tid) {
 	    stop_thread_timer(dev->tid);

@@ -61,7 +61,6 @@
  */
 #if defined(HAVE_DARWIN_OS) \
    || defined(HAVE_FREEBSD_OS ) \
-   || defined(HAVE_NETBSD_OS) \
    || defined(HAVE_OPENBSD_OS)
 
 #include <sys/param.h>
@@ -77,7 +76,20 @@ bool fstype(const char *fname, char *fs, int fslen)
    Dmsg1(50, "statfs() failed for \"%s\"\n", fname);
    return false;
 }
+#elif defined(HAVE_NETBSD_OS)
+#include <sys/param.h>
+#include <sys/mount.h>
 
+bool fstype(const char *fname, char *fs, int fslen)
+{
+   struct statvfs st;
+   if (statvfs(fname, &st) == 0) {
+      bstrncpy(fs, st.f_fstypename, fslen);
+      return true;
+   }
+   Dmsg1(50, "statfs() failed for \"%s\"\n", fname);
+   return false;
+}
 #elif defined(HAVE_HPUX_OS) \
    || defined(HAVE_IRIX_OS)
 
