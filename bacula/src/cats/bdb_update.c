@@ -9,6 +9,8 @@
  *  system.
  *   
  *    Kern Sibbald, January MMI 
+ *
+ *    $Id:
  */
 
 /*
@@ -139,7 +141,7 @@ int db_update_media_record(B_DB *mdb, MEDIA_DBR *mr)
    mr->PoolId = omr.PoolId;
    mr->VolMaxBytes = omr.VolMaxBytes;
    mr->VolCapacityBytes = omr.VolCapacityBytes;
-   strcpy(mr->Recycle, omr.Recycle);
+   mr->Recycle = omr.Recycle;
 
    fseek(mdb->mediafd, omr.rec_addr, SEEK_SET);
    if (fwrite(mr, len, 1, mdb->mediafd) != 1) {

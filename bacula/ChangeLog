@@ -1,3 +1,137 @@
+2002-05-10 Release 1.19
+- Allow the user to select a new period for pruning.
+- Lots of additions to the manual -- prune and purge
+  commands documented.
+- Applied Phil's configure.in fix for --prefix, ...
+- Fixed bug found by Phil (patch supplied) in updating
+  MD5 signatures (revert to 32 bit FileId, move "static"
+  variables into JCR) (catreq.c fd-cmds.c).
+- Reverted to using INTEGER for FileId in make_sql_tables
+  due to a bug in MySQL.
+- Change editing code to %d for FileId.
+- Remove sqlite in make distclean in cats directory.
+- Remove console.conf in console during make distclean.
+- Remove gnome-console.conf during make distclean.
+- Remove bacula-dir.conf during make distclean.
+- Set default level when using Console if none specified.
+  Bug reported by Phil.
+- A simple . command from Console is ignored.   
+- Change program named from filed to bacual-fd in winmain.cpp
+- Change default config file for Win32 in winmain.cpp
+- Free namebuf on early return from find_one.c. Bug reported by Phil.
+- Modify testfind.c to dump orphaned buffers.
+- Removed terabytes from parse_conf.c because of problems with
+  older gcc compilers.
+- Turn off gnome options in gnome-console by constructing empty argv.
+- Fixes to Verify when only MD5 differs.
+- Insert 0 for MD5 as default rather than space.
+- Allow .messages "transparent" command while reading input
+  in UserAgent server.
+- In dird/verify.c ensure that correct filename is printed if only
+  the MD5 differs. Minor reindenting caused large diff.
+- Delete unused code from backup.c
+- In filed/verify.c ensure that same algorithm as backup.c is used
+  to pass back MD5 signatures -- especially for directories and files
+  that cannot be read. Change dummy filename from X to *MD5-id*.
+  This dummy value should never be printed.
+- Make gnome-console poll Director every 5 seconds for output.
+  This means that queued up messages are displayed at reasonable
+  intervals. Delete some unused code hanging around from the tty
+  console program.
+- Begin implementation of prune commands.
+- Add command line history to gnome-console. Not yet saved across sessions.
+- Fixed some broken URLs in the manual.
+- Added JobId type.
+- Wrote first cut of "prune files" and "prune jobs".
+- Added command line history to gnome-console 2500 lines max.
+- Widened store_time() and associated variables to 64 bits using
+  new btime_t definition.
+- Removed GNOME about box and replaced it with 
+  a somewhat crude Gtk+ about box in the gnome-console.
+- Widened StartDay in the Job DB record to be 64 bits.
+- Changed edit_uint_ to edit_uint64_ everywhere. Much more
+  descriptive of what is done.
+- Removed most llds and replaced them with %s and edit_uint64.
+  This makes the code a bit easier to read for beginners.
+- Added a btime_t typedef which is 64 bits wide.
+- Added most of the code needed to do Purge and Prune of
+  database. Not yet tested. Please do not use.
+- Additional config options for Console.
+- Started adding code for Automatic Recycling of Volumes.
+- Allow arbitrary length filenames in Verify code.
+- Fix incorrect filename in Verify code.
+- Significant enhancement to number scanning in config parser.
+- Requires initializing MySQL tables, or applying cats/alter.sql
+  to modify Media table.
+- Modified Makefile to printer a much more visible
+  message if the make ends in error.
+- Added the Purge value to the VolStatus in the Media table.
+  This value is set if the Volume is purged.
+- Enhanced the db_delete_media_record() routine to delete
+  all associated records in the database.
+- Modified Console to always write to the variable "output"       
+  rather than stdout. This will permit directing output to a file.
+- Enhanced the Console configuration file to have a Console 
+  resource. This will allow us to add an rcfile and history file.
+- Modified Find_next_vol in catreq.c to search for "Recycle"
+  volumes if there are none marked Append. Also made Get_Vol_info
+  return the VolStatus to the Storage daemon.
+- Allow upper/lower case match on job level names.
+- Added another warning message to the Console "delete media" command.
+- Corrected a number of FileId types from uint64_t to FileId_t in
+  ua_retention.c.
+- In ua server close database before freeing JCR (because pointer is
+  kept in ua and jcr structures).
+- parse all numbers as doubles. Do lots of checking for valid number
+  formats. Allow numbers in scientific form (e.g. 1.5e+10).
+- Remove terabyte modifier as it doesn't work in some compilers.
+- Fix bug in handling some modifiers.
+- Added all necessary code for Recycle to Storage daemon. A Volume
+  marked Recycle will now be overwritten.
+- Filled out the prune command a bit and did some testing.
+- Make console accept redirected input.
+- Altered the Table definitions to include Recycle,
+  FileRetention, JobRetention, and AutoPrune.
+- Widened StartDay to 64 bits.
+- Use JobId_t in more places. 
+- Added the new table fields to the database record definitions.
+- Changed Recycle from string to a binary quantity.
+- Added a Version table with a VersionId to detect.
+  future changes in the database. This should prevent
+  a Bacula from working with a database that is not in sync.
+- Modify Console to accept input from a file. This will permit
+  the .read command and allow reading a .rc file.
+- Added new retention and recycle variables to the Director's configuration.
+- The UA subroutines or commands can now be called from core
+  code because the output routines detect the absence of a 
+  UA socket and direct output to the Job.
+- Added a verbose flage to the ua packet to permit reduction of
+  output while running a UA command (prune) from a Job.
+- Did a fair amount of work on the prune command. Prune Volume now works.
+- Purge Volume now works.
+- Made last changes for integrating prune and purge commands.
+- Add -ltermcap to CONS_LIBS when readline is configured.
+  More work to be done to search for termcap.
+- Added cats/drop_sqlite_tables.in, which will delete the SQLite database.
+- Got CWEB working so that we can compile filesys.w and immortal.w
+- Modified depkgs to include cweb.             
+- Note, CWEB is not yet used by the core Bacula code.
+- Made cats/alter.sql, which alters an old database to bring it
+  up to the new format. This only works with MySQL since SQLite does
+  not have the ALTER SQL command.
+- Changed the old StartDay field in the db to be JobTDate, which is
+  the latest time/date in widened Unix time format that the Job ran.
+  This value is used when doing pruning.
+- Added code in cats/sql.c to verify that the database internal version
+  corresponds to the db version compiled in Bacula. It is set to 1 currently.
+- Lots of changes to cats to bring the SQL up to date with the new 
+  retention period changes.
+- Added Console command code to permit changing a Volume's retention period.
+- Removed old code that used date_encode() and replaced it with widened
+  Unix time().
+- Started modifying Message resource scanner so that we can have multiple
+  message resources. Much more work to be done.
+- Moved scanning for time into new library routine string_to_btime().
 
 2002-04-22 Release 1.18
 - Applied Phil's configure.in fix for --prefix, ...

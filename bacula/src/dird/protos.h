@@ -1,5 +1,7 @@
 /*
  * Director external function prototypes
+ *
+ *   $Id:
  */
 /*
    Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
@@ -35,13 +37,13 @@ extern char *level_to_str(int level);
 
 /* fd_cmds.c */
 extern int connect_to_file_daemon(JCR *jcr, int retry_interval,
-                                  int max_retry_time, int verbose);
+				  int max_retry_time, int verbose);
 extern int send_include_list(JCR *jcr);
 extern int send_exclude_list(JCR *jcr);
 extern int get_attributes_and_put_in_catalog(JCR *jcr);
 extern int get_attributes_and_compare_to_catalog(JCR *jcr, int last_full_id);
 extern int put_file_into_catalog(JCR *jcr, long file_index, char *fname, 
-                          char *link, char *attr, int stream);
+			  char *link, char *attr, int stream);
 
 /* job.c */
 extern void free_jcr(JCR *jcr);
@@ -53,7 +55,7 @@ extern void mount_request(JCR *jcr, BSOCK *bs, char *buf);
 
 /* msgchan.c */
 extern int connect_to_storage_daemon(JCR *jcr, int retry_interval,    
-                              int max_retry_time, int verbose);
+			      int max_retry_time, int verbose);
 extern int start_storage_daemon_job(JCR *jcr);
 extern int start_storage_daemon_message_thread(JCR *jcr);
 extern int32_t bget_msg(BSOCK *bs, int type);
@@ -62,5 +64,5 @@ extern int response(BSOCK *fd, char *resp, char *cmd);
 /* newvol.c */
 extern int newVolume(JCR *jcr);
 
-/* ua_cmds.c */
+/* ua_cmd.c */
 extern int create_pool(B_DB *db, POOL *pool);

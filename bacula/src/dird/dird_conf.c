@@ -18,6 +18,8 @@
  *	for the resource records.
  *
  *     Kern Sibbald, January MM
+ *
+ *     $Id:
  */
 /*
    Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
@@ -108,9 +110,9 @@ static struct res_items cli_items[] = {
    {"fdport",   store_pint,       ITEM(res_client.FDport),   0, ITEM_REQUIRED, 0},
    {"password", store_password,   ITEM(res_client.password), 0, ITEM_REQUIRED, 0},
    {"catalog",  store_res,        ITEM(res_client.catalog),  R_CATALOG, 0, 0},
-   {"fileretention", store_time,  ITEM(res_client.FileRetention), 0, ITEM_DEFAULT, 60*60*24*30},
-   {"jobretention",  store_time,  ITEM(res_client.JobRetention),  0, ITEM_DEFAULT, 60*60*24*365},
-   {"autoprune", store_yesno,     ITEM(res_client.AutoPrune), 1, ITEM_DEFAULT, 0},
+   {"fileretention", store_time,  ITEM(res_client.FileRetention), 0, ITEM_DEFAULT, 60*60*24*60},
+   {"jobretention",  store_time,  ITEM(res_client.JobRetention),  0, ITEM_DEFAULT, 60*60*24*180},
+   {"autoprune", store_yesno,     ITEM(res_client.AutoPrune), 1, ITEM_DEFAULT, 1},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 
@@ -216,8 +218,8 @@ static struct res_items pool_items[] = {
    {"acceptanyvolume", store_yesno, ITEM(res_pool.accept_any_volume), 1, 0,     0},
    {"catalogfiles",    store_yesno, ITEM(res_pool.catalog_files),   1, ITEM_DEFAULT,  1},
    {"volumeretention", store_time,  ITEM(res_pool.VolRetention), 0, ITEM_DEFAULT, 60*60*24*365},
-   {"autoprune",       store_yesno, ITEM(res_pool.AutoPrune), 1, ITEM_DEFAULT, 0},
-   {"recycle",         store_yesno, ITEM(res_pool.Recycle),     1, ITEM_DEFAULT, 0},
+   {"autoprune",       store_yesno, ITEM(res_pool.AutoPrune), 1, ITEM_DEFAULT, 1},
+   {"recycle",         store_yesno, ITEM(res_pool.Recycle),     1, ITEM_DEFAULT, 1},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 

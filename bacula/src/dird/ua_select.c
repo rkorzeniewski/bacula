@@ -3,6 +3,8 @@
  *   Bacula Director -- User Agent Prompt and Selection code
  *
  *     Kern Sibbald, October MMI
+ *
+ *     $Id:
  */
 
 /*
@@ -40,6 +42,36 @@ void add_prompt(UAContext *ua, char *prompt);
 void start_prompt(UAContext *ua, char *msg);
 STORE *select_storage_resource(UAContext *ua);
 JOB *select_job_resource(UAContext *ua);
+
+/*
+ * Confirm a retention period
+ */
+int confirm_retention(UAContext *ua, btime_t *ret, char *msg)
+{
+   char ed1[30];
+
+   for ( ;; ) {
+       bsendmsg(ua, _("The current %s retention period is: %s\n"), 
+	  msg, edit_btime(*ret, ed1));
+       if (!get_cmd(ua, _("Continue? (yes/mod/no): "))) {
+	  return 0;
+       }
+       if (strcasecmp(ua->cmd, _("mod")) == 0) {
+          if (!get_cmd(ua, _("Enter new retention period: "))) {
+	     return 0;
+	  }
+	  if (!string_to_btime(ua->cmd, ret)) {
+             bsendmsg(ua, _("Invalid period.\n"));
+	     continue;
+	  }
+	  continue;
+       }
+       if (strcasecmp(ua->cmd, _("yes")) == 0) {
+	  break;
+       }
+    }
+    return 1;
+}
 
 /* 
  * Given a list of keywords, find the first one

@@ -4,6 +4,8 @@
  *	Applies retention periods
  *
  *     Kern Sibbald, February MMII
+ *
+ *     $Id:
  */
 
 /*
@@ -202,20 +204,29 @@ int prunecmd(UAContext *ua, char *cmd)
       N_("Volume"),
       NULL};
    if (!open_db(ua)) {
-      return 1;
+      return 01;
    }
    switch (find_arg_keyword(ua, keywords)) {
    case 0:
       client = select_client_resource(ua);
+      if (!client || !confirm_retention(ua, &client->FileRetention, "File")) {
+	 return 0;
+      }
       prune_files(ua, client);
       return 1;
    case 1:
       client = select_client_resource(ua);
+      if (!client || !confirm_retention(ua, &client->JobRetention, "Job")) {
+	 return 0;
+      }
       prune_jobs(ua, client);
       return 1;
    case 2:
       if (!select_pool_and_media_dbr(ua, &pr, &mr)) {
-	 return 1;
+	 return 0;
+      }
+      if (!confirm_retention(ua, &mr.VolRetention, "Volume")) {
+	 return 0;
       }
       prune_volume(ua, &pr, &mr);
       return 1;
@@ -225,21 +236,24 @@ int prunecmd(UAContext *ua, char *cmd)
    switch (do_keyword_prompt(ua, _("Choose item to prune"), keywords)) {
    case 0:
       client = select_client_resource(ua);
-      if (!client) {
-	 return 1;
+      if (!client || !confirm_retention(ua, &client->FileRetention, "File")) {
+	 return 0;
       }
       prune_files(ua, client);
       break;
    case 1:
       client = select_client_resource(ua);
-      if (!client) {
-	 return 1;
+      if (!client || !confirm_retention(ua, &client->JobRetention, "Job")) {
+	 return 0;
       }
       prune_jobs(ua, client);
       break;
    case 2:
       if (!select_pool_and_media_dbr(ua, &pr, &mr)) {
-	 return 1;
+	 return 0;
+      }
+      if (!confirm_retention(ua, &mr.VolRetention, "Volume")) {
+	 return 0;
       }
       prune_volume(ua, &pr, &mr);
       return 1;
@@ -279,14 +293,18 @@ int prune_files(UAContext *ua, CLIENT *client)
    Dmsg1(050, "select sql=%s\n", query);
  
    if (!db_sql_query(ua->db, query, file_count_handler, (void *)&del)) {
-      bsendmsg(ua, "%s", db_strerror(ua->db));
+      if (ua->verbose) {
+         bsendmsg(ua, "%s", db_strerror(ua->db));
+      }
       Dmsg0(050, "Count failed\n");
       goto bail_out;
    }
       
    if (del.tot_ids == 0) {
-      bsendmsg(ua, _("No Files found for client %s to prune from %s catalog.\n"),
-	 client->hdr.name, client->catalog->hdr.name);
+      if (ua->verbose) {
+         bsendmsg(ua, _("No Files found for client %s to prune from %s catalog.\n"),
+	    client->hdr.name, client->catalog->hdr.name);
+      }
       goto bail_out;
    }
 
@@ -315,7 +333,7 @@ int prune_files(UAContext *ua, CLIENT *client)
       db_sql_query(ua->db, query, NULL, (void *)NULL);
       Dmsg1(050, "Del sql=%s\n", query);
    }
-   bsendmsg(ua, _("%d Files for client %s pruned from %s catalog.\n"), del.num_ids,
+   bsendmsg(ua, _("Pruned %d Files for client %s from %s catalog.\n"), del.num_ids,
       client->hdr.name, client->catalog->hdr.name);
    
 bail_out:
@@ -395,7 +413,9 @@ int prune_jobs(UAContext *ua, CLIENT *client)
    Mmsg(&query, insert_delcand, ed1, cr.ClientId);
 
    if (!db_sql_query(ua->db, query, NULL, (void *)NULL)) {
-      bsendmsg(ua, "%s", db_strerror(ua->db));
+      if (ua->verbose) {
+         bsendmsg(ua, "%s", db_strerror(ua->db));
+      }
       Dmsg0(050, "insert delcand failed\n");
       goto bail_out;
    }
@@ -405,14 +425,18 @@ int prune_jobs(UAContext *ua, CLIENT *client)
    Dmsg1(100, "select sql=%s\n", query);
  
    if (!db_sql_query(ua->db, query, count_handler, (void *)&cnt)) {
-      bsendmsg(ua, "%s", db_strerror(ua->db));
+      if (ua->verbose) {
+         bsendmsg(ua, "%s", db_strerror(ua->db));
+      }
       Dmsg0(050, "Count failed\n");
       goto bail_out;
    }
       
    if (cnt.count == 0) {
-      bsendmsg(ua, _("No Jobs for client %s found to prune from %s catalog.\n"),
-	 client->hdr.name, client->catalog->hdr.name);
+      if (ua->verbose) {
+         bsendmsg(ua, _("No Jobs for client %s found to prune from %s catalog.\n"),
+	    client->hdr.name, client->catalog->hdr.name);
+      }
       goto bail_out;
    }
 
@@ -448,7 +472,7 @@ int prune_jobs(UAContext *ua, CLIENT *client)
       db_sql_query(ua->db, query, NULL, (void *)NULL);
       Dmsg1(050, "Del sql=%s\n", query);
    }
-   bsendmsg(ua, _("%d Jobs for client %s pruned from %s catalog.\n"), del.num_ids,
+   bsendmsg(ua, _("Pruned %d Jobs for client %s from %s catalog.\n"), del.num_ids,
       client->hdr.name, client->catalog->hdr.name);
    
 bail_out:
@@ -486,8 +510,10 @@ int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
    }
       
    if (cnt.count == 0) {
-      bsendmsg(ua, "There are no Jobs associated with Volume %s. It is purged.\n",
-	 mr->VolumeName);
+      if (ua->verbose) {
+         bsendmsg(ua, "There are no Jobs associated with Volume %s. It is purged.\n",
+	    mr->VolumeName);
+      }
       if (!mark_media_purged(ua, mr)) {
 	 goto bail_out;
       }
@@ -504,7 +530,9 @@ int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
 
    Mmsg(&query, "SELECT JobId FROM JobMedia WHERE MediaId=%d", mr->MediaId);
    if (!db_sql_query(ua->db, query, file_delete_handler, (void *)&del)) {
-      bsendmsg(ua, "%s", db_strerror(ua->db));
+      if (ua->verbose) {
+         bsendmsg(ua, "%s", db_strerror(ua->db));
+      }
       Dmsg0(050, "Count failed\n");
       goto bail_out;
    }
@@ -534,7 +562,7 @@ int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
    if (del.JobId) {
       free(del.JobId);
    }
-   bsendmsg(ua, _("%d Jobs on Volume %s pruned from catalog.\n"), del.num_del,
+   bsendmsg(ua, _("Pruned %d Jobs on Volume %s from catalog.\n"), del.num_del,
       mr->VolumeName);
 
    /* If purged, mark it so */
@@ -553,7 +581,9 @@ static int mark_media_purged(UAContext *ua, MEDIA_DBR *mr)
        strcmp(mr->VolStatus, "Full")   == 0) {
       strcpy(mr->VolStatus, "Purged");
       if (!db_update_media_record(ua->db, mr)) {
-         bsendmsg(ua, "%s", db_strerror(ua->db));
+	 if (ua->verbose) {
+            bsendmsg(ua, "%s", db_strerror(ua->db));
+	 }
 	 return 0;
       }
    }
