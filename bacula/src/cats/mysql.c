@@ -107,7 +107,9 @@ db_init_database(JCR *jcr, char *db_name, char *db_user, char *db_password,
 
 /*
  * Now actually open the database.  This can generate errors,
- * which are returned in the errmsg
+ *  which are returned in the errmsg
+ *
+ * DO NOT close the database or free(mdb) here !!!!
  */
 int
 db_open_database(JCR *jcr, B_DB *mdb)
@@ -172,7 +174,6 @@ It is probably not running or your password is incorrect.\n"),
 
    if (!check_tables_version(jcr, mdb)) {
       V(mutex);
-      db_close_database(jcr, mdb);
       return 0;
    }
 
@@ -188,6 +189,9 @@ It is probably not running or your password is incorrect.\n"),
 void
 db_close_database(JCR *jcr, B_DB *mdb)
 {
+   if (!mdb) {
+      return;
+   }
    P(mutex);
    mdb->ref_count--;
 #ifdef HAVE_TREAD_SAFE_MYSQL
