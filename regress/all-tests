@@ -5,3 +5,4 @@
 ./all-non-root-tests
 ./all-root-tests
 cat test.out
+scripts/cleanup

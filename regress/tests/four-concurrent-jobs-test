@@ -16,7 +16,8 @@ echo " === Starting four-concurrent-jobs-test  ==="
 echo " === Starting four-concurrent-jobs-test  ===" >>working/log
 echo " "
 
-bin/bacula start 2>&1 >/dev/null
+#bin/bacula start 2>&1 >/dev/null
+bin/bacula start
 bin/console -c bin/console.conf <<END_OF_DATA
 @output /dev/null
 messages

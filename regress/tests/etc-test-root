@@ -20,10 +20,10 @@ cwd=`pwd`
 scripts/copy-test-confs
 echo "/etc" >/tmp/file-list
 rm -rf /tmp/TestVolume001 /tmp/bacula-restores
-bin/bacula stop 
+bin/bacula stop 2>&1 >/dev/null
 bin/drop_sqlite_tables
 bin/make_sqlite_tables
-bin/bacula start
+bin/bacula start 2>&1 >/dev/null
 bin/console -c bin/console.conf <<END_OF_DATA
 @output /dev/null
 messages
@@ -46,7 +46,7 @@ messages
 @output
 quit
 END_OF_DATA
-bin/bacula stop
+bin/bacula stop 2>&1 >/dev/null
 cd /
 ${cwd}/bin/testls -e ${cwd}/scripts/exclude-etc-test etc >${cwd}/tmp/original
 cd /tmp/bacula-restores
@@ -61,6 +61,5 @@ if [ $? != 0 ] ; then
 else
    echo "  ===== Test4 /etc OK ===== "
    echo "  ===== Test4 OK ===== " >>test.out
-   rm -rf /tmp/bacula-restores ${cwd}/tmp/original ${cwd}/tmp/restored
-   rm -rf /tmp/file-list /tmp/job /tmp/TestVolume001
+   scripts/cleanup
 fi
