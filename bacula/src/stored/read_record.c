@@ -115,6 +115,7 @@ int read_records(JCR *jcr,  DEVICE *dev,
 	 }
       }
       Dmsg2(100, "New block at position=(file:block) %d:%d\n", dev->file, dev->block_num);
+#define FAST_BLOCK_REJECTION
 #ifdef FAST_BLOCK_REJECTION
       /* this does not stop when file/block are too big */
       if (!match_bsr_block(jcr->bsr, block)) {

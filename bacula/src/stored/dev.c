@@ -418,6 +418,9 @@ eod_dev(DEVICE *dev)
 	 dev->state |= ST_EOT;
 	 return 1;
       }
+      dev->dev_errno = errno;
+      Mmsg2(&dev->errmsg, _("lseek error on %s. ERR=%s.\n"),
+	     dev->dev_name, strerror(dev->dev_errno));
       return 0;
    }
 #ifdef MTEOM
@@ -465,7 +468,7 @@ eod_dev(DEVICE *dev)
     * the second EOF.
     */
    if (dev_cap(dev, CAP_BSFATEOM)) {
-      stat =  (bsf_dev(dev, 1) == 0);
+      stat =  bsf_dev(dev, 1);
       dev->file++;		      /* keep same file */
    } else {
       update_pos_dev(dev);		     /* update position */
@@ -830,12 +833,14 @@ bsf_dev(DEVICE *dev, int num)
 
    if (dev->fd < 0) {
       dev->dev_errno = EBADF;
-      Mmsg0(&dev->errmsg, _("Bad call to bsf_dev. Archive not open\n"));
+      Mmsg0(&dev->errmsg, _("Bad call to bsf_dev. Archive device not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
       return 0;
    }
 
    if (!(dev_state(dev, ST_TAPE))) {
+      Mmsg1(&dev->errmsg, _("Device %s cannot BSF because it is not a tape.\n"),
+	 dev->dev_name);
       return 0;
    }
    Dmsg0(29, "bsf_dev\n");
@@ -1002,7 +1007,7 @@ weof_dev(DEVICE *dev, int num)
 
    if (dev->fd < 0) {
       dev->dev_errno = EBADF;
-      Mmsg0(&dev->errmsg, _("Bad call to weof_dev. Archive not open\n"));
+      Mmsg0(&dev->errmsg, _("Bad call to weof_dev. Archive drive not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
       return -1;
    }
@@ -1021,8 +1026,10 @@ weof_dev(DEVICE *dev, int num)
       dev->file_addr = 0;
    } else {
       clrerror_dev(dev, MTWEOF);
-      Mmsg2(&dev->errmsg, _("ioctl MTWEOF error on %s. ERR=%s.\n"),
-	 dev->dev_name, strerror(dev->dev_errno));
+      if (stat == -1) {
+         Mmsg2(&dev->errmsg, _("ioctl MTWEOF error on %s. ERR=%s.\n"),
+	    dev->dev_name, strerror(dev->dev_errno));
+       }
    }
    return stat;
 }

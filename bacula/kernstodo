@@ -35,6 +35,7 @@ For 1.33 Testing/Documentation:
   SuSE.
                 
 For 1.33
+- Implement .consolerc for Console
 - I want to restore by file to some date.
 - Implement fast block rejection.
 - Is it really important to make Job name the same to find the
