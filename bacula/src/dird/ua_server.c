@@ -176,7 +176,6 @@ static void *handle_UA_client_request(void *arg)
 
 getout:
 
-   close_db(ua);		     /* do this before freeing JCR */
    free_ua_context(ua);
    free_jcr(jcr);
 
@@ -220,6 +219,8 @@ void free_ua_context(UAContext *ua)
    if (ua->UA_sock) {
       bnet_close(ua->UA_sock);
    }
+
+   close_db(ua);
 
    free(ua);
 }

@@ -165,19 +165,6 @@ int do_verify(JCR *jcr)
       jcr->RestoreBootstrap = bstrdup(fname);
       free_pool_memory(fname);
 
-#ifdef xxx
-      /*
-       * Now find the Volumes we will need for the Verify 
-       */
-      jcr->VolumeName[0] = 0;
-      if (!db_get_job_volume_names(jcr, jcr->db, jr.JobId, &jcr->VolumeName) ||
-	   jcr->VolumeName[0] == 0) {
-         Jmsg(jcr, M_FATAL, 0, _("Cannot find Volume Name for verify JobId=%u. ERR=%s"), 
-	    jr.JobId, db_strerror(jcr->db));
-	 goto bail_out;
-      }
-      Dmsg1(20, "Got job Volume Names: %s\n", jcr->VolumeName);
-#endif
       /*
        * Start conversation with Storage daemon  
        */
