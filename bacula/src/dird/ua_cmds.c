@@ -85,13 +85,13 @@ int quit_cmd(UAContext *ua, char *cmd);
 
 struct cmdstruct { char *key; int (*func)(UAContext *ua, char *cmd); char *help; }; 
 static struct cmdstruct commands[] = {
- { N_("add"),        add_cmd,       _("add media to a pool")},
+ { N_("add"),        add_cmd,         _("add media to a pool")},
  { N_("autodisplay"), autodisplaycmd, _("autodisplay [on/off] -- console messages")},
- { N_("automount"),   automount_cmd,   _("automount [on/off] -- after label")},
+ { N_("automount"),   automount_cmd,  _("automount [on/off] -- after label")},
  { N_("cancel"),     cancelcmd,     _("cancel job=nnn -- cancel a job")},
  { N_("create"),     createcmd,     _("create DB Pool from resource")},  
  { N_("delete"),     delete_cmd,    _("delete [pool=<pool-name> | media volume=<volume-name>]")},    
- { N_("estimate"),   estimate_cmd,  _("performs FileSet estimate debug=1 give full listing")},
+ { N_("estimate"),   estimate_cmd,  _("performs FileSet estimate, listing gives full listing")},
  { N_("exit"),       quit_cmd,      _("exit = quit")},
  { N_("help"),       help_cmd,      _("print this command")},
  { N_("label"),      label_cmd,     _("label a tape")},
