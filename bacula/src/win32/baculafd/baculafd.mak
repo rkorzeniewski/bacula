@@ -124,7 +124,8 @@ BSC32_FLAGS=/nologo /o"$(OUTDIR)\baculafd.bsc"
 BSC32_SBRS= \
 	
 LINK32=link.exe
-LINK32_FLAGS=wsock32.lib pthreadVCE.lib zlib.lib /nologo /subsystem:windows /pdb:none /machine:I386 /nodefaultlib:"MSVCRT.lib" /out:"$(OUTDIR)\bacula-fd.exe" /libpath:"../../../../depkgs-win32/pthreads" /libpath:"../../../../depkgs-win32/zlib" 
+# Added the first 4 lib files, to allow compatibility with the free version of VC++.
+LINK32_FLAGS=Shell32.lib AdvAPI32.lib User32.lib Gdi32.lib wsock32.lib pthreadVCE.lib zlib.lib /nologo /subsystem:windows /pdb:none /machine:I386 /nodefaultlib:"MSVCRT.lib" /out:"$(OUTDIR)\bacula-fd.exe" /libpath:"../../../../depkgs-win32/pthreads" /libpath:"../../../../depkgs-win32/zlib" 
 LINK32_OBJS= \
 	"$(INTDIR)\alist.obj" \
 	"$(INTDIR)\alloc.obj" \
