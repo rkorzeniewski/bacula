@@ -47,25 +47,24 @@ For 1.33 Testing/Documentation:
                 
 
 For 1.33
-- Optimize fsf not to read.
-- Use ioctl() fsf if it exists. Figure out where we are from
-  the mt_status command. Use slow fsf only if other does not work.
 - Add flag to write only one EOF mark on the tape.
 - Implement autochanger testing in btape "test" command.
-- Make sure that Volumes are recycled based on "Least recently used"
-  rather than lowest MediaId.
 - Implement RestoreJobRetention? Maybe better "JobRetention" in a Job,
   which would take precidence over the Catalog "JobRetention".
 - Implement Label Format in Add and Label console commands.
-- Enhance "update slots" to include a "scan" feature
-  scan 1; scan 1-5; scan 1,2,4 ...  to update the catalog 
-- Allow a slot or range of slots on the label barcodes command.
-- Finish implementation of Verify=DiskToCatalog
 - Possibly up network buffers to 65K.
 - Keep last 5 or 10 completed jobs and show them in a similar list.
 - Make a Running Jobs: output similar to current Scheduled Jobs:
 
 After 1.33:
+- Create VolAddr for disk files in place of VolFile and VolBlock. This
+  is needed to properly specify ranges.
+- Print bsmtp output to job report so that problems will be seen.
+- Make mark/unmark report how many files marked/unmarked.
+- Have some way to estimate the restore size or have it printed.
+- Pass the number of files to be restored to the FD for reporting 
+- Add progress of files/bytes to SD and FD.
+- Implement lmark to list everyfile marked.
 - Don't continue Restore if no files selected.
 - Print warning message if FileId > 4 billion
 - do a "messages" before the first prompt in Console
@@ -883,6 +882,7 @@ Done: (see kernsdone for more)
 - Implement ClientRunBeforeJob and ClientRunAfterJob.
 - Implement forward spacing block/file: position_device(bsr) --
   just before read_block_from_device();
+=== for 1.33
 - Change console to bconsole.
 - Change smtp to bsmtp.
 - Fix time difference problem between Bacula and Client
@@ -898,3 +898,13 @@ Done: (see kernsdone for more)
        Files=21,003 Bytes=253,954,408 Bytes/sec=2,919,016
        FDReadSeqNo=192,134 in_msg=129830 out_msg=5 fd=7
 - Upgrade to cygwin 1.5
+- Optimize fsf not to read.
+- Use ioctl() fsf if it exists. Figure out where we are from
+  the mt_status command. Use slow fsf only if other does not work.
+- Enhance "update slots" to include a "scan" feature
+  scan 1; scan 1-5; scan 1,2,4 ...  to update the catalog 
+- Allow a slot or range of slots on the label barcodes command.
+- Finish implementation of Verify=DiskToCatalog
+- Make sure that Volumes are recycled based on "Least recently used"
+  rather than lowest MediaId.
+
