@@ -176,7 +176,7 @@ static void send_blocked_status(JCR *jcr, DEVICE *dev)
          bnet_fsend(user, _("    Device is BLOCKED waiting for mount of volume \"%s\".\n"),
 	    dcr->VolumeName);
       } else {
-         bnet_fsend(user, _("    Device is BLOCKED waiting for appendable media.\n"));
+         bnet_fsend(user, _("    Device is BLOCKED waiting for media.\n"));
       }
       break;
    case BST_DOING_ACQUIRE:
@@ -218,6 +218,8 @@ static void send_blocked_status(JCR *jcr, DEVICE *dev)
       bnet_fsend(user, "%sSHORT ", dev->state & ST_SHORT ? "" : "!");
       bnet_fsend(user, "%sMOUNTED ", dev->state & ST_MOUNTED ? "" : "!");
       bnet_fsend(user, "\n");
+      bnet_fsend(user, "num_writers=%d JobStatus=%c block=%d\nn", dev->num_writers,
+	 jcr->JobStatus, dev->dev_blocked);
 
       bnet_fsend(user, _("Device parameters:\n"));
       bnet_fsend(user, "Archive name: %s Device name: %s\n", dev->dev_name,
