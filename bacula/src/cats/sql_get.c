@@ -835,7 +835,7 @@ int db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
          "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
          "MediaType,VolStatus,PoolId,VolRetention,VolUseDuration,MaxVolJobs,"
          "MaxVolFiles,Recycle,Slot,FirstWritten,LastWritten,InChanger,"
-         "EndFile,EndBlock,VolParts,LabelType "
+         "EndFile,EndBlock,VolParts,LabelType,LabelDate "
          "FROM Media WHERE MediaId=%s", 
 	 edit_int64(mr->MediaId, ed1));
    } else {			      /* find by name */
@@ -843,7 +843,7 @@ int db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
          "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
          "MediaType,VolStatus,PoolId,VolRetention,VolUseDuration,MaxVolJobs,"
          "MaxVolFiles,Recycle,Slot,FirstWritten,LastWritten,InChanger,"
-         "EndFile,EndBlock,VolParts,LabelType "
+         "EndFile,EndBlock,VolParts,LabelType,LabelDate "
          "FROM Media WHERE VolumeName='%s'", mr->VolumeName);
    }
 
@@ -889,6 +889,8 @@ int db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 	    mr->EndBlock = str_to_uint64(row[24]);
 	    mr->VolParts = str_to_int64(row[25]);
 	    mr->LabelType = str_to_int64(row[26]);
+            bstrncpy(mr->cLabelDate, row[27]!=NULL?row[27]:"", sizeof(mr->cLabelDate));
+	    mr->LabelDate = (time_t)str_to_utime(mr->cLabelDate);
 	    stat = mr->MediaId;
 	 }
       } else {

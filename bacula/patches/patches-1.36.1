@@ -32,3 +32,9 @@
  in the incorrect name being used for the check.
  This could lead to security problems with unwanted 
  access by restricted consoles.
+
+15Feb05 1.36.1-truncate.patch
+ This patch fixes a bug where a tape gets "truncated" after
+ doing a restore. The number of files in the catalog do not
+ agree with what Bacula thinks is on tape, then the tape is
+ marked in error.

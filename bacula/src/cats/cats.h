@@ -728,7 +728,9 @@ struct MEDIA_DBR {
     */
    char    cFirstWritten[MAX_TIME_LENGTH]; /* FirstWritten returned from DB */
    char    cLastWritten[MAX_TIME_LENGTH];  /* LastWritten returned from DB */
-   char    cLabelData[MAX_TIME_LENGTH];    /* LabelData returned from DB */
+   char    cLabelDate[MAX_TIME_LENGTH];    /* LabelData returned from DB */
+   bool    set_first_written;                
+   bool    set_label_date;
 };
 
 /* Client record -- same as the database */

@@ -621,6 +621,7 @@ static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
    unbash_spaces(mr->MediaType);
    unbash_spaces(pr->Name);
    mr->LabelDate = time(NULL);
+   mr->set_label_date = true;
    if (ok) {
       if (media_record_exists) {      /* we update it */
 	 mr->VolBytes = 1;

@@ -257,6 +257,7 @@ public:
    const char *strerror() const;
    const char *archive_name() const;
    void set_eof();
+   void set_eot();
 };
 
 /* Note, these return int not bool! */
@@ -268,7 +269,6 @@ inline int DEVICE::is_open() const { return state & ST_OPENED; }
 inline int DEVICE::is_labeled() const { return state & ST_LABEL; }
 inline int DEVICE::is_busy() const { return state & ST_READ || num_writers; }
 inline int DEVICE::at_eof() const { return state & ST_EOF; }
-inline int DEVICE::at_eom() const { return state & ST_EOT; }
 inline int DEVICE::at_eot() const { return state & ST_EOT; }
 inline int DEVICE::can_append() const { return state & ST_APPEND; }
 inline int DEVICE::can_read() const { return state & ST_READ; }

@@ -34,6 +34,8 @@
 
 extern int debug_level;
 static bool terminate_writing_volume(DCR *dcr);
+static bool do_new_file_bookkeeping(DCR *dcr);
+static bool do_dvd_size_checks(DCR *dcr);
 
 /*
  * Dump the block header, then walk through
@@ -477,99 +479,21 @@ bool write_block_to_dev(DCR *dcr)
        (dev->file_size+block->binbuf) >= dev->max_file_size) {
       dev->file_size = 0;	      /* reset file size */
 
-      if (dev->is_tape() && weof_dev(dev, 1) != 0) {		/* write eof */
+      if (weof_dev(dev, 1) != 0) {	      /* write eof */
          Dmsg0(190, "WEOF error in max file size.\n");
 	 terminate_writing_volume(dcr);
 	 dev->dev_errno = ENOSPC;
 	 return false;
       }
 
-      /* Create a JobMedia record so restore can seek */
-      if (!dir_create_jobmedia_record(dcr)) {
-         Dmsg0(190, "Error from create_job_media.\n");
-	 dev->dev_errno = EIO;
-          Jmsg(jcr, M_FATAL, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
-	       dcr->VolCatInfo.VolCatName, jcr->Job);
-	  terminate_writing_volume(dcr);
-	  dev->dev_errno = EIO;
-	  return false;
-      }
-      dev->VolCatInfo.VolCatFiles = dev->file;
-      if (!dir_update_volume_info(dcr, false)) {
-         Dmsg0(190, "Error from update_vol_info.\n");
-	 terminate_writing_volume(dcr);
-	 dev->dev_errno = EIO;
-	 return false;
-      }
-      Dmsg0(100, "dir_update_volume_info max file size -- OK\n");
-
-
-      /*
-       * Walk through all attached dcrs setting flag to call
-       * set_new_file_parameters() when that dcr is next used.
-       */
-      DCR *mdcr;
-      foreach_dlist(mdcr, dev->attached_dcrs) {
-	 if (mdcr->jcr->JobId == 0) {
-	    continue;
-	 }
-	 mdcr->NewFile = true;	      /* set reminder to do set_new_file_params */
-      }
-      /* Set new file/block parameters for current dcr */
-      set_new_file_parameters(dcr);
-   }
-   
-   /* Limit maximum part size to value specified by user (not applicable to tapes/fifos) */
-   if (!(dev->state & (ST_TAPE|ST_FIFO)) && 
-	 (dev->max_part_size > 0) &&
-	((dev->part_size + block->binbuf) >= dev->max_part_size)) {
-      if (dev->part < dev->num_parts) {
-         Jmsg3(dcr->jcr, M_FATAL, 0, _("Error while writing, current part number is less than the total number of parts (%d/%d, device=%s)\n"),
-	       dev->part, dev->num_parts, dev_name(dev));
-	 dev->dev_errno = EIO;
-	 return false;
-      }
-      
-      if (open_next_part(dev) < 0) {
-         Jmsg2(dcr->jcr, M_FATAL, 0, _("Unable to open device next part %s. ERR=%s\n"),
-		dev_name(dev), strerror_dev(dev));
-	 dev->dev_errno = EIO;
-	 return false;
-      }
-      
-      dev->VolCatInfo.VolCatParts = dev->num_parts;
-	    
-      if (!dir_update_volume_info(dcr, false)) {
-         Dmsg0(190, "Error from update_vol_info.\n");
-	 dev->dev_errno = EIO;
+      if (!do_new_file_bookkeeping(dcr)) {
 	 return false;
       }
    }
    
-   if (dev->free_space_errno < 0) { /* Error while getting free space */
-      char ed1[50], ed2[50];
-      Dmsg1(10, "Cannot get free space on the device ERR=%s.\n", dev->errmsg);
-      Jmsg(jcr, M_FATAL, 0, _("End of Volume \"%s\" at %u:%u on device %s (part_size=%s, free_space=%s, free_space_errno=%d, errmsg=%s).\n"),
-	   dev->VolCatInfo.VolCatName,
-	   dev->file, dev->block_num, dev->dev_name,
-	   edit_uint64_with_commas(dev->part_size, ed1), edit_uint64_with_commas(dev->free_space, ed2),
-	   dev->free_space_errno, dev->errmsg);
-      dev->dev_errno = -dev->free_space_errno;
+   if (!do_dvd_size_checks(dcr)) {
       return false;
    }
-   
-   if (((dev->free_space_errno > 0) && ((dev->part_size + block->binbuf) >= dev->free_space))) {
-      char ed1[50], ed2[50];
-      Dmsg0(10, "==== Just enough free space on the device to write the current part...\n");
-      Jmsg(jcr, M_INFO, 0, _("End of Volume \"%s\" at %u:%u on device %s (part_size=%s, free_space=%s, free_space_errno=%d).\n"),
-	    dev->VolCatInfo.VolCatName,
-	    dev->file, dev->block_num, dev->dev_name,
-	    edit_uint64_with_commas(dev->part_size, ed1), edit_uint64_with_commas(dev->free_space, ed2),
-	    dev->free_space_errno);
-      terminate_writing_volume(dcr);
-      dev->dev_errno = ENOSPC;
-      return false;
-   }   
 
    dev->VolCatInfo.VolCatWrites++;
    Dmsg1(300, "Write block of %u bytes\n", wlen);
@@ -766,10 +690,116 @@ static bool terminate_writing_volume(DCR *dcr)
       Jmsg(dcr->jcr, M_ERROR, 0, "%s", dev->errmsg);
    }
 bail_out:
-   dev->state |= (ST_EOF|ST_EOT|ST_WEOT);
-   dev->state &= ~ST_APPEND;	      /* make tape read-only */
+   dev->set_eot();
    Dmsg1(100, "Leave terminate_writing_volume -- %s\n", ok?"OK":"ERROR");
    return ok;
+}
+
+/*
+ * Do bookkeeping when a new file is created on a Volume. This is
+ *  also done for disk files to generate the jobmedia records for
+ *  quick seeking.
+ */
+static bool do_new_file_bookkeeping(DCR *dcr) 
+{
+   DEVICE *dev = dcr->dev;
+   JCR *jcr = dcr->jcr;
+
+   /* Create a JobMedia record so restore can seek */
+   if (!dir_create_jobmedia_record(dcr)) {
+      Dmsg0(190, "Error from create_job_media.\n");
+      dev->dev_errno = EIO;
+       Jmsg(jcr, M_FATAL, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
+	    dcr->VolCatInfo.VolCatName, jcr->Job);
+       terminate_writing_volume(dcr);
+       dev->dev_errno = EIO;
+       return false;
+   }
+   dev->VolCatInfo.VolCatFiles = dev->file;
+   if (!dir_update_volume_info(dcr, false)) {
+      Dmsg0(190, "Error from update_vol_info.\n");
+      terminate_writing_volume(dcr);
+      dev->dev_errno = EIO;
+      return false;
+   }
+   Dmsg0(100, "dir_update_volume_info max file size -- OK\n");
+
+   /*
+    * Walk through all attached dcrs setting flag to call
+    * set_new_file_parameters() when that dcr is next used.
+    */
+   DCR *mdcr;
+   foreach_dlist(mdcr, dev->attached_dcrs) {
+      if (mdcr->jcr->JobId == 0) {
+	 continue;
+      }
+      mdcr->NewFile = true;	   /* set reminder to do set_new_file_params */
+   }
+   /* Set new file/block parameters for current dcr */
+   set_new_file_parameters(dcr);
+   return true;
+}
+
+/*
+ * Do all checks for DVD sizes during writing.
+ */
+static bool do_dvd_size_checks(DCR *dcr) 
+{
+   DEVICE *dev = dcr->dev;
+   JCR *jcr = dcr->jcr;
+   DEV_BLOCK *block = dcr->block;
+
+   /* Limit maximum part size to value specified by user (not applicable to tapes/fifos) */
+   if (!(dev->state & (ST_TAPE|ST_FIFO)) && dev->max_part_size > 0 &&
+	(dev->part_size + block->binbuf) >= dev->max_part_size) {
+      if (dev->part < dev->num_parts) {
+         Jmsg3(dcr->jcr, M_FATAL, 0, _("Error while writing, current part number is less than the total number of parts (%d/%d, device=%s)\n"),
+	       dev->part, dev->num_parts, dev_name(dev));
+	 dev->dev_errno = EIO;
+	 return false;
+      }
+      
+      if (open_next_part(dev) < 0) {
+         Jmsg2(dcr->jcr, M_FATAL, 0, _("Unable to open device next part %s. ERR=%s\n"),
+		dev_name(dev), strerror_dev(dev));
+	 dev->dev_errno = EIO;
+	 return false;
+      }
+      
+      dev->VolCatInfo.VolCatParts = dev->num_parts;
+	    
+      if (!dir_update_volume_info(dcr, false)) {
+         Dmsg0(190, "Error from update_vol_info.\n");
+	 dev->dev_errno = EIO;
+	 return false;
+      }
+   }
+   
+   if (dev->free_space_errno < 0) { /* Error while getting free space */
+      char ed1[50], ed2[50];
+      Dmsg1(10, "Cannot get free space on the device ERR=%s.\n", dev->errmsg);
+      Jmsg(jcr, M_FATAL, 0, _("End of Volume \"%s\" at %u:%u on device %s (part_size=%s, free_space=%s, free_space_errno=%d, errmsg=%s).\n"),
+	   dev->VolCatInfo.VolCatName,
+	   dev->file, dev->block_num, dev->dev_name,
+	   edit_uint64_with_commas(dev->part_size, ed1), edit_uint64_with_commas(dev->free_space, ed2),
+	   dev->free_space_errno, dev->errmsg);
+      dev->dev_errno = -dev->free_space_errno;
+      return false;
+   }
+   
+   if ((dev->free_space_errno > 0 && (dev->part_size + block->binbuf) >= dev->free_space)) {
+      char ed1[50], ed2[50];
+      Dmsg0(10, "==== Just enough free space on the device to write the current part...\n");
+      Jmsg(jcr, M_INFO, 0, _("End of Volume \"%s\" at %u:%u on device %s (part_size=%s, free_space=%s, free_space_errno=%d).\n"),
+	    dev->VolCatInfo.VolCatName,
+	    dev->file, dev->block_num, dev->dev_name,
+	    edit_uint64_with_commas(dev->part_size, ed1), edit_uint64_with_commas(dev->free_space, ed2),
+	    dev->free_space_errno);
+      terminate_writing_volume(dcr);
+      dev->dev_errno = ENOSPC;
+      return false;
+   }   
+   return true;
 }
 
 

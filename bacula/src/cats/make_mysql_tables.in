@@ -45,6 +45,8 @@ CREATE TABLE File (
 #  INDEX (FilenameId),
 #  INDEX (JobId, PathId, FilenameId)
 #
+# Adding an index on JobId can speed up pruning
+#
 
 CREATE TABLE Job (
    JobId INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,

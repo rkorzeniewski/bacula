@@ -359,7 +359,6 @@ const char *uar_jobids_fileindex =
    "ORDER BY Job.StartTime DESC LIMIT 1";
 
 /* Query to get all files in a directory -- no recursing */
-// cleanup needed -- add client, ...
 const char *uar_jobid_fileindex_from_dir = 
    "SELECT Job.JobId,File.FileIndex FROM Job,File,Path,Filename,Client "
    "WHERE Job.JobId IN (%s) "
