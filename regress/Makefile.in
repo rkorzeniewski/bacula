@@ -33,7 +33,7 @@ bacula: all
 	 fi)
 	rm -rf tmp working
 	mkdir tmp working
-	scripts/setup ${BACULA_SOURCE} ${DEPKGS} ${EMAIL} ${WHICHDB}
+	scripts/setup ${BACULA_SOURCE} ${EMAIL} ${WHICHDB}
 	scripts/do_sed ${EMAIL} ${TAPE_DRIVE} ${AUTOCHANGER} ${AUTOCHANGER_PATH}
 
 # Run all non-root userid tests
