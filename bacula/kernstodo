@@ -40,6 +40,8 @@ Regression tests:
 
 
 1.37 Possibilities:
+- Document security problems with the same password for everyone in
+  rpm and Win32 releases.
 - Browse generations of files.
 - Add offline command to Bacula console.
 - I've seen an error when my catalog's File table fills up.  I

@@ -244,7 +244,7 @@ struct JOB {
 };
 
 #undef  MAX_FOPTS
-#define MAX_FOPTS 30
+#define MAX_FOPTS 32
 
 /* File options structure */
 struct FOPTS {

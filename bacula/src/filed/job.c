@@ -738,7 +738,11 @@ static void add_fileset(JCR *jcr, const char *item)
       int rc;
       char prbuf[500];
       preg = (regex_t *)malloc(sizeof(regex_t));
-      rc = regcomp(preg, item, REG_EXTENDED);
+      if (current_opts->flags & FO_IGNORECASE) {
+         rc = regcomp(preg, item, REG_EXTENDED|REG_ICASE);
+      } else {
+         rc = regcomp(preg, item, REG_EXTENDED);
+      }
       if (rc != 0) {
 	 regerror(rc, preg, prbuf, sizeof(prbuf));
 	 regfree(preg);
@@ -863,6 +867,9 @@ static void set_options(findFOPTS *fo, const char *opts)
 	 break;
       case 'H':                 /* no hard link handling */
 	 fo->flags |= FO_NO_HARDLINK;
+	 break;
+      case 'i':
+	 fo->flags |= FO_IGNORECASE;
 	 break;
       case 'M':                 /* MD5 */
 	 fo->flags |= FO_MD5;
