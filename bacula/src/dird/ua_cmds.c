@@ -64,6 +64,8 @@ extern int update_slots(UAContext *ua);  /* ua_label.c */
 /* Forward referenced functions */
 static int add_cmd(UAContext *ua, char *cmd),  createcmd(UAContext *ua, char *cmd), cancelcmd(UAContext *ua, char *cmd);
 static int setdebug_cmd(UAContext *ua, char *cmd);
+static int var_cmd(UAContext *ua, char *cmd);
+static int estimate_cmd(UAContext *ua, char *cmd);
 static int help_cmd(UAContext *ua, char *cmd);
 static int delete_cmd(UAContext *ua, char *cmd);
 static int use_cmd(UAContext *ua, char *cmd),  unmount_cmd(UAContext *ua, char *cmd);
@@ -101,6 +103,8 @@ static struct cmdstruct commands[] = {
  { N_("purge"),      purgecmd,      _("purge records from catalog")},
  { N_("run"),        runcmd,        _("run <job-name>")},
  { N_("setdebug"),   setdebug_cmd,  _("sets debug level")},
+ { N_("estimate"),   estimate_cmd,  _("performs FileSet estimate debug=1 give full listing")},
+ { N_("var"),        var_cmd,       _("does variable expansion")},
  { N_("show"),       show_cmd,      _("show (resource records) [jobs | pools | ... | all]")},
  { N_("sqlquery"),   sqlquerycmd,   _("use SQL to query catalog")}, 
  { N_("status"),     statuscmd,     _("status [storage | client]=<name>")},
@@ -1160,6 +1164,25 @@ static int setdebug_cmd(UAContext *ua, char *cmd)
    }
    return 1;
 }
+
+static int var_cmd(UAContext *ua, char *cmd)
+{
+   POOLMEM *var = get_pool_memory(PM_FNAME);
+   for (int i=1; i<ua->argc; i++) {
+      if (ua->argk[i] && variable_expansion(ua->jcr, ua->argk[i], &var)) {
+         bsendmsg(ua, "%s\n", var);
+      }
+   }
+   free_pool_memory(var);
+   return 1;
+}
+
+static int estimate_cmd(UAContext *ua, char *cmd)
+{
+   bsendmsg(ua, "Not yet implemented\n");
+   return 1;
+}
+
 
 /*
  * print time

@@ -34,36 +34,6 @@
 
 /* Forward referenced functions */
 
-/*
- * The pruning code was written to be referenced by the
- *   User Agent (i.e. the console), so to properly access it and
- *   to ensure that the Job gets the proper output, we create
- *   a User Agent context.  This is a sort of mini-kludge.
- */
-void create_ua_context(JCR *jcr, UAContext *ua)
-{
-   memset(ua, 0, sizeof(UAContext));
-   ua->jcr = jcr;
-   ua->db = jcr->db;
-   ua->cmd = get_pool_memory(PM_FNAME);
-   ua->args = get_pool_memory(PM_FNAME);
-   ua->verbose = 1;
-}
-
-void free_ua_context(UAContext *ua)
-{
-   if (ua->cmd) {
-      free_pool_memory(ua->cmd);
-   }
-   if (ua->args) {
-      free_pool_memory(ua->args);
-   }
-   if (ua->prompt) {
-      free(ua->prompt);
-      ua->prompt = NULL;
-      ua->max_prompts = 0;
-   }
-}
 
 /*
  * Auto Prune Jobs and Files. This is called at the end of every
@@ -71,36 +41,36 @@ void free_ua_context(UAContext *ua)
  */
 int do_autoprune(JCR *jcr)
 {
-   UAContext ua;
+   UAContext *ua;
    CLIENT *client;
-   int pruned;
+   bool pruned;
 
    if (!jcr->client) {		      /* temp -- remove me */
       return 1;
    }
 
-   create_ua_context(jcr, &ua);
+   ua = new_ua_context(jcr);
 
    client = jcr->client;
 
    if (jcr->job->PruneJobs || jcr->client->AutoPrune) {
       Jmsg(jcr, M_INFO, 0, _("Begin pruning Jobs.\n"));
-      prune_jobs(&ua, client, jcr->JobType);
-      pruned = TRUE;
+      prune_jobs(ua, client, jcr->JobType);
+      pruned = true;
    } else {
-      pruned = FALSE;
+      pruned = false;
    }
   
    if (jcr->job->PruneFiles || jcr->client->AutoPrune) {
       Jmsg(jcr, M_INFO, 0, _("Begin pruning Files.\n"));
-      prune_files(&ua, client);
-      pruned = TRUE;
+      prune_files(ua, client);
+      pruned = true;
    }
    if (pruned) {
       Jmsg(jcr, M_INFO, 0, _("End auto prune.\n\n"));
    }
 
-   free_ua_context(&ua);
+   free_ua_context(ua);
    return 1;	
 }
 
@@ -120,7 +90,7 @@ int prune_volumes(JCR *jcr)
    int num_ids = 0;
    MEDIA_DBR mr;
    POOL_DBR pr;
-   UAContext ua;
+   UAContext *ua;
 
    if (!jcr->job->PruneVolumes && !jcr->pool->AutoPrune) {
       Dmsg0(100, "AutoPrune not set in Pool.\n");
@@ -128,7 +98,7 @@ int prune_volumes(JCR *jcr)
    }
    memset(&mr, 0, sizeof(mr));
    memset(&pr, 0, sizeof(pr));
-   create_ua_context(jcr, &ua);
+   ua = new_ua_context(jcr);
 
    db_lock(jcr->db);
 
@@ -155,14 +125,14 @@ int prune_volumes(JCR *jcr)
           strcmp(mr.VolStatus, "Append") == 0 ||
           strcmp(mr.VolStatus, "Used")   == 0) {
          Dmsg1(200, "Prune Volume %s\n", mr.VolumeName);
-	 stat += prune_volume(&ua, &pr, &mr); 
+	 stat += prune_volume(ua, &pr, &mr); 
          Dmsg1(200, "Num pruned = %d\n", stat);
       }
    }   
 
 bail_out:
    db_unlock(jcr->db);
-   free_ua_context(&ua);
+   free_ua_context(ua);
    if (ids) {
       free(ids);
    }
