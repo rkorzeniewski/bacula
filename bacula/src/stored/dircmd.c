@@ -19,7 +19,7 @@
  *  
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2001-2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -301,7 +301,7 @@ static bool do_label(JCR *jcr, int relabel)
    poolname = get_memory(dir->msglen+1);
    mtype = get_memory(dir->msglen+1);
    if (relabel) {
-      if (sscanf(dir->msg, "relabel %127s OldName=%127s NewName=%127s PoolName=127%s MediaType=%127s Slot=%d",
+      if (sscanf(dir->msg, "relabel %127s OldName=%127s NewName=%127s PoolName=%127s MediaType=%127s Slot=%d",
 	  dname.c_str(), oldname, newname, poolname, mtype, &slot) == 6) {
 	 ok = true;
       }

@@ -17,7 +17,7 @@ Version 1.35                Kern (see below)
   block numbers in btape "test".  Possibly adjust in Bacula.
 - Fix possible bug in update volumefrompool (email 9/28 from
   jesk@killall.org
-- Look into failing Excludes in Win32
+- Make restore check if the file size restored is correct.
 
 - Document a get out of jail procedure if everything breaks if 
   you lost/broke the Catalog -- do the same for "I know my
@@ -1369,3 +1369,5 @@ Block Position: 0
 - List verify options for DiskToCatalog in doc.
 - Turn on transactions if multiple connections are on in DB.
 - Fix storage overrides in Run directives.
+- Look into failing Excludes in Win32
+
