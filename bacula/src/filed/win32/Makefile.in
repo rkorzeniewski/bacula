@@ -72,9 +72,9 @@ install:
 	@mkdir -p $(sbindir) /tmp $(sbindir)/../working
 	@echo "Installing system binary files ..."
 	@strip ../bacula-fd.exe
-	@strip ../../lib/smtp.exe
+	@strip ../../tools/smtp.exe
 	@cp -f ../bacula-fd.exe bin/
-	@cp -f ../../lib/smtp.exe bin/
+	@cp -f ../../tools/smtp.exe bin/
 	@cp -f bin/* $(sbindir)
 
 # Make a Win32 binary release 
@@ -85,10 +85,10 @@ binary-release:
 	@echo "Copying system binary files ..."
 	@cp bin/* wr/$(sbindir)
 	@strip ../bacula-fd.exe
-	@strip ../../lib/smtp.exe
+	@strip ../../tools/smtp.exe
 	@echo "Copying executables ..."
 	@cp -f ../bacula-fd.exe wr/$(sbindir)/bacula-fd.exe 
-	@cp -f ../../lib/smtp.exe wr/$(sbindir)/smtp.exe 
+	@cp -f ../../tools/smtp.exe wr/$(sbindir)/smtp.exe 
 	@echo "Copying bacula-fd.conf..."
 	@cp -f ../bacula-fd.conf wr/$(sysconfdir)/bacula-fd.conf
 # the two dummy files are necessary to insure that WinZip

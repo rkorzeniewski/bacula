@@ -353,7 +353,7 @@ int db_get_media_record(B_DB *mdb, MEDIA_DBR *mr)
  *		Volumes are concatenated in VolumeNames
  *		separated by a vertical bar (|).
  */
-int db_get_job_volume_names(B_DB *mdb, uint32_t JobId, char *VolumeNames)
+int db_get_job_volume_names(B_DB *mdb, uint32_t JobId, POOLMEM **VolumeNames)
 {
    int found = 0;
    JOBMEDIA_DBR jm;
@@ -380,9 +380,9 @@ int db_get_job_volume_names(B_DB *mdb, uint32_t JobId, char *VolumeNames)
 	 while (fread(&mr, mrlen, 1, mdb->mediafd) > 0) {
 	    if (jm.MediaId == mr.MediaId) {
 	       if (*VolumeNames != 0) { 	/* if not first name, */
-                  strcat(VolumeNames, "|");     /* add separator */
+                  pm_strcat(VolumeNames, "|");  /* add separator */
 	       }
-	       strcat(VolumeNames, mr.VolumeName); /* add Volume Name */
+	       pm_strcat(VolumeNames, mr.VolumeName); /* add Volume Name */
 	       found++;
 	    }
 	 }
