@@ -1,5 +1,15 @@
 
 =============================================================================
+2002-11-29 Version 2.27c
+- Yet another silly error duplicating a column name in the SQLite
+  make tables.  No code change, just a make file.
+
+2002-11-29 Version 1.27b
+- Set DB version to 5 in DB make files.
+
+2002-11-28 Version 1.27a
+- Use g++ instead of gcc for testfind in tools 
+
 2002-11-27 Version 1.27 (26Nov02) released 28 November 2002
 
 General: from kes25Nov02
