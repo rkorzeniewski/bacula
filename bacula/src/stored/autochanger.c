@@ -30,7 +30,7 @@
 #include "stored.h"                   /* pull in Storage Deamon headers */
 
 /* Forward referenced functions */
-static char *edit_device_codes(JCR *jcr, char *omsg, char *imsg, char *cmd);
+char *edit_device_codes(JCR *jcr, char *omsg, char *imsg, char *cmd);
 static int get_autochanger_loaded_slot(JCR *jcr);
 
 
@@ -258,7 +258,7 @@ bail_out:
  *  cmd = command string (load, unload, ...) 
  *
  */
-static char *edit_device_codes(JCR *jcr, char *omsg, char *imsg, char *cmd) 
+char *edit_device_codes(JCR *jcr, char *omsg, char *imsg, char *cmd) 
 {
    char *p;
    const char *str;

@@ -70,7 +70,7 @@ static void signal_handler(int sig)
    if (already_dead) {
       exit(1);
    }
-   Dmsg1(200, "sig=%d\n", sig);
+   Dmsg2(200, "sig=%d %s\n", sig, sig_names[sig]);
    /* Ignore certain signals */
    if (sig == SIGCHLD || sig == SIGUSR2) {
       return;

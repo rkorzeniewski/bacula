@@ -33,11 +33,15 @@ Items to note:  !!!!!
   at the end of the tape. For most tape drives, this is totally            
   transparent and nothing needs to be done. For FreeBSD see below.
 - FreeBSD users NOTE!!!!!
-  You MUST add the following two records to your SD Device resource for
+  You may need the following two records to your SD Device resource for
   tape drives.
 
      TWOEOF = yes
      Fast Forward Space File = no
+
+  The "Fast Forward Space File" is surely needed, and the TWOEOF          
+  is needed on some systems and not others. Running the btape
+  "test" command will tell you.
 
 - The daemon protocol has changed, you must update everything at once.
 - The database level has been updated. You must either re-initialize
@@ -176,4 +180,3 @@ Additional changes:
 - Fixed thread race problem in multiple simultaneous jobs to
   a single Volume where the volume lable is not in the first 
   tape block, so the tape is not recognized.
-

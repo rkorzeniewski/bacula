@@ -83,6 +83,7 @@ From Chris Hull:
 
 
 For version 1.35:
+- Add code to check for tape alerts -- tapeinfo.
 - Make sure list of Volumes needed is in correct order for restore.
   See havana.
 - Remove paths (and files that reference them) that have no trailing slash   
@@ -114,8 +115,9 @@ For version 1.35:
    name last backed up, the completefile is dumped.On Windows systems, with
    creation date of files, we can be evensmarter about this and not count
    entirely upon the length.On a restore, the full and all incrementals
-   since it will beapplied in sequence to restore the file.  - Add a
-   regression test for dbcheck.  - Add disk seeking on restore.  - Allow
+   since it will beapplied in sequence to restore the file.  
+- Add a regression test for dbcheck.  
+- Add disk seeking on restore.  - Allow
    for optional cancelling of SD and FD in case DIR
   gets a fatal error. Requested by Jesse Guardiani <jesse@wingnet.net>
 - Bizarre message: Error: Could not open WriteBootstrap file:
@@ -140,7 +142,6 @@ For version 1.35:
   The dates you will find in your restore log seem to be the original
    creation dates
 - Volume "add"ed to Pool gets recycled in first use. VolBytes=0
-- Get rid of 0 dates in LastWritten, ...
 - If a tape is recycled while it is mounted, Stanislav Tvrudy must do an
   additional mount to deblock the job.
 - From Johan Decock:
