@@ -137,7 +137,7 @@ find_one_file(FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), void *pkt
     * Handle hard linked files
     *
     * Maintain a list of hard linked files already backed up. This
-    *  allows us to ensure that the data ofeach file gets backed 
+    *  allows us to ensure that the data of each file gets backed 
     *  up only once.
     */
    if (ff_pkt->statp.st_nlink > 1

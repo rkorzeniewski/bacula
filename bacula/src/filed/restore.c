@@ -47,7 +47,7 @@ void do_restore(JCR *jcr)
    BSOCK *sd;
    POOLMEM *fname;		      /* original file name */
    POOLMEM *ofile;		      /* output name with possible prefix */
-   POOLMEM *lname;		      /* link name */
+   POOLMEM *lname;		      /* link name with possible prefix */
    int32_t stream;
    uint32_t size;
    uint32_t VolSessionId, VolSessionTime, file_index;
@@ -125,11 +125,11 @@ void do_restore(JCR *jcr)
 	 if ((int)sizeof_pool_memory(fname) <  sd->msglen) {
 	    fname = realloc_pool_memory(fname, sd->msglen + 1);
 	 }
-	 if (sizeof_pool_memory(ofile) < sizeof_pool_memory(fname) + wherelen + 1) {
-	    ofile = realloc_pool_memory(ofile, sizeof_pool_memory(fname) + wherelen + 1);
+	 if ((int)sizeof_pool_memory(ofile) < sd->msglen + wherelen + 1) {
+	    ofile = realloc_pool_memory(ofile, sd->msglen + wherelen + 1);
 	 }
-	 if ((int)sizeof_pool_memory(lname) < sd->msglen) {
-	    lname = realloc_pool_memory(lname, sd->msglen + 1);
+	 if ((int)sizeof_pool_memory(lname) < sd->msglen + wherelen + 1) {
+	    lname = realloc_pool_memory(lname, sd->msglen + wherelen + 1);
 	 }
 	 *fname = 0;
 	 *lname = 0;
@@ -169,14 +169,13 @@ void do_restore(JCR *jcr)
 	 *fp = *ap++;		      /* terminate filename & point to attribs */
 
 	 /* Skip to Link name */
-	 if (type == FT_LNK) {
+	 if (type == FT_LNK || type == FT_LNKSAVED) {
 	    lp = ap;
 	    while (*lp++ != 0) {
 	       ;
 	    }
-            strcat(lname, lp);        /* "save" link name */
 	 } else {
-	    *lname = 0;
+            lp = "";
 	 }
 
 	 decode_stat(ap, &statp);
@@ -194,6 +193,7 @@ void do_restore(JCR *jcr)
 	  */
 	 if (jcr->where[0] == 0 && win32_client) {
 	    strcpy(ofile, fname);
+	    strcpy(lname, lp);
 	 } else {
 	    strcpy(ofile, jcr->where);
             if (fname[1] == ':') {
@@ -202,6 +202,20 @@ void do_restore(JCR *jcr)
                fname[1] = ':';
 	    } else {
 	       strcat(ofile, fname);
+	    }
+	    /* Fixup link name */
+	    if (type == FT_LNK || type == FT_LNKSAVED) {
+               if (lp[0] == '/') {      /* if absolute path */
+		  strcpy(lname, jcr->where);
+	       }       
+               /* ***FIXME**** we shouldn't have links on Windoz */
+               if (lp[1] == ':') {
+                  lp[1] = '/';
+		  strcat(lname, lp);
+                  lp[1] = ':';
+	       } else {
+		  strcat(lname, lp);
+	       }
 	    }
 	 }
 

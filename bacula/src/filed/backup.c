@@ -111,6 +111,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 
    switch (ff_pkt->type) {
    case FT_LNKSAVED:		      /* Hard linked, file already saved */
+      Dmsg2(130, "FT_LNKSAVED hard link: %s => %s\n", ff_pkt->fname, ff_pkt->link);
       break;
    case FT_REGE:
       Dmsg1(130, "FT_REGE saving: %s\n", ff_pkt->fname);
@@ -206,7 +207,8 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
     * For a directory, link is the same as fname, but with trailing
     * slash. For a linked file, link is the link.
     */
-   if (ff_pkt->type == FT_LNK) {
+   if (ff_pkt->type == FT_LNK || ff_pkt->type == FT_LNKSAVED) {
+      Dmsg2(100, "Link %s to %s\n", ff_pkt->fname, ff_pkt->link);
       stat = bnet_fsend(sd, "%ld %d %s%c%s%c%s%c", jcr->JobFiles, 
 	       ff_pkt->type, ff_pkt->fname, 0, attribs, 0, ff_pkt->link, 0);
    } else if (ff_pkt->type == FT_DIR) {
