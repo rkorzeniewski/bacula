@@ -8,7 +8,7 @@
  */
 
 /*
-   Copyright (C) 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -27,24 +27,88 @@
 
  */
 
-
 #include "bacula.h"
 #include "stored.h"
 #include <fnmatch.h>
 
 /* Forward references */
-static int match_volume(BSR *bsr, BSR_VOLUME *volume, VOLUME_LABEL *volrec, int done);
-static int match_sesstime(BSR *bsr, BSR_SESSTIME *sesstime, DEV_RECORD *rec, int done);
-static int match_sessid(BSR *bsr, BSR_SESSID *sessid, DEV_RECORD *rec, int done);
-static int match_client(BSR *bsr, BSR_CLIENT *client, SESSION_LABEL *sessrec, int done);
-static int match_job(BSR *bsr, BSR_JOB *job, SESSION_LABEL *sessrec, int done);
-static int match_job_type(BSR *bsr, BSR_JOBTYPE *job_type, SESSION_LABEL *sessrec, int done);
-static int match_job_level(BSR *bsr, BSR_JOBLEVEL *job_level, SESSION_LABEL *sessrec, int done);
-static int match_jobid(BSR *bsr, BSR_JOBID *jobid, SESSION_LABEL *sessrec, int done);
-static int match_findex(BSR *bsr, BSR_FINDEX *findex, DEV_RECORD *rec, int done);
-static int match_volfile(BSR *bsr, BSR_VOLFILE *volfile, DEV_RECORD *rec, int done);
-static int match_stream(BSR *bsr, BSR_STREAM *stream, DEV_RECORD *rec, int done);
-static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, SESSION_LABEL *sessrec, int done);
+static int match_volume(BSR *bsr, BSR_VOLUME *volume, VOLUME_LABEL *volrec, bool done);
+static int match_sesstime(BSR *bsr, BSR_SESSTIME *sesstime, DEV_RECORD *rec, bool done);
+static int match_sessid(BSR *bsr, BSR_SESSID *sessid, DEV_RECORD *rec);
+static int match_client(BSR *bsr, BSR_CLIENT *client, SESSION_LABEL *sessrec, bool done);
+static int match_job(BSR *bsr, BSR_JOB *job, SESSION_LABEL *sessrec, bool done);
+static int match_job_type(BSR *bsr, BSR_JOBTYPE *job_type, SESSION_LABEL *sessrec, bool done);
+static int match_job_level(BSR *bsr, BSR_JOBLEVEL *job_level, SESSION_LABEL *sessrec, bool done);
+static int match_jobid(BSR *bsr, BSR_JOBID *jobid, SESSION_LABEL *sessrec, bool done);
+static int match_findex(BSR *bsr, BSR_FINDEX *findex, DEV_RECORD *rec, bool done);
+static int match_volfile(BSR *bsr, BSR_VOLFILE *volfile, DEV_RECORD *rec, bool done);
+static int match_stream(BSR *bsr, BSR_STREAM *stream, DEV_RECORD *rec, bool done);
+static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, SESSION_LABEL *sessrec, bool done);
+static int match_block_sesstime(BSR *bsr, BSR_SESSTIME *sesstime, DEV_BLOCK *block);
+static int match_block_sessid(BSR *bsr, BSR_SESSID *sessid, DEV_BLOCK *block);
+
+/*********************************************************************
+ *
+ *  If possible, position the archive device (tape) to read the
+ *  next block.
+ */
+void position_bsr_block(BSR *bsr, DEV_BLOCK *block)
+{
+   /* To be implemented */
+}
+
+/*********************************************************************
+ *
+ *  Do fast block rejection based on bootstrap records. 
+ *    use_fast_rejection will be set if we have VolSessionId and VolSessTime
+ *    in each record. When BlockVer is >= 2, we have those in the block header
+ *    so can do fast rejection.
+ *
+ *   returns:  1 if block may contain valid records
+ *	       0 if block may be skipped (i.e. it contains no records of
+ *		    that can match the bsr).
+ *
+ */
+int match_bsr_block(BSR *bsr, DEV_BLOCK *block)
+{
+   if (!bsr || !bsr->use_fast_rejection || (block->BlockVer < 2)) {
+      return 1; 		      /* cannot fast reject */
+   }
+
+   if (match_block_sesstime(bsr, bsr->sesstime, block)) {
+      return 1;
+   }
+   return match_block_sessid(bsr, bsr->sessid, block);
+}
+
+static int match_block_sesstime(BSR *bsr, BSR_SESSTIME *sesstime, DEV_BLOCK *block)
+{
+   if (!sesstime) {
+      return 1; 		      /* no specification matches all */
+   }
+   if (sesstime->sesstime == block->VolSessionTime) {
+      return 1;
+   }
+   if (sesstime->next) {
+      return match_block_sesstime(bsr, sesstime->next, block);
+   }
+   return 0;
+}
+
+static int match_block_sessid(BSR *bsr, BSR_SESSID *sessid, DEV_BLOCK *block)
+{
+   if (!sessid) {
+      return 1; 		      /* no specification matches all */
+   }
+   if (sessid->sessid <= block->VolSessionId && sessid->sessid2 >= block->VolSessionId) {
+      return 1;
+   }
+   if (sessid->next) {
+      return match_block_sessid(bsr, sessid->next, block);
+   }
+   return 0;
+}
+
 
 /*********************************************************************
  *
@@ -58,7 +122,7 @@ int match_bsr(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, SESSION_LABEL *se
    int stat;
 
    if (bsr) {
-      stat = match_all(bsr, rec, volrec, sessrec, 1);
+      stat = match_all(bsr, rec, volrec, sessrec, true);
    } else {
       stat = 0;
    }
@@ -73,13 +137,13 @@ int match_bsr(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, SESSION_LABEL *se
  *   returns -1 no additional matches possible
  */
 static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, 
-		     SESSION_LABEL *sessrec, int done)
+		     SESSION_LABEL *sessrec, bool done)
 {
    if (bsr->done) {
       goto no_match;
    }
    if (bsr->count && bsr->count <= bsr->found) {
-      bsr->done = 1;
+      bsr->done = true;
       goto no_match;
    }
    if (!match_volume(bsr, bsr->volume, volrec, 1)) {
@@ -93,7 +157,7 @@ static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
    }
 
    /* NOTE!! This test MUST come after the sesstime test */
-   if (!match_sessid(bsr, bsr->sessid, rec, 1)) {
+   if (!match_sessid(bsr, bsr->sessid, rec)) {
       goto no_match;
    }
 
@@ -132,7 +196,7 @@ no_match:
    return 0;
 }
 
-static int match_volume(BSR *bsr, BSR_VOLUME *volume, VOLUME_LABEL *volrec, int done) 
+static int match_volume(BSR *bsr, BSR_VOLUME *volume, VOLUME_LABEL *volrec, bool done) 
 {
    if (!volume) {
       return 0; 		      /* Volume must match */
@@ -146,7 +210,7 @@ static int match_volume(BSR *bsr, BSR_VOLUME *volume, VOLUME_LABEL *volrec, int 
    return 0;
 }
 
-static int match_client(BSR *bsr, BSR_CLIENT *client, SESSION_LABEL *sessrec, int done)
+static int match_client(BSR *bsr, BSR_CLIENT *client, SESSION_LABEL *sessrec, bool done)
 {
    if (!client) {
       return 1; 		      /* no specification matches all */
@@ -160,7 +224,7 @@ static int match_client(BSR *bsr, BSR_CLIENT *client, SESSION_LABEL *sessrec, in
    return 0;
 }
 
-static int match_job(BSR *bsr, BSR_JOB *job, SESSION_LABEL *sessrec, int done)
+static int match_job(BSR *bsr, BSR_JOB *job, SESSION_LABEL *sessrec, bool done)
 {
    if (!job) {
       return 1; 		      /* no specification matches all */
@@ -174,7 +238,7 @@ static int match_job(BSR *bsr, BSR_JOB *job, SESSION_LABEL *sessrec, int done)
    return 0;
 }
 
-static int match_job_type(BSR *bsr, BSR_JOBTYPE *job_type, SESSION_LABEL *sessrec, int done)
+static int match_job_type(BSR *bsr, BSR_JOBTYPE *job_type, SESSION_LABEL *sessrec, bool done)
 {
    if (!job_type) {
       return 1; 		      /* no specification matches all */
@@ -188,7 +252,7 @@ static int match_job_type(BSR *bsr, BSR_JOBTYPE *job_type, SESSION_LABEL *sessre
    return 0;
 }
 
-static int match_job_level(BSR *bsr, BSR_JOBLEVEL *job_level, SESSION_LABEL *sessrec, int done)
+static int match_job_level(BSR *bsr, BSR_JOBLEVEL *job_level, SESSION_LABEL *sessrec, bool done)
 {
    if (!job_level) {
       return 1; 		      /* no specification matches all */
@@ -202,7 +266,7 @@ static int match_job_level(BSR *bsr, BSR_JOBLEVEL *job_level, SESSION_LABEL *ses
    return 0;
 }
 
-static int match_jobid(BSR *bsr, BSR_JOBID *jobid, SESSION_LABEL *sessrec, int done)
+static int match_jobid(BSR *bsr, BSR_JOBID *jobid, SESSION_LABEL *sessrec, bool done)
 {
    if (!jobid) {
       return 1; 		      /* no specification matches all */
@@ -216,7 +280,7 @@ static int match_jobid(BSR *bsr, BSR_JOBID *jobid, SESSION_LABEL *sessrec, int d
    return 0;
 }
 
-static int match_volfile(BSR *bsr, BSR_VOLFILE *volfile, DEV_RECORD *rec, int done)
+static int match_volfile(BSR *bsr, BSR_VOLFILE *volfile, DEV_RECORD *rec, bool done)
 {
    if (!volfile) {
       return 1; 		      /* no specification matches all */
@@ -232,7 +296,7 @@ static int match_volfile(BSR *bsr, BSR_VOLFILE *volfile, DEV_RECORD *rec, int do
    }
    /* Once we get past last efile, we are done */
    if (rec->File > volfile->efile) {
-      volfile->done = 1;	      /* set local done */
+      volfile->done = true;		 /* set local done */
    }
    if (volfile->next) {
       return match_volfile(bsr, volfile->next, rec, volfile->done && done);
@@ -240,12 +304,12 @@ static int match_volfile(BSR *bsr, BSR_VOLFILE *volfile, DEV_RECORD *rec, int do
 
    /* If we are done and all prior matches are done, this bsr is finished */
    if (volfile->done && done) {
-      bsr->done = 1;
+      bsr->done = true;
    }
    return 0;
 }
 
-static int match_stream(BSR *bsr, BSR_STREAM *stream, DEV_RECORD *rec, int done)
+static int match_stream(BSR *bsr, BSR_STREAM *stream, DEV_RECORD *rec, bool done)
 {
    if (!stream) {
       return 1; 		      /* no specification matches all */
@@ -259,7 +323,7 @@ static int match_stream(BSR *bsr, BSR_STREAM *stream, DEV_RECORD *rec, int done)
    return 0;
 }
 
-static int match_sesstime(BSR *bsr, BSR_SESSTIME *sesstime, DEV_RECORD *rec, int done)
+static int match_sesstime(BSR *bsr, BSR_SESSTIME *sesstime, DEV_RECORD *rec, bool done)
 {
    if (!sesstime) {
       return 1; 		      /* no specification matches all */
@@ -268,18 +332,18 @@ static int match_sesstime(BSR *bsr, BSR_SESSTIME *sesstime, DEV_RECORD *rec, int
       return 1;
    }
    if (rec->VolSessionTime > sesstime->sesstime) {
-      sesstime->done = 1;
+      sesstime->done = true;
    }
    if (sesstime->next) {
       return match_sesstime(bsr, sesstime->next, rec, sesstime->done && done);
    }
    if (sesstime->done && done) {
-      bsr->done = 1;
+      bsr->done = true;
    }
    return 0;
 }
 
-static int match_sessid(BSR *bsr, BSR_SESSID *sessid, DEV_RECORD *rec, int done)
+static int match_sessid(BSR *bsr, BSR_SESSID *sessid, DEV_RECORD *rec)
 {
    if (!sessid) {
       return 1; 		      /* no specification matches all */
@@ -288,15 +352,12 @@ static int match_sessid(BSR *bsr, BSR_SESSID *sessid, DEV_RECORD *rec, int done)
       return 1;
    }
    if (sessid->next) {
-      return match_sessid(bsr, sessid->next, rec, sessid->done && done);
-   }
-   if (sessid->done && done) {
-      bsr->done = 1;
+      return match_sessid(bsr, sessid->next, rec);
    }
    return 0;
 }
 
-static int match_findex(BSR *bsr, BSR_FINDEX *findex, DEV_RECORD *rec, int done)
+static int match_findex(BSR *bsr, BSR_FINDEX *findex, DEV_RECORD *rec, bool done)
 {
    if (!findex) {
       return 1; 		      /* no specification matches all */
@@ -305,13 +366,13 @@ static int match_findex(BSR *bsr, BSR_FINDEX *findex, DEV_RECORD *rec, int done)
       return 1;
    }
    if (rec->FileIndex > findex->findex2) {
-      findex->done = 1;
+      findex->done = true;
    }
    if (findex->next) {
       return match_findex(bsr, findex->next, rec, findex->done && done);
    }
    if (findex->done && done) {
-      bsr->done = 1;
+      bsr->done = true;
    }
    return 0;
 }

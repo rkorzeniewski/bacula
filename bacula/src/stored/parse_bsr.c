@@ -47,6 +47,7 @@ static BSR *store_include(LEX *lc, BSR *bsr);
 static BSR *store_exclude(LEX *lc, BSR *bsr);
 static BSR *store_stream(LEX *lc, BSR *bsr);
 static BSR *store_slot(LEX *lc, BSR *bsr);
+static bool is_fast_rejection_ok(BSR *bsr);
 
 struct kw_items {
    char *name;
@@ -164,7 +165,26 @@ BSR *parse_bsr(JCR *jcr, char *cf)
       free_bsr(root_bsr);
       root_bsr = NULL;
    }
+   if (root_bsr) {
+      root_bsr->use_fast_rejection = is_fast_rejection_ok(root_bsr);
+   }
    return root_bsr;
+}
+
+static bool is_fast_rejection_ok(BSR *bsr)
+{
+   /*
+    * Although, this can be optimized, for the moment, require
+    *  all bsrs to have both sesstime and sessid set before
+    *  we do fast rejection.
+    */
+   if (!(bsr->sesstime && bsr->sessid)) {
+      return false;
+   }
+   if (bsr->next) {
+      return is_fast_rejection_ok(bsr->next);
+   }
+   return true;
 }
 
 static BSR *store_vol(LEX *lc, BSR *bsr)

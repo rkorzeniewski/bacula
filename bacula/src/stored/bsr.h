@@ -65,27 +65,26 @@ struct BSR_SESSID {
    BSR_SESSID *next;
    uint32_t sessid;
    uint32_t sessid2;
-   int done;                          /* local done */
 };
 
 struct BSR_SESSTIME {
    BSR_SESSTIME *next;
    uint32_t sesstime;
-   int done;                          /* local done */
+   bool done;                         /* local done */
 };             
 
 struct BSR_VOLFILE {
    BSR_VOLFILE *next;
    uint32_t sfile;                    /* start file */
    uint32_t efile;                    /* end file */
-   int done;                          /* local done */
+   bool done;                         /* local done */
 };
 
 struct BSR_VOLBLOCK {
    BSR_VOLBLOCK *next;
    uint32_t sblock;                   /* start block */
    uint32_t eblock;                   /* end block */
-   int done;                          /* local done */
+   bool done;                         /* local done */
 };             
 
 
@@ -93,7 +92,7 @@ struct BSR_FINDEX {
    BSR_FINDEX *next;
    int32_t findex;                    /* start file index */
    int32_t findex2;                   /* end file index */
-   int done;                          /* local done */
+   bool done;                         /* local done */
 };           
 
 struct BSR_JOBID {
@@ -115,7 +114,7 @@ struct BSR_JOBLEVEL {
 struct BSR_JOB {
    BSR_JOB *next;
    char Job[MAX_NAME_LENGTH];
-   int done;
+   bool done;                         /* local done */
 };
 
 struct BSR_STREAM {
@@ -125,7 +124,9 @@ struct BSR_STREAM {
 
 struct BSR {
    BSR          *next;                /* pointer to next one */
-   int           done;                /* set when everything found */
+   bool          done;                /* set when everything found */
+   bool          use_fast_rejection;  /* set if fast rejection can be used */
+   bool          use_positioning;     /* set if we can position the archive */
    BSR_VOLUME   *volume;
    int32_t       Slot;                /* Slot */
    uint32_t      count;               /* count of files to restore this bsr */

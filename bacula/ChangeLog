@@ -1,3 +1,47 @@
+2003-xx-xx Version 1.31 Beta xxJun03
+- Very preliminary support for Gnome-2.0.  Text does not yet work.
+- Correct buffer corruption in find_one.c with long directory names (Win32).
+- Make setting owner on directories M_ERROR rather than M_WARNING.
+- Fix printing of JobId in run listing for restore job.
+- Reduce heartbeat read check interval to every 10 seconds on Cygwin because
+  there is no working pthread_kill().
+- I finally designed a test for multiple simultaneous jobs,
+  and sure enough it broke when the jobs are split over multiple
+  volumes.  Now fixed and working!
+- Eliminated a few "duplicate" error messages by testing for canceled.
+- Add ASSERT for device use count going negative.
+- Fix BlockNumber checking in stored/read.c (got first one wrong).
+- If socket is timed out, do a shutdown(fd,2) instead of close().
+- Fixed return status from SD to FD by setting JobStatus in append_end() 
+- Add arrays to Environment variables. Elements separated by |.
+- Implement Reschedule On Error, Reschedule Interval, Reschedule Times.
+- Add a new pool PM_NAME -- gets a name length buffer.
+- Implement fast cancel of FD blocked on writing to SD by using
+  pthread_cancel(). Turned off on Cygwin due to bug.
+- Add code to handle EAGAIN in writing (probably not necessary). Use
+  select().
+- Eliminate size_t from pool control buffers.
+- Complete Counter resource.
+- Complete LabelFormat (except for WrapCounter) plus counter
+  inrementation.
+- This needs a database change to eliminate PoolId from counters.
+- Made a more compact format for the document index.
+- Add Phil's checkhost to examples directory (thanks Phil).
+- Implement generalized LabelFormat (documentation to come).
+- Implement Counter resource.
+- Cleanup examples/kernsconfig
+- Implement restore to a specific date.
+- Fixed a but in automatic labeling (and use durations expiring) analysed
+  and reported by Rob Proffitt (thanks!).
+- Cleaned up a few Cygwin compile problems.
+- Made a 10Jun03 release (it is in production here)
+- Finally took the big plunge and fixed restoration of links and other
+  files that have been changed between the backup and restore. Basically
+  if the file exists, it is deleted, then re-created.
+- Purge only Volumes marked Append, Full, Used, or Error.
+- Allow pruning of volumes marked Append, in addition to Full and Used.
+
+
 2003-06-10 Version 1.31 Beta 10Jun03
 - Eliminated all plain email addresses and replaced them with " at " in
   place of @ to reduce havesting by spammers.  Doc + Web Site.

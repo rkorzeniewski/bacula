@@ -111,6 +111,12 @@ int read_records(JCR *jcr,  DEVICE *dev,
 	    break;
 	 }
       }
+      if (!match_bsr_block(jcr->bsr, block)) {
+         Dmsg5(100, "reject Blk=%u blen=%u bVer=%d SessId=%u SessTim=%u\n",
+	    block->BlockNumber, block->block_len, block->BlockVer,
+	    block->VolSessionId, block->VolSessionTime);
+	 continue;
+      }
       if (verbose) {
          Dmsg4(000, "Block: %d VI=%u VT=%u blen=%d\n", block->BlockNumber, 
 	    block->VolSessionId, block->VolSessionTime, block->block_len);
