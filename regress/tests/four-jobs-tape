@@ -93,10 +93,10 @@ echo "Backup 4 done"
 #
 bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
 @output /dev/null
-restore where=${cwd}/tmp/bacula-restores select all
+restore where=${cwd}/tmp/bacula-restores select all done
 yes
 wait
-restore where=${cwd}/tmp/bacula-restores select all
+restore where=${cwd}/tmp/bacula-restores select all done
 yes
 wait
 @output tmp/log2.out
