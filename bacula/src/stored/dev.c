@@ -116,7 +116,7 @@ init_dev(JCR *jcr, DEVICE *dev, DEVRES *device)
       if (dev) {
 	 dev->dev_errno = errno;
       }
-      Jmsg2(jcr, M_FATAL, 0, _("Unable to stat device %s: ERR=%s\n"), 
+      Jmsg2(jcr, M_ERROR, 0, _("Unable to stat device %s: ERR=%s\n"), 
 	 device->device_name, be.strerror());
       return NULL;
    }
@@ -134,7 +134,7 @@ init_dev(JCR *jcr, DEVICE *dev, DEVRES *device)
       if (dev) {
 	 dev->dev_errno = ENODEV;
       }
-      Jmsg2(jcr, M_FATAL, 0, _("%s is an unknown device type. Must be tape or directory. st_mode=%x\n"),
+      Jmsg2(jcr, M_ERROR, 0, _("%s is an unknown device type. Must be tape or directory. st_mode=%x\n"),
 	 device->device_name, statp.st_mode);
       return NULL;
    }
@@ -190,7 +190,7 @@ init_dev(JCR *jcr, DEVICE *dev, DEVRES *device)
       if (stat(device->mount_point, &statp) < 0) {
 	 berrno be;
 	 dev->dev_errno = errno;
-         Jmsg2(jcr, M_FATAL, 0, _("Unable to stat mount point %s: ERR=%s\n"), 
+         Jmsg2(jcr, M_ERROR, 0, _("Unable to stat mount point %s: ERR=%s\n"), 
 	    device->mount_point, be.strerror());
 	 return NULL;
       }

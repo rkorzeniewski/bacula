@@ -194,6 +194,7 @@ public:
    int dev_errno;                     /* Our own errno */
    int mode;                          /* read/write modes */
    int openmode;                      /* parameter passed to open_dev (useful to reopen the device) */
+   bool autoselect;                   /* Autoselect in autochanger */
    int label_type;                    /* Bacula/ANSI/IBM label types */
    uint32_t drive_index;              /* Autochanger drive index */
    POOLMEM *dev_name;                 /* device name */
@@ -243,6 +244,7 @@ public:
    int rem_wait_sec;
    int num_wait;
 
+   /* Methods */
    int is_tape() const;
    int is_file() const;
    int is_fifo() const;

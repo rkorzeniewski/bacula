@@ -133,6 +133,8 @@ public:
    bool labeled;
    bool autochanger;
    bool offline;
+   bool autoselect;
+   char ChangerName[MAX_NAME_LENGTH];
    char VolumeName[MAX_NAME_LENGTH];
    char MediaType[MAX_NAME_LENGTH];
 };
@@ -224,6 +226,7 @@ public:
 
    int64_t StorageId;                 /* Set from Storage DB record */
 
+   /* Methods */
    char *dev_name() const;
    char *name() const;
 };

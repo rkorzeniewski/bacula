@@ -652,27 +652,7 @@ static bool acquire_resources(JCR *jcr)
        /* Simple case, first job */
        jcr->store->NumConcurrentJobs = 1;
    } else if (jcr->store->NumConcurrentJobs < jcr->store->MaxConcurrentJobs) {
-      /*
-       * At this point, we already have at least one Job running
-       *  for this Storage daemon, so we must ensure that there
-       *  is no Volume conflict. In general, it should be OK, if
-       *  all Jobs pull from the same Pool, so we check the Pools.
-       */
-       JCR *njcr;
-       lock_jcr_chain();
-       for (njcr=jobs; njcr; njcr=njcr->next) {
-	  if (njcr->JobId == 0 || njcr == jcr) {
-	     continue;
-	  }
-	  if (njcr->pool != jcr->pool) {
-	     skip_this_jcr = true;
-	     break;
-	  }
-       }
-       unlock_jcr_chain();
-       if (!skip_this_jcr) {
-	  jcr->store->NumConcurrentJobs++;
-       }
+       jcr->store->NumConcurrentJobs++;
    } else {
       skip_this_jcr = true;
    }
@@ -698,5 +678,7 @@ static bool acquire_resources(JCR *jcr)
       set_jcr_job_status(jcr, JS_WaitJobRes);
       return false;
    }
+   /* Check actual device availability */
+   /* ***FIXME****/
    return true;
 }
