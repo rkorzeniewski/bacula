@@ -346,7 +346,7 @@ int cancel_job(UAContext *ua, JCR *jcr)
 	 if (!ua->jcr->storage[0]) {
 	    copy_storage(ua->jcr, jcr);
 	 } else {
-	    ua->jcr->store = jcr->store;
+	    set_storage(ua->jcr, jcr->store);
 	 }
 	 if (!connect_to_storage_daemon(ua->jcr, 10, SDConnectTimeout, 1)) {
             bsendmsg(ua, _("Failed to connect to Storage daemon.\n"));
@@ -726,6 +726,12 @@ void dird_free_jcr(JCR *jcr)
    if (jcr->term_wait_inited) {
       pthread_cond_destroy(&jcr->term_wait);
    }
+   /* Delete lists setup to hold storage pointers */
+   for (int i=0; i<MAX_STORE; i++) {
+      if (jcr->storage[i]) {
+	 delete jcr->storage[i];
+      }
+   }
    jcr->job_end_push.destroy();
    Dmsg0(200, "End dird free_jcr\n");
 }
@@ -751,10 +757,17 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
       break;
    }
    jcr->JobPriority = job->Priority;
+   /* Copy storage definitions -- deleted in dir_free_jcr above */
    for (int i=0; i<MAX_STORE; i++) {
-      jcr->storage[i] = job->storage[i];
+      STORE *st;
+      if (job->storage[i]) {
+	 jcr->storage[i] = New(alist(10, not_owned_by_alist));
+	 foreach_alist(st, job->storage[i]) {
+	    jcr->storage[i]->append(st);
+	 }
+      }
    }
-   if (!jcr->store && jcr->storage[0]) {
+   if (jcr->storage[0]) {
       jcr->store = (STORE *)jcr->storage[0]->first();
    }
    jcr->client = job->client;
@@ -807,6 +820,9 @@ void copy_storage(JCR *new_jcr, JCR *old_jcr)
    for (int i=0; i < MAX_STORE; i++) {
       if (old_jcr->storage[i]) {
 	 STORE *st;
+	 if (old_jcr->storage[i]) {
+	    delete old_jcr->storage[i];
+	 }
 	 new_jcr->storage[i] = New(alist(10, not_owned_by_alist));
 	 foreach_alist(st, old_jcr->storage[i]) {
 	    new_jcr->storage[i]->append(st);
@@ -818,4 +834,11 @@ void copy_storage(JCR *new_jcr, JCR *old_jcr)
 	 new_jcr->store = (STORE *)new_jcr->storage[0]->first();
       }
    }
+}
+
+/* Set storage override */
+void set_storage(JCR *jcr, STORE *store)
+{
+   jcr->store = store;
+   jcr->storage[0]->prepend(store);
 }

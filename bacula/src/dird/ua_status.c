@@ -282,7 +282,7 @@ static void do_storage_status(UAContext *ua, STORE *store)
 {
    BSOCK *sd;
 
-   ua->jcr->store = store;
+   set_storage(ua->jcr, store);
    /* Try connecting for up to 15 seconds */
    bsendmsg(ua, _("Connecting to Storage daemon %s at %s:%d\n"), 
       store->hdr.name, store->address, store->SDport);

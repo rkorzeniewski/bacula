@@ -149,7 +149,11 @@ PyObject *bacula_set(PyObject *self, PyObject *args, PyObject *keyw)
       Jmsg(jcr, M_INFO, 0, "%s", msg);
    }
    if (VolumeName) {
-      pm_strcpy(jcr->VolumeName, VolumeName);
+      if (is_volume_name_legal(NULL, VolumeName)) {
+	 pm_strcpy(jcr->VolumeName, VolumeName);
+      } else {
+         return Py_BuildValue("i", 0);  /* invalid volume name */
+      }
    }
    return Py_BuildValue("i", 1);
 }

@@ -45,7 +45,22 @@ For 1.37:
    Orphaned buffer:      40 bytes allocated at line 45 of rufus-dir alist.c
 - Upgrade to MySQL 4.1.1 See:  
   http://dev.mysql.com/doc/mysql/en/Server_SQL_mode.html
+- Bug: 
+  Enter MediaId or Volume name: 32
+  Enter new Volume name: DLT-20Dec04
+  Automatically selected Pool: Default
+  Connecting to Storage daemon DLTDrive at 192.168.68.104:9103 ...
+  Sending relabel command from "DLT-28Jun03" to "DLT-20Dec04" ...
+  block.c:552 Write error at 0:0 on device /dev/nst0. ERR=Bad file descriptor.
+  Error writing final EOF to tape. This tape may not be readable.
+  dev.c:1207 ioctl MTWEOF error on /dev/nst0. ERR=Permission denied.
+  askdir.c:219 NULL Volume name. This shouldn't happen!!!
+  3912 Failed to label Volume: ERR=dev.c:1207 ioctl MTWEOF error on /dev/nst0. ERR=Permission denied.
 
+  Label command failed for Volume DLT-20Dec04.
+  Do not forget to mount the drive!!!
+- Bug: if a job is manually scheduled to run later, it does not appear
+  in any status report and cannot be cancelled.
 
 Regression tests (Jo):
 - Add Pool/Storage override regression test.

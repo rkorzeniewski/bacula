@@ -10,7 +10,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2004 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -157,7 +157,7 @@ JCR *wait_for_next_job(char *one_shot_job_to_run)
       jcr->dif_pool = run->dif_pool;  /* override dif pool */
    }
    if (run->storage) {
-      jcr->store = run->storage;      /* override storage */
+      set_storage(jcr, run->storage); /* override storage */
    }
    if (run->msgs) {
       jcr->messages = run->msgs;      /* override messages */

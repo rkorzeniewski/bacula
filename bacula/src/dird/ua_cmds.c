@@ -1216,7 +1216,7 @@ static void do_storage_setdebug(UAContext *ua, STORE *store, int level, int trac
    BSOCK *sd;
    JCR *jcr = ua->jcr;
 
-   jcr->store = store;
+   set_storage(jcr, store);
    /* Try connecting for up to 15 seconds */
    bsendmsg(ua, _("Connecting to Storage daemon %s at %s:%d\n"), 
       store->hdr.name, store->address, store->SDport);
@@ -1275,8 +1275,10 @@ static void do_all_setdebug(UAContext *ua, int level, int trace_flag)
    /* Count Storage items */
    LockRes();
    store = NULL;
-   for (i=0; (store = (STORE *)GetNextRes(R_STORAGE, (RES *)store)); i++)
-      { }
+   i = 0;
+   foreach_res(store, R_STORAGE) {
+      i++;
+   }
    unique_store = (STORE **) malloc(i * sizeof(STORE));
    /* Find Unique Storage address/port */	  
    store = (STORE *)GetNextRes(R_STORAGE, NULL);
@@ -1307,8 +1309,10 @@ static void do_all_setdebug(UAContext *ua, int level, int trace_flag)
    /* Count Client items */
    LockRes();
    client = NULL;
-   for (i=0; (client = (CLIENT *)GetNextRes(R_CLIENT, (RES *)client)); i++)
-      { }
+   i = 0;
+   foreach_res(client, R_CLIENT) {
+      i++;
+   }
    unique_client = (CLIENT **) malloc(i * sizeof(CLIENT));
    /* Find Unique Client address/port */	 
    client = (CLIENT *)GetNextRes(R_CLIENT, NULL);
@@ -1862,7 +1866,7 @@ static void do_mount_cmd(UAContext *ua, const char *command)
    Dmsg2(120, "Found storage, MediaType=%s DevName=%s\n",
       store->media_type, store->dev_name);
 
-   jcr->store = store;
+   set_storage(jcr, store);
    if (!connect_to_storage_daemon(jcr, 10, SDConnectTimeout, 1)) {
       bsendmsg(ua, _("Failed to connect to Storage daemon.\n"));
       return;

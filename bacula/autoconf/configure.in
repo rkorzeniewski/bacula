@@ -527,6 +527,9 @@ AC_ARG_WITH(python,
 	elif test -f /usr/include/python2.3/Python.h; then
 	   PYTHON_INCDIR=-I/usr/include/python2.3
 	   PYTHON_LIBS="-L/usr/lib/python2.3/config -lpython2.3 -lutil -ldl"
+	elif test -f /usr/include/python2.4/Python.h; then
+	   PYTHON_INCDIR=-I/usr/include/python2.4
+	   PYTHON_LIBS="-L/usr/lib/python2.4/config -lpython2.4 -lutil -ldl"
 	elif test -f $prefix/include/Python.h; then
 	   PYTHON_INCDIR=-I$prefix/include
 	   PYTHON_LIBS="-L$prefix/lib/config -lpython -lutil -ldl"

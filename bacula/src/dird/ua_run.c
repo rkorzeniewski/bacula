@@ -393,13 +393,7 @@ int run_cmd(UAContext *ua, const char *cmd)
    set_jcr_defaults(jcr, job);
 
    jcr->verify_job = verify_job;
-   jcr->store = store;
-   /* If specific name given, zap all other stores */
-   if (store_name) {
-      for (i=0; i < MAX_STORE; i++) {
-	 jcr->storage[i] = NULL;
-      }
-   }
+   set_storage(jcr, store);
    jcr->client = client;
    jcr->fileset = fileset;
    jcr->pool = pool;
@@ -714,7 +708,7 @@ Priority:    %d\n"),
 	 /* Storage */
 	 store = select_storage_resource(ua);
 	 if (store) {
-	    jcr->store = store;
+	    set_storage(jcr, store);
 	    goto try_again;
 	 }
 	 break;

@@ -89,7 +89,7 @@ void *alist::prev()
 }
 
 /*
- * prepend an item to the list
+ * prepend an item to the list -- i.e. add to beginning
  */
 void alist::prepend(void *item) {
    grow_list();
