@@ -11,11 +11,11 @@ CFLAGS="-g -O2 -Wall" \
     --with-subsys-dir=$1/working \
     --enable-smartalloc \
     --disable-readline \
-    $4 \
     --with-working-dir=$1/working \
-    --with-dump-email=$3 \
-    --with-job-email=$3 \
+    --with-dump-email=$2 \
+    --with-job-email=$2 \
+    $3 \
     --with-baseport=8101 \
-	--with-tcp-wrappers
+    --with-tcp-wrappers
 
 exit 0
