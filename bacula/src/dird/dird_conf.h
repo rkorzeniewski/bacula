@@ -30,44 +30,44 @@
 /*
  * Resource codes -- they must be sequential for indexing   
  */
-#define R_FIRST 		      1001
+#define R_FIRST                       1001
 
-#define R_DIRECTOR		      1001
-#define R_CLIENT		      1002
-#define R_JOB			      1003
-#define R_STORAGE		      1004
-#define R_CATALOG		      1005
-#define R_SCHEDULE		      1006
-#define R_FILESET		      1007
-#define R_GROUP 		      1008
-#define R_POOL			      1009
-#define R_MSGS			      1010
-#define R_COUNTER		      1011
-#define R_FILEOPTIONS		      1012
+#define R_DIRECTOR                    1001
+#define R_CLIENT                      1002
+#define R_JOB                         1003
+#define R_STORAGE                     1004
+#define R_CATALOG                     1005
+#define R_SCHEDULE                    1006
+#define R_FILESET                     1007
+#define R_GROUP                       1008
+#define R_POOL                        1009
+#define R_MSGS                        1010
+#define R_COUNTER                     1011
+#define R_FILEOPTIONS                 1012
 
-#define R_LAST			      R_FILEOPTIONS
+#define R_LAST                        R_FILEOPTIONS
 
 /*
  * Some resource attributes
  */
-#define R_NAME			      1020
-#define R_ADDRESS		      1021
-#define R_PASSWORD		      1022
-#define R_TYPE			      1023
-#define R_BACKUP		      1024
+#define R_NAME                        1020
+#define R_ADDRESS                     1021
+#define R_PASSWORD                    1022
+#define R_TYPE                        1023
+#define R_BACKUP                      1024
 
 
 /* Used for certain KeyWord tables */
-struct s_kw {	    
+struct s_kw {       
    char *name;
-   int token;	
+   int token;   
 };
 
 /* Job Level keyword structure */
 struct s_jl {
-   char *level_name;		      /* level keyword */
-   int	level;			      /* level */
-   int	job_type;		      /* JobType permitting this level */
+   char *level_name;                  /* level keyword */
+   int  level;                        /* level */
+   int  job_type;                     /* JobType permitting this level */
 };
 
 /* Job Type keyword structure */
@@ -79,22 +79,22 @@ struct s_jt {
 /* Definition of the contents of each Resource */
 
 /* 
- *   Director Resource	
+ *   Director Resource  
  *
  */
 struct s_res_dir {
-   RES	 hdr;
-   int	 DIRport;		      /* where we listen -- UA port server port */
-   char *DIRaddr;		      /* bind address */
-   char *password;		      /* Password for UA access */
-   char *query_file;		      /* SQL query file */
-   char *working_directory;	      /* WorkingDirectory */
-   char *pid_directory; 	      /* PidDirectory */
-   char *subsys_directory;	      /* SubsysDirectory */
+   RES   hdr;
+   int   DIRport;                     /* where we listen -- UA port server port */
+   char *DIRaddr;                     /* bind address */
+   char *password;                    /* Password for UA access */
+   char *query_file;                  /* SQL query file */
+   char *working_directory;           /* WorkingDirectory */
+   char *pid_directory;               /* PidDirectory */
+   char *subsys_directory;            /* SubsysDirectory */
    struct s_res_msgs *messages;       /* Daemon message handler */
-   int	 MaxConcurrentJobs;
-   utime_t FDConnectTimeout;	      /* timeout for connect in seconds */
-   utime_t SDConnectTimeout;	      /* timeout in seconds */
+   int   MaxConcurrentJobs;
+   utime_t FDConnectTimeout;          /* timeout for connect in seconds */
+   utime_t SDConnectTimeout;          /* timeout in seconds */
 };
 typedef struct s_res_dir DIRRES;
 
@@ -103,12 +103,12 @@ typedef struct s_res_dir DIRRES;
  *
  */
 struct s_res_client {
-   RES	 hdr;
+   RES   hdr;
 
-   int	 FDport;		      /* Where File daemon listens */
-   int	 AutoPrune;		      /* Do automatic pruning? */
-   utime_t FileRetention;	      /* file retention period in seconds */
-   utime_t JobRetention;	      /* job retention period in seconds */
+   int   FDport;                      /* Where File daemon listens */
+   int   AutoPrune;                   /* Do automatic pruning? */
+   utime_t FileRetention;             /* file retention period in seconds */
+   utime_t JobRetention;              /* job retention period in seconds */
    char *address;
    char *password;
    struct s_res_cat    *catalog;       /* Catalog resource */
@@ -120,15 +120,15 @@ typedef struct s_res_client CLIENT;
  * 
  */
 struct s_res_store {
-   RES	 hdr;
+   RES   hdr;
 
-   int	 SDport;		      /* port where Directors connect */
-   int	 SDDport;		      /* data port for File daemon */
+   int   SDport;                      /* port where Directors connect */
+   int   SDDport;                     /* data port for File daemon */
    char *address;
    char *password;
    char *media_type;
    char *dev_name;   
-   int	autochanger;		      /* set if autochanger */
+   int  autochanger;                  /* set if autochanger */
 };
 typedef struct s_res_store STORE;
 
@@ -137,11 +137,11 @@ typedef struct s_res_store STORE;
  *
  */
 struct s_res_cat {
-   RES	 hdr;
+   RES   hdr;
 
-   int	 db_port;		      /* Port -- not yet implemented */
-   char *db_address;		      /* host name for remote access */
-   char *db_socket;		      /* Socket for local access */
+   int   db_port;                     /* Port -- not yet implemented */
+   char *db_address;                  /* host name for remote access */
+   char *db_socket;                   /* Socket for local access */
    char *db_password;
    char *db_user;
    char *db_name;
@@ -153,52 +153,53 @@ typedef struct s_res_cat CAT;
  *
  */
 struct s_res_job {
-   RES	 hdr;
+   RES   hdr;
 
-   int	 JobType;		      /* job type (backup, verify, restore */
-   int	 level; 		      /* default backup/verify level */
-   int	 RestoreJobId;		      /* What -- JobId to restore */
-   char *RestoreWhere;		      /* Where on disk to restore -- directory */
-   char *RestoreBootstrap;	      /* Bootstrap file */
-   char *RunBeforeJob;		      /* Run program before Job */
-   char *RunAfterJob;		      /* Run program after Job */
-   char *WriteBootstrap;	      /* Where to write bootstrap Job updates */
-   int	 replace;		      /* How (overwrite, ..) */
-   utime_t MaxRunTime;		      /* max run time in seconds */
-   utime_t MaxStartDelay;	      /* max start delay in seconds */
-   int PrefixLinks;		      /* prefix soft links with Where path */
-   int PruneJobs;		      /* Force pruning of Jobs */
-   int PruneFiles;		      /* Force pruning of Files */
-   int PruneVolumes;		      /* Force pruning of Volumes */
-   int SpoolAttributes; 	      /* Set to spool attributes in SD */
+   int   JobType;                     /* job type (backup, verify, restore */
+   int   level;                       /* default backup/verify level */
+   int   RestoreJobId;                /* What -- JobId to restore */
+   char *RestoreWhere;                /* Where on disk to restore -- directory */
+   char *RestoreBootstrap;            /* Bootstrap file */
+   char *RunBeforeJob;                /* Run program before Job */
+   char *RunAfterJob;                 /* Run program after Job */
+   char *WriteBootstrap;              /* Where to write bootstrap Job updates */
+   int   replace;                     /* How (overwrite, ..) */
+   utime_t MaxRunTime;                /* max run time in seconds */
+   utime_t MaxStartDelay;             /* max start delay in seconds */
+   int PrefixLinks;                   /* prefix soft links with Where path */
+   int PruneJobs;                     /* Force pruning of Jobs */
+   int PruneFiles;                    /* Force pruning of Files */
+   int PruneVolumes;                  /* Force pruning of Volumes */
+   int SpoolAttributes;               /* Set to spool attributes in SD */
 
    struct s_res_msgs   *messages;     /* How and where to send messages */
    struct s_res_sch    *schedule;     /* When -- Automatic schedule */
    struct s_res_client *client;       /* Who to backup */
    struct s_res_fs     *fileset;      /* What to backup -- Fileset */
    struct s_res_store  *storage;      /* Where is device -- Storage daemon */
-   struct s_res_pool   *pool;	      /* Where is media -- Media Pool */
+   struct s_res_pool   *pool;         /* Where is media -- Media Pool */
 };
 typedef struct s_res_job JOB;
 
 /*
  * File Options Resource (options for Includes)
  */
+#define MAX_FO_OPTS 30
 struct s_res_fo {
-   RES	hdr;
+   RES  hdr;
 
-   char opts[20];		      /* Options string */
-   int	replace;		      /* How (overwrite, ...) */
-   char **applyto;		      /* applyto strings */
-   int num_applyto;		      /* number of appyto strings */
+   char opts[MAX_FO_OPTS];            /* Options string */
+   int  replace;                      /* How (overwrite, ...) */
+   char **applyto;                    /* applyto strings */
+   int num_applyto;                   /* number of appyto strings */
 }; 
 typedef struct s_res_fo FILEOPTIONS;
 
 struct s_incexc_item {
-   char opts[20];		      /* options string */
-   FILEOPTIONS **fileopts;	      /* file options array */
-   int num_fileopts;		      /* number of above */
-   char name[1];		      /* include/exclude name */
+   char opts[20];                     /* options string */
+   FILEOPTIONS **fileopts;            /* file options array */
+   int num_fileopts;                  /* number of above */
+   char name[1];                      /* include/exclude name */
 };
 typedef struct s_incexc_item INCEXE;
 
@@ -207,17 +208,17 @@ typedef struct s_incexc_item INCEXE;
  *
  */
 struct s_res_fs {
-   RES	 hdr;
+   RES   hdr;
 
-   INCEXE **include_array;	      /* array of incexe structures */
-   int num_includes;		      /* number in array */
-   int include_size;		      /* array size */
+   INCEXE **include_array;            /* array of incexe structures */
+   int num_includes;                  /* number in array */
+   int include_size;                  /* array size */
    INCEXE **exclude_array;
    int num_excludes;
    int exclude_size;
-   int have_MD5;		      /* set if MD5 initialized */
-   struct MD5Context md5c;	      /* MD5 of include/exclude */
-   char MD5[30];		      /* base 64 representation of MD5 */
+   int have_MD5;                      /* set if MD5 initialized */
+   struct MD5Context md5c;            /* MD5 of include/exclude */
+   char MD5[30];                      /* base 64 representation of MD5 */
 };
 typedef struct s_res_fs FILESET;
 
@@ -227,7 +228,7 @@ typedef struct s_res_fs FILESET;
  *
  */
 struct s_res_sch {
-   RES	 hdr;
+   RES   hdr;
 
    struct s_run *run;
 };
@@ -238,7 +239,7 @@ typedef struct s_res_sch SCHED;
  *
  */
 struct s_res_group {
-   RES	 hdr;
+   RES   hdr;
 };
 typedef struct s_res_group GROUP;
 
@@ -246,12 +247,12 @@ typedef struct s_res_group GROUP;
  *   Counter Resource
  */
 struct s_res_counter {
-   RES	 hdr;
+   RES   hdr;
 
-   int32_t MinValue;		      /* Minimum value */
-   int32_t MaxValue;		      /* Maximum value */
-   int	   Global;		      /* global/local */
-   char  *WrapCounter;		      /* Wrap counter name */
+   int32_t MinValue;                  /* Minimum value */
+   int32_t MaxValue;                  /* Maximum value */
+   int     Global;                    /* global/local */
+   char  *WrapCounter;                /* Wrap counter name */
 };
 typedef struct s_res_counter COUNTER;
 
@@ -260,23 +261,23 @@ typedef struct s_res_counter COUNTER;
  *
  */
 struct s_res_pool {
-   RES	 hdr;
+   RES   hdr;
 
    struct s_res_counter counter;      /* Counter resources */
-   char *pool_type;		      /* Pool type */
-   char *label_format;		      /* Label format string */
-   int	 use_catalog;		      /* maintain catalog for media */
-   int	 catalog_files; 	      /* maintain file entries in catalog */
-   int	 use_volume_once;	      /* write on volume only once */
-   int	 accept_any_volume;	      /* accept any volume */
-   uint32_t max_volumes;	      /* max number of volumes */
-   utime_t VolRetention;	      /* volume retention period in seconds */
-   utime_t VolUseDuration;	      /* duration volume can be used */
-   uint32_t MaxVolJobs; 	      /* Maximum jobs on the Volume */
-   uint32_t MaxVolFiles;	      /* Maximum files on the Volume */
-   uint64_t MaxVolBytes;	      /* Maximum bytes on the Volume */
-   int	 AutoPrune;		      /* default for pool auto prune */
-   int	 Recycle;		      /* default for media recycle yes/no */
+   char *pool_type;                   /* Pool type */
+   char *label_format;                /* Label format string */
+   int   use_catalog;                 /* maintain catalog for media */
+   int   catalog_files;               /* maintain file entries in catalog */
+   int   use_volume_once;             /* write on volume only once */
+   int   accept_any_volume;           /* accept any volume */
+   uint32_t max_volumes;              /* max number of volumes */
+   utime_t VolRetention;              /* volume retention period in seconds */
+   utime_t VolUseDuration;            /* duration volume can be used */
+   uint32_t MaxVolJobs;               /* Maximum jobs on the Volume */
+   uint32_t MaxVolFiles;              /* Maximum files on the Volume */
+   uint64_t MaxVolBytes;              /* Maximum bytes on the Volume */
+   int   AutoPrune;                   /* default for pool auto prune */
+   int   Recycle;                     /* default for media recycle yes/no */
 };
 typedef struct s_res_pool POOL;
 
@@ -285,18 +286,18 @@ typedef struct s_res_pool POOL;
  * resource structure definitions.
  */
 union u_res {
-   struct s_res_dir	res_dir;
-   struct s_res_client	res_client;
-   struct s_res_store	res_store;
-   struct s_res_cat	res_cat;
-   struct s_res_job	res_job;
-   struct s_res_fs	res_fs;
-   struct s_res_sch	res_sch;
-   struct s_res_group	res_group;
-   struct s_res_pool	res_pool;
-   struct s_res_msgs	res_msgs;
+   struct s_res_dir     res_dir;
+   struct s_res_client  res_client;
+   struct s_res_store   res_store;
+   struct s_res_cat     res_cat;
+   struct s_res_job     res_job;
+   struct s_res_fs      res_fs;
+   struct s_res_sch     res_sch;
+   struct s_res_group   res_group;
+   struct s_res_pool    res_pool;
+   struct s_res_msgs    res_msgs;
    struct s_res_counter res_counter;
-   struct s_res_fo	res_fo;
+   struct s_res_fo      res_fo;
    RES hdr;
 };
 
@@ -305,17 +306,17 @@ typedef union u_res URES;
 
 /* Run structure contained in Schedule Resource */
 struct s_run {
-   struct s_run *next;		      /* points to next run record */
-   int level;			      /* level override */
+   struct s_run *next;                /* points to next run record */
+   int level;                         /* level override */
    int job_type;  
-   POOL *pool;			      /* Pool override */
-   STORE *storage;		      /* Storage override */
-   MSGS *msgs;			      /* Messages override */
+   POOL *pool;                        /* Pool override */
+   STORE *storage;                    /* Storage override */
+   MSGS *msgs;                        /* Messages override */
    char *since;
    int level_no;
-   int minute;			      /* minute to run job */
-   time_t last_run;		      /* last time run */
-   time_t next_run;		      /* next time to run */
+   int minute;                        /* minute to run job */
+   time_t last_run;                   /* last time run */
+   time_t next_run;                   /* next time to run */
    char hour[nbytes_for_bits(24)];    /* bit set for each hour */
    char mday[nbytes_for_bits(31)];    /* bit set for each day of month */
    char month[nbytes_for_bits(12)];   /* bit set for each month */

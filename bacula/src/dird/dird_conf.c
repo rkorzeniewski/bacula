@@ -8,14 +8,14 @@
  *   1. The generic lexical scanner in lib/lex.c and lib/lex.h
  *
  *   2. The generic config  scanner in lib/parse_config.c and 
- *	lib/parse_config.h.
- *	These files contain the parser code, some utility
- *	routines, and the common store routines (name, int,
- *	string).
+ *      lib/parse_config.h.
+ *      These files contain the parser code, some utility
+ *      routines, and the common store routines (name, int,
+ *      string).
  *
  *   3. The daemon specific file, which contains the Resource
- *	definitions as well as any specific store routines
- *	for the resource records.
+ *      definitions as well as any specific store routines
+ *      for the resource records.
  *
  *     Kern Sibbald, January MM
  *
@@ -65,6 +65,7 @@ static void store_restore(LEX *lc, struct res_items *item, int index, int pass);
 static void store_jobtype(LEX *lc, struct res_items *item, int index, int pass);
 static void store_level(LEX *lc, struct res_items *item, int index, int pass);
 static void store_replace(LEX *lc, struct res_items *item, int index, int pass);
+static void store_opts(LEX *lc, struct res_items *item, int index, int pass);
 
 
 /* We build the current resource here as we are
@@ -83,7 +84,7 @@ int  res_all_size = sizeof(res_all);
 /* 
  *    Director Resource
  *
- *   name	   handler     value		     code flags    default_value
+ *   name          handler     value                 code flags    default_value
  */
 static struct res_items dir_items[] = {
    {"name",        store_name,     ITEM(res_dir.hdr.name), 0, ITEM_REQUIRED, 0},
@@ -105,7 +106,7 @@ static struct res_items dir_items[] = {
 /* 
  *    Client or File daemon resource
  *
- *   name	   handler     value		     code flags    default_value
+ *   name          handler     value                 code flags    default_value
  */
 
 static struct res_items cli_items[] = {
@@ -123,7 +124,7 @@ static struct res_items cli_items[] = {
 
 /* Storage daemon resource
  *
- *   name	   handler     value		     code flags    default_value
+ *   name          handler     value                 code flags    default_value
  */
 static struct res_items store_items[] = {
    {"name",      store_name,     ITEM(res_store.hdr.name),   0, ITEM_REQUIRED, 0},
@@ -141,7 +142,7 @@ static struct res_items store_items[] = {
 /* 
  *    Catalog Resource Directives
  *
- *   name	   handler     value		     code flags    default_value
+ *   name          handler     value                 code flags    default_value
  */
 static struct res_items cat_items[] = {
    {"name",     store_name,     ITEM(res_cat.hdr.name),    0, ITEM_REQUIRED, 0},
@@ -160,7 +161,7 @@ static struct res_items cat_items[] = {
 /* 
  *    Job Resource Directives
  *
- *   name	   handler     value		     code flags    default_value
+ *   name          handler     value                 code flags    default_value
  */
 static struct res_items job_items[] = {
    {"name",     store_name,    ITEM(res_job.hdr.name), 0, ITEM_REQUIRED, 0},
@@ -192,35 +193,22 @@ static struct res_items job_items[] = {
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 
-/* FileOptions resource
- *
- *   name	   handler     value		     code flags    default_value
- */
-static struct res_items fo_items[] = {
-   {"name",        store_name, ITEM(res_fo.hdr.name), 0, ITEM_REQUIRED, 0},
-   {"description", store_str,  ITEM(res_fo.hdr.desc), 0, 0, 0},
-   {"replace",     store_replace, ITEM(res_fo.replace), REPLACE_ALWAYS, ITEM_DEFAULT, 0},
-   {"applyto",     store_applyto, NULL,               0, 0, 0},
-   {NULL,	   NULL,       NULL,		      0, 0, 0} 
-};
-
-
 /* FileSet resource
  *
- *   name	   handler     value		     code flags    default_value
+ *   name          handler     value                 code flags    default_value
  */
 static struct res_items fs_items[] = {
    {"name",        store_name, ITEM(res_fs.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,  ITEM(res_fs.hdr.desc), 0, 0, 0},
    {"include",     store_inc,  NULL,                  0, 0, 0},
    {"exclude",     store_inc,  NULL,                  1, 0, 0},
-   {NULL,	   NULL,       NULL,		      0, 0, 0} 
+   {NULL,          NULL,       NULL,                  0, 0, 0} 
 };
 
 /* Schedule -- see run_conf.c */
 /* Schedule
  *
- *   name	   handler     value		     code flags    default_value
+ *   name          handler     value                 code flags    default_value
  */
 static struct res_items sch_items[] = {
    {"name",     store_name,  ITEM(res_sch.hdr.name), 0, ITEM_REQUIRED, 0},
@@ -231,7 +219,7 @@ static struct res_items sch_items[] = {
 
 /* Group resource -- not implemented
  *
- *   name	   handler     value		     code flags    default_value
+ *   name          handler     value                 code flags    default_value
  */
 static struct res_items group_items[] = {
    {"name",        store_name, ITEM(res_group.hdr.name), 0, ITEM_REQUIRED, 0},
@@ -241,7 +229,7 @@ static struct res_items group_items[] = {
 
 /* Pool resource
  *
- *   name	      handler	  value 		       code flags default_value
+ *   name             handler     value                        code flags default_value
  */
 static struct res_items pool_items[] = {
    {"name",            store_name,    ITEM(res_pool.hdr.name),      0, ITEM_REQUIRED, 0},
@@ -265,7 +253,7 @@ static struct res_items pool_items[] = {
 
 /* 
  * Counter Resource
- *   name	      handler	  value 		       code flags default_value
+ *   name             handler     value                        code flags default_value
  */
 static struct res_items counter_items[] = {
    {"name",            store_name,    ITEM(res_counter.hdr.name),        0, ITEM_REQUIRED, 0},
@@ -278,6 +266,23 @@ static struct res_items counter_items[] = {
 };
 
 
+/* 
+ * FileOptions Resource
+ *   name             handler     value                        code flags default_value
+ */
+static struct res_items fo_items[] = {
+   {"name",            store_name,    ITEM(res_fo.hdr.name),    0, ITEM_REQUIRED, 0},
+   {"description",     store_str,     ITEM(res_fo.hdr.desc),    0, 0, 0},
+   {"compression",     store_opts,    ITEM(res_fo.opts),        0, 0, 0},
+   {"signature",       store_opts,    ITEM(res_fo.opts),        0, 0, 0},
+   {"verify",          store_opts,    ITEM(res_fo.opts),        0, 0, 0},
+   {"replace",         store_replace, ITEM(res_fo.replace),     0, 0, 0},
+   {"applyto",         store_applyto, ITEM(res_fo.applyto),     0, 0, 0},
+   {NULL, NULL, NULL, 0, 0, 0} 
+};
+
+
+
 /* Message resource */
 extern struct res_items msgs_items[];
 
@@ -285,7 +290,7 @@ extern struct res_items msgs_items[];
  * This is the master resource definition.  
  * It must have one item for each of the resources.
  *
- *  name	     items	  rcode        res_head
+ *  name             items        rcode        res_head
  */
 struct s_res resources[] = {
    {"director",      dir_items,   R_DIRECTOR,  NULL},
@@ -300,13 +305,14 @@ struct s_res resources[] = {
    {"pool",          pool_items,  R_POOL,      NULL},
    {"messages",      msgs_items,  R_MSGS,      NULL},
    {"counter",       counter_items, R_COUNTER, NULL},
-   {NULL,	     NULL,	  0,	       NULL}
+   {"fileoptions",   fo_items,    R_FILEOPTIONS, NULL},
+   {NULL,            NULL,        0,           NULL}
 };
 
 
 /* Keywords (RHS) permitted in Job Level records   
  *
- *   level_name      level		job_type
+ *   level_name      level              job_type
  */
 struct s_jl joblevels[] = {
    {"Full",          L_FULL,            JT_BACKUP},
@@ -317,19 +323,19 @@ struct s_jl joblevels[] = {
    {"Initcatalog",   L_VERIFY_INIT,     JT_VERIFY},
    {"VolumeToCatalog", L_VERIFY_VOLUME_TO_CATALOG,   JT_VERIFY},
    {"Data",          L_VERIFY_DATA,     JT_VERIFY},
-   {NULL,	     0}
+   {NULL,            0}
 };
 
 /* Keywords (RHS) permitted in Job type records   
  *
- *   type_name	     job_type
+ *   type_name       job_type
  */
 struct s_jt jobtypes[] = {
    {"backup",        JT_BACKUP},
    {"admin",         JT_ADMIN},
    {"verify",        JT_VERIFY},
    {"restore",       JT_RESTORE},
-   {NULL,	     0}
+   {NULL,            0}
 };
 
 
@@ -338,7 +344,7 @@ static struct s_kw BakVerFields[] = {
    {"client",        'C'},
    {"fileset",       'F'},
    {"level",         'L'}, 
-   {NULL,	     0}
+   {NULL,            0}
 };
 
 /* Keywords (RHS) permitted in Restore records */
@@ -349,7 +355,7 @@ static struct s_kw RestoreFields[] = {
    {"where",         'W'},            /* root of restore */
    {"replace",       'R'},            /* replacement options */
    {"bootstrap",     'B'},            /* bootstrap file */
-   {NULL,	       0}
+   {NULL,              0}
 };
 
 /* Options permitted in Restore replace= */
@@ -358,23 +364,23 @@ struct s_kw ReplaceOptions[] = {
    {"ifnewer",        REPLACE_IFNEWER},
    {"ifolder",        REPLACE_IFOLDER},
    {"never",          REPLACE_NEVER},
-   {NULL,		0}
+   {NULL,               0}
 };
 
 
 
 /* Define FileSet KeyWord values */
 
-#define INC_KW_NONE	    0
+#define INC_KW_NONE         0
 #define INC_KW_COMPRESSION  1
 #define INC_KW_SIGNATURE    2
 #define INC_KW_ENCRYPTION   3
-#define INC_KW_VERIFY	    4
-#define INC_KW_ONEFS	    5
-#define INC_KW_RECURSE	    6
-#define INC_KW_SPARSE	    7
-#define INC_KW_REPLACE	    8	      /* restore options */
-#define INC_KW_READFIFO     9	      /* Causes fifo data to be read */
+#define INC_KW_VERIFY       4
+#define INC_KW_ONEFS        5
+#define INC_KW_RECURSE      6
+#define INC_KW_SPARSE       7
+#define INC_KW_REPLACE      8         /* restore options */
+#define INC_KW_READFIFO     9         /* Causes fifo data to be read */
 
 /* Include keywords */
 static struct s_kw FS_option_kw[] = {
@@ -387,7 +393,7 @@ static struct s_kw FS_option_kw[] = {
    {"sparse",      INC_KW_SPARSE},
    {"replace",     INC_KW_REPLACE},
    {"readfifo",    INC_KW_READFIFO},
-   {NULL,	   0}
+   {NULL,          0}
 };
 
 /* Options for FileSet keywords */
@@ -425,7 +431,7 @@ static struct s_fs_opt FS_options[] = {
    {"never",    INC_KW_REPLACE,       "n"},
    {"yes",      INC_KW_READFIFO,      "r"},
    {"no",       INC_KW_READFIFO,      "0"},
-   {NULL,	0,		     0}
+   {NULL,       0,                   0}
 };
 
 char *level_to_str(int level)
@@ -437,8 +443,8 @@ char *level_to_str(int level)
    sprintf(level_no, "%d", level);    /* default if not found */
    for (i=0; joblevels[i].level_name; i++) {
       if (level == joblevels[i].level) {
-	 str = joblevels[i].level_name;
-	 break;
+         str = joblevels[i].level_name;
+         break;
       }
    }
    return str;
@@ -457,203 +463,211 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
       sendit(sock, "No %s resource defined\n", res_to_str(type));
       return;
    }
-   if (type < 0) {		      /* no recursion */
+   if (type < 0) {                    /* no recursion */
       type = - type;
       recurse = 0;
    }
    switch (type) {
       case R_DIRECTOR:
-	 char ed1[30], ed2[30];
+         char ed1[30], ed2[30];
          sendit(sock, "Director: name=%s maxjobs=%d FDtimeout=%s SDtimeout=%s\n", 
-	    reshdr->name, res->res_dir.MaxConcurrentJobs, 
-	    edit_uint64(res->res_dir.FDConnectTimeout, ed1),
-	    edit_uint64(res->res_dir.SDConnectTimeout, ed2));
-	 if (res->res_dir.query_file) {
+            reshdr->name, res->res_dir.MaxConcurrentJobs, 
+            edit_uint64(res->res_dir.FDConnectTimeout, ed1),
+            edit_uint64(res->res_dir.SDConnectTimeout, ed2));
+         if (res->res_dir.query_file) {
             sendit(sock, "   query_file=%s\n", res->res_dir.query_file);
-	 }
-	 if (res->res_dir.messages) {
+         }
+         if (res->res_dir.messages) {
             sendit(sock, "  --> ");
-	    dump_resource(-R_MSGS, (RES *)res->res_dir.messages, sendit, sock);
-	 }
-	 break;
+            dump_resource(-R_MSGS, (RES *)res->res_dir.messages, sendit, sock);
+         }
+         break;
       case R_CLIENT:
          sendit(sock, "Client: name=%s address=%s FDport=%d\n",
-	    res->res_client.hdr.name, res->res_client.address, res->res_client.FDport);
-         sendit(sock, "JobRetention=%" lld " FileRetention=%" lld " AutoPrune=%d\n",
-	    res->res_client.JobRetention, res->res_client.FileRetention,
-	    res->res_client.AutoPrune);
-	 if (res->res_client.catalog) {
+            res->res_client.hdr.name, res->res_client.address, res->res_client.FDport);
+         sendit(sock, "      JobRetention=%" lld " FileRetention=%" lld " AutoPrune=%d\n",
+            res->res_client.JobRetention, res->res_client.FileRetention,
+            res->res_client.AutoPrune);
+         if (res->res_client.catalog) {
             sendit(sock, "  --> ");
-	    dump_resource(-R_CATALOG, (RES *)res->res_client.catalog, sendit, sock);
-	 }
-	 break;
+            dump_resource(-R_CATALOG, (RES *)res->res_client.catalog, sendit, sock);
+         }
+         break;
       case R_STORAGE:
          sendit(sock, "Storage: name=%s address=%s SDport=%d\n\
          DeviceName=%s MediaType=%s\n",
-	    res->res_store.hdr.name, res->res_store.address, res->res_store.SDport,
-	    res->res_store.dev_name, res->res_store.media_type);
-	 break;
+            res->res_store.hdr.name, res->res_store.address, res->res_store.SDport,
+            res->res_store.dev_name, res->res_store.media_type);
+         break;
       case R_CATALOG:
          sendit(sock, "Catalog: name=%s address=%s DBport=%d db_name=%s\n\
          db_user=%s\n",
-	    res->res_cat.hdr.name, NPRT(res->res_cat.db_address),
-	    res->res_cat.db_port, res->res_cat.db_name, NPRT(res->res_cat.db_user));
-	 break;
+            res->res_cat.hdr.name, NPRT(res->res_cat.db_address),
+            res->res_cat.db_port, res->res_cat.db_name, NPRT(res->res_cat.db_user));
+         break;
       case R_JOB:
          sendit(sock, "Job: name=%s JobType=%d level=%s\n", res->res_job.hdr.name, 
-	    res->res_job.JobType, level_to_str(res->res_job.level));
-	 if (res->res_job.client) {
+            res->res_job.JobType, level_to_str(res->res_job.level));
+         if (res->res_job.client) {
             sendit(sock, "  --> ");
-	    dump_resource(-R_CLIENT, (RES *)res->res_job.client, sendit, sock);
-	 }
-	 if (res->res_job.fileset) {
+            dump_resource(-R_CLIENT, (RES *)res->res_job.client, sendit, sock);
+         }
+         if (res->res_job.fileset) {
             sendit(sock, "  --> ");
-	    dump_resource(-R_FILESET, (RES *)res->res_job.fileset, sendit, sock);
-	 }
-	 if (res->res_job.schedule) {
+            dump_resource(-R_FILESET, (RES *)res->res_job.fileset, sendit, sock);
+         }
+         if (res->res_job.schedule) {
             sendit(sock, "  --> ");
-	    dump_resource(-R_SCHEDULE, (RES *)res->res_job.schedule, sendit, sock);
-	 }
-	 if (res->res_job.RestoreWhere) {
+            dump_resource(-R_SCHEDULE, (RES *)res->res_job.schedule, sendit, sock);
+         }
+         if (res->res_job.RestoreWhere) {
             sendit(sock, "  --> Where=%s\n", NPRT(res->res_job.RestoreWhere));
-	 }
-	 if (res->res_job.RestoreBootstrap) {
+         }
+         if (res->res_job.RestoreBootstrap) {
             sendit(sock, "  --> Bootstrap=%s\n", NPRT(res->res_job.RestoreBootstrap));
-	 }
-	 if (res->res_job.RunBeforeJob) {
+         }
+         if (res->res_job.RunBeforeJob) {
             sendit(sock, "  --> RunBefore=%s\n", NPRT(res->res_job.RunBeforeJob));
-	 }
-	 if (res->res_job.RunAfterJob) {
+         }
+         if (res->res_job.RunAfterJob) {
             sendit(sock, "  --> RunAfter=%s\n", NPRT(res->res_job.RunAfterJob));
-	 }
-	 if (res->res_job.WriteBootstrap) {
+         }
+         if (res->res_job.WriteBootstrap) {
             sendit(sock, "  --> WriteBootstrap=%s\n", NPRT(res->res_job.WriteBootstrap));
-	 }
-	 if (res->res_job.storage) {
+         }
+         if (res->res_job.storage) {
             sendit(sock, "  --> ");
-	    dump_resource(-R_STORAGE, (RES *)res->res_job.storage, sendit, sock);
-	 }
-	 if (res->res_job.pool) {
+            dump_resource(-R_STORAGE, (RES *)res->res_job.storage, sendit, sock);
+         }
+         if (res->res_job.pool) {
             sendit(sock, "  --> ");
-	    dump_resource(-R_POOL, (RES *)res->res_job.pool, sendit, sock);
-	 } else {
+            dump_resource(-R_POOL, (RES *)res->res_job.pool, sendit, sock);
+         } else {
             sendit(sock, "!!! No Pool resource\n");
-	 }
-	 if (res->res_job.messages) {
+         }
+         if (res->res_job.messages) {
             sendit(sock, "  --> ");
-	    dump_resource(-R_MSGS, (RES *)res->res_job.messages, sendit, sock);
-	 }
-	 break;
+            dump_resource(-R_MSGS, (RES *)res->res_job.messages, sendit, sock);
+         }
+         break;
       case R_FILESET:
          sendit(sock, "FileSet: name=%s\n", res->res_fs.hdr.name);
-	 for (i=0; i<res->res_fs.num_includes; i++)
+         for (i=0; i<res->res_fs.num_includes; i++)
             sendit(sock, "      Inc: %s\n", res->res_fs.include_array[i]->name);
-	 for (i=0; i<res->res_fs.num_excludes; i++)
+         for (i=0; i<res->res_fs.num_excludes; i++)
             sendit(sock, "      Exc: %s\n", res->res_fs.exclude_array[i]->name);
-	 break;
+         break;
       case R_SCHEDULE:
-	 if (res->res_sch.run) {
-	    int i;
-	    RUN *run = res->res_sch.run;
-	    char buf[1000], num[10];
+         if (res->res_sch.run) {
+            int i;
+            RUN *run = res->res_sch.run;
+            char buf[1000], num[10];
             sendit(sock, "Schedule: name=%s\n", res->res_sch.hdr.name);
-	    if (!run) {
-	       break;
-	    }
+            if (!run) {
+               break;
+            }
 next_run:
             sendit(sock, "  --> Run Level=%s\n", level_to_str(run->level));
             strcpy(buf, "      hour=");
-	    for (i=0; i<24; i++) {
-	       if (bit_is_set(i, run->hour)) {
+            for (i=0; i<24; i++) {
+               if (bit_is_set(i, run->hour)) {
                   sprintf(num, "%d ", i);
-		  strcat(buf, num);
-	       }
-	    }
+                  strcat(buf, num);
+               }
+            }
             strcat(buf, "\n");
-	    sendit(sock, buf);
+            sendit(sock, buf);
             strcpy(buf, "      mday=");
-	    for (i=0; i<31; i++) {
-	       if (bit_is_set(i, run->mday)) {
+            for (i=0; i<31; i++) {
+               if (bit_is_set(i, run->mday)) {
                   sprintf(num, "%d ", i+1);
-		  strcat(buf, num);
-	       }
-	    }
+                  strcat(buf, num);
+               }
+            }
             strcat(buf, "\n");
-	    sendit(sock, buf);
+            sendit(sock, buf);
             strcpy(buf, "      month=");
-	    for (i=0; i<12; i++) {
-	       if (bit_is_set(i, run->month)) {
+            for (i=0; i<12; i++) {
+               if (bit_is_set(i, run->month)) {
                   sprintf(num, "%d ", i+1);
-		  strcat(buf, num);
-	       }
-	    }
+                  strcat(buf, num);
+               }
+            }
             strcat(buf, "\n");
-	    sendit(sock, buf);
+            sendit(sock, buf);
             strcpy(buf, "      wday=");
-	    for (i=0; i<7; i++) {
-	       if (bit_is_set(i, run->wday)) {
+            for (i=0; i<7; i++) {
+               if (bit_is_set(i, run->wday)) {
                   sprintf(num, "%d ", i+1);
-		  strcat(buf, num);
-	       }
-	    }
+                  strcat(buf, num);
+               }
+            }
             strcat(buf, "\n");
-	    sendit(sock, buf);
+            sendit(sock, buf);
             strcpy(buf, "      wpos=");
-	    for (i=0; i<5; i++) {
-	       if (bit_is_set(i, run->wpos)) {
+            for (i=0; i<5; i++) {
+               if (bit_is_set(i, run->wpos)) {
                   sprintf(num, "%d ", i+1);
-		  strcat(buf, num);
-	       }
-	    }
+                  strcat(buf, num);
+               }
+            }
             strcat(buf, "\n");
-	    sendit(sock, buf);
+            sendit(sock, buf);
             sendit(sock, "      mins=%d\n", run->minute);
-	    if (run->pool) {
+            if (run->pool) {
                sendit(sock, "     --> ");
-	       dump_resource(-R_POOL, (RES *)run->pool, sendit, sock);
-	    }
-	    if (run->storage) {
+               dump_resource(-R_POOL, (RES *)run->pool, sendit, sock);
+            }
+            if (run->storage) {
                sendit(sock, "     --> ");
-	       dump_resource(-R_STORAGE, (RES *)run->storage, sendit, sock);
-	    }
-	    if (run->msgs) {
+               dump_resource(-R_STORAGE, (RES *)run->storage, sendit, sock);
+            }
+            if (run->msgs) {
                sendit(sock, "     --> ");
-	       dump_resource(-R_MSGS, (RES *)run->msgs, sendit, sock);
-	    }
-	    /* If another Run record is chained in, go print it */
-	    if (run->next) {
-	       run = run->next;
-	       goto next_run;
-	    }
-	 } else {
+               dump_resource(-R_MSGS, (RES *)run->msgs, sendit, sock);
+            }
+            /* If another Run record is chained in, go print it */
+            if (run->next) {
+               run = run->next;
+               goto next_run;
+            }
+         } else {
             sendit(sock, "Schedule: name=%s\n", res->res_sch.hdr.name);
-	 }
-	 break;
+         }
+         break;
       case R_GROUP:
          sendit(sock, "Group: name=%s\n", res->res_group.hdr.name);
-	 break;
+         break;
       case R_POOL:
          sendit(sock, "Pool: name=%s PoolType=%s\n", res->res_pool.hdr.name,
-		 res->res_pool.pool_type);
+                 res->res_pool.pool_type);
          sendit(sock, "      use_cat=%d use_once=%d acpt_any=%d cat_files=%d\n",
-		 res->res_pool.use_catalog, res->res_pool.use_volume_once,
-		 res->res_pool.accept_any_volume, res->res_pool.catalog_files);
+                 res->res_pool.use_catalog, res->res_pool.use_volume_once,
+                 res->res_pool.accept_any_volume, res->res_pool.catalog_files);
          sendit(sock, "      max_vols=%d auto_prune=%d VolRetention=%" lld "\n",
-		 res->res_pool.max_volumes, res->res_pool.AutoPrune,
-		 res->res_pool.VolRetention);
+                 res->res_pool.max_volumes, res->res_pool.AutoPrune,
+                 res->res_pool.VolRetention);
          sendit(sock, "      recycle=%d LabelFormat=%s\n", res->res_pool.Recycle,
-		 NPRT(res->res_pool.label_format));
-	 break;
+                 NPRT(res->res_pool.label_format));
+         break;
       case R_MSGS:
          sendit(sock, "Messages: name=%s\n", res->res_msgs.hdr.name);
-	 if (res->res_msgs.mail_cmd) 
+         if (res->res_msgs.mail_cmd) 
             sendit(sock, "      mailcmd=%s\n", res->res_msgs.mail_cmd);
-	 if (res->res_msgs.operator_cmd) 
+         if (res->res_msgs.operator_cmd) 
             sendit(sock, "      opcmd=%s\n", res->res_msgs.operator_cmd);
-	 break;
+         break;
+      case R_FILEOPTIONS:
+         sendit(sock, "FileOptions: name=%s\n", res->res_msgs.hdr.name);
+         sendit(sock, "      opts=%s replace=%c\n", res->res_fo.opts,
+                res->res_fo.replace);
+         for (int i=0; i < res->res_fo.num_applyto; i++) {
+            sendit(sock, "      applyto=%s\n", res->res_fo.applyto[i]);
+         }
+         break;
       default:
-         sendit(sock, "Unknown resource type %d\n", type);
-	 break;
+         sendit(sock, "Unknown resource type %d in dump_resource.\n", type);
+         break;
    }
    if (recurse && res->res_dir.hdr.next) {
       dump_resource(type, res->res_dir.hdr.next, sendit, sock);
@@ -690,126 +704,135 @@ void free_resource(int type)
 
    switch (type) {
       case R_DIRECTOR:
-	 if (res->res_dir.working_directory) {
-	    free(res->res_dir.working_directory);
-	 }
-	 if (res->res_dir.pid_directory) {
-	    free(res->res_dir.pid_directory);
-	 }
-	 if (res->res_dir.subsys_directory) {
-	    free(res->res_dir.subsys_directory);
-	 }
-	 if (res->res_dir.password) {
-	    free(res->res_dir.password);
-	 }
-	 if (res->res_dir.query_file) {
-	    free(res->res_dir.query_file);
-	 }
-	 if (res->res_dir.DIRaddr) {
-	    free(res->res_dir.DIRaddr);
-	 }
-	 break;
+         if (res->res_dir.working_directory) {
+            free(res->res_dir.working_directory);
+         }
+         if (res->res_dir.pid_directory) {
+            free(res->res_dir.pid_directory);
+         }
+         if (res->res_dir.subsys_directory) {
+            free(res->res_dir.subsys_directory);
+         }
+         if (res->res_dir.password) {
+            free(res->res_dir.password);
+         }
+         if (res->res_dir.query_file) {
+            free(res->res_dir.query_file);
+         }
+         if (res->res_dir.DIRaddr) {
+            free(res->res_dir.DIRaddr);
+         }
+         break;
       case R_CLIENT:
-	 if (res->res_client.address) {
-	    free(res->res_client.address);
-	 }
-	 if (res->res_client.password) {
-	    free(res->res_client.password);
-	 }
-	 break;
+         if (res->res_client.address) {
+            free(res->res_client.address);
+         }
+         if (res->res_client.password) {
+            free(res->res_client.password);
+         }
+         break;
       case R_STORAGE:
-	 if (res->res_store.address) {
-	    free(res->res_store.address);
-	 }
-	 if (res->res_store.password) {
-	    free(res->res_store.password);
-	 }
-	 if (res->res_store.media_type) {
-	    free(res->res_store.media_type);
-	 }
-	 if (res->res_store.dev_name) {
-	    free(res->res_store.dev_name);
-	 }
-	 break;
+         if (res->res_store.address) {
+            free(res->res_store.address);
+         }
+         if (res->res_store.password) {
+            free(res->res_store.password);
+         }
+         if (res->res_store.media_type) {
+            free(res->res_store.media_type);
+         }
+         if (res->res_store.dev_name) {
+            free(res->res_store.dev_name);
+         }
+         break;
       case R_CATALOG:
-	 if (res->res_cat.db_address) {
-	    free(res->res_cat.db_address);
-	 }
-	 if (res->res_cat.db_socket) {
-	    free(res->res_cat.db_socket);
-	 }
-	 if (res->res_cat.db_user) {
-	    free(res->res_cat.db_user);
-	 }
-	 if (res->res_cat.db_name) {
-	    free(res->res_cat.db_name);
-	 }
-	 if (res->res_cat.db_password) {
-	    free(res->res_cat.db_password);
-	 }
-	 break;
+         if (res->res_cat.db_address) {
+            free(res->res_cat.db_address);
+         }
+         if (res->res_cat.db_socket) {
+            free(res->res_cat.db_socket);
+         }
+         if (res->res_cat.db_user) {
+            free(res->res_cat.db_user);
+         }
+         if (res->res_cat.db_name) {
+            free(res->res_cat.db_name);
+         }
+         if (res->res_cat.db_password) {
+            free(res->res_cat.db_password);
+         }
+         break;
       case R_FILESET:
-	 if ((num=res->res_fs.num_includes)) {
-	    while (--num >= 0) {   
-	       free(res->res_fs.include_array[num]);
-	    }
-	    free(res->res_fs.include_array);
-	 }
-	 if ((num=res->res_fs.num_excludes)) {
-	    while (--num >= 0) {   
-	       free(res->res_fs.exclude_array[num]);
-	    }
-	    free(res->res_fs.exclude_array);
-	 }
-	 break;
+         if ((num=res->res_fs.num_includes)) {
+            while (--num >= 0) {   
+               free(res->res_fs.include_array[num]);
+            }
+            free(res->res_fs.include_array);
+         }
+         if ((num=res->res_fs.num_excludes)) {
+            while (--num >= 0) {   
+               free(res->res_fs.exclude_array[num]);
+            }
+            free(res->res_fs.exclude_array);
+         }
+         break;
       case R_POOL:
-	 if (res->res_pool.pool_type) {
-	    free(res->res_pool.pool_type);
-	 }
-	 if (res->res_pool.label_format) {
-	    free(res->res_pool.label_format);
-	 }
-	 break;
+         if (res->res_pool.pool_type) {
+            free(res->res_pool.pool_type);
+         }
+         if (res->res_pool.label_format) {
+            free(res->res_pool.label_format);
+         }
+         break;
       case R_SCHEDULE:
-	 if (res->res_sch.run) {
-	    RUN *nrun, *next;
-	    nrun = res->res_sch.run;
-	    while (nrun) {
-	       next = nrun->next;
-	       free(nrun);
-	       nrun = next;
-	    }
-	 }
-	 break;
+         if (res->res_sch.run) {
+            RUN *nrun, *next;
+            nrun = res->res_sch.run;
+            while (nrun) {
+               next = nrun->next;
+               free(nrun);
+               nrun = next;
+            }
+         }
+         break;
       case R_JOB:
-	 if (res->res_job.RestoreWhere) {
-	    free(res->res_job.RestoreWhere);
-	 }
-	 if (res->res_job.RestoreBootstrap) {
-	    free(res->res_job.RestoreBootstrap);
-	 }
-	 if (res->res_job.WriteBootstrap) {
-	    free(res->res_job.WriteBootstrap);
-	 }
-	 if (res->res_job.RunBeforeJob) {
-	    free(res->res_job.RunBeforeJob);
-	 }
-	 if (res->res_job.RunAfterJob) {
-	    free(res->res_job.RunAfterJob);
-	 }
-	 break;
+         if (res->res_job.RestoreWhere) {
+            free(res->res_job.RestoreWhere);
+         }
+         if (res->res_job.RestoreBootstrap) {
+            free(res->res_job.RestoreBootstrap);
+         }
+         if (res->res_job.WriteBootstrap) {
+            free(res->res_job.WriteBootstrap);
+         }
+         if (res->res_job.RunBeforeJob) {
+            free(res->res_job.RunBeforeJob);
+         }
+         if (res->res_job.RunAfterJob) {
+            free(res->res_job.RunAfterJob);
+         }
+         break;
       case R_MSGS:
-	 if (res->res_msgs.mail_cmd)
-	    free(res->res_msgs.mail_cmd);
-	 if (res->res_msgs.operator_cmd)
-	    free(res->res_msgs.operator_cmd);
-	 free_msgs_res((MSGS *)res);  /* free message resource */
-	 res = NULL;
-	 break;
+         if (res->res_msgs.mail_cmd)
+            free(res->res_msgs.mail_cmd);
+         if (res->res_msgs.operator_cmd)
+            free(res->res_msgs.operator_cmd);
+         free_msgs_res((MSGS *)res);  /* free message resource */
+         res = NULL;
+         break;
+      case R_FILEOPTIONS:
+         if (res->res_fo.num_applyto) {
+            for (int i=0; i < res->res_fo.num_applyto; i++) {
+               free(res->res_fo.applyto[i]);
+            }
+            free((char *)res->res_fo.applyto);   
+         }
+
+         break;
       case R_GROUP:
-	 break;
+         break;
       default:
-         printf("Unknown resource type %d\n", type);
+         printf("Unknown resource type %d in free_resource.\n", type);
    }
    /* Common stuff again -- free the resource, recurse to next one */
    if (res) {
@@ -839,10 +862,10 @@ void save_resource(int type, struct res_items *items, int pass)
     */
    for (i=0; items[i].name; i++) {
       if (items[i].flags & ITEM_REQUIRED) {
-	    if (!bit_is_set(i, res_all.res_dir.hdr.item_present)) {  
+            if (!bit_is_set(i, res_all.res_dir.hdr.item_present)) {  
                Emsg2(M_ERROR_TERM, 0, "%s item is required in %s resource, but not found.\n",
-		 items[i].name, resources[rindex]);
-	     }
+                 items[i].name, resources[rindex]);
+             }
       }
       /* If this triggers, take a look at lib/parse_conf.h */
       if (i >= MAX_RES_ITEMS) {
@@ -857,82 +880,83 @@ void save_resource(int type, struct res_items *items, int pass)
     */
    if (pass == 2) {
       switch (type) {
-	 /* Resources not containing a resource */
-	 case R_CATALOG:
-	 case R_STORAGE:
-	 case R_FILESET:
-	 case R_GROUP:
-	 case R_POOL:
-	 case R_MSGS:
-	    break;
+         /* Resources not containing a resource */
+         case R_CATALOG:
+         case R_STORAGE:
+         case R_FILESET:
+         case R_FILEOPTIONS:
+         case R_GROUP:
+         case R_POOL:
+         case R_MSGS:
+            break;
 
-	 /* Resources containing another resource */
-	 case R_DIRECTOR:
-	    if ((res = (URES *)GetResWithName(R_DIRECTOR, res_all.res_dir.hdr.name)) == NULL) {
+         /* Resources containing another resource */
+         case R_DIRECTOR:
+            if ((res = (URES *)GetResWithName(R_DIRECTOR, res_all.res_dir.hdr.name)) == NULL) {
                Emsg1(M_ERROR_TERM, 0, "Cannot find Director resource %s\n", res_all.res_dir.hdr.name);
-	    }
-	    res->res_dir.messages = res_all.res_dir.messages;
-	    break;
-	 case R_JOB:
-	    if ((res = (URES *)GetResWithName(R_JOB, res_all.res_dir.hdr.name)) == NULL) {
+            }
+            res->res_dir.messages = res_all.res_dir.messages;
+            break;
+         case R_JOB:
+            if ((res = (URES *)GetResWithName(R_JOB, res_all.res_dir.hdr.name)) == NULL) {
                Emsg1(M_ERROR_TERM, 0, "Cannot find Job resource %s\n", res_all.res_dir.hdr.name);
-	    }
-	    res->res_job.messages = res_all.res_job.messages;
-	    res->res_job.schedule = res_all.res_job.schedule;
-	    res->res_job.client   = res_all.res_job.client;
-	    res->res_job.fileset  = res_all.res_job.fileset;
-	    res->res_job.storage  = res_all.res_job.storage;
-	    res->res_job.pool	  = res_all.res_job.pool;
-	    if (res->res_job.JobType == 0) {
+            }
+            res->res_job.messages = res_all.res_job.messages;
+            res->res_job.schedule = res_all.res_job.schedule;
+            res->res_job.client   = res_all.res_job.client;
+            res->res_job.fileset  = res_all.res_job.fileset;
+            res->res_job.storage  = res_all.res_job.storage;
+            res->res_job.pool     = res_all.res_job.pool;
+            if (res->res_job.JobType == 0) {
                Emsg1(M_ERROR_TERM, 0, "Job Type not defined for Job resource %s\n", res_all.res_dir.hdr.name);
-	    }
-	    if (res->res_job.level != 0) {
-	       int i;
-	       for (i=0; joblevels[i].level_name; i++) {
-		  if (joblevels[i].level == res->res_job.level &&
-		      joblevels[i].job_type == res->res_job.JobType) {
-		     i = 0;
-		     break;
-		  }
-	       }
-	       if (i != 0) {
+            }
+            if (res->res_job.level != 0) {
+               int i;
+               for (i=0; joblevels[i].level_name; i++) {
+                  if (joblevels[i].level == res->res_job.level &&
+                      joblevels[i].job_type == res->res_job.JobType) {
+                     i = 0;
+                     break;
+                  }
+               }
+               if (i != 0) {
                   Emsg1(M_ERROR_TERM, 0, "Inappropriate level specified in Job resource %s\n", 
-		     res_all.res_dir.hdr.name);
-	       }
-	    }
-	    break;
-	 case R_CLIENT:
-	    if ((res = (URES *)GetResWithName(R_CLIENT, res_all.res_client.hdr.name)) == NULL) {
+                     res_all.res_dir.hdr.name);
+               }
+            }
+            break;
+         case R_CLIENT:
+            if ((res = (URES *)GetResWithName(R_CLIENT, res_all.res_client.hdr.name)) == NULL) {
                Emsg1(M_ERROR_TERM, 0, "Cannot find Client resource %s\n", res_all.res_client.hdr.name);
-	    }
-	    res->res_client.catalog = res_all.res_client.catalog;
-	    break;
-	 case R_SCHEDULE:
-	    /* Schedule is a bit different in that it contains a RUN record
+            }
+            res->res_client.catalog = res_all.res_client.catalog;
+            break;
+         case R_SCHEDULE:
+            /* Schedule is a bit different in that it contains a RUN record
              * chain which isn't a "named" resource. This chain was linked
-	     * in by run_conf.c during pass 2, so here we jam the pointer 
-	     * into the Schedule resource.			   
-	     */
-	    if ((res = (URES *)GetResWithName(R_SCHEDULE, res_all.res_client.hdr.name)) == NULL) {
+             * in by run_conf.c during pass 2, so here we jam the pointer 
+             * into the Schedule resource.                         
+             */
+            if ((res = (URES *)GetResWithName(R_SCHEDULE, res_all.res_client.hdr.name)) == NULL) {
                Emsg1(M_ERROR_TERM, 0, "Cannot find Schedule resource %s\n", res_all.res_client.hdr.name);
-	    }
-	    res->res_sch.run = res_all.res_sch.run;
-	    break;
-	 default:
-            Emsg1(M_ERROR, 0, "Unknown resource type %d\n", type);
-	    error = 1;
-	    break;
+            }
+            res->res_sch.run = res_all.res_sch.run;
+            break;
+         default:
+            Emsg1(M_ERROR, 0, "Unknown resource type %d in save_resource.\n", type);
+            error = 1;
+            break;
       }
       /* Note, the resource name was already saved during pass 1,
        * so here, we can just release it.
        */
       if (res_all.res_dir.hdr.name) {
-	 free(res_all.res_dir.hdr.name);
-	 res_all.res_dir.hdr.name = NULL;
+         free(res_all.res_dir.hdr.name);
+         res_all.res_dir.hdr.name = NULL;
       }
       if (res_all.res_dir.hdr.desc) {
-	 free(res_all.res_dir.hdr.desc);
-	 res_all.res_dir.hdr.desc = NULL;
+         free(res_all.res_dir.hdr.desc);
+         res_all.res_dir.hdr.desc = NULL;
       }
       return;
    }
@@ -940,55 +964,61 @@ void save_resource(int type, struct res_items *items, int pass)
    /* The following code is only executed for pass 1 */
    switch (type) {
       case R_DIRECTOR:
-	 size = sizeof(DIRRES);
-	 break;
+         size = sizeof(DIRRES);
+         break;
       case R_CLIENT:
-	 size =sizeof(CLIENT);
-	 break;
+         size =sizeof(CLIENT);
+         break;
       case R_STORAGE:
-	 size = sizeof(STORE); 
-	 break;
+         size = sizeof(STORE); 
+         break;
       case R_CATALOG:
-	 size = sizeof(CAT);
-	 break;
+         size = sizeof(CAT);
+         break;
       case R_JOB:
-	 size = sizeof(JOB);
-	 break;
+         size = sizeof(JOB);
+         break;
       case R_FILESET:
-	 size = sizeof(FILESET);
-	 break;
+         size = sizeof(FILESET);
+         break;
       case R_SCHEDULE:
-	 size = sizeof(SCHED);
-	 break;
+         size = sizeof(SCHED);
+         break;
       case R_GROUP:
-	 size = sizeof(GROUP);
-	 break;
+         size = sizeof(GROUP);
+         break;
       case R_POOL:
-	 size = sizeof(POOL);
-	 break;
+         size = sizeof(POOL);
+         break;
       case R_MSGS:
-	 size = sizeof(MSGS);
-	 break;
+         size = sizeof(MSGS);
+         break;
+      case R_COUNTER:
+         size = sizeof(COUNTER);
+         break;
+      case R_FILEOPTIONS:
+         size = sizeof(FILEOPTIONS);
+         break;
       default:
-         printf("Unknown resource type %d\n", type);
-	 error = 1;
-	 size = 1;
-	 break;
+         printf("Unknown resource type %d in save_resrouce.\n", type);
+         error = 1;
+         size = 1;
+         break;
    }
    /* Common */
    if (!error) {
       res = (URES *)malloc(size);
       memcpy(res, &res_all, size);
       if (!resources[rindex].res_head) {
-	 resources[rindex].res_head = (RES *)res; /* store first entry */
+         resources[rindex].res_head = (RES *)res; /* store first entry */
       } else {
-	 RES *next;
-	 /* Add new res to end of chain */
-	 for (next=resources[rindex].res_head; next->next; next=next->next)
-	    { }
-	 next->next = (RES *)res;
+         RES *next;
+         /* Add new res to end of chain */
+         for (next=resources[rindex].res_head; next->next; next=next->next)
+            { }
+         next->next = (RES *)res;
          Dmsg2(90, "Inserting %s res: %s\n", res_to_str(type),
-	       res->res_dir.hdr.name);
+               res->res_dir.hdr.name);
       }
    }
 }
@@ -1005,9 +1035,9 @@ static void store_jobtype(LEX *lc, struct res_items *item, int index, int pass)
    /* Store the type both pass 1 and pass 2 */
    for (i=0; jobtypes[i].type_name; i++) {
       if (strcasecmp(lc->str, jobtypes[i].type_name) == 0) {
-	 ((JOB *)(item->value))->JobType = jobtypes[i].job_type;
-	 i = 0;
-	 break;
+         ((JOB *)(item->value))->JobType = jobtypes[i].job_type;
+         i = 0;
+         break;
       }
    }
    if (i != 0) {
@@ -1029,9 +1059,9 @@ static void store_level(LEX *lc, struct res_items *item, int index, int pass)
    /* Store the level pass 2 so that type is defined */
    for (i=0; joblevels[i].level_name; i++) {
       if (strcasecmp(lc->str, joblevels[i].level_name) == 0) {
-	 ((JOB *)(item->value))->level = joblevels[i].level;
-	 i = 0;
-	 break;
+         ((JOB *)(item->value))->level = joblevels[i].level;
+         i = 0;
+         break;
       }
    }
    if (i != 0) {
@@ -1048,9 +1078,9 @@ static void store_replace(LEX *lc, struct res_items *item, int index, int pass)
    /* Scan Replacement options */
    for (i=0; ReplaceOptions[i].name; i++) {
       if (strcasecmp(lc->str, ReplaceOptions[i].name) == 0) {
-	 ((JOB *)(item->value))->replace = ReplaceOptions[i].token;
-	 i = 0;
-	 break;
+         *(int *)(item->value) = ReplaceOptions[i].token;
+         i = 0;
+         break;
       }
    }
    if (i != 0) {
@@ -1088,59 +1118,59 @@ static void store_backup(LEX *lc, struct res_items *item, int index, int pass)
       Dmsg1(190, "Got keyword: %s\n", lc->str);
       found = FALSE;
       for (i=0; BakVerFields[i].name; i++) {
-	 if (strcasecmp(lc->str, BakVerFields[i].name) == 0) {
-	    found = TRUE;
-	    if (lex_get_token(lc, T_ALL) != T_EQUALS) {
+         if (strcasecmp(lc->str, BakVerFields[i].name) == 0) {
+            found = TRUE;
+            if (lex_get_token(lc, T_ALL) != T_EQUALS) {
                scan_err1(lc, "Expected an equals, got: %s", lc->str);
-	    }
-	    token = lex_get_token(lc, T_NAME);
+            }
+            token = lex_get_token(lc, T_NAME);
             Dmsg1(190, "Got value: %s\n", lc->str);
-	    switch (BakVerFields[i].token) {
+            switch (BakVerFields[i].token) {
                case 'C':
-		  /* Find Client Resource */
-		  if (pass == 2) {
-		     res = GetResWithName(R_CLIENT, lc->str);
-		     if (res == NULL) {
+                  /* Find Client Resource */
+                  if (pass == 2) {
+                     res = GetResWithName(R_CLIENT, lc->str);
+                     if (res == NULL) {
                         scan_err1(lc, "Could not find specified Client Resource: %s",
-				   lc->str);
-		     }
-		     res_all.res_job.client = (CLIENT *)res;
-		  }
-		  break;
+                                   lc->str);
+                     }
+                     res_all.res_job.client = (CLIENT *)res;
+                  }
+                  break;
                case 'F':
-		  /* Find FileSet Resource */
-		  if (pass == 2) {
-		     res = GetResWithName(R_FILESET, lc->str);
-		     if (res == NULL) {
+                  /* Find FileSet Resource */
+                  if (pass == 2) {
+                     res = GetResWithName(R_FILESET, lc->str);
+                     if (res == NULL) {
                         scan_err1(lc, "Could not find specified FileSet Resource: %s\n",
-				    lc->str);
-		     }
-		     res_all.res_job.fileset = (FILESET *)res;
-		  }
-		  break;
+                                    lc->str);
+                     }
+                     res_all.res_job.fileset = (FILESET *)res;
+                  }
+                  break;
                case 'L':
-		  /* Get level */
-		  for (i=0; joblevels[i].level_name; i++) {
-		     if (joblevels[i].job_type == item->code && 
-			  strcasecmp(lc->str, joblevels[i].level_name) == 0) {
-			((JOB *)(item->value))->level = joblevels[i].level;
-			i = 0;
-			break;
-		     }
-		  }
-		  if (i != 0) {
+                  /* Get level */
+                  for (i=0; joblevels[i].level_name; i++) {
+                     if (joblevels[i].job_type == item->code && 
+                          strcasecmp(lc->str, joblevels[i].level_name) == 0) {
+                        ((JOB *)(item->value))->level = joblevels[i].level;
+                        i = 0;
+                        break;
+                     }
+                  }
+                  if (i != 0) {
                      scan_err1(lc, "Expected a Job Level keyword, got: %s", lc->str);
-		  }
-		  break;
-	    } /* end switch */
-	    break;
-	 } /* end if strcmp() */
+                  }
+                  break;
+            } /* end switch */
+            break;
+         } /* end if strcmp() */
       } /* end for */
       if (!found) {
          scan_err1(lc, "%s not a valid Backup/verify keyword", lc->str);
       }
    } /* end while */
-   lc->options = options;	      /* reset original options */
+   lc->options = options;             /* reset original options */
    set_bit(index, res_all.hdr.item_present);
 }
 
@@ -1170,92 +1200,92 @@ static void store_restore(LEX *lc, struct res_items *item, int index, int pass)
       found = FALSE;
       for (i=0; RestoreFields[i].name; i++) {
          Dmsg1(190, "Restore kw=%s\n", lc->str);
-	 if (strcasecmp(lc->str, RestoreFields[i].name) == 0) {
-	    found = TRUE;
-	    if (lex_get_token(lc, T_ALL) != T_EQUALS) {
+         if (strcasecmp(lc->str, RestoreFields[i].name) == 0) {
+            found = TRUE;
+            if (lex_get_token(lc, T_ALL) != T_EQUALS) {
                scan_err1(lc, "Expected an equals, got: %s", lc->str);
-	    }
-	    token = lex_get_token(lc, T_ALL);
+            }
+            token = lex_get_token(lc, T_ALL);
             Dmsg1(190, "Restore value=%s\n", lc->str);
-	    switch (RestoreFields[i].token) {
+            switch (RestoreFields[i].token) {
                case 'B':
-		  /* Bootstrap */
-		  if (token != T_IDENTIFIER && token != T_UNQUOTED_STRING && token != T_QUOTED_STRING) {
+                  /* Bootstrap */
+                  if (token != T_IDENTIFIER && token != T_UNQUOTED_STRING && token != T_QUOTED_STRING) {
                      scan_err1(lc, "Expected a Restore bootstrap file, got: %s", lc->str);
-		  }
-		  if (pass == 1) {
-		     res_all.res_job.RestoreBootstrap = bstrdup(lc->str);
-		  }
-		  break;
+                  }
+                  if (pass == 1) {
+                     res_all.res_job.RestoreBootstrap = bstrdup(lc->str);
+                  }
+                  break;
                case 'C':
-		  /* Find Client Resource */
-		  if (pass == 2) {
-		     res = GetResWithName(R_CLIENT, lc->str);
-		     if (res == NULL) {
+                  /* Find Client Resource */
+                  if (pass == 2) {
+                     res = GetResWithName(R_CLIENT, lc->str);
+                     if (res == NULL) {
                         scan_err1(lc, "Could not find specified Client Resource: %s",
-				   lc->str);
-		     }
-		     res_all.res_job.client = (CLIENT *)res;
-		  }
-		  break;
+                                   lc->str);
+                     }
+                     res_all.res_job.client = (CLIENT *)res;
+                  }
+                  break;
                case 'F':
-		  /* Find FileSet Resource */
-		  if (pass == 2) {
-		     res = GetResWithName(R_FILESET, lc->str);
-		     if (res == NULL) {
+                  /* Find FileSet Resource */
+                  if (pass == 2) {
+                     res = GetResWithName(R_FILESET, lc->str);
+                     if (res == NULL) {
                         scan_err1(lc, "Could not find specified FileSet Resource: %s\n",
-				    lc->str);
-		     }
-		     res_all.res_job.fileset = (FILESET *)res;
-		  }
-		  break;
+                                    lc->str);
+                     }
+                     res_all.res_job.fileset = (FILESET *)res;
+                  }
+                  break;
                case 'J':
-		  /* JobId */
-		  if (token != T_NUMBER) {
+                  /* JobId */
+                  if (token != T_NUMBER) {
                      scan_err1(lc, "expected an integer number, got: %s", lc->str);
-		  }
-		  errno = 0;
-		  res_all.res_job.RestoreJobId = strtol(lc->str, NULL, 0);
+                  }
+                  errno = 0;
+                  res_all.res_job.RestoreJobId = strtol(lc->str, NULL, 0);
                   Dmsg1(190, "RestorJobId=%d\n", res_all.res_job.RestoreJobId);
-		  if (errno != 0) {
+                  if (errno != 0) {
                      scan_err1(lc, "expected an integer number, got: %s", lc->str);
-		  }
-		  break;
+                  }
+                  break;
                case 'W':
-		  /* Where */
-		  if (token != T_IDENTIFIER && token != T_UNQUOTED_STRING && token != T_QUOTED_STRING) {
+                  /* Where */
+                  if (token != T_IDENTIFIER && token != T_UNQUOTED_STRING && token != T_QUOTED_STRING) {
                      scan_err1(lc, "Expected a Restore root directory, got: %s", lc->str);
-		  }
-		  if (pass == 1) {
-		     res_all.res_job.RestoreWhere = bstrdup(lc->str);
-		  }
-		  break;
+                  }
+                  if (pass == 1) {
+                     res_all.res_job.RestoreWhere = bstrdup(lc->str);
+                  }
+                  break;
                case 'R':
-		  /* Replacement options */
-		  if (token != T_IDENTIFIER && token != T_UNQUOTED_STRING && token != T_QUOTED_STRING) {
+                  /* Replacement options */
+                  if (token != T_IDENTIFIER && token != T_UNQUOTED_STRING && token != T_QUOTED_STRING) {
                      scan_err1(lc, "Expected a keyword name, got: %s", lc->str);
-		  }
-		  /* Fix to scan Replacement options */
-		  for (i=0; ReplaceOptions[i].name; i++) {
-		     if (strcasecmp(lc->str, ReplaceOptions[i].name) == 0) {
-			 ((JOB *)(item->value))->replace = ReplaceOptions[i].token;
-			i = 0;
-			break;
-		     }
-		  }
-		  if (i != 0) {
+                  }
+                  /* Fix to scan Replacement options */
+                  for (i=0; ReplaceOptions[i].name; i++) {
+                     if (strcasecmp(lc->str, ReplaceOptions[i].name) == 0) {
+                         ((JOB *)(item->value))->replace = ReplaceOptions[i].token;
+                        i = 0;
+                        break;
+                     }
+                  }
+                  if (i != 0) {
                      scan_err1(lc, "Expected a Restore replacement option, got: %s", lc->str);
-		  }
-		  break;
-	    } /* end switch */
-	    break;
-	 } /* end if strcmp() */
+                  }
+                  break;
+            } /* end switch */
+            break;
+         } /* end if strcmp() */
       } /* end for */
       if (!found) {
          scan_err1(lc, "%s not a valid Restore keyword", lc->str);
       }
    } /* end while */
-   lc->options = options;	      /* reset original options */
+   lc->options = options;             /* reset original options */
    set_bit(index, res_all.hdr.item_present);
 }
 
@@ -1270,9 +1300,9 @@ static void scan_include_options(LEX *lc, int keyword, char *opts, int optlen)
    int token, i;
    char option[3];
 
-   option[0] = 0;		      /* default option = none */
-   option[2] = 0;		      /* terminate options */
-   token = lex_get_token(lc, T_NAME);		  /* expect at least one option */	 
+   option[0] = 0;                     /* default option = none */
+   option[2] = 0;                     /* terminate options */
+   token = lex_get_token(lc, T_NAME);             /* expect at least one option */       
    if (keyword == INC_KW_VERIFY) { /* special case */
       /* ***FIXME**** ensure these are in permitted set */
       bstrncat(opts, "V", optlen);         /* indicate Verify */
@@ -1280,19 +1310,19 @@ static void scan_include_options(LEX *lc, int keyword, char *opts, int optlen)
       bstrncat(opts, ":", optlen);         /* terminate it */
    } else {
       for (i=0; FS_options[i].name; i++) {
-	 if (strcasecmp(lc->str, FS_options[i].name) == 0 && FS_options[i].keyword == keyword) {
-	    /* NOTE! maximum 2 letters here or increase option[3] */
-	    option[0] = FS_options[i].option[0];
-	    option[1] = FS_options[i].option[1];
-	    i = 0;
-	    break;
-	 }
+         if (strcasecmp(lc->str, FS_options[i].name) == 0 && FS_options[i].keyword == keyword) {
+            /* NOTE! maximum 2 letters here or increase option[3] */
+            option[0] = FS_options[i].option[0];
+            option[1] = FS_options[i].option[1];
+            i = 0;
+            break;
+         }
       }
       if (i != 0) {
          scan_err1(lc, "Expected a FileSet option keyword, got:%s:", lc->str);
       } else { /* add option */
-	 bstrncat(opts, option, optlen);
-         Dmsg3(200, "Catopts=%s option=%s optlen=%d\n", opts, option,optlen);
+         bstrncat(opts, option, optlen);
+         Dmsg3(000, "Catopts=%s option=%s optlen=%d\n", opts, option,optlen);
       }
    }
 
@@ -1319,10 +1349,10 @@ static void store_inc(LEX *lc, struct res_items *item, int index, int pass)
    while ((token=lex_get_token(lc, T_ALL)) != T_BOB) {
       keyword = INC_KW_NONE;
       for (i=0; FS_option_kw[i].name; i++) {
-	 if (strcasecmp(lc->str, FS_option_kw[i].name) == 0) {
-	    keyword = FS_option_kw[i].token;
-	    break;
-	 }
+         if (strcasecmp(lc->str, FS_option_kw[i].name) == 0) {
+            keyword = FS_option_kw[i].token;
+            break;
+         }
       }
       if (keyword == INC_KW_NONE) {
          scan_err1(lc, "Expected a FileSet keyword, got: %s", lc->str);
@@ -1333,7 +1363,7 @@ static void store_inc(LEX *lc, struct res_items *item, int index, int pass)
       }
       scan_include_options(lc, keyword, inc_opts, sizeof(inc_opts));
       if (token == T_BOB) {
-	 break;
+         break;
       }
    }
    if (!inc_opts[0]) {
@@ -1345,8 +1375,8 @@ static void store_inc(LEX *lc, struct res_items *item, int index, int pass)
 
    if (pass == 1) {
       if (!res_all.res_fs.have_MD5) {
-	 MD5Init(&res_all.res_fs.md5c);
-	 res_all.res_fs.have_MD5 = TRUE;
+         MD5Init(&res_all.res_fs.md5c);
+         res_all.res_fs.have_MD5 = TRUE;
       }
       /* Pickup include/exclude names. Note, they are stored as
        * XYZ fname
@@ -1355,54 +1385,54 @@ static void store_inc(LEX *lc, struct res_items *item, int index, int pass)
        * and fname is the file/directory name given
        */
       while ((token = lex_get_token(lc, T_ALL)) != T_EOB) {
-	 switch (token) {
-	    case T_COMMA:
-	    case T_EOL:
-	       continue;
+         switch (token) {
+            case T_COMMA:
+            case T_EOL:
+               continue;
 
-	    case T_IDENTIFIER:
-	    case T_UNQUOTED_STRING:
-	    case T_QUOTED_STRING:
-	       INCEXE *incexe;
-	       incexe = (INCEXE *)malloc(lc->str_len + sizeof(INCEXE));
-	       memset(incexe, 0, sizeof(INCEXE));
-	       bstrncpy(incexe->opts, inc_opts, sizeof(incexe->opts));
-	       strcpy(incexe->name, lc->str);
-	       if (res_all.res_fs.have_MD5) {
-		  MD5Update(&res_all.res_fs.md5c, (unsigned char *)incexe, 
-			    sizeof(INCEXE) + lc->str_len);
-	       }
-	       if (item->code == 0) { /* include */
-		  if (res_all.res_fs.num_includes == res_all.res_fs.include_size) {
-		     res_all.res_fs.include_size += 10;
-		     if (res_all.res_fs.include_array == NULL) {
-			res_all.res_fs.include_array = (INCEXE **)malloc(sizeof(INCEXE *) * res_all.res_fs.include_size);
-		     } else {
-			res_all.res_fs.include_array = (INCEXE **)realloc(res_all.res_fs.include_array,
-			   sizeof(INCEXE *) * res_all.res_fs.include_size);
-		     }
-		  }
-		  res_all.res_fs.include_array[res_all.res_fs.num_includes++] = incexe;
-	       } else { 	       /* exclude */
-		  if (res_all.res_fs.num_excludes == res_all.res_fs.exclude_size) {
-		     res_all.res_fs.exclude_size += 10;
-		     if (res_all.res_fs.exclude_array == NULL) {
-			res_all.res_fs.exclude_array = (INCEXE **)malloc(sizeof(INCEXE *) * res_all.res_fs.exclude_size);
-		     } else {
-			res_all.res_fs.exclude_array = (INCEXE **)realloc(res_all.res_fs.exclude_array,
-			   sizeof(INCEXE *) * res_all.res_fs.exclude_size);
-		     }
-		  }
-		  res_all.res_fs.exclude_array[res_all.res_fs.num_excludes++] = incexe;
-	       }
-	       break;
-	    default:
+            case T_IDENTIFIER:
+            case T_UNQUOTED_STRING:
+            case T_QUOTED_STRING:
+               INCEXE *incexe;
+               incexe = (INCEXE *)malloc(lc->str_len + sizeof(INCEXE));
+               memset(incexe, 0, sizeof(INCEXE));
+               bstrncpy(incexe->opts, inc_opts, sizeof(incexe->opts));
+               strcpy(incexe->name, lc->str);
+               if (res_all.res_fs.have_MD5) {
+                  MD5Update(&res_all.res_fs.md5c, (unsigned char *)incexe, 
+                            sizeof(INCEXE) + lc->str_len);
+               }
+               if (item->code == 0) { /* include */
+                  if (res_all.res_fs.num_includes == res_all.res_fs.include_size) {
+                     res_all.res_fs.include_size += 10;
+                     if (res_all.res_fs.include_array == NULL) {
+                        res_all.res_fs.include_array = (INCEXE **)malloc(sizeof(INCEXE *) * res_all.res_fs.include_size);
+                     } else {
+                        res_all.res_fs.include_array = (INCEXE **)realloc(res_all.res_fs.include_array,
+                           sizeof(INCEXE *) * res_all.res_fs.include_size);
+                     }
+                  }
+                  res_all.res_fs.include_array[res_all.res_fs.num_includes++] = incexe;
+               } else {                /* exclude */
+                  if (res_all.res_fs.num_excludes == res_all.res_fs.exclude_size) {
+                     res_all.res_fs.exclude_size += 10;
+                     if (res_all.res_fs.exclude_array == NULL) {
+                        res_all.res_fs.exclude_array = (INCEXE **)malloc(sizeof(INCEXE *) * res_all.res_fs.exclude_size);
+                     } else {
+                        res_all.res_fs.exclude_array = (INCEXE **)realloc(res_all.res_fs.exclude_array,
+                           sizeof(INCEXE *) * res_all.res_fs.exclude_size);
+                     }
+                  }
+                  res_all.res_fs.exclude_array[res_all.res_fs.num_excludes++] = incexe;
+               }
+               break;
+            default:
                scan_err1(lc, "Expected a filename, got: %s", lc->str);
-	 }				   
+         }                                 
       }
    } else { /* pass 2 */
       while (lex_get_token(lc, T_ALL) != T_EOB) 
-	 {}
+         {}
    }
    scan_to_eol(lc);
    lc->options = options;
@@ -1418,34 +1448,54 @@ static void store_applyto(LEX *lc, struct res_items *item, int index, int pass)
    if (pass == 1) {
       /* Pickup ApplyTo string
        */
-      while ((token = lex_get_token(lc, T_ALL)) != T_EOB) {
-	 switch (token) {
-	    case T_COMMA:
-	    case T_EOL:
-	       continue;
-
-	    case T_IDENTIFIER:
-	    case T_UNQUOTED_STRING:
-	    case T_QUOTED_STRING:
-	       applyto = (char *)malloc(lc->str_len + 1);
-	       strcpy(applyto, lc->str);
-	       res_all.res_fo.num_applyto++;
-	       if (res_all.res_fo.applyto == NULL) {
-		  res_all.res_fo.applyto = (char **)malloc(sizeof(char *) * res_all.res_fo.num_applyto);
-	       } else {
-		  res_all.res_fo.applyto = (char **)realloc(res_all.res_fo.applyto,
-		     sizeof(char *) * res_all.res_fo.num_applyto);
-	       }
-	       res_all.res_fo.applyto[res_all.res_fo.num_applyto-1] = applyto;
-	       break;
-	    default:
-               scan_err1(lc, "Expected a filename, got: %s", lc->str);
-	 }				   
-      }
+      token = lex_get_token(lc, T_ALL);            
+      switch (token) {
+         case T_IDENTIFIER:
+         case T_UNQUOTED_STRING:
+         case T_QUOTED_STRING:
+            applyto = (char *)malloc(lc->str_len + 1);
+            strcpy(applyto, lc->str);
+            res_all.res_fo.num_applyto++;
+            if (res_all.res_fo.applyto == NULL) {
+               res_all.res_fo.applyto = (char **)malloc(sizeof(char *) * res_all.res_fo.num_applyto);
+            } else {
+               res_all.res_fo.applyto = (char **)realloc(res_all.res_fo.applyto,
+                  sizeof(char *) * res_all.res_fo.num_applyto);
+            }
+            res_all.res_fo.applyto[res_all.res_fo.num_applyto-1] = applyto;
+            break;
+         default:
+            scan_err1(lc, "Expected a filename, got: %s", lc->str);
+      }                                 
    } else { /* pass 2 */
-      while (lex_get_token(lc, T_ALL) != T_EOB) 
-	 {}
+      lex_get_token(lc, T_ALL);          
    }
+   scan_to_eol(lc);
+   set_bit(index, res_all.hdr.item_present);
+}
+
+static void store_opts(LEX *lc, struct res_items *item, int index, int pass)
+{
+   int token, i;
+   int keyword;
+   char inc_opts[100];
+
+   inc_opts[0] = 0;
+   keyword = INC_KW_NONE;
+   for (i=0; FS_option_kw[i].name; i++) {
+      if (strcasecmp(item->name, FS_option_kw[i].name) == 0) {
+         keyword = FS_option_kw[i].token;
+         break;
+      }
+   }
+   if (keyword == INC_KW_NONE) {
+      scan_err1(lc, "Expected a FileSet keyword, got: %s", lc->str);
+   }
+   Dmsg2(000, "keyword=%d %s\n", keyword, FS_option_kw[keyword].name);
+   scan_include_options(lc, keyword, inc_opts, sizeof(inc_opts));
+
+   bstrncat((char *)item->value, inc_opts, MAX_FO_OPTS);
+
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
 }
