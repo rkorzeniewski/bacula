@@ -601,6 +601,7 @@ create_RunDialog (void)
   GtkWidget *vbox11;
   GtkWidget *vbox12;
   GtkWidget *label62;
+  GtkWidget *alignment1;
   GtkWidget *hbox28;
   GtkWidget *hbox29;
   GtkWidget *label63;
@@ -611,7 +612,7 @@ create_RunDialog (void)
   GtkWidget *combo_type;
   GList *combo_type_items = NULL;
   GtkWidget *entry_type;
-  GtkWidget *label65;
+  GtkWidget *label114;
   GtkWidget *hbox30;
   GtkWidget *label66;
   GtkWidget *combo_client;
@@ -682,9 +683,13 @@ create_RunDialog (void)
   gtk_box_pack_start (GTK_BOX (vbox12), label62, FALSE, FALSE, 2);
   gtk_misc_set_padding (GTK_MISC (label62), 0, 9);
 
+  alignment1 = gtk_alignment_new (0.5, 0.5, 1, 1);
+  gtk_widget_show (alignment1);
+  gtk_box_pack_start (GTK_BOX (vbox12), alignment1, FALSE, FALSE, 2);
+
   hbox28 = gtk_hbox_new (FALSE, 0);
   gtk_widget_show (hbox28);
-  gtk_box_pack_start (GTK_BOX (vbox12), hbox28, FALSE, FALSE, 2);
+  gtk_container_add (GTK_CONTAINER (alignment1), hbox28);
 
   hbox29 = gtk_hbox_new (FALSE, 0);
   gtk_widget_show (hbox29);
@@ -693,6 +698,7 @@ create_RunDialog (void)
   label63 = gtk_label_new (_("Job:"));
   gtk_widget_show (label63);
   gtk_box_pack_start (GTK_BOX (hbox29), label63, FALSE, FALSE, 0);
+  gtk_widget_set_size_request (label63, 66, 16);
   gtk_label_set_justify (GTK_LABEL (label63), GTK_JUSTIFY_RIGHT);
 
   combo_job = gtk_combo_new ();
@@ -717,7 +723,8 @@ create_RunDialog (void)
   g_object_set_data (G_OBJECT (GTK_COMBO (combo_type)->popwin),
                      "GladeParentKey", combo_type);
   gtk_widget_show (combo_type);
-  gtk_box_pack_start (GTK_BOX (hbox29), combo_type, FALSE, FALSE, 6);
+  gtk_box_pack_start (GTK_BOX (hbox29), combo_type, FALSE, FALSE, 0);
+  gtk_widget_set_size_request (combo_type, 141, 24);
   gtk_combo_set_value_in_list (GTK_COMBO (combo_type), TRUE, FALSE);
   combo_type_items = g_list_append (combo_type_items, (gpointer) "");
   gtk_combo_set_popdown_strings (GTK_COMBO (combo_type), combo_type_items);
@@ -727,9 +734,10 @@ create_RunDialog (void)
   gtk_widget_show (entry_type);
   gtk_editable_set_editable (GTK_EDITABLE (entry_type), FALSE);
 
-  label65 = gtk_label_new (_(" "));
-  gtk_widget_show (label65);
-  gtk_box_pack_start (GTK_BOX (hbox28), label65, FALSE, FALSE, 30);
+  label114 = gtk_label_new (_(" "));
+  gtk_widget_show (label114);
+  gtk_box_pack_start (GTK_BOX (hbox28), label114, FALSE, FALSE, 30);
+  gtk_label_set_justify (GTK_LABEL (label114), GTK_JUSTIFY_LEFT);
 
   hbox30 = gtk_hbox_new (FALSE, 0);
   gtk_widget_show (hbox30);
@@ -738,6 +746,7 @@ create_RunDialog (void)
   label66 = gtk_label_new (_("Client:"));
   gtk_widget_show (label66);
   gtk_box_pack_start (GTK_BOX (hbox30), label66, FALSE, FALSE, 0);
+  gtk_widget_set_size_request (label66, 65, 16);
   gtk_label_set_justify (GTK_LABEL (label66), GTK_JUSTIFY_RIGHT);
 
   combo_client = gtk_combo_new ();
@@ -765,6 +774,7 @@ create_RunDialog (void)
   label68 = gtk_label_new (_("FileSet: "));
   gtk_widget_show (label68);
   gtk_box_pack_start (GTK_BOX (hbox31), label68, FALSE, FALSE, 0);
+  gtk_widget_set_size_request (label68, 66, 16);
   gtk_label_set_justify (GTK_LABEL (label68), GTK_JUSTIFY_RIGHT);
 
   combo_fileset = gtk_combo_new ();
@@ -784,6 +794,7 @@ create_RunDialog (void)
   view_fileset_button = gtk_button_new_with_mnemonic (_("  View FileSet  "));
   gtk_widget_show (view_fileset_button);
   gtk_box_pack_start (GTK_BOX (hbox31), view_fileset_button, FALSE, TRUE, 10);
+  gtk_widget_set_size_request (view_fileset_button, 93, 26);
 
   label69 = gtk_label_new (_("  "));
   gtk_widget_show (label69);
@@ -796,6 +807,7 @@ create_RunDialog (void)
   label70 = gtk_label_new (_("Level:"));
   gtk_widget_show (label70);
   gtk_box_pack_start (GTK_BOX (hbox32), label70, FALSE, FALSE, 0);
+  gtk_widget_set_size_request (label70, 66, 16);
   gtk_label_set_justify (GTK_LABEL (label70), GTK_JUSTIFY_RIGHT);
 
   combo_level = gtk_combo_new ();
@@ -824,6 +836,7 @@ create_RunDialog (void)
   label72 = gtk_label_new (_("Pool:"));
   gtk_widget_show (label72);
   gtk_box_pack_start (GTK_BOX (hbox33), label72, FALSE, FALSE, 0);
+  gtk_widget_set_size_request (label72, 66, 16);
 
   combo_pool = gtk_combo_new ();
   g_object_set_data (G_OBJECT (GTK_COMBO (combo_pool)->popwin),
@@ -851,6 +864,7 @@ create_RunDialog (void)
   label96 = gtk_label_new (_("Storage:"));
   gtk_widget_show (label96);
   gtk_box_pack_start (GTK_BOX (hbox39), label96, FALSE, FALSE, 0);
+  gtk_widget_set_size_request (label96, 66, 16);
 
   combo_storage = gtk_combo_new ();
   g_object_set_data (G_OBJECT (GTK_COMBO (combo_storage)->popwin),
@@ -878,6 +892,7 @@ create_RunDialog (void)
   label98 = gtk_label_new (_("Messages:"));
   gtk_widget_show (label98);
   gtk_box_pack_start (GTK_BOX (hbox40), label98, FALSE, FALSE, 0);
+  gtk_widget_set_size_request (label98, 66, 16);
 
   combo_messages = gtk_combo_new ();
   g_object_set_data (G_OBJECT (GTK_COMBO (combo_messages)->popwin),
@@ -904,6 +919,7 @@ create_RunDialog (void)
   label77 = gtk_label_new (_("Where: "));
   gtk_widget_show (label77);
   gtk_box_pack_start (GTK_BOX (hbox34), label77, FALSE, FALSE, 0);
+  gtk_widget_set_size_request (label77, 66, 16);
 
   entry_where = gtk_entry_new ();
   gtk_widget_show (entry_where);
@@ -920,6 +936,7 @@ create_RunDialog (void)
   label100 = gtk_label_new (_("When:"));
   gtk_widget_show (label100);
   gtk_box_pack_start (GTK_BOX (hbox41), label100, FALSE, FALSE, 0);
+  gtk_widget_set_size_request (label100, 66, 16);
 
   entry_when = gtk_entry_new ();
   gtk_widget_show (entry_when);
@@ -972,6 +989,7 @@ create_RunDialog (void)
   GLADE_HOOKUP_OBJECT (RunDialog, vbox11, "vbox11");
   GLADE_HOOKUP_OBJECT (RunDialog, vbox12, "vbox12");
   GLADE_HOOKUP_OBJECT (RunDialog, label62, "label62");
+  GLADE_HOOKUP_OBJECT (RunDialog, alignment1, "alignment1");
   GLADE_HOOKUP_OBJECT (RunDialog, hbox28, "hbox28");
   GLADE_HOOKUP_OBJECT (RunDialog, hbox29, "hbox29");
   GLADE_HOOKUP_OBJECT (RunDialog, label63, "label63");
@@ -980,7 +998,7 @@ create_RunDialog (void)
   GLADE_HOOKUP_OBJECT (RunDialog, label64, "label64");
   GLADE_HOOKUP_OBJECT (RunDialog, combo_type, "combo_type");
   GLADE_HOOKUP_OBJECT (RunDialog, entry_type, "entry_type");
-  GLADE_HOOKUP_OBJECT (RunDialog, label65, "label65");
+  GLADE_HOOKUP_OBJECT (RunDialog, label114, "label114");
   GLADE_HOOKUP_OBJECT (RunDialog, hbox30, "hbox30");
   GLADE_HOOKUP_OBJECT (RunDialog, label66, "label66");
   GLADE_HOOKUP_OBJECT (RunDialog, combo_client, "combo_client");

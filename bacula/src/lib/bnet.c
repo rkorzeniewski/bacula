@@ -318,11 +318,10 @@ bnet_send(BSOCK *bsock)
    int32_t pktsiz;
    int32_t msglen;
 
-   if (bsock->errors || bsock->terminated) {
+   if (bsock->errors || bsock->terminated || bsock->msglen > 1000000) {
       return 0;
    }
    msglen = bsock->msglen;
-   ASSERT(bsock->msglen < 1000000);
    pktsiz = htonl((int32_t)bsock->msglen);
    /* send int32_t containing size of data packet */
    bsock->timer_start = watchdog_time; /* start timer */
@@ -354,7 +353,6 @@ bnet_send(BSOCK *bsock)
 
    bsock->out_msg_no++; 	      /* increment message number */
    if (bsock->msglen <= 0) {	      /* length only? */
-      ASSERT(msglen == bsock->msglen);
       return 1; 		      /* yes, no data */
    }
 
@@ -381,7 +379,6 @@ bnet_send(BSOCK *bsock)
       }
       return 0;
    }
-   ASSERT(msglen == bsock->msglen);
    return 1;
 }
 

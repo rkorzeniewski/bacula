@@ -16,10 +16,11 @@
 enum {
    R_DIRECTOR = 1001,
    R_CONSOLE,
+   R_CONSOLE_FONT,
 };
 
 #define R_FIRST     R_DIRECTOR
-#define R_LAST	    R_CONSOLE
+#define R_LAST	    R_CONSOLE_FONT
 
 /*
  * Some resource attributes
@@ -41,20 +42,28 @@ struct s_res_dir {
 };
 typedef struct s_res_dir DIRRES;
 
-struct s_con_dir {
+struct s_con_font {
    RES	 hdr;
    char *fontface;		      /* Console Font specification */
+   int require_ssl;		      /* Require SSL on all connections */
+};
+typedef struct s_con_font CONFONTRES;
+
+struct s_con_res {
+   RES	 hdr;
    char *password;		      /* UA server password */
    int require_ssl;		      /* Require SSL on all connections */
 };
-typedef struct s_con_dir CONRES;
+typedef struct s_con_res CONRES;
+
 
 /* Define the Union of all the above
  * resource structure definitions.
  */
 union u_res {
-   struct s_res_dir	res_dir;
-   struct s_con_dir	con_dir;
+   struct s_res_dir	dir_res;
+   struct s_con_font	con_font;
+   struct s_con_res	con_res;
    RES hdr;
 };
 

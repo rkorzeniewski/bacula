@@ -289,10 +289,13 @@ int run_cmd(UAContext *ua, char *cmd)
       pool = (POOL *)GetResWithName(R_POOL, pool_name);
       if (!pool) {
          bsendmsg(ua, _("Pool \"%s\" not found.\n"), pool_name);
-	 pool = get_pool_resource(ua);
+	 pool = select_pool_resource(ua);
       }
    } else {
       pool = job->pool; 	    /* use default */
+   }
+   if (!pool) {
+      return 1;
    }
 
    if (client_name) {

@@ -300,12 +300,8 @@ static int do_label(JCR *jcr, int relabel)
 
 	 P(dev->mutex); 	      /* Use P to avoid indefinite block */
 	 if (!(dev->state & ST_OPENED)) {
-	    if (open_dev(dev, newname, READ_WRITE) < 0) {
-               bnet_fsend(dir, _("3994 Connot open device: %s\n"), strerror_dev(dev));
-	    } else {
-	       label_volume_if_ok(jcr, dev, oldname, newname, poolname, slot, relabel);
-	       force_close_dev(dev);
-	    }
+	    label_volume_if_ok(jcr, dev, oldname, newname, poolname, slot, relabel);
+	    force_close_dev(dev);
          /* Under certain "safe" conditions, we can steal the lock */
 	 } else if (dev->dev_blocked && 
 		    (dev->dev_blocked == BST_UNMOUNTED ||

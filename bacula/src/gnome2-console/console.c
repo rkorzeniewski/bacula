@@ -68,7 +68,6 @@ static void set_scroll_bar_to_end(void);
 /* Static variables */
 static char *configfile = NULL;
 static DIRRES *dir; 
-static CONRES *con; 
 static int ndir;
 static int director_reader_running = FALSE;
 static bool at_prompt = false;
@@ -106,6 +105,7 @@ int main(int argc, char *argv[])
    int test_config = FALSE;
    int gargc = 1;
    char *gargv[2] = {"gnome-console", NULL};
+   CONFONTRES *con_font;
 
    init_stack_dump();
    my_name_is(argc, argv, "gnome-console");
@@ -208,18 +208,18 @@ Without that I don't how to speak to the Director :-(\n"), configfile);
  */
 
    LockRes();
-   foreach_res(con, R_CONSOLE) {
-       if (!con->fontface) {
-          Dmsg1(400, "No fontface for %s\n", con->hdr.name);
+   foreach_res(con_font, R_CONSOLE_FONT) {
+       if (!con_font->fontface) {
+          Dmsg1(400, "No fontface for %s\n", con_font->hdr.name);
 	  continue;
        }
-       text_font = gdk_font_load(con->fontface);
+       text_font = gdk_font_load(con_font->fontface);
        if (text_font == NULL) {
            Dmsg2(400, "Load of requested ConsoleFont \"%s\" (%s) failed!\n",
-		  con->hdr.name, con->fontface);
+		  con_font->hdr.name, con_font->fontface);
        } else {
            Dmsg2(400, "ConsoleFont \"%s\" (%s) loaded.\n",
-		  con->hdr.name, con->fontface);
+		  con_font->hdr.name, con_font->fontface);
 	   break;
        }	   
    }
@@ -404,6 +404,7 @@ int connect_to_director(gpointer data)
    
    jcr.dir_bsock = UA_sock;
    LockRes();
+   /* If cons==NULL, default console will be used */
    CONRES *cons = (CONRES *)GetNextRes(R_CONSOLE, (RES *)NULL);
    UnlockRes();
    if (!authenticate_director(&jcr, dir, cons)) {

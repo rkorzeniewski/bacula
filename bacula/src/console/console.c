@@ -404,6 +404,7 @@ try_again:
    LockRes();
    CONRES *cons = (CONRES *)GetNextRes(R_CONSOLE, (RES *)NULL);
    UnlockRes();
+   /* If cons==NULL, default console will be used */
    if (!authenticate_director(&jcr, dir, cons)) {
       fprintf(stderr, "ERR=%s", UA_sock->msg);
       terminate_console(0);

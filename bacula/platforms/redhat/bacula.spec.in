@@ -56,7 +56,7 @@ BuildRequires: ORBit2-devel
 BuildRequires: libart_lgpl-devel >= 2.0
 BuildRequires: libbonobo-devel >= 2.0
 BuildRequires: libbonoboui-devel >= 2.0
-BuildRequires: bonobo-activation-devel >= 2.0
+BuildRequires: bonobo-activation-devel
 BuildRequires: GConf2-devel
 BuildRequires: linc-devel
 %endif
@@ -102,7 +102,7 @@ Requires: ORBit2
 Requires: libart_lgpl >= 2.0
 Requires: libbonobo >= 2.0
 Requires: libbonoboui >= 2.0
-Requires: bonobo-activation >= 2.0
+Requires: bonobo-activation
 Requires: GConf2
 Requires: linc
 %endif
@@ -204,6 +204,9 @@ cd ${cwd}
 # patch the make_sqlite_tables script for installation bindir
 patch src/cats/make_sqlite_tables.in src/cats/make_sqlite_tables.in.patch
 
+# patch the create_sqlite_database script for installation bindir
+patch src/cats/create_sqlite_database.in src/cats/create_sqlite_database.in.patch
+
 # patch the make_catalog_backup script for installation bindir
 patch src/cats/make_catalog_backup.in src/cats/make_catalog_backup.in.patch
 
@@ -214,7 +217,7 @@ patch src/cats/make_catalog_backup.in src/cats/make_catalog_backup.in.patch
         --with-scriptdir=/etc/bacula \
         --enable-smartalloc \
         --enable-gnome \
-	--enable-static-fd \
+	   --enable-static-fd \
 %if %{mysql}
         --with-mysql \
 %else
@@ -431,7 +434,10 @@ echo "Creating bacula tables..."
 # add execute permission for console
 chmod 0755 /usr/sbin/gnome-console
 
-# create the tables
+# create the database and tables
+echo "Creating SQLite database..."
+/etc/bacula/create_sqlite_database
+echo "Creating the SQLite tables..."
 /etc/bacula/make_sqlite_tables
 
 %preun sqlite
@@ -518,6 +524,9 @@ rm -f /etc/bacula/rescue/sfdisk
 rm -rf /etc/bacula/rescue/diskinfo/*
 
 %changelog
+* Sat Jan 24 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
+- added patch for create_sqlite_database to fix the installed bindir
+- added execute of create_sqlite_database to post of sqlite package
 * Sat Jan 10 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - added virtual package Provides bacula-dir, bacula-sd, bacula-fd
 - added bacula-fd as Requires for rescue package

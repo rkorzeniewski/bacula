@@ -67,23 +67,31 @@ int  res_all_size = sizeof(res_all);
  * information.
  */ 
 static struct res_items dir_items[] = {
-   {"name",        store_name,     ITEM(res_dir.hdr.name), 0, ITEM_REQUIRED, 0},
-   {"description", store_str,      ITEM(res_dir.hdr.desc), 0, 0, 0},
-   {"dirport",     store_int,      ITEM(res_dir.DIRport),  0, ITEM_DEFAULT, 9101},
-   {"address",     store_str,      ITEM(res_dir.address),  0, ITEM_REQUIRED, 0},
-   {"password",    store_password, ITEM(res_dir.password), 0, 0, 0},
-   {"enablessl", store_yesno,      ITEM(res_dir.enable_ssl), 1, ITEM_DEFAULT, 0},
+   {"name",        store_name,     ITEM(dir_res.hdr.name), 0, ITEM_REQUIRED, 0},
+   {"description", store_str,      ITEM(dir_res.hdr.desc), 0, 0, 0},
+   {"dirport",     store_int,      ITEM(dir_res.DIRport),  0, ITEM_DEFAULT, 9101},
+   {"address",     store_str,      ITEM(dir_res.address),  0, ITEM_REQUIRED, 0},
+   {"password",    store_password, ITEM(dir_res.password), 0, 0, 0},
+   {"enablessl", store_yesno,      ITEM(dir_res.enable_ssl), 1, ITEM_DEFAULT, 0},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 
 static struct res_items con_items[] = {
-   {"name",        store_name,     ITEM(con_dir.hdr.name), 0, ITEM_REQUIRED, 0},
-   {"description", store_str,      ITEM(con_dir.hdr.desc), 0, 0, 0},
-   {"font",        store_str,      ITEM(con_dir.fontface), 0, 0, 0},
-   {"password",    store_password, ITEM(con_dir.password), 0, ITEM_REQUIRED, 0},
-   {"requiressl",  store_yesno,    ITEM(con_dir.require_ssl), 1, ITEM_DEFAULT, 0},
+   {"name",        store_name,     ITEM(con_res.hdr.name), 0, ITEM_REQUIRED, 0},
+   {"description", store_str,      ITEM(con_res.hdr.desc), 0, 0, 0},
+   {"password",    store_password, ITEM(con_res.password), 0, ITEM_REQUIRED, 0},
+   {"requiressl",  store_yesno,    ITEM(con_res.require_ssl), 1, ITEM_DEFAULT, 0},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
+
+static struct res_items con_font_items[] = {
+   {"name",        store_name,     ITEM(con_font.hdr.name), 0, ITEM_REQUIRED, 0},
+   {"description", store_str,      ITEM(con_font.hdr.desc), 0, 0, 0},
+   {"font",        store_str,      ITEM(con_font.fontface), 0, 0, 0},
+   {"requiressl",  store_yesno,    ITEM(con_font.require_ssl), 1, ITEM_DEFAULT, 0},
+   {NULL, NULL, NULL, 0, 0, 0} 
+};
+
 
 /* 
  * This is the master resource definition.  
@@ -92,6 +100,7 @@ static struct res_items con_items[] = {
 struct s_res resources[] = {
    {"director",      dir_items,   R_DIRECTOR,  NULL},
    {"console",       con_items,   R_CONSOLE,   NULL},
+   {"consolefont",   con_font_items, R_CONSOLE_FONT,   NULL},
    {NULL,	     NULL,	  0,	       NULL}
 };
 
@@ -113,17 +122,20 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
    switch (type) {
    case R_DIRECTOR:
       printf("Director: name=%s address=%s DIRport=%d\n", reshdr->name, 
-	      res->res_dir.address, res->res_dir.DIRport);
+	      res->dir_res.address, res->dir_res.DIRport);
       break;
    case R_CONSOLE:
-      printf("Console: name=%s font face=%s\n", 
-	     reshdr->name, NPRT(res->con_dir.fontface));
+      printf("Console: name=%s\n", reshdr->name);
+      break;
+   case R_CONSOLE_FONT:
+      printf("ConsoleFont: name=%s font face=%s\n", 
+	     reshdr->name, NPRT(res->con_font.fontface));
       break;
    default:
       printf("Unknown resource type %d\n", type);
    }
-   if (recurse && res->res_dir.hdr.next) {
-      dump_resource(type, res->res_dir.hdr.next, sendit, sock);
+   if (recurse && res->dir_res.hdr.next) {
+      dump_resource(type, res->dir_res.hdr.next, sendit, sock);
    }
 }
 
@@ -146,23 +158,28 @@ void free_resource(int type)
       return;
 
    /* common stuff -- free the resource name */
-   nres = (RES *)res->res_dir.hdr.next;
-   if (res->res_dir.hdr.name) {
-      free(res->res_dir.hdr.name);
+   nres = (RES *)res->dir_res.hdr.next;
+   if (res->dir_res.hdr.name) {
+      free(res->dir_res.hdr.name);
    }
-   if (res->res_dir.hdr.desc) {
-      free(res->res_dir.hdr.desc);
+   if (res->dir_res.hdr.desc) {
+      free(res->dir_res.hdr.desc);
    }
 
    switch (type) {
    case R_DIRECTOR:
-      if (res->res_dir.address) {
-	 free(res->res_dir.address);
+      if (res->dir_res.address) {
+	 free(res->dir_res.address);
       }
       break;
    case R_CONSOLE:
-      if (res->con_dir.fontface) {
-	 free(res->con_dir.fontface);
+      if (res->con_res.password) {
+	 free(res->con_res.password);
+      }
+      break;
+   case R_CONSOLE_FONT:
+      if (res->con_font.fontface) {
+	 free(res->con_font.fontface);
       }
       break;
    default:
@@ -192,7 +209,7 @@ void save_resource(int type, struct res_items *items, int pass)
     */
    for (i=0; items[i].name; i++) {
       if (items[i].flags & ITEM_REQUIRED) {
-	    if (!bit_is_set(i, res_all.res_dir.hdr.item_present)) {  
+	    if (!bit_is_set(i, res_all.dir_res.hdr.item_present)) {  
                Emsg2(M_ABORT, 0, "%s item is required in %s resource, but not found.\n",
 		 items[i].name, resources[rindex]);
 	     }
@@ -211,6 +228,7 @@ void save_resource(int type, struct res_items *items, int pass)
 	 break;
 
       case R_CONSOLE:
+      case R_CONSOLE_FONT:
 	 break;
 
       default:
@@ -221,13 +239,13 @@ void save_resource(int type, struct res_items *items, int pass)
       /* Note, the resoure name was already saved during pass 1,
        * so here, we can just release it.
        */
-      if (res_all.res_dir.hdr.name) {
-	 free(res_all.res_dir.hdr.name);
-	 res_all.res_dir.hdr.name = NULL;
+      if (res_all.dir_res.hdr.name) {
+	 free(res_all.dir_res.hdr.name);
+	 res_all.dir_res.hdr.name = NULL;
       }
-      if (res_all.res_dir.hdr.desc) {
-	 free(res_all.res_dir.hdr.desc);
-	 res_all.res_dir.hdr.desc = NULL;
+      if (res_all.dir_res.hdr.desc) {
+	 free(res_all.dir_res.hdr.desc);
+	 res_all.dir_res.hdr.desc = NULL;
       }
       return;
    }
@@ -236,6 +254,9 @@ void save_resource(int type, struct res_items *items, int pass)
    switch (type) {
    case R_DIRECTOR:
       size = sizeof(DIRRES);
+      break;
+   case R_CONSOLE_FONT:
+      size = sizeof(CONFONTRES);
       break;
    case R_CONSOLE:
       size = sizeof(CONRES);
@@ -255,15 +276,15 @@ void save_resource(int type, struct res_items *items, int pass)
 	 RES *next;
 	 /* Add new res to end of chain */
 	 for (next=resources[rindex].res_head; next->next; next=next->next) {
-	    if (strcmp(next->name, res->res_dir.hdr.name) == 0) {
+	    if (strcmp(next->name, res->dir_res.hdr.name) == 0) {
 	       Emsg2(M_ERROR_TERM, 0,
                   _("Attempt to define second %s resource named \"%s\" is not permitted.\n"),
-		  resources[rindex].name, res->res_dir.hdr.name);
+		  resources[rindex].name, res->dir_res.hdr.name);
 	    }
 	 }
 	 next->next = (RES *)res;
          Dmsg2(90, "Inserting %s res: %s\n", res_to_str(type),
-	       res->res_dir.hdr.name);
+	       res->dir_res.hdr.name);
       }
    }
 }
