@@ -1559,30 +1559,37 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/cats/Makefile \
 	   src/cats/make_catalog_backup \
 	   src/cats/delete_catalog_backup \
-	   src/cats/make_postgresql_tables \
-	   src/cats/drop_postgresql_tables \
 	   src/cats/create_postgresql_database \
+	   src/cats/update_postgresql_tables \
+	   src/cats/make_postgresql_tables \
 	   src/cats/grant_postgresql_privileges \
-	   src/cats/make_mysql_tables \
-	   src/cats/drop_mysql_tables \
-	   src/cats/update_mysql_tables \
+	   src/cats/drop_postgresql_tables \
+	   src/cats/drop_postgresql_database \
 	   src/cats/create_mysql_database \
+	   src/cats/update_mysql_tables \
+	   src/cats/make_mysql_tables \
 	   src/cats/grant_mysql_privileges \
-	   src/cats/make_sqlite_tables \
-	   src/cats/drop_sqlite_tables \
-	   src/cats/update_sqlite_tables \
+	   src/cats/drop_mysql_tables \
+	   src/cats/drop_mysql_database \
 	   src/cats/create_sqlite_database \
+	   src/cats/update_sqlite_tables \
+	   src/cats/make_sqlite_tables \
 	   src/cats/grant_sqlite_privileges \
+	   src/cats/drop_sqlite_tables \
+	   src/cats/drop_sqlite_database \
 	   src/cats/sqlite \
 	   src/cats/mysql \
 	   src/cats/create_bdb_database \
+	   src/cats/update_bdb_tables \
 	   src/cats/make_bdb_tables \
+	   src/cats/grant_bdb_privileges \
 	   src/cats/drop_bdb_tables \
+	   src/cats/drop_bdb_database \
 	   src/cats/create_bacula_database \
+	   src/cats/update_bacula_tables \
 	   src/cats/make_bacula_tables \
 	   src/cats/drop_bacula_tables \
-	   src/cats/update_bacula_tables \
-	   src/cats/grant_bacula_privileges \
+	   src/cats/drop_bacula_database \
 	   src/findlib/Makefile \
 	   src/tools/Makefile \
 	   $PFILES ],  
@@ -1593,25 +1600,25 @@ cd scripts
 chmod 755 startmysql stopmysql bacula startit stopit btraceback mtx-changer
 chmod 755 bconsole gconsole mtx-changer
 cd ..
-chmod 755 src/cats/make_mysql_tables src/cats/drop_mysql_tables
-chmod 755 src/cats/make_postgresql_tables src/cats/drop_postgresql_tables
-chmod 755 src/cats/make_test_tables src/cats/drop_test_tables
-chmod 755 src/cats/create_postgresql_database
-chmod 755 src/cats/create_mysql_database 
+
+chmod 755 create_bacula_database      update_bacula_tables     make_bacula_tables
+chmod 755 grant_bacula_privileges     drop_bacula_tables       drop_bacula_database
+
+chmod 755 create_bdb_database         update_bdb_tables        make_bdb_tables
+chmod 755 grant_bdb_privileges        drop_bdb_tables          drop_bdb_database
+
+chmod 755 create_mysql_database       update_mysql_tables      make_mysql_tables
+chmod 755 grant_mysql_privileges      drop_mysql_tables        drop_mysql_database
+
+chmod 755 create_postgresql_database  update_postgresql_tables make_postgresql_tables
+chmod 755 grant_postgresql_privileges drop_postgresql_tables   drop_postgresql_database
+
+chmod 755 create_sqlite_database       update_sqlite_tables    make_sqlite_tables
+chmod 755 grant_sqlite_privileges      drop_sqlite_tables      drop_sqlite_database
+
 chmod 755 src/cats/make_catalog_backup src/cats/delete_catalog_backup
-chmod 755 src/cats/grant_postgresql_privileges
-chmod 755 src/cats/grant_mysql_privileges
-chmod 755 src/cats/make_sqlite_tables src/cats/drop_sqlite_tables 
-chmod 755 src/cats/update_sqlite_tables
-chmod 755 src/cats/make_bacula_tables src/cats/drop_bacula_tables 
-chmod 755 src/cats/update_mysql_tables
-chmod 755 src/cats/update_bacula_tables src/cats/update_mysql_tables
-chmod 755 src/cats/create_bacula_database
-chmod 755 src/cats/grant_bacula_privileges
-chmod 755 src/cats/create_sqlite_database
 chmod 755 src/cats/sqlite
-chmod 755 src/cats/make_bdb_tables src/cats/drop_bdb_tables 
-chmod 755 src/cats/create_bdb_database
+chmod 755 src/cats/mysql
 
 if test "x$ac_cv_sys_largefile_CFLAGS" != "xno" ; then
    largefile_support="yes"
