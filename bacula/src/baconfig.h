@@ -379,8 +379,10 @@ extern int thr_setconcurrency(int);
 #define S_ISWIN32 020000
 #endif
 
-/* Replace codes needed in both file routines and non-file routines */
-/* Job replace codes -- in "replace" */
+/*
+ * Replace codes needed in both file routines and non-file routines
+ * Job replace codes -- in "replace"   
+ */
 #define REPLACE_ALWAYS   'a'
 #define REPLACE_IFNEWER  'w'
 #define REPLACE_NEVER    'n'

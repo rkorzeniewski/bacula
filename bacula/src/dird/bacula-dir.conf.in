@@ -77,7 +77,10 @@ FileSet {
 #
 #    @file-name
 #
-#  Note: / backs up everything
+#  Note: / backs up everything on the root partition.
+#    if you have other partitons such as /usr or /home
+#    you will probably want to add them too.
+#
 
   /
 

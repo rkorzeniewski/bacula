@@ -76,14 +76,14 @@
 #define FT_FIFO      17               /* Raw fifo device */
 
 /* Options saved in "flag" of ff packet */
-#define FO_MD5          0x01          /* Do MD5 checksum */
-#define FO_GZIP         0x02          /* Do Zlib compression */
-#define FO_NO_RECURSION 0x04          /* no recursion in directories */
-#define FO_MULTIFS      0x08          /* multiple file systems */
-#define FO_SPARSE       0x10          /* do sparse file checking */
-#define FO_IF_NEWER     0x20          /* replace if newer */
-#define FO_NOREPLACE    0x40          /* never replace */
-#define FO_READFIFO     0x80          /* read data from fifo */
+#define FO_MD5          0x001         /* Do MD5 checksum */
+#define FO_GZIP         0x002         /* Do Zlib compression */
+#define FO_NO_RECURSION 0x004         /* no recursion in directories */
+#define FO_MULTIFS      0x008         /* multiple file systems */
+#define FO_SPARSE       0x010         /* do sparse file checking */
+#define FO_IF_NEWER     0x020         /* replace if newer */
+#define FO_NOREPLACE    0x040         /* never replace */
+#define FO_READFIFO     0x080         /* read data from fifo */
 
 /*
  * Options saved in "options" of include list
@@ -100,7 +100,6 @@
 #define OPT_replace_if_newer  0x20    /* replace file if newer */
 #define OPT_never_replace     0x40    /* never replace */
 #define OPT_read_fifo         0x80    /* read data from fifo (named pipe) */
-
 
 
 struct s_included_file {

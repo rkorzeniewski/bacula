@@ -178,6 +178,7 @@ static struct res_items job_items[] = {
    {"bootstrap",store_dir,     ITEM(res_job.RestoreBootstrap), 0, 0, 0},
    {"maxruntime", store_time,  ITEM(res_job.MaxRunTime), 0, 0, 0},
    {"maxstartdelay", store_time,ITEM(res_job.MaxStartDelay), 0, 0, 0},
+   {"prefixlinks", store_yesno, ITEM(res_job.PrefixLinks), 1, ITEM_DEFAULT, 0},
    {"prunejobs",   store_yesno, ITEM(res_job.PruneJobs), 1, ITEM_DEFAULT, 0},
    {"prunefiles",  store_yesno, ITEM(res_job.PruneFiles), 1, ITEM_DEFAULT, 0},
    {"prunevolumes", store_yesno, ITEM(res_job.PruneVolumes), 1, ITEM_DEFAULT, 0},
@@ -1016,7 +1017,7 @@ static void store_replace(LEX *lc, struct res_items *item, int index, int pass)
    /* Scan Replacement options */
    for (i=0; ReplaceOptions[i].name; i++) {
       if (strcasecmp(lc->str, ReplaceOptions[i].name) == 0) {
-	  ((JOB *)(item->value))->replace = ReplaceOptions[i].token;
+	 ((JOB *)(item->value))->replace = ReplaceOptions[i].token;
 	 i = 0;
 	 break;
       }

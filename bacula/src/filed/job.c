@@ -87,31 +87,31 @@ static struct s_cmds cmds[] = {
 };
 
 /* Commands received from director that need scanning */
-static char jobcmd[]     = "JobId=%d Job=%127s SDid=%d SDtime=%d Authorization=%100s";
-static char storaddr[]   = "storage address=%s port=%d\n";
-static char sessioncmd[] = "session %s %ld %ld %ld %ld %ld %ld\n";
-static char restorecmd[] = "restore replace=%c where=%s\n";
+static char jobcmd[]      = "JobId=%d Job=%127s SDid=%d SDtime=%d Authorization=%100s";
+static char storaddr[]    = "storage address=%s port=%d\n";
+static char sessioncmd[]  = "session %s %ld %ld %ld %ld %ld %ld\n";
+static char restorecmd[]  = "restore replace=%c where=%s\n";
 static char restorecmd1[] = "restore replace=%c where=\n";
-static char verifycmd[]  = "verify level=%20s\n";
+static char verifycmd[]   = "verify level=%20s\n";
 
 /* Responses sent to Director */
-static char errmsg[]       = "2999 Invalid command\n";
-static char no_auth[]      = "2998 No Authorization\n";
-static char OKinc[]        = "2000 OK include\n";
-static char OKest[]        = "2000 OK estimate files=%ld bytes=%ld\n";
-static char OKexc[]        = "2000 OK exclude\n";
-static char OKlevel[]      = "2000 OK level\n";
-static char OKbackup[]     = "2000 OK backup\n";
-static char OKbootstrap[]  = "2000 OK bootstrap\n";
-static char OKverify[]     = "2000 OK verify\n";
-static char OKrestore[]    = "2000 OK restore\n";
-static char OKsession[]    = "2000 OK session\n";
-static char OKstore[]      = "2000 OK storage\n";
-static char OKjob[]        = "2000 OK Job " FDHOST "," DISTNAME "," DISTVER;
-static char OKsetdebug[]   = "2000 OK setdebug=%d\n";
-static char BADjob[]       = "2901 Bad Job\n";
-static char EndRestore[]   = "2800 End Job TermCode=%d JobFiles=%u JobBytes=%" lld "\n";
-static char EndBackup[]    = "2801 End Backup Job TermCode=%d JobFiles=%u ReadBytes=%" lld " JobBytes=%" lld "\n";
+static char errmsg[]      = "2999 Invalid command\n";
+static char no_auth[]     = "2998 No Authorization\n";
+static char OKinc[]       = "2000 OK include\n";
+static char OKest[]       = "2000 OK estimate files=%ld bytes=%ld\n";
+static char OKexc[]       = "2000 OK exclude\n";
+static char OKlevel[]     = "2000 OK level\n";
+static char OKbackup[]    = "2000 OK backup\n";
+static char OKbootstrap[] = "2000 OK bootstrap\n";
+static char OKverify[]    = "2000 OK verify\n";
+static char OKrestore[]   = "2000 OK restore\n";
+static char OKsession[]   = "2000 OK session\n";
+static char OKstore[]     = "2000 OK storage\n";
+static char OKjob[]       = "2000 OK Job " FDHOST "," DISTNAME "," DISTVER;
+static char OKsetdebug[]  = "2000 OK setdebug=%d\n";
+static char BADjob[]      = "2901 Bad Job\n";
+static char EndRestore[]  = "2800 End Job TermCode=%d JobFiles=%u JobBytes=%" lld "\n";
+static char EndBackup[]   = "2801 End Backup Job TermCode=%d JobFiles=%u ReadBytes=%" lld " JobBytes=%" lld "\n";
 
 /* Responses received from Storage Daemon */
 static char OK_end[]       = "3000 OK end\n";

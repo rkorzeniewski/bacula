@@ -234,7 +234,7 @@ void do_restore(JCR *jcr)
 	    }
 	    strcat(ofile, fn);	      /* copy rest of name */
 	    /* Fixup link name */
-	    if (type == FT_LNK || type == FT_LNKSAVED) {
+	    if (type == FT_LNKSAVED || (type == FT_LNK && jcr->prefix_links)) {
                if (lp[0] == '/') {      /* if absolute path */
 		  strcpy(lname, jcr->where);
 	       }       

@@ -4,8 +4,7 @@
  *
  *     Kern Sibbald, November MM
  *
- *    This routine is run as a separate thread.  There may be more
- *    work to be done to make it totally reentrant!!!!
+ *    This routine is run as a separate thread.  
  * 
  * Current implementation is Catalog verification only (i.e. no
  *  verification versus tape).

@@ -160,6 +160,7 @@ struct s_jcr {
    int32_t compress_buf_size;         /* Length of compression buffer */
    POOLMEM *where;                    /* Root where to restore */
    int replace;                       /* Replace options */
+   int prefix_links;                  /* Prefix links with Where path */
    int buf_size;                      /* length of buffer */
    void *ff;                          /* Find Files packet */
    char stored_addr[MAX_NAME_LENGTH]; /* storage daemon address */
