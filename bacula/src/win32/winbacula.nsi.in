@@ -86,7 +86,7 @@ Section "Bacula File Service" SecService
   CreateDirectory "c:\tmp"
   ; Put files there
   File baculafd\Release\bacula-fd.exe
-  File pthreads\pthreadVCE.dll
+  File ..\..\..\depkgs-win32\pthreads\pthreadVCE.dll
   File License.txt
   IfFileExists "$INSTDIR\bin\bacula-fd.conf" newconf 
   File bacula-fd.conf

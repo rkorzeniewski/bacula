@@ -1,11 +1,11 @@
 # Microsoft Developer Studio Generated Dependency File, included by baculafd.mak
 
 ..\lib\alist.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\lib\alist.c"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
@@ -16,6 +16,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -41,15 +42,17 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\alloc.cpp : \
@@ -57,11 +60,11 @@
 	
 
 ..\lib\attr.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\jcr.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.c"\
@@ -73,6 +76,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -98,29 +102,31 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\findlib\attribs.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
 	"..\..\findlib\attribs.c"\
 	"..\..\findlib\bfile.h"\
 	"..\..\findlib\find.h"\
 	"..\..\findlib\protos.h"\
 	"..\..\findlib\save-cwd.h"\
 	"..\..\findlib\winapi.h"\
+	"..\..\host.h"\
 	"..\..\jcr.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
@@ -131,6 +137,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -157,26 +164,25 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\file.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\filed\authenticate.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
-	"..\..\..\..\depkgs-win32\zlib\zconf.h"\
-	"..\..\..\..\depkgs-win32\zlib\zlib.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
 	"..\..\filed\authenticate.c"\
 	"..\..\filed\filed.h"\
 	"..\..\filed\filed_conf.h"\
@@ -186,6 +192,7 @@
 	"..\..\findlib\protos.h"\
 	"..\..\findlib\save-cwd.h"\
 	"..\..\findlib\winapi.h"\
+	"..\..\host.h"\
 	"..\..\jcr.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
@@ -196,6 +203,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -222,26 +230,25 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\file.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\filed\backup.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
-	"..\..\..\..\depkgs-win32\zlib\zconf.h"\
-	"..\..\..\..\depkgs-win32\zlib\zlib.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
 	"..\..\filed\backup.c"\
 	"..\..\filed\filed.h"\
 	"..\..\filed\filed_conf.h"\
@@ -251,6 +258,7 @@
 	"..\..\findlib\protos.h"\
 	"..\..\findlib\save-cwd.h"\
 	"..\..\findlib\winapi.h"\
+	"..\..\host.h"\
 	"..\..\jcr.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
@@ -261,6 +269,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -287,24 +296,26 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\file.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\base64.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
 	"..\..\lib\base64.c"\
@@ -315,6 +326,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -340,29 +352,31 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\findlib\bfile.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
 	"..\..\findlib\bfile.c"\
 	"..\..\findlib\bfile.h"\
 	"..\..\findlib\find.h"\
 	"..\..\findlib\protos.h"\
 	"..\..\findlib\save-cwd.h"\
 	"..\..\findlib\winapi.h"\
+	"..\..\host.h"\
 	"..\..\jcr.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
@@ -373,6 +387,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -399,24 +414,26 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\file.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\bget_msg.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
 	"..\..\lib\bget_msg.c"\
@@ -427,6 +444,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -452,23 +470,25 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\bnet.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\jcr.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
@@ -480,6 +500,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -505,23 +526,25 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\bnet_server.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
 	"..\..\lib\bits.h"\
@@ -532,6 +555,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -544,6 +568,7 @@
 	"..\..\lib\serial.h"\
 	"..\..\lib\sha1.h"\
 	"..\..\lib\smartall.h"\
+	"..\..\lib\tcpd.h"\
 	"..\..\lib\timers.h"\
 	"..\..\lib\tree.h"\
 	"..\..\lib\var.h"\
@@ -557,23 +582,25 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\bshm.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
 	"..\..\lib\bits.h"\
@@ -584,6 +611,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -609,23 +637,25 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\bsys.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
 	"..\..\lib\bits.h"\
@@ -636,6 +666,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -656,28 +687,31 @@
 	"..\compat\alloca.h"\
 	"..\compat\arpa\inet.h"\
 	"..\compat\compat.h"\
+	"..\compat\dirent.h"\
 	"..\compat\getopt.h"\
 	"..\compat\grp.h"\
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\btime.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
 	"..\..\lib\bits.h"\
@@ -688,6 +722,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -713,28 +748,30 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\compat\compat.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
 	"..\..\findlib\bfile.h"\
 	"..\..\findlib\find.h"\
 	"..\..\findlib\protos.h"\
 	"..\..\findlib\save-cwd.h"\
 	"..\..\findlib\winapi.h"\
+	"..\..\host.h"\
 	"..\..\jcr.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
@@ -745,6 +782,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -772,24 +810,26 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\file.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 "..\lib\cram-md5.cpp" : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
 	"..\..\lib\bits.h"\
@@ -800,6 +840,7 @@
 	"..\..\lib\cram-md5.c"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -825,23 +866,25 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\crc32.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
 	"..\..\lib\bits.h"\
@@ -852,6 +895,7 @@
 	"..\..\lib\crc32.c"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -877,29 +921,31 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\findlib\create_file.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
 	"..\..\findlib\bfile.h"\
 	"..\..\findlib\create_file.c"\
 	"..\..\findlib\find.h"\
 	"..\..\findlib\protos.h"\
 	"..\..\findlib\save-cwd.h"\
 	"..\..\findlib\winapi.h"\
+	"..\..\host.h"\
 	"..\..\jcr.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
@@ -910,6 +956,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -936,24 +983,26 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\file.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\daemon.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
 	"..\..\lib\bits.h"\
@@ -964,6 +1013,7 @@
 	"..\..\lib\daemon.c"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -989,23 +1039,25 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\dlist.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
 	"..\..\lib\bits.h"\
@@ -1016,6 +1068,7 @@
 	"..\..\lib\dlist.c"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -1041,23 +1094,25 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\edit.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
 	"..\..\lib\bits.h"\
@@ -1068,6 +1123,7 @@
 	"..\..\lib\dlist.h"\
 	"..\..\lib\edit.c"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -1093,29 +1149,31 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\findlib\enable_priv.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
 	"..\..\findlib\bfile.h"\
 	"..\..\findlib\enable_priv.c"\
 	"..\..\findlib\find.h"\
 	"..\..\findlib\protos.h"\
 	"..\..\findlib\save-cwd.h"\
 	"..\..\findlib\winapi.h"\
+	"..\..\host.h"\
 	"..\..\jcr.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
@@ -1126,6 +1184,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -1152,26 +1211,25 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\file.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\filed\estimate.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
-	"..\..\..\..\depkgs-win32\zlib\zconf.h"\
-	"..\..\..\..\depkgs-win32\zlib\zlib.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
 	"..\..\filed\estimate.c"\
 	"..\..\filed\filed.h"\
 	"..\..\filed\filed_conf.h"\
@@ -1181,6 +1239,7 @@
 	"..\..\findlib\protos.h"\
 	"..\..\findlib\save-cwd.h"\
 	"..\..\findlib\winapi.h"\
+	"..\..\host.h"\
 	"..\..\jcr.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
@@ -1191,6 +1250,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -1217,26 +1277,25 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\file.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\filed\filed.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
-	"..\..\..\..\depkgs-win32\zlib\zconf.h"\
-	"..\..\..\..\depkgs-win32\zlib\zlib.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
 	"..\..\filed\filed.c"\
 	"..\..\filed\filed.h"\
 	"..\..\filed\filed_conf.h"\
@@ -1246,6 +1305,7 @@
 	"..\..\findlib\protos.h"\
 	"..\..\findlib\save-cwd.h"\
 	"..\..\findlib\winapi.h"\
+	"..\..\host.h"\
 	"..\..\jcr.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
@@ -1256,6 +1316,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -1282,26 +1343,25 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\file.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\filed\filed_conf.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
-	"..\..\..\..\depkgs-win32\zlib\zconf.h"\
-	"..\..\..\..\depkgs-win32\zlib\zlib.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
 	"..\..\filed\filed.h"\
 	"..\..\filed\filed_conf.c"\
 	"..\..\filed\filed_conf.h"\
@@ -1311,6 +1371,7 @@
 	"..\..\findlib\protos.h"\
 	"..\..\findlib\save-cwd.h"\
 	"..\..\findlib\winapi.h"\
+	"..\..\host.h"\
 	"..\..\jcr.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
@@ -1321,6 +1382,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -1347,30 +1409,32 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\file.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\findlib\find.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
 	"..\..\findlib\bfile.h"\
 	"..\..\findlib\find.c"\
 	"..\..\findlib\find.h"\
 	"..\..\findlib\protos.h"\
 	"..\..\findlib\save-cwd.h"\
 	"..\..\findlib\winapi.h"\
+	"..\..\host.h"\
 	"..\..\jcr.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
@@ -1381,6 +1445,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -1407,30 +1472,32 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\file.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\findlib\find_one.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
 	"..\..\findlib\bfile.h"\
 	"..\..\findlib\find.h"\
 	"..\..\findlib\find_one.c"\
 	"..\..\findlib\protos.h"\
 	"..\..\findlib\save-cwd.h"\
 	"..\..\findlib\winapi.h"\
+	"..\..\host.h"\
 	"..\..\jcr.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
@@ -1441,6 +1508,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -1467,24 +1535,26 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\file.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\fnmatch.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
 	"..\..\lib\bits.h"\
@@ -1495,6 +1565,7 @@
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.c"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -1520,29 +1591,29 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\compat\getopt.c : \
+	"..\compat\alloca.h"\
 	"..\compat\getopt.h"\
 	
 
 ..\filed\heartbeat.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
-	"..\..\..\..\depkgs-win32\zlib\zconf.h"\
-	"..\..\..\..\depkgs-win32\zlib\zlib.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
 	"..\..\filed\filed.h"\
 	"..\..\filed\filed_conf.h"\
 	"..\..\filed\heartbeat.c"\
@@ -1552,6 +1623,7 @@
 	"..\..\findlib\protos.h"\
 	"..\..\findlib\save-cwd.h"\
 	"..\..\findlib\winapi.h"\
+	"..\..\host.h"\
 	"..\..\jcr.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
@@ -1562,6 +1634,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -1588,24 +1661,26 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\file.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\hmac.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
 	"..\..\lib\bits.h"\
@@ -1615,6 +1690,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\hmac.c"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
@@ -1641,23 +1717,25 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\htable.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
 	"..\..\lib\bits.h"\
@@ -1667,6 +1745,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\htable.c"\
 	"..\..\lib\htable.h"\
 	"..\..\lib\lex.h"\
@@ -1694,23 +1773,25 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\idcache.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
 	"..\..\lib\bits.h"\
@@ -1720,6 +1801,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\idcache.c"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
@@ -1746,23 +1828,25 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\jcr.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\jcr.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
@@ -1773,6 +1857,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\jcr.c"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
@@ -1799,25 +1884,24 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\filed\job.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
-	"..\..\..\..\depkgs-win32\zlib\zconf.h"\
-	"..\..\..\..\depkgs-win32\zlib\zlib.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
 	"..\..\filed\filed.h"\
 	"..\..\filed\filed_conf.h"\
 	"..\..\filed\job.c"\
@@ -1827,6 +1911,7 @@
 	"..\..\findlib\protos.h"\
 	"..\..\findlib\save-cwd.h"\
 	"..\..\findlib\winapi.h"\
+	"..\..\host.h"\
 	"..\..\jcr.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
@@ -1837,6 +1922,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -1863,24 +1949,26 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\file.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\lex.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
 	"..\..\lib\bits.h"\
@@ -1890,6 +1978,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.c"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
@@ -1916,25 +2005,27 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\findlib\makepath.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
 	"..\..\findlib\makepath.c"\
 	"..\..\findlib\save-cwd.h"\
+	"..\..\host.h"\
 	"..\..\jcr.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
@@ -1945,6 +2036,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -1970,29 +2062,31 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\findlib\match.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
 	"..\..\findlib\bfile.h"\
 	"..\..\findlib\find.h"\
 	"..\..\findlib\match.c"\
 	"..\..\findlib\protos.h"\
 	"..\..\findlib\save-cwd.h"\
 	"..\..\findlib\winapi.h"\
+	"..\..\host.h"\
 	"..\..\jcr.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
@@ -2003,6 +2097,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -2029,24 +2124,26 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\file.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\md5.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
 	"..\..\lib\bits.h"\
@@ -2056,6 +2153,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.c"\
@@ -2082,23 +2180,25 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\mem_pool.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
 	"..\..\lib\bits.h"\
@@ -2108,6 +2208,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -2134,23 +2235,25 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\message.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\jcr.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
@@ -2161,6 +2264,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -2187,23 +2291,25 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\parse_conf.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
 	"..\..\lib\bits.h"\
@@ -2213,6 +2319,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -2239,29 +2346,31 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\compat\print.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
 	"..\compat\compat.h"\
 	"..\compat\getopt.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\queue.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
 	"..\..\lib\bits.h"\
@@ -2271,6 +2380,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -2297,25 +2407,24 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\filed\restore.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
-	"..\..\..\..\depkgs-win32\zlib\zconf.h"\
-	"..\..\..\..\depkgs-win32\zlib\zlib.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
 	"..\..\filed\filed.h"\
 	"..\..\filed\filed_conf.h"\
 	"..\..\filed\protos.h"\
@@ -2325,6 +2434,7 @@
 	"..\..\findlib\protos.h"\
 	"..\..\findlib\save-cwd.h"\
 	"..\..\findlib\winapi.h"\
+	"..\..\host.h"\
 	"..\..\jcr.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
@@ -2335,6 +2445,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -2361,24 +2472,26 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\file.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\rwlock.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
 	"..\..\lib\bits.h"\
@@ -2388,6 +2501,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -2414,25 +2528,27 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 "..\findlib\save-cwd.cpp" : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
 	"..\..\findlib\save-cwd.c"\
 	"..\..\findlib\save-cwd.h"\
+	"..\..\host.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
 	"..\..\lib\bits.h"\
@@ -2442,6 +2558,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -2467,28 +2584,30 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\scan.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
 	"..\..\findlib\bfile.h"\
 	"..\..\findlib\find.h"\
 	"..\..\findlib\protos.h"\
 	"..\..\findlib\save-cwd.h"\
 	"..\..\findlib\winapi.h"\
+	"..\..\host.h"\
 	"..\..\jcr.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
@@ -2499,6 +2618,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -2526,24 +2646,26 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\file.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\semlock.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
 	"..\..\lib\bits.h"\
@@ -2553,6 +2675,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -2579,23 +2702,25 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\serial.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
 	"..\..\lib\bits.h"\
@@ -2605,6 +2730,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -2631,23 +2757,25 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\sha1.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
 	"..\..\lib\bits.h"\
@@ -2657,6 +2785,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -2683,27 +2812,25 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\signal.cpp : \
-	"..\..\lib\signal.c"\
-	
-
-..\lib\smartall.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
 	"..\..\lib\bits.h"\
@@ -2713,6 +2840,62 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
+	"..\..\lib\lex.h"\
+	"..\..\lib\lib.h"\
+	"..\..\lib\md5.h"\
+	"..\..\lib\mem_pool.h"\
+	"..\..\lib\message.h"\
+	"..\..\lib\parse_conf.h"\
+	"..\..\lib\protos.h"\
+	"..\..\lib\rwlock.h"\
+	"..\..\lib\semlock.h"\
+	"..\..\lib\serial.h"\
+	"..\..\lib\sha1.h"\
+	"..\..\lib\signal.c"\
+	"..\..\lib\smartall.h"\
+	"..\..\lib\timers.h"\
+	"..\..\lib\tree.h"\
+	"..\..\lib\var.h"\
+	"..\..\lib\watchdog.h"\
+	"..\..\lib\workq.h"\
+	"..\compat\alloca.h"\
+	"..\compat\arpa\inet.h"\
+	"..\compat\compat.h"\
+	"..\compat\getopt.h"\
+	"..\compat\grp.h"\
+	"..\compat\netdb.h"\
+	"..\compat\netinet\in.h"\
+	"..\compat\pwd.h"\
+	"..\compat\stdint.h"\
+	"..\compat\strings.h"\
+	"..\compat\sys\ioctl.h"\
+	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
+	"..\compat\sys\wait.h"\
+	"..\compat\syslog.h"\
+	"..\compat\unistd.h"\
+	"..\compat\winconfig.h"\
+	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
+	
+
+..\lib\smartall.cpp : \
+	"..\..\baconfig.h"\
+	"..\..\bacula.h"\
+	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
+	"..\..\lib\alist.h"\
+	"..\..\lib\attr.h"\
+	"..\..\lib\bits.h"\
+	"..\..\lib\bpipe.h"\
+	"..\..\lib\bshm.h"\
+	"..\..\lib\bsock.h"\
+	"..\..\lib\btime.h"\
+	"..\..\lib\dlist.h"\
+	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -2739,25 +2922,24 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\filed\status.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
-	"..\..\..\..\depkgs-win32\zlib\zconf.h"\
-	"..\..\..\..\depkgs-win32\zlib\zlib.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
 	"..\..\filed\filed.h"\
 	"..\..\filed\filed_conf.h"\
 	"..\..\filed\protos.h"\
@@ -2767,6 +2949,7 @@
 	"..\..\findlib\protos.h"\
 	"..\..\findlib\save-cwd.h"\
 	"..\..\findlib\winapi.h"\
+	"..\..\host.h"\
 	"..\..\jcr.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
@@ -2777,6 +2960,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -2803,29 +2987,30 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\file.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 .\StdAfx.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
 	".\StdAfx.h"\
 	
 
 ..\lib\timers.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\jcr.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
@@ -2836,6 +3021,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -2862,28 +3048,30 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\tree.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
 	"..\..\findlib\bfile.h"\
 	"..\..\findlib\find.h"\
 	"..\..\findlib\protos.h"\
 	"..\..\findlib\save-cwd.h"\
 	"..\..\findlib\winapi.h"\
+	"..\..\host.h"\
 	"..\..\jcr.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
@@ -2894,6 +3082,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -2921,29 +3110,31 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\file.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\util.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
 	"..\..\findlib\bfile.h"\
 	"..\..\findlib\find.h"\
 	"..\..\findlib\protos.h"\
 	"..\..\findlib\save-cwd.h"\
 	"..\..\findlib\winapi.h"\
+	"..\..\host.h"\
 	"..\..\jcr.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
@@ -2954,6 +3145,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -2981,30 +3173,80 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\file.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\var.cpp : \
-	"..\..\lib\var.c"\
-	
-
-..\filed\verify.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
-	"..\..\..\..\depkgs-win32\zlib\zconf.h"\
-	"..\..\..\..\depkgs-win32\zlib\zlib.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
+	"..\..\lib\alist.h"\
+	"..\..\lib\attr.h"\
+	"..\..\lib\bits.h"\
+	"..\..\lib\bpipe.h"\
+	"..\..\lib\bshm.h"\
+	"..\..\lib\bsock.h"\
+	"..\..\lib\btime.h"\
+	"..\..\lib\dlist.h"\
+	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
+	"..\..\lib\lex.h"\
+	"..\..\lib\lib.h"\
+	"..\..\lib\md5.h"\
+	"..\..\lib\mem_pool.h"\
+	"..\..\lib\message.h"\
+	"..\..\lib\parse_conf.h"\
+	"..\..\lib\protos.h"\
+	"..\..\lib\rwlock.h"\
+	"..\..\lib\semlock.h"\
+	"..\..\lib\serial.h"\
+	"..\..\lib\sha1.h"\
+	"..\..\lib\smartall.h"\
+	"..\..\lib\timers.h"\
+	"..\..\lib\tree.h"\
+	"..\..\lib\var.c"\
+	"..\..\lib\var.h"\
+	"..\..\lib\watchdog.h"\
+	"..\..\lib\workq.h"\
+	"..\compat\alloca.h"\
+	"..\compat\arpa\inet.h"\
+	"..\compat\compat.h"\
+	"..\compat\getopt.h"\
+	"..\compat\grp.h"\
+	"..\compat\netdb.h"\
+	"..\compat\netinet\in.h"\
+	"..\compat\pwd.h"\
+	"..\compat\stdint.h"\
+	"..\compat\strings.h"\
+	"..\compat\sys\ioctl.h"\
+	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
+	"..\compat\sys\wait.h"\
+	"..\compat\syslog.h"\
+	"..\compat\unistd.h"\
+	"..\compat\winconfig.h"\
+	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
+	
+
+..\filed\verify.cpp : \
+	"..\..\baconfig.h"\
+	"..\..\bacula.h"\
+	"..\..\bc_types.h"\
+	"..\..\config.h"\
 	"..\..\filed\filed.h"\
 	"..\..\filed\filed_conf.h"\
 	"..\..\filed\protos.h"\
@@ -3014,6 +3256,7 @@
 	"..\..\findlib\protos.h"\
 	"..\..\findlib\save-cwd.h"\
 	"..\..\findlib\winapi.h"\
+	"..\..\host.h"\
 	"..\..\jcr.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
@@ -3024,6 +3267,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -3050,26 +3294,25 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\file.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\filed\verify_vol.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
-	"..\..\..\..\depkgs-win32\zlib\zconf.h"\
-	"..\..\..\..\depkgs-win32\zlib\zlib.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
 	"..\..\filed\filed.h"\
 	"..\..\filed\filed_conf.h"\
 	"..\..\filed\protos.h"\
@@ -3079,6 +3322,7 @@
 	"..\..\findlib\protos.h"\
 	"..\..\findlib\save-cwd.h"\
 	"..\..\findlib\winapi.h"\
+	"..\..\host.h"\
 	"..\..\jcr.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
@@ -3089,6 +3333,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -3115,24 +3360,26 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\file.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\lib\watchdog.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\jcr.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
@@ -3143,6 +3390,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -3169,35 +3417,36 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\..\filed\win32\winabout.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
 	"..\..\filed\win32\winabout.h"\
 	"..\..\filed\win32\winbacula.h"\
 	
 
 ..\findlib\winapi.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
 	"..\..\findlib\bfile.h"\
 	"..\..\findlib\find.h"\
 	"..\..\findlib\protos.h"\
 	"..\..\findlib\save-cwd.h"\
 	"..\..\findlib\winapi.c"\
 	"..\..\findlib\winapi.h"\
+	"..\..\host.h"\
 	"..\..\jcr.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
@@ -3208,6 +3457,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -3234,27 +3484,26 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\file.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\..\filed\win32\winevents.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
 	"..\..\filed\win32\winbacula.h"\
 	"..\..\filed\win32\winevents.h"\
 	
 
 ..\..\filed\win32\winmain.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\filed\win32\winabout.h"\
 	"..\..\filed\win32\winbacula.h"\
 	"..\..\filed\win32\winevents.h"\
@@ -3264,12 +3513,11 @@
 	"..\..\findlib\winapi.h"\
 	"..\compat\compat.h"\
 	"..\compat\getopt.h"\
-	"..\compat\sched.h"\
 	"..\compat\unistd.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	
 
 ..\..\filed\win32\winservice.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
 	"..\..\filed\win32\winabout.h"\
 	"..\..\filed\win32\winbacula.h"\
 	"..\..\filed\win32\winevents.h"\
@@ -3279,13 +3527,11 @@
 	
 
 ..\..\filed\win32\winstat.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
 	"..\..\filed\win32\winbacula.h"\
 	"..\..\filed\win32\winstat.h"\
 	
 
 ..\..\filed\win32\wintray.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
 	"..\..\filed\win32\winabout.h"\
 	"..\..\filed\win32\winbacula.h"\
 	"..\..\filed\win32\winevents.h"\
@@ -3295,11 +3541,11 @@
 	
 
 ..\lib\workq.cpp : \
-	"..\..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
-	"..\..\..\..\depkgs-win32\pthreads\pthread.h"\
 	"..\..\baconfig.h"\
 	"..\..\bacula.h"\
 	"..\..\bc_types.h"\
+	"..\..\config.h"\
+	"..\..\host.h"\
 	"..\..\lib\alist.h"\
 	"..\..\lib\attr.h"\
 	"..\..\lib\bits.h"\
@@ -3309,6 +3555,7 @@
 	"..\..\lib\btime.h"\
 	"..\..\lib\dlist.h"\
 	"..\..\lib\fnmatch.h"\
+	"..\..\lib\getopt.h"\
 	"..\..\lib\lex.h"\
 	"..\..\lib\lib.h"\
 	"..\..\lib\md5.h"\
@@ -3335,13 +3582,15 @@
 	"..\compat\netdb.h"\
 	"..\compat\netinet\in.h"\
 	"..\compat\pwd.h"\
-	"..\compat\sched.h"\
+	"..\compat\stdint.h"\
 	"..\compat\strings.h"\
 	"..\compat\sys\ioctl.h"\
 	"..\compat\sys\socket.h"\
+	"..\compat\sys\time.h"\
 	"..\compat\sys\wait.h"\
 	"..\compat\syslog.h"\
 	"..\compat\unistd.h"\
 	"..\compat\winconfig.h"\
 	"..\compat\winhost.h"\
+	{$(INCLUDE)}"basetsd.h"\
 	

@@ -64,8 +64,11 @@ Job {
 # Standard Restore template, to be changed by Console program
 Job {
   Name = "RestoreFiles"
-  JobDefs = "DefaultJob"
   Type = Restore
+  Client=@hostname@-fd                 
+  FileSet="Full Set"                  
+  Storage = File                      
+  Messages = Standard
   Where = /tmp/bacula-restores
 }
 

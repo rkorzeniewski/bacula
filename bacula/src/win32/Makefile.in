@@ -12,22 +12,17 @@ first_rule: all
 
 dummy:
 
-all:  zlib pthreads bacula installer
+all:  bacula installer
 
-zlib: dummy 
-	(cd zlib; env MAKEFLAGS= ${NMAKE} /f win32/Makefile.msc)
 
-pthreads: dummy
-	(cd pthreads; env MAKEFLAGS= ${NMAKE} VCE)
-
-bacula: zlib pthreads
+bacula:
 	(cd baculafd; env MAKEFLAGS= ${NMAKE} CFG="baculafd - Win32 Release" /f baculafd.mak)
 
 #
 # Quickie debug installation
 #
 install: bacula
-	cp -f pthreads/pthreadVCE.dll baculafd/Release
+	cp -f ../../../depkgs-win32/pthreads/pthreadVCE.dll baculafd/Release
 	cp -f bacula-fd.conf baculafd/Release
 	(cd baculafd/Release; ./bacula-fd.exe /kill)
 	sleep 2
@@ -43,11 +38,8 @@ winbacula.exe: bacula
 	${MAKENSIS} winbacula.nsi
 
 clean:
-	(cd zlib; env MAKEFLAGS= ${NMAKE} /f win32/Makefile.msc clean)
-	(cd pthreads; env MAKEFLAGS= ${NMAKE} clean)
 	(cd baculafd; make clean)
 
 distclean: clean
 	rm -rf baculafd/Release baculafd/Debug
-	rm -f pthreads/*.lib pthreads/*.dll pthreads/*.exe pthreads/*.exp
 	rm -f winbacula-*.exe

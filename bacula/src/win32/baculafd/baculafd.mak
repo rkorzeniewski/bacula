@@ -117,14 +117,14 @@ CLEAN :
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-CPP_PROJ=/nologo /MT /W3 /GX /O2 /I "../compat" /I "../.." /I "../pthreads" /I "../zlib" /I "." /D "NDEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "HAVE_WIN32" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MT /W3 /GX /O2 /I "../compat" /I "../.." /I "../../../../depkgs-win32/pthreads" /I "../../../../depkgs-win32/zlib" /I "." /D "NDEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "HAVE_WIN32" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 RSC_PROJ=/l 0x409 /fo"$(INTDIR)\winres.res" /d "NDEBUG" 
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\baculafd.bsc" 
 BSC32_SBRS= \
 	
 LINK32=link.exe
-LINK32_FLAGS=wsock32.lib pthreadVCE.lib zlib.lib /nologo /subsystem:windows /pdb:none /machine:I386 /nodefaultlib:"MSVCRT.lib" /out:"$(OUTDIR)\bacula-fd.exe" /libpath:"../pthreads" /libpath:"../zlib" 
+LINK32_FLAGS=wsock32.lib pthreadVCE.lib zlib.lib /nologo /subsystem:windows /pdb:none /machine:I386 /nodefaultlib:"MSVCRT.lib" /out:"$(OUTDIR)\bacula-fd.exe" /libpath:"../../../../depkgs-win32/pthreads" /libpath:"../../../../depkgs-win32/zlib" 
 LINK32_OBJS= \
 	"$(INTDIR)\alist.obj" \
 	"$(INTDIR)\alloc.obj" \
