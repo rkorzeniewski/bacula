@@ -94,19 +94,6 @@ class wxbRestorePanel : public wxbPanel
       long totfilemessages; /* When restoring, number of files to be restored */
       wxString jobid;
 
-      /* Parse a table in tableParser */
-      wxbTableParser* CreateAndWaitForParser(wxString cmd);
-
-      /* Run a command, and waits until result is fully received,
-       * if keepresults is true, returns a valid pointer to a wxbDataTokenizer
-       * containing the data. */
-      wxbDataTokenizer* WaitForEnd(wxString cmd, bool keepresults = false, bool linebyline = true);
-
-      /* Run a command, and waits until prompt result is fully received,
-       * if keepresults is true, returns a valid pointer to a wxbPromptParser
-       * containing the data. */
-      wxbPromptParser* WaitForPrompt(wxString cmd, bool keepresults = false);
-
       /* Run a dir command, and waits until result is fully received.
        * If recurse is true, update the children too. */
       void UpdateTreeItem(wxTreeItemId item, bool updatelist, bool recurse);

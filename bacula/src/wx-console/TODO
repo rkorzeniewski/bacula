@@ -18,6 +18,8 @@ wxbRestorePanel : disable controls when working or (better) queue events
 wxbMainFrame : When exiting using menu, a messagebox is shown to ask the
   user if he want to quit because the connection is lost.
 
+wxbUtils : add clients, jobs, filesets, pools... list
+
 [postponed to July:]
 
 wxbConfigFileEditor : create a more precise editor, with something like
@@ -29,9 +31,6 @@ wxbRestorePanel : Add a way to cancel restore when building tree
    (needs director modifications)
 
 wxbMainFrame : set focus to type control when clicking on console
-
-global : create a general class which keeps clients, jobs, 
-	filesets, pools... list, and with functions like WaitForEnd.
 
 wxbConfigPanel : Create a dialog for selecting dates and paths.
 

@@ -24,14 +24,48 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef WXBPANEL_H
-#define WXBPANEL_H
+#ifndef WXBUTILS_H
+#define WXBUTILS_H
 
 #include "wx/wxprec.h"
 
 #ifndef WX_PRECOMP
    #include "wx/wx.h"
 #endif
+
+class wxbTableParser;
+class wxbDataParser;
+class wxbDataTokenizer;
+class wxbPromptParser;
+
+/*
+ *  General functions
+ */
+class wxbUtils
+{
+   public:
+      /* Initialization */
+      static void Init();
+      
+      /* Reset state */
+      static void Reset();
+   
+      /* Parse a table in tableParser */
+      static wxbTableParser* CreateAndWaitForParser(wxString cmd);
+
+      /* Run a command, and waits until result is fully received,
+       * if keepresults is true, returns a valid pointer to a wxbDataTokenizer
+       * containing the data. */
+      static wxbDataTokenizer* WaitForEnd(wxString cmd, bool keepresults = false, bool linebyline = true);
+
+      /* Run a command, and waits until prompt result is fully received,
+       * if keepresults is true, returns a valid pointer to a wxbPromptParser
+       * containing the data. */
+      static wxbPromptParser* WaitForPrompt(wxString cmd, bool keepresults = false);
+
+   private:
+      static bool inited;
+};
 
 /*
  *  abstract class that can receive director information.
@@ -157,5 +191,4 @@ class wxbPromptParser: public wxbDataParser
       wxString questionStr;
 };
 
-#endif // WXBPANEL_H
-
+#endif // WXBUTILS_H

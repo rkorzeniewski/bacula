@@ -29,6 +29,90 @@
 
 #include "csprint.h"
 
+#include "wxbtableparser.h"
+
+
+bool wxbUtils::inited = false;
+
+/* Initialization */
+void wxbUtils::Init() {
+   inited = true;
+}
+
+/* Reset state */
+void wxbUtils::Reset() {
+   inited = false;
+}
+
+/* Parse a table in tableParser */
+wxbTableParser* wxbUtils::CreateAndWaitForParser(wxString cmd) {
+   wxbTableParser* tableParser = new wxbTableParser();
+
+   wxbMainFrame::GetInstance()->Send(cmd);
+
+   //time_t base = wxDateTime::Now().GetTicks();
+   while (!tableParser->hasFinished()) {
+      //innerThread->Yield();
+      wxTheApp->Yield(true);
+      ::wxUsleep(100);
+      //if (base+15 < wxDateTime::Now().GetTicks()) break;
+   }
+   return tableParser;
+}
+
+/* Run a command, and waits until prompt result is fully received,
+ * if keepresults is true, returns a valid pointer to a wxbPromptParser
+ * containing the data. */
+wxbPromptParser* wxbUtils::WaitForPrompt(wxString cmd, bool keepresults) {
+   wxbPromptParser* promptParser = new wxbPromptParser();
+   
+   wxbMainFrame::GetInstance()->Send(cmd);
+    
+   //time_t base = wxDateTime::Now().GetTicks();
+   while (!promptParser->hasFinished()) {
+      //innerThread->Yield();
+      wxTheApp->Yield(true);
+      ::wxUsleep(100);
+      //if (base+15 < wxDateTime::Now().GetTicks()) break;
+   }
+     
+   if (keepresults) {
+      return promptParser;
+   }
+   else {
+      delete promptParser;
+      return NULL;
+   }  
+}
+
+/* Run a command, and waits until result is fully received. */
+wxbDataTokenizer* wxbUtils::WaitForEnd(wxString cmd, bool keepresults, bool linebyline) {
+   wxbDataTokenizer* datatokenizer = new wxbDataTokenizer(linebyline);
+
+   wxbMainFrame::GetInstance()->Send(cmd);
+   
+   //wxbMainFrame::GetInstance()->Print("(<WFE)", CS_DEBUG);
+   
+   //time_t base = wxDateTime::Now().GetTicks();
+   while (!datatokenizer->hasFinished()) {
+      //innerThread->Yield();
+      wxTheApp->Yield(true);
+      ::wxUsleep(100);
+      //if (base+15 < wxDateTime::Now().GetTicks()) break;
+   }
+   
+   //wxbMainFrame::GetInstance()->Print("(>WFE)", CS_DEBUG);
+   
+   if (keepresults) {
+      return datatokenizer;
+   }
+   else {
+      delete datatokenizer;
+      return NULL;
+   }
+}
+
+
 /* Creates a new wxbDataParser, and register it in wxbMainFrame */
 wxbDataParser::wxbDataParser(bool lineanalysis) {
    wxbMainFrame::GetInstance()->Register(this);
@@ -63,7 +147,7 @@ bool wxbDataParser::Print(wxString str, int status) {
       }
       else {
          wxStringTokenizer tkz(str, "\n", 
-            wxTOKEN_RET_DELIMS | wxTOKEN_RET_EMPTY | wxTOKEN_RET_EMPTY_ALL);
+            (wxStringTokenizerMode)(wxTOKEN_RET_DELIMS | wxTOKEN_RET_EMPTY | wxTOKEN_RET_EMPTY_ALL));
    
          while ( tkz.HasMoreTokens() ) {
             buffer << tkz.GetNextToken();
