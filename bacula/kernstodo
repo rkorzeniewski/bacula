@@ -32,6 +32,10 @@ Testing to do: (painful)
 For 1.31 release:
 - Implement FileSet VolIndex.
 - Sort JobIds entered into recover tree.
+- The bsr for Dan's job has file indexes covering the whole range rather
+  than only the range contained on the volume.
+  Constrain FileIndex to be within range for Volume.
+- Fix Verify VolumeToCatalog to use BSRs -- it is broken.
 - Should Bacula make an Append tape as Purged when purging?
 - Test a second language e.g. french.
 - Start working on Base jobs.
@@ -40,10 +44,6 @@ For 1.31 release:
 - Unsaved Flag in Job record.
 - Base Flag in Job record.
 - Implement UnsavedFiles DB record.
-- The bsr for Dan's job has file indexes covering the whole range rather
-  than only the range contained on the volume.
-  Constrain FileIndex to be within range for Volume.
-- Fix Verify VolumeToCatalog to use BSRs -- it is broken.
 - Use switch() in backup.c and restore.c in FD instead of giant if statement.
 - Implement argc/argv for daemon command line scanning using table driven
   stuff below.
@@ -915,4 +915,3 @@ Done: (see kernsdone for more)
 - Bytes restored is wrong.
 - The "List last 20 Jobs run" doesnt work correctly in restore.
   It doesnt show the last 20 jobs , but some older ones.
-

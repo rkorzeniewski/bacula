@@ -152,14 +152,14 @@ db_find_last_jobid(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    db_lock(mdb);
    if (jr->Level == L_VERIFY_CATALOG) {
       Mmsg(&mdb->cmd, 
-"SELECT JobId FROM Job WHERE Type='%c' AND Level='%c' AND Name='%s' AND "
+"SELECT JobId FROM Job WHERE Type='V' AND Level='%c' AND Name='%s' AND "
 "ClientId=%u ORDER BY StartTime DESC LIMIT 1",
-	   JT_VERIFY, L_VERIFY_INIT, jr->Name, jr->ClientId);
+	   L_VERIFY_INIT, jr->Name, jr->ClientId);
    } else if (jr->Level == L_VERIFY_VOLUME_TO_CATALOG) {
       Mmsg(&mdb->cmd, 
-"SELECT JobId FROM Job WHERE Type='%c' AND "
-"ClientId=%u ORDER BY StartTime DESC LIMIT 1",
-	   JT_BACKUP, jr->ClientId);
+"SELECT JobId FROM Job WHERE Type='B' AND "
+"ClientId=%u ORDER BY StartTime DESC LIMIT 1", 
+	   jr->ClientId);
    } else {
       Mmsg1(&mdb->errmsg, _("Unknown Job level=%c\n"), jr->Level);
       db_unlock(mdb);

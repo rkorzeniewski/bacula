@@ -41,6 +41,14 @@ extern int find_recycled_volume(JCR *jcr, MEDIA_DBR *mr);
 /* backup.c */
 extern int wait_for_job_termination(JCR *jcr);
 
+/* bsr.c */
+RBSR *new_bsr();
+void free_bsr(RBSR *bsr);
+int complete_bsr(UAContext *ua, RBSR *bsr);
+int write_bsr_file(UAContext *ua, RBSR *bsr);
+void add_findex(RBSR *bsr, uint32_t JobId, int32_t findex);
+
+
 /* catreq.c */
 extern void catalog_request(JCR *jcr, BSOCK *bs, char *buf);
 extern void catalog_update(JCR *jcr, BSOCK *bs, char *buf);
@@ -142,6 +150,10 @@ int find_arg(UAContext *ua, char *keyword);
 int find_arg_with_value(UAContext *ua, char *keyword);
 int do_keyword_prompt(UAContext *ua, char *msg, char **list);
 int confirm_retention(UAContext *ua, utime_t *ret, char *msg);
+
+/* ua_tree.c */
+void user_select_files_from_tree(TREE_CTX *tree);
+int insert_tree_handler(void *ctx, int num_fields, char **row);
 
 /* ua_prune.c */
 int prune_files(UAContext *ua, CLIENT *client);

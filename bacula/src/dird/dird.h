@@ -39,6 +39,7 @@
 
 #include "jcr.h"
 
+#include "bsr.h"
 #include "ua.h"
 #include "protos.h"
 
