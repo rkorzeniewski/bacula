@@ -761,7 +761,7 @@ fi
 HAVE_BACULA=`grep %{daemon_group} %{group_file} 2>/dev/null`
 if [ -z $HAVE_BACULA ]; then
 	%{groupadd} -r %{daemon_group} > /dev/null 2>&1
-	echo "The group %{daemon_group} has been added to %{groupfile}."
+	echo "The group %{daemon_group} has been added to %{group_file}."
 	echo "See the manual chapter Running Bacula for details."
 fi
 
@@ -898,7 +898,7 @@ fi
 HAVE_BACULA=`grep %{daemon_group} %{group_file} 2>/dev/null`
 if [ -z $HAVE_BACULA ]; then
 	%{groupadd} -r %{daemon_group} > /dev/null 2>&1
-	echo "The group %{daemon_group} has been added to %{groupfile}."
+	echo "The group %{daemon_group} has been added to %{group_file}."
 	echo "See the manual chapter Running Bacula for details."
 fi
 
@@ -1068,7 +1068,7 @@ fi
 HAVE_BACULA=`cat %{group_file} | grep %{daemon_group} 2>/dev/null`
 if [ -z $HAVE_BACULA ]; then
 	%{groupadd} -r %{daemon_group} > /dev/null 2>&1
-	echo "The group %{daemon_group} has been added to %{groupfile}."
+	echo "The group %{daemon_group} has been added to %{group_file}."
 	echo "See the manual chapter Running Bacula for details."
 fi
 
@@ -1148,6 +1148,8 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 
 
 %changelog
+* Fri Jan 14 2005 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- fix {group_file} variable in post scripts
 * Thu Dec 30 2004 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - add distribution checking and custom Distribution tag
 * Thu Dec 09 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
