@@ -117,6 +117,7 @@ CREATE TABLE Media (
    MaxVolBytes BIGINT UNSIGNED DEFAULT 0,
    Drive INTEGER DEFAULT 0,
    InChanger TINYINT DEFAULT 0,
+   MediaAddressing TINYINT DEFAULT 0,
    PRIMARY KEY(MediaId)
    );
 
