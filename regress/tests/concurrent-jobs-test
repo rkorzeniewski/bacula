@@ -60,8 +60,8 @@ diff tmp/largefile  tmp/bacula-restores${cwd}/tmp/largefile
 if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
    echo " "
    echo " "
-   echo "  ===== concurrent-jobs-test Bacula source failed!!! ===== "
-   echo "  ===== concurrent-jobs-test failed!!! ===== " >>test.out
+   echo "  !!!!! concurrent-jobs-test Bacula source failed!!! !!!!! "
+   echo "  !!!!! concurrent-jobs-test failed!!! !!!!! " >>test.out
    echo " "
 else
    echo "  ===== concurrent-jobs-test Bacula source OK ===== "
