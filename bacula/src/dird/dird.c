@@ -216,7 +216,7 @@ int main (int argc, char *argv[])
 
    drop(uid, gid);		      /* reduce priveleges if requested */
 
-   /* signal(SIGHUP, reload_config); */
+   signal(SIGHUP, reload_config);
 
    init_console_msg(working_directory);
 
@@ -272,7 +272,7 @@ static void terminate_dird(int sig)
    term_msg();			      /* terminate message handler */
    stop_watchdog();
    close_memory_pool(); 	      /* release free memory in pool */
-   sm_dump(false);
+   sm_dump(false);  
    exit(sig);
 }
 
@@ -296,6 +296,10 @@ static void free_saved_resources(int table)
 {
    int num = r_last - r_first + 1;
    RES **res_tab = reload_table[table].res_table;
+   if (!res_tab) {
+      Dmsg1(000, "res_tab for table %d already released.\n", table);
+      return;
+   }
    Dmsg1(000, "Freeing resources for table %d\n", table);
    for (int j=0; j<num; j++) {
       free_resource(res_tab[j], r_first + j);
@@ -313,9 +317,12 @@ static void free_saved_resources(int table)
  */
 static void reload_job_end_cb(JCR *jcr)
 {
-#ifdef working
+   if (jcr->reload_id == 0) {
+      return;			      /* nothing to do */
+   }
    int i = jcr->reload_id - 1;
-   Dmsg1(000, "reload job_end JobId=%d\n", jcr->JobId);
+   Dmsg3(000, "reload job_end JobId=%d table=%d cnt=%d\n", jcr->JobId,
+      i, reload_table[i].job_count);
    lock_jcr_chain();
    LockRes();
    if (--reload_table[i].job_count <= 0) {
@@ -323,10 +330,9 @@ static void reload_job_end_cb(JCR *jcr)
    }
    UnlockRes();
    unlock_jcr_chain();
-#endif
 }
 
-static int find_free_table()
+static int find_free_reload_table_entry()
 {
    int table = -1;
    for (int i=0; i < max_reloads; i++) {
@@ -351,22 +357,22 @@ void reload_config(int sig)
    int njobs = 0;
    int table, rtable;
 
-   Jmsg(NULL, M_ERROR, 0, _("Command not implemented\n"));
-   return;
-
    if (already_here) {
       abort();			      /* Oops, recursion -> die */
    }
    already_here = true;
-   sigfillset(&set);
+   sigemptyset(&set);
+   sigaddset(&set, SIGHUP);
    sigprocmask(SIG_BLOCK, &set, NULL);
+
+// Jmsg(NULL, M_INFO, 0, "Entering experimental reload config code. Bug reports will not be accepted.\n");
 
    lock_jcr_chain();
    LockRes();
 
-   table = find_free_table();
+   table = find_free_reload_table_entry();
    if (table < 0) {
-      Jmsg(NULL, M_ERROR, 0, _("Too many reload requests.\n"));
+      Jmsg(NULL, M_ERROR, 0, _("Too many open reload requests. Request ignored.\n"));
       goto bail_out;
    }
 
@@ -375,7 +381,7 @@ void reload_config(int sig)
     *  reload_id == 0
     */
    foreach_jcr(jcr) {
-      if (jcr->reload_id == 0) {
+      if (jcr->reload_id == 0 && jcr->JobType != JT_SYSTEM) {
 	 reload_table[table].job_count++;
 	 jcr->reload_id = table + 1;
 	 job_end_push(jcr, reload_job_end_cb);
@@ -392,9 +398,10 @@ void reload_config(int sig)
 
    Dmsg0(000, "Reloaded config file\n");
    if (!check_resources()) {
-      rtable = find_free_table();     /* save new, bad table */
+      rtable = find_free_reload_table_entry();	  /* save new, bad table */
       if (rtable < 0) {
-         Jmsg(NULL, M_ERROR_TERM, 0, _("Please correct configuration file: %s\n"), configfile);
+         Jmsg(NULL, M_ERROR, 0, _("Please correct configuration file: %s\n"), configfile);
+         Jmsg(NULL, M_ERROR_TERM, 0, _("Out of reload table entries. Giving up.\n"));
       } else {
          Jmsg(NULL, M_ERROR, 0, _("Please correct configuration file: %s\n"), configfile);
       }
@@ -406,6 +413,15 @@ void reload_config(int sig)
 	 resources[i].res_head = res_tab[i];
       }
       table = rtable;		      /* release new, bad, saved table below */
+      if (njobs != 0) {
+	 foreach_jcr(jcr) {
+	    if (jcr->reload_id == table) {
+	       jcr->reload_id = 0;
+	    }
+	    free_locked_jcr(jcr);
+	 }
+      }
+      njobs = 0;		      /* force bad tabel to be released below */
    }
 
    /* Reset globals */
@@ -414,8 +430,10 @@ void reload_config(int sig)
    SDConnectTimeout = director->SDConnectTimeout;
    Dmsg0(0, "Director's configuration file reread.\n");
 	
-   /* Now release saved resources */
-   free_saved_resources(table);
+   /* Now release saved resources, if no jobs using the resources */
+   if (njobs == 0) {
+      free_saved_resources(table);
+   }
 
 bail_out:
    UnlockRes();

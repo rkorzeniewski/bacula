@@ -1094,7 +1094,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
       memcpy(res, &res_all, size);
       if (!resources[rindex].res_head) {
 	 resources[rindex].res_head = (RES *)res; /* store first entry */
-         Dmsg3(200, "Inserting first %s res: %s index=%d\n", res_to_str(type),
+         Dmsg3(900, "Inserting first %s res: %s index=%d\n", res_to_str(type),
 	       res->res_dir.hdr.name, rindex);
       } else {
 	 RES *next;
@@ -1107,7 +1107,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
 	    }
 	 }
 	 next->next = (RES *)res;
-         Dmsg4(200, "Inserting %s res: %s index=%d pass=%d\n", res_to_str(type),
+         Dmsg4(900, "Inserting %s res: %s index=%d pass=%d\n", res_to_str(type),
 	       res->res_dir.hdr.name, rindex, pass);
       }
    }
@@ -1193,10 +1193,10 @@ void store_acl(LEX *lc, RES_ITEM *item, int index, int pass)
       if (pass == 1) {
 	 if (((alist **)item->value)[item->code] == NULL) {   
 	    ((alist **)item->value)[item->code] = new alist(10, owned_by_alist);
-//          Dmsg1(400, "Defined new ACL alist at %d\n", item->code);
+//          Dmsg1(900, "Defined new ACL alist at %d\n", item->code);
 	 }
 	 ((alist **)item->value)[item->code]->append(bstrdup(lc->str));
-//       Dmsg2(400, "Appended to %d %s\n", item->code, lc->str);
+//       Dmsg2(900, "Appended to %d %s\n", item->code, lc->str);
       }
       token = lex_get_token(lc, T_ALL);
       if (token == T_COMMA) {
@@ -1229,12 +1229,12 @@ static void store_backup(LEX *lc, RES_ITEM *item, int index, int pass)
    while ((token = lex_get_token(lc, T_ALL)) != T_EOL) {
       bool found = false;
 
-      Dmsg1(150, "store_backup got token=%s\n", lex_tok_to_str(token));
+      Dmsg1(900, "store_backup got token=%s\n", lex_tok_to_str(token));
       
       if (token != T_IDENTIFIER && token != T_UNQUOTED_STRING && token != T_QUOTED_STRING) {
          scan_err1(lc, "Expected a backup/verify keyword, got: %s", lc->str);
       }
-      Dmsg1(190, "Got keyword: %s\n", lc->str);
+      Dmsg1(900, "Got keyword: %s\n", lc->str);
       for (i=0; BakVerFields[i].name; i++) {
 	 if (strcasecmp(lc->str, BakVerFields[i].name) == 0) {
 	    found = true;
@@ -1242,7 +1242,7 @@ static void store_backup(LEX *lc, RES_ITEM *item, int index, int pass)
                scan_err1(lc, "Expected an equals, got: %s", lc->str);
 	    }
 	    token = lex_get_token(lc, T_NAME);
-            Dmsg1(190, "Got value: %s\n", lc->str);
+            Dmsg1(900, "Got value: %s\n", lc->str);
 	    switch (BakVerFields[i].token) {
             case 'C':
 	       /* Find Client Resource */
@@ -1306,7 +1306,7 @@ static void store_restore(LEX *lc, RES_ITEM *item, int index, int pass)
 
    lc->options |= LOPT_NO_IDENT;      /* make spaces significant */
 
-   Dmsg0(190, "Enter store_restore()\n");
+   Dmsg0(900, "Enter store_restore()\n");
    
    ((JOB *)(item->value))->JobType = item->code;
    while ((token = lex_get_token(lc, T_ALL)) != T_EOL) {
@@ -1316,14 +1316,14 @@ static void store_restore(LEX *lc, RES_ITEM *item, int index, int pass)
          scan_err1(lc, "expected a name, got: %s", lc->str);
       }
       for (i=0; RestoreFields[i].name; i++) {
-         Dmsg1(190, "Restore kw=%s\n", lc->str);
+         Dmsg1(900, "Restore kw=%s\n", lc->str);
 	 if (strcasecmp(lc->str, RestoreFields[i].name) == 0) {
 	    found = true;
 	    if (lex_get_token(lc, T_ALL) != T_EQUALS) {
                scan_err1(lc, "Expected an equals, got: %s", lc->str);
 	    }
 	    token = lex_get_token(lc, T_ALL);
-            Dmsg1(190, "Restore value=%s\n", lc->str);
+            Dmsg1(900, "Restore value=%s\n", lc->str);
 	    switch (RestoreFields[i].token) {
             case 'B':
 	       /* Bootstrap */
@@ -1363,7 +1363,7 @@ static void store_restore(LEX *lc, RES_ITEM *item, int index, int pass)
 	       }
 	       errno = 0;
 	       res_all.res_job.RestoreJobId = strtol(lc->str, NULL, 0);
-               Dmsg1(190, "RestorJobId=%d\n", res_all.res_job.RestoreJobId);
+               Dmsg1(900, "RestorJobId=%d\n", res_all.res_job.RestoreJobId);
 	       if (errno != 0) {
                   scan_err1(lc, "expected an integer number, got: %s", lc->str);
 	       }

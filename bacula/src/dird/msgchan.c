@@ -178,9 +178,11 @@ int start_storage_daemon_message_thread(JCR *jcr)
    jcr->sd_msg_thread_done = false;
    jcr->SD_msg_chan = 0;
    V(jcr->mutex);
+   Dmsg0(100, "Start SD msg_thread.\n");
    if ((status=pthread_create(&thid, NULL, msg_thread, (void *)jcr)) != 0) {
       Jmsg1(jcr, M_ABORT, 0, _("Cannot create message thread: %s\n"), strerror(status));
    }	     
+   Dmsg0(100, "SD msg_thread started.\n");
    /* Wait for thread to start */
    while (jcr->SD_msg_chan == 0) {
       bmicrosleep(0, 50);
@@ -220,12 +222,11 @@ void *msg_thread(void *arg)
    pthread_detach(pthread_self());
    jcr->SD_msg_chan = pthread_self();
    pthread_cleanup_push(msg_thread_cleanup, arg);
-   Dmsg0(200, "msg_thread\n");
    sd = jcr->store_bsock;
 
    /* Read the Storage daemon's output.
     */
-   Dmsg0(200, "Start msg_thread loop\n");
+   Dmsg0(100, "Start msg_thread loop\n");
    while ((stat=bget_dirmsg(sd)) >= 0) {
       Dmsg1(200, "<stored: %s", sd->msg);
       if (sscanf(sd->msg, Job_start, &Job) == 1) {

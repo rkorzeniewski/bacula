@@ -338,7 +338,7 @@ static void labelcmd()
       }
    }
    rewind_dev(dev);
-   write_volume_label_to_dev(jcr, jcr->device, cmd, "Default");
+   write_new_volume_label_to_dev(jcr, jcr->device, cmd, "Default");
    Pmsg1(-1, "Wrote Volume label for volume \"%s\".\n", cmd);
 }
 

@@ -519,12 +519,19 @@ void set_jcr_job_status(JCR *jcr, int JobStatus)
    }
 }
 
+#ifdef TRACE_JCR_CHAIN
+static int lock_count = 0;
+#endif
+
 /* 
  * Lock the chain
  */
 void lock_jcr_chain()
 {
    int errstat;
+#ifdef TRACE_JCR_CHAIN 
+   Dmsg1(000, "Lock jcr chain %d.\n", ++lock_count);
+#endif
    if ((errstat=rwl_writelock(&lock)) != 0) {
       Emsg1(M_ABORT, 0, "rwl_writelock failure. ERR=%s\n",
 	   strerror(errstat));
@@ -537,6 +544,9 @@ void lock_jcr_chain()
 void unlock_jcr_chain()
 {
    int errstat;
+#ifdef TRACE_JCR_CHAIN 
+   Dmsg1(000, "Unlock jcr chain %d\n", lock_count--);
+#endif
    if ((errstat=rwl_writeunlock(&lock)) != 0) {
       Emsg1(M_ABORT, 0, "rwl_writeunlock failure. ERR=%s\n",
 	   strerror(errstat));

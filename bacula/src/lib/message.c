@@ -1169,6 +1169,7 @@ void Qmsg(JCR *jcr, int type, int level, const char *fmt,...)
    } else {
       /* Queue message for later sending */
       jcr->msg_queue->append(item);
+//    Dmsg1(000, "queue item=%lu\n", (long unsigned)item);
    }
    V(msg_queue_mutex);
    free_memory(pool_buf);
@@ -1183,6 +1184,7 @@ void dequeue_messages(JCR *jcr)
    P(msg_queue_mutex);
    jcr->dequeuing = true;
    foreach_dlist(item, jcr->msg_queue) {
+//    Dmsg1(000, "dequeue item=%lu\n", (long unsigned)item);
       Jmsg(jcr, item->type, item->level, "%s", item->msg);
    }
    jcr->msg_queue->destroy();
