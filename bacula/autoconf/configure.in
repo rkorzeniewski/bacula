@@ -179,9 +179,9 @@ if test x$support_gnome = xyes; then
      AC_SUBST(GNOMEUI_LIBS)
      AC_SUBST(GNOME_LIBDIR)
      AC_SUBST(GNOME_LIBS)
-     GNOME_DIR=src/gnome-console
+     GNOME_DIR=src/gnome2-console
   else
-dnl 1.4 stuff
+dnl do 1.4 stuff
     GNOME_INIT
     GNOME_DIR=src/gnome-console
   fi

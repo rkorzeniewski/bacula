@@ -4348,7 +4348,7 @@ if test x$support_gnome = xyes; then
 
 
 
-     GNOME_DIR=src/gnome-console
+     GNOME_DIR=src/gnome2-console
   else
 
 
