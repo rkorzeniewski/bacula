@@ -297,7 +297,7 @@ extern void unlock_jcr_chain();
 extern void set_jcr_job_status(JCR *jcr, int JobStatus);
 
 #ifdef DEBUG
-extern void b_free_jcr(char *file, int line, JCR *jcr);
+extern void b_free_jcr(const char *file, int line, JCR *jcr);
 #define free_jcr(jcr) b_free_jcr(__FILE__, __LINE__, (jcr))
 #else
 extern void free_jcr(JCR *jcr);

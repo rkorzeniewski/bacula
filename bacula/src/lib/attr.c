@@ -129,7 +129,7 @@ void build_attr_output_fnames(JCR *jcr, ATTR *attr)
       pm_strcpy(&attr->ofname, attr->fname);
       pm_strcpy(&attr->olname, attr->lname);
    } else {
-      char *fn;
+      const char *fn;
       int wherelen = strlen(jcr->where);
       pm_strcpy(&attr->ofname, jcr->where);  /* copy prefix */
       if (win32_client && attr->fname[1] == ':') {

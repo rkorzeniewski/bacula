@@ -290,7 +290,7 @@ static int del_pid_file_ok = FALSE;
 /*
  * Create a standard "Unix" pid file.
  */
-void create_pid_file(char *dir, char *progname, int port)
+void create_pid_file(char *dir, const char *progname, int port)
 {
 #if !defined(HAVE_CYGWIN) && !defined(HAVE_WIN32)
    int pidfd, len;
@@ -332,7 +332,7 @@ void create_pid_file(char *dir, char *progname, int port)
 /*
  * Delete the pid file if we created it
  */
-int delete_pid_file(char *dir, char *progname, int port)
+int delete_pid_file(char *dir, const char *progname, int port)
 {
 #if !defined(HAVE_CYGWIN)  && !defined(HAVE_WIN32)
    POOLMEM *fname = get_pool_memory(PM_FNAME);

@@ -117,7 +117,7 @@ char *encode_time(time_t time, char *buf)
  * Concatenate a string (str) onto a pool memory buffer pm
  *   Returns: length of concatenated string
  */
-int pm_strcat(POOLMEM **pm, char *str)
+int pm_strcat(POOLMEM **pm, const char *str)
 {
    int pmlen = strlen(*pm);
    int len = strlen(str) + 1;
@@ -132,7 +132,7 @@ int pm_strcat(POOLMEM **pm, char *str)
  * Copy a string (str) into a pool memory buffer pm
  *   Returns: length of string copied
  */
-int pm_strcpy(POOLMEM **pm, char *str)
+int pm_strcpy(POOLMEM **pm, const char *str)
 {
    int len = strlen(str) + 1;
 
@@ -493,9 +493,10 @@ void make_session_key(char *key, char *seed, int mode)
  *  to = recepients list 
  *
  */
-POOLMEM *edit_job_codes(JCR *jcr, char *omsg, char *imsg, char *to)   
+POOLMEM *edit_job_codes(JCR *jcr, char *omsg, char *imsg, const char *to)   
 {
-   char *p, *str;
+   char *p, *q;
+   const char *str;
    char add[20];
    char name[MAX_NAME_LENGTH];
    int i;
@@ -534,8 +535,8 @@ POOLMEM *edit_job_codes(JCR *jcr, char *omsg, char *imsg, char *to)
 	     bstrncpy(name, jcr->Job, sizeof(name));
 	     /* There are three periods after the Job name */
 	     for (i=0; i<3; i++) {
-                if ((str=strrchr(name, '.')) != NULL) {
-		    *str = 0;
+                if ((q=strrchr(name, '.')) != NULL) {
+		    *q = 0;
 		}
 	     }
 	     str = name;

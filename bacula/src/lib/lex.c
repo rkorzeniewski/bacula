@@ -46,7 +46,7 @@ void scan_to_eol(LEX *lc)
 /*
  * Format a scanner error message 
  */
-static void s_err(char *file, int line, LEX *lc, char *msg, ...)
+static void s_err(const char *file, int line, LEX *lc, const char *msg, ...)
 {
    va_list arg_ptr;
    char buf[MAXSTRING];
@@ -211,7 +211,7 @@ static void begin_str(LEX *lf, int ch)
 }
 
 #ifdef DEBUG
-static char *lex_state_to_str(int state)
+static const char *lex_state_to_str(int state)
 {
    switch (state) {
    case lex_none:          return "none";
@@ -230,7 +230,7 @@ static char *lex_state_to_str(int state)
  * Convert a lex token to a string
  * used for debug/error printing.
  */
-char *lex_tok_to_str(int token)
+const char *lex_tok_to_str(int token)
 {
    switch(token) {
    case L_EOF:             return "L_EOF";
@@ -256,13 +256,13 @@ static uint32_t scan_pint(LEX *lf, char *str)
 {
    int64_t val = 0;
    if (!is_a_number(str)) {
-      scan_err1(lf, "expected a positive integer number, got: %s", str);
+      scan_err1(lf, _("expected a positive integer number, got: %s"), str);
       /* NOT REACHED */
    } else {
       errno = 0;
       val = str_to_int64(str);
       if (errno != 0 || val < 0) {
-         scan_err1(lf, "expected a postive integer number, got: %s", str);
+         scan_err1(lf, _("expected a postive integer number, got: %s"), str);
 	 /* NOT REACHED */
       }
    }
@@ -489,7 +489,7 @@ lex_get_token(LEX *lf, int expect)
       } else {
          char *p = strchr(lf->str, '-');
 	 if (!p) {
-            scan_err2(lf, "expected an integer or a range, got %s: %s", 
+            scan_err2(lf, _("expected an integer or a range, got %s: %s"), 
 	       lex_tok_to_str(token), lf->str);
 	    token = T_ERROR;
 	    break;
@@ -503,7 +503,7 @@ lex_get_token(LEX *lf, int expect)
 
    case T_INT32:
       if (token != T_NUMBER || !is_a_number(lf->str)) {
-         scan_err2(lf, "expected an integer number, got %s: %s",
+         scan_err2(lf, _("expected an integer number, got %s: %s"),
 	       lex_tok_to_str(token), lf->str);
 	 token = T_ERROR;
 	 break;
@@ -511,7 +511,7 @@ lex_get_token(LEX *lf, int expect)
       errno = 0;
       lf->int32_val = (int32_t)str_to_int64(lf->str);
       if (errno != 0) {
-         scan_err2(lf, "expected an integer number, got %s: %s",
+         scan_err2(lf, _("expected an integer number, got %s: %s"),
 	       lex_tok_to_str(token), lf->str);
 	 token = T_ERROR;
       } else {
@@ -522,7 +522,7 @@ lex_get_token(LEX *lf, int expect)
    case T_INT64:
       Dmsg2(900, "int64=:%s: %f\n", lf->str, strtod(lf->str, NULL)); 
       if (token != T_NUMBER || !is_a_number(lf->str)) {
-         scan_err2(lf, "expected an integer number, got %s: %s",
+         scan_err2(lf, _("expected an integer number, got %s: %s"),
 	       lex_tok_to_str(token), lf->str);
 	 token = T_ERROR;
 	 break;
@@ -530,7 +530,7 @@ lex_get_token(LEX *lf, int expect)
       errno = 0;
       lf->int64_val = str_to_int64(lf->str);
       if (errno != 0) {
-         scan_err2(lf, "expected an integer number, got %s: %s",
+         scan_err2(lf, _("expected an integer number, got %s: %s"),
 	       lex_tok_to_str(token), lf->str);
 	 token = T_ERROR;
       } else {
@@ -540,11 +540,11 @@ lex_get_token(LEX *lf, int expect)
 
    case T_NAME:
       if (token != T_IDENTIFIER && token != T_UNQUOTED_STRING && token != T_QUOTED_STRING) {
-         scan_err2(lf, "expected a name, got %s: %s",
+         scan_err2(lf, _("expected a name, got %s: %s"),
 	       lex_tok_to_str(token), lf->str);
 	 token = T_ERROR;
       } else if (lf->str_len > MAX_RES_NAME_LENGTH) {
-         scan_err3(lf, "name %s length %d too long, max is %d\n", lf->str, 
+         scan_err3(lf, _("name %s length %d too long, max is %d\n"), lf->str, 
 	    lf->str_len, MAX_RES_NAME_LENGTH);
 	 token = T_ERROR;
       }
@@ -552,7 +552,7 @@ lex_get_token(LEX *lf, int expect)
 
    case T_STRING:
       if (token != T_IDENTIFIER && token != T_UNQUOTED_STRING && token != T_QUOTED_STRING) {
-         scan_err2(lf, "expected a string, got %s: %s",
+         scan_err2(lf, _("expected a string, got %s: %s"),
 	       lex_tok_to_str(token), lf->str);
 	 token = T_ERROR;
       } else {

@@ -34,8 +34,8 @@ extern struct s_last_job last_job;
 extern time_t daemon_start_time;
 
 /* Forward referenced functions */
-static void  list_terminated_jobs(void sendit(char *msg, int len, void *sarg), void *arg);
-static void bsock_sendit(char *msg, int len, void *arg);
+static void  list_terminated_jobs(void sendit(const char *msg, int len, void *sarg), void *arg);
+static void bsock_sendit(const char *msg, int len, void *arg);
 static char *level_to_str(int level);
 
 
@@ -46,7 +46,7 @@ static int privs = 0;
 /*
  * General status generator
  */
-static void do_status(void sendit(char *msg, int len, void *sarg), void *arg) 
+static void do_status(void sendit(const char *msg, int len, void *sarg), void *arg) 
 {
    int sec, bps;
    char *msg, b1[32], b2[32], b3[32];
@@ -163,12 +163,12 @@ static void do_status(void sendit(char *msg, int len, void *sarg), void *arg)
    free_pool_memory(msg);
 }
 
-static void  list_terminated_jobs(void sendit(char *msg, int len, void *sarg), void *arg) 
+static void  list_terminated_jobs(void sendit(const char *msg, int len, void *sarg), void *arg) 
 {
    char dt[MAX_TIME_LENGTH], b1[30], b2[30];
    char level[10];
    struct s_last_job *je;
-   char *msg;
+   const char *msg;
 
    if (last_job.NumJobs == 0) {
       msg = _("No Terminated Jobs.\n"); 
@@ -245,7 +245,7 @@ static void  list_terminated_jobs(void sendit(char *msg, int len, void *sarg), v
 /*
  * Send to bsock (Director or Console)
  */
-static void bsock_sendit(char *msg, int len, void *arg)
+static void bsock_sendit(const char *msg, int len, void *arg)
 {
    BSOCK *user = (BSOCK *)arg;
 
@@ -333,13 +333,13 @@ struct s_win32_arg {
 /*
  * Put message in Window List Box
  */
-static void win32_sendit(char *msg, int len, void *marg)
+static void win32_sendit(const char *msg, int len, void *marg)
 {
    struct s_win32_arg *arg = (struct s_win32_arg *)marg;
 
    if (len > 0 && msg[len-1] == '\n') {
        // when compiling with visual studio some strings are read-only 
-       // and cause access violations.  So we creat a tmp copy.
+       // and cause access violations.	So we creat a tmp copy.
        char *_msg = (char *)alloca(len);
        strncpy(_msg, msg, len-1);
        _msg[len-1] = 0;

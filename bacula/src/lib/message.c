@@ -41,7 +41,7 @@ char *working_directory = NULL;       /* working directory path stored here */
 int verbose = 0;		      /* increase User messages */
 int debug_level = 0;		      /* debug level */
 time_t daemon_start_time = 0;	      /* Daemon start time */
-char *version = VERSION " (" BDATE ")";
+const char *version = VERSION " (" BDATE ")";
 char my_name[30];		      /* daemon name is stored here */
 char *exepath = (char *)NULL;
 char *exename = (char *)NULL;
@@ -941,7 +941,7 @@ Jmsg(JCR *jcr, int type, int level, const char *fmt,...)
     va_list   arg_ptr;
     int len;
     MSGS *msgs;
-    char *job;
+    const char *job;
 
     
     Dmsg1(800, "Enter Jmsg type=%d\n", type);

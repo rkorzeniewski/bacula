@@ -109,9 +109,9 @@ int duration_to_utime(char *str, utime_t *value)
     *   to months. These "kludges" make it compatible with pre 1.31 
     *	Baculas.
     */
-   static char *mod[] = {"n", "seconds", "months", "minutes", 
-                 "hours", "days", "weeks",   "quarters",   "years", NULL};
-   static int32_t mult[] = {60,   1, 60*60*24*30, 60, 
+   static const char *mod[] = {"n", "seconds", "months", "minutes", 
+                  "hours", "days", "weeks",   "quarters",   "years", NULL};
+   static const int32_t mult[] = {60,	1, 60*60*24*30, 60, 
 		  60*60, 60*60*24, 60*60*24*7, 60*60*24*91, 60*60*24*365};
    char mod_str[20];
    int mod_len;

@@ -81,7 +81,7 @@ enum {
    M_ERROR_TERM,                      /* Error termination request (no dump) */
    M_TERM,                            /* Terminating daemon normally */
    M_RESTORED,                        /* ls -l of restored files */
-   M_SECURITY,                        /* security violation */
+   M_SECURITY                         /* security violation */
 };
 
 #define M_MAX      M_SECURITY         /* keep this updated ! */

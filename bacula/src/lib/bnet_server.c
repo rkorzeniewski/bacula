@@ -172,7 +172,7 @@ bnet_thread_server(char *bind_addr, int port, int max_clients, workq_t *client_w
       P(mutex);
       caller = inet_ntoa(cli_addr.sin_addr);  /* NOT thread safe, use mutex */
       if (caller == NULL) {
-         caller = "unknown client";
+         caller = _("unknown client");
       }
 
       BSOCK *bs = init_bsock(NULL, newsockfd, "client", caller, port, &cli_addr);
