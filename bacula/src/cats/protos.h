@@ -106,6 +106,7 @@ bool db_update_job_start_record(JCR *jcr, B_DB *db, JOB_DBR *jr);
 int  db_update_job_end_record(JCR *jcr, B_DB *db, JOB_DBR *jr);
 int  db_update_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr);
 int  db_update_pool_record(JCR *jcr, B_DB *db, POOL_DBR *pr);
+bool db_update_storage_record(JCR *jcr, B_DB *mdb, STORAGE_DBR *sr);
 int  db_update_media_record(JCR *jcr, B_DB *db, MEDIA_DBR *mr);
 int  db_update_media_defaults(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr);
 int  db_update_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr);

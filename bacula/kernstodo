@@ -30,8 +30,18 @@ Suggestions for Preben:
 - Optimized bootstrap.
 
 For 1.37:
-- Try to open a device on each Job if it was not opened
-  when the SD started.
+- Add disk seeking on restore.  
+- Add Python writable variable for changing the Priority,
+    Client, Storage, JobStatus (error), ...
+- SD Autochanger work 
+  - Lock all devices when using changer script.
+  - Check if Volume is mounted on another device
+  - Find a free drive if Changer name used.
+- SD Python
+  - Solicit Events
+- FD Python
+  - Python script to save with Python, not save, save with Bacula.
+  - Python script to do backup.
 - Windows restore:
   data-fd: RestoreFiles.2004-12-07_15.56.42 Error:
   > ..\findlib\../../findlib/create_file.c:275 Could not open e:/: ERR=Der
@@ -56,16 +66,12 @@ For 1.37:
   design.
 - Create a new GUI chapter explaining all the GUI programs.
 - Tell the "restore" user when browsing is no longer possible.
-- Add disk seeking on restore.  
 - Cancel command should include JobId in list of Jobs.
 - Require restore via the restore command or make a restore Job
   get the bootstrap file.
-- Add dump of VolSessionId/Time and FileIndex with bls.
 - Make bootstrap file handle multiple MediaTypes (SD)
 - Add offline tape command to Bacula console.
 - Add performance testing hooks
-- Add Python writable variable for changing the Priority,
-    Client, Storage, JobStatus (error), ...
 - Document that Bootstrap files can be written with cataloging
   turned off.
 - Look at adding full Volume and Pool information to a Volume 
@@ -1209,3 +1215,7 @@ Block Position: 0
 - Implement Preben's suggestion to add
   File System Types = ext2, ext3 
   to FileSets, thus simplifying backup of *all* local partitions.
+- Try to open a device on each Job if it was not opened
+  when the SD started.
+- Add dump of VolSessionId/Time and FileIndex with bls.
+

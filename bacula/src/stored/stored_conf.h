@@ -71,6 +71,15 @@ public:
 };
 typedef struct s_res_store STORES;
 
+class AUTOCHANGER {
+public:
+   RES hdr;
+   alist *device;
+   char *changer_name;                /* Changer device name */
+   char *changer_command;             /* Changer command  -- external program */
+   pthread_mutex_t changer_mutex;     /* One changer operation at a time */
+};
+
 /* Device specific definitions */
 class DEVRES {
 public:
@@ -108,16 +117,11 @@ public:
    char *write_part_command;          /* Write part command */
    char *free_space_command;          /* Free space command */
    
+   /* The following are set at runtime */
    DEVICE *dev;                       /* Pointer to phyical dev -- set at runtime */
+   AUTOCHANGER *changer_res;          /* pointer to changer res if any */
 };
 
-class AUTOCHANGER {
-public:
-   RES hdr;
-   alist *device;
-   char *changer_name;                /* Changer device name */
-   char *changer_command;             /* Changer command  -- external program */
-};
 
 union URES {
    DIRRES      res_dir;

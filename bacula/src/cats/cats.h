@@ -370,10 +370,10 @@ typedef struct s_db {
 
 typedef char **POSTGRESQL_ROW;
 typedef struct pg_field {
-        char         *name;
-        int           max_length;
-        unsigned int  type;
-        unsigned int  flags;       // 1 == not null
+   char         *name;
+   int           max_length;
+   unsigned int  type;
+   unsigned int  flags;       // 1 == not null
 } POSTGRESQL_FIELD;
 
 
@@ -676,8 +676,10 @@ class STORAGE_DBR {
 public:
    DBId_t StorageId;
    char Name[MAX_NAME_LENGTH];        /* Device name */
-   DBId_t MediaTypeId;                /* MediaType */
    int AutoChanger;                   /* Set if autochanger */
+
+   /* Not in database */
+   bool created;                      /* set if created by db_create ... */
 };
 
 class MEDIATYPE_DBR {
@@ -718,6 +720,7 @@ struct MEDIA_DBR {
    int32_t  Recycle;                  /* recycle yes/no */
    int32_t  Slot;                     /* slot in changer */
    int32_t  InChanger;                /* Volume currently in changer */
+   DBId_t   StorageId;                /* Storage record Id */
    uint32_t EndFile;                  /* Last file on volume */
    uint32_t EndBlock;                 /* Last block on volume */
    char VolStatus[20];                /* Volume status */

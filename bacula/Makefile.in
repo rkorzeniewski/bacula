@@ -182,6 +182,7 @@ clean:
 	@$(RMF) *~ 1 2 3 core core.* config.guess console.log console.sum
 	@$(RMF) examples/1 examples/2 examples/devices/1 examples/devices/2
 	@$(RMF) -r autom4te.cache
+	@find . -name .#* -exec $(RMF) {} \;
 
 
 # clean for distribution

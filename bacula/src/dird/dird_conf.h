@@ -220,6 +220,8 @@ public:
    uint32_t NumConcurrentJobs;        /* number of concurrent jobs running */
    int enable_ssl;                    /* Use SSL */
 
+   int64_t StorageId;                 /* Set from Storage DB record */
+
    char *dev_name() const;
    char *name() const;
 };
@@ -255,6 +257,9 @@ public:
    int   replace;                     /* How (overwrite, ..) */
    utime_t MaxRunTime;                /* max run time in seconds */
    utime_t MaxWaitTime;               /* max blocking time in seconds */
+   utime_t FullMaxWaitTime;           /* Max Full job wait time */
+   utime_t DiffMaxWaitTime;           /* Max Differential job wait time */
+   utime_t IncMaxWaitTime;            /* Max Incremental job wait time */
    utime_t MaxStartDelay;             /* max start delay in seconds */
    int PrefixLinks;                   /* prefix soft links with Where path */
    int PruneJobs;                     /* Force pruning of Jobs */

@@ -215,7 +215,7 @@ db_create_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
 bool
 db_create_device_record(JCR *jcr, B_DB *mdb, DEVICE_DBR *dr)
 {
-   bool stat;	     
+   bool ok;
    char ed1[30], ed2[30];
 
    Dmsg0(200, "In create Device\n");
@@ -236,69 +236,81 @@ db_create_device_record(JCR *jcr, B_DB *mdb, DEVICE_DBR *dr)
 
    /* Must create it */
    Mmsg(mdb->cmd,
-"INSERT INTO Device (Name,MediaTypeId,StorageId) "
-"VALUES ('%s',%s,%s)",
+"INSERT INTO Device (Name,MediaTypeId,StorageId) VALUES ('%s',%s,%s)",
 		  dr->Name,
 		  edit_uint64(dr->MediaTypeId, ed1),
-		  edit_uint64(dr->StorageId, ed2));
+		  edit_int64(dr->StorageId, ed2));
    Dmsg1(200, "Create Device: %s\n", mdb->cmd);
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db Device record %s failed: ERR=%s\n"),
 	    mdb->cmd, sql_strerror(mdb));
       dr->DeviceId = 0;
-      stat = false;
+      ok = false;
    } else {
       dr->DeviceId = sql_insert_id(mdb, _("Device"));
-      stat = true;
+      ok = true;
    }
    db_unlock(mdb);
-   return stat;
+   return ok;
 }
 
+
+
 /*
- * Create Unique storage record
+ * Create a Unique record for Storage -- no duplicates
  * Returns: false on failure
- *	    true  on success
+ *	    true  on success with id in sr->StorageId
  */
-bool
-db_create_storage_record(JCR *jcr, B_DB *mdb, STORAGE_DBR *sr)
+bool db_create_storage_record(JCR *jcr, B_DB *mdb, STORAGE_DBR *sr)
 {
-   bool stat;	     
+   SQL_ROW row;
+   bool ok;
 
-   Dmsg0(200, "In create storage\n");
    db_lock(mdb);
-   Mmsg(mdb->cmd, "SELECT StorageId,Name FROM Storage WHERE Name='%s'", sr->Name);
-   Dmsg1(200, "selectstorage: %s\n", mdb->cmd);
+   Mmsg(mdb->cmd, "SELECT StorageId,AutoChanger FROM Storage WHERE Name='%s'", sr->Name);
 
+   sr->StorageId = 0;
+   sr->created = false;
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       mdb->num_rows = sql_num_rows(mdb);
-      if (mdb->num_rows > 0) {
-         Mmsg1(&mdb->errmsg, _("Storage record %s already exists\n"), sr->Name);
+      /* If more than one, report error, but return first row */
+      if (mdb->num_rows > 1) {
+         Mmsg1(&mdb->errmsg, _("More than one Storage record!: %d\n"), (int)(mdb->num_rows));
+         Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
+      }
+      if (mdb->num_rows >= 1) {
+	 if ((row = sql_fetch_row(mdb)) == NULL) {
+            Mmsg1(&mdb->errmsg, _("error fetching Storage row: %s\n"), sql_strerror(mdb));
+            Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
+	    sql_free_result(mdb);
+	    db_unlock(mdb);
+	    return false;
+	 }
+	 sr->StorageId = str_to_int64(row[0]);
+	 sr->AutoChanger = atoi(row[1]);   /* bool */
 	 sql_free_result(mdb);
 	 db_unlock(mdb);
-	 return false;
+	 return true;
       }
       sql_free_result(mdb);
    }
 
    /* Must create it */
-   Mmsg(mdb->cmd,
-"INSERT INTO Storage (Name,AutoChanger) "
-"VALUES ('%s',%d)",
-		  sr->Name,
-		  sr->AutoChanger);
-   Dmsg1(200, "Create storage: %s\n", mdb->cmd);
+   Mmsg(mdb->cmd, "INSERT INTO Storage (Name,AutoChanger)"
+        " VALUES ('%s',%d)", sr->Name, sr->AutoChanger);
+
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
-      Mmsg2(&mdb->errmsg, _("Create db storage record %s failed: ERR=%s\n"),
+      Mmsg2(&mdb->errmsg, _("Create DB Storage record %s failed. ERR=%s\n"),
 	    mdb->cmd, sql_strerror(mdb));
-      sr->StorageId = 0;
-      stat = false;
+      Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
+      ok = false;
    } else {
       sr->StorageId = sql_insert_id(mdb, _("Storage"));
-      stat = true;
+      sr->created = true;
+      ok = true;
    }
    db_unlock(mdb);
-   return stat;
+   return ok;
 }
 
 
@@ -349,8 +361,6 @@ db_create_mediatype_record(JCR *jcr, B_DB *mdb, MEDIATYPE_DBR *mr)
 }
 
 
-
-
 /*
  * Create Media record. VolumeName and non-zero Slot must be unique
  *
@@ -361,7 +371,7 @@ int
 db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 {
    int stat;
-   char ed1[30], ed2[30], ed3[30], ed4[30], ed5[30], ed6[50], ed7[50];
+   char ed1[50], ed2[50], ed3[50], ed4[50], ed5[50], ed6[50], ed7[50], ed8[50];
    struct tm tm;
 
    db_lock(mdb);
@@ -385,8 +395,8 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 "INSERT INTO Media (VolumeName,MediaType,PoolId,MaxVolBytes,VolCapacityBytes,"
 "Recycle,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,"
 "VolStatus,Slot,VolBytes,InChanger,VolReadTime,VolWriteTime,VolParts,"
-"EndFile,EndBlock,LabelType) "
-"VALUES ('%s','%s',%u,%s,%s,%d,%s,%s,%u,%u,'%s',%d,%s,%d,%s,%s,%d,0,0,%d)",
+"EndFile,EndBlock,LabelType,StorageId) "
+"VALUES ('%s','%s',%u,%s,%s,%d,%s,%s,%u,%u,'%s',%d,%s,%d,%s,%s,%d,0,0,%d,%s)",
 		  mr->VolumeName,
 		  mr->MediaType, mr->PoolId,
 		  edit_uint64(mr->MaxVolBytes,ed1),
@@ -403,7 +413,8 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 		  edit_uint64(mr->VolReadTime, ed6),
 		  edit_uint64(mr->VolWriteTime, ed7),
 		  mr->VolParts,
-		  mr->LabelType
+		  mr->LabelType,
+		  edit_int64(mr->StorageId, ed8) 
 		  );
 
 
@@ -437,8 +448,6 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    db_unlock(mdb);
    return stat;
 }
-
-
 
 /*
  * Create a Unique record for the client -- no duplicates
@@ -503,6 +512,9 @@ int db_create_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr)
    db_unlock(mdb);
    return stat;
 }
+
+
+
 
 
 /*
