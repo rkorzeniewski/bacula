@@ -6,9 +6,21 @@ cwd=`pwd`
 scripts/copy-test-confs
 scripts/cleanup
 echo "${cwd}/tmp/largefile" >/tmp/file-list
+if test -c /dev/urandom ; then
 # Create 56MB file with random data
-echo "Creating a 56MB file with random data ..."
-dd if=/dev/urandom of=${cwd}/tmp/largefile bs=1024 count=55000
+   echo "Creating a 56MB file with random data ..."
+   dd if=/dev/urandom of=${cwd}/tmp/largefile bs=1024 count=55000
+else
+   echo "Creating a 56MB file with bacula-dir data ..."
+   dd if=bin/bacula-dir of=${cwd}/tmp/1 bs=1024 count=1000
+   cat ${cwd}/tmp/1 ${cwd}/tmp/1 ${cwd}/tmp/1 ${cwd}/tmp/1 ${cwd}/tmp/1 >${cwd}/tmp/2
+   rm -f ${cwd}/tmp/1
+   cat ${cwd}/tmp/2 ${cwd}/tmp/2 ${cwd}/tmp/2 ${cwd}/tmp/2 ${cwd}/tmp/2 >>${cwd}/tmp/3
+   rm -f ${cwd}/tmp/2
+   cat ${cwd}/tmp/3 ${cwd}/tmp/3 ${cwd}/tmp/3 ${cwd}/tmp/3 ${cwd}/tmp/3 >${cwd}/tmp/largefile
+   rm -f ${cwd}/tmp/3
+fi 
+
 echo "largefile created"
 bin/bacula stop 2>&1 >/dev/null
 bin/drop_sqlite_tables
