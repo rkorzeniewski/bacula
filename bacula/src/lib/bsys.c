@@ -317,7 +317,7 @@ void create_pid_file(char *dir, const char *progname, int port)
       unlink(mp_chr(fname));		      /* remove stale pid file */
    }
    /* Create new pid file */
-   if ((pidfd = open(mp_chr(fname), O_CREAT|[CTRUNC|O_WRONLY|O_BINARY, 0644)) >= 0) {
+   if ((pidfd = open(mp_chr(fname), O_CREAT|O_TRUNC|O_WRONLY|O_BINARY, 0644)) >= 0) {
       len = sprintf(pidbuf, "%d\n", (int)getpid());
       write(pidfd, pidbuf, len);
       close(pidfd);
