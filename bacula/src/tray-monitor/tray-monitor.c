@@ -77,6 +77,7 @@ static void TrayIconDaemonChanged(GtkWidget *widget, monitoritem* data);
 static void TrayIconActivate(GtkWidget *widget, gpointer data);
 static void TrayIconExit(unsigned int activateTime, unsigned int button);
 static void TrayIconPopupMenu(unsigned int button, unsigned int activateTime);
+static void MonitorAbout(GtkWidget *widget, gpointer data);
 static gboolean delete_event(GtkWidget *widget, GdkEvent  *event, gpointer   data);
 
 static gint timerTag;
@@ -102,6 +103,33 @@ static void usage()
 "       -s <stored> monitor <stored>\n"
 "       -?            print this message.\n"  
 "\n"), HOST_OS, DISTNAME, DISTVER);
+}
+
+static GtkWidget *new_image_button(const gchar *stock_id, 
+                                   const gchar *label_text) {
+    GtkWidget *button;
+    GtkWidget *box;
+    GtkWidget *label;
+    GtkWidget *image;
+
+    button = gtk_button_new();
+   
+    box = gtk_hbox_new(FALSE, 0);
+    gtk_container_set_border_width(GTK_CONTAINER(box), 2);
+    image = gtk_image_new_from_stock(stock_id, GTK_ICON_SIZE_BUTTON);
+    label = gtk_label_new(label_text);
+    
+    gtk_box_pack_start(GTK_BOX(box), image, FALSE, FALSE, 3);
+    gtk_box_pack_start(GTK_BOX(box), label, FALSE, FALSE, 3);
+
+    gtk_widget_show(image);
+    gtk_widget_show(label);
+
+    gtk_widget_show(box);
+
+    gtk_container_add(GTK_CONTAINER(button), box);
+    
+    return button;
 }
 
 /*********************************************************************
@@ -246,6 +274,8 @@ Without that I don't how to get status from the File or Storage Daemon :-(\n"), 
    g_signal_connect(G_OBJECT(entry), "activate", G_CALLBACK(TrayIconActivate), NULL);
    gtk_menu_shell_append(GTK_MENU_SHELL(mTrayMenu), entry);
    
+   gtk_menu_shell_append(GTK_MENU_SHELL(mTrayMenu), gtk_separator_menu_item_new());
+   
    GtkWidget *submenu = gtk_menu_new();
    
    entry = gtk_menu_item_new_with_label("Set monitored daemon");
@@ -280,6 +310,8 @@ Without that I don't how to get status from the File or Storage Daemon :-(\n"), 
       gtk_menu_shell_append(GTK_MENU_SHELL(submenu), entry);         
    }
    
+   gtk_menu_shell_append(GTK_MENU_SHELL(mTrayMenu), gtk_separator_menu_item_new());
+   
    entry = gtk_menu_item_new_with_label("Exit");
    g_signal_connect(G_OBJECT(entry), "activate", G_CALLBACK(TrayIconExit), NULL);
    gtk_menu_shell_append(GTK_MENU_SHELL(mTrayMenu), entry);
@@ -287,7 +319,7 @@ Without that I don't how to get status from the File or Storage Daemon :-(\n"), 
    gtk_widget_show_all(mTrayMenu);
    
    timerTag = g_timeout_add( 5000, fd_read, NULL );
-        
+      
    window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
    
    gtk_window_set_title(GTK_WINDOW(window), "Bacula tray monitor");
@@ -297,6 +329,8 @@ Without that I don't how to get status from the File or Storage Daemon :-(\n"), 
    
    gtk_container_set_border_width(GTK_CONTAINER(window), 10);
    
+   GtkWidget* vbox = gtk_vbox_new(FALSE, 10);
+   
    textview = gtk_text_view_new();
 
    buffer = gtk_text_buffer_new(NULL);
@@ -305,7 +339,7 @@ Without that I don't how to get status from the File or Storage Daemon :-(\n"), 
 
    PangoFontDescription *font_desc = pango_font_description_from_string ("Fixed 10");
    gtk_widget_modify_font(textview, font_desc);
-   pango_font_description_free (font_desc);
+   pango_font_description_free(font_desc);
    
    gtk_text_view_set_left_margin(GTK_TEXT_VIEW(textview), 20);
    gtk_text_view_set_right_margin(GTK_TEXT_VIEW(textview), 20);
@@ -313,10 +347,26 @@ Without that I don't how to get status from the File or Storage Daemon :-(\n"), 
    gtk_text_view_set_editable(GTK_TEXT_VIEW(textview), FALSE);
    
    gtk_text_view_set_buffer(GTK_TEXT_VIEW(textview), buffer);
-      
-   gtk_container_add(GTK_CONTAINER (window), textview);
    
-   gtk_widget_show(textview);
+   gtk_box_pack_start(GTK_BOX(vbox), textview, TRUE, FALSE, 0);
+      
+   GtkWidget* hbox = gtk_hbox_new(FALSE, 10);
+         
+   GtkWidget* button = new_image_button("gtk-help", "About");
+   g_signal_connect_swapped(G_OBJECT(button), "clicked", G_CALLBACK(MonitorAbout), NULL);
+   
+   gtk_box_pack_start(GTK_BOX(hbox), button, TRUE, FALSE, 0);
+   
+   button = new_image_button("gtk-close", "Close");
+   g_signal_connect_swapped(G_OBJECT(button), "clicked", G_CALLBACK(gtk_widget_hide), G_OBJECT(window));
+   
+   gtk_box_pack_start(GTK_BOX(hbox), button, TRUE, FALSE, 0);
+   
+   gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
+   
+   gtk_container_add(GTK_CONTAINER (window), vbox);
+   
+   gtk_widget_show_all(vbox);
    
    fd_read(NULL);
    
@@ -331,6 +381,17 @@ Without that I don't how to get status from the File or Storage Daemon :-(\n"), 
    free_pool_memory(args);
    (void)WSACleanup();		     /* Cleanup Windows sockets */
    return 0;
+}
+
+static void MonitorAbout(GtkWidget *widget, gpointer data) {
+   GtkWidget* about = gtk_message_dialog_new_with_markup(GTK_WINDOW(window),GTK_DIALOG_MODAL, GTK_MESSAGE_INFO, GTK_BUTTONS_CLOSE, _(
+      "<span size='x-large' weight='bold'>Bacula Tray Monitor</span>\n\n"
+      "Copyright (C) 2000-2004 Kern Sibbald and John Walker\n"
+      "Written by Nicolas Boichat (2004)\n"
+      "\n<small>Version: " VERSION " (" BDATE ") %s %s %s</small>"
+   ), HOST_OS, DISTNAME, DISTVER);
+   gtk_dialog_run(GTK_DIALOG(about));
+   gtk_widget_destroy(about);
 }
 
 static gboolean delete_event( GtkWidget *widget,
@@ -399,13 +460,13 @@ static gboolean fd_read(gpointer data) {
       switch (currentitem->type) {
       case R_CLIENT:
          filed = (CLIENT*)currentitem->resource;      
-         writeToTextBuffer(newbuffer, "Connecting to Client %s:%d\n", filed->address, filed->FDport);
+         trayMessage("Connecting to Client %s:%d\n", filed->address, filed->FDport);
          D_sock = bnet_connect(NULL, 3, 3, "File daemon", filed->address, NULL, filed->FDport, 0);
          jcr.file_bsock = D_sock;
          break;
       case R_STORAGE:
          stored = (STORE*)currentitem->resource;      
-         writeToTextBuffer(newbuffer, "Connecting to Storage %s:%d\n", stored->address, stored->SDport);
+         trayMessage("Connecting to Storage %s:%d\n", stored->address, stored->SDport);
          D_sock = bnet_connect(NULL, 3, 3, "Storage daemon", stored->address, NULL, stored->SDport, 0);
          jcr.store_bsock = D_sock;
          break;
@@ -428,7 +489,7 @@ static gboolean fd_read(gpointer data) {
          return 0;
       }
    
-      writeToTextBuffer(newbuffer, "Opened connection with File daemon.\n");
+      trayMessage("Opened connection with File daemon.\n");
    }
       
    writecmd("status");
@@ -538,8 +599,9 @@ void changeIcon(stateenum status) {
    }
    
    GdkPixbuf* pixbuf = gdk_pixbuf_new_from_xpm_data(xpm);
-   // This should be ideally replaced by a completely libpr0n-based icon rendering.
    egg_status_icon_set_from_pixbuf(mTrayIcon, pixbuf);
+   
+   gtk_window_set_icon(GTK_WINDOW(window), pixbuf);
    
    currentstatus = status;
 }

@@ -1,2 +1,0 @@
-
-- Check if GtkTextBuffer is freed when GtkTextView use another one.

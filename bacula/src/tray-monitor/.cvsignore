@@ -1,2 +1,5 @@
-Makefile
 tray-monitor.conf
+Makefile
+Makefile.bak
+bacula-tray-monitor
+*~
