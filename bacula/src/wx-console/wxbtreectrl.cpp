@@ -38,7 +38,7 @@ DEFINE_LOCAL_EVENT_TYPE(wxbTREE_MARKED_EVENT)
 
 wxbTreeCtrl::wxbTreeCtrl(
       wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size): 
-            wxTreeCtrl(parent, id, pos, size) {
+            wxTreeCtrl(parent, id, pos, size, wxSUNKEN_BORDER | wxTR_HAS_BUTTONS) {
 }
 
 wxbTreeCtrl::~wxbTreeCtrl() {}

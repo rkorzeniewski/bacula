@@ -222,7 +222,7 @@ wxbRestorePanel::wxbRestorePanel(wxWindow* parent): wxbPanel(parent) {
    info.SetText("Group");
    info.SetAlign(wxLIST_FORMAT_RIGHT);
    list->InsertColumn(6, info);
-
+   
    secondSizer->AddGrowableCol(1);
    secondSizer->AddGrowableRow(0);
 
@@ -240,6 +240,10 @@ wxbRestorePanel::wxbRestorePanel(wxWindow* parent): wxbPanel(parent) {
    SetStatus(disabled);
 
    jobChoice->Enable(false);
+
+   for (int i = 0; i < 7; i++) {
+      list->SetColumnWidth(i, 70);
+   }
 
    working = false;
 }

@@ -38,7 +38,7 @@ DEFINE_LOCAL_EVENT_TYPE(wxbLIST_MARKED_EVENT)
 
 wxbListCtrl::wxbListCtrl(
       wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size): 
-            wxListCtrl(parent, id, pos, size,wxLC_REPORT) {
+            wxListCtrl(parent, id, pos, size, wxLC_REPORT | wxSUNKEN_BORDER) {
 }
 
 wxbListCtrl::~wxbListCtrl() {}
