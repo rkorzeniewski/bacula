@@ -408,8 +408,11 @@ cwd=${PWD}
 mkdir -p $RPM_BUILD_ROOT/etc/init.d
 mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d
 mkdir -p $RPM_BUILD_ROOT/usr/share/pixmaps
+%if %{rh7}
 mkdir -p $RPM_BUILD_ROOT/usr/share/gnome/apps/System
+%else
 mkdir -p $RPM_BUILD_ROOT/usr/share/applications
+%endif
 mkdir -p $RPM_BUILD_ROOT/etc/bacula/rescue
 mkdir -p $RPM_BUILD_ROOT/etc/bacula/rescue/tomsrtbt
 mkdir -p $RPM_BUILD_ROOT/etc/bacula/updatedb
@@ -475,11 +478,16 @@ chmod 0754 $RPM_BUILD_ROOT/etc/init.d/*
 # install the menu stuff
 %if %{su9}
 cp -p scripts/bacula.png $RPM_BUILD_ROOT/usr/share/pixmaps/bacula.png
-cp -p scripts/bacula.desktop.gnome1.xsu $RPM_BUILD_ROOT/usr/share/gnome/apps/System/bacula.desktop
 cp -p scripts/bacula.desktop.gnome2.xsu $RPM_BUILD_ROOT/usr/share/applications/bacula.desktop
-%else
+%endif
+%if %{rh7}
 cp -p scripts/bacula.png $RPM_BUILD_ROOT/usr/share/pixmaps/bacula.png
 cp -p scripts/bacula.desktop.gnome1.consolehelper $RPM_BUILD_ROOT/usr/share/gnome/apps/System/bacula.desktop
+cp -p scripts/gnome-console.console_apps $RPM_BUILD_ROOT/etc/security/console.apps/gnome-console
+cp -p scripts/gnome-console.pamd $RPM_BUILD_ROOT/etc/pam.d/gnome-console
+%endif
+%if %{rh8} || %{rh9} || %{wb3} || %{fc1}
+cp -p scripts/bacula.png $RPM_BUILD_ROOT/usr/share/pixmaps/bacula.png
 cp -p scripts/bacula.desktop.gnome2.consolehelper $RPM_BUILD_ROOT/usr/share/applications/bacula.desktop
 cp -p scripts/gnome-console.console_apps $RPM_BUILD_ROOT/etc/security/console.apps/gnome-console
 cp -p scripts/gnome-console.pamd $RPM_BUILD_ROOT/etc/pam.d/gnome-console
@@ -935,8 +943,11 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 /etc/bacula/gconsole
 %config(noreplace) /etc/bacula/gnome-console.conf
 /usr/share/pixmaps/bacula.png
+%if %{rh7}
 /usr/share/gnome/apps/System/bacula.desktop
+%else
 /usr/share/applications/bacula.desktop
+%endif
 
 %if ! %{su9} 
 # add the console helper files
@@ -955,6 +966,7 @@ rm -f /usr/bin/gnome-console
 %changelog
 * Sun Apr 04 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - add pkgconfig to BuildRequires
+- clean up gnome1/2 menu entries for appropriate packages
 * Fri Apr 02 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - tightened up doc distribution
 * Tue Mar 30 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
