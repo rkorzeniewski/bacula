@@ -118,15 +118,21 @@ Section "Bacula File Service" SecService
     WriteRegDWORD HKLM "Software\Bacula" "InstalledService" "1"
  NoService:
 
-  ; Write the uninstall keys for Windows
+  ; Create Start Menu Directory
+  SetShellVarContext all
+  CreateDirectory "$SMPROGRAMS\Bacula"
+  CreateShortCut "$SMPROGRAMS\Bacula\Start Bacula Client.lnk" "$INSTDIR\bin\bacula-fd.exe" "-c $INSTDIR\bin\bacula-fd.conf" "$INSTDIR\bin\bacula-fd.exe" 0
+
+  ; Write the uninstall keys for Windows & create Start Menu entry
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "DisplayName" "Bacula Client"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "UninstallString" '"$INSTDIR\uninstall.exe"'
   WriteUninstaller "$INSTDIR\Uninstall.exe"
+  CreateShortCut "$SMPROGRAMS\Bacula\Uninstall Bacula.lnk" "$INSTDIR\Uninstall.exe" "" "$INSTDIR\Uninstall.exe" 0
 
   ; Create bacula-fd.conf and have the user edit it (skipped if silent)
   IfSilent NoReminder
   StrCmp $7 "1" NoReminder  ; skip if it is an upgrade
-  MessageBox MB_OK "Please edit $INSTDIR\bin\bacula-fd.conf according to your requirements/installation! Also remember to put a shortcut into your start menu if you didn't install the client as a service."
+  MessageBox MB_OK "Please edit the client configuration file $INSTDIR\bin\bacula-fd.conf to fit your installation. When you click the OK button Wordpad will open to allow you to do this. Be sure to save your changes before closing Wordpad."
   Exec 'write "$INSTDIR\bin\bacula-fd.conf"'  ; spawn wordpad with the file to be edited
  NoReminder:
 
@@ -159,9 +165,14 @@ Section "Install Console" SecConsole
   goto do_next
  newconf:
   File /oname=bconsole.conf.new console\bconsole.conf
-       
-  ; If /service was given jump to the service install part
  do_next:
+
+  ; Create bconsole.conf and have the user edit it (skipped if silent)
+  IfSilent NoReminder
+  StrCmp $7 "1" NoReminder  ; skip if it is an upgrade
+  MessageBox MB_OK "Please edit the command line console configuration file $INSTDIR\bin\bconsole.conf to fit your installation. When you click the OK button Wordpad will open to allow you to do this. Be sure to save your changes before closing Wordpad."
+  Exec 'write "$INSTDIR\bin\bconsole.conf"'  ; spawn wordpad with the file to be edited
+ NoReminder:
 SectionEnd
 
 Section "Install wx-Console" SecWxConsole
@@ -172,9 +183,17 @@ Section "Install wx-Console" SecWxConsole
   goto do_next
  newconf:
   File /oname=wx-console.conf.new wx-console\wx-console.conf
-       
-  ; If /service was given jump to the service install part
  do_next:
+  ; Create Start Menu entry
+  SetShellVarContext all
+  CreateShortCut "$SMPROGRAMS\Bacula\WX-Console.lnk" "$INSTDIR\bin\wx-console.exe" "-c $INSTDIR\bin\wx-console.conf" "$INSTDIR\bin\wx-console.exe" 0
+
+  ; Create wx-console.conf and have the user edit it (skipped if silent)
+  IfSilent NoReminder
+  StrCmp $7 "1" NoReminder  ; skip if it is an upgrade
+  MessageBox MB_OK "Please edit the WX-console configuration file $INSTDIR\bin\wx-console.conf to fit your installation. When you click the OK button Wordpad will open to allow you to do this. Be sure to save your changes before closing Wordpad."
+  Exec 'write "$INSTDIR\bin\wx-console.conf"'  ; spawn wordpad with the file to be edited
+ NoReminder:
 SectionEnd
 
 
@@ -223,6 +242,10 @@ Section "Uninstall"
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula"
   DeleteRegKey HKLM "Software\Bacula"
 
+  ; remove start menu items
+  SetShellVarContext all
+  Delete /REBOOTOK "$SMPROGRAMS\Bacula\*"
+
   ; remove files and uninstaller (preserving config for now)
   CopyFiles /SILENT "$INSTDIR\bin\bacula-fd.conf" "$INSTDIR\bacula-fd.conf"
   Delete /REBOOTOK "$INSTDIR\bin\*.*"
@@ -241,6 +264,7 @@ Section "Uninstall"
   RMDir "$INSTDIR\working"
   RMDir "$INSTDIR"
   RMDir "C:\tmp"
+  RMDir "$SMPROGRAMS\Bacula"
   LeaveConfig:
   
 SectionEnd
