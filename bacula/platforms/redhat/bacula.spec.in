@@ -958,7 +958,7 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 
 %post gconsole
 # add gnome-console consolehelper link
-if [ !  -f /usr/bin/consolehelper ]; then
+if [ !  -f /usr/bin/gnome-console ]; then
 ln -s /usr/bin/consolehelper /usr/bin/gnome-console
 fi
 
@@ -968,6 +968,8 @@ rm -f /usr/bin/gnome-console
 %endif
 
 %changelog
+* Sat Jun 12 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
+- fixed error in gconsole post script
 * Fri Apr 30 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - add check for gconsole symlink before trying to create it
 * Sun Apr 11 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
