@@ -164,6 +164,7 @@ static struct s_kw RunFields[] = {
    {"level",    'L'},
    {"storage",  'S'},
    {"messages", 'M'},
+   {"priority", 'p'},
    {NULL,	 0}
 };
 
@@ -207,9 +208,9 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
                scan_err1(lc, "Expected an equals, got: %s", lc->str);
 	       /* NOT REACHED */ 
 	    }
-	    token = lex_get_token(lc, T_NAME);
 	    switch (RunFields[i].token) {
             case 'L':                 /* level */
+	       token = lex_get_token(lc, T_NAME);
 	       for (j=0; joblevels[j].level_name; j++) {
 		  if (strcasecmp(lc->str, joblevels[j].level_name) == 0) {
 		     lrun.level = joblevels[j].level;
@@ -223,7 +224,14 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 		  /* NOT REACHED */
 	       }
 	       break;
+            case 'p':                 /* Priority */
+	       token = lex_get_token(lc, T_PINT32);
+	       if (pass == 2) {
+		  lrun.Priority = lc->pint32_val;
+	       }
+	       break;
             case 'P':                 /* Pool */
+	       token = lex_get_token(lc, T_NAME);
 	       if (pass == 2) {
 		  res = GetResWithName(R_POOL, lc->str);
 		  if (res == NULL) {
@@ -235,6 +243,7 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 	       }
 	       break;
             case 'S':                 /* storage */
+	       token = lex_get_token(lc, T_NAME);
 	       if (pass == 2) {
 		  res = GetResWithName(R_STORAGE, lc->str);
 		  if (res == NULL) {
@@ -246,6 +255,7 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 	       }
 	       break;
             case 'M':                 /* messages */
+	       token = lex_get_token(lc, T_NAME);
 	       if (pass == 2) {
 		  res = GetResWithName(R_MSGS, lc->str);
 		  if (res == NULL) {

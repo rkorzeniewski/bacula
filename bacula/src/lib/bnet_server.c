@@ -137,8 +137,13 @@ bnet_thread_server(char *bind_addr, int port, int max_clients, workq_t *client_w
          Emsg1(M_FATAL, 0, _("Error in select: %s\n"), strerror(errno));
 	 break;
       }
-      clilen = sizeof(cli_addr);
-      newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, &clilen);
+      do {
+	 clilen = sizeof(cli_addr);
+	 newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, &clilen);
+      } while (newsockfd < 0 && errno == EINTR);
+      if (newsockfd < 0) {
+	 continue;
+      }
 
 #ifdef HAVE_LIBWRAP
       P(mutex); 		      /* hosts_access is not thread safe */
@@ -196,6 +201,9 @@ bnet_bind(int port)
     * Open a TCP socket  
     */
    for (tlog=0; (sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0; tlog -= 10 ) {
+      if (errno == EINTR) {
+	 continue;
+      }
       if (tlog <= 0) {
 	 tlog = 2*60; 
          Emsg1(M_ERROR, 0, _("Cannot open stream socket: %s\n"), strerror(errno));
@@ -219,6 +227,9 @@ bnet_bind(int port)
    serv_addr.sin_port = htons(port);
 
    for (tlog=0; bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0; tlog -= 5 ) {
+      if (errno == EINTR) {
+	 continue;
+      }
       if (tlog <= 0) {
 	 tlog = 2*60;
          Emsg2(M_WARNING, 0, _("Cannot bind port %d: %s: retrying ...\n"), port, strerror(errno));
@@ -266,9 +277,13 @@ bnet_accept(BSOCK *bsock, char *who)
 	 newsockfd = -1;
 	 break;
       }
-      clilen = sizeof(cli_addr);
-      newsockfd = accept(bsock->fd, (struct sockaddr *)&cli_addr, &clilen);
-      break;
+      do {
+	 clilen = sizeof(cli_addr);
+	 newsockfd = accept(bsock->fd, (struct sockaddr *)&cli_addr, &clilen);
+      } while (newsockfd < 0 && errno == EINTR);
+      if (newsockfd >= 0) {
+	 break;
+      }
    }
 
 #ifdef HAVE_LIBWRAP

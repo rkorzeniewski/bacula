@@ -35,9 +35,6 @@
 int mark_media_purged(UAContext *ua, MEDIA_DBR *mr);
 
 /* Forward referenced functions */
-int prune_files(UAContext *ua, CLIENT *client);
-int prune_jobs(UAContext *ua, CLIENT *client, int JobType);
-int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr);
 
 
 #define MAX_DEL_LIST_LEN 1000000
@@ -205,7 +202,7 @@ int prunecmd(UAContext *ua, char *cmd)
       if (!confirm_retention(ua, &mr.VolRetention, "Volume")) {
 	 return 0;
       }
-      prune_volume(ua, &pr, &mr);
+      prune_volume(ua, &mr);
       return 1;
    default:
       break;
@@ -477,7 +474,7 @@ bail_out:
 /*
  * Prune a given Volume
  */
-int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
+int prune_volume(UAContext *ua, MEDIA_DBR *mr)
 {
    char *query = (char *)get_pool_memory(PM_MESSAGE);
    struct s_count_ctx cnt;

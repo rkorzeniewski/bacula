@@ -56,8 +56,12 @@ static pthread_mutex_t mutex;
 static pthread_cond_t  resource_wait;
 static int waiting = 0; 	      /* count of waiting threads */
 #else
+#ifdef JOB_QUEUE  
+jobq_t	job_queue;
+#else
 /* Queue of jobs to be run */
 workq_t job_wq; 		  /* our job work queue */
+#endif
 #endif
 
 void init_job_server(int max_workers)
@@ -75,9 +79,16 @@ void init_job_server(int max_workers)
    }
 
 #else
+#ifdef JOB_QUEUE
+   if ((stat = job_init(&job_queue, max_workers, job_thread)) != 0) {
+      Emsg1(M_ABORT, 0, _("Could not init job queue: ERR=%s\n"), strerror(stat));
+   }
+#else
+   /* This is the OLD work queue code to go away */
    if ((stat = workq_init(&job_wq, max_workers, job_thread)) != 0) {
       Emsg1(M_ABORT, 0, _("Could not init job work queue: ERR=%s\n"), strerror(stat));
    }
+#endif
 #endif
    return;
 }
@@ -93,7 +104,9 @@ void run_job(JCR *jcr)
 #ifdef USE_SEMAPHORE
    pthread_t tid;
 #else
+#ifndef JOB_QUEUE
    workq_ele_t *work_item;
+#endif
 #endif
 
    sm_check(__FILE__, __LINE__, True);
@@ -153,11 +166,18 @@ void run_job(JCR *jcr)
       Emsg1(M_ABORT, 0, _("Unable to create job thread: ERR=%s\n"), strerror(stat));
    }
 #else
+#ifdef JOB_QUEUE
+   /* Queue the job to be run */
+   if ((stat = jobq_add(&job_queue, jcr)) != 0) {
+      Emsg1(M_ABORT, 0, _("Could not add job queue: ERR=%s\n"), strerror(stat));
+   }
+#else
    /* Queue the job to be run */
    if ((stat = workq_add(&job_wq, (void *)jcr, &work_item, 0)) != 0) {
       Emsg1(M_ABORT, 0, _("Could not add job to work queue: ERR=%s\n"), strerror(stat));
    }
    jcr->work_item = work_item;
+#endif
 #endif
    Dmsg0(200, "Done run_job()\n");
 }
@@ -215,34 +235,34 @@ static void *job_thread(void *arg)
 	    }
 	 }
 	 switch (jcr->JobType) {
-	    case JT_BACKUP:
-	       do_backup(jcr);
-	       if (jcr->JobStatus == JS_Terminated) {
-		  do_autoprune(jcr);
-	       }
-	       break;
-	    case JT_VERIFY:
-	       do_verify(jcr);
-	       if (jcr->JobStatus == JS_Terminated) {
-		  do_autoprune(jcr);
-	       }
-	       break;
-	    case JT_RESTORE:
-	       do_restore(jcr);
-	       if (jcr->JobStatus == JS_Terminated) {
-		  do_autoprune(jcr);
-	       }
-	       break;
-	    case JT_ADMIN:
-	       do_admin(jcr);
-	       if (jcr->JobStatus == JS_Terminated) {
-		  do_autoprune(jcr);
-	       }
-	       break;
-	    default:
-               Pmsg1(0, "Unimplemented job type: %d\n", jcr->JobType);
-	       break;
+	 case JT_BACKUP:
+	    do_backup(jcr);
+	    if (jcr->JobStatus == JS_Terminated) {
+	       do_autoprune(jcr);
 	    }
+	    break;
+	 case JT_VERIFY:
+	    do_verify(jcr);
+	    if (jcr->JobStatus == JS_Terminated) {
+	       do_autoprune(jcr);
+	    }
+	    break;
+	 case JT_RESTORE:
+	    do_restore(jcr);
+	    if (jcr->JobStatus == JS_Terminated) {
+	       do_autoprune(jcr);
+	    }
+	    break;
+	 case JT_ADMIN:
+	    do_admin(jcr);
+	    if (jcr->JobStatus == JS_Terminated) {
+	       do_autoprune(jcr);
+	    }
+	    break;
+	 default:
+            Pmsg1(0, "Unimplemented job type: %d\n", jcr->JobType);
+	    break;
+	 }
 	 if (jcr->job->RunAfterJob) {
 	    POOLMEM *after = get_pool_memory(PM_FNAME);
 	    int status;
@@ -415,7 +435,7 @@ wait:
       V(mutex);
       /* Try again */
    }
-   jcr->acquired_resource_locks = 1;
+   jcr->acquired_resource_locks = true;
 #endif
    return 1;
 }
@@ -472,7 +492,7 @@ static void release_resource_locks(JCR *jcr)
    if (waiting > 0) {
       pthread_cond_broadcast(&resource_wait);
    }
-   jcr->acquired_resource_locks = 0;
+   jcr->acquired_resource_locks = false;
    V(mutex);
 #endif
 }

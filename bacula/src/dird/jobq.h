@@ -1,10 +1,10 @@
 /*
- * Bacula work queue routines. Permits passing work to
- *  multiple threads.
+ * Bacula job queue routines. 
  *
- *  Kern Sibbald, January MMI
+ *  Kern Sibbald, July MMIII
  *
- *  This code adapted from "Programming with POSIX Threads", by
+ *  This code adapted from Bacula work queue code, which was
+ *    adapted from "Programming with POSIX Threads", by
  *    David R. Butenhof
  *
  *   Version $Id$
@@ -29,42 +29,42 @@
 
  */
 
-#ifndef __WORKQ_H 
-#define __WORKQ_H 1
+#ifndef __JOBQ_H 
+#define __JOBQ_H 1
 
 /* 
- * Structure to keep track of work queue request
+ * Structure to keep track of job queue request
  */
-typedef struct workq_ele_tag {
-   struct workq_ele_tag *next;
-   void                 *data;
-} workq_ele_t;
+struct jobq_item_t {
+   dlink link;
+   JCR *jcr;
+};
 
 /* 
  * Structure describing a work queue
  */
-typedef struct workq_tag {
+struct jobq_t {
    pthread_mutex_t   mutex;           /* queue access control */
    pthread_cond_t    work;            /* wait for work */
    pthread_attr_t    attr;            /* create detached threads */
-   workq_ele_t       *first, *last;   /* work queue */
+   dlist             list;            /* list of jobs */
    int               valid;           /* queue initialized */
-   int               quit;            /* workq should quit */
+   bool              quit;            /* jobq should quit */
    int               max_workers;     /* max threads */
    int               num_workers;     /* current threads */
    int               idle_workers;    /* idle threads */
    void             *(*engine)(void *arg); /* user engine */
-} workq_t;
+};
 
-#define WORKQ_VALID  0xdec1992
+#define JOBQ_VALID  0xdec1993
 
-extern int workq_init(
-              workq_t *wq,
-              int     threads,        /* maximum threads */
+extern int jobq_init(
+              jobq_t *wq,
+              int     threads,            /* maximum threads */
               void   *(*engine)(void *)   /* engine routine */
                     );
-extern int workq_destroy(workq_t *wq);
-extern int workq_add(workq_t *wq, void *element, workq_ele_t **work_item, int priority);
-extern int workq_remove(workq_t *wq, workq_ele_t *work_item);
+extern int jobq_destroy(jobq_t *wq);
+extern int jobq_add(jobq_t *wq, JCR *jcr);
+extern int jobq_remove(jobq_t *wq, JCR *jcr);
 
-#endif /* __WORKQ_H */
+#endif /* __JOBQ_H */

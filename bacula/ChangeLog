@@ -1,4 +1,21 @@
 
+2003-07-xx Version 1.31 Beta xxJul03
+- Take serial.h provided by David Craigon, which corrects differences in 
+  prototypes between serial.h and serial.c.
+- Make db_get_media_ids() return Media Ids only for the current pool.
+- Add new jobq.h and jobq.c drived from workq.
+- Add JobPriority to jcr, and Priority to Job resource as well as
+  to the run line in a Schedule.
+- Remove unused pool record from autoprune.c.
+- Implement Nic Bellamy's RecycleCurrentVolume.     
+- Implement RecycleOldestVolume.
+- Begin adding new JOB_QUEUE code to the Director.
+- Create a single routine recycle_volume().
+- Retry accept(), bind() and socket() if EINTR occurs.
+- Implement insert_before(), insert_after(), and empty() for dlist class.
+  Also require offset to be given by giving item and link address.
+- Make error some messages in smtp.c a bit more explicit.
+
 2003-07-12 Version 1.31 Beta 14Jul03
 - Marc Brueckner reported a crash during restore (a missing tree->)
 - Moved host.h.in file from filed to src.

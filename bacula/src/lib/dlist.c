@@ -66,6 +66,39 @@ void dlist::prepend(void *item)
    }
 }
 
+void dlist::insert_before(void *item, void *where)	 
+{
+   dlink *where_link = (dlink *)((char *)where+loffset);     
+
+   ((dlink *)((char *)item+loffset))->next = where;
+   ((dlink *)((char *)item+loffset))->prev = where_link->prev;
+
+   if (where_link->prev) {
+      ((dlink *)((char *)(where_link->prev)+loffset))->next = item;
+      where_link->prev = item;
+   }
+   if (head == where) {
+      head = item;
+   }
+}
+
+void dlist::insert_after(void *item, void *where)	
+{
+   dlink *where_link = (dlink *)((char *)where+loffset);     
+
+   ((dlink *)((char *)item+loffset))->next = where_link->next;
+   ((dlink *)((char *)item+loffset))->prev = where;
+
+   if (where_link->next) {
+      ((dlink *)((char *)(where_link->next)+loffset))->prev = item;
+      where_link->next = item;
+   }
+   if (tail == where) {
+      tail = item;
+   }
+}
+
+
 void dlist::remove(void *item)
 {
    void *xitem;
@@ -93,6 +126,15 @@ void * dlist::next(void *item)
    return ((dlink *)((char *)item+loffset))->next;
 }
 
+void * dlist::prev(void *item)
+{
+   if (item == NULL) {
+      return tail;
+   }
+   return ((dlink *)((char *)item+loffset))->prev;
+}
+
+
 /* Destroy the list and its contents */
 void dlist::destroy()
 {
@@ -116,14 +158,15 @@ int main()
 {
    char buf[30];
    dlist *jcr_chain;
+   MYJCR *jcr = NULL;
    MYJCR *save_jcr = NULL;
+   MYJCR *next_jcr;
 
    jcr_chain = (dlist *)malloc(sizeof(dlist));
-   jcr_chain->init((int)&MYJCR::link);
+   jcr_chain->init(jcr, &jcr->link);
     
    printf("Prepend 20 items 0-19\n");
    for (int i=0; i<20; i++) {
-      MYJCR *jcr;
       sprintf(buf, "This is dlist item %d", i);
       jcr = (MYJCR *)malloc(sizeof(MYJCR));
       jcr->buf = bstrdup(buf);
@@ -133,9 +176,14 @@ int main()
       }
    }
 
+   next_jcr = (MYJCR *)jcr_chain->next(save_jcr);
+   printf("11th item=%s\n", next_jcr->buf);
+   jcr = (MYJCR *)malloc(sizeof(MYJCR));
+   jcr->buf = save_jcr->buf;
    printf("Remove 10th item\n");
-   free(save_jcr->buf);
    jcr_chain->remove(save_jcr);
+   printf("Re-insert 10th item\n");
+   jcr_chain->insert_before(jcr, next_jcr);
    
    printf("Print remaining list.\n");
    for (MYJCR *jcr=NULL; (jcr=(MYJCR *)jcr_chain->next(jcr)); ) {

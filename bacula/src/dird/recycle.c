@@ -95,11 +95,7 @@ int recycle_oldest_purged_volume(JCR *jcr, MEDIA_DBR *mr)
    if (oldest.MediaId != 0) {
       mr->MediaId = oldest.MediaId;
       if (db_get_media_record(jcr, jcr->db, mr)) {
-         strcpy(mr->VolStatus, "Recycle");
-	 mr->VolJobs = mr->VolFiles = mr->VolBlocks = mr->VolErrors = 0;
-	 mr->VolBytes = 0;
-	 mr->FirstWritten = mr->LastWritten = 0;
-	 if (db_update_media_record(jcr, jcr->db, mr)) {
+	 if (recycle_volume(jcr, mr)) {
             Jmsg(jcr, M_INFO, 0, "Recycled volume \"%s\"\n", mr->VolumeName);
             Dmsg1(100, "Exit 1  recycle_oldest_purged_volume Vol=%s\n", mr->VolumeName);
 	    return 1;
@@ -109,4 +105,16 @@ int recycle_oldest_purged_volume(JCR *jcr, MEDIA_DBR *mr)
    }
    Dmsg0(100, "Exit 0  recycle_oldest_purged_volume end\n");
    return 0;	
+}
+
+/*
+ * Recycle the specified volume
+ */
+int recycle_volume(JCR *jcr, MEDIA_DBR *mr)
+{
+   strcpy(mr->VolStatus, "Recycle");
+   mr->VolJobs = mr->VolFiles = mr->VolBlocks = mr->VolErrors = 0;
+   mr->VolBytes = 0;
+   mr->FirstWritten = mr->LastWritten = 0;
+   return db_update_media_record(jcr, jcr->db, mr);
 }

@@ -146,7 +146,12 @@ struct CLIENT {
    char *password;
    CAT *catalog;                      /* Catalog resource */
    uint32_t MaxConcurrentJobs;        /* Maximume concurrent jobs */
-   semlock_t sem;                     /* client semaphore */
+#ifdef USE_SEMAPHORE
+   semlock_t sem;                     /* storage semaphore */
+#endif
+#ifdef JOB_QUEUE
+   uint32_t NumConcurrentJobs;        /* number of concurrent jobs running */
+#endif
    int enable_ssl;                    /* Use SSL */
 };
 
@@ -165,7 +170,12 @@ struct STORE {
    char *dev_name;   
    int  autochanger;                  /* set if autochanger */
    uint32_t MaxConcurrentJobs;        /* Maximume concurrent jobs */
+#ifdef USE_SEMAPHORE
    semlock_t sem;                     /* storage semaphore */
+#endif
+#ifdef JOB_QUEUE
+   uint32_t NumConcurrentJobs;        /* number of concurrent jobs running */
+#endif
    int enable_ssl;                    /* Use SSL */
 };
 
@@ -179,6 +189,7 @@ struct JOB {
 
    int   JobType;                     /* job type (backup, verify, restore */
    int   level;                       /* default backup/verify level */
+   int   Priority;                    /* Job priority */
    int   RestoreJobId;                /* What -- JobId to restore */
    char *RestoreWhere;                /* Where on disk to restore -- directory */
    char *RestoreBootstrap;            /* Bootstrap file */
@@ -205,7 +216,12 @@ struct JOB {
    STORE     *storage;                /* Where is device -- Storage daemon */
    POOL      *pool;                   /* Where is media -- Media Pool */
 
-   semlock_t sem;                     /* Job semaphore */
+#ifdef USE_SEMAPHORE
+   semlock_t sem;                     /* storage semaphore */
+#endif
+#ifdef JOB_QUEUE
+   uint32_t NumConcurrentJobs;        /* number of concurrent jobs running */
+#endif
 };
 
 #define MAX_FOPTS 30
@@ -292,7 +308,9 @@ struct POOL {
    int   catalog_files;               /* maintain file entries in catalog */
    int   use_volume_once;             /* write on volume only once */
    int   accept_any_volume;           /* accept any volume */
-   int   purge_oldest_volume;        /* purge oldest volume */
+   int   purge_oldest_volume;         /* purge oldest volume */
+   int   recycle_oldest_volume;       /* attempt to recycle oldest volume */
+   int   recycle_current_volume;      /* attempt recycle of current volume */
    uint32_t max_volumes;              /* max number of volumes */
    utime_t VolRetention;              /* volume retention period in seconds */
    utime_t VolUseDuration;            /* duration volume can be used */
@@ -329,6 +347,7 @@ union URES {
 struct RUN {
    RUN *next;                         /* points to next run record */
    int level;                         /* level override */
+   int Priority;                      /* priority override */
    int job_type;  
    POOL *pool;                        /* Pool override */
    STORE *storage;                    /* Storage override */

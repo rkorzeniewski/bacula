@@ -42,6 +42,7 @@
 #include "bsr.h"
 #include "ua.h"
 #include "protos.h"
+#include "jobq.h"
 
 /* Globals that dird.c exports */
 extern int debug_level;

@@ -40,12 +40,16 @@ class dlist {
    void *tail;
    int loffset;
 public:
-   dlist(int offset);
-   void init(int offset);   
+   dlist(void *item, void *link);
+   void init(void *item, void *link);
    void prepend(void *item);
    void append(void *item);
+   void insert_before(void *item, void *where);
+   void insert_after(void *item, void *where);
    void remove(void *item);
+   bool empty();
    void *next(void *item);
+   void *prev(void *item);
    void destroy();
    void *first();
    void *last();
@@ -58,14 +62,21 @@ public:
  *   allowing us to mix C++ classes inside malloc'ed
  *   C structures. Define before called in constructor.
  */
-inline void dlist::init(int offset) {
+inline void dlist::init(void *item, void *link) 
+{
    head = tail = NULL;
-   loffset = (int)offset;
+   loffset = (char *)link - (char *)item;
 }
 
 /* Constructor */
-inline dlist::dlist(int offset) {
-   this->init(offset);
+inline dlist::dlist(void *item, void *link)
+{
+   this->init(item, link);
+}
+
+inline bool dlist::empty()
+{
+   return head == NULL;
 }
    
 inline void * dlist::operator new(size_t)
