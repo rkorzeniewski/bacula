@@ -72,6 +72,11 @@ For 1.33 Testing/Documentation:
      http://howtos.linux.com/guides/nag2/x-087-2-nfs.mountd.shtml
 
 For 1.33
+- Handling removable disks -- see below:
+- Multiple drive autochanger support -- see below.
+- Keep track of tape use time, and report when cleaning is necessary.
+- Add Events and Perl scripting.
+- See comtest-xxx.zip for Windows code to talk to USB.
 - Fix FreeBSD mt_count problem.
 - During install, copy any console.conf to bconsole.conf.
 - Have each daemon save the last_jobs structure when exiting and
@@ -1087,6 +1092,99 @@ Done: (see kernsdone for more)
 - Implement ClientRunBeforeJob and ClientRunAfterJob.
 - Implement forward spacing block/file: position_device(bsr) --
   just before read_block_from_device();
+
+=====
+   Multiple drive autochanger data:  see Alan Brown
+   mtx -f xxx unloadStorage Element 1 is Already Full(drive 0 was empty)
+   Unloading Data Transfer Element into Storage Element 1...source Element 
+   Address 480 is Empty
+
+   (drive 0 was empty and so was slot 1)
+   >   mtx -f xxx load 15 0
+   no response, just returns to the command prompt when complete.
+   >   mtx -f xxx status  Storage Changer /dev/changer:2 Drives, 60 Slots ( 2 Import/Export )
+   Data Transfer Element 0:Full (Storage Element 15 Loaded):VolumeTag = HX001
+   Data Transfer Element 1:Empty
+         Storage Element 1:Empty
+         Storage Element 2:Full :VolumeTag=HX002
+         Storage Element 3:Full :VolumeTag=HX003
+         Storage Element 4:Full :VolumeTag=HX004
+         Storage Element 5:Full :VolumeTag=HX005
+         Storage Element 6:Full :VolumeTag=HX006
+         Storage Element 7:Full :VolumeTag=HX007
+         Storage Element 8:Full :VolumeTag=HX008
+         Storage Element 9:Full :VolumeTag=HX009
+         Storage Element 10:Full :VolumeTag=HX010
+         Storage Element 11:Empty
+         Storage Element 12:Empty
+         Storage Element 13:Empty
+         Storage Element 14:Empty
+         Storage Element 15:Empty
+         Storage Element 16:Empty....
+         Storage Element 28:Empty
+         Storage Element 29:Full :VolumeTag=CLNU01L1
+         Storage Element 30:Empty....
+         Storage Element 57:Empty
+         Storage Element 58:Full :VolumeTag=NEX261L2
+         Storage Element 59 IMPORT/EXPORT:Empty
+         Storage Element 60 IMPORT/EXPORT:Empty
+   $  mtx -f xxx unload
+   Unloading Data Transfer Element into Storage Element 15...done
+
+   (just to verify it remembers where it came from, however it can be
+    overrriden with mtx unload {slotnumber} to go to any storage slot.)
+   Configuration wise:
+   There needs to be a table of drive # to devices somewhere - If there are
+   multiple changers or drives there may not be a 1:1 correspondance between
+   changer drive number and system device name - and depending on the way the
+   drives are hooked up to scsi busses, they may not be linearly numbered
+   from an offset point either.something like 
+
+   Autochanger drives = 2
+   Autochanger drive 0 = /dev/nst1
+   Autochanger drive 1 = /dev/nst2
+   IMHO, it would be _safest_ to use explicit mtx unload commands at all
+   times, not just for multidrive changers. For a 1 drive changer, that's
+   just:
+
+   mtx load xx 0
+   mtx unload xx 0
+
+   MTX's manpage (1.2.15):
+         unload [<slotnum>] [ <drivenum> ]
+                    Unloads media from drive  <drivenum>  into  slot
+                    <slotnum>. If <drivenum> is omitted, defaults to
+                    drive 0 (as do all commands).  If  <slotnum>  is
+                    omitted, defaults to the slot that the drive was
+                    loaded from. Note that there's currently no  way
+                    to  say  'unload  drive 1's media to the slot it
+                    came from', other than to  explicitly  use  that
+                    slot number as the destination.AB
+====
+
+====
+   Handling removable disks
+
+   From: Karl Cunningham <karlc@keckec.com>
+
+   My backups are only to hard disk these days, in removable bays. This is my
+   idea of how a backup to hard disk would work more smoothly. Some of these
+   things Bacula does already, but I mention them for completeness. If others
+   have better ways to do this, I'd like to hear about it.
+
+   1. Accommodate several disks, rotated similar to how tapes are.  Identified
+   by partition volume ID or perhaps by the name of a subdirectory.
+   2. Abort & notify the admin if the wrong disk is in the bay.
+   3. Write backups to different subdirectories for each machine to be backed
+   up.
+   4. Volumes (files) get created as needed in the proper subdirectory, one
+   for each backup.
+   5. When a disk is recycled, remove or zero all old backup files. This is
+   important as the disk being recycled may be close to full. This may be
+   better done manually since the backup files for many machines may be
+   scattered in many subdirectories.
+====
+
 
 === for 1.33
 - Change console to bconsole.
