@@ -337,7 +337,7 @@ struct JOBMEDIA_DBR {
 /* Volume Parameter structure */
 struct VOL_PARAMS {
    char VolumeName[MAX_NAME_LENGTH];  /* Volume name */
-   uint32_t JobMediaId;               /* record id */          
+   uint32_t VolIndex;                 /* Volume seqence no. */ 
    uint32_t FirstIndex;               /* First index this Volume */
    uint32_t LastIndex;                /* Last index this Volume */
    uint32_t StartFile;                /* File for start of data */

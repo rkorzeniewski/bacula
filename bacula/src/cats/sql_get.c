@@ -361,10 +361,9 @@ int db_get_job_volume_parameters(JCR *jcr, B_DB *mdb, uint32_t JobId, VOL_PARAMS
 
    db_lock(mdb);
    Mmsg(&mdb->cmd, 
-"SELECT VolumeName,FirstIndex,LastIndex,StartFile,EndFile,StartBlock,"
-"EndBlock,JobMediaId"
+"SELECT VolumeName,FirstIndex,LastIndex,StartFile,EndFile,StartBlock,EndBlock"
 " FROM JobMedia,Media WHERE JobMedia.JobId=%u"
-" AND JobMedia.MediaId=Media.MediaId", JobId);
+" AND JobMedia.MediaId=Media.MediaId ORDER BY JobMediaId", JobId);
 
    Dmsg1(130, "VolNam=%s\n", mdb->cmd);
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
@@ -392,7 +391,6 @@ int db_get_job_volume_parameters(JCR *jcr, B_DB *mdb, uint32_t JobId, VOL_PARAMS
 	       Vols[i].EndFile = atoi(row[4]);
 	       Vols[i].StartBlock = atoi(row[5]);
 	       Vols[i].EndBlock = atoi(row[6]);
-	       Vols[i].JobMediaId = str_to_uint64(row[7]);
 	    }
 	 }
       }

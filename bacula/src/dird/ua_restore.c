@@ -764,23 +764,6 @@ static int write_bsr_file(UAContext *ua, RBSR *bsr)
 }
 
 /*
- *  ***FIXME*** we need a better volume sequence number 
- */
-int comp_vol_params(const void *v1, const void *v2)
-{
-   VOL_PARAMS *vol1 = (VOL_PARAMS *)v1;
-   VOL_PARAMS *vol2 = (VOL_PARAMS *)v2;
-
-   if (vol1->JobMediaId < vol2->JobMediaId) {
-      return -1;
-   } else if (vol1->JobMediaId > vol2->JobMediaId) {
-      return 1;
-   } else {
-      return 0;
-   }
-}
-
-/*
  * First sort the bsr chain, then sort the VolParams   
  */
 static RBSR *sort_bsr(RBSR *bsr)
@@ -789,12 +772,7 @@ static RBSR *sort_bsr(RBSR *bsr)
       return bsr;
    }
    /* ****FIXME**** sort the bsr chain */
-   /* Sort the VolParams for each bsr */
    for (RBSR *nbsr=bsr; nbsr; nbsr=nbsr->next) {
-      if (nbsr->VolCount > 1) {
-	 qsort((void *)nbsr->VolParams, nbsr->VolCount, sizeof(VOL_PARAMS), 
-	       comp_vol_params);
-      }
    }
    return bsr;
 }

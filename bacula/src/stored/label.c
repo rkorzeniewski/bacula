@@ -95,7 +95,7 @@ int read_dev_volume_label(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    /* Read the device label block */
    record = new_record();
    Dmsg0(90, "Big if statement in read_volume_label\n");
-   if (!read_block_from_dev(dev, block)) { 
+   if (!read_block_from_dev(jcr, dev, block)) { 
       Mmsg(&jcr->errmsg, _("Volume on %s is not a Bacula labeled Volume, \
 because:\n   %s"), dev_name(dev), strerror_dev(dev));
    } else if (!read_record_from_block(block, record)) {

@@ -404,7 +404,7 @@ Which DBMS do you want to use (please select only one):
         AC_MSG_RESULT(no)
   fi
 ],[
-  AC_MSG_RESULT(no)
+    AC_MSG_RESULT(no)
 ])
 
 AC_ARG_WITH(embedded-mysql,

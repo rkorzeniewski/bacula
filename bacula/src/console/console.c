@@ -402,9 +402,10 @@ static void terminate_console(int sig)
 }
 
 #ifdef HAVE_READLINE
+#define READLINE_LIBRARY 1
 #undef free
-#include "readline/readline.h"
-#include "readline/history.h"
+#include "readline.h"
+#include "history.h"
 
 
 int 

@@ -890,6 +890,13 @@ bsr_dev(DEVICE *dev, int num)
    if (!(dev->state & ST_TAPE)) {
       return 0;
    }
+
+   if (!dev_cap(dev, CAP_BSR)) {
+      Mmsg1(&dev->errmsg, _("ioctl MTBSR not permitted on %s.\n"),
+	 dev->dev_name);
+      return 0;
+   }
+
    Dmsg0(29, "bsr_dev\n");
    dev->block_num -= num;
    dev->state &= ~(ST_EOF|ST_EOT|ST_EOF);

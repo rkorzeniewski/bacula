@@ -296,14 +296,13 @@ if test x$support_readline = xyes; then
 	no) : ;;
 	yes|*)
 	  if test "$with_readline" != "yes"; then
-	    CONS_INC="-I$with_readline"
+	    CONS_INC="-I${with_readline}"
 	    CONS_LDFLAGS="-L$with_readline"
 	  else
 	     with_readline="/usr/include/readline" 
 	  fi
-	  AC_CHECK_HEADER($with_readline/readline.h, 
-	     [ AC_MSG_RESULT(yes)
-	       AC_DEFINE(HAVE_READLINE) 
+	  AC_CHECK_HEADER(${with_readline}/readline.h, 
+	     [ AC_DEFINE(HAVE_READLINE) 
 	       CONS_LIBS="-lreadline -ltermcap"
 	       got_readline="yes"   
 	     ],
@@ -315,21 +314,25 @@ if test x$support_readline = xyes; then
      ],[
        # check for standard readline library
        AC_CHECK_HEADER(/usr/include/readline/readline.h, 
-       [ AC_MSG_RESULT(yes)
-	 AC_DEFINE(HAVE_READLINE)
-	 got_readline="yes"
-	 CONS_INC="-I/usr/include/readline"
-	 CONS_LIBS="-lreadline -ltermcap"
-       ], [
-	 # Did not find starndard library, so user our own
-	 AC_MSG_RESULT(yes)
-	 AC_DEFINE(HAVE_READLINE)
-	 got_readline="yes"
-	 CONS_INC="-I${TOP_DIR}/depkgs"
-	 CONS_LIBS="-lreadline -lhistory -ltermcap"
-	 CONS_LDFLAGS="-L${TOP_DIR}/depkgs/readline"
-	 PRTREADLINE_SRC="${TOP_DIR}/depkgs/readline"
-       ])
+	 [ AC_DEFINE(HAVE_READLINE)
+	   got_readline="yes"
+	   CONS_INC="-I/usr/include/readline"
+	   CONS_LIBS="-lreadline -ltermcap"
+	 ], [
+	   # Did not find standard library, so try Bacula's default
+	    AC_CHECK_HEADER(${TOP_DIR}/depkgs/readline/readline.h, 
+	      [ AC_DEFINE(HAVE_READLINE) 
+		 got_readline="yes"   
+		 CONS_INC="-I${TOP_DIR}/depkgs/readline"
+		 CONS_LIBS="-lreadline -lhistory -ltermcap"
+		 CONS_LDFLAGS="-L${TOP_DIR}/depkgs/readline"
+		 PRTREADLINE_SRC="${TOP_DIR}/depkgs/readline"
+	      ],
+	      [ AC_MSG_ERROR([*** readline library missing]) 
+	      ]
+	    )
+	 ]
+       )
      ]	 
    )
 fi
@@ -705,7 +708,7 @@ AC_ARG_WITH(sd-password,
 if test "x$sd_password" = "x" ; then
    if test "x$OPENSSL" = "xnone" ; then
 #     key=`date | uuencode /dev/stdout | tr "\"@\\\`\\ \\=\\,\\(\\)\\#\\.\\!\\-$'" 123456789uvwxyzabcdef | awk '{getline} {print} {exit}'`
-      key=`autocnf/randpass 41`
+      key=`autoconf/randpass 41`
    else
       key=`openssl rand -base64 33`
    fi

@@ -441,7 +441,7 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	 if (ok) {
 	    DEV_BLOCK *lblock = new_block(dev);
 	    /* Note, this can destroy dev->errmsg */
-	    if (!read_block_from_dev(dev, lblock)) {
+	    if (!read_block_from_dev(jcr, dev, lblock)) {
                Jmsg(jcr, M_ERROR, 0, _("Re-read last block at EOT failed. ERR=%s"), dev->errmsg);
 	    } else {
 	       if (lblock->BlockNumber+1 == block->BlockNumber) {
@@ -477,12 +477,12 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
  * Read block with locking
  *
  */
-int read_block_from_device(DEVICE *dev, DEV_BLOCK *block)
+int read_block_from_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 {
    int stat;
    Dmsg0(90, "Enter read_block_from_device\n");
    lock_device(dev);
-   stat = read_block_from_dev(dev, block);
+   stat = read_block_from_dev(jcr, dev, block);
    unlock_device(dev);
    Dmsg0(90, "Leave read_block_from_device\n");
    return stat;
@@ -493,10 +493,11 @@ int read_block_from_device(DEVICE *dev, DEV_BLOCK *block)
  *  the block header.  For a file, the block may be partially
  *  or completely in the current buffer.
  */
-int read_block_from_dev(DEVICE *dev, DEV_BLOCK *block)
+int read_block_from_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 {
    ssize_t stat;
    int looping;
+   uint32_t BlockNumber;
 
    looping = 0;
    Dmsg1(100, "Full read() in read_block_from_device() len=%d\n",
@@ -505,6 +506,7 @@ reread:
    if (looping > 1) {
       Mmsg1(&dev->errmsg, _("Block buffer size looping problem on device %s\n"),
 	 dev->dev_name);
+      Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       block->read_len = 0;
       return 0;
    }
@@ -514,6 +516,7 @@ reread:
       block->read_len = 0;
       Mmsg2(&dev->errmsg, _("Read error on device %s. ERR=%s.\n"), 
 	 dev->dev_name, strerror(dev->dev_errno));
+      Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       return 0;
    }
    Dmsg1(90, "Read device got %d bytes\n", stat);
@@ -535,14 +538,20 @@ reread:
    if (block->read_len < BLKHDR2_LENGTH) {
       Mmsg2(&dev->errmsg, _("Very short block of %d bytes on device %s discarded.\n"), 
 	 block->read_len, dev->dev_name);
+      Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       dev->state |= ST_SHORT;	/* set short block */
       block->read_len = block->binbuf = 0;
       return 0; 		/* return error */
    }  
 
+   BlockNumber = block->BlockNumber + 1;
    if (!unser_block_header(dev, block)) {
       block->read_len = 0;
       return 0;
+   }
+   if (verbose && (block->BlockNumber != BlockNumber)) {
+      Jmsg(jcr, M_ERROR, 0, _("Incorrect block number: expected %u, got %u\n"),
+	 BlockNumber, block->BlockNumber);
    }
 
    /*
@@ -553,13 +562,13 @@ reread:
    if (block->block_len > block->buf_len) {
       Mmsg2(&dev->errmsg,  _("Block length %u is greater than buffer %u. Attempting recovery.\n"),
 	 block->block_len, block->buf_len);
-      Emsg0(M_WARNING, 0, dev->errmsg);
+      Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       Pmsg1(000, "%s", dev->errmsg);
       /* Attempt to reposition to re-read the block */
       if (dev->state & ST_TAPE) {
          Dmsg0(100, "Backspace record for reread.\n");
-	 if (bsf_dev(dev, 1) != 0) {
-	    Emsg0(M_ERROR, 0, dev->errmsg);
+	 if (bsr_dev(dev, 1) != 0) {
+            Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
 	    block->read_len = 0;
 	    return 0;
 	 }
@@ -569,8 +578,8 @@ reread:
 	 pos -= block->read_len;
 	 lseek(dev->fd, pos, SEEK_SET);   
       }
-      Mmsg1(&dev->errmsg, _("Resetting buffer size to %u bytes.\n"), block->block_len);
-      Emsg0(M_WARNING, 0, dev->errmsg);
+      Mmsg1(&dev->errmsg, _("Setting block buffer size to %u bytes.\n"), block->block_len);
+      Jmsg(jcr, M_INFO, 0, "%s", dev->errmsg);
       Pmsg1(000, "%s", dev->errmsg);
       /* Set new block length */
       dev->max_block_size = block->block_len;
@@ -585,6 +594,7 @@ reread:
    if (block->block_len > block->read_len) {
       Mmsg2(&dev->errmsg, _("Short block of %d bytes on device %s discarded.\n"), 
 	 block->read_len, dev->dev_name);
+      Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       dev->state |= ST_SHORT;	/* set short block */
       block->read_len = block->binbuf = 0;
       return 0; 		/* return error */

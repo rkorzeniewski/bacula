@@ -54,7 +54,7 @@ int read_records(JCR *jcr,  DEVICE *dev,
 	 ok = FALSE;
 	 break;
       }
-      if (!read_block_from_device(dev, block)) {
+      if (!read_block_from_device(jcr, dev, block)) {
          Dmsg0(20, "!read_record()\n");
 	 if (dev->state & ST_EOT) {
 	    DEV_RECORD *trec = new_record();
@@ -84,7 +84,7 @@ int read_records(JCR *jcr,  DEVICE *dev,
 	     *	and pass it off to the callback routine, then continue
 	     *	most likely reading the previous record.
 	     */
-	    read_block_from_device(dev, block);
+	    read_block_from_device(jcr, dev, block);
 	    read_record_from_block(block, trec);
 	    get_session_record(dev, trec, &sessrec);
 	    record_cb(jcr, dev, block, trec);
