@@ -107,8 +107,8 @@ Catalog {
 #  and to the console
 Messages {
   Name = Standard
-  mailcommand = "@sbindir@/smtp -h localhost -f \"\(Bacula Regression\) %r\" -s \"Bacula: %t %e of %c %l\" %r"
-  operatorcommand = "@sbindir@/smtp -h localhost -f \"\(Bacula Regression\) %r\" -s \"Bacula: Intervention needed for %j\" %r"
+  mailcommand = "@sbindir@/bsmtp -h localhost -f \"\(Bacula Regression\) %r\" -s \"Bacula: %t %e of %c %l\" %r"
+  operatorcommand = "@sbindir@/bsmtp -h localhost -f \"\(Bacula Regression\) %r\" -s \"Bacula: Intervention needed for %j\" %r"
   MailOnError = @job_email@ = all
   operator = @job_email@ = mount
   console = all, !skipped

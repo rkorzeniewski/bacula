@@ -19,7 +19,7 @@ echo " === Starting four-jobs-test  ===" >>working/log
 echo " "
 
 bin/bacula start 2>&1 >/dev/null
-bin/console -c bin/console.conf <<END_OF_DATA
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
 @output /dev/null
 estimate job=CompressedTest listing
 estimate job=CompressedTest listing
@@ -40,7 +40,7 @@ touch ${cwd}/build/src/lib/*.c ${cwd}/build/src/lib/*.o
 #
 # run a second job
 #
-bin/console -c bin/console.conf <<END_OF_DATA
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
 @output /dev/null
 messages
 @output tmp/log1.out
@@ -56,7 +56,7 @@ touch ${cwd}/build/src/lib/*.c ${cwd}/build/src/lib/*.o
 #
 # run a third job
 #
-bin/console -c bin/console.conf <<END_OF_DATA
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
 @output /dev/null
 messages
 @output tmp/log1.out
@@ -72,7 +72,7 @@ touch ${cwd}/build/src/lib/*.c ${cwd}/build/src/lib/*.o
 #
 # run a fourth job
 #
-bin/console -c bin/console.conf <<END_OF_DATA
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
 @output /dev/null
 messages
 @output tmp/log1.out
@@ -86,7 +86,7 @@ echo "Backup 4 done"
 # 
 # now do several restores to ensure we cleanup between jobs
 #
-bin/console -c bin/console.conf <<END_OF_DATA
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
 @output /dev/null
 restore where=${cwd}/tmp/bacula-restores select all
 yes

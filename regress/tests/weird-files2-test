@@ -26,7 +26,7 @@ echo " "
 
 bin/testls weird-files2 >${cwd}/tmp/original
 bin/bacula start 2>&1 >/dev/null
-bin/console -c bin/console.conf <<END_OF_DATA
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
 @output /dev/null
 messages
 @output tmp/log1.out
@@ -46,7 +46,7 @@ ln hard-file3 hard-file2
 rm -f soft-file2
 ln -s soft-file3 soft-file2
 cd ${cwd}
-bin/console -c bin/console.conf <<END_OF_DATA
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
 @output /dev/null
 messages
 @# 
