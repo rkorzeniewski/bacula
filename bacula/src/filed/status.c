@@ -222,7 +222,7 @@ static void  list_terminated_jobs(void sendit(const char *msg, int len, void *sa
 	 dt, JobName);
       sendit(buf, strlen(buf), arg);
    }
-   sendit("====\n", 1, arg);
+   sendit("====\n", 5, arg);
    unlock_last_jobs_list();
 }
 

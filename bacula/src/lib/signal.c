@@ -64,7 +64,7 @@ static void signal_handler(int sig)
 
    /* If we come back more than once, get out fast! */
    if (already_dead > 1) {
-      _exit(1);
+      exit(1);
    }
    /* If we come back once, take normal exit */
    if (already_dead) {
