@@ -54,7 +54,7 @@ static char Job_end[]	 =
 static char Job_status[] = "3012 Job %127s jobstatus %d\n";
 
 /* Forward referenced functions */
-static void *msg_thread(void *arg);
+extern "C" void *msg_thread(void *arg);
 
 /*
  * Establish a message channel connection with the Storage daemon
@@ -188,7 +188,7 @@ int start_storage_daemon_message_thread(JCR *jcr)
    return 1;
 }
 
-static void msg_thread_cleanup(void *arg)
+extern "C" void msg_thread_cleanup(void *arg)
 {
    JCR *jcr = (JCR *)arg;
    Dmsg0(200, "End msg_thread\n");
@@ -206,7 +206,8 @@ static void msg_thread_cleanup(void *arg)
  *  Storage daemon).
  * Note, we are running in a separate thread.
  */
-static void *msg_thread(void *arg)
+extern "C"
+void *msg_thread(void *arg)
 {
    JCR *jcr = (JCR *)arg;
    BSOCK *sd;

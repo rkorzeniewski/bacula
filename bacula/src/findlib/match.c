@@ -148,7 +148,7 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, const char *fname)
          case 'A':
 	    inc->options |= FO_ACL;
 	    break;
-	 case 'Z':                 /* gzip compression */
+         case 'Z':                 /* gzip compression */
 	    inc->options |= FO_GZIP;
             inc->level = *++rp - '0';
             Dmsg1(200, "Compression level=%d\n", inc->level);
@@ -215,17 +215,13 @@ void add_fname_to_exclude_list(FF_PKT *ff, const char *fname)
    int len;
    struct s_excluded_file *exc, **list;
 
-#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
-   /* Convert any \'s into /'s */
-   for (char *p=fname; *p; p++) {
-      if (*p == '\\') {
-         *p = '/';
-      }
-   }
-#endif
    Dmsg1(20, "Add name to exclude: %s\n", fname);
 
+#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
+   if (strchr(fname, '/') || strchr(fname, '\\')) {
+#else
    if (strchr(fname, '/')) {
+#endif
       list = &ff->excluded_paths_list;
    } else {
       list = &ff->excluded_files_list;
@@ -237,6 +233,14 @@ void add_fname_to_exclude_list(FF_PKT *ff, const char *fname)
    exc->next = *list;
    exc->len = len;
    strcpy(exc->fname, fname);		      
+#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
+   /* Convert any \'s into /'s */
+   for (char *p=exc->fname; *p; p++) {
+      if (*p == '\\') {
+         *p = '/';
+      }
+   }
+#endif
    *list = exc;
 }
 

@@ -42,7 +42,9 @@
 
 
 /* Forward referenced functions */
-static void *jobq_server(void *arg);
+extern "C" void *jobq_server(void *arg);
+extern "C" void *sched_wait(void *arg);
+
 static int   start_server(jobq_t *jq);
 
 /*   
@@ -152,7 +154,8 @@ struct wait_pkt {
  *  most jobs are put into the job queue only when their
  *  scheduled time arives.
  */
-static void *sched_wait(void *arg)
+extern "C"  
+void *sched_wait(void *arg)
 {
    JCR *jcr = ((wait_pkt *)arg)->jcr;
    jobq_t *jq = ((wait_pkt *)arg)->jq;
@@ -185,7 +188,6 @@ static void *sched_wait(void *arg)
    Dmsg0(300, "Exit sched_wait\n");
    return NULL;
 }
-
 
 /*
  *  Add a job to the queue
@@ -352,7 +354,8 @@ static int start_server(jobq_t *jq)
  * When all the resources are acquired for the job, 
  *  it will call the user's engine.
  */
-static void *jobq_server(void *arg)
+extern "C"  
+void *jobq_server(void *arg)
 {
    struct timespec timeout;
    jobq_t *jq = (jobq_t *)arg;
