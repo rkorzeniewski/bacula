@@ -31,6 +31,11 @@ For 1.31 release:
 
 
 For 1.32:
+- Make bextract release the drive properly between tapes 
+  so that an autochanger can be made to work.
+- Fix "restore all" to bypass building the tree.
+- Fix restore to list errors if Invalid block found, and if # files
+  restored does not match # expected.
 - User wants to NOT backup up certain big files (email files).
 - Maybe remove multiple simultaneous devices code in SD.
 - On Windows with very long path names, it may be impossible to create 

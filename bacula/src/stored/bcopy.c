@@ -31,14 +31,14 @@
 #include "stored.h"
 
 /* Forward referenced functions */
-static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
+static int record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
 
 
 /* Global variables */
 static DEVICE *in_dev = NULL;
 static DEVICE *out_dev = NULL;
-static JCR *in_jcr;                    /* input jcr */
-static JCR *out_jcr;                   /* output jcr */
+static JCR *in_jcr;		       /* input jcr */
+static JCR *out_jcr;		       /* output jcr */
 static BSR *bsr = NULL;
 static char *wd = "/tmp";
 static int list_records = 0;
@@ -78,42 +78,42 @@ int main (int argc, char *argv[])
    while ((ch = getopt(argc, argv, "b:c:d:mn:p:rsu:vV:w:?")) != -1) {
       switch (ch) {
          case 'b':
-            bsr = parse_bsr(NULL, optarg);
-            break;
+	    bsr = parse_bsr(NULL, optarg);
+	    break;
 
          case 'c':                    /* specify config file */
-            if (configfile != NULL) {
-               free(configfile);
-            }
-            configfile = bstrdup(optarg);
-            break;
+	    if (configfile != NULL) {
+	       free(configfile);
+	    }
+	    configfile = bstrdup(optarg);
+	    break;
 
          case 'd':                    /* debug level */
-            debug_level = atoi(optarg);
-            if (debug_level <= 0)
-               debug_level = 1; 
-            break;
+	    debug_level = atoi(optarg);
+	    if (debug_level <= 0)
+	       debug_level = 1; 
+	    break;
 
          case 'v':
-            verbose++;
-            break;
+	    verbose++;
+	    break;
 
          case 'i':                    /* input Volume name */
-            iVolumeName = optarg;
-            break;
+	    iVolumeName = optarg;
+	    break;
 
          case 'o':                    /* output Volume name */
-            oVolumeName = optarg;
-            break;
+	    oVolumeName = optarg;
+	    break;
 
 
          case 'w':
-            wd = optarg;
-            break;
+	    wd = optarg;
+	    break;
 
          case '?':
-         default:
-            usage();
+	 default:
+	    usage();
 
       }  
    }
@@ -135,7 +135,7 @@ int main (int argc, char *argv[])
 
    /* Setup and acquire input device for reading */
    in_jcr = setup_jcr("bcopy", argv[0], bsr, iVolumeName);
-   in_dev = setup_to_access_device(in_jcr, 1);   /* read device */
+   in_dev = setup_to_access_device(in_jcr, 1);	 /* read device */
    if (!in_dev) { 
       exit(1);
    }
@@ -144,7 +144,7 @@ int main (int argc, char *argv[])
    out_jcr = setup_jcr("bcopy", argv[1], bsr, oVolumeName);
    out_dev = setup_to_access_device(out_jcr, 0);   /* no acquire */  
    if (!out_dev) { 
-      exit(1);      
+      exit(1);	    
    }
    /* For we must now acquire the device for writing */
    out_block = new_block(out_dev);
@@ -179,12 +179,12 @@ int main (int argc, char *argv[])
   
 
 
-static void record_cb(JCR *in_jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
+static int record_cb(JCR *in_jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 {
    if (list_records) {
       Pmsg5(000, _("Record: SessId=%u SessTim=%u FileIndex=%d Stream=%d len=%u\n"),
-            rec->VolSessionId, rec->VolSessionTime, rec->FileIndex, 
-            rec->Stream, rec->data_len);
+	    rec->VolSessionId, rec->VolSessionTime, rec->FileIndex, 
+	    rec->Stream, rec->data_len);
    }
    /* 
     * Check for Start or End of Session Record 
@@ -193,44 +193,44 @@ static void record_cb(JCR *in_jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *re
    if (rec->FileIndex < 0) {
 
       if (verbose > 1) {
-         dump_label_record(dev, rec, 1);
+	 dump_label_record(dev, rec, 1);
       }
       switch (rec->FileIndex) {
-         case PRE_LABEL:
-            Pmsg0(000, "Volume is prelabeled. This volume cannot be copied.\n");
-            return;
-         case VOL_LABEL:
-            Pmsg0(000, "Volume label not copied.\n");
-            return;
-         case SOS_LABEL:
-            jobs++;
-            break;
-         case EOS_LABEL:
-            while (!write_record_to_block(out_block, rec)) {
-               Dmsg2(150, "!write_record_to_block data_len=%d rem=%d\n", rec->data_len,
-                          rec->remainder);
-               if (!write_block_to_device(out_jcr, out_dev, out_block)) {
-                  Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
-                     dev_name(out_dev), strerror_dev(out_dev));
-                  Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
-                        strerror_dev(out_dev));
-               }
-            }
-            if (!write_block_to_device(out_jcr, out_dev, out_block)) {
+      case PRE_LABEL:
+         Pmsg0(000, "Volume is prelabeled. This volume cannot be copied.\n");
+	 return 1;
+      case VOL_LABEL:
+         Pmsg0(000, "Volume label not copied.\n");
+	 return 1;
+      case SOS_LABEL:
+	 jobs++;
+	 break;
+      case EOS_LABEL:
+	 while (!write_record_to_block(out_block, rec)) {
+            Dmsg2(150, "!write_record_to_block data_len=%d rem=%d\n", rec->data_len,
+		       rec->remainder);
+	    if (!write_block_to_device(out_jcr, out_dev, out_block)) {
                Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
-                  dev_name(out_dev), strerror_dev(out_dev));
+		  dev_name(out_dev), strerror_dev(out_dev));
                Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
-                     strerror_dev(out_dev));
-            }
-            break;
-         case EOM_LABEL:
-            Pmsg0(000, "EOM label not copied.\n");
-            return;
-         case EOT_LABEL:              /* end of all tapes */
-            Pmsg0(000, "EOT label not copied.\n");
-            return;
-         default:
-            break;
+		     strerror_dev(out_dev));
+	    }
+	 }
+	 if (!write_block_to_device(out_jcr, out_dev, out_block)) {
+            Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
+	       dev_name(out_dev), strerror_dev(out_dev));
+            Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
+		  strerror_dev(out_dev));
+	 }
+	 break;
+      case EOM_LABEL:
+         Pmsg0(000, "EOM label not copied.\n");
+	 return 1;
+      case EOT_LABEL:		   /* end of all tapes */
+         Pmsg0(000, "EOT label not copied.\n");
+	 return 1;
+      default:
+	 break;
       }
    }
 
@@ -238,33 +238,33 @@ static void record_cb(JCR *in_jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *re
    records++;
    while (!write_record_to_block(out_block, rec)) {
       Dmsg2(150, "!write_record_to_block data_len=%d rem=%d\n", rec->data_len,
-                 rec->remainder);
+		 rec->remainder);
       if (!write_block_to_device(out_jcr, out_dev, out_block)) {
          Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
-            dev_name(out_dev), strerror_dev(out_dev));
+	    dev_name(out_dev), strerror_dev(out_dev));
          Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
-               strerror_dev(out_dev));
-         break;
+	       strerror_dev(out_dev));
+	 break;
       }
    }
-   return;
+   return 1;
 }
 
 
 /* Dummies to replace askdir.c */
-int     dir_get_volume_info(JCR *jcr, enum get_vol_info_rw  writing) { return 1;}
-int     dir_find_next_appendable_volume(JCR *jcr) { return 1;}
-int     dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int relabel) { return 1; }
-int     dir_create_jobmedia_record(JCR *jcr) { return 1; }
-int     dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev) { return 1; }
-int     dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec) { return 1;}
-int     dir_send_job_status(JCR *jcr) {return 1;}
+int	dir_get_volume_info(JCR *jcr, enum get_vol_info_rw  writing) { return 1;}
+int	dir_find_next_appendable_volume(JCR *jcr) { return 1;}
+int	dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int relabel) { return 1; }
+int	dir_create_jobmedia_record(JCR *jcr) { return 1; }
+int	dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev) { return 1; }
+int	dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec) { return 1;}
+int	dir_send_job_status(JCR *jcr) {return 1;}
 
 
 int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
 {
    fprintf(stderr, "Mount Volume %s on device %s and press return when ready: ",
       in_jcr->VolumeName, dev_name(dev));
-   getchar();   
+   getchar();	
    return 1;
 }

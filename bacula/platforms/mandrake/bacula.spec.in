@@ -10,10 +10,18 @@
 # If you want the MySQL version, use:
 #        rpmbuild -ba --define "build_mysql 1" bacula.spec
 #
-
+# If you want the MySQL version and static builds, use:
+#	rpmbuild -ba --define "build_mysql 1" --define "build_static 1" bacula.spec
+# If you want the MySQL version and static builds + come console , use:
+#	rpmbuild -ba --define "build_mysql 1" --define "build_static 1" --define "build_gnome 1" bacula.spec
 
 %define mysql 0
+%define static 0
+%define gnome 0
 %{?build_mysql:%define mysql 1}
+%{?build_static:%define static 1}
+%{?build_gnome:%define gnome 1}
+
 
 
 Summary: Bacula - The Network Backup Solution
@@ -30,8 +38,12 @@ Distribution: The Bacula Team
 Packager: D. Scott Barninger <barninger@fairfieldcomputers.com>
 Requires: gnome-libs >= 1.4
 Requires: readline
-BuildRequires: gnome-libs-devel >= 1.4
 BuildRequires: readline-devel
+%if %{gnome}
+Requires: gnome-libs >= 1.4
+BuildRequires: gnome-libs-devel >= 1.4
+%endif
+
 %if %{mysql}
 Requires: mysql >= 3.23
 Requires: mysql-server >= 3.23
@@ -121,7 +133,16 @@ patch src/cats/make_sqlite_tables.in src/cats/make_sqlite_tables.in.patch
         --sysconfdir=/etc/bacula \
         --with-scriptdir=/etc/bacula \
         --enable-smartalloc \
+%if %{gnome}
         --enable-gnome \
+%endif
+%if %{static}
+        --enable-static-fd \
+        --enable-static-sd \
+        --enable-static-dir \
+        --enable-static-tools \
+        --enable-static-cons \
+%endif
 %if %{mysql}
         --with-mysql \
 %else
@@ -171,9 +192,9 @@ rm -f $RPM_BUILD_ROOT/etc/bacula/grant_mysql_privileges
 %endif
 
 # install the init scripts
-cp platforms/redhat/bacula-dir $RPM_BUILD_ROOT/etc/rc.d/init.d/bacula-dir
-cp platforms/redhat/bacula-fd $RPM_BUILD_ROOT/etc/rc.d/init.d/bacula-fd
-cp platforms/redhat/bacula-sd $RPM_BUILD_ROOT/etc/rc.d/init.d/bacula-sd
+cp platforms/mandrake/bacula-dir $RPM_BUILD_ROOT/etc/rc.d/init.d/bacula-dir
+cp platforms/mandrake/bacula-fd $RPM_BUILD_ROOT/etc/rc.d/init.d/bacula-fd
+cp platforms/mandrake/bacula-sd $RPM_BUILD_ROOT/etc/rc.d/init.d/bacula-sd
 
 # install the menu stuff
 cp scripts/bacula.png $RPM_BUILD_ROOT/usr/share/pixmaps/bacula.png

@@ -62,8 +62,10 @@ void * alist::get(int index)
 void alist::destroy()
 {
    if (items) {
-      for (int i=0; i<num_items; i++) {
-	 free(items[i]);
+      if (own_items) {
+	 for (int i=0; i<num_items; i++) {
+	    free(items[i]);
+	 }
       }
       free(items);
    }

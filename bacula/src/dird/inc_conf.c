@@ -510,6 +510,8 @@ static void setup_current_opts(void)
    if (res_incexe.current_opts == NULL) {
       res_incexe.current_opts = (FOPTS *)malloc(sizeof(FOPTS));
       memset(res_incexe.current_opts, 0, sizeof(FOPTS));
+      res_incexe.current_opts->match.init(1, true);
+      res_incexe.current_opts->base_list.init(1, true);
       res_incexe.num_opts = 1;
       res_incexe.opts_list = (FOPTS **)malloc(sizeof(FOPTS *));
       res_incexe.opts_list[0] = res_incexe.current_opts;
