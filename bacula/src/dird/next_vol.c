@@ -42,7 +42,8 @@
  */
 int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int create)
 {
-   int ok, retry = 0;
+   int retry = 0;
+   bool ok;
 
    mr->PoolId = jcr->PoolId;
    bstrncpy(mr->MediaType, jcr->store->media_type, sizeof(mr->MediaType));
@@ -53,22 +54,35 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int create)
    db_lock(jcr->db);
    for ( ;; ) {
       bstrncpy(mr->VolStatus, "Append", sizeof(mr->VolStatus));  /* want only appendable volumes */
+      /*
+       *  1. Look for volume with "Append" status.
+       */
       ok = db_find_next_volume(jcr, jcr->db, 1, mr);  
       Dmsg2(100, "catreq after find_next_vol ok=%d FW=%d\n", ok, mr->FirstWritten);
       if (!ok) {
-	 /* Well, try finding recycled volumes */
+	 /*
+	  * 2. Try finding a recycled volume
+	  */
 	 ok = find_recycled_volume(jcr, mr);
          Dmsg2(100, "find_recycled_volume %d FW=%d\n", ok, mr->FirstWritten);
 	 if (!ok) {
+	    /*
+	     * 3. Try pruning Volumes
+	     */
 	    prune_volumes(jcr);  
 	    ok = recycle_oldest_purged_volume(jcr, mr);
             Dmsg2(200, "find_recycled_volume2 %d FW=%d\n", ok, mr->FirstWritten);
 	    if (!ok && create) {
-	       /* See if we can create a new Volume */
+	       /*
+                * 4. Try "creating" a new Volume
+		*/
 	       ok = newVolume(jcr, mr);
 	    }
 	 }
 
+	 /* 
+	  *  Look at more drastic ways to find an Appendable Volume
+	  */ 
 	 if (!ok && (jcr->pool->purge_oldest_volume ||
 		     jcr->pool->recycle_oldest_volume)) {
             Dmsg2(200, "No next volume found. PurgeOldest=%d\n RecyleOldest=%d",
@@ -79,12 +93,17 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int create)
 	    if (ok) {
 	       UAContext *ua;
                Dmsg0(400, "Try purge.\n");
-	       /* Try to purge oldest volume */
+	       /* 
+		* 5.  Try to purging oldest volume only if not UA calling us.
+		*/
 	       ua = new_ua_context(jcr);
-	       if (jcr->pool->purge_oldest_volume) {
+	       if (jcr->pool->purge_oldest_volume && create) {
                   Jmsg(jcr, M_INFO, 0, _("Purging oldest volume \"%s\"\n"), mr->VolumeName);
 		  ok = purge_jobs_from_volume(ua, mr);
-	       } else {
+	       /*
+		* 5. or try recycling the oldest volume
+		*/
+	       } else if (jcr->pool->recycle_oldest_volume) {
                   Jmsg(jcr, M_INFO, 0, _("Pruning oldest volume \"%s\"\n"), mr->VolumeName);
 		  ok = prune_volume(ua, mr);
 	       }

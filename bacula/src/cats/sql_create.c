@@ -227,7 +227,8 @@ VALUES ('%s',%u,%u,%d,%d,%d,%d,%d,%s,%s,%u,%u,%s,'%s','%s')",
 
 
 /* 
- * Create Unique Media record	
+ * Create Media record. VolumeName and non-zero Slot must be unique
+ *
  * Returns: 0 on failure
  *	    1 on success
  */ 
@@ -254,6 +255,9 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       }
       sql_free_result(mdb);
    }
+
+   /* Make sur Slot, if non-zero, is unique */
+   db_make_slot_unique(jcr, mdb, mr);
 
    /* Must create it */
    if (mr->LabelDate) {

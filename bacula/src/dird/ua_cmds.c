@@ -804,20 +804,22 @@ static void update_volrecycle(UAContext *ua, char *val, MEDIA_DBR *mr)
 static void update_volpool(UAContext *ua, char *val, MEDIA_DBR *mr)
 {
    POOL_DBR pr;
-   POOLMEM *query;
+
    memset(&pr, 0, sizeof(pr));
    bstrncpy(pr.Name, val, sizeof(pr.Name));
    if (!get_pool_dbr(ua, &pr)) {
       return;
    }
-   query = get_pool_memory(PM_MESSAGE);
-   Mmsg(&query, "UPDATE Media SET PoolId=%u WHERE MediaId=%u", pr.PoolId, mr->MediaId);
-   if (!db_sql_query(ua->db, query, NULL, NULL)) {  
-      bsendmsg(ua, "%s", db_strerror(ua->db));
-   } else {	  
+   mr->PoolId = pr.PoolId;	      /* set new PoolId */
+   /*
+    * Make sure to use db_update... rather than doing this directly,
+    *	so that any Slot is handled correctly. 
+    */
+   if (!db_update_media_record(ua->jcr, ua->db, mr)) {
+      bsendmsg(ua, _("Error updating media record Pool: ERR=%s"), db_strerror(ua->db));
+   } else {
       bsendmsg(ua, _("New Pool is: %s\n"), pr.Name);
    }
-   free_pool_memory(query);
 }
 
 /*
@@ -987,15 +989,16 @@ static int update_volume(UAContext *ua)
 	       pr.MaxVols);
 	    break;
 	 }
-	 query = get_pool_memory(PM_MESSAGE);
-         Mmsg(&query, "UPDATE Media SET Slot=%d WHERE MediaId=%u",
-	    slot, mr.MediaId);
-	 if (!db_sql_query(ua->db, query, NULL, NULL)) {  
-            bsendmsg(ua, "%s", db_strerror(ua->db));
+	 mr.Slot = slot;
+	 /*
+	  * Make sure to use db_update... rather than doing this directly,
+	  *   so that any Slot is handled correctly. 
+	  */
+	 if (!db_update_media_record(ua->jcr, ua->db, &mr)) {
+            bsendmsg(ua, _("Error updating media record Slot: ERR=%s"), db_strerror(ua->db));
 	 } else {
-            bsendmsg(ua, "New Slot is: %d\n", slot);
+            bsendmsg(ua, _("New Slot is: %s\n"), mr.Slot);
 	 }
-	 free_pool_memory(query);
 	 break;
 
       case 8:			      /* Volume Files */
@@ -1755,6 +1758,9 @@ void close_db(UAContext *ua)
 {
    if (ua->db) {
       db_close_database(ua->jcr, ua->db);
+      ua->db = NULL;
+      if (ua->jcr) {
+	 ua->jcr->db = NULL;
+      }
    }
-   ua->db = NULL;
 }

@@ -24,6 +24,33 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.33 Testing/Documentation:
+- Document new alias records in Director. SDAddress SDDeviceName, SDPassword.
+  FDPassword, FDAddress, DBAddress, DBPort, DBPassword.
+- Document new Include/Exclude ...
+- Add test of exclusion, test multiple Include {} statements.
+- Add counter variable test.
+- Document ln -sf /usr/lib/libncurses.so /usr/lib/libtermcap.so
+  and install the esound-dev  package for compiling Console on SuSE.
+- Add an example of using a FIFO in dirdconf.wml 
+- Add an item to the FAQ about running jobs in different timezones.
+- Add some examples of job editing codes.
+- Add Dan's 31 Oct 2003 email on tcpwrappers to Tips.
+- Add to supported autochangers 
+  OS              : FreeBSD-4.9
+  Auto-Changer    : QUALSTAR TLS-4210
+    Manufufactur  : Qualstar
+    Tapes         : 12 (AIT1: 36GB, AIT2: 50GB all uncompressed)
+    Drives        : 2xAIT2 (installed in the Qualstar: SONY SDX-500C AIT2)
+- Setup a standard job that builds a bootstrap file and saves
+  it with the catalog database.
+- Document Dan's new --with-dir-user, ... options.
+                
+
+For 1.33
+- Add a default DB password to MySQL.  
+  GRANT all privileges ON bacula.* TO bacula@localhost IDENTIFIED BY 
+     'bacula_password';
+  FLUSH PRIVILEGES;
 - Define week of year for scheduler.  W01, W02, ...
   Week 01 of a year is per definition the first week that has the
   Thursday in this year, which is equivalent to the week that contains the
@@ -63,28 +90,6 @@ For 1.33 Testing/Documentation:
   it to tape.
 - Scratch Pool where the volumes can be re-assigned to any Pool.
 - bextract is sending everything to the log file ****FIXME****
-- Document new alias records in Director. SDAddress SDDeviceName, SDPassword.
-  FDPassword, FDAddress, DBAddress, DBPort, DBPassword.
-- Document new Include/Exclude ...
-- Add test of exclusion, test multiple Include {} statements.
-- Add counter variable test.
-- Document ln -sf /usr/lib/libncurses.so /usr/lib/libtermcap.so
-  and install the esound-dev  package for compiling Console on SuSE.
-- Add an example of using a FIFO in dirdconf.wml 
-- Add an item to the FAQ about running jobs in different timezones.
-- Add some examples of job editing codes.
-- Add Dan's 31 Oct 2003 email on tcpwrappers to Tips.
-- Add to supported autochangers 
-  OS              : FreeBSD-4.9
-  Auto-Changer    : QUALSTAR TLS-4210
-    Manufufactur  : Qualstar
-    Tapes         : 12 (AIT1: 36GB, AIT2: 50GB all uncompressed)
-    Drives        : 2xAIT2 (installed in the Qualstar: SONY SDX-500C AIT2)
-- Setup a standard job that builds a bootstrap file and saves
-  it with the catalog database.
-- Document Dan's new --with-dir-user, ... options.
-                
-For 1.33
 - Add Progress command that periodically reports the progress of
   a job or all jobs.
 - Restrict characters permitted in a Resource name, and don't permit

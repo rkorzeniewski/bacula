@@ -267,10 +267,13 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       }
       localtime_r(&ttime, &tm);
       strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
-      Mmsg(&mdb->cmd, "UPDATE Media SET LabelDate='%s'\
- WHERE VolumeName='%s'", dt, mr->VolumeName);
+      Mmsg(&mdb->cmd, "UPDATE Media SET LabelDate='%s' "
+           "WHERE VolumeName='%s'", dt, mr->VolumeName);
       stat = UPDATE_DB(jcr, mdb, mdb->cmd);
    }
+   
+   /* Make sure Slot, if non-zero, is unique */
+   db_make_slot_unique(jcr, mdb, mr);
 
    ttime = mr->LastWritten;
    localtime_r(&ttime, &tm);
@@ -290,6 +293,23 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    stat = UPDATE_DB(jcr, mdb, mdb->cmd);
    db_unlock(mdb);
    return stat;
+}
+
+/* 
+ * If we have a non-zero Slot, ensure that no other Media
+ *  record in this Pool has the same Slot by setting Slot=0.
+ *
+ * This routine assumes the database is already locked.
+ */
+void
+db_make_slot_unique(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr) 
+{
+   if (mr->Slot != 0) {
+      Mmsg(&mdb->cmd, "UPDATE Media SET Slot=0 WHERE PoolId=%u "
+           "AND Slot=%d\n", mr->PoolId, mr->Slot);
+      Dmsg1(400, "%s\n", mdb->cmd);
+      UPDATE_DB(jcr, mdb, mdb->cmd);
+   }
 }
 
 #endif /* HAVE_MYSQL || HAVE_SQLITE */

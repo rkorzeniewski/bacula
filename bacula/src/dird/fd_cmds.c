@@ -251,6 +251,7 @@ static int send_list(JCR *jcr, int list)
 	 p = (char *)ie->name_list.get(j);
 	 switch (*p) {
          case '|':
+	    p++;		      /* skip over the | */
             fd->msg = edit_job_codes(jcr, fd->msg, p, "");
             bpipe = open_bpipe(fd->msg, 0, "r");
 	    if (!bpipe) {

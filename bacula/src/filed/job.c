@@ -436,6 +436,7 @@ static void add_fname_to_list(JCR *jcr, char *fname, int list)
 
    switch (*p) {
    case '|':
+      p++;			      /* skip over | */
       fn = get_pool_memory(PM_FNAME);
       fn = edit_job_codes(jcr, fn, p, "");
       bpipe = open_bpipe(fn, 0, "r");
