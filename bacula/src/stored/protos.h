@@ -119,8 +119,8 @@ uint32_t dev_file(DEVICE *dev);
 bool     dev_is_tape(DEVICE *dev);
 
 /* From device.c */
-int      open_device(JCR *jcr, DEVICE *dev);
-int      first_open_device(DEVICE *dev);
+bool     open_device(JCR *jcr, DEVICE *dev);
+bool     first_open_device(DEVICE *dev);
 bool     fixup_device_block_write_error(DCR *dcr, DEV_BLOCK *block);
 void     _lock_device(const char *file, int line, DEVICE *dev);
 void     _unlock_device(const char *file, int line, DEVICE *dev);
