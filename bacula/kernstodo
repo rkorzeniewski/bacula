@@ -30,8 +30,6 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
-- Increment DB version prior to releasing.
-- Turn off FULL_DEBUG prior to releasing.
 
 
 For 1.32:
@@ -1032,3 +1030,6 @@ Done: (see kernsdone for more)
 - Document using multiple Pools for daily rotating tapes.
 - Check if Incremental is working correctly when it looks for the previous Job 
   (Phil's problem).
+- Increment DB version prior to releasing.
+- Turn off FULL_DEBUG prior to releasing.
+

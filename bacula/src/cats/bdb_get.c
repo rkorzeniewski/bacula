@@ -247,13 +247,14 @@ int db_get_num_media_records(JCR *jcr, B_DB *mdb)
 }
 
 /*
- * This function returns a list of all the Media record ids.
+ * This function returns a list of all the Media record ids 
+ *  for a specified PoolId
  *  The caller must free ids if non-NULL.
  *
  *  Returns 0: on failure
  *	    1: on success
  */
-int db_get_media_ids(JCR *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
+int db_get_media_ids(JCR *jcr, B_DB *mdb, uint32_t PoolId, int *num_ids, uint32_t *ids[])
 {
    int i = 0;
    uint32_t *id;
@@ -277,7 +278,9 @@ int db_get_media_ids(JCR *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
    *num_ids = mdb->control.MediaId;
    id = (uint32_t *)malloc(*num_ids * sizeof(uint32_t));
    while (fread(&omr, len, 1, mdb->mediafd) > 0) {
-      id[i++] = omr.MediaId;
+      if (PoolId == omr.MediaId) {
+	 id[i++] = omr.MediaId;
+      }
    }
    *ids = id;
    db_unlock(mdb);
