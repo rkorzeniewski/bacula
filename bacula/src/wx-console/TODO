@@ -1,3 +1,6 @@
+FEATURES
+--------
+
 wxbRestorePanel : Add buttons to mark/unmark directories/files.
 
 wxbRestorePanel : Allow the user to choose where he wants to restore his files
@@ -17,3 +20,10 @@ general : create a class like wxbtableparser, which fetches commands results
 win32 : do a static build
 
 win32 : correct Makefile.in to use ressource file
+
+BUGS
+----
+
+wxRestorePanel : When you double-click an a folder in the list, 
+      the list is then refreshed two times (instead of one) 
+      in the new directory
