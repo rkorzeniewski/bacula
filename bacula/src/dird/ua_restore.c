@@ -930,12 +930,14 @@ static void set_extract(UAContext *ua, TREE_NODE *node, TREE_CTX *tree, int valu
       if (db_get_file_attributes_record(ua->jcr, ua->db, cwd, &fdbr)) {
 	 uint32_t LinkFI;
 	 decode_stat(fdbr.LStat, &statp, &LinkFI); /* decode stat pkt */
-	 /* If we point to a hard linked file, traverse the tree to
-	  * find that file, and mark it for restoration as well.
+	 /*
+	  * If we point to a hard linked file, traverse the tree to
+	  * find that file, and mark it for restoration as well. It
+	  * must have the Link we just obtained and the same JobId.
 	  */
 	 if (LinkFI) {
 	    for (n=first_tree_node(tree->root); n; n=next_tree_node(n)) {
-	       if (n->FileIndex == LinkFI) {
+	       if (n->FileIndex == LinkFI && n->JobId == node->JobId) {
 		  n->extract = 1;
 		  break;
 	       }
