@@ -837,3 +837,11 @@ RES **save_config_resources()
    }
    return res;
 }
+
+RES **new_res_head()
+{
+   int size = (r_last - r_first + 1) * sizeof(RES *);
+   RES **res = (RES **)malloc(size);
+   memset(res, 0, size);
+   return res;
+}

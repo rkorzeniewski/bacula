@@ -86,6 +86,11 @@ static struct b_queue abqueue = {    /* Allocated buffer queue */
    &abqueue, &abqueue
 };
 
+uint64_t sm_max_bytes = 0;
+uint64_t sm_bytes = 0;
+uint32_t sm_max_buffers = 0;
+uint32_t sm_buffers = 0;
+
 static bool bufimode = false;	/* Buffers not tracked when True */
 
 #define HEAD_SIZE BALIGN(sizeof(struct abufhead))
@@ -110,15 +115,23 @@ static void *smalloc(const char *fname, int lineno, unsigned int nbytes)
 
    nbytes += HEAD_SIZE + 1;
    if ((buf = (char *)malloc(nbytes)) != NULL) {
+      struct abufhead *head = (struct abufhead *)buf;
       P(mutex);
       /* Enqueue buffer on allocated list */
       qinsert(&abqueue, (struct b_queue *) buf);
-      ((struct abufhead *) buf)->ablen = nbytes;
-      ((struct abufhead *) buf)->abfname = bufimode ? NULL : fname;
-      ((struct abufhead *) buf)->ablineno = (sm_ushort) lineno;
+      head->ablen = nbytes;
+      head->abfname = bufimode ? NULL : fname;
+      head->ablineno = (sm_ushort) lineno;
       /* Emplace end-clobber detector at end of buffer */
       buf[nbytes - 1] = (((long) buf) & 0xFF) ^ 0xC5;
       buf += HEAD_SIZE;  /* Increment to user data start */
+      if (++sm_buffers > sm_max_buffers) {
+	 sm_max_buffers = sm_buffers;
+      }
+      sm_bytes += nbytes;
+      if (sm_bytes > sm_max_bytes) {
+	 sm_max_bytes = sm_bytes;
+      }
       V(mutex);
    } else {
       Emsg0(M_ABORT, 0, _("Out of memory\n"));
@@ -154,11 +167,12 @@ void sm_free(const char *file, int line, void *fp)
 
    cp -= HEAD_SIZE;
    qp = (struct b_queue *) cp;
+   struct abufhead *head = (struct abufhead *)cp;
 
    P(mutex);
    Dmsg4(1150, "sm_free %d at %x from %s:%d\n", 
-	 ((struct abufhead *)cp)->ablen, fp, 
-	 ((struct abufhead *)cp)->abfname, ((struct abufhead *)cp)->ablineno);
+	 head->ablen, fp, 
+	 head->abfname, head->ablineno);
 
    /* The following assertions will catch virtually every release
       of an address which isn't an allocated buffer. */
@@ -175,12 +189,12 @@ void sm_free(const char *file, int line, void *fp)
       allocated  space in the buffer by comparing the end of buffer
       checksum with the address of the buffer.	*/
 
-   if (((unsigned char *) cp)[((struct abufhead *) cp)->ablen - 1] !=
-	    ((((long) cp) & 0xFF) ^ 0xC5)) {
+   if (((unsigned char *)cp)[head->ablen - 1] != ((((long) cp) & 0xFF) ^ 0xC5)) {
       V(mutex);
       Emsg2(M_ABORT, 0, "Buffer overrun called from %s:%d\n", file, line);
    }
-
+   sm_buffers--;
+   sm_bytes -= head->ablen;
 
    qdchain(qp);
    V(mutex);
@@ -191,7 +205,7 @@ void sm_free(const char *file, int line, void *fp)
       attempts to access data through a pointer into storage that's
       been previously released. */
 
-   memset(cp, 0xAA, (int) ((struct abufhead *) cp)->ablen);
+   memset(cp, 0xAA, (int) head->ablen);
 
    free(cp);
 }
@@ -263,7 +277,8 @@ void *sm_realloc(const char *fname, int lineno, void *ptr, unsigned int size)
       return the buffer passed in.  */
 
    cp -= HEAD_SIZE;
-   osize = ((struct abufhead *) cp)->ablen - (HEAD_SIZE + 1);
+   struct abufhead *head = (struct abufhead *)cp;
+   osize = head->ablen - (HEAD_SIZE + 1);
    if (size == osize) {
       return ptr;
    }
@@ -272,6 +287,9 @@ void *sm_realloc(const char *fname, int lineno, void *ptr, unsigned int size)
       If  we  can't  obtain  such a buffer, act as defined in SVID:
       return NULL from	realloc()  and	leave  the  buffer  in	PTR
       intact.  */
+
+   sm_buffers--;
+   sm_bytes -= osize;
 
    if ((buf = smalloc(fname, lineno, size)) != NULL) {
       memcpy(buf, ptr, (int) sm_min(size, osize));
