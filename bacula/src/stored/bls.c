@@ -73,7 +73,9 @@ static void usage()
 "       -i <file>       include list\n"
 "       -j              list jobs\n"
 "       -k              list blocks\n"
-"    (none of above)    list saved files\n"
+"    (no j or k option) list saved files\n"
+"       -L              dump label\n"
+"       -p              proceed inspite of errors\n"
 "       -v              be verbose\n"
 "       -V              specify Volume names (separated by |)\n"
 "       -?              print this message\n\n");
@@ -88,6 +90,7 @@ int main (int argc, char *argv[])
    char line[1000];
    char *VolumeName= NULL;
    char *bsrName = NULL;
+   bool ignore_label_errors = false;
 
    working_directory = "/tmp";
    my_name_is(argc, argv, "bls");
@@ -96,7 +99,7 @@ int main (int argc, char *argv[])
    memset(&ff, 0, sizeof(ff));
    init_include_exclude_files(&ff);
 
-   while ((ch = getopt(argc, argv, "b:c:d:e:i:jkLtvV:?")) != -1) {
+   while ((ch = getopt(argc, argv, "b:c:d:e:i:jkLvV:?")) != -1) {
       switch (ch) {
       case 'b':
 	 bsrName = optarg;
@@ -155,6 +158,10 @@ int main (int argc, char *argv[])
 	 dump_label = TRUE;
 	 break;
 
+      case 'p':
+	 ignore_label_errors = true;
+	 break;
+
       case 'v':
 	 verbose++;
 	 break;
@@ -192,6 +199,7 @@ int main (int argc, char *argv[])
 	 bsr = parse_bsr(NULL, bsrName);
       }
       jcr = setup_jcr("bls", argv[i], bsr, VolumeName);
+      jcr->ignore_label_errors = ignore_label_errors;
       dev = setup_to_access_device(jcr, 1);   /* acquire for read */
       if (!dev) {
 	 exit(1);

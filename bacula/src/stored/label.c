@@ -111,6 +111,11 @@ because:\n   %s"), dev_name(dev), strerror_dev(dev));
    }
    if (!ok) {
       free_record(record);
+      if (jcr->ignore_label_errors) {
+	 dev->state |= ST_LABEL;      /* set has Bacula label */
+         Jmsg(jcr, M_ERROR, 0, "%s", jcr->errmsg);
+	 return jcr->label_status = VOL_OK;
+      }
       empty_block(block);
       rewind_dev(dev);
       return jcr->label_status = VOL_NO_LABEL;
