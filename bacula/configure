@@ -7053,8 +7053,8 @@ echo "$as_me: error: Unable to find libpq-fe.h in standard locations" >&2;}
       else
           echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
-          { { echo "$as_me:$LINENO: error: Invalid SQLite directory $withval - unable to find libpq-fe.h under $withval" >&5
-echo "$as_me: error: Invalid SQLite directory $withval - unable to find libpq-fe.h under $withval" >&2;}
+          { { echo "$as_me:$LINENO: error: Invalid PostgreSQL directory $withval - unable to find libpq-fe.h under $withval" >&5
+echo "$as_me: error: Invalid PostgreSQL directory $withval - unable to find libpq-fe.h under $withval" >&2;}
    { (exit 1); exit 1; }; }
       fi
       POSTGRESQL_LFLAGS="-L$POSTGRESQL_LIBDIR -lpq"
