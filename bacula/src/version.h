@@ -21,10 +21,8 @@
 #define USE_SEMAPHORE
 
 /* Turn this on if you want to use the new Job scheduling code */
-#ifdef xxx
 #undef USE_SEMAPHORE
 #define JOB_QUEUE 1
-#endif
 
 
 /* #define NO_ATTRIBUTES_TEST 1 */
