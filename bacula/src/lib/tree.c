@@ -310,6 +310,8 @@ item_link:
    return;
 }
 
+#ifdef SLOW_WAY
+/* Moved to tree.h to eliminate subroutine call */
 TREE_NODE *first_tree_node(TREE_ROOT *root)
 {
    return root->first;
@@ -319,6 +321,7 @@ TREE_NODE *next_tree_node(TREE_NODE *node)
 {
    return node->next;
 }
+#endif
 
 
 void print_tree(char *path, TREE_NODE *tree)

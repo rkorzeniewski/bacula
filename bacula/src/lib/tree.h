@@ -85,11 +85,17 @@ TREE_NODE *new_tree_node(TREE_ROOT *root, int type);
 TREE_NODE *insert_tree_node(char *fname, TREE_NODE *node, 
                             TREE_ROOT *root, TREE_NODE *parent);
 TREE_NODE *make_tree_path(char *path, TREE_ROOT *root);
-TREE_NODE *first_tree_node(TREE_ROOT *root);
-TREE_NODE *next_tree_node(TREE_NODE *node);
 TREE_NODE *tree_cwd(char *path, TREE_ROOT *root, TREE_NODE *node);
 TREE_NODE *tree_relcwd(char *path, TREE_ROOT *root, TREE_NODE *node);
 void append_tree_node(char *path, TREE_NODE *node, TREE_ROOT *root, TREE_NODE *parent);
 void print_tree(char *path, TREE_NODE *root);    
 void free_tree(TREE_ROOT *root);
 int tree_getpath(TREE_NODE *node, char *buf, int buf_size);
+
+#ifdef SLOW_WAY
+TREE_NODE *first_tree_node(TREE_ROOT *root);
+TREE_NODE *next_tree_node(TREE_NODE *node);
+#else
+  #define first_tree_node(r) (r)->first
+  #define next_tree_node(n)  (n)->next
+#endif
