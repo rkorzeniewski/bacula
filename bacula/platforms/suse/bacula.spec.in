@@ -2,7 +2,7 @@
 
 # basic defines for every build
 %define depkgs ../depkgs
-%define depkgs_version 08Mar04
+%define depkgs_version 29Oct04
 %define tomsrtbt tomsrtbt-2.0.103
 %define sqlite_bindir /usr/lib/sqlite
 %define working_dir /var/bacula
@@ -1128,6 +1128,8 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 
 
 %changelog
+* Thu Nov 18 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
+- update depkgs to 29Oct04
 * Fri Nov 12 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - add cdrom rescue to bacula-rescue package
 * Sun Oct 31 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
