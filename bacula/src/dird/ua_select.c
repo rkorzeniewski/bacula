@@ -619,6 +619,7 @@ int do_prompt(UAContext *ua, char *msg, char *prompt, int max_prompt)
    for ( ;; ) {
       /* First item is the prompt string, not the items */
       if (ua->num_prompts == 1) { 
+         bsendmsg(ua, _("Selection is empty!\n"));
 	 item = 0;		      /* list is empty ! */
 	 break;
       }

@@ -253,17 +253,21 @@ int restorecmd(UAContext *ua, char *cmd)
       return 0;
    }
 
-   if (ji.ClientName[0]) {
-      Mmsg(&ua->cmd, 
-         "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s/restore.bsr\"",
-         job->hdr.name, ji.ClientName, ji.store?ji.store->hdr.name:"",
-	 working_directory);
-   } else {
-      Mmsg(&ua->cmd, 
-         "run job=\"%s\" storage=\"%s\" bootstrap=\"%s/restore.bsr\"",
-         job->hdr.name, ji.store?ji.store->hdr.name:"", working_directory);
+   /* If no client name specified yet, get it now */
+   if (!ji.ClientName[0]) {
+      CLIENT_DBR cr;
+      memset(&cr, 0, sizeof(cr));
+      if (!get_client_dbr(ua, &cr)) {
+	 return 0;
+      }
+      bstrncpy(ji.ClientName, cr.Name, sizeof(ji.ClientName));
    }
-   
+
+    /* Build run command */
+    Mmsg(&ua->cmd, 
+       "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s/restore.bsr\"",
+       job->hdr.name, ji.ClientName, ji.store?ji.store->hdr.name:"",
+       working_directory);
 
    Dmsg1(400, "Submitting: %s\n", ua->cmd);
    
