@@ -500,7 +500,7 @@ int purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr)
    if (del.JobId) {
       free(del.JobId);
    }
-   bsendmsg(ua, _("%d File%s on Volume %s purged from catalog.\n"), del.num_del,
+   bsendmsg(ua, _("%d File%s on Volume \"%s\" purged from catalog.\n"), del.num_del,
       del.num_del==1?"":"s", mr->VolumeName);
 
    /* If purged, mark it so */

@@ -100,7 +100,7 @@ int recycle_oldest_purged_volume(JCR *jcr, MEDIA_DBR *mr)
 	 mr->VolBytes = 0;
 	 mr->FirstWritten = mr->LastWritten = 0;
 	 if (db_update_media_record(jcr, jcr->db, mr)) {
-            Jmsg(jcr, M_INFO, 0, "Recycled volume %s\n", mr->VolumeName);
+            Jmsg(jcr, M_INFO, 0, "Recycled volume \"%s\"\n", mr->VolumeName);
             Dmsg1(100, "Exit 1  recycle_oldest_purged_volume Vol=%s\n", mr->VolumeName);
 	    return 1;
 	 }
