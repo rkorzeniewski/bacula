@@ -481,6 +481,7 @@ void make_session_key(char *key, char *seed, int mode)
  *  %n = Unadorned Job name
  *  %t = Job type (Backup, ...)
  *  %r = Recipients
+ *  %v = Volume name
  *
  *  omsg = edited output message
  *  imsg = input string containing edit codes (%x)
@@ -538,6 +539,13 @@ POOLMEM *edit_job_codes(JCR *jcr, char *omsg, char *imsg, char *to)
 	    break;
          case 't':
 	    str = job_type_to_str(jcr->JobType);
+	    break;
+         case 'v':
+	    if (jcr->VolumeName && jcr->VolumeName[0]) {
+	       str = jcr->VolumeName;
+	    } else {
+               str = "";
+	    }
 	    break;
 	 default:
             add[0] = '%';
