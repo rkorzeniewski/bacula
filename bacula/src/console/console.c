@@ -191,7 +191,9 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
       if (stat < 0) {
 	 break; 		      /* error */
       } else if (stat == 0) {	      /* timeout */
-         bnet_fsend(UA_sock, ".messages");
+	 if (at_prompt) {
+            bnet_fsend(UA_sock, ".messages");
+	 }
       } else {
 	 at_prompt = FALSE;
 	 /* @ => internal command for us */

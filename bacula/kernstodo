@@ -28,6 +28,8 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.32:
+- Add restore by filename test.
+- Add test of exclusion, test multiple Include {} statements.
 - Enhance "update slots" to include a "scan" feature
   scan 1; scan 1-5; scan 1,2,4 ...  to update the catalog 
 - Allow a slot or range of slots on the label barcodes command.
@@ -888,4 +890,3 @@ Done: (see kernsdone for more)
 - Specify list of files to restore
 - Implement ClientRunBeforeJob and ClientRunAfterJob.
 - Make | and < work on FD side.
-
