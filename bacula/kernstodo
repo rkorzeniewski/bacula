@@ -18,6 +18,8 @@ For 1.28 release:
 - Make sure differential handled correctly
 
 For 1.29 release:
+- Implement some why for the Console to dynamically create
+  a job.
 - Cancel does not work for restore in FD.
 - Restore to a particular time -- e.g. before date, after date. 
 - Implement SHA1
@@ -238,7 +240,7 @@ Longer term to do:
 Projects:
             Bacula Projects Roadmap 
                17 August 2002
-           last update 27 November 2002
+           last update 5 January 2003
 
 Item 1:   Multiple simultaneous Jobs. (done)
 Done -- Restore part needs better implementation to work correctly
