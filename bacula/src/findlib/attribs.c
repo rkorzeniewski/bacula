@@ -221,7 +221,7 @@ int decode_stat(char *buf, struct stat *statp, int32_t *LinkFI)
 }
 
 /* Decode a LinkFI field of encoded stat packet */
-int32_t decode_LinkFI(char *buf) 
+int32_t decode_LinkFI(char *buf, struct stat *statp)
 {
    char *p = buf;
    int64_t val;
@@ -230,7 +230,8 @@ int32_t decode_LinkFI(char *buf)
    p++; 			      /* skip space */
    skip_nonspaces(&p);		      /* st_ino */
    p++;
-   skip_nonspaces(&p);		      /* st_mode */
+   p += from_base64(&val, p);
+   statp->st_mode = val;	      /* st_mode */
    p++;
    skip_nonspaces(&p);		      /* st_nlink */
    p++;

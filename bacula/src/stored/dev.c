@@ -555,11 +555,9 @@ int update_pos_dev(DEVICE *dev)
  * currently), which means that for the moment, this
  * routine has very little value.
  *
- *   Returns: 1 on success
- *	      0 on error
+ *   Returns: status
  */
-int
-status_dev(DEVICE *dev, uint32_t *status)
+uint32_t status_dev(DEVICE *dev)
 {
    struct mtget mt_stat;
    uint32_t stat = 0;
@@ -626,8 +624,7 @@ status_dev(DEVICE *dev, uint32_t *status)
    } else {
       stat |= BMT_ONLINE | BMT_BOT;
    }
-   *status = stat; 
-   return 1;
+   return stat;
 }
 
 

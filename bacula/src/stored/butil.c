@@ -1,7 +1,7 @@
 /*
  *
  *  Utility routines for "tool" programs such as bscan, bls,
- *    bextract, ...  
+ *    bextract, ...  Some routines also used by Bacula.
  * 
  *  Normally nothing in this file is called by the Storage   
  *    daemon because we interact more directly with the user
@@ -240,12 +240,11 @@ void display_tape_error_status(JCR *jcr, DEVICE *dev)
 {
    uint32_t status;
 
-   Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
-   status_dev(dev, &status);
+   status = status_dev(dev);
    Dmsg1(20, "Device status: %x\n", status);
    if (status & BMT_EOD)
       Jmsg(jcr, M_ERROR, 0, _("Unexpected End of Data\n"));
-   else if (status & BMT_EOT)
+  else if (status & BMT_EOT)
       Jmsg(jcr, M_ERROR, 0, _("Unexpected End of Tape\n"));
    else if (status & BMT_EOF)
       Jmsg(jcr, M_ERROR, 0, _("Unexpected End of File\n"));
@@ -253,6 +252,4 @@ void display_tape_error_status(JCR *jcr, DEVICE *dev)
       Jmsg(jcr, M_ERROR, 0, _("Tape Door is Open\n"));
    else if (!(status & BMT_ONLINE))
       Jmsg(jcr, M_ERROR, 0, _("Unexpected Tape is Off-line\n"));
-   else
-      Jmsg(jcr, M_ERROR, 0, _("Read error on Record Header %s: %s\n"), dev_name(dev), strerror(errno));
 }

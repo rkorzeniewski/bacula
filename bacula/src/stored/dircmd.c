@@ -781,12 +781,8 @@ static int readlabel_cmd(JCR *jcr)
 
 	 P(dev->mutex); 	      /* Use P to avoid indefinite block */
 	 if (!dev_state(dev, ST_OPENED)) {
-	    if (open_dev(dev, NULL, READ_WRITE) < 0) {
-               bnet_fsend(dir, _("3994 Connot open device: %s\n"), strerror_dev(dev));
-	    } else {
-	       read_volume_label(jcr, dev, Slot);
-	       force_close_dev(dev);
-	    }
+	    read_volume_label(jcr, dev, Slot);
+	    force_close_dev(dev);
          /* Under certain "safe" conditions, we can steal the lock */
 	 } else if (dev->dev_blocked && 
 		    (dev->dev_blocked == BST_UNMOUNTED ||

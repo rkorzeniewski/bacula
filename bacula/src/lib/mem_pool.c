@@ -134,7 +134,7 @@ POOLMEM *sm_get_memory(char *fname, int lineno, int32_t size)
    struct abufhead *buf;
    int pool = 0;
 
-   if ((buf = (struct abufhead *) sm_malloc(fname, lineno, size+HEAD_SIZE)) == NULL) {
+   if ((buf = (struct abufhead *)sm_malloc(fname, lineno, size+HEAD_SIZE)) == NULL) {
       Emsg1(M_ABORT, 0, "Out of memory requesting %d bytes\n", size);
    }
    buf->ablen = size;

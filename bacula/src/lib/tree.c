@@ -32,6 +32,9 @@
 #define MAXPATHLEN 1000
 #endif
 
+/*
+ * NOTE !!!!! we turn off Debug messages for performance reasons.
+ */
 #undef Dmsg0
 #undef Dmsg1
 #undef Dmsg2
@@ -347,7 +350,6 @@ void print_tree(char *path, TREE_NODE *tree)
    Dmsg3(-1, "%s/%s%s\n", path, tree->fname, termchr);
    switch (tree->type) {
    case TN_FILE:
-      break;
    case TN_NEWDIR:
    case TN_DIR:
    case TN_DIR_NLS:
@@ -380,7 +382,12 @@ int tree_getpath(TREE_NODE *node, char *buf, int buf_size)
       buf[0] = 0;   
    }
    bstrncat(buf, node->fname, buf_size);
-   if (node->type != TN_FILE) {
+   /* Add a slash for all directories unless we are at the root,
+    *  also add a slash to a soft linked file if it has children
+    *  i.e. it is linked to a directory.
+    */
+   if ((node->type != TN_FILE && !(buf[0] == '/' && buf[1] == 0)) ||
+       (node->soft_link && node->child)) {
       bstrncat(buf, "/", buf_size);
    }
    return 1;
@@ -437,7 +444,7 @@ TREE_NODE *tree_relcwd(char *path, TREE_ROOT *root, TREE_NODE *node)
 	 break;
       }
    }
-   if (!cd || cd->type == TN_FILE) {
+   if (!cd || (cd->type == TN_FILE && !cd->child)) {
       return NULL;
    }
    if (!p) {

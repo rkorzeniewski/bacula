@@ -64,8 +64,8 @@ static struct cmdstruct commands[] = {
  { N_("exit"),       donecmd,      _("exit = done")},
  { N_("find"),       findcmd,      _("find files -- wildcards allowed")},
  { N_("help"),       helpcmd,      _("print help")},
- { N_("lsmark"),     lsmarkcmd,    _("list the marked files in and below the cd")},    
  { N_("ls"),         lscmd,        _("list current directory -- wildcards allowed")},    
+ { N_("lsmark"),     lsmarkcmd,    _("list the marked files in and below the cd")},    
  { N_("mark"),       markcmd,      _("mark file to be restored")},
  { N_("markdir"),    markdircmd,   _("mark directory entry to be restored -- nonrecursive")},
  { N_("pwd"),        pwdcmd,       _("print current working directory")},
@@ -149,10 +149,12 @@ bool user_select_files_from_tree(TREE_CTX *tree)
  */
 int insert_tree_handler(void *ctx, int num_fields, char **row)
 {
+   struct stat statp;
    TREE_CTX *tree = (TREE_CTX *)ctx;
    char fname[5000];
    TREE_NODE *node, *new_node;
    int type;
+   bool hard_link;
 
    strip_trailing_junk(row[1]);
    if (*row[1] == 0) {		      /* no filename => directory */
@@ -164,29 +166,32 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
    } else {
       type = TN_FILE;
    }
-   bsnprintf(fname, sizeof(fname), "%s%s", row[0], row[1]);
    if (tree->avail_node) {
-      node = tree->avail_node;
+      node = tree->avail_node;	      /* if prev node avail use it */
    } else {
-      node = new_tree_node(tree->root, type);
+      node = new_tree_node(tree->root, type);  /* get new node */
       tree->avail_node = node;
    }
+   hard_link = (decode_LinkFI(row[4], &statp) != 0);
+   bsnprintf(fname, sizeof(fname), "%s%s%s", row[0], row[1], "");
+//    S_ISLNK(statp.st_mode)?" ->":"");
    Dmsg3(200, "FI=%d type=%d fname=%s\n", node->FileIndex, type, fname);
    new_node = insert_tree_node(fname, node, tree->root, NULL);
    /* Note, if node already exists, save new one for next time */
    if (new_node != node) {
-      tree->avail_node = node;
+      tree->avail_node = node;	      /* node already exists */
    } else {
-      tree->avail_node = NULL;
+      tree->avail_node = NULL;	      /* added node to tree */
    }
    new_node->FileIndex = atoi(row[2]);
    new_node->JobId = (JobId_t)str_to_int64(row[3]);
    new_node->type = type;
    new_node->extract = true;	      /* extract all by default */
+   new_node->hard_link = hard_link;
+   new_node->soft_link = S_ISLNK(statp.st_mode) != 0;
    if (type == TN_DIR || type == TN_DIR_NLS) {
       new_node->extract_dir = true;   /* if dir, extract it */
    }
-   new_node->have_link = (decode_LinkFI(row[4]) != 0);
    tree->cnt++;
    return 0;
 }
@@ -212,7 +217,7 @@ static int set_extract(UAContext *ua, TREE_NODE *node, TREE_CTX *tree, bool extr
       count++;
    }
    /* For a non-file (i.e. directory), we see all the children */
-   if (node->type != TN_FILE) {
+   if (node->type != TN_FILE || (node->soft_link && node->child)) {
       /* Recursive set children within directory */
       for (n=node->child; n; n=n->sibling) {
 	 count += set_extract(ua, n, tree, extract);
@@ -237,7 +242,7 @@ static int set_extract(UAContext *ua, TREE_NODE *node, TREE_CTX *tree, bool extr
       tree_getpath(node, cwd, sizeof(cwd));
       fdbr.FileId = 0;
       fdbr.JobId = node->JobId;
-      if (node->have_link && db_get_file_attributes_record(ua->jcr, ua->db, cwd, NULL, &fdbr)) {
+      if (node->hard_link && db_get_file_attributes_record(ua->jcr, ua->db, cwd, NULL, &fdbr)) {
 	 int32_t LinkFI;
 	 decode_stat(fdbr.LStat, &statp, &LinkFI); /* decode stat pkt */
 	 /*
@@ -379,10 +384,9 @@ static int lscmd(UAContext *ua, TREE_CTX *tree)
 	 } else if (node->extract_dir) {
             tag = "+";
 	 } else {
-               tag = "";
+            tag = "";
 	 }
-         bsendmsg(ua, "%s%s%s\n", tag, node->fname,
-            (node->type==TN_DIR||node->type==TN_NEWDIR)?"/":"");
+         bsendmsg(ua, "%s%s%s\n", tag, node->fname, node->child?"/":"");
       }
    }
    return 1;
@@ -409,8 +413,7 @@ static int lsmarkcmd(UAContext *ua, TREE_CTX *tree)
 	 } else {
             tag = "";
 	 }
-         bsendmsg(ua, "%s%s%s\n", tag, node->fname,
-            (node->type==TN_DIR||node->type==TN_NEWDIR)?"/":"");
+         bsendmsg(ua, "%s%s%s\n", tag, node->fname, node->child?"/":"");
       }
    }
    return 1;
@@ -454,8 +457,8 @@ static int dircmd(UAContext *ua, TREE_CTX *tree)
    TREE_NODE *node;
    FILE_DBR fdbr;
    struct stat statp;
-   char buf[1000];
-   char cwd[1100];
+   char buf[1100];
+   char cwd[1100], *pcwd;
 
    if (!tree->node->child) {	 
       return 1;
@@ -473,19 +476,32 @@ static int dircmd(UAContext *ua, TREE_CTX *tree)
 	 tree_getpath(node, cwd, sizeof(cwd));
 	 fdbr.FileId = 0;
 	 fdbr.JobId = node->JobId;
-	 if (db_get_file_attributes_record(ua->jcr, ua->db, cwd, NULL, &fdbr)) {
+	 /*
+	  * Strip / from soft links to directories.
+	  *   This is because soft links to files have a trailing slash
+	  *   when returned from tree_getpath, but db_get_file_attr...
+	  *   treats soft links as files, so they do not have a trailing
+	  *   slash like directory names.
+	  */
+	 if (node->type == TN_FILE && node->child) {
+	    bstrncpy(buf, cwd, sizeof(buf));
+	    pcwd = buf;
+	    int len = strlen(buf);
+	    if (len > 1) {
+	       buf[len-1] = 0;	      /* strip trailing / */
+	    }
+	 } else {
+	    pcwd = cwd;
+	 }
+	 if (db_get_file_attributes_record(ua->jcr, ua->db, pcwd, NULL, &fdbr)) {
 	    int32_t LinkFI;
 	    decode_stat(fdbr.LStat, &statp, &LinkFI); /* decode stat pkt */
-	    ls_output(buf, cwd, tag, &statp);
-            bsendmsg(ua, "%s\n", buf);
 	 } else {
 	    /* Something went wrong getting attributes -- print name */
-            if (*tag == ' ') {
-               tag = "";
-	    }
-            bsendmsg(ua, "%s%s%s\n", tag, node->fname,
-               (node->type==TN_DIR||node->type==TN_NEWDIR)?"/":"");
+	    memset(&statp, 0, sizeof(statp));
 	 }
+	 ls_output(buf, cwd, tag, &statp);
+         bsendmsg(ua, "%s\n", buf);
       }
    }
    return 1;

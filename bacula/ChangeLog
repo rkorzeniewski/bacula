@@ -1,5 +1,24 @@
 
 
+07Feb04
+- Added backup to cdwriter script to examples provided by Johan Decock.
+- Fixed a bug where ls really did lsmark (just invert command table
+  entries).
+- Fix bug where a soft linked file and a directory had the same name
+  by treating the soft link as a directory and putting the entries under
+  it. This fixes the bug reported by Alexander Mueller.
+- Fix a deadlock situation in the new watchdog code where the 
+  watchdog locks its semaphore, and attempts to lock the jcr_chain,
+  but another thread has locked the jcr_chain and wants to free a
+  watchdog, which tries to lock the watchdog semaphore -- deadlock!
+  Used read/write locks to solve the problem. 
+- Improved the error messages when I/O errors or buffer id errors
+  are detected, and prevent non-sense errors from being printed.
+- Fix some incorrect messages in restore if no name is supplied
+  on the command line (e.g. pool= ).
+- Add the third digit to the release version number.
+04Feb04
+- Add -l option to bls that causes it to ignore tape label errors.
 03Feb04
 - Correct problems with jobs scheduled at a later time by hand.
   Missing unlock(), backward test on pthread_create status.

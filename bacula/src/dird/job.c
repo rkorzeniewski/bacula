@@ -83,13 +83,13 @@ static void job_monitor_watchdog(watchdog_t *self)
 {
    JCR *control_jcr, *jcr;
 
-   control_jcr = (JCR *) self->data;
+   control_jcr = (JCR *)self->data;
 
    Dmsg1(400, "job_monitor_watchdog %p called\n", self);
 
    lock_jcr_chain();
 
-   for (jcr = NULL; (jcr = get_next_jcr(jcr)); /* nothing */) {
+   foreach_jcr(jcr) {
       bool cancel;
 
       if (jcr->JobId == 0) {

@@ -40,10 +40,11 @@ struct s_tree_node {
    int32_t FileIndex;                 /* file index */
    uint32_t JobId;                    /* JobId */
    uint16_t fname_len;                /* filename length */
-   unsigned int type: 8;              /* node type */
+   int type: 8;                       /* node type */
    unsigned int extract: 1;           /* extract item */
    unsigned int extract_dir: 1;       /* extract dir entry only */
-   unsigned int have_link: 1;         /* set if have hard link */
+   unsigned int hard_link: 1;         /* set if have hard link */
+   unsigned int soft_link: 1;         /* set if is soft link */  
    struct s_tree_node *parent;
    struct s_tree_node *sibling;
    struct s_tree_node *child;

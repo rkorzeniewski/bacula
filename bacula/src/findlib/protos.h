@@ -26,7 +26,7 @@
 /* from attribs.c */
 void	encode_stat	  (char *buf, FF_PKT *ff_pkt, int data_stream);
 int	decode_stat	  (char *buf, struct stat *statp, int32_t *LinkFI);
-int32_t decode_LinkFI	  (char *buf);
+int32_t decode_LinkFI	  (char *buf, struct stat *statp);
 int	encode_attribsEx  (JCR *jcr, char *attribsEx, FF_PKT *ff_pkt);
 int	set_attributes	  (JCR *jcr, ATTR *attr, BFILE *ofd);
 int	select_data_stream(FF_PKT *ff_pkt);
