@@ -77,8 +77,8 @@ int db_list_sql_query(B_DB *mdb, char *query, DB_LIST_HANDLER *sendit, void *ctx
 void
 db_list_pool_records(B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx) 
 {
-   Mmsg(&mdb->cmd, "SELECT PoolId,Name,NumVols,MaxVols,PoolType,LabelFormat \
-FROM Pool");
+   Mmsg(&mdb->cmd, "SELECT PoolId,Name,NumVols,MaxVols,PoolType,LabelFormat "
+"FROM Pool ORDER BY PoolId");
 
    db_lock(mdb);
    if (!QUERY_DB(mdb, mdb->cmd)) {
@@ -95,7 +95,6 @@ FROM Pool");
 void
 db_list_media_records(B_DB *mdb, MEDIA_DBR *mdbr, DB_LIST_HANDLER *sendit, void *ctx)
 {
-
    Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,MediaType,VolStatus,\
 VolBytes,LastWritten,VolRetention,Recycle,Slot \
 FROM Media WHERE Media.PoolId=%u ORDER BY MediaId", mdbr->PoolId);
@@ -146,10 +145,10 @@ FROM JobMedia, Media WHERE Media.MediaId=JobMedia.MediaId");
 void
 db_list_job_records(B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, void *ctx)
 {
-
    if (jr->JobId == 0 && jr->Job[0] == 0) {
-      Mmsg(&mdb->cmd, "SELECT JobId,Name,StartTime,Type,Level,\
-JobFiles,JobBytes,JobStatus FROM Job");
+      Mmsg(&mdb->cmd, 
+"SELECT JobId,Name,StartTime,Type,Level,JobFiles,JobBytes,JobStatus "
+"FROM Job ORDER BY JobId");
    } else {			      /* single record */
       Mmsg(&mdb->cmd, "SELECT JobId,Name,StartTime,Type,Level,\
 JobFiles,JobBytes,JobStatus FROM Job WHERE Job.JobId=%u", jr->JobId);
@@ -174,8 +173,6 @@ JobFiles,JobBytes,JobStatus FROM Job WHERE Job.JobId=%u", jr->JobId);
 void
 db_list_job_totals(B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, void *ctx)
 {
-
-
    db_lock(mdb);
 
    /* List by Job */
@@ -212,8 +209,8 @@ db_list_files_for_job(B_DB *mdb, uint32_t jobid, DB_LIST_HANDLER *sendit, void *
 {
 
    Mmsg(&mdb->cmd, "SELECT Path.Path,Filename.Name FROM File,\
-Filename,Path WHERE File.JobId=%u and Filename.FilenameId=File.FilenameId \
-and Path.PathId=File.PathId",
+Filename,Path WHERE File.JobId=%u AND Filename.FilenameId=File.FilenameId \
+AND Path.PathId=File.PathId",
       jobid);
 
    db_lock(mdb);

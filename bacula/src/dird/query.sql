@@ -126,4 +126,4 @@ SELECT Job.JobId as JobId, Client.Name as Client,
  FROM Client,Job,File,Filename,Path WHERE Client.ClientId=Job.ClientId
  AND JobStatus='T' AND Job.JobId=File.JobId
  AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId
- AND Filename.Name='%1' LIMIT 20;
+ AND Filename.Name='%1' ORDER BY Job.JobId LIMIT 20;
