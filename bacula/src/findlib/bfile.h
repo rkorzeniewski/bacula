@@ -28,6 +28,12 @@
 #ifndef __BFILE_H
 #define __BFILE_H
 
+/*  =======================================================
+ *
+ *   W I N D O W S 
+ *
+ *  =======================================================
+ */
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
 
 #include <windows.h>
@@ -56,6 +62,13 @@ struct BFILE {
 HANDLE bget_handle(BFILE *bfd);
 
 #else   /* Linux/Unix systems */
+
+/*  =======================================================
+ *
+ *   U N I X 
+ *
+ *  =======================================================
+ */
 
 /* Basic low level I/O file packet */
 struct BFILE {

@@ -1,6 +1,6 @@
 /* */
 #undef  VERSION
-#define VERSION "1.34.3"
+#define VERSION "1.34.4"
 #define VSTRING "1"
 #define BDATE   "09 June 2004"
 #define LSMDATE "09Jun04"

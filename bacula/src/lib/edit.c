@@ -374,7 +374,7 @@ char *add_commas(char *val, char *buf)
 }
 
 #ifdef TEST_PROGRAM
-void d_msg(char*, int, int, char*, ...)
+void d_msg(const char*, int, int, const char*, ...)
 {}
 int main(int argc, char *argv[])
 {
@@ -390,7 +390,7 @@ int main(int argc, char *argv[])
 	 continue;
       }
       edit_utime(val, outval);
-      printf("in=%s val=%lld outval=%s\n", str[i], val, outval);
+      printf("in=%s val=%" lld " outval=%s\n", str[i], val, outval);
    }
 }
 #endif
