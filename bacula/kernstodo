@@ -34,6 +34,7 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
+- Remove multiple simultaneous devices code in SD.
 - Check that Block number in JobMedia are correct.
 - Complain if record dropped in bnet_recv because too long.
 - Suppress Job Name in Jmsg for console
