@@ -3,6 +3,7 @@
 ; Written by Michel Meyers (michel@tcnnet.dyndns.org)
 ;
 ; Updated by Kern Sibbald for native Win32 Bacula
+;    added a number of elements from Christopher Hull's installer
 ;
 ; Command line options:
 ;
