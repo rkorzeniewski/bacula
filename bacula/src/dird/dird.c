@@ -250,7 +250,6 @@ static void terminate_dird(int sig)
       exit(1);
    }
    already_here = TRUE;
-   Dmsg0(000, "write_state_file\n");
    write_state_file(director->working_directory, "bacula-dir", director->DIRport);
    delete_pid_file(director->pid_directory, "bacula-dir", director->DIRport);
 // signal(SIGCHLD, SIG_IGN);          /* don't worry about children now */

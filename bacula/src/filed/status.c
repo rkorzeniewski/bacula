@@ -60,8 +60,8 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
 	      HOST_OS, DISTNAME, DISTVER);
    sendit(msg, len, arg);
    bstrftime_nc(dt, sizeof(dt), daemon_start_time);
-   len = Mmsg(&msg, _("Daemon started %s, %d Job%s run.\n"), dt, last_job.NumJobs,
-        last_job.NumJobs == 1 ? "" : "s");
+   len = Mmsg(&msg, _("Daemon started %s, %d Job%s run.\n"), dt, last_jobs->size(),
+        last_jobs->size() == 1 ? "" : "s");
    sendit(msg, len, arg);
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
    if (debug_level > 0) {
@@ -83,31 +83,12 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
 
    list_terminated_jobs(sendit, arg);
 
-#ifdef xxx
-      char termstat[30];
-      struct s_last_job *je;
-      lock_last_jobs_list();
-      for (je=NULL; (je=(s_last_job *)last_jobs->next(je)); ) {
-	 bstrftime_nc(dt, sizeof(dt), je->end_time);
-         len = Mmsg(&msg, _("Last Job %s finished at %s\n"), je->Job, dt);
-	 sendit(msg, len, arg);
-
-	 jobstatus_to_ascii(je->JobStatus, termstat, sizeof(termstat));
-         len = Mmsg(&msg, _("  Files=%s Bytes=%s Termination Status=%s\n"), 
-	      edit_uint64_with_commas(je->JobFiles, b1),
-	      edit_uint64_with_commas(je->JobBytes, b2),
-	      termstat);
-	 sendit(msg, len, arg);
-      }
-      unlock_last_jobs_list();
-#endif
-
    /*
     * List running jobs  
     */
    Dmsg0(1000, "Begin status jcr loop.\n");
    lock_jcr_chain();
-   for (njcr=NULL; (njcr=get_next_jcr(njcr)); ) {
+   foreach_jcr(njcr) {
       bstrftime_nc(dt, sizeof(dt), njcr->start_time);
       if (njcr->JobId == 0) {
          len = Mmsg(&msg, _("Director connected at: %s\n"), dt);
@@ -170,7 +151,7 @@ static void  list_terminated_jobs(void sendit(const char *msg, int len, void *sa
    struct s_last_job *je;
    const char *msg;
 
-   if (last_job.NumJobs == 0) {
+   if (last_jobs->size() == 0) {
       msg = _("No Terminated Jobs.\n"); 
       sendit(msg, strlen(msg), arg);
       return;
@@ -183,7 +164,7 @@ static void  list_terminated_jobs(void sendit(const char *msg, int len, void *sa
    sendit(msg, strlen(msg), arg);
    msg = _("======================================================================\n"); 
    sendit(msg, strlen(msg), arg);
-   for (je=NULL; (je=(s_last_job *)last_jobs->next(je)); ) {
+   foreach_dlist(je, last_jobs) {
       char JobName[MAX_NAME_LENGTH];
       char *termstat;
       char buf[1000];
@@ -368,7 +349,7 @@ char *bac_status(int stat)
    char *termstat = _("Bacula Idle");
 
    bacstat = 0;
-   if (last_job.NumJobs > 0) {
+   if (last_jobs->size() > 0) {
       switch (last_job.JobStatus) {
       case JS_Canceled:
 	 bacstat = -1;

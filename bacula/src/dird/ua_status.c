@@ -202,8 +202,8 @@ static void do_director_status(UAContext *ua, char *cmd)
    bsendmsg(ua, "%s Version: " VERSION " (" BDATE ") %s %s %s\n", my_name,
 	    HOST_OS, DISTNAME, DISTVER);
    bstrftime_nc(dt, sizeof(dt), daemon_start_time);
-   bsendmsg(ua, _("Daemon started %s, %d Job%s run.\n"), dt, last_job.NumJobs,
-        last_job.NumJobs == 1 ? "" : "s");
+   bsendmsg(ua, _("Daemon started %s, %d Job%s run.\n"), dt, last_jobs->size(),
+        last_jobs->size() == 1 ? "" : "s");
    /*
     * List scheduled Jobs
     */

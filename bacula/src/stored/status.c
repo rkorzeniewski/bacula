@@ -64,8 +64,8 @@ int status_cmd(JCR *jcr)
    bnet_fsend(user, "\n%s Version: " VERSION " (" BDATE ") %s %s %s\n", my_name,
 	      HOST_OS, DISTNAME, DISTVER);
    bstrftime_nc(dt, sizeof(dt), daemon_start_time);
-   bnet_fsend(user, _("Daemon started %s, %d Job%s run.\n"), dt, last_job.NumJobs,
-        last_job.NumJobs == 1 ? "" : "s");
+   bnet_fsend(user, _("Daemon started %s, %d Job%s run.\n"), dt, last_jobs->size(),
+        last_jobs->size() == 1 ? "" : "s");
 
    /*
     * List terminated jobs
@@ -126,7 +126,7 @@ int status_cmd(JCR *jcr)
    found = 0;
    lock_jcr_chain();
    /* NOTE, we reuse a calling argument jcr. Be warned! */ 
-   for (jcr=NULL; (jcr=get_next_jcr(jcr)); ) {
+   foreach_jcr(jcr) {
       if (jcr->JobStatus == JS_WaitFD) {
          bnet_fsend(user, _("%s Job %s waiting for Client connection.\n"),
 	    job_type_to_str(jcr->JobType), jcr->Job);
@@ -248,7 +248,7 @@ static void list_terminated_jobs(void *arg)
    struct s_last_job *je;
    char *msg;
 
-   if (last_job.NumJobs == 0) {
+   if (last_jobs->size() == 0) {
       msg = _("No Terminated Jobs.\n"); 
       sendit(msg, strlen(msg), arg);
       return;
@@ -260,7 +260,7 @@ static void list_terminated_jobs(void *arg)
    sendit(msg, strlen(msg), arg);
    msg = _("======================================================================\n"); 
    sendit(msg, strlen(msg), arg);
-   for (je=NULL; (je=(s_last_job *)last_jobs->next(je)); ) {
+   foreach_dlist(je, last_jobs) {
       char JobName[MAX_NAME_LENGTH];
       char *termstat;
       char buf[1000];

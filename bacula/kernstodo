@@ -71,8 +71,8 @@ For 1.33 Testing/Documentation:
      http://howtos.linux.com/guides/nag2/x-087-2-nfs.mountd.shtml
 
 For 1.33
-- Dates are wrong in restore list from Win32 FD.
-- Dates are wrong in catalog from Win32 FD.
+- Allow for optional cancelling of SD and FD in case DIR
+  gets a fatal error. Requested by Jesse Guardiani <jesse@wingnet.net>
 - Remove h_errno from bnet.c by including proper header.
 - Do not err job if could not write bootstrap file.
 - Bizarre message: Error: Could not open WriteBootstrap file:
@@ -1387,3 +1387,6 @@ Block Position: 0
      Differential Backup Pool = zzz
    }
 - Look at ASSERT() at 384 src/lib/bnet.c
+- Dates are wrong in restore list from Win32 FD.
+- Dates are wrong in catalog from Win32 FD.
+

@@ -1359,6 +1359,8 @@ freebsd)
 	largefile_support="yes"
   ;;
 hpux)
+	PSCMD="UNIX95=1 ps -e -o pid,comm"
+	CFLAGS="$(CFLAGS) -D_XOPEN_SOURCE_EXTENDED=1"
 	DISTVER=`uname -r`
 	TAPEDRIVE="/dev/rmt/0hnb"
   ;;
