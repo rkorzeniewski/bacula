@@ -437,7 +437,8 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
     * Then delete the Job entry, and finally and JobMedia records.
     */
    for (i=0; i < del.num_ids; i++) {
-      Dmsg1(000, "Delete JobId=%d\n", del.JobId[i]);
+      Dmsg1(100, "Delete JobId=%d\n", del.JobId[i]);
+#define xxx
 #ifdef xxx
       if (!del.PurgedFiles[i]) {
 	 Mmsg(&query, del_File, del.JobId[i]);
