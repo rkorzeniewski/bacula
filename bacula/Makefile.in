@@ -176,7 +176,7 @@ Makefiles:
 	chmod 755 make_catalog_backup delete_catalog_backup)
 
 clean:
-	@for I in ${all_subdirs}; \
+	@for I in ${all_subdirs} doc/latex doc/latex-fr; \
 	  do (cd $$I; echo "==>Entering directory `pwd`"; ${MAKE} $@ || exit 1); done
 	@(cd platforms; echo "==>Entering directory `pwd`"; ${MAKE} $@ || exit 1)
 	@$(RMF) *~ 1 2 3 core core.* config.guess console.log console.sum
@@ -187,7 +187,7 @@ clean:
 
 # clean for distribution
 distclean:
-	@for I in $(all_subdirs); do (cd $$I; $(MAKE) $@ || exit 1); done
+	@for I in $(all_subdirs) doc/latex doc/latex-fr; do (cd $$I; $(MAKE) $@ || exit 1); done
 	@for I in $(all_subdirs); do (cd $$I; $(RMF) startit stopit btraceback); done
 	@(cd $(srcdir); $(RMF) *~ config.cache config.h config.log config.status config.out)
 	@(cd $(srcdir); $(RMF) Makefile autoconf/Make.common)
@@ -203,7 +203,7 @@ distclean:
 	@$(RMF) -r CVS src/gnome-console/CVS src/tconsole/CVS
 
 devclean:
-	@for I in $(all_subdirs); do (cd $$I; $(MAKE) $@ || exit 1); done
+	@for I in $(all_subdirs) doc/latex doc/latex-fr; do (cd $$I; $(MAKE) $@ || exit 1); done
 	@for I in $(all_subdirs); do (cd $$I; $(RMF) startit stopit btraceback); done
 	@(cd $(srcdir); $(RMF) *~ config.cache config.h config.log config.status config.out)
 	@(cd $(srcdir); $(RMF) Makefile autoconf/Make.common)

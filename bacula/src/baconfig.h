@@ -86,12 +86,17 @@
 
 /* All tape operations MUST be a multiple of this */
 #define TAPE_BSIZE 1024
-#if !defined(DEV_BSIZE) && defined(BSIZE)
-#define DEV_BSIZE BSIZE
+
+#ifdef DEV_BSIZE 
+#define B_DEV_BSIZE DEV_BSIZE
 #endif
 
-#ifndef DEV_BSIZE
-#define DEV_BSIZE 512
+#if !defined(B_DEV_BSIZE) & defined(BSIZE)
+#define B_DEV_BSIZE BSIZE
+#endif
+
+#ifndef B_DEV_BSIZE
+#define B_DEV_BSIZE 512
 #endif
 
 /*

@@ -103,9 +103,9 @@ int main (int argc, char *argv[])
    daemon_start_time = time(NULL);
 
    /* Sanity checks */
-   if (TAPE_BSIZE % DEV_BSIZE != 0 || TAPE_BSIZE / DEV_BSIZE == 0) {
+   if (TAPE_BSIZE % B_DEV_BSIZE != 0 || TAPE_BSIZE / B_DEV_BSIZE == 0) {
       Emsg2(M_ABORT, 0, "Tape block size (%d) not multiple of system size (%d)\n",
-	 TAPE_BSIZE, DEV_BSIZE);
+	 TAPE_BSIZE, B_DEV_BSIZE);
    }
    if (TAPE_BSIZE != (1 << (ffs(TAPE_BSIZE)-1))) {
       Emsg1(M_ABORT, 0, "Tape block size (%d) is not a power of 2\n", TAPE_BSIZE);

@@ -25,7 +25,6 @@
   */
 
 #include "bacula.h"
-#undef DEV_BSIZE
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <stdlib.h>
@@ -99,7 +98,7 @@ bnet_thread_server(dlist *addrs, int max_clients, workq_t *client_wq,
 	 if (tlog <= 0) {
 	    berrno be;
 	    char curbuf[256];
-	    Emsg3(M_ABORT, 0, _("Cannot open stream socket. ERR=%s. Current %s All %s\n"),
+            Emsg3(M_ABORT, 0, _("Cannot open stream socket. ERR=%s. Current %s All %s\n"),
 		       be.strerror(),
 		       p->build_address_str(curbuf, sizeof(curbuf)),
 		       build_addresses_str(addrs, allbuf, sizeof(allbuf)));
@@ -112,7 +111,7 @@ bnet_thread_server(dlist *addrs, int max_clients, workq_t *client_wq,
       if (setsockopt(fd_ptr->fd, SOL_SOCKET, SO_REUSEADDR, (sockopt_val_t)&turnon,
 	   sizeof(turnon)) < 0) {
 	 berrno be;
-	 Emsg1(M_WARNING, 0, _("Cannot set SO_REUSEADDR on socket: %s\n"),
+         Emsg1(M_WARNING, 0, _("Cannot set SO_REUSEADDR on socket: %s\n"),
 	       be.strerror());
       }
 
@@ -122,12 +121,12 @@ bnet_thread_server(dlist *addrs, int max_clients, workq_t *client_wq,
 	 berrno be;
 	 if (tlog <= 0) {
 	    tlog = 2 * 60;	   /* Complain every 2 minutes */
-	    Emsg2(M_WARNING, 0, _("Cannot bind port %d: ERR=%s. Retrying ...\n"),
+            Emsg2(M_WARNING, 0, _("Cannot bind port %d: ERR=%s. Retrying ...\n"),
 		  ntohs(fd_ptr->port), be.strerror());
 	 }
 	 bmicrosleep(5, 0);
 	 if (--tmax <= 0) {
-	    Emsg2(M_ABORT, 0, _("Cannot bind port %d: ERR=%s.\n"), ntohs(fd_ptr->port),
+            Emsg2(M_ABORT, 0, _("Cannot bind port %d: ERR=%s.\n"), ntohs(fd_ptr->port),
 		  be.strerror());
 	 }
       }
@@ -162,7 +161,7 @@ bnet_thread_server(dlist *addrs, int max_clients, workq_t *client_wq,
 	    close(fd_ptr->fd);
 	    free((void *)fd_ptr);
 	 }
-	 Emsg1(M_FATAL, 0, _("Error in select: %s\n"), be.strerror());
+         Emsg1(M_FATAL, 0, _("Error in select: %s\n"), be.strerror());
 	 break;
       }
 
@@ -198,7 +197,7 @@ bnet_thread_server(dlist *addrs, int max_clients, workq_t *client_wq,
 	    if (setsockopt(newsockfd, SOL_SOCKET, SO_KEEPALIVE, (sockopt_val_t)&turnon,
 		 sizeof(turnon)) < 0) {
 	       berrno be;
-	       Emsg1(M_WARNING, 0, _("Cannot set SO_KEEPALIVE on socket: %s\n"),
+               Emsg1(M_WARNING, 0, _("Cannot set SO_KEEPALIVE on socket: %s\n"),
 		     be.strerror());
 	    }
 
@@ -207,16 +206,16 @@ bnet_thread_server(dlist *addrs, int max_clients, workq_t *client_wq,
 	    sockaddr_to_ascii(&cli_addr, buf, sizeof(buf));
 	    V(mutex);
 	    BSOCK *bs;
-	    bs = init_bsock(NULL, newsockfd, "client", buf, fd_ptr->port, &cli_addr);
+            bs = init_bsock(NULL, newsockfd, "client", buf, fd_ptr->port, &cli_addr);
 	    if (bs == NULL) {
-	       Jmsg0(NULL, M_ABORT, 0, _("Could not create client BSOCK.\n"));
+               Jmsg0(NULL, M_ABORT, 0, _("Could not create client BSOCK.\n"));
 	    }
 
 	    /* Queue client to be served */
 	    if ((stat = workq_add(client_wq, (void *)bs, NULL, 0)) != 0) {
 	       berrno be;
 	       be.set_errno(stat);
-	       Jmsg1(NULL, M_ABORT, 0, _("Could not add job to client queue: ERR=%s\n"),
+               Jmsg1(NULL, M_ABORT, 0, _("Could not add job to client queue: ERR=%s\n"),
 		     be.strerror());
 	    }
 	 }
@@ -254,7 +253,7 @@ BSOCK *bnet_bind(int port)
       }
       if (tlog <= 0) {
 	 tlog = 2 * 60;
-	 Emsg1(M_ERROR, 0, _("Cannot open stream socket: %s\n"), strerror(errno));
+         Emsg1(M_ERROR, 0, _("Cannot open stream socket: %s\n"), strerror(errno));
       }
       bmicrosleep(60, 0);
    }
@@ -283,7 +282,7 @@ BSOCK *bnet_bind(int port)
       }
       if (tlog <= 0) {
 	 tlog = 2 * 60;
-	 Emsg2(M_WARNING, 0, _("Cannot bind port %d: ERR=%s: retrying ...\n"), port,
+         Emsg2(M_WARNING, 0, _("Cannot bind port %d: ERR=%s: retrying ...\n"), port,
 	       be.strerror());
       }
       bmicrosleep(5, 0);
@@ -325,7 +324,7 @@ BSOCK *bnet_accept(BSOCK * bsock, char *who)
 	    errno = 0;
 	    continue;
 	 }
-	 Emsg1(M_FATAL, 0, _("Error in select: %s\n"), strerror(errno));
+         Emsg1(M_FATAL, 0, _("Error in select: %s\n"), strerror(errno));
 	 newsockfd = -1;
 	 break;
       }
@@ -376,7 +375,7 @@ BSOCK *bnet_accept(BSOCK * bsock, char *who)
       return NULL;
    } else {
       if (caller == NULL) {
-	 caller = "unknown";
+         caller = "unknown";
       }
       len = strlen(caller) + strlen(who) + 3;
       buf = (char *)malloc(len);
