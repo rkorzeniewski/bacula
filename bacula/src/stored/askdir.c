@@ -245,7 +245,7 @@ int dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev)
    struct timeval tv;
    struct timezone tz;
    struct timespec timeout;
-   int stat, jstat;
+   int stat = 0, jstat;
    /* ******FIXME******* put these on config variable */
    int min_wait = 60 * 60;
    int max_wait = 24 * 60 * 60;
@@ -386,7 +386,7 @@ volumes for Job=%s.\n"), jcr->Job);
  */
 int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
 {
-   int stat, jstat;
+   int stat = 0;
    /* ******FIXME******* put these on config variable */
    int min_wait = 60 * 60;
    int max_wait = 24 * 60 * 60;
@@ -428,7 +428,7 @@ int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
       P(dev->mutex);
       dev_blocked = dev->dev_blocked;
       dev->dev_blocked = BST_WAITING_FOR_SYSOP; /* indicate waiting for mount */
-      jcr->JobStatus = jstat;
+      jcr->JobStatus = JS_WaitMount;
       dir_send_job_status(jcr);
 
       for ( ;!job_cancelled(jcr); ) {

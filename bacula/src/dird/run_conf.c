@@ -168,7 +168,7 @@ static struct s_kw RunFields[] = {
 void store_run(LEX *lc, struct res_items *item, int index, int pass)
 {
    int i, j, found;
-   int token, state, state2, code, code2;
+   int token, state, state2 = 0, code = 0, code2 = 0;
    int options = lc->options;
    RUN **run = (RUN **)(item->value);	
    RUN *trun;
@@ -190,6 +190,7 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 	    found = TRUE;
 	    if (lex_get_token(lc, T_ALL) != T_EQUALS) {
                scan_err1(lc, "Expected an equals, got: %s", lc->str);
+	       /* NOT REACHED */ 
 	    }
 	    token = lex_get_token(lc, T_NAME);
 	    switch (RunFields[i].token) {
@@ -204,6 +205,7 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 	       }
 	       if (j != 0) {
                   scan_err1(lc, _("Job level field: %s not found in run record"), lc->str);
+		  /* NOT REACHED */
 	       }
 	       break;
             case 'P':                 /* Pool */
@@ -212,6 +214,7 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 		  if (res == NULL) {
                      scan_err1(lc, "Could not find specified Pool Resource: %s",
 				lc->str);
+		     /* NOT REACHED */
 		  }
 		  lrun.pool = (POOL *)res;
 	       }
@@ -222,6 +225,7 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 		  if (res == NULL) {
                      scan_err1(lc, "Could not find specified Storage Resource: %s",
 				lc->str);
+		     /* NOT REACHED */
 		  }
 		  lrun.storage = (STORE *)res;
 	       }
@@ -232,12 +236,14 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 		  if (res == NULL) {
                      scan_err1(lc, "Could not find specified Messages Resource: %s",
 				lc->str);
+		     /* NOT REACHED */
 		  }
 		  lrun.msgs = (MSGS *)res;
 	       }
 	       break;
 	    default:
                scan_err1(lc, "Expected a keyword name, got: %s", lc->str);
+	       /* NOT REACHED */
 	       break;
 	    } /* end switch */	   
 	 } /* end if strcasecmp */
@@ -265,7 +271,7 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
    set_defaults();
 
    for ( ; token != T_EOL; (token = lex_get_token(lc, T_ALL))) {
-      int len, pm;
+      int len, pm = 0;
       switch (token) {
 	 case T_NUMBER:
 	    state = s_mday;
@@ -295,12 +301,14 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 	    }
 	    if (i != 0) {
                scan_err1(lc, _("Job type field: %s in run record not found"), lc->str);
+	       /* NOT REACHED */
 	    }
 	    break;
 	 case T_COMMA:
 	    continue;
 	 default:
             scan_err2(lc, _("Unexpected token: %d:%s"), token, lc->str);
+	    /* NOT REACHED */
 	    break;
       }
       switch (state) {
@@ -332,6 +340,7 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 	 case s_time:		      /* time */
 	    if (!have_at) {
                scan_err0(lc, _("Time must be preceded by keyword AT."));
+	       /* NOT REACHED */
 	    }
 	    if (!have_hour) {
 	       clear_bit(0, lrun.hour);
@@ -339,6 +348,7 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
             p = strchr(lc->str, ':');
 	    if (!p)  {
                scan_err0(lc, _("Time logic error.\n"));
+	       /* NOT REACHED */
 	    }
 	    *p++ = 0;		      /* separate two halves */
 	    code = atoi(lc->str);
@@ -350,6 +360,7 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 		  pm = 1;
 	       } else {
                   scan_err0(lc, _("Bad time specification."));
+		  /* NOT REACHED */
 	       }
 	    } else {
 	       pm = 0;
@@ -360,6 +371,7 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 	    }
 	    if (code < 0 || code > 23 || code2 < 0 || code2 > 59) {
                scan_err0(lc, _("Bad time specification."));
+	       /* NOT REACHED */
 	    }
 	    set_bit(code, lrun.hour);
 	    lrun.minute = code2;
@@ -408,6 +420,7 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 	    }
 	    if (i != 0 || (state != s_month && state != s_wday)) {
                scan_err0(lc, _("Invalid month or week day range"));
+	       /* NOT REACHED */
 	    }
 
 	    /* Lookup end of range */
@@ -423,6 +436,7 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 	    if (i != 0 || state != state2 || 
 	       (state2 != s_month && state2 != s_wday) || code == code2) {
                scan_err0(lc, _("Invalid month or weekday range"));
+	       /* NOT REACHED */
 	    }
 	    if (state == s_wday) {
 	       if (!have_wday) {
@@ -473,6 +487,7 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 	    break;
 	 default:
             scan_err0(lc, _("Unexpected run state\n"));
+	    /* NOT REACHED */
 	    break;
       }
    }

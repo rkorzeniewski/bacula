@@ -646,7 +646,7 @@ dnl# Supply default CFLAGS, if not specified by `CFLAGS=flags ./configure'
 dnl#
 if test -z "$CFLAGS"; then
     if test -z "$CCOPTS"; then
-	CCOPTS='-O'
+	CCOPTS='-g -O2'
 dnl>	if test "x$GCC" = xyes; then
 dnl>	    if test x$system = xLinux; then
 dnl>		CCOPTS="$CCOPTS "'-O2 -fno-strength-reduce'

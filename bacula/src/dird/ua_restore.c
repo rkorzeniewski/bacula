@@ -554,6 +554,7 @@ static void user_select_files(TREE_CTX *tree)
 
       len = strlen(tree->ua->argk[0]);
       found = 0;
+      stat = 0;
       for (i=0; i<(int)comsize; i++)	   /* search for command */
 	 if (strncasecmp(tree->ua->argk[0],  _(commands[i].key), len) == 0) {
 	    stat = (*commands[i].func)(tree->ua, tree);   /* go execute command */

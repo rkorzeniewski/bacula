@@ -247,14 +247,16 @@ lex_tok_to_str(int token)
 
 static uint32_t scan_pint(LEX *lf, char *str)
 {
-   double dval;
+   double dval = 0;
    if (!is_a_number(str)) {
       scan_err1(lf, "expected a positive integer number, got: %s", str);
+      /* NOT REACHED */
    } else {
       errno = 0;
       dval = strtod(str, NULL);
       if (errno != 0 || dval < 0) {
          scan_err1(lf, "expected a postive integer number, got: %s", str);
+	 /* NOT REACHED */
       }
    }
    return (uint32_t)dval;

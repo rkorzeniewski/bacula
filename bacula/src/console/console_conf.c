@@ -182,7 +182,7 @@ void save_resource(int type, struct res_items *items, int pass)
 {
    URES *res;
    int rindex = type - r_first;
-   int i, size;
+   int i, size;    
    int error = 0;
 
    /* 
@@ -239,6 +239,7 @@ void save_resource(int type, struct res_items *items, int pass)
       default:
          printf("Unknown resource type %d\n", type);
 	 error = 1;
+	 size = 1;
 	 break;
    }
    /* Common */

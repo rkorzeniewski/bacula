@@ -104,7 +104,7 @@ void connection_request(void *arg)
    BSOCK *bs = (BSOCK *)arg;
    JCR *jcr;
    int i, found, quit;
-   int bnet_stat;
+   int bnet_stat = 0;
    char name[MAX_NAME_LENGTH];
 
    if (bnet_recv(bs) <= 0) {

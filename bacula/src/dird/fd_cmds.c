@@ -183,7 +183,7 @@ int send_exclude_list(JCR *jcr)
 int get_attributes_and_put_in_catalog(JCR *jcr)
 {
    BSOCK   *fd;
-   int n;
+   int n = 0;
    ATTR_DBR ar;
 
    fd = jcr->file_bsock;

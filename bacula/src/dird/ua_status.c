@@ -428,7 +428,7 @@ static void print_jobs_scheduled(UAContext *ua)
 	    }
 	 }
 
-        Dmsg2(200, "runtime=%d now=%d\n", runtime, now);
+//      Dmsg2(200, "runtime=%d now=%d\n", runtime, now);
 	if (!found && tom) {
 	    localtime_r(&tomorrow, &tm);
 	    hour = 0;

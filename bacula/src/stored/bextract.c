@@ -155,7 +155,6 @@ int main (int argc, char *argv[])
 
 static void do_extract(char *devname, char *where)
 {
-   int n;     
    char VolName[100];
    char *p;
    struct stat statp;
@@ -284,7 +283,8 @@ static void do_extract(char *devname, char *where)
 	 else if (!(status & MT_ONLINE))
             Emsg0(M_ERROR_TERM, 0, "Unexpected Tape is Off-line\n");
 	 else
-            Emsg3(M_ERROR_TERM, 0, "Read error %d on Record Header %s: %s\n", n, dev_name(dev), strerror(errno));
+            Emsg3(M_ERROR_TERM, 0, "Read error %d on Record Header %s: %s\n", 
+	       status, dev_name(dev), strerror(errno));
       }
 
 

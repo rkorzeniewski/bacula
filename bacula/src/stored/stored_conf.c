@@ -369,6 +369,7 @@ void save_resource(int type, struct res_items *items, int pass)
       default:
          printf("Unknown resource type %d\n", type);
 	 error = 1;
+	 size = 1;
 	 break;
    }
    /* Common */

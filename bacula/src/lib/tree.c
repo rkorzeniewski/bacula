@@ -356,6 +356,9 @@ TREE_NODE *tree_cwd(char *path, TREE_ROOT *root, TREE_NODE *node)
 }
 
 
+/*
+ * Do a relative cwd -- i.e. relative to current node rather than root node
+ */
 TREE_NODE *tree_relcwd(char *path, TREE_ROOT *root, TREE_NODE *node)
 {
    char *p;
@@ -365,9 +368,12 @@ TREE_NODE *tree_relcwd(char *path, TREE_ROOT *root, TREE_NODE *node)
    if (*path == 0) {
       return node;
    }
+   /* Check the current segment only */
    p = strchr(path, '/');
    if (p) {
       len = p - path;
+   } else {
+      len = strlen(path);
    }
    for (cd=node->child; cd; cd=cd->sibling) {
       if (strncmp(cd->fname, path, len) == 0) {
@@ -383,6 +389,7 @@ TREE_NODE *tree_relcwd(char *path, TREE_ROOT *root, TREE_NODE *node)
       return cd;
    }
    Dmsg2(100, "recurse tree_relcwd with path=%s, cd=%s\n", p+1, cd->fname);
+   /* Check the next segment if any */
    return tree_relcwd(p+1, root, cd);
 }
 

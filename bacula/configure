@@ -4028,7 +4028,7 @@ EOF
 
 if test -z "$CFLAGS"; then
     if test -z "$CCOPTS"; then
-	CCOPTS='-O'
+	CCOPTS='-g -O2'
     fi
     CFLAGS="$CCOPTS"
 fi

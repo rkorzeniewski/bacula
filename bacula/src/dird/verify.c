@@ -72,7 +72,7 @@ int do_verify(JCR *jcr)
    char *level;
    BSOCK   *fd;
    JOB_DBR jr;
-   JobId_t JobId;
+   JobId_t JobId = 0;
 
    if (!get_or_create_client_record(jcr)) {
       goto bail_out;
@@ -392,7 +392,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
     *	Link name  ???
     */
    while ((n=bget_msg(fd, 0)) > 0 && !job_cancelled(jcr)) {
-      long file_index, attr_file_index;
+      long file_index = 0, attr_file_index = 0;
       int stream;
       char *attr, *p, *fn;
       char Opts_MD5[MAXSTRING];        /* Verify Opts or MD5 signature */

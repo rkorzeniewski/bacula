@@ -312,7 +312,7 @@ fstrsch(char *a, char *b)   /* folded case search */
 char *encode_time(time_t time, char *buf)
 {
    struct tm tm;
-   int n;
+   int n = 0;
 
    if (localtime_r(&time, &tm)) {
       n = sprintf(buf, "%04d-%02d-%02d %02d:%02d:%02d",
@@ -666,7 +666,7 @@ int run_program(char *prog, int wait, POOLMEM *results)
 {
    int stat = ETIME;
    int chldstatus = 0;
-   pid_t pid1, pid2;
+   pid_t pid1, pid2 = 0;
    int pfd[2];
    char *bargv[MAX_ARGV];
    int bargc;

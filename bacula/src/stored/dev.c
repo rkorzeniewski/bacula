@@ -609,7 +609,7 @@ int
 fsf_dev(DEVICE *dev, int num)
 { 
    struct mtop mt_com;
-   int stat;
+   int stat = 0;
    char rbuf[1024];
 
    if (dev->fd < 0) {

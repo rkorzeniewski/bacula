@@ -105,7 +105,7 @@ int showcmd(UAContext *ua, char *cmd)
    int i, j, type, len; 
    int recurse;
    char *res_name;
-   RES *res;
+   RES *res = NULL;
 
    Dmsg1(20, "show: %s\n", ua->UA_sock->msg);
 

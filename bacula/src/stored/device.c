@@ -612,7 +612,7 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 {
    uint32_t stat = 0;			
    char PrevVolName[MAX_NAME_LENGTH];
-   DEV_BLOCK *label_blk;
+   DEV_BLOCK *label_blk = NULL;
    char b1[30], b2[30];
    time_t wait_time;
 
@@ -698,7 +698,9 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       jcr->run_time += time(NULL) - wait_time; /* correct run time */
       return 1; 			       /* device locked */
    }
-   free_block(label_blk);
+   if (label_blk) {
+      free_block(label_blk);
+   }
    return 0;			      /* device locked */
 }
 

@@ -184,7 +184,7 @@ void store_msgs(LEX *lc, struct res_items *item, int index, int pass)
    int token;
    char *cmd;
    POOLMEM *dest;
-   int dest_len;
+   int dest_len;    
 
    Dmsg2(200, "store_msgs pass=%d code=%d\n", pass, item->code);
    if (pass == 1) {
@@ -205,12 +205,12 @@ void store_msgs(LEX *lc, struct res_items *item, int index, int pass)
 	       cmd = res_all.res_msgs.mail_cmd;
 	    }
 	    dest = get_pool_memory(PM_MESSAGE);
-	    dest_len = 0;
 	    dest[0] = 0;
+	    dest_len = 0;
 	    /* Pick up comma separated list of destinations */
 	    for ( ;; ) {
 	       token = lex_get_token(lc, T_NAME);   /* scan destination */
-	       dest = (char *) check_pool_memory_size(dest, dest_len + lc->str_len + 2);
+	       dest = check_pool_memory_size(dest, dest_len + lc->str_len + 2);
 	       if (dest[0] != 0) {
                   strcat(dest, " ");  /* separate multiple destinations with space */
 		  dest_len++;
@@ -237,7 +237,7 @@ void store_msgs(LEX *lc, struct res_items *item, int index, int pass)
 	    dest = get_pool_memory(PM_MESSAGE);
 	    /* Pick up a single destination */
 	    token = lex_get_token(lc, T_NAME);	 /* scan destination */
-	    dest = check_pool_memory_size(dest, dest_len + lc->str_len + 2);
+	    dest = check_pool_memory_size(dest, lc->str_len + 2);
 	    strcpy(dest, lc->str);
 	    dest_len = lc->str_len;
 	    token = lex_get_token(lc, T_ALL);
@@ -269,7 +269,7 @@ void store_msgs(LEX *lc, struct res_items *item, int index, int pass)
 static void scan_types(LEX *lc, MSGS *msg, int dest_code, char *where, char *cmd)
 {
    int i, found, quit, is_not;
-   int msg_type;
+   int msg_type = 0;
    char *str;
 
    for (quit=0; !quit;) {
@@ -291,6 +291,7 @@ static void scan_types(LEX *lc, MSGS *msg, int dest_code, char *where, char *cmd
       }
       if (!found) {
          scan_err1(lc, "message type: %s not found", str);
+	 /* NOT REACHED */
       }
 
       if (msg_type == M_MAX+1) {	 /* all? */
@@ -640,9 +641,10 @@ void
 parse_config(char *cf)
 {
    LEX *lc = NULL;
-   int token, i, res_type, pass;
+   int token, i, pass;
+   int res_type = 0;
    enum parse_state state = p_none;
-   struct res_items *items;
+   struct res_items *items = NULL;
    int level = 0;
 
    /* Make two passes. The first builds the name symbol table,
@@ -661,6 +663,7 @@ parse_config(char *cf)
 	       }
 	       if (token != T_IDENTIFIER) {
                   scan_err1(lc, "Expected a Resource name identifier, got: %s", lc->str);
+		  /* NOT REACHED */
 	       }
 	       for (i=0; resources[i].name; i++)
 		  if (strcasecmp(resources[i].name, lc->str) == 0) {
@@ -672,6 +675,7 @@ parse_config(char *cf)
 		  }
 	       if (state == p_none) {
                   scan_err1(lc, "expected resource name, got: %s", lc->str);
+		  /* NOT REACHED */
 	       }
 	       break;
 	    case p_resource:
@@ -682,6 +686,7 @@ parse_config(char *cf)
 		  case T_IDENTIFIER:
 		     if (level != 1) {
                         scan_err1(lc, "not in resource definition: %s", lc->str);
+			/* NOT REACHED */
 		     }
 		     for (i=0; items[i].name; i++) {
 			if (strcasecmp(items[i].name, lc->str) == 0) {
@@ -689,6 +694,7 @@ parse_config(char *cf)
                            Dmsg1 (150, "in T_IDENT got token=%s\n", lex_tok_to_str(token));
 			   if (token != T_EQUALS) {
                               scan_err1(lc, "expected an equals, got: %s", lc->str);
+			      /* NOT REACHED */
 			   }
                            Dmsg1(150, "calling handler for %s\n", items[i].name);
 			   /* Call item handler */
@@ -701,6 +707,7 @@ parse_config(char *cf)
                         Dmsg2(150, "level=%d id=%s\n", level, lc->str);
                         Dmsg1(150, "Keyword = %s\n", lc->str);
                         scan_err1(lc, "Keyword %s not permitted in this resource", lc->str);
+			/* NOT REACHED */
 		     }
 		     break;
 
@@ -717,10 +724,12 @@ parse_config(char *cf)
 		  default:
                      scan_err2(lc, "unexpected token %d %s in resource definition",    
 			token, lex_tok_to_str(token));
+		     /* NOT REACHED */
 	       }
 	       break;
 	    default:
                scan_err1(lc, "Unknown parser state %d\n", state);
+	       /* NOT REACHED */
 	 }
       }
       if (debug_level > 50 && pass == 2) {
