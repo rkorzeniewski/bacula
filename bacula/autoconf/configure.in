@@ -1953,6 +1953,8 @@ AC_OUTPUT([autoconf/Make.common \
 	   scripts/gnome-console.console_apps \
 	   scripts/mtx-changer \
 	   scripts/bacula-tray-monitor.desktop \
+           scripts/logwatch/Makefile \
+           scripts/logwatch/logfile.bacula.conf \
 	   doc/Makefile \
 	   src/Makefile \
 	   src/host.h \
