@@ -60,7 +60,7 @@ struct JOBIDS {
    utime_t JobTDate;
    uint32_t TotalFiles;
    char ClientName[MAX_NAME_LENGTH];
-   char JobIds[200];
+   char JobIds[200];		      /* User entered string of JobIds */
    STORE  *store;
 };
 
@@ -763,14 +763,17 @@ static int write_bsr_file(UAContext *ua, RBSR *bsr)
    return stat;
 }
 
+/*
+ *  ***FIXME*** we need a better volume sequence number 
+ */
 int comp_vol_params(const void *v1, const void *v2)
 {
    VOL_PARAMS *vol1 = (VOL_PARAMS *)v1;
    VOL_PARAMS *vol2 = (VOL_PARAMS *)v2;
 
-   if (vol1->FirstIndex < vol2->FirstIndex) {
+   if (vol1->JobMediaId < vol2->JobMediaId) {
       return -1;
-   } else if (vol1->FirstIndex > vol2->FirstIndex) {
+   } else if (vol1->JobMediaId > vol2->JobMediaId) {
       return 1;
    } else {
       return 0;
@@ -789,7 +792,6 @@ static RBSR *sort_bsr(RBSR *bsr)
    /* Sort the VolParams for each bsr */
    for (RBSR *nbsr=bsr; nbsr; nbsr=nbsr->next) {
       if (nbsr->VolCount > 1) {
-         Dmsg1(100, "VolCount=%d\n", nbsr->VolCount);
 	 qsort((void *)nbsr->VolParams, nbsr->VolCount, sizeof(VOL_PARAMS), 
 	       comp_vol_params);
       }

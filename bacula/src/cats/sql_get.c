@@ -278,7 +278,7 @@ FROM Job WHERE JobId=%u", jr->JobId);
 
    jr->VolSessionId = str_to_uint64(row[0]);
    jr->VolSessionTime = str_to_uint64(row[1]);
-   jr->PoolId = atoi(row[2]);
+   jr->PoolId = str_to_uint64(row[2]);
    bstrncpy(jr->cStartTime, row[3]!=NULL?row[3]:"", sizeof(jr->cStartTime));
    bstrncpy(jr->cEndTime, row[4]!=NULL?row[4]:"", sizeof(jr->cEndTime));
    jr->JobFiles = atol(row[5]);
@@ -361,7 +361,8 @@ int db_get_job_volume_parameters(JCR *jcr, B_DB *mdb, uint32_t JobId, VOL_PARAMS
 
    db_lock(mdb);
    Mmsg(&mdb->cmd, 
-"SELECT VolumeName,FirstIndex,LastIndex,StartFile,EndFile,StartBlock,EndBlock"
+"SELECT VolumeName,FirstIndex,LastIndex,StartFile,EndFile,StartBlock,"
+"EndBlock,JobMediaId"
 " FROM JobMedia,Media WHERE JobMedia.JobId=%u"
 " AND JobMedia.MediaId=Media.MediaId", JobId);
 
@@ -391,6 +392,7 @@ int db_get_job_volume_parameters(JCR *jcr, B_DB *mdb, uint32_t JobId, VOL_PARAMS
 	       Vols[i].EndFile = atoi(row[4]);
 	       Vols[i].StartBlock = atoi(row[5]);
 	       Vols[i].EndBlock = atoi(row[6]);
+	       Vols[i].JobMediaId = str_to_uint64(row[7]);
 	    }
 	 }
       }
@@ -441,7 +443,7 @@ int db_get_pool_ids(JCR *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
       if (*num_ids > 0) {
 	 id = (uint32_t *)malloc(*num_ids * sizeof(uint32_t));
 	 while ((row = sql_fetch_row(mdb)) != NULL) {
-	    id[i++] = (uint32_t)atoi(row[0]);
+	    id[i++] = str_to_uint64(row[0]);
 	 }
 	 *ids = id;
       }

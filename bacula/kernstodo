@@ -25,6 +25,10 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
+- The bsr for Dan's job has file indexes covering the whole range rather
+  than only the range contained on the volume.
+- Don't zero the Slot when the wrong volume is found -- simply ask
+  the operator.
 - Add SDWriteSeqNo to SD, and probably Read on FD side.
 - Make sure all restore counters are working correctly in the FD.
 - When all cassettes in magazine are used, got:
