@@ -234,23 +234,16 @@ static int send_list(JCR *jcr, int list)
    for (int i=0; i < num; i++) {
       BPIPE *bpipe;
       FILE *ffd;
-      char buf[1000];
+      char buf[2000];
       char *p;
       int optlen, stat;
       INCEXE *ie;
-      FOPTS  *fo;
 
 
       if (list == INC_LIST) {
 	 ie = fileset->include_items[i];
       } else {
 	 ie = fileset->exclude_items[i];
-      }
-      if (ie->num_opts) {
-	 fo = ie->opts_list[0];
-	 for (int j=0; j<fo->regex.size(); j++) {
-            Dmsg1(100, "Regex=%s\n", fo->regex.get(j));
-	 }
       }
       for (int j=0; j<ie->name_list.size(); j++) {
 	 p = (char *)ie->name_list.get(j);
@@ -349,14 +342,132 @@ bail_out:
 
 }
 
+
+/*
+ * Send either an Included or an Excluded list to FD
+ */
+static int send_incopts(JCR *jcr)
+{
+   FILESET *fileset = jcr->fileset;
+   BSOCK   *fd = jcr->file_bsock;
+   int num = fileset->num_includes;
+
+   for (int i=0; i<num; i++) {
+      BPIPE *bpipe;
+      FILE *ffd;
+      char buf[2000];
+      char *p;
+      int optlen, stat;
+      INCEXE *ie;
+      int j, k;
+
+      ie = fileset->include_items[i];
+
+      for (j=0; j<ie->num_opts; j++) {
+	 FOPTS *fo = ie->opts_list[j];
+         bnet_fsend(fd, "O %s\n", fo->opts);
+	 for (k=0; k<fo->regex.size(); k++) {
+            bnet_fsend(fd, "R %s\n", fo->regex.get(k));
+	 }
+	 for (k=0; k<fo->wild.size(); k++) {
+            bnet_fsend(fd, "W %s\n", fo->wild.get(k));
+	 }
+	 for (k=0; k<fo->base.size(); k++) {
+            bnet_fsend(fd, "B %s\n", fo->base.get(k));
+	 }
+         bnet_fsend(fd, "N\n");
+      }
+
+      for (j=0; j<ie->name_list.size(); j++) {
+	 p = (char *)ie->name_list.get(j);
+	 switch (*p) {
+         case '|':
+	    p++;		      /* skip over the | */
+            fd->msg = edit_job_codes(jcr, fd->msg, p, "");
+            bpipe = open_bpipe(fd->msg, 0, "r");
+	    if (!bpipe) {
+               Jmsg(jcr, M_FATAL, 0, _("Cannot run program: %s. ERR=%s\n"),
+		  p, strerror(errno));
+	       goto bail_out;
+	    }
+            bstrncpy(buf, "I ", sizeof(buf));
+            Dmsg1(100, "Opts=%s\n", buf);
+	    optlen = strlen(buf);
+	    while (fgets(buf+optlen, sizeof(buf)-optlen, bpipe->rfd)) {
+               fd->msglen = Mmsg(&fd->msg, "%s", buf);
+               Dmsg2(200, "Inc/exc len=%d: %s", fd->msglen, fd->msg);
+	       if (!bnet_send(fd)) {
+                  Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
+		  goto bail_out;
+	       }
+	    }
+	    if ((stat=close_bpipe(bpipe)) != 0) {
+               Jmsg(jcr, M_FATAL, 0, _("Error running program: %s. RtnStat=%d ERR=%s\n"),
+		  p, stat, strerror(errno));
+	       goto bail_out;
+	    }
+	    break;
+         case '<':
+	    p++;		      /* skip over < */
+            if ((ffd = fopen(p, "r")) == NULL) {
+               Jmsg(jcr, M_FATAL, 0, _("Cannot open included file: %s. ERR=%s\n"),
+		  p, strerror(errno));
+	       goto bail_out;
+	    }
+            bstrncpy(buf, "I ", sizeof(buf));
+            Dmsg1(100, "Opts=%s\n", buf);
+	    optlen = strlen(buf);
+	    while (fgets(buf+optlen, sizeof(buf)-optlen, ffd)) {
+               fd->msglen = Mmsg(&fd->msg, "%s", buf);
+	       if (!bnet_send(fd)) {
+                  Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
+		  goto bail_out;
+	       }
+	    }
+	    fclose(ffd);
+	    break;
+         case '\\':
+            p++;                      /* skip over \ */
+	    /* Note, fall through wanted */
+	 default:
+            pm_strcpy(&fd->msg, "I ");
+	    fd->msglen = pm_strcat(&fd->msg, p);
+            Dmsg1(100, "Inc/Exc name=%s\n", fd->msg);
+	    if (!bnet_send(fd)) {
+               Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
+	       goto bail_out;
+	    }
+	    break;
+	 }
+      }
+      bnet_fsend(fd, "N\n");
+   }
+
+   bnet_sig(fd, BNET_EOD);	      /* end of data */
+   if (!response(jcr, fd, OKinc, "Include", DISPLAY_ERROR)) {
+      goto bail_out;
+   }
+   return 1;
+
+bail_out:
+   set_jcr_job_status(jcr, JS_ErrorTerminated);
+   return 0;
+
+}
+
+
 /*
  * Send include list to File daemon
  */
 int send_include_list(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
-   fd->msglen = pm_strcpy(&fd->msg, inc);
-   bnet_send(fd);
+   if (jcr->fileset->new_include) {
+      bnet_fsend(fd, incopts);
+      return send_incopts(jcr);
+   } else {
+      bnet_fsend(fd, inc);
+   }
    return send_list(jcr, INC_LIST);
 }
 
@@ -367,8 +478,7 @@ int send_include_list(JCR *jcr)
 int send_exclude_list(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
-   fd->msglen = pm_strcpy(&fd->msg, exc);
-   bnet_send(fd);
+   bnet_fsend(fd, exc);
    return send_list(jcr, EXC_LIST);
 }
 
