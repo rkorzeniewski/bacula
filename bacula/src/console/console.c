@@ -182,6 +182,7 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
 	 if (fgets(UA_sock->msg, len, input) == NULL) {
 	    stat = -1;
 	 } else {
+            sendit("%s", UA_sock->msg);  /* echo to terminal */
 	    strip_trailing_junk(UA_sock->msg);
 	    UA_sock->msglen = strlen(UA_sock->msg);
 	    stat = 1;

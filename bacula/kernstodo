@@ -25,7 +25,10 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
-- Finish WIN32_DATA stream code (bextract, check if can handle stream)
+- Investigate doing RAW backup of Win32 partition.
+- Add JobName= to VerifyToCatalog so that all verifies can be done at the end.
+- Add thread specific data to hold the jcr -- send error messages from
+  low level routines by accessing it and using Jmsg().
 - Default duration with no qualifier is sec should be 1 day
 - Find a solution for the multiple FileSet problem (when it is changed). Add date?
 - Cancel waiting for Client connect in SD if FD goes away.
@@ -875,4 +878,4 @@ Done: (see kernsdone for more)
 - Count errors during restore and print them in the Job report.
 - Bug: fix access problems on files restored on WinXP.
 - Put system type returned by FD into catalog.
-
+- Finish WIN32_DATA stream code (bextract, check if can handle stream)

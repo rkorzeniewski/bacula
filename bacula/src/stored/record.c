@@ -92,6 +92,10 @@ char *stream_to_ascii(int stream, int fi)
        return "UATTR";
     case STREAM_FILE_DATA:
        return "DATA";
+    case STREAM_WIN32_DATA:
+       return "WIN32-DATA";
+    case STREAM_WIN32_GZIP_DATA:
+       return "WIN32-GZIP";
     case STREAM_MD5_SIGNATURE:
        return "MD5";
     case STREAM_SHA1_SIGNATURE:
@@ -112,6 +116,10 @@ char *stream_to_ascii(int stream, int fi)
        return "contUATTR";
     case -STREAM_FILE_DATA:
        return "contDATA";
+    case -STREAM_WIN32_DATA:
+       return "contWIN32-DATA";
+    case -STREAM_WIN32_GZIP_DATA:
+       return "contWIN32-GZIP";
     case -STREAM_MD5_SIGNATURE:
        return "contMD5";
     case -STREAM_SHA1_SIGNATURE:

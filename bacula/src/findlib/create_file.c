@@ -226,16 +226,21 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
       if (make_path(jcr, ofile, new_mode, parent_mode, uid, gid, 0, NULL) != 0) {
 	 return CF_ERROR;
       }
-#ifdef HAVE_CYGWIN
-      if ((bopen(ofd, ofile, O_WRONLY|O_BINARY, 0)) < 0) {
-         Jmsg2(jcr, M_ERROR, 0, _("Could not open %s: ERR=%s\n"), 
-	       ofile, berror(ofd));
-	 return CF_ERROR;
+      /*
+       * If we are using the Win32 Backup API, we open the
+       *   directory so that the security info will be read
+       *   and saved.
+       */
+      if (is_win32_backup()) {
+	 if ((bopen(ofd, ofile, O_WRONLY|O_BINARY, 0)) < 0) {
+            Jmsg2(jcr, M_ERROR, 0, _("Could not open %s: ERR=%s\n"), 
+		  ofile, berror(ofd));
+	    return CF_ERROR;
+	 }
+	 return CF_EXTRACT;
+      } else {
+	 return CF_CREATED;
       }
-      return CF_EXTRACT;
-#else
-      return CF_CREATED;
-#endif
 
    /* The following should not occur */
    case FT_NOACCESS:

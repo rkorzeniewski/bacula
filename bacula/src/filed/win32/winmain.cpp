@@ -325,17 +325,25 @@ int BaculaAppMain()
       p_BackupWrite = (t_BackupWrite)
           GetProcAddress(hLib, "BackupWrite");
       FreeLibrary(hLib);
-    }
-    hLib = LoadLibrary("ADVAPI32.DLL");
-    if (hLib) {
-       p_OpenProcessToken = (t_OpenProcessToken)
-          GetProcAddress(hLib, "OpenProcessToken");
-       p_AdjustTokenPrivileges = (t_AdjustTokenPrivileges)
-          GetProcAddress(hLib, "AdjustTokenPrivileges");
-       p_LookupPrivilegeValue = (t_LookupPrivilegeValue)
-          GetProcAddress(hLib, "LookupPrivilegeValueA");
-       FreeLibrary(hLib);
-    }
+   }
+   hLib = LoadLibrary("ADVAPI32.DLL");
+   if (hLib) {
+      p_OpenProcessToken = (t_OpenProcessToken)
+         GetProcAddress(hLib, "OpenProcessToken");
+      p_AdjustTokenPrivileges = (t_AdjustTokenPrivileges)
+         GetProcAddress(hLib, "AdjustTokenPrivileges");
+      p_LookupPrivilegeValue = (t_LookupPrivilegeValue)
+         GetProcAddress(hLib, "LookupPrivilegeValueA");
+      FreeLibrary(hLib);
+   }
+   /*  
+    * Even if these are defined, don't use on old 
+    *  platforms.
+    */
+   if (bacService::IsWin95()) {
+      p_BackupRead = NULL;
+      p_BackupWrite = NULL;
+   }
 
    // Set this process to be the last application to be shut down.
    if (p_SetProcessShutdownParameters) {

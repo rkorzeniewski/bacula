@@ -154,14 +154,17 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
    case FT_NOACCESS:
       Jmsg(jcr, M_NOTSAVED, -1, _("     Could not access %s: ERR=%s\n"), ff_pkt->fname, 
 	 strerror(ff_pkt->ff_errno));
+      jcr->Errors++;
       return 1;
    case FT_NOFOLLOW:
       Jmsg(jcr, M_NOTSAVED, -1, _("     Could not follow link %s: ERR=%s\n"), ff_pkt->fname, 
 	 strerror(ff_pkt->ff_errno));
+      jcr->Errors++;
       return 1;
    case FT_NOSTAT:
       Jmsg(jcr, M_NOTSAVED, -1, _("     Could not stat %s: ERR=%s\n"), ff_pkt->fname, 
 	 strerror(ff_pkt->ff_errno));
+      jcr->Errors++;
       return 1;
    case FT_DIRNOCHG:
    case FT_NOCHG:
@@ -181,9 +184,11 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
    case FT_NOOPEN:
       Jmsg(jcr, M_NOTSAVED, -1, _("     Could not open directory %s: ERR=%s\n"), ff_pkt->fname, 
 	 strerror(ff_pkt->ff_errno));
+      jcr->Errors++;
       return 1;
    default:
       Jmsg(jcr, M_NOTSAVED, 0,  _("     Unknown file type %d; not saved: %s\n"), ff_pkt->type, ff_pkt->fname);
+      jcr->Errors++;
       return 1;
    }
 
@@ -192,11 +197,8 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
    /* Open any file with data that we intend to save */
    if (ff_pkt->type != FT_LNKSAVED && (S_ISREG(ff_pkt->statp.st_mode) && 
 	 ff_pkt->statp.st_size > 0) || 
-	 ff_pkt->type == FT_RAW || ff_pkt->type == FT_FIFO
-#ifdef HAVE_CYGWIN
-	 || ff_pkt->type == FT_DIR
-#endif
-      ) {
+	 ff_pkt->type == FT_RAW || ff_pkt->type == FT_FIFO ||
+	 (is_win32_backup() && ff_pkt->type == FT_DIR)) {
       btimer_id tid;	
       if (ff_pkt->type == FT_FIFO) {
 	 tid = start_thread_timer(pthread_self(), 60);
@@ -207,6 +209,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	 ff_pkt->ff_errno = errno;
          Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open %s: ERR=%s.\n"), ff_pkt->fname, 
 	      berror(&ff_pkt->bfd));
+	 jcr->Errors++;
 	 stop_thread_timer(tid);
 	 return 1;
       }
@@ -289,7 +292,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       Dmsg1(100, "Saving data, type=%d\n", ff_pkt->type);
 
       /* Note, no sparse option for win32_data */
-      if (is_win32_data(&ff_pkt->bfd)) {
+      if (is_win32_backup()) {
 	 stream = STREAM_WIN32_DATA;
 	 ff_pkt->flags &= ~FO_SPARSE;
       } else if (ff_pkt->flags & FO_SPARSE) {

@@ -88,10 +88,15 @@ int do_verify(JCR *jcr)
    if (jcr->JobLevel == L_VERIFY_CATALOG || jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG) {
       memcpy(&jr, &(jcr->jr), sizeof(jr));
       if (!db_find_last_jobid(jcr, jcr->db, &jr)) {
-	 Jmsg(jcr, M_FATAL, 0, _(
-              "Unable to find JobId of previous InitCatalog Job.\n"
-              "Please run a Verify with Level=InitCatalog before\n"
-              "running the current Job.\n"));
+	 if (jcr->JobLevel == L_VERIFY_CATALOG) {
+	    Jmsg(jcr, M_FATAL, 0, _(
+                 "Unable to find JobId of previous InitCatalog Job.\n"
+                 "Please run a Verify with Level=InitCatalog before\n"
+                 "running the current Job.\n"));
+	  } else {
+	    Jmsg(jcr, M_FATAL, 0, _(
+                 "Unable to find JobId of previous Job for this client.\n"));
+	 }   
 	 goto bail_out;
       }
       JobId = jr.JobId;
@@ -120,7 +125,8 @@ int do_verify(JCR *jcr)
       memset(&jr, 0, sizeof(jr));
       jr.JobId = JobId;
       if (!db_get_job_record(jcr, jcr->db, &jr)) {
-         Jmsg(jcr, M_FATAL, 0, _("Could not get job record. %s"), db_strerror(jcr->db));
+         Jmsg(jcr, M_FATAL, 0, _("Could not get job record for previous Job. ERR=%s"), 
+	      db_strerror(jcr->db));
 	 goto bail_out;
       }
       if (jr.JobStatus != 'T') {
@@ -145,7 +151,7 @@ int do_verify(JCR *jcr)
       jcr->VolumeName[0] = 0;
       if (!db_get_job_volume_names(jcr, jcr->db, jr.JobId, &jcr->VolumeName) ||
 	   jcr->VolumeName[0] == 0) {
-         Jmsg(jcr, M_FATAL, 0, _("Cannot find Volume Name for verify JobId=%d. %s"), 
+         Jmsg(jcr, M_FATAL, 0, _("Cannot find Volume Name for verify JobId=%u. ERR=%s"), 
 	    jr.JobId, db_strerror(jcr->db));
 	 goto bail_out;
       }

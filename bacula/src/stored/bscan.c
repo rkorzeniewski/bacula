@@ -626,6 +626,35 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
       mjcr->JobBytes += rec->data_len - sizeof(uint64_t); /* No correct, we should expand it */
       free_jcr(mjcr);		      /* done using JCR */
 
+   /* Win32 Data stream */
+   } else if (rec->Stream == STREAM_WIN32_DATA) {
+      mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
+      if (!mjcr) {
+	 if (mr.VolJobs > 0) {
+            Pmsg2(000, _("Could not find Job SessId=%d SessTime=%d for Win32 Data record.\n"),
+			 rec->VolSessionId, rec->VolSessionTime);
+	 } else {
+	    ignored_msgs++;
+	 }
+	 return;
+      }
+      mjcr->JobBytes += rec->data_len;
+      free_jcr(mjcr);		      /* done using JCR */
+
+   /* Win32 GZIP stream */
+   } else if (rec->Stream == STREAM_WIN32_GZIP_DATA) {
+      mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
+      if (!mjcr) {
+	 if (mr.VolJobs > 0) {
+            Pmsg2(000, _("Could not find Job SessId=%d SessTime=%d for Win32 GZIP Data record.\n"),
+			 rec->VolSessionId, rec->VolSessionTime);
+	 } else {
+	    ignored_msgs++;
+	 }
+	 return;
+      }
+      mjcr->JobBytes += rec->data_len;
+      free_jcr(mjcr);		      /* done using JCR */
 
    } else if (rec->Stream == STREAM_MD5_SIGNATURE) {
       char MD5buf[50];

@@ -63,6 +63,7 @@ static POOLMEM *compress_buf;
 static int type;
 static int stream;
 static int prog_name_msg = 0;
+static int win32_data_msg = 0;
 static char *VolumeName = NULL;
 
 static char *wbuf;		      /* write buffer address */
@@ -186,6 +187,14 @@ int main (int argc, char *argv[])
 
    if (bsr) {
       free_bsr(bsr);
+   }
+   if (prog_name_msg) {
+      Pmsg1(000, "%d Program Name and/or Program Data Stream records ignored.\n",
+	 prog_name_msg);
+   }
+   if (win32_data_msg) {
+      Pmsg1(000, "%d Win32 data or Win32 gzip data stream records. Ignored.\n",
+	 win32_data_msg);
    }
    return 0;
 }
@@ -480,7 +489,12 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
    } else if (rec->Stream == STREAM_PROGRAM_NAMES || rec->Stream == STREAM_PROGRAM_DATA) {
       if (!prog_name_msg) {
          Pmsg0(000, "Got Program Name or Data Stream. Ignored.\n");
-	 prog_name_msg = 1;
+	 prog_name_msg++;
+      }
+   } else if (rec->Stream == STREAM_WIN32_DATA || rec->Stream == STREAM_WIN32_GZIP_DATA) {
+      if (!win32_data_msg) {
+         Pmsg0(000, "Got Win32 data or Win32 gzip data stream. Ignored.\n");
+	 win32_data_msg++;
       }
    } else if (!(rec->Stream == STREAM_MD5_SIGNATURE ||
 		rec->Stream == STREAM_SHA1_SIGNATURE)) {

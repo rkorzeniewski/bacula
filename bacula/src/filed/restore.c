@@ -264,6 +264,9 @@ void do_restore(JCR *jcr)
 	    }
 	 }
 
+	 P(jcr->mutex);
+	 pm_strcpy(&jcr->last_fname, fname);
+	 V(jcr->mutex);
 	 jcr->num_files_examined++;
 
          Dmsg1(30, "Outfile=%s\n", ofile);
@@ -299,6 +302,11 @@ void do_restore(JCR *jcr)
       /* Data stream */
       } else if (stream == STREAM_FILE_DATA || stream == STREAM_SPARSE_DATA ||
 		 stream == STREAM_WIN32_DATA) {
+	 if (stream == STREAM_WIN32_DATA && !is_win32_backup()) {
+            Jmsg(jcr, M_ERROR, 0, _("Win32 backup data not supported on this Client.\n"));
+	    extract = FALSE;
+	    continue;
+	 }
 	 if (extract) {
 	    if (stream == STREAM_SPARSE_DATA) {
 	       ser_declare;
@@ -314,7 +322,8 @@ void do_restore(JCR *jcr)
 		  if (blseek(&bfd, (off_t)fileAddr, SEEK_SET) < 0) {
                      Jmsg3(jcr, M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"),
 			 edit_uint64(fileAddr, ec1), ofile, berror(&bfd));
-		     goto bail_out;
+		     extract = FALSE;
+		     continue;
 		  }
 	       }
 	    } else {
@@ -325,8 +334,9 @@ void do_restore(JCR *jcr)
 	    if ((uint32_t)bwrite(&bfd, wbuf, wsize) != wsize) {
                Dmsg0(0, "===Write error===\n");
                Jmsg2(jcr, M_ERROR, 0, _("Write error on %s: ERR=%s\n"), ofile, berror(&bfd));
-	       goto bail_out;
-	    }
+	       extract = FALSE;
+	       continue;
+	    } 
 	    total += wsize;
 	    jcr->JobBytes += wsize;
 	    fileAddr += wsize;
@@ -335,6 +345,11 @@ void do_restore(JCR *jcr)
       /* GZIP data stream */
       } else if (stream == STREAM_GZIP_DATA || stream == STREAM_SPARSE_GZIP_DATA ||
 		 stream == STREAM_WIN32_GZIP_DATA) {
+	 if (stream == STREAM_WIN32_GZIP_DATA && !is_win32_backup()) {
+            Jmsg(jcr, M_ERROR, 0, _("Win32 GZIP backup data not supported on this Client.\n"));
+	    extract = FALSE;
+	    continue;
+	 }
 #ifdef HAVE_LIBZ
 	 if (extract) {
 	    ser_declare;
@@ -353,7 +368,8 @@ void do_restore(JCR *jcr)
 		  if (blseek(&bfd, (off_t)fileAddr, SEEK_SET) < 0) {
                      Jmsg3(jcr, M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"),
 			 edit_uint64(fileAddr, ec1), ofile, berror(&bfd));
-		     goto bail_out;
+		     extract = FALSE;
+		     continue;
 		  }
 	       }
 	    } else {
@@ -365,14 +381,16 @@ void do_restore(JCR *jcr)
 	    if ((stat=uncompress((Byte *)jcr->compress_buf, &compress_len, 
 		  (const Byte *)wbuf, (uLong)wsize)) != Z_OK) {
                Jmsg(jcr, M_ERROR, 0, _("Uncompression error. ERR=%d\n"), stat);
-	       goto bail_out;
+	       extract = FALSE;
+	       continue;
 	    }
 
             Dmsg2(100, "Write uncompressed %d bytes, total before write=%d\n", compress_len, total);
 	    if ((uLong)bwrite(&bfd, jcr->compress_buf, compress_len) != compress_len) {
                Dmsg0(0, "===Write error===\n");
                Jmsg2(jcr, M_ERROR, 0, _("Write error on %s: %s\n"), ofile, berror(&bfd));
-	       goto bail_out;
+	       extract = FALSE;
+	       continue;
 	    }
 	    total += compress_len;
 	    jcr->JobBytes += compress_len;
@@ -381,7 +399,8 @@ void do_restore(JCR *jcr)
 #else
 	 if (extract) {
             Jmsg(jcr, M_ERROR, 0, _("GZIP data stream found, but GZIP not configured!\n"));
-	    goto bail_out;
+	    extract = FALSE;
+	    continue;
 	 }
 #endif
       /* If extracting, wierd stream (not 1 or 2), close output file anyway */

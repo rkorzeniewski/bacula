@@ -197,18 +197,23 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
       int status;
       dev_t our_device = ff_pkt->statp.st_dev;
 
-#ifndef HAVE_CYGWIN
-      if (access(fname, R_OK) == -1 && geteuid() != 0) {
-	 /* Could not access() directory */
-	 ff_pkt->type = FT_NOACCESS;
-	 ff_pkt->ff_errno = errno;
-	 rtn_stat = handle_file(ff_pkt, pkt);
-	 if (ff_pkt->linked) {
-	    ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
+      /*  
+       * If we are using Win32 backup API, don't check
+       *  access as everything is more complicated, and
+       *  in principle, we should be able to access everything.
+       */
+      if (!is_win32_backup()) {
+	 if (access(fname, R_OK) == -1 && geteuid() != 0) {
+	    /* Could not access() directory */
+	    ff_pkt->type = FT_NOACCESS;
+	    ff_pkt->ff_errno = errno;
+	    rtn_stat = handle_file(ff_pkt, pkt);
+	    if (ff_pkt->linked) {
+	       ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
+	    }
+	    return rtn_stat;
 	 }
-	 return rtn_stat;
       }
-#endif
 
       /* Build a canonical directory name with a trailing slash in link var */
       len = strlen(fname);
