@@ -236,6 +236,7 @@ static struct res_items pool_items[] = {
    {"maximumvolumes",  store_pint,  ITEM(res_pool.max_volumes),     0, 0,        0},
    {"maximumvolumejobs", store_pint,  ITEM(res_pool.MaxVolJobs),    0, 0,       0},
    {"maximumvolumefiles", store_pint, ITEM(res_pool.MaxVolFiles),   0, 0,       0},
+   {"maximumvolumebytes", store_size, ITEM(res_pool.MaxVolBytes),   0, 0,       0},
    {"acceptanyvolume", store_yesno, ITEM(res_pool.accept_any_volume), 1, ITEM_DEFAULT,     1},
    {"catalogfiles",    store_yesno, ITEM(res_pool.catalog_files),   1, ITEM_DEFAULT,  1},
    {"volumeretention", store_time,  ITEM(res_pool.VolRetention),    0, ITEM_DEFAULT, 60*60*24*365},

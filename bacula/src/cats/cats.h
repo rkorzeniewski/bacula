@@ -48,7 +48,7 @@ typedef int (DB_RESULT_HANDLER)(void *, int, char **);
 
 #ifdef HAVE_SQLITE
 
-#define BDB_VERSION 4
+#define BDB_VERSION 5
 
 #include <sqlite.h>
 
@@ -134,7 +134,7 @@ extern void my_sqlite_free_table(B_DB *mdb);
 
 #ifdef HAVE_MYSQL
 
-#define BDB_VERSION 4
+#define BDB_VERSION 5
 
 #include <mysql.h>
 
@@ -362,6 +362,7 @@ typedef struct {
    utime_t  VolUseDuration;           /* time in secs volume can be used */
    uint32_t MaxVolJobs;               /* Max Jobs on Volume */
    uint32_t MaxVolFiles;              /* Max files on Volume */
+   uint64_t MaxVolBytes;              /* Max bytes on Volume */
    char PoolType[MAX_NAME_LENGTH];             
    char LabelFormat[MAX_NAME_LENGTH];
    /* Extra stuff not in DB */

@@ -162,7 +162,7 @@ int
 db_create_pool_record(B_DB *mdb, POOL_DBR *pr)
 {
    int stat;
-   char ed1[30], ed2[30];
+   char ed1[30], ed2[30], ed3[50];
 
    Dmsg0(200, "In create pool\n");
    db_lock(mdb);
@@ -186,8 +186,8 @@ db_create_pool_record(B_DB *mdb, POOL_DBR *pr)
    Mmsg(&mdb->cmd, 
 "INSERT INTO Pool (Name,NumVols,MaxVols,UseOnce,UseCatalog,\
 AcceptAnyVolume,AutoPrune,Recycle,VolRetention,VolUseDuration,\
-MaxVolJobs,MaxVolFiles,PoolType,LabelFormat) \
-VALUES ('%s',%u,%u,%d,%d,%d,%d,%d,%s,%s,%u,%u,'%s','%s')", 
+MaxVolJobs,MaxVolFiles,MaxVolBytes,PoolType,LabelFormat) \
+VALUES ('%s',%u,%u,%d,%d,%d,%d,%d,%s,%s,%u,%u,%s,'%s','%s')", 
 		  pr->Name,
 		  pr->NumVols, pr->MaxVols,
 		  pr->UseOnce, pr->UseCatalog,
@@ -196,6 +196,7 @@ VALUES ('%s',%u,%u,%d,%d,%d,%d,%d,%s,%s,%u,%u,'%s','%s')",
 		  edit_uint64(pr->VolRetention, ed1),
 		  edit_uint64(pr->VolUseDuration, ed2),
 		  pr->MaxVolJobs, pr->MaxVolFiles,
+		  edit_uint64(pr->MaxVolBytes, ed3),
 		  pr->PoolType, pr->LabelFormat);
    Dmsg1(200, "Create Pool: %s\n", mdb->cmd);
    if (!INSERT_DB(mdb, mdb->cmd)) {

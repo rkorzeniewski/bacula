@@ -265,6 +265,7 @@ getVolName:
    mr.VolUseDuration = pr.VolUseDuration;
    mr.MaxVolJobs = pr.MaxVolJobs;
    mr.MaxVolFiles = pr.MaxVolFiles;
+   mr.MaxVolBytes = pr.MaxVolBytes;
    for (i=startnum; i < num+startnum; i++) { 
       sprintf(mr.VolumeName, name, i);
       mr.Slot = slot++;
@@ -480,6 +481,7 @@ int create_pool(B_DB *db, POOL *pool)
    pr.VolUseDuration = pool->VolUseDuration;
    pr.MaxVolJobs = pool->MaxVolJobs;
    pr.MaxVolFiles = pool->MaxVolFiles;
+   pr.MaxVolBytes = pool->MaxVolBytes;
    pr.AutoPrune = pool->AutoPrune;
    if (pool->label_format) {
       strcpy(pr.LabelFormat, pool->label_format);
@@ -614,13 +616,14 @@ static int update_volume(UAContext *ua)
       add_prompt(ua, _("Volume Use Duration"));
       add_prompt(ua, _("Maximum Volume Jobs"));
       add_prompt(ua, _("Maximum Volume Files"));
+      add_prompt(ua, _("Maximum Volume Bytes"));
       add_prompt(ua, _("Recycle Flag"));
       add_prompt(ua, _("Slot"));
       add_prompt(ua, _("Done"));
       switch (do_prompt(ua, _("Select parameter to modify"), NULL, 0)) {
       case 0:			      /* Volume Status */
 	 /* Modify Volume Status */
-         bsendmsg(ua, _("Current value is: %s\n"), mr.VolStatus);
+         bsendmsg(ua, _("Current Volume status is: %s\n"), mr.VolStatus);
          start_prompt(ua, _("Possible Values are:\n"));
          add_prompt(ua, "Append");      /* Better not translate these as */
          add_prompt(ua, "Archive");     /* They are known in the database code */
@@ -640,11 +643,13 @@ static int update_volume(UAContext *ua)
 	    mr.VolStatus, mr.MediaId);
 	 if (!db_sql_query(ua->db, query, NULL, NULL)) {  
             bsendmsg(ua, "%s", db_strerror(ua->db));
-	 }	 
+	 } else {
+            bsendmsg(ua, _("New Volume status is: %s\n"), mr.VolStatus);
+	 }
 	 free_pool_memory(query);
 	 break;
       case 1:			      /* Retention */
-         bsendmsg(ua, _("Current value is: %s\n"),
+         bsendmsg(ua, _("Current retention seconds is: %s\n"),
 	    edit_utime(mr.VolRetention, ed1));
          if (!get_cmd(ua, _("Enter Volume Retention period: "))) {
 	    return 0;
@@ -658,12 +663,15 @@ static int update_volume(UAContext *ua)
 	    edit_uint64(mr.VolRetention, ed1), mr.MediaId);
 	 if (!db_sql_query(ua->db, query, NULL, NULL)) {  
             bsendmsg(ua, "%s", db_strerror(ua->db));
-	 }	 
+	 } else {
+            bsendmsg(ua, _("New retention seconds is: %s\n"),
+	       edit_utime(mr.VolRetention, ed1));
+	 }
 	 free_pool_memory(query);
 	 break;
 
       case 2:			      /* Use Duration */
-         bsendmsg(ua, _("Current value is: %s\n"),
+         bsendmsg(ua, _("Current use duration is: %s\n"),
 	    edit_utime(mr.VolUseDuration, ed1));
          if (!get_cmd(ua, _("Enter Volume Use Duration: "))) {
 	    return 0;
@@ -677,13 +685,16 @@ static int update_volume(UAContext *ua)
 	    edit_uint64(mr.VolUseDuration, ed1), mr.MediaId);
 	 if (!db_sql_query(ua->db, query, NULL, NULL)) {  
             bsendmsg(ua, "%s", db_strerror(ua->db));
-	 }	 
+	 } else {
+            bsendmsg(ua, _("New use duration is: %s\n"),
+	       edit_utime(mr.VolUseDuration, ed1));
+	 }
 	 free_pool_memory(query);
 	 break;
 
       case 3:			      /* Max Jobs */
 	 int32_t maxjobs;
-         bsendmsg(ua, _("Current value is: %u\n"), mr.MaxVolJobs);
+         bsendmsg(ua, _("Current max jobs is: %u\n"), mr.MaxVolJobs);
          if (!get_cmd(ua, _("Enter new Maximum Jobs: "))) {
 	    return 0;
 	 }
@@ -698,14 +709,14 @@ static int update_volume(UAContext *ua)
 	 if (!db_sql_query(ua->db, query, NULL, NULL)) {  
             bsendmsg(ua, "%s", db_strerror(ua->db));
 	 } else {
-            bsendmsg(ua, "New value is: %u\n", maxjobs);
+            bsendmsg(ua, _("New max jobs is: %u\n"), maxjobs);
 	 }
 	 free_pool_memory(query);
 	 break;
 
       case 4:			      /* Max Files */
 	 int32_t maxfiles;
-         bsendmsg(ua, _("Current value is: %u\n"), mr.MaxVolFiles);
+         bsendmsg(ua, _("Current max files is: %u\n"), mr.MaxVolFiles);
          if (!get_cmd(ua, _("Enter new Maximum Files: "))) {
 	    return 0;
 	 }
@@ -720,15 +731,36 @@ static int update_volume(UAContext *ua)
 	 if (!db_sql_query(ua->db, query, NULL, NULL)) {  
             bsendmsg(ua, "%s", db_strerror(ua->db));
 	 } else {
-            bsendmsg(ua, "New value is: %u\n", maxfiles);
+            bsendmsg(ua, _("New max files is: %u\n"), maxfiles);
+	 }
+	 free_pool_memory(query);
+	 break;
+
+      case 5:			      /* Max Bytes */
+	 uint64_t maxbytes;
+         bsendmsg(ua, _("Current value is: %s\n"), edit_uint64(mr.MaxVolBytes, ed1));
+         if (!get_cmd(ua, _("Enter new Maximum Bytes: "))) {
+	    return 0;
+	 }
+	 if (!size_to_uint64(ua->cmd, strlen(ua->cmd), &maxbytes)) {
+            bsendmsg(ua, _("Invalid byte size specification.\n"));
+	    break;
+	 } 
+	 query = get_pool_memory(PM_MESSAGE);
+         Mmsg(&query, "UPDATE Media SET MaxVolBytes=%s WHERE MediaId=%u",
+	    edit_uint64(maxbytes, ed1), mr.MediaId);
+	 if (!db_sql_query(ua->db, query, NULL, NULL)) {  
+            bsendmsg(ua, "%s", db_strerror(ua->db));
+	 } else {
+            bsendmsg(ua, _("New Max bytes is: %s\n"), edit_uint64(maxbytes, ed1));
 	 }
 	 free_pool_memory(query);
 	 break;
 
 
-      case 5:			      /* Recycle */
+      case 6:			      /* Recycle */
 	 int recycle;
-         bsendmsg(ua, _("Current value is: %s\n"),
+         bsendmsg(ua, _("Current recycle flag is: %s\n"),
             mr.Recycle==1?_("yes"):_("no"));
          if (!get_cmd(ua, _("Enter new Recycle status: "))) {
 	    return 0;
@@ -746,13 +778,16 @@ static int update_volume(UAContext *ua)
 	    recycle, mr.MediaId);
 	 if (!db_sql_query(ua->db, query, NULL, NULL)) {  
             bsendmsg(ua, "%s", db_strerror(ua->db));
-	 }	 
+	 } else {	
+            bsendmsg(ua, _("New recycle flag is: %s\n"),
+               mr.Recycle==1?_("yes"):_("no"));
+	 }
 	 free_pool_memory(query);
 	 break;
 
-      case 6:			      /* Slot */
+      case 7:			      /* Slot */
 	 int slot;
-         bsendmsg(ua, _("Current value is: %d\n"), mr.Slot);
+         bsendmsg(ua, _("Current Slot is: %d\n"), mr.Slot);
          if (!get_cmd(ua, _("Enter new Slot: "))) {
 	    return 0;
 	 }
@@ -771,7 +806,7 @@ static int update_volume(UAContext *ua)
 	 if (!db_sql_query(ua->db, query, NULL, NULL)) {  
             bsendmsg(ua, "%s", db_strerror(ua->db));
 	 } else {
-            bsendmsg(ua, "New value is: %d\n", slot);
+            bsendmsg(ua, "New Slot is: %d\n", slot);
 	 }
 	 free_pool_memory(query);
 	 break;
@@ -814,10 +849,13 @@ static int update_pool(UAContext *ua)
    pr.UseOnce = pool->use_volume_once;
    pr.UseCatalog = pool->use_catalog;
    pr.AcceptAnyVolume = pool->accept_any_volume;
+   pr.Recycle = pool->Recycle;
    pr.VolRetention = pool->VolRetention;
    pr.VolUseDuration = pool->VolUseDuration;
    pr.MaxVolJobs = pool->MaxVolJobs;
    pr.MaxVolFiles = pool->MaxVolFiles;
+   pr.MaxVolBytes = pool->MaxVolBytes;
+
    if (pool->label_format) {
       strcpy(pr.LabelFormat, pool->label_format);
    } else {
@@ -1265,6 +1303,7 @@ gotVol:
       mr.VolUseDuration = pr.VolUseDuration;
       mr.MaxVolJobs = pr.MaxVolJobs;
       mr.MaxVolFiles = pr.MaxVolFiles;
+      mr.MaxVolBytes = pr.MaxVolBytes;
       if (db_create_media_record(ua->db, &mr)) {
          bsendmsg(ua, _("Media record for Volume=%s successfully created.\n"),
 	    mr.VolumeName);

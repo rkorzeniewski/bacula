@@ -1,5 +1,6 @@
 
-2002-mm-dd Version 1.27 (20Nov02) not yet released
+2002-mm-dd Version 1.27 (22Nov02) not yet released
+
 General: from kes21Nov02
 - Another change in the database. You MUST either re-initialize
   your database or use the appropriate ./alter_xxx_tables in
@@ -30,6 +31,8 @@ Changes submitted this submission:
 - Throw away any response longer than MAXSTRING.
 - Added a number of additional error checks on subroutine return statuses.
 - Replaced as many lld's with edit_uint64 as I could find.
+22Nov02:
+- Added MaxVolBytes to Pool record - had forgotten it. Updated DB version.
 
 General: from kes18Nov02
 - Did a number of cleanups of string copying to limit the length

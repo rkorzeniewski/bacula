@@ -131,6 +131,63 @@ char *edit_utime(utime_t val, char *buf)
 }
 
 /*
+ * Convert a size size in bytes to uint64_t
+ * Returns 0: if error
+	   1: if OK, and value stored in value
+ */
+int size_to_uint64(char *str, int str_len, uint64_t *rtn_value)
+{
+   int i, ch;
+   double value;
+   int mod[]  = {'*', 'k', 'm', 'g', 0}; /* first item * not used */
+   uint64_t mult[] = {1,	     /* byte */
+		      1024,	     /* kilobyte */
+		      1048576,	     /* megabyte */
+		      1073741824};   /* gigabyte */
+
+#ifdef we_have_a_compiler_that_works
+   int mod[]  = {'*', 'k', 'm', 'g', 't', 0};
+   uint64_t mult[] = {1,	     /* byte */
+		      1024,	     /* kilobyte */
+		      1048576,	     /* megabyte */
+		      1073741824,    /* gigabyte */
+		      1099511627776};/* terabyte */
+#endif
+
+   Dmsg0(400, "Enter sized to uint64\n");
+
+   /* Look for modifier */
+   ch = str[str_len - 1];
+   i = 0;
+   if (B_ISALPHA(ch)) {
+      if (B_ISUPPER(ch)) {
+	 ch = tolower(ch);
+      }
+      while (mod[++i] != 0) {
+	 if (ch == mod[i]) {
+	    str_len--;
+	    str[str_len] = 0; /* strip modifier */
+	    break;
+	 }
+      }
+   }
+   if (mod[i] == 0 || !is_a_number(str)) {
+      return 0;
+   }
+   Dmsg3(400, "size str=:%s: %f i=%d\n", str, strtod(str, NULL), i);
+
+   value = (uint64_t)strtod(str, NULL);
+   Dmsg1(400, "Int value = %d\n", (int)value);
+   if (errno != 0 || value < 0) {
+      return 0;
+   }
+   *rtn_value = (uint64_t)(value * mult[i]);
+   Dmsg2(400, "Full value = %f %" lld "\n", strtod(str, NULL) * mult[i],
+       value *mult[i]);
+   return 1;
+}
+
+/*
  * Check if specified string is a number or not.
  *  Taken from SQLite, cool, thanks.
  */

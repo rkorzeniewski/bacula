@@ -453,22 +453,9 @@ void store_int64(LEX *lc, struct res_items *item, int index, int pass)
 /* Store a size in bytes */
 void store_size(LEX *lc, struct res_items *item, int index, int pass)
 {
-   int token, i, ch;
-   double value;
-   int mod[]  = {'*', 'k', 'm', 'g', 0}; /* first item * not used */
-   uint64_t mult[] = {1,	     /* byte */
-		      1024,	     /* kilobyte */
-		      1048576,	     /* megabyte */
-		      1073741824};   /* gigabyte */
-
-#ifdef we_have_a_compiler_that_works
-   int mod[]  = {'*', 'k', 'm', 'g', 't', 0};
-   uint64_t mult[] = {1,	     /* byte */
-		      1024,	     /* kilobyte */
-		      1048576,	     /* megabyte */
-		      1073741824,    /* gigabyte */
-		      1099511627776};/* terabyte */
-#endif
+   int token;
+   double dvalue;
+   uint64_t uvalue;
 
    Dmsg0(400, "Enter store_size\n");
    token = lex_get_token(lc, T_ALL);
@@ -476,42 +463,18 @@ void store_size(LEX *lc, struct res_items *item, int index, int pass)
    switch (token) {
    case T_NUMBER:
       Dmsg2(400, "size num=:%s: %f\n", lc->str, strtod(lc->str, NULL)); 
-      value = strtod(lc->str, NULL);
+      dvalue = strtod(lc->str, NULL);
       if (errno != 0 || token < 0) {
          scan_err1(lc, "expected a size number, got: %s", lc->str);
       }
-      *(uint64_t *)(item->value) = (uint64_t)value;
+      *(uint64_t *)(item->value) = (uint64_t)dvalue;
       break;
    case T_IDENTIFIER:
    case T_UNQUOTED_STRING:
-      /* Look for modifier */
-      ch = lc->str[lc->str_len - 1];
-      i = 0;
-      if (B_ISALPHA(ch)) {
-	 if (B_ISUPPER(ch)) {
-	    ch = tolower(ch);
-	 }
-	 while (mod[++i] != 0) {
-	    if (ch == mod[i]) {
-	       lc->str_len--;
-	       lc->str[lc->str_len] = 0; /* strip modifier */
-	       break;
-	    }
-	 }
-      }
-      if (mod[i] == 0 || !is_a_number(lc->str)) {
+      if (!size_to_uint64(lc->str, lc->str_len, &uvalue)) {
          scan_err1(lc, "expected a size number, got: %s", lc->str);
       }
-      Dmsg3(400, "size str=:%s: %f i=%d\n", lc->str, strtod(lc->str, NULL), i);
-
-      value = (uint64_t)strtod(lc->str, NULL);
-      Dmsg1(400, "Int value = %d\n", (int)value);
-      if (errno != 0 || value < 0) {
-         scan_err1(lc, "expected a size number, got: %s", lc->str);
-      }
-      *(uint64_t *)(item->value) = (uint64_t)(value * mult[i]);
-      Dmsg2(400, "Full value = %f %" lld "\n", strtod(lc->str, NULL) * mult[i],
-	  value *mult[i]);
+      *(uint64_t *)(item->value) = uvalue;
       break;
    default:
       scan_err1(lc, "expected a size, got: %s", lc->str);

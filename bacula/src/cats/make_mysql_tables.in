@@ -127,6 +127,7 @@ CREATE TABLE Pool (
    VolUseDuration BIGINT UNSIGNED NOT NULL,
    MaxVolJobs INTEGER UNSIGNED NOT NULL,
    MaxVolFiles INTEGER UNSIGNED NOT NULL,
+   MaxVolBytes BIGINT UNSIGNED NOT NULL,
    AutoPrune TINYINT DEFAULT 0,
    Recycle TINYINT DEFAULT 0,
    PoolType ENUM('Backup', 'Copy', 'Cloned', 'Archive', 'Migration') NOT NULL,

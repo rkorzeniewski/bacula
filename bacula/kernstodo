@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                 18 November 2002
+                 21 November 2002
 
 Documentation to do:
 - Document to have patience when SD first starts.
@@ -17,11 +17,11 @@ Testing to do:
 - make sure that update of volume new parameters works
 
 For 1.27 release:
-- drive MaxVolJobs, VolUseDuration from media record
-  rather than Resource.
-
+- Fix intmax_t on FreeBSD.
 
 After 1.27
+- Make Job err if WriteBootstrap fails.
+- Flush all the daemon messages at the end of every job.
 - Check if both CatalogFiles and UseCatalog are set to SD.
 - Check if we can bump Bacula FD priorty in Win2000
 - Implement FileOptions.
@@ -601,3 +601,5 @@ Done: (see kernsdone for more)
 - Make gethostbyname() thread safe in bnet.c
 - Add ORDER BY JobId to list of Jobs in query.sql, and in
   ua_output.c (list command).
+- drive MaxVolJobs, VolUseDuration from media record
+  rather than Resource.

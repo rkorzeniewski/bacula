@@ -483,12 +483,12 @@ int db_get_pool_record(B_DB *mdb, POOL_DBR *pdbr)
       Mmsg(&mdb->cmd, 
 "SELECT PoolId,Name,NumVols,MaxVols,UseOnce,UseCatalog,AcceptAnyVolume,\
 AutoPrune,Recycle,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,\
-PoolType,LabelFormat FROM Pool WHERE Pool.PoolId=%d", pdbr->PoolId);
+MaxVolBytes,PoolType,LabelFormat FROM Pool WHERE Pool.PoolId=%d", pdbr->PoolId);
    } else {			      /* find by name */
       Mmsg(&mdb->cmd, 
 "SELECT PoolId,Name,NumVols,MaxVols,UseOnce,UseCatalog,AcceptAnyVolume,\
 AutoPrune,Recycle,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,\
-PoolType,LabelFormat FROM Pool WHERE Pool.Name='%s'", pdbr->Name);
+MaxVolBytes,PoolType,LabelFormat FROM Pool WHERE Pool.Name='%s'", pdbr->Name);
    }  
 
    if (QUERY_DB(mdb, mdb->cmd)) {
@@ -516,8 +516,9 @@ PoolType,LabelFormat FROM Pool WHERE Pool.Name='%s'", pdbr->Name);
 	    pdbr->VolUseDuration = (utime_t)strtod(row[10], NULL);
 	    pdbr->MaxVolJobs = atoi(row[11]);
 	    pdbr->MaxVolFiles = atoi(row[12]);
-            bstrncpy(pdbr->PoolType, row[13]!=NULL?row[13]:"", sizeof(pdbr->PoolType));
-            bstrncpy(pdbr->LabelFormat, row[14]!=NULL?row[14]:"", sizeof(pdbr->LabelFormat));
+	    pdbr->MaxVolBytes = (uint64_t)strtod(row[13], NULL);
+            bstrncpy(pdbr->PoolType, row[13]!=NULL?row[14]:"", sizeof(pdbr->PoolType));
+            bstrncpy(pdbr->LabelFormat, row[14]!=NULL?row[15]:"", sizeof(pdbr->LabelFormat));
 	    stat = pdbr->PoolId;
 	 }
       }
