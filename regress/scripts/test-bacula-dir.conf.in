@@ -13,7 +13,7 @@
 #
 
 Director {                            # define myself
-  Name = rufus-dir
+  Name = @hostname@-dir
   DIRport = 8101                # where we listen for UA connections
   QueryFile = "@scriptdir@/query.sql"
   WorkingDirectory = "@working_dir@"
@@ -30,7 +30,7 @@ Director {                            # define myself
 Job {
   Name = "NightlySave"
   Type = Backup
-  Client=rufus-fd 
+  Client=@hostname@-fd 
   FileSet="Full Set"
   Storage = File
   Messages = Standard
@@ -41,7 +41,7 @@ Job {
 Job {
   Name = "MonsterSave"
   Type = Backup
-  Client=rufus-fd 
+  Client=@hostname@-fd 
   FileSet="Full Set"
   Storage = File1
   Messages = Standard
@@ -54,7 +54,7 @@ Job {
   Name = "VerifyVolume"
   Type = Verify
   Level = VolumeToCatalog
-  Client=rufus-fd 
+  Client=@hostname@-fd 
   FileSet="Full Set"
   Storage = File
   Messages = Standard
@@ -66,7 +66,7 @@ Job {
 Job {
   Name = "SparseTest"
   Type = Backup
-  Client=rufus-fd 
+  Client=@hostname@-fd 
   FileSet="SparseSet"
   Storage = File
   Messages = Standard
@@ -77,7 +77,7 @@ Job {
 Job {
   Name = "CompressedTest"
   Type = Backup
-  Client=rufus-fd 
+  Client=@hostname@-fd 
   FileSet="CompressedSet"
   Storage = File
   Messages = Standard
@@ -88,7 +88,7 @@ Job {
 Job {
   Name = "SparseCompressedTest"
   Type = Backup
-  Client=rufus-fd 
+  Client=@hostname@-fd 
   FileSet="SparseCompressedSet"
   Storage = File
   Messages = Standard
@@ -101,7 +101,7 @@ Job {
 Job {
   Name = "BackupCatalog"
   Type = Backup
-  Client=rufus-fd 
+  Client=@hostname@-fd 
   FileSet="Catalog"
 #  Schedule = "WeeklyCycleAfterBackup"
   Storage = File
@@ -118,7 +118,7 @@ Job {
 Job {
   Name = "RestoreFiles"
   Type = Restore
-  Client=rufus-fd 
+  Client=@hostname@-fd 
   FileSet="Full Set"
   Storage = File
   Messages = Standard
@@ -185,8 +185,8 @@ FileSet {
 
 # Client (File Services) to backup
 Client {
-  Name = rufus-fd
-  Address = rufus
+  Name = @hostname@-fd
+  Address = @hostname@
   FDPort = 8102
   Catalog = MyCatalog
   Password = "xevrjURYoCHhn26RaJoWbeWXEY/a3VqGKp/37tgWiuHc"          # password for FileDaemon
@@ -198,7 +198,7 @@ Client {
 # Definiton of file storage device
 Storage {
   Name = File
-  Address = rufus                # N.B. Use a fully qualified name here
+  Address = @hostname@                # N.B. Use a fully qualified name here
   SDPort = 8103
   Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"
   Device = FileStorage
@@ -207,7 +207,7 @@ Storage {
 
 Storage {
   Name = File1
-  Address = rufus                # N.B. Use a fully qualified name here
+  Address = @hostname@                # N.B. Use a fully qualified name here
   SDPort = 8103
   Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"
   Device = FileStorage1
@@ -218,7 +218,7 @@ Storage {
 # Definition of DLT tape storage device
 #Storage {
 #  Name = DLTDrive
-#  Address = rufus                # N.B. Use a fully qualified name here
+#  Address = @hostname@                # N.B. Use a fully qualified name here
 #  SDPort = 8103
 #  Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"          # password for Storage daemon
 #  Device = "HP DLT 80"                # must be same as Device in Storage daemon
@@ -228,7 +228,7 @@ Storage {
 # Definition of DDS tape storage device
 #Storage {
 #  Name = SDT-10000
-#  Address = rufus                # N.B. Use a fully qualified name here
+#  Address = @hostname@                # N.B. Use a fully qualified name here
 #  SDPort = 8103
 #  Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"          # password for Storage daemon
 #  Device = SDT-10000                  # must be same as Device in Storage daemon
@@ -238,7 +238,7 @@ Storage {
 # Definition of 8mm tape storage device
 #Storage {
 #  Name = "8mmDrive"
-#  Address = rufus                # N.B. Use a fully qualified name here
+#  Address = @hostname@                # N.B. Use a fully qualified name here
 #  SDPort = 8103
 #  Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"
 #  Device = "Exabyte 8mm"

@@ -14,7 +14,7 @@ bin/make_sqlite_tables
 echo " "
 echo " "
 echo " === Starting sparse-test ==="
-echo " === Starting sparse-test ===" >>tmp/log
+echo " === Starting sparse-test ===" >>working/log
 echo " "
 
 bin/bacula start
@@ -41,7 +41,7 @@ messages
 quit
 END_OF_DATA
 bin/bacula stop
-diff -ur build /tmp/bacula-restores${cwd}/build
+diff -r build /tmp/bacula-restores${cwd}/build
 if [ $? != 0 ] ; then
    echo " "
    echo " "

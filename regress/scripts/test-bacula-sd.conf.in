@@ -11,7 +11,7 @@
 #
 
 Storage {                             # definition of myself
-  Name = rufus-sd
+  Name = @hostname@-sd
   SDPort = 8103                  # Director's port      
   WorkingDirectory = "@working_dir@"
   Pid Directory = "@piddir@"
@@ -22,7 +22,7 @@ Storage {                             # definition of myself
 # List Directors who are permitted to contact Storage daemon
 #
 Director {
-  Name = rufus-dir
+  Name = @hostname@-dir
   Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"
 }
 
@@ -102,5 +102,5 @@ Device {
 #
 Messages {
   Name = Standard
-  director = rufus-dir = all
+  director = @hostname@-dir = all
 }

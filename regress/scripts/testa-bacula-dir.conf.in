@@ -5,7 +5,7 @@
 #
 
 Director {                            # define myself
-  Name = rufus-dir
+  Name = @hostname@-dir
   DIRport = 8101                # where we listen for UA connections
   QueryFile = "@scriptdir@/query.sql"
   WorkingDirectory = "@working_dir@"
@@ -20,7 +20,7 @@ Director {                            # define myself
 Job {
   Name = "MultiVol"
   Type = Backup
-  Client=rufus-fd 
+  Client=@hostname@-fd 
   Level = Full
   FileSet="Full Set"
   Storage = File 
@@ -34,7 +34,7 @@ Job {
   Name = "VerifyVolume"
   Type = Verify
   Level = VolumeToCatalog
-  Client=rufus-fd 
+  Client=@hostname@-fd 
   FileSet="Full Set"
   Storage = File
   Messages = Standard
@@ -48,7 +48,7 @@ Job {
 Job {
   Name = "RestoreFiles"
   Type = Restore
-  Client=rufus-fd 
+  Client=@hostname@-fd 
   FileSet="Full Set"
   Storage = File
   Messages = Standard
@@ -68,8 +68,8 @@ FileSet {
 
 # Client (File Services) to backup
 Client {
-  Name = rufus-fd
-  Address = rufus
+  Name = @hostname@-fd
+  Address = @hostname@
   FDPort = 8102
   Catalog = MyCatalog
   Password = "xevrjURYoCHhn26RaJoWbeWXEY/a3VqGKp/37tgWiuHc"          # password for FileDaemon
@@ -81,7 +81,7 @@ Client {
 # Definiton of file storage device
 Storage {
   Name = File
-  Address = rufus                # N.B. Use a fully qualified name here
+  Address = @hostname@                # N.B. Use a fully qualified name here
   SDPort = 8103
   Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"
   Device = FileStorage
@@ -90,7 +90,7 @@ Storage {
 
 Storage {
   Name = File1
-  Address = rufus                # N.B. Use a fully qualified name here
+  Address = @hostname@                # N.B. Use a fully qualified name here
   SDPort = 8103
   Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"
   Device = FileStorage1
@@ -147,4 +147,3 @@ Pool {
   MaximumVolumeBytes = 10M
   LabelFormat = Small
 }
-

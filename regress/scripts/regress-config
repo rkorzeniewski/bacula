@@ -10,6 +10,7 @@ CFLAGS="-g -O2 -Wall" \
     --with-pid-dir=$1/working \
     --with-subsys-dir=$1/working \
     --enable-smartalloc \
+    --disable-readline \
     --with-sqlite=$2 \
     --with-working-dir=$1/working \
     --with-dump-email=$3 \

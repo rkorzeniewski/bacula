@@ -11,7 +11,7 @@
 # List Directors who are permitted to contact this File daemon
 #
 Director {
-  Name = rufus-dir
+  Name = @hostname@-dir
   Password = "xevrjURYoCHhn26RaJoWbeWXEY/a3VqGKp/37tgWiuHc"
 }
 
@@ -19,7 +19,7 @@ Director {
 # "Global" File daemon configuration specifications
 #
 FileDaemon {                          # this is me
-  Name = rufus-fd
+  Name = @hostname@-fd
   FDport = 8102                  # where we listen for the director
   WorkingDirectory = "@working_dir@"
   Pid Directory = "@piddir@"
@@ -29,5 +29,5 @@ FileDaemon {                          # this is me
 # Send all messages except skipped files back to Director
 Messages {
   Name = Standard
-  director = rufus-dir = all
+  director = @hostname@-dir = all
 }

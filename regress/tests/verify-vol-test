@@ -14,7 +14,7 @@ bin/make_sqlite_tables
 echo " "
 echo " "
 echo " === Starting verify Volume Test ==="
-echo " === Starting verify Volume Test ===" >>tmp/log
+echo " === Starting verify Volume Test ===" >>working/log
 echo " "
 
 bin/bacula start

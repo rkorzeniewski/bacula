@@ -14,7 +14,7 @@ bin/make_sqlite_tables
 echo " "
 echo " "
 echo " === Starting sparse-compressed-test ==="
-echo " === Starting sparse-compressed-test ===" >>tmp/log
+echo " === Starting sparse-compressed-test ===" >>working/log
 echo " "
 
 bin/bacula start
@@ -42,7 +42,7 @@ quit
 END_OF_DATA
 
 bin/bacula stop
-diff -ur build /tmp/bacula-restores${cwd}/build
+diff -r build /tmp/bacula-restores${cwd}/build
 if [ $? != 0 ] ; then
    echo " "
    echo " "

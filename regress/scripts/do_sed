@@ -1,6 +1,15 @@
 #!/bin/sh
+#
+if test $# != 1 ; then
+   echo "First arg must be email name"
+   exit 1
+fi
 out="/tmp/sed_tmp"
 cwd=`pwd`
+host=`hostname | tr '.' ' ' | cut -f 1 -d ' '`
+if test x$host = x ; then
+   host=localhost 
+fi
 # Create sed command script
 echo "s%@sbindir@%${cwd}/bin%g" >${out}
 echo "s%@scriptdir@%${cwd}/bin%g" >>${out}
@@ -9,6 +18,7 @@ echo "s%@piddir@%${cwd}/working%g" >>${out}
 echo "s%@subsysdir@%${cwd}/working%g" >>${out}
 echo "s%@job_email@%${1}%g" >>${out}
 echo "s%@tmpdir@%${cwd}/tmp%g" >>${out}
+echo "s%@hostname@%${host}%g" >>${out}
 
 # process .in files with sed script
 sed -f ${out} ${cwd}/scripts/test-bacula-dir.conf.in >${cwd}/scripts/test-bacula-dir.conf

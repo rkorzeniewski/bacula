@@ -18,7 +18,7 @@ bin/make_sqlite_tables
 echo " "
 echo " "
 echo " === Starting two-vol-test  ==="
-echo " === Starting two-vol-test  ===" >>tmp/log
+echo " === Starting two-vol-test  ===" >>working/log
 echo " "
 
 bin/bacula start
@@ -41,7 +41,7 @@ messages
 quit
 END_OF_DATA
 bin/bacula stop
-diff -ur tmp/largefile  tmp/bacula-restores${cwd}/tmp/largefile
+diff tmp/largefile  tmp/bacula-restores${cwd}/tmp/largefile
 if [ $? != 0 ] ; then
    echo " "
    echo " "

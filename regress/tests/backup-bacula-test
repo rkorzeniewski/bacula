@@ -13,7 +13,7 @@ bin/make_sqlite_tables
 echo " "
 echo " "
 echo " === Starting Backup Bacula Test ==="
-echo " === Starting Backup Bacula Test ===" >>tmp/log
+echo " === Starting Backup Bacula Test ===" >>working/log
 echo " "
 
 bin/bacula start
@@ -42,7 +42,7 @@ quit
 END_OF_DATA
 sleep 2
 bin/bacula stop
-diff -ur build /tmp/bacula-restores${cwd}/build
+diff -r build /tmp/bacula-restores${cwd}/build
 if [ $? != 0 ] ; then
    echo " "
    echo " "
