@@ -54,7 +54,7 @@ extern struct s_last_job last_job;
 /* Static variables */
 static char derrmsg[]       = "3900 Invalid command\n";
 static char OKsetdebug[]   = "3000 OK setdebug=%d\n";
-
+static char illegal_cmd[] = "3997 Illegal command for a Director with Monitor directive enabled\n";
 
 /* Imported functions */
 extern void terminate_child();
@@ -82,25 +82,26 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
 struct s_cmds {
    const char *cmd;
    int (*func)(JCR *jcr);
+   int monitoraccess; /* specify if monitors have access to this function */
 };
 
 /*  
  * The following are the recognized commands from the Director. 
  */
 static struct s_cmds cmds[] = {
-   {"JobId=",    job_cmd},            /* start Job */
-   {"setdebug=", setdebug_cmd},       /* set debug level */
-   {"cancel",    cancel_cmd},
-   {"label",     label_cmd},          /* label a tape */
-   {"relabel",   relabel_cmd},        /* relabel a tape */
-   {"mount",     mount_cmd},
-   {"unmount",   unmount_cmd},
-   {"status",    status_cmd},
-   {".status",   qstatus_cmd},
-   {"autochanger", autochanger_cmd},
-   {"release",   release_cmd},
-   {"readlabel", readlabel_cmd},
-   {NULL,	 NULL}		      /* list terminator */
+   {"JobId=",    job_cmd,       0},     /* start Job */
+   {"setdebug=", setdebug_cmd,  0},     /* set debug level */
+   {"cancel",    cancel_cmd,    0},
+   {"label",     label_cmd,     0},     /* label a tape */
+   {"relabel",   relabel_cmd,   0},     /* relabel a tape */
+   {"mount",     mount_cmd,     0},
+   {"unmount",   unmount_cmd,   0},
+   {"status",    status_cmd,    1},
+   {".status",   qstatus_cmd,   1},
+   {"autochanger", autochanger_cmd, 0},
+   {"release",   release_cmd,   0},
+   {"readlabel", readlabel_cmd, 0},
+   {NULL,	 NULL}                      /* list terminator */
 };
 
 
@@ -180,24 +181,30 @@ void *handle_connection_request(void *arg)
    for (quit=0; !quit;) {
       /* Read command */
       if ((bnet_stat = bnet_recv(bs)) <= 0) {
-	 break; 		      /* connection terminated */
+         break;               /* connection terminated */
       }
       Dmsg1(9, "<dird: %s\n", bs->msg);
       found = false;
       for (i=0; cmds[i].cmd; i++) {
-	 if (strncmp(cmds[i].cmd, bs->msg, strlen(cmds[i].cmd)) == 0) {
-	    if (!cmds[i].func(jcr)) {	 /* do command */
-	       quit = true;		 /* error, get out */
-               Dmsg1(90, "Command %s requsts quit\n", cmds[i].cmd);
-	    }
-	    found = true;	     /* indicate command found */
-	    break;
-	 }
+        if (strncmp(cmds[i].cmd, bs->msg, strlen(cmds[i].cmd)) == 0) {
+           if ((!cmds[i].monitoraccess) && (jcr->director->monitor)) {
+              Dmsg1(100, "Command %s illegal.\n", cmds[i].cmd);
+              bnet_fsend(bs, illegal_cmd);
+              bnet_sig(bs, BNET_EOD);
+              break;
+           }
+           if (!cmds[i].func(jcr)) { /* do command */
+              quit = true; /* error, get out */
+              Dmsg1(90, "Command %s requsts quit\n", cmds[i].cmd);
+           }
+           found = true;	     /* indicate command found */
+           break;
+        }
       }
       if (!found) {		      /* command not found */
-	 bnet_fsend(bs, derrmsg);
-	 quit = true;
-	 break;
+        bnet_fsend(bs, derrmsg);
+        quit = true;
+        break;
       }
    }
    bnet_sig(bs, BNET_TERMINATE);

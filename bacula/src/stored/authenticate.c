@@ -37,7 +37,7 @@ static char OK_hello[]  = "3000 OK Hello\n";
  *
  *
  */
-static int authenticate(int rcode, BSOCK *bs)
+static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
 {
    POOLMEM *dirname;
    DIRRES *director = NULL;
@@ -89,6 +89,7 @@ static int authenticate(int rcode, BSOCK *bs)
    }
    stop_bsock_timer(tid);
    free_pool_memory(dirname);
+   jcr->director = director;
    return 1;
 }
 
@@ -108,7 +109,7 @@ int authenticate_director(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
 
-   if (!authenticate(R_DIRECTOR, dir)) {
+   if (!authenticate(R_DIRECTOR, dir, jcr)) {
       bnet_fsend(dir, "%s", Dir_sorry);
       Emsg1(M_ERROR, 0, _("Unable to authenticate Director at %s.\n"), dir->who);
       bmicrosleep(5, 0);

@@ -36,7 +36,7 @@ static char Dir_sorry[] = "2999 No go\n";
 /********************************************************************* 
  *
  */
-static int authenticate(int rcode, BSOCK *bs)
+static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
 {
    POOLMEM *dirname;
    DIRRES *director;
@@ -85,6 +85,7 @@ static int authenticate(int rcode, BSOCK *bs)
    }
    stop_bsock_timer(tid);
    free_pool_memory(dirname);
+   jcr->director = director;
    return (director != NULL);
 }
 
@@ -100,7 +101,7 @@ int authenticate_director(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
 
-   if (!authenticate(R_DIRECTOR, dir)) {
+   if (!authenticate(R_DIRECTOR, dir, jcr)) {
       bnet_fsend(dir, "%s", Dir_sorry);
       Emsg0(M_FATAL, 0, _("Unable to authenticate Director\n"));
       bmicrosleep(5, 0);

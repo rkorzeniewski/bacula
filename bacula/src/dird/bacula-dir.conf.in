@@ -219,3 +219,14 @@ Pool {
   Volume Retention = 365 days         # one year
   Accept Any Volume = yes             # write on any volume in the pool
 }
+
+#
+# Restricted console used by tray-monitor to get the status of the director
+#
+Console {
+  Name = Monitor
+  Password = "@mon_dir_password@"
+  CommandACL = status, .status
+  ClientACL = 
+  StorageACL = 
+}

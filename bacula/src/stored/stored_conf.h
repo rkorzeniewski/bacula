@@ -45,9 +45,10 @@ enum {
 struct DIRRES {
    RES	 hdr;
 
-   char *password;		      /* Director password */
-   char *address;		      /* Director IP address or zero */
-   int enable_ssl;		      /* Use SSL with this Director */
+   char *password;                    /* Director password */
+   char *address;                     /* Director IP address or zero */
+   int enable_ssl;                    /* Use SSL with this Director */
+   int monitor;                       /* Have only access to status and .status functions */
 };
 
 

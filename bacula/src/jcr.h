@@ -206,6 +206,7 @@ struct JCR {
    pthread_t heartbeat_id;            /* id of heartbeat thread */
    volatile BSOCK *hb_bsock;          /* duped SD socket */
    POOLMEM *RunAfterJob;              /* Command to run after job */
+   DIRRES* director;                  /* Director resource */
 #endif /* FILE_DAEMON */
 
 
@@ -237,7 +238,8 @@ struct JCR {
    bool no_attributes;                /* set if no attributes wanted */
    bool spool_data;                   /* set to spool data */
    int CurVol;                        /* Current Volume count */
-
+   DIRRES* director;                  /* Director resource */
+   
    uint32_t FileId;                   /* Last file id inserted */
 
    /* Parmaters for Open Read Session */

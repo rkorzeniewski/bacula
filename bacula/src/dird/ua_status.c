@@ -42,6 +42,53 @@ static void do_client_status(UAContext *ua, CLIENT *client);
 static void do_director_status(UAContext *ua);
 static void do_all_status(UAContext *ua);
 
+static char OKqstatus[]   = "2000 OK .status\n";
+static char DotStatusJob[] = "JobId=%d JobStatus=%c JobErrors=%d\n";
+
+/*
+ * .status command
+ */
+int qstatus_cmd(UAContext *ua, const char *cmd)
+{
+   JCR* njcr;
+   s_last_job* job;
+   
+   if (!open_db(ua)) {
+      return 1;
+   }
+   Dmsg1(20, "status:%s:\n", cmd);
+
+   if ((ua->argc != 3) || (strcasecmp(ua->argk[1], "dir"))) {
+      bsendmsg(ua, "2900 Bad .status command, missing arguments.\n");
+      return 1;
+   }
+   
+   if (strcasecmp(ua->argk[2], "current") == 0) {
+      bsendmsg(ua, OKqstatus, ua->argk[2]);
+      lock_jcr_chain();
+      foreach_jcr(njcr) {
+         if (njcr->JobId != 0) {
+            bsendmsg(ua, DotStatusJob, njcr->JobId, njcr->JobStatus, njcr->JobErrors);
+         }
+         free_locked_jcr(njcr);
+      }
+      unlock_jcr_chain();
+   }
+   else if (strcasecmp(ua->argk[2], "last") == 0) {
+      bsendmsg(ua, OKqstatus, ua->argk[2]);
+      if ((last_jobs) && (last_jobs->size() > 0)) {
+         job = (s_last_job*)last_jobs->last();
+         bsendmsg(ua, DotStatusJob, job->JobId, job->JobStatus, job->Errors);
+      }
+   }
+   else {
+      bsendmsg(ua, "2900 Bad .status command, wrong argument.\n");
+      return 1;
+   }
+  
+   return 1;
+}
+
 /*
  * status command
  */

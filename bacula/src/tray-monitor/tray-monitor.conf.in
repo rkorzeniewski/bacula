@@ -3,19 +3,27 @@
 #
 
 Monitor {
-  Name = @hostname@-dir
+  Name = @hostname@-mon
 }
    
 Client {
   Name = @hostname@-fd
   Address = @hostname@
   FDPort = @fd_port@
-  Password = "@fd_password@"          # password for FileDaemon
+  Password = "@mon_fd_password@"          # password for FileDaemon
 }
 
 Storage {
   Name = @hostname@-sd
   Address = @hostname@
   SDPort = @sd_port@
-  Password = "@sd_password@"          # password for StorageDaemon
+  Password = "@mon_sd_password@"          # password for StorageDaemon
+}
+
+Director {
+  ConsoleName = Monitor
+  Name = @hostname@-dir
+  DIRport = @dir_port@
+  address = @hostname@
+  Password = "@mon_dir_password@"             # password for Director
 }

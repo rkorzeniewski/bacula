@@ -71,7 +71,6 @@ void changeStatus(monitoritem* item, stateenum status);
 void changeStatusMessage(monitoritem* item, const char *fmt,...);
 
 /* Callbacks */
-static void TrayIconDaemonChanged(GtkWidget *widget, monitoritem* data);
 static void TrayIconActivate(GtkWidget *widget, gpointer data);
 static void TrayIconExit(unsigned int activateTime, unsigned int button);
 static void TrayIconPopupMenu(unsigned int button, unsigned int activateTime);
@@ -592,9 +591,9 @@ int docmd(monitoritem* item, const char* command, GSList** list) {
          str = g_string_sized_new(64);
          g_string_printf(str, "ERR=%s\n", item->D_sock->msg);
          g_slist_append(*list, str);
-         item->D_sock = NULL;
          changeStatus(NULL, error);
          changeStatusMessage(item, "Authentication error : %s", item->D_sock->msg);
+         item->D_sock = NULL;
          return 0;
       }
    

@@ -105,6 +105,7 @@ static RES_ITEM dir_items[] = {
    {"password",    store_password, ITEM(res_dir.password),  0, ITEM_REQUIRED, 0},
    {"address",     store_str,      ITEM(res_dir.address),   0, 0, 0},
    {"enablessl",   store_yesno,    ITEM(res_dir.enable_ssl),1, ITEM_DEFAULT, 0},
+   {"monitor",     store_yesno,    ITEM(res_dir.monitor),   1, ITEM_DEFAULT, 0},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 
