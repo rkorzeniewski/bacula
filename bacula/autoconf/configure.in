@@ -1130,6 +1130,11 @@ openbsd)
 	PSCMD="ps -a -o pid,command"
 	PTHREAD_LIB="-pthread"
 	CFLAGS="${CFLAGS} -pthread"
+	PFILES="${PFILES} \
+	    platforms/openbsd/Makefile \
+	    platforms/openbsd/bacula-fd \
+	    platforms/openbsd/bacula-sd \
+	    platforms/openbsd/bacula-dir"
   ;;
 redhat)
 	DISTVER=`cat /etc/redhat-release | grep release |\
