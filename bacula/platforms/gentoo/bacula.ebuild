@@ -19,6 +19,10 @@
 # write to /dev/sg0 - still can't reproduce this behavior
 # add an 'addpredict /dev/sg0'
 # 08 Dec 2004 D. Scott Barninger
+#
+# resolve bug #181 - problem is caused by configure calling cdrecord to scan
+# the scsi bus. patch configure to remove this. add logrotate script.
+# 06 Feb 2005 D. Scott Barninger
 
 DESCRIPTION="featureful client/server network backup suite"
 HOMEPAGE="http://www.bacula.org/"
@@ -52,6 +56,8 @@ RDEPEND="${DEPEND}
 	app-arch/mt-st"
 
 src_compile() {
+
+	epatch ${FILESDIR}/1.36.1-cdrecord-configure.patch
 
 	local myconf=""
 
@@ -99,7 +105,8 @@ src_compile() {
 	fi
 
 	# some users report sandbox violations
-	addpredict /dev/sg0
+	# should not be needed with above configure patch
+	#addpredict /dev/sg0
 
 	./configure \
 		--enable-smartalloc \
@@ -198,6 +205,11 @@ src_install() {
 	cp ${S}/src/filed/static-bacula-fd ${D}/etc/bacula/rescue/cdrom/bin/bacula-fd
 	chmod 754 ${D}/etc/bacula/rescue/cdrom/bin/bacula-fd
 
+	# the logrotate configuration
+	mkdir -p ${D}/etc/logrotate.d
+	cp ${S}/scripts/logrotate ${D}/etc/logrotate.d/bacula
+	chmod 644 ${D}/etc/logrotate.d/bacula
+
 	# documentation
 	for a in ${S}/{Changelog,README,ReleaseNotes,kernstodo,LICENSE,doc/bacula.pdf}
 	do
@@ -238,7 +250,10 @@ pkg_postinst() {
 	einfo
 	einfo "The CDRom rescue disk package has been installed into the"
 	einfo "/etc/bacula/rescue/cdrom/ directory. Please examine the manual"
-	einfo "for information on creating a rescue CD."
+	einfo "for information on creating a rescue CD. CDR device detection"
+	einfo "during build has been disabled to prevent sandbox violations."
+	einfo "You need to examine /etc/bacula/rescue/cdrom/Makefile and adjust"
+	einfo "the device information for your CD recorder."
 	einfo
 
 	if [ ! $BUILD_CLIENT_ONLY ]; then
