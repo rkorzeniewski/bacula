@@ -1550,6 +1550,9 @@ AC_OUTPUT([autoconf/Make.common \
 	   scripts/logrotate \
 	   scripts/bacula.desktop.gnome1 \
 	   scripts/bacula.desktop.gnome2 \
+	   scripts/bacula.desktop.gnome1.consolehelper \
+	   scripts/bacula.desktop.gnome2.consolehelper \
+	   scripts/gnome-console.console_apps \
 	   scripts/mtx-changer \
 	   doc/Makefile \
 	   src/Makefile \
