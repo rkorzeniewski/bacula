@@ -23,11 +23,8 @@ Director {                            # define myself
   Messages = Standard
 }
 
-#
-# Define the main nightly save backup job
-#   By default, this job will back up to disk in /tmp
-Job {
-  Name = "Client1"
+JobDefs {
+   Name = "DefaultJob"
   Type = Backup
   Client = @hostname@-fd 
   FileSet = "Full Set"
@@ -35,20 +32,25 @@ Job {
   Storage = File
   Messages = Standard
   Pool = Default
-  Write Bootstrap = "@working_dir@/Client1.bsr"
   Priority = 10
+}
+
+
+#
+# Define the main nightly save backup job
+#   By default, this job will back up to disk in /tmp
+Job {
+  Name = "Client1"
+  JobDefs = "DefaultJob"
+  Write Bootstrap = "@working_dir@/Client1.bsr"
 }
 
 # Backup the catalog database (after the nightly save)
 Job {
   Name = "BackupCatalog"
-  Type = Backup
-  Client=@hostname@-fd 
+  JobDefs = "DefaultJob"
   FileSet="Catalog"
   Schedule = "WeeklyCycleAfterBackup"
-  Storage = File
-  Messages = Standard
-  Pool = Default
   # This creates an ASCII copy of the catalog
   RunBeforeJob = "@scriptdir@/make_catalog_backup -u bacula"
   # This deletes the copy of the catalog
@@ -60,12 +62,8 @@ Job {
 # Standard Restore template, to be changed by Console program
 Job {
   Name = "RestoreFiles"
+  JobDefs = "DefaultJob"
   Type = Restore
-  Client=@hostname@-fd 
-  FileSet="Full Set"
-  Storage = File
-  Messages = Standard
-  Pool = Default
   Where = /tmp/bacula-restores
 }
 

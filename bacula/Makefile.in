@@ -122,13 +122,14 @@ Makefiles:
 	chmod 755 startmysql stopmysql bacula fd startit stopit btraceback; \
 	chmod 755 mtx-changer bconsole gconsole)
 
-	chmod 755 create_bacula_database      update_bacula_tables     make_bacula_tables
-	chmod 755 grant_bacula_privileges     drop_bacula_tables       drop_bacula_database
-
-	chmod 755 create_@DB_NAME@_database   update_@DB_NAME@_tables  make_@DB_NAME@_tables
-	chmod 755 grant_@DB_NAME@_privileges  drop_@DB_NAME@_tables    drop_@DB_NAME@_database
-
-	chmod 755 src/cats/make_catalog_backup src/cats/delete_catalog_backup
+	(cd src/cats; \
+	chmod 755 create_bacula_database      update_bacula_tables     make_bacula_tables; \
+	chmod 755 grant_bacula_privileges     drop_bacula_tables       drop_bacula_database; \
+	   \
+	chmod 755 create_@DB_NAME@_database   update_@DB_NAME@_tables  make_@DB_NAME@_tables; \
+	chmod 755 grant_@DB_NAME@_privileges  drop_@DB_NAME@_tables    drop_@DB_NAME@_database; \
+	   \
+	chmod 755 make_catalog_backup delete_catalog_backup)
 
 clean:
 	@for I in ${all_subdirs}; \

@@ -61,9 +61,9 @@ extern void store_inc(LEX *lc, struct res_items *item, int index, int pass);
 
 /* Forward referenced subroutines */
 
-static void store_jobtype(LEX *lc, struct res_items *item, int index, int pass);
-static void store_level(LEX *lc, struct res_items *item, int index, int pass);
-static void store_replace(LEX *lc, struct res_items *item, int index, int pass);
+void store_jobtype(LEX *lc, struct res_items *item, int index, int pass);
+void store_level(LEX *lc, struct res_items *item, int index, int pass);
+void store_replace(LEX *lc, struct res_items *item, int index, int pass);
 
 
 /* We build the current resource here as we are
@@ -187,16 +187,16 @@ static struct res_items cat_items[] = {
  *
  *   name	   handler     value		     code flags    default_value
  */
-static struct res_items job_items[] = {
+struct res_items job_items[] = {
    {"name",      store_name,    ITEM(res_job.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,   ITEM(res_job.hdr.desc), 0, 0, 0},
-   {"type",      store_jobtype, ITEM(res_job),          0, 0, 0},
-   {"level",     store_level,   ITEM(res_job),          0, 0, 0},
-   {"messages",  store_res,     ITEM(res_job.messages), R_MSGS, 0, 0},
-   {"storage",   store_res,     ITEM(res_job.storage),  R_STORAGE, 0, 0},
-   {"pool",      store_res,     ITEM(res_job.pool),     R_POOL, 0, 0},
-   {"client",    store_res,     ITEM(res_job.client),   R_CLIENT, 0, 0},
-   {"fileset",   store_res,     ITEM(res_job.fileset),  R_FILESET, 0, 0},
+   {"type",      store_jobtype, ITEM(res_job.JobType),  0, ITEM_REQUIRED, 0},
+   {"level",     store_level,   ITEM(res_job.level),    0, ITEM_REQUIRED, 0},
+   {"messages",  store_res,     ITEM(res_job.messages), R_MSGS, ITEM_REQUIRED, 0},
+   {"storage",   store_res,     ITEM(res_job.storage),  R_STORAGE, ITEM_REQUIRED, 0},
+   {"pool",      store_res,     ITEM(res_job.pool),     R_POOL, ITEM_REQUIRED, 0},
+   {"client",    store_res,     ITEM(res_job.client),   R_CLIENT, ITEM_REQUIRED, 0},
+   {"fileset",   store_res,     ITEM(res_job.fileset),  R_FILESET, ITEM_REQUIRED, 0},
    {"schedule",  store_res,     ITEM(res_job.schedule), R_SCHEDULE, 0, 0},
    {"verifyjob", store_res,     ITEM(res_job.verify_job), R_JOB, 0, 0},
    {"jobdefs",   store_res,     ITEM(res_job.jobdefs),  R_JOBDEFS, 0, 0},
@@ -904,22 +904,22 @@ void save_resource(int type, struct res_items *items, int pass)
    int i, size;
    int error = 0;
    
-   if (type == R_JOBDEFS) {
-      return;			      /* nothing required */
-   }
-   /* 
-    * Ensure that all required items are present
-    */
-   for (i=0; items[i].name; i++) {
-      if (items[i].flags & ITEM_REQUIRED) {
-	    if (!bit_is_set(i, res_all.res_dir.hdr.item_present)) {  
-               Emsg2(M_ERROR_TERM, 0, "%s item is required in %s resource, but not found.\n",
-		 items[i].name, resources[rindex]);
-	     }
-      }
-      /* If this triggers, take a look at lib/parse_conf.h */
-      if (i >= MAX_RES_ITEMS) {
-         Emsg1(M_ERROR_TERM, 0, "Too many items in %s resource\n", resources[rindex]);
+   /* Check Job requirements after applying JobDefs */
+   if (type != R_JOB && type != R_JOBDEFS) {
+      /* 
+       * Ensure that all required items are present
+       */
+      for (i=0; items[i].name; i++) {
+	 if (items[i].flags & ITEM_REQUIRED) {
+	       if (!bit_is_set(i, res_all.res_dir.hdr.item_present)) {	
+                  Emsg2(M_ERROR_TERM, 0, "%s item is required in %s resource, but not found.\n",
+		    items[i].name, resources[rindex]);
+		}
+	 }
+	 /* If this triggers, take a look at lib/parse_conf.h */
+	 if (i >= MAX_RES_ITEMS) {
+            Emsg1(M_ERROR_TERM, 0, "Too many items in %s resource\n", resources[rindex]);
+	 }
       }
    }
 
@@ -962,25 +962,6 @@ void save_resource(int type, struct res_items *items, int pass)
 	 res->res_job.pool	 = res_all.res_job.pool;
 	 res->res_job.verify_job = res_all.res_job.verify_job;
 	 res->res_job.jobdefs	 = res_all.res_job.jobdefs;
-	 if (type == R_JOB) {
-	    if (res->res_job.JobType == 0) {
-               Emsg1(M_ERROR_TERM, 0, "Job Type not defined for Job resource %s\n", res_all.res_dir.hdr.name);
-	    }
-	    if (res->res_job.level != 0) {
-	       int i;
-	       for (i=0; joblevels[i].level_name; i++) {
-		  if (joblevels[i].level == res->res_job.level &&
-		      joblevels[i].job_type == res->res_job.JobType) {
-		     i = 0;
-		     break;
-		  }
-	       }
-	       if (i != 0) {
-                  Emsg1(M_ERROR_TERM, 0, "Inappropriate level specified in Job resource %s\n", 
-		     res_all.res_dir.hdr.name);
-	       }
-	    }
-	 }
 	 break;
       case R_COUNTER:
 	 if ((res = (URES *)GetResWithName(R_COUNTER, res_all.res_counter.hdr.name)) == NULL) {
@@ -1106,7 +1087,7 @@ void save_resource(int type, struct res_items *items, int pass)
  * Store JobType (backup, verify, restore)
  *
  */
-static void store_jobtype(LEX *lc, struct res_items *item, int index, int pass)
+void store_jobtype(LEX *lc, struct res_items *item, int index, int pass)
 {
    int token, i;   
 
@@ -1114,7 +1095,7 @@ static void store_jobtype(LEX *lc, struct res_items *item, int index, int pass)
    /* Store the type both pass 1 and pass 2 */
    for (i=0; jobtypes[i].type_name; i++) {
       if (strcasecmp(lc->str, jobtypes[i].type_name) == 0) {
-	 ((JOB *)(item->value))->JobType = jobtypes[i].job_type;
+	 *(int *)(item->value) = jobtypes[i].job_type;
 	 i = 0;
 	 break;
       }
@@ -1130,7 +1111,7 @@ static void store_jobtype(LEX *lc, struct res_items *item, int index, int pass)
  * Store Job Level (Full, Incremental, ...)
  *
  */
-static void store_level(LEX *lc, struct res_items *item, int index, int pass)
+void store_level(LEX *lc, struct res_items *item, int index, int pass)
 {
    int token, i;
 
@@ -1138,7 +1119,7 @@ static void store_level(LEX *lc, struct res_items *item, int index, int pass)
    /* Store the level pass 2 so that type is defined */
    for (i=0; joblevels[i].level_name; i++) {
       if (strcasecmp(lc->str, joblevels[i].level_name) == 0) {
-	 ((JOB *)(item->value))->level = joblevels[i].level;
+	 *(int *)(item->value) = joblevels[i].level;
 	 i = 0;
 	 break;
       }
@@ -1150,7 +1131,7 @@ static void store_level(LEX *lc, struct res_items *item, int index, int pass)
    set_bit(index, res_all.hdr.item_present);
 }
 
-static void store_replace(LEX *lc, struct res_items *item, int index, int pass)
+void store_replace(LEX *lc, struct res_items *item, int index, int pass)
 {
    int token, i;
    token = lex_get_token(lc, T_NAME);
