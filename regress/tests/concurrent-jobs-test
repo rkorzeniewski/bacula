@@ -1,0 +1,70 @@
+#!/bin/sh
+#
+# Run two jobs at the same time
+#
+cwd=`pwd`
+scripts/copy-test-confs
+scripts/cleanup
+echo "${cwd}/tmp/largefile" >/tmp/file-list
+# Create 56MB file with random data
+echo "Creating a 56MB file with random data ..."
+dd if=/dev/urandom of=${cwd}/tmp/largefile bs=1024 count=55000
+echo "largefile created"
+bin/bacula stop 2>&1 >/dev/null
+bin/drop_sqlite_tables
+bin/make_sqlite_tables
+
+echo " "
+echo " "
+echo " === Starting concurrent-jobs-test  ==="
+echo " === Starting concurrent-jobs-test  ===" >>working/log
+echo " "
+
+bin/bacula start 2>&1 >/dev/null
+bin/console -c bin/console.conf <<END_OF_DATA
+@output /dev/null
+messages
+@output tmp/log1.out
+label storage=File
+TestVolume001
+run job=CompressedTest level=Full
+yes
+run job=CompressedTest level=Full
+yes
+run job=CompressedTest level=Full
+yes
+run job=CompressedTest level=Full
+yes
+wait
+messages
+@# 
+@# now do a restore
+@#
+@output tmp/log2.out
+restore where=${cwd}/tmp/bacula-restores
+5
+done
+yes
+wait
+messages
+@output
+quit
+END_OF_DATA
+
+bin/bacula stop 2>&1 >/dev/null
+grep "^Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
+bstat=$?
+grep "^Termination: *Restore OK" tmp/log2.out 2>&1 >/dev/null
+rstat=$?
+diff tmp/largefile  tmp/bacula-restores${cwd}/tmp/largefile
+if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
+   echo " "
+   echo " "
+   echo "  ===== concurrent-jobs-test Bacula source failed!!! ===== "
+   echo "  ===== concurrent-jobs-test failed!!! ===== " >>test.out
+   echo " "
+else
+   echo "  ===== concurrent-jobs-test Bacula source OK ===== "
+   echo "  ===== concurrent-jobs-test OK ===== " >>test.out
+   scripts/cleanup
+fi

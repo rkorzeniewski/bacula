@@ -36,6 +36,7 @@ Job {
   Messages = Standard
   Pool = Default
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
+  Maximum Concurrent Jobs = 4
 }
 
 Job {
@@ -215,6 +216,7 @@ Storage {
   Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"
   Device = FileStorage1
   Media Type = File1
+  Maximum Concurrent Jobs = 4
 }
 
 
