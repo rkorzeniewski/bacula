@@ -1,7 +1,18 @@
                 
 Projects:
                      Bacula Projects Roadmap 
-                       24 October 2004
+                       06 January 2005
+
+The following major projects are scheduled for 1.37:
+#3   Migration (Move, Copy, Archive Jobs)
+#4   Embedded Python Scripting (implemented in Dir)
+#5   Events that call a Python program (Implemented in Dir)
+#6   Select one from among Multiple Storage Devices for Job
+#7   Single Job Writing to Multiple Storage Devices
+
+
+Below, you will find more information on those projects as
+well of other projects planned at a future time.
 
 Item 1:   Implement Base jobs.
 
@@ -71,13 +82,13 @@ Coding begun in 1.35:
            Lowwater mark
 
 
-Item 4:   Embedded Perl Scripting (precursor to 5).
+Item 4:   Embedded Python Scripting (precursor to 5).
 Some testing done:
 
-  What:   On a configuration parameter, embed the Perl language in
+  What:   On a configuration parameter, embed the Python language in
           Bacula.
 
-  Why:    The embedded Perl scripting can be called to implement
+  Why:    The embedded Python scripting can be called to implement
           Events such as "Volume Name needed", "End of Tape",
           "Tape at x% of rated capacity", "Job started", 
           "Job Ended", "Job error", ...
@@ -88,7 +99,7 @@ Some testing done:
 Item 5:   Implement Events that call the scripting language.
 
   What:   When a particular user defined Event occurs, call the
-          embedded Perl interpreter.
+          embedded Python interpreter.
 
   Why:    This will provide the ultimate in user customization for
           Bacula. Almost anything imaginable can be done if Events
@@ -166,4 +177,3 @@ Item 4:   GUI for interactive backup
 Item 2:   Job Data Spooling.
     Done: Regular expression matching.
 Item 10:  New daemon communication protocol (this has been dropped).
-
