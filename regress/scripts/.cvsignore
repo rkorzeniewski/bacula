@@ -10,3 +10,4 @@ testa-bacula-dir.conf
 bacula-dir-tape.conf
 bacula-sd-tape.conf
 cleanup-tape
+prepare-two-tapes
