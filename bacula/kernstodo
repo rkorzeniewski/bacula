@@ -18,6 +18,11 @@ Testing to do: (painful)
 For 1.31 release:
 - Fix Dir heartbeat in restore and verify vol.  Be sure to make
   bnet_recv() ignore BNET_HEARTBEAT.
+- Fix problem reported by Christopher McCurdy <cmccurdy@eecis.udel.edu>
+   xeon-fd:      Could not stat c:/Documents and Settings/All 
+   Users/Application Data/Humc:\Documents and Settings\All User98_AIX.kbf: 
+   ERR=No such file or directory
+
 - Examine Bare Metal restore problem.
 - Test multiple simultaneous Volumes
 - Document FInclude ...
