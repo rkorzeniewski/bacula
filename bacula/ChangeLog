@@ -1,4 +1,9 @@
 
+Changes to 1.35.7:
+03Oct04
+- Apply Martin's patch that puts back the run pool override
+  code -- dumb me for removing it.
+
 Changes to 1.35.6:
 02Oct04
 - Create patches/README and the patch summary file.
