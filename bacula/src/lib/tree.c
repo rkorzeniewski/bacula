@@ -72,6 +72,7 @@ TREE_ROOT *new_tree(int count)
    }
    Dmsg2(400, "count=%d size=%d\n", count, size);
    malloc_buf(root, size);
+   root->cached_path = get_pool_memory(PM_FNAME);
    return root;
 }
 
@@ -126,6 +127,9 @@ void free_tree(TREE_ROOT *root)
       mem = mem->next;
       free(rel);
    }
+   if (root->cached_path) {
+      free_pool_memory(root->cached_path);
+   }
    free(root);
    return;
 }
@@ -136,7 +140,8 @@ void free_tree(TREE_ROOT *root)
  * Insert a node in the tree
  *
  */
-TREE_NODE *insert_tree_node(char *path, TREE_NODE *node, TREE_ROOT *root, TREE_NODE *parent)
+TREE_NODE *insert_tree_node(char *path, TREE_NODE *node, 
+			    TREE_ROOT *root, TREE_NODE *parent)
 {
    TREE_NODE *sibling;
    char *p, *q, *fname;
@@ -159,12 +164,20 @@ TREE_NODE *insert_tree_node(char *path, TREE_NODE *node, TREE_ROOT *root, TREE_N
    p = strrchr(path, '/');            /* separate path and filename */
    if (p) {
       fname = p + 1;
-      if (!parent) {
+      if (!parent) {		      /* if no parent, we need to make one */
 	 *p = 0;		      /* terminate path */
          Dmsg1(100, "make_tree_path for %s\n", path);
-	 parent = make_tree_path(path, root);
+	 if ((int)strlen(path) == root->cached_path_len &&
+	     strcmp(path, root->cached_path) == 0) {
+	    parent = root->cached_parent;
+	 } else {
+	    root->cached_path_len = strlen(path);
+	    pm_strcpy(&root->cached_path, path);
+	    parent = make_tree_path(path, root);
+	    root->cached_parent = parent; 
+	 }
          Dmsg1(100, "parent=%s\n", parent->fname);
-         *p = '/';                    /* restore full name */
+         *p = '/';                    /* restore full path */
       }
    } else {
       fname = path;
@@ -185,7 +198,6 @@ TREE_NODE *insert_tree_node(char *path, TREE_NODE *node, TREE_ROOT *root, TREE_N
 	 return sibling;
       }
    }
-
 
    append_tree_node(fname, node, root, parent);
    Dmsg1(100, "insert_tree_node: parent=%s\n", parent->fname);
@@ -210,7 +222,7 @@ TREE_NODE *make_tree_path(char *path, TREE_ROOT *root)
       Dmsg0(100, "make_tree_path: parent=*root*\n");
       return (TREE_NODE *)root;
    }
-   p = strrchr(path, '/');           /* separate path and filename */
+   p = strrchr(path, '/');           /* get last dir component of path */
    if (p) {
       fname = p + 1;
       *p = 0;			      /* terminate path */

@@ -136,7 +136,7 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
    int type;
 
    strip_trailing_junk(row[1]);
-   if (*row[1] == 0) {
+   if (*row[1] == 0) {		      /* no filename => directory */
       if (*row[0] != '/') {           /* Must be Win32 directory */
 	 type = TN_DIR_NLS;
       } else {
@@ -145,7 +145,7 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
    } else {
       type = TN_FILE;
    }
-   bsnprintf(fname, sizeof(fname), "%s%s", row[0]?row[0]:"", row[1]?row[1]:"");
+   bsnprintf(fname, sizeof(fname), "%s%s", row[0], row[1]);
    if (tree->avail_node) {
       node = tree->avail_node;
    } else {

@@ -59,6 +59,9 @@ struct s_tree_root {
    struct s_tree_node *first;         /* first entry in the tree */
    struct s_tree_node *last;          /* last entry in tree */
    struct s_mem *mem;                 /* tree memory */
+   int cached_path_len;               /* length of cached path */
+   char *cached_path;                 /* cached current path */
+   TREE_NODE *cached_parent;          /* cached parent for above path */
 };
 typedef struct s_tree_root TREE_ROOT;
 
@@ -71,13 +74,14 @@ typedef struct s_tree_root TREE_ROOT;
 
 TREE_ROOT *new_tree(int count);
 TREE_NODE *new_tree_node(TREE_ROOT *root, int type);
-TREE_NODE *insert_tree_node(char *path, TREE_NODE *node, TREE_ROOT *root, TREE_NODE *parent);
+TREE_NODE *insert_tree_node(char *fname, TREE_NODE *node, 
+                            TREE_ROOT *root, TREE_NODE *parent);
 TREE_NODE *make_tree_path(char *path, TREE_ROOT *root);
 TREE_NODE *first_tree_node(TREE_ROOT *root);
 TREE_NODE *next_tree_node(TREE_NODE *node);
 TREE_NODE *tree_cwd(char *path, TREE_ROOT *root, TREE_NODE *node);
 TREE_NODE *tree_relcwd(char *path, TREE_ROOT *root, TREE_NODE *node);
-void append_tree_node(char *fname, TREE_NODE *node, TREE_ROOT *root, TREE_NODE *parent);
+void append_tree_node(char *path, TREE_NODE *node, TREE_ROOT *root, TREE_NODE *parent);
 void print_tree(char *path, TREE_NODE *root);    
 void free_tree(TREE_ROOT *root);
 int tree_getpath(TREE_NODE *node, char *buf, int buf_size);
