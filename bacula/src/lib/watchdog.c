@@ -45,7 +45,7 @@ static void *watchdog_thread(void *arg);
 /* Static globals */
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t  timer = PTHREAD_COND_INITIALIZER;
-static int quit;
+static bool quit;
 static bool wd_is_init = false;
 
 /* Forward referenced callback functions */
@@ -69,7 +69,7 @@ int start_watchdog(void)
 
    Dmsg0(200, "Initialising NicB-hacked watchdog thread\n");
    watchdog_time = time(NULL);
-   quit = FALSE;
+   quit = false;
    if ((stat = pthread_create(&wd_tid, NULL, watchdog_thread, NULL)) != 0) {
       return stat;
    }
@@ -89,7 +89,7 @@ int stop_watchdog(void)
    watchdog_t *p, *n;
 
    if (!wd_is_init) {
-      Emsg0(M_ABORT, 0, "BUG! stop_watchdog called before start_watchdog\n");
+      return 0;
    }
 
    Dmsg0(200, "Sending stop signal to NicB-hacked watchdog thread\n");

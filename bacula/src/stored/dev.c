@@ -458,7 +458,7 @@ eod_dev(DEVICE *dev)
        * Move file by file to the end of the tape
        */
       int file_num;
-      for (file_num=0; !(dev->state & ST_EOT); ) {
+      for (file_num=dev->file; !(dev->state & ST_EOT); file_num++) {
          Dmsg0(200, "eod_dev: doing fsf 1\n");
 	 if (!fsf_dev(dev, 1)) {
             Dmsg0(200, "fsf_dev error.\n");
@@ -468,7 +468,8 @@ eod_dev(DEVICE *dev)
 	  * Avoid infinite loop. ***FIXME*** possibly add code
 	  *   to set EOD or to turn off CAP_FASTFSF if on.
 	  */
-	 if (file_num++ != (int)dev->file) {
+	 if (file_num == (int)dev->file) {
+            Dmsg1(000, "fsf_dev did not advance from file %d\n", file_num);
 	    return 0;		      /* we are not progressing, bail out */
 	 }
       }
@@ -479,8 +480,14 @@ eod_dev(DEVICE *dev)
     * the second EOF.
     */
    if (dev_cap(dev, CAP_BSFATEOM)) {
-      stat =  bsf_dev(dev, 1);
-      dev->file++;		      /* keep same file */
+      struct mtget mt_stat;
+      /* Backup over EOF */
+      stat = bsf_dev(dev, 1);
+      /* If BSF worked and fileno is known (not -1), set file */
+      if (stat == 0 && ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) == 0 &&
+	  mt_stat.mt_fileno >= 0) {
+	 dev->file = mt_stat.mt_fileno;
+      }
    } else {
       update_pos_dev(dev);		     /* update position */
       stat = 1;

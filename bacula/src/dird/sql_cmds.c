@@ -254,8 +254,8 @@ char *uar_inc_dec =
    "AND JobMedia.MediaId=Media.MediaId "
    "AND Job.Level IN ('I', 'D') AND JobStatus='T' "
    "AND Job.FileSetId=FileSet.FileSetId "
-   "%s"
-   "AND FileSet.FileSet='%s' ";
+   "AND FileSet.FileSet='%s' "
+   "%s";
 
 char *uar_list_temp = 
    "SELECT JobId,Level,JobFiles,StartTime,VolumeName,StartFile,"
