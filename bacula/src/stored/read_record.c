@@ -312,8 +312,9 @@ static BSR *position_to_first_file(JCR *jcr, DEVICE *dev)
 
 static void handle_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sessrec)
 {
-   char *rtype;
+   const char *rtype;
    char buf[100];
+   
    memset(sessrec, 0, sizeof(sessrec));
    switch (rec->FileIndex) {
    case PRE_LABEL:

@@ -155,14 +155,14 @@ static int file_delete_handler(void *ctx, int num_fields, char **row)
  *    prune jobs (from) client=xxx
  *    prune volume=xxx	
  */
-int prunecmd(UAContext *ua, char *cmd)
+int prunecmd(UAContext *ua, const char *cmd)
 {
    CLIENT *client;
    POOL_DBR pr;
    MEDIA_DBR mr;
    int kw;
 
-   static char *keywords[] = {
+   static const char *keywords[] = {
       N_("Files"),
       N_("Jobs"),
       N_("Volume"),

@@ -74,7 +74,7 @@ static int int_handler(void *ctx, int num_fields, char **row)
 /* Check that the tables correspond to the version we want */
 int check_tables_version(JCR *jcr, B_DB *mdb)
 {
-   char *query = "SELECT VersionId FROM Version";
+   const char *query = "SELECT VersionId FROM Version";
   
    bacula_db_version = 0;
    db_sql_query(mdb, query, int_handler, (void *)&bacula_db_version);
@@ -89,7 +89,7 @@ int check_tables_version(JCR *jcr, B_DB *mdb)
 
 /* Utility routine for queries. The database MUST be locked before calling here. */
 int
-QueryDB(char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
+QueryDB(const char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
 {
    int status;
    if ((status=sql_query(mdb, cmd)) != 0) {
@@ -112,7 +112,7 @@ QueryDB(char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
  *	    1 on success
  */
 int
-InsertDB(char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
+InsertDB(const char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
 {
    if (sql_query(mdb, cmd)) {
       m_msg(file, line, &mdb->errmsg,  _("insert %s failed:\n%s\n"), cmd, sql_strerror(mdb));
@@ -145,7 +145,7 @@ InsertDB(char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
  *	     1 on success  
  */
 int
-UpdateDB(char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
+UpdateDB(const char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
 {
 
    if (sql_query(mdb, cmd)) {
@@ -176,7 +176,7 @@ UpdateDB(char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
  *	     n number of rows affected
  */
 int
-DeleteDB(char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
+DeleteDB(const char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
 {
 
    if (sql_query(mdb, cmd)) {
@@ -232,7 +232,7 @@ char *db_strerror(B_DB *mdb)
  *   thread without blocking, but must be unlocked the number of
  *   times it was locked.
  */
-void _db_lock(char *file, int line, B_DB *mdb)
+void _db_lock(const char *file, int line, B_DB *mdb)
 {
    int errstat;
    if ((errstat=rwl_writelock(&mdb->lock)) != 0) {
@@ -246,7 +246,7 @@ void _db_lock(char *file, int line, B_DB *mdb)
  *   same thread up to the number of times that thread called
  *   db_lock()/
  */
-void _db_unlock(char *file, int line, B_DB *mdb)
+void _db_unlock(const char *file, int line, B_DB *mdb)
 {
    int errstat;
    if ((errstat=rwl_writeunlock(&mdb->lock)) != 0) {

@@ -64,7 +64,7 @@ static void set_options(findFOPTS *fo, const char *opts);
 /* Exported functions */
 
 struct s_cmds {
-   char *cmd;
+   const char *cmd;
    int (*func)(JCR *);
 };
 
@@ -1523,7 +1523,7 @@ static int send_bootstrap_file(JCR *jcr)
    FILE *bs;
    char buf[2000];
    BSOCK *sd = jcr->store_bsock;
-   char *bootstrap = "bootstrap\n";
+   const char *bootstrap = "bootstrap\n";
    int stat = 0;
 
    Dmsg1(400, "send_bootstrap_file: %s\n", jcr->RestoreBootstrap);

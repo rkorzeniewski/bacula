@@ -214,7 +214,7 @@ bool has_volume_expired(JCR *jcr, MEDIA_DBR *mr)
  *  Returns: on failure - reason = NULL
  *	     on success - reason - pointer to reason
  */
-void check_if_volume_valid_or_recyclable(JCR *jcr, MEDIA_DBR *mr, char **reason)
+void check_if_volume_valid_or_recyclable(JCR *jcr, MEDIA_DBR *mr, const char **reason)
 {
    int ok;
 

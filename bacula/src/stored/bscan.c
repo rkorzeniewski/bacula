@@ -80,11 +80,11 @@ static ATTR *attr;
 
 static time_t lasttime = 0;
 
-static char *db_name = "bacula";
-static char *db_user = "bacula";
-static char *db_password = "";
-static char *db_host = NULL;
-static char *wd = NULL;
+static const char *db_name = "bacula";
+static const char *db_user = "bacula";
+static const char *db_password = "";
+static const char *db_host = NULL;
+static const char *wd = NULL;
 static int update_db = 0;
 static int update_vol_info = 0;
 static int list_records = 0;
@@ -987,7 +987,7 @@ static int update_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *elabel,
       Pmsg1(000, _("Updated Job termination record for new JobId=%u\n"), jr->JobId);
    }
    if (verbose > 1) {
-      char *term_msg;
+      const char *term_msg;
       static char term_code[70];
       char sdt[50], edt[50];
       char ec1[30], ec2[30], ec3[30];

@@ -397,11 +397,11 @@ struct s_kw ReplaceOptions[] = {
    {NULL,		0}
 };
 
-char *level_to_str(int level)
+const char *level_to_str(int level)
 {
    int i;
    static char level_no[30];
-   char *str = level_no;
+   const char *str = level_no;
 
    bsnprintf(level_no, sizeof(level_no), "%d", level);    /* default if not found */
    for (i=0; joblevels[i].level_name; i++) {
@@ -414,7 +414,7 @@ char *level_to_str(int level)
 }
 
 /* Dump contents of resource */
-void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...), void *sock)
+void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fmt, ...), void *sock)
 {
    URES *res = (URES *)reshdr;
    bool recurse = true;

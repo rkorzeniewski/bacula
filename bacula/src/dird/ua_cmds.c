@@ -43,53 +43,55 @@ extern jobq_t job_queue;	      /* job queue */
 extern char *list_pool;
 
 /* Imported functions */
-extern int status_cmd(UAContext *ua, char *cmd);
-extern int list_cmd(UAContext *ua, char *cmd);
-extern int llist_cmd(UAContext *ua, char *cmd);
-extern int show_cmd(UAContext *ua, char *cmd);
-extern int messagescmd(UAContext *ua, char *cmd);
-extern int autodisplay_cmd(UAContext *ua, char *cmd);
-extern int gui_cmd(UAContext *ua, char *cmd);
-extern int sqlquerycmd(UAContext *ua, char *cmd);
-extern int querycmd(UAContext *ua, char *cmd);
-extern int run_cmd(UAContext *ua, char *cmd);
-extern int retentioncmd(UAContext *ua, char *cmd);
-extern int prunecmd(UAContext *ua, char *cmd);
-extern int purgecmd(UAContext *ua, char *cmd);
-extern int restore_cmd(UAContext *ua, char *cmd);
-extern int label_cmd(UAContext *ua, char *cmd);
-extern int relabel_cmd(UAContext *ua, char *cmd);
+extern int status_cmd(UAContext *ua, const char *cmd);
+extern int list_cmd(UAContext *ua, const char *cmd);
+extern int llist_cmd(UAContext *ua, const char *cmd);
+extern int show_cmd(UAContext *ua, const char *cmd);
+extern int messagescmd(UAContext *ua, const char *cmd);
+extern int autodisplay_cmd(UAContext *ua, const char *cmd);
+extern int gui_cmd(UAContext *ua, const char *cmd);
+extern int sqlquerycmd(UAContext *ua, const char *cmd);
+extern int querycmd(UAContext *ua, const char *cmd);
+extern int run_cmd(UAContext *ua, const char *cmd);
+extern int retentioncmd(UAContext *ua, const char *cmd);
+extern int prunecmd(UAContext *ua, const char *cmd);
+extern int purgecmd(UAContext *ua, const char *cmd);
+extern int restore_cmd(UAContext *ua, const char *cmd);
+extern int label_cmd(UAContext *ua, const char *cmd);
+extern int relabel_cmd(UAContext *ua, const char *cmd);
 extern int update_slots(UAContext *ua);  /* ua_label.c */
 
 /* Forward referenced functions */
-static int add_cmd(UAContext *ua, char *cmd);  
-static int create_cmd(UAContext *ua, char *cmd); 
-static int cancel_cmd(UAContext *ua, char *cmd); 
-static int setdebug_cmd(UAContext *ua, char *cmd);
-static int trace_cmd(UAContext *ua, char *cmd);
-static int var_cmd(UAContext *ua, char *cmd);
-static int estimate_cmd(UAContext *ua, char *cmd);
-static int help_cmd(UAContext *ua, char *cmd);
-static int delete_cmd(UAContext *ua, char *cmd);
-static int use_cmd(UAContext *ua, char *cmd),  unmount_cmd(UAContext *ua, char *cmd);
-static int version_cmd(UAContext *ua, char *cmd), automount_cmd(UAContext *ua, char *cmd);
-static int time_cmd(UAContext *ua, char *cmd);
-static int reload_cmd(UAContext *ua, char *cmd);
+static int add_cmd(UAContext *ua, const char *cmd);  
+static int create_cmd(UAContext *ua, const char *cmd); 
+static int cancel_cmd(UAContext *ua, const char *cmd); 
+static int setdebug_cmd(UAContext *ua, const char *cmd);
+static int trace_cmd(UAContext *ua, const char *cmd);
+static int var_cmd(UAContext *ua, const char *cmd);
+static int estimate_cmd(UAContext *ua, const char *cmd);
+static int help_cmd(UAContext *ua, const char *cmd);
+static int delete_cmd(UAContext *ua, const char *cmd);
+static int use_cmd(UAContext *ua, const char *cmd);
+static int unmount_cmd(UAContext *ua, const char *cmd);
+static int version_cmd(UAContext *ua, const char *cmd);
+static int automount_cmd(UAContext *ua, const char *cmd);
+static int time_cmd(UAContext *ua, const char *cmd);
+static int reload_cmd(UAContext *ua, const char *cmd);
 static int update_volume(UAContext *ua);
 static int update_pool(UAContext *ua);
 static int delete_volume(UAContext *ua);
 static int delete_pool(UAContext *ua);
 static int delete_job(UAContext *ua);
-static int mount_cmd(UAContext *ua, char *cmd);
-static int release_cmd(UAContext *ua, char *cmd);
-static int update_cmd(UAContext *ua, char *cmd);
-static int wait_cmd(UAContext *ua, char *cmd);
-static int setip_cmd(UAContext *ua, char *cmd);
+static int mount_cmd(UAContext *ua, const char *cmd);
+static int release_cmd(UAContext *ua, const char *cmd);
+static int update_cmd(UAContext *ua, const char *cmd);
+static int wait_cmd(UAContext *ua, const char *cmd);
+static int setip_cmd(UAContext *ua, const char *cmd);
 
-int quit_cmd(UAContext *ua, char *cmd);
+int quit_cmd(UAContext *ua, const char *cmd);
 
 
-struct cmdstruct { char *key; int (*func)(UAContext *ua, char *cmd); char *help; }; 
+struct cmdstruct { const char *key; int (*func)(UAContext *ua, const char *cmd); const char *help; }; 
 static struct cmdstruct commands[] = {
  { N_("add"),        add_cmd,         _("add media to a pool")},
  { N_("autodisplay"), autodisplay_cmd, _("autodisplay [on/off] -- console messages")},
@@ -134,7 +136,7 @@ static struct cmdstruct commands[] = {
 /*
  * Execute a command from the UA
  */
-int do_a_command(UAContext *ua, char *cmd)
+int do_a_command(UAContext *ua, const char *cmd)
 {
    unsigned int i;
    int len, stat;
@@ -185,7 +187,7 @@ void set_pool_dbr_defaults_in_media_dbr(MEDIA_DBR *mr, POOL_DBR *pr)
 /*
  *  Add Volumes to an existing Pool
  */
-static int add_cmd(UAContext *ua, char *cmd) 
+static int add_cmd(UAContext *ua, const char *cmd) 
 {
    POOL_DBR pr;
    MEDIA_DBR mr;
@@ -334,7 +336,7 @@ getVolName:
  *  automount on 
  *  automount off
  */
-int automount_cmd(UAContext *ua, char *cmd)
+int automount_cmd(UAContext *ua, const char *cmd)
 {
    char *onoff;
 
@@ -355,7 +357,7 @@ int automount_cmd(UAContext *ua, char *cmd)
 /*
  * Cancel a job
  */
-static int cancel_cmd(UAContext *ua, char *cmd)
+static int cancel_cmd(UAContext *ua, const char *cmd)
 {
    int i, ret;
    int njobs = 0;
@@ -522,7 +524,7 @@ int create_pool(JCR *jcr, B_DB *db, POOL *pool, e_pool_op op)
  * Create a Pool Record in the database.
  *  It is always created from the Resource record.
  */
-static int create_cmd(UAContext *ua, char *cmd) 
+static int create_cmd(UAContext *ua, const char *cmd) 
 {
    POOL *pool;
 
@@ -558,7 +560,7 @@ static int create_cmd(UAContext *ua, char *cmd)
  *  if the Console name is the same as the Client name 
  *  and the Console can access the client.
  */
-static int setip_cmd(UAContext *ua, char *cmd) 
+static int setip_cmd(UAContext *ua, const char *cmd) 
 {
    CLIENT *client;
    if (!ua->cons || !acl_access_ok(ua, Client_ACL, ua->cons->hdr.name)) {
@@ -595,9 +597,9 @@ get_out:
  *    update slots [scan=...]
  *	   updates autochanger slots
  */
-static int update_cmd(UAContext *ua, char *cmd) 
+static int update_cmd(UAContext *ua, const char *cmd) 
 {
-   static char *kw[] = {
+   static const char *kw[] = {
       N_("media"),  /* 0 */
       N_("volume"), /* 1 */
       N_("pool"),   /* 2 */
@@ -643,10 +645,10 @@ static int update_cmd(UAContext *ua, char *cmd)
    return 1;
 }
 
-static void update_volstatus(UAContext *ua, char *val, MEDIA_DBR *mr)
+static void update_volstatus(UAContext *ua, const char *val, MEDIA_DBR *mr)
 {
    POOLMEM *query = get_pool_memory(PM_MESSAGE);
-   char *kw[] = {
+   const char *kw[] = {
       "Append",
       "Archive",
       "Disabled",
@@ -853,7 +855,7 @@ static int update_volume(UAContext *ua)
    POOLMEM *query;
    char ed1[30];
    bool done = false;
-   char *kw[] = {
+   const char *kw[] = {
       N_("VolStatus"),                /* 0 */
       N_("VolRetention"),             /* 1 */
       N_("VolUse"),                   /* 2 */
@@ -1256,7 +1258,7 @@ static void do_all_setdebug(UAContext *ua, int level, int trace_flag)
 /*
  * setdebug level=nn all trace=1/0
  */
-static int setdebug_cmd(UAContext *ua, char *cmd)
+static int setdebug_cmd(UAContext *ua, const char *cmd)
 {
    STORE *store;
    CLIENT *client;
@@ -1375,7 +1377,7 @@ static int setdebug_cmd(UAContext *ua, char *cmd)
 /*
  * Turn debug tracing to file on/off
  */
-static int trace_cmd(UAContext *ua, char *cmd)
+static int trace_cmd(UAContext *ua, const char *cmd)
 {
    char *onoff;
 
@@ -1393,7 +1395,7 @@ static int trace_cmd(UAContext *ua, char *cmd)
 
 }
 
-static int var_cmd(UAContext *ua, char *cmd)
+static int var_cmd(UAContext *ua, const char *cmd)
 {
    POOLMEM *val = get_pool_memory(PM_FNAME);
    char *var;
@@ -1414,7 +1416,7 @@ static int var_cmd(UAContext *ua, char *cmd)
    return 1;
 }
 
-static int estimate_cmd(UAContext *ua, char *cmd)
+static int estimate_cmd(UAContext *ua, const char *cmd)
 {
    JOB *job = NULL;
    CLIENT *client = NULL;
@@ -1510,7 +1512,7 @@ static int estimate_cmd(UAContext *ua, char *cmd)
 /*
  * print time
  */
-static int time_cmd(UAContext *ua, char *cmd)
+static int time_cmd(UAContext *ua, const char *cmd)
 {
    char sdt[50];
    time_t ttime = time(NULL);
@@ -1526,7 +1528,7 @@ static int time_cmd(UAContext *ua, char *cmd)
  */
 extern void reload_config(int sig);
 
-static int reload_cmd(UAContext *ua, char *cmd)
+static int reload_cmd(UAContext *ua, const char *cmd)
 {
    reload_config(1);   
    return 1;
@@ -1541,9 +1543,9 @@ static int reload_cmd(UAContext *ua, char *cmd)
  *  delete volume pool=<pool-name> volume=<name>
  *  delete job jobid=xxx
  */
-static int delete_cmd(UAContext *ua, char *cmd)
+static int delete_cmd(UAContext *ua, const char *cmd)
 {
-   static char *keywords[] = {
+   static const char *keywords[] = {
       N_("volume"),
       N_("pool"),
       N_("job"),
@@ -1663,7 +1665,7 @@ static int delete_pool(UAContext *ua)
 }
 
 
-static void do_mount_cmd(UAContext *ua, char *command)
+static void do_mount_cmd(UAContext *ua, const char *command)
 {
    STORE *store;
    BSOCK *sd;
@@ -1703,7 +1705,7 @@ static void do_mount_cmd(UAContext *ua, char *command)
 /*
  * mount [storage | device] <name>
  */
-static int mount_cmd(UAContext *ua, char *cmd)
+static int mount_cmd(UAContext *ua, const char *cmd)
 {
    do_mount_cmd(ua, "mount");          /* mount */
    return 1;
@@ -1713,7 +1715,7 @@ static int mount_cmd(UAContext *ua, char *cmd)
 /*
  * unmount [storage | device] <name>
  */
-static int unmount_cmd(UAContext *ua, char *cmd)
+static int unmount_cmd(UAContext *ua, const char *cmd)
 {
    do_mount_cmd(ua, "unmount");          /* unmount */
    return 1;
@@ -1723,7 +1725,7 @@ static int unmount_cmd(UAContext *ua, char *cmd)
 /*
  * release [storage | device] <name>
  */
-static int release_cmd(UAContext *ua, char *cmd)
+static int release_cmd(UAContext *ua, const char *cmd)
 {
    do_mount_cmd(ua, "release");          /* release */
    return 1;
@@ -1734,7 +1736,7 @@ static int release_cmd(UAContext *ua, char *cmd)
  * Switch databases
  *   use catalog=<name>
  */
-static int use_cmd(UAContext *ua, char *cmd)
+static int use_cmd(UAContext *ua, const char *cmd)
 {
    CAT *oldcatalog, *catalog;
 
@@ -1754,7 +1756,7 @@ static int use_cmd(UAContext *ua, char *cmd)
    return 1;
 }
 
-int quit_cmd(UAContext *ua, char *cmd) 
+int quit_cmd(UAContext *ua, const char *cmd) 
 {
    ua->quit = TRUE;
    return 1;
@@ -1763,7 +1765,7 @@ int quit_cmd(UAContext *ua, char *cmd)
 /*
  * Wait until no job is running 
  */
-int wait_cmd(UAContext *ua, char *cmd) 
+int wait_cmd(UAContext *ua, const char *cmd) 
 {
    JCR *jcr;
    bmicrosleep(0, 200000);	      /* let job actually start */
@@ -1787,7 +1789,7 @@ int wait_cmd(UAContext *ua, char *cmd)
 }
 
 
-static int help_cmd(UAContext *ua, char *cmd)
+static int help_cmd(UAContext *ua, const char *cmd)
 {
    unsigned int i;
 
@@ -1799,7 +1801,7 @@ static int help_cmd(UAContext *ua, char *cmd)
    return 1;
 }
 
-static int version_cmd(UAContext *ua, char *cmd)
+static int version_cmd(UAContext *ua, const char *cmd)
 {
    bsendmsg(ua, "%s Version: " VERSION " (" BDATE ")\n", my_name);
    return 1;

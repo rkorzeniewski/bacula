@@ -513,7 +513,7 @@ int send_bootstrap_file(JCR *jcr)
    FILE *bs;
    char buf[1000];
    BSOCK *fd = jcr->file_bsock;
-   char *bootstrap = "bootstrap\n";
+   const char *bootstrap = "bootstrap\n";
 
    Dmsg1(400, "send_bootstrap_file: %s\n", jcr->RestoreBootstrap);
    if (!jcr->RestoreBootstrap) {

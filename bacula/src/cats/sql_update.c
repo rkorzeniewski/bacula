@@ -45,7 +45,7 @@
 
 /* Imported subroutines */
 extern void print_result(B_DB *mdb);
-extern int UpdateDB(char *file, int line, JCR *jcr, B_DB *db, char *update_cmd);
+extern int UpdateDB(const char *file, int line, JCR *jcr, B_DB *db, char *update_cmd);
 
 /* -----------------------------------------------------------------------
  *

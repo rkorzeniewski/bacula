@@ -44,14 +44,14 @@
  * -----------------------------------------------------------------------
  */
 
-extern char *working_directory;
+extern const char *working_directory;
 
 /* List of open databases */
 static BQUEUE db_list = {&db_list, &db_list};
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
-int QueryDB(char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
+int QueryDB(const char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
 
 
 /*
@@ -59,8 +59,8 @@ int QueryDB(char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
  * never have errors, or it is really fatal.
  */
 B_DB *
-db_init_database(JCR *jcr, char *db_name, char *db_user, char *db_password,
-		 char *db_address, int db_port, char *db_socket) 
+db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char *db_password,
+		 const char *db_address, int db_port, const char *db_socket) 
 {
    B_DB *mdb;
 
@@ -283,7 +283,7 @@ static int sqlite_result(void *arh_data, int num_fields, char **rows, char **col
  * Submit a general SQL command (cmd), and for each row returned,
  *  the sqlite_handler is called with the ctx.
  */
-int db_sql_query(B_DB *mdb, char *query, DB_RESULT_HANDLER *result_handler, void *ctx)
+int db_sql_query(B_DB *mdb, const char *query, DB_RESULT_HANDLER *result_handler, void *ctx)
 {
    struct rh_data rh_data;
    int stat;

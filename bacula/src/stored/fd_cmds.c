@@ -57,7 +57,7 @@ static int read_close_session(JCR *jcr);
 static int bootstrap_cmd(JCR *jcr);
 
 struct s_cmds {
-   char *cmd;
+   const char *cmd;
    int (*func)(JCR *jcr);
 };
 

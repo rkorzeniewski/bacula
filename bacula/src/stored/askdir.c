@@ -458,7 +458,7 @@ volumes for Job=%s.\n"), jcr->Job);
 int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
 {
    int stat = 0;
-   char *msg;
+   const char *msg;
 
    Dmsg0(130, "enter dir_ask_sysop_to_mount_volume\n");
    if (!jcr->VolumeName[0]) {

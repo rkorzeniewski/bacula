@@ -114,7 +114,7 @@ var_mvxprintf(
 {
     /* sufficient integer buffer: <available-bits> x log_10(2) + safety */
     char ibuf[((sizeof(int)*8)/3)+10]; 
-    char *cp;
+    const char *cp;
     char c;
     int d;
     int n;
@@ -2705,9 +2705,9 @@ static const char *var_errors[] = {
 };
 
 /* translate a return code into its corresponding descriptive text */
-char *var_strerror(var_t *var, var_rc_t rc)
+const char *var_strerror(var_t *var, var_rc_t rc)
 {
-    char *str;
+    const char *str;
     rc = (var_rc_t)(0 - rc);
     if (rc < 0 || rc >= (int)sizeof(var_errors) / (int)sizeof(char *)) {
         str = "unknown error";

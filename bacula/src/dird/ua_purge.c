@@ -46,12 +46,12 @@ int mark_media_purged(UAContext *ua, MEDIA_DBR *mr);
 #define MAX_DEL_LIST_LEN 1000000
 
 
-static char *select_jobsfiles_from_client =
+static const char *select_jobsfiles_from_client =
    "SELECT JobId FROM Job "
    "WHERE ClientId=%d "
    "AND PurgedFiles=0";
 
-static char *select_jobs_from_client =
+static const char *select_jobs_from_client =
    "SELECT JobId, PurgedFiles FROM Job "
    "WHERE ClientId=%d";
 
@@ -161,26 +161,26 @@ static int file_delete_handler(void *ctx, int num_fields, char **row)
  *
  *  N.B. Not all above is implemented yet.
  */
-int purgecmd(UAContext *ua, char *cmd)
+int purgecmd(UAContext *ua, const char *cmd)
 {
    int i;
    CLIENT *client;
    MEDIA_DBR mr;
    JOB_DBR  jr;
-   static char *keywords[] = {
+   static const char *keywords[] = {
       N_("files"),
       N_("jobs"),
       N_("volume"),
       NULL};
 
-   static char *files_keywords[] = {
+   static const char *files_keywords[] = {
       N_("Job"),
       N_("JobId"),
       N_("Client"),
       N_("Volume"),
       NULL};
 
-   static char *jobs_keywords[] = {
+   static const char *jobs_keywords[] = {
       N_("Client"),
       N_("Volume"),
       NULL};

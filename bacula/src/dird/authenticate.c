@@ -45,7 +45,7 @@ static char OKhello[]   = "3000 OK Hello\n";
 static char FDOKhello[] = "2000 OK Hello\n";
 
 /* Sent to User Agent */
-static char Dir_sorry[]  = N_("1999 You are not authorized.\n");
+static char Dir_sorry[]  = "1999 You are not authorized.\n";
 
 /* Forward referenced functions */
 

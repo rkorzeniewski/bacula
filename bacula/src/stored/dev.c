@@ -1165,7 +1165,7 @@ strerror_dev(DEVICE *dev)
 void
 clrerror_dev(DEVICE *dev, int func)
 {
-   char *msg = NULL;
+   const char *msg = NULL;
 
    dev->dev_errno = errno;	   /* save errno */
    if (errno == EIO) {

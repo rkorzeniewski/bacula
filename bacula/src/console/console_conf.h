@@ -25,7 +25,7 @@ enum {
    R_ADDRESS,
    R_PASSWORD,
    R_TYPE,
-   R_BACKUP,
+   R_BACKUP
 };
 
 

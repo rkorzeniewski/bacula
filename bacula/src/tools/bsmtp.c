@@ -63,7 +63,7 @@ static char *from_addr = NULL;
 static char *cc_addr = NULL;
 static char *subject = NULL;
 static char *err_addr = NULL;
-static char *mailhost = NULL;
+static const char *mailhost = NULL;
 static char *reply_addr = NULL;
 static int mailport = 25;
 static char my_hostname[MAXSTRING];
@@ -98,7 +98,7 @@ static void get_response(void)
 /*
  *  say something to server and check the response
  */
-static void chat(char *fmt, ...)
+static void chat(const char *fmt, ...)
 {
     va_list ap;
 

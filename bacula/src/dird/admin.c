@@ -76,7 +76,7 @@ static void admin_cleanup(JCR *jcr, int TermCode)
 {
    char sdt[50], edt[50];
    char term_code[100];
-   char *term_msg;
+   const char *term_msg;
    int msg_type;
    MEDIA_DBR mr;
 

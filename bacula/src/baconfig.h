@@ -423,7 +423,7 @@ int  m_msg(const char *file, int line, POOLMEM **msgbuf, const char *fmt,...);
 #define fgets(x,y,z) bfgets((x), (y), (z))
 
 /* Use our sscanf, which is safer and works with known sizes */
-// #define sscanf bsscanf
+#define sscanf bsscanf
 
 #ifdef DEBUG
 #define bstrdup(str) strcpy((char *)b_malloc(__FILE__,__LINE__,strlen((str))+1),(str))

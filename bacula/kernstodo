@@ -12,6 +12,8 @@
    The error I when I installed 1.34.2 clients:
    The BACULA-FD file is  
    linked to missing export KERNEL32.DLL:GetFileAttributesExA.
+- Add link to doc in message when authentication fails.
+- Add db_ensure...slot_unique to BDB.
 
 
 Documentation to do: (any release a little bit at a time)
@@ -1066,4 +1068,3 @@ Block Position: 0
   mount it.
 - Implement Fixed storage LabelFormat test.
 - Add reporting in attr despooling.
-

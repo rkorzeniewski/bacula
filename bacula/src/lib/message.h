@@ -127,6 +127,6 @@ void Jmsg(JCR *jcr, int type, int level, const char *fmt,...);
 extern int debug_level;
 extern int verbose;
 extern char my_name[];
-extern char *working_directory;
+extern const char *working_directory;
 extern time_t daemon_start_time;
 extern char catalog_db[];

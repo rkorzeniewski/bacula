@@ -131,7 +131,7 @@ bool commit_data_spool(JCR *jcr)
 
 static void make_unique_data_spool_filename(JCR *jcr, POOLMEM **name)
 {
-   char *dir;  
+   const char *dir;  
    if (jcr->dcr->dev->device->spool_directory) {
       dir = jcr->dcr->dev->device->spool_directory;
    } else {

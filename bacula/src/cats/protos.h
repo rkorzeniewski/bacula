@@ -33,14 +33,14 @@
 /* Database prototypes */
 
 /* sql.c */
-B_DB *db_init_database(JCR *jcr, char *db_name, char *db_user, char *db_password, 
-                       char *db_address, int db_port, char *db_socket);
+B_DB *db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char *db_password, 
+                       const char *db_address, int db_port, const char *db_socket);
 int  db_open_database(JCR *jcr, B_DB *db);
 void db_close_database(JCR *jcr, B_DB *db);
 void db_escape_string(char *snew, char *old, int len);
 char *db_strerror(B_DB *mdb);
 int  db_next_index(JCR *jcr, B_DB *mdb, char *table, char *index);
-int  db_sql_query(B_DB *mdb, char *cmd, DB_RESULT_HANDLER *result_handler, void *ctx);
+int  db_sql_query(B_DB *mdb, const char *cmd, DB_RESULT_HANDLER *result_handler, void *ctx);
 void db_start_transaction(JCR *jcr, B_DB *mdb);
 void db_end_transaction(JCR *jcr, B_DB *mdb);
 
@@ -61,7 +61,7 @@ int db_delete_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr);
 
 /* find.c */
 int db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime);
-int db_find_last_jobid(JCR *jcr, B_DB *mdb, char *Name, JOB_DBR *jr);
+int db_find_last_jobid(JCR *jcr, B_DB *mdb, const char *Name, JOB_DBR *jr);
 int db_find_next_volume(JCR *jcr, B_DB *mdb, int index, bool InChanger, MEDIA_DBR *mr);
 
 /* get.c */

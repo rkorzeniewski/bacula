@@ -36,7 +36,7 @@
 
 /* Exported functions */
 
-int get_cmd(UAContext *ua, char *prompt)
+int get_cmd(UAContext *ua, const char *prompt)
 {
    BSOCK *sock = ua->UA_sock;
    int stat;
@@ -74,7 +74,7 @@ int get_cmd(UAContext *ua, char *prompt)
  *  Returns:  0 if failure
  *	      1 if success => value in ua->pint32_val
  */
-int get_pint(UAContext *ua, char *prompt)
+int get_pint(UAContext *ua, const char *prompt)
 {
    double dval;
    ua->pint32_val = 0;
@@ -103,7 +103,7 @@ int get_pint(UAContext *ua, char *prompt)
  *	      1 if success => ua->pint32_val == 1 for yes
  *			      ua->pint32_val == 0 for no
  */
-int get_yesno(UAContext *ua, char *prompt)
+int get_yesno(UAContext *ua, const char *prompt)
 {
    int len;
 

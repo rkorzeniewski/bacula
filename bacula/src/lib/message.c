@@ -43,7 +43,7 @@
  *  This is where we define "Globals" because all the
  *    daemons include this file.
  */
-char *working_directory = NULL;       /* working directory path stored here */
+const char *working_directory = NULL;	    /* working directory path stored here */
 int verbose = 0;		      /* increase User messages */
 int debug_level = 0;		      /* debug level */
 time_t daemon_start_time = 0;	      /* Daemon start time */
@@ -258,7 +258,7 @@ init_msg(JCR *jcr, MSGS *msg)
 /* Initialize so that the console (User Agent) can
  * receive messages -- stored in a file.
  */
-void init_console_msg(char *wd)
+void init_console_msg(const char *wd)
 {
    int fd;
 
@@ -372,18 +372,30 @@ static void make_unique_mail_filename(JCR *jcr, POOLMEM **name, DEST *d)
 static BPIPE *open_mail_pipe(JCR *jcr, POOLMEM **cmd, DEST *d)
 {
    BPIPE *bpipe;
-
-   if (d->mail_cmd && jcr) {
+   int use_bsmtp = (d->mail_cmd && jcr);
+       
+   if (use_bsmtp) {
       *cmd = edit_job_codes(jcr, *cmd, d->mail_cmd, d->where);
    } else {
+#if 1
+      Mmsg(cmd, "/usr/lib/sendmail -F Bacula %s", d->where);
+#else
       Mmsg(cmd, "mail -s \"Bacula Message\" %s", d->where);
+#endif
    }
    fflush(stdout);
 
    if (!(bpipe = open_bpipe(*cmd, 120, "rw"))) {
       Jmsg(jcr, M_ERROR, 0, "open mail pipe %s failed: ERR=%s\n", 
 	 *cmd, strerror(errno));
-   } 
+   }
+
+#if 1
+   if (!use_bsmtp) {
+       fprintf(bpipe->wfd, "Subject: Bacula Message\r\n\r\n");
+   }
+#endif
+   
    return bpipe;
 }
 
@@ -742,7 +754,7 @@ d_msg(const char *file, int line, int level, const char *fmt,...)
 	  /* visual studio passes the whole path to the file as well
 	   * which makes for very long lines
 	   */
-          char *f = strrchr(file, '\\');
+          const char *f = strrchr(file, '\\');
 	  if (f) file = f + 1;
           len = bsnprintf(buf, sizeof(buf), "%s: %s:%d ", my_name, file, line);
        } else {

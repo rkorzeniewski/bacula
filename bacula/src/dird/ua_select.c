@@ -36,7 +36,7 @@
 /*
  * Confirm a retention period
  */
-int confirm_retention(UAContext *ua, utime_t *ret, char *msg)
+int confirm_retention(UAContext *ua, utime_t *ret, const char *msg)
 {
    char ed1[30];
 
@@ -72,7 +72,7 @@ int confirm_retention(UAContext *ua, utime_t *ret, char *msg)
  * Returns: -1 if not found
  *	    index into list (base 0) on success
  */
-int find_arg_keyword(UAContext *ua, char **list)
+int find_arg_keyword(UAContext *ua, const char **list)
 {
    for (int i=1; i<ua->argc; i++) {
       for(int j=0; list[j]; j++) {
@@ -90,7 +90,7 @@ int find_arg_keyword(UAContext *ua, char **list)
  * Returns: argk index (always gt 0)
  *	    -1 if not found
  */
-int find_arg(UAContext *ua, char *keyword)
+int find_arg(UAContext *ua, const char *keyword)
 {
    for (int i=1; i<ua->argc; i++) {
       if (strcasecmp(keyword, ua->argk[i]) == 0) {
@@ -106,7 +106,7 @@ int find_arg(UAContext *ua, char *keyword)
  * Returns: -1 if not found or no value
  *	     list index (base 0) on success
  */
-int find_arg_with_value(UAContext *ua, char *keyword)
+int find_arg_with_value(UAContext *ua, const char *keyword)
 {
    for (int i=1; i<ua->argc; i++) {
       if (strcasecmp(keyword, ua->argk[i]) == 0) {
@@ -127,7 +127,7 @@ int find_arg_with_value(UAContext *ua, char *keyword)
  * Returns: -1 on failure
  *	    index into list (base 0) on success
  */
-int do_keyword_prompt(UAContext *ua, char *msg, char **list)
+int do_keyword_prompt(UAContext *ua, const char *msg, const char **list)
 {
    int i;
    start_prompt(ua, _("You have the following choices:\n"));
@@ -643,7 +643,7 @@ int get_job_dbr(UAContext *ua, JOB_DBR *jr)
 /*
  * Implement unique set of prompts 
  */
-void start_prompt(UAContext *ua, char *msg)
+void start_prompt(UAContext *ua, const char *msg)
 {
   if (ua->max_prompts == 0) {
      ua->max_prompts = 10;
@@ -656,7 +656,7 @@ void start_prompt(UAContext *ua, char *msg)
 /*
  * Add to prompts -- keeping them unique 
  */
-void add_prompt(UAContext *ua, char *prompt)
+void add_prompt(UAContext *ua, const char *prompt)
 {
    int i;
    if (ua->num_prompts == ua->max_prompts) {
@@ -679,7 +679,7 @@ void add_prompt(UAContext *ua, char *prompt)
  *	      index base 0 on success, and choice
  *		 is copied to prompt if not NULL
  */
-int do_prompt(UAContext *ua, char *automsg, char *msg, char *prompt, int max_prompt)
+int do_prompt(UAContext *ua, const char *automsg, const char *msg, char *prompt, int max_prompt)
 {
    int i, item;
    char pmsg[MAXSTRING];

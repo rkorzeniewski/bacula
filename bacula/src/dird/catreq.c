@@ -123,7 +123,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
        */
       unbash_spaces(mr.VolumeName);
       if (db_get_media_record(jcr, jcr->db, &mr)) {
-	 char *reason = NULL;	      /* detailed reason for rejection */
+	 const char *reason = NULL;	      /* detailed reason for rejection */
 	 /*		      
 	  * If we are reading, accept any volume (reason == NULL)
 	  * If we are writing, check if the Volume is valid 

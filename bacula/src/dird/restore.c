@@ -226,7 +226,8 @@ int do_restore(JCR *jcr)
 
    /* Send restore command */
    char replace, *where;
-
+   char empty = '\0';
+   
    if (jcr->replace != 0) {
       replace = jcr->replace;
    } else if (jcr->job->replace != 0) {
@@ -239,7 +240,7 @@ int do_restore(JCR *jcr)
    } else if (jcr->job->RestoreWhere) {
       where = jcr->job->RestoreWhere; /* no override take from job */
    } else {
-      where = "";                     /* None */
+      where = &empty;                 /* None */
    }
    jcr->prefix_links = jcr->job->PrefixLinks;
    bash_spaces(where);
@@ -267,7 +268,7 @@ static void restore_cleanup(JCR *jcr, int TermCode)
    char sdt[MAX_TIME_LENGTH], edt[MAX_TIME_LENGTH];
    char ec1[30], ec2[30], ec3[30];
    char term_code[100], fd_term_msg[100], sd_term_msg[100];
-   char *term_msg;
+   const char *term_msg;
    int msg_type;
    double kbps;
 

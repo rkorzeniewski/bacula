@@ -353,7 +353,7 @@ static int record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
        rec->Stream == STREAM_UNIX_ATTRIBUTES_EX) {
 
       if (verbose > 1) {
-         char *rtype = "Attributes";
+         const char *rtype = "Attributes";
          Pmsg5(-1, "%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
 	       rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
       }
@@ -382,7 +382,7 @@ static int record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 
 static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sessrec)
 {
-   char *rtype;
+   const char *rtype;
    memset(sessrec, 0, sizeof(sessrec));
    switch (rec->FileIndex) {
    case PRE_LABEL:

@@ -48,11 +48,11 @@ enum e_state {
    s_monthly,
    s_hourly,
    s_wom,			    /* 1st, 2nd, ...*/
-   s_woy,			    /* week of year w00 - w53 */
+   s_woy			    /* week of year w00 - w53 */
 };  
 
 struct s_keyw {
-  char *name;			      /* keyword */
+  const char *name;			      /* keyword */
   enum e_state state;		      /* parser state */
   int code;			      /* state value */
 };

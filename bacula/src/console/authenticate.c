@@ -34,8 +34,8 @@
 #include "jcr.h"
 
 
-void senditf(char *fmt, ...);
-void sendit(char *buf); 
+void senditf(const char *fmt, ...);
+void sendit(const char *buf); 
 
 /* Commands sent to Director */
 static char hello[]    = "Hello %s calling\n";

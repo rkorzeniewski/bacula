@@ -74,7 +74,7 @@ static int date_item(JCR *jcr, int code,
 static int job_item(JCR *jcr, int code, 
 	      const char **val_ptr, int *val_len, int *val_size)
 {
-   char *str = " ";
+   const char *str = " ";
    char buf[20];
 
    switch (code) {
@@ -127,7 +127,7 @@ static int job_item(JCR *jcr, int code,
 }
 
 
-struct s_built_in_vars {char *var_name; int code; int (*func)(JCR *jcr, int code,
+struct s_built_in_vars {const char *var_name; int code; int (*func)(JCR *jcr, int code,
 			 const char **val_ptr, int *val_len, int *val_size);};
 
 /*

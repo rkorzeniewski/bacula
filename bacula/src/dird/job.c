@@ -571,7 +571,7 @@ void update_job_end_record(JCR *jcr)
  *  Returns: unique job name in jcr->Job
  *    date/time in jcr->start_time
  */
-void create_unique_job_name(JCR *jcr, char *base_name)
+void create_unique_job_name(JCR *jcr, const char *base_name)
 {
    /* Job start mutex */
    static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;

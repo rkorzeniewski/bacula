@@ -147,7 +147,7 @@ int pm_strcpy(POOLMEM **pm, const char *str)
  */
 void jobstatus_to_ascii(int JobStatus, char *msg, int maxlen)
 {
-   char *jobstat;
+   const char *jobstat;
    char buf[100];
 
    switch (JobStatus) {
@@ -222,9 +222,9 @@ void jobstatus_to_ascii(int JobStatus, char *msg, int maxlen)
 /*
  * Convert Job Termination Status into a string
  */
-char *job_status_to_str(int stat) 
+const char *job_status_to_str(int stat) 
 {
-   char *str;
+   const char *str;
 
    switch (stat) {
    case JS_Terminated:
@@ -254,9 +254,9 @@ char *job_status_to_str(int stat)
 /*
  * Convert Job Type into a string
  */
-char *job_type_to_str(int type) 
+const char *job_type_to_str(int type) 
 {
-   char *str;
+   const char *str;
 
    switch (type) {
    case JT_BACKUP:
@@ -281,9 +281,9 @@ char *job_type_to_str(int type)
 /*
  * Convert Job Level into a string
  */
-char *job_level_to_str(int level) 
+const char *job_level_to_str(int level) 
 {
-   char *str;
+   const char *str;
 
    switch (level) {
    case L_BASE:
@@ -364,7 +364,7 @@ int do_shell_expansion(char *name, int name_len)
    POOLMEM *cmd;
    BPIPE *bpipe;
    char line[MAXSTRING];
-   char *shellcmd;
+   const char *shellcmd;
 
    /* Check if any meta characters are present */
    len = strlen(meta);

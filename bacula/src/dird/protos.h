@@ -54,7 +54,7 @@ extern void catalog_request(JCR *jcr, BSOCK *bs, char *buf);
 extern void catalog_update(JCR *jcr, BSOCK *bs, char *buf);
 
 /* dird_conf.c */
-extern char *level_to_str(int level);
+extern const char *level_to_str(int level);
 
 /* expand.c */
 int variable_expansion(JCR *jcr, char *inp, POOLMEM **exp);
@@ -79,11 +79,11 @@ enum e_prtmsg {
    DISPLAY_ERROR,
    NO_DISPLAY
 };
-extern int response(JCR *jcr, BSOCK *fd, char *resp, char *cmd, e_prtmsg prtmsg);
+extern int response(JCR *jcr, BSOCK *fd, char *resp, const char *cmd, e_prtmsg prtmsg);
 
 /* job.c */
 extern void set_jcr_defaults(JCR *jcr, JOB *job);
-extern void create_unique_job_name(JCR *jcr, char *base_name);
+extern void create_unique_job_name(JCR *jcr, const char *base_name);
 extern void update_job_end_record(JCR *jcr);
 extern int get_or_create_client_record(JCR *jcr);
 extern void run_job(JCR *jcr);
@@ -103,7 +103,7 @@ extern void wait_for_storage_daemon_termination(JCR *jcr);
 /* next_vol.c */
 int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, bool create);
 bool has_volume_expired(JCR *jcr, MEDIA_DBR *mr);
-void check_if_volume_valid_or_recyclable(JCR *jcr, MEDIA_DBR *mr, char **reason);
+void check_if_volume_valid_or_recyclable(JCR *jcr, MEDIA_DBR *mr, const char **reason);
 
 /* newvol.c */
 bool newVolume(JCR *jcr, MEDIA_DBR *mr);
@@ -113,9 +113,9 @@ bool acl_access_ok(UAContext *ua, int acl, char *item);
 bool acl_access_ok(UAContext *ua, int acl, char *item, int len);
 
 /* ua_cmds.c */
-int do_a_command(UAContext *ua, char *cmd);
-int do_a_dot_command(UAContext *ua, char *cmd);
-int qmessagescmd(UAContext *ua, char *cmd);
+int do_a_command(UAContext *ua, const char *cmd);
+int do_a_dot_command(UAContext *ua, const char *cmd);
+int qmessagescmd(UAContext *ua, const char *cmd);
 int open_db(UAContext *ua);
 void close_db(UAContext *ua);
 enum e_pool_op {
@@ -126,23 +126,23 @@ int create_pool(JCR *jcr, B_DB *db, POOL *pool, e_pool_op op);
 void set_pool_dbr_defaults_in_media_dbr(MEDIA_DBR *mr, POOL_DBR *pr);
 
 /* ua_input.c */
-int get_cmd(UAContext *ua, char *prompt);
-int get_pint(UAContext *ua, char *prompt);
-int get_yesno(UAContext *ua, char *prompt);
+int get_cmd(UAContext *ua, const char *prompt);
+int get_pint(UAContext *ua, const char *prompt);
+int get_yesno(UAContext *ua, const char *prompt);
 void parse_ua_args(UAContext *ua);
 
 /* ua_label.c */
-bool is_volume_name_legal(UAContext *ua, char *name);
+bool is_volume_name_legal(UAContext *ua, const char *name);
 
 /* ua_output.c */
-void prtit(void *ctx, char *msg);
+void prtit(void *ctx, const char *msg);
 int complete_jcr_for_job(JCR *jcr, JOB *job, POOL *pool);
 RUN *find_next_run(RUN *run, JOB *job, time_t &runtime);
 
 /* ua_server.c */
-void bsendmsg(void *sock, char *fmt, ...);
+void bsendmsg(void *sock, const char *fmt, ...);
 UAContext *new_ua_context(JCR *jcr);
-JCR *new_control_jcr(char *base_name, int job_type);
+JCR *new_control_jcr(const char *base_name, int job_type);
 void free_ua_context(UAContext *ua);
 
 /* ua_select.c */
@@ -156,9 +156,9 @@ int	select_media_dbr(UAContext *ua, MEDIA_DBR *mr);
 int	select_pool_dbr(UAContext *ua, POOL_DBR *pr);
 int	select_client_dbr(UAContext *ua, CLIENT_DBR *cr);
 
-void	start_prompt(UAContext *ua, char *msg);
-void	add_prompt(UAContext *ua, char *prompt);
-int	do_prompt(UAContext *ua, char *automsg, char *msg, char *prompt, int max_prompt);
+void	start_prompt(UAContext *ua, const char *msg);
+void	add_prompt(UAContext *ua, const char *prompt);
+int	do_prompt(UAContext *ua, const char *automsg, const char *msg, char *prompt, int max_prompt);
 CAT    *get_catalog_resource(UAContext *ua);	       
 STORE  *get_storage_resource(UAContext *ua, int use_default);
 int	get_media_type(UAContext *ua, char *MediaType, int max_media);
@@ -169,11 +169,11 @@ POOL   *select_pool_resource(UAContext *ua);
 CLIENT *get_client_resource(UAContext *ua);
 int	get_job_dbr(UAContext *ua, JOB_DBR *jr);
 
-int find_arg_keyword(UAContext *ua, char **list);
-int find_arg(UAContext *ua, char *keyword);
-int find_arg_with_value(UAContext *ua, char *keyword);
-int do_keyword_prompt(UAContext *ua, char *msg, char **list);
-int confirm_retention(UAContext *ua, utime_t *ret, char *msg);
+int find_arg_keyword(UAContext *ua, const char **list);
+int find_arg(UAContext *ua, const char *keyword);
+int find_arg_with_value(UAContext *ua, const char *keyword);
+int do_keyword_prompt(UAContext *ua, const char *msg, const char **list);
+int confirm_retention(UAContext *ua, utime_t *ret, const char *msg);
 
 /* ua_tree.c */
 bool user_select_files_from_tree(TREE_CTX *tree);

@@ -53,7 +53,7 @@ static int const NEXT_CHECK_SECS = 60;
 /* Forward referenced subroutines */
 static void find_runs();
 static void add_job(JOB *job, RUN *run, time_t now, time_t runtime);
-static void dump_job(job_item *ji, char *msg);
+static void dump_job(job_item *ji, const char *msg);
 
 /* Imported subroutines */
 
@@ -362,7 +362,7 @@ static void add_job(JOB *job, RUN *run, time_t now, time_t runtime)
 #endif
 }
 
-static void dump_job(job_item *ji, char *msg) 
+static void dump_job(job_item *ji, const char *msg) 
 {
 #ifdef SCHED_DEBUG
    char dt[MAX_TIME_LENGTH];

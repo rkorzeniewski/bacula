@@ -133,9 +133,9 @@ static struct s_kw FS_option_kw[] = {
 /* Options for FileSet keywords */
 
 struct s_fs_opt {
-   char *name;
+   const char *name;
    int keyword;
-   char *option;
+   const char *option;
 };
 
 /*

@@ -62,20 +62,20 @@ enum {
 
 /* Used for certain KeyWord tables */
 struct s_kw {       
-   char *name;
+   const char *name;
    int token;   
 };
 
 /* Job Level keyword structure */
 struct s_jl {
-   char *level_name;                  /* level keyword */
+   const char *level_name;                  /* level keyword */
    int  level;                        /* level */
    int  job_type;                     /* JobType permitting this level */
 };
 
 /* Job Type keyword structure */
 struct s_jt {
-   char *type_name;
+   const char *type_name;
    int job_type;
 };
 

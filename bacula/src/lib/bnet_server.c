@@ -67,7 +67,7 @@ bnet_thread_server(char *bind_addr, int port, int max_clients, workq_t *client_w
    struct in_addr bind_ip;	      /* address to bind to */
    int tlog;
    int turnon = 1;
-   char *caller;
+   const char *caller;
 #ifdef HAVE_LIBWRAP
    struct request_info request;
 #endif

@@ -320,7 +320,7 @@ int open_device(JCR *jcr, DEVICE *dev)
  * must wait. The no_wait_id thread is out obtaining a new volume
  * and preparing the label.
  */
-void _lock_device(char *file, int line, DEVICE *dev)
+void _lock_device(const char *file, int line, DEVICE *dev)
 {
    int stat;
    Dmsg3(500, "lock %d from %s:%d\n", dev->dev_blocked, file, line);
@@ -351,7 +351,7 @@ int device_is_unmounted(DEVICE *dev)
    return stat;
 }
 
-void _unlock_device(char *file, int line, DEVICE *dev) 
+void _unlock_device(const char *file, int line, DEVICE *dev) 
 {
    Dmsg2(500, "unlock from %s:%d\n", file, line);
    V(dev->mutex);
@@ -365,7 +365,7 @@ void _unlock_device(char *file, int line, DEVICE *dev)
  *  the current thread can do slip through the lock_device()
  *  calls without blocking.
  */
-void _block_device(char *file, int line, DEVICE *dev, int state)
+void _block_device(const char *file, int line, DEVICE *dev, int state)
 {
    Dmsg3(500, "block set %d from %s:%d\n", state, file, line);
    ASSERT(dev->dev_blocked == BST_NOT_BLOCKED);
@@ -378,7 +378,7 @@ void _block_device(char *file, int line, DEVICE *dev, int state)
 /*
  * Unblock the device, and wake up anyone who went to sleep.
  */
-void _unblock_device(char *file, int line, DEVICE *dev)
+void _unblock_device(const char *file, int line, DEVICE *dev)
 {
    Dmsg3(500, "unblock %d from %s:%d\n", dev->dev_blocked, file, line);
    ASSERT(dev->dev_blocked);
@@ -393,7 +393,7 @@ void _unblock_device(char *file, int line, DEVICE *dev)
  * Enter with device locked and blocked
  * Exit with device unlocked and blocked by us.
  */
-void _steal_device_lock(char *file, int line, DEVICE *dev, bsteal_lock_t *hold, int state)
+void _steal_device_lock(const char *file, int line, DEVICE *dev, bsteal_lock_t *hold, int state)
 {
    Dmsg4(500, "steal lock. old=%d new=%d from %s:%d\n", dev->dev_blocked, state,
       file, line);
@@ -409,7 +409,7 @@ void _steal_device_lock(char *file, int line, DEVICE *dev, bsteal_lock_t *hold, 
  * Enter with device blocked by us but not locked
  * Exit with device locked, and blocked by previous owner 
  */
-void _give_back_device_lock(char *file, int line, DEVICE *dev, bsteal_lock_t *hold)	      
+void _give_back_device_lock(const char *file, int line, DEVICE *dev, bsteal_lock_t *hold)	      
 {
    Dmsg4(500, "return lock. old=%d new=%d from %s:%d\n", 
       dev->dev_blocked, hold->dev_blocked, file, line);

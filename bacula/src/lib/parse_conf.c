@@ -130,7 +130,7 @@ static struct s_mtypes msg_types[] = {
 
 
 /* Simply print a message */
-static void prtmsg(void *sock, char *fmt, ...)
+static void prtmsg(void *sock, const char *fmt, ...)
 {
    va_list arg_ptr;
 

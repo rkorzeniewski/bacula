@@ -48,7 +48,7 @@ static POOLMEM *substitute_prompts(UAContext *ua,
  *   SQL statement possibly terminated by ;
  *   :next query prompt
  */
-int querycmd(UAContext *ua, char *cmd)
+int querycmd(UAContext *ua, const char *cmd)
 {
    FILE *fd = NULL;
    POOLMEM *query = get_pool_memory(PM_MESSAGE);
@@ -243,11 +243,11 @@ static POOLMEM *substitute_prompts(UAContext *ua,
 /*
  * Get general SQL query for Catalog
  */
-int sqlquerycmd(UAContext *ua, char *cmd)
+int sqlquerycmd(UAContext *ua, const char *cmd)
 {
    POOLMEM *query = get_pool_memory(PM_MESSAGE);
    int len;
-   char *msg;
+   const char *msg;
 
    if (!open_db(ua)) {
       free_pool_memory(query);

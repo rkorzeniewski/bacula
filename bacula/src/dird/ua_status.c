@@ -39,13 +39,13 @@ static void list_running_jobs(UAContext *ua);
 static void list_terminated_jobs(UAContext *ua);
 static void do_storage_status(UAContext *ua, STORE *store);
 static void do_client_status(UAContext *ua, CLIENT *client);
-static void do_director_status(UAContext *ua, char *cmd);
-static void do_all_status(UAContext *ua, char *cmd);
+static void do_director_status(UAContext *ua);
+static void do_all_status(UAContext *ua);
 
 /*
  * status command
  */
-int status_cmd(UAContext *ua, char *cmd)
+int status_cmd(UAContext *ua, const char *cmd)
 {
    STORE *store;
    CLIENT *client;
@@ -58,11 +58,11 @@ int status_cmd(UAContext *ua, char *cmd)
 
    for (i=1; i<ua->argc; i++) {
       if (strcasecmp(ua->argk[i], _("all")) == 0) {
-	 do_all_status(ua, cmd);
+	 do_all_status(ua);
 	 return 1;
       } else if (strcasecmp(ua->argk[i], _("dir")) == 0 ||
                  strcasecmp(ua->argk[i], _("director")) == 0) {
-	 do_director_status(ua, cmd);
+	 do_director_status(ua);
 	 return 1;
       } else if (strcasecmp(ua->argk[i], _("client")) == 0) {
 	 client = get_client_resource(ua);
@@ -80,19 +80,21 @@ int status_cmd(UAContext *ua, char *cmd)
    }
    /* If no args, ask for status type */
    if (ua->argc == 1) { 				   
+       char prmt[MAX_NAME_LENGTH];		
+       
       start_prompt(ua, _("Status available for:\n"));
       add_prompt(ua, _("Director"));
       add_prompt(ua, _("Storage"));
       add_prompt(ua, _("Client"));
       add_prompt(ua, _("All"));
       Dmsg0(20, "do_prompt: select daemon\n");
-      if ((item=do_prompt(ua, "",  _("Select daemon type for status"), cmd, MAX_NAME_LENGTH)) < 0) {
+      if ((item=do_prompt(ua, "",  _("Select daemon type for status"), prmt, sizeof(prmt))) < 0) {
 	 return 1;
       }
       Dmsg1(20, "item=%d\n", item);
       switch (item) { 
       case 0:			      /* Director */
-	 do_director_status(ua, cmd);
+	 do_director_status(ua);
 	 break;
       case 1:
 	 store = select_storage_resource(ua);
@@ -107,7 +109,7 @@ int status_cmd(UAContext *ua, char *cmd)
 	 }
 	 break;
       case 3:
-	 do_all_status(ua, cmd);
+	 do_all_status(ua);
 	 break;
       default:
 	 break;
@@ -116,14 +118,14 @@ int status_cmd(UAContext *ua, char *cmd)
    return 1;
 }
 
-static void do_all_status(UAContext *ua, char *cmd)
+static void do_all_status(UAContext *ua)
 {
    STORE *store, **unique_store;
    CLIENT *client, **unique_client;
    int i, j;
    bool found;
 
-   do_director_status(ua, cmd);
+   do_director_status(ua);
 
    /* Count Storage items */
    LockRes();
@@ -195,7 +197,7 @@ static void do_all_status(UAContext *ua, char *cmd)
    
 }
 
-static void do_director_status(UAContext *ua, char *cmd)
+static void do_director_status(UAContext *ua)
 {
    char dt[MAX_TIME_LENGTH];
 
@@ -299,7 +301,7 @@ static void prt_runhdr(UAContext *ua)
 static void prt_runtime(UAContext *ua, JOB *job, int level, time_t runtime, POOL *pool)
 {
    char dt[MAX_TIME_LENGTH];	   
-   char *level_ptr;
+   const char *level_ptr;
    bool ok = false;
    bool close_db = false;
    JCR *jcr = ua->jcr;
@@ -383,7 +385,8 @@ static void list_running_jobs(UAContext *ua)
 {
    JCR *jcr;
    int njobs = 0;
-   char *msg;
+   const char *msg;
+   char *emsg;			      /* edited message */
    char dt[MAX_TIME_LENGTH];
    char level[10];
    bool pool_mem = false;
@@ -450,14 +453,16 @@ static void list_running_jobs(UAContext *ua)
          msg = _("has been canceled");
 	 break;
       case JS_WaitFD:
-	 msg = (char *) get_pool_memory(PM_FNAME);
-         Mmsg(&msg, _("is waiting on Client %s"), jcr->client->hdr.name);
+	 emsg = (char *) get_pool_memory(PM_FNAME);
+         Mmsg(&emsg, _("is waiting on Client %s"), jcr->client->hdr.name);
 	 pool_mem = true;
+	 msg = emsg;
 	 break;
       case JS_WaitSD:
-	 msg = (char *) get_pool_memory(PM_FNAME);
-         Mmsg(&msg, _("is waiting on Storage %s"), jcr->store->hdr.name);
+	 emsg = (char *) get_pool_memory(PM_FNAME);
+         Mmsg(&emsg, _("is waiting on Storage %s"), jcr->store->hdr.name);
 	 pool_mem = true;
+	 msg = emsg;
 	 break;
       case JS_WaitStoreRes:
          msg = _("is waiting on max Storage jobs");
@@ -479,9 +484,10 @@ static void list_running_jobs(UAContext *ua)
 	 break;
 
       default:
-	 msg = (char *) get_pool_memory(PM_FNAME);
-         Mmsg(&msg, _("is in unknown state %c"), jcr->JobStatus);
+	 emsg = (char *) get_pool_memory(PM_FNAME);
+         Mmsg(&emsg, _("is in unknown state %c"), jcr->JobStatus);
 	 pool_mem = true;
+	 msg = emsg;
 	 break;
       }
       /* 
@@ -490,25 +496,26 @@ static void list_running_jobs(UAContext *ua)
       switch (jcr->SDJobStatus) {
       case JS_WaitMount:
 	 if (pool_mem) {
-	    free_pool_memory(msg);
+	    free_pool_memory(emsg);
 	    pool_mem = false;
 	 }
          msg = _("is waiting for a mount request");
 	 break;
       case JS_WaitMedia:
 	 if (pool_mem) {
-	    free_pool_memory(msg);
+	    free_pool_memory(emsg);
 	    pool_mem = false;
 	 }
          msg = _("is waiting for an appendable Volume");
 	 break;
       case JS_WaitFD:
 	 if (!pool_mem) {
-	    msg = (char *) get_pool_memory(PM_FNAME);
+	    emsg = (char *) get_pool_memory(PM_FNAME);
 	    pool_mem = true;
 	 }
-         Mmsg(&msg, _("is waiting for Client %s to connect to Storage %s"),
+         Mmsg(&emsg, _("is waiting for Client %s to connect to Storage %s"),
 	      jcr->client->hdr.name, jcr->store->hdr.name);
+	 msg = emsg;
 	 break;
       }
       switch (jcr->JobType) {
@@ -529,7 +536,7 @@ static void list_running_jobs(UAContext *ua)
 	 msg);
 
       if (pool_mem) {
-	 free_pool_memory(msg);
+	 free_pool_memory(emsg);
 	 pool_mem = false;
       }
       free_locked_jcr(jcr);
@@ -555,7 +562,7 @@ static void list_terminated_jobs(UAContext *ua)
    bsendmsg(ua, _("========================================================================\n"));
    foreach_dlist(je, last_jobs) {
       char JobName[MAX_NAME_LENGTH];
-      char *termstat;
+      const char *termstat;
 
       bstrftime_nc(dt, sizeof(dt), je->end_time);
       switch (je->JobType) {

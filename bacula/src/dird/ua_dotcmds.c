@@ -41,22 +41,22 @@ extern struct s_res resources[];
 extern char my_name[];
 
 /* Imported functions */
-extern int qmessagescmd(UAContext *ua, char *cmd);
-extern int quit_cmd(UAContext *ua, char *cmd);
+extern int qmessagescmd(UAContext *ua, const char *cmd);
+extern int quit_cmd(UAContext *ua, const char *cmd);
 
 /* Forward referenced functions */
-static int diecmd(UAContext *ua, char *cmd);
-static int jobscmd(UAContext *ua, char *cmd);
-static int filesetscmd(UAContext *ua, char *cmd);
-static int clientscmd(UAContext *ua, char *cmd);
-static int msgscmd(UAContext *ua, char *cmd);
-static int poolscmd(UAContext *ua, char *cmd);
-static int storagecmd(UAContext *ua, char *cmd);
-static int defaultscmd(UAContext *ua, char *cmd);
-static int typescmd(UAContext *ua, char *cmd);
-static int levelscmd(UAContext *ua, char *cmd);
+static int diecmd(UAContext *ua, const char *cmd);
+static int jobscmd(UAContext *ua, const char *cmd);
+static int filesetscmd(UAContext *ua, const char *cmd);
+static int clientscmd(UAContext *ua, const char *cmd);
+static int msgscmd(UAContext *ua, const char *cmd);
+static int poolscmd(UAContext *ua, const char *cmd);
+static int storagecmd(UAContext *ua, const char *cmd);
+static int defaultscmd(UAContext *ua, const char *cmd);
+static int typescmd(UAContext *ua, const char *cmd);
+static int levelscmd(UAContext *ua, const char *cmd);
 
-struct cmdstruct { char *key; int (*func)(UAContext *ua, char *cmd); char *help; }; 
+struct cmdstruct { const char *key; int (*func)(UAContext *ua, const char *cmd); const char *help; }; 
 static struct cmdstruct commands[] = {
  { N_(".die"),        diecmd,       NULL},
  { N_(".jobs"),       jobscmd,      NULL},
@@ -77,7 +77,7 @@ static struct cmdstruct commands[] = {
 /*
  * Execute a command from the UA
  */
-int do_a_dot_command(UAContext *ua, char *cmd)
+int do_a_dot_command(UAContext *ua, const char *cmd)
 {
    int i;
    int len, stat;  
@@ -112,7 +112,7 @@ int do_a_dot_command(UAContext *ua, char *cmd)
 /*
  * Create segmentation fault 
  */
-static int diecmd(UAContext *ua, char *cmd)
+static int diecmd(UAContext *ua, const char *cmd)
 {
    JCR *jcr = NULL;
    int a;
@@ -123,7 +123,7 @@ static int diecmd(UAContext *ua, char *cmd)
    return 0;
 }
 
-static int jobscmd(UAContext *ua, char *cmd)
+static int jobscmd(UAContext *ua, const char *cmd)
 {
    JOB *job = NULL;
    LockRes();
@@ -134,7 +134,7 @@ static int jobscmd(UAContext *ua, char *cmd)
    return 1;
 }
 
-static int filesetscmd(UAContext *ua, char *cmd)
+static int filesetscmd(UAContext *ua, const char *cmd)
 {
    FILESET *fs = NULL;
    LockRes();
@@ -145,7 +145,7 @@ static int filesetscmd(UAContext *ua, char *cmd)
    return 1;
 }
 
-static int clientscmd(UAContext *ua, char *cmd)
+static int clientscmd(UAContext *ua, const char *cmd)
 {
    CLIENT *client = NULL;
    LockRes();
@@ -156,7 +156,7 @@ static int clientscmd(UAContext *ua, char *cmd)
    return 1;
 }
 
-static int msgscmd(UAContext *ua, char *cmd)
+static int msgscmd(UAContext *ua, const char *cmd)
 {
    MSGS *msgs = NULL;
    LockRes();
@@ -167,7 +167,7 @@ static int msgscmd(UAContext *ua, char *cmd)
    return 1;
 }
 
-static int poolscmd(UAContext *ua, char *cmd)
+static int poolscmd(UAContext *ua, const char *cmd)
 {
    POOL *pool = NULL;
    LockRes();
@@ -178,7 +178,7 @@ static int poolscmd(UAContext *ua, char *cmd)
    return 1;
 }
 
-static int storagecmd(UAContext *ua, char *cmd)
+static int storagecmd(UAContext *ua, const char *cmd)
 {
    STORE *store = NULL;
    LockRes();
@@ -190,7 +190,7 @@ static int storagecmd(UAContext *ua, char *cmd)
 }
 
 
-static int typescmd(UAContext *ua, char *cmd)
+static int typescmd(UAContext *ua, const char *cmd)
 {
    bsendmsg(ua, "Backup\n");
    bsendmsg(ua, "Restore\n");
@@ -199,7 +199,7 @@ static int typescmd(UAContext *ua, char *cmd)
    return 1;
 }
 
-static int levelscmd(UAContext *ua, char *cmd)
+static int levelscmd(UAContext *ua, const char *cmd)
 {
    bsendmsg(ua, "Incremental\n");
    bsendmsg(ua, "Full\n");
@@ -215,7 +215,7 @@ static int levelscmd(UAContext *ua, char *cmd)
 /*
  * Return default values for a job
  */
-static int defaultscmd(UAContext *ua, char *cmd)
+static int defaultscmd(UAContext *ua, const char *cmd)
 {
    JOB *job;	   
    if (ua->argc == 2 && strcmp(ua->argk[1], "job") == 0) {

@@ -220,7 +220,7 @@ static void my_free_jcr(JCR *jcr)
  * Setup a "daemon" JCR for the various standalone
  *  tools (e.g. bls, bextract, bscan, ...)
  */
-JCR *setup_jcr(char *name, char *device, BSR *bsr, char *VolumeName)
+JCR *setup_jcr(const char *name, const char *device, BSR *bsr, const char *VolumeName)
 {
    JCR *jcr = new_jcr(sizeof(JCR), my_free_jcr);
    jcr->VolSessionId = 1;

@@ -38,7 +38,7 @@
 #define __SQL_H_ 1
 
 
-typedef void (DB_LIST_HANDLER)(void *, char *);
+typedef void (DB_LIST_HANDLER)(void *, const char *);
 typedef int (DB_RESULT_HANDLER)(void *, int, char **);
 
 #define db_lock(mdb)   _db_lock(__FILE__, __LINE__, mdb)
@@ -587,7 +587,7 @@ void list_result(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type type);
 void list_dashes(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx);
 int get_sql_record_max(JCR *jcr, B_DB *mdb);
 int check_tables_version(JCR *jcr, B_DB *mdb);
-void _db_unlock(char *file, int line, B_DB *mdb);
-void _db_lock(char *file, int line, B_DB *mdb);
+void _db_unlock(const char *file, int line, B_DB *mdb);
+void _db_lock(const char *file, int line, B_DB *mdb);
  
 #endif /* __SQL_H_ */

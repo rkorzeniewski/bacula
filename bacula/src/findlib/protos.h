@@ -42,10 +42,10 @@ int   term_find_files(FF_PKT *ff);
 /* From match.c */
 void  init_include_exclude_files(FF_PKT *ff);
 void  term_include_exclude_files(FF_PKT *ff);
-void  add_fname_to_include_list(FF_PKT *ff, int prefixed, char *fname);
-void  add_fname_to_exclude_list(FF_PKT *ff, char *fname);
-int   file_is_excluded(FF_PKT *ff, char *file);
-int   file_is_included(FF_PKT *ff, char *file);
+void  add_fname_to_include_list(FF_PKT *ff, int prefixed, const char *fname);
+void  add_fname_to_exclude_list(FF_PKT *ff, const char *fname);
+int   file_is_excluded(FF_PKT *ff, const char *file);
+int   file_is_included(FF_PKT *ff, const char *file);
 struct s_included_file *get_next_included_file(FF_PKT *ff, 
                            struct s_included_file *inc);
 

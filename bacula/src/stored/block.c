@@ -38,7 +38,7 @@ extern int debug_level;
  * Dump the block header, then walk through
  * the block printing out the record headers.
  */
-void dump_block(DEV_BLOCK *b, char *msg)
+void dump_block(DEV_BLOCK *b, const char *msg)
 {
    ser_declare;
    char *p;
