@@ -26,6 +26,7 @@
 ;
   Name "Bacula Client"
   OutFile "winbacula-${VERSION}.exe"
+  SetCompressor lzma
   InstallDir "c:\bacula"
 
 ;
@@ -167,10 +168,10 @@ Section "Install wx-Console" SecWxConsole
   SetOutPath "$INSTDIR\bin"
   File wx-console\Release\wx-console.exe
   IfFileExists "$INSTDIR\bin\wx-console.conf" newconf 
-  File console\wx-console.conf
+  File wx-console\wx-console.conf
   goto do_next
  newconf:
-  File /oname=wx-console.conf.new console\wx-console.conf
+  File /oname=wx-console.conf.new wx-console\wx-console.conf
        
   ; If /service was given jump to the service install part
  do_next:

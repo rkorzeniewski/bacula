@@ -5,6 +5,20 @@
 #     Kern Sibbald, February 2004
 #
 
+srcdir =	.
+VPATH = 	.
+.PATH:		.
+
+# one up
+basedir = ..
+# top dir
+topdir = ../..
+# this dir relative to top dir
+thisdir = src/win32
+
+DEBUG=@DEBUG@
+
+
 NMAKE=nmake
 MAKENSIS="c:/Program Files/NSIS/makensis"
 
@@ -15,13 +29,13 @@ dummy:
 all:  bacula bconsole wx-console installer
 
 
-bacula:
+bacula: dummy
 	(cd baculafd; env MAKEFLAGS= ${NMAKE} CFG="baculafd - Win32 Release" /f baculafd.mak)
 
-bconsole:
+bconsole: dummy
 	(cd console; env MAKEFLAGS= ${NMAKE} CFG="console - Win32 Release" /f console.mak)
 	
-wx-console:
+wx-console: dummy
 	(cd wx-console; env MAKEFLAGS= ${NMAKE} CFG="wx-console - Win32 Release" /f wx-console.mak)
 
 #
@@ -42,6 +56,12 @@ installer: winbacula.exe
 #
 winbacula.exe: bacula
 	${MAKENSIS} winbacula.nsi
+
+
+Makefile: $(srcdir)/Makefile.in $(topdir)/config.status winbacula.nsi.in
+	cd $(topdir) \
+	  && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= \
+	  $(SHELL) ./config.status
 
 clean:
 	(cd baculafd; make clean)
