@@ -481,6 +481,7 @@ POOL *select_pool_resource(UAContext *ua)
    UnlockRes();
    do_prompt(ua, _("Select Pool resource"), name, sizeof(name));
    pool = (POOL *)GetResWithName(R_POOL, name);
+   return pool;
 }
 
 
@@ -492,7 +493,6 @@ POOL *select_pool_resource(UAContext *ua)
 POOL *get_pool_resource(UAContext *ua)
 {
    POOL *pool = NULL;
-   char name[MAX_NAME_LENGTH];
    int i;
    
    for (i=1; i<ua->argc; i++) {

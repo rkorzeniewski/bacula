@@ -626,7 +626,7 @@ static int status_cmd(JCR *jcr)
    char dt[MAX_TIME_LENGTH];
    char b1[30], b2[30], b3[30];
 
-   bnet_fsend(user, "\n%s Version: " VERSION " (" DATE ")\n", my_name);
+   bnet_fsend(user, "\n%s Version: " VERSION " (" BDATE ")\n", my_name);
    bstrftime(dt, sizeof(dt), daemon_start_time);
    bnet_fsend(user, _("Daemon started %s, %d Job%s run.\n"), dt, last_job.NumJobs,
         last_job.NumJobs == 1 ? "" : "s");

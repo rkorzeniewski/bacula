@@ -58,7 +58,7 @@ static BSR *bsr = NULL;
 static void usage()
 {
    fprintf(stderr,
-"\nVersion: " VERSION " (" DATE ")\n\n"
+"\nVersion: " VERSION " (" BDATE ")\n\n"
 "Usage: bls [-d debug_level] <physical-device-name>\n"
 "       -b <file>       specify a bootstrap file\n"
 "       -c <file>       specify a config file\n"

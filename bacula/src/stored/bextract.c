@@ -75,7 +75,7 @@ char *configfile;
 static void usage()
 {
    fprintf(stderr,
-"\nVersion: " VERSION " (" DATE ")\n\n"
+"\nVersion: " VERSION " (" BDATE ")\n\n"
 "Usage: bextract [-d debug_level] <bacula-archive> <directory-to-store-files>\n"
 "       -b <file>       specify a bootstrap file\n"
 "       -c <file>       specify a configuration file\n"

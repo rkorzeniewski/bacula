@@ -358,7 +358,7 @@ void create_volume_label(DEVICE *dev, char *VolName)
       dev->VolHdr.HostName[0] = 0;
    }
    bstrncpy(dev->VolHdr.LabelProg, my_name, sizeof(dev->VolHdr.LabelProg));
-   sprintf(dev->VolHdr.ProgVersion, "Ver. %s %s", VERSION, DATE);
+   sprintf(dev->VolHdr.ProgVersion, "Ver. %s %s", VERSION, BDATE);
    sprintf(dev->VolHdr.ProgDate, "Build %s %s", __DATE__, __TIME__);
    dev->state |= ST_LABEL;	      /* set has Bacula label */
    if (debug_level >= 90) {

@@ -145,6 +145,6 @@ int authenticate_user_agent(BSOCK *ua)
       sleep(5);
       return 0;
    }
-   bnet_fsend(ua, "1000 OK: %s Version: " VERSION " (" DATE ")\n", my_name);
+   bnet_fsend(ua, "1000 OK: %s Version: " VERSION " (" BDATE ")\n", my_name);
    return 1;
 }

@@ -1483,7 +1483,7 @@ static int helpcmd(UAContext *ua, char *cmd)
 
 static int versioncmd(UAContext *ua, char *cmd)
 {
-   bsendmsg(ua, "%s Version: " VERSION " (" DATE ")\n", my_name);
+   bsendmsg(ua, "%s Version: " VERSION " (" BDATE ")\n", my_name);
    return 1;
 }
 

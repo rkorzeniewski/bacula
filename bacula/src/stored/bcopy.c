@@ -54,7 +54,7 @@ char *configfile;
 static void usage()
 {
    fprintf(stderr, _(
-"\nVersion: " VERSION " (" DATE ")\n\n"
+"\nVersion: " VERSION " (" BDATE ")\n\n"
 "Usage: bcopy [-d debug_level] <input-archive> <output-archive>\n"
 "       -b bootstrap      specify a bootstrap file\n"
 "       -c <file>         specify configuration file\n"

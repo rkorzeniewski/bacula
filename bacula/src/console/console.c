@@ -60,7 +60,7 @@ static int stop = FALSE;
 static void usage()
 {
    fprintf(stderr,
-"\nVersion: " VERSION " (" DATE ")\n\n"
+"\nVersion: " VERSION " (" BDATE ")\n\n"
 "Usage: console [-s] [-c config_file] [-d debug_level] [config_file]\n"
 "       -c <file>   set configuration file to file\n"
 "       -dnn        set debug level to nn\n"

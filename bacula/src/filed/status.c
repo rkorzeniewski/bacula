@@ -46,7 +46,7 @@ static void do_status(void sendit(char *msg, int len, void *sarg), void *arg)
 
    msg = (char *)get_pool_memory(PM_MESSAGE);
    found = 0;
-   len = Mmsg(&msg, "%s Version: " VERSION " (" DATE ")\n", my_name);
+   len = Mmsg(&msg, "%s Version: " VERSION " (" BDATE ")\n", my_name);
    sendit(msg, len, arg);
    bstrftime(dt, sizeof(dt), daemon_start_time);
    len = Mmsg(&msg, _("Daemon started %s, %d Job%s run.\n"), dt, last_job.NumJobs,
@@ -97,9 +97,9 @@ static void do_status(void sendit(char *msg, int len, void *sarg), void *arg)
 	   edit_uint64_with_commas(njcr->num_files_examined, b1));
       sendit(msg, len, arg);
       if (njcr->JobFiles > 0) {
-         P(njcr->mutex);
+	 P(njcr->mutex);
          len = Mmsg(&msg, _("    Processing file: %s\n"), njcr->last_fname);
-         V(njcr->mutex);
+	 V(njcr->mutex);
 	 sendit(msg, len, arg);
       }
 

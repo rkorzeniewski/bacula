@@ -198,7 +198,7 @@ static void do_director_status(UAContext *ua, char *cmd)
    int pool_mem = FALSE;
 
    Dmsg0(200, "Doing status\n");
-   bsendmsg(ua, "%s Version: " VERSION " (" DATE ")\n", my_name);
+   bsendmsg(ua, "%s Version: " VERSION " (" BDATE ")\n", my_name);
    bstrftime(dt, sizeof(dt), daemon_start_time);
    bsendmsg(ua, _("Daemon started %s, %d Job%s run.\n"), dt, last_job.NumJobs,
         last_job.NumJobs == 1 ? "" : "s");

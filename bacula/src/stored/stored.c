@@ -62,7 +62,7 @@ static workq_t dird_workq;	      /* queue for processing connections */
 static void usage()
 {
    fprintf(stderr, _(
-"\nVersion: " VERSION " (" DATE ")\n\n"
+"\nVersion: " VERSION " (" BDATE ")\n\n"
 "Usage: stored [-s -f ] [-c config_file] [-d debug_level]  [config_file]\n"
 "        -c <file>   use <file> as configuration file\n"
 "        -dnn        set debug level to nn\n"
