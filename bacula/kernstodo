@@ -30,6 +30,10 @@ Suggestions for Preben:
 - Optimized bootstrap.
 
 For 1.37:
+- Linux Sony LIB-D81, AIT-3 library works.
+- If Bacula does not find the right tape in the Autochanger,
+  then mark the tape in error and move on rather than asking
+  for operator intervention.
 - Device resource needs the "name" of the SD.
 - Add and option to see if the file size changed
   during backup.

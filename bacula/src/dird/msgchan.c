@@ -50,7 +50,7 @@ static char query_device[] = "query device=%s";
 static char OKjob[]      = "3000 OK Job SDid=%d SDtime=%d Authorization=%100s\n";
 static char OK_device[]  = "3000 OK use device\n";
 static char OK_query[]  = "3001 OK query append=%d read=%d num_writers=%d "
-   "num_waiting=%d open=%d use_count=%d labeled=%d "
+   "num_waiting=%d open=%d use_count=%d labeled=%d offline=%d autochanger=%d "
    "media_type=%127s volume_name=%127s";
 
 /* Storage Daemon requests */
@@ -106,6 +106,7 @@ bool update_device_res(JCR *jcr, DEVICE *dev)
 {
    POOL_MEM device_name, media_type, volume_name;
    int dev_open, dev_append, dev_read, dev_labeled;
+   int dev_offline, dev_autochanger;
    BSOCK *sd;
    if (!connect_to_storage_daemon(jcr, 5, 30, 0)) {
       return false;
@@ -118,8 +119,9 @@ bool update_device_res(JCR *jcr, DEVICE *dev)
       Dmsg1(400, "<stored: %s", sd->msg);
       if (sscanf(sd->msg, OK_query, &dev_append, &dev_read,
 	  &dev->num_writers, &dev->num_waiting, &dev_open,
-	  &dev->use_count, &dev_labeled, media_type.c_str(),
-	  volume_name.c_str()) != 9) {
+	  &dev->use_count, &dev_labeled, &dev_offline,	
+	  &dev_autochanger,  media_type.c_str(),
+	  volume_name.c_str()) != 11) {
 	 return false;
       }
       unbash_spaces(media_type);
@@ -130,6 +132,8 @@ bool update_device_res(JCR *jcr, DEVICE *dev)
       dev->append = dev_append;
       dev->read = dev_read;
       dev->labeled = dev_labeled;
+      dev->offline = dev_offline;
+      dev->autochanger = dev_autochanger;
       dev->found = true;
    } else {
       return false;

@@ -221,6 +221,9 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       sendit(sock, "         spool_directory=%s\n", NPRT(res->res_dev.spool_directory));
       sendit(sock, "         max_spool_size=%" lld " max_job_spool_size=%" lld "\n",
 	 res->res_dev.max_spool_size, res->res_dev.max_job_spool_size);
+      if (res->res_dev.changer_res) {
+         sendit(sock, "         changer=%p\n", res->res_dev.changer_res);
+      }
       bstrncpy(buf, "        ", sizeof(buf));
       if (res->res_dev.cap_bits & CAP_EOF) {
          bstrncat(buf, "CAP_EOF ", sizeof(buf));
@@ -266,7 +269,7 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       break;
    case R_AUTOCHANGER:
       DEVRES *dev;
-      sendit(sock, "Changer: name=%s Changer_devname=%s Changer_cmd=%s\n",
+      sendit(sock, "Changer: name=%s Changer_devname=%s\n      Changer_cmd=%s\n",
 	 res->res_changer.hdr.name,
 	 res->res_changer.changer_name, res->res_changer.changer_command);
       foreach_alist(dev, res->res_changer.device) {
@@ -466,10 +469,14 @@ void save_resource(int type, RES_ITEM *items, int pass)
 	 }
 	 /* we must explicitly copy the device alist pointer */
 	 res->res_changer.device   = res_all.res_changer.device;
+	 /*
+	  * Now update each device in this resource to point back 
+	  *  to the changer resource.
+	  */
 	 foreach_alist(dev, res->res_changer.device) {
 	    dev->changer_res = (AUTOCHANGER *)&res->res_changer;
 	 }
-	 if ((errstat = pthread_mutex_init(&dev->changer_res->changer_mutex, NULL)) != 0) {
+	 if ((errstat = pthread_mutex_init(&res->res_changer.changer_mutex, NULL)) != 0) {
 	    berrno be;
             Jmsg1(NULL, M_ERROR_TERM, 0, _("Unable to init mutex: ERR=%s\n"), 
 		  be.strerror(errstat));

@@ -4,7 +4,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -23,6 +23,12 @@
 
  */
 
+/* admin.c */
+extern bool do_admin_init(JCR *jcr);
+extern bool do_admin(JCR *jcr);
+extern void admin_cleanup(JCR *jcr, int TermCode);
+
+
 /* authenticate.c */
 extern bool authenticate_storage_daemon(JCR *jcr, STORE *store);
 extern int authenticate_file_daemon(JCR *jcr);
@@ -39,6 +45,9 @@ extern int find_recycled_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr);
 
 /* backup.c */
 extern int wait_for_job_termination(JCR *jcr);
+extern bool do_backup_init(JCR *jcr);
+extern bool do_backup(JCR *jcr);
+extern void backup_cleanup(JCR *jcr, int TermCode);
 
 /* bsr.c */
 RBSR *new_bsr();
@@ -63,7 +72,7 @@ int variable_expansion(JCR *jcr, char *inp, POOLMEM **exp);
 
 /* fd_cmds.c */
 extern int connect_to_file_daemon(JCR *jcr, int retry_interval,
-				  int max_retry_time, int verbose);
+                                  int max_retry_time, int verbose);
 extern int send_include_list(JCR *jcr);
 extern int send_exclude_list(JCR *jcr);
 extern int send_bootstrap_file(JCR *jcr);
@@ -71,7 +80,7 @@ extern int send_level_command(JCR *jcr);
 extern int get_attributes_and_put_in_catalog(JCR *jcr);
 extern int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId);
 extern int put_file_into_catalog(JCR *jcr, long file_index, char *fname,
-			  char *link, char *attr, int stream);
+                          char *link, char *attr, int stream);
 extern void get_level_since_time(JCR *jcr, char *since, int since_len);
 extern int send_run_before_and_after_commands(JCR *jcr);
 
@@ -94,12 +103,18 @@ extern void init_jcr_job_record(JCR *jcr);
 extern void copy_storage(JCR *new_jcr, JCR *old_jcr);
 extern void set_storage(JCR *jcr, STORE *store);
 
+/* mac.c */
+extern bool do_mac(JCR *jcr);
+extern bool do_mac_init(JCR *jcr);
+extern void mac_cleanup(JCR *jcr, int TermCode);
+
+
 /* mountreq.c */
 extern void mount_request(JCR *jcr, BSOCK *bs, char *buf);
 
 /* msgchan.c */
 extern bool connect_to_storage_daemon(JCR *jcr, int retry_interval,
-			      int max_retry_time, int verbose);
+                              int max_retry_time, int verbose);
 extern int start_storage_daemon_job(JCR *jcr, alist *store, int append);
 extern int start_storage_daemon_message_thread(JCR *jcr);
 extern int bget_dirmsg(BSOCK *bs);
@@ -112,6 +127,12 @@ void check_if_volume_valid_or_recyclable(JCR *jcr, MEDIA_DBR *mr, const char **r
 
 /* newvol.c */
 bool newVolume(JCR *jcr, MEDIA_DBR *mr);
+
+/* restore.c */
+extern bool do_restore(JCR *jcr);
+extern bool do_restore_init(JCR *jcr);
+extern void restore_cleanup(JCR *jcr, int TermCode);
+
 
 /* ua_acl.c */
 bool acl_access_ok(UAContext *ua, int acl, char *item);
@@ -151,28 +172,28 @@ JCR *new_control_jcr(const char *base_name, int job_type);
 void free_ua_context(UAContext *ua);
 
 /* ua_select.c */
-STORE	*select_storage_resource(UAContext *ua);
-JOB	*select_job_resource(UAContext *ua);
-JOB	*select_restore_job_resource(UAContext *ua);
-CLIENT	*select_client_resource(UAContext *ua);
+STORE   *select_storage_resource(UAContext *ua);
+JOB     *select_job_resource(UAContext *ua);
+JOB     *select_restore_job_resource(UAContext *ua);
+CLIENT  *select_client_resource(UAContext *ua);
 FILESET *select_fileset_resource(UAContext *ua);
-int	select_pool_and_media_dbr(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr);
-int	select_media_dbr(UAContext *ua, MEDIA_DBR *mr);
-bool	select_pool_dbr(UAContext *ua, POOL_DBR *pr);
-int	select_client_dbr(UAContext *ua, CLIENT_DBR *cr);
+int     select_pool_and_media_dbr(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr);
+int     select_media_dbr(UAContext *ua, MEDIA_DBR *mr);
+bool    select_pool_dbr(UAContext *ua, POOL_DBR *pr);
+int     select_client_dbr(UAContext *ua, CLIENT_DBR *cr);
 
-void	start_prompt(UAContext *ua, const char *msg);
-void	add_prompt(UAContext *ua, const char *prompt);
-int	do_prompt(UAContext *ua, const char *automsg, const char *msg, char *prompt, int max_prompt);
+void    start_prompt(UAContext *ua, const char *msg);
+void    add_prompt(UAContext *ua, const char *prompt);
+int     do_prompt(UAContext *ua, const char *automsg, const char *msg, char *prompt, int max_prompt);
 CAT    *get_catalog_resource(UAContext *ua);
 STORE  *get_storage_resource(UAContext *ua, int use_default);
-int	get_media_type(UAContext *ua, char *MediaType, int max_media);
-bool	get_pool_dbr(UAContext *ua, POOL_DBR *pr);
-int	get_client_dbr(UAContext *ua, CLIENT_DBR *cr);
+int     get_media_type(UAContext *ua, char *MediaType, int max_media);
+bool    get_pool_dbr(UAContext *ua, POOL_DBR *pr);
+int     get_client_dbr(UAContext *ua, CLIENT_DBR *cr);
 POOL   *get_pool_resource(UAContext *ua);
 POOL   *select_pool_resource(UAContext *ua);
 CLIENT *get_client_resource(UAContext *ua);
-int	get_job_dbr(UAContext *ua, JOB_DBR *jr);
+int     get_job_dbr(UAContext *ua, JOB_DBR *jr);
 
 int find_arg_keyword(UAContext *ua, const char **list);
 int find_arg(UAContext *ua, const char *keyword);
@@ -195,3 +216,8 @@ int purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr);
 
 /* ua_run.c */
 extern int run_cmd(UAContext *ua, const char *cmd);
+
+/* verify.c */
+extern bool do_verify(JCR *jcr);
+extern bool do_verify_init(JCR *jcr);
+extern void verify_cleanup(JCR *jcr, int TermCode);

@@ -51,18 +51,13 @@ static char OKrestore[]   = "2000 OK restore\n";
 static char OKstore[]     = "2000 OK storage\n";
 static char OKsession[]   = "2000 OK session\n";
 
-/* Forward referenced functions */
-static void restore_cleanup(JCR *jcr, int status);
-
-/* External functions */
-
 /*
  * Do a restore of the specified files
  *
  *  Returns:  0 on failure
  *	      1 on success
  */
-int do_restore(JCR *jcr)
+bool do_restore(JCR *jcr)
 {
    BSOCK   *fd;
    JOB_DBR rjr; 		      /* restore job record */
@@ -72,7 +67,7 @@ int do_restore(JCR *jcr)
    if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
       restore_cleanup(jcr, JS_ErrorTerminated);
-      return 0;
+      return false;
    }
    Dmsg0(20, "Updated job start record\n");
 
@@ -96,7 +91,7 @@ int do_restore(JCR *jcr)
          Jmsg2(jcr, M_FATAL, 0, _("Cannot get job record id=%d %s"), rjr.JobId,
 	    db_strerror(jcr->db));
 	 restore_cleanup(jcr, JS_ErrorTerminated);
-	 return 0;
+	 return false;
       }
 
       /*
@@ -108,7 +103,7 @@ int do_restore(JCR *jcr)
          Jmsg(jcr, M_FATAL, 0, _("Cannot find Volume names for restore Job %d. %s"),
 	    rjr.JobId, db_strerror(jcr->db));
 	 restore_cleanup(jcr, JS_ErrorTerminated);
-	 return 0;
+	 return false;
       }
       Dmsg1(20, "Got job Volume Names: %s\n", jcr->VolumeName);
    }
@@ -137,14 +132,14 @@ int do_restore(JCR *jcr)
     */
    if (!start_storage_daemon_job(jcr, jcr->storage, SD_READ)) {
       restore_cleanup(jcr, JS_ErrorTerminated);
-      return 0;
+      return false;
    }
    /*
     * Now start a Storage daemon message thread
     */
    if (!start_storage_daemon_message_thread(jcr)) {
       restore_cleanup(jcr, JS_ErrorTerminated);
-      return 0;
+      return false;
    }
    Dmsg0(50, "Storage daemon connection OK\n");
 
@@ -154,7 +149,7 @@ int do_restore(JCR *jcr)
    set_jcr_job_status(jcr, JS_WaitFD);
    if (!connect_to_file_daemon(jcr, 10, FDConnectTimeout, 1)) {
       restore_cleanup(jcr, JS_ErrorTerminated);
-      return 0;
+      return false;
    }
 
    fd = jcr->file_bsock;
@@ -162,12 +157,12 @@ int do_restore(JCR *jcr)
 
    if (!send_include_list(jcr)) {
       restore_cleanup(jcr, JS_ErrorTerminated);
-      return 0;
+      return false;
    }
 
    if (!send_exclude_list(jcr)) {
       restore_cleanup(jcr, JS_ErrorTerminated);
-      return 0;
+      return false;
    }
 
    /*
@@ -182,7 +177,7 @@ int do_restore(JCR *jcr)
    Dmsg1(6, "dird>filed: %s\n", fd->msg);
    if (!response(jcr, fd, OKstore, "Storage", DISPLAY_ERROR)) {
       restore_cleanup(jcr, JS_ErrorTerminated);
-      return 0;
+      return false;
    }
 
    /*
@@ -190,7 +185,7 @@ int do_restore(JCR *jcr)
     */
    if (!send_bootstrap_file(jcr)) {
       restore_cleanup(jcr, JS_ErrorTerminated);
-      return 0;
+      return false;
    }
 
    /*
@@ -208,13 +203,13 @@ int do_restore(JCR *jcr)
 		rjr.EndBlock);
       if (!response(jcr, fd, OKsession, "Session", DISPLAY_ERROR)) {
 	 restore_cleanup(jcr, JS_ErrorTerminated);
-	 return 0;
+	 return false;
       }
    }
 
    if (!send_run_before_and_after_commands(jcr)) {
       restore_cleanup(jcr, JS_ErrorTerminated);
-      return 0;
+      return false;
    }
 
    /* Send restore command */
@@ -242,21 +237,26 @@ int do_restore(JCR *jcr)
 
    if (!response(jcr, fd, OKrestore, "Restore", DISPLAY_ERROR)) {
       restore_cleanup(jcr, JS_ErrorTerminated);
-      return 0;
+      return false;
    }
 
    /* Wait for Job Termination */
    int stat = wait_for_job_termination(jcr);
    restore_cleanup(jcr, stat);
 
-   return 1;
+   return true;
+}
+
+bool do_restore_init(JCR *jcr) 
+{
+   return true;
 }
 
 /*
  * Release resources allocated during restore.
  *
  */
-static void restore_cleanup(JCR *jcr, int TermCode)
+void restore_cleanup(JCR *jcr, int TermCode)
 {
    char sdt[MAX_TIME_LENGTH], edt[MAX_TIME_LENGTH];
    char ec1[30], ec2[30], ec3[30];

@@ -114,6 +114,7 @@ enum {
 #define ST_NEXTVOL         (1<<13)    /* Start writing on next volume */
 #define ST_SHORT           (1<<14)    /* Short block read */
 #define ST_MOUNTED         (1<<15)    /* the device is mounted to the mount point */
+#define ST_OFFLINE         (1<<16)    /* set offline by operator */
 
 /* dev_blocked states (mutually exclusive) */
 enum {
@@ -247,6 +248,7 @@ public:
    int is_fifo() const;
    int is_dvd() const;
    int is_open() const;
+   int is_offline() const;
    int is_labeled() const;
    int is_busy() const;               /* either reading or writing */
    int at_eof() const;
@@ -260,9 +262,11 @@ public:
    void set_eot();
    void set_append();
    void set_read();
+   void set_offline();
    void clear_append();
    void clear_read();
    void clear_label();
+   void clear_offline();
 };
 
 /* Note, these return int not bool! */
@@ -271,6 +275,7 @@ inline int DEVICE::is_file() const { return state & ST_FILE; }
 inline int DEVICE::is_fifo() const { return state & ST_FIFO; }
 inline int DEVICE::is_dvd()  const { return state & ST_DVD; }
 inline int DEVICE::is_open() const { return state & ST_OPENED; }
+inline int DEVICE::is_offline() const { return state & ST_OFFLINE; }
 inline int DEVICE::is_labeled() const { return state & ST_LABEL; }
 inline int DEVICE::is_busy() const { return state & ST_READ || num_writers; }
 inline int DEVICE::at_eof() const { return state & ST_EOF; }
@@ -279,9 +284,11 @@ inline int DEVICE::can_append() const { return state & ST_APPEND; }
 inline int DEVICE::can_read() const { return state & ST_READ; }
 inline void DEVICE::set_append() { state |= ST_APPEND; }
 inline void DEVICE::set_read() { state |= ST_READ; }
+inline void DEVICE::set_offline() { state |= ST_OFFLINE; }
 inline void DEVICE::clear_append() { state &= ~ST_APPEND; }
 inline void DEVICE::clear_read() { state &= ~ST_READ; }
 inline void DEVICE::clear_label() { state &= ~ST_LABEL; }
+inline void DEVICE::clear_offline() { state &= ~ST_OFFLINE; }
 inline const char *DEVICE::strerror() const { return errmsg; }
 inline const char *DEVICE::archive_name() const { return dev_name; }
 

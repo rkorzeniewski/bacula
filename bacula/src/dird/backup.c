@@ -48,35 +48,14 @@ static char OKstore[]    = "2000 OK storage\n";
 static char EndJob[]     = "2800 End Job TermCode=%d JobFiles=%u "
                            "ReadBytes=%lld JobBytes=%lld Errors=%u\n";
 
-
-/* Forward referenced functions */
-static void backup_cleanup(JCR *jcr, int TermCode, char *since, FILESET_DBR *fsr);
-
-/* External functions */
-
-/*
- * Do a backup of the specified FileSet
- *
- *  Returns:  0 on failure
- *	      1 on success
+/* 
+ * Called here before the job is run to do the job
+ *   specific setup.
  */
-int do_backup(JCR *jcr)
+bool do_backup_init(JCR *jcr)
 {
-   char since[MAXSTRING];
-   int stat;
-   BSOCK   *fd;
-   POOL_DBR pr;
    FILESET_DBR fsr;
-   STORE *store;
-
-   since[0] = 0;
-
-   if (!get_or_create_fileset_record(jcr, &fsr)) {
-      goto bail_out;
-   }
-
-   get_level_since_time(jcr, since, sizeof(since));
-
+   POOL_DBR pr;
    /*
     * Get the Pool record -- first apply any level defined pools
     */
@@ -100,18 +79,47 @@ int do_backup(JCR *jcr)
    memset(&pr, 0, sizeof(pr));
    bstrncpy(pr.Name, jcr->pool->hdr.name, sizeof(pr.Name));
 
-   while (!db_get_pool_record(jcr, jcr->db, &pr)) { /* get by Name */
+   if (!db_get_pool_record(jcr, jcr->db, &pr)) { /* get by Name */
       /* Try to create the pool */
       if (create_pool(jcr, jcr->db, jcr->pool, POOL_OP_CREATE) < 0) {
          Jmsg(jcr, M_FATAL, 0, _("Pool %s not in database. %s"), pr.Name,
 	    db_strerror(jcr->db));
-	 goto bail_out;
+	 return false;
       } else {
          Jmsg(jcr, M_INFO, 0, _("Pool %s created in database.\n"), pr.Name);
+	 if (!db_get_pool_record(jcr, jcr->db, &pr)) { /* get by Name */
+            Jmsg(jcr, M_FATAL, 0, _("Pool %s not in database. %s"), pr.Name,
+	       db_strerror(jcr->db));
+	    return false;
+	 }
       }
    }
    jcr->PoolId = pr.PoolId;		  /****FIXME**** this can go away */
    jcr->jr.PoolId = pr.PoolId;
+
+   jcr->since[0] = 0;
+
+   if (!get_or_create_fileset_record(jcr, &fsr)) {
+      return false;
+   }
+   bstrncpy(jcr->FSCreateTime, fsr.cCreateTime, sizeof(jcr->FSCreateTime));
+
+   get_level_since_time(jcr, jcr->since, sizeof(jcr->since));
+
+   return true;
+}
+
+/*
+ * Do a backup of the specified FileSet
+ *
+ *  Returns:  false on failure
+ *	      true  on success
+ */
+bool do_backup(JCR *jcr)
+{
+   int stat;
+   BSOCK   *fd;
+   STORE *store;
 
 
    /* Print Job Start message */
@@ -122,7 +130,7 @@ int do_backup(JCR *jcr)
    Dmsg2(100, "JobId=%d JobLevel=%c\n", jcr->jr.JobId, jcr->jr.JobLevel);
    if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
-      goto bail_out;
+      return false;
    }
 
    /*
@@ -137,40 +145,40 @@ int do_backup(JCR *jcr)
     * Start conversation with Storage daemon
     */
    if (!connect_to_storage_daemon(jcr, 10, SDConnectTimeout, 1)) {
-      goto bail_out;
+      return false;
    }
    /*
     * Now start a job with the Storage daemon
     */
    if (!start_storage_daemon_job(jcr, jcr->storage, SD_APPEND)) {
-      goto bail_out;
+      return false;
    }
    /*
     * Now start a Storage daemon message thread
     */
    if (!start_storage_daemon_message_thread(jcr)) {
-      goto bail_out;
+      return false;
    }
    Dmsg0(150, "Storage daemon connection OK\n");
 
    set_jcr_job_status(jcr, JS_WaitFD);
    if (!connect_to_file_daemon(jcr, 10, FDConnectTimeout, 1)) {
-      goto bail_out;
+      return false;
    }
 
    set_jcr_job_status(jcr, JS_Running);
    fd = jcr->file_bsock;
 
    if (!send_include_list(jcr)) {
-      goto bail_out;
+      return false;
    }
 
    if (!send_exclude_list(jcr)) {
-      goto bail_out;
+      return false;
    }
 
    if (!send_level_command(jcr)) {
-      goto bail_out;
+      return false;
    }
 
    /*
@@ -183,29 +191,26 @@ int do_backup(JCR *jcr)
    bnet_fsend(fd, storaddr, store->address, store->SDDport,
 	      store->enable_ssl);
    if (!response(jcr, fd, OKstore, "Storage", DISPLAY_ERROR)) {
-      goto bail_out;
+      return false;
    }
 
 
    if (!send_run_before_and_after_commands(jcr)) {
-      goto bail_out;
+      return false;
    }
 
    /* Send backup command */
    bnet_fsend(fd, backupcmd);
    if (!response(jcr, fd, OKbackup, "backup", DISPLAY_ERROR)) {
-      goto bail_out;
+      return false;
    }
 
    /* Pickup Job termination data */
    stat = wait_for_job_termination(jcr);
-   backup_cleanup(jcr, stat, since, &fsr);
-   return 1;
-
-bail_out:
-   backup_cleanup(jcr, JS_ErrorTerminated, since, &fsr);
-   return 0;
+   backup_cleanup(jcr, stat);
+   return stat == JS_Terminated;
 }
+
 
 /*
  * Here we wait for the File daemon to signal termination,
@@ -276,7 +281,7 @@ int wait_for_job_termination(JCR *jcr)
 /*
  * Release resources allocated during backup.
  */
-static void backup_cleanup(JCR *jcr, int TermCode, char *since, FILESET_DBR *fsr)
+void backup_cleanup(JCR *jcr, int TermCode)
 {
    char sdt[50], edt[50];
    char ec1[30], ec2[30], ec3[30], ec4[30], ec5[30], compress[50];
@@ -464,9 +469,9 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since, FILESET_DBR *fsr
 	edt,
 	jcr->jr.JobId,
 	jcr->jr.Job,
-	level_to_str(jcr->JobLevel), since,
+	level_to_str(jcr->JobLevel), jcr->since,
 	jcr->client->hdr.name,
-	jcr->fileset->hdr.name, fsr->cCreateTime,
+	jcr->fileset->hdr.name, jcr->FSCreateTime,
 	jcr->pool->hdr.name,
 	jcr->store->hdr.name,
 	sdt,

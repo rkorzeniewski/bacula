@@ -176,11 +176,12 @@ struct JCR {
    POOLMEM *fname;                    /* name to put into catalog */
    POOLMEM *stime;                    /* start time for incremental/differential */
    JOB_DBR jr;                        /* Job DB record for current job */
-   JOB_DBR *verify_jr;                /* Pointer to target job */
+   JOB_DBR target_jr;                 /* target job */
+   char FSCreateTime[MAX_TIME_LENGTH]; /* FileSet CreateTime as returned from DB */
+   char since[MAX_TIME_LENGTH];       /* since time */
    uint32_t RestoreJobId;             /* Id specified by UA */
    POOLMEM *client_uname;             /* client uname */
    int replace;                       /* Replace option */
-   int saveMaxConcurrentJobs;         /* save for restore jobs */
    int NumVols;                       /* Number of Volume used in pool */
    int reschedule_count;              /* Number of times rescheduled */
    bool spool_data;                   /* Spool data in SD */
@@ -188,6 +189,7 @@ struct JCR {
    bool term_wait_inited;             /* Set when cond var inited */
    bool fn_printed;                   /* printed filename */
    bool write_part_after_job;         /* Write part after job in SD */
+   bool needs_sd;                     /* set if SD needed by Job */
 #endif /* DIRECTOR_DAEMON */
 
 

@@ -42,8 +42,6 @@ extern "C" void reload_config(int sig);
 JCR *wait_for_next_job(char *runjob);
 void term_scheduler();
 void term_ua_server();
-int do_backup(JCR *jcr);
-void backup_cleanup(void);
 void start_UA_server(dlist *addrs);
 void init_job_server(int max_workers);
 void term_job_server();

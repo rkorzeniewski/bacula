@@ -41,11 +41,6 @@ static bool job_check_maxruntime(JCR *control_jcr, JCR *jcr);
 /* Imported subroutines */
 extern void term_scheduler();
 extern void term_ua_server();
-extern int do_backup(JCR *jcr);
-extern bool do_mac(JCR *jcr);
-extern int do_admin(JCR *jcr);
-extern int do_restore(JCR *jcr);
-extern bool do_verify(JCR *jcr);
 
 /* Imported variables */
 extern time_t watchdog_time;
@@ -143,6 +138,44 @@ JobId_t run_job(JCR *jcr)
       jcr->fname = get_pool_memory(PM_FNAME);
    }
 
+   /* Now, do pre-run stuff, like setting job level (Inc/diff, ...) */
+   switch (jcr->JobType) {
+   case JT_BACKUP:
+      if (!do_backup_init(jcr)) {
+	 backup_cleanup(jcr, JS_ErrorTerminated);
+      }
+      break;
+   case JT_VERIFY:
+      if (!do_verify_init(jcr)) {
+	 verify_cleanup(jcr, JS_ErrorTerminated);
+      }
+      break;
+   case JT_RESTORE:
+      if (!do_restore_init(jcr)) {
+	 restore_cleanup(jcr, JS_ErrorTerminated);
+      }
+      break;
+   case JT_ADMIN:
+      if (!do_admin_init(jcr)) {
+	 admin_cleanup(jcr, JS_ErrorTerminated);
+      }
+      break;
+   case JT_MIGRATION:
+   case JT_COPY:
+   case JT_ARCHIVE:
+      if (!do_mac_init(jcr)) {		   /* migration, archive, copy */
+	 mac_cleanup(jcr, JS_ErrorTerminated);
+      }
+      break;
+   default:
+      Pmsg1(0, "Unimplemented job type: %d\n", jcr->JobType);
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      break;
+   }
+   if (job_canceled(jcr)) {
+      goto bail_out;
+   }
+
    Dmsg0(200, "Add jrc to work queue\n");
 
    /* Queue the job to be run */
@@ -158,7 +191,10 @@ JobId_t run_job(JCR *jcr)
    return JobId;
 
 bail_out:
-   set_jcr_job_status(jcr, JS_ErrorTerminated);
+   if (jcr->fname) {
+      free_memory(jcr->fname);
+      jcr->fname = NULL;
+   }
    V(jcr->mutex);
    return JobId;
 
@@ -222,35 +258,40 @@ static void *job_thread(void *arg)
 	 }
 	 switch (jcr->JobType) {
 	 case JT_BACKUP:
-	    do_backup(jcr);
-	    if (jcr->JobStatus == JS_Terminated) {
+	    if (do_backup(jcr)) {
 	       do_autoprune(jcr);
+	    } else {
+	       backup_cleanup(jcr, JS_ErrorTerminated);
 	    }
 	    break;
 	 case JT_VERIFY:
-	    do_verify(jcr);
-	    if (jcr->JobStatus == JS_Terminated) {
+	    if (do_verify(jcr)) {
 	       do_autoprune(jcr);
+	    } else {
+	       verify_cleanup(jcr, JS_ErrorTerminated);
 	    }
 	    break;
 	 case JT_RESTORE:
-	    do_restore(jcr);
-	    if (jcr->JobStatus == JS_Terminated) {
+	    if (do_restore(jcr)) {
 	       do_autoprune(jcr);
+	    } else {
+	       restore_cleanup(jcr, JS_ErrorTerminated);
 	    }
 	    break;
 	 case JT_ADMIN:
-	    do_admin(jcr);
-	    if (jcr->JobStatus == JS_Terminated) {
+	    if (do_admin(jcr)) {
 	       do_autoprune(jcr);
+	    } else {
+	       admin_cleanup(jcr, JS_ErrorTerminated);
 	    }
 	    break;
 	 case JT_MIGRATION:
 	 case JT_COPY:
 	 case JT_ARCHIVE:
-	    do_mac(jcr);	      /* migration, archive, copy */
-	    if (jcr->JobStatus == JS_Terminated) {
+	    if (do_mac(jcr)) {		    /* migration, archive, copy */
 	       do_autoprune(jcr);
+	    } else {
+	       mac_cleanup(jcr, JS_ErrorTerminated);
 	    }
 	    break;
 	 default:

@@ -39,47 +39,22 @@
 #include "dird.h"
 #include "ua.h"
 
-/* Forward referenced functions */
-static void mac_cleanup(JCR *jcr, int TermCode, char *since, FILESET_DBR *fsr,
-			const char *Type);
-
-/* External functions */
-
-/*
- * Do a Migration, Archive, or Copy of a previous job
- *
- *  Returns:  false on failure
- *	      true  on success
+/* 
+ * Called here before the job is run to do the job
+ *   specific setup.
  */
-bool do_mac(JCR *jcr)
+bool do_mac_init(JCR *jcr)
 {
-   char since[MAXSTRING];
-   int stat;
+   FILESET_DBR fsr;
    POOL_DBR pr;
    JOB_DBR jr;
-   FILESET_DBR fsr;
    JobId_t input_jobid;
    char *Name;
-   const char *Type;
-
-   switch(jcr->JobType) {
-   case JT_MIGRATION:
-      Type = "Migration";
-      break;
-   case JT_ARCHIVE:
-      Type = "Archive";
-      break;
-   case JT_COPY:
-      Type = "Copy";
-      break;
-   default:
-      Type = "Unknown";
-      break;
-   }
 
    if (!get_or_create_fileset_record(jcr, &fsr)) {
-      goto bail_out;
+      return false;
    }
+   bstrncpy(jcr->FSCreateTime, fsr.cCreateTime, sizeof(jcr->FSCreateTime));
 
    /*
     * Find JobId of last job that ran.
@@ -90,7 +65,7 @@ bool do_mac(JCR *jcr)
    if (!db_find_last_jobid(jcr, jcr->db, Name, &jr)) {
       Jmsg(jcr, M_FATAL, 0, _(
            "Unable to find JobId of previous Job for this client.\n"));
-      goto bail_out;
+      return false;
    }
    input_jobid = jr.JobId;
    jcr->JobLevel = jr.JobLevel;
@@ -124,13 +99,42 @@ bool do_mac(JCR *jcr)
       if (create_pool(jcr, jcr->db, jcr->pool, POOL_OP_CREATE) < 0) {
          Jmsg(jcr, M_FATAL, 0, _("Pool %s not in database. %s"), pr.Name,
 	    db_strerror(jcr->db));
-	 goto bail_out;
+	 return false;
       } else {
          Jmsg(jcr, M_INFO, 0, _("Pool %s created in database.\n"), pr.Name);
       }
    }
    jcr->PoolId = pr.PoolId;		  /****FIXME**** this can go away */
    jcr->jr.PoolId = pr.PoolId;
+   jcr->needs_sd = true;
+   return true;
+}
+
+/*
+ * Do a Migration, Archive, or Copy of a previous job
+ *
+ *  Returns:  false on failure
+ *	      true  on success
+ */
+bool do_mac(JCR *jcr)
+{
+   int stat;
+   const char *Type;
+
+   switch(jcr->JobType) {
+   case JT_MIGRATION:
+      Type = "Migration";
+      break;
+   case JT_ARCHIVE:
+      Type = "Archive";
+      break;
+   case JT_COPY:
+      Type = "Copy";
+      break;
+   default:
+      Type = "Unknown";
+      break;
+   }
 
 
    /* Print Job Start message */
@@ -141,7 +145,7 @@ bool do_mac(JCR *jcr)
    Dmsg2(100, "JobId=%d JobLevel=%c\n", jcr->jr.JobId, jcr->jr.JobLevel);
    if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
-      goto bail_out;
+      return false;
    }
 
    /*
@@ -156,19 +160,19 @@ bool do_mac(JCR *jcr)
     * Start conversation with Storage daemon
     */
    if (!connect_to_storage_daemon(jcr, 10, SDConnectTimeout, 1)) {
-      goto bail_out;
+      return false;
    }
    /*
     * Now start a job with the Storage daemon
     */
    if (!start_storage_daemon_job(jcr, jcr->storage, SD_APPEND)) {
-      goto bail_out;
+      return false;
    }
    /*
     * Now start a Storage daemon message thread
     */
    if (!start_storage_daemon_message_thread(jcr)) {
-      goto bail_out;
+      return false;
    }
    Dmsg0(150, "Storage daemon connection OK\n");
 
@@ -183,20 +187,15 @@ bool do_mac(JCR *jcr)
    } else {
       stat = jcr->SDJobStatus;
    }
-   mac_cleanup(jcr, stat, since, &fsr, Type);
-   return true;
-
-bail_out:
-   mac_cleanup(jcr, JS_ErrorTerminated, since, &fsr, Type);
-   return false;
+   mac_cleanup(jcr, stat);
+   return jcr->JobStatus == JS_Terminated;
 }
 
 
 /*
  * Release resources allocated during backup.
  */
-static void mac_cleanup(JCR *jcr, int TermCode, char *since, FILESET_DBR *fsr,
-		       const char *Type)
+void mac_cleanup(JCR *jcr, int TermCode)
 {
    char sdt[50], edt[50];
    char ec1[30], ec2[30], ec3[30], ec4[30], ec5[30], compress[50];
@@ -206,6 +205,22 @@ static void mac_cleanup(JCR *jcr, int TermCode, char *since, FILESET_DBR *fsr,
    MEDIA_DBR mr;
    double kbps, compression;
    utime_t RunTime;
+   const char *Type;
+
+   switch(jcr->JobType) {
+   case JT_MIGRATION:
+      Type = "Migration";
+      break;
+   case JT_ARCHIVE:
+      Type = "Archive";
+      break;
+   case JT_COPY:
+      Type = "Copy";
+      break;
+   default:
+      Type = "Unknown";
+      break;
+   }
 
    Dmsg2(100, "Enter mac_cleanup %d %c\n", TermCode, TermCode);
    dequeue_messages(jcr);	      /* display any queued messages */
@@ -383,9 +398,9 @@ static void mac_cleanup(JCR *jcr, int TermCode, char *since, FILESET_DBR *fsr,
 	edt,
 	jcr->jr.JobId,
 	jcr->jr.Job,
-	level_to_str(jcr->JobLevel), since,
+	level_to_str(jcr->JobLevel), jcr->since,
 	jcr->client->hdr.name,
-	jcr->fileset->hdr.name, fsr->cCreateTime,
+	jcr->fileset->hdr.name, jcr->FSCreateTime,
 	jcr->pool->hdr.name,
 	sdt,
 	edt,

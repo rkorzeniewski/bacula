@@ -204,6 +204,13 @@ CREATE TABLE MediaType (
    PRIMARY KEY(MediaTypeId)
    );
 
+CREATE TABLE Storage (
+   StorageId INTEGER,
+   Name VARCHAR(128) NOT NULL,
+   AutoChanger TINYINT DEFAULT 0,
+   PRIMARY KEY(StorageId)
+   );
+
 CREATE TABLE Device (
    DeviceId INTEGER,
    Name VARCHAR(128) NOT NULL,
@@ -221,13 +228,6 @@ CREATE TABLE Device (
    CleaningDate DATETIME DEFAULT 0,
    CleaningPeriod BIGINT UNSIGNED DEFAULT 0,
    PRIMARY KEY(DeviceId)
-   );
-
-CREATE TABLE Storage (
-   StorageId INTEGER,
-   Name VARCHAR(128) NOT NULL,
-   AutoChanger TINYINT DEFAULT 0,
-   PRIMARY KEY(StorageId)
    );
 
 COMMIT;

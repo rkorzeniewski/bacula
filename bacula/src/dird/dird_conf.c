@@ -472,10 +472,11 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
    case R_DEVICE:
       dev = &res->res_dev;
       sendit(sock, "Device: name=%s ok=%d num_writers=%d num_waiting=%d\n"
-"      use_cnt=%d open=%d append=%d read=%d labeled=%d\n"
+"      use_cnt=%d open=%d append=%d read=%d labeled=%d offline=%d autochgr=%d\n"
 "      volname=%s MediaType=%s\n",
 	 dev->hdr.name, dev->found, dev->num_writers, dev->num_waiting,
 	 dev->use_count, dev->open, dev->append, dev->read, dev->labeled,
+	 dev->offline, dev->autochanger,
 	 dev->VolumeName, dev->MediaType);
       break;
    case R_STORAGE:
