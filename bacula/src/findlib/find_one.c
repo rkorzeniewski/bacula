@@ -135,7 +135,8 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
 	 if (lp->ino == ff_pkt->statp.st_ino && lp->dev == ff_pkt->statp.st_dev) {
              /* If we have already backed up the hard linked file don't do it again */
 	     if (strcmp(lp->name, fname) == 0) {
-                Jmsg0(jcr, M_WARNING, 0, _("Attempt to backup hard linked file %s twice ignored.\n"));
+                Jmsg1(jcr, M_WARNING, 0, _("Attempt to backup hard linked file %s twice ignored.\n"),
+		   fname);
 		return 1;	      /* ignore */
 	     }
 	     ff_pkt->link = lp->name;

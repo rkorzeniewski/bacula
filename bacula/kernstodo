@@ -37,11 +37,7 @@ Testing to do: (painful)
 - Test cancel at EOM.       
 
 For 1.33 Testing/Documentation:
-- Newly labeled tapes are chosen before ones already in use.
-- Document new alias records in Director. SDAddress SDDeviceName, SDPassword.
-  FDPassword, FDAddress, DBAddress, DBPort, DBPassword.
 - Document new Include/Exclude ...
-- Add test of exclusion, test multiple Include {} statements.
 - Add counter variable test.
 - Document ln -sf /usr/lib/libncurses.so /usr/lib/libtermcap.so
   and install the esound-dev  package for compiling Console on SuSE.
@@ -85,7 +81,6 @@ For 1.33
 - Allow "delete job jobid=xx jobid=xxx".   
 - Allow "delete job jobid=xxx,yyy,aaa-bbb" i.e. list + ranges.
 - Implement multiple Volume in "purge jobs volume=".
-- Rescue builds incorrect script files on Rufus.  
 - Fix option 2 of restore -- list where file is backed up -- require Client,
   then list last 20 backups.
 - Allow browsing the catalog to see all versions of a file (with 
@@ -95,7 +90,6 @@ For 1.33
 - Symbolic link a directory to another one, then backup the symbolic link.
 - Check and possibly fix problems with hard links.
 - Fix "llist jobid=xx" where no fileset or client exists.
-- Release SQLite 2.8.9
 - Add all pools in Dir conf to DB also update them to catch changed
   LabelFormats and such.
 - Build console in client-only build.
@@ -1413,3 +1407,6 @@ Block Position: 0
 - Make column listing for running jobs JobId Level Type Started Name  Status
 - Why does Bacula need the drive open to do "autochanger list" ?
 - Add data compare on write/read in btape "test". 
+- Rescue builds incorrect script files on Rufus.  
+- Release SQLite 2.8.9
+
