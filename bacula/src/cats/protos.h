@@ -34,8 +34,8 @@
 
 /* sql.c */
 B_DB *db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char *db_password, 
-                       const char *db_address, int db_port, const char *db_socket, 
-                       int mult_db_connections);
+		       const char *db_address, int db_port, const char *db_socket, 
+		       int mult_db_connections);
 int  db_open_database(JCR *jcr, B_DB *db);
 void db_close_database(JCR *jcr, B_DB *db);
 void db_escape_string(char *snew, char *old, int len);
@@ -52,7 +52,7 @@ int db_create_job_record(JCR *jcr, B_DB *db, JOB_DBR *jr);
 int db_create_media_record(JCR *jcr, B_DB *db, MEDIA_DBR *media_dbr);
 int db_create_client_record(JCR *jcr, B_DB *db, CLIENT_DBR *cr);
 int db_create_fileset_record(JCR *jcr, B_DB *db, FILESET_DBR *fsr);
-int db_create_pool_record(JCR *jcr, B_DB *db, POOL_DBR *pool_dbr);          
+int db_create_pool_record(JCR *jcr, B_DB *db, POOL_DBR *pool_dbr);	    
 bool db_create_jobmedia_record(JCR *jcr, B_DB *mdb, JOBMEDIA_DBR *jr);
 int db_create_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr);
 
@@ -64,6 +64,7 @@ int db_delete_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr);
 int db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime);
 int db_find_last_jobid(JCR *jcr, B_DB *mdb, const char *Name, JOB_DBR *jr);
 int db_find_next_volume(JCR *jcr, B_DB *mdb, int index, bool InChanger, MEDIA_DBR *mr);
+bool db_find_failed_job_since(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM *stime, int &JobLevel);
 
 /* get.c */
 int db_get_pool_record(JCR *jcr, B_DB *db, POOL_DBR *pdbr);

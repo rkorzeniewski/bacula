@@ -144,6 +144,7 @@ int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
  */
 void get_level_since_time(JCR *jcr, char *since, int since_len)
 {
+   int JobLevel;
    /* Lookup the last FULL backup job to get the time/date for a 
     * differential or incremental save.
     */
@@ -158,12 +159,24 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
       /* Look up start time of last job */
       jcr->jr.JobId = 0;     /* flag for db_find_job_start time */
       if (!db_find_job_start_time(jcr, jcr->db, &jcr->jr, &jcr->stime)) {
+	 /* No job found, so upgrade this one to Full */
          Jmsg(jcr, M_INFO, 0, "%s", db_strerror(jcr->db));
          Jmsg(jcr, M_INFO, 0, _("No prior or suitable Full backup found. Doing FULL backup.\n"));
          bsnprintf(since, since_len, " (upgraded from %s)", 
 	    level_to_str(jcr->JobLevel));
 	 jcr->JobLevel = jcr->jr.JobLevel = L_FULL;
       } else {
+	 if (jcr->job->rerun_failed_levels) {
+	    if (db_find_failed_job_since(jcr, jcr->db, &jcr->jr, jcr->stime, JobLevel)) {
+               Jmsg(jcr, M_INFO, 0, _("Prior failed job found. Upgrading to %s.\n"),
+		  level_to_str(JobLevel));
+               bsnprintf(since, since_len, " (upgraded from %s)", 
+		  level_to_str(jcr->JobLevel));
+	       jcr->JobLevel = jcr->jr.JobLevel = JobLevel;
+	       jcr->jr.JobId = jcr->JobId;
+	       break;
+	    }
+	 }	 
          bstrncpy(since, ", since=", since_len);
 	 bstrncat(since, jcr->stime, since_len);
       }

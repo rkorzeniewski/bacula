@@ -350,7 +350,7 @@ open_dev(DEVICE *dev, char *VolName, int mode)
 
 #ifdef debug_tracing
 #undef rewind_dev
-int _rewind_dev(char *file, int line, DEVICE *dev)
+bool _rewind_dev(char *file, int line, DEVICE *dev)
 {
    Dmsg2(100, "rewind_dev called from %s:%d\n", file, line);
    return rewind_dev(dev);
@@ -763,8 +763,11 @@ bool offline_dev(DEVICE *dev)
    return true;
 }
 
-int offline_or_rewind_dev(DEVICE *dev)
+bool offline_or_rewind_dev(DEVICE *dev)
 {
+   if (dev->fd < 0) {
+      return false;
+   }
    if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
       return offline_dev(dev);
    } else {
