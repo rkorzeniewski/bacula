@@ -191,6 +191,16 @@ int main(int argc, char *argv[])
    
    LockRes();
    nitems = 0;
+   foreach_res(monitor, R_MONITOR) {
+      nitems++;
+   }
+
+   if (nitems != 1) {
+      Emsg2(M_ERROR_TERM, 0, 
+         _("Error: %d Monitor resource defined in %s. You must define one and only one Monitor resource.\n"), nitems, configfile);
+   }
+         
+   nitems = 0;
    foreach_res(dird, R_DIRECTOR) {
       items[nitems].type = R_DIRECTOR;
       items[nitems].resource = dird;
@@ -215,8 +225,8 @@ int main(int argc, char *argv[])
    UnlockRes();
      
    if (nitems == 0) {
-      Emsg1(M_ERROR_TERM, 0, _("No Client nor Storage resource defined in %s\n\
-Without that I don't how to get status from the File or Storage Daemon :-(\n"), configfile);
+      Emsg1(M_ERROR_TERM, 0, _("No Client, Storage nor Director resource defined in %s\n\
+Without that I don't how to get status from the File, Storage or Director Daemon :-(\n"), configfile);
    }
 
    if (test_config) {
@@ -224,17 +234,22 @@ Without that I don't how to get status from the File or Storage Daemon :-(\n"), 
    }
    
    //Copy the content of xpm_generic in xpm_generic_var to be able to modify it
-   xpm_generic_var = (char**)g_malloc(sizeof(xpm_generic));
+   g_assert((xpm_generic_var = (char**)g_malloc(sizeof(xpm_generic))));
    for (i = 0; i < (int)(sizeof(xpm_generic)/sizeof(const char*)); i++) {
-      xpm_generic_var[i] = (char*)g_malloc(strlen(xpm_generic[i])*sizeof(char));
+      g_assert((xpm_generic_var[i] = (char*)g_malloc(strlen(xpm_generic[i])*sizeof(char))));
       strcpy(xpm_generic_var[i], xpm_generic[i]);
    }
    
    (void)WSA_Init();                /* Initialize Windows sockets */
-
+   
    LockRes();
    monitor = (MONITOR*)GetNextRes(R_MONITOR, (RES *)NULL);
    UnlockRes();
+   
+   if ((monitor->RefreshInterval < 1) || (monitor->RefreshInterval > 600)) {
+      Emsg2(M_ERROR_TERM, 0, _("Invalid refresh interval defined in %s\n\
+This value must be greater or equal to 1 second and less or equal to 10 minutes (read value: %d).\n"), configfile, monitor->RefreshInterval);
+   }
    
    gtk_init (&argc, &argv);
    
@@ -261,7 +276,7 @@ Without that I don't how to get status from the File or Storage Daemon :-(\n"), 
    
    gtk_widget_show_all(mTrayMenu);
    
-   timerTag = g_timeout_add( 2000, fd_read, NULL );
+   timerTag = g_timeout_add( monitor->RefreshInterval/nitems, fd_read, NULL );
       
    window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
    
@@ -354,7 +369,7 @@ Without that I don't how to get status from the File or Storage Daemon :-(\n"), 
    GtkWidget* hbox2 = gtk_hbox_new(FALSE, 0);
    GtkWidget* label = gtk_label_new(_("Refresh interval in seconds: "));
    gtk_box_pack_start(GTK_BOX(hbox2), label, TRUE, FALSE, 0);
-   GtkAdjustment *spinner_adj = (GtkAdjustment *) gtk_adjustment_new (nitems*2, nitems, 120.0, 1.0, 5.0, 5.0);
+   GtkAdjustment *spinner_adj = (GtkAdjustment *) gtk_adjustment_new (monitor->RefreshInterval, 1.0, 600.0, 1.0, 5.0, 5.0);
    timeoutspinner = gtk_spin_button_new (spinner_adj, 1.0, 0);
    g_signal_connect(G_OBJECT(timeoutspinner), "value-changed", G_CALLBACK(IntervalChanged), NULL);
    gtk_box_pack_start(GTK_BOX(hbox2), timeoutspinner, TRUE, FALSE, 0);

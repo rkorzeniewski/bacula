@@ -5,6 +5,7 @@
 Monitor {
   Name = @hostname@-mon
   Password = "@mon_dir_password@"         # password for the Directors   
+  RefreshInterval = 5 seconds
 }
    
 Client {

@@ -76,6 +76,7 @@ static RES_ITEM mon_items[] = {
    {"description", store_str,      ITEM(res_monitor.hdr.desc), 0, 0, 0},
    {"requiressl",  store_yesno,    ITEM(res_monitor.require_ssl), 1, ITEM_DEFAULT, 0},
    {"password",    store_password, ITEM(res_monitor.password), 0, ITEM_REQUIRED, 0},
+   {"refreshinterval",  store_time,ITEM(res_monitor.RefreshInterval),  0, ITEM_DEFAULT, 5},
    {"fdconnecttimeout", store_time,ITEM(res_monitor.FDConnectTimeout), 0, ITEM_DEFAULT, 60 * 30},
    {"sdconnecttimeout", store_time,ITEM(res_monitor.SDConnectTimeout), 0, ITEM_DEFAULT, 60 * 30},
    {NULL, NULL, NULL, 0, 0, 0}

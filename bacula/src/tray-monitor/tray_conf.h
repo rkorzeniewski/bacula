@@ -70,6 +70,7 @@ struct MONITOR {
    int require_ssl;                   /* Require SSL for all connections */
    MSGS *messages;                    /* Daemon message handler */
    char *password;                    /* UA server password */
+   utime_t RefreshInterval;           /* Status refresh interval */
    utime_t FDConnectTimeout;          /* timeout for connect in seconds */
    utime_t SDConnectTimeout;          /* timeout in seconds */
 };
