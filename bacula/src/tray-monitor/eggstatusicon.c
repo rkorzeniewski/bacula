@@ -19,6 +19,7 @@
  *
  * Authors:
  *	Mark McLoughlin <mark@skynet.ie>
+ *  Nicolas Boichat <nicolas@boichat.ch> (add access to the underlying EggTrayIcon)
  */
 
 #include <string.h>
@@ -776,4 +777,12 @@ egg_status_icon_get_is_blinking (EggStatusIcon *status_icon)
   g_return_val_if_fail (EGG_IS_STATUS_ICON (status_icon), FALSE);
 
   return status_icon->priv->blinking;
+}
+
+EggTrayIcon*
+egg_status_icon_get_tray_icon (EggStatusIcon      *status_icon)
+{
+   g_return_val_if_fail (EGG_IS_STATUS_ICON (status_icon), NULL);
+   
+   return EGG_TRAY_ICON(status_icon->priv->tray_icon);
 }

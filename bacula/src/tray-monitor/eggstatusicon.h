@@ -19,6 +19,7 @@
  *
  * Authors:
  *      Mark McLoughlin <mark@skynet.ie>
+ *      Nicolas Boichat <nicolas@boichat.ch> (add access to the underlying EggTrayIcon)
  */
 
 #ifndef __EGG_STATUS_ICON_H__
@@ -95,6 +96,8 @@ G_CONST_RETURN gchar *egg_status_icon_get_balloon_text   (EggStatusIcon      *st
 void                  egg_status_icon_set_is_blinking    (EggStatusIcon      *status_icon,
 							  gboolean            enable_blinking);
 gboolean              egg_status_icon_get_is_blinking    (EggStatusIcon      *status_icon);
+
+EggTrayIcon*          egg_status_icon_get_tray_icon      (EggStatusIcon      *status_icon);
 
 G_END_DECLS
 

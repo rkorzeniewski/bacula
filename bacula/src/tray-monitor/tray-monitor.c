@@ -43,7 +43,6 @@
 int authenticate_file_daemon(JCR *jcr, MONITOR *monitor, CLIENT* client);
 
 /* Forward referenced functions */
-static void terminate_console(int sig);
 void writecmd(const char* command);
 
 /* Static variables */
@@ -51,11 +50,34 @@ static char *configfile = NULL;
 static BSOCK *FD_sock = NULL;
 static MONITOR *monitor;
 static POOLMEM *args;
+static JCR jcr;
+static CLIENT* filed;
 
 /* UI variables and functions */
-gboolean fd_read(gpointer data);
+enum stateenum {
+   error,
+   idle,
+   running,
+   saving,
+   warn
+};
 
+stateenum currentstatus = warn;
+
+static gboolean fd_read(gpointer data);
+void trayMessage(const char *fmt,...);
+void changeIcon(stateenum status);
+void writeToTextBuffer(GtkTextBuffer *buffer, const char *fmt,...);
+
+/* Callbacks */
+static void TrayIconActivate(GtkWidget *widget, gpointer data);
+static gboolean delete_event(GtkWidget *widget, GdkEvent  *event, gpointer   data);
+
+static gint timerTag;
 static EggStatusIcon* mTrayIcon;
+GtkWidget *window;
+GtkWidget *textview;
+GtkTextBuffer *buffer;
 
 #define CONFIG_FILE "./tray-monitor.conf"   /* default configuration file */
 
@@ -82,8 +104,6 @@ int main(int argc, char *argv[])
 {
    int ch, nfiled;
    bool test_config = false;
-   JCR jcr;
-   CLIENT* filed;
 
    init_stack_dump();
    my_name_is(argc, argv, "tray-monitor");
@@ -144,121 +164,234 @@ Without that I don't how to get status from the Client :-(\n"), configfile);
    }
 
    if (test_config) {
-      terminate_console(0);
       exit(0);
    }
    
-   LockRes();
-   filed = (CLIENT*)GetNextRes(R_CLIENT, NULL);
-   UnlockRes();
-
-   memset(&jcr, 0, sizeof(jcr));
-
    (void)WSA_Init();			    /* Initialize Windows sockets */
-      
-   printf(_("Connecting to Client %s:%d\n"), filed->address, filed->FDport);
-   FD_sock = bnet_connect(NULL, 5, 15, "File daemon", filed->address, 
-			  NULL, filed->FDport, 0);
-   if (FD_sock == NULL) {
-      terminate_console(0);
-      return 1;
-   }
-   jcr.file_bsock = FD_sock;
-   
+
    LockRes();
    monitor = (MONITOR*)GetNextRes(R_MONITOR, (RES *)NULL);
    UnlockRes();
    
-   if (!authenticate_file_daemon(&jcr, monitor, filed)) {
-      fprintf(stderr, "ERR=%s", FD_sock->msg);
-      terminate_console(0);
-      return 1;
-   }
-
-   printf("Opened connection with File daemon\n");
-
-   writecmd("status");
-
    gtk_init (&argc, &argv);
    
-   GdkPixbuf* pixbuf = gdk_pixbuf_new_from_xpm_data(xpm_idle);
+   GdkPixbuf* pixbuf = gdk_pixbuf_new_from_xpm_data(xpm_warn);
    // This should be ideally replaced by a completely libpr0n-based icon rendering.
    mTrayIcon = egg_status_icon_new_from_pixbuf(pixbuf);
-/*   g_signal_connect(G_OBJECT(mTrayIcon), "activate", G_CALLBACK(TrayIconActivate), this);
-   g_signal_connect(G_OBJECT(mTrayIcon), "popup-menu", G_CALLBACK(TrayIconPopupMenu), this);*/
+   g_signal_connect(G_OBJECT(mTrayIcon), "activate", G_CALLBACK(TrayIconActivate), NULL);
+/*   g_signal_connect(G_OBJECT(mTrayIcon), "popup-menu", G_CALLBACK(TrayIconPopupMenu), this);*/
    g_object_unref(G_OBJECT(pixbuf));
 
-   gtk_idle_add( fd_read, NULL );
-      
-   gtk_main();
+   timerTag = g_timeout_add( 5000, fd_read, NULL );
+        
+   window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
    
+   gtk_window_set_title(GTK_WINDOW(window), "Bacula tray monitor");
+   
+   g_signal_connect(G_OBJECT(window), "delete_event", G_CALLBACK(delete_event), NULL);
+   //g_signal_connect (G_OBJECT (window), "destroy", G_CALLBACK (destroy), NULL);
+   
+   gtk_container_set_border_width(GTK_CONTAINER(window), 10);
+      
+   textview = gtk_text_view_new();
+
+   buffer = gtk_text_buffer_new(NULL);
+
+   gtk_text_buffer_set_text(buffer, "", -1);
+
+   PangoFontDescription *font_desc = pango_font_description_from_string ("Fixed 10");
+   gtk_widget_modify_font(textview, font_desc);
+   pango_font_description_free (font_desc);
+   
+   gtk_text_view_set_editable(GTK_TEXT_VIEW(textview), FALSE);
+   
+   gtk_text_view_set_buffer(GTK_TEXT_VIEW(textview), buffer);
+      
+   gtk_container_add(GTK_CONTAINER (window), textview);
+   
+   gtk_widget_show(textview);
+   
+   fd_read(NULL);
+   
+   gtk_main();
+      
    if (FD_sock) {
+      writecmd("status");
       bnet_sig(FD_sock, BNET_TERMINATE); /* send EOF */
       bnet_close(FD_sock);
    }
 
-   terminate_console(0);
+   free_pool_memory(args);
+   (void)WSACleanup();		     /* Cleanup Windows sockets */
    return 0;
 }
 
-gboolean fd_read(gpointer data) {
+static gboolean delete_event( GtkWidget *widget,
+                              GdkEvent  *event,
+                              gpointer   data ) {
+   gtk_widget_hide(window);
+   return TRUE; /* do not destroy the window */
+}
+
+static void TrayIconActivate(GtkWidget *widget, gpointer data) {
+    gtk_widget_show(window);
+}
+
+static gboolean fd_read(gpointer data) {
    int stat;
+   int statuschanged = 0;
+   GtkTextBuffer *newbuffer = gtk_text_buffer_new(NULL);
+   GtkTextIter start, stop, nstart, nstop;
+   
+   gtk_text_buffer_set_text (newbuffer, "", -1);
+      
+   if (!FD_sock) {
+      LockRes();
+      filed = (CLIENT*)GetNextRes(R_CLIENT, NULL);
+      UnlockRes();
+   
+      memset(&jcr, 0, sizeof(jcr));
+            
+      writeToTextBuffer(newbuffer, "Connecting to Client %s:%d\n", filed->address, filed->FDport);
+      FD_sock = bnet_connect(NULL, 3, 3, "File daemon", filed->address, 
+               NULL, filed->FDport, 0);
+      if (FD_sock == NULL) {
+         changeIcon(error);
+         return 1;
+      }
+      jcr.file_bsock = FD_sock;
+      
+      if (!authenticate_file_daemon(&jcr, monitor, filed)) {
+         writeToTextBuffer(newbuffer, "ERR=%s", FD_sock->msg);
+         FD_sock = NULL;
+         changeIcon(error);
+         return 0;
+      }
+   
+      trayMessage("Opened connection with File daemon");
+   }
+      
+   writecmd("status");
    
    while(1) {
       if ((stat = bnet_recv(FD_sock)) >= 0) {
-         printf(FD_sock->msg);
+         writeToTextBuffer(newbuffer, FD_sock->msg);
+         if (strstr(FD_sock->msg, " is running.") != NULL) {
+            changeIcon(running);
+            statuschanged = 1;
+         }
+         else if (strstr(FD_sock->msg, "No Jobs running.") != NULL) {
+            changeIcon(idle);
+            statuschanged = 1;
+         }
       }
       else if (stat == BNET_SIGNAL) {
-         if (FD_sock->msglen == BNET_PROMPT) {
-            printf("<PROMPT>");
-         }
-         else if (FD_sock->msglen == BNET_EOD) {
-            printf("<END>");
-            writecmd("status");
-            sleep(1);
-            return 1;
+         if (FD_sock->msglen == BNET_EOD) {
+            if (statuschanged == 0) {
+               changeIcon(warn);
+            }
+            break;
          }
          else if (FD_sock->msglen == BNET_HEARTBEAT) {
             bnet_sig(FD_sock, BNET_HB_RESPONSE);
-            printf("<< Heartbeat signal received, answered. >>");
+            writeToTextBuffer(newbuffer, "<< Heartbeat signal received, answered. >>");
          }
          else {
-            printf("<< Unexpected signal received : %s >>", bnet_sig_to_ascii(FD_sock));
+            writeToTextBuffer(newbuffer, "<< Unexpected signal received : %s >>", bnet_sig_to_ascii(FD_sock));
          }
       }
       else { /* BNET_HARDEOF || BNET_ERROR */
-         printf("<ERROR>");
+         writeToTextBuffer(newbuffer, "<ERROR>\n");
+         FD_sock = NULL;
+         changeIcon(error);
          break;
       }
            
       if (is_bnet_stop(FD_sock)) {
-         printf("<STOP>");
+         writeToTextBuffer(newbuffer, "<STOP>\n");
+         FD_sock = NULL;
+         changeIcon(error);
          break;            /* error or term */
       }
    }
-   return 0;
-}
-
-/* Cleanup and then exit */
-static void terminate_console(int sig)
-{
-
-   static bool already_here = false;
-
-   if (already_here) {		      /* avoid recursive temination problems */
-      exit(1);
+   
+   /* Keep the selection if necessary */
+   if (gtk_text_buffer_get_selection_bounds(buffer, &start, &stop)) {
+      gtk_text_buffer_get_iter_at_offset(newbuffer, &nstart, gtk_text_iter_get_offset(&start));
+      gtk_text_buffer_get_iter_at_offset(newbuffer, &nstop,  gtk_text_iter_get_offset(&stop ));
+      gtk_text_buffer_select_range(newbuffer, &nstart, &nstop);
    }
-   already_here = true;
-   free_pool_memory(args);
-   (void)WSACleanup();		     /* Cleanup Windows sockets */
-   if (sig != 0) {
-      exit(1);
-   }
-   return;
+
+   buffer = newbuffer;
+   gtk_text_view_set_buffer(GTK_TEXT_VIEW(textview), buffer);
+      
+   return 1;
 }
 
 void writecmd(const char* command) {
-   FD_sock->msglen = strlen(command);
-   pm_strcpy(&FD_sock->msg, command);
-   bnet_send(FD_sock);
+   if (FD_sock) {
+      FD_sock->msglen = strlen(command);
+      pm_strcpy(&FD_sock->msg, command);
+      bnet_send(FD_sock);
+   }
 }
+
+/* Note: Does not seem to work either on Gnome nor KDE... */
+void trayMessage(const char *fmt,...) {
+   char buf[3000];
+   va_list arg_ptr;
+   
+   va_start(arg_ptr, fmt);
+   bvsnprintf(buf, sizeof(buf), (char *)fmt, arg_ptr);
+   va_end(arg_ptr);
+   
+   egg_tray_icon_send_message(egg_status_icon_get_tray_icon(mTrayIcon), 5000, (const char*)&buf, -1);
+}
+
+void changeIcon(stateenum status) {
+   if (status == currentstatus)
+      return;
+
+   const char** xpm;
+
+   switch (status) {
+   case error:
+      xpm = (const char**)&xpm_error;
+      break;
+   case idle:
+      xpm = (const char**)&xpm_idle;
+      break;
+   case running:
+      xpm = (const char**)&xpm_running;
+      break;
+   case saving:
+      xpm = (const char**)&xpm_saving;
+      break;
+   case warn:
+      xpm = (const char**)&xpm_warn;
+      break;
+   default:
+      xpm = NULL;
+      break;
+   }
+   
+   GdkPixbuf* pixbuf = gdk_pixbuf_new_from_xpm_data(xpm);
+   // This should be ideally replaced by a completely libpr0n-based icon rendering.
+   egg_status_icon_set_from_pixbuf(mTrayIcon, pixbuf);
+   
+   currentstatus = status;
+}
+
+void writeToTextBuffer(GtkTextBuffer *buffer, const char *fmt,...) {
+   char buf[3000];
+   va_list arg_ptr;
+   GtkTextIter iter;
+   
+   va_start(arg_ptr, fmt);
+   bvsnprintf(buf, sizeof(buf), (char *)fmt, arg_ptr);
+   va_end(arg_ptr);
+   
+   gtk_text_buffer_get_end_iter(buffer, &iter);
+   gtk_text_buffer_insert(buffer, &iter, buf, -1);
+}
+
