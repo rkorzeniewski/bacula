@@ -60,7 +60,6 @@
 #define JS_Error                 'e'  /* Non-fatal error */
 #define JS_FatalError            'f'  /* Fatal error */
 #define JS_Differences           'D'  /* Verify differences */
-#define JS_Cancelled             'A'  /* cancelled by user */
 #define JS_Canceled              'A'  /* canceled by user */
 #define JS_WaitFD                'F'  /* waiting on File daemon */
 #define JS_WaitSD                'S'  /* waiting on the Storage daemon */
@@ -70,11 +69,6 @@
 #define JS_WaitJobRes            'j'  /* Waiting for job resource */
 #define JS_WaitClientRes         'c'  /* Waiting for Client resource */
 #define JS_WaitMaxJobs           'd'  /* Waiting for maximum jobs */
-
-#define job_cancelled(jcr) \
-  (jcr->JobStatus == JS_Canceled || \
-   jcr->JobStatus == JS_ErrorTerminated || \
-   jcr->JobStatus == JS_FatalError)
 
 #define job_canceled(jcr) \
   (jcr->JobStatus == JS_Canceled || \

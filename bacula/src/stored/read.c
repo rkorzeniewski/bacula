@@ -114,7 +114,7 @@ int do_read_data(JCR *jcr)
     *	 matched.
     */
    for ( ;ok && !done; ) {
-      if (job_cancelled(jcr)) {
+      if (job_canceled(jcr)) {
 	 ok = FALSE;
 	 break;
       }

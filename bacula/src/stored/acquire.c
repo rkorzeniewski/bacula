@@ -51,14 +51,14 @@ int acquire_device_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    tape_previously_mounted = (dev->state & ST_READ) || (dev->state & ST_APPEND);
 
    if (dev->state & ST_READ || dev->num_writers > 0) {
-      Jmsg1(jcr, M_FATAL, 0, _("Device %s is busy. Job cancelled.\n"), dev_name(dev));
+      Jmsg1(jcr, M_FATAL, 0, _("Device %s is busy. Job canceled.\n"), dev_name(dev));
       goto get_out;
    }
 
    /* Find next Volume, if any */
    vol = jcr->VolList;
    if (!vol) {
-      Jmsg(jcr, M_FATAL, 0, _("No volumes specified. Job cancelled.\n"));
+      Jmsg(jcr, M_FATAL, 0, _("No volumes specified. Job canceled.\n"));
       goto get_out;
    }
    jcr->CurVolume++;
@@ -68,8 +68,8 @@ int acquire_device_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    pm_strcpy(&jcr->VolumeName, vol->VolumeName);
 
    for (int i=0; i<5; i++) {
-      if (job_cancelled(jcr)) {
-         Mmsg0(&dev->errmsg, _("Job cancelled.\n"));
+      if (job_canceled(jcr)) {
+         Mmsg0(&dev->errmsg, _("Job canceled.\n"));
 	 goto get_out;		      /* error return */
       }
       /*

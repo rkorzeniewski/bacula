@@ -74,7 +74,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
    BSOCK *dir;
    JCR *jcr = (JCR *)pkt;
 
-   if (job_cancelled(jcr)) {
+   if (job_canceled(jcr)) {
       return 0;
    }
    

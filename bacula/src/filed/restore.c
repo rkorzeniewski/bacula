@@ -93,7 +93,7 @@ void do_restore(JCR *jcr)
     *	 or  c. Possibly MD5 or SHA1 record
     *	3. Repeat step 1
     */
-   while (bnet_recv(sd) >= 0 && !job_cancelled(jcr)) {
+   while (bnet_recv(sd) >= 0 && !job_canceled(jcr)) {
       /*
        * First we expect a Stream Record Header 
        */

@@ -107,7 +107,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
    JCR *jcr = (JCR *)ijcr;
    POOLMEM *msgsave;
 
-   if (job_cancelled(jcr)) {
+   if (job_canceled(jcr)) {
       return 0;
    }
 

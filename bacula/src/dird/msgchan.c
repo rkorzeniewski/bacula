@@ -266,7 +266,7 @@ void wait_for_storage_daemon_termination(JCR *jcr)
       timeout.tv_sec = tv.tv_sec + 10; /* wait 10 seconds */
       Dmsg0(300, "I'm waiting for message thread termination.\n");
       pthread_cond_timedwait(&jcr->term_wait, &jcr->mutex, &timeout);
-      if (job_cancelled(jcr)) {
+      if (job_canceled(jcr)) {
 	 cancel_count++;
       }
       /* Give SD 30 seconds to clean up after cancel */

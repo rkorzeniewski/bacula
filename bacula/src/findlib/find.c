@@ -107,7 +107,7 @@ find_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt), void 
    char *file;
    struct s_included_file *inc = NULL;
 
-   while (!job_cancelled(jcr) && (inc = get_next_included_file(ff, inc))) {
+   while (!job_canceled(jcr) && (inc = get_next_included_file(ff, inc))) {
       file = inc->fname;
       strcpy(ff->VerifyOpts, inc->VerifyOpts); /* Copy options for this file */
       Dmsg1(50, "find_files: file=%s\n", file);

@@ -110,7 +110,7 @@ int do_append_data(JCR *jcr)
     */
    jcr->VolFirstFile = 0;
    time(&jcr->run_time);	      /* start counting time for rates */
-   for (last_file_index = 0; ok && !job_cancelled(jcr); ) {
+   for (last_file_index = 0; ok && !job_canceled(jcr); ) {
       char info[100];
 
       /* Read Stream header from the File daemon.
@@ -154,7 +154,7 @@ int do_append_data(JCR *jcr)
       /* Read data stream from the File daemon.
        *  The data stream is just raw bytes
        */
-      while ((n=bget_msg(ds)) > 0 && !job_cancelled(jcr)) {
+      while ((n=bget_msg(ds)) > 0 && !job_canceled(jcr)) {
 
 	 rec.VolSessionId = jcr->VolSessionId;
 	 rec.VolSessionTime = jcr->VolSessionTime;

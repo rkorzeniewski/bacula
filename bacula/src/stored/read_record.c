@@ -50,7 +50,7 @@ int read_records(JCR *jcr,  DEVICE *dev,
    block = new_block(dev);
    rec = new_record();
    for ( ;ok && !done; ) {
-      if (job_cancelled(jcr)) {
+      if (job_canceled(jcr)) {
 	 ok = FALSE;
 	 break;
       }

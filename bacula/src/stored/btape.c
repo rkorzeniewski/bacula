@@ -1157,7 +1157,7 @@ This may take a long time. I.e. hours! ...\n\n");
     */
    jcr->VolFirstFile = 0;
    time(&jcr->run_time);	      /* start counting time for rates */
-   for (file_index = 0; ok && !job_cancelled(jcr); ) {
+   for (file_index = 0; ok && !job_canceled(jcr); ) {
       uint64_t *lp;
       rec.VolSessionId = jcr->VolSessionId;
       rec.VolSessionTime = jcr->VolSessionTime;
@@ -1223,7 +1223,7 @@ This may take a long time. I.e. hours! ...\n\n");
    if (stop > 0) {
       Dmsg0(000, "Write_end_session_label()\n");
       /* Create Job status for end of session label */
-      if (!job_cancelled(jcr) && ok) {
+      if (!job_canceled(jcr) && ok) {
 	 set_jcr_job_status(jcr, JS_Terminated);
       } else if (!ok) {
 	 set_jcr_job_status(jcr, JS_ErrorTerminated);

@@ -269,8 +269,8 @@ int dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev)
    ASSERT(dev->dev_blocked);
    wait_sec = min_wait;
    for ( ;; ) {
-      if (job_cancelled(jcr)) {
-         Mmsg(&dev->errmsg, _("Job %s cancelled while waiting for mount on Storage Device \"%s\".\n"), 
+      if (job_canceled(jcr)) {
+         Mmsg(&dev->errmsg, _("Job %s canceled while waiting for mount on Storage Device \"%s\".\n"), 
 	      jcr->Job, jcr->dev_name);
          Jmsg(jcr, M_FATAL, 0, "%s", dev->errmsg);
 	 return 0;
@@ -318,7 +318,7 @@ Please use the \"label\"  command to create a new Volume for:\n\
       jcr->JobStatus = jstat;
       dir_send_job_status(jcr);
 
-      for ( ;!job_cancelled(jcr); ) {
+      for ( ;!job_canceled(jcr); ) {
          Dmsg1(190, "I'm going to sleep on device %s\n", dev->dev_name);
 	 stat = pthread_cond_timedwait(&dev->wait_next_vol, &dev->mutex, &timeout);
 	 if (dev->dev_blocked == BST_WAITING_FOR_SYSOP) {
@@ -416,8 +416,8 @@ int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
    ASSERT(dev->dev_blocked);
    wait_sec = min_wait;
    for ( ;; ) {
-      if (job_cancelled(jcr)) {
-         Mmsg(&dev->errmsg, _("Job %s cancelled while waiting for mount on Storage Device \"%s\".\n"), 
+      if (job_canceled(jcr)) {
+         Mmsg(&dev->errmsg, _("Job %s canceled while waiting for mount on Storage Device \"%s\".\n"), 
 	      jcr->Job, jcr->dev_name);
 	 return 0;
       }
@@ -440,7 +440,7 @@ int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
       jcr->JobStatus = JS_WaitMount;
       dir_send_job_status(jcr);
 
-      for ( ;!job_cancelled(jcr); ) {
+      for ( ;!job_canceled(jcr); ) {
          Dmsg1(190, "I'm going to sleep on device %s\n", dev->dev_name);
 	 stat = pthread_cond_timedwait(&dev->wait_next_vol, &dev->mutex, &timeout);
 	 if (dev->dev_blocked == BST_WAITING_FOR_SYSOP) {

@@ -310,7 +310,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
        */
       rtn_stat = 1;
       entry = (struct dirent *)malloc(sizeof(struct dirent) + name_max + 100);
-      for ( ; !job_cancelled(jcr); ) {
+      for ( ; !job_canceled(jcr); ) {
 	 char *p, *q;
 	 int i;
 

@@ -56,8 +56,8 @@ mount_next_vol:
 	   dev_name(dev));
       return 0;
    }
-   if (job_cancelled(jcr)) {
-      Jmsg(jcr, M_FATAL, 0, _("Job cancelled.\n"));
+   if (job_canceled(jcr)) {
+      Jmsg(jcr, M_FATAL, 0, _("Job canceled.\n"));
       return 0;
    }
    recycle = ask = autochanger = 0;
