@@ -373,7 +373,7 @@ Item 5:   Implement Label templates
 
 
 Item 6:   Write a regression script.
-Started
+Done --   Continue to expand its testing.
 
   What:   This is an automatic script that runs and tests as many features
           of Bacula as possible. The output is compared to previous
