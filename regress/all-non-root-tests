@@ -22,6 +22,7 @@ tests/recycle-test
 tests/span-vol-test
 tests/restore-by-file-test
 tests/restore2-by-file-test
+tests/four-jobs-test
 echo " "
 echo " "
 echo "Test results"

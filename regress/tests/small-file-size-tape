@@ -10,10 +10,8 @@ scripts/cleanup-tape
 echo "${cwd}/build" >/tmp/file-list
 bin/drop_sqlite_tables
 bin/make_sqlite_tables
-out="tmp/sed_tmp"
-echo "s%# Maximum File Size%  Maximum File Size%g" >${out}
 cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
-sed -f ${out} ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
+sed "s%# Maximum File Size%  Maximum File Size%" ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
 
 echo " "
 echo " "
