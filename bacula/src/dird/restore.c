@@ -305,7 +305,7 @@ static void restore_cleanup(JCR *jcr, int TermCode)
 	    pthread_cancel(jcr->SD_msg_chan);
 	 }
 	 break;
-      case JS_Cancelled:
+      case JS_Canceled:
          term_msg = _("Restore Canceled");
 	 if (jcr->store_bsock) {
 	    bnet_sig(jcr->store_bsock, BNET_TERMINATE);

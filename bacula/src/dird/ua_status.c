@@ -238,7 +238,7 @@ static void do_director_status(UAContext *ua, char *cmd)
 	 case JS_ErrorTerminated:
             msg = _("has erred");
 	    break;
-	 case JS_Cancelled:
+	 case JS_Canceled:
             msg = _("has been canceled");
 	    break;
 	 case JS_WaitFD:

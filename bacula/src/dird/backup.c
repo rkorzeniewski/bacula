@@ -279,7 +279,7 @@ static int wait_for_job_termination(JCR *jcr)
 	 set_jcr_job_status(jcr, jcr->FDJobStatus);
          Dmsg1(100, "FDStatus=%c\n", (char)jcr->JobStatus);
       }
-      if (job_cancelled(jcr)) {
+      if (job_canceled(jcr)) {
 	 break;
       }
    }
@@ -399,7 +399,7 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
 	    pthread_cancel(jcr->SD_msg_chan);
 	 }
 	 break;
-      case JS_Cancelled:
+      case JS_Canceled:
          term_msg = _("Backup Canceled");
 	 if (jcr->store_bsock) {
 	    bnet_sig(jcr->store_bsock, BNET_TERMINATE);

@@ -84,8 +84,9 @@ int job_cmd(JCR *jcr)
    if (sscanf(dir->msg, jobcmd, &JobId, job, job_name, client_name,
 	      &JobType, &level, fileset_name, &no_attributes,
 	      &spool_attributes, fileset_md5) != 10) {
-      bnet_fsend(dir, BAD_job, dir->msg);
-      Emsg1(M_FATAL, 0, _("Bad Job Command from Director: %s\n"), dir->msg);
+      pm_strcpy(&jcr->errmsg, dir->msg);
+      bnet_fsend(dir, BAD_job, jcr->errmsg);
+      Emsg1(M_FATAL, 0, _("Bad Job Command from Director: %s\n"), jcr->errmsg);
       free_memory(job);
       free_memory(job_name);
       free_memory(client_name);
@@ -194,8 +195,9 @@ void connection_from_filed(void *arg)
    }
    Dmsg1(100, "got: %s\n", fd->msg);
 
-   if (sscanf(fd->msg, "Hello Start Job %127s\n", job_name) != 1) {
-      Emsg1(M_FATAL, 0, _("Authentication failure: %s\n"), fd->msg);
+   if (fd->msglen < 17 || fd->msglen > 17+127 ||
+       sscanf(fd->msg, "Hello Start Job %127s\n", job_name) != 1) {
+      Emsg1(M_FATAL, 0, _("Bad Hello from FD: %s\n"), fd->msg);
       return;
    }
    handle_filed_connection(fd, job_name);
@@ -299,19 +301,21 @@ static int use_device_cmd(JCR *jcr)
       UnlockRes();
       if (verbose) {
 	 unbash_spaces(dir->msg);
-         Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), dir->msg);
+	 pm_strcpy(&jcr->errmsg, dir->msg);
+         Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), jcr->errmsg);
       }
       Jmsg(jcr, M_FATAL, 0, _("\n"
          "     Device \"%s\" requested by Dir not found in SD Device resources.\n"),
 	   dev_name);
       bnet_fsend(dir, NO_device, dev_name);
    } else {
+      unbash_spaces(dir->msg);
+      pm_strcpy(&jcr->errmsg, dir->msg);
       if (verbose) {
-	 unbash_spaces(dir->msg);
-         Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), dir->msg);
+         Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), jcr->errmsg);
       }
-      Jmsg(jcr, M_FATAL, 0, _("store<dir: Bad Use Device command: %s\n"), dir->msg);
-      bnet_fsend(dir, BAD_use, dir->msg);
+      Jmsg(jcr, M_FATAL, 0, _("Bad Use Device command: %s\n"), jcr->errmsg);
+      bnet_fsend(dir, BAD_use, jcr->errmsg);
    }
 
    free_memory(dev_name);

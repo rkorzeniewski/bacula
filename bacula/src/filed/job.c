@@ -89,10 +89,10 @@ static struct s_cmds cmds[] = {
 /* Commands received from director that need scanning */
 static char jobcmd[]      = "JobId=%d Job=%127s SDid=%d SDtime=%d Authorization=%100s";
 static char storaddr[]    = "storage address=%s port=%d\n";
-static char sessioncmd[]  = "session %s %ld %ld %ld %ld %ld %ld\n";
+static char sessioncmd[]  = "session %127s %ld %ld %ld %ld %ld %ld\n";
 static char restorecmd[]  = "restore replace=%c where=%s\n";
 static char restorecmd1[] = "restore replace=%c where=\n";
-static char verifycmd[]   = "verify level=%20s\n";
+static char verifycmd[]   = "verify level=%30s\n";
 
 /* Responses sent to Director */
 static char errmsg[]      = "2999 Invalid command\n";
@@ -232,9 +232,9 @@ static int cancel_cmd(JCR *jcr)
       if (!(cjcr=get_jcr_by_full_name(Job))) {
          bnet_fsend(dir, "2901 Job %s not found.\n", Job);
       } else {
-	 set_jcr_job_status(cjcr, JS_Cancelled);
+	 set_jcr_job_status(cjcr, JS_Canceled);
 	 free_jcr(cjcr);
-         bnet_fsend(dir, "2001 Job %s marked to be cancelled.\n", Job);
+         bnet_fsend(dir, "2001 Job %s marked to be canceled.\n", Job);
       }
    } else {
       bnet_fsend(dir, "2902 Error scanning cancel command.\n");
@@ -391,11 +391,11 @@ static int bootstrap_cmd(JCR *jcr)
 static int level_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
-   char *level;
+   POOLMEM *level;
    struct tm tm;
    time_t mtime;
 
-   level = (char *) get_memory(dir->msglen);
+   level = get_memory(dir->msglen+1);
    Dmsg1(110, "level_cmd: %s", dir->msg);
    if (sscanf(dir->msg, "level = %s ", level) != 1) {
       Jmsg1(jcr, M_FATAL, 0, _("Bad level command: %s\n"), dir->msg);
@@ -416,7 +416,7 @@ static int level_cmd(JCR *jcr)
       if (sscanf(dir->msg, "level = since %d-%d-%d %d:%d:%d", 
 		 &tm.tm_year, &tm.tm_mon, &tm.tm_mday,
 		 &tm.tm_hour, &tm.tm_min, &tm.tm_sec) != 6) {
-         Jmsg1(jcr, M_FATAL, 0, "Bad scan of date/time: %s\n", dir->msg);
+         Jmsg1(jcr, M_FATAL, 0, _("Bad scan of date/time: %s\n"), dir->msg);
 	 free_memory(level);
 	 return 0;
       }

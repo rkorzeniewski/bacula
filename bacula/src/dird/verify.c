@@ -322,7 +322,7 @@ static void verify_cleanup(JCR *jcr, int TermCode)
          term_msg = _("*** Verify Error ***"); 
 	 msg_type = M_ERROR;	      /* Generate error message */
 	 break;
-      case JS_Cancelled:
+      case JS_Canceled:
          term_msg = _("Verify Canceled");
 	 break;
       case JS_Differences:
@@ -396,7 +396,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
     *	Attributes
     *	Link name  ???
     */
-   while ((n=bget_msg(fd, 0)) >= 0 && !job_cancelled(jcr)) {
+   while ((n=bget_msg(fd, 0)) >= 0 && !job_canceled(jcr)) {
       int stream;
       char *attr, *p, *fn;
       char Opts_SIG[MAXSTRING];        /* Verify Opts or MD5/SHA1 signature */

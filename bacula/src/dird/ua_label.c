@@ -224,10 +224,17 @@ checkName:
 static void label_from_barcodes(UAContext *ua)
 {
    STORE *store = ua->jcr->store;
-   BSOCK *sd = ua->jcr->store_bsock;
+   BSOCK *sd;
    POOL_DBR pr;
    char dev_name[MAX_NAME_LENGTH];
 //   MEDIA_DBR mr, omr;
+   typedef struct s_vol_list {
+      struct s_vol_list *next;
+      char *VolName;
+      int Slot;
+   } vol_list_t;
+   vol_list_t *vol_list = NULL;
+   vol_list_t *vl;
 
    bsendmsg(ua, _("Connecting to Storage daemon %s at %s:%d ...\n"), 
       store->hdr.name, store->address, store->SDport);
@@ -235,17 +242,19 @@ static void label_from_barcodes(UAContext *ua)
       bsendmsg(ua, _("Failed to connect to Storage daemon.\n"));
       return;
    }
+   sd  = ua->jcr->store_bsock;
 
-   strcpy(dev_name, store->dev_name);
+   bstrncpy(dev_name, store->dev_name, sizeof(dev_name));
    bash_spaces(dev_name);
    bnet_fsend(sd, _("autochanger list %s \n"), dev_name);
    while (bget_msg(sd, 0) >= 0) {
       char *p;
-      int slot;
       strip_trailing_junk(sd->msg);
-      if (strncmp(sd->msg, "3902 Issuing", 12) == 0 ||
-          strncmp(sd->msg, "3903 Issuing", 12) == 0) {
-         bsendmsg(ua, "%s\n", sd->msg);
+      /* Check for returned SD messages */
+      if (sd->msg[0] == '3'     && sd->msg[1] == '9' &&         
+	  B_ISDIGIT(sd->msg[2]) && B_ISDIGIT(sd->msg[3]) &&
+          sd->msg[4] == ' ') {
+         bsendmsg(ua, "%s\n", sd->msg);   /* pass them on to user */
 	 continue;
       }
       p = strchr(sd->msg, ':');
@@ -257,9 +266,29 @@ static void label_from_barcodes(UAContext *ua)
       } else {
 	 continue;
       }
-      slot = atoi(sd->msg);
-      bsendmsg(ua, "Got slot=%d label: %s\n", slot, p);
+      vl = (vol_list_t *)malloc(sizeof(vol_list_t));
+      vl->Slot = atoi(sd->msg);
+      vl->VolName = bstrdup(p);
+      vl->next = vol_list;
+      vol_list = vl;
    }
+
+   if (!vol_list) {
+      bsendmsg(ua, _("No Volumes found to label, or no barcodes.\n"));
+      goto bail_out;
+   }
+   bsendmsg(ua, _("The following Volumes will be labeled:\n"
+                  "Slot  Volume\n"
+                  "==============\n"));
+   for (vl=vol_list; vl; vl=vl->next) {
+      bsendmsg(ua, "%4d  %s\n", vl->Slot, vl->VolName);
+   }
+   if (!get_cmd(ua, _("Do you want to continue? (y/n): ")) ||
+       (ua->cmd[0] != 'y' && ua->cmd[0] != 'Y')) {
+      goto bail_out;
+   }
+
+
 
 #ifdef xxxx
    memset(&mr, 0, sizeof(mr));
@@ -270,6 +299,16 @@ static void label_from_barcodes(UAContext *ua)
        continue;
    }
 #endif
+
+bail_out:
+   /* Free list */
+   for (vl=vol_list; vl; ) {
+      vol_list_t *ovl;
+      free(vl->VolName);
+      ovl = vl;
+      vl = vl->next;
+      free(ovl);
+   }
 
    bnet_sig(sd, BNET_TERMINATE);
    bnet_close(sd);

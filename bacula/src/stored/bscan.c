@@ -971,7 +971,7 @@ static int update_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *elabel,
       case JS_ErrorTerminated:
          term_msg = _("*** Backup Error ***");
 	 break;
-      case JS_Cancelled:
+      case JS_Canceled:
          term_msg = _("Backup Canceled");
 	 break;
       default:

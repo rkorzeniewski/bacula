@@ -81,6 +81,13 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
       if (status == 0) {
 	 loaded = atoi(results);
       } else {
+	 if (dir) {
+            bnet_fsend(dir, _("3991 Bad autochanger \"loaded\" status = %d.\n"),
+	       status);
+	 } else {
+            Jmsg(jcr, M_INFO, 0, _("Bad autochanger \"load slot\" status = %d.\n"),
+	       status);
+	 }
 	 loaded = -1;		   /* force unload */
       }
       Dmsg1(100, "loaded=%s\n", results);
@@ -119,10 +126,19 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
                       jcr->device->changer_command, "load");
 	 status = run_program(changer, timeout, NULL);
 	 if (status == 0) {
-            Jmsg(jcr, M_INFO, 0, _("Autochanger \"load slot\" status is OK.\n"));
+	    if (dir) {
+               bnet_fsend(dir, _("3904 Autochanger \"load slot\" status is OK.\n"));
+	    } else {
+               Jmsg(jcr, M_INFO, 0, _("Autochanger \"load slot\" status is OK.\n"));
+	    }
 	 } else {
-            Jmsg(jcr, M_INFO, 0, _("Bad autochanger \"load slot\" status = %d.\n"),
-	       status);
+	    if (dir) {
+               bnet_fsend(dir, _("3992 Bad autochanger \"load slot\" status = %d.\n"),
+		  status);
+	    } else {
+               Jmsg(jcr, M_INFO, 0, _("Bad autochanger \"load slot\" status = %d.\n"),
+		  status);
+	    }
 	 }
          Dmsg2(100, "load slot %d status=%d\n", slot, status);
       }
@@ -139,6 +155,7 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
 /*
  * List the Volumes that are in the autoloader possibly
  *   with their barcodes.
+ *   We assume that it is always the Console that is calling us.
  */
 int autochanger_list(JCR *jcr, DEVICE *dev, BSOCK *dir)
 {
@@ -149,7 +166,7 @@ int autochanger_list(JCR *jcr, DEVICE *dev, BSOCK *dir)
 
    if (!dev_cap(dev, CAP_AUTOCHANGER) || !jcr->device->changer_name ||
        !jcr->device->changer_command) {
-      bnet_fsend(dir, _("Not a changer device.\n"));
+      bnet_fsend(dir, _("3993 Not a changer device.\n"));
       return 0;
    }
 
@@ -170,7 +187,7 @@ int autochanger_list(JCR *jcr, DEVICE *dev, BSOCK *dir)
    bnet_fsend(dir, _("3903 Issuing autochanger \"list\" command.\n"));
    bpipe = open_bpipe(changer, timeout, "r");
    if (!bpipe) {
-      bnet_fsend(dir, _("Open bpipe failed.\n"));
+      bnet_fsend(dir, _("3994 Open bpipe failed.\n"));
       goto bail_out;
    }
    /* Get output from changer */

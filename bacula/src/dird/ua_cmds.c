@@ -422,8 +422,8 @@ static int cancelcmd(UAContext *ua, char *cmd)
      
    switch (jcr->JobStatus) {
    case JS_Created:
-      set_jcr_job_status(jcr, JS_Cancelled);
-      bsendmsg(ua, _("JobId %d, Job %s marked to be cancelled.\n"),
+      set_jcr_job_status(jcr, JS_Canceled);
+      bsendmsg(ua, _("JobId %d, Job %s marked to be canceled.\n"),
 	      jcr->JobId, jcr->Job);
 #ifndef USE_SEMAPHORE
       workq_remove(&job_wq, jcr->work_item); /* attempt to remove it from queue */
@@ -432,7 +432,7 @@ static int cancelcmd(UAContext *ua, char *cmd)
       return 1;
 	 
    default:
-      set_jcr_job_status(jcr, JS_Cancelled);
+      set_jcr_job_status(jcr, JS_Canceled);
       /* Cancel File daemon */
       ua->jcr->client = jcr->client;
       if (!connect_to_file_daemon(ua->jcr, 10, FDConnectTimeout, 1)) {

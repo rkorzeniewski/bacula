@@ -311,7 +311,7 @@ void set_jcr_job_status(JCR *jcr, int JobStatus)
    case JS_Error:
    case JS_FatalError:
    case JS_Differences:
-   case JS_Cancelled:
+   case JS_Canceled:
       break;
    default:
       jcr->JobStatus = JobStatus;

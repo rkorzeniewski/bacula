@@ -77,7 +77,7 @@ static struct s_cmds fd_cmds[] = {
 };
 
 /* Commands from the File daemon that require additional scanning */
-static char read_open[]       = "read open session = %s %ld %ld %ld %ld %ld %ld\n";
+static char read_open[]       = "read open session = %127s %ld %ld %ld %ld %ld %ld\n";
 
 /* Responses sent to the File daemon */
 static char NO_open[]         = "3901 Error session already open\n";

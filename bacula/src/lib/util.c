@@ -242,8 +242,8 @@ void jobstatus_to_ascii(int JobStatus, char *msg, int maxlen)
      case JS_Error:
          termstat = _("Non-fatal error");
 	 break;
-     case JS_Cancelled:
-         termstat = _("Cancelled");
+     case JS_Canceled:
+         termstat = _("Canceled");
 	 break;
      case JS_Differences:
          termstat = _("Verify differences");
@@ -275,8 +275,8 @@ char *job_status_to_str(int stat)
    case JS_FatalError:
       str = _("Fatal Error");
       break;
-   case JS_Cancelled:
-      str = _("Cancelled");
+   case JS_Canceled:
+      str = _("Canceled");
       break;
    case JS_Differences:
       str = _("Differences");
@@ -644,4 +644,3 @@ POOLMEM *edit_job_codes(void *mjcr, char *omsg, char *imsg, char *to)
    }
    return omsg;
 }
-

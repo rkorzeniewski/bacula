@@ -54,6 +54,7 @@ extern int debug_level;
  *    VOL_CREATE_ERROR
  *    VOL_VERSION_ERROR
  *    VOL_LABEL_ERROR
+ *    VOL_NO_MEDIA
  */  
 int read_dev_volume_label(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 {
@@ -61,8 +62,8 @@ int read_dev_volume_label(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    DEV_RECORD *record;
    int ok = 0;
 
-   Dmsg2(30, "Enter read_volume_label device=%s vol=%s\n", 
-      dev_name(dev), VolName);
+   Dmsg3(100, "Enter read_volume_label device=%s vol=%s dev_Vol=%s\n", 
+      dev_name(dev), VolName, dev->VolHdr.VolName);
 
    if (dev->state & ST_LABEL) {       /* did we already read label? */
       /* Compare Volume Names allow special wild card */
@@ -88,7 +89,7 @@ int read_dev_volume_label(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    if (!rewind_dev(dev)) {
       Mmsg(&jcr->errmsg, _("Couldn't rewind device %s ERR=%s\n"), dev_name(dev),
 	 strerror_dev(dev));
-      return jcr->label_status = VOL_IO_ERROR;
+      return jcr->label_status = VOL_NO_MEDIA;
    }
    strcpy(dev->VolHdr.Id, "**error**");
 
@@ -337,9 +338,9 @@ void create_volume_label(DEVICE *dev, char *VolName)
    strcpy(dev->VolHdr.Id, BaculaId);
    dev->VolHdr.VerNum = BaculaTapeVersion;
    dev->VolHdr.LabelType = PRE_LABEL;  /* Mark tape as unused */
-   strcpy(dev->VolHdr.VolName, VolName);
+   bstrncpy(dev->VolHdr.VolName, VolName, sizeof(dev->VolHdr.VolName));
    strcpy(dev->VolHdr.PoolName, "Default");
-   strcpy(dev->VolHdr.MediaType, device->media_type);
+   bstrncpy(dev->VolHdr.MediaType, device->media_type, sizeof(dev->VolHdr.MediaType));
    strcpy(dev->VolHdr.PoolType, "Backup");
 
    /* Put label time/date in header */
@@ -387,11 +388,12 @@ int write_volume_label_to_dev(JCR *jcr, DEVRES *device, char *VolName, char *Poo
 
    Dmsg0(99, "write_volume_label()\n");
    create_volume_label(dev, VolName);
-   strcpy(dev->VolHdr.MediaType, device->media_type);
+   bstrncpy(dev->VolHdr.MediaType, device->media_type, sizeof(dev->VolHdr.MediaType));
    bstrncpy(dev->VolHdr.VolName, VolName, sizeof(dev->VolHdr.VolName));
    bstrncpy(dev->VolHdr.PoolName, PoolName, sizeof(dev->VolHdr.PoolName));
 
    if (!rewind_dev(dev)) {
+      memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
       Dmsg2(30, "Bad status on %s from rewind. ERR=%s\n", dev_name(dev), strerror_dev(dev));
       return 0;
    }
@@ -404,6 +406,7 @@ int write_volume_label_to_dev(JCR *jcr, DEVRES *device, char *VolName, char *Poo
 
    if (!write_record_to_block(block, &rec)) {
       Dmsg2(30, "Bad Label write on %s. ERR=%s\n", dev_name(dev), strerror_dev(dev));
+      memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
       free_block(block);
       free_pool_memory(rec.data);
       return 0;
@@ -414,6 +417,7 @@ int write_volume_label_to_dev(JCR *jcr, DEVRES *device, char *VolName, char *Poo
       
    Dmsg0(99, "Call write_block_to_device()\n");
    if (!write_block_to_dev(jcr, dev, block)) {
+      memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
       Dmsg2(30, "Bad Label write on %s. ERR=%s\n", dev_name(dev), strerror_dev(dev));
       stat = 9;
    }

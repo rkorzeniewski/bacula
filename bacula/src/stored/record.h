@@ -38,6 +38,7 @@
 #define VOL_CREATE_ERROR  5               /* Error creating label */
 #define VOL_VERSION_ERROR 6               /* Bacula version error */
 #define VOL_LABEL_ERROR   7               /* Bad label type */
+#define VOL_NO_MEDIA      8               /* Hard error -- no media present */
 
 
 /*  See block.h for RECHDR_LENGTH */

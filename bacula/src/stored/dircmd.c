@@ -128,7 +128,7 @@ void *connection_request(void *arg)
    /* 
     * See if this is a File daemon connection
     */
-   if (bs->msglen < 25 || bs->msglen > (int)sizeof(name)) {
+   if (bs->msglen < 25 || bs->msglen > (int)sizeof(name)+25) {
       Emsg1(M_ERROR, 0, _("Invalid Dir connection. Len=%d\n"), bs->msglen);
    }
    if (sscanf(bs->msg, "Hello Start Job %127s calling\n", name) == 1) {
@@ -216,7 +216,7 @@ static int cancel_cmd(JCR *cjcr)
       } else {
 	 P(jcr->mutex);
 	 oldStatus = jcr->JobStatus;
-	 set_jcr_job_status(jcr, JS_Cancelled);
+	 set_jcr_job_status(jcr, JS_Canceled);
 	 if (!jcr->authenticated && oldStatus == JS_WaitFD) {
 	    pthread_cond_signal(&jcr->job_start_wait); /* wake waiting thread */
 	 }
@@ -231,7 +231,7 @@ static int cancel_cmd(JCR *cjcr)
 	       jcr->device->dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP)) {
 	     pthread_cond_signal(&jcr->device->dev->wait_next_vol);
 	 }
-         bnet_fsend(dir, _("3000 Job %s marked to be cancelled.\n"), jcr->Job);
+         bnet_fsend(dir, _("3000 Job %s marked to be canceled.\n"), jcr->Job);
 	 free_jcr(jcr);
       }
    } else {
@@ -334,8 +334,8 @@ static int do_label(JCR *jcr, int relabel)
       }
    } else {
       /* NB dir->msg gets clobbered in bnet_fsend, so save command */
-      strcpy(dname, dir->msg);
-      bnet_fsend(dir, _("3903 Error scanning label command: %s\n"), dname);
+      pm_strcpy(&jcr->errmsg, dir->msg);
+      bnet_fsend(dir, _("3903 Error scanning label command: %s\n"), jcr->errmsg);
    }
    free_memory(dname);
    free_memory(oldname);
@@ -373,7 +373,7 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
 	  if (dev->dev_errno == EAGAIN || dev->dev_errno == EBUSY) {
 	     sleep(30);
 	  }
-          bnet_fsend(dir, _("3903 Unable to open device %s. ERR=%s\n"), 
+          bnet_fsend(dir, _("3910 Unable to open device %s. ERR=%s\n"), 
 	     dev_name(dev), strerror_dev(dev));
 	  goto bail_out;
        }
@@ -387,7 +387,7 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
       case VOL_OK:
 	 if (!relabel) {
 	    bnet_fsend(dir, _(
-               "3901 Cannot label Volume because it is already labeled: %s\n"), 
+               "3911 Cannot label Volume because it is already labeled: %s\n"), 
 		dev->VolHdr.VolName);
 	    break;
 	 }
@@ -400,15 +400,18 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
       case VOL_IO_ERROR:
       case VOL_NO_LABEL:
 	 if (!write_volume_label_to_dev(jcr, jcr->device, newname, poolname)) {
-            bnet_fsend(dir, _("3903 Failed to label Volume: ERR=%s\n"), strerror_dev(dev));
+            bnet_fsend(dir, _("3912 Failed to label Volume: ERR=%s\n"), strerror_dev(dev));
 	    break;
 	 }
 	 strcpy(jcr->VolumeName, newname);
          bnet_fsend(dir, _("3000 OK label. Volume=%s Device=%s\n"), 
 	    newname, dev->dev_name);
 	 break;
+      case VOL_NO_MEDIA:
+         bnet_fsend(dir, _("3912 Failed to label Volume: ERR=%s\n"), strerror_dev(dev));
+	 break;
       default:
-         bnet_fsend(dir, _("3902 Cannot label Volume. \
+         bnet_fsend(dir, _("3913 Cannot label Volume. \
 Unknown status %d from read_volume_label()\n"), jcr->label_status);
 	 break;
    }
@@ -514,7 +517,7 @@ static int mount_cmd(JCR *jcr)
 		  pthread_cond_signal(&dev->wait_next_vol);
 	       }
 	       if (dev->state & ST_LABEL) {
-                  bnet_fsend(dir, _("3001 Device %s is mounted with Volume %s\n"), 
+                  bnet_fsend(dir, _("3001 Device %s is mounted with Volume \"%s\"\n"), 
 		     dev->dev_name, dev->VolHdr.VolName);
 	       } else {
                   bnet_fsend(dir, _("3905 Device %s open but no Bacula volume is mounted.\n"
@@ -535,7 +538,7 @@ static int mount_cmd(JCR *jcr)
 	    case BST_NOT_BLOCKED:
 	       if (dev->state & ST_OPENED) {
 		  if (dev->state & ST_LABEL) {
-                     bnet_fsend(dir, _("3001 Device %s is mounted with Volume %s\n"),
+                     bnet_fsend(dir, _("3001 Device %s is mounted with Volume \"%s\"\n"),
 			dev->dev_name, dev->VolHdr.VolName);
 		  } else {
                      bnet_fsend(dir, _("3905 Device %s open but no Bacula volume is mounted.\n"   
@@ -554,7 +557,7 @@ static int mount_cmd(JCR *jcr)
 		  }
 		  read_label(jcr, dev);
 		  if (dev->state & ST_LABEL) {
-                     bnet_fsend(dir, _("3001 Device %s is mounted with Volume %s\n"), 
+                     bnet_fsend(dir, _("3001 Device %s is mounted with Volume \"%s\"\n"), 
 			dev->dev_name, dev->VolHdr.VolName);
 		  } else {
                      bnet_fsend(dir, _("3905 Device %s open but no Bacula volume is mounted.\n"
@@ -573,8 +576,8 @@ static int mount_cmd(JCR *jcr)
          bnet_fsend(dir, _("3999 Device %s not found\n"), dev_name);
       }
    } else {
-      pm_strcpy(&dev_name, dir->msg);
-      bnet_fsend(dir, _("3906 Error scanning mount command: %s\n"), dev_name);
+      pm_strcpy(&jcr->errmsg, dir->msg);
+      bnet_fsend(dir, _("3906 Error scanning mount command: %s\n"), jcr->errmsg);
    }
    free_memory(dev_name);
    bnet_sig(dir, BNET_EOD);
@@ -586,13 +589,13 @@ static int mount_cmd(JCR *jcr)
  */
 static int unmount_cmd(JCR *jcr)
 {
-   char *dname;
+   POOLMEM *dname;
    BSOCK *dir = jcr->dir_bsock;
    DEVRES *device;
    DEVICE *dev;
    int found = 0;
 
-   dname = (char *) get_memory(dir->msglen+1);
+   dname = get_memory(dir->msglen+1);
    if (sscanf(dir->msg, "unmount %s", dname) == 1) {
       unbash_spaces(dname);
       device = NULL;
@@ -658,8 +661,8 @@ static int unmount_cmd(JCR *jcr)
       }
    } else {
       /* NB dir->msg gets clobbered in bnet_fsend, so save command */
-      strcpy(dname, dir->msg);
-      bnet_fsend(dir, _("3907 Error scanning unmount command: %s\n"), dname);
+      pm_strcpy(&jcr->errmsg, dir->msg);
+      bnet_fsend(dir, _("3907 Error scanning unmount command: %s\n"), jcr->errmsg);
    }
    free_memory(dname);
    bnet_sig(dir, BNET_EOD);
@@ -700,7 +703,7 @@ static int status_cmd(JCR *jcr)
       for (dev=device->dev; dev; dev=dev->next) {
 	 if (dev->state & ST_OPENED) {
 	    if (dev->state & ST_LABEL) {
-               bnet_fsend(user, _("Device %s is mounted with Volume %s\n"), 
+               bnet_fsend(user, _("Device %s is mounted with Volume \"%s\"\n"), 
 		  dev_name(dev), dev->VolHdr.VolName);
 	    } else {
                bnet_fsend(user, _("Device %s open but no Bacula volume is mounted.\n"), dev_name(dev));
@@ -811,13 +814,13 @@ static void send_blocked_status(JCR *jcr, DEVICE *dev)
  */
 static int autochanger_cmd(JCR *jcr)
 {
-   char *devname;
+   POOLMEM *devname;
    BSOCK *dir = jcr->dir_bsock;
    DEVRES *device;
    DEVICE *dev;
    int found = 0;
 
-   devname = (char *)get_memory(dir->msglen);
+   devname = get_memory(dir->msglen+1);
    if (sscanf(dir->msg, "autochanger list %s ", devname) == 1) {
       unbash_spaces(devname);
       device = NULL;
@@ -864,8 +867,9 @@ static int autochanger_cmd(JCR *jcr)
          bnet_fsend(dir, _("3999 Device %s not found\n"), devname);
       }
    } else {
-      strcpy(devname, dir->msg);
-      bnet_fsend(dir, _("3907 Error scanning autocharger list command: %s\n"), devname);
+      pm_strcpy(&jcr->errmsg, dir->msg);
+      bnet_fsend(dir, _("3907 Error scanning autocharger list command: %s\n"),
+	 jcr->errmsg);
    }
    free_memory(devname);
    bnet_sig(dir, BNET_EOD);
