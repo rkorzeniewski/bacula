@@ -604,14 +604,6 @@ AC_ARG_WITH(pid-dir,
     ]
 )
 
-# make sure the pid directory exists
-if test ! -d $piddir ; then	
-    piddir=`eval echo ${sysconfdir}`
-    case $piddir in
-	  NONE/*) piddir=`echo $piddir | sed "s~NONE~$ac_default_prefix~"` ;;
-    esac
-fi
-
 AC_DEFINE_UNQUOTED(_PATH_BACULA_PIDDIR, "$piddir")
 AC_SUBST(piddir)
 
@@ -628,14 +620,6 @@ AC_ARG_WITH(subsys-dir,
 	fi
     ]
 )
-
-# make sure the pid directory exists
-if test ! -d $subsysdir ; then	   
-    subsysdir=`eval echo ${sysconfdir}`
-    case $subsysdir in
-	NONE/*) subsysdir=`echo $subsysdir | sed "s~NONE~$ac_default_prefix~"` ;;
-    esac
-fi
 
 AC_SUBST(subsysdir)
 

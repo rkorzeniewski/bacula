@@ -181,6 +181,7 @@ static void *job_thread(void *arg)
 
    Dmsg0(200, "=====Start Job=========\n");
    jcr->start_time = time(NULL);      /* set the real start time */
+   set_jcr_job_status(jcr, JS_Running);
 
    if (job_canceled(jcr)) {
       update_job_end_record(jcr);
@@ -192,8 +193,6 @@ static void *job_thread(void *arg)
    } else {
 
       /* Run Job */
-      set_jcr_job_status(jcr, JS_Running);
-
       if (jcr->job->RunBeforeJob) {
 	 POOLMEM *before = get_pool_memory(PM_FNAME);
 	 int status;

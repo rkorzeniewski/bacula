@@ -259,7 +259,7 @@ static void add_job(JOB *job, RUN *run, time_t now, time_t runtime)
    /* Make sure array is big enough */
    if (num_runjobs == max_runjobs) {
       max_runjobs += 10;
-      runjobs = (RUNJOB *) realloc(runjobs, sizeof(RUNJOB) * max_runjobs);
+      runjobs = (RUNJOB *)realloc(runjobs, sizeof(RUNJOB) * max_runjobs);
       if (!runjobs)
          Emsg0(M_ABORT, 0, _("Out of memory\n"));
    } 

@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                  17 April 2003 
+                  18 April 2003 
 
 Documentation to do: (a little bit at a time)
 - Document running a test version.
@@ -18,9 +18,9 @@ Testing to do: (painful)
 
 For 1.30 release:
 - Fix Bare Metal restore problem.
-- Implement create "FileSet"?
 - Possibly implement a Slot priority (loaded/not loaded).
 - Test multiple simultaneous Volumes
+- Implement run at "xxx"
 
 - Document new transparent Console commands and wait command.
 - Document new immediate File save configuration (walk user
@@ -39,6 +39,16 @@ For 1.30 release:
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 After 1.30:
+- Implement Automatic Mount even in operator wait.
+- Implement create "FileSet"?
+- Implement Release Device in the Job resource to unmount a drive.
+- Implement Acquire Device in the Job resource to mount a drive,
+  be sure this works with admin jobs so that the user can get
+  prompted to insert the correct tape.  Possibly some way to say to
+  run the job but don't save the files.
+- Implement all command line args on run.
+- Implement command line "restore" args.
+- Implement "restore current select=no"
 - Fix watchdog pthread crash on Win32
 - Fix "access not allowed" for backup of files on WinXP.
 - Implement "scratch pool" where tapes are defined and can be
