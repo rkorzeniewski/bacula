@@ -17,11 +17,10 @@ echo " === Starting verify Volume Test ==="
 echo " === Starting verify Volume Test ===" >>working/log
 echo " "
 
-bin/bacula start
+bin/bacula start 2>&1 >/dev/null
 bin/console -c bin/console.conf <<END_OF_DATA
-@output /dev/null
 messages
-@output
+@output tmp/log1.out
 label storage=File
 TestVolume001
 run job=NightlySave
@@ -31,18 +30,19 @@ messages
 @# 
 @# now do a verify volume
 @#
+@output ${cwd}/tmp/original
 run job=VerifyVolume
 yes
 wait
-@tee ${cwd}/tmp/original
 messages
-@output
 quit
 END_OF_DATA
 sleep 2
-bin/bacula stop
-grep "Termination: *Verify OK" ${cwd}/tmp/original 2>&1 >/dev/null
-if [ $? != 0 ] ; then
+bin/bacula stop 2>&1 >/dev/null
+grep "^Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
+bstat=$?
+grep "^Termination: *Verify OK" ${cwd}/tmp/original 2>&1 >/dev/null
+if [ $? != 0 -o $bstat != 0 ] ; then
    echo " "
    echo " "
    echo "  ===== Verify Volume failed!!! ===== "

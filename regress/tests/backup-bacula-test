@@ -16,11 +16,11 @@ echo " === Starting Backup Bacula Test ==="
 echo " === Starting Backup Bacula Test ===" >>working/log
 echo " "
 
-bin/bacula start
+bin/bacula start 2>&1 >/dev/null
 bin/console -c bin/console.conf <<END_OF_DATA
 @output /dev/null
 messages
-@output
+@output tmp/log1.out
 label
 TestVolume001
 run job=Client1
@@ -30,20 +30,23 @@ messages
 @# 
 @# now do a restore
 @#
+@output tmp/log2.out  
 restore
 5
 done
 yes
 @sleep 1
 wait
-@output /dev/null
 messages
 quit
 END_OF_DATA
-sleep 2
-bin/bacula stop
+bin/bacula stop 2>&1 >/dev/null
+grep "^Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
+bstat=$?
+grep "^Termination: *Restore OK" tmp/log2.out 2>&1 >/dev/null
+rstat=$?
 diff -r build /tmp/bacula-restores${cwd}/build
-if [ $? != 0 ] ; then
+if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
    echo " "
    echo " "
    echo "  ===== Backup Bacula Test failed!!! ===== "

@@ -26,10 +26,10 @@ echo " === Starting six-vol-test  ==="
 echo " === Starting six-vol-test  ===" >>working/log
 echo " "
 
-bin/bacula start
+bin/bacula start 2>&1 >/dev/null
 bin/console -c bin/console.conf <<END_OF_DATA
 messages
-@output
+@output tmp/log1.out
 run job=MultiVol storage=File
 yes
 wait
@@ -37,6 +37,7 @@ messages
 @# 
 @# now do a restore
 @#
+@output tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores
 5
 done
@@ -45,9 +46,13 @@ wait
 messages
 quit
 END_OF_DATA
-bin/bacula stop
+bin/bacula stop  2>&1 >/dev/null
+grep "^Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
+bstat=$?
+grep "^Termination: *Restore OK" tmp/log2.out 2>&1 >/dev/null
+rstat=$?
 diff tmp/largefile  tmp/bacula-restores${cwd}/tmp/largefile
-if [ $? != 0 ] ; then
+if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
    echo " "
    echo " "
    echo "  ===== six-vol-test Bacula source failed!!! ===== "

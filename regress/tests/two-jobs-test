@@ -17,10 +17,10 @@ echo " === Starting two-jobs-test  ==="
 echo " === Starting two-jobs-test  ===" >>working/log
 echo " "
 
-bin/bacula start
+bin/bacula start 2>&1 >/dev/null
 bin/console -c bin/console.conf <<END_OF_DATA
-@output /dev/null
 messages
+@output tmp/log1.out
 label storage=File
 TestVolume001
 run job=CompressedTest
@@ -35,24 +35,25 @@ touch ${cwd}/build/src/dird/*.c
 # run a second job
 #
 bin/console -c bin/console.conf <<END_OF_DATA
+messages
+@output tmp/log1.out
 run job=CompressedTest
 yes
 wait
 messages
-@output
 @# 
 @# now do a restore
 @#
+@output tmp/log2.out
 restore
 5
 done
 yes
 wait
-@output /dev/null
 messages
 quit
 END_OF_DATA
-bin/bacula stop
+bin/bacula stop 2>&1 >/dev/null
 diff -r build /tmp/bacula-restores${cwd}/build
 if [ $? != 0 ] ; then
    echo " "
