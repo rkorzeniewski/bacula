@@ -1,0 +1,10 @@
+#!/bin/sh
+#
+# This routine makes the appropriately configured
+#  Bacula tables for either MySQL or SQLite
+#
+if test xsqlite = x@DB_NAME@ ; then
+  source ./make_sqlite_tables
+else
+  source ./make_mysql_tables
+fi

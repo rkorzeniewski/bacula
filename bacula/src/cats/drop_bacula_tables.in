@@ -1,0 +1,10 @@
+#!/bin/sh
+#
+#  Drop Bacula tables -- works for whatever is configured,
+#    MySQL or SQLite
+#
+if test xsqlite = x@DB_NAME@ ; then
+  source ./drop_sqlite_tables
+else
+  source ./drop_mysql_tables
+fi
