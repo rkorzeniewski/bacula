@@ -7,6 +7,9 @@ Documentation to do: (a little bit at a time)
 - Document static linking
 - Document fifo and | and <
 - Document how to automatically backup all local partitions
+- Document problems with Verify and pruning.
+- Document how to use multiple databases.
+- Document FIFO storage device.
 
 
 Testing to do: (painful)
@@ -241,6 +244,14 @@ Longer term to do:
   is NOT currently the case). Must detect socket error,
   buffer messages for later. 
 - Enhance time/duration input to allow multiple qualifiers e.g. 3d2h
+- Add ability to backup to two Storage devices (two SD sessions) at
+  the same time -- e.g. onsite, offsite.
+- Add the ability to consolidate old backup sets (basically do a restore
+  to tape and appropriately update the catalog). Compress Volume sets.
+  Might need to spool via file is only one drive is available.
+- Compress or consolidate Volumes of old possibly deleted files. Perhaps
+  someway to do so with every volume that has less than x% valid 
+  files.
 
   
 Projects:

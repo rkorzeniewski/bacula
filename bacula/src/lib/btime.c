@@ -4,7 +4,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -30,7 +30,8 @@
  *  be used, and in general, Unix time time_t should no longer be used,
  *  it is being phased out. 
  *     
- *  Epoch is the base of Unix time (time_t, ...) and is 1 Jan 1970 at 0:0
+ *  Epoch is the base of Unix time in seconds (time_t, ...) 
+ *     and is 1 Jan 1970 at 0:0
  *
  *  The major two times that should be left are:
  *     btime_t	(64 bit integer in microseconds base Epoch)
@@ -53,6 +54,7 @@ void bstrftime(char *dt, int maxlen, utime_t tim)
 utime_t str_to_utime(char *str) 
 {
    struct tm tm;
+   time_t ttime;
 
    if (sscanf(str, "%d-%d-%d %d:%d:%d", &tm.tm_year, &tm.tm_mon, &tm.tm_mday,
 					&tm.tm_hour, &tm.tm_min, &tm.tm_sec) != 6) {
@@ -68,7 +70,11 @@ utime_t str_to_utime(char *str)
    } else {
       return 0;
    }
-   return (utime_t)mktime(&tm);
+   ttime = mktime(&tm);
+   if (ttime == -1) {	    
+      ttime = 0;
+   }
+   return (utime_t)ttime;
 }
 
 void get_current_time(struct date_time *dt)

@@ -204,6 +204,7 @@ static void *btimer_thread(void *arg)
 	       kill(wid->pid, SIGTERM);
 	       killed = TRUE;
 	    } else {
+               Dmsg1(200, "watchdog kill thread %d\n", wid->tid);
 	       pthread_kill(wid->tid, TIMEOUT_SIGNAL);
 	       wid->killed = TRUE;
 	    }
@@ -243,6 +244,7 @@ btimer_id start_child_timer(pid_t pid, uint32_t wait)
    wid = btimer_start_common(wait);
    wid->pid = pid;
    wid->type = TYPE_CHILD;
+   Dmsg2(200, "Start child timer 0x%x for %d secs.\n", wid, wait);
    return wid;
 }
 
@@ -259,6 +261,7 @@ btimer_id start_thread_timer(pthread_t tid, uint32_t wait)
    wid = btimer_start_common(wait);
    wid->tid = tid;
    wid->type = TYPE_PTHREAD;
+   Dmsg2(200, "Start thread timer 0x%x for %d secs.\n", wid, wait);
    return wid;
 }
 
@@ -277,7 +280,6 @@ static btimer_id btimer_start_common(uint32_t wait)
    wid->start_time = time(NULL);
    wid->wait = wait;
    wid->killed = FALSE;
-   Dmsg2(200, "Start child timer 0x%x for %d secs.\n", wid, wait);
    V(mutex);
    return wid;
 }
@@ -287,6 +289,7 @@ static btimer_id btimer_start_common(uint32_t wait)
  */
 void stop_child_timer(btimer_id wid)
 {
+   Dmsg2(200, "Stop child timer 0x%x for %d secs.\n", wid, wid->wait);
    stop_btimer(wid);	     
 }
 
@@ -295,6 +298,7 @@ void stop_child_timer(btimer_id wid)
  */
 void stop_thread_timer(btimer_id wid)
 {
+   Dmsg2(200, "Stop thread timer 0x%x for %d secs.\n", wid, wid->wait);
    stop_btimer(wid);	     
 }
 
@@ -318,6 +322,5 @@ static void stop_btimer(btimer_id wid)
       wid->next->prev = wid->prev;    /* unlink it */
    }
    V(mutex);
-   Dmsg2(200, "Stop timer 0x%x for %d secs.\n", wid, wid->wait);
    free(wid);
 }

@@ -44,7 +44,7 @@ char *sel_JobMedia = "SELECT JobId FROM JobMedia WHERE MediaId=%u";
 /* Select JobIds for File deletion. */
 char *select_job =
    "SELECT JobId from Job "    
-   "WHERE JobTDate < %s "
+   "WHERE JobTDate<%s "
    "AND ClientId=%u "
    "AND PurgedFiles=0";
 

@@ -248,6 +248,10 @@ open_dev(DEVICE *dev, char *VolName, int mode)
       }
       timeout = dev->max_open_wait;
       errno = 0;
+      if (dev->state & ST_FIFO && timeout) {
+	 /* Set open timer */
+	 dev->tid = start_thread_timer(pthread_self(), timeout);
+      }
       /* If busy retry each second for max_open_wait seconds */
       while ((dev->fd = open(dev->dev_name, dev->mode, MODE_RW)) < 0) {
 	 if (errno == EAGAIN) {
@@ -261,6 +265,11 @@ open_dev(DEVICE *dev, char *VolName, int mode)
 	 dev->dev_errno = errno;
          Mmsg2(&dev->errmsg, _("stored: unable to open device %s: ERR=%s\n"), 
 	       dev->dev_name, strerror(dev->dev_errno));
+	 /* Stop any open timer we set */
+	 if (dev->tid) {
+	    stop_thread_timer(dev->tid);
+	    dev->tid = 0;
+	 }
 	 Emsg0(M_FATAL, 0, dev->errmsg);
 	 break;
       }
@@ -269,6 +278,11 @@ open_dev(DEVICE *dev, char *VolName, int mode)
 	 dev->state |= ST_OPENED;
 	 dev->use_count++;
 	 update_pos_dev(dev);		  /* update position */
+      }
+      /* Stop any open() timer we started */
+      if (dev->tid) {
+	 stop_thread_timer(dev->tid);
+	 dev->tid = 0;
       }
       Dmsg1(29, "open_dev: tape %d opened\n", dev->fd);
    } else {
@@ -1007,6 +1021,10 @@ static void do_close(DEVICE *dev)
    memset(&dev->VolCatInfo, 0, sizeof(dev->VolCatInfo));
    memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
    dev->use_count--;
+   if (dev->tid) {
+      stop_thread_timer(dev->tid);
+      dev->tid = 0;
+   }
 }
 
 /* 
@@ -1096,7 +1114,7 @@ term_dev(DEVICE *dev)
       Emsg0(M_FATAL, 0, dev->errmsg);
       return;
    }
-   close_dev(dev);
+   do_close(dev);
    Dmsg0(29, "term_dev\n");
    if (dev->dev_name) {
       free_memory(dev->dev_name);
