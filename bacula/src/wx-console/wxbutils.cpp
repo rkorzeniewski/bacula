@@ -164,7 +164,7 @@ bool wxbPromptParser::Analyse(wxString str, int status) {
             choices->Add(""); /* index 0 is never used by multiple choice questions */
          }
          
-         if (choices->GetCount() != num) { /* new choice has begun */
+         if ((long)choices->GetCount() != num) { /* new choice has begun */
             delete choices;
             choices = new wxArrayString(num);
             choices->Add("", num); /* fill until this number */

@@ -57,6 +57,12 @@ console_thread::~console_thread() {
       bnet_close(UA_sock);
       UA_sock = NULL;
    }
+   if (WSACleanup() == 0) {
+      //csprint("Windows sockets cleaned up successfully...\n");
+   }
+   else {
+      csprint("Error while cleaning up windows sockets...\n");
+   }
 }
 
 /*
@@ -68,9 +74,8 @@ void* console_thread::Entry() {
    }
    else {
       csprint("Error while initializing windows sockets...\n");
-      return 0;
    }
-   
+
    csprint("Connecting...\n");
 
    init_stack_dump();
@@ -86,10 +91,14 @@ void* console_thread::Entry() {
    UnlockRes();
 
    memset(&jcr, 0, sizeof(jcr));
+   
+   jcr.dequeuing = 1; /* TODO: catch messages */
 
    UA_sock = bnet_connect(&jcr, 3, 3, "Director daemon", dir->address, NULL, dir->DIRport, 0);
    if (UA_sock == NULL) {
       csprint("Failed to connect to the director\n");
+      csprint(NULL, CS_END);
+      csprint(NULL, CS_DISCONNECTED);
       return NULL;
    }
 
@@ -99,6 +108,8 @@ void* console_thread::Entry() {
    if (!authenticate_director(&jcr, dir, NULL)) {
       csprint("ERR=");
       csprint(UA_sock->msg);
+      csprint(NULL, CS_END);
+      csprint(NULL, CS_DISCONNECTED);
       return NULL;
    }
    
@@ -147,13 +158,6 @@ void* console_thread::Entry() {
    
    UA_sock = NULL;
    
-   if (WSACleanup() == 0) {
-      //csprint("Windows sockets cleaned up successfully...\n");
-   }
-   else {
-      csprint("Error while cleaning up windows sockets...\n");
-   }
-
    return 0;
 }
 
