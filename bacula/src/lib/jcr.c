@@ -40,7 +40,7 @@ static void jcr_timeout_check(watchdog_t *self);
 
 int num_jobs_run;
 dlist *last_jobs = NULL;
-static const int max_last_jobs = 10;
+const int max_last_jobs = 10;
 
 static JCR *jobs = NULL;	      /* pointer to JCR chain */
 static brwlock_t lock;		      /* lock for last jobs and JCR chain */
