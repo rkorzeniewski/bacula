@@ -212,7 +212,7 @@ int start_storage_daemon_job(JCR *jcr, alist *store, int append)
       /* Loop over alternative storages until one is OK */
       foreach_alist(dev, storage->device) {
 	 pm_strcpy(device_name, dev->hdr.name);
-	 pm_strcpy(media_type, dev->MediaType);
+	 pm_strcpy(media_type, storage->media_type);
 	 bash_spaces(device_name);
 	 bash_spaces(media_type);
 	 bnet_fsend(sd, use_device, device_name.c_str(),

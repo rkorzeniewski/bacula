@@ -59,6 +59,8 @@ Autochangers:
      and possibly manipulating the autochanger (much asked for).
 - 8. Automatic updating of Drive status from SD to DIR when something
      changes (Volume, offline, append, read, ...).
+- 9. Check if a Volume is mounted on another drive in an Autochanger.
+  
 
 Autochangers Done:
 - 1. Automatic use of more than one drive in an autochanger (done)
@@ -84,10 +86,6 @@ For 1.37:
 - Add disk seeking on restore.  
 - Add Python writable variable for changing the Priority,
     Client, Storage, JobStatus (error), ...
-- SD Autochanger work 
-  - Lock all devices when using changer script.
-  - Check if Volume is mounted on another device
-  - Find a free drive if Changer name used.
 - SD Python
   - Solicit Events
 - FD Python
