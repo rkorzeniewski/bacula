@@ -279,7 +279,11 @@ static void restore_cleanup(JCR *jcr, int TermCode)
    msg_type = M_INFO;		      /* by default INFO message */
    switch (TermCode) {
    case JS_Terminated:
-      term_msg = _("Restore OK");
+      if (jcr->ExpectedFiles > jcr->jr.JobFiles) {
+         term_msg = _("Restore OK -- warning file count mismatch");
+      } else {
+         term_msg = _("Restore OK");
+      }
       break;
    case JS_FatalError:
    case JS_ErrorTerminated:

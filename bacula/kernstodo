@@ -42,6 +42,8 @@ For 1.33 Testing/Documentation:
 - Add multiple-media-types.txt
 - look at mxt-changer.html
 
+- Why is Files Expected zero on restore from tape?
+
 For version 1.35:
 - Finish SIGHUP work.
 - Check that all change in wait status in the SD are        

@@ -105,7 +105,7 @@ int main (int argc, char *argv[])
 
    init_stack_dump();
    my_name_is(argc, argv, "bacula-dir");
-   textdomain("bacula-dir");
+   textdomain("bacula");
    init_msg(NULL, NULL);	      /* initialize message handler */
    init_reload();
    daemon_start_time = time(NULL);

@@ -1,12 +1,19 @@
 
           Release Notes for Bacula 1.34.1
 
-  Bacula code: Total files = 306 Total lines = 91,155 (*.h *.c *.in)
+  Bacula code: Total files = 343 Total lines = 98,503 (*.h *.c *.in)
 
 Changes for 1.34.1:  
 - Autochanger users, please note you must add %d to the end of the
   changer command line in your Device resource in your bacula-sd.conf
   file.
+- Fixed a major race condition in the job scheduler when multiple
+  simultaneous jobs is enabled. This occurred only when on job had
+  blocked another because of resource usage.
+- Changed the backup report to indicate "Backup OK -- with warnings
+  if any warning messages were generated.
+- Change output of restore report to indicate:
+  "Restore OK -- warning file count mismatch"
 - Make backup report say "Backup OK with warnings" if either FD or SD
   report any non-fatal errors.
 - Modify bscan to print some elementary statistics (#Jobs, #Files, ...)
