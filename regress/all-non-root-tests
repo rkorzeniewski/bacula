@@ -19,6 +19,7 @@ tests/four-concurrent-jobs-test
 tests/bsr-opt-test
 tests/bextract-test
 tests/recycle-test
+tests/span-vol-test
 echo " "
 echo " "
 echo "Test results"
