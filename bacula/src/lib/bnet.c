@@ -281,13 +281,16 @@ bnet_suppress_error_messages(BSOCK *bsock, bool flag)
 /*
  * Transmit spooled data now to a BSOCK
  */
-int bnet_despool_to_bsock(BSOCK *bsock)
+int bnet_despool_to_bsock(BSOCK *bsock, void update_attr_spool_size(ssize_t size), ssize_t tsize)
 {
    int32_t pktsiz;
    size_t nbytes;
+   ssize_t last = 0, size = 0;
+   int count = 0;
 
    rewind(bsock->spool_fd);
    while (fread((char *)&pktsiz, 1, sizeof(int32_t), bsock->spool_fd) == sizeof(int32_t)) {
+      size += sizeof(int32_t);
       bsock->msglen = ntohl(pktsiz);
       if (bsock->msglen > 0) {
 	 if (bsock->msglen > (int32_t)sizeof_pool_memory(bsock->msg)) {
@@ -297,11 +300,18 @@ int bnet_despool_to_bsock(BSOCK *bsock)
 	 if (nbytes != (size_t)bsock->msglen) {
             Dmsg2(400, "nbytes=%d msglen=%d\n", nbytes, bsock->msglen);
             Qmsg1(bsock->jcr, M_FATAL, 0, _("fread attr spool error. ERR=%s\n"), strerror(errno));
+	    update_attr_spool_size(tsize-last);
 	    return 0;
+	 }
+	 size += nbytes;
+	 if ((++count & 0x3F) == 0) {
+	    update_attr_spool_size(size-last);
+	    last = size;
 	 }
       }
       bnet_send(bsock);
    }
+   update_attr_spool_size(tsize-last);
    if (ferror(bsock->spool_fd)) {
       Qmsg1(bsock->jcr, M_FATAL, 0, _("fread attr spool error. ERR=%s\n"), strerror(errno));
       return 0;

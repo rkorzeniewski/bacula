@@ -1086,14 +1086,33 @@ static void get_storage_from_mediatype(UAContext *ua, NAME_LIST *name_list, REST
    LockRes();
    foreach_res(store, R_STORAGE) {
       if (strcmp(name_list->name[0], store->media_type) == 0) {
-	 rx->store = store;
-	 UnlockRes();
-	 return;
+	 if (acl_access_ok(ua, Storage_ACL, store->hdr.name)) {
+	    rx->store = store;
+	 }
+	 break;
       }
    }
    UnlockRes();
 
-   /* Try asking user */
+   if (rx->store) {
+      /* Check if an explicit storage resource is given */
+      store = NULL;
+      int i = find_arg_with_value(ua, "storage");        
+      if (i > 0) {
+	 store = (STORE *)GetResWithName(R_STORAGE, ua->argv[i]);
+	 if (store && !acl_access_ok(ua, Storage_ACL, store->hdr.name)) {
+	    store = NULL;
+	 }
+      }
+      if (store && (store != rx->store)) {
+         bsendmsg(ua, _("Warning default storage overridden by %s on command line.\n"),
+	    store->hdr.name);
+	 rx->store = store;
+      }
+      return;
+   }
+
+   /* Take command line arg, or ask user if none */
    rx->store = get_storage_resource(ua, false /* don't use default */);
 
    if (!rx->store) {

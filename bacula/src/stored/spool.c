@@ -34,6 +34,8 @@ static bool open_data_spool_file(JCR *jcr);
 static bool close_data_spool_file(JCR *jcr);
 static bool despool_data(DCR *dcr);
 static int  read_block_from_spool_file(DCR *dcr, DEV_BLOCK *block);
+static bool open_attr_spool_file(JCR *jcr, BSOCK *bs);
+static bool close_attr_spool_file(JCR *jcr, BSOCK *bs);
 
 struct spool_stats_t {
    uint32_t data_jobs;		      /* current jobs spooling data */
@@ -43,7 +45,7 @@ struct spool_stats_t {
    uint64_t max_data_size;	      /* max data size */
    uint64_t max_attr_size;
    uint64_t data_size;		      /* current data size (all jobs running) */
-   uint64_t attr_size;
+   int64_t attr_size;
 };
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -67,15 +69,16 @@ void list_spool_stats(BSOCK *bs)
 {
    char ed1[30], ed2[30];
    if (spool_stats.data_jobs || spool_stats.max_data_size) {
-      bnet_fsend(bs, "Data spooling: %d active jobs, %s bytes; %d total jobs, %s max bytes/job.\n",
+      bnet_fsend(bs, "Data spooling: %u active jobs, %s bytes; %u total jobs, %s max bytes/job.\n",
 	 spool_stats.data_jobs, edit_uint64_with_commas(spool_stats.data_size, ed1),
 	 spool_stats.total_data_jobs, 
 	 edit_uint64_with_commas(spool_stats.max_data_size, ed2));
    }
    if (spool_stats.attr_jobs || spool_stats.max_attr_size) {
-      bnet_fsend(bs, "Attr spooling: %d active jobs; %d total jobs, %s max bytes/job.\n",
-	 spool_stats.attr_jobs, spool_stats.total_attr_jobs, 
-	 edit_uint64_with_commas(spool_stats.max_attr_size, ed1));
+      bnet_fsend(bs, "Attr spooling: %u active jobs, %s bytes; %u total jobs, %s max bytes.\n",
+	 spool_stats.attr_jobs, edit_uint64_with_commas(spool_stats.attr_size, ed1), 
+	 spool_stats.total_attr_jobs, 
+	 edit_uint64_with_commas(spool_stats.max_attr_size, ed2));
    }
 }
 
@@ -432,7 +435,7 @@ bool are_attributes_spooled(JCR *jcr)
 bool begin_attribute_spool(JCR *jcr)
 {
    if (!jcr->no_attributes && jcr->spool_attributes) {
-      return open_spool_file(jcr, jcr->dir_bsock);
+      return open_attr_spool_file(jcr, jcr->dir_bsock);
    }
    return true;
 }
@@ -440,16 +443,44 @@ bool begin_attribute_spool(JCR *jcr)
 bool discard_attribute_spool(JCR *jcr)
 {
    if (are_attributes_spooled(jcr)) {
-      return close_spool_file(jcr, jcr->dir_bsock);
+      return close_attr_spool_file(jcr, jcr->dir_bsock);
    }
    return true;
 }
 
+static void update_attr_spool_size(ssize_t size)
+{
+   P(mutex);
+   if (size > 0) {
+     if ((spool_stats.attr_size - size) > 0) {
+	spool_stats.attr_size -= size;
+     } else {
+	spool_stats.attr_size = 0;
+     }
+   }
+   V(mutex);
+}
+
 bool commit_attribute_spool(JCR *jcr)
 {
+   ssize_t size;
+   char ec1[30];
+
    if (are_attributes_spooled(jcr)) {
-      bnet_despool_to_bsock(jcr->dir_bsock);
-      return close_spool_file(jcr, jcr->dir_bsock);
+      fseek(jcr->dir_bsock->spool_fd, 0, SEEK_END);
+      size = ftell(jcr->dir_bsock->spool_fd);
+      P(mutex);
+      if (size > 0) {
+	if (spool_stats.attr_size + size > spool_stats.max_attr_size) {
+	   spool_stats.max_attr_size = spool_stats.attr_size + size;
+	} 
+      }
+      spool_stats.attr_size += size;
+      V(mutex);
+      Jmsg(jcr, M_INFO, 0, _("Sending spooled attrs to DIR. Despooling %s bytes ...\n"),
+	    edit_uint64_with_commas(size, ec1));
+      bnet_despool_to_bsock(jcr->dir_bsock, update_attr_spool_size, size);
+      return close_attr_spool_file(jcr, jcr->dir_bsock);
    }
    return true;
 }
@@ -460,45 +491,42 @@ static void make_unique_spool_filename(JCR *jcr, POOLMEM **name, int fd)
       jcr->Job, fd);
 }
 
-bool open_spool_file(JCR *jcr, BSOCK *bs)
-{
-    POOLMEM *name  = get_pool_memory(PM_MESSAGE);
 
-    make_unique_spool_filename(jcr, &name, bs->fd);
-    bs->spool_fd = fopen(mp_chr(name), "w+");
-    if (!bs->spool_fd) {
-       Jmsg(jcr, M_ERROR, 0, _("fopen attr spool file %s failed: ERR=%s\n"), name, strerror(errno));
-       free_pool_memory(name);
-       return false;
-    }
-    P(mutex);
-    spool_stats.attr_jobs++;
-    V(mutex);
-    free_pool_memory(name);
-    return true;
+bool open_attr_spool_file(JCR *jcr, BSOCK *bs)
+{
+   POOLMEM *name  = get_pool_memory(PM_MESSAGE);
+
+   make_unique_spool_filename(jcr, &name, bs->fd);
+   bs->spool_fd = fopen(mp_chr(name), "w+");
+   if (!bs->spool_fd) {
+      Jmsg(jcr, M_ERROR, 0, _("fopen attr spool file %s failed: ERR=%s\n"), name, strerror(errno));
+      free_pool_memory(name);
+      return false;
+   }
+   P(mutex);
+   spool_stats.attr_jobs++;
+   V(mutex);
+   free_pool_memory(name);
+   return true;
 }
 
-bool close_spool_file(JCR *jcr, BSOCK *bs)
+bool close_attr_spool_file(JCR *jcr, BSOCK *bs)
 {
-    POOLMEM *name  = get_pool_memory(PM_MESSAGE);
-    ssize_t size;
-     
-    fseek(bs->spool_fd, 0, SEEK_END);
-    size = ftell(bs->spool_fd);
-    P(mutex);
-    if (size > 0) {
-       if (spool_stats.attr_size + size > spool_stats.max_attr_size) {
-	  spool_stats.max_attr_size = spool_stats.attr_size + size;
-       } 
-    }
-    spool_stats.attr_jobs--;
-    spool_stats.total_attr_jobs++;
-    V(mutex);
-    make_unique_spool_filename(jcr, &name, bs->fd);
-    fclose(bs->spool_fd);
-    unlink(mp_chr(name));
-    free_pool_memory(name);
-    bs->spool_fd = NULL;
-    bs->spool = false;
-    return true;
+   POOLMEM *name;
+    
+   if (!bs->spool_fd) {
+      return true;
+   }
+   name = get_pool_memory(PM_MESSAGE);
+   P(mutex);
+   spool_stats.attr_jobs--;
+   spool_stats.total_attr_jobs++;
+   V(mutex);
+   make_unique_spool_filename(jcr, &name, bs->fd);
+   fclose(bs->spool_fd);
+   unlink(mp_chr(name));
+   free_pool_memory(name);
+   bs->spool_fd = NULL;
+   bs->spool = false;
+   return true;
 }

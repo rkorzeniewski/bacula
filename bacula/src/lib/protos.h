@@ -81,7 +81,7 @@ char *     bnet_strerror         (BSOCK *bsock);
 char *     bnet_sig_to_ascii     (BSOCK *bsock);
 int        bnet_wait_data        (BSOCK *bsock, int sec);
 int        bnet_wait_data_intr   (BSOCK *bsock, int sec);
-int        bnet_despool_to_bsock (BSOCK *bsock);
+int        bnet_despool_to_bsock (BSOCK *bsock, void update(ssize_t size), ssize_t size);
 int        is_bnet_stop          (BSOCK *bsock);
 int        is_bnet_error         (BSOCK *bsock);
 void       bnet_suppress_error_messages(BSOCK *bsock, bool flag);

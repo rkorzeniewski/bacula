@@ -4,10 +4,11 @@
 1.34.4 Items to do:
 - Implement SIGHUP in Dir
 - Implement fast tree insert (doubly linked list?)
-- Implement "label slots=1,2... pool=yyy barcodes"
 - Do tape alerts -- see tapealert.txt
 - When restore started from console, report jobid.
 - Feedback while the tree is being built.    
+- Add reporting in attr despooling.
+- Win32 inc problem when new directory added.
 - On Win95
    The error I when I installed 1.34.2 clients:
    The BACULA-FD file is  
@@ -1088,3 +1089,6 @@ Block Position: 0
   <file-name>
   ...
 - Add regression of btape "fill" 
+==== Done in 1.34.4
+- Implement "label slots=1,2... pool=yyy barcodes"
+
