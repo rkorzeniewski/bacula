@@ -390,7 +390,7 @@ static void list_running_jobs(UAContext *ua)
    bool pool_mem = false;
 
    Dmsg0(200, "enter list_run_jobs()\n");
-   bsendmsg(ua, _("Running Jobs:\n"));
+   bsendmsg(ua, _("\nRunning Jobs:\n"));
    lock_jcr_chain();
    foreach_jcr(jcr) {
       njobs++;
