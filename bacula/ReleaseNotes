@@ -1,8 +1,16 @@
 
-          Release Notes for Bacula 1.34.0
+          Release Notes for Bacula 1.34.1
 
   Bacula code: Total files = 306 Total lines = 91,131 (*.h *.c *.in)
 
+Changes for 1.34.1:  
+- Autochanger users, please note you must add %d to the end of the
+  changer command line in your Device resource in your bacula-sd.conf
+  file.
+- Fixed a crash in the query command.
+- Removed the schedule from the default restore job.
+ 
+Release 1.34.0
 Major Features:
 - Data spooling which reduces tape shoe-shine during Inc backups,         
   and permits multiple simultaneous backups without interleaved blocks.

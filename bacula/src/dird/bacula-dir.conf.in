@@ -68,6 +68,7 @@ Job {
   Client=@hostname@-fd                 
   FileSet="Full Set"                  
   Storage = File                      
+  Pool = Default
   Messages = Standard
   Where = /tmp/bacula-restores
 }
