@@ -4,16 +4,17 @@
  *  htable is a hash table of items (pointers). This code is
  *    adapted and enhanced from code I wrote in 1982 for a
  *    relocatable linker.  At that time, the hash table size
- *    was fixed and a primary number, which essentially providing
- *    the hashing. In this program, the hash table can grow when
- *    it gets too full, so the table is a binary number. The
+ *    was fixed and a primary number, which essentially provides
+ *    the randomness. In this program, the hash table can grow when
+ *    it gets too full, so the table size here is a binary number. The
  *    hashing is provided using an idea from Tcl where the initial
- *    hash code is then "randomized" a simple calculation from
+ *    hash code is then "randomized" using a simple calculation from
  *    a random number generator that multiplies by a big number
+ *    (I multiply by a prime number, while Tcl did not)
  *    then shifts the results down and does the binary division
- *    by masking.  Increasing the size of the hash table is simple
- *    simply create a new larger table, walk the old table and
- *    insert each entry into the new table.
+ *    by masking.  Increasing the size of the hash table is simple.
+ *    Just create a new larger table, walk the old table and
+ *    re-hash insert each entry into the new table.
  *
  *		  
  *   Kern Sibbald, July MMIII
@@ -65,23 +66,74 @@ void htable::hash_index(char *key)
    return;
 }
 
-htable::htable(void *item, void *link)
+htable::htable(void *item, void *link, int tsize)
 {
-   init(item, link);
+   init(item, link, tsize);
 }
 
-void htable::init(void *item, void *link)
+void htable::init(void *item, void *link, int tsize)
 {
+   int pwr;
+   tsize >>= 2;
+   for (pwr=0; tsize; pwr++) {
+      tsize >>= 1;
+   }
    loffset = (char *)link - (char *)item;
-   mask = 7;			      /* 3 bits => table size = 8 */
-   rshift = 27; 		      /* start using bits 28, 29, 30 */
+   mask = ~((~0)<<pwr); 	      /* 3 bits => table size = 8 */
+   rshift = 30 - pwr;		      /* start using bits 28, 29, 30 */
    num_items = 0;		      /* number of entries in table */
-   buckets = 8; 		      /* hash table size -- power of two */
+   buckets = 1<<pwr;		      /* hash table size -- power of two */
    max_items = buckets * 4;	      /* allow average 4 entries per chain */
    table = (hlink **)malloc(buckets * sizeof(hlink *));
    memset(table, 0, buckets * sizeof(hlink *));
    walkptr = NULL;
    walk_index = 0;
+}
+
+void * htable::operator new(size_t)
+{
+   return malloc(sizeof(htable));
+}
+
+void htable::operator delete(void *tbl) 
+{
+   ((htable *)tbl)->destroy();
+   free(tbl);
+}
+
+uint32_t htable::size()
+{
+   return num_items;
+}
+
+void htable::stats() 
+{
+   int count[10];
+   int max = 0;
+   int i, j;
+   hlink *p;
+   printf("\n\nNumItems=%d\nBuckets=%d\n", num_items, buckets);
+   for (i=0; i<10; i++) {
+      count[i] = 0;
+   }
+   for (i=0; i<(int)buckets; i++) {
+      p = table[i];
+      j = 0;	 
+      while (p) {
+	 p = (hlink *)(p->next);
+	 j++;
+      }
+      if (j > max) {
+	 max = j;
+      }
+      if (j < 10) {
+	 count[j]++;
+      }
+   }
+   for (i=0; i<10; i++) {
+      printf("%2d: %d\n",i, count[i]);
+   }
+   printf("max = %d\n", max);
 }
 
 void htable::grow_table()
@@ -246,11 +298,11 @@ int main()
    MYJCR *save_jcr = NULL, *item;
    MYJCR *jcr = NULL;
    int count = 0;
-
-   jcrtbl = (htable *)malloc(sizeof(htable));
-   jcrtbl->init(jcr, &jcr->link);
     
-   Dmsg0(000, "Insert NITEMS items 0-19\n");
+   jcrtbl = (htable *)malloc(sizeof(htable));
+   jcrtbl->init(jcr, &jcr->link, NITEMS);
+    
+   Dmsg1(000, "Inserting %d items\n", NITEMS);
    for (int i=0; i<NITEMS; i++) {
       sprintf(mkey, "This is htable item %d", i);
       jcr = (MYJCR *)malloc(sizeof(MYJCR));
@@ -268,9 +320,10 @@ int main()
       printf("Item 10's key is: %s\n", item->key);
    }
 
+   jcrtbl->stats();
    printf("Walk the hash table:\n");
    for (MYJCR *jcr=(MYJCR *)jcrtbl->first(); jcr; jcr=(MYJCR *)jcrtbl->next() ) {
-      printf("htable item = %s\n", jcr->key);
+//    printf("htable item = %s\n", jcr->key);
       free(jcr->key);
       count++;
    }

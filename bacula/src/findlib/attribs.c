@@ -416,6 +416,10 @@ static int set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    ULARGE_INTEGER li;
    POOLMEM *win32_ofile;
 
+   if (!p_GetFileAttributesEx) {				 
+      return 0;
+   }
+
    if (!p || !*p) {		      /* we should have attributes */
       Dmsg2(100, "Attributes missing. of=%s ofd=%d\n", attr->ofname, ofd->fid);
       if (is_bopen(ofd)) {
@@ -498,7 +502,7 @@ void win_error(JCR *jcr, char *prefix, POOLMEM *win32_ofile)
 		 NULL);
    Dmsg3(100, "Error in %s on file %s: ERR=%s\n", prefix, win32_ofile, msg);
    strip_trailing_junk(msg);
-   Jmsg(jcr, M_INFO, 0, _("Error in %s file %s: ERR=%s\n"), prefix, win32_ofile, msg);
+   Jmsg(jcr, M_ERROR, 0, _("Error in %s file %s: ERR=%s\n"), prefix, win32_ofile, msg);
    LocalFree(msg);
 }
 
@@ -515,7 +519,7 @@ void win_error(JCR *jcr, char *prefix, DWORD lerror)
 		 NULL);
    strip_trailing_junk(msg);
    if (jcr) {
-      Jmsg2(jcr, M_INFO, 0, _("Error in %s: ERR=%s\n"), prefix, msg);
+      Jmsg2(jcr, M_ERROR, 0, _("Error in %s: ERR=%s\n"), prefix, msg);
    } else {
       MessageBox(NULL, msg, prefix, MB_OK);
    }

@@ -140,7 +140,11 @@ struct wait_pkt {
 };
 
 /*
- * Wait until schedule time arrives before starting
+ * Wait until schedule time arrives before starting. Normally
+ *  this routine is only used for jobs started from the console
+ *  for which the user explicitly specified a start time. Otherwise
+ *  most jobs are put into the job queue only when their
+ *  scheduled time arives.
  */
 static void *sched_wait(void *arg)
 {
@@ -236,6 +240,7 @@ int jobq_add(jobq_t *jq, JCR *jcr)
       }
    }
 
+   /* Ensure that at least one server looks at the queue. */
    stat = start_server(jq);
 
    if (stat == 0) {
@@ -246,7 +251,7 @@ int jobq_add(jobq_t *jq, JCR *jcr)
 }
 
 /*
- *  Remove a job from the job queue
+ *  Remove a job from the job queue. Used only by cancel Console command.
  *    jq is a queue that was created with jobq_init
  *    work_item is an element of work
  *
@@ -294,7 +299,7 @@ int jobq_remove(jobq_t *jq, JCR *jcr)
 
 
 /*
- * Start the server thread 
+ * Start the server thread if it isn't already running
  */
 static int start_server(jobq_t *jq)
 {
@@ -433,7 +438,7 @@ static void *jobq_server(void *arg)
 	       jobq_add(jq, jcr);     /* queue the job to run again */
 	       P(jq->mutex);
 	       free(je);	      /* free the job entry */
-	       continue;
+	       continue;	      /* look for another job to run */
 	    }
 	    /* 
 	     * Something was actually backed up, so we cannot reuse
@@ -451,7 +456,7 @@ static void *jobq_server(void *arg)
 	    njcr->messages = jcr->messages;
             Dmsg0(100, "Call to run new job\n");
 	    V(jq->mutex);
-	    run_job(njcr);
+            run_job(njcr);            /* This creates a "new" job */
 	    P(jq->mutex);
             Dmsg0(100, "Back from running new job.\n");
 	 }
@@ -482,9 +487,11 @@ static void *jobq_server(void *arg)
             Dmsg1(100, "Set Job pri=%d\n", Priority);
 	 }
 	 /*
-	  * Acquire locks
+	  * Walk down the list of waiting jobs and attempt
+	  *   to acquire the resources it needs.
 	  */
 	 for ( ; je;  ) {
+	    /* je is current job item on the queue, jn is the next one */
 	    JCR *jcr = je->jcr;
 	    jobq_item_t *jn = (jobq_item_t *)jq->waiting_jobs->next(je);
             Dmsg3(100, "Examining Job=%d JobPri=%d want Pri=%d\n",
@@ -518,6 +525,9 @@ static void *jobq_server(void *arg)
 	       je = jn;
 	       continue;
 	    }
+	    /* Got all locks, now remove it from wait queue and append it
+	     *	 to the ready queue  
+	     */
 	    jcr->acquired_resource_locks = true;
 	    jq->waiting_jobs->remove(je);
 	    jq->ready_jobs->append(je);
