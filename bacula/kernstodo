@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                   15 August 2003 
+                   21 August 2003 
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -27,6 +27,20 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.32:
+- Implement multiple Consoles.
+- Add Console usr permissions.
+- Fix "restore all" to bypass building the tree.
+- Fix restore to list errors if Invalid block found, and if # files
+  restored does not match # expected.
+- Prohibit backing up archive device (findlib/find_one.c:128)
+- Make | and < work on FD side.
+- Implement Release Device in the Job resource to unmount a drive.
+- Implement Acquire Device in the Job resource to mount a drive,
+  be sure this works with admin jobs so that the user can get
+  prompted to insert the correct tape.  Possibly some way to say to
+  run the job but don't save the files.
+- Add JobName= to VerifyToCatalog so that all verifies can be done at the end.
+- Implement FileOptions (see end of this document)
 - Enhance autochanger interface to include a "scan" feature
   scan 1; scan 1-5; scan 1,2,4 ...  to update the catalog 
   when the magazine is changed.
@@ -53,9 +67,6 @@ For 1.32:
 - Check and rechedk "Invalid block number"
 - Make bextract release the drive properly between tapes 
   so that an autochanger can be made to work.
-- Fix "restore all" to bypass building the tree.
-- Fix restore to list errors if Invalid block found, and if # files
-  restored does not match # expected.
 - User wants to NOT backup up certain big files (email files).
 - Maybe remove multiple simultaneous devices code in SD.
 - On Windows with very long path names, it may be impossible to create 
@@ -77,8 +88,6 @@ For 1.32:
 - Audit all UA commands to ensure that we always prompt where possible.
 - Restrict characters permitted in a Resource name, and don't permit
   duplicate names.
-- Prohibit backing up archive device (findlib/find_one.c:128)
-- Make | and < work on FD side.
 - Check Jmsg in bnet, may not work, must dup bsock.
 - Suppress Job Name in Jmsg for console
 - Create Pools that are referenced in a Run statement at startup if possible.
@@ -117,11 +126,9 @@ For 1.32:
   if there is an error.
 - Make sure all restore counters are working correctly in the FD.
 - SD Bytes Read is wrong.
-- Configure mtx-changer to have correct path to mtx.
 - Look at ALL higher level routines that call block.c to be sure
   they don't expect something in errmsg.
 - Investigate doing RAW backup of Win32 partition.
-- Add JobName= to VerifyToCatalog so that all verifies can be done at the end.
 - Add thread specific data to hold the jcr -- send error messages from
   low level routines by accessing it and using Jmsg().
 - Cancel waiting for Client connect in SD if FD goes away.
@@ -129,7 +136,6 @@ For 1.32:
 - Add Progress command that periodically reports the progress of
   a job or all jobs.
 - One block was orphaned in the SD probably after cancel.
-- Add all command line arguments to "update", e.g. slot=nn volStatus=append, ...
 
 
 - Examine Bare Metal restore problem (a FD crash exists somewhere ...).
@@ -140,14 +146,6 @@ For 1.32:
 - Implement single pane restore (much like the Gftp panes).
 - Implement Automatic Mount even in operator wait.
 - Implement create "FileSet"?
-- Implement Release Device in the Job resource to unmount a drive.
-- Implement Acquire Device in the Job resource to mount a drive,
-  be sure this works with admin jobs so that the user can get
-  prompted to insert the correct tape.  Possibly some way to say to
-  run the job but don't save the files.
-- Implement all command line args on run.
-- Implement command line "restore" args.
-- Implement "restore current select=no"
 - Fix watchdog pthread crash on Win32 (this is pthread_kill() Cygwin bug)
 - Implement "scratch pool" where tapes are defined and can be
   taken by any pool that needs them.
@@ -179,9 +177,6 @@ For 1.32:
   to the user, who would then use "mount" as described above 
   once he had actually inserted the disk.
 
-- Make some way so that if a machine is skipped because it is not up 
-  that Bacula will continue retrying for a specified period of time --
-  periodically.
 - If tape is marked read-only, then try opening it read-only rather than
   failing, and remember that it cannot be written.
 - Refine SD waiting output:
@@ -196,10 +191,8 @@ For 1.32:
 - Have SD compute MD5 or SHA1 and compare to what FD computes.
 - Make VolumeToCatalog calculate an MD5 or SHA1 from the 
   actual data on the Volume and compare it.                  
-- Implement FileOptions (see end of this document)
 - Implement Bacula plugins -- design API
 - Make bcopy read through bad tape records.
-- Fix read_record to handle multiple sessions.
 - Program files (i.e. execute a program to read/write files).
   Pass read date of last backup, size of file last time.
 - Add Signature type to File DB record.
@@ -222,8 +215,7 @@ For 1.32:
 - Figure out how to do a bare metal Windows restore
 - Possibly add email to Watchdog if drive is unmounted too
   long and a job is waiting on the drive.
-- Use read_record.c in SD code.
-- Restore program that errors in SD due to no tape reports
+- Restore program that errs in SD due to no tape, reports
   OK incorrectly in output.
 - After unmount, if restore job started, ask to mount.
 - Convert all %x substitution variables, which are hard to remember
@@ -239,8 +231,7 @@ For 1.32:
 - Compare tape to Client files (attributes, or attributes and data) 
 - Make all database Ids 64 bit.
 - Write an applet for Linux.
-- Add estimate to Console commands
-- Implement new daemon communications protocol.
+- Implement new inter-daemon communications protocol.
 - Allow console commands to detach or run in background.
 - Fix status delay on storage daemon during rewind.
 - Add SD message variables to control operator wait time
@@ -265,8 +256,6 @@ For 1.32:
 - Set flag for uname -a.  Add to Volume label.
 - Implement throttled work queue.
 - Restore files modified after date
-- Restore file modified before date
-- Restore -- do nothing but show what would happen
 - SET LD_RUN_PATH=$HOME/mysql/lib/mysql
 - Implement Restore FileSet=
 - Create a protocol.h and protocol.c where all protocol messages
@@ -803,3 +792,19 @@ Done: (see kernsdone for more)
 - Add user configurable timeout for connecting to SD.
 - Unsaved Flag in Job record (use JobMissingFiles).
 - Base Flag in Job record.
+- Configure mtx-changer to have correct path to mtx.
+- Add all command line arguments to "update", e.g. slot=nn volStatus=append, ...
+- Make some way so that if a machine is skipped because it is not up 
+  that Bacula will continue retrying for a specified period of time --
+  periodically.
+- Implement all command line args on run.
+- Implement command line "restore" args.
+- Implement "restore current select=no"
+- Restore file modified before date
+- Restore -- do nothing but show what would happen
+- Add estimate to Console commands
+- Use read_record.c in SD code.
+- Fix read_record to handle multiple sessions.
+- Tip from Steve Allam
+  mt -f /dev/nst0 defblksize 0
+
