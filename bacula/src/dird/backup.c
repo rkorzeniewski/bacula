@@ -127,7 +127,7 @@ int do_backup(JCR *jcr)
    set_jcr_job_status(jcr, JS_Running);
    Dmsg2(100, "JobId=%d JobLevel=%c\n", jcr->jr.JobId, jcr->jr.JobLevel);
    if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
-      Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
+      Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
       goto bail_out;
    }
 

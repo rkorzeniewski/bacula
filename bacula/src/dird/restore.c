@@ -75,7 +75,7 @@ int do_restore(JCR *jcr)
    memset(&rjr, 0, sizeof(rjr));
    jcr->jr.JobLevel = L_FULL;	      /* Full restore */
    if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
-      Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
+      Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
       restore_cleanup(jcr, JS_ErrorTerminated);
       return 0;
    }
