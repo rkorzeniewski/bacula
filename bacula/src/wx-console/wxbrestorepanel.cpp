@@ -1378,9 +1378,11 @@ void wxbRestorePanel::UpdateTreeItem(wxTreeItemId item, bool updatelist, bool re
 
 /* Parse dir command results. */
 wxString* wxbRestorePanel::ParseList(wxString line) {
-   //drwx------  11 1003    42949672      0  2001-07-30 16:45:14 *filename
-   //+ 10    ++ 4++   10   ++   8  ++   8  + +      19         + *+ ->
-   //0       10  14         24      32       42                  62
+   /* See ls_output in dird/ua_tree.c */
+  
+   //drwxrwxrwx   1 root     root           0  2004-04-03 14:35:21  f:/tocd/NVSU 1.00.00/
+   //+ 10     +  ++ +   8  + +   8  ++   8  +  +      19         + *+ ->
+   //0           12 15       24      32        42                  62
 
    if (line.Length() < 63)
       return NULL;
@@ -1388,8 +1390,8 @@ wxString* wxbRestorePanel::ParseList(wxString line) {
    wxString* ret = new wxString[9];
 
    ret[0] = line.Mid(0, 10).Trim();
-   ret[1] = line.Mid(10, 4).Trim();
-   ret[2] = line.Mid(14, 10).Trim();
+   ret[1] = line.Mid(12, 2).Trim();
+   ret[2] = line.Mid(15, 8).Trim();
    ret[3] = line.Mid(24, 8).Trim();
    ret[4] = line.Mid(32, 8).Trim();
    ret[5] = line.Mid(42, 19).Trim();
