@@ -33,6 +33,7 @@
 #include "dird.h"
 
 #ifdef HAVE_PYTHON
+#undef _POSIX_C_SOURCE
 #include <Python.h>
 
 bool run_module(const char *module);
