@@ -552,6 +552,7 @@ static void capcmd()
    printf("%sLABEL ", dev->capabilities & CAP_LABEL ? "" : "!");
    printf("%sANONVOLS ", dev->capabilities & CAP_ANONVOLS ? "" : "!");
    printf("%sALWAYSOPEN ", dev->capabilities & CAP_ALWAYSOPEN ? "" : "!");
+   printf("%sMTIOCGET ", dev->capabilities & CAP_MTIOCGET ? "" : "!");
    printf("\n");
 
    printf(_("Device status:\n"));
@@ -1327,7 +1328,10 @@ bail_out:
       set_off = true;
       goto test_again;
    }
-   Pmsg0(-1, "You must correct this error or Bacula will not work.\n");
+   Pmsg0(-1, "You must correct this error or Bacula will not work.\n"
+            "Some systems, e.g. OpenBSD, require you to set\n"
+            "   File Block Bookkeeping = no\n"
+            "in your device resource. Use with caution.\n");
    return -2;
 }
 
@@ -1404,7 +1408,11 @@ failed:
             "nnn must match your tape driver's block size, which\n"
             "can be determined by reading your tape manufacturers\n"
             "information, and the information on your kernel dirver.\n"
-            "Fixed block sizes, however, are not normally an ideal solution.\n");
+            "Fixed block sizes, however, are not normally an ideal solution.\n"
+            "\n"
+            "Some systems, e.g. OpenBSD, require you to set\n"
+            "   File Block Bookkeeping = no\n"
+            "in your device resource. Use with caution.\n");
        return;
    }
 

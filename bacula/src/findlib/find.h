@@ -93,7 +93,7 @@ enum {
 #define FO_ACL          (1<<14)       /* Backup ACLs */
 #define FO_NO_HARDLINK  (1<<15)       /* don't handle hard links */
 #define FO_IGNORECASE   (1<<16)       /* Ignore file name case */
-
+#define FO_HFSPLUS      (1<<17)       /* Resource forks and Finder Info */
 
 struct s_included_file {
    struct s_included_file *next;
@@ -134,6 +134,7 @@ struct findFOPTS {
    alist regex;                       /* regex string(s) */
    alist wild;                        /* wild card strings */
    alist base;                        /* list of base names */
+   alist fstype;                      /* file system type limitation */
    char *reader;                      /* reader program */
    char *writer;                      /* writer program */
 };
@@ -157,6 +158,13 @@ struct findFILESET {
    alist exclude_list;
 };
 
+#ifdef HAVE_DARWIN_OS
+struct HFSPLUS_INFO {
+   unsigned long length;              /* Mandatory field */
+   char fndrinfo[32];                 /* Finder Info */
+   off_t rsrclength;                  /* Size of resource fork */
+};
+#endif
 
 /*
  * Definition of the find_files packet passed as the
@@ -189,9 +197,17 @@ struct FF_PKT {
    int GZIP_level;                    /* compression level */
    char *reader;                      /* reader program */
    char *writer;                      /* writer program */
+   alist *fstypes;		      /* allowed file system types */
 
    /* List of all hard linked files found */
    struct f_link *linklist;           /* hard linked files */
+
+   /* Darwin specific things. So as not to clutter every bclose()
+    * with an #ifdef, we always include rsrc_bfd */
+   BFILE rsrc_bfd;                    /* fd for resource forks */
+#ifdef HAVE_DARWIN_OS
+   struct HFSPLUS_INFO hfsinfo;       /* Finder Info and resource fork size */
+#endif
 };
 
 

@@ -250,6 +250,7 @@ void *handle_client_request(void *dirp)
 	    fo->regex.destroy();
 	    fo->wild.destroy();
 	    fo->base.destroy();
+	    fo->fstype.destroy();
 	    if (fo->reader) {
 	       free(fo->reader);
 	    }
@@ -270,6 +271,7 @@ void *handle_client_request(void *dirp)
 	    fo->regex.destroy();
 	    fo->wild.destroy();
 	    fo->base.destroy();
+	    fo->fstype.destroy();
 	 }
 	 incexe->opts_list.destroy();
 	 incexe->name_list.destroy();
@@ -627,6 +629,7 @@ static findFOPTS *start_options(FF_PKT *ff)
       fo->regex.init(1, true);
       fo->wild.init(1, true);
       fo->base.init(1, true);
+      fo->fstype.init(1, true);
       incexe->current_opts = fo;
       incexe->opts_list.append(fo);
    }
@@ -759,6 +762,11 @@ static void add_fileset(JCR *jcr, const char *item)
       current_opts->base.append(bstrdup(item));
       state = state_options;
       break;
+   case 'X':
+      current_opts = start_options(ff);
+      current_opts->fstype.append(bstrdup(item));
+      state = state_options;
+      break;
    case 'W':
       current_opts = start_options(ff);
       current_opts->wild.append(bstrdup(item));
@@ -807,6 +815,9 @@ static bool term_fileset(JCR *jcr)
 	 for (k=0; k<fo->base.size(); k++) {
             Dmsg1(400, "B %s\n", (char *)fo->base.get(k));
 	 }
+	 for (k=0; k<fo->fstype.size(); k++) {
+            Dmsg1(400, "X %s\n", (char *)fo->fstype.get(k));
+	 }
 	 if (fo->reader) {
             Dmsg1(400, "D %s\n", fo->reader);
 	 }
@@ -831,6 +842,9 @@ static bool term_fileset(JCR *jcr)
 	 }
 	 for (k=0; k<fo->base.size(); k++) {
             Dmsg1(400, "B %s\n", (char *)fo->base.get(k));
+	 }
+	 for (k=0; k<fo->fstype.size(); k++) {
+            Dmsg1(400, "X %s\n", (char *)fo->fstype.get(k));
 	 }
       }
       for (j=0; j<incexe->name_list.size(); j++) {
@@ -880,6 +894,8 @@ static void set_options(findFOPTS *fo, const char *opts)
       case 'p':                 /* use portable data format */
 	 fo->flags |= FO_PORTABLE;
 	 break;
+      case 'R':			/* Resource forks and Finder Info */
+	 fo->flags |= FO_HFSPLUS;
       case 'r':                 /* read fifo */
 	 fo->flags |= FO_READFIFO;
 	 break;

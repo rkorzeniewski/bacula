@@ -35,6 +35,10 @@
 #include <acl/libacl.h>
 #endif
 
+#ifdef HAVE_DARWIN_OS
+#include <sys/paths.h>
+#endif
+
 static int save_file(FF_PKT *ff_pkt, void *pkt);
 
 /* 
@@ -130,6 +134,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
    char attribs[MAXSTRING];
    char attribsEx[MAXSTRING];
    int stat, attr_stream, data_stream;
+   bool hfsplus = false;
    struct MD5Context md5c;
    struct SHA1Context sha1c;
    int gotMD5 = 0;
@@ -163,15 +168,19 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       return 1; 		      /* not used */
    case FT_NORECURSE:
    case FT_NOFSCHG:
+   case FT_INVALIDFS:
    case FT_DIREND:
       if (ff_pkt->type == FT_NORECURSE) {
-         Jmsg(jcr, M_INFO, 1, _("     Recursion turned off. Will not descend into %s\n"), 
+	 Jmsg(jcr, M_INFO, 1, _("     Recursion turned off. Will not descend into %s\n"), 
 	    ff_pkt->fname);
       } else if (ff_pkt->type == FT_NOFSCHG) {
-         Jmsg(jcr, M_INFO, 1, _("     File system change prohibited. Will not descend into %s\n"), 
+	 Jmsg(jcr, M_INFO, 1, _("     File system change prohibited. Will not descend into %s\n"), 
+	    ff_pkt->fname);
+      } else if (ff_pkt->type == FT_INVALIDFS) {
+	 Jmsg(jcr, M_INFO, 1, _("     Disallowed filesystem. Will not descend into %s\n"), 
 	    ff_pkt->fname);
       }
-      ff_pkt->type = FT_DIREND;       /* value is used below */
+      ff_pkt->type = FT_DIREND;	      /* value is used below */
       Dmsg1(130, "FT_DIR saving: %s\n", ff_pkt->link);
       break;
    case FT_SPEC:
@@ -269,6 +278,29 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       }
    }
 
+   binit(&ff_pkt->rsrc_bfd);
+#ifdef HAVE_DARWIN_OS
+   /* Open resource fork if necessary */
+   if (ff_pkt->type != FT_LNKSAVED && (S_ISREG(ff_pkt->statp.st_mode) &&
+            ff_pkt->flags & FO_HFSPLUS)) {
+      /* Remember Finder Info, whether we have data or fork, or not */
+      hfsplus = true;
+      if (ff_pkt->hfsinfo.rsrclength > 0) {
+	 if (!bopen_rsrc(&ff_pkt->rsrc_bfd, ff_pkt->fname, O_RDONLY | O_BINARY, 0) < 0) {
+	    ff_pkt->ff_errno = errno;
+	    berrno be;
+            Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open resource fork for %s: ERR=%s.\n"), ff_pkt->fname, 
+                  be.strerror());
+            jcr->Errors++;
+            if (is_bopen(&ff_pkt->bfd)) {
+               bclose(&ff_pkt->bfd);
+            }
+            return 1;
+         }
+      }
+   }
+#endif
+
    Dmsg1(130, "bfiled: sending %s to stored\n", ff_pkt->fname);
 
    /* Find what data stream we will use, then encode the attributes */
@@ -294,6 +326,9 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       berrno be;
       if (is_bopen(&ff_pkt->bfd)) {
 	 bclose(&ff_pkt->bfd);
+      }
+      if (is_bopen(&ff_pkt->rsrc_bfd)) {
+	 bclose(&ff_pkt->rsrc_bfd);
       }
       Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
 	    bnet_strerror(sd));
@@ -333,11 +368,22 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       if (is_bopen(&ff_pkt->bfd)) {
 	 bclose(&ff_pkt->bfd);
       }
+      if (is_bopen(&ff_pkt->rsrc_bfd)) {
+	 bclose(&ff_pkt->rsrc_bfd);
+      }
       Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
 	    bnet_strerror(sd));
       return 0;
    }
    bnet_sig(sd, BNET_EOD);	      /* indicate end of attributes data */
+
+   if (is_bopen(&ff_pkt->bfd) || hfsplus) {
+      if (ff_pkt->flags & FO_MD5) {
+	 MD5Init(&md5c);
+      } else if (ff_pkt->flags & FO_SHA1) {
+	 SHA1Init(&sha1c);
+      }
+   }
 
    /* 
     * If the file has data, read it and send to the Storage daemon
@@ -379,17 +425,14 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, data_stream)) {
 	 berrno be;
 	 bclose(&ff_pkt->bfd);
+	 if (is_bopen(&ff_pkt->rsrc_bfd)) {
+	    bclose(&ff_pkt->rsrc_bfd);
+	 }
          Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
 	       bnet_strerror(sd));
 	 return 0;
       }
       Dmsg1(300, ">stored: datahdr %s\n", sd->msg);
-
-      if (ff_pkt->flags & FO_MD5) {
-	 MD5Init(&md5c);
-      } else if (ff_pkt->flags & FO_SHA1) {
-	 SHA1Init(&sha1c);
-      }
 
       /*
        * Make space at beginning of buffer for fileAddr because this
@@ -452,6 +495,9 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	       sd->msg = msgsave;
 	       sd->msglen = 0;
 	       bclose(&ff_pkt->bfd);
+	       if (is_bopen(&ff_pkt->rsrc_bfd)) {
+		  bclose(&ff_pkt->rsrc_bfd);
+	       }
 	       set_jcr_job_status(jcr, JS_ErrorTerminated);
 	       return 0;
 	    }
@@ -475,6 +521,9 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	       sd->msg = msgsave;     /* restore bnet buffer */
 	       sd->msglen = 0;
 	       bclose(&ff_pkt->bfd);
+	       if (is_bopen(&ff_pkt->rsrc_bfd)) {
+		  bclose(&ff_pkt->rsrc_bfd);
+	       }
 	       return 0;
 	    }
 	 }
@@ -498,9 +547,105 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	 berrno be;
          Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
 	       bnet_strerror(sd));
+	 if (is_bopen(&ff_pkt->rsrc_bfd)) {
+	    bclose(&ff_pkt->rsrc_bfd);
+	 }
 	 return 0;
       }
    }
+
+#ifdef HAVE_DARWIN_OS
+   /* 
+    * If resource fork has data, read it and send to the Storage daemon
+    *
+    */
+   if (is_bopen(&ff_pkt->rsrc_bfd)) {
+      uint64_t fileAddr = 0;	      /* file address */
+      int rsize = jcr->buf_size;      /* read buffer size */
+
+      Dmsg1(300, "Saving resource fork for \"%s\"", ff_pkt->fname);
+
+      /*
+       * Send Data header to Storage daemon
+       *    <file-index> <stream> <info>
+       */
+      if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_MACOS_FORK_DATA)) {
+	 berrno be;
+	 bclose(&ff_pkt->rsrc_bfd);
+         Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+	       bnet_strerror(sd));
+	 return 0;
+      }
+      Dmsg1(300, ">stored: datahdr %s\n", sd->msg);
+
+      /* 
+       * Read the resource fork
+       */
+      while ((sd->msglen=(uint32_t)bread(&ff_pkt->rsrc_bfd, sd->msg, rsize)) > 0) {
+	 jcr->ReadBytes += sd->msglen;	    /* count bytes read */
+	 fileAddr += sd->msglen;
+
+	 /* Update MD5 if requested */
+	 if (ff_pkt->flags & FO_MD5) {
+	    MD5Update(&md5c, (unsigned char *)sd->msg, sd->msglen);
+	    gotMD5 = 1;
+	 } else if (ff_pkt->flags & FO_SHA1) {
+	    SHA1Update(&sha1c, (unsigned char *)sd->msg, sd->msglen);
+	    gotSHA1 = 1;
+	 }
+
+	 /* Send the buffer to the Storage daemon */
+	 if (!bnet_send(sd)) {
+	    berrno be;
+	    Jmsg2(jcr, M_FATAL, 0, _("Network send error %d to SD. ERR=%s\n"),
+		  sd->msglen, bnet_strerror(sd));
+	    sd->msglen = 0;
+	    bclose(&ff_pkt->rsrc_bfd);
+	    return 0;
+	 }
+         Dmsg1(130, "Send data to SD len=%d\n", sd->msglen);
+	 /*	  #endif */
+	 jcr->JobBytes += sd->msglen;	/* count bytes saved possibly compressed */
+      } /* end while read file data */
+
+      if (sd->msglen < 0) {
+	 berrno be;
+	 be.set_errno(ff_pkt->rsrc_bfd.berrno);
+         Jmsg(jcr, M_ERROR, 0, _("Read error on resource fork of %s. ERR=%s\n"),
+	    ff_pkt->fname, be.strerror());
+      }
+
+      bclose(&ff_pkt->rsrc_bfd);		 /* close resource fork */
+      if (!bnet_sig(sd, BNET_EOD)) {	 /* indicate end of resource fork */
+	 berrno be;
+         Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+	       bnet_strerror(sd));
+	 return 0;
+      }
+   }
+#endif
+
+#ifdef HAVE_DARWIN_OS
+   /* Handle Finder Info */
+   if (S_ISREG(ff_pkt->statp.st_mode) && ff_pkt->flags & FO_HFSPLUS) {
+      Dmsg1(300, "Saving Finder Info for \"%s\"", ff_pkt->fname);
+      bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_HFSPLUS_ATTRIBUTES);
+      Dmsg1(300, "bfiled>stored:header %s\n", sd->msg);
+      memcpy(sd->msg, ff_pkt->hfsinfo.fndrinfo, 32);
+      sd->msglen = 32;
+      /* Update MD5 if requested */
+      if (ff_pkt->flags & FO_MD5) {
+         MD5Update(&md5c, (unsigned char *)sd->msg, sd->msglen);
+         gotMD5 = 1;
+      } else if (ff_pkt->flags & FO_SHA1) {
+         SHA1Update(&sha1c, (unsigned char *)sd->msg, sd->msglen);
+         gotSHA1 = 1;
+      }
+      bnet_send(sd);
+      bnet_sig(sd, BNET_EOD);
+   }
+#endif
+
    
 #ifdef HAVE_ACL
    /* ACL stream */
@@ -556,13 +701,11 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	    berrno be;
 	    sd->msg = msgsave;
 	    sd->msglen = 0;
-	    bclose(&ff_pkt->bfd);
             Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
 		  bnet_strerror(sd));
 	 } else {
 	    jcr->JobBytes += sd->msglen;
 	    sd->msg = msgsave;
-	    bclose(&ff_pkt->bfd);
 	    if (!bnet_sig(sd, BNET_EOD)) {
 	       berrno be;
                Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),

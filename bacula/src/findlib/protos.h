@@ -64,4 +64,7 @@ int make_path(JCR *jcr, const char *argpath, int mode,
 	   int parent_mode, uid_t owner, gid_t group,
 	   int preserve_existing, char *verbose_fmt_string);
 
+/* from fstype.c */
+POOLMEM *fstype(const char *fname);
+
 /* from bfile.c -- see bfile.h */

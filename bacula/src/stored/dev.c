@@ -460,7 +460,7 @@ eod_dev(DEVICE *dev)
    }
 #ifdef MTEOM
 
-   if (dev_cap(dev, CAP_FASTFSF) && !dev_cap(dev, CAP_EOM)) {
+   if (dev_cap(dev, CAP_MTIOCGET) && dev_cap(dev, CAP_FASTFSF) && !dev_cap(dev, CAP_EOM)) {
       struct mtget mt_stat;
       Dmsg0(100,"Using FAST FSF for EOM\n");
       if (ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) == 0 && mt_stat.mt_fileno <= 0) {
@@ -479,12 +479,13 @@ eod_dev(DEVICE *dev)
       }
    }
 
-   if (dev_cap(dev, CAP_EOM)) {
-      Dmsg0(100,"Using EOM for EOM\n");
-      mt_com.mt_op = MTEOM;
-      mt_com.mt_count = 1;
-   }
-   if (dev_cap(dev, CAP_FASTFSF) || dev_cap(dev, CAP_EOM)) {
+   if (dev_cap(dev, CAP_MTIOCGET) && (dev_cap(dev, CAP_FASTFSF) || dev_cap(dev, CAP_EOM))) {
+      if (dev_cap(dev, CAP_EOM)) {
+         Dmsg0(100,"Using EOM for EOM\n");
+	 mt_com.mt_op = MTEOM;
+	 mt_com.mt_count = 1;
+      }
+
       if ((stat=ioctl(dev->fd, MTIOCTOP, (char *)&mt_com)) < 0) {
 	 berrno be;
 	 clrerror_dev(dev, mt_com.mt_op);
@@ -532,13 +533,11 @@ eod_dev(DEVICE *dev)
 	 if (file_num == (int)dev->file) {
 	    struct mtget mt_stat;
             Dmsg1(100, "fsf_dev did not advance from file %d\n", file_num);
-#ifndef HAVE_OPENBSD_OS
-	    if (ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) == 0 && 
+	    if (dev_cap(dev, CAP_MTIOCGET) && ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) == 0 && 
 		      mt_stat.mt_fileno >= 0) {
                Dmsg2(100, "Adjust file from %d to %d\n", dev->file , mt_stat.mt_fileno);
 	       dev->file = mt_stat.mt_fileno;
 	    }
-#endif
 	    stat = 0;
 	    break;		      /* we are not progressing, bail out */
 	 }
@@ -554,7 +553,7 @@ eod_dev(DEVICE *dev)
       /* Backup over EOF */
       stat = bsf_dev(dev, 1);
       /* If BSF worked and fileno is known (not -1), set file */
-      if (ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) == 0 && mt_stat.mt_fileno >= 0) {
+      if (dev_cap(dev, CAP_MTIOCGET) && ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) == 0 && mt_stat.mt_fileno >= 0) {
          Dmsg2(100, "BSFATEOF adjust file from %d to %d\n", dev->file , mt_stat.mt_fileno);
 	 dev->file = mt_stat.mt_fileno;
       } else {
@@ -679,7 +678,11 @@ uint32_t status_dev(DEVICE *dev)
          Dmsg0(-20, " IM_REP_EN");
       }
 #endif /* !SunOS && !OSF */
-      Dmsg2(-20, " file=%d block=%d\n", mt_stat.mt_fileno, mt_stat.mt_blkno);
+      if (dev_cap(dev, CAP_MTIOCGET)) {
+         Dmsg2(-20, " file=%d block=%d\n", mt_stat.mt_fileno, mt_stat.mt_blkno);
+      } else {
+         Dmsg2(-20, " file=%d block=%d\n", -1, -1);
+      }
    } else {
       stat |= BMT_ONLINE | BMT_BOT;
    }
@@ -833,7 +836,7 @@ fsf_dev(DEVICE *dev, int num)
     *  the SCSI driver will ensure that we do not
     *  forward space past the end of the medium.
     */
-   if (dev_cap(dev, CAP_FSF) && dev_cap(dev, CAP_FASTFSF)) {
+   if (dev_cap(dev, CAP_FSF) && dev_cap(dev, CAP_MTIOCGET) && dev_cap(dev, CAP_FASTFSF)) {
       mt_com.mt_op = MTFSF;
       mt_com.mt_count = num;
       stat = ioctl(dev->fd, MTIOCTOP, (char *)&mt_com);
@@ -1035,15 +1038,12 @@ fsr_dev(DEVICE *dev, int num)
       struct mtget mt_stat;
       clrerror_dev(dev, MTFSR);
       Dmsg1(100, "FSF fail: ERR=%s\n", be.strerror());
-#ifndef HAVE_OPENBSD_OS
-      if (ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) == 0 && mt_stat.mt_fileno >= 0) {
+      if (dev_cap(dev, CAP_MTIOCGET) && ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) == 0 && mt_stat.mt_fileno >= 0) {
          Dmsg4(100, "Adjust from %d:%d to %d:%d\n", dev->file, 
 	    dev->block_num, mt_stat.mt_fileno, mt_stat.mt_blkno);
 	 dev->file = mt_stat.mt_fileno;
 	 dev->block_num = mt_stat.mt_blkno;
-      } else
-#endif
-      {
+      } else {
 	 if (dev->state & ST_EOF) {
 	    dev->state |= ST_EOT;
 	 } else {

@@ -420,7 +420,16 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
  */
 int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
 {
+#ifdef HAVE_DARWIN_OS
+   char *p;
+   p = attribsEx;
+   if (ff_pkt->flags & FO_HFSPLUS) {
+      p += to_base64((uint64_t)(ff_pkt->hfsinfo.rsrclength), p);
+   }
+   *p = 0;
+#else
    *attribsEx = 0;		      /* no extended attributes */
+#endif
    return STREAM_UNIX_ATTRIBUTES;
 }
 

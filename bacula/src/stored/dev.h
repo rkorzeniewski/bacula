@@ -90,6 +90,7 @@ enum {
 #define CAP_TWOEOF         (1<<17)    /* Write two eofs for EOM */
 #define CAP_CLOSEONPOLL    (1<<18)    /* Close device on polling */
 #define CAP_POSITIONBLOCKS (1<<19)    /* Use block positioning */
+#define CAP_MTIOCGET       (1<<20)    /* Basic support for fileno and blkno */
 
 /* Test state */
 #define dev_state(dev, st_state) ((dev)->state & (st_state))

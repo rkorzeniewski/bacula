@@ -39,6 +39,7 @@ void store_inc(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_newinc(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_regex(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_wild(LEX *lc, RES_ITEM *item, int index, int pass);
+static void store_fstype(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_opts(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_fname(LEX *lc, RES_ITEM *item, int index, int pass);
 static void options_res(LEX *lc, RES_ITEM *item, int index, int pass);
@@ -93,6 +94,8 @@ static RES_ITEM options_items[] = {
    {"reader",          store_reader,  NULL,     0, 0, 0},
    {"writer",          store_writer,  NULL,     0, 0, 0},
    {"ignorecase",      store_opts,    NULL,     0, 0, 0},
+   {"fstype",          store_fstype,  NULL,     0, 0, 0},
+   {"hfsplussupport",  store_opts,    NULL,     0, 0, 0},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 
@@ -116,7 +119,8 @@ enum {
    INC_KW_KEEPATIME,
    INC_KW_EXCLUDE,
    INC_KW_ACL,
-   INC_KW_IGNORECASE
+   INC_KW_IGNORECASE,
+   INC_KW_HFSPLUS
 };
 
 /*
@@ -140,6 +144,7 @@ static struct s_kw FS_option_kw[] = {
    {"exclude",     INC_KW_EXCLUDE},
    {"aclsupport",  INC_KW_ACL},
    {"ignorecase",  INC_KW_IGNORECASE},
+   {"hfsplussupport", INC_KW_HFSPLUS},
    {NULL,	   0}
 };
 
@@ -197,6 +202,8 @@ static struct s_fs_opt FS_options[] = {
    {"no",       INC_KW_ACL,           "0"},
    {"yes",      INC_KW_IGNORECASE,    "i"},
    {"no",       INC_KW_IGNORECASE,    "0"},
+   {"yes",      INC_KW_HFSPLUS,       "R"},   /* "R" for resource fork */
+   {"no",       INC_KW_HFSPLUS,       "0"},
    {NULL,	0,			0}
 };
 
@@ -563,6 +570,28 @@ static void store_wild(LEX *lc, RES_ITEM *item, int index, int pass)
    scan_to_eol(lc);
 }
 
+/* Store fstype info */
+static void store_fstype(LEX *lc, RES_ITEM *item, int index, int pass)
+{
+   int token;
+
+   token = lex_get_token(lc, T_SKIP_EOL);	     
+   if (pass == 1) {
+      /* Pickup fstype string */
+      switch (token) {
+      case T_IDENTIFIER:
+      case T_UNQUOTED_STRING:
+      case T_QUOTED_STRING:
+	 res_incexe.current_opts->fstype.append(bstrdup(lc->str));
+         Dmsg3(900, "set fstype %p size=%d %s\n", 
+	    res_incexe.current_opts, res_incexe.current_opts->fstype.size(), lc->str);
+	 break;
+      default:
+         scan_err1(lc, _("Expected an fstype string, got: %s\n"), lc->str);
+      } 				
+   }
+   scan_to_eol(lc);
+}
 
 /*
  * Store Filename info. Note, for minor efficiency reasons, we
@@ -598,6 +627,7 @@ static void store_fname(LEX *lc, RES_ITEM *item, int index, int pass)
    }
    scan_to_eol(lc);
 }
+
 
 /*
  * Come here when Options seen in Include/Exclude
@@ -684,6 +714,7 @@ static void setup_current_opts(void)
    fo->regex.init(1, true);
    fo->wild.init(1, true);
    fo->base.init(1, true);
+   fo->fstype.init(1, true);
    res_incexe.current_opts = fo;
    if (res_incexe.num_opts == 0) {
       res_incexe.opts_list = (FOPTS **)malloc(sizeof(FOPTS *));
