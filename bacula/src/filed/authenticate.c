@@ -69,7 +69,8 @@ static int authenticate(int rcode, BSOCK *bs)
    }
    UnlockRes();
    if (!director) {
-      Emsg2(M_FATAL, 0, _("Connection from unknown Director %s at %s rejected.\n"), 
+      Emsg2(M_FATAL, 0, _("Connection from unknown Director %s at %s rejected.\n"   
+       "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"), 
 	    dirname, bs->who);
       free_pool_memory(dirname);
       return 0;
@@ -77,7 +78,8 @@ static int authenticate(int rcode, BSOCK *bs)
    btimer_t *tid = start_bsock_timer(bs, 60 * 5);
    if (!cram_md5_auth(bs, director->password, ssl_need) ||
        !cram_md5_get_auth(bs, director->password, ssl_need)) {
-      Emsg1(M_FATAL, 0, _("Incorrect password given by Director at %s.\n"),
+      Emsg1(M_FATAL, 0, _("Incorrect password given by Director at %s.\n"  
+       "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"), 
 	    bs->who);
       director = NULL;
    }
@@ -123,7 +125,8 @@ int authenticate_storagedaemon(JCR *jcr)
    stop_bsock_timer(tid);
    memset(jcr->sd_auth_key, 0, strlen(jcr->sd_auth_key));
    if (!stat) {
-      Jmsg(jcr, M_FATAL, 0, _("Authorization key rejected by Storage daemon.\n"));
+      Jmsg(jcr, M_FATAL, 0, _("Authorization key rejected by Storage daemon.\n"   
+       "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"));
    }
    return stat;
 }

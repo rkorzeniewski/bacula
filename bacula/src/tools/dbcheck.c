@@ -58,7 +58,7 @@ static ID_LIST id_list;
 static NAME_LIST name_list;
 static char buf[2000];
 
-#define MAX_ID_LIST_LEN 1000000
+#define MAX_ID_LIST_LEN 10000000
 
 /* Forward referenced functions */
 static int make_id_list(const char *query, ID_LIST *id_list);
@@ -74,6 +74,7 @@ static void eliminate_orphaned_file_records();
 static void eliminate_orphaned_path_records();
 static void eliminate_orphaned_filename_records();
 static void eliminate_orphaned_fileset_records();
+static void eliminate_orphaned_client_records();
 static void repair_bad_paths();
 static void repair_bad_filenames();
 static void do_interactive_mode();
@@ -240,6 +241,7 @@ int main (int argc, char *argv[])
       eliminate_orphaned_path_records();
       eliminate_orphaned_filename_records();
       eliminate_orphaned_fileset_records();
+      eliminate_orphaned_client_records();
    } else {
       do_interactive_mode();
    }
@@ -274,8 +276,9 @@ Please select the fuction you want to perform.\n",
      9) Eliminate orphaned Path records\n\
     10) Eliminate orphaned Filename records\n\
     11) Eliminate orphaned FileSet records\n\
-    12) All (3-11)\n\
-    13) Quit\n"));
+    12) Eliminate orphaned Client records\n\
+    13) All (3-12)\n\
+    14) Quit\n"));
        } else {
          printf(_("\n\
      1) Toggle modify database flag\n\
@@ -289,8 +292,9 @@ Please select the fuction you want to perform.\n",
      9) Check for orphaned Path records\n\
     10) Check for orphaned Filename records\n\
     11) Check for orphaned FileSet records\n\
-    12) All (3-11)\n\
-    13) Quit\n"));
+    12) Check for orphaned FileSet records\n\
+    13) All (3-12)\n\
+    14) Quit\n"));
        }
 
       cmd = get_cmd(_("Select function number: "));
@@ -333,6 +337,9 @@ Please select the fuction you want to perform.\n",
 	    eliminate_orphaned_fileset_records();
 	    break;
 	 case 12:
+	    eliminate_orphaned_client_records();
+	    break;
+	 case 13:
 	    repair_bad_filenames();
 	    repair_bad_paths();
 	    eliminate_duplicate_filenames();
@@ -342,8 +349,9 @@ Please select the fuction you want to perform.\n",
 	    eliminate_orphaned_path_records();
 	    eliminate_orphaned_filename_records();
 	    eliminate_orphaned_fileset_records();
+	    eliminate_orphaned_client_records();
 	    break;
-	 case 13:
+	 case 14:
 	    quit = true;
 	    break;
 	 }
@@ -389,6 +397,14 @@ static int print_fileset_handler(void *ctx, int num_fields, char **row)
 	      NPRT(row[0]), NPRT(row[1]), NPRT(row[2]));
    return 0;
 }
+
+static int print_client_handler(void *ctx, int num_fields, char **row)
+{
+   printf(_("Orphaned ClientId=%s Name=\"%s\"\n"), 
+	      NPRT(row[0]), NPRT(row[1]));
+   return 0;
+}
+
 
   
 /*
@@ -761,6 +777,45 @@ static void eliminate_orphaned_fileset_records()
       delete_id_list("DELETE FROM FileSet WHERE FileSetId=%u", &id_list);
    }
 }
+
+static void eliminate_orphaned_client_records()
+{
+   const char *query;
+
+   printf("Checking for orphaned Client entries.\n");
+   /* In English:
+    *	Wiffle through Client for every Client
+    *	joining with the Job table including every Client even if
+    *	there is not a match in Job (left outer join), then
+    *	filter out only those where no Job points to a Client
+    *	i.e. Job.Client is NULL
+    */
+   query = "SELECT Client.ClientId,Client.Name FROM Client "
+           "LEFT OUTER JOIN Job ON (Client.ClientId=Job.ClientId) "
+           "WHERE Job.ClientId IS NULL";
+   if (verbose > 1) {
+      printf("%s\n", query);
+   }
+   if (!make_id_list(query, &id_list)) {
+      exit(1);
+   }
+   printf("Found %d orphaned Client records.\n", id_list.num_ids);
+   if (id_list.num_ids && verbose && yes_no("Print them? (yes/no): ")) {
+      for (int i=0; i < id_list.num_ids; i++) {
+         sprintf(buf, "SELECT ClientId,Name FROM Client "
+                      "WHERE ClientId=%u", id_list.Id[i]);
+	 if (!db_sql_query(db, buf, print_client_handler, NULL)) {
+            printf("%s\n", db_strerror(db));
+	 }
+      }
+   }
+   
+   if (fix && id_list.num_ids > 0) {
+      printf("Deleting %d orphaned Client records.\n", id_list.num_ids);
+      delete_id_list("DELETE FROM Client WHERE ClientId=%u", &id_list);
+   }
+}
+
 
 static void repair_bad_filenames()
 {

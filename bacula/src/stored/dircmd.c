@@ -463,12 +463,12 @@ static int read_label(JCR *jcr, DEVICE *dev)
 
 static DEVICE *find_device(JCR *jcr, char *dname)
 {
-   DEVRES *device = NULL;
+   DEVRES *device;
    bool found = false;
 
    unbash_spaces(dname);
    LockRes();
-   while ((device=(DEVRES *)GetNextRes(R_DEVICE, (RES *)device))) {
+   foreach_res(device, R_DEVICE) {
       /* Find resource, and make sure we were able to open it */
       if (strcmp(device->hdr.name, dname) == 0 && device->dev) {
          Dmsg1(20, "Found device %s\n", device->hdr.name);

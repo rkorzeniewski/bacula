@@ -70,7 +70,8 @@ static int authenticate(int rcode, BSOCK *bs)
    }
    UnlockRes();
    if (!director) {
-      Emsg2(M_FATAL, 0, _("Connection from unknown Director %s at %s rejected.\n"), 
+      Emsg2(M_FATAL, 0, _("Connection from unknown Director %s at %s rejected.\n"   
+       "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"), 
 	    dirname, bs->who);
       free_pool_memory(dirname);
       return 0;
@@ -81,7 +82,8 @@ static int authenticate(int rcode, BSOCK *bs)
    if (!cram_md5_auth(bs, director->password, ssl_need) ||
        !cram_md5_get_auth(bs, director->password, ssl_need)) {
       stop_bsock_timer(tid);
-      Emsg0(M_FATAL, 0, _("Incorrect password given by Director.\n"));
+      Emsg0(M_FATAL, 0, _("Incorrect password given by Director.\n"   
+       "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"));
       free_pool_memory(dirname);
       return 0;
    }
@@ -128,7 +130,8 @@ int authenticate_filed(JCR *jcr)
    }
    stop_bsock_timer(tid);
    if (!jcr->authenticated) {
-      Jmsg(jcr, M_FATAL, 0, _("Incorrect authorization key from File daemon at %s rejected.\n"), 
+      Jmsg(jcr, M_FATAL, 0, _("Incorrect authorization key from File daemon at %s rejected.\n"
+       "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"),
 	   fd->who);
    }
    return jcr->authenticated;

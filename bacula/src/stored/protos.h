@@ -176,6 +176,7 @@ void	 mark_volume_in_error(JCR *jcr, DEVICE *dev);
 int	 autoload_device(DCR *dcr, int writing, BSOCK *dir);
 bool	 autochanger_list(DCR *dcr, BSOCK *dir);
 void	 invalidate_slot_in_catalog(DCR *dcr);
+char	*edit_device_codes(JCR *jcr, char *omsg, const char *imsg, const char *cmd);
 
 
 /* From parse_bsr.c */

@@ -248,16 +248,15 @@ int update_slots(UAContext *ua)
    }
    memset(&mr, 0, sizeof(mr));
    mr.InChanger = 1;
+   db_lock(ua->db);
    for (int i=1; i<max_slots; i++) {
       if (slot_list[i]) {
 	 mr.Slot = i;
 	 /* Set InChanger to zero for this Slot */
-	 db_lock(ua->db);
 	 db_make_inchanger_unique(ua->jcr, ua->db, &mr);
-	 db_unlock(ua->db);
-         bsendmsg(ua, _("No VolName for Slot=%d set InChanger to zero.\n"), i);
       }
    }
+   db_unlock(ua->db);
       
 bail_out:
 

@@ -847,22 +847,43 @@ static void update_vol_pool(UAContext *ua, char *val, MEDIA_DBR *mr, POOL_DBR *o
 static void update_volfrompool(UAContext *ua, MEDIA_DBR *mr)
 {
    POOL_DBR pr;
-   char VolStatus[50];
 
    memset(&pr, 0, sizeof(pr));
    pr.PoolId = mr->PoolId;
    if (!get_pool_dbr(ua, &pr)) {
       return;
    }
-   bstrncpy(VolStatus, mr->VolStatus, sizeof(VolStatus));
    set_pool_dbr_defaults_in_media_dbr(mr, &pr);
-   bstrncpy(mr->VolStatus, VolStatus, sizeof(mr->VolStatus));
-   if (!db_update_media_record(ua->jcr, ua->db, mr)) {
+   if (!db_update_media_defaults(ua->jcr, ua->db, mr)) {
       bsendmsg(ua, _("Error updating Volume record: ERR=%s"), db_strerror(ua->db));
    } else {
       bsendmsg(ua, _("Volume defaults updated from Pool record.\n"));
    }
 }
+
+/*
+ * Refresh the Volume information from the Pool record
+ *   for all Volumes
+ */
+static void update_all_vols_from_pool(UAContext *ua)
+{
+   POOL_DBR pr;
+   MEDIA_DBR mr;
+
+   memset(&pr, 0, sizeof(pr));
+   if (!get_pool_dbr(ua, &pr)) {
+      return;
+   }
+   memset(&mr, 0, sizeof(mr));
+   set_pool_dbr_defaults_in_media_dbr(&mr, &pr);
+   mr.PoolId = pr.PoolId;
+   if (!db_update_media_defaults(ua->jcr, ua->db, &mr)) {
+      bsendmsg(ua, _("Error updating Volume records: ERR=%s"), db_strerror(ua->db));
+   } else {
+      bsendmsg(ua, _("All Volume defaults updated from Pool record.\n"));
+   }
+}
+
 
 /*
  * Update a media record -- allows you to change the
@@ -887,13 +908,14 @@ static int update_volume(UAContext *ua)
       N_("Recycle"),                  /* 6 */
       N_("Pool"),                     /* 7 */
       N_("FromPool"),                 /* 8 */
+      N_("AllFromPool"),              /* 9 */
       NULL };
 
    for (int i=0; kw[i]; i++) {
       int j;
       POOL_DBR pr;
       if ((j=find_arg_with_value(ua, kw[i])) > 0) {
-	 if (!select_media_dbr(ua, &mr)) {
+	 if (i != 9 && !select_media_dbr(ua, &mr)) {
 	    return 0;
 	 }
 	 switch (i) {
@@ -930,6 +952,8 @@ static int update_volume(UAContext *ua)
 	 case 8:
 	    update_volfrompool(ua, &mr);
 	    break;
+	 case 9:
+	    update_all_vols_from_pool(ua);
 	 }
 	 done = true;
       }

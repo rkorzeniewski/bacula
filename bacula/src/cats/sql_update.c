@@ -334,6 +334,51 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 }
 
 /* 
+ * Update the Media Record Default values from Pool
+ *
+ * Returns: 0 on failure
+ *	    numrows on success
+ */
+int
+db_update_media_defaults(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr) 
+{
+   int stat;
+   char ed1[30], ed2[30], ed3[30];
+       
+
+   db_lock(mdb);
+   if (mr->VolumeName[0]) {
+      Mmsg(&mdb->cmd, "UPDATE Media SET "
+           "Recycle=%d,VolRetention=%s,VolUseDuration=%s,"
+           "MaxVolJobs=%u,MaxVolFiles=%u,MaxVolBytes=%s"
+           " WHERE VolumeName='%s'",
+	   mr->Recycle,edit_uint64(mr->VolRetention, ed1), 
+	   edit_uint64(mr->VolUseDuration, ed2),
+	   mr->MaxVolJobs, mr->MaxVolFiles,
+	   edit_uint64(mr->VolBytes, ed3),
+	   mr->VolumeName);
+   } else {
+      Mmsg(&mdb->cmd, "UPDATE Media SET "
+           "Recycle=%d,VolRetention=%s,VolUseDuration=%s,"
+           "MaxVolJobs=%u,MaxVolFiles=%u,MaxVolBytes=%s"
+           " WHERE PoolId=%u",
+	   mr->Recycle,edit_uint64(mr->VolRetention, ed1), 
+	   edit_uint64(mr->VolUseDuration, ed2),
+	   mr->MaxVolJobs, mr->MaxVolFiles,
+	   edit_uint64(mr->VolBytes, ed3),
+	   mr->PoolId);
+   }
+
+   Dmsg1(400, "%s\n", mdb->cmd);
+
+   stat = UPDATE_DB(jcr, mdb, mdb->cmd);
+
+   db_unlock(mdb);
+   return stat;
+}
+
+
+/* 
  * If we have a non-zero InChanger, ensure that no other Media
  *  record has InChanger set on the same Slot.
  *

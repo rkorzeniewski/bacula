@@ -74,7 +74,8 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
        !cram_md5_auth(dir, password, ssl_need)) {
       stop_bsock_timer(tid);
       sendit( _("Director authorization problem.\n"
-            "Most likely the passwords do not agree.\n"));  
+            "Most likely the passwords do not agree.\n"     
+       "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"));
       return 0;
    }
 

@@ -72,6 +72,9 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
       stop_bsock_timer(tid);
       printf(_("%s: Director authorization problem.\n"), my_name);
       set_text(_("Director authorization problem.\n"), -1);
+      set_text(_(
+       "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"), 
+	-1);
       return 0;
    }
 
