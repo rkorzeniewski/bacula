@@ -170,6 +170,9 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
 	    mode |= O_CTG;		 /* set contiguous bit if needed */
 	 }
          Dmsg1(50, "Create file: %s\n", attr->ofname);
+	 if (is_bopen(bfd)) {
+            Jmsg1(jcr, M_ERROR, 0, "bpkt already open fid=%d\n", bfd->fid);
+	 }
 	 if ((bopen(bfd, attr->ofname, mode, S_IRUSR | S_IWUSR)) < 0) {
             Jmsg2(jcr, M_ERROR, 0, _("Could not create %s: ERR=%s\n"), 
 		  attr->ofname, berror(bfd));
@@ -204,6 +207,9 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
 	       tid = start_thread_timer(pthread_self(), 60);
 	    } else {
 	       tid = NULL;
+	    }
+	    if (is_bopen(bfd)) {
+               Jmsg1(jcr, M_ERROR, 0, "bpkt already open fid=%d\n", bfd->fid);
 	    }
 	    if ((bopen(bfd, attr->ofname, mode, 0)) < 0) {
                Jmsg2(jcr, M_ERROR, 0, _("Could not open %s: ERR=%s\n"), 
@@ -248,6 +254,9 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
        *   and saved.
        */
       if (!is_portable_backup(bfd)) {
+	 if (is_bopen(bfd)) {
+            Jmsg1(jcr, M_ERROR, 0, "bpkt already open fid=%d\n", bfd->fid);
+	 }
 	 if ((bopen(bfd, attr->ofname, O_WRONLY|O_BINARY, 0)) < 0) {
             Jmsg2(jcr, M_ERROR, 0, _("Could not open %s: ERR=%s\n"), 
 		  attr->ofname, berror(bfd));

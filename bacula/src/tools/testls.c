@@ -71,28 +71,28 @@ main (int argc, char *const *argv)
 
    while ((ch = getopt(argc, argv, "ad:e:i:?")) != -1) {
       switch (ch) {
-         case 'a':                    /* print extended attributes *debug* */
-	    attrs = 1;
-	    break;
+      case 'a':                       /* print extended attributes *debug* */
+	 attrs = 1;
+	 break;
 
-         case 'd':                    /* set debug level */
-	    debug_level = atoi(optarg);
-	    if (debug_level <= 0) {
-	       debug_level = 1; 
-	    }
-	    break;
+      case 'd':                       /* set debug level */
+	 debug_level = atoi(optarg);
+	 if (debug_level <= 0) {
+	    debug_level = 1; 
+	 }
+	 break;
 
-         case 'e':                    /* exclude patterns */
-	    exc = optarg;
-	    break;
+      case 'e':                       /* exclude patterns */
+	 exc = optarg;
+	 break;
 
-         case 'i':                    /* include patterns */
-	    inc = optarg;
-	    break;
+      case 'i':                       /* include patterns */
+	 inc = optarg;
+	 break;
 
-         case '?':
-	 default:
-	    usage();
+      case '?':
+      default:
+	 usage();
 
       }  
    }
@@ -200,6 +200,10 @@ static void print_ls_output(char *fname, char *link, int type, struct stat *stat
    char *p, *f;
    int n;
 
+   if (type == FT_LNK) {
+      statp->st_mtime = 0;
+      statp->st_mode |= 0777;
+   }
    p = encode_mode(statp->st_mode, buf);
    n = sprintf(p, " %2d ", (uint32_t)statp->st_nlink);
    p += n;
@@ -213,11 +217,7 @@ static void print_ls_output(char *fname, char *link, int type, struct stat *stat
       n = sprintf(p, "     ");
    }
    p += n;
-   if (type != FT_LNK) {
-      p = encode_time(statp->st_mtime, p);
-   } else {
-      p = encode_time(0, p);
-   }
+   p = encode_time(statp->st_mtime, p);
    *p++ = ' ';
    /* Copy file name */
    for (f=fname; *f && (p-buf) < (int)sizeof(buf); )

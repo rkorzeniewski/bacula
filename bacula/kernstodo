@@ -24,6 +24,7 @@ Testing to do: (painful)
 - Test connect timeouts.
 
 For 1.33 Testing/Documentation:
+- suppress "Do not forget to mount the drive!!!" if error
 - Document new records in Director. SDAddress SDDeviceName, SDPassword.
   FDPassword, FDAddress, DBAddress, DBPort, DBPassword.
 - Document new Include/Exclude ...
@@ -31,6 +32,13 @@ For 1.33 Testing/Documentation:
 - Add counter variable test.
                 
 For 1.33
+- Make sure a rescheduled job is properly reported by status.
+- Walk through the Pool records rather than the Job records
+  in dird.c to create/update pools.
+- Figure out a way to move Volumes from one pool to another.
+- What to do about "list files job=xxx".
+- Implement delete Job.
+- Document need to put LabelFormat in quotes.
 - Implement scan: for every slot it finds, zero the slot of
   Volume other volume having that slot.
 - When job rescheduled, status gives is waiting for Client Rufus 

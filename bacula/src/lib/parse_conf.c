@@ -191,69 +191,69 @@ void store_msgs(LEX *lc, struct res_items *item, int index, int pass)
    Dmsg2(200, "store_msgs pass=%d code=%d\n", pass, item->code);
    if (pass == 1) {
       switch (item->code) {
-	 case MD_STDOUT:
-	 case MD_STDERR:
-	 case MD_SYSLOG:	      /* syslog */
-	 case MD_CONSOLE:
-	    scan_types(lc, (MSGS *)(item->value), item->code, NULL, NULL);
-	    break;
-	 case MD_OPERATOR:	      /* send to operator */
-	 case MD_DIRECTOR:	      /* send to Director */
-	 case MD_MAIL:		      /* mail */
-	 case MD_MAIL_ON_ERROR:       /* mail if Job errors */
-	    if (item->code == MD_OPERATOR) {
-	       cmd = res_all.res_msgs.operator_cmd;
-	    } else {
-	       cmd = res_all.res_msgs.mail_cmd;
-	    }
-	    dest = get_pool_memory(PM_MESSAGE);
-	    dest[0] = 0;
-	    dest_len = 0;
-	    /* Pick up comma separated list of destinations */
-	    for ( ;; ) {
-	       token = lex_get_token(lc, T_NAME);   /* scan destination */
-	       dest = check_pool_memory_size(dest, dest_len + lc->str_len + 2);
-	       if (dest[0] != 0) {
-                  strcat(dest, " ");  /* separate multiple destinations with space */
-		  dest_len++;
-	       }
-	       strcat(dest, lc->str);
-	       dest_len += lc->str_len;
-               Dmsg2(100, "store_msgs newdest=%s: dest=%s:\n", lc->str, NPRT(dest));
-	       token = lex_get_token(lc, T_ALL);
-	       if (token == T_COMMA) { 
-		  continue;	      /* get another destination */
-	       }
-	       if (token != T_EQUALS) {
-                  scan_err1(lc, "expected an =, got: %s", lc->str); 
-	       }
-	       break;
-	    }
-            Dmsg1(200, "mail_cmd=%s\n", NPRT(cmd));
-	    scan_types(lc, (MSGS *)(item->value), item->code, dest, cmd);
-	    free_pool_memory(dest);
-            Dmsg0(200, "done with dest codes\n");
-	    break;
-	 case MD_FILE:		      /* file */
-	 case MD_APPEND:	      /* append */
-	    dest = get_pool_memory(PM_MESSAGE);
-	    /* Pick up a single destination */
+      case MD_STDOUT:
+      case MD_STDERR:
+      case MD_SYSLOG:		   /* syslog */
+      case MD_CONSOLE:
+	 scan_types(lc, (MSGS *)(item->value), item->code, NULL, NULL);
+	 break;
+      case MD_OPERATOR: 	   /* send to operator */
+      case MD_DIRECTOR: 	   /* send to Director */
+      case MD_MAIL:		   /* mail */
+      case MD_MAIL_ON_ERROR:	   /* mail if Job errors */
+	 if (item->code == MD_OPERATOR) {
+	    cmd = res_all.res_msgs.operator_cmd;
+	 } else {
+	    cmd = res_all.res_msgs.mail_cmd;
+	 }
+	 dest = get_pool_memory(PM_MESSAGE);
+	 dest[0] = 0;
+	 dest_len = 0;
+	 /* Pick up comma separated list of destinations */
+	 for ( ;; ) {
 	    token = lex_get_token(lc, T_NAME);	 /* scan destination */
-	    pm_strcpy(&dest, lc->str);
-	    dest_len = lc->str_len;
+	    dest = check_pool_memory_size(dest, dest_len + lc->str_len + 2);
+	    if (dest[0] != 0) {
+               strcat(dest, " ");  /* separate multiple destinations with space */
+	       dest_len++;
+	    }
+	    strcat(dest, lc->str);
+	    dest_len += lc->str_len;
+            Dmsg2(100, "store_msgs newdest=%s: dest=%s:\n", lc->str, NPRT(dest));
 	    token = lex_get_token(lc, T_ALL);
-            Dmsg1(200, "store_msgs dest=%s:\n", NPRT(dest));
+	    if (token == T_COMMA) { 
+	       continue;	   /* get another destination */
+	    }
 	    if (token != T_EQUALS) {
                scan_err1(lc, "expected an =, got: %s", lc->str); 
 	    }
-	    scan_types(lc, (MSGS *)(item->value), item->code, dest, NULL);
-	    free_pool_memory(dest);
-            Dmsg0(200, "done with dest codes\n");
 	    break;
+	 }
+         Dmsg1(200, "mail_cmd=%s\n", NPRT(cmd));
+	 scan_types(lc, (MSGS *)(item->value), item->code, dest, cmd);
+	 free_pool_memory(dest);
+         Dmsg0(200, "done with dest codes\n");
+	 break;
+      case MD_FILE:		   /* file */
+      case MD_APPEND:		   /* append */
+	 dest = get_pool_memory(PM_MESSAGE);
+	 /* Pick up a single destination */
+	 token = lex_get_token(lc, T_NAME);   /* scan destination */
+	 pm_strcpy(&dest, lc->str);
+	 dest_len = lc->str_len;
+	 token = lex_get_token(lc, T_ALL);
+         Dmsg1(200, "store_msgs dest=%s:\n", NPRT(dest));
+	 if (token != T_EQUALS) {
+            scan_err1(lc, "expected an =, got: %s", lc->str); 
+	 }
+	 scan_types(lc, (MSGS *)(item->value), item->code, dest, NULL);
+	 free_pool_memory(dest);
+         Dmsg0(200, "done with dest codes\n");
+	 break;
 
-	 default:
-            scan_err1(lc, "Unknown item code: %d\n", item->code);
-	    break;
+      default:
+         scan_err1(lc, "Unknown item code: %d\n", item->code);
+	 break;
       }
    }
    scan_to_eol(lc);
@@ -284,7 +284,7 @@ static void scan_types(LEX *lc, MSGS *msg, int dest_code, char *where, char *cmd
 	 str = &lc->str[0];
       }
       for (i=0; msg_types[i].name; i++) {
-	 if (strcmp(str, msg_types[i].name) == 0) {
+	 if (strcasecmp(str, msg_types[i].name) == 0) {
 	    msg_type = msg_types[i].token;
 	    found = TRUE;
 	    break;
