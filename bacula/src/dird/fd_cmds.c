@@ -193,7 +193,6 @@ int send_level_command(JCR *jcr)
       break;
    case L_DIFFERENTIAL:
    case L_INCREMENTAL:
-//    bnet_fsend(fd, levelcmd, "since ", jcr->stime, 0); /* old code, deprecated */
       stime = str_to_utime(jcr->stime);
       bnet_fsend(fd, levelcmd, "since_utime ", edit_uint64(stime, ed1), 0);
       while (bget_dirmsg(fd) >= 0) {  /* allow him to poll us to sync clocks */

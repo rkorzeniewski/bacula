@@ -702,7 +702,7 @@ int db_get_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
    } else {			      /* find by name */
       Mmsg(mdb->cmd, 
            "SELECT FileSetId,FileSet,CreateTime,MD5 FROM FileSet "
-           "WHERE FileSet='%s'", fsr->FileSet);
+           "WHERE FileSet='%s' ORDER BY CreateTime DESC LIMIT 1", fsr->FileSet);
    }  
 
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {

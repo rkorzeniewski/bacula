@@ -275,6 +275,7 @@ struct FILESET {
    bool have_MD5;                     /* set if MD5 initialized */
    struct MD5Context md5c;            /* MD5 of include/exclude */
    char MD5[30];                      /* base 64 representation of MD5 */
+   int ignore_fs_changes;             /* Don't force Full if FS changed */
 };
 
  

@@ -573,11 +573,14 @@ bool get_or_create_fileset_record(JCR *jcr, FILESET_DBR *fsr)
    } else {
       Jmsg(jcr, M_WARNING, 0, _("FileSet MD5 signature not found.\n"));
    }
-   if (!db_create_fileset_record(jcr, jcr->db, fsr)) {
-      Jmsg(jcr, M_ERROR, 0, _("Could not create FileSet \"%s\" record. ERR=%s\n"), 
-	 fsr->FileSet, db_strerror(jcr->db));
-      return false;
-   }   
+   if (!jcr->fileset->ignore_fs_changes ||
+       !db_get_fileset_record(jcr, jcr->db, fsr)) {
+      if (!db_create_fileset_record(jcr, jcr->db, fsr)) {
+         Jmsg(jcr, M_ERROR, 0, _("Could not create FileSet \"%s\" record. ERR=%s\n"), 
+	    fsr->FileSet, db_strerror(jcr->db));
+	 return false;
+      }   
+   }
    jcr->jr.FileSetId = fsr->FileSetId;
    if (fsr->created) {
       Jmsg(jcr, M_INFO, 0, _("Created new FileSet record \"%s\" %s\n"), 
