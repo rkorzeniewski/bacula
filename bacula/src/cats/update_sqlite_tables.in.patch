@@ -1,0 +1,4 @@
+10c10
+< bindir=@SQL_BINDIR@
+---
+> bindir=/usr/lib/sqlite
