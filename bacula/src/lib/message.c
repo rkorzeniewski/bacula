@@ -920,6 +920,7 @@ Jmsg(void *vjcr, int type, int level, char *fmt,...)
        len = sprintf(rbuf, "%s: %s Fatal error: ", my_name, job);
        if (jcr) {
 	  set_jcr_job_status(jcr, JS_FatalError);
+	  jcr->Errors++;
        }
        break;
     case M_ERROR:

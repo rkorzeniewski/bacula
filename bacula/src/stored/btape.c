@@ -1155,7 +1155,7 @@ This may take a long time. I.e. hours! ...\n\n");
    /* 
     * Get Data from File daemon, write to device   
     */
-   jcr->VolFirstFile = 0;
+   jcr->VolFirstIndex = 0;
    time(&jcr->run_time);	      /* start counting time for rates */
    for (file_index = 0; ok && !job_canceled(jcr); ) {
       uint64_t *lp;

@@ -47,7 +47,7 @@ static char levelcmd[]  = "level = %s%s\n";
 static char OKbackup[]  = "2000 OK backup\n";
 static char OKstore[]   = "2000 OK storage\n";
 static char OKlevel[]   = "2000 OK level\n";
-static char EndBackup[] = "2801 End Backup Job TermCode=%d JobFiles=%u ReadBytes=%" lld " JobBytes=%" lld "\n";
+static char EndBackup[] = "2801 End Backup Job TermCode=%d JobFiles=%u ReadBytes=%" lld " JobBytes=%" lld " Errors=%u\n";
 
 
 /* Forward referenced functions */
@@ -275,7 +275,7 @@ static int wait_for_job_termination(JCR *jcr)
    /* Wait for Client to terminate */
    while ((n = bget_dirmsg(fd)) >= 0) {
       if (sscanf(fd->msg, EndBackup, &jcr->FDJobStatus, &jcr->JobFiles,
-	  &jcr->ReadBytes, &jcr->JobBytes) == 4) {
+	  &jcr->ReadBytes, &jcr->JobBytes, &jcr->Errors) == 5) {
 	 fd_ok = TRUE;
 	 set_jcr_job_status(jcr, jcr->FDJobStatus);
          Dmsg1(100, "FDStatus=%c\n", (char)jcr->JobStatus);
@@ -463,6 +463,7 @@ Volume names(s):        %s\n\
 Volume Session Id:      %d\n\
 Volume Session Time:    %d\n\
 Last Volume Bytes:      %s\n\
+Non-fatal FD errors:    %d\n\
 FD termination status:  %s\n\
 SD termination status:  %s\n\
 Termination:            %s\n\n"),
@@ -482,6 +483,7 @@ Termination:            %s\n\n"),
 	jcr->VolSessionId,
 	jcr->VolSessionTime,
 	edit_uint64_with_commas(mr.VolBytes, ec3),
+	jcr->Errors,
 	fd_term_msg,
 	sd_term_msg,
 	term_msg);

@@ -354,7 +354,7 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	    }
 	    /* Reset some JCR variables */
 	    for (mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
-	       mjcr->VolFirstFile = mjcr->FileIndex = 0;
+	       mjcr->VolFirstIndex = mjcr->FileIndex = 0;
 	       mjcr->StartBlock = mjcr->EndBlock = 0;
 	       mjcr->StartFile = mjcr->EndFile = 0;
 	    }
@@ -697,8 +697,8 @@ static int create_file_attributes_record(B_DB *db, JCR *mjcr,
    ar.Stream = rec->Stream;
    ar.FileIndex = rec->FileIndex;
    ar.attr = ap;
-   if (mjcr->VolFirstFile == 0) {
-      mjcr->VolFirstFile = rec->FileIndex;
+   if (mjcr->VolFirstIndex == 0) {
+      mjcr->VolFirstIndex = rec->FileIndex;
    }
    mjcr->FileIndex = rec->FileIndex;
    mjcr->JobFiles++;
@@ -1031,7 +1031,7 @@ static int create_jobmedia_record(B_DB *db, JCR *mjcr)
    memset(&jmr, 0, sizeof(jmr));
    jmr.JobId = mjcr->JobId;
    jmr.MediaId = mr.MediaId;
-   jmr.FirstIndex = mjcr->VolFirstFile;
+   jmr.FirstIndex = mjcr->VolFirstIndex;
    jmr.LastIndex = mjcr->FileIndex;
    jmr.StartFile = mjcr->StartFile;
    jmr.EndFile = mjcr->EndFile;

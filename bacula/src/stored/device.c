@@ -107,6 +107,7 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	    unblock_device(dev);
 	    return 0;
 	 }
+	 mjcr->VolFirstIndex = 0;      /* prevent writing jobmedia second time */
       }
 
       strcpy(dev->VolCatInfo.VolCatStatus, "Full");
@@ -176,7 +177,8 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	    mjcr->StartBlock = (uint32_t)dev->file_addr;
 	    mjcr->StartFile  = (uint32_t)(dev->file_addr >> 32);
 	 }
-	 mjcr->VolFirstFile = mjcr->JobFiles;
+	 /* Set first FirstIndex for new Volume */
+	 mjcr->VolFirstIndex = mjcr->JobFiles;
 	 mjcr->run_time += time(NULL) - wait_time; /* correct run time */
       }
       unblock_device(dev);

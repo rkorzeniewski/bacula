@@ -304,7 +304,7 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    /* dump_block(block, "before write"); */
    if (dev->state & ST_WEOT) {
       Dmsg0(100, "return write_block_to_dev with ST_WEOT\n");
-      Jmsg(&dev->errmsg, M_FATAL, 0,  _("Cannot write block. Device at EOF.\n"));
+      Jmsg(&dev->errmsg, M_FATAL, 0,  _("Cannot write block. Device at EOM.\n"));
       return 0;
    }
    wlen = block->binbuf;

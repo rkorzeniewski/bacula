@@ -289,7 +289,9 @@ int release_device(JCR *jcr, DEVICE *dev)
       if (dev->num_writers == 0) {
          Dmsg0(100, "dir_create_jobmedia_record. Release\n");
 	 dir_create_jobmedia_record(jcr);
-	 weof_dev(dev, 1);
+	 if (dev_can_write(dev)) {
+	    weof_dev(dev, 1);
+	 }
 	 dev->VolCatInfo.VolCatFiles = dev->file;   /* set number of files */
 	 dev->VolCatInfo.VolCatJobs++;		    /* increment number of jobs */
 	 /* Note! do volume update before close, which zaps VolCatInfo */

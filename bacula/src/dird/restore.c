@@ -52,7 +52,7 @@ static char OKrestore[]   = "2000 OK restore\n";
 static char OKstore[]     = "2000 OK storage\n";
 static char OKsession[]   = "2000 OK session\n";
 static char OKbootstrap[] = "2000 OK bootstrap\n";
-static char EndRestore[]  = "2800 End Job TermCode=%d JobFiles=%u JobBytes=%" lld "\n";
+static char EndRestore[]  = "2800 End Job TermCode=%d JobFiles=%u JobBytes=%" lld " Errors=%u\n";
 
 /* Forward referenced functions */
 static void restore_cleanup(JCR *jcr, int status);
@@ -256,7 +256,7 @@ int do_restore(JCR *jcr)
    while (bget_dirmsg(fd) >= 0) {
       Dmsg1(100, "dird<filed: %s\n", fd->msg);
       if (sscanf(fd->msg, EndRestore, &jcr->FDJobStatus, &jcr->JobFiles,
-	  &jcr->JobBytes) == 3) {
+	  &jcr->JobBytes, &jcr->Errors) == 4) {
 	 ok = TRUE;
       }
    }
@@ -319,7 +319,11 @@ static void restore_cleanup(JCR *jcr, int TermCode)
    }
    bstrftime(sdt, sizeof(sdt), jcr->jr.StartTime);
    bstrftime(edt, sizeof(edt), jcr->jr.EndTime);
-   kbps = (double)jcr->jr.JobBytes / (1000 * (jcr->jr.EndTime - jcr->jr.StartTime));
+   if (jcr->jr.EndTime - jcr->jr.StartTime > 0) {
+      kbps = (double)jcr->jr.JobBytes / (1000 * (jcr->jr.EndTime - jcr->jr.StartTime));
+   } else {
+      kbps = 0;
+   }
    if (kbps < 0.05) {
       kbps = 0;
    }
@@ -335,6 +339,7 @@ End time:               %s\n\
 Files Restored:         %s\n\
 Bytes Restored:         %s\n\
 Rate:                   %.1f KB/s\n\
+Non-fatal Errors:       %d\n\
 FD termination status:  %s\n\
 Termination:            %s\n\n"),
 	edt,
@@ -346,6 +351,7 @@ Termination:            %s\n\n"),
 	edit_uint64_with_commas((uint64_t)jcr->jr.JobFiles, ec1),
 	edit_uint64_with_commas(jcr->jr.JobBytes, ec2),
 	(float)kbps,
+	jcr->Errors,
 	fd_term_msg,
 	term_msg);
 

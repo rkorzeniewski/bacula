@@ -8,6 +8,11 @@ Documentation to do: (any release a little bit at a time)
 - Document problems with Verify and pruning.
 - Document how to use multiple databases.
 - For FreeBSD typical /dev/nrsa0 and for mtx /dev/pass1
+- VXA drives have a "cleaning required"
+  indicator, but Exabyte recommends preventive cleaning after every 75
+  hours of operation.
+- Lookup HP cleaning recommendations.
+- Lookup HP tape replacement recommendations (see trouble shooting autochanger)
 
           
 Testing to do: (painful)
@@ -15,14 +20,14 @@ Testing to do: (painful)
 - blocksize recognition code.
 - multiple simultaneous Volumes
 - Test if rewind at end of tape waits for tape to rewind.
+- Test cancel at EOM.       
 
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
 - Finish WIN32_DATA stream code (bextract, check if can handle stream)
 - Default duration with no qualifier is sec should be 1 day
-- Find a solution for the multiple FileSet problem (when it is changed).
-  Add date?
+- Find a solution for the multiple FileSet problem (when it is changed). Add date?
 - Cancel waiting for Client connect in SD if FD goes away.
 - Testing Tibs job erred and hung director on Storage resource.  This was
   because there were a whole pile of jobs hanging around in the SD  
@@ -34,44 +39,8 @@ For 1.31 release:
 - File the Automatically selected: xxx
   to say Automatically selected Pool: xxx
 - Should Bacula make an Append tape as Purged when purging?
-- Shell expansion failes for working_directory in SD from time to tim.
+- Shell expansion fails for working_directory in SD from time to time.
 - Possibly update all client records at startup.
-- Volume names with spaces get jammed into the catalog with 0x1 
-  i.e. the SD bashes the Volume but they are not unbased by Dir.
-  jerom-dir: MonthlySave.2003-05-10_17.12.01 Error: Unable to get Media
-  record for Volume Tape^A1: ERR=sql_get.c:788 Media record for Volume
-  "Tape^A1" not found.
-   jerom-sd: MonthlySave.2003-05-10_17.12.01 Error: Error updating Volume
-   Info: 1991 Catalog Request failed: sql_get.c:788 Media record for Volume
-   "Tape^A1" not found.
-
-- Cancellation caused JobMedia error:
-     babylon5-dir: Last FULL backup time not found. Doing FULL backup.               
-     babylon5-dir: Start Backup JobId 416, Job=Zocalo_Save.2003-05-19_02.15.06       
-     babylon5-sd: End of media on Volume VXA-V17-Inc-001 Bytes=31,982,900,672 Blocks=495,781.
-     babylon5-sd: Job Zocalo_Save.2003-05-19_02.15.06 waiting. Cannot find any appendable volumes.
-     babylon5-sd: Someone woke me up, but I cannot find any appendable volumes
-       for Job=Zocalo_Save.2003-05-19_02.15.06.                                
-     babylon5-sd: Zocalo_Save.2003-05-19_02.15.06 Fatal error: Job
-       Zocalo_Save.2003-05-19_02.15.06 canceled while waiting for mount on
-       Storage Device "Ecrix_VXA-1".
-     babylon5-sd: Zocalo_Save.2003-05-19_02.15.06 Fatal error: Cannot fixup device
-       error. Job Zocalo_Save.2003-05-19_02.15.06 canceled while waiting for
-       mount on Storage Device "Ecrix_VXA-1".
-                                                                                     
-     babylon5-dir: Zocalo_Save.2003-05-19_02.15.06 Error: Catalog error creating
-       JobMedia record. sql_create.c:125 Create JobMedia failed. Record already
-       exists.
-     babylon5-sd: Zocalo_Save.2003-05-19_02.15.06 Error: Error creating JobMedia
-       record: 1991 Update JobMedia error
-                                                                                     
-     babylon5-sd: Zocalo_Save.2003-05-19_02.15.06 Error: askdir.c:158 NULL Volume
-       name. This shouldn't happen!!!
-     zocalo-fd: Zocalo_Save.2003-05-19_02.15.06 Error: bnet.c:310 Write error
-       sending to Storage daemon:babylon5:9103: ERR=Broken pipe
-     
-
-- ChangeServiceConfig2A does not exist on WinNT (ADVAPI32.DLL).
 
 - Implement MTIOCERRSTAT on FreeBSD to clear tape error conditions.
 
@@ -87,15 +56,11 @@ For 1.31 release:
   Much like xxx_conf.c scan table.
   keyword, handler(store_routine), store_address, code, flags, default.
 
-- Fix "access not allowed" for backup of files on WinXP.
-- Check for existence of all new Win32 API's.  See LoadLibrary in 
-  winservice.cpp
 - Examine Bare Metal restore problem (a FD crash exists somewhere ...).
 - Test multiple simultaneous Volumes
 - Document FInclude ...
 - Implement timeout in response() when it should come quickly.
 - Implement console @echo command.
-- Bug: fix access problems on files restored on WinXP.
 - Implement a Slot priority (loaded/not loaded).
 - Implement "vacation" Incremental only saves.
 - Implement single pane restore (much like the Gftp panes).
@@ -202,7 +167,6 @@ For 1.31 release:
   records -- one per Job, maybe a JCR or some other structure with
   a block and a record.
 - Figure out how to do a bare metal Windows restore
-- Put system type returned by FD into catalog.
 - Possibly add email to Watchdog if drive is unmounted too
   long and a job is waiting on the drive.
 - Use read_record.c in SD code.
@@ -872,4 +836,43 @@ Done: (see kernsdone for more)
 - Document what characters can go into Volume names.
 - Getting the following on all directories on Win32
   19-May-2003 01:14 tibs-fd:      Could not access c:/cygwin/home/kern/rxvt: ERR=Permission denied
+- Cancellation caused JobMedia error:
+     babylon5-dir: Last FULL backup time not found. Doing FULL backup.               
+     babylon5-dir: Start Backup JobId 416, Job=Zocalo_Save.2003-05-19_02.15.06       
+     babylon5-sd: End of media on Volume VXA-V17-Inc-001 Bytes=31,982,900,672 Blocks=495,781.
+     babylon5-sd: Job Zocalo_Save.2003-05-19_02.15.06 waiting. Cannot find any appendable volumes.
+     babylon5-sd: Someone woke me up, but I cannot find any appendable volumes
+       for Job=Zocalo_Save.2003-05-19_02.15.06.                                
+     babylon5-sd: Zocalo_Save.2003-05-19_02.15.06 Fatal error: Job
+       Zocalo_Save.2003-05-19_02.15.06 canceled while waiting for mount on
+       Storage Device "Ecrix_VXA-1".
+     babylon5-sd: Zocalo_Save.2003-05-19_02.15.06 Fatal error: Cannot fixup device
+       error. Job Zocalo_Save.2003-05-19_02.15.06 canceled while waiting for
+       mount on Storage Device "Ecrix_VXA-1".
+                                                                                     
+     babylon5-dir: Zocalo_Save.2003-05-19_02.15.06 Error: Catalog error creating
+       JobMedia record. sql_create.c:125 Create JobMedia failed. Record already
+       exists.
+     babylon5-sd: Zocalo_Save.2003-05-19_02.15.06 Error: Error creating JobMedia
+       record: 1991 Update JobMedia error
+                                                                                     
+     babylon5-sd: Zocalo_Save.2003-05-19_02.15.06 Error: askdir.c:158 NULL Volume
+       name. This shouldn't happen!!!
+     zocalo-fd: Zocalo_Save.2003-05-19_02.15.06 Error: bnet.c:310 Write error
+       sending to Storage daemon:babylon5:9103: ERR=Broken pipe
+- Volume names with spaces get jammed into the catalog with 0x1 
+  i.e. the SD bashes the Volume but they are not unbased by Dir.
+  jerom-dir: MonthlySave.2003-05-10_17.12.01 Error: Unable to get Media
+  record for Volume Tape^A1: ERR=sql_get.c:788 Media record for Volume
+  "Tape^A1" not found.
+   jerom-sd: MonthlySave.2003-05-10_17.12.01 Error: Error updating Volume
+   Info: 1991 Catalog Request failed: sql_get.c:788 Media record for Volume
+   "Tape^A1" not found.
+- ChangeServiceConfig2A does not exist on WinNT (ADVAPI32.DLL).
+- Fix "access not allowed" for backup of files on WinXP.
+- Check for existence of all new Win32 API's.  See LoadLibrary in 
+  winservice.cpp
+- Count errors during restore and print them in the Job report.
+- Bug: fix access problems on files restored on WinXP.
+- Put system type returned by FD into catalog.
 

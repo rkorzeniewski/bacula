@@ -110,8 +110,8 @@ static char OKstore[]     = "2000 OK storage\n";
 static char OKjob[]       = "2000 OK Job " FDHOST "," DISTNAME "," DISTVER;
 static char OKsetdebug[]  = "2000 OK setdebug=%d\n";
 static char BADjob[]      = "2901 Bad Job\n";
-static char EndRestore[]  = "2800 End Job TermCode=%d JobFiles=%u JobBytes=%" lld "\n";
-static char EndBackup[]   = "2801 End Backup Job TermCode=%d JobFiles=%u ReadBytes=%" lld " JobBytes=%" lld "\n";
+static char EndRestore[]  = "2800 End Job TermCode=%d JobFiles=%u JobBytes=%s Errors=%u\n";
+static char EndBackup[]   = "2801 End Backup Job TermCode=%d JobFiles=%u ReadBytes=%s JobBytes=%s Errors=%u\n";
 
 /* Responses received from Storage Daemon */
 static char OK_end[]       = "3000 OK end\n";
@@ -516,6 +516,7 @@ static int backup_cmd(JCR *jcr)
    BSOCK *sd = jcr->store_bsock;
    int ok = 0;
    int SDJobStatus;
+   char ed1[50], ed2[50];
 
    set_jcr_job_status(jcr, JS_Blocked);
    jcr->JobType = JT_BACKUP;
@@ -622,7 +623,9 @@ static int backup_cmd(JCR *jcr)
 
 cleanup:
 
-   bnet_fsend(dir, EndBackup, jcr->JobStatus, jcr->JobFiles, jcr->ReadBytes, jcr->JobBytes);
+   bnet_fsend(dir, EndBackup, jcr->JobStatus, jcr->JobFiles, 
+      edit_uint64(jcr->ReadBytes, ed1), 
+      edit_uint64(jcr->JobBytes, ed2), jcr->Errors);	
 
    return 0;			      /* return and stop command loop */
 }
@@ -703,6 +706,7 @@ static int restore_cmd(JCR *jcr)
    BSOCK *sd = jcr->store_bsock;
    POOLMEM *where;
    char replace;
+   char ed1[50];
 
    /*
     * Scan WHERE (base directory for restore) from command
@@ -768,7 +772,7 @@ static int restore_cmd(JCR *jcr)
 bail_out:
    /* Send termination status back to Dir */
    bnet_fsend(dir, EndRestore, jcr->JobStatus, jcr->num_files_examined, 
-	      jcr->JobBytes);
+      edit_uint64(jcr->JobBytes, ed1), jcr->Errors);
 
    /* Inform Director that we are done */
    bnet_sig(dir, BNET_TERMINATE);

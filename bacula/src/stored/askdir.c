@@ -188,8 +188,12 @@ int dir_create_jobmedia_record(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
 
+   if (jcr->VolFirstIndex == 0) {
+      return 1; 		      /* nothing written to tape */
+   }
+
    bnet_fsend(dir, Create_job_media, jcr->Job, 
-      jcr->VolFirstFile, jcr->JobFiles,
+      jcr->VolFirstIndex, jcr->JobFiles,
       jcr->StartFile, jcr->EndFile,
       jcr->StartBlock, jcr->EndBlock);
    Dmsg1(100, "create_jobmedia(): %s", dir->msg);

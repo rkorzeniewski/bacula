@@ -209,7 +209,7 @@ struct s_jcr {
    int session_opened;
    DEV_RECORD rec;                    /* Read/Write record */
    long Ticket;                       /* ticket for this job */
-   uint32_t VolFirstFile;             /* First file index this Volume */
+   uint32_t VolFirstIndex;            /* First file index this Volume */
    uint32_t FileIndex;                /* Current File Index */
    uint32_t EndFile;                  /* End file written */
    uint32_t StartFile;                /* Start write file */

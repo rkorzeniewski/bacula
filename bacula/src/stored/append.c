@@ -108,7 +108,7 @@ int do_append_data(JCR *jcr)
     *	file. 1. for the Attributes, 2. for the file data if any, 
     *	and 3. for the MD5 if any.
     */
-   jcr->VolFirstFile = 0;
+   jcr->VolFirstIndex = 0;
    time(&jcr->run_time);	      /* start counting time for rates */
    for (last_file_index = 0; ok && !job_canceled(jcr); ) {
       char info[100];
@@ -145,8 +145,8 @@ int do_append_data(JCR *jcr)
       }
       if (file_index != last_file_index) {
 	 jcr->JobFiles = file_index;
-	 if (jcr->VolFirstFile == 0) {
-	    jcr->VolFirstFile = file_index;
+	 if (jcr->VolFirstIndex == 0) {
+	    jcr->VolFirstIndex = file_index;
 	 }
 	 last_file_index = file_index;
       }
@@ -225,17 +225,23 @@ int do_append_data(JCR *jcr)
 
    Dmsg1(200, "Write session label JobStatus=%d\n", jcr->JobStatus);
 
-   if (!write_session_label(jcr, block, EOS_LABEL)) {
-      Jmsg1(jcr, M_FATAL, 0, _("Error writting end session label. ERR=%s\n"),
-	  strerror_dev(dev));
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
-      ok = FALSE;
-   }
-   /* Write out final block of this session */
-   if (!write_block_to_device(jcr, dev, block)) {
-      Pmsg0(000, _("Set ok=FALSE after write_block_to_device.\n"));
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
-      ok = FALSE;
+   /*
+    * If !OK, check if we can still write. This may not be the case
+    *  if we are at the end of the tape or we got a fatal I/O error.
+    */
+   if (ok || dev_can_write(dev)) {
+      if (!write_session_label(jcr, block, EOS_LABEL)) {
+         Jmsg1(jcr, M_FATAL, 0, _("Error writting end session label. ERR=%s\n"),
+	     strerror_dev(dev));
+	 set_jcr_job_status(jcr, JS_ErrorTerminated);
+	 ok = FALSE;
+      }
+      /* Write out final block of this session */
+      if (!write_block_to_device(jcr, dev, block)) {
+         Pmsg0(000, _("Set ok=FALSE after write_block_to_device.\n"));
+	 set_jcr_job_status(jcr, JS_ErrorTerminated);
+	 ok = FALSE;
+      }
    }
 
    Dmsg1(200, "release device JobStatus=%d\n", jcr->JobStatus);

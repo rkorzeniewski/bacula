@@ -1108,6 +1108,24 @@ dev_is_tape(DEVICE *dev)
    return (dev->state & ST_TAPE) ? 1 : 0;
 }
 
+
+/*
+ * return 1 if the device is read for write, and 0 otherwise
+ *   This is meant for checking at the end of a job to see
+ *   if we still have a tape (perhaps not if at end of tape
+ *   and the job is canceled).
+ */
+int
+dev_can_write(DEVICE *dev)
+{
+   if ((dev->state & ST_OPENED) &&  (dev->state & ST_APPEND) &&
+       (dev->state & ST_LABEL)	&& !(dev->state & ST_WEOT)) {
+      return 1;
+   } else {
+      return 0;
+   }
+}
+
 char *
 dev_name(DEVICE *dev)
 {
