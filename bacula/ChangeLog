@@ -1,3 +1,75 @@
+2002-06-xx Release 1.21
+- Fixed several problems with filenames being truncated if
+  they contain spaces. Thanks to the user that reported this.
+- N.B. To get the new queries, after the "make" and 
+  "make install" you must explicitly replace the
+  existing query.sql by query.sql.new.  query.sql is a
+  user configuration file, so it is not overwritten.
+- Added GZIP compression of Included files.  
+- Added additional fields to tape SOS record permitting better
+  recovery with no database.
+- Be sure to remove any !terminate statements you may have
+  in your config files.
+- MUST UPDATE ALL DAEMONS due to protocol change to handle new
+  tape format.
+
+
+  kes11Jun02:
+- Updated examples directory with my most recent config files.
+- Modified the M_TERM meaning to mean that Bacula has
+  terminated in error without producing a dump. Previously,
+  it meant that Bacula terminate (with or without error).
+  You should remove any !terminate from your messages
+  resources.
+- Changed the order of the libraries in the link so that
+  tcp wrappers link properly. Thanks Phil for reporting this.
+- A user reported that filenames containing spaces were truncated
+  in bextract. This was indeed the case. They were also truncated
+  in Restore as well as in Verify. They are, hopefully, all fixed
+  now.
+- Made a few error conditions in Verify non-fatal.
+- Modified the Console "query" command to permit multiple SQL
+  statements per command. 
+- Implemented three new "query" options: 
+    List last 10 Full Backups for a Client
+    List Volumes used by selected JobId
+    List Volumes to Restore All Files
+  To use them, simply type "query" to the Console program, and
+  select the one you want.
+- Modified bextract to default to extracting all files (i.e. /).
+- Cleaned up the code in bextract a bit.
+
+  kes03Jun02:
+- Improve Verify command to include files examined.
+- Eliminate fcntl() locking of the console file and replaced
+  it with a pthreads mutex.
+- Note Director - SD protocol is changed to handle new tape
+  information (Fileset, JobType, JobLevel).
+- Create config.out that contains a summary of ./configure
+  to see what you previously configured: "cat config.out"
+- Implemented GZIP compression.  Added addition syntax to
+  Include { } resource to permit setting of any GZIP compression
+  level:
+     compression=GZIP
+     compression=GZIP1
+     ...
+     compression=GZIP9
+
+  Level 1 is minimum compression and level 9 is maximum. Using just
+  GZIP gives the default (level 6).
+- Enhanced the tape format to include the unique Job name, FileSetName,
+  JobType, and JobLevel in the Start/End of Session records. The code
+  detects that tape level difference and acts accordingly. You can 
+  add data in the new format to old tapes.
+- Fixed an incorrect display message in the prune command.
+- Began implementation of Verify Volume and Verify Data.
+- Cleaned up File daemon restore.c a bit ensuring that termination 
+  cleanup is done and all possible Emsgs are converted to Jmsgs.
+- Modify bls.c to use common setup routines. This reduced the big
+  code duplication that creeped in when I added different listing
+  options. Also, changing tapes is now handled uniformily in a subroutine.
+
+
 2002-05-27 Release 1.20
 - Started documenting Catalog Pruning and Recycling.
   Added catmaintenance.html and recycling.html
