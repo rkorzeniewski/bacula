@@ -46,6 +46,7 @@ extern brwlock_t con_lock;
 
 /* Forward referenced functions */
 static int do_list_cmd(UAContext *ua, char *cmd, e_list_type llist);
+static POOL *find_job_pool(JOB *job);
 
 /*
  * Turn auto display of console messages on/off
@@ -372,6 +373,7 @@ static int do_list_cmd(UAContext *ua, char *cmd, e_list_type llist)
                  strcasecmp(ua->argk[i], _("nextvolume")) == 0) {
 	 JOB *job;
 	 JCR *jcr = ua->jcr;
+
          i = find_arg_with_value(ua, "job");
 	 if (i <= 0) {
 	    if ((job = select_job_resource(ua)) == NULL) {
@@ -386,7 +388,7 @@ static int do_list_cmd(UAContext *ua, char *cmd, e_list_type llist)
 	       }
 	    }
 	 }
-	 if (!complete_jcr_for_job(jcr, job, NULL)) {
+	 if (!complete_jcr_for_job(jcr, job, find_job_pool(job))) {
 	    return 1;
 	 }
 	   
@@ -408,6 +410,88 @@ static int do_list_cmd(UAContext *ua, char *cmd, e_list_type llist)
    return 1;
 }
 
+static POOL *find_job_pool(JOB *job)
+{
+   time_t now, runtime, tomorrow;
+   RUN *run;
+   SCHED *sched;
+   struct tm tm;
+   int mday, wday, month, wpos, tmday, twday, tmonth, twpos, i, hour;
+   int tod, tom;
+
+   Dmsg0(200, "enter find_runs()\n");
+
+   sched = job->schedule;
+   if (sched == NULL) { 	   /* scheduled? */
+      return NULL;		   /* no nothing to report */
+   }
+   /* Break down current time into components */ 
+   now = time(NULL);
+   localtime_r(&now, &tm);
+   mday = tm.tm_mday - 1;
+   wday = tm.tm_wday;
+   month = tm.tm_mon;
+   wpos = (tm.tm_mday - 1) / 7;
+
+   /* Break down tomorrow into components */
+   tomorrow = now + 60 * 60 * 24;
+   localtime_r(&tomorrow, &tm);
+   tmday = tm.tm_mday - 1;
+   twday = tm.tm_wday;
+   tmonth = tm.tm_mon;
+   twpos  = (tm.tm_mday - 1) / 7;
+
+   for (run=sched->run; run; run=run->next) {
+      /* 
+       * Find runs in next 24 hours
+       */
+      tod = (bit_is_set(mday, run->mday) || bit_is_set(wday, run->wday)) && 
+	     bit_is_set(month, run->month) && bit_is_set(wpos, run->wpos);
+
+      tom = (bit_is_set(tmday, run->mday) || bit_is_set(twday, run->wday)) &&
+	     bit_is_set(tmonth, run->month) && bit_is_set(wpos, run->wpos);
+
+      Dmsg2(200, "tod=%d tom=%d\n", tod, tom);
+      if (tod) {		   /* Jobs scheduled today (next 24 hours) */
+	 /* find time (time_t) job is to be run */
+	 localtime_r(&now, &tm);
+	 hour = 0;
+	 for (i=tm.tm_hour; i < 24; i++) {
+	    if (bit_is_set(i, run->hour)) {
+	       tm.tm_hour = i;
+	       tm.tm_min = run->minute;
+	       tm.tm_sec = 0;
+	       runtime = mktime(&tm);
+	       if (runtime > now) {
+		  return run->pool;   /* return pool */
+	       }
+	    }
+	 }
+      }
+
+//    Dmsg2(200, "runtime=%d now=%d\n", runtime, now);
+      if (tom) {		/* look at jobs scheduled tomorrow */
+	 localtime_r(&tomorrow, &tm);
+	 hour = 0;
+	 for (i=0; i < 24; i++) {
+	    if (bit_is_set(i, run->hour)) {
+	       hour = i;
+	       break;
+	    }
+	 }
+	 tm.tm_hour = hour;
+	 tm.tm_min = run->minute;
+	 tm.tm_sec = 0;
+	 runtime = mktime(&tm);
+         Dmsg2(200, "truntime=%d now=%d\n", runtime, now);
+	 if (runtime < tomorrow) {
+	    return run->pool;	      /* return pool */
+	 }
+      }
+   } /* end for loop over runs */ 
+   /* Nothing found */
+   return NULL;
+}
 /* 
  * Fill in the remaining fields of the jcr as if it
  *  is going to run the job.
