@@ -272,6 +272,10 @@ int db_get_media_ids(B_DB *mdb, int *num_ids, uint32_t *ids[])
    /* Linear search through Pool records
     */
    len = sizeof(omr);
+   if (mdb->control.MediaId == 0) {
+      db_unlock(mdb);
+      return 0;
+   }
    *num_ids = mdb->control.MediaId;
    id = (uint32_t *)malloc(*num_ids * sizeof(uint32_t));
    while (fread(&omr, len, 1, mdb->mediafd) > 0) {
