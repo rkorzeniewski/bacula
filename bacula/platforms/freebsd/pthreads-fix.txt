@@ -159,7 +159,7 @@ http://www.freebsd.org/cgi/cvsweb.cgi/src/lib/libc_r/uthread/uthread_write.c.dif
 
 To apply the patch, follow these instructions as root.  
 
-fetch -o pthread.diff http://www.freebsd.org/cgi/cvsweb.cgi/src/lib/libc_r/uthread/uthread_write.c.diff?r1=1.16.2.6\&r2=1.16.2.7
+fetch -o pthread.diff http://www.freebsd.org/cgi/cvsweb.cgi/src/lib/libc_r/uthread/uthread_write.c.diff?r1=1.16.2.6\&r2=1.16.2.8
 
 cd /usr/src/lib/libc_r/uthread/
 patch < /path/to/pthread.diff
