@@ -267,19 +267,11 @@ extern void _v(char *file, int line, pthread_mutex_t *m);
 #define V(x) _v(__FILE__, __LINE__, &(x))
 
 #else
+extern void _p(pthread_mutex_t *m);
+extern void _v(pthread_mutex_t *m);
 
-/* These probably should be subroutines */
-#define P(x) \
-   do { int errstat; if ((errstat=pthread_mutex_lock(&(x)))) \
-      e_msg(__FILE__, __LINE__, M_ABORT, 0, "Mutex lock failure. ERR=%s\n",\
-           strerror(errstat)); \
-   } while(0)
-
-#define V(x) \
-   do { int errstat; if ((errstat=pthread_mutex_unlock(&(x)))) \
-         e_msg(__FILE__, __LINE__, M_ABORT, 0, "Mutex unlock failure. ERR=%s\n",\
-           strerror(errstat)); \
-   } while(0)
+#define P(x) _p(&(x))
+#define V(x) _v(&(x))
 
 #endif /* DEBUG_MUTEX */
 

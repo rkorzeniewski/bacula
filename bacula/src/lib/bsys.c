@@ -307,8 +307,9 @@ void _p(char *file, int line, pthread_mutex_t *m)
       e_msg(file, line, M_ERROR, 0, _("Possible mutex deadlock.\n"));
       /* We didn't get the lock, so do it definitely now */
       if ((errstat=pthread_mutex_lock(m))) {
+	 berrno be;
          e_msg(file, line, M_ABORT, 0, _("Mutex lock failure. ERR=%s\n"),
-	       strerror(errstat));
+	       be.strerror(errstat));
       } else {
          e_msg(file, line, M_ERROR, 0, _("Possible mutex deadlock resolved.\n"));
       }
@@ -321,14 +322,39 @@ void _v(char *file, int line, pthread_mutex_t *m)
    int errstat;
 
    if ((errstat=pthread_mutex_trylock(m)) == 0) {
+      berrno be;
       e_msg(file, line, M_ERROR, 0, _("Mutex unlock not locked. ERR=%s\n"),
-	   strerror(errstat));
+	   be.strerror(errstat));
     }
     if ((errstat=pthread_mutex_unlock(m))) {
+       berrno be;
        e_msg(file, line, M_ABORT, 0, _("Mutex unlock failure. ERR=%s\n"),
-	      strerror(errstat));
+	      be.strerror(errstat));
     }
 }
+
+#else
+
+void _p(pthread_mutex_t *m)
+{
+   int errstat;
+   if ((errstat=pthread_mutex_lock(m))) {
+      berrno be;
+      e_msg(__FILE__, __LINE__, M_ABORT, 0, _("Mutex lock failure. ERR=%s\n"),
+	    be.strerror(errstat));
+   }
+}
+
+void _v(pthread_mutex_t *m)
+{
+   int errstat;
+   if ((errstat=pthread_mutex_unlock(m))) {
+      berrno be;
+      e_msg(__FILE__, __LINE__, M_ABORT, 0, _("Mutex unlock failure. ERR=%s\n"),
+	    be.strerror(errstat));
+   }
+}
+
 #endif /* DEBUG_MUTEX */
 
 #ifdef DEBUG_MEMSET

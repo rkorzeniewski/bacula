@@ -45,7 +45,10 @@ int quit = 0;
 char buf[100000];
 int bsize = TAPE_BSIZE;
 char VolName[MAX_NAME_LENGTH];
-bool forge_on = false;
+STORES *me = NULL;		      /* our Global resource */
+bool forge_on = false;		      /* proceed inspite of I/O errors */
+pthread_mutex_t device_release_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t wait_device_release = PTHREAD_COND_INITIALIZER;
 
 /*
  * If you change the format of the state file,

@@ -41,16 +41,16 @@ static void check_config();
 
 extern "C" void *device_allocation(void *arg);
 
-
-
 #define CONFIG_FILE "bacula-sd.conf"  /* Default config file */
-
 
 /* Global variables exported */
 char OK_msg[]   = "3000 OK\n";
 char TERM_msg[] = "3999 Terminate\n";
 STORES *me = NULL;		      /* our Global resource */
 bool forge_on = false;		      /* proceed inspite of I/O errors */
+pthread_mutex_t device_release_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t wait_device_release = PTHREAD_COND_INITIALIZER;
+
 
 static uint32_t VolSessionId = 0;
 uint32_t VolSessionTime;
@@ -413,7 +413,8 @@ void terminate_stored(int sig)
 	    pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
 	    /* ***FIXME*** wiffle through all dcrs */
 	    if (jcr->dcr && jcr->dcr->dev && jcr->dcr->dev->dev_blocked) {
-	       pthread_cond_signal(&jcr->dcr->dev->wait_next_vol);
+	       pthread_cond_broadcast(&jcr->dcr->dev->wait_next_vol);
+	       pthread_cond_broadcast(&wait_device_release);
 	    }
 	    bmicrosleep(0, 50000);
 	  }

@@ -289,6 +289,8 @@ public:
    void clear_labeled() { state &= ~ST_LABEL; };
    void clear_offline() { state &= ~ST_OFFLINE; };
    void clear_eot() { state &= ~ST_EOT; };
+   void block(int why); /* in dev.c */
+   void unblock();      /* in dev.c */
 };
 
 /* Note, these return int not bool! */

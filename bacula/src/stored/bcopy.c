@@ -48,7 +48,10 @@ static DEV_BLOCK *out_block;
 
 #define CONFIG_FILE "bacula-sd.conf"
 char *configfile;
-bool forge_on = true;
+STORES *me = NULL;		      /* our Global resource */
+bool forge_on = false;		      /* proceed inspite of I/O errors */
+pthread_mutex_t device_release_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t wait_device_release = PTHREAD_COND_INITIALIZER;
 
 
 static void usage()

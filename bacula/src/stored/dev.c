@@ -508,6 +508,20 @@ bool rewind_dev(DEVICE *dev)
    return true;
 }
 
+void DEVICE::block(int why)
+{
+   lock_device(this);
+   block_device(this, why);
+   V(mutex);
+}
+
+void DEVICE::unblock()
+{  
+   P(mutex);
+   unblock_device(this);
+   V(mutex);
+}
+
 /*
  * Called to indicate that we have just read an
  *  EOF from the device.
@@ -1664,8 +1678,11 @@ term_dev(DEVICE *dev)
 /*
  * This routine initializes the device wait timers
  */
-void init_dev_wait_timers(DEVICE *dev)
+void init_device_wait_timers(DCR *dcr)
 {
+   DEVICE *dev = dcr->dev;
+   JCR *jcr = dcr->jcr;
+
    /* ******FIXME******* put these on config variables */
    dev->min_wait = 60 * 60;
    dev->max_wait = 24 * 60 * 60;
@@ -1675,9 +1692,19 @@ void init_dev_wait_timers(DEVICE *dev)
    dev->num_wait = 0;
    dev->poll = false;
    dev->BadVolName[0] = 0;
+
+   jcr->min_wait = 60 * 60;
+   jcr->max_wait = 24 * 60 * 60;
+   jcr->max_num_wait = 9;	       /* 5 waits =~ 1 day, then 1 day at a time */
+   jcr->wait_sec = jcr->min_wait;
+   jcr->rem_wait_sec = jcr->wait_sec;
+   jcr->num_wait = 0;
+
 }
 
 /*
+ * The dev timers are used for waiting on a particular device 
+ *
  * Returns: true if time doubled
  *	    false if max time expired
  */
@@ -1694,6 +1721,7 @@ bool double_dev_wait_time(DEVICE *dev)
    }
    return true;
 }
+
 
 void set_os_device_parameters(DEVICE *dev)
 {

@@ -524,7 +524,7 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
 "Someone woke me up, but I cannot find any appendable\n"
 "volumes for Job=%s.\n"), jcr->Job);
 	 /* Restart wait counters after user interaction */
-	 init_dev_wait_timers(dev);
+	 init_device_wait_timers(dcr);
 	 continue;
       }
       unmounted = (dev->dev_blocked == BST_UNMOUNTED) ||

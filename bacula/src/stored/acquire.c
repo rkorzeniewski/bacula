@@ -137,35 +137,36 @@ void free_dcr(DCR *dcr)
 bool reserve_device_for_read(JCR *jcr, DEVICE *dev)
 {
    DCR *dcr = jcr->dcr;
-   bool ok = false;
+   bool first;
 
    ASSERT(dcr);
-   if (device_is_unmounted(dev)) {
-      Jmsg(jcr, M_WARNING, 0, _("device %s is BLOCKED due to user unmount.\n"),
-	 dev->print_name());
-      return false;
-   }
-   lock_device(dev);
-   block_device(dev, BST_DOING_ACQUIRE);
-   unlock_device(dev);
 
-   if (dev->is_busy()) {
-      Jmsg2(jcr, M_FATAL, 0, _("Device %s is busy. Job %d canceled.\n"),
-	    dev->print_name(), jcr->JobId);
-      goto get_out;
+   dev->block(BST_DOING_ACQUIRE);
+
+   Mmsg(jcr->errmsg, _("Device %s is BLOCKED due to user unmount.\n"),
+	dev->print_name());
+   for (first=true; device_is_unmounted(dev); first=false) {
+      dev->unblock();
+      if (!wait_for_device(dcr, jcr->errmsg, first))  {
+	 return false;
+      }
+     dev->block(BST_DOING_ACQUIRE);
    }
-   if (!dcr) {
-      dcr = new_dcr(jcr, dev);
+
+   Mmsg2(jcr->errmsg, _("Device %s is busy. Job %d canceled.\n"),
+	 dev->print_name(), jcr->JobId);
+   for (first=true; dev->is_busy(); first=false) {
+      dev->unblock();
+      if (!wait_for_device(dcr, jcr->errmsg, first)) {
+	 return false;
+      }
+      dev->block(BST_DOING_ACQUIRE);
    }
+
    dev->clear_append();
    dev->set_read();
-   ok = true;
-
-get_out:
-   P(dev->mutex);
-   unblock_device(dev);
-   V(dev->mutex);
-   return ok;
+   dev->unblock();
+   return true;
 }
 
 
@@ -189,11 +190,9 @@ DCR *acquire_device_for_read(JCR *jcr, DEVICE *dev)
    DCR *dcr = jcr->dcr;
    int vol_label_status;
    
-   lock_device(dev);
-   block_device(dev, BST_DOING_ACQUIRE);
-   unlock_device(dev);
+   dev->block(BST_DOING_ACQUIRE);
 
-   init_dev_wait_timers(dev);
+   init_device_wait_timers(dcr);
 
    tape_previously_mounted = dev->can_read() ||
 			     dev->can_append() ||
@@ -333,9 +332,7 @@ default_path:
       dcr->VolumeName, dev->print_name());
 
 get_out:
-   P(dev->mutex);
-   unblock_device(dev);
-   V(dev->mutex);
+   dev->unblock();
    if (!vol_ok) {
       free_dcr(dcr);
       dcr = NULL;
@@ -365,9 +362,7 @@ bool reserve_device_for_append(JCR *jcr, DEVICE *dev)
 
    ASSERT(dcr);
 
-   lock_device(dev);
-   block_device(dev, BST_DOING_ACQUIRE);
-   unlock_device(dev);
+   dev->block(BST_DOING_ACQUIRE);
    if (dev->can_read()) {
       Jmsg(jcr, M_WARNING, 0, _("Device %s is busy reading.\n"), dev->print_name());
       goto bail_out;
@@ -427,9 +422,7 @@ do_reserve:
    ok = true;
 
 bail_out:
-   P(dev->mutex);
-   unblock_device(dev);
-   V(dev->mutex);
+   dev->unblock();
    return ok;
 }
 
@@ -452,9 +445,7 @@ DCR *acquire_device_for_append(JCR *jcr, DEVICE *dev)
    if (!dcr) {
       dcr = new_dcr(jcr, dev);
    }
-   lock_device(dev);
-   block_device(dev, BST_DOING_ACQUIRE);
-   unlock_device(dev);
+   dev->block(BST_DOING_ACQUIRE);
    Dmsg1(190, "acquire_append device is %s\n", dev_is_tape(dev)?"tape":"disk");
 
    if (dcr->reserved_device) {
@@ -545,9 +536,7 @@ get_out:
    free_dcr(dcr);
    dcr = NULL;
 ok_out:
-   P(dev->mutex);
-   unblock_device(dev);
-   V(dev->mutex);
+   dev->unblock();
    return dcr;
 }
 
@@ -644,5 +633,6 @@ bool release_device(DCR *dcr)
    unlock_device(dev);
    free_dcr(dcr);
    jcr->dcr = NULL;
+   pthread_cond_broadcast(&wait_device_release);
    return ok;
 }
