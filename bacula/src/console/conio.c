@@ -14,6 +14,8 @@
 #include <ctype.h> 
 #endif
 
+#ifdef HAVE_CONIO
+
 /*
 #include <curses.h>
 #include <term.h>
@@ -1031,3 +1033,5 @@ static void asdell()
 {
    t_send(t_dl);
 }
+
+#endif
