@@ -42,7 +42,6 @@ int make_estimate(JCR *jcr)
    jcr->JobStatus = JS_Running;
 
    set_find_options((FF_PKT *)jcr->ff, jcr->incremental, jcr->mtime, jcr->mtime_only);
-
    stat = find_files(jcr, (FF_PKT *)jcr->ff, tally_file, (void *)jcr);
 
    return stat;
@@ -54,11 +53,11 @@ int make_estimate(JCR *jcr)
  */
 static int tally_file(FF_PKT *ff_pkt, void *ijcr)
 {
-   JCR *jcr = (JCR *) ijcr;
+   JCR *jcr = (JCR *)ijcr;
+   ATTR attr;
 
    switch (ff_pkt->type) {
    case FT_LNKSAVED:		      /* Hard linked, file already saved */
-      break;
    case FT_REGE:
    case FT_REG:
    case FT_LNK:
@@ -84,7 +83,14 @@ static int tally_file(FF_PKT *ff_pkt, void *ijcr)
 	 ff_pkt->statp.st_size > 0) {
       jcr->JobBytes += ff_pkt->statp.st_size;
    }
-
-   jcr->JobFiles++;		     /* increment number of files sent */
+   jcr->num_files_examined++;
+   jcr->JobFiles++;		     /* increment number of files seen */
+   if (jcr->listing) {
+      memcpy(&attr.statp, &ff_pkt->statp, sizeof(struct stat));
+      attr.type = ff_pkt->type;
+      attr.ofname = (POOLMEM *)ff_pkt->fname;
+      attr.olname = (POOLMEM *)ff_pkt->link;
+      print_ls_output(jcr, &attr);
+   }
    return 1;
 }

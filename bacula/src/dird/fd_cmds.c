@@ -100,7 +100,7 @@ int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
 	     jcr->client->hdr.name, fd->msg);
 	  set_jcr_job_status(jcr, JS_ErrorTerminated);
 	  return 0;
-       } else {
+       } else if (jcr->db) {
 	  CLIENT_DBR cr;
 	  memset(&cr, 0, sizeof(cr));
 	  bstrncpy(cr.Name, jcr->client->hdr.name, sizeof(cr.Name));
