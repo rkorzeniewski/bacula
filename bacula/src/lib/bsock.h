@@ -56,6 +56,7 @@ typedef struct s_bsock {
 } BSOCK;
 
 /* Signal definitions for use in bnet_sig() */
+#define BNET_NONO         0           /* DO NOT USE, remains for compatibility */
 #define BNET_EOD         -1           /* End of data stream, new data may follow */
 #define BNET_EOD_POLL    -2           /* End of data and poll all in one */
 #define BNET_STATUS      -3           /* Send full status */

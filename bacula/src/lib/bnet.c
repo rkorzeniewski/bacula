@@ -577,14 +577,15 @@ char *bnet_sig_to_ascii(BSOCK *bs)
 {
    static char buf[30];
    switch (bs->msglen) {
+      case BNET_NONO:		      /* for compatibility */
       case BNET_EOD:
-         return "BNET_EOD";
+         return "BNET_EOD";           /* end of data stream */
       case BNET_EOD_POLL:
          return "BNET_EOD_POLL";
       case BNET_STATUS:
          return "BNET_STATUS";
       case BNET_TERMINATE:
-         return "BNET_TERMINATE";
+         return "BNET_TERMINATE";     /* terminate connection */
       case BNET_POLL:
          return "BNET_POLL";
       case BNET_HEARTBEAT:

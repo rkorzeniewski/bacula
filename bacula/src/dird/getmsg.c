@@ -80,16 +80,17 @@ int32_t bget_msg(BSOCK *bs, int rtn)
       if (n == 0) {		      /* handle signal */
 	 /* 0 return from bnet_recv() => network signal */
 	 switch (bs->msglen) {
-	    case BNET_EOD:		 /* end of data */
+	    case BNET_NONO:	      /* for compatibility */
+	    case BNET_EOD:	      /* end of data */
 	       return 0;
 	    case BNET_EOD_POLL:
-	       bnet_fsend(bs, OK_msg);	 /* send response */
-	       return 0;		 /* end of data */
+	       bnet_fsend(bs, OK_msg);/* send response */
+	       return 0;	      /* end of data */
 	    case BNET_TERMINATE:
 	       bs->terminated = 1;
 	       return 0;
 	    case BNET_POLL:
-	       bnet_fsend(bs, OK_msg);	 /* send response */
+	       bnet_fsend(bs, OK_msg); /* send response */
 	       break;
 	    case BNET_HEARTBEAT:
 	       bnet_sig(bs, BNET_HB_RESPONSE);
