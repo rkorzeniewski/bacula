@@ -1,14 +1,12 @@
                  Kern's ToDo List
-                 8 November 2002
+                 10 November 2002
 
 To do:    
-- Document how to recycle a tape in 7 days even if the backup takes a long time.
 - Document to have patience when SD first starts.
 - Document running a test version.
 - Document saving MySQL databases, where to find code for shutting 
   down and saving other databases.
   http://www.backupcentral.com/free-backup-software1.html
-- Document tape cycling 
 
 Test:
 - that restore options work in FD.
@@ -567,3 +565,6 @@ Done: (see kernsdone for more)
 - bscan   
 - MD5 in bscan is set in FileSet.
 - that Bacula won't write on tape where tape/catalog files differ.
+- Document how to recycle a tape in 7 days even if the backup takes a long time.
+- Document tape cycling 
+
