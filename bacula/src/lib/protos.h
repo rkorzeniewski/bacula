@@ -153,6 +153,9 @@ BPIPE * 	 open_bpipe(char *prog, int wait, char *mode);
 int		 close_wpipe(BPIPE *bpipe);
 int		 close_bpipe(BPIPE *bpipe);
 POOLMEM 	*edit_job_codes(void *jcr, char *omsg, char *imsg, char *to);  
+void parse_command_args(POOLMEM *cmd, POOLMEM *args, int *argc, 
+			char **argk, char **argv);
+char *next_arg(char **s);
 
 
 /* watchdog.c */

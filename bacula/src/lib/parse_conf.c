@@ -679,7 +679,7 @@ parse_config(char *cf)
 		     if (i >= 0) {
                         Dmsg2(150, "level=%d id=%s\n", level, lc->str);
                         Dmsg1(150, "Keyword = %s\n", lc->str);
-                        scan_err1(lc, "Keyword %s not permitted in this resource", lc->str);
+                        scan_err1(lc, "Keyword \"%s\" not permitted in this resource", lc->str);
 			/* NOT REACHED */
 		     }
 		     break;
@@ -704,6 +704,9 @@ parse_config(char *cf)
                scan_err1(lc, "Unknown parser state %d\n", state);
 	       /* NOT REACHED */
 	 }
+      }
+      if (state != p_none) {
+         scan_err0(lc, "End of conf file reached with unclosed resource.");
       }
       if (debug_level > 50 && pass == 2) {
 	 int i;

@@ -271,7 +271,7 @@ int restorecmd(UAContext *ua, char *cmd)
 
    Dmsg1(400, "Submitting: %s\n", ua->cmd);
    
-   parse_command_args(ua);
+   parse_ua_args(ua);
    runcmd(ua, ua->cmd);
 
    bsendmsg(ua, _("Restore command done.\n"));
@@ -577,7 +577,7 @@ static void user_select_files(TREE_CTX *tree)
       if (!get_cmd(tree->ua, "$ ")) {
 	 break;
       }
-      parse_command_args(tree->ua);
+      parse_ua_args(tree->ua);
       if (tree->ua->argc == 0) {
 	 return;
       }

@@ -39,7 +39,7 @@
 static
 int set_win32_attributes(void *jcr, char *fname, char *ofile, char *lname, 
 			 int type, int stream, struct stat *statp,
-			 char *attribsEx, int *ofd);
+			 char *attribsEx, BFILE *ofd);
 void unix_name_to_win32(POOLMEM **win32_name, char *name);
 extern "C" HANDLE get_osfhandle(int fd);
 void win_error(void *jcr, char *prefix, POOLMEM *ofile);
@@ -182,7 +182,7 @@ decode_stat(char *buf, struct stat *statp, uint32_t *LinkFI)
  */
 int set_attributes(void *jcr, char *fname, char *ofile, char *lname, 
 		   int type, int stream, struct stat *statp,
-		   char *attribsEx, int *ofd)
+		   char *attribsEx, BFILE *ofd)
 {
    struct utimbuf ut;	 
    mode_t old_mask;
@@ -201,16 +201,20 @@ int set_attributes(void *jcr, char *fname, char *ofile, char *lname,
 #endif
 
    old_mask = umask(0);
-   if (*ofd != -1) {
-      close(*ofd);		      /* first close file */
-      *ofd = -1;
+   if (is_bopen(ofd)) {
+      bclose(ofd);		      /* first close file */
    }
 
    ut.actime = statp->st_atime;
    ut.modtime = statp->st_mtime;
 
    /* ***FIXME**** optimize -- don't do if already correct */
+   /* 
+    * For link, change owner of link using lchown, but don't
+    *	try to do a chmod as that will update the file behind it.
+    */
    if (type == FT_LNK) {
+      /* Change owner of link, not of real file */
       if (lchown(ofile, statp->st_uid, statp->st_gid) < 0) {
          Jmsg2(jcr, M_WARNING, 0, "Unable to set file owner %s: ERR=%s\n",
 	    ofile, strerror(errno));
@@ -222,29 +226,29 @@ int set_attributes(void *jcr, char *fname, char *ofile, char *lname,
 	    ofile, strerror(errno));
 	 stat = 0;
       }
-   }
-   if (chmod(ofile, statp->st_mode) < 0) {
-      Jmsg2(jcr, M_WARNING, 0, "Unable to set file modes %s: ERR=%s\n",
-	 ofile, strerror(errno));
-      stat = 0;
-   }
+      if (chmod(ofile, statp->st_mode) < 0) {
+         Jmsg2(jcr, M_WARNING, 0, "Unable to set file modes %s: ERR=%s\n",
+	    ofile, strerror(errno));
+	 stat = 0;
+      }
 
-   /* FreeBSD user flags */
+      /* FreeBSD user flags */
 #ifdef HAVE_CHFLAGS
-   if (chflags(ofile, statp->st_flags) < 0) {
-      Jmsg2(jcr, M_WARNING, 0, "Unable to set file flags %s: ERR=%s\n",
-	 ofile, strerror(errno));
-      stat = 0;
-   }
+      if (chflags(ofile, statp->st_flags) < 0) {
+         Jmsg2(jcr, M_WARNING, 0, "Unable to set file flags %s: ERR=%s\n",
+	    ofile, strerror(errno));
+	 stat = 0;
+      }
 
 #endif
-   /*
-    * Reset file times.
-    */
-   if (utime(ofile, &ut) < 0) {
-      Jmsg2(jcr, M_ERROR, 0, "Unable to set file times %s: ERR=%s\n",
-	 ofile, strerror(errno));
-      stat = 0;
+      /*
+       * Reset file times.
+       */
+      if (utime(ofile, &ut) < 0) {
+         Jmsg2(jcr, M_ERROR, 0, "Unable to set file times %s: ERR=%s\n",
+	    ofile, strerror(errno));
+	 stat = 0;
+      }
    }
    umask(old_mask);
    return stat;
@@ -347,20 +351,19 @@ int encode_attribsEx(void *jcr, char *attribsEx, FF_PKT *ff_pkt)
 static
 int set_win32_attributes(void *jcr, char *fname, char *ofile, char *lname, 
 			 int type, int stream, struct stat *statp,
-			 char *attribsEx, int *ofd)
+			 char *attribsEx, BFILE *ofd)
 {
    char *p = attribsEx;
    int64_t val;
    WIN32_FILE_ATTRIBUTE_DATA atts;
    ULARGE_INTEGER li;
-   int fid, stat;
+   int stat;
    POOLMEM *win32_ofile;
 
    if (!p || !*p) {		      /* we should have attributes */
-      Dmsg2(100, "Attributes missing. of=%s ofd=%d\n", ofile, *ofd);
-      if (*ofd != -1) {
-	 close(*ofd);
-	 *ofd = -1;
+      Dmsg2(100, "Attributes missing. of=%s ofd=%d\n", ofile, ofd->fid);
+      if (is_bopen(ofd)) {
+	 bclose(ofd);
       }
       return 0;
    } else {
@@ -397,25 +400,21 @@ int set_win32_attributes(void *jcr, char *fname, char *ofile, char *lname,
    win32_ofile = get_pool_memory(PM_FNAME);
    unix_name_to_win32(&win32_ofile, ofile);
 
-   if (*ofd == -1) {
+   if (!is_bopen(ofd)) {
       Dmsg1(100, "File not open: %s\n", ofile);
-      fid = open(ofile, O_RDWR|O_BINARY);   /* attempt to open the file */
-      if (fid >= 0) {
-	 *ofd = fid;
-      }
+      bopen(ofd, ofile, O_RDWR|O_BINARY, 0);   /* attempt to open the file */
    }
 
-   if (*ofd != -1) {
+   if (is_open(ofd)) {
       Dmsg1(100, "SetFileTime %s\n", ofile);
-      stat = SetFileTime(get_osfhandle(*ofd),
+      stat = SetFileTime(get_osfhandle(ofd->fid),
 			 &atts.ftCreationTime,
 			 &atts.ftLastAccessTime,
 			 &atts.ftLastWriteTime);
       if (stat != 1) {
          win_error(jcr, "SetFileTime:", win32_ofile);
       }
-      close(*ofd);
-      *ofd = -1;
+      bclose(ofd);
    }
 
    Dmsg1(100, "SetFileAtts %s\n", ofile);

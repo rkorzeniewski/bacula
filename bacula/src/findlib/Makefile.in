@@ -21,9 +21,9 @@ dummy:
 
 #
 LIBSRCS = find.c match.c find_one.c attibs.c create_file.c \
-	  makepath.c save-cwd.c
+	  bfile.c makepath.c save-cwd.c
 LIBOBJS = find.o match.o find_one.o attribs.o create_file.o \
-	  makepath.o save-cwd.o
+	  bfile.o makepath.o save-cwd.o
 
 .SUFFIXES:	.c .o
 .PHONY:

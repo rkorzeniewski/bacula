@@ -67,7 +67,8 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
 {
    char attribs[MAXSTRING];
    int32_t n;
-   int fid, stat;
+   int stat;
+   BFILE bfd;
    struct MD5Context md5c;
    struct SHA1Context sha1c;
    unsigned char signature[25];       /* large enough for either */
@@ -140,13 +141,13 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
    if (ff_pkt->type != FT_LNKSAVED && (S_ISREG(ff_pkt->statp.st_mode) && 
 	 ff_pkt->statp.st_size > 0) || 
 	 ff_pkt->type == FT_RAW || ff_pkt->type == FT_FIFO) {
-      if ((fid = open(ff_pkt->fname, O_RDONLY | O_BINARY)) < 0) {
+      if ((bopen(&bfd, ff_pkt->fname, O_RDONLY | O_BINARY, 0)) < 0) {
 	 ff_pkt->ff_errno = errno;
          Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open %s: ERR=%s.\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));
 	 return 1;
       }
    } else {
-      fid = -1;
+      binit(&bfd);
    }
 
    encode_stat(attribs, &ff_pkt->statp, ff_pkt->LinkFI);
@@ -182,17 +183,17 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
    Dmsg2(20, "bfiled>bdird: attribs len=%d: msg=%s\n", dir->msglen, dir->msg);
    if (!stat) {
       Jmsg(jcr, M_ERROR, 0, _("Network error in send to Director: ERR=%s\n"), bnet_strerror(dir));
-      if (fid >= 0) {
-	 close(fid);
+      if (is_bopen(&bfd)) {
+	 bclose(&bfd);
       }
       return 0;
    }
 
    /* If file opened, compute MD5 */
-   if (fid >= 0  && ff_pkt->flags & FO_MD5) {
+   if (is_bopen(&bfd)  && ff_pkt->flags & FO_MD5) {
       char MD5buf[40];		      /* 24 should do */
       MD5Init(&md5c);
-      while ((n=read(fid, jcr->big_buf, jcr->buf_size)) > 0) {
+      while ((n=bread(&bfd, jcr->big_buf, jcr->buf_size)) > 0) {
 	 MD5Update(&md5c, ((unsigned char *) jcr->big_buf), n);
 	 jcr->JobBytes += n;
       }
@@ -207,10 +208,10 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
       bnet_fsend(dir, "%d %d %s *MD5-%d*", jcr->JobFiles, STREAM_MD5_SIGNATURE, MD5buf,
 	 jcr->JobFiles);
       Dmsg2(20, "bfiled>bdird: MD5 len=%d: msg=%s\n", dir->msglen, dir->msg);
-   } else if (fid >= 0 && ff_pkt->flags & FO_SHA1) {
+   } else if (is_bopen(&bfd) && ff_pkt->flags & FO_SHA1) {
       char SHA1buf[40]; 	      /* 24 should do */
       SHA1Init(&sha1c);
-      while ((n=read(fid, jcr->big_buf, jcr->buf_size)) > 0) {
+      while ((n=bread(&bfd, jcr->big_buf, jcr->buf_size)) > 0) {
 	 SHA1Update(&sha1c, ((unsigned char *) jcr->big_buf), n);
 	 jcr->JobBytes += n;
       }
@@ -226,8 +227,8 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
 	 SHA1buf, jcr->JobFiles);
       Dmsg2(20, "bfiled>bdird: SHA1 len=%d: msg=%s\n", dir->msglen, dir->msg);
    }
-   if (fid >= 0) {
-      close(fid);
+   if (is_bopen(&bfd)) {
+      bclose(&bfd);
    }
    return 1;
 }

@@ -161,7 +161,6 @@ void *handle_client_request(void *dirp)
    jcr->last_fname = get_pool_memory(PM_FNAME);
    jcr->last_fname[0] = 0;
    jcr->client_name = get_memory(strlen(my_name) + 1);
-   jcr->prefix_links = 1;	      /* default to prefix links */
    pm_strcpy(&jcr->client_name, my_name);
    dir->jcr = (void *)jcr;
 

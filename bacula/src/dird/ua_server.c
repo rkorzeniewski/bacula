@@ -127,7 +127,7 @@ static void *handle_UA_client_request(void *arg)
       if (stat >= 0) {
 	 ua.cmd = check_pool_memory_size(ua.cmd, ua.UA_sock->msglen+1);
 	 bstrncpy(ua.cmd, ua.UA_sock->msg, ua.UA_sock->msglen+1);
-	 parse_command_args(&ua);
+	 parse_ua_args(&ua);
          if (ua.argc > 0 && ua.argk[0][0] == '.') {
 	    do_a_dot_command(&ua, ua.cmd);
 	 } else {

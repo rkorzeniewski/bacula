@@ -87,9 +87,8 @@ int create_pool(JCR *jcr, B_DB *db, POOL *pool, int create);
 void set_pool_dbr_defaults_in_media_dbr(MEDIA_DBR *mr, POOL_DBR *pr);
 
 /* ua_input.c */
-char *next_arg(char **s);
 int get_cmd(UAContext *ua, char *prompt);
-void parse_command_args(UAContext *ua);
+void parse_ua_args(UAContext *ua);
 
 /* ua_output.c */
 void prtit(void *ctx, char *msg);

@@ -76,6 +76,7 @@ static int delete_volume(UAContext *ua);
 static int delete_pool(UAContext *ua);
 static int mountcmd(UAContext *ua, char *cmd);
 static int updatecmd(UAContext *ua, char *cmd);
+static int waitcmd(UAContext *ua, char *cmd);
 
 int quitcmd(UAContext *ua, char *cmd);
 
@@ -111,6 +112,7 @@ static struct cmdstruct commands[] = {
  { N_("query"),      querycmd,     _("query catalog")},
  { N_("time"),       timecmd,      _("print current time")},
  { N_("exit"),       quitcmd,      _("exit = quit")},
+ { N_("wait"),       waitcmd,      _("wait until no jobs are running")},
 	     };
 #define comsize (sizeof(commands)/sizeof(struct cmdstruct))
 
@@ -132,14 +134,15 @@ int do_a_command(UAContext *ua, char *cmd)
    }
 
    len = strlen(ua->argk[0]);
-   for (i=0; i<comsize; i++)	   /* search for command */
+   for (i=0; i<comsize; i++) {	   /* search for command */
       if (strncasecmp(ua->argk[0],  _(commands[i].key), len) == 0) {
 	 stat = (*commands[i].func)(ua, cmd);	/* go execute command */
 	 found = 1;
 	 break;
       }
+   }
    if (!found) {
-      strcat(ua->UA_sock->msg, _(": is an illegal command\n"));
+      pm_strcat(&ua->UA_sock->msg, _(": is an illegal command\n"));
       ua->UA_sock->msglen = strlen(ua->UA_sock->msg);
       bnet_send(ua->UA_sock);
    }
@@ -1382,6 +1385,32 @@ int quitcmd(UAContext *ua, char *cmd)
    ua->quit = TRUE;
    return 1;
 }
+
+/*
+ * Wait until no job is running 
+ */
+int waitcmd(UAContext *ua, char *cmd) 
+{
+   usleep(300000);
+   for (int running=1; running; ) {
+      running = 0;
+      lock_jcr_chain();
+      for (JCR *jcr=NULL; (jcr=get_next_jcr(jcr)); ) {
+	 if (jcr->JobId != 0 && jcr->JobStatus != JS_Created) {
+	    running = 1;
+	    free_locked_jcr(jcr);
+	    break;
+	 }
+	 free_locked_jcr(jcr);
+      }
+      unlock_jcr_chain();
+      if (running) {
+	 sleep(1);
+      }
+   }
+   return 1;
+}
+
 
 static int helpcmd(UAContext *ua, char *cmd)
 {

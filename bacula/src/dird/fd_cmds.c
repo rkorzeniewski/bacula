@@ -187,6 +187,7 @@ static int send_list(JCR *jcr, int list)
 	    }
 	    break;
          case '<':
+	    p++;		      /* skip over < */
             if ((ffd = fopen(p, "r")) == NULL) {
                Jmsg(jcr, M_FATAL, 0, _("Cannot open %s file: %s. ERR=%s\n"),
                   list==INC_LIST?"included":"excluded", p, strerror(errno));

@@ -75,6 +75,9 @@
 /* Maximum Name length including EOS */
 #define MAX_NAME_LENGTH 128
 
+/* Maximume number of user entered command args */
+#define MAX_CMD_ARGS 30
+
 /* All tape operations MUST be a multiple of this */
 #define TAPE_BSIZE 1024
 #if !defined(DEV_BSIZE) && defined(BSIZE)

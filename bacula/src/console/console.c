@@ -45,13 +45,29 @@ extern int rl_catch_signals;
 /* Forward referenced functions */
 static void terminate_console(int sig);
 int get_cmd(FILE *input, char *prompt, BSOCK *sock, int sec);
+static int do_outputcmd(FILE *input, BSOCK *UA_sock);
+static void sendit(char *fmt, ...);
 
 /* Static variables */
 static char *configfile = NULL;
 static BSOCK *UA_sock = NULL;
 static DIRRES *dir; 
 static FILE *output = stdout;
+int tee = 0;			      /* output to output and stdout */
 static int stop = FALSE;
+static int argc;
+static POOLMEM *args;
+static char *argk[MAX_CMD_ARGS];
+static char *argv[MAX_CMD_ARGS];
+
+/* Command prototypes */
+static int versioncmd(FILE *input, BSOCK *UA_sock);
+static int inputcmd(FILE *input, BSOCK *UA_sock);
+static int outputcmd(FILE *input, BSOCK *UA_sock);
+static int teecmd(FILE *input, BSOCK *UA_sock);
+static int quitcmd(FILE *input, BSOCK *UA_sock);
+static int timecmd(FILE *input, BSOCK *UA_sock);
+static int sleepcmd(FILE *input, BSOCK *UA_sock);
 
 
 #define CONFIG_FILE "./console.conf"   /* default configuration file */
@@ -92,6 +108,56 @@ void got_tin(int sig)
 // printf("Got tin\n");
 }
 
+struct cmdstruct { char *key; int (*func)(FILE *input, BSOCK *UA_sock); char *help; }; 
+static struct cmdstruct commands[] = {
+ { N_("input"),      inputcmd,     _("input from file")},
+ { N_("output"),     outputcmd,    _("output to file")},
+ { N_("quit"),       quitcmd,      _("quit")},
+ { N_("tee"),        teecmd,       _("output to file and terminal")},
+ { N_("sleep"),      sleepcmd,     _("sleep specified time")},
+ { N_("time"),       timecmd,      _("print current time")},
+ { N_("version"),    versioncmd,   _("print Console's version")},
+ { N_("exit"),       quitcmd,      _("exit = quit")},
+	     };
+#define comsize (sizeof(commands)/sizeof(struct cmdstruct))
+
+static int do_a_command(FILE *input, BSOCK *UA_sock)
+{
+   unsigned int i;
+   int stat;
+   int found;
+   int len;
+   char *cmd;
+
+   found = 0;
+   stat = 1;
+
+   Dmsg1(120, "Command: %s\n", UA_sock->msg);
+   if (argc == 0) {
+      return 1;
+   }
+
+   cmd = argk[0]+1;
+   if (*cmd == '#') {                 /* comment */
+      return 1;
+   }
+   len = strlen(cmd);
+   for (i=0; i<comsize; i++) {	   /* search for command */
+      if (strncasecmp(cmd,  _(commands[i].key), len) == 0) {
+	 stat = (*commands[i].func)(input, UA_sock);   /* go execute command */
+	 found = 1;
+	 break;
+      }
+   }
+   if (!found) {
+      pm_strcat(&UA_sock->msg, _(": is an illegal command\n"));
+      UA_sock->msglen = strlen(UA_sock->msg);
+      fputs(UA_sock->msg, output);
+      fflush(output);
+   }
+   return stat;
+}
+
 
 static void read_and_process_input(FILE *input, BSOCK *UA_sock) 
 {
@@ -125,6 +191,14 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
          bnet_fsend(UA_sock, ".messages");
       } else {
 	 at_prompt = FALSE;
+	 /* @ => internal command for us */
+         if (UA_sock->msg[0] == '@') {
+	    parse_command_args(UA_sock->msg, args, &argc, argk, argv);
+	    if (!do_a_command(input, UA_sock)) {
+	       break;
+	    }
+	    continue;
+	 }
 	 if (!bnet_send(UA_sock)) {   /* send command */
 	    break;		      /* error */
 	 }
@@ -135,16 +209,16 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
       while ((stat = bnet_recv(UA_sock)) >= 0) {
 	 if (at_prompt) {
 	    if (!stop) {
-               putc('\n', output);
+               sendit("\n");
 	    }
 	    at_prompt = FALSE;
 	 }
 	 if (!stop) {
-	    fputs(UA_sock->msg, output);
+            sendit("%s", UA_sock->msg);
 	 }
       }
       if (!stop) {
-	 fflush(output);
+	 fflush(stdout);
       }
       if (is_bnet_stop(UA_sock)) {
 	 break; 		      /* error or term */
@@ -174,6 +248,7 @@ int main(int argc, char *argv[])
    my_name_is(argc, argv, "console");
    init_msg(NULL, NULL);
    working_directory = "/tmp";
+   args = get_pool_memory(PM_FNAME);
 
    while ((ch = getopt(argc, argv, "bc:d:r:st?")) != -1) {
       switch (ch) {
@@ -248,7 +323,7 @@ Without that I don't how to speak to the Director :-(\n", configfile);
    if (ndir > 1) {
       UA_sock = init_bsock(NULL, 0, "", "", 0);
 try_again:
-      fprintf(output, "Available Directors:\n");
+      sendit("Available Directors:\n");
       LockRes();
       ndir = 0;
       for (dir = NULL; (dir = (DIRRES *)GetNextRes(R_DIRECTOR, (RES *)dir)); ) {
@@ -261,7 +336,7 @@ try_again:
       }
       item = atoi(UA_sock->msg);
       if (item < 0 || item > ndir) {
-         fprintf(output, "You must enter a number between 1 and %d\n", ndir);
+         sendit("You must enter a number between 1 and %d\n", ndir);
 	 goto try_again;
       }
       LockRes();
@@ -278,7 +353,7 @@ try_again:
    }
       
 
-   Dmsg2(-1, "Connecting to Director %s:%d\n", dir->address,dir->DIRport);
+   sendit("Connecting to Director %s:%d\n", dir->address,dir->DIRport);
    UA_sock = bnet_connect(NULL, 5, 15, "Director daemon", dir->address, 
 			  NULL, dir->DIRport, 0);
    if (UA_sock == NULL) {
@@ -315,6 +390,7 @@ static void terminate_console(int sig)
       exit(1);
    }
    already_here = TRUE;
+   free_pool_memory(args);
    exit(0);
 }
 
@@ -389,8 +465,10 @@ get_cmd(FILE *input, char *prompt, BSOCK *sock, int sec)
 {
    int len;  
    if (!stop) {
-      fputs(prompt, output);
-      fflush(output);
+      if (output == stdout || tee) {
+	 fputs(prompt, stdout);
+	 fflush(stdout);
+      }
    }
 again:
    switch (wait_for_data(fileno(input), sec)) {
@@ -414,3 +492,114 @@ again:
 }
 
 #endif
+
+static int versioncmd(FILE *input, BSOCK *UA_sock)
+{
+   sendit("Version: " VERSION " (" BDATE ")\n");
+   return 1;
+}
+
+static int inputcmd(FILE *input, BSOCK *UA_sock)
+{
+   FILE *fd;
+
+   if (argc > 2) {
+      sendit("Too many arguments.\n");
+      return 0;
+   }
+   if (argc == 1) {
+      sendit("First argument must be a filename.\n");
+      return 0;
+   }
+   fd = fopen(argk[1], "r");
+   if (!fd) {
+      sendit("Cannot open file. ERR=%s\n", strerror(errno));
+      return 0; 
+   }
+   read_and_process_input(fd, UA_sock);
+   fclose(fd);
+   return 1;
+}
+
+static int teecmd(FILE *input, BSOCK *UA_sock)
+{
+   tee = 1;
+   return do_outputcmd(input, UA_sock);
+}
+
+static int outputcmd(FILE *input, BSOCK *UA_sock)
+{
+   tee = 0;
+   return do_outputcmd(input, UA_sock);
+}
+
+
+static int do_outputcmd(FILE *input, BSOCK *UA_sock)
+{
+   FILE *fd;
+   char *mode = "a+";
+
+   if (argc > 3) {
+      sendit("Too many arguments.\n");
+      return 1;
+   }
+   if (argc == 1) {
+      if (output != stdout) {
+	 fclose(output);
+	 output = stdout;
+	 tee = 0;
+      }
+      return 1;
+   }
+   if (argc == 3) {
+      mode = argk[2];
+   }
+   fd = fopen(argk[1], mode);
+   if (!fd) {
+      sendit("Cannot open file. ERR=%s\n", strerror(errno));
+      return 1; 
+   }
+   output = fd;
+   return 1;
+}
+
+static int quitcmd(FILE *input, BSOCK *UA_sock)
+{
+   return 0;
+}
+
+static int sleepcmd(FILE *input, BSOCK *UA_sock)
+{
+   if (argc > 1) {
+      sleep(atoi(argk[1]));
+   }
+   return 1;
+}
+
+
+static int timecmd(FILE *input, BSOCK *UA_sock)
+{
+   char sdt[50];
+   time_t ttime = time(NULL);
+   struct tm tm;
+   localtime_r(&ttime, &tm);
+   strftime(sdt, sizeof(sdt), "%d-%b-%Y %H:%M:%S", &tm);
+   sendit(sdt);
+   sendit("\n");
+   return 1;
+}
+
+static void sendit(char *fmt,...)
+{
+    char buf[3000];
+    va_list arg_ptr;
+
+    va_start(arg_ptr, fmt);
+    bvsnprintf(buf, sizeof(buf), (char *)fmt, arg_ptr);
+    va_end(arg_ptr);
+    fputs(buf, output);
+    if (tee) {
+       fputs(buf, stdout);
+    }
+    fflush(stdout);
+}

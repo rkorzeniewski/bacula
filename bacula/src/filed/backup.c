@@ -184,7 +184,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
       } else {
 	 tid = NULL;
       }
-      if ((ff_pkt->fid = open(ff_pkt->fname, O_RDONLY | O_BINARY)) < 0) {
+      if (bopen(&ff_pkt->bfd, ff_pkt->fname, O_RDONLY | O_BINARY, 0) < 0) {
 	 ff_pkt->ff_errno = errno;
          Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open %s: ERR=%s.\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));
 	 stop_thread_timer(tid);
@@ -192,7 +192,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
       }
       stop_thread_timer(tid);
    } else {
-      ff_pkt->fid = -1;
+      binit(&ff_pkt->bfd);
    }
 
    Dmsg1(130, "bfiled: sending %s to stored\n", ff_pkt->fname);
@@ -212,8 +212,8 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
     */
 #ifndef NO_FD_SEND_TEST
    if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, stream)) {
-      if (ff_pkt->fid >= 0) {
-	 close(ff_pkt->fid);
+      if (is_bopen(&ff_pkt->bfd)) {
+	 bclose(&ff_pkt->bfd);
       }
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       return 0;
@@ -248,8 +248,8 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 
    Dmsg2(100, ">stored: attr len=%d: %s\n", sd->msglen, sd->msg);
    if (!stat) {
-      if (ff_pkt->fid >= 0) {
-	 close(ff_pkt->fid);
+      if (is_bopen(&ff_pkt->bfd)) {
+	 bclose(&ff_pkt->bfd);
       }
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       return 0;
@@ -261,7 +261,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
     * If the file has data, read it and send to the Storage daemon
     *
     */
-   if (ff_pkt->fid >= 0) {
+   if (is_bopen(&ff_pkt->bfd)) {
       uint64_t fileAddr = 0;	      /* file address */
       char *rbuf, *wbuf;
       int rsize = jcr->buf_size;      /* read buffer size */
@@ -306,7 +306,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
        *    <file-index> <stream> <info>
        */
       if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, stream)) {
-	 close(ff_pkt->fid);
+	 bclose(&ff_pkt->bfd);
 	 set_jcr_job_status(jcr, JS_ErrorTerminated);
 	 return 0;
       }
@@ -331,7 +331,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
       /* 
        * Read the file data
        */
-      while ((sd->msglen=read(ff_pkt->fid, rbuf, rsize)) > 0) {
+      while ((sd->msglen=bread(&ff_pkt->bfd, rbuf, rsize)) > 0) {
 	 int sparseBlock = 0;
 
 	 /* Check for sparse blocks */
@@ -372,7 +372,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
                Jmsg(jcr, M_FATAL, 0, _("Compression error: %d\n"), zstat);
 	       sd->msg = msgsave;
 	       sd->msglen = 0;
-	       close(ff_pkt->fid);
+	       bclose(&ff_pkt->bfd);
 	       set_jcr_job_status(jcr, JS_ErrorTerminated);
 	       return 0;
 	    }
@@ -393,7 +393,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 	    if (!bnet_send(sd)) {
 	       sd->msg = msgsave;     /* restore read buffer */
 	       sd->msglen = 0;
-	       close(ff_pkt->fid);
+	       bclose(&ff_pkt->bfd);
 	       set_jcr_job_status(jcr, JS_ErrorTerminated);
 	       return 0;
 	    }
@@ -410,7 +410,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 	    ff_pkt->fname, strerror(errno));
       }
 
-      close(ff_pkt->fid);	      /* close file */
+      bclose(&ff_pkt->bfd);		 /* close file */
 #ifndef NO_FD_SEND_TEST
       if (!bnet_sig(sd, BNET_EOD)) {	 /* indicate end of file data */
 	 set_jcr_job_status(jcr, JS_ErrorTerminated);

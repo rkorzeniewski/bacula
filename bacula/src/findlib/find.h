@@ -120,12 +120,16 @@ struct s_excluded_file {
    char fname[1];
 };
 
+typedef struct s_bfile {
+   int fid;                           /* file id on Unix */
+} BFILE;
+
 
 /*
  * Definition of the find_files packet passed as the
  * first argument to the find_files callback subroutine.
  */
-typedef struct ff {
+typedef struct s_ff {
    char *fname;                       /* filename */
    char *link;                        /* link if file linked */
    POOLMEM *sys_fname;                /* system filename */
@@ -134,10 +138,10 @@ typedef struct ff {
    uint32_t LinkFI;                   /* FileIndex of main hard linked file */
    struct f_link *linked;             /* Set if we are hard linked */
    int type;                          /* FT_ type from above */
-   int fid;                           /* file id if opened */
    int flags;                         /* control flags */
    int ff_errno;                      /* errno */
    int incremental;                   /* do incremental save */
+   BFILE bfd;                         /* Bacula file descriptor */
    time_t save_time;                  /* start of incremental time */
    int mtime_only;                    /* incremental on mtime_only */
    int dereference;                   /* follow links */
@@ -151,6 +155,7 @@ typedef struct ff {
 
    struct f_link *linklist;           /* hard linked files */
 } FF_PKT;
+
 
 #include "protos.h"
 

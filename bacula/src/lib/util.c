@@ -644,3 +644,120 @@ POOLMEM *edit_job_codes(void *mjcr, char *omsg, char *imsg, char *to)
    }
    return omsg;
 }
+
+/* 
+ * Return next argument from command line.  Note, this
+ * routine is destructive.
+ */
+char *next_arg(char **s)
+{
+   char *p, *q, *n;
+   int in_quote = 0;
+
+   /* skip past spaces to next arg */
+   for (p=*s; *p && *p == ' '; ) {
+      p++;
+   }	
+   Dmsg1(400, "Next arg=%s\n", p);
+   for (n = q = p; *p ; ) {
+      if (*p == '\\') {
+	 p++;
+	 if (*p) {
+	    *q++ = *p++;
+	 } else {
+	    *q++ = *p;
+	 }
+	 continue;
+      }
+      if (*p == '"') {                  /* start or end of quote */
+	 if (in_quote) {
+	    p++;			/* skip quote */
+	    in_quote = 0;
+	    continue;
+	 }
+	 in_quote = 1;
+	 p++;
+	 continue;
+      }
+      if (!in_quote && *p == ' ') {     /* end of field */
+	 p++;
+	 break;
+      }
+      *q++ = *p++;
+   }
+   *q = 0;
+   *s = p;
+   Dmsg2(400, "End arg=%s next=%s\n", n, p);
+   return n;
+}   
+
+/*
+ * This routine parses the input command line.
+ * It makes a copy in args, then builds an
+ *  argc, argv like list where
+ *    
+ *  argc = count of arguments
+ *  argk[i] = argument keyword (part preceding =)
+ *  argv[i] = argument value (part after =)
+ *
+ *  example:  arg1 arg2=abc arg3=
+ *
+ *  argc = c
+ *  argk[0] = arg1
+ *  argv[0] = NULL
+ *  argk[1] = arg2
+ *  argv[1] = abc
+ *  argk[2] = arg3
+ *  argv[2] = 
+ */
+
+void parse_command_args(POOLMEM *cmd, POOLMEM *args, int *argc, 
+			char **argk, char **argv) 
+{
+   char *p, *q, *n;
+   int len;
+
+   len = strlen(cmd) + 1;
+   args = check_pool_memory_size(args, len);
+   bstrncpy(args, cmd, len);
+   strip_trailing_junk(args);
+   *argc = 0;
+   p = args;
+   /* Pick up all arguments */
+   while (*argc < MAX_CMD_ARGS) {
+      n = next_arg(&p);   
+      if (*n) {
+	 argk[*argc] = n;
+	 argv[(*argc)++] = NULL;
+      } else {
+	 break;
+      }
+   }
+   /* Separate keyword and value */
+   for (int i=0; i < *argc; i++) {
+      p = strchr(argk[i], '=');
+      if (p) {
+	 *p++ = 0;		      /* terminate keyword and point to value */
+	 /* Unquote quoted values */
+         if (*p == '"') {
+            for (n = q = ++p; *p && *p != '"'; ) {
+               if (*p == '\\') {
+		  p++;
+	       }
+	       *q++ = *p++;
+	    }
+	    *q = 0;		      /* terminate string */
+	    p = n;		      /* point to string */
+	 }
+	 if (strlen(p) > MAX_NAME_LENGTH-1) {
+	    p[MAX_NAME_LENGTH-1] = 0; /* truncate to max len */
+	 }
+      }
+      argv[i] = p;		      /* save ptr to value or NULL */
+   }
+#ifdef xxxx
+   for (i=0; i<argc; i++) {
+      Dmsg3(000, "Arg %d: kw=%s val=%s\n", i, argk[i], argv[i]?argv[i]:"NULL");
+   }
+#endif
+}

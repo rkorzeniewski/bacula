@@ -60,7 +60,7 @@
  */
 int create_file(void *jcr, char *fname, char *ofile, char *lname,
 		int type, int stream, struct stat *statp, 
-		char *attribsEx, int *ofd, int replace)
+		char *attribsEx, BFILE *ofd, int replace)
 {
    int new_mode, parent_mode, mode;
    uid_t uid;
@@ -69,7 +69,7 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
    int fnl, pnl;
    char *f, *p, savechr;
 
-   *ofd = -1;
+   binit(ofd);
    new_mode = statp->st_mode;
    Dmsg2(300, "newmode=%x file=%s\n", new_mode, ofile);
    parent_mode = S_IWUSR | S_IXUSR | new_mode;
@@ -108,7 +108,7 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
 	       ofile, lname, strerror(errno));
 	 return CF_ERROR;
       }
-      break;
+      return CF_CREATED;
    case FT_REGE:		      /* empty file */
    case FT_REG: 		      /* regular file */
       /* Separate pathname and filename */
@@ -162,7 +162,7 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
 	 mode |= O_CTG; 	      /* set contiguous bit if needed */
       }
       Dmsg1(50, "Create file: %s\n", ofile);
-      if ((*ofd = open(ofile, mode, S_IRUSR | S_IWUSR)) < 0) {
+      if ((bopen(ofd, ofile, mode, S_IRUSR | S_IWUSR)) < 0) {
          Jmsg2(jcr, M_ERROR, 0, _("Could not create %s: ERR=%s\n"), ofile, strerror(errno));
 	 return CF_ERROR;
       }
@@ -208,7 +208,7 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
 	 } else {
 	    tid = NULL;
 	 }
-	 if ((*ofd = open(ofile, mode)) < 0) {
+	 if ((bopen(ofd, ofile, mode, 0)) < 0) {
             Jmsg2(jcr, M_ERROR, 0, _("Could not open %s: ERR=%s\n"), ofile, strerror(errno));
 	    stop_thread_timer(tid);
 	    return CF_ERROR;

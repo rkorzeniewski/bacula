@@ -55,7 +55,7 @@ void do_restore(JCR *jcr)
    uint32_t record_file_index;
    struct stat statp;
    int extract = FALSE;
-   int ofd = -1;
+   BFILE bfd;
    int type, stat;
    uint32_t total = 0;		      /* Job total but only 32 bits for debug */
    char *wbuf;			      /* write buffer */
@@ -64,6 +64,7 @@ void do_restore(JCR *jcr)
    
    wherelen = strlen(jcr->where);
 
+   binit(&bfd);
    sd = jcr->store_bsock;
    set_jcr_job_status(jcr, JS_Running);
 
@@ -127,11 +128,11 @@ void do_restore(JCR *jcr)
 	  * close the output file.
 	  */
 	 if (extract) {
-	    if (ofd < 0) {
+	    if (!is_bopen(&bfd)) {
                Jmsg0(jcr, M_ERROR, 0, _("Logic error output file should be open\n"));
 	    }
 	    set_attributes(jcr, fname, ofile, lname, type, stream, 
-			   &statp, attribsEx, &ofd);
+			   &statp, attribsEx, &bfd);
 	    extract = FALSE;
             Dmsg0(30, "Stop extracting.\n");
 	 }
@@ -235,12 +236,15 @@ void do_restore(JCR *jcr)
 	    }	
 	    strcat(ofile, fn);	      /* copy rest of name */
 	    /*
-	     * Fixup link name -- add where only if requested
-	     *	 and if it is an absolute path
+	     * Fixup link name -- if it is an absolute path
 	     */
 	    if (type == FT_LNKSAVED || type == FT_LNK) {
 	       int add_link;
-               if (jcr->prefix_links && lp[0] == '/') {      /* if absolute path */
+	       /* Always add prefix to hard links (FT_LNKSAVED) and
+		*  on user request to soft links
+		*/
+               if (lp[0] == '/' &&
+		   (type == FT_LNKSAVED || jcr->prefix_links)) {
 		  strcpy(lname, jcr->where);
 		  add_link = 1;
 	       } else {
@@ -264,7 +268,7 @@ void do_restore(JCR *jcr)
 
 	 extract = FALSE;
 	 stat = create_file(jcr, fname, ofile, lname, type, 
-			    stream, &statp, attribsEx, &ofd, jcr->replace);
+			    stream, &statp, attribsEx, &bfd, jcr->replace);
 	 switch (stat) {
 	 case CF_ERROR:
 	 case CF_SKIP:
@@ -274,11 +278,18 @@ void do_restore(JCR *jcr)
 	    P(jcr->mutex);
 	    pm_strcpy(&jcr->last_fname, ofile);
 	    V(jcr->mutex);
-	    /* Fall-through wanted */
+	    jcr->JobFiles++;
+	    fileAddr = 0;
+	    print_ls_output(jcr, ofile, lname, type, &statp);
+	    /* Set attributes after file extracted */
+	    break;
 	 case CF_CREATED:
 	    jcr->JobFiles++;
 	    fileAddr = 0;
 	    print_ls_output(jcr, ofile, lname, type, &statp);
+	    /* set attributes now because file will not be extracted */
+	    set_attributes(jcr, fname, ofile, lname, type, stream, 
+			   &statp, attribsEx, &bfd);
 	    break;
 	 }  
 
@@ -298,7 +309,7 @@ void do_restore(JCR *jcr)
 	       unser_uint64(faddr);
 	       if (fileAddr != faddr) {
 		  fileAddr = faddr;
-		  if (lseek(ofd, (off_t)fileAddr, SEEK_SET) < 0) {
+		  if (blseek(&bfd, (off_t)fileAddr, SEEK_SET) < 0) {
                      Jmsg3(jcr, M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"),
 			 edit_uint64(fileAddr, ec1), ofile, strerror(errno));
 		     goto bail_out;
@@ -309,7 +320,7 @@ void do_restore(JCR *jcr)
 	       wsize = sd->msglen;
 	    }
             Dmsg2(30, "Write %u bytes, total before write=%u\n", wsize, total);
-	    if ((uint32_t)write(ofd, wbuf, wsize) != wsize) {
+	    if ((uint32_t)bwrite(&bfd, wbuf, wsize) != wsize) {
                Dmsg0(0, "===Write error===\n");
                Jmsg2(jcr, M_ERROR, 0, _("Write error on %s: %s\n"), ofile, strerror(errno));
 	       goto bail_out;
@@ -336,7 +347,7 @@ void do_restore(JCR *jcr)
 	       unser_uint64(faddr);
 	       if (fileAddr != faddr) {
 		  fileAddr = faddr;
-		  if (lseek(ofd, (off_t)fileAddr, SEEK_SET) < 0) {
+		  if (blseek(&bfd, (off_t)fileAddr, SEEK_SET) < 0) {
                      Jmsg3(jcr, M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"),
 			 edit_uint64(fileAddr, ec1), ofile, strerror(errno));
 		     goto bail_out;
@@ -355,7 +366,7 @@ void do_restore(JCR *jcr)
 	    }
 
             Dmsg2(100, "Write uncompressed %d bytes, total before write=%d\n", compress_len, total);
-	    if ((uLong)write(ofd, jcr->compress_buf, compress_len) != compress_len) {
+	    if ((uLong)bwrite(&bfd, jcr->compress_buf, compress_len) != compress_len) {
                Dmsg0(0, "===Write error===\n");
                Jmsg2(jcr, M_ERROR, 0, "Write error on %s: %s\n", ofile, strerror(errno));
 	       goto bail_out;
@@ -373,11 +384,11 @@ void do_restore(JCR *jcr)
       /* If extracting, wierd stream (not 1 or 2), close output file anyway */
       } else if (extract) {
          Dmsg1(30, "Found wierd stream %d\n", stream);
-	 if (ofd < 0) {
-            Jmsg0(jcr, M_ERROR, 0, _("Logic error output file should be open\n"));
+	 if (!is_bopen(&bfd)) {
+            Jmsg0(jcr, M_ERROR, 0, _("Logic error output file should be open but is not.\n"));
 	 }
 	 set_attributes(jcr, fname, ofile, lname, type, stream, 
-			&statp, attribsEx, &ofd);
+			&statp, attribsEx, &bfd);
 	 extract = FALSE;
       } else if (!(stream == STREAM_MD5_SIGNATURE || stream == STREAM_SHA1_SIGNATURE)) {
          Dmsg2(0, "None of above!!! stream=%d data=%s\n", stream,sd->msg);
@@ -387,9 +398,9 @@ void do_restore(JCR *jcr)
    /* If output file is still open, it was the last one in the
     * archive since we just hit an end of file, so close the file. 
     */
-   if (ofd >= 0) {
+   if (is_bopen(&bfd)) {
       set_attributes(jcr, fname, ofile, lname, type, stream, 
-		     &statp, attribsEx, &ofd);
+		     &statp, attribsEx, &bfd);
    }
    set_jcr_job_status(jcr, JS_Terminated);
    goto ok_out;

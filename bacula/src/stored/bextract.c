@@ -42,7 +42,7 @@ static void do_extract(char *fname);
 static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
 
 static DEVICE *dev = NULL;
-static int ofd = -1;
+static BFILE bfd;
 static JCR *jcr;
 static FF_PKT my_ff;
 static FF_PKT *ff = &my_ff;
@@ -102,6 +102,7 @@ int main (int argc, char *argv[])
 
    memset(ff, 0, sizeof(FF_PKT));
    init_include_exclude_files(ff);
+   binit(&bfd);
 
    while ((ch = getopt(argc, argv, "b:c:d:e:i:?")) != -1) {
       switch (ch) {
@@ -219,9 +220,9 @@ static void do_extract(char *devname)
    /* If output file is still open, it was the last one in the
     * archive since we just hit an end of file, so close the file. 
     */
-   if (ofd >= 0) {
+   if (is_bopen(&bfd)) {
       set_attributes(jcr, fname, ofile, lname, type, stream, &statp,
-		     attribsEx, &ofd);
+		     attribsEx, &bfd);
    }
    release_device(jcr, dev);
 
@@ -256,12 +257,12 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
        * close the output file.
        */
       if (extract) {
-	 if (ofd < 0) {
-            Emsg0(M_ERROR, 0, "Logic error output file should be open\n");
+	 if (!is_bopen(&bfd)) {
+            Emsg0(M_ERROR, 0, "Logic error output file should be open but is not.\n");
 	 }
 	 extract = FALSE;
 	 set_attributes(jcr, fname, ofile, lname, type, stream, &statp,
-			attribsEx, &ofd);
+			attribsEx, &bfd);
       }
 
       if (sizeof_pool_memory(fname) < rec->data_len) {
@@ -354,8 +355,10 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
                strcat(ofile, "/");
 	    }
 	    strcat(ofile, fn);	      /* copy rest of name */
-	    /* Fixup link name */
-	    if (type == FT_LNK || type == FT_LNKSAVED) {
+	    /* Fixup link name for hard links, but not for
+	     * soft links 
+	     */
+	    if (type == FT_LNKSAVED) {
                if (lp[0] == '/') {      /* if absolute path */
 		  strcpy(lname, where);
 	       }       
@@ -371,15 +374,20 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 
 	 extract = FALSE;
 	 stat = create_file(jcr, fname, ofile, lname, type, stream,
-			    &statp, attribsEx, &ofd, REPLACE_ALWAYS);
+			    &statp, attribsEx, &bfd, REPLACE_ALWAYS);
 	 switch (stat) {
 	 case CF_ERROR:
 	 case CF_SKIP:
 	    break;
 	 case CF_EXTRACT:
 	    extract = TRUE;
-	    /* Fall-through wanted */
+	    print_ls_output(ofile, lname, type, &statp);   
+	    num_files++;
+	    fileAddr = 0;
+	    break;
 	 case CF_CREATED:
+	    set_attributes(jcr, fname, ofile, lname, type, stream, &statp,
+			   attribsEx, &bfd);
 	    print_ls_output(ofile, lname, type, &statp);   
 	    num_files++;
 	    fileAddr = 0;
@@ -399,7 +407,7 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	    unser_uint64(faddr);
 	    if (fileAddr != faddr) {
 	       fileAddr = faddr;
-	       if (lseek(ofd, (off_t)fileAddr, SEEK_SET) < 0) {
+	       if (blseek(&bfd, (off_t)fileAddr, SEEK_SET) < 0) {
                   Emsg2(M_ERROR_TERM, 0, _("Seek error on %s: %s\n"), ofile, strerror(errno));
 	       }
 	    }
@@ -409,7 +417,7 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 }
 	 total += wsize;
          Dmsg2(8, "Write %u bytes, total=%u\n", wsize, total);
-	 if ((uint32_t)write(ofd, wbuf, wsize) != wsize) {
+	 if ((uint32_t)bwrite(&bfd, wbuf, wsize) != wsize) {
             Emsg2(M_ERROR_TERM, 0, _("Write error on %s: %s\n"), ofile, strerror(errno));
 	 }
 	 fileAddr += wsize;
@@ -430,7 +438,7 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	    unser_uint64(faddr);
 	    if (fileAddr != faddr) {
 	       fileAddr = faddr;
-	       if (lseek(ofd, (off_t)fileAddr, SEEK_SET) < 0) {
+	       if (blseek(&bfd, (off_t)fileAddr, SEEK_SET) < 0) {
                   Emsg2(M_ERROR, 0, _("Seek error on %s: %s\n"), ofile, strerror(errno));
 	       }
 	    }
@@ -445,7 +453,7 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 }
 
          Dmsg2(100, "Write uncompressed %d bytes, total before write=%d\n", compress_len, total);
-	 if ((uLongf)write(ofd, compress_buf, (size_t)compress_len) != compress_len) {
+	 if ((uLongf)bwrite(&bfd, compress_buf, (size_t)compress_len) != compress_len) {
             Pmsg0(0, "===Write error===\n");
             Emsg2(M_ERROR_TERM, 0, _("Write error on %s: %s\n"), ofile, strerror(errno));
 	 }
@@ -463,12 +471,12 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 
    /* If extracting, wierd stream (not 1 or 2), close output file anyway */
    } else if (extract) {
-      if (ofd < 0) {
-         Emsg0(M_ERROR, 0, "Logic error output file should be open\n");
+      if (!is_bopen(&bfd)) {
+         Emsg0(M_ERROR, 0, "Logic error output file should be open but is not.\n");
       }
       extract = FALSE;
       set_attributes(jcr, fname, ofile, lname, type, stream, &statp,
-		     attribsEx, &ofd);
+		     attribsEx, &bfd);
    } else if (rec->Stream == STREAM_PROGRAM_NAMES || rec->Stream == STREAM_PROGRAM_DATA) {
       if (!prog_name_msg) {
          Pmsg0(000, "Got Program Name or Data Stream. Ignored.\n");

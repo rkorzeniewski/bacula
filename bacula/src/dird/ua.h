@@ -6,7 +6,7 @@
  *     Version $Id$
  */
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -28,7 +28,6 @@
 #ifndef __UA_H_
 #define __UA_H_ 1
 
-#define MAX_ARGS 30
 
 typedef struct s_ua_context {
    BSOCK *UA_sock;
@@ -38,8 +37,8 @@ typedef struct s_ua_context {
    CAT *catalog;
    POOLMEM *cmd;                      /* return command/name buffer */
    POOLMEM *args;                     /* command line arguments */
-   char *argk[MAX_ARGS];              /* argument keywords */
-   char *argv[MAX_ARGS];              /* argument values */
+   char *argk[MAX_CMD_ARGS];          /* argument keywords */
+   char *argv[MAX_CMD_ARGS];          /* argument values */
    int argc;                          /* number of arguments */
    char **prompt;                     /* list of prompts */
    int max_prompts;                   /* max size of list */
