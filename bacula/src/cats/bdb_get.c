@@ -498,4 +498,8 @@ int db_get_job_volume_parameters(JCR *jcr, B_DB *mdb, uint32_t JobId, VOL_PARAMS
 int db_get_client_ids(JCR *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
 { return 0; }
 
+int db_get_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr)
+{ return 0; }
+
+
 #endif /* HAVE_BACULA_DB */

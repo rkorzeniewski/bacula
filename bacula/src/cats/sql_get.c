@@ -607,6 +607,55 @@ int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cdbr)
    return stat;
 }
 
+/*
+ * Get Counter Record
+ *
+ * Returns: 0 on failure
+ *	    1 on success
+ */
+int db_get_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr)
+{
+   SQL_ROW row;
+
+   db_lock(mdb);
+   Mmsg(&mdb->cmd, "SELECT MinValue,MaxValue,CurrentValue,WrapCounter "
+      "FROM Counters WHERE Counter='%s'", cr->Counter);
+
+   if (QUERY_DB(jcr, mdb, mdb->cmd)) {
+
+      mdb->num_rows = sql_num_rows(mdb);
+      
+      /* If more than one, report error, but return first row */
+      if (mdb->num_rows > 1) {
+         Mmsg1(&mdb->errmsg, _("More than one Counter!: %d\n"), (int)(mdb->num_rows));
+         Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
+      }
+      if (mdb->num_rows >= 1) {
+	 if ((row = sql_fetch_row(mdb)) == NULL) {
+            Mmsg1(&mdb->errmsg, _("error fetching Counter row: %s\n"), sql_strerror(mdb));
+            Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
+	    sql_free_result(mdb);
+	    db_unlock(mdb);
+	    return 0;
+	 }
+	 cr->MinValue = atoi(row[0]);
+	 cr->MaxValue = atoi(row[1]);
+	 cr->CurrentValue = atoi(row[2]);
+	 if (row[3]) {
+	    bstrncpy(cr->WrapCounter, row[3], sizeof(cr->WrapCounter));
+	 } else {
+	    cr->WrapCounter[0] = 0;
+	 }
+	 sql_free_result(mdb);
+	 db_unlock(mdb);
+	 return 1;
+      }
+      sql_free_result(mdb);
+   }
+   db_unlock(mdb);
+   return 0;
+}
+
 
 /* Get FileSet Record	
  * If the FileSetId is non-zero, we get its record,

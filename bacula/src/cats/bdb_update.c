@@ -212,4 +212,10 @@ int db_update_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr)
    return 1;
 }
 
+int db_update_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr)
+{
+   return 0;
+}
+
+
 #endif /* HAVE_BACULA_DB */

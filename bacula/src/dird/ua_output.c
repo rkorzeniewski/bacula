@@ -78,6 +78,7 @@ struct showstruct {char *res_name; int type;};
 static struct showstruct reses[] = {
    {N_("directors"),  R_DIRECTOR},
    {N_("clients"),    R_CLIENT},
+   {N_("counters"),   R_COUNTER},
    {N_("jobs"),       R_JOB},
    {N_("storages"),   R_STORAGE},
    {N_("catalogs"),   R_CATALOG},
@@ -100,7 +101,7 @@ static struct showstruct reses[] = {
  *  show <resource-keyword-name>=<name> e.g. show director=HeadMan
  *
  */
-int showcmd(UAContext *ua, char *cmd)
+int show_cmd(UAContext *ua, char *cmd)
 {
    int i, j, type, len; 
    int recurse;

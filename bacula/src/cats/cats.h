@@ -449,6 +449,16 @@ struct CLIENT_DBR {
    char Uname[256];		      /* Uname for client */
 };
 
+/* Counter record as in database */
+struct COUNTER_DBR {
+   char Counter[MAX_NAME_LENGTH];
+   int32_t MinValue;
+   int32_t MaxValue;
+   int32_t CurrentValue;
+   char WrapCounter[MAX_NAME_LENGTH];
+};
+
+
 /* FileSet record -- same as the database */
 struct FILESET_DBR {
    uint32_t FileSetId;		      /* Unique FileSet id */

@@ -150,6 +150,11 @@ VolSessionTime=%u, PoolId=%u, FileSetId=%u, JobTDate=%s WHERE JobId=%u",
 }
 
 
+/*
+ * Update Client record 
+ *   Returns: 0 on failure
+ *	      1 on success
+ */
 int
 db_update_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr)
 {
@@ -173,6 +178,27 @@ db_update_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr)
       cr->Uname, cr->Name);
 
    stat = UPDATE_DB(jcr, mdb, mdb->cmd);
+   db_unlock(mdb);
+   return stat;
+}
+
+
+/*
+ * Update Counters record
+ *   Returns: 0 on failure
+ *	      1 on success
+ */
+int db_update_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr)
+{
+   db_lock(mdb);
+
+   Mmsg(&mdb->cmd,
+"UPDATE Counters SET MinValue=%d,MaxValue=%d,CurrentValue=%d," 
+"WrapCounter='%s' WHERE Counter='%s'",
+      cr->MinValue, cr->MaxValue, cr->CurrentValue,
+      cr->WrapCounter, cr->Counter);
+
+   int stat = UPDATE_DB(jcr, mdb, mdb->cmd);
    db_unlock(mdb);
    return stat;
 }

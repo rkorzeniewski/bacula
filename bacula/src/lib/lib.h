@@ -51,5 +51,6 @@
 #include "watchdog.h"
 #include "bpipe.h"
 #include "attr.h"
+#include "var.h"
 
 #include "protos.h"

@@ -177,11 +177,11 @@ INSERT INTO Version (VersionId) VALUES (6);
 
 CREATE TABLE Counters (
    Counter TINYBLOB NOT NULL,
-   PoolId INTEGER UNSIGNED NOT NULL REFERENCES Pool,
    MinValue INTEGER,
    MaxValue INTEGER,
    CurrentValue INTEGER,
-   WrapCounter TINYBLOB NOT NULL
+   WrapCounter TINYBLOB NOT NULL,
+   PRIMARY KEY (Counter(128))
    );
 
 

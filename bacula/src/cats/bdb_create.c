@@ -293,4 +293,8 @@ int db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
    return 1;
 }
 
+int db_create_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr)
+{ return 0; }
+
+
 #endif /* HAVE_BACULA_DB */

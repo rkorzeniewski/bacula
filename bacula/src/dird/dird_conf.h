@@ -271,8 +271,10 @@ struct COUNTER {
 
    int32_t MinValue;                  /* Minimum value */
    int32_t MaxValue;                  /* Maximum value */
-   int     Global;                    /* global/local */
-   char  *WrapCounter;                /* Wrap counter name */
+   int32_t CurrentValue;              /* Current value */
+   CAT   *WrapCounter;                /* Wrap counter name */
+   CAT   *Catalog;                    /* Where to store */
+   bool    created;                   /* Created in DB */
 };
 
 /*
@@ -282,7 +284,6 @@ struct COUNTER {
 struct POOL {
    RES   hdr;
 
-   COUNTER counter;                   /* Counter resources */
    char *pool_type;                   /* Pool type */
    char *label_format;                /* Label format string */
    char *cleaning_prefix;             /* Cleaning label prefix */

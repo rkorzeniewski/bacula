@@ -188,7 +188,6 @@ INSERT INTO Version (VersionId) VALUES (6);
 
 CREATE TABLE Counters (
    Counter TEXT NOT NULL,     
-   PoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
    MinValue INTEGER DEFAULT 0, 
    MaxValue INTEGER DEFAULT 0,
    CurrentValue INTEGER DEFAULT 0,

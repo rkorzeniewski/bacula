@@ -139,7 +139,6 @@ struct JCR {
    MSGS *messages;                    /* Default message handler */
    volatile int SDJobStatus;          /* Storage Job Status */
    volatile int FDJobStatus;          /* File daemon Job Status */
-   int mode;                          /* manual/auto run */
    B_DB *db;                          /* database pointer */
    uint32_t MediaId;                  /* DB record IDs associated with this job */
    uint32_t PoolId;                   /* Pool record id */
@@ -153,6 +152,7 @@ struct JCR {
    POOLMEM *client_uname;             /* client uname */ 
    int replace;                       /* Replace option */
    int acquired_resource_locks;       /* set if resource locks acquired */
+   int NumVols;                       /* Number of Volume used in pool */
 #endif /* DIRECTOR_DAEMON */
 
 

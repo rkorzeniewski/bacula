@@ -380,6 +380,25 @@ Without that I don't know who I am :-(\n"), configfile);
 	    if (job->pool) {
 	       create_pool(NULL, db, job->pool, POOL_OP_UPDATE);  /* update request */
 	    }
+	    /* Set default value in all counters */
+	    for (COUNTER *counter=NULL; (counter = (COUNTER *)GetNextRes(R_COUNTER, (RES *)counter)); ) {
+	       /* Write to catalog? */
+	       if (!counter->created && counter->Catalog == catalog) {
+		  COUNTER_DBR cr;
+		  bstrncpy(cr.Counter, counter->hdr.name, sizeof(cr.Counter));
+		  cr.MinValue = counter->MinValue;
+		  cr.MaxValue = counter->MaxValue;
+		  cr.CurrentValue = counter->MinValue;
+		  bstrncpy(cr.WrapCounter, counter->WrapCounter->hdr.name, sizeof(cr.WrapCounter));
+		  if (db_create_counter_record(NULL, db, &cr)) {
+		     counter->CurrentValue = cr.CurrentValue;
+		     counter->created = true;
+//                   Dmsg2(000, "Create counter %s val=%d\n", counter->hdr.name, counter->CurrentValue);
+		  }
+	       } else {
+		  counter->CurrentValue = counter->MinValue;  /* default value */
+	       }
+	    }
 	    db_close_database(NULL, db);
 	 }
 

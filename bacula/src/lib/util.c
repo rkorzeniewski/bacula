@@ -527,7 +527,7 @@ POOLMEM *edit_job_codes(JCR *jcr, char *omsg, char *imsg, char *to)
 	    str = job_status_to_str(jcr->JobStatus); 
 	    break;
          case 'i':
-            sprintf(add, "%d", jcr->JobId);
+            bsnprintf(add, sizeof(add), "%d", jcr->JobId);
 	    str = add;
 	    break;
          case 'j':                    /* Job name */

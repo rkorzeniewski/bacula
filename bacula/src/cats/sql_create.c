@@ -360,6 +360,44 @@ FileRetention, JobRetention) VALUES \
 
 
 /* 
+ * Create a Unique record for the counter -- no duplicates 
+ * Returns: 0 on failure
+ *	    1 on success with counter filled in
+ */
+int db_create_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr)
+{
+   COUNTER_DBR mcr;
+   int stat;
+
+   db_lock(mdb);
+   memset(&mcr, 0, sizeof(mcr));
+   bstrncpy(mcr.Counter, cr->Counter, sizeof(mcr.Counter));
+   if (db_get_counter_record(jcr, mdb, &mcr)) {
+      memcpy(cr, &mcr, sizeof(COUNTER_DBR));
+      db_unlock(mdb);
+      return 1;
+   }
+
+   /* Must create it */
+   Mmsg(&mdb->cmd, "INSERT INTO Counters (Counter,MinValue,MaxValue,CurrentValue,"
+      "WrapCounter) VALUES ('%s','%d','%d','%d','%s')",
+      cr->Counter, cr->MinValue, cr->MaxValue, cr->CurrentValue,
+      cr->WrapCounter);
+
+   if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
+      Mmsg2(&mdb->errmsg, _("Create DB Counters record %s failed. ERR=%s\n"),
+	    mdb->cmd, sql_strerror(mdb));
+      Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
+      stat = 0;
+   } else {
+      stat = 1;
+   }
+   db_unlock(mdb);
+   return stat;
+}
+
+
+/* 
  * Create a FileSet record. This record is unique in the
  *  name and the MD5 signature of the include/exclude sets.
  *  Returns: 0 on failure

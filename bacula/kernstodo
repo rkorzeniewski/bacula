@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                  10 June 2003 
+                  14 June 2003 
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -34,6 +34,10 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
+- Add client name to cram-md5 challenge so Director can immediately
+  verify if it is the correct client.
+- Implement a record that suppresses errors if the Client is not
+  available.
 - Use runbeforejob to unload, then reload a volume previously used,
   then the next job run gets an error reading the drive.
 - Implement non-blocking writes and bsock->terminate in heartbeat thread,
@@ -977,4 +981,3 @@ Done: (see kernsdone for more)
   Do lstat() to see if it is already properly linked.
   Same for symlinked file.
   Make sure ifnewer, ifolder, never, ... apply correctly.
-
