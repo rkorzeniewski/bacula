@@ -55,6 +55,7 @@ For 1.33 Testing/Documentation:
 - Add subsections to the Disaster Recovery index section.
                 
 For 1.33
+- Look at Dan's field width problems in PostgreSQL.
 - In restore take all filesets with same base name.
 - From Alan Brown <ajb2@mssl.ucl.ac.uk>
     BTW, there's a make install bug in 1.33 - with --enable-gnome,

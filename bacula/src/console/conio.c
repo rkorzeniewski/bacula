@@ -14,8 +14,6 @@
 #include <ctype.h> 
 #endif
 
-#ifdef HAVE_CONIO
-
 #include <termios.h>
 #include <termcap.h>
 #include "func.h"
@@ -1031,4 +1029,3 @@ static void asdell()
    t_send(t_dl);
 }
 
-#endif
