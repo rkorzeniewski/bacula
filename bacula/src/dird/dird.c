@@ -160,7 +160,7 @@ int main (int argc, char *argv[])
       configfile = bstrdup(CONFIG_FILE);
    }
 
-   init_msg(NULL);		      /* initialize message handler */
+   init_msg(NULL, NULL);	      /* initialize message handler */
    parse_config(configfile);
 
    if (!check_resources()) {
@@ -190,7 +190,7 @@ int main (int argc, char *argv[])
    Dmsg0(200, "Start UA server\n");
    start_UA_server(director->DIRport);
 
-   init_watchdog();		      /* start network watchdog thread */
+   start_watchdog();		      /* start network watchdog thread */
 
    init_job_server(director->MaxConcurrentJobs);
   
@@ -215,7 +215,7 @@ static void terminate_dird(int sig)
       exit(1);
    }
    already_here = TRUE;
-   term_watchdog();
+   stop_watchdog();
    signal(SIGCHLD, SIG_IGN);          /* don't worry about children now */
    term_scheduler();
    if (runjob) {

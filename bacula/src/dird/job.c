@@ -259,6 +259,7 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    jcr->pool = job->pool;
    jcr->catalog = job->client->catalog;
    jcr->fileset = job->fs;
+   init_msg(jcr, job->messages);
    /* If no default level given, set one */
    if (jcr->level == 0) {
       switch (jcr->JobType) {

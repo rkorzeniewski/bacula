@@ -584,7 +584,6 @@ void free_resource(int type)
 	    free(res->res_msgs.mail_cmd);
 	 if (res->res_msgs.operator_cmd)
 	    free(res->res_msgs.operator_cmd);
-
 	 break;
       case R_GROUP:
 	 break;

@@ -63,7 +63,6 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    jcr->VolumeName[0] = 0;
    jcr->errmsg = (char *) get_pool_memory(PM_MESSAGE);
    jcr->errmsg[0] = 0;
-   init_msg(jcr);		      /* init job message chain */
    jobs = jcr;
    V(mutex);
    return jcr;

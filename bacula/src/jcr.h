@@ -98,6 +98,7 @@ struct s_jcr {
    char *VolumeName;                  /* Volume name desired -- pool_memory */
    char *client_name;                 /* client name */
    char *sd_auth_key;                 /* SD auth key */
+   MSGS *msgs;                        /* Message resource */
    DEST *dest_chain;                  /* Job message destination chain */
    char send_msg[nbytes_for_bits(M_MAX+1)]; /* message bit mask */
 

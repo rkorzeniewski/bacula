@@ -162,7 +162,7 @@ int main (int argc, char *argv[])
       configfile = bstrdup(CONFIG_FILE);
    }
 
-   init_msg(NULL);
+   init_msg(NULL, NULL);
    parse_config(configfile);
    check_config();
 
@@ -245,7 +245,7 @@ int main (int argc, char *argv[])
    UnlockRes();
    device = NULL;
 
-   init_watchdog();		      /* start watchdog thread */
+   start_watchdog();		      /* start watchdog thread */
 
    /*
     * Here we support either listening on one port or on two ports
@@ -347,7 +347,7 @@ void terminate_stored(int sig)
    }
    in_here = TRUE;
 
-   term_watchdog();
+   stop_watchdog();
 
    Dmsg0(200, "In terminate_stored()\n");
 

@@ -56,12 +56,12 @@ static void timeout_handler(int sig)
 
 
 /*   
- * Initialize watchdog thread
+ * Start watchdog thread
  *
  *  Returns: 0 on success
  *	     errno on failure
  */
-int init_watchdog(void)
+int start_watchdog(void)
 {
    int stat;
    pthread_t wdid;
@@ -94,7 +94,7 @@ int init_watchdog(void)
  * Returns: 0 on success
  *	    errno on failure
  */
-int term_watchdog(void)
+int stop_watchdog(void)
 {
    int stat;
 

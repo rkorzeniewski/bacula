@@ -144,7 +144,7 @@ int main (int argc, char *argv[])
    }
 
 
-   init_msg(NULL);
+   init_msg(NULL, NULL);
    parse_config(configfile);
 
    LockRes();
@@ -179,7 +179,7 @@ Without that I don't know who I am :-(\n"), configfile);
    me += 1000000;
 #endif
 
-   init_watchdog();		      /* start watchdog thread */
+   start_watchdog();		      /* start watchdog thread */
 
    /* Become server, and handle requests */
    Dmsg1(10, "filed: listening on port %d\n", me->FDport);
@@ -190,7 +190,7 @@ Without that I don't know who I am :-(\n"), configfile);
 
 void terminate_filed(int sig)
 {
-   term_watchdog();
+   stop_watchdog();
 
    if (configfile != NULL) {
       free(configfile);

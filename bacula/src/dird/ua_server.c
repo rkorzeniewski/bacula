@@ -101,7 +101,6 @@ static void handle_UA_client_request(void *arg)
    ua.automount = TRUE;
    ua.verbose = TRUE;
    ua.jcr = new_jcr(sizeof(JCR), dird_free_jcr);
-   close_msg(ua.jcr);                 /* we don't handle messages */
    ua.jcr->sd_auth_key = bstrdup("dummy"); /* dummy Storage daemon key */
    ua.UA_sock = UA_sock;
    ua.cmd = (char *) get_pool_memory(PM_FNAME);

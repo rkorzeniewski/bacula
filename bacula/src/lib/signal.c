@@ -62,7 +62,7 @@ static void signal_handler(int sig)
    struct sigaction sigdefault;
 
    if (already_dead) {
-      abort();
+      _exit(1);
    }
    already_dead = TRUE;
    if (sig == SIGTERM) {
@@ -125,7 +125,6 @@ static void signal_handler(int sig)
          Dmsg0(500, "Doing sleep\n");
 	 sleep(30);
       }
-      abort();			      /* produce dump */
    }
 #endif
 
