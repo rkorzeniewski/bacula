@@ -60,6 +60,7 @@ static char OKsetdebug[]   = "3000 OK setdebug=%d\n";
 extern void terminate_child();
 extern int job_cmd(JCR *jcr);
 extern int status_cmd(JCR *sjcr);
+extern int qstatus_cmd(JCR *jcr);
 
 /* Forward referenced functions */
 static int label_cmd(JCR *jcr);
@@ -95,6 +96,7 @@ static struct s_cmds cmds[] = {
    {"mount",     mount_cmd},
    {"unmount",   unmount_cmd},
    {"status",    status_cmd},
+   {".status",   qstatus_cmd},
    {"autochanger", autochanger_cmd},
    {"release",   release_cmd},
    {"readlabel", readlabel_cmd},

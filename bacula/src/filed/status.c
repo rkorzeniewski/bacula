@@ -38,6 +38,11 @@ static void  list_terminated_jobs(void sendit(const char *msg, int len, void *sa
 static void bsock_sendit(const char *msg, int len, void *arg);
 static const char *level_to_str(int level);
 
+/* Static variables */
+static char qstatus[] = ".status %s\n";
+
+static char OKqstatus[]   = "2000 OK .status\n";
+static char DotStatusJob[] = "JobId=%d JobStatus=%c JobErrors=%d\n";
 
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
 static int privs = 0;
@@ -267,6 +272,54 @@ int status_cmd(JCR *jcr)
    return 1;
 }
 
+/*
+ * .status command from Director
+ */
+int qstatus_cmd(JCR *jcr)
+{
+   BSOCK *dir = jcr->dir_bsock;
+   char time[dir->msglen+1];
+   JCR *njcr;
+   s_last_job* job;
+      
+   if (sscanf(dir->msg, qstatus, time) != 1) {
+      pm_strcpy(&jcr->errmsg, dir->msg);
+      Jmsg1(jcr, M_FATAL, 0, _("Bad .status command: %s\n"), jcr->errmsg);
+      bnet_fsend(dir, "2900 Bad .status command, missing argument.\n");
+      bnet_sig(dir, BNET_EOD);
+      return 0;
+   }
+   unbash_spaces(time);
+   
+   if (strcmp(time, "current") == 0) {
+      bnet_fsend(dir, OKqstatus, time);
+      lock_jcr_chain();
+      foreach_jcr(njcr) {
+         if (njcr->JobId != 0) {
+            bnet_fsend(dir, DotStatusJob, njcr->JobId, njcr->JobStatus, njcr->JobErrors);
+         }
+         free_locked_jcr(njcr);
+      }
+      unlock_jcr_chain();
+   }
+   else if (strcmp(time, "last") == 0) {
+      bnet_fsend(dir, OKqstatus, time);
+      if ((last_jobs) && (last_jobs->size() > 0)) {
+         job = (s_last_job*)last_jobs->last();
+         bnet_fsend(dir, DotStatusJob, job->JobId, job->JobStatus, job->Errors);
+      }
+   }
+   else {
+      pm_strcpy(&jcr->errmsg, dir->msg);
+      Jmsg1(jcr, M_FATAL, 0, _("Bad .status command: %s\n"), jcr->errmsg);
+      bnet_fsend(dir, "2900 Bad .status command, wrong argument.\n");
+      bnet_sig(dir, BNET_EOD);
+      return 0;
+   }
+   
+   bnet_sig(dir, BNET_EOD);
+   return 1;
+}
 
 /*
  * Convert Job Level into a string

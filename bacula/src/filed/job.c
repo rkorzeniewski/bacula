@@ -34,7 +34,8 @@ extern CLIENT *me;		      /* our client resource */
 			
 /* Imported functions */
 extern int status_cmd(JCR *jcr);
-				   
+extern int qstatus_cmd(JCR *jcr);
+
 /* Forward referenced functions */
 static int backup_cmd(JCR *jcr);
 static int bootstrap_cmd(JCR *jcr);
@@ -85,6 +86,7 @@ static struct s_cmds cmds[] = {
    {"restore",      restore_cmd},
    {"session",      session_cmd},
    {"status",       status_cmd},
+   {".status",      qstatus_cmd},
    {"storage ",     storage_cmd},
    {"verify",       verify_cmd},
    {"bootstrap",    bootstrap_cmd},
