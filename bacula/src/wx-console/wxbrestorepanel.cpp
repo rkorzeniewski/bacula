@@ -408,7 +408,7 @@ wxbRestorePanel::wxbRestorePanel(wxWindow* parent): wxbPanel(parent) {
 
    SetCursor(*wxSTANDARD_CURSOR);
 
-   markWhenListingDone = false;
+   markWhenCommandDone = false;
    
    cancelled = 0;
 }
@@ -1985,7 +1985,6 @@ void wxbRestorePanel::OnCancel(wxCommandEvent& event) {
 
 void wxbRestorePanel::OnStart(wxCommandEvent& event) {
    if (IsWorking()) {
-      AddPendingEvent(event);
       return;
    }
    SetWorking(true);
@@ -1995,14 +1994,12 @@ void wxbRestorePanel::OnStart(wxCommandEvent& event) {
 
 void wxbRestorePanel::OnTreeChanging(wxTreeEvent& event) {
    if (IsWorking()) {
-      AddPendingEvent(event);
       event.Veto();
    }
 }
 
 void wxbRestorePanel::OnTreeExpanding(wxTreeEvent& event) {
    if (IsWorking()) {
-      AddPendingEvent(event);
       event.Veto();
       return;
    }
@@ -2016,7 +2013,6 @@ void wxbRestorePanel::OnTreeExpanding(wxTreeEvent& event) {
 
 void wxbRestorePanel::OnTreeChanged(wxTreeEvent& event) {
    if (IsWorking()) {
-      AddPendingEvent(event);
       return;
    }
    if (currentTreeItem == event.GetItem()) {
@@ -2025,11 +2021,11 @@ void wxbRestorePanel::OnTreeChanged(wxTreeEvent& event) {
    treeadd->Enable(false);
    treeremove->Enable(false);
    treerefresh->Enable(false);
-   markWhenListingDone = false;
+   markWhenCommandDone = false;
    SetWorking(true);
    currentTreeItem = event.GetItem();
    CmdList(event.GetItem());
-   if (markWhenListingDone) {
+   if (markWhenCommandDone) {
       CmdMark(event.GetItem(), NULL, 0);
       tree->Refresh();
    }
@@ -2043,17 +2039,19 @@ void wxbRestorePanel::OnTreeChanged(wxTreeEvent& event) {
 }
 
 void wxbRestorePanel::OnTreeMarked(wxbTreeMarkedEvent& event) {
-   csprint("Tree marked", CS_DEBUG);
    if (IsWorking()) {
       if (tree->GetSelection() == event.GetItem()) {
-         markWhenListingDone = !markWhenListingDone;
+         markWhenCommandDone = !markWhenCommandDone;
       }
-      AddPendingEvent(event);
       return;
    }
    SetWorking(true);
+   markWhenCommandDone = false;
    CmdMark(event.GetItem(), NULL, 0);
-   //event.Skip();
+   if (markWhenCommandDone) {
+      CmdMark(event.GetItem(), NULL, 0);
+      tree->Refresh();
+   }
    tree->Refresh();
    SetWorking(false);
    if (event.GetItem().IsOk()) {
@@ -2065,7 +2063,6 @@ void wxbRestorePanel::OnTreeMarked(wxbTreeMarkedEvent& event) {
 
 void wxbRestorePanel::OnTreeAdd(wxCommandEvent& event) {
    if (IsWorking()) {
-      AddPendingEvent(event);
       return;
    }
    
@@ -2081,7 +2078,6 @@ void wxbRestorePanel::OnTreeAdd(wxCommandEvent& event) {
 
 void wxbRestorePanel::OnTreeRemove(wxCommandEvent& event) {
    if (IsWorking()) {
-      AddPendingEvent(event);
       return;
    }
    
@@ -2097,7 +2093,6 @@ void wxbRestorePanel::OnTreeRemove(wxCommandEvent& event) {
 
 void wxbRestorePanel::OnTreeRefresh(wxCommandEvent& event) {
    if (IsWorking()) {
-      AddPendingEvent(event);
       return;
    }
    
@@ -2108,8 +2103,6 @@ void wxbRestorePanel::OnTreeRefresh(wxCommandEvent& event) {
 
 void wxbRestorePanel::OnListMarked(wxbListMarkedEvent& event) {
    if (IsWorking()) {
-      AddPendingEvent(event);
-      //event.Skip();
       return;
    }
    
@@ -2129,7 +2122,7 @@ void wxbRestorePanel::OnListMarked(wxbListMarkedEvent& event) {
       num++;
       item = list->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
    }
-     
+   
    CmdMark(wxTreeItemId(), items, num);
    
    delete[] items;
@@ -2145,8 +2138,6 @@ void wxbRestorePanel::OnListMarked(wxbListMarkedEvent& event) {
 
 void wxbRestorePanel::OnListActivated(wxListEvent& event) {
    if (IsWorking()) {
-      AddPendingEvent(event);
-      //event.Skip();
       return;
    }
    SetWorking(true);
@@ -2183,7 +2174,6 @@ void wxbRestorePanel::OnListActivated(wxListEvent& event) {
 
 void wxbRestorePanel::OnListChanged(wxListEvent& event) {
    if (IsWorking()) {
-      AddPendingEvent(event);
       return;
    }
  
@@ -2220,7 +2210,6 @@ void wxbRestorePanel::OnListChanged(wxListEvent& event) {
 
 void wxbRestorePanel::OnListAdd(wxCommandEvent& event) {
    if (IsWorking()) {
-      AddPendingEvent(event);
       return;
    }
    
@@ -2250,7 +2239,6 @@ void wxbRestorePanel::OnListAdd(wxCommandEvent& event) {
 
 void wxbRestorePanel::OnListRemove(wxCommandEvent& event) {
    if (IsWorking()) {
-      AddPendingEvent(event);
       return;
    }
    
@@ -2280,7 +2268,6 @@ void wxbRestorePanel::OnListRemove(wxCommandEvent& event) {
 
 void wxbRestorePanel::OnListRefresh(wxCommandEvent& event) {
    if (IsWorking()) {
-      AddPendingEvent(event);
       return;
    }
    

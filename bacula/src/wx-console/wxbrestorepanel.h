@@ -151,7 +151,7 @@ class wxbRestorePanel : public wxbPanel
       bool working; // A command is running, discard GUI events
       void SetWorking(bool working);
       bool IsWorking();
-      bool markWhenListingDone;
+      bool markWhenCommandDone; //If an item should be (un)marked after the current listing/marking is done
       wxTreeItemId currentTreeItem; // Currently selected tree item
 
       /* Enable or disable config controls status */

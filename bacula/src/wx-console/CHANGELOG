@@ -1,3 +1,9 @@
+24-03-2005 :
+ - wxbMainFrame : Fix a bug with GTK+-1.2 which caused wx-console to crash
+   when starting.
+ - wxbRestorePanel : Fix a major bug which caused wx-console to enter in an
+   infinite loop which allocate a lot of memory and could make the system crash.
+
 10-03-2005 :
  - wxbMainFrame : Fix bug #0000221 (Debian 292517)
 
