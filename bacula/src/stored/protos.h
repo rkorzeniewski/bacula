@@ -210,3 +210,5 @@ bool	commit_attribute_spool	  (JCR *jcr);
 bool	write_block_to_spool_file (DCR *dcr, DEV_BLOCK *block);
 bool	open_spool_file 	  (JCR *jcr, BSOCK *bs);
 bool	close_spool_file	  (JCR *jcr, BSOCK *bs);
+void	list_spool_stats	  (BSOCK *bs);
+

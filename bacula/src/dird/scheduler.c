@@ -32,7 +32,7 @@
 #include "bacula.h"
 #include "dird.h"
 
-/* #define PHIL */
+/* #define SCHED_DEBUG */
 
 
 /* Local variables */
@@ -315,7 +315,7 @@ static void add_job(JOB *job, RUN *run, time_t now, time_t runtime)
     *  do run any job scheduled less than a minute ago.
     */
    if (((runtime - run->last_run) < 61) || ((runtime+59) < now)) {
-#ifdef PHIL
+#ifdef SCHED_DEBUG
       char dt[50], dt1[50], dt2[50];
       bstrftime_nc(dt, sizeof(dt), runtime);  
       bstrftime_nc(dt1, sizeof(dt1), run->last_run);
@@ -352,15 +352,17 @@ static void add_job(JOB *job, RUN *run, time_t now, time_t runtime)
       jobs_to_run->append(je);
       dump_job(je, "Appended job");
    }
+#ifdef SCHED_DEBUG
    foreach_dlist(ji, jobs_to_run) {
       dump_job(ji, "Run queue");
    }
    Dmsg0(000, "End run queue\n");
+#endif
 }
 
 static void dump_job(job_item *ji, char *msg) 
 {
-#ifdef PHIL 
+#ifdef SCHED_DEBUG
    char dt[MAX_TIME_LENGTH];
    int save_debug = debug_level;
    debug_level = 200;

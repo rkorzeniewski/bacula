@@ -149,10 +149,44 @@ int dir_get_volume_info(JCR *jcr, enum get_vol_info_rw writing)
 int dir_find_next_appendable_volume(JCR *jcr)
 {
     BSOCK *dir = jcr->dir_bsock;
+    JCR *njcr;
 
     Dmsg0(200, "dir_find_next_appendable_volume\n");
-    bnet_fsend(dir, Find_media, jcr->Job, 1);
-    return do_get_volume_info(jcr);
+    for (int vol_index=1;  vol_index < 3; vol_index++) {
+       bnet_fsend(dir, Find_media, jcr->Job, vol_index);
+       if (do_get_volume_info(jcr)) {
+          Dmsg1(200, "Got possible Vol=%s\n", jcr->VolumeName);
+	  bool found = false;
+	  /* 
+	   * Walk through all jobs and see if the volume is   
+	   *  already mounted. If so, try a different one.
+	   * This would be better done by walking through  
+	   *  all the devices.
+	   */
+	  lock_jcr_chain();
+	  foreach_jcr(njcr) {
+	     if (jcr == njcr) {
+		continue;	      /* us */
+	     }
+	     if (strcmp(jcr->VolumeName, njcr->VolumeName) == 0) {
+		found = true;
+                Dmsg1(200, "Vol in use by JobId=%u\n", njcr->JobId);
+		free_locked_jcr(njcr);
+		break;
+	     }
+	     free_locked_jcr(njcr);
+	  }
+	  unlock_jcr_chain();
+	  if (!found) {
+             Dmsg0(200, "dir_find_next_appendable_volume return true\n");
+	     return true;	      /* Got good Volume */
+	  }
+       } else {
+	  break;
+       }
+    }
+    Dmsg0(200, "dir_find_next_appendable_volume return false\n");
+    return false;
 }
 
     

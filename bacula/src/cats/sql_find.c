@@ -250,8 +250,8 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
           "FirstWritten,LastWritten,VolStatus,InChanger "
           "FROM Media WHERE PoolId=%u AND MediaType='%s' AND VolStatus='%s' "
           "%s " 
-          "%s LIMIT 1",
-	  mr->PoolId, mr->MediaType, mr->VolStatus, changer, order);
+          "%s LIMIT %d",
+	  mr->PoolId, mr->MediaType, mr->VolStatus, changer, order, item);
    }
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);

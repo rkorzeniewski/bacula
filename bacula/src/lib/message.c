@@ -555,6 +555,7 @@ void dispatch_message(JCR *jcr, int type, int level, char *msg)
 
     if (type == M_ABORT || type == M_ERROR_TERM) {
        fputs(msg, stdout);	   /* print this here to INSURE that it is printed */
+       fflush(stdout);
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
        MessageBox(NULL, msg, "Bacula", MB_OK);
 #endif
@@ -1118,11 +1119,11 @@ again:
       pool_buf = realloc_pool_memory(pool_buf, maxlen + maxlen/2);
       goto again;
    }
-   P(msg_queue_mutex);
    item = (MQUEUE_ITEM *)malloc(sizeof(MQUEUE_ITEM) + strlen(pool_buf) + 1);
    item->type = type;
    item->level = level;
    strcpy(item->msg, pool_buf);  
+   P(msg_queue_mutex);
    jcr->msg_queue->append(item);
    V(msg_queue_mutex);
    free_memory(pool_buf);

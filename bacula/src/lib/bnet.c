@@ -92,7 +92,7 @@ static int32_t write_nbytes(BSOCK *bsock, char *ptr, int32_t nbytes)
    if (bsock->spool) {
       nwritten = fwrite(ptr, 1, nbytes, bsock->spool_fd);
       if (nwritten != nbytes) {
-         Jmsg1(bsock->jcr, M_ERROR, 0, _("Spool write error. ERR=%s\n"), strerror(errno));
+         Jmsg1(bsock->jcr, M_FATAL, 0, _("Attr spool write error. ERR=%s\n"), strerror(errno));
          Dmsg2(400, "nwritten=%d nbytes=%d.\n", nwritten, nbytes);
 	 return -1;
       }
@@ -296,14 +296,14 @@ int bnet_despool_to_bsock(BSOCK *bsock)
 	 nbytes = fread(bsock->msg, 1, bsock->msglen, bsock->spool_fd);
 	 if (nbytes != (size_t)bsock->msglen) {
             Dmsg2(400, "nbytes=%d msglen=%d\n", nbytes, bsock->msglen);
-            Jmsg1(bsock->jcr, M_ERROR, 0, _("fread error. ERR=%s\n"), strerror(errno));
+            Jmsg1(bsock->jcr, M_FATAL, 0, _("fread attr spool error. ERR=%s\n"), strerror(errno));
 	    return 0;
 	 }
       }
       bnet_send(bsock);
    }
    if (ferror(bsock->spool_fd)) {
-      Jmsg1(bsock->jcr, M_ERROR, 0, _("fread error. ERR=%s\n"), strerror(errno));
+      Jmsg1(bsock->jcr, M_FATAL, 0, _("fread attr spool error. ERR=%s\n"), strerror(errno));
       return 0;
    }
    return 1;

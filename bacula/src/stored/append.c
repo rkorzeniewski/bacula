@@ -185,7 +185,7 @@ int do_append_data(JCR *jcr)
 	    if (!write_block_to_device(jcr->dcr, block)) {
                Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
 		  dev_name(dev), strerror_dev(dev));
-               Jmsg(jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
+               Jmsg(jcr, M_FATAL, 0, _("Fatal device error: ERR=%s\n"),
 		     strerror_dev(dev));
 	       ok = false;
 	       break;
