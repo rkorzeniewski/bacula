@@ -41,3 +41,4 @@ clean:
 
 distclean:
 	@rm -f bacula-SD bacula-FD bacula-DIR Makefile bacula-*.spec
+	@rm -rf CVS

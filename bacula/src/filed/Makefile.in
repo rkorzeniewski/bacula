@@ -89,7 +89,7 @@ realclean: clean
 
 distclean: realclean
 	if test $(srcdir) = .; then $(MAKE) realclean; fi
-	(cd $(srcdir); $(RMF) Makefile)
+	(cd $(srcdir); $(RMF) Makefile; $(RMF) -r CVS)
 	if test -f win32/Makefile; then \
 	   (cd win32; $(MAKE) distclean); \
 	fi

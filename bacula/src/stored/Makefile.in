@@ -141,7 +141,7 @@ realclean: clean
 
 distclean: realclean
 	if test $(srcdir) = .; then $(MAKE) realclean; fi
-	(cd $(srcdir); $(RMF) Makefile)
+	(cd $(srcdir); $(RMF) Makefile; $(RMF) -r CVS)
 
 
 # Semi-automatic generation of dependencies:

@@ -11,8 +11,7 @@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL = @INSTALL@
 
-SUBDIRS = freebsd redhat solaris unknown hpux suse openbsd \
-		  slackware alpha netbsd caldera debian
+SUBDIRS = freebsd redhat solaris unknown openbsd irix
 
 MAKE = make
 
@@ -72,15 +71,17 @@ depend:
 clean:
 	@for subdir in ${SUBDIRS}; do \
 	    if [ -f $${subdir}/Makefile ]; then \
-		    (cd $${subdir}; make clean;) \
+		    (cd $${subdir}; make clean) \
 	    fi; \
 	done
 	rm -f 1 2 3
 
 distclean:
-	rm -f Makefile
+	@rm -f Makefile
+	@rm -rf CVS
 	@for subdir in ${SUBDIRS}; do \
 	    if [ -f $${subdir}/Makefile ]; then \
-		     (cd $${subdir}; make distclean;) \
+		     (cd $${subdir}; make distclean) \
 	    fi; \
+	    (cd $${subdir}; rm -rf CVS) \
 	done

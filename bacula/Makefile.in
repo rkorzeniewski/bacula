@@ -139,6 +139,11 @@ distclean:
 	@$(RMF) console gconsole
 	@$(RMF) *~ 1 2 3 core core.* config.guess console.log console.sum
 	@$(RMF) working/*
+	@$(RMF) -r CVS testsuite/CVS testsuite/config/CVS testsuite/console.test/CVS
+	@$(RMF) -r examples/devices/CVS autoconf/CVS autoconf/gnome-macros/CVS
+	@$(RMF) -r doc/techlogs/2002/CVS doc/techlogs/2001/CVS doc/techlogs/1.27/CVS
+	@$(RMF) -r examples/CVS intl/CVS scripts/CVS
+	@$(RMF) -r po/CVS src/immortal/CVS rescue/freebsd/CVS rescue/solaris/CVS
 
 distdirs:
 	mkdir ../$(VERNAME);

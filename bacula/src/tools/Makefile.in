@@ -64,7 +64,7 @@ realclean: clean
 
 distclean: realclean
 	if test $(srcdir) = .; then $(MAKE) realclean; fi
-	(cd $(srcdir); $(RMF) Makefile)
+	(cd $(srcdir); $(RMF) Makefile; $(RMF) -r CVS)
 
 install: smtp
 	$(INSTALL_PROGRAM) smtp $(DESTDIR)$(sbindir)/smtp      

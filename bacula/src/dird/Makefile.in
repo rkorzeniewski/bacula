@@ -86,7 +86,7 @@ realclean: clean
 
 distclean: realclean
 	if test $(srcdir) = .; then $(MAKE) realclean; fi
-	(cd $(srcdir); $(RMF) Makefile)
+	(cd $(srcdir); $(RMF) Makefile; $(RMF) -r CVS)
 
 install: all
 	$(INSTALL_PROGRAM) bacula-dir $(DESTDIR)$(sbindir)/bacula-dir

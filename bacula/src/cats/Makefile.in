@@ -66,7 +66,7 @@ realclean: clean
 
 distclean: realclean
 	if test $(srcdir) = .; then $(MAKE) realclean; fi
-	(cd $(srcdir); $(RMF) Makefile)
+	(cd $(srcdir); $(RMF) Makefile; $(RMF) -r CVS)
 
 install:
 	$(INSTALL_SCRIPT) create_@DB_NAME@_database $(DESTDIR)$(sysconfdir)/create_@DB_NAME@_database
