@@ -28,7 +28,6 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.32:
-- Specify list of files to restore
 - Enhance "update slots" to include a "scan" feature
   scan 1; scan 1-5; scan 1,2,4 ...  to update the catalog 
 - Allow a slot or range of slots on the label barcodes command.
@@ -39,6 +38,21 @@ For 1.32:
   volume.
 - Implement List Volume Job=xxx  or List scheduled volumes or Status Director 
 - Make | and < work on FD side.
+- Take a careful look a the Basic recycling algorithm.  When Bacula
+  chooses, the order should be:
+   - Look for Append
+   - Look for Recycle or Purged
+   - Prune volumes
+   - Look for purged
+  Instead of using lowest media Id, find the least recently used
+  volume.
+
+  When the tape is mounted and Bacula requests the status
+  - Do everything possible to use it.
+
+  Define a "available" status, which is the currently mounted 
+  Volume and all volumes that are currently in the autochanger.
+   
 
 For 1.33
 - Why can't SQL do the filename sort for restore?
@@ -873,3 +887,4 @@ Done: (see kernsdone for more)
   Look at src/host.h
 - Use repositioning at the beginning of the tape.                   
 - Do full check the command line args in update (e.g. VolStatus ...).
+- Specify list of files to restore
