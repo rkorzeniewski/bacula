@@ -460,7 +460,6 @@ int create_pool(B_DB *db, POOL *pool)
    pr.AcceptAnyVolume = pool->accept_any_volume;
    pr.Recycle = pool->Recycle;
    pr.VolRetention = pool->VolRetention;
-Dmsg1(000, "Retention=%d\n", (uint32_t)pr.VolRetention);
    pr.AutoPrune = pool->AutoPrune;
    if (pool->label_format) {
       strcpy(pr.LabelFormat, pool->label_format);
