@@ -19,8 +19,12 @@ all: all-before wx-console.exe all-after
 clean: clean-custom
 	rm -f $(OBJ) $(BIN)
 
-$(BIN): $(OBJ)
+$(BIN): $(OBJ) ../lib/libbac.a
 	$(CPP) $(LINKOBJ) -o "wx-console.exe" $(LIBS)
+
+../lib/libbac.a: ../lib/*.c*
+	(cd ../lib/; $(MAKE) -f Makefile.mingw DESTDIR=$(DESTDIR))
+	@rm -f bacula-fd.exe
 
 main.o: main.cpp
 	$(CPP) -c main.cpp -o main.o $(CXXFLAGS)
