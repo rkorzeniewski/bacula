@@ -1580,6 +1580,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/cats/make_bacula_tables \
 	   src/cats/drop_bacula_tables \
 	   src/cats/update_bacula_tables \
+	   src/cats/grant_bacula_privileges \
 	   src/findlib/Makefile \
 	   src/tools/Makefile \
 	   $PFILES ],  
@@ -1603,6 +1604,7 @@ chmod 755 src/cats/update_sqlite_tables
 chmod 755 src/cats/make_bacula_tables src/cats/drop_bacula_tables 
 chmod 755 src/cats/update_mysql_tables
 chmod 755 src/cats/update_bacula_tables src/cats/update_mysql_tables
+chmod 755 src/cats/grant_bacula_privileges
 chmod 755 src/cats/create_sqlite_database
 chmod 755 src/cats/sqlite
 chmod 755 src/cats/make_bdb_tables src/cats/drop_bdb_tables 
