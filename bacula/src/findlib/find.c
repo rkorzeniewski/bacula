@@ -136,7 +136,7 @@ find_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt), void 
 	    findFOPTS *fo = (findFOPTS *)incexe->opts_list.get(j);
 	    ff->flags |= fo->flags;
 	    ff->GZIP_level = fo->GZIP_level;
-	    ff->fstypes = &(fo->fstype);
+	    ff->fstypes = fo->fstype;
 	    bstrncat(ff->VerifyOpts, fo->VerifyOpts, sizeof(ff->VerifyOpts)); 
 	 }
 	 for (j=0; j<incexe->name_list.size(); j++) {
@@ -178,7 +178,7 @@ static bool accept_file(FF_PKT *ff)
       ff->GZIP_level = fo->GZIP_level;
       ff->reader = fo->reader;
       ff->writer = fo->writer;
-      ff->fstypes = &(fo->fstype);
+      ff->fstypes = fo->fstype;
       ic = (ff->flags & FO_IGNORECASE) ? FNM_CASEFOLD : 0;
       for (k=0; k<fo->wild.size(); k++) {
 	 if (fnmatch((char *)fo->wild.get(k), ff->fname, fnmode|ic) == 0) {
