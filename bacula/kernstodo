@@ -104,6 +104,13 @@ From Chris Hull:
 
 
 For version 1.35:
+- Remove paths (and files that reference them) that have no trailing slash   
+  in dbcheck -- or add a trailing slash.
+- Remove Filenames (and files that reference them) that have a trailing
+  slash in dbcheck -- or remove the trailing slash.
+- Remove orphaned paths/filenames by copying them to a new table with a 
+  reference count, then mark all referenced files/paths and remove unreferenced
+  ones.
 - Add a .list all files in the restore tree (probably also a list all files)
   Do both a long and short form.
 - Allow browsing the catalog to see all versions of a file (with 

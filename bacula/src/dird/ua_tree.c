@@ -402,14 +402,12 @@ static int lscmd(UAContext *ua, TREE_CTX *tree)
 /*
  * Ls command that lists only the marked files
  */
-static int lsmarkcmd(UAContext *ua, TREE_CTX *tree)
+static void rlsmark(UAContext *ua, TREE_NODE *node) 
 {
-   TREE_NODE *node;
-
-   if (!tree->node->child) {	 
-      return 1;
+   if (!node->child) {	   
+      return;
    }
-   for (node = tree->node->child; node; node=node->sibling) {
+   for (node = node->child; node; node=node->sibling) {
       if ((ua->argc == 1 || fnmatch(ua->argk[1], node->fname, 0) == 0) &&
 	  (node->extract || node->extract_dir)) {
 	 char *tag;
@@ -421,10 +419,19 @@ static int lsmarkcmd(UAContext *ua, TREE_CTX *tree)
             tag = "";
 	 }
          bsendmsg(ua, "%s%s%s\n", tag, node->fname, node->child?"/":"");
+	 if (node->child) {
+	    rlsmark(ua, node);
+	 }
       }
    }
+}
+
+static int lsmarkcmd(UAContext *ua, TREE_CTX *tree)
+{
+   rlsmark(ua, tree->node);
    return 1;
 }
+
 
 
 extern char *getuser(uid_t uid);
