@@ -315,16 +315,16 @@ void wxbRestorePanel::CmdStart() {
       totfilemessages = 0;
       wxbDataTokenizer* dt;
       
-      dt = WaitForEnd("estimate\n");
+      dt = WaitForEnd("estimate\n", true);
       
       int j, k;
-      
+          
       for (unsigned int i = 0; i < dt->GetCount(); i++) {
          /* 15847 total files; 1 marked to be restored; 1,034 bytes. */
          if ((j = (*dt)[i].Find(" marked to be restored;")) > -1) {
             k = (*dt)[i].Find("; ");
             (*dt)[i].Mid(k+2, j).ToLong(&totfilemessages);
-            return;
+            break;
          }
       }
       
@@ -335,12 +335,12 @@ void wxbRestorePanel::CmdStart() {
       for (unsigned int i = 0; i < dt->GetCount(); i++) {
          if ((j = (*dt)[i].Find(" files selected to be restored.")) > -1) {
             (*dt)[i].Mid(0, j).ToLong(&totfilemessages);
-            return;
+            break;
          }
 
          if ((j = (*dt)[i].Find(" file selected to be restored.")) > -1) {
             (*dt)[i].Mid(0, j).ToLong(&totfilemessages);
-            return;
+            break;
          }
       }
       
@@ -579,13 +579,18 @@ wxbDataTokenizer* wxbRestorePanel::WaitForEnd(wxString cmd, bool keepresults) {
    wxbDataTokenizer* datatokenizer = new wxbDataTokenizer();
 
    wxbMainFrame::GetInstance()->Send(cmd);
-
+   
+   //wxbMainFrame::GetInstance()->Print("(<WFE)", CS_DEBUG);
+   
    //time_t base = wxDateTime::Now().GetTicks();
    while (!datatokenizer->hasFinished()) {
       //innerThread->Yield();
       wxTheApp->Yield();
       //if (base+15 < wxDateTime::Now().GetTicks()) break;
    }
+   
+   //wxbMainFrame::GetInstance()->Print("(>WFE)", CS_DEBUG);
+   
    if (keepresults) {
       return datatokenizer;
    }

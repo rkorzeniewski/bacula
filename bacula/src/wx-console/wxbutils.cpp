@@ -57,7 +57,9 @@ void wxbDataTokenizer::Print(wxString str, int status) {
 
    if (str != "") {
       Add(str);
+      //wxbMainFrame::GetInstance()->Print("D", CS_DEBUG);
    }
+   //wxbMainFrame::GetInstance()->Print(finished ? "F" : "!F", CS_DEBUG);
 }
 
 /* Returns true if the last signal received was an end signal, 
