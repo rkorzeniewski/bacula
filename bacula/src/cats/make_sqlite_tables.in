@@ -165,7 +165,7 @@ CREATE TABLE Version (
    );
 
 -- Initialize Version		 
-INSERT INTO Version (VersionId) VALUES (4);
+INSERT INTO Version (VersionId) VALUES (5);
 
 CREATE TABLE Counters (
    Counter TEXT NOT NULL,     
