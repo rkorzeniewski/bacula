@@ -1,10 +1,11 @@
 
-          Release Notes for Bacula 1.35.1
+          Release Notes for Bacula 1.35.2
 
-  Bacula code: Total files = 384 Total lines = 110,682 (*.h *.c *.in)
+  Bacula code: Total files = 395 Total lines = 115,027 (*.h *.c *.in)
 
 Changes for 1.35.1
 Major Changes:
+- Tray monitor program
 - Added Tape Alert feature (see Alert Command).
 - New IPv6 code (untested)
 - New way of specifying Addresses and Ports -- permits having
