@@ -399,5 +399,5 @@ void terminate_stored(int sig)
    close_memory_pool();
 
    sm_dump(False);		      /* dump orphaned buffers */
-   exit(1);
+   exit(sig);
 }
