@@ -1,5 +1,10 @@
 
-
+09Feb04
+- Add \n to hosts.access reject message.
+- Implement security message class and make hosts.access message use
+  that class.
+08Feb04
+- Fix check_memory bug in ua_query.c, which gives a bus error on Solaris.
 07Feb04
 - Added backup to cdwriter script to examples provided by Johan Decock.
 - Fixed a bug where ls really did lsmark (just invert command table

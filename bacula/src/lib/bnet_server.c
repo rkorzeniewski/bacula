@@ -153,7 +153,7 @@ bnet_thread_server(char *bind_addr, int port, int max_clients, workq_t *client_w
       fromhost(&request);
       if (!hosts_access(&request)) {
 	 V(mutex);
-         Jmsg2(NULL, M_WARNING, 0, _("Connection from %s:%d refused by hosts.access"),
+         Jmsg2(NULL, M_SECURITY, 0, _("Connection from %s:%d refused by hosts.access\n"),
 	       inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
 	 close(newsockfd);
 	 continue;
@@ -303,7 +303,7 @@ bnet_accept(BSOCK *bsock, char *who)
    fromhost(&request);
    if (!hosts_access(&request)) {
       V(mutex);
-      Emsg2(M_WARNING, 0, _("Connection from %s:%d refused by hosts.access"),
+      Emsg2(M_SECURITY, 0, _("Connection from %s:%d refused by hosts.access\n"),
 	    inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
       close(newsockfd);
       return NULL;

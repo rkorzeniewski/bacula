@@ -36,6 +36,7 @@
 #undef  M_ERROR_TERM
 #undef  M_TERM
 #undef  M_RESTORED
+#undef  M_SECURITY
 
 /*
  * Most of these message levels are more or less obvious. 
@@ -61,23 +62,29 @@
  *
  *  M_RESTORED    An ls -l of each restored file.
  *
+ *  M_SECURITY    For security viloations. This is equivalent to FATAL.
+ *                (note, this is currently being implemented in 1.33).
+ *
  */
 
-#define M_DEBUG       1               /* debug message */
-#define M_ABORT       2               /* MUST abort immediately */
-#define M_FATAL       3               /* Fatal error, stopping job */
-#define M_ERROR       4               /* Error, but recoverable */
-#define M_WARNING     5               /* Warning message */
-#define M_INFO        6               /* Informational message */
-#define M_SAVED       7               /* Info on saved file */
-#define M_NOTSAVED    8               /* Info on notsaved file */
-#define M_SKIPPED     9               /* File skipped by option setting */
-#define M_MOUNT      10               /* Mount requests */
-#define M_ERROR_TERM 11               /* Error termination request (no dump) */
-#define M_TERM       12               /* Terminating daemon */
-#define M_RESTORED   13               /* ls -l of restored files */
+enum {
+   M_DEBUG = 1,                       /* debug message */
+   M_ABORT,                           /* MUST abort immediately */
+   M_FATAL,                           /* Fatal error, stopping job */
+   M_ERROR,                           /* Error, but recoverable */
+   M_WARNING,                         /* Warning message */
+   M_INFO,                            /* Informational message */
+   M_SAVED,                           /* Info on saved file */
+   M_NOTSAVED,                        /* Info on notsaved file */
+   M_SKIPPED,                         /* File skipped during backup by option setting */
+   M_MOUNT,                           /* Mount requests */
+   M_ERROR_TERM,                      /* Error termination request (no dump) */
+   M_TERM,                            /* Terminating daemon normally */
+   M_RESTORED,                        /* ls -l of restored files */
+   M_SECURITY,                        /* security violation */
+};
 
-#define M_MAX      M_RESTORED         /* keep this updated ! */
+#define M_MAX      M_SECURITY         /* keep this updated ! */
 
 /* Define message destination structure */
 /* *** FIXME **** where should be extended to handle multiple values */
