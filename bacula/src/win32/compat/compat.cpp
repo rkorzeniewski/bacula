@@ -22,8 +22,8 @@
 // Author          : Christopher S. Hull
 // Created On      : Sat Jan 31 15:55:00 2004
 // Last Modified By: Christopher S. Hull
-// Last Modified On: Sun Feb 22 12:55:40 2004
-// Update Count    : 634
+// Last Modified On: Sun Feb 22 16:08:54 2004
+// Update Count    : 659
 // $Id$
 
 #include <stdio.h>
@@ -185,12 +185,6 @@ lchown(const char *k, uid_t, gid_t)
 }
 
 
-int
-utime(const char *, struct utimbuf *)
-{
-    return -1;
-}
-
 
 long int
 random(void)
@@ -207,7 +201,7 @@ srandom(unsigned int seed)
 // convert from Windows concept of time to Unix concept of time
 // /////////////////////////////////////////////////////////////////
 void
-cvt(const time_t  &time, FILETIME &wintime)
+cvt_utime_to_ftime(const time_t  &time, FILETIME &wintime)
 {
     uint64_t mstime = time;
     mstime *= WIN32_FILETIME_SCALE;
@@ -1177,5 +1171,41 @@ close_wpipe(BPIPE *bpipe)
         bpipe->wfd = NULL;
     }
     return stat;
+}
+
+#include "findlib/find.h"
+
+int
+utime(const char *fname, struct utimbuf *times)
+{
+    FILETIME acc, mod;
+    char tmpbuf[1024];
+
+    cygwin_conv_to_win32_path(fname, tmpbuf);
+
+    cvt_utime_to_ftime(times->actime, acc);
+    cvt_utime_to_ftime(times->modtime, mod);
+
+    HANDLE h = CreateFile(tmpbuf,
+			  FILE_WRITE_ATTRIBUTES,
+			  FILE_SHARE_WRITE,
+			  NULL,
+			  OPEN_EXISTING,
+			  0,
+			  NULL);
+
+    if (h == INVALID_HANDLE_VALUE) {
+        const char *err = errorString();
+        d_msg(__FILE__, __LINE__, 99,
+              "Cannot open file for stat (%s):%s\n", tmpbuf, err);
+        LocalFree((void *)err);
+	return -1;
+    }
+
+    int rval = SetFileTime(h, NULL, &acc, &mod) ? 0 : -1;
+
+    CloseHandle(h);
+    
+    return rval;
 }
 

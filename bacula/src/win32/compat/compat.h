@@ -21,8 +21,8 @@
  * Author          : Christopher S. Hull
  * Created On      : Fri Jan 30 13:00:51 2004
  * Last Modified By: Christopher S. Hull
- * Last Modified On: Mon Feb  9 12:08:07 2004
- * Update Count    : 201
+ * Last Modified On: Sun Feb 22 13:15:59 2004
+ * Update Count    : 207
  * $Id$
  */
 
@@ -96,7 +96,6 @@ typedef UINT32 ssize_t;
 
 
 typedef void DIR;
-
 
 struct dirent {
     uint64_t	d_ino;

@@ -156,77 +156,77 @@ BSC32_SBRS= \
 LINK32=link.exe
 LINK32_FLAGS=wsock32.lib pthreadVCE.lib zlib.lib /nologo /subsystem:windows /pdb:none /machine:I386 /nodefaultlib:"MSVCRT.lib" /out:"$(OUTDIR)\bacula-fd.exe" /libpath:"../pthreads" /libpath:"../zlib" 
 LINK32_OBJS= \
-	"$(INTDIR)\compat.obj" \
-	"$(INTDIR)\getopt.obj" \
-	"$(INTDIR)\print.obj" \
-	"$(INTDIR)\authenticate.obj" \
-	"$(INTDIR)\backup.obj" \
-	"$(INTDIR)\estimate.obj" \
-	"$(INTDIR)\filed.obj" \
-	"$(INTDIR)\filed_conf.obj" \
-	"$(INTDIR)\heartbeat.obj" \
-	"$(INTDIR)\job.obj" \
-	"$(INTDIR)\restore.obj" \
-	"$(INTDIR)\status.obj" \
-	"$(INTDIR)\verify.obj" \
-	"$(INTDIR)\verify_vol.obj" \
-	"$(INTDIR)\attribs.obj" \
-	"$(INTDIR)\bfile.obj" \
-	"$(INTDIR)\create_file.obj" \
-	"$(INTDIR)\enable_priv.obj" \
-	"$(INTDIR)\find.obj" \
-	"$(INTDIR)\find_one.obj" \
-	"$(INTDIR)\makepath.obj" \
-	"$(INTDIR)\match.obj" \
-	"$(INTDIR)\save-cwd.obj" \
-	"$(INTDIR)\winapi.obj" \
 	"$(INTDIR)\alist.obj" \
 	"$(INTDIR)\alloc.obj" \
 	"$(INTDIR)\attr.obj" \
+	"$(INTDIR)\attribs.obj" \
+	"$(INTDIR)\authenticate.obj" \
+	"$(INTDIR)\backup.obj" \
 	"$(INTDIR)\base64.obj" \
+	"$(INTDIR)\bfile.obj" \
 	"$(INTDIR)\bget_msg.obj" \
 	"$(INTDIR)\bnet.obj" \
 	"$(INTDIR)\bnet_server.obj" \
 	"$(INTDIR)\bshm.obj" \
 	"$(INTDIR)\bsys.obj" \
 	"$(INTDIR)\btime.obj" \
+	"$(INTDIR)\compat.obj" \
 	"$(INTDIR)\cram-md5.obj" \
 	"$(INTDIR)\crc32.obj" \
+	"$(INTDIR)\create_file.obj" \
 	"$(INTDIR)\daemon.obj" \
 	"$(INTDIR)\dlist.obj" \
 	"$(INTDIR)\edit.obj" \
+	"$(INTDIR)\enable_priv.obj" \
+	"$(INTDIR)\estimate.obj" \
+	"$(INTDIR)\filed.obj" \
+	"$(INTDIR)\filed_conf.obj" \
+	"$(INTDIR)\find.obj" \
+	"$(INTDIR)\find_one.obj" \
 	"$(INTDIR)\fnmatch.obj" \
+	"$(INTDIR)\getopt.obj" \
+	"$(INTDIR)\heartbeat.obj" \
 	"$(INTDIR)\hmac.obj" \
 	"$(INTDIR)\htable.obj" \
 	"$(INTDIR)\idcache.obj" \
 	"$(INTDIR)\jcr.obj" \
+	"$(INTDIR)\job.obj" \
 	"$(INTDIR)\lex.obj" \
+	"$(INTDIR)\makepath.obj" \
+	"$(INTDIR)\match.obj" \
 	"$(INTDIR)\md5.obj" \
 	"$(INTDIR)\mem_pool.obj" \
 	"$(INTDIR)\message.obj" \
 	"$(INTDIR)\parse_conf.obj" \
+	"$(INTDIR)\print.obj" \
 	"$(INTDIR)\queue.obj" \
+	"$(INTDIR)\restore.obj" \
 	"$(INTDIR)\rwlock.obj" \
+	"$(INTDIR)\save-cwd.obj" \
 	"$(INTDIR)\scan.obj" \
 	"$(INTDIR)\semlock.obj" \
 	"$(INTDIR)\serial.obj" \
 	"$(INTDIR)\sha1.obj" \
 	"$(INTDIR)\signal.obj" \
 	"$(INTDIR)\smartall.obj" \
+	"$(INTDIR)\status.obj" \
+	"$(INTDIR)\StdAfx.obj" \
 	"$(INTDIR)\timers.obj" \
 	"$(INTDIR)\tree.obj" \
 	"$(INTDIR)\util.obj" \
 	"$(INTDIR)\var.obj" \
+	"$(INTDIR)\verify.obj" \
+	"$(INTDIR)\verify_vol.obj" \
 	"$(INTDIR)\watchdog.obj" \
-	"$(INTDIR)\workq.obj" \
-	"$(INTDIR)\StdAfx.obj" \
 	"$(INTDIR)\winabout.obj" \
+	"$(INTDIR)\winapi.obj" \
 	"$(INTDIR)\winevents.obj" \
 	"$(INTDIR)\winmain.obj" \
-	"$(INTDIR)\winres.res" \
 	"$(INTDIR)\winservice.obj" \
 	"$(INTDIR)\winstat.obj" \
-	"$(INTDIR)\wintray.obj"
+	"$(INTDIR)\wintray.obj" \
+	"$(INTDIR)\workq.obj" \
+	"$(INTDIR)\winres.res"
 
 "$(OUTDIR)\bacula-fd.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -432,76 +432,76 @@ RSC_PROJ=/l 0x409 /fo"$(INTDIR)\winres.res" /d "_DEBUG" /d "_AFXDLL"
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\baculafd.bsc" 
 BSC32_SBRS= \
-	"$(INTDIR)\compat.sbr" \
-	"$(INTDIR)\getopt.sbr" \
-	"$(INTDIR)\print.sbr" \
-	"$(INTDIR)\authenticate.sbr" \
-	"$(INTDIR)\backup.sbr" \
-	"$(INTDIR)\estimate.sbr" \
-	"$(INTDIR)\filed.sbr" \
-	"$(INTDIR)\filed_conf.sbr" \
-	"$(INTDIR)\heartbeat.sbr" \
-	"$(INTDIR)\job.sbr" \
-	"$(INTDIR)\restore.sbr" \
-	"$(INTDIR)\status.sbr" \
-	"$(INTDIR)\verify.sbr" \
-	"$(INTDIR)\verify_vol.sbr" \
-	"$(INTDIR)\attribs.sbr" \
-	"$(INTDIR)\bfile.sbr" \
-	"$(INTDIR)\create_file.sbr" \
-	"$(INTDIR)\enable_priv.sbr" \
-	"$(INTDIR)\find.sbr" \
-	"$(INTDIR)\find_one.sbr" \
-	"$(INTDIR)\makepath.sbr" \
-	"$(INTDIR)\match.sbr" \
-	"$(INTDIR)\save-cwd.sbr" \
-	"$(INTDIR)\winapi.sbr" \
 	"$(INTDIR)\alist.sbr" \
 	"$(INTDIR)\alloc.sbr" \
 	"$(INTDIR)\attr.sbr" \
+	"$(INTDIR)\attribs.sbr" \
+	"$(INTDIR)\authenticate.sbr" \
+	"$(INTDIR)\backup.sbr" \
 	"$(INTDIR)\base64.sbr" \
+	"$(INTDIR)\bfile.sbr" \
 	"$(INTDIR)\bget_msg.sbr" \
 	"$(INTDIR)\bnet.sbr" \
 	"$(INTDIR)\bnet_server.sbr" \
 	"$(INTDIR)\bshm.sbr" \
 	"$(INTDIR)\bsys.sbr" \
 	"$(INTDIR)\btime.sbr" \
+	"$(INTDIR)\compat.sbr" \
 	"$(INTDIR)\cram-md5.sbr" \
 	"$(INTDIR)\crc32.sbr" \
+	"$(INTDIR)\create_file.sbr" \
 	"$(INTDIR)\daemon.sbr" \
 	"$(INTDIR)\dlist.sbr" \
 	"$(INTDIR)\edit.sbr" \
+	"$(INTDIR)\enable_priv.sbr" \
+	"$(INTDIR)\estimate.sbr" \
+	"$(INTDIR)\filed.sbr" \
+	"$(INTDIR)\filed_conf.sbr" \
+	"$(INTDIR)\find.sbr" \
+	"$(INTDIR)\find_one.sbr" \
 	"$(INTDIR)\fnmatch.sbr" \
+	"$(INTDIR)\getopt.sbr" \
+	"$(INTDIR)\heartbeat.sbr" \
 	"$(INTDIR)\hmac.sbr" \
 	"$(INTDIR)\htable.sbr" \
 	"$(INTDIR)\idcache.sbr" \
 	"$(INTDIR)\jcr.sbr" \
+	"$(INTDIR)\job.sbr" \
 	"$(INTDIR)\lex.sbr" \
+	"$(INTDIR)\makepath.sbr" \
+	"$(INTDIR)\match.sbr" \
 	"$(INTDIR)\md5.sbr" \
 	"$(INTDIR)\mem_pool.sbr" \
 	"$(INTDIR)\message.sbr" \
 	"$(INTDIR)\parse_conf.sbr" \
+	"$(INTDIR)\print.sbr" \
 	"$(INTDIR)\queue.sbr" \
+	"$(INTDIR)\restore.sbr" \
 	"$(INTDIR)\rwlock.sbr" \
+	"$(INTDIR)\save-cwd.sbr" \
 	"$(INTDIR)\scan.sbr" \
 	"$(INTDIR)\semlock.sbr" \
 	"$(INTDIR)\serial.sbr" \
 	"$(INTDIR)\sha1.sbr" \
 	"$(INTDIR)\signal.sbr" \
 	"$(INTDIR)\smartall.sbr" \
+	"$(INTDIR)\status.sbr" \
+	"$(INTDIR)\StdAfx.sbr" \
 	"$(INTDIR)\timers.sbr" \
 	"$(INTDIR)\tree.sbr" \
 	"$(INTDIR)\util.sbr" \
 	"$(INTDIR)\var.sbr" \
+	"$(INTDIR)\verify.sbr" \
+	"$(INTDIR)\verify_vol.sbr" \
 	"$(INTDIR)\watchdog.sbr" \
-	"$(INTDIR)\workq.sbr" \
-	"$(INTDIR)\StdAfx.sbr" \
 	"$(INTDIR)\winabout.sbr" \
+	"$(INTDIR)\winapi.sbr" \
 	"$(INTDIR)\winevents.sbr" \
 	"$(INTDIR)\winmain.sbr" \
 	"$(INTDIR)\winservice.sbr" \
 	"$(INTDIR)\winstat.sbr" \
-	"$(INTDIR)\wintray.sbr"
+	"$(INTDIR)\wintray.sbr" \
+	"$(INTDIR)\workq.sbr"
 
 "$(OUTDIR)\baculafd.bsc" : "$(OUTDIR)" $(BSC32_SBRS)
     $(BSC32) @<<
@@ -511,77 +511,77 @@ BSC32_SBRS= \
 LINK32=link.exe
 LINK32_FLAGS=wsock32.lib pthreadVCE.lib zlib.lib /nologo /subsystem:windows /pdb:none /debug /machine:I386 /out:"$(OUTDIR)\bacula-fd.exe" /libpath:"../pthreads" /libpath:"../zlib" 
 LINK32_OBJS= \
-	"$(INTDIR)\compat.obj" \
-	"$(INTDIR)\getopt.obj" \
-	"$(INTDIR)\print.obj" \
-	"$(INTDIR)\authenticate.obj" \
-	"$(INTDIR)\backup.obj" \
-	"$(INTDIR)\estimate.obj" \
-	"$(INTDIR)\filed.obj" \
-	"$(INTDIR)\filed_conf.obj" \
-	"$(INTDIR)\heartbeat.obj" \
-	"$(INTDIR)\job.obj" \
-	"$(INTDIR)\restore.obj" \
-	"$(INTDIR)\status.obj" \
-	"$(INTDIR)\verify.obj" \
-	"$(INTDIR)\verify_vol.obj" \
-	"$(INTDIR)\attribs.obj" \
-	"$(INTDIR)\bfile.obj" \
-	"$(INTDIR)\create_file.obj" \
-	"$(INTDIR)\enable_priv.obj" \
-	"$(INTDIR)\find.obj" \
-	"$(INTDIR)\find_one.obj" \
-	"$(INTDIR)\makepath.obj" \
-	"$(INTDIR)\match.obj" \
-	"$(INTDIR)\save-cwd.obj" \
-	"$(INTDIR)\winapi.obj" \
 	"$(INTDIR)\alist.obj" \
 	"$(INTDIR)\alloc.obj" \
 	"$(INTDIR)\attr.obj" \
+	"$(INTDIR)\attribs.obj" \
+	"$(INTDIR)\authenticate.obj" \
+	"$(INTDIR)\backup.obj" \
 	"$(INTDIR)\base64.obj" \
+	"$(INTDIR)\bfile.obj" \
 	"$(INTDIR)\bget_msg.obj" \
 	"$(INTDIR)\bnet.obj" \
 	"$(INTDIR)\bnet_server.obj" \
 	"$(INTDIR)\bshm.obj" \
 	"$(INTDIR)\bsys.obj" \
 	"$(INTDIR)\btime.obj" \
+	"$(INTDIR)\compat.obj" \
 	"$(INTDIR)\cram-md5.obj" \
 	"$(INTDIR)\crc32.obj" \
+	"$(INTDIR)\create_file.obj" \
 	"$(INTDIR)\daemon.obj" \
 	"$(INTDIR)\dlist.obj" \
 	"$(INTDIR)\edit.obj" \
+	"$(INTDIR)\enable_priv.obj" \
+	"$(INTDIR)\estimate.obj" \
+	"$(INTDIR)\filed.obj" \
+	"$(INTDIR)\filed_conf.obj" \
+	"$(INTDIR)\find.obj" \
+	"$(INTDIR)\find_one.obj" \
 	"$(INTDIR)\fnmatch.obj" \
+	"$(INTDIR)\getopt.obj" \
+	"$(INTDIR)\heartbeat.obj" \
 	"$(INTDIR)\hmac.obj" \
 	"$(INTDIR)\htable.obj" \
 	"$(INTDIR)\idcache.obj" \
 	"$(INTDIR)\jcr.obj" \
+	"$(INTDIR)\job.obj" \
 	"$(INTDIR)\lex.obj" \
+	"$(INTDIR)\makepath.obj" \
+	"$(INTDIR)\match.obj" \
 	"$(INTDIR)\md5.obj" \
 	"$(INTDIR)\mem_pool.obj" \
 	"$(INTDIR)\message.obj" \
 	"$(INTDIR)\parse_conf.obj" \
+	"$(INTDIR)\print.obj" \
 	"$(INTDIR)\queue.obj" \
+	"$(INTDIR)\restore.obj" \
 	"$(INTDIR)\rwlock.obj" \
+	"$(INTDIR)\save-cwd.obj" \
 	"$(INTDIR)\scan.obj" \
 	"$(INTDIR)\semlock.obj" \
 	"$(INTDIR)\serial.obj" \
 	"$(INTDIR)\sha1.obj" \
 	"$(INTDIR)\signal.obj" \
 	"$(INTDIR)\smartall.obj" \
+	"$(INTDIR)\status.obj" \
+	"$(INTDIR)\StdAfx.obj" \
 	"$(INTDIR)\timers.obj" \
 	"$(INTDIR)\tree.obj" \
 	"$(INTDIR)\util.obj" \
 	"$(INTDIR)\var.obj" \
+	"$(INTDIR)\verify.obj" \
+	"$(INTDIR)\verify_vol.obj" \
 	"$(INTDIR)\watchdog.obj" \
-	"$(INTDIR)\workq.obj" \
-	"$(INTDIR)\StdAfx.obj" \
 	"$(INTDIR)\winabout.obj" \
+	"$(INTDIR)\winapi.obj" \
 	"$(INTDIR)\winevents.obj" \
 	"$(INTDIR)\winmain.obj" \
-	"$(INTDIR)\winres.res" \
 	"$(INTDIR)\winservice.obj" \
 	"$(INTDIR)\winstat.obj" \
-	"$(INTDIR)\wintray.obj"
+	"$(INTDIR)\wintray.obj" \
+	"$(INTDIR)\workq.obj" \
+	"$(INTDIR)\winres.res"
 
 "$(OUTDIR)\bacula-fd.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -1793,14 +1793,14 @@ SOURCE=..\..\filed\win32\winres.rc
 
 
 "$(INTDIR)\winres.res" : $(SOURCE) "$(INTDIR)"
-	$(RSC) /l 0x409 /fo"$(INTDIR)\winres.res" /i "C:\home\csh\sourceforge\bacula\src\filed\win32" /d "NDEBUG" $(SOURCE)
+	$(RSC) /l 0x409 /fo"$(INTDIR)\winres.res" /i "\home\csh\sourceforge\bacula\src\filed\win32" /d "NDEBUG" $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
 
 
 "$(INTDIR)\winres.res" : $(SOURCE) "$(INTDIR)"
-	$(RSC) /l 0x409 /fo"$(INTDIR)\winres.res" /i "C:\home\csh\sourceforge\bacula\src\filed\win32" /d "_DEBUG" /d "_AFXDLL" $(SOURCE)
+	$(RSC) /l 0x409 /fo"$(INTDIR)\winres.res" /i "\home\csh\sourceforge\bacula\src\filed\win32" /d "_DEBUG" /d "_AFXDLL" $(SOURCE)
 
 
 !ENDIF 
