@@ -355,6 +355,4 @@ extern int thr_setconcurrency(int);
 #define REPLACE_NEVER    'n'
 #define REPLACE_IFOLDER  'o'
 
-
-
 #endif /* _BACONFIG_H */

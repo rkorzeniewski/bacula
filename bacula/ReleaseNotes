@@ -10,6 +10,7 @@ Major Changes this Release:
   1st Sun ...
 
 Minor Changes this Release:
+- Fixed Restore options (never,ifnewer, ...). They now work.
 - New bidirectional timed pipe mechanism for running child processes
   permits better error messages.
 - Faster Storage daemon initialization (using pthreads)

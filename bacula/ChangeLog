@@ -15,6 +15,7 @@ Changes submitted this submission:
 29Dec02
 - Added --enable-client-only to ./configure
 - Modified --enable-static-sd to work better and documented it.
+- Fixed Restore options (never,ifnewer, ...). They now work.
 28Dec02
 - Added more rescue documentation.
 - Did a spell check of the Bacula doc.

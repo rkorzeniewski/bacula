@@ -46,6 +46,14 @@
 #include "save-cwd.h"
 
 /* 
+ * Status codes returned by create_file()
+ */
+#define CF_SKIP       1               /* skip file (not newer or something) */
+#define CF_ERROR      2               /* error creating file */
+#define CF_EXTRACT    3               /* file created, data to extract */
+#define CF_CREATED    4               /* file created, no data to extract */
+
+/* 
  *  NOTE!!! These go on the tape, so don't change them. If 
  *  need be, add to them.
  */

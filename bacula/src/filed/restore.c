@@ -56,7 +56,7 @@ void do_restore(JCR *jcr)
    struct stat statp;
    int extract = FALSE;
    int ofd = -1;
-   int type;
+   int type, stat;
    uint32_t total = 0;		      /* Job total but only 32 bits for debug */
    char *wbuf;			      /* write buffer */
    uint32_t wsize;		      /* write size */
@@ -245,17 +245,26 @@ void do_restore(JCR *jcr)
 	 }
 
          Dmsg1(30, "Outfile=%s\n", ofile);
-	 print_ls_output(jcr, ofile, lname, type, &statp);
 
-	 extract = create_file(jcr, fname, ofile, lname, type, 
-			       stream, &statp, attribsEx, &ofd, jcr->replace);
-         Dmsg1(40, "Extract=%d\n", extract);
-	 if (extract) {
+	 extract = FALSE;
+	 stat = create_file(jcr, fname, ofile, lname, type, 
+			    stream, &statp, attribsEx, &ofd, jcr->replace);
+	 switch (stat) {
+	 case CF_ERROR:
+	 case CF_SKIP:
+	    break;
+	 case CF_EXTRACT:
+	    extract = TRUE;
+	    pm_strcpy(&jcr->last_fname, ofile);
+	    /* Fall-through wanted */
+	 case CF_CREATED:
 	    jcr->JobFiles++;
 	    fileAddr = 0;
-	 }
+	    print_ls_output(jcr, ofile, lname, type, &statp);
+	    break;
+	 }  
+
 	 jcr->num_files_examined++;
-	 pm_strcpy(&jcr->last_fname, ofile);
 
       /* Data stream */
       } else if (stream == STREAM_FILE_DATA || stream == STREAM_SPARSE_DATA) {

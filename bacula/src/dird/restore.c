@@ -230,7 +230,9 @@ int do_restore(JCR *jcr)
    /* Send restore command */
    char replace, *where;
 
-   if (jcr->job->replace != 0) {
+   if (jcr->replace != 0) {
+      replace = jcr->replace;
+   } else if (jcr->job->replace != 0) {
       replace = jcr->job->replace;
    } else {
       replace = REPLACE_ALWAYS;       /* always replace */

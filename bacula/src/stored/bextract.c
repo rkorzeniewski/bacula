@@ -234,6 +234,7 @@ static void do_extract(char *devname)
  */
 static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 {
+   int stat;
 
    if (rec->FileIndex < 0) {
       return;                         /* we don't want labels */
@@ -361,14 +362,22 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 
          /*          Pmsg1(000, "Restoring: %s\n", ofile); */
 
-	 extract = create_file(jcr, fname, ofile, lname, type, stream,
-			       &statp, attribsEx, &ofd, REPLACE_ALWAYS);
-	 num_files++;
-
-	 if (extract) {
-	     print_ls_output(ofile, lname, type, &statp);   
-	     fileAddr = 0;
-	 }
+	 extract = FALSE;
+	 stat = create_file(jcr, fname, ofile, lname, type, stream,
+			    &statp, attribsEx, &ofd, REPLACE_ALWAYS);
+	 switch (stat) {
+	 case CF_ERROR:
+	 case CF_SKIP:
+	    break;
+	 case CF_EXTRACT:
+	    extract = TRUE;
+	    /* Fall-through wanted */
+	 case CF_CREATED:
+	    print_ls_output(ofile, lname, type, &statp);   
+	    num_files++;
+	    fileAddr = 0;
+	    break;
+	 }  
       }
 
    /* Data stream and extracting */

@@ -8,7 +8,6 @@ Documentation to do: (a little bit at a time)
 - Document static linking
 
 Testing to do: (painful)
-- that restore options work in FD (mostly done).
 - that console command line options work
 - blocksize recognition code.
 
@@ -697,4 +696,5 @@ Done: (see kernsdone for more)
   from tape.  Client record needs improving.
 - Implement ./configure --with-client-only
 - Finish up static linking 
+- that restore options work in FD               
     
