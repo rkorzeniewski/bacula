@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                 12 November 2002
+                 14 November 2002
 
 To do:    
 - Document to have patience when SD first starts.
@@ -7,6 +7,7 @@ To do:
 - Document saving MySQL databases, where to find code for shutting 
   down and saving other databases.
   http://www.backupcentral.com/free-backup-software1.html
+- Document -i option on FD
 
 Test:
 - that restore options work in FD.
@@ -15,7 +16,11 @@ Test:
 - blocksize recognition code.
 
 For 1.27 release:
+
+After 1.27
+- Check if we can bump Bacula FD priorty in Win2000
 - Implement FileOptions.
+- Make bcopy read through bad tape records.
 - Need return status on read_cb() from read_records(). Need multiple
   records -- one per Job, maybe a JCR or some other structure with
   a block and a record.
@@ -25,13 +30,9 @@ For 1.27 release:
 - Work more on how to to a Bacula restore beginning with
   just a Bacula tape and a boot floppy (bare metal recovery).
 - Try bare metal Windows restore
-
-- Write bcopy program -- recovery of bad tape.
 - Fix read_record to handle multiple sessions.
-
 - Program files (i.e. execute a program to read/write files).
   Pass read date of last backup, size of file last time.
-
 - Put system type returned by FD into catalog.
 - Add VOLUME_CAT_INFO to the EOS tape record (as
   well as to the EOD record).
@@ -57,8 +58,6 @@ For 1.27 release:
   in block, done when count is reached, and possibly other
   optimizations. I.e. add a state word.
 
-
-After 1.27
 - Running multiple simultaneous jobs has a problem when one Job
   must label the volume -- the others apparently do not wait.
   > 
@@ -593,4 +592,4 @@ Done: (see kernsdone for more)
 - Decide what to do with JobTDate in catalog (make real utime_t?)
 - Implement VolMaxJob and Duration check in next_volume().
 - Make sure pruning of Jobs removes JobMediaId
-
+- Write bcopy program -- recovery of bad tape.
