@@ -41,7 +41,7 @@
  */
 
 /* Requests from the Storage daemon */
-static char Find_media[] = "CatReq Job=%127s FindMedia=%d PoolId=%lld\n";
+static char Find_media[] = "CatReq Job=%127s FindMedia=%d pool_name=%127s media_type=%127s\n";
 static char Get_Vol_Info[] = "CatReq Job=%127s GetVolInfo VolName=%127s write=%d\n";
 
 static char Update_media[] = "CatReq Job=%127s UpdateMedia VolName=%s"
@@ -86,7 +86,7 @@ static int send_volume_info_to_storage_daemon(JCR *jcr, BSOCK *sd, MEDIA_DBR *mr
       mr->VolParts,
       mr->LabelType);
    unbash_spaces(mr->VolumeName);
-   Dmsg2(400, "Vol Info for %s: %s", jcr->Job, sd->msg);
+   Dmsg2(100, "Vol Info for %s: %s", jcr->Job, sd->msg);
    return stat;
 }
 
@@ -95,9 +95,10 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
    MEDIA_DBR mr, sdmr;
    JOBMEDIA_DBR jm;
    char Job[MAX_NAME_LENGTH];
-   int64_t PoolId;
+   char pool_name[MAX_NAME_LENGTH];
    int index, ok, label, writing;
    POOLMEM *omsg;
+   POOL_DBR pr;
 
    memset(&mr, 0, sizeof(mr));
    memset(&sdmr, 0, sizeof(sdmr));
@@ -106,7 +107,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
    /*
     * Request to find next appendable Volume for this Job
     */
-   Dmsg1(400, "catreq %s", bs->msg);
+   Dmsg1(100, "catreq %s", bs->msg);
    if (!jcr->db) {
       omsg = get_memory(bs->msglen+1);
       pm_strcpy(omsg, bs->msg);
@@ -118,9 +119,14 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
    /*
     * Find next appendable medium for SD
     */
-   if (sscanf(bs->msg, Find_media, &Job, &index, &PoolId) == 3) {
-      mr.PoolId = PoolId;
-      ok = find_next_volume_for_append(jcr, &mr, true /*permit create new vol*/);
+   if (sscanf(bs->msg, Find_media, &Job, &index, &pool_name, &mr.MediaType) == 4) {
+      memset(&pr, 0, sizeof(pr));
+      bstrncpy(pr.Name, pool_name, sizeof(pr.Name));
+      ok = db_get_pool_record(jcr, jcr->db, &pr);
+      if (ok) {
+	 mr.PoolId = pr.PoolId;
+	 ok = find_next_volume_for_append(jcr, &mr, true /*permit create new vol*/);
+      }
       /*
        * Send Find Media response to Storage daemon
        */

@@ -22,7 +22,7 @@ SVRSRCS = stored.c ansi_label.c \
 	  autochanger.c acquire.c append.c \
 	  askdir.c authenticate.c \
 	  block.c butil.c dev.c \
-	  device.c dircmd.c dvd.c fd_cmds.c job.c \
+	  device.c dircmd.c dvd.c ebcdic.c fd_cmds.c job.c \
 	  label.c match_bsr.c mount.c parse_bsr.c \
 	  python.c \
 	  read.c read_record.c record.c \
@@ -31,7 +31,7 @@ SVROBJS = stored.o ansi_label.o \
 	  autochanger.o acquire.o append.o \
 	  askdir.o authenticate.o \
 	  block.o butil.o dev.o \
-	  device.o dircmd.o dvd.o fd_cmds.o job.o \
+	  device.o dircmd.o dvd.o ebcdic.c fd_cmds.o job.o \
 	  label.o match_bsr.o mount.o parse_bsr.o \
 	  python.o \
 	  read.o read_record.o record.o \
@@ -39,35 +39,35 @@ SVROBJS = stored.o ansi_label.o \
 
 # btape
 TAPESRCS = btape.c block.c butil.c dev.c device.c label.c \
-	   ansi_label.c dvd.c \
+	   ansi_label.c dvd.c ebcdic.c \
 	   acquire.c mount.c record.c read_record.c \
 	   stored_conf.c match_bsr.c parse_bsr.c spool.c
 TAPEOBJS = btape.o block.o butil.o dev.o device.o label.o \
-	   ansi_label.o dvd.o \
+	   ansi_label.o dvd.o ebcdic.o \
 	   autochanger.o acquire.o mount.o record.o read_record.o \
 	   stored_conf.o match_bsr.o parse_bsr.o spool.o
 
 # bls
 BLSOBJS = bls.o block.o butil.o device.o dev.o label.o match_bsr.o \
-	  ansi_label.o dvd.o \
+	  ansi_label.o dvd.o ebcdic.o \
 	  autochanger.o acquire.o mount.o parse_bsr.o record.o	\
 	  read_record.o stored_conf.o spool.o
 
 # bextract
 BEXTOBJS = bextract.o block.o device.o dev.o label.o record.o \
-	   ansi_label.o dvd.o \
+	   ansi_label.o dvd.o ebcdic.o \
 	   autochanger.o acquire.o mount.o match_bsr.o parse_bsr.o butil.o \
 	   read_record.o stored_conf.o spool.o
 
 # bscan
 SCNOBJS = bscan.o block.o device.o dev.o label.o \
-	  ansi_label.o dvd.o \
+	  ansi_label.o dvd.o ebcdic.o \
 	  autochanger.o acquire.o mount.o record.o match_bsr.o parse_bsr.o \
 	  butil.o read_record.o stored_conf.o spool.o
 
 # bcopy
 COPYOBJS = bcopy.o block.o device.o dev.o label.o \
-	   ansi_label.o dvd.o \
+	   ansi_label.o dvd.o ebcdic.o \
 	   autochanger.o acquire.o mount.o record.o match_bsr.o parse_bsr.o \
 	   butil.o read_record.o stored_conf.o spool.o
 

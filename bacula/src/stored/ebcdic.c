@@ -144,7 +144,7 @@ static char to_ebcdic_table[256] = {
 /*
  * Convert from ASCII to EBCDIC 
  */
-asci_to_ebcdic(char *dst, char *src, int count)
+void ascii_to_ebcdic(char *dst, char *src, int count)
 {
    while (count--) {
       *dst++ = to_ebcdic_table[0377 & *src++];
@@ -155,9 +155,9 @@ asci_to_ebcdic(char *dst, char *src, int count)
 /*
  * Convert from EBCDIC to ASCII
  */
-ebcdic_to_ascii(char *dst, char *src, int count)
+void ebcdic_to_ascii(char *dst, char *src, int count)
 {
    while (count--) {
-      *dst++ = to_asci_table[0377 & *src++];
+      *dst++ = to_ascii_table[0377 & *src++];
    }
 }

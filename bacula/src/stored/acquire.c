@@ -564,6 +564,7 @@ bool release_device(DCR *dcr)
 {
    JCR *jcr = dcr->jcr;
    DEVICE *dev = dcr->dev;
+
    lock_device(dev);
    Dmsg1(100, "release_device device is %s\n", dev_is_tape(dev)?"tape":"disk");
 
@@ -600,6 +601,8 @@ bool release_device(DCR *dcr)
 	 /* Note! do volume update before close, which zaps VolCatInfo */
          Dmsg0(100, "dir_update_vol_info. Release0\n");
 	 dir_update_volume_info(dcr, false); /* send Volume info to Director */
+         Dmsg0(100, "==== write ansi eof label \n");
+	 write_ansi_ibm_labels(dcr, ANSI_EOF_LABEL, dev->VolHdr.VolName);
       }
 
       /* If no writers, close if file or !CAP_ALWAYS_OPEN */

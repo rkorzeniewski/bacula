@@ -30,7 +30,7 @@
 #include "stored.h"                   /* pull in Storage Deamon headers */
 
 /* Requests sent to the Director */
-static char Find_media[]   = "CatReq Job=%s FindMedia=%d PoolId=%s\n";
+static char Find_media[]   = "CatReq Job=%s FindMedia=%d pool_name=%s media_type=%s\n";
 static char Get_Vol_Info[] = "CatReq Job=%s GetVolInfo VolName=%s write=%d\n";
 static char Update_media[] = "CatReq Job=%s UpdateMedia VolName=%s"
    " VolJobs=%u VolFiles=%u VolBlocks=%u VolBytes=%s VolMounts=%u"
@@ -232,7 +232,6 @@ bool dir_find_next_appendable_volume(DCR *dcr)
 {
     JCR *jcr = dcr->jcr;
     BSOCK *dir = jcr->dir_bsock;
-    char ed1[50];
     JCR *njcr;
 
     Dmsg0(200, "dir_find_next_appendable_volume\n");
@@ -242,7 +241,11 @@ bool dir_find_next_appendable_volume(DCR *dcr)
      *	 drive, so we continue looking for a not in use Volume.
      */
     for (int vol_index=1;  vol_index < 3; vol_index++) {
-       bnet_fsend(dir, Find_media, jcr->Job, vol_index, edit_int64(dcr->PoolId, ed1));
+       bash_spaces(dcr->media_type);
+       bash_spaces(dcr->pool_name);
+       bnet_fsend(dir, Find_media, jcr->Job, vol_index, dcr->pool_name, dcr->media_type);
+       unbash_spaces(dcr->media_type);
+       unbash_spaces(dcr->pool_name);
        Dmsg1(100, ">dird: %s", dir->msg);
        if (do_get_volume_info(dcr)) {
           Dmsg2(300, "JobId=%d got possible Vol=%s\n", jcr->JobId, dcr->VolumeName);
@@ -401,7 +404,7 @@ bool dir_update_file_attributes(DCR *dcr, DEV_RECORD *rec)
    ser_uint32(rec->data_len);
    ser_bytes(rec->data, rec->data_len);
    dir->msglen = ser_length(dir->msg);
-   Dmsg1(100, ">dird: %s", dir->msg);
+   Dmsg1(1800, ">dird: %s\n", dir->msg);    /* Attributes */
    return bnet_send(dir);
 }
 
