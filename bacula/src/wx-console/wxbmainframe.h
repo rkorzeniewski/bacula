@@ -42,12 +42,13 @@
 #include <wx/tokenzr.h>
 #include <wx/notebook.h>
 
-//#include "bacula.h"
-//#include "console_conf.h"
+#include <wx/dynarray.h>
 
 #include "console_thread.h"
 
-#include "wxbpanel.h"
+#include "wxbutils.h"
+
+WX_DEFINE_ARRAY(wxbDataParser*, wxbDataParsers);
 
 // ----------------------------------------------------------------------------
 // wxbPrintObject - Used by wxbThreadEvent to contain data sent by director
@@ -115,6 +116,12 @@ public:
     *  Starts the thread interacting with the director
     */
    void StartConsoleThread();
+   
+   /* Register a new wxbDataParser */
+   void Register(wxbDataParser* dp);
+   
+   /* Unregister a wxbDataParser */
+   void Unregister(wxbDataParser* dp);
 
 private:
    /* private constructor, singleton */
@@ -125,7 +132,8 @@ private:
    wxTextCtrl *typeCtrl; /* wxTextCtrl for console user input */
    wxTextCtrl *consoleCtrl; /* wxTextCtrl containing graphical console */
 
-   wxbPanel **panels; /* panels array, contained in the notebook, and which need to receive console communication */
+   wxbPanel **panels; /* panels array, contained in the notebook */
+   wxbDataParsers parsers; /* Data parsers, which need to receive director informations */
 
    console_thread* ct; /* thread interacting with the director */
 

@@ -41,7 +41,7 @@
 /*
  *   wxbTableParser constructor
  */
-wxbTableParser::wxbTableParser() : wxbTable(5) {
+wxbTableParser::wxbTableParser() : wxbTable(5), wxbDataParser() {
    separatorNum = 0;
    tableHeader = wxbTableRow(5);
 }

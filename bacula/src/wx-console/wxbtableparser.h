@@ -45,6 +45,8 @@
    #include "wx/wx.h"
 #endif
 
+#include "wxbutils.h"
+
 #include <wx/hashmap.h>
 
 /* int-indexed array of wxString, used for one line */
@@ -58,17 +60,17 @@ WX_DECLARE_HASH_MAP( int, wxbTableRow, wxIntegerHash, wxIntegerEqual, wxbTable )
  *
  * Example : wxString elem = parser[3][2]; fetches column 2 of element 3.
  */
-class wxbTableParser: public wxbTable
+class wxbTableParser: public wxbTable, public wxbDataParser
 {
    public:
       wxbTableParser();
-      ~wxbTableParser();
+      virtual ~wxbTableParser();
 
       /*
        *   Receives director information, forwarded by the wxbPanel which
        *  uses this parser.
        */
-      void Print(wxString str, int status);
+      virtual void Print(wxString str, int status);
 
       /*
        *   Return true table parsing has finished.

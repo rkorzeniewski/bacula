@@ -239,8 +239,6 @@ wxbRestorePanel::wxbRestorePanel(wxWindow* parent): wxbPanel(parent) {
 
    SetStatus(disabled);
 
-   tableParser = NULL;
-
    jobChoice->Enable(false);
 
    working = false;
@@ -261,127 +259,6 @@ wxString wxbRestorePanel::GetTitle() {
    return "Restore";
 }
 
-void wxbRestorePanel::Print(wxString str, int stat) {
-   if (str == "$ ") {
-      ended = true;
-   }
-   else if (status == listing) {
-      if (str.Find("cwd is:") == 0) { // Sometimes cd command result "infiltrate" into listings.
-         return;
-      }
-
-      str.RemoveLast();
-
-      wxString* file = ParseList(str);
-      
-      if (file == NULL)
-            return;
-
-      wxTreeItemId treeid;
-
-      if (file[8].GetChar(file[8].Length()-1) == '/') {
-         wxString itemStr;
-
-         long cookie;
-         treeid = tree->GetFirstChild(currentTreeItem, cookie);
-
-         bool updated = false;
-
-         while (treeid.IsOk()) {
-            itemStr = tree->GetItemText(treeid);
-            if (file[8] == itemStr) {
-               int stat = wxbTreeItemData::GetMarkedStatus(file[6]);
-               if (static_cast<wxbTreeItemData*>(tree->GetItemData(treeid))->GetMarked() != stat) {
-                  tree->SetItemImage(treeid, stat, wxTreeItemIcon_Normal);
-                  tree->SetItemImage(treeid, stat, wxTreeItemIcon_Selected);
-                  static_cast<wxbTreeItemData*>(tree->GetItemData(treeid))->SetMarked(file[6]);
-               }
-               updated = true;
-               break;
-            }
-            treeid = tree->GetNextChild(currentTreeItem, cookie);
-         }
-
-         if (!updated) {
-            int img = wxbTreeItemData::GetMarkedStatus(file[6]);
-            treeid = tree->AppendItem(currentTreeItem, file[8], img, img, new wxbTreeItemData(file[7], file[8], file[6]));
-         }
-      }
-
-      if (updatelist) {
-         long ind = list->InsertItem(list->GetItemCount(), wxbTreeItemData::GetMarkedStatus(file[6]));
-         wxbTreeItemData* data = new wxbTreeItemData(file[7], file[8], file[6], ind);
-         data->SetId(treeid);
-         list->SetItemData(ind, (long)data);
-         list->SetItem(ind, 1, file[8]); // filename
-         list->SetItem(ind, 2, file[4]); //Size
-         list->SetItem(ind, 3, file[5]); //date
-         list->SetItem(ind, 4, file[0]); //perm
-         list->SetItem(ind, 5, file[2]); //user
-         list->SetItem(ind, 6, file[3]); //grp
-      }
-
-      delete[] file;
-   }
-   else {
-      if (status == restoring) {
-         int i;
-         //15847 total files; 1 marked to be restored; 1,034 bytes.
-         if ((i = str.Find(" marked to be restored;")) > -1) {
-            int j = str.Find("; ");
-            str.Mid(j+2, i).ToLong(&totfilemessages);
-            //wxbMainFrame::GetInstance()->Print(wxString("TOT(") << totfilemessages << ")\n", CS_DEBUG);
-            return;
-         }
-
-         if ((i = str.Find(" files selected to be restored.")) > -1) {
-            str.Mid(0, i).ToLong(&totfilemessages);
-            //wxbMainFrame::GetInstance()->Print(wxString("TOT(") << totfilemessages << ")\n", CS_DEBUG);
-            return;
-         }
-
-         if ((i = str.Find(" file selected to be restored.")) > -1) {
-            str.Mid(0, i).ToLong(&totfilemessages);
-            //wxbMainFrame::GetInstance()->Print(wxString("TOT(") << totfilemessages << ")\n", CS_DEBUG);
-            return;
-         }
-
-         wxStringTokenizer tkz(str, " ", wxTOKEN_STRTOK);
-
-         wxDateTime datetime;
-
-         //   Date    Time   name:   perm      ?   user   grp      size    date     time
-         //04-Apr-2004 17:19 Tom-fd: -rwx------   1 nicolas  None     514967 2004-03-20 20:03:42  filename
-
-         if (datetime.ParseDate(tkz.GetNextToken()) != NULL) { // Date
-            if (datetime.ParseTime(tkz.GetNextToken()) != NULL) { // Time
-               if (tkz.GetNextToken().Last() == ':') { // name:
-               tkz.GetNextToken(); // perm
-               tkz.GetNextToken(); // ?
-               tkz.GetNextToken(); // user
-               tkz.GetNextToken(); // grp
-               tkz.GetNextToken(); // size
-               if (datetime.ParseDate(tkz.GetNextToken()) != NULL) { //date
-                     if (datetime.ParseTime(tkz.GetNextToken()) != NULL) { //time
-                        filemessages++;
-                        //wxbMainFrame::GetInstance()->Print(wxString("(") << filemessages << ")", CS_DEBUG);
-                        gauge->SetValue(filemessages);
-                     }
-                  }
-               }
-            }
-         }
-      }
-
-      if (tableParser != NULL) {
-         tableParser->Print(str, stat);
-      }
-      if (stat == CS_END) {
-         ended = true;
-      }
-   }
-}
-
 void wxbRestorePanel::EnablePanel(bool enable) {
    if (enable) {
       if (status == disabled) {
@@ -400,18 +277,16 @@ void wxbRestorePanel::EnablePanel(bool enable) {
 /* The main button has been clicked */
 void wxbRestorePanel::CmdStart() {
    if (status == activable) {
-      CreateAndWaitForParser("list clients\n");
+      wxbTableParser* tableparser = CreateAndWaitForParser("list clients\n");
 
       clientChoice->Clear();
-      for (unsigned int i = 0; i < tableParser->size(); i++) {
-         /*for (unsigned int k = 0; k < (*tableParser)[i].size(); k++) {
-            wxbMainFrame::GetInstance()->Print(wxString() << (*tableParser)[i][k] << ":", CS_DEBUG);
-         }
-         wxbMainFrame::GetInstance()->Print(wxString(";\n"), CS_DEBUG);*/
+      for (unsigned int i = 0; i < tableparser->size(); i++) {
          long* j = new long;
-         (*tableParser)[i][0].ToLong(j);
-         clientChoice->Append((*tableParser)[i][1], (void*)j);
+         (*tableparser)[i][0].ToLong(j);
+         clientChoice->Append((*tableparser)[i][1], (void*)j);
       }
+      
+      delete tableparser;
 
       SetStatus(entered);
    }
@@ -428,7 +303,7 @@ void wxbRestorePanel::CmdStart() {
       SetStatus(choosing);
       wxTreeItemId root = tree->AddRoot(clientChoice->GetStringSelection(), -1, -1, new wxbTreeItemData("/", clientChoice->GetStringSelection(), 0));
       tree->Refresh();
-      WaitForList(root, true);
+      UpdateTreeItem(root, true);
       wxbMainFrame::GetInstance()->SetStatusText("Right click on a file or on a directory, or double-click on its mark to add it to the restore list.");
       tree->Expand(root);
    }
@@ -438,8 +313,38 @@ void wxbRestorePanel::CmdStart() {
       wxbMainFrame::GetInstance()->SetStatusText("Restoring, please wait...");
 
       totfilemessages = 0;
-      WaitForEnd("estimate\n");
-      WaitForEnd("done\n");
+      wxbDataTokenizer* dt;
+      
+      dt = WaitForEnd("estimate\n");
+      
+      int j, k;
+      
+      for (unsigned int i = 0; i < dt->GetCount(); i++) {
+         /* 15847 total files; 1 marked to be restored; 1,034 bytes. */
+         if ((j = (*dt)[i].Find(" marked to be restored;")) > -1) {
+            k = (*dt)[i].Find("; ");
+            (*dt)[i].Mid(k+2, j).ToLong(&totfilemessages);
+            return;
+         }
+      }
+      
+      delete dt;
+      
+      dt = WaitForEnd("done\n", true);
+
+      for (unsigned int i = 0; i < dt->GetCount(); i++) {
+         if ((j = (*dt)[i].Find(" files selected to be restored.")) > -1) {
+            (*dt)[i].Mid(0, j).ToLong(&totfilemessages);
+            return;
+         }
+
+         if ((j = (*dt)[i].Find(" file selected to be restored.")) > -1) {
+            (*dt)[i].Mid(0, j).ToLong(&totfilemessages);
+            return;
+         }
+      }
+      
+      delete dt;
 
       if (totfilemessages == 0) {
          wxbMainFrame::GetInstance()->Print("Restore failed : no file selected.\n", CS_DEBUG);
@@ -455,19 +360,52 @@ void wxbRestorePanel::CmdStart() {
 
       wxString cmd = "list jobid=";
 
-      CreateAndWaitForParser("list jobs\n");
+      wxbTableParser* tableparser = CreateAndWaitForParser("list jobs\n");
         /* TODO (#1#): Check more carefully which job we just have run. */
-      cmd << (*tableParser)[tableParser->size()-1][0] << "\n";
+      cmd << (*tableparser)[tableparser->size()-1][0] << "\n";
+
+      delete tableparser;
 
       filemessages = 0;
 
       while (true) {
-         CreateAndWaitForParser(cmd);
-         if ((*tableParser)[0][7] != "C") {
+         tableparser = CreateAndWaitForParser(cmd);
+         if ((*tableparser)[0][7] != "C") {
             break;
          }
+         delete tableparser;
 
-         WaitForEnd("messages\n");
+         dt = WaitForEnd("messages\n", true);
+         
+         for (unsigned int i = 0; i < dt->GetCount(); i++) {
+            wxStringTokenizer tkz((*dt)[i], " ", wxTOKEN_STRTOK);
+   
+            wxDateTime datetime;
+   
+            //   Date    Time   name:   perm      ?   user   grp      size    date     time
+            //04-Apr-2004 17:19 Tom-fd: -rwx------   1 nicolas  None     514967 2004-03-20 20:03:42  filename
+   
+            if (datetime.ParseDate(tkz.GetNextToken()) != NULL) { // Date
+               if (datetime.ParseTime(tkz.GetNextToken()) != NULL) { // Time
+                  if (tkz.GetNextToken().Last() == ':') { // name:
+                  tkz.GetNextToken(); // perm
+                  tkz.GetNextToken(); // ?
+                  tkz.GetNextToken(); // user
+                  tkz.GetNextToken(); // grp
+                  tkz.GetNextToken(); // size
+                  if (datetime.ParseDate(tkz.GetNextToken()) != NULL) { //date
+                        if (datetime.ParseTime(tkz.GetNextToken()) != NULL) { //time
+                           filemessages++;
+                           //wxbMainFrame::GetInstance()->Print(wxString("(") << filemessages << ")", CS_DEBUG);
+                           gauge->SetValue(filemessages);
+                        }
+                     }
+                  }
+               }
+            }
+         }
+         
+         delete dt;
 
          wxbMainFrame::GetInstance()->SetStatusText(wxString("Restoring, please wait (") << filemessages << " of " << totfilemessages << " files done)...");
 
@@ -481,7 +419,7 @@ void wxbRestorePanel::CmdStart() {
 
       gauge->SetValue(totfilemessages);
 
-      if ((*tableParser)[0][7] == "T") {
+      if ((*tableparser)[0][7] == "T") {
          wxbMainFrame::GetInstance()->Print("Restore done successfully.\n", CS_DEBUG);
          wxbMainFrame::GetInstance()->SetStatusText("Restore done successfully.");
       }
@@ -489,6 +427,7 @@ void wxbRestorePanel::CmdStart() {
          wxbMainFrame::GetInstance()->Print("Restore failed, please look at messages.\n", CS_DEBUG);
          wxbMainFrame::GetInstance()->SetStatusText("Restore failed, please look at messages in console.");
       }
+      delete tableparser;
       SetStatus(finished);
    }
 }
@@ -499,10 +438,10 @@ void wxbRestorePanel::CmdListJobs() {
       jobChoice->Clear();
       WaitForEnd("query\n");
       WaitForEnd("6\n");
-      CreateAndWaitForParser(clientChoice->GetString(clientChoice->GetSelection()) + "\n");
+      wxbTableParser* tableparser = CreateAndWaitForParser(clientChoice->GetString(clientChoice->GetSelection()) + "\n");
 
-      for (int i = tableParser->size()-1; i > -1; i--) {
-         wxString str = (*tableParser)[i][3];
+      for (int i = tableparser->size()-1; i > -1; i--) {
+         wxString str = (*tableparser)[i][3];
          wxDateTime datetime;
          const char* chr;
          if ( ( (chr = datetime.ParseDate(str.GetData()) ) != NULL ) && ( datetime.ParseTime(++chr) != NULL ) ) {
@@ -514,6 +453,8 @@ void wxbRestorePanel::CmdListJobs() {
          jobChoice->Append("Invalid");
          }*/
       }
+      
+      delete tableparser;
 
       jobChoice->SetSelection(0);
    }
@@ -527,7 +468,7 @@ void wxbRestorePanel::CmdList(wxTreeItemId item) {
       if (!item.IsOk()) {
          return;
       }
-      WaitForList(item, (tree->GetSelection() == item));
+      UpdateTreeItem(item, (tree->GetSelection() == item));
     
       if (list->GetItemCount() > 1) {
          int firstwidth = list->GetSize().GetWidth(); 
@@ -589,6 +530,8 @@ void wxbRestorePanel::CmdMark(wxTreeItemId treeitem, long listitem) {
       WaitForEnd(wxString("cd ") << dir << "\n");
       WaitForEnd(wxString((itemdata->GetMarked() == 1) ? "unmark " : "mark ") << file << "\n");
 
+      /* TODO: Check commands results */
+
       /*if ((dir == "/") && (file == "*")) {
             itemdata->SetMarked((itemdata->GetMarked() == 1) ? 0 : 1);
       }*/
@@ -617,11 +560,8 @@ void wxbRestorePanel::CmdMark(wxTreeItemId treeitem, long listitem) {
   ----------------------------------------------------------------------------*/
 
 /* Parse a table in tableParser */
-void wxbRestorePanel::CreateAndWaitForParser(wxString cmd) {
-   if (tableParser != NULL) {
-      delete tableParser;
-   }
-   tableParser = new wxbTableParser();
+wxbTableParser* wxbRestorePanel::CreateAndWaitForParser(wxString cmd) {
+   wxbTableParser* tableParser = new wxbTableParser();
 
    wxbMainFrame::GetInstance()->Send(cmd);
 
@@ -631,35 +571,116 @@ void wxbRestorePanel::CreateAndWaitForParser(wxString cmd) {
       wxTheApp->Yield();
       //if (base+15 < wxDateTime::Now().GetTicks()) break;
    }
+   return tableParser;
 }
 
 /* Run a command, and waits until result is fully received. */
-void wxbRestorePanel::WaitForEnd(wxString cmd) {
+wxbDataTokenizer* wxbRestorePanel::WaitForEnd(wxString cmd, bool keepresults) {
+   wxbDataTokenizer* datatokenizer = new wxbDataTokenizer();
+
    wxbMainFrame::GetInstance()->Send(cmd);
 
-   ended = false;
-
    //time_t base = wxDateTime::Now().GetTicks();
-   while (!ended) {
+   while (!datatokenizer->hasFinished()) {
       //innerThread->Yield();
       wxTheApp->Yield();
       //if (base+15 < wxDateTime::Now().GetTicks()) break;
    }
+   if (keepresults) {
+      return datatokenizer;
+   }
+   else {
+      delete datatokenizer;
+      return NULL;
+   }
 }
 
 /* Run a dir command, and waits until result is fully received. */
-void wxbRestorePanel::WaitForList(wxTreeItemId item, bool updatelist) {
-   this->updatelist = updatelist;
+void wxbRestorePanel::UpdateTreeItem(wxTreeItemId item, bool updatelist) {
+//   this->updatelist = updatelist;
    currentTreeItem = item;
 
-   WaitForEnd(wxString("cd \"") << static_cast<wxbTreeItemData*>(tree->GetItemData(currentTreeItem))->GetPath() << "\"\n");
+   wxbDataTokenizer* dt;
+
+   dt = WaitForEnd(wxString("cd \"") << 
+      static_cast<wxbTreeItemData*>(tree->GetItemData(currentTreeItem))
+         ->GetPath() << "\"\n", false);
+
+   /* TODO: check command result */
+   
+   //delete dt;
 
    SetStatus(listing);
 
    if (updatelist)
       list->DeleteAllItems();
-   WaitForEnd("dir\n");
+   dt = WaitForEnd("dir\n", true);
+   
+   wxString str;
+   
+   for (unsigned int i = 0; i < dt->GetCount(); i++) {
+      str = (*dt)[i];
+      
+      if (str.Find("cwd is:") == 0) { // Sometimes cd command result "infiltrate" into listings.
+         break;
+      }
 
+      str.RemoveLast();
+
+      wxString* file = ParseList(str);
+      
+      if (file == NULL)
+            break;
+
+      wxTreeItemId treeid;
+
+      if (file[8].GetChar(file[8].Length()-1) == '/') {
+         wxString itemStr;
+
+         long cookie;
+         treeid = tree->GetFirstChild(currentTreeItem, cookie);
+
+         bool updated = false;
+
+         while (treeid.IsOk()) {
+            itemStr = tree->GetItemText(treeid);
+            if (file[8] == itemStr) {
+               int stat = wxbTreeItemData::GetMarkedStatus(file[6]);
+               if (static_cast<wxbTreeItemData*>(tree->GetItemData(treeid))->GetMarked() != stat) {
+                  tree->SetItemImage(treeid, stat, wxTreeItemIcon_Normal);
+                  tree->SetItemImage(treeid, stat, wxTreeItemIcon_Selected);
+                  static_cast<wxbTreeItemData*>(tree->GetItemData(treeid))->SetMarked(file[6]);
+               }
+               updated = true;
+               break;
+            }
+            treeid = tree->GetNextChild(currentTreeItem, cookie);
+         }
+
+         if (!updated) {
+            int img = wxbTreeItemData::GetMarkedStatus(file[6]);
+            treeid = tree->AppendItem(currentTreeItem, file[8], img, img, new wxbTreeItemData(file[7], file[8], file[6]));
+         }
+      }
+
+      if (updatelist) {
+         long ind = list->InsertItem(list->GetItemCount(), wxbTreeItemData::GetMarkedStatus(file[6]));
+         wxbTreeItemData* data = new wxbTreeItemData(file[7], file[8], file[6], ind);
+         data->SetId(treeid);
+         list->SetItemData(ind, (long)data);
+         list->SetItem(ind, 1, file[8]); // filename
+         list->SetItem(ind, 2, file[4]); //Size
+         list->SetItem(ind, 3, file[5]); //date
+         list->SetItem(ind, 4, file[0]); //perm
+         list->SetItem(ind, 5, file[2]); //user
+         list->SetItem(ind, 6, file[3]); //grp
+      }
+
+      delete[] file;
+   }
+   
+   delete dt;
+   
    tree->Refresh();
    SetStatus(choosing);
 }
@@ -841,7 +862,7 @@ void wxbRestorePanel::UpdateTreeItemState(wxTreeItemId item) {
  * by asking the director for new lists 
  */
 void wxbRestorePanel::RefreshTree(wxTreeItemId item) {
-/*   WaitForList(item, updatelist);
+/*   UpdateTreeItem(item, updatelist);*/
 
    /* Update all child which are not collapsed */
 /*   long cookie;

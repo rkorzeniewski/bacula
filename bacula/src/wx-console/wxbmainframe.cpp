@@ -31,6 +31,8 @@
 
 #include "wxwin16x16.xpm"
 
+#include <wx/arrimpl.cpp>
+
 // ----------------------------------------------------------------------------
 // event tables and other macros for wxWindows
 // ----------------------------------------------------------------------------
@@ -267,6 +269,22 @@ void wxbMainFrame::StartConsoleThread()
    ct->Run();
 }
 
+/* Register a new wxbDataParser */
+void wxbMainFrame::Register(wxbDataParser* dp) {
+   parsers.Add(dp);
+}
+   
+/* Unregister a wxbDataParser */
+void wxbMainFrame::Unregister(wxbDataParser* dp) {
+   int index;
+   if ((index = parsers.Index(dp)) != wxNOT_FOUND) {
+      parsers.RemoveAt(index);
+   }
+   else {
+      Print("Failed to unregister a data parser !", CS_DEBUG);
+   }
+}
+
 // event handlers
 
 void wxbMainFrame::OnQuit(wxCommandEvent& WXUNUSED(event))
@@ -315,8 +333,8 @@ void wxbMainFrame::Print(wxString str, int status)
    // CS_DEBUG is often sent by panels, 
    // and resend it to them would sometimes cause an infinite loop
    if (status != CS_DEBUG) {
-      for (int i = 0; panels[i] != NULL; i++) {
-         panels[i]->Print(str, status);
+      for (unsigned int i = 0; i < parsers.GetCount(); i++) {
+         parsers[i]->Print(str, status);
        }
    }
 

@@ -32,7 +32,7 @@
 #include <wx/treectrl.h>
 #include <wx/gauge.h>
 
-#include "wxbpanel.h"
+#include "wxbutils.h"
 
 #include "wxbtreectrl.h"
 #include "wxblistctrl.h"
@@ -48,7 +48,6 @@ class wxbRestorePanel : public wxbPanel
 
       /* wxbPanel overloadings */
       virtual wxString GetTitle();
-      virtual void Print(wxString str, int status);
       virtual void EnablePanel(bool enable = true);
 
    private:
@@ -72,21 +71,16 @@ class wxbRestorePanel : public wxbPanel
       long filemessages; /* When restoring, number of files restored */
       long totfilemessages; /* When restoring, number of files to be restored */
 
-      /* When listing a directory, sets if file list must be updated
-       * (otherwise only the tree structure is updated)
-       */
-      bool updatelist;
-
-      wxbTableParser* tableParser; /* Used to parse tables */
-
       /* Parse a table in tableParser */
-      void CreateAndWaitForParser(wxString cmd);
+      wxbTableParser* CreateAndWaitForParser(wxString cmd);
 
-      /* Run a command, and waits until result is fully received. */
-      void WaitForEnd(wxString cmd);
+      /* Run a command, and waits until result is fully received,
+       * if keepresults is true, returns a valid pointer to a wxbDataTokenizer
+       * containing the data. */
+      wxbDataTokenizer* WaitForEnd(wxString cmd, bool keepresults = false);
 
       /* Run a dir command, and waits until result is fully received. */
-      void WaitForList(wxTreeItemId item, bool updatelist);
+      void UpdateTreeItem(wxTreeItemId item, bool updatelist);
 
       /* Parse dir command results. */
       wxString* ParseList(wxString line);

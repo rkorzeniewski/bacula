@@ -11,15 +11,13 @@ wxbRestorePanel : Add a timeout when waiting for commands results
 
 wxbRestorePanel : Check more carefully which job we just have run.
 
+wxbRestorePanel : Check if commands run successfully (cd, mark...).
+
+wxbTableParser : Replace wxHashMap by wxArray
+
 console_thread : Allow the user to choose his config file.
 
 general : use dot commands
-
-general : create a class like wxbtableparser, which fetches commands results
-
-win32 : do a static build
-
-win32 : correct Makefile.in to use ressource file
 
 BUGS
 ----
