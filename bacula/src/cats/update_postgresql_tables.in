@@ -9,8 +9,7 @@ echo "this script may take several minutes to run."
 echo " "
 bindir=@SQL_BINDIR@
 
-if $bindir/psql $* -f - <<END-OF-DATA
-\c bacula
+if $bindir/psql -f - -d bacula $* <<END-OF-DATA
 
 ALTER TABLE media ADD COLUMN labeltype integer;
 UPDATE media SET labeltype=0;
