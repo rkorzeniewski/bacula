@@ -11,7 +11,8 @@ bindir=@SQL_BINDIR@
 if $bindir/psql $* -f - <<END-OF-DATA
 \c bacula
 
-UPDATE Version SET VersionId=7;
+DELETE FROM Version;
+INSERT INTO VERSION (VersionId) VALUES (7);
 
 END-OF-DATA
 then
