@@ -143,9 +143,10 @@ struct DEVRES;                        /* Device resource defined in stored_conf.
 
 /* Device structure definition */
 struct DEVICE {
+public:
    DEVICE *next;                      /* pointer to next open device */
    DEVICE *prev;                      /* pointer to prev open device */
-   JCR *attached_jcrs;              /* attached JCR list */
+   JCR *attached_jcrs;                /* attached JCR list */
    pthread_mutex_t mutex;             /* access control */
    pthread_cond_t wait;               /* thread wait variable */
    pthread_cond_t wait_next_vol;      /* wait for tape to be mounted */
@@ -179,7 +180,7 @@ struct DEVICE {
 
    VOLUME_CAT_INFO VolCatInfo;        /* Volume Catalog Information */
    VOLUME_LABEL VolHdr;               /* Actual volume label */
-
+   
 };
 
 

@@ -321,7 +321,7 @@ Please use the \"label\"  command to create a new Volume for:\n\
             Mmsg(&dev->errmsg, _("Gave up waiting to mount Storage Device \"%s\" for Job %s\n"), 
 		 jcr->dev_name, jcr->Job);
             Jmsg(jcr, M_FATAL, 0, "%s", dev->errmsg);
-            Dmsg1(190, "Gave up waiting on device %s\n", dev->dev_name);
+            Dmsg1(190, "Gave up waiting on device %s\n", dev_name(dev));
 	    return 0;		      /* exceeded maximum waits */
 	 }
 	 continue;
@@ -336,7 +336,7 @@ Please use the \"label\"  command to create a new Volume for:\n\
          Jmsg(jcr, M_WARNING, 0, _("pthread error in mount_next_volume stat=%d ERR=%s\n"), stat,
 	    strerror(stat));
       }
-      Dmsg1(190, "Someone woke me for device %s\n", dev->dev_name);
+      Dmsg1(190, "Someone woke me for device %s\n", dev_name(dev));
 
       /* Restart wait counters */
       wait_sec = min_wait;
@@ -413,7 +413,7 @@ int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
             Mmsg(&dev->errmsg, _("Gave up waiting to mount Storage Device \"%s\" for Job %s\n"), 
 		 jcr->dev_name, jcr->Job);
             Jmsg(jcr, M_FATAL, 0, "%s", dev->errmsg);
-            Dmsg1(190, "Gave up waiting on device %s\n", dev->dev_name);
+            Dmsg1(190, "Gave up waiting on device %s\n", dev_name(dev));
 	    return 0;		      /* exceeded maximum waits */
 	 }
 	 continue;
@@ -428,7 +428,7 @@ int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
          Jmsg(jcr, M_ERROR, 0, _("pthread error in mount_next_volume stat=%d ERR=%s\n"), stat,
 	    strerror(stat));
       }
-      Dmsg1(190, "Someone woke me for device %s\n", dev->dev_name);
+      Dmsg1(190, "Someone woke me for device %s\n", dev_name(dev));
 
       /* Restart wait counters */
       wait_sec = min_wait;
@@ -476,7 +476,7 @@ static int wait_for_sysop(JCR *jcr, DEVICE *dev, int wait_sec)
    for ( ; !job_canceled(jcr); ) {
       time_t now;
 
-      Dmsg3(100, "I'm going to sleep on device %s. HB=%d wait=%d\n", dev->dev_name,
+      Dmsg3(100, "I'm going to sleep on device %s. HB=%d wait=%d\n", dev_name(dev),
 	 (int)me->heartbeat_interval, wait_sec);
       stat = pthread_cond_timedwait(&dev->wait_next_vol, &dev->mutex, &timeout);
       Dmsg1(100, "Wokeup from sleep on device stat=%d\n", stat);
