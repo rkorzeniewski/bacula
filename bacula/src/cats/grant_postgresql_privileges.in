@@ -5,8 +5,7 @@
 USER=bacula
 bindir=@SQL_BINDIR@
 
-if $bindir/psql $* -f - <<END-OF-DATA
-\c bacula
+if $bindir/psql $* bacula -f - <<END-OF-DATA
 
 create user ${USER};
 
