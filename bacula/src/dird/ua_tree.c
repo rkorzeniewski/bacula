@@ -193,10 +193,12 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
       new_node->FileIndex = atoi(row[2]);
       new_node->JobId = (JobId_t)str_to_int64(row[3]);
       new_node->type = type;
-      new_node->extract = true; 	 /* extract all by default */
       new_node->soft_link = S_ISLNK(statp.st_mode) != 0;
-      if (type == TN_DIR || type == TN_DIR_NLS) {
-	 new_node->extract_dir = true;	 /* if dir, extract it */
+      if (tree->all) {
+	 new_node->extract = true;	    /* extract all by default */
+	 if (type == TN_DIR || type == TN_DIR_NLS) {
+	    new_node->extract_dir = true;   /* if dir, extract it */
+	 }
       }
    }
    tree->cnt++;
