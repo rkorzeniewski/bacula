@@ -130,6 +130,7 @@ typedef struct s_db {
 #define sql_field_seek(x, y)  my_sqlite_field_seek((x), (y))
 #define sql_fetch_field(x)    my_sqlite_fetch_field(x)
 #define sql_num_fields(x)     (unsigned)((x)->ncolumn)
+#define sql_table_name(x, y)
 #define SQL_ROW               char**   
 
 
@@ -201,6 +202,7 @@ typedef struct s_db {
 #define sql_fetch_field(x)    mysql_fetch_field((x)->result)
 #define sql_num_fields(x)     mysql_num_fields((x)->result)
 #define SQL_ROW               MYSQL_ROW
+#define sql_table_name(x, y)
 #define SQL_FIELD             MYSQL_FIELD
 
 #else
@@ -241,30 +243,29 @@ typedef struct s_db {
    POSTGRESQL_FIELD field;
    int num_rows;
    int num_fields;
-   int row_number;           /* what row number did we get via my_postgresql_data_seek? */
-   int field_number;           /* what field number did we get via my_postgresql_field_seek? */
+   int row_number;            /* what row number did we get via my_postgresql_data_seek? */
+   int field_number;          /* what field number did we get via my_postgresql_field_seek? */
    int ref_count;
    char *db_name;
    char *db_user;
    char *db_password;
-   char *db_address;		      /* host address */
+   char *db_address;		  /* host address */
    char *db_socket;		      /* socket for local access */
    int db_port; 		      /* port of host address */
-   int have_insert_id;		      /* do have insert_id() */
+   int have_insert_id;		  /* do have insert_id() */
+   char *table_name;          /* name of table upon which an INSERT is being done */
    int connected;
    POOLMEM *errmsg;		      /* nicely edited error message */
    POOLMEM *cmd;		      /* SQL command string */
    POOLMEM *cached_path;
-   int cached_path_len; 	      /* length of cached path */
+   int cached_path_len; 	  /* length of cached path */
    uint32_t cached_path_id;
    int changes; 		      /* changes made to db */
    POOLMEM *fname;		      /* Filename only */
    POOLMEM *path;		      /* Path only */
-   POOLMEM *esc_name;		      /* Escaped file/path name */
-   int fnl;			      /* file name length */
-   int pnl;			      /* path name length */
-
-   int LastID;  /* we need to set this during INSERT_DB  ****WORK**** */
+   POOLMEM *esc_name;		  /* Escaped file/path name */
+   int fnl;			          /* file name length */
+   int pnl;			          /* path name length */
 } B_DB;
 
 POSTGRESQL_ROW     my_postgresql_fetch_row  (B_DB *mdb);
@@ -274,6 +275,7 @@ void my_postgresql_data_seek  (B_DB *mdb, int row);
 void my_postgresql_field_seek (B_DB *mdb, int row);
 int  my_postgresql_query      (B_DB *mdb, char *query);
 void my_postgresql_free_result(B_DB *mdb);
+int  my_postgresql_currval    (B_DB *mdb);
 
 
 /* "Generic" names for easier conversion */
@@ -283,13 +285,14 @@ void my_postgresql_free_result(B_DB *mdb);
 #define sql_query(x, y)       my_postgresql_query((x), (y))
 #define sql_close(x)          PQfinish((x)->db)  
 #define sql_strerror(x)       PQresultErrorMessage((x)->result)
-#define sql_num_rows(x)       PQntuples((x)->result)
+#define sql_num_rows(x)       ((unsigned) PQntuples((x)->result))
 #define sql_data_seek(x, i)   my_postgresql_data_seek((x), (i))
-#define sql_affected_rows(x)  ((int) PQcmdTuples((x)->result))
-#define sql_insert_id(x)      ((x)->LastID)
+#define sql_affected_rows(x)  ((unsigned) atoi(PQcmdTuples((x)->result)))
+#define sql_insert_id(x)      my_postgresql_currval(x)
 #define sql_field_seek(x, y)  my_postgresql_field_seek((x), (y))
 #define sql_fetch_field(x)    my_postgresql_fetch_field(x)
-#define sql_num_fields(x)     (x)->num_fields
+#define sql_num_fields(x)     (unsigned) (x)->num_fields
+#define sql_table_name(x, y)  (x)->table_name = (y)
 #define SQL_ROW               POSTGRESQL_ROW
 #define SQL_FIELD             POSTGRESQL_FIELD
 
