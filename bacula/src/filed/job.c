@@ -181,11 +181,11 @@ void *handle_client_request(void *dirp)
 	       bnet_fsend(dir, no_auth);
 	       break;
 	    }
+	    found = TRUE;		 /* indicate command found */
 	    if (!cmds[i].func(jcr)) {	 /* do command */
-	       quit = TRUE;		 /* error, get out */
+	       quit = TRUE;		 /* error or fully terminated,	get out */
                Pmsg0(20, "Command error\n");
 	    }
-	    found = TRUE;	     /* indicate command found */
 	    break;
 	 }
       }
@@ -608,7 +608,7 @@ cleanup:
    /* Inform Director that we are done */
    bnet_sig(dir, BNET_TERMINATE);
 
-   return jcr->JobStatus == JS_Terminated;
+   return 0;			      /* return and stop command loop */
 }
 
 /*  
@@ -671,7 +671,8 @@ static int verify_cmd(JCR *jcr)
    }
 
    /* Inform Director that we are done */
-   return bnet_sig(dir, BNET_TERMINATE);
+   bnet_sig(dir, BNET_TERMINATE);
+   return 0;			      /* return and terminate command loop */
 }
 
 /*  
@@ -753,7 +754,7 @@ bail_out:
    bnet_sig(dir, BNET_TERMINATE);
 
    Dmsg0(130, "Done in job.c\n");
-   return !job_cancelled(jcr);
+   return 0;			      /* return and terminate command loop */
 }
 
 static int open_sd_read_session(JCR *jcr)

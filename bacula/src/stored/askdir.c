@@ -158,6 +158,7 @@ int dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int relabel)
       Jmsg0(jcr, M_ERROR, 0, _("NULL Volume name. This shouldn't happen!!!\n"));
       return 0;
    }
+   bash_spaces(vol->VolCatName);
    bnet_fsend(dir, Update_media, jcr->Job, 
       vol->VolCatName, vol->VolCatJobs, vol->VolCatFiles,
       vol->VolCatBlocks, edit_uint64(vol->VolCatBytes, ed1),
@@ -165,6 +166,7 @@ int dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int relabel)
       vol->VolCatWrites, edit_uint64(vol->VolCatMaxBytes, ed2), 
       EndTime, vol->VolCatStatus, vol->Slot, relabel);
    Dmsg1(120, "update_volume_data(): %s", dir->msg);
+   unbash_spaces(vol->VolCatName);
    if (bnet_recv(dir) <= 0) {
       Dmsg0(190, "updateVolCatInfo error bnet_recv\n");
       Jmsg(jcr, M_ERROR, 0, _("Error updating Volume Info: %s\n"), 

@@ -16,6 +16,12 @@ Testing to do: (painful)
 - multiple simultaneous Volumes
 
 For 1.30 release:
+- Make some way so that if a machine is skipped because it is not up 
+  that Bacula will continue retrying for a specified period of time --
+  periodically.
+- Figure out some way to estimate output size and to avoid splitting
+  a backup across two Volumes -- this could be useful for writing CDROMs
+  where you really prefer not to have it split -- not serious.
 - Add chflags() code for FreeBSD file flags
 - Add RunBeforeJob and RunAfterJob to the Client program.
 - Have SD compute MD5 or SHA1 and compare to what FD computes.
@@ -838,4 +844,3 @@ Done: (see kernsdone for more)
 - Flush all the daemon messages at the end of every job.
 - Change stat1= fgets()!=NULL to stat1=fgest()==NULL; in 
   run_program -- bpipe.c
-
