@@ -997,7 +997,7 @@ static int update_volume(UAContext *ua)
 	 if (!db_update_media_record(ua->jcr, ua->db, &mr)) {
             bsendmsg(ua, _("Error updating media record Slot: ERR=%s"), db_strerror(ua->db));
 	 } else {
-            bsendmsg(ua, _("New InChanger flag is: %s\n"), mr.InChanger);
+            bsendmsg(ua, _("New InChanger flag is: %d\n"), mr.InChanger);
 	 }
 	 break;
 
