@@ -172,7 +172,6 @@ int dir_update_volume_info(JCR *jcr, DEVICE *dev, int label)
       return 0;
    }
 
-   dev->VolCatInfo.VolCatFiles = dev->file;   /* set number of files */
    Dmsg1(100, "Update cat VolFiles=%d\n", dev->file);
    /* Just labeled or relabeled the tape */
    if (label) {

@@ -415,6 +415,7 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       }
       /* Don't do update after second EOF or file count will be wrong */
       Dmsg0(100, "dir_update_volume_info\n");
+      dev->VolCatInfo.VolCatFiles = dev->file;
       dir_update_volume_info(jcr, dev, 0);
       if (dev_cap(dev, CAP_TWOEOF) && weof_dev(dev, 1) != 0) {	/* write eof */
          Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
@@ -434,12 +435,14 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	    block->write_failed = true;
 	    dev->state |= (ST_EOF | ST_EOT | ST_WEOT);
             Dmsg0(100, "dir_update_volume_info\n");
+	    dev->VolCatInfo.VolCatFiles = dev->file;
 	    dir_update_volume_info(jcr, dev, 0);
 	    return 0;	
 	 }
 
 	 /* Do bookkeeping to handle EOF just written */
          Dmsg0(100, "dir_update_volume_info\n");
+	 dev->VolCatInfo.VolCatFiles = dev->file;
 	 dir_update_volume_info(jcr, dev, 0);
 	 if (!dir_create_jobmedia_record(jcr)) {
              Jmsg(jcr, M_ERROR, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
@@ -499,6 +502,7 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
          Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       }
       Dmsg0(100, "dir_update_volume_info\n");
+      dev->VolCatInfo.VolCatFiles = dev->file;
       dir_update_volume_info(jcr, dev, 0);
       if (dev_cap(dev, CAP_TWOEOF) && weof_dev(dev, 1) != 0) {	/* end the tape */
          Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);

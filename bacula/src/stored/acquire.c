@@ -307,6 +307,7 @@ int release_device(JCR *jcr, DEVICE *dev)
 	    if (dev_can_write(dev)) {
 	       weof_dev(dev, 1);
 	    }
+	    dev->VolCatInfo.VolCatFiles = dev->file;   /* set number of files */
 	    dev->VolCatInfo.VolCatJobs++;	       /* increment number of jobs */
 	    /* Note! do volume update before close, which zaps VolCatInfo */
             Dmsg0(100, "dir_update_vol_info. Release0\n");
@@ -324,6 +325,7 @@ int release_device(JCR *jcr, DEVICE *dev)
 	       jcr->VolCatInfo.VolCatName, jcr->Job);
 	 }
          Dmsg0(100, "dir_update_vol_info. Release1\n");
+	 dev->VolCatInfo.VolCatFiles = dev->file;   /* set number of files */
 	 dev->VolCatInfo.VolCatJobs++;		    /* increment number of jobs */
 	 dir_update_volume_info(jcr, dev, 0); /* send Volume info to Director */
       }

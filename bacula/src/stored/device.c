@@ -109,6 +109,7 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    bstrncpy(dev->VolCatInfo.VolCatStatus, "Full", sizeof(dev->VolCatInfo.VolCatStatus));
    Dmsg2(100, "Call update_vol_info Stat=%s Vol=%s\n", 
       dev->VolCatInfo.VolCatStatus, dev->VolCatInfo.VolCatName);
+   dev->VolCatInfo.VolCatFiles = dev->file;   /* set number of files */
    dev->VolCatInfo.VolCatJobs++;	      /* increment number of jobs */
    if (!dir_update_volume_info(jcr, dev, 0)) {	  /* send Volume info to Director */
       P(dev->mutex);
