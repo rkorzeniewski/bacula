@@ -282,8 +282,9 @@ int write_block_to_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
     * If a new volume has been mounted since our last write
     *	Create a JobMedia record for the previous volume written,
     *	and set new parameters to write this volume   
+    * The saem applies for if we are in a new file.
     */
-   if (jcr->NewVol) {
+   if (jcr->NewVol || jcr->NewFile) {
       /* Create a jobmedia record for this job */
       if (!dir_create_jobmedia_record(jcr)) {
          Jmsg(jcr, M_ERROR, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
@@ -292,7 +293,13 @@ int write_block_to_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	 unlock_device(dev);
 	 return 0;
       }
-      set_new_volume_parameters(jcr, dev);
+      if (jcr->NewVol) {
+	 /* Note, setting a new volume also handles any pending new file */
+	 set_new_volume_parameters(jcr, dev);
+	 jcr->NewFile = false;	      /* this handled for new file too */
+      } else {
+	 set_new_file_parameters(jcr, dev);
+      }
    }
 
    if (!write_block_to_dev(jcr, dev, block)) {
@@ -377,20 +384,41 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       Jmsg(jcr, M_INFO, 0, _("User defined maximum volume capacity %s exceeded on device %s.\n"),
 	    edit_uint64(max_cap, ed1),	dev->dev_name);
       block->write_failed = true;
-      weof_dev(dev, 1); 	      /* end the tape */
-      weof_dev(dev, 1); 	      /* write second eof */
+      weof_dev(dev, 2); 	      /* end the tape */
       dev->state |= (ST_EOF | ST_EOT | ST_WEOT);
-      return 0;
+      return 0;   
    }
 
    /* Limit maximum File size on volume to user specified value */
    if (dev->state & ST_TAPE) {
       if ((dev->max_file_size > 0) && 
 	  (dev->file_addr+block->binbuf) >= dev->max_file_size) {
+
+	 /* Write EOF */
 	 if (weof_dev(dev, 1) != 0) {		 /* write eof */
             Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
-	    /* Plunge on anyway -- if tape is bad we will die on write */
+	    block->write_failed = true;
+	    dev->state |= (ST_EOF | ST_EOT | ST_WEOT);
+	    return 0;	
 	 }
+
+	 /* Do bookkeeping to handle EOF just written */
+	 if (!dir_create_jobmedia_record(jcr)) {
+             Jmsg(jcr, M_ERROR, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
+		  jcr->VolCatInfo.VolCatName, jcr->Job);
+	     return 0;
+	 }
+	 /* 
+	  * Walk through all attached jcrs indicating the file has changed   
+	  */
+         Dmsg1(100, "Walk attached jcrs. Volume=%s\n", dev->VolCatInfo.VolCatName);
+	 for (JCR *mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
+	    if (mjcr->JobId == 0) {
+	       continue;		 /* ignore console */
+	    }
+	    mjcr->NewFile = true;
+	 }
+	 set_new_file_parameters(jcr, dev);
       }
    }
 
@@ -544,6 +572,9 @@ int read_block_from_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, bool check_bloc
    uint32_t BlockNumber;
    int retry = 0;
 
+   if (dev_state(dev, ST_EOT)) {
+      return 0;
+   }
    looping = 0;
    Dmsg1(100, "Full read() in read_block_from_device() len=%d\n",
 	 block->buf_len);

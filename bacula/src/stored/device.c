@@ -216,6 +216,29 @@ void set_new_volume_parameters(JCR *jcr, DEVICE *dev)
    jcr->WroteVol = false;
 }
 
+/*
+ * We are now in a new file, so reset the Volume parameters
+ *  concerning this job.  The global changes were made earlier
+ *  in the dev structure.
+ */
+void set_new_file_parameters(JCR *jcr, DEVICE *dev) 
+{
+   /* Set new start/end positions */
+   if (dev->state & ST_TAPE) {
+      jcr->StartBlock = dev->block_num;
+      jcr->StartFile = dev->file;
+   } else {
+      jcr->StartBlock = (uint32_t)dev->file_addr;
+      jcr->StartFile  = (uint32_t)(dev->file_addr >> 32);
+   }
+   /* Reset indicies */
+   jcr->VolFirstIndex = 0;
+   jcr->VolLastIndex = 0;
+   jcr->NewFile = false;
+   jcr->WroteVol = false;
+}
+
+
 
 /*
  *   Open the device. Expect dev to already be initialized.  

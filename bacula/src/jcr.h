@@ -87,150 +87,151 @@ struct JCR {
    /* Global part of JCR common to all daemons */
    JCR *next;
    JCR *prev;
-   volatile int use_count;	      /* use count */
-   pthread_t my_thread_id;	      /* id of thread controlling jcr */
-   pthread_mutex_t mutex;	      /* jcr mutex */
-   BSOCK *dir_bsock;		      /* Director bsock or NULL if we are him */
-   BSOCK *store_bsock;		      /* Storage connection socket */
-   BSOCK *file_bsock;		      /* File daemon connection socket */
+   volatile int use_count;            /* use count */
+   pthread_t my_thread_id;            /* id of thread controlling jcr */
+   pthread_mutex_t mutex;             /* jcr mutex */
+   BSOCK *dir_bsock;                  /* Director bsock or NULL if we are him */
+   BSOCK *store_bsock;                /* Storage connection socket */
+   BSOCK *file_bsock;                 /* File daemon connection socket */
    JCR_free_HANDLER *daemon_free_jcr; /* Local free routine */
-   POOLMEM *errmsg;		      /* edited error message */
-   char Job[MAX_NAME_LENGTH];	      /* Unique name of this Job */
+   POOLMEM *errmsg;                   /* edited error message */
+   char Job[MAX_NAME_LENGTH];         /* Unique name of this Job */
    uint32_t JobId;                    /* Director's JobId */
    uint32_t VolSessionId;
    uint32_t VolSessionTime;
-   uint32_t JobFiles;		      /* Number of files written, this job */
-   uint32_t JobErrors;		      /* */
-   uint64_t JobBytes;		      /* Number of bytes processed this job */
-   uint64_t ReadBytes;		      /* Bytes read -- before compression */
-   uint32_t Errors;		      /* Number of non-fatal errors */
-   volatile int JobStatus;	      /* ready, running, blocked, terminated */ 
-   int JobType; 		      /* backup, restore, verify ... */
-   int JobLevel;		      /* Job level */
-   int JobPriority;		      /* Job priority */
-   int authenticated;		      /* set when client authenticated */
-   time_t sched_time;		      /* job schedule time, i.e. when it should start */
-   time_t start_time;		      /* when job actually started */
-   time_t run_time;		      /* used for computing speed */
-   time_t end_time;		      /* job end time */
-   POOLMEM *VolumeName; 	      /* Volume name desired -- pool_memory */
-   POOLMEM *client_name;	      /* client name */
-   POOLMEM *RestoreBootstrap;	      /* Bootstrap file to restore */
-   char *sd_auth_key;		      /* SD auth key */
-   MSGS *jcr_msgs;		      /* Copy of message resource -- actually used */
-   uint32_t ClientId;		      /* Client associated with Job */
-   char *where; 		      /* prefix to restore files to */
-   int prefix_links;		      /* Prefix links with Where path */
-   int cached_pnl;		      /* cached path length */
-   POOLMEM *cached_path;	      /* cached path */
+   uint32_t JobFiles;                 /* Number of files written, this job */
+   uint32_t JobErrors;                /* */
+   uint64_t JobBytes;                 /* Number of bytes processed this job */
+   uint64_t ReadBytes;                /* Bytes read -- before compression */
+   uint32_t Errors;                   /* Number of non-fatal errors */
+   volatile int JobStatus;            /* ready, running, blocked, terminated */ 
+   int JobType;                       /* backup, restore, verify ... */
+   int JobLevel;                      /* Job level */
+   int JobPriority;                   /* Job priority */
+   int authenticated;                 /* set when client authenticated */
+   time_t sched_time;                 /* job schedule time, i.e. when it should start */
+   time_t start_time;                 /* when job actually started */
+   time_t run_time;                   /* used for computing speed */
+   time_t end_time;                   /* job end time */
+   POOLMEM *VolumeName;               /* Volume name desired -- pool_memory */
+   POOLMEM *client_name;              /* client name */
+   POOLMEM *RestoreBootstrap;         /* Bootstrap file to restore */
+   char *sd_auth_key;                 /* SD auth key */
+   MSGS *jcr_msgs;                    /* Copy of message resource -- actually used */
+   uint32_t ClientId;                 /* Client associated with Job */
+   char *where;                       /* prefix to restore files to */
+   int prefix_links;                  /* Prefix links with Where path */
+   int cached_pnl;                    /* cached path length */
+   POOLMEM *cached_path;              /* cached path */
 
    /* Daemon specific part of JCR */
    /* This should be empty in the library */
 
 #ifdef DIRECTOR_DAEMON
    /* Director Daemon specific part of JCR */
-   pthread_t SD_msg_chan;	      /* Message channel thread id */
-   pthread_cond_t term_wait;	      /* Wait for job termination */
-   workq_ele_t *work_item;	      /* Work queue item if scheduled */
+   pthread_t SD_msg_chan;             /* Message channel thread id */
+   pthread_cond_t term_wait;          /* Wait for job termination */
+   workq_ele_t *work_item;            /* Work queue item if scheduled */
    volatile bool sd_msg_thread_done;  /* Set when Storage message thread terms */
-   BSOCK *ua;			      /* User agent */
-   JOB *job;			      /* Job resource */
-   STORE *store;		      /* Storage resource */
-   CLIENT *client;		      /* Client resource */
-   POOL *pool;			      /* Pool resource */
-   FILESET *fileset;		      /* FileSet resource */
-   CAT *catalog;		      /* Catalog resource */
-   MSGS *messages;		      /* Default message handler */
-   uint32_t SDJobFiles; 	      /* Number of files written, this job */
-   uint64_t SDJobBytes; 	      /* Number of bytes processed this job */
-   uint32_t SDErrors;		      /* Number of non-fatal errors */
-   volatile int SDJobStatus;	      /* Storage Job Status */
-   volatile int FDJobStatus;	      /* File daemon Job Status */
-   B_DB *db;			      /* database pointer */
-   uint32_t MediaId;		      /* DB record IDs associated with this job */
-   uint32_t PoolId;		      /* Pool record id */
-   FileId_t FileId;		      /* Last file id inserted */
-   uint32_t FileIndex;		      /* Last FileIndex processed */
-   POOLMEM *fname;		      /* name to put into catalog */
-   int fn_printed;		      /* printed filename */
-   POOLMEM *stime;		      /* start time for incremental/differential */
-   JOB_DBR jr;			      /* Job record in Database */
-   uint32_t RestoreJobId;	      /* Id specified by UA */
-   POOLMEM *client_uname;	      /* client uname */ 
-   int replace; 		      /* Replace option */
+   BSOCK *ua;                         /* User agent */
+   JOB *job;                          /* Job resource */
+   STORE *store;                      /* Storage resource */
+   CLIENT *client;                    /* Client resource */
+   POOL *pool;                        /* Pool resource */
+   FILESET *fileset;                  /* FileSet resource */
+   CAT *catalog;                      /* Catalog resource */
+   MSGS *messages;                    /* Default message handler */
+   uint32_t SDJobFiles;               /* Number of files written, this job */
+   uint64_t SDJobBytes;               /* Number of bytes processed this job */
+   uint32_t SDErrors;                 /* Number of non-fatal errors */
+   volatile int SDJobStatus;          /* Storage Job Status */
+   volatile int FDJobStatus;          /* File daemon Job Status */
+   B_DB *db;                          /* database pointer */
+   uint32_t MediaId;                  /* DB record IDs associated with this job */
+   uint32_t PoolId;                   /* Pool record id */
+   FileId_t FileId;                   /* Last file id inserted */
+   uint32_t FileIndex;                /* Last FileIndex processed */
+   POOLMEM *fname;                    /* name to put into catalog */
+   int fn_printed;                    /* printed filename */
+   POOLMEM *stime;                    /* start time for incremental/differential */
+   JOB_DBR jr;                        /* Job record in Database */
+   uint32_t RestoreJobId;             /* Id specified by UA */
+   POOLMEM *client_uname;             /* client uname */ 
+   int replace;                       /* Replace option */
    bool acquired_resource_locks;      /* set if resource locks acquired */
-   int NumVols; 		      /* Number of Volume used in pool */
-   int reschedule_count;	      /* Number of times rescheduled */
+   int NumVols;                       /* Number of Volume used in pool */
+   int reschedule_count;              /* Number of times rescheduled */
 #endif /* DIRECTOR_DAEMON */
 
 
 #ifdef FILE_DAEMON
    /* File Daemon specific part of JCR */
    uint32_t num_files_examined;       /* files examined this job */
-   POOLMEM *last_fname; 	      /* last file saved/verified */
+   POOLMEM *last_fname;               /* last file saved/verified */
    /*********FIXME********* add missing files and files to be retried */
-   int incremental;		      /* set if incremental for SINCE */
-   time_t mtime;		      /* begin time for SINCE */
-   int mtime_only;		      /* compare only mtime and not ctime as well */
-   int listing; 		      /* job listing in estimate */
-   long Ticket; 		      /* Ticket */
-   int save_level;		      /* save level */
-   char *big_buf;		      /* I/O buffer */
-   POOLMEM *compress_buf;	      /* Compression buffer */
-   int32_t compress_buf_size;	      /* Length of compression buffer */
-   int replace; 		      /* Replace options */
-   int buf_size;		      /* length of buffer */
-   void *ff;			      /* Find Files packet */
+   int incremental;                   /* set if incremental for SINCE */
+   time_t mtime;                      /* begin time for SINCE */
+   int mtime_only;                    /* compare only mtime and not ctime as well */
+   int listing;                       /* job listing in estimate */
+   long Ticket;                       /* Ticket */
+   int save_level;                    /* save level */
+   char *big_buf;                     /* I/O buffer */
+   POOLMEM *compress_buf;             /* Compression buffer */
+   int32_t compress_buf_size;         /* Length of compression buffer */
+   int replace;                       /* Replace options */
+   int buf_size;                      /* length of buffer */
+   void *ff;                          /* Find Files packet */
    char stored_addr[MAX_NAME_LENGTH]; /* storage daemon address */
    uint32_t StartFile;
    uint32_t EndFile;
    uint32_t StartBlock;
    uint32_t EndBlock;
-   pthread_t heartbeat_id;	      /* id of heartbeat thread */
-   volatile BSOCK *hb_bsock;	      /* duped SD socket */
+   pthread_t heartbeat_id;            /* id of heartbeat thread */
+   volatile BSOCK *hb_bsock;          /* duped SD socket */
 #endif /* FILE_DAEMON */
 
 
 #ifdef STORAGE_DAEMON
    /* Storage Daemon specific part of JCR */
-   JCR *next_dev;		      /* next JCR attached to device */
-   JCR *prev_dev;		      /* previous JCR attached to device */
+   JCR *next_dev;                     /* next JCR attached to device */
+   JCR *prev_dev;                     /* previous JCR attached to device */
    pthread_cond_t job_start_wait;     /* Wait for FD to start Job */
    int type;
-   DEVRES *device;		      /* device to use */
-   VOLUME_CAT_INFO VolCatInfo;	      /* Catalog info for desired volume */
-   POOLMEM *job_name;		      /* base Job name (not unique) */
-   POOLMEM *fileset_name;	      /* FileSet */
-   POOLMEM *fileset_md5;	      /* MD5 for FileSet */
-   POOLMEM *pool_name;		      /* pool to use */
-   POOLMEM *pool_type;		      /* pool type to use */
-   POOLMEM *media_type; 	      /* media type */
-   POOLMEM *dev_name;		      /* device name */
-   VOL_LIST *VolList;		      /* list to read */
-   int32_t NumVolumes;		      /* number of volumes used */
-   int32_t CurVolume;		      /* current volume number */
-   int spool_attributes;	      /* set if spooling attributes */
-   int no_attributes;		      /* set if no attributes wanted */
-   int label_status;		      /* device volume label status */
-   int label_errors;		      /* count of label errors */
+   DEVRES *device;                    /* device to use */
+   VOLUME_CAT_INFO VolCatInfo;        /* Catalog info for desired volume */
+   POOLMEM *job_name;                 /* base Job name (not unique) */
+   POOLMEM *fileset_name;             /* FileSet */
+   POOLMEM *fileset_md5;              /* MD5 for FileSet */
+   POOLMEM *pool_name;                /* pool to use */
+   POOLMEM *pool_type;                /* pool type to use */
+   POOLMEM *media_type;               /* media type */
+   POOLMEM *dev_name;                 /* device name */
+   VOL_LIST *VolList;                 /* list to read */
+   int32_t NumVolumes;                /* number of volumes used */
+   int32_t CurVolume;                 /* current volume number */
+   int spool_attributes;              /* set if spooling attributes */
+   int no_attributes;                 /* set if no attributes wanted */
+   int label_status;                  /* device volume label status */
+   int label_errors;                  /* count of label errors */
    int session_opened;
-   DEV_RECORD rec;		      /* Read/Write record */
-   long Ticket; 		      /* ticket for this job */
-   uint32_t VolFirstIndex;	      /* First file index this Volume */
-   uint32_t VolLastIndex;	      /* Last file index this Volume */
-   uint32_t FileIndex;		      /* Current File Index */
-   uint32_t EndFile;		      /* End file written */
-   uint32_t StartFile;		      /* Start write file */
-   uint32_t StartBlock; 	      /* Start write block */
-   uint32_t EndBlock;		      /* Ending block written */
-   bool NewVol; 		      /* set when new Volume mounted */
-   bool WroteVol;		      /* set when Volume written */
-   int CurVol;			      /* Current Volume count */
+   DEV_RECORD rec;                    /* Read/Write record */
+   long Ticket;                       /* ticket for this job */
+   uint32_t VolFirstIndex;            /* First file index this Volume */
+   uint32_t VolLastIndex;             /* Last file index this Volume */
+   uint32_t FileIndex;                /* Current File Index */
+   uint32_t EndFile;                  /* End file written */
+   uint32_t StartFile;                /* Start write file */
+   uint32_t StartBlock;               /* Start write block */
+   uint32_t EndBlock;                 /* Ending block written */
+   bool NewVol;                       /* set when new Volume mounted */
+   bool WroteVol;                     /* set when Volume written */
+   bool NewFile;                      /* set when EOF written */
+   int CurVol;                        /* Current Volume count */
 
-   uint32_t FileId;		      /* Last file id inserted */
+   uint32_t FileId;                   /* Last file id inserted */
 
    /* Parmaters for Open Read Session */
-   BSR *bsr;			      /* Bootstrap record -- has everything */
+   BSR *bsr;                          /* Bootstrap record -- has everything */
    uint32_t read_VolSessionId;
    uint32_t read_VolSessionTime;
    uint32_t read_StartFile;

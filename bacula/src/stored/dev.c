@@ -638,7 +638,7 @@ int offline_dev(DEVICE *dev)
 
    if (dev->fd < 0) {
       dev->dev_errno = EBADF;
-      Mmsg0(&dev->errmsg, _("Bad call to load_dev. Archive not open\n"));
+      Mmsg0(&dev->errmsg, _("Bad call to offline_dev. Archive not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
       return 0;
    }
@@ -809,6 +809,8 @@ fsf_dev(DEVICE *dev, int num)
 
 /* 
  * Backward space a file  
+ *  Returns: 0 on failure
+ *	     1 on success
  */
 int
 bsf_dev(DEVICE *dev, int num)
@@ -818,12 +820,12 @@ bsf_dev(DEVICE *dev, int num)
 
    if (dev->fd < 0) {
       dev->dev_errno = EBADF;
-      Mmsg0(&dev->errmsg, _("Bad call to fsf_dev. Archive not open\n"));
+      Mmsg0(&dev->errmsg, _("Bad call to bsf_dev. Archive not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
-      return -1;
+      return 0;
    }
 
-   if (!(dev->state & ST_TAPE)) {
+   if (!(dev_state(dev, ST_TAPE))) {
       return 0;
    }
    Dmsg0(29, "bsf_dev\n");
@@ -839,12 +841,14 @@ bsf_dev(DEVICE *dev, int num)
 	 dev->dev_name, strerror(dev->dev_errno));
    }
    update_pos_dev(dev);
-   return stat;
+   return stat == 0 ? 1 : 0;
 }
 
 
 /* 
  * Foward space a record
+ *  Returns: 0 on failure
+ *	     1 on success
  */
 int
 fsr_dev(DEVICE *dev, int num)
@@ -854,12 +858,12 @@ fsr_dev(DEVICE *dev, int num)
 
    if (dev->fd < 0) {
       dev->dev_errno = EBADF;
-      Mmsg0(&dev->errmsg, _("Bad call to fsf_dev. Archive not open\n"));
+      Mmsg0(&dev->errmsg, _("Bad call to fsr_dev. Archive not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
-      return -1;
+      return 0;
    }
 
-   if (!(dev->state & ST_TAPE)) {
+   if (!(dev_state(dev, ST_TAPE))) {
       return 0;
    }
    Dmsg0(29, "fsr_dev\n");
@@ -882,13 +886,13 @@ fsr_dev(DEVICE *dev, int num)
 	 dev->dev_name, strerror(dev->dev_errno));
    }
    update_pos_dev(dev);
-   return stat;
+   return stat == 0 ? 1 : 0;
 }
 
 /* 
  * Backward space a record
- *   Returns:  0 on success
- *	      -1 on failure
+ *   Returns:  0 on failure
+ *	       1 on success
  */
 int
 bsr_dev(DEVICE *dev, int num)
@@ -898,9 +902,9 @@ bsr_dev(DEVICE *dev, int num)
 
    if (dev->fd < 0) {
       dev->dev_errno = EBADF;
-      Mmsg0(&dev->errmsg, _("Bad call to fsf_dev. Archive not open\n"));
+      Mmsg0(&dev->errmsg, _("Bad call to bsr_dev. Archive not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
-      return -1;
+      return 0;
    }
 
    if (!(dev->state & ST_TAPE)) {
@@ -925,7 +929,49 @@ bsr_dev(DEVICE *dev, int num)
 	 dev->dev_name, strerror(dev->dev_errno));
    }
    update_pos_dev(dev);
-   return stat;
+   return stat == 0 ? 1 : 0;
+}
+
+/* 
+ * Reposition the device to file, block
+ *   Currently only works for tapes.
+ * Returns: 0 on failure
+ *	    1 on success
+ */
+int
+reposition_dev(DEVICE *dev, uint32_t file, uint32_t block)
+{ 
+
+   if (dev->fd < 0) {
+      dev->dev_errno = EBADF;
+      Mmsg0(&dev->errmsg, _("Bad call to reposition_dev. Archive not open\n"));
+      Emsg0(M_FATAL, 0, dev->errmsg);
+      return 0;
+   }
+
+   if (!(dev_state(dev, ST_TAPE))) {
+      return 0;
+   }
+   Dmsg4(100, "reposition_dev from %u:%u to %u:%u\n", 
+      dev->file, dev->block_num, file, block);
+   if (file < dev->file) {
+      Dmsg0(100, "Rewind_dev\n");
+      if (!rewind_dev(dev)) {
+	 return 0;
+      }
+   }
+   if (file > dev->file) {
+      Dmsg1(100, "fsf %d\n", file-dev->file);
+      if (!fsf_dev(dev, file-dev->file)) {
+	 return 0;
+      }
+   }
+   if (block > dev->block_num) {
+      /* Ignore errors as Bacula can read to the correct block */
+      Dmsg1(100, "fsr %d\n", block-dev->block_num);
+      fsr_dev(dev, block-dev->block_num);
+   }
+   return 1;
 }
 
 
@@ -943,7 +989,7 @@ weof_dev(DEVICE *dev, int num)
 
    if (dev->fd < 0) {
       dev->dev_errno = EBADF;
-      Mmsg0(&dev->errmsg, _("Bad call to fsf_dev. Archive not open\n"));
+      Mmsg0(&dev->errmsg, _("Bad call to weof_dev. Archive not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
       return -1;
    }
@@ -958,7 +1004,7 @@ weof_dev(DEVICE *dev, int num)
    mt_com.mt_count = num;
    stat = ioctl(dev->fd, MTIOCTOP, (char *)&mt_com);
    if (stat == 0) {
-      dev->file++;
+      dev->file += num;
       dev->file_addr = 0;
    } else {
       clrerror_dev(dev, MTWEOF);
@@ -1099,7 +1145,7 @@ void
 close_dev(DEVICE *dev)
 {
    if (!dev) {
-      Mmsg0(&dev->errmsg, _("Bad call to fsf_dev. Archive not open\n"));
+      Mmsg0(&dev->errmsg, _("Bad call to close_dev. Archive not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
       return;
    }
@@ -1120,7 +1166,7 @@ close_dev(DEVICE *dev)
 void force_close_dev(DEVICE *dev)
 {
    if (!dev) {
-      Mmsg0(&dev->errmsg, _("Bad call to fsf_dev. Archive not open\n"));
+      Mmsg0(&dev->errmsg, _("Bad call to force_close_dev. Archive not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
       return;
    }
@@ -1200,7 +1246,7 @@ term_dev(DEVICE *dev)
 {
    if (!dev) {
       dev->dev_errno = EBADF;
-      Mmsg0(&dev->errmsg, _("Bad call to fsf_dev. Archive not open\n"));
+      Mmsg0(&dev->errmsg, _("Bad call to term_dev. Archive not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
       return;
    }

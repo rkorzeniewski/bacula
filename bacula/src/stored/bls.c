@@ -52,7 +52,6 @@ static JCR *jcr;
 static SESSION_LABEL sessrec;
 static uint32_t num_files = 0;
 static ATTR *attr;
-static int non_support_data = 0;
 
 #define CONFIG_FILE "bacula-sd.conf"
 char *configfile;
@@ -370,26 +369,26 @@ static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sess
    char *rtype;
    memset(sessrec, 0, sizeof(sessrec));
    switch (rec->FileIndex) {
-      case PRE_LABEL:
-         rtype = "Fresh Volume Label";   
-	 break;
-      case VOL_LABEL:
-         rtype = "Volume Label";
-	 unser_volume_label(dev, rec);
-	 break;
-      case SOS_LABEL:
-         rtype = "Begin Session";
-	 unser_session_label(sessrec, rec);
-	 break;
-      case EOS_LABEL:
-         rtype = "End Session";
-	 break;
-      case EOM_LABEL:
-         rtype = "End of Medium";
-	 break;
-      default:
-         rtype = "Unknown";
-	 break;
+   case PRE_LABEL:
+      rtype = "Fresh Volume Label";   
+      break;
+   case VOL_LABEL:
+      rtype = "Volume Label";
+      unser_volume_label(dev, rec);
+      break;
+   case SOS_LABEL:
+      rtype = "Begin Session";
+      unser_session_label(sessrec, rec);
+      break;
+   case EOS_LABEL:
+      rtype = "End Session";
+      break;
+   case EOM_LABEL:
+      rtype = "End of Medium";
+      break;
+   default:
+      rtype = "Unknown";
+      break;
    }
    Dmsg5(10, "%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
 	 rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);

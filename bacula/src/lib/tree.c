@@ -33,7 +33,7 @@
 #endif
 
 /*
- * This subrouting gets a big buffer.
+ * This subroutine gets a big buffer.
  */
 static void malloc_buf(TREE_ROOT *root, int size)
 {
@@ -306,7 +306,7 @@ void print_tree(char *path, TREE_NODE *tree)
    case TN_NEWDIR:
    case TN_DIR:
    case TN_DIR_NLS:
-      sprintf(buf, "%s/%s", path, tree->fname);
+      bsnprintf(buf, sizeof(buf), "%s/%s", path, tree->fname);
       print_tree(buf, tree->child);
       break;
    case TN_ROOT:
@@ -334,9 +334,9 @@ int tree_getpath(TREE_NODE *node, char *buf, int buf_size)
    if (node->type == TN_DIR_NLS && buf[0] == '/' && buf[1] == 0) {
       buf[0] = 0;   
    }
-   strcat(buf, node->fname);
+   bstrncat(buf, node->fname, buf_size);
    if (node->type != TN_FILE) {
-      strcat(buf, "/");
+      bstrncat(buf, "/", buf_size);
    }
    return 1;
 }
@@ -474,7 +474,7 @@ void FillDirectoryTree(char *path, TREE_ROOT *root, TREE_NODE *parent)
       if (strcmp(dir->d_name, ".") == 0 || strcmp(dir->d_name, "..") == 0) {
 	 continue;
       }
-      strcpy(file, dir->d_name);
+      bstrncpy(file, dir->d_name, sizeof(file));
       snprintf(pathbuf, MAXPATHLEN-1, "%s/%s", path, file);
       if (lstat(pathbuf, &statbuf) < 0) {
          printf("lstat() failed. ERR=%s\n", strerror(errno));

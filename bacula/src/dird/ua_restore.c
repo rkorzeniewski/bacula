@@ -53,6 +53,7 @@ struct JOBIDS {
    utime_t JobTDate;
    uint32_t TotalFiles;
    char ClientName[MAX_NAME_LENGTH];
+   char last_jobid[10];
    char JobIds[200];		      /* User entered string of JobIds */
    STORE  *store;
 };
@@ -176,7 +177,7 @@ int restorecmd(UAContext *ua, char *cmd)
          bsendmsg(ua, "%s", db_strerror(ua->db));
       }
    }
-   bsendmsg(ua, "%d item%s inserted into the tree and marked for extraction.\n", 
+   bsendmsg(ua, "%d Job%s inserted into the tree and marked for extraction.\n", 
       items, items==1?"":"s");
    free_pool_memory(query);
 
@@ -423,6 +424,9 @@ static int user_select_jobids(UAContext *ua, JOBIDS *ji)
       if (stat == 0) {
 	 break;
       }
+      if (jr.JobId == JobId) {
+	 continue;		      /* duplicate of last JobId */
+      }
       jr.JobId = JobId;
       if (!db_get_job_record(ua->jcr, ua->db, &jr)) {
          bsendmsg(ua, _("Unable to get Job record. ERR=%s\n"), db_strerror(ua->db));
@@ -519,6 +523,7 @@ static int select_backups_before_date(UAContext *ua, JOBIDS *ji, char *date)
 
    /* Get the JobIds from that list */
    ji->JobIds[0] = 0;
+   ji->last_jobid[0] = 0;
    if (!db_sql_query(ua->db, uar_sel_jobid_temp, jobid_handler, (void *)ji)) {
       bsendmsg(ua, "%s\n", db_strerror(ua->db));
    }
@@ -569,6 +574,10 @@ static int jobid_handler(void *ctx, int num_fields, char **row)
 {
    JOBIDS *ji = (JOBIDS *)ctx;
 
+   if (strcmp(ji->last_jobid, row[0]) == 0) {		
+      return 0; 		      /* duplicate id */
+   }
+   bstrncpy(ji->last_jobid, row[0], sizeof(ji->last_jobid));
    /* Concatenate a JobId if it does not exceed array size */
    if (strlen(ji->JobIds)+strlen(row[0])+2 < sizeof(ji->JobIds)) {
       if (ji->JobIds[0] != 0) {

@@ -96,7 +96,7 @@ void user_select_files_from_tree(TREE_CTX *tree)
       }
       parse_ua_args(ua);
       if (ua->argc == 0) {
-	 return;
+	 break;
       }
 
       len = strlen(ua->argk[0]);

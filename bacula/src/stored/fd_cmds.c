@@ -343,7 +343,7 @@ static int bootstrap_cmd(JCR *jcr)
       goto bail_out;
    }
    if (debug_level > 20) {
-      dump_bsr(jcr->bsr);
+      dump_bsr(jcr->bsr, true);
    }
    return bnet_fsend(fd, OK_bootstrap);
 
