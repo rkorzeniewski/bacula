@@ -119,7 +119,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
       return 1;
    case FT_DIRNOCHG:
    case FT_NOCHG:
-      Jmsg(jcr, M_INFO, -1, _("     Unchanged file skipped: %s\n"), ff_pkt->fname);
+      Jmsg(jcr, M_SKIPPED, -1, _("     Unchanged file skipped: %s\n"), ff_pkt->fname);
       return 1;
    case FT_ISARCH:
       Jmsg(jcr, M_SKIPPED, -1, _("     Archive file skipped: %s\n"), ff_pkt->fname);

@@ -206,13 +206,18 @@ static void *job_thread(void *arg)
             Pmsg1(0, "Unimplemented job type: %d\n", jcr->JobType);
 	    break;
 	 }
-	 if (jcr->job->RunAfterJob) {
+	 if ((jcr->job->RunAfterJob && jcr->JobStatus == JS_Terminated) ||
+	     (jcr->job->RunAfterFailedJob && jcr->JobStatus != JS_Terminated)) {
 	    POOLMEM *after = get_pool_memory(PM_FNAME);
 	    int status;
 	    BPIPE *bpipe;
 	    char line[MAXSTRING];
 	    
-            after = edit_job_codes(jcr, after, jcr->job->RunAfterJob, "");
+	    if (jcr->JobStatus == JS_Terminated) {
+               after = edit_job_codes(jcr, after, jcr->job->RunAfterJob, "");
+	    } else {
+               after = edit_job_codes(jcr, after, jcr->job->RunAfterFailedJob, "");
+	    }
             bpipe = open_bpipe(after, 0, "r");
 	    free_pool_memory(after);
 	    while (fgets(line, sizeof(line), bpipe->rfd)) {
@@ -220,8 +225,13 @@ static void *job_thread(void *arg)
 	    }
 	    status = close_bpipe(bpipe);
 	    if (status != 0) {
-               Jmsg(jcr, M_FATAL, 0, _("RunAfterJob returned non-zero status=%d\n"),
-		  status);
+	       if (jcr->JobStatus == JS_Terminated) {
+                  Jmsg(jcr, M_FATAL, 0, _("RunAfterJob returned non-zero status=%d\n"),
+		       status);
+	       } else {
+                  Jmsg(jcr, M_FATAL, 0, _("RunAfterFailedJob returned non-zero status=%d\n"),
+		       status);
+	       }
 	       set_jcr_job_status(jcr, JS_FatalError);
 	       update_job_end_record(jcr);
 	    }

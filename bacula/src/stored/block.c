@@ -131,11 +131,11 @@ DEV_BLOCK *new_block(DEVICE *dev)
  * Only the first block checksum error was reported.
  *   If there are more, report it now.
  */
-void print_block_errors(JCR *jcr, DEV_BLOCK *block)
+void print_block_read_errors(JCR *jcr, DEV_BLOCK *block)
 {
-   if (block->checksum_errors > 1) {
-      Jmsg(jcr, M_ERROR, 0, _("%d block checksum errors ignored.\n"),
-	 block->checksum_errors);
+   if (block->read_errors > 1) {
+      Jmsg(jcr, M_ERROR, 0, _("%d block read errors ignored.\n"),
+	 block->read_errors);
    }
 }
 
@@ -223,7 +223,10 @@ static int unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       if (strncmp(Id, BLKHDR1_ID, BLKHDR_ID_LENGTH) != 0) {
          Mmsg2(&dev->errmsg, _("Buffer ID error. Wanted: %s, got %s. Buffer discarded.\n"),
 	    BLKHDR1_ID, Id);
-	 Emsg0(M_ERROR, 0, dev->errmsg);
+	 if (block->read_errors == 0 || verbose >= 2) {
+            Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
+	 }
+	 block->read_errors++;
 	 return 0;
       }
    } else if (Id[3] == '2') {
@@ -235,12 +238,18 @@ static int unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       if (strncmp(Id, BLKHDR2_ID, BLKHDR_ID_LENGTH) != 0) {
          Mmsg2(&dev->errmsg, _("Buffer ID error. Wanted: %s, got %s. Buffer discarded.\n"),
 	    BLKHDR2_ID, Id);
-	 Emsg0(M_ERROR, 0, dev->errmsg);
+	 if (block->read_errors == 0 || verbose >= 2) {
+            Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
+	 }
+	 block->read_errors++;
 	 return 0;
       }
    } else {
       Mmsg1(&dev->errmsg, _("Expected block-id BB01 or BB02, got %s. Buffer discarded.\n"), Id);
-      Emsg0(M_ERROR, 0, dev->errmsg);
+      if (block->read_errors == 0 || verbose >= 2) {
+         Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
+      }
+      block->read_errors++;
       return 0;
    }
 
@@ -248,7 +257,10 @@ static int unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    if (block_len > MAX_BLOCK_LENGTH) {
       Mmsg1(&dev->errmsg,  _("Block length %u is insane (too large), probably due to a bad archive.\n"),
 	 block_len);
-      Emsg0(M_ERROR, 0, dev->errmsg);
+      if (block->read_errors == 0 || verbose >= 2) {
+         Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
+      }
+      block->read_errors++;
       return 0;
    }
 
@@ -268,14 +280,13 @@ static int unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       BlockCheckSum = bcrc32((uint8_t *)block->buf+BLKHDR_CS_LENGTH,
 			 block_len-BLKHDR_CS_LENGTH);
       if (BlockCheckSum != CheckSum) {
-         Dmsg2(00, "Block checksum mismatch: calc=%x blk=%x\n", BlockCheckSum,
-	    CheckSum);
          Mmsg3(&dev->errmsg, _("Block checksum mismatch in block %u: calc=%x blk=%x\n"), 
 	    (unsigned)BlockNumber, BlockCheckSum, CheckSum);
-	 if (block->checksum_errors == 0) {
+	 if (block->read_errors == 0 || verbose >= 2) {
             Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
 	 }
-	 block->checksum_errors++;
+	 block->read_errors++;
+	 return 0;
       }
    }
    return 1;
@@ -650,7 +661,6 @@ reread:
 
    BlockNumber = block->BlockNumber + 1;
    if (!unser_block_header(jcr, dev, block)) {
-      Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       block->read_len = 0;
       return 0;
    }

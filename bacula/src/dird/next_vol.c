@@ -100,11 +100,6 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int create)
       if (ok) {
 	 /* If we can use the volume, check if it is expired */
 	 if (has_volume_expired(jcr, mr)) {
-	    /* Need to update media */
-	    if (!db_update_media_record(jcr, jcr->db, mr)) {
-               Jmsg(jcr, M_ERROR, 0, _("Catalog error updating volume \"%s\". ERR=%s"),
-		    mr->VolumeName, db_strerror(jcr->db));
-	    }		
 	    if (retry++ < 200) {	    /* sanity check */
 	       continue;		    /* try again from the top */
 	    } else {
@@ -172,6 +167,13 @@ bool has_volume_expired(JCR *jcr, MEDIA_DBR *mr)
 	 }
       }
    }
+   if (expired) {
+      /* Need to update media */
+      if (!db_update_media_record(jcr, jcr->db, mr)) {
+         Jmsg(jcr, M_ERROR, 0, _("Catalog error updating volume \"%s\". ERR=%s"),
+	      mr->VolumeName, db_strerror(jcr->db));
+      } 	  
+   }  
    return expired;
 }
 
@@ -181,34 +183,39 @@ bool has_volume_expired(JCR *jcr, MEDIA_DBR *mr)
  *  Returns: on failure - reason = NULL
  *	     on success - reason - pointer to reason
  */
-bool is_volume_valid_or_recyclable(JCR *jcr, MEDIA_DBR *mr, char **reason)
+void check_if_volume_valid_or_recyclable(JCR *jcr, MEDIA_DBR *mr, char **reason)
 {
    int ok;
 
    *reason = NULL;
 
    /*  Check if a duration or limit has expired */
-   has_volume_expired(jcr, mr);
+   if (has_volume_expired(jcr, mr)) {
+      *reason = "volume has expired";
+      /* Keep going because we may be able to recycle volume */
+   }
 
    /*
     * Now see if we can use the volume as is
     */
    if (strcmp(mr->VolStatus, "Append") == 0 ||
        strcmp(mr->VolStatus, "Recycle") == 0) {
-      return true;
+      *reason = NULL;
+      return;
    }
 											
    /*
-    * Check if the Volume is alreay marked for recycling
+    * Check if the Volume is already marked for recycling
     */
    if (strcmp(mr->VolStatus, "Purged") == 0) {
       if (recycle_volume(jcr, mr)) {
          Jmsg(jcr, M_INFO, 0, "Recycled current volume \"%s\"\n", mr->VolumeName);
-	 return true;
+	 *reason = NULL;
+	 return;
       } else {
          /* In principle this shouldn't happen */
          *reason = "and recycling of current volume failed";
-	 return false;
+	 return;
       }
    }
 											
@@ -239,7 +246,7 @@ bool is_volume_valid_or_recyclable(JCR *jcr, MEDIA_DBR *mr, char **reason)
 	 /* If fully purged, recycle current volume */
 	 if (recycle_volume(jcr, mr)) {
             Jmsg(jcr, M_INFO, 0, "Recycled current volume \"%s\"\n", mr->VolumeName);
-	    return true;	       /* Good volume */
+	    *reason = NULL;
 	 } else {
             *reason = "but should be Append, Purged or Recycle (recycling of the "
                "current volume failed)";
@@ -249,5 +256,4 @@ bool is_volume_valid_or_recyclable(JCR *jcr, MEDIA_DBR *mr, char **reason)
             "recycle current volume, as it still contains unpruned data)";
       }
    }
-   return *reason ? false : true;
 }

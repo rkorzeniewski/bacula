@@ -75,6 +75,7 @@ static int update_volume(UAContext *ua);
 static int update_pool(UAContext *ua);
 static int delete_volume(UAContext *ua);
 static int delete_pool(UAContext *ua);
+static int delete_job(UAContext *ua);
 static int mount_cmd(UAContext *ua, char *cmd);
 static int release_cmd(UAContext *ua, char *cmd);
 static int update_cmd(UAContext *ua, char *cmd);
@@ -1451,15 +1452,13 @@ static int delete_cmd(UAContext *ua, char *cmd)
    static char *keywords[] = {
       N_("volume"),
       N_("pool"),
+      N_("job"),
       NULL};
 
    if (!open_db(ua)) {
       return 1;
    }
 
-   bsendmsg(ua, _(
-"In general it is not a good idea to delete either a\n"
-"Pool or a Volume since they may contain data.\n\n"));
      
    switch (find_arg_keyword(ua, keywords)) {
    case 0:
@@ -1468,9 +1467,17 @@ static int delete_cmd(UAContext *ua, char *cmd)
    case 1:
       delete_pool(ua);
       return 1;
+   case 2:
+      delete_job(ua);
+      return 1;
    default:
       break;
    }
+
+   bsendmsg(ua, _(
+"In general it is not a good idea to delete either a\n"
+"Pool or a Volume since they may contain data.\n\n"));
+
    switch (do_keyword_prompt(ua, _("Choose catalog item to delete"), keywords)) {
    case 0:
       delete_volume(ua);
@@ -1478,10 +1485,37 @@ static int delete_cmd(UAContext *ua, char *cmd)
    case 1:
       delete_pool(ua);
       break;
+   case 2:
+      delete_job(ua);
+      return 1;
    default:
       bsendmsg(ua, _("Nothing done.\n"));
       break;
    }
+   return 1;
+}
+
+static int delete_job(UAContext *ua)
+{
+   POOLMEM *query = get_pool_memory(PM_MESSAGE);
+   JobId_t JobId;
+
+   int i = find_arg_with_value(ua, "jobid");
+   if (i >= 0) {
+      JobId = str_to_int64(ua->argv[i]);
+   } else if (!get_pint(ua, _("Enter JobId to delete: "))) {
+      return 0;
+   } else {
+      JobId = ua->pint32_val; 
+   }
+   Mmsg(&query, "DELETE FROM Job WHERE JobId=%u", JobId);
+   db_sql_query(ua->db, query, NULL, (void *)NULL);
+   Mmsg(&query, "DELETE FROM File WHERE JobId=%u", JobId);
+   db_sql_query(ua->db, query, NULL, (void *)NULL);
+   Mmsg(&query, "DELETE FROM JobMedia WHERE JobId=%u", JobId);
+   db_sql_query(ua->db, query, NULL, (void *)NULL);
+   free_pool_memory(query);
+   bsendmsg(ua, _("Job %u and associated records deleted from the catalog.\n"), JobId);
    return 1;
 }
 

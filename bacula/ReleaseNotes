@@ -1,7 +1,16 @@
 
-          Release Notes for Bacula 1.32b
+          Release Notes for Bacula 1.32c
 
-  Bacula code: Total files = 259 Total lines = 78,067 (*.h *.c *.in)
+  Bacula code: Total files = 259 Total lines = 78,317 (*.h *.c *.in)
+
+Most Significant Changes since 1.32b
+- Implemented a RunAfterFailedJob
+- Implemented "delete job"
+- Gnome 2.0 console compiles and works (but still has
+  certain scrolling problems).
+- Implemented VerifyJob record that tells Verify which
+  job to verify (JobId not required).
+- First cut Verify Disk to Catalog
 
 Most Significant Changes since 1.32a:
 - Improve forward space file/block during restore, many
