@@ -511,42 +511,6 @@ char *encode_mode(mode_t mode, char *buf)
   return cp;
 }
 
-#ifdef WORKING
-extern char *getuser(uid_t uid);
-extern char *getgroup(gid_t gid);
-
-void print_ls_output(char *fname, char *lname, int type, struct stat *statp)
-{
-   char buf[1000]; 
-   char *p, *f;
-   int n;
-
-   p = encode_mode(statp->st_mode, buf);
-   n = sprintf(p, "  %2d ", (uint32_t)statp->st_nlink);
-   p += n;
-   n = sprintf(p, "%-8.8s %-8.8s", getuser(statp->st_uid), getgroup(statp->st_gid));
-   p += n;
-   n = sprintf(p, "%8ld  ", statp->st_size);
-   p += n;
-   p = encode_time(statp->st_ctime, p);
-   *p++ = ' ';
-   *p++ = ' ';
-   for (f=fname; *f; )
-      *p++ = *f++;
-   if (type == FT_LNK) {
-      *p++ = ' ';
-      *p++ = '-';
-      *p++ = '>';
-      *p++ = ' ';
-      /* Copy link name */
-      for (f=lname; *f; )
-	 *p++ = *f++;
-   }
-   *p++ = '\n';
-   *p = 0;
-   fputs(buf, stdout);
-}
-#endif
 
 int do_shell_expansion(char *name)
 {

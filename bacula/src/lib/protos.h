@@ -162,9 +162,6 @@ char *           job_status_to_str       (int stat);
 char *           job_level_to_str        (int level);
 
 
-/*
- *void           print_ls_output         (char *fname, char *lname, int type, struct stat *statp);
- */
 
 /* watchdog.c */
 int start_watchdog(void);

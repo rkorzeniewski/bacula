@@ -31,8 +31,6 @@
 static void do_blocks(char *infname);
 static void do_jobs(char *infname);
 static void do_ls(char *fname);
-static void print_ls_output(char *fname, char *link, int type, struct stat *statp);
-static void do_setup(char *infname);
 static void do_close();
 static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sessrec);
 
@@ -42,13 +40,10 @@ static int dump_label = FALSE;
 static int list_blocks = FALSE;
 static int list_jobs = FALSE;
 static int verbose = 0;
-static char Vol[2000];
-static char *VolName;
-static char *p;
 static DEV_RECORD *rec;
 static DEV_BLOCK *block;
-static int NumVolumes, CurVolume;
 static JCR *jcr;
+static SESSION_LABEL sessrec;
 
 
 extern char BaculaId[];
@@ -199,7 +194,13 @@ int main (int argc, char *argv[])
    }
 
    for (i=0; i < argc; i++) {
-      do_setup(argv[i]);
+      jcr = setup_jcr("bls", argv[i], bsr);
+      dev = setup_to_read_device(jcr);
+      if (!dev) {
+	 exit(1);
+      }
+      rec = new_record();
+      block = new_block(dev);
       if (list_blocks) {
 	 do_blocks(argv[i]);
       } else if (list_jobs) {
@@ -215,69 +216,6 @@ int main (int argc, char *argv[])
    return 0;
 }
 
-static void my_free_jcr(JCR *jcr)
-{
-   return;
-}
-
-/*
- * Setup device, jcr, and prepare to read
- */
-static void do_setup(char *infname) 
-{
-   jcr = new_jcr(sizeof(JCR), my_free_jcr);
-   jcr->VolSessionId = 1;
-   jcr->VolSessionTime = (uint32_t)time(NULL);
-   jcr->bsr = bsr;
-   strcpy(jcr->Job, "bls");
-   jcr->dev_name = get_pool_memory(PM_FNAME);
-   strcpy(jcr->dev_name, infname);
-
-   VolName = Vol;
-   VolName[0] = 0;
-   if (strncmp(infname, "/dev/", 5) != 0) {
-      /* Try stripping file part */
-      p = infname + strlen(infname);
-      while (p >= infname && *p != '/')
-	 p--;
-      if (*p == '/') {
-	 strcpy(VolName, p+1);
-	 *p = 0;
-      }
-   }
-   Dmsg2(100, "Device=%s, Vol=%s.\n", infname, VolName);
-   dev = init_dev(NULL, infname);
-   if (!dev) {
-      Emsg1(M_FATAL, 0, "Cannot open %s\n", infname);
-      exit(1);
-   }
-   /* ***FIXME**** init capabilities */
-   if (!open_device(dev)) {
-      Emsg1(M_FATAL, 0, "Cannot open %s\n", infname);
-      exit(1);
-   }
-   Dmsg0(90, "Device opened for read.\n");
-
-   rec = new_record();
-   block = new_block(dev);
-
-   NumVolumes = 0;
-   CurVolume = 1;
-   for (p = VolName; p && *p; ) {
-      p = strchr(p, '|');
-      if (p) {
-	 *p++ = 0;
-      }
-      NumVolumes++;
-   }
-
-   pm_strcpy(&jcr->VolumeName, VolName);
-   Dmsg1(100, "Volume=%s\n", jcr->VolumeName);
-   if (!acquire_device_for_read(jcr, dev, block)) {
-      Emsg0(M_ERROR, 0, dev->errmsg);
-      exit(1);
-   }
-}
 
 static void do_close()
 {
@@ -287,32 +225,6 @@ static void do_close()
    free_jcr(jcr);
 }
 
-static int mount_next_volume(char *infname)
-{
-   if (rec->remainder) {
-      Dmsg0(20, "Not end of record. Next volume has more data for current record.\n");
-   }
-   Dmsg2(20, "NumVolumes=%d CurVolume=%d\n", NumVolumes, CurVolume);
-   if (NumVolumes > 1 && CurVolume < NumVolumes) {
-      p = VolName;
-      while (*p++)  
-	 { }
-      CurVolume++;
-      Dmsg1(20, "There is another volume %s.\n", p);
-      VolName = p;
-      pm_strcpy(&jcr->VolumeName, VolName);
-
-      close_dev(dev);
-      dev->state &= ~ST_READ; 
-      if (!acquire_device_for_read(jcr, dev, block)) {
-         Emsg2(M_FATAL, 0, "Cannot open Dev=%s, Vol=%s\n", infname, VolName);
-	 exit(1);
-      }
-      return 1; 	     /* Next volume mounted */
-   }
-   printf("End of Device reached.\n");
-   return 0;		     /* EOT */
-}
 
 /*
  * Device got an error, attempt to analyse it
@@ -361,9 +273,17 @@ Warning, this Volume is a continuation of Volume %s\n",
       if (!read_block_from_device(dev, block)) {
          Dmsg0(20, "!read_block()\n");
 	 if (dev->state & ST_EOT) {
-	    if (!mount_next_volume(infname)) {
+	    if (!mount_next_read_volume(jcr, dev, block)) {
+               printf("End of File on device\n");
 	       break;
 	    }
+	    DEV_RECORD *record;
+	    record = new_record();
+	    read_block_from_device(dev, block);
+	    read_record_from_block(block, record);
+	    get_session_record(dev, record, &sessrec);
+	    free_record(record);
+            printf("Volume %s mounted.\n", jcr->VolumeName);
 	    continue;
 	 }
 	 if (dev->state & ST_EOF) {
@@ -411,9 +331,17 @@ Warning, this Volume is a continuation of Volume %s\n",
       if (!read_block_from_device(dev, block)) {
          Dmsg0(20, "!read_block()\n");
 	 if (dev->state & ST_EOT) {
-	    if (!mount_next_volume(infname)) {
+	    DEV_RECORD *record;
+	    if (!mount_next_read_volume(jcr, dev, block)) {
+               printf("Got EOF on device %s\n", dev_name(dev));
 	       break;
 	    }
+	    record = new_record();
+	    read_block_from_device(dev, block);
+	    read_record_from_block(block, record);
+	    get_session_record(dev, record, &sessrec);
+	    free_record(record);
+            printf("Volume %s mounted.\n", jcr->VolumeName);
 	    continue;
 	 }
 	 if (dev->state & ST_EOF) {
@@ -484,7 +412,6 @@ Warning, this Volume is a continuation of Volume %s\n",
    }
  
    for ( ;; ) {
-      SESSION_LABEL sessrec;
 
       if (!read_block_from_device(dev, block)) {
          Dmsg0(20, "!read_record()\n");
@@ -492,7 +419,7 @@ Warning, this Volume is a continuation of Volume %s\n",
 	    DEV_RECORD *record;
             Dmsg3(100, "EOT. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
 		  block->BlockNumber, rec->remainder);
-	    if (!mount_next_volume(infname)) {
+	    if (!mount_next_read_volume(jcr, dev, block)) {
                Dmsg3(100, "After mount next vol. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
 		  block->BlockNumber, rec->remainder);
 	       break;
@@ -606,8 +533,10 @@ next_record:
 	    /* Skip to link name */  
 	    while (*ap++ != 0)
 	       ;
-	    print_ls_output(fname, ap, type, &statp);
-	    num_files++;
+	    if (file_is_included(&ff, fname) && !file_is_excluded(&ff, fname)) {
+	       print_ls_output(fname, ap, type, &statp);
+	       num_files++;
+	    }
 	 }
       }
    }
@@ -617,45 +546,6 @@ next_record:
    return;
 }
 
-extern char *getuser(uid_t uid);
-extern char *getgroup(gid_t gid);
-
-static void print_ls_output(char *fname, char *link, int type, struct stat *statp)
-{
-   char buf[1000]; 
-   char ec1[30];
-   char *p, *f;
-   int n;
-
-   if (!file_is_included(&ff, fname) || file_is_excluded(&ff, fname)) {
-      return;
-   }
-   p = encode_mode(statp->st_mode, buf);
-   n = sprintf(p, "  %2d ", (uint32_t)statp->st_nlink);
-   p += n;
-   n = sprintf(p, "%-8.8s %-8.8s", getuser(statp->st_uid), getgroup(statp->st_gid));
-   p += n;
-   n = sprintf(p, "%8.8s ", edit_uint64(statp->st_size, ec1));
-   p += n;
-   p = encode_time(statp->st_ctime, p);
-   *p++ = ' ';
-   *p++ = ' ';
-   /* Copy file name */
-   for (f=fname; *f && (p-buf) < (int)sizeof(buf); )
-      *p++ = *f++;
-   if (type == FT_LNK) {
-      *p++ = ' ';
-      *p++ = '-';
-      *p++ = '>';
-      *p++ = ' ';
-      /* Copy link name */
-      for (f=link; *f && (p-buf) < (int)sizeof(buf); )
-	 *p++ = *f++;
-   }
-   *p++ = '\n';
-   *p = 0;
-   fputs(buf, stdout);
-}
 
 static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sessrec)
 {

@@ -35,7 +35,6 @@
 #include "cats/cats.h"
 
 static void do_scan(char *fname);
-static void print_ls_output(char *fname, struct stat *statp);
 
 
 static DEVICE *dev = NULL;
@@ -51,11 +50,6 @@ static void usage()
 "       -dnn            set debug level to nn\n"
 "       -?              print this message\n\n");
    exit(1);
-}
-
-static void my_free_jcr(JCR *jcr)
-{
-   return;
 }
 
 int main (int argc, char *argv[])
@@ -91,14 +85,7 @@ int main (int argc, char *argv[])
       usage();
    }
 
-   jcr = new_jcr(sizeof(JCR), my_free_jcr);
-   jcr->VolSessionId = 1;
-   jcr->VolSessionTime = (uint32_t)time(NULL);
-   jcr->NumVolumes = 1;
-   jcr->bsr = bsr;
-   strcpy(jcr->Job, "bscan");
-   jcr->dev_name = get_pool_memory(PM_FNAME);
-   strcpy(jcr->dev_name, argv[0]);
+   jcr = setup_jcr("bscan", argv[0], bsr);
 
    /* *** FIXME **** need to put in corect db, user, and password */
    if ((db=db_init_database(NULL, "bacula", "bacula", "")) == NULL) {
@@ -119,8 +106,6 @@ int main (int argc, char *argv[])
 
 static void do_scan(char *devname)	       
 {
-   char VolName[100];
-   char *p;
    struct stat statp;
    int type;
    long record_file_index;
@@ -133,24 +118,10 @@ static void do_scan(char *devname)
    POOL_DBR pr;
    JOB_DBR jr;
 
-   if (strncmp(devname, "/dev/", 5) != 0) {
-      /* Try stripping file part */
-      p = devname + strlen(devname);
-      while (p >= devname && *p != '/') {
-	 p--;
-      }
-      if (*p == '/') {
-	 strcpy(VolName, p+1);
-	 *p = 0;
-      }
+   dev = setup_to_read_device(jcr);
+   if (!dev) { 
+      exit(1);
    }
-   strcpy(jcr->VolumeName, VolName);
-
-   dev = init_dev(NULL, devname);
-   if (!dev || !open_device(dev)) {
-      Emsg1(M_ABORT, 0, "Cannot open %s\n", devname);
-   }
-   Dmsg0(90, "Device opened for read.\n");
 
    fname = get_pool_memory(PM_FNAME);
    ofile = get_pool_memory(PM_FNAME);
@@ -158,12 +129,6 @@ static void do_scan(char *devname)
 
    block = new_block(dev);
    
-   create_vol_list(jcr);
-
-   if (!acquire_device_for_read(jcr, dev, block)) {
-      Emsg1(M_ABORT, 0, "Cannot open %s\n", devname);
-   }
-
    rec = new_record();
    free_pool_memory(rec->data);
    rec->data = get_memory(70000);
@@ -370,7 +335,7 @@ static void do_scan(char *devname)
 	    decode_stat(ap, &statp);
 
 	    if (debug_level > 1) {
-	       print_ls_output(fname, &statp);	 
+	       print_ls_output(fname, lname, type, &statp);   
 	    }
 
 	 /* Data stream and extracting */
@@ -393,28 +358,21 @@ static void do_scan(char *devname)
    return;
 }
 
-extern char *getuser(uid_t uid);
-extern char *getgroup(gid_t gid);
 
-static void print_ls_output(char *fname, struct stat *statp)
+/* Dummies to replace askdir.c */
+int	dir_get_volume_info(JCR *jcr) { return 1;}
+int	dir_find_next_appendable_volume(JCR *jcr) { return 1;}
+int	dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int relabel) { return 1; }
+int	dir_create_jobmedia_record(JCR *jcr) { return 1; }
+int	dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev) { return 1; }
+int	dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec) { return 1;}
+int	dir_send_job_status(JCR *jcr) {return 1;}
+
+
+int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
 {
-   char buf[1000]; 
-   char *p, *f;
-   int n;
-
-   p = encode_mode(statp->st_mode, buf);
-   n = sprintf(p, "  %2d ", (uint32_t)statp->st_nlink);
-   p += n;
-   n = sprintf(p, "%-8.8s %-8.8s", getuser(statp->st_uid), getgroup(statp->st_gid));
-   p += n;
-   n = sprintf(p, "%8lld  ", (uint64_t)statp->st_size);
-   p += n;
-   p = encode_time(statp->st_ctime, p);
-   *p++ = ' ';
-   *p++ = ' ';
-   for (f=fname; *f; )
-      *p++ = *f++;
-   *p++ = '\n';
-   *p = 0;
-   fputs(buf, stdout);
+   fprintf(stderr, "Mount Volume %s on device %s and press return when ready: ",
+      jcr->VolumeName, dev_name(dev));
+   getchar();	
+   return 1;
 }

@@ -1,5 +1,5 @@
 /* */
-#define VERSION "1.25a"
+#define VERSION "1.26"
 #define VSTRING "1"
 #define DATE    "05 September 2002"
 #define LSMDATE "05Sep02"

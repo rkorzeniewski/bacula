@@ -28,10 +28,11 @@ From Chuck:
 --sd.conf password does not match dir.conf storage password
 =======
 
+- Apparently Description records are not freed. Storage daemon
+  Device reported orphaned buffer 45 bytes probably for a Description.
 - Write updated bootstrap after every Job.
 - Correct Warning: Volume name mismatch. Wanted test2 got test1
   when reading a tape and want the next one.
-- Create all pools when Director starts
 - Implement autochanger for restore. ARRRGGG! I forgot!
 - Make BSR accept count (total files to be restored).
 - Make BSR return next_block when it knows record is not
@@ -39,7 +40,7 @@ From Chuck:
   optimizations. I.e. add a state word.
 - After unmount, if restore job started, ask to mount.
 - Fix db_get_fileset in cats/sql_get.c for multiple records.
-- Fix start/end blocks for File
+- Fix start/end blocks for File devices
 - Add new code to scheduler.c and run_conf.c
 - Volume Bytes shows bytes on last volume written in Job summary.
 - Fix catalog filename truncation in sql_get and sql_create. Use
@@ -584,3 +585,5 @@ Done: (see kernsdone for more)
 - Pass "Catalog Files = no" to storage daemon to eliminate network traffic.
 - When we are at EOM, we must ask each job to write JobMedia
   record (update_volume_info).
+- Create all pools when Director starts
+

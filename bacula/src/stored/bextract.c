@@ -39,7 +39,6 @@ int win32_client = 0;
 
 
 static void do_extract(char *fname, char *prefix);
-static void print_ls_output(char *fname, char *link, int type, struct stat *statp);
 static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sessrec);
 
 static DEVICE *dev = NULL;
@@ -65,11 +64,6 @@ static void usage()
 "       -i <file>       include list\n"
 "       -?              print this message\n\n");
    exit(1);
-}
-
-static void my_free_jcr(JCR *jcr)
-{
-   return;
 }
 
 
@@ -145,17 +139,9 @@ int main (int argc, char *argv[])
       add_fname_to_include_list(ff, 0, "/");  /*   include everything */
    }
 
-   jcr = new_jcr(sizeof(JCR), my_free_jcr);
-   jcr->VolSessionId = 1;
-   jcr->VolSessionTime = (uint32_t)time(NULL);
-   jcr->bsr = bsr;
-   strcpy(jcr->Job, "bextract");
-   jcr->dev_name = get_pool_memory(PM_FNAME);
-   strcpy(jcr->dev_name, argv[0]);
 
    do_extract(argv[0], argv[1]);
 
-   free_jcr(jcr);
    if (bsr) {
       free_bsr(bsr);
    }
@@ -189,8 +175,6 @@ static void display_error_status()
 
 static void do_extract(char *devname, char *where)
 {
-   char VolName[100];
-   char *p;
    struct stat statp;
    int extract = FALSE;
    int type;
@@ -203,26 +187,13 @@ static void do_extract(char *devname, char *where)
    SESSION_LABEL sessrec;
    uint32_t num_files = 0;
 
-   VolName[0] = 0;
-   if (strncmp(devname, "/dev/", 5) != 0) {
-      /* Try stripping file part */
-      p = devname + strlen(devname);
-      while (p >= devname && *p != '/') {
-	 p--;
-      }
-      if (*p == '/') {
-	 strcpy(VolName, p+1);
-	 *p = 0;
-      }
+   jcr = setup_jcr("bextract", devname, bsr);
+   dev = setup_to_read_device(jcr);
+   if (!dev) {
+      exit(1);
    }
-   strcpy(jcr->VolumeName, VolName);
 
-   dev = init_dev(NULL, devname);
-   if (!dev || !open_device(dev)) {
-      Emsg1(M_ERROR_TERM, 0, "Cannot open %s\n", devname);
-   }
-   Dmsg0(90, "Device opened for read.\n");
-
+   /* Make sure where directory exists and that it is a directory */
    if (stat(where, &statp) < 0) {
       Emsg2(M_ERROR_TERM, 0, "Cannot stat %s. It must exist. ERR=%s\n",
 	 where, strerror(errno));
@@ -238,22 +209,9 @@ static void do_extract(char *devname, char *where)
 
    block = new_block(dev);
 
-   create_vol_list(jcr);
-
-   Dmsg1(20, "Found %d volumes names to restore.\n", jcr->NumVolumes);
-
-   /* 
-    * Ready device for reading, and read records
-    */
-   if (!acquire_device_for_read(jcr, dev, block)) {
-      free_block(block);
-      free_vol_list(jcr);
-      return;
-   }
-
    rec = new_record();
    free_pool_memory(rec->data);
-   rec->data = get_memory(70000);
+   rec->data = get_memory(70000);     /* get a big block for reading */
 
    uint32_t compress_buf_size = 70000;
    POOLMEM *compress_buf = get_memory(compress_buf_size);
@@ -496,45 +454,9 @@ next_record:
    term_dev(dev);
    free_block(block);
    free_record(rec);
+   free_jcr(jcr);
    printf("%u files restored.\n", num_files);
    return;
-}
-
-extern char *getuser(uid_t uid);
-extern char *getgroup(gid_t gid);
-
-static void print_ls_output(char *fname, char *link, int type, struct stat *statp)
-{
-   char buf[1000]; 
-   char ec1[30];
-   char *p, *f;
-   int n;
-
-   p = encode_mode(statp->st_mode, buf);
-   n = sprintf(p, "  %2d ", (uint32_t)statp->st_nlink);
-   p += n;
-   n = sprintf(p, "%-8.8s %-8.8s", getuser(statp->st_uid), getgroup(statp->st_gid));
-   p += n;
-   n = sprintf(p, "%8.8s ", edit_uint64(statp->st_size, ec1));
-   p += n;
-   p = encode_time(statp->st_ctime, p);
-   *p++ = ' ';
-   *p++ = ' ';
-   /* Copy file name */
-   for (f=fname; *f && (p-buf) < (int)sizeof(buf); )
-      *p++ = *f++;
-   if (type == FT_LNK) {
-      *p++ = ' ';
-      *p++ = '-';
-      *p++ = '>';
-      *p++ = ' ';
-      /* Copy link name */
-      for (f=link; *f && (p-buf) < (int)sizeof(buf); )
-	 *p++ = *f++;
-   }
-   *p++ = '\n';
-   *p = 0;
-   fputs(buf, stdout);
 }
 
 static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sessrec)
