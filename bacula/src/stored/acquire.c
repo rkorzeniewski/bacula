@@ -70,6 +70,11 @@ void free_dcr(DCR *dcr)
    if (dcr->reserved_device) {
       lock_device(dev);
       dev->num_writers--;
+      if (dev->num_writers < 0) {
+         Jmsg1(dcr->jcr, M_ERROR, 0, _("Hey! num_writers=%d!!!!\n"), dev->num_writers);
+	 dev->num_writers = 0;
+	 dcr->reserved_device = false;
+      }
       unlock_device(dev);
    }
 
@@ -111,7 +116,7 @@ bool reserve_device_for_read(JCR *jcr, DEVICE *dev)
    block_device(dev, BST_DOING_ACQUIRE);
    unlock_device(dev);
 
-   if (dev->can_read() || dev->num_writers > 0) {
+   if (dev->is_busy()) {
       Jmsg2(jcr, M_FATAL, 0, _("Device %s is busy. Job %d canceled.\n"),
 	    dev_name(dev), jcr->JobId);
       goto get_out;
@@ -119,8 +124,8 @@ bool reserve_device_for_read(JCR *jcr, DEVICE *dev)
    if (!dcr) {
       dcr = new_dcr(jcr, dev);
    }
-   dev->state &= ~ST_APPEND;	      /* clear any previous append mode */
-   dev->state |= ST_READ;	      /* set read mode */
+   dev->clear_append();
+   dev->set_read();
    ok = true;
 
 get_out:
@@ -162,6 +167,12 @@ DCR *acquire_device_for_read(JCR *jcr, DEVICE *dev)
 			     dev->is_labeled();
    tape_initially_mounted = tape_previously_mounted;
 
+   if (dev->num_writers > 0) {
+      Jmsg2(jcr, M_FATAL, 0, _("Num_writers=%d not zero. Job %d canceled.\n"), 
+	 dev->num_writers, jcr->JobId);
+      goto get_out;
+   }
+
    /* Find next Volume, if any */
    vol = jcr->VolList;
    if (!vol) {
@@ -183,7 +194,7 @@ DCR *acquire_device_for_read(JCR *jcr, DEVICE *dev)
    dev->num_parts = dcr->VolCatInfo.VolCatParts;
    
    for (i=0; i<5; i++) {
-      dev->state &= ~ST_LABEL;		 /* force reread of label */
+      dev->clear_label();		 /* force reread of label */
       if (job_canceled(jcr)) {
          Mmsg1(dev->errmsg, _("Job %d canceled.\n"), jcr->JobId);
 	 goto get_out;		      /* error return */
@@ -285,9 +296,8 @@ default_path:
       goto get_out;
    }
 
-   dev->state &= ~ST_APPEND;	      /* clear any previous append mode */
-   dev->num_writers = 0;
-   dev->state |= ST_READ;	      /* set read mode */
+   dev->clear_append();
+   dev->set_read();
    set_jcr_job_status(jcr, JS_Running);
    dir_send_job_status(jcr);
    Jmsg(jcr, M_INFO, 0, _("Ready to read from volume \"%s\" on device %s.\n"),
@@ -330,10 +340,10 @@ bool reserve_device_for_append(JCR *jcr, DEVICE *dev)
       goto get_out;
    }
    Dmsg1(190, "reserve_append device is %s\n", dev_is_tape(dev)?"tape":"disk");
-   if (dev->can_append() || dev->num_writers > 0) {
+   if (dev->can_append() || dev->num_writers > 0 || dev->reserved_device) {
       Dmsg0(190, "device already in append.\n");
       /*
-       * Device already in append mode
+       * Device already in append mode or reserved for write
        *
        * Check if we have the right Volume mounted
        *   OK if current volume info OK
@@ -477,7 +487,7 @@ DCR *acquire_device_for_append(JCR *jcr, DEVICE *dev)
       }
    }
 
-   dev->num_writers++;
+   dev->num_writers++;		      /* we are now a writer */
    if (jcr->NumVolumes == 0) {
       jcr->NumVolumes = 1;
    }
@@ -508,8 +518,15 @@ bool release_device(JCR *jcr)
    DEVICE *dev = dcr->dev;
    lock_device(dev);
    Dmsg1(100, "release_device device is %s\n", dev_is_tape(dev)?"tape":"disk");
-   if (dev_state(dev, ST_READ)) {
-      dev->state &= ~ST_READ;	      /* clear read bit */
+
+   /* if device is reserved, job never started, so release the reserve here */
+   if (dcr->reserved_device) {
+      dev->reserved_device--;
+      dcr->reserved_device = false;
+   }
+
+   if (dev->can_read()) {
+      dev->clear_read();	      /* clear read bit */
       if (!dev_is_tape(dev) || !dev_cap(dev, CAP_ALWAYSOPEN)) {
 	 offline_or_rewind_dev(dev);
 	 close_dev(dev);
@@ -536,7 +553,7 @@ bool release_device(JCR *jcr)
 	 dir_update_volume_info(dcr, false); /* send Volume info to Director */
       }
 
-      if (!dev->num_writers && (!dev->is_tape() || !dev_cap(dev, CAP_ALWAYSOPEN))) {
+      if (dev->num_writers == 0 && dev->is_tape() && !dev_cap(dev, CAP_ALWAYSOPEN)) {
 	 offline_or_rewind_dev(dev);
 	 close_dev(dev);
       }

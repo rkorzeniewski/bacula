@@ -481,17 +481,21 @@ bool write_block_to_dev(DCR *dcr)
 
       if (weof_dev(dev, 1) != 0) {	      /* write eof */
          Dmsg0(190, "WEOF error in max file size.\n");
+         Jmsg(jcr, M_FATAL, 0, _("Unable to write EOF. ERR=%s\n"), 
+	    strerror_dev(dev));
 	 terminate_writing_volume(dcr);
 	 dev->dev_errno = ENOSPC;
 	 return false;
       }
 
       if (!do_new_file_bookkeeping(dcr)) {
+	 /* Error message already sent */
 	 return false;
       }
    }
    
    if (!do_dvd_size_checks(dcr)) {
+      /* Error message already sent */
       return false;
    }
 

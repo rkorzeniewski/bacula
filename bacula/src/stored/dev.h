@@ -258,6 +258,11 @@ public:
    const char *archive_name() const;
    void set_eof();
    void set_eot();
+   void set_append();
+   void set_read();
+   void clear_append();
+   void clear_read();
+   void clear_label();
 };
 
 /* Note, these return int not bool! */
@@ -272,6 +277,11 @@ inline int DEVICE::at_eof() const { return state & ST_EOF; }
 inline int DEVICE::at_eot() const { return state & ST_EOT; }
 inline int DEVICE::can_append() const { return state & ST_APPEND; }
 inline int DEVICE::can_read() const { return state & ST_READ; }
+inline void DEVICE::set_append() { state |= ST_APPEND; }
+inline void DEVICE::set_read() { state |= ST_READ; }
+inline void DEVICE::clear_append() { state &= ~ST_APPEND; }
+inline void DEVICE::clear_read() { state &= ~ST_READ; }
+inline void DEVICE::clear_label() { state &= ~ST_LABEL; }
 inline const char *DEVICE::strerror() const { return errmsg; }
 inline const char *DEVICE::archive_name() const { return dev_name; }
 

@@ -196,8 +196,8 @@ bool do_append_data(JCR *jcr)
 	    if (!write_block_to_device(dcr)) {
                Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
 		  dev_name(dev), strerror_dev(dev));
-               Jmsg(jcr, M_FATAL, 0, _("Fatal device error: ERR=%s\n"),
-		     strerror_dev(dev));
+               Jmsg2(jcr, M_FATAL, 0, _("Fatal append error on device %s: ERR=%s\n"),
+		     dev_name(dev), strerror_dev(dev));
 	       ok = false;
 	       break;
 	    }
