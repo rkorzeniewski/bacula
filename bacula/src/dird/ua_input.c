@@ -55,8 +55,8 @@ int get_cmd(UAContext *ua, char *prompt)
       if (is_bnet_stop(sock)) {
 	 return 0;		      /* error or terminate */
       }
-      ua->cmd = check_pool_memory_size(ua->cmd, sock->msglen+1);
-      bstrncpy(ua->cmd, sock->msg, sock->msglen+1);
+      Dmsg1(000, "sock->msglen=%d\n", sock->msglen);
+      pm_strcpy(&ua->cmd, sock->msg);
       strip_trailing_junk(ua->cmd);
       if (strcmp(ua->cmd, ".messages") == 0) {
 	 qmessagescmd(ua, ua->cmd);

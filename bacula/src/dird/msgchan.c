@@ -95,7 +95,6 @@ int start_storage_daemon_job(JCR *jcr)
    BSOCK *sd;
    char auth_key[100];
    POOLMEM *device_name, *pool_name, *pool_type, *media_type;
-   int device_name_len, pool_name_len, pool_type_len, media_type_len;
 
    storage = jcr->store;
    sd = jcr->store_bsock;
@@ -136,24 +135,18 @@ int start_storage_daemon_job(JCR *jcr)
    /*
     * Send use device = xxx media = yyy pool = zzz
     */
-   device_name_len = strlen(storage->dev_name) + 1;
-   media_type_len = strlen(storage->media_type) + 1;
-   pool_type_len = strlen(jcr->pool->pool_type) + 1;
-   pool_name_len = strlen(jcr->pool->hdr.name) + 1;
-   device_name = get_memory(device_name_len);
-   pool_name = get_memory(pool_name_len);
-   pool_type = get_memory(pool_type_len);
-   media_type = get_memory(media_type_len);
-   memcpy(device_name, storage->dev_name, device_name_len);
-   memcpy(media_type, storage->media_type, media_type_len);
-   memcpy(pool_type, jcr->pool->pool_type, pool_type_len);
-   memcpy(pool_name, jcr->pool->hdr.name, pool_name_len);
+   device_name = get_pool_memory(PM_NAME);
+   pool_name = get_pool_memory(PM_NAME);
+   pool_type = get_pool_memory(PM_NAME);
+   media_type = get_pool_memory(PM_NAME);
+   pm_strcpy(&device_name, storage->dev_name);
+   pm_strcpy(&media_type, storage->media_type);
+   pm_strcpy(&pool_type, jcr->pool->pool_type);
+   pm_strcpy(&pool_name, jcr->pool->hdr.name);
    bash_spaces(device_name);
    bash_spaces(media_type);
    bash_spaces(pool_type);
    bash_spaces(pool_name);
-   sd->msg = check_pool_memory_size(sd->msg, sizeof(device_name) +
-      device_name_len + media_type_len + pool_type_len + pool_name_len);
    bnet_fsend(sd, use_device, device_name, media_type, pool_name, pool_type);
    Dmsg1(110, ">stored: %s", sd->msg);
    status = response(jcr, sd, OK_device, "Use Device", NO_DISPLAY);
@@ -163,7 +156,6 @@ int start_storage_daemon_job(JCR *jcr)
          "     Storage daemon didn't accept Device \"%s\" because:\n     %s"),
 	 device_name, pool_type/* sd->msg */);
    }
-	  
    free_memory(device_name);
    free_memory(media_type);
    free_memory(pool_name);

@@ -47,8 +47,8 @@ void     *bmalloc                (size_t size);
 #endif
 void     *brealloc               (void *buf, size_t size);
 void     *bcalloc                (size_t size1, size_t size2);
-int       bsnprintf              (char *str, size_t size, const  char  *format, ...);
-int       bvsnprintf             (char *str, size_t size, const char  *format, va_list ap);
+int       bsnprintf              (char *str, int32_t size, const  char  *format, ...);
+int       bvsnprintf             (char *str, int32_t size, const char  *format, va_list ap);
 int       pool_sprintf           (char *pool_buf, char *fmt, ...);
 void      create_pid_file        (char *dir, char *progname, int port);
 int       delete_pid_file        (char *dir, char *progname, int port);
