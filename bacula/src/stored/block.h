@@ -105,6 +105,6 @@ struct DEV_BLOCK {
    POOLMEM *buf;                      /* actual data buffer */
 };
 
-#define block_is_empty(block) !((block)->read_len)
+#define block_is_empty(block) ((block)->read_len == 0)
 
 #endif

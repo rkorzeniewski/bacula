@@ -37,6 +37,7 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
+- Listing of Win32 restored files has ??????? for user.
 - Do full check the command line args in update (e.g. VolStatus ...).
 - In Win portable restore the directory is not create    
    27-Jun-2003 16:52 tibs-fd: kernsrestore.2003-06-27_16.52.20 Error:
@@ -62,6 +63,9 @@ For 1.31 release:
 
 
 For 1.32:
+- Allow multiple Storage specifications (or multiple names on
+  a single Storage specification) in the Job record. Thus a job 
+  can be backed up to a number of storage devices.
 - Add client name to cram-md5 challenge so Director can immediately
   verify if it is the correct client.
 - Implement ClientRunBeforeJob and ClientRunAfterJob.
@@ -120,10 +124,6 @@ For 1.32:
 - Add thread specific data to hold the jcr -- send error messages from
   low level routines by accessing it and using Jmsg().
 - Cancel waiting for Client connect in SD if FD goes away.
-- Testing Tibs job erred and hung director on Storage resource.  This was
-  because there were a whole pile of jobs hanging around in the SD  
-  waiting for a connection from the FD that was never coming.
-- Possibly update all client records at startup.
 
 - Add Progress command that periodically reports the progress of
   a job or all jobs.
@@ -158,9 +158,6 @@ For 1.32:
   disk only when the tape is full, then when a tape is hung move
   it to tape.
 - Implement a relocatable bacula.spec 
-- Allow multiple Storage specifications (or multiple names on
-  a single Storage specification) in the Job record. Thus a job 
-  can be backed up to a number of storage devices.
 - Implement dump/print label to UA
 - Add prefixlinks to where or not where absolute links to FD.
 - Issue message to mount a new tape before the rewind.
@@ -1019,3 +1016,7 @@ Done: (see kernsdone for more)
 - Pass prefix_links to FD.
 - Fix restore list of volumes if Volume not selected.
 - Complete (or turn off) the command line code in update.
+- Testing Tibs job erred and hung director on Storage resource.  This was
+  because there were a whole pile of jobs hanging around in the SD  
+  waiting for a connection from the FD that was never coming.
+- Possibly update all client records at startup.

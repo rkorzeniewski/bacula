@@ -283,8 +283,8 @@ static void do_blocks(char *infname)
 	 continue;
       }
       Dmsg5(100, "Blk=%u blen=%u bVer=%d SessId=%u SessTim=%u\n",
-	 block->BlockNumber, block->block_len, block->BlockVer,
-	 block->VolSessionId, block->VolSessionTime);
+	block->BlockNumber, block->block_len, block->BlockVer,
+	block->VolSessionId, block->VolSessionTime);
       if (verbose == 1) {
 	 read_record_from_block(block, rec);
          Pmsg7(-1, "Block: %u blen=%u First rec FI=%s SessId=%u SessTim=%u Strm=%s rlen=%d\n",
