@@ -386,12 +386,12 @@ int connect_to_director(gpointer data)
 
    memset(&jcr, 0, sizeof(jcr));
    
-   set_statusf(_(" Connecting to Director %s:%d\n"), dir->address,dir->DIRport);
-   set_textf(_("Connecting to Director %s:%d\n"), dir->address,dir->DIRport);
+   set_statusf(_(" Connecting to Director %s:%d"), dir->address,dir->DIRport);
+   set_textf(_("Connecting to Director %s:%d\n\n"), dir->address,dir->DIRport);
 
-// while (gtk_events_pending()) {     /* fully paint screen */
-//    gtk_main_iteration();
-// }
+   while (gtk_events_pending()) {     /* fully paint screen */
+      gtk_main_iteration();
+   }
    UA_sock = bnet_connect(NULL, 5, 15, "Director daemon", dir->address, 
 			  NULL, dir->DIRport, 0);
    if (UA_sock == NULL) {
@@ -547,6 +547,7 @@ void set_textf(char *fmt, ...)
    int len;
    va_start(arg_ptr, fmt);
    len = bvsnprintf(buf, sizeof(buf), fmt, arg_ptr);
+   va_end(arg_ptr);
    set_text(buf, len);
 }
 
@@ -577,6 +578,7 @@ void set_statusf(char *fmt, ...)
    int len;
    va_start(arg_ptr, fmt);
    len = bvsnprintf(buf, sizeof(buf), fmt, arg_ptr);
+   va_end(arg_ptr);
    gtk_label_set_text(GTK_LABEL(status1), buf);
 // set_scroll_bar_to_end();
    ready = false;

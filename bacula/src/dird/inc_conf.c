@@ -293,24 +293,24 @@ void store_inc(LEX *lc, struct res_items *item, int index, int pass)
        */
       while ((token = lex_get_token(lc, T_ALL)) != T_EOB) {
 	 switch (token) {
-	    case T_COMMA:
-	    case T_EOL:
-	       continue;
+	 case T_COMMA:
+	 case T_EOL:
+	    continue;
 
-	    case T_IDENTIFIER:
-	    case T_UNQUOTED_STRING:
-	    case T_QUOTED_STRING:
-	       if (res_all.res_fs.have_MD5) {
-		  MD5Update(&res_all.res_fs.md5c, (unsigned char *)lc->str, lc->str_len);
-	       }
-	       if (incexe->name_list.size() == 0) {
-		  incexe->name_list.init(10, true);
-	       }
-	       incexe->name_list.append(bstrdup(lc->str));
-               Dmsg1(200, "Add to name_list %s\n", lc->str);
-	       break;
-	    default:
-               scan_err1(lc, "Expected a filename, got: %s", lc->str);
+	 case T_IDENTIFIER:
+	 case T_UNQUOTED_STRING:
+	 case T_QUOTED_STRING:
+	    if (res_all.res_fs.have_MD5) {
+	       MD5Update(&res_all.res_fs.md5c, (unsigned char *)lc->str, lc->str_len);
+	    }
+	    if (incexe->name_list.size() == 0) {
+	       incexe->name_list.init(10, true);
+	    }
+	    incexe->name_list.append(bstrdup(lc->str));
+            Dmsg1(200, "Add to name_list %s\n", lc->str);
+	    break;
+	 default:
+            scan_err1(lc, "Expected a filename, got: %s", lc->str);
 	 }				   
       }
       /* Note, MD5Final is done in backup.c */

@@ -1,5 +1,12 @@
 
-2003-10-24 Version 1.32c 26Oct03 Beta
+2003-10-26 Version 1.32c 26Oct03
+26Oct03
+- More doc fixes.
+- Make message buffer longer for a status message that was    
+  truncated.        
+- Put termination on varargs calls in gnome2-console.
+- Scroll only if text sent and not for status update.
+- Add all possible Status codes the jobstatus_to_ascii()
 25Oct03
 - Add new spec file and cats patch from Scott.
 - Optimize tree.c a bit -- turn off debug code, keep node fname
