@@ -113,6 +113,7 @@ From Chris Hull:
 - Estimate to Tibs never returns.
 
 - Later:
+- Make btape accept Device Names in addition to Archive names.
 - Add Events and Perl scripting.
 - Add John's appended files:
    Appended = {     /files/server/logs/http/*log   }

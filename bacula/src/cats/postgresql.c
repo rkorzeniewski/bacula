@@ -117,7 +117,7 @@ int
 db_open_database(JCR *jcr, B_DB *mdb)
 {
    int errstat;
-   char port[10];
+   char buf[10], *port;
 
    P(mutex);
    if (mdb->connected) {
@@ -133,10 +133,11 @@ db_open_database(JCR *jcr, B_DB *mdb)
       return 0;
    }
 
-   if (mdb->db_port && mdb->db_port[0]) {
-      bsnprintf(port, sizeof(port), "%d", mdb->db_port);
+   if (mdb->db_port) {
+      bsnprintf(buf, sizeof(buf), "%d", mdb->db_port);
+      port = buf;
    } else {
-      port[0] = 0;
+      port = NULL;
    }
    /* connect to the database */
    mdb->db = PQsetdbLogin(

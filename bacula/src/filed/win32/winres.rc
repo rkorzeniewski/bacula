@@ -135,7 +135,7 @@ BEGIN
     LTEXT           "         www.sibbald.com/bacula",IDC_WWW,115,70,100,10
 //    LTEXT           "                 ",-1,69,81,100,10
 //    LTEXT           "                 ",-1,90,70,100,10
-    LTEXT           "Copyright (C) 1999-2003, Kern Sibbald",IDC_COPYRIGHT,7,120,175,10
+    LTEXT           "Copyright (C) 1999-2004, Kern Sibbald",IDC_COPYRIGHT,7,120,175,10
     LTEXT           "Licensed under GNU GPL 2.0.",IDC_TRADEMARK,7,130,175,10
     RTEXT           "Build Date:",-1,108,24,42,8
     RTEXT           "Bacula Version:",-1,100,9,50,8
