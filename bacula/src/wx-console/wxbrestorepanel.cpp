@@ -283,40 +283,40 @@ wxbRestorePanel::wxbRestorePanel(wxWindow* parent): wxbPanel(parent) {
    
    wxBoxSizer* restoreSizer = new wxBoxSizer(wxVERTICAL);
    
-   wxGridSizer* cfgSizer = new wxGridSizer(9, 2, 15, 5);
+   wxGridSizer* cfgSizer = new wxGridSizer(9, 2, 5, 5);
    
-   cfgJobname = new wxStaticText(restorePanel, -1, "  ", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
-   cfgBootstrap = new wxStaticText(restorePanel, -1, "  ", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
-   cfgWhere = new wxTextCtrl(restorePanel, ConfigWhere, "", wxDefaultPosition, wxSize(150, 25));
+   cfgJobname = new wxStaticText(restorePanel, -1, "  ", wxDefaultPosition, wxSize(150, 15), wxALIGN_LEFT);
+   cfgBootstrap = new wxStaticText(restorePanel, -1, "  ", wxDefaultPosition, wxSize(150, 15), wxALIGN_LEFT);
+   cfgWhere = new wxTextCtrl(restorePanel, ConfigWhere, "", wxDefaultPosition, wxSize(150, 15));
    elist = new wxString[4];
    elist[0] = "always";
    elist[1] = "ifnewer";
    elist[2] = "ifolder";
    elist[3] = "never";
-   cfgReplace = new wxChoice(restorePanel, ConfigReplace, wxDefaultPosition, wxDefaultSize, 4, elist);
-   cfgFileset = new wxStaticText(restorePanel, -1, "  ", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
-   cfgClient = new wxStaticText(restorePanel, -1, "  ", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
-   cfgStorage = new wxStaticText(restorePanel, -1, "  ", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
-   cfgWhen = new wxTextCtrl(restorePanel, ConfigWhen, "0000-00-00 00:00:00", wxDefaultPosition, wxSize(150, 25));
-   cfgPriority = new wxTextCtrl(restorePanel, ConfigPriority, "", wxDefaultPosition, wxSize(50, 25));
+   cfgReplace = new wxChoice(restorePanel, ConfigReplace, wxDefaultPosition, wxSize(150, 15), 4, elist);
+   cfgFileset = new wxStaticText(restorePanel, -1, "  ", wxDefaultPosition, wxSize(150, 15), wxALIGN_LEFT);
+   cfgClient = new wxStaticText(restorePanel, -1, "  ", wxDefaultPosition, wxSize(150, 15), wxALIGN_LEFT);
+   cfgStorage = new wxStaticText(restorePanel, -1, "  ", wxDefaultPosition, wxSize(150, 15), wxALIGN_LEFT);
+   cfgWhen = new wxTextCtrl(restorePanel, ConfigWhen, "0000-00-00 00:00:00", wxDefaultPosition, wxSize(150, 15));
+   cfgPriority = new wxTextCtrl(restorePanel, ConfigPriority, "", wxDefaultPosition, wxSize(50, 15));
    
-   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Job Name: ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND);
+   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Job Name: ", wxDefaultPosition, wxSize(150, 15), wxALIGN_RIGHT), 1, wxEXPAND);
    cfgSizer->Add(cfgJobname, 1, wxEXPAND);
-   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Bootstrap: ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND);
+   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Bootstrap: ", wxDefaultPosition, wxSize(150, 15), wxALIGN_RIGHT), 1, wxEXPAND);
    cfgSizer->Add(cfgBootstrap, 1, wxEXPAND);
-   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Where: ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND);
+   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Where: ", wxDefaultPosition, wxSize(150, 15), wxALIGN_RIGHT), 1, wxEXPAND);
    cfgSizer->Add(cfgWhere, 1, wxEXPAND);
-   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Replace: ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND);
+   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Replace: ", wxDefaultPosition, wxSize(150, 15), wxALIGN_RIGHT), 1, wxEXPAND);
    cfgSizer->Add(cfgReplace, 1, wxEXPAND);
-   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Fileset: ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND);
+   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Fileset: ", wxDefaultPosition, wxSize(150, 15), wxALIGN_RIGHT), 1, wxEXPAND);
    cfgSizer->Add(cfgFileset, 1, wxEXPAND);
-   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Client: ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND);
+   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Client: ", wxDefaultPosition, wxSize(150, 15), wxALIGN_RIGHT), 1, wxEXPAND);
    cfgSizer->Add(cfgClient, 1, wxEXPAND);
-   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Storage: ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND);
+   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Storage: ", wxDefaultPosition, wxSize(150, 15), wxALIGN_RIGHT), 1, wxEXPAND);
    cfgSizer->Add(cfgStorage, 1, wxEXPAND);
-   cfgSizer->Add(new wxStaticText(restorePanel, -1, "When: ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND);
+   cfgSizer->Add(new wxStaticText(restorePanel, -1, "When: ", wxDefaultPosition, wxSize(150, 15), wxALIGN_RIGHT), 1, wxEXPAND);
    cfgSizer->Add(cfgWhen, 1, wxEXPAND);
-   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Priority: ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND);
+   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Priority: ", wxDefaultPosition, wxSize(150, 15), wxALIGN_RIGHT), 1, wxEXPAND);
    cfgSizer->Add(cfgPriority, 1, wxEXPAND);
       
    restoreSizer->Add(cfgSizer, 1, wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL | wxALL, 5);
