@@ -390,7 +390,7 @@ get_cmd(FILE *input, char *prompt, BSOCK *sock, int sec)
 {
    int len;  
    if (!stop) {
-      puts(prompt, output);
+      fputs(prompt, output);
       fflush(output);
    }
 again:

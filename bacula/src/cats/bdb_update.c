@@ -202,5 +202,9 @@ int db_mark_file_record(void *jcr, B_DB *mdb, FileId_t FileId, JobId_t JobId)
    return 1;
 }
 
+int db_update_client_record(void *jcr, B_DB *mdb, CLIENT_DBR *cr)
+{
+   return 1;
+}
 
 #endif /* HAVE_BACULA_DB */
