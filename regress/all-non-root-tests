@@ -27,6 +27,7 @@ tests/incremental-test
 tests/decremental-test
 tests/restore-disk-seek-test
 tests/query-test
+tests/auto-label-test
 echo " "
 echo " "
 echo "Test results"

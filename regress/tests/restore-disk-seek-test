@@ -26,12 +26,6 @@ cd ${cwd}
 rm -rf  ${cwd}/tmp/build
 mkdir ${cwd}/tmp/build
 cp -fp ${cwd}/build/src/dird/* ${cwd}/tmp/build
-bin/bacula stop  2>&1 >/dev/null
-cd bin
-./drop_bacula_tables >/dev/null 2>&1
-./make_bacula_tables >/dev/null 2>&1
-./grant_bacula_privileges 2>&1 >/dev/null
-cd ..
 # Enable MaximumFileSize
 cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
 sed "s%# Maximum File Size%  Maximum File Size%" ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf

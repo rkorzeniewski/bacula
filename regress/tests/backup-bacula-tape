@@ -5,15 +5,10 @@
 #   we can correctly append to a tape.
 #
 cwd=`pwd`
-bin/bacula stop  2>&1 >/dev/null
 scripts/copy-tape-confs
 scripts/cleanup-tape
+
 echo "${cwd}/build" >/tmp/file-list
-cd bin
-./drop_bacula_tables >/dev/null 2>&1
-./make_bacula_tables >/dev/null 2>&1
-./grant_bacula_privileges 2>&1 >/dev/null
-cd ..
 
 echo " "
 echo " "
@@ -38,13 +33,18 @@ restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
 yes
 wait
 messages
-@#
-@# Now do a second backup
-@#
+END_OF_DATA
+bin/bacula stop 2>&1 >/dev/null
+#
+# Now do a second backup after making a few changes
+#
+touch ${cwd}/build/src/dird/*.c
+echo "test test" > ${cwd}/build/src/dird/xxx
+bin/bacula start 2>&1 >/dev/null
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
 @output /dev/null
 messages
 @output tmp/log1.out
-label storage=DDS-4 volume=TestVolume001 slot=0
 run job=NightlySave yes
 wait
 messages
@@ -60,6 +60,7 @@ messages
 quit
 END_OF_DATA
 scripts/check_for_zombie_jobs storage=DDS-4
+
 bin/bacula stop 2>&1 >/dev/null
 grep "^Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
 bstat=$?

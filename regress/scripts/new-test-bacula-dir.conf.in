@@ -308,4 +308,5 @@ Pool {
   AutoPrune = yes                     # Prune expired volumes
   Volume Retention = 365d             # one year
   Accept Any Volume = yes             # write on any volume in the pool
+# Label Format = "TEST-${Year}-${Month:p/2/0/r}-${Day:p/2/0/r}:${NumVols}"
 }

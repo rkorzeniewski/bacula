@@ -8,4 +8,11 @@ rm -rf tmp/restored tmp/largefile tmp/bscan.bsr tmp/log*.out
 rm -rf /tmp/sed_tmp /tmp/file-list
 rm -rf tmp/build tmp/restore-list tmp/restore2-list
 rm -rf tmp/fd.out tmp/dir.out tmp/sd.out
-rm -rf working/log
+rm -rf working/log tmp/TEST-*
+
+bin/bacula stop 2>&1 >/dev/null
+cd bin
+./drop_bacula_tables >/dev/null 2>&1
+./make_bacula_tables >/dev/null 2>&1
+./grant_bacula_privileges >/dev/null 2>&1
+cd ..

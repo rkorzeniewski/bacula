@@ -16,12 +16,6 @@ echo "${cwd}/tmp/largefile" >/tmp/file-list
 echo "Creating a 56MB file with random data ..."
 dd if=/dev/urandom of=${cwd}/tmp/largefile bs=1024 count=55000
 echo "largefile created"
-bin/bacula stop 2>&1 >/dev/null
-cd bin
-./drop_bacula_tables >/dev/null 2>&1
-./make_bacula_tables >/dev/null 2>&1
-./grant_bacula_privileges 2>&1 >/dev/null
-cd ..
 
 echo " "
 echo " "

@@ -6,11 +6,6 @@ cwd=`pwd`
 scripts/copy-tape-confs
 scripts/cleanup-tape
 
-echo "${cwd}/build" >/tmp/file-list
-
-cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
-sed "s%# MaximumVolumeSize%  MaximumVolumeSize%" ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
-
 echo " "
 echo " "
 echo " === Starting btape fill test ==="
