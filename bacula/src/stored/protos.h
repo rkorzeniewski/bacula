@@ -85,7 +85,7 @@ void    display_tape_error_status(JCR *jcr, DEVICE *dev);
 
 
 /* From dev.c */
-DEVICE  *init_dev(DEVICE *dev, DEVRES *device);
+DEVICE  *init_dev(JCR *jcr, DEVICE *dev, DEVRES *device);
 int      open_dev(DEVICE *dev, char *VolName, int mode);
 off_t    lseek_dev(DEVICE *dev, off_t offset, int whence);
 int      open_first_part(DEVICE *dev);

@@ -46,7 +46,7 @@ static char storaddr[]  = "storage address=%s port=%d ssl=%d\n";
 static char OKbackup[]   = "2000 OK backup\n";
 static char OKstore[]    = "2000 OK storage\n";
 static char EndJob[]     = "2800 End Job TermCode=%d JobFiles=%u "
-                           "ReadBytes=%" lld " JobBytes=%" lld " Errors=%u\n";
+                           "ReadBytes=%lld JobBytes=%lld Errors=%u\n";
 
 
 /* Forward referenced functions */

@@ -1110,8 +1110,6 @@ static int level_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
    POOLMEM *level, *buf = NULL;
-   struct tm tm;
-   time_t mtime;
    int mtime_only;
 
    level = get_memory(dir->msglen+1);
@@ -1125,26 +1123,14 @@ static int level_cmd(JCR *jcr)
    /* Full backup requested? */
    } else if (strcmp(level, "full") == 0) {
       jcr->JobLevel = L_FULL;
-   /*
-    * Backup requested since <date> <time>
-    *  This form is also used for incremental and differential
-    *  This code is deprecated.  See since_utime for new code.
-    */
-   } else if (strcmp(level, "since") == 0) {
-      jcr->JobLevel = L_SINCE;
-      if (sscanf(dir->msg, "level = since %d-%d-%d %d:%d:%d mtime_only=%d",
-		 &tm.tm_year, &tm.tm_mon, &tm.tm_mday,
-		 &tm.tm_hour, &tm.tm_min, &tm.tm_sec, &mtime_only) != 7) {
-	 goto bail_out;
-      }
-      tm.tm_year -= 1900;
-      tm.tm_mon  -= 1;
-      tm.tm_wday = tm.tm_yday = 0;
-      tm.tm_isdst = -1;
-      mtime = mktime(&tm);
-      Dmsg2(100, "Got since time: %s mtime_only=%d\n", ctime(&mtime), mtime_only);
-      jcr->incremental = 1;	      /* set incremental or decremental backup */
-      jcr->mtime = mtime;	      /* set since time */
+   } else if (strcmp(level, "differential") == 0) {
+      jcr->JobLevel = L_DIFFERENTIAL;
+      free_memory(level);
+      return 1;
+   } else if (strcmp(level, "incremental") == 0) {
+      jcr->JobLevel = L_INCREMENTAL;
+      free_memory(level);
+      return 1;   
    /*
     * We get his UTC since time, then sync the clocks and correct it
     *	to agree with our clock.
@@ -1153,7 +1139,6 @@ static int level_cmd(JCR *jcr)
       buf = get_memory(dir->msglen+1);
       utime_t since_time, adj;
       btime_t his_time, bt_start, rt=0, bt_adj=0;
-      jcr->JobLevel = L_SINCE;
       if (sscanf(dir->msg, "level = since_utime %s mtime_only=%d",
 		 buf, &mtime_only) != 2) {
 	 goto bail_out;

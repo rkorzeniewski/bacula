@@ -147,7 +147,7 @@ const char *select_verify_del =
 const char *select_restore_del =
    "SELECT DISTINCT DelCandidates.JobId "
    "FROM Job,DelCandidates "
-   "WHERE (Job.JobTdate<%s AND delCandidates.JobStatus!='T') OR "
+   "WHERE (Job.JobTdate<%s AND DelCandidates.JobStatus!='T') OR "
    "(Job.JobTDate>%s "
    "AND Job.ClientId=%u "
    "AND Job.Type='R')";
@@ -158,7 +158,7 @@ const char *select_restore_del =
 const char *select_admin_del =
    "SELECT DISTINCT DelCandidates.JobId "
    "FROM Job,DelCandidates "
-   "WHERE (Job.JobTdate<%s AND delCandidates.JobStatus!='T') OR "
+   "WHERE (Job.JobTdate<%s AND DelCandidates.JobStatus!='T') OR "
    "(Job.JobTDate>%s "
    "AND Job.ClientId=%u "
    "AND Job.Type='D')";

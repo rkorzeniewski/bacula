@@ -284,6 +284,9 @@ static bool use_device_cmd(JCR *jcr)
 	    DCR *dcr;
 	    UnlockRes();
 	    if (!device->dev) {
+	       device->dev = init_dev(jcr, NULL, device);
+	    }
+	    if (!device->dev) {
                Jmsg(jcr, M_FATAL, 0, _("\n"
                   "     Archive \"%s\" requested by DIR could not be opened or does not exist.\n"),
 		    dev_name.c_str());
@@ -307,7 +310,7 @@ static bool use_device_cmd(JCR *jcr)
 	       ok = reserve_device_for_read(jcr, device->dev);
 	    }
 	    if (!ok) {
-               bnet_fsend(dir, _("Could not get dcr for device: %s\n"), dev_name.c_str());
+               bnet_fsend(dir, _("3927 Could not reserve device: %s\n"), dev_name.c_str());
 	       free_dcr(jcr->dcr);
 	       return false;
 	    }
@@ -361,8 +364,13 @@ bool query_cmd(JCR *jcr)
       LockRes();
       foreach_res(device, R_DEVICE) {
 	 /* Find resource, and make sure we were able to open it */
-	 if (fnmatch(dev_name.c_str(), device->hdr.name, 0) == 0 &&
-	     device->dev) {
+	 if (fnmatch(dev_name.c_str(), device->hdr.name, 0) == 0) {
+	    if (!device->dev) {
+	       device->dev = init_dev(jcr, NULL, device);
+	    }
+	    if (!device->dev) {
+	       break;
+	    }  
 	    DEVICE *dev = device->dev;
 	    POOL_MEM VolumeName, MediaType;
 	    UnlockRes();

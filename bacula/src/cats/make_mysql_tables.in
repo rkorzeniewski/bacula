@@ -32,6 +32,7 @@ CREATE TABLE File (
    LStat TINYBLOB NOT NULL,
    MD5 TINYBLOB NOT NULL,
    PRIMARY KEY(FileId),
+   INDEX (JobId),
    INDEX (FilenameId, PathId)
    );
 
@@ -40,12 +41,9 @@ CREATE TABLE File (
 #  to the above File table if your Verifies are
 #  too slow.
 #
-#  INDEX (JobId),
 #  INDEX (PathId),
 #  INDEX (FilenameId),
 #  INDEX (JobId, PathId, FilenameId)
-#
-# Adding an index on JobId can speed up pruning
 #
 
 CREATE TABLE Job (
@@ -127,6 +125,7 @@ CREATE TABLE Media (
    MaxVolFiles INTEGER UNSIGNED NOT NULL DEFAULT 0,
    MaxVolBytes BIGINT UNSIGNED NOT NULL DEFAULT 0,
    InChanger TINYINT NOT NULL DEFAULT 0,
+   StorageId INTEGER UNSIGNED DEFAULT 0 REFERENCES Storage,
    MediaAddressing TINYINT NOT NULL DEFAULT 0,
    VolReadTime BIGINT UNSIGNED NOT NULL DEFAULT 0,
    VolWriteTime BIGINT UNSIGNED NOT NULL DEFAULT 0,
@@ -192,6 +191,10 @@ CREATE TABLE Pool (
    Enabled TINYINT DEFAULT 1,
    ScratchPoolId INTEGER UNSIGNED DEFAULT 0 REFERENCES Pool,
    RecyclePoolId INTEGER UNSIGNED DEFAULT 0 REFERENCES Pool,
+   NextPoolId INTEGER UNSIGNED DEFAULT 0 REFERENCES Pool,
+   MigrationHighBytes BIGINT UNSIGNED DEFAULT 0,
+   MigrationLowBytes BIGINT UNSIGNED DEFAULT 0,
+   MigrationTime BIGINT UNSIGNED DEFAULT 0,
    UNIQUE (Name(128)),
    PRIMARY KEY (PoolId)
    );

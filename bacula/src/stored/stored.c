@@ -308,7 +308,7 @@ void *device_allocation(void *arg)
 
    foreach_res(device, R_DEVICE) {
       Dmsg1(90, "calling init_dev %s\n", device->device_name);
-      device->dev = init_dev(NULL, device);
+      device->dev = init_dev(NULL, NULL, device);
       Dmsg1(10, "SD init done %s\n", device->device_name);
       if (!device->dev) {
          Jmsg1(NULL, M_ERROR, 0, _("Could not initialize %s\n"), device->device_name);

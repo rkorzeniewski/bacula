@@ -1,9 +1,9 @@
 #!/bin/sh
 #
-# shell script to update SQLite from version 1.34 to 1.35.5
+# shell script to update SQLite from version 1.36 to 1.37.3
 #
 echo " "
-echo "This script will update a Bacula SQLite database from version 7 to 8"
+echo "This script will update a Bacula SQLite database from version 8 to 9"
 echo "Depending on the size of your database,"
 echo "this script may take several minutes to run."
 echo " "
@@ -40,6 +40,7 @@ CREATE TEMPORARY TABLE Media_backup (
    MaxVolFiles INTEGER UNSIGNED DEFAULT 0,
    MaxVolBytes BIGINT UNSIGNED DEFAULT 0,
    InChanger TINYINT DEFAULT 0,
+   StorageId INTEGER UNSIGNED REFERENCES Storage,
    MediaAddressing TINYINT DEFAULT 0,
    VolReadTime BIGINT UNSIGNED DEFAULT 0,
    VolWriteTime BIGINT UNSIGNED DEFAULT 0,
@@ -55,7 +56,7 @@ INSERT INTO Media_backup SELECT
    VolMounts, VolBytes, 0, VolErrors, VolWrites,
    VolCapacityBytes, VolStatus, Recycle,
    VolRetention, VolUseDuration, MaxVolJobs,
-   MaxVolFiles, MaxVolBytes, InChanger, MediaAddressing,
+   MaxVolFiles, MaxVolBytes, InChanger, 0, MediaAddressing,
    VolReadTime, VolWriteTime, EndFile, EndBlock
    FROM Media;
 
@@ -89,6 +90,7 @@ CREATE TABLE Media (
    MaxVolFiles INTEGER UNSIGNED DEFAULT 0,
    MaxVolBytes BIGINT UNSIGNED DEFAULT 0,
    InChanger TINYINT DEFAULT 0,
+   StorageId INTEGER UNSIGNED REFERENCES Storage,
    MediaAddressing TINYINT DEFAULT 0,
    VolReadTime BIGINT UNSIGNED DEFAULT 0,
    VolWriteTime BIGINT UNSIGNED DEFAULT 0,
@@ -105,7 +107,7 @@ INSERT INTO Media (
    VolCapacityBytes, VolStatus, Recycle,
    VolRetention, VolUseDuration, MaxVolJobs,
    MaxVolFiles, MaxVolBytes,
-   InChanger, MediaAddressing,
+   InChanger, StorageId, MediaAddressing,
    VolReadTime, VolWriteTime,	    
    EndFile, EndBlock)
    SELECT * FROM Media_backup;
@@ -133,6 +135,10 @@ CREATE TEMPORARY TABLE Pool_backup (
    Enabled TINYINT DEFAULT 1,
    ScratchPoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
    RecyclePoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
+   NextPoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
+   MigrationHighBytes BIGINT UNSIGNED DEFAULT 0,
+   MigrationLowBytes BIGINT UNSIGNED DEFAULT 0,
+   MigrationTime BIGINT UNSIGNED DEFAULT 0,
    UNIQUE (Name),
    PRIMARY KEY (PoolId)
    );
@@ -143,7 +149,8 @@ INSERT INTO Pool_backup SELECT
    VolRetention, VolUseDuration, MaxVolJobs,
    MaxVolFiles, MaxVolBytes, AutoPrune,
    Recycle, PoolType, 0, LabelFormat,
-   Enabled, ScratchPoolId, RecyclePoolId
+   Enabled, ScratchPoolId, RecyclePoolId,
+   0, 0, 0, 0
    FROM Pool;
 
 DROP TABLE Pool;
@@ -169,6 +176,10 @@ CREATE TABLE Pool (
    Enabled TINYINT DEFAULT 1,
    ScratchPoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
    RecyclePoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
+   NextPoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
+   MigrationHighBytes BIGINT UNSIGNED DEFAULT 0,
+   MigrationLowBytes BIGINT UNSIGNED DEFAULT 0,
+   MigrationTime BIGINT UNSIGNED DEFAULT 0,
    UNIQUE (Name),
    PRIMARY KEY (PoolId)
    );
@@ -179,10 +190,45 @@ INSERT INTO Pool (
    VolRetention, VolUseDuration, MaxVolJobs,
    MaxVolFiles, MaxVolBytes, AutoPrune,
    Recycle, PoolType, LabelType, LabelFormat,
-   Enabled, ScratchPoolId, RecyclePoolId )
+   Enabled, ScratchPoolId, RecyclePoolId,
+   NextPoolId, MigrationHighBytes, 
+   MigrationLowBytes, MigrationTime )
    SELECT * FROM Pool_backup;
 
 DROP TABLE Pool_backup;
+
+CREATE TABLE MediaType (
+   MediaTypeId INTERGER,
+   MediaType VARCHAR(128) NOT NULL,
+   ReadOnly TINYINT DEFAULT 0,
+   PRIMARY KEY(MediaTypeId)
+   );
+
+CREATE TABLE Device (
+   DeviceId INTEGER,
+   Name VARCHAR(128) NOT NULL,
+   MediaTypeId INTEGER UNSIGNED REFERENCES MediaType NOT NULL,
+   StorageId INTEGER UNSIGNED REFERENCES Storage,
+   DevMounts INTEGER UNSIGNED DEFAULT 0,
+   DevReadBytes BIGINT UNSIGNED DEFAULT 0,
+   DevWriteBytes BIGINT UNSIGNED DEFAULT 0,
+   DevReadBytesSinceCleaning BIGINT UNSIGNED DEFAULT 0,
+   DevWriteBytesSinceCleaning BIGINT UNSIGNED DEFAULT 0,
+   DevReadTime BIGINT UNSIGNED DEFAULT 0,
+   DevWriteTime BIGINT UNSIGNED DEFAULT 0,
+   DevReadTimeSinceCleaning BIGINT UNSIGNED DEFAULT 0,
+   DevWriteTimeSinceCleaning BIGINT UNSIGNED DEFAULT 0,
+   CleaningDate DATETIME DEFAULT 0,
+   CleaningPeriod BIGINT UNSIGNED DEFAULT 0,
+   PRIMARY KEY(DeviceId)
+   );
+
+CREATE TABLE Storage (
+   StorageId INTEGER,
+   Name VARCHAR(128) NOT NULL,
+   AutoChanger TINYINT DEFAULT 0,
+   PRIMARY KEY(StorageId)
+   );
 
 COMMIT;
 
