@@ -39,15 +39,15 @@
 void terminate_stored(int sig);
 static void check_config();
 
-extern "C" void *device_allocation(void *arg);
+extern "C" void *device_initialization(void *arg);
 
 #define CONFIG_FILE "bacula-sd.conf"  /* Default config file */
 
 /* Global variables exported */
 char OK_msg[]   = "3000 OK\n";
 char TERM_msg[] = "3999 Terminate\n";
-STORES *me = NULL;		      /* our Global resource */
-bool forge_on = false;		      /* proceed inspite of I/O errors */
+STORES *me = NULL;                    /* our Global resource */
+bool forge_on = false;                /* proceed inspite of I/O errors */
 pthread_mutex_t device_release_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t wait_device_release = PTHREAD_COND_INITIALIZER;
 
@@ -59,7 +59,7 @@ char *configfile;
 /* Global static variables */
 static int foreground = 0;
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-static workq_t dird_workq;	      /* queue for processing connections */
+static workq_t dird_workq;            /* queue for processing connections */
 
 
 static void usage()
@@ -105,7 +105,7 @@ int main (int argc, char *argv[])
    /* Sanity checks */
    if (TAPE_BSIZE % B_DEV_BSIZE != 0 || TAPE_BSIZE / B_DEV_BSIZE == 0) {
       Emsg2(M_ABORT, 0, "Tape block size (%d) not multiple of system size (%d)\n",
-	 TAPE_BSIZE, B_DEV_BSIZE);
+         TAPE_BSIZE, B_DEV_BSIZE);
    }
    if (TAPE_BSIZE != (1 << (ffs(TAPE_BSIZE)-1))) {
       Emsg1(M_ABORT, 0, "Tape block size (%d) is not a power of 2\n", TAPE_BSIZE);
@@ -114,51 +114,51 @@ int main (int argc, char *argv[])
    while ((ch = getopt(argc, argv, "c:d:fg:pstu:v?")) != -1) {
       switch (ch) {
       case 'c':                    /* configuration file */
-	 if (configfile != NULL) {
-	    free(configfile);
-	 }
-	 configfile = bstrdup(optarg);
-	 break;
+         if (configfile != NULL) {
+            free(configfile);
+         }
+         configfile = bstrdup(optarg);
+         break;
 
       case 'd':                    /* debug level */
-	 debug_level = atoi(optarg);
-	 if (debug_level <= 0) {
-	    debug_level = 1;
-	 }
-	 break;
+         debug_level = atoi(optarg);
+         if (debug_level <= 0) {
+            debug_level = 1;
+         }
+         break;
 
       case 'f':                    /* run in foreground */
-	 foreground = TRUE;
-	 break;
+         foreground = TRUE;
+         break;
 
       case 'g':                    /* set group id */
-	 gid = optarg;
-	 break;
+         gid = optarg;
+         break;
 
       case 'p':                    /* proceed in spite of I/O errors */
-	 forge_on = true;
-	 break;
+         forge_on = true;
+         break;
 
       case 's':                    /* no signals */
-	 no_signals = TRUE;
-	 break;
+         no_signals = TRUE;
+         break;
 
       case 't':
-	 test_config = TRUE;
-	 break;
+         test_config = TRUE;
+         break;
 
       case 'u':                    /* set uid */
-	 uid = optarg;
-	 break;
+         uid = optarg;
+         break;
 
       case 'v':                    /* verbose */
-	 verbose++;
-	 break;
+         verbose++;
+         break;
 
       case '?':
       default:
-	 usage();
-	 break;
+         usage();
+         break;
       }
    }
    argc -= optind;
@@ -166,7 +166,7 @@ int main (int argc, char *argv[])
 
    if (argc) {
       if (configfile != NULL) {
-	 free(configfile);
+         free(configfile);
       }
       configfile = bstrdup(*argv);
       argc--;
@@ -191,8 +191,8 @@ int main (int argc, char *argv[])
    }
 
    if (!foreground) {
-      daemon_start();		      /* become daemon */
-      init_stack_dump();	      /* pick up new pid */
+      daemon_start();                 /* become daemon */
+      init_stack_dump();              /* pick up new pid */
    }
 
    create_pid_file(me->pid_directory, "bacula-sd", get_first_port_host_order(me->sdaddrs));
@@ -217,13 +217,13 @@ int main (int argc, char *argv[])
     /*
      * Start the device allocation thread
      */
-   if (pthread_create(&thid, NULL, device_allocation, NULL) != 0) {
+   if (pthread_create(&thid, NULL, device_initialization, NULL) != 0) {
       Emsg1(M_ABORT, 0, _("Unable to create thread. ERR=%s\n"), strerror(errno));
    }
 
-   start_watchdog();		      /* start watchdog thread */
+   start_watchdog();                  /* start watchdog thread */
 
-   init_jcr_subsystem();	      /* start JCR watchdogs etc. */
+   init_jcr_subsystem();              /* start JCR watchdogs etc. */
 
    /*
     * Sleep a bit to give device thread a chance to lock the resource
@@ -233,8 +233,8 @@ int main (int argc, char *argv[])
 
    /* Single server used for Director and File daemon */
    bnet_thread_server(me->sdaddrs, me->max_concurrent_jobs * 2 + 1,
-		      &dird_workq, handle_connection_request);
-   exit(1);			      /* to keep compiler quiet */
+                      &dird_workq, handle_connection_request);
+   exit(1);                           /* to keep compiler quiet */
 }
 
 /* Return a new Session Id */
@@ -259,39 +259,39 @@ static void check_config()
    if (!me) {
       UnlockRes();
       Jmsg1(NULL, M_ERROR_TERM, 0, _("No Storage resource defined in %s. Cannot continue.\n"),
-	 configfile);
+         configfile);
    }
-   my_name_is(0, (char **)NULL, me->hdr.name);	   /* Set our real name */
+   my_name_is(0, (char **)NULL, me->hdr.name);     /* Set our real name */
 
    if (GetNextRes(R_STORAGE, (RES *)me) != NULL) {
       UnlockRes();
       Jmsg1(NULL, M_ERROR_TERM, 0, _("Only one Storage resource permitted in %s\n"),
-	 configfile);
+         configfile);
    }
    if (GetNextRes(R_DIRECTOR, NULL) == NULL) {
       UnlockRes();
       Jmsg1(NULL, M_ERROR_TERM, 0, _("No Director resource defined in %s. Cannot continue.\n"),
-	 configfile);
+         configfile);
    }
    if (GetNextRes(R_DEVICE, NULL) == NULL){
       UnlockRes();
       Jmsg1(NULL, M_ERROR_TERM, 0, _("No Device resource defined in %s. Cannot continue.\n"),
-	   configfile);
+           configfile);
    }
    if (!me->messages) {
       me->messages = (MSGS *)GetNextRes(R_MSGS, NULL);
       if (!me->messages) {
          Jmsg1(NULL, M_ERROR_TERM, 0, _("No Messages resource defined in %s. Cannot continue.\n"),
-	    configfile);
+            configfile);
       }
    }
-   close_msg(NULL);		      /* close temp message handler */
+   close_msg(NULL);                   /* close temp message handler */
    init_msg(NULL, me->messages);      /* open daemon message handler */
 
 
    if (!me->working_directory) {
       Jmsg1(NULL, M_ERROR_TERM, 0, _("No Working Directory defined in %s. Cannot continue.\n"),
-	 configfile);
+         configfile);
    }
    set_working_directory(me->working_directory);
 
@@ -300,25 +300,25 @@ static void check_config()
       DEVRES *device;
       char *media_type = NULL;
       foreach_alist(device, changer->device) {
-	 if (media_type == NULL) {
-	    media_type = device->media_type;
-	    continue;
-	 }     
-	 if (strcmp(media_type, device->media_type) != 0) {
-	    Jmsg(NULL, M_ERROR_TERM, 0, 
+         if (media_type == NULL) {
+            media_type = device->media_type;
+            continue;
+         }     
+         if (strcmp(media_type, device->media_type) != 0) {
+            Jmsg(NULL, M_ERROR_TERM, 0, 
                _("Media Type not the same for all devices in changer %s. Cannot continue.\n"),
-	       changer->hdr.name);
-	 }
-	 /*
-	  * If the device does not have a changer name or changer command
-	  * defined, used the one from the Autochanger resource 
-	  */
-	 if (!device->changer_name) {
-	    device->changer_name = bstrdup(changer->changer_name);
-	 }
-	 if (!device->changer_command) {
-	    device->changer_command = bstrdup(changer->changer_command);
-	 }
+               changer->hdr.name);
+         }
+         /*
+          * If the device does not have a changer name or changer command
+          * defined, used the one from the Autochanger resource 
+          */
+         if (!device->changer_name) {
+            device->changer_name = bstrdup(changer->changer_name);
+         }
+         if (!device->changer_command) {
+            device->changer_command = bstrdup(changer->changer_command);
+         }
       }
    }
    UnlockRes();
@@ -329,7 +329,7 @@ static void check_config()
  *  once at startup in a separate thread.
  */
 extern "C"
-void *device_allocation(void *arg)
+void *device_initialization(void *arg)
 {
    DEVRES *device;
 
@@ -342,36 +342,36 @@ void *device_allocation(void *arg)
       Dmsg1(10, "SD init done %s\n", device->device_name);
       if (!device->dev) {
          Jmsg1(NULL, M_ERROR, 0, _("Could not initialize %s\n"), device->device_name);
-	 continue;
+         continue;
       }
 
       if (device->cap_bits & CAP_ALWAYSOPEN) {
          Dmsg1(20, "calling first_open_device %s\n", device->device_name);
-	 if (!first_open_device(device->dev)) {
+         if (!first_open_device(device->dev)) {
             Jmsg1(NULL, M_ERROR, 0, _("Could not open device %s\n"), device->device_name);
-	 }
+         }
       }
       if (device->cap_bits & CAP_AUTOMOUNT && device->dev &&
-	  device->dev->is_open()) {
-	 JCR *jcr;
-	 DCR *dcr;
-	 jcr = new_jcr(sizeof(JCR), stored_free_jcr);
-	 jcr->JobType = JT_SYSTEM;
-	 /* Initialize FD start condition variable */
-	 int errstat = pthread_cond_init(&jcr->job_start_wait, NULL);
-	 if (errstat != 0) {
+          device->dev->is_open()) {
+         JCR *jcr;
+         DCR *dcr;
+         jcr = new_jcr(sizeof(JCR), stored_free_jcr);
+         jcr->JobType = JT_SYSTEM;
+         /* Initialize FD start condition variable */
+         int errstat = pthread_cond_init(&jcr->job_start_wait, NULL);
+         if (errstat != 0) {
             Jmsg1(jcr, M_ABORT, 0, _("Unable to init job cond variable: ERR=%s\n"), strerror(errstat));
-	 }
-	 dcr = new_dcr(jcr, device->dev);
-	 switch (read_dev_volume_label(dcr)) {
-	 case VOL_OK:
-	    memcpy(&dcr->dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dcr->dev->VolCatInfo));
-	    break;
-	 default:
+         }
+         dcr = new_dcr(jcr, device->dev);
+         switch (read_dev_volume_label(dcr)) {
+         case VOL_OK:
+            memcpy(&dcr->dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dcr->dev->VolCatInfo));
+            break;
+         default:
             Jmsg1(NULL, M_WARNING, 0, _("Could not mount device %s\n"), device->device_name);
-	    break;
-	 }
-	 free_jcr(jcr);
+            break;
+         }
+         free_jcr(jcr);
       }
    }
    UnlockRes();
@@ -386,12 +386,12 @@ void terminate_stored(int sig)
    DEVRES *device;
    JCR *jcr;
 
-   if (in_here) {		      /* prevent loops */
+   if (in_here) {                     /* prevent loops */
       exit(1);
    }
    in_here = true;
 
-   if (sig == SIGTERM) {	      /* normal shutdown request? */
+   if (sig == SIGTERM) {              /* normal shutdown request? */
       /*
        * This is a normal shutdown request. We wiffle through
        *   all open jobs canceling them and trying to wake
@@ -400,27 +400,27 @@ void terminate_stored(int sig)
        */
       lock_jcr_chain();
       foreach_jcr(jcr) {
-	 BSOCK *fd;
-	 free_locked_jcr(jcr);
-	 if (jcr->JobId == 0) {
-	    continue;		      /* ignore console */
-	 }
-	 set_jcr_job_status(jcr, JS_Canceled);
-	 fd = jcr->file_bsock;
-	 if (fd) {
-	    fd->timed_out = true;
+         BSOCK *fd;
+         free_locked_jcr(jcr);
+         if (jcr->JobId == 0) {
+            continue;                 /* ignore console */
+         }
+         set_jcr_job_status(jcr, JS_Canceled);
+         fd = jcr->file_bsock;
+         if (fd) {
+            fd->timed_out = true;
             Dmsg1(100, "term_stored killing JobId=%d\n", jcr->JobId);
-	    pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
-	    /* ***FIXME*** wiffle through all dcrs */
-	    if (jcr->dcr && jcr->dcr->dev && jcr->dcr->dev->dev_blocked) {
-	       pthread_cond_broadcast(&jcr->dcr->dev->wait_next_vol);
-	       pthread_cond_broadcast(&wait_device_release);
-	    }
-	    bmicrosleep(0, 50000);
-	  }
+            pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
+            /* ***FIXME*** wiffle through all dcrs */
+            if (jcr->dcr && jcr->dcr->dev && jcr->dcr->dev->dev_blocked) {
+               pthread_cond_broadcast(&jcr->dcr->dev->wait_next_vol);
+               pthread_cond_broadcast(&wait_device_release);
+            }
+            bmicrosleep(0, 50000);
+          }
       }
       unlock_jcr_chain();
-      bmicrosleep(0, 500000);	      /* give them 1/2 sec to clean up */
+      bmicrosleep(0, 500000);         /* give them 1/2 sec to clean up */
    }
 
    write_state_file(me->working_directory, "bacula-sd", get_first_port_host_order(me->sdaddrs));
@@ -431,7 +431,7 @@ void terminate_stored(int sig)
    LockRes();
    foreach_res(device, R_DEVICE) {
       if (device->dev) {
-	 term_dev(device->dev);
+         term_dev(device->dev);
       }
    }
    UnlockRes();
@@ -447,6 +447,6 @@ void terminate_stored(int sig)
    stop_watchdog();
    close_memory_pool();
 
-   sm_dump(false);		      /* dump orphaned buffers */
+   sm_dump(false);                    /* dump orphaned buffers */
    exit(sig);
 }

@@ -56,7 +56,7 @@ static int int_handler(void *ctx, int num_fields, char **row)
 
    if (row[0]) {
       Dmsg1(800, "int_handler finds '%s'\n", row[0]);
-      *val = atoi(row[0]);
+      *val = str_to_int64(row[0]);
    } else {
       Dmsg0(800, "int_handler finds zero\n");
       *val = 0;
@@ -209,7 +209,7 @@ int get_sql_record_max(JCR *jcr, B_DB *mdb)
          Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
 	 stat = -1;
       } else {
-	 stat = atoi(row[0]);
+	 stat = str_to_int64(row[0]);
       }
       sql_free_result(mdb);
    } else {

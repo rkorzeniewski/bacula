@@ -36,12 +36,15 @@
 #include "dird.h"
 
 /* Forward referenced functions */
-static int create_simple_name(JCR *jcr, MEDIA_DBR *mr, POOL_DBR *pr);
-static int perform_full_name_substitution(JCR *jcr, MEDIA_DBR *mr, POOL_DBR *pr);
+static bool create_simple_name(JCR *jcr, MEDIA_DBR *mr, POOL_DBR *pr);
+static bool perform_full_name_substitution(JCR *jcr, MEDIA_DBR *mr, POOL_DBR *pr);
 
 
 /*
  * Automatic Volume name creation using the LabelFormat
+ *
+ *  The media record must have the PoolId filled in when
+ *   calling this routine.
  */
 bool newVolume(JCR *jcr, MEDIA_DBR *mr)
 {
@@ -51,18 +54,21 @@ bool newVolume(JCR *jcr, MEDIA_DBR *mr)
 
    /* See if we can create a new Volume */
    db_lock(jcr->db);
-   pr.PoolId = jcr->PoolId;
-   if (db_get_pool_record(jcr, jcr->db, &pr) && pr.LabelFormat[0] &&
-       pr.LabelFormat[0] != '*') {
-      if (pr.MaxVols == 0 || pr.NumVols < pr.MaxVols) {
-	 memset(mr, 0, sizeof(MEDIA_DBR));
-	 set_pool_dbr_defaults_in_media_dbr(mr, &pr);
-	 jcr->VolumeName[0] = 0;
-	 bstrncpy(mr->MediaType, jcr->store->media_type, sizeof(mr->MediaType));
-         if (generate_event(jcr, "NewVolume") == 1 && jcr->VolumeName[0]) {
-	    bstrncpy(mr->VolumeName, jcr->VolumeName, sizeof(mr->VolumeName));
-	 /* Check for special characters */
-	 } else if (is_volume_name_legal(NULL, pr.LabelFormat)) {
+   pr.PoolId = mr->PoolId;
+   if (!db_get_pool_record(jcr, jcr->db, &pr)) {
+      goto bail_out;
+   }
+   if (pr.MaxVols == 0 || pr.NumVols < pr.MaxVols) {
+      memset(mr, 0, sizeof(MEDIA_DBR));
+      set_pool_dbr_defaults_in_media_dbr(mr, &pr);
+      jcr->VolumeName[0] = 0;
+      bstrncpy(mr->MediaType, jcr->store->media_type, sizeof(mr->MediaType));
+      if (generate_event(jcr, "NewVolume") == 1 && jcr->VolumeName[0] &&
+	  is_volume_name_legal(NULL, jcr->VolumeName)) {
+	 bstrncpy(mr->VolumeName, jcr->VolumeName, sizeof(mr->VolumeName));
+      /* Check for special characters */
+      } else if (pr.LabelFormat[0] && pr.LabelFormat[0] != '*') {
+	 if (is_volume_name_legal(NULL, pr.LabelFormat)) {
 	    /* No special characters, so apply simple algorithm */
 	    if (!create_simple_name(jcr, mr, &pr)) {
 	       goto bail_out;
@@ -78,16 +84,16 @@ bool newVolume(JCR *jcr, MEDIA_DBR *mr)
 	       goto bail_out;
 	    }
 	 }
-	 pr.NumVols++;
-	 if (db_create_media_record(jcr, jcr->db, mr) &&
-	    db_update_pool_record(jcr, jcr->db, &pr)) {
-	    db_unlock(jcr->db);
-            Jmsg(jcr, M_INFO, 0, _("Created new Volume \"%s\" in catalog.\n"), mr->VolumeName);
-            Dmsg1(90, "Created new Volume=%s\n", mr->VolumeName);
-	    return true;
-	 } else {
-            Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
-	 }
+      }
+      pr.NumVols++;
+      if (db_create_media_record(jcr, jcr->db, mr) &&
+	 db_update_pool_record(jcr, jcr->db, &pr)) {
+	 db_unlock(jcr->db);
+         Jmsg(jcr, M_INFO, 0, _("Created new Volume \"%s\" in catalog.\n"), mr->VolumeName);
+         Dmsg1(90, "Created new Volume=%s\n", mr->VolumeName);
+	 return true;
+      } else {
+         Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
       }
    }
 bail_out:
@@ -95,7 +101,7 @@ bail_out:
    return false;
 }
 
-static int create_simple_name(JCR *jcr, MEDIA_DBR *mr, POOL_DBR *pr)
+static bool create_simple_name(JCR *jcr, MEDIA_DBR *mr, POOL_DBR *pr)
 {
    char name[MAXSTRING];
    char num[20];
@@ -121,23 +127,23 @@ static int create_simple_name(JCR *jcr, MEDIA_DBR *mr, POOL_DBR *pr)
    }
    if (mr->VolumeName[0] == 0) {
       Jmsg(jcr, M_ERROR, 0, _("Too many failures. Giving up creating Volume name.\n"));
-      return 0;
+      return false;
    }
-   return 1;
+   return true;
 }
 
 /*
  * Perform full substitution on Label
  */
-static int perform_full_name_substitution(JCR *jcr, MEDIA_DBR *mr, POOL_DBR *pr)
+static bool perform_full_name_substitution(JCR *jcr, MEDIA_DBR *mr, POOL_DBR *pr)
 {
-   int stat = 0;
+   bool ok = false;
    POOLMEM *label = get_pool_memory(PM_FNAME);
    jcr->NumVols = pr->NumVols;
    if (variable_expansion(jcr, pr->LabelFormat, &label)) {
       bstrncpy(mr->VolumeName, label, sizeof(mr->VolumeName));
-      stat = 1;
+      ok = true;
    }
    free_pool_memory(label);
-   return stat;
+   return ok;
 }

@@ -42,7 +42,7 @@
 static char jobcmd[]     = "JobId=%d job=%s job_name=%s client_name=%s "
    "type=%d level=%d FileSet=%s NoAttr=%d SpoolAttr=%d FileSetMD5=%s "
    "SpoolData=%d WritePartAfterJob=%d NewVol=%d\n";
-static char use_storage[] = "use storage media_type=%s pool_name=%s "
+static char use_storage[] = "use storage=%s media_type=%s pool_name=%s "
    "pool_type=%s append=%d\n";
 static char use_device[] = "use device=%s\n";
 //static char query_device[] = "query device=%s";
@@ -130,7 +130,7 @@ int start_storage_daemon_job(JCR *jcr, alist *store, int append)
    STORE *storage;
    BSOCK *sd;
    char auth_key[100];
-   POOL_MEM device_name, pool_name, pool_type, media_type;
+   POOL_MEM store_name, device_name, pool_name, pool_type, media_type;
    char PoolId[50];
 
    sd = jcr->store_bsock;
@@ -187,10 +187,12 @@ int start_storage_daemon_job(JCR *jcr, alist *store, int append)
     */
 // foreach_alist(storage, store) {
       storage = (STORE *)store->first();
+      pm_strcpy(store_name, storage->hdr.name);
+      bash_spaces(store_name);
       pm_strcpy(media_type, storage->media_type);
       bash_spaces(media_type);
-      bnet_fsend(sd, use_storage, media_type.c_str(), pool_name.c_str(), 
-		 pool_type.c_str(), append);
+      bnet_fsend(sd, use_storage, store_name.c_str(), media_type.c_str(), 
+	         pool_name.c_str(), pool_type.c_str(), append);
 
       DEVICE *dev;
       /* Loop over alternative storage Devices until one is OK */

@@ -197,6 +197,7 @@ public:
    int mode;                          /* read/write modes */
    int openmode;                      /* parameter passed to open_dev (useful to reopen the device) */
    bool autoselect;                   /* Autoselect in autochanger */
+   bool open_nowait;                  /* If set, don t wait on open */
    int label_type;                    /* Bacula/ANSI/IBM label types */
    uint32_t drive_index;              /* Autochanger drive index */
    POOLMEM *dev_name;                 /* Physical device name */
@@ -239,6 +240,10 @@ public:
    char pool_name[MAX_NAME_LENGTH];   /* pool name */
    char pool_type[MAX_NAME_LENGTH];   /* pool type */
 
+
+
+
+
    /* Device wait times ***FIXME*** look at durations */
    char BadVolName[MAX_NAME_LENGTH];  /* Last wrong Volume mounted */
    bool poll;                         /* set to poll Volume */
@@ -250,19 +255,19 @@ public:
    int num_wait;
 
    /* Methods */
-   int is_tape() const;
-   int is_file() const;
-   int is_fifo() const;
-   int is_dvd() const;
-   int is_open() const;
-   int is_offline() const;
-   int is_labeled() const;
+   int is_tape() const { return state & ST_TAPE; }
+   int is_file() const { return state & ST_FILE; }
+   int is_fifo() const { return state & ST_FIFO; }
+   int is_dvd() const  { return state & ST_DVD; }
+   int is_open() const { return state & ST_OPENED; }
+   int is_offline() const { return state & ST_OFFLINE; }
+   int is_labeled() const { return state & ST_LABEL; }
    int is_busy() const;               /* either reading or writing */
-   int at_eof() const;
-   int at_eom() const;
-   int at_eot() const;
-   int can_append() const;
-   int can_read() const;
+   int at_eof() const { return state & ST_EOF; }
+   int at_eot() const { return state & ST_EOT; }
+   int at_weot() const { return state & ST_WEOT; }
+   int can_append() const { return state & ST_APPEND; }
+   int can_read() const   { return state & ST_READ; }
    bool can_steal_lock() const { return dev_blocked &&
                     (dev_blocked == BST_UNMOUNTED ||
                      dev_blocked == BST_WAITING_FOR_SYSOP ||
@@ -293,18 +298,7 @@ public:
 };
 
 /* Note, these return int not bool! */
-inline int DEVICE::is_tape() const { return state & ST_TAPE; }
-inline int DEVICE::is_file() const { return state & ST_FILE; }
-inline int DEVICE::is_fifo() const { return state & ST_FIFO; }
-inline int DEVICE::is_dvd()  const { return state & ST_DVD; }
-inline int DEVICE::is_open() const { return state & ST_OPENED; }
-inline int DEVICE::is_offline() const { return state & ST_OFFLINE; }
-inline int DEVICE::is_labeled() const { return state & ST_LABEL; }
 inline int DEVICE::is_busy() const { return state & ST_READ || num_writers || reserved_device; }
-inline int DEVICE::at_eof() const { return state & ST_EOF; }
-inline int DEVICE::at_eot() const { return state & ST_EOT; }
-inline int DEVICE::can_append() const { return state & ST_APPEND; }
-inline int DEVICE::can_read() const { return state & ST_READ; }
 inline const char *DEVICE::strerror() const { return errmsg; }
 inline const char *DEVICE::archive_name() const { return dev_name; }
 inline const char *DEVICE::print_name() const { return prt_name; }

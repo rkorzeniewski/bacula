@@ -9,7 +9,7 @@
  */
 
 /*
-   Copyright (C) 2004 Kern Sibbald
+   Copyright (C) 2004-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -33,6 +33,7 @@
 EVENT_HANDLER *generate_event;
 
 #ifdef HAVE_PYTHON
+
 #undef _POSIX_C_SOURCE
 #include <Python.h>
 
@@ -54,7 +55,7 @@ void init_python_interpreter(const char *progname, const char *scripts)
    PyEval_InitThreads();
    Py_InitModule("bacula", BaculaMethods);
    bsnprintf(buf, sizeof(buf), "import sys\n"
-	    "sys.path.append('%s')\n", scripts);
+            "sys.path.append('%s')\n", scripts);
    PyRun_SimpleString(buf);
    PyEval_ReleaseLock();
    generate_event = _generate_event;
@@ -78,7 +79,8 @@ int _generate_event(JCR *jcr, const char *event)
 {
    PyObject *pName, *pModule, *pDict, *pFunc;
    PyObject *pArgs, *pValue;
-
+   
+   Dmsg1(100, "Generate event %s\n", event);
    pName = PyString_FromString(event);
    if (!pName) {
       Jmsg(jcr, M_ERROR, 0, "Could not convert \"%s\" to Python string.\n", event);
@@ -102,7 +104,7 @@ int _generate_event(JCR *jcr, const char *event)
 	  if (!pValue) {
 	     Py_DECREF(pArgs);
 	     Py_DECREF(pModule);
-	     Jmsg(jcr, M_ERROR, 0, "Could not convert JCR to Python CObject.\n");
+             Jmsg(jcr, M_ERROR, 0, "Could not convert JCR to Python CObject.\n");
 	     return -1; 	      /* Could not convert JCR to CObject */
 	  }
 	  /* pValue reference stolen here: */
@@ -116,7 +118,7 @@ int _generate_event(JCR *jcr, const char *event)
 	  } else {
 	     Py_DECREF(pModule);
 	     PyErr_Print();
-	     Jmsg(jcr, M_ERROR, 0, "Error running Python module: %s\n", event);
+             Jmsg(jcr, M_ERROR, 0, "Error running Python module: %s\n", event);
 	     return 0;		      /* error running function */
 	  }
 	  /* pDict and pFunc are borrowed and must not be Py_DECREF-ed */
@@ -124,13 +126,14 @@ int _generate_event(JCR *jcr, const char *event)
 	 if (PyErr_Occurred()) {
 	    PyErr_Print();
 	 }
-	 Jmsg(jcr, M_ERROR, 0, "Python function \"%s\" not found in module.\n", event);
+         Jmsg(jcr, M_ERROR, 0, "Python function \"%s\" not found in module.\n", event);
 	 return -1;		      /* function not found */
       }
       Py_DECREF(pModule);
    } else {
       return 0; 		      /* Module not present */
    }
+   Dmsg0(100, "Generate event OK\n");
    return 1;
 }
 

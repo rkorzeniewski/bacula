@@ -241,7 +241,7 @@ db_find_last_jobid(JCR *jcr, B_DB *mdb, const char *Name, JOB_DBR *jr)
       return 0;
    }
 
-   jr->JobId = atoi(row[0]);
+   jr->JobId = str_to_int64(row[0]);
    sql_free_result(mdb);
 
    Dmsg1(100, "db_get_last_jobid: got JobId=%d\n", jr->JobId);

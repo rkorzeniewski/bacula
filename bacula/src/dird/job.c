@@ -36,8 +36,6 @@ static void job_monitor_destructor(watchdog_t *self);
 static bool job_check_maxwaittime(JCR *control_jcr, JCR *jcr);
 static bool job_check_maxruntime(JCR *control_jcr, JCR *jcr);
 
-/* Exported subroutines */
-
 /* Imported subroutines */
 extern void term_scheduler();
 extern void term_ua_server();

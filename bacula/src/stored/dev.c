@@ -80,6 +80,10 @@
 #include "bacula.h"
 #include "stored.h"
 
+#ifndef O_NONBLOCK 
+#define O_NONBLOCK 0
+#endif
+
 /* Functions in dvd.c */ 
 void get_filename(DEVICE *dev, char *VolName, POOL_MEM& archive_name);
 int mount_dev(DEVICE* dev, int timeout);
@@ -90,6 +94,8 @@ void update_free_space_dev(DEVICE* dev);
 /* Forward referenced functions */
 void set_os_device_parameters(DEVICE *dev);
 static bool dev_get_os_pos(DEVICE *dev, struct mtget *mt_stat);
+static void open_tape_device(DEVICE *dev, int mode);
+static void open_file_device(DEVICE *dev, int mode);
 
 /*
  * Allocate and initialize the DEVICE structure
@@ -292,6 +298,8 @@ open_dev(DEVICE *dev, char *VolName, int mode)
    }
    if (VolName) {
       bstrncpy(dev->VolCatInfo.VolCatName, VolName, sizeof(dev->VolCatInfo.VolCatName));
+   } else {
+      dev->VolCatInfo.VolCatName[0] = 0;
    }
 
    Dmsg3(29, "open_dev: tape=%d dev_name=%s vol=%s\n", dev_is_tape(dev),
@@ -299,145 +307,180 @@ open_dev(DEVICE *dev, char *VolName, int mode)
    dev->state &= ~(ST_LABEL|ST_APPEND|ST_READ|ST_EOT|ST_WEOT|ST_EOF);
    dev->label_type = B_BACULA_LABEL;
    if (dev->is_tape() || dev->is_fifo()) {
-      dev->file_size = 0;
-      int timeout;
-      int ioerrcnt = 10;
-      Dmsg0(29, "open_dev: device is tape\n");
-      if (mode == OPEN_READ_WRITE) {
-	 dev->mode = O_RDWR | O_BINARY;
-      } else if (mode == OPEN_READ_ONLY) {
-	 dev->mode = O_RDONLY | O_BINARY;
-      } else if (mode == OPEN_WRITE_ONLY) {
-	 dev->mode = O_WRONLY | O_BINARY;
-      } else {
-         Emsg0(M_ABORT, 0, _("Illegal mode given to open_dev.\n"));
+      open_tape_device(dev, mode);
+   } else {
+      open_file_device(dev, mode);
+   }
+   return dev->fd;
+}
+
+static void open_tape_device(DEVICE *dev, int mode) 
+{
+   int nonblocking = 0;;
+   dev->file_size = 0;
+   int timeout;
+   int ioerrcnt = 10;
+   Dmsg0(29, "open_dev: device is tape\n");
+   if (mode == OPEN_READ_WRITE) {
+      dev->mode = O_RDWR | O_BINARY;
+   } else if (mode == OPEN_READ_ONLY) {
+      dev->mode = O_RDONLY | O_BINARY;
+   } else if (mode == OPEN_WRITE_ONLY) {
+      dev->mode = O_WRONLY | O_BINARY;
+   } else {
+      Emsg0(M_ABORT, 0, _("Illegal mode given to open_dev.\n"));
+   }
+   timeout = dev->max_open_wait;
+   errno = 0;
+   if (dev->open_nowait) {
+       /* Set wait counters to zero for no wait */
+       timeout = ioerrcnt = 0;
+       /* Open drive in non-block mode */
+       nonblocking = O_NONBLOCK;
+   }
+   if (dev->is_fifo() && timeout) {
+      /* Set open timer */
+      dev->tid = start_thread_timer(pthread_self(), timeout);
+   }
+   /* If busy retry each second for max_open_wait seconds */
+open_again:
+   Dmsg1(500, "Try open %s\n", dev->dev_name);
+   while ((dev->fd = open(dev->dev_name, dev->mode, MODE_RW+nonblocking)) < 0) {
+      berrno be;
+      Dmsg2(500, "Open error errno=%d ERR=%s\n", errno, be.strerror());
+      if (errno == EINTR || errno == EAGAIN) {
+         Dmsg0(500, "Continue open\n");
+	 continue;
       }
-      timeout = dev->max_open_wait;
-      errno = 0;
-      if (dev->is_fifo() && timeout) {
-	 /* Set open timer */
-	 dev->tid = start_thread_timer(pthread_self(), timeout);
+      /* Busy wait for specified time (default = 5 mins) */
+      if (errno == EBUSY && timeout-- > 0) {
+         Dmsg2(100, "Device %s busy. ERR=%s\n", dev->print_name(), be.strerror());
+	 bmicrosleep(1, 0);
+	 continue;
       }
-      /* If busy retry each second for max_open_wait seconds */
-      while ((dev->fd = open(dev->dev_name, dev->mode, MODE_RW)) < 0) {
-	 berrno be;
-	 if (errno == EINTR || errno == EAGAIN) {
-	    continue;
-	 }
-	 /* Busy wait for specified time (default = 5 mins) */
-	 if (errno == EBUSY && timeout-- > 0) {
-            Dmsg2(100, "Device %s busy. ERR=%s\n", dev->print_name(), be.strerror());
-	    bmicrosleep(1, 0);
-	    continue;
-	 }
-	 /* IO error (no volume) try 10 times every 6 seconds */
-	 if (errno == EIO && ioerrcnt-- > 0) {
-	    bmicrosleep(5, 0);
-	    continue;
-	 }
-	 dev->dev_errno = errno;
-         Mmsg2(&dev->errmsg, _("Unable to open device %s: ERR=%s\n"),
-	       dev->print_name(), be.strerror(dev->dev_errno));
-	 /* Stop any open timer we set */
-	 if (dev->tid) {
-	    stop_thread_timer(dev->tid);
-	    dev->tid = 0;
-	 }
-	 Emsg0(M_FATAL, 0, dev->errmsg);
-	 break;
+      /* IO error (no volume) try 10 times every 6 seconds */
+      if (errno == EIO && ioerrcnt-- > 0) {
+	 bmicrosleep(5, 0);
+         Dmsg0(500, "Continue open\n");
+	 continue;
       }
-      if (dev->fd >= 0) {
-	 dev->dev_errno = 0;
-	 dev->state |= ST_OPENED;
-	 dev->use_count = 1;
-	 update_pos_dev(dev);		  /* update position */
-	 set_os_device_parameters(dev);      /* do system dependent stuff */
-      }
-      /* Stop any open() timer we started */
+      dev->dev_errno = errno;
+      Mmsg2(&dev->errmsg, _("Unable to open device %s: ERR=%s\n"),
+	    dev->print_name(), be.strerror(dev->dev_errno));
+      /* Stop any open timer we set */
       if (dev->tid) {
 	 stop_thread_timer(dev->tid);
 	 dev->tid = 0;
       }
-      Dmsg1(29, "open_dev: tape %d opened\n", dev->fd);
-   } else {
-      POOL_MEM archive_name(PM_FNAME);
-      struct stat filestat;
-      /*
-       * Handle opening of File Archive (not a tape)
-       */     
-      if (dev->part == 0) {
-	 dev->file_size = 0;
+      Emsg0(M_FATAL, 0, dev->errmsg);
+      break;
+   }
+   if (dev->fd >= 0) {
+      if (mode != 0) {
+	 /* If opened in non-block mode, close it an open it normally */
+	 mode = 0;
+	 close(dev->fd);
+	 goto open_again;
       }
-      dev->part_size = 0;
-      
-      /* if num_parts has not been set, but VolCatInfo is available, copy
-       * it from the VolCatInfo.VolCatParts */
-      if (dev->num_parts < dev->VolCatInfo.VolCatParts) {
-	 dev->num_parts = dev->VolCatInfo.VolCatParts;
-      }
-      
-      if (VolName == NULL || *VolName == 0) {
-         Mmsg(dev->errmsg, _("Could not open file device %s. No Volume name given.\n"),
-	    dev->print_name());
-	 return -1;
-      }
-      get_filename(dev, VolName, archive_name);
+      dev->dev_errno = 0;
+      dev->state |= ST_OPENED;
+      dev->use_count = 1;
+      update_pos_dev(dev);	       /* update position */
+      set_os_device_parameters(dev);	  /* do system dependent stuff */
+      Dmsg0(500, "Open OK\n");
+   }
+   /* Stop any open() timer we started */
+   if (dev->tid) {
+      stop_thread_timer(dev->tid);
+      dev->tid = 0;
+   }
+   Dmsg1(29, "open_dev: tape %d opened\n", dev->fd);
+}
 
-      if (mount_dev(dev, 1) < 0) {
-         Mmsg(dev->errmsg, _("Could not mount device %s.\n"),
-	      dev->print_name());
-	 Emsg0(M_FATAL, 0, dev->errmsg);
-	 dev->fd = -1;
-	 return dev->fd;
-      }
-	    
-      Dmsg2(29, "open_dev: device is disk %s (mode:%d)\n", archive_name.c_str(), mode);
-      dev->openmode = mode;
-      
-      /*
-       * If we are not trying to access the last part, set mode to 
-       *   OPEN_READ_ONLY as writing would be an error.
-       */
-      if (dev->part < dev->num_parts) {
-	 mode = OPEN_READ_ONLY;
-      }
-      
-      if (mode == OPEN_READ_WRITE) {
-	 dev->mode = O_CREAT | O_RDWR | O_BINARY;
-      } else if (mode == OPEN_READ_ONLY) {
-	 dev->mode = O_RDONLY | O_BINARY;
-      } else if (mode == OPEN_WRITE_ONLY) {
-	 dev->mode = O_WRONLY | O_BINARY;
-      } else {
-         Emsg0(M_ABORT, 0, _("Illegal mode given to open_dev.\n"));
-      }
-      /* If creating file, give 0640 permissions */
-      if ((dev->fd = open(archive_name.c_str(), dev->mode, 0640)) < 0) {
+/*
+ * Open a file or DVD device
+ */
+static void open_file_device(DEVICE *dev, int mode) 
+{
+   POOL_MEM archive_name(PM_FNAME);
+   struct stat filestat;
+   /*
+    * Handle opening of File Archive (not a tape)
+    */	   
+   if (dev->part == 0) {
+      dev->file_size = 0;
+   }
+   dev->part_size = 0;
+   
+   /* if num_parts has not been set, but VolCatInfo is available, copy
+    * it from the VolCatInfo.VolCatParts */
+   if (dev->num_parts < dev->VolCatInfo.VolCatParts) {
+      dev->num_parts = dev->VolCatInfo.VolCatParts;
+   }
+   
+   if (dev->VolCatInfo.VolCatName[0] == 0) {
+      Mmsg(dev->errmsg, _("Could not open file device %s. No Volume name given.\n"),
+	 dev->print_name());
+      dev->fd = -1;
+      return;
+   }
+   get_filename(dev, dev->VolCatInfo.VolCatName, archive_name);
+
+   if (mount_dev(dev, 1) < 0) {
+      Mmsg(dev->errmsg, _("Could not mount device %s.\n"),
+	   dev->print_name());
+      Emsg0(M_FATAL, 0, dev->errmsg);
+      dev->fd = -1;
+      return;
+   }
+	 
+   Dmsg2(29, "open_dev: device is disk %s (mode:%d)\n", archive_name.c_str(), mode);
+   dev->openmode = mode;
+   
+   /*
+    * If we are not trying to access the last part, set mode to 
+    *	OPEN_READ_ONLY as writing would be an error.
+    */
+   if (dev->part < dev->num_parts) {
+      mode = OPEN_READ_ONLY;
+   }
+   
+   if (mode == OPEN_READ_WRITE) {
+      dev->mode = O_CREAT | O_RDWR | O_BINARY;
+   } else if (mode == OPEN_READ_ONLY) {
+      dev->mode = O_RDONLY | O_BINARY;
+   } else if (mode == OPEN_WRITE_ONLY) {
+      dev->mode = O_WRONLY | O_BINARY;
+   } else {
+      Emsg0(M_ABORT, 0, _("Illegal mode given to open_dev.\n"));
+   }
+   /* If creating file, give 0640 permissions */
+   if ((dev->fd = open(archive_name.c_str(), dev->mode, 0640)) < 0) {
+      berrno be;
+      dev->dev_errno = errno;
+      Mmsg2(&dev->errmsg, _("Could not open: %s, ERR=%s\n"), archive_name.c_str(), 
+	    be.strerror());
+      Emsg0(M_FATAL, 0, dev->errmsg);
+   } else {
+      dev->dev_errno = 0;
+      dev->state |= ST_OPENED;
+      dev->use_count = 1;
+      update_pos_dev(dev);		  /* update position */
+      if (fstat(dev->fd, &filestat) < 0) {
 	 berrno be;
 	 dev->dev_errno = errno;
-         Mmsg2(&dev->errmsg, _("Could not open: %s, ERR=%s\n"), archive_name.c_str(), be.strerror());
+         Mmsg2(&dev->errmsg, _("Could not fstat: %s, ERR=%s\n"), archive_name.c_str(), 
+	       be.strerror());
 	 Emsg0(M_FATAL, 0, dev->errmsg);
       } else {
-	 dev->dev_errno = 0;
-	 dev->state |= ST_OPENED;
-	 dev->use_count = 1;
-	 update_pos_dev(dev);		     /* update position */
-	 if (fstat(dev->fd, &filestat) < 0) {
-	    berrno be;
-	    dev->dev_errno = errno;
-            Mmsg2(&dev->errmsg, _("Could not fstat: %s, ERR=%s\n"), archive_name.c_str(), be.strerror());
-	    Emsg0(M_FATAL, 0, dev->errmsg);
-	 } else {
-	    dev->part_size = filestat.st_size;
-	 }
-      }
-      Dmsg4(29, "open_dev: disk fd=%d opened, part=%d/%d, part_size=%u\n", dev->fd, dev->part, dev->num_parts, dev->part_size);
-      if (dev->is_dvd() && (dev->mode != OPEN_READ_ONLY) && 
-	  (dev->free_space_errno == 0 || dev->num_parts == dev->part)) {
-	 update_free_space_dev(dev);
+	 dev->part_size = filestat.st_size;
       }
    }
-   return dev->fd;
+   Dmsg4(29, "open_dev: disk fd=%d opened, part=%d/%d, part_size=%u\n", dev->fd, dev->part, dev->num_parts, dev->part_size);
+   if (dev->is_dvd() && (dev->mode != OPEN_READ_ONLY) && 
+       (dev->free_space_errno == 0 || dev->num_parts == dev->part)) {
+      update_free_space_dev(dev);
+   }
 }
 
 #ifdef debug_tracing

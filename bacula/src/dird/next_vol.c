@@ -107,7 +107,7 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, bool create)
 	     * 6. Try pulling a volume from the Scratch pool
 	     */ 
 	     memset(&pr, 0, sizeof(pr));
-             bstrncpy(pr.Name, "Scratch", 7);
+             bstrncpy(pr.Name, "Scratch", sizeof(pr.Name));
 	     if (db_get_pool_record(jcr, jcr->db, &pr)) {
 		memset(&smr, 0, sizeof(smr));
 		smr.PoolId = pr.PoolId;

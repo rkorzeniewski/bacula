@@ -134,13 +134,14 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
 	 send_volume_info_to_storage_daemon(jcr, bs, &mr);
       } else {
          bnet_fsend(bs, "1901 No Media.\n");
+         Dmsg0(500, "1901 No Media.\n");
       }
 
    /*
     * Request to find specific Volume information
     */
    } else if (sscanf(bs->msg, Get_Vol_Info, &Job, &mr.VolumeName, &writing) == 3) {
-      Dmsg1(400, "CatReq GetVolInfo Vol=%s\n", mr.VolumeName);
+      Dmsg1(500, "CatReq GetVolInfo Vol=%s\n", mr.VolumeName);
       /*
        * Find the Volume
        */
@@ -194,6 +195,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
 
       } else {
          bnet_fsend(bs, "1997 Volume \"%s\" not in catalog.\n", mr.VolumeName);
+         Dmsg1(400, "1997 Volume \"%s\" not in catalog.\n", mr.VolumeName);
       }
 
    /*

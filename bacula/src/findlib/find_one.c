@@ -557,5 +557,6 @@ int term_find_one(FF_PKT *ff)
 	 count++;
       }
    }
+   ff->linklist = NULL;
    return count;
 }

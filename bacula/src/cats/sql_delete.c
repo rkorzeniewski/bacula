@@ -91,7 +91,7 @@ db_delete_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
 	 db_unlock(mdb);
 	 return 0;
       }
-      pr->PoolId = atoi(row[0]);
+      pr->PoolId = str_to_int64(row[0]);
       sql_free_result(mdb);
    }
 

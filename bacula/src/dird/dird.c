@@ -517,7 +517,7 @@ static int check_resources()
 	    int64_t *def_lvalue, *lvalue; /* 64 bit values */
 	    uint32_t offset;
 
-            Dmsg4(400, "Job \"%s\", field \"%s\" bit=%d def=%d\n",
+            Dmsg4(1400, "Job \"%s\", field \"%s\" bit=%d def=%d\n",
 		job->hdr.name, job_items[i].name,
 		bit_is_set(i, job->hdr.item_present),
 		bit_is_set(i, job->jobdefs->hdr.item_present));
