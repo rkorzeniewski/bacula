@@ -2,6 +2,8 @@
  * Director specific configuration and defines
  *
  *     Kern Sibbald, Feb MM
+ *
+ *    Version $Id$
  */
 /*
    Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
@@ -248,8 +250,11 @@ typedef union u_res URES;
 /* Run structure contained in Schedule Resource */
 struct s_run {
    struct s_run *next;                /* points to next run record */
-   int level;
+   int level;                         /* level override */
    int job_type;  
+   POOL *pool;                        /* Pool override */
+   STORE *storage;                    /* Storage override */
+   MSGS *msgs;                        /* Messages override */
    char *since;
    int level_no;
    int minute;                        /* minute to run job */

@@ -2,6 +2,8 @@
  * Bacula Catalog Database Delete record interface routines
  * 
  *    Kern Sibbald, December 2000
+ *
+ *    Version $Id$
  */
 
 /*

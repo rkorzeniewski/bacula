@@ -1,6 +1,8 @@
 /*
  * Lexical scanner for Bacula configuration file
  *
+ *   Version $Id$
+ *
  */
 
 /*

@@ -3,12 +3,14 @@
  *
  *  Kern Sibbald, May MM
  *
- *     NB: these items are deprecated.  Shared memory was
- *         used in a first version of the Storage daemon
- *         when it forked. Since then it has been converted
- *         to use threads.  However, there are still some
- *         vestiges of the shared memory code that remain and
- *         can be removed.
+ *     NB: these items are deprecated.	Shared memory was
+ *	   used in a first version of the Storage daemon
+ *	   when it forked. Since then it has been converted
+ *	   to use threads.  However, there are still some
+ *	   vestiges of the shared memory code that remain and
+ *	   can be removed.
+ *
+ *   Version $Id$
  */
 /*
    Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
@@ -31,10 +33,10 @@
  */
 
 typedef struct s_bshm {
-   int size;                          /* length desired */
-   int perms;                         /* permissions desired */
+   int size;			      /* length desired */
+   int perms;			      /* permissions desired */
 
-   int shmid;                         /* id set by shm_create and shm_open */
-   key_t shmkey;                      /* key set by shm_create */
-   void *shmbuf;                      /* set by shm_open */
+   int shmid;			      /* id set by shm_create and shm_open */
+   key_t shmkey;		      /* key set by shm_create */
+   void *shmbuf;		      /* set by shm_open */
 } BSHM;

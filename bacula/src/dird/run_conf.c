@@ -4,6 +4,8 @@
  *   directives, which are part of the Schedule Resource
  *
  *     Kern Sibbald, May MM
+ *
+ *     Version $Id$
  */
 /*
    Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
@@ -141,6 +143,14 @@ static int is_num(char *num)
    return TRUE;
 }
 
+/* Keywords (RHS) permitted in Run records */
+static struct s_kw RunFields[] = {
+   {"pool",     'P'},
+   {"level",    'L'},
+   {"storage",  'S'},
+   {"messages", 'M'},
+   {NULL,	 0}
+};
 
 /* 
  * Store Schedule Run information   
@@ -157,11 +167,13 @@ static int is_num(char *num)
  */
 void store_run(LEX *lc, struct res_items *item, int index, int pass)
 {
-   int token, state, state2, i, code, code2;
+   int i, j, found;
+   int token, state, state2, code, code2;
    int options = lc->options;
    RUN **run = (RUN **)(item->value);	
    RUN *trun;
    char *p;
+   RES *res;
 
 
    lc->options |= LOPT_NO_IDENT;      /* want only "strings" */
@@ -170,28 +182,74 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
    memset(&lrun, 0, sizeof(RUN));
 
    /* scan for Job level "full", "incremental", ... */
-   token = lex_get_token(lc);
-   if (token != T_STRING) {
-      scan_err1(lc, _("Expected a Job level identifier, got: %s"), lc->str);
-   } else {
-      if (strcasecmp(lc->str, "level")) {
-	 if (lex_get_token(lc) != T_EQUALS) {
-            scan_err1(lc, "Expected an equals, got: %s", lc->str);
-	 }
-	 token = lex_get_token(lc);
+   for (found=TRUE; found; ) {
+      found = FALSE;
+      token = lex_get_token(lc);
+      if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
+         scan_err1(lc, "Expected a keyword name, got: %s", lc->str);
       }
-      for (i=0; joblevels[i].level_name; i++) {
-	 if (strcasecmp(lc->str, joblevels[i].level_name) == 0) {
-	    lrun.level = joblevels[i].level;
-	    lrun.job_type = joblevels[i].job_type;
-	    i = 0;
-	    break;
-	 }
-      }
-      if (i != 0) {
-         scan_err1(lc, _("Job level field: %s not found in run record"), lc->str);
-      }
-   }
+      for (i=0; RunFields[i].name; i++) {
+	 if (strcasecmp(lc->str, RunFields[i].name) == 0) {
+	    found = TRUE;
+	    if (lex_get_token(lc) != T_EQUALS) {
+               scan_err1(lc, "Expected an equals, got: %s", lc->str);
+	    }
+	    token = lex_get_token(lc);
+	    if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
+               scan_err1(lc, "Expected a keyword name, got: %s", lc->str);
+	    }
+	    switch (RunFields[i].token) {
+            case 'L':                 /* level */
+	       for (j=0; joblevels[j].level_name; j++) {
+		  if (strcasecmp(lc->str, joblevels[j].level_name) == 0) {
+		     lrun.level = joblevels[j].level;
+		     lrun.job_type = joblevels[j].job_type;
+		     j = 0;
+		     break;
+		  }
+	       }
+	       if (j != 0) {
+                  scan_err1(lc, _("Job level field: %s not found in run record"), lc->str);
+	       }
+	       break;
+            case 'P':                 /* Pool */
+	       if (pass == 2) {
+		  res = GetResWithName(R_POOL, lc->str);
+		  if (res == NULL) {
+                     scan_err1(lc, "Could not find specified Pool Resource: %s",
+				lc->str);
+		  }
+		  lrun.pool = (POOL *)res;
+	       }
+	       break;
+            case 'S':                 /* storage */
+	       if (pass == 2) {
+		  res = GetResWithName(R_STORAGE, lc->str);
+		  if (res == NULL) {
+                     scan_err1(lc, "Could not find specified Storage Resource: %s",
+				lc->str);
+		  }
+		  lrun.storage = (STORE *)res;
+	       }
+	       break;
+            case 'M':                 /* messages */
+	       if (pass == 2) {
+		  res = GetResWithName(R_MSGS, lc->str);
+		  if (res == NULL) {
+                     scan_err1(lc, "Could not find specified Messages Resource: %s",
+				lc->str);
+		  }
+		  lrun.msgs = (MSGS *)res;
+	       }
+	       break;
+	    default:
+               scan_err1(lc, "Expected a keyword name, got: %s", lc->str);
+	       break;
+	    } /* end switch */	   
+	 } /* end if strcasecmp */
+      } /* end for RunFields */
+   } /* end for found */
+
 
    /*
     * Scan schedule times.
@@ -220,9 +278,8 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 	       break;
 	    }
 	    /* everything else must be a keyword */
-	    lcase(lc->str);
 	    for (i=0; keyw[i].name; i++) {
-	       if (strcmp(lc->str, keyw[i].name) == 0) {
+	       if (strcasecmp(lc->str, keyw[i].name) == 0) {
 		  state = keyw[i].state;
 		  code	 = keyw[i].code;
 		  i = 0;

@@ -13,6 +13,7 @@
  *    Create a thread to interact with the Storage daemon
  *	who returns a job status and requests Catalog services, etc.
  *
+ *   Version $Id$
  */
 /*
    Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker

@@ -1,7 +1,7 @@
 /*
  * Director external function prototypes
  *
- *   $Id:
+ *   Version $Id$
  */
 /*
    Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
@@ -27,6 +27,10 @@
 extern int authenticate_storage_daemon(JCR *jcr);
 extern int authenticate_file_daemon(JCR *jcr);
 extern int authenticate_user_agent(BSOCK *ua);
+
+/* autoprune.c */
+extern int do_autoprune(JCR *jcr);
+
 
 /* catreq.c */
 extern void catalog_request(JCR *jcr, BSOCK *bs, char *buf);

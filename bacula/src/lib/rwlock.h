@@ -1,11 +1,13 @@
 /*
  * Bacula Thread Read/Write locking code. It permits
- *  multiple readers but only one writer.                 
+ *  multiple readers but only one writer.		  
  *
  *  Kern Sibbald, January MMI
  *
  *  This code adapted from "Programming with POSIX Threads", by
  *    David R. Butenhof
+ *
+ *   Version $Id$
  *
  */
 /*
@@ -33,13 +35,13 @@
 
 typedef struct rwlock_tag {
    pthread_mutex_t   mutex;
-   pthread_cond_t    read;            /* wait for read */
-   pthread_cond_t    write;           /* wait for write */
-   int               valid;           /* set when valid */
-   int               r_active;        /* readers active */
-   int               w_active;        /* writers active */
-   int               r_wait;          /* readers waiting */
-   int               w_wait;          /* writers waiting */
+   pthread_cond_t    read;	      /* wait for read */
+   pthread_cond_t    write;	      /* wait for write */
+   int		     valid;	      /* set when valid */
+   int		     r_active;	      /* readers active */
+   int		     w_active;	      /* writers active */
+   int		     r_wait;	      /* readers waiting */
+   int		     w_wait;	      /* writers waiting */
 } rwlock_t;
 
 #define RWLOCK_VALID  0xfacade

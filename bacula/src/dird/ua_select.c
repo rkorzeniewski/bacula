@@ -4,7 +4,7 @@
  *
  *     Kern Sibbald, October MMI
  *
- *     $Id$
+ *   Version  $Id$
  */
 
 /*

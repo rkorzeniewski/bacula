@@ -3,6 +3,8 @@
  *   Bacula Director -- User Agent Input and scanning code
  *
  *     Kern Sibbald, October MMI
+ *
+ *   Version $Id$
  */
 
 /*

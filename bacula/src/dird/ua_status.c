@@ -3,6 +3,8 @@
  *   Bacula Director -- User Agent Status Command
  *
  *     Kern Sibbald, August MMI
+ *
+ *   Version $Id$
  */
 
 /*

@@ -2,6 +2,8 @@
  * Authenticate Director who is attempting to connect.
  *
  *   Kern Sibbald, October 2000
+ *
+ *   Version $Id$
  * 
  */
 /*

@@ -6,6 +6,7 @@
  * Adapted and enhanced for Bacula, originally written 
  * for inclusion in the Apcupsd package
  *
+ *   Version $Id$
  */
 /*
    Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
@@ -456,7 +457,7 @@ again:
    bs->msglen = bvsnprintf(bs->msg, maxlen, fmt, arg_ptr);
    va_end(arg_ptr);
    if (bs->msglen < 0 || bs->msglen >= maxlen) {
-      bs->msg = (char *) realloc_pool_memory(bs->msg, maxlen + 200);
+      bs->msg = (POOLMEM *)realloc_pool_memory(bs->msg, maxlen + 200);
       goto again;
    }
    return bnet_send(bs) < 0 ? 0 : 1;
@@ -570,14 +571,15 @@ char *bnet_sig_to_ascii(BSOCK *bs)
 BSOCK *
 init_bsock(int sockfd, char *who, char *host, int port) 
 {
-   BSOCK *bsock = (BSOCK *) malloc(sizeof(BSOCK));
+   BSOCK *bsock = (BSOCK *)malloc(sizeof(BSOCK));
    if (bsock == NULL) {
       Emsg0(M_ABORT, 0, "Out of memory in init_bsock.\n");
    }
    memset(bsock, 0, sizeof(BSOCK));
    bsock->fd = sockfd;
    bsock->errors = 0;
-   bsock->msg = (char *) get_pool_memory(PM_MESSAGE);
+   bsock->msg = (POOLMEM *)get_pool_memory(PM_MESSAGE);
+   bsock->errmsg = (POOLMEM *)get_pool_memory(PM_MESSAGE);
    bsock->who = bstrdup(who);
    bsock->host = bstrdup(host);
    bsock->port = port;
@@ -597,7 +599,8 @@ dup_bsock(BSOCK *osock)
       Emsg0(M_ABORT, 0, "Out of memory in dup_bsock.\n");
    }
    memcpy(bsock, osock, sizeof(BSOCK));
-   bsock->msg = (char *) get_pool_memory(PM_MESSAGE);
+   bsock->msg = (POOLMEM *)get_pool_memory(PM_MESSAGE);
+   bsock->errmsg = (POOLMEM *)get_pool_memory(PM_MESSAGE);
    bsock->duped = TRUE;
    return bsock;
 }
@@ -625,6 +628,7 @@ void
 term_bsock(BSOCK *bsock)
 {
    free_pool_memory(bsock->msg);
+   free_pool_memory(bsock->errmsg);
    free(bsock->who);
    free(bsock->host);
    free(bsock);

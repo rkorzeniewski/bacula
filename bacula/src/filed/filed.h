@@ -2,6 +2,8 @@
  * Bacula File Daemon specific configuration and defines
  *
  *     Kern Sibbald, Jan MMI 
+ *
+ *   Version $Id$
  */
 /*
    Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
@@ -30,9 +32,9 @@
 #include "protos.h"                   /* file daemon prototypes */
 #include "filed_conf.h"
 #ifdef HAVE_LIBZ
-#include <zlib.h>                     /* compression headers */
+#include <zlib.h>		      /* compression headers */
 #else
 #define uLongf uint32_t
 #endif
 
-extern int win32_client;              /* Are we running on Windows? */
+extern int win32_client;	      /* Are we running on Windows? */

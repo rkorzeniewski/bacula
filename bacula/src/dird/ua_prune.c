@@ -5,7 +5,7 @@
  *
  *     Kern Sibbald, February MMII
  *
- *     $Id$
+ *   Version $Id$
  */
 
 /*

@@ -2,6 +2,8 @@
  *   util.c  miscellaneous utility subroutines for Bacula
  * 
  *    Kern Sibbald, MM
+ *
+ *   Version $Id$
  */
 
 /*

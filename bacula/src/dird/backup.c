@@ -14,6 +14,7 @@
  *	 to do the backup.
  *     When the File daemon finishes the job, update the DB.
  *
+ *   Version $Id$
  */
 
 /*
@@ -397,7 +398,7 @@ Volume names(s):        %s\n\
 Volume Session Id:      %d\n\
 Volume Session Time:    %d\n\
 Volume Bytes:           %s\n\
-Termination:            %s\n"),
+Termination:            %s\n\n"),
 	edt,
 	jcr->jr.JobId,
 	jcr->jr.Job,

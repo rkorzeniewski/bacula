@@ -1,5 +1,7 @@
 /*
  * Resource codes -- they must be sequential for indexing   
+ *
+ *   Version $Id$
  */
 /*
    Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker

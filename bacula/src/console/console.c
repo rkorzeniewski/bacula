@@ -3,6 +3,8 @@
  *   Bacula Console interface to the Director
  *
  *     Kern Sibbald, September MM
+ *
+ *     Version $Id$
  */
 
 /*

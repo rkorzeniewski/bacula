@@ -9,6 +9,8 @@
  *  system.
  *   
  *    Kern Sibbald, January MMI 
+ *
+ *    Version $Id$
  */
 
 /*

@@ -2,6 +2,8 @@
  *  Signal handlers for Bacula daemons
  *
  *   Kern Sibbald, April 2000
+ *
+ *   Version $Id$
  * 
  * Note, we probably should do a core dump for the serious
  * signals such as SIGBUS, SIGPFE, ... 

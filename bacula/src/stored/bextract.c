@@ -4,7 +4,7 @@
  *
  *   Kern E. Sibbald
  *
- *    $Id$
+ *   Version $Id$
  *
  */
 /*

@@ -4,6 +4,8 @@
  * hmac_md5 was based on sample code in RFC2104 (thanks guys).
  * 
  * Adapted to Bacula by Kern E. Sibbald, February MMI.
+ *
+ *   Version $Id$
  */
 /*
    Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker

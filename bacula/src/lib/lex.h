@@ -1,9 +1,11 @@
 /*
  *   lex.h  
  *
- *    Lexial scanning of configuration files, used by parsers.
+ *    Lexical scanning of configuration files, used by parsers.
  *
  *   Kern Sibbald, MM  
+ *
+ *   Version $Id$
  *
  */
 /*
@@ -30,26 +32,26 @@
 #define _LEX_H
 
 /* Lex get_char() return values */
-#define L_EOF                         (-1)
-#define L_EOL                         (-2)
+#define L_EOF			      (-1)
+#define L_EOL			      (-2)
 
 /* Internal tokens */
-#define T_NONE                        100                              
+#define T_NONE			      100			       
 
 /* Tokens returned by get_token() */
-#define T_EOF                         101
-#define T_NUMBER                      102
-#define T_IPADDR                      103
-#define T_IDENTIFIER                  104
-#define T_STRING                      105
-#define T_QUOTED_STRING               106
-#define T_BOB                         108  /* begin block */
-#define T_EOB                         109  /* end of block */
-#define T_EQUALS                      110
-#define T_COMMA                       111
-#define T_EOL                         112
-#define T_SEMI                        113
-#define T_ERROR                       200
+#define T_EOF			      101
+#define T_NUMBER		      102
+#define T_IPADDR		      103
+#define T_IDENTIFIER		      104
+#define T_STRING		      105
+#define T_QUOTED_STRING 	      106
+#define T_BOB			      108  /* begin block */
+#define T_EOB			      109  /* end of block */
+#define T_EQUALS		      110
+#define T_COMMA 		      111
+#define T_EOL			      112
+#define T_SEMI			      113
+#define T_ERROR 		      200
 
 /* Lexical state */
 enum lex_state {
@@ -64,22 +66,22 @@ enum lex_state {
 };
 
 /* Lex scan options */
-#define LOPT_NO_IDENT            0x1  /* No Identifiers -- use string */
+#define LOPT_NO_IDENT		 0x1  /* No Identifiers -- use string */
 
 /* Lexical context */
 typedef struct s_lex_context {
-   int options;                       /* scan options */
-   char *fname;                       /* filename */
-   FILE *fd;                          /* file descriptor */
-   char line[MAXSTRING];              /* input line */
-   char str[MAXSTRING];               /* string being scanned */
-   int str_len;                       /* length of string */
-   int line_no;                       /* file line number */
-   int col_no;                        /* char position on line */
-   enum lex_state state;              /* lex_state variable */
-   int ch;                            /* last char/L_VAL returned by get_char */
+   int options; 		      /* scan options */
+   char *fname; 		      /* filename */
+   FILE *fd;			      /* file descriptor */
+   char line[MAXSTRING];	      /* input line */
+   char str[MAXSTRING]; 	      /* string being scanned */
+   int str_len; 		      /* length of string */
+   int line_no; 		      /* file line number */
+   int col_no;			      /* char position on line */
+   enum lex_state state;	      /* lex_state variable */
+   int ch;			      /* last char/L_VAL returned by get_char */
    int token;
-   struct s_lex_context *next;        /* pointer to next lexical context */
+   struct s_lex_context *next;	      /* pointer to next lexical context */
 } LEX;
 
 #endif /* _LEX_H */

@@ -4,6 +4,8 @@
  *
  *  Kern Sibbald, January MMI
  *
+ *   Version $Id$
+ *
  *  This code adapted from "Programming with POSIX Threads", by
  *    David R. Butenhof
  *

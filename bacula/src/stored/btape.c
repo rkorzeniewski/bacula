@@ -10,7 +10,7 @@
  *   Note, this program reads stored.conf, and will only
  *     talk to devices that are configured.
  *
- *   $Id$
+ *   Version $Id$
  *
  */
 /*

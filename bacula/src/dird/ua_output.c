@@ -4,6 +4,8 @@
  *     I.e. messages, listing database, showing resources, ...
  *
  *     Kern Sibbald, September MM
+ *
+ *   Version $Id$
  */
 
 /*

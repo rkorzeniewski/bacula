@@ -5,6 +5,8 @@
  *	(with a little more work)
  *
  *    Kern Sibbald, March 2000
+ *
+ *    Version $Id$
  */
 
 /*

@@ -3,6 +3,8 @@
  *   Bacula Director -- User Agent Server
  *
  *     Kern Sibbald, September MM
+ *
+ *    Version $Id$
  */
 
 /*
@@ -99,12 +101,12 @@ static void handle_UA_client_request(void *arg)
 
    memset(&ua, 0, sizeof(ua));
    ua.automount = TRUE;
-   ua.verbose = TRUE;
+   ua.verbose = 1;
    ua.jcr = new_jcr(sizeof(JCR), dird_free_jcr);
    ua.jcr->sd_auth_key = bstrdup("dummy"); /* dummy Storage daemon key */
    ua.UA_sock = UA_sock;
-   ua.cmd = (char *) get_pool_memory(PM_FNAME);
-   ua.args = (char *) get_pool_memory(PM_FNAME);
+   ua.cmd = get_pool_memory(PM_FNAME);
+   ua.args = get_pool_memory(PM_FNAME);
 
    create_unique_job_name(ua.jcr, "*Console*");
    ua.jcr->sched_time = ua.jcr->start_time;

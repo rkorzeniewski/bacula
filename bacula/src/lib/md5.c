@@ -13,6 +13,8 @@
  * MD5Context structure, pass it to MD5Init, call MD5Update as
  * needed on buffers full of bytes, and then call MD5Final, which
  * will fill a supplied 16-byte array with the digest.
+ *
+ *   Version $Id$
  */
 
 /* Brutally hacked by John Walker back from ANSI C to K&R (no

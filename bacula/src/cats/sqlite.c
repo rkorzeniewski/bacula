@@ -2,6 +2,8 @@
  * Bacula Catalog Database routines specific to SQLite
  *
  *    Kern Sibbald, January 2002
+ *
+ *    Version $Id$
  */
 
 /*

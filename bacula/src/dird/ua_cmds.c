@@ -3,6 +3,8 @@
  *   Bacula Director -- User Agent Commands
  *
  *     Kern Sibbald, September MM
+ *
+ *   Version $Id$
  */
 
 /*
@@ -381,12 +383,7 @@ static int cancelcmd(UAContext *ua, char *cmd)
       free_jcr(jcr);
       return 1;
 	 
-   case JS_Running:
-   case JS_WaitSD:
-   case JS_WaitFD:
-   case JS_WaitMedia:
-   case JS_WaitMount:
-   case JS_Blocked:
+   default:
 
       jcr->JobStatus = JS_Cancelled;
       /* Cancel File daemon */
@@ -423,9 +420,6 @@ static int cancelcmd(UAContext *ua, char *cmd)
       bnet_close(sd);
       ua->jcr->store_bsock = NULL;
 
-   default:
-      bsendmsg(ua, _("JobId %d Job %s Status=%c cannot be cancelled.\n"), 
-	  jcr->JobId, jcr->Job, jcr->JobStatus);
    }
    free_jcr(jcr);
 

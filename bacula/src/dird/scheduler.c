@@ -6,6 +6,8 @@
  *     fire them up.
  *
  *     Kern Sibbald, May MM
+ *
+ *   Version $Id$
  */
 /*
    Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
@@ -126,9 +128,21 @@ JCR *wait_for_next_job(char *job_to_run)
    runjobs[jobindex].runtime = 0;     /* remove from list */
    run->last_run = now; 	      /* mark as run */
    rem_runjobs--;		      /* decrement count of remaining jobs */
+
    jcr = new_jcr(sizeof(JCR), dird_free_jcr);
    set_jcr_defaults(jcr, job);
-   jcr->level = run->level;	      /* override run level */
+   if (run->level) {
+      jcr->level = run->level;	      /* override run level */
+   }
+   if (run->pool) {
+      jcr->pool = run->pool;	      /* override pool */
+   }
+   if (run->storage) {
+      jcr->store = run->storage;      /* override storage */
+   }
+   if (run->msgs) {
+      jcr->msgs = run->msgs;	      /* override messages */
+   }
    Dmsg0(200, "Leave wait_for_next_job()\n");
    return jcr;
 }

@@ -3,6 +3,8 @@
  *   Bacula Director Job processing routines
  *
  *     Kern Sibbald, October MM
+ *
+ *    Version $Id$
  */
 /*
    Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
@@ -152,15 +154,19 @@ static void job_thread(void *arg)
       switch (jcr->JobType) {
 	 case JT_BACKUP:
 	    do_backup(jcr);
+	    do_autoprune(jcr);
 	    break;
 	 case JT_VERIFY:
 	    do_verify(jcr);
+	    do_autoprune(jcr);
 	    break;
 	 case JT_RESTORE:
 	    do_restore(jcr);
+	    do_autoprune(jcr);
 	    break;
 	 case JT_ADMIN:
 	    /* No actual job */
+	    do_autoprune(jcr);
 	    break;
 	 default:
             Dmsg1(0, "Unimplemented job type: %d\n", jcr->JobType);
@@ -304,7 +310,8 @@ void dird_free_jcr(JCR *jcr)
  * Set some defaults in the JCR necessary to
  * run. These items are pulled from the job
  * definition as defaults, but can be overridden
- * later.
+ * later either by the Run record in the Schedule resource,
+ * or by the Console program.
  */
 void set_jcr_defaults(JCR *jcr, JOB *job)
 {

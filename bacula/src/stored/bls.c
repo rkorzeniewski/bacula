@@ -2,7 +2,7 @@
  *
  *  Dumb program to do an "ls" of a Bacula 1.0 mortal file.
  *
- *   $Id$
+ *   Version $Id$
  */
 /*
    Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker

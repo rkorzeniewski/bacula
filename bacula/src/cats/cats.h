@@ -1,6 +1,8 @@
 /*
  * SQL header file
  *
+ *   by Kern E. Sibbald
+ *
  *   Anyone who accesses the database will need to include
  *   this file.
  *
@@ -8,6 +10,8 @@
  * the external world, and definitions destined only
  * for the external world. This is control with
  * the define __SQL_C, which is defined only in sql.c
+ *
+ *    Version $Id$
  */
 
 /*
@@ -50,57 +54,57 @@ struct sqlite {
    char dummy;
 };
 
-#define IS_NUM(x)             ((x) == 1)
-#define IS_NOT_NULL(x)        ((x) == 1)
+#define IS_NUM(x)	      ((x) == 1)
+#define IS_NOT_NULL(x)	      ((x) == 1)
 
 typedef struct s_sql_field {
-   char *name;                        /* name of column */
-   uint32_t length;                   /* length */
-   uint32_t max_length;               /* max length */
-   uint32_t type;                     /* type */
-   uint32_t flags;                    /* flags */
+   char *name;			      /* name of column */
+   uint32_t length;		      /* length */
+   uint32_t max_length; 	      /* max length */
+   uint32_t type;		      /* type */
+   uint32_t flags;		      /* flags */
 } SQL_FIELD;
 
 /*
  * This is the "real" definition that should only be
  * used inside sql.c and associated database interface
  * subroutines.
- *                    S Q L I T E
+ *		      S Q L I T E
  */
 typedef struct s_db {
-   BQUEUE bq;                         /* queue control */
+   BQUEUE bq;			      /* queue control */
    pthread_mutex_t mutex;
    struct sqlite *db;
    char **result;
-   int nrow;                          /* nrow returned from sqlite */
-   int ncolumn;                       /* ncolum returned from sqlite */
-   int num_rows;                      /* used by code */
-   int row;                           /* seek row */
-   int have_insert_id;                /* do not have insert id */
-   int fields_defined;                /* set when fields defined */
-   int field;                         /* seek field */
-   SQL_FIELD **fields;                /* defined fields */
+   int nrow;			      /* nrow returned from sqlite */
+   int ncolumn; 		      /* ncolum returned from sqlite */
+   int num_rows;		      /* used by code */
+   int row;			      /* seek row */
+   int have_insert_id;		      /* do not have insert id */
+   int fields_defined;		      /* set when fields defined */
+   int field;			      /* seek field */
+   SQL_FIELD **fields;		      /* defined fields */
    int ref_count;
    char *db_name;
    char *db_user;
    char *db_password;
    int connected;
-   char *sqlite_errmsg;               /* error message returned by sqlite */
-   char *errmsg;                      /* nicely edited error message */
-   char *cmd;                         /* SQL command string */
+   char *sqlite_errmsg; 	      /* error message returned by sqlite */
+   char *errmsg;		      /* nicely edited error message */
+   char *cmd;			      /* SQL command string */
 } B_DB;
 
 
 /* 
  * "Generic" names for easier conversion   
  *
- *                    S Q L I T E
+ *		      S Q L I T E
  */
 #define sql_store_result(x)   x->result
 #define sql_free_result(x)    my_sqlite_free_table(x)
 #define sql_fetch_row(x)      my_sqlite_fetch_row(x)
 #define sql_query(x, y)       my_sqlite_query(x, y)
-#define sql_close(x)          sqlite_close(x->db)  
+#define sql_close(x)	      sqlite_close(x->db)  
 #define sql_strerror(x)       x->sqlite_errmsg?x->sqlite_errmsg:"unknown"
 #define sql_num_rows(x)       x->nrow
 #define sql_data_seek(x, i)   x->row = i
@@ -109,7 +113,7 @@ typedef struct s_db {
 #define sql_field_seek(x, y)  my_sqlite_field_seek(x, y)
 #define sql_fetch_field(x)    my_sqlite_fetch_field(x)
 #define sql_num_fields(x)     (unsigned)((x)->ncolumn)
-#define SQL_ROW               char**   
+#define SQL_ROW 	      char**   
 
 
 
@@ -131,10 +135,10 @@ extern void my_sqlite_free_table(B_DB *mdb);
  * used inside sql.c and associated database interface
  * subroutines.
  *
- *                     M Y S Q L
+ *		       M Y S Q L
  */
 typedef struct s_db {
-   BQUEUE bq;                         /* queue control */
+   BQUEUE bq;			      /* queue control */
    pthread_mutex_t mutex;
    MYSQL mysql;
    MYSQL *db;
@@ -144,10 +148,10 @@ typedef struct s_db {
    char *db_name;
    char *db_user;
    char *db_password;
-   int have_insert_id;                /* do have insert_id() */
+   int have_insert_id;		      /* do have insert_id() */
    int connected;
-   char *errmsg;                      /* nicely edited error message */
-   char *cmd;                         /* SQL command string */
+   char *errmsg;		      /* nicely edited error message */
+   char *cmd;			      /* SQL command string */
 } B_DB;
 
 
@@ -156,7 +160,7 @@ typedef struct s_db {
 #define sql_free_result(x)    mysql_free_result(x->result)
 #define sql_fetch_row(x)      mysql_fetch_row(x->result)
 #define sql_query(x, y)       mysql_query(x->db, y)
-#define sql_close(x)          mysql_close(x->db)  
+#define sql_close(x)	      mysql_close(x->db)  
 #define sql_strerror(x)       mysql_error(x->db)
 #define sql_num_rows(x)       mysql_num_rows(x->result)
 #define sql_data_seek(x, i)   mysql_data_seek(x->result, i)
@@ -165,8 +169,8 @@ typedef struct s_db {
 #define sql_field_seek(x, y)  mysql_field_seek(x->result, y)
 #define sql_fetch_field(x)    mysql_fetch_field(x->result)
 #define sql_num_fields(x)     mysql_num_fields(x->result)
-#define SQL_ROW               MYSQL_ROW
-#define SQL_FIELD             MYSQL_FIELD
+#define SQL_ROW 	      MYSQL_ROW
+#define SQL_FIELD	      MYSQL_FIELD
 
 #else  /* USE BACULA DB routines */
 
@@ -175,17 +179,17 @@ typedef struct s_db {
 /* Change this each time there is some incompatible
  * file format change!!!!
  */
-#define BDB_VERSION 8                 /* file version number */
+#define BDB_VERSION 8		      /* file version number */
 
 struct s_control {
-   int bdb_version;                   /* Version number */
-   uint32_t JobId;                    /* next Job Id */
-   uint32_t PoolId;                   /* next Pool Id */
-   uint32_t MediaId;                  /* next Media Id */
-   uint32_t JobMediaId;               /* next JobMedia Id */
-   uint32_t ClientId;                 /* next Client Id */
-   uint32_t FileSetId;                /* nest FileSet Id */
-   time_t time;                       /* time file written */
+   int bdb_version;		      /* Version number */
+   uint32_t JobId;		      /* next Job Id */
+   uint32_t PoolId;		      /* next Pool Id */
+   uint32_t MediaId;		      /* next Media Id */
+   uint32_t JobMediaId; 	      /* next JobMedia Id */
+   uint32_t ClientId;		      /* next Client Id */
+   uint32_t FileSetId;		      /* nest FileSet Id */
+   time_t time; 		      /* time file written */
 };
 
 
@@ -193,20 +197,20 @@ struct s_control {
  *  Bacula internal DB
  */
 typedef struct s_db {
-   BQUEUE bq;                         /* queue control */
-   pthread_mutex_t mutex;             /* single thread lock */
-   int ref_count;                     /* number of times opened */
-   struct s_control control;          /* control file structure */
-   int cfd;                           /* control file device */
-   FILE *jobfd;                       /* Jobs records file descriptor */
-   FILE *poolfd;                      /* Pool records fd */
-   FILE *mediafd;                     /* Media records fd */
-   FILE *jobmediafd;                  /* JobMedia records fd */
-   FILE *clientfd;                    /* Client records fd */
-   FILE *filesetfd;                   /* FileSet records fd */
-   char *db_name;                     /* name of database */
-   char *errmsg;                      /* nicely edited error message */
-   char *cmd;                         /* Command string */
+   BQUEUE bq;			      /* queue control */
+   pthread_mutex_t mutex;	      /* single thread lock */
+   int ref_count;		      /* number of times opened */
+   struct s_control control;	      /* control file structure */
+   int cfd;			      /* control file device */
+   FILE *jobfd; 		      /* Jobs records file descriptor */
+   FILE *poolfd;		      /* Pool records fd */
+   FILE *mediafd;		      /* Media records fd */
+   FILE *jobmediafd;		      /* JobMedia records fd */
+   FILE *clientfd;		      /* Client records fd */
+   FILE *filesetfd;		      /* FileSet records fd */
+   char *db_name;		      /* name of database */
+   char *errmsg;		      /* nicely edited error message */
+   char *cmd;			      /* Command string */
 } B_DB;
 
 #endif /* HAVE_MYSQL */
@@ -219,19 +223,19 @@ typedef struct s_db {
 #define DELETE_DB(db, cmd) DeleteDB(__FILE__, __LINE__, db, cmd)
 
 
-#else    /* not __SQL_C */
+#else	 /* not __SQL_C */
 
 /* This is a "dummy" definition for use outside of sql.c
  */
-typedef struct s_db {     
-   int dummy;                         /* for SunOS compiler */
+typedef struct s_db {	  
+   int dummy;			      /* for SunOS compiler */
 } B_DB;  
 
 #endif /*  __SQL_C */
 
 /* ***FIXME*** FileId_t should be uint64_t */
 typedef uint32_t FileId_t;
-typedef uint32_t DBId_t;              /* general DB id type */
+typedef uint32_t DBId_t;	      /* general DB id type */
 typedef uint32_t JobId_t;
 
 
@@ -243,18 +247,18 @@ typedef uint32_t JobId_t;
 /* Job record */
 typedef struct {
    JobId_t JobId;
-   char Job[MAX_NAME_LENGTH];         /* Job unique name */
-   char Name[MAX_NAME_LENGTH];        /* Job base name */
-   int Type;                          /* actually char(1) */
-   int Level;                         /* actually char(1) */
-   int JobStatus;                     /* actually char(1) */
-   uint32_t ClientId;                 /* Id of client */
-   uint32_t PoolId;                   /* Id of pool */
-   uint32_t FileSetId;                /* Id of FileSet */
-   time_t SchedTime;                  /* Time job scheduled */
-   time_t StartTime;                  /* Job start time */
-   time_t EndTime;                    /* Job termination time */
-   btime_t JobTDate;                  /* Backup time/date in seconds */
+   char Job[MAX_NAME_LENGTH];	      /* Job unique name */
+   char Name[MAX_NAME_LENGTH];	      /* Job base name */
+   int Type;			      /* actually char(1) */
+   int Level;			      /* actually char(1) */
+   int JobStatus;		      /* actually char(1) */
+   uint32_t ClientId;		      /* Id of client */
+   uint32_t PoolId;		      /* Id of pool */
+   uint32_t FileSetId;		      /* Id of FileSet */
+   time_t SchedTime;		      /* Time job scheduled */
+   time_t StartTime;		      /* Job start time */
+   time_t EndTime;		      /* Job termination time */
+   btime_t JobTDate;		      /* Backup time/date in seconds */
    uint32_t VolSessionId;
    uint32_t VolSessionTime;
    uint32_t JobFiles;
@@ -265,8 +269,8 @@ typedef struct {
    /* Note, FirstIndex, LastIndex, Start/End File and Block
     * are only used in the JobMedia record.
     */
-   uint32_t FirstIndex;               /* First index this Volume */
-   uint32_t LastIndex;                /* Last index this Volume */
+   uint32_t FirstIndex; 	      /* First index this Volume */
+   uint32_t LastIndex;		      /* Last index this Volume */
    uint32_t StartFile;
    uint32_t EndFile;
    uint32_t StartBlock;
@@ -284,15 +288,15 @@ typedef struct {
  */
 /* JobMedia record */
 typedef struct {
-   uint32_t JobMediaId;               /* record id */
-   JobId_t  JobId;                    /* JobId */
-   uint32_t MediaId;                  /* MediaId */
-   uint32_t FirstIndex;               /* First index this Volume */
-   uint32_t LastIndex;                /* Last index this Volume */
-   uint32_t StartFile;                /* File for start of data */
-   uint32_t EndFile;                  /* End file on Volume */
-   uint32_t StartBlock;               /* start block on tape */
-   uint32_t EndBlock;                 /* last block */
+   uint32_t JobMediaId; 	      /* record id */
+   JobId_t  JobId;		      /* JobId */
+   uint32_t MediaId;		      /* MediaId */
+   uint32_t FirstIndex; 	      /* First index this Volume */
+   uint32_t LastIndex;		      /* Last index this Volume */
+   uint32_t StartFile;		      /* File for start of data */
+   uint32_t EndFile;		      /* End file on Volume */
+   uint32_t StartBlock; 	      /* start block on tape */
+   uint32_t EndBlock;		      /* last block */
 } JOBMEDIA_DBR;
 
 
@@ -301,9 +305,9 @@ typedef struct {
  *  records (e.g. pathname, filename, fileattributes).
  */
 typedef struct {
-   char *fname;                       /* full path & filename */
-   char *link;                        /* link if any */
-   char *attr;                        /* attributes statp */
+   char *fname; 		      /* full path & filename */
+   char *link;			      /* link if any */
+   char *attr;			      /* attributes statp */
    uint32_t FileIndex;
    uint32_t Stream;
    JobId_t  JobId;
@@ -329,16 +333,16 @@ typedef struct {
 /* Pool record -- same format as database */
 typedef struct {
    uint32_t PoolId;
-   char Name[MAX_NAME_LENGTH];        /* Pool name */
-   uint32_t NumVols;                  /* total number of volumes */
-   uint32_t MaxVols;                  /* max allowed volumes */
-   int UseOnce;                       /* set to use once only */
-   int UseCatalog;                    /* set to use catalog */
-   int AcceptAnyVolume;               /* set to accept any volume sequence */
-   int AutoPrune;                     /* set to prune automatically */
-   int Recycle;                       /* default Vol recycle flag */
-   btime_t VolRetention;              /* retention period in seconds */
-   char PoolType[MAX_NAME_LENGTH];             
+   char Name[MAX_NAME_LENGTH];	      /* Pool name */
+   uint32_t NumVols;		      /* total number of volumes */
+   uint32_t MaxVols;		      /* max allowed volumes */
+   int UseOnce; 		      /* set to use once only */
+   int UseCatalog;		      /* set to use catalog */
+   int AcceptAnyVolume; 	      /* set to accept any volume sequence */
+   int AutoPrune;		      /* set to prune automatically */
+   int Recycle; 		      /* default Vol recycle flag */
+   btime_t VolRetention;	      /* retention period in seconds */
+   char PoolType[MAX_NAME_LENGTH];	       
    char LabelFormat[MAX_NAME_LENGTH];
    /* Extra stuff not in DB */
    faddr_t rec_addr;
@@ -346,45 +350,45 @@ typedef struct {
 
 /* Media record -- same as the database */
 typedef struct {
-   uint32_t MediaId;                  /* Unique volume id */
+   uint32_t MediaId;		      /* Unique volume id */
    char VolumeName[MAX_NAME_LENGTH];  /* Volume name */
    char MediaType[MAX_NAME_LENGTH];   /* Media type */
-   uint32_t PoolId;                   /* Pool id */
-   time_t FirstWritten;               /* Time Volume first written */
-   time_t LastWritten;                /* Time Volume last written */
-   time_t LabelDate;                  /* Date/Time Volume labelled */
-   uint32_t VolJobs;                  /* number of jobs on this medium */
-   uint32_t VolFiles;                 /* Number of files */
-   uint32_t VolBlocks;                /* Number of blocks */
-   uint32_t VolMounts;                /* Number of times mounted */
-   uint32_t VolErrors;                /* Number of read/write errors */
-   uint32_t VolWrites;                /* Number of writes */
-   uint32_t VolReads;                 /* Number of reads */
-   uint64_t VolBytes;                 /* Number of bytes written */
-   uint64_t VolMaxBytes;              /* max bytes to write */
-   uint64_t VolCapacityBytes;         /* capacity estimate */
-   btime_t  VolRetention;             /* Volume retention in seconds */
-   int Recycle;                       /* recycle yes/no */
-   char VolStatus[20];                /* Volume status */
+   uint32_t PoolId;		      /* Pool id */
+   time_t FirstWritten; 	      /* Time Volume first written */
+   time_t LastWritten;		      /* Time Volume last written */
+   time_t LabelDate;		      /* Date/Time Volume labelled */
+   uint32_t VolJobs;		      /* number of jobs on this medium */
+   uint32_t VolFiles;		      /* Number of files */
+   uint32_t VolBlocks;		      /* Number of blocks */
+   uint32_t VolMounts;		      /* Number of times mounted */
+   uint32_t VolErrors;		      /* Number of read/write errors */
+   uint32_t VolWrites;		      /* Number of writes */
+   uint32_t VolReads;		      /* Number of reads */
+   uint64_t VolBytes;		      /* Number of bytes written */
+   uint64_t VolMaxBytes;	      /* max bytes to write */
+   uint64_t VolCapacityBytes;	      /* capacity estimate */
+   btime_t  VolRetention;	      /* Volume retention in seconds */
+   int Recycle; 		      /* recycle yes/no */
+   char VolStatus[20];		      /* Volume status */
    /* Extra stuff not in DB */
-   faddr_t rec_addr;                  /* found record address */
+   faddr_t rec_addr;		      /* found record address */
 } MEDIA_DBR;
 
 /* Client record -- same as the database */
 typedef struct {
-   uint32_t ClientId;                 /* Unique Client id */
+   uint32_t ClientId;		      /* Unique Client id */
    int AutoPrune;
    btime_t FileRetention;
    btime_t JobRetention;
-   char Name[MAX_NAME_LENGTH];        /* Client name */
-   char Uname[256];                   /* Uname for client */
+   char Name[MAX_NAME_LENGTH];	      /* Client name */
+   char Uname[256];		      /* Uname for client */
 } CLIENT_DBR;
 
 /* FileSet record -- same as the database */
 typedef struct {
-   uint32_t FileSetId;                /* Unique FileSet id */
+   uint32_t FileSetId;		      /* Unique FileSet id */
    char FileSet[MAX_NAME_LENGTH];     /* FileSet name */
-   char MD5[50];                      /* MD5 signature of include/exclude */
+   char MD5[50];		      /* MD5 signature of include/exclude */
 } FILESET_DBR;
 
 

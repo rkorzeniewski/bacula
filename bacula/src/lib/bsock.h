@@ -9,6 +9,7 @@
  * Negative msglen, is special "signal" (no data follows).
  *   See below for SIGNAL codes.
  *
+ *   Version $Id$
  */
 /*
    Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
@@ -44,10 +45,10 @@ typedef struct s_bsock {
    int timeout;                       /* time out after this value */
    int terminated;                    /* set when BNET_TERMINATE arrives */
    int duped;                         /* set if duped BSOCK */
-   char *msg;                         /* message pool buffer */
+   POOLMEM *msg;                      /* message pool buffer */
    char *who;                         /* Name of daemon to which we are talking */
    char *host;                        /* Host name/IP */
-   char *errmsg;                      /* edited error message (to be implemented) */
+   POOLMEM *errmsg;                   /* edited error message (to be implemented) */
    RES *res;                          /* Resource to which we are connected */
    struct s_bsock *next;              /* next BSOCK if duped */
 } BSOCK;

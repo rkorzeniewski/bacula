@@ -2,6 +2,8 @@
  * Bacula Catalog Database List records interface routines
  * 
  *    Kern Sibbald, March 2000
+ *
+ *    Version $Id$
  */
 
 /*

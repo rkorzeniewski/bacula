@@ -2,6 +2,8 @@
  * Bacula Catalog Database Create record interface routines
  * 
  *    Kern Sibbald, March 2000
+ *
+ *    Version $Id$
  */
 
 /*

@@ -2,6 +2,8 @@
  * Authenticate caller
  *
  *   Kern Sibbald, October 2000
+ *
+ *   Version $Id$
  * 
  */
 /*

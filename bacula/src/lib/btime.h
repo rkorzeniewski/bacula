@@ -1,10 +1,17 @@
 
-/*  Time and date structures and functions.
+/*  
+
+    Time and date structures and functions.
     Date and time are always represented internally
     as 64 bit floating point Julian day numbers and
     fraction.  The day number and fraction are kept
     as separate quantities to avoid round-off of
-    day fraction. John Walker */
+    day fraction. John Walker
+
+     Version $Id$
+
+ */
+
 /*
    Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
 

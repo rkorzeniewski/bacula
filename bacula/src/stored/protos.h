@@ -1,5 +1,7 @@
 /*
  * Protypes for stored
+ *
+ *   Version $Id$
  */
 
 /*

@@ -19,6 +19,8 @@
  *	for the resource records.
  *
  *     Kern Sibbald, January MM
+ *
+ *   Version $Id$
  */
 
 /*

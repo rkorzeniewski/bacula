@@ -3,9 +3,12 @@
 			 Q U E U E
 		     Queue Handling Routines
 
-	Taken from smartall by John Walker.
+	Taken from smartall written by John Walker.
 
 		  http://www.fourmilab.ch/smartall/
+
+  
+	Version $Id$
 
 */
 

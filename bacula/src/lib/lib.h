@@ -1,5 +1,7 @@
 /* 
  * Library includes for Bacula lib directory
+ *
+ *   Version $Id$
  */
 
 /*
@@ -40,4 +42,3 @@
 #include "md5.h"
 
 #include "protos.h"
-

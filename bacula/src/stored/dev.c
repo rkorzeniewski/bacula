@@ -25,6 +25,8 @@
  *     a consequence has lead to something more contored than is
  *     really necessary -- KES.  Note, this contortion has been
  *     corrected to a large extent by a rewrite (Apr MMI).
+ *
+ *   Version $Id$
  */
 /*
    Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker

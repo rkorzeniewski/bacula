@@ -6,6 +6,8 @@
  *	  request are in get.c
  * 
  *    Kern Sibbald, December 2000
+ *
+ *    Version $Id$
  */
 
 /*

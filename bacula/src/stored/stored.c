@@ -5,6 +5,8 @@
  * and acts on them. When a request to append data is made,
  * it opens a data channel and accepts data from the
  * File daemon. 
+ *
+ *   Version $Id$
  * 
  */
 /*

@@ -16,6 +16,8 @@
  *  with the desired size and it will adjust only if necessary.
  *
  *	     Kern E. Sibbald
+ *
+ *   Version $Id$
  */
 
 /*

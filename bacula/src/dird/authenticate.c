@@ -7,7 +7,7 @@
  *
  *    This routine runs as a thread and must be thread reentrant.
  *
- *  Basic tasks done here:
+ *   Version $Id$
  *
  */
 /*

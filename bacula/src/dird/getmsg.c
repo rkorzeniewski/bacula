@@ -18,6 +18,7 @@
  *	 Requests are any message that does not begin with a digit.
  *	 In affect, they are commands.
  *
+ *   Version $Id$
  */
 /*
    Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker

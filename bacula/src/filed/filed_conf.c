@@ -18,6 +18,8 @@
  *	for the resource records.
  *
  *     Kern Sibbald, September MM
+ *
+ *   Version $Id$
  */
 /*
    Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker

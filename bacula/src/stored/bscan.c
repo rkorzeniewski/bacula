@@ -7,7 +7,7 @@
  *   Kern E. Sibbald, December 2001
  *
  *
- *   $Id$
+ *   Version $Id$
  */
 /*
    Copyright (C) 2001, 2002 Kern Sibbald and John Walker

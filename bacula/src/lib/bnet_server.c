@@ -18,7 +18,10 @@
 
  */
  /* 
-  * Originally written by Kern Sibbald for inclusion in apcupsd.
+  * Originally written by Kern Sibbald for inclusion in apcupsd,
+  *  but heavily modified for Bacula
+  *
+  *   Version $Id$
   */
 
 #include "bacula.h"
@@ -77,12 +80,16 @@ bnet_thread_server(int port, int max_clients, workq_t *client_wq,
    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
    serv_addr.sin_port = htons(port);
 
+   int tmax = 30 * (60 / 5);	      /* wait 30 minutes max */
    for (tlog=0; bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0; tlog -= 5 ) {
       if (tlog <= 0) {
 	 tlog = 2*60;		      /* Complain every 2 minutes */
          Emsg2(M_WARNING, 0, "Cannot bind port %d: %s. Retrying ...\n", port, strerror(errno));
       }
       sleep(5);
+      if (--tmax <= 0) {
+         Emsg2(M_ABORT, 0, "Cannot bind port %d: %s.\n", port, strerror(errno));
+      }
    }
    listen(sockfd, 5);		      /* tell system we are ready */
 
@@ -147,6 +154,7 @@ bnet_thread_server(int port, int max_clients, workq_t *client_wq,
 }   
 
 
+#ifdef REALLY_USED   
 /*
  * Bind an address so that we may accept connections
  * one at a time.
@@ -288,6 +296,7 @@ bnet_accept(BSOCK *bsock, char *who)
    }
 }   
 
+#endif
 
 
 
@@ -295,7 +304,7 @@ bnet_accept(BSOCK *bsock, char *who)
  * The following code will soon be deleted, don't attempt
  * to use it.
  */
-#ifdef dont_have_threads_junk
+#ifdef dont_have_threads
 
 /*
  * This routine is called by the main process to

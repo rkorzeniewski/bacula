@@ -2,6 +2,7 @@
 
 	Error checking memory allocator
 
+     Version $Id$
 */
 
 /*

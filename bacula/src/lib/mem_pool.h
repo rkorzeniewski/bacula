@@ -2,6 +2,8 @@
  * Memory Pool prototypes
  *
  *  Kern Sibbald, 2000
+ *
+ *   Version $Id$
  */
 /*
    Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
@@ -40,13 +42,13 @@ extern POOLMEM *get_memory(size_t size);
 #define free_memory(x) free_pool_memory(x)
 extern void   free_pool_memory(POOLMEM *buf);
 extern size_t sizeof_pool_memory(POOLMEM *buf);
-extern POOLMEM  *realloc_pool_memory(POOLMEM *buf, size_t size);
-extern POOLMEM  *check_pool_memory_size(POOLMEM *buf, size_t size);
+extern POOLMEM	*realloc_pool_memory(POOLMEM *buf, size_t size);
+extern POOLMEM	*check_pool_memory_size(POOLMEM *buf, size_t size);
 extern void  close_memory_pool();
 extern void  print_memory_pool_stats();
 
-#define PM_NOPOOL  0                  /* nonpooled memory */
-#define PM_FNAME   1                  /* file name buffer */
-#define PM_MESSAGE 2                  /* daemon message */
-#define PM_EMSG    3                  /* error message */
-#define PM_MAX     PM_EMSG            /* Number of types */
+#define PM_NOPOOL  0		      /* nonpooled memory */
+#define PM_FNAME   1		      /* file name buffer */
+#define PM_MESSAGE 2		      /* daemon message */
+#define PM_EMSG    3		      /* error message */
+#define PM_MAX	   PM_EMSG	      /* Number of types */

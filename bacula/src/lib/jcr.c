@@ -3,6 +3,8 @@
  *
  *  Kern E. Sibbald, December 2000
  *
+ *  Version $Id$
+ *
  *  These routines are thread safe.
  *
  */

@@ -8,6 +8,8 @@
  *
  *  By Kern Sibbald, May MM
  *
+ *   Version $Id$
+ *
  *  Note, this routine was originally written so that the DEVICE structures
  *  could be shared between the child processes.  Now that the Storage
  *  daemon is threaded, these routines are no longer needed. Rather than

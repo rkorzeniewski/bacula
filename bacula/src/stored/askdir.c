@@ -3,7 +3,8 @@
  *   Reqests/commands from the Director are handled in dircmd.c
  *
  *   Kern Sibbald, December 2000
- *			      
+ *
+ *   Version $Id$
  */
 /*
    Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker

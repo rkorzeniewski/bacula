@@ -5,6 +5,8 @@
  *	  should be in find.c 
  *
  *    Kern Sibbald, March 2000
+ *
+ *    Version $Id$
  */
 
 /*

@@ -7,6 +7,8 @@
  *  This code inspired from "Programming with POSIX Threads", by
  *    David R. Butenhof
  *
+ *   Version $Id$
+ *
  */
 /*
    Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
@@ -36,20 +38,20 @@
  */
 typedef struct waitq_ele_tag {
    struct waitq_ele_tag *next;
-   int               done_flag;       /* predicate for wait */
-   pthread_cont_t    done;            /* wait for completion */
-   void             *msg;             /* message to be passed */
+   int		     done_flag;       /* predicate for wait */
+   pthread_cont_t    done;	      /* wait for completion */
+   void 	    *msg;	      /* message to be passed */
 } waitq_ele_t;
 
 /* 
  * Structure describing a wait queue
  */
 typedef struct workq_tag {
-   pthread_mutex_t   mutex;           /* queue access control */
-   pthread_cond_t    wait_req;        /* wait for OK */
-   int               num_msgs;        /* number of waiters */
-   waitq_ele_t       *first;          /* wait queue first item */
-   waitq_ele_t       *last;           /* wait queue last item */
+   pthread_mutex_t   mutex;	      /* queue access control */
+   pthread_cond_t    wait_req;	      /* wait for OK */
+   int		     num_msgs;	      /* number of waiters */
+   waitq_ele_t	     *first;	      /* wait queue first item */
+   waitq_ele_t	     *last;	      /* wait queue last item */
 } workq_t;
 
 extern int waitq_init(waitq_t *wq);

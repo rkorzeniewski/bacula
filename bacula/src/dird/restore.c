@@ -17,6 +17,7 @@
  *	 to do the restore.
  *     Update the DB according to what files where restored????
  *
+ *   Version $Id$
  */
 
 /*
@@ -248,7 +249,7 @@ static void restore_cleanup(JCR *jcr, int status)
    update_job_end_record(jcr);
 
    bstrftime(dt, sizeof(dt), jcr->jr.EndTime);
-   Jmsg(jcr, M_INFO, 0, _("%s End Restore Job %s.\n"),
+   Jmsg(jcr, M_INFO, 0, _("%s End Restore Job %s.\n\n"),
       dt, jcr->Job);
 
    Dmsg0(20, "Leaving restore_cleanup\n");

@@ -1,5 +1,7 @@
 /*
  * Storage daemon specific defines and includes
+ *
+ *  Version $Id$
  */
 /*
    Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
@@ -45,6 +47,6 @@ struct s_shm {
    DEVICE dev[MAX_DEVICES];
 };
 
-extern char errmsg[];                /* general error message */
+extern char errmsg[];		     /* general error message */
 
 #endif /* __STORED_H_ */

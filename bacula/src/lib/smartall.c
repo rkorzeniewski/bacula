@@ -13,6 +13,9 @@
 
 		  http://www.fourmilab.ch/smartall/
 
+  
+	 Version $Id$
+
 */
 
 /*

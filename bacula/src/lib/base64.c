@@ -2,6 +2,8 @@
  *   Generic base 64 input and output routines
  *
  *    Written by Kern E. Sibbald, March MM.
+ *
+ *   Version $Id$
  */
 
 /*

@@ -17,6 +17,7 @@
  *     When the File daemon sends the attributes, compare them to
  *	 what is in the DB.
  *
+ *   Version $Id$
  */
 
 /*
@@ -264,7 +265,7 @@ Client:                 %s\n\
 Start time:             %s\n\
 End time:               %s\n\
 Files Examined:         %s\n\
-Termination:            %s\n"),
+Termination:            %s\n\n"),
 	edt,
 	jcr->jr.JobId,
 	jcr->jr.Job,

@@ -4,6 +4,8 @@
  * cram-md5 is based on RFC2104.
  * 
  * Written for Bacula by Kern E. Sibbald, May MMI.
+ *
+ *   Version $Id$
  */
 /*
    Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker

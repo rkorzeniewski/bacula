@@ -4,6 +4,8 @@
  *    other files are generic.
  *
  *    Kern Sibbald, March 2000
+ *
+ *    Version $Id$
  */
 
 /*

@@ -3,6 +3,8 @@
  *
  *   Kern Sibbald, April 2000 
  *
+ *   Version $Id$
+ *
  */
 
 /*

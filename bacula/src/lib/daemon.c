@@ -1,6 +1,8 @@
 /*
  *  daemon.c by Kern Sibbald
  *
+ *   Version $Id$
+ *
  *   this code is inspired by the Prentice Hall book
  *   "Unix Network Programming" by W. Richard Stevens
  *   and later updated from his book "Advanced Programming

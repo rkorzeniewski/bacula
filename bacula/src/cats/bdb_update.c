@@ -10,7 +10,8 @@
  *   
  *    Kern Sibbald, January MMI 
  *
- *    $Id:
+ *
+ *    Version $Id$
  */
 
 /*

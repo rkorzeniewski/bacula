@@ -1,6 +1,8 @@
 /*
 
-        Definitions for the smart memory allocator
+	Definitions for the smart memory allocator
+  
+     Version $Id$
 
 */
 
@@ -30,15 +32,15 @@
 typedef enum {False = 0, True = 1} Boolean;
 
 extern void *sm_malloc(char *fname, int lineno, unsigned int nbytes),
-            *sm_calloc(char *fname, int lineno,
-                unsigned int nelem, unsigned int elsize),
-            *sm_realloc(char *fname, int lineno, void *ptr, unsigned int size),
-            *actuallymalloc(unsigned int size),
-            *actuallycalloc(unsigned int nelem, unsigned int elsize),
-            *actuallyrealloc(void *ptr, unsigned int size);
+	    *sm_calloc(char *fname, int lineno,
+		unsigned int nelem, unsigned int elsize),
+	    *sm_realloc(char *fname, int lineno, void *ptr, unsigned int size),
+	    *actuallymalloc(unsigned int size),
+	    *actuallycalloc(unsigned int nelem, unsigned int elsize),
+	    *actuallyrealloc(void *ptr, unsigned int size);
 extern void sm_free(char *fname, int lineno, void *fp);
 extern void actuallyfree(void *cp),
-            sm_dump(Boolean bufdump), sm_static(int mode);
+	    sm_dump(Boolean bufdump), sm_static(int mode);
 extern void sm_new_owner(char *fname, int lineno, char *buf);
 
 #ifdef SMCHECK
@@ -77,7 +79,7 @@ extern int sm_check_rtn(char *fname, int lineno, Boolean bufdump);
 #define sm_check_rtn(f, l, fl) 1
 
 extern void *b_malloc();
-#define malloc(x) b_malloc(__FILE__, __LINE__, (x))                  
+#define malloc(x) b_malloc(__FILE__, __LINE__, (x))		     
 
 
 #endif

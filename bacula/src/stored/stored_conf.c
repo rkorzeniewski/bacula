@@ -2,6 +2,8 @@
  * Configuration file parser for Bacula Storage daemon
  *
  *     Kern Sibbald, March MM
+ *
+ *   Version $Id$
  */
 
 /*

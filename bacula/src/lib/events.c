@@ -3,6 +3,8 @@
  *
  *    Kern Sibbald, August MMI
  *
+ *   Version $Id$
+ *
  */
 /*
    Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker

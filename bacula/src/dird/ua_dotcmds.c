@@ -7,6 +7,8 @@
  *	  returned results are (supposed to be) predictable.
  *
  *     Kern Sibbald, April MMII
+ *
+ *   Version $Id$
  */
 
 /*
