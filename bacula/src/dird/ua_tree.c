@@ -91,8 +91,8 @@ bool user_select_files_from_tree(TREE_CTX *tree)
    ua->UA_sock = tree->ua->UA_sock;   /* patch in UA socket */
 
    bsendmsg(tree->ua, _( 
-      "\nYou are now entering file selection mode where you add and\n"
-      "remove files to be restored. No files are initially added, unless\n"
+      "\nYou are now entering file selection mode where you add (mark) and\n"
+      "remove (unmark) files to be restored. No files are initially added, unless\n"
       "you used the \"all\" keyword on the command line.\n"
       "Enter \"done\" to leave this mode.\n\n"));
    /*

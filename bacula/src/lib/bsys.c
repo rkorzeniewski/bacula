@@ -531,8 +531,9 @@ int bmicrosleep(time_t sec, long usec)
    P(timer_mutex);
    stat = pthread_cond_timedwait(&timer, &timer_mutex, &timeout);
    if (stat != 0) {
+      berrno be;
       Dmsg2(200, "pthread_cond_timedwait stat=%d ERR=%s\n", stat,
-	 strerror(stat));
+	 be.strerror(stat));
    }
    V(timer_mutex);
    return stat;

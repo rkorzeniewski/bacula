@@ -126,8 +126,12 @@ static DCR *setup_to_access_device(JCR *jcr, char *dev_name, const char *VolumeN
     * If no volume name already given and no bsr, and it is a file,
     * try getting name from Filename  
     */
-   VolName[0] = 0;
-   if (!jcr->bsr && VolumeName[0] == 0) {
+   if (VolumeName) {
+      bstrncpy(VolName, VolumeName, sizeof(VolName));
+   } else {
+      VolName[0] = 0;
+   }
+   if (!jcr->bsr && VolName[0] == 0) {
       if (strncmp(dev_name, "/dev/", 5) != 0) {
 	 /* Try stripping file part */
 	 p = dev_name + strlen(dev_name);

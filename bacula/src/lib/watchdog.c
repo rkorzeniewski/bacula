@@ -32,8 +32,11 @@
 
 /* Exported globals */
 time_t watchdog_time = 0;	      /* this has granularity of SLEEP_TIME */
-time_t watchdog_sleep_time = 10;      /* examine things every 10 seconds */
+time_t watchdog_sleep_time = 60;      /* examine things every 60 seconds */
 
+/* Locals */
+static pthread_mutex_t timer_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t timer = PTHREAD_COND_INITIALIZER;
 
 /* Forward referenced functions */
 extern "C" void *watchdog_thread(void *arg);
@@ -83,6 +86,17 @@ int start_watchdog(void)
 }
 
 /*
+ * Wake watchdog timer thread so that it walks the
+ *  queue and adjusts its wait time (or exits).
+ */
+static void ping_watchdog()
+{
+   P(timer_mutex);
+   pthread_cond_signal(&timer);
+   V(timer_mutex);
+}
+
+/*
  * Terminate the watchdog thread
  *
  * Returns: 0 on success
@@ -100,6 +114,7 @@ int stop_watchdog(void)
    quit = true; 		      /* notify watchdog thread to stop */
    wd_is_init = false;
 
+   ping_watchdog();
    stat = pthread_join(wd_tid, NULL);
 
    while (!wd_queue->empty()) {
@@ -168,23 +183,27 @@ bool register_watchdog(watchdog_t *wd)
    Dmsg3(400, "Registered watchdog %p, interval %d%s\n",
          wd, wd->interval, wd->one_shot ? " one shot" : "");
    wd_unlock();
+   ping_watchdog();
 
    return false;
 }
 
-bool unregister_watchdog_unlocked(watchdog_t *wd)
+bool unregister_watchdog(watchdog_t *wd)
 {
    watchdog_t *p;
+   bool ok = false;
 
    if (!wd_is_init) {
       Emsg0(M_ABORT, 0, "BUG! unregister_watchdog_unlocked called before start_watchdog\n");
    }
 
+   wd_lock();
    foreach_dlist(p, wd_queue) {
       if (wd == p) {
 	 wd_queue->remove(wd);
          Dmsg1(400, "Unregistered watchdog %p\n", wd);
-	 return true;
+	 ok = true;
+	 goto get_out;
       }
    }
 
@@ -192,31 +211,26 @@ bool unregister_watchdog_unlocked(watchdog_t *wd)
       if (wd == p) {
 	 wd_inactive->remove(wd);
          Dmsg1(400, "Unregistered inactive watchdog %p\n", wd);
-	 return true;
+	 ok = true;
+	 goto get_out;
       }
    }
 
    Dmsg1(400, "Failed to unregister watchdog %p\n", wd);
-   return false;
-}
 
-bool unregister_watchdog(watchdog_t *wd)
-{
-   bool ret;
-
-   if (!wd_is_init) {
-      Emsg0(M_ABORT, 0, "BUG! unregister_watchdog called before start_watchdog\n");
-   }
-
-   wd_lock();
-   ret = unregister_watchdog_unlocked(wd);
+get_out:
    wd_unlock();
-
-   return ret;
+   ping_watchdog();
+   return ok;
 }
 
 extern "C" void *watchdog_thread(void *arg)
 {
+   struct timespec timeout;
+   struct timeval tv;
+   struct timezone tz;
+   time_t next_time;
+
    Dmsg0(400, "NicB-reworked watchdog thread entered\n");
 
    while (!quit) {
@@ -234,9 +248,10 @@ extern "C" void *watchdog_thread(void *arg)
       lock_jcr_chain();
       wd_lock();
       watchdog_time = time(NULL);
+      next_time = watchdog_time + watchdog_sleep_time;
 
       foreach_dlist(p, wd_queue) {
-	 if (p->next_fire < watchdog_time) {
+	 if (p->next_fire <= watchdog_time) {
 	    /* Run the callback */
 	    p->callback(p);
 
@@ -256,11 +271,30 @@ extern "C" void *watchdog_thread(void *arg)
 	    } else {
 	       p->next_fire = watchdog_time + p->interval;
 	    }
+	 } 
+	 if (p->next_fire < next_time) {
+	    next_time = p->next_fire;
 	 }
       }
       wd_unlock();
       unlock_jcr_chain();
-      bmicrosleep(watchdog_sleep_time, 0);
+
+      /*		   
+       * Wait sleep time or until someone wakes us 
+       */
+      gettimeofday(&tv, &tz);
+      timeout.tv_nsec = tv.tv_usec * 1000;
+      timeout.tv_sec = tv.tv_sec + next_time - time(NULL);
+      while (timeout.tv_nsec >= 1000000000) {
+	 timeout.tv_nsec -= 1000000000;
+	 timeout.tv_sec++;
+      }
+
+      Dmsg1(900, "pthread_cond_timedwait %d\n", timeout.tv_sec - tv.tv_sec);
+      /* Note, this unlocks mutex during the sleep */
+      P(timer_mutex);
+      pthread_cond_timedwait(&timer, &timer_mutex, &timeout);
+      V(timer_mutex);
    }
 
    Dmsg0(400, "NicB-reworked watchdog thread exited\n");
