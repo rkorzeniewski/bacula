@@ -1,4 +1,5 @@
 
+Version 1.36.0 released 21Oct04:
 Changes to 1.35.9:
 19Oct04
 - Modify install of make_catalog_backup and delete_catalog_backup so

@@ -10,7 +10,7 @@
 #define TRACEBACK 1
 #define SMCHECK     
 #define TRACE_FILE 1  
-#define DEVELOPER 1
+/* #define DEVELOPER 1 */
 
 
 /* Debug flags not normally turned on */
