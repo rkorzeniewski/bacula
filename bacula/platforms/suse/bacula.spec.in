@@ -450,25 +450,25 @@ rm -f $RPM_BUILD_ROOT/etc/bacula/stopmysql
 
 # install the init scripts
 %if %{su9}
-cp platforms/suse/bacula-dir $RPM_BUILD_ROOT/etc/init.d/bacula-dir
-cp platforms/suse/bacula-fd $RPM_BUILD_ROOT/etc/init.d/bacula-fd
-cp platforms/suse/bacula-sd $RPM_BUILD_ROOT/etc/init.d/bacula-sd
+cp -p -p platforms/suse/bacula-dir $RPM_BUILD_ROOT/etc/init.d/bacula-dir
+cp -p platforms/suse/bacula-fd $RPM_BUILD_ROOT/etc/init.d/bacula-fd
+cp -p platforms/suse/bacula-sd $RPM_BUILD_ROOT/etc/init.d/bacula-sd
 %else
-cp platforms/redhat/bacula-dir $RPM_BUILD_ROOT/etc/init.d/bacula-dir
-cp platforms/redhat/bacula-fd $RPM_BUILD_ROOT/etc/init.d/bacula-fd
-cp platforms/redhat/bacula-sd $RPM_BUILD_ROOT/etc/init.d/bacula-sd
+cp -p platforms/redhat/bacula-dir $RPM_BUILD_ROOT/etc/init.d/bacula-dir
+cp -p platforms/redhat/bacula-fd $RPM_BUILD_ROOT/etc/init.d/bacula-fd
+cp -p platforms/redhat/bacula-sd $RPM_BUILD_ROOT/etc/init.d/bacula-sd
 %endif
 
 # install the menu stuff
-cp scripts/bacula.png $RPM_BUILD_ROOT/usr/share/pixmaps/bacula.png
-cp scripts/bacula.desktop.gnome1 $RPM_BUILD_ROOT/usr/share/gnome/apps/System/bacula.desktop
-cp scripts/bacula.desktop.gnome2 $RPM_BUILD_ROOT/usr/share/applications/bacula.desktop
+cp -p scripts/bacula.png $RPM_BUILD_ROOT/usr/share/pixmaps/bacula.png
+cp -p scripts/bacula.desktop.gnome1 $RPM_BUILD_ROOT/usr/share/gnome/apps/System/bacula.desktop
+cp -p scripts/bacula.desktop.gnome2 $RPM_BUILD_ROOT/usr/share/applications/bacula.desktop
 
 # install sqlite
 %if %{sqlite}
-cp ../depkgs/sqlite/sqlite $RPM_BUILD_ROOT%{sqlite_bindir}/sqlite
-cp ../depkgs/sqlite/sqlite.h $RPM_BUILD_ROOT%{sqlite_bindir}/sqlite.h
-cp ../depkgs/sqlite/libsqlite.a $RPM_BUILD_ROOT%{sqlite_bindir}/libsqlite.a
+cp -p ../depkgs/sqlite/sqlite $RPM_BUILD_ROOT%{sqlite_bindir}/sqlite
+cp -p ../depkgs/sqlite/sqlite.h $RPM_BUILD_ROOT%{sqlite_bindir}/sqlite.h
+cp -p ../depkgs/sqlite/libsqlite.a $RPM_BUILD_ROOT%{sqlite_bindir}/libsqlite.a
 %endif
 
 # install the logrotate file
@@ -476,27 +476,26 @@ cp scripts/logrotate $RPM_BUILD_ROOT/etc/logrotate.d/bacula
 
 # install the rescue stuff
 # these are the rescue scripts
-cp rescue/linux/backup.etc.list $RPM_BUILD_ROOT/etc/bacula/rescue/
-cp rescue/linux/format_floppy $RPM_BUILD_ROOT/etc/bacula/rescue/
-cp rescue/linux/getdiskinfo $RPM_BUILD_ROOT/etc/bacula/rescue/
-cp rescue/linux/make_rescue_disk $RPM_BUILD_ROOT/etc/bacula/rescue/
-cp rescue/linux/restore_bacula $RPM_BUILD_ROOT/etc/bacula/rescue/
-cp rescue/linux/restore_etc $RPM_BUILD_ROOT/etc/bacula/rescue/
-cp rescue/linux/run_grub $RPM_BUILD_ROOT/etc/bacula/rescue/
-cp rescue/linux/run_lilo $RPM_BUILD_ROOT/etc/bacula/rescue/
-cp rescue/linux/sfdisk.bz2 $RPM_BUILD_ROOT/etc/bacula/rescue/
+cp -p rescue/linux/backup.etc.list $RPM_BUILD_ROOT/etc/bacula/rescue/
+cp -p rescue/linux/format_floppy $RPM_BUILD_ROOT/etc/bacula/rescue/
+cp -p rescue/linux/getdiskinfo $RPM_BUILD_ROOT/etc/bacula/rescue/
+cp -p rescue/linux/make_rescue_disk $RPM_BUILD_ROOT/etc/bacula/rescue/
+cp -p rescue/linux/restore_bacula $RPM_BUILD_ROOT/etc/bacula/rescue/
+cp -p rescue/linux/restore_etc $RPM_BUILD_ROOT/etc/bacula/rescue/
+cp -p rescue/linux/run_grub $RPM_BUILD_ROOT/etc/bacula/rescue/
+cp -p rescue/linux/run_lilo $RPM_BUILD_ROOT/etc/bacula/rescue/
+cp -p rescue/linux/sfdisk.bz2 $RPM_BUILD_ROOT/etc/bacula/rescue/
 
 # this is the static file daemon
-cp src/filed/static-bacula-fd $RPM_BUILD_ROOT/etc/bacula/rescue/bacula-fd
+cp -p src/filed/static-bacula-fd $RPM_BUILD_ROOT/etc/bacula/rescue/bacula-fd
 
 # this is the tom's root boot disk
-cp ../%{tomsrtbt}/* $RPM_BUILD_ROOT/etc/bacula/rescue/tomsrtbt/
+cp -p ../%{tomsrtbt}/* $RPM_BUILD_ROOT/etc/bacula/rescue/tomsrtbt/
 
 # install the updatedb scripts
-cp updatedb/* $RPM_BUILD_ROOT/etc/bacula/updatedb/
+cp -p updatedb/* $RPM_BUILD_ROOT/etc/bacula/updatedb/
 
 # now clean up permissions that are left broken by the install
-chmod a+x $RPM_BUILD_ROOT/usr/sbin/gnome-console
 chmod o-r $RPM_BUILD_ROOT/etc/bacula/query.sql
 chmod o-rwx $RPM_BUILD_ROOT/var/bacula
 
@@ -567,7 +566,7 @@ if [ -n "$DB_VER" ] && [ "$DB_VER" -lt "6" ]; then
 fi
 # check for and copy /etc/bacula/console.conf to bconsole.conf
 if [ -s /etc/bacula/console.conf ];then
-	cp /etc/bacula/console.conf /etc/bacula/bconsole.conf
+	cp -p /etc/bacula/console.conf /etc/bacula/bconsole.conf
 fi
 
 %post mysql
@@ -679,7 +678,7 @@ if [ -s %{working_dir}/bacula.db ];then
 fi
 # check for and copy /etc/bacula/console.conf to bconsole.conf
 if [ -s /etc/bacula/console.conf ];then
-	cp /etc/bacula/console.conf /etc/bacula/bconsole.conf
+	cp -p /etc/bacula/console.conf /etc/bacula/bconsole.conf
 fi
 
 %post sqlite
@@ -885,6 +884,9 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 
 
 %changelog
+* Mon Mar 1 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
+- replaced all cp commands with cp -p
+- removed addition of a+x permissions on gnome-console
 * Sat Feb 28 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - corrected creation of sqlite_bindir in install from !mysql to sqlite
 -
