@@ -57,6 +57,7 @@ Copyright: GPL v2
 Source0:http://www.prdownloads.sourceforge.net/bacula/%{name}-%{version}.tar.gz
 Source1:http://www.prdownloads.sourceforge.net/bacula/depkgs-%{depkgs_version}.tar.gz
 Source2:http://www.tux.org/pub/distributions/tinylinux/tomsrtbt/%{tomsrtbt}.tar.gz
+Source3: Release_Notes-%{version}-%{release}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-root
 URL: http://www.bacula.org/
 Vendor: The Bacula Team
@@ -137,7 +138,7 @@ Summary: Bacula - The Network Backup Solution
 Group: System Environment/Daemons
 Provides: bacula-dir, bacula-sd, bacula-fd, bacula-server
 Conflicts: bacula-client
-Requires: readline, perl, ncurses, libstdc++, zlib
+Requires: readline, ncurses, libstdc++, zlib
 %if %{rh7}
 Requires: glibc >= 2.2
 Requires: libtermcap
@@ -201,7 +202,7 @@ This build incorporates sqlite as the catalog database, statically compiled.
 Summary: Bacula - The Network Backup Solution
 Group: System Environment/Daemons
 Provides: bacula-fd
-Requires: readline, perl, libstdc++, zlib
+Requires: readline, libstdc++, zlib
 
 %if %{rh7}
 Requires: glibc >= 2.2
@@ -344,6 +345,7 @@ server packages.
 
 %setup -b 1
 %setup -b 2
+%setup -b 3
 
 %build
 
@@ -437,6 +439,13 @@ make \
         mandir=$RPM_BUILD_ROOT/usr/man \
         mtx-install
 cd ${cwd}
+
+# setup the manual for the doc dir
+mkdir html-manual
+cp -p doc/html-manual/*.html html-manual/
+cp -p doc/html-manual/*.jpg html-manual/
+cp -p doc/html-manual/*.gif html-manual/
+cp -p doc/html-manual/*.css html-manual/
 
 # fixme - make installs the mysql scripts for sqlite build
 %if %{sqlite}
@@ -543,7 +552,7 @@ chmod o-rwx $RPM_BUILD_ROOT/var/bacula
 /etc/init.d/bacula-fd
 /etc/init.d/bacula-sd
 
-%doc COPYING ChangeLog INSTALL README ReleaseNotes doc/*
+%doc COPYING ChangeLog ReleaseNotes VERIFYING kernstodo doc/bacula.pdf html-manual ../Release_Notes-%{version}-%{release}.txt
 /usr/man/man1/*
 
 /etc/logrotate.d/bacula
@@ -664,7 +673,7 @@ fi
 /etc/init.d/bacula-fd
 /etc/init.d/bacula-sd
 
-%doc COPYING ChangeLog INSTALL README ReleaseNotes doc/*
+%doc COPYING ChangeLog ReleaseNotes VERIFYING kernstodo doc/bacula.pdf html-manual ../Release_Notes-%{version}-%{release}.txt
 /usr/man/man1/*
 
 /etc/logrotate.d/bacula
@@ -783,7 +792,7 @@ fi
 /etc/init.d/bacula-fd
 /etc/init.d/bacula-sd
 
-%doc COPYING ChangeLog INSTALL README ReleaseNotes doc/*
+%doc COPYING ChangeLog ReleaseNotes VERIFYING kernstodo doc/bacula.pdf html-manual ../Release_Notes-%{version}-%{release}.txt
 /usr/man/man1/*
 
 /etc/logrotate.d/bacula
@@ -854,7 +863,7 @@ fi
 /etc/bacula/bconsole
 /etc/init.d/bacula-fd
 
-%doc COPYING ChangeLog INSTALL README ReleaseNotes doc/*
+%doc COPYING ChangeLog ReleaseNotes VERIFYING kernstodo doc/bacula.pdf html-manual ../Release_Notes-%{version}-%{release}.txt
 /etc/logrotate.d/bacula
 
 %config(noreplace) /etc/bacula/bacula-fd.conf
@@ -944,6 +953,8 @@ rm -f /usr/bin/gnome-console
 %endif
 
 %changelog
+* Fri Apr 02 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
+- tightened up doc distribution
 * Tue Mar 30 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - added usermode (Redhat) and xsu (SuSE) support for gnome-console;
 - rpm's horrible bug that prevents nested conditional macros prevents me
