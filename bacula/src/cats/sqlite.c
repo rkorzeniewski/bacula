@@ -341,7 +341,7 @@ void my_sqlite_free_table(B_DB *mdb)
 	 free(mdb->fields[i]);
       }
       free(mdb->fields);
-      mdb->fields_defined = FALSE;
+      mdb->fields_defined = false;
    }
    sqlite_free_table(mdb->result);
    mdb->nrow = mdb->ncolumn = 0; 

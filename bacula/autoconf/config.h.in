@@ -353,6 +353,9 @@
 /* Define to 1 if you have the `readdir_r' function. */
 #undef HAVE_READDIR_R
 
+/* Define to 1 if you have the <regex.h> header file. */
+#undef HAVE_REGEX_H
+
 /* Define to 1 if you have the <resolv.h> header file. */
 #undef HAVE_RESOLV_H
 

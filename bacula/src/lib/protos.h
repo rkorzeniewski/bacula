@@ -63,10 +63,10 @@ void read_state_file(char *dir, const char *progname, int port);
 
 /* bnet.c */
 int32_t    bnet_recv             (BSOCK *bsock);
-int        bnet_send             (BSOCK *bsock);
-int        bnet_fsend            (BSOCK *bs, const char *fmt, ...);
-int        bnet_set_buffer_size  (BSOCK *bs, uint32_t size, int rw);
-int        bnet_sig              (BSOCK *bs, int sig);
+bool       bnet_send             (BSOCK *bsock);
+bool       bnet_fsend            (BSOCK *bs, const char *fmt, ...);
+bool       bnet_set_buffer_size  (BSOCK *bs, uint32_t size, int rw);
+bool       bnet_sig              (BSOCK *bs, int sig);
 int        bnet_ssl_server       (BSOCK *bsock, char *password, int ssl_need, int ssl_has);
 int        bnet_ssl_client       (BSOCK *bsock, char *password, int ssl_need);
 BSOCK *    bnet_connect            (JCR *jcr, int retry_interval,
@@ -82,7 +82,7 @@ const char *bnet_sig_to_ascii     (BSOCK *bsock);
 int        bnet_wait_data        (BSOCK *bsock, int sec);
 int        bnet_wait_data_intr   (BSOCK *bsock, int sec);
 int        bnet_despool_to_bsock (BSOCK *bsock, void update(ssize_t size), ssize_t size);
-int        is_bnet_stop          (BSOCK *bsock);
+bool       is_bnet_stop          (BSOCK *bsock);
 int        is_bnet_error         (BSOCK *bsock);
 void       bnet_suppress_error_messages(BSOCK *bsock, bool flag);
 

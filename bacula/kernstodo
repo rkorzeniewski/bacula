@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                  26 June 2004
+                  01 July 2004
 
 1.35 Items to do:
 - Make btape release the drive during the "test" append.
@@ -10,7 +10,7 @@
   you lost/broke the Catalog -- do the same for "I know my
   file is there how do I get it back?".
 - When restore started from console, report jobid.
-- Win32 inc problem when new directory added.
+- Look at Win32 inc problem when new directory added files not saved???
 - Make FD run on Win95 if possible:
    The error I when I installed 1.34.2 clients:
    The BACULA-FD file is  
@@ -20,11 +20,9 @@
   user to the doc.
 - Make Verify jobs require exclusive use of Volume as Restore 
   jobs do.
-- Add regular expressions to FileSets.
 - Perhaps add read/write programs and/or plugins to FileSets.
 - Look at adding Client run command that will use the
   port opened by the client.
-- Test new I/O error despooling code.
 
 Documentation to do: (any release a little bit at a time)
 - Document query file format.
@@ -1087,3 +1085,6 @@ Block Position: 0
 - Add InChanger to "list media"
 - Implement second cut of SIGHUP in Dir
   (Implement resources on a single pointer)
+- Add regular expressions to FileSets.
+- Test new I/O error despooling code.
+

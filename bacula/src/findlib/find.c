@@ -28,7 +28,6 @@
 #include "bacula.h"
 #include "find.h"
 
-
 int32_t name_max;	       /* filename max length */
 int32_t path_max;	       /* path name max length */
 
@@ -162,6 +161,18 @@ static bool accept_file(FF_PKT *ff)
       findFOPTS *fo = (findFOPTS *)incexe->opts_list.get(j);
       for (k=0; k<fo->wild.size(); k++) {
 	 if (fnmatch((char *)fo->wild.get(k), ff->fname, 0) == 0) {
+	    ff->flags = fo->flags;
+	    ff->GZIP_level = fo->GZIP_level;
+	    if (ff->flags & FO_EXCLUDE) {
+	       return false;	      /* reject file */
+	    }
+	    return true;	      /* accept file */
+	 }
+      }
+      for (k=0; k<fo->regex.size(); k++) {
+	 const int nmatch = 30;
+	 regmatch_t pmatch[nmatch];
+	 if (regexec((regex_t *)fo->regex.get(k), ff->fname, nmatch, pmatch,  0) == 0) {
 	    ff->flags = fo->flags;
 	    ff->GZIP_level = fo->GZIP_level;
 	    if (ff->flags & FO_EXCLUDE) {

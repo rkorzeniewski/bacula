@@ -472,17 +472,17 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
    
 #ifdef HAVE_ACL
    /* ACL stream */
-   if(ff_pkt->flags & FO_ACL) {
+   if (ff_pkt->flags & FO_ACL) {
       char *acl_text;
       /* Read ACLs for files, dirs and links */
-      if(ff_pkt->type == FT_DIREND) {
+      if (ff_pkt->type == FT_DIREND) {
 	 /* Directory: Try for default ACL*/
 	 acl_t myAcl = acl_get_file(ff_pkt->fname, ACL_TYPE_DEFAULT);
-	 if(!myAcl) {
+	 if (!myAcl) {
             Dmsg1(200, "No default ACL defined for directory: %s!\n", ff_pkt->fname);
 	    /* If there is no default ACL get standard ACL */
 	    myAcl = acl_get_file(ff_pkt->fname, ACL_TYPE_ACCESS);
-	    if(!myAcl) {
+	    if (!myAcl) {
                Emsg1(M_WARNING, 0, "Error while trying to get ACL of directory: %s!\n", ff_pkt->fname);
 	    }
 	 }
@@ -492,7 +492,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       } else {
 	 /* Files or links */
 	 acl_t myAcl = acl_get_file(ff_pkt->fname, ACL_TYPE_ACCESS);
-	 if(!myAcl) {
+	 if (!myAcl) {
             Emsg1(M_WARNING, 0, "Error while trying to get ACL of file: %s!\n", ff_pkt->fname);
 	    acl_free(myAcl);
 	 }
@@ -500,41 +500,41 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	 acl_free(myAcl);
       }
       
-      /* Send stream to server */
-      sd = jcr->store_bsock;
+      /* If there is an ACL, send it to the Storage daemon */
+      if (acl_text) {
+	 sd = jcr->store_bsock;
+	 pm_strcpy(&jcr->last_fname, ff_pkt->fname);
       
-      msgsave = sd->msg;
-      
-      pm_strcpy(&jcr->last_fname, ff_pkt->fname);
-      
-      /*
-      * Send ACL header
-      *
-      */
-      if(!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_UNIX_ATTRIBUTES_ACL)) {
-	 set_jcr_job_status(jcr, JS_ErrorTerminated);
-	 return 0;
-      }
-      
-      /* Send the buffer to the storage deamon */
-      sd->msg = acl_text;
-      sd->msglen = strlen(acl_text) + 1;
-      if(!bnet_send(sd)) {
-	 sd->msg = msgsave;
-	 sd->msglen = 0;
-	 bclose(&ff_pkt->bfd);
-	 set_jcr_job_status(jcr, JS_ErrorTerminated);
-         Emsg1(M_WARNING, 0, "Error while trying to send ACL of %s to SD!\n", ff_pkt->fname);
-      } else {
-	 jcr->JobBytes += sd->msglen;
-	 sd->msg = msgsave;
-	 bclose(&ff_pkt->bfd);
-	 if(!bnet_sig(sd, BNET_EOD)) {
+	 /*
+	 * Send ACL header
+	 *
+	 */
+         if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_UNIX_ATTRIBUTES_ACL)) {
 	    set_jcr_job_status(jcr, JS_ErrorTerminated);
-	 } else {
-            Dmsg1(200, "ACL of file: %s successfully backed up!\n", ff_pkt->fname);
+	    return 0;
 	 }
-      }  
+      
+	 /* Send the buffer to the storage deamon */
+	 msgsave = sd->msg;
+	 sd->msg = acl_text;
+	 sd->msglen = strlen(acl_text) + 1;
+	 if (!bnet_send(sd)) {
+	    sd->msg = msgsave;
+	    sd->msglen = 0;
+	    bclose(&ff_pkt->bfd);
+	    set_jcr_job_status(jcr, JS_ErrorTerminated);
+            Emsg1(M_WARNING, 0, "Error while trying to send ACL of %s to SD!\n", ff_pkt->fname);
+	 } else {
+	    jcr->JobBytes += sd->msglen;
+	    sd->msg = msgsave;
+	    bclose(&ff_pkt->bfd);
+	    if (!bnet_sig(sd, BNET_EOD)) {
+	       set_jcr_job_status(jcr, JS_ErrorTerminated);
+	    } else {
+               Dmsg1(200, "ACL of file: %s successfully backed up!\n", ff_pkt->fname);
+	    }
+	 }  
+      }
    }
 #endif
 

@@ -28,6 +28,9 @@
 
 #include "bacula.h"
 #include "dird.h"
+#ifdef HAVE_REGEX_H
+#include <regex.h>
+#endif
 
 /* Forward referenced subroutines */
 
@@ -442,7 +445,9 @@ static void store_newinc(LEX *lc, RES_ITEM *item, int index, int pass)
 /* Store regex info */
 static void store_regex(LEX *lc, RES_ITEM *item, int index, int pass)
 {
-   int token;
+   int token, rc;
+   regex_t preg;
+   char prbuf[500];
 
    if (pass == 1) {
       /* Pickup regex string
@@ -452,6 +457,14 @@ static void store_regex(LEX *lc, RES_ITEM *item, int index, int pass)
       case T_IDENTIFIER:
       case T_UNQUOTED_STRING:
       case T_QUOTED_STRING:
+	 rc = regcomp(&preg, lc->str, REG_EXTENDED);
+	 if (rc != 0) {
+	    regerror(rc, &preg, prbuf, sizeof(prbuf));
+	    regfree(&preg);
+            scan_err1(lc, _("Regex compile error. ERR=%s\n"), prbuf);
+	    break;
+	 }
+	 regfree(&preg);
 	 res_incexe.current_opts->regex.append(bstrdup(lc->str));
          Dmsg3(900, "set regex %p size=%d %s\n", 
 	    res_incexe.current_opts, res_incexe.current_opts->regex.size(),lc->str);
