@@ -332,7 +332,7 @@ checkVol:
    /* Check for volume=NewVolume */
    i = find_arg_with_value(ua, "volume");
    if (i >= 0) {
-      pm_strcpy(&ua->cmd, ua->argv[i]);
+      pm_strcpy(ua->cmd, ua->argv[i]);
       goto checkName;
    }
 

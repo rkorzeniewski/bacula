@@ -134,7 +134,7 @@ DCR *acquire_device_for_read(JCR *jcr)
 
    for (i=0; i<5; i++) {
       if (job_canceled(jcr)) {
-         Mmsg1(&dev->errmsg, _("Job %d canceled.\n"), jcr->JobId);
+         Mmsg1(dev->errmsg, _("Job %d canceled.\n"), jcr->JobId);
 	 goto get_out;		      /* error return */
       }
       /*

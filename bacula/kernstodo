@@ -11,22 +11,11 @@ Version 1.35                Kern (see below)
 ========================================================
 
 1.35 Items to do for release:
-- Find memory leaks in address_conf.c
-- Network order of port and ip addresses.
-- SetIP in dird/fd_cmds.c is broken.
-- don't use inet_addr() it is deprecated.
-- Fix code in filed.c for init_bsock();
-- Fix code in console.c for init_bsock();
-
-
 - Knoppix CDROM
-- Make Verify jobs require exclusive use of Volume as Restore 
-  jobs do.
 - Perhaps add read/write programs and/or plugins to FileSets.
 - Add new DCR calling sequences everywhere in SD. This will permit 
   simultaneous use of multiple devices by a single job.
 - Fix restore ++++ that get intermingled with "Building directory tree"
-- Solve the termcap.h problem on Solaris configure.
 
 
 - Test Win32 errno handling.
@@ -80,6 +69,8 @@ For 1.37 Testing/Documentation:
   non-existent directories will not be restored properly.
 
 Wish list:  
+- Fix restore jobs so that multiple jobs can run if they
+  are not using the same tape(s).
 - Allow the user to select JobType for manual pruning/purging.
 - Look at adding Client run command that will use the
   port opened by the client.
@@ -1177,3 +1168,12 @@ Block Position: 0
 - When passwords do not match, print message that points the
   user to the doc.
 - Do tape alerts -- see tapealert.txt
+- Find memory leaks in address_conf.c
+- Network order of port and ip addresses.
+- SetIP in dird/fd_cmds.c is broken.
+- don't use inet_addr() it is deprecated.
+- Fix code in filed.c for init_bsock();
+- Fix code in console.c for init_bsock();
+- Solve the termcap.h problem on Solaris configure.
+- Make Verify jobs require exclusive use of Volume as Restore 
+  jobs do.

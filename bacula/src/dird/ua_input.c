@@ -55,7 +55,7 @@ int get_cmd(UAContext *ua, const char *prompt)
       if (is_bnet_stop(sock)) {
 	 return 0;		      /* error or terminate */
       }
-      pm_strcpy(&ua->cmd, sock->msg);
+      pm_strcpy(ua->cmd, sock->msg);
       strip_trailing_junk(ua->cmd);
       if (strcmp(ua->cmd, ".messages") == 0) {
 	 qmessagescmd(ua, ua->cmd);

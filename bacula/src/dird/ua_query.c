@@ -115,9 +115,9 @@ int querycmd(UAContext *ua, const char *cmd)
 	 }
       }  
       if (*query != 0) {
-         pm_strcat(&query, " ");
+         pm_strcat(query, " ");
       }
-      pm_strcat(&query, line);
+      pm_strcat(query, line);
       if (line[len-1] != ';') {
 	 continue;
       }

@@ -9165,6 +9165,7 @@ fi
 
 
 
+
 for ac_header in \
 	assert.h \
 	fcntl.h \
@@ -9177,6 +9178,7 @@ for ac_header in \
 	stdint.h \
 	string.h \
 	termios.h \
+	termcap.h \
 	unistd.h \
 	sys/bitypes.h \
 	sys/byteorder.h \

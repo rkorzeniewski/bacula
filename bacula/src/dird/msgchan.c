@@ -139,10 +139,10 @@ int start_storage_daemon_job(JCR *jcr)
    pool_name = get_pool_memory(PM_NAME);
    pool_type = get_pool_memory(PM_NAME);
    media_type = get_pool_memory(PM_NAME);
-   pm_strcpy(&device_name, storage->dev_name);
-   pm_strcpy(&media_type, storage->media_type);
-   pm_strcpy(&pool_type, jcr->pool->pool_type);
-   pm_strcpy(&pool_name, jcr->pool->hdr.name);
+   pm_strcpy(device_name, storage->dev_name);
+   pm_strcpy(media_type, storage->media_type);
+   pm_strcpy(pool_type, jcr->pool->pool_type);
+   pm_strcpy(pool_name, jcr->pool->hdr.name);
    bash_spaces(device_name);
    bash_spaces(media_type);
    bash_spaces(pool_type);
@@ -151,7 +151,7 @@ int start_storage_daemon_job(JCR *jcr)
    Dmsg1(110, ">stored: %s", sd->msg);
    status = response(jcr, sd, OK_device, "Use Device", NO_DISPLAY);
    if (!status) {
-      pm_strcpy(&pool_type, sd->msg); /* save message */
+      pm_strcpy(pool_type, sd->msg); /* save message */
       Jmsg(jcr, M_FATAL, 0, _("\n"
          "     Storage daemon didn't accept Device \"%s\" because:\n     %s"),
 	 device_name, pool_type/* sd->msg */);

@@ -149,7 +149,7 @@ static void *handle_UA_client_request(void *arg)
    while (!ua->quit) {
       stat = bnet_recv(ua->UA_sock);
       if (stat >= 0) {
-	 pm_strcpy(&ua->cmd, ua->UA_sock->msg);
+	 pm_strcpy(ua->cmd, ua->UA_sock->msg);
 	 parse_ua_args(ua);
          if (ua->argc > 0 && ua->argk[0][0] == '.') {
 	    do_a_dot_command(ua, ua->cmd);

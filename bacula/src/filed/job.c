@@ -950,7 +950,7 @@ static int bootstrap_cmd(JCR *jcr)
       unlink(jcr->RestoreBootstrap);
       free_pool_memory(jcr->RestoreBootstrap);
    }
-   Mmsg(&fname, "%s/%s.%s.bootstrap", me->working_directory, me->hdr.name,
+   Mmsg(fname, "%s/%s.%s.bootstrap", me->working_directory, me->hdr.name,
       jcr->Job);
    Dmsg1(400, "bootstrap=%s\n", fname);
    jcr->RestoreBootstrap = fname;
@@ -1583,7 +1583,7 @@ static int send_bootstrap_file(JCR *jcr)
    sd->msglen = strlen(sd->msg);
    bnet_send(sd);
    while (fgets(buf, sizeof(buf), bs)) {
-      sd->msglen = Mmsg(&sd->msg, "%s", buf);
+      sd->msglen = Mmsg(sd->msg, "%s", buf);
       bnet_send(sd);	   
    }
    bnet_sig(sd, BNET_EOD);

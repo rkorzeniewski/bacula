@@ -107,7 +107,7 @@ int do_a_dot_command(UAContext *ua, const char *cmd)
       }
    }
    if (!found) {
-      pm_strcat(&ua->UA_sock->msg, _(": is an illegal command\n"));
+      pm_strcat(ua->UA_sock->msg, _(": is an illegal command\n"));
       ua->UA_sock->msglen = strlen(ua->UA_sock->msg);
       bnet_send(ua->UA_sock);
    }
@@ -220,7 +220,7 @@ static int backupscmd(UAContext *ua, const char *cmd)
    if (ua->argc == 2 && strcmp(ua->argk[1], "client") != 0) {
       return 1;
    }
-   Mmsg(&ua->cmd, client_backups, ua->argv[1]);
+   Mmsg(ua->cmd, client_backups, ua->argv[1]);
    if (!db_sql_query(ua->db, ua->cmd, client_backups_handler, (void *)ua)) {
       bsendmsg(ua, _("Query failed: %s. ERR=%s\n"), ua->cmd, db_strerror(ua->db));
       return 1;

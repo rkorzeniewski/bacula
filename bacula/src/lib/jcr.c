@@ -352,6 +352,7 @@ void free_jcr(JCR *jcr)
 
 #endif
 
+   dequeue_messages(jcr);
    lock_jcr_chain();
    jcr->use_count--;		      /* decrement use count */
    if (jcr->use_count < 0) {
@@ -364,19 +365,17 @@ void free_jcr(JCR *jcr)
       Dmsg2(400, "free_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
       return;
    }
-   dequeue_messages(jcr);
-   remove_jcr(jcr);
+   remove_jcr(jcr);		      /* remove Jcr from chain */
+   unlock_jcr_chain();
+
    job_end_pop(jcr);		      /* pop and call hooked routines */
 
    Dmsg1(400, "End job=%d\n", jcr->JobId);
    if (jcr->daemon_free_jcr) {
       jcr->daemon_free_jcr(jcr);      /* call daemon free routine */
    }
-
    free_common_jcr(jcr);
-
    close_msg(NULL);		      /* flush any daemon messages */
-   unlock_jcr_chain();
    Dmsg0(400, "Exit free_jcr\n");
 }
 
@@ -530,11 +529,16 @@ static int lock_count = 0;
 /* 
  * Lock the chain
  */
+#ifdef TRACE_JCR_CHAIN
+void b_lock_jcr_chain(const char *fname, int line)
+#else
 void lock_jcr_chain()
+#endif
 {
    int errstat;
 #ifdef TRACE_JCR_CHAIN 
-   Dmsg1(000, "Lock jcr chain %d.\n", ++lock_count);
+   Dmsg3(000, "Lock jcr chain %d from %s:%d\n", ++lock_count,
+      fname, line);
 #endif
    if ((errstat=rwl_writelock(&lock)) != 0) {
       Emsg1(M_ABORT, 0, "rwl_writelock failure. ERR=%s\n",
@@ -545,11 +549,16 @@ void lock_jcr_chain()
 /*
  * Unlock the chain
  */
+#ifdef TRACE_JCR_CHAIN
+void b_unlock_jcr_chain(const char *fname, int line)
+#else
 void unlock_jcr_chain()
+#endif
 {
    int errstat;
 #ifdef TRACE_JCR_CHAIN 
-   Dmsg1(000, "Unlock jcr chain %d\n", lock_count--);
+   Dmsg3(000, "Unlock jcr chain %d from %s:%d\n", lock_count--,
+      fname, line);
 #endif
    if ((errstat=rwl_writeunlock(&lock)) != 0) {
       Emsg1(M_ABORT, 0, "rwl_writeunlock failure. ERR=%s\n",

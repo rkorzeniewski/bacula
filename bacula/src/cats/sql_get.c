@@ -105,14 +105,14 @@ int db_get_file_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr, FILE_DBR *fdbr)
    int stat = 0;
 
    if (jcr->JobLevel == L_VERIFY_DISK_TO_CATALOG) {
-   Mmsg(&mdb->cmd, 
+   Mmsg(mdb->cmd, 
 "SELECT FileId, LStat, MD5 FROM File,Job WHERE "
 "File.JobId=Job.JobId AND File.PathId=%u AND "
 "File.FilenameId=%u AND Job.Type='B' AND Job.JobSTATUS='T' AND "
 "ClientId=%u ORDER BY StartTime DESC LIMIT 1",
       fdbr->PathId, fdbr->FilenameId, jr->ClientId);
    } else {
-      Mmsg(&mdb->cmd, 
+      Mmsg(mdb->cmd, 
 "SELECT FileId, LStat, MD5 FROM File WHERE File.JobId=%u AND File.PathId=%u AND "
 "File.FilenameId=%u", fdbr->JobId, fdbr->PathId, fdbr->FilenameId);
    }
@@ -143,7 +143,7 @@ int db_get_file_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr, FILE_DBR *fdbr)
       }
       sql_free_result(mdb);
    } else {
-      Mmsg(&mdb->errmsg, _("File record not found in Catalog.\n"));
+      Mmsg(mdb->errmsg, _("File record not found in Catalog.\n"));
    }
    return stat;
 
@@ -163,7 +163,7 @@ static int db_get_filename_record(JCR *jcr, B_DB *mdb)
    mdb->esc_name = check_pool_memory_size(mdb->esc_name, 2*mdb->fnl+2);
    db_escape_string(mdb->esc_name, mdb->fname, mdb->fnl);
    
-   Mmsg(&mdb->cmd, "SELECT FilenameId FROM Filename WHERE Name='%s'", mdb->esc_name);
+   Mmsg(mdb->cmd, "SELECT FilenameId FROM Filename WHERE Name='%s'", mdb->esc_name);
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       char ed1[30];
       mdb->num_rows = sql_num_rows(mdb);
@@ -188,7 +188,7 @@ static int db_get_filename_record(JCR *jcr, B_DB *mdb)
       }
       sql_free_result(mdb);
    } else {
-      Mmsg(&mdb->errmsg, _("Filename record: %s not found in Catalog.\n"), mdb->fname);
+      Mmsg(mdb->errmsg, _("Filename record: %s not found in Catalog.\n"), mdb->fname);
    }
    return FilenameId;
 }
@@ -212,7 +212,7 @@ static int db_get_path_record(JCR *jcr, B_DB *mdb)
       return mdb->cached_path_id;
    }	      
 
-   Mmsg(&mdb->cmd, "SELECT PathId FROM Path WHERE Path='%s'", mdb->esc_name);
+   Mmsg(mdb->cmd, "SELECT PathId FROM Path WHERE Path='%s'", mdb->esc_name);
 
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       char ed1[30];
@@ -246,7 +246,7 @@ static int db_get_path_record(JCR *jcr, B_DB *mdb)
       }
       sql_free_result(mdb);
    } else {
-      Mmsg(&mdb->errmsg, _("Path record: %s not found in Catalog.\n"), mdb->path);
+      Mmsg(mdb->errmsg, _("Path record: %s not found in Catalog.\n"), mdb->path);
    }
    return PathId;
 }
@@ -263,12 +263,12 @@ int db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 
    db_lock(mdb);
    if (jr->JobId == 0) {
-      Mmsg(&mdb->cmd, "SELECT VolSessionId,VolSessionTime,"
+      Mmsg(mdb->cmd, "SELECT VolSessionId,VolSessionTime,"
 "PoolId,StartTime,EndTime,JobFiles,JobBytes,JobTDate,Job,JobStatus,"
 "Type,Level,ClientId "
 "FROM Job WHERE Job='%s'", jr->Job);
     } else {
-      Mmsg(&mdb->cmd, "SELECT VolSessionId,VolSessionTime,"
+      Mmsg(mdb->cmd, "SELECT VolSessionId,VolSessionTime,"
 "PoolId,StartTime,EndTime,JobFiles,JobBytes,JobTDate,Job,JobStatus,"
 "Type,Level,ClientId "
 "FROM Job WHERE JobId=%u", jr->JobId);
@@ -322,7 +322,7 @@ int db_get_job_volume_names(JCR *jcr, B_DB *mdb, uint32_t JobId, POOLMEM **Volum
 
    db_lock(mdb);
    /* Get one entry per VolumeName, but "sort" by VolIndex */
-   Mmsg(&mdb->cmd, 
+   Mmsg(mdb->cmd, 
         "SELECT VolumeName,MAX(VolIndex) FROM JobMedia,Media WHERE "
         "JobMedia.JobId=%u AND JobMedia.MediaId=Media.MediaId "
         "GROUP BY VolumeName "
@@ -354,7 +354,7 @@ int db_get_job_volume_names(JCR *jcr, B_DB *mdb, uint32_t JobId, POOLMEM **Volum
       }
       sql_free_result(mdb);
    } else {
-      Mmsg(&mdb->errmsg, _("No Volume for JobId %d found in Catalog.\n"), JobId);
+      Mmsg(mdb->errmsg, _("No Volume for JobId %d found in Catalog.\n"), JobId);
    }
    db_unlock(mdb);
    return stat;
@@ -376,7 +376,7 @@ int db_get_job_volume_parameters(JCR *jcr, B_DB *mdb, uint32_t JobId, VOL_PARAMS
    VOL_PARAMS *Vols = NULL;
 
    db_lock(mdb);
-   Mmsg(&mdb->cmd, 
+   Mmsg(mdb->cmd, 
 "SELECT VolumeName,FirstIndex,LastIndex,StartFile,EndFile,StartBlock,EndBlock"
 " FROM JobMedia,Media WHERE JobMedia.JobId=%u"
 " AND JobMedia.MediaId=Media.MediaId ORDER BY VolIndex,JobMediaId", JobId);
@@ -429,7 +429,7 @@ int db_get_num_pool_records(JCR *jcr, B_DB *mdb)
    int stat = 0;
 
    db_lock(mdb);
-   Mmsg(&mdb->cmd, "SELECT count(*) from Pool");
+   Mmsg(mdb->cmd, "SELECT count(*) from Pool");
    stat = get_sql_record_max(jcr, mdb);
    db_unlock(mdb);
    return stat;
@@ -451,7 +451,7 @@ int db_get_pool_ids(JCR *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
 
    db_lock(mdb);
    *ids = NULL;
-   Mmsg(&mdb->cmd, "SELECT PoolId FROM Pool");
+   Mmsg(mdb->cmd, "SELECT PoolId FROM Pool");
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       *num_ids = sql_num_rows(mdb);
       if (*num_ids > 0) {
@@ -464,7 +464,7 @@ int db_get_pool_ids(JCR *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
       sql_free_result(mdb);
       stat = 1;
    } else {
-      Mmsg(&mdb->errmsg, _("Pool id select failed: ERR=%s\n"), sql_strerror(mdb));
+      Mmsg(mdb->errmsg, _("Pool id select failed: ERR=%s\n"), sql_strerror(mdb));
       Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
       stat = 0;
    }
@@ -488,7 +488,7 @@ int db_get_client_ids(JCR *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
 
    db_lock(mdb);
    *ids = NULL;
-   Mmsg(&mdb->cmd, "SELECT ClientId FROM Client");
+   Mmsg(mdb->cmd, "SELECT ClientId FROM Client");
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       *num_ids = sql_num_rows(mdb);
       if (*num_ids > 0) {
@@ -501,7 +501,7 @@ int db_get_client_ids(JCR *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
       sql_free_result(mdb);
       stat = 1;
    } else {
-      Mmsg(&mdb->errmsg, _("Client id select failed: ERR=%s\n"), sql_strerror(mdb));
+      Mmsg(mdb->errmsg, _("Client id select failed: ERR=%s\n"), sql_strerror(mdb));
       Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
       stat = 0;
    }
@@ -525,12 +525,12 @@ int db_get_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pdbr)
 
    db_lock(mdb);
    if (pdbr->PoolId != 0) {		  /* find by id */
-      Mmsg(&mdb->cmd, 
+      Mmsg(mdb->cmd, 
 "SELECT PoolId,Name,NumVols,MaxVols,UseOnce,UseCatalog,AcceptAnyVolume,\
 AutoPrune,Recycle,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,\
 MaxVolBytes,PoolType,LabelFormat FROM Pool WHERE Pool.PoolId=%u", pdbr->PoolId);
    } else {			      /* find by name */
-      Mmsg(&mdb->cmd, 
+      Mmsg(mdb->cmd, 
 "SELECT PoolId,Name,NumVols,MaxVols,UseOnce,UseCatalog,AcceptAnyVolume,\
 AutoPrune,Recycle,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,\
 MaxVolBytes,PoolType,LabelFormat FROM Pool WHERE Pool.Name='%s'", pdbr->Name);
@@ -567,11 +567,11 @@ MaxVolBytes,PoolType,LabelFormat FROM Pool WHERE Pool.Name='%s'", pdbr->Name);
 	    stat = pdbr->PoolId;
 	 }
       } else {
-         Mmsg(&mdb->errmsg, _("Pool record not found in Catalog.\n"));
+         Mmsg(mdb->errmsg, _("Pool record not found in Catalog.\n"));
       }
       sql_free_result(mdb);
    } else {
-      Mmsg(&mdb->errmsg, _("Pool record not found in Catalog.\n"));
+      Mmsg(mdb->errmsg, _("Pool record not found in Catalog.\n"));
    }
    db_unlock(mdb);
    return stat;
@@ -591,11 +591,11 @@ int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cdbr)
 
    db_lock(mdb);
    if (cdbr->ClientId != 0) {		    /* find by id */
-      Mmsg(&mdb->cmd, 
+      Mmsg(mdb->cmd, 
 "SELECT ClientId,Name,Uname,AutoPrune,FileRetention,JobRetention "
 "FROM Client WHERE Client.ClientId=%u", cdbr->ClientId);
    } else {			      /* find by name */
-      Mmsg(&mdb->cmd, 
+      Mmsg(mdb->cmd, 
 "SELECT ClientId,Name,Uname,AutoPrune,FileRetention,JobRetention "
 "FROM Client WHERE Client.Name='%s'", cdbr->Name);
    }  
@@ -621,11 +621,11 @@ int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cdbr)
 	    stat = 1;
 	 }
       } else {
-         Mmsg(&mdb->errmsg, _("Client record not found in Catalog.\n"));
+         Mmsg(mdb->errmsg, _("Client record not found in Catalog.\n"));
       }
       sql_free_result(mdb);
    } else {
-      Mmsg(&mdb->errmsg, _("Client record not found in Catalog.\n"));
+      Mmsg(mdb->errmsg, _("Client record not found in Catalog.\n"));
    }
    db_unlock(mdb);
    return stat;
@@ -642,7 +642,7 @@ int db_get_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr)
    SQL_ROW row;
 
    db_lock(mdb);
-   Mmsg(&mdb->cmd, "SELECT MinValue,MaxValue,CurrentValue,WrapCounter "
+   Mmsg(mdb->cmd, "SELECT MinValue,MaxValue,CurrentValue,WrapCounter "
       "FROM Counters WHERE Counter='%s'", cr->Counter);
 
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
@@ -675,7 +675,7 @@ int db_get_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr)
       }
       sql_free_result(mdb);
    } else {
-      Mmsg(&mdb->errmsg, _("Counter record: %s not found in Catalog.\n"), cr->Counter);
+      Mmsg(mdb->errmsg, _("Counter record: %s not found in Catalog.\n"), cr->Counter);
    }  
    db_unlock(mdb);
    return 0;
@@ -696,11 +696,11 @@ int db_get_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
 
    db_lock(mdb);
    if (fsr->FileSetId != 0) {		    /* find by id */
-      Mmsg(&mdb->cmd, 
+      Mmsg(mdb->cmd, 
            "SELECT FileSetId,FileSet,MD5,CreateTime FROM FileSet "
            "WHERE FileSetId=%u", fsr->FileSetId);
    } else {			      /* find by name */
-      Mmsg(&mdb->cmd, 
+      Mmsg(mdb->cmd, 
            "SELECT FileSetId,FileSet,CreateTime,MD5 FROM FileSet "
            "WHERE FileSet='%s'", fsr->FileSet);
    }  
@@ -724,7 +724,7 @@ int db_get_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
       }
       sql_free_result(mdb);
    } else {
-      Mmsg(&mdb->errmsg, _("FileSet record not found in Catalog.\n"));
+      Mmsg(mdb->errmsg, _("FileSet record not found in Catalog.\n"));
    }
    db_unlock(mdb);
    return stat;
@@ -742,7 +742,7 @@ int db_get_num_media_records(JCR *jcr, B_DB *mdb)
    int stat = 0;
 
    db_lock(mdb);
-   Mmsg(&mdb->cmd, "SELECT count(*) from Media");
+   Mmsg(mdb->cmd, "SELECT count(*) from Media");
    stat = get_sql_record_max(jcr, mdb);
    db_unlock(mdb);
    return stat;
@@ -766,7 +766,7 @@ int db_get_media_ids(JCR *jcr, B_DB *mdb, uint32_t PoolId, int *num_ids, uint32_
 
    db_lock(mdb);
    *ids = NULL;
-   Mmsg(&mdb->cmd, "SELECT MediaId FROM Media WHERE PoolId=%u", PoolId);
+   Mmsg(mdb->cmd, "SELECT MediaId FROM Media WHERE PoolId=%u", PoolId);
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       *num_ids = sql_num_rows(mdb);
       if (*num_ids > 0) {
@@ -779,7 +779,7 @@ int db_get_media_ids(JCR *jcr, B_DB *mdb, uint32_t PoolId, int *num_ids, uint32_
       sql_free_result(mdb);
       stat = 1;
    } else {
-      Mmsg(&mdb->errmsg, _("Media id select failed: ERR=%s\n"), sql_strerror(mdb));
+      Mmsg(mdb->errmsg, _("Media id select failed: ERR=%s\n"), sql_strerror(mdb));
       Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
       stat = 0;
    }
@@ -800,19 +800,19 @@ int db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 
    db_lock(mdb);
    if (mr->MediaId == 0 && mr->VolumeName[0] == 0) {
-      Mmsg(&mdb->cmd, "SELECT count(*) from Media");
+      Mmsg(mdb->cmd, "SELECT count(*) from Media");
       mr->MediaId = get_sql_record_max(jcr, mdb);
       db_unlock(mdb);
       return 1;
    }
    if (mr->MediaId != 0) {		 /* find by id */
-      Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
+      Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
          "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
          "MediaType,VolStatus,PoolId,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,"
          "Recycle,Slot,FirstWritten,LastWritten,InChanger "
          "FROM Media WHERE MediaId=%d", mr->MediaId);
    } else {			      /* find by name */
-      Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
+      Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
          "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
          "MediaType,VolStatus,PoolId,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,"
          "Recycle,Slot,FirstWritten,LastWritten,InChanger "
@@ -869,7 +869,7 @@ int db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       }
       sql_free_result(mdb);
    } else {
-      Mmsg(&mdb->errmsg, _("Media record not found in Catalog.\n"));
+      Mmsg(mdb->errmsg, _("Media record not found in Catalog.\n"));
    }
    db_unlock(mdb);
    return stat;

@@ -45,7 +45,14 @@
 #endif
 
 #include <termios.h>
+#ifdef HAVE_SUN_OS
+extern "C" int tgetent(void *, const char *);
+extern "C" int tgetnum(const char *);
+extern "C" char *tgetstr (const char*, char**);
+extern "C" char *tgoto (const char *, int, int);
+#else
 #include <termcap.h>
+#endif
 #include "func.h"
 
 

@@ -85,7 +85,7 @@ static bool do_get_volume_info(DCR *dcr)
     dcr->VolumeName[0] = 0;	      /* No volume */
     if (bnet_recv(dir) <= 0) {
        Dmsg0(200, "getvolname error bnet_recv\n");
-       Mmsg(&jcr->errmsg, _("Network error on bnet_recv in req_vol_info.\n"));
+       Mmsg(jcr->errmsg, _("Network error on bnet_recv in req_vol_info.\n"));
        return false;
     }
     memset(&vol, 0, sizeof(vol));
@@ -100,7 +100,7 @@ static bool do_get_volume_info(DCR *dcr)
 	       &InChanger, &vol.VolReadTime, &vol.VolWriteTime);
     if (n != 17) {
        Dmsg2(100, "Bad response from Dir fields=%d: %s\n", n, dir->msg);
-       Mmsg(&jcr->errmsg, _("Error getting Volume info: %s\n"), dir->msg);
+       Mmsg(jcr->errmsg, _("Error getting Volume info: %s\n"), dir->msg);
        return false;
     }
     vol.InChanger = InChanger;	      /* bool in structure */
@@ -340,7 +340,7 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
    ASSERT(dev->dev_blocked);
    for ( ;; ) {
       if (job_canceled(jcr)) {
-	 Mmsg(&dev->errmsg,
+	 Mmsg(dev->errmsg,
               _("Job %s canceled while waiting for mount on Storage Device \"%s\".\n"), 
 	      jcr->Job, jcr->dev_name);
          Jmsg(jcr, M_INFO, 0, "%s", dev->errmsg);
@@ -399,7 +399,7 @@ Please use the \"label\"  command to create a new Volume for:\n\
 
       if (stat == ETIMEDOUT) {
 	 if (!double_dev_wait_time(dev)) {
-            Mmsg(&dev->errmsg, _("Gave up waiting to mount Storage Device \"%s\" for Job %s\n"), 
+            Mmsg(dev->errmsg, _("Gave up waiting to mount Storage Device \"%s\" for Job %s\n"), 
 	       dev_name(dev), jcr->Job);
             Jmsg(jcr, M_FATAL, 0, "%s", dev->errmsg);
             Dmsg1(190, "Gave up waiting on device %s\n", dev_name(dev));
@@ -408,7 +408,7 @@ Please use the \"label\"  command to create a new Volume for:\n\
 	 continue;
       }
       if (stat == EINVAL) {
-         Mmsg2(&dev->errmsg, _("pthread error in mount_next_volume stat=%d ERR=%s\n"),
+         Mmsg2(dev->errmsg, _("pthread error in mount_next_volume stat=%d ERR=%s\n"),
 	       stat, strerror(stat));
          Jmsg(jcr, M_FATAL, 0, "%s", dev->errmsg);
 	 return false;
@@ -467,13 +467,13 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
 
    Dmsg0(130, "enter dir_ask_sysop_to_mount_volume\n");
    if (!jcr->VolumeName[0]) {
-      Mmsg0(&dev->errmsg, _("Cannot request another volume: no volume name given.\n"));
+      Mmsg0(dev->errmsg, _("Cannot request another volume: no volume name given.\n"));
       return 0;
    }
    ASSERT(dev->dev_blocked);
    for ( ;; ) {
       if (job_canceled(jcr)) {
-         Mmsg(&dev->errmsg, _("Job %s canceled while waiting for mount on Storage Device \"%s\".\n"), 
+         Mmsg(dev->errmsg, _("Job %s canceled while waiting for mount on Storage Device \"%s\".\n"), 
 	      jcr->Job, jcr->dev_name);
 	 return false;
       }
@@ -498,7 +498,7 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
 
       if (stat == ETIMEDOUT) {
 	 if (!double_dev_wait_time(dev)) {
-            Mmsg(&dev->errmsg, _("Gave up waiting to mount Storage Device \"%s\" for Job %s\n"), 
+            Mmsg(dev->errmsg, _("Gave up waiting to mount Storage Device \"%s\" for Job %s\n"), 
 	       dev_name(dev), jcr->Job);
             Jmsg(jcr, M_FATAL, 0, "%s", dev->errmsg);
             Dmsg1(190, "Gave up waiting on device %s\n", dev_name(dev));
@@ -507,7 +507,7 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
 	 continue;
       }
       if (stat == EINVAL) {
-         Mmsg2(&dev->errmsg, _("pthread error in mount_volume stat=%d ERR=%s\n"),
+         Mmsg2(dev->errmsg, _("pthread error in mount_volume stat=%d ERR=%s\n"),
 	       stat, strerror(stat));
          Jmsg(jcr, M_FATAL, 0, "%s", dev->errmsg);
 	 return false;

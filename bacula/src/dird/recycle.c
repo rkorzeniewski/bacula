@@ -57,7 +57,7 @@ int find_recycled_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
    if (db_find_next_volume(jcr, jcr->db, 1, InChanger, mr)) {
       jcr->MediaId = mr->MediaId;
       Dmsg1(20, "Find_next_vol MediaId=%u\n", jcr->MediaId);
-      pm_strcpy(&jcr->VolumeName, mr->VolumeName);
+      pm_strcpy(jcr->VolumeName, mr->VolumeName);
       return 1;
    }
    return 0;
@@ -80,9 +80,9 @@ int recycle_oldest_purged_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
    Dmsg0(100, "Enter recycle_oldest_purged_volume\n");
    oldest.MediaId = 0;
    if (InChanger) {
-      Mmsg(&query, select, mr->PoolId, mr->MediaType, "AND InChanger=1 ");
+      Mmsg(query, select, mr->PoolId, mr->MediaType, "AND InChanger=1 ");
    } else {
-      Mmsg(&query, select, mr->PoolId, mr->MediaType, "");
+      Mmsg(query, select, mr->PoolId, mr->MediaType, "");
    }
 
    if (!db_sql_query(jcr->db, query, oldest_handler, (void *)&oldest)) {

@@ -198,25 +198,25 @@ int db_next_index(JCR *jcr, B_DB *mdb, char *table, char *index)
 
    db_lock(mdb);
 
-   Mmsg(&mdb->cmd,
+   Mmsg(mdb->cmd,
 "SELECT id FROM NextId WHERE TableName=\"%s\"", table);
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
-      Mmsg(&mdb->errmsg, _("next_index query error: ERR=%s\n"), sql_strerror(mdb));
+      Mmsg(mdb->errmsg, _("next_index query error: ERR=%s\n"), sql_strerror(mdb));
       db_unlock(mdb);
       return 0;
    }
    if ((row = sql_fetch_row(mdb)) == NULL) {
-      Mmsg(&mdb->errmsg, _("Error fetching index: ERR=%s\n"), sql_strerror(mdb));
+      Mmsg(mdb->errmsg, _("Error fetching index: ERR=%s\n"), sql_strerror(mdb));
       db_unlock(mdb);
       return 0;
    }
    bstrncpy(index, row[0], 28);
    sql_free_result(mdb);
 
-   Mmsg(&mdb->cmd,
+   Mmsg(mdb->cmd,
 "UPDATE NextId SET id=id+1 WHERE TableName=\"%s\"", table);
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
-      Mmsg(&mdb->errmsg, _("next_index update error: ERR=%s\n"), sql_strerror(mdb));
+      Mmsg(mdb->errmsg, _("next_index update error: ERR=%s\n"), sql_strerror(mdb));
       db_unlock(mdb);
       return 0;
    }
@@ -297,7 +297,7 @@ int db_sql_query(B_DB *mdb, const char *query, DB_RESULT_HANDLER *result_handler
    rh_data.ctx = ctx;
    stat = sqlite_exec(mdb->db, query, sqlite_result, (void *)&rh_data, &mdb->sqlite_errmsg);
    if (stat != 0) {
-      Mmsg(&mdb->errmsg, _("Query failed: %s: ERR=%s\n"), query, sql_strerror(mdb));
+      Mmsg(mdb->errmsg, _("Query failed: %s: ERR=%s\n"), query, sql_strerror(mdb));
       db_unlock(mdb);
       return 0;
    }

@@ -70,7 +70,7 @@ static int send_volume_info_to_storage_daemon(JCR *jcr, BSOCK *sd, MEDIA_DBR *mr
    char ed1[50], ed2[50], ed3[50], ed4[50], ed5[50];
 
    jcr->MediaId = mr->MediaId;
-   pm_strcpy(&jcr->VolumeName, mr->VolumeName);
+   pm_strcpy(jcr->VolumeName, mr->VolumeName);
    bash_spaces(mr->VolumeName);
    stat = bnet_fsend(sd, OK_media, mr->VolumeName, mr->VolJobs,
       mr->VolFiles, mr->VolBlocks, edit_uint64(mr->VolBytes, ed1),
@@ -269,7 +269,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
 
    } else {
       omsg = get_memory(bs->msglen+1);
-      pm_strcpy(&omsg, bs->msg);
+      pm_strcpy(omsg, bs->msg);
       bnet_fsend(bs, "1990 Invalid Catalog Request: %s", omsg);    
       Jmsg1(jcr, M_ERROR, 0, _("Invalid Catalog request: %s"), omsg);
       free_memory(omsg);

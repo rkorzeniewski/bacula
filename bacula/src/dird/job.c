@@ -538,7 +538,7 @@ bool get_or_create_client_record(JCR *jcr)
    if (!jcr->client_name) {
       jcr->client_name = get_pool_memory(PM_NAME);
    }
-   pm_strcpy(&jcr->client_name, jcr->client->hdr.name);
+   pm_strcpy(jcr->client_name, jcr->client->hdr.name);
    if (!db_create_client_record(jcr, jcr->db, &cr)) {
       Jmsg(jcr, M_FATAL, 0, _("Could not create Client record. ERR=%s\n"), 
 	 db_strerror(jcr->db));
@@ -549,7 +549,7 @@ bool get_or_create_client_record(JCR *jcr)
       if (!jcr->client_uname) {
 	 jcr->client_uname = get_pool_memory(PM_NAME);
       }
-      pm_strcpy(&jcr->client_uname, cr.Uname);
+      pm_strcpy(jcr->client_uname, cr.Uname);
    }
    Dmsg2(100, "Created Client %s record %d\n", jcr->client->hdr.name, 
       jcr->jr.ClientId);
@@ -743,7 +743,7 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    if (!jcr->client_name) {
       jcr->client_name = get_pool_memory(PM_NAME);
    }
-   pm_strcpy(&jcr->client_name, jcr->client->hdr.name);
+   pm_strcpy(jcr->client_name, jcr->client->hdr.name);
    jcr->pool = job->pool;
    jcr->full_pool = job->full_pool;
    jcr->inc_pool = job->inc_pool;

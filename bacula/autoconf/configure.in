@@ -988,6 +988,7 @@ AC_CHECK_HEADERS( \
 	stdint.h \
 	string.h \
 	termios.h \
+	termcap.h \
 	unistd.h \
 	sys/bitypes.h \
 	sys/byteorder.h \

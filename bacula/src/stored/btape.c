@@ -1544,7 +1544,7 @@ static void scancmd()
    for (;;) {
       if ((stat = read(dev->fd, buf, sizeof(buf))) < 0) {
 	 clrerror_dev(dev, -1);
-         Mmsg2(&dev->errmsg, "read error on %s. ERR=%s.\n",
+         Mmsg2(dev->errmsg, "read error on %s. ERR=%s.\n",
 	    dev->dev_name, strerror(dev->dev_errno));
          Pmsg2(0, "Bad status from read %d. ERR=%s\n", stat, strerror_dev(dev));
 	 if (blocks > 0)

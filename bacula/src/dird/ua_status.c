@@ -508,13 +508,13 @@ static void list_running_jobs(UAContext *ua)
 	 break;
       case JS_WaitFD:
 	 emsg = (char *) get_pool_memory(PM_FNAME);
-         Mmsg(&emsg, _("is waiting on Client %s"), jcr->client->hdr.name);
+         Mmsg(emsg, _("is waiting on Client %s"), jcr->client->hdr.name);
 	 pool_mem = true;
 	 msg = emsg;
 	 break;
       case JS_WaitSD:
 	 emsg = (char *) get_pool_memory(PM_FNAME);
-         Mmsg(&emsg, _("is waiting on Storage %s"), jcr->store->hdr.name);
+         Mmsg(emsg, _("is waiting on Storage %s"), jcr->store->hdr.name);
 	 pool_mem = true;
 	 msg = emsg;
 	 break;
@@ -539,7 +539,7 @@ static void list_running_jobs(UAContext *ua)
 
       default:
 	 emsg = (char *) get_pool_memory(PM_FNAME);
-         Mmsg(&emsg, _("is in unknown state %c"), jcr->JobStatus);
+         Mmsg(emsg, _("is in unknown state %c"), jcr->JobStatus);
 	 pool_mem = true;
 	 msg = emsg;
 	 break;
@@ -567,7 +567,7 @@ static void list_running_jobs(UAContext *ua)
 	    emsg = (char *) get_pool_memory(PM_FNAME);
 	    pool_mem = true;
 	 }
-         Mmsg(&emsg, _("is waiting for Client %s to connect to Storage %s"),
+         Mmsg(emsg, _("is waiting for Client %s to connect to Storage %s"),
 	      jcr->client->hdr.name, jcr->store->hdr.name);
 	 msg = emsg;
 	 break;

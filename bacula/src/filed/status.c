@@ -56,11 +56,11 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
 
    msg = (char *)get_pool_memory(PM_MESSAGE);
    found = 0;
-   len = Mmsg(&msg, "%s Version: " VERSION " (" BDATE ") %s %s %s\n", my_name,
+   len = Mmsg(msg, "%s Version: " VERSION " (" BDATE ") %s %s %s\n", my_name,
 	      HOST_OS, DISTNAME, DISTVER);
    sendit(msg, len, arg);
    bstrftime_nc(dt, sizeof(dt), daemon_start_time);
-   len = Mmsg(&msg, _("Daemon started %s, %d Job%s run since started.\n"), 
+   len = Mmsg(msg, _("Daemon started %s, %d Job%s run since started.\n"), 
         dt, num_jobs_run, num_jobs_run == 1 ? "" : "s");
    sendit(msg, len, arg);
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
@@ -68,7 +68,7 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
       if (!privs) {
 	 privs = enable_backup_privileges(NULL, 1);
       }
-      len = Mmsg(&msg, 
+      len = Mmsg(msg, 
          _(" Priv 0x%x APIs=%sOPT,%sATP,%sLPV,%sGFAE,%sBR,%sBW,%sSPSP\n"), privs,
          p_OpenProcessToken?"":"!",
          p_AdjustTokenPrivileges?"":"!",
@@ -81,7 +81,7 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
    }
 #endif
    if (debug_level > 0) {
-      len = Mmsg(&msg, _(" Heap: bytes=%s max_bytes=%s bufs=%s max_bufs=%s\n"),
+      len = Mmsg(msg, _(" Heap: bytes=%s max_bytes=%s bufs=%s max_bufs=%s\n"),
 	    edit_uint64_with_commas(sm_bytes, b1),
 	    edit_uint64_with_commas(sm_max_bytes, b2),
 	    edit_uint64_with_commas(sm_buffers, b3),
@@ -89,7 +89,7 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
        sendit(msg, len, arg);
     }
    if (debug_level > 0) {
-      len = Mmsg(&msg, _(" Sizeof: off_t=%d size_t=%d\n"), sizeof(off_t),
+      len = Mmsg(msg, _(" Sizeof: off_t=%d size_t=%d\n"), sizeof(off_t),
 	    sizeof(size_t));
       sendit(msg, len, arg);
    }
@@ -100,18 +100,18 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
     * List running jobs  
     */
    Dmsg0(1000, "Begin status jcr loop.\n");
-   len = Mmsg(&msg, _("Running Jobs:\n"));
+   len = Mmsg(msg, _("Running Jobs:\n"));
    sendit(msg, len, arg);
    lock_jcr_chain();
    foreach_jcr(njcr) {
       bstrftime_nc(dt, sizeof(dt), njcr->start_time);
       if (njcr->JobId == 0) {
-         len = Mmsg(&msg, _("Director connected at: %s\n"), dt);
+         len = Mmsg(msg, _("Director connected at: %s\n"), dt);
       } else {
-         len = Mmsg(&msg, _("JobId %d Job %s is running.\n"), 
+         len = Mmsg(msg, _("JobId %d Job %s is running.\n"), 
 		    njcr->JobId, njcr->Job);
 	 sendit(msg, len, arg);
-         len = Mmsg(&msg, _("    %s Job started: %s\n"), 
+         len = Mmsg(msg, _("    %s Job started: %s\n"), 
 		    job_type_to_str(njcr->JobType), dt);
       }
       sendit(msg, len, arg);
@@ -124,28 +124,28 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
 	 sec = 1;
       }
       bps = (int)(njcr->JobBytes / sec);
-      len = Mmsg(&msg,  _("    Files=%s Bytes=%s Bytes/sec=%s\n"), 
+      len = Mmsg(msg,  _("    Files=%s Bytes=%s Bytes/sec=%s\n"), 
 	   edit_uint64_with_commas(njcr->JobFiles, b1),
 	   edit_uint64_with_commas(njcr->JobBytes, b2),
 	   edit_uint64_with_commas(bps, b3));
       sendit(msg, len, arg);
-      len = Mmsg(&msg, _("    Files Examined=%s\n"), 
+      len = Mmsg(msg, _("    Files Examined=%s\n"), 
 	   edit_uint64_with_commas(njcr->num_files_examined, b1));
       sendit(msg, len, arg);
       if (njcr->JobFiles > 0) {
 	 P(njcr->mutex);
-         len = Mmsg(&msg, _("    Processing file: %s\n"), njcr->last_fname);
+         len = Mmsg(msg, _("    Processing file: %s\n"), njcr->last_fname);
 	 V(njcr->mutex);
 	 sendit(msg, len, arg);
       }
 
       found = 1;
       if (njcr->store_bsock) {
-         len = Mmsg(&msg, "    SDReadSeqNo=%" lld " fd=%d\n",
+         len = Mmsg(msg, "    SDReadSeqNo=%" lld " fd=%d\n",
 	     njcr->store_bsock->read_seqno, njcr->store_bsock->fd);
 	 sendit(msg, len, arg);
       } else {
-         len = Mmsg(&msg, _("    SDSocket closed.\n"));
+         len = Mmsg(msg, _("    SDSocket closed.\n"));
 	 sendit(msg, len, arg);
       }
       free_locked_jcr(njcr);
@@ -153,10 +153,10 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
    unlock_jcr_chain();
    Dmsg0(1000, "Begin status jcr loop.\n");
    if (!found) {
-      len = Mmsg(&msg, _("No Jobs running.\n"));
+      len = Mmsg(msg, _("No Jobs running.\n"));
       sendit(msg, len, arg);
    }
-   len = Mmsg(&msg, _("====\n"));
+   len = Mmsg(msg, _("====\n"));
    sendit(msg, len, arg);
    free_pool_memory(msg);
 }

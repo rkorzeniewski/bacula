@@ -79,7 +79,7 @@ int check_tables_version(JCR *jcr, B_DB *mdb)
    bacula_db_version = 0;
    db_sql_query(mdb, query, int_handler, (void *)&bacula_db_version);
    if (bacula_db_version != BDB_VERSION) {
-      Mmsg(&mdb->errmsg, "Version error for database \"%s\". Wanted %d, got %d\n",
+      Mmsg(mdb->errmsg, "Version error for database \"%s\". Wanted %d, got %d\n",
 	  mdb->db_name, BDB_VERSION, bacula_db_version);
       Jmsg(jcr, M_FATAL, 0, "%s", mdb->errmsg);
       return 0;

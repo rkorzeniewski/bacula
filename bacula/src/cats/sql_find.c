@@ -72,7 +72,7 @@ db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
    /* If no Id given, we must find corresponding job */
    if (jr->JobId == 0) {
       /* Differential is since last Full backup */
-	 Mmsg(&mdb->cmd, 
+	 Mmsg(mdb->cmd, 
 "SELECT StartTime FROM Job WHERE JobStatus='T' AND Type='%c' AND "
 "Level='%c' AND Name='%s' AND ClientId=%u AND FileSetId=%u "
 "ORDER BY StartTime DESC LIMIT 1",
@@ -97,13 +97,13 @@ db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
 	 }
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
 	    sql_free_result(mdb);
-            Mmsg(&mdb->errmsg, _("No prior Full backup Job record found.\n"));
+            Mmsg(mdb->errmsg, _("No prior Full backup Job record found.\n"));
 	    db_unlock(mdb);
 	    return 0;
 	 }
 	 sql_free_result(mdb);
 	 /* Now edit SQL command for Incremental Job */
-	 Mmsg(&mdb->cmd, 
+	 Mmsg(mdb->cmd, 
 "SELECT StartTime FROM Job WHERE JobStatus='T' AND Type='%c' AND "
 "Level IN ('%c','%c','%c') AND Name='%s' AND ClientId=%u "
 "AND FileSetId=%u ORDER BY StartTime DESC LIMIT 1",
@@ -116,7 +116,7 @@ db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
       }
    } else {
       Dmsg1(100, "Submitting: %s\n", mdb->cmd);
-      Mmsg(&mdb->cmd, "SELECT StartTime FROM Job WHERE Job.JobId=%u", jr->JobId);
+      Mmsg(mdb->cmd, "SELECT StartTime FROM Job WHERE Job.JobId=%u", jr->JobId);
    }
 
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
@@ -158,7 +158,7 @@ db_find_last_jobid(JCR *jcr, B_DB *mdb, const char *Name, JOB_DBR *jr)
    /* Find last full */
    db_lock(mdb);
    if (jr->JobLevel == L_VERIFY_CATALOG) {
-      Mmsg(&mdb->cmd, 
+      Mmsg(mdb->cmd, 
 "SELECT JobId FROM Job WHERE Type='V' AND Level='%c' AND "
 " JobStatus='T' AND Name='%s' AND "
 "ClientId=%u ORDER BY StartTime DESC LIMIT 1",
@@ -166,11 +166,11 @@ db_find_last_jobid(JCR *jcr, B_DB *mdb, const char *Name, JOB_DBR *jr)
    } else if (jr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG ||
 	      jr->JobLevel == L_VERIFY_DISK_TO_CATALOG) {
       if (Name) {
-	 Mmsg(&mdb->cmd,
+	 Mmsg(mdb->cmd,
 "SELECT JobId FROM Job WHERE Type='B' AND JobStatus='T' AND "
 "Name='%s' ORDER BY StartTime DESC LIMIT 1", Name);
       } else {
-	 Mmsg(&mdb->cmd, 
+	 Mmsg(mdb->cmd, 
 "SELECT JobId FROM Job WHERE Type='B' AND JobStatus='T' AND "
 "ClientId=%u ORDER BY StartTime DESC LIMIT 1", jr->ClientId);
       }
@@ -223,7 +223,7 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
    db_lock(mdb);
    if (item == -1) {	   /* find oldest volume */
       /* Find oldest volume */
-      Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
+      Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
           "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
           "VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,Recycle,Slot,"
           "FirstWritten,LastWritten,VolStatus,InChanger "
@@ -244,7 +244,7 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
       } else {
          order = "ORDER BY LastWritten IS NULL,LastWritten DESC,MediaId";   /* take most recently written */
       }  
-      Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
+      Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
           "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
           "VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,Recycle,Slot,"
           "FirstWritten,LastWritten,VolStatus,InChanger "

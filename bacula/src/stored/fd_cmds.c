@@ -323,7 +323,7 @@ static int bootstrap_cmd(JCR *jcr)
       unlink(jcr->RestoreBootstrap);
       free_pool_memory(jcr->RestoreBootstrap);
    }
-   Mmsg(&fname, "%s/%s.%s.bootstrap", me->working_directory, me->hdr.name,
+   Mmsg(fname, "%s/%s.%s.bootstrap", me->working_directory, me->hdr.name,
       jcr->Job);
    Dmsg1(400, "bootstrap=%s\n", fname);
    jcr->RestoreBootstrap = fname;
