@@ -298,6 +298,7 @@ open_dev(DEVICE *dev, char *VolName, int mode)
 	 dev->state |= ST_OPENED;
 	 dev->use_count = 1;
 	 update_pos_dev(dev);		  /* update position */
+	 set_os_device_parameters(dev);      /* do system dependent stuff */
       }
       /* Stop any open() timer we started */
       if (dev->tid) {
@@ -319,7 +320,7 @@ open_dev(DEVICE *dev, char *VolName, int mode)
       if (archive_name[strlen(archive_name)] != '/') {
          pm_strcat(archive_name, "/");
       }
-      pm_strcat(&archive_name, VolName);
+      pm_strcat(archive_name, VolName);
       Dmsg1(29, "open_dev: device is disk %s\n", archive_name);
       if (mode == OPEN_READ_WRITE) {
 	 dev->mode = O_CREAT | O_RDWR | O_BINARY;
@@ -340,7 +341,6 @@ open_dev(DEVICE *dev, char *VolName, int mode)
 	 dev->state |= ST_OPENED;
 	 dev->use_count = 1;
 	 update_pos_dev(dev);		     /* update position */
-	 set_os_device_parameters(dev);      /* do system dependent stuff */
       }
       Dmsg1(29, "open_dev: disk fd=%d opened\n", dev->fd);
       free_pool_memory(archive_name);
@@ -1549,9 +1549,5 @@ void set_os_device_parameters(DEVICE *dev)
    }
    return;
 #endif
-
-
-
-
 
 }
