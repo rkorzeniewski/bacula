@@ -12,7 +12,6 @@ Version 1.35                Kern (see below)
 
 1.35 Items to do for release:
 - Bacula rescue CDROM
-- Fix error handling in spooling both data and attribute.
 - Add new DCR calling sequences everywhere in SD. This will permit 
   simultaneous use of multiple devices by a single job.
 - Look at patches/bacula_db.b2z postgresql that loops during restore.
@@ -1196,3 +1195,4 @@ Block Position: 0
 - Test Win32 errno handling.
 - port 1.34.6-block.patch to 1.35
 - Look at Chris' patch for bscan bug.
+- Fix error handling in spooling both data and attribute.
