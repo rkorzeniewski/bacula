@@ -278,7 +278,7 @@ try_again:
       
 
    Dmsg2(-1, "Connecting to Director %s:%d\n", dir->address,dir->DIRport);
-   UA_sock = bnet_connect(&jcr, 5, 15, "Director daemon", dir->address, 
+   UA_sock = bnet_connect(NULL, 5, 15, "Director daemon", dir->address, 
 			  NULL, dir->DIRport, 0);
    if (UA_sock == NULL) {
       terminate_console(0);

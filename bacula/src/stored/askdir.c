@@ -167,6 +167,8 @@ int dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int relabel)
    Dmsg1(120, "update_volume_data(): %s", dir->msg);
    if (bnet_recv(dir) <= 0) {
       Dmsg0(190, "updateVolCatInfo error bnet_recv\n");
+      Jmsg(jcr, M_ERROR, 0, _("Error updating Volume Info: %s\n"), 
+	   bnet_strerror(dir));
       return 0;
    }
    Dmsg1(120, "Updatevol: %s", dir->msg);
@@ -192,6 +194,8 @@ int dir_create_jobmedia_record(JCR *jcr)
    Dmsg1(100, "create_jobmedia(): %s", dir->msg);
    if (bnet_recv(dir) <= 0) {
       Dmsg0(190, "create_jobmedia error bnet_recv\n");
+      Jmsg(jcr, M_ERROR, 0, _("Error creating JobMedia record: %s\n"), 
+	   bnet_strerror(dir));
       return 0;
    }
    Dmsg1(120, "Create_jobmedia: %s", dir->msg);

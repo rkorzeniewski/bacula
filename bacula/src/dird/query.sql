@@ -112,6 +112,12 @@ SELECT * from temp2;
 !DROP TABLE temp;
 !DROP TABLE temp2;
 #
+:List Pool Attributes for a selected Pool:
+*Enter Pool name:
+SELECT Recycle,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,MaxVolBytes
+ FROM Pool
+ WHERE Name='%1';
+#
 :List where a File is saved:
 *Enter Filename (no path):
 SELECT Job.JobId as JobId, Client.Name as Client,
@@ -134,4 +140,3 @@ SELECT count(*) AS Jobs, sum(JobFiles) AS Files,
  WHERE JobMedia.JobId=Job.JobId
  AND JobMedia.MediaId=Media.MediaId
  GROUP by VolumeName;  
-

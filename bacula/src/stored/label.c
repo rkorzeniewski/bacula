@@ -355,7 +355,7 @@ static int create_volume_label(DEVICE *dev, char *VolName)
       dev->VolHdr.label_time = dt.julian_day_fraction;
    }
 
-   strcpy(dev->VolHdr.LabelProg, my_name);
+   bstrncpy(dev->VolHdr.LabelProg, my_name, sizeof(dev->VolHdr.LabelProg));
    sprintf(dev->VolHdr.ProgVersion, "Ver. %s %s", VERSION, DATE);
    sprintf(dev->VolHdr.ProgDate, "Build %s %s", __DATE__, __TIME__);
    dev->state |= ST_LABEL;	      /* set has Bacula label */
@@ -389,8 +389,8 @@ int write_volume_label_to_dev(JCR *jcr, DEVRES *device, char *VolName, char *Poo
       return 0;
    }
    strcpy(dev->VolHdr.MediaType, device->media_type);
-   strcpy(dev->VolHdr.VolName, VolName);
-   strcpy(dev->VolHdr.PoolName, PoolName);
+   bstrncpy(dev->VolHdr.VolName, VolName, sizeof(dev->VolHdr.VolName));
+   bstrncpy(dev->VolHdr.PoolName, PoolName, sizeof(dev->VolHdr.PoolName));
 
    if (!rewind_dev(dev)) {
       Dmsg2(30, "Bad status on %s from rewind. ERR=%s\n", dev_name(dev), strerror_dev(dev));
