@@ -140,3 +140,11 @@ SELECT count(*) AS Jobs, sum(JobFiles) AS Files,
  WHERE JobMedia.JobId=Job.JobId
  AND JobMedia.MediaId=Media.MediaId
  GROUP by VolumeName;  
+#
+:List Files for a selected JobId:
+*Enter JobId:
+SELECT Path.Path,Filename.Name FROM File,
+ Filename,Path WHERE File.JobId=%1 
+ AND Filename.FilenameId=File.FilenameId 
+ AND Path.PathId=File.PathId ORDER BY
+ Path.Path,Filename.Name;
