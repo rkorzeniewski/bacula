@@ -1,0 +1,193 @@
+From bacula-users-admin@lists.sourceforge.net Mon Oct 20 23:44:13 2003
+Return-Path: <bacula-users-admin@lists.sourceforge.net>
+Received: from sc8-sf-list2.sourceforge.net (lists.sourceforge.net
+	[66.35.250.206]) by matou.sibbald.com (8.11.6/8.11.6) with ESMTP id
+	h9KLiDY13657 for <kern@sibbald.com>; Mon, 20 Oct 2003 23:44:13 +0200
+Received: from sc8-sf-list1-b.sourceforge.net ([10.3.1.13]
+	helo=sc8-sf-list1.sourceforge.net) by sc8-sf-list2.sourceforge.net with
+	esmtp (Exim 3.31-VA-mm2 #1 (Debian)) id 1ABhpS-00013k-00; Mon, 20 Oct 2003
+	14:44:42 -0700
+Received: from sc8-sf-mx1-b.sourceforge.net ([10.3.1.11]
+	helo=sc8-sf-mx1.sourceforge.net) by sc8-sf-list1.sourceforge.net with esmtp
+	 (Cipher TLSv1:DES-CBC3-SHA:168) (Exim 3.31-VA-mm2 #1 (Debian)) id
+	1ABhnp-0007qu-00 for <bacula-users@lists.sourceforge.net>; Mon, 20 Oct 2003
+	14:43:01 -0700
+Received: from bast.unixathome.org ([66.11.174.150] ident=postfix) by
+	sc8-sf-mx1.sourceforge.net with esmtp (Exim 4.22) id 1ABfiR-0002Iv-Q8 for
+	bacula-users@lists.sourceforge.net; Mon, 20 Oct 2003 12:29:19 -0700
+Received: from wocker (wocker.unixathome.org [192.168.0.99]) by
+	bast.unixathome.org (Postfix) with ESMTP id 258913F53 for
+	<bacula-users@lists.sourceforge.net>; Mon, 20 Oct 2003 15:25:33 -0400 (EDT)
+From: "Dan Langille" <dan@langille.org>
+To: bacula-users@lists.sourceforge.net
+MIME-Version: 1.0
+Message-ID: <3F93FF4E.14552.13ACB682@localhost>
+Priority: normal
+X-mailer: Pegasus Mail for Windows (v4.02a)
+Content-type: text/plain; charset=US-ASCII
+Content-description: Mail message body
+X-Spam-Score: 0.0 (/)
+X-Spam-Report: 0.0/5.0 Spam Filtering performed by sourceforge.net. See
+	http://spamassassin.org/tag/ for more details. Report problems to
+	https://sf.net/tracker/?func=add&group_id=1&atid=200001
+Subject: [Bacula-users] FreeBSD - large backups to tape
+Sender: bacula-users-admin@lists.sourceforge.net
+Errors-To: bacula-users-admin@lists.sourceforge.net
+X-BeenThere: bacula-users@lists.sourceforge.net
+X-Mailman-Version: 2.0.9-sf.net
+Precedence: bulk
+List-Help: <mailto:bacula-users-request@lists.sourceforge.net?subject=help>
+List-Post: <mailto:bacula-users@lists.sourceforge.net>
+List-Subscribe:
+	<https://lists.sourceforge.net/lists/listinfo/bacula-users>,
+	<mailto:bacula-users-request@lists.sourceforge.net?subject=subscribe>
+List-Id: Bacula user's email list for support and discussions
+	<bacula-users.lists.sourceforge.net>
+List-Unsubscribe:
+	<https://lists.sourceforge.net/lists/listinfo/bacula-users>,
+	<mailto:bacula-users-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive:
+	<http://sourceforge.net/mailarchive/forum.php?forum=bacula-users>
+Date: Mon, 20 Oct 2003 15:29:18 -0400
+Content-Transfer-Encoding: 8bit
+
+Kern and I have been working on a FreeBSD/Bacula problem.  
+He's asked me to post this to the list.  The problem was within the
+FreeBSD pthreads library.  A solution has been found.
+
+PROBLEM DESCRIPTION:
+
+The FreeBSD pthreads library does not properly handle End Of Tape.
+This problem will be fixed in FreeBSD 4.9.  The bug results in more
+data being written to the tape than could be read.  Any backup which
+involved more than one tape would be incomplete.
+
+DEMONSTRATION:
+
+To demonstrate the problem, tapetest.c can be obtained from 
+http://www.freebsd.org/cgi/query-pr.cgi?pr=56274
+
+This tests without pthreads:
+
+ *  If you build this program with:
+ *
+ *  c++ -g -O2 -Wall -c tapetest.c
+ *  c++ -g -O2 -Wall tapetest.o -o tapetest
+ *
+ *  Procedure for testing tape
+ *  ./tapetest /dev/your-tape-device
+ *  rewind
+ *  rawfill
+ *  rewind
+ *  scan
+ *
+ *  The output will be something like:
+ *
+ * ========
+ *  Rewound /dev/nsa0
+ *  *Begin writing blocks of 64512 bytes.
+ *  ++++++++++++++++++++ ...
+ *  Write failed.  Last block written=17294. stat=0 ERR=Unknown 
+error: 0
+ *  weof_dev
+ *  Wrote EOF to /dev/nsa0
+ *  *Rewound /dev/nsa0
+ *  *Starting scan at file 0
+ *  17294 blocks of 64512 bytes in file 0
+ *  End of File mark.
+ *  End of File mark.
+ *  End of tape
+ *  Total files=1, blocks=17294, bytes = 1115670528
+ * ========
+ *
+ *  which is correct. Notice that the return status is
+ *  0, while in the example below, which fails, the return
+ *  status is -1.
+
+This tests with pthreads:
+
+ *  If you build this program with:
+ *
+ *  c++ -g -O2 -Wall -pthread -c tapetest.c
+ *  c++ -g -O2 -Wall -pthread tapetest.o -o tapetest
+ *    Note, we simply added -pthread compared to the
+ *    previous example.
+ *
+ *  Procedure for testing tape
+ *  ./tapetest /dev/your-tape-device
+ *  rewind
+ *  rawfill
+ *  rewind
+ *  scan
+ *
+ *  The output will be something like:
+ *
+ * ========
+ *    Rewound /dev/nsa0
+ *    *Begin writing blocks of 64512 bytes.
+ *    +++++++++++++++++++++++++++++ ...
+ *    Write failed.  Last block written=17926. stat=-1 ERR=No space left on device
+ *    weof_dev
+ *    Wrote EOF to /dev/nsa0
+ *    *Rewound /dev/nsa0
+ *    *Starting scan at file 0
+ *    17913 blocks of 64512 bytes in file 0
+ *    End of File mark.
+ *    End of File mark.
+ *    End of tape
+ *    Total files=1, blocks=17913, bytes = 1155603456
+ * ========
+ *
+ * which is incroorect because it wrote 17,926 blocks but read
+ * back only 17,913 blocks
+
+If you get the same number of blocks written and read WHEN using 
+pthreads, then you've been correctly patched.
+
+SOLUTION:
+
+For FreeBSD prior to 4.9, you have two choices to ensure proper
+backups.  These instructions assume you are familiar with patching
+FreeBSD and already have the FreeBSD source code installed on your
+machine.  
+
+1 - cvsup and build your system to FreeBSD 4.8-STABLE
+
+2 - Apply this patch.
+
+http://www.freebsd.org/cgi/cvsweb.cgi/src/lib/libc_r/uthread/uthread_write.c.diff?r1=1.16.2.6&r2=1.16.2.7
+
+To apply the patch, follow these instructions as root.  
+
+fetch -o pthread.diff http://www.freebsd.org/cgi/cvsweb.cgi/src/lib/libc_r/uthread/uthread_write.c.diff?r1=1.16.2.6\&r2=1.16.2.7
+
+cd /usr/src/lib/libc_r/uthread/
+patch < /path/to/pthread.diff
+cd ..
+make all install
+
+I recommend restarting Bacula.
+
+
+TESTING:
+
+I suggest running tapetest on your patched system and then
+conducting a backup which spans two tapes.  Restore the data
+and compare to the original.  If not identical, please let us know.
+
+Thanks
+
+-- 
+Dan Langille : http://www.langille.org/
+
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by OSDN developer relations
+Here's your chance to show off your extensive product knowledge
+We want to know what you know. Tell us and you have a chance to win $100
+http://www.zoomerang.com/survey.zgi?HRPT1X3RYQNC5V4MLNSV3E54
+_______________________________________________
+Bacula-users mailing list
+Bacula-users@lists.sourceforge.net
+https://lists.sourceforge.net/lists/listinfo/bacula-users

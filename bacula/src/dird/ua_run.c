@@ -567,6 +567,9 @@ Priority:   %d\n"),
       if (jcr->JobType == JT_BACKUP ||
 	  jcr->JobType == JT_VERIFY) {
          add_prompt(ua, _("Pool"));          /* 7 */
+	 if (jcr->JobType == JT_VERIFY) {
+            add_prompt(ua, _("Verify Job"));  /* 8 */
+	 }
       } else if (jcr->JobType == JT_RESTORE) {
          add_prompt(ua, _("Bootstrap"));     /* 7 */
          add_prompt(ua, _("Where"));         /* 8 */
@@ -727,6 +730,16 @@ Priority:   %d\n"),
 	 }
 	 goto try_again;
       case 8:
+	 /* Verify Job */
+	 if (jcr->JobType == JT_VERIFY) {
+	    JOB *job = select_job_resource(ua);
+	    if (job) {
+	       jcr->job->verify_job = job;
+	    } else {
+	       jcr->job->verify_job = NULL;
+	    }
+	    goto try_again;
+	 }
 	 /* Where */
          if (!get_cmd(ua, _("Please enter path prefix for restore (/ for none): "))) {
 	    break;

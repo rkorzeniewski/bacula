@@ -6,9 +6,9 @@
 cd @working_dir@
 rm -f bacula.sql
 if test xsqlite = x@DB_NAME@ ; then
-echo ".dump" | @SQL_BINDIR@/sqlite bacula.db >bacula.sql
+  echo ".dump" | @SQL_BINDIR@/sqlite bacula.db >bacula.sql
 else
-@SQL_BINDIR@/mysqldump $* -f --opt bacula >bacula.sql
+  @SQL_BINDIR@/mysqldump $* -f --opt bacula >bacula.sql
 fi
 #
 #  To read back a MySQL database use: 
