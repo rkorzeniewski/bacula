@@ -418,12 +418,13 @@ static int lscmd(UAContext *ua, TREE_CTX *tree)
 /*
  * Ls command that lists only the marked files
  */
-static void rlsmark(UAContext *ua, TREE_NODE *node) 
+static void rlsmark(UAContext *ua, TREE_NODE *tnode) 
 {
-   if (!tree_node_has_child(node)) {	 
+   TREE_NODE *node;
+   if (!tree_node_has_child(tnode)) {	  
       return;
    }
-   foreach_child(node, node) {
+   foreach_child(node, tnode) {
       if ((ua->argc == 1 || fnmatch(ua->argk[1], node->fname, 0) == 0) &&
 	  (node->extract || node->extract_dir)) {
 	 const char *tag;
