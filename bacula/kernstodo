@@ -72,6 +72,7 @@ For 1.33 Testing/Documentation:
    Overland Neo2000 (LVD)
 
 For 1.33
+- Fix query buffer clobber ua_query.c
 - On unknown client in restore "client=xxx"
   Could not find Client "Matou": ERR=Query failed: DROP TABLE temp1: 
      ERR=no such table: temp1

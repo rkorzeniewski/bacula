@@ -172,7 +172,8 @@ static POOLMEM *substitute_prompts(UAContext *ua,
    for (i=0; i<9; i++) {
       subst[i] = NULL;
    }
-   new_query = get_pool_memory(PM_MESSAGE);
+   /* ****FIXME**** second and third check_pool ... below are probably broken */
+   new_query = get_memory(2000);
    new_query = check_pool_memory_size(new_query, strlen(query) +100);
    o = new_query;
    olen = 0;
