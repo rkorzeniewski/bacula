@@ -1,0 +1,84 @@
+#!/bin/sh
+#
+# Run a simple backup of the Bacula build directory
+#   then restore it.
+#
+if test ! -d weird-files ; then
+   echo " "
+   echo "weird files not configured. Test not run."
+   exit 0
+fi
+cwd=`pwd`
+scripts/copy-test-confs
+scripts/cleanup
+rm -rf weird-files2
+cp -a weird-files weird-files2
+echo "${cwd}/weird-files2" >/tmp/file-list
+bin/bacula stop 2>&1 >/dev/null
+bin/drop_sqlite_tables
+bin/make_sqlite_tables
+
+echo " "
+echo " "
+echo " === Starting weird filenames2 test ==="
+echo " === Starting weird filenames2 test ===" >>working/log
+echo " "
+
+bin/testls weird-files2 >${cwd}/tmp/original
+bin/bacula start 2>&1 >/dev/null
+bin/console -c bin/console.conf <<END_OF_DATA
+@output /dev/null
+messages
+@output tmp/log1.out
+label storage=File volume=TestVolume001
+run job=NightlySave yes
+wait
+messages
+@output
+quit
+END_OF_DATA
+#
+# Now mess up the a hard link, and a soft link
+#
+cd weird-files2
+rm -f hard-file2
+ln hard-file3 hard-file2
+rm -f soft-file2
+ln -s soft-file3 soft-file2
+cd ${cwd}
+bin/console -c bin/console.conf <<END_OF_DATA
+@output /dev/null
+messages
+@# 
+@# now do a restore
+@#
+@output tmp/log2.out
+restore where=
+5
+done
+yes
+wait
+messages
+@output
+quit
+END_OF_DATA
+bin/bacula stop 2>&1 >/dev/null
+bin/testls weird-files2 >${cwd}/tmp/restored
+grep "^Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
+bstat=$?
+grep "^Termination: *Restore OK" tmp/log2.out 2>&1 >/dev/null
+rstat=$?
+diff ${cwd}/tmp/original ${cwd}/tmp/restored 2>&1 >/dev/null
+if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
+   echo " "
+   echo " "
+   echo "  !!!!! Weird files2 test failed!!! !!!!! "
+   echo "  !!!!! Weird files2 test failed!!! !!!!! " >>test.out
+   echo " "
+else
+   echo "  ===== Weird files2 test OK ===== "
+   echo "  ===== Weird files2 test OK ===== " >>test.out
+   cd ${cwd}
+   scripts/cleanup
+   rm -rf weird-files2
+fi

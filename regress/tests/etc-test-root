@@ -8,6 +8,7 @@ echo " "
 echo " === /etc save/restore test ==="
 echo " "
 echo " "
+UID=`/usr/bin/id -g`
 if [ $UID != 0 ] ; then
    echo " "
    echo "You must be root to run this test."
