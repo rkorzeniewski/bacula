@@ -104,7 +104,7 @@ static void usage()
 {
    fprintf(stderr, _(
 "\nVersion: " VERSION " (" BDATE ")\n\n"
-"Usage: bscan [-d debug_level] <bacula-archive>\n"
+"Usage: bscan [ options ] <bacula-archive>\n"
 "       -b bootstrap      specify a bootstrap file\n"
 "       -c <file>         specify configuration file\n"
 "       -d <nn>           set debug level to nn\n"

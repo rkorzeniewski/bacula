@@ -92,11 +92,12 @@ DEVICE *setup_to_access_device(JCR *jcr, int read_access)
    }
 
    if ((device=find_device_res(jcr->dev_name, read_access)) == NULL) {
-      Jmsg2(jcr, M_FATAL, 0, _("Cannot find device %s in config file %s.\n"), 
+      Jmsg2(jcr, M_FATAL, 0, _("Cannot find device \"%s\" in config file %s.\n"), 
 	   jcr->dev_name, configfile);
       return NULL;
    }
    jcr->device = device;
+   pm_strcpy(&jcr->dev_name, device->device_name);
    
    dev = init_dev(NULL, device);
    jcr->device->dev = dev;
@@ -127,23 +128,39 @@ DEVICE *setup_to_access_device(JCR *jcr, int read_access)
  */
 DEVRES *find_device_res(char *device_name, int read_access)
 {
-   int found = 0;
+   bool found = false;
    DEVRES *device;
 
    LockRes();
-   for (device=NULL; (device=(DEVRES *)GetNextRes(R_DEVICE, (RES *)device)); ) {
+   foreach_res(device, R_DEVICE) {
       if (strcmp(device->device_name, device_name) == 0) {
-	 found = 1;
+	 found = true;
 	 break;
       }
    } 
+   if (!found) {
+      /* Search for name of Device resource rather than archive name */
+      if (device_name[0] == '"') {
+	 strcpy(device_name, device_name+1);
+	 int len = strlen(device_name);
+	 if (len > 0) {
+	    device_name[len-1] = 0;
+	 }
+      }
+      foreach_res(device, R_DEVICE) {
+	 if (strcmp(device->hdr.name, device_name) == 0) {
+	    found = true;
+	    break;
+	 }
+      } 
+   }
    UnlockRes();
    if (!found) {
-      Pmsg2(0, _("Could not find device %s in config file %s.\n"), device_name,
+      Pmsg2(0, _("Could not find device \"%s\" in config file %s.\n"), device_name,
 	    configfile);
       return NULL;
    }
-   Pmsg2(0, _("Using device: %s for %s.\n"), device_name,
+   Pmsg2(0, _("Using device: \"%s\" for %s.\n"), device_name,
              read_access?"reading":"writing");
    return device;
 }

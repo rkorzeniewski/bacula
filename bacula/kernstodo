@@ -38,13 +38,13 @@ For 1.33 Testing/Documentation:
   non-existent directories will not be restored properly.
 
 1.34 Cleanup
-- Add ms disk example
 - Add multiple-media-types.txt
 - look at mxt-changer.html
 
-- Why is Files Expected zero on restore from tape?
 
 For version 1.35:
+- Setup lrrd graphs: (http://www.linpro.no/projects/lrrd/) Mike Acar.
+- Revisit the question of multiple Volumes (disk) on a single device.
 - Finish SIGHUP work.
 - Check that all change in wait status in the SD are        
   signaled to the Director.
@@ -1407,3 +1407,4 @@ Block Position: 0
   job is "stuck" in the run queue.
 - Test work on conio.c -- particularly linking.
 - Complete Win32 installer
+- Add ms disk example
