@@ -2,10 +2,14 @@
 
 # basic defines for every build
 %define depkgs ../depkgs
-%define depkgs_version 08Mar04
+%define depkgs_version 30Jul04
 %define tomsrtbt tomsrtbt-2.0.103
 %define sqlite_bindir /usr/lib/sqlite
 %define working_dir /var/bacula
+%define daemon_user root
+%define daemon_group bacula
+%define group_file /etc/group
+%define groupadd /usr/sbin/groupadd
 
 # platform defines - set one below or define the build_xxx on the command line
 # RedHat builds
@@ -394,7 +398,13 @@ patch src/cats/update_sqlite_tables.in src/cats/update_sqlite_tables.in.patch
 %endif
         --with-working-dir=%{working_dir} \
         --with-pid-dir=/var/run \
-        --with-subsys-dir=/var/lock/subsys
+        --with-subsys-dir=/var/lock/subsys \
+	--with-dir-user=%{daemon_user} \
+	--with-dir-group=%{daemon_group} \
+	--with-sd-user=%{daemon_user} \
+	--with-sd-group=%{daemon_group} \
+	--with-fd-user=%{daemon_user} \
+	--with-fd-group=%{daemon_group}
 make
 
 cd src/filed
@@ -510,15 +520,15 @@ cp -p scripts/logrotate $RPM_BUILD_ROOT/etc/logrotate.d/bacula
 
 # install the rescue stuff
 # these are the rescue scripts
-cp -p rescue/linux/backup.etc.list $RPM_BUILD_ROOT/etc/bacula/rescue/
-cp -p rescue/linux/format_floppy $RPM_BUILD_ROOT/etc/bacula/rescue/
-cp -p rescue/linux/getdiskinfo $RPM_BUILD_ROOT/etc/bacula/rescue/
-cp -p rescue/linux/make_rescue_disk $RPM_BUILD_ROOT/etc/bacula/rescue/
-cp -p rescue/linux/restore_bacula $RPM_BUILD_ROOT/etc/bacula/rescue/
-cp -p rescue/linux/restore_etc $RPM_BUILD_ROOT/etc/bacula/rescue/
-cp -p rescue/linux/run_grub $RPM_BUILD_ROOT/etc/bacula/rescue/
-cp -p rescue/linux/run_lilo $RPM_BUILD_ROOT/etc/bacula/rescue/
-cp -p rescue/linux/sfdisk.bz2 $RPM_BUILD_ROOT/etc/bacula/rescue/
+cp -p rescue/linux/floppy/backup.etc.list $RPM_BUILD_ROOT/etc/bacula/rescue/
+cp -p rescue/linux/floppy/format_floppy $RPM_BUILD_ROOT/etc/bacula/rescue/
+cp -p rescue/linux/floppy/getdiskinfo $RPM_BUILD_ROOT/etc/bacula/rescue/
+cp -p rescue/linux/floppy/make_rescue_disk $RPM_BUILD_ROOT/etc/bacula/rescue/
+cp -p rescue/linux/floppy/restore_bacula $RPM_BUILD_ROOT/etc/bacula/rescue/
+cp -p rescue/linux/floppy/restore_etc $RPM_BUILD_ROOT/etc/bacula/rescue/
+cp -p rescue/linux/floppy/run_grub $RPM_BUILD_ROOT/etc/bacula/rescue/
+cp -p rescue/linux/floppy/run_lilo $RPM_BUILD_ROOT/etc/bacula/rescue/
+cp -p rescue/linux/floppy/sfdisk.bz2 $RPM_BUILD_ROOT/etc/bacula/rescue/
 
 # this is the static file daemon
 cp -p src/filed/static-bacula-fd $RPM_BUILD_ROOT/etc/bacula/rescue/bacula-fd
@@ -543,7 +553,6 @@ chmod o-rwx $RPM_BUILD_ROOT/var/bacula
 
 /etc/bacula/bacula
 /etc/bacula/bconsole
-/etc/bacula/fd
 /etc/bacula/create_mysql_database
 /etc/bacula/drop_mysql_database
 /etc/bacula/make_mysql_tables
@@ -649,6 +658,12 @@ elif [ "$DB_VER" -lt "7" ]; then
 
 fi
 
+# create the daemon group
+HAVE_BACULA=`cat %{group_file} | grep %{daemon_group} 2>/dev/null`
+if [ -z $HAVE_BACULA ]; then
+	%{groupadd} -r %{daemon_group} > /dev/null 2>&1
+fi
+
 %preun mysql
 # delete our links
 if [ $1 = 0 ]; then
@@ -666,7 +681,6 @@ fi
 
 /etc/bacula/bacula
 /etc/bacula/bconsole
-/etc/bacula/fd
 /etc/bacula/create_bacula_database
 /etc/bacula/drop_bacula_database
 /etc/bacula/grant_bacula_privileges
@@ -768,6 +782,12 @@ else
 	/etc/bacula/make_sqlite_tables
 fi
 
+# create the daemon group
+HAVE_BACULA=`cat %{group_file} | grep %{daemon_group} 2>/dev/null`
+if [ -z $HAVE_BACULA ]; then
+	%{groupadd} -r %{daemon_group} > /dev/null 2>&1
+fi
+
 %preun sqlite
 # delete our links
 if [ $1 = 0 ]; then
@@ -785,7 +805,6 @@ fi
 
 /etc/bacula/bacula
 /etc/bacula/bconsole
-/etc/bacula/fd
 /etc/bacula/create_postgresql_database
 /etc/bacula/drop_postgresql_database
 /etc/bacula/make_postgresql_tables
@@ -857,6 +876,13 @@ if [ -z "$DB_VER" ]; then
 	/etc/bacula/create_postgresql_database
 	echo "Creating bacula tables..."
 	/etc/bacula/make_postgresql_tables
+fi
+
+# create the daemon group
+HAVE_BACULA=`cat %{group_file} | grep %{daemon_group} 2>/dev/null`
+if [ -z $HAVE_BACULA ]; then
+	%{groupadd} -r %{daemon_group} > /dev/null 2>&1
+fi
 	
 
 %preun postgresql
@@ -872,7 +898,6 @@ fi
 %files client
 %defattr(-,root,root)
 
-/etc/bacula/fd
 /etc/bacula/bconsole
 /etc/init.d/bacula-fd
 
@@ -894,6 +919,12 @@ fi
 # add our link
 if [ "$1" -ge 1 ] ; then
 /sbin/chkconfig --add bacula-fd
+fi
+
+# create the daemon group
+HAVE_BACULA=`cat %{group_file} | grep %{daemon_group} 2>/dev/null`
+if [ -z $HAVE_BACULA ]; then
+	%{groupadd} -r %{daemon_group} > /dev/null 2>&1
 fi
 
 %preun client
@@ -961,7 +992,13 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 /usr/bin/gnome-console
 %endif
 
+
 %changelog
+* Sat Sep 04 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
+- add support for running daemons as root.bacula
+- correct for change in location of floppy rescue files in 1.35.2
+- removed /etc/bacula/fd script from all packages as it has disappeared from 1.35.2
+- updated depgkgs to 30Jul04
 * Thu Jun 24 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - really, really fix symlink creation for gconsole
 * Thu Jun 17 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
