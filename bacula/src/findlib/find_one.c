@@ -28,14 +28,8 @@
 #include "bacula.h"
 #include "find.h"
 
-
 extern size_t name_max; 	      /* filename max length */
 extern size_t path_max; 	      /* path name max length */
-
-#ifndef HAVE_READDIR_R
-int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result);
-#endif
-
 
 /*
  * Structure for keeping track of hard linked files, we   
@@ -52,17 +46,6 @@ struct f_link {
     uint32_t FileIndex; 	      /* Bacula FileIndex of this file */
     char name[1];		      /* The name */
 };
-
-
-#if HAVE_UTIME_H
-# include <utime.h>
-#else
-struct utimbuf {
-    long actime;
-    long modtime;
-};
-#endif
-
 
 /*
  * Find a single file.			      
@@ -89,10 +72,6 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
    }
 
    Dmsg1(60, "File ----: %s\n", fname);
-#ifdef DEBUG
-   if (S_ISLNK(ff_pkt->statp.st_mode))
-      Dmsg1(60, "Link-------------: %s \n", fname);
-#endif
 
    /* Save current times of this directory in case we need to
     * reset them because the user doesn't want them changed.
@@ -114,14 +93,11 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
 	      ff_pkt->statp.st_ctime < ff_pkt->save_time)) {
 	 /* Incremental option, file not changed */
 	 ff_pkt->type = FT_NOCHG;
-         Dmsg1(100, "File not changed: %s\n", ff_pkt->fname);
-         Dmsg4(200, "save_time=%d mtime=%d mtime_only=%d st_ctime=%d\n",
-	    ff_pkt->save_time, ff_pkt->statp.st_mtime, 
-	    ff_pkt->mtime_only, ff_pkt->statp.st_ctime);
 	 return handle_file(ff_pkt, pkt);
       }
    }
 
+/* ***FIXME*** implement this */
 #if xxxxxxx
    /* See if we are trying to dump the archive.  */
    if (ar_dev && ff_pkt->statp.st_dev == ar_dev && ff_pkt->statp.st_ino == ar_ino) {
@@ -188,11 +164,11 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
       return rtn_stat;
 
 
-   } else if (S_ISLNK(ff_pkt->statp.st_mode)) {
+   } else if (S_ISLNK(ff_pkt->statp.st_mode)) {  /* soft link */
       int size;
-      char *buffer = (char *)alloca(path_max + name_max + 2);
+      char *buffer = (char *)alloca(path_max + name_max + 102);
 
-      size = readlink(fname, buffer, path_max + name_max + 1);
+      size = readlink(fname, buffer, path_max + name_max + 101);
       if (size < 0) {
 	 /* Could not follow link */				 
 	 ff_pkt->type = FT_NOFOLLOW;
@@ -204,8 +180,8 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
 	 return rtn_stat;
       }
       buffer[size] = 0;
-      ff_pkt->link = buffer;
-      ff_pkt->type = FT_LNK;	       /* got a real link */
+      ff_pkt->link = buffer;	      /* point to link */
+      ff_pkt->type = FT_LNK;	      /* got a real link */
       rtn_stat = handle_file(ff_pkt, pkt);
       if (ff_pkt->linked) {
 	 ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
@@ -217,7 +193,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
       struct dirent *entry, *result;
       char *link;
       int link_len;
-      int len;
+      int len;	 
       int status;
       dev_t our_device = ff_pkt->statp.st_dev;
 
@@ -232,7 +208,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
 	 return rtn_stat;
       }
 
-      /* Build a canonical directory name with a trailing slash. */
+      /* Build a canonical directory name with a trailing slash in link var */
       len = strlen(fname);
       link_len = len + 200;
       link = (char *)bmalloc(link_len + 2);
@@ -252,11 +228,12 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
       } else {
 	 ff_pkt->type = FT_DIR;
       }
-      handle_file(ff_pkt, pkt);       /* handle directory entry */
-      if (ff_pkt->linked) {
-	 ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
-      }
-
+      FF_PKT *dir_ff_pkt;
+      dir_ff_pkt = (FF_PKT *)bmalloc(sizeof(FF_PKT));
+      memcpy(dir_ff_pkt, ff_pkt, sizeof(FF_PKT));
+      dir_ff_pkt->fname = bstrdup(ff_pkt->fname);
+      dir_ff_pkt->link = bstrdup(ff_pkt->link);
+	
       ff_pkt->link = ff_pkt->fname;     /* reset "link" */
 
       /* 
@@ -271,6 +248,9 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
 	 if (ff_pkt->linked) {
 	    ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
 	 }
+	 free(dir_ff_pkt->fname);
+	 free(dir_ff_pkt->link);
+	 free(dir_ff_pkt);
 	 return rtn_stat;
       }
 
@@ -287,10 +267,13 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
 	 if (ff_pkt->linked) {
 	    ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
 	 }
+	 free(dir_ff_pkt->fname);
+	 free(dir_ff_pkt->link);
+	 free(dir_ff_pkt);
 	 return rtn_stat;
       }
       /* 
-       * Now process the files in this directory.
+       * Open directory for reading files within 
        */
       errno = 0;
       if ((directory = opendir(fname)) == NULL) {
@@ -301,12 +284,16 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
 	 if (ff_pkt->linked) {
 	    ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
 	 }
+	 free(dir_ff_pkt->fname);
+	 free(dir_ff_pkt->link);
+	 free(dir_ff_pkt);
 	 return rtn_stat;
       }
 
       /*
-       * This would possibly run faster if we chdir to the directory
-       * before traversing it.
+       * Process all files in this directory entry (recursing).
+       *    This would possibly run faster if we chdir to the directory
+       *    before traversing it.
        */
       rtn_stat = 1;
       entry = (struct dirent *)malloc(sizeof(struct dirent) + name_max + 100);
@@ -315,8 +302,6 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
 	 int i;
 
 	 status  = readdir_r(directory, entry, &result);
-         Dmsg3(200, "readdir stat=%d result=%x name=%s\n", status, result,
-	    entry->d_name);
 	 if (status != 0 || result == NULL) {
 	    break;
 	 }
@@ -347,6 +332,21 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
       closedir(directory);
       free(link);
       free(entry);
+
+      /*
+       * Now that we have recursed through all the files in the
+       *  directory, we "save" the directory so that after all
+       *  the files are restored, this entry will serve to reset
+       *  the directory modes and dates.  Temp directory values
+       *  were used without this record.
+       */
+      handle_file(dir_ff_pkt, pkt);	  /* handle directory entry */
+      if (ff_pkt->linked) {
+	 ff_pkt->linked->FileIndex = dir_ff_pkt->FileIndex;
+      }
+      free(dir_ff_pkt->fname);
+      free(dir_ff_pkt->link);
+      free(dir_ff_pkt);
 
       if (ff_pkt->atime_preserve) {
 	 utime(fname, &restore_times);
