@@ -369,7 +369,7 @@ int db_get_job_volume_names(void *jcr, B_DB *mdb, uint32_t JobId, POOLMEM **Volu
    }
    jmlen = sizeof(jm);
    mrlen = sizeof(mr);
-   *VolumeNames = 0;
+   *VolumeNames[0] = 0;
    fseek(mdb->jobmediafd, 0L, SEEK_SET); /* rewind the file */
    while (fread(&jm, jmlen, 1, mdb->jobmediafd) > 0) {
       if (jm.JobId == JobId) {
@@ -377,7 +377,7 @@ int db_get_job_volume_names(void *jcr, B_DB *mdb, uint32_t JobId, POOLMEM **Volu
 	 fseek(mdb->mediafd, 0L, SEEK_SET);
 	 while (fread(&mr, mrlen, 1, mdb->mediafd) > 0) {
 	    if (jm.MediaId == mr.MediaId) {
-	       if (*VolumeNames != 0) { 	/* if not first name, */
+	       if (*VolumeNames[0] != 0) {	/* if not first name, */
                   pm_strcat(VolumeNames, "|");  /* add separator */
 	       }
 	       pm_strcat(VolumeNames, mr.VolumeName); /* add Volume Name */
