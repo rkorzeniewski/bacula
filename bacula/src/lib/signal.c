@@ -70,7 +70,7 @@ static void signal_handler(int sig)
    if (sig == SIGTERM) {
       Emsg1(M_TERM, -1, "Shutting down Bacula service: %s ...\n", my_name);
    } else {
-      Emsg2(M_FATAL, -1, "Interrupted by signal %d: %s\n", sig, sig_names[sig]);
+      Emsg2(M_FATAL, -1, "Bacula interrupted by signal %d: %s\n", sig, sig_names[sig]);
    }
 
 #ifdef TRACEBACK
@@ -94,7 +94,7 @@ static void signal_handler(int sig)
          Dmsg1(000, "chdir failed. ERR=%s\n", strerror(errno));
       }
       unlink("./core");               /* get rid of any old core file */
-      sprintf(pid_buf, "%d", main_pid);
+      sprintf(pid_buf, "%d", (int)main_pid);
       Dmsg1(300, "Working=%s\n", working_directory);
       Dmsg1(300, "btpath=%s\n", btpath);
       Dmsg1(300, "exepath=%s\n", exepath);

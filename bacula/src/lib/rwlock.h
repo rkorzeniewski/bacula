@@ -33,7 +33,7 @@
 #ifndef __RWLOCK_H 
 #define __RWLOCK_H 1
 
-typedef struct rwlock_tag {
+typedef struct s_rwlock_tag {
    pthread_mutex_t   mutex;
    pthread_cond_t    read;            /* wait for read */
    pthread_cond_t    write;           /* wait for write */
@@ -43,7 +43,7 @@ typedef struct rwlock_tag {
    int               w_active;        /* writers active */
    int               r_wait;          /* readers waiting */
    int               w_wait;          /* writers waiting */
-} rwlock_t;
+} brwlock_t;
 
 #define RWLOCK_VALID  0xfacade
 
@@ -54,13 +54,13 @@ typedef struct rwlock_tag {
 /* 
  * read/write lock prototypes
  */
-extern int rwl_init(rwlock_t *wrlock);
-extern int rwl_destroy(rwlock_t *rwlock);
-extern int rwl_readlock(rwlock_t *rwlock);
-extern int rwl_readtrylock(rwlock_t *rwlock);
-extern int rwl_readunlock(rwlock_t *rwlock);
-extern int rwl_writelock(rwlock_t *rwlock);
-extern int rwl_writetrylock(rwlock_t *rwlock);
-extern int rwl_writeunlock(rwlock_t *rwlock);
+extern int rwl_init(brwlock_t *wrlock);
+extern int rwl_destroy(brwlock_t *rwlock);
+extern int rwl_readlock(brwlock_t *rwlock);
+extern int rwl_readtrylock(brwlock_t *rwlock);
+extern int rwl_readunlock(brwlock_t *rwlock);
+extern int rwl_writelock(brwlock_t *rwlock);
+extern int rwl_writetrylock(brwlock_t *rwlock);
+extern int rwl_writeunlock(brwlock_t *rwlock);
 
 #endif /* __RWLOCK_H */

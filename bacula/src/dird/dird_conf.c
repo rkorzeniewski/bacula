@@ -425,8 +425,8 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
       case R_CATALOG:
          sendit(sock, "Catalog: name=%s address=%s DBport=%d db_name=%s\n\
          db_user=%s\n",
-	    res->res_cat.hdr.name, res->res_cat.address, res->res_cat.DBport,
-	    res->res_cat.db_name, res->res_cat.db_user);
+	    res->res_cat.hdr.name, NPRT(res->res_cat.address),
+	    res->res_cat.DBport, res->res_cat.db_name, NPRT(res->res_cat.db_user));
 	 break;
       case R_JOB:
          sendit(sock, "Job: name=%s JobType=%d level=%s\n", res->res_job.hdr.name, 
@@ -550,7 +550,7 @@ next_run:
 		 res->res_pool.max_volumes, res->res_pool.AutoPrune,
 		 res->res_pool.VolRetention);
          sendit(sock, "      recycle=%d LabelFormat=%s\n", res->res_pool.Recycle,
-                 res->res_pool.label_format?res->res_pool.label_format:"*None*");
+		 NPRT(res->res_pool.label_format));
 	 break;
       case R_MSGS:
          sendit(sock, "Messages: name=%s\n", res->res_msgs.hdr.name);
@@ -929,7 +929,9 @@ static void store_backup(LEX *lc, struct res_items *item, int index, int pass)
    while ((token = lex_get_token(lc, T_ALL)) != T_EOL) {
       int found;
 
-      if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
+      Dmsg1(150, "store_backup got token=%s\n", lex_tok_to_str(token));
+      
+      if (token != T_IDENTIFIER && token != T_UNQUOTED_STRING && token != T_QUOTED_STRING) {
          scan_err1(lc, "Expected a backup/verify keyword, got: %s", lc->str);
       }
       Dmsg1(190, "Got keyword: %s\n", lc->str);

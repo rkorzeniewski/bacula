@@ -38,10 +38,8 @@ void scan_to_eol(LEX *lc)
 {
    int token;
    Dmsg0(150, "start scan to eof\n");
-   if (token != T_EOL) {
-      while ((token = lex_get_token(lc, T_ALL)) != T_EOL) {
-      }
-   }
+   while ((token = lex_get_token(lc, T_ALL)) != T_EOL)
+      { }
    Dmsg0(150, "done scan to eof\n");
 }
 

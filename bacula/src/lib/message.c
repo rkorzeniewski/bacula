@@ -230,7 +230,7 @@ void add_msg_dest(MSGS *msg, int dest_code, int msg_type, char *where, char *mai
       if (dest_code == d->dest_code && ((where == NULL && d->where == NULL) ||
 		     (strcmp(where, d->where) == 0))) {  
          Dmsg4(200, "Add to existing d=%x msgtype=%d destcode=%d where=%s\n", 
-	     d, msg_type, dest_code, where);
+	     d, msg_type, dest_code, NPRT(where));
 	 set_bit(msg_type, d->msg_types);
 	 set_bit(msg_type, msg->send_msg);  /* set msg_type bit in our local */
 	 return;
@@ -250,8 +250,7 @@ void add_msg_dest(MSGS *msg, int dest_code, int msg_type, char *where, char *mai
       d->mail_cmd = bstrdup(mail_cmd);
    }
    Dmsg5(200, "add new d=%x msgtype=%d destcode=%d where=%s mailcmd=%s\n", 
-          d, msg_type, dest_code, where?where:"(null)", 
-          d->mail_cmd?d->mail_cmd:"(null)");
+	  d, msg_type, dest_code, NPRT(where), NPRT(d->mail_cmd));
    msg->dest_chain = d;
 }
 
@@ -265,7 +264,7 @@ void rem_msg_dest(MSGS *msg, int dest_code, int msg_type, char *where)
    DEST *d;
 
    for (d=msg->dest_chain; d; d=d->next) {
-      Dmsg2(200, "Remove_msg_dest d=%x where=%s\n", d, d->where);
+      Dmsg2(200, "Remove_msg_dest d=%x where=%s\n", d, NPRT(d->where));
       if (bit_is_set(msg_type, d->msg_types) && (dest_code == d->dest_code) &&
 	  ((where == NULL && d->where == NULL) ||
 		     (strcmp(where, d->where) == 0))) {  

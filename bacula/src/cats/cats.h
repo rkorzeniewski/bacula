@@ -94,7 +94,7 @@ typedef struct s_sql_field {
 typedef struct s_db {
    BQUEUE bq;                         /* queue control */
 /* pthread_mutex_t mutex; */
-   rwlock_t lock;                     /* transaction lock */
+   brwlock_t lock;                    /* transaction lock */
    struct sqlite *db;
    char **result;
    int nrow;                          /* nrow returned from sqlite */
@@ -163,7 +163,7 @@ extern void my_sqlite_free_table(B_DB *mdb);
 typedef struct s_db {
    BQUEUE bq;                         /* queue control */
 /* pthread_mutex_t mutex; */
-   rwlock_t lock;                     /* transaction lock */
+   brwlock_t lock;                    /* transaction lock */
    MYSQL mysql;
    MYSQL *db;
    MYSQL_RES *result;
@@ -225,7 +225,7 @@ struct s_control {
 typedef struct s_db {
    BQUEUE bq;                         /* queue control */
 /* pthread_mutex_t mutex;  */         /* single thread lock */
-   rwlock_t lock;                     /* transaction lock */
+   brwlock_t lock;                    /* transaction lock */
    int ref_count;                     /* number of times opened */
    struct s_control control;          /* control file structure */
    int cfd;                           /* control file device */

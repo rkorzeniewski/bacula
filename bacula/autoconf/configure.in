@@ -236,7 +236,7 @@ if test x$support_readline = xyes; then
 	 CONS_INC="-I${TOP_DIR}/depkgs"
 	 CONS_LIBS="-lreadline -lhistory -ltermcap"
 	 CONS_LDFLAGS="-L${TOP_DIR}/depkgs/readline"
-	 READLINE_SRC="${TOP_DIR}/depkgs/readline"
+	 PRTREADLINE_SRC="${TOP_DIR}/depkgs/readline"
        ])
      ]	 
    )
@@ -1228,7 +1228,7 @@ Configuration on `date`:
   Working directory	      ${working_dir}
   SQL binaries Directory      ${SQL_BINDIR}
 
-  readline support:	      ${got_readline} ${READLINE_SRC}
+  readline support:	      ${got_readline} ${PRTREADLINE_SRC}
   cweb support: 	      ${got_cweb} ${CWEB_SRC}
   TCP Wrappers support:       ${TCPW_MSG}
   ZLIB support: 	      ${have_zlib}

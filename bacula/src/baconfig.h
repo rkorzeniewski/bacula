@@ -47,7 +47,8 @@
    Emsg1(M_ERROR, 0, "Failed ASSERT: %s\n", #x); \
    jcr[0] = 0; }
 
-
+/* Allow printing of NULL pointers */
+#define NPRT(x) (x)?(x):"(NULL)" 
 
 #ifdef ENABLE_NLS
 #include <libintl.h>
