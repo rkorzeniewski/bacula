@@ -66,7 +66,7 @@ int read_records(JCR *jcr,  DEVICE *dev,
 	 if (dev_state(dev, ST_EOT)) {
 	    DEV_RECORD *trec = new_record();
 
-            Jmsg(jcr, M_INFO, 0, "End of Volume at file %u  on device %s, Volume \"%s\"\n", 
+            Jmsg(jcr, M_INFO, 0, "End of Volume at file %u on device %s, Volume \"%s\"\n", 
 		 dev->file, dev_name(dev), jcr->VolumeName);
 	    if (!mount_cb(jcr, dev, block)) {
                Jmsg(jcr, M_INFO, 0, "End of all volumes.\n");
