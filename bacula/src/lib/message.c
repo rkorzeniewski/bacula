@@ -1255,7 +1255,6 @@ void Qmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...)
    item->type = type;
    item->mtime = time(NULL);
    strcpy(item->msg, pool_buf);  
-   P(msg_queue_mutex);
    /* If no jcr or dequeuing send to daemon to avoid recursion */
    if (!jcr || jcr->dequeuing) {
       /* jcr==NULL => daemon message, safe to send now */
@@ -1263,10 +1262,11 @@ void Qmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...)
       free(item);
    } else {
       /* Queue message for later sending */
+      P(msg_queue_mutex);
       jcr->msg_queue->append(item);
+      V(msg_queue_mutex);
 //    Dmsg1(000, "queue item=%lu\n", (long unsigned)item);
    }
-   V(msg_queue_mutex);
    free_memory(pool_buf);
 }
 
