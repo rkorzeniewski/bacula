@@ -503,6 +503,10 @@ AC_ARG_WITH(sqlite,
            SQLITE_INCDIR=/usr/include
            SQLITE_LIBDIR=/usr/lib
            SQLITE_BINDIR=/usr/bin      
+        elif test -f $prefix/include/sqlite.h; then
+           SQLITE_INCDIR=$prefix/include
+           SQLITE_LIBDIR=$prefix/lib
+           SQLITE_BINDIR=$prefix/bin      
         else
            AC_MSG_RESULT(no)
            AC_MSG_ERROR(Unable to find sqlite.h in standard locations)
@@ -512,6 +516,10 @@ AC_ARG_WITH(sqlite,
            SQLITE_INCDIR=$withval
            SQLITE_LIBDIR=$withval
            SQLITE_BINDIR=$withval
+        elif test -f $withval/include/sqlite.h; then
+           SQLITE_INCDIR=$withval/include
+           SQLITE_LIBDIR=$withval/lib
+           SQLITE_BINDIR=$withval/bin
         else
            AC_MSG_RESULT(no)
            AC_MSG_ERROR(Invalid SQLite directory $withval - unable to find sqlite.h under $withval)
