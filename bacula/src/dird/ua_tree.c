@@ -126,7 +126,7 @@ void user_select_files_from_tree(TREE_CTX *tree)
 int insert_tree_handler(void *ctx, int num_fields, char **row)
 {
    TREE_CTX *tree = (TREE_CTX *)ctx;
-   char fname[2000];
+   char fname[5000];
    TREE_NODE *node, *new_node;
    int type;
 
@@ -140,7 +140,7 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
    } else {
       type = TN_FILE;
    }
-   sprintf(fname, "%s%s", row[0], row[1]);
+   bsnprintf(fname, sizeof(fname), "%s%s", row[0]?row[0]:"", row[1]?row[1]:"");
    if (tree->avail_node) {
       node = tree->avail_node;
    } else {

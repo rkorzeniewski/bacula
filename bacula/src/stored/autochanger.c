@@ -222,7 +222,7 @@ static char *edit_device_codes(JCR *jcr, char *omsg, char *imsg, char *cmd)
             str = "%";
 	    break;
          case 'a':
-	    str = jcr->device->dev->dev_name;
+	    str = dev_name(jcr->device->dev);
 	    break;
          case 'c':
 	    str = NPRT(jcr->device->changer_name);
