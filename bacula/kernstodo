@@ -2,6 +2,7 @@
                    22 July 2004
 
 1.35 Items to do:
+- Knoppix CDROM
 - Add bscan to four-concurrent-jobs regression.
 - Do tape alerts -- see tapealert.txt
 - Document a get out of jail procedure if everything breaks if 
@@ -62,12 +63,47 @@ For 1.37 Testing/Documentation:
   non-existent directories will not be restored properly.
 
 Wish list:  
+- Implement the FreeBSD nodump flag in chflags.
 - Figure out how to make named console messages go only to that
   console and to the non-restricted console (new console class?).
 - Make restricted console prompt for password if *ask* is set or
   perhaps if password is undefined.
 - Implement "from ISO-date/time every x hours/days/weeks/months" in
   schedules.
+==== from Marc Schoechlin
+- the help-command should be more verbose
+  (it should explain the paramters of the different 
+  commands in detail)
+  -> it´s time-comsuming to consult the manual anytime
+     you need a special parameter
+  -> maybe it´s more easy to maintain this, if the
+     descriptions of that commands are outsourced to
+     a ceratin-file
+- the cd-command should allow complete paths
+  i.e. cd /foo/bar/foo/bar
+  -> if a customer mails me the path to a certain file,
+     it´s faster to enter the specified directory
+- if the password is not configured in bconsole.conf
+  you should be asked for it.
+  -> sometimes you like to do restore on a customer-machine
+     which shouldn´t know the password for bacula.
+  -> adding the password to the file favours admins
+     to forget to remove the password after usage
+  -> security-aspects
+     the protection of that file is less important
+- long-listed-output of commands should be scrollable
+  like the unix more/less-command does
+  -> if someone runs 200 and more machines, the lists could
+     be a little long and complex
+- command-output should be shown column by column
+  to reduce scrolling and to increase clarity
+  -> see last item
+- lsmark should list the selected files with full
+  paths
+- wildcards for selecting and file and directories would be nice
+- any actions should be interuptable with STRG+C
+- command-expansion would be pretty cool
+====
 - Compaction of Disk space by "migrating" Volumes that have pruned
   Jobs (what criteria? size, #jobs, time).
 - Add prune all command
@@ -1116,4 +1152,3 @@ Block Position: 0
 - Add better error codes to run_program (10000+)
 - Revisit and revise Disaster Recovery (fix SCSI and RAID 
   disk detection)
-
