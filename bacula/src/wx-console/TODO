@@ -1,6 +1,4 @@
 general : Show nice messages boxes when errors occurs.
-
-wxbRestorePanel : implement .backups client=xxx (2.1a)
    
 wxbRestorePanel : list jobs and list jobid=# will probably crash if there
    is nothing to show (db error or empty table)
@@ -73,8 +71,6 @@ wxbRestorePanel : The + only appears when one selects a directory,
    to indicate it has subdirectories
 
 wxbRestorePanel : Add a timeout when waiting for commands results
-
-bacula-dir : Progress status when building tree.
 
 bacula-dir : correct director to handle correctly + marked status
    (In fact there is a bug in the director : If you mark a directory

@@ -71,7 +71,7 @@ WX_DECLARE_OBJARRAY( wxbArrayString, wxbTable );
 class wxbTableParser: public wxbTable, public wxbDataParser
 {
    public:
-      wxbTableParser();
+      wxbTableParser(bool header = true);
       virtual ~wxbTableParser();
 
       /*

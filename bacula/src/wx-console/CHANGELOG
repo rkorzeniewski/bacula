@@ -1,4 +1,7 @@
 06-08-2004 :
+ - wxbRestorePanel : now parsing '+' sent by the director when building
+     tree.
+ - wxbRestorePanel : implemented .backups client=xxx (2.1)
  - wxbRestorePanel : implemented the director modification showing
      jobid when a job is started.
 

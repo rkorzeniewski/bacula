@@ -587,7 +587,7 @@ void wxbRestorePanel::CmdStart() {
       SetStatus(choosing);
       
       wxbTableParser* tableparser = new wxbTableParser();
-      wxbDataTokenizer* dt = new wxbDataTokenizer(true);
+      wxbDataTokenizer* dt = new wxbDataTokenizer(false);
       
       wxbMainFrame::GetInstance()->Send(wxString("restore") <<
          " client=\"" << configPanel->GetRowString("Client") <<
@@ -670,34 +670,24 @@ void wxbRestorePanel::CmdStart() {
                         if (str.ToLong(&l)) {
                            done += willdo;
                            willdo += l;
-                           var = (willdo-done)/3;
+                           var = (willdo-done)/50;
+                           gauge->SetValue(done);
+                           wxTheApp->Yield(true);
                         }
                         break;
                      }
                   }
                }
+               else if ((*dt)[lastindex] == "+") {
+                  gauge->SetValue(gauge->GetValue()+var);
+                  wxTheApp->Yield(true);
+               }
             }
             
-            if (gauge->GetValue() <= done) {
-               gauge->SetValue(done);
-               if (var < 0)
-                  var = -var;
-            }
-            else if (gauge->GetValue() >= willdo) {
-               gauge->SetValue(willdo);
-               if (var > 0)
-                  var = -var;
-            }
-            
-            gauge->SetValue(gauge->GetValue()+var);
-            
+                       
             if (dt->hasFinished()) {
                break;
             }
-            
-            /*wxbMainFrame::GetInstance()->Print(
-               wxString("[") << gauge->GetValue() << "/" << done
-                  << "-" << willdo << "]", CS_DEBUG);*/
          }
          wxTheApp->Yield(true);
          ::wxUsleep(1);
@@ -1180,12 +1170,18 @@ void wxbRestorePanel::CmdConfigCancel() {
 void wxbRestorePanel::CmdListJobs() {
    if (status == entered) {
       configPanel->ClearRowChoices("Before");
-      wxbUtils::WaitForPrompt("query\n");
-      wxbUtils::WaitForPrompt("6\n");
-      wxbTableParser* tableparser = new wxbTableParser();
-      wxbDataTokenizer* dt = wxbUtils::WaitForEnd(configPanel->GetRowString("Client") + "\n", true);
+      /*wxbUtils::WaitForPrompt("query\n");
+      wxbUtils::WaitForPrompt("6\n");*/
+      wxbTableParser* tableparser = new wxbTableParser(false);
+      wxbDataTokenizer* dt = wxbUtils::WaitForEnd(
+         wxString(".backups client=") + configPanel->GetRowString("Client") + "\n", true);
 
-      if (!tableparser->hasFinished()) {
+      while (!tableparser->hasFinished()) {
+         wxTheApp->Yield(true);
+         ::wxUsleep(100);
+      }
+         
+      if (!tableparser->GetCount() == 0) {
          for (unsigned int i = 0; i < dt->Count(); i++) {
             if ((*dt)[i].Find("No results to list.") == 0) {
                configPanel->AddRowChoice("Before", "No backup found for this client.");
@@ -1206,11 +1202,6 @@ void wxbRestorePanel::CmdListJobs() {
          }
       }
       
-      while (!tableparser->hasFinished()) {
-         wxTheApp->Yield(true);
-         ::wxUsleep(100);
-      }
-      
       delete dt;
 
       for (int i = tableparser->GetCount()-1; i > -1; i--) {
@@ -1219,12 +1210,8 @@ void wxbRestorePanel::CmdListJobs() {
          const char* chr;
          if ( ( (chr = datetime.ParseDate(str.GetData()) ) != NULL ) && ( datetime.ParseTime(++chr) != NULL ) ) {
             datetime += wxTimeSpan::Seconds(1);
-            //wxbMainFrame::GetInstance()->Print(wxString("-") << datetime.Format("%Y-%m-%d %H:%M:%S"), CS_DEBUG);
             configPanel->AddRowChoice("Before", datetime.Format("%Y-%m-%d %H:%M:%S"));
          }
-         /*else {
-         jobChoice->Append("Invalid");
-         }*/
       }
            
       delete tableparser;

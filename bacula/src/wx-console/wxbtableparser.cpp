@@ -54,8 +54,8 @@ wxbArrayString::~wxbArrayString() {
 /*
  *   wxbTableParser constructor
  */
-wxbTableParser::wxbTableParser() : wxbTable(), wxbDataParser(true) {
-   separatorNum = 0;
+wxbTableParser::wxbTableParser(bool header) : wxbTable(), wxbDataParser(true) {
+   separatorNum = header ? 0 : 2;
    tableHeader = wxbArrayString();
 }
 
