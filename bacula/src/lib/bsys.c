@@ -438,3 +438,34 @@ strtoll(const char *ptr, char **endptr, int base)
    return (long long int)strtod(ptr, endptr);	
 }
 #endif
+
+/*
+ * Bacula's implementation of fgets(). The difference is that it handles
+ *   being interrupted by a signal (e.g. a SIGCHLD).
+ */
+#undef bfgets
+char *bfgets(char *s, int size, FILE *fd)
+{
+   char *p = s;
+   int ch;	 
+   *p = 0;
+   for (int i=0; i < size-1; i++) {
+      do {
+	 errno = 0;
+	 ch = fgetc(fd);
+      } while (ch == -1 && (errno == EINTR || errno == EAGAIN));
+      if (ch == -1) {
+	 if (i == 0) {
+	    return NULL;
+	 } else {
+	    return s;
+	 }
+      }
+      *p++ = ch;
+      *p = 0;
+      if (ch == '\n') {
+	 break;
+      }
+   }
+   return s;
+}

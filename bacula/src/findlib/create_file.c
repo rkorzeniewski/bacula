@@ -71,6 +71,26 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *ofd, int replace)
    struct stat mstatp;
 
    binit(ofd);
+   /* Set desired writing mode (BackupWrite() or write()) */
+   switch (attr->data_stream) {
+   case 0:
+      break;			      /* use default defined by system */
+
+   /* These streams require using BackupWrite() */
+   case STREAM_WIN32_ATTRIBUTES:
+   case STREAM_WIN32_DATA:
+   case STREAM_WIN32_GZIP_DATA:
+      if (!set_win32_backup(ofd, 1)) {	/* use BackupWrite() */
+         Jmsg(jcr, M_ERROR, 0, _("Could not set Win32 output format.\n"));
+	 return CF_ERROR;
+      }
+
+   /* All other stream use standard system I/O (portable) */
+   default:
+      set_win32_backup(ofd, 0);       /* Disable using BackupWrite() */
+      break;
+   }
+
    new_mode = attr->statp.st_mode;
    Dmsg2(300, "newmode=%x file=%s\n", new_mode, attr->ofname);
    parent_mode = S_IWUSR | S_IXUSR | new_mode;

@@ -19,7 +19,7 @@ dnl search for true and false programs.
 AC_PATH_PROGS(TRUEPRG, true, :)
 AC_PATH_PROGS(FALSEPRG, false, :)
 
-dnl AC_CANONICAL_HOST
+AC_CANONICAL_HOST
 
 dnl bacula version
 VERSION=`sed -n -e 's/^.*VERSION.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`

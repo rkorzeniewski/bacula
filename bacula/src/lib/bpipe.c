@@ -158,10 +158,15 @@ int close_bpipe(BPIPE *bpipe)
 
    /* wait for worker child to exit */
    for ( ;; ) {
+      Dmsg2(200, "Wait for %d opt=%d\n", bpipe->worker_pid, wait_option);
       wpid = waitpid(bpipe->worker_pid, &chldstatus, wait_option);
       if (wpid == bpipe->worker_pid || (wpid == -1 && errno != EINTR)) {
+         Dmsg3(200, "Got break wpid=%d status=%d ERR=%s\n", wpid, chldstatus,
+            wpid==-1?strerror(errno):"none");
 	 break;
       }
+      Dmsg3(200, "Got wpid=%d status=%d ERR=%s\n", wpid, chldstatus,
+            wpid==-1?strerror(errno):"none");
       if (remaining_wait > 0) {
 	 bmicrosleep(1, 0);	       /* wait one second */
 	 remaining_wait--;
@@ -175,8 +180,10 @@ int close_bpipe(BPIPE *bpipe)
    if (wpid > 0) {
       if (WIFEXITED(chldstatus)) {	     /* process exit()ed */
 	 stat = WEXITSTATUS(chldstatus);
+          Dmsg1(200, "status =%d\n", stat);
       } else if (WIFSIGNALED(chldstatus)) {  /* process died */
 	 stat = 1;
+         Dmsg0(200, "Signaled\n");
       }
       if (stat != 0) {
 	 errno = ECHILD;	      /* set child errno */
@@ -186,9 +193,7 @@ int close_bpipe(BPIPE *bpipe)
       stop_child_timer(bpipe->timer_id);
    }
    free(bpipe);
-#ifdef HAVE_FREEBSD_OS
-   stat = 0;  /* kludge because FreeBSD doesn't seem to return valid status */
-#endif
+   Dmsg1(200, "returning stat = %d\n", stat);
    return stat;
 }
 

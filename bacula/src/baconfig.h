@@ -392,6 +392,10 @@ int  m_msg(char *file, int line, POOLMEM **msgbuf, char *fmt,...);
 #undef strdup
 #define strdup(buf) bad_call_on_strdup_use_bstrdup(buf)
 
+/* Use our fgets which handles interrupts */
+#undef fgets
+#define fgets(x,y,z) bfgets((x), (y), (z))
+
 #ifdef DEBUG
 #define bstrdup(str) strcpy((char *) b_malloc(__FILE__,__LINE__,strlen((str))+1),(str))
 #else

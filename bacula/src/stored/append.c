@@ -38,7 +38,7 @@ static char OK_data[]    = "3000 OK data\n";
 int do_append_data(JCR *jcr) 
 {
    int32_t n;
-   long file_index, stream, last_file_index;
+   int32_t file_index, stream, last_file_index;
    BSOCK *ds;
    BSOCK *fd_sock = jcr->file_bsock;
    int ok = TRUE;
@@ -111,7 +111,6 @@ int do_append_data(JCR *jcr)
    jcr->VolFirstIndex = 0;
    jcr->run_time = time(NULL);		    /* start counting time for rates */
    for (last_file_index = 0; ok && !job_canceled(jcr); ) {
-      char info[100];
 
       /* Read Stream header from the File daemon.
        *  The stream header consists of the following:
@@ -129,11 +128,29 @@ int do_append_data(JCR *jcr)
 	 ok = FALSE;
 	 break;
       }
-      if (sscanf(ds->msg, "%ld %ld %100s", &file_index, &stream, info) != 3) {
+	
+      /* 
+       * This hand scanning is a bit more complicated than a simple
+       *   sscanf, but it allows us to handle any size integer up to
+       *   int64_t without worrying about whether %d, %ld, %lld, or %q 
+       *   is the correct format for each different architecture.
+       * It is a real pity that sscanf() is not portable.
+       */
+      char *p = ds->msg;
+      while (B_ISSPACE(*p)) {
+	 p++;
+      }
+      file_index = (int32_t)str_to_int64(p);
+      while (B_ISDIGIT(*p)) {
+	 p++;
+      }
+      if (!B_ISSPACE(*p) || !B_ISDIGIT(*(p+1))) {
          Jmsg1(jcr, M_FATAL, 0, _("Malformed data header from FD: %s\n"), ds->msg);
 	 ok = FALSE;
 	 break;
       }
+      stream = (int32_t)str_to_int64(p);
+
       Dmsg2(190, "<filed: Header FilInx=%d stream=%d\n", file_index, stream);
 
       if (!(file_index > 0 && (file_index == last_file_index ||
