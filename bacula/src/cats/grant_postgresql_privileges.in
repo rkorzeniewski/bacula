@@ -7,6 +7,8 @@ bindir=@SQL_BINDIR@
 if $bindir/psql $* -f - <<END-OF-DATA
 \c bacula
 
+create user bacula;
+
 -- for tables
 grant all on unsavedfiles to bacula;
 grant all on basefiles    to bacula;
