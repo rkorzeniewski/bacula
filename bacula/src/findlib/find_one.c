@@ -66,25 +66,23 @@ static void free_dir_ff_pkt(FF_PKT *dir_ff_pkt)
  */
 static int accept_fstype(FF_PKT *ff, void *dummy) {
    int i;
-   char *fs;
+   char fs[1000];
    bool accept = true;
 
    if (ff->fstypes.size()) {
       accept = false;
-      fs = fstype(ff->fname);
-      if (fs == NULL) {
-	 Dmsg1(50, "Cannot determine file system type for \"%s\"\n", ff->fname);
+      if (!fstype(ff->fname, fs, sizeof(fs))) {
+         Dmsg1(50, "Cannot determine file system type for \"%s\"\n", ff->fname);
       } else {
 	 for (i = 0; i < ff->fstypes.size(); ++i) {
 	    if (strcmp(fs, (char *)ff->fstypes.get(i)) == 0) {
-	       Dmsg2(100, "Accepting fstype %s for \"%s\"\n", fs, ff->fname);
+               Dmsg2(100, "Accepting fstype %s for \"%s\"\n", fs, ff->fname);
 	       accept = true;
 	       break;
 	    }
-	    Dmsg3(200, "fstype %s for \"%s\" does not match %s\n", fs,
+            Dmsg3(200, "fstype %s for \"%s\" does not match %s\n", fs,
 		  ff->fname, ff->fstypes.get(i));
 	 }
-	 free(fs);
       }
    }
    return accept;
@@ -104,6 +102,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
 {
    struct utimbuf restore_times;
    int rtn_stat;
+   int len;
 
    ff_pkt->fname = ff_pkt->link = fname;
 
@@ -198,9 +197,9 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
       for (lp = ff_pkt->linklist; lp; lp = lp->next)
 	 if (lp->ino == (ino_t)ff_pkt->statp.st_ino &&
 	     lp->dev == (dev_t)ff_pkt->statp.st_dev) {
-	     /* If we have already backed up the hard linked file don't do it again */
+             /* If we have already backed up the hard linked file don't do it again */
 	     if (strcmp(lp->name, fname) == 0) {
-		Jmsg1(jcr, M_WARNING, 0, _("Attempt to backup hard linked file %s twice ignored.\n"),
+                Jmsg1(jcr, M_WARNING, 0, _("Attempt to backup hard linked file %s twice ignored.\n"),
 		   fname);
 		return 1;	      /* ignore */
 	     }
@@ -211,10 +210,11 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
 	 }
 
       /* File not previously dumped. Chain it into our list. */
-      lp = (struct f_link *)bmalloc(sizeof(struct f_link) + strlen(fname) +1);
+      len = strlen(fname) + 1;
+      lp = (struct f_link *)bmalloc(sizeof(struct f_link) + len);
       lp->ino = ff_pkt->statp.st_ino;
       lp->dev = ff_pkt->statp.st_dev;
-      strcpy(lp->name, fname);
+      bstrncpy(lp->name, fname, len);
       lp->next = ff_pkt->linklist;
       ff_pkt->linklist = lp;
       ff_pkt->linked = lp;	      /* mark saved link */
@@ -379,7 +379,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
 	 }
 	 free(link);
 	 free_dir_ff_pkt(dir_ff_pkt);
-	 ff_pkt->link = ff_pkt->fname;     /* reset "link" */
+         ff_pkt->link = ff_pkt->fname;     /* reset "link" */
 	 if (ff_pkt->flags & FO_KEEPATIME) {
 	    utime(fname, &restore_times);
 	 }
@@ -424,9 +424,9 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
 	 }
 	 ASSERT(name_max+1 > (int)sizeof(struct dirent) + (int)NAMELEN(entry));
 	 p = entry->d_name;
-	 /* Skip `.', `..', and excluded file names.  */
-	 if (p[0] == '\0' || (p[0] == '.' && (p[1] == '\0' ||
-	     (p[1] == '.' && p[2] == '\0')))) {
+         /* Skip `.', `..', and excluded file names.  */
+         if (p[0] == '\0' || (p[0] == '.' && (p[1] == '\0' ||
+             (p[1] == '.' && p[2] == '\0')))) {
 	    continue;
 	 }
 

@@ -27,24 +27,28 @@
  */
 
 #ifndef TEST_PROGRAM
+
 #include "bacula.h"
 #include "find.h"
+
 #else /* Set up for testing a stand alone program */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define SUPPORTEDOSES      "HAVE_DARWIN_OS\n" \
-			   "HAVE_FREEBSD_OS\n" \
-			   "HAVE_HPUX_OS\n" \
-			   "HAVE_IRIX_OS\n" \
-			   "HAVE_LINUX_OS\n" \
-			   "HAVE_NETBSD_OS\n" \
-			   "HAVE_OPENBSD_OS\n" \
-			   "HAVE_SUN_OS\n"
+#define SUPPORTEDOSES \
+   "HAVE_DARWIN_OS\n" \
+   "HAVE_FREEBSD_OS\n" \
+   "HAVE_HPUX_OS\n" \
+   "HAVE_IRIX_OS\n" \
+   "HAVE_LINUX_OS\n" \
+   "HAVE_NETBSD_OS\n" \
+   "HAVE_OPENBSD_OS\n" \
+   "HAVE_SUN_OS\n"
 #define POOLMEM 	   char
 #define bstrdup 	   strdup
-#define Dmsg0(n,s)         fprintf(stderr, s);
-#define Dmsg1(n,s,a1)      fprintf(stderr, s, a1);
+#define Dmsg0(n,s)	   fprintf(stderr, s);
+#define Dmsg1(n,s,a1)	   fprintf(stderr, s, a1);
 #define Dmsg2(n,s,a1,a2)   fprintf(stderr, s, a1, a2);
 #endif
 
@@ -57,35 +61,43 @@
    || defined(HAVE_FREEBSD_OS ) \
    || defined(HAVE_NETBSD_OS) \
    || defined(HAVE_OPENBSD_OS)
+
 #include <sys/param.h>
 #include <sys/mount.h>
-POOLMEM *fstype(const char *fname)
+
+bool fstype(const char *fname, char *fs, int fslen)
 {
    struct statfs st;
    if (statfs(fname, &st) == 0) {
-      return bstrdup(st.f_fstypename);
+      bstrncpy(fs, st.f_fstypename, fslen);
+      return true;
    }
    Dmsg1(50, "statfs() failed for \"%s\"\n", fname);
-   return NULL;
+   return false;
 }
 
 #elif defined(HAVE_HPUX_OS) \
    || defined(HAVE_IRIX_OS)
+
 #include <sys/types.h>
 #include <sys/statvfs.h>
-POOLMEM *fstype(const char *fname)
+
+bool fstype(const char *fname, char *fs, int fslen)
 {
    struct statvfs st;
    if (statvfs(fname, &st) == 0) {
-      return bstrdup(st.f_basetype);
+      bstrncpy(fs, st.f_basetype, fslen);
+      return true;
    }
    Dmsg1(50, "statfs() failed for \"%s\"\n", fname);
-   return NULL;
+   return false;
 }
 
 #elif defined(HAVE_LINUX_OS)
+
 #include <sys/vfs.h>
-POOLMEM *fstype(const char *fname)
+
+bool fstype(const char *fname, char *fs, int fslen)
 {
    struct statfs st;
    if (statfs(fname, &st) == 0) {
@@ -99,111 +111,117 @@ POOLMEM *fstype(const char *fname)
       switch (st.f_type) {
 
 #if 0	    /* These need confirmation */
-      case 0xadf5:         return bstrdup("adfs");          /* ADFS_SUPER_MAGIC */
-      case 0xadff:         return bstrdup("affs");          /* AFFS_SUPER_MAGIC */
-      case 0x6B414653:     return bstrdup("afs");           /* AFS_FS_MAGIC */
-      case 0x0187:         return bstrdup("autofs");        /* AUTOFS_SUPER_MAGIC */
-      case 0x62646576:     return bstrdup("bdev");          /* ??? */
-      case 0x42465331:     return bstrdup("befs");          /* BEFS_SUPER_MAGIC */
-      case 0x1BADFACE:     return bstrdup("bfs");           /* BFS_MAGIC */
-      case 0x42494e4d:     return bstrdup("binfmt_misc");   /* ??? */
-      case (('C'<<8)|'N'): return bstrdup("capifs");        /* CAPIFS_SUPER_MAGIC */
-      case 0xFF534D42:     return bstrdup("cifs");          /* CIFS_MAGIC_NUMBER */
-      case 0x73757245:     return bstrdup("coda");          /* CODA_SUPER_MAGIC */
-      case 0x012ff7b7:     return bstrdup("coherent");      /* COH_SUPER_MAGIC */
-      case 0x28cd3d45:     return bstrdup("cramfs");        /* CRAMFS_MAGIC */
-      case 0x1373:         return bstrdup("devfs");         /* DEVFS_SUPER_MAGIC */
-      case 0x1cd1:         return bstrdup("devpts");        /* ??? */
-      case 0x414A53:       return bstrdup("efs");           /* EFS_SUPER_MAGIC */
-      case 0x03111965:     return bstrdup("eventpollfs");   /* EVENTPOLLFS_MAGIC */
-      case 0x137d:         return bstrdup("ext");           /* EXT_SUPER_MAGIC */
-      case 0xef51:         return bstrdup("ext2");          /* EXT2_OLD_SUPER_MAGIC */
-      case 0xBAD1DEA:      return bstrdup("futexfs");       /* ??? */
-      case 0xaee71ee7:     return bstrdup("gadgetfs");      /* GADGETFS_MAGIC */
-      case 0x00c0ffee:     return bstrdup("hostfs");        /* HOSTFS_SUPER_MAGIC */
-      case 0xf995e849:     return bstrdup("hpfs");          /* HPFS_SUPER_MAGIC */
-      case 0xb00000ee:     return bstrdup("hppfs");         /* HPPFS_SUPER_MAGIC */
-      case 0x958458f6:     return bstrdup("hugetlbfs");     /* HUGETLBFS_MAGIC */
-      case 0x12061983:     return bstrdup("hwgfs");         /* HWGFS_MAGIC */
-      case 0x66726f67:     return bstrdup("ibmasmfs");      /* IBMASMFS_MAGIC */
-      case 0x9660:         return bstrdup("iso9660");       /* ISOFS_SUPER_MAGIC */
-      case 0x9660:         return bstrdup("isofs");         /* ISOFS_SUPER_MAGIC */
-      case 0x07c0:         return bstrdup("jffs");          /* JFFS_MAGIC_SB_BITMASK */
-      case 0x72b6:         return bstrdup("jffs2");         /* JFFS2_SUPER_MAGIC */
-      case 0x3153464a:     return bstrdup("jfs");           /* JFS_SUPER_MAGIC */
-      case 0x2468:         return bstrdup("minix");         /* MINIX2_SUPER_MAGIC */
-      case 0x2478:         return bstrdup("minix");         /* MINIX2_SUPER_MAGIC2 */
-      case 0x137f:         return bstrdup("minix");         /* MINIX_SUPER_MAGIC */
-      case 0x138f:         return bstrdup("minix");         /* MINIX_SUPER_MAGIC2 */
-      case 0x19800202:     return bstrdup("mqueue");        /* MQUEUE_MAGIC */
-      case 0x4d44:         return bstrdup("msdos");         /* MSDOS_SUPER_MAGIC */
-      case 0x564c:         return bstrdup("ncpfs");         /* NCP_SUPER_MAGIC */
-      case 0x6969:         return bstrdup("nfs");           /* NFS_SUPER_MAGIC */
-      case 0x5346544e:     return bstrdup("ntfs");          /* NTFS_SB_MAGIC */
-      case 0x9fa1:         return bstrdup("openpromfs");    /* OPENPROM_SUPER_MAGIC */
-      case 0x6f70726f:     return bstrdup("oprofilefs");    /* OPROFILEFS_MAGIC */
-      case 0xa0b4d889:     return bstrdup("pfmfs");         /* PFMFS_MAGIC */
-      case 0x50495045:     return bstrdup("pipfs");         /* PIPEFS_MAGIC */
-      case 0x9fa0:         return bstrdup("proc");          /* PROC_SUPER_MAGIC */
-      case 0x002f:         return bstrdup("qnx4");          /* QNX4_SUPER_MAGIC */
-      case 0x858458f6:     return bstrdup("ramfs");         /* RAMFS_MAGIC */
-      case 0x52654973:     return bstrdup("reiserfs");      /* REISERFS_SUPER_MAGIC */
-      case 0x7275:         return bstrdup("romfs");         /* ROMFS_MAGIC */
-      case 0x858458f6:     return bstrdup("rootfs");        /* RAMFS_MAGIC */
-      case 0x67596969:     return bstrdup("rpc_pipefs");    /* RPCAUTH_GSSMAGIC */
-      case 0x517B:         return bstrdup("smbfs");         /* SMB_SUPER_MAGIC */
-      case 0x534F434B:     return bstrdup("sockfs");        /* SOCKFS_MAGIC */
-      case 0x62656572:     return bstrdup("sysfs");         /* SYSFS_MAGIC */
-      case 0x012ff7b6:     return bstrdup("sysv2");         /* SYSV2_SUPER_MAGIC */
-      case 0x012ff7b5:     return bstrdup("sysv4");         /* SYSV4_SUPER_MAGIC */
-      case 0x858458f6:     return bstrdup("tmpfs");         /* RAMFS_MAGIC */
-      case 0x01021994:     return bstrdup("tmpfs");         /* TMPFS_MAGIC */
-      case 0x15013346:     return bstrdup("udf");           /* UDF_SUPER_MAGIC */
-      case 0x00011954:     return bstrdup("ufs");           /* UFS_MAGIC */
-      case 0x9fa2:         return bstrdup("usbdevfs");      /* USBDEVICE_SUPER_MAGIC */
-      case 0xa501FCF5:     return bstrdup("vxfs");          /* VXFS_SUPER_MAGIC */
-      case 0x012ff7b4:     return bstrdup("xenix");         /* XENIX_SUPER_MAGIC */
-      case 0x58465342:     return bstrdup("xfs");           /* XFS_SB_MAGIC */
-      case 0x012fd16d:     return bstrdup("xiafs");         /* _XIAFS_SUPER_MAGIC */
+      case 0xadf5:         bstrncpy(fs, "adfs", fslen); return true;          /* ADFS_SUPER_MAGIC */
+      case 0xadff:         bstrncpy(fs, "affs", fslen); return true;          /* AFFS_SUPER_MAGIC */
+      case 0x6B414653:     bstrncpy(fs, "afs", fslen); return true;           /* AFS_FS_MAGIC */
+      case 0x0187:         bstrncpy(fs, "autofs", fslen); return true;        /* AUTOFS_SUPER_MAGIC */
+      case 0x62646576:     bstrncpy(fs, "bdev", fslen); return true;          /* ??? */
+      case 0x42465331:     bstrncpy(fs, "befs", fslen); return true;          /* BEFS_SUPER_MAGIC */
+      case 0x1BADFACE:     bstrncpy(fs, "bfs", fslen); return true;           /* BFS_MAGIC */
+      case 0x42494e4d:     bstrncpy(fs, "binfmt_misc", fslen); return true;   /* ??? */
+      case (('C'<<8)|'N'): bstrncpy(fs, "capifs", fslen); return true;        /* CAPIFS_SUPER_MAGIC */
+      case 0xFF534D42:     bstrncpy(fs, "cifs", fslen); return true;          /* CIFS_MAGIC_NUMBER */
+      case 0x73757245:     bstrncpy(fs, "coda", fslen); return true;          /* CODA_SUPER_MAGIC */
+      case 0x012ff7b7:     bstrncpy(fs, "coherent", fslen); return true;      /* COH_SUPER_MAGIC */
+      case 0x28cd3d45:     bstrncpy(fs, "cramfs", fslen); return true;        /* CRAMFS_MAGIC */
+      case 0x1373:         bstrncpy(fs, "devfs", fslen); return true;         /* DEVFS_SUPER_MAGIC */
+      case 0x1cd1:         bstrncpy(fs, "devpts", fslen); return true;        /* ??? */
+      case 0x414A53:       bstrncpy(fs, "efs", fslen); return true;           /* EFS_SUPER_MAGIC */
+      case 0x03111965:     bstrncpy(fs, "eventpollfs", fslen); return true;   /* EVENTPOLLFS_MAGIC */
+      case 0x137d:         bstrncpy(fs, "ext", fslen); return true;           /* EXT_SUPER_MAGIC */
+      case 0xef51:         bstrncpy(fs, "ext2", fslen); return true;          /* EXT2_OLD_SUPER_MAGIC */
+      case 0xBAD1DEA:      bstrncpy(fs, "futexfs", fslen); return true;       /* ??? */
+      case 0xaee71ee7:     bstrncpy(fs, "gadgetfs", fslen); return true;      /* GADGETFS_MAGIC */
+      case 0x00c0ffee:     bstrncpy(fs, "hostfs", fslen); return true;        /* HOSTFS_SUPER_MAGIC */
+      case 0xf995e849:     bstrncpy(fs, "hpfs", fslen); return true;          /* HPFS_SUPER_MAGIC */
+      case 0xb00000ee:     bstrncpy(fs, "hppfs", fslen); return true;         /* HPPFS_SUPER_MAGIC */
+      case 0x958458f6:     bstrncpy(fs, "hugetlbfs", fslen); return true;     /* HUGETLBFS_MAGIC */
+      case 0x12061983:     bstrncpy(fs, "hwgfs", fslen); return true;         /* HWGFS_MAGIC */
+      case 0x66726f67:     bstrncpy(fs, "ibmasmfs", fslen); return true;      /* IBMASMFS_MAGIC */
+      case 0x9660:         bstrncpy(fs, "iso9660", fslen); return true;       /* ISOFS_SUPER_MAGIC */
+      case 0x9660:         bstrncpy(fs, "isofs", fslen); return true;         /* ISOFS_SUPER_MAGIC */
+      case 0x07c0:         bstrncpy(fs, "jffs", fslen); return true;          /* JFFS_MAGIC_SB_BITMASK */
+      case 0x72b6:         bstrncpy(fs, "jffs2", fslen); return true;         /* JFFS2_SUPER_MAGIC */
+      case 0x3153464a:     bstrncpy(fs, "jfs", fslen); return true;           /* JFS_SUPER_MAGIC */
+      case 0x2468:         bstrncpy(fs, "minix", fslen); return true;         /* MINIX2_SUPER_MAGIC */
+      case 0x2478:         bstrncpy(fs, "minix", fslen); return true;         /* MINIX2_SUPER_MAGIC2 */
+      case 0x137f:         bstrncpy(fs, "minix", fslen); return true;         /* MINIX_SUPER_MAGIC */
+      case 0x138f:         bstrncpy(fs, "minix", fslen); return true;         /* MINIX_SUPER_MAGIC2 */
+      case 0x19800202:     bstrncpy(fs, "mqueue", fslen); return true;        /* MQUEUE_MAGIC */
+      case 0x4d44:         bstrncpy(fs, "msdos", fslen); return true;         /* MSDOS_SUPER_MAGIC */
+      case 0x564c:         bstrncpy(fs, "ncpfs", fslen); return true;         /* NCP_SUPER_MAGIC */
+      case 0x6969:         bstrncpy(fs, "nfs", fslen); return true;           /* NFS_SUPER_MAGIC */
+      case 0x5346544e:     bstrncpy(fs, "ntfs", fslen); return true;          /* NTFS_SB_MAGIC */
+      case 0x9fa1:         bstrncpy(fs, "openpromfs", fslen); return true;    /* OPENPROM_SUPER_MAGIC */
+      case 0x6f70726f:     bstrncpy(fs, "oprofilefs", fslen); return true;    /* OPROFILEFS_MAGIC */
+      case 0xa0b4d889:     bstrncpy(fs, "pfmfs", fslen); return true;         /* PFMFS_MAGIC */
+      case 0x50495045:     bstrncpy(fs, "pipfs", fslen); return true;         /* PIPEFS_MAGIC */
+      case 0x9fa0:         bstrncpy(fs, "proc", fslen); return true;          /* PROC_SUPER_MAGIC */
+      case 0x002f:         bstrncpy(fs, "qnx4", fslen); return true;          /* QNX4_SUPER_MAGIC */
+      case 0x858458f6:     bstrncpy(fs, "ramfs", fslen); return true;         /* RAMFS_MAGIC */
+      case 0x52654973:     bstrncpy(fs, "reiserfs", fslen); return true;      /* REISERFS_SUPER_MAGIC */
+      case 0x7275:         bstrncpy(fs, "romfs", fslen); return true;         /* ROMFS_MAGIC */
+      case 0x858458f6:     bstrncpy(fs, "rootfs", fslen); return true;        /* RAMFS_MAGIC */
+      case 0x67596969:     bstrncpy(fs, "rpc_pipefs", fslen); return true;    /* RPCAUTH_GSSMAGIC */
+      case 0x517B:         bstrncpy(fs, "smbfs", fslen); return true;         /* SMB_SUPER_MAGIC */
+      case 0x534F434B:     bstrncpy(fs, "sockfs", fslen); return true;        /* SOCKFS_MAGIC */
+      case 0x62656572:     bstrncpy(fs, "sysfs", fslen); return true;         /* SYSFS_MAGIC */
+      case 0x012ff7b6:     bstrncpy(fs, "sysv2", fslen); return true;         /* SYSV2_SUPER_MAGIC */
+      case 0x012ff7b5:     bstrncpy(fs, "sysv4", fslen); return true;         /* SYSV4_SUPER_MAGIC */
+      case 0x858458f6:     bstrncpy(fs, "tmpfs", fslen); return true;         /* RAMFS_MAGIC */
+      case 0x01021994:     bstrncpy(fs, "tmpfs", fslen); return true;         /* TMPFS_MAGIC */
+      case 0x15013346:     bstrncpy(fs, "udf", fslen); return true;           /* UDF_SUPER_MAGIC */
+      case 0x00011954:     bstrncpy(fs, "ufs", fslen); return true;           /* UFS_MAGIC */
+      case 0x9fa2:         bstrncpy(fs, "usbdevfs", fslen); return true;      /* USBDEVICE_SUPER_MAGIC */
+      case 0xa501FCF5:     bstrncpy(fs, "vxfs", fslen); return true;          /* VXFS_SUPER_MAGIC */
+      case 0x012ff7b4:     bstrncpy(fs, "xenix", fslen); return true;         /* XENIX_SUPER_MAGIC */
+      case 0x58465342:     bstrncpy(fs, "xfs", fslen); return true;           /* XFS_SB_MAGIC */
+      case 0x012fd16d:     bstrncpy(fs, "xiafs", fslen); return true;         /* _XIAFS_SUPER_MAGIC */
 
-      case 0xef53:         return bstrdup("ext2");          /* EXT2_SUPER_MAGIC */
+      case 0xef53:         bstrncpy(fs, "ext2", fslen); return true;          /* EXT2_SUPER_MAGIC */
    /* case 0xef53:	   ext2 and ext3 are the same */    /* EXT3_SUPER_MAGIC */
 #else	    /* Known good values */
 #endif
 
       default:
-	 Dmsg2(10, "Unknown file system type \"0x%x\" for \"%s\".\n", st.f_type,
+         Dmsg2(10, "Unknown file system type \"0x%x\" for \"%s\".\n", st.f_type,
 	       fname);
-	 return NULL;
+	 return false;
       }
    }
    Dmsg1(50, "statfs() failed for \"%s\"\n", fname);
-   return NULL;
+   return false;
 }
 
 #elif defined(HAVE_SUN_OS)
+
 #include <sys/types.h>
 #include <sys/stat.h>
-POOLMEM *fstype(const char *fname)
+
+bool fstype(const char *fname, char *fs, int fslen)
 {
    struct stat st;
    if (lstat(fname, &st) == 0) {
-      return bstrdup(st.st_fstype);
+      bstrncpy(fs, st.st_fstype, fslen);
+      return true;
    }
    Dmsg1(50, "lstat() failed for \"%s\"\n", fname);
-   return NULL;
+   return false;
 }
 
 #else	 /* No recognised OS */
-POOLMEM *fstype(const char *fname)
+
+bool fstype(const char *fname, char *fs, int fslen)
 {
    Dmsg0(10, "!!! fstype() not implemented for this OS. !!!\n");
+
 #ifdef TEST_PROGRAM
    Dmsg1(10, "Please define one of the following when compiling:\n\n%s\n",
 	 SUPPORTEDOSES);
    exit(EXIT_FAILURE);
 #endif
-   return NULL;
+
+   return false;
 }
 #endif
 
@@ -216,7 +234,7 @@ int main(int argc, char **argv)
    if (argc < 2) {
       p = (argc < 1) ? "fstype" : argv[0];
       printf("usage:\t%s path ...\n"
-	    "\t%s prints the file system type and pathname of the paths.\n",
+            "\t%s prints the file system type and pathname of the paths.\n",
 	    p, p);
       return EXIT_FAILURE;
    }
@@ -224,7 +242,7 @@ int main(int argc, char **argv)
       if ((p = fstype(*argv)) == NULL) {
 	 status = EXIT_FAILURE;
       } else {
-	 printf("%s\t%s\n", p, *argv);
+         printf("%s\t%s\n", p, *argv);
       }
    }
    return status;

@@ -30,6 +30,8 @@ Suggestions for Preben:
 - Optimized bootstrap.
 
 For 1.37:
+- Look at Preben's fstype error handling code.
+- Look at Preben's acl.c error handling code.
 - See multiple-store.txt for Multiple Storage implementation
   design.
 - Add Set Error from Python.
