@@ -149,8 +149,9 @@ init_dev(JCR *jcr, DEVICE *dev, DEVRES *device)
    /* Copy user supplied device parameters from Resource */
    dev->dev_name = get_memory(strlen(device->device_name)+1);
    pm_strcpy(dev->dev_name, device->device_name);
-   dev->prt_name = get_memory(strlen(device->device_name) + strlen(device->hdr.name) + 10);
-   Mmsg(dev->prt_name, "\"%s\" (%s)", device->device_name, device->hdr.name);
+   dev->prt_name = get_memory(strlen(device->device_name) + strlen(device->hdr.name) + 20);
+   /* We edit "Resource-name" (physical-name) */
+   Mmsg(dev->prt_name, "\"%s\" (%s)", device->hdr.name, device->device_name);
    dev->capabilities = device->cap_bits;
    dev->min_block_size = device->min_block_size;
    dev->max_block_size = device->max_block_size;
@@ -1627,6 +1628,10 @@ term_dev(DEVICE *dev)
    if (dev->dev_name) {
       free_memory(dev->dev_name);
       dev->dev_name = NULL;
+   }
+   if (dev->prt_name) {
+      free_memory(dev->prt_name);
+      dev->prt_name = NULL;
    }
    if (dev->errmsg) {
       free_pool_memory(dev->errmsg);
