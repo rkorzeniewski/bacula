@@ -273,7 +273,7 @@ AC_ARG_ENABLE(static-cons,
 
 STATIC_CONS=
 if test x$support_static_cons = xyes; then
-   STATIC_CONS="static-console"
+   STATIC_CONS="static-bconsole"
 fi
 AC_SUBST(STATIC_CONS)
 
@@ -1488,7 +1488,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   scripts/btraceback \
 	   scripts/startit \
 	   scripts/stopit \
-	   scripts/console \
+	   scripts/bconsole \
 	   scripts/gconsole \
 	   scripts/bacula \
 	   scripts/fd \
@@ -1501,7 +1501,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/Makefile \
 	   src/host.h \
 	   src/console/Makefile \
-	   src/console/console.conf \
+	   src/console/bconsole.conf \
 	   src/gnome-console/Makefile \
 	   src/gnome-console/gnome-console.conf \
 	   src/gnome2-console/Makefile \
@@ -1542,7 +1542,7 @@ AC_OUTPUT([autoconf/Make.common \
 
 cd scripts
 chmod 755 startmysql stopmysql bacula startit stopit btraceback mtx-changer
-chmod 755 console gconsole mtx-changer
+chmod 755 bconsole gconsole mtx-changer
 cd ..
 chmod 755 src/cats/make_mysql_tables src/cats/drop_mysql_tables
 chmod 755 src/cats/make_test_tables src/cats/drop_test_tables
@@ -1616,16 +1616,16 @@ Configuration on `date`:
   Traceback Email:	      ${dump_email}
   SMTP Host Address:	      ${smtp_host}
 
-  Director Port: 	      ${dir_port}
+  Director Port:	      ${dir_port}
   File daemon Port:	      ${fd_port}
   Storage daemon Port:	      ${sd_port}
 
-  Director User:            ${dir_user}
-  Director Group:           ${dir_group}
-  Storage Daemon User:      ${dir_user}
-  Storage DaemonGroup:      ${dir_group}
-  File Daemon User:         ${dir_user}
-  File Daemon Group:        ${dir_group}
+  Director User:	    ${dir_user}
+  Director Group:	    ${dir_group}
+  Storage Daemon User:	    ${dir_user}
+  Storage DaemonGroup:	    ${dir_group}
+  File Daemon User:	    ${dir_user}
+  File Daemon Group:	    ${dir_group}
 
   SQL binaries Directory      ${SQL_BINDIR}
 

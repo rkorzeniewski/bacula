@@ -43,11 +43,11 @@ all: Makefile console @STATIC_CONS@
 	@echo " "
 
 
-console: $(CONSOBJS) ../lib/libbac.a ../cats/libsql.a
+bconsole: $(CONSOBJS) ../lib/libbac.a ../cats/libsql.a
 	$(CXX) $(LDFLAGS) $(CONS_LDFLAGS) -L../lib -L../cats -o $@ $(CONSOBJS) \
 	      $(LIBS) $(DLIB) $(CONS_LIBS) -lbac -lsql -lm
 
-static-console: $(CONSOBJS) ../lib/libbac.a ../cats/libsql.a
+static-bconsole: $(CONSOBJS) ../lib/libbac.a ../cats/libsql.a
 	$(CXX) -static $(LDFLAGS) $(CONS_LDFLAGS) -L../lib -L../cats -o $@ $(CONSOBJS) \
 	      $(LIBS) $(DLIB) $(CONS_LIBS) -lbac -lsql -lm
 	strip $@

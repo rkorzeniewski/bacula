@@ -113,7 +113,7 @@ Makefiles:
 	$(SHELL) config.status
 	(cd scripts; \
 	   chmod 755 startmysql stopmysql bacula fd startit stopit btraceback; \
-	   chmod 755 mtx-changer console gconsole)
+	   chmod 755 mtx-changer bconsole gconsole)
 	chmod 755 src/cats/make_mysql_tables src/cats/drop_mysql_tables
 	chmod 755 src/cats/make_sqlite_tables src/cats/drop_sqlite_tables
 	chmod 755 src/cats/make_bdb_tables src/cats/drop_bdb_tables
@@ -142,7 +142,7 @@ distclean:
 	@(cd $(srcdir); $(RMF) Makefile autoconf/Make.common)
 	@(cd platforms; echo "==>Entering directory `pwd`"; ${MAKE} $@ || exit 1)
 	@$(RMF) bacula fd Makefile startmysql stopmysql startit stopit btraceback
-	@$(RMF) console gconsole
+	@$(RMF) bconsole gconsole
 	@$(RMF) *~ 1 2 3 core core.* config.guess console.log console.sum
 	@$(RMF) working/*
 	@$(RMF) -r examples/devices/CVS autoconf/CVS autoconf/gnome-macros/CVS

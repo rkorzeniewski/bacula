@@ -231,6 +231,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
          bnet_fsend(bs, "1992 Update Media error\n");
          Dmsg0(190, "send error\n");
       }
+      has_volume_expired(jcr, &mr);   /* if expired, change Media record */
       db_unlock(jcr->db);
 
    /*

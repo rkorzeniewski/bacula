@@ -36,12 +36,12 @@ EXTRAOBJS = @OBJLIST@
 .c.o:
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
-all: Makefile smtp dbcheck testfind testls
+all: Makefile bsmtp dbcheck testfind testls
 	@echo "==== Make of tools is good ===="
 	@echo " "
 
-smtp:	smtp.o ../lib/libbac.a	      
-	$(CXX) $(LDFLAGS) -L../lib -o $@ smtp.o -lbac -lm $(LIBS) $(DLIB)
+bsmtp:	bsmtp.o ../lib/libbac.a        
+	$(CXX) $(LDFLAGS) -L../lib -o $@ bsmtp.o -lbac -lm $(LIBS) $(DLIB)
 
 dbcheck: dbcheck.o ../lib/libbac.a ../cats/libsql.a
 	$(CXX) $(LDFLAGS) -L../lib -L../cats -o $@ dbcheck.o -lsql -lbac -lm $(LIBS) $(DB_LIBS)
@@ -61,7 +61,7 @@ Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	  && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 clean:
-	@$(RMF) smtp core core.* a.out *.o *.bak *~ *.intpro *.extpro 1 2 3
+	@$(RMF) bsmtp core core.* a.out *.o *.bak *~ *.intpro *.extpro 1 2 3
 	@$(RMF) testfind dbcheck testls
 
 realclean: clean
@@ -71,12 +71,12 @@ distclean: realclean
 	if test $(srcdir) = .; then $(MAKE) realclean; fi
 	(cd $(srcdir); $(RMF) Makefile; $(RMF) -r CVS)
 
-install: smtp
-	$(INSTALL_PROGRAM) smtp $(DESTDIR)$(sbindir)/smtp      
+install: bsmtp
+	$(INSTALL_PROGRAM) bsmtp $(DESTDIR)$(sbindir)/bsmtp	 
 	$(INSTALL_PROGRAM) dbcheck $(DESTDIR)$(sbindir)/dbcheck      
 
 uninstall:
-	(cd $(DESTDIR)$(sbindir); $(RMF) smtp)
+	(cd $(DESTDIR)$(sbindir); $(RMF) bsmtp)
 	(cd $(DESTDIR)$(sbindir); $(RMF) dbcheck)
 
 
