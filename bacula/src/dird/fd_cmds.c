@@ -39,6 +39,7 @@
 static char inc[]         = "include\n";
 static char exc[]         = "exclude\n";
 static char jobcmd[]      = "JobId=%d Job=%s SDid=%u SDtime=%u Authorization=%s\n";
+static char levelcmd[]    = "level = %s%s mtime_only=%d\n";
 
 
 /* Responses received from File daemon */
@@ -46,6 +47,7 @@ static char OKinc[]       = "2000 OK include\n";
 static char OKexc[]       = "2000 OK exclude\n";
 static char OKjob[]       = "2000 OK Job";
 static char OKbootstrap[] = "2000 OK bootstrap\n";
+static char OKlevel[]     = "2000 OK level\n";
 
 /* Forward referenced functions */
 
@@ -117,6 +119,72 @@ int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
       Jmsg(jcr, M_FATAL, 0, _("FD gave bad response to JobId command: %s\n"),
 	 bnet_strerror(fd));
       set_jcr_job_status(jcr, JS_ErrorTerminated);
+      return 0;
+   }
+   return 1;
+}
+
+
+void get_level_since_time(JCR *jcr, char *since, int since_len)
+{
+   /* Lookup the last
+    * FULL backup job to get the time/date for a 
+    * differential or incremental save.
+    */
+   if (!jcr->stime) {
+      jcr->stime = get_pool_memory(PM_MESSAGE);
+   }
+   jcr->stime[0] = 0;
+   since[0] = 0;
+   switch (jcr->JobLevel) {
+      case L_DIFFERENTIAL:
+      case L_INCREMENTAL:
+	 /* Look up start time of last job */
+	 jcr->jr.JobId = 0;
+	 if (!db_find_job_start_time(jcr, jcr->db, &jcr->jr, &jcr->stime)) {
+            Jmsg(jcr, M_INFO, 0, "%s", db_strerror(jcr->db));
+            Jmsg(jcr, M_INFO, 0, _("No prior or suitable Full backup found. Doing FULL backup.\n"));
+            bsnprintf(since, since_len, " (upgraded from %s)", 
+	       level_to_str(jcr->JobLevel));
+	    jcr->JobLevel = jcr->jr.Level = L_FULL;
+	 } else {
+            bstrncpy(since, ", since=", sizeof(since));
+	    bstrncat(since, jcr->stime, sizeof(since));
+	 }
+         Dmsg1(115, "Last start time = %s\n", jcr->stime);
+	 break;
+   }
+}
+
+
+/*
+ * Send level command for backup and estimate	
+ */
+int send_level_command(JCR *jcr) 
+{
+   BSOCK   *fd = jcr->file_bsock;
+   /* 
+    * Send Level command to File daemon
+    */
+   switch (jcr->JobLevel) {
+      case L_BASE:
+         bnet_fsend(fd, levelcmd, "base", " ", 0);
+	 break;
+      case L_FULL:
+         bnet_fsend(fd, levelcmd, "full", " ", 0);
+	 break;
+      case L_DIFFERENTIAL:
+      case L_INCREMENTAL:
+         bnet_fsend(fd, levelcmd, "since ", jcr->stime, 0);
+	 break;
+      case L_SINCE:
+      default:
+         Jmsg2(jcr, M_FATAL, 0, _("Unimplemented backup level %d %c\n"), 
+	    jcr->JobLevel, jcr->JobLevel);
+	 return 0;
+   }
+   Dmsg1(120, ">filed: %s", fd->msg);
+   if (!response(jcr, fd, OKlevel, "Level", DISPLAY_ERROR)) {
       return 0;
    }
    return 1;

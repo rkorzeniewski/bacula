@@ -1184,6 +1184,7 @@ static int estimate_cmd(UAContext *ua, char *cmd)
    FILESET *fileset = NULL;
    int listing = 0;
    BSOCK *fd;
+   char since[MAXSTRING];
 
    for (int i=1; i<ua->argc; i++) {
       if (strcasecmp(ua->argk[i], _("client")) == 0) {
@@ -1224,6 +1225,15 @@ static int estimate_cmd(UAContext *ua, char *cmd)
    }
    ua->jcr->client = client;
    ua->jcr->fileset = fileset;
+   close_db(ua);
+   ua->catalog = client->catalog;
+
+   if (!open_db(ua)) {
+      return 1;
+   }
+
+   get_level_since_time(ua->jcr, since, sizeof(since));
+
    bsendmsg(ua, _("Connecting to Client %s at %s:%d\n"),
       job->client->hdr.name, job->client->address, job->client->FDport);
    if (!connect_to_file_daemon(ua->jcr, 1, 15, 0)) {
@@ -1242,9 +1252,8 @@ static int estimate_cmd(UAContext *ua, char *cmd)
       return 1;
    }
 
-   bnet_fsend(fd, "level = full mtime_only=0\n");
-   if (bnet_recv(fd) >= 0) {
-      bsendmsg(ua, "%s", fd->msg);
+   if (!send_level_command(ua->jcr)) {
+      return 1;
    }
 
    bnet_fsend(fd, "estimate listing=%d\n", listing);
@@ -1530,6 +1539,8 @@ int open_db(UAContext *ua)
 	    ua->catalog->hdr.name, ua->catalog->db_name);
       }
    }
+
+   ua->jcr->catalog = ua->catalog;
 
    Dmsg0(150, "Open database\n");
    ua->db = db_init_database(ua->jcr, ua->catalog->db_name, ua->catalog->db_user,
