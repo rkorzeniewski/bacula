@@ -11,7 +11,7 @@ CFLAGS="-g -O2 -Wall" \
     --with-subsys-dir=$1/working \
     --enable-smartalloc \
     --disable-readline \
-    --with-sqlite=$2 \
+    $4 \
     --with-working-dir=$1/working \
     --with-dump-email=$3 \
     --with-job-email=$3 \
