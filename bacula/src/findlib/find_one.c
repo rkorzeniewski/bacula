@@ -327,6 +327,8 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
 
 	 status  = readdir_r(directory, entry, &result);
 	 if (status != 0 || result == NULL) {
+//          Dmsg2(99, "readdir returned stat=%d result=0x%x\n",
+//	       status, (long)result);
 	    break;
 	 }
 	 ASSERT(name_max+1 > (int)sizeof(struct dirent) + (int)NAMELEN(entry));
