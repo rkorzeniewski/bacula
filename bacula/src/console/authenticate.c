@@ -65,10 +65,13 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
       bstrncpy(bashed_name, "*UserAgent*", sizeof(bashed_name));
       password = director->password;
    }
+   /* Timeout Hello after 5 mins */
+   btimer_t *tid = start_bsock_timer(dir, 60 * 5);
    bnet_fsend(dir, hello, bashed_name);
 
    if (!cram_md5_get_auth(dir, password, ssl_need) || 
        !cram_md5_auth(dir, password, ssl_need)) {
+      stop_bsock_timer(tid);
       sendit( _("Director authorization problem.\n"
             "Most likely the passwords do not agree.\n"));  
       return 0;
@@ -76,11 +79,13 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
 
    Dmsg1(6, ">dird: %s", dir->msg);
    if (bnet_recv(dir) <= 0) {
+      stop_bsock_timer(tid);
       senditf(_("Bad response to Hello command: ERR=%s\n"),
 	 bnet_strerror(dir));
       return 0;
    }
    Dmsg1(10, "<dird: %s", dir->msg);
+   stop_bsock_timer(tid);
    if (strncmp(dir->msg, OKhello, sizeof(OKhello)-1) != 0) {
       sendit(_("Director rejected Hello command\n"));
       return 0;

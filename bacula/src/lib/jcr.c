@@ -448,7 +448,7 @@ JCR *get_next_jcr(JCR *jcr)
 
 bool init_jcr_subsystem(void)
 {
-   watchdog_t *wd = watchdog_new();
+   watchdog_t *wd = new_watchdog();
 
    wd->one_shot = false;
    wd->interval = 30;	/* FIXME: should be configurable somewhere, even

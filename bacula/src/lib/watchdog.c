@@ -125,12 +125,15 @@ int stop_watchdog(void)
    return stat;
 }
 
-watchdog_t *watchdog_new(void)
+watchdog_t *new_watchdog(void)
 {
-   watchdog_t *wd = (watchdog_t *) malloc(sizeof(watchdog_t));
+   watchdog_t *wd = (watchdog_t *)malloc(sizeof(watchdog_t));
 
    if (!wd_is_init) {
-      Emsg0(M_ABORT, 0, "BUG! watchdog_new called before start_watchdog\n");
+      start_watchdog();
+      if (!wd_is_init) {
+         Emsg0(M_ABORT, 0, "BUG! new_watchdog called before start_watchdog\n");
+      }
    }
 
    if (wd == NULL) {

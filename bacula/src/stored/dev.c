@@ -253,7 +253,7 @@ open_dev(DEVICE *dev, char *VolName, int mode)
       }
       /* If busy retry each second for max_open_wait seconds */
       while ((dev->fd = open(dev->dev_name, dev->mode, MODE_RW)) < 0) {
-	 if (errno == EAGAIN) {
+	 if (errno == EINTR || errno == EAGAIN) {
 	    continue;
 	 }
 	 if (errno == EBUSY && timeout-- > 0) {

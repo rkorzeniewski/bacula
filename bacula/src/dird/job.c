@@ -59,7 +59,7 @@ void init_job_server(int max_workers)
    if ((stat = jobq_init(&job_queue, max_workers, job_thread)) != 0) {
       Emsg1(M_ABORT, 0, _("Could not init job queue: ERR=%s\n"), strerror(stat));
    }
-   if ((wd = watchdog_new()) == NULL) {
+   if ((wd = new_watchdog()) == NULL) {
       Emsg0(M_ABORT, 0, _("Could not init job monitor watchdogs\n"));
    }
    wd->callback = job_monitor_watchdog;

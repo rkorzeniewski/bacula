@@ -185,7 +185,7 @@ public:
    uint32_t max_open_vols;            /* max simultaneous open volumes */
    utime_t  vol_poll_interval;        /* interval between polling Vol mount */
    DEVRES *device;                    /* pointer to Device Resource */
-   btimer_id tid;                     /* timer id */
+   btimer_t *tid;                     /* timer id */
 
    VOLUME_CAT_INFO VolCatInfo;        /* Volume Catalog Information */
    VOLUME_LABEL VolHdr;               /* Actual volume label */

@@ -199,7 +199,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
 	    }
 	 }	 
 	 if (attr->type == FT_RAW || attr->type == FT_FIFO) {
-	    btimer_id tid;
+	    btimer_t *tid;
             Dmsg1(200, "FT_RAW|FT_FIFO %s\n", attr->ofname);
 	    mode =  O_WRONLY | O_BINARY;
 	    /* Timeout open() in 60 seconds */

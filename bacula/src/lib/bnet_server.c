@@ -57,7 +57,6 @@ bnet_thread_server(char *bind_addr, int port, int max_clients, workq_t *client_w
    struct sockaddr_in serv_addr;      /* our address */
    struct in_addr bind_ip;	      /* address to bind to */
    int tlog;
-   fd_set ready, sockset;
    int turnon = 1;
    char *caller;
 #ifdef HAVE_LIBWRAP
@@ -115,36 +114,38 @@ bnet_thread_server(char *bind_addr, int port, int max_clients, workq_t *client_w
    }
    listen(sockfd, 5);		      /* tell system we are ready */
 
-   FD_ZERO(&sockset);
-   FD_SET(sockfd, &sockset);
-
    /* Start work queue thread */
    if ((stat = workq_init(client_wq, max_clients, handle_client_request)) != 0) {
       Emsg1(M_ABORT, 0, _("Could not init client queue: ERR=%s\n"), strerror(stat));
    }
 
+   /* 
+    * Wait for a connection from the client process.
+    */
    for (;;) {
-      /* 
-       * Wait for a connection from a client process.
-       */
-      ready = sockset;
-      do {
-	 errno = 0;
-	 stat = select(sockfd+1, &ready, NULL, NULL, NULL);	  
-      } while(stat == -1 && (errno == EINTR || errno == EAGAIN));
-      if (stat < 0) {
+      fd_set sockset;
+      FD_ZERO(&sockset);
+      FD_SET(sockfd, &sockset);
+      errno = 0;
+      if ((stat = select(sockfd+1, &sockset, NULL, NULL, NULL)) < 0) {
+	 if (errno == EINTR) {
+	    continue;
+	 }
+	 /* Error, get out */
 	 close(sockfd);
          Emsg1(M_FATAL, 0, _("Error in select: %s\n"), strerror(errno));
 	 break;
       }
+
+      /* Got a connection, now accept it. */
       do {
 	 clilen = sizeof(cli_addr);
-	 errno = 0;
 	 newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, &clilen);
-      } while (newsockfd < 0 && (errno == EINTR || errno == EAGAIN));
+      } while (newsockfd < 0 && errno == EINTR);
       if (newsockfd < 0) {
 	 continue;
       }
+
 
 #ifdef HAVE_LIBWRAP
       P(mutex); 		      /* hosts_access is not thread safe */
@@ -185,6 +186,11 @@ bnet_thread_server(char *bind_addr, int port, int max_clients, workq_t *client_w
          Jmsg1(NULL, M_ABORT, 0, _("Could not add job to client queue: ERR=%s\n"), strerror(stat));
       }
       V(mutex);
+   }
+
+   /* Stop work queue thread */
+   if ((stat = workq_destroy(client_wq)) != 0) {
+      Emsg1(M_FATAL, 0, _("Could not destroy client queue: ERR=%s\n"), strerror(stat));
    }
 }   
 
@@ -274,7 +280,7 @@ bnet_accept(BSOCK *bsock, char *who)
        */
       ready = sockset;
       if ((stat = select(bsock->fd+1, &ready, NULL, NULL, NULL)) < 0) {
-	 if (errno == EINTR || errno == EAGAIN) {
+	 if (errno == EINTR) {
 	    errno = 0;
 	    continue;
 	 }

@@ -28,7 +28,7 @@ typedef struct s_bpipe {
    pid_t worker_pid;
    time_t worker_stime;
    int wait;
-   btimer_id timer_id;
+   btimer_t *timer_id;
    FILE *rfd;
    FILE *wfd;
 } BPIPE;
