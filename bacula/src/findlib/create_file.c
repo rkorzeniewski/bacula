@@ -170,19 +170,19 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
       return 0;
    case FT_SPEC:
       if (S_ISFIFO(statp->st_mode)) {
-         Dmsg1(0, "Restore fifo: %s\n", ofile);
+         Dmsg1(200, "Restore fifo: %s\n", ofile);
 	 if (mkfifo(ofile, statp->st_mode) != 0) {
             Jmsg2(jcr, M_ERROR, 0, _("Cannot make fifo %s: ERR=%s\n"), ofile, strerror(errno));
 	    return 0;
 	 }
       } else {		
-         Dmsg1(0, "Restore node: %s\n", ofile);
+         Dmsg1(200, "Restore node: %s\n", ofile);
 	 if (mknod(ofile, statp->st_mode, statp->st_rdev) != 0) {
             Jmsg2(jcr, M_ERROR, 0, _("Cannot make node %s: ERR=%s\n"), ofile, strerror(errno));
 	    return 0;
 	 }
       }       
-      Dmsg1(0, "FT_SPEC %s\n", ofile);
+      Dmsg1(200, "FT_SPEC %s\n", ofile);
       return 0;
 
    /* The following should not occur */

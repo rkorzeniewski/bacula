@@ -91,6 +91,7 @@ static char jobcmd[]     = "JobId=%d Job=%127s SDid=%d SDtime=%d Authorization=%
 static char storaddr[]   = "storage address=%s port=%d\n";
 static char sessioncmd[] = "session %s %ld %ld %ld %ld %ld %ld\n";
 static char restorecmd[] = "restore replace=%c where=%s\n";
+static char restorecmd1[] = "restore replace=%c where=\n";
 static char verifycmd[]  = "verify level=%20s\n";
 
 /* Responses sent to Director */
@@ -687,8 +688,15 @@ static int restore_cmd(JCR *jcr)
    *where = 0;
 
    if (sscanf(dir->msg, restorecmd, &replace, where) != 2) {
-      Jmsg(jcr, M_FATAL, 0, _("Bad replace command.\n"));
-      return 0;
+      if (sscanf(dir->msg, restorecmd1, &replace) != 1) {
+         Jmsg(jcr, M_FATAL, 0, _("Bad replace command. CMD=%s\n"), dir->msg);
+	 return 0;
+      }
+      *where = 0;
+   }
+   /* Turn / into nothing */
+   if (where[0] == '/' && where[1] == 0) {
+      where[0] = 0;
    }
       
    Dmsg2(150, "Got replace %c, where=%s\n", replace, where);

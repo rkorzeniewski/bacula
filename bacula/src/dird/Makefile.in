@@ -94,7 +94,7 @@ install: all
 	echo "${INSTALL_DATA} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf"; \
 	${INSTALL_DATA} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf
 	if  test -f ${DESTDIR}${sysconfdir}/query.sql; then \
-	   @$(MV) -f ${DESTDIR}${sysconfdir}/query.sql ${DESTDIR}${sysconfdir}/query.sql.save; \
+	   $(MV) -f ${DESTDIR}${sysconfdir}/query.sql ${DESTDIR}${sysconfdir}/query.sql.save; \
 	fi 
 	${INSTALL_DATA} query.sql ${DESTDIR}${sysconfdir}/query.sql
 
