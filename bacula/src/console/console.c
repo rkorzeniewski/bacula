@@ -569,6 +569,9 @@ again:
       }
       break;
    }
+   if (usrbrk()) {
+      clrbrk();
+   }
    strip_trailing_junk(sock->msg);
    sock->msglen = strlen(sock->msg);
    return 1;

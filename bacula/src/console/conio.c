@@ -224,6 +224,8 @@ static void asdell();
 int input_line(char *string, int length);
 void con_term();
 void trapctlc();
+int usrbrk();
+void clrbrk();
     
 void con_init(FILE *input)
 {
@@ -432,6 +434,10 @@ input_line(char *string, int length)
     }
     noline = 1; 		      /* no line fetched yet */
     for (cl=cp=0; cl<length && cl<(int)sizeof(curline); ) {
+	if (usrbrk()) {
+	   clrbrk();
+	   break;
+	}
 	switch (c=(int)input_char()) {
 	case F_RETURN:		      /* CR */
             t_sendl("\r\n", 2);       /* yes, print it and */

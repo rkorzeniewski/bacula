@@ -321,7 +321,17 @@ if test x$support_conio = xyes; then
 	 got_conio="yes"
 	 support_readline=no
 	 AC_DEFINE(HAVE_CONIO, 1, [Set if Bacula conio support enabled]) 
-       ], [ echo " "; echo "termcap library not found. CONIO turned off ..."; echo " "])
+       ],   
+       [ AC_CHECK_LIB(ncurses, tgetent,
+	 [ CONS_LIBS="-lncurses"
+	   CONS_OBJ="conio.o"
+	   CONS_SRC="conio.c"
+	   got_conio="yes"
+	   support_readline=no
+	   AC_DEFINE(HAVE_CONIO, 1, [Set if Bacula conio support enabled]) 
+	 ],   
+	 [ echo " "; echo "Neither termcap nor ncurses library found. CONIO turned off ..."; echo " "])
+       ])
     ],[echo " "; echo "termcap.h not found. CONIO turned off ..."; echo " "])
 fi
 
