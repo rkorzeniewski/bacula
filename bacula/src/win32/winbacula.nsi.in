@@ -90,10 +90,10 @@ Section "Bacula File Service" SecService
   File ..\..\..\depkgs-win32\pthreads\pthreadVCE.dll
   File License.txt
   IfFileExists "$INSTDIR\bin\bacula-fd.conf" newconf 
-  File bacula-fd.conf
+  File baculafd\bacula-fd.conf
   goto do_service
  newconf:
-  File /oname=bacula-fd.conf.new bacula-fd.conf
+  File /oname=bacula-fd.conf.new baculafd\bacula-fd.conf
        
   ; If /service was given jump to the service install part
  do_service:

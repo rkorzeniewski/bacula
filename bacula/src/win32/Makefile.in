@@ -12,11 +12,14 @@ first_rule: all
 
 dummy:
 
-all:  bacula installer
+all:  bacula bconsole installer
 
 
 bacula:
 	(cd baculafd; env MAKEFLAGS= ${NMAKE} CFG="baculafd - Win32 Release" /f baculafd.mak)
+
+bconsole:
+	(cd console; env MAKEFLAGS= ${NMAKE} CFG="console - Win32 Release" /f console.mak)
 
 #
 # Quickie debug installation
