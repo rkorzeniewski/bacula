@@ -5,13 +5,13 @@
 #
 if test xsqlite = x@DB_NAME@ ; then
   echo "Creating SQLite database"
-  . ./create_sqlite_database
+  @scriptdir@/create_sqlite_database
 else
   if test xmysql = x@DB_NAME@ ; then
     echo "Creating MySQL database"
-    . ./create_mysql_database
+    @scriptdir@/create_mysql_database
   else
     echo "Creating PostgreSQL database"
-    . ./create_postgresql_database
+    @scriptdir@/create_postgresql_database
   fi
 fi
