@@ -481,9 +481,9 @@ gettimeofday(struct timeval *tv, struct timezone *)
 int
 syslog(int type, const char *fmt, const char *msg)
 {
-#ifndef HAVE_CONSOLE
+/*#ifndef HAVE_CONSOLE
     MessageBox(NULL, msg, "Bacula", MB_OK);
-#endif
+#endif*/
     return 0;
 }
 
