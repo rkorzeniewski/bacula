@@ -9,7 +9,7 @@
  *
  */
 /*
-   Copyright (C) 2000-2003 Kern Sibbald and John Walker
+   Copyright (C) 2003-2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -192,7 +192,7 @@ HANDLE bget_handle(BFILE *bfd)
 int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 {
    POOLMEM *win32_fname;
-   DWORD dwaccess, dwflags;
+   DWORD dwaccess, dwflags, dwshare;
 
    /* Convert to Windows path format */
    win32_fname = get_pool_memory(PM_FNAME);
@@ -217,11 +217,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 
    } else if (flags & O_WRONLY) {     /* Open existing for write */
       if (bfd->use_backup_api) {
-#ifdef HAVE_WIN32
-	  dwaccess = GENERIC_WRITE|/*FILE_ALL_ACCESS|*/WRITE_OWNER|WRITE_DAC/*|ACCESS_SYSTEM_SECURITY*/;
-#else
-	  dwaccess = GENERIC_WRITE|FILE_ALL_ACCESS|WRITE_OWNER|WRITE_DAC|ACCESS_SYSTEM_SECURITY;
-#endif
+	 dwaccess = GENERIC_WRITE|WRITE_OWNER|WRITE_DAC;
 	 dwflags = FILE_FLAG_BACKUP_SEMANTICS;
       } else {
 	 dwaccess = GENERIC_WRITE;
@@ -240,13 +236,15 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
       if (bfd->use_backup_api) {
 	 dwaccess = GENERIC_READ|READ_CONTROL|ACCESS_SYSTEM_SECURITY;
 	 dwflags = FILE_FLAG_BACKUP_SEMANTICS;
+	 dwshare = FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE;
       } else {
 	 dwaccess = GENERIC_READ;
 	 dwflags = 0;
+	 dwshare = FILE_SHARE_READ|FILE_SHARE_WRITE;
       }
       bfd->fh = CreateFile(win32_fname,
 	     dwaccess,		      /* Requested access */
-	     FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
+	     dwshare,		      /* Share modes */
 	     NULL,		      /* SecurityAttributes */
 	     OPEN_EXISTING,	      /* CreationDisposition */
 	     dwflags,		      /* Flags and attributes */

@@ -69,6 +69,8 @@ Testing to do: (painful)
 
 
 For 1.37 Testing/Documentation:
+- Implement a Client filename case fold option (default = fold
+  on Win32).
 - Fix list volumes to output volume retention in some other
   units, perhaps via a directive.
 - If opening a tape in read/write mode fails attempt to open
