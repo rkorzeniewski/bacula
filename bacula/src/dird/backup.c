@@ -270,7 +270,7 @@ static int wait_for_job_termination(JCR *jcr)
    BSOCK *fd = jcr->file_bsock;
    int fd_ok = FALSE;
 
-   set_jcr_job_status(jcr, JS_WaitFD);
+   set_jcr_job_status(jcr, JS_Running);
    /* Wait for Client to terminate */
    while ((n = bget_msg(fd, 0)) >= 0) {
       if (sscanf(fd->msg, EndBackup, &jcr->FDJobStatus, &jcr->JobFiles,
