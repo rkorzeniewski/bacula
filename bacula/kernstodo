@@ -22,6 +22,7 @@ Version 1.37                Kern (see below)
 ##   Consider moving docs to their own project.
 
 For 1.37:
+- Create a new GUI chapter explaining all the GUI programs.
 - Tell the "restore" user when browsing is no longer possible.
 - Add disk seeking on restore.  
 - Cancel command should include JobId in list of Jobs.
@@ -60,6 +61,8 @@ Regression tests (Jo):
 
 
 1.37 Possibilities:
+- Can one write tapes faster with 8192 byte block sizes?
+- Specify a single directory to restore.
 - FileSet implement "default = include" or "default = exclude"
   as a solution to being able to include only certain files??????
 - Implement Preben's suggestion to add
