@@ -65,6 +65,7 @@ struct CLIENT {
    int MaxConcurrentJobs;
    utime_t heartbeat_interval;        /* Interval to send heartbeats to Dir */
    utime_t SDConnectTimeout;          /* timeout in seconds */
+   uint32_t max_network_buffer_size;  /* max network buf size */
 };
 
 

@@ -39,9 +39,10 @@ static int verify_file(FF_PKT *ff_pkt, void *my_pkt);
 void do_verify(JCR *jcr)
 {
    set_jcr_job_status(jcr, JS_Running);
-   jcr->buf_size = MAX_NETWORK_BUFFER_SIZE;
+   jcr->buf_size = DEFAULT_NETWORK_BUFFER_SIZE;
    if ((jcr->big_buf = (char *) malloc(jcr->buf_size)) == NULL) {
-      Jmsg1(jcr, M_ABORT, 0, _("Cannot malloc %d network read buffer\n"), MAX_NETWORK_BUFFER_SIZE);
+      Jmsg1(jcr, M_ABORT, 0, _("Cannot malloc %d network read buffer\n"), 
+	 DEFAULT_NETWORK_BUFFER_SIZE);
    }
    set_find_options((FF_PKT *)jcr->ff, jcr->incremental, jcr->mtime, jcr->mtime_only);
    Dmsg0(10, "Start find files\n");

@@ -56,7 +56,7 @@ int do_read_data(JCR *jcr)
    bnet_fsend(fd, OK_data);
    Dmsg1(10, "bstored>filed: %s\n", fd->msg);
 
-   if (!bnet_set_buffer_size(fd, MAX_NETWORK_BUFFER_SIZE, BNET_SETBUF_READ)) {
+   if (!bnet_set_buffer_size(fd, dev->device->max_network_buffer_size, BNET_SETBUF_WRITE)) {
       return 0;
    }
 

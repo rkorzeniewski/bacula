@@ -67,7 +67,16 @@ void do_restore(JCR *jcr)
    sd = jcr->store_bsock;
    set_jcr_job_status(jcr, JS_Running);
 
-   if (!bnet_set_buffer_size(sd, MAX_NETWORK_BUFFER_SIZE, BNET_SETBUF_READ)) {
+   LockRes();
+   CLIENT *client = (CLIENT *)GetNextRes(R_CLIENT, NULL);
+   UnlockRes();
+   uint32_t buf_size;
+   if (client) {
+      buf_size = client->max_network_buffer_size;
+   } else {
+      buf_size = 0;		      /* use default */
+   }
+   if (!bnet_set_buffer_size(sd, buf_size, BNET_SETBUF_WRITE)) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       return;
    }
