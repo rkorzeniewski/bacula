@@ -324,7 +324,7 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *vname, char *poolnam
    
    strcpy(jcr->VolumeName, vname);
    jcr->VolCatInfo.Slot = slot;
-   autoload_device(jcr, dev, 0);      /* autoload if possible */
+   autoload_device(jcr, dev, 0, dir);	   /* autoload if possible */
    block = new_block(dev);
 
    /* See what we have for a Volume */

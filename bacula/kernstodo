@@ -27,7 +27,24 @@ From Chuck:
   I tried this and it didn't find sqlite.h
 =======
 
-- Take another stab at 64 bit file addresses
+- Had to label second tape using the autochanger two times. The
+  first time the second tape was apparently loaded but not labeled.
+- Put MaximumVolumeSize in Director.
+- Document how to cancel a job that is waiting on a Volume. 
+  Must "cancel" then "mount".
+- Document to have patience when SD first starts.
+- Document running a test version.
+- Attempt to label autochanger tape which is unloaded.
+  rufus-dir: Start Backup JobId 1, Job=kernsave.2002-09-21.21:07:34
+  rufus-sd: Job kernsave.2002-09-21.21:07:34 waiting. Cannot find any appendable volumes.
+  Please use the "label"  command to create a new Volume for:
+      Storage:      FileStorage
+      Media type:   File
+      Pool:         Default
+  rufus-dir: Error in getmsg.c:129 Job not found: Jmsg Job= type=6 level=0 rufus-sd: Issuing autochanger "load slot 2" command.
+     
+  Another try with tape mounted and Job hung in Director.
+
 - When Marking a file in Restore that is a hard link, also
   mark the link so that the data will be reloaded.
 - Restore program that errors in SD due to no tape reports
@@ -591,3 +608,4 @@ Done: (see kernsdone for more)
 - sd.conf password does not match dir.conf storage password
 - Apparently Description records are not freed. Storage daemon
   Device reported orphaned buffer 45 bytes probably for a Description.
+- Take another stab at 64 bit file addresses

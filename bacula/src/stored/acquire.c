@@ -96,7 +96,7 @@ default_path:
 	    dir_get_volume_info(jcr, 0);
             Dmsg2(200, "calling autoload Vol=%s Slot=%d\n",
 	       jcr->VolumeName, jcr->VolCatInfo.Slot);			       
-	    if (autoload_device(jcr, dev, 0)) {
+	    if (autoload_device(jcr, dev, 0, NULL)) {
 	       continue;
 	    }
 	    /* Mount a specific volume and no other */

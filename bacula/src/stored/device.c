@@ -113,7 +113,7 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	 unblock_device(dev);
 	 return 0;		      /* device locked */
       }
-      Dmsg0(190, "Back from update_vol_info\n");
+      Dmsg0(100, "Back from update_vol_info\n");
 
       strcpy(PrevVolName, dev->VolCatInfo.VolCatName);
       strcpy(dev->VolHdr.PrevVolName, PrevVolName);

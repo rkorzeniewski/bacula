@@ -49,7 +49,7 @@ int mount_next_write_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, int release
 {
    int recycle, ask, retry = 0, autochanger;
 
-   Dmsg0(190, "Enter mount_next_volume()\n");
+   Dmsg0(100, "Enter mount_next_volume()\n");
 
 mount_next_vol:
    if (retry++ > 5) {
@@ -62,7 +62,7 @@ mount_next_vol:
    }
    recycle = ask = autochanger = 0;
    if (release) {
-      Dmsg0(500, "mount_next_volume release=1\n");
+      Dmsg0(100, "mount_next_volume release=1\n");
       /* 
        * First erase all memory of the current volume	
        */
@@ -70,6 +70,7 @@ mount_next_vol:
       dev->file = 0;
       dev->LastBlockNumWritten = 0;
       memset(&dev->VolCatInfo, 0, sizeof(dev->VolCatInfo));
+      memset(&jcr->VolCatInfo, 0, sizeof(jcr->VolCatInfo));
       memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
       dev->state &= ~ST_LABEL;	      /* label not yet read */
       jcr->VolumeName[0] = 0;
@@ -99,6 +100,7 @@ mount_next_vol:
     */
    if (!dir_find_next_appendable_volume(jcr)) {
       ask = 1;			   /* we must ask */
+      Dmsg0(100, "did not find next volume. Must ask.\n");
    }
    Dmsg2(100, "After find_next_append. Vol=%s Slot=%d\n",
       jcr->VolCatInfo.VolCatName, jcr->VolCatInfo.Slot);
@@ -124,7 +126,7 @@ mount_next_vol:
 
    jcr->VolFirstFile = jcr->JobFiles; /* first update of Vol FileIndex */
    for ( ;; ) {
-      autochanger = autoload_device(jcr, dev, 1);
+      autochanger = autoload_device(jcr, dev, 1, NULL);
       if (autochanger) {
 	 ask = 0;		      /* if autochange no need to ask sysop */
       }
@@ -132,7 +134,7 @@ mount_next_vol:
       if (ask && !dir_ask_sysop_to_mount_next_volume(jcr, dev)) {
 	 return 0;		/* error return */
       }
-      Dmsg1(200, "want vol=%s\n", jcr->VolumeName);
+      Dmsg1(100, "want vol=%s\n", jcr->VolumeName);
 
       /* Open device */
       for ( ; !(dev->state & ST_OPENED); ) {
@@ -346,10 +348,14 @@ int mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
  *  On success this routine loads the indicated tape, but the
  *  label is not read, so it must be verified.
  *
+ *  Note if dir is not NULL, it is the console requesting the 
+ *   autoload for labeling, so we respond directly to the
+ *   dir bsock.
+ *
  *  Returns: 1 on success
  *	     0 on failure
  */
-int autoload_device(JCR *jcr, DEVICE *dev, int writing)
+int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
 {
    int slot = jcr->VolCatInfo.Slot;
    int rtn_stat = 0;
@@ -359,6 +365,9 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing)
     *  will return FALSE to ask the sysop.
     */
    if (writing && dev->capabilities && CAP_AUTOCHANGER && slot <= 0) {
+      if (dir) {
+	 return 0;		      /* For user, bail out right now */
+      }
       if (dir_find_next_appendable_volume(jcr)) {
 	 slot = jcr->VolCatInfo.Slot; 
       }
@@ -393,7 +402,11 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing)
 	 force_close_dev(dev);
 	 if (loaded != 0) {	   /* must unload drive */
             Dmsg0(100, "Doing changer unload.\n");
-            Jmsg(jcr, M_INFO, 0, _("Issuing autochanger \"unload\" command.\n"));
+	    if (dir) {
+               bnet_fsend(dir, _("3902 Issuing autochanger \"unload\" command.\n"));
+	    } else {
+               Jmsg(jcr, M_INFO, 0, _("Issuing autochanger \"unload\" command.\n"));
+	    }
 	    changer = edit_device_codes(jcr, changer, 
                         jcr->device->changer_command, "unload");
 	    status = run_program(changer, timeout, NULL);
@@ -403,8 +416,13 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing)
 	  * Load the desired cassette	 
 	  */
          Dmsg1(100, "Doing changer load slot %d\n", slot);
-         Jmsg(jcr, M_INFO, 0, _("Issuing autochanger \"load slot %d\" command.\n"),
-	    slot);
+	 if (dir) {
+            bnet_fsend(dir, _("3903 Issuing autochanger \"load slot %d\" command.\n"),
+	       slot);
+	 } else {
+            Jmsg(jcr, M_INFO, 0, _("Issuing autochanger \"load slot %d\" command.\n"),
+	       slot);
+	 }
 	 changer = edit_device_codes(jcr, changer, 
                       jcr->device->changer_command, "load");
 	 status = run_program(changer, timeout, NULL);

@@ -1254,6 +1254,7 @@ chmod 755 src/cats/create_mysql_database
 chmod 755 src/cats/alter_mysql_tables
 chmod 755 src/cats/grant_mysql_privileges
 chmod 755 src/cats/make_sqlite_tables src/cats/drop_sqlite_tables 
+chmod 755 src/cats/make_bacula_tables src/cats/drop_bacula_tables 
 chmod 755 src/cats/create_sqlite_database
 chmod 755 src/cats/alter_sqlite_tables
 chmod 755 src/cats/sqlite
