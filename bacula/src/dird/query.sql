@@ -67,6 +67,7 @@ SELECT Job.JobId,VolumeName
  WHERE Job.JobId=%1 
  AND Job.JobId=JobMedia.JobId 
  AND JobMedia.MediaId=Media.MediaId;
+#
 :List Volumes to Restore All Files:
 *Enter Client Name:
 !DROP TABLE temp;
@@ -85,14 +86,14 @@ CREATE TABLE temp2 (JobId INTEGER UNSIGNED NOT NULL,
  StartFile INTEGER UNSIGNED, 
  VolSessionId INTEGER UNSIGNED,
  VolSessionTime INTEGER UNSIGNED);
-INSERT INTO temp SELECT Job.JobId,JobTDate,Job.ClientId,StartTime,VolumeName,
+INSERT INTO temp SELECT Job.JobId,MAX(JobTDate),Job.ClientId,StartTime,VolumeName,
    JobMedia.StartFile,VolSessionId,VolSessionTime
  FROM Client,Job,JobMedia,Media WHERE Client.Name="%1"
  AND Client.ClientId=Job.ClientId
  AND Level='F' AND JobStatus='T'
  AND JobMedia.JobId=Job.JobId 
  AND JobMedia.MediaId=Media.MediaId
- ORDER BY Job.JobTDate DESC LIMIT 1;
+ GROUP BY Job.JobTDate LIMIT 1;
 INSERT INTO temp2 SELECT JobId,StartTime,VolumeName,StartFile, 
    VolSessionId,VolSessionTime
  FROM temp;
@@ -103,7 +104,9 @@ INSERT INTO temp2 SELECT Job.JobId,Job.StartTime,Media.VolumeName,
  AND Job.ClientId=temp.ClientId
  AND Level='I' AND JobStatus='T'
  AND JobMedia.JobId=Job.JobId 
- AND JobMedia.MediaId=Media.MediaId;
+ AND JobMedia.MediaId=Media.MediaId
+ GROUP BY Job.JobId;
+SELECT * from temp;
 SELECT * from temp2;
 !DROP TABLE temp;
 !DROP TABLE temp2;
