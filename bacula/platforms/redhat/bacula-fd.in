@@ -3,7 +3,7 @@
 # bacula       This shell script takes care of starting and stopping
 #	       the bacula File daemon.
 #
-# chkconfig: 2345 90 99
+# chkconfig: 2345 91 99
 # description: It comes by night and sucks the vital essence from your computers.
 #
 #  For Bacula release @VERSION@ (@DATE@) -- @DISTNAME@
