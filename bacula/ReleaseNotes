@@ -1,10 +1,10 @@
 
           Release Notes for Bacula 1.31
 
-  Bacula code: Total files = 253 Total lines = 75,225 (*.h *.c *.in)
+  Bacula code: Total files = 253 Total lines = 75,240 (*.h *.c *.in)
 
 Major Changes this Release:
-- The database format has changed. Please see below.
+- The database format has changed from version 1.30a. Please see below.
 - Support to save and restore all files on WinNT/2K/XP systems 
   including the permissions. Unfortunately files that are in use by another
   program cannot be saved.
@@ -17,7 +17,8 @@ Major Changes this Release:
   it is not installed in your system libraries.
 - Implemented generalized tape label formats including counter variables 
   for automatic naming of Volumes.
-- Multiple simultaneous jobs now work.
+- Multiple simultaneous jobs now work. However, I still don't highly
+  recommend it.
 - Implemented tape block rejection, which means that restores with
   several incremental backups will run orders of magnitude faster.
 

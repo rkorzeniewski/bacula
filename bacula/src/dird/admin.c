@@ -79,7 +79,6 @@ static void admin_cleanup(JCR *jcr, int TermCode)
    char *term_msg;
    int msg_type;
    MEDIA_DBR mr;
-   utime_t RunTime;
 
    Dmsg0(100, "Enter backup_cleanup()\n");
    memset(&mr, 0, sizeof(mr));
@@ -113,7 +112,6 @@ static void admin_cleanup(JCR *jcr, int TermCode)
    }
    bstrftime(sdt, sizeof(sdt), jcr->jr.StartTime);
    bstrftime(edt, sizeof(edt), jcr->jr.EndTime);
-   RunTime = jcr->jr.EndTime - jcr->jr.StartTime;
 
    Jmsg(jcr, msg_type, 0, _("Bacula " VERSION " (" LSMDATE "): %s\n\
 JobId:                  %d\n\

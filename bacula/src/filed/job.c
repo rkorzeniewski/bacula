@@ -904,12 +904,10 @@ static void filed_free_jcr(JCR *jcr)
  */
 int response(JCR *jcr, BSOCK *sd, char *resp, char *cmd)
 {
-   int n;
-
    if (sd->errors) {
       return 0;
    }
-   if ((n = bget_msg(sd)) > 0) {
+   if (bget_msg(sd) > 0) {
       Dmsg0(110, sd->msg);
       if (strcmp(sd->msg, resp) == 0) {
 	 return 1;

@@ -181,15 +181,11 @@ void print_ls_output(JCR *jcr, ATTR *attr)
    char buf[5000]; 
    char ec1[30];
    char *p, *f;
-   int n;
 
    p = encode_mode(attr->statp.st_mode, buf);
-   n = sprintf(p, "  %2d ", (uint32_t)attr->statp.st_nlink);
-   p += n;
-   n = sprintf(p, "%-8.8s %-8.8s", getuser(attr->statp.st_uid), getgroup(attr->statp.st_gid));
-   p += n;
-   n = sprintf(p, "%8.8s ", edit_uint64(attr->statp.st_size, ec1));
-   p += n;
+   p += sprintf(p, "  %2d ", (uint32_t)attr->statp.st_nlink);
+   p += sprintf(p, "%-8.8s %-8.8s", getuser(attr->statp.st_uid), getgroup(attr->statp.st_gid));
+   p += sprintf(p, "%8.8s ", edit_uint64(attr->statp.st_size, ec1));
    p = encode_time(attr->statp.st_ctime, p);
    *p++ = ' ';
    *p++ = ' ';

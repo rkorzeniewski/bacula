@@ -794,8 +794,6 @@ t_msg(char *file, int line, int level, char *fmt,...)
     va_list   arg_ptr;
     int       details = TRUE;
 
-    return;
-
     if (level < 0) {
        details = FALSE;
        level = -level;

@@ -42,7 +42,6 @@ static char rec_header[] = "rechdr %ld %ld %ld %ld %ld";
  */
 void do_restore(JCR *jcr)
 {
-   int wherelen;
    BSOCK *sd;
    int32_t stream;
    uint32_t size;
@@ -60,7 +59,6 @@ void do_restore(JCR *jcr)
    int prog_name_msg = 0;
    ATTR *attr;
    
-   wherelen = strlen(jcr->where);
 
    binit(&bfd);
    sd = jcr->store_bsock;

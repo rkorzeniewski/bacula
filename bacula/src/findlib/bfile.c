@@ -57,7 +57,6 @@ char *stream_to_ascii(int stream)
       return "GZIP data";
    case STREAM_SPARSE_GZIP_DATA:
       return "GZIP sparse data";
-      return "Win32 attributes";
    case STREAM_WIN32_DATA:
       return "Win32 data";
    case STREAM_WIN32_GZIP_DATA:

@@ -44,6 +44,7 @@ int acquire_device_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    int tape_previously_mounted;
    VOL_LIST *vol;
    int autochanger = 0;
+   int i;
 
    lock_device(dev);
    block_device(dev, BST_DOING_ACQUIRE);
@@ -63,12 +64,12 @@ int acquire_device_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       goto get_out;
    }
    jcr->CurVolume++;
-   for (int i=1; i<jcr->CurVolume; i++) {
+   for (i=1; i<jcr->CurVolume; i++) {
       vol = vol->next;
    }
    pm_strcpy(&jcr->VolumeName, vol->VolumeName);
 
-   for (int i=0; i<5; i++) {
+   for (i=0; i<5; i++) {
       if (job_canceled(jcr)) {
          Mmsg0(&dev->errmsg, _("Job canceled.\n"));
 	 goto get_out;		      /* error return */
