@@ -442,6 +442,10 @@ void store_res(LEX *lc, RES_ITEM *item, int index, int pass)
         scan_err3(lc, _("Could not find config Resource %s referenced on line %d : %s\n"), 
 	   lc->str, lc->line_no, lc->line);
      }
+     if (*(item->value)) {
+        scan_err3(lc, _("Attempt to redefine resource \"%s\" referenced on line %d : %s\n"), 
+	   lc->str, lc->line_no, lc->line);
+     }
      *(item->value) = (char *)res;
    }
    scan_to_eol(lc);

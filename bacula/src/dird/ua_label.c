@@ -41,7 +41,7 @@ typedef struct s_vol_list {
 /* Forward referenced functions */
 static int do_label(UAContext *ua, const char *cmd, int relabel);
 static void label_from_barcodes(UAContext *ua);
-static int send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr, 
+static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr, 
 	       POOL_DBR *pr, int relabel, bool media_record_exits);
 static vol_list_t *get_vol_list_from_SD(UAContext *ua, bool scan);
 static void free_vol_list(vol_list_t *vol_list);
@@ -228,7 +228,7 @@ int update_slots(UAContext *ua)
 	     mr.Slot = vl->Slot;
 	     mr.InChanger = 1;
 	     if (!db_update_media_record(ua->jcr, ua->db, &mr)) {
-                bsendmsg(ua, _("%s\n"), db_strerror(ua->db));
+                bsendmsg(ua, "%s", db_strerror(ua->db));
 	     } else {
 		bsendmsg(ua, _(
                   "Catalog record for Volume \"%s\" updated to reference slot %d.\n"),
@@ -391,12 +391,18 @@ checkName:
    if (ok) {
       sd = ua->jcr->store_bsock;
       if (relabel) {
+	 /* Delete the old media record */
 	 if (!db_delete_media_record(ua->jcr, ua->db, &omr)) {
             bsendmsg(ua, _("Delete of Volume \"%s\" failed. ERR=%s"),
 	       omr.VolumeName, db_strerror(ua->db));
 	 } else {
             bsendmsg(ua, _("Old volume \"%s\" deleted from catalog.\n"), 
 	       omr.VolumeName);
+	    /* Update the number of Volumes in the pool */
+	    pr.NumVols--;
+	    if (!db_update_pool_record(ua->jcr, ua->db, &pr)) {
+               bsendmsg(ua, "%s", db_strerror(ua->db));
+	    }
 	 }
       }
       if (ua->automount) {
@@ -512,6 +518,10 @@ static void label_from_barcodes(UAContext *ua)
 	    if (db_create_media_record(ua->jcr, ua->db, &mr)) {
                bsendmsg(ua, _("Catalog record for cleaning tape \"%s\" successfully created.\n"),
 		  mr.VolumeName);
+	       pr.NumVols++;	      /* this is a bit suspect */
+	       if (!db_update_pool_record(ua->jcr, ua->db, &pr)) {
+                  bsendmsg(ua, "%s", db_strerror(ua->db));
+	       }
 	    } else {
                bsendmsg(ua, "Catalog error on cleaning tape: %s", db_strerror(ua->db));
 	    }
@@ -572,15 +582,15 @@ bool is_volume_name_legal(UAContext *ua, const char *name)
 /*
  * NOTE! This routine opens the SD socket but leaves it open
  */
-static int send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr, 
-			      POOL_DBR *pr, int relabel, bool media_record_exists)
+static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr, 
+			       POOL_DBR *pr, int relabel, bool media_record_exists)
 {
    BSOCK *sd;
    char dev_name[MAX_NAME_LENGTH];
-   int ok = FALSE;
+   bool ok = false;
 
    if (!(sd=open_sd_bsock(ua))) {
-      return 0;
+      return false;
    }
    bstrncpy(dev_name, ua->jcr->store->dev_name, sizeof(dev_name));
    bash_spaces(dev_name);
@@ -605,7 +615,7 @@ static int send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
    while (bnet_recv(sd) >= 0) {
       bsendmsg(ua, "%s", sd->msg);
       if (strncmp(sd->msg, "3000 OK label.", 14) == 0) {
-	 ok = TRUE;
+	 ok = true;
       } 
    }
    unbash_spaces(mr->VolumeName);
@@ -618,7 +628,7 @@ static int send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
 	 mr->InChanger = 1;
 	 if (!db_update_media_record(ua->jcr, ua->db, mr)) {
              bsendmsg(ua, "%s", db_strerror(ua->db));
-	     ok = FALSE;
+	     ok = false;
 	 }
       } else {			      /* create the media record */
 	 set_pool_dbr_defaults_in_media_dbr(mr, pr);
@@ -627,9 +637,14 @@ static int send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
 	 if (db_create_media_record(ua->jcr, ua->db, mr)) {
             bsendmsg(ua, _("Catalog record for Volume \"%s\", Slot %d  successfully created.\n"),
 	    mr->VolumeName, mr->Slot);
+	    /* Update number of volumes in pool */
+	    pr->NumVols++;
+	    if (!db_update_pool_record(ua->jcr, ua->db, pr)) {
+               bsendmsg(ua, "%s", db_strerror(ua->db));
+	    }
 	 } else {
             bsendmsg(ua, "%s", db_strerror(ua->db));
-	    ok = FALSE;
+	    ok = false;
 	 }
       }
    } else {

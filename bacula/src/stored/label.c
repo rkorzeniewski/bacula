@@ -380,7 +380,7 @@ bool write_new_volume_label_to_dev(JCR *jcr, DEVICE *dev, const char *VolName, c
 {
    DEV_RECORD rec;   
    DEV_BLOCK *block;
-   bool stat = true;
+   bool ok = false;
 
 
    Dmsg0(99, "write_volume_label()\n");
@@ -403,31 +403,31 @@ bool write_new_volume_label_to_dev(JCR *jcr, DEVICE *dev, const char *VolName, c
    if (!write_record_to_block(block, &rec)) {
       Dmsg2(30, "Bad Label write on %s. ERR=%s\n", dev_name(dev), strerror_dev(dev));
       memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
-      free_block(block);
-      free_pool_memory(rec.data);
-      return false;
+      goto bail_out;
    } else {
       Dmsg2(30, "Wrote label of %d bytes to %s\n", rec.data_len, dev_name(dev));
    }
-   free_pool_memory(rec.data);
       
    Dmsg0(99, "Call write_block_to_dev()\n");
    if (!write_block_to_dev(jcr->dcr, block)) {
       memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
       Dmsg2(30, "Bad Label write on %s. ERR=%s\n", dev_name(dev), strerror_dev(dev));
-      stat = false;
+      goto bail_out;
    }
    Dmsg0(99, " Wrote block to device\n");
      
-   flush_dev(dev);
    weof_dev(dev, 1);
    dev->state |= ST_LABEL;
+   ok = true;
 
    if (debug_level >= 20)  {
       dump_volume_label(dev);
    }
+
+bail_out:
    free_block(block);
-   return stat;
+   free_pool_memory(rec.data);
+   return ok;
 }     
 
 

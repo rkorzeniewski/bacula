@@ -458,6 +458,7 @@ void *jobq_server(void *arg)
 	     jcr->JobStatus != JS_Canceled && 
 	     jcr->job->RescheduleTimes > 0 && 
 	     jcr->reschedule_count < jcr->job->RescheduleTimes) {
+	     char dt[50];
 
 	     /*
 	      * Reschedule this job by cleaning it up, but
@@ -467,6 +468,9 @@ void *jobq_server(void *arg)
 	    jcr->sched_time = time(NULL) + jcr->job->RescheduleInterval;
             Dmsg2(300, "Rescheduled Job %s to re-run in %d seconds.\n", jcr->Job,
 	       (int)jcr->job->RescheduleInterval);
+	    bstrftime(dt, sizeof(dt), time(NULL));
+            Jmsg(jcr, M_INFO, 0, _("Rescheduled Job %s at %s to re-run in %d seconds.\n"),
+	       jcr->Job, dt, (int)jcr->job->RescheduleInterval);
 	    jcr->JobStatus = JS_Created; /* force new status */
 	    dird_free_jcr(jcr); 	 /* partial cleanup old stuff */
 	    if (jcr->JobBytes == 0) {

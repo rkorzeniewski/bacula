@@ -181,9 +181,9 @@ static struct s_fs_opt FS_options[] = {
    {"no",       INC_KW_KEEPATIME,     "0"},
    {"yes",      INC_KW_EXCLUDE,       "e"},
    {"no",       INC_KW_EXCLUDE,       "0"},
-   {"yes",           INC_KW_ACL,        "A"},
-   {"no",           INC_KW_ACL,         "0"},
-   {NULL,	0,		     0}
+   {"yes",      INC_KW_ACL,           "A"},
+   {"no",       INC_KW_ACL,           "0"},
+   {NULL,	0,			0}
 };
 
 

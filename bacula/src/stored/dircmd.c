@@ -407,7 +407,8 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
 	 break;
       }
       pm_strcpy(&jcr->VolumeName, newname);
-      bnet_fsend(dir, _("3000 OK label. Volume=%s Device=%s\n"), 
+      /* The following 3000 OK label. string is scanned in ua_label.c */
+      bnet_fsend(dir, "3000 OK label. Volume=%s Device=%s\n", 
 	 newname, dev_name(dev));
       break;
    case VOL_NO_MEDIA:
@@ -421,7 +422,6 @@ Unknown status %d from read_volume_label()\n"), jcr->label_status);
 bail_out:
    free_block(block);
    give_back_device_lock(dev, &hold);
-
    return;
 }
 

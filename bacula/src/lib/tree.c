@@ -290,7 +290,7 @@ static TREE_NODE *search_and_insert_tree_node(char *fname, int type,
    TREE_NODE *node, *found_node;
    node = new_tree_node(root);
    node->fname = fname;
-   found_node = (TREE_NODE *)parent->child.binary_insert(node, node_compare);
+   found_node = (TREE_NODE *)parent->child.unique_binary_insert(node, node_compare);
    if (found_node != node) {	      /* already in list */
       free_tree_node(root);	      /* free node allocated above */
       found_node->inserted = false;

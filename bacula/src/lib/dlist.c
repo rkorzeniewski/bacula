@@ -103,10 +103,13 @@ void dlist::insert_after(void *item, void *where)
 }
 
 /*
+ *  Insert an item in the list, but only if it is unique
+ *  otherwise, the item is returned non inserted
+ *
  * Returns: item	 if item inserted
  *	    other_item	 if same value already exists (item not inserted)
  */
-void *dlist::binary_insert(void *item, int compare(void *item1, void *item2))
+void *dlist::unique_binary_insert(void *item, int compare(void *item1, void *item2))
 {
    int comp;
    int low, high, cur;
@@ -194,6 +197,20 @@ void *dlist::binary_insert(void *item, int compare(void *item1, void *item2))
     //Dmsg1(000, "Insert after item %d\n", cur);
    }
    return item;
+}
+
+
+/*
+ *  Insert an item in the list, regardless if it is unique
+ *  or not.
+ */
+void dlist::binary_insert(void *item, int compare(void *item1, void *item2))
+{
+   void *ins_item = unique_binary_insert(item, compare);
+   /* If identical, insert after the one found */
+   if (ins_item != item) {
+      insert_after(item, ins_item);
+   }
 }
 
 
