@@ -92,13 +92,15 @@ static void usage()
 {
    fprintf(stderr, _(
 "Copyright (C) 2000-2004 Kern Sibbald and John Walker\n"
+"Written by Nicolas Boichat (2004)\n"
 "\nVersion: " VERSION " (" BDATE ") %s %s %s\n\n"
-"Usage: tray-monitor [-s] [-c config_file] [-d debug_level]\n"
-"       -c <file>   set configuration file to file\n"
-"       -dnn        set debug level to nn\n"
-"       -s          no signals\n"
-"       -t          test - read configuration and exit\n"
-"       -?          print this message.\n"  
+"Usage: tray-monitor [-c config_file] [-d debug_level] [-f filed | -s stored]\n"
+"       -c <file>     set configuration file to file\n"
+"       -dnn          set debug level to nn\n"
+"       -t            test - read configuration and exit\n"
+"       -f <filed>    monitor <filed>\n"
+"       -s <stored> monitor <stored>\n"
+"       -?            print this message.\n"  
 "\n"), HOST_OS, DISTNAME, DISTVER);
 }
 
@@ -111,6 +113,8 @@ int main(int argc, char *argv[])
 {
    int ch;
    bool test_config = false;
+   char* deffiled = NULL;
+   char* defstored = NULL;
    CLIENT* filed;
    STORE* stored;
 
@@ -121,30 +125,47 @@ int main(int argc, char *argv[])
    working_directory = "/tmp";
    args = get_pool_memory(PM_FNAME);
 
-   while ((ch = getopt(argc, argv, "bc:d:r:st?")) != -1) {
+   while ((ch = getopt(argc, argv, "bc:d:th?f:s:")) != -1) {
       switch (ch) {
       case 'c':                    /* configuration file */
-	 if (configfile != NULL) {
-	    free(configfile);
-	 }
-	 configfile = bstrdup(optarg);
-	 break;
+         if (configfile != NULL) {
+            free(configfile);
+         }
+         configfile = bstrdup(optarg);
+         break;
+         
+      case 'f':
+         if ((deffiled != NULL) || (defstored != NULL)) {
+            fprintf(stderr, "Error: You can only use one -f <filed> or -s <stored> parameter\n");
+            exit(1);
+         }
+         deffiled = bstrdup(optarg);
+         break;
+         
+      case 's':
+         if ((deffiled != NULL) || (defstored != NULL)) {
+            fprintf(stderr, "Error: You can only use one -f <filed> or -s <stored> parameter\n");
+            exit(1);
+         }
+         defstored = bstrdup(optarg);
+         break;
 
       case 'd':
-	 debug_level = atoi(optarg);
-	 if (debug_level <= 0) {
-	    debug_level = 1;
-	 }
-	 break;
+         debug_level = atoi(optarg);
+         if (debug_level <= 0) {
+            debug_level = 1;
+         }
+         break;
 
       case 't':
-	 test_config = true;
-	 break;
+         test_config = true;
+         break;
 
+      case 'h':
       case '?':
       default:
-	 usage();
-	 exit(1);
+         usage();
+         exit(1);
       }  
    }
    argc -= optind;
@@ -161,26 +182,42 @@ int main(int argc, char *argv[])
 
    parse_config(configfile);
 
+   currentitem = NULL;
+   
    LockRes();
    nitems = 0;
    foreach_res(filed, R_CLIENT) {
       items[nitems].type = R_CLIENT;
       items[nitems].resource = filed;
+      if ((deffiled != NULL) && (strcmp(deffiled, filed->hdr.name) == 0)) {
+         currentitem = &(items[nitems]);
+      }
       nitems++;
    }
    foreach_res(stored, R_STORAGE) {
       items[nitems].type = R_STORAGE;
       items[nitems].resource = stored;
+      if ((defstored != NULL) && (strcmp(defstored, stored->hdr.name) == 0)) {
+         currentitem = &(items[nitems]);
+      }
       nitems++;
    }
    UnlockRes();
-   
+     
    if (nitems == 0) {
       Emsg1(M_ERROR_TERM, 0, _("No Client nor Storage resource defined in %s\n\
 Without that I don't how to get status from the File or Storage Daemon :-(\n"), configfile);
    }
    
-   currentitem = &(items[0]);
+   if ((deffiled != NULL) || (defstored != NULL)) {
+     if (currentitem == NULL) {
+        fprintf(stderr, "Error: The file or storage daemon specified by parameters doesn't exists on your configuration file. Exiting...\n");
+        exit(1);
+     }
+   }
+   else {
+      currentitem = &(items[0]);
+   }
 
    if (test_config) {
       exit(0);
@@ -235,7 +272,7 @@ Without that I don't how to get status from the File or Storage Daemon :-(\n"), 
       g_string_free(str, TRUE);
       
       group = gtk_radio_menu_item_get_group(GTK_RADIO_MENU_ITEM(entry));
-      if (i == 0) {
+      if (currentitem == &(items[i])) {
          gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(entry), TRUE);
       }
       
