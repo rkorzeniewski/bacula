@@ -272,9 +272,9 @@ bnet_suppress_error_messages(BSOCK *bsock, int flag)
 
 
 /*
- * Transmit spooled data now
+ * Transmit spooled data now to a BSOCK
  */
-int bnet_despool(BSOCK *bsock)
+int bnet_despool_to_bsock(BSOCK *bsock)
 {
    int32_t pktsiz;
    size_t nbytes;
@@ -712,7 +712,7 @@ again:
  */
 int bnet_set_buffer_size(BSOCK *bs, uint32_t size, int rw)
 {
-   uint32_t dbuf_size;
+   uint32_t dbuf_size, start_size;
 #if defined(IP_TOS) && defined(IPTOS_THROUGHPUT)
    int opt;
 
@@ -720,7 +720,12 @@ int bnet_set_buffer_size(BSOCK *bs, uint32_t size, int rw)
     setsockopt(bs->fd, IPPROTO_IP, IP_TOS, (sockopt_val_t)&opt, sizeof(opt));
 #endif
 
-   dbuf_size = size;
+   if (size != 0) {
+      dbuf_size = size;
+   } else {
+      dbuf_size = DEFAULT_NETWORK_BUFFER_SIZE;
+   }
+   start_size = dbuf_size;
    if ((bs->msg = realloc_pool_memory(bs->msg, dbuf_size+100)) == NULL) {
       Jmsg0(bs->jcr, M_FATAL, 0, _("Could not malloc BSOCK data buffer\n"));
       return 0;
@@ -732,14 +737,20 @@ int bnet_set_buffer_size(BSOCK *bs, uint32_t size, int rw)
 	 dbuf_size -= TAPE_BSIZE;
       }
       Dmsg1(200, "set network buffer size=%d\n", dbuf_size);
-      if (dbuf_size != MAX_NETWORK_BUFFER_SIZE)
+      if (dbuf_size != start_size) {
          Jmsg1(bs->jcr, M_WARNING, 0, _("Warning network buffer = %d bytes not max size.\n"), dbuf_size);
+      }
       if (dbuf_size % TAPE_BSIZE != 0) {
          Jmsg1(bs->jcr, M_ABORT, 0, _("Network buffer size %d not multiple of tape block size.\n"),
 	      dbuf_size);
       }
    }
-   dbuf_size = size;
+   if (size != 0) {
+      dbuf_size = size;
+   } else {
+      dbuf_size = DEFAULT_NETWORK_BUFFER_SIZE;
+   }
+   start_size = dbuf_size;
    if (rw & BNET_SETBUF_WRITE) {
       while ((dbuf_size > TAPE_BSIZE) &&
 	 (setsockopt(bs->fd, SOL_SOCKET, SO_SNDBUF, (sockopt_val_t)&dbuf_size, sizeof(dbuf_size)) < 0)) {
@@ -747,8 +758,9 @@ int bnet_set_buffer_size(BSOCK *bs, uint32_t size, int rw)
 	 dbuf_size -= TAPE_BSIZE;
       }
       Dmsg1(200, "set network buffer size=%d\n", dbuf_size);
-      if (dbuf_size != MAX_NETWORK_BUFFER_SIZE)
+      if (dbuf_size != start_size) {
          Jmsg1(bs->jcr, M_WARNING, 0, _("Warning network buffer = %d bytes not max size.\n"), dbuf_size);
+      }
       if (dbuf_size % TAPE_BSIZE != 0) {
          Jmsg1(bs->jcr, M_ABORT, 0, _("Network buffer size %d not multiple of tape block size.\n"),
 	      dbuf_size);

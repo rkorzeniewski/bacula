@@ -32,7 +32,7 @@
 static char OK_data[]    = "3000 OK data\n";
 
 /* Forward referenced functions */
-static bool is_spooled(JCR *jcr);
+static bool are_attributes_spooled(JCR *jcr);
 static int begin_attribute_spool(JCR *jcr);
 static int discard_attribute_spool(JCR *jcr);
 static int commit_attribute_spool(JCR *jcr);
@@ -61,7 +61,7 @@ int do_append_data(JCR *jcr)
 
    ds = fd_sock;
 
-   if (!bnet_set_buffer_size(ds, MAX_NETWORK_BUFFER_SIZE, BNET_SETBUF_WRITE)) {
+   if (!bnet_set_buffer_size(ds, dev->device->max_network_buffer_size, BNET_SETBUF_WRITE)) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       Jmsg(jcr, M_FATAL, 0, _("Unable to set network buffer size.\n"));
       discard_attribute_spool(jcr);
@@ -211,7 +211,7 @@ int do_append_data(JCR *jcr)
 	 if (stream == STREAM_UNIX_ATTRIBUTES	 || stream == STREAM_MD5_SIGNATURE ||
 	     stream == STREAM_UNIX_ATTRIBUTES_EX || stream == STREAM_SHA1_SIGNATURE) { 
 	    if (!jcr->no_attributes) {
-	       if (is_spooled(jcr)) {
+	       if (are_attributes_spooled(jcr)) {
 		  jcr->dir_bsock->spool = 1;
 	       }
                Dmsg0(200, "Send attributes.\n");
@@ -277,7 +277,7 @@ int do_append_data(JCR *jcr)
    return ok ? 1 : 0;
 }
 
-static bool is_spooled(JCR *jcr)
+static bool are_attributes_spooled(JCR *jcr)
 {
    return jcr->spool_attributes && jcr->dir_bsock->spool_fd;
 }
@@ -292,7 +292,7 @@ static int begin_attribute_spool(JCR *jcr)
 
 static int discard_attribute_spool(JCR *jcr)
 {
-   if (is_spooled(jcr)) {
+   if (are_attributes_spooled(jcr)) {
       return close_spool_file(jcr, jcr->dir_bsock);
    }
    return 1;
@@ -300,8 +300,8 @@ static int discard_attribute_spool(JCR *jcr)
 
 static int commit_attribute_spool(JCR *jcr)
 {
-   if (is_spooled(jcr)) {
-      bnet_despool(jcr->dir_bsock);
+   if (are_attributes_spooled(jcr)) {
+      bnet_despool_to_bsock(jcr->dir_bsock);
       return close_spool_file(jcr, jcr->dir_bsock);
    }
    return 1;

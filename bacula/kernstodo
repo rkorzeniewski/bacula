@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                 13 January 2004
+                 17 January 2004
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -58,16 +58,7 @@ For 1.33 Testing/Documentation:
 - Document Pool keyword for restore.
                 
 For 1.33
-- Implement alist processing for ACLs from Console.
 - Finish code passing files=nnn to restore start.
-- Add Console usr permissions -- do by adding regex filters for
-  jobs, clients, storage, ...
-- Put max network buffer size on a directive.
-- Why does "mark cygwin" take so long!!!!!!!!
-- When a file is set for restore, walk back up the chain of 
-  directories, setting them to be restored.
-- Figure out a way to set restore on a directory without recursively
-  decending.  (recurse off?).
 - Add level to estimate command.
 - Check time/dates printed during restore when using Win32 API.
 - Volume "add"ed to Pool gets recycled in first use. VolBytes=0
@@ -1118,3 +1109,13 @@ Done: (see kernsdone for more)
 - Something is not right in last block of fill command.
 - Add FileSet to command line arguments for restore.
 - Enhance time and size scanning routines.
+- Add Console usr permissions -- do by adding filters for
+  jobs, clients, storage, ...
+- Put max network buffer size on a directive.
+- Why does "mark cygwin" take so long!!!!!!!!
+- Implement alist processing for ACLs from Console.
+- When a file is set for restore, walk back up the chain of 
+  directories, setting them to be restored.
+- Figure out a way to set restore on a directory without recursively
+  decending.  (recurse off?).
+

@@ -61,10 +61,9 @@ static int authenticate(int rcode, BSOCK *bs)
 	    bs->who, bs->msg);
       return 0;
    }
-   director = NULL;
    unbash_spaces(dirname);
    LockRes();
-   while ((director=(DIRRES *)GetNextRes(rcode, (RES *)director))) {
+   foreach_res(director, R_DIRECTOR) {
       if (strcmp(director->hdr.name, dirname) == 0)
 	 break;
    }

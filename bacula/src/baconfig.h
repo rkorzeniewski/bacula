@@ -95,10 +95,9 @@
 #endif
 
 /*
- * Maximum number of bytes that you can push into a
- * socket.
+ * Default network buffer size
  */
-#define MAX_NETWORK_BUFFER_SIZE (32 * 1024)
+#define DEFAULT_NETWORK_BUFFER_SIZE (32 * 1024)
 
 /*
  * Stream definitions.  Once defined these must NEVER
