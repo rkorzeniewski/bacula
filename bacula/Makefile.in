@@ -140,6 +140,20 @@ uninstall-autostart-fd:
 uninstall-autostart-sd:
 	(cd platforms; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1)
 
+uninstall-menu:
+	rm -f $(DESTDIR)/usr/share/pixmaps/bacula.png
+	rm -f $(DESTDIR)/usr/share/gnome/apps/System/bacula.desktop
+	rm -f $(DESTDIR)/usr/share/applications/bacula.desktop
+
+uninstall-menu-consolehelper:
+	rm -f $(DESTDIR)/usr/share/pixmaps/bacula.png
+	rm -f $(DESTDIR)/usr/share/gnome/apps/System/bacula.desktop
+	rm -f $(DESTDIR)/usr/share/applications/bacula.desktop
+	rm -f $(DESTDIR)/etc/security/console.apps/gnome-console
+	rm -f $(DESTDIR)/etc/pam.d/gnome-console
+	rm -f $(DESTDIR)/usr/bin/gnome-console
+
+
 Makefile: Makefile.in
 	cd $(topdir) \
 	    && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
