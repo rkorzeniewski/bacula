@@ -176,11 +176,19 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
    if (ff_pkt->type != FT_LNKSAVED && (S_ISREG(ff_pkt->statp.st_mode) && 
 	 ff_pkt->statp.st_size > 0) || 
 	 ff_pkt->type == FT_RAW || ff_pkt->type == FT_FIFO) {
+      btimer_id tid;	
+      if (ff_pkt->type == FT_FIFO) {
+	 tid = start_thread_timer(pthread_self(), 60);
+      } else {
+	 tid = NULL;
+      }
       if ((ff_pkt->fid = open(ff_pkt->fname, O_RDONLY | O_BINARY)) < 0) {
 	 ff_pkt->ff_errno = errno;
          Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open %s: ERR=%s.\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));
+	 stop_thread_timer(tid);
 	 return 1;
       }
+      stop_thread_timer(tid);
    } else {
       ff_pkt->fid = -1;
    }

@@ -198,12 +198,21 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
 	 }
       }       
       if (type == FT_RAW || type == FT_FIFO) {
+	 btimer_id tid;
          Dmsg1(200, "FT_RAW|FT_FIFO %s\n", ofile);
 	 mode =  O_WRONLY | O_BINARY;
+	 /* Timeout open() in 60 seconds */
+	 if (type == FT_FIFO) {
+	    tid = start_thread_timer(pthread_self(), 60);
+	 } else {
+	    tid = NULL;
+	 }
 	 if ((*ofd = open(ofile, mode)) < 0) {
             Jmsg2(jcr, M_ERROR, 0, _("Could not open %s: ERR=%s\n"), ofile, strerror(errno));
+	    stop_thread_timer(tid);
 	    return CF_ERROR;
 	 }
+	 stop_thread_timer(tid);
 	 return CF_EXTRACT;
       }
       Dmsg1(200, "FT_SPEC %s\n", ofile);

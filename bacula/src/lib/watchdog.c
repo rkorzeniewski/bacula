@@ -298,6 +298,9 @@ void stop_child_timer(btimer_id wid)
  */
 void stop_thread_timer(btimer_id wid)
 {
+   if (!wid) {
+      return;
+   }
    Dmsg2(200, "Stop thread timer 0x%x for %d secs.\n", wid, wid->wait);
    stop_btimer(wid);	     
 }
