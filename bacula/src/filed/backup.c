@@ -565,7 +565,6 @@ int send_data(int stream, FF_PKT *ff_pkt, BSOCK *sd, JCR *jcr, struct CHKSUM *ch
     *	 <file-index> <stream> <info>
     */
    if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, stream)) {
-      berrno be;
       Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
 	    bnet_strerror(sd));
       return 0;
