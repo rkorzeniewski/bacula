@@ -18,7 +18,6 @@ Test:
 For 1.27 release:
 - Add ORDER BY JobId to list of Jobs in query.sql, and in
   ua_list.c (list command).
-- Make gethostbyname() thread safe in bnet.c
 
 After 1.27
 - Check if both CatalogFiles and UseCatalog are set to SD.
@@ -597,3 +596,4 @@ Done: (see kernsdone for more)
 - Implement VolMaxJob and Duration check in next_volume().
 - Make sure pruning of Jobs removes JobMediaId
 - Write bcopy program -- recovery of bad tape.
+- Make gethostbyname() thread safe in bnet.c
