@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                  3 August 2002
+                  9 August 2002
 
 Irix conversion notes:
 - no uuencode
@@ -15,6 +15,29 @@ To do:
 - Document forcing a new tape to be used.
 - Document "Error in message.c:500 Mail program terminated in error.
 
+From Chuck:
+--bindir is wrong and does not reflect prefix= in the *_sqlite_* scripts
+(src/cats)
+
+--top level configure options are not passed to the depkgs, particularly
+prefix=
+
+Also, it might be better to split the depkgs location from the --with-sqlite
+location. 
+
+--should be able to specify e.g. --with-sqlite=/opt/local and have it find
+lib, bin, sbin for itself
+
+I tried this and it didn't find sqlite.h
+
+--the console script is broken as installed and has to be hand-massaged with
+paths, config files etc.
+
+--sd.conf password does not match dir.conf storage password
+
+=======
+- Convert all %x substitution variables, which are hard to remember
+  and read to %(variable-name)s.  Idea from TMDA.
 - Report volume write rate.
 - Fix db_get_job_volume_names() to return array of strings.
 - Report compression % and other compression statistics if turned on.
