@@ -266,8 +266,9 @@ bool do_append_data(JCR *jcr)
       Dmsg0(90, "back from write_end_session_label()\n");
       /* Flush out final partial block of this session */
       if (!write_block_to_device(dcr)) {
+         Jmsg2(jcr, M_FATAL, 0, _("Fatal append error on device %s: ERR=%s\n"),
+	       dev->print_name(), strerror_dev(dev));
          Dmsg0(100, _("Set ok=FALSE after write_block_to_device.\n"));
-	 set_jcr_job_status(jcr, JS_ErrorTerminated);
 	 ok = false;
       }
    }

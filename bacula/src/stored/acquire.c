@@ -248,6 +248,8 @@ DCR *acquire_device_for_read(DCR *dcr)
          Dmsg1(120, "bstored: open vol=%s\n", dcr->VolumeName);
 	 if (open_dev(dev, dcr->VolumeName, OPEN_READ_ONLY) < 0) {
 	    if (dev->dev_errno == EIO) {   /* no tape loaded */
+              Jmsg3(jcr, M_WARNING, 0, _("Open device %s Volume \"%s\" failed: ERR=%s\n"),
+		    dev->print_name(), dcr->VolumeName, strerror_dev(dev));
 	       goto default_path;
 	    }
 	    
@@ -258,7 +260,7 @@ DCR *acquire_device_for_read(DCR *dcr)
 	       break;
 	    }
 	    
-            Jmsg(jcr, M_FATAL, 0, _("Open device %s Volume \"%s\" failed: ERR=%s\n"),
+            Jmsg3(jcr, M_FATAL, 0, _("Open device %s Volume \"%s\" failed: ERR=%s\n"),
 		dev->print_name(), dcr->VolumeName, strerror_dev(dev));
 	    goto get_out;
 	 }
@@ -294,7 +296,7 @@ DCR *acquire_device_for_read(DCR *dcr)
 	 }
 	 /* Fall through */
       default:
-         Jmsg(jcr, M_WARNING, 0, "%s", jcr->errmsg);
+         Jmsg1(jcr, M_WARNING, 0, "%s", jcr->errmsg);
 default_path:
 	 tape_previously_mounted = true;
 	 
@@ -608,11 +610,7 @@ bool release_device(DCR *dcr)
 
    if (dev->can_read()) {
       dev->clear_read();	      /* clear read bit */
-      /* Close if file or !CAP_ALWAYSOPEN */
-      if (!dev->is_tape() || !dev_cap(dev, CAP_ALWAYSOPEN)) {
-	 offline_or_rewind_dev(dev);
-	 close_dev(dev);
-      }
+
       /******FIXME**** send read volume usage statistics to director */
 
    } else if (dev->num_writers > 0) {
@@ -638,16 +636,18 @@ bool release_device(DCR *dcr)
          Dmsg0(100, "==== write ansi eof label \n");
       }
 
-      /* If no writers, close if file or !CAP_ALWAYS_OPEN */
-      if (dev->num_writers == 0 && (!dev->is_tape() || !dev_cap(dev, CAP_ALWAYSOPEN))) {
-	 offline_or_rewind_dev(dev);
-	 close_dev(dev);
-      }
    } else {
-      Jmsg2(jcr, M_FATAL, 0, _("BAD ERROR: release_device %s, Volume \"%s\" not in use.\n"),
-	    dev->print_name(), NPRT(dcr->VolumeName));
-      Jmsg2(jcr, M_ERROR, 0, _("num_writers=%d state=%x\n"), dev->num_writers, dev->state);
-      ok = false;
+      /*		
+       * If we reach here, it is most likely because the
+       *   has failed, since the device is not in read mode and
+       *   there are no writers.
+       */
+   }
+
+   /* If no writers, close if file or !CAP_ALWAYS_OPEN */
+   if (dev->num_writers == 0 && (!dev->is_tape() || !dev_cap(dev, CAP_ALWAYSOPEN))) {
+      offline_or_rewind_dev(dev);
+      close_dev(dev);
    }
 
    /* Fire off Alert command and include any output */
