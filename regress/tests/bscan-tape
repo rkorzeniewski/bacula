@@ -1,29 +1,31 @@
 #!/bin/sh
 #
 # Run a simple backup of the Bacula build directory using the compressed option
-#   then backup four times, each with incremental then finally restore.
+#   then backup four times, each with incremental then 
+#   do a bscan and restore.
 #   It should require at least 4 different bsrs.
 #
 cwd=`pwd`
 bin/bacula stop 2>&1 >/dev/null
+scripts/copy-tape-confs
+scripts/cleanup-tape
+echo "${cwd}/build" >/tmp/file-list
 cd bin
 ./drop_bacula_tables >/dev/null 2>&1
 ./make_bacula_tables >/dev/null 2>&1
 ./grant_bacula_privileges 2>&1 >/dev/null
 cd ..
-
-scripts/copy-tape-confs
-scripts/cleanup-tape
-echo "${cwd}/build" >/tmp/file-list
+cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
+sed "s%# Maximum File Size%  Maximum File Size%" ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
 
 echo " "
 echo " "
-echo " === Starting four-jobs-tape  ==="
-echo " === Starting four-jobs-tape  ===" >>working/log
+echo " === Starting bscan-tape  ==="
+echo " === Starting bscan-tape  ===" >>working/log
 echo " "
 
 bin/bacula start 2>&1 >/dev/null
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
 @output /dev/null
 estimate job=NightlySave listing
 estimate job=NightlySave listing
@@ -32,6 +34,10 @@ messages
 @output tmp/log1.out
 label storage=DDS-4 volume=TestVolume001 slot=0
 run job=NightlySave yes
+wait
+run job=NightlySave level=Full yes
+wait
+run job=NightlySave level=Full yes
 wait
 messages
 quit
@@ -45,7 +51,7 @@ touch ${cwd}/build/src/lib/*.c ${cwd}/build/src/lib/*.o
 #
 # run a second job
 #
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
 @output /dev/null
 messages
 @output tmp/log1.out
@@ -61,7 +67,7 @@ touch ${cwd}/build/src/lib/*.c ${cwd}/build/src/lib/*.o
 #
 # run a third job
 #
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
 @output /dev/null
 messages
 @output tmp/log1.out
@@ -74,10 +80,11 @@ scripts/check_for_zombie_jobs storage=DDS-4
 echo "Backup 3 done"
 # make some files for the incremental to pick up
 touch ${cwd}/build/src/lib/*.c ${cwd}/build/src/lib/*.o
+#echo "abc" > ${cwd}/build/src/lib/dummy
 #
 # run a fourth job
 #
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
 @output /dev/null
 messages
 @output tmp/log1.out
@@ -88,36 +95,36 @@ quit
 END_OF_DATA
 scripts/check_for_zombie_jobs storage=DDS-4
 echo "Backup 4 done"
-# 
-# now do several restores to ensure we cleanup between jobs
 #
+# now drop and recreate the database
+#
+cd bin
+./drop_bacula_tables >/dev/null 2>&1
+./make_bacula_tables >/dev/null 2>&1
+./grant_bacula_privileges 2>&1 >/dev/null
+cd ..
+
+bin/bacula stop 2>&1 >/dev/null
+echo "volume=TestVolume001" >tmp/bscan.bsr
+# bin/bscan -w working -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf ${cwd}/tmp 2>&1 >/dev/null
+bin/bscan -w working -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf /dev/nst0
+bin/bacula start 2>&1 >/dev/null
 bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
 @output /dev/null
-restore where=${cwd}/tmp/bacula-restores select all done
-yes
-wait
-restore where=${cwd}/tmp/bacula-restores select all done
-yes
-wait
+messages
 @output tmp/log2.out
+@# 
+@# now do a restore
 @#
-@# now unmount the tape and start two restores
-@#  at the same time
-@#
-unmount storage=DDS-4
-restore where=${cwd}/tmp/bacula-restores select all done
+restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
 yes
-restore where=${cwd}/tmp/bacula-restores select
-unmark *
-mark *
-done
-yes
-mount storage=DDS-4
 wait
 messages
 @output
 quit
 END_OF_DATA
+scripts/check_for_zombie_jobs storage=DDS-4
+rm -f  ${cwd}/build/src/lib/dummy
 bin/bacula stop 2>&1 >/dev/null
 grep "^Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
 bstat=$?
@@ -127,11 +134,11 @@ diff -r build tmp/bacula-restores${cwd}/build 2>&1 >/dev/null
 if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
    echo " "
    echo " "
-   echo "  !!!!! four-jobs-tape Bacula source failed!!! !!!!! "
-   echo "  !!!!! four-jobs-tape failed!!! !!!!! " >>test.out
+   echo "  !!!!! bscan-tape Bacula source failed!!! !!!!! "
+   echo "  !!!!! bscan-tape failed!!! !!!!! " >>test.out
    echo " "
 else
-   echo "  ===== four-jobs-tape Bacula source OK ===== "
-   echo "  ===== four-jobs-tape OK ===== " >>test.out
-   scripts/cleanup
+   echo "  ===== bscan-tape Bacula source OK ===== "
+   echo "  ===== bscan-tape OK ===== " >>test.out
+#  scripts/cleanup
 fi
