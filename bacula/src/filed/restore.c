@@ -45,16 +45,14 @@ static char rec_header[] = "rechdr %ld %ld %ld %ld %ld";
 #ifdef HAVE_LIBZ
 static const char *zlib_strerror(int stat);
 #endif
-int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen, uint64_t *addr,
-	uint32_t *total, int flags);
+int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
+      uint64_t *addr, int flags);
 
 #define RETRY 10		      /* retry wait time */
 
 /*
  * Close a bfd check that we are at the expected file offset.
  * Makes some code in set_attributes().
- * ***FIXME***
- * NOTE: set_win32_attributes() may now have to reopen the file :-(
  */
 int bclose_chksize(JCR *jcr, BFILE *bfd, off_t osize)
 {
@@ -80,37 +78,42 @@ void do_restore(JCR *jcr)
 {
    BSOCK *sd;
    int32_t stream, prev_stream;
-   uint32_t size;
    uint32_t VolSessionId, VolSessionTime;
-   int32_t file_index;
    bool extract = false;
-   BFILE bfd;
-   int stat;
-   uint32_t total = 0;		      /* Job total but only 32 bits for debug */
+   int32_t file_index;
+   char ec1[50];		      /* Buffer printing huge values */
+
+   BFILE bfd;			      /* File content */
    uint64_t fileAddr = 0;	      /* file write address */
-   intmax_t want_len = 0;	      /* How many bytes we expect to write */
+   uint32_t size;		      /* Size of file */
+   BFILE altbfd;		      /* Alternative data stream */
+   uint64_t alt_addr = 0;	      /* Write address for alternative stream */
+   intmax_t alt_size = 0;	      /* Size of alternate stream */
    int flags;			      /* Options for extract_data() */
+   int stat;
+   ATTR *attr;
+
+   /* The following variables keep track of "known unknowns" */
    int non_support_data = 0;
    int non_support_attr = 0;
    int non_support_rsrc = 0;
    int non_support_finfo = 0;
    int non_support_acl = 0;
-   int prog_name_msg = 0;
-   ATTR *attr;
+   int non_support_progname = 0;
+
+   /* Finally, set up for special configurations */
 #ifdef HAVE_ACL
    acl_t acl;
 #endif
 #ifdef HAVE_DARWIN_OS
-   intmax_t rsrc_len;		      /* original length of resource fork */
-
-   /* TODO: initialise attrList once elsewhere? */
+   intmax_t rsrc_len = 0;	      /* Original length of resource fork */
    struct attrlist attrList;
+
    memset(&attrList, 0, sizeof(attrList));
    attrList.bitmapcount = ATTR_BIT_MAP_COUNT;
    attrList.commonattr = ATTR_CMN_FNDRINFO;
 #endif
 
-   binit(&bfd);
    sd = jcr->store_bsock;
    set_jcr_job_status(jcr, JS_Running);
 
@@ -129,8 +132,6 @@ void do_restore(JCR *jcr)
    }
    jcr->buf_size = sd->msglen;
 
-   attr = new_attr();
-
 #ifdef HAVE_LIBZ
    uint32_t compress_buf_size = jcr->buf_size + 12 + ((jcr->buf_size+999) / 1000) + 100;
    jcr->compress_buf = (char *)bmalloc(compress_buf_size);
@@ -144,72 +145,101 @@ void do_restore(JCR *jcr)
     *	2. Stream data
     *	     a. Attributes (Unix or Win32)
     *	 or  b. File data for the file
-    *	 or  c. Resource fork
+    *	 or  c. Alternate data stream (e.g. Resource Fork)
     *	 or  d. Finder info
     *	 or  e. ACLs
     *	 or  f. Possibly MD5 or SHA1 record
     *	3. Repeat step 1
+    *
+    * NOTE: We keep track of two bacula file descriptors:
+    *   1. bfd for file data.
+    *	   This fd is opened for non empty files when an attribute stream is
+    *	   encountered and closed when we find the next attribute stream.
+    *   2. alt_bfd for alternate data streams
+    *	   This fd is opened every time we encounter a new alternate data
+    *	   stream for the current file. When we find any other stream, we
+    *	   close it again.
+    *      The expected size of the stream, alt_len, should be set when
+    *      opening the fd.
     */
+   binit(&bfd);
+   binit(&altbfd);
+   attr = new_attr();
+
    while (bget_msg(sd) >= 0 && !job_canceled(jcr)) {
+      /* Remember previous stream type */
       prev_stream = stream;
 
       /* First we expect a Stream Record Header */
       if (sscanf(sd->msg, rec_header, &VolSessionId, &VolSessionTime, &file_index,
 	  &stream, &size) != 5) {
-         Jmsg1(jcr, M_FATAL, 0, _("Record header scan error: %s\n"), sd->msg);
+	 Jmsg1(jcr, M_FATAL, 0, _("Record header scan error: %s\n"), sd->msg);
 	 goto bail_out;
       }
       Dmsg2(30, "Got hdr: FilInx=%d Stream=%d.\n", file_index, stream);
 
       /* * Now we expect the Stream Data */
       if (bget_msg(sd) < 0) {
-         Jmsg1(jcr, M_FATAL, 0, _("Data record error. ERR=%s\n"), bnet_strerror(sd));
+	 Jmsg1(jcr, M_FATAL, 0, _("Data record error. ERR=%s\n"), bnet_strerror(sd));
 	 goto bail_out;
       }
       if (size != (uint32_t)sd->msglen) {
-         Jmsg2(jcr, M_FATAL, 0, _("Actual data size %d not same as header %d\n"), sd->msglen, size);
+	 Jmsg2(jcr, M_FATAL, 0, _("Actual data size %d not same as header %d\n"), sd->msglen, size);
 	 goto bail_out;
       }
       Dmsg1(30, "Got stream data, len=%d\n", sd->msglen);
+
+      /* If we change streams, close and reset alternate data streams */
+      if (prev_stream != stream) {
+	 if (is_bopen(&altbfd)) {
+	    bclose_chksize(jcr, &altbfd, alt_size);
+	 }
+	 alt_size = -1; /* Use an impossible value and set a proper one below */
+	 alt_addr = 0;
+      }
 
       /* File Attributes stream */
       switch (stream) {
       case STREAM_UNIX_ATTRIBUTES:
       case STREAM_UNIX_ATTRIBUTES_EX:
-         Dmsg1(30, "Stream=Unix Attributes. extract=%d\n", extract);
+	 Dmsg1(30, "Stream=Unix Attributes. extract=%d\n", extract);
 	 /*
 	  * If extracting, it was from previous stream, so
 	  * close the output file.
 	  */
 	 if (extract) {
-	    if (!is_bopen(&bfd)) {
-               Jmsg0(jcr, M_ERROR, 0, _("Logic error output file should be open\n"));
-	    } else {
-	       bclose_chksize(jcr, &bfd, want_len);
-	       set_attributes(jcr, attr, &bfd);
+	    if (size > 0 && !is_bopen(&bfd)) {
+	       Jmsg0(jcr, M_ERROR, 0, _("Logic error: output file should be open\n"));
 	    }
+	    set_attributes(jcr, attr, &bfd);
 	    extract = false;
-            Dmsg0(30, "Stop extracting.\n");
+	    Dmsg0(30, "Stop extracting.\n");
+	 } else if (is_bopen(&bfd)) {
+	    Jmsg0(jcr, M_ERROR, 0, _("Logic error: output file should not be open\n"));
+	    bclose(&bfd);
 	 }
 
+	 /*
+	  * Unpack and do sanity check fo attributes.
+	  */
 	 if (!unpack_attributes_record(jcr, stream, sd->msg, attr)) {
 	    goto bail_out;
 	 }
 	 if (file_index != attr->file_index) {
-            Jmsg(jcr, M_FATAL, 0, _("Record header file index %ld not equal record index %ld\n"),
+	    Jmsg(jcr, M_FATAL, 0, _("Record header file index %ld not equal record index %ld\n"),
 		 file_index, attr->file_index);
-            Dmsg0(100, "File index error\n");
+	    Dmsg0(100, "File index error\n");
 	    goto bail_out;
 	 }
 
-         Dmsg3(200, "File %s\nattrib=%s\nattribsEx=%s\n", attr->fname,
+	 Dmsg3(200, "File %s\nattrib=%s\nattribsEx=%s\n", attr->fname,
 	       attr->attr, attr->attrEx);
 
 	 attr->data_stream = decode_stat(attr->attr, &attr->statp, &attr->LinkFI);
 
 	 if (!is_stream_supported(attr->data_stream)) {
 	    if (!non_support_data++) {
-               Jmsg(jcr, M_ERROR, 0, _("%s stream not supported on this Client.\n"),
+	       Jmsg(jcr, M_ERROR, 0, _("%s stream not supported on this Client.\n"),
 		  stream_to_ascii(attr->data_stream));
 	    }
 	    continue;
@@ -217,25 +247,26 @@ void do_restore(JCR *jcr)
 
 	 build_attr_output_fnames(jcr, attr);
 
+	 /*
+	  * Now determine if we are extracting or not.
+	  */
 	 jcr->num_files_examined++;
-
-         Dmsg1(30, "Outfile=%s\n", attr->ofname);
+	 Dmsg1(30, "Outfile=%s\n", attr->ofname);
 	 extract = false;
 	 stat = create_file(jcr, attr, &bfd, jcr->replace);
 	 switch (stat) {
 	 case CF_ERROR:
 	 case CF_SKIP:
 	    break;
-	 case CF_EXTRACT:
+	 case CF_EXTRACT:	 /* File created and we expect file data */
 	    extract = true;
 	    /* FALLTHROUGH */
-	 case CF_CREATED:
+	 case CF_CREATED:	 /* File created, but there is no content */
 	    P(jcr->mutex);
 	    pm_strcpy(jcr->last_fname, attr->ofname);
 	    V(jcr->mutex);
 	    jcr->JobFiles++;
 	    fileAddr = 0;
-	    want_len = attr->statp.st_size;
 	    print_ls_output(jcr, attr);
 #ifdef HAVE_DARWIN_OS
 	    /* Only restore the resource fork for regular files */
@@ -270,7 +301,7 @@ void do_restore(JCR *jcr)
 		  || stream == STREAM_WIN32_GZIP_DATA) {
 	       flags |= FO_GZIP;
 	    }
-	    if (extract_data(jcr, &bfd, sd->msg, sd->msglen, &fileAddr, &total, flags) < 0) {
+	    if (extract_data(jcr, &bfd, sd->msg, sd->msglen, &fileAddr, flags) < 0) {
 	       extract = false;
 	       bclose(&bfd);
 	       continue;
@@ -284,21 +315,18 @@ void do_restore(JCR *jcr)
 #ifdef HAVE_DARWIN_OS
 	 if (extract) {
 	    if (prev_stream != stream) {
-	       if (is_bopen(&bfd)) {
-		  bclose_chksize(jcr, &bfd, want_len);
-	       }
-	       if (bopen_rsrc(&bfd, jcr->last_fname, O_WRONLY | O_TRUNC | O_BINARY, 0) < 0) {
-                  Jmsg(jcr, M_ERROR, 0, _("     Cannot open resource fork for %s"), jcr->last_fname);
+	       if (bopen_rsrc(&altbfd, jcr->last_fname, O_WRONLY | O_TRUNC | O_BINARY, 0) < 0) {
+	          Jmsg(jcr, M_ERROR, 0, _("     Cannot open resource fork for %s\n"), jcr->last_fname);
 		  extract = false;
 		  continue;
 	       }
-	       want_len = rsrc_len;
-               Dmsg0(30, "Restoring resource fork");
+	       alt_size = rsrc_len;
+	       Dmsg0(30, "Restoring resource fork\n");
 	    }
 	    flags = 0;
-	    if (extract_data(jcr, &bfd, sd->msg, sd->msglen, &fileAddr, &total, flags) < 0) {
+	    if (extract_data(jcr, &altbfd, sd->msg, sd->msglen, &alt_addr, flags) < 0) {
 	       extract = false;
-	       bclose(&bfd);
+	       bclose(&altbfd);
 	       continue;
 	    }
 	 }
@@ -309,13 +337,13 @@ void do_restore(JCR *jcr)
 
       case STREAM_HFSPLUS_ATTRIBUTES:
 #ifdef HAVE_DARWIN_OS
-         Dmsg0(30, "Restoring Finder Info");
+	 Dmsg0(30, "Restoring Finder Info\n");
 	 if (sd->msglen != 32) {
-            Jmsg(jcr, M_ERROR, 0, _("     Invalid length of Finder Info (got %d, not 32)"), sd->msglen);
+	    Jmsg(jcr, M_ERROR, 0, _("     Invalid length of Finder Info (got %d, not 32)\n"), sd->msglen);
 	    continue;
 	 }
 	 if (setattrlist(jcr->last_fname, &attrList, sd->msg, sd->msglen, 0) != 0) {
-            Jmsg(jcr, M_ERROR, 0, _("     Could not set Finder Info on %s"), jcr->last_fname);
+	    Jmsg(jcr, M_ERROR, 0, _("     Could not set Finder Info on %s\n"), jcr->last_fname);
 	    continue;
 	 }
 #else
@@ -329,7 +357,7 @@ case STREAM_UNIX_ATTRIBUTES_ACCESS_ACL:
 	 /* Recover Acess ACL from stream and check it */
 	 acl = acl_from_text(sd->msg);
 	 if (acl_valid(acl) != 0) {
-            Jmsg1(jcr, M_WARNING, 0, "Failure in the ACL of %s! FD is not able to restore it!\n", jcr->last_fname);
+	    Jmsg1(jcr, M_WARNING, 0, "Failure in the ACL of %s! FD is not able to restore it!\n", jcr->last_fname);
 	    acl_free(acl);
 	 }
 
@@ -337,14 +365,14 @@ case STREAM_UNIX_ATTRIBUTES_ACCESS_ACL:
 	 if (attr->type == FT_DIREND) {
 	    /* Directory */
 	    if (acl_set_file(jcr->last_fname, ACL_TYPE_ACCESS, acl) != 0) {
-               Jmsg1(jcr, M_WARNING, 0, "Error! Can't restore ACL of directory: %s! Maybe system does not support ACLs!\n", jcr->last_fname);
+	       Jmsg1(jcr, M_WARNING, 0, "Error! Can't restore ACL of directory: %s! Maybe system does not support ACLs!\n", jcr->last_fname);
 	    }
 	 /* File or Link */
 	 } else if (acl_set_file(jcr->last_fname, ACL_TYPE_ACCESS, acl) != 0) {
-            Jmsg1(jcr, M_WARNING, 0, "Error! Can't restore ACL of file: %s! Maybe system does not support ACLs!\n", jcr->last_fname);
+	    Jmsg1(jcr, M_WARNING, 0, "Error! Can't restore ACL of file: %s! Maybe system does not support ACLs!\n", jcr->last_fname);
 	 }
 	 acl_free(acl);
-         Dmsg1(200, "ACL of file: %s successfully restored!", jcr->last_fname);
+	 Dmsg1(200, "ACL of file: %s successfully restored!\n", jcr->last_fname);
 	 break;
 #else
 	 non_support_acl++;
@@ -355,7 +383,7 @@ case STREAM_UNIX_ATTRIBUTES_ACCESS_ACL:
       /* Recover Default ACL from stream and check it */
 	 acl = acl_from_text(sd->msg);
 	 if (acl_valid(acl) != 0) {
-            Jmsg1(jcr, M_WARNING, 0, "Failure in the Default ACL of %s! FD is not able to restore it!\n", jcr->last_fname);
+	    Jmsg1(jcr, M_WARNING, 0, "Failure in the Default ACL of %s! FD is not able to restore it!\n", jcr->last_fname);
 	    acl_free(acl);
 	 }
 
@@ -363,11 +391,11 @@ case STREAM_UNIX_ATTRIBUTES_ACCESS_ACL:
 	 if (attr->type == FT_DIREND) {
 	    /* Directory */
 	    if (acl_set_file(jcr->last_fname, ACL_TYPE_DEFAULT, acl) != 0) {
-               Jmsg1(jcr, M_WARNING, 0, "Error! Can't restore Default ACL of directory: %s! Maybe system does not support ACLs!\n", jcr->last_fname);
+	       Jmsg1(jcr, M_WARNING, 0, "Error! Can't restore Default ACL of directory: %s! Maybe system does not support ACLs!\n", jcr->last_fname);
 	     }
 	 }
 	 acl_free(acl);
-         Dmsg1(200, "Default ACL of file: %s successfully restored!", jcr->last_fname);
+	 Dmsg1(200, "Default ACL of file: %s successfully restored!\n", jcr->last_fname);
 	 break;
 #else
 	 non_support_acl++;
@@ -381,24 +409,27 @@ case STREAM_UNIX_ATTRIBUTES_ACCESS_ACL:
 
       case STREAM_PROGRAM_NAMES:
       case STREAM_PROGRAM_DATA:
-	 if (!prog_name_msg) {
-            Pmsg0(000, "Got Program Name or Data Stream. Ignored.\n");
-	    prog_name_msg++;
+	 if (!non_support_progname) {
+	    Pmsg0(000, "Got Program Name or Data Stream. Ignored.\n");
+	    non_support_progname++;
 	 }
 	 break;
 
       default:
 	 /* If extracting, wierd stream (not 1 or 2), close output file anyway */
 	 if (extract) {
-            Dmsg1(30, "Found wierd stream %d\n", stream);
-	    if (!is_bopen(&bfd)) {
-               Jmsg0(jcr, M_ERROR, 0, _("Logic error output file should be open but is not.\n"));
+	    Dmsg1(30, "Found wierd stream %d\n", stream);
+	    if (size > 0 && !is_bopen(&bfd)) {
+	       Jmsg0(jcr, M_ERROR, 0, _("Logic error: output file should be open\n"));
 	    }
 	    set_attributes(jcr, attr, &bfd);
 	    extract = false;
+	 } else if (is_bopen(&bfd)) {
+	    Jmsg0(jcr, M_ERROR, 0, _("Logic error: output file should not be open\n"));
+	    bclose(&bfd);
 	 }
-         Jmsg(jcr, M_ERROR, 0, _("Unknown stream=%d ignored. This shouldn't happen!\n"), stream);
-         Dmsg2(0, "None of above!!! stream=%d data=%s\n", stream,sd->msg);
+	 Jmsg(jcr, M_ERROR, 0, _("Unknown stream=%d ignored. This shouldn't happen!\n"), stream);
+	 Dmsg2(0, "None of above!!! stream=%d data=%s\n", stream,sd->msg);
 	 break;
       } /* end switch(stream) */
 
@@ -407,9 +438,14 @@ case STREAM_UNIX_ATTRIBUTES_ACCESS_ACL:
    /* If output file is still open, it was the last one in the
     * archive since we just hit an end of file, so close the file.
     */
-   if (is_bopen(&bfd)) {
-      bclose_chksize(jcr, &bfd, want_len);
+   if (is_bopen(&altbfd)) {
+      bclose_chksize(jcr, &altbfd, alt_size);
+   }
+   if (extract) {
       set_attributes(jcr, attr, &bfd);
+   }
+   if (is_bopen(&bfd)) {
+      bclose(&bfd);
    }
    set_jcr_job_status(jcr, JS_Terminated);
    goto ok_out;
@@ -422,10 +458,11 @@ ok_out:
       jcr->compress_buf = NULL;
       jcr->compress_buf_size = 0;
    }
+   bclose(&altbfd);
    bclose(&bfd);
    free_attr(attr);
-   Dmsg2(10, "End Do Restore. Files=%d Bytes=%" lld "\n", jcr->JobFiles,
-      jcr->JobBytes);
+   Dmsg2(10, "End Do Restore. Files=%d Bytes=%s\n", jcr->JobFiles,
+      edit_uint64(jcr->JobBytes, ec1));
    if (non_support_data > 1 || non_support_attr > 1) {
       Jmsg(jcr, M_ERROR, 0, _("%d non-supported data streams and %d non-supported attrib streams ignored.\n"),
 	 non_support_data, non_support_attr);
@@ -475,18 +512,16 @@ static const char *zlib_strerror(int stat)
  * We write buflen bytes in buf at addr. addr is updated in place.
  * The flags specify whether to use sparse files or compression.
  * Return value is the number of bytes written, or -1 on errors.
- *
- * ***FIXME***
- * We update total in here. For some reason, jcr->JobBytes does not work here.
  */
-int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen, uint64_t *addr,
-	uint32_t *total, int flags)
+int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
+      uint64_t *addr, int flags)
 {
    uLong compress_len;
    int stat;
    char *wbuf;			      /* write buffer */
    uint32_t wsize;		      /* write size */
    uint32_t rsize;		      /* read size */
+   char ec1[50];		      /* Buffer printing huge values */
 
    if (flags & FO_SPARSE) {
       ser_declare;
@@ -501,7 +536,7 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen, uint64_
 	 if (blseek(bfd, (off_t)*addr, SEEK_SET) < 0) {
 	    berrno be;
 	    be.set_errno(bfd->berrno);
-            Jmsg3(jcr, M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"),
+	    Jmsg3(jcr, M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"),
 		  edit_uint64(*addr, ec1), jcr->last_fname, be.strerror());
 	    return -1;
 	 }
@@ -518,19 +553,19 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen, uint64_
       Dmsg2(100, "Comp_len=%d msglen=%d\n", compress_len, wsize);
       if ((stat=uncompress((Byte *)jcr->compress_buf, &compress_len,
 		  (const Byte *)wbuf, (uLong)rsize)) != Z_OK) {
-         Jmsg(jcr, M_ERROR, 0, _("Uncompression error on file %s. ERR=%s\n"),
+	 Jmsg(jcr, M_ERROR, 0, _("Uncompression error on file %s. ERR=%s\n"),
 	       jcr->last_fname, zlib_strerror(stat));
 	 return -1;
       }
       wbuf = jcr->compress_buf;
       wsize = compress_len;
-      Dmsg2(100, "Write uncompressed %d bytes, total before write=%d\n", compress_len, *total);
+      Dmsg2(100, "Write uncompressed %d bytes, total before write=%s\n", compress_len, edit_uint64(jcr->JobBytes, ec1));
 #else
       Jmsg(jcr, M_ERROR, 0, _("GZIP data stream found, but GZIP not configured!\n"));
       return -1;
 #endif
    } else {
-      Dmsg2(30, "Write %u bytes, total before write=%u\n", wsize, *total);
+      Dmsg2(30, "Write %u bytes, total before write=%s\n", wsize, edit_uint64(jcr->JobBytes, ec1));
    }
 
    if ((uLong)bwrite(bfd, wbuf, wsize) != wsize) {
@@ -541,7 +576,6 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen, uint64_
       return -1;
    }
 
-   *total += wsize;
    jcr->JobBytes += wsize;
    jcr->ReadBytes += rsize;
    *addr += wsize;
