@@ -31,7 +31,7 @@
 #include "bacula.h"
 #include "jcr.h"
 
-#if !define(HAVE_CONSOLE)
+#if !defined(HAVE_CONSOLE)
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
 #include <windows.h>
 #endif
