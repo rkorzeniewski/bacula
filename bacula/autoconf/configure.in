@@ -19,7 +19,7 @@ dnl search for true and false programs.
 AC_PATH_PROGS(TRUEPRG, true, :)
 AC_PATH_PROGS(FALSEPRG, false, :)
 
-AC_CANONICAL_HOST
+dnl AC_CANONICAL_HOST
 
 dnl bacula version
 VERSION=`sed -n -e 's/^.*VERSION.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
@@ -62,6 +62,7 @@ AC_PATH_PROG(AR, ar, ar)
 AC_PATH_PROG(RANLIB, ranlib, ranlib)
 AC_PATH_PROG(OPENSSL, openssl, none)
 AC_PATH_PROG(MTX, mtx, mtx)
+AC_PATH_PROG(PKGCONFIG, pkg-config, pkg-config)
 
 test -n "$ARFLAG" || ARFLAGS="cr"
 AC_SUBST(ARFLAGS)
@@ -167,8 +168,23 @@ AC_ARG_ENABLE(gnome,
 
 GNOME_DIR=
 if test x$support_gnome = xyes; then
+  abc=`$PKGCONFIG --exists libgnomeui-2.0`
+  pkg=$?
+  if test $pkg = 0; then
+     GNOME_INCLUDEDIR=`pkg-config --cflags-only-I libgnomeui-2.0`
+     GNOMEUI_LIBS=`pkg-config --libs-only-other libgnomeui-2.0`
+     GNOME_LIBDIR=`pkg-config --libs libgnomeui-2.0`
+     GNOME_LIBS=`pkg-config --libs-only-l libgnomeui-2.0`
+     AC_SUBST(GNOME_INCLUDEDIR)
+     AC_SUBST(GNOMEUI_LIBS)
+     AC_SUBST(GNOME_LIBDIR)
+     AC_SUBST(GNOME_LIBS)
+     GNOME_DIR=src/gnome2-console
+  else
+dnl 1.4 stuff
     GNOME_INIT
     GNOME_DIR=src/gnome-console
+  fi
 fi
 AC_SUBST(GNOME_DIR)
 
@@ -1410,6 +1426,8 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/console/console.conf \
 	   src/gnome-console/Makefile \
 	   src/gnome-console/gnome-console.conf \
+	   src/gnome2-console/Makefile \
+	   src/gnome2-console/gnome-console.conf \
 	   src/tconsole/Makefile \
 	   src/dird/Makefile \
 	   src/dird/bacula-dir.conf \
