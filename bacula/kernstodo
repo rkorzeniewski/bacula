@@ -736,13 +736,66 @@ variables in filenames?  i.e. backup.2003-01-15.root
 Thanks!
 Bill
 
-
-
 ---
 Bill Sellers
 w.a.sellers@larc.nasa.gov
 
 ==============================================
+   The Project for the above
+
+I finally realized that this is not at all
+the same as reader/writer programs or plugins,
+which are alternate ways of accessing the 
+files to be backed up. Rather, it is an alternate
+form of storage device, and I have always planned
+that Bacula should be able to handle all sorts
+of storage devices.
+
+So, I propose the following phases:
+
+1. OK from you to invest some time in testing
+   this as I implement it (requires that you
+   know how to download from the SourceForge
+   cvs -- which I imagine is a piece of cake
+   for you).
+
+2. Dumb implementation by allowing a device to
+   be a fifo for write only.
+   Reason: easy to implement, proof of concept.
+
+3. Try reading from fifo but with fixed block
+   sizes.
+   Reason: proof of concept, easy to implement.
+
+4. Extend reading from fifo (restores) to handle
+   variable blocks.
+   Reason: requires some delicate low level coding
+   which could destabilize all of Bacula.
+
+5. Implementation of above but to a program. E.g.
+    Device = "|program"  (not full pipeline).
+   Reason: routines already exist, and program can
+   be a shell script which contains anything.
+
+6. Add full pipeline as a possibility. E.g.
+    Device = "| gzip -c | rsh hsm dd of=path/file.tgz"
+   Reason: needs additional coding to implement full
+   pipeline (must fire off either a shell or all
+   programs and connect their pipes).
+
+There are a good number of details in each step
+that I have left out, but I will specify them at
+every stage, and there may be a few changes as things
+evolve. I expect that to get to stage 5 will take a
+few weeks, and at that point, you will have 
+everything you need (just inside a script).
+Stage 6 will probably take longer, but if this
+project pleases you, what we do for 5 should 
+be adequate for some time.
+
+
+
+=============================================
 
 Done: (see kernsdone for more)
 - Look into Pruning/purging problems or why there seem to
@@ -758,4 +811,3 @@ Done: (see kernsdone for more)
   (not necessary)
 - Rewrite find_one.c to use only pool_memory instead of 
   alloca and malloc (probably not necessary).
-
