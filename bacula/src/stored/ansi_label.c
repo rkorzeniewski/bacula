@@ -80,7 +80,7 @@ int read_ansi_ibm_label(DCR *dcr)
 	 berrno be;
 	 clrerror_dev(dev, -1);
          Dmsg1(000, "Read device got: ERR=%s\n", be.strerror());
-         Mmsg2(dev->errmsg, _("Read error on device %s in ANSI/IBM label. ERR=%s\n"),
+         Mmsg2(jcr->errmsg, _("Read error on device %s in ANSI label. ERR=%s\n"),
 	    dev->dev_name, be.strerror());
          Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
 	 dev->VolCatInfo.VolCatErrors++;
@@ -90,6 +90,7 @@ int read_ansi_ibm_label(DCR *dcr)
 	 if (dev->at_eof()) {
 	    dev->state |= ST_EOT;
             Dmsg0(000, "EOM on ANSI label\n");
+            Mmsg0(jcr->errmsg, _("Insane! End of tape while reading ANSI label.\n"));
             return VOL_LABEL_ERROR;   /* at EOM this shouldn't happen */
 	 } else {
 	    dev->set_eof();
@@ -99,6 +100,7 @@ int read_ansi_ibm_label(DCR *dcr)
       case 0:			      /* Want VOL1 label */
          if (stat != 80 || strncmp("VOL1", label, 4) != 0) {
             Dmsg0(000, "No VOL1 label\n");
+            Mmsg0(jcr->errmsg, _("No VOL1 label while reading ANSI label.\n"));
 	    return VOL_NO_LABEL;   /* No ANSI label */
 	 }
 
@@ -114,6 +116,7 @@ int read_ansi_ibm_label(DCR *dcr)
 	       }
 	       *q = 0;
                Dmsg2(000, "Wanted ANSI Vol %s got %6s\n", VolName, dev->VolHdr.VolName);
+               Mmsg2(jcr->errmsg, "Wanted ANSI Volume \"%s\" got \"%s\"\n", VolName, dev->VolHdr.VolName);
 	       return VOL_NAME_ERROR;
 	    }
 	 }
@@ -121,17 +124,21 @@ int read_ansi_ibm_label(DCR *dcr)
       case 1:
          if (stat != 80 || strncmp("HDR1", label, 4) != 0) {
             Dmsg0(000, "No HDR1 label\n");
+            Mmsg0(jcr->errmsg, _("No HDR1 label while reading ANSI label.\n"));
 	    return VOL_LABEL_ERROR;
 	 }
          if (strncmp("BACULA.DATA", &label[4], 11) != 0) {
             Dmsg1(000, "HD1 not Bacula label. Wanted  BACULA.DATA got %11s\n",
 	       &label[4]);
+            Mmsg1(jcr->errmsg, _("ANSI Volume \"%s\" does not belong to Bacula.\n"),
+	       dev->VolHdr.VolName);
 	    return VOL_NAME_ERROR;     /* Not a Bacula label */
 	 }
 	 break;
       case 2:
          if (stat != 80 || strncmp("HDR2", label, 4) != 0) {
             Dmsg0(000, "No HDR2 label\n");
+            Mmsg0(jcr->errmsg, _("No HDR2 label while reading ANSI label.\n"));
 	    return VOL_LABEL_ERROR;
 	 }
 	 break;
@@ -142,12 +149,14 @@ int read_ansi_ibm_label(DCR *dcr)
 	 }
          if (stat != 80 || strncmp("HDR", label, 3) != 0) {
             Dmsg0(000, "Unknown or bad ANSI label record.\n");
+            Mmsg0(jcr->errmsg, _("Unknown or bad ANSI label record.\n"));
 	    return VOL_LABEL_ERROR;
 	 }
 	 break;
       }
    }
    Dmsg0(000, "Too many records in ANSI label.\n");
+   Mmsg0(jcr->errmsg, _("Too many records in while reading ANSI label.\n"));
    return VOL_LABEL_ERROR;
 }  
 
