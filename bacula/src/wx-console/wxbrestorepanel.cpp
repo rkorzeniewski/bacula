@@ -980,7 +980,7 @@ void wxbRestorePanel::SetTreeItemState(wxTreeItemId item, int newstate) {
       }
    }
    
-   UpdateTreeItemState(tree->GetParent(item));
+   UpdateTreeItemState(tree->GetItemParent(item));
 }
 
 /* Update a tree item state, and its parents' state */
@@ -1054,7 +1054,7 @@ void wxbRestorePanel::UpdateTreeItemState(wxTreeItemId item) {
       state = 0;
    }
    else { // no child, don't change anything
-      UpdateTreeItemState(tree->GetParent(item));
+      UpdateTreeItemState(tree->GetItemParent(item));
       return;
    }
    
@@ -1064,7 +1064,7 @@ void wxbRestorePanel::UpdateTreeItemState(wxTreeItemId item) {
    tree->SetItemImage(item, state, wxTreeItemIcon_Normal);
    tree->SetItemImage(item, state, wxTreeItemIcon_Selected);
    
-   UpdateTreeItemState(tree->GetParent(item));
+   UpdateTreeItemState(tree->GetItemParent(item));
 }
 
 /* 

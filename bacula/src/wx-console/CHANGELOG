@@ -1,4 +1,5 @@
 18-04-2004 :
+ - wxbRestorePanel : wxTreeCtrl::GetParent changed in GetItemParent (thanks to Luca Berra)
  - wxbRestorePanel : The user can now change a part of restore
     configuration
 
