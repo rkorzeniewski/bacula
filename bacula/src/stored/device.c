@@ -260,14 +260,14 @@ void set_new_file_parameters(DCR *dcr)
  *    that we can get the filename; the device_name for
  *    a file is the directory only. 
  *
- *   Retuns: 0 on failure
- *	     1 on success
+ *   Returns: false on failure
+ *	      true  on success
  */
-int first_open_device(DEVICE *dev)
+bool first_open_device(DEVICE *dev)
 {
    Dmsg0(120, "start open_output_device()\n");
    if (!dev) {
-      return 0;
+      return false;
    }
 
    lock_device(dev);
@@ -276,7 +276,7 @@ int first_open_device(DEVICE *dev)
    if (!dev_is_tape(dev)) {
       Dmsg0(129, "Device is file, deferring open.\n");
       unlock_device(dev);
-      return 1;
+      return true;
    }
 
    if (!(dev->state & ST_OPENED)) {
@@ -290,19 +290,19 @@ int first_open_device(DEVICE *dev)
       if (open_dev(dev, NULL, mode) < 0) {
          Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), dev->errmsg);
 	 unlock_device(dev);
-	 return 0;
+	 return false;
       }
    }
    Dmsg1(129, "open_dev %s OK\n", dev_name(dev));
 
    unlock_device(dev);
-   return 1;
+   return true;
 }
 
 /* 
  * Make sure device is open, if not do so 
  */
-int open_device(JCR *jcr, DEVICE *dev)
+bool open_device(JCR *jcr, DEVICE *dev)
 {
    /* Open device */
    if  (!(dev_state(dev, ST_OPENED))) {
@@ -313,12 +313,15 @@ int open_device(JCR *jcr, DEVICE *dev)
 	  mode = OPEN_READ_WRITE;
        }
        if (open_dev(dev, jcr->VolCatInfo.VolCatName, mode) < 0) {
-          Jmsg2(jcr, M_FATAL, 0, _("Unable to open device %s. ERR=%s\n"), 
-	     dev_name(dev), strerror_dev(dev));
-	  return 0;
+	  /* If polling, ignore the error */
+	  if (!dev->poll) {
+             Jmsg2(jcr, M_FATAL, 0, _("Unable to open device %s. ERR=%s\n"), 
+		dev_name(dev), strerror_dev(dev));
+	  }
+	  return false;
        }
    }
-   return 1;
+   return true;
 }
 
 void dev_lock(DEVICE *dev)

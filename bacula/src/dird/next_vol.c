@@ -72,23 +72,29 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, bool create)
 	 ok = find_recycled_volume(jcr, InChanger, mr);
          Dmsg2(100, "find_recycled_volume %d FW=%d\n", ok, mr->FirstWritten);
 	 if (!ok) {
-	    /*
-	     * 3. Try pruning Volumes
+	    /* 
+	     * 3. Try recycling any purged volume
 	     */
-	    prune_volumes(jcr);  
 	    ok = recycle_oldest_purged_volume(jcr, InChanger, mr);
-	    if (InChanger) {
-	       InChanger = false;
-	       if (!ok) {
-		  continue;	      /* retry again accepting any volume */
-	       }
-	    }
-            Dmsg2(200, "find_recycled_volume2 %d FW=%d\n", ok, mr->FirstWritten);
-	    if (!ok && create) {
+	    if (!ok) {
 	       /*
-                * 4. Try "creating" a new Volume
+		* 4. Try pruning Volumes
 		*/
-	       ok = newVolume(jcr, mr);
+	       prune_volumes(jcr);  
+	       ok = recycle_oldest_purged_volume(jcr, InChanger, mr);
+	       if (InChanger) {
+		  InChanger = false;
+		  if (!ok) {
+		     continue;		 /* retry again accepting any volume */
+		  }
+	       }
+               Dmsg2(200, "find_recycled_volume2 %d FW=%d\n", ok, mr->FirstWritten);
+	       if (!ok && create) {
+		  /*
+                   * 5. Try "creating" a new Volume
+		   */
+		  ok = newVolume(jcr, mr);
+	       }
 	    }
 	 }
 
