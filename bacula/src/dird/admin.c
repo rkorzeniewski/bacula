@@ -94,21 +94,21 @@ static void admin_cleanup(JCR *jcr, int TermCode)
 
    msg_type = M_INFO;		      /* by default INFO message */
    switch (jcr->JobStatus) {
-      case JS_Terminated:
-         term_msg = _("Admin OK");
-	 break;
-      case JS_FatalError:
-      case JS_ErrorTerminated:
-         term_msg = _("*** Admin Error ***"); 
-	 msg_type = M_ERROR;	      /* Generate error message */
-	 break;
-      case JS_Canceled:
-         term_msg = _("Admin Canceled");
-	 break;
-      default:
-	 term_msg = term_code;
-         sprintf(term_code, _("Inappropriate term code: %c\n"), jcr->JobStatus);
-	 break;
+   case JS_Terminated:
+      term_msg = _("Admin OK");
+      break;
+   case JS_FatalError:
+   case JS_ErrorTerminated:
+      term_msg = _("*** Admin Error ***"); 
+      msg_type = M_ERROR;	   /* Generate error message */
+      break;
+   case JS_Canceled:
+      term_msg = _("Admin Canceled");
+      break;
+   default:
+      term_msg = term_code;
+      sprintf(term_code, _("Inappropriate term code: %c\n"), jcr->JobStatus);
+      break;
    }
    bstrftime(sdt, sizeof(sdt), jcr->jr.StartTime);
    bstrftime(edt, sizeof(edt), jcr->jr.EndTime);

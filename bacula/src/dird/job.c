@@ -156,7 +156,6 @@ static void *job_thread(void *arg)
    sm_check(__FILE__, __LINE__, true);
 
    for ( ;; ) {
-
       Dmsg0(200, "=====Start Job=========\n");
       jcr->start_time = time(NULL);	 /* set the real start time */
       set_jcr_job_status(jcr, JS_Running);
@@ -585,9 +584,7 @@ void init_jcr_job_record(JCR *jcr)
  */
 void update_job_end_record(JCR *jcr)
 {
-   if (jcr->jr.EndTime == 0) {
-      jcr->jr.EndTime = time(NULL);
-   }
+   jcr->jr.EndTime = time(NULL);
    jcr->end_time = jcr->jr.EndTime;
    jcr->jr.JobId = jcr->JobId;
    jcr->jr.JobStatus = jcr->JobStatus;

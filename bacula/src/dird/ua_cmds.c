@@ -312,7 +312,7 @@ getVolName:
       mr.InChanger = InChanger;
       Dmsg1(200, "Create Volume %s\n", mr.VolumeName);
       if (!db_create_media_record(ua->jcr, ua->db, &mr)) {
-	 bsendmsg(ua, db_strerror(ua->db));
+         bsendmsg(ua, "%s", db_strerror(ua->db));
 	 return 1;
       }
       if (i == startnum) {
@@ -322,7 +322,7 @@ getVolName:
    pr.NumVols += num;
    Dmsg0(200, "Update pool record.\n"); 
    if (db_update_pool_record(ua->jcr, ua->db, &pr) != 1) {
-      bsendmsg(ua, db_strerror(ua->db));
+      bsendmsg(ua, "%s", db_strerror(ua->db));
       return 1;
    }
    bsendmsg(ua, _("%d Volumes created in pool %s\n"), num, pr.Name);
@@ -544,7 +544,7 @@ static int create_cmd(UAContext *ua, const char *cmd)
       break;
 
    case -1:
-      bsendmsg(ua, db_strerror(ua->db));
+      bsendmsg(ua, "%s", db_strerror(ua->db));
       break;
 
    default:
@@ -795,7 +795,7 @@ static void update_volrecycle(UAContext *ua, char *val, MEDIA_DBR *mr)
 }
 
 /* Modify the Pool in which this Volume is located */
-static void update_volpool(UAContext *ua, char *val, MEDIA_DBR *mr)
+static void update_vol_pool(UAContext *ua, char *val, MEDIA_DBR *mr, POOL_DBR *opr)
 {
    POOL_DBR pr;
    POOLMEM *query;
@@ -816,12 +816,23 @@ static void update_volpool(UAContext *ua, char *val, MEDIA_DBR *mr)
       bsendmsg(ua, "%s", db_strerror(ua->db));
    } else {	  
       bsendmsg(ua, _("New Pool is: %s\n"), pr.Name);
+      opr->NumVols--;
+      if (!db_update_pool_record(ua->jcr, ua->db, opr)) {
+         bsendmsg(ua, "%s", db_strerror(ua->db));
+      }
+      pr.NumVols++;
+      if (!db_update_pool_record(ua->jcr, ua->db, &pr)) {
+         bsendmsg(ua, "%s", db_strerror(ua->db));
+      }
+      db_make_inchanger_unique(ua->jcr, ua->db, mr);
    }
-   db_make_inchanger_unique(ua->jcr, ua->db, mr);
    db_unlock(ua->db);
    free_pool_memory(query);
 }
 
+/*
+ * Refresh the Volume information from the Pool record
+ */
 static void update_volfrompool(UAContext *ua, MEDIA_DBR *mr)
 {
    POOL_DBR pr;
@@ -869,6 +880,7 @@ static int update_volume(UAContext *ua)
 
    for (int i=0; kw[i]; i++) {
       int j;
+      POOL_DBR pr;
       if ((j=find_arg_with_value(ua, kw[i])) > 0) {
 	 if (!select_media_dbr(ua, &mr)) {
 	    return 0;
@@ -896,7 +908,13 @@ static int update_volume(UAContext *ua)
 	    update_volrecycle(ua, ua->argv[j], &mr);
 	    break;
 	 case 7:
-	    update_volpool(ua, ua->argv[j], &mr);
+	    memset(&pr, 0, sizeof(POOL_DBR));
+	    pr.PoolId = mr.PoolId;
+	    if (!db_get_pool_record(ua->jcr, ua->db, &pr)) {
+               bsendmsg(ua, "%s", db_strerror(ua->db));
+	       break;
+	    }
+	    update_vol_pool(ua, ua->argv[j], &mr, &pr);
 	    break;
 	 case 8:
 	    update_volfrompool(ua, &mr);
@@ -1082,7 +1100,7 @@ static int update_volume(UAContext *ua)
          if (!get_cmd(ua, _("Enter new Pool name: "))) {
 	    return 0;
 	 }
-	 update_volpool(ua, ua->cmd, &mr);
+	 update_vol_pool(ua, ua->cmd, &mr, &pr);
 	 return 1;
 
       default:			      /* Done or error */

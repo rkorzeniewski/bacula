@@ -26,6 +26,11 @@ The directory structure is:
     zlib                The zlib library (third party)
     wx                  The wxWidgets library (third party)
 
+depkgs-win32 is released separate .tar.gz file that contains the
+source for the above mentioned libraries needed to build the
+Win32 Bacula.  It can be found in the Source Forge Bacula project
+release section.
+
 To build it:
 - Make sure nmake, and VC++ libraries and includes are setup correctly
   in PATH, INCLUDE, and LIB environment variables.

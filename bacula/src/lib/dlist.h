@@ -65,7 +65,8 @@ public:
    void append(void *item);
    void insert_before(void *item, void *where);
    void insert_after(void *item, void *where);
-   void *dlist::binary_insert(void *item, int compare(void *item1, void *item2));
+   void *unique_binary_insert(void *item, int compare(void *item1, void *item2));
+   void binary_insert(void *item, int compare(void *item1, void *item2));
    void remove(void *item);
    bool empty();
    int  size();
