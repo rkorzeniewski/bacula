@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     17 December 2004
+                     31 December 2004
 
 Major development:      
 Project                     Developer
@@ -30,6 +30,8 @@ Suggestions for Preben:
 - Optimized bootstrap.
 
 For 1.37:
+- See multiple-store.txt for Multiple Storage implementation
+  design.
 - Add Set Error from Python.
 - Create a new GUI chapter explaining all the GUI programs.
 - Tell the "restore" user when browsing is no longer possible.
@@ -85,37 +87,6 @@ Regression tests (Jo):
 - Win32 systems with FAT32 can be much slower than NTFS for
   more than 1000 files per directory.
 
-Design:
-  Storage Group (SDs?)
-  Device Group
-   - Media Type (read/write)
-   - Specific Devices
-  Device
-   - Media Type (read/write)
-   - Mount retention
-   - Mount wait
-  File Device
-   - Mount limit
-   - Max capacity
-   - Directory
-  Pool
-   - Media Type (read/write)
-   - Device List 
-   - Next Pool
-   - Migration High
-   - Migration Low
-   - Migration Time (time after which data migrated to next Pool)
-   - Maximum Devices (that can use Pool simultaneously)
-  Media
-   - Autochanger Id
-   - List of Devices/Device Groups/Storage groups
-     (i.e. physical restraint) 
-   - Migration High
-   - Migration Low
-   - Migration Time (time after which data migrated to next Pool)
-   - Maximum Devices (that can use Pool simultaneously)
-  Autochanger
-   - Device list
 
 1.37 Possibilities:
 - Can one write tapes faster with 8192 byte block sizes?
