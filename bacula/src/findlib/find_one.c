@@ -47,6 +47,14 @@ struct f_link {
     char name[1];		      /* The name */
 };
 
+static void free_dir_ff_pkt(FF_PKT *dir_ff_pkt)
+{
+   free(dir_ff_pkt->fname);
+   free(dir_ff_pkt->link);
+   free_pool_memory(dir_ff_pkt->sys_fname);
+   free(dir_ff_pkt);
+}
+
 /*
  * Find a single file.			      
  * handle_file is the callback for handling the file.
@@ -235,11 +243,20 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
       } else {
 	 ff_pkt->type = FT_DIR;
       }
-      FF_PKT *dir_ff_pkt;
-      dir_ff_pkt = (FF_PKT *)bmalloc(sizeof(FF_PKT));
+
+      /*
+       * Create a temporary ff packet for this directory
+       *   entry, and defer handling the directory until
+       *   we have recursed into it.  This saves the
+       *   directory after all files have been processed, and
+       *   during the restore, the directory permissions will
+       *   be reset after all the files have been restored.
+       */
+      FF_PKT *dir_ff_pkt = (FF_PKT *)bmalloc(sizeof(FF_PKT));
       memcpy(dir_ff_pkt, ff_pkt, sizeof(FF_PKT));
       dir_ff_pkt->fname = bstrdup(ff_pkt->fname);
       dir_ff_pkt->link = bstrdup(ff_pkt->link);
+      dir_ff_pkt->sys_fname = get_pool_memory(PM_FNAME);
 	
       ff_pkt->link = ff_pkt->fname;     /* reset "link" */
 
@@ -255,9 +272,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
 	    ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
 	 }
 	 free(link);
-	 free(dir_ff_pkt->fname);
-	 free(dir_ff_pkt->link);
-	 free(dir_ff_pkt);
+	 free_dir_ff_pkt(dir_ff_pkt);
 	 return rtn_stat;
       }
 
@@ -274,13 +289,12 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
 	    ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
 	 }
 	 free(link);
-	 free(dir_ff_pkt->fname);
-	 free(dir_ff_pkt->link);
-	 free(dir_ff_pkt);
+	 free_dir_ff_pkt(dir_ff_pkt);
 	 return rtn_stat;
       }
       /* 
-       * Open directory for reading files within 
+       * Decend into or "recurse" into the directory to read
+       *   all the files in it.
        */
       errno = 0;
       if ((directory = opendir(fname)) == NULL) {
@@ -291,9 +305,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
 	    ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
 	 }
 	 free(link);
-	 free(dir_ff_pkt->fname);
-	 free(dir_ff_pkt->link);
-	 free(dir_ff_pkt);
+	 free_dir_ff_pkt(dir_ff_pkt);
 	 return rtn_stat;
       }
 
@@ -351,9 +363,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
       if (ff_pkt->linked) {
 	 ff_pkt->linked->FileIndex = dir_ff_pkt->FileIndex;
       }
-      free(dir_ff_pkt->fname);
-      free(dir_ff_pkt->link);
-      free(dir_ff_pkt);
+      free_dir_ff_pkt(dir_ff_pkt);
 
       if (ff_pkt->atime_preserve) {
 	 utime(fname, &restore_times);
