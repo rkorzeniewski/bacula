@@ -439,7 +439,11 @@ eod_dev(DEVICE *dev)
 	}
       }
       mt_com.mt_op = MTFSF;
-      mt_com.mt_count = INT32_MAX;    /* use big positive number */
+      /*
+       * ***FIXEM*** fix code to handle case that INT16_MAX is
+       *   not large enough.
+       */
+      mt_com.mt_count = INT16_MAX;    /* use big positive number */
       if (mt_com.mt_count < 0) {
 	 mt_com.mt_count = INT16_MAX; /* brain damaged system */
       }
