@@ -885,6 +885,8 @@ bsr_dev(DEVICE *dev, int num)
 
 /*
  * Write an end of file on the device
+ *   Returns: 0 on success
+ *	      non-zero on failure
  */
 int 
 weof_dev(DEVICE *dev, int num)

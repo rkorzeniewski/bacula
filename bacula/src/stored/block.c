@@ -362,6 +362,17 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       return 0;
    }
 
+   /* Limit maximum File size on volume to user specified value */
+   if (dev->state & ST_TAPE) {
+      if ((dev->max_file_size > 0) && 
+	  (dev->file_addr+block->binbuf) >= dev->max_file_size) {
+	 if (weof_dev(dev, 1) != 0) {		 /* write eof */
+            Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
+	    /* Plunge on anyway -- if tape is bad we will die on write */
+	 }
+      }
+   }
+
    dev->VolCatInfo.VolCatWrites++;
    Dmsg1(500, "Write block of %u bytes\n", wlen);      
    if ((uint32_t)(stat=write(dev->fd, block->buf, (size_t)wlen)) != wlen) {
@@ -436,16 +447,10 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    dev->file_addr += wlen;
    dev->EndBlock = dev->block_num;
    dev->EndFile  = dev->file;
-
-   /* Limit maximum File size on volume to user specified value */
-   if (dev->state & ST_TAPE) {
-      if ((dev->max_file_size > 0) && dev->file_addr >= dev->max_file_size) {
-	 weof_dev(dev, 1);		 /* write eof */
-      }
-   }
-
    dev->block_num++;
    block->BlockNumber++;
+
+
    Dmsg2(190, "write_block: wrote block %d bytes=%d\n", dev->block_num,
       wlen);
    empty_block(block);
