@@ -70,5 +70,5 @@ Device {
 #
 Messages {
   Name = Standard
-  director = rufus-dir = all
+  director = rufus-dir = all, !terminate
 }
