@@ -286,6 +286,7 @@ default_path:
    }
 
    dev->state &= ~ST_APPEND;	      /* clear any previous append mode */
+   dev->num_writers = 0;
    dev->state |= ST_READ;	      /* set read mode */
    set_jcr_job_status(jcr, JS_Running);
    dir_send_job_status(jcr);
@@ -329,7 +330,7 @@ bool reserve_device_for_append(JCR *jcr, DEVICE *dev)
       goto get_out;
    }
    Dmsg1(190, "reserve_append device is %s\n", dev_is_tape(dev)?"tape":"disk");
-   if (dev->can_append()) {
+   if (dev->can_append() || dev->num_writers > 0) {
       Dmsg0(190, "device already in append.\n");
       /*
        * Device already in append mode

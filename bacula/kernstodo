@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     23 January 2005
+                     22 February 2005
 
 Major development:      
 Project                     Developer
@@ -30,6 +30,9 @@ Suggestions for Preben:
 - Optimized bootstrap.
 
 For 1.37:
+- Device resource needs the "name" of the SD.
+- Add and option to see if the file size changed
+  during backup.
 - Implement "update device" from SD so that DIR will
   always have current version of device.
 - Add disk seeking on restore.  

@@ -462,7 +462,7 @@ int open_next_part(DEVICE *dev) {
    dev->part_start += dev->part_size;
    dev->part++;
    
-   if ((dev->num_parts < dev->part) && (dev->state & ST_APPEND)) {
+   if ((dev->num_parts < dev->part) && dev->can_append()) {
       dev->num_parts = dev->part;
       
       /* Check that the next part file does not exists.
