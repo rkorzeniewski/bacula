@@ -1615,7 +1615,6 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/gnome2-console/Makefile \
 	   src/gnome2-console/gnome-console.conf \
 	   src/wx-console/Makefile \
-	   src/tconsole/Makefile \
 	   src/dird/Makefile \
 	   src/dird/bacula-dir.conf \
 	   src/lib/Makefile \
