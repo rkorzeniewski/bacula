@@ -53,12 +53,12 @@ FILE *trace_fd = NULL;
 
 #ifdef HAVE_MYSQL
 char catalog_db[] = "MySQL";
-#endif
+#else 
 #ifdef HAVE_SQLITE
 char catalog_db[] = "SQLite";
-#endif
-#ifdef HAVE_BACULA_DB
+#else
 char catalog_db[] = "Internal";
+#endif
 #endif
 
 

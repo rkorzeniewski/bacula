@@ -58,7 +58,7 @@ static void do_status(void sendit(char *msg, int len, void *sarg), void *arg)
    sendit(msg, len, arg);
 #ifdef HAVE_CYGWIN
    if (!privs) {
-      privs = get_backup_privileges(NULL, 1);
+      privs = enable_backup_privileges(NULL, 1);
    }
    len = Mmsg(&msg, 
       _("Priv 0x%x APIs=%sOPT,%sATP,%sLPV,%sGFAE,%sBR,%sBW,%sSPSP\n"), privs,

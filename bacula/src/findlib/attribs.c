@@ -195,7 +195,7 @@ int set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    int stat = 1;
 
 #ifdef HAVE_CYGWIN
-   if (stream == STREAM_UNIX_ATTRIBUTES_EX &&
+   if (attr->stream == STREAM_UNIX_ATTRIBUTES_EX &&
        set_win32_attributes(jcr, attr, ofd)) {
       return 1;
    }

@@ -34,18 +34,14 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
+- Use runbeforejob to unload, then reload a volume previously used,
+  then the next job run gets an error reading the drive.
 - Implement non-blocking writes and bsock->terminate in heartbeat thread,
   or set it in status.c cancel.
 - Add restore to specific date.
 - lstat() is not going to work on Win32 for testing date.
 - Implement a Recycle command
 - Something is not right in last block of fill command.
-- If during a restore, a hard linked file already exists (on option), delete
-  the file and re-link it.  This is to avoid the possibility that the
-  user had re-linked the file between the backup and the restore.
-  Do lstat() to see if it is already properly linked.
-  Same for symlinked file.
-  Make sure ifnewer, ifolder, never, ... apply correctly.
 - Implement List Volume Job=xxx  or List scheduled volumes or
   Status Director 
 - Instrument use_count on DEVICE packets and ensure that the device is
@@ -975,4 +971,10 @@ Done: (see kernsdone for more)
   > 
 - Should Bacula make an Append tape as Purged when purging?
 - Use switch() in backup.c and restore.c in FD instead of giant if statement.
+- If during a restore, a hard linked file already exists (on option), delete
+  the file and re-link it.  This is to avoid the possibility that the
+  user had re-linked the file between the backup and the restore.
+  Do lstat() to see if it is already properly linked.
+  Same for symlinked file.
+  Make sure ifnewer, ifolder, never, ... apply correctly.
 

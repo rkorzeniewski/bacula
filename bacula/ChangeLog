@@ -1,3 +1,39 @@
+2003-06-10 Version 1.31 Beta 10Jun03
+- Eliminated all plain email addresses and replaced them with " at " in
+  place of @ to reduce havesting by spammers.  Doc + Web Site.
+- Started working on making POOLMEM a struct rather than a char. Lots of
+  work to do.
+- Fixed bscan to handle -V option.
+- Fixed bscan to handle two File volumes.
+- Corrected a misplaced comma it get_fileset() in cats pointed out by bscan.
+- Added two Volume bscan test to regression scripts -- write two volumes,
+  purge and delete everything, bscan the tapes, and do a restore. It works!
+- Reorganized the backup/restore code to move the attribute information into
+  an ATTR packet, which is passed in place of tons of arguments.  Moved some
+  code into lib/attr.c and lib/attr.h.  Then eliminated all the duplicate
+  attribute code.
+- Moved FT_ types into baconfig.h.
+- Defined FT_ types to use only 16 bits. The upper half of the word is
+  reserved for adding optional fields in the attributes packet.
+- Moved jcr->where into common part of jcr and have it deleted in lib/jcr.c
+- Put all attribute reading code on switch() with cases instead of a big
+  if (restore.c, bls.c, bextract.c, bscan.c, ...)
+- set_attributes() now takes ATTR packet, and thus has much fewer args.
+- moved print_ls_output() into lib/attr.c  
+- implemented is_stream_supported().
+- create_file() now takes ATTR packet so has many fewer args.
+- add mtime_only code.
+- Rewrote bnet.c read and write routines to quit if bsock->terminated is
+  set.  This will allow setting non-blocking writes and then receiving
+  a termination message and terminating the Job immediately rather than
+  waiting 2 hours for the line to timeout.
+- Put catalog db name in some error messages.
+- Code for restore is now much cleaner, with much of it in lib/attr.c,
+  and it is now common for all readers.
+- Add first cut of proper support for Win32 Backup code.
+- Fix bug in restore Win95/98/Me.
+- Pass mtime_only flag to FD. Needs config record.
+
 2003-06-04 Version 1.31 Beta 04Jun03
 - Fix block.c to check errno only in case of return status -1 as 
   suggested by Justin Gibbs (FreeBSD).

@@ -336,6 +336,10 @@ static void label_from_barcodes(UAContext *ua)
 	     vl->Slot, mr.VolumeName);
 	  continue;
       }
+      /*
+       * Deal with creating cleaning tape here. Normal tapes created in
+       *  send_label_request() below
+       */
       if (is_cleaning_tape(ua, &mr, &pr)) {
 	 set_pool_dbr_defaults_in_media_dbr(&mr, &pr);
 	 if (db_create_media_record(ua->jcr, ua->db, &mr)) {
