@@ -278,13 +278,12 @@ int main (int argc, char *argv[])
 static bool bscan_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 {
    Dmsg1(100, "Walk attached jcrs. Volume=%s\n", dev->VolCatInfo.VolCatName);
-#ifdef xxx
-   for (JCR *mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
-      DCR *dcr = mjcr->dcr;
-#endif
    DCR *dcr;
    foreach_dlist(dcr, dev->attached_dcrs) {
       JCR *mjcr = dcr->jcr;
+      if (mjcr->JobId == 0) {
+	 continue;
+      }
       if (verbose) {
          Pmsg1(000, _("Create JobMedia for Job %s\n"), mjcr->Job);
       }
@@ -305,8 +304,6 @@ static bool bscan_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block
     * have the Volume list, but we get attached.
     */
    bool stat = mount_next_read_volume(jcr, dev, block);
-   /* we must once more detach ourselves (attached by mount_next ...) */
-   detach_jcr_from_device(dev, jcr); /* detach bscan jcr */
    return stat;
 }
 
@@ -322,16 +319,15 @@ static void do_scan()
    memset(&fr, 0, sizeof(fr));
 
    /* Detach bscan's jcr as we are not a real Job on the tape */
-   detach_jcr_from_device(dev, bjcr);
 
    read_records(bjcr->dcr, record_cb, bscan_mount_next_read_volume);
-   release_device(bjcr);
+// release_device(bjcr);
 
    free_attr(attr);
 }
 
 /*
- * Returns: true if OK
+ * Returns: true  if OK
  *	    false if error
  */
 static bool record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
@@ -417,8 +413,7 @@ static bool record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
             Pmsg1(000, _("Media type \"%s\" is OK.\n"), mr.MediaType);
 	 }
 	 /* Reset some JCR variables */
-	 for (mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
-	    dcr = mjcr->dcr;
+	 foreach_dlist(dcr, dev->attached_dcrs) {
 	    dcr->VolFirstIndex = dcr->FileIndex = 0;
 	    dcr->StartBlock = dcr->EndBlock = 0;
 	    dcr->StartFile = dcr->EndFile = 0;
@@ -530,7 +525,7 @@ static bool record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 
 	 /* Create JobMedia record */
 	 create_jobmedia_record(db, mjcr);
-	 detach_jcr_from_device(dev, mjcr);
+	 dev->attached_dcrs->remove(mjcr->dcr);
 	 free_jcr(mjcr);
 
 	 break;
@@ -544,10 +539,14 @@ static bool record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	  *   them.
 	  */
 	 if (update_db) {
-	    mjcr=next_attached_jcr(dev, NULL);
-	    for ( ; mjcr; ) {
-	       JCR *njcr; 
+	    DCR *mdcr;
+	    foreach_dlist(mdcr, dev->attached_dcrs) {
+	       JCR *mjcr = mdcr->jcr;
+	       if (!mjcr || mjcr->JobId == 0) {
+		  continue;
+	       }
 	       jr.JobId = mjcr->JobId;
+	       /* Mark Job as Error Terimined */
 	       jr.JobStatus = JS_ErrorTerminated;
 	       jr.JobFiles = mjcr->JobFiles;
 	       jr.JobBytes = mjcr->JobBytes;
@@ -558,9 +557,8 @@ static bool record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	       if (!db_update_job_end_record(bjcr, db, &jr)) {
                   Pmsg1(0, _("Could not update job record. ERR=%s\n"), db_strerror(db));
 	       }
-	       njcr = mjcr->next_dev;
+	       mjcr->dcr = NULL;
 	       free_jcr(mjcr);
-	       mjcr = njcr;
 	    }
 	 }
 	 mr.VolFiles = rec->File;
@@ -1002,7 +1000,8 @@ static int update_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *elabel,
       return 0;
    }
    if (verbose) {
-      Pmsg1(000, _("Updated Job termination record for new JobId=%u\n"), jr->JobId);
+      Pmsg2(000, _("Updated Job termination record for JobId=%u TermStat=%c\n"), jr->JobId,
+	 jr->JobStatus);
    }
    if (verbose > 1) {
       const char *term_msg;

@@ -494,42 +494,42 @@ AC_ARG_WITH(sqlite,
                           a number of common places for the SQLite files.],
 [
   if test "$withval" != "no"; then
-        if test "$withval" = "yes"; then
-                if test -f /usr/local/include/sqlite.h; then
-                        SQLITE_INCDIR=/usr/local/include
-                        SQLITE_LIBDIR=/usr/local/lib
-                        SQLITE_BINDIR=/usr/local/bin
-                elif test -f /usr/include/sqlite.h; then
-                        SQLITE_INCDIR=/usr/include
-                        SQLITE_LIBDIR=/usr/lib
-                        SQLITE_BINDIR=/usr/bin      
-                else
-                   AC_MSG_RESULT(no)
-                   AC_MSG_ERROR(Unable to find sqlite.h in standard locations)
-                fi
+     if test "$withval" = "yes"; then
+        if test -f /usr/local/include/sqlite.h; then
+           SQLITE_INCDIR=/usr/local/include
+           SQLITE_LIBDIR=/usr/local/lib
+           SQLITE_BINDIR=/usr/local/bin
+        elif test -f /usr/include/sqlite.h; then
+           SQLITE_INCDIR=/usr/include
+           SQLITE_LIBDIR=/usr/lib
+           SQLITE_BINDIR=/usr/bin      
         else
-                if test -f $withval/sqlite.h; then
-                        SQLITE_INCDIR=$withval
-                        SQLITE_LIBDIR=$withval
-                        SQLITE_BINDIR=$withval
-                else
-                   AC_MSG_RESULT(no)
-                   AC_MSG_ERROR(Invalid SQLite directory $withval - unable to find sqlite.h under $withval)
-                fi
+           AC_MSG_RESULT(no)
+           AC_MSG_ERROR(Unable to find sqlite.h in standard locations)
         fi
-    SQL_INCLUDE=-I$SQLITE_INCDIR
-    SQL_LFLAGS="-L$SQLITE_LIBDIR -lsqlite"
-    SQL_BINDIR=$SQLITE_BINDIR
+     else
+        if test -f $withval/sqlite.h; then
+           SQLITE_INCDIR=$withval
+           SQLITE_LIBDIR=$withval
+           SQLITE_BINDIR=$withval
+        else
+           AC_MSG_RESULT(no)
+           AC_MSG_ERROR(Invalid SQLite directory $withval - unable to find sqlite.h under $withval)
+        fi
+     fi
+     SQL_INCLUDE=-I$SQLITE_INCDIR
+     SQL_LFLAGS="-L$SQLITE_LIBDIR -lsqlite"
+     SQL_BINDIR=$SQLITE_BINDIR
 
-    AC_DEFINE(HAVE_SQLITE)
-    AC_MSG_RESULT(yes)
-    db_found=yes
-    support_sqlite=yes
-    db_name=SQLite
-    DB_NAME=sqlite
+     AC_DEFINE(HAVE_SQLITE)
+     AC_MSG_RESULT(yes)
+     db_found=yes
+     support_sqlite=yes
+     db_name=SQLite
+     DB_NAME=sqlite
 
   else
-        AC_MSG_RESULT(no)
+     AC_MSG_RESULT(no)
   fi
 ],[
   AC_MSG_RESULT(no)

@@ -7534,52 +7534,52 @@ if test "${with_sqlite+set}" = set; then
   withval="$with_sqlite"
 
   if test "$withval" != "no"; then
-        if test "$withval" = "yes"; then
-                if test -f /usr/local/include/sqlite.h; then
-                        SQLITE_INCDIR=/usr/local/include
-                        SQLITE_LIBDIR=/usr/local/lib
-                        SQLITE_BINDIR=/usr/local/bin
-                elif test -f /usr/include/sqlite.h; then
-                        SQLITE_INCDIR=/usr/include
-                        SQLITE_LIBDIR=/usr/lib
-                        SQLITE_BINDIR=/usr/bin
-                else
-                   echo "$as_me:$LINENO: result: no" >&5
+     if test "$withval" = "yes"; then
+        if test -f /usr/local/include/sqlite.h; then
+           SQLITE_INCDIR=/usr/local/include
+           SQLITE_LIBDIR=/usr/local/lib
+           SQLITE_BINDIR=/usr/local/bin
+        elif test -f /usr/include/sqlite.h; then
+           SQLITE_INCDIR=/usr/include
+           SQLITE_LIBDIR=/usr/lib
+           SQLITE_BINDIR=/usr/bin
+        else
+           echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
-                   { { echo "$as_me:$LINENO: error: Unable to find sqlite.h in standard locations" >&5
+           { { echo "$as_me:$LINENO: error: Unable to find sqlite.h in standard locations" >&5
 echo "$as_me: error: Unable to find sqlite.h in standard locations" >&2;}
    { (exit 1); exit 1; }; }
-                fi
+        fi
+     else
+        if test -f $withval/sqlite.h; then
+           SQLITE_INCDIR=$withval
+           SQLITE_LIBDIR=$withval
+           SQLITE_BINDIR=$withval
         else
-                if test -f $withval/sqlite.h; then
-                        SQLITE_INCDIR=$withval
-                        SQLITE_LIBDIR=$withval
-                        SQLITE_BINDIR=$withval
-                else
-                   echo "$as_me:$LINENO: result: no" >&5
+           echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
-                   { { echo "$as_me:$LINENO: error: Invalid SQLite directory $withval - unable to find sqlite.h under $withval" >&5
+           { { echo "$as_me:$LINENO: error: Invalid SQLite directory $withval - unable to find sqlite.h under $withval" >&5
 echo "$as_me: error: Invalid SQLite directory $withval - unable to find sqlite.h under $withval" >&2;}
    { (exit 1); exit 1; }; }
-                fi
         fi
-    SQL_INCLUDE=-I$SQLITE_INCDIR
-    SQL_LFLAGS="-L$SQLITE_LIBDIR -lsqlite"
-    SQL_BINDIR=$SQLITE_BINDIR
+     fi
+     SQL_INCLUDE=-I$SQLITE_INCDIR
+     SQL_LFLAGS="-L$SQLITE_LIBDIR -lsqlite"
+     SQL_BINDIR=$SQLITE_BINDIR
 
-    cat >>confdefs.h <<\_ACEOF
+     cat >>confdefs.h <<\_ACEOF
 #define HAVE_SQLITE 1
 _ACEOF
 
-    echo "$as_me:$LINENO: result: yes" >&5
+     echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-    db_found=yes
-    support_sqlite=yes
-    db_name=SQLite
-    DB_NAME=sqlite
+     db_found=yes
+     support_sqlite=yes
+     db_name=SQLite
+     DB_NAME=sqlite
 
   else
-        echo "$as_me:$LINENO: result: no" >&5
+     echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
   fi
 

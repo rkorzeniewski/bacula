@@ -2,6 +2,7 @@
                    22 July 2004
 
 1.35 Items to do:
+- Add bscan to four-concurrent-jobs regression.
 - Do tape alerts -- see tapealert.txt
 - Fix errno handling in win32 compat routines.
 - Add better error codes to run_program (10000+)
@@ -25,6 +26,7 @@
   bscan-test.
 - Fix restore ++++ that get intermingled with "Building directory tree"
 - Solve the termcap.h problem on Solaris configure.
+- Fix ./configure to handle installed SQLite
 
 Documentation to do: (any release a little bit at a time)
 - Document query file format.
@@ -1113,4 +1115,3 @@ Block Position: 0
    Building directory tree for JobId 856 ...
    Building directory tree for JobId 797 ...3 
    Jobs inserted into the tree.
-
