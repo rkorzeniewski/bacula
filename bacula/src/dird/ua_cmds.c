@@ -264,6 +264,8 @@ getVolName:
    strcpy(mr.VolStatus, "Append");
    mr.Recycle = pr.Recycle;
    mr.VolRetention = pr.VolRetention;
+   mr.VolUseDuration = pr.VolUseDuration;
+   mr.MaxVolJobs = pr.MaxVolJobs;
    for (i=startnum; i < num+startnum; i++) { 
       sprintf(mr.VolumeName, name, i);
       mr.Slot = slot++;
@@ -1234,6 +1236,10 @@ gotVol:
    unbash_spaces(mr.MediaType);
    unbash_spaces(pr.Name);
    if (ok) {
+      mr.Recycle = pr.Recycle;
+      mr.VolRetention = pr.VolRetention;
+      mr.VolUseDuration = pr.VolUseDuration;
+      mr.MaxVolJobs = pr.MaxVolJobs;
       if (db_create_media_record(ua->db, &mr)) {
          bsendmsg(ua, _("Media record for Volume=%s successfully created.\n"),
 	    mr.VolumeName);
