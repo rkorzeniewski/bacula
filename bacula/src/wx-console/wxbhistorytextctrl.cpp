@@ -4,6 +4,7 @@
  *
  *    Nicolas Boichat, July 2004
  *
+ *    Version $Id$
  */
 /*
    Copyright (C) 2004 Kern Sibbald and John Walker
@@ -69,4 +70,3 @@ void wxbHistoryTextCtrl::OnKeyUp(wxKeyEvent& event) {
       event.Skip();
    }
 }
-

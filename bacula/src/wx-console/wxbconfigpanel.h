@@ -4,6 +4,7 @@
  *
  *    Nicolas Boichat, April 2004
  *
+ *    Version $Id$
  */
 /*
    Copyright (C) 2004 Kern Sibbald and John Walker
@@ -81,8 +82,8 @@ WX_DECLARE_OBJARRAY(wxbConfigParam, wxbConfig);
 class wxbConfigPanel : public wxPanel {
 public:
    /* Creates a new config panel, config must be allocated with new */
-	wxbConfigPanel(wxWindow* parent, wxbConfig* config, wxString title, wxWindowID ok, wxWindowID cancel, wxWindowID apply = -1);
-	~wxbConfigPanel();
+        wxbConfigPanel(wxWindow* parent, wxbConfig* config, wxString title, wxWindowID ok, wxWindowID cancel, wxWindowID apply = -1);
+        ~wxbConfigPanel();
    
    void SetRowString(const char* title, wxString value);
    wxString GetRowString(const char* title);

@@ -4,6 +4,7 @@
  *
  *    Nicolas Boichat, July 2004
  *
+ *    Version $Id$
  */
 /*
    Copyright (C) 2004 Kern Sibbald and John Walker
@@ -770,4 +771,3 @@ void csprint(const char* str, int status)
       firePrintEvent("", status);
    }
 }
-

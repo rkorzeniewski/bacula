@@ -4,6 +4,7 @@
  *
  *    Nicolas Boichat, April-July 2004
  *
+ *    Version $Id$
  */
 /*
    Copyright (C) 2004 Kern Sibbald and John Walker
@@ -2297,4 +2298,3 @@ void wxbRestorePanel::OnConfigCancel(wxCommandEvent& WXUNUSED(event)) {
    CmdConfigCancel();
    SetWorking(false);
 }
-

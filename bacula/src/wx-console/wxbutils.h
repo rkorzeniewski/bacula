@@ -5,6 +5,7 @@
  *
  *    Nicolas Boichat, April-July 2004
  *
+ *   Version $Id$
  */
 /*
    Copyright (C) 2004 Kern Sibbald and John Walker

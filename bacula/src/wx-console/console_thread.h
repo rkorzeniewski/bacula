@@ -4,6 +4,7 @@
  *
  *    Nicolas Boichat, April-May 2004
  *
+ *    Version $Id$
  */
 /*
    Copyright (C) 2004 Kern Sibbald and John Walker
@@ -65,4 +66,3 @@ class console_thread : public wxThread
 int pm_cst_strcpy(POOLMEM **pm, const char *str);
 
 #endif // CONSOLE_THREAD_H
-

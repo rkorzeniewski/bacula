@@ -4,6 +4,7 @@
  *
  *    Nicolas Boichat, May 2004
  *
+ *    Version $Id$
  */
 /*
    Copyright (C) 2004 Kern Sibbald and John Walker
@@ -31,8 +32,8 @@
 
 class wxbConfigFileEditor : public wxDialog {
 public:
-	wxbConfigFileEditor(wxWindow* parent, wxString filename);
-	virtual ~wxbConfigFileEditor();
+        wxbConfigFileEditor(wxWindow* parent, wxString filename);
+        virtual ~wxbConfigFileEditor();
 private:
    wxString filename;
    

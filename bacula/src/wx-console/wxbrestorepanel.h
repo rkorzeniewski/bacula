@@ -4,6 +4,7 @@
  *
  *    Nicolas Boichat, April-May 2004
  *
+ *    Version $Id$
  */
 /*
    Copyright (C) 2004 Kern Sibbald and John Walker
@@ -217,4 +218,3 @@ class wxbRestorePanel : public wxbPanel
 };
 
 #endif // WXBRESTOREPANEL_H
-
