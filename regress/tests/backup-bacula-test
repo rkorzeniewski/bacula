@@ -31,9 +31,7 @@ messages
 @# now do a restore
 @#
 @output tmp/log2.out  
-restore
-5
-done
+restore current all
 yes
 @sleep 1
 wait

@@ -21,7 +21,7 @@ bin/bacula start 2>&1 >/dev/null
 bin/console -c bin/console.conf <<END_OF_DATA
 @output /dev/null
 messages
-@tee    tmp/log1.out
+@output tmp/log1.out
 label storage=File
 TestVolume001
 run job=NightlySave
@@ -31,7 +31,7 @@ messages
 @# 
 @# now do a verify volume
 @#
-@tee    ${cwd}/tmp/original
+@output ${cwd}/tmp/original
 run job=VerifyVolume
 yes
 wait
