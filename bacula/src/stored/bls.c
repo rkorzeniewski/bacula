@@ -309,7 +309,7 @@ static void do_blocks(char *infname)
 }
 
 /*
- * We are only looking for labels or in particula Job Session records
+ * We are only looking for labels or in particular Job Session records
  */
 static int jobs_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 {

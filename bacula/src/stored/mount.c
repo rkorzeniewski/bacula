@@ -136,19 +136,9 @@ mount_next_vol:
       force_close_dev(dev);
    }
 
-   /* Open device */
-   if  (!(dev_state(dev, ST_OPENED))) {
-       int mode;
-       if (dev_cap(dev, CAP_STREAM)) {
-	  mode = OPEN_WRITE_ONLY;
-       } else {
-	  mode = OPEN_READ_WRITE;
-       }
-       if (open_dev(dev, jcr->VolCatInfo.VolCatName, mode) < 0) {
-          Jmsg2(jcr, M_FATAL, 0, _("Unable to open device %s. ERR=%s\n"), 
-	     dev_name(dev), strerror_dev(dev));
-	  return 0;
-       }
+   /* Ensure the device is open */
+   if (!open_device(jcr, dev)) {
+      return 0;
    }
 
    /*

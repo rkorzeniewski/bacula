@@ -432,7 +432,7 @@ eod_dev(DEVICE *dev)
 
    if (dev_cap(dev, CAP_FASTFSF) && !dev_cap(dev, CAP_EOM)) {
       struct mtget mt_stat;
-      Dmsg0(000,"Using FAST FSF for EOM\n");
+      Dmsg0(100,"Using FAST FSF for EOM\n");
       if (ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) == 0 && mt_stat.mt_fileno <= 0) {
 	if (!rewind_dev(dev)) {
 	  return 0;
@@ -450,7 +450,7 @@ eod_dev(DEVICE *dev)
    }
 
    if (dev_cap(dev, CAP_EOM)) {
-      Dmsg0(000,"Using EOM for EOM\n");
+      Dmsg0(100,"Using EOM for EOM\n");
       mt_com.mt_op = MTEOM;
       mt_com.mt_count = 1;
    }
@@ -470,7 +470,7 @@ eod_dev(DEVICE *dev)
 	    dev->dev_name, strerror(dev->dev_errno));
 	 return 0;
       }
-      Dmsg2(000, "EOD file=%d block=%d\n", mt_stat.mt_fileno, mt_stat.mt_blkno);
+      Dmsg2(100, "EOD file=%d block=%d\n", mt_stat.mt_fileno, mt_stat.mt_blkno);
       dev->file = mt_stat.mt_fileno;
 
    /*
@@ -499,7 +499,7 @@ eod_dev(DEVICE *dev)
 	  */
 	 if (file_num == (int)dev->file) {
 	    struct mtget mt_stat;
-            Dmsg1(000, "fsf_dev did not advance from file %d\n", file_num);
+            Dmsg1(100, "fsf_dev did not advance from file %d\n", file_num);
 	    if (ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) == 0 && 
 		      mt_stat.mt_fileno >= 0) {
                Dmsg2(000, "Adjust file from %d to %d\n", dev->file , mt_stat.mt_fileno);
@@ -521,7 +521,7 @@ eod_dev(DEVICE *dev)
       stat = bsf_dev(dev, 1);
       /* If BSF worked and fileno is known (not -1), set file */
       if (ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) == 0 && mt_stat.mt_fileno >= 0) {
-         Dmsg2(000, "Adjust file from %d to %d\n", dev->file , mt_stat.mt_fileno);
+         Dmsg2(100, "Adjust file from %d to %d\n", dev->file , mt_stat.mt_fileno);
 	 dev->file = mt_stat.mt_fileno;
       } else {
 	 dev->file++;		      /* wing it -- not correct on all OSes */
@@ -966,7 +966,6 @@ fsr_dev(DEVICE *dev, int num)
       return 0;
    }
    Dmsg0(29, "fsr_dev\n");
-   dev->block_num += num;
    mt_com.mt_op = MTFSR;
    mt_com.mt_count = num;
    stat = ioctl(dev->fd, MTIOCTOP, (char *)&mt_com);
@@ -974,12 +973,21 @@ fsr_dev(DEVICE *dev, int num)
       dev->state &= ~ST_EOF;
       dev->block_num += num;
    } else {
-      if (dev->state & ST_EOF) {
-	 dev->state |= ST_EOT;
+      struct mtget mt_stat;
+      if (ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) == 0 && mt_stat.mt_fileno >= 0) {
+         Dmsg4(100, "Adjust from %d:%d to %d:%d\n", dev->file, 
+	    dev->block_num, mt_stat.mt_fileno, mt_stat.mt_blkno);
+	 dev->file = mt_stat.mt_fileno;
+	 dev->block_num = mt_stat.mt_blkno;
       } else {
-//	 dev->state |= ST_EOF;		 /* assume EOF */
-//	 dev->file++;
-//	 dev->file_addr = 0;
+	 if (dev->state & ST_EOF) {
+	    dev->state |= ST_EOT;
+	 } else {
+	    dev->state |= ST_EOF;	    /* assume EOF */
+	    dev->file++;
+	    dev->block_num = 0;
+	    dev->file_addr = 0;
+	 }
       }
       clrerror_dev(dev, MTFSR);
       Mmsg2(&dev->errmsg, _("ioctl MTFSR error on %s. ERR=%s.\n"),
@@ -1034,7 +1042,6 @@ bsr_dev(DEVICE *dev, int num)
 
 /* 
  * Reposition the device to file, block
- *   Currently only works for tapes.
  * Returns: 0 on failure
  *	    1 on success
  */
@@ -1049,7 +1056,14 @@ reposition_dev(DEVICE *dev, uint32_t file, uint32_t block)
    }
 
    if (!(dev_state(dev, ST_TAPE))) {
-      return 0;
+      off_t pos = (((off_t)file)<<32) + block;
+      if (lseek(dev->fd, pos, SEEK_SET) == (off_t)-1) {
+	 dev->dev_errno = errno;
+         Mmsg2(&dev->errmsg, _("lseek error on %s. ERR=%s.\n"),
+	    dev->dev_name, strerror(dev->dev_errno));
+	 return 0;
+      }
+      return 1;
    }
    Dmsg4(100, "reposition_dev from %u:%u to %u:%u\n", 
       dev->file, dev->block_num, file, block);

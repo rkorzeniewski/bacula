@@ -30,8 +30,8 @@
 
 /* Bacula common configuration defines */
 
-#undef  TRUE
-#undef  FALSE
+#undef	TRUE
+#undef	FALSE
 #define TRUE  1
 #define FALSE 0
 
@@ -40,9 +40,9 @@
 #endif
 
 #ifdef PROTOTYPES
-# define __PROTO(p)     p
+# define __PROTO(p)	p
 #else
-# define __PROTO(p)     ()
+# define __PROTO(p)	()
 #endif
 
 #ifdef DEBUG
@@ -100,7 +100,7 @@
 #define DEFAULT_NETWORK_BUFFER_SIZE (32 * 1024)
 
 /*
- * Stream definitions.  Once defined these must NEVER
+ * Stream definitions.	Once defined these must NEVER
  *   change as they go on the storage media.
  * Note, the following streams are passed from the SD to the DIR
  *   so that they may be put into the catalog (actually only the
@@ -111,55 +111,55 @@
  *   STREAM_MD5_SIGNATURE
  *   STREAM_SHA1_SIGNATURE
  */
-#define STREAM_UNIX_ATTRIBUTES    1    /* Generic Unix attributes */
-#define STREAM_FILE_DATA          2    /* Standard uncompressed data */
-#define STREAM_MD5_SIGNATURE      3    /* MD5 signature for the file */
-#define STREAM_GZIP_DATA          4    /* GZip compressed file data */
+#define STREAM_UNIX_ATTRIBUTES	  1    /* Generic Unix attributes */
+#define STREAM_FILE_DATA	  2    /* Standard uncompressed data */
+#define STREAM_MD5_SIGNATURE	  3    /* MD5 signature for the file */
+#define STREAM_GZIP_DATA	  4    /* GZip compressed file data */
 /* Extended Unix attributes with Win32 Extended data.  Deprecated. */
 #define STREAM_UNIX_ATTRIBUTES_EX 5    /* Extended Unix attr for Win32 EX */
-#define STREAM_SPARSE_DATA        6    /* Sparse data stream */
+#define STREAM_SPARSE_DATA	  6    /* Sparse data stream */
 #define STREAM_SPARSE_GZIP_DATA   7
-#define STREAM_PROGRAM_NAMES      8    /* program names for program data */
-#define STREAM_PROGRAM_DATA       9    /* Data needing program */
-#define STREAM_SHA1_SIGNATURE    10    /* SHA1 signature for the file */
-#define STREAM_WIN32_DATA        11    /* Win32 BackupRead data */
-#define STREAM_WIN32_GZIP_DATA   12    /* Gzipped Win32 BackupRead data */
+#define STREAM_PROGRAM_NAMES	  8    /* program names for program data */
+#define STREAM_PROGRAM_DATA	  9    /* Data needing program */
+#define STREAM_SHA1_SIGNATURE	 10    /* SHA1 signature for the file */
+#define STREAM_WIN32_DATA	 11    /* Win32 BackupRead data */
+#define STREAM_WIN32_GZIP_DATA	 12    /* Gzipped Win32 BackupRead data */
 
 /* 
- *  File type (Bacula defined).           
+ *  File type (Bacula defined). 	  
  *  NOTE!!! These are saved in the Attributes record on the tape, so
- *          do not change them. If need be, add to them.
+ *	    do not change them. If need be, add to them.
  *
  *  This is stored as 32 bits on tape, but only FT_MASK bits are
  *    used for the file type. The upper bits are used to indicate
  *    additional optional fields in the attribute record.
  */
-#define FT_MASK       0xFFFF          /* Bits used by FT (type) */
-#define FT_LNKSAVED   1               /* hard link to file already saved */  
-#define FT_REGE       2               /* Regular file but empty */
-#define FT_REG        3               /* Regular file */
-#define FT_LNK        4               /* Soft Link */
-#define FT_DIR        5               /* Directory */
-#define FT_SPEC       6               /* Special file -- chr, blk, fifo, sock */
-#define FT_NOACCESS   7               /* Not able to access */
-#define FT_NOFOLLOW   8               /* Could not follow link */
-#define FT_NOSTAT     9               /* Could not stat file */
-#define FT_NOCHG     10               /* Incremental option, file not changed */
-#define FT_DIRNOCHG  11               /* Incremental option, directory not changed */
-#define FT_ISARCH    12               /* Trying to save archive file */
-#define FT_NORECURSE 13               /* No recursion into directory */
-#define FT_NOFSCHG   14               /* Different file system, prohibited */
-#define FT_NOOPEN    15               /* Could not open directory */
-#define FT_RAW       16               /* Raw block device */
-#define FT_FIFO      17               /* Raw fifo device */
+#define FT_MASK       0xFFFF	      /* Bits used by FT (type) */
+#define FT_LNKSAVED   1 	      /* hard link to file already saved */  
+#define FT_REGE       2 	      /* Regular file but empty */
+#define FT_REG	      3 	      /* Regular file */
+#define FT_LNK	      4 	      /* Soft Link */
+#define FT_DIR	      5 	      /* Directory */
+#define FT_SPEC       6 	      /* Special file -- chr, blk, fifo, sock */
+#define FT_NOACCESS   7 	      /* Not able to access */
+#define FT_NOFOLLOW   8 	      /* Could not follow link */
+#define FT_NOSTAT     9 	      /* Could not stat file */
+#define FT_NOCHG     10 	      /* Incremental option, file not changed */
+#define FT_DIRNOCHG  11 	      /* Incremental option, directory not changed */
+#define FT_ISARCH    12 	      /* Trying to save archive file */
+#define FT_NORECURSE 13 	      /* No recursion into directory */
+#define FT_NOFSCHG   14 	      /* Different file system, prohibited */
+#define FT_NOOPEN    15 	      /* Could not open directory */
+#define FT_RAW	     16 	      /* Raw block device */
+#define FT_FIFO      17 	      /* Raw fifo device */
 
 /* Definitions for upper part of type word (see above). */
-#define AR_DATA_STREAM (1<<16)        /* Data stream id present */
+#define AR_DATA_STREAM (1<<16)	      /* Data stream id present */
 
 /*
  * Internal code for Signature types
  */
-#define NO_SIG   0
+#define NO_SIG	 0
 #define MD5_SIG  1
 #define SHA1_SIG 2
 
@@ -268,8 +268,8 @@ extern void _v(char *file, int line, pthread_mutex_t *m);
  */
 /* Debug Messages that are printed */
 #ifdef DEBUG
-#define Dmsg0(lvl, msg)             d_msg(__FILE__, __LINE__, lvl, msg)
-#define Dmsg1(lvl, msg, a1)         d_msg(__FILE__, __LINE__, lvl, msg, a1)
+#define Dmsg0(lvl, msg) 	    d_msg(__FILE__, __LINE__, lvl, msg)
+#define Dmsg1(lvl, msg, a1)	    d_msg(__FILE__, __LINE__, lvl, msg, a1)
 #define Dmsg2(lvl, msg, a1, a2)     d_msg(__FILE__, __LINE__, lvl, msg, a1, a2)
 #define Dmsg3(lvl, msg, a1, a2, a3) d_msg(__FILE__, __LINE__, lvl, msg, a1, a2, a3)
 #define Dmsg4(lvl, msg, arg1, arg2, arg3, arg4) d_msg(__FILE__, __LINE__, lvl, msg, arg1, arg2, arg3, arg4)
@@ -298,8 +298,8 @@ extern void _v(char *file, int line, pthread_mutex_t *m);
 #endif /* DEBUG */
 
 #ifdef TRACE_FILE
-#define Tmsg0(lvl, msg)             t_msg(__FILE__, __LINE__, lvl, msg)
-#define Tmsg1(lvl, msg, a1)         t_msg(__FILE__, __LINE__, lvl, msg, a1)
+#define Tmsg0(lvl, msg) 	    t_msg(__FILE__, __LINE__, lvl, msg)
+#define Tmsg1(lvl, msg, a1)	    t_msg(__FILE__, __LINE__, lvl, msg, a1)
 #define Tmsg2(lvl, msg, a1, a2)     t_msg(__FILE__, __LINE__, lvl, msg, a1, a2)
 #define Tmsg3(lvl, msg, a1, a2, a3) t_msg(__FILE__, __LINE__, lvl, msg, a1, a2, a3)
 #define Tmsg4(lvl, msg, arg1, arg2, arg3, arg4) t_msg(__FILE__, __LINE__, lvl, msg, arg1, arg2, arg3, arg4)
@@ -330,8 +330,8 @@ extern void _v(char *file, int line, pthread_mutex_t *m);
 
 
 /* Messages that are printed (uses d_msg) */
-#define Pmsg0(lvl, msg)             p_msg(__FILE__, __LINE__, lvl, msg)
-#define Pmsg1(lvl, msg, a1)         p_msg(__FILE__, __LINE__, lvl, msg, a1)
+#define Pmsg0(lvl, msg) 	    p_msg(__FILE__, __LINE__, lvl, msg)
+#define Pmsg1(lvl, msg, a1)	    p_msg(__FILE__, __LINE__, lvl, msg, a1)
 #define Pmsg2(lvl, msg, a1, a2)     p_msg(__FILE__, __LINE__, lvl, msg, a1, a2)
 #define Pmsg3(lvl, msg, a1, a2, a3) p_msg(__FILE__, __LINE__, lvl, msg, a1, a2, a3)
 #define Pmsg4(lvl, msg, arg1, arg2, arg3, arg4) p_msg(__FILE__, __LINE__, lvl, msg, arg1, arg2, arg3, arg4)
@@ -348,27 +348,36 @@ extern void _v(char *file, int line, pthread_mutex_t *m);
 
        
 /* Daemon Error Messages that are delivered according to the message resource */
-#define Emsg0(typ, lvl, msg)             e_msg(__FILE__, __LINE__, typ, lvl, msg)
-#define Emsg1(typ, lvl, msg, a1)         e_msg(__FILE__, __LINE__, typ, lvl, msg, a1)
-#define Emsg2(typ, lvl, msg, a1, a2)     e_msg(__FILE__, __LINE__, typ, lvl, msg, a1, a2)
+#define Emsg0(typ, lvl, msg)		 e_msg(__FILE__, __LINE__, typ, lvl, msg)
+#define Emsg1(typ, lvl, msg, a1)	 e_msg(__FILE__, __LINE__, typ, lvl, msg, a1)
+#define Emsg2(typ, lvl, msg, a1, a2)	 e_msg(__FILE__, __LINE__, typ, lvl, msg, a1, a2)
 #define Emsg3(typ, lvl, msg, a1, a2, a3) e_msg(__FILE__, __LINE__, typ, lvl, msg, a1, a2, a3)
 #define Emsg4(typ, lvl, msg, a1, a2, a3, a4) e_msg(__FILE__, __LINE__, typ, lvl, msg, a1, a2, a3, a4)
 #define Emsg5(typ, lvl, msg, a1, a2, a3, a4, a5) e_msg(__FILE__, __LINE__, typ, lvl, msg, a1, a2, a3, a4, a5)
 #define Emsg6(typ, lvl, msg, a1, a2, a3, a4, a5, a6) e_msg(__FILE__, __LINE__, typ, lvl, msg, a1, a2, a3, a4, a5, a6)
 
 /* Job Error Messages that are delivered according to the message resource */
-#define Jmsg0(jcr, typ, lvl, msg)             j_msg(__FILE__, __LINE__, jcr, typ, lvl, msg)
-#define Jmsg1(jcr, typ, lvl, msg, a1)         j_msg(__FILE__, __LINE__, jcr, typ, lvl, msg, a1)
+#define Jmsg0(jcr, typ, lvl, msg)	      j_msg(__FILE__, __LINE__, jcr, typ, lvl, msg)
+#define Jmsg1(jcr, typ, lvl, msg, a1)	      j_msg(__FILE__, __LINE__, jcr, typ, lvl, msg, a1)
 #define Jmsg2(jcr, typ, lvl, msg, a1, a2)     j_msg(__FILE__, __LINE__, jcr, typ, lvl, msg, a1, a2)
 #define Jmsg3(jcr, typ, lvl, msg, a1, a2, a3) j_msg(__FILE__, __LINE__, jcr, typ, lvl, msg, a1, a2, a3)
 #define Jmsg4(jcr, typ, lvl, msg, a1, a2, a3, a4) j_msg(__FILE__, __LINE__, jcr, typ, lvl, msg, a1, a2, a3, a4)
 #define Jmsg5(jcr, typ, lvl, msg, a1, a2, a3, a4, a5) j_msg(__FILE__, __LINE__, jcr, typ, lvl, msg, a1, a2, a3, a4, a5)
 #define Jmsg6(jcr, typ, lvl, msg, a1, a2, a3, a4, a5, a6) j_msg(__FILE__, __LINE__, jcr, typ, lvl, msg, a1, a2, a3, a4, a5, a6)
 
+/* Queued Job Error Messages that are delivered according to the message resource */
+#define Qmsg0(jcr, typ, lvl, msg)	      q_msg(__FILE__, __LINE__, jcr, typ, lvl, msg)
+#define Qmsg1(jcr, typ, lvl, msg, a1)	      q_msg(__FILE__, __LINE__, jcr, typ, lvl, msg, a1)
+#define Qmsg2(jcr, typ, lvl, msg, a1, a2)     q_msg(__FILE__, __LINE__, jcr, typ, lvl, msg, a1, a2)
+#define Qmsg3(jcr, typ, lvl, msg, a1, a2, a3) q_msg(__FILE__, __LINE__, jcr, typ, lvl, msg, a1, a2, a3)
+#define Qmsg4(jcr, typ, lvl, msg, a1, a2, a3, a4) q_msg(__FILE__, __LINE__, jcr, typ, lvl, msg, a1, a2, a3, a4)
+#define Qmsg5(jcr, typ, lvl, msg, a1, a2, a3, a4, a5) q_msg(__FILE__, __LINE__, jcr, typ, lvl, msg, a1, a2, a3, a4, a5)
+#define Qmsg6(jcr, typ, lvl, msg, a1, a2, a3, a4, a5, a6) q_msg(__FILE__, __LINE__, jcr, typ, lvl, msg, a1, a2, a3, a4, a5, a6)
+
 
 /* Memory Messages that are edited into a Pool Memory buffer */
-#define Mmsg0(buf, msg)             m_msg(__FILE__, __LINE__, buf, msg)
-#define Mmsg1(buf, msg, a1)         m_msg(__FILE__, __LINE__, buf, msg, a1)
+#define Mmsg0(buf, msg) 	    m_msg(__FILE__, __LINE__, buf, msg)
+#define Mmsg1(buf, msg, a1)	    m_msg(__FILE__, __LINE__, buf, msg, a1)
 #define Mmsg2(buf, msg, a1, a2)     m_msg(__FILE__, __LINE__, buf, msg, a1, a2)
 #define Mmsg3(buf, msg, a1, a2, a3) m_msg(__FILE__, __LINE__, buf, msg, a1, a2, a3)
 #define Mmsg4(buf, msg, a1, a2, a3, a4) m_msg(__FILE__, __LINE__, buf, msg, a1, a2, a3, a4)
@@ -388,6 +397,7 @@ void d_msg(char *file, int line, int level, char *fmt,...);
 void p_msg(char *file, int line, int level, char *fmt,...);
 void e_msg(char *file, int line, int type, int level, char *fmt,...);
 void j_msg(char *file, int line, JCR *jcr, int type, int level, char *fmt,...);
+void q_msg(char *file, int line, JCR *jcr, int type, int level, char *fmt,...);
 int  m_msg(char *file, int line, POOLMEM **msgbuf, char *fmt,...);
 
 

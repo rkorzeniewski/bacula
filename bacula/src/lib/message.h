@@ -111,6 +111,14 @@ typedef struct s_dest {
 #define MD_CONSOLE   9                /* send msg to UserAgent or console */
 #define MD_MAIL_ON_ERROR 10           /* email messages if job errors */
 
+/* Queued message item */
+struct MQUEUE_ITEM {
+   dlink link;
+   int type;
+   int level;
+   char msg[1];
+};
+
 
 void d_msg(char *file, int line, int level, char *fmt,...);
 void e_msg(char *file, int line, int type, int level, char *fmt,...);

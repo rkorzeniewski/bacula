@@ -95,11 +95,13 @@ void unlock_last_jobs_list()
 JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
 {
    JCR *jcr;
+   MQUEUE_ITEM *item = NULL;
    struct sigaction sigtimer;
 
    Dmsg0(200, "Enter new_jcr\n");
    jcr = (JCR *)malloc(size);
    memset(jcr, 0, size);
+   jcr->msg_queue = new dlist(item, &item->link);
    jcr->my_thread_id = pthread_self();
    jcr->sched_time = time(NULL);
    jcr->daemon_free_jcr = daemon_free_jcr;    /* plug daemon free routine */
@@ -182,6 +184,7 @@ static void free_common_jcr(JCR *jcr)
    pthread_mutex_destroy(&jcr->mutex);
 
    close_msg(jcr);		      /* close messages for this job */
+   delete jcr->msg_queue;
 
    /* do this after closing messages */
    if (jcr->client_name) {
