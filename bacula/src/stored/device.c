@@ -147,7 +147,7 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
     *  empty label_blk, and nothing will be written.
     */
    Dmsg0(190, "write label block to dev\n");
-   if (!write_block_to_dev(jcr, dev, label_blk)) {
+   if (!write_block_to_dev(jcr->dcr, label_blk)) {
       Pmsg1(0, "write_block_to_device Volume label failed. ERR=%s",
 	strerror_dev(dev));
       free_block(label_blk);
@@ -179,7 +179,7 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 
    /* Write overflow block to device */
    Dmsg0(190, "Write overflow block to dev\n");
-   if (!write_block_to_dev(jcr, dev, block)) {
+   if (!write_block_to_dev(jcr->dcr, block)) {
       Pmsg1(0, "write_block_to_device overflow block failed. ERR=%s",
 	strerror_dev(dev));
       unblock_device(dev);

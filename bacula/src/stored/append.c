@@ -32,16 +32,6 @@
 static char OK_data[]    = "3000 OK data\n";
 
 /* Forward referenced functions */
-static bool are_attributes_spooled(JCR *jcr);
-static int begin_attribute_spool(JCR *jcr);
-static int discard_attribute_spool(JCR *jcr);
-static int commit_attribute_spool(JCR *jcr);
-static int open_data_spool_file(JCR *jcr);
-static int close_data_spool_file(JCR *jcr);
-static int begin_data_spool(JCR *jcr);
-static int discard_data_spool(JCR *jcr);
-static int commit_data_spool(JCR *jcr);
-
 
 /* 
  *  Append Data sent from File daemon	
@@ -192,7 +182,7 @@ int do_append_data(JCR *jcr)
 	 while (!write_record_to_block(block, &rec)) {
             Dmsg2(150, "!write_record_to_block data_len=%d rem=%d\n", rec.data_len,
 		       rec.remainder);
-	    if (!write_block_to_device(jcr, dev, block)) {
+	    if (!write_block_to_device(jcr->dcr, block)) {
                Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
 		  dev_name(dev), strerror_dev(dev));
                Jmsg(jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
@@ -255,7 +245,7 @@ int do_append_data(JCR *jcr)
       }
       Dmsg0(90, "back from write_end_session_label()\n");
       /* Flush out final partial block of this session */
-      if (!write_block_to_device(jcr, dev, block)) {
+      if (!write_block_to_device(jcr->dcr, block)) {
          Dmsg0(100, _("Set ok=FALSE after write_block_to_device.\n"));
 	 set_jcr_job_status(jcr, JS_ErrorTerminated);
 	 ok = false;
@@ -286,98 +276,4 @@ int do_append_data(JCR *jcr)
 
    Dmsg1(100, "return from do_append_data() stat=%d\n", ok);
    return ok ? 1 : 0;
-}
-
-
-static int begin_data_spool(JCR *jcr)
-{
-   if (jcr->dcr->spool_data) {
-      return open_data_spool_file(jcr);
-   }
-   return 1;
-}
-
-static int discard_data_spool(JCR *jcr)
-{
-   if (jcr->dcr->spool_data && jcr->dcr->spool_fd >= 0) {
-      return close_data_spool_file(jcr);
-   }
-   return 1;
-}
-
-static int commit_data_spool(JCR *jcr)
-{
-   if (jcr->dcr->spool_data && jcr->dcr->spool_fd >= 0) {
-//	despool_data(jcr);
-      return close_data_spool_file(jcr);
-   }
-   return 1;
-}
-
-static void make_unique_data_spool_filename(JCR *jcr, POOLMEM **name)
-{
-   Mmsg(name, "%s/%s.data.spool.%s.%s", working_directory, my_name,
-      jcr->Job, jcr->device->hdr.name);
-}
-
-
-static int open_data_spool_file(JCR *jcr)
-{
-   POOLMEM *name  = get_pool_memory(PM_MESSAGE);
-   int spool_fd;
-
-   make_unique_data_spool_filename(jcr, &name);
-   if ((spool_fd = open(name, O_CREAT|O_TRUNC|O_RDWR|O_BINARY, 0640)) >= 0) {
-      jcr->dcr->spool_fd = spool_fd;
-      jcr->spool_attributes = true;
-   } else {
-      Jmsg(jcr, M_ERROR, 0, "open data spool file %s failed: ERR=%s\n", name, strerror(errno));
-      free_pool_memory(name);
-      return 0;
-    }
-    free_pool_memory(name);
-    return 1;
-}
-
-static int close_data_spool_file(JCR *jcr)
-{
-    POOLMEM *name  = get_pool_memory(PM_MESSAGE);
-
-    make_unique_data_spool_filename(jcr, &name);
-    close(jcr->dcr->spool_fd);
-    jcr->dcr->spool_fd = -1;
-    unlink(name);
-    free_pool_memory(name);
-    return 1;
-}
-
-
-static bool are_attributes_spooled(JCR *jcr)
-{
-   return jcr->spool_attributes && jcr->dir_bsock->spool_fd;
-}
-
-static int begin_attribute_spool(JCR *jcr)
-{
-   if (!jcr->no_attributes && jcr->spool_attributes) {
-      return open_spool_file(jcr, jcr->dir_bsock);
-   }
-   return 1;
-}
-
-static int discard_attribute_spool(JCR *jcr)
-{
-   if (are_attributes_spooled(jcr)) {
-      return close_spool_file(jcr, jcr->dir_bsock);
-   }
-   return 1;
-}
-
-static int commit_attribute_spool(JCR *jcr)
-{
-   if (are_attributes_spooled(jcr)) {
-      bnet_despool_to_bsock(jcr->dir_bsock);
-      return close_spool_file(jcr, jcr->dir_bsock);
-   }
-   return 1;
 }

@@ -177,7 +177,7 @@ void empty_block(DEV_BLOCK *block)
  * in the buffer should have already been reserved by
  * init_block.
  */
-static void ser_block_header(DEV_BLOCK *block)
+void ser_block_header(DEV_BLOCK *block)
 {
    ser_declare;
    uint32_t CheckSum = 0;
@@ -310,12 +310,19 @@ static int unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
  *	  : 0 on failure
  *
  */
-int write_block_to_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
+int write_block_to_device(DCR *dcr, DEV_BLOCK *block)
 {
    int stat = 1;
-   DCR *dcr = jcr->dcr;
+   DEVICE *dev = dcr->dev;
+   JCR *jcr = dcr->jcr;
 
    lock_device(dev);
+
+   if (dcr->spooling) {
+      stat = write_block_to_spool_file(dcr, block);
+      unlock_device(dev);
+      return stat;
+   }
 
    /*
     * If a new volume has been mounted since our last write
@@ -341,7 +348,7 @@ int write_block_to_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       }
    }
 
-   if (!write_block_to_dev(jcr, dev, block)) {
+   if (!write_block_to_dev(dcr, block)) {
        stat = fixup_device_block_write_error(jcr, dev, block);
    }
 
@@ -355,13 +362,14 @@ int write_block_to_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
  *  Returns: 1 on success or EOT
  *	     0 on hard error
  */
-int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
+int write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
 {
    ssize_t stat = 0;
    uint32_t wlen;		      /* length to write */
    int hit_max1, hit_max2;
    bool ok;
-   DCR *dcr = jcr->dcr;
+   DEVICE *dev = dcr->dev;
+   JCR *jcr = dcr->jcr;
 
 #ifdef NO_TAPE_WRITE_TEST
    empty_block(block);

@@ -629,7 +629,7 @@ static int re_read_block_test()
       Pmsg0(0, _("Error writing record to block.\n")); 
       goto bail_out;
    }
-   if (!write_block_to_dev(jcr, dev, block)) {
+   if (!write_block_to_dev(jcr->dcr, block)) {
       Pmsg0(0, _("Error writing block to device.\n")); 
       goto bail_out;
    } else {
@@ -640,7 +640,7 @@ static int re_read_block_test()
       Pmsg0(0, _("Error writing record to block.\n")); 
       goto bail_out;
    }
-   if (!write_block_to_dev(jcr, dev, block)) {
+   if (!write_block_to_dev(jcr->dcr, block)) {
       Pmsg0(0, _("Error writing block to device.\n")); 
       goto bail_out;
    } else {
@@ -651,7 +651,7 @@ static int re_read_block_test()
       Pmsg0(0, _("Error writing record to block.\n")); 
       goto bail_out;
    }
-   if (!write_block_to_dev(jcr, dev, block)) {
+   if (!write_block_to_dev(jcr->dcr, block)) {
       Pmsg0(0, _("Error writing block to device.\n")); 
       goto bail_out;
    } else {
@@ -748,7 +748,7 @@ static int write_read_test()
          Pmsg0(0, _("Error writing record to block.\n")); 
 	 goto bail_out;
       }
-      if (!write_block_to_dev(jcr, dev, block)) {
+      if (!write_block_to_dev(jcr->dcr, block)) {
          Pmsg0(0, _("Error writing block to device.\n")); 
 	 goto bail_out;
       }
@@ -764,7 +764,7 @@ static int write_read_test()
          Pmsg0(0, _("Error writing record to block.\n")); 
 	 goto bail_out;
       }
-      if (!write_block_to_dev(jcr, dev, block)) {
+      if (!write_block_to_dev(jcr->dcr, block)) {
          Pmsg0(0, _("Error writing block to device.\n")); 
 	 goto bail_out;
       }
@@ -856,7 +856,7 @@ static int position_test()
          Pmsg0(0, _("Error writing record to block.\n")); 
 	 goto bail_out;
       }
-      if (!write_block_to_dev(jcr, dev, block)) {
+      if (!write_block_to_dev(jcr->dcr, block)) {
          Pmsg0(0, _("Error writing block to device.\n")); 
 	 goto bail_out;
       }
@@ -872,7 +872,7 @@ static int position_test()
          Pmsg0(0, _("Error writing record to block.\n")); 
 	 goto bail_out;
       }
-      if (!write_block_to_dev(jcr, dev, block)) {
+      if (!write_block_to_dev(jcr->dcr, block)) {
          Pmsg0(0, _("Error writing block to device.\n")); 
 	 goto bail_out;
       }
@@ -1421,7 +1421,7 @@ static void wrcmd()
       Pmsg0(0, _("Error writing record to block.\n")); 
       goto bail_out;
    }
-   if (!write_block_to_dev(jcr, dev, block)) {
+   if (!write_block_to_dev(jcr->dcr, block)) {
       Pmsg0(0, _("Error writing block to device.\n")); 
       goto bail_out;
    } else {
@@ -1831,7 +1831,7 @@ This may take a long time -- hours! ...\n\n");
 	 ok = FALSE;
       }
       /* Write out final block of this session */
-      if (!write_block_to_device(jcr, dev, block)) {
+      if (!write_block_to_device(jcr->dcr, block)) {
          Pmsg0(-1, _("Set ok=FALSE after write_block_to_device.\n"));
 	 ok = FALSE;
       }
@@ -2136,7 +2136,7 @@ static int flush_block(DEV_BLOCK *block, int dump)
    /* Copy block */
    this_file = dev->file;
    this_block_num = dev->block_num;
-   if (!write_block_to_dev(jcr, dev, block)) {
+   if (!write_block_to_dev(jcr->dcr, block)) {
       Pmsg3(000, "Last block at: %u:%u this_dev_block_num=%d\n", 
 		  last_file, last_block_num, this_block_num);
       if (vol_num == 1) {
@@ -2247,7 +2247,7 @@ static void qfillcmd()
          Pmsg0(0, _("Error writing record to block.\n")); 
 	 goto bail_out;
       }
-      if (!write_block_to_dev(jcr, dev, block)) {
+      if (!write_block_to_dev(jcr->dcr, block)) {
          Pmsg0(0, _("Error writing block to device.\n")); 
 	 goto bail_out;
       }
@@ -2350,7 +2350,7 @@ static void bfill_cmd()
       *p = block_num;
       block->binbuf = block->buf_len;
       block->bufp = block->buf + block->binbuf;
-      if (!write_block_to_dev(jcr, dev, block)) {
+      if (!write_block_to_dev(jcr->dcr, block)) {
 	 break;
       }
       if ((block_num++ % 100) == 0) {
