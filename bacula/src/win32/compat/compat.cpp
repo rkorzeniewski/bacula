@@ -1120,7 +1120,7 @@ utime(const char *fname, struct utimbuf *times)
 int
 open(const char *file, int flags, int mode)
 {
-    return _open(file, flags, mode|_O_BINARY);
+    return _open(file, flags|_O_BINARY, mode);
 
 }
 
