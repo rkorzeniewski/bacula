@@ -92,6 +92,7 @@ CLEAN :
 	-@erase "$(INTDIR)\wxbtableparser.obj"
 	-@erase "$(INTDIR)\wxbtreectrl.obj"
 	-@erase "$(INTDIR)\wxbutils.obj"
+	-@erase "$(INTDIR)\wxbconfigpanel.obj"
         -@erase "$(OUTDIR)\wx-console.exe"
 
 "$(OUTDIR)" :
@@ -161,6 +162,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\wxbtableparser.obj" \
 	"$(INTDIR)\wxbtreectrl.obj" \
 	"$(INTDIR)\wxbutils.obj" \
+	"$(INTDIR)\wxbconfigpanel.obj" \
         "$(INTDIR)\wx-console_private.res"
 
 "$(OUTDIR)\wx-console.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
@@ -283,6 +285,8 @@ CLEAN :
 	-@erase "$(INTDIR)\wxbtreectrl.sbr"
 	-@erase "$(INTDIR)\wxbutils.obj
 	-@erase "$(INTDIR)\wxbutils.sbr"
+	-@erase "$(INTDIR)\wxbconfigpanel.obj
+	-@erase "$(INTDIR)\wxbconfigpanel.sbr"
         -@erase "$(OUTDIR)\wx-console.exe"
         -@erase "$(OUTDIR)\wx-console.bsc"
 
@@ -347,6 +351,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\wxbtableparser.sbr" \
 	"$(INTDIR)\wxbtreectrl.sbr" \
 	"$(INTDIR)\wxbutils.sbr" \
+	"$(INTDIR)\wxbconfigpanel.sbr" \
 
 "$(OUTDIR)\wx-console.bsc" : "$(OUTDIR)" $(BSC32_SBRS)
     $(BSC32) @<<
@@ -411,6 +416,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\wxbtableparser.obj" \
 	"$(INTDIR)\wxbtreectrl.obj" \
 	"$(INTDIR)\wxbutils.obj" \
+	"$(INTDIR)\wxbconfigpanel.obj" \
         "$(INTDIR)\wx-console_private.res"
 
 "$(OUTDIR)\wx-console.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
@@ -1435,6 +1441,25 @@ SOURCE=..\..\wx-console\wxbtreectrl.cpp
 
 FILENAME=wxbutils
 SOURCE=..\..\wx-console\wxbutils.cpp
+!IF  "$(CFG)" == "wx-console - Win32 Release"
+
+
+"$(INTDIR)\$(FILENAME).obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "wx-console - Win32 Debug"
+
+
+"$(INTDIR)\$(FILENAME).obj"	"$(INTDIR)\$(FILENAME).sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+
+FILENAME=wxbconfigpanel
+SOURCE=..\..\wx-console\wxbconfigpanel.cpp
 !IF  "$(CFG)" == "wx-console - Win32 Release"
 
 
