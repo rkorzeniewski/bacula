@@ -21,8 +21,6 @@ For 1.30 release:
 - Update volume=Test01 requests pool, then lists volumes.
 - Add IP address to authentication failures. Implement M_SECURITY
   message class.
-- Remove kern and kelvin from mysql_grant...
-- Install grant_mysql...
 - Look at Python for a Bacula scripting language -- www.python.org
 - add #define ENABLE_NLS for Gnome compile on SuSE.
 - Figure out how to use ssh to protect Bacula communications.
@@ -82,7 +80,7 @@ For 1.30 release:
 - Restore to a particular time -- e.g. before date, after date. 
 - Implement disk spooling
 - Solaris -I on tar for include list
-- Enable avoid backing up archive device (findlib/find_one.c:128)
+- Prohibit backing up archive device (findlib/find_one.c:128)
 - Need a verbose mode in restore, perhaps to bsr.
 - bscan without -v is too quiet -- perhaps show jobs.
 - Add code to reject whole blocks if not wanted on restore.
@@ -110,7 +108,6 @@ For 1.30 release:
 - Add JobLevel in FD status (but make sure it is defined).
 - Make Pool resource handle Counter resources.
 - Remove NextId for SQLite. Optimize.
-- Strip trailing / from Include
 - Move all SQL statements into a single location.
 - Add UA rc and history files.
 - put termcap (used by console) in ./configure and
@@ -915,4 +912,6 @@ rufus-dir: Volume used once. Marking Volume "File0003" as Used.
 - Implement bar code reader for autochangers
 - Document new MaximumConcurrentJob records (Job, Client, Storage) 
 - Write up how to use/manage disk Volume Storage. ******
-
+- Remove kern and kelvin from mysql_grant...
+- Install grant_mysql...
+- Strip trailing / from Include

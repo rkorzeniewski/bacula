@@ -77,6 +77,7 @@ install:
 	$(INSTALL_SCRIPT) make_bacula_tables $(DESTDIR)$(scriptdir)/make_bacula_tables
 	$(INSTALL_SCRIPT) make_catalog_backup $(DESTDIR)$(scriptdir)/make_catalog_backup  
 	$(INSTALL_SCRIPT) delete_catalog_backup $(DESTDIR)$(scriptdir)/delete_catalog_backup  
+	$(INSTALL_SCRIPT) grant_mysql_privileges $(DESTDIR)$(scriptdir)/grant_mysql_privileges	
 
 uninstall:
 	(cd $(DESTDIR)$(scriptdir); $(RMF) create_@DB_NAME@_database)
@@ -86,6 +87,7 @@ uninstall:
 	(cd $(DESTDIR)$(scriptdir); $(RMF) make_bacula_tables)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) make_catalog_backup)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) delete_catalog_backup)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) grant_mysql_privileges)
 
 
 # Semi-automatic generation of dependencies:
