@@ -17,6 +17,10 @@ Major Changes:
 - Improved conf scanning code allowing FileSet components to
   be put on a single line (previously everything had to be on
   a different line).
+- Win32 files restored to an alternate directory will have the
+  colon following the drive letter turned into a / e.g. c: 
+  becomes c/. Previously the c: was stripped. This applies only
+  to files written to an alternate directory (i.e. using a where=).
 
 New Directives:
 - Added "Ignore FileSet Changes = yes"

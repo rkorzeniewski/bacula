@@ -112,23 +112,6 @@ db_create_jobmedia_record(JCR *jcr, B_DB *mdb, JOBMEDIA_DBR *jm)
    int count;
 
    db_lock(mdb);
-#ifdef not_used_in_new_code
-   Mmsg(mdb->cmd, "SELECT JobId, MediaId FROM JobMedia WHERE \
-JobId=%d AND MediaId=%d", jm->JobId, jm->MediaId);
-
-   Dmsg0(300, mdb->cmd);
-   if (QUERY_DB(jcr, mdb, mdb->cmd)) {
-      mdb->num_rows = sql_num_rows(mdb);
-      if (mdb->num_rows > 0) {
-         Mmsg0(&mdb->errmsg, _("Create JobMedia failed. Record already exists.\n"));
-	 sql_free_result(mdb);
-	 db_unlock(mdb);
-         Dmsg0(0, "Already have JobMedia record\n");
-	 return false;
-      }
-      sql_free_result(mdb);
-   }
-#endif
 
    /* Now get count for VolIndex */
    Mmsg(mdb->cmd, "SELECT count(*) from JobMedia");
@@ -138,7 +121,6 @@ JobId=%d AND MediaId=%d", jm->JobId, jm->MediaId);
    }
    count++;
 
-   /* Must create it */
    Mmsg(mdb->cmd, 
         "INSERT INTO JobMedia (JobId,MediaId,FirstIndex,LastIndex,"
         "StartFile,EndFile,StartBlock,EndBlock,VolIndex) "
@@ -152,6 +134,7 @@ JobId=%d AND MediaId=%d", jm->JobId, jm->MediaId);
 	 sql_strerror(mdb));
       ok = false;
    } else {
+      /* Worked, now update the Media record with the EndFile and EndBlock */
       Mmsg(mdb->cmd, 
            "UPDATE Media SET EndFile=%u, EndBlock=%u WHERE MediaId=%u",
 	   jm->EndFile, jm->EndBlock, jm->MediaId);
@@ -572,15 +555,15 @@ static int db_create_file_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 
    /* Must create it */
    Mmsg(mdb->cmd,
-"INSERT INTO File (FileIndex,JobId,PathId,FilenameId,"
-"LStat,MD5) VALUES (%u,%u,%u,%u,'%s','0')", 
-      ar->FileIndex, ar->JobId, ar->PathId, ar->FilenameId, 
-      ar->attr);
+        "INSERT INTO File (FileIndex,JobId,PathId,FilenameId,"
+        "LStat,MD5) VALUES (%u,%u,%u,%u,'%s','0')", 
+	ar->FileIndex, ar->JobId, ar->PathId, ar->FilenameId, 
+	ar->attr);
 
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db File record %s failed. ERR=%s"),       
 	 mdb->cmd, sql_strerror(mdb));
-      Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
+      Jmsg(jcr, M_FATAL, 0, "%s", mdb->errmsg);
       ar->FileId = 0;
       stat = 0;
    } else {
@@ -631,7 +614,7 @@ static int db_create_path_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 	 if (ar->PathId != mdb->cached_path_id) {
 	    mdb->cached_path_id = ar->PathId;
 	    mdb->cached_path_len = mdb->pnl;
-	    pm_strcpy(&mdb->cached_path, mdb->path);
+	    pm_strcpy(mdb->cached_path, mdb->path);
 	 }
 	 ASSERT(ar->PathId);
 	 return 1;
@@ -644,7 +627,7 @@ static int db_create_path_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db Path record %s failed. ERR=%s\n"), 
 	 mdb->cmd, sql_strerror(mdb));
-      Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
+      Jmsg(jcr, M_FATAL, 0, "%s", mdb->errmsg);
       ar->PathId = 0;
       stat = 0;
    } else {
@@ -656,7 +639,7 @@ static int db_create_path_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    if (stat && ar->PathId != mdb->cached_path_id) {
       mdb->cached_path_id = ar->PathId;
       mdb->cached_path_len = mdb->pnl;
-      pm_strcpy(&mdb->cached_path, mdb->path);
+      pm_strcpy(mdb->cached_path, mdb->path);
    }
    return stat;
 }
@@ -699,7 +682,7 @@ static int db_create_filename_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db Filename record %s failed. ERR=%s\n"), 
 	    mdb->cmd, sql_strerror(mdb));
-      Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
+      Jmsg(jcr, M_FATAL, 0, "%s", mdb->errmsg);
       ar->FilenameId = 0;
    } else {
       ar->FilenameId = sql_insert_id(mdb, _("Filename"));

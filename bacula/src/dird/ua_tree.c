@@ -158,7 +158,6 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
    int FileIndex;
    JobId_t JobId;
 
-   strip_trailing_junk(row[1]);
    if (*row[1] == 0) {		      /* no filename => directory */
       if (*row[0] != '/') {           /* Must be Win32 directory */
 	 type = TN_DIR_NLS;
@@ -171,7 +170,7 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
    hard_link = (decode_LinkFI(row[4], &statp) != 0);
    node = insert_tree_node(row[0], row[1], type, tree->root, NULL);
    JobId = (JobId_t)str_to_int64(row[3]);
-   FileIndex = atoi(row[2]);
+   FileIndex = str_to_int64(row[2]);
    /*
     * - The first time we see a file (node->inserted==true), we accept it.
     * - In the same JobId, we accept only the first copy of a

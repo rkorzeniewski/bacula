@@ -98,13 +98,14 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
    mdb->have_insert_id = TRUE;
    mdb->errmsg	       = get_pool_memory(PM_EMSG); /* get error message buffer */
    *mdb->errmsg        = 0;
-   mdb->cmd		   = get_pool_memory(PM_EMSG); /* get command buffer */
+   mdb->cmd	       = get_pool_memory(PM_EMSG); /* get command buffer */
    mdb->cached_path    = get_pool_memory(PM_FNAME);
    mdb->cached_path_id = 0;
    mdb->ref_count      = 1;
    mdb->fname	       = get_pool_memory(PM_FNAME);
    mdb->path	       = get_pool_memory(PM_FNAME);
    mdb->esc_name       = get_pool_memory(PM_FNAME);
+   mdb->allow_transactions = mult_db_connections;
    qinsert(&db_list, &mdb->bq); 	   /* put db in list */
    V(mutex);
    return mdb;
