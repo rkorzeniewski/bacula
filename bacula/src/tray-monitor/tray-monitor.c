@@ -61,6 +61,7 @@ static char DotStatusJob[] = "JobId=%d JobStatus=%c JobErrors=%d\n";
 /* UI variables and functions */
 
 static gboolean fd_read(gpointer data);
+static gboolean blink(gpointer data);
 void trayMessage(const char *fmt,...);
 void updateStatusIcon(monitoritem* item);
 void changeStatusMessage(monitoritem* item, const char *fmt,...);
@@ -84,6 +85,7 @@ static GtkWidget *textview;
 static GtkTextBuffer *buffer;
 static GtkWidget *timeoutspinner;
 char** xpm_generic_var;
+static gboolean blinkstate = TRUE;
 
 #define CONFIG_FILE "./tray-monitor.conf"   /* default configuration file */
 
@@ -206,6 +208,7 @@ int main(int argc, char *argv[])
       items[nitems].resource = dird;
       items[nitems].D_sock = NULL;
       items[nitems].state = warn;
+      items[nitems].oldstate = warn;
       nitems++;
    }
    foreach_res(filed, R_CLIENT) {
@@ -213,6 +216,7 @@ int main(int argc, char *argv[])
       items[nitems].resource = filed;
       items[nitems].D_sock = NULL;
       items[nitems].state = warn;
+      items[nitems].oldstate = warn;
       nitems++;
    }
    foreach_res(stored, R_STORAGE) {
@@ -220,6 +224,7 @@ int main(int argc, char *argv[])
       items[nitems].resource = stored;
       items[nitems].D_sock = NULL;
       items[nitems].state = warn;
+      items[nitems].oldstate = warn;
       nitems++;
    }
    UnlockRes();
@@ -276,8 +281,10 @@ This value must be greater or equal to 1 second and less or equal to 10 minutes 
    
    gtk_widget_show_all(mTrayMenu);
    
-   timerTag = g_timeout_add( monitor->RefreshInterval/nitems, fd_read, NULL );
-      
+   timerTag = g_timeout_add( 1000*monitor->RefreshInterval/nitems, fd_read, NULL );
+   
+   g_timeout_add( 1000, blink, NULL );
+   
    window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
    
    gtk_window_set_title(GTK_WINDOW(window), "Bacula tray monitor");
@@ -505,6 +512,15 @@ static int authenticate_daemon(monitoritem* item, JCR *jcr) {
    }
 }
 
+static gboolean blink(gpointer data) {
+   blinkstate = !blinkstate;
+   for (int i = 0; i < nitems; i++) {
+      updateStatusIcon(&items[i]);
+   }
+   updateStatusIcon(NULL);
+   return true;
+}
+
 static gboolean fd_read(gpointer data) {
    GtkTextBuffer *newbuffer = gtk_text_buffer_new(NULL);
    GtkTextIter start, stop, nstart, nstop;
@@ -590,6 +606,9 @@ void getstatus(monitoritem* item, int current, GString** str) {
    it = list->next;
    if ((it == NULL) || (sscanf(((GString*)it->data)->str, OKqstatus, &num) != 1)) {
       g_string_append_printf(*str, ".status error : %s", (it == NULL) ? "" : ((GString*)it->data)->str);
+      while (((*str)->str[(*str)->len-1] == '\n') || ((*str)->str[(*str)->len-1] == '\r')) {
+         g_string_set_size(*str, (*str)->len-1);
+      }
       ret = error;
    }
    else if ((it = it->next) == NULL) {
@@ -841,17 +860,43 @@ void updateStatusIcon(monitoritem* item) {
    const char** xpm;
    
    if (item == NULL) {
-      stateenum state, oldstate;
-      state = idle;
+      /* For the current status, select the two worse for blinking,
+         but never blink a D_Sock == NULL error with idle. */
+      stateenum state1, state2, oldstate;
+      gboolean onenull = FALSE;
+      state1 = idle;
+      state2 = idle;
       oldstate = idle;
       for (int i = 0; i < nitems; i++) {
-         if (items[i].state > state) state = items[i].state;
+         if (items[i].D_sock == NULL) onenull = TRUE;
+         if (items[i].state >= state1) {
+            state2 = state1;
+            state1 = items[i].state;
+         }
+         else if (items[i].state > state2) {
+            state2 = items[i].state;
+         }
          if (items[i].oldstate > oldstate) oldstate = items[i].oldstate;
       }
-      xpm = generateXPM(state, oldstate);
+      
+      if ((onenull == TRUE) && (state2 == idle)) {
+         state2 = error;
+      }
+                  
+      xpm = generateXPM(blinkstate ? state1 : state2, oldstate);
    }
    else {
-      xpm = generateXPM(item->state, item->oldstate);
+      if ((blinkstate) && (item->D_sock != NULL)) {
+         if (item->state > 1) { //Warning or error while running
+            xpm = generateXPM(running, item->oldstate);
+         }
+         else {
+            xpm = generateXPM(idle, item->oldstate);
+         }
+      }
+      else {
+         xpm = generateXPM(item->state, item->oldstate);
+      }
    }
    
    GdkPixbuf* pixbuf = gdk_pixbuf_new_from_xpm_data(xpm);

@@ -1,2 +1,2 @@
  - Check status of the FD/SD in a separate thread.
- - Left light should be blinking
+ - Add a checkbox at the right of the daemon to ignore its status for the general icon
