@@ -1,7 +1,8 @@
                  Kern's ToDo List
-                   04 July 2004
+                   06 July 2004
 
 1.35 Items to do:
+- Require resource names to be unique.
 - Make btape release the drive during the "test" append.
 - Do tape alerts -- see tapealert.txt
 - Revisit and revise Disaster Recovery (fix SCSI and RAID 

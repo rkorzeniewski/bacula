@@ -5,7 +5,7 @@
  *  Version $Id$
  */
 /*
-   Copyright (C) 2000-2003 Kern Sibbald and John Walker
+   Copyright (C) 2000-2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -246,7 +246,7 @@ int do_append_data(JCR *jcr)
       }
       Dmsg0(90, "back from write_end_session_label()\n");
       /* Flush out final partial block of this session */
-      if (!write_block_to_device(jcr->dcr, block)) {
+      if (!write_block_to_device(dcr, block)) {
          Dmsg0(100, _("Set ok=FALSE after write_block_to_device.\n"));
 	 set_jcr_job_status(jcr, JS_ErrorTerminated);
 	 ok = false;
@@ -276,5 +276,5 @@ int do_append_data(JCR *jcr)
    dir_send_job_status(jcr);	      /* update director */
 
    Dmsg1(100, "return from do_append_data() stat=%d\n", ok);
-   return ok ? 1 : 0;
+   return ok;
 }
