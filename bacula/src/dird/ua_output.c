@@ -516,7 +516,7 @@ RUN *find_next_run(RUN *run, JOB *job, time_t &runtime)
       Dmsg1(000, "bit_set_month=%d\n", bit_is_set(month, run->month));
       Dmsg1(000, "bit_set_wom=%d\n", bit_is_set(wom, run->wom));
       Dmsg1(000, "bit_set_woy=%d\n", bit_is_set(woy, run->woy));
-#endif xxx
+#endif
       if (tod) {		   /* Jobs scheduled today (next 24 hours) */
 #ifdef xxx
 	 char buf[300], num[10];
