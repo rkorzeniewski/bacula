@@ -8,7 +8,3 @@ nmake VCE
 cd ..
 cd baculafd
 nmake CFG="baculafd - Win32 Release" /f baculafd.mak
-cd ..
-makensis bacula.nsi
-
-

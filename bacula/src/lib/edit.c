@@ -94,28 +94,13 @@ char *edit_uint64(uint64_t val, char *buf)
    return buf;
 }
 
-
 /*
- * Convert a string duration to utime_t (64 bit seconds)
- * Returns 0: if error
-	   1: if OK, and value stored in value
+ * Given a string "str", separate the integer part into
+ *   str, and the modifier into mod.
  */
-int duration_to_utime(char *str, utime_t *value)
+static bool get_modifier(char *str, char *mod, int mod_len)
 {
    int i, len;
-   double val;
-   /*
-    * The "n" = mins and months appears before minutes so that m maps
-    *   to months. These "kludges" make it compatible with pre 1.31 
-    *	Baculas.
-    */
-   static const char *mod[] = {"n", "seconds", "months", "minutes", 
-                  "hours", "days", "weeks",   "quarters",   "years", NULL};
-   static const int32_t mult[] = {60,	1, 60*60*24*30, 60, 
-		  60*60, 60*60*24, 60*60*24*7, 60*60*24*91, 60*60*24*365};
-   char mod_str[20];
-   int mod_len;
-
    /*
     * Look for modifier by walking back looking for the first
     *	space or digit.
@@ -138,16 +123,15 @@ int duration_to_utime(char *str, utime_t *value)
    /* If not found, error */
    if (i == 0 || i == len) {
       Dmsg2(200, "error i=%d len=%d\n", i, len);
-      return 0;
+      return false;
    }
-   /* Move modifier to mod_str */
-   bstrncpy(mod_str, &str[i], sizeof(mod_str));
-   mod_len = strlen(mod_str);
-   if (mod_len == 0) {		      /* Make sure we have a modifier */
+   /* Move modifier to mod */
+   bstrncpy(mod, &str[i], mod_len);
+   if (strlen(mod) == 0) {		 /* Make sure we have a modifier */
       Dmsg0(200, "No modifier found\n");
-      return 0;
+      return false;
    }
-   Dmsg2(200, "in=%s  mod=%s:\n", str, mod_str);
+   Dmsg2(200, "in=%s  mod=%s:\n", str, mod);
    /* Backup over any spaces in front of modifier */
    for ( ; i>0; i--) {
       if (B_ISSPACE(str[i-1])) {
@@ -159,9 +143,36 @@ int duration_to_utime(char *str, utime_t *value)
    /* The remainder (beginning) should be our number */
    if (!is_a_number(str)) {
       Dmsg0(200, "input not a number\n");
+      return false;
+   }
+   return true;
+}
+
+/*
+ * Convert a string duration to utime_t (64 bit seconds)
+ * Returns 0: if error
+	   1: if OK, and value stored in value
+ */
+int duration_to_utime(char *str, utime_t *value)
+{
+   int i, mod_len;
+   double val;
+   char mod_str[20];
+   /*
+    * The "n" = mins and months appears before minutes so that m maps
+    *   to months. These "kludges" make it compatible with pre 1.31 
+    *	Baculas.
+    */
+   static const char *mod[] = {"n", "seconds", "months", "minutes", 
+                  "hours", "days", "weeks",   "quarters",   "years", NULL};
+   static const int32_t mult[] = {60,	1, 60*60*24*30, 60, 
+		  60*60, 60*60*24, 60*60*24*7, 60*60*24*91, 60*60*24*365};
+
+   if (!get_modifier(str, mod_str, sizeof(mod_str))) {
       return 0;
    }
    /* Now find the multiplier corresponding to the modifier */
+   mod_len = strlen(mod_str);
    for (i=0; mod[i]; i++) {
       if (strncasecmp(mod_str, mod[i], mod_len) == 0) {
 	 break;
@@ -179,7 +190,6 @@ int duration_to_utime(char *str, utime_t *value)
    }
   *value = (utime_t)(val * mult[i]);
    return 1;
-
 }
 
 /*
@@ -188,8 +198,8 @@ int duration_to_utime(char *str, utime_t *value)
 char *edit_utime(utime_t val, char *buf)
 {
    char mybuf[30];
-   static int mult[] = {60*60*24*365, 60*60*24*30, 60*60*24, 60*60, 60};
-   static char *mod[]  = {"year",  "month",  "day", "hour", "min"};
+   static const int32_t mult[] = {60*60*24*365, 60*60*24*30, 60*60*24, 60*60, 60};
+   static const char *mod[]  = {"year",  "month",  "day", "hour", "min"};
    int i;
    uint32_t times;
 
@@ -216,62 +226,41 @@ char *edit_utime(utime_t val, char *buf)
  * Returns 0: if error
 	   1: if OK, and value stored in value
  */
-int size_to_uint64(char *str, int str_len, uint64_t *rtn_value)
+int size_to_uint64(char *str, int str_len, uint64_t *value)
 {
-   int i, ch;
-   double value;
-   int mod[]  = {'*', 'k', 'm', 'g', 0}; /* first item * not used */
-   uint64_t mult[] = {1,	     /* byte */
-		      1024,	     /* kilobyte */
-		      1048576,	     /* megabyte */
-		      1073741824};   /* gigabyte */
+   int i, mod_len;
+   double val;
+   char mod_str[20];
+   static const char *mod[]  = {"*", "k", "kb", "m", "mb",  "g", "gb",  NULL}; /* first item * not used */
+   const int64_t mult[] = {1,		  /* byte */
+			   1024,	  /* kilobyte */
+			   1000,	  /* kb kilobyte */
+			   1048576,	  /* megabyte */
+			   1000000,	  /* mb megabyte */
+			   1073741824,	  /* gigabyte */
+			   1000000000};   /* gb gigabyte */
 
-#ifdef we_have_a_compiler_that_works
-   int mod[]  = {'*', 'k', 'm', 'g', 't', 0};
-   uint64_t mult[] = {1,	     /* byte */
-		      1024,	     /* kilobyte */
-		      1048576,	     /* megabyte */
-		      1073741824,    /* gigabyte */
-		      1099511627776};/* terabyte */
-#endif
-
-   Dmsg1(400, "Enter sized to uint64 str=%s\n", str);
-
-   /* Look for modifier */
-   ch = str[str_len - 1];
-   i = 0;
-   if (B_ISALPHA(ch)) {
-      if (B_ISUPPER(ch)) {
-	 ch = tolower(ch);
-      }
-      while (mod[++i] != 0) {
-	 if (ch == mod[i]) {
-	    str_len--;
-	    str[str_len] = 0; /* strip modifier */
-	    break;
-	 }
-      }
-   }
-   if (mod[i] == 0 || !is_a_number(str)) {
+   if (!get_modifier(str, mod_str, sizeof(mod_str))) {
       return 0;
    }
-   Dmsg3(400, "size str=:%s: %lf i=%d\n", str, strtod(str, NULL), i);
-
+   /* Now find the multiplier corresponding to the modifier */
+   mod_len = strlen(mod_str);
+   for (i=0; mod[i]; i++) {
+      if (strncasecmp(mod_str, mod[i], mod_len) == 0) {
+	 break;
+      }
+   }
+   if (mod[i] == NULL) {
+      Dmsg0(200, "Modifier not found\n");
+      return 0; 		      /* modifer not found */
+   }
+   Dmsg2(200, "str=%s: mult=%d\n", str, mult[i]);
    errno = 0;
-   value = strtod(str, NULL);
-   if (errno != 0 || value < 0) {
+   val = strtod(str, NULL);
+   if (errno != 0 || val < 0) {
       return 0;
    }
-#if defined(HAVE_WIN32)
-   /* work around microsofts non handling of uint64 to double cvt*/
-   *rtn_value = (uint64_t)(value * (__int64)mult[i]);
-   Dmsg2(400, "Full value = %lf %" lld "\n", value * (__int64)mult[i],  
-	 (uint64_t)(value * (__int64)mult[i]));
-#else
-   *rtn_value = (uint64_t)(value * mult[i]);
-   Dmsg2(400, "Full value = %lf %" lld "\n", value * mult[i],  
-      (uint64_t)(value * mult[i]));
-#endif
+  *value = (utime_t)(val * mult[i]);
    return 1;
 }
 

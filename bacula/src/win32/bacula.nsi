@@ -3,7 +3,7 @@
 ;Written by Joost Verburg
 
 !define MUI_PRODUCT "Bacula" ;Define your own software name here
-!define MUI_VERSION "1.32f-3" ;Define your own software version here
+!define MUI_VERSION "1.33.4" ;Define your own software version here
 
 !include "MUI.nsh"
 !include "util.nsh"

@@ -269,7 +269,7 @@ static void terminate_dird(int sig)
    stop_watchdog();
    close_memory_pool(); 	      /* release free memory in pool */
    sm_dump(False);
-   exit(sig != 0);
+   exit(sig);
 }
 
 /*
