@@ -577,7 +577,7 @@ AC_ARG_WITH(postgresql,
           POSTGRESQL_BINDIR=$withval
       else
           AC_MSG_RESULT(no)
-          AC_MSG_ERROR(Invalid SQLite directory $withval - unable to find libpq-fe.h under $withval)
+          AC_MSG_ERROR(Invalid PostgreSQL directory $withval - unable to find libpq-fe.h under $withval)
       fi
       POSTGRESQL_LFLAGS="-L$POSTGRESQL_LIBDIR -lpq"
       AC_CHECK_FUNC(crypt, , AC_CHECK_LIB(crypt, crypt, [POSTGRESQL_LFLAGS="-lcrypt $POSTGRESQL_LFLAGS"]))
