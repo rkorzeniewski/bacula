@@ -99,6 +99,7 @@ extern "C" void signal_handler(int sig)
 
       fprintf(stderr, "Kaboom! %s, %s got signal %d. Attempting traceback.\n", 
 	      exename, my_name, sig);
+      fprintf(stderr, "Kaboom! exepath=%s\n", exepath);
 
       if (exelen + 12 > (int)sizeof(btpath)) {
          bstrncpy(btpath, "btraceback", sizeof(btpath));

@@ -108,7 +108,7 @@ static int exit_on_error = 1;
 void my_name_is(int argc, char *argv[], const char *name)
 {
    char *l, *p, *q;
-   char cpath[1024], npath[1024];
+   char cpath[1024];
    int len;
 
    bstrncpy(my_name, name, sizeof(my_name));
@@ -145,24 +145,14 @@ void my_name_is(int argc, char *argv[], const char *name)
 	 *q++ = *p++;
       }
       *q = 0;
-      Dmsg1(200, "exepath=%s\n", exepath);
       if (strchr(exepath, '.') || exepath[0] != '/') {
-	 npath[0] = 0;
 	 if (getcwd(cpath, sizeof(cpath))) {
-	    if (chdir(exepath) == 0) {
-	       if (!getcwd(npath, sizeof(npath))) {
-		  npath[0] = 0;
-	       }
-	       chdir(cpath);
-	    }
-	    if (npath[0]) {
-	       free(exepath);
-	       exepath = (char *)malloc(strlen(npath) + 1 + len);
-	       strcpy(exepath, npath);
-	    }
+	    free(exepath);
+	    exepath = (char *)malloc(strlen(cpath) + 1 + len);
+	    strcpy(exepath, cpath);
 	 }
-         Dmsg1(200, "Normalized exepath=%s\n", exepath);
       }
+      Dmsg2(500, "exepath=%s\nexename=%s\n", exepath, exename);
    }
 }
 
