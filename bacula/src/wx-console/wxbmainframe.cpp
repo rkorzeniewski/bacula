@@ -198,7 +198,7 @@ wxbMainFrame::wxbMainFrame(const wxString& title, const wxPoint& pos, const wxSi
 #if wxUSE_STATUSBAR
    // create a status bar just for fun (by default with 1 pane only)
    CreateStatusBar(2);
-   SetStatusText(_T("Welcome to Bacula wx-GUI!"));
+   SetStatusText(_T("Welcome to Bacula wx-console!"));
 #endif // wxUSE_STATUSBAR
 
    wxPanel* global = new wxPanel(this, -1);
@@ -275,10 +275,9 @@ void wxbMainFrame::OnQuit(wxCommandEvent& WXUNUSED(event))
 void wxbMainFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
 {
    wxString msg;
-   msg.Printf( _T("Welcome to Bacula wx-GUI.\n (c) 2004 Nicolas Boichat <nicolas@boichat.ch>\n")
-            _T("Version : %s"), wxVERSION_STRING);
+   msg.Printf( _T("Welcome to Bacula wx-console.\nWritten by Nicolas Boichat <nicolas@boichat.ch>\n(C) 2004 Kern Sibbald and John Walker\n"));
 
-   wxMessageBox(msg, _T("About Bacula-wx-GUI"), wxOK | wxICON_INFORMATION, this);
+   wxMessageBox(msg, _T("About Bacula wx-console"), wxOK | wxICON_INFORMATION, this);
 }
 
 void wxbMainFrame::OnEnter(wxCommandEvent& WXUNUSED(event))
