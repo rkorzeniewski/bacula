@@ -90,6 +90,110 @@ Regression tests (Jo):
 
 
 1.37 Possibilities:
+=== From Carsten Menke <bootsy52@gmx.net>
+The bacula-devel list is CC'ed (I'm also subscribed to the list right now,
+so I will also get the responses).
+
+Following is a list of what I think in the situations where I'm faced with, 
+could be a usefull enhancement to bacula, which I'm certain other users will 
+benefit from as well.
+
+1. NextJob/NextJobs Directive within a Job Resource in the form of
+    NextJobs = job1,job2.
+
+    Why:
+    I currently solved the problem with running multiple jobs each after each
+    by setting the Max Wait Time for a job to 8 hours, and give
+    the jobs different Priorities. However, there scenarios where
+    1 Job is directly depending on another job, so if the former job fails,
+    the job after it needn't to be run
+    while maybe other jobs should run despite of that
+
+Example:
+  A Backup Job and a Verify job, if the backup job fails there is no need to run
+  the verify job, as the backup job already failed. However, one may like
+  to backup the Catalog to disk despite of that the main backup job failed.
+
+Notes:
+  I see that this is related to the Event Handlers which are on the ToDo
+  list, also it is maybe a good idea to check for the return value and
+  execute different actions based on the return value
+
+2. Priorities also for the Schedule Resource
+
+    Why:
+
+    With this it is possible to run monthly jobs at the end of the month
+    instead of the beginning of the next month, so one could define
+    weekly and monthly pools to be run on Fridays and if there are
+    2 Jobs resulting on the same time, the one with the higher priority
+    takes precedence. This is also helpfull to implement a daily
+    rotation scheme with an additional 2 weeks changing weekly pool
+
+Example:
+         Schedule {
+           Name = "NightlyBackup"
+           Run = Priority = 1,Pool=Weekly friday at 21:00
+           Run = Priority = 2,Pool=Weekly monthly on friday at 21:00
+           Run = Priority = 3,Pool=Weekly yearly on friday at 21:00
+           }
+
+3. offline capability to bconsole
+
+    Why:
+    Currently I use a script which I execute within the last Job via the
+    RunAfterJob Directive, to release and eject the tape.
+    So I have to call bconsole "release=Storage-Name" and afterwards
+    mt -f /dev/nst0 eject to get the tape out.
+
+    If I have multiple Storage Devices, than these may not be /dev/nst0 and
+    I have to modify the script or call it with parameters etc.
+    This would actually not be needed, as everything is already defined
+    in bacula-sd.conf and if   I can invoke bconsole with the
+    storage name via $1 in the script than I'm done and information is
+    not duplicated.
+
+4. %s for Storage Name added to the chars being substituted in "RunAfterJob"
+
+    Why:
+
+    For the reason mentioned in 3. to have the ability to call a
+    script with /scripts/foobar %s and in the script use $1
+    to pass the Storage Name to bconsole
+
+5. Setting Volume State within a Job Resource
+
+    Why:
+    Instead of using "Maximum Volume Jobs" in the Pool Resource,
+    I would have the possibilty to define
+    in a Job Resource that after this certain job is run, the Volume State
+    should be set to "Volume State = Used", this give more flexibility (IMHO).
+
+6. Localization of Bacula Messages
+
+    Why:
+    Unfortunatley many,many people I work with don't speak english very well.
+    So if at least the Reporting messages would be localized then they
+    would  understand that they have to change the tape,etc. etc.
+
+    I volunteer to do the german translations, and if I can convince my wife also
+    french and Morre (western african language).
+
+7. OK, this is evil, probably bound to security risks and maybe not possible
+    due to the design of bacula.
+
+    Implementation of Backtics ( `command` ) for shell comand execution to
+    the "Label Format" Directive.
+
+Why:
+
+    Currently I have defined BACULA_DAY_OF_WEEK="day1|day2..." resulting in
+    Label Format = "HolyBackup-${BACULA_DAY_OF_WEEK[${WeekDay}]}". If I could
+    use backticks than I could use "Label Format = HolyBackup-`date +%A` to have
+    the localized name for the day of the week appended to the
+    format string. Then I have the tape labeled automatically with weekday
+    name in the correct language.
+==========
 - Can one write tapes faster with 8192 byte block sizes?
 - Specify a single directory to restore.
 - Implement Maximum Job Spool Size
