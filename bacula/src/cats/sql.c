@@ -347,7 +347,7 @@ void split_path_and_file(JCR *jcr, B_DB *mdb, const char *fname)
       mdb->pnl = 1;
    }
 
-   Dmsg2(100, "sllit path=%s file=%s\n", mdb->path, mdb->fname);
+   Dmsg2(500, "split path=%s file=%s\n", mdb->path, mdb->fname);
 }
 
 /*

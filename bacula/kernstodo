@@ -2,14 +2,9 @@
                   31 March 2004
 
 Documentation to do: (any release a little bit at a time)
-- DB upgrade to version 5 in bacula-1.27b, DB upgrade to
-  version 6 in 1.31; DB upgrade to version 7 in 1.33/4.
-- Document running a test version.
 - Document query file format.
-- Document static linking
 - Document problems with Verify and pruning.
 - Document how to use multiple databases.
-- For FreeBSD typical /dev/nrsa0 and for mtx /dev/pass1
 - VXA drives have a "cleaning required"
   indicator, but Exabyte recommends preventive cleaning after every 75
   hours of operation.
@@ -27,41 +22,20 @@ Documentation to do: (any release a little bit at a time)
     changing tape settings while a job is running.)
 - Lookup HP cleaning recommendations.
 - Lookup HP tape replacement recommendations (see trouble shooting autochanger)
-- Create a man page for each binary (Debian package requirement).
           
 Testing to do: (painful)
 - Test drive polling!
-- that ALL console command line options work and are always implemented
 - blocksize recognition code.
 - Test if rewind at end of tape waits for tape to rewind.
 - Test cancel at EOM.       
 
 For 1.33 Testing/Documentation:
-- Add counter variable test.
-- Add an example of using a FIFO in dirdconf.wml 
-- Add an item to the FAQ about running jobs in different timezones.
-- Add some examples of job editing codes.
-- Document Dan's new --with-dir-user, ... options.
-  See userid.txt
 - Figure out how to use ssh or stunnel to protect Bacula communications.
   Add Dan's work to manual See ssl.txt
 - Add db check test to regression. Test each function like delete,
   purge, ...
-- Document Pool keyword for restore.
 - If you use restore replace=never, the directory attributes for
   non-existent directories will not be restored properly.
-- In the Bacula User Guide you write:"Note, one major disadvantage of
-  writing to a NFS mounted volume as I do isthat if the other machine goes
-  down, the OS will wait forever on the fopen()call that Bacula makes.  As
-  a consequence, Bacula will completely stall untilthe machine exporting
-  the NSF mounts comes back up.  If someone knows a wayaround this, please
-  let me know."I haven't tried using NFS in years, but I think that the
-  "soft" and "intr" remount options may well help you.  The only way of
-  being sure would be to try it.See, for example,
-     http://howtos.linux.com/guides/nag2/x-087-2-nfs.mountd.shtml
-
-For 1.33
-- Complete Win32 installer
 
 For version 1.35:
 - Finish work on Gnome restore GUI.
@@ -1420,3 +1394,5 @@ Block Position: 0
 - Once a job is canceled, make sure the status reflects that even if the
   job is "stuck" in the run queue.
 - Test work on conio.c -- particularly linking.
+- Complete Win32 installer
+

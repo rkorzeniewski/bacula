@@ -259,26 +259,26 @@ int db_sql_query(B_DB *mdb, char *query, DB_RESULT_HANDLER *result_handler, void
 {
    SQL_ROW row;
 
-   Dmsg0(50, "db_sql_query started\n");
+   Dmsg0(500, "db_sql_query started\n");
   
    db_lock(mdb);
    if (sql_query(mdb, query) != 0) {
       Mmsg(&mdb->errmsg, _("Query failed: %s: ERR=%s\n"), query, sql_strerror(mdb));
       db_unlock(mdb);
-      Dmsg0(50, "db_sql_query failed\n");
+      Dmsg0(500, "db_sql_query failed\n");
       return 0;
    }
-   Dmsg0(50, "db_sql_query succeeded. checking handler\n");
+   Dmsg0(500, "db_sql_query succeeded. checking handler\n");
 
    if (result_handler != NULL) {
-      Dmsg0(50, "db_sql_query invoking handler\n");
+      Dmsg0(500, "db_sql_query invoking handler\n");
       if ((mdb->result = sql_store_result(mdb)) != NULL) {
 	 int num_fields = sql_num_fields(mdb);
 
-         Dmsg0(50, "db_sql_query sql_store_result suceeded\n");
+         Dmsg0(500, "db_sql_query sql_store_result suceeded\n");
 	 while ((row = sql_fetch_row(mdb)) != NULL) {
 
-            Dmsg0(50, "db_sql_query sql_fetch_row worked\n");
+            Dmsg0(500, "db_sql_query sql_fetch_row worked\n");
 	    if (result_handler(ctx, num_fields, row))
 	       break;
 	 }
@@ -288,7 +288,7 @@ int db_sql_query(B_DB *mdb, char *query, DB_RESULT_HANDLER *result_handler, void
    }
    db_unlock(mdb);
 
-   Dmsg0(50, "db_sql_query finished\n");
+   Dmsg0(500, "db_sql_query finished\n");
 
    return 1;
 }
@@ -300,13 +300,13 @@ POSTGRESQL_ROW my_postgresql_fetch_row(B_DB *mdb)
    int		  j;
    POSTGRESQL_ROW row = NULL; // by default, return NULL
 
-   Dmsg0(50, "my_postgresql_fetch_row start\n");
+   Dmsg0(500, "my_postgresql_fetch_row start\n");
 
    if (mdb->row_number == -1 || mdb->row == NULL) {
-      Dmsg1(50, "we have need space of %d bytes\n", sizeof(char *) * mdb->num_fields);
+      Dmsg1(500, "we have need space of %d bytes\n", sizeof(char *) * mdb->num_fields);
 
       if (mdb->row != NULL) {
-              Dmsg0(50, "my_postgresql_fetch_row freeing space\n");
+              Dmsg0(500, "my_postgresql_fetch_row freeing space\n");
 	      free(mdb->row);
 	      mdb->row = NULL;
       }
@@ -319,21 +319,21 @@ POSTGRESQL_ROW my_postgresql_fetch_row(B_DB *mdb)
 
    // if still within the result set
    if (mdb->row_number < mdb->num_rows) {
-      Dmsg2(50, "my_postgresql_fetch_row row number '%d' is acceptable (0..%d)\n", mdb->row_number, mdb->num_rows);
+      Dmsg2(500, "my_postgresql_fetch_row row number '%d' is acceptable (0..%d)\n", mdb->row_number, mdb->num_rows);
       // get each value from this row
       for (j = 0; j < mdb->num_fields; j++) {
 	      mdb->row[j] = PQgetvalue(mdb->result, mdb->row_number, j);
-              Dmsg2(50, "my_postgresql_fetch_row field '%d' has value '%s'\n", j, mdb->row[j]);
+              Dmsg2(500, "my_postgresql_fetch_row field '%d' has value '%s'\n", j, mdb->row[j]);
       }
       // increment the row number for the next call
       mdb->row_number++;
 
       row = mdb->row;
    } else {
-      Dmsg2(50, "my_postgresql_fetch_row row number '%d' is NOT acceptable (0..%d)\n", mdb->row_number, mdb->num_rows);
+      Dmsg2(500, "my_postgresql_fetch_row row number '%d' is NOT acceptable (0..%d)\n", mdb->row_number, mdb->num_rows);
    }
 
-   Dmsg1(50, "my_postgresql_fetch_row finishes returning %x\n", row);
+   Dmsg1(500, "my_postgresql_fetch_row finishes returning %x\n", row);
 
    return row;
 }
@@ -366,19 +366,19 @@ POSTGRESQL_FIELD * my_postgresql_fetch_field(B_DB *mdb)
 {
    int	   i;
 
-   Dmsg0(50, "my_postgresql_fetch_field starts\n");
+   Dmsg0(500, "my_postgresql_fetch_field starts\n");
    if (mdb->fields == NULL) {
-      Dmsg1(50, "allocating space for %d fields\n", mdb->num_fields);
+      Dmsg1(500, "allocating space for %d fields\n", mdb->num_fields);
       mdb->fields = (POSTGRESQL_FIELD *)malloc(sizeof(POSTGRESQL_FIELD) * mdb->num_fields);
 
       for (i = 0; i < mdb->num_fields; i++) {
-         Dmsg1(50, "filling field %d\n", i);
+         Dmsg1(500, "filling field %d\n", i);
 	 mdb->fields[i].name	       = PQfname(mdb->result, i);
 	 mdb->fields[i].max_length = my_postgresql_max_length(mdb, i);
 	 mdb->fields[i].type	   = PQftype(mdb->result, i);
 	 mdb->fields[i].flags	   = 0;
 
-         Dmsg4(50, "my_postgresql_fetch_field finds field '%s' has length='%d' type='%d' and IsNull=%d\n", 
+         Dmsg4(500, "my_postgresql_fetch_field finds field '%s' has length='%d' type='%d' and IsNull=%d\n", 
 	    mdb->fields[i].name, mdb->fields[i].max_length, mdb->fields[i].type,
 	    mdb->fields[i].flags);
       } // end for
@@ -386,7 +386,7 @@ POSTGRESQL_FIELD * my_postgresql_fetch_field(B_DB *mdb)
 
    // increment field number for the next time around
 
-   Dmsg0(50, "my_postgresql_fetch_field finishes\n");
+   Dmsg0(500, "my_postgresql_fetch_field finishes\n");
    return &mdb->fields[mdb->field_number++];
 }
 
@@ -403,33 +403,33 @@ void my_postgresql_field_seek(B_DB *mdb, int field)
 }
 
 int my_postgresql_query(B_DB *mdb, char *query) {
-   Dmsg0(50, "my_postgresql_query started\n");
+   Dmsg0(500, "my_postgresql_query started\n");
    // We are starting a new query.  reset everything.
    mdb->num_rows     = -1;
    mdb->row_number   = -1;
    mdb->field_number = -1;
 
 
-   Dmsg1(50, "my_postgresql_query starts with '%s'\n", query);
+   Dmsg1(500, "my_postgresql_query starts with '%s'\n", query);
    mdb->result = PQexec(mdb->db, query);
    mdb->status = PQresultStatus(mdb->result);
    if (mdb->status == PGRES_TUPLES_OK || mdb->status == PGRES_COMMAND_OK) {
-      Dmsg1(50, "we have a result\n", query);
+      Dmsg1(500, "we have a result\n", query);
 
       // how many fields in the set?
       mdb->num_fields = (int) PQnfields(mdb->result);
-      Dmsg1(50, "we have %d fields\n", mdb->num_fields);
+      Dmsg1(500, "we have %d fields\n", mdb->num_fields);
 
       mdb->num_rows   = PQntuples(mdb->result);
-      Dmsg1(50, "we have %d rows\n", mdb->num_rows);
+      Dmsg1(500, "we have %d rows\n", mdb->num_rows);
 
       mdb->status = 0;
    } else {
-      Dmsg1(50, "we failed\n", query);
+      Dmsg1(500, "we failed\n", query);
       mdb->status = 1;
    }
 
-   Dmsg0(50, "my_postgresql_query finishing\n");
+   Dmsg0(500, "my_postgresql_query finishing\n");
 
    return mdb->status;
 }
@@ -487,15 +487,15 @@ int my_postgresql_currval(B_DB *mdb, char *table_name)
    bsnprintf(query, sizeof(query), "SELECT currval('%s')", sequence);
 
 // Mmsg(&query, "SELECT currval('%s')", sequence);
-   Dmsg1(50, "my_postgresql_currval invoked with '%s'\n", query);
+   Dmsg1(500, "my_postgresql_currval invoked with '%s'\n", query);
    result = PQexec(mdb->db, query);
 
-   Dmsg0(50, "exec done");
+   Dmsg0(500, "exec done");
 
    if (PQresultStatus(result) == PGRES_TUPLES_OK) {
-      Dmsg0(50, "getting value");
+      Dmsg0(500, "getting value");
       id = atoi(PQgetvalue(result, 0, 0));
-      Dmsg2(50, "got value '%s' which became %d\n", PQgetvalue(result, 0, 0), id);
+      Dmsg2(500, "got value '%s' which became %d\n", PQgetvalue(result, 0, 0), id);
    } else {
       Mmsg1(&mdb->errmsg, _("error fetching currval: %s\n"), PQerrorMessage(mdb->db));
    }
