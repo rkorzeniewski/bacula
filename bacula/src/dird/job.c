@@ -395,7 +395,7 @@ int get_or_create_client_record(JCR *jcr)
    jcr->client_name = get_memory(strlen(jcr->client->hdr.name) + 1);
    strcpy(jcr->client_name, jcr->client->hdr.name);
    if (!db_create_client_record(jcr, jcr->db, &cr)) {
-      Jmsg(jcr, M_FATAL, 0, _("Could not create Client record. %s"), 
+      Jmsg(jcr, M_FATAL, 0, _("Could not create Client record. ERR=%s"), 
 	 db_strerror(jcr->db));
       return 0;
    }

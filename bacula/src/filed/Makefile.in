@@ -1,3 +1,9 @@
+#
+# Bacula Makefile
+#
+#  Version $Id$
+#
+
 @MCOMMON@
 
 srcdir =	.
@@ -41,7 +47,7 @@ WIN32LIBS = $(@WIN32@)
 
 # inference rules
 .c.o:
-	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+	$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
 all: Makefile @WIN32@ bacula-fd @STATIC_FD@
 	@echo "==== Make of filed is good ===="
@@ -65,11 +71,11 @@ win32:	$(WIN32OBJS)
 	@rm -f bacula-fd.exe
 
 bacula-fd:  $(SVROBJS) ../findlib/libfind.a ../lib/libbac.a @WIN32@
-	$(CXX) $(LDFLAGS) -L../lib -L../findlib -o $@ $(SVROBJS) \
+	$(CXX) $(WLDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(SVROBJS) \
 	  $(WIN32LIBS) $(FDLIBS) -lfind -lbac -lm $(LIBS) $(DLIB)
 
 static-bacula-fd:  $(SVROBJS) ../findlib/libfind.a ../lib/libbac.a @WIN32@
-	$(CXX) $(LDFLAGS) -static -L../lib -L../findlib -o $@ $(SVROBJS) \
+	$(CXX) $(WLDFLAGS) $(LDFLAGS) -static -L../lib -L../findlib -o $@ $(SVROBJS) \
 	   $(WIN32LIBS) $(FDLIBS) -lfind -lbac -lm $(LIBS) $(DLIB)
 	strip $@
 

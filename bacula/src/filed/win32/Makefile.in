@@ -1,7 +1,10 @@
 #
 # makefile to build Windows specific pieces of the Bacula File daemon
 #
+# Version $Id$
+#
 CFLAGS=@CFLAGS@
+WCFLAGS=@WCFLAGS@
 CC = @CC@
 CXX = @CXX@
 RANLIB = @RANLIB@
@@ -47,13 +50,7 @@ winres.res: winres.rc bacula.ico winres.h idle.ico running.ico error.ico
 	windres $< -O coff -o $@
 
 winmain.o: winmain.cpp winbacula.h
-	$(CC) -c $(CFLAGS) $<
-
-email.o: email.c
-	$(CC) -c ${CFLAGS} $<
-
-email.exe: email.o libmymapi32.a
-	$(CC) ${CFLAGS} -L. -o email email.o -luser32 -lgdi32 -lmymapi32
+	$(CC) -c $(WCFLAGS) $(CFLAGS) $<
 
 libmymapi32.a: mymapi32.def
 	dlltool --as=as -k --output-lib $@ --def $<
@@ -118,7 +115,7 @@ binary-release:
 dummy:
 
 .c.o:
-	$(CC) -c $(CFLAGS) $<
+	$(CC) -c $(WCFLAGS) $(CFLAGS) $<
 
 .cpp.o:
-	$(CXX) -c $(CFLAGS) $<
+	$(CXX) -c $(WCFLAGS) $(CFLAGS) $<

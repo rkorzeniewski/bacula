@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                  25 March 2003 
+                  28 March 2003 
 
 Documentation to do: (a little bit at a time)
 - Document running a test version.
@@ -20,6 +20,7 @@ Testing to do: (painful)
 - multiple simultaneous Volumes
 
 For 1.30 release:
+- Figure out how to use ssh to protect Bacula communications.
 - Fix "access not allowed" for backup of files on WinXP.
 - Issue message to mount a new tape before the rewind.
 - Simplified client job initiation for portables.
@@ -905,4 +906,3 @@ rufus-dir: Volume used once. Marking Volume "File0003" as Used.
   that no longer exist on the machine -- so that we maintain
   say backups for 30 days, but if the file is deleted, we maintain
   the last copy for 1 year.  -- answer Volume retention.
-

@@ -9340,11 +9340,16 @@ CPPFLAGS="$CPPFLAGS"
 
 
 
+
+
 OBJLIST=
 
 
 lld="lld"
 llu="llu"
+
+WCFLAGS=
+WLDFLAGS=
 
 #
 # Finally we set appropriate distribution specific
@@ -9388,8 +9393,8 @@ cygwin)
 	DISTVER=`uname -a |awk '{print $3}'`
 	TAPEDRIVE="/dev/nrst0"
 	WIN32=win32
-	CFLAGS="${CFLAGS} -mwindows"
-	LDFLAGS="${LDFLAGS} -mwindows"
+	WCFLAGS="-mwindows"
+	WLDFLAGS="-mwindows"
   ;;
 darwin)
 	DISTVER=`uname -r`
@@ -9869,6 +9874,8 @@ s%@DEBUG@%$DEBUG%g
 s%@DINCLUDE@%$DINCLUDE%g
 s%@DLIB@%$DLIB%g
 s%@DB_LIBS@%$DB_LIBS%g
+s%@WCFLAGS@%$WCFLAGS%g
+s%@WLDFLAGS@%$WLDFLAGS%g
 s%@OBJLIST@%$OBJLIST%g
 s%@hostname@%$hostname%g
 s%@TAPEDRIVE@%$TAPEDRIVE%g
@@ -10191,8 +10198,8 @@ Configuration on `date`:
   Working directory	      ${working_dir}
   C Compiler:		      ${CC} ${CCVERSION}
   C++ Compiler: 	      ${CXX} ${CXXVERSION}
-  Compiler flags:	      ${CFLAGS} 
-  Linker flags: 	      ${LDFLAGS}
+  Compiler flags:	      ${WCFLAGS} ${CFLAGS} 
+  Linker flags: 	      ${WLDFLAGS} ${LDFLAGS}
   Libraries:		      ${LIBS}
   Statically Linked Tools:    ${support_static_tools}
   Statically Linked FD:       ${support_static_fd}

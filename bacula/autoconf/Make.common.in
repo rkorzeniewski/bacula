@@ -1,4 +1,4 @@
-# autoconf/Make.common.in        -*- Makefile -*-
+# autoconf/Make.common.in	 -*- Makefile -*-
 # release date (man), LSM date, version number/name, current maintainer
 DATE="@DATE@"
 LSMDATE=@LSMDATE@
@@ -65,6 +65,10 @@ LIBS = @LIBS@
 DINCLUDE = @DINCLUDE@
 DLIB = @DLIB@
 DB_LIBS = @DB_LIBS@
+
+# Windows (cygwin) flags 
+WCFLAGS = @WCFLAGS@
+WLDFLAGS = @WLDFLAGS@
 
 # X Include directory
 #XINC = @X_CFLAGS@ @XPM_CFLAGS@
