@@ -31,7 +31,6 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
-- Implement fast block rejection: match_bsr_block().
 - Implement forward spacing block/file: position_device(bsr) --
   just before read_block_from_device();
 - On Windows with very long path names, it may be impossible to create 
@@ -991,3 +990,5 @@ Done: (see kernsdone for more)
 - Instrument use_count on DEVICE packets and ensure that the device is
   being close()ed at the appropriate time.
 - Test long path names (>64 chars) in Windows -- crashes FD?
+- Implement fast block rejection: match_bsr_block().
+ 
