@@ -647,8 +647,8 @@ void wxbMainFrame::Print(wxString str, int status)
             
             int res = ::wxGetSingleChoiceIndex(message,
                "wx-console: unexpected director's question.", n, choices, this);
-            if (res == -1) {
-               Send("\n");
+            if (res == -1) { //Cancel pressed
+               Send(".\n");
             }
             else {
                if (promptparser->isNumericalChoice()) {
