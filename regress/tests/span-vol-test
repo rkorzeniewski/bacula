@@ -2,7 +2,8 @@
 #
 # Run a simple backup of the Bacula build directory but 
 #   split the archive into four volumes, two of which are
-#   totally full. 
+#   totally full. I.e. make sure that bsr selects all tapes 
+#   including those fully spanned.
 #
 cwd=`pwd`
 scripts/copy-test-confs

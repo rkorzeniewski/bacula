@@ -3,7 +3,8 @@
 # Run a simple backup of the Bacula build directory but 
 #   split the archive into two volumes, then restore
 #   files on only one of the volumes and ensure that
-#   the other volume is not used.
+#   the other volume is not used.  I.e. bsr optimization
+#   works.
 #
 cwd=`pwd`
 scripts/copy-test-confs

@@ -3,7 +3,7 @@
 # Run a simple backup of the Bacula build directory but 
 #   create three volumes and do six backups causing the
 #   volumes to be recycled, and cycling through the volumes
-#   twice.
+#   twice. Tests maxvoljobs and volretention.
 #
 cwd=`pwd`
 scripts/copy-test-confs
@@ -19,8 +19,7 @@ echo " === Starting recycle-test  ==="
 echo " === Starting recycle-test  ===" >working/log
 echo " "
 
-#bin/bacula start 2>&1 >/dev/null
-bin/bacula start
+bin/bacula start 2>&1 >/dev/null
 bin/console -c bin/console.conf <<END_OF_DATA
 @output /dev/null
 messages
