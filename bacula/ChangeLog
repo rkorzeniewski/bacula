@@ -1,4 +1,16 @@
-2003-08-02 Version 1.32 02Sep03 Beta
+2003-08-02 Version 1.32 06Sep03 Beta
+- Implement ClientRunBeforeJob and ClientRunAfterJob.
+- Corrected BSRatEOF to be BSFatEOF in btape --
+  reported by Lars Koller.
+- Documented BSFatEof
+- Eliminated save_level in FD replaced by JobLevel.
+- Increased MAX_RES_ITEMS from 35 to 50 to handle
+  new ClientRunBeforeJob ...
+- Add line number in error message for restore from file.
+- Correct editing of jobids (misplaced comma).
+- Implement restore files.
+- Quickie patch to allow Purged Volumes to be mounted.   
+  Must review algorithm.
 - Eliminate a duplicated query from query.sql
 - Restructure ua_restore.c so that I can add restore files.
 - Correct positioning problem at beginning of a second volume 

@@ -208,6 +208,8 @@ static struct res_items job_items[] = {
    {"prunevolumes", store_yesno, ITEM(res_job.PruneVolumes), 1, ITEM_DEFAULT, 0},
    {"runbeforejob", store_str,  ITEM(res_job.RunBeforeJob), 0, 0, 0},
    {"runafterjob",  store_str,  ITEM(res_job.RunAfterJob),  0, 0, 0},
+   {"clientrunbeforejob", store_str,  ITEM(res_job.ClientRunBeforeJob), 0, 0, 0},
+   {"clientrunafterjob",  store_str,  ITEM(res_job.ClientRunAfterJob),  0, 0, 0},
    {"spoolattributes", store_yesno, ITEM(res_job.SpoolAttributes), 1, ITEM_DEFAULT, 0},
    {"writebootstrap", store_dir, ITEM(res_job.WriteBootstrap), 0, 0, 0},
    {"maximumconcurrentjobs", store_pint, ITEM(res_job.MaxConcurrentJobs), 0, ITEM_DEFAULT, 1},
@@ -815,12 +817,20 @@ void free_resource(int type)
       if (res->res_job.RunAfterJob) {
 	 free(res->res_job.RunAfterJob);
       }
+      if (res->res_job.ClientRunBeforeJob) {
+	 free(res->res_job.ClientRunBeforeJob);
+      }
+      if (res->res_job.ClientRunAfterJob) {
+	 free(res->res_job.ClientRunAfterJob);
+      }
       break;
    case R_MSGS:
-      if (res->res_msgs.mail_cmd)
+      if (res->res_msgs.mail_cmd) {
 	 free(res->res_msgs.mail_cmd);
-      if (res->res_msgs.operator_cmd)
+      }
+      if (res->res_msgs.operator_cmd) {
 	 free(res->res_msgs.operator_cmd);
+      }
       free_msgs_res((MSGS *)res);  /* free message resource */
       res = NULL;
       break;

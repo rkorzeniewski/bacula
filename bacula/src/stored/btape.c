@@ -749,7 +749,7 @@ static void testcmd()
 	    if (stat == 1) {
                Pmsg0(-1, "\n\nIt looks like the test worked this time, please add:\n\n"
                      "    Hardware End of Medium = No\n"
-                     "    BSR at EOM = yes\n\n"
+                     "    BSF at EOM = yes\n\n"
                      "to your Device resource in the Storage conf file.\n");
 	       goto all_done;
 	    }

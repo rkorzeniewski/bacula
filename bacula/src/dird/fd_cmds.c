@@ -40,6 +40,8 @@ static char inc[]         = "include\n";
 static char exc[]         = "exclude\n";
 static char jobcmd[]      = "JobId=%d Job=%s SDid=%u SDtime=%u Authorization=%s\n";
 static char levelcmd[]    = "level = %s%s mtime_only=%d\n";
+static char runbefore[]   = "RunBeforeJob %s\n";
+static char runafter[]    = "RunAfterJob %s\n";
 
 
 /* Responses received from File daemon */
@@ -48,6 +50,8 @@ static char OKexc[]       = "2000 OK exclude\n";
 static char OKjob[]       = "2000 OK Job";
 static char OKbootstrap[] = "2000 OK bootstrap\n";
 static char OKlevel[]     = "2000 OK level\n";
+static char OKRunBefore[] = "2000 OK RunBefore\n";
+static char OKRunAfter[]  = "2000 OK RunAfter\n";
 
 /* Forward referenced functions */
 
@@ -328,7 +332,7 @@ bail_out:
 int send_include_list(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
-   fd->msglen = sprintf(fd->msg, inc);
+   fd->msglen = pm_strcpy(&fd->msg, inc);
    bnet_send(fd);
    return send_list(jcr, INC_LIST);
 }
@@ -340,7 +344,7 @@ int send_include_list(JCR *jcr)
 int send_exclude_list(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
-   fd->msglen = sprintf(fd->msg, exc);
+   fd->msglen = pm_strcpy(&fd->msg, exc);
    bnet_send(fd);
    return send_list(jcr, EXC_LIST);
 }
@@ -368,12 +372,9 @@ int send_bootstrap_file(JCR *jcr)
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       return 0;
    }
-   strcpy(fd->msg, bootstrap);	
-   fd->msglen = strlen(fd->msg);
-   bnet_send(fd);
+   bnet_fsend(fd, bootstrap);
    while (fgets(buf, sizeof(buf), bs)) {
-      fd->msglen = Mmsg(&fd->msg, "%s", buf);
-      bnet_send(fd);	   
+      bnet_fsend(fd, "%s", buf);       
    }
    bnet_sig(fd, BNET_EOD);
    fclose(bs);
@@ -381,6 +382,37 @@ int send_bootstrap_file(JCR *jcr)
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       return 0;
    }
+   return 1;
+}
+
+/*
+ * Send ClientRunBeforeJob and ClientRunAfterJob to File daemon
+ */
+int send_run_before_and_after_commands(JCR *jcr)
+{
+   POOLMEM *msg = get_pool_memory(PM_FNAME);
+   BSOCK *fd = jcr->file_bsock;
+   if (jcr->job->ClientRunBeforeJob) {
+      pm_strcpy(&msg, jcr->job->ClientRunBeforeJob);
+      bash_spaces(msg);
+      bnet_fsend(fd, runbefore, msg);
+      if (!response(jcr, fd, OKRunBefore, "ClientRunBeforeJob", DISPLAY_ERROR)) {
+	 set_jcr_job_status(jcr, JS_ErrorTerminated);
+	 free_pool_memory(msg);
+	 return 0;
+      }
+   }
+   if (jcr->job->ClientRunAfterJob) {
+      fd->msglen = pm_strcpy(&msg, jcr->job->ClientRunAfterJob);
+      bash_spaces(msg);
+      bnet_fsend(fd, runafter, msg);
+      if (!response(jcr, fd, OKRunAfter, "ClientRunAfterJob", DISPLAY_ERROR)) {
+	 set_jcr_job_status(jcr, JS_ErrorTerminated);
+	 free_pool_memory(msg);
+	 return 0;
+      }
+   }
+   free_pool_memory(msg);
    return 1;
 }
 

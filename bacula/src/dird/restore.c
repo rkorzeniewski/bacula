@@ -219,6 +219,11 @@ int do_restore(JCR *jcr)
       }
    }
 
+   if (!send_run_before_and_after_commands(jcr)) {
+      restore_cleanup(jcr, JS_ErrorTerminated);
+      return 0;
+   }
+
    /* Send restore command */
    char replace, *where;
 

@@ -267,6 +267,10 @@ int do_verify(JCR *jcr)
       goto bail_out;
    }
 
+   if (!send_run_before_and_after_commands(jcr)) {
+      goto bail_out;
+   }
+
    /* 
     * Send verify command/level to File daemon
     */

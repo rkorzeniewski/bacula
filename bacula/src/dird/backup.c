@@ -198,6 +198,10 @@ int do_backup(JCR *jcr)
       goto bail_out;
    }
 
+   if (!send_run_before_and_after_commands(jcr)) {
+      goto bail_out;
+   }
+
    /* Send backup command */
    bnet_fsend(fd, backupcmd);
    if (!response(jcr, fd, OKbackup, "backup", DISPLAY_ERROR)) {

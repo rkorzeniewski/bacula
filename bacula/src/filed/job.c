@@ -54,6 +54,9 @@ static int response(JCR *jcr, BSOCK *sd, char *resp, char *cmd);
 static void filed_free_jcr(JCR *jcr);
 static int open_sd_read_session(JCR *jcr);
 static int send_bootstrap_file(JCR *jcr);
+static int runbefore_cmd(JCR *jcr);
+static int runafter_cmd(JCR *jcr);
+static int run_cmd(JCR *jcr, char *cmd, char *name);
 
 
 /* Exported functions */
@@ -67,21 +70,23 @@ struct s_cmds {
  * The following are the recognized commands from the Director. 
  */
 static struct s_cmds cmds[] = {
-   {"backup",   backup_cmd},
-   {"cancel",   cancel_cmd},
-   {"setdebug=", setdebug_cmd},
-   {"estimate", estimate_cmd},
-   {"exclude",  exclude_cmd},
-   {"Hello",    hello_cmd},
-   {"include",  include_cmd},
-   {"JobId=",   job_cmd},
-   {"level = ", level_cmd},
-   {"restore",  restore_cmd},
-   {"session",  session_cmd},
-   {"status",   status_cmd},
-   {"storage ", storage_cmd},
-   {"verify",   verify_cmd},
-   {"bootstrap",bootstrap_cmd},
+   {"backup",       backup_cmd},
+   {"cancel",       cancel_cmd},
+   {"setdebug=",    setdebug_cmd},
+   {"estimate",     estimate_cmd},
+   {"exclude",      exclude_cmd},
+   {"Hello",        hello_cmd},
+   {"include",      include_cmd},
+   {"JobId=",       job_cmd},
+   {"level = ",     level_cmd},
+   {"restore",      restore_cmd},
+   {"session",      session_cmd},
+   {"status",       status_cmd},
+   {"storage ",     storage_cmd},
+   {"verify",       verify_cmd},
+   {"bootstrap",    bootstrap_cmd},
+   {"RunBeforeJob", runbefore_cmd},
+   {"RunAfterJob",  runafter_cmd},
    {NULL,	NULL}		       /* list terminator */
 };
 
@@ -93,6 +98,8 @@ static char restorecmd[]  = "restore replace=%c prelinks=%d where=%s\n";
 static char restorecmd1[] = "restore replace=%c prelinks=%d where=\n";
 static char verifycmd[]   = "verify level=%30s\n";
 static char estimatecmd[] = "estimate listing=%d\n";
+static char runbefore[]   = "RunBeforeJob %s\n";
+static char runafter[]    = "RunAfterJob %s\n";
 
 /* Responses sent to Director */
 static char errmsg[]      = "2999 Invalid command\n";
@@ -111,6 +118,8 @@ static char OKjob[]       = "2000 OK Job " HOST_OS "," DISTNAME "," DISTVER;
 static char OKsetdebug[]  = "2000 OK setdebug=%d\n";
 static char BADjob[]      = "2901 Bad Job\n";
 static char EndJob[]      = "2800 End Job TermCode=%d JobFiles=%u ReadBytes=%s JobBytes=%s Errors=%u\n";
+static char OKRunBefore[] = "2000 OK RunBefore\n";
+static char OKRunAfter[]  = "2000 OK RunAfter\n";
 
 /* Responses received from Storage Daemon */
 static char OK_end[]       = "3000 OK end\n";
@@ -199,6 +208,10 @@ void *handle_client_request(void *dirp)
    /* Inform Storage daemon that we are done */
    if (jcr->store_bsock) {
       bnet_sig(jcr->store_bsock, BNET_TERMINATE);
+   }
+
+   if (jcr->RunAfterJob && !job_canceled(jcr)) {
+      run_cmd(jcr, jcr->RunAfterJob, "ClientRunAfterJob");
    }
 
    /* Inform Director that we are done */
@@ -323,6 +336,81 @@ static int job_cmd(JCR *jcr)
    return bnet_fsend(dir, OKjob);
 }
 
+static int runbefore_cmd(JCR *jcr)
+{
+   int stat;
+   BSOCK *dir = jcr->dir_bsock;
+   POOLMEM *cmd = get_memory(dir->msglen+1);
+
+   Dmsg1(100, "runbefore_cmd: %s", dir->msg);
+   if (sscanf(dir->msg, runbefore, cmd) != 1) {
+      pm_strcpy(&jcr->errmsg, dir->msg);
+      Jmsg1(jcr, M_FATAL, 0, _("Bad RunBeforeJob command: %s\n"), jcr->errmsg);
+      bnet_fsend(dir, "2905 Bad RunBeforeJob command.\n");
+      free_memory(cmd);
+      return 0;
+   }
+   unbash_spaces(cmd);
+
+   /* Run the command now */
+   stat = run_cmd(jcr, cmd, "ClientRunBeforeJob");
+   free_memory(cmd);
+   if (stat) {
+      bnet_fsend(dir, OKRunBefore);
+      return 1;
+   } else {
+      bnet_fsend(dir, "2905 Bad RunBeforeJob command.\n");
+      return 0;
+   }
+}
+
+static int runafter_cmd(JCR *jcr)
+{
+   BSOCK *dir = jcr->dir_bsock;
+   POOLMEM *msg = get_memory(dir->msglen+1);
+
+   Dmsg1(100, "runafter_cmd: %s", dir->msg);
+   if (sscanf(dir->msg, runafter, msg) != 1) {
+      pm_strcpy(&jcr->errmsg, dir->msg);
+      Jmsg1(jcr, M_FATAL, 0, _("Bad RunAfter command: %s\n"), jcr->errmsg);
+      bnet_fsend(dir, "2905 Bad RunAfterJob command.\n");
+      free_memory(msg);
+      return 0;
+   }
+   unbash_spaces(msg);
+   if (jcr->RunAfterJob) {
+      free_pool_memory(jcr->RunAfterJob);
+   }
+   jcr->RunAfterJob = get_pool_memory(PM_FNAME);
+   pm_strcpy(&jcr->RunAfterJob, msg);
+   free_pool_memory(msg);
+   return bnet_fsend(dir, OKRunAfter);
+}
+
+static int run_cmd(JCR *jcr, char *cmd, char *name)
+{
+   POOLMEM *ecmd = get_pool_memory(PM_FNAME);
+   int status;
+   BPIPE *bpipe;
+   char line[MAXSTRING];
+   
+   ecmd = edit_job_codes(jcr, ecmd, cmd, "");
+   bpipe = open_bpipe(ecmd, 0, "r");
+   free_pool_memory(ecmd);
+   while (fgets(line, sizeof(line), bpipe->rfd)) {
+      Jmsg(jcr, M_INFO, 0, _("%s: %s"), name, line);
+   }
+   status = close_bpipe(bpipe);
+   if (status != 0) {
+      Jmsg(jcr, M_FATAL, 0, _("%s returned non-zero status=%d\n"), name,
+	 status);
+      set_jcr_job_status(jcr, JS_FatalError);
+      return 0;
+   }
+   return 1;
+}
+
+
 #define INC_LIST 0
 #define EXC_LIST 1
 
@@ -443,16 +531,16 @@ static int level_cmd(JCR *jcr)
    }
    /* Base backup requested? */
    if (strcmp(level, "base") == 0) {
-      jcr->save_level = L_BASE;
+      jcr->JobLevel = L_BASE;
    /* Full backup requested? */ 
    } else if (strcmp(level, "full") == 0) {
-      jcr->save_level = L_FULL;
+      jcr->JobLevel = L_FULL;
    /* 
     * Backup requested since <date> <time>
     *  This form is also used for incremental and differential
     */
    } else if (strcmp(level, "since") == 0) {
-      jcr->save_level = L_SINCE;
+      jcr->JobLevel = L_SINCE;
       if (sscanf(dir->msg, "level = since %d-%d-%d %d:%d:%d mtime_only=%d", 
 		 &tm.tm_year, &tm.tm_mon, &tm.tm_mday,
 		 &tm.tm_hour, &tm.tm_min, &tm.tm_sec, &mtime_only) != 7) {
@@ -890,6 +978,9 @@ static void filed_free_jcr(JCR *jcr)
    }
    if (jcr->last_fname) {
       free_pool_memory(jcr->last_fname);
+   }
+   if (jcr->RunAfterJob) {
+      free_pool_memory(jcr->RunAfterJob);
    }
    return;
 }
