@@ -1105,9 +1105,8 @@ try_again:
       loaded = atoi(results);
    } else {
       berrno be;
-      be.set_errno(status);
       Pmsg1(-1, _("3991 Bad autochanger command: %s\n"), changer);
-      Pmsg2(-1, _("3991 result=\"%s\": ERR=%s\n"), results, be.strerror());
+      Pmsg2(-1, _("3991 result=\"%s\": ERR=%s\n"), results, be.strerror(status));
       goto bail_out;
    }
    if (loaded) {
@@ -1129,9 +1128,8 @@ try_again:
       Pmsg2(-1, "unload status=%s %d\n", status==0?"OK":"Bad", status);
       if (status != 0) {
 	 berrno be;
-	 be.set_errno(status);
          Pmsg1(-1, _("3992 Bad autochanger command: %s\n"), changer);
-         Pmsg2(-1, _("3992 result=\"%s\": ERR=%s\n"), results, be.strerror());
+         Pmsg2(-1, _("3992 result=\"%s\": ERR=%s\n"), results, be.strerror(status));
       }
    }
 
@@ -1152,9 +1150,8 @@ try_again:
 	 slot, dev->drive_index);
    } else {
       berrno be;
-      be.set_errno(status);
       Pmsg1(-1, _("3993 Bad autochanger command: %s\n"), changer);
-      Pmsg2(-1, _("3993 result=\"%s\": ERR=%s\n"), results, be.strerror());
+      Pmsg2(-1, _("3993 result=\"%s\": ERR=%s\n"), results, be.strerror(status));
       goto bail_out;
    }
 
@@ -1514,8 +1511,9 @@ static void rrcmd()
    if (stat > 0 && stat <= len) {
       errno = 0;
    }
+   berrno be;
    Pmsg3(0, _("Read of %d bytes gives stat=%d. ERR=%s\n"),
-      len, stat, strerror(errno));
+      len, stat, be.strerror());
    free(buf);
 }
 
@@ -1545,9 +1543,10 @@ static void scancmd()
    Pmsg1(0, _("Starting scan at file %u\n"), dev->file);
    for (;;) {
       if ((stat = read(dev->fd, buf, sizeof(buf))) < 0) {
+	 berrno be;
 	 clrerror_dev(dev, -1);
          Mmsg2(dev->errmsg, "read error on %s. ERR=%s.\n",
-	    dev->dev_name, strerror(dev->dev_errno));
+	    dev->dev_name, be.strerror());
          Pmsg2(0, "Bad status from read %d. ERR=%s\n", stat, strerror_dev(dev));
 	 if (blocks > 0)
             printf("%d block%s of %d bytes in file %d\n",        
@@ -1750,6 +1749,10 @@ This may take a long time -- hours! ...\n\n");
    dev->min_block_size = dev->max_block_size;
    set_volume_name("TestVolume1", 1);
 
+   rewind_dev(dev);
+   weof_dev(dev, 1);
+   dev->state &= ~ST_APPEND;	      /* force volume to be relabeled */
+
    /* 
     * Acquire output device for writing.  Note, after acquiring a
     *	device, we MUST release it, which is done at the end of this
@@ -1772,7 +1775,7 @@ This may take a long time -- hours! ...\n\n");
 	 strerror_dev(dev));
       ok = false;
    }
-   Pmsg0(-1, "Wrote Start Of Session label.\n");
+   Pmsg0(-1, "Wrote Start of Session label.\n");
 
    memset(&rec, 0, sizeof(rec));
    rec.data = get_memory(100000);     /* max record size */
@@ -1892,7 +1895,7 @@ This may take a long time -- hours! ...\n\n");
          Pmsg0(-1, _("Set ok=false after write_block_to_device.\n"));
 	 ok = false;
       }
-      Pmsg0(-1, _("Wrote End Of Session label.\n"));
+      Pmsg0(-1, _("Wrote End of Session label.\n"));
 
       /* Save last block info for second tape */
       last_block_num2 = last_block_num;
@@ -1919,18 +1922,20 @@ This may take a long time -- hours! ...\n\n");
       Pmsg2(-1, "Wrote state file last_block_num1=%d last_block_num2=%d\n",
 	 last_block_num1, last_block_num2);
    } else {
+      berrno be;
       Pmsg2(-1, _("Could not create state file: %s ERR=%s\n"), buf,
-		 strerror(errno));
+		 be.strerror());
    }
 
+   Pmsg4(-1, _("\n\nDone filling tape%s at %d:%d. Now beginning re-read of %stape ...\n"),
+      simple?"":"s", jcr->dcr->dev->file, jcr->dcr->dev->block_num, simple?"":"first ");
+
+   jcr->dcr->block = block;
    /* Release the device if multiple tapes being used */
-   if (!simple && !release_device(jcr)) {
-      Pmsg0(-1, _("Error in release_device\n"));
-      ok = false;
-   }
-
-   Pmsg2(-1, _("\n\nDone filling tape%s. Now beginning re-read of %stape ...\n"),
-      simple?"":"s", simple?"":"first ");
+// if (!simple && !release_device(jcr)) {
+//    Pmsg0(-1, _("Error in release_device\n"));
+//    ok = false;
+// }
 
    do_unfill();
 
@@ -1971,8 +1976,9 @@ static void unfillcmd()
 	  return;
        }
    } else {
+      berrno be;
       Pmsg2(-1, "\nCould not find the state file: %s ERR=%s\n"
-             "You must redo the fill command.\n", buf, strerror(errno));
+             "You must redo the fill command.\n", buf, be.strerror());
       return;
    }
    do_unfill();
@@ -2021,7 +2027,8 @@ static void do_unfill()
       jcr->bsr = NULL;
       create_vol_list(jcr);
       close_dev(dev);
-      dev->state &= ~ST_READ;
+      dev->state &= ~(ST_READ|ST_APPEND);
+      dev->num_writers = 0;
       if (!acquire_device_for_read(jcr)) {
          Pmsg1(-1, "%s", dev->errmsg);
 	 goto bail_out;
@@ -2032,14 +2039,18 @@ static void do_unfill()
     * Note, re-reading last block may have caused us to 
     *	loose track of where we are (block number unknown).
     */
-   rewind_dev(dev);		      /* get to a known place on tape */
+   if (!rewind_dev(dev)) {		  /* get to a known place on tape */
+      goto bail_out;
+   }
    /* Read the first 1000 records */
    Pmsg0(-1, _("Reading the first 1000 records.\n"));
+   quickie_count = 0;
    read_records(dcr, quickie_cb, my_mount_next_read_volume);
    Pmsg4(-1, _("Reposition from %u:%u to %u:%u\n"), dev->file, dev->block_num,
 	 last_file, last_block_num);
    if (!reposition_dev(dev, last_file, last_block_num)) {
       Pmsg1(-1, "Reposition error. ERR=%s\n", strerror_dev(dev));
+      goto bail_out;
    }
    Pmsg1(-1, _("Reading block %u.\n"), last_block_num);
    if (!read_block_from_device(dcr, NO_BLOCK_NUMBER_CHECK)) {
@@ -2126,8 +2137,17 @@ bail_out:
 /* Read 1000 records then stop */
 static bool quickie_cb(DCR *dcr, DEV_RECORD *rec)
 {
+   DEVICE *dev = dcr->dev;
+   if (dev->file != 0) {
+      Pmsg3(-1, "ERROR! device at %d:%d count=%d\n", dev->file, dev->block_num,
+	 quickie_count);
+      return false;
+   }
    quickie_count++;
-   return quickie_count <= 1000;
+   if (quickie_count == 1000) {
+      Pmsg2(-1, "1000 records read now at %d:%d\n", dev->file, dev->block_num);
+   }
+   return quickie_count < 1000;
 }
 
 static bool compare_blocks(DEV_BLOCK *last_block, DEV_BLOCK *block) 
@@ -2177,10 +2197,10 @@ static bool compare_blocks(DEV_BLOCK *last_block, DEV_BLOCK *block)
 static int flush_block(DEV_BLOCK *block, int dump)
 {
    char ec1[50];
-   lock_device(dev);
    DEV_BLOCK *tblock;
    uint32_t this_file, this_block_num;
 
+   lock_device(dev);
    if (!this_block) {
       this_block = new_block(dev);
    }
@@ -2224,7 +2244,8 @@ static int flush_block(DEV_BLOCK *block, int dump)
       }
       kbs = (double)dev->VolCatInfo.VolCatBytes / (1000 * now);
       vol_size = dev->VolCatInfo.VolCatBytes;
-      Pmsg2(000, "End of tape. VolumeCapacity=%s. Write rate = %.1f KB/s\n", 
+      Pmsg4(000, "End of tape %d:%d. VolumeCapacity=%s. Write rate = %.1f KB/s\n", 
+	 dev->file, dev->block_num,
 	 edit_uint64_with_commas(dev->VolCatInfo.VolCatBytes, ec1), kbs);
 
       if (simple) {
@@ -2247,7 +2268,8 @@ static int flush_block(DEV_BLOCK *block, int dump)
    memcpy(this_block->buf, block->buf, this_block->buf_len);
 
    /*
-    * Toggle between two allocated blocks for efficiency.
+    * Note, we always read/write to block, but we toggle
+    *  copying it to one or another of two allocated blocks.
     * Switch blocks so that the block just successfully written is
     *  always in last_block. 
     */
@@ -2360,8 +2382,9 @@ static void rawfill_cmd()
    }
    my_errno = errno;
    printf("\n");
+   berrno be;
    printf("Write failed at block %u. stat=%d ERR=%s\n", block_num, stat,
-      strerror(my_errno));
+      be.strerror(my_errno));
    weofcmd();
 }
 

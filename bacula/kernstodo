@@ -15,6 +15,8 @@ Version 1.35                Kern (see below)
 - Doc to do unmount before removing magazine.
 - Detect fixed tape block mode during positioning by looking at
   block numbers in btape "test".  Possibly adjust in Bacula.
+- Fix possible bug in update volumefrompool (email 9/28 from
+  jesk@killall.org
 
 - Document a get out of jail procedure if everything breaks if 
   you lost/broke the Catalog -- do the same for "I know my
@@ -1360,4 +1362,3 @@ Block Position: 0
 - Fix bscan so that it releases the drive when requesting a new tape.
 - List verify options for DiskToCatalog in doc.
 - Turn on transactions if multiple connections are on in DB.
-

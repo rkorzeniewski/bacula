@@ -119,7 +119,7 @@ DEV_BLOCK *new_block(DEVICE *dev)
    block->buf = get_memory(block->buf_len); 
    empty_block(block);
    block->BlockVer = BLOCK_VER;       /* default write version */
-   Dmsg1(90, "Returning new block=%x\n", block);
+   Dmsg1(350, "Returning new block=%x\n", block);
    return block;
 }
 
@@ -721,11 +721,11 @@ bool read_block_from_device(DCR *dcr, bool check_block_numbers)
 {
    bool stat;
    DEVICE *dev = dcr->dev;
-   Dmsg0(90, "Enter read_block_from_device\n");
+   Dmsg0(200, "Enter read_block_from_device\n");
    lock_device(dev);
    stat = read_block_from_dev(dcr, check_block_numbers);
    unlock_device(dev);
-   Dmsg0(90, "Leave read_block_from_device\n");
+   Dmsg0(200, "Leave read_block_from_device\n");
    return stat;
 }
 
@@ -748,7 +748,7 @@ bool read_block_from_dev(DCR *dcr, bool check_block_numbers)
       return false;
    }
    looping = 0;
-   Dmsg1(100, "Full read() in read_block_from_device() len=%d\n",
+   Dmsg1(200, "Full read() in read_block_from_device() len=%d\n",
 	 block->buf_len);
 reread:
    if (looping > 1) {
@@ -776,7 +776,7 @@ reread:
    if (stat < 0) {
       berrno be;
       clrerror_dev(dev, -1);
-      Dmsg1(90, "Read device got: ERR=%s\n", be.strerror());
+      Dmsg1(200, "Read device got: ERR=%s\n", be.strerror());
       block->read_len = 0;
       Mmsg4(dev->errmsg, _("Read error at file:blk %u:%u on device %s. ERR=%s.\n"), 
 	 dev->file, dev->block_num, dev->dev_name, be.strerror());
@@ -786,7 +786,7 @@ reread:
       }
       return false;
    }
-   Dmsg1(90, "Read device got %d bytes\n", stat);
+   Dmsg1(200, "Read device got %d bytes\n", stat);
    if (stat == 0) {		/* Got EOF ! */
       dev->block_num = block->read_len = 0;
       Mmsg3(dev->errmsg, _("Read zero bytes at %u:%u on device %s.\n"), 
@@ -836,7 +836,7 @@ reread:
       Pmsg1(000, "%s", dev->errmsg);
       /* Attempt to reposition to re-read the block */
       if (dev->state & ST_TAPE) {
-         Dmsg0(100, "Backspace record for reread.\n");
+         Dmsg0(200, "BSR for reread; block too big for buffer.\n");
 	 if (!bsr_dev(dev, 1)) {
             Jmsg(jcr, M_ERROR, 0, "%s", strerror_dev(dev));
 	    block->read_len = 0;
