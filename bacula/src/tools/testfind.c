@@ -46,6 +46,8 @@ static void usage()
 "Usage: testfind [-d debug_level] [-] [pattern1 ...]\n"
 "       -a          print extended attributes (Win32 debug)\n"
 "       -dnn        set debug level to nn\n"
+"       -e          specify file of exclude patters\n"
+"       -i          specify file of include patters\n"
 "       -           read pattern(s) from stdin\n"
 "       -?          print this message.\n"
 "\n"
@@ -67,8 +69,11 @@ main (int argc, char *const *argv)
    FF_PKT *ff;
    char name[1000];
    int i, ch, hard_links;
+   char *inc = NULL;
+   char *exc = NULL;
+   FILE *fd;
 
-   while ((ch = getopt(argc, argv, "ad:?")) != -1) {
+   while ((ch = getopt(argc, argv, "ad:e:i:?")) != -1) {
       switch (ch) {
          case 'a':                    /* print extended attributes *debug* */
 	    attrs = 1;
@@ -79,6 +84,14 @@ main (int argc, char *const *argv)
 	    if (debug_level <= 0) {
 	       debug_level = 1; 
 	    }
+	    break;
+
+         case 'e':                    /* exclude patterns */
+	    exc = optarg;
+	    break;
+
+         case 'i':                    /* include patterns */
+	    inc = optarg;
 	    break;
 
          case '?':
@@ -93,7 +106,7 @@ main (int argc, char *const *argv)
    jcr = new_jcr(sizeof(JCR), NULL);
 
    ff = init_find_files();
-   if (argc == 0) {
+   if (argc == 0 && !inc) {
       add_fname_to_include_list(ff, 0, "/"); /* default to / */
    } else {   
       for (i=0; i < argc; i++) {
@@ -107,9 +120,33 @@ main (int argc, char *const *argv)
 	 add_fname_to_include_list(ff, 0, argv[i]); 
       }
    }
+   if (inc) {
+      fd = fopen(inc, "r");
+      if (!fd) {
+         printf("Could not open include file: %s\n", inc);
+	 exit(1);
+      }
+      while (fgets(name, sizeof(name)-1, fd)) {
+	 strip_trailing_junk(name);
+	 add_fname_to_include_list(ff, 0, name);
+      }
+      fclose(fd);
+   }
 
-  find_files(jcr, ff, print_file, NULL);
-  hard_links = term_find_files(ff);
+   if (exc) {
+      fd = fopen(exc, "r");
+      if (!fd) {
+         printf("Could not open exclude file: %s\n", exc);
+	 exit(1);
+      }
+      while (fgets(name, sizeof(name)-1, fd)) {
+	 strip_trailing_junk(name);
+	 add_fname_to_exclude_list(ff, name);
+      }
+      fclose(fd);
+   }
+   find_files(jcr, ff, print_file, NULL);
+   hard_links = term_find_files(ff);
   
    printf(_("\
 Total files    : %d\n\
