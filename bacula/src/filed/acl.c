@@ -42,7 +42,10 @@ memory leaks if you forget to free.
 
 #include "bacula.h"
 #include "filed.h"
-
+/* So we can free system allocated memory */
+#undef free
+#undef malloc
+#define malloc &* dont use malloc in this routine
 
 #else
 /*
@@ -65,7 +68,6 @@ memory leaks if you forget to free.
 
 #define POOLMEM 	   char
 #define bstrdup 	   strdup
-#define actuallyfree(x)    free(x)
 int aclls(char *fname);
 int aclcp(char *src, char *dst);
 
@@ -100,16 +102,16 @@ int bacl_set(char *fname, int acltype, char *acltext)
 
 #include <sys/access.h>
 
-POOLMEM *bacl_get(char *fname, int acltype)
+bool bacl_get(JCR *jcr, char *fname, int acltype)
 {
-   char *tmp;
-   POOLMEM *acltext = NULL;
+   char *acl_text;
 
-   if ((tmp = acl_get(fname)) != NULL) {
-      acltext = bstrdup(tmp);
-      actuallyfree(tmp);
+   if ((acl_text = acl_get(fname)) != NULL) {
+      pm_strcpy(jcr->acl_text, acl_text);
+      free(acl_text);
+      return true;
    }
-   return acltext;
+   return false;
 }
 
 int bacl_set(char *fname, int acltype, char *acltext)
@@ -148,27 +150,26 @@ int bacl_set(char *fname, int acltype, char *acltext)
 #endif
 #endif
 
-POOLMEM *bacl_get(char *fname, int acltype)
+bool bacl_get(JCR *jcr, char *fname, int acltype)
 {
    acl_t acl;
    int ostype;
-   char *tmp;
-   POOLMEM *acltext = NULL;
+   char *acl_text;
 
    ostype = (acltype & BACL_TYPE_DEFAULT) ? ACL_TYPE_DEFAULT : ACL_TYPE_ACCESS;
 
    acl = acl_get_file(fname, ostype);
    if (acl) {
-      if ((tmp = acl_to_text(acl, NULL)) != NULL) {
-	 acltext = get_pool_memory(PM_MESSAGE);
-	 pm_strcpy(acltext, tmp);
-	 acl_free(tmp);
+      if ((acl_text = acl_to_text(acl, NULL)) != NULL) {
+	 pm_strcpy(jcr->acl_text, acl_text);
+	 acl_free(acl_text);
+	 return true;
       }
-      acl_free(acl);
+      acl_free(acl_text);
    }
    /***** Do we really want to silently ignore errors from acl_get_file
      and acl_to_text?  *****/
-   return acltext;
+   return false;
 }
 
 int bacl_set(char *fname, int acltype, char *acltext)
