@@ -60,6 +60,13 @@ configure: autoconf/configure.in autoconf/aclocal.m4 autoconf/acconfig.h autocon
 	chmod 755 configure
 	@rm -f config.cache
 
+old-onfigure: autoconf/configure.in autoconf/aclocal.m4 autoconf/acconfig.h
+	cd $(srcdir);
+	autoconf --include=$(srcdir)/autoconf \
+	autoconf/configure.in > configure
+	chmod 755 configure
+	@rm -f config.cache
+
 config.status:
 	if test -x config.status; then config.status --recheck; \
 	else $(SHELL) configure; fi
