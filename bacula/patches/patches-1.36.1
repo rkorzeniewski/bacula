@@ -8,13 +8,17 @@
  This patch should fix "update slots" with two different magazines
  in different pools by checking the pool when zapping the InChanger.
 
-18Dec04
+18Dec04 1.36.1-spool.patch
  This patch fixes the despooling size printed in the Job 
  report. Previously, it reported the total size for the
  device. This patch makes it report the size for the job.
 
-21Dec04
+21Dec04 1.36.1-store.patch
  This patch fixes a problem with overriding storage daemon
  specifications. Previously they were not always honored.
  This implements more uniform handling. It also eliminates
  an orphaned buffer situation using JobDefs.
+
+21Dec04 1.36.1-reload.patch
+ This patch fixes Bacula so that it does not exit if there
+ is a syntax error in its conf file during a reload command.
