@@ -104,12 +104,13 @@ install: all
 	else \
 	   destconf=$$srcconf; \
 	fi; \
-	echo "${INSTALL_DATA} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf"; \
-	${INSTALL_DATA} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf
+	echo "${INSTALL_CONFIG} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf"; \
+	${INSTALL_CONFIG} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf
 
 uninstall:
 	(cd $(DESTDIR)$(sbindir); $(RMF) bacula-fd)
 	(cd $(DESTDIR)$(sbindir); $(RMF) bacula-fd.conf)
+	(cd $(DESTDIR)$(sbindir); $(RMF) bacula-fd.conf.new)
 
 
 

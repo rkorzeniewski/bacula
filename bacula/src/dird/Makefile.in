@@ -98,8 +98,8 @@ install: all
 	else \
 	   destconf=$$srcconf; \
 	fi; \
-	echo "${INSTALL_DATA} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf"; \
-	${INSTALL_DATA} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf
+	echo "${INSTALL_CONFIG} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf"; \
+	${INSTALL_CONFIG} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf
 	if  test -f ${DESTDIR}${sysconfdir}/query.sql; then \
 	   $(MV) -f ${DESTDIR}${sysconfdir}/query.sql ${DESTDIR}${sysconfdir}/query.sql.save; \
 	fi 
@@ -108,7 +108,7 @@ install: all
 
 uninstall:
 	(cd $(DESTDIR)$(sbindir); $(RMF) bacula-dir)
-	(cd $(DESTDIR)$(sysconfdir); $(RMF) bacula-dir.conf)
+	(cd $(DESTDIR)$(sysconfdir); $(RMF) bacula-dir.conf bacula-dir.conf.new)
 	(cd $(DESTDIR)$(sysconfdir); $(RMF) query.sql)
 
 
