@@ -4,7 +4,7 @@
 #    MySQL, SQLite, PostgreSQL
 #
 if test xsqlite = x@DB_NAME@ ; then
-  @scriptdir@/drop_sqlite_database
+  @scriptdir@/drop_sqlite_database $*
   echo "Dropped SQLite database"
 else
   if test xmysql = x@DB_NAME@ ; then 
@@ -12,8 +12,7 @@ else
     @scriptdir@/drop_mysql_database $*
     echo "Dropped MySQL database"
   else
-    # hardcoded database name - should be a parameter
-    @scriptdir@/drop_postgresql_database bacula
+    @scriptdir@/drop_postgresql_database $*
     echo "Dropped PostgreSQL database"
   fi
 fi

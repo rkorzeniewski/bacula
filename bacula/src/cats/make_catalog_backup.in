@@ -6,7 +6,7 @@
 cd @working_dir@
 rm -f bacula.sql
 if test xsqlite = x@DB_NAME@ ; then
-  echo ".dump" | @SQL_BINDIR@/sqlite bacula.db >bacula.sql
+  echo ".dump" | @SQL_BINDIR@/sqlite $* bacula.db >bacula.sql
 else
   if test xmysql = x@DB_NAME@ ; then
     @SQL_BINDIR@/mysqldump $* -f --opt bacula >bacula.sql

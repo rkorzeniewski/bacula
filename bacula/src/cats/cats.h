@@ -260,6 +260,7 @@ typedef struct s_db {
    POOLMEM *cached_path;
    int cached_path_len;           /* length of cached path */
    uint32_t cached_path_id;
+   int transaction;                   /* transaction started */
    int changes;                   /* changes made to db */
    POOLMEM *fname;                /* Filename only */
    POOLMEM *path;                 /* Path only */
