@@ -60,9 +60,7 @@ messages
 @# 
 @# now do a restore
 @#
-restore where=${cwd}/tmp/bacula-restores
-5
-done
+restore where=${cwd}/tmp/bacula-restores current all
 yes
 wait
 messages
