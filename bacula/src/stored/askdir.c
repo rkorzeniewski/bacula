@@ -103,7 +103,6 @@ static bool do_get_volume_info(DCR *dcr)
        Mmsg(jcr->errmsg, _("Error getting Volume info: %s\n"), dir->msg);
        return false;
     }
-    Dmsg2(000, "EndFile=%u EndBlock=%u\n", vol.EndFile, vol.EndBlock);
     vol.InChanger = InChanger;	      /* bool in structure */
     unbash_spaces(vol.VolCatName);
     bstrncpy(dcr->VolumeName, vol.VolCatName, sizeof(dcr->VolumeName));
