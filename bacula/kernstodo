@@ -21,6 +21,8 @@ Testing to do: (painful)
 - ***test GetFileAttributexEx, and remove MessageBox at 335 of winservice.cpp ****
 
 For 1.30 release:
+- If tape is marked read-only, then try opening it read-only rather than
+  failing, and remember that it cannot be written.
 - Refine SD waiting output:
     Device is being positioned
     >     Device is being positioned for append

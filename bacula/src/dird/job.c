@@ -54,6 +54,7 @@ extern void backup_cleanup(void);
 static semlock_t job_lock;
 static pthread_mutex_t mutex;
 static pthread_cond_t  resource_wait;
+static int waiting = 0; 	      /* count of waiting threads */
 #else
 /* Queue of jobs to be run */
 workq_t job_wq; 		  /* our job work queue */
@@ -248,6 +249,11 @@ static void *job_thread(void *arg)
    return NULL;
 }
 
+/*
+ * Acquire the resources needed. These locks limit the
+ *  number of jobs by each resource. We have limits on
+ *  Jobs, Clients, Storage, and total jobs.
+ */
 static int acquire_resource_locks(JCR *jcr)
 {
 #ifdef USE_SEMAPHORE
@@ -306,8 +312,13 @@ static int acquire_resource_locks(JCR *jcr)
 
 wait:
       P(mutex);
-      /* Wait for some resource to be released */
+      /*
+       * Wait for a resource to be released either by backoff or
+       *  by a job terminating.
+       */
+      waiting++;
       pthread_cond_wait(&resource_wait, &mutex);
+      waiting--;
       V(mutex);
       /* Try again */
    }
@@ -316,20 +327,43 @@ wait:
 }
 
 #ifdef USE_SEMAPHORE
+/*
+ * We could not get all the resource locks because 
+ *  too many jobs are running, so release any locks
+ *  we did acquire, giving others a chance to use them
+ *  while we wait.
+ */
 static void backoff_resource_locks(JCR *jcr, int count)
 {
+   P(mutex);
    switch (count) {
    case 3:
       sem_unlock(&jcr->store->sem);
+      /* Fall through wanted */
    case 2:
       sem_unlock(&jcr->client->sem);
+      /* Fall through wanted */
    case 1:
       sem_unlock(&jcr->job->sem);
       break;
    }
+   /*
+    * Since we released a lock, if there are any threads
+    *  waiting, wake them up so that they can try again.
+    */
+   if (waiting > 0) {
+      pthread_cond_broadcast(&resource_wait);
+   }
+   V(mutex);
 }
 #endif
 
+/*
+ * This is called at the end of the job to release
+ *   any resource limits on the number of jobs. If
+ *   there are any other jobs waiting, we wake them
+ *   up so that they can try again.
+ */
 static void release_resource_locks(JCR *jcr)
 {
 #ifdef USE_SEMAPHORE
@@ -338,7 +372,9 @@ static void release_resource_locks(JCR *jcr)
    sem_unlock(&jcr->client->sem);
    sem_unlock(&jcr->job->sem);
    sem_unlock(&job_lock);
-   pthread_cond_signal(&resource_wait);
+   if (waiting > 0) {
+      pthread_cond_broadcast(&resource_wait);
+   }
    V(mutex);
 #endif
 }
