@@ -56,7 +56,7 @@ messages
 @# now do a restore
 @#
 @output tmp/log2.out
-restore where=
+restore where= storage=File
 5
 done
 yes
