@@ -30,7 +30,7 @@
 #include "bacula.h"                   /* pull in global headers */
 #include "stored.h"                   /* pull in Storage Deamon headers */
 
-static bool rewrite_volume_label(JCR *jcr, DEVICE *dev, DEV_BLOCK *bloc, bool recycle);
+static bool rewrite_volume_label(DCR *dcr, DEV_BLOCK *block, bool recycle);
 
 
 /*
@@ -45,11 +45,13 @@ static bool rewrite_volume_label(JCR *jcr, DEVICE *dev, DEV_BLOCK *bloc, bool re
  *  impossible to get the requested Volume.
  *
  */
-bool mount_next_write_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, bool release)
+bool mount_next_write_volume(DCR *dcr, DEV_BLOCK *block, bool release)
 {
    int retry = 0;
    bool ask = false, recycle, autochanger;
    int vol_label_status;
+   DEVICE *dev = dcr->dev;
+   JCR *jcr = dcr->jcr;
 
    Dmsg0(100, "Enter mount_next_volume()\n");
 
@@ -250,7 +252,7 @@ read_volume:
                                    "Recycle") == 0))) {
          Dmsg0(100, "Create volume label\n");
 	 /* Create a new Volume label and write it to the device */
-	 if (!write_new_volume_label_to_dev(jcr, dev, jcr->VolumeName,
+	 if (!write_new_volume_label_to_dev(jcr->dcr, jcr->VolumeName,
 		jcr->pool_name)) {
             Dmsg0(100, "!write_vol_label\n");
 	    goto mount_next_vol;
@@ -297,7 +299,7 @@ read_volume:
     *  If the tape is marked as Recycle, we rewrite the label.
     */
    if (dev->VolHdr.LabelType == PRE_LABEL || recycle) {
-      if (!rewrite_volume_label(jcr, dev, block, recycle)) {
+      if (!rewrite_volume_label(jcr->dcr, block, recycle)) {
 	 goto mount_next_vol;
       }
    } else {
@@ -348,11 +350,14 @@ The number of files mismatch! Volume=%u Catalog=%u\n"),
  *  Returns: true if OK
  *	     false if unable to write it
  */
-static bool rewrite_volume_label(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, bool recycle)
+static bool rewrite_volume_label(DCR *dcr, DEV_BLOCK *block, bool recycle)
 {
+   DEVICE *dev = dcr->dev;
+   JCR *jcr = dcr->jcr;
+
    Dmsg1(190, "ready_for_append found freshly labeled volume. dev=%x\n", dev);
    dev->VolHdr.LabelType = VOL_LABEL; /* set Volume label */
-   if (!write_volume_label_to_block(jcr, dev, block)) {
+   if (!write_volume_label_to_block(dcr, block)) {
       return false;
    }
    /*
@@ -372,7 +377,7 @@ static bool rewrite_volume_label(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, bool r
 	 }
       }
       /* Attempt write to check write permission */
-      if (!write_block_to_dev(jcr->dcr, block)) {
+      if (!write_block_to_dev(dcr, block)) {
          Jmsg2(jcr, M_ERROR, 0, _("Unable to write device \"%s\". ERR=%s\n"),
 	    dev_name(dev), strerror_dev(dev));
 	 return false;

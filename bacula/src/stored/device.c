@@ -131,7 +131,7 @@ bool fixup_device_block_write_error(DCR *dcr, DEV_BLOCK *block)
 	edit_uint64_with_commas(dev->VolCatInfo.VolCatBlocks, b2),
 	bstrftime(dt, sizeof(dt), time(NULL)));
 
-   if (!mount_next_write_volume(jcr, dev, label_blk, 1)) {
+   if (!mount_next_write_volume(dcr, label_blk, 1)) {
       free_block(label_blk);
       P(dev->mutex);
       unblock_device(dev);

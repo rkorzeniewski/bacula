@@ -146,15 +146,15 @@ void     handle_filed_connection(BSOCK *fd, char *job_name);
 
 /* From label.c */
 int      read_dev_volume_label(DCR *dcr, DEV_BLOCK *block);
-void     create_session_label(JCR *jcr, DEV_RECORD *rec, int label);
+void     create_session_label(DCR *dcr, DEV_RECORD *rec, int label);
 void     create_volume_label(DEVICE *dev, const char *VolName, const char *PoolName);
-bool     write_new_volume_label_to_dev(JCR *jcr, DEVICE *dev, const char *VolName, const char *PoolName);
-bool     write_session_label(JCR *jcr, DEV_BLOCK *block, int label);
-bool     write_volume_label_to_block(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
+bool     write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *PoolName);
+bool     write_session_label(DCR *dcr, DEV_BLOCK *block, int label);
+bool     write_volume_label_to_block(DCR *dcr, DEV_BLOCK *block);
 void     dump_volume_label(DEVICE *dev);
 void     dump_label_record(DEVICE *dev, DEV_RECORD *rec, int verbose);
-int      unser_volume_label(DEVICE *dev, DEV_RECORD *rec);
-int      unser_session_label(SESSION_LABEL *label, DEV_RECORD *rec);
+bool     unser_volume_label(DEVICE *dev, DEV_RECORD *rec);
+bool     unser_session_label(SESSION_LABEL *label, DEV_RECORD *rec);
 
 /* From match_bsr.c */
 int      match_bsr(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, 
@@ -165,7 +165,7 @@ BSR     *find_next_bsr(BSR *root_bsr, DEVICE *dev);
 bool     match_set_eof(BSR *bsr, DEV_RECORD *rec);
 
 /* From mount.c */
-bool     mount_next_write_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, bool release);
+bool     mount_next_write_volume(DCR *dcr, DEV_BLOCK *block, bool release);
 bool     mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
 void     release_volume(JCR *jcr, DEVICE *dev);
 void     mark_volume_in_error(JCR *jcr, DEVICE *dev);

@@ -337,7 +337,7 @@ static void labelcmd()
       }
    }
    rewind_dev(dev);
-   write_new_volume_label_to_dev(jcr, jcr->device->dev, cmd, "Default");
+   write_new_volume_label_to_dev(dcr, cmd, "Default");
    Pmsg1(-1, "Wrote Volume label for volume \"%s\".\n", cmd);
 }
 
@@ -633,7 +633,7 @@ static int re_read_block_test()
       Pmsg0(0, _("Error writing record to block.\n")); 
       goto bail_out;
    }
-   if (!write_block_to_dev(jcr->dcr, block)) {
+   if (!write_block_to_dev(dcr, block)) {
       Pmsg0(0, _("Error writing block to device.\n")); 
       goto bail_out;
    } else {
@@ -644,7 +644,7 @@ static int re_read_block_test()
       Pmsg0(0, _("Error writing record to block.\n")); 
       goto bail_out;
    }
-   if (!write_block_to_dev(jcr->dcr, block)) {
+   if (!write_block_to_dev(dcr, block)) {
       Pmsg0(0, _("Error writing block to device.\n")); 
       goto bail_out;
    } else {
@@ -655,7 +655,7 @@ static int re_read_block_test()
       Pmsg0(0, _("Error writing record to block.\n")); 
       goto bail_out;
    }
-   if (!write_block_to_dev(jcr->dcr, block)) {
+   if (!write_block_to_dev(dcr, block)) {
       Pmsg0(0, _("Error writing block to device.\n")); 
       goto bail_out;
    } else {
@@ -752,7 +752,7 @@ static int write_read_test()
          Pmsg0(0, _("Error writing record to block.\n")); 
 	 goto bail_out;
       }
-      if (!write_block_to_dev(jcr->dcr, block)) {
+      if (!write_block_to_dev(dcr, block)) {
          Pmsg0(0, _("Error writing block to device.\n")); 
 	 goto bail_out;
       }
@@ -768,7 +768,7 @@ static int write_read_test()
          Pmsg0(0, _("Error writing record to block.\n")); 
 	 goto bail_out;
       }
-      if (!write_block_to_dev(jcr->dcr, block)) {
+      if (!write_block_to_dev(dcr, block)) {
          Pmsg0(0, _("Error writing block to device.\n")); 
 	 goto bail_out;
       }
@@ -860,7 +860,7 @@ static int position_test()
          Pmsg0(0, _("Error writing record to block.\n")); 
 	 goto bail_out;
       }
-      if (!write_block_to_dev(jcr->dcr, block)) {
+      if (!write_block_to_dev(dcr, block)) {
          Pmsg0(0, _("Error writing block to device.\n")); 
 	 goto bail_out;
       }
@@ -876,7 +876,7 @@ static int position_test()
          Pmsg0(0, _("Error writing record to block.\n")); 
 	 goto bail_out;
       }
-      if (!write_block_to_dev(jcr->dcr, block)) {
+      if (!write_block_to_dev(dcr, block)) {
          Pmsg0(0, _("Error writing block to device.\n")); 
 	 goto bail_out;
       }
@@ -1444,7 +1444,7 @@ static void wrcmd()
       Pmsg0(0, _("Error writing record to block.\n")); 
       goto bail_out;
    }
-   if (!write_block_to_dev(jcr->dcr, block)) {
+   if (!write_block_to_dev(dcr, block)) {
       Pmsg0(0, _("Error writing block to device.\n")); 
       goto bail_out;
    } else {
@@ -1732,7 +1732,7 @@ This may take a long time -- hours! ...\n\n");
    /*
     * Write Begin Session Record
     */
-   if (!write_session_label(jcr, block, SOS_LABEL)) {
+   if (!write_session_label(dcr, block, SOS_LABEL)) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       Jmsg1(jcr, M_FATAL, 0, _("Write session label failed. ERR=%s\n"),
 	 strerror_dev(dev));
@@ -1849,12 +1849,12 @@ This may take a long time -- hours! ...\n\n");
       } else if (!ok) {
 	 set_jcr_job_status(jcr, JS_ErrorTerminated);
       }
-      if (!write_session_label(jcr, block, EOS_LABEL)) {
+      if (!write_session_label(dcr, block, EOS_LABEL)) {
          Pmsg1(000, _("Error writting end session label. ERR=%s\n"), strerror_dev(dev));
 	 ok = false;
       }
       /* Write out final block of this session */
-      if (!write_block_to_device(jcr->dcr, block)) {
+      if (!write_block_to_device(dcr, block)) {
          Pmsg0(-1, _("Set ok=false after write_block_to_device.\n"));
 	 ok = false;
       }
@@ -2158,7 +2158,7 @@ static int flush_block(DEV_BLOCK *block, int dump)
    /* Copy block */
    this_file = dev->file;
    this_block_num = dev->block_num;
-   if (!write_block_to_dev(jcr->dcr, block)) {
+   if (!write_block_to_dev(dcr, block)) {
       Pmsg3(000, "Last block at: %u:%u this_dev_block_num=%d\n", 
 		  last_file, last_block_num, this_block_num);
       if (vol_num == 1) {
@@ -2269,7 +2269,7 @@ static void qfillcmd()
          Pmsg0(0, _("Error writing record to block.\n")); 
 	 goto bail_out;
       }
-      if (!write_block_to_dev(jcr->dcr, block)) {
+      if (!write_block_to_dev(dcr, block)) {
          Pmsg0(0, _("Error writing block to device.\n")); 
 	 goto bail_out;
       }
@@ -2372,7 +2372,7 @@ static void bfill_cmd()
       *p = block_num;
       block->binbuf = block->buf_len;
       block->bufp = block->buf + block->binbuf;
-      if (!write_block_to_dev(jcr->dcr, block)) {
+      if (!write_block_to_dev(dcr, block)) {
 	 break;
       }
       if ((block_num++ % 100) == 0) {
