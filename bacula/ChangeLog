@@ -1,5 +1,77 @@
+
+Changes to 1.35.6:
+02Oct04
+- Create patches/README and the patch summary file.
+- Use different share mode when opening files on WinMe/98/95 since
+  SHARE_DELETE is not implemented on those systems.
+- In new syntax Includes, pass *all* files through the acceptance
+  filter so that no error messages will be printed for files that
+  cannot be opened if they are excluded.
+01Oct04
+- Fix bug 126 (Martin) -- prevent failed console label request from 
+  going into fixup code and thus trying to update the catalog.
+- Always fold case in fnmatch() on Win32 systems
+30Sep04
+- Create patches directory
+- Apply Martin's patch for fixing console modifications to Verify Jobs.
+- Fix Win32 so that it can backup files that are opened by programs
+  such as Word (certain open system files cannot be backed up).
+
 Changes to 1.35.5:
+29Sep04
+- Fix Storage overrides in Run directive
+- Fix seg fault in AlertCommand
+- Fix btape "test" and "fill" commands to work with new SD
+  data structures.  There are still problems ...
+26Sep04
+- Correct buffer length passed to inet_ntop() in address_conf.c
+- Increase the debug level of a lot of messages to reduce the
+  debugging "noise".
+- Modify how ST_APPEND is handled so that nothing is written
+  to the Volume if it is not set. It is now set only when
+  the Volume label is verified, and released when the volume
+  is released. This required a number of minor but rather
+  critical and fundamental changes.
+- Improve quickly terminating a job in the SD when it errs.
+  More status checking and a few additional checks on
+  job_canceled() and check more error return statuses.
+- Added a number of debug statements (to be removed later) that
+  check the VolCatName for a name.
+- Create a single subroutine that handles terminating writing
+  on a Volume at the end of the volume (or after an error).
+- Continued to add use of the berrno classs for strerror().
+25Sep04
+- Apply conio patches supplied by Peter Eriksson for configure.in
+  conio.h and conio.c to make it work better on Solaris.
+- Make run_grub print manual procedure for installing grub
+- Add extra setsockopt keepalive.
+- Add code to set as many options as possible in the system
+  tape driver for different OSes.
+24Sep04
+- Apply Peter Eriksson's patch to configure.in fixes finding
+  correct libs on Solaris to link conio -- bug 121
+- Add expected number of files to Verify VolumeToCatalog, and
+  if it does not equal the examined files, fail the job.
+  Fixes bug -- 114
+- Modify the depend section of each Makefile.in to reference $(CXX)
+  instead of $(CC) -- bug 118
+- Remove the word "restore" from the Volumes needed message in
+  dird/bsr.c since the message is used for Restore and Verify.
+- Fix initialization and copying of the storage resource when
+  starting jobs (and in jobq.c when restarting). In some cases
+  jcr->store was not set causing a segfault -- bug 116
+23Sep04
+- More doc.
+- Pass EndFile and EndBlock to SD.  
 22Sep04
+- Fixed bscan to close() drive between tapes.
+- Turn on transactions for SQLite and PostgreSQL if
+  multiple connections are turned on.
+- Removed stripping of filename in ua_tree insertion routine.
+- Fix split_path_and_filename() routines to return zero length
+  path and files.
+- Modify update_tables scripts to convert a single blank filename
+  into an empty filename.
 - Incremented the release number because this version requires
   an update to the database.
   Use:
