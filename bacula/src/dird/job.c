@@ -124,6 +124,10 @@ static void job_monitor_watchdog(watchdog_t *self)
    unlock_jcr_chain();
 }
 
+/*
+ * Check if the maxwaittime has expired and it is possible
+ *  to cancel the job.
+ */
 static bool job_check_maxwaittime(JCR *control_jcr, JCR *jcr)
 {
    bool cancel = false;
@@ -140,41 +144,42 @@ static bool job_check_maxwaittime(JCR *control_jcr, JCR *jcr)
          "checking status\n",
 	 jcr->JobId, jcr->Job, jcr->job->MaxWaitTime);
    switch (jcr->JobStatus) {
-      case JS_Created:
-      case JS_Blocked:
+   case JS_Created:
+   case JS_Blocked:
+   case JS_WaitFD:
+   case JS_WaitSD:
+   case JS_WaitStoreRes:
+   case JS_WaitClientRes:
+   case JS_WaitJobRes:
+   case JS_WaitPriority:
+   case JS_WaitMaxJobs:
+   case JS_WaitStartTime:
+      cancel = true;
+      Dmsg0(200, "JCR blocked in #1\n");
+      break;
+   case JS_Running:
+      Dmsg0(200, "JCR running, checking SD status\n");
+      switch (jcr->SDJobStatus) {
+      case JS_WaitMount:
+      case JS_WaitMedia:
       case JS_WaitFD:
-      case JS_WaitSD:
-      case JS_WaitStoreRes:
-      case JS_WaitClientRes:
-      case JS_WaitJobRes:
-      case JS_WaitPriority:
-      case JS_WaitMaxJobs:
-      case JS_WaitStartTime:
 	 cancel = true;
-         Dmsg0(200, "JCR blocked in #1\n");
-	 break;
-      case JS_Running:
-         Dmsg0(200, "JCR running, checking SD status\n");
-	 switch (jcr->SDJobStatus) {
-	    case JS_WaitMount:
-	    case JS_WaitMedia:
-	    case JS_WaitFD:
-	       cancel = true;
-               Dmsg0(200, "JCR blocked in #2\n");
-	       break;
-	    default:
-               Dmsg0(200, "JCR not blocked in #2\n");
-	       break;
-	 }
-	 break;
-      case JS_Terminated:
-      case JS_ErrorTerminated:
-      case JS_Canceled:
-         Dmsg0(200, "JCR already dead in #3\n");
+         Dmsg0(200, "JCR blocked in #2\n");
 	 break;
       default:
-         Emsg1(M_ABORT, 0, _("Unhandled job status code %d\n"),
-	       jcr->JobStatus);
+         Dmsg0(200, "JCR not blocked in #2\n");
+	 break;
+      }
+      break;
+   case JS_Terminated:
+   case JS_ErrorTerminated:
+   case JS_Canceled:
+   case JS_FatalError:
+      Dmsg0(200, "JCR already dead in #3\n");
+      break;
+   default:
+      Jmsg1(jcr, M_ERROR, 0, _("Unhandled job status code %d\n"),
+	    jcr->JobStatus);
    }
    Dmsg3(200, "MaxWaitTime result: %scancel JCR %p (%s)\n",
          cancel ? "" : "do not ", jcr, jcr->job);
@@ -182,6 +187,10 @@ static bool job_check_maxwaittime(JCR *control_jcr, JCR *jcr)
    return cancel;
 }
 
+/*
+ * Check if maxruntime has expired and if the job can be
+ *   canceled.
+ */
 static bool job_check_maxruntime(JCR *control_jcr, JCR *jcr)
 {
    bool cancel = false;
@@ -196,27 +205,29 @@ static bool job_check_maxruntime(JCR *control_jcr, JCR *jcr)
    }
 
    switch (jcr->JobStatus) {
-      case JS_Created:
-      case JS_Blocked:
-      case JS_WaitFD:
-      case JS_WaitSD:
-      case JS_WaitStoreRes:
-      case JS_WaitClientRes:
-      case JS_WaitJobRes:
-      case JS_WaitPriority:
-      case JS_WaitMaxJobs:
-      case JS_WaitStartTime:
-      case JS_Running:
-	 cancel = true;
-	 break;
-      case JS_Terminated:
-      case JS_ErrorTerminated:
-      case JS_Canceled:
-	 cancel = false;
-	 break;
-      default:
-         Emsg1(M_ABORT, 0, _("Unhandled job status code %d\n"),
-	       jcr->JobStatus);
+   case JS_Created:
+   case JS_Running:
+   case JS_Blocked:
+   case JS_WaitFD:
+   case JS_WaitSD:
+   case JS_WaitStoreRes:
+   case JS_WaitClientRes:
+   case JS_WaitJobRes:
+   case JS_WaitPriority:
+   case JS_WaitMaxJobs:
+   case JS_WaitStartTime:
+   case JS_Differences:
+      cancel = true;
+      break;
+   case JS_Terminated:
+   case JS_ErrorTerminated:
+   case JS_Canceled:
+   case JS_FatalError:
+      cancel = false;
+      break;
+   default:
+      Jmsg1(jcr, M_ERROR, 0, _("Unhandled job status code %d\n"),
+	    jcr->JobStatus);
    }
 
    Dmsg3(200, "MaxRunTime result: %scancel JCR %p (%s)\n",

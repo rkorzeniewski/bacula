@@ -28,36 +28,44 @@
  *
  */
 
+/*
+ * Loop var through each member of table
+ */
+#define foreach_htable(var, tbl) \
+        for(((void *)(var))=(tbl)->first(); \
+            (var); \
+	    ((void *)(var))=(tbl)->next())
+
 struct hlink {
-   void *next;                        /* next hash item */
-   char *key;                         /* key this item */
-   uint32_t hash;                     /* hash for this key */
+   void *next;			      /* next hash item */
+   char *key;			      /* key this item */
+   uint32_t hash;		      /* hash for this key */
 };
 
 class htable {
-   hlink **table;                     /* hash table */
-   int loffset;                       /* link offset in item */
-   uint32_t num_items;                /* current number of items */
-   uint32_t max_items;                /* maximum items before growing */
-   uint32_t buckets;                  /* size of hash table */
-   uint32_t hash;                     /* temp storage */
-   uint32_t index;                    /* temp storage */
+   hlink **table;		      /* hash table */
+   int loffset; 		      /* link offset in item */
+   uint32_t num_items;		      /* current number of items */
+   uint32_t max_items;		      /* maximum items before growing */
+   uint32_t buckets;		      /* size of hash table */
+   uint32_t hash;		      /* temp storage */
+   uint32_t index;		      /* temp storage */
    uint32_t mask;                     /* "remainder" mask */
-   uint32_t rshift;                   /* amount to shift down */
-   hlink *walkptr;                    /* table walk pointer */
-   uint32_t walk_index;               /* table walk index */
-   void hash_index(char *key);        /* produce hash key,index */
-   void grow_table();                 /* grow the table */
+   uint32_t rshift;		      /* amount to shift down */
+   hlink *walkptr;		      /* table walk pointer */
+   uint32_t walk_index; 	      /* table walk index */
+   void hash_index(char *key);	      /* produce hash key,index */
+   void grow_table();		      /* grow the table */
 public:
    htable(void *item, void *link, int tsize = 31);
    void init(void *item, void *link, int tsize = 31);
    bool  insert(char *key, void *item);
    void *lookup(char *key);
-   void *first();                     /* get first item in table */
-   void *next();                      /* get next item in table */
+   void *first();		      /* get first item in table */
+   void *next();		      /* get next item in table */
    void destroy();
-   void stats();                      /* print stats about the table */
-   uint32_t size();                   /* return size of table */
+   void stats();		      /* print stats about the table */
+   uint32_t size();		      /* return size of table */
    void * operator new(size_t);
    void operator delete(void *);
 };

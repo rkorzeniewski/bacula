@@ -391,8 +391,8 @@ static void list_running_jobs(UAContext *ua)
 	  */
 	 if (jcr->JobType == JT_CONSOLE) {
 	    bstrftime(dt, sizeof(dt), jcr->start_time);
-	    strcpy(dt+7, dt+9);	 /* cut century */
-	    bsendmsg(ua, _("Console connected at %s\n"), dt);
+	    strcpy(dt+7, dt+9);  /* cut century */
+            bsendmsg(ua, _("Console connected at %s\n"), dt);
 	 }
 	 njobs--;
       }
@@ -543,9 +543,9 @@ static void list_terminated_jobs(UAContext *ua)
    lock_last_jobs_list();
    struct s_last_job *je;
    bsendmsg(ua, _("\nTerminated Jobs:\n"));
-   bsendmsg(ua, _(" JobId  Level   Files        Bytes Status   Finished        Name \n"));
-   bsendmsg(ua, _("====================================================================\n"));
-   for (je=NULL; (je=(s_last_job *)last_jobs->next(je)); ) {
+   bsendmsg(ua, _(" JobId  Level   Files          Bytes Status   Finished        Name \n"));
+   bsendmsg(ua, _("======================================================================\n"));
+   foreach_dlist(je, last_jobs) {
       char JobName[MAX_NAME_LENGTH];
       char *termstat;
 
@@ -590,7 +590,7 @@ static void list_terminated_jobs(UAContext *ua)
 	    *p = 0;
 	 }
       }
-      bsendmsg(ua, _("%6d  %-4s %8s %12s %-7s  %-8s %s\n"), 
+      bsendmsg(ua, _("%6d  %-4s %8s %14s %-7s  %-8s %s\n"), 
 	 je->JobId,
 	 level, 
 	 edit_uint64_with_commas(je->JobFiles, b1),

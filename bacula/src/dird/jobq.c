@@ -233,7 +233,7 @@ int jobq_add(jobq_t *jq, JCR *jcr)
       Dmsg1(100, "Prepended job=%d to ready queue\n", jcr->JobId);
    } else {
       /* Add this job to the wait queue in priority sorted order */
-      for (li=NULL; (li=(jobq_item_t *)jq->waiting_jobs->next(li)); ) {
+      foreach_dlist (li, jq->waiting_jobs) {
          Dmsg2(100, "waiting item jobid=%d priority=%d\n",
 	    li->jcr->JobId, li->jcr->JobPriority);
 	 if (li->jcr->JobPriority > jcr->JobPriority) {
@@ -283,7 +283,7 @@ int jobq_remove(jobq_t *jq, JCR *jcr)
       return stat;
    }
 
-   for (item=NULL; (item=(jobq_item_t *)jq->waiting_jobs->next(item)); ) {
+   foreach_dlist (item, jq->waiting_jobs) {
       if (jcr == item->jcr) {
 	 found = true;
 	 break;

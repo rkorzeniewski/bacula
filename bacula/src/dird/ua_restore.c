@@ -131,8 +131,7 @@ int restore_cmd(UAContext *ua, char *cmd)
    }
 
    if (!open_db(ua)) {
-      free_rx(&rx);
-      return 0;
+      goto bail_out;
    }
 
    /* Ensure there is at least one Restore Job */
@@ -150,8 +149,7 @@ int restore_cmd(UAContext *ua, char *cmd)
       bsendmsg(ua, _(
          "No Restore Job Resource found. You must create at least\n"
          "one before running this command.\n"));
-      free_rx(&rx);
-      return 0;
+      goto bail_out;
    }
 
    /* 
@@ -162,8 +160,7 @@ int restore_cmd(UAContext *ua, char *cmd)
     */
    switch (user_select_jobids_or_files(ua, &rx)) {
    case 0:
-      free_rx(&rx);
-      return 0; 		      /* error */
+      goto bail_out;
    case 1:			      /* select by jobid */
       build_directory_tree(ua, &rx);
       break;
@@ -174,16 +171,14 @@ int restore_cmd(UAContext *ua, char *cmd)
    if (rx.bsr->JobId) {
       if (!complete_bsr(ua, rx.bsr)) {	 /* find Vol, SessId, SessTime from JobIds */
          bsendmsg(ua, _("Unable to construct a valid BSR. Cannot continue.\n"));
-	 free_rx(&rx);
-	 return 0;
+	 goto bail_out;
       }
       write_bsr_file(ua, rx.bsr);
       bsendmsg(ua, _("\n%u file%s selected to be restored.\n\n"), rx.selected_files,
          rx.selected_files==1?"":"s");
    } else {
       bsendmsg(ua, _("No files selected to be restored.\n"));
-      free_rx(&rx);
-      return 0;
+      goto bail_out;
    }
 
    if (rx.restore_jobs == 1) {
@@ -192,12 +187,14 @@ int restore_cmd(UAContext *ua, char *cmd)
       job = select_restore_job_resource(ua);
    }
    if (!job) {
-      bsendmsg(ua, _("No Restore Job resource found!\n"));
-      free_rx(&rx);
-      return 0;
+      goto bail_out;
    }
 
    get_client_name(ua, &rx);
+   if (!rx.ClientName) {
+      bsendmsg(ua, _("No Restore Job resource found!\n"));
+      goto bail_out;
+   }
 
    /* Build run command */
    if (rx.where) {
@@ -222,6 +219,11 @@ int restore_cmd(UAContext *ua, char *cmd)
    bsendmsg(ua, _("Restore command done.\n"));
    free_rx(&rx);
    return 1;
+
+bail_out:
+   free_rx(&rx);
+   return 0;
+
 }
 
 static void free_rx(RESTORE_CTX *rx) 
@@ -260,7 +262,6 @@ static int get_client_name(UAContext *ua, RESTORE_CTX *rx)
       }
       memset(&cr, 0, sizeof(cr));
       if (!get_client_dbr(ua, &cr)) {
-	 free_rx(rx);
 	 return 0;
       }
       bstrncpy(rx->ClientName, cr.Name, sizeof(rx->ClientName));
@@ -579,7 +580,7 @@ static int insert_file_into_findex_list(UAContext *ua, RESTORE_CTX *rx, char *fi
    }
    rx->selected_files++;
    /*
-    * Find the FileSets for this JobId and add to the name_list
+    * Find the MediaTypes for this JobId and add to the name_list
     */
    Mmsg(&rx->query, uar_mediatype, rx->JobId);
    if (!db_sql_query(ua->db, rx->query, unique_name_list_handler, (void *)&rx->name_list)) {
@@ -676,7 +677,7 @@ static void build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
          bsendmsg(ua, "%s", db_strerror(ua->db));
       }
       /*
-       * Find the FileSets for this JobId and add to the name_list
+       * Find the MediaTypes for this JobId and add to the name_list
        */
       Mmsg(&rx->query, uar_mediatype, JobId);
       if (!db_sql_query(ua->db, rx->query, unique_name_list_handler, (void *)&rx->name_list)) {
@@ -722,6 +723,7 @@ static int select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *date
    CLIENT_DBR cr;
    char fileset_name[MAX_NAME_LENGTH];
    char ed1[50];
+   int i;
 
 
    /* Create temp tables */
@@ -743,27 +745,40 @@ static int select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *date
    bstrncpy(rx->ClientName, cr.Name, sizeof(rx->ClientName));
 
    /*
-    * Select FileSet 
+    * Get FileSet 
     */
-   Mmsg(&rx->query, uar_sel_fileset, cr.ClientId, cr.ClientId);
-   start_prompt(ua, _("The defined FileSet resources are:\n"));
-   if (!db_sql_query(ua->db, rx->query, fileset_handler, (void *)ua)) {
-      bsendmsg(ua, "%s\n", db_strerror(ua->db));
+   memset(&fsr, 0, sizeof(fsr));
+   i = find_arg_with_value(ua, "FileSet"); 
+   if (i >= 0) {
+      bstrncpy(fsr.FileSet, ua->argv[i], sizeof(fsr.FileSet));
+      if (!db_get_fileset_record(ua->jcr, ua->db, &fsr)) {
+         bsendmsg(ua, _("Error getting FileSet \"%s\": ERR=%s\n"), fsr.FileSet, 
+	    db_strerror(ua->db));
+	 i = -1;
+      }
    }
-   if (do_prompt(ua, _("FileSet"), _("Select FileSet resource"), 
+   if (i < 0) { 		      /* fileset not found */
+      Mmsg(&rx->query, uar_sel_fileset, cr.ClientId, cr.ClientId);
+      start_prompt(ua, _("The defined FileSet resources are:\n"));
+      if (!db_sql_query(ua->db, rx->query, fileset_handler, (void *)ua)) {
+         bsendmsg(ua, "%s\n", db_strerror(ua->db));
+      }
+      if (do_prompt(ua, _("FileSet"), _("Select FileSet resource"), 
 		 fileset_name, sizeof(fileset_name)) < 0) {
-      goto bail_out;
-   }
-   fsr.FileSetId = atoi(fileset_name);	/* Id is first part of name */
-   if (!db_get_fileset_record(ua->jcr, ua->db, &fsr)) {
-      bsendmsg(ua, _("Error getting FileSet record: %s\n"), db_strerror(ua->db));
-      bsendmsg(ua, _("This probably means you modified the FileSet.\n"
+	 goto bail_out;
+      }
+
+      bstrncpy(fsr.FileSet, fileset_name, sizeof(fsr.FileSet));
+      if (!db_get_fileset_record(ua->jcr, ua->db, &fsr)) {
+         bsendmsg(ua, _("Error getting FileSet record: %s\n"), db_strerror(ua->db));
+         bsendmsg(ua, _("This probably means you modified the FileSet.\n"
                      "Continuing anyway.\n"));
+      }
    }
 
 
    /* Find JobId of last Full backup for this client, fileset */
-   Mmsg(&rx->query, uar_last_full, cr.ClientId, cr.ClientId, date, fsr.FileSetId);
+   Mmsg(&rx->query, uar_last_full, cr.ClientId, cr.ClientId, date, fsr.FileSet);
    if (!db_sql_query(ua->db, rx->query, NULL, NULL)) {
       bsendmsg(ua, "%s\n", db_strerror(ua->db));
       goto bail_out;
@@ -788,7 +803,7 @@ static int select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *date
 
    /* Now find all Incremental/Decremental Jobs after Full save */
    Mmsg(&rx->query, uar_inc_dec, edit_uint64(rx->JobTDate, ed1), date,
-	cr.ClientId, fsr.FileSetId);
+	cr.ClientId, fsr.FileSet);
    if (!db_sql_query(ua->db, rx->query, NULL, NULL)) {
       bsendmsg(ua, "%s\n", db_strerror(ua->db));
    }
@@ -814,6 +829,7 @@ bail_out:
    db_sql_query(ua->db, uar_del_temp1, NULL, NULL);
    return stat;
 }
+
 
 /* Return next JobId from comma separated list */
 static int next_jobid_from_list(char **p, uint32_t *JobId)
@@ -882,14 +898,15 @@ static int last_full_handler(void *ctx, int num_fields, char **row)
 }
 
 /*
- * Callback handler build fileset prompt list
+ * Callback handler build FileSet name prompt list
  */
 static int fileset_handler(void *ctx, int num_fields, char **row)
 {
-   char prompt[MAX_NAME_LENGTH+200];
 
-   snprintf(prompt, sizeof(prompt), "%s  %s  %s", row[0], row[1], row[2]);
-   add_prompt((UAContext *)ctx, prompt);
+   /* row[0] = FileSet (name) */
+   if (row[0]) {
+      add_prompt((UAContext *)ctx, row[0]);
+   }
    return 0;
 }
 
@@ -955,9 +972,6 @@ static void free_name_list(NAME_LIST *name_list)
 
 static void get_storage_from_mediatype(UAContext *ua, NAME_LIST *name_list, RESTORE_CTX *rx)
 {
-   char name[MAX_NAME_LENGTH];
-   STORE *store = NULL;
-
    if (name_list->num_ids > 1) {
       bsendmsg(ua, _("Warning, the JobIds that you selected refer to more than one MediaType.\n"
          "Restore is not possible. The MediaTypes used are:\n"));
@@ -972,16 +986,8 @@ static void get_storage_from_mediatype(UAContext *ua, NAME_LIST *name_list, REST
       return;
    }
 
-   start_prompt(ua, _("The defined Storage resources are:\n"));
-   LockRes();
-   while ((store = (STORE *)GetNextRes(R_STORAGE, (RES *)store))) {
-      if (strcmp(store->media_type, name_list->name[0]) == 0) {
-	 add_prompt(ua, store->hdr.name);
-      }
-   }
-   UnlockRes();
-   do_prompt(ua, _("Storage"),  _("Select Storage resource"), name, sizeof(name));
-   rx->store = (STORE *)GetResWithName(R_STORAGE, name);
+   rx->store = get_storage_resource(ua, false /* don't use default */);
+
    if (!rx->store) {
       bsendmsg(ua, _("\nWarning. Unable to find Storage resource for\n"
          "MediaType %s, needed by the Jobs you selected.\n"

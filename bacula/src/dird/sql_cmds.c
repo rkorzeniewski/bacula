@@ -223,13 +223,14 @@ char *uar_create_temp1 =
 
 char *uar_last_full =
    "INSERT INTO temp1 SELECT Job.JobId,JobTdate "
-   "FROM Client,Job,JobMedia,Media WHERE Client.ClientId=%u "
+   "FROM Client,Job,JobMedia,Media,FileSet WHERE Client.ClientId=%u "
    "AND Job.ClientId=%u "
    "AND Job.StartTime<'%s' "
    "AND Level='F' AND JobStatus='T' "
    "AND JobMedia.JobId=Job.JobId "
    "AND JobMedia.MediaId=Media.MediaId "
-   "AND Job.FileSetId=%u "
+   "AND Job.FileSetId=FileSet.FileSetId "
+   "AND FileSet.FileSet='%s' "
    "ORDER BY Job.JobTDate DESC LIMIT 1";
 
 char *uar_full = 
@@ -245,13 +246,14 @@ char *uar_inc_dec =
    "INSERT INTO temp SELECT Job.JobId,Job.JobTDate,Job.ClientId,"
    "Job.Level,Job.JobFiles,Job.StartTime,Media.VolumeName,JobMedia.StartFile,"
    "Job.VolSessionId,Job.VolSessionTime "
-   "FROM Job,JobMedia,Media "
+   "FROM Job,JobMedia,Media,FileSet "
    "WHERE Job.JobTDate>%s AND Job.StartTime<'%s' "
    "AND Job.ClientId=%u "
    "AND JobMedia.JobId=Job.JobId "
    "AND JobMedia.MediaId=Media.MediaId "
    "AND Job.Level IN ('I', 'D') AND JobStatus='T' "
-   "AND Job.FileSetId=%u ";
+   "AND Job.FileSetId=FileSet.FileSetId "
+   "AND FileSet.FileSet='%s' ";
 
 char *uar_list_temp = 
    "SELECT JobId,Level,JobFiles,StartTime,VolumeName,StartFile,"
@@ -263,12 +265,12 @@ char *uar_sel_jobid_temp = "SELECT JobId FROM temp";
 
 char *uar_sel_all_temp1 = "SELECT * FROM temp1";
 
-/* Select filesets for this Client */
+/* Select FileSet names for this Client */
 char *uar_sel_fileset = 
-   "SELECT DISTINCT FileSet.FileSetId,FileSet.FileSet,FileSet.CreateTime FROM Job,"
+   "SELECT DISTINCT FileSet.FileSet FROM Job,"
    "Client,FileSet WHERE Job.FileSetId=FileSet.FileSetId "
    "AND Job.ClientId=%u AND Client.ClientId=%u "
-   "ORDER BY FileSet.CreateTime";
+   "ORDER BY FileSet.FileSet";
 
 /* Find MediaType used by this Job */
 char *uar_mediatype =

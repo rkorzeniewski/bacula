@@ -97,9 +97,12 @@ install: all
 	fi; \
 	echo "${INSTALL_CONFIG} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf"; \
 	${INSTALL_CONFIG} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf
+	if test -f static-gnome-console; then \
+	   $(INSTALL_SCRIPT) static-gnome-console $(DESTDIR)$(sbindir)/static-gnome-console; \
+	fi 
 
 uninstall:
-	(cd $(DESTDIR)$(sbindir); $(RMF) gnome-console)
+	(cd $(DESTDIR)$(sbindir); $(RMF) gnome-console static-gnome-console)
 	(cd $(DESTDIR)$(sysconfdir); $(RMF) gnome-console.conf gnome-console.conf.new)
 
 
