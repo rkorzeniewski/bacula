@@ -83,10 +83,10 @@ static int yes_no(char *prompt);
 static void usage()
 {
    fprintf(stderr,
-"Usage: dbcheck [-c config] [-C catalogname] [-d debug_level] <working-directory> <bacula-database> <user> <password> [<dbhost>]\n"
+"Usage: dbcheck [-c config] [-C catalog name] [-d debug_level] <working-directory> <bacula-database> <user> <password> [<dbhost>]\n"
 "       -b              batch mode\n"
-"       -C              catalogname in the director configfile\n"
-"       -c              director configfilename\n"
+"       -C              catalog name in the director conf file\n"
+"       -c              director conf filename\n"
 "       -dnn            set debug level to nn\n"
 "       -f              fix inconsistencies\n"
 "       -v              verbose\n"
