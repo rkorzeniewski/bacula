@@ -24,6 +24,8 @@ Testing to do: (painful)
 - Test connect timeouts.
 
 For 1.33 Testing/Documentation:
+- Combine the 3 places that search run records for the next
+  job. Use find_job_pool() modified in ua_output.c
 - Document to start higher priorty jobs before lower ones.
 - suppress "Do not forget to mount the drive!!!" if error
 - Document new records in Director. SDAddress SDDeviceName, SDPassword.
@@ -33,7 +35,7 @@ For 1.33 Testing/Documentation:
 - Add counter variable test.
                 
 For 1.33
-- Eliminate orphaned jobs: dbcheck, normal pruning, delet job command.
+- Eliminate orphaned jobs: dbcheck, normal pruning, delete job command.
   Hm.  Well, there are the remaining orphaned job records:
 
      |   105 | Llioness Save  | 0000-00-00 00:00:00 | B    | D     |        0 |             0 | f         |

@@ -46,7 +46,6 @@ extern brwlock_t con_lock;
 
 /* Forward referenced functions */
 static int do_list_cmd(UAContext *ua, char *cmd, e_list_type llist);
-static POOL *find_job_pool(JOB *job);
 
 /*
  * Turn auto display of console messages on/off
@@ -373,6 +372,9 @@ static int do_list_cmd(UAContext *ua, char *cmd, e_list_type llist)
                  strcasecmp(ua->argk[i], _("nextvolume")) == 0) {
 	 JOB *job;
 	 JCR *jcr = ua->jcr;
+	 POOL *pool;
+	 RUN *run;
+	 time_t runtime;
 
          i = find_arg_with_value(ua, "job");
 	 if (i <= 0) {
@@ -388,7 +390,9 @@ static int do_list_cmd(UAContext *ua, char *cmd, e_list_type llist)
 	       }
 	    }
 	 }
-	 if (!complete_jcr_for_job(jcr, job, find_job_pool(job))) {
+	 run = find_next_run(job, runtime);
+	 pool = run ? run->pool : NULL;
+	 if (!complete_jcr_for_job(jcr, job, pool)) {
 	    return 1;
 	 }
 	   
@@ -410,9 +414,13 @@ static int do_list_cmd(UAContext *ua, char *cmd, e_list_type llist)
    return 1;
 }
 
-static POOL *find_job_pool(JOB *job)
+/* 
+ * For a given job, we examine all his run records
+ *  to see if it is scheduled today or tomorrow.
+ */
+RUN *find_next_run(JOB *job, time_t &runtime)
 {
-   time_t now, runtime, tomorrow;
+   time_t now, tomorrow;
    RUN *run;
    SCHED *sched;
    struct tm tm;
@@ -463,7 +471,7 @@ static POOL *find_job_pool(JOB *job)
 	       tm.tm_sec = 0;
 	       runtime = mktime(&tm);
 	       if (runtime > now) {
-		  return run->pool;   /* return pool */
+		  return run;	      /* found it, return run resource */
 	       }
 	    }
 	 }
@@ -485,7 +493,7 @@ static POOL *find_job_pool(JOB *job)
 	 runtime = mktime(&tm);
          Dmsg2(200, "truntime=%d now=%d\n", runtime, now);
 	 if (runtime < tomorrow) {
-	    return run->pool;	      /* return pool */
+	    return run; 	      /* found it, return run resource */
 	 }
       }
    } /* end for loop over runs */ 
