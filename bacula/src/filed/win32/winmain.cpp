@@ -302,9 +302,7 @@ int BaculaAppMain()
 {
 /* DWORD dwThreadID; */
    pthread_t tid;
-#ifdef HAVE_WIN32
    WSA_Init();
-#endif
    HINSTANCE hLib = LoadLibrary("KERNEL32.DLL");
    if (hLib) {
       p_GetFileAttributesEx = (t_GetFileAttributesEx)
@@ -355,5 +353,6 @@ int BaculaAppMain()
    /* Call the "real" Bacula */
    BaculaMain(num_command_args, command_args);
    PostQuitMessage(0);
+   WSACleanup();
    _exit(0);
 }
