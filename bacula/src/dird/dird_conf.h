@@ -185,6 +185,8 @@ struct JOB {
    char *RestoreBootstrap;            /* Bootstrap file */
    char *RunBeforeJob;                /* Run program before Job */
    char *RunAfterJob;                 /* Run program after Job */
+   char *ClientRunBeforeJob;          /* Run client program before Job */
+   char *ClientRunAfterJob;           /* Run client program after Job */
    char *WriteBootstrap;              /* Where to write bootstrap Job updates */
    int   replace;                     /* How (overwrite, ..) */
    utime_t MaxRunTime;                /* max run time in seconds */

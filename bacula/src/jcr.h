@@ -174,7 +174,6 @@ struct JCR {
    int mtime_only;                    /* compare only mtime and not ctime as well */
    int listing;                       /* job listing in estimate */
    long Ticket;                       /* Ticket */
-   int save_level;                    /* save level */
    char *big_buf;                     /* I/O buffer */
    POOLMEM *compress_buf;             /* Compression buffer */
    int32_t compress_buf_size;         /* Length of compression buffer */
@@ -188,6 +187,7 @@ struct JCR {
    uint32_t EndBlock;
    pthread_t heartbeat_id;            /* id of heartbeat thread */
    volatile BSOCK *hb_bsock;          /* duped SD socket */
+   POOLMEM *RunAfterJob;              /* Command to run after job */
 #endif /* FILE_DAEMON */
 
 
