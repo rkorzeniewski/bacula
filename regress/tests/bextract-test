@@ -1,0 +1,65 @@
+#!/bin/sh
+#
+# Run a simple backup of the Bacula build directory but 
+#   split the archive into two volumes, then build a BSR with
+#   the restore command and use bextract to restore the files.
+#
+cwd=`pwd`
+scripts/copy-test-confs
+scripts/cleanup
+echo "${cwd}/build" >/tmp/file-list
+bin/bacula stop 2>&1 >/dev/null
+bin/drop_sqlite_tables
+bin/make_sqlite_tables
+
+echo " "
+echo " "
+echo " === Starting bextract-test  ==="
+echo " === Starting bextract-test  ===" >working/log
+echo " "
+
+bin/bacula start 2>&1 >/dev/null
+bin/console -c bin/console.conf <<END_OF_DATA
+@output /dev/null
+messages
+@output tmp/log1.out
+label storage=File1
+TestVolume001
+label storage=File1
+TestVolume002
+update Volume=TestVolume001
+6
+3000000
+10
+run job=NightlySave storage=File1
+yes
+wait
+messages
+@# 
+@# now build the bsr file
+@#
+@output tmp/log2.out
+restore where=${cwd}/tmp/bacula-restores current all
+no
+wait
+messages
+@output
+quit
+END_OF_DATA
+bin/bacula stop 2>&1 >/dev/null
+mkdir -p ${cwd}/tmp/bacula-restores
+bin/bextract -b working/restore.bsr -c bin/bacula-sd.conf ${cwd}/tmp ${cwd}/tmp/bacula-restores 2>&1 >/dev/null
+grep "^Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
+bstat=$?
+diff -r build  tmp/bacula-restores${cwd}/build
+if [ $? != 0 -o $bstat != 0 ] ; then
+   echo " "
+   echo " "
+   echo "  !!!!! bextract-test Bacula source failed!!! !!!!! "
+   echo "  !!!!! bextract-test failed!!! !!!!! " >>test.out
+   echo " "
+else
+   echo "  ===== bextract-test Bacula source OK ===== "
+   echo "  ===== bextract-test OK ===== " >>test.out
+   scripts/cleanup
+fi
