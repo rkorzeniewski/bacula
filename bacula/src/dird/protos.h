@@ -98,6 +98,9 @@ extern int start_storage_daemon_message_thread(JCR *jcr);
 extern int bget_dirmsg(BSOCK *bs);
 extern void wait_for_storage_daemon_termination(JCR *jcr);
 
+/* next_vol.c */
+int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int create);
+
 /* newvol.c */
 int newVolume(JCR *jcr, MEDIA_DBR *mr);
 

@@ -116,7 +116,7 @@ int start_storage_daemon_job(JCR *jcr)
    unbash_spaces(jcr->job->hdr.name);
    unbash_spaces(jcr->client->hdr.name);
    unbash_spaces(jcr->fileset->hdr.name);
-   if (bnet_recv(sd) > 0) {
+   if (bget_dirmsg(sd) > 0) {
        Dmsg1(110, "<stored: %s", sd->msg);
        if (sscanf(sd->msg, OKjob, &jcr->VolSessionId, 
 		  &jcr->VolSessionTime, &auth_key) != 3) {

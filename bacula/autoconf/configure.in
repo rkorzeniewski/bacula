@@ -179,7 +179,7 @@ if test x$support_gnome = xyes; then
      AC_SUBST(GNOMEUI_LIBS)
      AC_SUBST(GNOME_LIBDIR)
      AC_SUBST(GNOME_LIBS)
-     GNOME_DIR=src/gnome2-console
+     GNOME_DIR=src/gnome-console
   else
 dnl 1.4 stuff
     GNOME_INIT
@@ -1427,8 +1427,6 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/console/console.conf \
 	   src/gnome-console/Makefile \
 	   src/gnome-console/gnome-console.conf \
-	   src/gnome2-console/Makefile \
-	   src/gnome2-console/gnome-console.conf \
 	   src/tconsole/Makefile \
 	   src/dird/Makefile \
 	   src/dird/bacula-dir.conf \

@@ -171,8 +171,8 @@ int32_t bnet_recv(BSOCK *bsock)
    if (nbytes != sizeof(int32_t)) {
       bsock->errors++;
       bsock->b_errno = EIO;
-      Jmsg3(bsock->jcr, M_ERROR, 0, _("Read %d expected %d from %s\n"), nbytes, sizeof(int32_t),
-	    bsock->who);
+      Jmsg5(bsock->jcr, M_ERROR, 0, _("Read expected %d got %d from %s:%s:%d\n"), pktsiz, nbytes,
+	    bsock->who, bsock->host, bsock->port);
       return BNET_ERROR;
    }
 
@@ -188,7 +188,9 @@ int32_t bnet_recv(BSOCK *bsock)
    /* If signal or packet size too big */
    if (pktsiz < 0 || pktsiz > 1000000) {
       if (pktsiz > 0) { 	      /* if packet too big */
-         Jmsg0(bsock->jcr, M_FATAL, 0, _("Received packet too big. Terminating.\n"));
+	 Jmsg3(bsock->jcr, M_FATAL, 0, 
+            _("Packet size too big from \"%s:%s:%d. Terminating connection.\n"),
+	    bsock->who, bsock->host, bsock->port);
 	 pktsiz = BNET_TERMINATE;     /* hang up */
       }
       if (pktsiz == BNET_TERMINATE) {
@@ -313,10 +315,13 @@ bnet_send(BSOCK *bsock)
 {
    int32_t rc;
    int32_t pktsiz;
+   int32_t msglen;
 
    if (bsock->errors || bsock->terminated) {
       return 0;
    }
+   msglen = bsock->msglen;
+   ASSERT(bsock->msglen < 1000000);
    pktsiz = htonl((int32_t)bsock->msglen);
    /* send int32_t containing size of data packet */
    bsock->timer_start = watchdog_time; /* start timer */
@@ -348,6 +353,7 @@ bnet_send(BSOCK *bsock)
 
    bsock->out_msg_no++; 	      /* increment message number */
    if (bsock->msglen <= 0) {	      /* length only? */
+      ASSERT(msglen == bsock->msglen);
       return 1; 		      /* yes, no data */
    }
 
@@ -374,6 +380,7 @@ bnet_send(BSOCK *bsock)
       }
       return 0;
    }
+   ASSERT(msglen == bsock->msglen);
    return 1;
 }
 

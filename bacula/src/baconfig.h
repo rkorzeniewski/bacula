@@ -30,6 +30,8 @@
 
 /* Bacula common configuration defines */
 
+#undef  TRUE
+#undef  FALSE
 #define TRUE  1
 #define FALSE 0
 

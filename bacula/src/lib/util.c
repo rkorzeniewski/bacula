@@ -437,6 +437,7 @@ POOLMEM *edit_job_codes(JCR *jcr, char *omsg, char *imsg, char *to)
 {
    char *p, *str;
    char add[20];
+   char name[MAX_NAME_LENGTH];
 
    *omsg = 0;
    Dmsg1(200, "edit_job_codes: %s\n", imsg);
@@ -468,6 +469,14 @@ POOLMEM *edit_job_codes(JCR *jcr, char *omsg, char *imsg, char *to)
          case 'l':
 	    str = job_level_to_str(jcr->JobLevel);
 	    break;
+         case 'n':
+             str = strchr(jcr->Job, '.');
+	     for (int i=0; i<str-jcr->Job-1; i++) {
+		name[i] = jcr->Job[i];
+		name[i+1] = 0;
+	     }
+	     str = name;
+	     break;
          case 'r':
 	    str = to;
 	    break;

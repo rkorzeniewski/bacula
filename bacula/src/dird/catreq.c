@@ -70,7 +70,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
    MEDIA_DBR mr, sdmr; 
    JOBMEDIA_DBR jm;
    char Job[MAX_NAME_LENGTH];
-   int index, ok, relabel, writing, retry = 0;
+   int index, ok, relabel, writing;
    POOLMEM *omsg;
 
    memset(&mr, 0, sizeof(mr));
@@ -82,88 +82,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
     */
    Dmsg1(200, "catreq %s", bs->msg);
    if (sscanf(bs->msg, Find_media, &Job, &index) == 2) {
-      mr.PoolId = jcr->PoolId;
-      bstrncpy(mr.MediaType, jcr->store->media_type, sizeof(mr.MediaType));
-      Dmsg2(120, "CatReq FindMedia: Id=%d, MediaType=%s\n",
-	 mr.PoolId, mr.MediaType);
-      /*
-       * Find the Next Volume for Append
-       */
-      db_lock(jcr->db);
-      for ( ;; ) {
-         strcpy(mr.VolStatus, "Append");  /* want only appendable volumes */
-	 ok = db_find_next_volume(jcr, jcr->db, index, &mr);  
-         Dmsg2(100, "catreq after find_next_vol ok=%d FW=%d\n", ok, mr.FirstWritten);
-	 if (!ok) {
-	    /* Well, try finding recycled volumes */
-	    ok = find_recycled_volume(jcr, &mr);
-            Dmsg2(100, "find_recycled_volume %d FW=%d\n", ok, mr.FirstWritten);
-	    if (!ok) {
-	       prune_volumes(jcr);  
-	       ok = recycle_oldest_purged_volume(jcr, &mr);
-               Dmsg2(200, "find_recycled_volume2 %d FW=%d\n", ok, mr.FirstWritten);
-	       if (!ok) {
-		  /* See if we can create a new Volume */
-		  ok = newVolume(jcr, &mr);
-	       }
-	    }
-
-	    if (!ok && (jcr->pool->purge_oldest_volume ||
-			jcr->pool->recycle_oldest_volume)) {
-               Dmsg2(200, "No next volume found. PurgeOldest=%d\n RecyleOldest=%d",
-		   jcr->pool->purge_oldest_volume, jcr->pool->recycle_oldest_volume);
-	       /* Find oldest volume to recycle */
-	       ok = db_find_next_volume(jcr, jcr->db, -1, &mr);
-               Dmsg1(400, "Find oldest=%d\n", ok);
-	       if (ok) {
-		  UAContext *ua;
-                  Dmsg0(400, "Try purge.\n");
-		  /* Try to purge oldest volume */
-		  ua = new_ua_context(jcr);
-		  if (jcr->pool->purge_oldest_volume) {
-                     Jmsg(jcr, M_INFO, 0, _("Purging oldest volume \"%s\"\n"), mr.VolumeName);
-		     ok = purge_jobs_from_volume(ua, &mr);
-		  } else {
-                     Jmsg(jcr, M_INFO, 0, _("Pruning oldest volume \"%s\"\n"), mr.VolumeName);
-		     ok = prune_volume(ua, &mr);
-		  }
-		  free_ua_context(ua);
-		  if (ok) {
-		     ok = recycle_volume(jcr, &mr);
-                     Dmsg1(400, "Recycle after purge oldest=%d\n", ok);
-		  }
-	       }
-	    }
-	 }
-	 /* Check if use duration applies, then if it has expired */
-         Dmsg2(100, "VolJobs=%d FirstWritten=%d\n", mr.VolJobs, mr.FirstWritten);
-	 if (ok && mr.VolJobs > 0 && mr.VolUseDuration > 0 && 
-              strcmp(mr.VolStatus, "Append") == 0) {
-	    utime_t now = time(NULL);
-	    if (mr.VolUseDuration <= (now - mr.FirstWritten)) {
-	       ok = FALSE;
-               Dmsg4(100, "Duration=%d now=%d start=%d now-start=%d\n",
-		  (int)mr.VolUseDuration, (int)now, (int)mr.FirstWritten, 
-		  (int)(now-mr.FirstWritten));
-               Jmsg(jcr, M_INFO, 0, _("Max configured use duration exceeded. "       
-                  "Marking Volume \"%s\" as Used.\n"), mr.VolumeName);
-               strcpy(mr.VolStatus, "Used");  /* yes, mark as used */
-	       if (!db_update_media_record(jcr, jcr->db, &mr)) {
-                  Jmsg(jcr, M_ERROR, 0, _("Catalog error updating volume \"%s\". ERR=%s"),
-		       mr.VolumeName, db_strerror(jcr->db));
-	       }	   
-	       if (retry++ < 200) {	       /* sanity check */
-		  continue;		       /* try again from the top */
-	       } else {
-		  Jmsg(jcr, M_ERROR, 0, _(
-"We seem to be looping trying to find the next volume. I give up.\n"));
-	       }
-	    }
-	 }
-	 break;
-      } /* end for loop */
-      db_unlock(jcr->db);
-
+      ok = find_next_volume_for_append(jcr, &mr, TRUE /*create*/);
       /*
        * Send Find Media response to Storage daemon 
        */

@@ -95,7 +95,7 @@ int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
       memset(jcr->sd_auth_key, 0, strlen(jcr->sd_auth_key));
    }
    Dmsg1(100, ">filed: %s", fd->msg);
-   if (bnet_recv(fd) > 0) {
+   if (bget_dirmsg(fd) > 0) {
        Dmsg1(110, "<filed: %s", fd->msg);
        if (strncmp(fd->msg, OKjob, strlen(OKjob)) != 0) {
           Jmsg(jcr, M_FATAL, 0, _("File daemon \"%s\" rejected Job command: %s\n"), 
@@ -228,8 +228,8 @@ static int send_list(JCR *jcr, int list)
       for (int j=0; j<fo->match.size(); j++) {
          Dmsg1(100, "Match=%s\n", fo->match.get(j));
       }
-      for (int j=0; j<ie->num_names; j++) {
-	 p = ie->name_list[j];
+      for (int j=0; j<ie->name_list.size(); j++) {
+	 p = (char *)ie->name_list.get(j);
 	 switch (*p) {
          case '|':
             fd->msg = edit_job_codes(jcr, fd->msg, p, "");

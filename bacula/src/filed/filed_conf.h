@@ -64,6 +64,7 @@ struct CLIENT {
    MSGS *messages;                    /* daemon message handler */
    int MaxConcurrentJobs;
    utime_t heartbeat_interval;        /* Interval to send heartbeats to Dir */
+   utime_t SDConnectTimeout;          /* timeout in seconds */
 };
 
 
@@ -77,4 +78,3 @@ union URES {
    MSGS   res_msgs;
    RES    hdr;
 };
-
