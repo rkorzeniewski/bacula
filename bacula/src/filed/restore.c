@@ -236,13 +236,13 @@ void do_restore(JCR *jcr)
       case STREAM_WIN32_GZIP_DATA:  
 #ifdef HAVE_LIBZ
 	 if (extract) {
-	    ser_declare;
 	    uLong compress_len;
-	    uint64_t faddr;
-	    char ec1[50];
 	    int stat;
 
 	    if (stream == STREAM_SPARSE_GZIP_DATA) {
+	       ser_declare;
+	       uint64_t faddr;
+	       char ec1[50];
 	       wbuf = sd->msg + SPARSE_FADDR_SIZE;
 	       wsize = sd->msglen - SPARSE_FADDR_SIZE;
 	       ser_begin(sd->msg, SPARSE_FADDR_SIZE);
