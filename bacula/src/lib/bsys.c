@@ -374,7 +374,7 @@ void read_state_file(char *dir, const char *progname, int port)
 
    Mmsg(&fname, "%s/%s.%d.state", dir, progname, port);
    /* If file exists, see what we have */
-   if ((sfd = open(mp_chr(fname), O_RDONLY)) < 0 ||
+   if ((sfd = open(mp_chr(fname), O_RDONLY, 0)) < 0 ||
        read(sfd, &hdr, sizeof(hdr)) < 0 ||
        hdr.version != state_hdr.version) {
       goto bail_out;
