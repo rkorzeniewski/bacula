@@ -1665,6 +1665,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/win32/baculafd/bacula-fd.conf \
 	   src/win32/Makefile \
 	   src/win32/console/bconsole.conf \
+	   src/win32/wx-console/wx-console.conf \
 	   $PFILES ],  
 	  [(echo "Doing make of dependencies"; make depend;) ]
 )
