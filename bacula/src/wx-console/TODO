@@ -1,8 +1,6 @@
 FEATURES
 --------
 
-GTK : Fix 100% CPU usage when waiting for results
-
 wxbMainFrame : Add some text in front of the command window such as 
    "Command: " so that the user knows he can type into the 
    command line
@@ -15,7 +13,7 @@ wxbRestorePanel : Change defaults values when Job Name changes (first configure)
 
 wxbRestorePanel : Add titles to configuration panel
 
-general : Show nice messages when errors occurs.
+general : Show nice messages boxes when errors occurs.
 
 wxbMainFrame : set focus to type control when clicking on console
 
@@ -24,8 +22,10 @@ wxbRestorePanel : Add a Cancel Restore button
 
 general : Allow the user to quit however the state is (kill thread if necessary)
 
-VC++ : crashing when there's no configuration file, when server is unreachable,
-       when connection has been interrupted and wants to quit (on every error ?)
+general : correct segmentation fault when exiting
+
+wxbRestorePanel : Check more carefully which job we just have run
+   (an elegant solution would need director modification).
 
 [postponed to July:]
 
@@ -85,9 +85,6 @@ general : find out why I had to modify string.cpp and string.h
 
 mingw : correct findlib stat blocks and block size
         (Note : nothing to do with wx-console)
-
-wxbRestorePanel : Check more carefully which job we just have run
-   (needs director modification).
 
 wxbRestorePanel : The + only appears when one selects a directory, 
    to indicate it has subdirectories

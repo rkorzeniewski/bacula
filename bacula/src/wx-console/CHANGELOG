@@ -1,3 +1,9 @@
+30-04-2004 :
+ - wxbMainFrame : Fixed 100% CPU usage in GTK : added buffering when
+     receiving data to print to the console (thanks to Phil)
+ - wxbRestorePanel : Fixed 100% CPU usage in GTK : added sleeps between
+     Yields.
+
 29-04-2004 :
  - wxbRestorePanel : Modified the way a restore is started : much
      more parameters are modifiable.
