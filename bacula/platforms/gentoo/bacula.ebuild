@@ -1,8 +1,13 @@
 # Copyright 2004 D. Scott Barninger
 # Copyright 1999-2004 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
+#
 # Modified from bacula-1.34.5.ebuild for 1.36.0 release
 # 24 Oct 2004 D. Scott Barninger <barninger at fairfieldcomputers dot com>
+#
+# added cdrom rescue for 1.36.1
+# init script now comes from source package not ${FILES} dir
+# 26 Nov 2004 D. Scott Barninger <barninger at fairfieldcomputers dot com>
 
 DESCRIPTION="featureful client/server network backup suite"
 HOMEPAGE="http://www.bacula.org/"
@@ -16,7 +21,7 @@ IUSE="readline tcpd gnome mysql sqlite X static postgres wxwindows"
 inherit eutils
 
 #theres a local sqlite use flag. use it -OR- mysql, not both.
-#mysql is the reccomended choice ...
+#mysql is the recommended choice ...
 #may need sys-libs/libtermcap-compat but try without first
 DEPEND=">=sys-libs/zlib-1.1.4
 	sys-apps/mtx
@@ -37,12 +42,7 @@ RDEPEND="${DEPEND}
 
 src_compile() {
 
-	# patch configure for scripts/bacula-tray-monitor.desktop
-	patch ${S}/configure ${FILESDIR}/${P}-configure.diff
-
 	local myconf=""
-
-	#sed -i -e "s:$bindir/mysql:$bindir/mysql -p:g" grant_mysql_privileges.in
 
 	#define this to skip building the other daemons ...
 	[ -n "$BUILD_CLIENT_ONLY" ] \
@@ -108,10 +108,13 @@ src_compile() {
 
 	emake || die "compile problem"
 
+	# for the rescue package regardless of use static
+	cd ${S}/src/filed
+	make static-bacula-fd
+	cd ${S}
+
 	if use static
 	then
-		cd ${S}/src/filed
-		make static-baula-fd
 		cd ${S}/src/console
 		make static-console
 		cd ${S}/src/dird
@@ -152,7 +155,7 @@ src_install() {
 			cd ${S}/src/wx-console
 			cp static-wx-console ${D}/usr/sbin/wx-console
 		fi
-		cd ${S}/src/storge
+		cd ${S}/src/stored
 		cp static-bacula-sd ${D}/usr/sbin/bacula-sd
 	fi
 
@@ -175,6 +178,13 @@ src_install() {
 	cp ${S}/updatedb/* ${D}/etc/bacula/updatedb/
 	chmod 754 ${D}/etc/bacula/updatedb/*
 
+	# the cdrom rescue package
+	mkdir -p ${D}/etc/bacula/rescue/cdrom
+	cp -R ${S}/rescue/linux/cdrom/* ${D}/etc/bacula/rescue/cdrom/
+	mkdir ${D}/etc/bacula/rescue/cdrom/bin
+	cp ${S}/src/filed/static-bacula-fd ${D}/etc/bacula/rescue/cdrom/bin/bacula-fd
+	chmod 754 ${D}/etc/bacula/rescue/cdrom/bin/bacula-fd
+
 	# documentation
 	for a in ${S}/{Changelog,README,ReleaseNotes,kernstodo,LICENSE,doc/bacula.pdf}
 	do
@@ -191,8 +201,9 @@ src_install() {
 	# remove the working dir so we can add it postinst with group
 	rmdir ${D}/var/bacula
 
+	# this is now in the source package processed by configure
 	exeinto /etc/init.d
-	newexe ${FILESDIR}/bacula-init bacula
+	newexe ${S}/platforms/gentoo/bacula-init bacula
 }
 
 pkg_postinst() {
@@ -208,9 +219,18 @@ pkg_postinst() {
 	# the working directory
 	install -m0750 -o root -g bacula -d ${ROOT}/var/bacula
 
+	# link installed bacula-fd.conf into rescue directory
+	ln -s /etc/bacula/rescue/cdrom/bacula-fd.conf /etc/bacula/bacula-fd.conf
+
+	einfo
+	einfo "The CDRom rescue disk package has been installed into the"
+	einfo "/etc/bacula/rescue/cdrom/ directory. Please examine the manual"
+	einfo "for information on creating a rescue CD."
+	einfo
+
 	einfo
 	einfo "Please note either/or nature of database USE flags for"
-	einfo "Bacula.  If mysql is set, it will be used, else postgresql"
+	einfo "Bacula.  If mysql is set, it will be used, else postgres"
 	einfo "else finally SQLite.  If you wish to have multiple DBs on"
 	einfo "one system, you may wish to unset auxillary DBs for this"
 	einfo "build."
@@ -220,7 +240,7 @@ pkg_postinst() {
 	then
 	# test for an existing database
 	# note: this ASSUMES no password has been set for bacula database
-	DB_VER=`mysql bacula -e 'select * from Version;'|tail -n 1 2>/dev/null`
+	DB_VER=`mysql 2>/dev/null bacula -e 'select * from Version;'|tail -n 1`
 		if [ -z "$DB_VER" ]; then
 		einfo "This appears to be a new install and you plan to use mysql"
 		einfo "for your catalog database. You should now create it by doing"
@@ -243,18 +263,18 @@ pkg_postinst() {
 		fi
 	fi
 
-	if use postgresql
+	if use postgres
 	then
 	# test for an existing database
 	# note: this ASSUMES no password has been set for bacula database
-	DB_VER=`echo 'select * from Version;' | psql bacula | tail -3 | head -1 2>/dev/null`
+	DB_VER=`echo 'select * from Version;' | psql bacula 2>/dev/null | tail -3 | head -1`
 		if [ -z "$DB_VER" ]; then
 		einfo "This appears to be a new install and you plan to use postgresql"
 		einfo "for your catalog database. You should now create it by doing"
 		einfo "these commands:"
-		einfo " sh /etc/bacula/grant_postgresql_privileges"
 		einfo " sh /etc/bacula/create_postgresql_database"
 		einfo " sh /etc/bacula/make_postgresql_tables"
+		einfo " sh /etc/bacula/grant_postgresql_privileges"
 		elif [ "$DB_VER" -lt "8" ]; then
 		elinfo "This release requires an upgrade to your bacula database"
 		einfo "as the database format has changed.  Please read the"
@@ -274,7 +294,7 @@ pkg_postinst() {
 	then
 	# test for an existing database
 	# note: this ASSUMES no password has been set for bacula database
-	DB_VER=`echo "select * from Version;" | sqlite /var/bacula/bacula.db | tail -n 1 2>/dev/null`
+	DB_VER=`echo "select * from Version;" | sqlite 2>/dev/null /var/bacula/bacula.db | tail -n 1`
 		if [ -z "$DB_VER" ]; then
 		einfo "This appears to be a new install and you plan to use sqlite"
 		einfo "for your catalog database. You should now create it by doing"
@@ -288,7 +308,7 @@ pkg_postinst() {
 		einfo "manual chapter for how to upgrade your database!!!"
 		einfo
 		einfo "Backup your database with the command:"
-		einfo " echo .dump | sqlite /var/bacula/bacula.db | bzip2 > \"
+		einfo " echo .dump | sqlite /var/bacula/bacula.db | bzip2 > \\"
 		einfo "   /var/bacula/bacula_backup.sql.bz2"
 		einfo
 		einfo "Then update your database using the scripts found in"
@@ -299,7 +319,7 @@ pkg_postinst() {
 	fi
 
 	einfo
-	einfo "Then setup your configuration files in /etc/bacula and"
+	einfo "Review your configuration files in /etc/bacula and"
 	einfo "start the daemons:"
 	einfo " /etc/init.d/bacula start"
 	einfo
