@@ -43,8 +43,15 @@ For 1.33 Testing/Documentation:
 - Add multiple-media-types.txt
 - look at mxt-changer.html
 
+1.34.3 Items:
+- Document dbcheck conf changes.
+- Add regression of btape "fill" 
+- Document if absolute path specified extension must be specified
+  on Win32.
 
 For version 1.35:
+- Do tape alerts -- see tapealert.txt
+- Implement restore directory.
 - Add All Local Partitions = yes to new style saves.
 - Document streams and how to implement them.
 - On Win95
@@ -57,7 +64,7 @@ For version 1.35:
   and upgrades the current backup if one exists.
 - Check that barcode reading and update slots scan works.
 - Try not to re-backup a file if a new hard link is added.
-- Backup hard links only, but not the data.
+- Add feature to backup hard links only, but not the data.
 - Add "All Local = yes" option to save to include all local partitions.
 - Fix stream handling to be simpler.
 - Add Priority and Bootstrap to Run a Job.
@@ -93,6 +100,7 @@ For version 1.35:
 - Investigate adding Mac Resource Forks.
 - Finish work on Gnome restore GUI.
 - Fix "llist jobid=xx" where no fileset or client exists.
+- Check pruning of restore jobs.
 - From Chris Hull:
    it seems to be complaining about 12:00pm which should be a valid 12
    hour time.  I changed the time to 11:59am and everything works fine.

@@ -1,4 +1,71 @@
 
+2004-06-xx Version 1.34.3 xxJun04 Release
+02Jun04
+- Print "Unimplemented" message if user does reload command in Console.
+- Add DISTINCT to Volumes for restore in query message (user supplied fix).
+- Fix crash in btape during read after fill -- important bug.
+- Turn config parse ABORTs into ERROR_TERM in Storage daemon.
+- Add dbcheck enhancements submitted by Mano Abels and
+  Jose Luis Tallon.
+- Update autoconf files to latest version.
+01Jun04
+- Modify jobq scheduler to require exclusive use of the Storage device
+  before starting it.
+31May04
+- Eliminate a few compiler warnings on Win32
+- Change Win32 to use btimers instead of timers.
+- Remove two returns in void subroutines in wxbconfigpanel.cpp
+30May04
+- Apply Christopher Hull's check for error return from open_bpipe()
+  in filed/job.c
+- Be sure to clear *all* bits in hourly when an hour is given.
+- Apply a user fix to query.sql
+- Check status code returned from _open_osfhandle in compat
+28May04
+- Apply Peter Eriksson's bug fixes.
+- Add Alpha (tru64) submitted by Scott Bailey.
+- Update manual
+- Add new Autochanger to list supported
+- Cleanup src dir better after glade trashes it with junk
+- Make another attempt to get hourly, daily, ... keywords working
+  intuitively and correctly.
+- Prevent seg fault when no job name specified on "status job"
+- Rename timers.h/.c in lib to prevent conflict on some machines
+- Trap NULL DCR in block.c
+- Add additional info to failed btape test pointing user to manual.
+- Undefine DCR, which is defined on some stupid systems.
+- Fix stored/dircmd.c not to quote Volume name on label query so that
+  "update slots scan" works right (the quotes confused it).
+- Fix autochanger.c not to attempt to unload a slot if the prior loaded
+  request returned -1.
+01May04
+- In testing for Mike Acar's problem. I *finally* found and nailed
+  the mount command that did not release a waiting job. The return
+  of a stolen lock forgot to broadcast.
+- In examining Mike Acar's problems, it appears that the Bacula                      
+  block size is not always set to a multiple of 1024. I've modified
+  block.c to do so.
+30Apr04
+- Add Excludes to new FileSet handling.
+- Fix bsmtp.c to correspond to RFC-2821 by removing extra spaces.
+29Apr04
+- Implement new style FileSets in both the Director and in the
+  File daemon. No filters yet. Both old and new styles work.
+28Apr04
+- Apply the fixes Chris Hanson sent for mtx-changer and for detecting
+  PostgreSQL on debian.
+- Rework File Options document
+- Re-begin work on File Options.
+- Add define for nl_langinfo in configure
+- Add additional tape drives sent by Jesse.
+27Apr04
+- Modify syslog in win32/compat to throw up a MessageBox().
+- Inhibit sending daemon messages to stdout if Win32 is set.
+- PostgreSQL performance updates from Volker Goetz
+- DB script updates suggested by Dan
+- Doc updates
+
+
 2004-04-26 Version 1.34.2 24Apr04 Release
 24Apr04
 - Get production build on Win32 of wx-console working -- mostly a problem

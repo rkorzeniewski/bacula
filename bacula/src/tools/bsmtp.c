@@ -77,8 +77,12 @@ static void get_response(void)
     char buf[MAXSTRING];
 
     Dmsg0(50, "Calling fgets on read socket rfp.\n");
+    buf[3] = 0;
     while (fgets(buf, sizeof(buf), rfp)) {
-	buf[strlen(buf)-1] = 0;
+	int len = strlen(buf);
+	if (len > 0) {
+	   buf[len-1] = 0;
+	}
         Dmsg2(10, "%s --> %s\n", mailhost, buf);
         if (!isdigit((int)buf[0]) || buf[0] > '3') {
             Pmsg2(0, "Fatal malformed reply from %s: %s\n", mailhost, buf);
