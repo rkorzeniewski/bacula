@@ -1123,6 +1123,14 @@ void wxbRestorePanel::CmdListJobs() {
                delete dt;
                return;
             }
+            else if (((*dt)[i].Index("ERROR") > -1) || ((*dt)[i].Index("Query failed") > -1)) {
+               configPanel->AddRowChoice("Before", "Cannot get previous backups list, see console.");
+               configPanel->SetRowSelection("Before", 0);
+               configPanel->EnableApply(true); // Enabling the not existing apply button disables the ok button.
+               delete tableparser;
+               delete dt;
+               return;
+            }
          }
       }
       

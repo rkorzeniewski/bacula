@@ -1,3 +1,7 @@
+16-07-2004 :
+ - wxbRestorePanel : Fixed crash when an error occurs while querying
+    restore list (reported by Dan Langille).
+
 15-07-2004 :
  - wxbMainFrame : When an unexpected question is in this format 
     (***? (yes/mod/no):), a list is shown to choose one of these 
