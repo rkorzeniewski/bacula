@@ -214,6 +214,9 @@
  
 #undef HAVE_BIGENDIAN
 
+/* Defined if Gtk+-2.4 or greater is present */
+#undef HAVE_GTK_2_4
+
 /* Define to 1 if the `closedir' function returns void instead of `int'. */
 #undef CLOSEDIR_VOID
 
@@ -587,9 +590,9 @@
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
    automatically deduced at run-time.
-        STACK_DIRECTION > 0 => grows toward higher addresses
-        STACK_DIRECTION < 0 => grows toward lower addresses
-        STACK_DIRECTION = 0 => direction of growth unknown */
+	STACK_DIRECTION > 0 => grows toward higher addresses
+	STACK_DIRECTION < 0 => grows toward lower addresses
+	STACK_DIRECTION = 0 => direction of growth unknown */
 #undef STACK_DIRECTION
 
 /* Define to 1 if the `S_IS*' macros in <sys/stat.h> do not work properly. */

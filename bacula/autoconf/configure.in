@@ -244,6 +244,11 @@ if test x$support_tray_monitor = xyes; then
      AC_SUBST(TRAY_MONITOR_CPPFLAGS)
      AC_SUBST(TRAY_MONITOR_LDFLAGS)
      TRAY_MONITOR_DIR=src/tray-monitor
+     abc=`$PKGCONFIG --atleast-version=2.4 gtk+-2.0`
+     pkg=$?
+     if test $pkg = 0; then
+        AC_DEFINE(HAVE_GTK_2_4)
+     fi
   fi
 fi
 AC_SUBST(TRAY_MONITOR_DIR)

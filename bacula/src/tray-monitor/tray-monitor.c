@@ -384,12 +384,21 @@ Without that I don't how to get status from the File or Storage Daemon :-(\n"), 
 }
 
 static void MonitorAbout(GtkWidget *widget, gpointer data) {
+#if HAVE_GTK_2_4
    GtkWidget* about = gtk_message_dialog_new_with_markup(GTK_WINDOW(window),GTK_DIALOG_MODAL, GTK_MESSAGE_INFO, GTK_BUTTONS_CLOSE, _(
       "<span size='x-large' weight='bold'>Bacula Tray Monitor</span>\n\n"
       "Copyright (C) 2004 Kern Sibbald and John Walker\n"
       "Written by Nicolas Boichat\n"
       "\n<small>Version: " VERSION " (" BDATE ") %s %s %s</small>"
    ), HOST_OS, DISTNAME, DISTVER);
+#else
+   GtkWidget* about = gtk_message_dialog_new(GTK_WINDOW(window),GTK_DIALOG_MODAL, GTK_MESSAGE_INFO, GTK_BUTTONS_CLOSE, _(
+      "Bacula Tray Monitor\n\n"
+      "Copyright (C) 2004 Kern Sibbald and John Walker\n"
+      "Written by Nicolas Boichat\n"
+      "\nVersion: " VERSION " (" BDATE ") %s %s %s"
+   ), HOST_OS, DISTNAME, DISTVER); 
+#endif
    gtk_dialog_run(GTK_DIALOG(about));
    gtk_widget_destroy(about);
 }
@@ -540,7 +549,13 @@ static gboolean fd_read(gpointer data) {
    if (gtk_text_buffer_get_selection_bounds(buffer, &start, &stop)) {
       gtk_text_buffer_get_iter_at_offset(newbuffer, &nstart, gtk_text_iter_get_offset(&start));
       gtk_text_buffer_get_iter_at_offset(newbuffer, &nstop,  gtk_text_iter_get_offset(&stop ));
+      
+#if HAVE_GTK_2_4
       gtk_text_buffer_select_range(newbuffer, &nstart, &nstop);
+#else
+      gtk_text_buffer_move_mark(newbuffer, gtk_text_buffer_get_mark(newbuffer, "insert"), &nstart);
+      gtk_text_buffer_move_mark(newbuffer, gtk_text_buffer_get_mark(newbuffer, "selection_bound"), &nstop);
+#endif
    }
 
    g_object_unref(buffer);
