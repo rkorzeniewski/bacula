@@ -279,6 +279,9 @@ static int acquire_resource_locks(JCR *jcr)
 	    jcr->sched_time - now);
       bmicrosleep(jcr->sched_time - now, 0);
       now = time(NULL);
+      if (job_canceled(jcr)) {
+	 return 0;
+      }
    }
 
 
@@ -338,6 +341,9 @@ static int acquire_resource_locks(JCR *jcr)
       break;
 
 wait:
+      if (job_canceled(jcr)) {
+	 return 0;
+      }
       P(mutex);
       /*
        * Wait for a resource to be released either by backoff or
