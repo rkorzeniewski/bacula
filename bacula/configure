@@ -9441,7 +9441,7 @@ solaris)
 	    platforms/solaris/bacula-fd \
 	    platforms/solaris/bacula-sd \
 	    platforms/solaris/bacula-dir"
-	if test x$DISTVER = x2.6 ; then
+	if test x$DISTVER = x5.6 ; then
 	    cat >> confdefs.h <<\EOF
 #define HAVE_OLD_SOCKOPT 1
 EOF

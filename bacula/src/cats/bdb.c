@@ -275,7 +275,7 @@ void db_close_database(void *jcr, B_DB *mdb)
 
 void db_escape_string(char *snew, char *old, int len)
 {
-   memset(new, 0, len);
+   memset(snew, 0, len);
    bstrncpy(snew, old, len);
 }
 

@@ -16,6 +16,8 @@ Testing to do: (painful)
 - multiple simultaneous Volumes
 
 For 1.30 release:
+- Implement max_file_size in block.c
+- Add code if there is no mtio.h.
 - Add a section to the doc on Manual cycling
 - Look at purge jobs volume (at least document it, and see if it is
   logical).
