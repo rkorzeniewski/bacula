@@ -36,8 +36,6 @@
 #undef _POSIX_C_SOURCE
 #include <Python.h>
 
-bool run_module(const char *module);
-
 PyObject *bacula_get(PyObject *self, PyObject *args);
 PyObject *bacula_set(PyObject *self, PyObject *args, PyObject *keyw);
 PyObject *bacula_run(PyObject *self, PyObject *args);
@@ -46,7 +44,7 @@ PyObject *bacula_run(PyObject *self, PyObject *args);
 PyMethodDef BaculaMethods[] = {
     {"get", bacula_get, METH_VARARGS, "Get Bacula variables."},
     {"set", (PyCFunction)bacula_set, METH_VARARGS|METH_KEYWORDS,
-	"Set Bacula variables."},
+        "Set Bacula variables."},
     {"run", (PyCFunction)bacula_run, METH_VARARGS, "Run a Bacula command."},
     {NULL, NULL, 0, NULL}	      /* last item */
 };
