@@ -1,11 +1,11 @@
-/*                               -*- Mode: C -*- 
- * compat.h -- 
+/*                               -*- Mode: C -*-
+ * compat.h --
  */
-// Copyright transferred from Raider Solutions, Inc to 
+// Copyright transferred from Raider Solutions, Inc to
 //   Kern Sibbald and John Walker by express permission.
 //
 // Copyright (C) 2004 Kern Sibbald and John Walker
-// 
+//
 //   This program is free software; you can redistribute it and/or
 //   modify it under the terms of the GNU General Public License as
 //   published by the Free Software Foundation; either version 2 of
@@ -20,12 +20,12 @@
 //   License along with this program; if not, write to the Free
 //   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 //   MA 02111-1307, USA.
- * 
- * 
+/*
+ *
  * Author          : Christopher S. Hull
  * Created On      : Fri Jan 30 13:00:51 2004
- * Last Modified By: Christopher S. Hull
- * Last Modified On: Tue Feb 24 11:13:32 2004
+ * Last Modified By: Nicolas Boichat
+ * Last Modified On: Sat Apr 17 19:30:00 2004
  * Update Count    : 218
  * $Id$
  */
@@ -34,7 +34,9 @@
 #ifndef __COMPAT_H_
 #define __COMPAT_H_
 
+#ifndef HAVE_MINGW
 #define __STDC__ 1
+#endif
 
 #include <stdio.h>
 #include <basetsd.h>
@@ -63,14 +65,22 @@
 #include <fcntl.h>
 #include <io.h>
 
+#if defined HAVE_MINGW
+#include <stdint.h>
+#include <sys/stat.h>
+#endif
 
 #include "getopt.h"
 
+#ifdef HAVE_MINGW
+#define HAVE_WIN32 1
+#else
 #ifdef HAVE_CYGWIN
 #error should not be used under cygwin...
 #else
 #define HAVE_WIN32 1
-#endif
+#endif //HAVE_CYGWIN
+#endif //HAVE_MINGW
 typedef UINT64 u_int64_t;
 typedef UINT64 uint64_t;
 typedef INT64 int64_t;
@@ -83,33 +93,42 @@ typedef unsigned short uint16_t;
 typedef signed short int16_t;
 typedef long time_t;
 #if __STDC__
+#ifndef HAVE_MINGW
 typedef _dev_t dev_t;
 typedef __int64 ino_t;
 typedef __int64 off_t;          /* STDC=1 means we can define this */
+#endif
 #else
 typedef long _off_t;            /* must be same as sys/types.h */
 #endif
 typedef signed char int8_t;
+#ifndef HAVE_MINGW
 typedef int BOOL;
 #define bool BOOL
+#endif
 typedef double float64_t;
 typedef UINT32 u_int32_t;
 typedef unsigned char u_int8_t;
 typedef unsigned short u_int16_t;
 
+#ifndef HAVE_MINGW
 #undef uint32_t
+#endif
 
 void sleep(int);
 
 typedef UINT32 key_t;
+
+#ifdef HAVE_MINGW
+#ifndef uid_t
+typedef UINT32 uid_t;
+typedef UINT32 gid_t;
+#endif
+#else
 typedef UINT32 uid_t;
 typedef UINT32 gid_t;
 typedef UINT32 mode_t;
 typedef INT64  ssize_t;
-
-
-typedef void DIR;
-
 
 struct dirent {
     uint64_t    d_ino;
@@ -117,6 +136,10 @@ struct dirent {
     uint16_t    d_reclen;
     char        d_name[256];
 };
+
+#endif //HAVE_MINGW
+
+typedef void DIR;
 
 #ifndef __cplusplus
 #ifndef true
@@ -137,6 +160,7 @@ int gettimeofday(struct timeval *, struct timezone *);
 
 #define ETIMEDOUT 55
 
+#ifndef HAVE_MINGW
 struct stat
 {
     _dev_t      st_dev;
@@ -166,6 +190,7 @@ struct stat
 #define S_IRUSR         S_IREAD
 #define S_IWUSR         S_IWRITE
 #define S_IXUSR         S_IEXEC
+#endif //HAVE_MINGW
 
 #define S_IRGRP         000040
 #define S_IWGRP         000020
@@ -181,12 +206,13 @@ struct stat
 #define S_ISGID         002000
 #define S_ISVTX         001000
 
-
+#ifndef HAVE_MINGW
 #define S_ISREG(x)  (((x) & S_IFREG) == S_IFREG)
 #define S_ISDIR(x)  (((x) & S_IFDIR) == S_IFDIR)
 #define S_ISCHR(x) 0
 #define S_ISBLK(x) 0
 #define S_ISFIFO(x) 0
+#endif //HAVE_MINGW
 #define S_ISSOCK(x) 0
 #define S_ISLNK(x)      0
 
@@ -210,12 +236,14 @@ int umask(int);
 int lchown(const char *, uid_t uid, gid_t gid);
 int chown(const char *, uid_t uid, gid_t gid);
 int chmod(const char *, mode_t mode);
+#ifndef HAVE_MINGW
 int utime(const char *filename, struct utimbuf *buf);
 int open(const char *, int, int);
-off_t lseek(int, off_t, int);
 ssize_t read(int fd, void *, size_t nbytes);
 ssize_t write(int fd, const void *, size_t nbytes);
 int close(int fd);
+#endif //HAVE_MINGW
+off_t lseek(int, off_t, int);
 int inet_aton(const char *cp, struct in_addr *inp);
 int kill(int pid, int signo);
 int pipe(int []);
@@ -231,7 +259,7 @@ int waitpid(int, int *, int);
 
 #define HAVE_OLD_SOCKOPT
 
-
+#ifndef HAVE_MINGW
 #define vsnprintf __vsnprintf
 int __vsnprintf(char *s, size_t count, const char *format, va_list args);
 
@@ -243,7 +271,7 @@ int __snprintf(char *str, size_t count, const char *fmt, ...);
 
 #define sprintf __sprintf
 int __sprintf(char *str, const char *fmt, ...);
-
+#endif //HAVE_MINGW
 
 int readdir(unsigned int fd, struct dirent *dirp, unsigned int count);
 int nanosleep(const struct timespec*, struct timespec *);
@@ -261,8 +289,11 @@ int readlink(const char *, char *, int);
 
 
 int geteuid();
+
+#ifndef HAVE_MINGW
 DIR *opendir(const char *name);
 int closedir(DIR *dir);
+#endif //HAVE_MINGW
 
 struct passwd {
     char *foo;
@@ -275,9 +306,10 @@ struct group {
 struct passwd *getpwuid(uid_t);
 struct group *getgrgid(uid_t);
 
+#ifndef HAVE_MINGW
 #define R_OK 04
 #define W_OK 02
-
+#endif //HAVE_MINGW
 
 struct sigaction {
     int sa_flags;
@@ -289,17 +321,21 @@ struct sigaction {
 #define mkdir(p, m) _mkdir(p)
 #define chdir win32_chdir
 
+#ifndef HAVE_MINGW
 int stat(const char *, struct stat *);
+#endif //HAVE_MINGW
 int syslog(int, const char *, const char *);
 #define LOG_DAEMON 0
 #define LOG_ERR 0
 
+#ifndef HAVE_MINGW
 #ifdef __cplusplus
 #define access _access
 extern "C" _CRTIMP int __cdecl _access(const char *, int);
 int execvp(const char *, char *[]);
 extern "C" void *  __cdecl _alloca(size_t);
 #endif
+#endif //HAVE_MINGW
 
 #define getpid _getpid
 
@@ -314,5 +350,9 @@ char *win32_getcwd(char *buf, int maxlen);
 int win32_chdir(const char *buf);
 
 int WSA_Init(void);
+
+#ifdef HAVE_MINGW
+void closelog();
+#endif //HAVE_MINGW
 
 #endif /* __COMPAT_H_ */

@@ -149,7 +149,7 @@
 #define _PATH_BACULA_PIDDIR "/var/run"
 
 /* Define if you have zlib */
-#define HAVE_LIBZ 1 
+#define HAVE_LIBZ 1
 
 /* General libs */
 /* #undef LIBS */
@@ -225,7 +225,9 @@
 
 /* Define to 1 if you have `alloca', as a function or macro. */
 #define HAVE_ALLOCA 1
+#ifndef HAVE_MINGW
 #define alloca _alloca
+#endif
 /* Define to 1 if you have <alloca.h> and it should be used (not on Ultrix).
    */
 #define HAVE_ALLOCA_H 1
@@ -371,7 +373,7 @@
 /*#define HAVE_SIGNAL 1 */
 
 /* Define to 1 if you have the `snprintf' function. */
-#define HAVE_SNPRINTF 1 
+#define HAVE_SNPRINTF 1
 
 /* Define to 1 if you have the <stdarg.h> header file. */
 /*#define HAVE_STDARG_H 1*/
