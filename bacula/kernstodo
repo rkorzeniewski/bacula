@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                   28 July 2003 
+                   29 July 2003 
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -14,34 +14,7 @@ Documentation to do: (any release a little bit at a time)
 - Lookup HP cleaning recommendations.
 - Lookup HP tape replacement recommendations (see trouble shooting autochanger)
 - Document FInclude ...
-- Document need to add "-u root" to most of MySQL script calls
-  (./create_mys... ./make_my...).
 - Document all the status codes JobLevel, JobType, JobStatus.
-- Document dynamic DNS
-- On Fri, 2003-07-25 at 22:39, Thiago Lima wrote:
-    I've just noticed that bacula uses the server time to scan the
-    > clients for new files since the last backup in incremental backup.
-    >     So if server and client clocks aren't synced you may not backup all
-    > files.
-    > 
-    >     Example :
-    > 
-    >     Server time : 16:05
-    >     Client time : 16:00
-    >     runs full backup
-    > 
-    >     Server time : 16:15
-    >     Client time : 16:10 
-    >     runs incremental backup
-    > 
-    >     If there's any file created/changed between 16:00 and 16:05 (client
-    > clock) they will never be backuped.
-    >     The solution is keep all your machines clocks synced.
-    > 
-    >     Is that right? Does anybody have any comments on that? Maybe this
-    > could go to the FAQ?
-    > 
-    > 
           
 Testing to do: (painful)
 - that ALL console command line options work and are always implemented
