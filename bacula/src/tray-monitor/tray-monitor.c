@@ -150,6 +150,8 @@ int main(int argc, char *argv[])
    working_directory = "/tmp";
    args = get_pool_memory(PM_FNAME);
 
+   gtk_init (&argc, &argv);
+
    while ((ch = getopt(argc, argv, "bc:d:th?f:s:")) != -1) {
       switch (ch) {
       case 'c':                    /* configuration file */
@@ -178,7 +180,7 @@ int main(int argc, char *argv[])
       }  
    }
    argc -= optind;
-   argv += optind;
+   //argv += optind;
 
    if (argc) {
       usage();
@@ -255,8 +257,6 @@ Without that I don't how to get status from the File, Storage or Director Daemon
       Emsg2(M_ERROR_TERM, 0, _("Invalid refresh interval defined in %s\n\
 This value must be greater or equal to 1 second and less or equal to 10 minutes (read value: %d).\n"), configfile, monitor->RefreshInterval);
    }
-   
-   gtk_init (&argc, &argv);
    
    GdkPixbuf* pixbuf = gdk_pixbuf_new_from_xpm_data(generateXPM(warn, warn));
    // This should be ideally replaced by a completely libpr0n-based icon rendering.
