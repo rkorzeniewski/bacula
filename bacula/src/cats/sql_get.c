@@ -76,32 +76,60 @@ int db_get_file_attributes_record(B_DB *mdb, char *fname, FILE_DBR *fdbr)
    char buf[MAXSTRING];
    Dmsg1(20, "Enter get_file_from_catalog fname=%s \n", fname);
 
-   /* Find path without the filename */
+   /* Find path without the filename.  
+    * I.e. everything after the last / is a "filename".
+    * OK, maybe it is a directory name, but we treat it like
+    * a filename. If we don't find a / then the whole name
+    * must be a path name (e.g. c:).
+    */
    for (p=l=fname; *p; p++) {
       if (*p == '/') {
 	 l = p;
       }
    }
-   if (*l == '/') {
-      l++;
+   if (*l == '/') {                   /* did we find a slash? */
+      l++;			      /* yes, point to filename */
+   } else {			      /* no, whole thing must be path name */
+      l = p;
    }
 
+   /* If filename doesn't exist (i.e. root directory), we
+    * simply create a blank name consisting of a single 
+    * space. This makes handling zero length filenames
+    * easier.
+    */
    fnl = p - l;
-   strcpy(file, l);
+   if (fnl > 255) {
+      Emsg1(M_WARNING, 0, _("Filename truncated to 255 chars: %s\n"), l);
+      fnl = 255;
+   }
+   if (fnl > 0) {
+      strncpy(file, l, fnl);	      /* copy filename */
+      file[fnl] = 0;
+   } else {
+      file[0] = ' ';                  /* blank filename */
+      file[1] = 0;
+      fnl = 1;
+   }
 
    pnl = l - fname;    
+   if (pnl > 255) {
+      Emsg1(M_WARNING, 0, _("Path name truncated to 255 chars: %s\n"), fname);
+      pnl = 255;
+   }
    strncpy(spath, fname, pnl);
-   spath[l-fname] = 0;
+   spath[pnl] = 0;
 
    if (pnl == 0) {
-      return 0;
+      Mmsg1(&mdb->errmsg, _("Path length is zero. File=%s\n"), fname);
+      Emsg0(M_ERROR, 0, mdb->errmsg);
+      spath[0] = ' ';
+      spath[1] = 0;
+      pnl = 1;
    }
 
-   strip_trailing_junk(spath);
-   Dmsg1(50, "spath=%s\n", spath);
-
-   strip_trailing_junk(file);
-   Dmsg1(50, "file=%s\n", file);
+   Dmsg1(100, "spath=%s\n", spath);
+   Dmsg1(100, "file=%s\n", file);
 
    db_escape_string(buf, file, fnl);
    fdbr->FilenameId = db_get_filename_record(mdb, buf);

@@ -867,7 +867,8 @@ e_msg(char *file, int line, int type, int level, char *fmt,...)
     dispatch_message(NULL, type, level, buf);
 
     if (type == M_ABORT) {
-       abort();
+       char *p = 0;
+       p[0] = 0;		      /* generate segmentation violation */
     }
 }
 
@@ -947,8 +948,10 @@ Jmsg(void *vjcr, int type, int level, char *fmt,...)
 
     Dmsg3(500, "i=%d sizeof(rbuf)-i=%d len=%d\n", i, sizeof(rbuf)-i, len);
 
-    if (type == M_ABORT)
-       abort();
+    if (type == M_ABORT){
+       char *p = 0;
+       p[0] = 0;		      /* generate segmentation violation */
+    }
 }
 
 /*

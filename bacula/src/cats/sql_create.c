@@ -462,6 +462,7 @@ int db_create_file_attributes_record(B_DB *mdb, ATTR_DBR *ar)
    } else {
       file[0] = ' ';                  /* blank filename */
       file[1] = 0;
+      fnl = 1;
    }
 
    pnl = l - ar->fname;    
@@ -477,6 +478,7 @@ int db_create_file_attributes_record(B_DB *mdb, ATTR_DBR *ar)
       Emsg0(M_ERROR, 0, mdb->errmsg);
       spath[0] = ' ';
       spath[1] = 0;
+      pnl = 1;
    }
 
    Dmsg1(100, "spath=%s\n", spath);
