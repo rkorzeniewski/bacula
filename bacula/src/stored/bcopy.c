@@ -77,43 +77,43 @@ int main (int argc, char *argv[])
 
    while ((ch = getopt(argc, argv, "b:c:d:mn:p:rsu:vV:w:?")) != -1) {
       switch (ch) {
-         case 'b':
-	    bsr = parse_bsr(NULL, optarg);
-	    break;
+      case 'b':
+	 bsr = parse_bsr(NULL, optarg);
+	 break;
 
-         case 'c':                    /* specify config file */
-	    if (configfile != NULL) {
-	       free(configfile);
-	    }
-	    configfile = bstrdup(optarg);
-	    break;
+      case 'c':                    /* specify config file */
+	 if (configfile != NULL) {
+	    free(configfile);
+	 }
+	 configfile = bstrdup(optarg);
+	 break;
 
-         case 'd':                    /* debug level */
-	    debug_level = atoi(optarg);
-	    if (debug_level <= 0)
-	       debug_level = 1; 
-	    break;
+      case 'd':                    /* debug level */
+	 debug_level = atoi(optarg);
+	 if (debug_level <= 0)
+	    debug_level = 1; 
+	 break;
 
-         case 'v':
-	    verbose++;
-	    break;
+      case 'v':
+	 verbose++;
+	 break;
 
-         case 'i':                    /* input Volume name */
-	    iVolumeName = optarg;
-	    break;
+      case 'i':                    /* input Volume name */
+	 iVolumeName = optarg;
+	 break;
 
-         case 'o':                    /* output Volume name */
-	    oVolumeName = optarg;
-	    break;
+      case 'o':                    /* output Volume name */
+	 oVolumeName = optarg;
+	 break;
 
 
-         case 'w':
-	    wd = optarg;
-	    break;
+      case 'w':
+	 wd = optarg;
+	 break;
 
-         case '?':
-	 default:
-	    usage();
+      case '?':
+      default:
+	 usage();
 
       }  
    }

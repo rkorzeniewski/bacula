@@ -107,11 +107,11 @@ machine.
 
 2 - Apply this patch.
 
-http://www.freebsd.org/cgi/cvsweb.cgi/src/lib/libc_r/uthread/uthread_write.c.diff?r1=1.16.2.6&r2=1.16.2.8
+http://www.freebsd.org/cgi/cvsweb.cgi/src/lib/libc_r/uthread/uthread_write.c?rev=1.16.2.8&content-type=text/x-cvsweb-markup
 
 To apply the patch, follow these instructions as root.  
 
-fetch -o pthread.diff http://www.freebsd.org/cgi/cvsweb.cgi/src/lib/libc_r/uthread/uthread_write.c.diff?r1=1.16.2.6\&r2=1.16.2.8
+fetch -o pthread.diff http://www.freebsd.org/cgi/cvsweb.cgi/src/lib/libc_r/uthread/uthread_write.c?rev=1.16.2.8                 
 
 cd /usr/src/lib/libc_r/uthread/
 patch < /path/to/pthread.diff
@@ -126,4 +126,3 @@ TESTING:
 I suggest running tapetest on your patched system and then
 conducting a backup which spans two tapes.  Restore the data
 and compare to the original.  If not identical, please let us know.
-
