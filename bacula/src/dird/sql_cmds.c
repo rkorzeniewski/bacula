@@ -67,7 +67,11 @@ char *create_deltabs[] = {
 #ifdef HAVE_MYSQL
       "JobStatus BINARY(1))",
 #else
+#ifdef HAVE_POSTGRESQL
+      "JobStatus char(1))",
+#else
       "JobStatus CHAR)",
+#endif
 #endif
    "CREATE INDEX DelInx1 ON DelCandidates (JobId)",
    NULL};

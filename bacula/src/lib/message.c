@@ -51,6 +51,9 @@ FILE *con_fd = NULL;		      /* Console file descriptor */
 brwlock_t con_lock;		      /* Console lock structure */
 FILE *trace_fd = NULL;
 
+#ifdef HAVE_POSTGRESQL
+char catalog_db[] = "PostgreSQL";
+#else
 #ifdef HAVE_MYSQL
 char catalog_db[] = "MySQL";
 #else 
@@ -58,6 +61,7 @@ char catalog_db[] = "MySQL";
 char catalog_db[] = "SQLite";
 #else
 char catalog_db[] = "Internal";
+#endif
 #endif
 #endif
 
