@@ -39,6 +39,7 @@ bool acl_access_ok(UAContext *ua, int acl, char *item)
 }
 
 
+/* This version expects the length of the item which we must check. */
 bool acl_access_ok(UAContext *ua, int acl, char *item, int len)
 {
 
@@ -60,8 +61,8 @@ bool acl_access_ok(UAContext *ua, int acl, char *item, int len)
 
    /* Search list for item */
    for (int i=0; i<list->size(); i++) {
-      if (strncasecmp(item, (char *)list->get(i), len) == 0) {
-	 Dmsg3(400, "Found %s in %d %s\n", item, acl, (char *)list->get(i));
+      if (strcasecmp(item, (char *)list->get(i)) == 0) {
+         Dmsg3(400, "Found %s in %d %s\n", item, acl, (char *)list->get(i));
 	 return true;
       }
    }

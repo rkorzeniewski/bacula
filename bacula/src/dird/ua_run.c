@@ -331,7 +331,7 @@ int run_cmd(UAContext *ua, const char *cmd)
    }
    if (!pool) {
       return 0;
-   } else if (!acl_access_ok(ua, Pool_ACL, store->hdr.name)) {
+   } else if (!acl_access_ok(ua, Pool_ACL, pool->hdr.name)) {
       bsendmsg(ua, _("No authorization. Pool \"%s\".\n"),
 	       pool->hdr.name);
       return 0;
@@ -351,7 +351,7 @@ int run_cmd(UAContext *ua, const char *cmd)
    }
    if (!client) {
       return 0;
-   } else if (!acl_access_ok(ua, Client_ACL, store->hdr.name)) {
+   } else if (!acl_access_ok(ua, Client_ACL, client->hdr.name)) {
       bsendmsg(ua, _("No authorization. Client \"%s\".\n"),
 	       client->hdr.name);
       return 0;
@@ -369,7 +369,7 @@ int run_cmd(UAContext *ua, const char *cmd)
    }
    if (!fileset) {
       return 0;
-   } else if (!acl_access_ok(ua, FileSet_ACL, store->hdr.name)) {
+   } else if (!acl_access_ok(ua, FileSet_ACL, fileset->hdr.name)) {
       bsendmsg(ua, _("No authorization. FileSet \"%s\".\n"),
 	       fileset->hdr.name);
       return 0;
