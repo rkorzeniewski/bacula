@@ -117,10 +117,17 @@ void encode_stat(char *buf, FF_PKT *ff_pkt, int data_stream)
    *p++ = ' ';
    p += to_base64((int64_t)statp->st_size, p);
    *p++ = ' ';
+#ifndef HAVE_MINGW
    p += to_base64((int64_t)statp->st_blksize, p);
    *p++ = ' ';
    p += to_base64((int64_t)statp->st_blocks, p);
    *p++ = ' ';
+#else
+   p += to_base64((int64_t)0, p); /* output place holder */
+   *p++ = ' ';
+   p += to_base64((int64_t)0, p); /* output place holder */
+   *p++ = ' ';
+#endif
    p += to_base64((int64_t)statp->st_atime, p);
    *p++ = ' ';
    p += to_base64((int64_t)statp->st_mtime, p);
@@ -174,12 +181,21 @@ int decode_stat(char *buf, struct stat *statp, int32_t *LinkFI)
    p += from_base64(&val, p);
    statp->st_size = val;
    p++;
+#ifndef HAVE_MINGW
    p += from_base64(&val, p);
    statp->st_blksize = val;
    p++;
    p += from_base64(&val, p);
    statp->st_blocks = val;
    p++;
+#else
+   p += from_base64(&val, p);
+//   statp->st_blksize = val;
+   p++;
+   p += from_base64(&val, p);
+//   statp->st_blocks = val;
+   p++;
+#endif
    p += from_base64(&val, p);
    statp->st_atime = val;
    p++;
