@@ -45,7 +45,7 @@ static int exclude_cmd(JCR *jcr);
 static int hello_cmd(JCR *jcr);
 static int job_cmd(JCR *jcr);
 static int include_cmd(JCR *jcr);
-static int incopts_cmd(JCR *jcr);
+static int fileset_cmd(JCR *jcr);
 static int level_cmd(JCR *jcr);
 static int verify_cmd(JCR *jcr);
 static int restore_cmd(JCR *jcr);
@@ -78,7 +78,7 @@ static struct s_cmds cmds[] = {
    {"exclude",      exclude_cmd},
    {"Hello",        hello_cmd},
    {"include",      include_cmd},
-   {"incopts",      incopts_cmd},
+   {"fileset",      fileset_cmd},
    {"JobId=",       job_cmd},
    {"level = ",     level_cmd},
    {"restore",      restore_cmd},
@@ -219,6 +219,25 @@ void *handle_client_request(void *dirp)
    /* Inform Director that we are done */
    bnet_sig(dir, BNET_TERMINATE);
 
+   /* Clean up fileset */
+   FF_PKT *ff = (FF_PKT *)jcr->ff;
+   findFILESET *fileset = ff->fileset;
+   if (fileset) {
+      int i, j;
+      for (i=0; i<fileset->include_list.size(); i++) {
+	 findINCEXE *incexe = (findINCEXE *)fileset->include_list.get(i);
+	 for (j=0; j<incexe->opts_list.size(); j++) {
+	    findFOPTS *fo = (findFOPTS *)incexe->opts_list.get(j);
+	    fo->regex.destroy();
+	    fo->wild.destroy();
+	    fo->base.destroy();
+	 }
+	 incexe->opts_list.destroy();
+	 incexe->name_list.destroy();
+      }
+      fileset->include_list.destroy();
+      free(fileset);
+   }
    Dmsg0(100, "Calling term_find_files\n");
    term_find_files((FF_PKT *)jcr->ff);
    Dmsg0(100, "Done with term_find_files\n");
@@ -527,17 +546,156 @@ static int include_cmd(JCR *jcr)
    return bnet_fsend(dir, OKinc);
 }
 
-static int incopts_cmd(JCR *jcr)
+static bool init_fileset(JCR *jcr) 
+{
+   FF_PKT *ff;
+   findFILESET *fileset;
+
+   if (!jcr->ff) {	
+      return false;
+   }
+   ff = (FF_PKT *)jcr->ff;
+   if (ff->fileset) {
+      return false;
+   }
+   fileset = (findFILESET *)malloc(sizeof(findFILESET));
+   memset(fileset, 0, sizeof(findFILESET));
+   ff->fileset = fileset;
+   fileset->state = state_none;
+   fileset->include_list.init(1, true);
+   return true;
+}
+
+static findFOPTS *set_options(FF_PKT *ff)
+{
+   int state = ff->fileset->state;
+   findINCEXE *incexe = ff->fileset->incexe;
+
+   if (state != state_options) {
+      ff->fileset->state = state_options;
+      findFOPTS *fo = (findFOPTS *)malloc(sizeof(findFOPTS));
+      memset(fo, 0, sizeof(findFOPTS));
+      fo->regex.init(1, true);
+      fo->wild.init(1, true);
+      fo->base.init(1, true);
+      incexe->current_opts = fo;
+      incexe->opts_list.append(fo);
+   }
+   return incexe->current_opts;
+
+}
+
+   
+static void add_fileset(JCR *jcr, const char *item)
+{
+   FF_PKT *ff = (FF_PKT *)jcr->ff;
+   findFILESET *fileset = ff->fileset;
+   int state = fileset->state;
+   findFOPTS *current_opts;
+   int code = item[0];
+   if (item[1] == ' ') {              /* If string follows */
+      item += 2;		      /* point to string */
+   }
+
+   if (state == state_error) {
+      return;
+   }
+   switch (code) {
+   case 'I':
+      /* New include */
+      fileset->incexe = (findINCEXE *)malloc(sizeof(findINCEXE));
+      memset(fileset->incexe, 0, sizeof(findINCEXE));
+      fileset->incexe->opts_list.init(1, true);
+      fileset->incexe->name_list.init(1, true);
+      fileset->include_list.append(fileset->incexe);
+      break;
+   case 'N':
+      state = state_none;
+      break;
+   case 'F':
+      /* File item */
+      state = state_include;
+      fileset->incexe->name_list.append(bstrdup(item));
+      break;
+   case 'R':
+      current_opts = set_options(ff);
+      current_opts->regex.append(bstrdup(item));
+      state = state_options;
+      break;
+   case 'B':
+      current_opts = set_options(ff);
+      current_opts->base.append(bstrdup(item));
+      state = state_options;
+      break;
+   case 'W':
+      current_opts = set_options(ff);
+      current_opts->wild.append(bstrdup(item));
+      state = state_options;
+      break;
+   case 'O':   
+      current_opts = set_options(ff);
+      bstrncpy(current_opts->opts, item, MAX_FOPTS);
+      state = state_options;
+      break;
+   default:
+      Jmsg(jcr, M_FATAL, 0, "Invalid FileSet command: %s\n", item);
+      state = state_error;
+      break;
+   }
+   ff->fileset->state = state;
+}
+
+static bool term_fileset(JCR *jcr)
+{
+   FF_PKT *ff = (FF_PKT *)jcr->ff;
+   findFILESET *fileset = ff->fileset;
+   int i, j, k;
+
+   for (i=0; i<fileset->include_list.size(); i++) {
+      findINCEXE *incexe = (findINCEXE *)fileset->include_list.get(i);
+      for (j=0; j<incexe->opts_list.size(); j++) {
+	 findFOPTS *fo = (findFOPTS *)incexe->opts_list.get(j);
+         Dmsg1(400, "O %s\n", fo->opts);
+	 for (k=0; k<fo->regex.size(); k++) {
+            Dmsg1(400, "R %s\n", (char *)fo->regex.get(k));
+	 }
+	 for (k=0; k<fo->wild.size(); k++) {
+            Dmsg1(400, "W %s\n", (char *)fo->wild.get(k));
+	 }
+	 for (k=0; k<fo->base.size(); k++) {
+            Dmsg1(400, "B %s\n", (char *)fo->base.get(k));
+	 }
+      }
+      for (j=0; j<incexe->name_list.size(); j++) {
+         Dmsg1(400, "F %s\n", (char *)incexe->name_list.get(j));
+      }
+
+   }
+
+
+   return ff->fileset->state != state_error;
+}
+
+
+
+/*
+ * Director is passing his Fileset   
+ */
+static int fileset_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
 
+   if (!init_fileset(jcr)) {
+      return 0;
+   }
    while (bnet_recv(dir) >= 0) {
       strip_trailing_junk(dir->msg);
-      Dmsg1(000, "Incopt: %s\n", dir->msg);
-//    add_fname_to_list(jcr, dir->msg, INC_LIST);
-      
+      Dmsg1(400, "Fileset: %s\n", dir->msg);
+      add_fileset(jcr, dir->msg);
    }
-
+   if (!term_fileset(jcr)) {
+      return 0;
+   }
    return bnet_fsend(dir, OKinc);
 }
 
@@ -1139,6 +1297,8 @@ static void filed_free_jcr(JCR *jcr)
    if (jcr->RunAfterJob) {
       free_pool_memory(jcr->RunAfterJob);
    }
+
+      
    return;
 }
 

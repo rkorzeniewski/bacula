@@ -366,7 +366,7 @@ static void store_newinc(LEX *lc, RES_ITEM *item, int index, int pass)
       res_all.res_fs.have_MD5 = TRUE;
    }
    memset(&res_incexe, 0, sizeof(INCEXE));
-   res_all.res_fs.new_include = TRUE;
+   res_all.res_fs.new_include = true;
    while ((token = lex_get_token(lc, T_ALL)) != T_EOF) {
       if (token == T_EOL) {
 	 continue;

@@ -239,6 +239,7 @@ struct JOB {
    uint32_t NumConcurrentJobs;        /* number of concurrent jobs running */
 };
 
+#undef  MAX_FOPTS
 #define MAX_FOPTS 30
 
 /* File options structure */
