@@ -1,0 +1,56 @@
+#!/bin/sh
+#
+# Bacula interface to growisofs, used to write to DVD+/-R(W)
+#
+#  $Id$
+#
+#  If you set in your Device resource
+#
+#  Write Part Command = "path-to-this-script/dvd-writepart %n %a %v"
+#    you will have the following input to this script:
+#
+#  dvd-writepart "part_number"    "device"  "part_filename"
+#                     $1             $2           $3
+#
+#  for example:
+#
+#  dvd-writepart 0 /dev/hda File-0001
+
+MKISOFS=@MKISOFS@
+GROWISOFS=@GROWISOFS@
+
+GROWARGS="-use-the-force-luke=tty -quiet"
+
+# Uncomment the following line if you do not want the tray to be reloaded
+# when writing ends.
+#GROWARGS="${GROWARGS} -use-the-force-luke=notray"
+
+# Uncomment the following line if you have a Linux kernel >=2.6.8, and
+# if you want to allow a session to start behind the 4gb boundary.
+#GROWARGS="${GROWARGS} -use-the-force-luke=4gms"
+
+#### You should probably not modify anything below this line
+
+if test $# -ne 3 ; then
+  echo "usage: dvd-writepart part_number device part_filename"
+  echo "  Wrong number of arguments arguments given (!= 3)."
+  exit 1
+fi
+
+# Setup arguments
+partnum=$1
+dev=$2
+filename=$3
+
+if test $partnum = 0 ; then
+  arg="-Z"
+else
+  arg="-M"  
+fi
+
+echo Running ${GROWISOFS} ${GROWARGS} $arg $dev -R $filename...
+
+${GROWISOFS} ${GROWARGS} $arg $dev -R $filename
+rtn=$?
+
+exit $rtn
