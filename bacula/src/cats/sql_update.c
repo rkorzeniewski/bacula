@@ -292,23 +292,38 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    /* Make sure InChanger is 0 for any record having the same Slot */
    db_make_inchanger_unique(jcr, mdb, mr);
 
-   ttime = mr->LastWritten;
-   localtime_r(&ttime, &tm);
-   strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
+   if (mr->LastWritten != 0) {
 
-   Mmsg(&mdb->cmd, "UPDATE Media SET VolJobs=%u,"
-        "VolFiles=%u,VolBlocks=%u,VolBytes=%s,VolMounts=%u,VolErrors=%u,"
-        "VolWrites=%u,MaxVolBytes=%s,LastWritten='%s',VolStatus='%s',"
-        "Slot=%d,InChanger=%d,VolReadTime=%s,VolWriteTime=%s "
-        " WHERE VolumeName='%s'",
-	 mr->VolJobs, mr->VolFiles, mr->VolBlocks, edit_uint64(mr->VolBytes, ed1),
-	 mr->VolMounts, mr->VolErrors, mr->VolWrites, 
-	 edit_uint64(mr->MaxVolBytes, ed2), dt, 
-	 mr->VolStatus, mr->Slot, mr->InChanger, 
-	 edit_uint64(mr->VolReadTime, ed3),
-	 edit_uint64(mr->VolWriteTime, ed4),
-	 mr->VolumeName);
+      ttime = mr->LastWritten;
+      localtime_r(&ttime, &tm);
+      strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
 
+      Mmsg(&mdb->cmd, "UPDATE Media SET VolJobs=%u,"
+           "VolFiles=%u,VolBlocks=%u,VolBytes=%s,VolMounts=%u,VolErrors=%u,"
+           "VolWrites=%u,MaxVolBytes=%s,LastWritten='%s',VolStatus='%s',"
+           "Slot=%d,InChanger=%d,VolReadTime=%s,VolWriteTime=%s "
+           " WHERE VolumeName='%s'",
+           mr->VolJobs, mr->VolFiles, mr->VolBlocks, edit_uint64(mr->VolBytes, ed1),
+           mr->VolMounts, mr->VolErrors, mr->VolWrites, 
+           edit_uint64(mr->MaxVolBytes, ed2), dt, 
+           mr->VolStatus, mr->Slot, mr->InChanger, 
+           edit_uint64(mr->VolReadTime, ed3),
+           edit_uint64(mr->VolWriteTime, ed4),
+           mr->VolumeName);
+   } else {
+      Mmsg(&mdb->cmd, "UPDATE Media SET VolJobs=%u,"
+           "VolFiles=%u,VolBlocks=%u,VolBytes=%s,VolMounts=%u,VolErrors=%u,"
+           "VolWrites=%u,MaxVolBytes=%s,VolStatus='%s',"
+           "Slot=%d,InChanger=%d,VolReadTime=%s,VolWriteTime=%s "
+           " WHERE VolumeName='%s'",
+           mr->VolJobs, mr->VolFiles, mr->VolBlocks, edit_uint64(mr->VolBytes, ed1),
+           mr->VolMounts, mr->VolErrors, mr->VolWrites, 
+           edit_uint64(mr->MaxVolBytes, ed2), 
+           mr->VolStatus, mr->Slot, mr->InChanger, 
+           edit_uint64(mr->VolReadTime, ed3),
+           edit_uint64(mr->VolWriteTime, ed4),
+           mr->VolumeName);
+   }
 
    Dmsg1(400, "%s\n", mdb->cmd);
 
