@@ -42,10 +42,10 @@ extern PyMethodDef BaculaMethods[];
 
 
 /* Start the interpreter */
-void init_python_interpreter(char *progname, char *scripts)
+void init_python_interpreter(const char *progname, const char *scripts)
 {
    char buf[MAXSTRING];
-   Py_SetProgramName(progname);
+   Py_SetProgramName((char *)progname);
    Py_Initialize();
    PyEval_InitThreads();
    Py_InitModule("bacula", BaculaMethods);
@@ -110,10 +110,8 @@ int generate_event(JCR *jcr, const char *event)
 	     Py_DECREF(pValue);
 	  } else {
 	     Py_DECREF(pModule);
-	     if (PyErr_Occurred()) {
-		PyErr_Print();
-                Jmsg(jcr, M_ERROR, 0, "Error running Python module: %s\n", event);
-	     }
+	     PyErr_Print();
+             Jmsg(jcr, M_ERROR, 0, "Error running Python module: %s\n", event);
 	     return 0;		      /* error running function */
 	  }
 	  /* pDict and pFunc are borrowed and must not be Py_DECREF-ed */
