@@ -21,6 +21,12 @@ Version 1.37                Kern (see below)
      bimagemgr.
 ##   Consider moving docs to their own project.
 
+Suggestions for Preben:
+- Look at adding Client run command that will use the
+  port opened by the client.
+- Implement WildFile and WildDir to solve problem of 
+  saving only *.doc files.
+
 For 1.37:
 - Create a new GUI chapter explaining all the GUI programs.
 - Tell the "restore" user when browsing is no longer possible.
@@ -31,8 +37,6 @@ For 1.37:
 - Add dump of VolSessionId/Time and FileIndex with bls.
 - Make bootstrap file handle multiple MediaTypes (SD)
 - Add offline command to Bacula console.
-- Implement WildFile and WildDir to solve problem of 
-  saving only *.doc files.
 - Add performance testing hooks
 - Add Python writable variable for changing the Priority.
 - Document that Bootstrap files can be written with cataloging
@@ -40,9 +44,6 @@ For 1.37:
 - Look at adding full Volume and Pool information to a Volume 
   label so that bscan can get *all* the info. 
 - Scratch Pool where the volumes can be re-assigned to any Pool.
-- Fix orphanned buffers:
-   Orphaned buffer:      24 bytes allocated at line 808 of rufus-dir job.c
-   Orphaned buffer:      40 bytes allocated at line 45 of rufus-dir alist.c
 - Upgrade to MySQL 4.1.1 See:  
   http://dev.mysql.com/doc/mysql/en/Server_SQL_mode.html
 - Bug: 
@@ -85,11 +86,6 @@ Regression tests (Jo):
 1.37 Possibilities:
 - Can one write tapes faster with 8192 byte block sizes?
 - Specify a single directory to restore.
-- FileSet implement "default = include" or "default = exclude"
-  as a solution to being able to include only certain files??????
-- Implement Preben's suggestion to add
-  File System Types = ext2, ext3 
-  to FileSets, thus simplifying backup of *all* local partitions.
 - Implement Maximum Job Spool Size
 - Document security problems with the same password for everyone in
   rpm and Win32 releases.
@@ -198,14 +194,9 @@ For 1.37 Testing/Documentation:
 - Minimal autochanger handling in Bacula and in btape.
 - Look into how tar does not save sockets and the possiblity of
   not saving them in Bacula (Martin Simmons reported this).
-- Add All Local Partitions = yes to new style saves.
-- localmounts=`awk '/ext/ { print $2 }' /proc/mounts`   # or whatever
-  find $localmounts -xdev -type s -ls
 - Fix restore jobs so that multiple jobs can run if they
   are not using the same tape(s).
 - Allow the user to select JobType for manual pruning/purging.
-- Look at adding Client run command that will use the
-  port opened by the client.
 - bscan does not put first of two volumes back with all info in
   bscan-test.
 - Implement the FreeBSD nodump flag in chflags.
@@ -1071,3 +1062,10 @@ Block Position: 0
 - Update StartTime if job held in Job Queue.
 - Look at www.nu2.nu/pebuilder as a helper for full windows
   bare metal restore. (done by Scott)
+- Fix orphanned buffers:
+   Orphaned buffer:      24 bytes allocated at line 808 of rufus-dir job.c
+   Orphaned buffer:      40 bytes allocated at line 45 of rufus-dir alist.c
+- Implement Preben's suggestion to add
+  File System Types = ext2, ext3 
+  to FileSets, thus simplifying backup of *all* local partitions.
+
