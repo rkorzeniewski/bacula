@@ -17,10 +17,11 @@ echo " === Starting sparse-test ==="
 echo " === Starting sparse-test ===" >>working/log
 echo " "
 
-bin/bacula start
+bin/bacula start 2>&1 >/dev/null
 bin/console -c bin/console.conf <<END_OF_DATA
+@output /dev/null
 messages
-@output tmp/log2.out
+@output tmp/log1.out
 label storage=File
 TestVolume001
 run job=SparseTest
@@ -37,6 +38,7 @@ done
 yes
 wait
 messages
+@output
 quit
 END_OF_DATA
 bin/bacula stop 2>&1 >/dev/null

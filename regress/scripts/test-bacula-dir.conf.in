@@ -19,7 +19,7 @@ Director {                            # define myself
   WorkingDirectory = "@working_dir@"
   PidDirectory = "@piddir@"
   SubSysDirectory = "@subsysdir@"
-  Maximum Concurrent Jobs = 1
+  Maximum Concurrent Jobs = 4
   Password = "pNvX1WiXnwv2C/F7E52LGvw6rKjbbPvu2kyuPa9pVaL3"         # Console password
   Messages = Standard
 }
@@ -82,6 +82,7 @@ Job {
   Storage = File
   Messages = Standard
   Pool = Default
+  Maximum Concurrent Jobs = 4
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
 }
 
@@ -193,6 +194,7 @@ Client {
   File Retention = 30d                # 30 days
   Job Retention = 180d                # six months
   AutoPrune = yes                     # Prune expired Jobs/Files
+  Maximum Concurrent Jobs = 4
 }
 
 # Definiton of file storage device
@@ -203,6 +205,7 @@ Storage {
   Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"
   Device = FileStorage
   Media Type = File
+  Maximum Concurrent Jobs = 4
 }
 
 Storage {

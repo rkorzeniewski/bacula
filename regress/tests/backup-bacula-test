@@ -38,6 +38,7 @@ yes
 @sleep 1
 wait
 messages
+@output
 quit
 END_OF_DATA
 bin/bacula stop 2>&1 >/dev/null

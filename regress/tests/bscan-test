@@ -21,6 +21,7 @@ echo " "
 
 bin/bacula start 2>&1 >/dev/null
 bin/console -c bin/console.conf <<END_OF_DATA
+@output /dev/null
 messages
 @output tmp/log1.out
 label storage=File1
@@ -53,6 +54,7 @@ echo "volume=TestVolume001|TestVolume002" >tmp/bscan.bsr
 bin/bscan -w working -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf ${cwd}/tmp 2>&1 >/dev/null
 bin/bacula start 2>&1 >/dev/null
 bin/console -c bin/console.conf <<END_OF_DATA
+@output /dev/null
 messages
 @output tmp/log2.out
 @# 
@@ -64,6 +66,7 @@ done
 yes
 wait
 messages
+@output
 quit
 END_OF_DATA
 bin/bacula stop 2>&1 >/dev/null

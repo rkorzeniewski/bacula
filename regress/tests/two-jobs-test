@@ -19,6 +19,7 @@ echo " "
 
 bin/bacula start 2>&1 >/dev/null
 bin/console -c bin/console.conf <<END_OF_DATA
+@output /dev/null
 messages
 @output tmp/log1.out
 label storage=File
@@ -51,11 +52,16 @@ done
 yes
 wait
 messages
+@output
 quit
 END_OF_DATA
 bin/bacula stop 2>&1 >/dev/null
+grep "^Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
+bstat=$?
+grep "^Termination: *Restore OK" tmp/log2.out 2>&1 >/dev/null
+rstat=$?
 diff -r build /tmp/bacula-restores${cwd}/build
-if [ $? != 0 ] ; then
+if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
    echo " "
    echo " "
    echo "  ===== two-jobs-test Bacula source failed!!! ===== "
