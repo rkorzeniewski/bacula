@@ -64,20 +64,20 @@ clean:
 realclean: clean
 	$(RMF) tags
 
-	$(RMF) create_bacula_database      update_bacula_tables     make_bacula_tables
-	$(RMF) grant_bacula_privileges     drop_bacula_tables       drop_bacula_database
+	$(RMF) create_bacula_database	   update_bacula_tables     make_bacula_tables
+	$(RMF) grant_bacula_privileges	   drop_bacula_tables	    drop_bacula_database
 
-	$(RMF) create_bdb_database         update_bdb_tables        make_bdb_tables
-	$(RMF) grant_bdb_privileges        drop_bdb_tables          drop_bdb_database
+	$(RMF) create_bdb_database	   update_bdb_tables	    make_bdb_tables
+	$(RMF) grant_bdb_privileges	   drop_bdb_tables	    drop_bdb_database
 
-	$(RMF) create_mysql_database       update_mysql_tables      make_mysql_tables
-	$(RMF) grant_mysql_privileges      drop_mysql_tables        drop_mysql_database
+	$(RMF) create_mysql_database	   update_mysql_tables	    make_mysql_tables
+	$(RMF) grant_mysql_privileges	   drop_mysql_tables	    drop_mysql_database
 
 	$(RMF) create_postgresql_database  update_postgresql_tables make_postgresql_tables
 	$(RMF) grant_postgresql_privileges drop_postgresql_tables   drop_postgresql_database
 
-	$(RMF) create_sqlite_database      update_sqlite_tables     make_sqlite_tables
-	$(RMF) grant_sqlite_privileges     drop_sqlite_tables       drop_sqlite_database
+	$(RMF) create_sqlite_database	   update_sqlite_tables     make_sqlite_tables
+	$(RMF) grant_sqlite_privileges	   drop_sqlite_tables	    drop_sqlite_database
 
 	$(RMF) mysql sqlite
 	$(RMF) make_catalog_backup delete_catalog_backup
@@ -136,7 +136,7 @@ depend:
 	@$(MV) Makefile Makefile.bak
 	@$(SED) "/^# DO NOT DELETE:/,$$ d" Makefile.bak > Makefile
 	@$(ECHO) "# DO NOT DELETE: nice dependency list follows" >> Makefile
-	@$(CC) -S -M $(CPPFLAGS) $(XINC) -I$(srcdir) -I$(basedir) $(SQL_INC) *.c >> Makefile
+	@$(CXX) -S -M $(CPPFLAGS) $(XINC) -I$(srcdir) -I$(basedir) $(SQL_INC) *.c >> Makefile
 	@if test -f Makefile ; then \
 	    $(RMF) Makefile.bak; \
 	else \

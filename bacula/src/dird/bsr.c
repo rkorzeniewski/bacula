@@ -200,7 +200,7 @@ int write_bsr_file(UAContext *ua, RBSR *bsr)
 
    /* Tell the user what he will need to mount */
    bsendmsg(ua, "\n");
-   bsendmsg(ua, _("The restore job will require the following Volumes:\n"));
+   bsendmsg(ua, _("The job will require the following Volumes:\n"));
    /* Create Unique list of Volumes using prompt list */
    start_prompt(ua, "");
    for (RBSR *nbsr=bsr; nbsr; nbsr=nbsr->next) {
