@@ -308,7 +308,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS BUILD_DIR TRUEPRG FALSEPRG build build_cpu build_vendor build_os host host_cpu host_vendor host_os VERSION DATE LSMDATE CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX CPP EGREP INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB MV RM CP SED AWK ECHO CMP TBL AR OPENSSL MTX PKGCONFIG ARFLAGS MAKE_SHELL LOCAL_LIBS LOCAL_CFLAGS LOCAL_LDFLAGS LOCAL_DEFS HAVE_SUN_OS_TRUE HAVE_SUN_OS_FALSE HAVE_OSF1_OS_TRUE HAVE_OSF1_OS_FALSE HAVE_AIX_OS_TRUE HAVE_AIX_OS_FALSE HAVE_HPUX_OS_TRUE HAVE_HPUX_OS_FALSE HAVE_LINUX_OS_TRUE HAVE_LINUX_OS_FALSE HAVE_FREEBSD_OS_TRUE HAVE_FREEBSD_OS_FALSE HAVE_NETBSD_OS_TRUE HAVE_NETBSD_OS_FALSE HAVE_OPENBSD_OS_TRUE HAVE_OPENBSD_OS_FALSE HAVE_BSDI_OS_TRUE HAVE_BSDI_OS_FALSE HAVE_SGI_OS_TRUE HAVE_SGI_OS_FALSE HAVE_IRIX_OS_TRUE HAVE_IRIX_OS_FALSE HAVE_DARWIN_OS_TRUE HAVE_DARWIN_OS_FALSE INSIDE_GNOME_COMMON_TRUE INSIDE_GNOME_COMMON_FALSE MSGFMT GNOME_INCLUDEDIR GNOMEUI_LIBS GNOME_LIBDIR GNOME_LIBS GNOMEGNORBA_LIBS GTKXMHTML_LIBS ZVT_LIBS GNOME_CONFIG ORBIT_CONFIG ORBIT_IDL HAVE_ORBIT_TRUE HAVE_ORBIT_FALSE ORBIT_CFLAGS ORBIT_LIBS HAVE_GNORBA_TRUE HAVE_GNORBA_FALSE GNORBA_CFLAGS GNORBA_LIBS GNOME_APPLETS_LIBS GNOME_DOCKLETS_LIBS GNOME_CAPPLET_LIBS GNOME_DIR TTOOL_LDFLAGS STATIC_FD STATIC_SD STATIC_DIR STATIC_CONS ALL_DIRS CONS_INC CONS_LIBS CONS_LDFLAGS READLINE_SRC working_dir scriptdir dump_email job_email smtp_host piddir subsysdir baseport dir_port fd_port sd_port dir_password fd_password sd_password SQL_LFLAGS SQL_INCLUDE SQL_BINDIR cats DB_NAME GETCONF ac_ct_GETCONF X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS LIBOBJS ALLOCA FDLIBS DEBUG DINCLUDE DLIB DB_LIBS WCFLAGS WLDFLAGS OBJLIST hostname TAPEDRIVE PSCMD WIN32 DISTNAME DISTVER LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS BUILD_DIR TRUEPRG FALSEPRG build build_cpu build_vendor build_os host host_cpu host_vendor host_os VERSION DATE LSMDATE CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX CPP EGREP INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB MV RM CP SED AWK ECHO CMP TBL AR OPENSSL MTX PKGCONFIG ARFLAGS MAKE_SHELL LOCAL_LIBS LOCAL_CFLAGS LOCAL_LDFLAGS LOCAL_DEFS HAVE_SUN_OS_TRUE HAVE_SUN_OS_FALSE HAVE_OSF1_OS_TRUE HAVE_OSF1_OS_FALSE HAVE_AIX_OS_TRUE HAVE_AIX_OS_FALSE HAVE_HPUX_OS_TRUE HAVE_HPUX_OS_FALSE HAVE_LINUX_OS_TRUE HAVE_LINUX_OS_FALSE HAVE_FREEBSD_OS_TRUE HAVE_FREEBSD_OS_FALSE HAVE_NETBSD_OS_TRUE HAVE_NETBSD_OS_FALSE HAVE_OPENBSD_OS_TRUE HAVE_OPENBSD_OS_FALSE HAVE_BSDI_OS_TRUE HAVE_BSDI_OS_FALSE HAVE_SGI_OS_TRUE HAVE_SGI_OS_FALSE HAVE_IRIX_OS_TRUE HAVE_IRIX_OS_FALSE HAVE_DARWIN_OS_TRUE HAVE_DARWIN_OS_FALSE INSIDE_GNOME_COMMON_TRUE INSIDE_GNOME_COMMON_FALSE MSGFMT GNOME_INCLUDEDIR GNOMEUI_LIBS GNOME_LIBDIR GNOME_LIBS GNOMEGNORBA_LIBS GTKXMHTML_LIBS ZVT_LIBS GNOME_CONFIG ORBIT_CONFIG ORBIT_IDL HAVE_ORBIT_TRUE HAVE_ORBIT_FALSE ORBIT_CFLAGS ORBIT_LIBS HAVE_GNORBA_TRUE HAVE_GNORBA_FALSE GNORBA_CFLAGS GNORBA_LIBS GNOME_APPLETS_LIBS GNOME_DOCKLETS_LIBS GNOME_CAPPLET_LIBS GNOME_DIR TTOOL_LDFLAGS STATIC_FD STATIC_SD STATIC_DIR STATIC_CONS ALL_DIRS CONS_INC CONS_LIBS CONS_LDFLAGS READLINE_SRC working_dir scriptdir dump_email job_email smtp_host piddir subsysdir baseport dir_port fd_port sd_port dir_password fd_password sd_password dir_user dir_group sd_user sd_group fd_user fd_group SQL_LFLAGS SQL_INCLUDE SQL_BINDIR cats DB_NAME GETCONF ac_ct_GETCONF X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS LIBOBJS ALLOCA FDLIBS DEBUG DINCLUDE DLIB DB_LIBS WCFLAGS WLDFLAGS OBJLIST hostname TAPEDRIVE PSCMD WIN32 DISTNAME DISTVER LTLIBOBJS'
 ac_subst_files='MCOMMON'
 
 # Initialize some variables set by options.
@@ -886,6 +886,12 @@ Optional Packages:
   --with-dir-password=PASSWORD   specify Director's password
   --with-fd-password=PASSWORD    specify Client's password
   --with-sd-password=PASSWORD    specify Storage daemon's password
+  --with-dir-user=USER		 specify user for Director daemon
+  --with-dir-group=GROUP		 specify group for Director daemon
+  --with-sd-user=USER		 specify user for Storage daemon
+  --with-sd-group=GROUP		 specify group for Storage daemon
+  --with-fd-user=USER		 specify user for File daemon
+  --with-fd-group=GROUP		 specify group for File daemon
 
 Which DBMS do you want to use (please select only one):
   --with-mysql=DIR      Include MySQL support.  DIR is the MySQL base
@@ -6666,6 +6672,95 @@ if test "x$sd_password" = "x" ; then
    fi
    sd_password=$key
 fi
+
+
+
+
+
+
+
+#
+# Handle users and groups for each daemon
+#
+dir_user=
+
+# Check whether --with-dir_user or --without-dir_user was given.
+if test "${with_dir_user+set}" = set; then
+  withval="$with_dir_user"
+
+	if test "x$withval" != "x" ; then
+	     dir_user=$withval
+	fi
+
+
+fi;
+
+dir_group=
+
+# Check whether --with-dir_group or --without-dir_group was given.
+if test "${with_dir_group+set}" = set; then
+  withval="$with_dir_group"
+
+	if test "x$withval" != "x" ; then
+	     dir_group=$withval
+	fi
+
+
+fi;
+
+sd_user=
+
+# Check whether --with-sd_user or --without-sd_user was given.
+if test "${with_sd_user+set}" = set; then
+  withval="$with_sd_user"
+
+	if test "x$withval" != "x" ; then
+	     sd_user=$withval
+	fi
+
+
+fi;
+
+sd_group=
+
+# Check whether --with-sd_group or --without-sd_group was given.
+if test "${with_sd_group+set}" = set; then
+  withval="$with_sd_group"
+
+	if test "x$withval" != "x" ; then
+	     sd_group=$withval
+	fi
+
+
+fi;
+
+fd_user=
+
+# Check whether --with-fd_user or --without-fd_user was given.
+if test "${with_fd_user+set}" = set; then
+  withval="$with_fd_user"
+
+	if test "x$withval" != "x" ; then
+	     fd_user=$withval
+	fi
+
+
+fi;
+
+fd_group=
+
+# Check whether --with-fd_group or --without-fd_group was given.
+if test "${with_fd_group+set}" = set; then
+  withval="$with_fd_group"
+
+	if test "x$withval" != "x" ; then
+	     fd_group=$withval
+	fi
+
+
+fi;
+
+
 
 
 
@@ -18279,6 +18374,12 @@ s,@sd_port@,$sd_port,;t t
 s,@dir_password@,$dir_password,;t t
 s,@fd_password@,$fd_password,;t t
 s,@sd_password@,$sd_password,;t t
+s,@dir_user@,$dir_user,;t t
+s,@dir_group@,$dir_group,;t t
+s,@sd_user@,$sd_user,;t t
+s,@sd_group@,$sd_group,;t t
+s,@fd_user@,$fd_user,;t t
+s,@fd_group@,$fd_group,;t t
 s,@SQL_LFLAGS@,$SQL_LFLAGS,;t t
 s,@SQL_INCLUDE@,$SQL_INCLUDE,;t t
 s,@SQL_BINDIR@,$SQL_BINDIR,;t t
@@ -18903,9 +19004,18 @@ Configuration on `date`:
   Job Output Email:	      ${job_email}
   Traceback Email:	      ${dump_email}
   SMTP Host Address:	      ${smtp_host}
-  Director Port 	      ${dir_port}
-  File daemon Port	      ${fd_port}
-  Storage daemon Port	      ${sd_port}
+
+  Director Port: 	      ${dir_port}
+  File daemon Port:	      ${fd_port}
+  Storage daemon Port:	      ${sd_port}
+
+  Director User:            ${dir_user}
+  Director Group:           ${dir_group}
+  Storage Daemon User:      ${dir_user}
+  Storage DaemonGroup:      ${dir_group}
+  File Daemon User:         ${dir_user}
+  File Daemon Group:        ${dir_group}
+
   SQL binaries Directory      ${SQL_BINDIR}
 
   Large file support:	      $largefile_support
