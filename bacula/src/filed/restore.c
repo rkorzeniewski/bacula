@@ -369,7 +369,7 @@ void do_restore(JCR *jcr)
             Dmsg2(100, "Write uncompressed %d bytes, total before write=%d\n", compress_len, total);
 	    if ((uLong)bwrite(&bfd, jcr->compress_buf, compress_len) != compress_len) {
                Dmsg0(0, "===Write error===\n");
-               Jmsg2(jcr, M_ERROR, 0, "Write error on %s: %s\n", ofile, berror(&bfd));
+               Jmsg2(jcr, M_ERROR, 0, _("Write error on %s: %s\n"), ofile, berror(&bfd));
 	       goto bail_out;
 	    }
 	    total += compress_len;
@@ -378,7 +378,7 @@ void do_restore(JCR *jcr)
 	 }
 #else
 	 if (extract) {
-            Jmsg(jcr, M_ERROR, 0, "GZIP data stream found, but GZIP not configured!\n");
+            Jmsg(jcr, M_ERROR, 0, _("GZIP data stream found, but GZIP not configured!\n"));
 	    goto bail_out;
 	 }
 #endif

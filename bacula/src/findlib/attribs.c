@@ -217,18 +217,18 @@ int set_attributes(void *jcr, char *fname, char *ofile, char *lname,
    if (type == FT_LNK) {
       /* Change owner of link, not of real file */
       if (lchown(ofile, statp->st_uid, statp->st_gid) < 0) {
-         Jmsg2(jcr, M_WARNING, 0, "Unable to set file owner %s: ERR=%s\n",
+         Jmsg2(jcr, M_WARNING, 0, _("Unable to set file owner %s: ERR=%s\n"),
 	    ofile, strerror(errno));
 	 stat = 0;
       }
    } else {
       if (chown(ofile, statp->st_uid, statp->st_gid) < 0) {
-         Jmsg2(jcr, M_WARNING, 0, "Unable to set file owner %s: ERR=%s\n",
+         Jmsg2(jcr, M_WARNING, 0, _("Unable to set file owner %s: ERR=%s\n"),
 	    ofile, strerror(errno));
 	 stat = 0;
       }
       if (chmod(ofile, statp->st_mode) < 0) {
-         Jmsg2(jcr, M_WARNING, 0, "Unable to set file modes %s: ERR=%s\n",
+         Jmsg2(jcr, M_WARNING, 0, _("Unable to set file modes %s: ERR=%s\n"),
 	    ofile, strerror(errno));
 	 stat = 0;
       }
@@ -236,7 +236,7 @@ int set_attributes(void *jcr, char *fname, char *ofile, char *lname,
       /* FreeBSD user flags */
 #ifdef HAVE_CHFLAGS
       if (chflags(ofile, statp->st_flags) < 0) {
-         Jmsg2(jcr, M_WARNING, 0, "Unable to set file flags %s: ERR=%s\n",
+         Jmsg2(jcr, M_WARNING, 0, _("Unable to set file flags %s: ERR=%s\n"),
 	    ofile, strerror(errno));
 	 stat = 0;
       }
@@ -245,7 +245,7 @@ int set_attributes(void *jcr, char *fname, char *ofile, char *lname,
        * Reset file times.
        */
       if (utime(ofile, &ut) < 0) {
-         Jmsg2(jcr, M_ERROR, 0, "Unable to set file times %s: ERR=%s\n",
+         Jmsg2(jcr, M_ERROR, 0, _("Unable to set file times %s: ERR=%s\n"),
 	    ofile, strerror(errno));
 	 stat = 0;
       }

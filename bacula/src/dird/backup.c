@@ -4,9 +4,6 @@
  *
  *     Kern Sibbald, March MM
  *
- *    This routine is called as a thread. It may not yet be totally
- *	thread reentrant!!!
- *
  *  Basic tasks done here:
  *     Open DB and create records for this job.
  *     Open Message Channel with Storage daemon to tell him a job will be starting.
@@ -484,7 +481,6 @@ Termination:            %s\n\n"),
 	fd_term_msg,
 	sd_term_msg,
 	term_msg);
-
 
    Dmsg0(100, "Leave backup_cleanup()\n");
 }

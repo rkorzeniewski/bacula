@@ -223,7 +223,7 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
    case FT_DIR:
       Dmsg2(300, "Make dir mode=%o dir=%s\n", new_mode, ofile);
       if (make_path(jcr, ofile, new_mode, parent_mode, uid, gid, 0, NULL) != 0) {
-         Jmsg2(jcr, M_ERROR, 0, _("Could not make directory %s: ERR=%s.\n"), 
+         Jmsg2(jcr, M_ERROR, 0, _("Could not make directory %s: ERR=%s\n"), 
 	       ofile, berror(ofd));
 	 return CF_ERROR;
       }
@@ -239,7 +239,7 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
    case FT_NORECURSE:
    case FT_NOFSCHG:
    case FT_NOOPEN:
-      Jmsg2(jcr, M_ERROR, 0, _("Original file %s not saved. Stat=%d\n"), fname, type);
+      Jmsg2(jcr, M_ERROR, 0, _("Original file %s not saved: type=%d\n"), fname, type);
    default:
       Jmsg2(jcr, M_ERROR, 0, _("Unknown file type %d; not restored: %s\n"), type, fname);
    }
@@ -249,7 +249,7 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
 /*
  *  Returns: > 0 index into path where last path char is.
  *	     0	no path
- *	     -1 filename is zero
+ *	     -1 filename is zero length
  */ 
 static int separate_path_and_file(void *jcr, char *fname, char *ofile)
 {

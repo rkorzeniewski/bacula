@@ -22,8 +22,8 @@ first_rule: all
 dummy:
 
 #
-SVRSRCS = dird.c authenticate.c autoprune.c \
-	  backup.c \
+SVRSRCS = dird.c admin.c authenticate.c \
+	  autoprune.c backup.c \
 	  catreq.c dird_conf.c \
 	  fd_cmds.c getmsg.c inc_conf.c job.c \
 	  mountreq.c msgchan.c newvol.c \
@@ -35,8 +35,8 @@ SVRSRCS = dird.c authenticate.c autoprune.c \
 	  ua_purge.c ua_restore.c ua_run.c \
 	  ua_select.c ua_server.c \
 	  ua_status.c verify.c
-SVROBJS = dird.o authenticate.o autoprune.o \
-	  backup.o \
+SVROBJS = dird.o admin.o authenticate.o \
+	  autoprune.o backup.o \
 	  catreq.o dird_conf.o \
 	  fd_cmds.o getmsg.o inc_conf.o job.o \
 	  mountreq.o msgchan.o newvol.o \

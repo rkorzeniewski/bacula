@@ -46,9 +46,9 @@ void run_job(JCR *jcr);
 extern void term_scheduler();
 extern void term_ua_server();
 extern int do_backup(JCR *jcr);
+extern int do_admin(JCR *jcr);
 extern int do_restore(JCR *jcr);
 extern int do_verify(JCR *jcr);
-extern void backup_cleanup(void);
 
 #ifdef USE_SEMAPHORE
 static semlock_t job_lock;
@@ -195,9 +195,15 @@ static void *job_thread(void *arg)
       if (jcr->job->RunBeforeJob) {
 	 POOLMEM *before = get_pool_memory(PM_FNAME);
 	 int status;
+	 BPIPE *bpipe;
+	 char line[MAXSTRING];
 	 
 	 before = edit_run_codes(jcr, before, jcr->job->RunBeforeJob);
-	 status = run_program(before, 0, NULL);
+         bpipe = open_bpipe(before, 0, "r");
+	 while (fgets(line, sizeof(line), bpipe->rfd)) {
+            Jmsg(jcr, M_INFO, 0, _("RunBefore: %s"), line);
+	 }
+	 status = close_bpipe(bpipe);
 	 if (status != 0) {
             Jmsg(jcr, M_FATAL, 0, _("RunBeforeJob returned non-zero status=%d\n"),
 	       status);
@@ -228,9 +234,10 @@ static void *job_thread(void *arg)
 	    }
 	    break;
 	 case JT_ADMIN:
-	    /* No actual job */
-	    do_autoprune(jcr);
-	    set_jcr_job_status(jcr, JS_Terminated);
+	    do_admin(jcr);
+	    if (jcr->JobStatus == JS_Terminated) {
+	       do_autoprune(jcr);
+	    }
 	    break;
 	 default:
             Pmsg1(0, "Unimplemented job type: %d\n", jcr->JobType);
@@ -239,9 +246,15 @@ static void *job_thread(void *arg)
       if (jcr->job->RunAfterJob) {
 	 POOLMEM *after = get_pool_memory(PM_FNAME);
 	 int status;
-      
+	 BPIPE *bpipe;
+	 char line[MAXSTRING];
+	 
 	 after = edit_run_codes(jcr, after, jcr->job->RunAfterJob);
-	 status = run_program(after, 0, NULL);
+         bpipe = open_bpipe(after, 0, "r");
+	 while (fgets(line, sizeof(line), bpipe->rfd)) {
+            Jmsg(jcr, M_INFO, 0, _("RunAfter: %s"), line);
+	 }
+	 status = close_bpipe(bpipe);
 	 if (status != 0) {
             Jmsg(jcr, M_FATAL, 0, _("RunAfterJob returned non-zero status=%d\n"),
 	       status);
