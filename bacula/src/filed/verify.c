@@ -30,7 +30,7 @@
 #include "filed.h"
 
 static int verify_file(FF_PKT *ff_pkt, void *my_pkt);
-static int read_chksum(BFILE *bfd, CHKSUM *chksum, JCR *jcr, char *fname);
+static int read_chksum(BFILE *bfd, CHKSUM *chksum, JCR *jcr);
 
 /*
  * Find all the requested files and send attributes
@@ -216,7 +216,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
 	    jcr->Errors++;
 	    return 1;
 	 }
-	 read_chksum(&bfd, &chksum, jcr, ff_pkt->fname);
+	 read_chksum(&bfd, &chksum, jcr);
 	 bclose(&bfd);
       }
 
@@ -234,7 +234,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
 	    }
 	    return 1;
 	 }
-	 read_chksum(&bfd, &chksum, jcr, ff_pkt->fname);
+	 read_chksum(&bfd, &chksum, jcr);
 	 bclose(&bfd);
       }
       if (ff_pkt->flags & FO_HFSPLUS) {
@@ -269,7 +269,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
  * Read checksum of bfd, updating chksum
  * In case of errors we need the job control record and file name.
  */
-int read_chksum(BFILE *bfd, CHKSUM *chksum, JCR *jcr, char *fname)
+int read_chksum(BFILE *bfd, CHKSUM *chksum, JCR *jcr)
 {
    int64_t n;
 
@@ -282,7 +282,7 @@ int read_chksum(BFILE *bfd, CHKSUM *chksum, JCR *jcr, char *fname)
       berrno be;
       be.set_errno(bfd->berrno);
       Jmsg(jcr, M_ERROR, 1, _("Error reading file %s: ERR=%s\n"),
-	    fname, be.strerror());
+	    jcr->last_fname, be.strerror());
       jcr->Errors++;
       return -1;
    }
