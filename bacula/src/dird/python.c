@@ -39,12 +39,14 @@ bool run_module(const char *module);
 
 PyObject *bacula_get(PyObject *self, PyObject *args);
 PyObject *bacula_set(PyObject *self, PyObject *args, PyObject *keyw);
+PyObject *bacula_run(PyObject *self, PyObject *args);
 
 /* Define Bacula entry points */
 PyMethodDef BaculaMethods[] = {
     {"get", bacula_get, METH_VARARGS, "Get Bacula variables."},
     {"set", (PyCFunction)bacula_set, METH_VARARGS|METH_KEYWORDS,
         "Set Bacula variables."}, 
+    {"run", (PyCFunction)bacula_run, METH_VARARGS, "Run a Bacula command."},
     {NULL, NULL, 0, NULL}	      /* last item */
 };
 
@@ -150,5 +152,27 @@ PyObject *bacula_set(PyObject *self, PyObject *args, PyObject *keyw)
    }
    return Py_BuildValue("i", 1);
 }
+
+/* Run a Bacula command */
+PyObject *bacula_run(PyObject *self, PyObject *args)
+{
+   PyObject *CObject;
+   JCR *jcr;
+   char *item;
+   int stat;
+
+   if (!PyArg_ParseTuple(args, "Os:get", &CObject, &item)) {
+      return NULL;
+   }
+   jcr = (JCR *)PyCObject_AsVoidPtr(CObject);
+   UAContext *ua = new_ua_context(jcr);
+   ua->batch = true;
+   pm_strcpy(ua->cmd, item);	      /* copy command */
+   parse_ua_args(ua);		      /* parse command */
+   stat = run_cmd(ua, ua->cmd);
+   free_ua_context(ua);
+   return Py_BuildValue("i", stat);
+}
+
 
 #endif /* HAVE_PYTHON */

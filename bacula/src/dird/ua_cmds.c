@@ -52,7 +52,6 @@ extern int autodisplay_cmd(UAContext *ua, const char *cmd);
 extern int gui_cmd(UAContext *ua, const char *cmd);
 extern int sqlquerycmd(UAContext *ua, const char *cmd);
 extern int querycmd(UAContext *ua, const char *cmd);
-extern int run_cmd(UAContext *ua, const char *cmd);
 extern int retentioncmd(UAContext *ua, const char *cmd);
 extern int prunecmd(UAContext *ua, const char *cmd);
 extern int purgecmd(UAContext *ua, const char *cmd);
