@@ -12,6 +12,7 @@ Documentation to do: (a little bit at a time)
 
 - Document logrotate
 - Document default file backup
+- Document . command
           
 Testing to do: (painful)
 - that ALL console command line options work and are always implemented
@@ -19,6 +20,7 @@ Testing to do: (painful)
 - multiple simultaneous Volumes
 
 For 1.30 release:
+- Do not ignore SIGCHLD
 - Fix Bare Metal restore problem.
 - Fix "access not allowed" for backup of files on WinXP.
 - Document new transparent Console commands and wait command.

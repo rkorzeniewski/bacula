@@ -405,7 +405,7 @@ int set_win32_attributes(void *jcr, char *fname, char *ofile, char *lname,
       bopen(ofd, ofile, O_RDWR|O_BINARY, 0);   /* attempt to open the file */
    }
 
-   if (is_open(ofd)) {
+   if (is_bopen(ofd)) {
       Dmsg1(100, "SetFileTime %s\n", ofile);
       stat = SetFileTime(get_osfhandle(ofd->fid),
 			 &atts.ftCreationTime,

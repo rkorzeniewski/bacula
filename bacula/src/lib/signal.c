@@ -65,6 +65,9 @@ static void signal_handler(int sig)
    if (already_dead) {
       _exit(1);
    }
+   if (sig == SIGCHLD) {	      /* Ignore sigchld */
+      return;
+   }
    already_dead = sig;
    if (sig == SIGTERM) {
       Emsg1(M_TERM, -1, "Shutting down Bacula service: %s ...\n", my_name);
