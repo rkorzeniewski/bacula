@@ -37,9 +37,11 @@ For 1.32:
 - Don't print "Warning: Wrong Volume mounted ..." if mounting second
   volume.
 - Implement List Volume Job=xxx  or List scheduled volumes or Status Director 
-   
+- Add heartbeat from FD to SD if hb interval expires.
 
 For 1.33
+- Suppress read error on blank tape when doing a label.
+- Can we dynamically change FileSets.
 - If pool specified to label command and Label Format is specified,
   automatically generate the Volume name.
 - Take a careful look a the Basic recycling algorithm.  When Bacula
@@ -895,4 +897,3 @@ Done: (see kernsdone for more)
 - Check to see if "blocked" is set during restore.
 - Figure out what is interrupting sql command in console.
 - Make new job print warning User Unmounted Tape.
-

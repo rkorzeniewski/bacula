@@ -212,7 +212,11 @@ static var_rc_t lookup_counter_var(var_t *ctx, void *my_ctx,
 	       counter->CurrentValue++;
 	    }
 	    cr.CurrentValue = counter->CurrentValue;
-	    bstrncpy(cr.WrapCounter, counter->WrapCounter->hdr.name, sizeof(cr.WrapCounter));
+	    if (counter->WrapCounter) {
+	       bstrncpy(cr.WrapCounter, counter->WrapCounter->hdr.name, sizeof(cr.WrapCounter));
+	    } else {
+	       cr.WrapCounter[0] = 0;
+	    }
 	    if (!db_update_counter_record(jcr, jcr->db, &cr)) {
                Jmsg(jcr, M_ERROR, 0, _("Count not update counter %s: ERR=%s\n"),
 		  counter->hdr.name, db_strerror(jcr->db));

@@ -227,10 +227,8 @@ static struct res_items job_items[] = {
 static struct res_items fs_items[] = {
    {"name",        store_name, ITEM(res_fs.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,  ITEM(res_fs.hdr.desc), 0, 0, 0},
-   {"include",     store_inc,  NULL,                  0, 0, 0},
-   {"finclude",    store_finc, NULL,                  0, ITEM_NO_EQUALS, 0},
-   {"exclude",     store_inc,  NULL,                  1, 0, 0},
-   {"fexclude",    store_finc, NULL,                  1, ITEM_NO_EQUALS, 0},
+   {"include",     store_inc,  NULL,                  0, ITEM_NO_EQUALS, 0},
+   {"exclude",     store_inc,  NULL,                  1, ITEM_NO_EQUALS, 0},
    {NULL,	   NULL,       NULL,		      0, 0, 0} 
 };
 
@@ -433,16 +431,18 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
 	 res->res_con.hdr.name, res->res_con.enable_ssl);
       break;
    case R_COUNTER:
-      sendit(sock, "Counter: name=%s min=%d max=%d\n",
-	 res->res_counter.hdr.name, res->res_counter.MinValue, 
-	 res->res_counter.MaxValue);
+      if (res->res_counter.WrapCounter) {
+         sendit(sock, "Counter: name=%s min=%d max=%d wrapcntr=%s\n",
+	    res->res_counter.hdr.name, res->res_counter.MinValue, 
+	    res->res_counter.MaxValue, res->res_counter.WrapCounter->hdr.name);
+      } else {
+         sendit(sock, "Counter: name=%s min=%d max=%d\n",
+	    res->res_counter.hdr.name, res->res_counter.MinValue, 
+	    res->res_counter.MaxValue);
+      }
       if (res->res_counter.Catalog) {
          sendit(sock, "  --> ");
 	 dump_resource(-R_CATALOG, (RES *)res->res_counter.Catalog, sendit, sock);
-      }
-      if (res->res_counter.WrapCounter) {
-         sendit(sock, "  --> ");
-	 dump_resource(-R_COUNTER, (RES *)res->res_counter.WrapCounter, sendit, sock);
       }
       break;
 
