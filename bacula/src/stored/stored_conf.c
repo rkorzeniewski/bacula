@@ -176,7 +176,7 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
 	 res->res_dev.max_volume_size);
       sendit(sock, "        max_file_size=%" lld " capacity=%" lld "\n",
 	 res->res_dev.max_file_size, res->res_dev.volume_capacity);
-      sendit(sock, "         spool_directory=%s\n", res->res_dev.spool_directory);
+      sendit(sock, "         spool_directory=%s\n", NPRT(res->res_dev.spool_directory));
       sendit(sock, "         max_spool_size=%" lld " max_job_spool_size=%" lld "\n",
 	 res->res_dev.max_spool_size, res->res_dev.max_job_spool_size);
       strcpy(buf, "        ");
