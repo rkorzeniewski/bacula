@@ -893,9 +893,9 @@ e_msg(const char *file, int line, int type, int level, const char *fmt,...)
        break;
     case M_ERROR:
        if (level == -1) 	   /* skip details */
-          len = bsnprintf(buf, sizeof(buf), "%s: Error: ", my_name);
+          len = bsnprintf(buf, sizeof(buf), "%s: ERROR: ", my_name);
        else
-          len = bsnprintf(buf, sizeof(buf), "%s: Error in %s:%d ", my_name, file, line);
+          len = bsnprintf(buf, sizeof(buf), "%s: ERROR in %s:%d ", my_name, file, line);
        break;
     case M_WARNING:
        len = bsnprintf(buf, sizeof(buf), "%s: Warning: ", my_name);

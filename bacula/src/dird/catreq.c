@@ -176,8 +176,8 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
    
    /*
     * Request to update Media record. Comes typically at the end
-    *  of a Storage daemon Job Session or when labeling/relabeling a
-    *  Volume.
+    *  of a Storage daemon Job Session, when labeling/relabeling a
+    *  Volume, or when an EOF mark is written.
     */
    } else if (sscanf(bs->msg, Update_media, &Job, &sdmr.VolumeName, &sdmr.VolJobs,
       &sdmr.VolFiles, &sdmr.VolBlocks, &sdmr.VolBytes, &sdmr.VolMounts, &sdmr.VolErrors,
@@ -205,6 +205,14 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
       Dmsg2(300, "label=%d labeldate=%d\n", label, mr.LabelDate);
       if (label || mr.LabelDate == 0) {
 	 mr.LabelDate = time(NULL);
+      } else {
+	 /*
+	  * Insanity check for VolFiles get set to a smaller value
+	  */
+	 if (sdmr.VolFiles < mr.VolFiles) {
+            Jmsg(jcr, M_ERROR, 0, _("ERROR!! Volume Files at %u being set to %u. This is probably wrong.\n"),
+	       mr.VolFiles, sdmr.VolFiles);
+	 }
       }
       Dmsg2(300, "Update media: BefVolJobs=%u After=%u\n", mr.VolJobs, sdmr.VolJobs);
       /* Copy updated values to original media record */
