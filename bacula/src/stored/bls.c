@@ -496,6 +496,7 @@ extern char *getgroup(gid_t gid);
 static void print_ls_output(char *fname, char *link, int type, struct stat *statp)
 {
    char buf[1000]; 
+   char ec1[30];
    char *p, *f;
    int n;
 
@@ -507,24 +508,21 @@ static void print_ls_output(char *fname, char *link, int type, struct stat *stat
    p += n;
    n = sprintf(p, "%-8.8s %-8.8s", getuser(statp->st_uid), getgroup(statp->st_gid));
    p += n;
-   n = sprintf(p, "%8" lld " ", (uint64_t)statp->st_size);
+   n = sprintf(p, "%8.8s ", edit_uint64(statp->st_size, ec1));
    p += n;
    p = encode_time(statp->st_ctime, p);
    *p++ = ' ';
    *p++ = ' ';
    /* Copy file name */
-   for (f=fname; *f; )
+   for (f=fname; *f && (p-buf) < (int)sizeof(buf); )
       *p++ = *f++;
-   if (type == FT_DIR) {
-      *p++ = '/';
-   }
    if (type == FT_LNK) {
       *p++ = ' ';
       *p++ = '-';
       *p++ = '>';
       *p++ = ' ';
       /* Copy link name */
-      for (f=link; *f; )
+      for (f=link; *f && (p-buf) < (int)sizeof(buf); )
 	 *p++ = *f++;
    }
    *p++ = '\n';

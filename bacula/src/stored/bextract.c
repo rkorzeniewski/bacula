@@ -31,8 +31,9 @@
 #include "stored.h"
 #include "findlib/find.h"
 
+
 static void do_extract(char *fname, char *prefix);
-static void print_ls_output(char *fname, struct stat *statp);
+static void print_ls_output(char *fname, char *link, int type, struct stat *statp);
 
 
 static DEVICE *dev = NULL;
@@ -42,10 +43,14 @@ static JCR *jcr;
 static FF_PKT my_ff;
 static FF_PKT *ff = &my_ff;
 
+static BSR *bsr = NULL;
+static SESSION_LABEL sesrec;
+
 static void usage()
 {
    fprintf(stderr,
 "Usage: bextract [-d debug_level] <bacula-archive> <directory-to-store-files>\n"
+"       -b <file>       specify a bootstrap file\n"
 "       -dnn            set debug level to nn\n"
 "       -e <file>       exclude list\n"
 "       -i <file>       include list\n"
@@ -71,8 +76,13 @@ int main (int argc, char *argv[])
    memset(ff, 0, sizeof(FF_PKT));
    init_include_exclude_files(ff);
 
-   while ((ch = getopt(argc, argv, "d:e:i:?")) != -1) {
+   while ((ch = getopt(argc, argv, "b:d:e:i:?")) != -1) {
       switch (ch) {
+         case 'b':                    /* bootstrap file */
+	    bsr = parse_bsr(optarg);
+	    dump_bsr(bsr);
+	    break;
+
          case 'd':                    /* debug level */
 	    debug_level = atoi(optarg);
 	    if (debug_level <= 0)
@@ -133,6 +143,9 @@ int main (int argc, char *argv[])
    do_extract(argv[0], argv[1]);
 
    free_jcr(jcr);
+   if (bsr) {
+      free_bsr(bsr);
+   }
    return 0;
 }
   
@@ -201,6 +214,7 @@ static void do_extract(char *devname, char *where)
    POOLMEM *compress_buf = get_memory(compress_buf_size);
 
    for ( ;; ) {
+      int ok;
 
       if (!read_record(dev, block, &rec)) {
 	 uint32_t status;
@@ -246,9 +260,11 @@ static void do_extract(char *devname, char *where)
 	       break;
 	    case VOL_LABEL:
                rtype = "Volume Label";
+	       unser_volume_label(dev, &rec);
 	       break;
 	    case SOS_LABEL:
                rtype = "Begin Session";
+	       unser_session_label(&sesrec, &rec);
 	       break;
 	    case EOS_LABEL:
                rtype = "End Session";
@@ -333,7 +349,13 @@ static void do_extract(char *devname, char *where)
 	 }
 
 	 /* Is this the file we want? */
-	 if (file_is_included(ff, fname) && !file_is_excluded(ff, fname)) {
+	 if (bsr) {
+	    ok = match_bsr(bsr, &rec, &dev->VolHdr, &sesrec);
+	 } else {
+	    ok = TRUE;
+	 }
+	    
+	 if (ok && file_is_included(ff, fname) && !file_is_excluded(ff, fname)) {
 
 	    decode_stat(ap, &statp);
 	    /*
@@ -361,7 +383,7 @@ static void do_extract(char *devname, char *where)
 	    extract = create_file(jcr, fname, ofile, lname, type, &statp, &ofd);
 
 	    if (extract) {
-		print_ls_output(ofile, &statp);   
+		print_ls_output(ofile, lname, type, &statp);   
 	    }
 	 }
 
@@ -437,9 +459,10 @@ static void do_extract(char *devname, char *where)
 extern char *getuser(uid_t uid);
 extern char *getgroup(gid_t gid);
 
-static void print_ls_output(char *fname, struct stat *statp)
+static void print_ls_output(char *fname, char *link, int type, struct stat *statp)
 {
    char buf[1000]; 
+   char ec1[30];
    char *p, *f;
    int n;
 
@@ -448,13 +471,23 @@ static void print_ls_output(char *fname, struct stat *statp)
    p += n;
    n = sprintf(p, "%-8.8s %-8.8s", getuser(statp->st_uid), getgroup(statp->st_gid));
    p += n;
-   n = sprintf(p, "%8lld  ", (uint64_t)statp->st_size);
+   n = sprintf(p, "%8.8s ", edit_uint64(statp->st_size, ec1));
    p += n;
    p = encode_time(statp->st_ctime, p);
    *p++ = ' ';
    *p++ = ' ';
-   for (f=fname; *f; )
+   /* Copy file name */
+   for (f=fname; *f && (p-buf) < (int)sizeof(buf); )
       *p++ = *f++;
+   if (type == FT_LNK) {
+      *p++ = ' ';
+      *p++ = '-';
+      *p++ = '>';
+      *p++ = ' ';
+      /* Copy link name */
+      for (f=link; *f && (p-buf) < (int)sizeof(buf); )
+	 *p++ = *f++;
+   }
    *p++ = '\n';
    *p = 0;
    fputs(buf, stdout);

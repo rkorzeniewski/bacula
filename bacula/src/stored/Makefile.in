@@ -20,10 +20,12 @@ dummy:
 #
 SVRSRCS = stored.c append.c askdir.c authenticate.c block.c dev.c \
 	  device.c dircmd.c fd_cmds.c fdmsg.c job.c \
-	  label.c read.c record.c stored_conf.c 
+	  label.c match_bsr.c parse_bsr.c \
+	  read.c record.c stored_conf.c 
 SVROBJS = stored.o append.o askdir.o authenticate.o block.o dev.o \
 	  device.o dircmd.o fd_cmds.o fdmsg.o job.o \
-	  label.o read.o record.o stored_conf.o 
+	  label.o match_bsr.o parse_bsr.o \
+	  read.o record.o stored_conf.o 
 
 # bpool is depricated
 #POOLSRCS = bpool.c block.c dev.c device.c askdir.c label.c \
@@ -39,7 +41,8 @@ TAPEOBJS = btape.o block.o dev.o device.o askdir.o label.o \
 
 BLSOBJS = bls.o block.o device.o dev.o askdir.o label.o record.o
 
-BEXTOBJS = bextract.o block.o device.o dev.o askdir.o label.o record.o
+BEXTOBJS = bextract.o block.o device.o dev.o askdir.o label.o record.o \
+	   match_bsr.o parse_bsr.o
 
 SCNOBJS = bscan.o block.o device.o dev.o askdir.o label.o record.o
 

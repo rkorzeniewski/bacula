@@ -32,6 +32,7 @@
 #include "dev.h"
 #include "stored_conf.h"
 #include "jcr.h"
+#include "bsr.h"
 #include "protos.h"
 #ifdef HAVE_LIBZ
 #include <zlib.h>                     /* compression headers */

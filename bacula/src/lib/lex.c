@@ -31,6 +31,38 @@
 extern int debug_level;
 
 /*
+ * Scan to "logical" end of line. I.e. end of line,
+ * or semicolon.
+ */
+void scan_to_eol(LEX *lc)
+{
+   int token;
+   Dmsg0(150, "start scan to eof\n");
+   while ((token = lex_get_token(lc)) != T_EOL) {
+   }
+   Dmsg0(150, "done scan to eof\n");
+}
+
+   
+/*
+ * Format a scanner error message 
+ */
+void s_err(char *file, int line, LEX *lc, char *msg, ...)
+{
+   va_list arg_ptr;
+   char buf[MAXSTRING];
+
+   va_start(arg_ptr, msg);
+   bvsnprintf(buf, sizeof(buf), msg, arg_ptr);
+   va_end(arg_ptr);
+     
+   e_msg(file, line, M_ERROR_TERM, 0, "Config error: %s,\n\
+            : Line %d, col %d of file %s\n%s\n",
+      buf, lc->line_no, lc->col_no, lc->fname, lc->line);
+}
+
+
+/*
  * Free the current file, and retrieve the contents
  * of the previous packet if any.
  */

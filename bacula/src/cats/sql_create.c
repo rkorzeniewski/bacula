@@ -134,9 +134,11 @@ JobId=%d AND MediaId=%d", jm->JobId, jm->MediaId);
 
    /* Must create it */
    Mmsg(&mdb->cmd, 
-"INSERT INTO JobMedia (JobId, MediaId, FirstIndex, LastIndex) \
-VALUES (%d, %d, %u, %u)", 
-       jm->JobId, jm->MediaId, jm->FirstIndex, jm->LastIndex);
+"INSERT INTO JobMedia (JobId,MediaId,FirstIndex,LastIndex,\
+StartFile,EndFile,StartBlock,EndBlock) \
+VALUES (%u,%u,%u,%u,%u,%u,%u,%u)", 
+       jm->JobId, jm->MediaId, jm->FirstIndex, jm->LastIndex,
+       jm->StartFile, jm->EndFile, jm->StartBlock, jm->EndBlock);
 
    Dmsg0(30, mdb->cmd);
    if (!INSERT_DB(mdb, mdb->cmd)) {

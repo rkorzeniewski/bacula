@@ -180,8 +180,8 @@ MediaType=%s\n", mr.PoolId, jcr->PoolId, mr.VolStatus, mr.MediaType);
        * Otherwise, record the fact that this job used this Volume 
        */
       if (!relabel) {
-         Dmsg4(100, "create_jobmedia JobId=%d MediaId=%d FI=%d LI=%d\n",
-	    jm.JobId, jm.MediaId, jm.FirstIndex, jm.LastIndex);
+         Dmsg6(100, "create_jobmedia JobId=%d MediaId=%d SF=%d EF=%d FI=%d LI=%d\n",
+	    jm.JobId, jm.MediaId, jm.StartFile, jm.EndFile, jm.FirstIndex, jm.LastIndex);
 	 if(!db_create_jobmedia_record(jcr->db, &jm)) {
             Jmsg(jcr, M_ERROR, 0, _("Catalog error creating JobMedia record. %s"),
 	       db_strerror(jcr->db));

@@ -174,7 +174,7 @@ void init_resource(int type, struct res_items *items)
       }
       /* If this triggers, take a look at lib/parse_conf.h */
       if (i >= MAX_RES_ITEMS) {
-         Emsg1(M_ABORT, 0, _("Too many items in %s resource\n"), resources[rindex]);
+         Emsg1(M_ERROR_TERM, 0, _("Too many items in %s resource\n"), resources[rindex]);
       }
    }
 }
@@ -634,12 +634,11 @@ void store_yesno(LEX *lc, struct res_items *item, int index, int pass)
    int token;
 
    token = lex_get_token(lc);
-   lcase(lc->str);
    if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
       scan_err1(lc, "expected an identifier or string, got: %s", lc->str);
-   } else if (strcmp(lc->str, "yes") == 0) {
+   } else if (strcasecmp(lc->str, "yes") == 0) {
       *(int *)(item->value) |= item->code;
-   } else if (strcmp(lc->str, "no") == 0) {
+   } else if (strcasecmp(lc->str, "no") == 0) {
       *(int *)(item->value) &= ~(item->code);
    } else {
       scan_err1(lc, "Expect a YES or NO, got: %s", lc->str);
@@ -649,36 +648,6 @@ void store_yesno(LEX *lc, struct res_items *item, int index, int pass)
 }
 
 
-/*
- * Scan to "logical" end of line. I.e. end of line,
- * or semicolon.
- */
-void scan_to_eol(LEX *lc)
-{
-   int token;
-   Dmsg0(150, "start scan to eof\n");
-   while ((token = lex_get_token(lc)) != T_EOL) {
-   }
-   Dmsg0(150, "done scan to eof\n");
-}
-
-   
-/*
- * Format a scanner error message 
- */
-void s_err(char *file, int line, LEX *lc, char *msg, ...)
-{
-   va_list arg_ptr;
-   char buf[MAXSTRING];
-
-   va_start(arg_ptr, msg);
-   bvsnprintf(buf, sizeof(buf), msg, arg_ptr);
-   va_end(arg_ptr);
-     
-   e_msg(file, line, M_ABORT, 0, "Config error: %s,\n\
-            : Line %d, col %d of file %s\n%s\n",
-      buf, lc->line_no, lc->col_no, lc->fname, lc->line);
-}
 
 void LockRes()
 {
@@ -775,9 +744,8 @@ parse_config(char *cf)
 	       if (token != T_IDENTIFIER) {
                   scan_err1(lc, "Expected a Resource name identifier, got: %s", lc->str);
 	       }
-	       lcase(lc->str);
 	       for (i=0; resources[i].name; i++)
-		  if (strcmp(resources[i].name, lc->str) == 0) {
+		  if (strcasecmp(resources[i].name, lc->str) == 0) {
 		     state = p_resource;
 		     items = resources[i].items;
 		     res_type = resources[i].rcode;
@@ -797,9 +765,8 @@ parse_config(char *cf)
 		     if (level != 1) {
                         scan_err1(lc, "not in resource definition: %s", lc->str);
 		     }
-		     lcase(lc->str);
 		     for (i=0; items[i].name; i++) {
-			if (strcmp(items[i].name, lc->str) == 0) {
+			if (strcasecmp(items[i].name, lc->str) == 0) {
 			   token = lex_get_token(lc);
                            Dmsg1 (150, "in T_IDENT got token=%s\n", lex_tok_to_str(token));
 			   if (token != T_EQUALS) {

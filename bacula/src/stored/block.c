@@ -299,7 +299,7 @@ int write_block_to_dev(DEVICE *dev, DEV_BLOCK *block)
    block->BlockNumber = dev->block_num;
    ser_block_header(block);
 
-   /* dump_block(block, "after ser_hdr"); */
+   /* Limit maximum Volume size to value specified by user */
    if ((dev->max_volume_size > 0) &&
        ((int64_t) (dev->VolCatInfo.VolCatBytes + block->binbuf)) >= dev->max_volume_size) {
       dev->state |= ST_WEOT;
@@ -341,6 +341,14 @@ int write_block_to_dev(DEVICE *dev, DEV_BLOCK *block)
    }
    dev->VolCatInfo.VolCatBytes += block->binbuf;
    dev->VolCatInfo.VolCatBlocks++;   
+   dev->file_bytes += block->binbuf;
+
+   /* Limit maximum File size on volume to user specified value */
+   if ((dev->max_file_size > 0) &&
+       dev->file_bytes >= dev->max_file_size) {
+      weof_dev, 1);		      /* write end of file */
+   }
+
    Dmsg2(190, "write_block: wrote block %d bytes=%d\n", dev->block_num,
       wlen);
    empty_block(block);

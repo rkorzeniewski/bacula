@@ -196,7 +196,7 @@ void init_console_msg(char *wd)
    sprintf(con_fname, "%s/%s.conmsg", wd, my_name);
    fd = open(con_fname, O_CREAT|O_RDWR|O_BINARY, 0600);
    if (fd == -1) {
-       Emsg2(M_TERM, 0, "Could not open console message file %s: ERR=%s\n",
+       Emsg2(M_ERROR_TERM, 0, "Could not open console message file %s: ERR=%s\n",
 	  con_fname, strerror(errno));
    }
    if (lseek(fd, 0, SEEK_END) > 0) {
@@ -645,7 +645,7 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
 
     Dmsg2(200, "Enter dispatch_msg type=%d msg=%s\n", type, msg);
 
-    if (type == M_ABORT || type == M_TERM) {
+    if (type == M_ABORT || type == M_ERROR_TERM) {
        fprintf(stdout, msg);	      /* print this here to INSURE that it is printed */
     }
 
@@ -755,7 +755,7 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
 		break;
 	     case MD_STDOUT:
                 Dmsg1(200, "STDOUT for following err: %s\n", msg);
-		if (type != M_ABORT && type != M_TERM)	/* already printed */
+		if (type != M_ABORT && type != M_ERROR_TERM)  /* already printed */
 		   fprintf(stdout, msg);
 		break;
 	     case MD_STDERR:
@@ -829,9 +829,9 @@ e_msg(char *file, int line, int type, int level, char *fmt,...)
 
     /* 
      * Check if we have a message destination defined.	
-     * We always report M_ABORT and M_TERM 
+     * We always report M_ABORT and M_ERROR_TERM 
      */
-    if (!daemon_msgs || ((type != M_ABORT && type != M_TERM) && 
+    if (!daemon_msgs || ((type != M_ABORT && type != M_ERROR_TERM) && 
 			 !bit_is_set(type, daemon_msgs->send_msg)))
        return;			      /* no destination */
     switch (type) {
@@ -839,8 +839,8 @@ e_msg(char *file, int line, int type, int level, char *fmt,...)
           sprintf(buf, "%s ABORTING due to ERROR in %s:%d\n", 
 		  my_name, file, line);
 	  break;
-       case M_TERM:
-          sprintf(buf, "%s TERMINATING due to ERROR in %s:%d\n", 
+       case M_ERROR_TERM:
+          sprintf(buf, "%s ERROR TERMINATING at %s:%d\n", 
 		  my_name, file, line);
 	  break;
        case M_FATAL:
@@ -874,7 +874,7 @@ e_msg(char *file, int line, int type, int level, char *fmt,...)
        char *p = 0;
        p[0] = 0;		      /* generate segmentation violation */
     }
-    if (type == M_TERM) {
+    if (type == M_ERROR_TERM) {
        _exit(1);
     }
 }
@@ -915,9 +915,9 @@ Jmsg(void *vjcr, int type, int level, char *fmt,...)
     buf = rbuf; 		   /* we are the Director */
     /* 
      * Check if we have a message destination defined.	
-     * We always report M_ABORT and M_TERM 
+     * We always report M_ABORT and M_ERROR_TERM 
      */
-    if ((type != M_ABORT && type != M_TERM) && msgs && !bit_is_set(type, msgs->send_msg)) {
+    if ((type != M_ABORT && type != M_ERROR_TERM) && msgs && !bit_is_set(type, msgs->send_msg)) {
        Dmsg1(200, "No bit set for type %d\n", type);
        return;			      /* no destination */
     }
@@ -925,8 +925,8 @@ Jmsg(void *vjcr, int type, int level, char *fmt,...)
        case M_ABORT:
           sprintf(buf, "%s ABORTING due to ERROR\n", my_name);
 	  break;
-       case M_TERM:
-          sprintf(buf, "%s TERMINATING due to ERROR\n", my_name);
+       case M_ERROR_TERM:
+          sprintf(buf, "%s ERROR TERMINATING\n", my_name);
 	  break;
        case M_FATAL:
           sprintf(buf, "%s: Job %s Fatal error: ", my_name, job);
@@ -962,7 +962,7 @@ Jmsg(void *vjcr, int type, int level, char *fmt,...)
        char *p = 0;
        p[0] = 0;		      /* generate segmentation violation */
     }
-    if (type == M_TERM) {
+    if (type == M_ERROR_TERM) {
        _exit(1);
     }
 }

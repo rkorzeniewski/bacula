@@ -562,6 +562,9 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 
       strcpy(dev->VolCatInfo.VolCatStatus, "Full");
       Dmsg0(90, "Call update_vol_info\n");
+      /* Update position counters */
+      jcr->end_block = dev->block_num;
+      jcr->end_file = dev->file;
       if (!dir_update_volume_info(jcr, &dev->VolCatInfo, 0)) {	  /* send Volume info to Director */
          Jmsg(jcr, M_ERROR, 0, _("Could not update Volume info Volume=%s Job=%s\n"),
 	    dev->VolCatInfo.VolCatName, jcr->Job);
@@ -624,6 +627,9 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       jcr->NumVolumes++;
       Dmsg0(90, "Wake up any waiting threads.\n");
       free_block(label_blk);
+      /* Set new start/end positions */
+      jcr->start_block = dev->block_num;
+      jcr->start_file = dev->file;
       unblock_device(dev);
       jcr->run_time += time(NULL) - wait_time; /* correct run time */
       return 1; 			       /* device locked */

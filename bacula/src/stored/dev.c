@@ -269,6 +269,7 @@ int rewind_dev(DEVICE *dev)
    }
    dev->state &= ~(ST_APPEND|ST_READ|ST_EOT | ST_EOF | ST_WEOT);  /* remove EOF/EOT flags */
    dev->block_num = dev->file = 0;
+   dev->file_bytes = 0;
    if (dev->state & ST_TAPE) {
       mt_com.mt_op = MTREW;
       mt_com.mt_count = 1;
@@ -323,6 +324,7 @@ eod_dev(DEVICE *dev)
    }
    dev->state &= ~(ST_EOF);  /* remove EOF flags */
    dev->block_num = dev->file = 0;
+   dev->file_bytes = 0;
    if (!(dev->state & ST_TAPE)) {
       pos = lseek(dev->fd, 0, SEEK_END);
       if (pos > 0) {
@@ -395,6 +397,7 @@ int update_pos_dev(DEVICE *dev)
    /* Find out where we are */
    if (!(dev->state & ST_TAPE)) {
       dev->file = 0;
+      dev->file_bytes - 0;
       pos = lseek(dev->fd, 0, SEEK_CUR);
       if (pos < 0) {
          Dmsg1(200, "Seek error: ERR=%s\n", strerror(dev->dev_errno));
@@ -535,6 +538,7 @@ int load_dev(DEVICE *dev)
 #else
 
    dev->block_num = dev->file = 0;
+   dev->file_bytes = 0;
    mt_com.mt_op = MTLOAD;
    mt_com.mt_count = 1;
    if (ioctl(dev->fd, MTIOCTOP, (char *)&mt_com) < 0) {
@@ -566,6 +570,7 @@ int offline_dev(DEVICE *dev)
    }
 
    dev->block_num = dev->file = 0;
+   dev->file_bytes = 0;
    mt_com.mt_op = MTOFFL;
    mt_com.mt_count = 1;
    if (ioctl(dev->fd, MTIOCTOP, (char *)&mt_com) < 0) {
@@ -640,6 +645,7 @@ fsf_dev(DEVICE *dev, int num)
 	    } else {
 	       dev->state |= ST_EOF;
 	       dev->file++;
+	       dev->file_bytes = 0;
 	       continue;
 	    }
 	 } else {			 /* Got data */
@@ -659,6 +665,7 @@ fsf_dev(DEVICE *dev, int num)
 	 } else {
 	    dev->state |= ST_EOF;     /* just read EOF */
 	    dev->file++;
+	    dev->file_bytes = 0;
 	 }   
       }
    
@@ -710,6 +717,7 @@ bsf_dev(DEVICE *dev, int num)
    Dmsg0(29, "bsf_dev\n");
    dev->state &= ~(ST_EOT|ST_EOF);
    dev->file -= num;
+   dev->file_bytes = 0;
    mt_com.mt_op = MTBSF;
    mt_com.mt_count = num;
    stat = ioctl(dev->fd, MTIOCTOP, (char *)&mt_com);
@@ -755,6 +763,7 @@ fsr_dev(DEVICE *dev, int num)
       } else {
 	 dev->state |= ST_EOF;		 /* assume EOF */
 	 dev->file++;
+	 dev->file_bytes = 0;
       }
       clrerror_dev(dev, MTFSR);
       Mmsg2(&dev->errmsg, _("ioctl MTFSR error on %s. ERR=%s.\n"),
@@ -827,6 +836,7 @@ weof_dev(DEVICE *dev, int num)
    stat = ioctl(dev->fd, MTIOCTOP, (char *)&mt_com);
    if (stat == 0) {
       dev->file++;
+      dev->file_bytes = 0;
    } else {
       clrerror_dev(dev, MTWEOF);
       Mmsg2(&dev->errmsg, _("ioctl MTWEOF error on %s. ERR=%s.\n"),
@@ -934,6 +944,7 @@ static void do_close(DEVICE *dev)
    dev->state &= ~(ST_OPENED|ST_LABEL|ST_READ|ST_APPEND|ST_EOT|ST_WEOT|ST_EOF);
    dev->block_num = 0;
    dev->file = 0;
+   dev->file_bytes = 0;
    dev->LastBlockNumWritten = 0;
    memset(&dev->VolCatInfo, 0, sizeof(dev->VolCatInfo));
    memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));

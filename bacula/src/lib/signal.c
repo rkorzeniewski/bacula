@@ -68,7 +68,7 @@ static void signal_handler(int sig)
    }
    already_dead = sig;
    if (sig == SIGTERM) {
-      Emsg1(M_INFO, -1, "Shutting down Bacula service: %s ...\n", my_name);
+      Emsg1(M_TERM, -1, "Shutting down Bacula service: %s ...\n", my_name);
    } else {
       Emsg2(M_FATAL, -1, "Interrupted by signal %d: %s\n", sig, sig_names[sig]);
    }
