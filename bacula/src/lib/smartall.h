@@ -31,7 +31,9 @@ extern uint64_t sm_bytes;
 extern uint32_t sm_max_buffers;
 extern uint32_t sm_buffers;
 
-#ifdef SMARTALLOC
+#ifdef  SMARTALLOC
+#undef  SMARTALLOC
+#define SMARTALLOC SMARTALLOC
 
 
 extern void *sm_malloc(const char *fname, int lineno, unsigned int nbytes),
@@ -87,16 +89,13 @@ extern void *b_malloc();
 
 #endif
 
-#ifdef SMARTALLOC
+//#ifdef SMARTALLOC
+#ifdef xxx
 
-#define New(type) new(__FILE__, __LINE__) type /* BUG 2 brace is missing */
-
-#undef SMARTALLOC 
-#define SMARTALLOC SMARTALLOC
+#define New(type) new(__FILE__, __LINE__) type
 
 class SMARTALLOC
 {
-private:
 public:
 
 void *operator new(size_t s, const char *fname, int line)
@@ -119,12 +118,13 @@ void  operator delete[](void *ptr, size_t i)
 }
 
 private:
-void *operator new(size_t s) throw() { return 0; }
-void *operator new[](size_t s) throw() { return 0; }
+//void *operator new(size_t s) throw() { return 0; }
+//void *operator new[](size_t s) throw() { return 0; }
 };
  
 
 #else
+
 #define New(type) new type
 
 class SMARTALLOC

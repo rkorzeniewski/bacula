@@ -119,5 +119,3 @@ inline void alist::grow(int num)
 {
    num_grow = num;
 }
-
-

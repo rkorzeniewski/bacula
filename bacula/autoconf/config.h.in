@@ -305,9 +305,6 @@
 /* Whether to enable IPv6 support */
 #undef HAVE_IPV6
 
-/* has the system SA_LEN in sockaddr */
-#undef HAVE_SA_LEN
-
 /* Define to 1 if you have the `lchown' function. */
 #undef HAVE_LCHOWN
 
@@ -370,6 +367,9 @@
 
 /* Define to 1 if you have the <resolv.h> header file. */
 #undef HAVE_RESOLV_H
+
+/* Define if sa_len field exists in struct sockaddr */
+#undef HAVE_SA_LEN
 
 /* Define to 1 if you have the `select' function. */
 #undef HAVE_SELECT

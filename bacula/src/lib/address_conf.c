@@ -483,7 +483,7 @@ void store_addresses(LEX * lc, RES_ITEM * item, int index, int pass)
            scan_err3(lc, _("Can't add hostname(%s) and port(%s) to addrlist (%s)"),
 		   hostname_str, port_str, errstr);
 	   free(errstr);
-        }
+	}
       token = skip_to_next_not_eol(lc);
    } while ((token == T_IDENTIFIER || token == T_UNQUOTED_STRING));
    if (token != T_EOB) {
@@ -532,14 +532,14 @@ void free_addresses(dlist * addrs)
 
 int sockaddr_get_port_net_order(const struct sockaddr *client_addr)
 {
-	/* MA BUG 6 remove ifdefs */
-	if (client_addr->sa_family == AF_INET) {
-		return ((struct sockaddr_in *)client_addr)->sin_port;
-	}
-	else {
-		return ((struct sockaddr_in6 *)client_addr)->sin6_port;
-	}
-	return -1;
+   /* MA BUG 6 remove ifdefs */
+   if (client_addr->sa_family == AF_INET) {
+      return ((struct sockaddr_in *)client_addr)->sin_port;
+   }
+   else {
+      return ((struct sockaddr_in6 *)client_addr)->sin6_port;
+   }
+   return -1;
 }
 
 int  sockaddr_to_ascii(const struct sockaddr *sa, char *buf, int len)
@@ -547,14 +547,13 @@ int  sockaddr_to_ascii(const struct sockaddr *sa, char *buf, int len)
 #ifdef HAVE_INET_NTOP
    /* MA Bug 5 the problem was that i mixed up sockaddr and in_addr */
    inet_ntop(sa->sa_family,
-			 sa->sa_family == AF_INET ? 
-				(void*)&(((struct sockaddr_in*)sa)->sin_addr) :
-				(void*)&(((struct sockaddr_in6*)sa)->sin6_addr),
-			 buf,
-			 sa->sa_family == AF_INET ?  sizeof(in_addr) : sizeof(in6_addr));
+	     sa->sa_family == AF_INET ? 
+		 (void*)&(((struct sockaddr_in*)sa)->sin_addr) :
+		 (void*)&(((struct sockaddr_in6*)sa)->sin6_addr),
+	     buf,
+	     sizeof(buf));
 #else
    bstrncpy(buf, inet_ntoa(((struct sockaddr_in *)sa)->sin_addr), len);
 #endif
    return 1;
 }
-
