@@ -34,7 +34,7 @@
 #include "bacula.h"
 #include "cats.h"
 
-#if    HAVE_MYSQL || HAVE_SQLITE
+#if    HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL
 
 /* -----------------------------------------------------------------------
  *
@@ -324,4 +324,4 @@ AND Path.PathId=File.PathId",
 }
 
 
-#endif /* HAVE_MYSQL || HAVE_SQLITE */
+#endif /* HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL */

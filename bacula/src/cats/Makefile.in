@@ -12,6 +12,7 @@ topdir = ../..
 thisdir = src/cats
 
 DEBUG=@DEBUG@
+MKDIR=$(topdir)/autoconf/mkinstalldirs
 
 SQL_INC=@SQL_INCLUDE@
 
@@ -25,11 +26,13 @@ SVROBJS = cats.o sql.o
 LIBSRCS = mysql.c bdb.c bdb_create.c bdb_get.c bdb_update.c \
 	  bdb_delete.c bdb_find.c bdb_list.c \
 	  sql.c sql_create.c sql_delete.c sql_find.c \
-	  sql_get.c sql_list.c sql_update.c sqlite.c 
+	  sql_get.c sql_list.c sql_update.c sqlite.c \
+	  postgresql.c
 LIBOBJS = mysql.o bdb.o bdb_create.o bdb_get.o bdb_update.o \
 	  bdb_delete.o bdb_find.o bdb_list.o \
 	  sql.o sql_create.o sql_delete.o sql_find.o \
-	  sql_get.o sql_list.o sql_update.o sqlite.o
+	  sql_get.o sql_list.o sql_update.o sqlite.o \
+	  postgresql.o
 
 .SUFFIXES:	.c .o
 .PHONY:
@@ -61,19 +64,21 @@ clean:
 realclean: clean
 	$(RMF) tags
 	$(RMF) make_mysql_tables grant_mysql_privileges drop_mysql_tables
-	$(RMF) create_mysql_database make_sqlite_tables sqlite
+	$(RMF) make_postgresql_tables grant_postgresql_privileges drop_postgresql_tables
+	$(RMF) create_mysql_database create_postgresql_database make_sqlite_tables sqlite
 	$(RMF) create_bdb_database drop_bdb_tables make_dbd_tables
 	$(RMF) make_catalog_backup delete_catalog_backup
 	$(RMF) update_mysql_tables update_sqlite_tables create_sqlite_database
 	$(RMF) drop_bacula_tables drop_sqlite_tables make_bacula_tables
 	$(RMF) update_bacula_tables
-	$(RMF) drop_bdb_tables make_bdb_tables mysql
+	$(RMF) drop_bdb_tables make_bdb_tables mysql postgresql
 
 distclean: realclean
 	if test $(srcdir) = .; then $(MAKE) realclean; fi
 	(cd $(srcdir); $(RMF) Makefile; $(RMF) -r CVS)
 
 install:
+	$(MKDIR) $(DESTDIR)$(datadir)/bacula
 	$(INSTALL_SCRIPT) create_@DB_NAME@_database $(DESTDIR)$(scriptdir)/create_@DB_NAME@_database
 	$(INSTALL_SCRIPT) drop_@DB_NAME@_tables $(DESTDIR)$(scriptdir)/drop_@DB_NAME@_tables
 	$(INSTALL_SCRIPT) make_@DB_NAME@_tables $(DESTDIR)$(scriptdir)/make_@DB_NAME@_tables
@@ -84,6 +89,7 @@ install:
 	$(INSTALL_SCRIPT) make_catalog_backup $(DESTDIR)$(scriptdir)/make_catalog_backup  
 	$(INSTALL_SCRIPT) delete_catalog_backup $(DESTDIR)$(scriptdir)/delete_catalog_backup  
 	$(INSTALL_SCRIPT) grant_mysql_privileges $(DESTDIR)$(scriptdir)/grant_mysql_privileges	
+	$(INSTALL_SCRIPT) grant_postgresql_privileges $(DESTDIR)$(scriptdir)/grant_postgresql_privileges	
 
 uninstall:
 	(cd $(DESTDIR)$(scriptdir); $(RMF) create_@DB_NAME@_database)
@@ -96,6 +102,7 @@ uninstall:
 	(cd $(DESTDIR)$(scriptdir); $(RMF) make_catalog_backup)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) delete_catalog_backup)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) grant_mysql_privileges)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) grant_postgresql_privileges)
 
 
 # Semi-automatic generation of dependencies:
