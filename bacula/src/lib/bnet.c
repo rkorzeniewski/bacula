@@ -161,7 +161,10 @@ int32_t bnet_recv(BSOCK *bsock)
    }
 
    /* If signal or packet size too big */
-   if (pktsiz < 0 || pktsiz > 10000000) {
+   if (pktsiz < 0 || pktsiz > 1000000) {
+      if (pktsiz > 0) { 	      /* if packet too big */
+	 pktsiz = BNET_TERMINATE;     /* hang up */
+      }
       if (pktsiz == BNET_TERMINATE) {
 	 bsock->terminated = 1;
       }
