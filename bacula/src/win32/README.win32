@@ -91,3 +91,6 @@ Instructions if you want to build wx-console :
 
 - Additional information on using the free Micrsosoft C++ see
   http://sapdb.2scale.net/moin.cgi/MS_20C_2b_2b_20Toolkit
+
+NOTE! I (Kern) cannot build wxWindows with the Makefile -- I had to use                
+VC Studio directly to do so following their instructions.

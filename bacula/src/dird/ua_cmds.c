@@ -796,6 +796,7 @@ static void update_volrecycle(UAContext *ua, char *val, MEDIA_DBR *mr)
 static void update_volpool(UAContext *ua, char *val, MEDIA_DBR *mr)
 {
    POOL_DBR pr;
+   POOLMEM *query;
 
    memset(&pr, 0, sizeof(pr));
    bstrncpy(pr.Name, val, sizeof(pr.Name));
@@ -804,14 +805,19 @@ static void update_volpool(UAContext *ua, char *val, MEDIA_DBR *mr)
    }
    mr->PoolId = pr.PoolId;	      /* set new PoolId */
    /*
-    * Make sure to use db_update... rather than doing this directly,
-    *	so that any Slot is handled correctly. 
     */
-   if (!db_update_media_record(ua->jcr, ua->db, mr)) {
-      bsendmsg(ua, _("Error updating media record Pool: ERR=%s"), db_strerror(ua->db));
-   } else {
+   query = get_pool_memory(PM_MESSAGE);
+   db_lock(ua->db);
+   Mmsg(&query, "UPDATE Media SET PoolId=%d WHERE MediaId=%u",
+      mr->PoolId, mr->MediaId);
+   if (!db_sql_query(ua->db, query, NULL, NULL)) {  
+      bsendmsg(ua, "%s", db_strerror(ua->db));
+   } else {	  
       bsendmsg(ua, _("New Pool is: %s\n"), pr.Name);
    }
+   db_make_inchanger_unique(ua->jcr, ua->db, mr);
+   db_unlock(ua->db);
+   free_pool_memory(query);
 }
 
 static void update_volfrompool(UAContext *ua, MEDIA_DBR *mr)
