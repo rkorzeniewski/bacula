@@ -11,8 +11,10 @@ drop_bdb_tables
 drop_mysql_tables
 drop_postgresql_tables
 drop_sqlite_tables
+grant_bacula_privileges
 grant_mysql_privileges
 grant_postgresql_privileges
+grant_sqlite_privileges
 list_files.sql
 list_jobs.sql
 make_bdb_tables
