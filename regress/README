@@ -71,3 +71,15 @@ to do:
 
 this cleans up any files that may be created with root permissions.
 
+If you want to add more tests, do so by putting the shell script 
+in the tests subdirectory. Be careful when adding (or better not)
+new clients, pools, and such to the test-bacula-dir.conf.in file
+as it may invalidate a good number of tests, which respond to
+questions by answering with a number (i.e. the order of the selection
+list is known). It might be better to add your own testb-bacula...
+configuration file.  
+
+To avoid re-doing a make setup if you have made a change to the
+conf files, and you do not need a new copy of the source, you can simply do:
+
+   scripts/do-sed <your-email-address>
