@@ -45,3 +45,4 @@ extern int SDConnectTimeout;
 
 /* From job.c */
 void dird_free_jcr(JCR *jcr);
+void dird_free_jcr_pointers(JCR *jcr);

@@ -740,15 +740,9 @@ void create_unique_job_name(JCR *jcr, const char *base_name)
    }
 }
 
-/*
- * Free the Job Control Record if no one is still using it.
- *  Called from main free_jcr() routine in src/lib/jcr.c so
- *  that we can do our Director specific cleanup of the jcr.
- */
-void dird_free_jcr(JCR *jcr)
+/* Called directly from job rescheduling */
+void dird_free_jcr_pointers(JCR *jcr)
 {
-   Dmsg0(200, "Start dird free_jcr\n");
-
    if (jcr->sd_auth_key) {
       free(jcr->sd_auth_key);
       jcr->sd_auth_key = NULL;
@@ -787,7 +781,21 @@ void dird_free_jcr(JCR *jcr)
    }
    if (jcr->term_wait_inited) {
       pthread_cond_destroy(&jcr->term_wait);
+      jcr->term_wait_inited = false;
    }
+}
+
+/*
+ * Free the Job Control Record if no one is still using it.
+ *  Called from main free_jcr() routine in src/lib/jcr.c so
+ *  that we can do our Director specific cleanup of the jcr.
+ */
+void dird_free_jcr(JCR *jcr)
+{
+   Dmsg0(200, "Start dird free_jcr\n");
+
+   dird_free_jcr_pointers(jcr);
+
    /* Delete lists setup to hold storage pointers */
    if (jcr->storage) {
       delete jcr->storage;

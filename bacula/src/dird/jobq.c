@@ -482,7 +482,7 @@ void *jobq_server(void *arg)
 	    bstrftime(dt, sizeof(dt), time(NULL));
             Jmsg(jcr, M_INFO, 0, _("Rescheduled Job %s at %s to re-run in %d seconds.\n"),
 	       jcr->Job, dt, (int)jcr->job->RescheduleInterval);
-	    dird_free_jcr(jcr); 	 /* partial cleanup old stuff */
+	    dird_free_jcr_pointers(jcr);     /* partial cleanup old stuff */
 	    jcr->JobStatus = JS_WaitStartTime;
 	    jcr->SDJobStatus = 0;
 	    if (jcr->JobBytes == 0) {
