@@ -1,8 +1,10 @@
 
-          Release Notes for Bacula 1.37.10
+          Release Notes for Bacula 1.37.12
 
-  Bacula code: Total files = 414 Total lines = 123,723 (*.h *.c *.in)
+  Bacula code: Total files = 419 Total lines = 124,877 (*.h *.c *.in)
 
+Note! The DB has been upgraded from version 8 to 9 and requres
+a DB upgrade.
 
 Major Changes:
 - This version has a new DIR <--> SD protocol. Both must be

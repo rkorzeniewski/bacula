@@ -99,6 +99,8 @@ CREATE TABLE jobmedia
     startblock	      bigint	  not null default 0,
     endblock	      bigint	  not null default 0,
     volindex	      integer	  not null default 0,
+    copy	      integer	  not null default 0,
+    stripe	      integer	  not null default 0,
     primary key (jobmediaid)
 );
 
@@ -237,12 +239,6 @@ CREATE TABLE counters
     primary key (counter)
 );
 
-CREATE TABLE version
-(
-    versionid	      integer		    not null
-);
-
-INSERT INTO Version (VersionId) VALUES (8);
 
 
 CREATE TABLE basefiles
@@ -270,6 +266,14 @@ CREATE TABLE CDImages
    LastBurn timestamp without time zone not null,
    primary key (MediaId)
 );
+
+
+CREATE TABLE version
+(
+    versionid	      integer		    not null
+);
+
+INSERT INTO Version (VersionId) VALUES (9);
 
 -- Make sure we have appropriate permissions
 
