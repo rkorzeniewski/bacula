@@ -95,7 +95,7 @@ static int do_request_volume_info(JCR *jcr)
        return 0;
     }
     unbash_spaces(vol->VolCatName);
-    strcpy(jcr->VolumeName, vol->VolCatName); /* set desired VolumeName */
+    pm_strcpy(&jcr->VolumeName, vol->VolCatName); /* set desired VolumeName */
     
     Dmsg2(200, "do_reqest_vol_info got slot=%d Volume=%s\n", 
 	  vol->Slot, vol->VolCatName);

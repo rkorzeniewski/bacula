@@ -185,7 +185,7 @@ read_volume:
 	     */
 	    memcpy(&dev->VolCatInfo, &jcr->VolCatInfo, sizeof(jcr->VolCatInfo));
 	    /* Check if this is a valid Volume in the pool */
-	    bstrncpy(jcr->VolumeName, dev->VolHdr.VolName, sizeof(jcr->VolumeName));
+	    pm_strcpy(&jcr->VolumeName, dev->VolHdr.VolName);			      
 	    if (!dir_get_volume_info(jcr, 1)) {
                Mmsg(&jcr->errmsg, _("Wanted Volume \"%s\".\n"
                     "    Current Volume \"%s\" not acceptable because:\n"
