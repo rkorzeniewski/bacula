@@ -72,7 +72,7 @@
  *    Total files=1, blocks=17913, bytes = 1155603456
  * ========
  *
- * which is incroorect because it wrote 17,926 blocks but read
+ * which is incorrect because it wrote 17,926 blocks but read
  * back only 17,913 blocks.
  *
  *
