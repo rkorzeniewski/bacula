@@ -67,13 +67,13 @@ void list_spool_stats(BSOCK *bs)
 {
    char ed1[30], ed2[30];
    if (spool_stats.data_jobs || spool_stats.max_data_size) {
-      bnet_fsend(bs, "Data spooling: %d active jobs %s bytes; %d total jobs %s max bytes/job.\n",
+      bnet_fsend(bs, "Data spooling: %d active jobs, %s bytes; %d total jobs, %s max bytes/job.\n",
 	 spool_stats.data_jobs, edit_uint64_with_commas(spool_stats.data_size, ed1),
 	 spool_stats.total_data_jobs, 
 	 edit_uint64_with_commas(spool_stats.max_data_size, ed2));
    }
    if (spool_stats.attr_jobs || spool_stats.max_attr_size) {
-      bnet_fsend(bs, "Attr spooling: %d active jobs; %d total jobs %s max bytes/job.\n",
+      bnet_fsend(bs, "Attr spooling: %d active jobs; %d total jobs, %s max bytes/job.\n",
 	 spool_stats.attr_jobs, spool_stats.total_attr_jobs, 
 	 edit_uint64_with_commas(spool_stats.max_attr_size, ed1));
    }
@@ -109,8 +109,12 @@ bool discard_data_spool(JCR *jcr)
 bool commit_data_spool(JCR *jcr)
 {
    bool stat;
+   char ec1[40];
+
    if (jcr->dcr->spooling) {
       Dmsg0(100, "Committing spooled data\n");
+      Jmsg(jcr, M_INFO, 0, _("Writing spooled data to Volume. Despooling %s bytes ...\n"),
+	    edit_uint64_with_commas(jcr->dcr->dev->spool_size, ec1));
       stat = despool_data(jcr->dcr);
       if (!stat) {
          Dmsg1(000, "Bad return from despool WroteVol=%d\n", jcr->dcr->WroteVol);
@@ -339,8 +343,9 @@ bool write_block_to_spool_file(DCR *dcr, DEV_BLOCK *block)
    }
    V(mutex);
    if (despool) {
+      char ec1[30];
 #ifdef xDEBUG 
-      char ec1[30], ec2[30], ec3[30], ec4[30];
+      char ec2[30], ec3[30], ec4[30];
       Dmsg4(100, "Despool in write_block_to_spool_file max_size=%s size=%s "
             "max_job_size=%s job_size=%s\n", 
 	    edit_uint64_with_commas(dcr->max_spool_size, ec1),
@@ -348,12 +353,13 @@ bool write_block_to_spool_file(DCR *dcr, DEV_BLOCK *block)
 	    edit_uint64_with_commas(dcr->dev->max_spool_size, ec3),
 	    edit_uint64_with_commas(dcr->dev->spool_size, ec4));
 #endif
-      Jmsg(dcr->jcr, M_INFO, 0, _("User specified spool size reached. Despooling ...\n"));
+      Jmsg(dcr->jcr, M_INFO, 0, _("User specified spool size reached. Despooling %s bytes ...\n"),
+	    edit_uint64_with_commas(dcr->dev->spool_size, ec1));
       if (!despool_data(dcr)) {
          Dmsg0(000, "Bad return from despool in write_block.\n");
 	 return false;
       }
-      /* Despooling cleard these variables so reset them */
+      /* Despooling cleared these variables so reset them */
       P(dcr->dev->spool_mutex);
       dcr->spool_size += hlen + wlen;
       dcr->dev->spool_size += hlen + wlen;

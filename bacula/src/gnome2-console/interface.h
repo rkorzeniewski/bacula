@@ -9,3 +9,4 @@ GtkWidget* create_RunDialog (void);
 GtkWidget* create_restore_file_selection (void);
 GtkWidget* create_label_dialog (void);
 GtkWidget* create_RestoreDialog (void);
+GtkWidget* create_progress_dialog (void);

@@ -39,7 +39,7 @@ LIBSRCS = alloc.c attr.c base64.c bsys.c bget_msg.c \
 	  md5.c message.c mem_pool.c parse_conf.c \
 	  queue.c rwlock.c scan.c serial.c sha1.c \
 	  semlock.c signal.c smartall.c tree.c \
-	  util.c var.c watchdog.c workq.c timers.c
+	  util.c var.c watchdog.c workq.c btimers.c
 
 
 LIBOBJS = alloc.o attr.o base64.o bsys.o bget_msg.o \
@@ -50,7 +50,7 @@ LIBOBJS = alloc.o attr.o base64.o bsys.o bget_msg.o \
 	  md5.o message.o mem_pool.o parse_conf.o \
 	  queue.o rwlock.o scan.o serial.o sha1.o \
 	  semlock.o signal.o smartall.o tree.o \
-	  util.o var.o watchdog.o workq.o timers.o
+	  util.o var.o watchdog.o workq.o btimers.o
 
 
 EXTRAOBJS = @OBJLIST@

@@ -626,8 +626,11 @@ create_RunDialog (void)
   GtkWidget *combo_fileset;
   GList *combo_fileset_items = NULL;
   GtkWidget *entry_fileset;
-  GtkWidget *view_fileset_button;
-  GtkWidget *label69;
+  GtkWidget *label156;
+  GtkWidget *label155;
+  GtkObject *spinbutton1_adj;
+  GtkWidget *spinbutton1;
+  GtkWidget *label157;
   GtkWidget *hbox32;
   GtkWidget *label70;
   GtkWidget *combo_level;
@@ -660,6 +663,10 @@ create_RunDialog (void)
   GtkWidget *label100;
   GtkWidget *entry_when;
   GtkWidget *label101;
+  GtkWidget *hbox60;
+  GtkWidget *label153;
+  GtkWidget *entry28;
+  GtkWidget *label154;
   GtkWidget *label84;
   GtkWidget *dialog_action_area6;
   GtkWidget *hbuttonbox1;
@@ -692,6 +699,7 @@ create_RunDialog (void)
   hbox28 = gtk_hbox_new (FALSE, 0);
   gtk_widget_show (hbox28);
   gtk_container_add (GTK_CONTAINER (alignment1), hbox28);
+  gtk_container_set_border_width (GTK_CONTAINER (hbox28), 1);
 
   hbox29 = gtk_hbox_new (FALSE, 0);
   gtk_widget_show (hbox29);
@@ -700,7 +708,7 @@ create_RunDialog (void)
   label63 = gtk_label_new (_("Job:"));
   gtk_widget_show (label63);
   gtk_box_pack_start (GTK_BOX (hbox29), label63, FALSE, FALSE, 0);
-  gtk_widget_set_size_request (label63, 66, 16);
+  gtk_widget_set_size_request (label63, 68, 16);
   gtk_label_set_justify (GTK_LABEL (label63), GTK_JUSTIFY_RIGHT);
 
   combo_job = gtk_combo_new ();
@@ -744,11 +752,12 @@ create_RunDialog (void)
   hbox30 = gtk_hbox_new (FALSE, 0);
   gtk_widget_show (hbox30);
   gtk_box_pack_start (GTK_BOX (vbox12), hbox30, TRUE, TRUE, 0);
+  gtk_container_set_border_width (GTK_CONTAINER (hbox30), 1);
 
   label66 = gtk_label_new (_("Client:"));
   gtk_widget_show (label66);
   gtk_box_pack_start (GTK_BOX (hbox30), label66, FALSE, FALSE, 0);
-  gtk_widget_set_size_request (label66, 65, 16);
+  gtk_widget_set_size_request (label66, 68, 16);
   gtk_label_set_justify (GTK_LABEL (label66), GTK_JUSTIFY_RIGHT);
 
   combo_client = gtk_combo_new ();
@@ -772,18 +781,20 @@ create_RunDialog (void)
   hbox31 = gtk_hbox_new (FALSE, 0);
   gtk_widget_show (hbox31);
   gtk_box_pack_start (GTK_BOX (vbox12), hbox31, TRUE, TRUE, 2);
+  gtk_widget_set_size_request (hbox31, 503, 26);
+  gtk_container_set_border_width (GTK_CONTAINER (hbox31), 1);
 
   label68 = gtk_label_new (_("FileSet: "));
   gtk_widget_show (label68);
   gtk_box_pack_start (GTK_BOX (hbox31), label68, FALSE, FALSE, 0);
-  gtk_widget_set_size_request (label68, 66, 16);
+  gtk_widget_set_size_request (label68, 68, 16);
   gtk_label_set_justify (GTK_LABEL (label68), GTK_JUSTIFY_RIGHT);
 
   combo_fileset = gtk_combo_new ();
   g_object_set_data (G_OBJECT (GTK_COMBO (combo_fileset)->popwin),
                      "GladeParentKey", combo_fileset);
   gtk_widget_show (combo_fileset);
-  gtk_box_pack_start (GTK_BOX (hbox31), combo_fileset, TRUE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (hbox31), combo_fileset, FALSE, FALSE, 0);
   gtk_combo_set_value_in_list (GTK_COMBO (combo_fileset), TRUE, FALSE);
   combo_fileset_items = g_list_append (combo_fileset_items, (gpointer) "");
   gtk_combo_set_popdown_strings (GTK_COMBO (combo_fileset), combo_fileset_items);
@@ -793,23 +804,39 @@ create_RunDialog (void)
   gtk_widget_show (entry_fileset);
   gtk_editable_set_editable (GTK_EDITABLE (entry_fileset), FALSE);
 
-  view_fileset_button = gtk_button_new_with_mnemonic (_("  View FileSet  "));
-  gtk_widget_show (view_fileset_button);
-  gtk_box_pack_start (GTK_BOX (hbox31), view_fileset_button, FALSE, TRUE, 10);
-  gtk_widget_set_size_request (view_fileset_button, 93, 26);
+  label156 = gtk_label_new ("");
+  gtk_widget_show (label156);
+  gtk_box_pack_start (GTK_BOX (hbox31), label156, FALSE, FALSE, 0);
+  gtk_widget_set_size_request (label156, 13, 16);
+  gtk_label_set_justify (GTK_LABEL (label156), GTK_JUSTIFY_LEFT);
 
-  label69 = gtk_label_new (_("  "));
-  gtk_widget_show (label69);
-  gtk_box_pack_start (GTK_BOX (hbox31), label69, FALSE, FALSE, 65);
+  label155 = gtk_label_new (_("Priority:"));
+  gtk_widget_show (label155);
+  gtk_box_pack_start (GTK_BOX (hbox31), label155, FALSE, FALSE, 0);
+  gtk_widget_set_size_request (label155, 52, 16);
+  gtk_label_set_justify (GTK_LABEL (label155), GTK_JUSTIFY_LEFT);
+
+  spinbutton1_adj = gtk_adjustment_new (10, 0, 100, 1, 10, 10);
+  spinbutton1 = gtk_spin_button_new (GTK_ADJUSTMENT (spinbutton1_adj), 1, 0);
+  gtk_widget_show (spinbutton1);
+  gtk_box_pack_start (GTK_BOX (hbox31), spinbutton1, FALSE, FALSE, 4);
+  gtk_widget_set_size_request (spinbutton1, 81, 24);
+
+  label157 = gtk_label_new ("");
+  gtk_widget_show (label157);
+  gtk_box_pack_start (GTK_BOX (hbox31), label157, FALSE, FALSE, 0);
+  gtk_widget_set_size_request (label157, 100, 16);
+  gtk_label_set_justify (GTK_LABEL (label157), GTK_JUSTIFY_LEFT);
 
   hbox32 = gtk_hbox_new (FALSE, 0);
   gtk_widget_show (hbox32);
   gtk_box_pack_start (GTK_BOX (vbox12), hbox32, TRUE, TRUE, 2);
+  gtk_container_set_border_width (GTK_CONTAINER (hbox32), 1);
 
   label70 = gtk_label_new (_("Level:"));
   gtk_widget_show (label70);
   gtk_box_pack_start (GTK_BOX (hbox32), label70, FALSE, FALSE, 0);
-  gtk_widget_set_size_request (label70, 66, 16);
+  gtk_widget_set_size_request (label70, 68, 16);
   gtk_label_set_justify (GTK_LABEL (label70), GTK_JUSTIFY_RIGHT);
 
   combo_level = gtk_combo_new ();
@@ -834,11 +861,12 @@ create_RunDialog (void)
   hbox33 = gtk_hbox_new (FALSE, 0);
   gtk_widget_show (hbox33);
   gtk_box_pack_start (GTK_BOX (vbox12), hbox33, TRUE, TRUE, 2);
+  gtk_container_set_border_width (GTK_CONTAINER (hbox33), 1);
 
   label72 = gtk_label_new (_("Pool:"));
   gtk_widget_show (label72);
   gtk_box_pack_start (GTK_BOX (hbox33), label72, FALSE, FALSE, 0);
-  gtk_widget_set_size_request (label72, 66, 16);
+  gtk_widget_set_size_request (label72, 68, 16);
 
   combo_pool = gtk_combo_new ();
   g_object_set_data (G_OBJECT (GTK_COMBO (combo_pool)->popwin),
@@ -862,11 +890,12 @@ create_RunDialog (void)
   hbox39 = gtk_hbox_new (FALSE, 0);
   gtk_widget_show (hbox39);
   gtk_box_pack_start (GTK_BOX (vbox12), hbox39, TRUE, TRUE, 0);
+  gtk_container_set_border_width (GTK_CONTAINER (hbox39), 1);
 
   label96 = gtk_label_new (_("Storage:"));
   gtk_widget_show (label96);
   gtk_box_pack_start (GTK_BOX (hbox39), label96, FALSE, FALSE, 0);
-  gtk_widget_set_size_request (label96, 66, 16);
+  gtk_widget_set_size_request (label96, 68, 16);
 
   combo_storage = gtk_combo_new ();
   g_object_set_data (G_OBJECT (GTK_COMBO (combo_storage)->popwin),
@@ -890,11 +919,12 @@ create_RunDialog (void)
   hbox40 = gtk_hbox_new (FALSE, 0);
   gtk_widget_show (hbox40);
   gtk_box_pack_start (GTK_BOX (vbox12), hbox40, TRUE, TRUE, 0);
+  gtk_container_set_border_width (GTK_CONTAINER (hbox40), 1);
 
   label98 = gtk_label_new (_("Messages:"));
   gtk_widget_show (label98);
   gtk_box_pack_start (GTK_BOX (hbox40), label98, FALSE, FALSE, 0);
-  gtk_widget_set_size_request (label98, 66, 16);
+  gtk_widget_set_size_request (label98, 68, 16);
 
   combo_messages = gtk_combo_new ();
   g_object_set_data (G_OBJECT (GTK_COMBO (combo_messages)->popwin),
@@ -917,11 +947,12 @@ create_RunDialog (void)
   hbox34 = gtk_hbox_new (FALSE, 0);
   gtk_widget_show (hbox34);
   gtk_box_pack_start (GTK_BOX (vbox12), hbox34, TRUE, TRUE, 2);
+  gtk_container_set_border_width (GTK_CONTAINER (hbox34), 1);
 
   label77 = gtk_label_new (_("Where: "));
   gtk_widget_show (label77);
   gtk_box_pack_start (GTK_BOX (hbox34), label77, FALSE, FALSE, 0);
-  gtk_widget_set_size_request (label77, 66, 16);
+  gtk_widget_set_size_request (label77, 68, 16);
 
   entry_where = gtk_entry_new ();
   gtk_widget_show (entry_where);
@@ -934,11 +965,12 @@ create_RunDialog (void)
   hbox41 = gtk_hbox_new (FALSE, 0);
   gtk_widget_show (hbox41);
   gtk_box_pack_start (GTK_BOX (vbox11), hbox41, TRUE, TRUE, 0);
+  gtk_container_set_border_width (GTK_CONTAINER (hbox41), 1);
 
   label100 = gtk_label_new (_("When:"));
   gtk_widget_show (label100);
   gtk_box_pack_start (GTK_BOX (hbox41), label100, FALSE, FALSE, 0);
-  gtk_widget_set_size_request (label100, 66, 16);
+  gtk_widget_set_size_request (label100, 68, 16);
 
   entry_when = gtk_entry_new ();
   gtk_widget_show (entry_when);
@@ -948,9 +980,28 @@ create_RunDialog (void)
   gtk_widget_show (label101);
   gtk_box_pack_start (GTK_BOX (hbox41), label101, FALSE, FALSE, 120);
 
+  hbox60 = gtk_hbox_new (FALSE, 0);
+  gtk_widget_show (hbox60);
+  gtk_box_pack_start (GTK_BOX (vbox11), hbox60, TRUE, TRUE, 0);
+  gtk_container_set_border_width (GTK_CONTAINER (hbox60), 1);
+
+  label153 = gtk_label_new (_("Bootstrap:"));
+  gtk_widget_show (label153);
+  gtk_box_pack_start (GTK_BOX (hbox60), label153, FALSE, FALSE, 0);
+  gtk_widget_set_size_request (label153, 68, 16);
+
+  entry28 = gtk_entry_new ();
+  gtk_widget_show (entry28);
+  gtk_box_pack_start (GTK_BOX (hbox60), entry28, TRUE, TRUE, 0);
+
+  label154 = gtk_label_new (_("   "));
+  gtk_widget_show (label154);
+  gtk_box_pack_start (GTK_BOX (hbox60), label154, FALSE, FALSE, 36);
+
   label84 = gtk_label_new (_("   "));
   gtk_widget_show (label84);
   gtk_box_pack_start (GTK_BOX (vbox11), label84, FALSE, FALSE, 0);
+  gtk_widget_set_size_request (label84, 12, 19);
 
   dialog_action_area6 = GTK_DIALOG (RunDialog)->action_area;
   gtk_widget_show (dialog_action_area6);
@@ -974,9 +1025,6 @@ create_RunDialog (void)
 
   g_signal_connect ((gpointer) entry_job, "changed",
                     G_CALLBACK (on_entry_job_changed),
-                    NULL);
-  g_signal_connect ((gpointer) view_fileset_button, "clicked",
-                    G_CALLBACK (on_view_fileset_clicked),
                     NULL);
   g_signal_connect ((gpointer) run_ok, "clicked",
                     G_CALLBACK (on_run_ok_clicked),
@@ -1010,8 +1058,10 @@ create_RunDialog (void)
   GLADE_HOOKUP_OBJECT (RunDialog, label68, "label68");
   GLADE_HOOKUP_OBJECT (RunDialog, combo_fileset, "combo_fileset");
   GLADE_HOOKUP_OBJECT (RunDialog, entry_fileset, "entry_fileset");
-  GLADE_HOOKUP_OBJECT (RunDialog, view_fileset_button, "view_fileset_button");
-  GLADE_HOOKUP_OBJECT (RunDialog, label69, "label69");
+  GLADE_HOOKUP_OBJECT (RunDialog, label156, "label156");
+  GLADE_HOOKUP_OBJECT (RunDialog, label155, "label155");
+  GLADE_HOOKUP_OBJECT (RunDialog, spinbutton1, "spinbutton1");
+  GLADE_HOOKUP_OBJECT (RunDialog, label157, "label157");
   GLADE_HOOKUP_OBJECT (RunDialog, hbox32, "hbox32");
   GLADE_HOOKUP_OBJECT (RunDialog, label70, "label70");
   GLADE_HOOKUP_OBJECT (RunDialog, combo_level, "combo_level");
@@ -1040,6 +1090,10 @@ create_RunDialog (void)
   GLADE_HOOKUP_OBJECT (RunDialog, label100, "label100");
   GLADE_HOOKUP_OBJECT (RunDialog, entry_when, "entry_when");
   GLADE_HOOKUP_OBJECT (RunDialog, label101, "label101");
+  GLADE_HOOKUP_OBJECT (RunDialog, hbox60, "hbox60");
+  GLADE_HOOKUP_OBJECT (RunDialog, label153, "label153");
+  GLADE_HOOKUP_OBJECT (RunDialog, entry28, "entry28");
+  GLADE_HOOKUP_OBJECT (RunDialog, label154, "label154");
   GLADE_HOOKUP_OBJECT (RunDialog, label84, "label84");
   GLADE_HOOKUP_OBJECT_NO_REF (RunDialog, dialog_action_area6, "dialog_action_area6");
   GLADE_HOOKUP_OBJECT (RunDialog, hbuttonbox1, "hbuttonbox1");
@@ -1108,19 +1162,21 @@ create_restore_file_selection (void)
   GtkWidget *hbox38;
   GtkWidget *label88;
   GtkWidget *restore_dir;
+  GtkWidget *hpaned1;
+  GtkWidget *tree;
   GtkWidget *scrolled;
   GtkWidget *hbox44;
-  GtkWidget *label115;
+  GtkWidget *FilesSelected;
   GtkWidget *restore_select_ok;
-  GtkWidget *label116;
+  GtkWidget *label152;
   GtkWidget *restore_select_cancel;
-  GtkWidget *label117;
+  GtkWidget *label1001;
 
   restore_file_selection = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_widget_set_size_request (restore_file_selection, 640, 480);
   gtk_window_set_title (GTK_WINDOW (restore_file_selection), _("Restore File Selection"));
   gtk_window_set_modal (GTK_WINDOW (restore_file_selection), TRUE);
-  gtk_window_set_default_size (GTK_WINDOW (restore_file_selection), 640, 400);
+  gtk_window_set_default_size (GTK_WINDOW (restore_file_selection), 700, 450);
 
   vbox13 = gtk_vbox_new (FALSE, 0);
   gtk_widget_show (vbox13);
@@ -1175,37 +1231,49 @@ create_restore_file_selection (void)
   gtk_widget_show (restore_dir);
   gtk_box_pack_start (GTK_BOX (hbox38), restore_dir, TRUE, TRUE, 0);
 
+  hpaned1 = gtk_hpaned_new ();
+  gtk_widget_show (hpaned1);
+  gtk_box_pack_start (GTK_BOX (vbox13), hpaned1, TRUE, TRUE, 0);
+
+  tree = gtk_scrolled_window_new (NULL, NULL);
+  gtk_widget_show (tree);
+  gtk_paned_pack1 (GTK_PANED (hpaned1), tree, FALSE, TRUE);
+  gtk_widget_set_size_request (tree, 164, 78);
+
   scrolled = gtk_scrolled_window_new (NULL, NULL);
   gtk_widget_show (scrolled);
-  gtk_box_pack_start (GTK_BOX (vbox13), scrolled, TRUE, TRUE, 0);
+  gtk_paned_pack2 (GTK_PANED (hpaned1), scrolled, TRUE, TRUE);
 
-  hbox44 = gtk_hbox_new (TRUE, 0);
+  hbox44 = gtk_hbox_new (FALSE, 0);
   gtk_widget_show (hbox44);
-  gtk_box_pack_start (GTK_BOX (vbox13), hbox44, FALSE, TRUE, 7);
+  gtk_box_pack_start (GTK_BOX (vbox13), hbox44, FALSE, TRUE, 5);
+  gtk_widget_set_size_request (hbox44, 301, 30);
 
-  label115 = gtk_label_new (_("             "));
-  gtk_widget_show (label115);
-  gtk_box_pack_start (GTK_BOX (hbox44), label115, TRUE, TRUE, 0);
-  gtk_label_set_justify (GTK_LABEL (label115), GTK_JUSTIFY_LEFT);
-  gtk_misc_set_alignment (GTK_MISC (label115), 0.94, 0.5);
+  FilesSelected = gtk_label_new (_("Files Selected: "));
+  gtk_widget_show (FilesSelected);
+  gtk_box_pack_start (GTK_BOX (hbox44), FilesSelected, TRUE, TRUE, 0);
+  gtk_label_set_justify (GTK_LABEL (FilesSelected), GTK_JUSTIFY_LEFT);
+  gtk_misc_set_alignment (GTK_MISC (FilesSelected), 0.02, 0.5);
 
   restore_select_ok = gtk_button_new_from_stock ("gtk-ok");
   gtk_widget_show (restore_select_ok);
   gtk_box_pack_start (GTK_BOX (hbox44), restore_select_ok, FALSE, TRUE, 0);
+  gtk_widget_set_size_request (restore_select_ok, 72, 30);
 
-  label116 = gtk_label_new ("");
-  gtk_widget_show (label116);
-  gtk_box_pack_start (GTK_BOX (hbox44), label116, FALSE, FALSE, 0);
-  gtk_label_set_justify (GTK_LABEL (label116), GTK_JUSTIFY_LEFT);
+  label152 = gtk_label_new ("");
+  gtk_widget_show (label152);
+  gtk_box_pack_start (GTK_BOX (hbox44), label152, FALSE, FALSE, 0);
+  gtk_widget_set_size_request (label152, 34, 16);
+  gtk_label_set_justify (GTK_LABEL (label152), GTK_JUSTIFY_LEFT);
 
   restore_select_cancel = gtk_button_new_from_stock ("gtk-cancel");
   gtk_widget_show (restore_select_cancel);
   gtk_box_pack_start (GTK_BOX (hbox44), restore_select_cancel, FALSE, TRUE, 0);
 
-  label117 = gtk_label_new ("");
-  gtk_widget_show (label117);
-  gtk_box_pack_start (GTK_BOX (hbox44), label117, FALSE, FALSE, 0);
-  gtk_label_set_justify (GTK_LABEL (label117), GTK_JUSTIFY_LEFT);
+  label1001 = gtk_label_new (_(" "));
+  gtk_widget_show (label1001);
+  gtk_box_pack_start (GTK_BOX (hbox44), label1001, FALSE, FALSE, 8);
+  gtk_label_set_justify (GTK_LABEL (label1001), GTK_JUSTIFY_LEFT);
 
   g_signal_connect ((gpointer) restore_file_selection, "delete_event",
                     G_CALLBACK (on_restore_files_delete_event),
@@ -1258,13 +1326,15 @@ create_restore_file_selection (void)
   GLADE_HOOKUP_OBJECT (restore_file_selection, hbox38, "hbox38");
   GLADE_HOOKUP_OBJECT (restore_file_selection, label88, "label88");
   GLADE_HOOKUP_OBJECT (restore_file_selection, restore_dir, "restore_dir");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, hpaned1, "hpaned1");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, tree, "tree");
   GLADE_HOOKUP_OBJECT (restore_file_selection, scrolled, "scrolled");
   GLADE_HOOKUP_OBJECT (restore_file_selection, hbox44, "hbox44");
-  GLADE_HOOKUP_OBJECT (restore_file_selection, label115, "label115");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, FilesSelected, "FilesSelected");
   GLADE_HOOKUP_OBJECT (restore_file_selection, restore_select_ok, "restore_select_ok");
-  GLADE_HOOKUP_OBJECT (restore_file_selection, label116, "label116");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, label152, "label152");
   GLADE_HOOKUP_OBJECT (restore_file_selection, restore_select_cancel, "restore_select_cancel");
-  GLADE_HOOKUP_OBJECT (restore_file_selection, label117, "label117");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, label1001, "label1001");
 
   return restore_file_selection;
 }
@@ -1794,5 +1864,74 @@ create_RestoreDialog (void)
   GLADE_HOOKUP_OBJECT (RestoreDialog, restore_cancel, "restore_cancel");
 
   return RestoreDialog;
+}
+
+GtkWidget*
+create_progress_dialog (void)
+{
+  GtkWidget *progress_dialog;
+  GtkWidget *dialog_vbox11;
+  GtkWidget *vbox19;
+  GtkWidget *label1002;
+  GtkWidget *label1003;
+  GtkWidget *progressbar1;
+  GtkWidget *label1004;
+  GtkWidget *dialog_action_area10;
+  GtkWidget *closebutton1;
+
+  progress_dialog = gtk_dialog_new ();
+  gtk_window_set_title (GTK_WINDOW (progress_dialog), _("Progress"));
+
+  dialog_vbox11 = GTK_DIALOG (progress_dialog)->vbox;
+  gtk_widget_show (dialog_vbox11);
+
+  vbox19 = gtk_vbox_new (FALSE, 0);
+  gtk_widget_show (vbox19);
+  gtk_box_pack_start (GTK_BOX (dialog_vbox11), vbox19, TRUE, TRUE, 0);
+
+  label1002 = gtk_label_new ("");
+  gtk_widget_show (label1002);
+  gtk_box_pack_start (GTK_BOX (vbox19), label1002, FALSE, FALSE, 0);
+  gtk_widget_set_size_request (label1002, 0, 43);
+  gtk_label_set_justify (GTK_LABEL (label1002), GTK_JUSTIFY_LEFT);
+
+  label1003 = gtk_label_new ("");
+  gtk_widget_show (label1003);
+  gtk_box_pack_start (GTK_BOX (vbox19), label1003, FALSE, FALSE, 0);
+  gtk_widget_set_size_request (label1003, 0, 36);
+  gtk_label_set_justify (GTK_LABEL (label1003), GTK_JUSTIFY_LEFT);
+
+  progressbar1 = gtk_progress_bar_new ();
+  gtk_widget_show (progressbar1);
+  gtk_box_pack_start (GTK_BOX (vbox19), progressbar1, TRUE, FALSE, 0);
+  gtk_widget_set_size_request (progressbar1, 150, 33);
+
+  label1004 = gtk_label_new ("");
+  gtk_widget_show (label1004);
+  gtk_box_pack_start (GTK_BOX (vbox19), label1004, FALSE, FALSE, 0);
+  gtk_widget_set_size_request (label1004, 0, 52);
+  gtk_label_set_justify (GTK_LABEL (label1004), GTK_JUSTIFY_LEFT);
+
+  dialog_action_area10 = GTK_DIALOG (progress_dialog)->action_area;
+  gtk_widget_show (dialog_action_area10);
+  gtk_button_box_set_layout (GTK_BUTTON_BOX (dialog_action_area10), GTK_BUTTONBOX_END);
+
+  closebutton1 = gtk_button_new_from_stock ("gtk-close");
+  gtk_widget_show (closebutton1);
+  gtk_dialog_add_action_widget (GTK_DIALOG (progress_dialog), closebutton1, GTK_RESPONSE_CLOSE);
+  GTK_WIDGET_SET_FLAGS (closebutton1, GTK_CAN_DEFAULT);
+
+  /* Store pointers to all widgets, for use by lookup_widget(). */
+  GLADE_HOOKUP_OBJECT_NO_REF (progress_dialog, progress_dialog, "progress_dialog");
+  GLADE_HOOKUP_OBJECT_NO_REF (progress_dialog, dialog_vbox11, "dialog_vbox11");
+  GLADE_HOOKUP_OBJECT (progress_dialog, vbox19, "vbox19");
+  GLADE_HOOKUP_OBJECT (progress_dialog, label1002, "label1002");
+  GLADE_HOOKUP_OBJECT (progress_dialog, label1003, "label1003");
+  GLADE_HOOKUP_OBJECT (progress_dialog, progressbar1, "progressbar1");
+  GLADE_HOOKUP_OBJECT (progress_dialog, label1004, "label1004");
+  GLADE_HOOKUP_OBJECT_NO_REF (progress_dialog, dialog_action_area10, "dialog_action_area10");
+  GLADE_HOOKUP_OBJECT (progress_dialog, closebutton1, "closebutton1");
+
+  return progress_dialog;
 }
 

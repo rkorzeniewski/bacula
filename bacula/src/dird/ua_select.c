@@ -802,6 +802,10 @@ STORE *get_storage_resource(UAContext *ua, int use_default)
 	    break;
 
          } else if (strcasecmp(ua->argk[i], _("job")) == 0) {
+	    if (!ua->argv[i]) {
+               bsendmsg(ua, _("Job name not specified.\n"));
+	       return NULL;
+	    }
 	    if (!(jcr=get_jcr_by_partial_name(ua->argv[i]))) {
                bsendmsg(ua, _("Job \"%s\" is not running.\n"), ua->argv[i]);
 	       return NULL;
