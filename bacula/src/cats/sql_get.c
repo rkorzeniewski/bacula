@@ -323,7 +323,7 @@ int db_get_job_volume_names(JCR *jcr, B_DB *mdb, uint32_t JobId, POOLMEM **Volum
    Mmsg(&mdb->cmd, 
         "SELECT VolumeName,JobMedia.VolIndex FROM JobMedia,Media WHERE "
         "JobMedia.JobId=%u AND JobMedia.MediaId=Media.MediaId "
-        "GROUP BY VolumeName ORDER BY JobMedia.VolIndex",  JobId);
+        "ORDER BY JobMedia.VolIndex",  JobId);
 
    Dmsg1(130, "VolNam=%s\n", mdb->cmd);
    *VolumeNames[0] = 0;
