@@ -42,6 +42,7 @@ static bool job_check_maxruntime(JCR *control_jcr, JCR *jcr);
 extern void term_scheduler();
 extern void term_ua_server();
 extern int do_backup(JCR *jcr);
+extern bool do_mac(JCR *jcr);
 extern int do_admin(JCR *jcr);
 extern int do_restore(JCR *jcr);
 extern int do_verify(JCR *jcr);
@@ -107,7 +108,8 @@ JobId_t run_job(JCR *jcr)
    Dmsg0(50, "Open database\n");
    jcr->db=db_init_database(jcr, jcr->catalog->db_name, jcr->catalog->db_user,
 			    jcr->catalog->db_password, jcr->catalog->db_address,
-			    jcr->catalog->db_port, jcr->catalog->db_socket);
+			    jcr->catalog->db_port, jcr->catalog->db_socket,
+			    jcr->catalog->mult_db_connections);
    if (!jcr->db || !db_open_database(jcr, jcr->db)) {
       Jmsg(jcr, M_FATAL, 0, _("Could not open database \"%s\".\n"),
 		 jcr->catalog->db_name);
@@ -229,6 +231,14 @@ static void *job_thread(void *arg)
 	       do_autoprune(jcr);
 	    }
 	    break;
+	 case JT_MIGRATION:
+	 case JT_COPY:
+	 case JT_ARCHIVE:
+	    do_mac(jcr);	      /* migration, archive, copy */
+	    if (jcr->JobStatus == JS_Terminated) {
+	       do_autoprune(jcr);
+	    }
+	    break;
 	 default:
             Pmsg1(0, "Unimplemented job type: %d\n", jcr->JobType);
 	    break;
@@ -328,6 +338,9 @@ int cancel_job(UAContext *ua, JCR *jcr)
       /* Cancel Storage daemon */
       if (jcr->store_bsock) {
 	 ua->jcr->store = jcr->store;
+	 for (int i=0; i<MAX_STORE; i++) {
+	    ua->jcr->storage[i] = jcr->storage[i];
+	 }
 	 if (!connect_to_storage_daemon(ua->jcr, 10, SDConnectTimeout, 1)) {
             bsendmsg(ua, _("Failed to connect to Storage daemon.\n"));
 	    return 0;
@@ -727,11 +740,13 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
       jcr->JobLevel = L_NONE;
       break;
    default:
-      jcr->JobLevel = job->level;
+      jcr->JobLevel = job->JobLevel;
       break;
    }
    jcr->JobPriority = job->Priority;
-   jcr->store = job->storage;
+   for (int i=0; i<MAX_STORE; i++) {
+      jcr->storage[i] = job->storage[i];
+   }
    jcr->client = job->client;
    if (!jcr->client_name) {
       jcr->client_name = get_pool_memory(PM_NAME);

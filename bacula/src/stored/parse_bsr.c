@@ -865,7 +865,7 @@ void create_vol_list(JCR *jcr)
       }
    } else {
       /* This is the old way -- deprecated */ 
-      for (p = jcr->VolumeName; p && *p; ) {
+      for (p = jcr->dcr->VolumeName; p && *p; ) {
          n = strchr(p, '|');             /* volume name separator */
 	 if (n) {
 	    *n++ = 0;			 /* Terminate name */

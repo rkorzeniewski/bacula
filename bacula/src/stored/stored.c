@@ -335,7 +335,7 @@ void *device_allocation(void *arg)
 	 }
 	 jcr->device = device;
 	 dcr = new_dcr(jcr, device->dev);
-	 switch (read_dev_volume_label(dcr, dcr->block)) {
+	 switch (read_dev_volume_label(dcr)) {
 	    case VOL_OK:
 	       break;
 	    default:

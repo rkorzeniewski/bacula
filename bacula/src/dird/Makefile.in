@@ -26,7 +26,8 @@ SVRSRCS = dird.c admin.c authenticate.c \
 	  autoprune.c backup.c bsr.c \
 	  catreq.c dird_conf.c expand.c \
 	  fd_cmds.c getmsg.c inc_conf.c job.c \
-	  jobq.c mountreq.c msgchan.c next_vol.c newvol.c \
+	  jobq.c mac.c \
+	  mountreq.c msgchan.c next_vol.c newvol.c \
 	  recycle.c restore.c run_conf.c \
 	  scheduler.c sql_cmds.c \
 	  ua_acl.c ua_cmds.c ua_dotcmds.c \
@@ -39,7 +40,8 @@ SVROBJS = dird.o admin.o authenticate.o \
 	  autoprune.o backup.o bsr.o \
 	  catreq.o dird_conf.o expand.o \
 	  fd_cmds.o getmsg.o inc_conf.o job.o \
-	  jobq.o mountreq.o msgchan.o next_vol.o newvol.o \
+	  jobq.o mac.o \
+	  mountreq.o msgchan.o next_vol.o newvol.o \
 	  recycle.o restore.o run_conf.o \
 	  scheduler.o sql_cmds.o \
 	  ua_acl.o ua_cmds.o ua_dotcmds.o \

@@ -133,7 +133,6 @@ make_dir(JCR *jcr, const char *dir, const char *dirpath, mode_t mode, int *creat
 }
 
 /* return non-zero if path is absolute or zero if relative. */
-  
 int
 isAbsolute(const char *path)
 {

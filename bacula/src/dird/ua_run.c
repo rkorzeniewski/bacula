@@ -272,6 +272,10 @@ int run_cmd(UAContext *ua, const char *cmd)
    }
    if (!job) {
       return 1;
+   } else if (!acl_access_ok(ua, Job_ACL, job->hdr.name)) {
+      bsendmsg(ua, _("No authorization. Job \"%s\".\n"),
+	 job->hdr.name);
+      return 1;
    }
 
    if (store_name) {
@@ -283,12 +287,15 @@ int run_cmd(UAContext *ua, const char *cmd)
 	 store = select_storage_resource(ua);
       }
    } else {
-      store = job->storage;	      /* use default */
+      store = (STORE *)job->storage[0]->first();	   /* use default */
    }
    if (!store) {
       return 1;
+   } else if (!acl_access_ok(ua, Storage_ACL, store->hdr.name)) {
+      bsendmsg(ua, _("No authorization. Storage \"%s\".\n"),
+	       store->hdr.name);
+      return 1;
    }
-
 
    if (pool_name) {
       pool = (POOL *)GetResWithName(R_POOL, pool_name);
@@ -302,6 +309,10 @@ int run_cmd(UAContext *ua, const char *cmd)
       pool = job->pool; 	    /* use default */
    }
    if (!pool) {
+      return 1;
+   } else if (!acl_access_ok(ua, Pool_ACL, store->hdr.name)) {
+      bsendmsg(ua, _("No authorization. Pool \"%s\".\n"),
+	       pool->hdr.name);
       return 1;
    }
 
@@ -318,6 +329,10 @@ int run_cmd(UAContext *ua, const char *cmd)
    }
    if (!client) {
       return 1;
+   } else if (!acl_access_ok(ua, Client_ACL, store->hdr.name)) {
+      bsendmsg(ua, _("No authorization. Client \"%s\".\n"),
+	       client->hdr.name);
+      return 1;
    }
 
    if (fileset_name) {
@@ -330,6 +345,10 @@ int run_cmd(UAContext *ua, const char *cmd)
       fileset = job->fileset;		/* use default */
    }
    if (!fileset) {
+      return 1;
+   } else if (!acl_access_ok(ua, FileSet_ACL, store->hdr.name)) {
+      bsendmsg(ua, _("No authorization. FileSet \"%s\".\n"),
+	       fileset->hdr.name);
       return 1;
    }
 
@@ -396,6 +415,11 @@ int run_cmd(UAContext *ua, const char *cmd)
 
    if (Priority) {
       jcr->JobPriority = Priority;
+   }
+      
+   if (find_arg(ua, _("fdcalled")) > 0) {
+      jcr->file_bsock = dup_bsock(ua->UA_sock);
+      ua->quit = true;
    }
 
 try_again:

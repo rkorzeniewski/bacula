@@ -52,6 +52,12 @@ bool    dir_create_jobmedia_record(DCR *dcr);
 int     authenticate_director(JCR *jcr);
 int     authenticate_filed(JCR *jcr);
 
+/* From autochanger.c */
+int      autoload_device(DCR *dcr, int writing, BSOCK *dir);
+bool     autochanger_list(DCR *dcr, BSOCK *dir);
+void     invalidate_slot_in_catalog(DCR *dcr);
+char    *edit_device_codes(JCR *jcr, char *omsg, const char *imsg, const char *cmd);
+
 /* From block.c */
 void    dump_block(DEV_BLOCK *b, const char *msg);
 DEV_BLOCK *new_block(DEVICE *dev);
@@ -59,22 +65,21 @@ DEV_BLOCK *dup_block(DEV_BLOCK *eblock);
 void    init_block_write(DEV_BLOCK *block);
 void    empty_block(DEV_BLOCK *block);
 void    free_block(DEV_BLOCK *block);
-bool    write_block_to_device(DCR *dcr, DEV_BLOCK *block);
-bool    write_block_to_dev(DCR *dcr, DEV_BLOCK *block);
+bool    write_block_to_device(DCR *dcr);
+bool    write_block_to_dev(DCR *dcr);
 void    print_block_read_errors(JCR *jcr, DEV_BLOCK *block);
 void    ser_block_header(DEV_BLOCK *block);
 
 #define CHECK_BLOCK_NUMBERS    true
 #define NO_BLOCK_NUMBER_CHECK  false
-bool    read_block_from_device(DCR *dcr, DEV_BLOCK *block, bool check_block_numbers);
-bool    read_block_from_dev(DCR *dcr, DEV_BLOCK *block, bool check_block_numbers);
+bool    read_block_from_device(DCR *dcr, bool check_block_numbers);
+bool    read_block_from_dev(DCR *dcr, bool check_block_numbers);
 
 /* From butil.c -- utilities for SD tool programs */
 void    print_ls_output(const char *fname, const char *link, int type, struct stat *statp);
-JCR    *setup_jcr(const char *name, const char * device, BSR *bsr, const char *VolumeName);
-DEVICE *setup_to_access_device(JCR *jcr, int read_access);
+JCR    *setup_jcr(const char *name, char *dev_name, BSR *bsr,
+                  const char *VolumeName, int mode);
 void    display_tape_error_status(JCR *jcr, DEVICE *dev);
-DEVRES *find_device_res(char *device_name, int read_access);
 
 
 /* From dev.c */
@@ -119,9 +124,9 @@ uint32_t dev_file(DEVICE *dev);
 bool     dev_is_tape(DEVICE *dev);
 
 /* From device.c */
-bool     open_device(JCR *jcr, DEVICE *dev);
+bool     open_device(DCR *dcr);
 bool     first_open_device(DEVICE *dev);
-bool     fixup_device_block_write_error(DCR *dcr, DEV_BLOCK *block);
+bool     fixup_device_block_write_error(DCR *dcr);
 void     _lock_device(const char *file, int line, DEVICE *dev);
 void     _unlock_device(const char *file, int line, DEVICE *dev);
 void     _block_device(const char *file, int line, DEVICE *dev, int state);
@@ -141,6 +146,7 @@ void     *handle_connection_request(void *arg);
 
 /* From fd_cmds.c */
 void     run_job(JCR *jcr);
+bool     bootstrap_cmd(JCR *jcr);
 
 /* From job.c */
 void     stored_free_jcr(JCR *jcr);
@@ -148,12 +154,12 @@ void     connection_from_filed(void *arg);
 void     handle_filed_connection(BSOCK *fd, char *job_name);
 
 /* From label.c */
-int      read_dev_volume_label(DCR *dcr, DEV_BLOCK *block);
+int      read_dev_volume_label(DCR *dcr);
 void     create_session_label(DCR *dcr, DEV_RECORD *rec, int label);
 void     create_volume_label(DEVICE *dev, const char *VolName, const char *PoolName);
 bool     write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *PoolName);
-bool     write_session_label(DCR *dcr, DEV_BLOCK *block, int label);
-bool     write_volume_label_to_block(DCR *dcr, DEV_BLOCK *block);
+bool     write_session_label(DCR *dcr, int label);
+bool     write_volume_label_to_block(DCR *dcr);
 void     dump_volume_label(DEVICE *dev);
 void     dump_label_record(DEVICE *dev, DEV_RECORD *rec, int verbose);
 bool     unser_volume_label(DEVICE *dev, DEV_RECORD *rec);
@@ -168,17 +174,10 @@ BSR     *find_next_bsr(BSR *root_bsr, DEVICE *dev);
 bool     match_set_eof(BSR *bsr, DEV_RECORD *rec);
 
 /* From mount.c */
-bool     mount_next_write_volume(DCR *dcr, DEV_BLOCK *block, bool release);
-bool     mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
-void     release_volume(JCR *jcr, DEVICE *dev);
-void     mark_volume_in_error(JCR *jcr, DEVICE *dev);
-
-/* From autochanger.c */
-int      autoload_device(DCR *dcr, int writing, BSOCK *dir);
-bool     autochanger_list(DCR *dcr, BSOCK *dir);
-void     invalidate_slot_in_catalog(DCR *dcr);
-char    *edit_device_codes(JCR *jcr, char *omsg, const char *imsg, const char *cmd);
-
+bool     mount_next_write_volume(DCR *dcr, bool release);
+bool     mount_next_read_volume(DCR *dcr);
+void     release_volume(DCR *ddr);
+void     mark_volume_in_error(DCR *dcr);
 
 /* From parse_bsr.c */
 BSR     *parse_bsr(JCR *jcr, char *lf);
@@ -192,16 +191,17 @@ void     create_vol_list(JCR *jcr);
 /* From record.c */
 const char *FI_to_ascii(int fi);
 const char *stream_to_ascii(int stream, int fi);
-int      write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec);
-int      can_write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec);
-int      read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec); 
+bool        write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec);
+bool        can_write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec);
+bool        read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec); 
 DEV_RECORD *new_record();
-void     free_record(DEV_RECORD *rec);
+void        free_record(DEV_RECORD *rec);
+void        empty_record(DEV_RECORD *rec);
 
 /* From read_record.c */
 bool read_records(DCR *dcr,
-       bool record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec),
-       bool mount_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block));
+       bool record_cb(DCR *dcr, DEV_RECORD *rec),
+       bool mount_cb(DCR *dcr));
 
 /* From spool.c */
 bool    begin_data_spool          (JCR *jcr);
@@ -211,5 +211,5 @@ bool    are_attributes_spooled    (JCR *jcr);
 bool    begin_attribute_spool     (JCR *jcr);
 bool    discard_attribute_spool   (JCR *jcr);
 bool    commit_attribute_spool    (JCR *jcr);
-bool    write_block_to_spool_file (DCR *dcr, DEV_BLOCK *block);
+bool    write_block_to_spool_file (DCR *dcr);
 void    list_spool_stats          (BSOCK *bs);

@@ -1,6 +1,8 @@
 /*
  *   Job control and execution for Storage Daemon
  *
+ *   Kern Sibbald, MM
+ *
  *   Version $Id$
  *
  */
@@ -34,13 +36,13 @@ extern uint32_t VolSessionTime;
 extern uint32_t newVolSessionId();
 
 /* Forward referenced functions */
-static int use_device_cmd(JCR *jcr);
+static bool use_device_cmd(JCR *jcr);
 
 /* Requests from the Director daemon */
-static char jobcmd[]     = "JobId=%d job=%127s job_name=%127s client_name=%127s "
+static char jobcmd[] = "JobId=%d job=%127s job_name=%127s client_name=%127s "
          "type=%d level=%d FileSet=%127s NoAttr=%d SpoolAttr=%d FileSetMD5=%127s "
          "SpoolData=%d";
-static char use_device[] = "use device=%s media_type=%s pool_name=%s pool_type=%s\n";
+static char use_device[] = "use device=%127s media_type=%127s pool_name=%127s pool_type=%127s\n";
 
 /* Responses sent to Director daemon */
 static char OKjob[]     = "3000 OK Job SDid=%u SDtime=%u Authorization=%s\n";
@@ -48,8 +50,6 @@ static char OK_device[] = "3000 OK use device\n";
 static char NO_device[] = "3914 Device \"%s\" not in SD Device resources.\n";
 static char BAD_use[]   = "3913 Bad use command: %s\n";
 static char BAD_job[]   = "3915 Bad Job command: %s\n";
-
-
 
 /*
  * Director requests us to start a job
@@ -61,12 +61,12 @@ static char BAD_job[]   = "3915 Bad Job command: %s\n";
  *  - Return when the connection is terminated or
  *    there is an error.
  */
-int job_cmd(JCR *jcr)
+bool job_cmd(JCR *jcr)
 {
    int JobId, errstat;
    char auth_key[100];
    BSOCK *dir = jcr->dir_bsock;
-   POOLMEM *job_name, *client_name, *job, *fileset_name, *fileset_md5;
+   POOL_MEM job_name, client_name, job, fileset_name, fileset_md5;
    int JobType, level, spool_attributes, no_attributes, spool_data;
    struct timeval tv;
    struct timezone tz;
@@ -76,62 +76,47 @@ int job_cmd(JCR *jcr)
    /*
     * Get JobId and permissions from Director
     */
-
    Dmsg1(100, "Job_cmd: %s\n", dir->msg);
-   job = get_memory(dir->msglen);
-   job_name = get_memory(dir->msglen);
-   client_name = get_memory(dir->msglen);
-   fileset_name = get_memory(dir->msglen);
-   fileset_md5 = get_memory(dir->msglen);
-   if (sscanf(dir->msg, jobcmd, &JobId, job, job_name, client_name,
-	      &JobType, &level, fileset_name, &no_attributes,
-	      &spool_attributes, fileset_md5, &spool_data) != 11) {
-      pm_strcpy(&jcr->errmsg, dir->msg);
+   if (sscanf(dir->msg, jobcmd, &JobId, job.c_str(), job_name.c_str(), 
+	      client_name.c_str(),
+	      &JobType, &level, fileset_name.c_str(), &no_attributes,
+	      &spool_attributes, fileset_md5.c_str(), &spool_data) != 11) {
+      pm_strcpy(jcr->errmsg, dir->msg);
       bnet_fsend(dir, BAD_job, jcr->errmsg);
       Emsg1(M_FATAL, 0, _("Bad Job Command from Director: %s\n"), jcr->errmsg);
-      free_memory(job);
-      free_memory(job_name);
-      free_memory(client_name);
-      free_memory(fileset_name);
-      free_memory(fileset_md5);
       set_jcr_job_status(jcr, JS_ErrorTerminated);
-      return 0;
+      return false;
    }
    /*	      
     * Since this job could be rescheduled, we
     *  check to see if we have it already. If so
     *  free the old jcr and use the new one.
     */
-   ojcr = get_jcr_by_full_name(job);
+   ojcr = get_jcr_by_full_name(job.c_str());
    if (ojcr && !ojcr->authenticated) {
-      Dmsg2(100, "Found ojcr=0x%x Job %s\n", (unsigned)(long)ojcr, job);
+      Dmsg2(100, "Found ojcr=0x%x Job %s\n", (unsigned)(long)ojcr, job.c_str());
       free_jcr(ojcr);
    }
    jcr->JobId = JobId;
    jcr->VolSessionId = newVolSessionId();
    jcr->VolSessionTime = VolSessionTime;
-   bstrncpy(jcr->Job, job, sizeof(jcr->Job));
-   unbash_spaces(job_name);
+   bstrncpy(jcr->Job, job.c_str(), sizeof(jcr->Job));
+   unbash_spaces(job_name.c_str());
    jcr->job_name = get_pool_memory(PM_NAME);
-   pm_strcpy(&jcr->job_name, job_name);
-   unbash_spaces(client_name);
+   pm_strcpy(jcr->job_name, job_name);
+   unbash_spaces(client_name.c_str());
    jcr->client_name = get_pool_memory(PM_NAME);
-   pm_strcpy(&jcr->client_name, client_name);
-   unbash_spaces(fileset_name);
+   pm_strcpy(jcr->client_name, client_name);
+   unbash_spaces(fileset_name.c_str());
    jcr->fileset_name = get_pool_memory(PM_NAME);
-   pm_strcpy(&jcr->fileset_name, fileset_name);
+   pm_strcpy(jcr->fileset_name, fileset_name);
    jcr->JobType = JobType;
    jcr->JobLevel = level;
    jcr->no_attributes = no_attributes;
    jcr->spool_attributes = spool_attributes;
    jcr->spool_data = spool_data;
    jcr->fileset_md5 = get_pool_memory(PM_NAME);
-   pm_strcpy(&jcr->fileset_md5, fileset_md5);
-   free_memory(job);
-   free_memory(job_name);
-   free_memory(client_name);
-   free_memory(fileset_name);
-   free_memory(fileset_md5);
+   pm_strcpy(jcr->fileset_md5, fileset_md5);
 
    jcr->authenticated = false;
 
@@ -150,7 +135,17 @@ int job_cmd(JCR *jcr)
    if (!use_device_cmd(jcr)) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       memset(jcr->sd_auth_key, 0, strlen(jcr->sd_auth_key));
-      return 0;
+      return false;
+   }
+
+   /* The following jobs don't need the FD */
+   switch (jcr->JobType) {
+   case JT_MIGRATION:
+   case JT_COPY:
+   case JT_ARCHIVE:
+      jcr->authenticated = true;
+      run_job(jcr);
+      return false;
    }
 
    set_jcr_job_status(jcr, JS_WaitFD);		/* wait for FD to connect */
@@ -181,7 +176,7 @@ int job_cmd(JCR *jcr)
       Dmsg1(100, "Running job %s\n", jcr->Job);
       run_job(jcr);		      /* Run the job */
    }
-   return 0;
+   return false;
 }
 
 /*
@@ -205,8 +200,10 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
    Dmsg1(110, "Found Job %s\n", job_name);
 
    if (jcr->authenticated) {
-      Pmsg2(000, "Hey!!!! JobId %u Job %s already authenticated.\n", 
+      Jmsg2(jcr, M_FATAL, 0, "Hey!!!! JobId %u Job %s already authenticated.\n", 
 	 jcr->JobId, jcr->Job);
+      free_jcr(jcr);
+      return;
    }
   
    /*
@@ -239,64 +236,59 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
  *    Ensure that the device exists and is opened, then store
  *	the media and pool info in the JCR.
  */
-static int use_device_cmd(JCR *jcr)
+static bool use_device_cmd(JCR *jcr)
 {
-   POOLMEM *dev_name, *media_type, *pool_name, *pool_type;
+   POOL_MEM dev_name, media_type, pool_name, pool_type;
    BSOCK *dir = jcr->dir_bsock;
    DEVRES *device;
 
    if (bnet_recv(dir) <= 0) {
       Jmsg0(jcr, M_FATAL, 0, _("No Device from Director\n"));
-      return 0;
+      return false;
    }
    
    Dmsg1(120, "Use device: %s", dir->msg);
-   dev_name = get_memory(dir->msglen);
-   media_type = get_memory(dir->msglen);
-   pool_name = get_memory(dir->msglen);
-   pool_type = get_memory(dir->msglen);
-   if (sscanf(dir->msg, use_device, dev_name, media_type, pool_name, pool_type) == 4) {
+   if (sscanf(dir->msg, use_device, dev_name.c_str(), media_type.c_str(), 
+	      pool_name.c_str(), pool_type.c_str()) == 4) {
       unbash_spaces(dev_name);
       unbash_spaces(media_type);
       unbash_spaces(pool_name);
       unbash_spaces(pool_type);
-      device = NULL;
       LockRes();
-      while ((device=(DEVRES *)GetNextRes(R_DEVICE, (RES *)device))) {
+      foreach_res(device, R_DEVICE) {
 	 /* Find resource, and make sure we were able to open it */
-	 if (strcmp(device->hdr.name, dev_name) == 0 && device->dev) {
-            Dmsg1(120, "Found device %s\n", device->hdr.name);
-	    jcr->pool_name = get_memory(strlen(pool_name) + 1);
-	    strcpy(jcr->pool_name, pool_name);
-	    jcr->pool_type = get_memory(strlen(pool_type) + 1);
-	    strcpy(jcr->pool_type, pool_type);
-	    jcr->media_type = get_memory(strlen(media_type) + 1);
-	    strcpy(jcr->media_type, media_type);
-	    jcr->dev_name = get_memory(strlen(dev_name) + 1);
-	    strcpy(jcr->dev_name, dev_name);
-	    jcr->device = device;
-	    Dmsg4(120, use_device, dev_name, media_type, pool_name, pool_type);
-	    free_memory(dev_name);
-	    free_memory(media_type);
-	    free_memory(pool_name);
-	    free_memory(pool_type);
+	 if (fnmatch(dev_name.c_str(), device->hdr.name, 0) == 0 && 
+	     device->dev && strcmp(device->media_type, media_type.c_str()) == 0) {
+	    const int name_len = MAX_NAME_LENGTH;
+	    DCR *dcr;
 	    UnlockRes();
+	    dcr = new_dcr(jcr, device->dev);
+	    if (!dcr) {
+	       return false;
+	    }
+            Dmsg1(120, "Found device %s\n", device->hdr.name);
+	    bstrncpy(dcr->pool_name, pool_name, name_len);
+	    bstrncpy(dcr->pool_type, pool_type, name_len);
+	    bstrncpy(dcr->media_type, media_type, name_len);
+	    bstrncpy(dcr->dev_name, dev_name, name_len);
+	    jcr->device = device;
+	    Dmsg4(120, use_device, dev_name.c_str(), media_type.c_str(), pool_name.c_str(), pool_type.c_str());
 	    return bnet_fsend(dir, OK_device);
 	 }
       }
       UnlockRes();
       if (verbose) {
 	 unbash_spaces(dir->msg);
-	 pm_strcpy(&jcr->errmsg, dir->msg);
+	 pm_strcpy(jcr->errmsg, dir->msg);
          Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), jcr->errmsg);
       }
       Jmsg(jcr, M_FATAL, 0, _("\n"
-         "     Device \"%s\" requested by Dir not found in SD Device resources.\n"),
-	   dev_name);
-      bnet_fsend(dir, NO_device, dev_name);
+         "     Device \"%s\" with MediaType \"%s\" requested by Dir not found in SD Device resources.\n"),
+	   dev_name.c_str(), media_type.c_str());
+      bnet_fsend(dir, NO_device, dev_name.c_str());
    } else {
       unbash_spaces(dir->msg);
-      pm_strcpy(&jcr->errmsg, dir->msg);
+      pm_strcpy(jcr->errmsg, dir->msg);
       if (verbose) {
          Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), jcr->errmsg);
       }
@@ -304,11 +296,7 @@ static int use_device_cmd(JCR *jcr)
       bnet_fsend(dir, BAD_use, jcr->errmsg);
    }
 
-   free_memory(dev_name);
-   free_memory(media_type);
-   free_memory(pool_name);
-   free_memory(pool_type);
-   return 0;			      /* ERROR return */
+   return false;		      /* ERROR return */
 }
 
 /* 
@@ -320,18 +308,6 @@ void stored_free_jcr(JCR *jcr)
    if (jcr->file_bsock) {
       bnet_close(jcr->file_bsock);
       jcr->file_bsock = NULL;
-   }
-   if (jcr->pool_name) {
-      free_memory(jcr->pool_name);
-   }
-   if (jcr->pool_type) {
-      free_memory(jcr->pool_type);
-   }
-   if (jcr->media_type) {
-      free_memory(jcr->media_type);
-   }
-   if (jcr->dev_name) {
-      free_memory(jcr->dev_name);
    }
    if (jcr->job_name) {
       free_pool_memory(jcr->job_name);

@@ -53,7 +53,9 @@
 #define JT_CONSOLE               'C'  /* console program */
 #define JT_SYSTEM                'S'  /* internal system "job" */
 #define JT_ADMIN                 'D'  /* admin job */
-#define JT_ARCHIVE               'A'
+#define JT_ARCHIVE               'A'  /* Archive Job */
+#define JT_COPY                  'Y'  /* Copy Job */
+#define JT_MIGRATION             'M'  /* Migration Job */
 
 /* Job Status. Some of these are stored in the DB */
 #define JS_Created               'C'  /* created but not yet running */
@@ -104,6 +106,7 @@ struct JCR {
    dlist *msg_queue;                  /* Queued messages */
    alist job_end_push;                /* Job end pushed calls */
    bool dequeuing;                    /* dequeuing messages */
+   POOLMEM *VolumeName;               /* Volume name desired -- pool_memory */
    POOLMEM *errmsg;                   /* edited error message */
    char Job[MAX_NAME_LENGTH];         /* Unique name of this Job */
    uint32_t JobId;                    /* Director's JobId */
@@ -122,7 +125,6 @@ struct JCR {
    time_t start_time;                 /* when job actually started */
    time_t run_time;                   /* used for computing speed */
    time_t end_time;                   /* job end time */
-   POOLMEM *VolumeName;               /* Volume name desired -- pool_memory */
    POOLMEM *client_name;              /* client name */
    POOLMEM *RestoreBootstrap;         /* Bootstrap file to restore */
    char *sd_auth_key;                 /* SD auth key */
@@ -139,6 +141,7 @@ struct JCR {
    /* This should be empty in the library */
 
 #ifdef DIRECTOR_DAEMON
+#define MAX_STORE 2
    /* Director Daemon specific part of JCR */
    pthread_t SD_msg_chan;             /* Message channel thread id */
    pthread_cond_t term_wait;          /* Wait for job termination */
@@ -146,7 +149,8 @@ struct JCR {
    volatile bool sd_msg_thread_done;  /* Set when Storage message thread terms */
    BSOCK *ua;                         /* User agent */
    JOB *job;                          /* Job resource */
-   STORE *store;                      /* Storage resource */
+   alist *storage[MAX_STORE];         /* Storage possibilities */
+   STORE *store;                      /* Storage daemon selected */
    CLIENT *client;                    /* Client resource */
    POOL *pool;                        /* Pool resource */
    POOL *full_pool;                   /* Full backup pool resource */
@@ -218,18 +222,12 @@ struct JCR {
    int type;
    DCR *dcr;                          /* device context record */
    DEVRES *device;                    /* device resource to use */
-   VOLUME_CAT_INFO VolCatInfo;        /* Catalog info for desired volume */
    POOLMEM *job_name;                 /* base Job name (not unique) */
    POOLMEM *fileset_name;             /* FileSet */
    POOLMEM *fileset_md5;              /* MD5 for FileSet */
-   POOLMEM *pool_name;                /* pool to use */
-   POOLMEM *pool_type;                /* pool type to use */
-   POOLMEM *media_type;               /* media type */
-   POOLMEM *dev_name;                 /* device name */
    VOL_LIST *VolList;                 /* list to read */
    int32_t NumVolumes;                /* number of volumes used */
    int32_t CurVolume;                 /* current volume number */
-   int label_status;                  /* device volume label status */
    int label_errors;                  /* count of label errors */
    bool session_opened;
    long Ticket;                       /* ticket for this job */

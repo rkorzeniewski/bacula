@@ -14,7 +14,7 @@
 
 
 /*
-   Copyright (C) 2000-2003 Kern Sibbald and John Walker
+   Copyright (C) 2001-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -103,7 +103,8 @@ int bdb_write_control_file(B_DB *mdb)
  */
 B_DB *
 db_init_database(JCR *jcr, char *db_name, char *db_user, char *db_password,
-		 char *db_address, int db_port, char *db_socket)
+		 char *db_address, int db_port, char *db_socket, 
+		 int mult_db_connections)
 {
    B_DB *mdb;
    P(mutex);			      /* lock DB queue */
@@ -131,8 +132,9 @@ db_init_database(JCR *jcr, char *db_name, char *db_user, char *db_password,
    Dmsg0(200, "Done db_open_database()\n");
    mdb->cfd = -1;
    V(mutex);
+   Jmsg(jcr, M_WARNING, 0, _("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"));
    Jmsg(jcr, M_WARNING, 0, _("WARNING!!!! The Internal Database is for TESTING ONLY!\n"));
-   Jmsg(jcr, M_WARNING, 0, _("You should use either SQLite or MySQL\n"));
+   Jmsg(jcr, M_WARNING, 0, _("You should use SQLite, PostgreSQL, or MySQL\n"));
 
    return mdb;
 }

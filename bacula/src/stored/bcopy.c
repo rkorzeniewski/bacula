@@ -31,7 +31,7 @@
 #include "stored.h"
 
 /* Forward referenced functions */
-static bool record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
+static bool record_cb(DCR *dcr, DEV_RECORD *rec);
 
 
 /* Global variables */
@@ -142,22 +142,28 @@ int main (int argc, char *argv[])
    parse_config(configfile);
 
    /* Setup and acquire input device for reading */
-   in_jcr = setup_jcr("bcopy", argv[0], bsr, iVolumeName);
+   in_jcr = setup_jcr("bcopy", argv[0], bsr, iVolumeName, 1); /* read device */
+   if (!in_jcr) {
+      exit(1);
+   }
    in_jcr->ignore_label_errors = ignore_label_errors;
-   in_dev = setup_to_access_device(in_jcr, 1);	 /* read device */
+   in_dev = in_jcr->dcr->dev;
    if (!in_dev) { 
       exit(1);
    }
 
    /* Setup output device for writing */
-   out_jcr = setup_jcr("bcopy", argv[1], bsr, oVolumeName);
-   out_dev = setup_to_access_device(out_jcr, 0);   /* no acquire */  
+   out_jcr = setup_jcr("bcopy", argv[1], bsr, oVolumeName, 0); /* no acquire */
+   if (!out_jcr) {
+      exit(1);
+   }
+   out_dev = out_jcr->dcr->dev;
    if (!out_dev) { 
       exit(1);	    
    }
    /* For we must now acquire the device for writing */
    lock_device(out_dev);
-   if (open_dev(out_dev, out_jcr->VolumeName, OPEN_READ_WRITE) < 0) {
+   if (open_dev(out_dev, out_jcr->dcr->VolumeName, OPEN_READ_WRITE) < 0) {
       Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), out_dev->errmsg);
       unlock_device(out_dev);
       exit(1);
@@ -170,7 +176,7 @@ int main (int argc, char *argv[])
    out_block = out_jcr->dcr->block;
 
    read_records(in_jcr->dcr, record_cb, mount_next_read_volume);
-   if (!write_block_to_device(out_jcr->dcr, out_block)) {
+   if (!write_block_to_device(out_jcr->dcr)) {
       Pmsg0(000, _("Write of last block failed.\n"));
    }
 
@@ -188,7 +194,7 @@ int main (int argc, char *argv[])
 /*
  * read_records() calls back here for each record it gets
  */
-static bool record_cb(JCR *in_jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
+static bool record_cb(DCR *in_dcr, DEV_RECORD *rec)
 {
    if (list_records) {
       Pmsg5(000, _("Record: SessId=%u SessTim=%u FileIndex=%d Stream=%d len=%u\n"),
@@ -202,7 +208,7 @@ static bool record_cb(JCR *in_jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *re
    if (rec->FileIndex < 0) {
 
       if (verbose > 1) {
-	 dump_label_record(dev, rec, 1);
+	 dump_label_record(in_dcr->dev, rec, 1);
       }
       switch (rec->FileIndex) {
       case PRE_LABEL:
@@ -218,14 +224,14 @@ static bool record_cb(JCR *in_jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *re
 	 while (!write_record_to_block(out_block, rec)) {
             Dmsg2(150, "!write_record_to_block data_len=%d rem=%d\n", rec->data_len,
 		       rec->remainder);
-	    if (!write_block_to_device(out_jcr->dcr, out_block)) {
+	    if (!write_block_to_device(out_jcr->dcr)) {
                Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
 		  dev_name(out_dev), strerror_dev(out_dev));
                Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
 		     strerror_dev(out_dev));
 	    }
 	 }
-	 if (!write_block_to_device(out_jcr->dcr, out_block)) {
+	 if (!write_block_to_device(out_jcr->dcr)) {
             Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
 	       dev_name(out_dev), strerror_dev(out_dev));
             Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
@@ -248,7 +254,7 @@ static bool record_cb(JCR *in_jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *re
    while (!write_record_to_block(out_block, rec)) {
       Dmsg2(150, "!write_record_to_block data_len=%d rem=%d\n", rec->data_len,
 		 rec->remainder);
-      if (!write_block_to_device(out_jcr->dcr, out_block)) {
+      if (!write_block_to_device(out_jcr->dcr)) {
          Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
 	    dev_name(out_dev), strerror_dev(out_dev));
          Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
@@ -272,10 +278,9 @@ bool	dir_send_job_status(JCR *jcr) {return 1;}
 
 bool dir_ask_sysop_to_mount_volume(DCR *dcr)
 {
-   JCR *jcr = dcr->jcr;
    DEVICE *dev = dcr->dev;
    fprintf(stderr, "Mount Volume \"%s\" on device %s and press return when ready: ",
-      jcr->VolumeName, dev_name(dev));
+      dcr->VolumeName, dev_name(dev));
    getchar();	
    return true;
 }

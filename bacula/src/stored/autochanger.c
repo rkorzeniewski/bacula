@@ -52,7 +52,7 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
 {
    JCR *jcr = dcr->jcr;
    DEVICE *dev = dcr->dev;
-   int slot = jcr->VolCatInfo.Slot;
+   int slot = dcr->VolCatInfo.Slot;
    int drive = jcr->device->drive_index;
    int rtn_stat = -1;		      /* error status */
      
@@ -65,7 +65,7 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
 	 return 0;		      /* For user, bail out right now */
       }
       if (dir_find_next_appendable_volume(dcr)) {
-	 slot = jcr->VolCatInfo.Slot; 
+	 slot = dcr->VolCatInfo.Slot; 
       } else {
 	 slot = 0;
       }
@@ -91,7 +91,7 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
 	    Jmsg(jcr, M_INFO, 0, 
                  _("3303 Issuing autochanger \"unload slot %d, drive %d\" command.\n"),
 		 loaded, drive);
-	    jcr->VolCatInfo.Slot = loaded;   /* slot to be unloaded */
+	    dcr->VolCatInfo.Slot = loaded;   /* slot to be unloaded */
 	    changer = edit_device_codes(jcr, changer, 
                         jcr->device->changer_command, "unload");
 	    status = run_program(changer, timeout, NULL);
@@ -111,7 +111,7 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
 	 Jmsg(jcr, M_INFO, 0, 
               _("3304 Issuing autochanger \"load slot %d, drive %d\" command.\n"), 
 	      slot, drive);
-	 jcr->VolCatInfo.Slot = slot;	 /* slot to be loaded */
+	 dcr->VolCatInfo.Slot = slot;	 /* slot to be loaded */
 	 changer = edit_device_codes(jcr, changer, 
                       jcr->device->changer_command, "load");
 	 status = run_program(changer, timeout, NULL);
@@ -187,8 +187,8 @@ void invalid_slot_in_catalog(DCR *dcr)
    DEVICE *dev = dcr->dev;
    Jmsg(jcr, M_ERROR, 0, _("Autochanger Volume \"%s\" not found in slot %d.\n"
 "    Setting slot to zero in catalog.\n"),
-	jcr->VolCatInfo.VolCatName, jcr->VolCatInfo.Slot);
-   jcr->VolCatInfo.InChanger = false;
+	dcr->VolCatInfo.VolCatName, dcr->VolCatInfo.Slot);
+   dcr->VolCatInfo.InChanger = false;
    dev->VolCatInfo.InChanger = false;
    Dmsg0(100, "update vol info in mount\n");
    dir_update_volume_info(dcr, true);  /* set new status */
@@ -224,8 +224,8 @@ bool autochanger_list(DCR *dcr, BSOCK *dir)
    loaded = get_autochanger_loaded_slot(jcr);
    if (loaded > 0) {
       bnet_fsend(dir, _("3305 Issuing autochanger \"unload slot %d\" command.\n"), loaded);
-      slot = jcr->VolCatInfo.Slot; 
-      jcr->VolCatInfo.Slot = loaded;
+      slot = dcr->VolCatInfo.Slot; 
+      dcr->VolCatInfo.Slot = loaded;
       changer = edit_device_codes(jcr, changer, jcr->device->changer_command, "unload");
       int stat = run_program(changer, timeout, NULL);
       if (stat != 0) {
@@ -234,7 +234,7 @@ bool autochanger_list(DCR *dcr, BSOCK *dir)
          Jmsg(jcr, M_INFO, 0, _("3995 Bad autochanger \"unload slot %d\" command: ERR=%s.\n"), 
 	      loaded, be.strerror());
       }
-      jcr->VolCatInfo.Slot = slot;
+      dcr->VolCatInfo.Slot = slot;
    }
 
    /* Now list slots occupied */
@@ -311,18 +311,18 @@ char *edit_device_codes(JCR *jcr, char *omsg, const char *imsg, const char *cmd)
 	    str = NPRT(cmd);
 	    break;
          case 's':
-            sprintf(add, "%d", jcr->VolCatInfo.Slot - 1);
+            sprintf(add, "%d", jcr->dcr->VolCatInfo.Slot - 1);
 	    str = add;
 	    break;
          case 'S':
-            sprintf(add, "%d", jcr->VolCatInfo.Slot);
+            sprintf(add, "%d", jcr->dcr->VolCatInfo.Slot);
 	    str = add;
 	    break;
          case 'j':                    /* Job name */
 	    str = jcr->Job;
 	    break;
          case 'v':
-	    str = NPRT(jcr->VolumeName);
+	    str = NPRT(jcr->dcr->VolumeName);
 	    break;
          case 'f':
 	    str = NPRT(jcr->client_name);

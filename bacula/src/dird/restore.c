@@ -111,7 +111,7 @@ int do_restore(JCR *jcr)
       jcr->VolumeName[0] = 0;
       if (!db_get_job_volume_names(jcr, jcr->db, rjr.JobId, &jcr->VolumeName) ||
 	   jcr->VolumeName[0] == 0) {
-         Jmsg(jcr, M_FATAL, 0, _("Cannot find Volume Name for restore Job %d. %s"), 
+         Jmsg(jcr, M_FATAL, 0, _("Cannot find Volume names for restore Job %d. %s"), 
 	    rjr.JobId, db_strerror(jcr->db));
 	 restore_cleanup(jcr, JS_ErrorTerminated);
 	 return 0;

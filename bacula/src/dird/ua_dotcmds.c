@@ -253,13 +253,15 @@ static int defaultscmd(UAContext *ua, const char *cmd)
    if (ua->argc == 2 && strcmp(ua->argk[1], "job") == 0) {
       job = (JOB *)GetResWithName(R_JOB, ua->argv[1]);
       if (job) {
+	 STORE *store;
          bsendmsg(ua, "job=%s", job->hdr.name);
          bsendmsg(ua, "pool=%s", job->pool->hdr.name);
          bsendmsg(ua, "messages=%s", job->messages->hdr.name);
          bsendmsg(ua, "client=%s", job->client->hdr.name);
-         bsendmsg(ua, "storage=%s", job->storage->hdr.name);
+	 store = (STORE *)job->storage[0]->first();
+         bsendmsg(ua, "storage=%s", store->hdr.name);
          bsendmsg(ua, "where=%s", job->RestoreWhere?job->RestoreWhere:"");
-         bsendmsg(ua, "level=%s", level_to_str(job->level));
+         bsendmsg(ua, "level=%s", level_to_str(job->JobLevel));
          bsendmsg(ua, "type=%s", job_type_to_str(job->JobType));
          bsendmsg(ua, "fileset=%s", job->fileset->hdr.name);
       }

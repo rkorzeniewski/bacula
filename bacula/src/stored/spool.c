@@ -33,11 +33,11 @@ static void make_unique_data_spool_filename(JCR *jcr, POOLMEM **name);
 static bool open_data_spool_file(JCR *jcr);
 static bool close_data_spool_file(JCR *jcr);
 static bool despool_data(DCR *dcr, bool commit);
-static int  read_block_from_spool_file(DCR *dcr, DEV_BLOCK *block);
+static int  read_block_from_spool_file(DCR *dcr);
 static bool open_attr_spool_file(JCR *jcr, BSOCK *bs);
 static bool close_attr_spool_file(JCR *jcr, BSOCK *bs);
-static bool write_spool_header(DCR *dcr, DEV_BLOCK *block);
-static bool write_spool_data(DCR *dcr, DEV_BLOCK *block);
+static bool write_spool_header(DCR *dcr);
+static bool write_spool_data(DCR *dcr);
 
 struct spool_stats_t {
    uint32_t data_jobs;		      /* current jobs spooling data */
@@ -214,7 +214,7 @@ static bool despool_data(DCR *dcr, bool commit)
    rdev = (DEVICE *)malloc(sizeof(DEVICE));
    memset(rdev, 0, sizeof(DEVICE));
    rdev->dev_name = get_memory(strlen(spool_name)+1);
-   strcpy(rdev->dev_name, spool_name);
+   bstrncpy(rdev->dev_name, spool_name, sizeof(rdev->dev_name));
    rdev->errmsg = get_pool_memory(PM_EMSG);
    *rdev->errmsg = 0;
    rdev->max_block_size = dcr->dev->max_block_size;
@@ -223,7 +223,8 @@ static bool despool_data(DCR *dcr, bool commit)
    rdcr = new_dcr(NULL, rdev);
    rdcr->spool_fd = dcr->spool_fd; 
    rdcr->jcr = jcr;		      /* set a valid jcr */
-   block = rdcr->block;
+   block = dcr->block;		      /* save block */
+   dcr->block = rdcr->block;	      /* make read and write block the same */
 
    Dmsg1(800, "read/write block size = %d\n", block->buf_len);
    lseek(rdcr->spool_fd, 0, SEEK_SET); /* rewind */
@@ -233,16 +234,17 @@ static bool despool_data(DCR *dcr, bool commit)
 	 ok = false;
 	 break;
       }
-      stat = read_block_from_spool_file(rdcr, block);
+      stat = read_block_from_spool_file(rdcr);
       if (stat == RB_EOT) {
 	 break;
       } else if (stat == RB_ERROR) {
 	 ok = false;
 	 break;
       }
-      ok = write_block_to_device(dcr, block);
+      ok = write_block_to_device(dcr);
       Dmsg3(100, "Write block ok=%d FI=%d LI=%d\n", ok, block->FirstIndex, block->LastIndex);
    }
+   dcr->block = block;		      /* reset block */
 
    lseek(rdcr->spool_fd, 0, SEEK_SET); /* rewind */
    if (ftruncate(rdcr->spool_fd, 0) != 0) {
@@ -283,11 +285,12 @@ static bool despool_data(DCR *dcr, bool commit)
  *	    RB_EOT when file done
  *	    RB_ERROR on error
  */
-static int read_block_from_spool_file(DCR *dcr, DEV_BLOCK *block)
+static int read_block_from_spool_file(DCR *dcr)
 {
    uint32_t rlen;
    ssize_t stat;
    spool_hdr hdr;
+   DEV_BLOCK *block = dcr->block;
 
    rlen = sizeof(hdr);
    stat = read(dcr->spool_fd, (char *)&hdr, (size_t)rlen);
@@ -334,10 +337,11 @@ static int read_block_from_spool_file(DCR *dcr, DEV_BLOCK *block)
  *  Returns: true on success or EOT
  *	     false on hard error
  */
-bool write_block_to_spool_file(DCR *dcr, DEV_BLOCK *block)
+bool write_block_to_spool_file(DCR *dcr)
 {
    uint32_t wlen, hlen; 	      /* length to write */
    bool despool = false;
+   DEV_BLOCK *block = dcr->block;
 
    ASSERT(block->binbuf == ((uint32_t) (block->bufp - block->buf)));
    if (block->binbuf <= WRITE_BLKHDR_LENGTH) {	/* Does block have data in it? */
@@ -384,10 +388,10 @@ bool write_block_to_spool_file(DCR *dcr, DEV_BLOCK *block)
    }  
 
 
-   if (!write_spool_header(dcr, block)) {
+   if (!write_spool_header(dcr)) {
       return false;
    }
-   if (!write_spool_data(dcr, block)) {
+   if (!write_spool_data(dcr)) {
      return false;
    }
 
@@ -396,10 +400,11 @@ bool write_block_to_spool_file(DCR *dcr, DEV_BLOCK *block)
    return true;
 }
 
-static bool write_spool_header(DCR *dcr, DEV_BLOCK *block)
+static bool write_spool_header(DCR *dcr)
 {
    spool_hdr hdr;   
    ssize_t stat;
+   DEV_BLOCK *block = dcr->block;
 
    hdr.FirstIndex = block->FirstIndex;
    hdr.LastIndex = block->LastIndex;
@@ -435,9 +440,10 @@ static bool write_spool_header(DCR *dcr, DEV_BLOCK *block)
    return false;
 }
 
-static bool write_spool_data(DCR *dcr, DEV_BLOCK *block)
+static bool write_spool_data(DCR *dcr)
 {
    ssize_t stat;
+   DEV_BLOCK *block = dcr->block;
 
    /* Write data */
    for (int retry=0; retry<=1; retry++) {
@@ -464,7 +470,7 @@ static bool write_spool_data(DCR *dcr, DEV_BLOCK *block)
             Jmsg(dcr->jcr, M_FATAL, 0, _("Fatal despooling error."));
 	    return false;
 	 }
-	 if (!write_spool_header(dcr, block)) {
+	 if (!write_spool_header(dcr)) {
 	    return false;
 	 }
 	 continue;		      /* try again */
@@ -538,7 +544,7 @@ bool commit_attribute_spool(JCR *jcr)
       }
       spool_stats.attr_size += size;
       V(mutex);
-      Jmsg(jcr, M_INFO, 0, _("Sending spooled attrs to DIR. Despooling %s bytes ...\n"),
+      Jmsg(jcr, M_INFO, 0, _("Sending spooled attrs to the Director. Despooling %s bytes ...\n"),
 	    edit_uint64_with_commas(size, ec1));
       bnet_despool_to_bsock(jcr->dir_bsock, update_attr_spool_size, size);
       return close_attr_spool_file(jcr, jcr->dir_bsock);

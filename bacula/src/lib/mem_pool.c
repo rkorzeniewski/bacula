@@ -403,3 +403,108 @@ void print_memory_pool_stats()
 #else
 void print_memory_pool_stats() {} 
 #endif /* DEBUG */
+
+/*
+ * Concatenate a string (str) onto a pool memory buffer pm
+ *   Returns: length of concatenated string
+ */
+int pm_strcat(POOLMEM **pm, const char *str)
+{
+   int pmlen = strlen(*pm);
+   int len = strlen(str) + 1;
+
+   *pm = check_pool_memory_size(*pm, pmlen + len);
+   memcpy(*pm+pmlen, str, len);
+   return pmlen + len - 1;
+}
+
+int pm_strcat(POOLMEM *&pm, const char *str)
+{
+   int pmlen = strlen(pm);
+   int len = strlen(str) + 1;
+
+   pm = check_pool_memory_size(pm, pmlen + len);
+   memcpy(pm+pmlen, str, len);
+   return pmlen + len - 1;
+}
+
+
+int pm_strcat(POOLMEM *&pm, POOL_MEM &str)
+{
+   int pmlen = strlen(pm);
+   int len = strlen(str.c_str()) + 1;
+
+   pm = check_pool_memory_size(pm, pmlen + len);
+   memcpy(pm+pmlen, str.c_str(), len);
+   return pmlen + len - 1;
+}
+
+int pm_strcat(POOL_MEM &pm, const char *str)
+{
+   int pmlen = strlen(pm.c_str());
+   int len = strlen(str) + 1;
+
+   pm.check_size(pmlen + len);
+   memcpy(pm.c_str()+pmlen, str, len);
+   return pmlen + len - 1;
+}
+
+
+/*
+ * Copy a string (str) into a pool memory buffer pm
+ *   Returns: length of string copied
+ */
+int pm_strcpy(POOLMEM **pm, const char *str)
+{
+   int len = strlen(str) + 1;
+
+   *pm = check_pool_memory_size(*pm, len);
+   memcpy(*pm, str, len);
+   return len - 1;
+}
+
+int pm_strcpy(POOLMEM *&pm, const char *str)
+{
+   int len = strlen(str) + 1;
+
+   pm = check_pool_memory_size(pm, len);
+   memcpy(pm, str, len);
+   return len - 1;
+}
+
+int pm_strcpy(POOLMEM *&pm, POOL_MEM &str)
+{
+   int len = strlen(str.c_str()) + 1;
+
+   pm = check_pool_memory_size(pm, len);
+   memcpy(pm, str.c_str(), len);
+   return len - 1;
+}
+
+
+int pm_strcpy(POOL_MEM &pm, const char *str)
+{  
+   int len = strlen(str) + 1;
+   pm.check_size(len);
+   memcpy(pm.c_str(), str, len);
+   return len - 1;
+}
+
+int POOL_MEM::strcat(const char *str)
+{
+   int pmlen = strlen(mem);
+   int len = strlen(str) + 1;
+
+   check_size(pmlen + len);
+   memcpy(mem+pmlen, str, len);
+   return pmlen + len - 1;
+}
+
+
+int POOL_MEM::strcpy(const char *str)
+{  
+   int len = strlen(str) + 1;
+   check_size(len);
+   memcpy(mem, str, len);
+   return len - 1;
+}

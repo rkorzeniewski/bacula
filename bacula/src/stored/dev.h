@@ -2,6 +2,8 @@
  * Definitions for using the Device functions in Bacula
  *  Tape and File storage access
  *
+ * Kern Sibbald, MM
+ *
  *   Version $Id$
  *
  */
@@ -87,6 +89,7 @@ enum {
 #define CAP_FASTFSF        (1<<16)    /* Fast forward space file */
 #define CAP_TWOEOF         (1<<17)    /* Write two eofs for EOM */
 #define CAP_CLOSEONPOLL    (1<<18)    /* Close device on polling */
+#define CAP_POSITIONBLOCKS (1<<19)    /* Use block positioning */
 
 /* Test state */
 #define dev_state(dev, st_state) ((dev)->state & (st_state))
@@ -225,7 +228,8 @@ public:
  *  the device. Items in this record are "local" to the Job and
  *  do not affect other Jobs.
  */
-struct DCR {
+class DCR {
+public:
    dlink dev_link;                    /* link to attach to dev */
    JCR *jcr;                          /* pointer to JCR */
    DEVICE *dev;                       /* pointer to device */
@@ -248,6 +252,10 @@ struct DCR {
    int64_t spool_size;                /* Current spool size */
    int64_t max_spool_size;            /* Max job spool size */
    char VolumeName[MAX_NAME_LENGTH];  /* Volume name */
+   char pool_name[MAX_NAME_LENGTH];   /* pool name */
+   char pool_type[MAX_NAME_LENGTH];   /* pool type */
+   char media_type[MAX_NAME_LENGTH];  /* media type */
+   char dev_name[MAX_NAME_LENGTH];    /* dev name */
    VOLUME_CAT_INFO VolCatInfo;        /* Catalog info for desired volume */
 };
 

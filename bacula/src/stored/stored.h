@@ -51,6 +51,11 @@
 #else
 #define uLongf uint32_t
 #endif
+#ifdef HAVE_FNMATCH
+#include <fnmatch.h>
+#else
+#include "lib/fnmatch.h"
+#endif
 
 extern STORES *me;                    /* "Global" daemon resource */
 extern bool forge_on;                 /* proceed inspite of I/O errors */

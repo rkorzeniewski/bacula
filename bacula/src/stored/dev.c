@@ -103,11 +103,12 @@ init_dev(DEVICE *dev, DEVRES *device)
 
    /* Check that device is available */
    if (stat(device->device_name, &statp) < 0) {
+      berrno be;
       if (dev) {
 	 dev->dev_errno = errno;
       } 
       Emsg2(M_FATAL, 0, "Unable to stat device %s : %s\n", device->device_name, 
-	    strerror(errno));
+	    be.strerror());
       return NULL;
    }
    tape = false;
@@ -178,28 +179,33 @@ init_dev(DEVICE *dev, DEVRES *device)
    *dev->errmsg = 0;
 
    if ((errstat = pthread_mutex_init(&dev->mutex, NULL)) != 0) {
+      berrno be;
       dev->dev_errno = errstat;
-      Mmsg1(&dev->errmsg, _("Unable to init mutex: ERR=%s\n"), strerror(errstat));
+      Mmsg1(dev->errmsg, _("Unable to init mutex: ERR=%s\n"), be.strerror(errstat));
       Emsg0(M_FATAL, 0, dev->errmsg);
    }
    if ((errstat = pthread_cond_init(&dev->wait, NULL)) != 0) {
+      berrno be;
       dev->dev_errno = errstat;
-      Mmsg1(&dev->errmsg, _("Unable to init cond variable: ERR=%s\n"), strerror(errstat));
+      Mmsg1(dev->errmsg, _("Unable to init cond variable: ERR=%s\n"), be.strerror(errstat));
       Emsg0(M_FATAL, 0, dev->errmsg);
    }
    if ((errstat = pthread_cond_init(&dev->wait_next_vol, NULL)) != 0) {
+      berrno be;
       dev->dev_errno = errstat;
-      Mmsg1(&dev->errmsg, _("Unable to init cond variable: ERR=%s\n"), strerror(errstat));
+      Mmsg1(dev->errmsg, _("Unable to init cond variable: ERR=%s\n"), be.strerror(errstat));
       Emsg0(M_FATAL, 0, dev->errmsg);
    }
    if ((errstat = pthread_mutex_init(&dev->spool_mutex, NULL)) != 0) {
+      berrno be;
       dev->dev_errno = errstat;
-      Mmsg1(&dev->errmsg, _("Unable to init mutex: ERR=%s\n"), strerror(errstat));
+      Mmsg1(dev->errmsg, _("Unable to init mutex: ERR=%s\n"), be.strerror(errstat));
       Emsg0(M_FATAL, 0, dev->errmsg);
    }
    if ((errstat = rwl_init(&dev->lock)) != 0) {
+      berrno be;
       dev->dev_errno = errstat;
-      Mmsg1(&dev->errmsg, _("Unable to init mutex: ERR=%s\n"), strerror(errstat));
+      Mmsg1(dev->errmsg, _("Unable to init mutex: ERR=%s\n"), be.strerror(errstat));
       Emsg0(M_FATAL, 0, dev->errmsg);
    }
 
@@ -786,7 +792,7 @@ fsf_dev(DEVICE *dev, int num)
    }
    if (dev->state & ST_EOT) {
       dev->dev_errno = 0;
-      Mmsg1(&dev->errmsg, _("Device %s at End of Tape.\n"), dev->dev_name);
+      Mmsg1(dev->errmsg, _("Device %s at End of Tape.\n"), dev->dev_name);
       return false;
    }
    if (dev->state & ST_EOF) {
@@ -807,11 +813,12 @@ fsf_dev(DEVICE *dev, int num)
       mt_com.mt_count = num;
       stat = ioctl(dev->fd, MTIOCTOP, (char *)&mt_com);
       if (stat < 0 || ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) < 0) {
+	 berrno be;
 	 dev->state |= ST_EOT;
          Dmsg0(200, "Set ST_EOT\n");
 	 clrerror_dev(dev, MTFSF);
-         Mmsg2(&dev->errmsg, _("ioctl MTFSF error on %s. ERR=%s.\n"),
-	    dev->dev_name, strerror(dev->dev_errno));
+         Mmsg2(dev->errmsg, _("ioctl MTFSF error on %s. ERR=%s.\n"),
+	    dev->dev_name, be.strerror());
          Dmsg1(200, "%s", dev->errmsg);
 	 return false;
       }
@@ -846,12 +853,13 @@ fsf_dev(DEVICE *dev, int num)
 	    if (errno == ENOMEM) {     /* tape record exceeds buf len */
 	       stat = rbuf_len;        /* This is OK */
 	    } else {
+	       berrno be;
 	       dev->state |= ST_EOT;
 	       clrerror_dev(dev, -1);
                Dmsg2(200, "Set ST_EOT read errno=%d. ERR=%s\n", dev->dev_errno,
-		  strerror(dev->dev_errno));
-               Mmsg2(&dev->errmsg, _("read error on %s. ERR=%s.\n"),
-		  dev->dev_name, strerror(dev->dev_errno));
+		  be.strerror());
+               Mmsg2(dev->errmsg, _("read error on %s. ERR=%s.\n"),
+		  dev->dev_name, be.strerror(dev->dev_errno));
                Dmsg1(200, "%s", dev->errmsg);
 	       break;
 	    }
@@ -902,7 +910,7 @@ fsf_dev(DEVICE *dev, int num)
       }
       if (dev->state & ST_EOT) {
 	 dev->dev_errno = 0;
-         Mmsg1(&dev->errmsg, _("Device %s at End of Tape.\n"), dev->dev_name);
+         Mmsg1(dev->errmsg, _("Device %s at End of Tape.\n"), dev->dev_name);
 	 stat = -1;
       } else {
 	 stat = 0;
@@ -931,13 +939,13 @@ bsf_dev(DEVICE *dev, int num)
 
    if (dev->fd < 0) {
       dev->dev_errno = EBADF;
-      Mmsg0(&dev->errmsg, _("Bad call to bsf_dev. Archive device not open\n"));
+      Mmsg0(dev->errmsg, _("Bad call to bsf_dev. Archive device not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
       return false;
    }
 
    if (!(dev_state(dev, ST_TAPE))) {
-      Mmsg1(&dev->errmsg, _("Device %s cannot BSF because it is not a tape.\n"),
+      Mmsg1(dev->errmsg, _("Device %s cannot BSF because it is not a tape.\n"),
 	 dev->dev_name);
       return false;
    }
@@ -950,7 +958,7 @@ bsf_dev(DEVICE *dev, int num)
    stat = ioctl(dev->fd, MTIOCTOP, (char *)&mt_com);
    if (stat < 0) {
       clrerror_dev(dev, MTBSF);
-      Mmsg2(&dev->errmsg, _("ioctl MTBSF error on %s. ERR=%s.\n"),
+      Mmsg2(dev->errmsg, _("ioctl MTBSF error on %s. ERR=%s.\n"),
 	 dev->dev_name, strerror(dev->dev_errno));
    }
    update_pos_dev(dev);
@@ -971,7 +979,7 @@ fsr_dev(DEVICE *dev, int num)
 
    if (dev->fd < 0) {
       dev->dev_errno = EBADF;
-      Mmsg0(&dev->errmsg, _("Bad call to fsr_dev. Archive not open\n"));
+      Mmsg0(dev->errmsg, _("Bad call to fsr_dev. Archive not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
       return false;
    }
@@ -980,7 +988,7 @@ fsr_dev(DEVICE *dev, int num)
       return false;
    }
    if (!dev_cap(dev, CAP_FSR)) {
-      Mmsg1(&dev->errmsg, _("ioctl MTFSR not permitted on %s.\n"), dev->dev_name);
+      Mmsg1(dev->errmsg, _("ioctl MTFSR not permitted on %s.\n"), dev->dev_name);
       return false;
    }
 
@@ -1009,7 +1017,7 @@ fsr_dev(DEVICE *dev, int num)
 	 }
       }
       clrerror_dev(dev, MTFSR);
-      Mmsg2(&dev->errmsg, _("ioctl MTFSR error on %s. ERR=%s.\n"),
+      Mmsg2(dev->errmsg, _("ioctl MTFSR error on %s. ERR=%s.\n"),
 	 dev->dev_name, strerror(dev->dev_errno));
    }
    update_pos_dev(dev);
@@ -1029,7 +1037,7 @@ bsr_dev(DEVICE *dev, int num)
 
    if (dev->fd < 0) {
       dev->dev_errno = EBADF;
-      Mmsg0(&dev->errmsg, _("Bad call to bsr_dev. Archive not open\n"));
+      Mmsg0(dev->errmsg, _("Bad call to bsr_dev. Archive not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
       return false;
    }
@@ -1039,7 +1047,7 @@ bsr_dev(DEVICE *dev, int num)
    }
 
    if (!dev_cap(dev, CAP_BSR)) {
-      Mmsg1(&dev->errmsg, _("ioctl MTBSR not permitted on %s.\n"), dev->dev_name);
+      Mmsg1(dev->errmsg, _("ioctl MTBSR not permitted on %s.\n"), dev->dev_name);
       return false;
    }
 
@@ -1051,7 +1059,7 @@ bsr_dev(DEVICE *dev, int num)
    stat = ioctl(dev->fd, MTIOCTOP, (char *)&mt_com);
    if (stat < 0) {
       clrerror_dev(dev, MTBSR);
-      Mmsg2(&dev->errmsg, _("ioctl MTBSR error on %s. ERR=%s.\n"),
+      Mmsg2(dev->errmsg, _("ioctl MTBSR error on %s. ERR=%s.\n"),
 	 dev->dev_name, strerror(dev->dev_errno));
    }
    update_pos_dev(dev);
@@ -1068,7 +1076,7 @@ reposition_dev(DEVICE *dev, uint32_t file, uint32_t block)
 { 
    if (dev->fd < 0) {
       dev->dev_errno = EBADF;
-      Mmsg0(&dev->errmsg, _("Bad call to reposition_dev. Archive not open\n"));
+      Mmsg0(dev->errmsg, _("Bad call to reposition_dev. Archive not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
       return false;
    }
@@ -1078,7 +1086,7 @@ reposition_dev(DEVICE *dev, uint32_t file, uint32_t block)
       Dmsg1(100, "===== lseek to %d\n", (int)pos);
       if (lseek(dev->fd, pos, SEEK_SET) == (off_t)-1) {
 	 dev->dev_errno = errno;
-         Mmsg2(&dev->errmsg, _("lseek error on %s. ERR=%s.\n"),
+         Mmsg2(dev->errmsg, _("lseek error on %s. ERR=%s.\n"),
 	    dev->dev_name, strerror(dev->dev_errno));
 	 return false;
       }
@@ -1105,7 +1113,7 @@ reposition_dev(DEVICE *dev, uint32_t file, uint32_t block)
       bsf_dev(dev, 1);
       fsf_dev(dev, 1);
    }
-   if (block > dev->block_num) {
+   if (dev_cap(dev, CAP_POSITIONBLOCKS) && block > dev->block_num) {
       /* Ignore errors as Bacula can read to the correct block */
       Dmsg1(100, "fsr %d\n", block-dev->block_num);
       return fsr_dev(dev, block-dev->block_num);
@@ -1128,7 +1136,7 @@ weof_dev(DEVICE *dev, int num)
 
    if (dev->fd < 0) {
       dev->dev_errno = EBADF;
-      Mmsg0(&dev->errmsg, _("Bad call to weof_dev. Archive drive not open\n"));
+      Mmsg0(dev->errmsg, _("Bad call to weof_dev. Archive drive not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
       return -1;
    }
@@ -1146,10 +1154,11 @@ weof_dev(DEVICE *dev, int num)
       dev->file += num;
       dev->file_addr = 0;
    } else {
+      berrno be;
       clrerror_dev(dev, MTWEOF);
       if (stat == -1) {
-         Mmsg2(&dev->errmsg, _("ioctl MTWEOF error on %s. ERR=%s.\n"),
-	    dev->dev_name, strerror(dev->dev_errno));
+         Mmsg2(dev->errmsg, _("ioctl MTWEOF error on %s. ERR=%s.\n"),
+	    dev->dev_name, be.strerror());
        }
    }
    return stat;

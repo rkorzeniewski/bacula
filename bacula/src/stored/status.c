@@ -41,7 +41,7 @@ extern int num_jobs_run;
 
 
 /* Static variables */
-static char qstatus[] = ".status %s\n";
+static char qstatus[] = ".status %127s\n";
 
 static char OKqstatus[]   = "3000 OK .status\n";
 static char DotStatusJob[] = "JobId=%d JobStatus=%c JobErrors=%d\n";
@@ -58,7 +58,7 @@ static const char *level_to_str(int level);
 /*
  * Status command from Director
  */
-int status_cmd(JCR *jcr)
+bool status_cmd(JCR *jcr)
 {
    DEVRES *device;
    DEVICE *dev;
@@ -153,12 +153,13 @@ int status_cmd(JCR *jcr)
    list_spool_stats(user);
 
    bnet_sig(user, BNET_EOD);
-   return 1;
+   return true;
 }
 
 static void send_blocked_status(JCR *jcr, DEVICE *dev) 
 {
    BSOCK *user = jcr->dir_bsock;
+   DCR *dcr = jcr->dcr;
 
    switch (dev->dev_blocked) {
    case BST_UNMOUNTED:
@@ -170,7 +171,7 @@ static void send_blocked_status(JCR *jcr, DEVICE *dev)
    case BST_WAITING_FOR_SYSOP:
       if (jcr->JobStatus == JS_WaitMount) {
          bnet_fsend(user, _("    Device is BLOCKED waiting for mount of volume \"%s\".\n"),
-	    jcr->VolumeName);
+	    dcr->VolumeName);
       } else {
          bnet_fsend(user, _("    Device is BLOCKED waiting for appendable media.\n"));
       }
@@ -251,7 +252,7 @@ static void list_running_jobs(BSOCK *user)
 		   job_type_to_str(jcr->JobType),
 		   JobName,
 		   jcr->JobId,
-		   jcr->VolumeName,
+		   jcr->dcr->VolumeName,
 		   jcr->device->device_name);
 	 sec = time(NULL) - jcr->run_time;
 	 if (sec <= 0) {
@@ -422,53 +423,47 @@ static void sendit(const char *msg, int len, void *arg)
 /*
  * .status command from Director
  */
-int qstatus_cmd(JCR *jcr)
+bool qstatus_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
-   POOLMEM *time;
+   POOL_MEM time;
    JCR *njcr;
    s_last_job* job;
 
-   time = get_memory(dir->msglen+1);
-   
-   if (sscanf(dir->msg, qstatus, time) != 1) {
-      pm_strcpy(&jcr->errmsg, dir->msg);
+   if (sscanf(dir->msg, qstatus, time.c_str()) != 1) {
+      pm_strcpy(jcr->errmsg, dir->msg);
       Jmsg1(jcr, M_FATAL, 0, _("Bad .status command: %s\n"), jcr->errmsg);
       bnet_fsend(dir, "3900 Bad .status command, missing argument.\n");
       bnet_sig(dir, BNET_EOD);
-      free_memory(time);
-      return 0;
+      return false;
    }
    unbash_spaces(time);
    
-   if (strcmp(time, "current") == 0) {
-      bnet_fsend(dir, OKqstatus, time);
+   if (strcmp(time.c_str(), "current") == 0) {
+      bnet_fsend(dir, OKqstatus, time.c_str());
       lock_jcr_chain();
       foreach_jcr(njcr) {
-         if (njcr->JobId != 0) {
-            bnet_fsend(dir, DotStatusJob, njcr->JobId, njcr->JobStatus, njcr->JobErrors);
-         }
-         free_locked_jcr(njcr);
+	 if (njcr->JobId != 0) {
+	    bnet_fsend(dir, DotStatusJob, njcr->JobId, njcr->JobStatus, njcr->JobErrors);
+	 }
+	 free_locked_jcr(njcr);
       }
       unlock_jcr_chain();
    }
-   else if (strcmp(time, "last") == 0) {
-      bnet_fsend(dir, OKqstatus, time);
+   else if (strcmp(time.c_str(), "last") == 0) {
+      bnet_fsend(dir, OKqstatus, time.c_str());
       if ((last_jobs) && (last_jobs->size() > 0)) {
-         job = (s_last_job*)last_jobs->last();
-         bnet_fsend(dir, DotStatusJob, job->JobId, job->JobStatus, job->Errors);
+	 job = (s_last_job*)last_jobs->last();
+	 bnet_fsend(dir, DotStatusJob, job->JobId, job->JobStatus, job->Errors);
       }
    }
    else {
-      pm_strcpy(&jcr->errmsg, dir->msg);
+      pm_strcpy(jcr->errmsg, dir->msg);
       Jmsg1(jcr, M_FATAL, 0, _("Bad .status command: %s\n"), jcr->errmsg);
       bnet_fsend(dir, "3900 Bad .status command, wrong argument.\n");
       bnet_sig(dir, BNET_EOD);
-      free_memory(time);
-      return 0;
+      return false;
    }
-   
    bnet_sig(dir, BNET_EOD);
-   free_memory(time);
-   return 1;
+   return true;
 }

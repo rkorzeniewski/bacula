@@ -523,6 +523,9 @@ Without that I don't know who I am :-(\n"), configfile);
 		  }
 		  *svalue = bstrdup(*def_svalue);
 		  set_bit(i, job->hdr.item_present);
+	       /*
+		* Handle resources   
+		*/
 	       } else if (job_items[i].handler == store_res) {
 		  def_svalue = (char **)((char *)(job->jobdefs) + offset);
                   Dmsg4(400, "Job \"%s\", field \"%s\" item %d offset=%u\n", 
@@ -532,6 +535,22 @@ Without that I don't know who I am :-(\n"), configfile);
                      Pmsg1(000, "Hey something is wrong. p=0x%lu\n", *svalue);
 		  }
 		  *svalue = *def_svalue;
+		  set_bit(i, job->hdr.item_present);
+	       /*
+		* Handle alist resources
+		*/
+	       } else if (job_items[i].handler == store_alist_res) {
+		  int count = job_items[i].default_value;
+		  def_svalue = (char **)((char *)(job->jobdefs) + offset);
+                  Dmsg4(400, "Job \"%s\", field \"%s\" item %d offset=%u\n", 
+		       job->hdr.name, job_items[i].name, i, offset);
+		  svalue = (char **)((char *)job + offset);
+		  if (*svalue) {
+                     Pmsg1(000, "Hey something is wrong. p=0x%lu\n", *svalue);
+		  }
+		  while (count--) {
+		     *svalue++ = *def_svalue++;
+		  }
 		  set_bit(i, job->hdr.item_present);
 	       /*
 		* Handle integer fields 
@@ -571,7 +590,7 @@ Without that I don't know who I am :-(\n"), configfile);
       for (i=0; job_items[i].name; i++) {
 	 if (job_items[i].flags & ITEM_REQUIRED) {
 	       if (!bit_is_set(i, job->hdr.item_present)) {  
-                  Jmsg(NULL, M_FATAL, 0, "Field \"%s\" in Job \"%s\" resource is required, but not found.\n",
+                  Jmsg(NULL, M_FATAL, 0, "\"%s\" directive in Job \"%s\" resource is required, but not found.\n",
 		    job_items[i].name, job->hdr.name);
 		  OK = false;
 		}
@@ -593,7 +612,8 @@ Without that I don't know who I am :-(\n"), configfile);
        */
       db = db_init_database(NULL, catalog->db_name, catalog->db_user,
 			 catalog->db_password, catalog->db_address,
-			 catalog->db_port, catalog->db_socket);
+			 catalog->db_port, catalog->db_socket, 
+			 catalog->mult_db_connections);
       if (!db || !db_open_database(NULL, db)) {
          Jmsg(NULL, M_FATAL, 0, _("Could not open database \"%s\".\n"),
 	      catalog->db_name);

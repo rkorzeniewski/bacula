@@ -76,14 +76,18 @@ int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
 {
    BSOCK   *fd;
 
-   fd = bnet_connect(jcr, retry_interval, max_retry_time,
-        _("File daemon"), jcr->client->address, 
-	NULL, jcr->client->FDport, verbose);
-   if (fd == NULL) {
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
-      return 0;
+   if (!jcr->file_bsock) {
+      fd = bnet_connect(jcr, retry_interval, max_retry_time,
+           _("File daemon"), jcr->client->address, 
+	   NULL, jcr->client->FDport, verbose);
+      if (fd == NULL) {
+	 set_jcr_job_status(jcr, JS_ErrorTerminated);
+	 return 0;
+      }
+      Dmsg0(10, "Opened connection with File daemon\n");
+   } else {
+      fd = jcr->file_bsock;	      /* use existing connection */
    }
-   Dmsg0(10, "Opened connection with File daemon\n");
    fd->res = (RES *)jcr->client;      /* save resource in BSOCK */
    jcr->file_bsock = fd;
    set_jcr_job_status(jcr, JS_Running);

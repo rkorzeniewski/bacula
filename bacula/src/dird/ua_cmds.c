@@ -1189,24 +1189,25 @@ static int update_pool(UAContext *ua)
 static void do_storage_setdebug(UAContext *ua, STORE *store, int level, int trace_flag)
 {
    BSOCK *sd;
+   JCR *jcr = ua->jcr;
 
-   ua->jcr->store = store;
+   jcr->store = store;
    /* Try connecting for up to 15 seconds */
    bsendmsg(ua, _("Connecting to Storage daemon %s at %s:%d\n"), 
       store->hdr.name, store->address, store->SDport);
-   if (!connect_to_storage_daemon(ua->jcr, 1, 15, 0)) {
+   if (!connect_to_storage_daemon(jcr, 1, 15, 0)) {
       bsendmsg(ua, _("Failed to connect to Storage daemon.\n"));
       return;
    }
    Dmsg0(120, _("Connected to storage daemon\n"));
-   sd = ua->jcr->store_bsock;
+   sd = jcr->store_bsock;
    bnet_fsend(sd, "setdebug=%d trace=%d\n", level, trace_flag);
    if (bnet_recv(sd) >= 0) {
       bsendmsg(ua, "%s", sd->msg);
    }
    bnet_sig(sd, BNET_TERMINATE);
    bnet_close(sd);
-   ua->jcr->store_bsock = NULL;
+   jcr->store_bsock = NULL;
    return;  
 }
    
@@ -1820,8 +1821,8 @@ static void do_mount_cmd(UAContext *ua, const char *command)
 {
    STORE *store;
    BSOCK *sd;
+   JCR *jcr = ua->jcr;
    char dev_name[MAX_NAME_LENGTH];
-
 
    if (!open_db(ua)) {
       return;
@@ -1836,13 +1837,13 @@ static void do_mount_cmd(UAContext *ua, const char *command)
    Dmsg2(120, "Found storage, MediaType=%s DevName=%s\n",
       store->media_type, store->dev_name);
 
-   ua->jcr->store = store;
-   if (!connect_to_storage_daemon(ua->jcr, 10, SDConnectTimeout, 1)) {
+   jcr->store = store;
+   if (!connect_to_storage_daemon(jcr, 10, SDConnectTimeout, 1)) {
       bsendmsg(ua, _("Failed to connect to Storage daemon.\n"));
       return;
    }
-   sd = ua->jcr->store_bsock;
-   strcpy(dev_name, store->dev_name);
+   sd = jcr->store_bsock;
+   bstrncpy(dev_name, store->dev_name, sizeof(dev_name));
    bash_spaces(dev_name);
    bnet_fsend(sd, "%s %s", command, dev_name);
    while (bnet_recv(sd) >= 0) {
@@ -1850,7 +1851,7 @@ static void do_mount_cmd(UAContext *ua, const char *command)
    }
    bnet_sig(sd, BNET_TERMINATE);
    bnet_close(sd);
-   ua->jcr->store_bsock = NULL;
+   jcr->store_bsock = NULL;
 }
 
 /*
@@ -1996,7 +1997,8 @@ int open_db(UAContext *ua)
    Dmsg0(150, "Open database\n");
    ua->db = db_init_database(ua->jcr, ua->catalog->db_name, ua->catalog->db_user,
 			     ua->catalog->db_password, ua->catalog->db_address,
-			     ua->catalog->db_port, ua->catalog->db_socket);
+			     ua->catalog->db_port, ua->catalog->db_socket,
+			     ua->catalog->mult_db_connections);
    if (!ua->db || !db_open_database(ua->jcr, ua->db)) {
       bsendmsg(ua, _("Could not open database \"%s\".\n"),
 		 ua->catalog->db_name);

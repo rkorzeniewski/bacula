@@ -39,7 +39,7 @@ static void do_jobs(char *infname);
 static void do_ls(char *fname);
 static void do_close(JCR *jcr);
 static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sessrec);
-static bool record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
+static bool record_cb(DCR *dcr, DEV_RECORD *rec);
 
 static DEVICE *dev;
 static DCR *dcr;
@@ -201,9 +201,12 @@ int main (int argc, char *argv[])
       if (bsrName) {
 	 bsr = parse_bsr(NULL, bsrName);
       }
-      jcr = setup_jcr("bls", argv[i], bsr, VolumeName);
+      jcr = setup_jcr("bls", argv[i], bsr, VolumeName, 1); /* acquire for read */ 
+      if (!jcr) {
+	 exit(1);
+      }
       jcr->ignore_label_errors = ignore_label_errors;
-      dev = setup_to_access_device(jcr, 1);   /* acquire for read */
+      dev = jcr->dcr->dev;
       if (!dev) {
 	 exit(1);
       }
@@ -256,26 +259,26 @@ static void do_blocks(char *infname)
       rec = new_record();
    }
    for ( ;; ) {
-      if (!read_block_from_device(dcr, block, NO_BLOCK_NUMBER_CHECK)) {
+      if (!read_block_from_device(dcr, NO_BLOCK_NUMBER_CHECK)) {
          Dmsg1(100, "!read_block(): ERR=%s\n", strerror_dev(dev));
 	 if (dev->state & ST_EOT) {
-	    if (!mount_next_read_volume(jcr, dev, block)) {
+	    if (!mount_next_read_volume(dcr)) {
                Jmsg(jcr, M_INFO, 0, _("Got EOM at file %u on device %s, Volume \"%s\"\n"), 
-		  dev->file, dev_name(dev), jcr->VolumeName);
+		  dev->file, dev_name(dev), dcr->VolumeName);
 	       break;
 	    }
 	    /* Read and discard Volume label */
 	    DEV_RECORD *record;
 	    record = new_record();
-	    read_block_from_device(dcr, block, NO_BLOCK_NUMBER_CHECK);
+	    read_block_from_device(dcr, NO_BLOCK_NUMBER_CHECK);
 	    read_record_from_block(block, record);
 	    get_session_record(dev, record, &sessrec);
 	    free_record(record);
-            Jmsg(jcr, M_INFO, 0, _("Mounted Volume \"%s\".\n"), jcr->VolumeName);
+            Jmsg(jcr, M_INFO, 0, _("Mounted Volume \"%s\".\n"), dcr->VolumeName);
 	    
 	 } else if (dev->state & ST_EOF) {
             Jmsg(jcr, M_INFO, 0, _("Got EOF at file %u on device %s, Volume \"%s\"\n"), 
-	       dev->file, dev_name(dev), jcr->VolumeName);
+	       dev->file, dev_name(dev), dcr->VolumeName);
             Dmsg0(20, "read_record got eof. try again\n");
 	    continue;
 	 } else if (dev->state & ST_SHORT) {
@@ -317,10 +320,10 @@ static void do_blocks(char *infname)
 /*
  * We are only looking for labels or in particular Job Session records
  */
-static bool jobs_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
+static bool jobs_cb(DCR *dcr, DEV_RECORD *rec)
 {
    if (rec->FileIndex < 0) {
-      dump_label_record(dev, rec, verbose);
+      dump_label_record(dcr->dev, rec, verbose);
    }
    rec->remainder = 0;
    return true;
@@ -346,7 +349,7 @@ static void do_ls(char *infname)
 /*
  * Called here for each record from read_records()
  */
-static bool record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
+static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 {
    if (rec->FileIndex < 0) {
       get_session_record(dev, rec, &sessrec);
@@ -433,10 +436,9 @@ bool	dir_send_job_status(JCR *jcr) {return 1;}
 
 bool dir_ask_sysop_to_mount_volume(DCR *dcr)
 {
-   JCR *jcr = dcr->jcr;
    DEVICE *dev = dcr->dev;
    fprintf(stderr, "Mount Volume \"%s\" on device %s and press return when ready: ",
-      jcr->VolumeName, dev_name(dev));
+      dcr->VolumeName, dev_name(dev));
    getchar();	
    return true;
 }

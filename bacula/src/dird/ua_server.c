@@ -168,15 +168,13 @@ static void *handle_UA_client_request(void *arg)
 	    bnet_sig(ua->UA_sock, BNET_EOD); /* send end of command */
 	 }
       } else if (is_bnet_stop(ua->UA_sock)) {
-	 ua->quit = TRUE;
-	 break;
+	 ua->quit = true;
       } else { /* signal */
 	 bnet_sig(ua->UA_sock, BNET_POLL);
       }
    }
 
 getout:
-
    close_db(ua);
    free_ua_context(ua);
    free_jcr(jcr);

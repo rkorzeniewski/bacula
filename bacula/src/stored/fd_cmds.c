@@ -1,6 +1,8 @@
 /*
  * This file handles commands from the File daemon.
  *
+ *  Kern Sibbald, MM
+ *
  * We get here because the Director has initiated a Job with
  *  the Storage daemon, then done the same with the File daemon,
  *  then when the Storage daemon receives a proper connection from
@@ -43,22 +45,21 @@ static char ferrmsg[]      = "3900 Invalid command\n";
 extern bool do_append_data(JCR *jcr);
 extern bool do_read_data(JCR *jcr);
 
-/* Forward referenced functions */
-
-
 /* Forward referenced FD commands */
-static int append_open_session(JCR *jcr);
-static int append_close_session(JCR *jcr);
-static int append_data_cmd(JCR *jcr);
-static int append_end_session(JCR *jcr);
-static int read_open_session(JCR *jcr);
-static int read_data_cmd(JCR *jcr);
-static int read_close_session(JCR *jcr);
-static int bootstrap_cmd(JCR *jcr);
+static bool append_open_session(JCR *jcr);
+static bool append_close_session(JCR *jcr);
+static bool append_data_cmd(JCR *jcr);
+static bool append_end_session(JCR *jcr);
+static bool read_open_session(JCR *jcr);
+static bool read_data_cmd(JCR *jcr);
+static bool read_close_session(JCR *jcr);
+
+/* Exported function */
+bool bootstrap_cmd(JCR *jcr);
 
 struct s_cmds {
    const char *cmd;
-   int (*func)(JCR *jcr);
+   bool (*func)(JCR *jcr);
 };
 
 /*  
@@ -105,7 +106,8 @@ static char Job_end[]	=
  */
 void run_job(JCR *jcr)
 {
-   int i, found, quit;
+   int i;
+   bool found, quit;
    BSOCK *fd = jcr->file_bsock;
    BSOCK *dir = jcr->dir_bsock;
    char ec1[30];
@@ -119,7 +121,7 @@ void run_job(JCR *jcr)
    jcr->run_time = jcr->start_time;
    set_jcr_job_status(jcr, JS_Running);
    dir_send_job_status(jcr);	      /* update director */
-   for (quit=0; !quit;) {
+   for (quit=false; !quit;) {
       int stat;
 
       /* Read command coming from the File daemon */
@@ -131,13 +133,13 @@ void run_job(JCR *jcr)
 	 continue;		      /* ignore signals and zero length msgs */
       }
       Dmsg1(110, "<filed: %s", fd->msg);
-      found = 0;
+      found = false;
       for (i=0; fd_cmds[i].cmd; i++) {
 	 if (strncmp(fd_cmds[i].cmd, fd->msg, strlen(fd_cmds[i].cmd)) == 0) {
-	    found = 1;		     /* indicate command found */
+	    found = true;		/* indicate command found */
 	    if (!fd_cmds[i].func(jcr)) {    /* do command */
 	       set_jcr_job_status(jcr, JS_ErrorTerminated);
-	       quit = 1;
+	       quit = true;
 	    }
 	    break;
 	 }
@@ -164,7 +166,7 @@ void run_job(JCR *jcr)
  *     Open Data Channel and receive Data for archiving
  *     Write the Data to the archive device
  */
-static int append_data_cmd(JCR *jcr)
+static bool append_data_cmd(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
 
@@ -173,27 +175,25 @@ static int append_data_cmd(JCR *jcr)
       Dmsg1(110, "<bfiled: %s", fd->msg);
       jcr->JobType = JT_BACKUP;
       if (do_append_data(jcr)) {
-	 bnet_fsend(fd, OK_append);
-	 return 1;
+	 return bnet_fsend(fd, OK_append);
       } else {
 	 bnet_suppress_error_messages(fd, 1); /* ignore errors at this point */
 	 bnet_fsend(fd, ERROR_append);
-	 return 0;
       }
    } else {
       bnet_fsend(fd, NOT_opened);
-      return 0;
    }
+   return false;
 }
 
-static int append_end_session(JCR *jcr)
+static bool append_end_session(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
 
    Dmsg1(120, "store<file: %s", fd->msg);
    if (!jcr->session_opened) {
       bnet_fsend(fd, NOT_opened);
-      return 0;
+      return false;
    }
    set_jcr_job_status(jcr, JS_Terminated);
    return bnet_fsend(fd, OK_end);
@@ -204,14 +204,14 @@ static int append_end_session(JCR *jcr)
  * Append Open session command
  *
  */
-static int append_open_session(JCR *jcr)
+static bool append_open_session(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
 
    Dmsg1(120, "Append open session: %s", fd->msg);
    if (jcr->session_opened) {
       bnet_fsend(fd, NO_open);
-      return 0;
+      return false;
    }
 
    Dmsg1(110, "Append open session: %s\n", dev_name(jcr->device->dev));
@@ -221,7 +221,7 @@ static int append_open_session(JCR *jcr)
    bnet_fsend(fd, OK_open, jcr->VolSessionId);
    Dmsg1(110, ">filed: %s", fd->msg);
 
-   return 1;
+   return true;
 }
 
 /*
@@ -229,14 +229,14 @@ static int append_open_session(JCR *jcr)
  *	Close the append session and send back Statistics     
  *	   (need to fix statistics)
  */
-static int append_close_session(JCR *jcr)
+static bool append_close_session(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
 
    Dmsg1(120, "<filed: %s\n", fd->msg);
    if (!jcr->session_opened) {
       bnet_fsend(fd, NOT_opened);
-      return 0;
+      return false;
    }
    /* Send final statistics to File daemon */
    bnet_fsend(fd, OK_close, jcr->JobStatus);
@@ -246,8 +246,8 @@ static int append_close_session(JCR *jcr)
        
    Dmsg1(110, "Append close session: %s\n", dev_name(jcr->device->dev));
 
-   jcr->session_opened = FALSE;
-   return 1;
+   jcr->session_opened = false;
+   return true;
 }
 
 /*
@@ -256,7 +256,7 @@ static int append_close_session(JCR *jcr)
  *     the archive device and send to File
  *     daemon.
  */
-static int read_data_cmd(JCR *jcr)
+static bool read_data_cmd(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
 
@@ -266,7 +266,7 @@ static int read_data_cmd(JCR *jcr)
       return do_read_data(jcr);
    } else {
       bnet_fsend(fd, NOT_opened);
-      return 0;
+      return false;
    }
 }
 
@@ -276,25 +276,25 @@ static int read_data_cmd(JCR *jcr)
  *  We need to scan for the parameters of the job
  *    to be restored.
  */
-static int read_open_session(JCR *jcr)
+static bool read_open_session(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
 
    Dmsg1(120, "%s\n", fd->msg);
    if (jcr->session_opened) {
       bnet_fsend(fd, NO_open);
-      return 0;
+      return false;
    }
 
-   if (sscanf(fd->msg, read_open, jcr->VolumeName, &jcr->read_VolSessionId,
+   if (sscanf(fd->msg, read_open, jcr->dcr->VolumeName, &jcr->read_VolSessionId,
 	 &jcr->read_VolSessionTime, &jcr->read_StartFile, &jcr->read_EndFile,
 	 &jcr->read_StartBlock, &jcr->read_EndBlock) == 7) {
       if (jcr->session_opened) {
 	 bnet_fsend(fd, NOT_opened);
-	 return 0;
+	 return false;
       }
       Dmsg4(100, "read_open_session got: JobId=%d Vol=%s VolSessId=%ld VolSessT=%ld\n",
-	 jcr->JobId, jcr->VolumeName, jcr->read_VolSessionId, 
+	 jcr->JobId, jcr->dcr->VolumeName, jcr->read_VolSessionId, 
 	 jcr->read_VolSessionTime);
       Dmsg4(100, "  StartF=%ld EndF=%ld StartB=%ld EndB=%ld\n",
 	 jcr->read_StartFile, jcr->read_EndFile, jcr->read_StartBlock,
@@ -310,15 +310,15 @@ static int read_open_session(JCR *jcr)
    bnet_fsend(fd, OK_open, jcr->VolSessionId);
    Dmsg1(110, ">filed: %s", fd->msg);
 
-   return 1;
+   return true;
 }
 
-static int bootstrap_cmd(JCR *jcr)
+bool bootstrap_cmd(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
    POOLMEM *fname = get_pool_memory(PM_FNAME);
    FILE *bs;
-   int stat = 0;
+   bool ok = false;
 
    if (jcr->RestoreBootstrap) {
       unlink(jcr->RestoreBootstrap);
@@ -347,18 +347,17 @@ static int bootstrap_cmd(JCR *jcr)
    if (debug_level > 20) {
       dump_bsr(jcr->bsr, true);
    }
-   stat = 1;
+   ok = true;
 
 bail_out:
    unlink(jcr->RestoreBootstrap);
    free_pool_memory(jcr->RestoreBootstrap);
    jcr->RestoreBootstrap = NULL;
-   if (stat) {
-      return bnet_fsend(fd, OK_bootstrap);
-   } else {
+   if (!ok) {
       bnet_fsend(fd, ERROR_bootstrap);
-      return 0;
+      return false;
    }
+   return bnet_fsend(fd, OK_bootstrap);
 }
 
 
@@ -366,14 +365,14 @@ bail_out:
  *   Read Close session command
  *	Close the read session
  */
-static int read_close_session(JCR *jcr)
+static bool read_close_session(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
 
    Dmsg1(120, "Read close session: %s\n", fd->msg);
    if (!jcr->session_opened) {
       bnet_fsend(fd, NOT_opened);
-      return 0;
+      return false;
    }
    /* Send final statistics to File daemon */
    bnet_fsend(fd, OK_close);
@@ -382,5 +381,5 @@ static int read_close_session(JCR *jcr)
    bnet_sig(fd, BNET_EOD);	    /* send EOD to File daemon */
        
    jcr->session_opened = FALSE;
-   return 1;
+   return true;
 }

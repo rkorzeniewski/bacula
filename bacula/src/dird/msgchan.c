@@ -60,29 +60,34 @@ extern "C" void *msg_thread(void *arg);
  * Establish a message channel connection with the Storage daemon
  * and perform authentication. 
  */
-int connect_to_storage_daemon(JCR *jcr, int retry_interval,    
+bool connect_to_storage_daemon(JCR *jcr, int retry_interval,	
 			      int max_retry_time, int verbose)
 {
    BSOCK *sd;
+   STORE *store = jcr->store;
+   if (!store) {
+      store = (STORE *)jcr->storage[0]->first();
+   }
 
    /*
     *  Open message channel with the Storage daemon   
     */
-   Dmsg2(200, "bnet_connect to Storage daemon %s:%d\n", jcr->store->address,
-      jcr->store->SDport);
+   Dmsg2(200, "bnet_connect to Storage daemon %s:%d\n", store->address,
+      store->SDport);
    sd = bnet_connect(jcr, retry_interval, max_retry_time,
-          _("Storage daemon"), jcr->store->address, 
-	  NULL, jcr->store->SDport, verbose);
+          _("Storage daemon"), store->address, 
+	  NULL, store->SDport, verbose);
    if (sd == NULL) {
-      return 0;
+      return false;
    }
-   sd->res = (RES *)jcr->store;        /* save pointer to other end */
+   sd->res = (RES *)store;	  /* save pointer to other end */
    jcr->store_bsock = sd;
+   jcr->store = store;
 
-   if (!authenticate_storage_daemon(jcr)) {
-      return 0;
+   if (!authenticate_storage_daemon(jcr, store)) {
+      return false;
    }
-   return 1;
+   return true;
 }
 
 /*
@@ -94,7 +99,7 @@ int start_storage_daemon_job(JCR *jcr)
    STORE *storage;
    BSOCK *sd;
    char auth_key[100];
-   POOLMEM *device_name, *pool_name, *pool_type, *media_type;
+   POOL_MEM device_name, pool_name, pool_type, media_type;
 
    storage = jcr->store;
    sd = jcr->store_bsock;
@@ -135,32 +140,24 @@ int start_storage_daemon_job(JCR *jcr)
    /*
     * Send use device = xxx media = yyy pool = zzz
     */
-   device_name = get_pool_memory(PM_NAME);
-   pool_name = get_pool_memory(PM_NAME);
-   pool_type = get_pool_memory(PM_NAME);
-   media_type = get_pool_memory(PM_NAME);
    pm_strcpy(device_name, storage->dev_name);
    pm_strcpy(media_type, storage->media_type);
    pm_strcpy(pool_type, jcr->pool->pool_type);
    pm_strcpy(pool_name, jcr->pool->hdr.name);
-   bash_spaces(device_name);
-   bash_spaces(media_type);
-   bash_spaces(pool_type);
-   bash_spaces(pool_name);
-   bnet_fsend(sd, use_device, device_name, media_type, pool_name, pool_type);
+   bash_spaces(device_name.c_str());
+   bash_spaces(media_type.c_str());
+   bash_spaces(pool_type.c_str());
+   bash_spaces(pool_name.c_str());
+   bnet_fsend(sd, use_device, device_name.c_str(), 
+	      media_type.c_str(), pool_name.c_str(), pool_type.c_str());
    Dmsg1(110, ">stored: %s", sd->msg);
    status = response(jcr, sd, OK_device, "Use Device", NO_DISPLAY);
    if (!status) {
       pm_strcpy(pool_type, sd->msg); /* save message */
       Jmsg(jcr, M_FATAL, 0, _("\n"
          "     Storage daemon didn't accept Device \"%s\" because:\n     %s"),
-	 device_name, pool_type/* sd->msg */);
+	 device_name.c_str(), pool_type.c_str()/* sd->msg */);
    }
-   free_memory(device_name);
-   free_memory(media_type);
-   free_memory(pool_name);
-   free_memory(pool_type);
-
    return status;
 }
 

@@ -8,14 +8,14 @@
  *   1. The generic lexical scanner in lib/lex.c and lib/lex.h
  *
  *   2. The generic config  scanner in lib/parse_config.c and 
- *	lib/parse_config.h.
- *	These files contain the parser code, some utility
- *	routines, and the common store routines (name, int,
- *	string).
+ *      lib/parse_config.h.
+ *      These files contain the parser code, some utility
+ *      routines, and the common store routines (name, int,
+ *      string).
  *
  *   3. The daemon specific file, which contains the Resource
- *	definitions as well as any specific store routines
- *	for the resource records.
+ *      definitions as well as any specific store routines
+ *      for the resource records.
  *
  *     Kern Sibbald, January MM
  *
@@ -83,7 +83,7 @@ int  res_all_size = sizeof(res_all);
 /* 
  *    Director Resource
  *
- *   name	   handler     value		     code flags    default_value
+ *   name          handler     value                 code flags    default_value
  */
 static RES_ITEM dir_items[] = {
    {"name",        store_name,     ITEM(res_dir.hdr.name), 0, ITEM_REQUIRED, 0},
@@ -108,7 +108,7 @@ static RES_ITEM dir_items[] = {
 /* 
  *    Console Resource
  *
- *   name	   handler     value		     code flags    default_value
+ *   name          handler     value                 code flags    default_value
  */
 static RES_ITEM con_items[] = {
    {"name",        store_name,     ITEM(res_con.hdr.name), 0, ITEM_REQUIRED, 0},
@@ -131,7 +131,7 @@ static RES_ITEM con_items[] = {
 /* 
  *    Client or File daemon resource
  *
- *   name	   handler     value		     code flags    default_value
+ *   name          handler     value                 code flags    default_value
  */
 
 static RES_ITEM cli_items[] = {
@@ -153,7 +153,7 @@ static RES_ITEM cli_items[] = {
 
 /* Storage daemon resource
  *
- *   name	   handler     value		     code flags    default_value
+ *   name          handler     value                 code flags    default_value
  */
 static RES_ITEM store_items[] = {
    {"name",        store_name,     ITEM(res_store.hdr.name),   0, ITEM_REQUIRED, 0},
@@ -176,7 +176,7 @@ static RES_ITEM store_items[] = {
 /* 
  *    Catalog Resource Directives
  *
- *   name	   handler     value		     code flags    default_value
+ *   name          handler     value                 code flags    default_value
  */
 static RES_ITEM cat_items[] = {
    {"name",     store_name,     ITEM(res_cat.hdr.name),    0, ITEM_REQUIRED, 0},
@@ -197,17 +197,17 @@ static RES_ITEM cat_items[] = {
 /* 
  *    Job Resource Directives
  *
- *   name	   handler     value		     code flags    default_value
+ *   name          handler     value                 code flags    default_value
  */
 RES_ITEM job_items[] = {
    {"name",      store_name,    ITEM(res_job.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,   ITEM(res_job.hdr.desc), 0, 0, 0},
    {"type",      store_jobtype, ITEM(res_job.JobType),  0, ITEM_REQUIRED, 0},
-   {"level",     store_level,   ITEM(res_job.level),    0, 0, 0},
+   {"level",     store_level,   ITEM(res_job.JobLevel),    0, 0, 0},
    {"messages",  store_res,     ITEM(res_job.messages), R_MSGS, ITEM_REQUIRED, 0},
-   {"storage",   store_res,     ITEM(res_job.storage),  R_STORAGE, ITEM_REQUIRED, 0},
+   {"storage",   store_alist_res, ITEM(res_job.storage),  R_STORAGE, ITEM_REQUIRED, MAX_STORE},
    {"pool",      store_res,     ITEM(res_job.pool),     R_POOL, ITEM_REQUIRED, 0},
-   {"fullbackuppool",  store_res,     ITEM(res_job.full_pool),   R_POOL, 0, 0},
+   {"fullbackuppool",  store_res, ITEM(res_job.full_pool),   R_POOL, 0, 0},
    {"incrementalbackuppool",  store_res, ITEM(res_job.inc_pool), R_POOL, 0, 0},
    {"differentialbackuppool", store_res, ITEM(res_job.dif_pool), R_POOL, 0, 0},
    {"client",    store_res,     ITEM(res_job.client),   R_CLIENT, ITEM_REQUIRED, 0},
@@ -244,7 +244,7 @@ RES_ITEM job_items[] = {
 
 /* FileSet resource
  *
- *   name	   handler     value		     code flags    default_value
+ *   name          handler     value                 code flags    default_value
  */
 static RES_ITEM fs_items[] = {
    {"name",        store_name, ITEM(res_fs.hdr.name), 0, ITEM_REQUIRED, 0},
@@ -252,13 +252,13 @@ static RES_ITEM fs_items[] = {
    {"include",     store_inc,  NULL,                  0, ITEM_NO_EQUALS, 0},
    {"exclude",     store_inc,  NULL,                  1, ITEM_NO_EQUALS, 0},
    {"ignorefilesetchanges", store_yesno, ITEM(res_fs.ignore_fs_changes), 1, ITEM_DEFAULT, 0},
-   {NULL,	   NULL,       NULL,		      0, 0, 0} 
+   {NULL,          NULL,       NULL,                  0, 0, 0} 
 };
 
 /* Schedule -- see run_conf.c */
 /* Schedule
  *
- *   name	   handler     value		     code flags    default_value
+ *   name          handler     value                 code flags    default_value
  */
 static RES_ITEM sch_items[] = {
    {"name",     store_name,  ITEM(res_sch.hdr.name), 0, ITEM_REQUIRED, 0},
@@ -269,7 +269,7 @@ static RES_ITEM sch_items[] = {
 
 /* Pool resource
  *
- *   name	      handler	  value 		       code flags default_value
+ *   name             handler     value                        code flags default_value
  */
 static RES_ITEM pool_items[] = {
    {"name",            store_name,    ITEM(res_pool.hdr.name),      0, ITEM_REQUIRED, 0},
@@ -297,7 +297,7 @@ static RES_ITEM pool_items[] = {
 
 /* 
  * Counter Resource
- *   name	      handler	  value 		       code flags default_value
+ *   name             handler     value                        code flags default_value
  */
 static RES_ITEM counter_items[] = {
    {"name",            store_name,    ITEM(res_counter.hdr.name),        0, ITEM_REQUIRED, 0},
@@ -320,7 +320,7 @@ extern RES_ITEM msgs_items[];
  *  NOTE!!! keep it in the same order as the R_codes
  *    or eliminate all resources[rindex].name
  *
- *  name	     items	  rcode        res_head
+ *  name             items        rcode        res_head
  */
 RES_TABLE resources[] = {
    {"director",      dir_items,   R_DIRECTOR},
@@ -335,13 +335,13 @@ RES_TABLE resources[] = {
    {"counter",       counter_items, R_COUNTER},
    {"console",       con_items,   R_CONSOLE},
    {"jobdefs",       job_items,   R_JOBDEFS},
-   {NULL,	     NULL,	  0}
+   {NULL,            NULL,        0}
 };
 
 
 /* Keywords (RHS) permitted in Job Level records   
  *
- *   level_name      level		job_type
+ *   level_name      level              job_type
  */
 struct s_jl joblevels[] = {
    {"Full",          L_FULL,            JT_BACKUP},
@@ -356,19 +356,19 @@ struct s_jl joblevels[] = {
    {"Data",          L_VERIFY_DATA,     JT_VERIFY},
    {" ",             L_NONE,            JT_ADMIN},
    {" ",             L_NONE,            JT_RESTORE},
-   {NULL,	     0, 			 0}
+   {NULL,            0,                          0}
 };
 
 /* Keywords (RHS) permitted in Job type records   
  *
- *   type_name	     job_type
+ *   type_name       job_type
  */
 struct s_jt jobtypes[] = {
    {"backup",        JT_BACKUP},
    {"admin",         JT_ADMIN},
    {"verify",        JT_VERIFY},
    {"restore",       JT_RESTORE},
-   {NULL,	     0}
+   {NULL,            0}
 };
 
 #ifdef old_deprecated_code
@@ -378,7 +378,7 @@ static struct s_kw BakVerFields[] = {
    {"client",        'C'},
    {"fileset",       'F'},
    {"level",         'L'}, 
-   {NULL,	     0}
+   {NULL,            0}
 };
 
 /* Keywords (RHS) permitted in Restore records */
@@ -389,7 +389,7 @@ static struct s_kw RestoreFields[] = {
    {"where",         'W'},            /* root of restore */
    {"replace",       'R'},            /* replacement options */
    {"bootstrap",     'B'},            /* bootstrap file */
-   {NULL,	       0}
+   {NULL,              0}
 };
 #endif
 
@@ -399,7 +399,7 @@ struct s_kw ReplaceOptions[] = {
    {"ifnewer",        REPLACE_IFNEWER},
    {"ifolder",        REPLACE_IFOLDER},
    {"never",          REPLACE_NEVER},
-   {NULL,		0}
+   {NULL,               0}
 };
 
 const char *level_to_str(int level)
@@ -411,8 +411,8 @@ const char *level_to_str(int level)
    bsnprintf(level_no, sizeof(level_no), "%d", level);    /* default if not found */
    for (i=0; joblevels[i].level_name; i++) {
       if (level == joblevels[i].level) {
-	 str = joblevels[i].level_name;
-	 break;
+         str = joblevels[i].level_name;
+         break;
       }
    }
    return str;
@@ -429,93 +429,93 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       sendit(sock, "No %s resource defined\n", res_to_str(type));
       return;
    }
-   if (type < 0) {		      /* no recursion */
+   if (type < 0) {                    /* no recursion */
       type = - type;
       recurse = false;
    }
    switch (type) {
    case R_DIRECTOR:
       sendit(sock, "Director: name=%s MaxJobs=%d FDtimeout=%s SDtimeout=%s\n", 
-	 reshdr->name, res->res_dir.MaxConcurrentJobs, 
-	 edit_uint64(res->res_dir.FDConnectTimeout, ed1),
-	 edit_uint64(res->res_dir.SDConnectTimeout, ed2));
+         reshdr->name, res->res_dir.MaxConcurrentJobs, 
+         edit_uint64(res->res_dir.FDConnectTimeout, ed1),
+         edit_uint64(res->res_dir.SDConnectTimeout, ed2));
       if (res->res_dir.query_file) {
          sendit(sock, "   query_file=%s\n", res->res_dir.query_file);
       }
       if (res->res_dir.messages) {
          sendit(sock, "  --> ");
-	 dump_resource(-R_MSGS, (RES *)res->res_dir.messages, sendit, sock);
+         dump_resource(-R_MSGS, (RES *)res->res_dir.messages, sendit, sock);
       }
       break;
    case R_CONSOLE:
       sendit(sock, "Console: name=%s SSL=%d\n", 
-	 res->res_con.hdr.name, res->res_con.enable_ssl);
+         res->res_con.hdr.name, res->res_con.enable_ssl);
       break;
    case R_COUNTER:
       if (res->res_counter.WrapCounter) {
          sendit(sock, "Counter: name=%s min=%d max=%d cur=%d wrapcntr=%s\n",
-	    res->res_counter.hdr.name, res->res_counter.MinValue, 
-	    res->res_counter.MaxValue, res->res_counter.CurrentValue,
-	    res->res_counter.WrapCounter->hdr.name);
+            res->res_counter.hdr.name, res->res_counter.MinValue, 
+            res->res_counter.MaxValue, res->res_counter.CurrentValue,
+            res->res_counter.WrapCounter->hdr.name);
       } else {
          sendit(sock, "Counter: name=%s min=%d max=%d\n",
-	    res->res_counter.hdr.name, res->res_counter.MinValue, 
-	    res->res_counter.MaxValue);
+            res->res_counter.hdr.name, res->res_counter.MinValue, 
+            res->res_counter.MaxValue);
       }
       if (res->res_counter.Catalog) {
          sendit(sock, "  --> ");
-	 dump_resource(-R_CATALOG, (RES *)res->res_counter.Catalog, sendit, sock);
+         dump_resource(-R_CATALOG, (RES *)res->res_counter.Catalog, sendit, sock);
       }
       break;
 
    case R_CLIENT:
       sendit(sock, "Client: name=%s address=%s FDport=%d MaxJobs=%u\n",
-	 res->res_client.hdr.name, res->res_client.address, res->res_client.FDport,
-	 res->res_client.MaxConcurrentJobs);
+         res->res_client.hdr.name, res->res_client.address, res->res_client.FDport,
+         res->res_client.MaxConcurrentJobs);
       sendit(sock, "      JobRetention=%s FileRetention=%s AutoPrune=%d\n",
-	 edit_utime(res->res_client.JobRetention, ed1, sizeof(ed1)),
-	 edit_utime(res->res_client.FileRetention, ed2, sizeof(ed2)),
-	 res->res_client.AutoPrune);
+         edit_utime(res->res_client.JobRetention, ed1, sizeof(ed1)),
+         edit_utime(res->res_client.FileRetention, ed2, sizeof(ed2)),
+         res->res_client.AutoPrune);
       if (res->res_client.catalog) {
          sendit(sock, "  --> ");
-	 dump_resource(-R_CATALOG, (RES *)res->res_client.catalog, sendit, sock);
+         dump_resource(-R_CATALOG, (RES *)res->res_client.catalog, sendit, sock);
       }
       break;
    case R_STORAGE:
       sendit(sock, "Storage: name=%s address=%s SDport=%d MaxJobs=%u\n\
       DeviceName=%s MediaType=%s\n",
-	 res->res_store.hdr.name, res->res_store.address, res->res_store.SDport,
-	 res->res_store.MaxConcurrentJobs,
-	 res->res_store.dev_name, res->res_store.media_type);
+         res->res_store.hdr.name, res->res_store.address, res->res_store.SDport,
+         res->res_store.MaxConcurrentJobs,
+         res->res_store.dev_name, res->res_store.media_type);
       break;
    case R_CATALOG:
       sendit(sock, "Catalog: name=%s address=%s DBport=%d db_name=%s\n\
       db_user=%s\n",
-	 res->res_cat.hdr.name, NPRT(res->res_cat.db_address),
-	 res->res_cat.db_port, res->res_cat.db_name, NPRT(res->res_cat.db_user));
+         res->res_cat.hdr.name, NPRT(res->res_cat.db_address),
+         res->res_cat.db_port, res->res_cat.db_name, NPRT(res->res_cat.db_user));
       break;
    case R_JOB:
    case R_JOBDEFS:
       sendit(sock, "%s: name=%s JobType=%d level=%s Priority=%d MaxJobs=%u\n", 
          type == R_JOB ? "Job" : "JobDefs",
-	 res->res_job.hdr.name, res->res_job.JobType, 
-	 level_to_str(res->res_job.level), res->res_job.Priority,
-	 res->res_job.MaxConcurrentJobs);
+         res->res_job.hdr.name, res->res_job.JobType, 
+         level_to_str(res->res_job.JobLevel), res->res_job.Priority,
+         res->res_job.MaxConcurrentJobs);
       sendit(sock, "     Resched=%d Times=%d Interval=%s Spool=%d\n",
-	  res->res_job.RescheduleOnError, res->res_job.RescheduleTimes,
-	  edit_uint64_with_commas(res->res_job.RescheduleInterval, ed1),
-	  res->res_job.spool_data);
+          res->res_job.RescheduleOnError, res->res_job.RescheduleTimes,
+          edit_uint64_with_commas(res->res_job.RescheduleInterval, ed1),
+          res->res_job.spool_data);
       if (res->res_job.client) {
          sendit(sock, "  --> ");
-	 dump_resource(-R_CLIENT, (RES *)res->res_job.client, sendit, sock);
+         dump_resource(-R_CLIENT, (RES *)res->res_job.client, sendit, sock);
       }
       if (res->res_job.fileset) {
          sendit(sock, "  --> ");
-	 dump_resource(-R_FILESET, (RES *)res->res_job.fileset, sendit, sock);
+         dump_resource(-R_FILESET, (RES *)res->res_job.fileset, sendit, sock);
       }
       if (res->res_job.schedule) {
          sendit(sock, "  --> ");
-	 dump_resource(-R_SCHEDULE, (RES *)res->res_job.schedule, sendit, sock);
+         dump_resource(-R_SCHEDULE, (RES *)res->res_job.schedule, sendit, sock);
       }
       if (res->res_job.RestoreWhere) {
          sendit(sock, "  --> Where=%s\n", NPRT(res->res_job.RestoreWhere));
@@ -535,34 +535,35 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       if (res->res_job.WriteBootstrap) {
          sendit(sock, "  --> WriteBootstrap=%s\n", NPRT(res->res_job.WriteBootstrap));
       }
-      if (res->res_job.storage) {
+      if (res->res_job.storage[0]) {
          sendit(sock, "  --> ");
-	 dump_resource(-R_STORAGE, (RES *)res->res_job.storage, sendit, sock);
+         /* ***FIXME*** */
+//         dump_resource(-R_STORAGE, (RES *)res->res_job.storage, sendit, sock);
       }
       if (res->res_job.pool) {
          sendit(sock, "  --> ");
-	 dump_resource(-R_POOL, (RES *)res->res_job.pool, sendit, sock);
+         dump_resource(-R_POOL, (RES *)res->res_job.pool, sendit, sock);
       }
       if (res->res_job.full_pool) {
          sendit(sock, "  --> ");
-	 dump_resource(-R_POOL, (RES *)res->res_job.full_pool, sendit, sock);
+         dump_resource(-R_POOL, (RES *)res->res_job.full_pool, sendit, sock);
       }
       if (res->res_job.inc_pool) {
          sendit(sock, "  --> ");
-	 dump_resource(-R_POOL, (RES *)res->res_job.inc_pool, sendit, sock);
+         dump_resource(-R_POOL, (RES *)res->res_job.inc_pool, sendit, sock);
       }
       if (res->res_job.dif_pool) {
          sendit(sock, "  --> ");
-	 dump_resource(-R_POOL, (RES *)res->res_job.dif_pool, sendit, sock);
+         dump_resource(-R_POOL, (RES *)res->res_job.dif_pool, sendit, sock);
       }
       if (res->res_job.verify_job) {
          sendit(sock, "  --> ");
-	 dump_resource(-type, (RES *)res->res_job.verify_job, sendit, sock);
+         dump_resource(-type, (RES *)res->res_job.verify_job, sendit, sock);
       }
       break;
       if (res->res_job.messages) {
          sendit(sock, "  --> ");
-	 dump_resource(-R_MSGS, (RES *)res->res_job.messages, sendit, sock);
+         dump_resource(-R_MSGS, (RES *)res->res_job.messages, sendit, sock);
       }
       break;
    case R_FILESET:
@@ -570,151 +571,151 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       int i, j, k;
       sendit(sock, "FileSet: name=%s\n", res->res_fs.hdr.name);
       for (i=0; i<res->res_fs.num_includes; i++) {
-	 INCEXE *incexe = res->res_fs.include_items[i];
-	 for (j=0; j<incexe->num_opts; j++) {
-	    FOPTS *fo = incexe->opts_list[j];
+         INCEXE *incexe = res->res_fs.include_items[i];
+         for (j=0; j<incexe->num_opts; j++) {
+            FOPTS *fo = incexe->opts_list[j];
             sendit(sock, "      O %s\n", fo->opts);
-	    for (k=0; k<fo->regex.size(); k++) {
+            for (k=0; k<fo->regex.size(); k++) {
                sendit(sock, "      R %s\n", fo->regex.get(k));
-	    }
-	    for (k=0; k<fo->wild.size(); k++) {
+            }
+            for (k=0; k<fo->wild.size(); k++) {
                sendit(sock, "      W %s\n", fo->wild.get(k));
-	    }
-	    for (k=0; k<fo->base.size(); k++) {
+            }
+            for (k=0; k<fo->base.size(); k++) {
                sendit(sock, "      B %s\n", fo->base.get(k));
-	    }
-	    if (fo->reader) {
+            }
+            if (fo->reader) {
                sendit(sock, "      D %s\n", fo->reader);
-	    }
-	    if (fo->writer) {
+            }
+            if (fo->writer) {
                sendit(sock, "      T %s\n", fo->writer);
-	    }
+            }
             sendit(sock, "      N\n");
-	 }
-	 for (j=0; j<incexe->name_list.size(); j++) {
+         }
+         for (j=0; j<incexe->name_list.size(); j++) {
             sendit(sock, "      I %s\n", incexe->name_list.get(j));
-	 }
-	 if (incexe->name_list.size()) {
+         }
+         if (incexe->name_list.size()) {
             sendit(sock, "      N\n");
-	 }
+         }
       }
-	 
+         
       for (i=0; i<res->res_fs.num_excludes; i++) {
-	 INCEXE *incexe = res->res_fs.exclude_items[i];
-	 for (j=0; j<incexe->name_list.size(); j++) {
+         INCEXE *incexe = res->res_fs.exclude_items[i];
+         for (j=0; j<incexe->name_list.size(); j++) {
             sendit(sock, "      E %s\n", incexe->name_list.get(j));
-	 }
-	 if (incexe->name_list.size()) {
+         }
+         if (incexe->name_list.size()) {
             sendit(sock, "      N\n");
-	 }
+         }
       }
       break;
    }
    case R_SCHEDULE:
       if (res->res_sch.run) {
-	 int i;
-	 RUN *run = res->res_sch.run;
-	 char buf[1000], num[30];
+         int i;
+         RUN *run = res->res_sch.run;
+         char buf[1000], num[30];
          sendit(sock, "Schedule: name=%s\n", res->res_sch.hdr.name);
-	 if (!run) {
-	    break;
-	 }
+         if (!run) {
+            break;
+         }
 next_run:
          sendit(sock, "  --> Run Level=%s\n", level_to_str(run->level));
          bstrncpy(buf, "      hour=", sizeof(buf));
-	 for (i=0; i<24; i++) {
-	    if (bit_is_set(i, run->hour)) {
+         for (i=0; i<24; i++) {
+            if (bit_is_set(i, run->hour)) {
                bsnprintf(num, sizeof(num), "%d ", i);
-	       bstrncat(buf, num, sizeof(buf));
-	    }
-	 }
+               bstrncat(buf, num, sizeof(buf));
+            }
+         }
          bstrncat(buf, "\n", sizeof(buf));
-	 sendit(sock, buf);
+         sendit(sock, buf);
          bstrncpy(buf, "      mday=", sizeof(buf));
-	 for (i=0; i<31; i++) {
-	    if (bit_is_set(i, run->mday)) {
+         for (i=0; i<31; i++) {
+            if (bit_is_set(i, run->mday)) {
                bsnprintf(num, sizeof(num), "%d ", i);
-	       bstrncat(buf, num, sizeof(buf));
-	    }
-	 }
+               bstrncat(buf, num, sizeof(buf));
+            }
+         }
          bstrncat(buf, "\n", sizeof(buf));
-	 sendit(sock, buf);
+         sendit(sock, buf);
          bstrncpy(buf, "      month=", sizeof(buf));
-	 for (i=0; i<12; i++) {
-	    if (bit_is_set(i, run->month)) {
+         for (i=0; i<12; i++) {
+            if (bit_is_set(i, run->month)) {
                bsnprintf(num, sizeof(num), "%d ", i);
-	       bstrncat(buf, num, sizeof(buf));
-	    }
-	 }
+               bstrncat(buf, num, sizeof(buf));
+            }
+         }
          bstrncat(buf, "\n", sizeof(buf));
-	 sendit(sock, buf);
+         sendit(sock, buf);
          bstrncpy(buf, "      wday=", sizeof(buf));
-	 for (i=0; i<7; i++) {
-	    if (bit_is_set(i, run->wday)) {
+         for (i=0; i<7; i++) {
+            if (bit_is_set(i, run->wday)) {
                bsnprintf(num, sizeof(num), "%d ", i);
-	       bstrncat(buf, num, sizeof(buf));
-	    }
-	 }
+               bstrncat(buf, num, sizeof(buf));
+            }
+         }
          bstrncat(buf, "\n", sizeof(buf));
-	 sendit(sock, buf);
+         sendit(sock, buf);
          bstrncpy(buf, "      wom=", sizeof(buf));
-	 for (i=0; i<5; i++) {
-	    if (bit_is_set(i, run->wom)) {
+         for (i=0; i<5; i++) {
+            if (bit_is_set(i, run->wom)) {
                bsnprintf(num, sizeof(num), "%d ", i);
-	       bstrncat(buf, num, sizeof(buf));
-	    }
-	 }
+               bstrncat(buf, num, sizeof(buf));
+            }
+         }
          bstrncat(buf, "\n", sizeof(buf));
-	 sendit(sock, buf);
+         sendit(sock, buf);
          bstrncpy(buf, "      woy=", sizeof(buf));
-	 for (i=0; i<54; i++) {
-	    if (bit_is_set(i, run->woy)) {
+         for (i=0; i<54; i++) {
+            if (bit_is_set(i, run->woy)) {
                bsnprintf(num, sizeof(num), "%d ", i);
-	       bstrncat(buf, num, sizeof(buf));
-	    }
-	 }
+               bstrncat(buf, num, sizeof(buf));
+            }
+         }
          bstrncat(buf, "\n", sizeof(buf));
-	 sendit(sock, buf);
+         sendit(sock, buf);
          sendit(sock, "      mins=%d\n", run->minute);
-	 if (run->pool) {
+         if (run->pool) {
             sendit(sock, "     --> ");
-	    dump_resource(-R_POOL, (RES *)run->pool, sendit, sock);
-	 }
-	 if (run->storage) {
+            dump_resource(-R_POOL, (RES *)run->pool, sendit, sock);
+         }
+         if (run->storage) {
             sendit(sock, "     --> ");
-	    dump_resource(-R_STORAGE, (RES *)run->storage, sendit, sock);
-	 }
-	 if (run->msgs) {
+            dump_resource(-R_STORAGE, (RES *)run->storage, sendit, sock);
+         }
+         if (run->msgs) {
             sendit(sock, "     --> ");
-	    dump_resource(-R_MSGS, (RES *)run->msgs, sendit, sock);
-	 }
-	 /* If another Run record is chained in, go print it */
-	 if (run->next) {
-	    run = run->next;
-	    goto next_run;
-	 }
+            dump_resource(-R_MSGS, (RES *)run->msgs, sendit, sock);
+         }
+         /* If another Run record is chained in, go print it */
+         if (run->next) {
+            run = run->next;
+            goto next_run;
+         }
       } else {
          sendit(sock, "Schedule: name=%s\n", res->res_sch.hdr.name);
       }
       break;
    case R_POOL:
       sendit(sock, "Pool: name=%s PoolType=%s\n", res->res_pool.hdr.name,
-	      res->res_pool.pool_type);
+              res->res_pool.pool_type);
       sendit(sock, "      use_cat=%d use_once=%d acpt_any=%d cat_files=%d\n",
-	      res->res_pool.use_catalog, res->res_pool.use_volume_once,
-	      res->res_pool.accept_any_volume, res->res_pool.catalog_files);
+              res->res_pool.use_catalog, res->res_pool.use_volume_once,
+              res->res_pool.accept_any_volume, res->res_pool.catalog_files);
       sendit(sock, "      max_vols=%d auto_prune=%d VolRetention=%s\n",
-	      res->res_pool.max_volumes, res->res_pool.AutoPrune,
-	      edit_utime(res->res_pool.VolRetention, ed1, sizeof(ed1)));
+              res->res_pool.max_volumes, res->res_pool.AutoPrune,
+              edit_utime(res->res_pool.VolRetention, ed1, sizeof(ed1)));
       sendit(sock, "      VolUse=%s recycle=%d LabelFormat=%s\n", 
-	      edit_utime(res->res_pool.VolUseDuration, ed1, sizeof(ed1)),
-	      res->res_pool.Recycle,
-	      NPRT(res->res_pool.label_format));
+              edit_utime(res->res_pool.VolUseDuration, ed1, sizeof(ed1)),
+              res->res_pool.Recycle,
+              NPRT(res->res_pool.label_format));
       sendit(sock, "      CleaningPrefix=%s\n",
-	      NPRT(res->res_pool.cleaning_prefix));
+              NPRT(res->res_pool.cleaning_prefix));
       sendit(sock, "      recyleOldest=%d MaxVolJobs=%d MaxVolFiles=%d\n",
-	      res->res_pool.purge_oldest_volume, 
-	      res->res_pool.MaxVolJobs, res->res_pool.MaxVolFiles);
+              res->res_pool.purge_oldest_volume, 
+              res->res_pool.MaxVolJobs, res->res_pool.MaxVolFiles);
       break;
    case R_MSGS:
       sendit(sock, "Messages: name=%s\n", res->res_msgs.hdr.name);
@@ -744,10 +745,10 @@ static void free_incexe(INCEXE *incexe)
       fopt->wild.destroy();
       fopt->base.destroy();
       if (fopt->reader) {
-	 free(fopt->reader);
+         free(fopt->reader);
       }
       if (fopt->writer) {
-	 free(fopt->writer);
+         free(fopt->writer);
       }
       free(fopt);
    }
@@ -767,7 +768,7 @@ static void free_incexe(INCEXE *incexe)
 void free_resource(RES *sres, int type)
 {
    int num;
-   RES *nres;			      /* next resource if linked */
+   RES *nres;                         /* next resource if linked */
    URES *res = (URES *)sres;
 
    if (res == NULL)
@@ -785,147 +786,152 @@ void free_resource(RES *sres, int type)
    switch (type) {
    case R_DIRECTOR:
       if (res->res_dir.working_directory) {
-	 free(res->res_dir.working_directory);
+         free(res->res_dir.working_directory);
       }
       if (res->res_dir.pid_directory) {
-	 free(res->res_dir.pid_directory);
+         free(res->res_dir.pid_directory);
       }
       if (res->res_dir.subsys_directory) {
-	 free(res->res_dir.subsys_directory);
+         free(res->res_dir.subsys_directory);
       }
       if (res->res_dir.password) {
-	 free(res->res_dir.password);
+         free(res->res_dir.password);
       }
       if (res->res_dir.query_file) {
-	 free(res->res_dir.query_file);
+         free(res->res_dir.query_file);
       }
       if (res->res_dir.DIRaddrs) {
-	 free_addresses(res->res_dir.DIRaddrs);
+         free_addresses(res->res_dir.DIRaddrs);
       }
       break;
    case R_COUNTER:
        break;
    case R_CONSOLE:
       if (res->res_con.password) {
-	 free(res->res_con.password);
+         free(res->res_con.password);
       }
       for (int i=0; i<Num_ACL; i++) {
-	 if (res->res_con.ACL_lists[i]) {
-	    delete res->res_con.ACL_lists[i];
-	    res->res_con.ACL_lists[i] = NULL;
-	 }
+         if (res->res_con.ACL_lists[i]) {
+            delete res->res_con.ACL_lists[i];
+            res->res_con.ACL_lists[i] = NULL;
+         }
       }
       break;
    case R_CLIENT:
       if (res->res_client.address) {
-	 free(res->res_client.address);
+         free(res->res_client.address);
       }
       if (res->res_client.password) {
-	 free(res->res_client.password);
+         free(res->res_client.password);
       }
       break;
    case R_STORAGE:
       if (res->res_store.address) {
-	 free(res->res_store.address);
+         free(res->res_store.address);
       }
       if (res->res_store.password) {
-	 free(res->res_store.password);
+         free(res->res_store.password);
       }
       if (res->res_store.media_type) {
-	 free(res->res_store.media_type);
+         free(res->res_store.media_type);
       }
       if (res->res_store.dev_name) {
-	 free(res->res_store.dev_name);
+         free(res->res_store.dev_name);
       }
       break;
    case R_CATALOG:
       if (res->res_cat.db_address) {
-	 free(res->res_cat.db_address);
+         free(res->res_cat.db_address);
       }
       if (res->res_cat.db_socket) {
-	 free(res->res_cat.db_socket);
+         free(res->res_cat.db_socket);
       }
       if (res->res_cat.db_user) {
-	 free(res->res_cat.db_user);
+         free(res->res_cat.db_user);
       }
       if (res->res_cat.db_name) {
-	 free(res->res_cat.db_name);
+         free(res->res_cat.db_name);
       }
       if (res->res_cat.db_password) {
-	 free(res->res_cat.db_password);
+         free(res->res_cat.db_password);
       }
       break;
    case R_FILESET:
       if ((num=res->res_fs.num_includes)) {
-	 while (--num >= 0) {	
-	    free_incexe(res->res_fs.include_items[num]);
-	 }
-	 free(res->res_fs.include_items);
+         while (--num >= 0) {   
+            free_incexe(res->res_fs.include_items[num]);
+         }
+         free(res->res_fs.include_items);
       }
       res->res_fs.num_includes = 0;
       if ((num=res->res_fs.num_excludes)) {
-	 while (--num >= 0) {	
-	    free_incexe(res->res_fs.exclude_items[num]);
-	 }
-	 free(res->res_fs.exclude_items);
+         while (--num >= 0) {   
+            free_incexe(res->res_fs.exclude_items[num]);
+         }
+         free(res->res_fs.exclude_items);
       }
       res->res_fs.num_excludes = 0;
       break;
    case R_POOL:
       if (res->res_pool.pool_type) {
-	 free(res->res_pool.pool_type);
+         free(res->res_pool.pool_type);
       }
       if (res->res_pool.label_format) {
-	 free(res->res_pool.label_format);
+         free(res->res_pool.label_format);
       }
       if (res->res_pool.cleaning_prefix) {
-	 free(res->res_pool.cleaning_prefix);
+         free(res->res_pool.cleaning_prefix);
       }
       break;
    case R_SCHEDULE:
       if (res->res_sch.run) {
-	 RUN *nrun, *next;
-	 nrun = res->res_sch.run;
-	 while (nrun) {
-	    next = nrun->next;
-	    free(nrun);
-	    nrun = next;
-	 }
+         RUN *nrun, *next;
+         nrun = res->res_sch.run;
+         while (nrun) {
+            next = nrun->next;
+            free(nrun);
+            nrun = next;
+         }
       }
       break;
    case R_JOB:
    case R_JOBDEFS:
       if (res->res_job.RestoreWhere) {
-	 free(res->res_job.RestoreWhere);
+         free(res->res_job.RestoreWhere);
       }
       if (res->res_job.RestoreBootstrap) {
-	 free(res->res_job.RestoreBootstrap);
+         free(res->res_job.RestoreBootstrap);
       }
       if (res->res_job.WriteBootstrap) {
-	 free(res->res_job.WriteBootstrap);
+         free(res->res_job.WriteBootstrap);
       }
       if (res->res_job.RunBeforeJob) {
-	 free(res->res_job.RunBeforeJob);
+         free(res->res_job.RunBeforeJob);
       }
       if (res->res_job.RunAfterJob) {
-	 free(res->res_job.RunAfterJob);
+         free(res->res_job.RunAfterJob);
       }
       if (res->res_job.RunAfterFailedJob) {
-	 free(res->res_job.RunAfterFailedJob);
+         free(res->res_job.RunAfterFailedJob);
       }
       if (res->res_job.ClientRunBeforeJob) {
-	 free(res->res_job.ClientRunBeforeJob);
+         free(res->res_job.ClientRunBeforeJob);
       }
       if (res->res_job.ClientRunAfterJob) {
-	 free(res->res_job.ClientRunAfterJob);
+         free(res->res_job.ClientRunAfterJob);
+      }
+      for (int i=0; i < MAX_STORE; i++) {
+         if (res->res_job.storage[i]) {
+            delete (alist *)res->res_job.storage[i];
+         }
       }
       break;
    case R_MSGS:
       if (res->res_msgs.mail_cmd) {
-	 free(res->res_msgs.mail_cmd);
+         free(res->res_msgs.mail_cmd);
       }
       if (res->res_msgs.operator_cmd) {
-	 free(res->res_msgs.operator_cmd);
+         free(res->res_msgs.operator_cmd);
       }
       free_msgs_res((MSGS *)res);  /* free message resource */
       res = NULL;
@@ -961,16 +967,16 @@ void save_resource(int type, RES_ITEM *items, int pass)
        * Ensure that all required items are present
        */
       for (i=0; items[i].name; i++) {
-	 if (items[i].flags & ITEM_REQUIRED) {
-	       if (!bit_is_set(i, res_all.res_dir.hdr.item_present)) {	
+         if (items[i].flags & ITEM_REQUIRED) {
+               if (!bit_is_set(i, res_all.res_dir.hdr.item_present)) {  
                   Emsg2(M_ERROR_TERM, 0, "%s item is required in %s resource, but not found.\n",
-		    items[i].name, resources[rindex]);
-		}
-	 }
-	 /* If this triggers, take a look at lib/parse_conf.h */
-	 if (i >= MAX_RES_ITEMS) {
+                    items[i].name, resources[rindex]);
+                }
+         }
+         /* If this triggers, take a look at lib/parse_conf.h */
+         if (i >= MAX_RES_ITEMS) {
             Emsg1(M_ERROR_TERM, 0, "Too many items in %s resource\n", resources[rindex]);
-	 }
+         }
       }
    }
 
@@ -989,74 +995,76 @@ void save_resource(int type, RES_ITEM *items, int pass)
       case R_POOL:
       case R_MSGS:
       case R_FILESET:
-	 break;
+         break;
 
       /* Resources containing another resource */
       case R_DIRECTOR:
-	 if ((res = (URES *)GetResWithName(R_DIRECTOR, res_all.res_dir.hdr.name)) == NULL) {
+         if ((res = (URES *)GetResWithName(R_DIRECTOR, res_all.res_dir.hdr.name)) == NULL) {
             Emsg1(M_ERROR_TERM, 0, "Cannot find Director resource %s\n", res_all.res_dir.hdr.name);
-	 }
-	 res->res_dir.messages = res_all.res_dir.messages;
-	 break;
+         }
+         res->res_dir.messages = res_all.res_dir.messages;
+         break;
       case R_JOB:
       case R_JOBDEFS:
-	 if ((res = (URES *)GetResWithName(type, res_all.res_dir.hdr.name)) == NULL) {
+         if ((res = (URES *)GetResWithName(type, res_all.res_dir.hdr.name)) == NULL) {
             Emsg1(M_ERROR_TERM, 0, "Cannot find Job resource %s\n", 
-		  res_all.res_dir.hdr.name);
-	 }
-	 res->res_job.messages	 = res_all.res_job.messages;
-	 res->res_job.schedule	 = res_all.res_job.schedule;
-	 res->res_job.client	 = res_all.res_job.client;
-	 res->res_job.fileset	 = res_all.res_job.fileset;
-	 res->res_job.storage	 = res_all.res_job.storage;
-	 res->res_job.pool	 = res_all.res_job.pool;
-	 res->res_job.full_pool  = res_all.res_job.full_pool;
-	 res->res_job.inc_pool	 = res_all.res_job.inc_pool;
-	 res->res_job.dif_pool	 = res_all.res_job.dif_pool;
-	 res->res_job.verify_job = res_all.res_job.verify_job;
-	 res->res_job.jobdefs	 = res_all.res_job.jobdefs;
-	 break;
+                  res_all.res_dir.hdr.name);
+         }
+         res->res_job.messages   = res_all.res_job.messages;
+         res->res_job.schedule   = res_all.res_job.schedule;
+         res->res_job.client     = res_all.res_job.client;
+         res->res_job.fileset    = res_all.res_job.fileset;
+         for (int i=0; i < MAX_STORE; i++) {
+            res->res_job.storage[i] = res_all.res_job.storage[i];
+         }
+         res->res_job.pool       = res_all.res_job.pool;
+         res->res_job.full_pool  = res_all.res_job.full_pool;
+         res->res_job.inc_pool   = res_all.res_job.inc_pool;
+         res->res_job.dif_pool   = res_all.res_job.dif_pool;
+         res->res_job.verify_job = res_all.res_job.verify_job;
+         res->res_job.jobdefs    = res_all.res_job.jobdefs;
+         break;
       case R_COUNTER:
-	 if ((res = (URES *)GetResWithName(R_COUNTER, res_all.res_counter.hdr.name)) == NULL) {
+         if ((res = (URES *)GetResWithName(R_COUNTER, res_all.res_counter.hdr.name)) == NULL) {
             Emsg1(M_ERROR_TERM, 0, "Cannot find Counter resource %s\n", res_all.res_counter.hdr.name);
-	 }
-	 res->res_counter.Catalog = res_all.res_counter.Catalog;
-	 res->res_counter.WrapCounter = res_all.res_counter.WrapCounter;
-	 break;
+         }
+         res->res_counter.Catalog = res_all.res_counter.Catalog;
+         res->res_counter.WrapCounter = res_all.res_counter.WrapCounter;
+         break;
 
       case R_CLIENT:
-	 if ((res = (URES *)GetResWithName(R_CLIENT, res_all.res_client.hdr.name)) == NULL) {
+         if ((res = (URES *)GetResWithName(R_CLIENT, res_all.res_client.hdr.name)) == NULL) {
             Emsg1(M_ERROR_TERM, 0, "Cannot find Client resource %s\n", res_all.res_client.hdr.name);
-	 }
-	 res->res_client.catalog = res_all.res_client.catalog;
-	 break;
+         }
+         res->res_client.catalog = res_all.res_client.catalog;
+         break;
       case R_SCHEDULE:
-	 /*
-	  * Schedule is a bit different in that it contains a RUN record
+         /*
+          * Schedule is a bit different in that it contains a RUN record
           * chain which isn't a "named" resource. This chain was linked
-	  * in by run_conf.c during pass 2, so here we jam the pointer 
-	  * into the Schedule resource. 			
-	  */
-	 if ((res = (URES *)GetResWithName(R_SCHEDULE, res_all.res_client.hdr.name)) == NULL) {
+          * in by run_conf.c during pass 2, so here we jam the pointer 
+          * into the Schedule resource.                         
+          */
+         if ((res = (URES *)GetResWithName(R_SCHEDULE, res_all.res_client.hdr.name)) == NULL) {
             Emsg1(M_ERROR_TERM, 0, "Cannot find Schedule resource %s\n", res_all.res_client.hdr.name);
-	 }
-	 res->res_sch.run = res_all.res_sch.run;
-	 break;
+         }
+         res->res_sch.run = res_all.res_sch.run;
+         break;
       default:
          Emsg1(M_ERROR, 0, "Unknown resource type %d in save_resource.\n", type);
-	 error = 1;
-	 break;
+         error = 1;
+         break;
       }
       /* Note, the resource name was already saved during pass 1,
        * so here, we can just release it.
        */
       if (res_all.res_dir.hdr.name) {
-	 free(res_all.res_dir.hdr.name);
-	 res_all.res_dir.hdr.name = NULL;
+         free(res_all.res_dir.hdr.name);
+         res_all.res_dir.hdr.name = NULL;
       }
       if (res_all.res_dir.hdr.desc) {
-	 free(res_all.res_dir.hdr.desc);
-	 res_all.res_dir.hdr.desc = NULL;
+         free(res_all.res_dir.hdr.desc);
+         res_all.res_dir.hdr.desc = NULL;
       }
       return;
    }
@@ -1110,22 +1118,22 @@ void save_resource(int type, RES_ITEM *items, int pass)
       res = (URES *)malloc(size);
       memcpy(res, &res_all, size);
       if (!res_head[rindex]) {
-	 res_head[rindex] = (RES *)res; /* store first entry */
+         res_head[rindex] = (RES *)res; /* store first entry */
          Dmsg3(900, "Inserting first %s res: %s index=%d\n", res_to_str(type),
-	       res->res_dir.hdr.name, rindex);
+               res->res_dir.hdr.name, rindex);
       } else {
-	 RES *next;
-	 /* Add new res to end of chain */
-	 for (next=res_head[rindex]; next->next; next=next->next) {
-	    if (strcmp(next->name, res->res_dir.hdr.name) == 0) {
-	       Emsg2(M_ERROR_TERM, 0,
+         RES *next;
+         /* Add new res to end of chain */
+         for (next=res_head[rindex]; next->next; next=next->next) {
+            if (strcmp(next->name, res->res_dir.hdr.name) == 0) {
+               Emsg2(M_ERROR_TERM, 0,
                   _("Attempt to define second %s resource named \"%s\" is not permitted.\n"),
-		  resources[rindex].name, res->res_dir.hdr.name);
-	    }
-	 }
-	 next->next = (RES *)res;
+                  resources[rindex].name, res->res_dir.hdr.name);
+            }
+         }
+         next->next = (RES *)res;
          Dmsg4(900, "Inserting %s res: %s index=%d pass=%d\n", res_to_str(type),
-	       res->res_dir.hdr.name, rindex, pass);
+               res->res_dir.hdr.name, rindex, pass);
       }
    }
 }
@@ -1142,9 +1150,9 @@ void store_jobtype(LEX *lc, RES_ITEM *item, int index, int pass)
    /* Store the type both pass 1 and pass 2 */
    for (i=0; jobtypes[i].type_name; i++) {
       if (strcasecmp(lc->str, jobtypes[i].type_name) == 0) {
-	 *(int *)(item->value) = jobtypes[i].job_type;
-	 i = 0;
-	 break;
+         *(int *)(item->value) = jobtypes[i].job_type;
+         i = 0;
+         break;
       }
    }
    if (i != 0) {
@@ -1166,9 +1174,9 @@ void store_level(LEX *lc, RES_ITEM *item, int index, int pass)
    /* Store the level pass 2 so that type is defined */
    for (i=0; joblevels[i].level_name; i++) {
       if (strcasecmp(lc->str, joblevels[i].level_name) == 0) {
-	 *(int *)(item->value) = joblevels[i].level;
-	 i = 0;
-	 break;
+         *(int *)(item->value) = joblevels[i].level;
+         i = 0;
+         break;
       }
    }
    if (i != 0) {
@@ -1185,9 +1193,9 @@ void store_replace(LEX *lc, RES_ITEM *item, int index, int pass)
    /* Scan Replacement options */
    for (i=0; ReplaceOptions[i].name; i++) {
       if (strcasecmp(lc->str, ReplaceOptions[i].name) == 0) {
-	 *(int *)(item->value) = ReplaceOptions[i].token;
-	 i = 0;
-	 break;
+         *(int *)(item->value) = ReplaceOptions[i].token;
+         i = 0;
+         break;
       }
    }
    if (i != 0) {
@@ -1208,16 +1216,16 @@ void store_acl(LEX *lc, RES_ITEM *item, int index, int pass)
    for (;;) {
       token = lex_get_token(lc, T_NAME);
       if (pass == 1) {
-	 if (((alist **)item->value)[item->code] == NULL) {   
-	    ((alist **)item->value)[item->code] = New(alist(10, owned_by_alist)); 
+         if (((alist **)item->value)[item->code] == NULL) {   
+            ((alist **)item->value)[item->code] = New(alist(10, owned_by_alist)); 
             Dmsg1(900, "Defined new ACL alist at %d\n", item->code);
-	 }
-	 ((alist **)item->value)[item->code]->append(bstrdup(lc->str));
+         }
+         ((alist **)item->value)[item->code]->append(bstrdup(lc->str));
          Dmsg2(900, "Appended to %d %s\n", item->code, lc->str);
       }
       token = lex_get_token(lc, T_ALL);
       if (token == T_COMMA) {
-	 continue;		      /* get another ACL */
+         continue;                    /* get another ACL */
       }
       break;
    }

@@ -320,14 +320,14 @@ static bool unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
  *	  : false on failure
  *
  */
-bool write_block_to_device(DCR *dcr, DEV_BLOCK *block)
+bool write_block_to_device(DCR *dcr)
 {
    bool stat = true;
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
 
    if (dcr->spooling) {
-      stat = write_block_to_spool_file(dcr, block);
+      stat = write_block_to_spool_file(dcr);
       return stat;
    }
 
@@ -346,7 +346,7 @@ bool write_block_to_device(DCR *dcr, DEV_BLOCK *block)
       if (!dir_create_jobmedia_record(dcr)) {
 	 dev->dev_errno = EIO;
          Jmsg(jcr, M_FATAL, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
-	    jcr->VolCatInfo.VolCatName, jcr->Job);
+	    dcr->VolCatInfo.VolCatName, jcr->Job);
 	 set_new_volume_parameters(dcr);
 	 stat = false;
 	 goto bail_out;
@@ -360,11 +360,11 @@ bool write_block_to_device(DCR *dcr, DEV_BLOCK *block)
       }
    }
 
-   if (!write_block_to_dev(dcr, block)) {
+   if (!write_block_to_dev(dcr)) {
        if (job_canceled(jcr)) {
 	  stat = 0;
        } else {
-	  stat = fixup_device_block_write_error(dcr, block);
+	  stat = fixup_device_block_write_error(dcr);
        }
    }
 
@@ -381,7 +381,7 @@ bail_out:
  *  Returns: true  on success or EOT
  *	     false on hard error
  */
-bool write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
+bool write_block_to_dev(DCR *dcr)
 {
    ssize_t stat = 0;
    uint32_t wlen;		      /* length to write */
@@ -389,6 +389,7 @@ bool write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
    bool ok = true;
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
+   DEV_BLOCK *block = dcr->block;
 
 #ifdef NO_TAPE_WRITE_TEST
    empty_block(block);
@@ -634,7 +635,8 @@ bool write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
 	 if (ok) {
 	    DEV_BLOCK *lblock = new_block(dev);
 	    /* Note, this can destroy dev->errmsg */
-	    if (!read_block_from_dev(dcr, lblock, NO_BLOCK_NUMBER_CHECK)) {
+	    dcr->block = lblock;
+	    if (!read_block_from_dev(dcr, NO_BLOCK_NUMBER_CHECK)) {
                Jmsg(jcr, M_ERROR, 0, _("Re-read last block at EOT failed. ERR=%s"), dev->errmsg);
 	    } else {
 	       if (lblock->BlockNumber+1 == block->BlockNumber) {
@@ -646,6 +648,7 @@ bool write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
 	       }
 	    }
 	    free_block(lblock);
+	    dcr->block = block;
 	 }
       }
 #endif
@@ -661,7 +664,7 @@ bool write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
    dev->block_num++;
    block->BlockNumber++;
 
-   /* Update jcr values */
+   /* Update dcr values */
    if (dev_state(dev, ST_TAPE)) {
       dcr->EndBlock = dev->EndBlock;
       dcr->EndFile  = dev->EndFile;
@@ -690,13 +693,13 @@ bool write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
  * Read block with locking
  *
  */
-bool read_block_from_device(DCR *dcr, DEV_BLOCK *block, bool check_block_numbers)
+bool read_block_from_device(DCR *dcr, bool check_block_numbers)
 {
    bool stat;
    DEVICE *dev = dcr->dev;
    Dmsg0(90, "Enter read_block_from_device\n");
    lock_device(dev);
-   stat = read_block_from_dev(dcr, block, check_block_numbers);
+   stat = read_block_from_dev(dcr, check_block_numbers);
    unlock_device(dev);
    Dmsg0(90, "Leave read_block_from_device\n");
    return stat;
@@ -707,7 +710,7 @@ bool read_block_from_device(DCR *dcr, DEV_BLOCK *block, bool check_block_numbers
  *  the block header.  For a file, the block may be partially
  *  or completely in the current buffer.
  */
-bool read_block_from_dev(DCR *dcr, DEV_BLOCK *block, bool check_block_numbers)
+bool read_block_from_dev(DCR *dcr, bool check_block_numbers)
 {
    ssize_t stat;
    int looping;
@@ -715,6 +718,7 @@ bool read_block_from_dev(DCR *dcr, DEV_BLOCK *block, bool check_block_numbers)
    int retry;
    JCR *jcr = dcr->jcr;
    DEVICE *dev = dcr->dev;
+   DEV_BLOCK *block = dcr->block;
 
    if (dev_state(dev, ST_EOT)) {
       return false;
@@ -853,7 +857,7 @@ reread:
    dev->EndFile  = dev->file;
    dev->block_num++;
 
-   /* Update jcr values */
+   /* Update dcr values */
    if (dev->state & ST_TAPE) {
       dcr->EndBlock = dev->EndBlock;
       dcr->EndFile  = dev->EndFile;
