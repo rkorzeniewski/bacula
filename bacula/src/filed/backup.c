@@ -70,6 +70,7 @@ int blast_data_to_storage_daemon(JCR *jcr, char *addr)
    /* Subroutine save_file() is called for each file */
    if (!find_files(jcr, (FF_PKT *)jcr->ff, save_file, (void *)jcr)) {
       stat = 0; 		      /* error */
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
    }
 
    bnet_sig(sd, BNET_EOD);	      /* end data connection */
@@ -203,6 +204,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
       if (ff_pkt->fid >= 0) {
 	 close(ff_pkt->fid);
       }
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       return 0;
    }
    Dmsg1(100, ">stored: attrhdr %s\n", sd->msg);
@@ -238,6 +240,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
       if (ff_pkt->fid >= 0) {
 	 close(ff_pkt->fid);
       }
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       return 0;
    }
    bnet_sig(sd, BNET_EOD);	      /* indicate end of attributes data */
@@ -293,6 +296,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
        */
       if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, stream)) {
 	 close(ff_pkt->fid);
+	 set_jcr_job_status(jcr, JS_ErrorTerminated);
 	 return 0;
       }
       Dmsg1(100, ">stored: datahdr %s\n", sd->msg);
@@ -353,6 +357,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 	       sd->msg = msgsave;
 	       sd->msglen = 0;
 	       close(ff_pkt->fid);
+	       set_jcr_job_status(jcr, JS_ErrorTerminated);
 	       return 0;
 	    }
             Dmsg2(400, "compressed len=%d uncompressed len=%d\n", 
@@ -373,6 +378,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 	       sd->msg = msgsave;     /* restore read buffer */
 	       sd->msglen = 0;
 	       close(ff_pkt->fid);
+	       set_jcr_job_status(jcr, JS_ErrorTerminated);
 	       return 0;
 	    }
 	 }
