@@ -162,7 +162,7 @@ void *handle_client_request(void *dirp)
    jcr->client_name = get_memory(strlen(my_name) + 1);
    pm_strcpy(&jcr->client_name, my_name);
    dir->jcr = jcr;
-   get_backup_privileges(NULL, 1 /* ignore_errors */);
+   enable_backup_privileges(NULL, 1 /* ignore_errors */);
 
    /**********FIXME******* add command handler error code */
 
@@ -409,6 +409,7 @@ static int level_cmd(JCR *jcr)
    POOLMEM *level;
    struct tm tm;
    time_t mtime;
+   int mtime_only;
 
    level = get_memory(dir->msglen+1);
    Dmsg1(110, "level_cmd: %s", dir->msg);
@@ -429,9 +430,9 @@ static int level_cmd(JCR *jcr)
     */
    } else if (strcmp(level, "since") == 0) {
       jcr->save_level = L_SINCE;
-      if (sscanf(dir->msg, "level = since %d-%d-%d %d:%d:%d", 
+      if (sscanf(dir->msg, "level = since %d-%d-%d %d:%d:%d mtime_only=%d", 
 		 &tm.tm_year, &tm.tm_mon, &tm.tm_mday,
-		 &tm.tm_hour, &tm.tm_min, &tm.tm_sec) != 6) {
+		 &tm.tm_hour, &tm.tm_min, &tm.tm_sec, &mtime_only) != 7) {
          Jmsg1(jcr, M_FATAL, 0, _("Bad scan of date/time: %s\n"), dir->msg);
 	 free_memory(level);
 	 return 0;
@@ -441,9 +442,10 @@ static int level_cmd(JCR *jcr)
       tm.tm_wday = tm.tm_yday = 0;		
       tm.tm_isdst = -1;
       mtime = mktime(&tm);
-      Dmsg1(100, "Got since time: %s", ctime(&mtime));
+      Dmsg2(100, "Got since time: %s mtime_only=%d\n", ctime(&mtime), mtime_only);
       jcr->incremental = 1;	      /* set incremental or decremental backup */
       jcr->mtime = mtime;	      /* set since time */
+      jcr->mtime_only = mtime_only;   /* and what to compare */
    } else {
       Jmsg1(jcr, M_FATAL, 0, "Unknown backup level: %s\n", level);
       free_memory(level);
