@@ -49,5 +49,5 @@ Device {
 #
 Messages {
   Name = Standard
-  director = @hostname@-dir = all
+  director = @hostname@-dir = all, !terminate
 }

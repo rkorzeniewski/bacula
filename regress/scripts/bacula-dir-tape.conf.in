@@ -110,9 +110,9 @@ Messages {
   Name = Standard
   mailcommand = "@sbindir@/bsmtp -h localhost -f \"\(Bacula Regression\) %r\" -s \"Bacula: %t %e of %c %l\" %r"
   operatorcommand = "@sbindir@/bsmtp -h localhost -f \"\(Bacula Regression\) %r\" -s \"Bacula: Intervention needed for %j\" %r"
-  MailOnError = @job_email@ = all
+  MailOnError = @job_email@ = all, !terminate
   operator = @job_email@ = mount
-  console = all, !skipped
+  console = all, !skipped, !terminate
 #
 # WARNING! the following will create a file that you must cycle from
 #          time to time as it will grow indefinitely. However, it will

@@ -42,12 +42,11 @@ echo " === Starting restore-disk-seek-test ==="
 echo " === Starting restore-disk-seek-test ===" >>working/log
 echo " "
 
-# bin/bacula start -v -v 2>&1 >/dev/null
-bin/bacula start -v -v 
+bin/bacula start -v -v 2>&1 >/dev/null
 bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
-@tee /dev/null
+@output /dev/null
 messages
-@tee tmp/log1.out
+@output tmp/log1.out
 label storage=File volume=TestVolume001
 run job=CompressedTest yes
 wait
@@ -55,7 +54,7 @@ messages
 @# 
 @# now do a restore
 @#
-@tee tmp/log2.out
+@output tmp/log2.out
 sql
 select * from JobMedia;
 
@@ -66,7 +65,7 @@ restore where=${cwd}/tmp/bacula-restores storage=File
 yes
 wait
 messages
-@tee
+@output
 quit
 END_OF_DATA
 bin/bacula stop 2>&1 >/dev/null
