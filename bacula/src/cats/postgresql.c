@@ -524,7 +524,7 @@ void my_postgresql_free_result (B_DB *mdb) {
 	}
 }
 
-int my_postgresql_currval(B_DB *mdb) {
+int my_postgresql_currval(B_DB *mdb, char *table_name) {
 	// Obtain the current value of the sequence that
 	// provides the serial value for primary key of the table.
 
@@ -547,16 +547,16 @@ int my_postgresql_currval(B_DB *mdb) {
 	PGresult *result;
 	int       id = 0;
 
-	if (strcasecmp(mdb->table_name, "basefiles") == 0) {
-		strcpy(sequence, "basefiles_baseid");
+	if (strcasecmp(table_name, "basefiles") == 0) {
+		bstrncpy(sequence, "basefiles_baseid", sizeof(sequence));
 	} else {
-		strcpy(sequence, mdb->table_name);
-		strcat(sequence, "_");
-		strcat(sequence, mdb->table_name);
-		strcat(sequence, "id");
+		bstrncpy(sequence, table_name, sizeof(sequence));
+		bstrncat(sequence, "_",        sizeof(sequence));
+		bstrncat(sequence, table_name, sizeof(sequence));
+		bstrncat(sequence, "id",       sizeof(sequence));
 	}
 
-	strcat(sequence, "_seq");
+	bstrncat(sequence, "_seq", sizeof(sequence));
 	bsnprintf(query, sizeof(query), "SELECT currval('%s')", sequence);
 
 //	Mmsg(&query, "SELECT currval('%s')", sequence);
