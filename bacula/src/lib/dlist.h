@@ -42,7 +42,7 @@
 
 #ifdef the_old_way
 #define foreach_dlist(var, list) \
-	for((var)=NULL; (((void *)(var))=(list)->next(var)); )
+        for((var)=NULL; (((void *)(var))=(list)->next(var)); )
 #endif
 
 struct dlink {
@@ -54,8 +54,8 @@ struct dlink {
 class dlist {
    void *head;
    void *tail;
-   int loffset;
-   int num_items;
+   uint16_t loffset;
+   uint32_t num_items;
 public:
    dlist(void *item, void *link);
    void init(void *item, void *link);
@@ -66,7 +66,7 @@ public:
    void *dlist::binary_insert(void *item, int compare(void *item1, void *item2));
    void remove(void *item);
    bool empty();
-   int	size();
+   int  size();
    void *next(void *item);
    void *prev(void *item);
    void destroy();
@@ -76,7 +76,7 @@ public:
    void operator delete(void *);
 };
 
-/*			      
+/*                            
  * This allows us to do explicit initialization,
  *   allowing us to mix C++ classes inside malloc'ed
  *   C structures. Define before called in constructor.

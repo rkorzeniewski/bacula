@@ -151,10 +151,9 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
 {
    struct stat statp;
    TREE_CTX *tree = (TREE_CTX *)ctx;
-   char fname[5000];
-   TREE_NODE *node, *new_node;
+   TREE_NODE *node;
    int type;
-   bool hard_link, first_time, ok;
+   bool hard_link, ok;
    int FileIndex;
    JobId_t JobId;
 
@@ -168,28 +167,13 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
    } else {
       type = TN_FILE;
    }
-   if (tree->avail_node) {
-      node = tree->avail_node;	      /* if prev node avail use it */
-   } else {
-      node = new_tree_node(tree->root, type);  /* get new node */
-      tree->avail_node = node;
-   }
    hard_link = (decode_LinkFI(row[4], &statp) != 0);
-   bsnprintf(fname, sizeof(fname), "%s%s%s", row[0], row[1], "");
-   Dmsg3(200, "FI=%d type=%d fname=%s\n", node->FileIndex, type, fname);
-   new_node = insert_tree_node(fname, node, tree->root, NULL);
+   node = insert_tree_node(row[0], row[1], NULL, tree->root, NULL);
    /* Note, if node already exists, save new one for next time */
-   if (new_node != node) {
-      first_time = false;	      /* we saw this file before */
-      tree->avail_node = node;	      /* node already exists */
-   } else {
-      first_time = true;	      /* first time we saw this file */
-      tree->avail_node = NULL;	      /* added node to tree */
-   }
    JobId = (JobId_t)str_to_int64(row[3]);
    FileIndex = atoi(row[2]);
    /*
-    * - The first time we see a file, we accept it.
+    * - The first time we see a file (node->inserted==true), we accept it.
     * - In the same JobId, we accept only the first copy of a
     *	hard linked file (the others are simply pointers).
     * - In the same JobId, we accept the last copy of any other
@@ -199,22 +183,22 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
     *  line, but it would be even harder to read.
     */
    ok = true;
-   if (!first_time && JobId == new_node->JobId) {
-      if ((hard_link && FileIndex > new_node->FileIndex) ||
-	  (!hard_link && FileIndex < new_node->FileIndex)) {
+   if (!node->inserted && JobId == node->JobId) {
+      if ((hard_link && FileIndex > node->FileIndex) ||
+	  (!hard_link && FileIndex < node->FileIndex)) {
 	 ok = false;
       }
    }
    if (ok) {
-      new_node->hard_link = hard_link;
-      new_node->FileIndex = FileIndex;
-      new_node->JobId = JobId;
-      new_node->type = type;
-      new_node->soft_link = S_ISLNK(statp.st_mode) != 0;
+      node->hard_link = hard_link;
+      node->FileIndex = FileIndex;
+      node->JobId = JobId;
+      node->type = type;
+      node->soft_link = S_ISLNK(statp.st_mode) != 0;
       if (tree->all) {
-	 new_node->extract = true;	    /* extract all by default */
+	 node->extract = true;		/* extract all by default */
 	 if (type == TN_DIR || type == TN_DIR_NLS) {
-	    new_node->extract_dir = true;   /* if dir, extract it */
+	    node->extract_dir = true;	/* if dir, extract it */
 	 }
       }
    }
@@ -243,9 +227,9 @@ static int set_extract(UAContext *ua, TREE_NODE *node, TREE_CTX *tree, bool extr
       count++;
    }
    /* For a non-file (i.e. directory), we see all the children */
-   if (node->type != TN_FILE || (node->soft_link && node->child)) {
+   if (node->type != TN_FILE || (node->soft_link && tree_node_has_child(node))) {
       /* Recursive set children within directory */
-      for (n=node->child; n; n=n->sibling) {
+      foreach_child(n, node) {
 	 count += set_extract(ua, n, tree, extract);
       }
       /*
@@ -301,12 +285,12 @@ static int markcmd(UAContext *ua, TREE_CTX *tree)
    TREE_NODE *node;
    int count = 0;
 
-   if (ua->argc < 2 || !tree->node->child) {
+   if (ua->argc < 2 || !tree_node_has_child(tree->node)) {
       bsendmsg(ua, _("No files marked.\n"));
       return 1;
    }
    for (int i=1; i < ua->argc; i++) {
-      for (node = tree->node->child; node; node=node->sibling) {
+      foreach_child(node, tree->node) {
 	 if (fnmatch(ua->argk[i], node->fname, 0) == 0) {
 	    count += set_extract(ua, node, tree, true);
 	 }
@@ -325,12 +309,12 @@ static int markdircmd(UAContext *ua, TREE_CTX *tree)
    TREE_NODE *node;
    int count = 0;
 
-   if (ua->argc < 2 || !tree->node->child) {
+   if (ua->argc < 2 || !tree_node_has_child(tree->node)) {
       bsendmsg(ua, _("No files marked.\n"));
       return 1;
    }
    for (int i=1; i < ua->argc; i++) {
-      for (node = tree->node->child; node; node=node->sibling) {
+      foreach_child(node, tree->node) {
 	 if (fnmatch(ua->argk[i], node->fname, 0) == 0) {
 	    if (node->type == TN_DIR || node->type == TN_DIR_NLS) {
 	       node->extract_dir = true;
@@ -399,10 +383,10 @@ static int lscmd(UAContext *ua, TREE_CTX *tree)
 {
    TREE_NODE *node;
 
-   if (!tree->node->child) {	 
+   if (!tree_node_has_child(tree->node)) {     
       return 1;
    }
-   for (node = tree->node->child; node; node=node->sibling) {
+   foreach_child(node, tree->node) {
       if (ua->argc == 1 || fnmatch(ua->argk[1], node->fname, 0) == 0) {
 	 const char *tag;
 	 if (node->extract) {
@@ -412,7 +396,7 @@ static int lscmd(UAContext *ua, TREE_CTX *tree)
 	 } else {
             tag = "";
 	 }
-         bsendmsg(ua, "%s%s%s\n", tag, node->fname, node->child?"/":"");
+         bsendmsg(ua, "%s%s%s\n", tag, node->fname, tree_node_has_child(node)?"/":"");
       }
    }
    return 1;
@@ -423,10 +407,10 @@ static int lscmd(UAContext *ua, TREE_CTX *tree)
  */
 static void rlsmark(UAContext *ua, TREE_NODE *node) 
 {
-   if (!node->child) {	   
+   if (!tree_node_has_child(node)) {	 
       return;
    }
-   for (node = node->child; node; node=node->sibling) {
+   foreach_child(node, node) {
       if ((ua->argc == 1 || fnmatch(ua->argk[1], node->fname, 0) == 0) &&
 	  (node->extract || node->extract_dir)) {
 	 const char *tag;
@@ -437,8 +421,8 @@ static void rlsmark(UAContext *ua, TREE_NODE *node)
 	 } else {
             tag = "";
 	 }
-         bsendmsg(ua, "%s%s%s\n", tag, node->fname, node->child?"/":"");
-	 if (node->child) {
+         bsendmsg(ua, "%s%s%s\n", tag, node->fname, tree_node_has_child(node)?"/":"");
+	 if (tree_node_has_child(node)) {
 	    rlsmark(ua, node);
 	 }
       }
@@ -494,10 +478,12 @@ static int dircmd(UAContext *ua, TREE_CTX *tree)
    char buf[1100];
    char cwd[1100], *pcwd;
 
-   if (!tree->node->child) {	 
+   if (!tree_node_has_child(tree->node)) {     
+      bsendmsg(ua, "Node %s has no children.\n", tree->node->fname);
       return 1;
    }
-   for (node = tree->node->child; node; node=node->sibling) {
+
+   foreach_child(node, tree->node) {
       const char *tag;
       if (ua->argc == 1 || fnmatch(ua->argk[1], node->fname, 0) == 0) {
 	 if (node->extract) {
@@ -517,7 +503,7 @@ static int dircmd(UAContext *ua, TREE_CTX *tree)
 	  *   treats soft links as files, so they do not have a trailing
 	  *   slash like directory names.
 	  */
-	 if (node->type == TN_FILE && node->child) {
+	 if (node->type == TN_FILE && tree_node_has_child(node)) {
 	    bstrncpy(buf, cwd, sizeof(buf));
 	    pcwd = buf;
 	    int len = strlen(buf);
@@ -642,12 +628,12 @@ static int unmarkcmd(UAContext *ua, TREE_CTX *tree)
    TREE_NODE *node;
    int count = 0;
 
-   if (ua->argc < 2 || !tree->node->child) {	 
+   if (ua->argc < 2 || !tree_node_has_child(tree->node)) {     
       bsendmsg(ua, _("No files unmarked.\n"));
       return 1;
    }
    for (int i=1; i < ua->argc; i++) {
-      for (node = tree->node->child; node; node=node->sibling) {
+      foreach_child(node, tree->node) {
 	 if (fnmatch(ua->argk[i], node->fname, 0) == 0) {
 	    count += set_extract(ua, node, tree, false);
 	 }
@@ -666,13 +652,13 @@ static int unmarkdircmd(UAContext *ua, TREE_CTX *tree)
    TREE_NODE *node;
    int count = 0;
 
-   if (ua->argc < 2 || !tree->node->child) {
+   if (ua->argc < 2 || !tree_node_has_child(tree->node)) {
       bsendmsg(ua, _("No directories unmarked.\n"));
       return 1;
    }
 
    for (int i=1; i < ua->argc; i++) {
-      for (node = tree->node->child; node; node=node->sibling) {
+      foreach_child(node, tree->node) {
 	 if (fnmatch(ua->argk[i], node->fname, 0) == 0) {
 	    if (node->type == TN_DIR || node->type == TN_DIR_NLS) {
 	       node->extract_dir = false;

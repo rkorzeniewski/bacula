@@ -202,6 +202,7 @@ int close_bpipe(BPIPE *bpipe)
       if (WIFEXITED(chldstatus)) {	     /* process exit()ed */
 	 stat = WEXITSTATUS(chldstatus);
 	 if (stat != 0) {
+            Dmsg1(100, "Non-zero status %s returned from child.\n", stat);
 	    stat = ECHILD;
 	 }
          Dmsg1(200, "child status=%d\n", stat);

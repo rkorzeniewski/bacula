@@ -523,7 +523,7 @@ int write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
    }
 
    dev->VolCatInfo.VolCatWrites++;
-   Dmsg1(300, "Write block of %u bytes\n", wlen);      
+   Dmsg1(200, "Write block of %u bytes\n", wlen);      
    stat = write(dev->fd, block->buf, (size_t)wlen);
    if (stat != (ssize_t)wlen) {
       /* We should check for errno == ENOSPC, BUT many 
@@ -545,7 +545,7 @@ int write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
 	 if (dev->dev_errno == 0) {
 	    dev->dev_errno = ENOSPC;	    /* out of space */
 	 }
-         Jmsg(jcr, M_ERROR, 0, _("Write error at %u:%u on device %s. ERR=%s.\n"), 
+         Jmsg4(jcr, M_ERROR, 0, _("Write error at %u:%u on device %s. ERR=%s.\n"), 
 	    dev->file, dev->block_num, dev->dev_name, strerror(dev->dev_errno));
       } else {
 	dev->dev_errno = ENOSPC;	    /* out of space */
