@@ -55,11 +55,15 @@ typedef struct s_record_hdr {
    uint32_t data_len;
 } RECORD_HDR;
 
+/* Record state bit definitions */
 #define REC_NO_HEADER        0x01     /* No header read */
 #define REC_PARTIAL_RECORD   0x02     /* returning partial record */
 #define REC_BLOCK_EMPTY      0x04     /* not enough data in block */
 #define REC_NO_MATCH         0x08     /* No match on continuation data */
 #define REC_CONTINUATION     0x10     /* Continuation record found */
+
+#define is_partial_record(r) ((r)->state & REC_PARTIAL_RECORD)
+#define is_block_empty(r)    ((r)->state & REC_BLOCK_EMPTY)
 
 /*
  * DEV_RECORD for reading and writing records.

@@ -145,6 +145,7 @@ char   *FI_to_ascii(int fi);
 char   *stream_to_ascii(int stream);
 int	write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec);
 int	read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec); 
+int new_read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec);
 DEV_RECORD *new_record();
 void	free_record(DEV_RECORD *rec);
 int	read_record(DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *record);

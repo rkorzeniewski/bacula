@@ -80,7 +80,7 @@ static char *rec_state_to_str(DEV_RECORD *rec)
    if (rec->state & REC_NO_HEADER) {
       strcat(buf, "Nohdr,");
    }
-   if (rec->state & REC_PARTIAL_RECORD) {
+   if (is_partial_record(rec)) {
       strcat(buf, "partial,");
    }
    if (rec->state & REC_BLOCK_EMPTY) {
@@ -504,18 +504,11 @@ Warning, this Volume is a continuation of Volume %s\n",
       }
 
       record = 0;
-      for (rec->state=0;!(rec->state & REC_BLOCK_EMPTY); ) {
-	 if (!read_record_from_block(block, rec)) {
-	    if (rec->state & REC_NO_HEADER) {
-               Dmsg2(30, "!read,nohdr-break. stat=%s blk=%d\n", rec_state_to_str(rec), 
+      for (rec->state=0; !is_block_empty(rec); ) {
+	 if (!new_read_record_from_block(block, rec)) {
+            Dmsg2(30, "!read-break. stat=%s blk=%d\n", rec_state_to_str(rec), 
 		  block->BlockNumber);
-	       break;
-	    }
-	    if (rec->state & REC_NO_MATCH) {
-               Dmsg2(30, "!read,nomatch-break. stat=%s blk=%d\n", rec_state_to_str(rec), 
-		  block->BlockNumber);
-	       break;
-	    }
+	    break;
 	 }
 	 /*
 	  * At this point, we have at least a record header.
@@ -599,7 +592,7 @@ Warning, this Volume is a continuation of Volume %s\n",
 	    rec->remainder = 0;
             continue;              /* we don't want record, read next one */
 	 }
-	 if (rec->state & REC_PARTIAL_RECORD) {
+	 if (is_partial_record(rec)) {
             Dmsg6(10, "Partial, break. recno=%d state=%s blk=%d SI=%d ST=%d FI=%d\n", record,
 	       rec_state_to_str(rec), block->BlockNumber,
 	       rec->VolSessionId, rec->VolSessionTime, rec->FileIndex);
