@@ -1888,6 +1888,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/win32/Makefile \
 	   src/win32/console/bconsole.conf \
 	   src/win32/wx-console/wx-console.conf \
+        src/win32/pebuilder/Makefile \
 	   $PFILES ],  
 	  [(echo "Doing make of dependencies"; ${MAKE:-make} depend;) ]
 )
