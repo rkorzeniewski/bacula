@@ -128,6 +128,7 @@ int do_read_data(JCR *jcr)
 	    if (!mount_next_read_volume(jcr, dev, block)) {
 	       break;
 	    }
+	    /* Read and discard Volume Label */
 	    record = new_record();
 	    read_block_from_device(jcr, dev, block, NO_BLOCK_NUMBER_CHECK);
 	    read_record_from_block(block, record);

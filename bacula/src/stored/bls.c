@@ -380,7 +380,7 @@ static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sess
          rtype = "End Session";
 	 break;
       case EOM_LABEL:
-         rtype = "End of Media";
+         rtype = "End of Medium";
 	 break;
       default:
          rtype = "Unknown";
