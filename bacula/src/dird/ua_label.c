@@ -583,6 +583,7 @@ static int send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
 	 ok = TRUE;
       } 
    }
+   close_sd_bsock(ua);
    unbash_spaces(mr->VolumeName);
    unbash_spaces(mr->MediaType);
    unbash_spaces(pr->Name);
@@ -646,6 +647,7 @@ static char *get_volume_name_from_SD(UAContext *ua, int Slot)
    int rtn_slot;
 
    if (!(sd=open_sd_bsock(ua))) {
+      bsendmsg(ua, _("Could not open SD socket.\n"));
       return NULL;
    }
    bstrncpy(dev_name, store->dev_name, sizeof(dev_name));
@@ -657,6 +659,7 @@ static char *get_volume_name_from_SD(UAContext *ua, int Slot)
    /* Get Volume name in this Slot */
    while (bnet_recv(sd) >= 0) {
       bsendmsg(ua, "%s", sd->msg);
+      Dmsg1(100, "Got: %s", sd->msg);
       if (strncmp(sd->msg, "3001 Volume=", 12) == 0) {
 	 VolName = (char *)malloc(sd->msglen);
          if (sscanf(sd->msg, "3001 Volume=%s Slot=%d", VolName, &rtn_slot) == 2) {
@@ -666,6 +669,7 @@ static char *get_volume_name_from_SD(UAContext *ua, int Slot)
 	 VolName = NULL;
       }
    }
+   close_sd_bsock(ua);
    Dmsg1(200, "get_vol_name=%s\n", NPRT(VolName));
    return VolName;
 }
