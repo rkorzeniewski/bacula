@@ -28,6 +28,10 @@ From Chuck:
 --sd.conf password does not match dir.conf storage password
 =======
 
+- Add command to reset VolFiles to a larger value (don't allow
+  a smaller number or print big warning).
+- Make SD disallow writing on Volume with fewer files than in
+  the catalog.
 - Make Restore report an error if FD or SD term codes are not OK.
 - Convert all %x substitution variables, which are hard to remember
   and read to %(variable-name)s.  Idea from TMDA.
