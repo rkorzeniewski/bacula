@@ -37,7 +37,8 @@
 
 /*
  * Really crude automatic Volume name creation using
- *  LabelFormat
+ *  LabelFormat. We assume that if this routine is being
+ *  called the Volume will be labeled, so we set the LabelDate.
  */
 int newVolume(JCR *jcr, MEDIA_DBR *mr)
 {
@@ -53,7 +54,7 @@ int newVolume(JCR *jcr, MEDIA_DBR *mr)
        pr.LabelFormat[0] != '*') {
       if (pr.MaxVols == 0 || pr.NumVols < pr.MaxVols) {
 	 set_pool_dbr_defaults_in_media_dbr(mr, &pr);
-	 mr->LabelDate = 0;
+	 mr->LabelDate = time(NULL);
 	 strcpy(mr->MediaType, jcr->store->media_type);
 	 strcpy(name, pr.LabelFormat);	 
          if (strchr(name, (int)'%') != NULL) {

@@ -29,7 +29,6 @@
 
 #include "bacula.h"
 #include "dird.h"
-#include "ua.h"
 
 
 /* Imported variables */

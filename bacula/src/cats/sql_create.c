@@ -251,8 +251,9 @@ db_create_media_record(void *jcr, B_DB *mdb, MEDIA_DBR *mr)
    }
    Mmsg(&mdb->cmd, 
 "INSERT INTO Media (VolumeName,MediaType,PoolId,MaxVolBytes,VolCapacityBytes," 
-"Recycle,VolRetention,VolUseDuration,VolStatus,LabelDate,Slot) "
-"VALUES ('%s','%s',%u,%s,%s,%d,%s,%s,'%s','%s',%d)", 
+"Recycle,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,"
+"VolStatus,LabelDate,Slot) "
+"VALUES ('%s','%s',%u,%s,%s,%d,%s,%s,%u,%u,'%s','%s',%d)", 
 		  mr->VolumeName,
 		  mr->MediaType, mr->PoolId, 
 		  edit_uint64(mr->MaxVolBytes,ed1),
@@ -260,6 +261,8 @@ db_create_media_record(void *jcr, B_DB *mdb, MEDIA_DBR *mr)
 		  mr->Recycle,
 		  edit_uint64(mr->VolRetention, ed3),
 		  edit_uint64(mr->VolUseDuration, ed4),
+		  mr->MaxVolJobs,
+		  mr->MaxVolFiles,
 		  mr->VolStatus, dt,
 		  mr->Slot);
 

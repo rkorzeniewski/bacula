@@ -39,6 +39,7 @@
 
 #include "jcr.h"
 
+#include "ua.h"
 #include "protos.h"
 
 /* Globals that dird.c exports */

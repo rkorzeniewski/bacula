@@ -268,6 +268,7 @@ struct s_res_pool {
    int   catalog_files;               /* maintain file entries in catalog */
    int   use_volume_once;             /* write on volume only once */
    int   accept_any_volume;           /* accept any volume */
+   int   recycle_oldest_volume;       /* recycle oldest volume */
    uint32_t max_volumes;              /* max number of volumes */
    utime_t VolRetention;              /* volume retention period in seconds */
    utime_t VolUseDuration;            /* duration volume can be used */

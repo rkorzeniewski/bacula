@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                 09 March 2003 
+                 13 March 2003 
 
 Documentation to do: (a little bit at a time)
 - Document running a test version.
@@ -11,27 +11,20 @@ Documentation to do: (a little bit at a time)
 - Document Maximum File Size
 
 ***** Write up how to use/manage disk Volume Storage. ******
+- Add a section to the doc on Manual cycling of Volumes.
 
 
 Testing to do: (painful)
 - that ALL console command line options work and are always implemented
 - blocksize recognition code.
 - multiple simultaneous Volumes
+- ***test GetFileAttributexEx, and remove MessageBox at 335 of winservice.cpp ****
 
 For 1.30 release:
-- Need to return reason for EOF from write_block() e.g. File size
-  exceeded, ERROR, EOF, ...
-- Look at Lutz' every other block checksum error. ***Urgent***
-- Think about adding Modes to the Storage daemon for creating Files.
+- Ability to backup to a file then later transfer to a tape.
+- Eugeny Fisher <efischer@vip-rus.com> wants to cycle through a
+  set of volumes recycling the oldest volume when it is needed.
 - Fix "access not allowed" for backup of files on WinXP.
-- Fix Error: bnet.c:408 gethostbyname() for lpmatou failed: ERR=Operation not permited
-  loop.
-- Add code if there is no mtio.h.
-- Add a section to the doc on Manual cycling of Volumes.
-- Look at purge jobs volume (at least document it, and see if it is
-  logical).
-- Add list volumes pool=*
-- Add pool= to "list media" in ua_output.c
 - Figure out some way to specify a retention period for files
   that no longer exist on the machine -- so that we maintain
   say backups for 30 days, but if the file is deleted, we maintain
@@ -44,8 +37,7 @@ For 1.30 release:
 - Implement a Mount Command and an Unmount Command where
   the users could specify a system command to be performed
   to do the mount, after which Bacula could attempt to
-  read the device. This is for Removeable media such as a
-  CDROM.
+  read the device. This is for Removeable media such as a CDROM.
   - Most likely, this mount command would be invoked explicitly
   by the user using the current Console "mount" and "unmount" 
   commands -- the Storage Daemon would do the right thing 
@@ -79,7 +71,6 @@ For 1.30 release:
 - Add prefixlinks to where or not where absolute links to FD.
 - Look at handling <> in smtp doesn't work with exim.
 - Priority job to go to top of list.
-- Implement Bar code handling
 - Why is catreq.c:111 Find vol called twice for a job?
 - Find out why Full saves run slower and slower (hashing?)
 - Why are save/restore of device different sizes (sparse?)   Yup! Fix it.
@@ -104,7 +95,6 @@ For 1.30 release:
 - Need to specify MaximumConcurrentJobs in the Job resource.
 - Possibly add email to Watchdog if drive is unmounted too
   long and a job is waiting on the drive.
-- Strip trailing slashes from Include directory names in the FD.
 - Use read_record.c in SD code.
 - Why don't we get an error message from Win32 FD when bootstrap 
   file cannot be created for restore command?
@@ -888,3 +878,12 @@ Done: (see kernsdone for more)
 - Implement TCP/IP connection for MySQL
 - Pull a canceled job from the Scheduling queue.
 - Implement max_file_size in block.c (already done, just tweaked).
+- Look at purge jobs volume (at least document it, and see if it is
+  logical).
+- Add list volumes does all pools. list volumes pool=xxx now works.
+- Add pool= to "list media" in ua_output.c
+- Strip trailing slashes from Include directory names in the FD.
+- Fix Error: bnet.c:408 gethostbyname() for lpmatou failed: 
+     ERR=Operation not permited loop.
+- Add code if there is no mtio.h (cannot do -- too many ioctl defines needed)
+- Produce better error messages in when error/eof writing block.

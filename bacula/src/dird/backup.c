@@ -148,7 +148,7 @@ int do_backup(JCR *jcr)
    strcpy(pr.Name, jcr->pool->hdr.name);
    while (!db_get_pool_record(jcr, jcr->db, &pr)) { /* get by Name */
       /* Try to create the pool */
-      if (create_pool(jcr, jcr->db, jcr->pool) < 0) {
+      if (create_pool(jcr, jcr->db, jcr->pool, 0) < 0) {
          Jmsg(jcr, M_FATAL, 0, _("Pool %s not in database. %s"), pr.Name, 
 	    db_strerror(jcr->db));
 	 goto bail_out;

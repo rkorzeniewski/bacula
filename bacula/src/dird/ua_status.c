@@ -29,7 +29,6 @@
 
 #include "bacula.h"
 #include "dird.h"
-#include "ua.h"
 
 extern char my_name[];
 extern time_t daemon_start_time;

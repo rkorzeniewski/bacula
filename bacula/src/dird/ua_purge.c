@@ -33,13 +33,12 @@
 
 #include "bacula.h"
 #include "dird.h"
-#include "ua.h"
 
 /* Forward referenced functions */
 int purge_files_from_client(UAContext *ua, CLIENT *client);
 int purge_jobs_from_client(UAContext *ua, CLIENT *client);
-void purge_files_from_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr );
-void purge_jobs_from_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr);
+void purge_files_from_volume(UAContext *ua, MEDIA_DBR *mr );
+int purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr);
 void purge_files_from_job(UAContext *ua, JOB_DBR *jr);
 int mark_media_purged(UAContext *ua, MEDIA_DBR *mr);
 
@@ -211,7 +210,7 @@ int purgecmd(UAContext *ua, char *cmd)
 	 return 1;
       case 3:			      /* Volume */
 	 if (select_pool_and_media_dbr(ua, &pr, &mr)) {
-	    purge_files_from_volume(ua, &pr, &mr);
+	    purge_files_from_volume(ua, &mr);
 	 }
 	 return 1;
       }
@@ -224,14 +223,14 @@ int purgecmd(UAContext *ua, char *cmd)
 	 return 1;
       case 1:			      /* Volume */
 	 if (select_pool_and_media_dbr(ua, &pr, &mr)) {
-	    purge_jobs_from_volume(ua, &pr, &mr);
+	    purge_jobs_from_volume(ua, &mr);
 	 }
 	 return 1;
       }
    /* Volume */
    case 2:
       if (select_pool_and_media_dbr(ua, &pr, &mr)) {
-	 purge_jobs_from_volume(ua, &pr, &mr);
+	 purge_jobs_from_volume(ua, &mr);
       }
       return 1;
    default:
@@ -254,7 +253,7 @@ int purgecmd(UAContext *ua, char *cmd)
       break;
    case 2:			      /* Volume */
       if (select_pool_and_media_dbr(ua, &pr, &mr)) {
-	 purge_jobs_from_volume(ua, &pr, &mr);
+	 purge_jobs_from_volume(ua, &mr);
       }
       break;
    }
@@ -437,15 +436,19 @@ void purge_files_from_job(UAContext *ua, JOB_DBR *jr)
    free_pool_memory(query);
 }
 
-void purge_files_from_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr ) 
+void purge_files_from_volume(UAContext *ua, MEDIA_DBR *mr ) 
 {} /* ***FIXME*** implement */
 
-void purge_jobs_from_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr) 
+/*
+ * Returns: 1 if Volume purged
+ *	    0 if Volume not purged
+ */
+int purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr) 
 {
    char *query = (char *)get_pool_memory(PM_MESSAGE);
    struct s_count_ctx cnt;
    struct s_file_del_ctx del;
-   int i;
+   int i, stat = 0;
    JOB_DBR jr;
 
    memset(&jr, 0, sizeof(jr));
@@ -502,13 +505,14 @@ void purge_jobs_from_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
 
    /* If purged, mark it so */
    if (del.num_ids == del.num_del) {
-      if (!mark_media_purged(ua, mr)) {
+      if (!(stat = mark_media_purged(ua, mr))) {
          bsendmsg(ua, "%s", db_strerror(ua->db));
       }
    }
 
 bail_out:   
    free_pool_memory(query);
+   return stat;
 }
 
 /*

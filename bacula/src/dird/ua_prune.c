@@ -30,7 +30,6 @@
 
 #include "bacula.h"
 #include "dird.h"
-#include "ua.h"
 
 /* Imported functions */
 int mark_media_purged(UAContext *ua, MEDIA_DBR *mr);

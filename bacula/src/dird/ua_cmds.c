@@ -29,7 +29,6 @@
 
 #include "bacula.h"
 #include "dird.h"
-#include "ua.h"
 
 /* Imported subroutines */
 extern void run_job(JCR *jcr);
@@ -509,7 +508,7 @@ void set_pooldbr_from_poolres(POOL_DBR *pr, POOL *pool, int create)
  *	     1	record created
  */
 
-int create_pool(JCR *jcr, B_DB *db, POOL *pool)
+int create_pool(JCR *jcr, B_DB *db, POOL *pool, int update)
 {
    POOL_DBR  pr;
 
@@ -518,6 +517,11 @@ int create_pool(JCR *jcr, B_DB *db, POOL *pool)
    strcpy(pr.Name, pool->hdr.name);
 
    if (db_get_pool_record(jcr, db, &pr)) {
+      /* Pool Exists */
+      if (update) {
+	 set_pooldbr_from_poolres(&pr, pool, 1);
+	 db_update_pool_record(jcr, db, &pr);
+      }
       return 0; 		      /* exists */
    }
 
@@ -548,7 +552,7 @@ static int createcmd(UAContext *ua, char *cmd)
       return 1;
    }
 
-   switch (create_pool(ua->jcr, ua->db, pool)) {
+   switch (create_pool(ua->jcr, ua->db, pool, 0)) {
    case 0:
       bsendmsg(ua, _("Error: Pool %s already exists.\n\
 Use update to change it.\n"), pool->hdr.name);

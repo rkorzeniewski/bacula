@@ -94,16 +94,29 @@ next_volume:
       ok = db_find_next_volume(jcr, jcr->db, index, &mr);  
       Dmsg2(100, "catreq after find_next_vol ok=%d FW=%d\n", ok, mr.FirstWritten);
       if (!ok) {
-	 /* Well, try finding recycled tapes */
-	 ok = find_recycled_volume(jcr, &mr);
-         Dmsg2(100, "find_recycled_volume1 %d FW=%d\n", ok, mr.FirstWritten);
+	 if (jcr->pool->recycle_oldest_volume) {
+	    /* Find oldest volume to recycle */
+	    ok = db_find_next_volume(jcr, jcr->db, -1, &mr);
+	    if (ok) {
+	       UAContext ua;
+	       /* Try to purge oldest volume */
+	       create_ua_context(jcr, &ua);
+	       ok = purge_jobs_from_volume(&ua, &mr);
+	       free_ua_context(&ua);
+	    }
+	 }
 	 if (!ok) {
-	    prune_volumes(jcr);  
-	    ok = recycle_a_volume(jcr, &mr);
-            Dmsg2(200, "find_recycled_volume2 %d FW=%d\n", ok, mr.FirstWritten);
+	    /* Well, try finding recycled tapes */
+	    ok = find_recycled_volume(jcr, &mr);
+            Dmsg2(100, "find_recycled_volume1 %d FW=%d\n", ok, mr.FirstWritten);
 	    if (!ok) {
-	       /* See if we can create a new Volume */
-	       ok = newVolume(jcr, &mr);
+	       prune_volumes(jcr);  
+	       ok = recycle_a_volume(jcr, &mr);
+               Dmsg2(200, "find_recycled_volume2 %d FW=%d\n", ok, mr.FirstWritten);
+	       if (!ok) {
+		  /* See if we can create a new Volume */
+		  ok = newVolume(jcr, &mr);
+	       }
 	    }
 	 }
       }
@@ -114,7 +127,7 @@ next_volume:
 	 utime_t now = time(NULL);
 	 if (mr.VolUseDuration <= (now - mr.FirstWritten)) {
             Dmsg4(100, "Duration=%d now=%d start=%d now-start=%d\n",
-	       (int)jcr->pool->VolUseDuration, (int)now, (int)mr.FirstWritten, 
+	       (int)mr.VolUseDuration, (int)now, (int)mr.FirstWritten, 
 	       (int)(now-mr.FirstWritten));
             Jmsg(jcr, M_INFO, 0, _("Max configured use duration exceeded. "       
                "Marking Volume \"%s\" as Used.\n"), mr.VolumeName);

@@ -30,7 +30,6 @@
 
 #include "bacula.h"
 #include "dird.h"
-#include "ua.h"
 
 /* Imported subroutines */
 extern void run_job(JCR *jcr);
@@ -333,6 +332,10 @@ int listcmd(UAContext *ua, char *cmd)
 	       return 1;
 	    }
 	    for (i=0; i < num_pools; i++) {
+	       pr.PoolId = ids[i];
+	       if (db_get_pool_record(ua->jcr, ua->db, &pr)) {
+                  bsendmsg(ua, _("Pool: %s\n"), pr.Name);
+	       }
 	       mr.PoolId = ids[i];
 	       db_list_media_records(ua->jcr, ua->db, &mr, prtit, ua);
 	    }

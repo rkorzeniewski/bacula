@@ -440,7 +440,7 @@ Wanted %d got %d bytes for s_addr.\n"), sizeof(inaddr.s_addr), hp->h_length);
  *  ***FIXME*** implement service from /etc/services
  */
 static BSOCK *
-bnet_open(void *jcr, char *name, char *host, char *service, int port)
+bnet_open(void *jcr, char *name, char *host, char *service, int port, int *fatal)
 {
    int sockfd;
    struct sockaddr_in tcp_serv_addr;	 /* socket information */
@@ -457,12 +457,14 @@ bnet_open(void *jcr, char *name, char *host, char *service, int port)
    tcp_serv_addr.sin_port = htons(port);
 
    if ((addr_list=bget_host_ip(jcr, host)) == NULL) {
+     *fatal = 1;
      return NULL;
    }
 
    /* Open a TCP socket */
    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
       free(addr_list);
+      *fatal = 1;
       return NULL;
    }
 
@@ -501,10 +503,11 @@ bnet_connect(void *vjcr, int retry_interval, int max_retry_time, char *name,
    int i;
    BSOCK *bsock;
    JCR *jcr = (JCR *)vjcr;
+   int fatal = 0;
 
-   for (i=0; (bsock = bnet_open(jcr, name, host, service, port)) == NULL; i -= retry_interval) {
-     if (jcr && job_cancelled(jcr)) {
-	break;
+   for (i=0; (bsock = bnet_open(jcr, name, host, service, port, &fatal)) == NULL; i -= retry_interval) {
+     if (fatal || (jcr && job_cancelled(jcr))) {
+	return NULL;
      }
      Dmsg4(100, "Unable to connect to %s on %s:%d. ERR=%s\n",
 	      name, host, port, strerror(errno));
