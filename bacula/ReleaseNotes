@@ -4,6 +4,7 @@
   Bacula code: Total files = 281 Total lines = 83,815 (*.h *.c *.in)
 
 Most Significant Changes since 1.32d
+- Dan Langille has written a PostgreSQL driver for Bacula.
 - Implement "update slots scan" that reads the volume label(s).
 - The full form of the scan is "scan=1,2,4-5,7". With no specification,
   all occupied slots are scanned.
@@ -24,6 +25,8 @@ Most Significant Changes since 1.32d
   tape block, so the tape is not recognized.
 
 Other Changes since 1.32d
+- Restore directory tree automatically selects all higher level
+  directories to be restored.
 - Implement conio.c to use in console program -- mini-readline.
 - Enhance "fill" command of btape -- simpler output. Use -v to
   cause last block to be dumped after write and after re-read.

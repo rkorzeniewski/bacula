@@ -75,12 +75,10 @@ int run_cmd(UAContext *ua, char *cmd)
       N_("when"),                     /* 12 */
       N_("priority"),                 /* 13 */
       N_("yes"),          /* 14 -- if you change this change YES_POS too */
-      N_("run"),          /* 15 -- if you change this change RUN_POS too */
       N_("verifyjob"),                /* 16 */
       NULL};
 
 #define YES_POS 14
-#define RUN_POS 15
 
    if (!open_db(ua)) {
       return 1;
@@ -105,7 +103,7 @@ int run_cmd(UAContext *ua, char *cmd)
       for (j=0; !found && kw[j]; j++) {
 	 if (strcasecmp(ua->argk[i], _(kw[j])) == 0) {
 	    /* Note, yes and run have no value, so do not err */
-	    if (!ua->argv[i] && (j != YES_POS /*yes*/ && j != RUN_POS)) {  
+	    if (!ua->argv[i] && j != YES_POS /*yes*/) {  
                bsendmsg(ua, _("Value missing for keyword %s\n"), ua->argk[i]);
 	       return 1;
 	    }
@@ -213,10 +211,9 @@ int run_cmd(UAContext *ua, char *cmd)
 	       }
 	       break;
 	    case 14: /* yes */
-	    case 15: /* run */
 	       found = true;
 	       break;
-	    case 16: /* Verify Job */
+	    case 15: /* Verify Job */
 	       if (verify_job_name) {
                   bsendmsg(ua, _("Verify Job specified twice.\n"));
 		  return 1;
@@ -386,6 +383,39 @@ try_again:
 	 replace = ReplaceOptions[i].name;
       }
    }
+   if (level_name) {
+      /* Look up level name and pull code */
+      found = 0;
+      for (i=0; joblevels[i].level_name; i++) {
+	 if (strcasecmp(level_name, _(joblevels[i].level_name)) == 0) {
+	    jcr->JobLevel = joblevels[i].level;
+	    found = 1;
+	    break;
+	 }
+      }
+      if (!found) { 
+         bsendmsg(ua, _("Level %s not valid.\n"), level_name);
+	 goto bail_out;
+      }
+   }
+   level_name = NULL;
+   if (jid) {
+      jcr->RestoreJobId = atoi(jid);
+   }
+
+   /* Run without prompting? */
+   if (find_arg(ua, _("yes")) > 0) {
+      Dmsg1(200, "Calling run_job job=%x\n", jcr->job);
+      run_job(jcr);
+      free_jcr(jcr);		      /* release jcr */
+      bsendmsg(ua, _("Run command submitted.\n"));
+      return 1;
+   }
+
+   /*  
+    * Prompt User to see if all run job parameters are correct, and
+    *	allow him to modify them.
+    */
    Dmsg1(20, "JobType=%c\n", jcr->JobType);
    switch (jcr->JobType) {
       char ec1[30];
@@ -409,22 +439,6 @@ Priority: %d\n"),
       break;
    case JT_BACKUP:
    case JT_VERIFY:
-      if (level_name) {
-	 /* Look up level name and pull code */
-	 found = 0;
-	 for (i=0; joblevels[i].level_name; i++) {
-	    if (strcasecmp(level_name, _(joblevels[i].level_name)) == 0) {
-	       jcr->JobLevel = joblevels[i].level;
-	       found = 1;
-	       break;
-	    }
-	 }
-	 if (!found) { 
-            bsendmsg(ua, _("Level %s not valid.\n"), level_name);
-	    goto bail_out;
-	 }
-      }
-      level_name = NULL;
       if (jcr->JobType == JT_BACKUP) {
          bsendmsg(ua, _("Run %s job\n\
 JobName:  %s\n\
@@ -535,14 +549,6 @@ Priority:   %d\n"),
       goto bail_out;
    }
 
-   /* Run without prompting? */
-   if (find_arg(ua, _("yes")) > 0) {
-      Dmsg1(200, "Calling run_job job=%x\n", jcr->job);
-      run_job(jcr);
-      free_jcr(jcr);		      /* release jcr */
-      bsendmsg(ua, _("Run command submitted.\n"));
-      return 1;
-   }
 
    if (!get_cmd(ua, _("OK to run? (yes/mod/no): "))) {
       goto bail_out;
