@@ -243,7 +243,7 @@ char *uar_full =
    "AND JobMedia.JobId=Job.JobId "
    "AND JobMedia.MediaId=Media.MediaId";
 
-char *uar_inc_dec =
+char *uar_dec = 
    "INSERT INTO temp SELECT Job.JobId,Job.JobTDate,Job.ClientId,"
    "Job.Level,Job.JobFiles,Job.StartTime,Media.VolumeName,JobMedia.StartFile,"
    "Job.VolSessionId,Job.VolSessionTime "
@@ -252,7 +252,22 @@ char *uar_inc_dec =
    "AND Job.ClientId=%u "
    "AND JobMedia.JobId=Job.JobId "
    "AND JobMedia.MediaId=Media.MediaId "
-   "AND Job.Level IN ('I', 'D') AND JobStatus='T' "
+   "AND Job.Level='D' AND JobStatus='T' "
+   "AND Job.FileSetId=FileSet.FileSetId "
+   "AND FileSet.FileSet='%s' "
+   "%s" 
+   "ORDER BY Job.JobTDate DESC LIMIT 1";
+
+char *uar_inc =
+   "INSERT INTO temp SELECT Job.JobId,Job.JobTDate,Job.ClientId,"
+   "Job.Level,Job.JobFiles,Job.StartTime,Media.VolumeName,JobMedia.StartFile,"
+   "Job.VolSessionId,Job.VolSessionTime "
+   "FROM Job,JobMedia,Media,FileSet "
+   "WHERE Job.JobTDate>%s AND Job.StartTime<'%s' "
+   "AND Job.ClientId=%u "
+   "AND JobMedia.JobId=Job.JobId "
+   "AND JobMedia.MediaId=Media.MediaId "
+   "AND Job.Level='I' AND JobStatus='T' "
    "AND Job.FileSetId=FileSet.FileSetId "
    "AND FileSet.FileSet='%s' "
    "%s";
@@ -266,6 +281,10 @@ char *uar_list_temp =
 char *uar_sel_jobid_temp = "SELECT JobId FROM temp";
 
 char *uar_sel_all_temp1 = "SELECT * FROM temp1";
+
+char *uar_sel_all_temp = "SELECT * FROM temp";
+
+
 
 /* Select FileSet names for this Client */
 char *uar_sel_fileset = 

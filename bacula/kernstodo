@@ -58,6 +58,7 @@ For 1.33 Testing/Documentation:
 - Document Pool keyword for restore.
                 
 For 1.33
+- Fix restore to only pull in last Differential and later Incrementals.
 - Finish code passing files=nnn to restore start.
 - Add level to estimate command.
 - Check time/dates printed during restore when using Win32 API.
@@ -1118,4 +1119,3 @@ Done: (see kernsdone for more)
   directories, setting them to be restored.
 - Figure out a way to set restore on a directory without recursively
   decending.  (recurse off?).
-

@@ -41,14 +41,24 @@ bool acl_access_ok(UAContext *ua, int acl, char *item)
 
 bool acl_access_ok(UAContext *ua, int acl, char *item, int len)
 {
+
+   /* If no console resource => default console and all is permitted */
    if (!ua->cons) {
       Dmsg0(400, "Root cons access OK.\n");
       return true;		      /* No cons resource -> root console OK for everything */
    }
+
    alist *list = ua->cons->ACL_lists[acl];
    if (!list) {
-      return false;		      /* List empty, reject */
+      return false;		      /* List empty, reject everything */
    }
+
+   /* Special case *all* gives full access */
+   if (list->size() == 1 && strcasecmp("*all*", (char *)list->get(0)) == 0) {
+      return true;
+   }
+
+   /* Search list for item */
    for (int i=0; i<list->size(); i++) {
       if (strncasecmp(item, (char *)list->get(i), len) == 0) {
          Dmsg3(400, "Found %s in %d %s\n", item, acl, (char *)list->get(i));
