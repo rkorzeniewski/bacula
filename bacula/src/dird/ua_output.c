@@ -476,7 +476,7 @@ RUN *find_next_run(RUN *run, JOB *job, time_t &runtime)
 	     bit_is_set(month, run->month) && bit_is_set(wpos, run->wpos);
 
       tom = (bit_is_set(tmday, run->mday) || bit_is_set(twday, run->wday)) &&
-	     bit_is_set(tmonth, run->month) && bit_is_set(wpos, run->wpos);
+	     bit_is_set(tmonth, run->month) && bit_is_set(twpos, run->wpos);
 
       Dmsg2(200, "tod=%d tom=%d\n", tod, tom);
       if (tod) {		   /* Jobs scheduled today (next 24 hours) */
