@@ -1652,6 +1652,10 @@ int	dir_find_next_appendable_volume(JCR *jcr)
 
 int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
 {
+   if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
+      offline_dev(dev);
+   }
+   force_close_dev(dev);
    Pmsg1(-1, "%s", dev->errmsg);           /* print reason */
    fprintf(stderr, "Mount Volume \"%s\" on device %s and press return when ready: ",
       jcr->VolumeName, dev_name(dev));
@@ -1661,6 +1665,10 @@ int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
 
 int dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev)
 {
+   if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
+      offline_dev(dev);
+   }
+   force_close_dev(dev);
    fprintf(stderr, "Mount next Volume on device %s and press return when ready: ",
       dev_name(dev));
    getchar();	
