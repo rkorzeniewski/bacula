@@ -1201,7 +1201,7 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 
 %if ! %{rh7} && ! %{rh8}
 /usr/sbin/bacula-tray-monitor
-/etc/bacula/tray-monitor.conf
+%config(noreplace) /etc/bacula/tray-monitor.conf
 /usr/share/pixmaps/bacula-tray-monitor.xpm
 /usr/share/applications/bacula-tray-monitor.desktop
 %endif
@@ -1215,6 +1215,8 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 
 
 %changelog
+* Tue Mar 01 2005 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- fix tray-monitor.conf for noreplace
 * Mon Feb 28 2005 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - fix distribution check for Fedora and Whitebox
 * Sun Feb 06 2005 D. Scott Barninger <barninger@fairfieldcomputers.com>
