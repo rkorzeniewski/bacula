@@ -1,7 +1,7 @@
 
-          Release Notes for Bacula 1.33.3
+          Release Notes for Bacula 1.33.4
 
-  Bacula code: Total files = 284 Total lines = 88,550 (*.h *.c *.in)
+  Bacula code: Total files = 301 Total lines = 89,118 (*.h *.c *.in)
 
 New directives:
 - "Close on Poll = yes/no" in SD Device resource.
