@@ -20,7 +20,7 @@ bin/bacula start
 bin/console -c bin/console.conf <<END_OF_DATA
 @output /dev/null
 messages
-label
+label storage=File
 TestVolume001
 run job=CompressedTest
 yes
@@ -30,6 +30,9 @@ quit
 END_OF_DATA
 echo "Backup 1 done"
 touch ${cwd}/build/src/dird/*.c
+#
+# run a second job
+#
 bin/console -c bin/console.conf <<END_OF_DATA
 run job=CompressedTest
 yes

@@ -39,6 +39,18 @@ Job {
 }
 
 Job {
+  Name = "MonsterSave"
+  Type = Backup
+  Client=rufus-fd 
+  FileSet="Full Set"
+  Storage = File1
+  Messages = Standard
+  Pool = Default
+  Write Bootstrap = "@working_dir@/NightlySave.bsr"
+}
+
+
+Job {
   Name = "VerifyVolume"
   Type = Verify
   Level = VolumeToCatalog
@@ -192,6 +204,16 @@ Storage {
   Device = FileStorage
   Media Type = File
 }
+
+Storage {
+  Name = File1
+  Address = rufus                # N.B. Use a fully qualified name here
+  SDPort = 8103
+  Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"
+  Device = FileStorage1
+  Media Type = File1
+}
+
 
 # Definition of DLT tape storage device
 #Storage {

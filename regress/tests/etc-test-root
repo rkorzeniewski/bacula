@@ -27,7 +27,7 @@ bin/bacula start
 bin/console -c bin/console.conf <<END_OF_DATA
 @output /dev/null
 messages
-label
+label storage=File
 TestVolume001
 run job=NightlySave
 yes

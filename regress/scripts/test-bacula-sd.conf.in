@@ -43,6 +43,18 @@ Device {
   AlwaysOpen = no;
 }
 
+Device {
+  Name = FileStorage1
+  Media Type = File1
+  Archive Device = @tmpdir@
+  LabelMedia = yes;                   # lets Bacula label unlabelled media
+  Random Access = Yes;
+  AutomaticMount = yes;               # when device opened, read it
+  RemovableMedia = no;
+  AlwaysOpen = no;
+}
+
+
 #Device {
 #  Name = "HP DLT 80"
 #  Media Type = DLT8000
