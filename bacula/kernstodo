@@ -32,6 +32,8 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
+- Grep for Backup OK in regression script.
+- Do NOT reuse same JobId if tape written.
 - Move JobFiles and JobBytes to SD rather than FD -- more correct.
 - Add client name to cram-md5 challenge so Director can immediately
   verify if it is the correct client.

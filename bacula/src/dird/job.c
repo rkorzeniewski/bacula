@@ -273,13 +273,34 @@ bail_out:
 	  jcr->job->RescheduleTimes > 0 && 
 	  jcr->reschedule_count < jcr->job->RescheduleTimes) {
 
+	  /*
+	   * Reschedule this job by cleaning it up, but
+	   *  reuse the same JobId if possible.
+	   */
 	 jcr->reschedule_count++;
 	 jcr->sched_time = time(NULL) + jcr->job->RescheduleInterval;
          Dmsg2(000, "Reschedule Job %s in %d seconds.\n", jcr->Job,
 	    (int)jcr->job->RescheduleInterval);
 	 jcr->JobStatus = JS_Created; /* force new status */
 	 dird_free_jcr(jcr);	      /* partial cleanup old stuff */
-	 continue;		      /* reschedule the job */
+	 if (jcr->JobBytes == 0) {
+	    continue;			 /* reschedule the job */
+	 }
+	 /* 
+	  * Something was actually backed up, so we cannot reuse
+	  *   the old JobId or there will be database record
+	  *   conflicts.  We now create a new job, copying the
+	  *   appropriate fields.
+	  */
+	 JCR *njcr = new_jcr(sizeof(JCR), dird_free_jcr);
+	 set_jcr_defaults(njcr, jcr->job);
+	 njcr->reschedule_count = jcr->reschedule_count;
+	 njcr->JobLevel = jcr->JobLevel;
+	 njcr->JobStatus = jcr->JobStatus;
+	 njcr->pool = jcr->pool;
+	 njcr->store = jcr->store;
+	 njcr->messages = jcr->messages;
+	 run_job(njcr);
       }
       break;
    }
