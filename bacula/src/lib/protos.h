@@ -88,7 +88,7 @@ LEX *     lex_open_file          (LEX *lf, char *fname);
 int       lex_get_char           (LEX *lf);
 void      lex_unget_char         (LEX *lf);
 char *    lex_tok_to_str         (int token);
-int       lex_get_token          (LEX *lf);
+int       lex_get_token          (LEX *lf, int expect);
 
 /* makepath.c */
 int make_path(

@@ -867,21 +867,17 @@ static void store_jobtype(LEX *lc, struct res_items *item, int index, int pass)
 {
    int token, i;   
 
-   token = lex_get_token(lc);
-   if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
-      scan_err1(lc, "expected an identifier or string, got: %s", lc->str);
-   } else {
-      /* Store the type both pass 1 and pass 2 */
-      for (i=0; jobtypes[i].type_name; i++) {
-	 if (strcasecmp(lc->str, jobtypes[i].type_name) == 0) {
-	    ((JOB *)(item->value))->JobType = jobtypes[i].job_type;
-	    i = 0;
-	    break;
-	 }
+   token = lex_get_token(lc, T_NAME);
+   /* Store the type both pass 1 and pass 2 */
+   for (i=0; jobtypes[i].type_name; i++) {
+      if (strcasecmp(lc->str, jobtypes[i].type_name) == 0) {
+	 ((JOB *)(item->value))->JobType = jobtypes[i].job_type;
+	 i = 0;
+	 break;
       }
-      if (i != 0) {
-         scan_err1(lc, "Expected a Job Type keyword, got: %s", lc->str);
-      }
+   }
+   if (i != 0) {
+      scan_err1(lc, "Expected a Job Type keyword, got: %s", lc->str);
    }
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
@@ -895,21 +891,17 @@ static void store_level(LEX *lc, struct res_items *item, int index, int pass)
 {
    int token, i;
 
-   token = lex_get_token(lc);
-   if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
-      scan_err1(lc, "expected an identifier or string, got: %s", lc->str);
-   } else {
-      /* Store the level pass 2 so that type is defined */
-      for (i=0; joblevels[i].level_name; i++) {
-	 if (strcasecmp(lc->str, joblevels[i].level_name) == 0) {
-	    ((JOB *)(item->value))->level = joblevels[i].level;
-	    i = 0;
-	    break;
-	 }
+   token = lex_get_token(lc, T_NAME);
+   /* Store the level pass 2 so that type is defined */
+   for (i=0; joblevels[i].level_name; i++) {
+      if (strcasecmp(lc->str, joblevels[i].level_name) == 0) {
+	 ((JOB *)(item->value))->level = joblevels[i].level;
+	 i = 0;
+	 break;
       }
-      if (i != 0) {
-         scan_err1(lc, "Expected a Job Level keyword, got: %s", lc->str);
-      }
+   }
+   if (i != 0) {
+      scan_err1(lc, "Expected a Job Level keyword, got: %s", lc->str);
    }
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
@@ -934,69 +926,65 @@ static void store_backup(LEX *lc, struct res_items *item, int index, int pass)
 
    
    ((JOB *)(item->value))->JobType = item->code;
-   while ((token = lex_get_token(lc)) != T_EOL) {
+   while ((token = lex_get_token(lc, T_ALL)) != T_EOL) {
       int found;
 
       if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
          scan_err1(lc, "Expected a backup/verify keyword, got: %s", lc->str);
-      } else {
-         Dmsg1(190, "Got keyword: %s\n", lc->str);
-	 found = FALSE;
-	 for (i=0; BakVerFields[i].name; i++) {
-	    if (strcasecmp(lc->str, BakVerFields[i].name) == 0) {
-	       found = TRUE;
-	       if (lex_get_token(lc) != T_EQUALS) {
-                  scan_err1(lc, "Expected an equals, got: %s", lc->str);
-	       }
-	       token = lex_get_token(lc);
-	       if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
-                  scan_err1(lc, "Expected a keyword name, got: %s", lc->str);
-	       }
-               Dmsg1(190, "Got value: %s\n", lc->str);
-	       switch (BakVerFields[i].token) {
-                  case 'C':
-		     /* Find Client Resource */
-		     if (pass == 2) {
-			res = GetResWithName(R_CLIENT, lc->str);
-			if (res == NULL) {
-                           scan_err1(lc, "Could not find specified Client Resource: %s",
-				      lc->str);
-			}
-			res_all.res_job.client = (CLIENT *)res;
+      }
+      Dmsg1(190, "Got keyword: %s\n", lc->str);
+      found = FALSE;
+      for (i=0; BakVerFields[i].name; i++) {
+	 if (strcasecmp(lc->str, BakVerFields[i].name) == 0) {
+	    found = TRUE;
+	    if (lex_get_token(lc, T_ALL) != T_EQUALS) {
+               scan_err1(lc, "Expected an equals, got: %s", lc->str);
+	    }
+	    token = lex_get_token(lc, T_NAME);
+            Dmsg1(190, "Got value: %s\n", lc->str);
+	    switch (BakVerFields[i].token) {
+               case 'C':
+		  /* Find Client Resource */
+		  if (pass == 2) {
+		     res = GetResWithName(R_CLIENT, lc->str);
+		     if (res == NULL) {
+                        scan_err1(lc, "Could not find specified Client Resource: %s",
+				   lc->str);
 		     }
-		     break;
-                  case 'F':
-		     /* Find FileSet Resource */
-		     if (pass == 2) {
-			res = GetResWithName(R_FILESET, lc->str);
-			if (res == NULL) {
-                           scan_err1(lc, "Could not find specified FileSet Resource: %s\n",
-				       lc->str);
-			}
-			res_all.res_job.fs = (FILESET *)res;
+		     res_all.res_job.client = (CLIENT *)res;
+		  }
+		  break;
+               case 'F':
+		  /* Find FileSet Resource */
+		  if (pass == 2) {
+		     res = GetResWithName(R_FILESET, lc->str);
+		     if (res == NULL) {
+                        scan_err1(lc, "Could not find specified FileSet Resource: %s\n",
+				    lc->str);
 		     }
-		     break;
-                  case 'L':
-		     /* Get level */
-		     for (i=0; joblevels[i].level_name; i++) {
-			if (joblevels[i].job_type == item->code && 
-			     strcasecmp(lc->str, joblevels[i].level_name) == 0) {
-			   ((JOB *)(item->value))->level = joblevels[i].level;
-			   i = 0;
-			   break;
-			}
+		     res_all.res_job.fs = (FILESET *)res;
+		  }
+		  break;
+               case 'L':
+		  /* Get level */
+		  for (i=0; joblevels[i].level_name; i++) {
+		     if (joblevels[i].job_type == item->code && 
+			  strcasecmp(lc->str, joblevels[i].level_name) == 0) {
+			((JOB *)(item->value))->level = joblevels[i].level;
+			i = 0;
+			break;
 		     }
-		     if (i != 0) {
-                        scan_err1(lc, "Expected a Job Level keyword, got: %s", lc->str);
-		     }
-		     break;
-	       } /* end switch */
-	       break;
-	    } /* end if strcmp() */
-	 } /* end for */
-	 if (!found) {
-            scan_err1(lc, "%s not a valid Backup/verify keyword", lc->str);
-	 }
+		  }
+		  if (i != 0) {
+                     scan_err1(lc, "Expected a Job Level keyword, got: %s", lc->str);
+		  }
+		  break;
+	    } /* end switch */
+	    break;
+	 } /* end if strcmp() */
+      } /* end for */
+      if (!found) {
+         scan_err1(lc, "%s not a valid Backup/verify keyword", lc->str);
       }
    } /* end while */
    lc->options = options;	      /* reset original options */
@@ -1020,90 +1008,89 @@ static void store_restore(LEX *lc, struct res_items *item, int index, int pass)
    Dmsg0(190, "Enter store_restore()\n");
    
    ((JOB *)(item->value))->JobType = item->code;
-   while ((token = lex_get_token(lc)) != T_EOL) {
+   while ((token = lex_get_token(lc, T_ALL)) != T_EOL) {
       int found; 
 
-      if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
-         scan_err1(lc, "Expected a Restore keyword, got: %s", lc->str);
-      } else {
-	 found = FALSE;
-	 for (i=0; RestoreFields[i].name; i++) {
-            Dmsg1(190, "Restore kw=%s\n", lc->str);
-	    if (strcasecmp(lc->str, RestoreFields[i].name) == 0) {
-	       found = TRUE;
-	       if (lex_get_token(lc) != T_EQUALS) {
-                  scan_err1(lc, "Expected an equals, got: %s", lc->str);
-	       }
-	       token = lex_get_token(lc);
-               Dmsg1(190, "Restore value=%s\n", lc->str);
-	       switch (RestoreFields[i].token) {
-                  case 'C':
-		     /* Find Client Resource */
-		     if (pass == 2) {
-			res = GetResWithName(R_CLIENT, lc->str);
-			if (res == NULL) {
-                           scan_err1(lc, "Could not find specified Client Resource: %s",
-				      lc->str);
-			}
-			res_all.res_job.client = (CLIENT *)res;
+      if (token != T_IDENTIFIER && token != T_UNQUOTED_STRING && token != T_QUOTED_STRING) {
+         scan_err1(lc, "expected a name, got: %s", lc->str);
+      }
+      found = FALSE;
+      for (i=0; RestoreFields[i].name; i++) {
+         Dmsg1(190, "Restore kw=%s\n", lc->str);
+	 if (strcasecmp(lc->str, RestoreFields[i].name) == 0) {
+	    found = TRUE;
+	    if (lex_get_token(lc, T_ALL) != T_EQUALS) {
+               scan_err1(lc, "Expected an equals, got: %s", lc->str);
+	    }
+	    token = lex_get_token(lc, T_ALL);
+            Dmsg1(190, "Restore value=%s\n", lc->str);
+	    switch (RestoreFields[i].token) {
+               case 'C':
+		  /* Find Client Resource */
+		  if (pass == 2) {
+		     res = GetResWithName(R_CLIENT, lc->str);
+		     if (res == NULL) {
+                        scan_err1(lc, "Could not find specified Client Resource: %s",
+				   lc->str);
 		     }
-		     break;
-                  case 'F':
-		     /* Find FileSet Resource */
-		     if (pass == 2) {
-			res = GetResWithName(R_FILESET, lc->str);
-			if (res == NULL) {
-                           scan_err1(lc, "Could not find specified FileSet Resource: %s\n",
-				       lc->str);
-			}
-			res_all.res_job.fs = (FILESET *)res;
+		     res_all.res_job.client = (CLIENT *)res;
+		  }
+		  break;
+               case 'F':
+		  /* Find FileSet Resource */
+		  if (pass == 2) {
+		     res = GetResWithName(R_FILESET, lc->str);
+		     if (res == NULL) {
+                        scan_err1(lc, "Could not find specified FileSet Resource: %s\n",
+				    lc->str);
 		     }
-		     break;
-                  case 'J':
-		     /* JobId */
-		     if (token != T_NUMBER) {
-                        scan_err1(lc, "expected an integer number, got: %s", lc->str);
+		     res_all.res_job.fs = (FILESET *)res;
+		  }
+		  break;
+               case 'J':
+		  /* JobId */
+		  if (token != T_NUMBER) {
+                     scan_err1(lc, "expected an integer number, got: %s", lc->str);
+		  }
+		  errno = 0;
+		  res_all.res_job.RestoreJobId = strtol(lc->str, NULL, 0);
+                  Dmsg1(190, "RestorJobId=%d\n", res_all.res_job.RestoreJobId);
+		  if (errno != 0) {
+                     scan_err1(lc, "expected an integer number, got: %s", lc->str);
+		  }
+		  break;
+               case 'W':
+		  /* Where */
+		  if (token != T_IDENTIFIER && token != T_UNQUOTED_STRING && token != T_QUOTED_STRING) {
+                     scan_err1(lc, "Expected a Restore root directory, got: %s", lc->str);
+		  }
+		  if (pass == 1) {
+		     res_all.res_job.RestoreWhere = bstrdup(lc->str);
+		  }
+		  break;
+               case 'R':
+		  /* Replacement options */
+		  if (token != T_IDENTIFIER && token != T_UNQUOTED_STRING && token != T_QUOTED_STRING) {
+                     scan_err1(lc, "Expected a keyword name, got: %s", lc->str);
+		  }
+		  /* Fix to scan Replacement options */
+		  for (i=0; ReplaceOptions[i].name; i++) {
+		     if (strcasecmp(lc->str, ReplaceOptions[i].name) == 0) {
+			 ((JOB *)(item->value))->RestoreOptions = ReplaceOptions[i].token;
+			i = 0;
+			break;
 		     }
-		     errno = 0;
-		     res_all.res_job.RestoreJobId = strtol(lc->str, NULL, 0);
-                     Dmsg1(190, "RestorJobId=%d\n", res_all.res_job.RestoreJobId);
-		     if (errno != 0) {
-                        scan_err1(lc, "expected an integer number, got: %s", lc->str);
-		     }
-		     break;
-                  case 'W':
-		     /* Where */
-		     if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
-                        scan_err1(lc, "Expected a Restore root directory, got: %s", lc->str);
-		     }
-		     if (pass == 1) {
-			res_all.res_job.RestoreWhere = bstrdup(lc->str);
-		     }
-		     break;
-                  case 'R':
-		     /* Replacement options */
-		     if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
-                        scan_err1(lc, "Expected a keyword name, got: %s", lc->str);
-		     }
-		     /* Fix to scan Replacement options */
-		     for (i=0; ReplaceOptions[i].name; i++) {
-			if (strcasecmp(lc->str, ReplaceOptions[i].name) == 0) {
-			    ((JOB *)(item->value))->RestoreOptions = ReplaceOptions[i].token;
-			   i = 0;
-			   break;
-			}
-		     }
-		     if (i != 0) {
-                        scan_err1(lc, "Expected a Restore replacement option, got: %s", lc->str);
-		     }
-		     break;
-	       } /* end switch */
-	       break;
-	    } /* end if strcmp() */
-	 } /* end for */
-	 if (!found) {
-            scan_err1(lc, "%s not a valid Restore keyword", lc->str);
-	 }
+		  }
+		  if (i != 0) {
+                     scan_err1(lc, "Expected a Restore replacement option, got: %s", lc->str);
+		  }
+		  break;
+	    } /* end switch */
+	    break;
+	 } /* end if strcmp() */
+      } /* end for */
+      if (!found) {
+         scan_err1(lc, "%s not a valid Restore keyword", lc->str);
       }
    } /* end while */
    lc->options = options;	      /* reset original options */
@@ -1125,10 +1112,7 @@ static char *scan_fs_options(LEX *lc, int keyword)
    option[0] = 0;		      /* default option = none */
    opts[0] = option[2] = 0;	      /* terminate options */
    for (;;) {
-      token = lex_get_token(lc);	     /* expect at least one option */	    
-      if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
-         scan_err1(lc, "expected a FileSet option, got: %s", lc->str);
-      }
+      token = lex_get_token(lc, T_NAME);	     /* expect at least one option */	    
       if (keyword == FS_KW_VERIFY) { /* special case */
 	 /* ***FIXME**** ensure these are in permitted set */
          strcpy(option, "V");         /* indicate Verify */
@@ -1153,7 +1137,7 @@ static char *scan_fs_options(LEX *lc, int keyword)
       if (lc->ch != ',') {
 	 break; 		      /* no, get out */
       }
-      token = lex_get_token(lc);      /* yes, eat comma */
+      token = lex_get_token(lc, T_ALL);      /* yes, eat comma */
    }
 
    return opts;
@@ -1174,23 +1158,19 @@ static void store_inc(LEX *lc, struct res_items *item, int index, int pass)
 
    /* Get include options */
    strcpy(inc_opts, "0");             /* set no options */
-   while ((token=lex_get_token(lc)) != T_BOB) {
-      if (token != T_STRING) {
-         scan_err1(lc, "expected a FileSet option keyword, got: %s", lc->str);
-      } else {
-	 keyword = FS_KW_NONE;
-	 for (i=0; FS_option_kw[i].name; i++) {
-	    if (strcasecmp(lc->str, FS_option_kw[i].name) == 0) {
-	       keyword = FS_option_kw[i].token;
-	       break;
-	    }
-	 }
-	 if (keyword == FS_KW_NONE) {
-            scan_err1(lc, "Expected a FileSet keyword, got: %s", lc->str);
+   while ((token=lex_get_token(lc, T_ALL)) != T_BOB) {
+      keyword = FS_KW_NONE;
+      for (i=0; FS_option_kw[i].name; i++) {
+	 if (strcasecmp(lc->str, FS_option_kw[i].name) == 0) {
+	    keyword = FS_option_kw[i].token;
+	    break;
 	 }
       }
+      if (keyword == FS_KW_NONE) {
+         scan_err1(lc, "Expected a FileSet keyword, got: %s", lc->str);
+      }
       /* Option keyword should be following by = <option> */
-      if ((token=lex_get_token(lc)) != T_EQUALS) {
+      if ((token=lex_get_token(lc, T_ALL)) != T_EQUALS) {
          scan_err1(lc, "expected an = following keyword, got: %s", lc->str);
       }
       strcat(inc_opts, scan_fs_options(lc, keyword));
@@ -1213,14 +1193,14 @@ static void store_inc(LEX *lc, struct res_items *item, int index, int pass)
        *     a "0 " (zero) indicates no options,
        * and fname is the file/directory name given
        */
-      while ((token = lex_get_token(lc)) != T_EOB) {
+      while ((token = lex_get_token(lc, T_ALL)) != T_EOB) {
 	 switch (token) {
 	    case T_COMMA:
 	    case T_EOL:
 	       continue;
 
 	    case T_IDENTIFIER:
-	    case T_STRING:
+	    case T_UNQUOTED_STRING:
 	    case T_QUOTED_STRING:
 	       fname = (char *) malloc(lc->str_len + inc_opts_len + 1);
 	       strcpy(fname, inc_opts);
@@ -1259,7 +1239,7 @@ static void store_inc(LEX *lc, struct res_items *item, int index, int pass)
 	 }				   
       }
    } else { /* pass 2 */
-      while (lex_get_token(lc) != T_EOB) 
+      while (lex_get_token(lc, T_ALL) != T_EOB) 
 	 {}
    }
    scan_to_eol(lc);

@@ -43,7 +43,7 @@
 #define T_NUMBER                      102
 #define T_IPADDR                      103
 #define T_IDENTIFIER                  104
-#define T_STRING                      105
+#define T_UNQUOTED_STRING             105
 #define T_QUOTED_STRING               106
 #define T_BOB                         108  /* begin block */
 #define T_EOB                         109  /* end of block */
@@ -60,7 +60,10 @@
 #define T_PINT32_RANGE                115  /* positive integer range */
 #define T_INT32                       116  /* integer */
 #define T_INT64                       117  /* 64 bit integer */
-#define T_NAME                        118  /* resource name */
+#define T_NAME                        118  /* name max 128 chars */
+#define T_STRING                      119  /* string */
+
+#define T_ALL                           0  /* no expectations */
 
 /* Lexical state */
 enum lex_state {
@@ -81,7 +84,6 @@ enum lex_state {
 typedef struct s_lex_context {
    struct s_lex_context *next;        /* pointer to next lexical context */
    int options;                       /* scan options */
-   int expect;                        /* types expected */
    char *fname;                       /* filename */
    FILE *fd;                          /* file descriptor */
    char line[MAXSTRING];              /* input line */

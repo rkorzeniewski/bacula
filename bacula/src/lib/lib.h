@@ -45,5 +45,6 @@
 #include "fnmatch.h"
 #endif
 #include "md5.h"
+#include "tree.h"
 
 #include "protos.h"

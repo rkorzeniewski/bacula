@@ -80,7 +80,8 @@ static void signal_handler(int sig)
       static char btpath[400];
       pid_t pid;
 
-      fprintf(stderr, "Kaboom! Got signal %d. Attempting traceback.\n", sig);
+      fprintf(stderr, "Kaboom! %s got signal %d. Attempting traceback.\n", 
+	      my_name, sig);
       if (strlen(exepath) + 12 > (int)sizeof(btpath)) {
          strcpy(btpath, "btraceback");
       } else {

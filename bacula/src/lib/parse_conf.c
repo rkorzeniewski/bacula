@@ -211,10 +211,7 @@ void store_msgs(LEX *lc, struct res_items *item, int index, int pass)
 	    dest[0] = 0;
 	    /* Pick up comma separated list of destinations */
 	    for ( ;; ) {
-	       token = lex_get_token(lc);    /* scan destination */
-	       if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
-                  scan_err1(lc, "expected a message destination, got: %s", lc->str);
-	       }
+	       token = lex_get_token(lc, T_NAME);   /* scan destination */
 	       dest = (char *) check_pool_memory_size(dest, dest_len + lc->str_len + 2);
 	       if (dest[0] != 0) {
                   strcat(dest, " ");  /* separate multiple destinations with space */
@@ -223,7 +220,7 @@ void store_msgs(LEX *lc, struct res_items *item, int index, int pass)
 	       strcat(dest, lc->str);
 	       dest_len += lc->str_len;
                Dmsg2(100, "store_msgs newdest=%s: dest=%s:\n", lc->str, dest);
-	       token = lex_get_token(lc);
+	       token = lex_get_token(lc, T_ALL);
 	       if (token == T_COMMA) { 
 		  continue;	      /* get another destination */
 	       }
@@ -241,14 +238,11 @@ void store_msgs(LEX *lc, struct res_items *item, int index, int pass)
 	 case MD_APPEND:	      /* append */
 	    dest = get_pool_memory(PM_MESSAGE);
 	    /* Pick up a single destination */
-	    token = lex_get_token(lc);	  /* scan destination */
-	    if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
-               scan_err1(lc, "expected a message destination, got: %s", lc->str);
-	    }
+	    token = lex_get_token(lc, T_NAME);	 /* scan destination */
 	    dest = check_pool_memory_size(dest, dest_len + lc->str_len + 2);
 	    strcpy(dest, lc->str);
 	    dest_len = lc->str_len;
-	    token = lex_get_token(lc);
+	    token = lex_get_token(lc, T_ALL);
             Dmsg1(200, "store_msgs dest=%s:\n", dest);
 	    if (token != T_EQUALS) {
                scan_err1(lc, "expected an =, got: %s", lc->str); 
@@ -281,10 +275,7 @@ static void scan_types(LEX *lc, MSGS *msg, int dest_code, char *where, char *cmd
    char *str;
 
    for (quit=0; !quit;) {
-      token = lex_get_token(lc);	     /* expect at least one type */	  
-      if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
-         scan_err1(lc, "expected a message type, got: %s", lc->str);
-      }
+      token = lex_get_token(lc, T_NAME);	    /* expect at least one type */	 
       found = FALSE;
       if (lc->str[0] == '!') {
 	 is_not = TRUE;
@@ -319,7 +310,7 @@ static void scan_types(LEX *lc, MSGS *msg, int dest_code, char *where, char *cmd
 	 break;
       }
       Dmsg0(200, "call lex_get_token() to eat comma\n");
-      token = lex_get_token(lc);	  /* eat comma */
+      token = lex_get_token(lc, T_ALL); 	 /* eat comma */
    }
    Dmsg0(200, "Done scan_types()\n");
 }
@@ -333,8 +324,7 @@ void store_name(LEX *lc, struct res_items *item, int index, int pass)
 {
    int token;
 
-   lc->expect = T_NAME;
-   token = lex_get_token(lc);
+   token = lex_get_token(lc, T_NAME);
    /* Store the name both pass 1 and pass 2 */
    *(item->value) = bstrdup(lc->str);
    scan_to_eol(lc);
@@ -350,8 +340,7 @@ void store_strname(LEX *lc, struct res_items *item, int index, int pass)
 {
    int token;
 
-   lc->expect = T_NAME;
-   token = lex_get_token(lc);
+   token = lex_get_token(lc, T_NAME);
    /* Store the name */
    if (pass == 1) {
       *(item->value) = bstrdup(lc->str);
@@ -367,13 +356,9 @@ void store_str(LEX *lc, struct res_items *item, int index, int pass)
 {
    int token;
 
-   token = lex_get_token(lc);
-   if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
-      scan_err1(lc, "expected an identifier or string, got: %s", lc->str);
-   } else {
-      if (pass == 1) {
-	 *(item->value) = bstrdup(lc->str);
-      }
+   token = lex_get_token(lc, T_STRING);
+   if (pass == 1) {
+      *(item->value) = bstrdup(lc->str);
    }
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
@@ -384,14 +369,10 @@ void store_dir(LEX *lc, struct res_items *item, int index, int pass)
 {
    int token;
 
-   token = lex_get_token(lc);
-   if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
-      scan_err1(lc, "expected an identifier or string, got: %s", lc->str);
-   } else {
-      if (pass == 1) {
-	 do_shell_expansion(lc->str);
-	 *(item->value) = bstrdup(lc->str);
-      }
+   token = lex_get_token(lc, T_STRING);
+   if (pass == 1) {
+      do_shell_expansion(lc->str);
+      *(item->value) = bstrdup(lc->str);
    }
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
@@ -407,20 +388,16 @@ void store_password(LEX *lc, struct res_items *item, int index, int pass)
    char sig[100];
 
 
-   token = lex_get_token(lc);
-   if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
-      scan_err1(lc, "expected an identifier or string, got: %s\n", lc->str);
-   } else {
-      if (pass == 1) {
-	 MD5Init(&md5c);
-	 MD5Update(&md5c, (unsigned char *) (lc->str), lc->str_len);
-	 MD5Final(signature, &md5c);
-	 for (i = j = 0; i < sizeof(signature); i++) {
-            sprintf(&sig[j], "%02x", signature[i]); 
-	    j += 2;
-	 }
-	 *(item->value) = bstrdup(sig);
+   token = lex_get_token(lc, T_STRING);
+   if (pass == 1) {
+      MD5Init(&md5c);
+      MD5Update(&md5c, (unsigned char *) (lc->str), lc->str_len);
+      MD5Final(signature, &md5c);
+      for (i = j = 0; i < sizeof(signature); i++) {
+         sprintf(&sig[j], "%02x", signature[i]); 
+	 j += 2;
       }
+      *(item->value) = bstrdup(sig);
    }
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
@@ -436,10 +413,7 @@ void store_res(LEX *lc, struct res_items *item, int index, int pass)
    int token;
    RES *res;
 
-   token = lex_get_token(lc);
-   if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
-      scan_err1(lc, "expected a Resource name, got: %s", lc->str);
-   }
+   token = lex_get_token(lc, T_NAME);
    if (pass == 2) {
      res = GetResWithName(item->code, lc->str);
      if (res == NULL) {
@@ -458,16 +432,8 @@ void store_int(LEX *lc, struct res_items *item, int index, int pass)
 {
    int token;
 
-   token = lex_get_token(lc);
-   if (token != T_NUMBER || !is_a_number(lc->str)) {
-      scan_err1(lc, "expected an integer number, got: %s", lc->str);
-   } else {
-      errno = 0;
-      *(int *)(item->value) = (int)strtod(lc->str, NULL);
-      if (errno != 0) {
-         scan_err1(lc, "expected an integer number, got: %s", lc->str);
-      }
-   }
+   token = lex_get_token(lc, T_INT32);
+   *(int *)(item->value) = lc->int32_val;
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
 }
@@ -477,8 +443,7 @@ void store_pint(LEX *lc, struct res_items *item, int index, int pass)
 {
    int token;
 
-   lc->expect = T_PINT32;
-   token = lex_get_token(lc);
+   token = lex_get_token(lc, T_PINT32);
    *(int *)(item->value) = lc->pint32_val;
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
@@ -490,8 +455,7 @@ void store_int64(LEX *lc, struct res_items *item, int index, int pass)
 {
    int token;
 
-   lc->expect = T_INT64;
-   token = lex_get_token(lc);
+   token = lex_get_token(lc, T_INT64);
    *(int64_t *)(item->value) = lc->int64_val;
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
@@ -518,7 +482,7 @@ void store_size(LEX *lc, struct res_items *item, int index, int pass)
 #endif
 
    Dmsg0(400, "Enter store_size\n");
-   token = lex_get_token(lc);
+   token = lex_get_token(lc, T_ALL);
    errno = 0;
    switch (token) {
    case T_NUMBER:
@@ -530,7 +494,7 @@ void store_size(LEX *lc, struct res_items *item, int index, int pass)
       *(uint64_t *)(item->value) = value;
       break;
    case T_IDENTIFIER:
-   case T_STRING:
+   case T_UNQUOTED_STRING:
       /* Look for modifier */
       ch = lc->str[lc->str_len - 1];
       i = 0;
@@ -576,7 +540,7 @@ void store_time(LEX *lc, struct res_items *item, int index, int pass)
    int token; 
    btime_t value;
 
-   token = lex_get_token(lc);
+   token = lex_get_token(lc, T_ALL);
    errno = 0;
    switch (token) {
    case T_NUMBER:
@@ -587,7 +551,7 @@ void store_time(LEX *lc, struct res_items *item, int index, int pass)
       *(btime_t *)(item->value) = value;
       break;
    case T_IDENTIFIER:
-   case T_STRING:
+   case T_UNQUOTED_STRING:
       if (!string_to_btime(lc->str, &value)) {
          scan_err1(lc, "expected a time period, got: %s", lc->str);
       }
@@ -607,10 +571,8 @@ void store_yesno(LEX *lc, struct res_items *item, int index, int pass)
 {
    int token;
 
-   token = lex_get_token(lc);
-   if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
-      scan_err1(lc, "expected an identifier or string, got: %s", lc->str);
-   } else if (strcasecmp(lc->str, "yes") == 0) {
+   token = lex_get_token(lc, T_NAME);
+   if (strcasecmp(lc->str, "yes") == 0) {
       *(int *)(item->value) |= item->code;
    } else if (strcasecmp(lc->str, "no") == 0) {
       *(int *)(item->value) &= ~(item->code);
@@ -708,7 +670,7 @@ parse_config(char *cf)
    for (pass=1; pass <= 2; pass++) {
       Dmsg1(200, "parse_config pass %d\n", pass);
       lc = lex_open_file(lc, cf);
-      while ((token=lex_get_token(lc)) != T_EOF) {
+      while ((token=lex_get_token(lc, T_ALL)) != T_EOF) {
          Dmsg1(150, "parse got token=%s\n", lex_tok_to_str(token));
 	 switch (state) {
 	    case p_none:
@@ -741,7 +703,7 @@ parse_config(char *cf)
 		     }
 		     for (i=0; items[i].name; i++) {
 			if (strcasecmp(items[i].name, lc->str) == 0) {
-			   token = lex_get_token(lc);
+			   token = lex_get_token(lc, T_ALL);
                            Dmsg1 (150, "in T_IDENT got token=%s\n", lex_tok_to_str(token));
 			   if (token != T_EQUALS) {
                               scan_err1(lc, "expected an equals, got: %s", lc->str);

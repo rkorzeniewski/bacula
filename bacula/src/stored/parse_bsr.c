@@ -21,7 +21,6 @@
 
    You should have received a copy of the GNU General Public
    License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
    MA 02111-1307, USA.
 
  */
@@ -38,7 +37,7 @@ static BSR *store_job(LEX *lc, BSR *bsr);
 static BSR *store_jobid(LEX *lc, BSR *bsr);
 static BSR *store_jobtype(LEX *lc, BSR *bsr);
 static BSR *store_joblevel(LEX *lc, BSR *bsr);
-static BSR *store_file_index(LEX *lc, BSR *bsr);
+static BSR *store_findex(LEX *lc, BSR *bsr);
 static BSR *store_sessid(LEX *lc, BSR *bsr);
 static BSR *store_volfile(LEX *lc, BSR *bsr);
 static BSR *store_sesstime(LEX *lc, BSR *bsr);
@@ -55,7 +54,7 @@ struct kw_items items[] = {
    {"client", store_client},
    {"job", store_job},
    {"jobid", store_jobid},
-   {"fileindex", store_file_index},
+   {"fileindex", store_findex},
    {"jobtype", store_jobtype},
    {"joblevel", store_joblevel},
    {"volsessionid", store_sessid},
@@ -88,17 +87,14 @@ BSR *parse_bsr(char *cf)
 
    Dmsg0(200, "Enter parse_bsf()\n");
    lc = lex_open_file(lc, cf);
-   while ((token=lex_get_token(lc)) != T_EOF) {
+   while ((token=lex_get_token(lc, T_ALL)) != T_EOF) {
       Dmsg1(150, "parse got token=%s\n", lex_tok_to_str(token));
       if (token == T_EOL) {
 	 continue;
       }
-      if (token != T_IDENTIFIER) {
-         scan_err1(lc, "Expected a keyword identifier, got: %s", lc->str);
-      }
       for (i=0; items[i].name; i++) {
 	 if (strcasecmp(items[i].name, lc->str) == 0) {
-	    token = lex_get_token(lc);
+	    token = lex_get_token(lc, T_ALL);
             Dmsg1 (150, "in T_IDENT got token=%s\n", lex_tok_to_str(token));
 	    if (token != T_EQUALS) {
                scan_err1(lc, "expected an equals, got: %s", lc->str);
@@ -125,19 +121,12 @@ static BSR *store_vol(LEX *lc, BSR *bsr)
 {
    int token;
     
-   token = lex_get_token(lc);
-   if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
-      scan_err1(lc, "expected an identifier or string, got: %s", lc->str);
-   } else if (lc->str_len > MAX_RES_NAME_LENGTH) {
-      scan_err3(lc, "name %s length %d too long, max is %d\n", lc->str, 
-	 lc->str_len, MAX_RES_NAME_LENGTH);
-   } else {
-      if (bsr->VolumeName) {
-	 bsr->next = new_bsr();
-	 bsr = bsr->next;
-      }
-      bsr->VolumeName = bstrdup(lc->str);
+   token = lex_get_token(lc, T_NAME);
+   if (bsr->VolumeName) {
+      bsr->next = new_bsr();
+      bsr = bsr->next;
    }
+   bsr->VolumeName = bstrdup(lc->str);
    scan_to_eol(lc);
    return bsr;
 }
@@ -148,8 +137,7 @@ static BSR *store_client(LEX *lc, BSR *bsr)
    BSR_CLIENT *client;
     
    for (;;) {
-      lc->expect = T_NAME;
-      token = lex_get_token(lc);
+      token = lex_get_token(lc, T_NAME);
       client = (BSR_CLIENT *)malloc(sizeof(BSR_CLIENT));
       memset(client, 0, sizeof(BSR_CLIENT));
       client->ClientName = bstrdup(lc->str);
@@ -158,22 +146,15 @@ static BSR *store_client(LEX *lc, BSR *bsr)
 	 bsr->client = client;
       } else {
 	 BSR_CLIENT *bc = bsr->client;
-	 for ( ;; ) {
-	    if (bc->next) {
-	       bc = bc->next;
-	    } else {
-	       bc->next = client;
-	       break;
-	    }
-	 }
+	 for ( ;bc->next; bc=bc->next)	
+	    { }
+	 bc->next = client;
       }
-      lc->expect = 0;
-      token = lex_get_token(lc);
+      token = lex_get_token(lc, T_ALL);
       if (token != T_COMMA) {
 	 break;
       }
    }
-// scan_to_eol(lc);
    return bsr;
 }
 
@@ -182,33 +163,36 @@ static BSR *store_job(LEX *lc, BSR *bsr)
    int token;
    BSR_JOB *job;
     
-   lc->expect = T_NAME;
-   token = lex_get_token(lc);
-   job = (BSR_JOB *)malloc(sizeof(BSR_JOB));
-   memset(job, 0, sizeof(BSR_JOB));
-   job->Job = bstrdup(lc->str);
-   /* Add it to the end of the client chain */
-   if (!bsr->job) {
-      bsr->job = job;
-   } else {
-      /* Add to end of chain */
-      BSR_JOB *bc = bsr->job;
-      for ( ;bc->next; bc=bc->next)
-	 { }
-      bc->next = job;
+   for (;;) {
+      token = lex_get_token(lc, T_NAME);
+      job = (BSR_JOB *)malloc(sizeof(BSR_JOB));
+      memset(job, 0, sizeof(BSR_JOB));
+      job->Job = bstrdup(lc->str);
+      /* Add it to the end of the client chain */
+      if (!bsr->job) {
+	 bsr->job = job;
+      } else {
+	 /* Add to end of chain */
+	 BSR_JOB *bc = bsr->job;
+	 for ( ;bc->next; bc=bc->next)
+	    { }
+	 bc->next = job;
+      }
+      token = lex_get_token(lc, T_ALL);
+      if (token != T_COMMA) {
+	 break;
+      }
    }
-   scan_to_eol(lc);
    return bsr;
 }
 
-static BSR *store_file_index(LEX *lc, BSR *bsr)
+static BSR *store_findex(LEX *lc, BSR *bsr)
 {
    int token;
    BSR_FINDEX *findex;
 
    for (;;) {
-      lc->expect = T_PINT32_RANGE;
-      token = lex_get_token(lc);
+      token = lex_get_token(lc, T_PINT32_RANGE);
       findex = (BSR_FINDEX *)malloc(sizeof(BSR_FINDEX));
       memset(findex, 0, sizeof(BSR_FINDEX));
       findex->findex = lc->pint32_val;
@@ -220,16 +204,14 @@ static BSR *store_file_index(LEX *lc, BSR *bsr)
 	 /* Add to end of chain */
 	 BSR_FINDEX *bs = bsr->FileIndex;
 	 for ( ;bs->next; bs=bs->next)
-	   {  }
+	    {  }
 	 bs->next = findex;
       }
-      lc->expect = 0;
-      token = lex_get_token(lc);
+      token = lex_get_token(lc, T_ALL);
       if (token != T_COMMA) {
 	 break;
       }
    }
-// scan_to_eol(lc);
    return bsr;
 }
 
@@ -240,8 +222,7 @@ static BSR *store_jobid(LEX *lc, BSR *bsr)
    BSR_JOBID *jobid;
 
    for (;;) {
-      lc->expect = T_PINT32_RANGE;
-      token = lex_get_token(lc);
+      token = lex_get_token(lc, T_PINT32_RANGE);
       jobid = (BSR_JOBID *)malloc(sizeof(BSR_JOBID));
       memset(jobid, 0, sizeof(BSR_JOBID));
       jobid->JobId = lc->pint32_val;
@@ -253,16 +234,14 @@ static BSR *store_jobid(LEX *lc, BSR *bsr)
 	 /* Add to end of chain */
 	 BSR_JOBID *bs = bsr->JobId;
 	 for ( ;bs->next; bs=bs->next)
-	   {  }
+	    {  }
 	 bs->next = jobid;
       }
-      lc->expect = 0;
-      token = lex_get_token(lc);
+      token = lex_get_token(lc, T_ALL);
       if (token != T_COMMA) {
 	 break;
       }
    }
-// scan_to_eol(lc);
    return bsr;
 }
 
@@ -293,8 +272,7 @@ static BSR *store_volfile(LEX *lc, BSR *bsr)
    BSR_VOLFILE *volfile;
 
    for (;;) {
-      lc->expect = T_PINT32_RANGE;
-      token = lex_get_token(lc);
+      token = lex_get_token(lc, T_PINT32_RANGE);
       volfile = (BSR_VOLFILE *)malloc(sizeof(BSR_VOLFILE));
       memset(volfile, 0, sizeof(BSR_VOLFILE));
       volfile->sfile = lc->pint32_val;
@@ -306,16 +284,14 @@ static BSR *store_volfile(LEX *lc, BSR *bsr)
 	 /* Add to end of chain */
 	 BSR_VOLFILE *bs = bsr->volfile;
 	 for ( ;bs->next; bs=bs->next)
-	   {  }
+	    {  }
 	 bs->next = volfile;
       }
-      lc->expect = 0;
-      token = lex_get_token(lc);
+      token = lex_get_token(lc, T_ALL);
       if (token != T_COMMA) {
 	 break;
       }
    }
-// scan_to_eol(lc);
    return bsr;
 }
 
@@ -327,8 +303,7 @@ static BSR *store_sessid(LEX *lc, BSR *bsr)
    BSR_SESSID *sid;
 
    for (;;) {
-      lc->expect = T_PINT32_RANGE;
-      token = lex_get_token(lc);
+      token = lex_get_token(lc, T_PINT32_RANGE);
       sid = (BSR_SESSID *)malloc(sizeof(BSR_SESSID));
       memset(sid, 0, sizeof(BSR_SESSID));
       sid->sessid = lc->pint32_val;
@@ -340,16 +315,14 @@ static BSR *store_sessid(LEX *lc, BSR *bsr)
 	 /* Add to end of chain */
 	 BSR_SESSID *bs = bsr->sessid;
 	 for ( ;bs->next; bs=bs->next)
-	   {  }
+	    {  }
 	 bs->next = sid;
       }
-      lc->expect = 0;
-      token = lex_get_token(lc);
+      token = lex_get_token(lc, T_ALL);
       if (token != T_COMMA) {
 	 break;
       }
    }
-// scan_to_eol(lc);
    return bsr;
 }
 
@@ -358,22 +331,26 @@ static BSR *store_sesstime(LEX *lc, BSR *bsr)
    int token;
    BSR_SESSTIME *stime;
 
-   lc->expect = T_PINT32;
-   token = lex_get_token(lc);
-   stime = (BSR_SESSTIME *)malloc(sizeof(BSR_SESSTIME));
-   memset(stime, 0, sizeof(BSR_SESSTIME));
-   stime->sesstime = lc->pint32_val;
-   /* Add it to the end of the chain */
-   if (!bsr->sesstime) {
-      bsr->sesstime = stime;
-   } else {
-      /* Add to end of chain */
-      BSR_SESSTIME *bs = bsr->sesstime;
-      for ( ;bs->next; bs=bs->next)
-	 { }
-      bs->next = stime;
+   for (;;) {
+      token = lex_get_token(lc, T_PINT32);
+      stime = (BSR_SESSTIME *)malloc(sizeof(BSR_SESSTIME));
+      memset(stime, 0, sizeof(BSR_SESSTIME));
+      stime->sesstime = lc->pint32_val;
+      /* Add it to the end of the chain */
+      if (!bsr->sesstime) {
+	 bsr->sesstime = stime;
+      } else {
+	 /* Add to end of chain */
+	 BSR_SESSTIME *bs = bsr->sesstime;
+	 for ( ;bs->next; bs=bs->next)
+	    { }
+	 bs->next = stime;
+      }
+      token = lex_get_token(lc, T_ALL);
+      if (token != T_COMMA) {
+	 break;
+      }
    }
-   scan_to_eol(lc);
    return bsr;
 }
 
@@ -391,79 +368,71 @@ static BSR *store_exclude(LEX *lc, BSR *bsr)
 
 void dump_volfile(BSR_VOLFILE *volfile)
 {
-   if (!volfile) {
-      return;
+   if (volfile) {
+      Dmsg2(-1, "VolFile     : %u-%u\n", volfile->sfile, volfile->efile);
+      dump_volfile(volfile->next);
    }
-   Dmsg2(-1,
-"VolFile     : %u-%u\n", volfile->sfile, volfile->efile);
-   dump_volfile(volfile->next);
 }
 
 void dump_findex(BSR_FINDEX *FileIndex)
 {
-   if (!FileIndex) {
-      return;
+   if (FileIndex) {
+      if (FileIndex->findex == FileIndex->findex2) {
+         Dmsg1(-1, "FileIndex   : %u\n", FileIndex->findex);
+      } else {
+         Dmsg2(-1, "FileIndex   : %u-%u\n", FileIndex->findex, FileIndex->findex2);
+      }
+      dump_findex(FileIndex->next);
    }
-   if (FileIndex->findex == FileIndex->findex2) {
-      Dmsg1(-1, "FileIndex   : %u\n", FileIndex->findex);
-   } else {
-      Dmsg2(-1, "FileIndex   : %u-%u\n", FileIndex->findex, FileIndex->findex2);
-   }
-   dump_findex(FileIndex->next);
 }
 
 void dump_jobid(BSR_JOBID *jobid)
 {
-   if (!jobid) {
-      return;
+   if (jobid) {
+      if (jobid->JobId == jobid->JobId2) {
+         Dmsg1(-1, "JobId       : %u\n", jobid->JobId);
+      } else {
+         Dmsg2(-1, "JobId       : %u-%u\n", jobid->JobId, jobid->JobId2);
+      }
+      dump_jobid(jobid->next);
    }
-   if (jobid->JobId == jobid->JobId2) {
-      Dmsg1(-1, "JobId       : %u\n", jobid->JobId);
-   } else {
-      Dmsg2(-1, "JobId       : %u-%u\n", jobid->JobId, jobid->JobId2);
-   }
-   dump_jobid(jobid->next);
 }
 
 void dump_sessid(BSR_SESSID *sessid)
 {
-   if (!sessid) {
-      return;
+   if (sessid) {
+      if (sessid->sessid == sessid->sessid2) {
+         Dmsg1(-1, "SessId      : %u\n", sessid->sessid);
+      } else {
+         Dmsg2(-1, "SessId      : %u-%u\n", sessid->sessid, sessid->sessid2);
+      }
+      dump_sessid(sessid->next);
    }
-   if (sessid->sessid == sessid->sessid2) {
-      Dmsg1(-1, "SessId      : %u\n", sessid->sessid);
-   } else {
-      Dmsg2(-1, "SessId      : %u-%u\n", sessid->sessid, sessid->sessid2);
-   }
-   dump_sessid(sessid->next);
 }
 
 
 void dump_client(BSR_CLIENT *client)
 {
-   if (!client) {
-      return;
+   if (client) {
+      Dmsg1(-1, "Client      : %s\n", client->ClientName);
+      dump_client(client->next);
    }
-   Dmsg1(-1, "Client      : %s\n", client->ClientName);
-   dump_client(client->next);
 }
 
 void dump_job(BSR_JOB *job)
 {
-   if (!job) {
-      return;
+   if (job) {
+      Dmsg1(-1, "Job          : %s\n", job->Job);
+      dump_job(job->next);
    }
-   Dmsg1(-1, "Job          : %s\n", job->Job);
-   dump_job(job->next);
 }
 
 void dump_sesstime(BSR_SESSTIME *sesstime)
 {
-   if (!sesstime) {
-      return;
+   if (sesstime) {
+      Dmsg1(-1, "SessTime    : %u\n", sesstime->sesstime);
+      dump_sesstime(sesstime->next);
    }
-   Dmsg1(-1, "SessTime    : %u\n", sesstime->sesstime);
-   dump_sesstime(sesstime->next);
 }
 
 
@@ -503,11 +472,10 @@ void dump_bsr(BSR *bsr)
 
 static void free_bsr_item(BSR *bsr)
 {
-   if (!bsr) {
-      return;
+   if (bsr) {
+      free_bsr_item(bsr->next);
+      free(bsr);
    }
-   free_bsr_item(bsr->next);
-   free(bsr);
 }
 
 void free_bsr(BSR *bsr)
@@ -519,6 +487,11 @@ void free_bsr(BSR *bsr)
    free_bsr_item((BSR *)bsr->sessid);
    free_bsr_item((BSR *)bsr->sesstime);
    free_bsr_item((BSR *)bsr->volfile);
+   free_bsr_item((BSR *)bsr->JobId);
+   free_bsr_item((BSR *)bsr->job);
+   free_bsr_item((BSR *)bsr->FileIndex);
+   free_bsr_item((BSR *)bsr->JobType);
+   free_bsr_item((BSR *)bsr->JobLevel);
    if (bsr->VolumeName) {
       free(bsr->VolumeName);
    }

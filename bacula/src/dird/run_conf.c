@@ -184,20 +184,14 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
    /* scan for Job level "full", "incremental", ... */
    for (found=TRUE; found; ) {
       found = FALSE;
-      token = lex_get_token(lc);
-      if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
-         scan_err1(lc, "Expected a keyword name, got: %s", lc->str);
-      }
+      token = lex_get_token(lc, T_NAME);
       for (i=0; RunFields[i].name; i++) {
 	 if (strcasecmp(lc->str, RunFields[i].name) == 0) {
 	    found = TRUE;
-	    if (lex_get_token(lc) != T_EQUALS) {
+	    if (lex_get_token(lc, T_ALL) != T_EQUALS) {
                scan_err1(lc, "Expected an equals, got: %s", lc->str);
 	    }
-	    token = lex_get_token(lc);
-	    if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
-               scan_err1(lc, "Expected a keyword name, got: %s", lc->str);
-	    }
+	    token = lex_get_token(lc, T_NAME);
 	    switch (RunFields[i].token) {
             case 'L':                 /* level */
 	       for (j=0; joblevels[j].level_name; j++) {
@@ -270,7 +264,7 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
    state = s_none;
    set_defaults();
 
-   for ( ; token != T_EOL; (token = lex_get_token(lc))) {
+   for ( ; token != T_EOL; (token = lex_get_token(lc, T_ALL))) {
       int len, pm;
       switch (token) {
 	 case T_NUMBER:
@@ -280,7 +274,8 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
                scan_err0(lc, _("Day number out of range (1-31)"));
 	    }
 	    break;
-	 case T_STRING:
+	 case T_NAME:		      /* this handles drop through from keyword */
+	 case T_UNQUOTED_STRING:
             if (strchr(lc->str, (int)'-')) {
 	       state = s_range;
 	       break;
@@ -305,7 +300,7 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 	 case T_COMMA:
 	    continue;
 	 default:
-            scan_err1(lc, _("Unexpected token: %s"), lc->str);
+            scan_err2(lc, _("Unexpected token: %d:%s"), token, lc->str);
 	    break;
       }
       switch (state) {

@@ -38,9 +38,8 @@ void scan_to_eol(LEX *lc)
 {
    int token;
    Dmsg0(150, "start scan to eof\n");
-   lc->expect = 0;		      /* clear expectations */
    if (token != T_EOL) {
-      while ((token = lex_get_token(lc)) != T_EOL) {
+      while ((token = lex_get_token(lc, T_ALL)) != T_EOL) {
       }
    }
    Dmsg0(150, "done scan to eof\n");
@@ -224,22 +223,22 @@ char *
 lex_tok_to_str(int token)
 {
    switch(token) {
-      case L_EOF:           return "L_EOF";
-      case L_EOL:           return "L_EOL";
-      case T_NONE:          return "T_NONE";
-      case T_NUMBER:        return "T_NUMBER";
-      case T_IPADDR:        return "T_IPADDR";
-      case T_IDENTIFIER:    return "T_IDENTIFIER";
-      case T_STRING:        return "T_STRING";
-      case T_QUOTED_STRING: return "T_QUOTED_STRING";
-      case T_BOB:           return "T_BOB";
-      case T_EOB:           return "T_EOB";
-      case T_EQUALS:        return "T_EQUALS";
-      case T_ERROR:         return "T_ERROR";
-      case T_EOF:           return "T_EOF";
-      case T_COMMA:         return "T_COMMA";
-      case T_EOL:           return "T_EOL";
-      default:              return "??????";
+      case L_EOF:             return "L_EOF";
+      case L_EOL:             return "L_EOL";
+      case T_NONE:            return "T_NONE";
+      case T_NUMBER:          return "T_NUMBER";
+      case T_IPADDR:          return "T_IPADDR";
+      case T_IDENTIFIER:      return "T_IDENTIFIER";
+      case T_UNQUOTED_STRING: return "T_UNQUOTED_STRING";
+      case T_QUOTED_STRING:   return "T_QUOTED_STRING";
+      case T_BOB:             return "T_BOB";
+      case T_EOB:             return "T_EOB";
+      case T_EQUALS:          return "T_EQUALS";
+      case T_ERROR:           return "T_ERROR";
+      case T_EOF:             return "T_EOF";
+      case T_COMMA:           return "T_COMMA";
+      case T_EOL:             return "T_EOL";
+      default:                return "??????";
    }
 }
 
@@ -264,7 +263,7 @@ static uint32_t scan_pint(LEX *lf, char *str)
  *
  */
 int
-lex_get_token(LEX *lf)
+lex_get_token(LEX *lf, int expect)
 {
    int ch;
    int token = T_NONE;
@@ -369,7 +368,7 @@ lex_get_token(LEX *lf)
             if (ch == '\n' || ch == L_EOL || ch == '=' || ch == '}' || ch == '{' ||
                 ch == ';' || ch == ',' || ch == '#' || (ISSPACE(ch)) ) {
 	       lex_unget_char(lf);    
-	       token = T_STRING;
+	       token = T_UNQUOTED_STRING;
 	       lf->state = lex_none;
 	       break;
 	    } 
@@ -441,7 +440,7 @@ lex_get_token(LEX *lf)
     *  expectations (e.g. 32 bit integer). If so, we do type checking
     *  and possible additional scanning (e.g. for range).
     */
-   switch (lf->expect) {
+   switch (expect) {
    case T_PINT32:
       lf->pint32_val = scan_pint(lf, lf->str);
       lf->pint32_val2 = lf->pint32_val;
@@ -493,7 +492,7 @@ lex_get_token(LEX *lf)
       break;
 
    case T_NAME:
-      if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
+      if (token != T_IDENTIFIER && token != T_UNQUOTED_STRING && token != T_QUOTED_STRING) {
          scan_err1(lf, "expected a name: %s", lf->str);
       } else if (lf->str_len > MAX_RES_NAME_LENGTH) {
          scan_err3(lf, "name %s length %d too long, max is %d\n", lf->str, 
@@ -501,6 +500,14 @@ lex_get_token(LEX *lf)
       }
       token = T_NAME;
       break;
+
+   case T_STRING:
+      if (token != T_IDENTIFIER && token != T_UNQUOTED_STRING && token != T_QUOTED_STRING) {
+         scan_err1(lf, "expected a name: %s", lf->str);
+      }
+      token = T_STRING;
+      break;
+
 
    default:
       break;			      /* no expectation given */

@@ -53,19 +53,18 @@ typedef struct s_bsr_sessid {
    int found;
 } BSR_SESSID;
 
+typedef struct s_bsr_sesstime {
+   struct s_bsr_sesstime *next;
+   uint32_t sesstime;
+   int found;
+} BSR_SESSTIME;
+
 typedef struct s_bsr_volfile {
    struct s_bsr_volfile *next;
    uint32_t sfile;                    /* start file */
    uint32_t efile;                    /* end file */
    int found;
 } BSR_VOLFILE;
-
-
-typedef struct s_bsr_sesstime {
-   struct s_bsr_sesstime *next;
-   uint32_t sesstime;
-   int found;
-} BSR_SESSTIME;
 
 typedef struct s_bsr_findex {
    struct s_bsr_findex *next;
@@ -102,15 +101,15 @@ typedef struct s_bsr {
    struct s_bsr *next;                /* pointer to next one */
    int           done;                /* set when everything found */
    char         *VolumeName;
-   BSR_CLIENT   *client;
-   BSR_JOB      *job;
-   BSR_SESSID   *sessid;
+   BSR_VOLFILE  *volfile;
    BSR_SESSTIME *sesstime;
-   BSR_FINDEX   *FileIndex;
+   BSR_SESSID   *sessid;
    BSR_JOBID    *JobId;
+   BSR_JOB      *job;
+   BSR_CLIENT   *client;
+   BSR_FINDEX   *FileIndex;
    BSR_JOBTYPE  *JobType;
    BSR_JOBLEVEL *JobLevel;
-   BSR_VOLFILE  *volfile;
    FF_PKT *ff;                        /* include/exclude */
 } BSR;
 

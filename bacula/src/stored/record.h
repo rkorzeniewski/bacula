@@ -63,8 +63,11 @@ typedef struct s_record_hdr {
  */
 typedef struct s_dev_rec {
    int      sync;                     /* synchronous */
-   uint32_t File;                     /* File number, returned if sync set */
-   uint32_t Block;                    /* Block number, returned if sync set */
+   /* File and Block are always returned on reading records, but
+    *  only returned on writing if sync is set (obviously).
+    */
+   uint32_t File;                     /* File number */
+   uint32_t Block;                    /* Block number */
    uint32_t VolSessionId;             /* sequential id within this session */
    uint32_t VolSessionTime;           /* session start time */
    int32_t  FileIndex;                /* sequential file number */

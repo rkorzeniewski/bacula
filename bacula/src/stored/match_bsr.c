@@ -34,137 +34,157 @@
 /* Forward references */
 static int match_sesstime(BSR_SESSTIME *sesstime, DEV_RECORD *rec);
 static int match_sessid(BSR_SESSID *sessid, DEV_RECORD *rec);
-static int match_client(BSR_CLIENT *client, SESSION_LABEL *sesrec);
-static int match_job(BSR_JOB *job, SESSION_LABEL *sesrec);
-static int match_job_type(BSR_JOBTYPE *job_type, SESSION_LABEL *sesrec);
-static int match_job_level(BSR_JOBLEVEL *job_level, SESSION_LABEL *sesrec);
-static int match_jobid(BSR_JOBID *jobid, SESSION_LABEL *sesrec);
-static int match_file_index(BSR_FINDEX *findex, DEV_RECORD *rec);
-static int match_one_bsr(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, SESSION_LABEL *sesrec);
+static int match_client(BSR_CLIENT *client, SESSION_LABEL *sessrec);
+static int match_job(BSR_JOB *job, SESSION_LABEL *sessrec);
+static int match_job_type(BSR_JOBTYPE *job_type, SESSION_LABEL *sessrec);
+static int match_job_level(BSR_JOBLEVEL *job_level, SESSION_LABEL *sessrec);
+static int match_jobid(BSR_JOBID *jobid, SESSION_LABEL *sessrec);
+static int match_findex(BSR_FINDEX *findex, DEV_RECORD *rec);
+static int match_volfile(BSR_VOLFILE *volfile, DEV_RECORD *rec);
+static int match_one_bsr(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, SESSION_LABEL *sessrec);
 
 /*********************************************************************
  *
  *	Match Bootstrap records
  *
  */
-int match_bsr(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, SESSION_LABEL *sesrec)
+int match_bsr(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, SESSION_LABEL *sessrec)
 {
    if (!bsr) {
       return 0;
    }
-   if (match_one_bsr(bsr, rec, volrec, sesrec)) {
+   if (match_one_bsr(bsr, rec, volrec, sessrec)) {
       return 1;
    }
-   return match_bsr(bsr->next, rec, volrec, sesrec);
+   return match_bsr(bsr->next, rec, volrec, sessrec);
 }
 
-static int match_one_bsr(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, SESSION_LABEL *sesrec)
+static int match_one_bsr(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, SESSION_LABEL *sessrec)
 {
    if (strcmp(bsr->VolumeName, volrec->VolName) != 0) {
       return 0;
    }
-   if (!match_client(bsr->client, sesrec)) {
-      return 0;
-   }
-   if (!match_sessid(bsr->sessid, rec)) {
+   if (!match_volfile(bsr->volfile, rec)) {
       return 0;
    }
    if (!match_sesstime(bsr->sesstime, rec)) {
       return 0;
    }
-   if (!match_job(bsr->job, sesrec)) {
+   if (!match_sessid(bsr->sessid, rec)) {
       return 0;
    }
-   if (!match_file_index(bsr->FileIndex, rec)) {
+   if (!match_jobid(bsr->JobId, sessrec)) {
       return 0;
    }
-   if (!match_job_type(bsr->JobType, sesrec)) {
+   if (!match_job(bsr->job, sessrec)) {
       return 0;
    }
-   if (!match_job_level(bsr->JobLevel, sesrec)) {
+   if (!match_client(bsr->client, sessrec)) {
       return 0;
    }
-   if (!match_jobid(bsr->JobId, sesrec)) {
+   if (!match_findex(bsr->FileIndex, rec)) {
+      return 0;
+   }
+   if (!match_job_type(bsr->JobType, sessrec)) {
+      return 0;
+   }
+   if (!match_job_level(bsr->JobLevel, sessrec)) {
       return 0;
    }
    return 1;
 }
 
-static int match_client(BSR_CLIENT *client, SESSION_LABEL *sesrec)
+static int match_client(BSR_CLIENT *client, SESSION_LABEL *sessrec)
 {
    if (!client) {
       return 1; 		      /* no specification matches all */
    }
-   if (strcmp(client->ClientName, sesrec->ClientName) == 0) {
+   if (strcmp(client->ClientName, sessrec->ClientName) == 0) {
       return 1;
    }
    if (client->next) {
-      return match_client(client->next, sesrec);
+      return match_client(client->next, sessrec);
    }
    return 0;
 }
 
-static int match_job(BSR_JOB *job, SESSION_LABEL *sesrec)
+static int match_job(BSR_JOB *job, SESSION_LABEL *sessrec)
 {
    if (!job) {
       return 1; 		      /* no specification matches all */
    }
-   if (strcmp(job->Job, sesrec->Job) == 0) {
+   if (strcmp(job->Job, sessrec->Job) == 0) {
       job->found++;
       return 1;
    }
    if (job->next) {
-      return match_job(job->next, sesrec);
+      return match_job(job->next, sessrec);
    }
    return 0;
 }
 
 
-static int match_job_type(BSR_JOBTYPE *job_type, SESSION_LABEL *sesrec)
+static int match_job_type(BSR_JOBTYPE *job_type, SESSION_LABEL *sessrec)
 {
    if (!job_type) {
       return 1; 		      /* no specification matches all */
    }
-   if (job_type->JobType == sesrec->JobType) {
+   if (job_type->JobType == sessrec->JobType) {
       return 1;
    }
    if (job_type->next) {
-      return match_job_type(job_type->next, sesrec);
+      return match_job_type(job_type->next, sessrec);
    }
    return 0;
 }
 
-static int match_job_level(BSR_JOBLEVEL *job_level, SESSION_LABEL *sesrec)
+static int match_job_level(BSR_JOBLEVEL *job_level, SESSION_LABEL *sessrec)
 {
    if (!job_level) {
       return 1; 		      /* no specification matches all */
    }
-   if (job_level->JobLevel == sesrec->JobLevel) {
+   if (job_level->JobLevel == sessrec->JobLevel) {
       return 1;
    }
    if (job_level->next) {
-      return match_job_level(job_level->next, sesrec);
+      return match_job_level(job_level->next, sessrec);
    }
    return 0;
 }
 
-static int match_jobid(BSR_JOBID *jobid, SESSION_LABEL *sesrec)
+static int match_jobid(BSR_JOBID *jobid, SESSION_LABEL *sessrec)
 {
    if (!jobid) {
       return 1; 		      /* no specification matches all */
    }
-   if (jobid->JobId == sesrec->JobId) {
+   if (jobid->JobId >= sessrec->JobId && jobid->JobId2 <= sessrec->JobId) {
       jobid->found++;
       return 1;
    }
    if (jobid->next) {
-      return match_jobid(jobid->next, sesrec);
+      return match_jobid(jobid->next, sessrec);
    }
    return 0;
 }
 
 
-static int match_file_index(BSR_FINDEX *findex, DEV_RECORD *rec)
+static int match_volfile(BSR_VOLFILE *volfile, DEV_RECORD *rec)
+{
+   if (!volfile) {
+      return 1; 		      /* no specification matches all */
+   }
+   if (volfile->sfile >= rec->File && volfile->efile <= rec->File) {
+      volfile->found++;
+      return 1;
+   }
+   if (volfile->next) {
+      return match_volfile(volfile->next, rec);
+   }
+   return 0;
+}
+
+
+static int match_findex(BSR_FINDEX *findex, DEV_RECORD *rec)
 {
    if (!findex) {
       return 1; 		      /* no specification matches all */
@@ -174,7 +194,7 @@ static int match_file_index(BSR_FINDEX *findex, DEV_RECORD *rec)
       return 1;
    }
    if (findex->next) {
-      return match_file_index(findex->next, rec);
+      return match_findex(findex->next, rec);
    }
    return 0;
 }

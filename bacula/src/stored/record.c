@@ -136,6 +136,8 @@ int read_record(DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *record)
    Dmsg4(90, "read_record FI=%s SessId=%d Strm=%s len=%d\n",
 	      FI_to_ascii(record->FileIndex), record->VolSessionId, 
 	      stream_to_ascii(record->Stream), record->data_len);
+   record->File = dev->file;
+   record->Block = dev->block_num;
    return 1;
 }
 
