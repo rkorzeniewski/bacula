@@ -63,6 +63,7 @@ int SDConnectTimeout;
 /* Globals Imported */
 extern int r_first, r_last;	      /* first and last resources */
 extern RES_TABLE resources[];
+extern RES **res_head;
 extern RES_ITEM job_items[];
 extern URES res_all;
 
@@ -426,7 +427,7 @@ void reload_config(int sig)
       int num = r_last - r_first + 1;
       RES **res_tab = reload_table[table].res_table;
       for (int i=0; i<num; i++) {
-	 resources[i].res_head = res_tab[i];
+	 res_head[i] = res_tab[i];
       }
       table = rtable;		      /* release new, bad, saved table below */
       if (njobs != 0) {

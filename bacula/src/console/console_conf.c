@@ -101,9 +101,9 @@ static RES_ITEM dir_items[] = {
  * It must have one item for each of the resources.
  */
 RES_TABLE resources[] = {
-   {"console",       cons_items,  R_CONSOLE,   NULL},
-   {"director",      dir_items,   R_DIRECTOR,  NULL},
-   {NULL,	     NULL,	  0,	       NULL}
+   {"console",       cons_items,  R_CONSOLE},        
+   {"director",      dir_items,   R_DIRECTOR},
+   {NULL,	     NULL,	  0}
 };
 
 
@@ -256,11 +256,11 @@ void save_resource(int type, RES_ITEM *items, int pass)
    if (!error) {
       res = (URES *)malloc(size);
       memcpy(res, &res_all, size);
-      if (!resources[rindex].res_head) {
-	 resources[rindex].res_head = (RES *)res; /* store first entry */
+      if (!res_head[rindex]) {
+	 res_head[rindex] = (RES *)res; /* store first entry */
       } else {
 	 RES *next;
-	 for (next=resources[rindex].res_head; next->next; next=next->next) {
+	 for (next=res_head[rindex]; next->next; next=next->next) {
 	    if (strcmp(next->name, res->res_dir.hdr.name) == 0) {
 	       Emsg2(M_ERROR_TERM, 0,
                   _("Attempt to define second %s resource named \"%s\" is not permitted.\n"),

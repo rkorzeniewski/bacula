@@ -65,6 +65,8 @@ extern int debug_level;
 extern int r_first;
 extern int r_last;
 extern RES_TABLE resources[];
+extern RES **res_head;
+
 #ifdef HAVE_WIN32
 // work around visual studio name manling preventing external linkage since res_all
 // is declared as a different type when instantiated.
@@ -635,7 +637,7 @@ GetResWithName(int rcode, char *name)
    int rindex = rcode - r_first;
 
    LockRes();
-   res = resources[rindex].res_head;
+   res = res_head[rindex];
    while (res) {
       if (strcmp(res->name, name) == 0) {
 	 break;
@@ -663,7 +665,7 @@ GetNextRes(int rcode, RES *res)
       Emsg0(M_ABORT, 0, "Resource chain not locked.\n");
    }
    if (res == NULL) {
-      nres = resources[rindex].res_head;
+      nres = res_head[rindex];
    } else {
       nres = res->next;
    }
@@ -802,7 +804,7 @@ parse_config(const char *cf, int exit_on_error)
       if (debug_level >= 900 && pass == 2) {
 	 int i;
 	 for (i=r_first; i<=r_last; i++) {
-	    dump_resource(i, resources[i-r_first].res_head, prtmsg, NULL);
+	    dump_resource(i, res_head[i-r_first], prtmsg, NULL);
 	 }
       }
       lc = lex_close_file(lc);
@@ -820,8 +822,8 @@ parse_config(const char *cf, int exit_on_error)
 void free_config_resources()
 {
    for (int i=r_first; i<=r_last; i++) {
-      free_resource(resources[i-r_first].res_head, i);
-      resources[i-r_first].res_head = NULL;
+      free_resource(res_head[i-r_first], i);
+      res_head[i-r_first] = NULL;
    }
 }
 
@@ -830,8 +832,8 @@ RES **save_config_resources()
    int num = r_last - r_first + 1;
    RES **res = (RES **)malloc(num*sizeof(RES *));
    for (int i=0; i<num; i++) {
-      res[i] = resources[i].res_head; 
-      resources[i].res_head = NULL;
+      res[i] = res_head[i];
+      res_head[i] = NULL;
    }
    return res;
 }

@@ -37,6 +37,7 @@
 extern int r_first;
 extern int r_last;
 extern RES_TABLE resources[];
+extern RES **res_head;
 extern int console_msg_pending;
 extern FILE *con_fd;
 extern brwlock_t con_lock;
@@ -145,7 +146,8 @@ int show_cmd(UAContext *ua, const char *cmd)
 	    if (strncasecmp(res_name, _(reses[j].res_name), len) == 0) {
 	       type = reses[j].type;
 	       if (type > 0) {
-		  res = resources[type-r_first].res_head;
+		  res = res_head[type-r_first];
+//		  res = resources[type-r_first].res_head;
 	       } else {
 		  res = NULL;
 	       }
@@ -172,7 +174,8 @@ int show_cmd(UAContext *ua, const char *cmd)
       switch (type) {
       case -1:				 /* all */
 	 for (j=r_first; j<=r_last; j++) {
-	    dump_resource(j, resources[j-r_first].res_head, bsendmsg, ua);     
+	    dump_resource(j, res_head[j-r_first], bsendmsg, ua);     
+//	    dump_resource(j, resources[j-r_first].res_head, bsendmsg, ua);     
 	 }
 	 break;
       case -2:

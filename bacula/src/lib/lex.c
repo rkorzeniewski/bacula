@@ -38,10 +38,10 @@ extern int debug_level;
  */
 void scan_to_eol(LEX *lc)
 {
-   Dmsg0(900, "start scan to eof\n");
+   Dmsg0(2000, "start scan to eof\n");
    while (lex_get_token(lc, T_ALL) != T_EOL)
       { }
-   Dmsg0(900, "done scan to eof\n");
+   Dmsg0(2000, "done scan to eof\n");
 }
 
    
@@ -78,18 +78,18 @@ LEX *lex_close_file(LEX *lf)
 {
    LEX *of;
 
-   Dmsg1(900, "Close lex file: %s\n", lf->fname);
+   Dmsg1(2000, "Close lex file: %s\n", lf->fname);
    if (lf == NULL) {
       Emsg0(M_ABORT, 0, "Close of NULL file\n");
    }
    of = lf->next;
    fclose(lf->fd);
-   Dmsg1(900, "Close cfg file %s\n", lf->fname);
+   Dmsg1(2000, "Close cfg file %s\n", lf->fname);
    free(lf->fname);
    if (of) {
       of->options = lf->options;      /* preserve options */
       memcpy(lf, of, sizeof(LEX));
-      Dmsg1(900, "Restart scan of cfg file %s\n", of->fname);
+      Dmsg1(2000, "Restart scan of cfg file %s\n", of->fname);
    } else {
       of = lf;
       lf = NULL;
@@ -122,7 +122,7 @@ LEX *lex_open_file(LEX *lf, const char *filename, LEX_ERROR_HANDLER *scan_error)
 	    fname, strerror(errno));
       return NULL; /* Never reached if exit_on_error == 1 */
    }
-   Dmsg1(900, "Open config file: %s\n", fname);
+   Dmsg1(2000, "Open config file: %s\n", fname);
    nf = (LEX *)malloc(sizeof(LEX));
    if (lf) {	 
       memcpy(nf, lf, sizeof(LEX));
@@ -142,7 +142,7 @@ LEX *lex_open_file(LEX *lf, const char *filename, LEX_ERROR_HANDLER *scan_error)
    } else {
       lf->scan_error = s_err;
    }
-   Dmsg1(900, "Return lex=%x\n", lf);
+   Dmsg1(2000, "Return lex=%x\n", lf);
    return lf;
 }
 
@@ -174,7 +174,7 @@ int lex_get_char(LEX *lf)
    } else {
       lf->col_no++;
    }
-   Dmsg2(900, "lex_get_char: %c %d\n", lf->ch, lf->ch);
+   Dmsg2(2000, "lex_get_char: %c %d\n", lf->ch, lf->ch);
    return lf->ch;
 }
 
@@ -284,12 +284,12 @@ lex_get_token(LEX *lf, int expect)
    int token = T_NONE;
    int esc_next = FALSE;
 
-   Dmsg0(900, "enter lex_get_token\n");
+   Dmsg0(2000, "enter lex_get_token\n");
    while (token == T_NONE) {
       ch = lex_get_char(lf);
       switch (lf->state) {
       case lex_none:
-         Dmsg2(900, "Lex state lex_none ch=%d,%x\n", ch, ch);
+         Dmsg2(2000, "Lex state lex_none ch=%d,%x\n", ch, ch);
 	 if (B_ISSPACE(ch))  
 	    break;
 	 if (B_ISALPHA(ch)) {
@@ -305,11 +305,11 @@ lex_get_token(LEX *lf, int expect)
 	    begin_str(lf, ch);
 	    break;
 	 }
-         Dmsg0(900, "Enter lex_none switch\n");
+         Dmsg0(2000, "Enter lex_none switch\n");
 	 switch (ch) {
 	 case L_EOF:
 	    token = T_EOF;
-            Dmsg0(900, "got L_EOF set token=T_EOF\n");
+            Dmsg0(2000, "got L_EOF set token=T_EOF\n");
 	    break;
          case '#':
 	    lf->state = lex_comment;
@@ -338,7 +338,7 @@ lex_get_token(LEX *lf, int expect)
 	    token = T_EOL;	/* treat ; like EOL */
 	    break;
 	 case L_EOL:
-            Dmsg0(900, "got L_EOL set token=T_EOL\n");
+            Dmsg0(2000, "got L_EOL set token=T_EOL\n");
 	    token = T_EOL;
 	    break;
          case '@':
@@ -352,7 +352,7 @@ lex_get_token(LEX *lf, int expect)
 	 }
 	 break;
       case lex_comment:
-         Dmsg1(900, "Lex state lex_comment ch=%x\n", ch);
+         Dmsg1(2000, "Lex state lex_comment ch=%x\n", ch);
 	 if (ch == L_EOL) {
 	    lf->state = lex_none;
 	    token = T_EOL;
@@ -361,7 +361,7 @@ lex_get_token(LEX *lf, int expect)
 	 }
 	 break;
       case lex_number:
-         Dmsg2(900, "Lex state lex_number ch=%x %c\n", ch, ch);
+         Dmsg2(2000, "Lex state lex_number ch=%x %c\n", ch, ch);
 	 if (ch == L_EOF) {
 	    token = T_ERROR;
 	    break;
@@ -386,10 +386,10 @@ lex_get_token(LEX *lf, int expect)
 	    token = T_ERROR;
 	    break;
 	 }
-         Dmsg1(900, "Lex state lex_ip_addr ch=%x\n", ch);
+         Dmsg1(2000, "Lex state lex_ip_addr ch=%x\n", ch);
 	 break;
       case lex_string:
-         Dmsg1(900, "Lex state lex_string ch=%x\n", ch);
+         Dmsg1(2000, "Lex state lex_string ch=%x\n", ch);
 	 if (ch == L_EOF) {
 	    token = T_ERROR;
 	    break;
@@ -404,7 +404,7 @@ lex_get_token(LEX *lf, int expect)
 	 add_str(lf, ch);
 	 break;
       case lex_identifier:
-         Dmsg2(900, "Lex state lex_identifier ch=%x %c\n", ch, ch);
+         Dmsg2(2000, "Lex state lex_identifier ch=%x %c\n", ch, ch);
 	 if (B_ISALPHA(ch)) {
 	    add_str(lf, ch);
 	    break;
@@ -427,7 +427,7 @@ lex_get_token(LEX *lf, int expect)
 	 add_str(lf, ch);
 	 break;
       case lex_quoted_string:
-         Dmsg2(900, "Lex state lex_quoted_string ch=%x %c\n", ch, ch);
+         Dmsg2(2000, "Lex state lex_quoted_string ch=%x %c\n", ch, ch);
 	 if (ch == L_EOF) {
 	    token = T_ERROR;
 	    break;
@@ -462,17 +462,17 @@ lex_get_token(LEX *lf, int expect)
 	    lf->state = lex_none;
 	    lf = lex_open_file(lf, lf->str, NULL);
        if (lf == NULL) {
-         return T_ERROR;
+	 return T_ERROR;
        }
 	    break;
 	 }
 	 add_str(lf, ch);
 	 break;
       }
-      Dmsg4(900, "ch=%d state=%s token=%s %c\n", ch, lex_state_to_str(lf->state),
+      Dmsg4(2000, "ch=%d state=%s token=%s %c\n", ch, lex_state_to_str(lf->state),
 	lex_tok_to_str(token), ch);
    }
-   Dmsg2(900, "lex returning: line %d token: %s\n", lf->line_no, lex_tok_to_str(token));
+   Dmsg2(2000, "lex returning: line %d token: %s\n", lf->line_no, lex_tok_to_str(token));
    lf->token = token;
 
    /* 
@@ -526,7 +526,7 @@ lex_get_token(LEX *lf, int expect)
       break;
 
    case T_INT64:
-      Dmsg2(900, "int64=:%s: %f\n", lf->str, strtod(lf->str, NULL)); 
+      Dmsg2(2000, "int64=:%s: %f\n", lf->str, strtod(lf->str, NULL)); 
       if (token != T_NUMBER || !is_a_number(lf->str)) {
          scan_err2(lf, _("expected an integer number, got %s: %s"),
 	       lex_tok_to_str(token), lf->str);
