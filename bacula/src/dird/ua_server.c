@@ -58,16 +58,24 @@ static void handle_UA_client_request(void *arg);
 static int started = FALSE;
 static workq_t ua_workq;
 
+struct s_addr_port {
+   char *addr;
+   int port;
+};
+
 /* Called here by Director daemon to start UA (user agent)
  * command thread. This routine creates the thread and then
  * returns.
  */
-void start_UA_server(int UA_port)
+void start_UA_server(char *UA_addr, int UA_port)
 {
    pthread_t thid;
    int status;
+   static struct s_addr_port arg;
 
-   if ((status=pthread_create(&thid, NULL, connect_thread, (void *)UA_port)) != 0) {
+   arg.port = UA_port;
+   arg.addr = UA_addr;
+   if ((status=pthread_create(&thid, NULL, connect_thread, (void *)&arg)) != 0) {
       Emsg1(M_ABORT, 0, _("Cannot create UA thread: %s\n"), strerror(status));
    }
    started = TRUE;
@@ -76,12 +84,12 @@ void start_UA_server(int UA_port)
 
 static void *connect_thread(void *arg)
 {
-   int UA_port = (int)arg;
+   struct s_addr_port *UA = (struct s_addr_port *)arg;
 
    pthread_detach(pthread_self());
 
    /*  ****FIXME**** put # 5 on config parameter */
-   bnet_thread_server(UA_port, 5, &ua_workq, handle_UA_client_request);
+   bnet_thread_server(UA->addr, UA->port, 5, &ua_workq, handle_UA_client_request);
    return NULL;
 }
 

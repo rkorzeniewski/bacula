@@ -43,7 +43,7 @@ extern void term_scheduler();
 extern void term_ua_server();
 extern int do_backup(JCR *jcr);
 extern void backup_cleanup(void);
-extern void start_UA_server(int port);
+extern void start_UA_server(char *addr, int port);
 extern void run_job(JCR *jcr);
 extern void init_job_server(int max_workers);
 
@@ -194,7 +194,7 @@ int main (int argc, char *argv[])
       4 /* UA */ + 4 /* sched+watchdog+jobsvr+misc */);
 
    Dmsg0(200, "Start UA server\n");
-   start_UA_server(director->DIRport);
+   start_UA_server(director->DIRaddr, director->DIRport);
 
    start_watchdog();		      /* start network watchdog thread */
 

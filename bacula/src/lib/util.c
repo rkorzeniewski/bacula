@@ -432,6 +432,7 @@ char *job_type_to_str(int type)
       break;
    case JT_ADMIN:
       str = _("Admin");
+      break;
    default:
       str = _("Unknown Type");
       break;

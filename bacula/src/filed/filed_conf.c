@@ -74,6 +74,7 @@ static struct res_items cli_items[] = {
    {"name",     store_name,     ITEM(res_client.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,   ITEM(res_client.hdr.desc), 0, 0, 0},
    {"fdport",   store_pint,     ITEM(res_client.FDport),  0, ITEM_DEFAULT, 9102},
+   {"fdaddress",   store_str,   ITEM(res_client.FDaddr),  0, 0, 0},
    {"workingdirectory",  store_dir, ITEM(res_client.working_directory), 0, ITEM_REQUIRED, 0}, 
    {"piddirectory",  store_dir, ITEM(res_client.pid_directory), 0, ITEM_REQUIRED, 0}, 
    {"subsysdirectory",  store_dir,  ITEM(res_client.subsys_directory), 0, ITEM_REQUIRED, 0}, 
@@ -174,18 +175,26 @@ void free_resource(int type)
 
    switch (type) {
       case R_DIRECTOR:
-	 if (res->res_dir.password)
+	 if (res->res_dir.password) {
 	    free(res->res_dir.password);
-	 if (res->res_dir.address)
+	 }
+	 if (res->res_dir.address) {
 	    free(res->res_dir.address);
+	 }
 	 break;
       case R_CLIENT:
-	 if (res->res_client.working_directory)
+	 if (res->res_client.working_directory) {
 	    free(res->res_client.working_directory);
-	 if (res->res_client.pid_directory)
+	 }
+	 if (res->res_client.pid_directory) {
 	    free(res->res_client.pid_directory);
-	 if (res->res_client.subsys_directory)
+	 }
+	 if (res->res_client.subsys_directory) {
 	    free(res->res_client.subsys_directory);
+	 }
+	 if (res->res_client.FDaddr) {
+	    free(res->res_client.FDaddr);
+	 }
 	 break;
       case R_MSGS:
 	 if (res->res_msgs.mail_cmd)

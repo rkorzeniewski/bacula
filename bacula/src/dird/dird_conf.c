@@ -88,6 +88,7 @@ static struct res_items dir_items[] = {
    {"description", store_str,      ITEM(res_dir.hdr.desc), 0, 0, 0},
    {"messages",    store_res,      ITEM(res_dir.messages), R_MSGS, 0, 0},
    {"dirport",     store_pint,     ITEM(res_dir.DIRport),  0, ITEM_DEFAULT, 9101},
+   {"diraddress",  store_str,      ITEM(res_dir.DIRaddr),  0, 0, 0},
    {"queryfile",   store_dir,      ITEM(res_dir.query_file), 0, ITEM_REQUIRED, 0},
    {"workingdirectory", store_dir, ITEM(res_dir.working_directory), 0, ITEM_REQUIRED, 0},
    {"piddirectory", store_dir,     ITEM(res_dir.pid_directory), 0, ITEM_REQUIRED, 0},
@@ -642,22 +643,32 @@ void free_resource(int type)
 
    switch (type) {
       case R_DIRECTOR:
-	 if (res->res_dir.working_directory)
+	 if (res->res_dir.working_directory) {
 	    free(res->res_dir.working_directory);
-	 if (res->res_dir.pid_directory)
+	 }
+	 if (res->res_dir.pid_directory) {
 	    free(res->res_dir.pid_directory);
-	 if (res->res_dir.subsys_directory)
+	 }
+	 if (res->res_dir.subsys_directory) {
 	    free(res->res_dir.subsys_directory);
-	 if (res->res_dir.password)
+	 }
+	 if (res->res_dir.password) {
 	    free(res->res_dir.password);
-	 if (res->res_dir.query_file)
+	 }
+	 if (res->res_dir.query_file) {
 	    free(res->res_dir.query_file);
+	 }
+	 if (res->res_dir.DIRaddr) {
+	    free(res->res_dir.DIRaddr);
+	 }
 	 break;
       case R_CLIENT:
-	 if (res->res_client.address)
+	 if (res->res_client.address) {
 	    free(res->res_client.address);
-	 if (res->res_client.password)
+	 }
+	 if (res->res_client.password) {
 	    free(res->res_client.password);
+	 }
 	 break;
       case R_STORAGE:
 	 if (res->res_store.address)

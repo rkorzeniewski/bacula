@@ -39,13 +39,14 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /* Become Threaded Network Server */
 void
-bnet_thread_server(int port, int max_clients, workq_t *client_wq, 
+bnet_thread_server(char *bind_addr, int port, int max_clients, workq_t *client_wq, 
 		   void handle_client_request(void *bsock))
 {
    int newsockfd, sockfd, stat;
    socklen_t clilen;
    struct sockaddr_in cli_addr;       /* client's address */
    struct sockaddr_in serv_addr;      /* our address */
+   struct in_addr bind_ip;	      /* address to bind to */
    int tlog;
    fd_set ready, sockset;
    int turnon = 1;
@@ -75,9 +76,17 @@ bnet_thread_server(int port, int max_clients, workq_t *client_wq,
    /* 
     * Bind our local address so that the client can send to us.
     */
-   bzero((char *) &serv_addr, sizeof(serv_addr));
+   bind_ip.s_addr = htonl(INADDR_ANY);
+   if (bind_addr && bind_addr[0]) {
+      if (inet_pton(AF_INET, bind_addr, &bind_ip) <= 0) {
+         Emsg1(M_WARNING, 0, _("Invalid bind address: %s, using INADDR_ANY\n"),
+	    bind_addr);
+	 bind_ip.s_addr = htonl(INADDR_ANY);
+      }
+   }
+   memset((char *) &serv_addr, 0, sizeof(serv_addr));
    serv_addr.sin_family = AF_INET;
-   serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+   serv_addr.sin_addr.s_addr = bind_ip.s_addr;
    serv_addr.sin_port = htons(port);
 
    int tmax = 30 * (60 / 5);	      /* wait 30 minutes max */

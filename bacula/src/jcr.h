@@ -108,6 +108,7 @@ struct s_jcr {
    char *RestoreBootstrap;            /* Bootstrap file to restore */
    char *sd_auth_key;                 /* SD auth key */
    MSGS *jcr_msgs;                    /* Copy of message resource -- actually used */
+   uint32_t ClientId;                 /* Client associated with Job */
 
    /* Daemon specific part of JCR */
    /* This should be empty in the library */
@@ -128,8 +129,7 @@ struct s_jcr {
    int SDJobStatus;                   /* Storage Job Status */
    int mode;                          /* manual/auto run */
    B_DB *db;                          /* database pointer */
-   int MediaId;                       /* DB record IDs associated with this job */
-   int ClientId;                      /* Client associated with file */
+   uint32_t MediaId;                  /* DB record IDs associated with this job */
    uint32_t PoolId;                   /* Pool record id */
    FileId_t FileId;                   /* Last file id inserted */
    uint32_t FileIndex;                /* Last FileIndex processed */
@@ -137,7 +137,7 @@ struct s_jcr {
    int fn_printed;                    /* printed filename */
    POOLMEM *stime;                    /* start time for incremental/differential */
    JOB_DBR jr;                        /* Job record in Database */
-   int RestoreJobId;                  /* Id specified by UA */
+   uint32_t RestoreJobId;             /* Id specified by UA */
    char *RestoreWhere;                /* Where to restore the files */
 #endif /* DIRECTOR_DAEMON */
 
@@ -191,6 +191,7 @@ struct s_jcr {
    DEV_RECORD rec;                    /* Read/Write record */
    long Ticket;                       /* ticket for this job */
    uint32_t VolFirstFile;             /* First file index this Volume */
+   uint32_t FileIndex;                /* Current File Index */
    uint32_t start_block;              /* Start write block */
    uint32_t start_file;               /* Start write file */
    uint32_t end_block;                /* Ending block written */
@@ -238,6 +239,7 @@ extern JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr);
 extern void free_jcr(JCR *jcr);
 extern void free_locked_jcr(JCR *jcr);
 extern JCR *get_jcr_by_id(uint32_t JobId);
+extern JCR *get_jcr_by_session(uint32_t SessionId, uint32_t SessionTime);
 extern JCR *get_jcr_by_partial_name(char *Job);
 extern JCR *get_jcr_by_full_name(char *Job);
 extern JCR *get_next_jcr(JCR *jcr);

@@ -45,7 +45,6 @@ extern int do_backup(JCR *jcr);
 extern int do_restore(JCR *jcr);
 extern int do_verify(JCR *jcr);
 extern void backup_cleanup(void);
-extern void start_UA_server(int port);
 
 /* Queue of jobs to be run */
 static workq_t job_wq;		      /* our job work queue */

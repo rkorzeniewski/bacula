@@ -199,7 +199,8 @@ Without that I don't know who I am :-(\n"), configfile);
 
    /* Become server, and handle requests */
    Dmsg1(10, "filed: listening on port %d\n", me->FDport);
-   bnet_thread_server(me->FDport, me->MaxConcurrentJobs, &dir_workq, handle_client_request);
+   bnet_thread_server(me->FDaddr, me->FDport, me->MaxConcurrentJobs, 
+		      &dir_workq, handle_client_request);
 
    exit(0);			      /* should never get here */
 }

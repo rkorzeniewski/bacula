@@ -88,7 +88,8 @@ all: Makefile libbac.a
 	@echo " "
 
 libbac.a: $(LIBOBJS)
-	$(AR) rcs $@ $(LIBOBJS)
+	$(AR) rc  $@ $(LIBOBJS)
+	$(RANLIB) $@
 
 
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status

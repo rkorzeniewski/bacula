@@ -213,6 +213,27 @@ JCR *get_jcr_by_id(uint32_t JobId)
    return jcr; 
 }
 
+/*
+ * Given a SessionId and SessionTime, find the JCR	
+ *   Returns: jcr on success
+ *	      NULL on failure
+ */
+JCR *get_jcr_by_session(uint32_t SessionId, uint32_t SessionTime)
+{
+   JCR *jcr;	   
+
+   P(mutex);
+   for (jcr = jobs; jcr; jcr=jcr->next) {
+      if (jcr->VolSessionId == SessionId && 
+	  jcr->VolSessionTime == SessionTime) {
+	 jcr->use_count++;
+         Dmsg1(200, "Increment jcr use_count=%d\n", jcr->use_count);
+	 break;
+      }
+   }
+   V(mutex);
+   return jcr; 
+}
 
 
 /*

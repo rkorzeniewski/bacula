@@ -84,6 +84,7 @@ struct s_jt {
 struct s_res_dir {
    RES	 hdr;
    int	 DIRport;		      /* where we listen -- UA port server port */
+   char *DIRaddr;		      /* bind address */
    char *password;		      /* Password for UA access */
    char *query_file;		      /* SQL query file */
    char *working_directory;	      /* WorkingDirectory */

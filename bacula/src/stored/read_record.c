@@ -67,6 +67,11 @@ int read_records(JCR *jcr,  DEVICE *dev,
 	    }
             Dmsg3(100, "After mount next vol. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
 		  block->BlockNumber, rec->remainder);
+	    /*
+	     * We just have a new tape up, now read the label (first record)
+	     *	and pass it off to the callback routine, then continue
+	     *	most likely reading the previous record.
+	     */
 	    record = new_record();
 	    read_block_from_device(dev, block);
 	    read_record_from_block(block, record);
@@ -218,4 +223,3 @@ static char *rec_state_to_str(DEV_RECORD *rec)
    }
    return buf;
 }
-

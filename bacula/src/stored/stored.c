@@ -38,7 +38,6 @@
 /* Forward referenced functions */
 void terminate_stored(int sig);
 static void check_config();
-static void *director_thread(void *arg);
 
 #define CONFIG_FILE "bacula-sd.conf"  /* Default config file */
 
@@ -61,7 +60,6 @@ static char *configfile;
 static int foreground = 0;
 
 static workq_t dird_workq;	      /* queue for processing connections */
-static workq_t filed_workq;	      /* queue for processing connections */
 
 
 static void usage()
@@ -90,8 +88,6 @@ int main (int argc, char *argv[])
    int no_signals = FALSE;
    int test_config = FALSE;
    DEVRES *device;
-   pthread_t dirid;
-   int status;
 
    init_stack_dump();
    my_name_is(argc, argv, "stored");
@@ -255,33 +251,10 @@ int main (int argc, char *argv[])
 
    start_watchdog();		      /* start watchdog thread */
 
-   /*
-    * Here we support either listening on one port or on two ports
-    */
-   if (me->SDDport == 0 || me->SDDport == me->SDport) {
-      /* Single server used for Director and File daemon */
-      bnet_thread_server(me->SDport, me->max_concurrent_jobs * 2,
-	 &dird_workq, connection_request);
-   } else {
-      /* Start the Director server */
-      if ((status=pthread_create(&dirid, NULL, director_thread, 	
-	   (void *)me->SDport)) != 0) {
-         Emsg1(M_ABORT, 0, _("Cannot create Director thread: %s\n"), strerror(status));
-      }
-      /* Start File daemon server */
-      bnet_thread_server(me->SDDport, 10, &filed_workq, connection_from_filed);
-      /* never returns */
-   }
-
+   /* Single server used for Director and File daemon */
+   bnet_thread_server(me->SDaddr, me->SDport, me->max_concurrent_jobs * 2 + 1,
+		      &dird_workq, connection_request);
    exit(1);			      /* to keep compiler quiet */
-}
-
-static void *director_thread(void *arg)
-{
-   int dir_port = (int)arg;
-   pthread_detach(pthread_self());
-   bnet_thread_server(dir_port, 10, &dird_workq, connection_request);
-   return NULL;
 }
 
 /* Return a new Session Id */

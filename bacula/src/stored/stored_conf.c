@@ -54,10 +54,11 @@ int res_all_size = sizeof(res_all);
 static struct res_items store_items[] = {
    {"name",                  store_name, ITEM(res_store.hdr.name),   0, ITEM_REQUIRED, 0},
    {"description",           store_str,  ITEM(res_dir.hdr.desc),     0, 0, 0},
-   {"address",               store_str,  ITEM(res_store.address),    0, 0, 0},
+   {"address",               store_str,  ITEM(res_store.address),    0, 0, 0}, /* deprecated */
+   {"sdaddress",             store_str,  ITEM(res_store.SDaddr),     0, 0, 0},
    {"messages",              store_res,  ITEM(res_store.messages),   0, R_MSGS, 0},
    {"sdport",                store_int,  ITEM(res_store.SDport),     0, ITEM_DEFAULT, 9103},
-   {"sddport",               store_int,  ITEM(res_store.SDDport),    0, 0, 0}, /* depricated */
+   {"sddport",               store_int,  ITEM(res_store.SDDport),    0, 0, 0}, /* deprecated */
    {"workingdirectory",      store_dir,  ITEM(res_store.working_directory), 0, ITEM_REQUIRED, 0},
    {"piddirectory",          store_dir,  ITEM(res_store.pid_directory), 0, ITEM_REQUIRED, 0},
    {"subsysdirectory",       store_dir,  ITEM(res_store.subsys_directory), 0, ITEM_REQUIRED, 0},
@@ -145,8 +146,8 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
          sendit(sock, "Director: name=%s\n", res->res_dir.hdr.name);
 	 break;
       case R_STORAGE:
-         sendit(sock, "Storage: name=%s address=%s SDport=%d SDDport=%d\n",
-	    res->res_store.hdr.name, res->res_store.address, 
+         sendit(sock, "Storage: name=%s SDaddr=%s SDport=%d SDDport=%d\n",
+	    res->res_store.hdr.name, res->res_store.SDaddr, 
 	    res->res_store.SDport, res->res_store.SDDport);
 	 break;
       case R_DEVICE:
@@ -245,36 +246,51 @@ void free_resource(int type)
 
    switch (type) {
       case R_DIRECTOR:
-	 if (res->res_dir.password)
+	 if (res->res_dir.password) {
 	    free(res->res_dir.password);
-	 if (res->res_dir.address)
+	 }
+	 if (res->res_dir.address) {
 	    free(res->res_dir.address);
+	 }
 	 break;
       case R_STORAGE:
-	 if (res->res_store.address)
+	 if (res->res_store.address) {	/* ***FIXME*** deprecated */
 	    free(res->res_store.address);
-	 if (res->res_store.working_directory)
+	 }
+	 if (res->res_store.SDaddr) {
+	    free(res->res_store.SDaddr);
+	 }
+	 if (res->res_store.working_directory) {
 	    free(res->res_store.working_directory);
-	 if (res->res_store.pid_directory)
+	 }
+	 if (res->res_store.pid_directory) {
 	    free(res->res_store.pid_directory);
-	 if (res->res_store.subsys_directory)
+	 }
+	 if (res->res_store.subsys_directory) {
 	    free(res->res_store.subsys_directory);
+	 }
 	 break;
       case R_DEVICE:
-	 if (res->res_dev.media_type)
+	 if (res->res_dev.media_type) {
 	    free(res->res_dev.media_type);
-	 if (res->res_dev.device_name)
+	 }
+	 if (res->res_dev.device_name) {
 	    free(res->res_dev.device_name);
-	 if (res->res_dev.changer_name)
+	 }
+	 if (res->res_dev.changer_name) {
 	    free(res->res_dev.changer_name);
-	 if (res->res_dev.changer_command)
+	 }
+	 if (res->res_dev.changer_command) {
 	    free(res->res_dev.changer_command);
+	 }
 	 break;
       case R_MSGS:
-	 if (res->res_msgs.mail_cmd)
+	 if (res->res_msgs.mail_cmd) {
 	    free(res->res_msgs.mail_cmd);
-	 if (res->res_msgs.operator_cmd)
+	 }
+	 if (res->res_msgs.operator_cmd) {
 	    free(res->res_msgs.operator_cmd);
+	 }
 	 free_msgs_res((MSGS *)res);  /* free message resource */
 	 res = NULL;
 	 break;

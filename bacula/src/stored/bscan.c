@@ -37,22 +37,24 @@
 /* Forward referenced functions */
 static void do_scan(char *fname);
 static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
-static void create_file_attributes_record(B_DB *db, char *fname, char *lname, int type,
+static int  create_file_attributes_record(B_DB *db, char *fname, char *lname, int type,
 			       char *ap, DEV_RECORD *rec);
-static void create_media_record(B_DB *db, MEDIA_DBR *mr, VOLUME_LABEL *vl);
-static void create_pool_record(B_DB *db, POOL_DBR *pr);
-static void create_job_record(B_DB *db, JOB_DBR *mr, SESSION_LABEL *label);
-static void update_job_record(B_DB *db, JOB_DBR *mr, SESSION_LABEL *elabel, 
+static int  create_media_record(B_DB *db, MEDIA_DBR *mr, VOLUME_LABEL *vl);
+static int  create_pool_record(B_DB *db, POOL_DBR *pr);
+static int  create_job_record(B_DB *db, JOB_DBR *mr, SESSION_LABEL *label, DEV_RECORD *rec);
+static int  update_job_record(B_DB *db, JOB_DBR *mr, SESSION_LABEL *elabel, 
 			      DEV_RECORD *rec);
-static void create_client_record(B_DB *db, CLIENT_DBR *cr);
-static void create_fileset_record(B_DB *db, FILESET_DBR *fsr);
-static void create_jobmedia_record(B_DB *db, JOBMEDIA_DBR *jmr, SESSION_LABEL *elabel);
+static int  create_client_record(B_DB *db, CLIENT_DBR *cr);
+static int  create_fileset_record(B_DB *db, FILESET_DBR *fsr);
+static int  create_jobmedia_record(B_DB *db, JCR *jcr);
+static void create_jcr(JOB_DBR *jr, DEV_RECORD *rec, uint32_t JobId);
 
 
 /* Global variables */
 static DEVICE *dev = NULL;
 static B_DB *db;
-static JCR *jcr;
+static JCR *jcr;		      /* jcr for bscan */
+static JCR *jobjcr;		      /* jcr for simulating running job */
 static BSR *bsr;
 static struct stat statp;
 static int type;
@@ -64,13 +66,10 @@ static MEDIA_DBR mr;
 static POOL_DBR pr;
 static JOB_DBR jr;
 static CLIENT_DBR cr;
-static JOBMEDIA_DBR jmr;
 static FILESET_DBR fsr;
 static ATTR_DBR ar;
 static SESSION_LABEL label;
 static SESSION_LABEL elabel;
-static uint32_t FirstIndex = 0;
-static uint32_t LastIndex = 0;
 
 static char *db_name = "bacula";
 static char *db_user = "bacula";
@@ -81,7 +80,7 @@ static int update_db = 0;
 
 static void usage()
 {
-   fprintf(stderr,
+   fprintf(stderr, _(
 "\nVersion: " VERSION " (" DATE ")\n\n"
 "Usage: bscan [-d debug_level] <bacula-archive>\n"
 "       -b bootstrap      specify a bootstrap file\n"
@@ -92,7 +91,7 @@ static void usage()
 "       -s                synchronize or store in database\n"
 "       -v                verbose\n"
 "       -w dir            specify working directory (default /tmp)\n"
-"       -?                print this message\n\n");
+"       -?                print this message\n\n"));
    exit(1);
 }
 
@@ -104,7 +103,7 @@ int main (int argc, char *argv[])
    init_msg(NULL, NULL);
 
 
-   while ((ch = getopt(argc, argv, "b:d:n:p:u:vw:?")) != -1) {
+   while ((ch = getopt(argc, argv, "b:d:n:p:su:vw:?")) != -1) {
       switch (ch) {
          case 'b':
 	    bsr = parse_bsr(NULL, optarg);
@@ -149,7 +148,7 @@ int main (int argc, char *argv[])
    argv += optind;
 
    if (argc != 1) {
-      Pmsg0(0, "Wrong number of arguments: \n");
+      Pmsg0(0, _("Wrong number of arguments: \n"));
       usage();
    }
 
@@ -158,13 +157,15 @@ int main (int argc, char *argv[])
    jcr = setup_jcr("bscan", argv[0], bsr);
 
    if ((db=db_init_database(NULL, db_name, db_user, db_password)) == NULL) {
-      Emsg0(M_ABORT, 0, "Could not init Bacula database\n");
+      Emsg0(M_ERROR_TERM, 0, _("Could not init Bacula database\n"));
    }
    if (!db_open_database(db)) {
-      Emsg0(M_ABORT, 0, db_strerror(db));
+      Emsg0(M_ERROR_TERM, 0, db_strerror(db));
    }
    Dmsg0(200, "Database opened\n");
-
+   if (verbose) {
+      Pmsg2(000, _("Using Database: %s, User: %s\n"), db_name, db_user);
+   }
 
    do_scan(argv[0]);
 
@@ -186,12 +187,12 @@ static void do_scan(char *devname)
    lname = get_pool_memory(PM_FNAME);
 
    memset(&ar, 0, sizeof(ar));
-   memset(&mr, 0, sizeof(mr));
    memset(&pr, 0, sizeof(pr));
    memset(&jr, 0, sizeof(jr));
    memset(&cr, 0, sizeof(cr));
-   memset(&jmr, 0, sizeof(jmr));
    memset(&fsr, 0, sizeof(fsr));
+
+   detach_jcr_from_device(dev, jcr);
 
    read_records(jcr, dev, record_cb, mount_next_read_volume);
    release_device(jcr, dev);
@@ -223,13 +224,14 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	    /* Check Pool info */
 	    strcpy(pr.Name, dev->VolHdr.PoolName);
 	    strcpy(pr.PoolType, dev->VolHdr.PoolType);
-	    if (!db_get_pool_record(db, &pr)) {
+	    if (db_get_pool_record(db, &pr)) {
+	       if (verbose) {
+                  Pmsg1(000, "Pool record for %s found in DB.\n", pr.Name);
+	       }
+	    } else {
                Pmsg1(000, "VOL_LABEL: Pool record not found for Pool: %s\n",
 		  pr.Name);
 	       create_pool_record(db, &pr);
-	       return;
-	    } else if (verbose) {
-               Pmsg1(000, "Pool record for %s found in DB.\n", pr.Name);
 	    }
 	    if (strcmp(pr.PoolType, dev->VolHdr.PoolType) != 0) {
                Pmsg2(000, "VOL_LABEL: PoolType mismatch. DB=%s Vol=%s\n",
@@ -240,16 +242,18 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	    }
 
 	    /* Check Media Info */
+	    memset(&mr, 0, sizeof(mr));
 	    strcpy(mr.VolumeName, dev->VolHdr.VolName);
 	    mr.PoolId = pr.PoolId;
-	    if (!db_get_media_record(db, &mr)) {
+	    if (db_get_media_record(db, &mr)) {
+	       if (verbose) {
+                  Pmsg1(000, "Media record for %s found in DB.\n", mr.VolumeName);
+	       }
+	    } else {
                Pmsg1(000, "VOL_LABEL: Media record not found for Volume: %s\n",
 		  mr.VolumeName);
 	       strcpy(mr.MediaType, dev->VolHdr.MediaType);
 	       create_media_record(db, &mr, &dev->VolHdr);
-	       return;
-	    } else if (verbose) {
-               Pmsg1(000, "Media record for %s found in DB.\n", mr.VolumeName);
 	    }
 	    if (strcmp(mr.MediaType, dev->VolHdr.MediaType) != 0) {
                Pmsg2(000, "VOL_LABEL: MediaType mismatch. DB=%s Vol=%s\n",
@@ -258,21 +262,42 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	    } else if (verbose) {
                Pmsg1(000, "Media type \"%s\" is OK.\n", mr.MediaType);
 	    }
+	    /* Reset some JCR variables */
+	    for (JCR *mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
+	       mjcr->VolFirstFile = mjcr->FileIndex = 0;
+	       mjcr->start_block = mjcr->end_block = 0;
+	       mjcr->start_file = mjcr->end_file = 0;
+	    }
+
             Pmsg1(000, "VOL_LABEL: OK for Volume: %s\n", mr.VolumeName);
 	    break;
 	 case SOS_LABEL:
 	    unser_session_label(&label, rec);
-	    FirstIndex = LastIndex = 0;
 	    memset(&jr, 0, sizeof(jr));
 	    jr.JobId = label.JobId;
-	    if (!db_get_job_record(db, &jr)) {
+	    if (db_get_job_record(db, &jr)) {
+	       /* Job record already exists in DB */
+	       create_jcr(&jr, rec, jr.JobId);
+	       attach_jcr_to_device(dev, jobjcr);
+	       if (verbose) {
+                  Pmsg1(000, _("SOS_LABEL: Found Job record for JobId: %d\n"), jr.JobId);
+	       }
+	    } else {
+	     
+	       /* Must create a Job record in DB */
                Pmsg1(000, "SOS_LABEL: Job record not found for JobId: %d\n",
 		  jr.JobId);
-	       create_job_record(db, &jr, &label);
+
+	       /* Create Client record */
+	       strcpy(cr.Name, label.ClientName);
+	       create_client_record(db, &cr);
+	       jr.ClientId = cr.ClientId;
+
+	       create_job_record(db, &jr, &label, rec);
 	       jr.PoolId = pr.PoolId;
-	       jr.VolSessionId = rec->VolSessionId;
-	       jr.VolSessionTime = rec->VolSessionTime;
-	       return;
+	       /* Set start positions into JCR */
+	       jobjcr->start_block = dev->block_num;
+	       jobjcr->start_file = dev->file;
 	    }
 	    if (rec->VolSessionId != jr.VolSessionId) {
                Pmsg3(000, "SOS_LABEL: VolSessId mismatch for JobId=%u. DB=%d Vol=%d\n",
@@ -296,40 +321,28 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 case EOS_LABEL:
 	    unser_session_label(&elabel, rec);
 
-	    /* Create Client record */
-	    strcpy(cr.Name, label.ClientName);
-	    create_client_record(db, &cr);
-	    jr.ClientId = cr.ClientId;
-
 	    /* Create FileSet record */
 	    strcpy(fsr.FileSet, label.FileSetName);
 	    create_fileset_record(db, &fsr);
 	    jr.FileSetId = fsr.FileSetId;
 
-	    /* Update Job record */
+	    /* Do the final update to the Job record */
 	    update_job_record(db, &jr, &elabel, rec);
 
 	    /* Create JobMedia record */
-	    jmr.JobId = jr.JobId;
-	    jmr.MediaId = mr.MediaId;
-	    create_jobmedia_record(db, &jmr, &elabel);
-	    if (elabel.JobId != label.JobId) {
-               Pmsg2(000, "EOS_LABEL: Start/End JobId mismatch. Start=%d End=%d\n",
-		  label.JobId, elabel.JobId);
-	       return;
+	    jobjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
+	    if (!jobjcr) {
+               Pmsg2(000, _("Could not find SessId=%d SessTime=%d for EOS record.\n"),
+		   rec->VolSessionId, rec->VolSessionTime);
+	       break;
 	    }
-	    if (elabel.JobFiles != jr.JobFiles) {
-               Pmsg3(000, "EOS_LABEL: JobFiles mismatch for JobId=%u. DB=%d EOS=%d\n",
-		  elabel.JobId,
-		  jr.JobFiles, elabel.JobFiles);
-	       return;
-	    }				      
-	    if (elabel.JobBytes != jr.JobBytes) {
-               Pmsg3(000, "EOS_LABEL: JobBytes mismatch for JobId=%u. DB=%d EOS=%d\n",
-		  elabel.JobId,
-		  jr.JobBytes, elabel.JobBytes);
-	       return;
-	    }				      
+
+	    jobjcr->end_block = dev->block_num;
+	    jobjcr->end_file = dev->file;
+	    create_jobmedia_record(db, jobjcr);
+	    detach_jcr_from_device(dev, jobjcr);
+	    free_jcr(jobjcr);
+
             Pmsg1(000, "EOS_LABEL: OK for JobId=%d\n", elabel.JobId);
 	    break;
 	 case EOM_LABEL:
@@ -392,46 +405,97 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 print_ls_output(fname, lname, type, &statp);	
       }
       create_file_attributes_record(db, fname, lname, type, ap, rec);
-      if (FirstIndex == 0) {
-	 FirstIndex = rec->FileIndex;
-      }
-      LastIndex = rec->FileIndex;
 
    /* Data stream and extracting */
    } else if (rec->Stream == STREAM_FILE_DATA) {
 
-   } else if (rec->Stream != STREAM_MD5_SIGNATURE) {
-      Pmsg2(0, "None of above!!! stream=%d data=%s\n", rec->Stream, rec->data);
+   } else if (rec->Stream == STREAM_GZIP_DATA) {
+
+   } else if (rec->Stream == STREAM_MD5_SIGNATURE) {
+      if (verbose > 1) {
+         Pmsg0(000, _("Got MD5 record.\n"));
+      }
+      /* ****FIXME**** implement db_update_md5_record */
+   } else {
+      Pmsg2(0, _("Unknown stream type!!! stream=%d data=%s\n"), rec->Stream, rec->data);
    }
-   
    return;
 }
 
-static void create_file_attributes_record(B_DB *db, char *fname, char *lname, int type,
+/*
+ * Free the Job Control Record if no one is still using it.
+ *  Called from main free_jcr() routine in src/lib/jcr.c so
+ *  that we can do our Director specific cleanup of the jcr.
+ */
+static void dird_free_jcr(JCR *jcr)
+{
+   Dmsg0(200, "Start dird free_jcr\n");
+
+   if (jcr->file_bsock) {
+      Dmsg0(200, "Close File bsock\n");
+      bnet_close(jcr->file_bsock);
+   }
+   if (jcr->store_bsock) {
+      Dmsg0(200, "Close Store bsock\n");
+      bnet_close(jcr->store_bsock);
+   }
+   if (jcr->RestoreBootstrap) {
+      free(jcr->RestoreBootstrap);
+   }
+   Dmsg0(200, "End dird free_jcr\n");
+}
+
+/*
+ * We got a File Attributes record on the tape.  Now, lookup the Job
+ *   record, and then create the attributes record.
+ */
+static int create_file_attributes_record(B_DB *db, char *fname, char *lname, int type,
 			       char *ap, DEV_RECORD *rec)
 {
+   JCR *mjcr;
+
    if (!update_db) {
-      return;
+      return 1;
+   }
+
+   mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
+   if (!mjcr) {
+      Pmsg2(000, _("Could not find Job SessId=%d SessTime=%d for Attributes record.\n"),
+		   rec->VolSessionId, rec->VolSessionTime);
+      return 0;
    }
    ar.fname = fname;
    ar.link = lname;
-   ar.ClientId = cr.ClientId;
-   ar.JobId = jr.JobId;
+   ar.ClientId = mjcr->ClientId;
+   ar.JobId = mjcr->JobId;
    ar.Stream = rec->Stream;
    ar.FileIndex = rec->FileIndex;
    ar.attr = ap;
+   if (mjcr->VolFirstFile == 0) {
+      mjcr->VolFirstFile = rec->FileIndex;
+   }
+   mjcr->FileIndex = rec->FileIndex;
+   free_jcr(mjcr);		      /* done using JCR */
+
    if (!db_create_file_attributes_record(db, &ar)) {
       Pmsg1(0, _("Could not create File Attributes record. ERR=%s\n"), db_strerror(db));
+      return 0;
    }
-
+   if (verbose > 1) {
+      Pmsg1(000, _("Created File record: %s\n"), fname);   
+   }
+   return 1;
 }
 
-static void create_media_record(B_DB *db, MEDIA_DBR *mr, VOLUME_LABEL *vl)
+/*
+ * For each Volume we see, we create a Medium record
+ */
+static int create_media_record(B_DB *db, MEDIA_DBR *mr, VOLUME_LABEL *vl)
 {
    struct date_time dt;
    struct tm tm;
    if (!update_db) {
-      return;
+      return 1;
    }
    strcpy(mr->VolStatus, "Full");
    mr->VolRetention = 355 * 3600 * 24; /* 1 year */
@@ -445,59 +509,93 @@ static void create_media_record(B_DB *db, MEDIA_DBR *mr, VOLUME_LABEL *vl)
    mr->LabelDate = mktime(&tm);
    if (!db_create_media_record(db, mr)) {
       Pmsg1(0, _("Could not create media record. ERR=%s\n"), db_strerror(db));
+      return 0;
    }
    if (!db_update_media_record(db, mr)) {
       Pmsg1(0, _("Could not update media record. ERR=%s\n"), db_strerror(db));
+      return 0;
    }
+   if (verbose) {
+      Pmsg2(000, _("Created Media record for Volume: %s, JobId: %d\n"), 
+		   mr->VolumeName, jr.JobId);
+   }
+   return 1;
 
 }
 
-static void create_pool_record(B_DB *db, POOL_DBR *pr)
+static int create_pool_record(B_DB *db, POOL_DBR *pr)
 {
    if (!update_db) {
-      return;
+      return 1;
    }
    pr->NumVols++;
    pr->UseCatalog = 1;
    pr->VolRetention = 355 * 3600 * 24; /* 1 year */
    if (!db_create_pool_record(db, pr)) {
       Pmsg1(0, _("Could not create pool record. ERR=%s\n"), db_strerror(db));
+      return 0;
    }
+   if (verbose) {
+      Pmsg1(000, _("Created Pool record for Pool: %s\n"), pr->Name);
+   }
+   return 1;
 
 }
 
 
-static void create_client_record(B_DB *db, CLIENT_DBR *cr)
+/*
+ * Called from SOS to create a client for the current Job 
+ */
+static int create_client_record(B_DB *db, CLIENT_DBR *cr)
 {
    if (!update_db) {
-      return;
+      return 1;
    }
    if (!db_create_client_record(db, cr)) {
       Pmsg1(0, _("Could not create Client record. ERR=%s\n"), db_strerror(db));
+      return 0;
    }
+   if (verbose) {
+      Pmsg1(000, _("Created Client record for Client: %s\n"), cr->Name);
+   }
+   return 1;
 }
 
-static void create_fileset_record(B_DB *db, FILESET_DBR *fsr)
+static int create_fileset_record(B_DB *db, FILESET_DBR *fsr)
 {
    if (!update_db) {
-      return;
+      return 1;
    }
    if (!db_create_fileset_record(db, fsr)) {
       Pmsg1(0, _("Could not create FileSet record. ERR=%s\n"), db_strerror(db));
+      return 0;
    }
+   if (verbose) {
+      Pmsg1(000, _("Created FileSet record %s\n"), fsr->FileSet);
+   }
+   return 1;
 }
 
-static void create_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *label)
+/*
+ * Simulate the two calls on the database to create
+ *  the Job record and to update it when the Job actually
+ *  begins running.
+ */
+static int create_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *label, 
+			     DEV_RECORD *rec)
 {
    struct date_time dt;
    struct tm tm;
 
    if (!update_db) {
-      return;
+      return 1;
    }
+   Pmsg1(000, _("Creating Job record for JobId: %d\n"), jr->JobId);
+
    jr->JobId = label->JobId;
    jr->Type = label->JobType;
    jr->Level = label->JobLevel;
+   jr->JobStatus = JS_Created;
    strcpy(jr->Name, label->JobName);
    strcpy(jr->Job, label->Job);
    dt.julian_day_number = label->write_date;
@@ -506,54 +604,123 @@ static void create_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *label)
    jr->SchedTime = mktime(&tm);
    jr->StartTime = jr->SchedTime;
    jr->JobTDate = (btime_t)jr->SchedTime;
+   jr->VolSessionId = rec->VolSessionId;
+   jr->VolSessionTime = rec->VolSessionTime;
+
+   /* This creates the bare essentials */
    if (!db_create_job_record(db, jr)) {
       Pmsg1(0, _("Could not create job record. ERR=%s\n"), db_strerror(db));
+      return 0;
    }
 
- 
+   /* Now create a JCR as if starting the Job */
+   create_jcr(jr, rec, label->JobId);
+
+   /* This adds the client, StartTime, JobTDate, ... */
+   if (!db_update_job_start_record(db, jr)) {
+      Pmsg1(0, _("Could not update job start record. ERR=%s\n"), db_strerror(db));
+      return 0;
+   }
+   if (verbose) {
+      Pmsg1(000, _("Created Job record for JobId: %d\n"), jr->JobId);
+   }
+   return 1;
 }
 
-static void update_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *elabel,
+/* 
+ * Simulate the database call that updates the Job 
+ *  at Job termination time.
+ */
+static int update_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *elabel,
 			      DEV_RECORD *rec)
 {
    struct date_time dt;
    struct tm tm;
+   JCR *mjcr;
 
    if (!update_db) {
-      return;
+      return 1;
+   }
+   mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
+   if (!mjcr) {
+      Pmsg2(000, _("Could not find SessId=%d SessTime=%d for EOS record.\n"),
+		   rec->VolSessionId, rec->VolSessionTime);
+      return 0;
    }
    dt.julian_day_number = elabel->write_date;
    dt.julian_day_fraction = elabel->write_time;
    tm_decode(&dt, &tm);
-   jr->JobStatus = JS_Terminated;
+   jr->JobId = mjcr->JobId;
+   jr->JobStatus = JS_Terminated;     /* ***FIXME*** need to add to EOS label */
    jr->EndTime = mktime(&tm);
    jr->JobFiles = elabel->JobFiles;
    jr->JobBytes = elabel->JobBytes;
    jr->VolSessionId = rec->VolSessionId;
    jr->VolSessionTime = rec->VolSessionTime;
-   if (!db_create_job_record(db, jr)) {
-      Pmsg1(0, _("Could not create job record. ERR=%s\n"), db_strerror(db));
+   jr->JobTDate = (btime_t)mjcr->start_time;
+   jr->ClientId = mjcr->ClientId;
+   if (!db_update_job_end_record(db, jr)) {
+      Pmsg1(0, _("Could not update job record. ERR=%s\n"), db_strerror(db));
+      free_jcr(mjcr);
+      return 0;
    }
-
+   if (verbose) {
+      Pmsg1(000, _("Updated Job termination record for JobId: %d\n"), jr->JobId);
+   }
+   free_jcr(mjcr);
+   return 1;
 }
 
-static void create_jobmedia_record(B_DB *db, JOBMEDIA_DBR *jmr, SESSION_LABEL *elabel)
+static int create_jobmedia_record(B_DB *db, JCR *mjcr)
 {
-   if (!update_db) {
-      return;
-   }
-   jmr->FirstIndex = FirstIndex;
-   jmr->LastIndex = LastIndex;
-   jmr->StartFile = elabel->start_file;
-   jmr->EndFile = elabel->end_file;
-   jmr->StartBlock = elabel->start_block;
-   jmr->EndBlock = elabel->end_block;
-   if (!db_create_jobmedia_record(db, jmr)) {
-      Pmsg1(0, _("Could not create JobMedia record. ERR=%s\n"), db_strerror(db));
-   }
+   JOBMEDIA_DBR jmr;
 
+   if (!update_db) {
+      return 1;
+   }
+   memset(&jmr, 0, sizeof(jmr));
+   jmr.JobId = mjcr->JobId;
+   jmr.MediaId = mr.MediaId;
+   jmr.FirstIndex = mjcr->VolFirstFile;
+   jmr.LastIndex = mjcr->FileIndex;
+   jmr.StartFile = mjcr->start_file;
+   jmr.EndFile = mjcr->end_file;
+   jmr.StartBlock = mjcr->start_block;
+   jmr.EndBlock = mjcr->end_block;
+
+   if (!db_create_jobmedia_record(db, &jmr)) {
+      Pmsg1(0, _("Could not create JobMedia record. ERR=%s\n"), db_strerror(db));
+      return 0;
+   }
+   if (verbose) {
+      Pmsg2(000, _("Created JobMedia record JobId %d, MediaId %d\n"), 
+		jmr.JobId, jmr.MediaId);
+   }
+   return 1;
 }
 
+/* 
+ * Create a JCR as if we are really starting the job
+ */
+static void create_jcr(JOB_DBR *jr, DEV_RECORD *rec, uint32_t JobId)
+{
+   /*
+    * Transfer as much as possible to the Job JCR. Most important is
+    *	the JobId and the ClientId.
+    */
+   jobjcr = new_jcr(sizeof(JCR), dird_free_jcr);
+   jobjcr->JobType = jr->Type;
+   jobjcr->JobLevel = jr->Level;
+   jobjcr->JobStatus = jr->JobStatus;
+   strcpy(jobjcr->Job, jr->Job);
+   jobjcr->JobId = JobId;      /* this is JobId on tape */
+   jobjcr->sched_time = jr->SchedTime;
+   jobjcr->start_time = jr->StartTime;
+   jobjcr->VolSessionId = rec->VolSessionId;
+   jobjcr->VolSessionTime = rec->VolSessionTime;
+   jobjcr->ClientId = jr->ClientId;
+   attach_jcr_to_device(dev, jobjcr);
+}
 
 /* Dummies to replace askdir.c */
 int	dir_get_volume_info(JCR *jcr, int writing) { return 1;}
@@ -567,6 +734,24 @@ int	dir_send_job_status(JCR *jcr) {return 1;}
 
 int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
 {
+   /*  
+    * We are at the end of reading a tape. Now, we simulate handling
+    *	the end of writing a tape by wiffling through the attached
+    *	jcrs creating jobmedia records.
+    */
+   Dmsg1(100, "Walk attached jcrs. Volume=%s\n", dev->VolCatInfo.VolCatName);
+   for (JCR *mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
+      if (verbose) {
+         Pmsg1(000, "create JobMedia for Job %s\n", mjcr->Job);
+      }
+      mjcr->end_block = dev->block_num;
+      mjcr->end_file = dev->file;
+      if (!create_jobmedia_record(db, mjcr)) {
+         Pmsg2(000, _("Could not create JobMedia record for Volume=%s Job=%s\n"),
+	    dev->VolCatInfo.VolCatName, mjcr->Job);
+      }
+   }
+
    fprintf(stderr, "Mount Volume %s on device %s and press return when ready: ",
       jcr->VolumeName, dev_name(dev));
    getchar();	

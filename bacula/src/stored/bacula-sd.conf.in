@@ -12,7 +12,6 @@
 
 Storage {                             # definition of myself
   Name = @hostname@-sd
-  Address = @hostname@
   SDPort = @sd_port@                  # Director's port      
   WorkingDirectory = "@working_dir@"
   Pid Directory = "@piddir@"

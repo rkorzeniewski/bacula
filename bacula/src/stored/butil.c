@@ -113,6 +113,10 @@ static void my_free_jcr(JCR *jcr)
    return;
 }
 
+/*
+ * Setup a "daemon" JCR for the various standalone
+ *  tools (e.g. bls, bextract, bscan, ...)
+ */
 JCR *setup_jcr(char *name, char *device, BSR *bsr) 
 {
    JCR *jcr = new_jcr(sizeof(JCR), my_free_jcr);

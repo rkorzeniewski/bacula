@@ -48,7 +48,7 @@ int get_cmd(UAContext *ua, char *prompt)
    bnet_fsend(sock, "%s", prompt);
    bnet_sig(sock, BNET_PROMPT);       /* request more input */
    for ( ;; ) {
-      if (bnet_recv(sock) < 0) {
+      if (bnet_recv(sock) <= 0) {
 	 return 0;
       }
       ua->cmd = check_pool_memory_size(ua->cmd, sock->msglen+1);
