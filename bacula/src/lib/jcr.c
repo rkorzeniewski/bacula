@@ -216,7 +216,6 @@ static void free_common_jcr(JCR *jcr)
    case JT_VERIFY:
    case JT_RESTORE:
    case JT_ADMIN:
-      last_job.NumJobs++;
       last_job.JobType = jcr->JobType;
       last_job.JobId = jcr->JobId;
       last_job.VolSessionId = jcr->VolSessionId;

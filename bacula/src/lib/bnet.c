@@ -31,6 +31,7 @@
 
 #include "bacula.h"
 #include "jcr.h"
+#include <netdb.h>
 
 extern time_t watchdog_time;
 
@@ -496,9 +497,6 @@ bnet_wait_data_intr(BSOCK *bsock, int sec)
 #define NO_DATA 	4	/* Valid name, no data record of requested type. */
 #endif
 
-#ifndef HAVE_WIN32
-extern int h_errno;		/* On error has one of the above */
-#endif
 /*
  * Get human readable error for gethostbyname()
  */

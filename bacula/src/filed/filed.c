@@ -242,7 +242,7 @@ Without that I don't know who I am :-(\n"), configfile);
 		      &dir_workq, handle_client_request);
    }
 
-   term_msg();
+   terminate_filed(0);
    exit(0);			      /* should never get here */
 }
 
