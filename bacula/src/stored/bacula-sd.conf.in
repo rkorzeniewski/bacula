@@ -128,6 +128,21 @@ Device {
 #  FreeSpaceCommand = "/etc/bacula/dvd-freespace %a %n"
 #}
 
+#
+# For OpenBSD OS >= 3.6
+#
+#Device {
+#  Name = DDS-3
+#  Media Type = DDS-3
+#  Archive Device = /dev/nrst0
+#  Use MTIOCGET= no
+#  BSF at EOM = yes
+#  TWO EOF = no
+#  AutomaticMount = yes;
+#  AlwaysOpen = yes;
+#  RemovableMedia = yes;
+#  RandomAccess = no;
+#}
 
 #
 # A very old Exabyte with no end of media detection

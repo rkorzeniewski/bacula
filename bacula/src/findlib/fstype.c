@@ -45,17 +45,19 @@
    "HAVE_NETBSD_OS\n" \
    "HAVE_OPENBSD_OS\n" \
    "HAVE_SUN_OS\n"
-#define POOLMEM 	   char
-#define bstrdup 	   strdup
-#define Dmsg0(n,s)	   fprintf(stderr, s);
-#define Dmsg1(n,s,a1)	   fprintf(stderr, s, a1);
-#define Dmsg2(n,s,a1,a2)   fprintf(stderr, s, a1, a2);
+#define bool		   int
+#define false		   0
+#define true		   1
+#define bstrncpy	   strncpy
+#define Dmsg0(n,s)	   fprintf(stderr, s)
+#define Dmsg1(n,s,a1)	   fprintf(stderr, s, a1)
+#define Dmsg2(n,s,a1,a2)   fprintf(stderr, s, a1, a2)
 #endif
 
 /*
  * These functions should be implemented for each OS
  *
- *	 POOLMEM *fstype(const char *fname);
+ *	 bool fstype(const char *fname, char *fs, int fslen);
  */
 #if defined(HAVE_DARWIN_OS) \
    || defined(HAVE_FREEBSD_OS ) \
@@ -110,6 +112,17 @@ bool fstype(const char *fname, char *fs, int fslen)
        */
       switch (st.f_type) {
 
+      /* Known good values */
+      case 0xef53:         bstrncpy(fs, "ext2", fslen); return true;          /* EXT2_SUPER_MAGIC */
+   /* case 0xef53:	   ext2 and ext3 are the same */		      /* EXT3_SUPER_MAGIC */
+      case 0x3153464a:     bstrncpy(fs, "jfs", fslen); return true;           /* JFS_SUPER_MAGIC */
+      case 0x5346544e:     bstrncpy(fs, "ntfs", fslen); return true;          /* NTFS_SB_MAGIC */
+      case 0x9fa0:         bstrncpy(fs, "proc", fslen); return true;          /* PROC_SUPER_MAGIC */
+      case 0x52654973:     bstrncpy(fs, "reiserfs", fslen); return true;      /* REISERFS_SUPER_MAGIC */
+      case 0x58465342:     bstrncpy(fs, "xfs", fslen); return true;           /* XFS_SB_MAGIC */
+      case 0x9fa2:         bstrncpy(fs, "usbdevfs", fslen); return true;      /* USBDEVICE_SUPER_MAGIC */
+      case 0x62656572:     bstrncpy(fs, "sysfs", fslen); return true;         /* SYSFS_MAGIC */
+
 #if 0	    /* These need confirmation */
       case 0xadf5:         bstrncpy(fs, "adfs", fslen); return true;          /* ADFS_SUPER_MAGIC */
       case 0xadff:         bstrncpy(fs, "affs", fslen); return true;          /* AFFS_SUPER_MAGIC */
@@ -142,7 +155,6 @@ bool fstype(const char *fname, char *fs, int fslen)
       case 0x9660:         bstrncpy(fs, "isofs", fslen); return true;         /* ISOFS_SUPER_MAGIC */
       case 0x07c0:         bstrncpy(fs, "jffs", fslen); return true;          /* JFFS_MAGIC_SB_BITMASK */
       case 0x72b6:         bstrncpy(fs, "jffs2", fslen); return true;         /* JFFS2_SUPER_MAGIC */
-      case 0x3153464a:     bstrncpy(fs, "jfs", fslen); return true;           /* JFS_SUPER_MAGIC */
       case 0x2468:         bstrncpy(fs, "minix", fslen); return true;         /* MINIX2_SUPER_MAGIC */
       case 0x2478:         bstrncpy(fs, "minix", fslen); return true;         /* MINIX2_SUPER_MAGIC2 */
       case 0x137f:         bstrncpy(fs, "minix", fslen); return true;         /* MINIX_SUPER_MAGIC */
@@ -151,36 +163,26 @@ bool fstype(const char *fname, char *fs, int fslen)
       case 0x4d44:         bstrncpy(fs, "msdos", fslen); return true;         /* MSDOS_SUPER_MAGIC */
       case 0x564c:         bstrncpy(fs, "ncpfs", fslen); return true;         /* NCP_SUPER_MAGIC */
       case 0x6969:         bstrncpy(fs, "nfs", fslen); return true;           /* NFS_SUPER_MAGIC */
-      case 0x5346544e:     bstrncpy(fs, "ntfs", fslen); return true;          /* NTFS_SB_MAGIC */
       case 0x9fa1:         bstrncpy(fs, "openpromfs", fslen); return true;    /* OPENPROM_SUPER_MAGIC */
       case 0x6f70726f:     bstrncpy(fs, "oprofilefs", fslen); return true;    /* OPROFILEFS_MAGIC */
       case 0xa0b4d889:     bstrncpy(fs, "pfmfs", fslen); return true;         /* PFMFS_MAGIC */
       case 0x50495045:     bstrncpy(fs, "pipfs", fslen); return true;         /* PIPEFS_MAGIC */
-      case 0x9fa0:         bstrncpy(fs, "proc", fslen); return true;          /* PROC_SUPER_MAGIC */
       case 0x002f:         bstrncpy(fs, "qnx4", fslen); return true;          /* QNX4_SUPER_MAGIC */
       case 0x858458f6:     bstrncpy(fs, "ramfs", fslen); return true;         /* RAMFS_MAGIC */
-      case 0x52654973:     bstrncpy(fs, "reiserfs", fslen); return true;      /* REISERFS_SUPER_MAGIC */
       case 0x7275:         bstrncpy(fs, "romfs", fslen); return true;         /* ROMFS_MAGIC */
       case 0x858458f6:     bstrncpy(fs, "rootfs", fslen); return true;        /* RAMFS_MAGIC */
       case 0x67596969:     bstrncpy(fs, "rpc_pipefs", fslen); return true;    /* RPCAUTH_GSSMAGIC */
       case 0x517B:         bstrncpy(fs, "smbfs", fslen); return true;         /* SMB_SUPER_MAGIC */
       case 0x534F434B:     bstrncpy(fs, "sockfs", fslen); return true;        /* SOCKFS_MAGIC */
-      case 0x62656572:     bstrncpy(fs, "sysfs", fslen); return true;         /* SYSFS_MAGIC */
       case 0x012ff7b6:     bstrncpy(fs, "sysv2", fslen); return true;         /* SYSV2_SUPER_MAGIC */
       case 0x012ff7b5:     bstrncpy(fs, "sysv4", fslen); return true;         /* SYSV4_SUPER_MAGIC */
       case 0x858458f6:     bstrncpy(fs, "tmpfs", fslen); return true;         /* RAMFS_MAGIC */
       case 0x01021994:     bstrncpy(fs, "tmpfs", fslen); return true;         /* TMPFS_MAGIC */
       case 0x15013346:     bstrncpy(fs, "udf", fslen); return true;           /* UDF_SUPER_MAGIC */
       case 0x00011954:     bstrncpy(fs, "ufs", fslen); return true;           /* UFS_MAGIC */
-      case 0x9fa2:         bstrncpy(fs, "usbdevfs", fslen); return true;      /* USBDEVICE_SUPER_MAGIC */
       case 0xa501FCF5:     bstrncpy(fs, "vxfs", fslen); return true;          /* VXFS_SUPER_MAGIC */
       case 0x012ff7b4:     bstrncpy(fs, "xenix", fslen); return true;         /* XENIX_SUPER_MAGIC */
-      case 0x58465342:     bstrncpy(fs, "xfs", fslen); return true;           /* XFS_SB_MAGIC */
       case 0x012fd16d:     bstrncpy(fs, "xiafs", fslen); return true;         /* _XIAFS_SUPER_MAGIC */
-
-      case 0xef53:         bstrncpy(fs, "ext2", fslen); return true;          /* EXT2_SUPER_MAGIC */
-   /* case 0xef53:	   ext2 and ext3 are the same */    /* EXT3_SUPER_MAGIC */
-#else	    /* Known good values */
 #endif
 
       default:
@@ -229,6 +231,7 @@ bool fstype(const char *fname, char *fs, int fslen)
 int main(int argc, char **argv)
 {
    char *p;
+   char fs[1000];
    int status = 0;
 
    if (argc < 2) {
@@ -239,10 +242,10 @@ int main(int argc, char **argv)
       return EXIT_FAILURE;
    }
    while (*++argv) {
-      if ((p = fstype(*argv)) == NULL) {
+      if (!fstype(*argv, fs, sizeof(fs))) {
 	 status = EXIT_FAILURE;
       } else {
-         printf("%s\t%s\n", p, *argv);
+         printf("%s\t%s\n", fs, *argv);
       }
    }
    return status;
