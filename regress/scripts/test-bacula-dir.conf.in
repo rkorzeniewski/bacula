@@ -21,7 +21,7 @@ Director {                            # define myself
   SubSysDirectory = "@subsysdir@"
   Maximum Concurrent Jobs = 4
   Password = "pNvX1WiXnwv2C/F7E52LGvw6rKjbbPvu2kyuPa9pVaL3"         # Console password
-  Messages = Standard
+  Messages = Daemon
 }
 
 #
@@ -287,6 +287,15 @@ Messages {
   append = "@working_dir@/log" = all, !skipped
 }
 
+#
+# Message delivery for daemon messages (no job).
+Messages {
+  Name = Daemon
+  mailcommand = "@sbindir@/bsmtp -h @smtp_host@ -f \"\(Bacula\) %r\" -s \"Bacula daemon message\" %r"
+  mail = @job_email@ = all, !skipped            
+  console = all, !skipped, !saved
+  append = "@working_dir@/log" = all, !skipped
+}
     
 # Default pool definition
 Pool {
