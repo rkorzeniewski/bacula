@@ -46,11 +46,13 @@ DCR *new_dcr(JCR *jcr, DEVICE *dev)
    dcr->rec = new_record();
    dcr->spool_fd = -1;
    dcr->max_spool_size = dev->device->max_spool_size;
+// dev->attached_dcrs->append(dcr);
    return dcr;
 }
 
 void free_dcr(DCR *dcr)
 {
+// dcr->dev->attached_dcrs->remove(dcr);
    if (dcr->block) {
       free_block(dcr->block);
    }
@@ -171,7 +173,7 @@ DCR *acquire_device_for_read(JCR *jcr)
 default_path:
 	 tape_previously_mounted = true;
          Dmsg0(200, "dir_get_volume_info\n");
-	 if (!dir_get_volume_info(jcr, GET_VOL_INFO_FOR_READ)) { 
+	 if (!dir_get_volume_info(dcr, GET_VOL_INFO_FOR_READ)) { 
             Jmsg1(jcr, M_WARNING, 0, "%s", jcr->errmsg);
 	 }
 	 /* Call autochanger only once unless ask_sysop called */
@@ -179,7 +181,7 @@ default_path:
 	    int stat;
             Dmsg2(200, "calling autoload Vol=%s Slot=%d\n",
 	       jcr->VolumeName, jcr->VolCatInfo.Slot);			       
-	    stat = autoload_device(jcr, dev, 0, NULL);
+	    stat = autoload_device(dcr, 0, NULL);
 	    if (stat > 0) {
 	       try_autochanger = false;
 	       continue;
@@ -187,7 +189,7 @@ default_path:
 	 }
 	 /* Mount a specific volume and no other */
          Dmsg0(200, "calling dir_ask_sysop\n");
-	 if (!dir_ask_sysop_to_mount_volume(jcr)) {
+	 if (!dir_ask_sysop_to_mount_volume(dcr)) {
 	    goto get_out;	      /* error return */
 	 }
 	 try_autochanger = true;      /* permit using autochanger again */
@@ -262,8 +264,8 @@ DCR *acquire_device_for_append(JCR *jcr)
        */
       pm_strcpy(&jcr->VolumeName, dev->VolHdr.VolName);
       bstrncpy(dcr->VolumeName, dev->VolHdr.VolName, sizeof(dcr->VolumeName));
-      if (!dir_get_volume_info(jcr, GET_VOL_INFO_FOR_WRITE) &&
-	  !(dir_find_next_appendable_volume(jcr) &&
+      if (!dir_get_volume_info(dcr, GET_VOL_INFO_FOR_WRITE) &&
+	  !(dir_find_next_appendable_volume(dcr) &&
 	    strcmp(dev->VolHdr.VolName, jcr->VolumeName) == 0)) { /* wrong tape mounted */
 	 if (dev->num_writers != 0) {
 	    DEVICE *d = ((DEVRES *)dev->device)->dev;
@@ -360,7 +362,8 @@ ok_out:
  */
 bool release_device(JCR *jcr)
 {
-   DEVICE *dev = jcr->dcr->dev;   
+   DCR *dcr = jcr->dcr;
+   DEVICE *dev = dcr->dev;   
    lock_device(dev);
    Dmsg1(100, "release_device device is %s\n", dev_is_tape(dev)?"tape":"disk");
    if (dev_state(dev, ST_READ)) {
@@ -376,7 +379,7 @@ bool release_device(JCR *jcr)
       Dmsg1(100, "There are %d writers in release_device\n", dev->num_writers);
       if (dev_state(dev, ST_LABEL)) {
          Dmsg0(100, "dir_create_jobmedia_record. Release\n");
-	 if (!dir_create_jobmedia_record(jcr)) {
+	 if (!dir_create_jobmedia_record(dcr)) {
             Jmsg(jcr, M_ERROR, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
 	    jcr->VolCatInfo.VolCatName, jcr->Job);
 	 }
@@ -388,7 +391,7 @@ bool release_device(JCR *jcr)
 	 dev->VolCatInfo.VolCatJobs++;		    /* increment number of jobs */
 	 /* Note! do volume update before close, which zaps VolCatInfo */
          Dmsg0(100, "dir_update_vol_info. Release0\n");
-	 dir_update_volume_info(jcr, false); /* send Volume info to Director */
+	 dir_update_volume_info(dcr, false); /* send Volume info to Director */
       }
 
       if (!dev->num_writers && (!dev_is_tape(dev) || !dev_cap(dev, CAP_ALWAYSOPEN))) {

@@ -436,18 +436,19 @@ static bool record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 }
 
 /* Dummies to replace askdir.c */
-bool	dir_get_volume_info(JCR *jcr, enum get_vol_info_rw  writing) { return 1;}
-bool	dir_find_next_appendable_volume(JCR *jcr) { return 1;}
-bool	dir_update_volume_info(JCR *jcr, bool relabel) { return 1; }
-bool	dir_create_jobmedia_record(JCR *jcr) { return 1; }
-bool	dir_ask_sysop_to_create_appendable_volume(JCR *jcr) { return 1; }
-bool	dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec) { return 1;}
+bool	dir_get_volume_info(DCR *dcr, enum get_vol_info_rw  writing) { return 1;}
+bool	dir_find_next_appendable_volume(DCR *dcr) { return 1;}
+bool	dir_update_volume_info(DCR *dcr, bool relabel) { return 1; }
+bool	dir_create_jobmedia_record(DCR *dcr) { return 1; }
+bool	dir_ask_sysop_to_create_appendable_volume(DCR *dcr) { return 1; }
+bool	dir_update_file_attributes(DCR *dcr, DEV_RECORD *rec) { return 1;}
 bool	dir_send_job_status(JCR *jcr) {return 1;}
 
 
-bool dir_ask_sysop_to_mount_volume(JCR *jcr)
+bool dir_ask_sysop_to_mount_volume(DCR *dcr)
 {
-   DEVICE *dev = jcr->dcr->dev;
+   JCR *jcr = dcr->jcr;
+   DEVICE *dev = dcr->dev;
    fprintf(stderr, "Mount Volume \"%s\" on device %s and press return when ready: ",
       jcr->VolumeName, dev_name(dev));
    getchar();	

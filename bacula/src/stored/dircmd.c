@@ -363,13 +363,14 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
    BSOCK *dir = jcr->dir_bsock;
    DEV_BLOCK *block;
    bsteal_lock_t hold;
+   DCR *dcr = jcr->dcr;
    
    steal_device_lock(dev, &hold, BST_WRITING_LABEL);
    block = new_block(dev);
    
    pm_strcpy(&jcr->VolumeName, newname);
    jcr->VolCatInfo.Slot = slot;
-   if (autoload_device(jcr, dev, 0, dir) < 0) {    /* autoload if possible */
+   if (autoload_device(dcr, 0, dir) < 0) {    /* autoload if possible */
       goto bail_out;
    }
 
@@ -383,7 +384,7 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
    }
 
    /* See what we have for a Volume */
-   switch (read_dev_volume_label(jcr->dcr, block)) {		    
+   switch (read_dev_volume_label(dcr, block)) { 	       
    case VOL_NAME_ERROR:
    case VOL_VERSION_ERROR:
    case VOL_LABEL_ERROR:
@@ -402,7 +403,7 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
       /* Fall through wanted! */
    case VOL_IO_ERROR:
    case VOL_NO_LABEL:
-      if (!write_new_volume_label_to_dev(jcr->dcr, newname, poolname)) {
+      if (!write_new_volume_label_to_dev(dcr, newname, poolname)) {
          bnet_fsend(dir, _("3912 Failed to label Volume: ERR=%s\n"), strerror_dev(dev));
 	 break;
       }
@@ -437,13 +438,14 @@ static int read_label(JCR *jcr, DEVICE *dev)
    BSOCK *dir = jcr->dir_bsock;
    DEV_BLOCK *block;
    bsteal_lock_t hold;
+   DCR *dcr = jcr->dcr;
    
    steal_device_lock(dev, &hold, BST_DOING_ACQUIRE);
    
    jcr->VolumeName[0] = 0;
    block = new_block(dev);
    dev->state &= ~ST_LABEL;	      /* force read of label */
-   switch (read_dev_volume_label(jcr->dcr, block)) {		    
+   switch (read_dev_volume_label(dcr, block)) { 	       
    case VOL_OK:
       bnet_fsend(dir, _("3001 Mounted Volume: %s\n"), dev->VolHdr.VolName);
       stat = 1;
@@ -497,10 +499,12 @@ static int mount_cmd(JCR *jcr)
    POOLMEM *dname;
    BSOCK *dir = jcr->dir_bsock;
    DEVICE *dev;
+   DCR *dcr;
 
    dname = get_memory(dir->msglen+1);
    if (sscanf(dir->msg, "mount %s", dname) == 1) {
       dev = find_device(jcr, dname);
+      dcr = jcr->dcr;
       if (dev) {
 	 DEV_BLOCK *block;
 	 P(dev->mutex); 	      /* Use P to avoid indefinite block */
@@ -523,7 +527,7 @@ static int mount_cmd(JCR *jcr)
 	       break;
 	    }
 	    block = new_block(dev);
-	    read_dev_volume_label(jcr->dcr, block);
+	    read_dev_volume_label(dcr, block);
 	    free_block(block);
 	    if (dev->dev_blocked == BST_UNMOUNTED) {
 	       /* We blocked the device, so unblock it */
@@ -748,22 +752,24 @@ static int autochanger_cmd(JCR *jcr)
    POOLMEM *dname;
    BSOCK *dir = jcr->dir_bsock;
    DEVICE *dev;
+   DCR *dcr;
 
    dname = get_memory(dir->msglen+1);
    if (sscanf(dir->msg, "autochanger list %s ", dname) == 1) {
       dev = find_device(jcr, dname);
+      dcr = jcr->dcr;
       if (dev) {
 	 P(dev->mutex); 	      /* Use P to avoid indefinite block */
 	 if (!dev_is_tape(dev)) {
             bnet_fsend(dir, _("3995 Device %s is not an autochanger.\n"), dev_name(dev));
 	 } else if (!(dev->state & ST_OPENED)) {
-	    autochanger_list(jcr, dev, dir);
+	    autochanger_list(dcr, dir);
          /* Under certain "safe" conditions, we can steal the lock */
 	 } else if (dev->dev_blocked && 
 		    (dev->dev_blocked == BST_UNMOUNTED ||
 		     dev->dev_blocked == BST_WAITING_FOR_SYSOP ||
 		     dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP)) {
-	    autochanger_list(jcr, dev, dir);
+	    autochanger_list(dcr, dir);
 	 } else if (dev_state(dev, ST_READ) || dev->num_writers) {
 	    if (dev_state(dev, ST_READ)) {
                 bnet_fsend(dir, _("3901 Device %s is busy with 1 reader.\n"), dev_name(dev));
@@ -772,7 +778,7 @@ static int autochanger_cmd(JCR *jcr)
 		   dev_name(dev), dev->num_writers);
 	    }
 	 } else {		      /* device not being used */
-	    autochanger_list(jcr, dev, dir);
+	    autochanger_list(dcr, dir);
 	 }
 	 V(dev->mutex);
       } else {
@@ -846,13 +852,14 @@ static void read_volume_label(JCR *jcr, DEVICE *dev, int Slot)
    BSOCK *dir = jcr->dir_bsock;
    DEV_BLOCK *block;
    bsteal_lock_t hold;
+   DCR *dcr = jcr->dcr;
    
    steal_device_lock(dev, &hold, BST_WRITING_LABEL);
    block = new_block(dev);
    
    jcr->VolumeName[0] = 0;
    jcr->VolCatInfo.Slot = Slot;
-   if (autoload_device(jcr, dev, 0, dir) < 0) {    /* autoload if possible */
+   if (autoload_device(dcr, 0, dir) < 0) {    /* autoload if possible */
       goto bail_out;
    }
 
@@ -866,7 +873,7 @@ static void read_volume_label(JCR *jcr, DEVICE *dev, int Slot)
    }
 
    dev->state &= ~ST_LABEL;	      /* force read of label */
-   switch (read_dev_volume_label(jcr->dcr, block)) {		    
+   switch (read_dev_volume_label(dcr, block)) { 	       
    case VOL_OK:
       /* DO NOT add quotes around the Volume name. It is scanned in the DIR */
       bnet_fsend(dir, _("3001 Volume=%s Slot=%d\n"), dev->VolHdr.VolName, Slot);

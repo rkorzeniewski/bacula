@@ -100,7 +100,7 @@ bool fixup_device_block_write_error(DCR *dcr, DEV_BLOCK *block)
    unlock_device(dev);
 
    /* Create a jobmedia record for this job */
-   if (!dir_create_jobmedia_record(jcr)) {
+   if (!dir_create_jobmedia_record(dcr)) {
        Jmsg(jcr, M_ERROR, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
 	    jcr->VolCatInfo.VolCatName, jcr->Job);
        P(dev->mutex);
@@ -113,7 +113,7 @@ bool fixup_device_block_write_error(DCR *dcr, DEV_BLOCK *block)
       dev->VolCatInfo.VolCatStatus, dev->VolCatInfo.VolCatName);
    dev->VolCatInfo.VolCatFiles = dev->file;   /* set number of files */
    dev->VolCatInfo.VolCatJobs++;	      /* increment number of jobs */
-   if (!dir_update_volume_info(jcr, false)) {	 /* send Volume info to Director */
+   if (!dir_update_volume_info(dcr, false)) {	 /* send Volume info to Director */
       P(dev->mutex);
       unblock_device(dev);
       return false;		   /* device locked */
@@ -175,7 +175,7 @@ bool fixup_device_block_write_error(DCR *dcr, DEV_BLOCK *block)
 
    /* Clear NewVol now because dir_get_volume_info() already done */
    jcr->dcr->NewVol = false;
-   set_new_volume_parameters(jcr, dev);
+   set_new_volume_parameters(dcr);
 
    jcr->run_time += time(NULL) - wait_time; /* correct run time for mount wait */
 
@@ -197,10 +197,11 @@ bool fixup_device_block_write_error(DCR *dcr, DEV_BLOCK *block)
  *  concerning this job.  The global changes were made earlier
  *  in the dev structure.
  */
-void set_new_volume_parameters(JCR *jcr, DEVICE *dev) 
+void set_new_volume_parameters(DCR *dcr)
 {
-   DCR *dcr = jcr->dcr;
-   if (dcr->NewVol && !dir_get_volume_info(jcr, GET_VOL_INFO_FOR_WRITE)) {
+   JCR *jcr = dcr->jcr;
+   DEVICE *dev = dcr->dev;
+   if (dcr->NewVol && !dir_get_volume_info(dcr, GET_VOL_INFO_FOR_WRITE)) {
       Jmsg1(jcr, M_ERROR, 0, "%s", jcr->errmsg);
    }
    /* Set new start/end positions */
@@ -224,9 +225,9 @@ void set_new_volume_parameters(JCR *jcr, DEVICE *dev)
  *  concerning this job.  The global changes were made earlier
  *  in the dev structure.
  */
-void set_new_file_parameters(JCR *jcr, DEVICE *dev) 
+void set_new_file_parameters(DCR *dcr)
 {
-   DCR *dcr = jcr->dcr;
+   DEVICE *dev = dcr->dev;
     
    /* Set new start/end positions */
    if (dev_state(dev, ST_TAPE)) {
@@ -315,6 +316,22 @@ int open_device(JCR *jcr, DEVICE *dev)
        }
    }
    return 1;
+}
+
+void dev_lock(DEVICE *dev)
+{
+   int errstat;
+   if ((errstat=rwl_writelock(&dev->lock))) {
+      Emsg1(M_ABORT, 0, "Device write lock failure. ERR=%s\n", strerror(errstat));
+   }
+}
+
+void dev_unlock(DEVICE *dev)
+{
+   int errstat;
+   if ((errstat=rwl_writeunlock(&dev->lock))) {
+      Emsg1(M_ABORT, 0, "Device write unlock failure. ERR=%s\n", strerror(errstat));
+   }
 }
 
 /* 

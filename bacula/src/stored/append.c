@@ -209,7 +209,7 @@ int do_append_data(JCR *jcr)
 		  jcr->dir_bsock->spool = true;
 	       }
                Dmsg0(200, "Send attributes.\n");
-	       if (!dir_update_file_attributes(jcr, &rec)) {
+	       if (!dir_update_file_attributes(dcr, &rec)) {
 		  jcr->dir_bsock->spool = false;
                   Jmsg(jcr, M_FATAL, 0, _("Error updating file attributes. ERR=%s\n"),
 		     bnet_strerror(jcr->dir_bsock));

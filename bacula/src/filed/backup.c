@@ -483,7 +483,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	    /* If there is no default ACL get standard ACL */
 	    myAcl = acl_get_file(ff_pkt->fname, ACL_TYPE_ACCESS);
 	    if (!myAcl) {
-               Emsg1(M_WARNING, 0, "Error while trying to get ACL of directory: %s!\n", ff_pkt->fname);
+               Jmsg1(jcr, M_WARNING, 0, "Error while trying to get ACL of directory: %s!\n", ff_pkt->fname);
 	    }
 	 }
          acl_text = acl_to_any_text(myAcl, NULL, ',', TEXT_ABBREVIATE);
@@ -493,7 +493,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	 /* Files or links */
 	 acl_t myAcl = acl_get_file(ff_pkt->fname, ACL_TYPE_ACCESS);
 	 if (!myAcl) {
-            Emsg1(M_WARNING, 0, "Error while trying to get ACL of file: %s!\n", ff_pkt->fname);
+            Jmsg1(jcr, M_WARNING, 0, "Error while trying to get ACL of file: %s!\n", ff_pkt->fname);
 	    acl_free(myAcl);
 	 }
          acl_text = acl_to_any_text(myAcl, NULL, ',', TEXT_ABBREVIATE);
@@ -523,7 +523,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	    sd->msglen = 0;
 	    bclose(&ff_pkt->bfd);
 	    set_jcr_job_status(jcr, JS_ErrorTerminated);
-            Emsg1(M_WARNING, 0, "Error while trying to send ACL of %s to SD!\n", ff_pkt->fname);
+            Jmsg1(jcr, M_FATAL, 0, "Error while trying to send ACL of %s to SD!\n", ff_pkt->fname);
 	 } else {
 	    jcr->JobBytes += sd->msglen;
 	    sd->msg = msgsave;

@@ -197,6 +197,14 @@ init_dev(DEVICE *dev, DEVRES *device)
       Mmsg1(&dev->errmsg, _("Unable to init mutex: ERR=%s\n"), strerror(errstat));
       Emsg0(M_FATAL, 0, dev->errmsg);
    }
+#ifdef xxx
+   if ((errstat = rwl_init(&dev->lock)) != 0) {
+      dev->dev_errno = errstat;
+      Mmsg1(&dev->errmsg, _("Unable to init mutex: ERR=%s\n"), strerror(errstat));
+      Emsg0(M_FATAL, 0, dev->errmsg);
+   }
+#endif
+
    dev->fd = -1;
    dev->attached_dcrs = new dlist(dcr, &dcr->dev_link);
    Dmsg2(29, "init_dev: tape=%d dev_name=%s\n", dev_is_tape(dev), dev->dev_name);
