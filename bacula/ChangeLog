@@ -1,5 +1,9 @@
 
-2003-10-26 Version 1.32c 26Oct03
+2003-10-29 Version 1.32c 29Oct03
+29Oct03
+- Add code to ensure that fds 0,1, and 2 are defined by dup'ing them
+  to /dev/null if necessary.  Mostly for Windows that does not have them.
+- Error check dir_create_jobmedia_record() 2 places in acquire.c
 26Oct03
 - More doc fixes.
 - Make message buffer longer for a status message that was    

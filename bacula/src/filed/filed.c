@@ -103,50 +103,50 @@ int main (int argc, char *argv[])
 
    while ((ch = getopt(argc, argv, "c:d:fg:istu:v?")) != -1) {
       switch (ch) {
-         case 'c':                    /* configuration file */
-	    if (configfile != NULL) {
-	       free(configfile);
-	    }
-	    configfile = bstrdup(optarg);
-	    break;
+      case 'c':                    /* configuration file */
+	 if (configfile != NULL) {
+	    free(configfile);
+	 }
+	 configfile = bstrdup(optarg);
+	 break;
 
-         case 'd':                    /* debug level */
-	    debug_level = atoi(optarg);
-	    if (debug_level <= 0) {
-	       debug_level = 1; 
-	    }
-	    break;
+      case 'd':                    /* debug level */
+	 debug_level = atoi(optarg);
+	 if (debug_level <= 0) {
+	    debug_level = 1; 
+	 }
+	 break;
 
-         case 'f':                    /* run in foreground */
-	    foreground = TRUE;
-	    break;
+      case 'f':                    /* run in foreground */
+	 foreground = TRUE;
+	 break;
 
-         case 'g':                    /* set group */
-	    gid = optarg;
-	    break;
+      case 'g':                    /* set group */
+	 gid = optarg;
+	 break;
 
-         case 'i':
-	    inetd_request = TRUE;
-	    break;
-         case 's':
-	    no_signals = TRUE;
-	    break;
+      case 'i':
+	 inetd_request = TRUE;
+	 break;
+      case 's':
+	 no_signals = TRUE;
+	 break;
 
-         case 't':
-	    test_config = TRUE;
-	    break;
+      case 't':
+	 test_config = TRUE;
+	 break;
 
-         case 'u':                    /* set userid */
-	    uid = optarg;
-	    break;
+      case 'u':                    /* set userid */
+	 uid = optarg;
+	 break;
 
-         case 'v':                    /* verbose */
-	    verbose++;
-	    break;
+      case 'v':                    /* verbose */
+	 verbose++;
+	 break;
 
-         case '?':
-	 default:
-	    usage();
+      case '?':
+      default:
+	 usage();
 
       }  
    }
