@@ -28,10 +28,13 @@ For 1.30 release:
 - Document OPTIMIZE TABLE in MySQL
 - Fix watchdog pthread crash on Win32
 - Document labeling a whole magazine using "cat"
+- Implement create "FileSet"
 
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 After 1.30:
+- Implement "scratch pool" where tapes are defined and can be
+  taken by any pool that needs them.
 - Implement restore "current system", but take all files without
   doing selection tree -- so that jobs without File records can
   be restored.

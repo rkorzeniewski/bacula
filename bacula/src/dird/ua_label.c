@@ -103,7 +103,7 @@ int update_slots(UAContext *ua)
 	     } else {
 		bsendmsg(ua, _(
                   "Catalog record for Volume \"%s\" updated to reference slot %d.\n"),
-		  mr.Slot);
+		  mr.VolumeName, mr.Slot);
 	     }
 	  } else {
              bsendmsg(ua, _("Catalog record for Volume \"%s\" is up to date.\n"),
