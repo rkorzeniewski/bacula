@@ -36,6 +36,55 @@
 #include <grp.h>
 #endif
 
+static pthread_mutex_t timer_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t timer = PTHREAD_COND_INITIALIZER;
+
+/*
+ * This routine will sleep (sec, microsec).  Note, however, that if a
+ *   signal occurs, it will return early.  It is up to the caller
+ *   to recall this routine if he/she REALLY wants to sleep the
+ *   requested time.
+ */
+int bmicrosleep(time_t sec, long usec)
+{
+   struct timespec timeout;
+   struct timeval tv;
+   struct timezone tz;
+   int stat;
+
+   timeout.tv_sec = sec;
+   timeout.tv_nsec = usec * 1000;
+
+#ifdef HAVE_NANOSLEEP
+   stat = nanosleep(&timeout, NULL);
+   if (!(stat < 0 && errno == ENOSYS)) {
+      return stat;
+   }
+   /* If we reach here it is because nanosleep is not supported by the OS */
+#endif
+
+   /* Do it the old way */
+   gettimeofday(&tv, &tz);
+   timeout.tv_nsec += tv.tv_usec * 1000;
+   timeout.tv_sec += tv.tv_sec;
+   while (timeout.tv_nsec >= 1000000000) {
+      timeout.tv_nsec -= 1000000000;
+      timeout.tv_sec++;
+   }
+
+   Dmsg2(200, "pthread_cond_timedwait sec=%d usec=%d\n", sec, usec);
+   /* Note, this unlocks mutex during the sleep */
+   P(timer_mutex);
+   stat = pthread_cond_timedwait(&timer, &timer_mutex, &timeout);
+   if (stat != 0) {
+      berrno be;
+      Dmsg2(200, "pthread_cond_timedwait stat=%d ERR=%s\n", stat,
+	 be.strerror(stat));
+   }
+   V(timer_mutex);
+   return stat;
+}
+
 /*
  * Guarantee that the string is properly terminated */
 char *bstrncpy(char *dest, const char *src, int maxlen)
@@ -258,10 +307,10 @@ void _p(char *file, int line, pthread_mutex_t *m)
       e_msg(file, line, M_ERROR, 0, _("Possible mutex deadlock.\n"));
       /* We didn't get the lock, so do it definitely now */
       if ((errstat=pthread_mutex_lock(m))) {
-	 e_msg(file, line, M_ABORT, 0, _("Mutex lock failure. ERR=%s\n"),
+         e_msg(file, line, M_ABORT, 0, _("Mutex lock failure. ERR=%s\n"),
 	       strerror(errstat));
       } else {
-	 e_msg(file, line, M_ERROR, 0, _("Possible mutex deadlock resolved.\n"));
+         e_msg(file, line, M_ERROR, 0, _("Possible mutex deadlock resolved.\n"));
       }
 
    }
@@ -317,12 +366,12 @@ void create_pid_file(char *dir, const char *progname, int port)
       *pidbuf = 0;
       if ((pidfd = open(fname, O_RDONLY|O_BINARY, 0)) < 0 ||
 	   read(pidfd, &pidbuf, sizeof(pidbuf)) < 0 ||
-	   sscanf(pidbuf, "%d", &oldpid) != 1) {
-	 Emsg2(M_ERROR_TERM, 0, _("Cannot open pid file. %s ERR=%s\n"), fname, strerror(errno));
+           sscanf(pidbuf, "%d", &oldpid) != 1) {
+         Emsg2(M_ERROR_TERM, 0, _("Cannot open pid file. %s ERR=%s\n"), fname, strerror(errno));
       }
       /* See if other Bacula is still alive */
       if (kill(oldpid, 0) != -1 || errno != ESRCH) {
-	 Emsg3(M_ERROR_TERM, 0, _("%s is already running. pid=%d\nCheck file %s\n"),
+         Emsg3(M_ERROR_TERM, 0, _("%s is already running. pid=%d\nCheck file %s\n"),
 	       progname, oldpid, fname);
       }
       /* He is not alive, so take over file ownership */
@@ -467,14 +516,14 @@ void drop(char *uid, char *gid)
       gid_t gr_list[1];
 
       if ((group = getgrnam(gid)) == NULL) {
-	 Emsg1(M_ERROR_TERM, 0, _("Could not find specified group: %s\n"), gid);
+         Emsg1(M_ERROR_TERM, 0, _("Could not find specified group: %s\n"), gid);
       }
       if (setgid(group->gr_gid)) {
-	 Emsg1(M_ERROR_TERM, 0, _("Could not set specified group: %s\n"), gid);
+         Emsg1(M_ERROR_TERM, 0, _("Could not set specified group: %s\n"), gid);
       }
       gr_list[0] = group->gr_gid;
       if (setgroups(1, gr_list)) {
-	 Emsg1(M_ERROR_TERM, 0, _("Could not set specified group: %s\n"), gid);
+         Emsg1(M_ERROR_TERM, 0, _("Could not set specified group: %s\n"), gid);
       }
    }
 #endif
@@ -483,64 +532,16 @@ void drop(char *uid, char *gid)
    if (uid) {
       struct passwd *passw;
       if ((passw = getpwnam(uid)) == NULL) {
-	 Emsg1(M_ERROR_TERM, 0, _("Could not find specified userid: %s\n"), uid);
+         Emsg1(M_ERROR_TERM, 0, _("Could not find specified userid: %s\n"), uid);
       }
       if (setuid(passw->pw_uid)) {
-	 Emsg1(M_ERROR_TERM, 0, _("Could not set specified userid: %s\n"), uid);
+         Emsg1(M_ERROR_TERM, 0, _("Could not set specified userid: %s\n"), uid);
       }
    }
 #endif
 
 }
 
-static pthread_mutex_t timer_mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t timer = PTHREAD_COND_INITIALIZER;
-
-/*
- * This routine will sleep (sec, microsec).  Note, however, that if a
- *   signal occurs, it will return early.  It is up to the caller
- *   to recall this routine if he/she REALLY wants to sleep the
- *   requested time.
- */
-int bmicrosleep(time_t sec, long usec)
-{
-   struct timespec timeout;
-   struct timeval tv;
-   struct timezone tz;
-   int stat;
-
-   timeout.tv_sec = sec;
-   timeout.tv_nsec = usec * 1000;
-
-#ifdef HAVE_NANOSLEEP
-   stat = nanosleep(&timeout, NULL);
-   if (!(stat < 0 && errno == ENOSYS)) {
-      return stat;
-   }
-   /* If we reach here it is because nanosleep is not supported by the OS */
-#endif
-
-   /* Do it the old way */
-   gettimeofday(&tv, &tz);
-   timeout.tv_nsec += tv.tv_usec * 1000;
-   timeout.tv_sec += tv.tv_sec;
-   while (timeout.tv_nsec >= 1000000000) {
-      timeout.tv_nsec -= 1000000000;
-      timeout.tv_sec++;
-   }
-
-   Dmsg2(200, "pthread_cond_timedwait sec=%d usec=%d\n", sec, usec);
-   /* Note, this unlocks mutex during the sleep */
-   P(timer_mutex);
-   stat = pthread_cond_timedwait(&timer, &timer_mutex, &timeout);
-   if (stat != 0) {
-      berrno be;
-      Dmsg2(200, "pthread_cond_timedwait stat=%d ERR=%s\n", stat,
-	 be.strerror(stat));
-   }
-   V(timer_mutex);
-   return stat;
-}
 
 /* BSDI does not have this.  This is a *poor* simulation */
 #ifndef HAVE_STRTOLL
@@ -577,11 +578,11 @@ char *bfgets(char *s, int size, FILE *fd)
       *p = 0;
       if (ch == '\r') { /* Support for Mac/Windows file format */
 	 ch = fgetc(fd);
-	 if (ch == '\n') { /* Windows (\r\n) */
+         if (ch == '\n') { /* Windows (\r\n) */
 	    *p++ = ch;
 	    *p = 0;
 	 }
-	 else { /* Mac (\r only) */
+         else { /* Mac (\r only) */
 	    ungetc(ch, fd); /* Push next character back to fd */
 	 }
 	 break;

@@ -334,7 +334,7 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
       fsize = blseek(ofd, 0, SEEK_CUR);
       bclose(ofd);		      /* first close file */
       if (fsize > 0 && fsize != attr->statp.st_size) {
-	 Jmsg3(jcr, M_ERROR, 0, _("File size of restored file %s not correct. Original %s, restored %s.\n"),
+         Jmsg3(jcr, M_ERROR, 0, _("File size of restored file %s not correct. Original %s, restored %s.\n"),
 	    attr->ofname, edit_uint64(attr->statp.st_size, ec1),
 	    edit_uint64(fsize, ec2));
       }
@@ -352,20 +352,20 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
       /* Change owner of link, not of real file */
       if (lchown(attr->ofname, attr->statp.st_uid, attr->statp.st_gid) < 0) {
 	 berrno be;
-	 Jmsg2(jcr, M_ERROR, 0, _("Unable to set file owner %s: ERR=%s\n"),
+         Jmsg2(jcr, M_ERROR, 0, _("Unable to set file owner %s: ERR=%s\n"),
 	    attr->ofname, be.strerror());
 	 ok = false;
       }
    } else {
       if (chown(attr->ofname, attr->statp.st_uid, attr->statp.st_gid) < 0) {
 	 berrno be;
-	 Jmsg2(jcr, M_ERROR, 0, _("Unable to set file owner %s: ERR=%s\n"),
+         Jmsg2(jcr, M_ERROR, 0, _("Unable to set file owner %s: ERR=%s\n"),
 	    attr->ofname, be.strerror());
 	 ok = false;
       }
       if (chmod(attr->ofname, attr->statp.st_mode) < 0) {
 	 berrno be;
-	 Jmsg2(jcr, M_ERROR, 0, _("Unable to set file modes %s: ERR=%s\n"),
+         Jmsg2(jcr, M_ERROR, 0, _("Unable to set file modes %s: ERR=%s\n"),
 	    attr->ofname, be.strerror());
 	 ok = false;
       }
@@ -375,7 +375,7 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
        */
       if (utime(attr->ofname, &ut) < 0) {
 	 berrno be;
-	 Jmsg2(jcr, M_ERROR, 0, _("Unable to set file times %s: ERR=%s\n"),
+         Jmsg2(jcr, M_ERROR, 0, _("Unable to set file times %s: ERR=%s\n"),
 	    attr->ofname, be.strerror());
 	 ok = false;
       }
@@ -389,7 +389,7 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
        */
       if (chflags(attr->ofname, attr->statp.st_flags) < 0) {
 	 berrno be;
-	 Jmsg2(jcr, M_ERROR, 0, _("Unable to set file flags %s: ERR=%s\n"),
+         Jmsg2(jcr, M_ERROR, 0, _("Unable to set file flags %s: ERR=%s\n"),
 	    attr->ofname, be.strerror());
 	 ok = false;
       }
@@ -421,6 +421,10 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
 int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
 {
 #ifdef HAVE_DARWIN_OS
+   /*
+    * We save the Mac resource fork length so that on a
+    * restore, we can be sure we put back the whole resource.
+    */
    char *p;
    p = attribsEx;
    if (ff_pkt->flags & FO_HFSPLUS) {
@@ -487,13 +491,13 @@ int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
 
 /* Define attributes that are legal to set with SetFileAttributes() */
 #define SET_ATTRS ( \
-	 FILE_ATTRIBUTE_ARCHIVE| \
-	 FILE_ATTRIBUTE_HIDDEN| \
-	 FILE_ATTRIBUTE_NORMAL| \
-	 FILE_ATTRIBUTE_NOT_CONTENT_INDEXED| \
-	 FILE_ATTRIBUTE_OFFLINE| \
-	 FILE_ATTRIBUTE_READONLY| \
-	 FILE_ATTRIBUTE_SYSTEM| \
+         FILE_ATTRIBUTE_ARCHIVE| \
+         FILE_ATTRIBUTE_HIDDEN| \
+         FILE_ATTRIBUTE_NORMAL| \
+         FILE_ATTRIBUTE_NOT_CONTENT_INDEXED| \
+         FILE_ATTRIBUTE_OFFLINE| \
+         FILE_ATTRIBUTE_READONLY| \
+         FILE_ATTRIBUTE_SYSTEM| \
 	 FILE_ATTRIBUTE_TEMPORARY)
 
 
@@ -571,7 +575,7 @@ static bool set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
 			 &atts.ftCreationTime,
 			 &atts.ftLastAccessTime,
 			 &atts.ftLastWriteTime)) {
-	 win_error(jcr, "SetFileTime:", win32_ofile);
+         win_error(jcr, "SetFileTime:", win32_ofile);
       }
       bclose(ofd);
    }
@@ -579,7 +583,7 @@ static bool set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    Dmsg1(100, "SetFileAtts %s\n", attr->ofname);
    if (!(atts.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
       if (!SetFileAttributes(win32_ofile, atts.dwFileAttributes & SET_ATTRS)) {
-	 win_error(jcr, "SetFileAttributes:", win32_ofile);
+         win_error(jcr, "SetFileAttributes:", win32_ofile);
       }
    }
    free_pool_memory(win32_ofile);
