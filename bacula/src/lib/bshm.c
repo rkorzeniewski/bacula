@@ -39,6 +39,8 @@
 
  */
 
+#ifdef implemented
+
 #include "bacula.h"
 
 #if !defined(HAVE_CYGWIN) && !defined(HAVE_WIN32)
@@ -149,3 +151,5 @@ void shm_destroy(BSHM *shm)
 }
 
 #endif /* ! HAVE_CYGWIN */
+
+#endif

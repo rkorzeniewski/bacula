@@ -26,6 +26,7 @@
 
  */
 
+#ifdef implemented
 
 #include "bacula.h"
 
@@ -148,3 +149,5 @@ bnet_send_pkt(BSOCK *bsock, BPKT *pkt, int version)
    }
    ser_end(bsock->msg, 0);
 }
+
+#endif

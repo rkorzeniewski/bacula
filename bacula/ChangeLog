@@ -1,9 +1,35 @@
 
+13Apr04
+- Fix crash in query command.
+- Remove schedule from the default restore job.
+- Fix data spooler to use min/max tape blocking factors.
+- Automatically turn of conio if library not found instead of bombing.
+- Cleaned up a lot of copyright dates.
+- Try to keep spool statistics from going negative.
+- Integrated wx-console code from Nicolas Boichat.
+09Apr04
+- Added new Pools chapter. Doc about using two disks.
+- Attempt to keep the spool file statistics size from going 
+  negative.
+-8Apr04
+- Fix the Director's Scheduled Jobs: list to have a ===
+  termination.
+- Fixed ./configure to disable readline rather than stop if 
+  readline.h is not found
+- Fixed a typo in the SQLite database update script as reported
+  by Robert J. Clark - thanks.
+07Apr04
+- Removed src/win32/pthreads and src/win32/zlib from the source
+  tree.
+- Created a new depkgs-win32 that has the pthreads and zlib source
+  code.
+- Removed the JobDefs from the default Restore job as it has a
+  schedule. Thanks to Matt Howard for this.
 
 
 2004-04-06 Version 1.34.0 06Apr04 Release
 06Apr04
-- Turn of SIGQUIT in console.
+- Turn off SIGQUIT in console.
 05Apr04
 - A good number of document updates.
 - Fixed the order which multiple files are accepted for 
