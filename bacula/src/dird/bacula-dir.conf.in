@@ -27,12 +27,27 @@ Director {                            # define myself
 # Define the backup Job
 Job {
   Name = "NightlySave"
-  Backup = Client=@hostname@-fd FileSet="Full Set"
+  Type = Backup
+  Client=@hostname@-fd 
+  FileSet="Full Set"
   Schedule = "WeeklyCycle"
   Storage = DLTDrive
   Messages = Standard
   Pool = Default
 }
+
+# Standard Restore template, to be changed by Console program
+Job {
+  Name = "RestoreFiles
+  Type = Restore
+  Client=@hostname@-fd 
+  FileSet="Full Set"
+  Storage = DLTDrive
+  Messages = Standard
+  Pool = Default
+  Where = /tmp
+}
+
 
 # List of files to be backed up
 FileSet {

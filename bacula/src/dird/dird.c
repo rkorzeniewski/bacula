@@ -343,7 +343,7 @@ Without that I don't know who I am :-(\n"), configfile);
          Emsg1(M_FATAL, 0, _("No Pool resource defined for job %s\n"), job->hdr.name);
 	 OK = FALSE;
       }
-      if (job->client->catalog) {
+      if (job->client && job->client->catalog) {
 	 CAT *catalog = job->client->catalog;
 	 B_DB *db;
 
@@ -358,9 +358,11 @@ Without that I don't know who I am :-(\n"), configfile);
 	 }
 	 db_close_database(db);
       } else {
-         Emsg1(M_FATAL, 0, _("No Catalog resource defined for client %s\n"), 
+	 if (job->client) {
+            Emsg1(M_FATAL, 0, _("No Catalog resource defined for client %s\n"), 
 	       job->client->hdr.name);
-	 OK = FALSE;
+	    OK = FALSE;
+	 }
       }
    }
 

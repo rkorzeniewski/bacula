@@ -139,7 +139,7 @@ bnet_recv(BSOCK *bsock)
    if (nbytes != sizeof(int32_t)) {
       bsock->errors++;
       bsock->b_errno = EIO;
-      Emsg3(M_ERROR, 0, "Read %d expected %d from %s\n", nbytes, sizeof(int32_t),
+      Emsg3(M_ERROR, 0, _("Read %d expected %d from %s\n"), nbytes, sizeof(int32_t),
 	    bsock->who);
       return -2;
    }
@@ -172,7 +172,7 @@ bnet_recv(BSOCK *bsock)
 	 bsock->b_errno = errno;
       }
       bsock->errors++;
-      Emsg4(M_ERROR, 0, "Read error from %s:%s:%d: ERR=%s\n", 
+      Emsg4(M_ERROR, 0, _("Read error from %s:%s:%d: ERR=%s\n"), 
 	    bsock->who, bsock->host, bsock->port, bnet_strerror(bsock));
       return -2;
    }
@@ -182,7 +182,7 @@ bnet_recv(BSOCK *bsock)
    if (nbytes != pktsiz) {
       bsock->b_errno = EIO;
       bsock->errors++;
-      Emsg5(M_ERROR, 0, "Read expected %d got %d from %s:%s:%d\n", pktsiz, nbytes,
+      Emsg5(M_ERROR, 0, _("Read expected %d got %d from %s:%s:%d\n"), pktsiz, nbytes,
 	    bsock->who, bsock->host, bsock->port);
       return -2;
    }
@@ -255,10 +255,10 @@ bnet_send(BSOCK *bsock)
       }
       if (rc < 0) {
 	 /****FIXME***** use Mmsg */
-         Emsg4(M_ERROR, 0, "Write error sending to %s:%s:%d: ERR=%s\n", 
+         Emsg4(M_ERROR, 0, _("Write error sending to %s:%s:%d: ERR=%s\n"), 
 	       bsock->who, bsock->host, bsock->port,  bnet_strerror(bsock));
       } else {
-         Emsg5(M_ERROR, 0, "Wrote %d bytes to %s:%s:%d, but only %d accepted.\n", 
+         Emsg5(M_ERROR, 0, _("Wrote %d bytes to %s:%s:%d, but only %d accepted.\n"), 
 	       bsock->who, bsock->host, bsock->port, bsock->msglen, rc);
       }
       return 0;
@@ -283,10 +283,10 @@ bnet_send(BSOCK *bsock)
       }
       if (rc < 0) {
 	 /************FIXME********* use Pmsg() **/
-         Emsg4(M_ERROR, 0, "Write error sending to %s:%s:%d: ERR=%s\n", 
+         Emsg4(M_ERROR, 0, _("Write error sending to %s:%s:%d: ERR=%s\n"), 
 	       bsock->who, bsock->host, bsock->port,  bnet_strerror(bsock));
       } else {
-         Emsg5(M_ERROR, 0, "Wrote %d bytes to %s:%s:%d, but only %d accepted.\n", 
+         Emsg5(M_ERROR, 0, _("Wrote %d bytes to %s:%s:%d, but only %d accepted.\n"), 
 	       bsock->who, bsock->host, bsock->port, bsock->msglen, rc);
       }
       return 0;
@@ -353,8 +353,8 @@ static uint32_t *bget_host_ip(char *host)
 	 return NULL;
       }
       if (hp->h_length != sizeof(inaddr.s_addr) || hp->h_addrtype != AF_INET) {
-          Emsg2(M_WARNING, 0, "gethostbyname() network address length error.\n\
-Wanted %d got %d bytes for s_addr.\n", sizeof(inaddr.s_addr), hp->h_length);
+          Emsg2(M_WARNING, 0, _("gethostbyname() network address length error.\n\
+Wanted %d got %d bytes for s_addr.\n"), sizeof(inaddr.s_addr), hp->h_length);
 	  return NULL;
       }
       i = 0;
@@ -410,7 +410,7 @@ bnet_open(char *name, char *host, char *service, int port)
     * Receive notification when connection dies.
     */
    if (setsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, &turnon, sizeof(turnon)) < 0) {
-      Emsg1(M_WARNING, 0, "Cannot set SO_KEEPALIVE on socket: %s\n" , strerror(errno));
+      Emsg1(M_WARNING, 0, _("Cannot set SO_KEEPALIVE on socket: %s\n"), strerror(errno));
    }
    
    for (i = 0; addr_list[i] != ((uint32_t) -1); i++) {
@@ -519,20 +519,20 @@ int bnet_set_buffer_size(BSOCK *bs, uint32_t size, int rw)
 
    dbuf_size = size;
    if ((bs->msg = realloc_pool_memory(bs->msg, dbuf_size+100)) == NULL) {
-      Emsg0(M_FATAL, 0, "Could not malloc 32K BSOCK data buffer\n");
+      Emsg0(M_FATAL, 0, _("Could not malloc 32K BSOCK data buffer\n"));
       return 0;
    }
    if (rw & BNET_SETBUF_READ) {
       while ((dbuf_size > TAPE_BSIZE) &&
 	 (setsockopt(bs->fd, SOL_SOCKET, SO_RCVBUF, (char *)&dbuf_size, sizeof(dbuf_size)) < 0)) {
-         Emsg1(M_ERROR, 0, "sockopt error: %s\n", strerror(errno));
+         Emsg1(M_ERROR, 0, _("sockopt error: %s\n"), strerror(errno));
 	 dbuf_size -= TAPE_BSIZE;
       }
       Dmsg1(200, "set network buffer size=%d\n", dbuf_size);
       if (dbuf_size != MAX_NETWORK_BUFFER_SIZE)
-         Emsg1(M_WARNING, 0, "Warning network buffer = %d bytes not max size.\n", dbuf_size);
+         Emsg1(M_WARNING, 0, _("Warning network buffer = %d bytes not max size.\n"), dbuf_size);
       if (dbuf_size % TAPE_BSIZE != 0) {
-         Emsg1(M_ABORT, 0, "Network buffer size %d not multiple of tape block size.\n",
+         Emsg1(M_ABORT, 0, _("Network buffer size %d not multiple of tape block size.\n"),
 	      dbuf_size);
       }
    }
@@ -540,14 +540,14 @@ int bnet_set_buffer_size(BSOCK *bs, uint32_t size, int rw)
    if (rw & BNET_SETBUF_WRITE) {
       while ((dbuf_size > TAPE_BSIZE) &&
 	 (setsockopt(bs->fd, SOL_SOCKET, SO_SNDBUF, (char *)&dbuf_size, sizeof(dbuf_size)) < 0)) {
-         Emsg1(M_ERROR, 0, "sockopt error: %s\n", strerror(errno));
+         Emsg1(M_ERROR, 0, _("sockopt error: %s\n"), strerror(errno));
 	 dbuf_size -= TAPE_BSIZE;
       }
       Dmsg1(200, "set network buffer size=%d\n", dbuf_size);
       if (dbuf_size != MAX_NETWORK_BUFFER_SIZE)
-         Emsg1(M_WARNING, 0, "Warning network buffer = %d bytes not max size.\n", dbuf_size);
+         Emsg1(M_WARNING, 0, _("Warning network buffer = %d bytes not max size.\n"), dbuf_size);
       if (dbuf_size % TAPE_BSIZE != 0) {
-         Emsg1(M_ABORT, 0, "Network buffer size %d not multiple of tape block size.\n",
+         Emsg1(M_ABORT, 0, _("Network buffer size %d not multiple of tape block size.\n"),
 	      dbuf_size);
       }
    }
@@ -608,9 +608,6 @@ BSOCK *
 init_bsock(int sockfd, char *who, char *host, int port) 
 {
    BSOCK *bsock = (BSOCK *)malloc(sizeof(BSOCK));
-   if (bsock == NULL) {
-      Emsg0(M_ABORT, 0, "Out of memory in init_bsock.\n");
-   }
    memset(bsock, 0, sizeof(BSOCK));
    bsock->fd = sockfd;
    bsock->errors = 0;
@@ -631,9 +628,6 @@ BSOCK *
 dup_bsock(BSOCK *osock)
 {
    BSOCK *bsock = (BSOCK *) malloc(sizeof(BSOCK));
-   if (bsock == NULL) {
-      Emsg0(M_ABORT, 0, "Out of memory in dup_bsock.\n");
-   }
    memcpy(bsock, osock, sizeof(BSOCK));
    bsock->msg = get_pool_memory(PM_MESSAGE);
    bsock->errmsg = get_pool_memory(PM_MESSAGE);
