@@ -164,9 +164,11 @@ static int print_file(FF_PKT *ff, void *pkt)
    case FT_REGE:
    case FT_REG:
    case FT_LNK:
-   case FT_DIR:
+   case FT_DIREND:
    case FT_SPEC:
       print_ls_output(ff->fname, ff->link, ff->type, &ff->statp);
+      break;
+   case FT_DIRBEGIN:
       break;
    case FT_NOACCESS:
       printf(_("Err: Could not access %s: %s\n"), ff->fname, strerror(errno));

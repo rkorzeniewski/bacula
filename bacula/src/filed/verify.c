@@ -94,7 +94,9 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
    case FT_LNK:
       Dmsg2(30, "FT_LNK saving: %s -> %s\n", ff_pkt->fname, ff_pkt->link);
       break;
-   case FT_DIR:
+   case FT_DIRBEGIN:
+      return 1; 		      /* ignored */
+   case FT_DIREND:
       Dmsg1(30, "FT_DIR saving: %s\n", ff_pkt->fname);
       break;
    case FT_SPEC:
@@ -179,7 +181,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
       stat = bnet_fsend(dir, "%d %d %s %s%c%s%c%s%c", jcr->JobFiles,
 		    STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->fname, 
 		    0, attribs, 0, ff_pkt->link, 0);
-   } else if (ff_pkt->type == FT_DIR) {
+   } else if (ff_pkt->type == FT_DIREND) {
       /* Here link is the canonical filename (i.e. with trailing slash) */
       stat = bnet_fsend(dir,"%d %d %s %s%c%s%c%c", jcr->JobFiles,
 		    STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->link, 

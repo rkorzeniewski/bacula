@@ -148,7 +148,9 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
    case FT_LNK:
       Dmsg2(130, "FT_LNK saving: %s -> %s\n", ff_pkt->fname, ff_pkt->link);
       break;
-   case FT_DIR:
+   case FT_DIRBEGIN:
+      return 1; 		      /* not used */
+   case FT_DIREND:
       Dmsg1(130, "FT_DIR saving: %s\n", ff_pkt->link);
       break;
    case FT_SPEC:
@@ -214,7 +216,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
    if (ff_pkt->type != FT_LNKSAVED && (S_ISREG(ff_pkt->statp.st_mode) && 
 	 ff_pkt->statp.st_size > 0) || 
 	 ff_pkt->type == FT_RAW || ff_pkt->type == FT_FIFO ||
-	 (!is_portable_backup(&ff_pkt->bfd) && ff_pkt->type == FT_DIR)) {
+	 (!is_portable_backup(&ff_pkt->bfd) && ff_pkt->type == FT_DIREND)) {
       btimer_t *tid;	
       if (ff_pkt->type == FT_FIFO) {
 	 tid = start_thread_timer(pthread_self(), 60);
@@ -279,7 +281,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       stat = bnet_fsend(sd, "%ld %d %s%c%s%c%s%c%s%c", jcr->JobFiles, 
 	       ff_pkt->type, ff_pkt->fname, 0, attribs, 0, ff_pkt->link, 0,
 	       attribsEx, 0);
-   } else if (ff_pkt->type == FT_DIR) {
+   } else if (ff_pkt->type == FT_DIREND) {
       /* Here link is the canonical filename (i.e. with trailing slash) */
       stat = bnet_fsend(sd, "%ld %d %s%c%s%c%c%s%c", jcr->JobFiles, 
 	       ff_pkt->type, ff_pkt->link, 0, attribs, 0, 0, attribsEx, 0);
