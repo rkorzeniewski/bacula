@@ -1901,13 +1901,14 @@ clrerror_dev(DEVICE *dev, int func)
 {
    const char *msg = NULL;
    struct mtget mt_stat;
+   char buf[100];
 
    dev->dev_errno = errno;	   /* save errno */
    if (errno == EIO) {
       dev->VolCatInfo.VolCatErrors++;
    }
 
-   if (!(dev->state & ST_TAPE)) {
+   if (!dev->is_tape()) {
       return;
    }
    if (errno == ENOTTY || errno == ENOSYS) { /* Function not implemented */
@@ -1941,13 +1942,32 @@ clrerror_dev(DEVICE *dev, int func)
          msg = "MTBSR";
 	 dev->capabilities &= ~CAP_BSR; /* turn off feature */
 	 break;
+      case MTREW:
+         msg = "MTREW";
+	 break;
+#ifdef MTSETBLK
+      case MTSETBLK:
+         msg = "MTSETBLK";
+	 break;
+#endif
+#ifdef MTSETBSIZ 
+      case MTSETBSIZ:
+         msg = "MTSETBSIZ";
+	 break;
+#endif
+#ifdef MTSRSZ
+      case MTSRSZ:
+         msg = "MTSRSZ";
+	 break;
+#endif
       default:
-         msg = "Unknown";
+         bsnprintf(buf, sizeof(buf), "unknown func code %d", func);
+	 msg = buf;
 	 break;
       }
       if (msg != NULL) {
 	 dev->dev_errno = ENOSYS;
-         Mmsg1(&dev->errmsg, _("This device does not support %s.\n"), msg);
+         Mmsg1(dev->errmsg, _("I/O function \"%s\" not supported on this device.\n"), msg);
 	 Emsg0(M_ERROR, 0, dev->errmsg);
       }
    }
