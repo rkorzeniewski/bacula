@@ -48,7 +48,12 @@ messages
 quit
 END_OF_DATA
 bin/bacula stop 2>&1 >/dev/null
-grep TestVolume001 working/restore.bsr 2>&1 >/dev/null
+#
+# This test is not really reliable. What we want to do is
+#   to select files on only one Volume, then insure here
+#   that only one Volume is chosen.
+#
+grep TestVolume002 working/restore.bsr 2>&1 >/dev/null
 bsrstat=$?
 grep "^Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
 bstat=$?

@@ -5,7 +5,7 @@
 #
 cwd=`pwd`
 bin/bacula stop  2>&1 >/dev/null
-scripts/copy-tape-confs
+scripts/copy-2tape-confs
 scripts/prepare-two-tapes
 echo "${cwd}/build" >/tmp/file-list
 bin/drop_sqlite_tables

@@ -3,24 +3,29 @@
 # Run a simple backup of the Bacula build directory then create some           
 #   new files, do an Incremental and restore those two files.
 #
+# This script uses the autochanger and two tapes
+#
 cwd=`pwd`
-scripts/copy-test-confs
-scripts/cleanup
+bin/bacula stop  2>&1 >/dev/null
+bin/drop_sqlite_tables
+bin/make_sqlite_tables
+
+scripts/copy-2tape-confs
+scripts/cleanup-2tape
 echo "${cwd}/tmp/build" >/tmp/file-list
-mkdir ${cwd}/tmp/build
+if test ! -d ${cwd}/tmp/build ; then
+   mkdir ${cwd}/tmp/build
+fi
 cp -p ${cwd}/build/src/dird/*.c ${cwd}/tmp/build
 cd ${cwd}/tmp
 echo "${cwd}/tmp/build/ficheriro1.txt" >restore-list
 echo "${cwd}/tmp/build/ficheriro2.txt" >>restore-list
 cd ${cwd}
-bin/bacula stop  2>&1 >/dev/null
-bin/drop_sqlite_tables
-bin/make_sqlite_tables
 
 echo " "
 echo " "
-echo " === Starting incremental-test ==="
-echo " === Starting incremental-test ===" >>working/log
+echo " === Starting incremental-2tape test ==="
+echo " === Starting incremental-2tape test ===" >>working/log
 echo " "
 
 bin/bacula start 2>&1 >/dev/null
@@ -28,9 +33,9 @@ bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
 @output /dev/null
 messages
 @output tmp/log1.out
-label storage=File volume=TestVolume001
-label storage=File volume=TestVolume002
-run job=CompressedTest yes
+label storage=DDS-4 volume=TestVolume001 slot=1
+label storage=DDS-4 volume=TestVolume002 slot=2
+run job=NightlySave yes
 wait
 messages
 quit
@@ -43,7 +48,7 @@ messages
 @output tmp/log1.out
 @# Force Incremental on the second Volume
 update volume=TestVolume001 VolStatus=Used
-run level=Incremental job=CompressedTest yes
+run level=Incremental job=NightlySave yes
 wait
 messages
 @# 
@@ -73,11 +78,11 @@ diff -r tmp/build tmp/bacula-restores${cwd}/tmp/build 2>&1 >/dev/null
 if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
    echo " "
    echo " "
-   echo "  !!!!! incremental-test Bacula source failed!!! !!!!! "
-   echo "  !!!!! incremental-test failed!!! !!!!! " >>test.out
+   echo "  !!!!! incremental-2tape test Bacula source failed!!! !!!!! "
+   echo "  !!!!! incremental-2tape test failed!!! !!!!! " >>test.out
    echo " "
 else
-   echo "  ===== incremental-test Bacula source OK ===== "
-   echo "  ===== incremental-test OK ===== " >>test.out
+   echo "  ===== incremental-2tape test Bacula source OK ===== "
+   echo "  ===== incremental-2tape test OK ===== " >>test.out
    scripts/cleanup
 fi

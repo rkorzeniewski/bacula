@@ -1,0 +1,64 @@
+#!/bin/sh
+#
+# Run a simple backup of the /usr directory
+#   then restore it.
+#
+cwd=`pwd`
+bin/bacula stop 2>&1 >/dev/null
+bin/drop_sqlite_tables
+bin/make_sqlite_tables
+
+scripts/copy-tape-confs
+scripts/cleanup-tape
+echo "/usr" >/tmp/file-list
+echo " "
+echo " "
+echo " === Starting usr-tape-root test ==="
+echo " "
+echo " "
+bin/bacula start 2>&1 >/dev/null
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
+@tee /dev/null
+messages
+@tee tmp/log1.out
+label storage=DDS-4 Volume=TestVolume001 slot=0
+run job=NightlySave yes
+wait
+messages
+@# 
+@# now do a restore
+@#
+@tee tmp/log2.out
+restore where=${cwd}/tmp/bacula-restores select all
+yes
+wait
+messages
+@tee
+quit
+END_OF_DATA
+bin/bacula stop 2>&1 >/dev/null
+cd /
+${cwd}/bin/testls -e ${cwd}/scripts/exclude-usr-test lib >${cwd}/tmp/original
+cd ${cwd}/tmp/bacula-restores
+${cwd}/bin/testls -e ${cwd}/scripts/exclude-usr-test lib >${cwd}/tmp/restored
+cd ${cwd}/tmp
+sed s%.*lib/kbd/consolefonts$%lib/kbd/consolefonts% original >1
+sort <1 >original
+#
+sed s%.*lib/kbd/consolefonts$%lib/kbd/consolefonts% restored >1
+sort <1 >restored
+rm -f 1
+#
+cd ${cwd}
+diff tmp/original tmp/restored 2>&1 1>/dev/nul
+if [ $? != 0 ] ; then
+   echo " "
+   echo " "
+   echo "  ===== usr-tape-root failed!!! ===== "
+   echo "  ===== usr-tape-root failed!!! ===== " >>test.out
+   echo " "
+else
+   echo "  ===== usr-tape-root OK ===== "
+   echo "  ===== usr-tape-root OK ===== " >>test.out
+   scripts/cleanup
+fi

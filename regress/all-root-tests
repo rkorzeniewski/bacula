@@ -6,5 +6,6 @@ rm -f test.out
 tests/dev-test-root
 tests/etc-test-root
 tests/lib-test-root
+tests/usr-tape-root
 cat test.out
 scripts/cleanup
