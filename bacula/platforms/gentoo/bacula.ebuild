@@ -1,5 +1,4 @@
 # Copyright 2004 D. Scott Barninger
-# Copyright 1999-2004 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 #
 # Modified from bacula-1.34.5.ebuild for 1.36.0 release
@@ -18,11 +17,18 @@
 # more  on bug #181 - another user has reported a sandbox violation trying to
 # write to /dev/sg0 - still can't reproduce this behavior
 # add an 'addpredict /dev/sg0'
-# 08 Dec 2004 D. Scott Barninger
+# 08 Dec 2004 D. Scott Barninger <barninger at fairfieldcomputers dot com>
 #
 # resolve bug #181 - problem is caused by configure calling cdrecord to scan
 # the scsi bus. patch configure to remove this. add logrotate script.
-# 06 Feb 2005 D. Scott Barninger
+# 06 Feb 2005 D. Scott Barninger <barninger at fairfieldcomputers dot com>
+#
+# fix documentation bug
+# 07 Feb 2005 D. Scott Barninger <barninger at fairfieldcomputers dot com>
+#
+# new USE keywords bacula-clientonly bacula-split
+# add new logwatch scripts
+# 06 Mar 2005 D. Scott Barninger <barninger at fairfieldcomputers dot com>
 
 DESCRIPTION="featureful client/server network backup suite"
 HOMEPAGE="http://www.bacula.org/"
@@ -30,8 +36,8 @@ SRC_URI="mirror://sourceforge/bacula/${P}.tar.gz"
 
 LICENSE="GPL-2"
 SLOT="0"
-KEYWORDS="x86 ~ppc ~sparc"
-IUSE="readline tcpd gnome mysql sqlite X static postgres wxwindows"
+KEYWORDS="x86 ~ppc ~sparc ~amd64"
+IUSE="readline tcpd gnome mysql sqlite X static postgres wxwindows bacula-clientonly bacula-split"
 
 inherit eutils
 
@@ -39,31 +45,32 @@ inherit eutils
 # mysql is the recommended choice ...
 # may need sys-libs/libtermcap-compat but try without first
 DEPEND=">=sys-libs/zlib-1.1.4
-	sys-apps/mtx
 	readline? ( >=sys-libs/readline-4.1 )
 	tcpd? ( >=sys-apps/tcp-wrappers-7.6 )
 	gnome? ( gnome-base/libgnome )
 	gnome? ( app-admin/gnomesu )
-	sqlite? ( =dev-db/sqlite-2* )
-	mysql? ( >=dev-db/mysql-3.23 )
-	postgres? ( >=dev-db/postgresql-7.4.0 )
+	!bacula-clientonly? (
+		sqlite? ( =dev-db/sqlite-2* )
+		mysql? ( >=dev-db/mysql-3.23 )
+		postgres? ( >=dev-db/postgresql-7.4.0 )
+		sys-apps/mtx
+	)
 	X? ( virtual/x11 )
 	wxwindows? ( >=x11-libs/wxGTK-2.4.2 )
 	virtual/mta
 	dev-libs/gmp"
 RDEPEND="${DEPEND}
-	sys-apps/mtx
-	app-arch/mt-st"
+	!bacula-clientonly? (
+		sys-apps/mtx
+		app-arch/mt-st
+	)"
 
 src_compile() {
 
-	epatch ${FILESDIR}/1.36.1-cdrecord-configure.patch
+	# this resolves bug #181
+	epatch ${FILESDIR}/1.36.2-cdrecord-configure.patch
 
 	local myconf=""
-
-	# define this to skip building the other daemons ...
-	[ -n "$BUILD_CLIENT_ONLY" ] \
-		&& myconf="${myconf} --enable-client-only"
 
 	myconf="
 		`use_enable readline`
@@ -71,22 +78,29 @@ src_compile() {
 		`use_enable tcpd tcp-wrappers`
 		`use_enable X x`"
 
-	[ -n "$BUILD_CLIENT_ONLY" ] \
-		 && myconf="${myconf} --enable-client-only"
+	# define this to skip building the other daemons ...
+	if use bacula-clientonly
+	then
+		myconf="${myconf} --enable-client-only"
+	fi
 
-	# mysql is the recomended choice ...
-	if use mysql
+	# select database support
+	if ! use bacula-clientonly
 	then
-		myconf="${myconf} --with-mysql=/usr"
-	elif use postgres
-	then
-		myconf="${myconf} --with-postgresql=/usr"
-	elif use sqlite
-	then
-		myconf="${myconf} --with-sqlite=/usr"
-	elif  use sqlite && use mysql
-	then
-		myconf="${myconf/--with-sqlite/}"
+		# mysql is the recomended choice ...
+		if use mysql
+		then
+			myconf="${myconf} --with-mysql=/usr"
+		elif use postgres
+		then
+			myconf="${myconf} --with-postgresql=/usr"
+		elif use sqlite
+		then
+			myconf="${myconf} --with-sqlite=/usr"
+		elif  use sqlite && use mysql
+		then
+			myconf="${myconf/--with-sqlite/}"
+		fi
 	fi
 
 	if use wxwindows
@@ -103,10 +117,6 @@ src_compile() {
 	then
 	myconf="${myconf} --enable-tray-monitor"
 	fi
-
-	# some users report sandbox violations
-	# should not be needed with above configure patch
-	#addpredict /dev/sg0
 
 	./configure \
 		--enable-smartalloc \
@@ -193,10 +203,30 @@ src_install() {
 	chmod 644 ${D}/etc/bacula/tray-monitor.conf
 	fi
 
-	# the database update scripts
-	mkdir -p ${D}/etc/bacula/updatedb
-	cp ${S}/updatedb/* ${D}/etc/bacula/updatedb/
-	chmod 754 ${D}/etc/bacula/updatedb/*
+	if ! use bacula-clientonly
+	then
+		# the database update scripts
+		mkdir -p ${D}/etc/bacula/updatedb
+		cp ${S}/updatedb/* ${D}/etc/bacula/updatedb/
+		chmod 754 ${D}/etc/bacula/updatedb/*
+
+		# the logrotate configuration
+		mkdir -p ${D}/etc/logrotate.d
+		cp ${S}/scripts/logrotate ${D}/etc/logrotate.d/bacula
+		chmod 644 ${D}/etc/logrotate.d/bacula
+
+		# the logwatch scripts
+		mkdir -p ${D}/etc/log.d/conf/logfiles
+		mkdir -p ${D}/etc/log.d/conf/services
+		mkdir -p ${D}/etc/log.d/scripts/services
+		cp ${S}/scripts/logwatch/bacula ${D}/etc/log.d/scripts/services/bacula
+		cp ${S}/scripts/logwatch/logfile.bacula.conf ${D}/etc/log.d/conf/logfiles/bacula.conf
+		cp ${S}/scripts/logwatch/services.bacula.conf ${D}/etc/log.d/conf/services/bacula.conf
+		chmod 755 ${D}/etc/log.d/scripts/services/bacula
+		chmod 644 ${D}/etc/log.d/conf/logfiles/bacula.conf
+		chmod 644 ${D}/etc/log.d/conf/services/bacula.conf
+
+	fi
 
 	# the cdrom rescue package
 	mkdir -p ${D}/etc/bacula/rescue/cdrom
@@ -205,11 +235,6 @@ src_install() {
 	cp ${S}/src/filed/static-bacula-fd ${D}/etc/bacula/rescue/cdrom/bin/bacula-fd
 	chmod 754 ${D}/etc/bacula/rescue/cdrom/bin/bacula-fd
 
-	# the logrotate configuration
-	mkdir -p ${D}/etc/logrotate.d
-	cp ${S}/scripts/logrotate ${D}/etc/logrotate.d/bacula
-	chmod 644 ${D}/etc/logrotate.d/bacula
-
 	# documentation
 	for a in ${S}/{Changelog,README,ReleaseNotes,kernstodo,LICENSE,doc/bacula.pdf}
 	do
@@ -217,8 +242,6 @@ src_install() {
 	done
 
 	dohtml -r ${S}/doc/html-manual doc/home-page
-	chown -R root:root ${D}/usr/share/doc/${PF}
-	chmod -R 644 ${D}/usr/share/doc/${PF}/*
 	
 	# clean up permissions left broken by install
 	chmod o-r ${D}/etc/bacula/query.sql
@@ -226,9 +249,21 @@ src_install() {
 	# remove the working dir so we can add it postinst with group
 	rmdir ${D}/var/bacula
 
-	# this is now in the source package processed by configure
+	# init scripts
 	exeinto /etc/init.d
-	newexe ${S}/platforms/gentoo/bacula-init bacula
+	if use bacula-clientonly
+	then
+		newexe ${S}/platforms/gentoo/bacula-fd bacula-fd
+	else
+		if use bacula-split
+		then
+			newexe ${S}/platforms/gentoo/bacula-fd bacula-fd
+			newexe ${S}/platforms/gentoo/bacula-sd bacula-sd
+			newexe ${S}/platforms/gentoo/bacula-dir bacula-dir
+		else
+			newexe ${S}/platforms/gentoo/bacula-init bacula
+		fi
+	fi
 }
 
 pkg_postinst() {
@@ -245,7 +280,8 @@ pkg_postinst() {
 	install -m0750 -o root -g bacula -d ${ROOT}/var/bacula
 
 	# link installed bacula-fd.conf into rescue directory
-	ln -s /etc/bacula/bacula-fd.conf /etc/bacula/rescue/cdrom/bacula-fd.conf
+	#ln -s /etc/bacula/bacula-fd.conf /etc/bacula/rescue/cdrom/bacula-fd.conf
+	# no longer necessary after 1.36.2
 
 	einfo
 	einfo "The CDRom rescue disk package has been installed into the"
@@ -256,7 +292,7 @@ pkg_postinst() {
 	einfo "the device information for your CD recorder."
 	einfo
 
-	if [ ! $BUILD_CLIENT_ONLY ]; then
+	if ! use bacula-clientonly; then
 	einfo
 	einfo "Please note either/or nature of database USE flags for"
 	einfo "Bacula.  If mysql is set, it will be used, else postgres"
@@ -350,15 +386,31 @@ pkg_postinst() {
 
 	einfo
 	einfo "Review your configuration files in /etc/bacula and"
-	if [ $BUILD_CLIENT_ONLY ]; then
-		einfo "since this is a client-only build edit the init"
-		einfo "script /etc/init.d/bacula and comment out the sections"
-		einfo "for the director and storage daemons and then"
-	fi
 	einfo "start the daemons:"
-	einfo " /etc/init.d/bacula start"
+	if use bacula-clientonly; then
+		einfo " /etc/init.d/bacula-fd start"
+	else
+		if use bacula-split; then
+		einfo " /etc/init.d/bacula-sd start"
+		einfo " /etc/init.d/bacula-dir start"
+		einfo " /etc/init.d/bacula-fd start"
+		einfo " or /etc/bacula/bacula will start all three."
+		else
+		einfo " /etc/init.d/bacula start"
+		fi
+	fi
 	einfo
 	einfo "You may also wish to:"
-	einfo " rc-update add bacula default"
+	if use bacula-clientonly; then
+		einfo " rc-update add bacula-fd default"
+	else
+		if use bacula-split; then
+			einfo " rc-update add bacula-sd default"
+			einfo " rc-update add bacula-dir default"
+			einfo " rc-update add bacula-fd default"
+		else
+			einfo " rc-update add bacula default"
+		fi
+	fi
 	einfo
 }
