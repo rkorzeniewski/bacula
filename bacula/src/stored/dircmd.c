@@ -782,7 +782,7 @@ static bool autochanger_cmd(JCR *jcr)
    BSOCK *dir = jcr->dir_bsock;
    DEVICE *dev;
    DCR *dcr;
-   const char *cmd;
+   const char *cmd = NULL;
    bool ok = false;
 
    if (sscanf(dir->msg, "autochanger list %127s ", devname.c_str()) == 1) {
@@ -819,8 +819,8 @@ static bool autochanger_cmd(JCR *jcr)
       }
    } else {  /* error on scanf */
       pm_strcpy(jcr->errmsg, dir->msg);
-      bnet_fsend(dir, _("3908 Error scanning autocharger %s command: %s\n"),
-	 cmd, jcr->errmsg);
+      bnet_fsend(dir, _("3908 Error scanning autocharger list/slots command: %s\n"),
+	 jcr->errmsg);
    }
    bnet_sig(dir, BNET_EOD);
    return true;
