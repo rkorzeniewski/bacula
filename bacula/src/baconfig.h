@@ -386,11 +386,9 @@ extern "C" int getdomainname(char *name, size_t len);
 #endif
 
 #ifdef HAVE_AIX_OS
-#define crid_t int
-#define class_id_t unsigned int
 #endif
  
-
+/* This probably should be done on a machine by machine basic, but it works */
 #define ALIGN_SIZE (sizeof(double))
 #define BALIGN(x) (((x) + ALIGN_SIZE - 1) & ~(ALIGN_SIZE -1))
 

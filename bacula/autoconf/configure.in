@@ -1164,7 +1164,7 @@ llu="llu"
 PFILES="platforms/Makefile"
 PSCMD="ps -e"
 WIN32=
-hostname=`hostname`
+hostname=`uname -n`
 case "$DISTNAME" in
 aix)
 	DISTVER=`uname -r`
@@ -1239,7 +1239,6 @@ irix)
 	DISTVER=`uname -r`
 	TAPEDRIVE="/dev/rmt/0cbn"
 	PSCMD="ps -e -o pid,comm"
-	hostname=`/usr/bsd/hostname -s`
 	PFILES="${PFILES} \
 	    platforms/irix/Makefile \
 	    platforms/irix/bacula-fd \
