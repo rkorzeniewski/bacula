@@ -321,8 +321,9 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 
 	 
       if (file_is_included(ff, fname) && !file_is_excluded(ff, fname)) {
+	 uint32_t LinkFI;
 
-	 decode_stat(ap, &statp);
+	 decode_stat(ap, &statp, &LinkFI);
 	 /*
 	  * Prepend the where directory so that the
 	  * files are put where the user wants.

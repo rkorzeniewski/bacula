@@ -28,7 +28,7 @@
 uint32_t new_VolSessionId();
 
 /* From acquire.c */
-int      acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
+DEVICE  *acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
 int      acquire_device_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
 int      release_device(JCR *jcr, DEVICE *dev);
 

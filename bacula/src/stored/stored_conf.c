@@ -99,6 +99,7 @@ static struct res_items dev_items[] = {
    {"changercommand",        store_strname,ITEM(res_dev.changer_command), 0, 0, 0},
    {"maximumchangerwait",    store_pint,   ITEM(res_dev.max_changer_wait), 0, ITEM_DEFAULT, 2 * 60},
    {"maximumopenwait",       store_pint,   ITEM(res_dev.max_open_wait), 0, ITEM_DEFAULT, 5 * 60},
+   {"maximumopenvolumes",    store_pint,   ITEM(res_dev.max_open_vols), 0, ITEM_DEFAULT, 1},
    {"offlineonunmount",      store_yesno,  ITEM(res_dev.cap_bits), CAP_OFFLINEUNMOUNT, ITEM_DEFAULT, 0},
    {"maximumrewindwait",     store_pint,   ITEM(res_dev.max_rewind_wait), 0, ITEM_DEFAULT, 5 * 60},
    {"minimumblocksize",      store_pint,   ITEM(res_dev.min_block_size), 0, 0, 0},

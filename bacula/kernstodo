@@ -15,6 +15,13 @@ Testing to do: (painful)
 - blocksize recognition code.
 
 For 1.30 release:
+- Fix restore of hard linked file.
+- Implement FileOptions (see end of this document)
+- Implement Bacula plugins -- design API
+- Make bcopy read through bad tape records.
+- Fix read_record to handle multiple sessions.
+- Program files (i.e. execute a program to read/write files).
+  Pass read date of last backup, size of file last time.
 - Add Signature type to File DB record.
 - CD into subdirectory when open()ing files for backup to
   speed up things.  Test with testfind().
@@ -32,9 +39,6 @@ For 1.30 release:
 - Implement finer multiprocessing options.
 - Solaris -I on tar for include list
 - Enable avoid backing up archive device (findlib/find_one.c:128)
-- Implement FileOptions (see end of this document)
-- Implement Bacula plugins -- design API
-- Make bcopy read through bad tape records.
 - Need a verbose mode in restore, perhaps to bsr.
 - bscan without -v is too quiet -- perhaps show jobs.
 - Add code to reject whole blocks if not wanted on restore.
@@ -48,9 +52,6 @@ For 1.30 release:
   records -- one per Job, maybe a JCR or some other structure with
   a block and a record.
 - Figure out how to do a bare metal Windows restore
-- Fix read_record to handle multiple sessions.
-- Program files (i.e. execute a program to read/write files).
-  Pass read date of last backup, size of file last time.
 - Put system type returned by FD into catalog.
 - Possibly add email to Watchdog if drive is unmounted too
   long and a job is waiting on the drive.
@@ -827,4 +828,5 @@ Done: (see kernsdone for more)
 ====== 1.30 =======
 - Implement SHA1
 - Get correct error status from run_program or open_bpipe().    
-
+- Restrict permissions on File Volumes (now 0640).                   
+- Umasked 022 daemons

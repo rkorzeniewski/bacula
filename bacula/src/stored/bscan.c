@@ -537,7 +537,8 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
       }
       strcat(lname, lp);        /* "save" link name */
       if (verbose > 1) {
-	 decode_stat(ap, &statp);
+	 uint32_t LinkFI;
+	 decode_stat(ap, &statp, &LinkFI);
 	 print_ls_output(fname, lname, type, &statp);	
       }
       mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);

@@ -28,6 +28,7 @@
 #include "bacula.h"                   /* pull in global headers */
 #include "stored.h"                   /* pull in Storage Deamon headers */
 
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /********************************************************************* 
  * Acquire device for reading.	We permit (for the moment)
@@ -143,20 +144,20 @@ get_out:
  * Acquire device for writing. We permit multiple writers.
  *  If this is the first one, we read the label.
  *
- *  Returns: 0 if failed for any reason
- *	     1 if successful
+ *  Returns: NULL if failed for any reason
+ *	     dev if successful (may change if new dev opened)
  */
-int acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
+DEVICE * acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 {
    int release = 0;
    int do_mount = 0;
-   int stat = 0;
+   DEVICE *rtn_dev = NULL;
 
    lock_device(dev);
    block_device(dev, BST_DOING_ACQUIRE);
    unlock_device(dev);
    Dmsg1(190, "acquire_append device is %s\n", dev_is_tape(dev)?"tape":"disk");
-
+	     
 
    if (dev->state & ST_APPEND) {
       /* 
@@ -173,14 +174,31 @@ int acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	  !(dir_find_next_appendable_volume(jcr) &&
 	    strcmp(dev->VolHdr.VolName, jcr->VolumeName) == 0)) { /* wrong tape mounted */
 	 if (dev->num_writers != 0) {
-	    /*
-	     * ***FIXME*** add multiple writers here if permitted   
-	     *	find end of dev chain 
-	     *	 dev->next = init_dev(NULL, dev->device);
-	     *	 ...
-	     */
-            Jmsg(jcr, M_FATAL, 0, _("Device %s is busy writing on another Volume.\n"), dev_name(dev));
-	    goto get_out;
+	    DEVICE *d = ((DEVRES *)dev->device)->dev;
+	    uint32_t open_vols = 0;
+	    for ( ; d; d=d->next) {
+	       open_vols++;
+	    }
+	    if (dev->state & ST_FILE && dev->max_open_vols > open_vols) {
+	       P(mutex);	      /* lock all devices */
+	       d = init_dev(NULL, (DEVRES *)dev->device); /* init new device */
+	       d->prev = dev;			/* chain in new device */
+	       d->next = dev->next;
+	       dev->next = d;
+	       /* Release old device */
+	       P(dev->mutex); 
+	       unblock_device(dev);
+	       V(dev->mutex);
+	       /* Make new device current device and lock it */
+	       dev = d;
+	       lock_device(dev);
+	       block_device(dev, BST_DOING_ACQUIRE);
+	       unlock_device(dev);
+	       V(mutex);
+	    } else {
+               Jmsg(jcr, M_FATAL, 0, _("Device %s is busy writing on another Volume.\n"), dev_name(dev));
+	       goto get_out;
+	    }
 	 }
 	 /* Wrong tape mounted, release it, then fall through to get correct one */
 	 release = 1;
@@ -213,13 +231,13 @@ int acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       jcr->NumVolumes = 1;
    }
    attach_jcr_to_device(dev, jcr);    /* attach jcr to device */
-   stat = 1;			      /* good return */
+   rtn_dev = dev;		      /* return device */
 
 get_out:
    P(dev->mutex); 
    unblock_device(dev);
    V(dev->mutex);
-   return stat;
+   return rtn_dev;
 }
 
 /*
@@ -281,6 +299,14 @@ int release_device(JCR *jcr, DEVICE *dev)
 	    dev_name(dev), NPRT(jcr->VolumeName));
    }
    detach_jcr_from_device(dev, jcr);
-   unlock_device(dev);
+   if (dev->prev && !(dev->state & ST_READ) && dev->num_writers == 0) {
+      P(mutex);
+      unlock_device(dev);
+      dev->prev->next = dev->next;    /* dechain */
+      term_dev(dev);
+      V(mutex);
+   } else {
+      unlock_device(dev);
+   }
    return 1;
 }

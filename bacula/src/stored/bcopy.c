@@ -144,7 +144,7 @@ int main (int argc, char *argv[])
       exit(1);
    }
    unlock_device(out_dev);
-   if (!acquire_device_for_append(out_jcr, out_dev, out_block)) {
+   if (!(out_dev=acquire_device_for_append(out_jcr, out_dev, out_block))) {
       free_block(out_block);
       free_jcr(in_jcr);
       exit(1);

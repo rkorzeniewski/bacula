@@ -130,6 +130,9 @@ typedef struct ff {
    char *link;                        /* link if file linked */
    POOLMEM *sys_fname;                /* system filename */
    struct stat statp;                 /* stat packet */
+   uint32_t FileIndex;                /* FileIndex of this file */
+   uint32_t LinkFI;                   /* FileIndex of main hard linked file */
+   struct f_link *linked;             /* Set if we are hard linked */
    int type;                          /* FT_ type from above */
    int fid;                           /* file id if opened */
    int flags;                         /* control flags */

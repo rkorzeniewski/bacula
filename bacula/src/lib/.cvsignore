@@ -4,3 +4,5 @@ btraceback
 btraceback.gdb
 startit
 stopit
+sha1sum
+md5sum

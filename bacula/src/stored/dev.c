@@ -153,6 +153,7 @@ init_dev(DEVICE *dev, DEVRES *device)
    dev->volume_capacity = device->volume_capacity;
    dev->max_rewind_wait = device->max_rewind_wait;
    dev->max_open_wait = device->max_open_wait;
+   dev->max_open_vols = device->max_open_vols;
    dev->device = device;
 
    if (tape) {
@@ -305,7 +306,8 @@ open_dev(DEVICE *dev, char *VolName, int mode)
       } else {
          Emsg0(M_ABORT, 0, _("Illegal mode given to open_dev.\n")); 
       }
-      if ((dev->fd = open(archive_name, dev->mode, MODE_RW)) < 0) {
+      /* If creating file, give 0640 permissions */
+      if ((dev->fd = open(archive_name, dev->mode, 0640)) < 0) {
 	 dev->dev_errno = errno;
          Mmsg2(&dev->errmsg, _("Could not open: %s, ERR=%s\n"), archive_name, strerror(dev->dev_errno));
 	 Emsg0(M_FATAL, 0, dev->errmsg);

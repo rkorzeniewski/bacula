@@ -432,10 +432,11 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
        * Got attributes stream, decode it
        */
       if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_WIN32_ATTRIBUTES) {
+	 uint32_t LinkFIf, LinkFIc;
          Dmsg2(400, "file_index=%d attr=%s\n", file_index, attr);
 	 jcr->JobFiles++;
 	 jcr->FileIndex = file_index;	 /* remember attribute file_index */
-	 decode_stat(attr, &statf);  /* decode file stat packet */
+	 decode_stat(attr, &statf, &LinkFIf);  /* decode file stat packet */
 	 do_SIG = NO_SIG;
 	 jcr->fn_printed = FALSE;
 	 strcpy(jcr->fname, fname);  /* move filename into JCR */
@@ -462,7 +463,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
 
          Dmsg3(400, "Found %s in catalog. inx=%d Opts=%s\n", jcr->fname, 
 	    file_index, Opts_SIG);
-	 decode_stat(fdbr.LStat, &statc); /* decode catalog stat */
+	 decode_stat(fdbr.LStat, &statc, &LinkFIc); /* decode catalog stat */
 	 /*
 	  * Loop over options supplied by user and verify the
 	  * fields he requests.

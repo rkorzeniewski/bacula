@@ -120,6 +120,7 @@ void do_restore(JCR *jcr)
       /* File Attributes stream */
       if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_WIN32_ATTRIBUTES) {
 	 char *ap, *lp, *fp, *apex;
+	 uint32_t LinkFI;
 
          Dmsg1(30, "Stream=Unix Attributes. extract=%d\n", extract);
 	 /* If extracting, it was from previous stream, so
@@ -207,7 +208,7 @@ void do_restore(JCR *jcr)
 
          Dmsg3(200, "File %s\nattrib=%s\nattribsEx=%s\n", fname, ap, attribsEx);
 
-	 decode_stat(ap, &statp);
+	 decode_stat(ap, &statp, &LinkFI);
 	 /*
 	  * Prepend the where directory so that the
 	  * files are put where the user wants.

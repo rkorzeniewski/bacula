@@ -906,14 +906,41 @@ static int insert_tree_handler(void *ctx, int num_fields, char **row)
  *  down the tree setting all children if the 
  *  node is a directory.
  */
-static void set_extract(TREE_NODE *node, int value)
+static void set_extract(UAContext *ua, TREE_NODE *node, TREE_CTX *tree, int value)
 {
    TREE_NODE *n;
+   FILE_DBR fdbr;
+   struct stat statp;
 
    node->extract = value;
+   /* For a non-file (i.e. directory), we see all the children */
    if (node->type != TN_FILE) {
       for (n=node->child; n; n=n->sibling) {
-	 set_extract(n, value);
+	 set_extract(ua, n, tree, value);
+      }
+   } else if (value) {
+      char cwd[2000];
+      /* Ordinary file, we get the full path, look up the
+       * attributes, decode them, and if we are hard linked to
+       * a file that was saved, we must load that file too.
+       */
+      tree_getpath(node, cwd, sizeof(cwd));
+      fdbr.FileId = 0;
+      fdbr.JobId = node->JobId;
+      if (db_get_file_attributes_record(ua->jcr, ua->db, cwd, &fdbr)) {
+	 uint32_t LinkFI;
+	 decode_stat(fdbr.LStat, &statp, &LinkFI); /* decode stat pkt */
+	 /* If we point to a hard linked file, traverse the tree to
+	  * find that file, and mark it for restoration as well.
+	  */
+	 if (LinkFI) {
+	    for (n=first_tree_node(tree->root); n; n=next_tree_node(n)) {
+	       if (n->FileIndex == LinkFI) {
+		  n->extract = 1;
+		  break;
+	       }
+	    }
+	 }
       }
    }
 }
@@ -929,7 +956,7 @@ static int markcmd(UAContext *ua, TREE_CTX *tree)
    }
    for (node = tree->node->child; node; node=node->sibling) {
       if (fnmatch(ua->argk[1], node->fname, 0) == 0) {
-	 set_extract(node, 1);
+	 set_extract(ua, node, tree, 1);
       }
    }
    return 1;
@@ -993,13 +1020,14 @@ static int lscmd(UAContext *ua, TREE_CTX *tree)
 extern char *getuser(uid_t uid);
 extern char *getgroup(gid_t gid);
 
-static void ls_output(char *buf, char *fname, struct stat *statp)
+/*
+ * This is actually the long form used for "dir"
+ */
+static void ls_output(char *buf, char *fname, int extract, struct stat *statp)
 {
    char *p, *f;
    char ec1[30];
    int n;
-
-// Dmsg2(000, "%s mode=0%o\n", fname, statp->st_mode);
 
    p = encode_mode(statp->st_mode, buf);
    n = sprintf(p, "  %2d ", (uint32_t)statp->st_nlink);
@@ -1010,7 +1038,11 @@ static void ls_output(char *buf, char *fname, struct stat *statp)
    p += n;
    p = encode_time(statp->st_ctime, p);
    *p++ = ' ';
-   *p++ = ' ';
+   if (extract) {
+      *p++ = '*';
+   } else {
+      *p++ = ' ';
+   }
    for (f=fname; *f; )
       *p++ = *f++;
    *p = 0;
@@ -1037,8 +1069,9 @@ static int dircmd(UAContext *ua, TREE_CTX *tree)
 	 fdbr.FileId = 0;
 	 fdbr.JobId = node->JobId;
 	 if (db_get_file_attributes_record(ua->jcr, ua->db, cwd, &fdbr)) {
-	    decode_stat(fdbr.LStat, &statp); /* decode stat pkt */
-	    ls_output(buf, cwd, &statp);
+	    uint32_t LinkFI;
+	    decode_stat(fdbr.LStat, &statp, &LinkFI); /* decode stat pkt */
+	    ls_output(buf, cwd, node->extract, &statp);
             bsendmsg(ua, "%s\n", buf);
 	 } else {
 	    /* Something went wrong getting attributes -- print name */
@@ -1118,7 +1151,7 @@ static int unmarkcmd(UAContext *ua, TREE_CTX *tree)
    }
    for (node = tree->node->child; node; node=node->sibling) {
       if (fnmatch(ua->argk[1], node->fname, 0) == 0) {
-	 set_extract(node, 0);
+	 set_extract(ua, node, tree, 0);
       }
    }
    return 1;

@@ -38,14 +38,19 @@ int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result);
 
 
 /*
- * Structure for keeping track of hard linked files
+ * Structure for keeping track of hard linked files, we   
+ *   keep an entry for each hardlinked file that we save,
+ *   which is the first one found. For all the other files that
+ *   are linked to this one, we save only the directory
+ *   entry so we can link it.
  */
 struct f_link {
     struct f_link *next;
-    dev_t dev;
-    ino_t ino;
+    dev_t dev;			      /* device */
+    ino_t ino;			      /* inode with device is unique */
     short linkcount;
-    char name[1];
+    uint32_t FileIndex; 	      /* Bacula FileIndex of this file */
+    char name[1];		      /* The name */
 };
 
 
@@ -124,7 +129,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
        return handle_file(ff_pkt, pkt);
    }
 #endif
-
+   ff_pkt->LinkFI = 0;
    /* 
     * Handle hard linked files
     *
@@ -141,173 +146,212 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
 
        struct f_link *lp;
 
-       /* Search link list of hard linked files */
-       for (lp = ff_pkt->linklist; lp; lp = lp->next)
-	  if (lp->ino == ff_pkt->statp.st_ino && lp->dev == ff_pkt->statp.st_dev) {
-	      ff_pkt->link = lp->name;
-	      ff_pkt->type = FT_LNKSAVED;	/* Handle link, file already saved */
-	      return handle_file(ff_pkt, pkt);
-	  }
+      /* Search link list of hard linked files */
+      for (lp = ff_pkt->linklist; lp; lp = lp->next)
+	 if (lp->ino == ff_pkt->statp.st_ino && lp->dev == ff_pkt->statp.st_dev) {
+	     ff_pkt->link = lp->name;
+	     ff_pkt->type = FT_LNKSAVED;       /* Handle link, file already saved */
+	     ff_pkt->LinkFI = lp->FileIndex;
+	     return handle_file(ff_pkt, pkt);
+	 }
 
-       /* File not previously dumped. Chain it into our list. */
-       lp = (struct f_link *)bmalloc(sizeof(struct f_link) + strlen(fname) +1);
-       lp->ino = ff_pkt->statp.st_ino;
-       lp->dev = ff_pkt->statp.st_dev;
-       strcpy(lp->name, fname);
-       lp->next = ff_pkt->linklist;
-       ff_pkt->linklist = lp;
+      /* File not previously dumped. Chain it into our list. */
+      lp = (struct f_link *)bmalloc(sizeof(struct f_link) + strlen(fname) +1);
+      lp->ino = ff_pkt->statp.st_ino;
+      lp->dev = ff_pkt->statp.st_dev;
+      strcpy(lp->name, fname);
+      lp->next = ff_pkt->linklist;
+      ff_pkt->linklist = lp;
+      ff_pkt->linked = lp;	      /* mark saved link */
+   } else {
+      ff_pkt->linked = NULL;
    }
 
    /* This is not a link to a previously dumped file, so dump it.  */
    if (S_ISREG(ff_pkt->statp.st_mode)) {
-       off_t sizeleft;
+      off_t sizeleft;
 
-       sizeleft = ff_pkt->statp.st_size;
+      sizeleft = ff_pkt->statp.st_size;
 
-       /* Don't bother opening empty, world readable files.  Also do not open
-	  files when archive is meant for /dev/null.  */
-       if (ff_pkt->null_output_device || (sizeleft == 0
-	       && MODE_RALL == (MODE_RALL & ff_pkt->statp.st_mode))) {
-	  ff_pkt->type = FT_REGE;
-       } else {
-	  ff_pkt->type = FT_REG;
-       }
-       return handle_file(ff_pkt, pkt);
+      /* Don't bother opening empty, world readable files.  Also do not open
+	 files when archive is meant for /dev/null.  */
+      if (ff_pkt->null_output_device || (sizeleft == 0
+	      && MODE_RALL == (MODE_RALL & ff_pkt->statp.st_mode))) {
+	 ff_pkt->type = FT_REGE;
+      } else {
+	 ff_pkt->type = FT_REG;
+      }
+      rtn_stat = handle_file(ff_pkt, pkt);
+      if (ff_pkt->linked) {
+	 ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
+      }
+      return rtn_stat;
+
 
    } else if (S_ISLNK(ff_pkt->statp.st_mode)) {
-       int size;
-       char *buffer = (char *)alloca(path_max + name_max + 2);
+      int size;
+      char *buffer = (char *)alloca(path_max + name_max + 2);
 
-       size = readlink(fname, buffer, path_max + name_max + 1);
-       if (size < 0) {
-	   /* Could not follow link */				   
-	   ff_pkt->type = FT_NOFOLLOW;
-	   ff_pkt->ff_errno = errno;
-	   return handle_file(ff_pkt, pkt);
-       }
-       buffer[size] = 0;
-       ff_pkt->link = buffer;
-       ff_pkt->type = FT_LNK;		/* got a real link */
-       return handle_file(ff_pkt, pkt);
+      size = readlink(fname, buffer, path_max + name_max + 1);
+      if (size < 0) {
+	 /* Could not follow link */				 
+	 ff_pkt->type = FT_NOFOLLOW;
+	 ff_pkt->ff_errno = errno;
+	 rtn_stat = handle_file(ff_pkt, pkt);
+	 if (ff_pkt->linked) {
+	    ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
+	 }
+	 return rtn_stat;
+      }
+      buffer[size] = 0;
+      ff_pkt->link = buffer;
+      ff_pkt->type = FT_LNK;	       /* got a real link */
+      rtn_stat = handle_file(ff_pkt, pkt);
+      if (ff_pkt->linked) {
+	 ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
+      }
+      return rtn_stat;
 
    } else if (S_ISDIR(ff_pkt->statp.st_mode)) {
-       DIR *directory;
-       struct dirent *entry, *result;
-       char *link;
-       int link_len;
-       int len;
-       int status;
-       dev_t our_device = ff_pkt->statp.st_dev;
+      DIR *directory;
+      struct dirent *entry, *result;
+      char *link;
+      int link_len;
+      int len;
+      int status;
+      dev_t our_device = ff_pkt->statp.st_dev;
 
-       if (access(fname, R_OK) == -1 && geteuid() != 0) {
-	   /* Could not access() directory */
-	   ff_pkt->type = FT_NOACCESS;
-	   ff_pkt->ff_errno = errno;
-	   return handle_file(ff_pkt, pkt);
-       }
+      if (access(fname, R_OK) == -1 && geteuid() != 0) {
+	 /* Could not access() directory */
+	 ff_pkt->type = FT_NOACCESS;
+	 ff_pkt->ff_errno = errno;
+	 rtn_stat = handle_file(ff_pkt, pkt);
+	 if (ff_pkt->linked) {
+	    ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
+	 }
+	 return rtn_stat;
+      }
 
-       /* Build a canonical directory name with a trailing slash. */
-       len = strlen(fname);
-       link_len = len + 200;
-       link = (char *)bmalloc(link_len + 2);
-       bstrncpy(link, fname, link_len);
-       /* Strip all trailing slashes */
-       while (len >= 1 && link[len - 1] == '/')
-	 len--;
-       link[len++] = '/';             /* add back one */
-       link[len] = 0;
+      /* Build a canonical directory name with a trailing slash. */
+      len = strlen(fname);
+      link_len = len + 200;
+      link = (char *)bmalloc(link_len + 2);
+      bstrncpy(link, fname, link_len);
+      /* Strip all trailing slashes */
+      while (len >= 1 && link[len - 1] == '/')
+	len--;
+      link[len++] = '/';             /* add back one */
+      link[len] = 0;
 
-       ff_pkt->link = link;
-       if (ff_pkt->incremental &&
-	   (ff_pkt->statp.st_mtime < ff_pkt->save_time &&
-	    ff_pkt->statp.st_ctime < ff_pkt->save_time)) {
-	  /* Incremental option, directory entry not changed */
-	  ff_pkt->type = FT_DIRNOCHG;
-       } else {
-	  ff_pkt->type = FT_DIR;
-       }
-       handle_file(ff_pkt, pkt);       /* handle directory entry */
+      ff_pkt->link = link;
+      if (ff_pkt->incremental &&
+	  (ff_pkt->statp.st_mtime < ff_pkt->save_time &&
+	   ff_pkt->statp.st_ctime < ff_pkt->save_time)) {
+	 /* Incremental option, directory entry not changed */
+	 ff_pkt->type = FT_DIRNOCHG;
+      } else {
+	 ff_pkt->type = FT_DIR;
+      }
+      handle_file(ff_pkt, pkt);       /* handle directory entry */
+      if (ff_pkt->linked) {
+	 ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
+      }
 
-       ff_pkt->link = ff_pkt->fname;     /* reset "link" */
+      ff_pkt->link = ff_pkt->fname;     /* reset "link" */
 
-       /* 
-	* Do not decend into subdirectories (recurse) if the
-	* user has turned it off for this directory.
-	*/
-       if (ff_pkt->flags & FO_NO_RECURSION) {
-	  free(link);
-	  /* No recursion into this directory */
-	  ff_pkt->type = FT_NORECURSE;
-	  return handle_file(ff_pkt, pkt);
-       }
+      /* 
+       * Do not decend into subdirectories (recurse) if the
+       * user has turned it off for this directory.
+       */
+      if (ff_pkt->flags & FO_NO_RECURSION) {
+	 free(link);
+	 /* No recursion into this directory */
+	 ff_pkt->type = FT_NORECURSE;
+	 rtn_stat = handle_file(ff_pkt, pkt);
+	 if (ff_pkt->linked) {
+	    ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
+	 }
+	 return rtn_stat;
+      }
 
-       /* 
-	* See if we are crossing file systems, and
-	* avoid doing so if the user only wants to dump one file system.
-	*/
-       if (!top_level && !(ff_pkt->flags & FO_MULTIFS) &&
-	    parent_device != ff_pkt->statp.st_dev) {
-	  free(link);
-	  /* returning here means we do not handle this directory */
-	  ff_pkt->type = FT_NOFSCHG;
-	  return handle_file(ff_pkt, pkt);
-       }
-       /* 
-	* Now process the files in this directory.
-	*/
-       errno = 0;
-       if ((directory = opendir(fname)) == NULL) {
-	  free(link);
-	  ff_pkt->type = FT_NOOPEN;
-	  ff_pkt->ff_errno = errno;
-	  return handle_file(ff_pkt, pkt);
-       }
+      /* 
+       * See if we are crossing file systems, and
+       * avoid doing so if the user only wants to dump one file system.
+       */
+      if (!top_level && !(ff_pkt->flags & FO_MULTIFS) &&
+	   parent_device != ff_pkt->statp.st_dev) {
+	 free(link);
+	 /* returning here means we do not handle this directory */
+	 ff_pkt->type = FT_NOFSCHG;
+	 rtn_stat = handle_file(ff_pkt, pkt);
+	 if (ff_pkt->linked) {
+	    ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
+	 }
+	 return rtn_stat;
+      }
+      /* 
+       * Now process the files in this directory.
+       */
+      errno = 0;
+      if ((directory = opendir(fname)) == NULL) {
+	 free(link);
+	 ff_pkt->type = FT_NOOPEN;
+	 ff_pkt->ff_errno = errno;
+	 rtn_stat = handle_file(ff_pkt, pkt);
+	 if (ff_pkt->linked) {
+	    ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
+	 }
+	 return rtn_stat;
+      }
 
-       /*
-	* This would possibly run faster if we chdir to the directory
-	* before traversing it.
-	*/
-       rtn_stat = 1;
-       entry = (struct dirent *)malloc(sizeof(struct dirent) + name_max + 100);
-       for ( ; !job_cancelled(jcr); ) {
-	   char *p, *q;
-	   int i;
+      /*
+       * This would possibly run faster if we chdir to the directory
+       * before traversing it.
+       */
+      rtn_stat = 1;
+      entry = (struct dirent *)malloc(sizeof(struct dirent) + name_max + 100);
+      for ( ; !job_cancelled(jcr); ) {
+	 char *p, *q;
+	 int i;
 
-	   status  = readdir_r(directory, entry, &result);
-           Dmsg3(200, "readdir stat=%d result=%x name=%s\n", status, result,
-	      entry->d_name);
-	   if (status != 0 || result == NULL) {
-	      break;
-	   }
-	   ASSERT(name_max+1 > sizeof(struct dirent) + (int)NAMELEN(entry));
-	   p = entry->d_name;
-           /* Skip `.', `..', and excluded file names.  */
-           if (p[0] == '\0' || (p[0] == '.' && (p[1] == '\0' ||
-               (p[1] == '.' && p[2] == '\0')))) {
-	      continue;
-	   }
+	 status  = readdir_r(directory, entry, &result);
+         Dmsg3(200, "readdir stat=%d result=%x name=%s\n", status, result,
+	    entry->d_name);
+	 if (status != 0 || result == NULL) {
+	    break;
+	 }
+	 ASSERT(name_max+1 > sizeof(struct dirent) + (int)NAMELEN(entry));
+	 p = entry->d_name;
+         /* Skip `.', `..', and excluded file names.  */
+         if (p[0] == '\0' || (p[0] == '.' && (p[1] == '\0' ||
+             (p[1] == '.' && p[2] == '\0')))) {
+	    continue;
+	 }
 
-	   if ((int)NAMELEN(entry) + len >= link_len) {
-	       link_len = len + NAMELEN(entry) + 1;
-	       link = (char *)brealloc(link, link_len + 1);
-	   }
-	   q = link + len;
-	   for (i=0; i < (int)NAMELEN(entry); i++) {
-	      *q++ = *p++;
-	   }
-	   *q = 0;
-	   if (!file_is_excluded(ff_pkt, link)) {
-	      rtn_stat = find_one_file(jcr, ff_pkt, handle_file, pkt, link, our_device, 0);
-	   }
-       }
-       closedir(directory);
-       free(link);
-       free(entry);
+	 if ((int)NAMELEN(entry) + len >= link_len) {
+	     link_len = len + NAMELEN(entry) + 1;
+	     link = (char *)brealloc(link, link_len + 1);
+	 }
+	 q = link + len;
+	 for (i=0; i < (int)NAMELEN(entry); i++) {
+	    *q++ = *p++;
+	 }
+	 *q = 0;
+	 if (!file_is_excluded(ff_pkt, link)) {
+	    rtn_stat = find_one_file(jcr, ff_pkt, handle_file, pkt, link, our_device, 0);
+	    if (ff_pkt->linked) {
+	       ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
+	    }
+	 }
+      }
+      closedir(directory);
+      free(link);
+      free(entry);
 
-       if (ff_pkt->atime_preserve) {
-	  utime(fname, &restore_times);
-       }
-       return rtn_stat;
+      if (ff_pkt->atime_preserve) {
+	 utime(fname, &restore_times);
+      }
+      return rtn_stat;
    } /* end check for directory */
 
    /*
@@ -324,7 +368,11 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
       /* The only remaining types are special (character, ...) files */
       ff_pkt->type = FT_SPEC;
    }
-   return handle_file(ff_pkt, pkt);
+   rtn_stat = handle_file(ff_pkt, pkt);
+   if (ff_pkt->linked) {
+      ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
+   }
+   return rtn_stat;
 }
 
 int term_find_one(FF_PKT *ff)

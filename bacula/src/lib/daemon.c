@@ -42,6 +42,7 @@ daemon_start()
 #ifndef HAVE_CYGWIN
    int i;
    int cpid;
+   mode_t oldmask;
    /*
     *  Become a daemon.
     */
@@ -76,8 +77,13 @@ daemon_start()
    chdir("/");
 #endif
 
-   /* clear any inherited umask */ 
-   umask(0);
+   /* 
+    * Avoid creating files 666 but don't override any
+    * more restrictive mask set by the user.
+    */
+   oldmask = umask(022);
+   oldmask |= 022;
+   umask(oldmask);
 
    Dmsg0(200, "Exit daemon_start\n");
 #endif /* HAVE_CYGWIN */

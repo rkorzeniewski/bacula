@@ -196,12 +196,13 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
    }
 
    Dmsg1(130, "bfiled: sending %s to stored\n", ff_pkt->fname);
-   encode_stat(attribs, &ff_pkt->statp);
+   encode_stat(attribs, &ff_pkt->statp, ff_pkt->LinkFI);
    stream = encode_attribsEx(jcr, attribsEx, ff_pkt);
    Dmsg3(200, "File %s\nattribs=%s\nattribsEx=%s\n", ff_pkt->fname, attribs, attribsEx);
      
    P(jcr->mutex);
    jcr->JobFiles++;		       /* increment number of files sent */
+   ff_pkt->FileIndex = jcr->JobFiles;  /* return FileIndex */
    pm_strcpy(&jcr->last_fname, ff_pkt->fname);
    V(jcr->mutex);
     

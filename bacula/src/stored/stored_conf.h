@@ -77,6 +77,7 @@ struct s_res_dev {
    uint32_t max_changer_wait;         /* Changer timeout */
    uint32_t max_rewind_wait;          /* maximum secs to wait for rewind */
    uint32_t max_open_wait;            /* maximum secs to wait for open */
+   uint32_t max_open_vols;            /* maximum simultaneous open volumes */
    uint32_t min_block_size;           /* min block size */
    uint32_t max_block_size;           /* max block size */
    uint32_t max_volume_jobs;          /* max jobs to put on one volume */

@@ -7,7 +7,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2002-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -39,8 +39,57 @@
  * Returns -2 on error
  */
 int32_t 
-bnet_recv_pkt(BSOCK *bsock, BPKT *pkt)
+bnet_recv_pkt(BSOCK *bsock, BPKT *pkt, int *version)
 {
+   unser_declare;
+   short lversion;
+   int type;
+
+   unser_begin(bsock->msg, 0);
+   unser_uint16(lversion);
+   *version = (int)lversion;
+
+   
+   for ( ; pkt->type != BP_EOF; pkt++) {
+      if (pkt->id) {
+	 ser_int8(BP_ID);
+	 ser_string((char *)pkt->id);
+      }
+      ser_int8(pkt->type);
+      switch (pkt->type) {
+      case BP_CHAR:
+	 ser_int8(*(int8_t *)pkt->value);
+	 break;
+      case BP_INT32:
+	 ser_int32(*(int32_t *)pkt->value);
+	 break;
+      case BP_UINT32:
+	 break;
+	 ser_unit32(*(uint32_t *)pkt->value);
+	 break;
+      case BP_INT64:
+	 ser_int64(*(int64_t *)pkt->value);
+	 break;
+      case BP_BTIME:
+      case BP_UTIME:
+      case BP_UINT64:
+	 ser_uint64(*(uint64_t *)pkt->value);
+	 break;
+      case BP_POOL:
+      case BP_STRING:
+      case BP_NAME:
+	 ser_string((char *)pkt->value);
+	 break;
+      case BP_BYTES:
+	 ser_uint32(*(uint32_t *)pkt->len);
+	 ser_bytes((char *)pkt->value, pkt->len);
+	 break;
+      default:
+         Emsg1(M_ABORT, 0, _("Unknown BPKT type: %d\n"), pkt->type);
+      }
+   }
+   unser_end(bsock->msg, 0);
+   
 }
 
 /*
@@ -52,37 +101,50 @@ bnet_recv_pkt(BSOCK *bsock, BPKT *pkt)
  *	    1 on success
  */
 int
-bnet_send_pkt(BSOCK *bsock, BPKT *pkt)
+bnet_send_pkt(BSOCK *bsock, BPKT *pkt, int version)
 {
    ser_declare;
 
    ser_begin(bsock->msg, 0);
+   ser_uint16(version);
 
-   while (pkt->type != BP_EOF) {
+   for ( ; pkt->type != BP_EOF; pkt++) {
+      if (pkt->id) {
+	 ser_int8(BP_ID);
+	 ser_string((char *)pkt->id);
+      }
       ser_int8(pkt->type);
       switch (pkt->type) {
       case BP_CHAR:
-	 ser_int8(*((int8_t)pkt->value)));
+	 ser_int8(*(int8_t *)pkt->value);
 	 break;
       case BP_INT32:
-	 ser_int32(*(int32_t)pkt->value)));
+	 ser_int32(*(int32_t *)pkt->value);
 	 break;
       case BP_UINT32:
 	 break;
+	 ser_unit32(*(uint32_t *)pkt->value);
+	 break;
       case BP_INT64:
+	 ser_int64(*(int64_t *)pkt->value);
 	 break;
+      case BP_BTIME:
+      case BP_UTIME:
+      case BP_UINT64:
+	 ser_uint64(*(uint64_t *)pkt->value);
+	 break;
+      case BP_POOL:
       case BP_STRING:
-	 break;
       case BP_NAME:
+	 ser_string((char *)pkt->value);
 	 break;
       case BP_BYTES:
-	 break;
-      case BP_FLOAT32:
-	 break;
-      case BP_FLOAT64:
+	 ser_uint32(*(uint32_t *)pkt->len);
+	 ser_bytes((char *)pkt->value, pkt->len);
 	 break;
       default:
          Emsg1(M_ABORT, 0, _("Unknown BPKT type: %d\n"), pkt->type);
       }
-
+   }
+   ser_end(bsock->msg, 0);
 }

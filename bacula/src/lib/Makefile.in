@@ -94,12 +94,27 @@ Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	cd $(topdir) \
 	  && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
-rwlock_test:  rwlock.o
+rwlock_test:
 	rm -f rwlock.o
 	$(CXX) -DTEST_RWLOCK $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE)  $(CFLAGS) rwlock.c
 	$(CXX) $(LDFLAGS) -L. -o $@ rwlock.o $(LIBS) $(DLIB) -lbac -lm
 	rm -f rwlock.o
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) rwlock.c
+
+md5sum:
+	rm -f md5.o
+	$(CXX) -DMD5_SUM $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE)  $(CFLAGS) md5.c
+	$(CXX) $(LDFLAGS) -L. -o $@ md5.o $(LIBS) $(DLIB) -lbac -lm
+	rm -f md5.o
+	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) md5.c
+
+
+sha1sum:
+	rm -f sha1.o
+	$(CXX) -DSHA1_SUM $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE)	$(CFLAGS) sha1.c
+	$(CXX) $(LDFLAGS) -L. -o $@ sha1.o $(LIBS) $(DLIB) -lbac -lm
+	rm -f sha1.o
+	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) md5.c
 	 
 install:
 
@@ -107,7 +122,7 @@ uninstall:
 
 clean:
 	$(RMF) *.a core a.out *.o *.bak *.tex *.pdf *~ *.intpro *.extpro 1 2 3
-	$(RMF) rwlock_test md5 sha1
+	$(RMF) rwlock_test md5sum sha1sum
 
 realclean: clean
 	$(RMF) tags

@@ -322,6 +322,8 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
    /* File Attributes stream */
    if (rec->Stream == STREAM_UNIX_ATTRIBUTES || rec->Stream == STREAM_WIN32_ATTRIBUTES) {
       char *ap, *fp;
+      uint32_t LinkFI;
+
       sscanf(rec->data, "%ld %d", &record_file_index, &type);
       if (record_file_index != rec->FileIndex) {
          Emsg2(M_ERROR_TERM, 0, "Record header file index %ld not equal record index %ld\n",
@@ -340,7 +342,7 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
       }
       *fp = *ap++;		   /* terminate filename & point to attribs */
 
-      decode_stat(ap, &statp);
+      decode_stat(ap, &statp, &LinkFI);
       /* Skip to link name */  
       while (*ap++ != 0)
 	 ;

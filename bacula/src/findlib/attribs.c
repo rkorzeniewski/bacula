@@ -54,7 +54,7 @@ void win_error(void *jcr, char *prefix, POOLMEM *ofile);
 
 
 /* Encode a stat structure into a base64 character string */
-void encode_stat(char *buf, struct stat *statp)
+void encode_stat(char *buf, struct stat *statp, uint32_t LinkFI)
 {
    char *p = buf;
    /*
@@ -89,6 +89,8 @@ void encode_stat(char *buf, struct stat *statp)
    p += to_base64((int64_t)statp->st_mtime, p);
    *p++ = ' ';
    p += to_base64((int64_t)statp->st_ctime, p);
+   *p++ = ' ';
+   p += to_base64((int64_t)LinkFI, p);
    *p = 0;
    return;
 }
@@ -97,7 +99,7 @@ void encode_stat(char *buf, struct stat *statp)
 
 /* Decode a stat packet from base64 characters */
 void
-decode_stat(char *buf, struct stat *statp)
+decode_stat(char *buf, struct stat *statp, uint32_t *LinkFI) 
 {
    char *p = buf;
    int64_t val;
@@ -140,6 +142,14 @@ decode_stat(char *buf, struct stat *statp)
    p++;
    p += from_base64(&val, p);
    statp->st_ctime = val;
+   /* Optional FileIndex of hard linked file data */
+   if (*p == ' ' || (*p != 0 && *(p+1) == ' ')) {
+      p++;
+      p += from_base64(&val, p);
+      *LinkFI = (uint32_t)val;
+  } else {
+      *LinkFI = 0;
+  }
 }
 
 /*

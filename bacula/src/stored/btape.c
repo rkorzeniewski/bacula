@@ -1043,7 +1043,7 @@ This may take a long time. I.e. hours! ...\n\n");
     *	subroutine.
     */
    Dmsg0(100, "just before acquire_device\n");
-   if (!acquire_device_for_append(jcr, dev, block)) {
+   if (!(dev=acquire_device_for_append(jcr, dev, block))) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       free_block(block);
       return;

@@ -149,7 +149,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
       fid = -1;
    }
 
-   encode_stat(attribs, &ff_pkt->statp);
+   encode_stat(attribs, &ff_pkt->statp, ff_pkt->LinkFI);
      
    P(jcr->mutex);
    jcr->JobFiles++;		     /* increment number of files sent */
