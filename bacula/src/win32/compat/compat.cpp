@@ -34,9 +34,7 @@
 #define USE_WIN32_COMPAT_IO 1
 
 extern void d_msg(const char *file, int line, int level, const char *fmt,...);
-#ifndef HAVE_MINGW
 extern DWORD   g_platform_id;
-#endif
 
 // from CYGWIN (should be diff between Jan 1 1601 and Jan 1 1970
 #ifdef HAVE_MINGW
@@ -520,7 +518,6 @@ opendir(const char *path)
     char *tspec = (char *)malloc(max_len);
     if (tspec == NULL) goto err1;
 
-#ifndef HAVE_MINGW
     if (g_platform_id != VER_PLATFORM_WIN32_WINDOWS) {
         // allow path to be 32767 bytes
         tspec[0] = '\\';
@@ -532,9 +529,7 @@ opendir(const char *path)
     } else {
         cygwin_conv_to_win32_path(path, tspec);
     }
-#else
-    cygwin_conv_to_win32_path(path, tspec);
-#endif
+
     strncat(tspec, "\\*", max_len);
     rval->spec = tspec;
 
@@ -1154,6 +1149,7 @@ close(int fd)
     return _close(fd);
 }
 
+#ifndef HAVE_WXCONSOLE
 ssize_t
 read(int fd, void *buf, size_t len)
 {
@@ -1165,6 +1161,7 @@ write(int fd, const void *buf, size_t len)
 {
     return _write(fd, buf, len);
 }
+#endif
 
 off_t
 lseek(int fd, off_t offset, int whence)

@@ -35,13 +35,19 @@
 #define __COMPAT_H_
 
 #ifndef HAVE_MINGW
+#ifndef HAVE_WXCONSOLE
 #define __STDC__ 1
+#endif
 #endif
 
 #include <stdio.h>
 #include <basetsd.h>
 #include <stdarg.h>
 #include <sys/types.h>
+
+#ifdef HAVE_WXCONSOLE
+//#include <sys/stat.h>
+#endif
 
 #include <process.h>
 #include <direct.h>
@@ -95,16 +101,20 @@ typedef long time_t;
 #if __STDC__
 #ifndef HAVE_MINGW
 typedef _dev_t dev_t;
+#ifndef HAVE_WXCONSOLE
 typedef __int64 ino_t;
 typedef __int64 off_t;          /* STDC=1 means we can define this */
+#endif
 #endif
 #else
 typedef long _off_t;            /* must be same as sys/types.h */
 #endif
 typedef signed char int8_t;
 #ifndef HAVE_MINGW
+#ifndef HAVE_WXCONSOLE
 typedef int BOOL;
 #define bool BOOL
+#endif
 #endif
 typedef double float64_t;
 typedef UINT32 u_int32_t;
@@ -238,8 +248,10 @@ int chmod(const char *, mode_t mode);
 #ifndef HAVE_MINGW
 int utime(const char *filename, struct utimbuf *buf);
 int open(const char *, int, int);
+#ifndef HAVE_WXCONSOLE
 ssize_t read(int fd, void *, size_t nbytes);
 ssize_t write(int fd, const void *, size_t nbytes);
+#endif
 int close(int fd);
 #endif //HAVE_MINGW
 off_t lseek(int, off_t, int);
