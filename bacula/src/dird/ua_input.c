@@ -55,7 +55,6 @@ int get_cmd(UAContext *ua, char *prompt)
       if (is_bnet_stop(sock)) {
 	 return 0;		      /* error or terminate */
       }
-      Dmsg1(000, "sock->msglen=%d\n", sock->msglen);
       pm_strcpy(&ua->cmd, sock->msg);
       strip_trailing_junk(ua->cmd);
       if (strcmp(ua->cmd, ".messages") == 0) {
