@@ -85,7 +85,7 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
 	 offline_or_rewind_dev(dev);
 	 /* We are going to load a new tape, so close the device */
 	 force_close_dev(dev);
-	 if (loaded != 0) {	   /* must unload drive */
+	 if (loaded != 0 && loaded != -1) {	   /* must unload drive */
             Dmsg0(400, "Doing changer unload.\n");
 	    Jmsg(jcr, M_INFO, 0, 
                  _("3303 Issuing autochanger \"unload slot %d, drive %d\" command.\n"),
