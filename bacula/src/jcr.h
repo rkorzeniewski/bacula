@@ -51,6 +51,7 @@
 #define JT_VERIFY                'V'  /* Verify Job */
 #define JT_RESTORE               'R'  /* Restore Job */
 #define JT_CONSOLE               'C'  /* console program */
+#define JT_SYSTEM                'S'  /* internal system "job" */
 #define JT_ADMIN                 'D'  /* admin job */
 #define JT_ARCHIVE               'A'
 
@@ -273,6 +274,7 @@ extern dlist *last_jobs;
 
 
 /* The following routines are found in lib/jcr.c */
+extern bool init_jcr_subsystem(void);
 extern JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr);
 extern void free_locked_jcr(JCR *jcr);
 extern JCR *get_jcr_by_id(uint32_t JobId);

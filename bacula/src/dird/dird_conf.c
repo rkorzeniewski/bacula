@@ -209,6 +209,7 @@ static struct res_items job_items[] = {
    {"replace",  store_replace, ITEM(res_job.replace), 0, ITEM_DEFAULT, REPLACE_ALWAYS},
    {"bootstrap",store_dir,     ITEM(res_job.RestoreBootstrap), 0, 0, 0},
    {"maxruntime", store_time,  ITEM(res_job.MaxRunTime), 0, 0, 0},
+   {"maxwaittime", store_time,  ITEM(res_job.MaxWaitTime), 0, 0, 0},
    {"maxstartdelay", store_time,ITEM(res_job.MaxStartDelay), 0, 0, 0},
    {"prefixlinks", store_yesno, ITEM(res_job.PrefixLinks), 1, ITEM_DEFAULT, 0},
    {"prunejobs",   store_yesno, ITEM(res_job.PruneJobs), 1, ITEM_DEFAULT, 0},

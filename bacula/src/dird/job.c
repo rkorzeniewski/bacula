@@ -31,9 +31,12 @@
 
 /* Forward referenced subroutines */
 static void *job_thread(void *arg);
+static void job_monitor_watchdog(watchdog_t *self);
+static void job_monitor_destructor(watchdog_t *self);
+static bool job_check_maxwaittime(JCR *control_jcr, JCR *jcr);
+static bool job_check_maxruntime(JCR *control_jcr, JCR *jcr);
 
 /* Exported subroutines */
-
 
 /* Imported subroutines */
 extern void term_scheduler();
@@ -43,15 +46,183 @@ extern int do_admin(JCR *jcr);
 extern int do_restore(JCR *jcr);
 extern int do_verify(JCR *jcr);
 
+/* Imported variables */
+extern time_t watchdog_time;
+
 jobq_t	job_queue;
 
 void init_job_server(int max_workers)
 {
    int stat;
+   watchdog_t *wd;
+   
    if ((stat = jobq_init(&job_queue, max_workers, job_thread)) != 0) {
       Emsg1(M_ABORT, 0, _("Could not init job queue: ERR=%s\n"), strerror(stat));
    }
+   if ((wd = watchdog_new()) == NULL) {
+      Emsg0(M_ABORT, 0, _("Could not init job monitor watchdogs\n"));
+   }
+   wd->callback = job_monitor_watchdog;
+   wd->destructor = job_monitor_destructor;
+   wd->one_shot = false;
+   wd->interval = 60;
+   wd->data = create_control_jcr("*JobMonitor*", JT_SYSTEM);
+   register_watchdog(wd);
+   
    return;
+}
+
+static void job_monitor_destructor(watchdog_t *self)
+{
+   JCR *control_jcr = (JCR *) self->data;
+
+   free_jcr(control_jcr);
+}
+
+static void job_monitor_watchdog(watchdog_t *self)
+{
+   JCR *control_jcr, *jcr;
+
+   control_jcr = (JCR *) self->data;
+
+   Dmsg1(200, "job_monitor_watchdog %p called\n", self);
+
+   lock_jcr_chain();
+
+   for (jcr = NULL; (jcr = get_next_jcr(jcr)); /* nothing */) {
+      bool cancel;
+
+      if (jcr->JobId == 0) {
+         Dmsg2(200, "Skipping JCR %p (%s) with JobId 0\n",
+	       jcr, jcr->Job);
+	 /* Keep reference counts correct */
+	 free_locked_jcr(jcr);
+	 continue;
+      }
+
+      /* check MaxWaitTime */
+      cancel = job_check_maxwaittime(control_jcr, jcr);
+
+      /* check MaxRunTime */
+      cancel |= job_check_maxruntime(control_jcr, jcr);
+
+      if (cancel) {
+         Dmsg3(200, "Cancelling JCR %p jobid %d (%s)\n",
+	       jcr, jcr->JobId, jcr->Job);
+
+	 UAContext *ua = new_ua_context(jcr);
+	 ua->jcr = control_jcr;
+	 cancel_job(ua, jcr);
+	 free_ua_context(ua);
+
+         Dmsg1(200, "Have cancelled JCR %p\n", jcr);
+      }
+
+      /* Keep reference counts correct */
+      free_locked_jcr(jcr);
+   }
+   unlock_jcr_chain();
+}
+
+static bool job_check_maxwaittime(JCR *control_jcr, JCR *jcr)
+{
+   bool cancel = false;
+
+   if (jcr->job->MaxWaitTime == 0) {
+      return false;
+   }
+   if ((watchdog_time - jcr->start_time) < jcr->job->MaxWaitTime) {
+      Dmsg3(200, "Job %p (%s) with MaxWaitTime %d not expired\n",
+	    jcr, jcr->Job, jcr->job->MaxWaitTime);
+      return false;
+   }
+   Dmsg3(200, "Job %d (%s): MaxWaitTime of %d seconds exceeded, "
+         "checking status\n",
+	 jcr->JobId, jcr->Job, jcr->job->MaxWaitTime);
+   switch (jcr->JobStatus) {
+      case JS_Created:
+      case JS_Blocked:
+      case JS_WaitFD:
+      case JS_WaitSD:
+      case JS_WaitStoreRes:
+      case JS_WaitClientRes:
+      case JS_WaitJobRes:
+      case JS_WaitPriority:
+      case JS_WaitMaxJobs:
+      case JS_WaitStartTime:
+	 cancel = true;
+         Dmsg0(200, "JCR blocked in #1\n");
+	 break;
+      case JS_Running:
+         Dmsg0(200, "JCR running, checking SD status\n");
+	 switch (jcr->SDJobStatus) {
+	    case JS_WaitMount:
+	    case JS_WaitMedia:
+	    case JS_WaitFD:
+	       cancel = true;
+               Dmsg0(200, "JCR blocked in #2\n");
+	       break;
+	    default:
+               Dmsg0(200, "JCR not blocked in #2\n");
+	       break;
+	 }
+	 break;
+      case JS_Terminated:
+      case JS_ErrorTerminated:
+      case JS_Canceled:
+         Dmsg0(200, "JCR already dead in #3\n");
+	 break;
+      default:
+         Emsg1(M_ABORT, 0, _("Unhandled job status code %d\n"),
+	       jcr->JobStatus);
+   }
+   Dmsg3(200, "MaxWaitTime result: %scancel JCR %p (%s)\n",
+         cancel ? "" : "do not ", jcr, jcr->job);
+
+   return cancel;
+}
+
+static bool job_check_maxruntime(JCR *control_jcr, JCR *jcr)
+{
+   bool cancel = false;
+
+   if (jcr->job->MaxRunTime == 0) {
+      return false;
+   }
+   if ((watchdog_time - jcr->start_time) < jcr->job->MaxRunTime) {
+      Dmsg3(200, "Job %p (%s) with MaxRunTime %d not expired\n",
+	    jcr, jcr->Job, jcr->job->MaxRunTime);
+      return false;
+   }
+
+   switch (jcr->JobStatus) {
+      case JS_Created:
+      case JS_Blocked:
+      case JS_WaitFD:
+      case JS_WaitSD:
+      case JS_WaitStoreRes:
+      case JS_WaitClientRes:
+      case JS_WaitJobRes:
+      case JS_WaitPriority:
+      case JS_WaitMaxJobs:
+      case JS_WaitStartTime:
+      case JS_Running:
+	 cancel = true;
+	 break;
+      case JS_Terminated:
+      case JS_ErrorTerminated:
+      case JS_Canceled:
+	 cancel = false;
+	 break;
+      default:
+         Emsg1(M_ABORT, 0, _("Unhandled job status code %d\n"),
+	       jcr->JobStatus);
+   }
+
+   Dmsg3(200, "MaxRunTime result: %scancel JCR %p (%s)\n",
+         cancel ? "" : "do not ", jcr, jcr->job);
+
+   return cancel;
 }
 
 /*
@@ -63,6 +234,7 @@ void run_job(JCR *jcr)
 {
    int stat, errstat;
 
+   P(jcr->mutex);
    sm_check(__FILE__, __LINE__, True);
    init_msg(jcr, jcr->messages);
    create_unique_job_name(jcr, jcr->job->hdr.name);
@@ -79,9 +251,7 @@ void run_job(JCR *jcr)
    /* Initialize termination condition variable */
    if ((errstat = pthread_cond_init(&jcr->term_wait, NULL)) != 0) {
       Jmsg1(jcr, M_FATAL, 0, _("Unable to init job cond variable: ERR=%s\n"), strerror(errstat));
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
-      free_jcr(jcr);
-      return;
+      goto bail_out;
    }
 
    /*
@@ -97,9 +267,7 @@ void run_job(JCR *jcr)
       if (jcr->db) {
          Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
       }
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
-      free_jcr(jcr);
-      return;
+      goto bail_out;
    }
    Dmsg0(50, "DB opened\n");
 
@@ -109,9 +277,7 @@ void run_job(JCR *jcr)
    jcr->jr.JobStatus = jcr->JobStatus;
    if (!db_create_job_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
-      free_jcr(jcr);
-      return;
+      goto bail_out;
    }
    jcr->JobId = jcr->jr.JobId;
    ASSERT(jcr->jr.JobId > 0);
@@ -125,10 +291,87 @@ void run_job(JCR *jcr)
       Emsg1(M_ABORT, 0, _("Could not add job queue: ERR=%s\n"), strerror(stat));
    }
    Dmsg0(100, "Done run_job()\n");
+
+   V(jcr->mutex);
+   return;
+
+bail_out:
+   set_jcr_job_status(jcr, JS_ErrorTerminated);
+   V(jcr->mutex);
+   return;
+
+}
+
+/*
+ * Cancel a job -- typically called by the UA (Console program), but may also
+ *		be called by the job watchdog.
+ * 
+ *  Returns: 1 if cancel appears to be successful
+ *	     0 on failure. Message sent to ua->jcr.
+ */
+int cancel_job(UAContext *ua, JCR *jcr)
+{
+   BSOCK *sd, *fd;
+
+   switch (jcr->JobStatus) {
+   case JS_Created:
+   case JS_WaitJobRes:
+   case JS_WaitClientRes:
+   case JS_WaitStoreRes:
+   case JS_WaitPriority:
+   case JS_WaitMaxJobs:
+   case JS_WaitStartTime:
+      set_jcr_job_status(jcr, JS_Canceled);
+      bsendmsg(ua, _("JobId %d, Job %s marked to be canceled.\n"),
+	      jcr->JobId, jcr->Job);
+      jobq_remove(&job_queue, jcr); /* attempt to remove it from queue */
+      return 1;
+	 
+   default:
+      set_jcr_job_status(jcr, JS_Canceled);
+
+      /* Cancel File daemon */
+      if (jcr->file_bsock) {
+	 ua->jcr->client = jcr->client;
+	 if (!connect_to_file_daemon(ua->jcr, 10, FDConnectTimeout, 1)) {
+            bsendmsg(ua, _("Failed to connect to File daemon.\n"));
+	    return 0;
+	 }
+         Dmsg0(200, "Connected to file daemon\n");
+	 fd = ua->jcr->file_bsock;
+         bnet_fsend(fd, "cancel Job=%s\n", jcr->Job);
+	 while (bnet_recv(fd) >= 0) {
+            bsendmsg(ua, "%s", fd->msg);
+	 }
+	 bnet_sig(fd, BNET_TERMINATE);
+	 bnet_close(fd);
+	 ua->jcr->file_bsock = NULL;
+      }
+
+      /* Cancel Storage daemon */
+      if (jcr->store_bsock) {
+	 ua->jcr->store = jcr->store;
+	 if (!connect_to_storage_daemon(ua->jcr, 10, SDConnectTimeout, 1)) {
+            bsendmsg(ua, _("Failed to connect to Storage daemon.\n"));
+	    return 0;
+	 }
+         Dmsg0(200, "Connected to storage daemon\n");
+	 sd = ua->jcr->store_bsock;
+         bnet_fsend(sd, "cancel Job=%s\n", jcr->Job);
+	 while (bnet_recv(sd) >= 0) {
+            bsendmsg(ua, "%s", sd->msg);
+	 }
+	 bnet_sig(sd, BNET_TERMINATE);
+	 bnet_close(sd);
+	 ua->jcr->store_bsock = NULL;
+      }
+   }
+
+   return 1;
 }
 
 /* 
- * This is the engine called by job_add() when we were pulled		     
+ * This is the engine called by jobq.c:jobq_add() when we were pulled		     
  *  from the work queue.
  *  At this point, we are running in our own thread and all
  *    necessary resources are allocated -- see jobq.c

@@ -199,7 +199,13 @@ void             set_working_directory(char *wd);
 /* watchdog.c */
 int start_watchdog(void);
 int stop_watchdog(void);
-btimer_t *start_child_timer(pid_t pid, uint32_t wait);
+watchdog_t *watchdog_new(void);
+bool register_watchdog(watchdog_t *wd);
+bool unregister_watchdog(watchdog_t *wd);
+bool unregister_watchdog_unlocked(watchdog_t *wd);
+
+/* timers.c */
+btimer_id start_child_timer(pid_t pid, uint32_t wait);
 void stop_child_timer(btimer_id wid);
 btimer_id start_thread_timer(pthread_t tid, uint32_t wait);
 void stop_thread_timer(btimer_id wid);

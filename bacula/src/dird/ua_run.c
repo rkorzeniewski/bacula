@@ -325,7 +325,10 @@ int run_cmd(UAContext *ua, char *cmd)
       verify_job = job->verify_job;
    }
 
-   /* Create JCR to run job */
+   /*
+    * Create JCR to run job.  NOTE!!! after this point, free_jcr()
+    *  before returning.
+    */
    jcr = new_jcr(sizeof(JCR), dird_free_jcr);
    set_jcr_defaults(jcr, job);
 
@@ -364,7 +367,7 @@ int run_cmd(UAContext *ua, char *cmd)
       }
       if (!jcr->replace) {
          bsendmsg(ua, _("Invalid replace option: %s\n"), replace);
-	 return 0;
+	 goto bail_out;
       }
    } else if (job->replace) {
       jcr->replace = job->replace;
@@ -387,7 +390,7 @@ try_again:
    switch (jcr->JobType) {
       char ec1[30];
       char dt[MAX_TIME_LENGTH];
-      case JT_ADMIN:
+   case JT_ADMIN:
          bsendmsg(ua, _("Run %s job\n\
 JobName:  %s\n\
 FileSet:  %s\n\
@@ -402,29 +405,28 @@ Priority: %d\n"),
 		 NPRT(jcr->store->hdr.name), 
 		 bstrutime(dt, sizeof(dt), jcr->sched_time), 
 		 jcr->JobPriority);
-	 jcr->JobLevel = L_FULL;
-	 break;
-      case JT_BACKUP:
-      case JT_VERIFY:
-	 if (level_name) {
-	    /* Look up level name and pull code */
-	    found = 0;
-	    for (i=0; joblevels[i].level_name; i++) {
-	       if (strcasecmp(level_name, _(joblevels[i].level_name)) == 0) {
-		  jcr->JobLevel = joblevels[i].level;
-		  found = 1;
-		  break;
-	       }
-	    }
-	    if (!found) { 
-               bsendmsg(ua, _("Level %s not valid.\n"), level_name);
-	       free_jcr(jcr);
-	       return 1;
+      jcr->JobLevel = L_FULL;
+      break;
+   case JT_BACKUP:
+   case JT_VERIFY:
+      if (level_name) {
+	 /* Look up level name and pull code */
+	 found = 0;
+	 for (i=0; joblevels[i].level_name; i++) {
+	    if (strcasecmp(level_name, _(joblevels[i].level_name)) == 0) {
+	       jcr->JobLevel = joblevels[i].level;
+	       found = 1;
+	       break;
 	    }
 	 }
-	 level_name = NULL;
-	 if (jcr->JobType == JT_BACKUP) {
-            bsendmsg(ua, _("Run %s job\n\
+	 if (!found) { 
+            bsendmsg(ua, _("Level %s not valid.\n"), level_name);
+	    goto bail_out;
+	 }
+      }
+      level_name = NULL;
+      if (jcr->JobType == JT_BACKUP) {
+         bsendmsg(ua, _("Run %s job\n\
 JobName:  %s\n\
 FileSet:  %s\n\
 Level:    %s\n\
@@ -442,14 +444,14 @@ Priority: %d\n"),
 		 NPRT(jcr->pool->hdr.name), 
 		 bstrutime(dt, sizeof(dt), jcr->sched_time),
 		 jcr->JobPriority);
-	 } else {  /* JT_VERIFY */
-	    char *Name;
-	    if (jcr->job->verify_job) {
-	       Name = jcr->job->verify_job->hdr.name;
-	    } else {
-               Name = "";
-	    }
-            bsendmsg(ua, _("Run %s job\n\
+      } else {	/* JT_VERIFY */
+	 char *Name;
+	 if (jcr->job->verify_job) {
+	    Name = jcr->job->verify_job->hdr.name;
+	 } else {
+            Name = "";
+	 }
+         bsendmsg(ua, _("Run %s job\n\
 JobName:     %s\n\
 FileSet:     %s\n\
 Level:       %s\n\
@@ -459,34 +461,33 @@ Pool:        %s\n\
 Verify Job:  %s\n\
 When:        %s\n\
 Priority:    %d\n"),
-                 _("Verify"),
-		 job->hdr.name,
-		 jcr->fileset->hdr.name,
-		 level_to_str(jcr->JobLevel),
-		 jcr->client->hdr.name,
-		 jcr->store->hdr.name,
-		 NPRT(jcr->pool->hdr.name), 
-		 Name,		  
-		 bstrutime(dt, sizeof(dt), jcr->sched_time),
-		 jcr->JobPriority);
+              _("Verify"),
+	      job->hdr.name,
+	      jcr->fileset->hdr.name,
+	      level_to_str(jcr->JobLevel),
+	      jcr->client->hdr.name,
+	      jcr->store->hdr.name,
+	      NPRT(jcr->pool->hdr.name), 
+	      Name,	       
+	      bstrutime(dt, sizeof(dt), jcr->sched_time),
+	      jcr->JobPriority);
+      }
+      break;
+   case JT_RESTORE:
+      if (jcr->RestoreJobId == 0 && !jcr->RestoreBootstrap) {
+	 if (jid) {
+	    jcr->RestoreJobId = atoi(jid);
+	 } else {
+            if (!get_pint(ua, _("Please enter a JobId for restore: "))) {
+	       goto bail_out;
+	    }  
+	    jcr->RestoreJobId = ua->pint32_val;
 	 }
-	 break;
-      case JT_RESTORE:
-	 if (jcr->RestoreJobId == 0 && !jcr->RestoreBootstrap) {
-	    if (jid) {
-	       jcr->RestoreJobId = atoi(jid);
-	    } else {
-               if (!get_pint(ua, _("Please enter a JobId for restore: "))) {
-		  free_jcr(jcr);
-		  return 1;
-	       }  
-	       jcr->RestoreJobId = ua->pint32_val;
-	    }
-	 }
-	 jcr->JobLevel = L_FULL;      /* default level */
-         Dmsg1(20, "JobId to restore=%d\n", jcr->RestoreJobId);
-	 if (jcr->RestoreJobId == 0) {
-            bsendmsg(ua, _("Run Restore job\n\
+      }
+      jcr->JobLevel = L_FULL;	   /* default level */
+      Dmsg1(20, "JobId to restore=%d\n", jcr->RestoreJobId);
+      if (jcr->RestoreJobId == 0) {
+         bsendmsg(ua, _("Run Restore job\n\
 JobName:    %s\n\
 Bootstrap:  %s\n\
 Where:      %s\n\
@@ -496,17 +497,17 @@ Client:     %s\n\
 Storage:    %s\n\
 When:       %s\n\
 Priority:   %d\n"),
-		 job->hdr.name,
-		 NPRT(jcr->RestoreBootstrap),
-		 jcr->where?jcr->where:NPRT(job->RestoreWhere),
-		 replace,
-		 jcr->fileset->hdr.name,
-		 jcr->client->hdr.name,
-		 jcr->store->hdr.name, 
-		 bstrutime(dt, sizeof(dt), jcr->sched_time),
-		 jcr->JobPriority);
-	 } else {
-            bsendmsg(ua, _("Run Restore job\n\
+	      job->hdr.name,
+	      NPRT(jcr->RestoreBootstrap),
+	      jcr->where?jcr->where:NPRT(job->RestoreWhere),
+	      replace,
+	      jcr->fileset->hdr.name,
+	      jcr->client->hdr.name,
+	      jcr->store->hdr.name, 
+	      bstrutime(dt, sizeof(dt), jcr->sched_time),
+	      jcr->JobPriority);
+      } else {
+         bsendmsg(ua, _("Run Restore job\n\
 JobName:    %s\n\
 Bootstrap:  %s\n\
 Where:      %s\n\
@@ -517,43 +518,40 @@ Storage:    %s\n\
 JobId:      %s\n\
 When:       %s\n\
 Priority:   %d\n"),
-		 job->hdr.name,
-		 NPRT(jcr->RestoreBootstrap),
-		 jcr->where?jcr->where:NPRT(job->RestoreWhere),
-		 replace,
-		 jcr->fileset->hdr.name,
-		 jcr->client->hdr.name,
-		 jcr->store->hdr.name, 
-                 jcr->RestoreJobId==0?"*None*":edit_uint64(jcr->RestoreJobId, ec1), 
-		 bstrutime(dt, sizeof(dt), jcr->sched_time),
-		 jcr->JobPriority);
-	 }
-	 break;
-      default:
-         bsendmsg(ua, _("Unknown Job Type=%d\n"), jcr->JobType);
-	 free_jcr(jcr);
-	 return 0;
+	      job->hdr.name,
+	      NPRT(jcr->RestoreBootstrap),
+	      jcr->where?jcr->where:NPRT(job->RestoreWhere),
+	      replace,
+	      jcr->fileset->hdr.name,
+	      jcr->client->hdr.name,
+	      jcr->store->hdr.name, 
+              jcr->RestoreJobId==0?"*None*":edit_uint64(jcr->RestoreJobId, ec1), 
+	      bstrutime(dt, sizeof(dt), jcr->sched_time),
+	      jcr->JobPriority);
+      }
+      break;
+   default:
+      bsendmsg(ua, _("Unknown Job Type=%d\n"), jcr->JobType);
+      goto bail_out;
    }
 
    /* Run without prompting? */
    if (find_arg(ua, _("yes")) > 0) {
       Dmsg1(200, "Calling run_job job=%x\n", jcr->job);
       run_job(jcr);
+      free_jcr(jcr);		      /* release jcr */
       bsendmsg(ua, _("Run command submitted.\n"));
       return 1;
    }
 
    if (!get_cmd(ua, _("OK to run? (yes/mod/no): "))) {
-      free_jcr(jcr);
-      return 0; 		      /* do not run */
+      goto bail_out;
    }
    /*
     * At user request modify parameters of job to be run.
     */
    if (ua->cmd[0] == 0) {
-      bsendmsg(ua, _("Job not run.\n"));
-      free_jcr(jcr);
-      return 0; 		      /* do not run */
+      goto bail_out;
    }
    if (strncasecmp(ua->cmd, _("mod"), strlen(ua->cmd)) == 0) {
       FILE *fd;
@@ -777,20 +775,19 @@ Priority:   %d\n"),
       default: 
 	 goto try_again;
       }
-      bsendmsg(ua, _("Job not run.\n"));
-      free_jcr(jcr);
-      return 0; 		      /* error do no run Job */
+      goto bail_out;
    }
 
    if (strncasecmp(ua->cmd, _("yes"), strlen(ua->cmd)) == 0) {
       Dmsg1(200, "Calling run_job job=%x\n", jcr->job);
       run_job(jcr);
+      free_jcr(jcr);		      /* release jcr */
       bsendmsg(ua, _("Run command submitted.\n"));
       return 1;
    }
 
+bail_out:
    bsendmsg(ua, _("Job not run.\n"));
    free_jcr(jcr);
    return 0;			   /* do not run */
-
 }

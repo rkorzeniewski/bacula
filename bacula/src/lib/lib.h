@@ -51,6 +51,7 @@
 #include "sha1.h"
 #include "tree.h"
 #include "watchdog.h"
+#include "timers.h"
 #include "bpipe.h"
 #include "attr.h"
 #include "var.h"

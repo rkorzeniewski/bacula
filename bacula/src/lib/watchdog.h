@@ -29,15 +29,18 @@
 
 #define TIMEOUT_SIGNAL SIGUSR2
 
-typedef struct s_btimer_t {
-   struct s_btimer_t *next;
-   struct s_btimer_t *prev;
-   time_t start_time;
-   int32_t  wait;
-   pid_t pid;			      /* process id if TYPE_CHILD */
-   int killed;
-   int type;
-   pthread_t tid;		      /* thread id if TYPE_PTHREAD */
-} btimer_t;
+/* This breaks Kern's #include rules, but I don't want to put it into bacula.h
+ * until it has been discussed with him */
+#include "bsd_queue.h"
 
-#define btimer_id btimer_t *
+struct s_watchdog_t {
+	bool one_shot;
+	time_t interval;
+	void (*callback)(struct s_watchdog_t *wd);
+	void (*destructor)(struct s_watchdog_t *wd);
+	void *data;
+	/* Private data below - don't touch outside of watchdog.c */
+	TAILQ_ENTRY(s_watchdog_t) qe;
+	time_t next_fire;
+};
+typedef struct s_watchdog_t watchdog_t;

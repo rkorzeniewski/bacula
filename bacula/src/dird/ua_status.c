@@ -386,9 +386,14 @@ static void list_running_jobs(UAContext *ua)
    lock_jcr_chain();
    for (jcr=NULL; (jcr=get_next_jcr(jcr)); njobs++) {
       if (jcr->JobId == 0) {	  /* this is us */
-	 bstrftime(dt, sizeof(dt), jcr->start_time);
-	 strcpy(dt+7, dt+9);	 /* cut century */
-         bsendmsg(ua, _("Console connected at %s\n"), dt);
+	 /* this is a console or other control job. We only show console
+	  * jobs in the status output.
+	  */
+	 if (jcr->JobType == JT_CONSOLE) {
+	    bstrftime(dt, sizeof(dt), jcr->start_time);
+	    strcpy(dt+7, dt+9);	 /* cut century */
+	    bsendmsg(ua, _("Console connected at %s\n"), dt);
+	 }
 	 njobs--;
       }
       free_locked_jcr(jcr);

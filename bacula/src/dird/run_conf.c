@@ -412,6 +412,7 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
             scan_err0(lc, _("Bad time specification."));
 	    /* NOT REACHED */
 	 }
+	 /****FIXME**** convert to UTC */
 	 set_bit(code, lrun.hour);
 	 lrun.minute = code2;
 	 have_hour = true;
