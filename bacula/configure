@@ -3050,7 +3050,7 @@ echo "${ECHO_T}$ac_cv_prog_gcc_traditional" >&6
   fi
 fi
 
-if test x$CC = xgcc
+if test "x$CC" = xgcc
 then
    cat >>confdefs.h <<\_ACEOF
 #define HAVE_GCC 1
@@ -5450,22 +5450,24 @@ fi
 fi
 
 
-fi
+else
 
 
-
-    if test "${ac_cv_header_term_h+set}" = set; then
-  echo "$as_me:$LINENO: checking for term.h" >&5
-echo $ECHO_N "checking for term.h... $ECHO_C" >&6
-if test "${ac_cv_header_term_h+set}" = set; then
+for ac_header in curses.h
+do
+as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
+if eval "test \"\${$as_ac_Header+set}\" = set"; then
+  echo "$as_me:$LINENO: checking for $ac_header" >&5
+echo $ECHO_N "checking for $ac_header... $ECHO_C" >&6
+if eval "test \"\${$as_ac_Header+set}\" = set"; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 fi
-echo "$as_me:$LINENO: result: $ac_cv_header_term_h" >&5
-echo "${ECHO_T}$ac_cv_header_term_h" >&6
+echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_Header'}'`" >&5
+echo "${ECHO_T}`eval echo '${'$as_ac_Header'}'`" >&6
 else
   # Is the header compilable?
-echo "$as_me:$LINENO: checking term.h usability" >&5
-echo $ECHO_N "checking term.h usability... $ECHO_C" >&6
+echo "$as_me:$LINENO: checking $ac_header usability" >&5
+echo $ECHO_N "checking $ac_header usability... $ECHO_C" >&6
 cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 /* confdefs.h.  */
@@ -5474,7 +5476,7 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 $ac_includes_default
-#include <term.h>
+#include <$ac_header>
 _ACEOF
 rm -f conftest.$ac_objext
 if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
@@ -5500,8 +5502,8 @@ echo "$as_me:$LINENO: result: $ac_header_compiler" >&5
 echo "${ECHO_T}$ac_header_compiler" >&6
 
 # Is the header present?
-echo "$as_me:$LINENO: checking term.h presence" >&5
-echo $ECHO_N "checking term.h presence... $ECHO_C" >&6
+echo "$as_me:$LINENO: checking $ac_header presence" >&5
+echo $ECHO_N "checking $ac_header presence... $ECHO_C" >&6
 cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 /* confdefs.h.  */
@@ -5509,7 +5511,7 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <term.h>
+#include <$ac_header>
 _ACEOF
 if { (eval echo "$as_me:$LINENO: \"$ac_cpp conftest.$ac_ext\"") >&5
   (eval $ac_cpp conftest.$ac_ext) 2>conftest.er1
@@ -5542,10 +5544,10 @@ echo "${ECHO_T}$ac_header_preproc" >&6
 # So?  What about this header?
 case $ac_header_compiler:$ac_header_preproc in
   yes:no )
-    { echo "$as_me:$LINENO: WARNING: term.h: accepted by the compiler, rejected by the preprocessor!" >&5
-echo "$as_me: WARNING: term.h: accepted by the compiler, rejected by the preprocessor!" >&2;}
-    { echo "$as_me:$LINENO: WARNING: term.h: proceeding with the preprocessor's result" >&5
-echo "$as_me: WARNING: term.h: proceeding with the preprocessor's result" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&5
+echo "$as_me: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header: proceeding with the preprocessor's result" >&5
+echo "$as_me: WARNING: $ac_header: proceeding with the preprocessor's result" >&2;}
     (
       cat <<\_ASBOX
 ## ------------------------------------ ##
@@ -5556,12 +5558,12 @@ _ASBOX
       sed "s/^/$as_me: WARNING:     /" >&2
     ;;
   no:yes )
-    { echo "$as_me:$LINENO: WARNING: term.h: present but cannot be compiled" >&5
-echo "$as_me: WARNING: term.h: present but cannot be compiled" >&2;}
-    { echo "$as_me:$LINENO: WARNING: term.h: check for missing prerequisite headers?" >&5
-echo "$as_me: WARNING: term.h: check for missing prerequisite headers?" >&2;}
-    { echo "$as_me:$LINENO: WARNING: term.h: proceeding with the preprocessor's result" >&5
-echo "$as_me: WARNING: term.h: proceeding with the preprocessor's result" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header: present but cannot be compiled" >&5
+echo "$as_me: WARNING: $ac_header: present but cannot be compiled" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header: check for missing prerequisite headers?" >&5
+echo "$as_me: WARNING: $ac_header: check for missing prerequisite headers?" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header: proceeding with the preprocessor's result" >&5
+echo "$as_me: WARNING: $ac_header: proceeding with the preprocessor's result" >&2;}
     (
       cat <<\_ASBOX
 ## ------------------------------------ ##
@@ -5572,17 +5574,68 @@ _ASBOX
       sed "s/^/$as_me: WARNING:     /" >&2
     ;;
 esac
-echo "$as_me:$LINENO: checking for term.h" >&5
+echo "$as_me:$LINENO: checking for $ac_header" >&5
+echo $ECHO_N "checking for $ac_header... $ECHO_C" >&6
+if eval "test \"\${$as_ac_Header+set}\" = set"; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  eval "$as_ac_Header=$ac_header_preproc"
+fi
+echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_Header'}'`" >&5
+echo "${ECHO_T}`eval echo '${'$as_ac_Header'}'`" >&6
+
+fi
+if test `eval echo '${'$as_ac_Header'}'` = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define `echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+
+done
+
+	 echo "$as_me:$LINENO: checking for term.h" >&5
 echo $ECHO_N "checking for term.h... $ECHO_C" >&6
 if test "${ac_cv_header_term_h+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
-  ac_cv_header_term_h=$ac_header_preproc
+  cat >conftest.$ac_ext <<_ACEOF
+#line $LINENO "configure"
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#if HAVE_CURSES_H
+#include <curses.h>
+#endif
+
+
+#include <term.h>
+_ACEOF
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+         { ac_try='test -s conftest.$ac_objext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_header_term_h=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_header_term_h=no
+fi
+rm -f conftest.$ac_objext conftest.$ac_ext
 fi
 echo "$as_me:$LINENO: result: $ac_cv_header_term_h" >&5
 echo "${ECHO_T}$ac_cv_header_term_h" >&6
-
-fi
 if test $ac_cv_header_term_h = yes; then
    echo "$as_me:$LINENO: checking for tgetent in -lcurses" >&5
 echo $ECHO_N "checking for tgetent in -lcurses... $ECHO_C" >&6
@@ -5640,10 +5693,10 @@ echo "$as_me:$LINENO: result: $ac_cv_lib_curses_tgetent" >&5
 echo "${ECHO_T}$ac_cv_lib_curses_tgetent" >&6
 if test $ac_cv_lib_curses_tgetent = yes; then
    CONS_LIBS="-lcurses"
-	  CONS_OBJ="conio.o"
-	  CONS_SRC="conio.c"
-	  got_conio="yes"
-	  support_readline=no
+		   CONS_OBJ="conio.o"
+		   CONS_SRC="conio.c"
+		   got_conio="yes"
+		   support_readline=no
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_CONIO 1
@@ -5651,6 +5704,12 @@ _ACEOF
 
 
 fi
+
+
+else
+   echo " "; echo "Required libraries not found. CONIO turned off ..."; echo " "
+fi
+
 
 
 fi

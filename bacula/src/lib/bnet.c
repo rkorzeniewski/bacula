@@ -701,10 +701,9 @@ static BSOCK *bnet_open(JCR * jcr, const char *name, char *host, char *service,
 	 continue;
       }
       /*
-       * Receive notification when connection dies.
+       * Keep socket from timing out from inactivity
        */
-      if (setsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, (sockopt_val_t) & turnon,
-	   sizeof(turnon)) < 0) {
+      if (setsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, (sockopt_val_t)&turnon, sizeof(turnon)) < 0) {
 	 berrno be;
          Qmsg1(jcr, M_WARNING, 0, _("Cannot set SO_KEEPALIVE on socket: %s\n"),
 	       be.strerror());
@@ -724,6 +723,15 @@ static BSOCK *bnet_open(JCR * jcr, const char *name, char *host, char *service,
 	 free_addresses(addr_list);
       errno = save_errno;
       return NULL;
+   }
+   /*
+    * Keep socket from timing out from inactivity
+    *	Do this a second time out of paranoia
+    */
+   if (setsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, (sockopt_val_t)&turnon, sizeof(turnon)) < 0) {
+      berrno be;
+      Qmsg1(jcr, M_WARNING, 0, _("Cannot set SO_KEEPALIVE on socket: %s\n"),
+	    be.strerror());
    }
    BSOCK* ret =  init_bsock(jcr, sockfd, name, host, port, ipaddr->get_sockaddr());
    free_addresses(addr_list);

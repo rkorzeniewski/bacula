@@ -40,7 +40,7 @@ AC_PROG_CXX
 AC_PROG_CC_C_O			dnl Determine if C compiler support -c -o.
 AC_PROG_GCC_TRADITIONAL 	dnl Determine if ioctl() need -traditional.
 
-if test x$CC = xgcc
+if test "x$CC" = xgcc
 then
    AC_DEFINE(HAVE_GCC)
 fi
@@ -396,18 +396,25 @@ if test x$support_conio = xyes; then
 	   AC_DEFINE(HAVE_CONIO, 1, [Set if Bacula conio support enabled]) 
 	 ])
        ])
+     ],
+     [
+         AC_CHECK_HEADERS(curses.h)
+	 AC_CHECK_HEADER(term.h,
+	       [ AC_CHECK_LIB(curses, tgetent, 
+		 [ CONS_LIBS="-lcurses"
+		   CONS_OBJ="conio.o"
+		   CONS_SRC="conio.c"
+		   got_conio="yes"
+		   support_readline=no
+		   AC_DEFINE(HAVE_CONIO, 1, [Set if Bacula conio support enabled]) 
+		 ])
+               ],
+	       [ echo " "; echo "Required libraries not found. CONIO turned off ..."; echo " "],
+[#if HAVE_CURSES_H
+#include <curses.h>
+#endif
+])
      ])
-
-    AC_CHECK_HEADER(term.h,
-      [ AC_CHECK_LIB(curses, tgetent, 
-        [ CONS_LIBS="-lcurses"
-	  CONS_OBJ="conio.o"
-	  CONS_SRC="conio.c"
-	  got_conio="yes"
-	  support_readline=no
-	  AC_DEFINE(HAVE_CONIO, 1, [Set if Bacula conio support enabled]) 
-        ])
-      ])
 fi
 
 
