@@ -85,12 +85,15 @@ int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
     */
    bnet_fsend(fd, jobcmd, jcr->JobId, jcr->Job, jcr->VolSessionId, 
       jcr->VolSessionTime, jcr->sd_auth_key);
-   memset(jcr->sd_auth_key, 0, strlen(jcr->sd_auth_key));
-   Dmsg1(110, ">filed: %s", fd->msg);
+   if (strcmp(jcr->sd_auth_key, "dummy") != 0) {
+      memset(jcr->sd_auth_key, 0, strlen(jcr->sd_auth_key));
+   }
+   Dmsg1(100, ">filed: %s", fd->msg);
    if (bnet_recv(fd) > 0) {
        Dmsg1(110, "<filed: %s", fd->msg);
        if (strncmp(fd->msg, OKjob, strlen(OKjob)) != 0) {
-          Jmsg(jcr, M_FATAL, 0, _("File daemon rejected Job command: %s\n"), fd->msg);
+          Jmsg(jcr, M_FATAL, 0, _("File daemon \"%s\" rejected Job command: %s\n"), 
+	     jcr->client->hdr.name, fd->msg);
 	  set_jcr_job_status(jcr, JS_ErrorTerminated);
 	  return 0;
        } else {
