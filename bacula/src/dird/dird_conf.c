@@ -569,8 +569,14 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
 	 for (j=0; j<incexe->num_opts; j++) {
 	    FOPTS *fo = incexe->opts_list[j];
             sendit(sock, "      O %s\n", fo->opts);
-	    for (k=0; k<fo->match.size(); k++) {
-               sendit(sock, "      W %s\n", fo->match.get(j));
+	    for (k=0; k<fo->regex.size(); k++) {
+               sendit(sock, "      R %s\n", fo->regex.get(k));
+	    }
+	    for (k=0; k<fo->wild.size(); k++) {
+               sendit(sock, "      W %s\n", fo->wild.get(k));
+	    }
+	    for (k=0; k<fo->base.size(); k++) {
+               sendit(sock, "      B %s\n", fo->base.get(k));
 	    }
             sendit(sock, "      N\n");
 	 }
@@ -723,8 +729,9 @@ static void free_incexe(INCEXE *incexe)
    incexe->name_list.destroy();
    for (int i=0; i<incexe->num_opts; i++) {
       FOPTS *fopt = incexe->opts_list[i];
-      fopt->match.destroy();
-      fopt->base_list.destroy();
+      fopt->regex.destroy();
+      fopt->wild.destroy();
+      fopt->base.destroy();
       free(fopt);
    }
    if (incexe->opts_list) {

@@ -38,6 +38,7 @@
 /* Commands sent to File daemon */
 static char inc[]         = "include\n";
 static char exc[]         = "exclude\n";
+static char incopts[]     = "incopts\n"; /* new include with options */
 static char jobcmd[]      = "JobId=%d Job=%s SDid=%u SDtime=%u Authorization=%s\n";
 static char levelcmd[]    = "level = %s%s mtime_only=%d\n";
 static char runbefore[]   = "RunBeforeJob %s\n";
@@ -247,8 +248,8 @@ static int send_list(JCR *jcr, int list)
       }
       if (ie->num_opts) {
 	 fo = ie->opts_list[0];
-	 for (int j=0; j<fo->match.size(); j++) {
-            Dmsg1(100, "Match=%s\n", fo->match.get(j));
+	 for (int j=0; j<fo->regex.size(); j++) {
+            Dmsg1(100, "Regex=%s\n", fo->regex.get(j));
 	 }
       }
       for (int j=0; j<ie->name_list.size(); j++) {

@@ -34,7 +34,8 @@
 void store_inc(LEX *lc, RES_ITEM *item, int index, int pass);
 
 static void store_newinc(LEX *lc, RES_ITEM *item, int index, int pass);
-static void store_match(LEX *lc, RES_ITEM *item, int index, int pass);
+static void store_regex(LEX *lc, RES_ITEM *item, int index, int pass);
+static void store_wild(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_opts(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_fname(LEX *lc, RES_ITEM *item, int index, int pass);
 static void options_res(LEX *lc, RES_ITEM *item, int index, int pass);
@@ -59,6 +60,7 @@ static INCEXE res_incexe;
  */
 static RES_ITEM newinc_items[] = {
    {"file",            store_fname,   NULL,     0, 0, 0},
+   {"include",         store_fname,   NULL,     0, 0, 0},
    {"options",         options_res,   NULL,     0, 0, 0},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
@@ -76,8 +78,9 @@ static RES_ITEM options_items[] = {
    {"readfifo",        store_opts,    NULL,     0, 0, 0},
    {"replace",         store_opts,    NULL,     0, 0, 0},
    {"portable",        store_opts,    NULL,     0, 0, 0},
-   {"match",           store_match,   NULL,     0, 0, 0},
+   {"regex",           store_regex,   NULL,     0, 0, 0},
    {"base",            store_base,    NULL,     0, 0, 0},
+   {"wild",            store_wild,    NULL,     0, 0, 0},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 
@@ -422,24 +425,25 @@ static void store_newinc(LEX *lc, RES_ITEM *item, int index, int pass)
 }
 
 
-/* Store Match info */
-static void store_match(LEX *lc, RES_ITEM *item, int index, int pass)
+/* Store regex info */
+static void store_regex(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int token;
 
    if (pass == 1) {
-      /* Pickup Match string
+      /* Pickup regex string
        */
       token = lex_get_token(lc, T_ALL); 	   
       switch (token) {
       case T_IDENTIFIER:
       case T_UNQUOTED_STRING:
       case T_QUOTED_STRING:
-	 setup_current_opts();
-	 res_incexe.current_opts->match.append(bstrdup(lc->str));
+	 res_incexe.current_opts->regex.append(bstrdup(lc->str));
+         Dmsg3(200, "set regex %p size=%d %s\n", 
+	    res_incexe.current_opts, res_incexe.current_opts->regex.size(),lc->str);
 	 break;
       default:
-         scan_err1(lc, _("Expected a filename, got: %s\n"), lc->str);
+         scan_err1(lc, _("Expected a regex string, got: %s\n"), lc->str);
       } 				
    } else { /* pass 2 */
       lex_get_token(lc, T_ALL); 	 
@@ -453,17 +457,46 @@ static void store_base(LEX *lc, RES_ITEM *item, int index, int pass)
    int token;
 
    if (pass == 1) {
-      setup_current_opts();
       /*
        * Pickup Base Job Name
        */
       token = lex_get_token(lc, T_NAME);	   
-      res_incexe.current_opts->base_list.append(bstrdup(lc->str));
+      res_incexe.current_opts->base.append(bstrdup(lc->str));
    } else { /* pass 2 */
       lex_get_token(lc, T_ALL); 	 
    }
    scan_to_eol(lc);
 }
+
+
+/* Store Wild-card info */
+static void store_wild(LEX *lc, RES_ITEM *item, int index, int pass)
+{
+   int token;
+
+   if (pass == 1) {
+      /*
+       * Pickup Wild-card string
+       */
+      token = lex_get_token(lc, T_ALL); 	   
+      switch (token) {
+      case T_IDENTIFIER:
+      case T_UNQUOTED_STRING:
+      case T_QUOTED_STRING:
+	 res_incexe.current_opts->wild.append(bstrdup(lc->str));
+         Dmsg3(200, "set wild %p size=%d %s\n", 
+	    res_incexe.current_opts, res_incexe.current_opts->wild.size(),lc->str);
+	 break;
+      default:
+         scan_err1(lc, _("Expected a wild-card string, got: %s\n"), lc->str);
+      } 				
+   } else { /* pass 2 */
+      lex_get_token(lc, T_ALL); 	 
+   }
+   scan_to_eol(lc);
+}
+
+
 /*
  * Store Filename info. Note, for minor efficiency reasons, we
  * always increase the name buffer by 10 items because we expect
@@ -513,6 +546,10 @@ static void options_res(LEX *lc, RES_ITEM *item, int index, int pass)
       scan_err1(lc, "Expecting open brace. Got %s", lc->str);
    }
 
+   if (pass == 1) {
+      setup_current_opts();
+   }
+	 
    while ((token = lex_get_token(lc, T_ALL)) != T_EOF) {
       if (token == T_EOL) {
 	 continue;
@@ -567,7 +604,6 @@ static void store_opts(LEX *lc, RES_ITEM *item, int index, int pass)
    /* Now scan for the value */
    scan_include_options(lc, keyword, inc_opts, sizeof(inc_opts));
    if (pass == 1) {
-      setup_current_opts();
       bstrncat(res_incexe.current_opts->opts, inc_opts, MAX_FOPTS);
       Dmsg2(100, "new pass=%d incexe opts=%s\n", pass, res_incexe.current_opts->opts);
    }
@@ -579,13 +615,17 @@ static void store_opts(LEX *lc, RES_ITEM *item, int index, int pass)
 /* If current_opts not defined, create first entry */
 static void setup_current_opts(void)
 {
-   if (res_incexe.current_opts == NULL) {
-      res_incexe.current_opts = (FOPTS *)malloc(sizeof(FOPTS));
-      memset(res_incexe.current_opts, 0, sizeof(FOPTS));
-      res_incexe.current_opts->match.init(1, true);
-      res_incexe.current_opts->base_list.init(1, true);
-      res_incexe.num_opts = 1;
+   FOPTS *fo = (FOPTS *)malloc(sizeof(FOPTS));
+   memset(fo, 0, sizeof(FOPTS));
+   fo->regex.init(1, true);
+   fo->wild.init(1, true);
+   fo->base.init(1, true);
+   res_incexe.current_opts = fo;
+   if (res_incexe.num_opts == 0) {
       res_incexe.opts_list = (FOPTS **)malloc(sizeof(FOPTS *));
-      res_incexe.opts_list[0] = res_incexe.current_opts;
+   } else {
+      res_incexe.opts_list = (FOPTS **)realloc(res_incexe.opts_list,
+		     sizeof(FOPTS *) * (res_incexe.num_opts + 1));
    }
+   res_incexe.opts_list[res_incexe.num_opts++] = fo;
 }
