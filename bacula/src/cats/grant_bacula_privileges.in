@@ -17,5 +17,6 @@ else
       echo "Granting SQLite privileges"
       # hard coded database name
       . ./grant_sqlite_privileges
+    fi
   fi
 fi
