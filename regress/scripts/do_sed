@@ -33,6 +33,9 @@ sed -f ${out} ${cwd}/scripts/test-console.conf.in >${cwd}/scripts/test-console.c
 sed -f ${out} ${cwd}/scripts/bacula-dir-tape.conf.in >${cwd}/scripts/bacula-dir-tape.conf
 sed -f ${out} ${cwd}/scripts/bacula-sd-tape.conf.in >${cwd}/scripts/bacula-sd-tape.conf
 sed -f ${out} ${cwd}/scripts/cleanup-tape.in >${cwd}/scripts/cleanup-tape
+cp ${cwd}/bin/bacula-sd.conf /tmp/bac$$
+sed s%/tmp%${cwd}/tmp%g /tmp/bac$$ >${cwd}/bin/bacula-sd.conf
 chmod 777 ${cwd}/scripts/cleanup-tape
 
 rm -f ${out}
+rm -f /tmp/bac$$
