@@ -21,18 +21,10 @@ Testing to do: (painful)
 
 For 1.30 release:
 - Fix "access not allowed" for backup of files on WinXP.
-- Implement | and < in Exclude statements.
-- Fix restoring c: to an alternate directory.  Windows
-  does not accept /tmp/c:/....
 - Issue message to mount a new tape before the rewind.
 - Simplified client job initiation for portables.
 - If SD cannot open a drive, make it periodically retry.
 - Implement LabelTemplate (at least first cut).
-- Figure out some way to specify a retention period for files
-  that no longer exist on the machine -- so that we maintain
-  say backups for 30 days, but if the file is deleted, we maintain
-  the last copy for 1 year.
-- Have Bacula "poll" the tape to see if it is there.
 - Add more of the config info to the tape label.
 - Implement bar code reader for autochangers
 - Add a default File storage so that new users can do backup
@@ -908,4 +900,9 @@ rufus-dir: Volume used once. Marking Volume "File0003" as Used.
 - Need to specify MaximumConcurrentJobs in the Job resource.
 - ***test GetFileAttributexEx, and remove MessageBox at 335 of winservice.cpp ****
 - Implement finer multiprocessing options.
+- Implement | and < in Exclude statements.
+- Figure out some way to specify a retention period for files
+  that no longer exist on the machine -- so that we maintain
+  say backups for 30 days, but if the file is deleted, we maintain
+  the last copy for 1 year.  -- answer Volume retention.
 
