@@ -22,8 +22,8 @@
 // Author          : Christopher S. Hull
 // Created On      : Sat Jan 31 15:55:00 2004
 // Last Modified By: Christopher S. Hull
-// Last Modified On: Mon Feb  9 12:18:04 2004
-// Update Count    : 474
+// Last Modified On: Mon Feb  9 17:22:31 2004
+// Update Count    : 591
 // $Id$
 
 #include <stdio.h>
@@ -174,7 +174,8 @@ cvt(const FILETIME &time)
     mstime |= time.dwLowDateTime;
 
     mstime /= 10000000;		// convert to seconds.
-    mstime -= 3234336I64*3600I64;		// difference between jan 1, 1601 and jan, 1 1970
+    mstime -= 3234336I64*3600I64; // difference between jan 1, 1601
+				  // and jan, 1 1970
 
     return (time_t) (mstime & 0xffffffff);
 }
@@ -255,7 +256,8 @@ stat2(const char *file, struct stat *sb)
 
     if (attr == -1) {
 	const char *err = errorString();
-	d_msg(__FILE__, __LINE__, 99, "GetFileAttrubtes(%s): %s\n", tmpbuf, err);
+	d_msg(__FILE__, __LINE__, 99,
+	      "GetFileAttrubtes(%s): %s\n", tmpbuf, err);
 	LocalFree((void *)err);
 	errno = GetLastError();
 	return -1;
@@ -271,7 +273,8 @@ stat2(const char *file, struct stat *sb)
 
     if (h == INVALID_HANDLE_VALUE) {
 	const char *err = errorString();
-	d_msg(__FILE__, __LINE__, 99, "Cannot open file for stat (%s):%s\n", tmpbuf, err);
+	d_msg(__FILE__, __LINE__, 99,
+	      "Cannot open file for stat (%s):%s\n", tmpbuf, err);
 	LocalFree((void *)err);
 	rval = -1;
 	errno = GetLastError();
@@ -280,7 +283,8 @@ stat2(const char *file, struct stat *sb)
     
     if (!GetFileInformationByHandle(h, &info)) {
 	const char *err = errorString();
-	d_msg(__FILE__, __LINE__, 99, "GetfileInformationByHandle(%s): %s\n", tmpbuf, err);
+	d_msg(__FILE__, __LINE__, 99,
+	      "GetfileInformationByHandle(%s): %s\n", tmpbuf, err);
 	LocalFree((void *)err);
 	rval = -1;
 	errno = GetLastError();
@@ -313,6 +317,7 @@ error:
     CloseHandle(h);
     return rval;
 }
+
 int
 stat(const char *file, struct stat *sb)
 {
@@ -357,6 +362,7 @@ lstat(const char *file, struct stat *sb)
 {
     return stat(file, sb);
 }
+
 void
 sleep(int sec)
 {
@@ -500,6 +506,7 @@ getpwuid(uid_t)
 {
     return NULL;
 }
+
 struct group *
 getgrgid(uid_t)
 {
@@ -733,6 +740,9 @@ public:
 
 static winver INIT;			// cause constructor to be called before main()
 
+#include "bacula.h"
+#include "jcr.h"
+
 winver::winver(void)
 {
     const char *version = "";
@@ -755,23 +765,23 @@ winver::winver(void)
 	case MS_WINDOWS_2K: (version =  "Windows 2000");platform = "NT"; break;
 	case MS_WINDOWS_XP: (version =  "Windows XP");platform = "NT"; break;
 	case MS_WINDOWS_S2003: (version =  "Windows Server 2003");platform = "NT"; break;
+	default: version = "Windows ??"; break;
 	}
 
     strcpy(WIN_VERSION_LONG, version);
     snprintf(WIN_VERSION, sizeof(WIN_VERSION), "%s %d.%d.%d",
 	     platform, osvinfo.dwMajorVersion, osvinfo.dwMinorVersion, osvinfo.dwBuildNumber);
-    
+
+#if 0
+    BPIPE *b = open_bpipe("ls -l", 10, "r");
+    char buf[1024];
+    while (!feof(b->rfd)) {
+	fgets(buf, sizeof(buf), b->rfd);
+    }
+
+    close_bpipe(b);
+#endif
 }
-
-
-
-
-
-#define BUFSIZE 4096 
- 
-HANDLE hChildStdinRd, hChildStdinWr, hChildStdinWrDup, 
-   hChildStdoutRd, hChildStdoutWr, hChildStdoutRdDup, 
-   hInputFile, hSaveStdin, hSaveStdout; 
  
 BOOL CreateChildProcess(VOID); 
 VOID WriteToPipe(VOID); 
@@ -780,7 +790,8 @@ VOID ErrorExit(LPTSTR);
 VOID ErrMsg(LPTSTR, BOOL); 
  
 
-const char *getArgv0(const char *cmdline)
+const char *
+getArgv0(const char *cmdline)
 {
     const char *cp = cmdline;
 
@@ -790,76 +801,103 @@ const char *getArgv0(const char *cmdline)
     char *rval = (char *)malloc(len+1);
 
     cp = cmdline;
+    char *rp = rval;
     while (len--)
-	*rval++ = *cp++;
+	*rp++ = *cp++;
 
-    *rval = 0;
+    *rp = 0;
     return rval;
 }
 
 HANDLE
-CreateChildProcess(const char *cmdline) 
+CreateChildProcess(const char *cmdline, HANDLE in, HANDLE out, HANDLE err) 
 { 
-   PROCESS_INFORMATION piProcInfo; 
-   STARTUPINFO siStartInfo;
-   BOOL bFuncRetn = FALSE; 
- 
-// Set up members of the PROCESS_INFORMATION structure. 
- 
-   ZeroMemory( &piProcInfo, sizeof(PROCESS_INFORMATION) );
- 
-// Set up members of the STARTUPINFO structure. 
- 
-   ZeroMemory( &siStartInfo, sizeof(STARTUPINFO) );
-   siStartInfo.cb = sizeof(STARTUPINFO); 
- 
-// Create the child process. 
+    PROCESS_INFORMATION piProcInfo; 
+    STARTUPINFO siStartInfo;
+    BOOL bFuncRetn = FALSE; 
+    
+    // Set up members of the PROCESS_INFORMATION structure. 
+    
+    ZeroMemory( &piProcInfo, sizeof(PROCESS_INFORMATION) );
+    
+    // Set up members of the STARTUPINFO structure. 
+    
+    ZeroMemory( &siStartInfo, sizeof(STARTUPINFO) );
+    siStartInfo.cb = sizeof(STARTUPINFO);
+    // setup new process to use supplied handles for stdin,stdout,stderr
+    // if supplied handles are not used the send a copy of our STD_HANDLE
+    // as appropriate
+    siStartInfo.dwFlags = STARTF_USESTDHANDLES;
 
-   const char *exeName = getArgv0(cmdline);
-   if (exeName[1] != ':'
-       || (strchr(cmdline, '/') == NULL
-	   && strchr(cmdline, '\\') == NULL))
-   {
-       char buf[1024];
-       char *file;
-       DWORD rval = SearchPath(NULL,
-			       exeName,
-			       ".exe",
-			       sizeof(buf),
-			       buf,
-			       &file);
-       if (rval == 0)
-	   return INVALID_HANDLE_VALUE;
-       if (rval > sizeof(buf))
-	   return INVALID_HANDLE_VALUE;
-       free((void *)exeName);
-       exeName = strdup(buf);
-   }
+    if (in != INVALID_HANDLE_VALUE)
+	siStartInfo.hStdInput = in;
+    else
+	siStartInfo.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
+    
+    if (out != INVALID_HANDLE_VALUE)
+	siStartInfo.hStdOutput = out;
+    else
+	siStartInfo.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (err != INVALID_HANDLE_VALUE)
+	siStartInfo.hStdError = err;
+    else
+	siStartInfo.hStdError = GetStdHandle(STD_ERROR_HANDLE);
+    // Create the child process. 
+    
+    char cmdLine[1024];
+    char exeFile[1024];
+    // retrive the first compont of the command line which should be the
+    // executable 
+    const char *exeName = getArgv0(cmdline);
+    // check to see if absolute path was passed to us already?
+    if (exeName[1] != ':'
+	|| (strchr(cmdline, '/') == NULL
+	    && strchr(cmdline, '\\') == NULL))
+    {
+	// only command name so perform search of PATH to find 
+	char *file;
+	DWORD rval = SearchPath(NULL,
+				exeName,
+				".exe",
+				sizeof(exeFile),
+				exeFile,
+				&file);
+	if (rval == 0)
+	    return INVALID_HANDLE_VALUE;
+	if (rval > sizeof(exeFile))
+	    return INVALID_HANDLE_VALUE;
 
-   char *cmdLine = strdup(cmdline);
-   
-   bFuncRetn = CreateProcess(exeName, 
-			     cmdLine,       // command line 
-			     NULL,          // process security attributes 
-			     NULL,          // primary thread security attributes 
-			     TRUE,          // handles are inherited 
-			     0,             // creation flags 
-			     NULL,          // use parent's environment 
-			     NULL,          // use parent's current directory 
-			     &siStartInfo,  // STARTUPINFO pointer 
-			     &piProcInfo);  // receives PROCESS_INFORMATION
-   free((void *)exeName);
-   free((void *)cmdLine);
-   
-   if (bFuncRetn == 0) {
-       ErrorExit("CreateProcess failed\n");
-       return INVALID_HANDLE_VALUE;
-   }
+    }
+    else 
+	strcpy(exeFile, exeName);
 
-   CloseHandle(piProcInfo.hThread);
-   return piProcInfo.hProcess;
+    // exeFile now has absolute path to program to execute.
+    free((void *)exeName);
+    // copy original command line to pass to create process
+    strcpy(cmdLine, cmdline);
+    // try to execute program
+    bFuncRetn = CreateProcess(exeFile, 
+			      cmdLine, // command line 
+			      NULL, // process security attributes 
+			      NULL, // primary thread security attributes 
+			      TRUE, // handles are inherited 
+			      0, // creation flags 
+			      NULL, // use parent's environment 
+			      NULL, // use parent's current directory 
+			      &siStartInfo, // STARTUPINFO pointer 
+			      &piProcInfo); // receives PROCESS_INFORMATION
+    
+    if (bFuncRetn == 0) {
+	ErrorExit("CreateProcess failed\n");
+	return INVALID_HANDLE_VALUE;
+    }
+    // we don't need a handle on the process primary thread so we close
+    // this now.
+    CloseHandle(piProcInfo.hThread);
+    
+    return piProcInfo.hProcess;
 }
- 
+
  
 void
 ErrorExit (LPTSTR lpszMessage) 
@@ -879,150 +917,195 @@ typedef struct s_bpipe {
 } BPIPE;
 */
 
-#include "bacula.h"
-#include "jcr.h"
+static void
+CloseIfValid(HANDLE handle)
+{
+    if (handle != INVALID_HANDLE_VALUE)
+	CloseHandle(handle);
+}
+// include <io.h> causes to many conflicts with some of
+// the fuctions we define here.
 extern "C" {
 int __cdecl _open_osfhandle(long, int);
 }
+
 BPIPE *
 open_bpipe(char *prog, int wait, char *mode)
 {
     HANDLE hChildStdinRd, hChildStdinWr, hChildStdinWrDup, 
 	hChildStdoutRd, hChildStdoutWr, hChildStdoutRdDup, 
-	hInputFile, hSaveStdin, hSaveStdout; 
-
-
+	hInputFile;
+    
     SECURITY_ATTRIBUTES saAttr; 
+
     BOOL fSuccess; 
 
     hChildStdinRd = hChildStdinWr = hChildStdinWrDup = 
 	hChildStdoutRd = hChildStdoutWr = hChildStdoutRdDup = 
-	hInputFile = hSaveStdin = hSaveStdout = INVALID_HANDLE_VALUE;
+	hInputFile = INVALID_HANDLE_VALUE;
     
     BPIPE *bpipe = (BPIPE *)malloc(sizeof(BPIPE));
     memset((void *)bpipe, 0, sizeof(BPIPE));
 
     int mode_read = (mode[0] == 'r');
     int mode_write = (mode[0] == 'w' || mode[1] == 'w');
-
-   
+    
+    
     // Set the bInheritHandle flag so pipe handles are inherited. 
-   
-   saAttr.nLength = sizeof(SECURITY_ATTRIBUTES); 
-   saAttr.bInheritHandle = TRUE; 
-   saAttr.lpSecurityDescriptor = NULL; 
-
-   // Save the handle to the current STDOUT. 
-   hSaveStdout = GetStdHandle(STD_OUTPUT_HANDLE); 
-   
-
-   if (mode_read) {
-       // Create a pipe for the child process's STDOUT. 
-       if (! CreatePipe(&hChildStdoutRd, &hChildStdoutWr, &saAttr, 0)) {
-	   ErrorExit("Stdout pipe creation failed\n");
-	   goto cleanup;
-       }
-       
-       // Set a write handle to the pipe to be STDOUT. 
-       if (! SetStdHandle(STD_OUTPUT_HANDLE, hChildStdoutWr))
-       {
-	   ErrorExit("Redirecting STDOUT failed");
-	   goto cleanup;
-       }
-       // Create noninheritable read handle and close the inheritable read 
-       // handle. 
-       
-       fSuccess = DuplicateHandle(GetCurrentProcess(), hChildStdoutRd,
-				  GetCurrentProcess(), &hChildStdoutRdDup , 0,
-				  FALSE,
-				  DUPLICATE_SAME_ACCESS);
-       if( !fSuccess ) {
-	   ErrorExit("DuplicateHandle failed");
-	   goto cleanup;
-       }
-
-       CloseHandle(hChildStdoutRd);
-   }
-
-   if (mode_write) {
-// Save the handle to the current STDIN. 
-       
-       hSaveStdin = GetStdHandle(STD_INPUT_HANDLE); 
-       
-// Create a pipe for the child process's STDIN. 
-       
-       if (! CreatePipe(&hChildStdinRd, &hChildStdinWr, &saAttr, 0)) {
-	   ErrorExit("Stdin pipe creation failed\n");
-	   goto cleanup;
-       }
-       
-// Set a read handle to the pipe to be STDIN. 
-       
-       if (! SetStdHandle(STD_INPUT_HANDLE, hChildStdinRd)) {
-	   ErrorExit("Redirecting Stdin failed");
-	   goto cleanup;
-       }
-       
-// Duplicate the write handle to the pipe so it is not inherited. 
-       
-       fSuccess = DuplicateHandle(GetCurrentProcess(), hChildStdinWr, 
-				  GetCurrentProcess(), &hChildStdinWrDup, 0, 
-				  FALSE,                  // not inherited 
-				  DUPLICATE_SAME_ACCESS); 
-       if (!fSuccess) {
-	   ErrorExit("DuplicateHandle failed");
-	   goto cleanup;
-       }
-       
-       CloseHandle(hChildStdinWr); 
-   }
-
-   bpipe->worker_pid = (pid_t)CreateChildProcess(prog);
-
-   bpipe->wait = wait;
-   bpipe->worker_stime = time(NULL);
-
-   if (mode_read) {
-       SetStdHandle(STD_OUTPUT_HANDLE, hSaveStdout);
-       int rfd = _open_osfhandle((long)hChildStdoutRdDup, O_RDONLY);
-       bpipe->rfd = fdopen(rfd, "r");
-   }
-   if (mode_write) {
-       SetStdHandle(STD_INPUT_HANDLE, hSaveStdin);
-       int wfd = _open_osfhandle((long)hChildStdinWrDup, O_WRONLY);
-       bpipe->wfd = fdopen(wfd, "w");
-   }
-
-   if (wait > 0) {
-       bpipe->timer_id = start_child_timer(bpipe->worker_pid, wait);
-   }
-
-
-   return bpipe;
-
-cleanup: 
-   free((void *) bpipe);
-   return NULL;
+    
+    saAttr.nLength = sizeof(SECURITY_ATTRIBUTES); 
+    saAttr.bInheritHandle = TRUE; 
+    saAttr.lpSecurityDescriptor = NULL; 
+    
+    if (mode_read) {
+	
+	// Create a pipe for the child process's STDOUT. 
+	if (! CreatePipe(&hChildStdoutRd, &hChildStdoutWr, &saAttr, 0)) {
+	    ErrorExit("Stdout pipe creation failed\n");
+	    goto cleanup;
+	}
+	// Create noninheritable read handle and close the inheritable read 
+	// handle. 
+	
+	fSuccess = DuplicateHandle(GetCurrentProcess(), hChildStdoutRd,
+				   GetCurrentProcess(), &hChildStdoutRdDup , 0,
+				   FALSE,
+				   DUPLICATE_SAME_ACCESS);
+	if( !fSuccess ) {
+	    ErrorExit("DuplicateHandle failed");
+	    goto cleanup;
+	}
+	
+	CloseHandle(hChildStdoutRd);
+    }
+    
+    if (mode_write) {
+	
+	// Create a pipe for the child process's STDIN. 
+	
+	if (! CreatePipe(&hChildStdinRd, &hChildStdinWr, &saAttr, 0)) {
+	    ErrorExit("Stdin pipe creation failed\n");
+	    goto cleanup;
+	}
+	
+	// Duplicate the write handle to the pipe so it is not inherited. 
+	fSuccess = DuplicateHandle(GetCurrentProcess(), hChildStdinWr, 
+				   GetCurrentProcess(), &hChildStdinWrDup,
+				   0, 
+				   FALSE,                  // not inherited 
+				   DUPLICATE_SAME_ACCESS); 
+	if (!fSuccess) {
+	    ErrorExit("DuplicateHandle failed");
+	    goto cleanup;
+	}
+	
+	CloseHandle(hChildStdinWr); 
+    }
+    // spawn program with redirected handles as appropriate
+    bpipe->worker_pid = (pid_t)
+	CreateChildProcess(prog, // commandline
+			   hChildStdinRd, // stdin HANDLE
+			   hChildStdoutWr, // stdout HANDLE
+			   hChildStdoutWr);// stderr HANDLE
+    
+    if ((HANDLE) bpipe->worker_pid == INVALID_HANDLE_VALUE)
+	goto cleanup;
+    
+    bpipe->wait = wait;
+    bpipe->worker_stime = time(NULL);
+    
+    if (mode_read) {
+	CloseHandle(hChildStdoutWr); // close our write side so when
+				     // process terminates we can
+				     // detect eof.
+	// ugly but convert WIN32 HANDLE to FILE*
+	int rfd = _open_osfhandle((long)hChildStdoutRdDup, O_RDONLY);
+	bpipe->rfd = _fdopen(rfd, "r");
+    }
+    if (mode_write) {
+	CloseHandle(hChildStdinRd); // close our read side so as not
+				    // to interfre with child's copy
+	// ugly but convert WIN32 HANDLE to FILE*
+	int wfd = _open_osfhandle((long)hChildStdinWrDup, O_WRONLY);
+	bpipe->wfd = _fdopen(wfd, "w");
+    }
+    
+    if (wait > 0) {
+	bpipe->timer_id = start_child_timer(bpipe->worker_pid, wait);
+    }
+    
+    return bpipe;
+    
+cleanup:
+    
+    CloseIfValid(hChildStdoutRd);
+    CloseIfValid(hChildStdoutRdDup);
+    CloseIfValid(hChildStdinWr);
+    CloseIfValid(hChildStdinWrDup);
+    
+    free((void *) bpipe);
+    
+    return NULL;
 }
 
-int kill(int pid, int signal)
+int
+kill(int pid, int signal)
 {
     int rval = 0;
     if (!TerminateProcess((HANDLE)pid, (UINT) signal))
 	rval = -1;
-
     CloseHandle((HANDLE)pid);
     return rval;
 }
 
-int close_bpipe(BPIPE *bpipe)
+int
+close_bpipe(BPIPE *bpipe)
 {
+    int rval = 0;
+    if (bpipe->rfd) fclose(bpipe->rfd);
+    if (bpipe->wfd) fclose(bpipe->wfd);
 
-    return 0;
+    if (bpipe->wait) {
+	int remaining_wait = bpipe->wait;
+	do 
+	{
+	    DWORD exitCode;
+	    if (!GetExitCodeProcess((HANDLE)bpipe->worker_pid, &exitCode))
+	    {
+		const char *err = errorString();
+		rval = GetLastError();
+		d_msg(__FILE__, __LINE__, 0, 
+		      "GetExitCode error %s\n", err);
+		LocalFree((void *)err);
+		break;
+	    }
+	    
+	    if (exitCode == STILL_ACTIVE) {
+		bmicrosleep(1, 0);	       /* wait one second */
+		remaining_wait--;
+	    }
+	    else break;
+	} while(remaining_wait);
+    }
+    
+    if (bpipe->timer_id) {
+	stop_child_timer(bpipe->timer_id);
+    }
+    free((void *)bpipe);    
+    return rval;
 }
 
-int close_wpipe(BPIPE *bpipe)
+int
+close_wpipe(BPIPE *bpipe)
 {
-
-    return 0;
+    int stat = 1;
+    
+    if (bpipe->wfd) {
+	fflush(bpipe->wfd);
+	if (fclose(bpipe->wfd) != 0) {
+	    stat = 0;
+      }
+	bpipe->wfd = NULL;
+    }
+    return stat;
 }
