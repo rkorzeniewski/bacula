@@ -138,7 +138,7 @@ db_open_database(JCR *jcr, B_DB *mdb)
 	mdb->db_socket, 	      /* default = socket */
 	CLIENT_FOUND_ROWS);	      /* flags */
 
-   /* If no connect, try once more incase it is a timing problem */
+   /* If no connect, try once more in case it is a timing problem */
    if (mdb->db == NULL) {
       mdb->db = mysql_real_connect(
 	   &(mdb->mysql),		 /* db */
@@ -148,7 +148,7 @@ db_open_database(JCR *jcr, B_DB *mdb)
 	   mdb->db_name,		 /* database name */
 	   mdb->db_port,		 /* default port */
 	   mdb->db_socket,		 /* default = socket */
-	   0);				 /* flags = none */
+	   CLIENT_FOUND_ROWS);		 /* flags */
    }
     
    Dmsg0(50, "mysql_real_connect done\n");

@@ -35,7 +35,7 @@ Device {
   Name = FileStorage
   Media Type = File
   Archive Device = /tmp
-  LabelMedia = yes;                   # lets Bacula label unlabelled media
+  LabelMedia = yes;                   # lets Bacula label unlabeled media
   Random Access = Yes;
   AutomaticMount = yes;               # when device opened, read it
   RemovableMedia = no;
