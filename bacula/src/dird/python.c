@@ -67,6 +67,7 @@ static struct s_vars vars[] = {
    { N_("Catalog"),    "s"},
    { N_("MediaType"),  "s"},
    { N_("JobName"),    "s"},
+   { N_("JobStatus"),  "s"},
    
    { NULL,	       NULL}
 };
@@ -79,6 +80,7 @@ PyObject *bacula_get(PyObject *self, PyObject *args)
    char *item;
    bool found = false;
    int i;
+   char buf[10];
 
    if (!PyArg_ParseTuple(args, "Os:get", &CObject, &item)) {
       return NULL;
@@ -118,6 +120,10 @@ PyObject *bacula_get(PyObject *self, PyObject *args)
       return Py_BuildValue(vars[i].fmt, jcr->store->media_type);
    case 11:			      /* JobName */
       return Py_BuildValue(vars[i].fmt, jcr->Job);
+   case 12:			      /* JobStatus */
+      buf[1] = 0;
+      buf[0] = jcr->JobStatus;
+      return Py_BuildValue(vars[i].fmt, buf);
    }
    return NULL;
 }

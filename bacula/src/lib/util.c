@@ -547,9 +547,6 @@ POOLMEM *edit_job_codes(JCR *jcr, char *omsg, char *imsg, const char *to)
 	    } else {
                str = "*none*";
 	    }
-	    if (!str) {
-               str = "";
-	    }
 	    break;
          case 'd':
             str = my_name;            /* Director's name */
