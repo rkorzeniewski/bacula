@@ -34,7 +34,7 @@
 #include "dird.h"
 
 /* Forward referenced functions */
-static void write_bsr(UAContext *ua, RBSR *bsr, FILE *fd);
+static int write_bsr(UAContext *ua, RBSR *bsr, FILE *fd);
 void print_bsr(UAContext *ua, RBSR *bsr);
 
 
@@ -176,26 +176,34 @@ int complete_bsr(UAContext *ua, RBSR *bsr)
 }
 
 /*
- * Write the bootstrap record to file
+ * Write the bootstrap records to file
  */
 int write_bsr_file(UAContext *ua, RBSR *bsr)
 {
    FILE *fd;
    POOLMEM *fname = get_pool_memory(PM_MESSAGE);
-   int stat;
+   int count = 0;;
+   bool err;
 
    Mmsg(fname, "%s/restore.bsr", working_directory);
    fd = fopen(fname, "w+");
    if (!fd) {
+      berrno be;
       bsendmsg(ua, _("Unable to create bootstrap file %s. ERR=%s\n"), 
-	 fname, strerror(errno));
-      free_pool_memory(fname);
-      return 0;
+	 fname, be.strerror());
+      goto bail_out;
    }
    /* Write them to file */
-   write_bsr(ua, bsr, fd);
-   stat = !ferror(fd);
+   count = write_bsr(ua, bsr, fd);
+   err = ferror(fd);
    fclose(fd);
+   if (err) {
+      bsendmsg(ua, _("Error writing bsr file.\n"));
+      count = 0;
+      goto bail_out;
+   }
+
+
    bsendmsg(ua, _("Bootstrap records written to %s\n"), fname);
 
    /* Tell the user what he will need to mount */
@@ -216,18 +224,20 @@ int write_bsr_file(UAContext *ua, RBSR *bsr)
    }
    if (ua->num_prompts == 0) {
       bsendmsg(ua, _("No Volumes found to restore.\n"));
-      stat = 0;
+      count = 0;
    }
    ua->num_prompts = 0;
    bsendmsg(ua, "\n");
+
+bail_out:
    free_pool_memory(fname);
-   return stat;
+   return count;
 }
 
-static void write_bsr(UAContext *ua, RBSR *bsr, FILE *fd)
+static int write_bsr(UAContext *ua, RBSR *bsr, FILE *fd)
 {
+   uint32_t count = 0;
    if (bsr) {
-      uint32_t count;
       /*
        * For a given volume, loop over all the JobMedia records.
        *   VolCount is the number of JobMedia records.
@@ -264,6 +274,7 @@ static void write_bsr(UAContext *ua, RBSR *bsr, FILE *fd)
       }
       write_bsr(ua, bsr->next, fd);
    }
+   return count;
 }
 
 void print_bsr(UAContext *ua, RBSR *bsr)
