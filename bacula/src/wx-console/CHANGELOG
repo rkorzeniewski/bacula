@@ -1,3 +1,6 @@
+17-05-2004 :
+ - wxbRestorePanel : Implemented refresh buttons
+
 15-05-2004 :
  - wxbRestorePanel : The user can now mark/unmark a range of files selected
      with shift-click or multiple files selected with ctl-click, by

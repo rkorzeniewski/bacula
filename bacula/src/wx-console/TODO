@@ -10,11 +10,7 @@ Mac OS X : "You must first get a unique identifier for your application,
 Mac OS X : Ask kern for the status of this distribution (who is
   the package releaser ?)
 
-wxbRestorePanel : Implement refresh buttons
-
 wxbRestorePanel : Add images in add/remove/refresh buttons
-
-general : replace delete by delete [] when needed
 
 wxbRestorePanel : disable controls when working
 

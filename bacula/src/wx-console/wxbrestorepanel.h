@@ -105,8 +105,9 @@ class wxbRestorePanel : public wxbPanel
        * containing the data. */
       wxbPromptParser* WaitForPrompt(wxString cmd, bool keepresults = false);
 
-      /* Run a dir command, and waits until result is fully received. */
-      void UpdateTreeItem(wxTreeItemId item, bool updatelist);
+      /* Run a dir command, and waits until result is fully received.
+       * If recurse is true, update the children too. */
+      void UpdateTreeItem(wxTreeItemId item, bool updatelist, bool recurse);
 
       /* Parse dir command results. */
       wxString* ParseList(wxString line);
@@ -120,8 +121,11 @@ class wxbRestorePanel : public wxbPanel
       /* Update a tree item parents' state */
       void UpdateTreeItemState(wxTreeItemId item);
 
-      /* Refresh a tree item, and all its children. */
-      void RefreshTree(wxTreeItemId item);
+      /* Refresh the whole tree. */
+      void RefreshTree();
+      
+      /* Refresh file list */
+      void RefreshList();
       
       /* Update first config, adapting settings to the job name selected */
       void UpdateFirstConfig();

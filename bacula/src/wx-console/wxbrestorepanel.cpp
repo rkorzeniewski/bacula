@@ -1133,7 +1133,7 @@ void wxbRestorePanel::CmdList(wxTreeItemId item) {
       if (!item.IsOk()) {
          return;
       }
-      UpdateTreeItem(item, (tree->GetSelection() == item));
+      UpdateTreeItem(item, (tree->GetSelection() == item), false);
     
       if (list->GetItemCount() >= 1) {
          int firstwidth = list->GetSize().GetWidth(); 
@@ -1347,7 +1347,7 @@ wxbDataTokenizer* wxbRestorePanel::WaitForEnd(wxString cmd, bool keepresults, bo
 }
 
 /* Run a dir command, and waits until result is fully received. */
-void wxbRestorePanel::UpdateTreeItem(wxTreeItemId item, bool updatelist) {
+void wxbRestorePanel::UpdateTreeItem(wxTreeItemId item, bool updatelist, bool recurse) {
 //   this->updatelist = updatelist;
    wxbDataTokenizer* dt;
 
@@ -1399,6 +1399,9 @@ void wxbRestorePanel::UpdateTreeItem(wxTreeItemId item, bool updatelist) {
                   tree->SetItemImage(treeid, stat, wxTreeItemIcon_Normal);
                   tree->SetItemImage(treeid, stat, wxTreeItemIcon_Selected);
                   static_cast<wxbTreeItemData*>(tree->GetItemData(treeid))->SetMarked(file[6]);
+               }
+               if ((recurse) && (tree->IsExpanded(treeid))) {
+                  UpdateTreeItem(treeid, false, true);
                }
                updated = true;
                break;
@@ -1606,23 +1609,59 @@ void wxbRestorePanel::UpdateTreeItemState(wxTreeItemId item) {
    UpdateTreeItemState(tree->GetItemParent(item));
 }
 
-/* 
- * Refresh a tree item, and all its childs, 
- * by asking the director for new lists 
- */
-void wxbRestorePanel::RefreshTree(wxTreeItemId item) {
-/*   UpdateTreeItem(item, updatelist);*/
+/* Refresh the whole tree. */
+void wxbRestorePanel::RefreshTree() {
+   /* Save current selection */
+   wxArrayString current;
+   
+   wxTreeItemId item = currentTreeItem;
+   
+   while ((item.IsOk()) && (item != tree->GetRootItem())) {
+      current.Add(tree->GetItemText(item));
+      item = tree->GetItemParent(item);
+   }
 
-   /* Update all child which are not collapsed */
-/*   long cookie;
-   wxTreeItemId currentChild = tree->GetFirstChild(item, cookie);
+   /* Update the tree */
+   UpdateTreeItem(tree->GetRootItem(), false, true);
 
-   while (currentChild.IsOk()) {
-      if (tree->IsExpanded(currentChild))
-         UpdateTree(currentChild, false);
+   /* Reselect the former selected item */   
+   item = tree->GetRootItem();
+   
+   if (current.Count() == 0) {
+      tree->SelectItem(item);
+      return;
+   }
+   
+   bool match;
+   
+   for (int i = current.Count()-1; i >= 0; i--) {
+      long cookie;
+      wxTreeItemId currentChild = tree->GetFirstChild(item, cookie);
+      
+      match = false;
+      
+      while (currentChild.IsOk()) {
+         if (tree->GetItemText(currentChild) == current[i]) {
+            item = currentChild;
+            match = true;
+            break;
+         }
+   
+         currentChild = tree->GetNextChild(item, cookie);
+      }
+      
+      if (!match) break;
+   }
+   
+   UpdateTreeItem(item, true, false); /* Update the list */
+   
+   tree->SelectItem(item);
+}
 
-      currentChild = tree->GetNextChild(item, cookie);
-   }*/
+void wxbRestorePanel::RefreshList() {
+   if (currentTreeItem.IsOk()) {
+      UpdateTreeItem(currentTreeItem, true, false); /* Update the list */
+   }
 }
 
 /* Update first config, adapting settings to the job name selected */
@@ -1991,6 +2030,7 @@ void wxbRestorePanel::OnTreeRefresh(wxCommandEvent& event) {
       return;
    }
    
+   RefreshTree();
 }
 
 void wxbRestorePanel::OnListMarked(wxbListMarkedEvent& event) {
@@ -1998,9 +2038,14 @@ void wxbRestorePanel::OnListMarked(wxbListMarkedEvent& event) {
       //event.Skip();
       return;
    }
+   
+   if (list->GetSelectedItemCount() == 0) {
+      return;
+   }
+   
    SetCursor(*wxHOURGLASS_CURSOR);
-   working = true;
-     
+   working = true;  
+   
    long* items = new long[list->GetSelectedItemCount()];
    
    int num = 0;
@@ -2016,7 +2061,9 @@ void wxbRestorePanel::OnListMarked(wxbListMarkedEvent& event) {
    
    delete[] items;
    
-   OnListChanged(wxListEvent());
+   wxListEvent listevt;
+   
+   OnListChanged(listevt);
    
    event.Skip();
    tree->Refresh();
@@ -2163,7 +2210,7 @@ void wxbRestorePanel::OnListRefresh(wxCommandEvent& WXUNUSED(event)) {
       return;
    }
    
-   
+   RefreshList();
 }
 
 void wxbRestorePanel::OnConfigUpdated(wxCommandEvent& event) {
