@@ -127,6 +127,17 @@ int pm_strcat(POOLMEM **pm, const char *str)
    return pmlen + len - 1;
 }
 
+int pm_strcat(POOLMEM *&pm, const char *str)
+{
+   int pmlen = strlen(pm);
+   int len = strlen(str) + 1;
+
+   pm = check_pool_memory_size(pm, pmlen + len);
+   memcpy(pm+pmlen, str, len);
+   return pmlen + len - 1;
+}
+
+
 
 /*
  * Copy a string (str) into a pool memory buffer pm
@@ -140,6 +151,18 @@ int pm_strcpy(POOLMEM **pm, const char *str)
    memcpy(*pm, str, len);
    return len - 1;
 }
+
+int pm_strcpy(POOLMEM *&pm, const char *str)
+{
+   int len = strlen(str) + 1;
+
+   pm = check_pool_memory_size(pm, len);
+   memcpy(pm, str, len);
+   return len - 1;
+}
+
+
+ 
 
 
 /*

@@ -569,7 +569,7 @@ void wxbMainFrame::Print(wxString str, int status)
       wxbDataTokenizer* dt = wxbUtils::WaitForEnd(".help", true);
       int i, j;
       wxString str;
-      for (i = 0; i < dt->GetCount(); i++) {
+      for (i = 0; i < (int)dt->GetCount(); i++) {
          str = (*dt)[i];
          str.RemoveLast();
          if ((j = str.Find(' ')) > -1) {

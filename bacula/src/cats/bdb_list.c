@@ -84,7 +84,7 @@ void db_list_pool_records(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ct
    fseek(mdb->poolfd, 0L, SEEK_SET);   /* rewind file */
    len = sizeof(pr);
    while (fread(&pr, len, 1, mdb->poolfd) > 0) {
-         Mmsg(&mdb->cmd, " %7d  %6d  %6d  %-10s %s\n",
+         Mmsg(mdb->cmd, " %7d  %6d  %6d  %-10s %s\n",
 	    pr.PoolId, pr.NumVols, pr.MaxVols, pr.PoolType, pr.Name);
 	 sendit(ctx, mdb->cmd);
    }
@@ -115,7 +115,7 @@ void db_list_media_records(JCR *jcr, B_DB *mdb, MEDIA_DBR *mdbr,
    fseek(mdb->mediafd, 0L, SEEK_SET);	/* rewind file */
    len = sizeof(mr);
    while (fread(&mr, len, 1, mdb->mediafd) > 0) {
-         Mmsg(&mdb->cmd, " %-10s %17s %-15s  %s\n",
+         Mmsg(mdb->cmd, " %-10s %17s %-15s  %s\n",
 	    mr.VolStatus, edit_uint64_with_commas(mr.VolBytes, ewc),
 	    mr.MediaType, mr.VolumeName);
 	 sendit(ctx, mdb->cmd);
@@ -154,7 +154,7 @@ void db_list_jobmedia_records(JCR *jcr, B_DB *mdb, uint32_t JobId,
 	    fseek(mdb->mediafd, 0L, SEEK_SET);
 	    while (fread(&mr, mrlen, 1, mdb->mediafd) > 0) {
 	       if (mr.MediaId == jm.MediaId) {
-                  Mmsg(&mdb->cmd, " %7d  %-10s %10d %10d\n",
+                  Mmsg(mdb->cmd, " %7d  %-10s %10d %10d\n",
 		       jm.JobId, mr.VolumeName, jm.FirstIndex, jm.LastIndex);
 		  sendit(ctx, mdb->cmd);
 		  break;
@@ -166,7 +166,7 @@ void db_list_jobmedia_records(JCR *jcr, B_DB *mdb, uint32_t JobId,
 	 fseek(mdb->mediafd, 0L, SEEK_SET);
 	 while (fread(&mr, mrlen, 1, mdb->mediafd) > 0) {
 	    if (mr.MediaId == jm.MediaId) {
-               Mmsg(&mdb->cmd, " %7d  %-10s %10d %10d\n",
+               Mmsg(mdb->cmd, " %7d  %-10s %10d %10d\n",
 		    jm.JobId, mr.VolumeName, jm.FirstIndex, jm.LastIndex);
 	       sendit(ctx, mdb->cmd);
 	       break;
@@ -216,8 +216,8 @@ void db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr,
       }
       localtime_r(&ojr.StartTime, &tm);
       strftime(dt, sizeof(dt), "%m-%d %H:%M", &tm);
-      Mmsg(&mdb->cmd, " %7d  %-10s   %c    %c   %14s %10s  %c  %s\n", 
-		ojr.JobId, dt, (char)ojr.Type, (char)ojr.Level, 
+      Mmsg(mdb->cmd, " %7d  %-10s   %c    %c   %14s %10s  %c  %s\n", 
+		ojr.JobId, dt, (char)ojr.JobType, (char)ojr.JobLevel, 
 		edit_uint64_with_commas(ojr.JobBytes, ewc1), 
 		edit_uint64_with_commas(ojr.JobFiles, ewc2),
 		(char)ojr.JobStatus, ojr.Name);
@@ -259,7 +259,7 @@ void db_list_job_totals(JCR *jcr, B_DB *mdb, JOB_DBR *jr,
       total_bytes += ojr.JobBytes;
       total_jobs++;
    }
-   Mmsg(&mdb->cmd, " %7s  %10s   %15s\n", 
+   Mmsg(mdb->cmd, " %7s  %10s   %15s\n", 
 	     edit_uint64_with_commas(total_jobs, ewc1),
 	     edit_uint64_with_commas(total_files, ewc2), 
 	     edit_uint64_with_commas(total_bytes, ewc3));

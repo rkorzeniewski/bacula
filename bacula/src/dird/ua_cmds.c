@@ -675,7 +675,7 @@ static void update_volstatus(UAContext *ua, const char *val, MEDIA_DBR *mr)
       bsendmsg(ua, _("Invalid VolStatus specified: %s\n"), val);
    } else {
       bstrncpy(mr->VolStatus, kw[i], sizeof(mr->VolStatus));
-      Mmsg(&query, "UPDATE Media SET VolStatus='%s' WHERE MediaId=%u",
+      Mmsg(query, "UPDATE Media SET VolStatus='%s' WHERE MediaId=%u",
 	 mr->VolStatus, mr->MediaId);
       if (!db_sql_query(ua->db, query, NULL, NULL)) {  
          bsendmsg(ua, "%s", db_strerror(ua->db));
@@ -695,7 +695,7 @@ static void update_volretention(UAContext *ua, char *val, MEDIA_DBR *mr)
       return;
    }
    query = get_pool_memory(PM_MESSAGE);
-   Mmsg(&query, "UPDATE Media SET VolRetention=%s WHERE MediaId=%u",
+   Mmsg(query, "UPDATE Media SET VolRetention=%s WHERE MediaId=%u",
       edit_uint64(mr->VolRetention, ed1), mr->MediaId);
    if (!db_sql_query(ua->db, query, NULL, NULL)) {  
       bsendmsg(ua, "%s", db_strerror(ua->db));
@@ -716,7 +716,7 @@ static void update_voluseduration(UAContext *ua, char *val, MEDIA_DBR *mr)
       return;
    }
    query = get_pool_memory(PM_MESSAGE);
-   Mmsg(&query, "UPDATE Media SET VolUseDuration=%s WHERE MediaId=%u",
+   Mmsg(query, "UPDATE Media SET VolUseDuration=%s WHERE MediaId=%u",
       edit_uint64(mr->VolUseDuration, ed1), mr->MediaId);
    if (!db_sql_query(ua->db, query, NULL, NULL)) {  
       bsendmsg(ua, "%s", db_strerror(ua->db));
@@ -730,7 +730,7 @@ static void update_voluseduration(UAContext *ua, char *val, MEDIA_DBR *mr)
 static void update_volmaxjobs(UAContext *ua, char *val, MEDIA_DBR *mr)
 {
    POOLMEM *query = get_pool_memory(PM_MESSAGE);
-   Mmsg(&query, "UPDATE Media SET MaxVolJobs=%s WHERE MediaId=%u",
+   Mmsg(query, "UPDATE Media SET MaxVolJobs=%s WHERE MediaId=%u",
       val, mr->MediaId);
    if (!db_sql_query(ua->db, query, NULL, NULL)) {  
       bsendmsg(ua, "%s", db_strerror(ua->db));
@@ -743,7 +743,7 @@ static void update_volmaxjobs(UAContext *ua, char *val, MEDIA_DBR *mr)
 static void update_volmaxfiles(UAContext *ua, char *val, MEDIA_DBR *mr)
 {
    POOLMEM *query = get_pool_memory(PM_MESSAGE);
-   Mmsg(&query, "UPDATE Media SET MaxVolFiles=%s WHERE MediaId=%u",
+   Mmsg(query, "UPDATE Media SET MaxVolFiles=%s WHERE MediaId=%u",
       val, mr->MediaId);
    if (!db_sql_query(ua->db, query, NULL, NULL)) {  
       bsendmsg(ua, "%s", db_strerror(ua->db));
@@ -764,7 +764,7 @@ static void update_volmaxbytes(UAContext *ua, char *val, MEDIA_DBR *mr)
       return;
    } 
    query = get_pool_memory(PM_MESSAGE);
-   Mmsg(&query, "UPDATE Media SET MaxVolBytes=%s WHERE MediaId=%u",
+   Mmsg(query, "UPDATE Media SET MaxVolBytes=%s WHERE MediaId=%u",
       edit_uint64(maxbytes, ed1), mr->MediaId);
    if (!db_sql_query(ua->db, query, NULL, NULL)) {  
       bsendmsg(ua, "%s", db_strerror(ua->db));
@@ -787,7 +787,7 @@ static void update_volrecycle(UAContext *ua, char *val, MEDIA_DBR *mr)
       return;
    }
    query = get_pool_memory(PM_MESSAGE);
-   Mmsg(&query, "UPDATE Media SET Recycle=%d WHERE MediaId=%u",
+   Mmsg(query, "UPDATE Media SET Recycle=%d WHERE MediaId=%u",
       recycle, mr->MediaId);
    if (!db_sql_query(ua->db, query, NULL, NULL)) {  
       bsendmsg(ua, "%s", db_strerror(ua->db));
@@ -814,7 +814,7 @@ static void update_vol_pool(UAContext *ua, char *val, MEDIA_DBR *mr, POOL_DBR *o
     */
    query = get_pool_memory(PM_MESSAGE);
    db_lock(ua->db);
-   Mmsg(&query, "UPDATE Media SET PoolId=%d WHERE MediaId=%u",
+   Mmsg(query, "UPDATE Media SET PoolId=%d WHERE MediaId=%u",
       mr->PoolId, mr->MediaId);
    if (!db_sql_query(ua->db, query, NULL, NULL)) {  
       bsendmsg(ua, "%s", db_strerror(ua->db));
@@ -1109,7 +1109,7 @@ static int update_volume(UAContext *ua)
 	    }
 	 }
 	 query = get_pool_memory(PM_MESSAGE);
-         Mmsg(&query, "UPDATE Media SET VolFiles=%u WHERE MediaId=%u",
+         Mmsg(query, "UPDATE Media SET VolFiles=%u WHERE MediaId=%u",
 	    VolFiles, mr.MediaId);
 	 if (!db_sql_query(ua->db, query, NULL, NULL)) {  
             bsendmsg(ua, "%s", db_strerror(ua->db));
@@ -1176,7 +1176,7 @@ static int update_pool(UAContext *ua)
 	 id, db_strerror(ua->db));
    }
    query = get_pool_memory(PM_MESSAGE);
-   Mmsg(&query, list_pool, pr.PoolId);
+   Mmsg(query, list_pool, pr.PoolId);
    db_list_sql_query(ua->jcr, ua->db, query, prtit, ua, 1, HORZ_LIST);
    free_pool_memory(query);
    bsendmsg(ua, _("Pool DB record updated from resource.\n"));
@@ -1688,11 +1688,11 @@ static int delete_job(UAContext *ua)
    } else {
       JobId = ua->pint32_val; 
    }
-   Mmsg(&query, "DELETE FROM Job WHERE JobId=%u", JobId);
+   Mmsg(query, "DELETE FROM Job WHERE JobId=%u", JobId);
    db_sql_query(ua->db, query, NULL, (void *)NULL);
-   Mmsg(&query, "DELETE FROM File WHERE JobId=%u", JobId);
+   Mmsg(query, "DELETE FROM File WHERE JobId=%u", JobId);
    db_sql_query(ua->db, query, NULL, (void *)NULL);
-   Mmsg(&query, "DELETE FROM JobMedia WHERE JobId=%u", JobId);
+   Mmsg(query, "DELETE FROM JobMedia WHERE JobId=%u", JobId);
    db_sql_query(ua->db, query, NULL, (void *)NULL);
    free_pool_memory(query);
    bsendmsg(ua, _("Job %u and associated records deleted from the catalog.\n"), JobId);

@@ -66,7 +66,7 @@ db_delete_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
    SQL_ROW row;
 
    db_lock(mdb);
-   Mmsg(&mdb->cmd, "SELECT PoolId FROM Pool WHERE Name='%s'", pr->Name);
+   Mmsg(mdb->cmd, "SELECT PoolId FROM Pool WHERE Name='%s'", pr->Name);
    Dmsg1(10, "selectpool: %s\n", mdb->cmd);
 
    pr->PoolId = pr->NumVols = 0;
@@ -76,12 +76,12 @@ db_delete_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
       mdb->num_rows = sql_num_rows(mdb);
    
       if (mdb->num_rows == 0) {
-         Mmsg(&mdb->errmsg, _("No pool record %s exists\n"), pr->Name);
+         Mmsg(mdb->errmsg, _("No pool record %s exists\n"), pr->Name);
 	 sql_free_result(mdb);
 	 db_unlock(mdb);
 	 return 0;
       } else if (mdb->num_rows != 1) {
-         Mmsg(&mdb->errmsg, _("Expecting one pool record, got %d\n"), mdb->num_rows);
+         Mmsg(mdb->errmsg, _("Expecting one pool record, got %d\n"), mdb->num_rows);
 	 sql_free_result(mdb);
 	 db_unlock(mdb);
 	 return 0;
@@ -96,14 +96,14 @@ db_delete_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
    }
 
    /* Delete Media owned by this pool */
-   Mmsg(&mdb->cmd,
+   Mmsg(mdb->cmd,
 "DELETE FROM Media WHERE Media.PoolId = %d", pr->PoolId);
 
    pr->NumVols = DELETE_DB(jcr, mdb, mdb->cmd);
    Dmsg1(200, "Deleted %d Media records\n", pr->NumVols);
 
    /* Delete Pool */
-   Mmsg(&mdb->cmd,
+   Mmsg(mdb->cmd,
 "DELETE FROM Pool WHERE Pool.PoolId = %d", pr->PoolId);
    pr->PoolId = DELETE_DB(jcr, mdb, mdb->cmd);
    Dmsg1(200, "Deleted %d Pool records\n", pr->PoolId);
@@ -161,7 +161,7 @@ static int do_media_purge(B_DB *mdb, MEDIA_DBR *mr)
    del.tot_ids = 0;
    del.num_del = 0;
    del.max_ids = 0;
-   Mmsg(&mdb->cmd, "SELECT JobId from JobMedia WHERE MediaId=%d", mr->MediaId);
+   Mmsg(mdb->cmd, "SELECT JobId from JobMedia WHERE MediaId=%d", mr->MediaId);
    del.max_ids = mr->VolJobs;
    if (del.max_ids < 100) {
       del.max_ids = 100;
@@ -173,11 +173,11 @@ static int do_media_purge(B_DB *mdb, MEDIA_DBR *mr)
 
    for (i=0; i < del.num_ids; i++) {
       Dmsg1(400, "Delete JobId=%d\n", del.JobId[i]);
-      Mmsg(&query, "DELETE FROM Job WHERE JobId=%u", del.JobId[i]);
+      Mmsg(query, "DELETE FROM Job WHERE JobId=%u", del.JobId[i]);
       db_sql_query(mdb, query, NULL, (void *)NULL);
-      Mmsg(&query, "DELETE FROM File WHERE JobId=%u", del.JobId[i]);
+      Mmsg(query, "DELETE FROM File WHERE JobId=%u", del.JobId[i]);
       db_sql_query(mdb, query, NULL, (void *)NULL);
-      Mmsg(&query, "DELETE FROM JobMedia WHERE JobId=%u", del.JobId[i]);
+      Mmsg(query, "DELETE FROM JobMedia WHERE JobId=%u", del.JobId[i]);
       db_sql_query(mdb, query, NULL, (void *)NULL);
    }
    free(del.JobId);
@@ -201,7 +201,7 @@ int db_delete_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       do_media_purge(mdb, mr);
    }
 
-   Mmsg(&mdb->cmd, "DELETE FROM Media WHERE MediaId=%d", mr->MediaId);
+   Mmsg(mdb->cmd, "DELETE FROM Media WHERE MediaId=%d", mr->MediaId);
    db_sql_query(mdb, mdb->cmd, NULL, (void *)NULL);
    db_unlock(mdb);
    return 1;

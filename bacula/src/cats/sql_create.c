@@ -82,7 +82,7 @@ db_create_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    JobTDate = (utime_t)stime;
 
    /* Must create it */
-   Mmsg(&mdb->cmd,
+   Mmsg(mdb->cmd,
 "INSERT INTO Job (Job,Name,Type,Level,JobStatus,SchedTime,JobTDate) VALUES \
 ('%s','%s','%c','%c','%c','%s',%s)", 
 	   jr->Job, jr->Name, (char)(jr->JobType), (char)(jr->JobLevel), 
@@ -113,7 +113,7 @@ db_create_jobmedia_record(JCR *jcr, B_DB *mdb, JOBMEDIA_DBR *jm)
 
    db_lock(mdb);
 #ifdef not_used_in_new_code
-   Mmsg(&mdb->cmd, "SELECT JobId, MediaId FROM JobMedia WHERE \
+   Mmsg(mdb->cmd, "SELECT JobId, MediaId FROM JobMedia WHERE \
 JobId=%d AND MediaId=%d", jm->JobId, jm->MediaId);
 
    Dmsg0(300, mdb->cmd);
@@ -131,7 +131,7 @@ JobId=%d AND MediaId=%d", jm->JobId, jm->MediaId);
 #endif
 
    /* Now get count for VolIndex */
-   Mmsg(&mdb->cmd, "SELECT count(*) from JobMedia");
+   Mmsg(mdb->cmd, "SELECT count(*) from JobMedia");
    count = get_sql_record_max(jcr, mdb);
    if (count < 0) {
       count = 0;
@@ -139,7 +139,7 @@ JobId=%d AND MediaId=%d", jm->JobId, jm->MediaId);
    count++;
 
    /* Must create it */
-   Mmsg(&mdb->cmd, 
+   Mmsg(mdb->cmd, 
 "INSERT INTO JobMedia (JobId,MediaId,FirstIndex,LastIndex,\
 StartFile,EndFile,StartBlock,EndBlock,VolIndex) \
 VALUES (%u,%u,%u,%u,%u,%u,%u,%u,%u)", 
@@ -173,7 +173,7 @@ db_create_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
 
    Dmsg0(200, "In create pool\n");
    db_lock(mdb);
-   Mmsg(&mdb->cmd, "SELECT PoolId,Name FROM Pool WHERE Name='%s'", pr->Name);
+   Mmsg(mdb->cmd, "SELECT PoolId,Name FROM Pool WHERE Name='%s'", pr->Name);
    Dmsg1(200, "selectpool: %s\n", mdb->cmd);
 
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
@@ -188,7 +188,7 @@ db_create_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
    }
 
    /* Must create it */
-   Mmsg(&mdb->cmd, 
+   Mmsg(mdb->cmd, 
 "INSERT INTO Pool (Name,NumVols,MaxVols,UseOnce,UseCatalog,\
 AcceptAnyVolume,AutoPrune,Recycle,VolRetention,VolUseDuration,\
 MaxVolJobs,MaxVolFiles,MaxVolBytes,PoolType,LabelFormat) \
@@ -233,7 +233,7 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    struct tm tm;
 
    db_lock(mdb);
-   Mmsg(&mdb->cmd, "SELECT MediaId FROM Media WHERE VolumeName='%s'", 
+   Mmsg(mdb->cmd, "SELECT MediaId FROM Media WHERE VolumeName='%s'", 
 	   mr->VolumeName);
    Dmsg1(300, "selectpool: %s\n", mdb->cmd);
 
@@ -249,7 +249,7 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    }
 
    /* Must create it */
-   Mmsg(&mdb->cmd, 
+   Mmsg(mdb->cmd, 
 "INSERT INTO Media (VolumeName,MediaType,PoolId,MaxVolBytes,VolCapacityBytes," 
 "Recycle,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,"
 "VolStatus,Slot,VolBytes,InChanger,VolReadTime,VolWriteTime) "
@@ -283,7 +283,7 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 	 char dt[MAX_TIME_LENGTH];
 	 localtime_r(&mr->LabelDate, &tm);
          strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
-         Mmsg(&mdb->cmd, "UPDATE Media SET LabelDate='%s' "
+         Mmsg(mdb->cmd, "UPDATE Media SET LabelDate='%s' "
               "WHERE MediaId=%d", dt, mr->MediaId);
 	 stat = UPDATE_DB(jcr, mdb, mdb->cmd);
       }
@@ -313,7 +313,7 @@ int db_create_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr)
    char ed1[30], ed2[30];
 
    db_lock(mdb);
-   Mmsg(&mdb->cmd, "SELECT ClientId,Uname FROM Client WHERE Name='%s'", cr->Name);
+   Mmsg(mdb->cmd, "SELECT ClientId,Uname FROM Client WHERE Name='%s'", cr->Name);
 
    cr->ClientId = 0;
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
@@ -345,7 +345,7 @@ int db_create_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr)
    }
 
    /* Must create it */
-   Mmsg(&mdb->cmd, "INSERT INTO Client (Name, Uname, AutoPrune, \
+   Mmsg(mdb->cmd, "INSERT INTO Client (Name, Uname, AutoPrune, \
 FileRetention, JobRetention) VALUES \
 ('%s', '%s', %d, %s, %s)", cr->Name, cr->Uname, cr->AutoPrune,
       edit_uint64(cr->FileRetention, ed1),
@@ -386,7 +386,7 @@ int db_create_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr)
    }
 
    /* Must create it */
-   Mmsg(&mdb->cmd, "INSERT INTO Counters (Counter,MinValue,MaxValue,CurrentValue,"
+   Mmsg(mdb->cmd, "INSERT INTO Counters (Counter,MinValue,MaxValue,CurrentValue,"
       "WrapCounter) VALUES ('%s','%d','%d','%d','%s')",
       cr->Counter, cr->MinValue, cr->MaxValue, cr->CurrentValue,
       cr->WrapCounter);
@@ -418,7 +418,7 @@ int db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
 
    db_lock(mdb);
    fsr->created = false;
-   Mmsg(&mdb->cmd, "SELECT FileSetId,CreateTime FROM FileSet WHERE "
+   Mmsg(mdb->cmd, "SELECT FileSetId,CreateTime FROM FileSet WHERE "
 "FileSet='%s' AND MD5='%s'", fsr->FileSet, fsr->MD5);
 
    fsr->FileSetId = 0;
@@ -456,7 +456,7 @@ int db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
    strftime(fsr->cCreateTime, sizeof(fsr->cCreateTime), "%Y-%m-%d %T", &tm);
 
    /* Must create it */
-      Mmsg(&mdb->cmd, "INSERT INTO FileSet (FileSet,MD5,CreateTime) "
+      Mmsg(mdb->cmd, "INSERT INTO FileSet (FileSet,MD5,CreateTime) "
 "VALUES ('%s','%s','%s')", fsr->FileSet, fsr->MD5, fsr->cCreateTime);
 
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
@@ -564,7 +564,7 @@ static int db_create_file_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    ASSERT(ar->FilenameId);
 
    /* Must create it */
-   Mmsg(&mdb->cmd,
+   Mmsg(mdb->cmd,
 "INSERT INTO File (FileIndex,JobId,PathId,FilenameId,"
 "LStat,MD5) VALUES (%u,%u,%u,%u,'%s','0')", 
       ar->FileIndex, ar->JobId, ar->PathId, ar->FilenameId, 
@@ -598,7 +598,7 @@ static int db_create_path_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
       return 1;
    }	      
 
-   Mmsg(&mdb->cmd, "SELECT PathId FROM Path WHERE Path='%s'", mdb->esc_name);
+   Mmsg(mdb->cmd, "SELECT PathId FROM Path WHERE Path='%s'", mdb->esc_name);
 
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       mdb->num_rows = sql_num_rows(mdb);
@@ -632,7 +632,7 @@ static int db_create_path_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
       sql_free_result(mdb);
    }
 
-   Mmsg(&mdb->cmd, "INSERT INTO Path (Path) VALUES ('%s')", mdb->esc_name);
+   Mmsg(mdb->cmd, "INSERT INTO Path (Path) VALUES ('%s')", mdb->esc_name);
 
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db Path record %s failed. ERR=%s\n"), 
@@ -662,7 +662,7 @@ static int db_create_filename_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    mdb->esc_name = check_pool_memory_size(mdb->esc_name, 2*mdb->fnl+2);
    db_escape_string(mdb->esc_name, mdb->fname, mdb->fnl);
 
-   Mmsg(&mdb->cmd, "SELECT FilenameId FROM Filename WHERE Name='%s'", mdb->esc_name);
+   Mmsg(mdb->cmd, "SELECT FilenameId FROM Filename WHERE Name='%s'", mdb->esc_name);
 
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       mdb->num_rows = sql_num_rows(mdb);
@@ -687,7 +687,7 @@ static int db_create_filename_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
       sql_free_result(mdb);
    }
 
-   Mmsg(&mdb->cmd, "INSERT INTO Filename (Name) VALUES ('%s')", mdb->esc_name);
+   Mmsg(mdb->cmd, "INSERT INTO Filename (Name) VALUES ('%s')", mdb->esc_name);
 
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db Filename record %s failed. ERR=%s\n"), 

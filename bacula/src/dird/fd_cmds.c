@@ -269,7 +269,7 @@ static int send_list(JCR *jcr, int list)
             Dmsg1(500, "Opts=%s\n", buf);
 	    optlen = strlen(buf);
 	    while (fgets(buf+optlen, sizeof(buf)-optlen, bpipe->rfd)) {
-               fd->msglen = Mmsg(&fd->msg, "%s", buf);
+               fd->msglen = Mmsg(fd->msg, "%s", buf);
                Dmsg2(500, "Inc/exc len=%d: %s", fd->msglen, fd->msg);
 	       if (!bnet_send(fd)) {
                   Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
@@ -301,7 +301,7 @@ static int send_list(JCR *jcr, int list)
             Dmsg1(500, "Opts=%s\n", buf);
 	    optlen = strlen(buf);
 	    while (fgets(buf+optlen, sizeof(buf)-optlen, ffd)) {
-               fd->msglen = Mmsg(&fd->msg, "%s", buf);
+               fd->msglen = Mmsg(fd->msg, "%s", buf);
 	       if (!bnet_send(fd)) {
                   Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
 		  goto bail_out;
@@ -315,12 +315,12 @@ static int send_list(JCR *jcr, int list)
 	 default:
 	    if (ie->num_opts) {
                Dmsg2(500, "numopts=%d opts=%s\n", ie->num_opts, NPRT(ie->opts_list[0]->opts));
-	       pm_strcpy(&fd->msg, ie->opts_list[0]->opts);
-               pm_strcat(&fd->msg, " ");
+	       pm_strcpy(fd->msg, ie->opts_list[0]->opts);
+               pm_strcat(fd->msg, " ");
 	    } else {
-               pm_strcpy(&fd->msg, "0 ");
+               pm_strcpy(fd->msg, "0 ");
 	    }
-	    fd->msglen = pm_strcat(&fd->msg, p);
+	    fd->msglen = pm_strcat(fd->msg, p);
             Dmsg1(500, "Inc/Exc name=%s\n", fd->msg);
 	    if (!bnet_send(fd)) {
                Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
@@ -416,7 +416,7 @@ static int send_fileset(JCR *jcr)
                Dmsg1(500, "Opts=%s\n", buf);
 	       optlen = strlen(buf);
 	       while (fgets(buf+optlen, sizeof(buf)-optlen, bpipe->rfd)) {
-                  fd->msglen = Mmsg(&fd->msg, "%s", buf);
+                  fd->msglen = Mmsg(fd->msg, "%s", buf);
                   Dmsg2(500, "Inc/exc len=%d: %s", fd->msglen, fd->msg);
 		  if (!bnet_send(fd)) {
                      Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
@@ -442,7 +442,7 @@ static int send_fileset(JCR *jcr)
                Dmsg1(500, "Opts=%s\n", buf);
 	       optlen = strlen(buf);
 	       while (fgets(buf+optlen, sizeof(buf)-optlen, ffd)) {
-                  fd->msglen = Mmsg(&fd->msg, "%s", buf);
+                  fd->msglen = Mmsg(fd->msg, "%s", buf);
 		  if (!bnet_send(fd)) {
                      Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
 		     goto bail_out;
@@ -454,8 +454,8 @@ static int send_fileset(JCR *jcr)
                p++;                      /* skip over \ */
 	       /* Note, fall through wanted */
 	    default:
-               pm_strcpy(&fd->msg, "F ");
-	       fd->msglen = pm_strcat(&fd->msg, p);
+               pm_strcpy(fd->msg, "F ");
+	       fd->msglen = pm_strcat(fd->msg, p);
                Dmsg1(500, "Inc/Exc name=%s\n", fd->msg);
 	       if (!bnet_send(fd)) {
                   Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
@@ -558,7 +558,7 @@ int send_run_before_and_after_commands(JCR *jcr)
    POOLMEM *msg = get_pool_memory(PM_FNAME);
    BSOCK *fd = jcr->file_bsock;
    if (jcr->job->ClientRunBeforeJob) {
-      pm_strcpy(&msg, jcr->job->ClientRunBeforeJob);
+      pm_strcpy(msg, jcr->job->ClientRunBeforeJob);
       bash_spaces(msg);
       bnet_fsend(fd, runbefore, msg);
       if (!response(jcr, fd, OKRunBefore, "ClientRunBeforeJob", DISPLAY_ERROR)) {
@@ -568,7 +568,7 @@ int send_run_before_and_after_commands(JCR *jcr)
       }
    }
    if (jcr->job->ClientRunAfterJob) {
-      fd->msglen = pm_strcpy(&msg, jcr->job->ClientRunAfterJob);
+      fd->msglen = pm_strcpy(msg, jcr->job->ClientRunAfterJob);
       bash_spaces(msg);
       bnet_fsend(fd, runafter, msg);
       if (!response(jcr, fd, OKRunAfter, "ClientRunAfterJob", DISPLAY_ERROR)) {

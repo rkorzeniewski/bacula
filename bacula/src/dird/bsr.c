@@ -184,7 +184,7 @@ int write_bsr_file(UAContext *ua, RBSR *bsr)
    POOLMEM *fname = get_pool_memory(PM_MESSAGE);
    int stat;
 
-   Mmsg(&fname, "%s/restore.bsr", working_directory);
+   Mmsg(fname, "%s/restore.bsr", working_directory);
    fd = fopen(fname, "w+");
    if (!fd) {
       bsendmsg(ua, _("Unable to create bootstrap file %s. ERR=%s\n"), 

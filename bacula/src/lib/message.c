@@ -354,7 +354,7 @@ void rem_msg_dest(MSGS *msg, int dest_code, int msg_type, char *where)
 /*
  * Create a unique filename for the mail command
  */
-static void make_unique_mail_filename(JCR *jcr, POOLMEM **name, DEST *d)
+static void make_unique_mail_filename(JCR *jcr, POOLMEM *&name, DEST *d)
 {
    if (jcr) {
       Mmsg(name, "%s/%s.mail.%s.%d", working_directory, my_name,
@@ -369,13 +369,13 @@ static void make_unique_mail_filename(JCR *jcr, POOLMEM **name, DEST *d)
 /*
  * Open a mail pipe
  */
-static BPIPE *open_mail_pipe(JCR *jcr, POOLMEM **cmd, DEST *d)
+static BPIPE *open_mail_pipe(JCR *jcr, POOLMEM *&cmd, DEST *d)
 {
    BPIPE *bpipe;
    int use_bsmtp = (d->mail_cmd && jcr);
        
    if (use_bsmtp) {
-      *cmd = edit_job_codes(jcr, *cmd, d->mail_cmd, d->where);
+      cmd = edit_job_codes(jcr, cmd, d->mail_cmd, d->where);
    } else {
 #if 1
       Mmsg(cmd, "/usr/lib/sendmail -F Bacula %s", d->where);
@@ -385,9 +385,10 @@ static BPIPE *open_mail_pipe(JCR *jcr, POOLMEM **cmd, DEST *d)
    }
    fflush(stdout);
 
-   if (!(bpipe = open_bpipe(*cmd, 120, "rw"))) {
+   if (!(bpipe = open_bpipe(cmd, 120, "rw"))) {
+      berrno be;
       Jmsg(jcr, M_ERROR, 0, "open mail pipe %s failed: ERR=%s\n", 
-	 *cmd, strerror(errno));
+	 cmd, be.strerror());
    }
 
 #if 1
@@ -444,7 +445,7 @@ void close_msg(JCR *jcr)
 	       goto rem_temp_file;
 	    }
 	    
-	    if (!(bpipe=open_mail_pipe(jcr, &cmd, d))) {
+	    if (!(bpipe=open_mail_pipe(jcr, cmd, d))) {
                Pmsg0(000, "open mail pipe failed.\n");
 	       goto rem_temp_file;
 	    }
@@ -641,7 +642,7 @@ void dispatch_message(JCR *jcr, int type, int level, char *msg)
 	     case MD_OPERATOR:
                 Dmsg1(800, "OPERATOR for collowing msg: %s\n", msg);
 		mcmd = get_pool_memory(PM_MESSAGE);
-		if ((bpipe=open_mail_pipe(jcr, &mcmd, d))) {
+		if ((bpipe=open_mail_pipe(jcr, mcmd, d))) {
 		   int stat;
 		   fputs(msg, bpipe->wfd);
 		   /* Messages to the operator go one at a time */
@@ -661,7 +662,7 @@ void dispatch_message(JCR *jcr, int type, int level, char *msg)
                 Dmsg1(800, "MAIL for following msg: %s", msg);
 		if (!d->fd) {
 		   POOLMEM *name = get_pool_memory(PM_MESSAGE);
-		   make_unique_mail_filename(jcr, &mp_chr(name), d);
+		   make_unique_mail_filename(jcr, name, d);
                    d->fd = fopen(mp_chr(name), "w+");
 		   if (!d->fd) {
 		      d->fd = stdout;
@@ -1065,7 +1066,7 @@ void j_msg(const char *file, int line, JCR *jcr, int type, int level, const char
    POOLMEM *pool_buf;
 
    pool_buf = get_pool_memory(PM_EMSG);
-   i = Mmsg(&pool_buf, "%s:%d ", file, line);
+   i = Mmsg(pool_buf, "%s:%d ", file, line);
 
    for (;;) {
       maxlen = sizeof_pool_memory(pool_buf) - i - 1; 
@@ -1108,6 +1109,28 @@ int m_msg(const char *file, int line, POOLMEM **pool_buf, const char *fmt, ...)
    return len;
 }
 
+int m_msg(const char *file, int line, POOLMEM *&pool_buf, const char *fmt, ...)
+{
+   va_list   arg_ptr;
+   int i, len, maxlen;
+
+   i = sprintf(pool_buf, "%s:%d ", file, line);
+
+   for (;;) {
+      maxlen = sizeof_pool_memory(pool_buf) - i - 1; 
+      va_start(arg_ptr, fmt);
+      len = bvsnprintf(pool_buf+i, maxlen, fmt, arg_ptr);
+      va_end(arg_ptr);
+      if (len < 0 || len >= (maxlen-5)) {
+	 pool_buf = realloc_pool_memory(pool_buf, maxlen + i + maxlen/2);
+	 continue;
+      }
+      break;
+   }
+   return len;
+}
+
+
 /*
  * Edit a message into a Pool Memory buffer NO file:lineno
  *  Returns: string length of what was edited.
@@ -1130,6 +1153,26 @@ int Mmsg(POOLMEM **pool_buf, const char *fmt, ...)
    }
    return len;
 }
+
+int Mmsg(POOLMEM *&pool_buf, const char *fmt, ...)
+{
+   va_list   arg_ptr;
+   int len, maxlen;
+
+   for (;;) {
+      maxlen = sizeof_pool_memory(pool_buf) - 1; 
+      va_start(arg_ptr, fmt);
+      len = bvsnprintf(pool_buf, maxlen, fmt, arg_ptr);
+      va_end(arg_ptr);
+      if (len < 0 || len >= (maxlen-5)) {
+	 pool_buf = realloc_pool_memory(pool_buf, maxlen + maxlen/2);
+	 continue;
+      }
+      break;
+   }
+   return len;
+}
+
 
 static pthread_mutex_t msg_queue_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -1208,7 +1251,7 @@ void q_msg(const char *file, int line, JCR *jcr, int type, int level, const char
    POOLMEM *pool_buf;
 
    pool_buf = get_pool_memory(PM_EMSG);
-   i = Mmsg(&pool_buf, "%s:%d ", file, line);
+   i = Mmsg(pool_buf, "%s:%d ", file, line);
 
    for (;;) {
       maxlen = sizeof_pool_memory(pool_buf) - i - 1; 

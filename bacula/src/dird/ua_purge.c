@@ -291,7 +291,7 @@ static int purge_files_from_client(UAContext *ua, CLIENT *client)
       return 0;
    }
    bsendmsg(ua, _("Begin purging files for Client \"%s\"\n"), cr.Name);
-   Mmsg(&query, select_jobsfiles_from_client, cr.ClientId);
+   Mmsg(query, select_jobsfiles_from_client, cr.ClientId);
 
    Dmsg1(050, "select sql=%s\n", query);
  
@@ -320,7 +320,7 @@ static int purge_files_from_client(UAContext *ua, CLIENT *client)
 
    for (i=0; i < del.num_ids; i++) {
       Dmsg1(050, "Delete JobId=%d\n", del.JobId[i]);
-      Mmsg(&query, "DELETE FROM File WHERE JobId=%d", del.JobId[i]);
+      Mmsg(query, "DELETE FROM File WHERE JobId=%d", del.JobId[i]);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
       /* 
        * Now mark Job as having files purged. This is necessary to
@@ -328,7 +328,7 @@ static int purge_files_from_client(UAContext *ua, CLIENT *client)
        * we don't do this, the number of JobId's in our in memory list
        * will grow very large.
        */
-      Mmsg(&query, "UPDATE Job Set PurgedFiles=1 WHERE JobId=%d", del.JobId[i]);
+      Mmsg(query, "UPDATE Job Set PurgedFiles=1 WHERE JobId=%d", del.JobId[i]);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
       Dmsg1(050, "Del sql=%s\n", query);
    }
@@ -369,7 +369,7 @@ static int purge_jobs_from_client(UAContext *ua, CLIENT *client)
    }
 
    bsendmsg(ua, _("Begin purging jobs from Client \"%s\"\n"), cr.Name);
-   Mmsg(&query, select_jobs_from_client, cr.ClientId);
+   Mmsg(query, select_jobs_from_client, cr.ClientId);
 
    Dmsg1(050, "select sql=%s\n", query);
  
@@ -405,16 +405,16 @@ static int purge_jobs_from_client(UAContext *ua, CLIENT *client)
    for (i=0; i < del.num_ids; i++) {
       Dmsg1(050, "Delete JobId=%d\n", del.JobId[i]);
       if (!del.PurgedFiles[i]) {
-         Mmsg(&query, "DELETE FROM File WHERE JobId=%d", del.JobId[i]);
+         Mmsg(query, "DELETE FROM File WHERE JobId=%d", del.JobId[i]);
 	 db_sql_query(ua->db, query, NULL, (void *)NULL);
          Dmsg1(050, "Del sql=%s\n", query);
       }
 
-      Mmsg(&query, "DELETE FROM Job WHERE JobId=%d", del.JobId[i]);
+      Mmsg(query, "DELETE FROM Job WHERE JobId=%d", del.JobId[i]);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
       Dmsg1(050, "Del sql=%s\n", query);
 
-      Mmsg(&query, "DELETE FROM JobMedia WHERE JobId=%d", del.JobId[i]);
+      Mmsg(query, "DELETE FROM JobMedia WHERE JobId=%d", del.JobId[i]);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
       Dmsg1(050, "Del sql=%s\n", query);
    }
@@ -436,10 +436,10 @@ void purge_files_from_job(UAContext *ua, JOB_DBR *jr)
 {
    char *query = (char *)get_pool_memory(PM_MESSAGE);
    
-   Mmsg(&query, "DELETE FROM File WHERE JobId=%u", jr->JobId);
+   Mmsg(query, "DELETE FROM File WHERE JobId=%u", jr->JobId);
    db_sql_query(ua->db, query, NULL, (void *)NULL);
 
-   Mmsg(&query, "UPDATE Job Set PurgedFiles=1 WHERE JobId=%u", jr->JobId);
+   Mmsg(query, "UPDATE Job Set PurgedFiles=1 WHERE JobId=%u", jr->JobId);
    db_sql_query(ua->db, query, NULL, (void *)NULL);
 
    free_pool_memory(query);
@@ -475,7 +475,7 @@ int purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr)
    memset(&jr, 0, sizeof(jr));
    memset(&del, 0, sizeof(del));
    cnt.count = 0;
-   Mmsg(&query, "SELECT count(*) FROM JobMedia WHERE MediaId=%d", mr->MediaId);
+   Mmsg(query, "SELECT count(*) FROM JobMedia WHERE MediaId=%d", mr->MediaId);
    if (!db_sql_query(ua->db, query, count_handler, (void *)&cnt)) {
       bsendmsg(ua, "%s", db_strerror(ua->db));
       Dmsg0(050, "Count failed\n");
@@ -512,7 +512,7 @@ int purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr)
        */
       del.JobId = (JobId_t *)malloc(sizeof(JobId_t) * del.max_ids);
 
-      Mmsg(&query, "SELECT JobId FROM JobMedia WHERE MediaId=%d", mr->MediaId);
+      Mmsg(query, "SELECT JobId FROM JobMedia WHERE MediaId=%d", mr->MediaId);
       if (!db_sql_query(ua->db, query, file_delete_handler, (void *)&del)) {
          bsendmsg(ua, "%s", db_strerror(ua->db));
          Dmsg0(050, "Count failed\n");
@@ -522,11 +522,11 @@ int purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr)
 
    for (i=0; i < del.num_ids; i++) {
       Dmsg1(050, "Delete JobId=%d\n", del.JobId[i]);
-      Mmsg(&query, "DELETE FROM File WHERE JobId=%d", del.JobId[i]);
+      Mmsg(query, "DELETE FROM File WHERE JobId=%d", del.JobId[i]);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
-      Mmsg(&query, "DELETE FROM Job WHERE JobId=%d", del.JobId[i]);
+      Mmsg(query, "DELETE FROM Job WHERE JobId=%d", del.JobId[i]);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
-      Mmsg(&query, "DELETE FROM JobMedia WHERE JobId=%d", del.JobId[i]);
+      Mmsg(query, "DELETE FROM JobMedia WHERE JobId=%d", del.JobId[i]);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
       Dmsg1(050, "Del sql=%s\n", query);
       del.num_del++;
@@ -539,7 +539,7 @@ int purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr)
 
    /* If purged, mark it so */
    cnt.count = 0;
-   Mmsg(&query, "SELECT count(*) FROM JobMedia WHERE MediaId=%d", mr->MediaId);
+   Mmsg(query, "SELECT count(*) FROM JobMedia WHERE MediaId=%d", mr->MediaId);
    if (!db_sql_query(ua->db, query, count_handler, (void *)&cnt)) {
       bsendmsg(ua, "%s", db_strerror(ua->db));
       Dmsg0(050, "Count failed\n");

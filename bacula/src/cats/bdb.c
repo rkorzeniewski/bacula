@@ -81,7 +81,7 @@ static POOLMEM *make_filename(B_DB *mdb, char *name)
    } else {
       sep = '/'; 
    }
-   Mmsg(&dbf, "%s%c%s-%s", working_directory, sep, mdb->db_name, name);
+   Mmsg(dbf, "%s%c%s-%s", working_directory, sep, mdb->db_name, name);
    return dbf;
 }
 

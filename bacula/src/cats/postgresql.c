@@ -262,7 +262,7 @@ int db_sql_query(B_DB *mdb, const char *query, DB_RESULT_HANDLER *result_handler
   
    db_lock(mdb);
    if (sql_query(mdb, query) != 0) {
-      Mmsg(&mdb->errmsg, _("Query failed: %s: ERR=%s\n"), query, sql_strerror(mdb));
+      Mmsg(mdb->errmsg, _("Query failed: %s: ERR=%s\n"), query, sql_strerror(mdb));
       db_unlock(mdb);
       Dmsg0(500, "db_sql_query failed\n");
       return 0;
@@ -493,7 +493,7 @@ int my_postgresql_currval(B_DB *mdb, char *table_name)
    bstrncat(sequence, "_seq", sizeof(sequence));
    bsnprintf(query, sizeof(query), "SELECT currval('%s')", sequence);
 
-// Mmsg(&query, "SELECT currval('%s')", sequence);
+// Mmsg(query, "SELECT currval('%s')", sequence);
    Dmsg1(500, "my_postgresql_currval invoked with '%s'\n", query);
    result = PQexec(mdb->db, query);
 

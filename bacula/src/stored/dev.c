@@ -303,7 +303,7 @@ open_dev(DEVICE *dev, char *VolName, int mode)
        * Handle opening of File Archive (not a tape)
        */
       if (VolName == NULL || *VolName == 0) {
-         Mmsg(&dev->errmsg, _("Could not open file device %s. No Volume name given.\n"),
+         Mmsg(dev->errmsg, _("Could not open file device %s. No Volume name given.\n"),
 	    dev->dev_name);
 	 return -1;
       }
@@ -1158,7 +1158,7 @@ weof_dev(DEVICE *dev, int num)
 /*
  * Return string message with last error in English
  *  Be careful not to call this routine from within dev.c
- *  while editing an Mmsg(&) or you will end up in a recursive
+ *  while editing an Mmsg() or you will end up in a recursive
  *  loop creating a Segmentation Violation.
  */
 char *

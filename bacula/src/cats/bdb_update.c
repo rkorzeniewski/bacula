@@ -80,7 +80,7 @@ bool db_update_job_start_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 
    fseek(mdb->jobfd, ojr.rec_addr, SEEK_SET);
    if (fwrite(jr, len, 1, mdb->jobfd) != 1) {
-      Mmsg1(&mdb->errmsg, _("Error updating DB Job file. ERR=%s\n"), strerror(errno));
+      Mmsg1(mdb->errmsg, _("Error updating DB Job file. ERR=%s\n"), strerror(errno));
       stat = 0;
    }
    fflush(mdb->jobfd);
@@ -111,7 +111,7 @@ int db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 
    fseek(mdb->jobfd, ojr.rec_addr, SEEK_SET);
    if (fwrite(jr, len, 1, mdb->jobfd) != 1) {
-      Mmsg1(&mdb->errmsg, _("Error updating DB Job file. ERR=%s\n"), strerror(errno));
+      Mmsg1(&db->errmsg, _("Error updating DB Job file. ERR=%s\n"), strerror(errno));
       stat = 0;
    }
    fflush(mdb->jobfd);
@@ -150,7 +150,7 @@ int db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 
    fseek(mdb->mediafd, omr.rec_addr, SEEK_SET);
    if (fwrite(mr, len, 1, mdb->mediafd) != 1) {
-      Mmsg1(&mdb->errmsg, _("Error updating DB Media file. ERR=%s\n"), strerror(errno));
+      Mmsg1(mdb->errmsg, _("Error updating DB Media file. ERR=%s\n"), strerror(errno));
       stat = 0;
    }
    fflush(mdb->mediafd);
@@ -186,7 +186,7 @@ int db_update_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
 
    fseek(mdb->poolfd, opr.rec_addr, SEEK_SET);
    if (fwrite(&opr, len, 1, mdb->poolfd) != 1) {
-      Mmsg1(&mdb->errmsg, _("Error updating DB Media file. ERR=%s\n"), strerror(errno));
+      Mmsg1(mdb->errmsg, _("Error updating DB Media file. ERR=%s\n"), strerror(errno));
       stat = 0;
    } else {
       memcpy(pr, &opr, len);	      /* return record written */

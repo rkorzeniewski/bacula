@@ -61,7 +61,7 @@ db_add_SIG_to_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, char *SIG,
    int stat;
 
    db_lock(mdb);
-   Mmsg(&mdb->cmd, "UPDATE File SET MD5='%s' WHERE FileId=%u", SIG, FileId);
+   Mmsg(mdb->cmd, "UPDATE File SET MD5='%s' WHERE FileId=%u", SIG, FileId);
    stat = UPDATE_DB(jcr, mdb, mdb->cmd);
    db_unlock(mdb);
    return stat;
@@ -75,7 +75,7 @@ int db_mark_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, JobId_t JobId)
    int stat;
 
    db_lock(mdb);
-   Mmsg(&mdb->cmd, "UPDATE File SET MarkId=%u WHERE FileId=%u", JobId, FileId);
+   Mmsg(mdb->cmd, "UPDATE File SET MarkId=%u WHERE FileId=%u", JobId, FileId);
    stat = UPDATE_DB(jcr, mdb, mdb->cmd);
    db_unlock(mdb);
    return stat;
@@ -103,7 +103,7 @@ db_update_job_start_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    JobTDate = (btime_t)stime;
 
    db_lock(mdb);
-   Mmsg(&mdb->cmd, "UPDATE Job SET JobStatus='%c',Level='%c',StartTime='%s',"
+   Mmsg(mdb->cmd, "UPDATE Job SET JobStatus='%c',Level='%c',StartTime='%s',"
 "ClientId=%u,JobTDate=%s WHERE JobId=%u",
       (char)(jcr->JobStatus), 
       (char)(jr->JobLevel), dt, jr->ClientId, edit_uint64(JobTDate, ed1), jr->JobId);
@@ -155,7 +155,7 @@ db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    JobTDate = ttime;
 
    db_lock(mdb);
-   Mmsg(&mdb->cmd,
+   Mmsg(mdb->cmd,
       "UPDATE Job SET JobStatus='%c', EndTime='%s', \
 ClientId=%s, JobBytes=%s, JobFiles=%u, JobErrors=%u, VolSessionId=%u, \
 VolSessionTime=%u, PoolId=%s, FileSetId=%s, JobTDate=%s WHERE JobId=%u",
@@ -188,7 +188,7 @@ db_update_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr)
       return 0;
    }
 
-   Mmsg(&mdb->cmd,
+   Mmsg(mdb->cmd,
 "UPDATE Client SET AutoPrune=%d,FileRetention=%s,JobRetention=%s," 
 "Uname='%s' WHERE Name='%s'",
       cr->AutoPrune,
@@ -211,7 +211,7 @@ int db_update_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr)
 {
    db_lock(mdb);
 
-   Mmsg(&mdb->cmd,
+   Mmsg(mdb->cmd,
 "UPDATE Counters SET MinValue=%d,MaxValue=%d,CurrentValue=%d," 
 "WrapCounter='%s' WHERE Counter='%s'",
       cr->MinValue, cr->MaxValue, cr->CurrentValue,
@@ -230,7 +230,7 @@ db_update_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
    char ed1[50], ed2[50], ed3[50];
 
    db_lock(mdb);
-   Mmsg(&mdb->cmd,
+   Mmsg(mdb->cmd,
 "UPDATE Pool SET NumVols=%u,MaxVols=%u,UseOnce=%d,UseCatalog=%d," 
 "AcceptAnyVolume=%d,VolRetention='%s',VolUseDuration='%s',"
 "MaxVolJobs=%u,MaxVolFiles=%u,MaxVolBytes=%s,Recycle=%d,"
@@ -271,7 +271,7 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       ttime = mr->FirstWritten;
       localtime_r(&ttime, &tm);
       strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
-      Mmsg(&mdb->cmd, "UPDATE Media SET FirstWritten='%s'\
+      Mmsg(mdb->cmd, "UPDATE Media SET FirstWritten='%s'\
  WHERE VolumeName='%s'", dt, mr->VolumeName);
       stat = UPDATE_DB(jcr, mdb, mdb->cmd);
       Dmsg1(400, "Firstwritten stat=%d\n", stat);
@@ -285,7 +285,7 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       }
       localtime_r(&ttime, &tm);
       strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
-      Mmsg(&mdb->cmd, "UPDATE Media SET LabelDate='%s' "
+      Mmsg(mdb->cmd, "UPDATE Media SET LabelDate='%s' "
            "WHERE VolumeName='%s'", dt, mr->VolumeName);
       stat = UPDATE_DB(jcr, mdb, mdb->cmd);
    }
@@ -295,7 +295,7 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       localtime_r(&ttime, &tm);
       strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
 
-      Mmsg(&mdb->cmd, "UPDATE Media SET VolJobs=%u,"
+      Mmsg(mdb->cmd, "UPDATE Media SET VolJobs=%u,"
            "VolFiles=%u,VolBlocks=%u,VolBytes=%s,VolMounts=%u,VolErrors=%u,"
            "VolWrites=%u,MaxVolBytes=%s,LastWritten='%s',VolStatus='%s',"
            "Slot=%d,InChanger=%d,VolReadTime=%s,VolWriteTime=%s "
@@ -308,7 +308,7 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 	   edit_uint64(mr->VolWriteTime, ed4),
 	   mr->VolumeName);
    } else {
-      Mmsg(&mdb->cmd, "UPDATE Media SET VolJobs=%u,"
+      Mmsg(mdb->cmd, "UPDATE Media SET VolJobs=%u,"
            "VolFiles=%u,VolBlocks=%u,VolBytes=%s,VolMounts=%u,VolErrors=%u,"
            "VolWrites=%u,MaxVolBytes=%s,VolStatus='%s',"
            "Slot=%d,InChanger=%d,VolReadTime=%s,VolWriteTime=%s "
@@ -348,7 +348,7 @@ db_update_media_defaults(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 
    db_lock(mdb);
    if (mr->VolumeName[0]) {
-      Mmsg(&mdb->cmd, "UPDATE Media SET "
+      Mmsg(mdb->cmd, "UPDATE Media SET "
            "Recycle=%d,VolRetention=%s,VolUseDuration=%s,"
            "MaxVolJobs=%u,MaxVolFiles=%u,MaxVolBytes=%s"
            " WHERE VolumeName='%s'",
@@ -358,7 +358,7 @@ db_update_media_defaults(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 	   edit_uint64(mr->VolBytes, ed3),
 	   mr->VolumeName);
    } else {
-      Mmsg(&mdb->cmd, "UPDATE Media SET "
+      Mmsg(mdb->cmd, "UPDATE Media SET "
            "Recycle=%d,VolRetention=%s,VolUseDuration=%s,"
            "MaxVolJobs=%u,MaxVolFiles=%u,MaxVolBytes=%s"
            " WHERE PoolId=%u",
@@ -388,7 +388,7 @@ void
 db_make_inchanger_unique(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr) 
 {
    if (mr->InChanger != 0 && mr->Slot != 0) {
-      Mmsg(&mdb->cmd, "UPDATE Media SET InChanger=0 WHERE "
+      Mmsg(mdb->cmd, "UPDATE Media SET InChanger=0 WHERE "
            "Slot=%d AND MediaId!=%u", mr->Slot, mr->MediaId);
       Dmsg1(400, "%s\n", mdb->cmd);
       UPDATE_DB(jcr, mdb, mdb->cmd);

@@ -206,20 +206,20 @@ int restore_cmd(UAContext *ua, const char *cmd)
 
    /* Build run command */
    if (rx.where) {
-      Mmsg(&ua->cmd, 
+      Mmsg(ua->cmd, 
           "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s/restore.bsr\""
           " where=\"%s\" files=%d",
           job->hdr.name, rx.ClientName, rx.store?rx.store->hdr.name:"",
 	  working_directory, rx.where, rx.selected_files);
    } else {
-      Mmsg(&ua->cmd, 
+      Mmsg(ua->cmd, 
           "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s/restore.bsr\""
           " files=%d",
           job->hdr.name, rx.ClientName, rx.store?rx.store->hdr.name:"",
 	  working_directory, rx.selected_files);
    }
    if (find_arg(ua, _("yes")) > 0) {
-      pm_strcat(&ua->cmd, " yes");    /* pass it on to the run command */
+      pm_strcat(ua->cmd, " yes");    /* pass it on to the run command */
    }
    Dmsg1(400, "Submitting: %s\n", ua->cmd);
    parse_ua_args(ua);
@@ -337,9 +337,9 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
       switch (j) {
       case 0:				 /* jobid */
 	 if (*rx->JobIds != 0) {
-            pm_strcat(&rx->JobIds, ",");
+            pm_strcat(rx->JobIds, ",");
 	 }
-	 pm_strcat(&rx->JobIds, ua->argv[i]);
+	 pm_strcat(rx->JobIds, ua->argv[i]);
 	 done = true;
 	 break;
       case 1:				 /* current */
@@ -361,7 +361,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
 	 if (!get_client_name(ua, rx)) {
 	    return 0;
 	 }
-	 pm_strcpy(&ua->cmd, ua->argv[i]);
+	 pm_strcpy(ua->cmd, ua->argv[i]);
 	 insert_one_file(ua, rx, date);
 	 if (rx->name_list.num_ids) {
 	    /* Check MediaType and select storage that corresponds */
@@ -439,7 +439,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
 	 len = strlen(ua->cmd);
 	 fname = (char *)malloc(len * 2 + 1);
 	 db_escape_string(fname, ua->cmd, len);
-	 Mmsg(&rx->query, uar_file, fname);
+	 Mmsg(rx->query, uar_file, fname);
 	 free(fname);
 	 gui_save = ua->jcr->gui;
 	 ua->jcr->gui = true;
@@ -451,7 +451,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
          if (!get_cmd(ua, _("Enter JobId(s), comma separated, to restore: "))) {
 	    return 0;
 	 }
-	 pm_strcpy(&rx->JobIds, ua->cmd);
+	 pm_strcpy(rx->JobIds, ua->cmd);
 	 break;
       case 3:			      /* Enter an SQL list command */
          if (!get_cmd(ua, _("Enter SQL list command: "))) {
@@ -632,7 +632,7 @@ static int insert_file_into_findex_list(UAContext *ua, RESTORE_CTX *rx, char *fi
 {
    strip_trailing_junk(file);
    split_path_and_filename(rx, file);
-   Mmsg(&rx->query, uar_jobid_fileindex, date, rx->path, rx->fname, rx->ClientName);
+   Mmsg(rx->query, uar_jobid_fileindex, date, rx->path, rx->fname, rx->ClientName);
    rx->found = false;
    /* Find and insert jobid and File Index */
    if (!db_sql_query(ua->db, rx->query, jobid_fileindex_handler, (void *)rx)) {
@@ -647,7 +647,7 @@ static int insert_file_into_findex_list(UAContext *ua, RESTORE_CTX *rx, char *fi
    /*
     * Find the MediaTypes for this JobId and add to the name_list
     */
-   Mmsg(&rx->query, uar_mediatype, rx->JobId);
+   Mmsg(rx->query, uar_mediatype, rx->JobId);
    if (!db_sql_query(ua->db, rx->query, unique_name_list_handler, (void *)&rx->name_list)) {
       bsendmsg(ua, "%s", db_strerror(ua->db));
       return 0;
@@ -730,7 +730,7 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
    tree.FileEstimate = 0;
    if (get_next_jobid_from_list(&p, &JobId) > 0) {
       /* Use first JobId as estimate of the number of files to restore */
-      Mmsg(&rx->query, uar_count_files, JobId);
+      Mmsg(rx->query, uar_count_files, JobId);
       if (!db_sql_query(ua->db, rx->query, count_handler, (void *)rx)) {
          bsendmsg(ua, "%s\n", db_strerror(ua->db));
       }
@@ -746,19 +746,19 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
 	 continue;		      /* eliminate duplicate JobIds */
       }
       last_JobId = JobId;
-      bsendmsg(ua, _("Building directory tree for JobId %u ...\n"), JobId);
+      bsendmsg(ua, _("\nBuilding directory tree for JobId %u ...  "), JobId);
       items++;
       /*
        * Find files for this JobId and insert them in the tree
        */
-      Mmsg(&rx->query, uar_sel_files, JobId);
+      Mmsg(rx->query, uar_sel_files, JobId);
       if (!db_sql_query(ua->db, rx->query, insert_tree_handler, (void *)&tree)) {
          bsendmsg(ua, "%s", db_strerror(ua->db));
       }
       /*
        * Find the MediaTypes for this JobId and add to the name_list
        */
-      Mmsg(&rx->query, uar_mediatype, JobId);
+      Mmsg(rx->query, uar_mediatype, JobId);
       if (!db_sql_query(ua->db, rx->query, unique_name_list_handler, (void *)&rx->name_list)) {
          bsendmsg(ua, "%s", db_strerror(ua->db));
       }
@@ -845,7 +845,7 @@ static int select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *date
       }
    }
    if (i < 0) { 		      /* fileset not found */
-      Mmsg(&rx->query, uar_sel_fileset, cr.ClientId, cr.ClientId);
+      Mmsg(rx->query, uar_sel_fileset, cr.ClientId, cr.ClientId);
       start_prompt(ua, _("The defined FileSet resources are:\n"));
       if (!db_sql_query(ua->db, rx->query, fileset_handler, (void *)ua)) {
          bsendmsg(ua, "%s\n", db_strerror(ua->db));
@@ -877,7 +877,7 @@ static int select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *date
    }
 
    /* Find JobId of last Full backup for this client, fileset */
-   Mmsg(&rx->query, uar_last_full, cr.ClientId, cr.ClientId, date, fsr.FileSet,
+   Mmsg(rx->query, uar_last_full, cr.ClientId, cr.ClientId, date, fsr.FileSet,
 	 pool_select);
    if (!db_sql_query(ua->db, rx->query, NULL, NULL)) {
       bsendmsg(ua, "%s\n", db_strerror(ua->db));
@@ -902,7 +902,7 @@ static int select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *date
    }
 
    /* Now find most recent Differental Job after Full save, if any */
-   Mmsg(&rx->query, uar_dif, edit_uint64(rx->JobTDate, ed1), date,
+   Mmsg(rx->query, uar_dif, edit_uint64(rx->JobTDate, ed1), date,
 	cr.ClientId, fsr.FileSet, pool_select);
    if (!db_sql_query(ua->db, rx->query, NULL, NULL)) {
       bsendmsg(ua, "%s\n", db_strerror(ua->db));
@@ -918,7 +918,7 @@ static int select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *date
    }
 
    /* Now find all Incremental Jobs after Full/dif save */
-   Mmsg(&rx->query, uar_inc, edit_uint64(rx->JobTDate, ed1), date,
+   Mmsg(rx->query, uar_inc, edit_uint64(rx->JobTDate, ed1), date,
 	cr.ClientId, fsr.FileSet, pool_select);
    if (!db_sql_query(ua->db, rx->query, NULL, NULL)) {
       bsendmsg(ua, "%s\n", db_strerror(ua->db));
@@ -1002,9 +1002,9 @@ static int jobid_handler(void *ctx, int num_fields, char **row)
    }
    bstrncpy(rx->last_jobid, row[0], sizeof(rx->last_jobid));
    if (rx->JobIds[0] != 0) {
-      pm_strcat(&rx->JobIds, ",");
+      pm_strcat(rx->JobIds, ",");
    }
-   pm_strcat(&rx->JobIds, row[0]);
+   pm_strcat(rx->JobIds, row[0]);
    return 0;
 }
 

@@ -70,7 +70,7 @@ int read_dev_volume_label(DCR *dcr, DEV_BLOCK *block)
    if (dev_state(dev, ST_LABEL)) {	 /* did we already read label? */
       /* Compare Volume Names allow special wild card */
       if (VolName && *VolName && *VolName != '*' && strcmp(dev->VolHdr.VolName, VolName) != 0) {
-         Mmsg(&jcr->errmsg, _("Wrong Volume mounted on device %s: Wanted %s have %s\n"),
+         Mmsg(jcr->errmsg, _("Wrong Volume mounted on device %s: Wanted %s have %s\n"),
 	    dev_name(dev), VolName, dev->VolHdr.VolName);
 	 /*
 	  * Cancel Job if too many label errors
@@ -88,7 +88,7 @@ int read_dev_volume_label(DCR *dcr, DEV_BLOCK *block)
    dev->state &= ~(ST_LABEL|ST_APPEND|ST_READ);  /* set no label, no append */
 
    if (!rewind_dev(dev)) {
-      Mmsg(&jcr->errmsg, _("Couldn't rewind device %s ERR=%s\n"), dev_name(dev),
+      Mmsg(jcr->errmsg, _("Couldn't rewind device %s ERR=%s\n"), dev_name(dev),
 	 strerror_dev(dev));
       return jcr->label_status = VOL_NO_MEDIA;
    }
@@ -98,17 +98,17 @@ int read_dev_volume_label(DCR *dcr, DEV_BLOCK *block)
    record = new_record();
    Dmsg0(90, "Big if statement in read_volume_label\n");
    if (!read_block_from_dev(dcr, block, NO_BLOCK_NUMBER_CHECK)) { 
-      Mmsg(&jcr->errmsg, _("Requested Volume \"%s\" on %s is not a Bacula "
+      Mmsg(jcr->errmsg, _("Requested Volume \"%s\" on %s is not a Bacula "
            "labeled Volume, because: ERR=%s"), NPRT(VolName), dev_name(dev), 
 	   strerror_dev(dev));
    } else if (!read_record_from_block(block, record)) {
-      Mmsg(&jcr->errmsg, _("Could not read Volume label from block.\n"));
+      Mmsg(jcr->errmsg, _("Could not read Volume label from block.\n"));
    } else if (!unser_volume_label(dev, record)) {
-      Mmsg(&jcr->errmsg, _("Could not unserialize Volume label: ERR=%s\n"),
+      Mmsg(jcr->errmsg, _("Could not unserialize Volume label: ERR=%s\n"),
 	 strerror_dev(dev));
    } else if (strcmp(dev->VolHdr.Id, BaculaId) != 0 && 
 	      strcmp(dev->VolHdr.Id, OldBaculaId) != 0) {
-      Mmsg(&jcr->errmsg, _("Volume Header Id bad: %s\n"), dev->VolHdr.Id);
+      Mmsg(jcr->errmsg, _("Volume Header Id bad: %s\n"), dev->VolHdr.Id);
    } else {
       ok = true;
    }
@@ -134,7 +134,7 @@ int read_dev_volume_label(DCR *dcr, DEV_BLOCK *block)
    if (dev->VolHdr.VerNum != BaculaTapeVersion && 
        dev->VolHdr.VerNum != OldCompatibleBaculaTapeVersion1 &&  
        dev->VolHdr.VerNum != OldCompatibleBaculaTapeVersion2) {
-      Mmsg(&jcr->errmsg, _("Volume on %s has wrong Bacula version. Wanted %d got %d\n"),
+      Mmsg(jcr->errmsg, _("Volume on %s has wrong Bacula version. Wanted %d got %d\n"),
 	 dev_name(dev), BaculaTapeVersion, dev->VolHdr.VerNum);
       return jcr->label_status = VOL_VERSION_ERROR;
    }
@@ -143,7 +143,7 @@ int read_dev_volume_label(DCR *dcr, DEV_BLOCK *block)
     * a Bacula volume label (VOL_LABEL)
     */
    if (dev->VolHdr.LabelType != PRE_LABEL && dev->VolHdr.LabelType != VOL_LABEL) {
-      Mmsg(&jcr->errmsg, _("Volume on %s has bad Bacula label type: %x\n"), 
+      Mmsg(jcr->errmsg, _("Volume on %s has bad Bacula label type: %x\n"), 
 	  dev_name(dev), dev->VolHdr.LabelType);
       return jcr->label_status = VOL_LABEL_ERROR;
    }
@@ -153,7 +153,7 @@ int read_dev_volume_label(DCR *dcr, DEV_BLOCK *block)
    /* Compare Volume Names */
    Dmsg2(30, "Compare Vol names: VolName=%s hdr=%s\n", VolName?VolName:"*", dev->VolHdr.VolName);
    if (VolName && *VolName && *VolName != '*' && strcmp(dev->VolHdr.VolName, VolName) != 0) {
-      Mmsg(&jcr->errmsg, _("Wrong Volume mounted on device %s: Wanted %s have %s\n"),
+      Mmsg(jcr->errmsg, _("Wrong Volume mounted on device %s: Wanted %s have %s\n"),
 	   dev_name(dev), VolName, dev->VolHdr.VolName);
       /*
        * Cancel Job if too many label errors
@@ -189,7 +189,7 @@ bool unser_volume_label(DEVICE *dev, DEV_RECORD *rec)
    ser_declare;
 
    if (rec->FileIndex != VOL_LABEL && rec->FileIndex != PRE_LABEL) {
-      Mmsg3(&dev->errmsg, _("Expecting Volume Label, got FI=%s Stream=%s len=%d\n"), 
+      Mmsg3(dev->errmsg, _("Expecting Volume Label, got FI=%s Stream=%s len=%d\n"), 
 	      FI_to_ascii(rec->FileIndex), 
 	      stream_to_ascii(rec->Stream, rec->FileIndex),
 	      rec->data_len);
