@@ -322,7 +322,12 @@ static void scan_types(LEX *lc, MSGS *msg, int dest_code, char *where, char *cmd
  */
 void store_name(LEX *lc, struct res_items *item, int index, int pass)
 {
+   POOLMEM *msg = get_pool_memory(PM_EMSG);
    lex_get_token(lc, T_NAME);
+   if (!is_name_valid(lc->str, &msg)) {
+      scan_err1(lc, "%s\n", msg);
+   }
+   free_pool_memory(msg);
    /* Store the name both pass 1 and pass 2 */
    *(item->value) = bstrdup(lc->str);
    scan_to_eol(lc);
