@@ -1396,7 +1396,7 @@ int waitcmd(UAContext *ua, char *cmd)
       running = 0;
       lock_jcr_chain();
       for (JCR *jcr=NULL; (jcr=get_next_jcr(jcr)); ) {
-	 if (jcr->JobId != 0 && jcr->JobStatus != JS_Created) {
+	 if (jcr->JobId != 0) {
 	    running = 1;
 	    free_locked_jcr(jcr);
 	    break;

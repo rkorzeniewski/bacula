@@ -181,7 +181,7 @@ typedef float             float32_t;
 #endif
 
 #ifndef HAVE_SOCKLEN_T
-#define socklen_t unsigned int
+#define socklen_t int
 #endif
 
 #ifdef HAVE_OLD_SOCKOPT
