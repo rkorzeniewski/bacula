@@ -17,6 +17,7 @@ For 1.36.1:
 - Add date/time to each Jmsg.
 
 1.37 Items:
+- Implement a Pool of type Cleaning?
 - Implement VolReadTime and VolWriteTime in SD
 - Modify Backing up Your Database to include a bootstrap file.
 - Add restore of specific JobId to regression.
@@ -980,4 +981,3 @@ Block Position: 0
 
 === Done
 - Add "Rerun failed levels = yes/no" to Job resource.
-
