@@ -427,12 +427,15 @@ int write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
 
       /* Adjust write size to min/max for tapes only */
       if (dev->state & ST_TAPE) {
-	 if (wlen < dev->min_block_size) {
-	    wlen =  ((dev->min_block_size + TAPE_BSIZE - 1) / TAPE_BSIZE) * TAPE_BSIZE;
-	 }
 	 /* check for fixed block size */
 	 if (dev->min_block_size == dev->max_block_size) {
 	    wlen = block->buf_len;    /* fixed block size already rounded */
+	 /* Check for min block size */
+	 } else if (wlen < dev->min_block_size) {
+	    wlen =  ((dev->min_block_size + TAPE_BSIZE - 1) / TAPE_BSIZE) * TAPE_BSIZE;
+	 /* Ensure size is rounded */
+	 } else {
+	    wlen = ((wlen + TAPE_BSIZE - 1) / TAPE_BSIZE) * TAPE_BSIZE;
 	 }
       }
       if (wlen-blen > 0) {
