@@ -283,7 +283,7 @@ int wait_for_job_termination(JCR *jcr)
 static void backup_cleanup(JCR *jcr, int TermCode, char *since, FILESET_DBR *fsr) 
 {
    char sdt[50], edt[50];
-   char ec1[30], ec2[30], ec3[30], compress[50];
+   char ec1[30], ec2[30], ec3[30], ec4[30], ec5[30], compress[50];
    char term_code[100], fd_term_msg[100], sd_term_msg[100];
    char *term_msg;
    int msg_type;
@@ -431,8 +431,10 @@ Client:                 %s\n\
 FileSet:                \"%s\" %s\n\
 Start time:             %s\n\
 End time:               %s\n\
-Files Written:          %s\n\
-Bytes Written:          %s\n\
+FD Files Written:       %s\n\
+SD Files Written:       %s\n\
+FD Bytes Written:       %s\n\
+SD Bytes Written:       %s\n\
 Rate:                   %.1f KB/s\n\
 Software Compression:   %s\n\
 Volume name(s):         %s\n\
@@ -440,6 +442,7 @@ Volume Session Id:      %d\n\
 Volume Session Time:    %d\n\
 Last Volume Bytes:      %s\n\
 Non-fatal FD errors:    %d\n\
+SD Errors:              %d\n\
 FD termination status:  %s\n\
 SD termination status:  %s\n\
 Termination:            %s\n\n"),
@@ -452,7 +455,9 @@ Termination:            %s\n\n"),
 	sdt,
 	edt,
 	edit_uint64_with_commas(jcr->jr.JobFiles, ec1),
+	edit_uint64_with_commas(jcr->SDJobFiles, ec4),
 	edit_uint64_with_commas(jcr->jr.JobBytes, ec2),
+	edit_uint64_with_commas(jcr->SDJobBytes, ec5),
 	(float)kbps,
 	compress,
 	jcr->VolumeName,
@@ -460,6 +465,7 @@ Termination:            %s\n\n"),
 	jcr->VolSessionTime,
 	edit_uint64_with_commas(mr.VolBytes, ec3),
 	jcr->Errors,
+	jcr->SDErrors,
 	fd_term_msg,
 	sd_term_msg,
 	term_msg);
