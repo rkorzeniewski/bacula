@@ -953,6 +953,19 @@ test_again:
                 "   Fast Forward Space File = no\n\n"
                 "to your Device resource for this drive.\n");
    }
+
+   Pmsg0(-1, "\n");
+   Pmsg0(0, _("Now forward spacing 4 more files.\n"));
+   if (!fsf_dev(dev, 4)) {
+      Pmsg1(0, "Bad status from fsr. ERR=%s\n", strerror_dev(dev));
+      goto bail_out;
+   }
+   Pmsg2(-1, _("We should be in file 5. I am at file %d. This is %s\n"), 
+      dev->file, dev->file == 5 ? "correct!" : "NOT correct!!!!");
+   if (dev->file != 5) {
+      goto bail_out;
+   }
+
    return 1;
 
 bail_out:
@@ -985,7 +998,7 @@ static void testcmd()
       goto all_done;
    }
    if (stat == -1) {		      /* first test failed */
-      if (dev_cap(dev, CAP_EOM)) {
+      if (dev_cap(dev, CAP_EOM) || dev_cap(dev, CAP_FASTFSF)) {
          Pmsg0(-1, "\nAppend test failed. Attempting again.\n"
                    "Setting \"Hardware End of Medium = no\n"
                    "    and \"Fast Forward Space File = no\n"
