@@ -312,7 +312,7 @@ void print_tree(char *path, TREE_NODE *tree)
       print_tree(buf, tree->child);
       break;
    default:
-      Dmsg1(000, "Unknown node type %d\n", tree->type);
+      Pmsg1(000, "Unknown node type %d\n", tree->type);
    }
    print_tree(path, tree->sibling);
    return;
@@ -375,9 +375,11 @@ TREE_NODE *tree_relcwd(char *path, TREE_ROOT *root, TREE_NODE *node)
    } else {
       len = strlen(path);
    }
+   Dmsg2(100, "tree_relcwd: len=%d path=%s\n", len, path);
    for (cd=node->child; cd; cd=cd->sibling) {
-      if (strncmp(cd->fname, path, len) == 0) {
-         Dmsg1(100, "tree_relcwd: found cd=%s\n", cd->fname);
+      Dmsg1(100, "tree_relcwd: test cd=%s\n", cd->fname);
+      if (cd->fname[0] == path[0] && len == (int)strlen(cd->fname)    
+	  && strncmp(cd->fname, path, len) == 0) {
 	 break;
       }
    }
@@ -421,14 +423,14 @@ int main(int argc, char *argv[])
     }
 
     node = (TREE_NODE *)root;
-    Dmsg0(000, "doing cd /home/kern/bacula/k/techlogs\n");
+    Pmsg0(000, "doing cd /home/kern/bacula/k/techlogs\n");
     node = tree_cwd("/home/kern/bacula/k/techlogs", root, node);
     if (node) {
        tree_getpath(node, buf, sizeof(buf));
        Dmsg2(100, "findex=%d: cwd=%s\n", node->FileIndex, buf);
     }
 
-    Dmsg0(000, "doing cd /home/kern/bacula/k/src/testprogs\n");
+    Pmsg0(000, "doing cd /home/kern/bacula/k/src/testprogs\n");
     node = tree_cwd("/home/kern/bacula/k/src/testprogs", root, node);
     if (node) {
        tree_getpath(node, buf, sizeof(buf));

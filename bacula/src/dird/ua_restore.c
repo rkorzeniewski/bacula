@@ -563,6 +563,7 @@ static void user_select_files(TREE_CTX *tree)
 	 }
       if (!found) {
          bsendmsg(tree->ua, _("Illegal command. Enter \"done\" to exit.\n"));
+	 continue;
       }
       if (!stat) {
 	 break;

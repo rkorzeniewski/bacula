@@ -296,6 +296,7 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
    char *term_msg;
    int msg_type;
    MEDIA_DBR mr;
+   double kbps;
 
    Dmsg0(100, "Enter backup_cleanup()\n");
    memset(&mr, 0, sizeof(mr));
@@ -342,6 +343,7 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
    }
    bstrftime(sdt, sizeof(sdt), jcr->jr.StartTime);
    bstrftime(edt, sizeof(edt), jcr->jr.EndTime);
+   kbps = (double)jcr->jr.JobBytes / (1000 * (jcr->jr.EndTime - jcr->jr.StartTime));
    if (!db_get_job_volume_names(jcr->db, jcr->jr.JobId, &jcr->VolumeName)) {
       jcr->VolumeName[0] = 0;	      /* none */
    }
@@ -354,8 +356,9 @@ Backup Level:           %s%s\n\
 Client:                 %s\n\
 Start time:             %s\n\
 End time:               %s\n\
-Bytes Written:          %s\n\
 Files Written:          %s\n\
+Bytes Written:          %s\n\
+Rate:                   %.1f KBps\n\
 Volume names(s):        %s\n\
 Volume Session Id:      %d\n\
 Volume Session Time:    %d\n\
@@ -369,8 +372,9 @@ Termination:            %s\n\n"),
 	jcr->client->hdr.name,
 	sdt,
 	edt,
-	edit_uint64_with_commas(jcr->jr.JobBytes, ec1),
-	edit_uint64_with_commas(jcr->jr.JobFiles, ec2),
+	edit_uint64_with_commas(jcr->jr.JobFiles, ec1),
+	edit_uint64_with_commas(jcr->jr.JobBytes, ec2),
+	(float)kbps,
 	jcr->VolumeName,
 	jcr->VolSessionId,
 	jcr->VolSessionTime,
