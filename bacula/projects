@@ -1,0 +1,139 @@
+                
+Projects:
+            Bacula Projects Roadmap 
+               18 February 2004
+
+Completed items from last year's list:
+Item 1:   Multiple simultaneous Jobs. (done)
+Item 3:   Write the bscan program -- also write a bcopy program (done).
+Item 5:   Implement Label templates (done).
+Item 6:   Write a regression script (done)
+Item 9:   Add SSL to daemon communications (For now, implement with stunnel)
+Item 10:  Define definitive tape format (done)
+
+Item 1:   Implement Base jobs.
+
+  What:   A base job is sort of like a Full save except that you 
+          will want the FileSet to contain only files that are unlikely
+          to change in the future (i.e. a snapshot of most of your
+          system after installing it). After the base job has been run,
+          when you are doing a Full save, you can specify to exclude
+          all files saved by the base job that have not been modified.
+
+  Why:    This is something none of the competition does, as far as we know
+          (except BackupPC, which is a Perl program that saves to disk
+          only).  It is big win for the user, it makes Bacula stand out
+          as offering a unique optimization that immediately saves time
+          and money.
+
+  Notes:  Big savings in tape usage. Will require more resources because
+          the DIR must send FD a list of files/attribs, and the FD must
+          search the list and compare it for each file to be saved.
+
+Item 2:   Make the Storage daemon use intermediate file storage to buffer data
+          or Data Spooling.
+
+  What:   If data is coming into the SD too fast, buffer it to 
+          disk if the user has configured this option, so that tape 
+          shuttling or shoe-shine can be reduced.
+
+  Why:    This would be a nice project and is the most requested feature.
+          Even though you may finish a client job quicker by spilling to
+          disk, you still have to eventually get it onto tape.  If
+          intermediate disk buffering allows us to improve write
+          bandwidth to tape, it may make sense. In addition, you can
+          run multiple simultaneous jobs all spool to disk, then the
+          data can be written one job at a time to the tape at full
+          tape speed. This keeps the tape running smoothly and prevents
+          blocks from different simultaneous jobs from being intermixed
+          on the tape, which is very ineffficient for restores.
+
+  Notes:
+
+Item 3:   GUI for interactive restore
+Item 4:   GUI for interactive backup
+
+  What:   The current interactive restore is implemented with a tty
+          interface. It would be much nicer to be able to "see" the
+          list of files backed up in typical GUI tree format.
+          The same mechanism could also be used for creating 
+          ad-hoc backup FileSets (item 8).
+
+  Why:    Ease of use -- especially for the end user.
+
+  Notes:  Rather than implementing in Gtk, we probably should go directly
+          for a Browser implementation, even if doing so meant the
+          capability wouldn't be available until much later.  Not only
+          is there the question of Windows sites, most
+          Solaris/HP/IRIX, etc,  shops can't currently run Gtk programs
+          without installing lots of stuff admins are very wary about.
+          Real sysadmins will always use the command line anyway, and
+          the user who's doing an interactive restore or backup of his
+          own files will in most cases be on a Windows machine running
+          Exploder.
+
+Item 5:   Implement data encryption (as opposed to communications
+          encryption)
+
+  What:   Currently the data that is stored on the Volume is not
+          encrypted. For confidentiality, encryption of data at
+          the File daemon level is essential. Note, communications
+          encryption encrypts the data when leaving the File daemon,
+          then decrypts the data on entry to the Storage daemon.
+          Data encryption encrypts the data in the File daemon and
+          decrypts the data in the File daemon during a restore.
+
+  Why:    Large sites require this.
+
+  Notes:  The only algorithm that is needed is AES.
+          http://csrc.nist.gov/CryptoToolkit/aes/
+
+Item 6:   Implement a Migration job type that will move the job
+          data from one device to another.
+
+  What:   The ability to copy, move, or archive data that is on a
+          device to another device is very important. 
+
+  Why:    An ISP might want to backup to disk, but after 30 days 
+          migrate the data to tape backup and delete it from disk.
+          Bacula should be able to handle this automatically. It needs to
+          know what was put where, and when, and what to migrate -- it
+          is a bit like retention periods. Doing so would allow space to
+          be freed up for current backups while maintaining older data on
+          tape drives.
+
+  Notes:  Migration could be triggered by:
+           Number of Jobs
+           Number of Volumes
+           Age of Jobs
+           Highwater size (keep total size)
+           Lowwater mark
+
+
+Item 7:   New daemon communication protocol.
+
+  What:   The current daemon to daemon protocol is basically an ASCII
+          printf() and sending the buffer. On the receiving end, the
+          buffer is sscanf()ed to unpack it. The new scheme would
+          retain the current ASCII sending, but would add an 
+          argc, argv like table driven scanner to replace sscanf.
+
+  Why:    Named fields will permit error checking to ensure that what is
+          sent is what the receiver really wants. The fields can be in
+          any order and additional fields can be ignored allowing better
+          upward compatibility. Much better checking of the types and
+          values passed can be done.
+
+  Notes:  These are internal improvements in the interest of the
+          long-term stability and evolution of the program.  On the one
+          hand, the sooner they're done, the less code we have to rip
+          up when the time comes to install them.  On the other hand, they
+          don't bring an immediately perceptible benefit to potential
+          users. 
+
+To be documented:
+Embedded Perl Scripting
+Implement events
+Multiple Storage devices for a single job
+Write to more than one device simultaneously
+Break the one-to-one relation between Storage and device

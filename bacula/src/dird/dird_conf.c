@@ -51,8 +51,6 @@
 int r_first = R_FIRST;
 int r_last  = R_LAST;
 
-pthread_mutex_t res_mutex =  PTHREAD_MUTEX_INITIALIZER;
-
 /* Imported subroutines */
 extern void store_run(LEX *lc, struct res_items *item, int index, int pass);
 extern void store_finc(LEX *lc, struct res_items *item, int index, int pass);

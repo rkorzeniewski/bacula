@@ -103,8 +103,8 @@ void  free_config_resources(void);
 /* Resource routines */
 RES *GetResWithName(int rcode, char *name);
 RES *GetNextRes(int rcode, RES *res);
-void LockRes(void);
-void UnlockRes(void);
+void b_LockRes(const char *file, int line);
+void b_UnlockRes(const char *file, int line);
 void dump_resource(int type, RES *res, void sendmsg(void *sock, char *fmt, ...), void *sock);
 void free_resource(int type);
 void init_resource(int type, struct res_items *item);

@@ -260,6 +260,9 @@ extern void _v(char *file, int line, pthread_mutex_t *m);
            strerror(errstat)); \
    } while(0)
 
+#define LockRes()   b_LockRes(__FILE__, __LINE__)
+#define UnlockRes() b_UnlockRes(__FILE__, __LINE__)
+
 
 /*
  * The digit following Dmsg and Emsg indicates the number of substitutions in

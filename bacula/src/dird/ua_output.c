@@ -108,6 +108,7 @@ int show_cmd(UAContext *ua, char *cmd)
    Dmsg1(20, "show: %s\n", ua->UA_sock->msg);
 
 
+   LockRes();
    for (i=1; i<ua->argc; i++) {
       type = 0;
       res_name = ua->argk[i]; 
@@ -126,6 +127,7 @@ int show_cmd(UAContext *ua, char *cmd)
 	       break;
 	    }
 	 }
+
       } else {
 	 /* Dump a single resource with specified name */
 	 recurse = 0;
@@ -153,18 +155,20 @@ int show_cmd(UAContext *ua, char *cmd)
 	 for (j=0; reses[j].res_name; j++) {
             bsendmsg(ua, "%s\n", _(reses[j].res_name));
 	 }
-	 return 1;
+	 goto bail_out;
       case -3:
          bsendmsg(ua, _("%s resource %s not found.\n"), res_name, ua->argv[i]);
-	 return 1;
+	 goto bail_out;
       case 0:
          bsendmsg(ua, _("Resource %s not found\n"), res_name);
-	 return 1;
+	 goto bail_out;
       default:
 	 dump_resource(recurse?type:-type, res, bsendmsg, ua);
 	 break;
       }
    }
+bail_out:
+   UnlockRes();
    return 1;
 }
 
