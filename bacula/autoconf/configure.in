@@ -849,11 +849,72 @@ if test "x$sd_password" = "x" ; then
    sd_password=$key
 fi
 
+mon_dir_password=
+AC_ARG_WITH(mon-dir-password,
+   [  --with-mon-dir-password=PASSWORD   specify Director's password used by the monitor],
+   [
+       if test "x$withval" != "xno" ; then     
+	   mon_dir_password=$withval
+       fi
+   ]
+)
+
+if test "x$mon_dir_password" = "x" ; then
+   if test "x$OPENSSL" = "xnone" ; then
+#     key=`date | uuencode /dev/stdout | tr "\"@\\\`\\ \\=\\,\\(\\)\\#\\.\\!\\-$'" abcdefghijklmnopqrst | awk '{getline} {print} {exit}'`
+      key=`autoconf/randpass 33`
+   else
+      key=`openssl rand -base64 33`
+   fi
+   mon_dir_password=$key
+fi
+
+mon_fd_password=
+AC_ARG_WITH(mon-fd-password,
+   [  --with-mon-fd-password=PASSWORD    specify Client's password used by the monitor],
+   [
+       if test "x$withval" != "xno" ; then     
+	   mon_fd_password=$withval
+       fi
+   ]
+)
+
+if test "x$mon_fd_password" = "x" ; then
+   if test "x$OPENSSL" = "xnone" ; then
+#     key=`date | uuencode /dev/stdout | tr "\"@\\\`\\ \\=\\,\\(\\)\\#\\.\\!\\-$'" tsrqponmlkjihgfedcba | awk '{getline} {print} {exit}'`
+      key=`autoconf/randpass 37`
+   else
+      key=`openssl rand -base64 33`
+   fi
+   mon_fd_password=$key
+fi
+
+mon_sd_password=
+AC_ARG_WITH(mon-sd-password,
+   [  --with-mon-sd-password=PASSWORD    specify Storage daemon's password used by the monitor],
+   [
+       if test "x$withval" != "xno" ; then     
+	   mon_sd_password=$withval
+       fi
+   ]
+)
+
+if test "x$mon_sd_password" = "x" ; then
+   if test "x$OPENSSL" = "xnone" ; then
+#     key=`date | uuencode /dev/stdout | tr "\"@\\\`\\ \\=\\,\\(\\)\\#\\.\\!\\-$'" 123456789uvwxyzabcdef | awk '{getline} {print} {exit}'`
+      key=`autoconf/randpass 41`
+   else
+      key=`openssl rand -base64 33`
+   fi
+   mon_sd_password=$key
+fi
 
 AC_SUBST(dir_password)
 AC_SUBST(fd_password)
 AC_SUBST(sd_password)
-
+AC_SUBST(mon_dir_password)
+AC_SUBST(mon_fd_password)
+AC_SUBST(mon_sd_password)
 
 #
 # Handle users and groups for each daemon
