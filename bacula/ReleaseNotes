@@ -1,76 +1,104 @@
 
-          Release Notes for Bacula 1.36.1
+          Release Notes for Bacula 1.37.1
 
-  Bacula code: Total files = 396 Total lines = 116,418 (*.h *.c *.in)
+  Bacula code: Total files = 398 Total lines = 117,151 (*.h *.c *.in)
 
 
 Major Changes:
-- There is a new Win32 pebuilder rescue disk thanks to Scott. This
-  is worth the effort to checkout.
-- A number of indexes have been removed from the PostgreSQL
-  database to improve performance during backups. You may need to
-  add these indexes if you do Verifies. See the scripts.
-- We now have a Gentoo ebuild -- thanks Scott.
-- There are a number of new ./configure options for the 
-  bimagemgr. Please see the documentation or ./configure --help
-- The RedHat autostart scripts disable using /lib/tls. If you
-  don't want this you will need to turn it off.
-- Corrected a problem with the default SD and FD conf files that
-  incorrectly set Maximum Concurrent Jobs = 1. This prevented
-  running a job and obtaining the status at the same time.
-- All daemon messages are now prefixed with a short date/time,
-  and queued messages (generated in the comm routines) have the
-  time the message was generated rather than the time the message
-  was sent (usually much later).
-- Fixed a bug with the autochanger code not respecting the InChanger
-  flag.
+- Preliminary Python Event support has been added. See below for
+  configuration.
+  A Python script will be called at particular points or conditions
+  in Bacula called Events. The currently defined Events are called:
+
+  StartJob, EndJob, NewVolume
+
+  Where StartJob is called before the RunBeforeJob, EndJob is called after
+  RunAfterJob, and NewVolume, is called before all other "methods" of
+  obtaining a new Volume name, when one is needed.
+
+  The Python script of the same name as the Event name (but with a .py) 
+  is called from the Scripts Directory (a directive defined in the
+  Director resource).  Note, both the Filename, and the name of
+  the function in the file must correspond to the Event name.
+
+  Once the Python script gets control, it can have access to Bacula
+  variables by doing:
+
+  import bacula
+
+  The script is called with one argument, typically called j. This
+  argument *must* be passed unchanged to each bacula function. The
+  format of the call is slightly different for reading Bacula
+  variable and for writing bacula variables. See below.
+
+  Bacula variables can be read with:
+
+  bacula.get(j, "Variable-name")
+
+  where j is the argument passed to the function, and Variable-name
+  is on of the following:
+
+   JoId, Client, Pool, Storage, Catalog, MediaType, NumVols, DirName,
+     Level, Type, Job, JobName, JobStatus
+
+   Bacula varibles can be set using Python keyword arguments:
+
+   bacula.set(jcr=j, VolumeName="xyz")
+
+   The two currently implemented writable "variables" are:
+
+   VolumeName and JobReport
+
+   Example:
+
+== File EndJob.py ===
+import bacula
+
+def EndJob(j):
+    jobid = bacula.get(j, "JobId")
+    client = bacula.get(j, "Client") 
+    bacula.set(jcr=j, JobReport="EndJob output: JobId=%d Client=%s.\n" % (jobid, client))
+    return 1
+====
+
+== File NewVolume.py ===
+import bacula
+
+def NewVolume(j):
+    jobid = bacula.get(j, "JobId")
+    print "JobId=", jobid
+    client = bacula.get(j, "Client") 
+    print "Client=" + client
+    numvol = bacula.get(j, "NumVols");
+    print "NumVols=", numvol
+    bacula.set(jcr=j, JobReport="New Volume set for Job.\n") 
+    bacula.set(jcr=j, VolumeName="TestA-001")
+    return 1
+====
 
 
 New Directives:
-- None since 1.36.0
+- Scripts Directory = <directory> name.  Defines the directory from 
+  which Bacula scripts will be called for events. In fact, Bacula
+  appends this name to the standard Python list of search directories,
+  so the script could also be in any of the Python system directories.
+- In FileSet, you can exclude backing up of hardlinks (if you have
+  a lot, it can be very expensive), by using:
+    HardLinks = no
+  in the Options section. Patch supplied by David R Bosso. Thanks.              
 
 New Commands:
-- None since 1.36.0
+- "python restart" restarts the Python interpreter. Rather brutal, make
+   sure no Python scripts are running. This permits you to change
+   a Python script and get Bacula to use the new script.
 
 Items to note!!!
-- The output from Job reports has been modified to include the 
-  seconds on the start/end times, the Storage device used, and to
-  indent the output differently.
-- If you created a PostgreSQL database under version 1.36.0, there
-  are two things you might want to do. 1. manually remove some
-  of the File table indexes to improve backup performance. See the
-  make_postgresql_tables script. 2. run fix_postgresql_tables (in
-  src/cats and updatedb) to correct a table. This is necessary only
-  if you are creating disk Volumes greater than 2GB.
-- As of 1.35.5 you MUST do a database update.
-  
-  cd scripts-dir (or src/cats)
-  ./update_bacula_tables
-   
-- All daemons should be compatible with 1.34 with the exception
-  of the new FileSet features such as regular expressions.
-- Regular expressions are not supported in the Win32 FD.
+- You must add --with-python=[DIR] to the configure command line
+  if you want Python support.  Python 2.2 and 2.3 should be automatically
+  detected if in the standard place.
+- With Python 2.2 version, the link of the Director gets a few linker
+  warnings due to the fact that Python pulls in some old non-secure
+  libraries.
+- With Python 2.3, there are a few compiler warnings.
 
 Other Items:
-- It is now possible to build the Rescue CDROM using a pre-installed
-  static Bacula FD.
-- Corrected a bug in the traceback code when Bacula was executed without
-  a path. Tracebacks should now work in more cases.
-- Corrected a typo in the traceback script.
-- Fixed the mtx autochanger script so that it correctly waits on
-  Linux systems (if you manually enable the code).
-- Added grant all on cdimages for PostgreSQL users of bimagemgr.
-- The actual Job start time is now correctly recorded in the catalog.
-- You can now specify a JobId (or multiple ones separated by commas) on
-  the restore command line.
-- A -d50 will now turn on lots of debug code if you are having
-  authentication errors.
-- Found a workaround to a /lib/tls pthreads bug (a library seg fault).
-- Added an ALERT message class for Alert messages.
-- Fixed a seg fault in the restore tree routine when attempting
-  to select certain files in the root directory.
-- Allow other jobs to request new Volumes while operator intervention
-  is needed -- previously all stalled.
-- Enhancements to btape test (don't loop if certain tape errors occur).
-- Improvements to the Win32 install.
-
