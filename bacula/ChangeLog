@@ -1,5 +1,7 @@
 
 16Feb04
+- Add a lot of "const" to char * arguments to keep the native
+  Sun compiler happy.
 - Added first cut of message queuing to prevent recursion in
   low level routines. This code is not yet working.
 - Spent a *huge* amount of time looking at the tape driver
