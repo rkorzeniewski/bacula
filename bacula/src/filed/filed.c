@@ -193,6 +193,8 @@ Without that I don't know who I am :-(\n"), configfile);
    me += 1000000;
 #endif
 
+   set_thread_concurrency(10);
+
    start_watchdog();		      /* start watchdog thread */
 
    /* Become server, and handle requests */

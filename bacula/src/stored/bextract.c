@@ -91,7 +91,7 @@ int main (int argc, char *argv[])
 
          case 'e':                    /* exclude list */
             if ((fd = fopen(optarg, "r")) == NULL) {
-               Dmsg2(0, "Could not open exclude file: %s, ERR=%s\n",
+               Pmsg2(0, "Could not open exclude file: %s, ERR=%s\n",
 		  optarg, strerror(errno));
 	       exit(1);
 	    }
@@ -105,7 +105,7 @@ int main (int argc, char *argv[])
 
          case 'i':                    /* include list */
             if ((fd = fopen(optarg, "r")) == NULL) {
-               Dmsg2(0, "Could not open include file: %s, ERR=%s\n",
+               Pmsg2(0, "Could not open include file: %s, ERR=%s\n",
 		  optarg, strerror(errno));
 	       exit(1);
 	    }
@@ -128,7 +128,7 @@ int main (int argc, char *argv[])
    argv += optind;
 
    if (argc != 2) {
-      Dmsg0(0, "Wrong number of arguments: \n");
+      Pmsg0(0, "Wrong number of arguments: \n");
       usage();
    }
    if (!got_inc) {			      /* If no include file, */
@@ -270,7 +270,7 @@ static void do_extract(char *devname, char *where)
 	 if (dev->state & ST_EOF) {
 	    continue;		      /* try again */
 	 }
-         Dmsg0(0, "Read Record got a bad record\n");
+         Pmsg0(0, "Read Record got a bad record\n");
 	 status_dev(dev, &status);
          Dmsg1(20, "Device status: %x\n", status);
 	 if (status & MT_EOD)
@@ -430,7 +430,7 @@ static void do_extract(char *devname, char *where)
 	    } else {
 	       strcat(ofile, fname);
 	    }
-/*          Dmsg1(000, "Restoring: %s\n", ofile); */
+/*          Pmsg1(000, "Restoring: %s\n", ofile); */
 
 	    extract = create_file(jcr, fname, ofile, lname, type, &statp, &ofd);
 
@@ -462,7 +462,7 @@ static void do_extract(char *devname, char *where)
 
             Dmsg2(100, "Write uncompressed %d bytes, total before write=%d\n", compress_len, total);
 	    if ((uLongf)write(ofd, compress_buf, (size_t)compress_len) != compress_len) {
-               Dmsg0(0, "===Write error===\n");
+               Pmsg0(0, "===Write error===\n");
                Emsg2(M_ERROR_TERM, 0, "Write error on %s: %s\n", ofile, strerror(errno));
 	    }
 	    total += compress_len;
@@ -486,7 +486,7 @@ static void do_extract(char *devname, char *where)
 	 extract = FALSE;
 	 set_statp(jcr, fname, ofile, lname, type, &statp);
       } else if (rec.Stream != STREAM_MD5_SIGNATURE) {
-         Dmsg2(0, "None of above!!! stream=%d data=%s\n", rec.Stream, rec.data);
+         Pmsg2(0, "None of above!!! stream=%d data=%s\n", rec.Stream, rec.data);
       }
    }
 

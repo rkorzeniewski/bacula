@@ -56,9 +56,10 @@
 #define FO_GZIP     0x2               /* Do Zlib compression */
 
 
-#define OPT_compute_MD5       0x01
-#define OPT_GZIP_compression  0x02
-#define OPT_no_recursion      0x04
+#define OPT_compute_MD5       0x01    /* compute MD5 of file's data */
+#define OPT_GZIP_compression  0x02    /* use GZIP compression */
+#define OPT_no_recursion      0x04    /* no recursion in directories */
+#define OPT_multifs           0x08    /* multiple file systems */
 
 
 struct s_included_file {

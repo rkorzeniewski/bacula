@@ -1,7 +1,7 @@
 #!/bin/sh
 #
-# shell script to create Bacula tables
-
+# shell script to create Bacula MySQL tables
+#
 bindir=@SQL_BINDIR@
 
 if $bindir/mysql -f <<END-OF-DATA
@@ -28,6 +28,7 @@ CREATE TABLE File (
    JobId INTEGER UNSIGNED NOT NULL REFERENCES Job,
    PathId INTEGER UNSIGNED NOT NULL REFERENCES Path,
    FilenameId INTEGER NOT NULL REFERENCES Filename,
+   MarkId INTEGER UNSIGNED NOT NULL DEFAULT 0,
    LStat TINYBLOB NOT NULL,
    MD5 TINYBLOB NOT NULL,
    PRIMARY KEY(FileId),
@@ -88,6 +89,7 @@ CREATE TABLE JobMedia (
 CREATE TABLE Media (
    MediaId INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
    VolumeName TINYBLOB NOT NULL,
+   Slot INTEGER NOT NULL,
    PoolId INTEGER UNSIGNED NOT NULL REFERENCES Pool,
    MediaType TINYBLOB NOT NULL,
    FirstWritten DATETIME NOT NULL,
@@ -144,8 +146,17 @@ CREATE TABLE Version (
    );
 
 -- Initialize Version		 
-INSERT INTO Version (VersionId) VALUES (1);
+INSERT INTO Version (VersionId) VALUES (2);
 
+CREATE TABLE Counters {
+   Counter TINYBLOB NOT NULL,
+   PoolId INTEGER UNSIGNED REFERENCES Pool NOT NULL,
+   MinValue INTEGER,
+   MaxValue INTEGER,
+   CurrentValue INTEGER,
+   WrapCounter TINYBLOB NOT NULL,
+   PRIMARY KEY (Counter)
+   );
 
 ## Experimental
 #CREATE TABLE FileSave (
@@ -156,6 +167,26 @@ INSERT INTO Version (VersionId) VALUES (1);
 #   VLStat TINYBLOB NOT NULL,
 #   PRIMARY KEY(FileSaveId),
 #   );
+
+# Experimental stuff below. Not used.
+# Invariant part of File
+#CREATE TABLE BaseFile (
+#   FileId INTEGER UNSIGNED AUTOINCREMENT,
+#   PathId INTEGER UNSIGNED REFERENCES Path NOT NULL,
+#   FilenameId INTEGER REFERENCES Filename NOT NULL,
+#   LStat VARCHAR(255) NOT NULL,
+#   MD5 VARCHAR(25) NOT NULL,
+#   PRIMARY KEY(FileId) 
+#   );
+
+# Variable part of File
+#CREATE TABLE FileSave (
+#   FileId INTEGER UNSIGNED REFERENCES BaseFile NOT NULL,
+#   FileIndex INTEGER UNSIGNED NOT NULL,
+#   JobId INTEGER UNSIGNED REFERENCES Job NOT NULL,
+#   PRIMARY KEY(FileId) 
+#   );
+
 
 END-OF-DATA
 then

@@ -32,7 +32,7 @@
 #ifndef __JCR_H_
 #define __JCR_H_ 1
 
-/* Backup/Verify level code */
+/* Backup/Verify level code. These are stored in the DB */
 #define L_FULL                   'F'
 #define L_INCREMENTAL            'I'  /* since last backup */
 #define L_DIFFERENTIAL           'D'  /* since last full backup */
@@ -40,22 +40,22 @@
 #define L_SINCE                  'S'
 #define L_VERIFY_CATALOG         'C'  /* verify from catalog */
 #define L_VERIFY_INIT            'V'  /* verify save (init DB) */
-#define L_VERIFY_VOLUME          'O'  /* verify we can read volume */
+#define L_VERIFY_VOLUME_TO_CATALOG 'O'  /* verify Volume to catalog entries */
 #define L_VERIFY_DATA            'A'  /* verify data on volume */
 
 
-/* Job Types */
-#define JT_BACKUP                'B'
-#define JT_VERIFY                'V'
-#define JT_RESTORE               'R'
+/* Job Types. These are stored in the DB */
+#define JT_BACKUP                'B'  /* Backup Job */
+#define JT_VERIFY                'V'  /* Verify Job */
+#define JT_RESTORE               'R'  /* Restore Job */
 #define JT_CONSOLE               'C'  /* console program */
 #define JT_ADMIN                 'D'  /* admin job */
 #define JT_ARCHIVE               'A'
 
-/* Job Status */
-#define JS_Created               'C'
-#define JS_Running               'R'
-#define JS_Blocked               'B'
+/* Job Status. Some of these are stored in the DB */
+#define JS_Created               'C'  /* created but not yet running */
+#define JS_Running               'R'  /* running */
+#define JS_Blocked               'B'  /* blocked */
 #define JS_Terminated            'T'  /* terminated normally */
 #define JS_ErrorTerminated       'E'  /* Job terminated in error */
 #define JS_Error                 'e'  /* Non-fatal error */
@@ -68,7 +68,9 @@
 #define JS_WaitMount             'M'  /* waiting for Mount */
 
 #define job_cancelled(jcr) \
-  (jcr->JobStatus == JS_Cancelled || jcr->JobStatus == JS_ErrorTerminated)
+  (jcr->JobStatus == JS_Cancelled || \
+   jcr->JobStatus == JS_ErrorTerminated || \
+   jcr->JobStatus == JS_FatalError)
 
 typedef void (JCR_free_HANDLER)(struct s_jcr *jcr);
 
@@ -132,7 +134,7 @@ struct s_jcr {
    uint32_t FileIndex;                /* Last FileIndex processed */
    POOLMEM *fname;                    /* name to put into catalog */
    int fn_printed;                    /* printed filename */
-   char *stime;                       /* start time for incremental/differential */
+   POOLMEM *stime;                    /* start time for incremental/differential */
    JOB_DBR jr;                        /* Job record in Database */
    int RestoreJobId;                  /* Id specified by UA */
    char *RestoreWhere;                /* Where to restore the files */

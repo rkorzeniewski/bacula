@@ -97,7 +97,7 @@ Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	  && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 smtp:	smtp.o
-	$(CXX) $(LDFLAGS) -L. -o $@ smtp.o $(LIBS) $(DLIB) -lbac -lm
+	$(CXX) $(LDFLAGS) -static -L. -o $@ smtp.o $(LIBS) $(DLIB) -lbac -lm
 
 rwlock_test:  rwlock.o
 	rm -f rwlock.o

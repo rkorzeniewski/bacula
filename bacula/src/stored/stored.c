@@ -249,6 +249,9 @@ int main (int argc, char *argv[])
    UnlockRes();
    device = NULL;
 
+   set_thread_concurrency(me->max_concurrent_jobs * 2 +
+      4 /* watch dog + servers + misc */);
+
    start_watchdog();		      /* start watchdog thread */
 
    /*
@@ -256,10 +259,10 @@ int main (int argc, char *argv[])
     */
    if (me->SDDport == 0 || me->SDDport == me->SDport) {
       /* Single server used for Director and File daemon */
-      bnet_thread_server(me->SDport, 20, &dird_workq, connection_request);
+      bnet_thread_server(me->SDport, me->max_concurrent_jobs * 2,
+	 &dird_workq, connection_request);
    } else {
       /* Start the Director server */
-      set_thread_concurrency(10);
       if ((status=pthread_create(&dirid, NULL, director_thread, 	
 	   (void *)me->SDport)) != 0) {
          Emsg1(M_ABORT, 0, _("Cannot create Director thread: %s\n"), strerror(status));

@@ -67,7 +67,6 @@ void start_UA_server(int UA_port)
    pthread_t thid;
    int status;
 
-   set_thread_concurrency(4);
    if ((status=pthread_create(&thid, NULL, connect_thread, (void *)UA_port)) != 0) {
       Emsg1(M_ABORT, 0, _("Cannot create UA thread: %s\n"), strerror(status));
    }

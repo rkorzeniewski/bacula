@@ -177,7 +177,7 @@ int db_find_next_volume(B_DB *mdb, int item, MEDIA_DBR *mr)
    return stat; 		
 }
 
-int db_find_last_full_verify(B_DB *mdb, JOB_DBR *jr) { return 0; }
+int db_find_last_jobid(B_DB *mdb, JOB_DBR *jr) { return 0; }
 
 
 #endif /* HAVE_BACULA_DB */

@@ -131,7 +131,7 @@ int do_read_data(JCR *jcr)
                Dmsg1(000, "There is another volume %s.\n", jcr->VolumeName);
 	       dev->state &= ~ST_READ; 
 	       if (!acquire_device_for_read(jcr, dev, block)) {
-                  Emsg2(M_ERROR, 0, "Cannot open Dev=%s, Vol=%s\n", dev_name(dev), jcr->VolumeName);
+                  Jmsg(jcr, M_FATAL, 0, _("Cannot open Dev=%s, Vol=%s\n"), dev_name(dev), jcr->VolumeName);
 		  ok = FALSE;
 		  break;
 	       }
@@ -150,7 +150,7 @@ int do_read_data(JCR *jcr)
 	    continue;		      /* End of File */
 	 }
 
-         Jmsg2(jcr, M_FATAL, 0, "Read error on Record Header %s ERR=%s\n", dev_name(dev), strerror(errno));
+         Jmsg2(jcr, M_FATAL, 0, _("Read error on Record Header %s ERR=%s\n"), dev_name(dev), strerror(errno));
 	 ok = FALSE;
 	 break;
       }

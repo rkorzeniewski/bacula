@@ -67,14 +67,14 @@ db_add_MD5_to_file_record(B_DB *mdb, FileId_t FileId, char *MD5)
 }
 
 /* Mark the file record as being visited during database
- * verify compare. Stuff JobId into FileIndex field
+ * verify compare. Stuff JobId into MarkedId field
  */
-int db_mark_file_record(B_DB *mdb, FileId_t FileId, int JobId) 
+int db_mark_file_record(B_DB *mdb, FileId_t FileId, JobId_t JobId) 
 {
    int stat;
 
    db_lock(mdb);
-   Mmsg(&mdb->cmd, "UPDATE File SET FileIndex=%d WHERE FileId=%d", JobId, FileId);
+   Mmsg(&mdb->cmd, "UPDATE File SET MarkId=%d WHERE FileId=%d", JobId, FileId);
    stat = UPDATE_DB(mdb, mdb->cmd);
    db_unlock(mdb);
    return stat;

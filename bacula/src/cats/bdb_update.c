@@ -197,7 +197,7 @@ int db_add_MD5_to_file_record(B_DB *mdb, FileId_t FileId, char *MD5)
    return 1;
 }
 
-int db_mark_file_record(B_DB *mdb, FileId_t FileId, int JobId) 
+int db_mark_file_record(B_DB *mdb, FileId_t FileId, JobId_t JobId)
 { 
    return 1;
 }

@@ -47,18 +47,20 @@
 
 
 /* Bits for device capabilities */
-#define CAP_EOF        0x001          /* has MTWEOF */
-#define CAP_BSR        0x002          /* has MTBSR */
-#define CAP_BSF        0x004          /* has MTBSF */
-#define CAP_FSR        0x008          /* has MTFSR */
-#define CAP_FSF        0x010          /* has MTFSF */
-#define CAP_EOM        0x020          /* has MTEOM */
-#define CAP_REM        0x040          /* is removable media */
-#define CAP_RACCESS    0x080          /* is random access device */
-#define CAP_AUTOMOUNT  0x100          /* Read device at start to see what is there */
-#define CAP_LABEL      0x200          /* Label blank tapes */
-#define CAP_ANONVOLS   0x400          /* Mount without knowing volume name */
-#define CAP_ALWAYSOPEN 0x800          /* always keep device open */
+#define CAP_EOF          0x0001       /* has MTWEOF */
+#define CAP_BSR          0x0002       /* has MTBSR */
+#define CAP_BSF          0x0004       /* has MTBSF */
+#define CAP_FSR          0x0008       /* has MTFSR */
+#define CAP_FSF          0x0010       /* has MTFSF */
+#define CAP_EOM          0x0020       /* has MTEOM */
+#define CAP_REM          0x0040       /* is removable media */
+#define CAP_RACCESS      0x0080       /* is random access device */
+#define CAP_AUTOMOUNT    0x0100       /* Read device at start to see what is there */
+#define CAP_LABEL        0x0200       /* Label blank tapes */
+#define CAP_ANONVOLS     0x0400       /* Mount without knowing volume name */
+#define CAP_ALWAYSOPEN   0x0800       /* always keep device open */
+#define CAP_AUTOCHANGER  0x1000       /* AutoChanger */
+#define CAP_OFFLINEUNMOUNT 0x2000     /* Offline before unmount */
 
 
 /* Tape state bits */
@@ -94,6 +96,7 @@ typedef struct s_volume_catalog_info {
    uint32_t VolCatWrites;             /* Number of writes this volume */
    uint32_t VolCatReads;              /* Number of reads this volume */
    uint32_t VolCatRecycles;           /* Number of recycles this volume */
+   int32_t  Slot;                     /* Slot in changer */
    uint64_t VolCatMaxBytes;           /* max bytes to write */
    uint64_t VolCatCapacityBytes;      /* capacity estimate */
    char VolCatStatus[20];             /* Volume status */

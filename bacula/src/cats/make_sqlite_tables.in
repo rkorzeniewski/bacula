@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# shell script to create Bacula tables
+# shell script to create Bacula SQLite tables
 
 bindir=@SQL_BINDIR@
 cd @working_dir@
@@ -25,6 +25,7 @@ CREATE TABLE File (
    JobId INTEGER UNSIGNED REFERENCES Job NOT NULL,
    PathId INTEGER UNSIGNED REFERENCES Path NOT NULL,
    FilenameId INTEGER REFERENCES Filename NOT NULL,
+   MarkId INTEGER UNSIGNED DEFAULT 0,
    LStat VARCHAR(255) NOT NULL,
    MD5 VARCHAR(25) NOT NULL,
    PRIMARY KEY(FileId) 
@@ -78,6 +79,7 @@ CREATE TABLE JobMedia (
 CREATE TABLE Media (
    MediaId INTEGER UNSIGNED AUTOINCREMENT,
    VolumeName VARCHAR(128) NOT NULL,
+   Slot INTEGER DEFAULT 0,
    PoolId INTEGER UNSIGNED REFERENCES Pool NOT NULL,
    MediaType VARCHAR(128) NOT NULL,
    FirstWritten DATETIME DEFAULT 0,
@@ -141,28 +143,17 @@ CREATE TABLE Version (
    );
 
 -- Initialize Version		 
-INSERT INTO Version (VersionId) VALUES (1);
+INSERT INTO Version (VersionId) VALUES (2);
 
-
--- Experimental stuff below. Not used.
--- Invariant part of File
-CREATE TABLE BaseFile (
-   FileId INTEGER UNSIGNED AUTOINCREMENT,
-   PathId INTEGER UNSIGNED REFERENCES Path NOT NULL,
-   FilenameId INTEGER REFERENCES Filename NOT NULL,
-   LStat VARCHAR(255) NOT NULL,
-   MD5 VARCHAR(25) NOT NULL,
-   PRIMARY KEY(FileId) 
+CREATE TABLE Counters (
+   Counter TEXT NOT NULL,     
+   PoolId INTEGER UNSIGNED REFERENCES Pool NOT NULL,
+   MinValue INTEGER DEFAULT 0, 
+   MaxValue INTEGER DEFAULT 0,
+   CurrentValue INTEGER DEFAULT 0,
+   WrapCounter TEXT NOT NULL,
+   PRIMARY KEY (Counter)
    );
-
--- Variable part of File
-CREATE TABLE FileSave (
-   FileId INTEGER UNSIGNED REFERENCES BaseFile NOT NULL,
-   FileIndex INTEGER UNSIGNED NOT NULL,
-   JobId INTEGER UNSIGNED REFERENCES Job NOT NULL,
-   PRIMARY KEY(FileId) 
-   );
-
 
 END-OF-DATA
 exit 0

@@ -174,13 +174,13 @@ void connection_from_filed(void *arg)
 
    Dmsg0(200, "enter connection_from_filed\n");
    if (bnet_recv(fd) <= 0) {
-      Emsg0(M_ERROR, 0, "Unable to authenticate Client.\n");
+      Emsg0(M_FATAL, 0, _("Unable to authenticate Client.\n"));
       return;
    }
    Dmsg1(100, "got: %s\n", fd->msg);
 
    if (sscanf(fd->msg, "Hello Start Job %127s\n", job_name) != 1) {
-      Emsg1(M_ERROR, 0, _("Authentication failure: %s"), fd->msg);
+      Emsg1(M_FATAL, 0, _("Authentication failure: %s\n"), fd->msg);
       return;
    }
    handle_filed_connection(fd, job_name);
@@ -192,7 +192,7 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
    JCR *jcr;
 
    if (!(jcr=get_jcr_by_full_name(job_name))) {
-      Emsg1(M_ERROR, 0, "Job name not found: %s", job_name);
+      Emsg1(M_FATAL, 0, _("Job name not found: %s\n"), job_name);
       return;
    }
 
@@ -201,7 +201,7 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
    Dmsg1(100, "Found Job %s\n", job_name);
 
    if (jcr->authenticated) {
-      Dmsg2(000, "Hey!!!! JobId %d Job %s already authenticated.\n", 
+      Pmsg2(000, "Hey!!!! JobId %d Job %s already authenticated.\n", 
 	 jcr->JobId, jcr->Job);
    }
   
@@ -285,7 +285,7 @@ static int use_device_cmd(JCR *jcr)
 	   dev_name);
       bnet_fsend(dir, NO_device, dev_name);
    } else {
-      Emsg1(M_FATAL, 0, _("store<dir: Bad Use Device command: %s\n"), dir->msg);
+      Jmsg(jcr, M_FATAL, 0, _("store<dir: Bad Use Device command: %s\n"), dir->msg);
       bnet_fsend(dir, BAD_use, dir->msg);
    }
 

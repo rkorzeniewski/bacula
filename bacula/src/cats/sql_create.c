@@ -69,7 +69,7 @@ db_create_job_record(B_DB *mdb, JOB_DBR *jr)
    time_t stime;
    struct tm tm;
    int stat;
-   char *JobId;
+   char JobId[30];
    btime_t JobTDate;
    char ed1[30];
 
@@ -80,8 +80,7 @@ db_create_job_record(B_DB *mdb, JOB_DBR *jr)
    JobTDate = (btime_t)stime;
 
    db_lock(mdb);
-   JobId = db_next_index(mdb, "Job");
-   if (!JobId) {
+   if (!db_next_index(mdb, "Job", JobId)) {
       jr->JobId = 0;
       db_unlock(mdb);
       return 0;

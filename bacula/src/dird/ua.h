@@ -91,5 +91,5 @@ int confirm_retention(UAContext *ua, btime_t *ret, char *msg);
 
 /* ua_prune.c */
 int prune_files(UAContext *ua, CLIENT *client);
-int prune_jobs(UAContext *ua, CLIENT *client);
+int prune_jobs(UAContext *ua, CLIENT *client, int JobType);
 int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr);

@@ -22,7 +22,7 @@
  *
  *     Unfortunately, I have had to add more and more complication
  *     to this code. This was not foreseen as noted above, and as
- *     a consequence has lead to something more contored than is
+ *     a consequence has lead to something more contorted than is
  *     really necessary -- KES.  Note, this contortion has been
  *     corrected to a large extent by a rewrite (Apr MMI).
  *
@@ -49,7 +49,7 @@
  */
 
 /*
- * Handling I/O errors and end of tape conditions is a bit tricky.
+ * Handling I/O errors and end of tape conditions are a bit tricky.
  * This is how it is currently done when writting.
  * On either an I/O error or end of tape,
  * we will stop writing on the physical device (no I/O recovery is
@@ -176,7 +176,7 @@ init_dev(DEVICE *dev, char *dev_name)
 int
 open_dev(DEVICE *dev, char *VolName, int mode)
 {
-   char *archive_name;
+   POOLMEM *archive_name;
 
    if (dev->state & ST_OPENED) {
       /*
@@ -221,7 +221,7 @@ open_dev(DEVICE *dev, char *VolName, int mode)
       }
       Dmsg1(29, "open_dev: tape %d opened\n", dev->fd);
    } else {
-      archive_name = (char *) get_pool_memory(PM_FNAME);
+      archive_name = get_pool_memory(PM_FNAME);
       strcpy(archive_name, dev->dev_name);
       if (archive_name[strlen(archive_name)] != '/') {
          strcat(archive_name, "/");
@@ -264,7 +264,7 @@ int rewind_dev(DEVICE *dev)
       dev->dev_errno = EBADF;
       Mmsg1(&dev->errmsg, _("Bad call to rewind_dev. Device %s not open\n"),
 	    dev->dev_name);
-      Emsg0(M_ABORT, 0, dev->errmsg);
+      Emsg0(M_FATAL, 0, dev->errmsg);
       return 0;
    }
    dev->state &= ~(ST_APPEND|ST_READ|ST_EOT | ST_EOF | ST_WEOT);  /* remove EOF/EOT flags */
@@ -969,6 +969,9 @@ close_dev(DEVICE *dev)
    dev->use_count--;
 }
 
+/*
+ * Used when unmounting the device
+ */
 void force_close_dev(DEVICE *dev)
 {
    if (!dev) {

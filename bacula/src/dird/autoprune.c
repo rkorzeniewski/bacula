@@ -74,7 +74,7 @@ int do_autoprune(JCR *jcr)
 
    if (jcr->job->PruneJobs || jcr->client->AutoPrune) {
       Jmsg(jcr, M_INFO, 0, _("Begin pruning Jobs.\n"));
-      prune_jobs(&ua, client);
+      prune_jobs(&ua, client, jcr->JobType);
       pruned = TRUE;
    } else {
       pruned = FALSE;

@@ -182,7 +182,7 @@ int main(int argc, char *argv[])
 	 exit(1);
       }
       if (!open_device(dev)) {
-         Dmsg1(0, "Warning could not open device. ERR=%s", strerror_dev(dev));
+         Pmsg1(0, "Warning could not open device. ERR=%s", strerror_dev(dev));
 	 term_dev(dev);
 	 dev = NULL;
       }
@@ -251,10 +251,10 @@ static void devicecmd()
 	 return;
       }
       if (!open_device(dev)) {
-         Dmsg1(0, "Device open failed. ERR=%s\n", strerror_dev(dev));
+         Pmsg1(0, "Device open failed. ERR=%s\n", strerror_dev(dev));
       }
    } else {
-      Dmsg0(0, "Device init failed.\n");                          
+      Pmsg0(0, "Device init failed.\n");                          
    }
 }
 
@@ -267,7 +267,7 @@ static void labelcmd()
    int found = 0;
 
    if (!dev) {
-      Dmsg0(0, "No device: Use device command.\n");
+      Pmsg0(0, "No device: Use device command.\n");
       return;
    }
 
@@ -283,7 +283,7 @@ static void labelcmd()
    } 
    UnlockRes();
    if (!found) {
-      Dmsg2(0, "Could not find device %s in %s\n", dev->dev_name, configfile);
+      Pmsg2(0, "Could not find device %s in %s\n", dev->dev_name, configfile);
       return;
    }
 
@@ -293,7 +293,7 @@ static void labelcmd()
 	 
    if (!(dev->state & ST_OPENED)) {
       if (!open_device(dev)) {
-         Dmsg1(0, "Device open failed. ERR=%s\n", strerror_dev(dev));
+         Pmsg1(0, "Device open failed. ERR=%s\n", strerror_dev(dev));
       }
    }
    write_volume_label_to_dev(jcr, device, cmd, "Default");
@@ -309,35 +309,35 @@ static void readlabelcmd()
    DEV_BLOCK *block;
 
    if (!dev) {
-      Dmsg0(0, "No device: Use device command.\n");
+      Pmsg0(0, "No device: Use device command.\n");
       return;
    }
    block = new_block(dev);
    stat = read_dev_volume_label(jcr, dev, block);
    switch (stat) {
       case VOL_NO_LABEL:
-         Dmsg0(0, "Volume has no label.\n");
+         Pmsg0(0, "Volume has no label.\n");
 	 break;
       case VOL_OK:
-         Dmsg0(0, "Volume label read correctly.\n");
+         Pmsg0(0, "Volume label read correctly.\n");
 	 break;
       case VOL_IO_ERROR:
-         Dmsg1(0, "I/O error on device: ERR=%s", strerror_dev(dev));
+         Pmsg1(0, "I/O error on device: ERR=%s", strerror_dev(dev));
 	 break;
       case VOL_NAME_ERROR:
-         Dmsg0(0, "Volume name error\n");
+         Pmsg0(0, "Volume name error\n");
 	 break;
       case VOL_CREATE_ERROR:
-         Dmsg1(0, "Error creating label. ERR=%s", strerror_dev(dev));
+         Pmsg1(0, "Error creating label. ERR=%s", strerror_dev(dev));
 	 break;
       case VOL_VERSION_ERROR:
-         Dmsg0(0, "Volume version error.\n");
+         Pmsg0(0, "Volume version error.\n");
 	 break;
       case VOL_LABEL_ERROR:
-         Dmsg0(0, "Bad Volume label type.\n");
+         Pmsg0(0, "Bad Volume label type.\n");
 	 break;
       default:
-         Dmsg0(0, "Unknown error.\n");
+         Pmsg0(0, "Unknown error.\n");
 	 break;
    }
 
@@ -370,10 +370,10 @@ static int find_device_res()
    } 
    UnlockRes();
    if (!found) {
-      Dmsg2(0, "Could not find device %s in %s\n", dev->dev_name, configfile);
+      Pmsg2(0, "Could not find device %s in %s\n", dev->dev_name, configfile);
       return 0;
    }
-   Dmsg1(0, "Using device: %s\n", dev->dev_name);
+   Pmsg1(0, "Using device: %s\n", dev->dev_name);
    return 1;
 }
 
@@ -385,13 +385,13 @@ static void loadcmd()
 {
 
    if (!dev) {
-      Dmsg0(0, "No device: Use device command.\n");
+      Pmsg0(0, "No device: Use device command.\n");
       return;
    }
    if (!load_dev(dev)) {
-      Dmsg1(0, "Bad status from load. ERR=%s\n", strerror_dev(dev));
+      Pmsg1(0, "Bad status from load. ERR=%s\n", strerror_dev(dev));
    } else
-      Dmsg1(0, "Loaded %s\n", dev_name(dev));
+      Pmsg1(0, "Loaded %s\n", dev_name(dev));
 }
 
 /*
@@ -400,14 +400,14 @@ static void loadcmd()
 static void rewindcmd()
 {
    if (!dev) {
-      Dmsg0(0, "No device: Use device command.\n");
+      Pmsg0(0, "No device: Use device command.\n");
       return;
    }
    if (!rewind_dev(dev)) {
-      Dmsg1(0, "Bad status from rewind. ERR=%s\n", strerror_dev(dev));
+      Pmsg1(0, "Bad status from rewind. ERR=%s\n", strerror_dev(dev));
       clrerror_dev(dev, -1);
    } else
-      Dmsg1(0, "Rewound %s\n", dev_name(dev));
+      Pmsg1(0, "Rewound %s\n", dev_name(dev));
 }
 
 /*
@@ -416,7 +416,7 @@ static void rewindcmd()
 static void clearcmd()
 {
    if (!dev) {
-      Dmsg0(0, "No device: Use device command.\n");
+      Pmsg0(0, "No device: Use device command.\n");
       return;
    }
    clrerror_dev(dev, -1);
@@ -430,14 +430,14 @@ static void weofcmd()
    int stat;
 
    if (!dev) {
-      Dmsg0(0, "No device: Use device command.\n");
+      Pmsg0(0, "No device: Use device command.\n");
       return;
    }
    if ((stat = weof_dev(dev, 1)) < 0) {
-      Dmsg2(0, "Bad status from weof %d. ERR=%s\n", stat, strerror_dev(dev));
+      Pmsg2(0, "Bad status from weof %d. ERR=%s\n", stat, strerror_dev(dev));
       return;
    } else {
-      Dmsg1(0, "Wrote EOF to %s\n", dev_name(dev));
+      Pmsg1(0, "Wrote EOF to %s\n", dev_name(dev));
    }
 }
 
@@ -451,59 +451,59 @@ static void rawtestcmd()
    int i, j, k;
 
    if (!dev) {
-      Dmsg0(0, "No device: Use device command.\n");
+      Pmsg0(0, "No device: Use device command.\n");
       return;
    }
    if (!rewind_dev(dev)) {
-      Dmsg1(0, "Bad status from rewind. ERR=%s\n", strerror_dev(dev));
+      Pmsg1(0, "Bad status from rewind. ERR=%s\n", strerror_dev(dev));
       return;
    }
-   Dmsg0(0, "Rewound, now writing 100 blocks\n");
+   Pmsg0(0, "Rewound, now writing 100 blocks\n");
    for (i=0; i<100; i++) {
       j = 10000 + i;
       memset(buf, i, j);
       if (!write_dev(dev, buf, j)) {
-         Dmsg1(0, "Bad status from write. ERR=%s\n", strerror_dev(dev));
+         Pmsg1(0, "Bad status from write. ERR=%s\n", strerror_dev(dev));
 	 return;
       }
-     Dmsg2(10, "Wrote %d bytes of %d\n", j, i);
+     Pmsg2(10, "Wrote %d bytes of %d\n", j, i);
    }
-   Dmsg0(0, "100 Blocks written, flushing buffers and writing EOF\n");
+   Pmsg0(0, "100 Blocks written, flushing buffers and writing EOF\n");
    if (flush_dev(dev) != 0) {
-      Dmsg1(0, "Error writing flushing. ERR=%s\n", strerror(errno));
+      Pmsg1(0, "Error writing flushing. ERR=%s\n", strerror(errno));
       return;
    }
    if (weof_dev(dev, 1) != 0) {
-      Dmsg1(0, "Error writing eof. ERR=%s\n", strerror(errno));
+      Pmsg1(0, "Error writing eof. ERR=%s\n", strerror(errno));
       return;
    }
-   Dmsg0(0, "Rewinding ...\n");
+   Pmsg0(0, "Rewinding ...\n");
    if (!rewind_dev(dev)) {
-      Dmsg1(0, "Bad status from rewind. ERR=%s\n", strerror_dev(dev));
+      Pmsg1(0, "Bad status from rewind. ERR=%s\n", strerror_dev(dev));
       return;
    }
 
 
-   Dmsg0(0, "Read and verify data ...\n");
+   Pmsg0(0, "Read and verify data ...\n");
    for (i=0; i<100; i++) {
       j = 10000 + i;
       if (!read_dev(dev, buf, j)) {
-         Dmsg1(0, "Bad status from read. ERR=%s\n", strerror_dev(dev));
+         Pmsg1(0, "Bad status from read. ERR=%s\n", strerror_dev(dev));
 	 return;
       }
       for (k=0; k<j; k++) {
 	 if (buf[k] != i) {
-            Dmsg5(0, "Data read expected %d got %d at byte %d, block %d size %d\n", 
+            Pmsg5(0, "Data read expected %d got %d at byte %d, block %d size %d\n", 
 	     i, buf[k], k, i, j);
 	    return;
 	 }
       }     
       Dmsg3(10, "Successful read block %d of %d bytes of %d\n", i, j, i);   
    }
-   Dmsg0(0, "Read OK!\n");
-   Dmsg0(0, "Rewinding ...\n");
+   Pmsg0(0, "Read OK!\n");
+   Pmsg0(0, "Rewinding ...\n");
    if (!rewind_dev(dev)) {
-      Dmsg1(0, "Bad status from rewind. ERR=%s\n", strerror_dev(dev));
+      Pmsg1(0, "Bad status from rewind. ERR=%s\n", strerror_dev(dev));
       return;
    }
 #else
@@ -520,14 +520,14 @@ static void rawtestcmd()
 static void eomcmd()
 {
    if (!dev) {
-      Dmsg0(0, "No device: Use device command.\n");
+      Pmsg0(0, "No device: Use device command.\n");
       return;
    }
    if (!eod_dev(dev)) {
-      Dmsg1(0, "Bad status from eod. ERR=%s\n", strerror_dev(dev));
+      Pmsg1(0, "Bad status from eod. ERR=%s\n", strerror_dev(dev));
       return;
    } else {
-      Dmsg0(0, "Moved to end of media\n");
+      Pmsg0(0, "Moved to end of media\n");
    }
 }
 
@@ -547,13 +547,13 @@ static void bsfcmd()
 {
    int stat;
    if (!dev) {
-      Dmsg0(0, "No device: Use device command.\n");
+      Pmsg0(0, "No device: Use device command.\n");
       return;
    }
    if ((stat=bsf_dev(dev, 1)) < 0) {
-      Dmsg1(0, "Bad status from bsf. ERR=%s\n", strerror(errno));
+      Pmsg1(0, "Bad status from bsf. ERR=%s\n", strerror(errno));
    } else {
-      Dmsg0(0, "Back spaced one file.\n");
+      Pmsg0(0, "Back spaced one file.\n");
    }
 }
 
@@ -564,13 +564,13 @@ static void bsrcmd()
 {
    int stat;
    if (!dev) {
-      Dmsg0(0, "No device: Use device command.\n");
+      Pmsg0(0, "No device: Use device command.\n");
       return;
    }
    if ((stat=bsr_dev(dev, 1)) < 0) {
-      Dmsg1(0, "Bad status from bsr. ERR=%s\n", strerror(errno));
+      Pmsg1(0, "Bad status from bsr. ERR=%s\n", strerror(errno));
    } else {
-      Dmsg0(0, "Back spaced one record.\n");
+      Pmsg0(0, "Back spaced one record.\n");
    }
 }
 
@@ -581,10 +581,10 @@ static void bsrcmd()
 static void capcmd()
 {
    if (!dev) {
-      Dmsg0(0, "No device: Use device command.\n");
+      Pmsg0(0, "No device: Use device command.\n");
       return;
    }
-   Dmsg0(0, "Device capabilities: ");
+   Pmsg0(0, "Device capabilities: ");
    printf("%sEOF ", dev->capabilities & CAP_EOF ? "" : "!");
    printf("%sBSR ", dev->capabilities & CAP_BSR ? "" : "!");
    printf("%sBSF ", dev->capabilities & CAP_BSF ? "" : "!");
@@ -611,11 +611,11 @@ static void rectestcmd()
    int i, blkno = 0;
 
    if (!dev) {
-      Dmsg0(0, "No device: Use device command.\n");
+      Pmsg0(0, "No device: Use device command.\n");
       return;
    }
 
-   Dmsg0(0, "Test writting larger and larger records.\n\
+   Pmsg0(0, "Test writting larger and larger records.\n\
 This is a torture test for records. \n");
 
    sm_check(__FILE__, __LINE__, False);
@@ -630,7 +630,7 @@ This is a torture test for records. \n");
       while (!write_record_to_block(block, rec)) {
 	 empty_block(block);
 	 blkno++;
-         Dmsg2(0, "Block %d i=%d\n", blkno, i);
+         Pmsg2(0, "Block %d i=%d\n", blkno, i);
       }
       sm_check(__FILE__, __LINE__, False);
    }
@@ -646,10 +646,10 @@ This is a torture test for records. \n");
 static void testcmd()
 {
    if (!dev) {
-      Dmsg0(0, "No device: Use device command.\n");
+      Pmsg0(0, "No device: Use device command.\n");
       return;
    }
-   Dmsg0(0, "Append files test.\n\n\
+   Pmsg0(0, "Append files test.\n\n\
 I'm going to write one record  in file 0,\n\
                    two records in file 1,\n\
              and three records in file 2\n\n");
@@ -665,22 +665,22 @@ I'm going to write one record  in file 0,\n\
    weofcmd();	  /* end file 2 */
 //   weofcmd();
    rewindcmd();
-   Dmsg0(0, "Now moving to end of media.\n");
+   Pmsg0(0, "Now moving to end of media.\n");
    eodcmd();
-   Dmsg2(0, "\nWe should be in file 3. I am at file %d. This is %s\n\n", 
+   Pmsg2(0, "\nWe should be in file 3. I am at file %d. This is %s\n\n", 
       dev->file, dev->file == 3 ? "correct!" : "NOT correct!!!!");
 
-   Dmsg0(0, "\nNow I am going to attempt to append to the tape.\n");
+   Pmsg0(0, "\nNow I am going to attempt to append to the tape.\n");
    wrcmd(); 
    weofcmd();
 //   weofcmd();
    rewindcmd();
    scancmd();
-   Dmsg0(0, "The above scan should have four files of:\n\
+   Pmsg0(0, "The above scan should have four files of:\n\
 One record, two records, three records, and one record respectively.\n\n");
 
 
-   Dmsg0(0, "Append block test.\n\n\
+   Pmsg0(0, "Append block test.\n\n\
 I'm going to write a block, an EOF, rewind, go to EOM,\n\
 then backspace over the EOF and attempt to append a\
 second block in the first file.\n\n");
@@ -690,17 +690,17 @@ second block in the first file.\n\n");
 //   weofcmd();
    rewindcmd();
    eodcmd();
-   Dmsg2(0, "We should be at file 1. I am at EOM File=%d. This is %s\n",
+   Pmsg2(0, "We should be at file 1. I am at EOM File=%d. This is %s\n",
       dev->file, dev->file == 1 ? "correct!" : "NOT correct!!!!");
-   Dmsg0(0, "Doing backspace file.\n");
+   Pmsg0(0, "Doing backspace file.\n");
    bsfcmd();
-   Dmsg0(0, "Write second block, hoping to append to first file.\n");
+   Pmsg0(0, "Write second block, hoping to append to first file.\n");
    wrcmd();
    weofcmd();
    rewindcmd();
-   Dmsg0(0, "Done writing, scanning results\n");
+   Pmsg0(0, "Done writing, scanning results\n");
    scancmd();
-   Dmsg0(0, "The above should have one file of two blocks.\n");
+   Pmsg0(0, "The above should have one file of two blocks.\n");
 }
 
 
@@ -708,28 +708,28 @@ static void fsfcmd()
 {
    int stat;
    if (!dev) {
-      Dmsg0(0, "No device: Use device command.\n");
+      Pmsg0(0, "No device: Use device command.\n");
       return;
    }
    if ((stat=fsf_dev(dev, 1)) < 0) {
-      Dmsg2(0, "Bad status from fsf %d. ERR=%s\n", stat, strerror_dev(dev));
+      Pmsg2(0, "Bad status from fsf %d. ERR=%s\n", stat, strerror_dev(dev));
       return;
    }
-   Dmsg0(0, "Forward spaced one file.\n");
+   Pmsg0(0, "Forward spaced one file.\n");
 }
 
 static void fsrcmd()
 {
    int stat;
    if (!dev) {
-      Dmsg0(0, "No device: Use device command.\n");
+      Pmsg0(0, "No device: Use device command.\n");
       return;
    }
    if ((stat=fsr_dev(dev, 1)) < 0) {
-      Dmsg2(0, "Bad status from fsr %d. ERR=%s\n", stat, strerror_dev(dev));
+      Pmsg2(0, "Bad status from fsr %d. ERR=%s\n", stat, strerror_dev(dev));
       return;
    }
-   Dmsg0(0, "Forward spaced one record.\n");
+   Pmsg0(0, "Forward spaced one record.\n");
 }
 
 static void rdcmd()
@@ -738,14 +738,14 @@ static void rdcmd()
    int stat;
 
    if (!dev) {
-      Dmsg0(0, "No device: Use device command.\n");
+      Pmsg0(0, "No device: Use device command.\n");
       return;
    }
    if (!read_dev(dev, buf, 512*126)) {
-      Dmsg1(0, "Bad status from read. ERR=%s\n", strerror_dev(dev));
+      Pmsg1(0, "Bad status from read. ERR=%s\n", strerror_dev(dev));
       return;
    }
-   Dmsg1(10, "Read %d bytes\n", stat);
+   Pmsg1(10, "Read %d bytes\n", stat);
 #else
    printf("Rdcmd no longer implemented.\n");
 #endif
@@ -759,7 +759,7 @@ static void wrcmd()
    int i;
 
    if (!dev) {
-      Dmsg0(0, "No device: Use device command.\n");
+      Pmsg0(0, "No device: Use device command.\n");
       return;
    }
    sm_check(__FILE__, __LINE__, False);
@@ -772,14 +772,14 @@ static void wrcmd()
    rec->data_len = i;
    sm_check(__FILE__, __LINE__, False);
    if (!write_record_to_block(block, rec)) {
-      Dmsg0(0, "Error writing record to block.\n"); 
+      Pmsg0(0, "Error writing record to block.\n"); 
       return;
    }
    if (!write_block_to_dev(dev, block)) {
-      Dmsg0(0, "Error writing block to device.\n"); 
+      Pmsg0(0, "Error writing block to device.\n"); 
       return;
    } else {
-      Dmsg1(0, "Wrote one record of %d bytes.\n",
+      Pmsg1(0, "Wrote one record of %d bytes.\n",
 	 ((i+TAPE_BSIZE-1)/TAPE_BSIZE) * TAPE_BSIZE);
    }
 
@@ -787,7 +787,7 @@ static void wrcmd()
    free_record(rec);
    free_block(block);
    sm_check(__FILE__, __LINE__, False);
-   Dmsg0(0, "Wrote block to device.\n");
+   Pmsg0(0, "Wrote block to device.\n");
 }
 
 
@@ -803,13 +803,13 @@ static void scancmd()
    uint64_t bytes;
 
    if (!dev) {
-      Dmsg0(0, "No device: Use device command.\n");
+      Pmsg0(0, "No device: Use device command.\n");
       return;
    }
    blocks = block_size = tot_blocks = 0;
    bytes = 0;
    if (dev->state & ST_EOT) {
-      Dmsg0(0, "End of tape\n");
+      Pmsg0(0, "End of tape\n");
       return; 
    }
    update_pos_dev(dev);
@@ -819,7 +819,7 @@ static void scancmd()
 	 clrerror_dev(dev, -1);
          Mmsg2(&dev->errmsg, "read error on %s. ERR=%s.\n",
 	    dev->dev_name, strerror(dev->dev_errno));
-         Dmsg2(0, "Bad status from read %d. ERR=%s\n", stat, strerror_dev(dev));
+         Pmsg2(0, "Bad status from read %d. ERR=%s\n", stat, strerror_dev(dev));
 	 if (blocks > 0)
             printf("%d block%s of %d bytes in file %d\n",        
                     blocks, blocks>1?"s":"", block_size, dev->file);
@@ -869,13 +869,13 @@ static void statcmd()
    uint32_t status;
 
    if (!dev) {
-      Dmsg0(0, "No device: Use device command.\n");
+      Pmsg0(0, "No device: Use device command.\n");
       return;
    }
    debug = debug_level;
    debug_level = 30;
    if (!status_dev(dev, &status)) {
-      Dmsg2(0, "Bad status from status %d. ERR=%s\n", stat, strerror_dev(dev));
+      Pmsg2(0, "Bad status from status %d. ERR=%s\n", stat, strerror_dev(dev));
    }
 #ifdef xxxx
    dump_volume_label(dev);
@@ -897,68 +897,68 @@ static void appendcmd()
    DEV_BLOCK *block;
 
    if (!dev) {
-      Dmsg0(0, "No device: Use device command.\n");
+      Pmsg0(0, "No device: Use device command.\n");
       return;
    }
 
    block = new_block(dev);
 
    if (!ready_device_for_append(jcr, dev, block, VolName)) {
-      Dmsg0(0, "Cannot append, not a Bacula tape.\n");
+      Pmsg0(0, "Cannot append, not a Bacula tape.\n");
       return;
    }
 
    file = dev_file(dev);
-   Dmsg1(0, "Begin write test data in file %d\n", file);
+   Pmsg1(0, "Begin write test data in file %d\n", file);
 
    /* Write our test data */
    for (i=0; i<100; i++) {
       j = 10000 + i;
       memset(buf, i, j);
       if (!write_dev(dev, buf, j)) {
-         Dmsg1(0, "Bad status from write. ERR=%s\n", strerror_dev(dev));
+         Pmsg1(0, "Bad status from write. ERR=%s\n", strerror_dev(dev));
 	 return;
       }
-     Dmsg2(10, "Wrote %d bytes of %d\n", j, i);
+     Pmsg2(10, "Wrote %d bytes of %d\n", j, i);
    }
 
    if (flush_dev(dev) != 0) {		       /* ensure written to tape */
-      Dmsg1(0, "Flush error: %s\n", strerror(errno));
+      Pmsg1(0, "Flush error: %s\n", strerror(errno));
    }
    if (weof_dev(dev, 1) != 0) { 
-      Dmsg1(0, "EOF error: %s\n", strerror(errno));
+      Pmsg1(0, "EOF error: %s\n", strerror(errno));
    }
 
-   Dmsg0(0, "Rewind and reread label\n");
+   Pmsg0(0, "Rewind and reread label\n");
    if (read_dev_volume_label(dev, VolName) != VOL_OK) {
       return;
    }
 
    if (file != 0) { 
-      Dmsg1(0, "FSF %d files\n", file);
+      Pmsg1(0, "FSF %d files\n", file);
       fsf_dev(dev, file);
    }
       
    file = dev_file(dev);
-   Dmsg1(0, "Begin read/test from file %d\n", file);
+   Pmsg1(0, "Begin read/test from file %d\n", file);
    /* Now read our test data and make sure it is what we wrote */
    for (i=0; i<100; i++) {
       j = 10000 + i;
       if (!read_dev(dev, buf, j)) {
-         Dmsg1(0, "Bad status from read. ERR=%s\n", strerror_dev(dev));
+         Pmsg1(0, "Bad status from read. ERR=%s\n", strerror_dev(dev));
 	 return;
       }
       for (k=0; k<j; k++) {
 	 if (buf[k] != i) {
-            Dmsg5(0, "Data read expected %d got %d at byte %d, block %d size %d\n", 
+            Pmsg5(0, "Data read expected %d got %d at byte %d, block %d size %d\n", 
 	     i, buf[k], k, i, j);
 	    return;
 	 }
       }     
-      Dmsg3(10, "Successful read block %d of %d bytes of %d\n", i, j, i);
+      Pmsg3(10, "Successful read block %d of %d bytes of %d\n", i, j, i);
    }
 
-   Dmsg0(0, "Reread test data successfully.\n");
+   Pmsg0(0, "Reread test data successfully.\n");
 #else 
    printf("append command no longer implemented.\n");
 #endif
@@ -1011,7 +1011,7 @@ do_tape_cmds()
 	    break;
 	 }
       if (!found)
-         Dmsg1(0, "%s is an illegal command\n", cmd);
+         Pmsg1(0, "%s is an illegal command\n", cmd);
       if (quit)
 	 break;
    }

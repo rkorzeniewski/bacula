@@ -117,6 +117,9 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, char *fname)
             case 'h':                  /* no recursion */
 	       inc->options |= OPT_no_recursion;
 	       break;
+            case 'f':
+	       inc->options |= OPT_multifs;
+	       break;
             case 'V':                  /* verify options */
 	       /* Copy Verify Options */
                for (j=0; *p && *p != ':'; p++) {
@@ -215,6 +218,11 @@ struct s_included_file *get_next_included_file(FF_PKT *ff, struct s_included_fil
 	 ff->no_recursion = 1;
       } else {
 	 ff->no_recursion = 0;
+      }
+      if (inc->options & OPT_multifs) {
+	 ff->one_file_system = 0;
+      } else {
+	 ff->one_file_system = 1;
       }
    }
    return inc;

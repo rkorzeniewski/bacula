@@ -41,6 +41,7 @@ static int match_job_level(BSR_JOBLEVEL *job_level, SESSION_LABEL *sessrec);
 static int match_jobid(BSR_JOBID *jobid, SESSION_LABEL *sessrec);
 static int match_findex(BSR_FINDEX *findex, DEV_RECORD *rec);
 static int match_volfile(BSR_VOLFILE *volfile, DEV_RECORD *rec);
+static int match_stream(BSR_STREAM *stream, DEV_RECORD *rec);
 static int match_one_bsr(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, SESSION_LABEL *sessrec);
 
 /*********************************************************************
@@ -89,6 +90,9 @@ static int match_one_bsr(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, SESSIO
       return 0;
    }
    if (!match_job_level(bsr->JobLevel, sessrec)) {
+      return 0;
+   }
+   if (!match_stream(bsr->stream, rec)) {
       return 0;
    }
    return 1;
@@ -183,6 +187,19 @@ static int match_volfile(BSR_VOLFILE *volfile, DEV_RECORD *rec)
    return 0;
 }
 
+static int match_stream(BSR_STREAM *stream, DEV_RECORD *rec)
+{
+   if (!stream) {
+      return 1; 		      /* no specification matches all */
+   }
+   if (stream->stream == rec->Stream) {
+      return 1;
+   }
+   if (stream->next) {
+      return match_stream(stream->next, rec);
+   }
+   return 0;
+}
 
 static int match_findex(BSR_FINDEX *findex, DEV_RECORD *rec)
 {

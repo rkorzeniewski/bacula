@@ -34,7 +34,7 @@
 
 /* Forward referenced functions */
 int prune_files(UAContext *ua, CLIENT *client);
-int prune_jobs(UAContext *ua, CLIENT *client);
+int prune_jobs(UAContext *ua, CLIENT *client, int JobType);
 int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr);
 static int mark_media_purged(UAContext *ua, MEDIA_DBR *mr);
 
@@ -72,7 +72,8 @@ static char *create_deltabs[] = {
 
 
 /*
- * Fill candidates table with all Files subject to being deleted
+ * Fill candidates table with all Files subject to being deleted.
+ *  This is used for pruning Jobs (first the files, then the Jobs).
  */
 static char *insert_delcand = 
    "INSERT INTO DelCandidates "
@@ -83,16 +84,43 @@ static char *insert_delcand =
 /*
  * Select files from the DelCandidates table that have a
  * more recent backup -- i.e. are not the only backup.
- * This is the list of files to delete.
+ * This is the list of files to delete for a Backup Job.
  */
-static char *select_del =
+static char *select_backup_del =
    "SELECT DelCandidates.JobId "
    "FROM Job,DelCandidates "
    "WHERE Job.JobTDate >= %s "
    "AND Job.ClientId=%d "
+   "AND Job.JobType='B' "
    "AND Job.Level='F' "
    "AND Job.JobStatus='T' "
    "AND Job.FileSetId=DelCandidates.FileSetId";
+
+/*
+ * Select files from the DelCandidates table that have a
+ * more recent InitCatalog -- i.e. are not the only InitCatalog
+ * This is the list of files to delete for a Verify Job.
+ */
+static char *select_verify_del =
+   "SELECT DelCandidates.JobId "
+   "FROM Job,DelCandidates "
+   "WHERE Job.JobTDate >= %s "
+   "AND Job.ClientId=%d "
+   "AND Job.JobType='V' "
+   "AND Job.Level='V' "
+   "AND Job.JobStatus='T' "
+   "AND Job.FileSetId=DelCandidates.FileSetId";
+
+/*
+ * Select files from the DelCandidates table.
+ * This is the list of files to delete for a Restore Job.
+ */
+static char *select_restore_del =
+   "SELECT DelCandidates.JobId "
+   "FROM Job,DelCandidates "
+   "WHERE Job.JobTDate >= %s "
+   "AND Job.ClientId=%d "   
+   "AND Job.JobType='R'";
 
 /* In memory list of JobIds */
 struct s_file_del_ctx {
@@ -219,7 +247,8 @@ int prunecmd(UAContext *ua, char *cmd)
       if (!client || !confirm_retention(ua, &client->JobRetention, "Job")) {
 	 return 0;
       }
-      prune_jobs(ua, client);
+      /* ****FIXME**** allow user to select JobType */
+      prune_jobs(ua, client, JT_BACKUP);
       return 1;
    case 2:
       if (!select_pool_and_media_dbr(ua, &pr, &mr)) {
@@ -246,7 +275,8 @@ int prunecmd(UAContext *ua, char *cmd)
       if (!client || !confirm_retention(ua, &client->JobRetention, "Job")) {
 	 return 0;
       }
-      prune_jobs(ua, client);
+      /* ****FIXME**** allow user to select JobType */
+      prune_jobs(ua, client, JT_BACKUP);
       break;
    case 2:
       if (!select_pool_and_media_dbr(ua, &pr, &mr)) {
@@ -293,10 +323,9 @@ int prune_files(UAContext *ua, CLIENT *client)
    period = client->FileRetention;
    now = (btime_t)time(NULL);
        
+   /* Select Jobs -- for counting */
    Mmsg(&query, select_job, edit_uint64(now - period, ed1), cr.ClientId);
-
    Dmsg1(050, "select sql=%s\n", query);
- 
    if (!db_sql_query(ua->db, query, file_count_handler, (void *)&del)) {
       if (ua->verbose) {
          bsendmsg(ua, "%s", db_strerror(ua->db));
@@ -322,6 +351,7 @@ int prune_files(UAContext *ua, CLIENT *client)
 
    del.JobId = (JobId_t *)malloc(sizeof(JobId_t) * del.max_ids);
 
+   /* Now process same set but making delete list */
    db_sql_query(ua->db, query, file_delete_handler, (void *)&del);
 
    for (i=0; i < del.num_ids; i++) {
@@ -389,8 +419,12 @@ static int create_temp_tables(UAContext *ua)
  * In other words, we never delete the only Job record that
  * contains a current backup of a FileSet. This prevents the
  * Volume from being recycled and destroying a current backup.
+ *
+ * For Verify Jobs, we do not delete the last InitCatalog.
+ *
+ * For Restore Jobs there are no restrictions.
  */
-int prune_jobs(UAContext *ua, CLIENT *client)
+int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
 {
    struct s_job_del_ctx del;
    struct s_count_ctx cnt;
@@ -426,7 +460,6 @@ int prune_jobs(UAContext *ua, CLIENT *client)
     */
    edit_uint64(now - period, ed1);
    Mmsg(&query, insert_delcand, ed1, cr.ClientId);
-
    if (!db_sql_query(ua->db, query, NULL, (void *)NULL)) {
       if (ua->verbose) {
          bsendmsg(ua, "%s", db_strerror(ua->db));
@@ -435,10 +468,9 @@ int prune_jobs(UAContext *ua, CLIENT *client)
       goto bail_out;
    }
 
+   /* Count Files to be deleted */
    strcpy(query, "SELECT count(*) FROM DelCandidates");
-   
    Dmsg1(100, "select sql=%s\n", query);
- 
    if (!db_sql_query(ua->db, query, count_handler, (void *)&cnt)) {
       if (ua->verbose) {
          bsendmsg(ua, "%s", db_strerror(ua->db));
@@ -463,7 +495,18 @@ int prune_jobs(UAContext *ua, CLIENT *client)
    del.JobId = (JobId_t *)malloc(sizeof(JobId_t) * del.max_ids);
    del.PurgedFiles = (char *)malloc(del.max_ids);
 
-   Mmsg(&query, select_del, ed1, cr.ClientId);
+   switch (JobType) {
+   case JT_ADMIN:
+   case JT_BACKUP:
+      Mmsg(&query, select_backup_del, ed1, cr.ClientId);
+      break;
+   case JT_RESTORE:
+      Mmsg(&query, select_restore_del, ed1, cr.ClientId);
+      break;
+   case JT_VERIFY:
+      Mmsg(&query, select_verify_del, ed1, cr.ClientId);
+      break;
+   }
    db_sql_query(ua->db, query, job_delete_handler, (void *)&del);
 
    /* 

@@ -105,11 +105,10 @@ int do_append_data(JCR *jcr)
       char info[100];
 
       /* Read Stream header from the File daemon.
-       *  The stream header consists of the
-       *
-       *   file_index (sequential Bacula file index)
-       *   stream     (arbitrary Bacula number to distinguish parts of data)
-       *   info       (Info for Storage daemon -- compressed, encryped, ...)
+       *  The stream header consists of the following:
+       *    file_index (sequential Bacula file index)
+       *    stream     (arbitrary Bacula number to distinguish parts of data)
+       *    info       (Info for Storage daemon -- compressed, encryped, ...)
        */
       if ((n=bget_msg(ds)) < 0) { 
          Jmsg1(jcr, M_FATAL, 0, _("Error reading data header from FD. ERR=%s\n"),
@@ -117,7 +116,7 @@ int do_append_data(JCR *jcr)
 	 ok = FALSE;
 	 break;
       }
-      if (n == 0) {		      /* End of conversation */
+      if (n == 0 || job_cancelled(jcr)) {
 	 break; 		      /* all done */
       }
       sm_check(__FILE__, __LINE__, False);
@@ -148,7 +147,6 @@ int do_append_data(JCR *jcr)
        */
       sm_check(__FILE__, __LINE__, False);
       while ((n=bget_msg(ds)) > 0 && !job_cancelled(jcr)) {
-	 char *dsmsg = ds->msg;
 
 	 sm_check(__FILE__, __LINE__, False);
 	 rec.VolSessionId = jcr->VolSessionId;
@@ -189,8 +187,6 @@ int do_append_data(JCR *jcr)
 	       break;
 	    }
 	 }
-	 ASSERT(dsmsg == ds->msg);
-	 ASSERT(dsmsg == rec.data);
 	 sm_check(__FILE__, __LINE__, False);
       }
       if (n < 0) {
@@ -216,13 +212,13 @@ int do_append_data(JCR *jcr)
    }
    /* Write out final block of this session */
    if (!write_block_to_device(jcr, dev, block)) {
-      Dmsg0(0, "Set ok=FALSE after write_block_to_device.\n");
+      Pmsg0(0, "Set ok=FALSE after write_block_to_device.\n");
       ok = FALSE;
    }
 
    /* Release the device */
    if (!release_device(jcr, dev, block)) {
-      Dmsg0(0, "Error in release_device\n");
+      Pmsg0(0, "Error in release_device\n");
       ok = FALSE;
    }
 

@@ -91,7 +91,7 @@ static struct cmdstruct commands[] = {
  { N_("sqlquery"),   sqlquerycmd,  _("use SQL to query catalog")}, 
  { N_("status"),     statuscmd,    _("status [storage | client]=<name>")},
  { N_("unmount"),    unmountcmd,   _("unmount <storage-name>")},
- { N_("update"),     updatecmd,    _("update DB Pool from resource")},
+ { N_("update"),     updatecmd,    _("update Volume or Pool")},
  { N_("use"),        usecmd,       _("use catalog xxx")},
  { N_("version"),    versioncmd,   _("print Director version")},
  { N_("quit"),       quitcmd,      _("quit")},
@@ -500,6 +500,7 @@ Use update to change it.\n"), pool->hdr.name);
    default:
      break;
    }
+   bsendmsg(ua, _("Pool %s created.\n"), pool->hdr.name);
    return 1;
 }
 
@@ -540,8 +541,8 @@ static int updatecmd(UAContext *ua, char *cmd)
    }
     
    start_prompt(ua, _("Update choice:\n"));
-   add_prompt(ua, _("pool"));
-   add_prompt(ua, _("volume"));
+   add_prompt(ua, _("Pool from resource"));
+   add_prompt(ua, _("Volume parameters"));
    switch (do_prompt(ua, _("Choose catalog item to update"), NULL)) {
       case 0:
 	 update_pool(ua);
@@ -600,12 +601,12 @@ static int update_volume(UAContext *ua)
    for (int done=0; !done; ) {
       start_prompt(ua, _("Parameters to modify:\n"));
       add_prompt(ua, _("Volume Status"));
-      add_prompt(ua, _("Volume Retention"));
-      add_prompt(ua, _("Recycle"));
+      add_prompt(ua, _("Volume Retention Period"));
+      add_prompt(ua, _("Recycle Flag"));
       add_prompt(ua, _("Done"));
       switch (do_prompt(ua, _("Select paramter to modify"), NULL)) {
       case 0:			      /* Volume Status */
-	 /* Modify Volume */
+	 /* Modify Volume Status */
          bsendmsg(ua, _("Current value is: %s\n"), mr.VolStatus);
          start_prompt(ua, _("Possible Values are:\n"));
          add_prompt(ua, "Append");
@@ -714,8 +715,10 @@ static int update_pool(UAContext *ua)
    }
    id = db_update_pool_record(ua->db, &pr);
    if (id <= 0) {
-      bsendmsg(ua, "Error: db_update_pool_record returned %d\n", id);
+      bsendmsg(ua, _("db_update_pool_record returned %d. ERR=%s\n"),
+	 id, db_strerror(ua->db));
    }
+   bsendmsg(ua, _("Pool DB record updated from resource.\n"));
    return 1;
 }
 

@@ -172,7 +172,6 @@ int start_storage_daemon_message_thread(JCR *jcr)
    P(jcr->mutex);
    jcr->use_count++;		      /* mark in use by msg thread */
    V(jcr->mutex);
-   set_thread_concurrency(4);
    if ((status=pthread_create(&thid, NULL, msg_thread, (void *)jcr)) != 0) {
       Emsg1(M_ABORT, 0, _("Cannot create message thread: %s\n"), strerror(status));
    }	     
@@ -236,4 +235,23 @@ static void *msg_thread(void *arg)
    }
    pthread_cleanup_pop(1);
    return NULL;
+}
+
+void wait_for_storage_daemon_termination(JCR *jcr)
+{
+   /* Now wait for Storage daemon to terminate our message thread */
+   P(jcr->mutex);
+   jcr->JobStatus = JS_WaitSD;
+   while (!jcr->msg_thread_done && !job_cancelled(jcr)) {
+      struct timeval tv;
+      struct timezone tz;
+      struct timespec timeout;
+
+      gettimeofday(&tv, &tz);
+      timeout.tv_nsec = 0;
+      timeout.tv_sec = tv.tv_sec + 10; /* wait 10 seconds */
+      Dmsg0(300, "I'm waiting for message thread termination.\n");
+      pthread_cond_timedwait(&jcr->term_wait, &jcr->mutex, &timeout);
+   }
+   V(jcr->mutex);
 }

@@ -48,12 +48,12 @@ static char Update_media[] = "CatReq Job=%127s UpdateMedia VolName=%s\
  VolJobs=%d VolFiles=%d VolBlocks=%d VolBytes=%" lld " VolMounts=%d\
  VolErrors=%d VolWrites=%d VolMaxBytes=%" lld " EndTime=%d VolStatus=%10s\
  FirstIndex=%d LastIndex=%d StartFile=%d EndFile=%d \
- StartBlock=%d EndBlock=%d relabel=%d\n";
+ StartBlock=%d EndBlock=%d relabel=%d Slot=%d\n";
 
 /* Responses  sent to Storage daemon */
 static char OK_media[] = "1000 OK VolName=%s VolJobs=%d VolFiles=%d\
  VolBlocks=%d VolBytes=%" lld " VolMounts=%d VolErrors=%d VolWrites=%d\
- VolMaxBytes=%" lld " VolCapacityBytes=%" lld " VolStatus=%s\n";
+ VolMaxBytes=%" lld " VolCapacityBytes=%" lld " VolStatus=%s Slot=%d\n";
 
 static char OK_update[] = "1000 OK UpdateMedia\n";
 
@@ -109,7 +109,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
 	 bnet_fsend(bs, OK_media, mr.VolumeName, mr.VolJobs,
 	    mr.VolFiles, mr.VolBlocks, mr.VolBytes, mr.VolMounts, mr.VolErrors,
 	    mr.VolWrites, mr.VolMaxBytes, mr.VolCapacityBytes,
-	    mr.VolStatus);
+	    mr.VolStatus, mr.Slot);
       } else {
          bnet_fsend(bs, "1999 No Media\n");
       }
@@ -163,7 +163,7 @@ MediaType=%s\n", mr.PoolId, jcr->PoolId, mr.VolStatus, mr.MediaType);
       &mr.VolFiles, &mr.VolBlocks, &mr.VolBytes, &mr.VolMounts, &mr.VolErrors,
       &mr.VolWrites, &mr.VolMaxBytes, &mr.LastWritten, &mr.VolStatus, 
       &jm.FirstIndex, &jm.LastIndex, &jm.StartFile, &jm.EndFile,
-      &jm.StartBlock, &jm.EndBlock, &relabel) == 19) {
+      &jm.StartBlock, &jm.EndBlock, &relabel, &mr.Slot) == 20) {
       /*     
        * Update Media Record
        */

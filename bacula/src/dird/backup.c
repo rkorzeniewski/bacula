@@ -74,9 +74,10 @@ int do_backup(JCR *jcr)
    since[0] = 0;
 
    if (!get_or_create_client_record(jcr)) {
-      backup_cleanup(jcr, JS_ErrorTerminated, since);
+      Jmsg(jcr, M_ERROR, 0, _("Could not get/create Client record. ERR=%s\n"), 
+	 db_strerror(jcr->db));
+      goto bail_out;
    }
-
 
    /*
     * Get or Create FileSet record
@@ -93,21 +94,19 @@ int do_backup(JCR *jcr)
       Jmsg(jcr, M_WARNING, 0, _("FileSet MD5 signature not found.\n"));
    }
    if (!db_create_fileset_record(jcr->db, &fsr)) {
-      Jmsg(jcr, M_ERROR, 0, _("Could not create FileSet record. %s"), 
+      Jmsg(jcr, M_ERROR, 0, _("Could not create FileSet record. ERR=%s\n"), 
 	 db_strerror(jcr->db));
-      backup_cleanup(jcr, JS_ErrorTerminated, since);
-      return 0;
+      goto bail_out;
    }   
    jcr->jr.FileSetId = fsr.FileSetId;
    Dmsg2(9, "Created FileSet %s record %d\n", jcr->fileset->hdr.name, 
       jcr->jr.FileSetId);
 
-
    /* Look up the last
     * FULL backup job to get the time/date for a 
     * differential or incremental save.
     */
-   jcr->stime = (char *) get_pool_memory(PM_MESSAGE);
+   jcr->stime = get_pool_memory(PM_MESSAGE);
    jcr->stime[0] = 0;
    since[0] = 0;
    switch (jcr->JobLevel) {
@@ -117,8 +116,7 @@ int do_backup(JCR *jcr)
 	 jcr->jr.JobId = 0;
 	 if (!db_find_job_start_time(jcr->db, &jcr->jr, jcr->stime)) {
             Jmsg(jcr, M_INFO, 0, _("Last FULL backup time not found. Doing FULL backup.\n"));
-	    jcr->JobLevel = L_FULL;
-	    jcr->jr.Level = L_FULL;
+	    jcr->JobLevel = jcr->jr.Level = L_FULL;
 	 } else {
             strcpy(since, ", since=");
 	    strcat(since, jcr->stime);
@@ -131,8 +129,7 @@ int do_backup(JCR *jcr)
    jcr->jr.StartTime = jcr->start_time;
    if (!db_update_job_start_record(jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
-      backup_cleanup(jcr, JS_ErrorTerminated, since);
-      return 0;
+      goto bail_out;
    }
 
    jcr->fname = (char *) get_pool_memory(PM_FNAME);
@@ -151,35 +148,13 @@ int do_backup(JCR *jcr)
       if (create_pool(jcr->db, jcr->pool) < 0) {
          Jmsg(jcr, M_FATAL, 0, _("Pool %s not in database. %s"), pr.Name, 
 	    db_strerror(jcr->db));
-	 backup_cleanup(jcr, JS_ErrorTerminated, since);
-	 return 0;
+	 goto bail_out;
       } else {
          Jmsg(jcr, M_INFO, 0, _("Pool %s created in database.\n"), pr.Name);
       }
    }
    jcr->PoolId = pr.PoolId;		  /****FIXME**** this can go away */
    jcr->jr.PoolId = pr.PoolId;
-
-#ifdef needed
-   /* NOTE, THIS IS NOW DONE BY THE STORAGE DAEMON
-    *
-    * Find at least one Volume associated with this Pool
-    *  It must be marked Append, and be of the correct Media Type
-    *  for the storage type.
-    */
-   memset(&mr, 0, sizeof(mr));
-   mr.PoolId = pr.PoolId;
-   strcpy(mr.VolStatus, "Append");
-   strcpy(mr.MediaType, jcr->store->media_type);
-   if (!db_find_next_volume(jcr->db, 1, &mr)) {
-      if (!newVolume(jcr)) {
-         Jmsg(jcr, M_FATAL, 0, _("No writable %s media in Pool %s.\n\
-      Please use the Console program to add available Volumes.\n"), mr.MediaType, pr.Name);
-	 backup_cleanup(jcr, JS_ErrorTerminated, since);
-	 return 0;
-      }
-   }
-#endif
 
    /*
     * Open a message channel connection with the Storage
@@ -193,42 +168,36 @@ int do_backup(JCR *jcr)
     * Start conversation with Storage daemon  
     */
    if (!connect_to_storage_daemon(jcr, 10, SDConnectTimeout, 1)) {
-      backup_cleanup(jcr, JS_ErrorTerminated, since);
-      return 0;
+      goto bail_out;
    }
    /*
     * Now start a job with the Storage daemon
     */
    if (!start_storage_daemon_job(jcr)) {
-      backup_cleanup(jcr, JS_ErrorTerminated, since);
-      return 0;
+      goto bail_out;
    }
    /*
     * Now start a Storage daemon message thread
     */
    if (!start_storage_daemon_message_thread(jcr)) {
-      backup_cleanup(jcr, JS_ErrorTerminated, since);
-      return 0;
+      goto bail_out;
    }
-
    Dmsg0(50, "Storage daemon connection OK\n");
 
+   jcr->JobStatus = JS_Blocked;
    if (!connect_to_file_daemon(jcr, 10, FDConnectTimeout, 1)) {
-      backup_cleanup(jcr, JS_ErrorTerminated, since);
-      return 0;
+      goto bail_out;
    }
 
    jcr->JobStatus = JS_Running;
    fd = jcr->file_bsock;
 
    if (!send_include_list(jcr)) {
-      backup_cleanup(jcr, JS_ErrorTerminated, since);
-      return 0;
+      goto bail_out;
    }
 
    if (!send_exclude_list(jcr)) {
-      backup_cleanup(jcr, JS_ErrorTerminated, since);
-      return 0;
+      goto bail_out;
    }
 
    /* 
@@ -239,8 +208,7 @@ int do_backup(JCR *jcr)
    }
    bnet_fsend(fd, storaddr, jcr->store->address, jcr->store->SDDport);
    if (!response(fd, OKstore, "Storage")) {
-      backup_cleanup(jcr, JS_ErrorTerminated, since);
-      return 0;
+      goto bail_out;
    }
 
    /* 
@@ -258,27 +226,34 @@ int do_backup(JCR *jcr)
 	 break;
       case L_SINCE:
       default:
-         Emsg1(M_FATAL, 0, _("Unimplemented backup level %d\n"), jcr->JobLevel);
-	 backup_cleanup(jcr, JS_ErrorTerminated, since);
-	 return 0;
+         Jmsg2(jcr, M_FATAL, 0, _("Unimplemented backup level %d %c\n"), 
+	    jcr->JobLevel, jcr->JobLevel);
+	 goto bail_out;
    }
    Dmsg1(20, ">filed: %s", fd->msg);
    if (!response(fd, OKlevel, "Level")) {
-      backup_cleanup(jcr, JS_ErrorTerminated, since);
-      return 0;
+      goto bail_out;
    }
 
    /* Send backup command */
    bnet_fsend(fd, backupcmd);
    if (!response(fd, OKbackup, "backup")) {
-      backup_cleanup(jcr, JS_ErrorTerminated, since);
-      return 0;
+      goto bail_out;
    }
 
    /* Pickup Job termination data */	    
    stat = wait_for_job_termination(jcr);
    backup_cleanup(jcr, stat, since);
    return 1;
+
+bail_out:
+   if (jcr->stime) {
+      free_pool_memory(jcr->stime);
+      jcr->stime = NULL;
+   }
+   backup_cleanup(jcr, JS_ErrorTerminated, since);
+   return 0;
+
 }
 
 /*
@@ -302,21 +277,8 @@ static int wait_for_job_termination(JCR *jcr)
 	  bnet_strerror(fd));
    }
 
-   /* Now wait for Storage daemon to terminate our message thread */
-   P(jcr->mutex);
-   jcr->JobStatus = JS_WaitSD;
-   while (!jcr->msg_thread_done && !job_cancelled(jcr)) {
-      struct timeval tv;
-      struct timezone tz;
-      struct timespec timeout;
+   wait_for_storage_daemon_termination(jcr);
 
-      gettimeofday(&tv, &tz);
-      timeout.tv_nsec = 0;
-      timeout.tv_sec = tv.tv_sec + 10; /* wait 10 seconds */
-      Dmsg0(300, "I'm waiting for message thread termination.\n");
-      pthread_cond_timedwait(&jcr->term_wait, &jcr->mutex, &timeout);
-   }
-   V(jcr->mutex);
    if (n < 0) { 				    
       return JS_ErrorTerminated;
    }
@@ -352,7 +314,6 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
 	 db_strerror(jcr->db));
    }
 
-      
    msg_type = M_INFO;		      /* by default INFO message */
    switch (TermCode) {
       case JS_Terminated:

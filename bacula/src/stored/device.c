@@ -307,7 +307,7 @@ static int ready_dev_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
        */
       if (!dir_find_next_appendable_volume(jcr)) {
 	 if (!dir_ask_sysop_to_mount_next_volume(jcr, dev)) {
-            Jmsg1(jcr, M_ERROR, 0, _("Unable to mount desired Volume for device %s.\n"),
+            Jmsg1(jcr, M_FATAL, 0, _("Unable to mount desired Volume for device %s.\n"),
 	       dev_name(dev));
 	    return 0;		   /* error return */
 	 }
@@ -369,7 +369,7 @@ mount_next_vol:
             Jmsg(jcr, M_WARNING, 0, "%s", jcr->errmsg);                         
 	    rewind_dev(dev);
 	    if (!dir_ask_sysop_to_mount_next_volume(jcr, dev)) {
-               Jmsg1(jcr, M_ERROR, 0, _("Unable to mount desired Volume for device %s.\n"),
+               Jmsg1(jcr, M_FATAL, 0, _("Unable to mount desired Volume for device %s.\n"),
 		  dev_name(dev));
 	       return 0;	      /* error return */
 	    }

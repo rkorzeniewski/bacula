@@ -219,7 +219,6 @@ try_again:
       case JT_VERIFY:
 	 if (level_name) {
 	    /* Look up level name and pull code */
-	    lcase(level_name);
 	    found = 0;
 	    for (i=0; joblevels[i].level_name; i++) {
 	       if (strcasecmp(level_name, _(joblevels[i].level_name)) == 0) {
@@ -283,21 +282,24 @@ JobId:      %s\n"),
       default:
          bsendmsg(ua, _("Unknown Job Type=%d\n"), jcr->JobType);
 	 free_jcr(jcr);
-	 return 1;
+	 return 0;
    }
    if (!get_cmd(ua, _("OK to run? (yes/mod/no): "))) {
       free_jcr(jcr);
-      return 1;
+      return 0; 		      /* do not run */
    }
+   /*
+    * At user request modify parameters of job to be run.
+    */
    if (strcasecmp(ua->cmd, _("mod")) == 0) {
       FILE *fd;
 
       start_prompt(ua, _("Parameters to modify:\n"));
-      add_prompt(ua, _("Job"));              /* 0 */
-      add_prompt(ua, _("Level"));            /* 1 */
-      add_prompt(ua, _("FileSet"));          /* 2 */
-      add_prompt(ua, _("Client"));           /* 3 */
-      add_prompt(ua, _("Storage"));          /* 4 */
+      add_prompt(ua, _("Level"));            /* 0 */
+      add_prompt(ua, _("Storage"));          /* 1 */
+      add_prompt(ua, _("Job"));              /* 2 */
+      add_prompt(ua, _("FileSet"));          /* 3 */
+      add_prompt(ua, _("Client"));           /* 4 */
       if (jcr->JobType == JT_RESTORE) {
          add_prompt(ua, _("Bootstrap"));     /* 5 */
          add_prompt(ua, _("Where"));         /* 6 */
@@ -305,15 +307,6 @@ JobId:      %s\n"),
       }
       switch (do_prompt(ua, _("Select parameter to modify"), NULL)) {
       case 0:
-	 /* Job */
-	 job = select_job_resource(ua);
-	 if (job) {
-	    jcr->job = job;
-	    set_jcr_defaults(jcr, job);
-	    goto try_again;
-	 }
-	 break;
-      case 1:
 	 /* Level */
 	 if (jcr->JobType == JT_BACKUP) {
             start_prompt(ua, _("Levels:\n"));
@@ -345,7 +338,7 @@ JobId:      %s\n"),
 	 } else if (jcr->JobType == JT_VERIFY) {
             start_prompt(ua, _("Levels:\n"));
             add_prompt(ua, _("Initialize Catalog"));
-            add_prompt(ua, _("Verify from Catalog"));
+            add_prompt(ua, _("Verify Catalog"));
             add_prompt(ua, _("Verify Volume"));
             add_prompt(ua, _("Verify Volume Data"));
             switch (do_prompt(ua, _("Select level"), NULL)) {
@@ -356,7 +349,7 @@ JobId:      %s\n"),
 	       jcr->JobLevel = L_VERIFY_CATALOG;
 	       break;
 	    case 2:
-	       jcr->JobLevel = L_VERIFY_VOLUME;
+	       jcr->JobLevel = L_VERIFY_VOLUME_TO_CATALOG;
 	       break;
 	    case 3:
 	       jcr->JobLevel = L_VERIFY_DATA;
@@ -367,7 +360,23 @@ JobId:      %s\n"),
 	    goto try_again;
 	 }
 	 goto try_again;
+      case 1:
+	 store = select_storage_resource(ua);
+	 if (store) {
+	    jcr->store = store;
+	    goto try_again;
+	 }
+	 break;
       case 2:
+	 /* Job */
+	 job = select_job_resource(ua);
+	 if (job) {
+	    jcr->job = job;
+	    set_jcr_defaults(jcr, job);
+	    goto try_again;
+	 }
+	 break;
+      case 3:
 	 /* FileSet */
 	 fileset = select_fs_resource(ua);
 	 if (fileset) {
@@ -375,17 +384,10 @@ JobId:      %s\n"),
 	    goto try_again;
 	 }	
 	 break;
-      case 3:
+      case 4:
 	 client = select_client_resource(ua);
 	 if (client) {
 	    jcr->client = client;
-	    goto try_again;
-	 }
-	 break;
-      case 4:
-	 store = select_storage_resource(ua);
-	 if (store) {
-	    jcr->store = store;
 	    goto try_again;
 	 }
 	 break;
@@ -439,12 +441,12 @@ JobId:      %s\n"),
       }
       bsendmsg(ua, _("Job not run.\n"));
       free_jcr(jcr);
-      return 1;
+      return 0; 		      /* error do no run Job */
    }
    if (strcasecmp(ua->cmd, _("yes")) != 0) {
       bsendmsg(ua, _("Job not run.\n"));
       free_jcr(jcr);
-      return 1;
+      return 0; 		      /* do not run */
    }
 
    Dmsg1(200, "Calling run_job job=%x\n", jcr->job);

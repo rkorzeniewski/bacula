@@ -381,8 +381,8 @@ static char *job_level_to_str(int level)
    case L_VERIFY_INIT:
       str = "verify init";
       break;
-   case L_VERIFY_VOLUME:
-      str = "verify volume";
+   case L_VERIFY_VOLUME_TO_CATALOG:
+      str = "verify volume to catalog";
       break;
    case L_VERIFY_DATA:
       str = "verify data";
@@ -793,8 +793,6 @@ d_msg(char *file, int line, int level, char *fmt,...)
        level = -level;
     }
 
-/*  printf("level=%d debug=%d fmt=%s\n", level, debug_level, fmt); */
-
     if (level <= debug_level) {
 #ifdef FULL_LOCATION
        if (details) {
@@ -892,7 +890,6 @@ Jmsg(void *vjcr, int type, int level, char *fmt,...)
     va_list   arg_ptr;
     int i, len;
     JCR *jcr = (JCR *) vjcr;
-    int typesave = type;
     MSGS *msgs;
     char *job;
 
@@ -953,7 +950,6 @@ Jmsg(void *vjcr, int type, int level, char *fmt,...)
     len = bvsnprintf(buf+i, sizeof(rbuf)-i, fmt, arg_ptr);
     va_end(arg_ptr);
 
-    ASSERT(typesave==type);	      /* type trashed, compiler bug???? */
     dispatch_message(jcr, type, level, rbuf);
 
     Dmsg3(500, "i=%d sizeof(rbuf)-i=%d len=%d\n", i, sizeof(rbuf)-i, len);

@@ -234,6 +234,21 @@ static struct res_items pool_items[] = {
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 
+/* 
+ * Counter Resource
+ *   name	      handler	  value 		       code flags default_value
+ */
+static struct res_items counter_items[] = {
+   {"name",            store_name,    ITEM(res_counter.hdr.name),        0, ITEM_REQUIRED, 0},
+   {"description",     store_str,     ITEM(res_counter.hdr.desc),        0, 0,     0},
+   {"minimum",         store_int,     ITEM(res_counter.MinValue),        0, ITEM_DEFAULT, 0},
+   {"maximum",         store_pint,    ITEM(res_counter.MaxValue),        0, ITEM_DEFAULT, INT32_MAX},
+   {"global",          store_yesno,   ITEM(res_counter.Global),          0, ITEM_DEFAULT, 0},
+   {"wrapcounter",     store_strname, ITEM(res_counter.WrapCounter),     0, 0, 0},
+   {NULL, NULL, NULL, 0, 0, 0} 
+};
+
+
 /* Message resource */
 extern struct res_items msgs_items[];
 
@@ -254,6 +269,7 @@ struct s_res resources[] = {
    {"group",         group_items, R_GROUP,     NULL},
    {"pool",          pool_items,  R_POOL,      NULL},
    {"messages",      msgs_items,  R_MSGS,      NULL},
+   {"counter",       counter_items, R_COUNTER, NULL},
    {NULL,	     NULL,	  0,	       NULL}
 };
 
@@ -270,7 +286,7 @@ struct s_jl joblevels[] = {
    {"Since",         L_SINCE,           JT_BACKUP},
    {"Catalog",       L_VERIFY_CATALOG,  JT_VERIFY},
    {"Initcatalog",   L_VERIFY_INIT,     JT_VERIFY},
-   {"Volume",        L_VERIFY_VOLUME,   JT_VERIFY},
+   {"VolumeToCatalog", L_VERIFY_VOLUME_TO_CATALOG,   JT_VERIFY},
    {"Data",          L_VERIFY_DATA,     JT_VERIFY},
    {NULL,	     0}
 };
@@ -324,6 +340,8 @@ static struct s_kw ReplaceOptions[] = {
 #define FS_KW_SIGNATURE    2
 #define FS_KW_ENCRYPTION   3
 #define FS_KW_VERIFY	   4
+#define FS_KW_ONEFS	   5
+#define FS_KW_RECURSE	   6
 
 /* FileSet keywords */
 static struct s_kw FS_option_kw[] = {
@@ -331,6 +349,8 @@ static struct s_kw FS_option_kw[] = {
    {"signature",   FS_KW_SIGNATURE},
    {"encryption",  FS_KW_ENCRYPTION},
    {"verify",      FS_KW_VERIFY},
+   {"onefs",       FS_KW_ONEFS},
+   {"recurse",     FS_KW_RECURSE},
    {NULL,	   0}
 };
 
@@ -355,8 +375,12 @@ static struct s_fs_opt FS_options[] = {
    {"gzip7",    FS_KW_COMPRESSION,  "Z7"},
    {"gzip8",    FS_KW_COMPRESSION,  "Z8"},
    {"gzip9",    FS_KW_COMPRESSION,  "Z9"},
-   {"blowfish", FS_KW_ENCRYPTION,   "B"},   /* ***FIXME*** not implemented */
-   {"3des",     FS_KW_ENCRYPTION,   "3"},   /* ***FIXME*** not implemented */
+   {"blowfish", FS_KW_ENCRYPTION,    "B"},   /* ***FIXME*** not implemented */
+   {"3des",     FS_KW_ENCRYPTION,    "3"},   /* ***FIXME*** not implemented */
+   {"yes",      FS_KW_ONEFS,         "0"},
+   {"no",       FS_KW_ONEFS,         "f"},
+   {"yes",      FS_KW_RECURSE,       "0"},
+   {"no",       FS_KW_RECURSE,       "h"},
    {NULL,	0,		     0}
 };
 

@@ -130,7 +130,6 @@ static void prtmsg(void *sock, char *fmt, ...)
    va_end(arg_ptr);
 }
 
-#ifdef DEBUG
 char *res_to_str(int rcode)
 {
    if (rcode < r_first || rcode > r_last) {
@@ -139,7 +138,6 @@ char *res_to_str(int rcode)
       return resources[rcode-r_first].name;
    }
 }
-#endif /* DEBUG */
 
 
 /* 

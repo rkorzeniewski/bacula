@@ -44,28 +44,11 @@ typedef int (DB_RESULT_HANDLER)(void *, int, char **);
 #define db_lock(mdb)   _db_lock(__FILE__, __LINE__, mdb)
 #define db_unlock(mdb) _db_unlock(__FILE__, __LINE__, mdb)
 
-#ifdef xxxxx_old_way_of_doing_it
-#define db_lock(mdb)   P(mdb->mutex)
-#define db_unlock(mdb) V(mdb->mutex)
-#define db_lock(mdb) \
-   do { int errstat; if ((errstat=rwl_writelock(&(mdb->lock)))) \
-      e_msg(__FILE__, __LINE__, M_ABORT, 0, "rwl_writelock failure. ERR=%s\n",\
-           strerror(errstat)); \
-   } while(0)
-
-#define db_unlock(x) \
-   do { int errstat; if ((errstat=rwl_writeunlock(&(mdb->lock)))) \
-         e_msg(__FILE__, __LINE__, M_ABORT, 0, "rwl_writeunlock failure. ERR=%s\n",\
-           strerror(errstat)); \
-   } while(0)
-#endif
-
- 
 #ifdef __SQL_C
 
 #ifdef HAVE_SQLITE
 
-#define BDB_VERSION 1
+#define BDB_VERSION 2
 
 #include <sqlite.h>
 
@@ -93,7 +76,6 @@ typedef struct s_sql_field {
  */
 typedef struct s_db {
    BQUEUE bq;                         /* queue control */
-/* pthread_mutex_t mutex; */
    brwlock_t lock;                    /* transaction lock */
    struct sqlite *db;
    char **result;
@@ -149,7 +131,7 @@ extern void my_sqlite_free_table(B_DB *mdb);
 
 #ifdef HAVE_MYSQL
 
-#define BDB_VERSION 1
+#define BDB_VERSION 2
 
 #include <mysql.h>
 
@@ -162,7 +144,6 @@ extern void my_sqlite_free_table(B_DB *mdb);
  */
 typedef struct s_db {
    BQUEUE bq;                         /* queue control */
-/* pthread_mutex_t mutex; */
    brwlock_t lock;                    /* transaction lock */
    MYSQL mysql;
    MYSQL *db;
@@ -354,6 +335,7 @@ typedef struct {
    JobId_t  JobId;
    uint32_t FilenameId;
    uint32_t PathId;
+   JobId_t  MarkId;
    char LStat[256];
 /*   int Status; */
    char MD5[50];
@@ -383,9 +365,9 @@ typedef struct {
    char VolumeName[MAX_NAME_LENGTH];  /* Volume name */
    char MediaType[MAX_NAME_LENGTH];   /* Media type */
    uint32_t PoolId;                   /* Pool id */
-   time_t FirstWritten;               /* Time Volume first written */
-   time_t LastWritten;                /* Time Volume last written */
-   time_t LabelDate;                  /* Date/Time Volume labelled */
+   time_t   FirstWritten;             /* Time Volume first written */
+   time_t   LastWritten;              /* Time Volume last written */
+   time_t   LabelDate;                /* Date/Time Volume labelled */
    uint32_t VolJobs;                  /* number of jobs on this medium */
    uint32_t VolFiles;                 /* Number of files */
    uint32_t VolBlocks;                /* Number of blocks */
@@ -397,7 +379,8 @@ typedef struct {
    uint64_t VolMaxBytes;              /* max bytes to write */
    uint64_t VolCapacityBytes;         /* capacity estimate */
    btime_t  VolRetention;             /* Volume retention in seconds */
-   int Recycle;                       /* recycle yes/no */
+   int      Recycle;                  /* recycle yes/no */
+   int32_t  Slot;                     /* slot in changer */
    char VolStatus[20];                /* Volume status */
    /* Extra stuff not in DB */
    faddr_t rec_addr;                  /* found record address */

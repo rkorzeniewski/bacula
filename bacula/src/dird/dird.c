@@ -190,6 +190,9 @@ int main (int argc, char *argv[])
 
    init_console_msg(working_directory);
 
+   set_thread_concurrency(director->MaxConcurrentJobs * 2 +
+      4 /* UA */ + 4 /* sched+watchdog+jobsvr+misc */);
+
    Dmsg0(200, "Start UA server\n");
    start_UA_server(director->DIRport);
 

@@ -30,11 +30,11 @@ extern int authenticate_user_agent(BSOCK *ua);
 
 /* autoprune.c */
 extern int do_autoprune(JCR *jcr);
-int prune_volumes(JCR *jcr);
+extern int prune_volumes(JCR *jcr);
 
 /* autorecycle.c */
-int recycle_a_volume(JCR *jcr, MEDIA_DBR *mr);
-int find_recycled_volume(JCR *jcr, MEDIA_DBR *mr);
+extern int recycle_a_volume(JCR *jcr, MEDIA_DBR *mr);
+extern int find_recycled_volume(JCR *jcr, MEDIA_DBR *mr);
 
 
 /* catreq.c */
@@ -50,7 +50,7 @@ extern int connect_to_file_daemon(JCR *jcr, int retry_interval,
 extern int send_include_list(JCR *jcr);
 extern int send_exclude_list(JCR *jcr);
 extern int get_attributes_and_put_in_catalog(JCR *jcr);
-extern int get_attributes_and_compare_to_catalog(JCR *jcr, int last_full_id);
+extern int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId);
 extern int put_file_into_catalog(JCR *jcr, long file_index, char *fname, 
 			  char *link, char *attr, int stream);
 
@@ -71,6 +71,7 @@ extern int start_storage_daemon_job(JCR *jcr);
 extern int start_storage_daemon_message_thread(JCR *jcr);
 extern int32_t bget_msg(BSOCK *bs, int type);
 extern int response(BSOCK *fd, char *resp, char *cmd);
+extern void wait_for_storage_daemon_termination(JCR *jcr);
 
 /* newvol.c */
 extern int newVolume(JCR *jcr, MEDIA_DBR *mr);

@@ -62,20 +62,21 @@ realclean: clean
 	$(RMF) tags
 	$(RMF) make_mysql_tables grant_mysql_privileges drop_mysql_tables
 	$(RMF) create_mysql_database make_sqlite_tables sqlite
+	$(RMF) create_bdb_database drop_bdb_tables make_dbd_tables
 
 distclean: realclean
 	if test $(srcdir) = .; then $(MAKE) realclean; fi
 	(cd $(srcdir); $(RMF) Makefile)
 
 install:
-	$(INSTALL_SCRIPT) create_mysql_database $(DESTDIR)$(sysconfdir)/create_mysql_database
-	$(INSTALL_SCRIPT) drop_mysql_tables $(DESTDIR)$(sysconfdir)/drop_mysql_tables
-	$(INSTALL_SCRIPT) make_mysql_tables $(DESTDIR)$(sysconfdir)/make_mysql_tables
+	$(INSTALL_SCRIPT) create_@DB_NAME@_database $(DESTDIR)$(sysconfdir)/create_@DB_NAME@_database
+	$(INSTALL_SCRIPT) drop_@DB_NAME@_tables $(DESTDIR)$(sysconfdir)/drop_@DB_NAME@_tables
+	$(INSTALL_SCRIPT) make_@DB_NAME@_tables $(DESTDIR)$(sysconfdir)/make_@DB_NAME@_tables
 
 uninstall:
-	(cd $(DESTDIR)$(sysconfdir); $(RMF) create_mysql_database)
-	(cd $(DESTDIR)$(sysconfdir); $(RMF) drop_mysql_tables)
-	(cd $(DESTDIR)$(sysconfdir); $(RMF) make_mysql_tables)
+	(cd $(DESTDIR)$(sysconfdir); $(RMF) create_@DB_NAME@_database)
+	(cd $(DESTDIR)$(sysconfdir); $(RMF) drop_@DB_NAME@_tables)
+	(cd $(DESTDIR)$(sysconfdir); $(RMF) make_@DB_NAME@_tables)
 
 
 # Semi-automatic generation of dependencies:

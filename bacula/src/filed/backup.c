@@ -102,6 +102,10 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
    JCR *jcr = (JCR *)ijcr;
    POOLMEM *msgsave;
 
+   if (job_cancelled(jcr)) {
+      return 0;
+   }
+
    sd = jcr->store_bsock;
    dir = jcr->dir_bsock;
    jcr->num_files_examined++;	      /* bump total file count */

@@ -42,8 +42,9 @@
 #define R_GROUP 		      1008
 #define R_POOL			      1009
 #define R_MSGS			      1010
+#define R_COUNTER		      1011
 
-#define R_LAST			      R_MSGS
+#define R_LAST			      R_COUNTER
 
 /*
  * Some resource attributes
@@ -211,13 +212,27 @@ struct s_res_group {
 typedef struct s_res_group GROUP;
 
 /*
+ *   Counter Resource
+ */
+struct s_res_counter {
+   RES	 hdr;
+
+   int32_t MinValue;		      /* Minimum value */
+   int32_t MaxValue;		      /* Maximum value */
+   int	   Global;		      /* global/local */
+   char  *WrapCounter;		      /* Wrap counter name */
+};
+typedef struct s_res_counter COUNTER;
+
+/*
  *   Pool Resource   
  *
  */
 struct s_res_pool {
    RES	 hdr;
 
-   char *pool_type;
+   struct s_res_counter counter;      /* Counter resources */
+   char *pool_type;		      /* Pool type */
    char *label_format;		      /* Label format string */
    int	 use_catalog;		      /* maintain catalog for media */
    int	 catalog_files; 	      /* maintain file entries in catalog */
@@ -245,6 +260,7 @@ union u_res {
    struct s_res_group	res_group;
    struct s_res_pool	res_pool;
    struct s_res_msgs	res_msgs;
+   struct s_res_counter res_counter;
    RES hdr;
 };
 

@@ -407,6 +407,8 @@ bnet_connect(void *jcr, int retry_interval, int max_retry_time, char *name,
    BSOCK *bsock;
 
    for (i=0; (bsock = bnet_open(name, host, service, port)) == NULL; i -= retry_interval) {
+     Dmsg4(100, "Unable to connect to %s on %s:%d. ERR=%s\n",
+	      name, host, port, strerror(errno));
       if (i <= 0) {
 	 i = 60 * 5;		      /* complain again in 5 minutes */
 	 if (verbose)
@@ -416,8 +418,8 @@ Retrying ...\n", name, host, port, strerror(errno));
       sleep(retry_interval);
       max_retry_time -= retry_interval;
       if (max_retry_time <= 0) {
-         Jmsg(jcr, M_FATAL, 0, "Unable to connect to %s on %s:%d.\n", 
-	      name, host, port);
+         Jmsg(jcr, M_FATAL, 0, _("Unable to connect to %s on %s:%d. ERR=%s\n"),
+	      name, host, port, strerror(errno));
 	 return NULL;
       }
    }

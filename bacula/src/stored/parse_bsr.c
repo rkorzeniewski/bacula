@@ -43,6 +43,8 @@ static BSR *store_volfile(LEX *lc, BSR *bsr);
 static BSR *store_sesstime(LEX *lc, BSR *bsr);
 static BSR *store_include(LEX *lc, BSR *bsr);
 static BSR *store_exclude(LEX *lc, BSR *bsr);
+static BSR *store_stream(LEX *lc, BSR *bsr);
+static BSR *store_slot(LEX *lc, BSR *bsr);
 
 struct kw_items {
    char *name;
@@ -62,6 +64,8 @@ struct kw_items items[] = {
    {"include", store_include},
    {"exclude", store_exclude},
    {"volfile", store_volfile},
+   {"stream",  store_stream},
+   {"slot",    store_slot},
    {NULL, NULL}
 
 };
@@ -402,6 +406,51 @@ static BSR *store_sesstime(LEX *lc, BSR *bsr)
 	 break;
       }
    }
+   return bsr;
+}
+
+
+static BSR *store_stream(LEX *lc, BSR *bsr)
+{
+   int token;
+   BSR_STREAM *stream;
+
+   for (;;) {
+      token = lex_get_token(lc, T_INT32);
+      if (token == T_ERROR) {
+	 return NULL;
+      }
+      stream = (BSR_STREAM *)malloc(sizeof(BSR_STREAM));
+      memset(stream, 0, sizeof(BSR_STREAM));
+      stream->stream = lc->int32_val;
+      /* Add it to the end of the chain */
+      if (!bsr->stream) {
+	 bsr->stream = stream;
+      } else {
+	 /* Add to end of chain */
+	 BSR_STREAM *bs = bsr->stream;
+	 for ( ;bs->next; bs=bs->next)
+	    { }
+	 bs->next = stream;
+      }
+      token = lex_get_token(lc, T_ALL);
+      if (token != T_COMMA) {
+	 break;
+      }
+   }
+   return bsr;
+}
+
+static BSR *store_slot(LEX *lc, BSR *bsr)
+{
+   int token;
+
+   token = lex_get_token(lc, T_PINT32);
+   if (token == T_ERROR) {
+      return NULL;
+   }
+   bsr->Slot = lc->pint32_val;
+   scan_to_eol(lc);
    return bsr;
 }
 

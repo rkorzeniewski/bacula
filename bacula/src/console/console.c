@@ -52,6 +52,7 @@ static char *configfile = NULL;
 static BSOCK *UA_sock = NULL;
 static DIRRES *dir; 
 static FILE *output = stdout;
+static int stop = FALSE;
 
 
 #define CONFIG_FILE "./console.conf"   /* default configuration file */
@@ -70,6 +71,28 @@ static void usage()
 
    exit(1);
 }
+
+
+void got_stop(int sig)
+{
+   stop = TRUE;
+}
+
+void got_continue(int sig)
+{
+   stop = FALSE;
+}
+
+void got_tout(int sig) 
+{
+// printf("Got tout\n");
+}
+
+void got_tin(int sig)
+{   
+// printf("Got tin\n");
+}
+
 
 static void read_and_process_input(FILE *input, BSOCK *UA_sock) 
 {
@@ -112,12 +135,18 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
       }
       while ((stat = bnet_recv(UA_sock)) > 0) {
 	 if (at_prompt) {
-            fprintf(output, "\n");
+	    if (!stop) {
+               fprintf(output, "\n");
+	    }
 	    at_prompt = FALSE;
 	 }
-         printf("%s", UA_sock->msg);
+	 if (!stop) {
+            fprintf(output, "%s", UA_sock->msg);
+	 }
       }
-      fflush(output);
+      if (!stop) {
+	 fflush(output);
+      }
       if (stat < 0) {
 	 break; 		      /* error */
       } else if (stat == 0) {
@@ -182,6 +211,10 @@ int main(int argc, char *argv[])
       init_signals(terminate_console);
    }
    signal(SIGCHLD, SIG_IGN);
+   signal(SIGTSTP, got_stop);
+   signal(SIGCONT, got_continue);
+   signal(SIGTTIN, got_tin);
+   signal(SIGTTOU, got_tout);
 
    if (argc) {
       usage();
@@ -353,8 +386,11 @@ int
 get_cmd(FILE *input, char *prompt, BSOCK *sock, int sec)
 {
    int len;  
-   fprintf(output, prompt);
-   fflush(output);
+   if (!stop) {
+      fprintf(output, prompt);
+      fflush(output);
+   }
+again:
    switch (wait_for_data(fileno(input), sec)) {
       case 0:
 	 return 0;		      /* timeout */
@@ -362,6 +398,9 @@ get_cmd(FILE *input, char *prompt, BSOCK *sock, int sec)
 	 return -1;		      /* error */
       default:
 	 len = sizeof_pool_memory(sock->msg) - 1;
+	 if (stop) {
+	    goto again;
+	 }
 	 if (fgets(sock->msg, len, input) == NULL) {
 	    return -1;
 	 }

@@ -230,7 +230,6 @@ AC_MSG_RESULT(" ")
 AC_DEFUN(BA_CHECK_MYSQL_DB,
 [
 have_db=no
-db_name=none
 AC_MSG_CHECKING(for MySQL support)
 AC_ARG_WITH(mysql,
 [
@@ -288,6 +287,7 @@ Which one DBMS do you want to use (please select only one):
     have_db=yes
     support_mysql=yes
     db_name=MySQL
+    DB_NAME=mysql
 
   else
         AC_MSG_RESULT(no)
@@ -305,7 +305,6 @@ AC_SUBST(SQL_BINDIR)
 AC_DEFUN(BA_CHECK_SQLITE_DB,
 [
 have_db=no
-db_name=none
 AC_MSG_CHECKING(for SQLite support)
 AC_ARG_WITH(sqlite,
 [
@@ -347,6 +346,7 @@ Which one DBMS do you want to use (please select only one):
     have_db=yes
     support_sqlite=yes
     db_name=SQLite
+    DB_NAME=sqlite
 
   else
         AC_MSG_RESULT(no)
@@ -1173,4 +1173,3 @@ AC_DEFUN([GNOME_ORBIT_HOOK],[
 AC_DEFUN([GNOME_ORBIT_CHECK], [
         GNOME_ORBIT_HOOK([],failure)
 ])
-

@@ -275,7 +275,7 @@ static int job_cmd(JCR *jcr)
 	      &jcr->VolSessionId, &jcr->VolSessionTime,
 	      sd_auth_key) != 5) {
       bnet_fsend(dir, BADjob);
-      Emsg1(M_FATAL, 0, _("Bad Job Command: %s\n"), dir->msg);
+      Jmsg(jcr, M_FATAL, 0, _("Bad Job Command: %s\n"), dir->msg);
       free_pool_memory(sd_auth_key);
       return 0;
    }
@@ -423,11 +423,12 @@ static int session_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
 
+   Dmsg1(050, "SessionCmd: %s", dir->msg);
    if (sscanf(dir->msg, sessioncmd, jcr->VolumeName,
 	      &jcr->VolSessionId, &jcr->VolSessionTime,
 	      &jcr->StartFile, &jcr->EndFile, 
 	      &jcr->StartBlock, &jcr->EndBlock) != 7) {
-      Emsg1(M_FATAL, 0, "Bad session command: %s", dir->msg);
+      Jmsg(jcr, M_FATAL, 0, "Bad session command: %s", dir->msg);
       return 0;
    }
 
@@ -444,8 +445,9 @@ static int storage_cmd(JCR *jcr)
    BSOCK *dir = jcr->dir_bsock;
    BSOCK *sd;			      /* storage daemon bsock */
 
+   Dmsg1(050, "StorageCmd: %s", dir->msg);
    if (sscanf(dir->msg, storaddr, &jcr->stored_addr, &stored_port) != 2) {
-      Emsg1(M_FATAL, 0, _("Bad storage command: %s\n"), dir->msg);
+      Jmsg(jcr, M_FATAL, 0, _("Bad storage command: %s"), dir->msg);
       return 0;
    }
    Dmsg2(30, "Got storage: %s:%d\n", jcr->stored_addr, stored_port);
@@ -454,7 +456,7 @@ static int storage_cmd(JCR *jcr)
    sd = bnet_connect(jcr, 10, 3600, _("Storage daemon"), 
 		     jcr->stored_addr, NULL, stored_port, 1);
    if (sd == NULL) {
-      Jmsg2(jcr, M_FATAL, 0, _("Failed to connect to Storage daemon: %s:%d\n"),
+      Jmsg(jcr, M_FATAL, 0, _("Failed to connect to Storage daemon: %s:%d\n"),
 	  jcr->stored_addr, stored_port);
       return 0;
    }
@@ -487,7 +489,7 @@ static int backup_cmd(JCR *jcr)
    Dmsg1(100, "begin backup ff=%p\n", jcr->ff);
 
    if (sd == NULL) {
-      Emsg0(M_FATAL, 0, _("Cannot contact Storage daemon\n"));
+      Jmsg(jcr, M_FATAL, 0, _("Cannot contact Storage daemon\n"));
       jcr->JobStatus = JS_ErrorTerminated;
       goto cleanup;
    }
@@ -506,13 +508,13 @@ static int backup_cmd(JCR *jcr)
    if (bnet_recv(sd) > 0) {
       Dmsg1(10, "<stored: %s", sd->msg);
       if (sscanf(sd->msg, OK_open, &jcr->Ticket) != 1) {
-         Emsg1(M_FATAL, 0, _("Bad response to append open: %s\n"), sd->msg);
+         Jmsg(jcr, M_FATAL, 0, _("Bad response to append open: %s\n"), sd->msg);
 	 jcr->JobStatus = JS_ErrorTerminated;
 	 goto cleanup;
       }
       Dmsg1(10, "Got Ticket=%d\n", jcr->Ticket);
    } else {
-      Emsg0(M_FATAL, 0, _("Bad response from stored to open command\n"));
+      Jmsg(jcr, M_FATAL, 0, _("Bad response from stored to open command\n"));
       jcr->JobStatus = JS_ErrorTerminated;
       goto cleanup;
    }
@@ -566,7 +568,7 @@ static int backup_cmd(JCR *jcr)
 	  /* discard anything else returned from SD */
       }
       if (len < 0) {
-         Emsg2(M_FATAL, 0, _("<stored: net_recv len=%d: ERR=%s\n"), len, bnet_strerror(sd));
+         Jmsg(jcr, M_FATAL, 0, _("<stored: net_recv len=%d: ERR=%s\n"), len, bnet_strerror(sd));
 	 jcr->JobStatus = JS_ErrorTerminated;
       }
    }
@@ -591,6 +593,7 @@ cleanup:
 static int verify_cmd(JCR *jcr)
 { 
    BSOCK *dir = jcr->dir_bsock;
+   BSOCK *sd  = jcr->store_bsock;
    char level[100];
 
    jcr->JobType = JT_VERIFY;
@@ -603,18 +606,44 @@ static int verify_cmd(JCR *jcr)
    } else if (strcasecmp(level, "catalog") == 0){
       jcr->JobLevel = L_VERIFY_CATALOG;
    } else if (strcasecmp(level, "volume") == 0){
-      jcr->JobLevel = L_VERIFY_VOLUME;
+      jcr->JobLevel = L_VERIFY_VOLUME_TO_CATALOG;
    } else if (strcasecmp(level, "data") == 0){
       jcr->JobLevel = L_VERIFY_DATA;
    } else {   
-      bnet_fsend(dir, "2994 Bad verify command: %s\n", dir->msg);
+      bnet_fsend(dir, "2994 Bad verify level: %s\n", dir->msg);
       return 0;   
    }
 
    bnet_fsend(dir, OKverify);
    Dmsg1(10, "bfiled>dird: %s", dir->msg);
 
-   do_verify(jcr);
+   switch (jcr->JobLevel) {
+   case L_VERIFY_INIT:
+   case L_VERIFY_CATALOG:
+      do_verify(jcr);
+      break;
+   case L_VERIFY_VOLUME_TO_CATALOG:
+      if (!open_sd_read_session(jcr)) {
+	 return 0;
+      }
+      do_verify_volume(jcr);
+      /* 
+       * Send Close session command to Storage daemon
+       */
+      bnet_fsend(sd, read_close, jcr->Ticket);
+      Dmsg1(30, "bfiled>stored: %s", sd->msg);
+
+      /* ****FIXME**** check response */
+      bnet_recv(sd);			 /* get OK */
+
+      /* Inform Storage daemon that we are done */
+      bnet_sig(sd, BNET_EOF);
+
+      break;
+   default:
+      bnet_fsend(dir, "2994 Bad verify level: %s\n", dir->msg);
+      return 0; 
+   }
 
    /* Inform Director that we are done */
    return bnet_sig(dir, BNET_EOF);
@@ -785,7 +814,7 @@ int response(BSOCK *sd, char *resp, char *cmd)
 static int send_bootstrap_file(JCR *jcr)
 {
    FILE *bs;
-   char buf[1000];
+   char buf[2000];
    BSOCK *sd = jcr->store_bsock;
    char *bootstrap = "bootstrap\n";
 

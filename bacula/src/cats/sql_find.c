@@ -133,32 +133,42 @@ ORDER by StartTime DESC LIMIT 1",
 }
 
 /* 
- * Find JobId of last full verify 
+ * Find JobId of last job that ran.  E.g. for
+ *   VERIFY_CATALOG we want the JobId of the last INIT.
+ *   For VERIFY_VOLUME_TO_CATALOG, we want the JobId of the last Job.
+ *
  * Returns: 1 on success
  *	    0 on failure
  */
 int
-db_find_last_full_verify(B_DB *mdb, JOB_DBR *jr)
+db_find_last_jobid(B_DB *mdb, JOB_DBR *jr)
 {
    SQL_ROW row;
 
    /* Find last full */
    db_lock(mdb);
-   if (jr->Level != L_VERIFY_CATALOG) {
-      Mmsg2(&mdb->errmsg, _("Expecting Level=%c, got %c\n"), L_VERIFY_CATALOG, jr->Level);
+   if (jr->Level == L_VERIFY_CATALOG) {
+      Mmsg(&mdb->cmd, 
+"SELECT JobId FROM Job WHERE Type='%c' AND Level='%c' AND Name=\"%s\" AND \
+ClientId=%d ORDER BY StartTime DESC LIMIT 1",
+	   JT_VERIFY, L_VERIFY_INIT, jr->Name, jr->ClientId);
+   } else if (jr->Level == L_VERIFY_VOLUME_TO_CATALOG) {
+      Mmsg(&mdb->cmd, 
+"SELECT JobId FROM Job WHERE Type='%c' AND \
+ClientId=%d ORDER BY StartTime DESC LIMIT 1",
+	   JT_BACKUP, jr->ClientId);
+   } else {
+      Mmsg1(&mdb->errmsg, _("Unknown Job level=%c\n"), jr->Level);
+      db_unlock(mdb);
       return 0;
    }
-   Mmsg(&mdb->cmd, 
-"SELECT JobId from Job WHERE Type='%c' and Level='%c' and Name=\"%s\" and \
-ClientId=%d ORDER by StartTime DESC LIMIT 1",
-	   JT_VERIFY, L_VERIFY_INIT, jr->Name, jr->ClientId);
 
    if (!QUERY_DB(mdb, mdb->cmd)) {
       db_unlock(mdb);
       return 0;
    }
    if ((row = sql_fetch_row(mdb)) == NULL) {
-      Mmsg0(&mdb->errmsg, _("No Job found for last full verify.\n"));
+      Mmsg1(&mdb->errmsg, _("No Job found for: %s.\n"), mdb->cmd);
       sql_free_result(mdb);
       db_unlock(mdb);
       return 0;
@@ -167,9 +177,9 @@ ClientId=%d ORDER by StartTime DESC LIMIT 1",
    jr->JobId = atoi(row[0]);
    sql_free_result(mdb);
 
-   Dmsg1(100, "db_get_last_full_verify: got JobId=%d\n", jr->JobId);
+   Dmsg1(100, "db_get_last_jobid: got JobId=%d\n", jr->JobId);
    if (jr->JobId <= 0) {
-      Mmsg1(&mdb->errmsg, _("No Verify Job found for: %s\n"), mdb->cmd);
+      Mmsg1(&mdb->errmsg, _("No Job found for: %s\n"), mdb->cmd);
       db_unlock(mdb);
       return 0;
    }

@@ -1,7 +1,8 @@
 /*
- *  Bacula File Daemon	restore.c Restorefiles.
+ *  Bacula File Daemon	verify-vol.c Verify files on a Volume
+ *    versus attributes in Catalog
  *
- *    Kern Sibbald, November MM
+ *    Kern Sibbald, July MMII
  *
  *   Version $Id$
  *
@@ -33,49 +34,43 @@
 static char rec_header[] = "rechdr %ld %ld %ld %ld %ld";
 
 /* Forward referenced functions */
+#ifdef needed
 static void print_ls_output(JCR *jcr, char *fname, char *lname, int type, struct stat *statp);
+#endif
 
-#define RETRY 10		      /* retry wait time */
 
 /* 
- * Restore the requested files.
+ * Verify attributes of the requested files on the Volume
  * 
  */
-void do_restore(JCR *jcr)
+void do_verify_volume(JCR *jcr)
 {
-   int wherelen;
-   BSOCK *sd;
+   BSOCK *sd, *dir;
    POOLMEM *fname;		      /* original file name */
-   POOLMEM *ofile;		      /* output name with possible prefix */
    POOLMEM *lname;		      /* link name */
    int32_t stream;
    uint32_t size;
    uint32_t VolSessionId, VolSessionTime, file_index;
    uint32_t record_file_index;
-   struct stat statp;
-   int extract = FALSE;
-   int ofd = -1;
-   int type;
-   uint32_t total = 0;
+   int type, stat;
    
-   wherelen = strlen(jcr->where);
-
    sd = jcr->store_bsock;
+   if (!sd) {
+      Jmsg(jcr, M_FATAL, 0, _("Storage command not issued before Verify.\n"));
+      jcr->JobStatus = JS_FatalError;
+      return;
+   }
+   dir = jcr->dir_bsock;
    jcr->JobStatus = JS_Running;
 
    if (!bnet_set_buffer_size(sd, MAX_NETWORK_BUFFER_SIZE, BNET_SETBUF_READ)) {
+      jcr->JobStatus = JS_FatalError;
       return;
    }
    jcr->buf_size = sd->msglen;
 
    fname = get_pool_memory(PM_FNAME);
-   ofile = get_pool_memory(PM_FNAME);
    lname = get_pool_memory(PM_FNAME);
-
-#ifdef HAVE_LIBZ
-   uint32_t compress_buf_size = jcr->buf_size + 12 + ((jcr->buf_size+999) / 1000) + 100;
-   jcr->compress_buf = (char *)bmalloc(compress_buf_size);
-#endif
 
    /* 
     * Get a record from the Storage daemon
@@ -96,8 +91,9 @@ void do_restore(JCR *jcr)
        */
       if (bnet_recv(sd) < 0 && !job_cancelled(jcr)) {
          Jmsg1(jcr, M_FATAL, 0, _("Data record error. ERR=%s\n"), bnet_strerror(sd));
+	 goto bail_out;
       }
-      if (size != ((uint32_t) sd->msglen)) {
+      if (size != ((uint32_t)sd->msglen)) {
          Jmsg2(jcr, M_FATAL, 0, _("Actual data size %d not same as header %d\n"), sd->msglen, size);
 	 goto bail_out;
       }
@@ -107,27 +103,12 @@ void do_restore(JCR *jcr)
       if (stream == STREAM_UNIX_ATTRIBUTES) {
 	 char *ap, *lp, *fp;
 
-         Dmsg1(30, "Stream=Unix Attributes. extract=%d\n", extract);
-	 /* If extracting, it was from previous stream, so
-	  * close the output file.
-	  */
-	 if (extract) {
-	    if (ofd < 0) {
-               Emsg0(M_ABORT, 0, _("Logic error output file should be open\n"));
-	    }
-	    close(ofd);
-	    ofd = -1;
-	    extract = FALSE;
-	    set_statp(jcr, fname, ofile, lname, type, &statp);
-            Dmsg0(30, "Stop extracting.\n");
-	 }
+         Dmsg0(400, "Stream=Unix Attributes.\n");
 
-	 if ((int)sizeof_pool_memory(fname) <  sd->msglen) {
+	 if ((int)sizeof_pool_memory(fname) < sd->msglen) {
 	    fname = realloc_pool_memory(fname, sd->msglen + 1);
 	 }
-	 if (sizeof_pool_memory(ofile) < sizeof_pool_memory(fname) + wherelen + 1) {
-	    ofile = realloc_pool_memory(ofile, sizeof_pool_memory(fname) + wherelen + 1);
-	 }
+
 	 if ((int)sizeof_pool_memory(lname) < sd->msglen) {
 	    lname = realloc_pool_memory(lname, sd->msglen + 1);
 	 }
@@ -161,12 +142,13 @@ void do_restore(JCR *jcr)
          while (*ap++ != ' ')         /* skip type */
 	    ;
 	 /* Save filename and position to attributes */
-	 fp = fname;
+	 fp = fname;	 
 	 while (*ap != 0) {
 	    *fp++  = *ap++;	      /* copy filename to fname */
 	 }
 	 *fp = *ap++;		      /* terminate filename & point to attribs */
 
+         Dmsg1(200, "Attr=%s\n", ap);
 	 /* Skip to Link name */
 	 if (type == FT_LNK) {
 	    lp = ap;
@@ -177,107 +159,60 @@ void do_restore(JCR *jcr)
 	 } else {
 	    *lname = 0;
 	 }
-
-	 decode_stat(ap, &statp);
-	 /*
-	  * Prepend the where directory so that the
-	  * files are put where the user wants.
-	  *
-	  * We do a little jig here to handle Win32 files with
-	  * a drive letter.  
-	  *   If where is null and we are running on a win32 client,
-	  *	 change nothing.
-	  *   Otherwise, if the second character of the filename is a
-	  *   colon (:), change it into a slash (/) -- this creates
-	  *   a reasonable pathname on most systems.
-	  */
-	 if (jcr->where[0] == 0 && win32_client) {
-	    strcpy(ofile, fname);
-	 } else {
-	    strcpy(ofile, jcr->where);
-            if (fname[1] == ':') {
-               fname[1] = '/';
-	       strcat(ofile, fname);
-               fname[1] = ':';
-	    } else {
-	       strcat(ofile, fname);
-	    }
-	 }
-
-         Dmsg1(30, "Outfile=%s\n", ofile);
-	 print_ls_output(jcr, ofile, lname, type, &statp);
-
-	 extract = create_file(jcr, fname, ofile, lname, type, &statp, &ofd);
-         Dmsg1(40, "Extract=%d\n", extract);
-	 if (extract) {
-	    jcr->JobFiles++;
-	 }
+	 jcr->JobFiles++;
 	 jcr->num_files_examined++;
+
+	 /* 
+	  * Send file attributes to Director
+	  *   File_index
+	  *   Stream
+	  *   Verify Options
+	  *   Filename (full path)
+	  *   Encoded attributes
+	  *   Link name (if type==FT_LNK)
+	  * For a directory, link is the same as fname, but with trailing
+	  * slash. For a linked file, link is the link.
+	  */
+	 /* Send file attributes to Director */
+         Dmsg2(200, "send ATTR inx=%d fname=%s\n", jcr->JobFiles, fname);
+	 if (type == FT_LNK) {
+            stat = bnet_fsend(dir, "%d %d %s %s%c%s%c%s%c", jcr->JobFiles,
+                          STREAM_UNIX_ATTRIBUTES, "pinsug5", fname, 
+			  0, ap, 0, lname, 0);
+	 } else {
+            stat = bnet_fsend(dir,"%d %d %s %s%c%s%c%c", jcr->JobFiles,
+                          STREAM_UNIX_ATTRIBUTES, "pinsug5", fname, 
+			  0, ap, 0, 0);
+	 }
+         Dmsg2(200, "bfiled>bdird: attribs len=%d: msg=%s\n", dir->msglen, dir->msg);
+	 if (!stat) {
+            Jmsg(jcr, M_FATAL, 0, _("Network error in send to Director: ERR=%s\n"), bnet_strerror(dir));
+	    goto bail_out;
+	 }
+
 
       /* Data stream */
       } else if (stream == STREAM_FILE_DATA) {
-	 if (extract) {
-            Dmsg2(30, "Write %d bytes, total before write=%d\n", sd->msglen, total);
-	    if (write(ofd, sd->msg, sd->msglen) != sd->msglen) {
-               Dmsg0(0, "===Write error===\n");
-               Jmsg2(jcr, M_ERROR, 0, "Write error on %s: %s\n", ofile, strerror(errno));
-	       goto bail_out;
-	    }
-	    total += sd->msglen;
-	    jcr->JobBytes += sd->msglen;
-	 }
+
+	/* Do nothing */
 	
       /* GZIP data stream */
       } else if (stream == STREAM_GZIP_DATA) {
-#ifdef HAVE_LIBZ
-	 if (extract) {
-	    uLong compress_len;
-	    int stat;
 
-	    compress_len = compress_buf_size;
-            Dmsg2(100, "Comp_len=%d msglen=%d\n", compress_len, sd->msglen);
-	    if ((stat=uncompress((Byte *)jcr->compress_buf, &compress_len, 
-		  (const Byte *)sd->msg, (uLong)sd->msglen)) != Z_OK) {
-               Jmsg(jcr, M_ERROR, 0, _("Uncompression error. ERR=%d\n"), stat);
-	       goto bail_out;
-	    }
+	/* Do nothing */
 
-            Dmsg2(100, "Write uncompressed %d bytes, total before write=%d\n", compress_len, total);
-	    if ((uLong)write(ofd, jcr->compress_buf, compress_len) != compress_len) {
-               Dmsg0(0, "===Write error===\n");
-               Jmsg2(jcr, M_ERROR, 0, "Write error on %s: %s\n", ofile, strerror(errno));
-	       goto bail_out;
-	    }
-	    total += compress_len;
-	    jcr->JobBytes += compress_len;
-	 }
-#else
-	 if (extract) {
-            Jmsg(jcr, M_ERROR, 0, "GZIP data stream found, but GZIP not configured!\n");
-	    goto bail_out;
-	 }
-#endif
-      /* If extracting, wierd stream (not 1 or 2), close output file anyway */
-      } else if (extract) {
-         Dmsg1(30, "Found wierd stream %d\n", stream);
-	 if (ofd < 0) {
-            Emsg0(M_ABORT, 0, _("Logic error output file should be open\n"));
-	 }
-	 close(ofd);
-	 ofd = -1;
-	 extract = FALSE;
-	 set_statp(jcr, fname, ofile, lname, type, &statp);
+      /* If MD5 stream */
+      } else if (stream == STREAM_MD5_SIGNATURE) {
+	 char MD5buf[30];
+	 bin_to_base64(MD5buf, (char *)sd->msg, 16); /* encode 16 bytes */
+         Dmsg2(400, "send inx=%d MD5=%s\n", jcr->JobFiles, MD5buf);
+         bnet_fsend(dir, "%d %d %s *MD5-%d*", jcr->JobFiles, STREAM_MD5_SIGNATURE, MD5buf,
+	    jcr->JobFiles);
+         Dmsg2(20, "bfiled>bdird: MD5 len=%d: msg=%s\n", dir->msglen, dir->msg);
+  
       } else if (stream != STREAM_MD5_SIGNATURE) {
-         Dmsg2(0, "None of above!!! stream=%d data=%s\n", stream,sd->msg);
+         Pmsg2(0, "None of above!!! stream=%d data=%s\n", stream,sd->msg);
       }
-   }
-
-   /* If output file is still open, it was the last one in the
-    * archive since we just hit an end of file, so close the file. 
-    */
-   if (ofd >= 0) {
-      close(ofd);
-      set_statp(jcr, fname, ofile, lname, type, &statp);
    }
 
 bail_out:
@@ -286,9 +221,8 @@ bail_out:
       jcr->compress_buf = NULL;
    }
    free_pool_memory(fname);
-   free_pool_memory(ofile);
    free_pool_memory(lname);
-   Dmsg2(10, "End Do Restore. Files=%d Bytes=%" lld "\n", jcr->JobFiles,
+   Dmsg2(050, "End Verify-Vol. Files=%d Bytes=%" lld "\n", jcr->JobFiles,
       jcr->JobBytes);
 }	   
 
@@ -298,6 +232,7 @@ extern char *getgroup(gid_t gid);
 /*
  * Print an ls style message, also send INFO
  */
+#ifdef needed
 static void print_ls_output(JCR *jcr, char *fname, char *lname, int type, struct stat *statp)
 {
    char buf[2000]; 
@@ -331,3 +266,4 @@ static void print_ls_output(JCR *jcr, char *fname, char *lname, int type, struct
    Dmsg0(20, buf);
    Jmsg(jcr, M_INFO, 0, buf);
 }
+#endif

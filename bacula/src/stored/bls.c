@@ -96,7 +96,7 @@ int main (int argc, char *argv[])
 
          case 'e':                    /* exclude list */
             if ((fd = fopen(optarg, "r")) == NULL) {
-               Dmsg2(0, "Could not open exclude file: %s, ERR=%s\n",
+               Pmsg2(0, "Could not open exclude file: %s, ERR=%s\n",
 		  optarg, strerror(errno));
 	       exit(1);
 	    }
@@ -110,7 +110,7 @@ int main (int argc, char *argv[])
 
          case 'i':                    /* include list */
             if ((fd = fopen(optarg, "r")) == NULL) {
-               Dmsg2(0, "Could not open include file: %s, ERR=%s\n",
+               Pmsg2(0, "Could not open include file: %s, ERR=%s\n",
 		  optarg, strerror(errno));
 	       exit(1);
 	    }
@@ -148,7 +148,7 @@ int main (int argc, char *argv[])
    argv += optind;
 
    if (!argc && !default_tape) {
-      Dmsg0(0, "No archive name specified\n");
+      Pmsg0(0, "No archive name specified\n");
       usage();
    }
 
@@ -305,7 +305,7 @@ static void do_blocks(char *infname)
     * If on second or subsequent volume, adjust buffer pointer 
     */
    if (dev->VolHdr.PrevVolName[0] != 0) { /* second volume */
-      Dmsg1(0, "\n\
+      Pmsg1(0, "\n\
 Warning, this Volume is a continuation of Volume %s\n",
 		dev->VolHdr.PrevVolName);
    }
@@ -347,7 +347,7 @@ static void do_jobs(char *infname)
     * If on second or subsequent volume, adjust buffer pointer 
     */
    if (dev->VolHdr.PrevVolName[0] != 0) { /* second volume */
-      Dmsg1(0, "\n\
+      Pmsg1(0, "\n\
 Warning, this Volume is a continuation of Volume %s\n",
 		dev->VolHdr.PrevVolName);
    }
@@ -418,7 +418,7 @@ static void do_ls(char *infname)
     * If on second or subsequent volume, adjust buffer pointer 
     */
    if (dev->VolHdr.PrevVolName[0] != 0) { /* second volume */
-      Dmsg1(0, "\n\
+      Pmsg1(0, "\n\
 Warning, this Volume is a continuation of Volume %s\n",
 		dev->VolHdr.PrevVolName);
    }

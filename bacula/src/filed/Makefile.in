@@ -19,10 +19,10 @@ dummy:
 #
 SVRSRCS = filed.c authenticate.c backup.c estimate.c \
 	  filed_conf.c job.c \
-	  restore.c status.c verify.c
+	  restore.c status.c verify.c verify_vol.c
 SVROBJS = filed.o authenticate.o backup.o estimate.o \
 	  filed_conf.o job.o \
-	  restore.o status.o verify.o
+	  restore.o status.o verify.o verify_vol.o
 
 # these are the objects that are changed by the .configure process
 EXTRAOBJS = @OBJLIST@

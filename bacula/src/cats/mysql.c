@@ -200,9 +200,10 @@ db_close_database(B_DB *mdb)
  * For MySQL, NULL causes the auto-increment value
  *  to be updated.
  */
-char *db_next_index(B_DB *mdb, char *table)
+int db_next_index(B_DB *mdb, char *table, char *index)
 {
-   return "NULL";
+   strcpy(index, "NULL");
+   return 1;
 }   
 
 
@@ -271,6 +272,7 @@ list_result(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx)
    char buf[2000], ewc[30];
 
    if (mdb->result == NULL) {
+      send(ctx, _("No results to list.\n"));
       return;
    }
    /* determine column display widths */

@@ -106,16 +106,9 @@ db_open_database(B_DB *mdb)
       return 1;
    }
    mdb->connected = FALSE;
-#ifdef needed
-   if (pthread_mutex_init(&mdb->mutex, NULL) != 0) {
-      Mmsg1(&mdb->errmsg, _("Unable to initialize DB mutex. ERR=%s\n"), strerror(errno));
-      V(mutex);
-      return 0;
-   }
-#endif
 
    if (rwl_init(&mdb->lock) != 0) {
-      Mmsg1(&mdb->errmsg, "Unable to initialize DB lock. ERR=%s\n", strerror(errno));
+      Mmsg1(&mdb->errmsg, _("Unable to initialize DB lock. ERR=%s\n"), strerror(errno));
       V(mutex);
       return 0;
    }
@@ -169,7 +162,6 @@ db_close_database(B_DB *mdb)
       if (mdb->connected && mdb->db) {
 	 sqlite_close(mdb->db);
       }
-/*    pthread_mutex_destroy(&mdb->mutex); */
       rwl_destroy(&mdb->lock);	     
       free_pool_memory(mdb->errmsg);
       free_pool_memory(mdb->cmd);
@@ -184,44 +176,41 @@ db_close_database(B_DB *mdb)
 
 /*
  * Return the next unique index (auto-increment) for
- * the given table.  Return NULL on error.
+ * the given table.  Return 0 on error.
  */
-char *db_next_index(B_DB *mdb, char *table)
+int db_next_index(B_DB *mdb, char *table, char *index)
 {
    SQL_ROW row;
-   static char id[20];
 
-   QUERY_DB(mdb, "BEGIN TRANSACTION");
-   sql_free_result(mdb);
+   db_lock(mdb);
 
    Mmsg(&mdb->cmd,
 "SELECT id FROM NextId WHERE TableName=\"%s\"", table);
    if (!QUERY_DB(mdb, mdb->cmd)) {
       Mmsg(&mdb->errmsg, _("next_index query error: ERR=%s\n"), sql_strerror(mdb));
-      QUERY_DB(mdb, "ROLLBACK");
-      return NULL;
+      db_unlock(mdb);
+      return 0;
    }
    if ((row = sql_fetch_row(mdb)) == NULL) {
       Mmsg(&mdb->errmsg, _("Error fetching index: ERR=%s\n"), sql_strerror(mdb));
-      QUERY_DB(mdb, "ROLLBACK");
-      return NULL;
+      db_unlock(mdb);
+      return 0;
    }
-   strncpy(id, row[0], sizeof(id));
-   id[sizeof(id)-1] = 0;
+   strncpy(index, row[0], 28);
+   index[28] = 0;
    sql_free_result(mdb);
 
    Mmsg(&mdb->cmd,
 "UPDATE NextId SET id=id+1 WHERE TableName=\"%s\"", table);
    if (!QUERY_DB(mdb, mdb->cmd)) {
       Mmsg(&mdb->errmsg, _("next_index update error: ERR=%s\n"), sql_strerror(mdb));
-      QUERY_DB(mdb, "ROLLBACK");
-      return NULL;
+      db_unlock(mdb);
+      return 0;
    }
    sql_free_result(mdb);
 
-   QUERY_DB(mdb, "COMMIT");
-   sql_free_result(mdb);
-   return id;
+   db_unlock(mdb);
+   return 1;
 }   
 
 
@@ -412,6 +401,7 @@ list_result(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx)
    char buf[2000], ewc[30];
 
    if (mdb->result == NULL || mdb->nrow == 0) {
+      send(ctx, _("No results to list.\n"));
       return;
    }
    /* determine column display widths */

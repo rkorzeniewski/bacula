@@ -4,5 +4,5 @@ touch 1
 for i in . console gnome-console cats dird filed findlib lib stored; do
   ls -1 $i/*.c $i/*.h $i/*.in >>1
 done
-cat 1 | lines
+cat 1 | $HOME/bin/lines
 # rm -f 1

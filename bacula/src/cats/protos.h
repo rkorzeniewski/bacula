@@ -36,7 +36,7 @@ void db_close_database(B_DB *db);
 void db_escape_string(char *snew, char *old, int len);
 char *db_strerror(B_DB *mdb);
 int get_sql_record_max(B_DB *mdb);
-char *db_next_index(B_DB *mdb, char *table);
+int db_next_index(B_DB *mdb, char *table, char *index);
 int db_sql_query(B_DB *mdb, char *cmd, DB_RESULT_HANDLER *result_handler, void *ctx);
 int check_tables_version(B_DB *mdb);
 void _db_unlock(char *file, int line, B_DB *mdb);
@@ -57,7 +57,7 @@ int db_delete_media_record(B_DB *mdb, MEDIA_DBR *mr);
 
 /* find.c */
 int db_find_job_start_time(B_DB *mdb, JOB_DBR *jr, char *stime);
-int db_find_last_full_verify(B_DB *mdb, JOB_DBR *jr);
+int db_find_last_jobid(B_DB *mdb, JOB_DBR *jr);
 int db_find_next_volume(B_DB *mdb, int index, MEDIA_DBR *mr);
 
 /* get.c */
@@ -89,6 +89,6 @@ int  db_update_job_end_record(B_DB *db, JOB_DBR *jr);
 int  db_update_pool_record(B_DB *db, POOL_DBR *pr);
 int  db_update_media_record(B_DB *db, MEDIA_DBR *mr);
 int  db_add_MD5_to_file_record(B_DB *mdb, FileId_t FileId, char *MD5);  
-int  db_mark_file_record(B_DB *mdb, FileId_t FileId, int JobId);
+int  db_mark_file_record(B_DB *mdb, FileId_t FileId, JobId_t JobId);
 
 #endif /* __SQL_PROTOS_H */

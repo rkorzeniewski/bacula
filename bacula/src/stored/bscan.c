@@ -82,7 +82,7 @@ int main (int argc, char *argv[])
    argv += optind;
 
    if (argc != 1) {
-      Dmsg0(0, "Wrong number of arguments: \n");
+      Pmsg0(0, "Wrong number of arguments: \n");
       usage();
    }
 
@@ -170,7 +170,7 @@ static void do_scan(char *devname)
 	 if (dev->state & ST_EOF) {
 	    continue;		      /* try again */
 	 }
-         Dmsg0(0, "Read Record got a bad record\n");
+         Pmsg0(0, "Read Record got a bad record\n");
 	 status_dev(dev, &status);
          Dmsg1(20, "Device status: %x\n", status);
 	 if (status & MT_EOD)
@@ -206,56 +206,56 @@ static void do_scan(char *devname)
 	 }
 	 switch (rec.FileIndex) {
 	    case PRE_LABEL:
-               Dmsg0(000, "Volume is prelabeled. This tape cannot be scanned.\n");
+               Pmsg0(000, "Volume is prelabeled. This tape cannot be scanned.\n");
 	       return;
 	       break;
 	    case VOL_LABEL:
 	       unser_volume_label(dev, &rec);
 	       strcpy(mr.VolumeName, dev->VolHdr.VolName);
 	       if (!db_get_media_record(db, &mr)) {
-                  Dmsg1(000, "VOL_LABEL: Media record not found for Volume: %s\n",
+                  Pmsg1(000, "VOL_LABEL: Media record not found for Volume: %s\n",
 		     mr.VolumeName);
 		  continue;
 	       }
 	       if (strcmp(mr.MediaType, dev->VolHdr.MediaType) != 0) {
-                  Dmsg2(000, "VOL_LABEL: MediaType mismatch. DB=%s Vol=%s\n",
+                  Pmsg2(000, "VOL_LABEL: MediaType mismatch. DB=%s Vol=%s\n",
 		     mr.MediaType, dev->VolHdr.MediaType);
 		  continue;
 	       }
 	       strcpy(pr.Name, dev->VolHdr.PoolName);
 	       if (!db_get_pool_record(db, &pr)) {
-                  Dmsg1(000, "VOL_LABEL: Pool record not found for Pool: %s\n",
+                  Pmsg1(000, "VOL_LABEL: Pool record not found for Pool: %s\n",
 		     pr.Name);
 		  continue;
 	       }
 	       if (strcmp(pr.PoolType, dev->VolHdr.PoolType) != 0) {
-                  Dmsg2(000, "VOL_LABEL: PoolType mismatch. DB=%s Vol=%s\n",
+                  Pmsg2(000, "VOL_LABEL: PoolType mismatch. DB=%s Vol=%s\n",
 		     pr.PoolType, dev->VolHdr.PoolType);
 		  continue;
 	       }
-               Dmsg1(000, "VOL_LABEL: OK for Volume: %s\n", mr.VolumeName);
+               Pmsg1(000, "VOL_LABEL: OK for Volume: %s\n", mr.VolumeName);
 	       break;
 	    case SOS_LABEL:
 	       unser_session_label(&label, &rec);
 	       memset(&jr, 0, sizeof(jr));
 	       jr.JobId = label.JobId;
 	       if (!db_get_job_record(db, &jr)) {
-                  Dmsg1(000, "SOS_LABEL: Job record not found for JobId: %d\n",
+                  Pmsg1(000, "SOS_LABEL: Job record not found for JobId: %d\n",
 		     jr.JobId);
 		  continue;
 	       }
 	       if (rec.VolSessionId != jr.VolSessionId) {
-                  Dmsg2(000, "SOS_LABEL: VolSessId mismatch. DB=%d Vol=%d\n",
+                  Pmsg2(000, "SOS_LABEL: VolSessId mismatch. DB=%d Vol=%d\n",
 		     jr.VolSessionId, rec.VolSessionId);
 		  continue;
 	       }
 	       if (rec.VolSessionTime != jr.VolSessionTime) {
-                  Dmsg2(000, "SOS_LABEL: VolSessTime mismatch. DB=%d Vol=%d\n",
+                  Pmsg2(000, "SOS_LABEL: VolSessTime mismatch. DB=%d Vol=%d\n",
 		     jr.VolSessionTime, rec.VolSessionTime);
 		  continue;
 	       }
 	       if (jr.PoolId != pr.PoolId) {
-                  Dmsg2(000, "SOS_LABEL: PoolId mismatch. DB=%d Vol=%d\n",
+                  Pmsg2(000, "SOS_LABEL: PoolId mismatch. DB=%d Vol=%d\n",
 		     jr.PoolId, pr.PoolId);
 		  continue;
 	       }
@@ -263,21 +263,21 @@ static void do_scan(char *devname)
 	    case EOS_LABEL:
 	       unser_session_label(&elabel, &rec);
 	       if (elabel.JobId != label.JobId) {
-                  Dmsg2(000, "EOS_LABEL: Start/End JobId mismatch. Start=%d End=%d\n",
+                  Pmsg2(000, "EOS_LABEL: Start/End JobId mismatch. Start=%d End=%d\n",
 		     label.JobId, elabel.JobId);
 		  continue;
 	       }
 	       if (elabel.JobFiles != jr.JobFiles) {
-                  Dmsg2(000, "EOS_LABEL: JobFiles mismatch. DB=%d EOS=%d\n",
+                  Pmsg2(000, "EOS_LABEL: JobFiles mismatch. DB=%d EOS=%d\n",
 		     jr.JobFiles, elabel.JobFiles);
 		  continue;
 	       }				 
 	       if (elabel.JobBytes != jr.JobBytes) {
-                  Dmsg2(000, "EOS_LABEL: JobBytes mismatch. DB=%d EOS=%d\n",
+                  Pmsg2(000, "EOS_LABEL: JobBytes mismatch. DB=%d EOS=%d\n",
 		     jr.JobBytes, elabel.JobBytes);
 		  continue;
 	       }				 
-               Dmsg1(000, "EOS_LABEL: OK for JobId=%d\n", elabel.JobId);
+               Pmsg1(000, "EOS_LABEL: OK for JobId=%d\n", elabel.JobId);
 	       break;
 	    case EOM_LABEL:
 	       break;
@@ -340,7 +340,7 @@ static void do_scan(char *devname)
       } else if (rec.Stream == STREAM_FILE_DATA) {
 
       } else if (rec.Stream != STREAM_MD5_SIGNATURE) {
-         Dmsg2(0, "None of above!!! stream=%d data=%s\n", rec.Stream, rec.data);
+         Pmsg2(0, "None of above!!! stream=%d data=%s\n", rec.Stream, rec.data);
       }
    }
 

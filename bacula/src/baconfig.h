@@ -39,11 +39,14 @@
 # define __PROTO(p)     ()
 #endif
 
-/* #define ASSERT(x) if (!(x)) Emsg1(M_ABORT, 0, "Failed ASSERT: %s\n", __STRING(x)) */
+#ifdef DEBUG
 #define ASSERT(x) if (!(x)) { \
    char *jcr = NULL; \
    Emsg1(M_ERROR, 0, "Failed ASSERT: %s\n", #x); \
    jcr[0] = 0; }
+#else
+#define ASSERT(x)
+#endif
 
 /* Allow printing of NULL pointers */
 #define NPRT(x) (x)?(x):"*None*" 
@@ -200,6 +203,24 @@ extern void _v(char *file, int line, pthread_mutex_t *m);
 #define Dmsg12(lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12)
 #define Dmsg13(lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13)
 #endif /* DEBUG */
+
+
+/* Messages that are printed (uses d_msg) */
+#define Pmsg0(lvl, msg)             d_msg(__FILE__, __LINE__, lvl, msg)
+#define Pmsg1(lvl, msg, a1)         d_msg(__FILE__, __LINE__, lvl, msg, a1)
+#define Pmsg2(lvl, msg, a1, a2)     d_msg(__FILE__, __LINE__, lvl, msg, a1, a2)
+#define Pmsg3(lvl, msg, a1, a2, a3) d_msg(__FILE__, __LINE__, lvl, msg, a1, a2, a3)
+#define Pmsg4(lvl, msg, arg1, arg2, arg3, arg4) d_msg(__FILE__, __LINE__, lvl, msg, arg1, arg2, arg3, arg4)
+#define Pmsg5(lvl, msg, a1, a2, a3, a4, a5) d_msg(__FILE__, __LINE__, lvl, msg, a1, a2, a3, a4, a5)
+#define Pmsg6(lvl, msg, a1, a2, a3, a4, a5, a6) d_msg(__FILE__, __LINE__, lvl, msg, a1, a2, a3, a4, a5, a6)
+#define Pmsg7(lvl, msg, a1, a2, a3, a4, a5, a6, a7) d_msg(__FILE__, __LINE__, lvl, msg, a1, a2, a3, a4, a5, a6, a7)
+#define Pmsg8(lvl, msg, a1, a2, a3, a4, a5, a6, a7, a8) d_msg(__FILE__, __LINE__, lvl, msg, a1, a2, a3, a4, a5, a6, a7, a8)
+#define Pmsg9(lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9) d_msg(__FILE__,__LINE__,lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9)
+#define Pmsg10(lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10) d_msg(__FILE__,__LINE__,lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10)
+#define Pmsg11(lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11) d_msg(__FILE__,__LINE__,lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11)
+#define Pmsg12(lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12) d_msg(__FILE__,__LINE__,lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12)
+#define Pmsg13(lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13) d_msg(__FILE__,__LINE__,lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13)
+
        
 /* Daemon Error Messages that are delivered according to the message resource */
 #define Emsg0(typ, lvl, msg)             e_msg(__FILE__, __LINE__, typ, lvl, msg)

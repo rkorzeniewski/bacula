@@ -140,6 +140,8 @@ support_mysql=no
 support_sqlite=no
 support_smartalloc=yes
 cats=
+db_name=Internal
+DB_NAME=bdb
 
 dnl# --------------------------------------------------------------------------
 dnl# CHECKING COMMAND LINE OPTIONS
@@ -622,7 +624,6 @@ AC_SUBST(sd_password)
 
 
 
-AC_SUBST(cats)
 
 # ------------------------------------------------
 # Bacula check for various SQL database engines
@@ -635,6 +636,8 @@ BA_CHECK_MYSQL_DB
 # ------------------------------------------------
 BA_CHECK_SQLITE_DB
 
+AC_SUBST(cats)
+AC_SUBST(DB_NAME)
 
 AC_DEFINE(PROTOTYPES)
 
@@ -1183,7 +1186,11 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/cats/grant_mysql_privileges \
 	   src/cats/make_sqlite_tables \
 	   src/cats/drop_sqlite_tables \
+	   src/cats/create_sqlite_database \
 	   src/cats/sqlite \
+	   src/cats/create_bdb_database \
+	   src/cats/make_bdb_tables \
+	   src/cats/drop_bdb_tables \
 	   src/findlib/Makefile \
 	   $PFILES ],  
 	  [(echo "Doing make of dependencies"; make depend;) ]
@@ -1200,8 +1207,10 @@ chmod 755 src/cats/make_test_tables src/cats/drop_test_tables
 chmod 755 src/cats/create_mysql_database
 chmod 755 src/cats/grant_mysql_privileges
 chmod 755 src/cats/make_sqlite_tables src/cats/drop_sqlite_tables 
+chmod 755 src/cats/create_sqlite_database
 chmod 755 src/cats/sqlite
-
+chmod 755 src/cats/make_bdb_tables src/cats/drop_bdb_tables 
+chmod 755 src/cats/create_bdb_database
 
 echo "
 Configuration on `date`:

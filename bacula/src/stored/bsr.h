@@ -39,16 +39,17 @@
 struct s_vol_list {
    struct s_vol_list *next;
    char VolumeName[MAX_NAME_LENGTH];
+   int Slot; 
 };
 typedef struct s_vol_list VOL_LIST;
 
 
 /*
  * !!!!!!!!!!!!!!!!!! NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- * !!!						     !!!
- * !!!	 All records must have a pointer to	     !!!
- * !!!	 the next item as the first item defined.    !!!
- * !!!						     !!!
+ * !!!                                               !!!
+ * !!!   All records must have a pointer to          !!!
+ * !!!   the next item as the first item defined.    !!!
+ * !!!                                               !!!
  * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  */
 
@@ -72,15 +73,15 @@ typedef struct s_bsr_sesstime {
 
 typedef struct s_bsr_volfile {
    struct s_bsr_volfile *next;
-   uint32_t sfile;		      /* start file */
-   uint32_t efile;		      /* end file */
+   uint32_t sfile;                    /* start file */
+   uint32_t efile;                    /* end file */
    int found;
 } BSR_VOLFILE;
 
 typedef struct s_bsr_findex {
    struct s_bsr_findex *next;
-   int32_t findex;		      /* start file index */
-   int32_t findex2;		      /* end file index */
+   int32_t findex;                    /* start file index */
+   int32_t findex2;                   /* end file index */
    int found;
 } BSR_FINDEX;
 
@@ -107,21 +108,28 @@ typedef struct s_bsr_job {
    int found;
 } BSR_JOB;
 
+typedef struct s_bsr_stream {
+   struct s_bsr_stream *next;
+   int32_t stream;                    /* stream desired */
+   int found;
+} BSR_STREAM;
 
 typedef struct s_bsr {
-   struct s_bsr *next;		      /* pointer to next one */
-   int		 done;		      /* set when everything found */
-   char 	*VolumeName;
-   BSR_VOLFILE	*volfile;
+   struct s_bsr *next;                /* pointer to next one */
+   int           done;                /* set when everything found */
+   char         *VolumeName;
+   int32_t       Slot;                /* Slot */
+   BSR_VOLFILE  *volfile;
    BSR_SESSTIME *sesstime;
-   BSR_SESSID	*sessid;
-   BSR_JOBID	*JobId;
-   BSR_JOB	*job;
-   BSR_CLIENT	*client;
-   BSR_FINDEX	*FileIndex;
-   BSR_JOBTYPE	*JobType;
+   BSR_SESSID   *sessid;
+   BSR_JOBID    *JobId;
+   BSR_JOB      *job;
+   BSR_CLIENT   *client;
+   BSR_FINDEX   *FileIndex;
+   BSR_JOBTYPE  *JobType;
    BSR_JOBLEVEL *JobLevel;
-   FF_PKT *ff;			      /* include/exclude */
+   BSR_STREAM   *stream;
+// FF_PKT *ff;                        /* include/exclude */
 } BSR;
 
 

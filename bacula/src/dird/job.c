@@ -101,7 +101,6 @@ void run_job(JCR *jcr)
    }
    Dmsg0(50, "DB opened\n");
 
-
    /*
     * Create Job record  
     */
@@ -161,11 +160,15 @@ static void job_thread(void *arg)
 	    break;
 	 case JT_VERIFY:
 	    do_verify(jcr);
-//	    do_autoprune(jcr);
+	    if (jcr->JobStatus == JS_Terminated) {
+	       do_autoprune(jcr);
+	    }
 	    break;
 	 case JT_RESTORE:
 	    do_restore(jcr);
-//	    do_autoprune(jcr);
+	    if (jcr->JobStatus == JS_Terminated) {
+	       do_autoprune(jcr);
+	    }
 	    break;
 	 case JT_ADMIN:
 	    /* No actual job */
@@ -199,7 +202,7 @@ int get_or_create_client_record(JCR *jcr)
    jcr->client_name = get_memory(strlen(jcr->client->hdr.name) + 1);
    strcpy(jcr->client_name, jcr->client->hdr.name);
    if (!db_create_client_record(jcr->db, &cr)) {
-      Jmsg(jcr, M_ERROR, 0, _("Could not create Client record. %s"), 
+      Jmsg(jcr, M_FATAL, 0, _("Could not create Client record. %s"), 
 	 db_strerror(jcr->db));
       return 0;
    }

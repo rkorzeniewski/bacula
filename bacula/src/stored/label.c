@@ -235,7 +235,7 @@ int write_volume_label_to_block(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    empty_block(block);		      /* Volume label always at beginning */
    if (!write_record_to_block(block, &rec)) {
       free_pool_memory(rec.data);
-      Emsg1(M_ERROR, 0, _("Cannot write Volume label to block for device %s\n"),
+      Jmsg1(jcr, M_FATAL, 0, _("Cannot write Volume label to block for device %s\n"),
 	 dev_name(dev));
       return 0;
    } else {
@@ -475,7 +475,7 @@ int write_session_label(JCR *jcr, DEV_BLOCK *block, int label)
 	 jcr->end_file = dev->file;
 	 break;
       default:
-         Emsg1(M_ABORT, 0, _("Bad session label = %d\n"), label);
+         Jmsg1(jcr, M_ABORT, 0, _("Bad session label = %d\n"), label);
 	 break;
    }
    create_session_label(jcr, rec, label);
@@ -535,7 +535,7 @@ void dump_volume_label(DEVICE *dev)
    
    dbl = debug_level;
    debug_level = 1;
-   Dmsg11(-1, "\nVolume Label:\n\
+   Pmsg11(-1, "\nVolume Label:\n\
 Id                : %s\
 VerNo             : %d\n\
 VolName           : %s\n\
@@ -557,7 +557,7 @@ HostName          : %s\n\
    dt.julian_day_number   = dev->VolHdr.label_date;
    dt.julian_day_fraction = dev->VolHdr.label_time;
    tm_decode(&dt, &tm);
-   Dmsg5(-1, "\
+   Pmsg5(-1, "\
 Date label written: %04d-%02d-%02d at %02d:%02d\n", 
       tm.tm_year+1900, tm.tm_mon+1, tm.tm_mday, tm.tm_hour, tm.tm_min);
    debug_level = dbl;
@@ -608,7 +608,7 @@ static void dump_session_label(DEV_RECORD *rec, char *type)
    unser_session_label(&label, rec);
    dbl = debug_level;
    debug_level = 1;
-   Dmsg6(-1, "\n%s Record:\n\
+   Pmsg6(-1, "\n%s Record:\n\
 JobId             : %d\n\
 PoolName          : %s\n\
 PoolType          : %s\n\
@@ -619,7 +619,7 @@ ClientName        : %s\n\
       label.JobName, label.ClientName);
 
    if (label.VerNum >= 10) {
-      Dmsg4(-1, "\
+      Pmsg4(-1, "\
 Job (unique name) : %s\n\
 FileSet           : %s\n\
 JobType           : %c\n\
@@ -628,7 +628,7 @@ JobLevel          : %c\n\
    }
 
    if (rec->FileIndex == EOS_LABEL) {
-      Dmsg7(-1, "\
+      Pmsg7(-1, "\
 JobFiles          : %s\n\
 JobBytes          : %s\n\
 StartBlock        : %s\n\
@@ -648,7 +648,7 @@ JobErrors         : %s\n\
    dt.julian_day_number   = label.write_date;
    dt.julian_day_fraction = label.write_time;
    tm_decode(&dt, &tm);
-   Dmsg5(-1, "\
+   Pmsg5(-1, "\
 Date written      : %04d-%02d-%02d at %02d:%02d\n", 
       tm.tm_year+1900, tm.tm_mon+1, tm.tm_mday, tm.tm_hour, tm.tm_min);
 
@@ -696,16 +696,16 @@ void dump_label_record(DEVICE *dev, DEV_RECORD *rec, int verbose)
 	    dump_session_label(rec, type);
 	    break;
 	 case EOM_LABEL:
-            Dmsg5(-1, "%s Record: VSessId=%d VSessTime=%d JobId=%d DataLen=%d\n",
+            Pmsg5(-1, "%s Record: VSessId=%d VSessTime=%d JobId=%d DataLen=%d\n",
 	       type, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
 	    break;
 	 default:
-            Dmsg5(-1, "%s Record: VSessId=%d VSessTime=%d JobId=%d DataLen=%d\n",
+            Pmsg5(-1, "%s Record: VSessId=%d VSessTime=%d JobId=%d DataLen=%d\n",
 	       type, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
 	    break;
       }
    } else {
-      Dmsg5(-1, "%s Record: VSessId=%d VSessTime=%d JobId=%d DataLen=%d\n",
+      Pmsg5(-1, "%s Record: VSessId=%d VSessTime=%d JobId=%d DataLen=%d\n",
 	 type, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
    }
    debug_level = dbl;
