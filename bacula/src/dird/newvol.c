@@ -57,9 +57,12 @@ bool newVolume(JCR *jcr, MEDIA_DBR *mr)
       if (pr.MaxVols == 0 || pr.NumVols < pr.MaxVols) {
 	 memset(mr, 0, sizeof(MEDIA_DBR));
 	 set_pool_dbr_defaults_in_media_dbr(mr, &pr);
+	 jcr->VolumeName[0] = 0;
 	 bstrncpy(mr->MediaType, jcr->store->media_type, sizeof(mr->MediaType));
+         if (generate_event(jcr, "NewVolume") == 1 && jcr->VolumeName[0]) {
+	    bstrncpy(mr->VolumeName, jcr->VolumeName, sizeof(mr->VolumeName));
 	 /* Check for special characters */
-	 if (is_volume_name_legal(NULL, pr.LabelFormat)) {
+	 } else if (is_volume_name_legal(NULL, pr.LabelFormat)) {
 	    /* No special characters, so apply simple algorithm */
 	    if (!create_simple_name(jcr, mr, &pr)) {
 	       goto bail_out;

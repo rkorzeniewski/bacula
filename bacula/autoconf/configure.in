@@ -154,6 +154,7 @@ support_static_fd=no
 support_static_sd=no
 support_static_dir=no
 support_static_cons=no
+support_python=no
 build_client_only=no
 cats=
 db_name=Internal
@@ -504,6 +505,56 @@ AC_CHECK_HEADERS(varargs.h)
 
 # End of readline/conio stuff
 # -----------------------------------------------------------------------
+
+# -----------------------------------------------------------------------
+#  Check for Python support
+#
+AC_MSG_CHECKING(for Python support)
+AC_ARG_WITH(python,
+[
+  --with-python[=DIR]	  Include Python support.  DIR is the Python base
+			  install directory, default is to search through
+			  a number of common places for the Python files.],
+[
+  PYTHON_INCDIR=.
+  PYTHON_LIBS=
+  if test "$withval" != "no"; then
+     if test "$withval" = "yes"; then
+	if test -f /usr/include/python2.2/Python.h; then
+	   PYTHON_INCDIR=/usr/include/python2.2
+	   PYTHON_LIBS="-L/usr/lib/python2.2/config -lpython2.2 -lutil -ldl"
+	elif test -f $prefix/include/Python.h; then
+	   PYTHON_INCDIR=$prefix/include
+	   PYTHON_LIBS="-L$prefix/lib/config -lpython -lutil -ldl"
+	else
+	   AC_MSG_RESULT(no)
+	   AC_MSG_ERROR(Unable to find Python.h in standard locations)
+	fi
+     else
+	if test -f $withval/Python.h; then
+	   PYTHON_INCDIR=$withval
+	   PYTHON_LIBS="-L$withval/config -lpython -lutil -ldl"
+	elif test -f $withval/include/Python.h; then
+	   PYTHON_INCDIR=$withval/include
+	   PYTHON_LIBS="-L$withval/lib/config -lpython -lutil -ldl"
+	else
+	   AC_MSG_RESULT(no)
+	   AC_MSG_ERROR(Invalid Python directory $withval - unable to find Python.h under $withval)
+	fi
+     fi
+     AC_DEFINE([HAVE_PYTHON], 1)
+     AC_MSG_RESULT(yes)
+     support_python=yes
+
+  else
+     AC_MSG_RESULT(no)
+  fi
+],[
+  AC_MSG_RESULT(no)
+])
+AC_SUBST(PYTHON_LIBS)
+AC_SUBST(PYTHON_INCDIR)
+  
 
 # -------------------------------------------
 # check for cdrecord writer location
@@ -1005,7 +1056,7 @@ AC_ARG_WITH(bimagemgr-bingroup,
 
 bimagemgr_dataowner=apache
 AC_ARG_WITH(bimagemgr-dataowner,
-   [  --with-bimagemgr-dataowner=USER   specify bimagemgr data file owner],
+   [  --with-bimagemgr-dataowner=USER	specify bimagemgr data file owner],
    [
        if test "x$withval" != "xno" ; then     
 	   bimagemgr_dataowner=$withval
@@ -1015,7 +1066,7 @@ AC_ARG_WITH(bimagemgr-dataowner,
 
 bimagemgr_datagroup=apache
 AC_ARG_WITH(bimagemgr-datagroup,
-   [  --with-bimagemgr-datagroup=USER   specify bimagemgr data file group],
+   [  --with-bimagemgr-datagroup=USER	specify bimagemgr data file group],
    [
        if test "x$withval" != "xno" ; then     
 	   bimagemgr_datagroup=$withval
@@ -1958,9 +2009,9 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/win32/Makefile \
 	   src/win32/console/bconsole.conf \
 	   src/win32/wx-console/wx-console.conf \
-        src/win32/pebuilder/Makefile \
-        src/bimagemgr/Makefile \
-        src/bimagemgr/bacula-bimagemgr.spec \
+	src/win32/pebuilder/Makefile \
+	src/bimagemgr/Makefile \
+	src/bimagemgr/bacula-bimagemgr.spec \
 	   $PFILES ],  
 	  [(echo "Doing make of dependencies"; ${MAKE:-make} depend;) ]
 )
@@ -2087,6 +2138,7 @@ Configuration on `date`:
   enable-tray-monitor:	      ${support_tray_monitor}
   client-only:		      ${build_client_only}
   ACL support:		      ${have_acl}
+  Python support:	      ${support_python} ${PYTHON_LIBS}
 
   " > config.out
 
@@ -2094,4 +2146,4 @@ cat config.out
 
 # old stuff
 # cweb support: 	      ${got_cweb} ${CWEB_SRC}
-  # gmp support:		      ${got_gmp} ${GMP_SRC}
+# gmp support:		      ${got_gmp} ${GMP_SRC}

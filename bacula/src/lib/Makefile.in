@@ -12,6 +12,8 @@ PDFTEX = pdftex
 XDVI = xdvi
 DVIPS = dvips
 
+python = @PYTHON_INCDIR@
+
 srcdir =	.
 VPATH = 	.
 .PATH:		.
@@ -40,7 +42,7 @@ LIBSRCS = alloc.c attr.c base64.c berrno.c bsys.c bget_msg.c \
 	  queue.c rwlock.c scan.c serial.c sha1.c \
 	  semlock.c signal.c smartall.c tree.c \
 	  util.c var.c watchdog.c workq.c btimers.c \
-	  address_conf.c
+	  address_conf.c python.c 
 
 
 LIBOBJS = alloc.o attr.o base64.o berrno.o bsys.o bget_msg.o \
@@ -52,7 +54,7 @@ LIBOBJS = alloc.o attr.o base64.o berrno.o bsys.o bget_msg.o \
 	  queue.o rwlock.o scan.o serial.o sha1.o \
 	  semlock.o signal.o smartall.o tree.o \
 	  util.o var.o watchdog.o workq.o btimers.o \
-	  address_conf.o
+	  address_conf.o python.o
 
 
 EXTRAOBJS = @OBJLIST@
@@ -97,6 +99,9 @@ libbac.a: $(LIBOBJS)
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	cd $(topdir) \
 	  && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+
+python.o: python.c
+	$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) -I$(python) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 
 rwlock_test:
 	rm -f rwlock.o
@@ -144,7 +149,7 @@ depend:
 	@$(MV) Makefile Makefile.bak
 	@$(SED) "/^# DO NOT DELETE:/,$$ d" Makefile.bak > Makefile
 	@$(ECHO) "# DO NOT DELETE: nice dependency list follows" >> Makefile
-	@$(CXX) -S -M $(CPPFLAGS) $(XINC) -I$(srcdir) -I$(basedir) $(SQL_INC) *.c >> Makefile
+	@$(CXX) -S -M $(CPPFLAGS) $(XINC) -I$(python) -I$(srcdir) -I$(basedir) $(SQL_INC) *.c >> Makefile
 	@if test -f Makefile ; then \
 	    $(RMF) Makefile.bak; \
 	else \
