@@ -10,8 +10,8 @@ echo "${cwd}/build" >/tmp/file-list
 
 echo " "
 echo " "
-echo " === Starting four-concurrent-jobs-tape  ==="
-echo " === Starting four-concurrent-jobs-tape  ===" >>working/log
+echo " === Starting four-concurrent-jobs-tape `date +%R:%S` ==="
+echo " === Starting four-concurrent-jobs-tape `date +%R:%S` ===" >>working/log
 echo " "
 
 bin/bacula start 2>&1 >/dev/null

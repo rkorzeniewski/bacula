@@ -17,8 +17,8 @@ cd ${cwd}
 
 echo " "
 echo " "
-echo " === Starting query-test ==="
-echo " === Starting query-test ===" >>working/log
+echo " === Starting query-test `date +%R:%S` ==="
+echo " === Starting query-test `date +%R:%S` ===" >>working/log
 echo " "
 
 bin/bacula start 2>&1 >/dev/null

@@ -11,8 +11,8 @@ echo "${cwd}/build" >/tmp/file-list
 
 echo " "
 echo " "
-echo " === Starting bextract-test  ==="
-echo " === Starting bextract-test  ===" >working/log
+echo " === Starting bextract-test `date +%R:%S` ==="
+echo " === Starting bextract-test `date +%R:%S` ===" >working/log
 echo " "
 
 bin/bacula start 2>&1 >/dev/null

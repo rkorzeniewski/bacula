@@ -16,8 +16,8 @@ cd ${cwd}
 
 echo " "
 echo " "
-echo " === Starting incremental-test ==="
-echo " === Starting incremental-test ===" >>working/log
+echo " === Starting incremental-test `date +%R:%S` ==="
+echo " === Starting incremental-test `date +%R:%S` ===" >>working/log
 echo " "
 
 bin/bacula start 2>&1 >/dev/null
