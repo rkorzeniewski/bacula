@@ -195,6 +195,7 @@ int restorecmd(UAContext *ua, char *cmd)
     * For display purposes, the same JobId, with different volumes may
     * appear more than once, however, we only insert it once.
     */
+   int items = 0;
    for (p=ji.JobIds; next_jobid_from_list(&p, &JobId) > 0; ) {
 
       if (JobId == last_JobId) {	     
@@ -202,6 +203,7 @@ int restorecmd(UAContext *ua, char *cmd)
       }
       last_JobId = JobId;
       bsendmsg(ua, _("Building directory tree for JobId %u ...\n"), JobId);
+      items++;
       /*
        * Find files for this JobId and insert them in the tree
        */
@@ -218,7 +220,7 @@ int restorecmd(UAContext *ua, char *cmd)
       }
 
    }
-   bsendmsg(ua, "%d items inserted into the tree and marked for extraction.\n");
+   bsendmsg(ua, "%d items inserted into the tree and marked for extraction.\n", items);
    free_pool_memory(query);
 
    /* Check MediaType and select storage that corresponds */

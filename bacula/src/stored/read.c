@@ -113,7 +113,7 @@ int do_read_data(JCR *jcr)
     *	Read records, apply BSR filtering, and return any that are 
     *	 matched.
     */
-   for ( ;ok && !done; ) {
+   for ( ; ok && !done; ) {
       if (job_canceled(jcr)) {
 	 ok = FALSE;
 	 break;
@@ -142,6 +142,9 @@ int do_read_data(JCR *jcr)
 	 if (dev->state & ST_SHORT) {
 	    continue;
 	 }
+	 /* I/O error -- or non-standard end of tape */
+	 ok = FALSE;
+	 break;
       }
 
       for (rec->state=0; !is_block_empty(rec); ) {

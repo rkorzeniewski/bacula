@@ -252,15 +252,15 @@ static void do_blocks(char *infname)
 	    continue;
 	 }
 	 if (dev->state & ST_EOF) {
-            Emsg1(M_INFO, 0, "Got EOF on device %s\n", dev_name(dev));
+            Jmsg(jcr, M_INFO, 0, "Got EOF on device %s\n", dev_name(dev));
             Dmsg0(20, "read_record got eof. try again\n");
 	    continue;
 	 }
 	 if (dev->state & ST_SHORT) {
-	    Emsg0(M_INFO, 0, dev->errmsg);
+            Jmsg(jcr, M_INFO, 0, "%s", dev->errmsg);
 	    continue;
 	 }
-	 display_error_status(dev);
+	 display_tape_error_status(jcr, dev);
 	 break;
       }
       Dmsg5(100, "Blk=%u blen=%u bVer=%d SessId=%u SessTim=%u\n",

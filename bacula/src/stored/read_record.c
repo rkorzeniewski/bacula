@@ -51,7 +51,7 @@ int read_records(JCR *jcr,  DEVICE *dev,
 
    block = new_block(dev);
    rec = new_record();
-   for ( ;ok && !done; ) {
+   for ( ; ok && !done; ) {
       if (job_canceled(jcr)) {
 	 ok = FALSE;
 	 break;
@@ -94,16 +94,17 @@ int read_records(JCR *jcr,  DEVICE *dev,
 	    goto next_record;
 	 }
 	 if (dev->state & ST_EOF) {
-            Emsg2(M_INFO, 0, "Got EOF on device %s, Volume \"%s\"\n", 
+            Jmsg(jcr, M_INFO, 0, "Got EOF on device %s, Volume \"%s\"\n", 
 		  dev_name(dev), jcr->VolumeName);
             Dmsg0(20, "read_record got eof. try again\n");
 	    continue;
 	 }
 	 if (dev->state & ST_SHORT) {
-	    Emsg0(M_INFO, 0, dev->errmsg);
+            Jmsg(jcr, M_INFO, 0, "%s", dev->errmsg);
 	    continue;
 	 }
-	 display_error_status(dev);
+	 /* I/O error or strange end of tape */
+	 display_tape_error_status(jcr, dev);
 	 ok = FALSE;
 	 break;
       }

@@ -233,25 +233,25 @@ JCR *setup_jcr(char *name, char *device, BSR *bsr, char *VolumeName)
 /*
  * Device got an error, attempt to analyse it
  */
-void display_error_status(DEVICE *dev)
+void display_tape_error_status(JCR *jcr, DEVICE *dev)
 {
    uint32_t status;
 
-   Emsg0(M_ERROR, 0, dev->errmsg);
+   Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
    status_dev(dev, &status);
    Dmsg1(20, "Device status: %x\n", status);
    if (status & BMT_EOD)
-      Emsg0(M_ERROR_TERM, 0, _("Unexpected End of Data\n"));
+      Jmsg(jcr, M_ERROR, 0, _("Unexpected End of Data\n"));
    else if (status & BMT_EOT)
-      Emsg0(M_ERROR_TERM, 0, _("Unexpected End of Tape\n"));
+      Jmsg(jcr, M_ERROR, 0, _("Unexpected End of Tape\n"));
    else if (status & BMT_EOF)
-      Emsg0(M_ERROR_TERM, 0, _("Unexpected End of File\n"));
+      Jmsg(jcr, M_ERROR, 0, _("Unexpected End of File\n"));
    else if (status & BMT_DR_OPEN)
-      Emsg0(M_ERROR_TERM, 0, _("Tape Door is Open\n"));
+      Jmsg(jcr, M_ERROR, 0, _("Tape Door is Open\n"));
    else if (!(status & BMT_ONLINE))
-      Emsg0(M_ERROR_TERM, 0, _("Unexpected Tape is Off-line\n"));
+      Jmsg(jcr, M_ERROR, 0, _("Unexpected Tape is Off-line\n"));
    else
-      Emsg2(M_ERROR_TERM, 0, _("Read error on Record Header %s: %s\n"), dev_name(dev), strerror(errno));
+      Jmsg(jcr, M_ERROR, 0, _("Read error on Record Header %s: %s\n"), dev_name(dev), strerror(errno));
 }
 
 

@@ -185,7 +185,7 @@ void *handle_client_request(void *dirp)
 	    found = TRUE;		 /* indicate command found */
 	    if (!cmds[i].func(jcr)) {	 /* do command */
 	       quit = TRUE;		 /* error or fully terminated,	get out */
-               Pmsg0(20, "Command error or Job done.\n");
+               Dmsg0(20, "Command error or Job done.\n");
 	    }
 	    break;
 	 }
