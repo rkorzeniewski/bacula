@@ -37,6 +37,10 @@
 %define rhel4 0
 %{?build_rhel4:%define rhel4 1}
 %{?build_rhel4:%define fc3 1}
+# CentOS build
+%define centos4 0
+%{?build_centos4:%define centos4 1}
+%{?build_centos4:%define fc3 1}
 # SuSE build
 %define su9 0
 %{?build_su9:%define su9 1}
@@ -69,6 +73,10 @@ exit 1
 exit 1
 %endif
 
+# 64 bit support
+%define x86_64 0
+%{?build_x86_64:%define x86_64 1}
+
 # check what distribution we are
 %if %{rh7} || %{rh8} || %{rh9} || %{rhel3} || %{rhel4}
 %define _dist %(grep Red /etc/redhat-release)
@@ -76,7 +84,10 @@ exit 1
 %if %{fc1}
 %define _dist %(grep Fedora /etc/redhat-release)
 %endif
-%if %{fc3} || !%{rhel4}
+%if %{centos4}
+%define _dist %(grep CentOS /etc/redhat-release)
+%endif
+%if %{fc3} && ! %{rhel4} && ! %{centos4}
 %define _dist %(grep Fedora /etc/redhat-release)
 %endif
 %if %{wb3} && ! %{rhel3}
@@ -513,6 +524,15 @@ patch src/cats/update_sqlite_tables.in src/cats/update_sqlite_tables.in.patch
 # patch the bacula-dir init script to remove sqlite service
 %if %{sqlite} && %{su9}
 patch platforms/suse/bacula-dir.in platforms/suse/bacula-dir-suse-sqlite.patch
+%endif
+
+# 64 bit lib location hacks
+# this is the location on redhat type platforms, don't know about others yet
+%if %{x86_64}
+export LDFLAGS=-L/usr/lib64
+%endif
+%if %{mysql} && %{x86_64}
+export LDFLAGS=-L/usr/lib64/mysql
 %endif
 
 %configure \
@@ -1237,6 +1257,9 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 
 
 %changelog
+* Tue Apr 05 2005 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- add centos4 build tag
+- add x86_64 build tag
 * Sun Apr 03 2005 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - add rhel4 build tag
 - clean up for mysql4 which is now mdk-10.1, suse-9.2 and rhel4
