@@ -25,44 +25,44 @@ setup: bacula
 #  is in weird-files, so we load and run it only on Linux machines.
 #
 bacula: all   
-        @rm -rf bin build weird-files tmp
-        (if test x`uname` = xLinux -o x`uname` = xFreeBSD ; then \
-           tar xfz weird-files.tar.gz ;\
-         fi)
-        rm -rf tmp working
-        mkdir tmp working
-        scripts/setup ${BACULA_SOURCE} ${EMAIL} ${WHICHDB} ${TCPWRAPPERS}
-        scripts/do_sed ${EMAIL} ${TAPE_DRIVE} ${AUTOCHANGER} ${AUTOCHANGER_PATH}
+	@rm -rf bin build weird-files tmp
+	(if test x`uname` = xLinux -o x`uname` = xFreeBSD ; then \
+	   tar xfz weird-files.tar.gz ;\
+	 fi)
+	rm -rf tmp working
+	mkdir tmp working
+	scripts/setup ${BACULA_SOURCE} ${EMAIL} ${WHICHDB} ${TCPWRAPPERS}
+	scripts/do_sed ${EMAIL} ${TAPE_DRIVE} ${AUTOCHANGER} ${AUTOCHANGER_PATH}
 
 # Run all non-root userid tests
 test: 
-        ./all-non-root-tests
+	./all-non-root-tests
 
 # run all file and tape tests
 full_test:
-        ./all-tape-and-file-tests
+	./all-tape-and-file-tests
 
 # These tests require you to run as root
 root_test:
-        ./all-root-tests
+	./all-root-tests
 
 clean:
-        scripts/cleanup
-        rm -f /tmp/file-list
-        rm -f tmp/* working/*
-        rm -f test.out
-        rm -f diff
-        rm -f 1 2 3 scripts/1 scripts/2 scripts/3 tests/1 tests/2 tests/3
-        @find . -name .#* -exec $(RMF) {} \;
+	scripts/cleanup
+	rm -f /tmp/file-list
+	rm -f tmp/* working/*
+	rm -f test.out
+	rm -f diff
+	rm -f 1 2 3 scripts/1 scripts/2 scripts/3 tests/1 tests/2 tests/3
+	@find . -name .#* -exec $(RMF) {} \;
 
 # Reset our userid after running as root
 reset:
-        chown -R ${USER}:${USER} . tmp working
-        scripts/cleanup
-        rm -f /tmp/file-list tmp/file-list
-        rm -f tmp/* working/*
+	chown -R ${USER}:${USER} . tmp working
+	scripts/cleanup
+	rm -f /tmp/file-list tmp/file-list
+	rm -f tmp/* working/*
 
 distclean: clean
-        rm -rf bin build weird-files weird-files weird-files2 tmp working
-        rm -f scripts/*.conf
-                      
+	rm -rf bin build weird-files weird-files weird-files2 tmp working
+	rm -f scripts/*.conf
+		      
