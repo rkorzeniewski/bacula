@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                   21 August 2003 
+                   24 August 2003 
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -27,6 +27,21 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.32:
+- Write JobMedia records with max file size is reached on tape.
+- Look at the possibility of loading only the necessary 
+  data into the restore tree (i.e. do it one directory at a
+  time as the user walks through the tree).
+- Possibly use the hash code if the user selects all.
+- Handle the case of multiple JobMedia records pending (i.e. the
+  thread is slow and multiple situations requiring a JobMedia
+  record occur).
+- Fix maximum file size (block.c) to generate JobMedia records.
+- Do performance analysis on the restore tree routines.
+- Implement forward spacing between files.
+- Make the default file size 1GB on the tape.
+- Orphaned Dir buffer at parse_conf.c:373 =>  store_dir
+- Implement some way for the File daemon to contact the Director 
+  to start a job or pass its DHCP obtained IP number.
 - Implement multiple Consoles.
 - Add Console usr permissions.
 - Fix "restore all" to bypass building the tree.
@@ -807,4 +822,3 @@ Done: (see kernsdone for more)
 - Fix read_record to handle multiple sessions.
 - Tip from Steve Allam
   mt -f /dev/nst0 defblksize 0
-
