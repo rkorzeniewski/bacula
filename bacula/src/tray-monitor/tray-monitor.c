@@ -60,8 +60,11 @@ static char DotStatusJob[] = "JobId=%d JobStatus=%c JobErrors=%d\n";
 
 /* UI variables and functions */
 
+extern "C" {
 static gboolean fd_read(gpointer data);
 static gboolean blink(gpointer data);
+}
+
 void trayMessage(const char *fmt,...);
 void updateStatusIcon(monitoritem* item);
 void changeStatusMessage(monitoritem* item, const char *fmt,...);
