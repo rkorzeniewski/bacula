@@ -124,6 +124,10 @@ case $cmd in
       ${MTX} -f $ctl status | grep " *Storage Element [0-9]*:.*Full" | awk "{print \$3 \$4}" | sed "s/Full *\(:VolumeTag=\)*//"
 # Comment out the previous line and add a line here
 # to print "fake" barcodes.
+#
+# If you have a VXA PacketLoader and the above does not work, try
+#  turning it off and enabling the following line.
+#     ${MTX} -f $ctl status | grep " *Storage Element [0-9]*:.*Full" | sed "s/*Storage Element //" | sed "s/Full :VolumeTag=//"
       ;;
 
    loaded)
