@@ -6,14 +6,13 @@
 cwd=`pwd`
 scripts/copy-confs
 rm -rf /tmp/TestVolume001 /tmp/bacula-restores
-bin/bacula stop 
+bin/bacula stop 2>&1 >/dev/null
 bin/drop_sqlite_tables
 bin/make_sqlite_tables
 
 echo " "
 echo " "
 echo " === Starting Backup Bacula Test ==="
-echo " "
 echo " "
 
 bin/bacula start

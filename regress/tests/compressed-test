@@ -7,14 +7,13 @@ cwd=`pwd`
 scripts/copy-test-confs
 rm -rf /tmp/TestVolume001 /tmp/bacula-restores
 echo "${cwd}/build" >/tmp/file-list
-bin/bacula stop 
+bin/bacula stop  2>&1 >/dev/null
 bin/drop_sqlite_tables
 bin/make_sqlite_tables
 
 echo " "
 echo " "
 echo " === Starting compressed-test ==="
-echo " "
 echo " "
 
 bin/bacula start
