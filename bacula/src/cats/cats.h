@@ -48,7 +48,7 @@ typedef int (DB_RESULT_HANDLER)(void *, int, char **);
 
 #ifdef HAVE_SQLITE
 
-#define BDB_VERSION 6
+#define BDB_VERSION 7
 
 #include <sqlite.h>
 
@@ -142,7 +142,7 @@ extern void my_sqlite_free_table(B_DB *mdb);
 
 #ifdef HAVE_MYSQL
 
-#define BDB_VERSION 6
+#define BDB_VERSION 7
 
 #include <mysql.h>
 

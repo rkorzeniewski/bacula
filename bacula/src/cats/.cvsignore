@@ -2,8 +2,6 @@
 Makefile
 make_catalog_backup
 delete_catalog_backup
-alter_mysql_tables
-alter_sqlite_tables
 create_bdb_database
 create_mysql_database
 create_sqlite_database
@@ -20,3 +18,8 @@ mysql
 sqlite
 make_bacula_tables
 drop_bacula_tables
+update.sql
+update2_sqlite_tables
+update_bacula_tables
+update_mysql_tables
+update_sqlite_tables

@@ -64,6 +64,7 @@ extern int status_cmd(JCR *sjcr);
 /* Forward referenced functions */
 static int label_cmd(JCR *jcr);
 static int relabel_cmd(JCR *jcr);
+static int readlabel_cmd(JCR *jcr);
 static int release_cmd(JCR *jcr);
 static int setdebug_cmd(JCR *jcr);
 static int cancel_cmd(JCR *cjcr);
@@ -71,6 +72,8 @@ static int mount_cmd(JCR *jcr);
 static int unmount_cmd(JCR *jcr);
 static int autochanger_cmd(JCR *sjcr);
 static int do_label(JCR *jcr, int relabel);
+static bool find_device(JCR *jcr, char *dname);
+static void read_volume_label(JCR *jcr, DEVICE *dev, int Slot);
 static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
 			       char *newname, char *poolname, 
 			       int Slot, int relabel);
@@ -94,6 +97,7 @@ static struct s_cmds cmds[] = {
    {"status",    status_cmd},
    {"autochanger", autochanger_cmd},
    {"release",   release_cmd},
+   {"readlabel", readlabel_cmd},
    {NULL,	 NULL}		      /* list terminator */
 };
 
@@ -264,9 +268,8 @@ static int do_label(JCR *jcr, int relabel)
 {
    POOLMEM *dname, *newname, *oldname, *poolname, *mtype;
    BSOCK *dir = jcr->dir_bsock;
-   DEVRES *device;
    DEVICE *dev;
-   int found = 0, ok = 0;
+   bool ok = false;
    int slot;	
 
    dname = get_memory(dir->msglen+1);
@@ -277,36 +280,23 @@ static int do_label(JCR *jcr, int relabel)
    if (relabel) {
       if (sscanf(dir->msg, "relabel %s OldName=%s NewName=%s PoolName=%s MediaType=%s Slot=%d",
 	  dname, oldname, newname, poolname, mtype, &slot) == 6) {
-	 ok = 1;
+	 ok = true;
       }
    } else {
       *oldname = 0;
       if (sscanf(dir->msg, "label %s VolumeName=%s PoolName=%s MediaType=%s Slot=%d",
 	  dname, newname, poolname, mtype, &slot) == 5) {
-	 ok = 1;
+	 ok = true;
       }
    }
    if (ok) {
-      unbash_spaces(dname);
       unbash_spaces(newname);
       unbash_spaces(oldname);
       unbash_spaces(poolname);
       unbash_spaces(mtype);
-      device = NULL;
-      LockRes();
-      while ((device=(DEVRES *)GetNextRes(R_DEVICE, (RES *)device))) {
-	 /* Find resource, and make sure we were able to open it */
-	 if (strcmp(device->hdr.name, dname) == 0 && device->dev) {
-            Dmsg1(20, "Found device %s\n", device->hdr.name);
-	    found = 1;
-	    break;
-	 }
-      }
-      UnlockRes();
-      if (found) {
+      if (find_device(jcr, dname)) {
 	 /******FIXME**** compare MediaTypes */
-	 jcr->device = device;
-	 dev = device->dev;
+	 dev = jcr->device->dev;
 
 	 P(dev->mutex); 	      /* Use P to avoid indefinite block */
 	 if (!(dev->state & ST_OPENED)) {
@@ -375,9 +365,6 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
    /* Ensure that the device is open -- autoload_device() closes it */
    for ( ; !(dev->state & ST_OPENED); ) {
       if (open_dev(dev, jcr->VolumeName, READ_WRITE) < 0) {
-	 if (dev->dev_errno == EAGAIN || dev->dev_errno == EBUSY) {
-	    bmicrosleep(30, 0);
-	 }
          bnet_fsend(dir, _("3910 Unable to open device %s. ERR=%s\n"), 
 	    dev_name(dev), strerror_dev(dev));
 	 goto bail_out;
@@ -410,7 +397,7 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
       }
       pm_strcpy(&jcr->VolumeName, newname);
       bnet_fsend(dir, _("3000 OK label. Volume=%s Device=%s\n"), 
-	 newname, dev->dev_name);
+	 newname, dev_name(dev));
       break;
    case VOL_NO_MEDIA:
       bnet_fsend(dir, _("3912 Failed to label Volume: ERR=%s\n"), strerror_dev(dev));
@@ -452,7 +439,7 @@ static int read_label(JCR *jcr, DEVICE *dev)
       break;
    default:
       bnet_fsend(dir, _("3902 Cannot mount Volume on Storage Device \"%s\" because:\n%s"),
-	 dev->dev_name, jcr->errmsg);
+	 dev_name(dev), jcr->errmsg);
       stat = 0;
       break;
    }
@@ -461,45 +448,52 @@ static int read_label(JCR *jcr, DEVICE *dev)
    return stat;
 }
 
+static bool find_device(JCR *jcr, char *dname)
+{
+   DEVRES *device = NULL;
+   bool found = false;
+
+   unbash_spaces(dname);
+   LockRes();
+   while ((device=(DEVRES *)GetNextRes(R_DEVICE, (RES *)device))) {
+      /* Find resource, and make sure we were able to open it */
+      if (strcmp(device->hdr.name, dname) == 0 && device->dev) {
+         Dmsg1(20, "Found device %s\n", device->hdr.name);
+	 jcr->device = device;
+	 found = true;
+	 break;
+      }
+   }
+   UnlockRes();
+   return found;
+}
+
+
 /*
  * Mount command from Director
  */
 static int mount_cmd(JCR *jcr)
 {
-   POOLMEM *dev_name;
+   POOLMEM *dname;
    BSOCK *dir = jcr->dir_bsock;
-   DEVRES *device;
    DEVICE *dev;
-   int found = 0;
 
-   dev_name = get_memory(dir->msglen+1);
-   if (sscanf(dir->msg, "mount %s", dev_name) == 1) {
-      unbash_spaces(dev_name);
-      device = NULL;
-      LockRes();
-      while ((device=(DEVRES *)GetNextRes(R_DEVICE, (RES *)device))) {
-	 /* Find resource, and make sure we were able to open it */
-	 if (strcmp(device->hdr.name, dev_name) == 0 && device->dev) {
-            Dmsg1(20, "Found device %s\n", device->hdr.name);
-	    found = 1;
-	    break;
-	 }
-      }
-      UnlockRes();
-      if (found) {
+   dname = get_memory(dir->msglen+1);
+   if (sscanf(dir->msg, "mount %s", dname) == 1) {
+      if (find_device(jcr, dname)) {
 	 DEV_BLOCK *block;
-	 jcr->device = device;
-	 dev = device->dev;
+	 dev = jcr->device->dev;
 	 P(dev->mutex); 	      /* Use P to avoid indefinite block */
 	 switch (dev->dev_blocked) {	     /* device blocked? */
 	 case BST_WAITING_FOR_SYSOP:
 	    /* Someone is waiting, wake him */
             Dmsg0(100, "Waiting for mount. Attempting to wake thread\n");
 	    dev->dev_blocked = BST_MOUNT;
-            bnet_fsend(dir, "3001 OK mount. Device=%s\n", dev->dev_name);
+            bnet_fsend(dir, "3001 OK mount. Device=%s\n", dev_name(dev));
 	    pthread_cond_signal(&dev->wait_next_vol);
 	    break;
 
+	 /* In both of these two cases, we (the user) unmounted the Volume */
 	 case BST_UNMOUNTED_WAITING_FOR_SYSOP:
 	 case BST_UNMOUNTED:
 	    /* We freed the device, so reopen it and wake any waiting threads */
@@ -512,8 +506,9 @@ static int mount_cmd(JCR *jcr)
 	    read_dev_volume_label(jcr, dev, block);
 	    free_block(block);
 	    if (dev->dev_blocked == BST_UNMOUNTED) {
+	       /* We blocked the device, so unblock it */
                Dmsg0(100, "Unmounted. Unblocking device\n");
-	       read_label(jcr, dev);
+	       read_label(jcr, dev);  /* this should not be necessary */
 	       unblock_device(dev);
 	    } else {
                Dmsg0(100, "Unmounted waiting for mount. Attempting to wake thread\n");
@@ -521,33 +516,33 @@ static int mount_cmd(JCR *jcr)
 	    }
 	    if (dev_state(dev, ST_LABEL)) {
                bnet_fsend(dir, _("3001 Device %s is mounted with Volume \"%s\"\n"), 
-		  dev->dev_name, dev->VolHdr.VolName);
+		  dev_name(dev), dev->VolHdr.VolName);
 	    } else {
                bnet_fsend(dir, _("3905 Device %s open but no Bacula volume is mounted.\n"
                                  "If this is not a blank tape, try unmounting and remounting the Volume.\n"),
-			  dev->dev_name);
+			  dev_name(dev));
 	    }
 	    pthread_cond_signal(&dev->wait_next_vol);
 	    break;
 
 	 case BST_DOING_ACQUIRE:
             bnet_fsend(dir, _("3001 Device %s is mounted; doing acquire.\n"), 
-		       dev->dev_name);
+		       dev_name(dev));
 	    break;
 
 	 case BST_WRITING_LABEL:
-            bnet_fsend(dir, _("3903 Device %s is being labeled.\n"), dev->dev_name);
+            bnet_fsend(dir, _("3903 Device %s is being labeled.\n"), dev_name(dev));
 	    break;
 
 	 case BST_NOT_BLOCKED:
 	    if (dev_state(dev, ST_OPENED)) {
 	       if (dev_state(dev, ST_LABEL)) {
                   bnet_fsend(dir, _("3001 Device %s is mounted with Volume \"%s\"\n"),
-		     dev->dev_name, dev->VolHdr.VolName);
+		     dev_name(dev), dev->VolHdr.VolName);
 	       } else {
                   bnet_fsend(dir, _("3905 Device %s open but no Bacula volume is mounted.\n"   
                                  "If this is not a blank tape, try unmounting and remounting the Volume.\n"),
-			     dev->dev_name);
+			     dev_name(dev));
 	       }
 	    } else {
 	       if (!dev_is_tape(dev)) {
@@ -562,11 +557,11 @@ static int mount_cmd(JCR *jcr)
 	       read_label(jcr, dev);
 	       if (dev_state(dev, ST_LABEL)) {
                   bnet_fsend(dir, _("3001 Device %s is mounted with Volume \"%s\"\n"), 
-		     dev->dev_name, dev->VolHdr.VolName);
+		     dev_name(dev), dev->VolHdr.VolName);
 	       } else {
                   bnet_fsend(dir, _("3905 Device %s open but no Bacula volume is mounted.\n"
                                     "If this is not a blank tape, try unmounting and remounting the Volume.\n"),
-			     dev->dev_name);
+			     dev_name(dev));
 	       }
 	    }
 	    break;
@@ -577,13 +572,13 @@ static int mount_cmd(JCR *jcr)
 	 }
 	 V(dev->mutex);
       } else {
-         bnet_fsend(dir, _("3999 Device %s not found\n"), dev_name);
+         bnet_fsend(dir, _("3999 Device %s not found\n"), dname);
       }
    } else {
       pm_strcpy(&jcr->errmsg, dir->msg);
       bnet_fsend(dir, _("3909 Error scanning mount command: %s\n"), jcr->errmsg);
    }
-   free_memory(dev_name);
+   free_memory(dname);
    bnet_sig(dir, BNET_EOD);
    return 1;
 }
@@ -595,27 +590,12 @@ static int unmount_cmd(JCR *jcr)
 {
    POOLMEM *dname;
    BSOCK *dir = jcr->dir_bsock;
-   DEVRES *device;
    DEVICE *dev;
-   int found = 0;
 
    dname = get_memory(dir->msglen+1);
    if (sscanf(dir->msg, "unmount %s", dname) == 1) {
-      unbash_spaces(dname);
-      device = NULL;
-      LockRes();
-      while ((device=(DEVRES *)GetNextRes(R_DEVICE, (RES *)device))) {
-	 /* Find resource, and make sure we were able to open it */
-	 if (strcmp(device->hdr.name, dname) == 0 && device->dev) {
-            Dmsg1(20, "Found device %s\n", device->hdr.name);
-	    found = 1;
-	    break;
-	 }
-      }
-      UnlockRes();
-      if (found) {
-	 jcr->device = device;
-	 dev = device->dev;
+      if (find_device(jcr, dname)) {
+	 dev = jcr->device->dev;
 	 P(dev->mutex); 	      /* Use P to avoid indefinite block */
 	 if (!(dev->state & ST_OPENED)) {
             Dmsg0(90, "Device already unmounted\n");
@@ -631,18 +611,15 @@ static int unmount_cmd(JCR *jcr)
             bnet_fsend(dir, _("3001 Device %s unmounted.\n"), dev_name(dev));
 
 	 } else if (dev->dev_blocked == BST_DOING_ACQUIRE) {
-            bnet_fsend(dir, _("3902 Device %s is busy in acquire.\n"),
-	       dev_name(dev));
+            bnet_fsend(dir, _("3902 Device %s is busy in acquire.\n"), dev_name(dev));
 
 	 } else if (dev->dev_blocked == BST_WRITING_LABEL) {
-            bnet_fsend(dir, _("3903 Device %s is being labeled.\n"),
-	       dev_name(dev));
+            bnet_fsend(dir, _("3903 Device %s is being labeled.\n"), dev_name(dev));
 
 	 } else if (dev_state(dev, ST_READ) || dev->num_writers) {
 	    if (dev_state(dev, ST_READ)) {
                 Dmsg0(90, "Device in read mode\n");
-                bnet_fsend(dir, _("3904 Device %s is busy with 1 reader.\n"),
-		   dev_name(dev));
+                bnet_fsend(dir, _("3904 Device %s is busy with 1 reader.\n"), dev_name(dev));
 	    } else {
                 Dmsg1(90, "Device busy with %d writers\n", dev->num_writers);
                 bnet_fsend(dir, _("3905 Device %s is busy with %d writer(s).\n"),
@@ -689,27 +666,12 @@ static int release_cmd(JCR *jcr)
 {
    POOLMEM *dname;
    BSOCK *dir = jcr->dir_bsock;
-   DEVRES *device;
    DEVICE *dev;
-   int found = 0;
 
    dname = get_memory(dir->msglen+1);
    if (sscanf(dir->msg, "release %s", dname) == 1) {
-      unbash_spaces(dname);
-      device = NULL;
-      LockRes();
-      while ((device=(DEVRES *)GetNextRes(R_DEVICE, (RES *)device))) {
-	 /* Find resource, and make sure we were able to open it */
-	 if (strcmp(device->hdr.name, dname) == 0 && device->dev) {
-            Dmsg1(20, "Found device %s\n", device->hdr.name);
-	    found = 1;
-	    break;
-	 }
-      }
-      UnlockRes();
-      if (found) {
-	 jcr->device = device;
-	 dev = device->dev;
+      if (find_device(jcr, dname)) {
+	 dev = jcr->device->dev;
 	 P(dev->mutex); 	      /* Use P to avoid indefinite block */
 	 if (!(dev->state & ST_OPENED)) {
             Dmsg0(90, "Device already released\n");
@@ -722,18 +684,15 @@ static int release_cmd(JCR *jcr)
             bnet_fsend(dir, _("3912 Device %s waiting for mount.\n"), dev_name(dev));
 
 	 } else if (dev->dev_blocked == BST_DOING_ACQUIRE) {
-            bnet_fsend(dir, _("3913 Device %s is busy in acquire.\n"),
-	       dev_name(dev));
+            bnet_fsend(dir, _("3913 Device %s is busy in acquire.\n"), dev_name(dev));
 
 	 } else if (dev->dev_blocked == BST_WRITING_LABEL) {
-            bnet_fsend(dir, _("3914 Device %s is being labeled.\n"),
-	       dev_name(dev));
+            bnet_fsend(dir, _("3914 Device %s is being labeled.\n"), dev_name(dev));
 
 	 } else if (dev_state(dev, ST_READ) || dev->num_writers) {
 	    if (dev_state(dev, ST_READ)) {
                 Dmsg0(90, "Device in read mode\n");
-                bnet_fsend(dir, _("3915 Device %s is busy with 1 reader.\n"),
-		   dev_name(dev));
+                bnet_fsend(dir, _("3915 Device %s is busy with 1 reader.\n"), dev_name(dev));
 	    } else {
                 Dmsg1(90, "Device busy with %d writers\n", dev->num_writers);
                 bnet_fsend(dir, _("3916 Device %s is busy with %d writer(s).\n"),
@@ -766,33 +725,17 @@ static int release_cmd(JCR *jcr)
  */
 static int autochanger_cmd(JCR *jcr)
 {
-   POOLMEM *devname;
+   POOLMEM *dname;
    BSOCK *dir = jcr->dir_bsock;
-   DEVRES *device;
    DEVICE *dev;
-   int found = 0;
 
-   devname = get_memory(dir->msglen+1);
-   if (sscanf(dir->msg, "autochanger list %s ", devname) == 1) {
-      unbash_spaces(devname);
-      device = NULL;
-      LockRes();
-      while ((device=(DEVRES *)GetNextRes(R_DEVICE, (RES *)device))) {
-	 /* Find resource, and make sure we were able to open it */
-	 if (strcmp(device->hdr.name, devname) == 0 && device->dev) {
-            Dmsg1(20, "Found device %s\n", device->hdr.name);
-	    found = 1;
-	    break;
-	 }
-      }
-      UnlockRes();
-      if (found) {
-	 jcr->device = device;
-	 dev = device->dev;
+   dname = get_memory(dir->msglen+1);
+   if (sscanf(dir->msg, "autochanger list %s ", dname) == 1) {
+      if (find_device(jcr, dname)) {
+	 dev = jcr->device->dev;
 	 P(dev->mutex); 	      /* Use P to avoid indefinite block */
 	 if (!dev_is_tape(dev)) {
-            bnet_fsend(dir, _("3995 Device %s is not an autochanger.\n"), 
-	       dev_name(dev));
+            bnet_fsend(dir, _("3995 Device %s is not an autochanger.\n"), dev_name(dev));
 	 } else if (!(dev->state & ST_OPENED)) {
 	    if (open_dev(dev, NULL, READ_WRITE) < 0) {
                bnet_fsend(dir, _("3994 Connot open device: %s\n"), strerror_dev(dev));
@@ -808,8 +751,7 @@ static int autochanger_cmd(JCR *jcr)
 	    autochanger_list(jcr, dev, dir);
 	 } else if (dev_state(dev, ST_READ) || dev->num_writers) {
 	    if (dev_state(dev, ST_READ)) {
-                bnet_fsend(dir, _("3901 Device %s is busy with 1 reader.\n"),
-		   dev_name(dev));
+                bnet_fsend(dir, _("3901 Device %s is busy with 1 reader.\n"), dev_name(dev));
 	    } else {
                 bnet_fsend(dir, _("3902 Device %s is busy with %d writer(s).\n"),
 		   dev_name(dev), dev->num_writers);
@@ -819,14 +761,112 @@ static int autochanger_cmd(JCR *jcr)
 	 }
 	 V(dev->mutex);
       } else {
-         bnet_fsend(dir, _("3999 Device %s not found\n"), devname);
+         bnet_fsend(dir, _("3999 Device %s not found\n"), dname);
       }
    } else {  /* error on scanf */
       pm_strcpy(&jcr->errmsg, dir->msg);
       bnet_fsend(dir, _("3908 Error scanning autocharger list command: %s\n"),
 	 jcr->errmsg);
    }
-   free_memory(devname);
+   free_memory(dname);
    bnet_sig(dir, BNET_EOD);
    return 1;
+}
+
+/*
+ * Read and return the Volume label
+ */
+static int readlabel_cmd(JCR *jcr)
+{
+   POOLMEM *dname;
+   BSOCK *dir = jcr->dir_bsock;
+   DEVICE *dev;
+   int Slot;
+
+   dname = get_memory(dir->msglen+1);
+   if (sscanf(dir->msg, "readlabel %s Slot=%d", dname, &Slot) == 2) {
+      if (find_device(jcr, dname)) {
+	 dev = jcr->device->dev;
+
+	 P(dev->mutex); 	      /* Use P to avoid indefinite block */
+	 if (!(dev->state & ST_OPENED)) {
+	    if (open_dev(dev, NULL, READ_WRITE) < 0) {
+               bnet_fsend(dir, _("3994 Connot open device: %s\n"), strerror_dev(dev));
+	    } else {
+	       read_volume_label(jcr, dev, Slot);
+	       force_close_dev(dev);
+	    }
+         /* Under certain "safe" conditions, we can steal the lock */
+	 } else if (dev->dev_blocked && 
+		    (dev->dev_blocked == BST_UNMOUNTED ||
+		     dev->dev_blocked == BST_WAITING_FOR_SYSOP ||
+		     dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP)) {
+	    read_volume_label(jcr, dev, Slot);
+	 } else if (dev_state(dev, ST_READ) || dev->num_writers) {
+	    if (dev_state(dev, ST_READ)) {
+                bnet_fsend(dir, _("3911 Device %s is busy with 1 reader.\n"),
+			    dev_name(dev));
+	    } else {
+                bnet_fsend(dir, _("3912 Device %s is busy with %d writer(s).\n"),
+		   dev_name(dev), dev->num_writers);
+	    }
+	 } else {		      /* device not being used */
+	    read_volume_label(jcr, dev, Slot);
+	 }
+	 V(dev->mutex);
+      } else {
+         bnet_fsend(dir, _("3999 Device %s not found\n"), dname);
+      }
+   } else {
+      pm_strcpy(&jcr->errmsg, dir->msg);
+      bnet_fsend(dir, _("3909 Error scanning readlabel command: %s\n"), jcr->errmsg);
+   }
+   free_memory(dname);
+   bnet_sig(dir, BNET_EOD);
+   return 1;
+}
+
+/* 
+ * Read the tape label
+ *
+ *  Enter with the mutex set
+ */
+static void read_volume_label(JCR *jcr, DEVICE *dev, int Slot)
+{
+   BSOCK *dir = jcr->dir_bsock;
+   DEV_BLOCK *block;
+   bsteal_lock_t hold;
+   
+   steal_device_lock(dev, &hold, BST_WRITING_LABEL);
+   
+   jcr->VolumeName[0] = 0;
+   jcr->VolCatInfo.Slot = Slot;
+   autoload_device(jcr, dev, 0, dir);	   /* autoload if possible */
+   block = new_block(dev);
+
+   /* Ensure that the device is open -- autoload_device() closes it */
+   for ( ; !(dev->state & ST_OPENED); ) {
+      if (open_dev(dev, jcr->VolumeName, READ_WRITE) < 0) {
+         bnet_fsend(dir, _("3910 Unable to open device %s. ERR=%s\n"), 
+	    dev_name(dev), strerror_dev(dev));
+	 goto bail_out;
+      }
+   }
+
+   dev->state &= ~ST_LABEL;	      /* force read of label */
+   switch (read_dev_volume_label(jcr, dev, block)) {		    
+   case VOL_OK:
+      bnet_fsend(dir, _("3001 Volume=%s Slot=%d\n"), dev->VolHdr.VolName, Slot);
+      Dmsg1(100, "Volume: %s\n", dev->VolHdr.VolName);
+      break;
+   default:
+      bnet_fsend(dir, _("3902 Cannot mount Volume on Storage Device \"%s\" because:\n%s"),
+		 dev_name(dev), jcr->errmsg);
+      break;
+   }
+
+bail_out:
+   free_block(block);
+   give_back_device_lock(dev, &hold);
+   return;
 }

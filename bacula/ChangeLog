@@ -1,4 +1,84 @@
 
+2003-11-xx Version 1.33  xxNov03
+18Nov03
+- Start daemons at level 90 rather than 20 so that MySQL will already
+  be started.
+- Write alter_mysql_tables.in and alter_sqlite_tables.in
+- Add Drive and InChanger to Media record.
+- Update database level to 7.
+- Add db_make_inchanger_unique() and call it when creating and updating
+  the Media record.
+- Add Drive and InChanger to database code for Media record.
+- Allow changing InChanger flag in update command.
+- First cut at allowing the user to specify slots for updating autochanger.
+- Add scan to "update slots scan".
+- Add command in SD to readlabel.
+15Nov03
+- In the bacula start/stop script, ordered the stop: FD SD Dir to
+  give the SD the best chances of updating the catalog before dying.
+- Add Drive and InChanger to MEDIA_DBR record and to Volume update
+  from the SD.
+- Reorganize the Volume info update from SD so that the Dir sends back the
+  current information in case the Volume status has changed by expiring.
+  The DIR-SD protocol is not backward compatible (must update).
+- Fixed the signal handler to pass the signal to the exit_handler() 
+  previously it passed 1.
+- Modified SD so that on normal shutdown, it walks through all jcrs and
+  cancels them so that the Volume status will be updated in the catalog.
+- Found and fixed a bug where ST_LABEL was not set in append mode
+  (when a different tape was accepted other than the original one
+  proposed by the DIR.
+- Update the catalog Volume info after dev->file is incremented rather
+  than waiting for end of job.
+12Nov03
+- Change getdomainname() prototype for Darwin.
+- Add gethost_strerror() to create correct error message for
+  gethostbyname().
+- After doing a kill() of a stalled connection in watchdog, turn off
+  the timer to prevent an infinite loop.
+- Allow Bacula to rewrite the label on a disk volume.
+- Correct usage report printed by bsmtp.
+11Nov03
+- Complete changing references to bsmtp from smtp.
+- Add L_NONE for Admin and Restore jobs and update level_to_str()
+- Fix segfault from double free of RestoreBootstrap in job.c
+10Nov03
+- Change console to bconsole
+- Change console.conf to bconsole.conf
+- Change smtp to bsmtp
+- Implement .bconsolerc
+- Check if volume has expired when doing an update media for the SD
+09Nov03
+- Implement new code that assures that a non-zero Slot is unique within
+  a given Pool. When setting a non-zero Slot, the Slot of all other
+  Volumes with the same Slot is set to zero.
+07Nov03
+- Fix bug reported by Lars where an incorrect Volume name was printed
+  by the "status dir" command.
+06Nov03
+- Pretty up a few error messages printed by smtp.
+- Make btime_t int64_t so that one can do arithmetic.
+- Implement since as utime (64 bit UTC). 
+- Compute clock diff between Dir and FD, and adjust since time.
+- Apply SQL fix from Nic Bellamy (thanks).
+- Apply John's zlib #ifdefing fix.
+05Nov03
+- Add Dan's with-sd-user, ... to configure.in.
+- Add Dan's userid and group modifications to bacula.in
+- Lots of documentation updates.
+- Make console print "Enter a period to cancel a command" when starting.
+- Fix the "list nextvol" command so that it doesn't try to close the
+  database twice, giving a segfault.
+- Fix (hopefully) to dircmd.c so that a mount request does a pthread_cond_signal.
+  There was one path were the signal was not sent. This should fix the bug
+  that requires you to do two "mount" commands to free a job waiting on a mount.
+- Make dir_ask_sysop_to_mount_next_volume() return immediately if a slot is
+  specified.
+- Correct some of the messages in testfind.c (pointed out by Dan -- thanks).
+- Alias fd to client, sd to storage.
+- Changed order of Console commands so that short commands such as q (quit) 
+  are more logical.
+
 2003-11-03 Version 1.32d 02Nov03 Release
 02Nov03
 - Mainly a bug fix release.

@@ -256,8 +256,10 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       sql_free_result(mdb);
    }
 
-   /* Make sur Slot, if non-zero, is unique */
-   db_make_slot_unique(jcr, mdb, mr);
+   /* Make sure that if InChanger is non-zero any other identical slot
+    *	has InChanger zero.
+    */
+   db_make_inchanger_unique(jcr, mdb, mr);
 
    /* Must create it */
    if (mr->LabelDate) {
@@ -269,8 +271,8 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    Mmsg(&mdb->cmd, 
 "INSERT INTO Media (VolumeName,MediaType,PoolId,MaxVolBytes,VolCapacityBytes," 
 "Recycle,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,"
-"VolStatus,LabelDate,Slot,VolBytes) "
-"VALUES ('%s','%s',%u,%s,%s,%d,%s,%s,%u,%u,'%s','%s',%d,%s)", 
+"VolStatus,LabelDate,Slot,VolBytes,Drive,InChanger) "
+"VALUES ('%s','%s',%u,%s,%s,%d,%s,%s,%u,%u,'%s','%s',%d,%s,%d,%d)", 
 		  mr->VolumeName,
 		  mr->MediaType, mr->PoolId, 
 		  edit_uint64(mr->MaxVolBytes,ed1),
@@ -282,7 +284,9 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 		  mr->MaxVolFiles,
 		  mr->VolStatus, dt,
 		  mr->Slot,
-		  edit_uint64(mr->VolBytes, ed5));
+		  edit_uint64(mr->VolBytes, ed5),
+		  mr->Drive,
+		  mr->InChanger);
 
    Dmsg1(500, "Create Volume: %s\n", mdb->cmd);
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {

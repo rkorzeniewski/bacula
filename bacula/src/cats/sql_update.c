@@ -272,21 +272,21 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       stat = UPDATE_DB(jcr, mdb, mdb->cmd);
    }
    
-   /* Make sure Slot, if non-zero, is unique */
-   db_make_slot_unique(jcr, mdb, mr);
+   /* Make sure InChanger is 0 for any record having the same Slot */
+   db_make_inchanger_unique(jcr, mdb, mr);
 
    ttime = mr->LastWritten;
    localtime_r(&ttime, &tm);
    strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
 
-   Mmsg(&mdb->cmd, "UPDATE Media SET VolJobs=%u,\
- VolFiles=%u,VolBlocks=%u,VolBytes=%s,VolMounts=%u,VolErrors=%u,\
- VolWrites=%u,MaxVolBytes=%s,LastWritten='%s',VolStatus='%s',\
- Slot=%d WHERE VolumeName='%s'",
-   mr->VolJobs, mr->VolFiles, mr->VolBlocks, edit_uint64(mr->VolBytes, ed1),
-   mr->VolMounts, mr->VolErrors, mr->VolWrites, 
-   edit_uint64(mr->MaxVolBytes, ed2), dt, 
-   mr->VolStatus, mr->Slot, mr->VolumeName);
+   Mmsg(&mdb->cmd, "UPDATE Media SET VolJobs=%u,"
+        "VolFiles=%u,VolBlocks=%u,VolBytes=%s,VolMounts=%u,VolErrors=%u,"
+        "VolWrites=%u,MaxVolBytes=%s,LastWritten='%s',VolStatus='%s',"
+        "Slot=%d,Drive=%d,InChanger=%d WHERE VolumeName='%s'",
+	 mr->VolJobs, mr->VolFiles, mr->VolBlocks, edit_uint64(mr->VolBytes, ed1),
+	 mr->VolMounts, mr->VolErrors, mr->VolWrites, 
+	 edit_uint64(mr->MaxVolBytes, ed2), dt, 
+	 mr->VolStatus, mr->Slot, mr->VolumeName, mr->Drive, mr->InChanger);
 
    Dmsg1(400, "%s\n", mdb->cmd);
 
@@ -296,16 +296,16 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 }
 
 /* 
- * If we have a non-zero Slot, ensure that no other Media
- *  record in this Pool has the same Slot by setting Slot=0.
+ * If we have a non-zero InChanger, ensure that no other Media
+ *  record in this Pool has InChanger set on the same Slot.
  *
  * This routine assumes the database is already locked.
  */
 void
-db_make_slot_unique(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr) 
+db_make_inchanger_unique(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr) 
 {
-   if (mr->Slot != 0) {
-      Mmsg(&mdb->cmd, "UPDATE Media SET Slot=0 WHERE PoolId=%u "
+   if (mr->InChanger != 0) {
+      Mmsg(&mdb->cmd, "UPDATE Media SET InChanger=0 WHERE PoolId=%u "
            "AND Slot=%d\n", mr->PoolId, mr->Slot);
       Dmsg1(400, "%s\n", mdb->cmd);
       UPDATE_DB(jcr, mdb, mdb->cmd);

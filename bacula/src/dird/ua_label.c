@@ -43,8 +43,12 @@ static int do_label(UAContext *ua, char *cmd, int relabel);
 static void label_from_barcodes(UAContext *ua);
 static int send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr, 
 	       POOL_DBR *pr, int relabel, bool media_record_exits);
-static vol_list_t *get_slot_list_from_SD(UAContext *ua);
+static vol_list_t *get_vol_list_from_SD(UAContext *ua, bool scan);
+static void free_vol_list(vol_list_t *vol_list);
 static int is_cleaning_tape(UAContext *ua, MEDIA_DBR *mr, POOL_DBR *pr);
+static BSOCK *open_sd_bsock(UAContext *ua);
+static void close_sd_bsock(UAContext *ua);
+static char *get_volume_name_from_SD(UAContext *ua, int Slot);
 
 
 /*
@@ -62,6 +66,91 @@ int relabel_cmd(UAContext *ua, char *cmd)
    return do_label(ua, cmd, 1);      /* relabel tape */
 }
 
+#define MAX_SLOTS 5000
+
+static bool get_user_slot_list(UAContext *ua, char *slot_list, int num_slots)
+{
+   int i;
+   char *msg;
+
+   for (int i=0; i<num_slots; i++) {
+      slot_list[i] = 0;
+   }
+   i = find_arg_with_value(ua, "slots");
+   if (i >= 0) {
+      /* scan slot list in ua->argv[i] */
+      char *p, *e, *h;
+      int beg, end;
+
+      strip_trailing_junk(ua->argv[i]);
+      for (p=ua->argv[i]; p && *p; p=e) {
+	 /* Check for list */
+         e = strchr(p, ',');
+	 if (e) {
+	    *e++ = 0;
+	 }
+	 /* Check for range */
+         h = strchr(p, '-');             /* range? */
+	 if (h == p) {
+            msg = _("Negative numbers not permitted\n");
+	    goto bail_out;
+	 }
+	 if (h) {
+	    *h++ = 0;
+	    if (!is_an_integer(h)) {
+               msg = _("Range end is not integer.\n");
+	       goto bail_out;
+	    }
+	    skip_spaces(&p);
+	    if (!is_an_integer(p)) {
+               msg = _("Range start is not an integer.\n");
+	       goto bail_out;
+	    }
+	    beg = atoi(p);
+	    end = atoi(h);
+	    if (end < beg) {
+               msg = _("Range end not bigger than start.\n");
+	       goto bail_out;
+	    }
+	 } else {
+	    skip_spaces(&p);
+	    if (!is_an_integer(p)) {
+               msg = _("Input value is not an integer.\n");
+	       goto bail_out;
+	    }
+	    beg = end = atoi(p);
+	 }
+	 if (beg <= 0 || end <= 0) {
+            msg = _("Values must be be greater than zero.\n");
+	    goto bail_out;
+	 }
+	 if (end >= num_slots) {
+            msg = _("Slot too large.\n");
+	    goto bail_out;
+	 }
+	 for (i=beg; i<=end; i++) {
+	    slot_list[i] = 1;	      /* Turn on specified range */
+	 }
+      }
+   } else { 
+      /* Turn everything on */
+      for (i=0; i<num_slots; i++) {
+	 slot_list[i] = 1;
+      }
+   }
+#ifdef xxx_debug
+   printf("Slots turned on:\n");
+   for (i=1; i<num_slots; i++) {
+      if (slot_list[i]) {
+         printf("%d\n", i); 
+      }
+   }
+#endif
+   return true;
+
+bail_out:
+   return false;
+}
 
 /*
  * Update Slots corresponding to Volumes in autochanger 
@@ -71,6 +160,8 @@ int update_slots(UAContext *ua)
    STORE *store;
    vol_list_t *vl, *vol_list = NULL;
    MEDIA_DBR mr;
+   char *slot_list;
+   bool scan;	     
 
    if (!open_db(ua)) {
       return 1;
@@ -81,8 +172,15 @@ int update_slots(UAContext *ua)
    }
    ua->jcr->store = store;
 
-   vol_list = get_slot_list_from_SD(ua);
+   scan = find_arg(ua, _("scan")) >= 0;
 
+   slot_list = (char *)malloc(MAX_SLOTS);
+   if (!get_user_slot_list(ua, slot_list, MAX_SLOTS)) {
+      free(slot_list);
+      return 1;
+   }
+
+   vol_list = get_vol_list_from_SD(ua, scan);
 
    if (!vol_list) {
       bsendmsg(ua, _("No Volumes found to label, or no barcodes.\n"));
@@ -91,13 +189,28 @@ int update_slots(UAContext *ua)
 
    /* Walk through the list updating the media records */
    for (vl=vol_list; vl; vl=vl->next) {
-
+      /* Check if user wants us to look at this slot */
+      if (!slot_list[vl->Slot]) {
+	 continue;
+      }
+      /* If scanning, we read the label rather than the barcode */
+      if (scan) {
+	 if (vl->VolName) {
+	    free(vl->VolName);
+	    vl->VolName = NULL;
+	 }
+	 vl->VolName = get_volume_name_from_SD(ua, vl->Slot);
+      }
+      if (!vl->VolName) {
+	 continue;
+      }
       memset(&mr, 0, sizeof(mr));
       bstrncpy(mr.VolumeName, vl->VolName, sizeof(mr.VolumeName));
       db_lock(ua->db);
       if (db_get_media_record(ua->jcr, ua->db, &mr)) {
-	  if (mr.Slot != vl->Slot) {
+	  if (mr.Slot != vl->Slot || !mr.InChanger) {
 	     mr.Slot = vl->Slot;
+	     mr.InChanger = 1;
 	     if (!db_update_media_record(ua->jcr, ua->db, &mr)) {
                 bsendmsg(ua, _("%s\n"), db_strerror(ua->db));
 	     } else {
@@ -120,22 +233,14 @@ int update_slots(UAContext *ua)
 
 
 bail_out:
-   /* Free list */
-   for (vl=vol_list; vl; ) {
-      vol_list_t *ovl;
-      free(vl->VolName);
-      ovl = vl;
-      vl = vl->next;
-      free(ovl);
-   }
 
-   if (ua->jcr->store_bsock) {
-      bnet_sig(ua->jcr->store_bsock, BNET_TERMINATE);
-      bnet_close(ua->jcr->store_bsock);
-      ua->jcr->store_bsock = NULL;
-   }
+   free_vol_list(vol_list);
+   free(slot_list);
+   close_sd_bsock(ua);
+
    return 1;
 }
+
 
 /*
  * Common routine for both label and relabel
@@ -144,7 +249,6 @@ static int do_label(UAContext *ua, char *cmd, int relabel)
 {
    STORE *store;
    BSOCK *sd;
-   sd = ua->jcr->store_bsock;
    char dev_name[MAX_NAME_LENGTH];
    MEDIA_DBR mr, omr;
    POOL_DBR pr;
@@ -241,6 +345,7 @@ checkName:
       } else {
 	 mr.Slot = ua->pint32_val;
       }
+      mr.InChanger = 1; 	      /* assumed if we are labeling it */
    }
 
    bstrncpy(mr.MediaType, store->media_type, sizeof(mr.MediaType));
@@ -253,17 +358,11 @@ checkName:
       }
    }
 
-   bsendmsg(ua, _("Connecting to Storage daemon %s at %s:%d ...\n"), 
-      store->hdr.name, store->address, store->SDport);
-   if (!connect_to_storage_daemon(ua->jcr, 10, SDConnectTimeout, 1)) {
-      bsendmsg(ua, _("Failed to connect to Storage daemon.\n"));
-      return 1;   
-   }
-   sd = ua->jcr->store_bsock;
 
    ok = send_label_request(ua, &mr, &omr, &pr, relabel, media_record_exists);
 
    if (ok) {
+      sd = ua->jcr->store_bsock;
       if (relabel) {
 	 if (!db_delete_media_record(ua->jcr, ua->db, &omr)) {
             bsendmsg(ua, _("Delete of Volume \"%s\" failed. ERR=%s"),
@@ -297,9 +396,7 @@ checkName:
    if (print_reminder) {
       bsendmsg(ua, _("Do not forget to mount the drive!!!\n"));
    }
-   bnet_sig(sd, BNET_TERMINATE);
-   bnet_close(sd);
-   ua->jcr->store_bsock = NULL;
+   close_sd_bsock(ua);
 
    return 1;
 }
@@ -315,8 +412,15 @@ static void label_from_barcodes(UAContext *ua)
    MEDIA_DBR mr, omr;
    vol_list_t *vl, *vol_list = NULL;
    bool media_record_exists;
+   char *slot_list;
 
-   vol_list = get_slot_list_from_SD(ua);
+   slot_list = (char *)malloc(MAX_SLOTS);
+   if (!get_user_slot_list(ua, slot_list, MAX_SLOTS)) {
+      free(slot_list);
+      return;
+   }
+
+   vol_list = get_vol_list_from_SD(ua, false /*no scan*/);
 
    if (!vol_list) {
       bsendmsg(ua, _("No Volumes found to label, or no barcodes.\n"));
@@ -328,6 +432,9 @@ static void label_from_barcodes(UAContext *ua)
                   "Slot  Volume\n"
                   "==============\n"));
    for (vl=vol_list; vl; vl=vl->next) {
+      if (!vl->VolName || !slot_list[vl->Slot]) {
+	 continue;
+      }
       bsendmsg(ua, "%4d  %s\n", vl->Slot, vl->VolName);
    }
    if (!get_cmd(ua, _("Do you want to continue? (y/n): ")) ||
@@ -343,7 +450,9 @@ static void label_from_barcodes(UAContext *ua)
 
    /* Fire off the label requests */
    for (vl=vol_list; vl; vl=vl->next) {
-
+      if (!vl->VolName || !slot_list[vl->Slot]) {
+	 continue;
+      }
       memset(&mr, 0, sizeof(mr));
       bstrncpy(mr.VolumeName, vl->VolName, sizeof(mr.VolumeName));
       media_record_exists = false;
@@ -351,10 +460,17 @@ static void label_from_barcodes(UAContext *ua)
 	  if (mr.VolBytes != 0) {
              bsendmsg(ua, _("Media record for Slot %d Volume \"%s\" already exists.\n"), 
 		vl->Slot, mr.VolumeName);
+	     if (!mr.InChanger) {
+		mr.InChanger = 1;
+		if (!db_update_media_record(ua->jcr, ua->db, &mr)) {
+                   bsendmsg(ua, "Error setting InChanger: ERR=%s", db_strerror(ua->db));
+		}
+	     }
 	     continue;
 	  } 
 	  media_record_exists = true;
       }
+      mr.InChanger = 1;
       /*
        * Deal with creating cleaning tape here. Normal tapes created in
        *  send_label_request() below
@@ -377,38 +493,17 @@ static void label_from_barcodes(UAContext *ua)
 	 continue;		      /* done, go handle next volume */
       }
       bstrncpy(mr.MediaType, store->media_type, sizeof(mr.MediaType));
-      if (ua->jcr->store_bsock) {
-	 bnet_sig(ua->jcr->store_bsock, BNET_TERMINATE);
-	 bnet_close(ua->jcr->store_bsock);
-	 ua->jcr->store_bsock = NULL;
-      }
-      bsendmsg(ua, _("Connecting to Storage daemon %s at %s:%d ...\n"), 
-	 store->hdr.name, store->address, store->SDport);
-      if (!connect_to_storage_daemon(ua->jcr, 10, SDConnectTimeout, 1)) {
-         bsendmsg(ua, _("Failed to connect to Storage daemon.\n"));
-	 goto bail_out;
-      }
 
       mr.Slot = vl->Slot;
-      send_label_request(ua, &mr, &omr, &pr, 0, media_record_exists);
+      if (!send_label_request(ua, &mr, &omr, &pr, 0, media_record_exists)) {
+	 goto bail_out;
+      }
    }
 
 
 bail_out:
-   /* Free list */
-   for (vl=vol_list; vl; ) {
-      vol_list_t *ovl;
-      free(vl->VolName);
-      ovl = vl;
-      vl = vl->next;
-      free(ovl);
-   }
-
-   if (ua->jcr->store_bsock) {
-      bnet_sig(ua->jcr->store_bsock, BNET_TERMINATE);
-      bnet_close(ua->jcr->store_bsock);
-      ua->jcr->store_bsock = NULL;
-   }
+   free_vol_list(vol_list);
+   close_sd_bsock(ua);
 
    return;
 }
@@ -456,7 +551,9 @@ static int send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
    char dev_name[MAX_NAME_LENGTH];
    int ok = FALSE;
 
-   sd = ua->jcr->store_bsock;
+   if (!(sd=open_sd_bsock(ua))) {
+      return 0;
+   }
    bstrncpy(dev_name, ua->jcr->store->dev_name, sizeof(dev_name));
    bash_spaces(dev_name);
    bash_spaces(mr->VolumeName);
@@ -490,6 +587,7 @@ static int send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
    if (ok) {
       if (media_record_exists) {      /* we update it */
 	 mr->VolBytes = 1;
+	 mr->InChanger = 1;
 	 if (!db_update_media_record(ua->jcr, ua->db, mr)) {
              bsendmsg(ua, "%s", db_strerror(ua->db));
 	     ok = FALSE;
@@ -497,6 +595,7 @@ static int send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
       } else {			      /* create the media record */
 	 set_pool_dbr_defaults_in_media_dbr(mr, pr);
 	 mr->VolBytes = 1;		 /* flag indicating Volume labeled */
+	 mr->InChanger = 1;
 	 if (db_create_media_record(ua->jcr, ua->db, mr)) {
             bsendmsg(ua, _("Catalog record for Volume \"%s\", Slot %d  successfully created.\n"),
 	    mr->VolumeName, mr->Slot);
@@ -511,7 +610,69 @@ static int send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
    return ok;
 }
 
-static vol_list_t *get_slot_list_from_SD(UAContext *ua)
+static BSOCK *open_sd_bsock(UAContext *ua) 
+{
+   STORE *store = ua->jcr->store;
+
+   if (!ua->jcr->store_bsock) {
+      bsendmsg(ua, _("Connecting to Storage daemon %s at %s:%d ...\n"), 
+	 store->hdr.name, store->address, store->SDport);
+      if (!connect_to_storage_daemon(ua->jcr, 10, SDConnectTimeout, 1)) {
+         bsendmsg(ua, _("Failed to connect to Storage daemon.\n"));
+	 return NULL;
+      }
+   }
+   return ua->jcr->store_bsock;
+}
+
+static void close_sd_bsock(UAContext *ua)
+{
+   if (ua->jcr->store_bsock) {
+      bnet_sig(ua->jcr->store_bsock, BNET_TERMINATE);
+      bnet_close(ua->jcr->store_bsock);
+      ua->jcr->store_bsock = NULL;
+   }
+}
+
+static char *get_volume_name_from_SD(UAContext *ua, int Slot) 
+{
+   STORE *store = ua->jcr->store;
+   BSOCK *sd;
+   char dev_name[MAX_NAME_LENGTH];
+   char *VolName = NULL;
+   int rtn_slot;
+
+   if (!(sd=open_sd_bsock(ua))) {
+      return NULL;
+   }
+   bstrncpy(dev_name, store->dev_name, sizeof(dev_name));
+   bash_spaces(dev_name);
+   /* Ask for autochanger list of volumes */
+   bnet_fsend(sd, _("readlabel %s Slot=%d\n"), dev_name, Slot);
+   Dmsg1(100, "Sent: %s", sd->msg);
+
+   /* Get Volume name in this Slot */
+   while (bnet_recv(sd) >= 0) {
+      bsendmsg(ua, "%s", sd->msg);
+      if (strncmp(sd->msg, "3001 Volume=", 12) == 0) {
+	 VolName = (char *)malloc(sd->msglen);
+         if (sscanf(sd->msg, "3001 Volume=%s Slot=%d", VolName, &rtn_slot) == 2) {
+	    break;
+	 }
+	 free(VolName);
+	 VolName = NULL;
+      }
+   }
+   Dmsg1(200, "get_vol_name=%s\n", NPRT(VolName));
+   return VolName;
+}
+
+/*
+ * We get the slot list from the Storage daemon.
+ *  If scan is set, we return all slots found,
+ *  otherwise, we return only slots with valid barcodes (Volume names)
+ */
+static vol_list_t *get_vol_list_from_SD(UAContext *ua, bool scan) 
 {
    STORE *store = ua->jcr->store;
    char dev_name[MAX_NAME_LENGTH];
@@ -520,13 +681,9 @@ static vol_list_t *get_slot_list_from_SD(UAContext *ua)
    vol_list_t *vol_list = NULL;
 
 
-   bsendmsg(ua, _("Connecting to Storage daemon %s at %s:%d ...\n"), 
-      store->hdr.name, store->address, store->SDport);
-   if (!connect_to_storage_daemon(ua->jcr, 10, SDConnectTimeout, 1)) {
-      bsendmsg(ua, _("Failed to connect to Storage daemon.\n"));
+   if (!(sd=open_sd_bsock(ua))) {
       return NULL;
    }
-   sd  = ua->jcr->store_bsock;
 
    bstrncpy(dev_name, store->dev_name, sizeof(dev_name));
    bash_spaces(dev_name);
@@ -547,25 +704,46 @@ static vol_list_t *get_slot_list_from_SD(UAContext *ua)
 	 continue;
       }
 
-      /* Validate Slot:Barcode */
+      /* Validate Slot: if scanning, otherwise	Slot:Barcode */
       p = strchr(sd->msg, ':');
-      if (p && strlen(p) > 1) {
-	 *p++ = 0;
-	 if (!is_an_integer(sd->msg)) {
+      if (scan && p) {
+	 /* Scanning -- require only valid slot */
+	 Slot = atoi(sd->msg);
+	 if (Slot <= 0) {
+	    p--;
+            *p = ':';
+            bsendmsg(ua, _("Invalid Slot number: %s\n"), sd->msg); 
 	    continue;
 	 }
       } else {
-	 continue;
-      }
-      Slot = atoi(sd->msg);
-      if (Slot <= 0 || !is_volume_name_legal(ua, p)) {
-	 continue;
+	 /* Not scanning */
+	 if (p && strlen(p) > 1) {
+	    *p++ = 0;
+	    if (!is_an_integer(sd->msg) || (Slot=atoi(sd->msg)) <= 0) {
+	       p--;
+               *p = ':';
+               bsendmsg(ua, _("Invalid Slot number: %s\n"), sd->msg); 
+	       continue;
+	    }
+	 } else {
+	    continue;
+	 }
+	 if (!is_volume_name_legal(ua, p)) {
+	    p--;
+            *p = ':';
+            bsendmsg(ua, _("Invalid Volume name: %s\n"), sd->msg); 
+	    continue;
+	 }
       }
 
       /* Add Slot and VolumeName to list */
       vl = (vol_list_t *)malloc(sizeof(vol_list_t));
       vl->Slot = Slot;
-      vl->VolName = bstrdup(p);
+      if (p) {
+	 vl->VolName = bstrdup(p);
+      } else {
+	 vl->VolName = NULL;
+      }
       if (!vol_list) {
 	 vl->next = vol_list;
 	 vol_list = vl;
@@ -580,8 +758,25 @@ static vol_list_t *get_slot_list_from_SD(UAContext *ua)
 	 }
       }
    }
+   close_sd_bsock(ua);
    return vol_list;
 }
+
+static void free_vol_list(vol_list_t *vol_list)
+{
+   vol_list_t *vl;
+   /* Free list */
+   for (vl=vol_list; vl; ) {
+      vol_list_t *ovl;
+      if (vl->VolName) {
+	 free(vl->VolName);
+      }
+      ovl = vl;
+      vl = vl->next;
+      free(ovl);
+   }
+}
+
 
 /*
  * Check if this is a cleaning tape by comparing the Volume name
