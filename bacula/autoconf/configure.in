@@ -1431,6 +1431,8 @@ if test "x$ac_cv_sys_largefile_CFLAGS" != "xno" ; then
    largefile_support="yes"
 fi
 
+CCVERSION=`${CC} --version`
+CXXVERSION=`${CXX} --version`
 
 echo "
 Configuration on `date`:
@@ -1442,8 +1444,8 @@ Configuration on `date`:
   Install config files:       ${sysconfdir}
   Scripts directory	      ${scriptdir}
   Working directory	      ${working_dir}
-  C Compiler:		      ${CC}
-  C++ Compiler: 	      ${CXX}
+  C Compiler:		      ${CC} ${CCVERSION}
+  C++ Compiler: 	      ${CXX} ${CXXVERSION}
   Compiler flags:	      ${CFLAGS} 
   Linker flags: 	      ${LDFLAGS}
   Libraries:		      ${LIBS}

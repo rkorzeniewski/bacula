@@ -253,7 +253,7 @@ int encode_attribsEx(void *jcr, char *attribsEx, FF_PKT *ff_pkt)
 
 #ifdef HAVE_CYGWIN
 
-extern int NoGetFileAttributesEx;
+int NoGetFileAttributesEx = 0;
 
 int encode_attribsEx(void *jcr, char *attribsEx, FF_PKT *ff_pkt)
 {

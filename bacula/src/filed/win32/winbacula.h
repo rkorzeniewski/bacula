@@ -55,6 +55,8 @@ extern DWORD            mainthreadId;
 // Main UPS server routine
 extern int BaculaAppMain();
 
+extern void LogErrorMsg(char *msg);
+
 // Standard command-line flag definitions
 const char BaculaRunService[]            = "/service";
 const char BaculaRunServiceHelper[]      = "/servicehelper";
@@ -62,11 +64,6 @@ const char BaculaRunAsUserApp[]          = "/run";
 
 const char BaculaInstallService[]        = "/install";
 const char BaculaRemoveService[]         = "/remove";
-
-#ifdef properties_implemented
-const char BaculaShowProperties[]        = "/settings";
-const char BaculaShowDefaultProperties[] = "/defaultsettings";
-#endif
 
 const char BaculaShowAbout[]             = "/about";
 const char BaculaShowStatus[]            = "/status";
@@ -76,8 +73,4 @@ const char BaculaKillRunningCopy[]       = "/kill";
 const char BaculaShowHelp[]              = "/help";
 
 // Usage string
-#ifdef properties_implemented
-const char BaculaUsageText[] = "Bacula [/run] [/kill] [/install] [/remove] [/settings] [/defaultsettings] [/about] [/status] [/evetns]\n";
-#else
 const char BaculaUsageText[] = "Bacula [/run] [/kill] [/install] [/remove] [/about] [/status] [/events]\n";
-#endif

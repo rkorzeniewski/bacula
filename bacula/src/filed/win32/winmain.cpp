@@ -28,6 +28,7 @@
 #include "wintray.h"
 #include "winservice.h"
 #include <signal.h>
+#include <pthread.h>
 
 extern int BaculaMain(int argc, char **argv);
 extern int terminate_filed(int sig);
@@ -46,6 +47,7 @@ extern DWORD    g_servicethread;
 static char *command_args[MAX_COMMAND_ARGS] = {"bacula-fd", NULL};
 static int num_command_args = 1;
 static pid_t main_pid;
+static pthread_t main_tid;
 
 /*
  * WinMain parses the command line and either calls the main App
@@ -63,6 +65,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
    mainthreadId = GetCurrentThreadId();
 
    main_pid = getpid();
+   main_tid = pthread_self();
 
    /*
     * Funny things happen with the command line if the
@@ -140,12 +143,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
    BOOL argfound = FALSE;
    for (i = 0; i < (int)strlen(szCmdLine); i++) {
-      if (szCmdLine[i] <= ' ')
-              continue;
+      if (szCmdLine[i] <= ' ') {
+         continue;
+      }
 
       if (szCmdLine[i] == '-') {
-         while (szCmdLine[i] && szCmdLine[i] != ' ')
+         while (szCmdLine[i] && szCmdLine[i] != ' ') {
             i++;
+         }
          continue;
       }
 
@@ -156,70 +161,70 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
       // /servicehelper
       //  Used on NT to connect to Bacula
       if (strncmp(&szCmdLine[i], BaculaRunServiceHelper, strlen(BaculaRunServiceHelper)) == 0) {
-              // NB : This flag MUST be parsed BEFORE "-service", otherwise it will match
-              // the wrong option!  (This code should really be replaced with a simple
-              // parser machine and parse-table...)
+         // NB : This flag MUST be parsed BEFORE "-service", otherwise it will match
+         // the wrong option!  (This code should really be replaced with a simple
+         // parser machine and parse-table...)
 
-              // Run the Bacula Service Helper app
-              bacService::PostUserHelperMessage();
-              return 0;
+         // Run the Bacula Service Helper app
+         bacService::PostUserHelperMessage();
+         return 0;
       }
       // /service
       if (strncmp(&szCmdLine[i], BaculaRunService, strlen(BaculaRunService)) == 0) {
-              // Run Bacula as a service
-              return bacService::BaculaServiceMain();
+         // Run Bacula as a service
+         return bacService::BaculaServiceMain();
       }
       // /run  (this is the default if no command line arguments)
       if (strncmp(&szCmdLine[i], BaculaRunAsUserApp, strlen(BaculaRunAsUserApp)) == 0) {
-              // Bacula is being run as a user-level program
-              return BaculaAppMain();
+         // Bacula is being run as a user-level program
+         return BaculaAppMain();
       }
       // /install
       if (strncmp(&szCmdLine[i], BaculaInstallService, strlen(BaculaInstallService)) == 0) {
-              // Install Bacula as a service
-              bacService::InstallService();
-              i+=strlen(BaculaInstallService);
-              continue;
+         // Install Bacula as a service
+         bacService::InstallService();
+         i+=strlen(BaculaInstallService);
+         continue;
       }
       // /remove
       if (strncmp(&szCmdLine[i], BaculaRemoveService, strlen(BaculaRemoveService)) == 0) {
-              // Remove the Bacula service
-              bacService::RemoveService();
-              i+=strlen(BaculaRemoveService);
-              continue;
+         // Remove the Bacula service
+         bacService::RemoveService();
+         i+=strlen(BaculaRemoveService);
+         continue;
       }
 
       // /about
       if (strncmp(&szCmdLine[i], BaculaShowAbout, strlen(BaculaShowAbout)) == 0) {
-              // Show the About dialog of an existing instance of Bacula
-              bacService::ShowAboutBox();
-              i+=strlen(BaculaShowAbout);
-              continue;
+         // Show the About dialog of an existing instance of Bacula
+         bacService::ShowAboutBox();
+         i+=strlen(BaculaShowAbout);
+         continue;
       }
 
       // /status
       if (strncmp(&szCmdLine[i], BaculaShowStatus, strlen(BaculaShowStatus)) == 0) {
-              // Show the Status dialog of an existing instance of Bacula
-              bacService::ShowStatus();
-              i+=strlen(BaculaShowStatus);
-              continue;
+         // Show the Status dialog of an existing instance of Bacula
+         bacService::ShowStatus();
+         i+=strlen(BaculaShowStatus);
+         continue;
       }
 
       // /events
       if (strncmp(&szCmdLine[i], BaculaShowEvents, strlen(BaculaShowEvents)) == 0) {
-              // Show the Events dialog of an existing instance of Bacula
-              bacService::ShowEvents();
-              i+=strlen(BaculaShowEvents);
-              continue;
+         // Show the Events dialog of an existing instance of Bacula
+         bacService::ShowEvents();
+         i+=strlen(BaculaShowEvents);
+         continue;
       }
 
 
       // /kill
       if (strncmp(&szCmdLine[i], BaculaKillRunningCopy, strlen(BaculaKillRunningCopy)) == 0) {
-              // Kill any already running copy of Bacula
-              bacService::KillRunningCopy();
-              i+=strlen(BaculaKillRunningCopy);
-              continue;
+         // Kill any already running copy of Bacula
+         bacService::KillRunningCopy();
+         i+=strlen(BaculaKillRunningCopy);
+         continue;
       }
 
       // /help
@@ -248,9 +253,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
  * Called as a thread from BaculaAppMain()
  * Here we handle the Windows messages
  */
-DWORD WINAPI Main_Msg_Loop(LPVOID lpwThreadParam)
+//DWORD WINAPI Main_Msg_Loop(LPVOID lpwThreadParam)
+void *Main_Msg_Loop(LPVOID lpwThreadParam) 
 {
    DWORD old_servicethread = g_servicethread;
+
+
+   pthread_detach(pthread_self());
 
    /* Since we are the only thread with a message loop
     * mark ourselves as the service thread so that
@@ -261,6 +270,7 @@ DWORD WINAPI Main_Msg_Loop(LPVOID lpwThreadParam)
    // Create tray icon & menu if we're running as an app
    bacMenu *menu = new bacMenu();
    if (menu == NULL) {
+//    LogErrorMsg("Could not create sys tray menu");
       PostQuitMessage(0);
    }
 
@@ -272,8 +282,9 @@ DWORD WINAPI Main_Msg_Loop(LPVOID lpwThreadParam)
       DispatchMessage(&msg);
    }
 
-   if (menu != NULL)
+   if (menu != NULL) {
       delete menu;
+   }
 
    if (old_servicethread != 0) { /* started as NT service */
       // Mark that we're no longer running
@@ -282,6 +293,8 @@ DWORD WINAPI Main_Msg_Loop(LPVOID lpwThreadParam)
       // Tell the service manager that we've stopped.
       ReportStatus(SERVICE_STOPPED, g_error, 0);
    }   
+   pthread_kill(main_tid, SIGTERM);   /* ask main thread to terminate */
+   sleep(1);
    kill(main_pid, SIGTERM);           /* ask main thread to terminate */
    _exit(0);
 }
@@ -295,7 +308,8 @@ DWORD WINAPI Main_Msg_Loop(LPVOID lpwThreadParam)
  */
 int BaculaAppMain()
 {
-   DWORD dwThreadID;
+// DWORD dwThreadID;
+   pthread_t tid;
 
    // Set this process to be the last application to be shut down.
    SetProcessShutdownParameters(0x100, 0);
@@ -308,7 +322,8 @@ int BaculaAppMain()
    }
 
    // Create a thread to handle the Windows messages
-   (void)CreateThread(NULL, 0, Main_Msg_Loop, NULL, 0, &dwThreadID);
+// (void)CreateThread(NULL, 0, Main_Msg_Loop, NULL, 0, &dwThreadID);
+   pthread_create(&tid, NULL, Main_Msg_Loop, (void *)0);
 
    // Call the "real" Bacula
    BaculaMain(num_command_args, command_args);

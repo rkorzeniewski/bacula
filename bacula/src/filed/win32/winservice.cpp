@@ -53,7 +53,7 @@ void SetServicePrivileges();
 // Create an instance of the bacService class to cause the static fields to be
 // initialised properly
 
-int NoGetFileAttributesEx = 0;        /* set if function no avail -- Win95 */
+extern int NoGetFileAttributesEx;      /* set if function no avail -- Win95 */
 
 bacService init;
 
@@ -299,15 +299,15 @@ bacService::ProcessUserHelperMessage(WPARAM wParam, LPARAM lParam) {
    // - Get the token for the given process
    HANDLE userToken = NULL;
    if (!OpenProcessToken(processHandle, TOKEN_QUERY | TOKEN_DUPLICATE | TOKEN_IMPERSONATE, &userToken)) {
-           CloseHandle(processHandle);
-           return FALSE;
+      CloseHandle(processHandle);
+      return FALSE;
    }
    CloseHandle(processHandle);
 
    // - Set this thread to impersonate them
    if (!ImpersonateLoggedOnUser(userToken)) {
-           CloseHandle(userToken);
-           return FALSE;
+       CloseHandle(userToken);
+       return FALSE;
    }
    CloseHandle(userToken);
 
@@ -340,16 +340,19 @@ bacService::BaculaServiceMain()
       if (GetProcAddress(kerneldll, "GetFileAttributesEx") == NULL) {
           NoGetFileAttributesEx = 1;
           /*****FIXME***** remove after testing */
-          MessageBox(NULL, "NoGetFileAttributesEx", "Bacula", MB_OK);
-      }  
+          MessageBox(NULL, "winserv NoGetFileAttributesEx", "Bacula", MB_OK);
+      } else { 
+          MessageBox(NULL, "winserv Got GetFileAttributesEx", "Bacula", MB_OK);
+      }
 
       // And find the RegisterServiceProcess function
       DWORD (*RegisterService)(DWORD, DWORD);
       RegisterService = (DWORD (*)(DWORD, DWORD))
               GetProcAddress(kerneldll, "RegisterServiceProcess");
       if (RegisterService == NULL) {
-         MessageBox(NULL, "Registry service not fond: Bacula service not started",
+         MessageBox(NULL, "Registry service not found: Bacula service not started",
             "Bacula Service", MB_OK);
+         LogErrorMsg("Registry service not found"); 
          break;
       }
       
@@ -397,6 +400,7 @@ void WINAPI ServiceMain(DWORD argc, char **argv)
     g_hstatus = RegisterServiceCtrlHandler(BAC_SERVICENAME, ServiceCtrl);
 
     if (g_hstatus == 0) {
+       LogErrorMsg("RegisterServiceCtlHandler failed"); 
        MessageBox(NULL, "Contact Register Service Handler failure",
           "Bacula service", MB_OK);
        return;
@@ -413,6 +417,7 @@ void WINAPI ServiceMain(DWORD argc, char **argv)
             45000)) {                       // Hint as to how long Bacula should have hung before you assume error
 
         ReportStatus(SERVICE_STOPPED, g_error,  0);
+        LogErrorMsg("ReportStatus failed 1"); 
         return;
     }
 
@@ -436,6 +441,7 @@ DWORD WINAPI ServiceWorkThread(LPVOID lpwThreadParam)
         NO_ERROR,              // exit code
         0)) {                  // wait hint
        MessageBox(NULL, "Report Service failure", "Bacula Service", MB_OK);
+        LogErrorMsg("ReportStatus failed 2"); 
        return 0;
     }
 
@@ -554,6 +560,7 @@ bacService::InstallService()
       strcat(servicecmd, "\\bacula-fd.conf");
 
    } else {
+      LogErrorMsg("Service commend length too long"); 
       MessageBox(NULL, "Service command length too long. Service not registered.",
           szAppName, MB_ICONEXCLAMATION | MB_OK);
       return 0;
@@ -569,6 +576,7 @@ bacService::InstallService()
       if (RegCreateKey(HKEY_LOCAL_MACHINE, 
               "Software\\Microsoft\\Windows\\CurrentVersion\\RunServices",
               &runservices) != ERROR_SUCCESS) {
+         LogErrorMsg("Cannot write System Registry"); 
          MessageBox(NULL, "The System Registry could not be updated - the Bacula service was not installed", szAppName, MB_ICONEXCLAMATION | MB_OK);
          break;
       }
@@ -576,6 +584,7 @@ bacService::InstallService()
       // Attempt to add a Bacula key
       if (RegSetValueEx(runservices, szAppName, 0, REG_SZ, (unsigned char *)servicecmd, strlen(servicecmd)+1) != ERROR_SUCCESS) {
          RegCloseKey(runservices);
+         LogErrorMsg("Cannot add Bacula key to System Registry"); 
          MessageBox(NULL, "The Bacula service could not be installed", szAppName, MB_ICONEXCLAMATION | MB_OK);
          break;
       }
@@ -624,6 +633,7 @@ bacService::InstallService()
       // Open the default, local Service Control Manager database
       hsrvmanager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
       if (hsrvmanager == NULL) {
+         LogErrorMsg("OpenSCManager failed"); 
          MessageBox(NULL,
             "The Service Control Manager could not be contacted - the Bacula service was not installed",
             szAppName, MB_ICONEXCLAMATION | MB_OK);
@@ -648,6 +658,7 @@ bacService::InstallService()
               NULL);                          // no password
       if (hservice == NULL) {
          CloseServiceHandle(hsrvmanager);
+         LogErrorMsg("CreateService failed"); 
          MessageBox(NULL,
              "The Bacula service could not be installed",
               szAppName, MB_ICONEXCLAMATION | MB_OK);
@@ -673,16 +684,14 @@ bacService::InstallService()
          // Append the service-helper-start flag to the end of the path:
          if ((int)strlen(path) + 4 + (int)strlen(BaculaRunServiceHelper) < pathlength) {
             sprintf(servicehelpercmd, "\"%s\" %s", path, BaculaRunServiceHelper);
-         } else {
-            return 0;
-         }
 
-         // Add the Bacula Service Helper entry
-         if (RegSetValueEx(runapps, szAppName, 0, REG_SZ,
-              (unsigned char *)servicehelpercmd, strlen(servicehelpercmd)+1) != ERROR_SUCCESS) {
-            MessageBox(NULL, "WARNING:Unable to install the ServiceHelper hook\nGlobal user-specific registry settings will not be loaded", szAppName, MB_ICONEXCLAMATION | MB_OK);
+            // Add the Bacula Service Helper entry
+             if (RegSetValueEx(runapps, szAppName, 0, REG_SZ,
+                 (unsigned char *)servicehelpercmd, strlen(servicehelpercmd)+1) != ERROR_SUCCESS) {
+                MessageBox(NULL, "WARNING:Unable to install the ServiceHelper hook\nGlobal user-specific registry settings will not be loaded", szAppName, MB_ICONEXCLAMATION | MB_OK);
+             }
+             RegCloseKey(runapps);
          }
-         RegCloseKey(runapps);
       }
 
       // Everything went fine
@@ -694,6 +703,7 @@ bacService::InstallService()
               MB_ICONINFORMATION | MB_OK);
       break;
    default:
+      LogErrorMsg("Unknow Windows OP Sys"); 
       MessageBox(NULL, 
                  "Unknown Windows operating system.\n"     
                  "Cannot install Bacula service.\n",
@@ -704,6 +714,220 @@ bacService::InstallService()
    return 0;
 }
 
+
+// SERVICE REMOVE ROUTINE
+int
+bacService::RemoveService()
+{
+   // How to remove the Bacula service depends upon the OS
+   switch (g_platform_id) {
+
+   // Windows 95/98
+   case VER_PLATFORM_WIN32_WINDOWS:
+      // Locate the RunService registry entry
+      HKEY runservices;
+      if (RegOpenKey(HKEY_LOCAL_MACHINE, 
+              "Software\\Microsoft\\Windows\\CurrentVersion\\RunServices",
+              &runservices) != ERROR_SUCCESS) {
+         MessageBox(NULL, 
+            "Could not find registry entry.\nService probably not registerd - the Bacula service was not removed", szAppName, MB_ICONEXCLAMATION | MB_OK);
+      } else {
+         // Attempt to delete the Bacula key
+         if (RegDeleteValue(runservices, szAppName) != ERROR_SUCCESS) {
+            RegCloseKey(runservices);
+            MessageBox(NULL, "Could not delete Registry key.\nThe Bacula service could not be removed", szAppName, MB_ICONEXCLAMATION | MB_OK);
+         }
+
+         RegCloseKey(runservices);
+         break;
+      }
+
+      // Try to kill any running copy of Bacula
+      if (!KillRunningCopy()) {
+         MessageBox(NULL,
+             "Bacula could not be contacted, probably not running",
+             szAppName, MB_ICONEXCLAMATION | MB_OK);
+         break;
+      }
+
+      // We have successfully removed the service!
+      MessageBox(NULL, "The Bacula service has been removed", szAppName, MB_ICONINFORMATION | MB_OK);
+      break;
+
+   // Windows NT
+   case VER_PLATFORM_WIN32_NT:
+      SC_HANDLE   hservice;
+      SC_HANDLE   hsrvmanager;
+
+      // Attempt to remove the service-helper hook
+      HKEY runapps;
+      if (RegOpenKey(HKEY_LOCAL_MACHINE, "Software\\Microsoft\\Windows\\CurrentVersion\\Run",
+              &runapps) == ERROR_SUCCESS) {
+         // Attempt to delete the Bacula key
+         if (RegDeleteValue(runapps, szAppName) != ERROR_SUCCESS) {
+            MessageBox(NULL, "WARNING:The ServiceHelper hook entry could not be removed from the registry", szAppName, MB_ICONEXCLAMATION | MB_OK);
+         }
+         RegCloseKey(runapps);
+      }
+
+      // Open the SCM
+      hsrvmanager = OpenSCManager(
+         NULL,                   // machine (NULL == local)
+         NULL,                   // database (NULL == default)
+         SC_MANAGER_ALL_ACCESS   // access required
+         );
+      if (hsrvmanager) {
+         hservice = OpenService(hsrvmanager, BAC_SERVICENAME, SERVICE_ALL_ACCESS);
+         if (hservice != NULL) {
+            SERVICE_STATUS status;
+
+            // Try to stop the Bacula service
+            if (ControlService(hservice, SERVICE_CONTROL_STOP, &status)) {
+               while(QueryServiceStatus(hservice, &status)) {
+                       if (status.dwCurrentState == SERVICE_STOP_PENDING) {
+                          Sleep(1000);
+                       } else {
+                          break;
+                       }
+               }
+
+               if (status.dwCurrentState != SERVICE_STOPPED) {
+                  MessageBox(NULL, "The Bacula service could not be stopped", szAppName, MB_ICONEXCLAMATION | MB_OK);
+               }
+            }
+
+            // Now remove the service from the SCM
+            if(DeleteService(hservice)) {
+               MessageBox(NULL, "The Bacula service has been removed", szAppName, MB_ICONINFORMATION | MB_OK);
+            } else {
+               MessageBox(NULL, "The Bacula service could not be removed", szAppName, MB_ICONEXCLAMATION | MB_OK);
+            }
+
+            CloseServiceHandle(hservice);
+         } else {
+            MessageBox(NULL, "The Bacula service could not be found", szAppName, MB_ICONEXCLAMATION | MB_OK);
+         }
+
+         CloseServiceHandle(hsrvmanager);
+      } else {
+         MessageBox(NULL, "The SCM could not be contacted - the Bacula service was not removed", szAppName, MB_ICONEXCLAMATION | MB_OK);
+      }
+      break;
+   }
+   return 0;
+}
+
+// USEFUL SERVICE SUPPORT ROUTINES
+
+// Service control routine
+void WINAPI ServiceCtrl(DWORD ctrlcode)
+{
+    // What control code have we been sent?
+    switch(ctrlcode) {
+    case SERVICE_CONTROL_STOP:
+        // STOP : The service must stop
+        g_srvstatus.dwCurrentState = SERVICE_STOP_PENDING;
+        ServiceStop();
+        break;
+
+    case SERVICE_CONTROL_INTERROGATE:
+        // QUERY : Service control manager just wants to know our state
+        break;
+
+     default:
+         // Control code not recognised
+         break;
+
+    }
+
+    // Tell the control manager what we're up to.
+    ReportStatus(g_srvstatus.dwCurrentState, NO_ERROR, 0);
+}
+
+// Service manager status reporting
+BOOL ReportStatus(DWORD state,
+                  DWORD exitcode,
+                  DWORD waithint)
+{
+    static DWORD checkpoint = 1;
+    BOOL result = TRUE;
+
+    // If we're in the start state then we don't want the control manager
+    // sending us control messages because they'll confuse us.
+    if (state == SERVICE_START_PENDING) {
+       g_srvstatus.dwControlsAccepted = 0;
+    } else {
+       g_srvstatus.dwControlsAccepted = SERVICE_ACCEPT_STOP;
+    }
+
+    // Save the new status we've been given
+    g_srvstatus.dwCurrentState = state;
+    g_srvstatus.dwWin32ExitCode = exitcode;
+    g_srvstatus.dwWaitHint = waithint;
+
+    // Update the checkpoint variable to let the SCM know that we
+    // haven't died if requests take a long time
+    if ((state == SERVICE_RUNNING) || (state == SERVICE_STOPPED)) {
+       g_srvstatus.dwCheckPoint = 0;
+    } else {
+       g_srvstatus.dwCheckPoint = checkpoint++;
+    }
+
+    // Tell the SCM our new status
+    if (!(result = SetServiceStatus(g_hstatus, &g_srvstatus))) {
+       LogErrorMsg("SetServiceStatus failed");
+    }
+
+    return result;
+}
+
+// Error reporting
+void LogErrorMsg(char *message)
+{
+   char        msgbuff[256];
+   HANDLE      heventsrc;
+   char *      strings[32];
+   LPTSTR      msg;
+
+   // Get the error code
+   g_error = GetLastError();
+   FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER|
+                FORMAT_MESSAGE_FROM_SYSTEM,
+                NULL,
+                g_error,
+                0,
+                (LPTSTR)&msg,
+                0,
+                NULL);
+
+   // Use event logging to log the error
+   heventsrc = RegisterEventSource(NULL, BAC_SERVICENAME);
+
+   sprintf(msgbuff, "%s error: %ld", BAC_SERVICENAME, g_error);
+   strings[0] = msgbuff;
+   strings[1] = message;
+   strings[2] = msg;
+
+   if (heventsrc != NULL) {
+      MessageBeep(MB_OK);
+
+      ReportEvent(
+              heventsrc,              // handle of event source
+              EVENTLOG_ERROR_TYPE,    // event type
+              0,                      // event category
+              0,                      // event ID
+              NULL,                   // current user's SID
+              3,                      // strings in 'strings'
+              0,                      // no bytes of raw data
+              (const char **)strings, // array of error strings
+              NULL);                  // no raw data
+
+      DeregisterEventSource(heventsrc);
+   }
+   LocalFree(msg);
+}
+
+/* ================== Not yet implemented ===================== */
 #ifdef implemented
 VOID ReconfigureSampleService(BOOL fDisable, LPSTR lpDesc) 
 { 
@@ -807,204 +1031,3 @@ VOID ReconfigureSampleService(BOOL fDisable, LPSTR lpDesc)
     CloseServiceHandle(schService); 
 }
 #endif
-
-// SERVICE REMOVE ROUTINE
-int
-bacService::RemoveService()
-{
-        // How to remove the Bacula service depends upon the OS
-        switch (g_platform_id) {
-
-        // Windows 95/98
-        case VER_PLATFORM_WIN32_WINDOWS:
-           // Locate the RunService registry entry
-           HKEY runservices;
-           if (RegOpenKey(HKEY_LOCAL_MACHINE, 
-                   "Software\\Microsoft\\Windows\\CurrentVersion\\RunServices",
-                   &runservices) != ERROR_SUCCESS) {
-              MessageBox(NULL, 
-                 "Could not find registry entry.\nService probably not registerd - the Bacula service was not removed", szAppName, MB_ICONEXCLAMATION | MB_OK);
-           } else {
-              // Attempt to delete the Bacula key
-              if (RegDeleteValue(runservices, szAppName) != ERROR_SUCCESS) {
-                 RegCloseKey(runservices);
-                 MessageBox(NULL, "Could not delete Registry key.\nThe Bacula service could not be removed", szAppName, MB_ICONEXCLAMATION | MB_OK);
-              }
-
-              RegCloseKey(runservices);
-              break;
-           }
-
-           // Try to kill any running copy of Bacula
-           if (!KillRunningCopy()) {
-              MessageBox(NULL,
-                  "Bacula could not be contacted, probably not running",
-                  szAppName, MB_ICONEXCLAMATION | MB_OK);
-              break;
-           }
-
-           // We have successfully removed the service!
-           MessageBox(NULL, "The Bacula service has been removed", szAppName, MB_ICONINFORMATION | MB_OK);
-           break;
-
-                // Windows NT
-        case VER_PLATFORM_WIN32_NT:
-           SC_HANDLE   hservice;
-           SC_HANDLE   hsrvmanager;
-
-           // Attempt to remove the service-helper hook
-           HKEY runapps;
-           if (RegOpenKey(HKEY_LOCAL_MACHINE, 
-                   "Software\\Microsoft\\Windows\\CurrentVersion\\Run",
-                   &runapps) == ERROR_SUCCESS)
-           {
-                   // Attempt to delete the Bacula key
-                   if (RegDeleteValue(runapps, szAppName) != ERROR_SUCCESS)
-                   {
-                           MessageBox(NULL, "WARNING:The ServiceHelper hook entry could not be removed from the registry", szAppName, MB_ICONEXCLAMATION | MB_OK);
-                   }
-                   RegCloseKey(runapps);
-           }
-
-           // Open the SCM
-           hsrvmanager = OpenSCManager(
-              NULL,                   // machine (NULL == local)
-              NULL,                   // database (NULL == default)
-              SC_MANAGER_ALL_ACCESS   // access required
-              );
-           if (hsrvmanager) {
-              hservice = OpenService(hsrvmanager, BAC_SERVICENAME, SERVICE_ALL_ACCESS);
-              if (hservice != NULL) {
-                 SERVICE_STATUS status;
-
-                 // Try to stop the Bacula service
-                 if (ControlService(hservice, SERVICE_CONTROL_STOP, &status)) {
-                    while(QueryServiceStatus(hservice, &status)) {
-                            if (status.dwCurrentState == SERVICE_STOP_PENDING) {
-                               Sleep(1000);
-                            } else {
-                               break;
-                            }
-                    }
-
-                    if (status.dwCurrentState != SERVICE_STOPPED)
-                            MessageBox(NULL, "The Bacula service could not be stopped", szAppName, MB_ICONEXCLAMATION | MB_OK);
-                 }
-
-                 // Now remove the service from the SCM
-                 if(DeleteService(hservice)) {
-                    MessageBox(NULL, "The Bacula service has been removed", szAppName, MB_ICONINFORMATION | MB_OK);
-                 } else {
-                    MessageBox(NULL, "The Bacula service could not be removed", szAppName, MB_ICONEXCLAMATION | MB_OK);
-                 }
-
-                 CloseServiceHandle(hservice);
-              } else {
-                 MessageBox(NULL, "The Bacula service could not be found", szAppName, MB_ICONEXCLAMATION | MB_OK);
-              }
-
-              CloseServiceHandle(hsrvmanager);
-           } else {
-              MessageBox(NULL, "The SCM could not be contacted - the Bacula service was not removed", szAppName, MB_ICONEXCLAMATION | MB_OK);
-           }
-           break;
-        }
-        return 0;
-}
-
-// USEFUL SERVICE SUPPORT ROUTINES
-
-// Service control routine
-void WINAPI ServiceCtrl(DWORD ctrlcode)
-{
-    // What control code have we been sent?
-    switch(ctrlcode) {
-    case SERVICE_CONTROL_STOP:
-        // STOP : The service must stop
-        g_srvstatus.dwCurrentState = SERVICE_STOP_PENDING;
-        ServiceStop();
-        break;
-
-    case SERVICE_CONTROL_INTERROGATE:
-        // QUERY : Service control manager just wants to know our state
-        break;
-
-     default:
-         // Control code not recognised
-         break;
-
-    }
-
-    // Tell the control manager what we're up to.
-    ReportStatus(g_srvstatus.dwCurrentState, NO_ERROR, 0);
-}
-
-// Service manager status reporting
-BOOL ReportStatus(DWORD state,
-                  DWORD exitcode,
-                  DWORD waithint)
-{
-    static DWORD checkpoint = 1;
-    BOOL result = TRUE;
-
-    // If we're in the start state then we don't want the control manager
-    // sending us control messages because they'll confuse us.
-    if (state == SERVICE_START_PENDING) {
-       g_srvstatus.dwControlsAccepted = 0;
-    } else {
-       g_srvstatus.dwControlsAccepted = SERVICE_ACCEPT_STOP;
-    }
-
-    // Save the new status we've been given
-    g_srvstatus.dwCurrentState = state;
-    g_srvstatus.dwWin32ExitCode = exitcode;
-    g_srvstatus.dwWaitHint = waithint;
-
-    // Update the checkpoint variable to let the SCM know that we
-    // haven't died if requests take a long time
-    if ((state == SERVICE_RUNNING) || (state == SERVICE_STOPPED))
-            g_srvstatus.dwCheckPoint = 0;
-    else
-    g_srvstatus.dwCheckPoint = checkpoint++;
-
-    // Tell the SCM our new status
-    if (!(result = SetServiceStatus(g_hstatus, &g_srvstatus)))
-            LogErrorMsg("SetServiceStatus failed");
-
-    return result;
-}
-
-// Error reporting
-void LogErrorMsg(char *message)
-{
-    char        msgbuff[256];
-    HANDLE      heventsrc;
-    char *      strings[2];
-
-    // Save the error code
-    g_error = GetLastError();
-
-    // Use event logging to log the error
-    heventsrc = RegisterEventSource(NULL, BAC_SERVICENAME);
-
-    sprintf(msgbuff, "%s error: %ld", BAC_SERVICENAME, g_error);
-    strings[0] = msgbuff;
-    strings[1] = message;
-
-    if (heventsrc != NULL) {
-       MessageBeep(MB_OK);
-
-       ReportEvent(
-               heventsrc,              // handle of event source
-               EVENTLOG_ERROR_TYPE,    // event type
-               0,                      // event category
-               0,                      // event ID
-               NULL,                   // current user's SID
-               2,                      // strings in 'strings'
-               0,                      // no bytes of raw data
-               (const char **)strings, // array of error strings
-               NULL);                  // no raw data
-
-       DeregisterEventSource(heventsrc);
-    }
-}

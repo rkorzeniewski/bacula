@@ -3,6 +3,7 @@
 #
 CFLAGS=@CFLAGS@
 CC = @CC@
+CXX = @CXX@
 RANLIB = @RANLIB@
 SHELL = /bin/sh
 
@@ -120,4 +121,4 @@ dummy:
 	$(CC) -c $(CFLAGS) $<
 
 .cpp.o:
-	$(CC) -c $(CFLAGS) $<
+	$(CXX) -c $(CFLAGS) $<
