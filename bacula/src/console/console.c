@@ -334,6 +334,7 @@ int main(int argc, char *argv[])
 
    /* Override Bacula default signals */
    signal(SIGCHLD, SIG_IGN);
+   signal(SIGQUIT, SIG_IGN);
    signal(SIGTSTP, got_sigstop);
    signal(SIGCONT, got_sigcontinue);
    signal(SIGTTIN, got_sigtin);

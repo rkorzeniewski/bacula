@@ -142,7 +142,7 @@ support_mysql=no
 support_sqlite=no
 support_postgresql=no
 support_smartalloc=yes
-support_readline=no
+support_readline=yes
 support_conio=yes
 support_gnome=no
 gnome_version=
@@ -1562,8 +1562,8 @@ AC_OUTPUT([autoconf/Make.common \
 	   scripts/bacula.desktop.gnome2 \
 	   scripts/bacula.desktop.gnome1.consolehelper \
 	   scripts/bacula.desktop.gnome2.consolehelper \
-        scripts/bacula.desktop.gnome1.xsu \
-        scripts/bacula.desktop.gnome2.xsu \
+	scripts/bacula.desktop.gnome1.xsu \
+	scripts/bacula.desktop.gnome2.xsu \
 	   scripts/gnome-console.console_apps \
 	   scripts/mtx-changer \
 	   doc/Makefile \
