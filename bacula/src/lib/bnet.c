@@ -936,7 +936,7 @@ const char *bnet_sig_to_ascii(BSOCK * bs)
    case BNET_PROMPT:
       return "BNET_PROMPT";
    default:
-      sprintf(buf, "Unknown sig %d", bs->msglen);
+      sprintf(buf, "Unknown sig %d", (int)bs->msglen);
       return buf;
    }
 }
