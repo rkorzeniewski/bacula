@@ -243,6 +243,7 @@ int write_volume_label_to_block(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    create_volume_label_record(jcr, dev, &rec);
 
    empty_block(block);		      /* Volume label always at beginning */
+   block->BlockNumber = 0;
    if (!write_record_to_block(block, &rec)) {
       free_pool_memory(rec.data);
       Jmsg1(jcr, M_FATAL, 0, _("Cannot write Volume label to block for device %s\n"),

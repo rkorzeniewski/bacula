@@ -10,6 +10,8 @@
 #define SMCHECK     
 #define TRACE_FILE 1  
 
+#define FULL_DEBUG 1    /* normally on for testing only */
+
 /* Turn this on ONLY if you want all Dmsg() to append to the
  *   trace file. Implemented mainly for Win32 ...
  */
@@ -17,9 +19,6 @@
 
 /* Turn this on if you want to try the new Job semaphore code */
 #define USE_SEMAPHORE
-
-/* IF you undefine this, Bacula will run 10X slower */
-#define NO_POLL_TEST 1
 
 /* #define NO_ATTRIBUTES_TEST 1 */
 /* #define NO_TAPE_WRITE_TEST 1 */

@@ -188,11 +188,11 @@ int do_read_data(JCR *jcr)
 	 }
 
 	 if (block->block_read) {
-	    if (++BlockNumber != block->BlockNumber) {
+	    if (BlockNumber != block->BlockNumber) {
                Jmsg(jcr, M_ERROR, 0, _("Invalid block number. Expected %u, got %u\n"),
 		    BlockNumber, block->BlockNumber);
 	    }
-	    BlockNumber = block->BlockNumber;
+	    BlockNumber = block->BlockNumber + 1;
 	    block->block_read = false;
 	 }
 

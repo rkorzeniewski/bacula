@@ -32,6 +32,7 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
+- Fix first block number after label to be zero instead of 1 (reset after label).
 - Grep for Backup OK in regression script.
 - Do NOT reuse same JobId if tape written.
 - Move JobFiles and JobBytes to SD rather than FD -- more correct.

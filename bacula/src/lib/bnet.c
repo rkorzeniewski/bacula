@@ -797,7 +797,10 @@ bnet_close(BSOCK *bsock)
    for ( ; bsock != NULL; bsock = next) {
       next = bsock->next;
       if (!bsock->duped) {
-	 close(bsock->fd);
+	 if (bsock->timed_out) {
+	    shutdown(bsock->fd, 2);   /* discard any pending I/O */
+	 }
+	 close(bsock->fd);	   /* normal close */
       }
       term_bsock(bsock);
    }

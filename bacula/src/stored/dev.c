@@ -1106,6 +1106,9 @@ close_dev(DEVICE *dev)
       do_close(dev);
    }
    dev->use_count--;
+#ifdef FULL_DEBUG
+   ASSERT(dev->use_count >= 0);
+#endif
 }
 
 /*
@@ -1121,6 +1124,9 @@ void force_close_dev(DEVICE *dev)
    Dmsg0(29, "really close_dev\n");
    do_close(dev);
    dev->use_count--;
+#ifdef FULL_DEBUG
+   ASSERT(dev->use_count >= 0);
+#endif
 }
 
 int truncate_dev(DEVICE *dev)
