@@ -22,7 +22,7 @@
 
  */
 
-extern int blast_data_to_storage_daemon(JCR *jcr, char *addr);
+extern bool blast_data_to_storage_daemon(JCR *jcr, char *addr);
 extern void do_verify(JCR *jcr);
 extern void do_verify_volume(JCR *jcr);
 extern void do_restore(JCR *jcr);

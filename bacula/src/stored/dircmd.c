@@ -72,7 +72,7 @@ static int mount_cmd(JCR *jcr);
 static int unmount_cmd(JCR *jcr);
 static int autochanger_cmd(JCR *sjcr);
 static int do_label(JCR *jcr, int relabel);
-static bool find_device(JCR *jcr, char *dname);
+static DEVICE *find_device(JCR *jcr, char *dname);
 static void read_volume_label(JCR *jcr, DEVICE *dev, int Slot);
 static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
 			       char *newname, char *poolname, 
@@ -248,11 +248,11 @@ static int cancel_cmd(JCR *cjcr)
 	    bnet_sig(jcr->file_bsock, BNET_TERMINATE);
 	 }
 	 /* If thread waiting on mount, wake him */
-	 if (jcr->device && jcr->device->dev &&      
-	      (jcr->device->dev->dev_blocked == BST_WAITING_FOR_SYSOP ||
-	       jcr->device->dev->dev_blocked == BST_UNMOUNTED ||
-	       jcr->device->dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP)) {
-	     pthread_cond_signal(&jcr->device->dev->wait_next_vol);
+	 if (jcr->dcr && jcr->dcr->dev &&
+	      (jcr->dcr->dev->dev_blocked == BST_WAITING_FOR_SYSOP ||
+	       jcr->dcr->dev->dev_blocked == BST_UNMOUNTED ||
+	       jcr->dcr->dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP)) {
+	     pthread_cond_signal(&jcr->dcr->dev->wait_next_vol);
 	 }
          bnet_fsend(dir, _("3000 Job %s marked to be canceled.\n"), jcr->Job);
 	 free_jcr(jcr);
@@ -308,10 +308,9 @@ static int do_label(JCR *jcr, int relabel)
       unbash_spaces(oldname);
       unbash_spaces(poolname);
       unbash_spaces(mtype);
-      if (find_device(jcr, dname)) {
+      dev = find_device(jcr, dname);
+      if (dev) {
 	 /******FIXME**** compare MediaTypes */
-	 dev = jcr->device->dev;
-
 	 P(dev->mutex); 	      /* Use P to avoid indefinite block */
 	 if (!(dev->state & ST_OPENED)) {
 	    label_volume_if_ok(jcr, dev, oldname, newname, poolname, slot, relabel);
@@ -403,7 +402,7 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
       /* Fall through wanted! */
    case VOL_IO_ERROR:
    case VOL_NO_LABEL:
-      if (!write_new_volume_label_to_dev(jcr, jcr->device->dev, newname, poolname)) {
+      if (!write_new_volume_label_to_dev(jcr, dev, newname, poolname)) {
          bnet_fsend(dir, _("3912 Failed to label Volume: ERR=%s\n"), strerror_dev(dev));
 	 break;
       }
@@ -460,7 +459,7 @@ static int read_label(JCR *jcr, DEVICE *dev)
    return stat;
 }
 
-static bool find_device(JCR *jcr, char *dname)
+static DEVICE *find_device(JCR *jcr, char *dname)
 {
    DEVRES *device = NULL;
    bool found = false;
@@ -477,10 +476,16 @@ static bool find_device(JCR *jcr, char *dname)
       }
    }
    if (found) {
+      /*
+       * ****FIXME*****  device->dev may not point to right device
+       *  if there are multiple devices open
+       */
       jcr->dcr = new_dcr(jcr, device->dev);
+      UnlockRes();
+      return jcr->dcr->dev;
    }
    UnlockRes();
-   return found;
+   return NULL;
 }
 
 
@@ -495,9 +500,9 @@ static int mount_cmd(JCR *jcr)
 
    dname = get_memory(dir->msglen+1);
    if (sscanf(dir->msg, "mount %s", dname) == 1) {
-      if (find_device(jcr, dname)) {
+      dev = find_device(jcr, dname);
+      if (dev) {
 	 DEV_BLOCK *block;
-	 dev = jcr->device->dev;
 	 P(dev->mutex); 	      /* Use P to avoid indefinite block */
 	 switch (dev->dev_blocked) {	     /* device blocked? */
 	 case BST_WAITING_FOR_SYSOP:
@@ -609,8 +614,8 @@ static int unmount_cmd(JCR *jcr)
 
    dname = get_memory(dir->msglen+1);
    if (sscanf(dir->msg, "unmount %s", dname) == 1) {
-      if (find_device(jcr, dname)) {
-	 dev = jcr->device->dev;
+      dev = find_device(jcr, dname);
+      if (dev) {
 	 P(dev->mutex); 	      /* Use P to avoid indefinite block */
 	 if (!(dev->state & ST_OPENED)) {
             Dmsg0(90, "Device already unmounted\n");
@@ -685,8 +690,8 @@ static int release_cmd(JCR *jcr)
 
    dname = get_memory(dir->msglen+1);
    if (sscanf(dir->msg, "release %s", dname) == 1) {
-      if (find_device(jcr, dname)) {
-	 dev = jcr->device->dev;
+      dev = find_device(jcr, dname);
+      if (dev) {
 	 P(dev->mutex); 	      /* Use P to avoid indefinite block */
 	 if (!(dev->state & ST_OPENED)) {
             Dmsg0(90, "Device already released\n");
@@ -746,8 +751,8 @@ static int autochanger_cmd(JCR *jcr)
 
    dname = get_memory(dir->msglen+1);
    if (sscanf(dir->msg, "autochanger list %s ", dname) == 1) {
-      if (find_device(jcr, dname)) {
-	 dev = jcr->device->dev;
+      dev = find_device(jcr, dname);
+      if (dev) {
 	 P(dev->mutex); 	      /* Use P to avoid indefinite block */
 	 if (!dev_is_tape(dev)) {
             bnet_fsend(dir, _("3995 Device %s is not an autochanger.\n"), dev_name(dev));
@@ -795,9 +800,8 @@ static int readlabel_cmd(JCR *jcr)
 
    dname = get_memory(dir->msglen+1);
    if (sscanf(dir->msg, "readlabel %s Slot=%d", dname, &Slot) == 2) {
-      if (find_device(jcr, dname)) {
-	 dev = jcr->device->dev;
-
+      dev = find_device(jcr, dname);
+      if (dev) {
 	 P(dev->mutex); 	      /* Use P to avoid indefinite block */
 	 if (!dev_state(dev, ST_OPENED)) {
 	    read_volume_label(jcr, dev, Slot);

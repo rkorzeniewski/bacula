@@ -372,7 +372,7 @@ int write_block_to_device(DCR *dcr, DEV_BLOCK *block)
    }
 
    if (!write_block_to_dev(dcr, block)) {
-       stat = fixup_device_block_write_error(jcr, dev, block);
+       stat = fixup_device_block_write_error(dcr, block);
    }
 
 bail_out:
@@ -385,10 +385,10 @@ bail_out:
 /*
  * Write a block to the device 
  *
- *  Returns: 1 on success or EOT
- *	     0 on hard error
+ *  Returns: true  on success or EOT
+ *	     false on hard error
  */
-int write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
+bool write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
 {
    ssize_t stat = 0;
    uint32_t wlen;		      /* length to write */
@@ -399,7 +399,7 @@ int write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
 
 #ifdef NO_TAPE_WRITE_TEST
    empty_block(block);
-   return 1;
+   return true;
 #endif
    ASSERT(block->binbuf == ((uint32_t) (block->bufp - block->buf)));
 
@@ -408,12 +408,12 @@ int write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
       Dmsg0(100, "return write_block_to_dev with ST_WEOT\n");
       dev->dev_errno = ENOSPC;
       Jmsg(jcr, M_FATAL, 0,  _("Cannot write block. Device at EOM.\n"));
-      return 0;
+      return false;
    }
    wlen = block->binbuf;
    if (wlen <= WRITE_BLKHDR_LENGTH) {  /* Does block have data in it? */
       Dmsg0(100, "return write_block_to_dev no data to write\n");
-      return 1;
+      return true;
    }
    /* 
     * Clear to the end of the buffer if it is not full,
@@ -476,7 +476,7 @@ int write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
       }
       dev->state |= (ST_EOF | ST_EOT | ST_WEOT);
       dev->dev_errno = ENOSPC;
-      return 0;   
+      return false;
    }
 
    /* Limit maximum File size on volume to user specified value */
@@ -493,7 +493,7 @@ int write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
 	 dev->VolCatInfo.VolCatFiles = dev->file;
 	 dir_update_volume_info(jcr, dev, 0);
 	 dev->dev_errno = ENOSPC;
-	 return 0;   
+	 return false;
       }
 
       /* Create a JobMedia record so restore can seek */
@@ -505,7 +505,7 @@ int write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
           Jmsg(jcr, M_ERROR, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
 	       dcr->VolCatInfo.VolCatName, jcr->Job);
 	  if (!forge_on) {
-	     return 0;
+	     return false;
 	  }
       }
       dev->file_size = 0;	      /* reset file size */
@@ -623,7 +623,7 @@ int write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
 	 }
       }
 #endif
-      return 0;
+      return false;
    }
 
    /* We successfully wrote the block, now do housekeeping */
@@ -657,7 +657,7 @@ int write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
    Dmsg2(190, "write_block: wrote block %d bytes=%d\n", dev->block_num,
       wlen);
    empty_block(block);
-   return 1;
+   return true;
 }
 
 /*  

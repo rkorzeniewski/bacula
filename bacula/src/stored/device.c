@@ -73,10 +73,10 @@ extern int debug_level;
  *
  * Note, we are called only from one place in block.c
  *
- *  Returns: 1 on success
- *	     0 on failure
+ *  Returns: true  on success
+ *	     false on failure
  */
-int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
+bool fixup_device_block_write_error(DCR *dcr, DEV_BLOCK *block)
 {
    uint32_t stat;
    char PrevVolName[MAX_NAME_LENGTH];
@@ -84,11 +84,13 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    char b1[30], b2[30];
    time_t wait_time;
    char dt[MAX_TIME_LENGTH];
+   JCR *jcr = dcr->jcr;
+   DEVICE *dev = dcr->dev;
 
    wait_time = time(NULL);
    stat = status_dev(dev);
    if (!(stat & BMT_EOD)) {
-      return 0;                       /* this really shouldn't happen */
+      return false;                    /* this really shouldn't happen */
    }
 
    Dmsg0(100, "======= Got EOD ========\n");
@@ -103,7 +105,7 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	    jcr->VolCatInfo.VolCatName, jcr->Job);
        P(dev->mutex);
        unblock_device(dev);
-       return 0;
+       return false;
    }
 
    bstrncpy(dev->VolCatInfo.VolCatStatus, "Full", sizeof(dev->VolCatInfo.VolCatStatus));
@@ -114,7 +116,7 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    if (!dir_update_volume_info(jcr, dev, 0)) {	  /* send Volume info to Director */
       P(dev->mutex);
       unblock_device(dev);
-      return 0; 		   /* device locked */
+      return false;		   /* device locked */
    }
    Dmsg0(100, "Back from update_vol_info\n");
 
@@ -133,7 +135,7 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       free_block(label_blk);
       P(dev->mutex);
       unblock_device(dev);
-      return 0; 		   /* device locked */
+      return false;		   /* device locked */
    }
    P(dev->mutex);		   /* lock again */
 
@@ -147,12 +149,12 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
     *  empty label_blk, and nothing will be written.
     */
    Dmsg0(190, "write label block to dev\n");
-   if (!write_block_to_dev(jcr->dcr, label_blk)) {
+   if (!write_block_to_dev(dcr, label_blk)) {
       Pmsg1(0, "write_block_to_device Volume label failed. ERR=%s",
 	strerror_dev(dev));
       free_block(label_blk);
       unblock_device(dev);
-      return 0; 		   /* device locked */
+      return false;		   /* device locked */
    }
    free_block(label_blk);
 
@@ -179,15 +181,15 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 
    /* Write overflow block to device */
    Dmsg0(190, "Write overflow block to dev\n");
-   if (!write_block_to_dev(jcr->dcr, block)) {
+   if (!write_block_to_dev(dcr, block)) {
       Pmsg1(0, "write_block_to_device overflow block failed. ERR=%s",
 	strerror_dev(dev));
       unblock_device(dev);
-      return 0; 		   /* device locked */
+      return false;		   /* device locked */
    }
 
    unblock_device(dev);
-   return 1;				    /* device locked */
+   return true; 			    /* device locked */
 }
 
 /*

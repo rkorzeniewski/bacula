@@ -39,8 +39,8 @@ static char rec_header[] = "rechdr %ld %ld %ld %ld %ld";
 
 /* 
  *  Read Data and send to File Daemon
- *   Returns: 0 on failure
- *	      1 on success
+ *   Returns: false on failure
+ *	      true  on success
  */
 bool do_read_data(JCR *jcr) 
 {
@@ -50,16 +50,10 @@ bool do_read_data(JCR *jcr)
    
    Dmsg0(20, "Start read data.\n");
 
-   dev = jcr->device->dev;
-
-   Dmsg1(10, "bstored>filed: %s\n", fd->msg);
-
    if (!bnet_set_buffer_size(fd, jcr->device->max_network_buffer_size, BNET_SETBUF_WRITE)) {
       return false;
    }
 
-
-   Dmsg1(20, "Begin read device=%s\n", dev_name(dev));
 
    create_vol_list(jcr);
    if (jcr->NumVolumes == 0) {
@@ -81,6 +75,9 @@ bool do_read_data(JCR *jcr)
       free_vol_list(jcr);
       return false;
    }
+
+   dev = jcr->dcr->dev;
+   Dmsg1(20, "Begin read device=%s\n", dev_name(dev));
 
    /* Tell File daemon we will send data */
    bnet_fsend(fd, OK_data);

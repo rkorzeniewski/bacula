@@ -49,10 +49,10 @@ static int save_file(FF_PKT *ff_pkt, void *pkt);
  * except echo the heartbeat to the Director).
  * 
  */
-int blast_data_to_storage_daemon(JCR *jcr, char *addr) 
+bool blast_data_to_storage_daemon(JCR *jcr, char *addr) 
 {
    BSOCK *sd;
-   int stat = 1;
+   bool ok = true;
 
    sd = jcr->store_bsock;
 
@@ -72,7 +72,7 @@ int blast_data_to_storage_daemon(JCR *jcr, char *addr)
    if (!bnet_set_buffer_size(sd, buf_size, BNET_SETBUF_WRITE)) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       Jmsg(jcr, M_FATAL, 0, _("Cannot set buffer size FD->SD.\n"));
-      return 0;
+      return false;
    }
 
    jcr->buf_size = sd->msglen;		   
@@ -93,9 +93,9 @@ int blast_data_to_storage_daemon(JCR *jcr, char *addr)
 
    /* Subroutine save_file() is called for each file */
    if (!find_files(jcr, (FF_PKT *)jcr->ff, save_file, (void *)jcr)) {
-      stat = 0; 		      /* error */
+      ok = false;		      /* error */
       set_jcr_job_status(jcr, JS_ErrorTerminated);
-      Jmsg(jcr, M_FATAL, 0, _("Find files error.\n"));
+//    Jmsg(jcr, M_FATAL, 0, _("Find files error.\n"));
    }
 
    stop_heartbeat_monitor(jcr);
@@ -110,8 +110,8 @@ int blast_data_to_storage_daemon(JCR *jcr, char *addr)
       free_pool_memory(jcr->compress_buf);
       jcr->compress_buf = NULL;
    }
-   Dmsg1(300, "end blast_data stat=%d\n", stat);
-   return stat;
+   Dmsg1(300, "end blast_data stat=%d\n", ok);
+   return ok;
 }	   
 
 /* 
