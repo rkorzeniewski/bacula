@@ -448,6 +448,7 @@ Backup Level:           %s%s\n\
 Client:                 %s\n\
 FileSet:                \"%s\" %s\n\
 Pool:                   \"%s\"\n\
+Storage:                \"%s\"\n\
 Start time:             %s\n\
 End time:               %s\n\
 FD Files Written:       %s\n\
@@ -472,6 +473,7 @@ Termination:            %s\n\n"),
 	jcr->client->hdr.name,
 	jcr->fileset->hdr.name, fsr->cCreateTime,
 	jcr->pool->hdr.name,
+	jcr->store->hdr.name,
 	sdt,
 	edt,
 	edit_uint64_with_commas(jcr->jr.JobFiles, ec1),

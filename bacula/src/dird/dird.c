@@ -495,7 +495,7 @@ Without that I don't know who I am :-(\n"), configfile);
 	 /* Handle Storage alists specifically */
 	 JOB *jobdefs = job->jobdefs;
 	 for (i=0; i < MAX_STORE; i++) {
-	    if (jobdefs->storage[i]) {
+	    if (jobdefs->storage[i] && !job->storage[i]) {
 	       STORE *st;
 	       job->storage[i] = New(alist(10, not_owned_by_alist));
 	       foreach_alist(st, jobdefs->storage[i]) {
