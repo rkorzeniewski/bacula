@@ -145,7 +145,8 @@ int pm_strcpy(POOLMEM **pm, char *str)
  */
 void jobstatus_to_ascii(int JobStatus, char *msg, int maxlen)
 {
-   char *termstat, jstat[2];
+   char *termstat;
+   char buf[100];
 
    switch (JobStatus) {
       case JS_Terminated:
@@ -165,9 +166,12 @@ void jobstatus_to_ascii(int JobStatus, char *msg, int maxlen)
          termstat = _("Verify differences");
 	 break;
      default:
-	 jstat[0] = last_job.JobStatus;
-	 jstat[1] = 0;
-	 termstat = jstat;
+	 if (JobStatus == 0) {
+	    buf[0] = 0;
+	 } else {
+            bsnprintf(buf, sizeof(buf), _("Unknown Job termination status=%d"), JobStatus);
+	 }
+	 termstat = buf;
 	 break;
    }
    bstrncpy(msg, termstat, maxlen);

@@ -38,6 +38,8 @@ For 1.33 Testing/Documentation:
 For 1.32c
 
 For 1.33
+- Automatically create pools, but instead of looking for what
+  in in Job records, walk through the pool resources.
 - Check and double check tree code, why does it take so long?
 - Upgrade to cygwin 1.5
 - Fix time difference problem between Bacula and Client
