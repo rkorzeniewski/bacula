@@ -38,13 +38,16 @@ static void reload_config(int sig);
 
 
 /* Imported subroutines */
-extern JCR *wait_for_next_job(char *runjob);
-extern void term_scheduler();
-extern void term_ua_server();
-extern int do_backup(JCR *jcr);
-extern void backup_cleanup(void);
-extern void start_UA_server(char *addr, int port);
-extern void init_job_server(int max_workers);
+JCR *wait_for_next_job(char *runjob);
+void term_scheduler();
+void term_ua_server();
+int do_backup(JCR *jcr);
+void backup_cleanup(void);
+void start_UA_server(char *addr, int port);
+void init_job_server(int max_workers);
+void store_jobtype(LEX *lc, struct res_items *item, int index, int pass);
+void store_level(LEX *lc, struct res_items *item, int index, int pass);
+void store_replace(LEX *lc, struct res_items *item, int index, int pass);
 
 static char *configfile = NULL;
 static char *runjob = NULL;
@@ -54,6 +57,12 @@ static int background = 1;
 DIRRES *director;		      /* Director resource */
 int FDConnectTimeout;
 int SDConnectTimeout;
+
+/* Globals Imported */
+extern int r_first, r_last;	      /* first and last resources */
+extern struct res_items job_items[];
+extern URES res_all;
+
 
 #define CONFIG_FILE "./bacula-dir.conf" /* default configuration file */
 
@@ -100,7 +109,7 @@ int main (int argc, char *argv[])
 
    while ((ch = getopt(argc, argv, "c:d:fg:r:stu:v?")) != -1) {
       switch (ch) {
-         case 'c':                    /* specify config file */
+      case 'c':                    /* specify config file */
 	 if (configfile != NULL) {
 	    free(configfile);
 	 }
@@ -310,7 +319,7 @@ static void reload_config(int sig)
  */
 static int check_resources()
 {
-   int OK = TRUE;
+   bool OK = true;
    JOB *job;
 
    LockRes();
@@ -320,43 +329,119 @@ static int check_resources()
    if (!director) {
       Jmsg(NULL, M_FATAL, 0, _("No Director resource defined in %s\n\
 Without that I don't know who I am :-(\n"), configfile);
-      OK = FALSE;
+      OK = false;
    } else {
       set_working_directory(director->working_directory);
       if (!director->messages) {       /* If message resource not specified */
 	 director->messages = (MSGS *)GetNextRes(R_MSGS, NULL);
 	 if (!director->messages) {
             Jmsg(NULL, M_FATAL, 0, _("No Messages resource defined in %s\n"), configfile);
-	    OK = FALSE;
+	    OK = false;
 	 }
       }
       if (GetNextRes(R_DIRECTOR, (RES *)director) != NULL) {
          Jmsg(NULL, M_FATAL, 0, _("Only one Director resource permitted in %s\n"),
 	    configfile);
-	 OK = FALSE;
+	 OK = false;
       } 
    }
 
    if (!job) {
       Jmsg(NULL, M_FATAL, 0, _("No Job records defined in %s\n"), configfile);
-      OK = FALSE;
+      OK = false;
    }
    foreach_res(job, R_JOB) {
-      if (!job->client) {
-         Jmsg(NULL, M_FATAL, 0, _("No Client record defined for job %s\n"), job->hdr.name);
-	 OK = FALSE;
+      int i;
+
+      if (job->jobdefs) {
+	 /* Transfer default items from JobDefs Resource */
+	 for (i=0; job_items[i].name; i++) {
+	    char **def_svalue, **svalue;  /* string value */
+	    int *def_ivalue, *ivalue;	  /* integer value */
+	    int64_t *def_lvalue, *lvalue; /* 64 bit values */
+	    uint32_t offset;
+
+            Dmsg4(400, "Job \"%s\", field \"%s\" bit=%d def=%d\n",
+		job->hdr.name, job_items[i].name, 
+		bit_is_set(i, job->hdr.item_present),  
+		bit_is_set(i, job->jobdefs->hdr.item_present));
+
+	    if (!bit_is_set(i, job->hdr.item_present) &&
+		 bit_is_set(i, job->jobdefs->hdr.item_present)) { 
+               Dmsg2(400, "Job \"%s\", field \"%s\": getting default.\n",
+		 job->hdr.name, job_items[i].name);
+	       offset = (char *)(job_items[i].value) - (char *)&res_all;   
+	       /*
+		* Handle strings and directory strings
+		*/
+	       if (job_items[i].handler == store_str ||
+		   job_items[i].handler == store_dir) {
+		  def_svalue = (char **)((char *)(job->jobdefs) + offset);
+                  Dmsg5(400, "Job \"%s\", field \"%s\" def_svalue=%s item %d offset=%u\n", 
+		       job->hdr.name, job_items[i].name, *def_svalue, i, offset);
+		  svalue = (char **)((char *)job + offset);
+		  if (*svalue) {
+                     Dmsg1(000, "Hey something is wrong. p=0x%u\n", (unsigned)*svalue);
+		  }
+		  *svalue = bstrdup(*def_svalue);
+		  set_bit(i, job->hdr.item_present);
+	       } else if (job_items[i].handler == store_res) {
+		  def_svalue = (char **)((char *)(job->jobdefs) + offset);
+                  Dmsg4(400, "Job \"%s\", field \"%s\" item %d offset=%u\n", 
+		       job->hdr.name, job_items[i].name, i, offset);
+		  svalue = (char **)((char *)job + offset);
+		  if (*svalue) {
+                     Dmsg1(000, "Hey something is wrong. p=0x%u\n", (unsigned)*svalue);
+		  }
+		  *svalue = *def_svalue;
+		  set_bit(i, job->hdr.item_present);
+	       /*
+		* Handle integer fields 
+		*    Note, our store_yesno does not handle bitmaped fields
+		*/
+	       } else if (job_items[i].handler == store_yesno	||
+			  job_items[i].handler == store_pint	||
+			  job_items[i].handler == store_jobtype ||
+			  job_items[i].handler == store_level	||
+			  job_items[i].handler == store_pint	||
+			  job_items[i].handler == store_replace) {
+		  def_ivalue = (int *)((char *)(job->jobdefs) + offset);
+                  Dmsg5(400, "Job \"%s\", field \"%s\" def_ivalue=%d item %d offset=%u\n", 
+		       job->hdr.name, job_items[i].name, *def_ivalue, i, offset);
+		  ivalue = (int *)((char *)job + offset);
+		  *ivalue = *def_ivalue;
+		  set_bit(i, job->hdr.item_present);
+	       /*
+		* Handle 64 bit integer fields 
+		*/
+	       } else if (job_items[i].handler == store_time   ||
+			  job_items[i].handler == store_size   ||
+			  job_items[i].handler == store_int64) {
+		  def_lvalue = (int64_t *)((char *)(job->jobdefs) + offset);
+                  Dmsg5(400, "Job \"%s\", field \"%s\" def_lvalue=%" lld " item %d offset=%u\n", 
+		       job->hdr.name, job_items[i].name, *def_lvalue, i, offset);
+		  lvalue = (int64_t *)((char *)job + offset);
+		  *lvalue = *def_lvalue;
+		  set_bit(i, job->hdr.item_present);
+	       }
+	    }
+	 }
       }
-      if (!job->fileset) {
-         Jmsg(NULL, M_FATAL, 0, _("No FileSet record defined for job %s\n"), job->hdr.name);
-	 OK = FALSE;
-      }
-      if (!job->storage && job->JobType != JT_VERIFY) {
-         Jmsg(NULL, M_FATAL, 0, _("No Storage resource defined for job %s\n"), job->hdr.name);
-	 OK = FALSE;
-      }
-      if (!job->pool) {
-         Jmsg(NULL, M_FATAL, 0, _("No Pool resource defined for job %s\n"), job->hdr.name);
-	 OK = FALSE;
+      /* 
+       * Ensure that all required items are present
+       */
+      for (i=0; job_items[i].name; i++) {
+	 if (job_items[i].flags & ITEM_REQUIRED) {
+	       if (!bit_is_set(i, job->hdr.item_present)) {  
+                  Jmsg(NULL, M_FATAL, 0, "Field \"%s\" in Job \"%s\" resource is required, but not found.\n",
+		    job_items[i].name, job->hdr.name);
+		  OK = false;
+		}
+	 }
+	 /* If this triggers, take a look at lib/parse_conf.h */
+	 if (i >= MAX_RES_ITEMS) {
+            Emsg0(M_ERROR_TERM, 0, "Too many items in Job resource\n");
+	 }
       }
       if (job->client && job->client->catalog) {
 	 CAT *catalog = job->client->catalog;
@@ -375,7 +460,7 @@ Without that I don't know who I am :-(\n"), configfile);
 	    if (db) {
                Jmsg(NULL, M_FATAL, 0, _("%s"), db_strerror(db));
 	    }
-	    OK = FALSE;
+	    OK = false;
 	 } else {
 	    /* If a pool is defined for this job, create the pool DB	   
 	     *	record if it is not already created. 
@@ -409,13 +494,6 @@ Without that I don't know who I am :-(\n"), configfile);
 	       }
 	    }
 	    db_close_database(NULL, db);
-	 }
-
-      } else {
-	 if (job->client) {
-            Jmsg(NULL, M_FATAL, 0, _("No Catalog resource defined for client %s\n"), 
-	       job->client->hdr.name);
-	    OK = FALSE;
 	 }
       }
    }
