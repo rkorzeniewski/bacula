@@ -272,7 +272,7 @@ int is_bnet_error(BSOCK *bsock)
  *  messages which are due to the other end shutting down too.
  */
 void
-bnet_suppress_error_messages(BSOCK *bsock, int flag)
+bnet_suppress_error_messages(BSOCK *bsock, bool flag)
 {      
    bsock->suppress_error_msgs = flag;
 }

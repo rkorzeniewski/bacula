@@ -187,10 +187,13 @@ struct stat
     uint64_t    st_blocks;
 };
 
+#undef  S_IFMT
 #define S_IFMT         0170000         /* file type mask */
+#undef  S_IFDIR
 #define S_IFDIR        0040000         /* directory */
 #define S_IFCHR        0020000         /* character special */
 #define S_IFIFO        0010000         /* pipe */
+#undef  S_IFREG
 #define S_IFREG        0100000         /* regular */
 #define S_IREAD        0000400         /* read permission, owner */
 #define S_IWRITE       0000200         /* write permission, owner */
@@ -222,6 +225,7 @@ struct stat
 #define S_ISBLK(x) 0
 #define S_ISFIFO(x) 0
 #endif //HAVE_MINGW
+
 #define S_ISSOCK(x) 0
 #define S_ISLNK(x)      0
 
