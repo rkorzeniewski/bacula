@@ -158,7 +158,7 @@ int lex_get_char(LEX *lf)
       Emsg0(M_ABORT, 0, "get_char: called after EOF\n");
    }
    if (lf->ch == L_EOL) {
-      if (fgets(lf->line, MAXSTRING, lf->fd) == NULL) {
+      if (bfgets(lf->line, MAXSTRING, lf->fd) == NULL) {
 	 lf->ch = L_EOF;
 	 if (lf->next) {
 	    lex_close_file(lf);
