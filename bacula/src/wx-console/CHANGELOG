@@ -1,6 +1,14 @@
+29-04-2004 :
+ - wxbRestorePanel : Modified the way a restore is started : much
+     more parameters are modifiable.
+ - wxbConfigPanel : Created a generic panel which can be used
+     to setup configuration parameters (for example when restoring)
+
 27-04-2004 :
  - wxbMainFrame : others panels are locked when a command is ran
      directly by typing in the console.
+ - wxbRestorePanel : Updated update interval of the progress bar
+     when restoring
      
 26-04-2004 :
  - Corrected a bug in Windows which causes wx-console to crash when

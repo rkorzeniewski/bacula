@@ -35,6 +35,7 @@
 
 #include "wxbutils.h"
 
+#include "wxbconfigpanel.h"
 #include "wxbtreectrl.h"
 #include "wxblistctrl.h"
 
@@ -157,24 +158,23 @@ class wxbRestorePanel : public wxbPanel
 /* Components */
       wxBoxSizer *centerSizer; /* Center sizer */
       wxbTreeListPanel *treelistPanel; /* Panel which contains tree and list */
-      wxPanel *restorePanel; /* Panel which contains restore options */
+      wxbConfigPanel *configPanel; /* Panel which contains initial restore options */
+      wxbConfigPanel *restorePanel; /* Panel which contains final restore options */
 
       wxImageList* imagelist; //image list for tree and list
 
       wxButton* start;
-      wxChoice* clientChoice;
-      wxChoice* jobChoice;
       wxbTreeCtrl* tree;
       wxbListCtrl* list;
       wxGauge* gauge;
 
-      wxButton*     cfgOk;
+      /*wxButton*     cfgOk;
       wxButton*     cfgApply;
-      wxButton*     cfgCancel;
+      wxButton*     cfgCancel;*/
       
-      long cfgUpdated; //keeps which config fields are updated
+      long cfgUpdated; //keeps which config fields have been updated
       
-      wxStaticText* cfgJobname;
+      /*wxStaticText* cfgJobname;
       wxStaticText* cfgBootstrap;
       wxTextCtrl*   cfgWhere;
       wxChoice*     cfgReplace;
@@ -182,7 +182,7 @@ class wxbRestorePanel : public wxbPanel
       wxChoice*     cfgClient;
       wxStaticText* cfgStorage;
       wxTextCtrl*   cfgWhen;
-      wxTextCtrl*   cfgPriority;
+      wxTextCtrl*   cfgPriority;*/
 
       friend class wxbTreeListPanel;
 

@@ -9,6 +9,8 @@ wxbMainFrame : Add some text in front of the command window such as
    
 wxbRestorePanel : Reconsider start button's labels.
 
+wxbRestorePanel : Implement cancel button when configuring
+
 general : Show nice messages when errors occurs.
 
 wxbMainFrame : set focus to type control when clicking on console
@@ -22,6 +24,8 @@ VC++ : crashing when there's no configuration file, when server is unreachable,
        when connection has been interrupted and wants to quit (on every error ?)
 
 [postponed to July:]
+
+global : create a general class which keeps clients, filesets, pools... list.
 
 wxbMainFrame : use more often status text
 
@@ -80,7 +84,10 @@ mingw : correct findlib stat blocks and block size
 
 wxbRestorePanel : Check more carefully which job we just have run
    (needs director modification).
-   
+
+wxbRestorePanel : The + only appears when one selects a directory, 
+   to indicate it has subdirectories
+
 wxbRestorePanel : Add a timeout when waiting for commands results
 
 bacula-dir : correct director to handle correctly + marked status
