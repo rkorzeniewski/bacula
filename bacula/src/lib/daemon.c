@@ -81,8 +81,8 @@ daemon_start()
     * Avoid creating files 666 but don't override any
     * more restrictive mask set by the user.
     */
-   oldmask = umask(022);
-   oldmask |= 022;
+   oldmask = umask(026);
+   oldmask |= 026;
    umask(oldmask);
 
    Dmsg0(200, "Exit daemon_start\n");

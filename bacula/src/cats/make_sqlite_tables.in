@@ -180,4 +180,6 @@ PRAGMA default_synchronous = OFF;
 PRAGMA default_cache_size = 10000;
 
 END-OF-DATA
+
+chmod 640 bacula.db
 exit 0
