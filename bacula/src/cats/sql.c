@@ -351,7 +351,7 @@ void split_path_and_filename(JCR *jcr, B_DB *mdb, char *fname)
 }
 
 /*
- * List dashs as part of header for listing SQL results in a table
+ * List dashes as part of header for listing SQL results in a table
  */
 void
 list_dashes(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx)
@@ -376,7 +376,7 @@ list_dashes(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx)
  * list on one line horizontally.      
  */
 void
-list_result(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type type)
+list_result(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type type)
 {
    SQL_FIELD *field;
    SQL_ROW row;
@@ -440,7 +440,7 @@ list_result(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type type)
 	 field = sql_fetch_field(mdb);
 	 if (row[i] == NULL) {
             bsnprintf(buf, sizeof(buf), " %-*s |", (int)field->max_length, "NULL");
-	 } else if (IS_NUM(field->type)) {
+	 } else if (IS_NUM(field->type) && !jcr->gui) {
             bsnprintf(buf, sizeof(buf), " %*s |", (int)field->max_length,       
 		      add_commas(row[i], ewc));
 	 } else {
@@ -462,7 +462,7 @@ vertical_list:
 	 field = sql_fetch_field(mdb);
 	 if (row[i] == NULL) {
             bsnprintf(buf, sizeof(buf), " %*s: %s\n", max_len, field->name, "NULL");
-	 } else if (IS_NUM(field->type)) {
+	 } else if (IS_NUM(field->type) && !jcr->gui) {
             bsnprintf(buf, sizeof(buf), " %*s: %s\n", max_len, field->name, 
 		add_commas(row[i], ewc));
 	 } else {

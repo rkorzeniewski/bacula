@@ -132,6 +132,7 @@ struct JCR {
    uint32_t ClientId;                 /* Client associated with Job */
    char *where;                       /* prefix to restore files to */
    bool prefix_links;                 /* Prefix links with Where path */
+   bool gui;                          /* set if gui using console */
    int cached_pnl;                    /* cached path length */
    POOLMEM *cached_path;              /* cached path */
 

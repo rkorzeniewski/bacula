@@ -44,7 +44,7 @@
  */
 
 /* Imported subroutines */
-extern void list_result(B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, e_list_type type);
+extern void list_result(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, e_list_type type);
 extern int QueryDB(char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
 
 
@@ -67,7 +67,7 @@ int db_list_sql_query(JCR *jcr, B_DB *mdb, char *query, DB_LIST_HANDLER *sendit,
    mdb->result = sql_store_result(mdb);
 
    if (mdb->result) {
-      list_result(mdb, sendit, ctx, type);
+      list_result(jcr, mdb, sendit, ctx, type);
       sql_free_result(mdb);
    }
    db_unlock(mdb);
@@ -93,7 +93,7 @@ db_list_pool_records(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, e_
       return;
    }
 
-   list_result(mdb, sendit, ctx, type);
+   list_result(jcr, mdb, sendit, ctx, type);
    
    sql_free_result(mdb);
    db_unlock(mdb);
@@ -117,7 +117,7 @@ db_list_client_records(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, 
       return;
    }
 
-   list_result(mdb, sendit, ctx, type);
+   list_result(jcr, mdb, sendit, ctx, type);
    
    sql_free_result(mdb);
    db_unlock(mdb);
@@ -166,7 +166,7 @@ db_list_media_records(JCR *jcr, B_DB *mdb, MEDIA_DBR *mdbr,
       return;
    }
 
-   list_result(mdb, sendit, ctx, type);
+   list_result(jcr, mdb, sendit, ctx, type);
    
    sql_free_result(mdb);
    db_unlock(mdb);
@@ -203,7 +203,7 @@ void db_list_jobmedia_records(JCR *jcr, B_DB *mdb, uint32_t JobId,
       return;
    }
 
-   list_result(mdb, sendit, ctx, type);
+   list_result(jcr, mdb, sendit, ctx, type);
    
    sql_free_result(mdb);
    db_unlock(mdb);
@@ -258,7 +258,7 @@ db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit,
       db_unlock(mdb);
       return;
    }
-   list_result(mdb, sendit, ctx, type);
+   list_result(jcr, mdb, sendit, ctx, type);
    
    sql_free_result(mdb);
    db_unlock(mdb);
@@ -282,7 +282,7 @@ db_list_job_totals(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, vo
       return;
    }
 
-   list_result(mdb, sendit, ctx, HORZ_LIST);
+   list_result(jcr, mdb, sendit, ctx, HORZ_LIST);
    
    sql_free_result(mdb);
 
@@ -295,7 +295,7 @@ AS Files,sum(JobBytes) As Bytes FROM Job");
       return;
    }
 
-   list_result(mdb, sendit, ctx, HORZ_LIST);
+   list_result(jcr, mdb, sendit, ctx, HORZ_LIST);
    
    sql_free_result(mdb);
    db_unlock(mdb);
@@ -325,7 +325,7 @@ db_list_files_for_job(JCR *jcr, B_DB *mdb, uint32_t jobid, DB_LIST_HANDLER *send
       return;
    }
 
-   list_result(mdb, sendit, ctx, HORZ_LIST);
+   list_result(jcr, mdb, sendit, ctx, HORZ_LIST);
    
    sql_free_result(mdb);
    db_unlock(mdb);

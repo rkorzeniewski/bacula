@@ -66,7 +66,7 @@ void init_job_server(int max_workers)
    wd->destructor = job_monitor_destructor;
    wd->one_shot = false;
    wd->interval = 60;
-   wd->data = create_control_jcr("*JobMonitor*", JT_SYSTEM);
+   wd->data = new_control_jcr("*JobMonitor*", JT_SYSTEM);
    register_watchdog(wd);
    
    return;

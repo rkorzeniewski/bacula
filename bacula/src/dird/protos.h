@@ -142,7 +142,7 @@ RUN *find_next_run(RUN *run, JOB *job, time_t &runtime);
 /* ua_server.c */
 void bsendmsg(void *sock, char *fmt, ...);
 UAContext *new_ua_context(JCR *jcr);
-JCR *create_control_jcr(char *base_name, int job_type);
+JCR *new_control_jcr(char *base_name, int job_type);
 void free_ua_context(UAContext *ua);
 
 /* ua_select.c */

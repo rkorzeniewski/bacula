@@ -47,7 +47,8 @@ extern int list_cmd(UAContext *ua, char *cmd);
 extern int llist_cmd(UAContext *ua, char *cmd);
 extern int show_cmd(UAContext *ua, char *cmd);
 extern int messagescmd(UAContext *ua, char *cmd);
-extern int autodisplaycmd(UAContext *ua, char *cmd);
+extern int autodisplay_cmd(UAContext *ua, char *cmd);
+extern int gui_cmd(UAContext *ua, char *cmd);
 extern int sqlquerycmd(UAContext *ua, char *cmd);
 extern int querycmd(UAContext *ua, char *cmd);
 extern int run_cmd(UAContext *ua, char *cmd);
@@ -71,6 +72,7 @@ static int delete_cmd(UAContext *ua, char *cmd);
 static int use_cmd(UAContext *ua, char *cmd),  unmount_cmd(UAContext *ua, char *cmd);
 static int version_cmd(UAContext *ua, char *cmd), automount_cmd(UAContext *ua, char *cmd);
 static int time_cmd(UAContext *ua, char *cmd);
+static int reload_cmd(UAContext *ua, char *cmd);
 static int update_volume(UAContext *ua);
 static int update_pool(UAContext *ua);
 static int delete_volume(UAContext *ua);
@@ -88,13 +90,14 @@ int quit_cmd(UAContext *ua, char *cmd);
 struct cmdstruct { char *key; int (*func)(UAContext *ua, char *cmd); char *help; }; 
 static struct cmdstruct commands[] = {
  { N_("add"),        add_cmd,         _("add media to a pool")},
- { N_("autodisplay"), autodisplaycmd, _("autodisplay [on/off] -- console messages")},
+ { N_("autodisplay"), autodisplay_cmd, _("autodisplay [on/off] -- console messages")},
  { N_("automount"),   automount_cmd,  _("automount [on/off] -- after label")},
  { N_("cancel"),     cancel_cmd,    _("cancel job=nnn -- cancel a job")},
  { N_("create"),     create_cmd,    _("create DB Pool from resource")},  
  { N_("delete"),     delete_cmd,    _("delete [pool=<pool-name> | media volume=<volume-name>]")},    
  { N_("estimate"),   estimate_cmd,  _("performs FileSet estimate, listing gives full listing")},
  { N_("exit"),       quit_cmd,      _("exit = quit")},
+ { N_("gui"),        gui_cmd,       _("gui [on/off] -- non-interactive gui mode")},
  { N_("help"),       help_cmd,      _("print this command")},
  { N_("list"),       list_cmd,      _("list [pools | jobs | jobtotals | media <pool> | files jobid=<nn>]; from catalog")},
  { N_("label"),      label_cmd,     _("label a tape")},
@@ -108,6 +111,7 @@ static struct cmdstruct commands[] = {
  { N_("restore"),    restore_cmd,   _("restore files")},
  { N_("relabel"),    relabel_cmd,   _("relabel a tape")},
  { N_("release"),    release_cmd,   _("release <storage-name>")},
+ { N_("reload"),     reload_cmd,    _("reload conf file")},
  { N_("run"),        run_cmd,       _("run <job-name>")},
  { N_("status"),     status_cmd,    _("status [storage | client]=<name>")},
  { N_("setdebug"),   setdebug_cmd,  _("sets debug level")},
@@ -1445,6 +1449,16 @@ static int time_cmd(UAContext *ua, char *cmd)
    strftime(sdt, sizeof(sdt), "%d-%b-%Y %H:%M:%S", &tm);
    bsendmsg(ua, "%s\n", sdt);
    return 1;
+}
+
+/*
+ * reload the conf file
+ */
+extern void reload_config(int sig);
+
+static int reload_cmd(UAContext *ua, char *cmd)
+{
+   reload_config(1);   
 }
 
 

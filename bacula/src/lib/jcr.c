@@ -197,6 +197,7 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    jcr->errmsg = get_pool_memory(PM_MESSAGE);
    jcr->errmsg[0] = 0;
    strcpy(jcr->Job, "*Console*");     /* default */
+   jcr->JobId = UINT32_MAX;	      /* temp non-zero JobId */
 
    sigtimer.sa_flags = 0;
    sigtimer.sa_handler = timeout_handler;

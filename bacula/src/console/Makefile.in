@@ -69,7 +69,7 @@ distclean: realclean
 	(cd $(srcdir); $(RMF) Makefile; $(RMF) -r CVS)
 
 install: all
-	$(INSTALL_SCRIPT) bconsole $(DESTDIR)$(sbindir)/bconsole
+	$(INSTALL_PROGRAM) bconsole $(DESTDIR)$(sbindir)/bconsole
 	@srcconf=bconsole.conf; \
 	if  test -f ${DESTDIR}${sysconfdir}/$$srcconf; then \
 	   destconf=$$srcconf.new; \
@@ -80,11 +80,11 @@ install: all
 	echo "${INSTALL_CONFIG} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf"; \
 	${INSTALL_CONFIG} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf
 	if test -f static-bconsole; then \
-	   $(INSTALL_SCRIPT) static-bconsole $(DESTDIR)$(sbindir)/static-bconsole; \
+	   $(INSTALL_PROGRAM) static-bconsole $(DESTDIR)$(sbindir)/static-bconsole; \
 	fi
 
 uninstall:
-	(cd $(DESTDIR)$(sbindir); $(RMF) bconsole)
+	(cd $(DESTDIR)$(sbindir); $(RMF) bconsole static-bconsole)
 	(cd $(DESTDIR)$(sysconfdir); $(RMF) bconsole.conf bconsole.conf.new)
 
 

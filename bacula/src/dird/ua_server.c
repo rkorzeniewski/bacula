@@ -95,7 +95,7 @@ static void *connect_thread(void *arg)
  * Create a Job Control Record for a control "job",
  *   filling in all the appropriate fields.
  */
-JCR *create_control_jcr(char *base_name, int job_type)
+JCR *new_control_jcr(char *base_name, int job_type)
 {
    JCR *jcr;
    jcr = new_jcr(sizeof(JCR), dird_free_jcr);
@@ -105,7 +105,9 @@ JCR *create_control_jcr(char *base_name, int job_type)
    jcr->JobType = job_type;
    jcr->JobLevel = L_FULL;
    jcr->JobStatus = JS_Running;
-   /* None of these are really defined for control JCRs, so we
+   jcr->JobId = 0;
+   /*
+    * None of these are really defined for control JCRs, so we
     * simply take the first of each one. This ensures that there
     * will be no null pointer references.
     */
@@ -134,7 +136,7 @@ static void *handle_UA_client_request(void *arg)
 
    pthread_detach(pthread_self());
 
-   jcr = create_control_jcr("*Console*", JT_CONSOLE);
+   jcr = new_control_jcr("*Console*", JT_CONSOLE);
 
    ua = new_ua_context(jcr);
    ua->UA_sock = UA_sock;
