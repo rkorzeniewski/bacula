@@ -92,6 +92,7 @@ For 1.33
 
 
 After 1.33:
+- Look at adding SQL server and Exchange support for Windows. 
 - Restore: Enter Filename: 'C:/Documents and Settings/Comercial/My
   Documents/MOP/formulário de registro BELAS ARTES.doc' causes Bacula to
   crash.
