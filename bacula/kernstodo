@@ -1,10 +1,13 @@
                  Kern's ToDo List
-                 04 January 2003 
+                 07 January 2003 
 
 Documentation to do: (a little bit at a time)
 - Document running a test version.
 - Document query file format.
 - Document static linking
+- Document fixing tape file after crash (update Media set VolFiles=xx
+  where MediaId=yy; update status to append).
+
 
 Testing to do: (painful)
 - that console command line options work

@@ -1,3 +1,5 @@
+
+=============================================================================
 2003-01-05 Version 1.28a released
 - Corrected a typo of working_directory in bacula-dir.conf
   reported by James MacLean.
@@ -5,9 +7,11 @@
   being quoted before going into the database. Many thanks to
   James MacLean for reporting this.
 
+=============================================================================
 2003-01-05 Version 1.28a released
 - Corrected a missing quote in bacula-dir.conf reported by James MacLean
 
+=============================================================================
 2003-01-05 Version 1.28 released
 General:
 - Implemented Bare Metal Recovery for Linux and manual procedures for Solaris
