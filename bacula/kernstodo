@@ -30,9 +30,11 @@ For 1.32 Testing/Documentation:
 - Document new Include/Exclude ...
 - Document all the status codes JobLevel, JobType, JobStatus.
 - Add test of exclusion, test multiple Include {} statements.
+- Client files in Win32 with Unix eol conventions doesn't work.
                 
 For 1.32:
 - Add multiple character duration qualifiers.
+- Require some modifer.
 - Enhance "update slots" to include a "scan" feature
   scan 1; scan 1-5; scan 1,2,4 ...  to update the catalog 
 - Allow a slot or range of slots on the label barcodes command.
@@ -921,4 +923,3 @@ Done: (see kernsdone for more)
 - LabelFormat on tape volume apparently creates the db record but 
   never actually labels the volume.
 - Recycling a volume when two jobs are using it is going to break. Fixed.
-
