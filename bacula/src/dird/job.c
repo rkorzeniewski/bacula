@@ -287,7 +287,7 @@ bail_out:
       break;
    }
 
-   Dmsg0(50, "======== End Job ==========\n");
+   Dmsg1(50, "======== End Job stat=%c ==========\n", jcr->JobStatus);
    sm_check(__FILE__, __LINE__, true);
    return NULL;
 }

@@ -243,7 +243,7 @@ init_msg(JCR *jcr, MSGS *msg)
       daemon_msgs->dest_chain = temp_chain;
       memcpy(daemon_msgs->send_msg, msg->send_msg, sizeof(msg->send_msg));
    }
-   Dmsg2(050, "Copy message resource 0x%x to 0x%x\n", msg, temp_chain);
+   Dmsg2(250, "Copy message resource 0x%x to 0x%x\n", msg, temp_chain);
 
 }
 
