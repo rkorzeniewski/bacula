@@ -59,16 +59,19 @@ int mount_next_write_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, int release
     */
 mount_next_vol:
    /* Ignore retry if this is poll request */
-   if (!dev->poll && retry++ > 8) {
-      Jmsg(jcr, M_FATAL, 0, _("Too many errors trying to mount device %s.\n"), 
-	   dev_name(dev));
-      return 0;
+   if (!dev->poll && retry++ > 4) {
+      /* Last ditch effort before giving up, force operator to respond */
+      jcr->VolCatInfo.Slot = 0;
+      if (!dir_ask_sysop_to_mount_volume(jcr, dev)) {
+         Jmsg(jcr, M_FATAL, 0, _("Too many errors trying to mount device %s.\n"), 
+	      dev_name(dev));
+	 return 0;
+      }
    }
    if (job_canceled(jcr)) {
       Jmsg(jcr, M_FATAL, 0, _("Job %d canceled.\n"), jcr->JobId);
       return 0;
    }
-   autochanger = false; 	       /* Assume no autochanger */
    recycle = false;
    if (release) {
       Dmsg0(100, "mount_next_volume release=1\n");
@@ -111,6 +114,10 @@ mount_next_vol:
 
    if (autoload_device(jcr, dev, 1, NULL) > 0) {
       autochanger = true;
+      ask = false;
+   } else {
+      autochanger = false;
+      jcr->VolCatInfo.Slot = 0;
    }
    Dmsg1(100, "autoload_dev returns %d\n", autochanger);
    /*
@@ -119,7 +126,7 @@ mount_next_vol:
     *	and read the label. If there is no tape in the drive,
     *	we will err, recurse and ask the operator the next time.
     */
-   if (autochanger || (!release && dev_is_tape(dev) && dev_cap(dev, CAP_AUTOMOUNT))) {
+   if (!release && dev_is_tape(dev) && dev_cap(dev, CAP_AUTOMOUNT)) {
       ask = false;                 /* don't ask SYSOP this time */
    }
    Dmsg2(100, "Ask=%d autochanger=%d\n", ask, autochanger);
@@ -292,22 +299,6 @@ read_volume:
 	       dev_name(dev), strerror_dev(dev));
 	    goto mount_next_vol;
 	 }
-	 /* 
-	  * We do not return the label in the block, because if we are
-	  *  running multiple simultaneous jobs, once we release the lock
-	  *  some other thread may write his block over the label. So, 
-	  *  we simply write it definitively now.
-	  */
-#ifdef needed
-	 if (!rewind_dev(dev)) {
-            Jmsg2(jcr, M_ERROR, 0, _("Unable to rewind device %s. ERR=%s\n"),
-	       dev_name(dev), strerror_dev(dev));
-	    goto mount_next_vol;
-	 }
-
-	 /* Recreate a correct volume label and return it in the block */
-	 write_volume_label_to_block(jcr, dev, block);
-#endif
       }
       /* Set or reset Volume statistics */
       dev->VolCatInfo.VolCatJobs = 0;

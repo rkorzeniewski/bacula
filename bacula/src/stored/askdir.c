@@ -474,8 +474,7 @@ int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
        *   Slot for an autochanger, otherwise wait
        *   for the operator to mount the media.
        */
-      if ((jcr->VolumeName[0] && !dev_cap(dev, CAP_REM) && dev_cap(dev, CAP_LABEL)) ||
-	  (jcr->VolumeName[0] && jcr->VolCatInfo.Slot)) {
+      if ((!dev_cap(dev, CAP_REM) && dev_cap(dev, CAP_LABEL)) || jcr->VolCatInfo.Slot) {
          Dmsg0(100, "Return 1 from mount without wait.\n");
 	 return 1;
       }

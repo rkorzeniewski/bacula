@@ -64,6 +64,8 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
       }
       if (dir_find_next_appendable_volume(jcr)) {
 	 slot = jcr->VolCatInfo.Slot; 
+      } else {
+	 slot = 0;
       }
    }
    Dmsg1(400, "Want changer slot=%d\n", slot);
