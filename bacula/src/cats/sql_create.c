@@ -235,7 +235,7 @@ int
 db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 {
    int stat;
-   char ed1[30], ed2[30], ed3[30], ed4[30];
+   char ed1[30], ed2[30], ed3[30], ed4[30], ed5[30];
    char dt[MAX_TIME_LENGTH];
    struct tm tm;
 
@@ -260,13 +260,13 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       localtime_r(&mr->LabelDate, &tm); 
       strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
    } else {
-      strcpy(dt, "0000-00-00 00:00:00");
+      bstrncpy(dt, "0000-00-00 00:00:00", sizeof(dt));
    }
    Mmsg(&mdb->cmd, 
 "INSERT INTO Media (VolumeName,MediaType,PoolId,MaxVolBytes,VolCapacityBytes," 
 "Recycle,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,"
-"VolStatus,LabelDate,Slot) "
-"VALUES ('%s','%s',%u,%s,%s,%d,%s,%s,%u,%u,'%s','%s',%d)", 
+"VolStatus,LabelDate,Slot,VolBytes) "
+"VALUES ('%s','%s',%u,%s,%s,%d,%s,%s,%u,%u,'%s','%s',%d,%s)", 
 		  mr->VolumeName,
 		  mr->MediaType, mr->PoolId, 
 		  edit_uint64(mr->MaxVolBytes,ed1),
@@ -277,7 +277,8 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 		  mr->MaxVolJobs,
 		  mr->MaxVolFiles,
 		  mr->VolStatus, dt,
-		  mr->Slot);
+		  mr->Slot,
+		  edit_uint64(mr->VolBytes, ed5));
 
    Dmsg1(500, "Create Volume: %s\n", mdb->cmd);
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {

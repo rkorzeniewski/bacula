@@ -321,6 +321,16 @@ open_dev(DEVICE *dev, char *VolName, int mode)
    return dev->fd;
 }
 
+#ifdef debug_tracing
+#undef rewind_dev
+int _rewind_dev(char *file, int line, DEVICE *dev)
+{
+   Dmsg2(000, "rewind_dev called from %s:%d\n", file, line);
+   return rewind_dev(dev);
+}
+#endif
+
+
 /*
  * Rewind the device.
  *  Returns: 1 on success
@@ -331,7 +341,7 @@ int rewind_dev(DEVICE *dev)
    struct mtop mt_com;
    unsigned int i;
 
-   Dmsg0(29, "rewind_dev\n");
+   Dmsg1(29, "rewind_dev %s\n", dev->dev_name);
    if (dev->fd < 0) {
       dev->dev_errno = EBADF;
       Mmsg1(&dev->errmsg, _("Bad call to rewind_dev. Device %s not open\n"),

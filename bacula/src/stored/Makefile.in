@@ -140,6 +140,9 @@ install: all
 	fi; \
 	echo "${INSTALL_CONFIG} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf"; \
 	${INSTALL_CONFIG} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf
+	@if test -f static-bacula-sd; then \
+	   $(INSTALL_PROGRAM) static-bacula-sd $(DESTDIR)$(sbindir)/static-bacula-sd; \
+	fi
 
 uninstall:
 	(cd $(DESTDIR)$(sbindir); $(RMF) bacula-sd)

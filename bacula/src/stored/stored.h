@@ -51,4 +51,9 @@ extern char errmsg[];                 /* general error message */
 
 extern STORES *me;                    /* "Global" daemon resource */
 
+#ifdef debug_tracing
+extern int _rewind_dev(char *file, int line, DEVICE *dev);
+#define rewind_dev(d) _rewind_dev(__FILE__, __LINE__, (d))
+#endif
+
 #endif /* __STORED_H_ */

@@ -258,6 +258,19 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       Dmsg1(400, "Firstwritten stat=%d\n", stat);
    }
 
+   /* Label just done? */
+   if (mr->VolBytes == 1) {
+      ttime = mr->LabelDate;
+      if (ttime == 0) {
+	 ttime = time(NULL);
+      }
+      localtime_r(&ttime, &tm);
+      strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
+      Mmsg(&mdb->cmd, "UPDATE Media SET LabelDate='%s'\
+ WHERE VolumeName='%s'", dt, mr->VolumeName);
+      stat = UPDATE_DB(jcr, mdb, mdb->cmd);
+   }
+
    ttime = mr->LastWritten;
    localtime_r(&ttime, &tm);
    strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);

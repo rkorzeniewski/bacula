@@ -44,7 +44,7 @@ typedef char POOLMEM;
 #define mp_chr(x) ((char*)(x))
 class POOLMEM { 
 public:
-   POOLMEM() { }
+   POOLMEM();
    operator char * const() { return this; }
 };
 #endif

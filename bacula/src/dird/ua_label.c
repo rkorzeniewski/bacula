@@ -268,7 +268,7 @@ checkName:
 	 }
       }
       if (ua->automount) {
-	 strcpy(dev_name, store->dev_name);
+	 bstrncpy(dev_name, store->dev_name, sizeof(dev_name));
          bsendmsg(ua, _("Requesting mount %s ...\n"), dev_name);
 	 bash_spaces(dev_name);
          bnet_fsend(sd, "mount %s", dev_name);
@@ -441,12 +441,12 @@ static int send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
    bash_spaces(pr->Name);
    if (relabel) {
       bash_spaces(omr->VolumeName);
-      bnet_fsend(sd, _("relabel %s OldName=%s NewName=%s PoolName=%s MediaType=%s Slot=%d"), 
+      bnet_fsend(sd, "relabel %s OldName=%s NewName=%s PoolName=%s MediaType=%s Slot=%d", 
 	 dev_name, omr->VolumeName, mr->VolumeName, pr->Name, mr->MediaType, mr->Slot);
       bsendmsg(ua, _("Sending relabel command from \"%s\" to \"%s\" ...\n"),
 	 omr->VolumeName, mr->VolumeName);
    } else {
-      bnet_fsend(sd, _("label %s VolumeName=%s PoolName=%s MediaType=%s Slot=%d"), 
+      bnet_fsend(sd, "label %s VolumeName=%s PoolName=%s MediaType=%s Slot=%d", 
 	 dev_name, mr->VolumeName, pr->Name, mr->MediaType, mr->Slot);
       bsendmsg(ua, _("Sending label command for Volume \"%s\" Slot %d ...\n"), 
 	 mr->VolumeName, mr->Slot);
@@ -466,6 +466,7 @@ static int send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
    mr->LabelDate = time(NULL);
    if (ok) {
       set_pool_dbr_defaults_in_media_dbr(mr, pr);
+      mr->VolBytes = 1; 	      /* flag indicating Volume labeled */
       if (db_create_media_record(ua->jcr, ua->db, mr)) {
          bsendmsg(ua, _("Catalog record for Volume \"%s\", Slot %d  successfully created.\n"),
 	    mr->VolumeName, mr->Slot);

@@ -162,7 +162,7 @@ int do_a_command(UAContext *ua, char *cmd)
 void set_pool_dbr_defaults_in_media_dbr(MEDIA_DBR *mr, POOL_DBR *pr)
 {
    mr->PoolId = pr->PoolId;
-   strcpy(mr->VolStatus, "Append");
+   bstrncpy(mr->VolStatus, "Append", sizeof(mr->VolStatus));
    mr->Recycle = pr->Recycle;
    mr->VolRetention = pr->VolRetention;
    mr->VolUseDuration = pr->VolUseDuration;

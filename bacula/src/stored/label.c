@@ -333,14 +333,14 @@ void create_volume_label(DEVICE *dev, char *VolName, char *PoolName)
    /* ***FIXME*** we really need to get the volume name,    
     * pool name, and pool type from the database.
     */
-   strcpy(dev->VolHdr.Id, BaculaId);
+   bstrncpy(dev->VolHdr.Id, BaculaId, sizeof(dev->VolHdr.Id));
    dev->VolHdr.VerNum = BaculaTapeVersion;
    dev->VolHdr.LabelType = PRE_LABEL;  /* Mark tape as unused */
    bstrncpy(dev->VolHdr.VolName, VolName, sizeof(dev->VolHdr.VolName));
    bstrncpy(dev->VolHdr.PoolName, PoolName, sizeof(dev->VolHdr.PoolName));
    bstrncpy(dev->VolHdr.MediaType, device->media_type, sizeof(dev->VolHdr.MediaType));
 
-   strcpy(dev->VolHdr.PoolType, "Backup");
+   bstrncpy(dev->VolHdr.PoolType, "Backup", sizeof(dev->VolHdr.PoolType));
 
    /* Put label time/date in header */
    if (BaculaTapeVersion >= 11) {

@@ -70,7 +70,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
    MEDIA_DBR mr, sdmr; 
    JOBMEDIA_DBR jm;
    char Job[MAX_NAME_LENGTH];
-   int index, ok, relabel, writing;
+   int index, ok, label, writing;
    POOLMEM *omsg;
 
    memset(&mr, 0, sizeof(mr));
@@ -215,7 +215,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
    } else if (sscanf(bs->msg, Update_media, &Job, &sdmr.VolumeName, &sdmr.VolJobs,
       &sdmr.VolFiles, &sdmr.VolBlocks, &sdmr.VolBytes, &sdmr.VolMounts, &sdmr.VolErrors,
       &sdmr.VolWrites, &sdmr.MaxVolBytes, &sdmr.LastWritten, &sdmr.VolStatus, 
-      &sdmr.Slot, &relabel) == 14) {
+      &sdmr.Slot, &label) == 14) {
 
       db_lock(jcr->db);
       Dmsg3(400, "Update media %s oldStat=%s newStat=%s\n", sdmr.VolumeName,
@@ -232,6 +232,11 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
       /* Set first written time if this is first job */
       if (mr.VolJobs == 0 || sdmr.VolJobs == 1) {
 	 mr.FirstWritten = jcr->start_time;   /* use Job start time as first write */
+      }
+      /* If we just labeled the tape set time */
+      Dmsg2(400, "label=%d labeldate=%d\n", label, mr.LabelDate);
+      if (label || mr.LabelDate == 0) {
+	 mr.LabelDate = time(NULL);
       }
       Dmsg2(200, "Update media: BefVolJobs=%u After=%u\n", mr.VolJobs, sdmr.VolJobs);
       /* Copy updated values to original media record */
@@ -250,8 +255,8 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
        * Update Media Record
        */
 
-      /* Check limits and expirations if "Append" and not a relable request */
-      if (strcmp(mr.VolStatus, "Append") == 0 && !relabel) {
+      /* Check limits and expirations if "Append" and not a lable request */
+      if (strcmp(mr.VolStatus, "Append") == 0 && !label) {
 	 /* First handle Max Volume Bytes */
 	 if ((mr.MaxVolBytes > 0 && mr.VolBytes >= mr.MaxVolBytes)) {
             Jmsg(jcr, M_INFO, 0, _("Max Volume bytes exceeded. "             
