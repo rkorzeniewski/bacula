@@ -195,7 +195,7 @@ char *edit_utime(utime_t val, char *buf)
 
    *buf = 0;
    for (i=0; i<5; i++) {
-      times = val / mult[i];
+      times = (uint32_t)(val / mult[i]);
       if (times > 0) {
 	 val = val - (utime_t)times * mult[i];
          sprintf(mybuf, "%d %s%s ", times, mod[i], times>1?"s":"");
