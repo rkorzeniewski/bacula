@@ -129,6 +129,7 @@ Makefiles:
 	chmod 755 src/cats/create_bdb_database
 	chmod 755 src/cats/grant_mysql_privileges
 	chmod 755 src/cats/grant_postgresql_privileges
+	chmod 755 src/cats/grant_bacula_privileges
 
 clean:
 	@for I in ${all_subdirs}; \
