@@ -19,13 +19,6 @@
  */
 /*  #define SEND_DMSG_TO_FILE 1 */
 
-/* Turn this on if you want to use the Job semaphore code */
-/* #define USE_SEMAPHORE */
-
-/* Turn this on if you want to use the new Job scheduling code */
-#undef USE_SEMAPHORE
-#define JOB_QUEUE 1
-
 
 /* #define NO_ATTRIBUTES_TEST 1 */
 /* #define NO_TAPE_WRITE_TEST 1 */

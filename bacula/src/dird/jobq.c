@@ -40,7 +40,6 @@
 #include "bacula.h"
 #include "dird.h"
 
-#ifdef JOB_QUEUE
 
 /* Forward referenced functions */
 static void *jobq_server(void *arg);
@@ -569,5 +568,3 @@ static void *jobq_server(void *arg)
    Dmsg0(100, "End jobq_server\n");
    return NULL;
 }
-
-#endif /* JOB_QUEUE */
