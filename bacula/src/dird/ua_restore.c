@@ -211,9 +211,10 @@ int restore_cmd(UAContext *ua, char *cmd)
 	  working_directory, rx.where, rx.selected_files);
    } else {
       Mmsg(&ua->cmd, 
-          "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s/restore.bsr\"",
+          "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s/restore.bsr\""
+          " files=%d",
           job->hdr.name, rx.ClientName, rx.store?rx.store->hdr.name:"",
-	  working_directory);
+	  working_directory, rx.selected_files);
    }
    if (find_arg(ua, _("yes")) > 0) {
       pm_strcat(&ua->cmd, " yes");    /* pass it on to the run command */
