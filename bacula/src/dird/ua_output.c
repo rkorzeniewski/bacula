@@ -42,11 +42,11 @@ extern int console_msg_pending;
 extern FILE *con_fd;
 extern brwlock_t con_lock;
 
-
 /* Imported functions */
 
 /* Forward referenced functions */
 static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist);
+static bool list_nextvol(UAContext *ua);
 
 /*
  * Turn auto display of console messages on/off
@@ -401,64 +401,64 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
       /* List next volume */
       } else if (strcasecmp(ua->argk[i], _("nextvol")) == 0 || 
                  strcasecmp(ua->argk[i], _("nextvolume")) == 0) {
-	 JOB *job;
-	 JCR *jcr = ua->jcr;
-	 POOL *pool;
-	 RUN *run;
-	 time_t runtime;
-	 bool found = false;
-
-         i = find_arg_with_value(ua, "job");
-	 if (i <= 0) {
-	    if ((job = select_job_resource(ua)) == NULL) {
-	       return 1;
-	    }
-	 } else {
-	    job = (JOB *)GetResWithName(R_JOB, ua->argv[i]);
-	    if (!job) {
-               Jmsg(jcr, M_ERROR, 0, _("%s is not a job name.\n"), ua->argv[i]);
-	       if ((job = select_job_resource(ua)) == NULL) {
-		  return 1;
-	       }
-	    }
-	 }
-	 for (run=NULL; (run = find_next_run(run, job, runtime)); ) {
-	    pool = run ? run->pool : NULL;
-	    if (!complete_jcr_for_job(jcr, job, pool)) {
-	       return 1;
-	    }
-	   
-	    if (!find_next_volume_for_append(jcr, &mr, 0)) {
-               bsendmsg(ua, _("Could not find next Volume.\n"));
-	       if (jcr->db) {
-		  db_close_database(jcr, jcr->db);
-		  jcr->db = NULL;
-	       }
-	       return 1;
-	    } else {
-               bsendmsg(ua, _("The next Volume to be used by Job \"%s\" will be %s\n"), 
-		  job->hdr.name, mr.VolumeName);
-	       found = true;
-	    }
-	    if (jcr->db) {
-	       db_close_database(jcr, jcr->db);
-	       jcr->db = NULL;
-	    }
-	 }
-	 if (jcr->db) {
-	    db_close_database(jcr, jcr->db);
-	    jcr->db = NULL;
-	 }
-	 if (!found) {
-            bsendmsg(ua, _("Could not find next Volume.\n"));
-	 }
-	 return 1;
+	 list_nextvol(ua);
       } else {
          bsendmsg(ua, _("Unknown list keyword: %s\n"), NPRT(ua->argk[i]));
       }
    }
    return 1;
 }
+
+static bool list_nextvol(UAContext *ua)
+{
+   JOB *job;
+   JCR *jcr = ua->jcr;
+   POOL *pool;
+   RUN *run;
+   time_t runtime;
+   bool found = false;
+   MEDIA_DBR mr;
+
+   memset(&mr, 0, sizeof(mr));
+   int i = find_arg_with_value(ua, "job");
+   if (i <= 0) {
+      if ((job = select_job_resource(ua)) == NULL) {
+	 return false;
+      }
+   } else {
+      job = (JOB *)GetResWithName(R_JOB, ua->argv[i]);
+      if (!job) {
+         Jmsg(jcr, M_ERROR, 0, _("%s is not a job name.\n"), ua->argv[i]);
+	 if ((job = select_job_resource(ua)) == NULL) {
+	    return false;
+	 }
+      }
+   }
+   for (run=NULL; (run = find_next_run(run, job, runtime)); ) {
+      pool = run ? run->pool : NULL;
+      if (!complete_jcr_for_job(jcr, job, pool)) {
+	 return false;
+      }
+     
+      if (!find_next_volume_for_append(jcr, &mr, 0)) {
+         bsendmsg(ua, _("Could not find next Volume.\n"));
+      } else {
+         bsendmsg(ua, _("The next Volume to be used by Job \"%s\" will be %s\n"), 
+	    job->hdr.name, mr.VolumeName);
+	 found = true;
+      }
+      if (jcr->db && jcr->db != ua->db) {
+	 db_close_database(jcr, jcr->db);
+	 jcr->db = NULL;
+      }
+   }
+   if (!found) {
+      bsendmsg(ua, _("Could not find next Volume.\n"));
+      return false;
+   }
+   return true;
+}
+
 
 /* 
  * For a given job, we examine all his run records
