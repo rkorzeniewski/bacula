@@ -247,7 +247,7 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
       Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
           "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
           "VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,Recycle,Slot,"
-          "FirstWritten,LastWritten,VolStatus "
+          "FirstWritten,COALESCE(LastWritten,0),VolStatus "
           "FROM Media WHERE PoolId=%u AND MediaType='%s' AND VolStatus='%s' "
           "%s " 
           "%s LIMIT 1",
