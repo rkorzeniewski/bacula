@@ -13,6 +13,9 @@
 %{?build_rh8:%define rh8 1}
 %define rh9 0
 %{?build_rh9:%define rh9 1}
+# Fedora Core 1 build
+%define fc1 0
+%{?build_fc1:%define fc1 1}
 # Whitebox Enterprise build
 %define wb3 0
 %{?build_wb3:%define wb3 1}
@@ -36,14 +39,28 @@ URL: http://www.bacula.org/
 Vendor: The Bacula Team
 Distribution: The Bacula Team
 Packager: D. Scott Barninger <barninger@fairfieldcomputers.com>
-BuildRequires: readline-devel
+BuildRequires: readline-devel, atk-devel, ncurses-devel, pango-devel
+BuildRequires: libstdc++-devel, libtermcap-devel, libxml2-devel, zlib-devel
 %if %{rh7}
 BuildRequires: gtk+-devel >= 1.2
 BuildRequires: gnome-libs-devel >= 1.4
+BuildRequires: glibc-devel >= 2.2
+BuildRequires: ORBit-devel
+BuildRequires: bonobo-devel
+BuildRequires: GConf-devel
 %else
 BuildRequires: gtk2-devel >= 2.0
 BuildRequires: libgnomeui-devel >= 2.0
+BuildRequires: glibc-devel >= 2.3
+BuildRequires: ORBit2-devel
+BuildRequires: libart_lgpl-devel >= 2.0
+BuildRequires: libbonobo-devel >= 2.0
+BuildRequires: libbonoboui-devel >= 2.0
+BuildRequires: bonobo-activation-devel >= 2.0
+BuildRequires: GConf2-devel
+BuildRequires: linc-devel
 %endif
+
 %if %{mysql}
 BuildRequires: mysql-devel >= 3.23
 %endif
@@ -67,13 +84,27 @@ Bacula source code has been released under the GPL version 2 license.
 
 Summary: Bacula - The Network Backup Solution
 Group: System Environment/Daemons
-Requires: readline
+Provides: bacula-dir, bacula-sd, bacula-fd
+Requires: readline, perl, atk, ncurses, pango, libstdc++
+Requires: libtermcap, libxml2, zlib
 %if %{rh7}
 Requires: gtk+ >= 1.2
 Requires: gnome-libs >= 1.4
+Requires: glibc >= 2.2
+Requires: ORBit
+Requires: bonobo
+Requires: GConf
 %else
 Requires: gtk2 >= 2.0
 Requires: libgnomeui >= 2.0
+Requires: glibc >= 2.3
+Requires: ORBit2
+Requires: libart_lgpl >= 2.0
+Requires: libbonobo >= 2.0
+Requires: libbonoboui >= 2.0
+Requires: bonobo-activation >= 2.0
+Requires: GConf2
+Requires: linc
 %endif
 %if %{mysql}
 Requires: mysql >= 3.23
@@ -105,13 +136,16 @@ This build incorporates sqlite as the catalog database, statically compiled.
 %package client
 Summary: Bacula - The Network Backup Solution
 Group: System Environment/Daemons
-Requires: readline
+Provides: bacula-fd
+Requires: readline, perl, libstdc++, zlib
 %if %{rh7}
 Requires: gtk+ >= 1.2
 Requires: gnome-libs >= 1.4
+Requires: glibc >= 2.2
 %else
 Requires: gtk2 >= 2.0
 Requires: libgnomeui >= 2.0
+Requires: glibc >= 2.3
 %endif
 
 %description client
@@ -131,7 +165,7 @@ This is the File daemon (Client) only package.
 
 Summary: Bacula - The Network Backup Solution
 Group: System Environment/Daemons
-Requires: coreutils, util-linux, libc5
+Requires: coreutils, util-linux, libc5, bacula-fd
 
 %description rescue
 Bacula - It comes by night and sucks the vital essence from your computers.
@@ -484,6 +518,11 @@ rm -f /etc/bacula/rescue/sfdisk
 rm -rf /etc/bacula/rescue/diskinfo/*
 
 %changelog
+* Sat Jan 10 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
+- added virtual package Provides bacula-dir, bacula-sd, bacula-fd
+- added bacula-fd as Requires for rescue package
+- added build tag for Fedora Core 1
+- cleaned up dependancies for all builds
 * Thu Jan 1 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - removed rh_version from package names
 - added platform build configuration section to beginning of file
