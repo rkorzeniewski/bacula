@@ -129,8 +129,10 @@ static struct res_items cli_items[] = {
    {"name",     store_name,       ITEM(res_client.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,     ITEM(res_client.hdr.desc), 0, 0, 0},
    {"address",  store_str,        ITEM(res_client.address),  0, ITEM_REQUIRED, 0},
+   {"fdaddress",  store_str,      ITEM(res_client.address),  0, ITEM_REQUIRED, 0},
    {"fdport",   store_pint,       ITEM(res_client.FDport),   0, ITEM_DEFAULT, 9102},
    {"password", store_password,   ITEM(res_client.password), 0, ITEM_REQUIRED, 0},
+   {"fdpassword", store_password,   ITEM(res_client.password), 0, ITEM_REQUIRED, 0},
    {"catalog",  store_res,        ITEM(res_client.catalog),  R_CATALOG, 0, 0},
    {"fileretention", store_time,  ITEM(res_client.FileRetention), 0, ITEM_DEFAULT, 60*60*24*60},
    {"jobretention",  store_time,  ITEM(res_client.JobRetention),  0, ITEM_DEFAULT, 60*60*24*180},
@@ -145,17 +147,19 @@ static struct res_items cli_items[] = {
  *   name	   handler     value		     code flags    default_value
  */
 static struct res_items store_items[] = {
-   {"name",      store_name,     ITEM(res_store.hdr.name),   0, ITEM_REQUIRED, 0},
-   {"description", store_str,    ITEM(res_store.hdr.desc),   0, 0, 0},
-   {"sdport",    store_pint,     ITEM(res_store.SDport),     0, ITEM_DEFAULT, 9103},
-   {"sddport",   store_pint,     ITEM(res_store.SDDport),    0, 0, 0}, /* deprecated */
-   {"address",   store_str,      ITEM(res_store.address),    0, ITEM_REQUIRED, 0},
-   {"password",  store_password, ITEM(res_store.password),   0, ITEM_REQUIRED, 0},
-   {"device",    store_strname,  ITEM(res_store.dev_name),   0, ITEM_REQUIRED, 0},
-   {"mediatype", store_strname,  ITEM(res_store.media_type), 0, ITEM_REQUIRED, 0},
-   {"autochanger", store_yesno,  ITEM(res_store.autochanger), 1, ITEM_DEFAULT, 0},
-   {"enablessl", store_yesno,    ITEM(res_store.enable_ssl),  1, ITEM_DEFAULT, 0},
+   {"name",        store_name,     ITEM(res_store.hdr.name),   0, ITEM_REQUIRED, 0},
+   {"description", store_str,      ITEM(res_store.hdr.desc),   0, 0, 0},
+   {"sdport",      store_pint,     ITEM(res_store.SDport),     0, ITEM_DEFAULT, 9103},
+   {"address",     store_str,      ITEM(res_store.address),    0, ITEM_REQUIRED, 0},
+   {"sdaddress",   store_str,      ITEM(res_store.address),    0, ITEM_REQUIRED, 0},
+   {"sdpassword",  store_password, ITEM(res_store.password),   0, ITEM_REQUIRED, 0},
+   {"device",      store_strname,  ITEM(res_store.dev_name),   0, ITEM_REQUIRED, 0},
+   {"sddevicename", store_strname, ITEM(res_store.dev_name),   0, ITEM_REQUIRED, 0},
+   {"mediatype",   store_strname,  ITEM(res_store.media_type), 0, ITEM_REQUIRED, 0},
+   {"autochanger", store_yesno,    ITEM(res_store.autochanger), 1, ITEM_DEFAULT, 0},
+   {"enablessl",   store_yesno,    ITEM(res_store.enable_ssl),  1, ITEM_DEFAULT, 0},
    {"maximumconcurrentjobs", store_pint, ITEM(res_store.MaxConcurrentJobs), 0, ITEM_DEFAULT, 1},
+   {"sddport", store_pint, ITEM(res_store.SDDport), 0, 0, 0}, /* deprecated */
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 
@@ -172,6 +176,7 @@ static struct res_items cat_items[] = {
    {"dbport",   store_pint,     ITEM(res_cat.db_port),      0, 0, 0},
    /* keep this password as store_str for the moment */
    {"password", store_str,      ITEM(res_cat.db_password), 0, 0, 0},
+   {"dbpassword", store_str,      ITEM(res_cat.db_password), 0, 0, 0},
    {"user",     store_str,      ITEM(res_cat.db_user),     0, 0, 0},
    {"dbname",   store_str,      ITEM(res_cat.db_name),     0, ITEM_REQUIRED, 0},
    {"dbsocket", store_str,      ITEM(res_cat.db_socket),   0, 0, 0}, 

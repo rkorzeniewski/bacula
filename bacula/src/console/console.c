@@ -518,17 +518,18 @@ static int inputcmd(FILE *input, BSOCK *UA_sock)
    FILE *fd;
 
    if (argc > 2) {
-      sendit(_("Too many arguments.\n"));
-      return 0;
+      sendit(_("Too many arguments on input command.\n"));
+      return 1;
    }
    if (argc == 1) {
-      sendit(_("First argument must be a filename.\n"));
-      return 0;
+      sendit(_("First argument to input command must be a filename.\n"));
+      return 1;
    }
    fd = fopen(argk[1], "r");
    if (!fd) {
-      sendit(_("Cannot open file. ERR=%s\n"), strerror(errno));
-      return 0; 
+      sendit(_("Cannot open file %s for input. ERR=%s\n"), 
+	 argk[1], strerror(errno));
+      return 1; 
    }
    read_and_process_input(fd, UA_sock);
    fclose(fd);
@@ -554,7 +555,7 @@ static int do_outputcmd(FILE *input, BSOCK *UA_sock)
    char *mode = "a+";
 
    if (argc > 3) {
-      sendit(_("Too many arguments.\n"));
+      sendit(_("Too many arguments on output/tee command.\n"));
       return 1;
    }
    if (argc == 1) {
@@ -570,7 +571,8 @@ static int do_outputcmd(FILE *input, BSOCK *UA_sock)
    }
    fd = fopen(argk[1], mode);
    if (!fd) {
-      sendit(_("Cannot open file. ERR=%s\n"), strerror(errno));
+      sendit(_("Cannot open file %s for output. ERR=%s\n"), 
+	 argk[1], strerror(errno));
       return 1; 
    }
    output = fd;

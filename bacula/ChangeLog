@@ -1,5 +1,15 @@
 
-2003-08-02 Version 1.32 10Sep03 Beta
+2003-09-12 Version 1.32 12Sep03 Beta
+- Add new aliases SDAddress, ...
+- Final changes for variable expansion
+- Possible fix to Alex's SD crashes
+- Correct incrementing counters not in catalog -- reported by
+  Chris Allen.
+- Correct memory leak in core var.c code -- reported by 
+  Chris Allen.
+- Make documentation of variable substitution a bit clearer.
+- Apply Nic Bellamy's patch to dbcheck.c to fix SQL to work
+  on both MySQL and SQLite.
 - Finally fixed the .messages that was sent during prompts
   in the console with no readline.
 - Implement new Include/Exclude semantics.

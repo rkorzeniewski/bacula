@@ -451,7 +451,7 @@ expand_character_class(const char *desc, char_class_t chrclass)
 
 static int 
 expand_isoct(
-    char c)
+    int c)
 {
     if (c >= '0' && c <= '7')
 	return 1;
@@ -463,7 +463,7 @@ static var_rc_t
 expand_octal(
     const char **src, char **dst, const char *end)
 {
-    unsigned char c;
+    int c;
 
     if (end - *src < 3)
 	return VAR_ERR_INCOMPLETE_OCTAL;
@@ -491,7 +491,7 @@ expand_octal(
 
 static int 
 expand_ishex(
-    char c)
+    int c)
 {
     if ((c >= '0' && c <= '9') ||
         (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))
@@ -504,7 +504,7 @@ static var_rc_t
 expand_simple_hex(
     const char **src, char **dst, const char *end)
 {
-    unsigned char c = 0;
+    int c = 0;
 
     if (end - *src < 2)
 	return VAR_ERR_INCOMPLETE_HEX;
@@ -514,9 +514,9 @@ expand_simple_hex(
 
     if (**src >= '0' && **src <= '9')
         c = **src - '0';
-    else if (c >= 'a' && c <= 'f')
+    else if (**src >= 'a' && **src <= 'f')
         c = **src - 'a' + 10;
-    else if (c >= 'A' && c <= 'F')
+    else if (**src >= 'A' && **src <= 'F')
         c = **src - 'A' + 10;
 
     c = c << 4;
@@ -529,7 +529,7 @@ expand_simple_hex(
     else if (**src >= 'A' && **src <= 'F')
         c += **src - 'A' + 10;
 
-    **dst = (char) c;
+    **dst = (char)c;
     (*dst)++;
     return VAR_OK;
 }
@@ -735,8 +735,7 @@ parse_exptext_or_variable(
 	    goto error_return;
 	if (rc > 0) {
 	    p += rc;
-	    if (!tokenbuf_append
-		(result, tmp.begin, tmp.end - tmp.begin)) {
+	    if (!tokenbuf_merge(result, &tmp)) {
 		rc = VAR_ERR_OUT_OF_MEMORY;
 		goto error_return;
 	    }
@@ -787,8 +786,7 @@ parse_substext_or_variable(
 	    goto error_return;
 	if (rc > 0) {
 	    p += rc;
-	    if (!tokenbuf_append
-		(result, tmp.begin, tmp.end - tmp.begin)) {
+	    if (!tokenbuf_merge(result, &tmp)) {
 		rc = VAR_ERR_OUT_OF_MEMORY;
 		goto error_return;
 	    }
@@ -1080,7 +1078,7 @@ op_search_and_replace(
 		    return rc;
 		}
 		/* append replace string */
-		if (!tokenbuf_append(&tmp, myreplace.begin, myreplace.end - myreplace.begin)) {
+		if (!tokenbuf_merge(&tmp, &myreplace)) {
 		    regfree(&preg);
 		    tokenbuf_free(&tmp);
 		    tokenbuf_free(&mydata);
@@ -1204,7 +1202,7 @@ op_padding(
 	if (i > 0) {
 	    i = i / (fill->end - fill->begin);
 	    while (i > 0) {
-		if (!tokenbuf_append(&result, fill->begin, fill->end - fill->begin)) {
+		if (!tokenbuf_merge(&result, fill)) {
 		    tokenbuf_free(&result);
 		    return VAR_ERR_OUT_OF_MEMORY;
 		}
@@ -1215,7 +1213,7 @@ op_padding(
 		tokenbuf_free(&result);
 		return VAR_ERR_OUT_OF_MEMORY;
 	    }
-	    if (!tokenbuf_append(&result, data->begin, data->end - data->begin)) {
+	    if (!tokenbuf_merge(&result, data)) {
 		tokenbuf_free(&result);
 		return VAR_ERR_OUT_OF_MEMORY;
 	    }
@@ -1230,7 +1228,7 @@ op_padding(
 	    /* create the prefix */
 	    i = i / (fill->end - fill->begin);
 	    while (i > 0) {
-		if (!tokenbuf_append(&result, fill->begin, fill->end - fill->begin)) {
+		if (!tokenbuf_merge(&result, fill)) {
 		    tokenbuf_free(&result);
 		    return VAR_ERR_OUT_OF_MEMORY;
 		}
@@ -1243,7 +1241,7 @@ op_padding(
 		return VAR_ERR_OUT_OF_MEMORY;
 	    }
 	    /* append the actual data string */
-	    if (!tokenbuf_append(&result, data->begin, data->end - data->begin)) {
+	    if (!tokenbuf_merge(&result, data)) {
 		tokenbuf_free(&result);
 		return VAR_ERR_OUT_OF_MEMORY;
 	    }
@@ -1251,7 +1249,7 @@ op_padding(
 	    i = width - (result.end - result.begin);
 	    i = i / (fill->end - fill->begin);
 	    while (i > 0) {
-		if (!tokenbuf_append(&result, fill->begin, fill->end - fill->begin)) {
+		if (!tokenbuf_merge(&result, fill)) {
 		    tokenbuf_free(&result);
 		    return VAR_ERR_OUT_OF_MEMORY;
 		}
@@ -1615,11 +1613,16 @@ parse_operation(
 					      arg_ptr, arg_len,
 					      val_ptr, val_len,
 					      &out_ptr, &out_len, &out_size);
-		if (rc < 0)
+		if (rc < 0) {
+		    if (arg_ptr != NULL)
+			free((void *)arg_ptr);
 		    goto error_return;
+		}
 		tokenbuf_free(data);
 		tokenbuf_set(data, out_ptr, out_ptr+out_len, out_size);
 	    }
+	    if (arg_ptr != NULL)
+	       free((void *)arg_ptr);
 	    break;
 	}
 	default:
