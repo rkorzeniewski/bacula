@@ -634,7 +634,7 @@ static int re_read_block_test()
       goto bail_out;
    }
    Pmsg0(0, "Backspace record OK.\n");
-   if (!read_block_from_dev(jcr, dev, block)) {
+   if (!read_block_from_dev(jcr, dev, block, NO_BLOCK_NUMBER_CHECK)) {
       Pmsg1(0, _("Read block failed! ERR=%s\n"), strerror(dev->dev_errno));
       goto bail_out;
    }
@@ -982,7 +982,7 @@ static void scan_blocks()
    update_pos_dev(dev);
    tot_files = dev->file;
    for (;;) {
-      if (!read_block_from_device(jcr, dev, block)) {
+      if (!read_block_from_device(jcr, dev, block, NO_BLOCK_NUMBER_CHECK)) {
          Dmsg1(100, "!read_block(): ERR=%s\n", strerror_dev(dev));
 	 if (dev->state & ST_EOT) {
 	    if (blocks > 0) {
@@ -1313,7 +1313,7 @@ static void unfillcmd()
 	    last_file);
       Pmsg1(-1, _("Now reading to block %u.\n"), last_block_num);
       for (uint32_t i= 0; i < last_block_num; i++) {
-	 if (!read_block_from_device(jcr, dev, block)) {
+	 if (!read_block_from_device(jcr, dev, block, NO_BLOCK_NUMBER_CHECK)) {
             Pmsg1(-1, _("Error reading blocks: ERR=%s\n"), strerror_dev(dev));
             Pmsg2(-1, _("Wanted block %u error at block %u\n"), last_block_num, i);
 	    goto bail_out;

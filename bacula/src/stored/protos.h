@@ -54,8 +54,11 @@ void    empty_block(DEV_BLOCK *block);
 void    free_block(DEV_BLOCK *block);
 int     write_block_to_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
 int     write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
-int     read_block_from_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
-int     read_block_from_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
+
+#define CHECK_BLOCK_NUMBERS    true
+#define NO_BLOCK_NUMBER_CHECK  false
+int     read_block_from_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, bool check_block_numbers);
+int     read_block_from_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, bool check_block_numbers);
 
 /* From butil.c -- utilities for SD tool programs */
 void    print_ls_output(char *fname, char *link, int type, struct stat *statp);

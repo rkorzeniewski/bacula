@@ -441,7 +441,7 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	 if (ok) {
 	    DEV_BLOCK *lblock = new_block(dev);
 	    /* Note, this can destroy dev->errmsg */
-	    if (!read_block_from_dev(jcr, dev, lblock)) {
+	    if (!read_block_from_dev(jcr, dev, lblock, NO_BLOCK_NUMBER_CHECK)) {
                Jmsg(jcr, M_ERROR, 0, _("Re-read last block at EOT failed. ERR=%s"), dev->errmsg);
 	    } else {
 	       if (lblock->BlockNumber+1 == block->BlockNumber) {
@@ -477,12 +477,12 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
  * Read block with locking
  *
  */
-int read_block_from_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
+int read_block_from_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, bool check_block_numbers)
 {
    int stat;
    Dmsg0(90, "Enter read_block_from_device\n");
    lock_device(dev);
-   stat = read_block_from_dev(jcr, dev, block);
+   stat = read_block_from_dev(jcr, dev, block, check_block_numbers);
    unlock_device(dev);
    Dmsg0(90, "Leave read_block_from_device\n");
    return stat;
@@ -493,10 +493,11 @@ int read_block_from_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
  *  the block header.  For a file, the block may be partially
  *  or completely in the current buffer.
  */
-int read_block_from_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
+int read_block_from_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, bool check_block_numbers)
 {
    ssize_t stat;
    int looping;
+   uint32_t BlockNumber;
 
    looping = 0;
    Dmsg1(100, "Full read() in read_block_from_device() len=%d\n",
@@ -543,10 +544,20 @@ reread:
       return 0; 		/* return error */
    }  
 
+   BlockNumber = block->BlockNumber + 1;
    if (!unser_block_header(dev, block)) {
       block->read_len = 0;
       return 0;
    }
+
+#ifdef somehow_working
+   if (check_block_numbers) {
+      if (BlockNumber != block->BlockNumber) {
+         Jmsg(jcr, M_ERROR, 0, _("Incorrect block sequence number. Expected %u, got %u\n"),
+	    BlockNumber, block->BlockNumber);
+      }
+   }
+#endif
 
    /*
     * If the block is bigger than the buffer, we reposition for

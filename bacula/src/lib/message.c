@@ -677,7 +677,7 @@ void dispatch_message(JCR *jcr, int type, int level, char *msg)
 
 /*********************************************************************
  *
- *  subroutine prints a debug message if the level number
+ *  This subroutine prints a debug message if the level number
  *  is less than or equal the debug_level. File and line numbers
  *  are included for more detail if desired, but not currently
  *  printed.
@@ -695,8 +695,7 @@ d_msg(char *file, int line, int level, char *fmt,...)
 
     if (level < 0) {
        details = FALSE;
-//     level = -level;
-       level = 0;
+       level = -level;
     }
 
     if (level <= debug_level) {
@@ -712,7 +711,7 @@ d_msg(char *file, int line, int level, char *fmt,...)
 #endif
 #ifdef FULL_LOCATION
        if (details) {
-          len= sprintf(buf, "%s: %s:%d ", my_name, file, line);
+          len = sprintf(buf, "%s: %s:%d ", my_name, file, line);
        } else {
 	  len = 0;
        }
@@ -730,6 +729,36 @@ d_msg(char *file, int line, int level, char *fmt,...)
        fputs(buf, stdout);
 #endif
     }
+}
+
+
+/*********************************************************************
+ *
+ *  This subroutine prints a message regardless of the debug level
+ *  
+ *  If the level is negative, the details of file and line number
+ *  are not printed.
+ */
+void 
+p_msg(char *file, int line, int level, char *fmt,...)
+{
+    char      buf[5000];
+    int       len;
+    va_list   arg_ptr;
+
+#ifdef FULL_LOCATION
+    if (level >= 0) {
+       len = sprintf(buf, "%s: %s:%d ", my_name, file, line);
+    } else {
+       len = 0;
+    }
+#else
+    len = 0;
+#endif
+    va_start(arg_ptr, fmt);
+    bvsnprintf(buf+len, sizeof(buf)-len, (char *)fmt, arg_ptr);
+    va_end(arg_ptr);
+    fputs(buf, stdout);
 }
 
 

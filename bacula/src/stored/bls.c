@@ -235,7 +235,7 @@ static void do_blocks(char *infname)
       rec = new_record();
    }
    for ( ;; ) {
-      if (!read_block_from_device(jcr, dev, block)) {
+      if (!read_block_from_device(jcr, dev, block, NO_BLOCK_NUMBER_CHECK)) {
          Dmsg1(100, "!read_block(): ERR=%s\n", strerror_dev(dev));
 	 if (dev->state & ST_EOT) {
 	    if (!mount_next_read_volume(jcr, dev, block)) {
@@ -244,7 +244,7 @@ static void do_blocks(char *infname)
 	    }
 	    DEV_RECORD *record;
 	    record = new_record();
-	    read_block_from_device(jcr, dev, block);
+	    read_block_from_device(jcr, dev, block, NO_BLOCK_NUMBER_CHECK);
 	    read_record_from_block(block, record);
 	    get_session_record(dev, record, &sessrec);
 	    free_record(record);

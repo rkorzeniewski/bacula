@@ -25,6 +25,14 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
+- If bootstrap is non-zero for restore, do not show JobId in the
+  OK to run? (yes/mod/no): list.
+- If you enter the userid by hand for restore, you get:
+  Enter JobId(s), comma separated, to restore: 74
+  You have selected the following JobId: 74
+  Building directory tree for JobId 74 ...
+  134645140 items inserted into the tree and marked for extraction.
+
 - The bsr for Dan's job has file indexes covering the whole range rather
   than only the range contained on the volume.
   Constrain FileIndex to be within range for Volume.

@@ -521,7 +521,7 @@ status_dev(DEVICE *dev, uint32_t *status)
 
    if (dev->state & (ST_EOT | ST_WEOT)) {
       stat |= BMT_EOD;
-      Dmsg0(-20, " EOD-");
+      Dmsg0(-20, " EOD");
    }
    if (dev->state & ST_EOF) {
       stat |= BMT_EOF;
@@ -558,7 +558,7 @@ status_dev(DEVICE *dev, uint32_t *status)
       }
       if (GMT_EOD(mt_stat.mt_gstat)) {
 	 stat |= BMT_EOD;
-         Dmsg0(-20, " EOD+");
+         Dmsg0(-20, " EOD");
       }
       if (GMT_WR_PROT(mt_stat.mt_gstat)) {
 	 stat |= BMT_WR_PROT;
