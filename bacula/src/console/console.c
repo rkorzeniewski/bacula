@@ -391,7 +391,10 @@ static void terminate_console(int sig)
    }
    already_here = TRUE;
    free_pool_memory(args);
-   exit(0);
+   if (sig != 0) {
+      exit(1);
+   }
+   return;
 }
 
 #ifdef HAVE_READLINE
