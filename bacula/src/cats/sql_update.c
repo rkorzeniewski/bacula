@@ -201,12 +201,12 @@ db_update_media_record(B_DB *mdb, MEDIA_DBR *mr)
 
    Mmsg(&mdb->cmd, "UPDATE Media SET VolJobs=%d,\
  VolFiles=%d, VolBlocks=%d, VolBytes=%s, VolMounts=%d, VolErrors=%d,\
- VolWrites=%d, VolMaxBytes=%s, LastWritten=\"%s\", VolStatus=\"%s\" \
- WHERE VolumeName=\"%s\"",
+ VolWrites=%d, VolMaxBytes=%s, LastWritten=\"%s\", VolStatus=\"%s\",\
+ Slot=%d WHERE VolumeName=\"%s\"",
    mr->VolJobs, mr->VolFiles, mr->VolBlocks, edit_uint64(mr->VolBytes, ed1),
    mr->VolMounts, mr->VolErrors, mr->VolWrites, 
    edit_uint64(mr->VolMaxBytes, ed2), dt, 
-   mr->VolStatus, mr->VolumeName);
+   mr->VolStatus, mr->Slot, mr->VolumeName);
 
    stat = UPDATE_DB(mdb, mdb->cmd);
    db_unlock(mdb);

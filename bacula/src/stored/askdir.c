@@ -36,8 +36,7 @@ static char Get_Vol_Info[] = "CatReq Job=%s GetVolInfo VolName=%s\n";
 static char Update_media[] = "CatReq Job=%s UpdateMedia VolName=%s\
  VolJobs=%d VolFiles=%d VolBlocks=%d VolBytes=%" lld " VolMounts=%d\
  VolErrors=%d VolWrites=%d VolMaxBytes=%" lld " EndTime=%d VolStatus=%s\
- FirstIndex=%d LastIndex=%d StartFile=%d EndFile=%d \
- StartBlock=%d EndBlock=%d relabel=%d Slot=%d\n";
+ Slot=%d relabel=%d\n";
 
 static char Create_job_media[] = "CatReq Job=%s CreateJobMedia \
  FirstIndex=%d LastIndex=%d StartFile=%d EndFile=%d \
@@ -160,11 +159,7 @@ int dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int relabel)
       vol->VolCatBlocks, vol->VolCatBytes, 
       vol->VolCatMounts, vol->VolCatErrors,
       vol->VolCatWrites, vol->VolCatMaxBytes, EndTime, 
-      vol->VolCatStatus, 
-      jcr->VolFirstFile, jcr->JobFiles,
-      jcr->start_file, jcr->end_file,
-      jcr->start_block, jcr->end_block,
-      relabel, vol->Slot);
+      vol->VolCatStatus, vol->Slot, relabel);
    Dmsg1(20, "update_volume_data(): %s", dir->msg);
    if (bnet_recv(dir) <= 0) {
       Dmsg0(90, "updateVolCatInfo error bnet_recv\n");

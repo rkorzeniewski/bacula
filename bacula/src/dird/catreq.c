@@ -47,8 +47,7 @@ static char Get_Vol_Info[] = "CatReq Job=%127s GetVolInfo VolName=%127s\n";
 static char Update_media[] = "CatReq Job=%127s UpdateMedia VolName=%s\
  VolJobs=%d VolFiles=%d VolBlocks=%d VolBytes=%" lld " VolMounts=%d\
  VolErrors=%d VolWrites=%d VolMaxBytes=%" lld " EndTime=%d VolStatus=%10s\
- FirstIndex=%d LastIndex=%d StartFile=%d EndFile=%d \
- StartBlock=%d EndBlock=%d relabel=%d Slot=%d\n";
+ Slot=%d relabel=%d\n";
 
 static char Create_job_media[] = "CatReq Job=%127s CreateJobMedia \
  FirstIndex=%d LastIndex=%d StartFile=%d EndFile=%d \
@@ -167,8 +166,7 @@ MediaType=%s\n", mr.PoolId, jcr->PoolId, mr.VolStatus, mr.MediaType);
    } else if (sscanf(bs->msg, Update_media, &Job, &mr.VolumeName, &mr.VolJobs,
       &mr.VolFiles, &mr.VolBlocks, &mr.VolBytes, &mr.VolMounts, &mr.VolErrors,
       &mr.VolWrites, &mr.VolMaxBytes, &mr.LastWritten, &mr.VolStatus, 
-      &jm.FirstIndex, &jm.LastIndex, &jm.StartFile, &jm.EndFile,
-      &jm.StartBlock, &jm.EndBlock, &relabel, &mr.Slot) == 20) {
+      &mr.Slot, &relabel) == 14) {
       /*     
        * Update Media Record
        */

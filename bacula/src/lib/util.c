@@ -559,12 +559,12 @@ int run_program(char *prog, int wait, POOLMEM *results)
    int chldstatus = 0;
    pid_t pid1, pid2;
    int pfd[2];
-   int i;
 
    
    build_argc_argv(prog);
-#ifdef lots_of_debug
+#ifdef xxxxxxxxxxx
    printf("argc=%d\n", bargc);
+   int i;
    for (i=0; i<bargc; i++) {
       printf("argc=%d argv=%s\n", i, bargv[i]);
    }

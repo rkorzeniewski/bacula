@@ -221,21 +221,20 @@ int release_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
  */
 static int mount_next_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, int release)
 {
-   int recycle, ask, retry = 0;
+   int recycle, ask, retry = 0, autochanger;
 
    Dmsg0(90, "Enter mount_next_volume()\n");
 
 mount_next_vol:
    if (retry++ > 5) {
-      Mmsg0(&dev->errmsg, _("Too many retries.\n"));
+      Jmsg(jcr, M_FATAL, 0, _("Too many errors on device %s.\n"), dev_name(dev));
       return 0;
    }
    if (job_cancelled(jcr)) {
-      Mmsg0(&dev->errmsg, _("Job cancelled.\n"));
+      Jmsg(jcr, M_FATAL, 0, _("Job cancelled.\n"));
       return 0;
    }
-   recycle = 0;
-   ask = 0;
+   recycle = ask = autochanger = 0;
    if (release) {
       Dmsg0(500, "mount_next_volume release=1\n");
       /* 
@@ -345,6 +344,7 @@ mount_next_vol:
          Dmsg1(100, "After changer, status=%d\n", status);
 	 if (status == 0) {	      /* did we succeed? */
 	    ask = 0;		      /* yes, got vol, no need to ask sysop */
+	    autochanger = 1;	      /* tape loaded by changer */
 	 }
       }
 
@@ -407,6 +407,13 @@ read_volume:
 	 default:
 	    /* Send error message */
             Jmsg(jcr, M_WARNING, 0, "%s", jcr->errmsg);                         
+	    if (autochanger) {
+               Jmsg(jcr, M_ERROR, 0, _("Autochanger Volume %s not found in slot %d.\n\
+    Setting slot to zero in catalog.\n"),
+		  jcr->VolumeName, jcr->VolCatInfo.Slot);
+	       jcr->VolCatInfo.Slot = 0; /* invalidate slot */
+	       dir_update_volume_info(jcr, &jcr->VolCatInfo, 1);  /* set slot */
+	    }
 	    goto mount_next_vol;
       }
       break;
