@@ -1625,7 +1625,6 @@ AC_OUTPUT([autoconf/Make.common \
 	   scripts/gconsole \
 	   scripts/bacula \
 	   scripts/devel_bacula \
-	   scripts/fd \
 	   scripts/Makefile \
 	   scripts/logrotate \
 	   scripts/bacula.desktop.gnome1 \

@@ -224,8 +224,6 @@ int restore_cmd(UAContext *ua, const char *cmd)
    Dmsg1(400, "Submitting: %s\n", ua->cmd);
    parse_ua_args(ua);
    run_cmd(ua, ua->cmd);
-
-   bsendmsg(ua, _("Restore command done.\n"));
    free_rx(&rx);
    return 1;
 

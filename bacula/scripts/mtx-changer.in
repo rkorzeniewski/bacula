@@ -38,6 +38,9 @@ MTX=@MTX@
 #   not running on Linux, you will probably need to
 #   re-write it.
 #
+# If you have a FreeBSD system, you might want to change
+#  the $(seq 180) to $(jot 180) -- tip from Brian McDonald
+#
 wait_for_drive() {
   for i in $(seq 180); do   # Wait max 180 seconds
     if mt -f $1 status >/dev/null 2>&1; then

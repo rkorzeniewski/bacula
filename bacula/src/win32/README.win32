@@ -26,22 +26,18 @@ The directory structure is:
     zlib                The zlib library (third party)
     wx                  The wxWidgets library (third party)
 
-depkgs-win32 is released separate .tar.gz file that contains the
+depkgs-win32 is released in a separate .tar.gz file that contains the
 source for the above mentioned libraries needed to build the
 Win32 Bacula.  It can be found in the Source Forge Bacula project
 release section.
 
 To build it:
-- Make sure nmake, and VC++ libraries and includes are setup correctly
-  in PATH, INCLUDE, and LIB environment variables.
-- cd depkgs-win32
-  make
 - You may have to build wx with VC++ (as was the case for me).
-  In that case, open wx/src/wxWindows.dsp with VC++, select
-  static complilation (not the DLL) of "Win32 Release", then
-  click build all.
+  After starting VC++, use File->Open Workspace then
+  open wx/src/wxWindows.dsw then use
+  Build->Build All or Build->build wxmsw.lib should work too.
 - cd bacula
-  ./configure
+  ./configure --enable-client-only
   cd src/win32
   make
 
@@ -99,3 +95,89 @@ Instructions if you want to build wx-console :
 
 NOTE! I (Kern) cannot build wxWindows with the Makefile -- I had to use                
 VC Studio directly to do so following their instructions.
+
+Getting all the environment variables setup properly is not always so obvious.
+Here is what I have when I do a "set" in a rxvt window, in which I build
+Bacula. Probably what is important are INCLUDE, LIB, PATH, and WXWIN, but note
+there are a zillion other things set:
+!::='::\'
+!C:='C:\cygwin\home\kern'
+ALLUSERSPROFILE='C:\Documents and Settings\All Users'
+APPDATA='C:\Documents and Settings\kern\Application Data'
+BASEMAKE='C:\Program Files\Microsoft SDK\Include\BKOffice.Mak'
+BASH=/usr/bin/bash
+BASH_VERSINFO=([0]="2" [1]="05b" [2]="0" [3]="1" [4]="release" [5]="i686-pc-cygwin")
+BASH_VERSION='2.05b.0(1)-release'
+BKOFFICE='C:\Program Files\Microsoft SDK\.'
+CLIENTNAME=Console
+COLORFGBG='0;default;15'
+COLORTERM=rxvt-xpm
+COLUMNS=70
+COMMONPROGRAMFILES='C:\Program Files\Common Files'
+COMPUTERNAME=TIBS
+COMSPEC='C:\WINDOWS\system32\cmd.exe'
+CYGWIN=notty
+DIRSTACK=()
+DISPLAY=:0
+EDHELP=/home/kern/bin/ed.hlp
+EDTRM=/home/kern/bin/ed.trm
+EUID=1007
+GROUPS=()
+HISTFILE=/cygdrive/c/home/kern/.bash_history
+HISTFILESIZE=500
+HISTSIZE=500
+HOME=/cygdrive/c/home/kern
+HOMEDRIVE=C:
+HOMEPATH='\Documents and Settings\kern'
+HOSTNAME=Tibs
+HOSTTYPE=i686
+IFS=$' \t\n'
+INCLUDE='C:\Program Files\Microsoft SDK\Include\.;C:\Program Files\Microsoft Visual Studio\VC98\atl\include;C:\Program Files\Microsoft Visual Studio\VC98\mfc\include;C:\Program Files\Microsoft Visual Studio\VC98\include'
+INETSDK='C:\Program Files\Microsoft SDK\.'
+LIB='C:\Program Files\Microsoft SDK\Lib\.;C:\Program Files\Microsoft Visual Studio\VC98\mfc\lib;C:\Program Files\Microsoft Visual Studio\VC98\lib'
+LINES=65
+LOGONSERVER='\\TIBS'
+MACHTYPE=i686-pc-cygwin
+MAILCHECK=60
+MAKE_MODE=UNIX
+MOZILLA_HOME=/home/netscape
+MSDEVDIR='C:\Program Files\Microsoft Visual Studio\Common\MSDev98'
+MSSDK='C:\Program Files\Microsoft SDK\.'
+MSTOOLS='C:\Program Files\Microsoft SDK\.'
+NUMBER_OF_PROCESSORS=1
+OLDPWD=/home/kern/bacula
+OPTERR=1
+OPTIND=1
+OS=Windows_NT
+OSTYPE=cygwin
+PATH='/cygdrive/c/Program Files/Microsoft Visual Studio/VC98/Bin:/cygdrive/c/Program Files/Microsoft Visual Studio/VC98:/cygdrive/c/Program Files/Microsoft Visual Studio/Common/MSDev98/Bin:/cygdrive/c/Program Files/Microsoft Visual Studio/Common/Tools/WinNT:/cygdrive/c/Program Files/Microsoft Visual Studio/Common/Tools:c:/cygwin/bin:/usr/bin:/home/kern/bin:/sbin:/usr/sbin:'
+PATHEXT='.COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH'
+PIPESTATUS=([0]="0")
+PPID=3864
+PROCESSOR_ARCHITECTURE=x86
+PROCESSOR_IDENTIFIER='x86 Family 15 Model 2 Stepping 7, GenuineIntel'
+PROCESSOR_LEVEL=15
+PROCESSOR_REVISION=0207
+PROGRAMFILES='C:\Program Files'
+PROMPT='$P$G'
+PS1='\e[34m\]\w\[\e[0m\]$\040'
+PS2='> '
+PS4='+ '
+PWD=/home/kern
+SESSIONNAME=Console
+SHELL=/bin/bash
+SHELLOPTS=braceexpand:emacs:hashall:histexpand:history:interactive-comments:monitor
+SHLVL=1
+SYSTEMDRIVE=C:
+SYSTEMROOT='C:\WINDOWS'
+TEMP=/cygdrive/c/DOCUME~1/kern/LOCALS~1/Temp
+TERM=xterm
+TMP=/cygdrive/c/DOCUME~1/kern/LOCALS~1/Temp
+UID=1007
+USERDOMAIN=TIBS
+USERNAME=kern
+USERPROFILE='C:\Documents and Settings\kern'
+WINDIR='C:\WINDOWS'
+WINDOWID=168050736
+WXWIN='c:\home\kern\bacula\depkgs-win32\wx'
+_=set

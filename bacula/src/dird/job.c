@@ -74,10 +74,14 @@ void init_job_server(int max_workers)
  * Run a job -- typically called by the scheduler, but may also
  *		be called by the UA (Console program).
  *
+ *  Returns: 0 on failure
+ *	     JobId on success
+ *
  */
-void run_job(JCR *jcr)
+JobId_t run_job(JCR *jcr)
 {
    int stat, errstat;
+   JobId_t JobId = 0;
 
    P(jcr->mutex);
    sm_check(__FILE__, __LINE__, true);
@@ -117,7 +121,7 @@ void run_job(JCR *jcr)
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
       goto bail_out;
    }
-   jcr->JobId = jcr->jr.JobId;
+   JobId = jcr->JobId = jcr->jr.JobId;
 
    Dmsg4(100, "Created job record JobId=%d Name=%s Type=%c Level=%c\n", 
        jcr->JobId, jcr->Job, jcr->jr.JobType, jcr->jr.JobLevel);
@@ -126,17 +130,18 @@ void run_job(JCR *jcr)
    /* Queue the job to be run */
    if ((stat = jobq_add(&job_queue, jcr)) != 0) {
       Jmsg(jcr, M_FATAL, 0, _("Could not add job queue: ERR=%s\n"), strerror(stat));
+      JobId = 0;
       goto bail_out;
    }
    Dmsg0(100, "Done run_job()\n");
 
    V(jcr->mutex);
-   return;
+   return JobId;
 
 bail_out:
    set_jcr_job_status(jcr, JS_ErrorTerminated);
    V(jcr->mutex);
-   return;
+   return JobId;
 
 }
 

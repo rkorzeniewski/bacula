@@ -70,4 +70,3 @@ void wxbHistoryTextCtrl::OnKeyUp(wxKeyEvent& event) {
    }
 }
 
-

@@ -417,11 +417,7 @@ try_again:
 
    /* Run without prompting? */
    if (find_arg(ua, _("yes")) > 0) {
-      Dmsg1(200, "Calling run_job job=%x\n", jcr->job);
-      run_job(jcr);
-      free_jcr(jcr);		      /* release jcr */
-      bsendmsg(ua, _("Run command submitted.\n"));
-      return 1;
+      goto start_job;
    }
 
    /*  
@@ -797,10 +793,16 @@ Priority:   %d\n"),
    }
 
    if (strncasecmp(ua->cmd, _("yes"), strlen(ua->cmd)) == 0) {
+      JobId_t JobId;
       Dmsg1(200, "Calling run_job job=%x\n", jcr->job);
-      run_job(jcr);
+start_job:
+      JobId = run_job(jcr);
       free_jcr(jcr);		      /* release jcr */
-      bsendmsg(ua, _("Run command submitted.\n"));
+      if (JobId == 0) {
+         bsendmsg(ua, _("Job failed.\n"));
+      } else {
+         bsendmsg(ua, _("Job started. JobId=%u\n"), JobId);
+      }
       return 1;
    }
 

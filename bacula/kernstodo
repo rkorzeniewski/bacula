@@ -2,7 +2,7 @@
                    14 July 2004
 
 1.35 Items to do:
-- Make sure that all errors from libacl are printed.
+- Fix GROUP BYs in all SQL.
 - Add new DCR calling sequences everywhere in SD.
   This will permit simultaneous use of multiple 
   devices by a single job.
@@ -1100,3 +1100,4 @@ Block Position: 0
 - Add priority to Scheduled jobs status listing.
 - Look at Win32 inc problem when new directory added files not saved???
 - Require resource names to be unique.
+- Make sure that all errors from libacl are printed.
