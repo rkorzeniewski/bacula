@@ -487,7 +487,7 @@ static void eliminate_duplicate_paths()
       exit(1);
    }
    printf("Found %d duplicate Path records.\n", name_list.num_ids);
-   if (verbose && yes_no("Print them? (yes/no): ")) {
+   if (name_list.num_ids && verbose && yes_no("Print them? (yes/no): ")) {
       print_name_list(&name_list);
    }
    if (fix) {
@@ -528,7 +528,7 @@ static void eliminate_orphaned_jobmedia_records()
       exit(1);
    }
    printf("Found %d orphaned JobMedia records.\n", id_list.num_ids);
-   if (verbose && yes_no("Print them? (yes/no): ")) {
+   if (id_list.num_ids && verbose && yes_no("Print them? (yes/no): ")) {
       int i;
       for (i=0; i < id_list.num_ids; i++) {
 	 sprintf(buf, 
@@ -558,7 +558,7 @@ static void eliminate_orphaned_file_records()
       exit(1);
    }
    printf("Found %d orphaned File records.\n", id_list.num_ids);
-   if (verbose && yes_no("Print them? (yes/no): ")) {
+   if (name_list.num_ids && verbose && yes_no("Print them? (yes/no): ")) {
       int i;
       for (i=0; i < id_list.num_ids; i++) {
 	 sprintf(buf, 
@@ -588,7 +588,7 @@ static void eliminate_orphaned_path_records()
       exit(1);
    }
    printf("Found %d orphaned Path records.\n", id_list.num_ids);
-   if (verbose && yes_no("Print them? (yes/no): ")) {
+   if (id_list.num_ids && verbose && yes_no("Print them? (yes/no): ")) {
       int i;
       for (i=0; i < id_list.num_ids; i++) {
          sprintf(buf, "SELECT Path FROM Path WHERE PathId=%u", id_list.Id[i]);
@@ -615,7 +615,7 @@ static void eliminate_orphaned_filename_records()
       exit(1);
    }
    printf("Found %d orphaned Filename records.\n", id_list.num_ids);
-   if (verbose && yes_no("Print them? (yes/no): ")) {
+   if (id_list.num_ids && verbose && yes_no("Print them? (yes/no): ")) {
       int i;
       for (i=0; i < id_list.num_ids; i++) {
          sprintf(buf, "SELECT Name FROM Filename WHERE FilenameId=%u", id_list.Id[i]);
@@ -641,7 +641,7 @@ static void eliminate_orphaned_fileset_records()
       exit(1);
    }
    printf("Found %d orphaned FileSet records.\n", id_list.num_ids);
-   if (verbose && yes_no("Print them? (yes/no): ")) {
+   if (id_list.num_ids && verbose && yes_no("Print them? (yes/no): ")) {
       int i;
       for (i=0; i < id_list.num_ids; i++) {
          sprintf(buf, "SELECT FileSetId,FileSet,MD5 FROM FileSet "
