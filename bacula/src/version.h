@@ -15,12 +15,6 @@
 #define DEVELOPER 1
 
 
-/*
- * Set to time limit for other end to respond to
- *  authentication.  Normally 10 minutes is *way*
- *  more than enough.
- */
-#define AUTH_TIMEOUT 60 * 1000
 
 /* Debug flags not normally turned on */
 

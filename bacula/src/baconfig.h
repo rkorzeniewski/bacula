@@ -95,6 +95,15 @@
 #endif
 
 /*
+ * Set to time limit for other end to respond to
+ *  authentication.  Normally 10 minutes is *way*
+ *  more than enough. The idea is to keep the Director
+ *  from hanging because there is a dead connection on
+ *  the other end.
+ */
+#define AUTH_TIMEOUT 60 * 10
+
+/*
  * Default network buffer size
  */
 #define DEFAULT_NETWORK_BUFFER_SIZE (32 * 1024)
