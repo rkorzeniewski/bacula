@@ -207,6 +207,8 @@ JCR *setup_jcr(char *name, char *device, BSR *bsr)
    strcpy(jcr->Job, name);
    jcr->fileset_name = get_pool_memory(PM_FNAME);
    strcpy(jcr->fileset_name, "Dummy.fileset.name");
+   jcr->fileset_md5 = get_pool_memory(PM_FNAME);
+   strcpy(jcr->fileset_md5, "Dummy.fileset.md5");
    jcr->JobId = 1;
    jcr->JobType = JT_BACKUP;
    jcr->JobLevel = L_FULL;
