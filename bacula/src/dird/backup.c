@@ -18,7 +18,7 @@
  */
 
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -166,7 +166,7 @@ int do_backup(JCR *jcr)
     *
     */
    Dmsg0(110, "Open connection with storage daemon\n");
-   jcr->JobStatus = JS_Blocked;
+   set_jcr_job_status(jcr, JS_Blocked);
    /*
     * Start conversation with Storage daemon  
     */
@@ -187,12 +187,12 @@ int do_backup(JCR *jcr)
    }
    Dmsg0(150, "Storage daemon connection OK\n");
 
-   jcr->JobStatus = JS_Blocked;
+   set_jcr_job_status(jcr, JS_Blocked);
    if (!connect_to_file_daemon(jcr, 10, FDConnectTimeout, 1)) {
       goto bail_out;
    }
 
-   jcr->JobStatus = JS_Running;
+   set_jcr_job_status(jcr, JS_Running);
    fd = jcr->file_bsock;
 
    if (!send_include_list(jcr)) {
@@ -270,12 +270,13 @@ static int wait_for_job_termination(JCR *jcr)
    BSOCK *fd = jcr->file_bsock;
    int fd_ok = FALSE;
 
-   jcr->JobStatus = JS_WaitFD;
+   set_jcr_job_status(jcr, JS_WaitFD);
    /* Wait for Client to terminate */
    while ((n = bget_msg(fd, 0)) >= 0 && !job_cancelled(jcr)) {
-      if (sscanf(fd->msg, EndBackup, &jcr->JobStatus, &jcr->JobFiles,
+      if (sscanf(fd->msg, EndBackup, &jcr->FDJobStatus, &jcr->JobFiles,
 	  &jcr->ReadBytes, &jcr->JobBytes) == 4) {
 	 fd_ok = TRUE;
+	 set_jcr_job_status(jcr, jcr->FDJobStatus);
          Dmsg1(100, "FDStatus=%c\n", (char)jcr->JobStatus);
       }
    }
@@ -304,7 +305,7 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
 {
    char sdt[50], edt[50];
    char ec1[30], ec2[30], ec3[30], compress[50];
-   char term_code[100];
+   char term_code[100], fd_term_msg[100], sd_term_msg[100];
    char *term_msg;
    int msg_type;
    MEDIA_DBR mr;
@@ -313,7 +314,7 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
 
    Dmsg0(100, "Enter backup_cleanup()\n");
    memset(&mr, 0, sizeof(mr));
-   jcr->JobStatus = TermCode;
+   set_jcr_job_status(jcr, TermCode);
 
    update_job_end_record(jcr);	      /* update database */
    
@@ -438,6 +439,8 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
          sprintf(compress, "%.1f %%", (float)compression);
       }
    }
+   jobstatus_to_ascii(jcr->FDJobStatus, fd_term_msg, sizeof(fd_term_msg));
+   jobstatus_to_ascii(jcr->SDJobStatus, sd_term_msg, sizeof(sd_term_msg));
 
    Jmsg(jcr, msg_type, 0, _("Bacula " VERSION " (" LSMDATE "): %s\n\
 JobId:                  %d\n\
@@ -455,6 +458,8 @@ Volume names(s):        %s\n\
 Volume Session Id:      %d\n\
 Volume Session Time:    %d\n\
 Last Volume Bytes:      %s\n\
+FD termination status:  %s\n\
+SD termination status:  %s\n\
 Termination:            %s\n\n"),
 	edt,
 	jcr->jr.JobId,
@@ -472,6 +477,8 @@ Termination:            %s\n\n"),
 	jcr->VolSessionId,
 	jcr->VolSessionTime,
 	edit_uint64_with_commas(mr.VolBytes, ec3),
+	fd_term_msg,
+	sd_term_msg,
 	term_msg);
 
 

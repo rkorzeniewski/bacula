@@ -21,7 +21,7 @@
  */
 
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -137,7 +137,7 @@ int do_restore(JCR *jcr)
     *
     */
    Dmsg0(10, "Open connection with storage daemon\n");
-   jcr->JobStatus = JS_Blocked;
+   set_jcr_job_status(jcr, JS_Blocked);
    /*
     * Start conversation with Storage daemon  
     */
@@ -170,7 +170,7 @@ int do_restore(JCR *jcr)
    }
 
    fd = jcr->file_bsock;
-   jcr->JobStatus = JS_Running;
+   set_jcr_job_status(jcr, JS_Running);
 
    if (!send_include_list(jcr)) {
       restore_cleanup(jcr, JS_ErrorTerminated);
@@ -188,7 +188,7 @@ int do_restore(JCR *jcr)
     *	then wait for File daemon to make connection
     *	with Storage daemon.
     */
-   jcr->JobStatus = JS_Blocked;
+   set_jcr_job_status(jcr, JS_Blocked);
    if (jcr->store->SDDport == 0) {
       jcr->store->SDDport = jcr->store->SDport;
    }
@@ -198,7 +198,7 @@ int do_restore(JCR *jcr)
       restore_cleanup(jcr, JS_ErrorTerminated);
       return 0;
    }
-   jcr->JobStatus = JS_Running;
+   set_jcr_job_status(jcr, JS_Running);
 
    /* 
     * Send the bootstrap file -- what Volumes/files to restore
@@ -257,13 +257,13 @@ int do_restore(JCR *jcr)
    Dmsg0(20, "wait for job termination\n");
    while (bget_msg(fd, 0) >= 0) {
       Dmsg1(100, "dird<filed: %s\n", fd->msg);
-      if (sscanf(fd->msg, EndRestore, &jcr->JobStatus, &jcr->JobFiles,
+      if (sscanf(fd->msg, EndRestore, &jcr->FDJobStatus, &jcr->JobFiles,
 	  &jcr->JobBytes) == 3) {
 	 ok = TRUE;
       }
    }
 
-   restore_cleanup(jcr, ok?jcr->JobStatus:JS_ErrorTerminated);
+   restore_cleanup(jcr, ok?jcr->FDJobStatus:JS_ErrorTerminated);
 
    return 1;
 }
@@ -282,7 +282,7 @@ static void restore_cleanup(JCR *jcr, int TermCode)
    double kbps;
 
    Dmsg0(20, "In restore_cleanup\n");
-   jcr->JobStatus = TermCode;
+   set_jcr_job_status(jcr, TermCode);
 
    update_job_end_record(jcr);
 
@@ -355,7 +355,7 @@ static int send_bootstrap_file(JCR *jcr)
    if (!bs) {
       Jmsg(jcr, M_FATAL, 0, _("Could not open bootstrap file %s: ERR=%s\n"), 
 	 jcr->RestoreBootstrap, strerror(errno));
-      jcr->JobStatus = JS_ErrorTerminated;
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       return 0;
    }
    strcpy(fd->msg, bootstrap);	
@@ -368,7 +368,7 @@ static int send_bootstrap_file(JCR *jcr)
    bnet_sig(fd, BNET_EOD);
    fclose(bs);
    if (!response(fd, OKbootstrap, "Bootstrap")) {
-      jcr->JobStatus = JS_ErrorTerminated;
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       return 0;
    }
    return 1;

@@ -791,16 +791,27 @@ AC_STRUCT_ST_BLKSIZE
 AC_STRUCT_ST_BLOCKS
 AC_STRUCT_TIMEZONE
 
-# It seems that that many machines where <utime.h> seems to be
-# broken just require something like -D_XXX_SOURCE, where XXX might
-# be POSIX, POSIX_C, ALL, HPUX or whatever, depending on the machine.
-
+dnl# --------------------------------------------------------------------------
+dnl# Check for utime.h structure 
+dnl# --------------------------------------------------------------------------
 AC_CACHE_CHECK(for utime.h, tar_cv_header_utime_h,
   [AC_TRY_COMPILE([
 #include <sys/types.h>
 #include <utime.h>], [struct utimbuf foo],
   tar_cv_header_utime_h=yes, tar_cv_header_utime_h=no)])
 test $tar_cv_header_utime_h = yes && AC_DEFINE(HAVE_UTIME_H)
+
+dnl# --------------------------------------------------------------------------
+dnl# Check for bigendian
+dnl# --------------------------------------------------------------------------
+AC_CACHE_CHECK([for bigendian], ba_cv_bigendian,
+  [AC_TRY_RUN(
+    [main(){long a=1L; char *p=(char *)&a; exit(*p);}],
+    [ba_cv_bigendian=yes], 
+    [ba_cv_bigendian=no], 
+    [ba_cv_bigendian=no])])
+test $ba_cv_bigendian = yes && AC_DEFINE(HAVE_BIGENDIAN)
+
 
 AC_C_CONST
 

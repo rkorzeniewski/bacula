@@ -25,8 +25,8 @@
 
  */
 
-#include "findlib/find.h"
 #define FILE_DAEMON 1
+#include "findlib/find.h"
 #include "jcr.h"
 #include "protos.h"                   /* file daemon prototypes */
 #include "filed_conf.h"

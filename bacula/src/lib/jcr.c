@@ -177,7 +177,9 @@ void free_jcr(JCR *jcr)
    remove_jcr(jcr);
    V(mutex);
 
-   jcr->daemon_free_jcr(jcr);	      /* call daemon free routine */
+   if (jcr->daemon_free_jcr) {
+      jcr->daemon_free_jcr(jcr);      /* call daemon free routine */
+   }
    free_common_jcr(jcr);
    Dmsg0(200, "Exit free_jcr\n");
 }
@@ -292,6 +294,24 @@ JCR *get_jcr_by_full_name(char *Job)
    }
    V(mutex);
    return jcr; 
+}
+
+void set_jcr_job_status(JCR *jcr, int JobStatus)
+{
+   /*
+    * For a set of errors, ... keep the current status
+    *   so it isn't lost. For all others, set it.
+    */
+   switch (jcr->JobStatus) {
+   case JS_ErrorTerminated:
+   case JS_Error:
+   case JS_FatalError:
+   case JS_Differences:
+   case JS_Cancelled:
+      break;
+   default:
+      jcr->JobStatus = JobStatus;
+   }
 }
 
 /* 

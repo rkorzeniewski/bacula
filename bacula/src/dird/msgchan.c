@@ -16,7 +16,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -248,7 +248,7 @@ void wait_for_storage_daemon_termination(JCR *jcr)
 {
    /* Now wait for Storage daemon to terminate our message thread */
    P(jcr->mutex);
-   jcr->JobStatus = JS_WaitSD;
+   set_jcr_job_status(jcr, JS_WaitSD);
    while (!jcr->msg_thread_done && !job_cancelled(jcr)) {
       struct timeval tv;
       struct timezone tz;
@@ -261,5 +261,5 @@ void wait_for_storage_daemon_termination(JCR *jcr)
       pthread_cond_timedwait(&jcr->term_wait, &jcr->mutex, &timeout);
    }
    V(jcr->mutex);
-   jcr->JobStatus = jcr->SDJobStatus;
+   set_jcr_job_status(jcr, jcr->SDJobStatus);
 }

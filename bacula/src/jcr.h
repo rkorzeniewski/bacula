@@ -127,6 +127,7 @@ struct s_jcr {
    CAT *catalog;                      /* Catalog resource */
    MSGS *messages;                    /* Default message handler */
    int SDJobStatus;                   /* Storage Job Status */
+   int FDJobStatus;                   /* File daemon Job Status */
    int mode;                          /* manual/auto run */
    B_DB *db;                          /* database pointer */
    uint32_t MediaId;                  /* DB record IDs associated with this job */
@@ -160,7 +161,7 @@ struct s_jcr {
    POOLMEM *where;                    /* Root where to restore */
    int replace;                       /* Replace options */
    int buf_size;                      /* length of buffer */
-   FF_PKT *ff;                        /* Find Files packet */
+   void *ff;                          /* Find Files packet */
    char stored_addr[MAX_NAME_LENGTH]; /* storage daemon address */
    uint32_t StartFile;
    uint32_t EndFile;
@@ -249,6 +250,7 @@ extern JCR *get_jcr_by_full_name(char *Job);
 extern JCR *get_next_jcr(JCR *jcr);
 extern void lock_jcr_chain();
 extern void unlock_jcr_chain();
+extern void set_jcr_job_status(JCR *jcr, int JobStatus);
 
 #ifdef DEBUG
 extern void b_free_jcr(char *file, int line, JCR *jcr);

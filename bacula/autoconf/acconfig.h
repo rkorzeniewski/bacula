@@ -26,7 +26,6 @@
 /* Define if you want to use embedded MySQL */
 #undef HAVE_EMBEDDED_MYSQL
 
-
 /* Define if you want to use SQLite */
 #undef HAVE_SQLITE
 
@@ -198,3 +197,4 @@
 
 #undef HAVE_INET_PTON
  
+#undef HAVE_BIGENDIAN

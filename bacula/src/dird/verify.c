@@ -21,7 +21,7 @@
  */
 
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -153,7 +153,7 @@ int do_verify(JCR *jcr)
       /*
        * Start conversation with Storage daemon  
        */
-      jcr->JobStatus = JS_Blocked;
+      set_jcr_job_status(jcr, JS_Blocked);
       if (!connect_to_storage_daemon(jcr, 10, SDConnectTimeout, 1)) {
 	 goto bail_out;
       }
@@ -177,12 +177,12 @@ int do_verify(JCR *jcr)
     * OK, now connect to the File daemon
     *  and ask him for the files.
     */
-   jcr->JobStatus = JS_Blocked;
+   set_jcr_job_status(jcr, JS_Blocked);
    if (!connect_to_file_daemon(jcr, 10, FDConnectTimeout, 1)) {
       goto bail_out;
    }
 
-   jcr->JobStatus = JS_Running;
+   set_jcr_job_status(jcr, JS_Running);
    fd = jcr->file_bsock;
 
    Dmsg0(30, ">filed: Send include list\n");
@@ -264,13 +264,13 @@ int do_verify(JCR *jcr)
       Dmsg0(10, "Verify level=volume\n");
       get_attributes_and_compare_to_catalog(jcr, JobId);
       stat = jcr->JobStatus;
-      jcr->JobStatus = JS_WaitSD;
+      set_jcr_job_status(jcr, JS_WaitSD);
       wait_for_storage_daemon_termination(jcr);
       /* If we terminate normally, use SD term code, else, use ours */
       if (stat == JS_Terminated) {
-	 jcr->JobStatus = jcr->SDJobStatus;
+	 set_jcr_job_status(jcr, jcr->SDJobStatus);
       } else {
-	 jcr->JobStatus = stat;
+	 set_jcr_job_status(jcr, stat);
       }
       break;
 
@@ -309,7 +309,7 @@ static void verify_cleanup(JCR *jcr, int TermCode)
    Dmsg0(100, "Enter verify_cleanup()\n");
 
    JobId = jcr->jr.JobId;
-   jcr->JobStatus = TermCode;
+   set_jcr_job_status(jcr, TermCode);
 
    update_job_end_record(jcr);
 
@@ -608,12 +608,12 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
       stat = JS_Differences;
    }
    free_pool_memory(fname);
-   jcr->JobStatus = stat;
+   set_jcr_job_status(jcr, stat);
    return 1;
     
 bail_out:
    free_pool_memory(fname);
-   jcr->JobStatus = JS_ErrorTerminated;
+   set_jcr_job_status(jcr, JS_ErrorTerminated);
    return 0;
 }
 

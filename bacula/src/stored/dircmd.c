@@ -208,8 +208,8 @@ static int cancel_cmd(JCR *cjcr)
       } else {
 	 P(jcr->mutex);
 	 oldStatus = jcr->JobStatus;
-	 jcr->JobStatus = JS_Cancelled;
-	 if (!jcr->authenticated && jcr->JobStatus == JS_WaitFD) {
+	 set_jcr_job_status(jcr, JS_Cancelled);
+	 if (!jcr->authenticated && oldStatus == JS_WaitFD) {
 	    pthread_cond_signal(&jcr->job_start_wait); /* wake waiting thread */
 	 }
 	 V(jcr->mutex);

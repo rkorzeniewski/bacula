@@ -24,7 +24,6 @@
 
 #include "bacula.h"
 #include "findlib/find.h"
-#include "jcr.h"
 
 
 /* Global variables */
@@ -35,6 +34,7 @@ static int trunc_fname = 0;
 static int trunc_path = 0;
 static int attrs = 0;
 
+static JCR *jcr;
 
 static int print_file(FF_PKT *ff, void *pkt);
 static void count_files(FF_PKT *ff);
@@ -90,23 +90,25 @@ main (int argc, char *const *argv)
    argc -= optind;
    argv += optind;
 
-  ff = init_find_files();
-   if (argc == 0) {
-     add_fname_to_include_list(ff, 0, "/"); /* default to / */
-  } else {   
-      for (i=0; i < argc; i++) {
-        if (strcmp(argv[i], "-") == 0) {
-	   while (fgets(name, sizeof(name)-1, stdin)) {
-	      strip_trailing_junk(name);
-	      add_fname_to_include_list(ff, 0, name); 
-	   }
-	   continue;
-	}
-	add_fname_to_include_list(ff, 0, argv[i]); 
-     }
-  }
+   jcr = new_jcr(sizeof(JCR), NULL);
 
-  find_files(ff, print_file, NULL);
+   ff = init_find_files();
+   if (argc == 0) {
+      add_fname_to_include_list(ff, 0, "/"); /* default to / */
+   } else {   
+      for (i=0; i < argc; i++) {
+         if (strcmp(argv[i], "-") == 0) {
+	     while (fgets(name, sizeof(name)-1, stdin)) {
+		strip_trailing_junk(name);
+		add_fname_to_include_list(ff, 0, name); 
+	      }
+	      continue;
+	 }
+	 add_fname_to_include_list(ff, 0, argv[i]); 
+      }
+   }
+
+  find_files(jcr, ff, print_file, NULL);
   hard_links = term_find_files(ff);
   
    printf(_("\
@@ -119,6 +121,7 @@ Hard links     : %d\n"),
      num_files, max_file_len, max_path_len,
      trunc_fname, trunc_path, hard_links);
   
+  free_jcr(jcr);
   close_memory_pool();
   sm_dump(False);
   exit(0);

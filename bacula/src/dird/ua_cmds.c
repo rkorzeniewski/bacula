@@ -8,7 +8,7 @@
  */
 
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -411,7 +411,7 @@ static int cancelcmd(UAContext *ua, char *cmd)
      
    switch (jcr->JobStatus) {
    case JS_Created:
-      jcr->JobStatus = JS_Cancelled;
+      set_jcr_job_status(jcr, JS_Cancelled);
       bsendmsg(ua, _("JobId %d, Job %s marked to be cancelled.\n"),
 	      jcr->JobId, jcr->Job);
       free_jcr(jcr);
@@ -419,7 +419,7 @@ static int cancelcmd(UAContext *ua, char *cmd)
 	 
    default:
 
-      jcr->JobStatus = JS_Cancelled;
+      set_jcr_job_status(jcr, JS_Cancelled);
       /* Cancel File daemon */
       ua->jcr->client = jcr->client;
       if (!connect_to_file_daemon(ua->jcr, 10, FDConnectTimeout, 1)) {

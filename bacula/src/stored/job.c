@@ -91,7 +91,7 @@ int job_cmd(JCR *jcr)
       free_memory(client_name);
       free_memory(fileset_name);
       free_memory(fileset_md5);
-      jcr->JobStatus = JS_ErrorTerminated;
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       return 0;
    }
    jcr->JobId = JobId;
@@ -122,7 +122,7 @@ int job_cmd(JCR *jcr)
    /* Initialize FD start condition variable */
    if ((errstat = pthread_cond_init(&jcr->job_start_wait, NULL)) != 0) {
       Jmsg1(jcr, M_FATAL, 0, _("Unable to init job cond variable: ERR=%s\n"), strerror(errstat));
-      jcr->JobStatus = JS_ErrorTerminated;
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       return 0;
    }
    jcr->authenticated = FALSE;
@@ -144,11 +144,11 @@ int job_cmd(JCR *jcr)
     * Wait for the device, media, and pool information
     */
    if (!use_device_cmd(jcr)) {
-      jcr->JobStatus = JS_ErrorTerminated;
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       return 0;
    }
 
-   jcr->JobStatus = JS_WaitFD;	      /* wait for FD to connect */
+   set_jcr_job_status(jcr, JS_WaitFD);		/* wait for FD to connect */
    dir_send_job_status(jcr);
 
    gettimeofday(&tv, &tz);

@@ -28,10 +28,6 @@
 #include "bacula.h"
 #include "find.h"
 
-/* Imported functions */
-int find_one_file(FF_PKT *ff, int handle_file(FF_PKT *ff_pkt, void *hpkt), 
-	       void *pkt, char *p, dev_t parent_device, int top_level);
-int term_find_one(FF_PKT *ff);
 
 size_t name_max;	       /* filename max length */
 size_t path_max;	       /* path name max length */
@@ -106,17 +102,17 @@ set_find_options(FF_PKT *ff, int incremental, time_t save_time)
  *
  */
 int
-find_files(FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt), void *his_pkt) 
+find_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt), void *his_pkt) 
 {
    char *file;
    struct s_included_file *inc = NULL;
 
-   while ((inc = get_next_included_file(ff, inc))) {
+   while (!job_cancelled(jcr) && (inc = get_next_included_file(ff, inc))) {
       file = inc->fname;
       strcpy(ff->VerifyOpts, inc->VerifyOpts); /* Copy options for this file */
       Dmsg1(50, "find_files: file=%s\n", file);
       if (!file_is_excluded(ff, file)) {
-	 if (!find_one_file(ff, callback, his_pkt, file, (dev_t)-1, 1)) {
+	 if (!find_one_file(jcr, ff, callback, his_pkt, file, (dev_t)-1, 1)) {
 	    return 0;		       /* error return */
 	 }
       }

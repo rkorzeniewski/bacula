@@ -82,7 +82,7 @@ void run_job(JCR *jcr)
    /* Initialize termination condition variable */
    if ((errstat = pthread_cond_init(&jcr->term_wait, NULL)) != 0) {
       Jmsg1(jcr, M_FATAL, 0, _("Unable to init job cond variable: ERR=%s\n"), strerror(errstat));
-      jcr->JobStatus = JS_ErrorTerminated;
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       free_jcr(jcr);
       return;
    }
@@ -96,7 +96,7 @@ void run_job(JCR *jcr)
    if (!db_open_database(jcr->db)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
       db_close_database(jcr->db);
-      jcr->JobStatus = JS_ErrorTerminated;
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       free_jcr(jcr);
       return;
    }
@@ -109,7 +109,7 @@ void run_job(JCR *jcr)
    if (!db_create_job_record(jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
       db_close_database(jcr->db);
-      jcr->JobStatus = JS_ErrorTerminated;
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       free_jcr(jcr);
       return;
    }
@@ -145,12 +145,12 @@ static void job_thread(void *arg)
    if (jcr->job->MaxStartDelay != 0 && jcr->job->MaxStartDelay <
        (utime_t)(jcr->start_time - jcr->sched_time)) {
       Jmsg(jcr, M_FATAL, 0, _("Job cancelled because max delay time exceeded.\n"));
-      jcr->JobStatus = JS_ErrorTerminated;
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       update_job_end_record(jcr);
    } else {
 
       /* Run Job */
-      jcr->JobStatus = JS_Running;
+      set_jcr_job_status(jcr, JS_Running);
 
       if (jcr->job->RunBeforeJob) {
 	 POOLMEM *before = get_pool_memory(PM_FNAME);
@@ -182,7 +182,7 @@ static void job_thread(void *arg)
 	 case JT_ADMIN:
 	    /* No actual job */
 	    do_autoprune(jcr);
-	    jcr->JobStatus = JS_Terminated;
+	    set_jcr_job_status(jcr, JS_Terminated);
 	    break;
 	 default:
             Pmsg1(0, "Unimplemented job type: %d\n", jcr->JobType);

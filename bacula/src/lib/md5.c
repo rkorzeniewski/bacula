@@ -23,15 +23,7 @@
 
 #include "bacula.h"
 
-#ifdef sgi
-#define HIGHFIRST
-#endif
-
-#ifdef sun
-#define HIGHFIRST
-#endif
-
-#ifndef HIGHFIRST
+#ifndef HAVE_BIGENDIAN
 #define byteReverse(buf, len)	/* Nothing */
 #else
 /*

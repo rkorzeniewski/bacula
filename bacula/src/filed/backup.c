@@ -44,7 +44,7 @@ int blast_data_to_storage_daemon(JCR *jcr, char *addr)
 
    sd = jcr->store_bsock;
 
-   jcr->JobStatus = JS_Running;
+   set_jcr_job_status(jcr, JS_Running);
 
    Dmsg1(110, "bfiled: opened data connection %d to stored\n", sd->fd);
 
@@ -63,11 +63,11 @@ int blast_data_to_storage_daemon(JCR *jcr, char *addr)
    jcr->compress_buf = get_memory(jcr->compress_buf_size);
 
    Dmsg1(100, "set_find_options ff=%p\n", jcr->ff);
-   set_find_options(jcr->ff, jcr->incremental, jcr->mtime);
+   set_find_options((FF_PKT *)jcr->ff, jcr->incremental, jcr->mtime);
    Dmsg0(110, "start find files\n");
 
    /* Subroutine save_file() is called for each file */
-   if (!find_files(jcr->ff, save_file, (void *)jcr)) {
+   if (!find_files(jcr, (FF_PKT *)jcr->ff, save_file, (void *)jcr)) {
       stat = 0; 		      /* error */
    }
 

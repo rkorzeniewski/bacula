@@ -26,6 +26,8 @@
 #ifndef __STORED_H_
 #define __STORED_H_
 
+#define STORAGE_DAEMON 1
+
 #include <sys/mtio.h>
 #include "block.h"
 #include "record.h"
@@ -39,6 +41,8 @@
 #else
 #define uLongf uint32_t
 #endif
+
+#include "findlib/find.h"
 
 extern char errmsg[];                /* general error message */
 

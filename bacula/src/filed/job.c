@@ -196,7 +196,7 @@ void *handle_client_request(void *dirp)
       }
    }
    Dmsg0(100, "Calling term_find_files\n");
-   term_find_files(jcr->ff);
+   term_find_files((FF_PKT *)jcr->ff);
    Dmsg0(100, "Done with term_find_files\n");
    free_jcr(jcr);		      /* destroy JCR record */
    Dmsg0(100, "Done with free_jcr\n");
@@ -231,7 +231,7 @@ static int cancel_cmd(JCR *jcr)
       if (!(cjcr=get_jcr_by_full_name(Job))) {
          bnet_fsend(dir, "2901 Job %s not found.\n", Job);
       } else {
-	 cjcr->JobStatus = JS_Cancelled;
+	 set_jcr_job_status(cjcr, JS_Cancelled);
 	 free_jcr(cjcr);
          bnet_fsend(dir, "2001 Job %s marked to be cancelled.\n", Job);
       }
@@ -305,7 +305,7 @@ static int include_cmd(JCR *jcr)
        dir->msg[dir->msglen] = 0;
        strip_trailing_junk(dir->msg);
        Dmsg1(010, "include file: %s\n", dir->msg);
-       add_fname_to_include_list(jcr->ff, 1, dir->msg);
+       add_fname_to_include_list((FF_PKT *)jcr->ff, 1, dir->msg);
    }
 
    return bnet_fsend(dir, OKinc);
@@ -329,7 +329,7 @@ static int exclude_cmd(JCR *jcr)
        /* Skip spaces */
        for ( ; *p && *p == ' '; p++)
 	  { }
-       add_fname_to_exclude_list(jcr->ff, p);
+       add_fname_to_exclude_list((FF_PKT *)jcr->ff, p);
        Dmsg1(110, "<dird: exclude file %s\n", dir->msg);
    }
 
@@ -492,13 +492,13 @@ static int backup_cmd(JCR *jcr)
    int ok = 0;
    int SDJobStatus;
 
-   jcr->JobStatus = JS_Blocked;
+   set_jcr_job_status(jcr, JS_Blocked);
    jcr->JobType = JT_BACKUP;
-   Dmsg1(100, "begin backup ff=%p\n", jcr->ff);
+   Dmsg1(100, "begin backup ff=%p\n", (FF_PKT *)jcr->ff);
 
    if (sd == NULL) {
       Jmsg(jcr, M_FATAL, 0, _("Cannot contact Storage daemon\n"));
-      jcr->JobStatus = JS_ErrorTerminated;
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       goto cleanup;
    }
 
@@ -517,13 +517,13 @@ static int backup_cmd(JCR *jcr)
       Dmsg1(110, "<stored: %s", sd->msg);
       if (sscanf(sd->msg, OK_open, &jcr->Ticket) != 1) {
          Jmsg(jcr, M_FATAL, 0, _("Bad response to append open: %s\n"), sd->msg);
-	 jcr->JobStatus = JS_ErrorTerminated;
+	 set_jcr_job_status(jcr, JS_ErrorTerminated);
 	 goto cleanup;
       }
       Dmsg1(110, "Got Ticket=%d\n", jcr->Ticket);
    } else {
       Jmsg(jcr, M_FATAL, 0, _("Bad response from stored to open command\n"));
-      jcr->JobStatus = JS_ErrorTerminated;
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       goto cleanup;
    }
 
@@ -538,23 +538,23 @@ static int backup_cmd(JCR *jcr)
     */
    Dmsg1(110, "<stored: %s", sd->msg);
    if (!response(jcr, sd, OK_data, "Append Data")) {
-      jcr->JobStatus = JS_ErrorTerminated;
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       goto cleanup;
    }
       
    /*
     * Send Files to Storage daemon
     */
-   Dmsg1(110, "begin blast ff=%p\n", jcr->ff);
+   Dmsg1(110, "begin blast ff=%p\n", (FF_PKT *)jcr->ff);
    if (!blast_data_to_storage_daemon(jcr, NULL)) {
-      jcr->JobStatus = JS_ErrorTerminated;
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
    } else {
-      jcr->JobStatus = JS_Terminated;
+      set_jcr_job_status(jcr, JS_Terminated);
       /* 
        * Expect to get response to append_data from Storage daemon
        */
       if (!response(jcr, sd, OK_append, "Append Data")) {
-	 jcr->JobStatus = JS_ErrorTerminated;
+	 set_jcr_job_status(jcr, JS_ErrorTerminated);
 	 goto cleanup;
       }
      
@@ -564,7 +564,7 @@ static int backup_cmd(JCR *jcr)
       bnet_fsend(sd, append_end, jcr->Ticket);
       /* Get end OK */
       if (!response(jcr, sd, OK_end, "Append End")) {
-	 jcr->JobStatus = JS_ErrorTerminated;
+	 set_jcr_job_status(jcr, JS_ErrorTerminated);
 	 goto cleanup;
       }
 
@@ -580,13 +580,13 @@ static int backup_cmd(JCR *jcr)
       }
       if (!ok) {
          Jmsg(jcr, M_FATAL, 0, _("Append Close with SD failed.\n"));
-	 jcr->JobStatus = JS_ErrorTerminated;
+	 set_jcr_job_status(jcr, JS_ErrorTerminated);
 	 goto cleanup;
       }
       if (SDJobStatus != JS_Terminated) {
          Jmsg(jcr, M_FATAL, 0, _("Bad status %d returned from Storage Daemon.\n"),
 	    SDJobStatus);
-	 jcr->JobStatus = JS_ErrorTerminated;
+	 set_jcr_job_status(jcr, JS_ErrorTerminated);
       }
    }
 
@@ -708,7 +708,7 @@ static int restore_cmd(JCR *jcr)
    Dmsg1(110, "bfiled>dird: %s", dir->msg);
 
    jcr->JobType = JT_RESTORE;
-   jcr->JobStatus = JS_Blocked;
+   set_jcr_job_status(jcr, JS_Blocked);
 
    if (!open_sd_read_session(jcr)) {
       return 0;
@@ -860,7 +860,7 @@ static int send_bootstrap_file(JCR *jcr)
    if (!bs) {
       Jmsg(jcr, M_FATAL, 0, _("Could not open bootstrap file %s: ERR=%s\n"), 
 	 jcr->RestoreBootstrap, strerror(errno));
-      jcr->JobStatus = JS_ErrorTerminated;
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       return 0;
    }
    strcpy(sd->msg, bootstrap);	
@@ -873,7 +873,7 @@ static int send_bootstrap_file(JCR *jcr)
    bnet_sig(sd, BNET_EOD);
    fclose(bs);
    if (!response(jcr, sd, OKSDbootstrap, "Bootstrap")) {
-      jcr->JobStatus = JS_ErrorTerminated;
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       return 0;
    }
    return 1;

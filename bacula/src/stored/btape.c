@@ -1044,7 +1044,7 @@ This may take a long time. I.e. hours! ...\n\n");
     */
    Dmsg0(100, "just before acquire_device\n");
    if (!acquire_device_for_append(jcr, dev, block)) {
-      jcr->JobStatus = JS_Cancelled;
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       free_block(block);
       return;
    }
@@ -1054,7 +1054,7 @@ This may take a long time. I.e. hours! ...\n\n");
     * Write Begin Session Record
     */
    if (!write_session_label(jcr, block, SOS_LABEL)) {
-      jcr->JobStatus = JS_Cancelled;
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       Jmsg1(jcr, M_FATAL, 0, _("Write session label failed. ERR=%s\n"),
 	 strerror_dev(dev));
       ok = FALSE;
@@ -1146,9 +1146,9 @@ This may take a long time. I.e. hours! ...\n\n");
       Dmsg0(000, "Write_end_session_label()\n");
       /* Create Job status for end of session label */
       if (!job_cancelled(jcr) && ok) {
-	 jcr->JobStatus = JS_Terminated;
+	 set_jcr_job_status(jcr, JS_Terminated);
       } else if (!ok) {
-	 jcr->JobStatus = JS_ErrorTerminated;
+	 set_jcr_job_status(jcr, JS_ErrorTerminated);
       }
       if (!write_session_label(jcr, block, EOS_LABEL)) {
          Pmsg1(000, _("Error writting end session label. ERR=%s\n"), strerror_dev(dev));

@@ -75,7 +75,7 @@ int read_dev_volume_label(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	  *  => we are in a loop
 	  */
 	 if (jcr->label_errors > 100) {
-	    jcr->JobStatus = JS_Cancelled;
+	    set_jcr_job_status(jcr, JS_ErrorTerminated);
             Jmsg(jcr, M_FATAL, 0, "%s", jcr->errmsg);
 	 }
 	 return jcr->label_status = VOL_NAME_ERROR;
@@ -139,7 +139,7 @@ because:\n   %s"), dev_name(dev), strerror_dev(dev));
        *  => we are in a loop
        */
       if (jcr->label_errors > 100) {
-	 jcr->JobStatus = JS_Cancelled;
+	 set_jcr_job_status(jcr, JS_ErrorTerminated);
          Jmsg(jcr, M_FATAL, 0, "%s", jcr->errmsg);
       }
       return jcr->label_status = VOL_NAME_ERROR;

@@ -57,14 +57,14 @@ void do_verify_volume(JCR *jcr)
    sd = jcr->store_bsock;
    if (!sd) {
       Jmsg(jcr, M_FATAL, 0, _("Storage command not issued before Verify.\n"));
-      jcr->JobStatus = JS_FatalError;
+      set_jcr_job_status(jcr, JS_FatalError);
       return;
    }
    dir = jcr->dir_bsock;
-   jcr->JobStatus = JS_Running;
+   set_jcr_job_status(jcr, JS_Running);
 
    if (!bnet_set_buffer_size(sd, MAX_NETWORK_BUFFER_SIZE, BNET_SETBUF_READ)) {
-      jcr->JobStatus = JS_FatalError;
+      set_jcr_job_status(jcr, JS_FatalError);
       return;
    }
    jcr->buf_size = sd->msglen;

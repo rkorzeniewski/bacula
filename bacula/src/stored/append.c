@@ -60,7 +60,7 @@ int do_append_data(JCR *jcr)
    ds = fd_sock;
 
    if (!bnet_set_buffer_size(ds, MAX_NETWORK_BUFFER_SIZE, BNET_SETBUF_WRITE)) {
-      jcr->JobStatus = JS_Cancelled;
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       Jmsg(jcr, M_FATAL, 0, _("Unable to set network buffer size.\n"));
       return 0;
    }
@@ -76,7 +76,7 @@ int do_append_data(JCR *jcr)
     */
    Dmsg0(100, "just before acquire_device\n");
    if (!acquire_device_for_append(jcr, dev, block)) {
-      jcr->JobStatus = JS_Cancelled;
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       free_block(block);
       return 0;
    }
@@ -87,9 +87,9 @@ int do_append_data(JCR *jcr)
     * Write Begin Session Record
     */
    if (!write_session_label(jcr, block, SOS_LABEL)) {
-      jcr->JobStatus = JS_Cancelled;
       Jmsg1(jcr, M_FATAL, 0, _("Write session label failed. ERR=%s\n"),
 	 strerror_dev(dev));
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       ok = FALSE;
    }
 
@@ -233,9 +233,9 @@ int do_append_data(JCR *jcr)
    Dmsg0(90, "Write_end_session_label()\n");
    /* Create Job status for end of session label */
    if (!job_cancelled(jcr) && ok) {
-      jcr->JobStatus = JS_Terminated;
+      set_jcr_job_status(jcr, JS_Terminated);
    } else if (!ok) {
-      jcr->JobStatus = JS_ErrorTerminated;
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
    }
    if (!write_session_label(jcr, block, EOS_LABEL)) {
       Jmsg1(jcr, M_FATAL, 0, _("Error writting end session label. ERR=%s\n"),

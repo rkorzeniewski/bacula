@@ -67,16 +67,16 @@ int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
         _("File daemon"), jcr->client->address, 
 	NULL, jcr->client->FDport, verbose);
    if (fd == NULL) {
-      jcr->JobStatus = JS_ErrorTerminated;
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       return 0;
    }
    Dmsg0(10, "Opened connection with File daemon\n");
    fd->res = (RES *)jcr->client;      /* save resource in BSOCK */
    jcr->file_bsock = fd;
-   jcr->JobStatus = JS_Running;
+   set_jcr_job_status(jcr, JS_Running);
 
    if (!authenticate_file_daemon(jcr)) {
-      jcr->JobStatus = JS_ErrorTerminated;
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       return 0;
    }
 	
@@ -90,7 +90,7 @@ int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
        Dmsg1(110, "<filed: %s", fd->msg);
        if (strncmp(fd->msg, OKjob, strlen(OKjob)) != 0) {
           Jmsg(jcr, M_FATAL, 0, _("File daemon rejected Job command: %s\n"), fd->msg);
-	  jcr->JobStatus = JS_ErrorTerminated;
+	  set_jcr_job_status(jcr, JS_ErrorTerminated);
 	  return 0;
        } else {
 	  /***** ***FIXME***** update Client Uname */
@@ -98,7 +98,7 @@ int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
    } else {
       Jmsg(jcr, M_FATAL, 0, _("<filed: bad response to JobId command: %s\n"),
 	 bnet_strerror(fd));
-      jcr->JobStatus = JS_ErrorTerminated;
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       return 0;
    }
    return 1;
@@ -199,7 +199,7 @@ int send_include_list(JCR *jcr)
    return 1;
 
 bail_out:
-   jcr->JobStatus = JS_ErrorTerminated;
+   set_jcr_job_status(jcr, JS_ErrorTerminated);
    return 0;
 
 }
@@ -226,14 +226,14 @@ int send_exclude_list(JCR *jcr)
       fd->msg = fileset->exclude_array[i];
       if (!bnet_send(fd)) {
          Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
-	 jcr->JobStatus = JS_ErrorTerminated;
+	 set_jcr_job_status(jcr, JS_ErrorTerminated);
 	 return 0;
       }
    }
    bnet_sig(fd, BNET_EOD);
    fd->msg = msgsave;
    if (!response(fd, OKexc, "Exclude")) {
-      jcr->JobStatus = JS_ErrorTerminated;
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       return 0;
    }
    return 1;
@@ -273,7 +273,7 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
       if ((len = sscanf(fd->msg, "%ld %d %s", &file_index, &stream, Opts_MD5)) != 3) {
          Jmsg(jcr, M_FATAL, 0, _("<filed: bad attributes, expected 3 fields got %d\n\
 msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
-	 jcr->JobStatus = JS_ErrorTerminated;
+	 set_jcr_job_status(jcr, JS_ErrorTerminated);
 	 return 0;
       }
       p = fd->msg;
@@ -308,7 +308,7 @@ msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
 
 	 if (!db_create_file_attributes_record(jcr->db, &ar)) {
             Jmsg1(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
-	    jcr->JobStatus = JS_Error;
+	    set_jcr_job_status(jcr, JS_Error);
 	    continue;
 	 }
 	 jcr->FileId = ar.FileId;
@@ -316,14 +316,14 @@ msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
 	 if (jcr->FileIndex != (uint32_t)file_index) {
             Jmsg2(jcr, M_ERROR, 0, _("MD5 index %d not same as attributes %d\n"),
 	       file_index, jcr->FileIndex);
-	    jcr->JobStatus = JS_Error;
+	    set_jcr_job_status(jcr, JS_Error);
 	    continue;
 	 }
 	 db_escape_string(MD5, Opts_MD5, strlen(Opts_MD5));
          Dmsg2(120, "MD5len=%d MD5=%s\n", strlen(MD5), MD5);
 	 if (!db_add_MD5_to_file_record(jcr->db, jcr->FileId, MD5)) {
             Jmsg1(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
-	    jcr->JobStatus = JS_Error;
+	    set_jcr_job_status(jcr, JS_Error);
 	 }
       }
       jcr->jr.JobFiles = jcr->JobFiles = file_index;
@@ -332,10 +332,10 @@ msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
    if (is_bnet_error(fd)) {
       Jmsg1(jcr, M_FATAL, 0, _("<filed: Network error getting attributes. ERR=%s\n"),
 			bnet_strerror(fd));
-      jcr->JobStatus = JS_ErrorTerminated;
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       return 0;
    }
 
-   jcr->JobStatus = JS_Terminated;
+   set_jcr_job_status(jcr, JS_Terminated);
    return 1;
 }

@@ -17,17 +17,16 @@
    MA 02111-1307, USA.
 
    This file is based on GNU TAR source code. Except for a few key
-   ideas and some key snippets of code, it has been rewritten for Bacula.
+   ideas, it has been rewritten for Bacula.
 
       Kern Sibbald, MM
 
-   Many thanks to the TAR programmers.
+   Thanks to the TAR programmers.
 
  */
 
 #include "bacula.h"
 #include "find.h"
-/*#include "system.h" */
 
 
 extern size_t name_max; 	      /* filename max length */
@@ -53,11 +52,10 @@ struct f_link {
 #if HAVE_UTIME_H
 # include <utime.h>
 #else
-struct utimbuf
-  {
+struct utimbuf {
     long actime;
     long modtime;
-  };
+};
 #endif
 
 
@@ -70,8 +68,8 @@ struct utimbuf
  *  decending into a directory.
  */
 int
-find_one_file(FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), void *pkt, 
-	       char *fname, dev_t parent_device, int top_level)
+find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), 
+	       void *pkt, char *fname, dev_t parent_device, int top_level)
 {
    struct utimbuf restore_times;
    int rtn_stat;
@@ -271,7 +269,7 @@ find_one_file(FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), void *pkt
 	*/
        rtn_stat = 1;
        entry = (struct dirent *)malloc(sizeof(struct dirent) + name_max + 100);
-       for ( ;; ) {
+       for ( ; !job_cancelled(jcr); ) {
 	   char *p, *q;
 	   int i;
 
@@ -301,7 +299,7 @@ find_one_file(FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), void *pkt
 	   *q = 0;
 	   sm_check(__FILE__, __LINE__, False);
 	   if (!file_is_excluded(ff_pkt, link)) {
-	      rtn_stat = find_one_file(ff_pkt, handle_file, pkt, link, our_device, 0);
+	      rtn_stat = find_one_file(jcr, ff_pkt, handle_file, pkt, link, our_device, 0);
 	   }
        }
        closedir(directory);

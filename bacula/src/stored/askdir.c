@@ -375,7 +375,7 @@ volumes for Job=%s.\n"), jcr->Job);
       }       
       break;
    }
-   jcr->JobStatus = JS_Running;
+   set_jcr_job_status(jcr, JS_Running);
    dir_send_job_status(jcr);
    Dmsg0(130, "leave dir_ask_sysop_to_mount_next_volume\n");
    return 1;
@@ -489,7 +489,7 @@ int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
       num_wait = 0;
       break;
    }
-   jcr->JobStatus = JS_Running;
+   set_jcr_job_status(jcr, JS_Running);
    dir_send_job_status(jcr);
    Dmsg0(130, "leave dir_ask_sysop_to_mount_next_volume\n");
    return 1;

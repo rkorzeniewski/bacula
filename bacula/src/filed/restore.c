@@ -65,7 +65,7 @@ void do_restore(JCR *jcr)
    wherelen = strlen(jcr->where);
 
    sd = jcr->store_bsock;
-   jcr->JobStatus = JS_Running;
+   set_jcr_job_status(jcr, JS_Running);
 
    if (!bnet_set_buffer_size(sd, MAX_NETWORK_BUFFER_SIZE, BNET_SETBUF_READ)) {
       return;
@@ -376,11 +376,11 @@ void do_restore(JCR *jcr)
       set_attributes(jcr, fname, ofile, lname, type, stream, 
 		     &statp, attribsEx, &ofd);
    }
-   jcr->JobStatus = JS_Terminated;
+   set_jcr_job_status(jcr, JS_Terminated);
    goto ok_out;
 
 bail_out:
-   jcr->JobStatus = JS_ErrorTerminated;
+   set_jcr_job_status(jcr, JS_ErrorTerminated);
 ok_out:
    if (jcr->compress_buf) {
       free(jcr->compress_buf);

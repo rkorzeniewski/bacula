@@ -30,8 +30,6 @@
 #ifndef __BSR_H
 #define __BSR_H 1
 
-#include "findlib/find.h"
-
 /*
  * List of Volume names to be read by Storage daemon.
  *  Formed by Storage daemon from BSR  
@@ -47,10 +45,10 @@ typedef struct s_vol_list VOL_LIST;
 
 /*
  * !!!!!!!!!!!!!!!!!! NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- * !!!						     !!!
- * !!!	 All records must have a pointer to	     !!!
- * !!!	 the next item as the first item defined.    !!!
- * !!!						     !!!
+ * !!!                                               !!!
+ * !!!   All records must have a pointer to          !!!
+ * !!!   the next item as the first item defined.    !!!
+ * !!!                                               !!!
  * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  */
 
@@ -68,35 +66,35 @@ typedef struct s_bsr_sessid {
    struct s_bsr_sessid *next;
    uint32_t sessid;
    uint32_t sessid2;
-   int done;			      /* local done */
+   int done;                          /* local done */
 } BSR_SESSID;
 
 typedef struct s_bsr_sesstime {
    struct s_bsr_sesstime *next;
    uint32_t sesstime;
-   int done;			      /* local done */
+   int done;                          /* local done */
 } BSR_SESSTIME;
 
 typedef struct s_bsr_volfile {
    struct s_bsr_volfile *next;
-   uint32_t sfile;		      /* start file */
-   uint32_t efile;		      /* end file */
-   int done;			      /* local done */
+   uint32_t sfile;                    /* start file */
+   uint32_t efile;                    /* end file */
+   int done;                          /* local done */
 } BSR_VOLFILE;
 
 typedef struct s_bsr_volblock {
    struct s_bsr_volblock *next;
-   uint32_t sblock;		      /* start block */
-   uint32_t eblock;		      /* end block */
-   int done;			      /* local done */
+   uint32_t sblock;                   /* start block */
+   uint32_t eblock;                   /* end block */
+   int done;                          /* local done */
 } BSR_VOLBLOCK;
 
 
 typedef struct s_bsr_findex {
    struct s_bsr_findex *next;
-   int32_t findex;		      /* start file index */
-   int32_t findex2;		      /* end file index */
-   int done;			      /* local done */
+   int32_t findex;                    /* start file index */
+   int32_t findex2;                   /* end file index */
+   int done;                          /* local done */
 } BSR_FINDEX;
 
 typedef struct s_bsr_jobid {
@@ -123,28 +121,27 @@ typedef struct s_bsr_job {
 
 typedef struct s_bsr_stream {
    struct s_bsr_stream *next;
-   int32_t stream;		      /* stream desired */
+   int32_t stream;                    /* stream desired */
 } BSR_STREAM;
 
 typedef struct s_bsr {
-   struct s_bsr *next;		      /* pointer to next one */
-   int		 done;		      /* set when everything found */
-   BSR_VOLUME	*volume;
-   int32_t	 Slot;		      /* Slot */
-   uint32_t	 count; 	      /* count of files to restore this bsr */
-   uint32_t	 found; 	      /* count of restored files this bsr */
-   BSR_VOLFILE	*volfile;
+   struct s_bsr *next;                /* pointer to next one */
+   int           done;                /* set when everything found */
+   BSR_VOLUME   *volume;
+   int32_t       Slot;                /* Slot */
+   uint32_t      count;               /* count of files to restore this bsr */
+   uint32_t      found;               /* count of restored files this bsr */
+   BSR_VOLFILE  *volfile;
    BSR_VOLBLOCK *volblock;
    BSR_SESSTIME *sesstime;
-   BSR_SESSID	*sessid;
-   BSR_JOBID	*JobId;
-   BSR_JOB	*job;
-   BSR_CLIENT	*client;
-   BSR_FINDEX	*FileIndex;
-   BSR_JOBTYPE	*JobType;
+   BSR_SESSID   *sessid;
+   BSR_JOBID    *JobId;
+   BSR_JOB      *job;
+   BSR_CLIENT   *client;
+   BSR_FINDEX   *FileIndex;
+   BSR_JOBTYPE  *JobType;
    BSR_JOBLEVEL *JobLevel;
-   BSR_STREAM	*stream;
-// FF_PKT *ff;			      /* include/exclude */
+   BSR_STREAM   *stream;
 } BSR;
 
 
