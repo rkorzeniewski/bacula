@@ -16,11 +16,10 @@ first_rule: all
 dummy:
 
 fd_subdirs = src scripts doc src/lib src/findlib src/filed \
-	     rescue rescue/linux
+	     @READLINE_SRC@ src/console rescue rescue/linux
 
 
-subdirs =    src/cats @READLINE_SRC@ src/console src/dird \
-	     src/stored @GNOME_DIR@ src/tools
+subdirs =    src/cats src/dird src/stored @GNOME_DIR@ src/tools
 
 all_subdirs = ${fd_subdirs} ${@ALL_DIRS@}
 
@@ -93,17 +92,17 @@ gnomedirs:
 	$(MKDIR) $(DESTDIR)/etc/security/console.apps
 	$(MKDIR) $(DESTDIR)/etc/pam.d
 
-install-menu: installdirs gnomedirs
+install-menu: gnomedirs
 	${INSTALL_DATA} scripts/bacula.png $(DESTDIR)/usr/share/pixmaps/bacula.png
 	${INSTALL_DATA} scripts/bacula.desktop.gnome1 $(DESTDIR)/usr/share/gnome/apps/System/bacula.desktop
 	${INSTALL_DATA} scripts/bacula.desktop.gnome2 $(DESTDIR)/usr/share/applications/bacula.desktop
 
-install-menu-xsu: installdirs gnomedirs
+install-menu-xsu: gnomedirs
 	${INSTALL_DATA} scripts/bacula.png $(DESTDIR)/usr/share/pixmaps/bacula.png
 	${INSTALL_DATA} scripts/bacula.desktop.gnome1.xsu $(DESTDIR)/usr/share/gnome/apps/System/bacula.desktop
 	${INSTALL_DATA} scripts/bacula.desktop.gnome2.xsu $(DESTDIR)/usr/share/applications/bacula.desktop
 
-install-menu-consolehelper: installdirs gnomedirs
+install-menu-consolehelper: gnomedirs
 	${INSTALL_DATA} scripts/bacula.png $(DESTDIR)/usr/share/pixmaps/bacula.png
 	${INSTALL_DATA} scripts/bacula.desktop.gnome1.consolehelper $(DESTDIR)/usr/share/gnome/apps/System/bacula.desktop
 	${INSTALL_DATA} scripts/bacula.desktop.gnome2.consolehelper $(DESTDIR)/usr/share/applications/bacula.desktop

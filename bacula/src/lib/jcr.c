@@ -50,7 +50,7 @@ void init_last_jobs_list()
    int errstat;
    struct s_last_job *job_entry = NULL;
    if (!last_jobs) {
-      last_jobs = new dlist(job_entry,	&job_entry->link);
+      last_jobs = new dlist(job_entry, &job_entry->link);
       if ((errstat=rwl_init(&lock)) != 0) {
          Emsg1(M_ABORT, 0, _("Unable to initialize jcr_chain lock. ERR=%s\n"), 
 	       strerror(errstat));
@@ -61,11 +61,7 @@ void init_last_jobs_list()
 
 void term_last_jobs_list()
 {
-   struct s_last_job *je;
    if (last_jobs) {
-      foreach_dlist(je, last_jobs) {
-	 free(je);		       
-      }
       delete last_jobs;
       last_jobs = NULL;
       rwl_destroy(&lock);
@@ -186,7 +182,6 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    memset(jcr, 0, size);
    jcr->msg_queue = new dlist(item, &item->link);
    jcr->job_end_push.init(1, false);
-   jcr->my_thread_id = pthread_self();
    jcr->sched_time = time(NULL);
    jcr->daemon_free_jcr = daemon_free_jcr;    /* plug daemon free routine */
    jcr->use_count = 1;

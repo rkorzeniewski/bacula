@@ -68,8 +68,6 @@ void init_job_server(int max_workers)
    wd->interval = 60;
    wd->data = new_control_jcr("*JobMonitor*", JT_SYSTEM);
    register_watchdog(wd);
-   
-   return;
 }
 
 /*
@@ -82,7 +80,7 @@ void run_job(JCR *jcr)
    int stat, errstat;
 
    P(jcr->mutex);
-   sm_check(__FILE__, __LINE__, True);
+   sm_check(__FILE__, __LINE__, true);
    init_msg(jcr, jcr->messages);
    create_unique_job_name(jcr, jcr->job->hdr.name);
    set_jcr_job_status(jcr, JS_Created);
@@ -160,8 +158,9 @@ static void *job_thread(void *arg)
 {
    JCR *jcr = (JCR *)arg;
 
-   pthread_detach(pthread_self());
-   sm_check(__FILE__, __LINE__, True);
+   jcr->my_thread_id = pthread_self();
+   pthread_detach(jcr->my_thread_id);
+   sm_check(__FILE__, __LINE__, true);
 
    for ( ;; ) {
 
@@ -271,7 +270,7 @@ bail_out:
    }
 
    Dmsg0(50, "======== End Job ==========\n");
-   sm_check(__FILE__, __LINE__, True);
+   sm_check(__FILE__, __LINE__, true);
    return NULL;
 }
 

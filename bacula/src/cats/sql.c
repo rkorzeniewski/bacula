@@ -52,16 +52,16 @@ static int int_handler(void *ctx, int num_fields, char **row)
 {
    uint32_t *val = (uint32_t *)ctx;
 
-   Dmsg1(200, "int_handler starts with row pointing at %x\n", row);
+   Dmsg1(800, "int_handler starts with row pointing at %x\n", row);
 
    if (row[0]) {
-      Dmsg1(200, "int_handler finds '%s'\n", row[0]);
+      Dmsg1(800, "int_handler finds '%s'\n", row[0]);
       *val = atoi(row[0]);
    } else {
-      Dmsg0(200, "int_handler finds zero\n");
+      Dmsg0(800, "int_handler finds zero\n");
       *val = 0;
    }
-   Dmsg0(200, "int_handler finishes\n");
+   Dmsg0(800, "int_handler finishes\n");
    return 0;
 }
        
@@ -383,17 +383,17 @@ list_result(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type t
    int i, col_len, max_len = 0;
    char buf[2000], ewc[30];
 
-   Dmsg0(200, "list_result starts\n");
+   Dmsg0(800, "list_result starts\n");
    if (mdb->result == NULL || sql_num_rows(mdb) == 0) {
       send(ctx, _("No results to list.\n"));
       return;
    }
 
-   Dmsg1(200, "list_result starts looking at %d fields\n", sql_num_fields(mdb));
+   Dmsg1(800, "list_result starts looking at %d fields\n", sql_num_fields(mdb));
    /* determine column display widths */
    sql_field_seek(mdb, 0);
    for (i = 0; i < sql_num_fields(mdb); i++) {
-      Dmsg1(200, "list_result processing field %d\n", i);
+      Dmsg1(800, "list_result processing field %d\n", i);
       field = sql_fetch_field(mdb);
       col_len = strlen(field->name);
       if (type == VERT_LIST) {
@@ -414,17 +414,17 @@ list_result(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type t
       }
    }
 
-   Dmsg0(200, "list_result finished first loop\n");
+   Dmsg0(800, "list_result finished first loop\n");
    if (type == VERT_LIST) {
       goto vertical_list;
    }
 
-   Dmsg1(200, "list_result starts second loop looking at %d fields\n", sql_num_fields(mdb));
+   Dmsg1(800, "list_result starts second loop looking at %d fields\n", sql_num_fields(mdb));
    list_dashes(mdb, send, ctx);
    send(ctx, "|");
    sql_field_seek(mdb, 0);
    for (i = 0; i < sql_num_fields(mdb); i++) {
-      Dmsg1(200, "list_result looking at field %d\n", i);
+      Dmsg1(800, "list_result looking at field %d\n", i);
       field = sql_fetch_field(mdb);
       bsnprintf(buf, sizeof(buf), " %-*s |", (int)field->max_length, field->name);
       send(ctx, buf);
@@ -432,7 +432,7 @@ list_result(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type t
    send(ctx, "\n");
    list_dashes(mdb, send, ctx);
 
-   Dmsg1(200, "list_result starts third loop looking at %d fields\n", sql_num_fields(mdb));
+   Dmsg1(800, "list_result starts third loop looking at %d fields\n", sql_num_fields(mdb));
    while ((row = sql_fetch_row(mdb)) != NULL) {
       sql_field_seek(mdb, 0);
       send(ctx, "|");
@@ -455,7 +455,7 @@ list_result(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type t
 
 vertical_list:
    
-   Dmsg1(200, "list_result starts vertical list at %d fields\n", sql_num_fields(mdb));
+   Dmsg1(800, "list_result starts vertical list at %d fields\n", sql_num_fields(mdb));
    while ((row = sql_fetch_row(mdb)) != NULL) {
       sql_field_seek(mdb, 0);
       for (i = 0; i < sql_num_fields(mdb); i++) {

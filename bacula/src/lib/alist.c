@@ -194,7 +194,7 @@ int main()
    delete mlist;
 
 
-   sm_dump(False);
+   sm_dump(false);
 
 }
 #endif
