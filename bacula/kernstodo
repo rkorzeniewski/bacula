@@ -55,6 +55,17 @@ For 1.33 Testing/Documentation:
 - Add subsections to the Disaster Recovery index section.
                 
 For 1.33
+- Look at find_next_volume() algorithm. Currently, it selects:
+    +---------+------------+---------------------+-----------+
+    | MediaId | VolumeName | LastWritten         | VolBytes  |
+    +---------+------------+---------------------+-----------+
+    |       3 | Test13     | 0000-00-00 00:00:00 |         1 |
+    |       4 | Test14     | 0000-00-00 00:00:00 |         1 |
+    |       1 | test11     | 2003-12-03 18:39:55 | 4,004,926 |
+    |       2 | test12     | 2004-01-04 15:25:56 | 2,078,691 |
+    +---------+------------+---------------------+-----------+
+  but perhaps it should fill already used Volumes first, and use
+  Append volumes before Purged, or Recycled, ...
 - Volume "add"ed to Pool gets recycled in first use. VolBytes=0
 - Get rid of 0 dates in LastWritten, ...
 - Make Bacula "poll a drive".
