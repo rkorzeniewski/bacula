@@ -428,10 +428,10 @@ static FILE *open_mail_pipe(JCR *jcr, POOLMEM **cmd, DEST *d)
    } else {
       Mmsg(cmd, "mail -s \"Bacula Message\" %s", d->where);
    }
-   Dmsg1(200, "mailcmd=%s\n", cmd);
+   fflush(stdout);
    pfd = popen(*cmd, "w");
    if (!pfd) {
-      Jmsg(jcr, M_ERROR, 0, "mail popen %s failed: ERR=%s\n", cmd, strerror(errno));
+      Jmsg(jcr, M_ERROR, 0, "mail popen %s failed: ERR=%s\n", *cmd, strerror(errno));
    } 
    return pfd;
 }
@@ -461,7 +461,7 @@ void close_msg(void *vjcr)
    if (msgs == NULL) {
       return;
    }
-   Dmsg1(150, "begin close msg resource at 0x%x\n", msgs);
+   Dmsg1(150, "===Begin close msg resource at 0x%x\n", msgs);
    cmd = get_pool_memory(PM_MESSAGE);
    for (d=msgs->dest_chain; d; ) {
       if (d->fd) {
@@ -474,6 +474,7 @@ void close_msg(void *vjcr)
 	    break;
 	 case MD_MAIL:
 	 case MD_MAIL_ON_ERROR:
+            Dmsg0(150, "Got MD_MAIL or MD_MAIL_ON_ERROR\n");
 	    if (!d->fd) {
 	       break;
 	    }
@@ -486,6 +487,7 @@ void close_msg(void *vjcr)
 	    if (!pfd) {
 	       goto rem_temp_file;
 	    }
+            Dmsg0(150, "Opened mail pipe\n");
 	    len = d->max_len+10;
 	    line = get_memory(len);
 	    rewind(d->fd);
@@ -493,12 +495,14 @@ void close_msg(void *vjcr)
 	       fputs(line, pfd);
 	    }
 	    stat = pclose(pfd);       /* close pipe, sending mail */
+            Dmsg1(150, "Close mail pipe stat=%d\n", stat);
 	    /*
              * Since we are closing all messages, before "recursing"
 	     * make sure we are not closing the daemon messages, otherwise
 	     * kaboom.
 	     */
 	    if (stat < 0 && msgs != daemon_msgs && errno != ECHILD) {
+               Dmsg1(150, "Calling emsg. CMD=%s\n", cmd);
                Emsg1(M_ERROR, 0, _("Mail program terminated in error.\nCMD=%s\n"),
 		  cmd);
 	    }
@@ -509,6 +513,7 @@ rem_temp_file:
 	    unlink(d->mail_filename);
 	    free_pool_memory(d->mail_filename);
 	    d->mail_filename = NULL;
+            Dmsg0(150, "end mail or mail on error\n");
 	    break;
 	 default:
 	    break;
@@ -518,10 +523,10 @@ rem_temp_file:
       d = d->next;		      /* point to next buffer */
    }
    free_pool_memory(cmd);
-
+   Dmsg0(150, "Done walking message chain.\n");
    free_msgs_res(msgs);
    msgs = NULL;
-   Dmsg0(150, "end close msg resource\n");
+   Dmsg0(150, "===End close msg resource\n");
 }
 
 /*
