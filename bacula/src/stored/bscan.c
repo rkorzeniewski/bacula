@@ -437,7 +437,7 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 		  jr.JobBytes = mjcr->JobBytes;
 		  jr.VolSessionId = mjcr->VolSessionId;
 		  jr.VolSessionTime = mjcr->VolSessionTime;
-		  jr.JobTDate = (btime_t)mjcr->start_time;
+		  jr.JobTDate = (utime_t)mjcr->start_time;
 		  jr.ClientId = mjcr->ClientId;
 		  free_jcr(mjcr);
 		  if (!db_update_job_end_record(db, &jr)) {
@@ -663,8 +663,8 @@ static int create_media_record(B_DB *db, MEDIA_DBR *mr, VOLUME_LABEL *vl)
    strcpy(mr->VolStatus, "Full");
    mr->VolRetention = 365 * 3600 * 24; /* 1 year */
    if (vl->VerNum >= 11) {
-      mr->FirstWritten = btime_to_etime(vl->write_btime);
-      mr->LabelDate    = btime_to_etime(vl->label_btime);
+      mr->FirstWritten = btime_to_utime(vl->write_btime);
+      mr->LabelDate    = btime_to_utime(vl->label_btime);
    } else {
       /* DEPRECATED DO NOT USE */
       dt.julian_day_number = vl->write_date;
@@ -804,7 +804,7 @@ static JCR *create_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *label,
    strcpy(jr->Name, label->JobName);
    strcpy(jr->Job, label->Job);
    if (label->VerNum >= 11) {
-      jr->SchedTime = btime_to_etime(label->write_btime);
+      jr->SchedTime = btime_to_unix(label->write_btime);
    } else {
       dt.julian_day_number = label->write_date;
       dt.julian_day_fraction = label->write_time;
@@ -813,7 +813,7 @@ static JCR *create_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *label,
    }
 
    jr->StartTime = jr->SchedTime;
-   jr->JobTDate = (btime_t)jr->SchedTime;
+   jr->JobTDate = (utime_t)jr->SchedTime;
    jr->VolSessionId = rec->VolSessionId;
    jr->VolSessionTime = rec->VolSessionTime;
 
@@ -861,7 +861,7 @@ static int update_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *elabel,
       return 0;
    }
    if (elabel->VerNum >= 11) {
-      jr->EndTime = btime_to_etime(elabel->write_btime);
+      jr->EndTime = btime_to_unix(elabel->write_btime);
    } else {
       dt.julian_day_number = elabel->write_date;
       dt.julian_day_fraction = elabel->write_time;
@@ -878,7 +878,7 @@ static int update_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *elabel,
    jr->JobBytes = elabel->JobBytes;
    jr->VolSessionId = rec->VolSessionId;
    jr->VolSessionTime = rec->VolSessionTime;
-   jr->JobTDate = (btime_t)mjcr->start_time;
+   jr->JobTDate = (utime_t)mjcr->start_time;
    jr->ClientId = mjcr->ClientId;
 
    if (!update_db) {

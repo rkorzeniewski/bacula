@@ -68,6 +68,7 @@ distclean: realclean
 
 install: smtp
 	$(INSTALL_PROGRAM) smtp $(DESTDIR)$(sbindir)/smtp      
+	$(INSTALL_PROGRAM) dbcheck $(DESTDIR)$(sbindir)/dbcheck      
 
 uninstall:
 	(cd $(DESTDIR)$(sbindir); $(RMF) smtp)

@@ -293,57 +293,57 @@ AC_CHECK_HEADERS(varargs.h \
 # ---------------------------------------------------
 # Check for GMP support/directory
 # ---------------------------------------------------
-GMP_SRC=
-local_gmp="no"
-AC_ARG_WITH(gmp,
-  [  --with-gmp[=DIR]	Specify gmp library directory],
-  [
-     case "$with_gmp" in
-     no) : ;;
-     yes|*)
-       if test "$with_gmp" != "yes"; then
-	 GMP_INC="-I$with_gmp"
-	 GMP_LIBS="-lgmp"
-	 GMP_LDFLAGS="-L$with_gmp"
-       else
-	  with_gmp="/usr/include" 
-       fi
-       AC_CHECK_HEADER($with_gmp/gmp.h, 
-	  [ AC_MSG_RESULT(yes)
-	    AC_DEFINE(HAVE_GMP) 
-	    GMP_LIBS="-lgmp"
-	    got_gmp="yes"   
-	  ],
-	  [ AC_MSG_ERROR([*** gmp library missing]) 
-	  ]
-       )
-       ;;
-     esac
-  ],[
-    # check for standard gmp library
-    AC_CHECK_HEADER(/usr/include/gmp.h,
-    [ AC_MSG_RESULT(yes)
-      AC_DEFINE(HAVE_GMP)
-      got_gmp="yes"
-      GMP_INC=
-      GMP_LIBS="-lgmp"
-    ], [
-      # Did not find standard library, so use our own
-      AC_MSG_RESULT(yes)
-      AC_DEFINE(HAVE_GMP)
-      got_gmp="yes"
-      local_gmp="yes"
-      GMP_INC="-I${TOP_DIR}/depkgs/gmp"
-      GMP_LIBS="-lgmp"
-      GMP_LDFLAGS="-L${TOP_DIR}/depkgs/gmp"
-      GMP_SRC="${TOP_DIR}/depkgs/gmp"
-    ])
-  ]   
-)
-AC_SUBST(GMP_INC)
-AC_SUBST(GMP_LIBS)
-AC_SUBST(GMP_LDFLAGS)
-AC_SUBST(GMP_SRC)
+#GMP_SRC=
+#local_gmp="no"
+#AC_ARG_WITH(gmp,
+#  [  --with-gmp[=DIR]	 Specify gmp library directory],
+#  [
+#     case "$with_gmp" in
+#     no) : ;;
+#     yes|*)
+#	if test "$with_gmp" != "yes"; then
+#	  GMP_INC="-I$with_gmp"
+#	  GMP_LIBS="-lgmp"
+#	  GMP_LDFLAGS="-L$with_gmp"
+#	else
+#	   with_gmp="/usr/include" 
+#	fi
+#	AC_CHECK_HEADER($with_gmp/gmp.h, 
+#	   [ AC_MSG_RESULT(yes)
+#	     AC_DEFINE(HAVE_GMP) 
+#	     GMP_LIBS="-lgmp"
+#	     got_gmp="yes"   
+#	   ],
+#	   [ AC_MSG_ERROR([*** gmp library missing]) 
+#	   ]
+#	)
+#	;;
+#     esac
+#  ],[
+#    # check for standard gmp library
+#    AC_CHECK_HEADER(/usr/include/gmp.h,
+#    [ AC_MSG_RESULT(yes)
+#      AC_DEFINE(HAVE_GMP)
+#      got_gmp="yes"
+#      GMP_INC=
+#      GMP_LIBS="-lgmp"
+#    ], [
+#      # Did not find standard library, so use our own
+#      AC_MSG_RESULT(yes)
+#      AC_DEFINE(HAVE_GMP)
+#      got_gmp="yes"
+#      local_gmp="yes"
+#      GMP_INC="-I${TOP_DIR}/depkgs/gmp"
+#      GMP_LIBS="-lgmp"
+#      GMP_LDFLAGS="-L${TOP_DIR}/depkgs/gmp"
+#      GMP_SRC="${TOP_DIR}/depkgs/gmp"
+#    ])
+#  ]   
+#)
+#AC_SUBST(GMP_INC)
+#AC_SUBST(GMP_LIBS)
+#AC_SUBST(GMP_LDFLAGS)
+#AC_SUBST(GMP_SRC)
 
 # End of GMP stuff
 # -----------------------------------------------------------------------
@@ -352,60 +352,60 @@ AC_SUBST(GMP_SRC)
 # ---------------------------------------------------
 # Check for CWEB support/directory
 # ---------------------------------------------------
-CWEB_SRC=
-CWEB=/bin
-local_cweb="no"
-AC_ARG_WITH(cweb,
-  [  --with-cweb[=DIR]	 Specify cweb library directory],
-  [
-     case "$with_cweb" in
-     no) : ;;
-     yes|*)
-       if test "$with_cweb" != "yes"; then
-	 CWEB_INC="-I$with_cweb"
-	 CWEB_LIBS="-lcweb"
-	 CWEB_LDFLAGS="-L$with_cweb"
-       else
-	  with_cweb="/usr/include" 
-       fi
-       AC_CHECK_HEADER($with_cweb/cweb.h, 
-	  [ AC_MSG_RESULT(yes)
-	    AC_DEFINE(HAVE_CWEB) 
-	    CWEB_LIBS="-lcweb"
-	    got_cweb="yes"   
-	  ],
-	  [ AC_MSG_ERROR([*** cweb library missing]) 
-	  ]
-       )
-       ;;
-     esac
-  ],[
-    # check for standard cweb library
-    AC_CHECK_HEADER(/usr/include/cweb.h,
-    [ AC_MSG_RESULT(yes)
-      AC_DEFINE(HAVE_CWEB)
-      got_cweb="yes"
-      CWEB_INC=
-      CWEB_LIBS="-lcweb"
-    ], [
-      # Did not find starndard library, so use our own
-      AC_MSG_RESULT(yes)
-      AC_DEFINE(HAVE_CWEB)
-      got_cweb="yes"
-      local_cweb="yes"
-      CWEB=${TOP_DIR}/depkgs/cweb
-      CWEB_INC="-I${TOP_DIR}/depkgs/cweb"
-      CWEB_LIBS="-lcweb"
-      CWEB_LDFLAGS="-L${TOP_DIR}/depkgs/cweb"
-      CWEB_SRC="${TOP_DIR}/depkgs/cweb"
-    ])
-  ]   
-)
-AC_SUBST(CWEB)
-AC_SUBST(CWEB_INC)
-AC_SUBST(CWEB_LIBS)
-AC_SUBST(CWEB_LDFLAGS)
-AC_SUBST(CWEB_SRC)
+#CWEB_SRC=
+#CWEB=/bin
+#local_cweb="no"
+#AC_ARG_WITH(cweb,
+#  [  --with-cweb[=DIR]   Specify cweb library directory],
+#  [
+#     case "$with_cweb" in
+#     no) : ;;
+#     yes|*)
+#	if test "$with_cweb" != "yes"; then
+#	  CWEB_INC="-I$with_cweb"
+#	  CWEB_LIBS="-lcweb"
+#	  CWEB_LDFLAGS="-L$with_cweb"
+#	else
+#	   with_cweb="/usr/include" 
+#	fi
+#	AC_CHECK_HEADER($with_cweb/cweb.h, 
+#	   [ AC_MSG_RESULT(yes)
+#	     AC_DEFINE(HAVE_CWEB) 
+#	     CWEB_LIBS="-lcweb"
+#	     got_cweb="yes"   
+#	   ],
+#	   [ AC_MSG_ERROR([*** cweb library missing]) 
+#	   ]
+#	)
+#	;;
+#     esac
+#  ],[
+#    # check for standard cweb library
+#    AC_CHECK_HEADER(/usr/include/cweb.h,
+#    [ AC_MSG_RESULT(yes)
+#      AC_DEFINE(HAVE_CWEB)
+#      got_cweb="yes"
+#      CWEB_INC=
+#      CWEB_LIBS="-lcweb"
+#    ], [
+#      # Did not find starndard library, so use our own
+#      AC_MSG_RESULT(yes)
+#      AC_DEFINE(HAVE_CWEB)
+#      got_cweb="yes"
+#      local_cweb="yes"
+#      CWEB=${TOP_DIR}/depkgs/cweb
+#      CWEB_INC="-I${TOP_DIR}/depkgs/cweb"
+#      CWEB_LIBS="-lcweb"
+#      CWEB_LDFLAGS="-L${TOP_DIR}/depkgs/cweb"
+#      CWEB_SRC="${TOP_DIR}/depkgs/cweb"
+#    ])
+#  ]   
+#)
+#AC_SUBST(CWEB)
+#AC_SUBST(CWEB_INC)
+#AC_SUBST(CWEB_LIBS)
+#AC_SUBST(CWEB_LDFLAGS)
+#AC_SUBST(CWEB_SRC)
 
 # End of CWEB stuff
 # -----------------------------------------------------------------------
@@ -1291,7 +1291,6 @@ Configuration on `date`:
   Linker flags: 	      ${LDFLAGS}
   Libraries:		      ${LIBS}
   Statically Linked Tools:    ${support_static_tools}
-  Database found:	      ${have_db}
   Database type:	      ${db_name}
   Database lib: 	      ${DB_LIBS}
 
@@ -1306,13 +1305,16 @@ Configuration on `date`:
 
   Large file support:	      $largefile_support
   readline support:	      ${got_readline} ${PRTREADLINE_SRC}
-  cweb support: 	      ${got_cweb} ${CWEB_SRC}
   TCP Wrappers support:       ${TCPW_MSG}
   ZLIB support: 	      ${have_zlib}
   enable-smartalloc:	      ${support_smartalloc} 
   enable-gnome: 	      ${support_gnome}
-  gmp support:		      ${got_gmp} ${GMP_SRC}
 
   " > config.out
 
 cat config.out
+
+# old stuff
+# cweb support: 	      ${got_cweb} ${CWEB_SRC}
+# gmp support:		      ${got_gmp} ${GMP_SRC}
+

@@ -46,13 +46,13 @@ JOB *select_job_resource(UAContext *ua);
 /*
  * Confirm a retention period
  */
-int confirm_retention(UAContext *ua, btime_t *ret, char *msg)
+int confirm_retention(UAContext *ua, utime_t *ret, char *msg)
 {
    char ed1[30];
 
    for ( ;; ) {
        bsendmsg(ua, _("The current %s retention period is: %s\n"), 
-	  msg, edit_btime(*ret, ed1));
+	  msg, edit_utime(*ret, ed1));
        if (!get_cmd(ua, _("Continue? (yes/mod/no): "))) {
 	  return 0;
        }
@@ -60,7 +60,7 @@ int confirm_retention(UAContext *ua, btime_t *ret, char *msg)
           if (!get_cmd(ua, _("Enter new retention period: "))) {
 	     return 0;
 	  }
-	  if (!string_to_btime(ua->cmd, ret)) {
+	  if (!duration_to_utime(ua->cmd, ret)) {
              bsendmsg(ua, _("Invalid period.\n"));
 	     continue;
 	  }

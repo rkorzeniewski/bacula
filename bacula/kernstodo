@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                 10 November 2002
+                 12 November 2002
 
 To do:    
 - Document to have patience when SD first starts.
@@ -15,9 +15,6 @@ Test:
 - blocksize recognition code.
 
 For 1.27 release:
-- Implement VolumeUsePeriod (maximum duration/period) a volume can be used).
-  Possibly VolumeUseTimes (VolumeMaxJobs) This permits a volume to be
-  recycled even if it is not full.
 - Implement FileOptions.
 - Need return status on read_cb() from read_records(). Need multiple
   records -- one per Job, maybe a JCR or some other structure with
@@ -36,7 +33,6 @@ For 1.27 release:
   Pass read date of last backup, size of file last time.
 
 - Put system type returned by FD into catalog.
-- Decide what to do with JobTDate in catalog (make real btime_t?)
 - Add VOLUME_CAT_INFO to the EOS tape record (as
   well as to the EOD record).
 - Add code to fast seek to proper place on tape/file
@@ -63,6 +59,27 @@ For 1.27 release:
 
 
 After 1.27
+- Running multiple simultaneous jobs has a problem when one Job
+  must label the volume -- the others apparently do not wait.
+  > 
+  > 13-Nov-2002 02:06 dump01-dir: Start Backup JobId 20, Job=save-rho.2002-11-13_02.06.00
+  > 13-Nov-2002 02:06 dump01-dir: Start Backup JobId 21, Job=save-beta.2002-11-13_02.06.01
+  > 13-Nov-2002 02:06 dump01-dir: Start Backup JobId 22, Job=save-dump01.2002-11-13_02.06.02
+  > 13-Nov-2002 02:06 dump01-sd: Created Volume label File0013 on device /dump7/bacula.
+  > 13-Nov-2002 02:06 dump01-sd: Wrote label to prelabeled Volume File0013 on device /dump7/bacula
+  > 13-Nov-2002 02:06 dump01-sd: save-beta.2002-11-13_02.06.01 Fatal error: Device /dump7/bacula is 
+  > busy writing with another Volume.
+  > 13-Nov-2002 02:06 dump01-sd: save-dump01.2002-11-13_02.06.02 Fatal error: Device /dump7/bacula is 
+  > busy writing with another Volume.
+  > 13-Nov-2002 02:06 beta-fd: save-beta.2002-11-13_02.06.01 Error: bnet.c:292 Write error sending to 
+  > Storage daemon:dump01:9103: ERR=Broken pipe
+  > 13-Nov-2002 02:06 dump01-fd: save-dump01.2002-11-13_02.06.02 Error: bnet.c:319 Write error sending 
+  > to Storage daemon:dump01:9103: ERR=Broken pipe
+  > 13-Nov-2002 02:08 dump01-dir: 13-Nov-2002 02:08
+  > 
+
+- Add VolumeUseDuration and MaximumVolumeJobs to Pool db record and
+  to Media db record.
 - Figure out how compress everything except .gz,... files.
 - Make bcopy copy with a single tape drive.
 - Make sure catalog doesn't keep growing.
@@ -90,7 +107,6 @@ After 1.27
 - Add UA rc and history files.
 - put termcap (used by console) in ./configure and
   allow -with-termcap-dir.
-- Remove JobMediaId it is not used.
 - Enhance time and size scanning routines.
 - Fix Autoprune for Volumes to respect need for full save.
 - DateWritten field on tape may be wrong.
@@ -571,3 +587,10 @@ Done: (see kernsdone for more)
 - that Bacula won't write on tape where tape/catalog files differ.
 - Document how to recycle a tape in 7 days even if the backup takes a long time.
 - Document tape cycling 
+- Implement VolumeUseDuration (maximum duration/period) a volume can be used).
+  Possibly VolumeUseTimes (MaximumVolumeJobs) This permits a volume to be
+  recycled even if it is not full.
+- Decide what to do with JobTDate in catalog (make real utime_t?)
+- Implement VolMaxJob and Duration check in next_volume().
+- Make sure pruning of Jobs removes JobMediaId
+

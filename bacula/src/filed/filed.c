@@ -192,9 +192,8 @@ Without that I don't know who I am :-(\n"), configfile);
       init_stack_dump();	      /* set new pid */
    }
 
-   if (!inetd_request) {
-      create_pid_file(me->pid_directory, "bacula-fd", me->FDport);
-   }
+   /* Maximum 1 daemon at a time */
+   create_pid_file(me->pid_directory, "bacula-fd", me->FDport);
 
 #ifdef BOMB
    me += 1000000;
@@ -205,6 +204,7 @@ Without that I don't know who I am :-(\n"), configfile);
    start_watchdog();		      /* start watchdog thread */
 
    if (inetd_request) {
+      /* Socket is on fd 0 */	       
       BSOCK *bs = init_bsock(NULL, 0, "client", "unknown client", me->FDport);
       handle_client_request((void *)bs);
    } else {

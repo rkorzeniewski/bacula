@@ -109,6 +109,8 @@ CREATE TABLE Media (
    VolStatus VARCHAR(20) NOT NULL,
    Recycle TINYINT DEFAULT 0,
    VolRetention BIGINT UNSIGNED DEFAULT 0,
+   VolUseDuration BIGINT UNSIGNED DEFAULT 0,
+   MaxVolJobs INTEGER UNSIGNED DEFAULT 0,
    PRIMARY KEY(MediaId)
    );
 
@@ -123,6 +125,8 @@ CREATE TABLE Pool (
    UseCatalog TINYINT DEFAULT 1,
    AcceptAnyVolume TINYINT DEFAULT 0,
    VolRetention BIGINT UNSIGNED DEFAULT 0,
+   VolUseDuration BIGINT UNSIGNED DEFAULT 0,
+   MaxVolJobs INTEGER UNSIGNED DEFAULT 0,
    AutoPrune TINYINT DEFAULT 0,
    Recycle TINYINT DEFAULT 0,
    PoolType VARCHAR(20) NOT NULL,
@@ -157,7 +161,7 @@ CREATE TABLE Version (
    );
 
 -- Initialize Version		 
-INSERT INTO Version (VersionId) VALUES (2);
+INSERT INTO Version (VersionId) VALUES (3);
 
 CREATE TABLE Counters (
    Counter TEXT NOT NULL,     

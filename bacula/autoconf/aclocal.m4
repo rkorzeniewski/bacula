@@ -320,7 +320,7 @@ AC_MSG_RESULT(" ")
 
 AC_DEFUN(BA_CHECK_MYSQL_DB,
 [
-have_db=no
+db_found=no
 AC_MSG_CHECKING(for MySQL support)
 AC_ARG_WITH(mysql,
 [
@@ -375,7 +375,7 @@ Which one DBMS do you want to use (please select only one):
 
     AC_DEFINE(HAVE_MYSQL)
     AC_MSG_RESULT(yes)
-    have_db=yes
+    db_found=yes
     support_mysql=yes
     db_name=MySQL
     DB_NAME=mysql
@@ -441,7 +441,7 @@ Which one DBMS do you want to use (please select only one):
     AC_DEFINE(HAVE_MYSQL)
     AC_DEFINE(HAVE_EMBEDDED_MYSQL)
     AC_MSG_RESULT(yes)
-    have_db=yes
+    db_found=yes
     support_mysql=yes
     db_name=MySQL
     DB_NAME=mysql
@@ -463,7 +463,7 @@ AC_SUBST(SQL_BINDIR)
 
 AC_DEFUN(BA_CHECK_SQLITE_DB,
 [
-have_db=no
+db_found=no
 AC_MSG_CHECKING(for SQLite support)
 AC_ARG_WITH(sqlite,
 [
@@ -502,7 +502,7 @@ Which one DBMS do you want to use (please select only one):
 
     AC_DEFINE(HAVE_SQLITE)
     AC_MSG_RESULT(yes)
-    have_db=yes
+    db_found=yes
     support_sqlite=yes
     db_name=SQLite
     DB_NAME=sqlite
@@ -530,7 +530,7 @@ dnl Check for some DBMS backend
 dnl NOTE: we can use only one backend at a time
 AC_MSG_RESULT(" ")
 
-have_db=no
+db_found=no
 db_name=none
 
 

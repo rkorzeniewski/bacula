@@ -158,6 +158,7 @@ void *handle_client_request(void *dirp)
    jcr->ff = init_find_files();
    jcr->start_time = time(NULL);
    jcr->last_fname = get_pool_memory(PM_FNAME);
+   jcr->last_fname[0] = 0;
    jcr->client_name = get_memory(strlen(my_name) + 1);
    strcpy(jcr->client_name, my_name);
    dir->jcr = (void *)jcr;

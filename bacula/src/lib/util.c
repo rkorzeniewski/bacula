@@ -61,11 +61,11 @@ int is_buf_zero(char *buf, int len)
 }
 
 /*
- * Convert a string duration to btime_t (64 bit seconds)
+ * Convert a string duration to utime_t (64 bit seconds)
  * Returns 0: if error
 	   1: if OK, and value stored in value
  */
-int string_to_btime(char *str, btime_t *value)
+int duration_to_utime(char *str, utime_t *value)
 {
    int i, ch, len;
    double val;
@@ -96,15 +96,15 @@ int string_to_btime(char *str, btime_t *value)
    if (errno != 0 || val < 0) {
       return 0;
    }
-   *value = (btime_t)(val * mult[i]);
+   *value = (utime_t)(val * mult[i]);
    return 1;
 
 }
 
 /*
- * Edit a btime "duration" into ASCII
+ * Edit a utime "duration" into ASCII
  */
-char *edit_btime(btime_t val, char *buf)
+char *edit_utime(utime_t val, char *buf)
 {
    char mybuf[30];
    static int mult[] = {60*60*24*365, 60*60*24*30, 60*60*24, 60*60, 60};
@@ -116,7 +116,7 @@ char *edit_btime(btime_t val, char *buf)
    for (i=0; i<5; i++) {
       times = val / mult[i];
       if (times > 0) {
-	 val = val - (btime_t)times * mult[i];
+	 val = val - (utime_t)times * mult[i];
          sprintf(mybuf, "%d %s%s ", times, mod[i], times>1?"s":"");
 	 strcat(buf, mybuf);
       }

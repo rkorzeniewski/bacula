@@ -529,7 +529,7 @@ void store_time(LEX *lc, struct res_items *item, int index, int pass)
 {
    int token; 
    double value;
-   btime_t btime;
+   utime_t utime;
 
    token = lex_get_token(lc, T_ALL);
    errno = 0;
@@ -539,14 +539,14 @@ void store_time(LEX *lc, struct res_items *item, int index, int pass)
       if (errno != 0 || value < 0) {
          scan_err1(lc, "expected a time period, got: %s", lc->str);
       }
-      *(btime_t *)(item->value) = (btime_t)value;
+      *(utime_t *)(item->value) = (utime_t)value;
       break;
    case T_IDENTIFIER:
    case T_UNQUOTED_STRING:
-      if (!string_to_btime(lc->str, &btime)) {
+      if (!duration_to_utime(lc->str, &utime)) {
          scan_err1(lc, "expected a time period, got: %s", lc->str);
       }
-      *(btime_t *)(item->value) = btime;
+      *(utime_t *)(item->value) = utime;
       break;
    default:
       scan_err1(lc, "expected a time period, got: %s", lc->str);

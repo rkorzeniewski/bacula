@@ -174,7 +174,10 @@ typedef float             float32_t;
 #define uint64_t u_int64_t
 #define uintmax_t u_intmax_t
 
+/* Bacula time -- Unix time with microseconds */
 #define btime_t uint64_t
+/* Unix time (time_t) widened to 64 bits */
+#define utime_t int64_t
 
 #ifdef HAVE_CYGWIN
 #define socklen_t int

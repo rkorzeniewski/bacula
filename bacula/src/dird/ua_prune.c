@@ -244,7 +244,7 @@ int prune_files(UAContext *ua, CLIENT *client)
    struct s_file_del_ctx del;
    POOLMEM *query = get_pool_memory(PM_MESSAGE);
    int i;
-   btime_t now, period;
+   utime_t now, period;
    CLIENT_DBR cr;
    char ed1[50], ed2[50];
 
@@ -258,7 +258,7 @@ int prune_files(UAContext *ua, CLIENT *client)
    }
 
    period = client->FileRetention;
-   now = (btime_t)time(NULL);
+   now = (utime_t)time(NULL);
        
    /* Select Jobs -- for counting */
    Mmsg(&query, select_job, edit_uint64(now - period, ed1), cr.ClientId);
@@ -366,7 +366,7 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
    struct s_count_ctx cnt;
    char *query = (char *)get_pool_memory(PM_MESSAGE);
    int i;
-   btime_t now, period;
+   utime_t now, period;
    CLIENT_DBR cr;
    char ed1[50];
 
@@ -380,7 +380,7 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
    }
 
    period = client->JobRetention;
-   now = (btime_t)time(NULL);
+   now = (utime_t)time(NULL);
 
    /* Drop any previous temporary tables still there */
    drop_temp_tables(ua);
@@ -491,7 +491,7 @@ int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
    struct s_file_del_ctx del;
    int i, stat = 0;
    JOB_DBR jr;
-   btime_t now, period;
+   utime_t now, period;
 
    db_lock(ua->db);
    memset(&jr, 0, sizeof(jr));
@@ -533,7 +533,7 @@ int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
 
    /* Use Volume Retention to prune Jobs and Files */
    period = mr->VolRetention;
-   now = (btime_t)time(NULL);
+   now = (utime_t)time(NULL);
 
    Dmsg3(200, "Now=%d period=%d now-period=%d\n", (int)now, (int)period,
       (int)(now-period));

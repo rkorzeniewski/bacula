@@ -21,7 +21,7 @@ CREATE TABLE Path (
    );
 
 
-# ****FIXME**** make FileId BIGINT *****
+# ****FIXME**** make FileId BIGINT someday when MySQL works *****
 CREATE TABLE File (
    FileId INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
    FileIndex INTEGER UNSIGNED NOT NULL,
@@ -105,9 +105,11 @@ CREATE TABLE Media (
    VolMaxBytes BIGINT UNSIGNED NOT NULL,
    VolCapacityBytes BIGINT UNSIGNED NOT NULL,
    VolStatus ENUM('Full', 'Archive', 'Append', 'Recycle', 'Purged',
-    'Read-Only', 'Disabled', 'Error', 'Busy') NOT NULL,
+    'Read-Only', 'Disabled', 'Error', 'Busy', 'Used') NOT NULL,
    Recycle TINYINT NOT NULL,
    VolRetention BIGINT UNSIGNED NOT NULL,
+   VolUseDuration BIGINT UNSIGNED NOT NULL,
+   MaxVolJobs INTEGER UNSIGNED NOT NULL,
    PRIMARY KEY(MediaId),
    INDEX (PoolId)
    );
@@ -121,6 +123,8 @@ CREATE TABLE Pool (
    UseCatalog TINYINT NOT NULL,
    AcceptAnyVolume TINYINT DEFAULT 0,
    VolRetention BIGINT UNSIGNED NOT NULL,
+   VolUseDuration BIGINT UNSIGNED NOT NULL,
+   MaxVolJobs INTEGER UNSIGNED NOT NULL,
    AutoPrune TINYINT DEFAULT 0,
    Recycle TINYINT DEFAULT 0,
    PoolType ENUM('Backup', 'Copy', 'Cloned', 'Archive', 'Migration') NOT NULL,
@@ -146,7 +150,7 @@ CREATE TABLE Version (
    );
 
 -- Initialize Version		 
-INSERT INTO Version (VersionId) VALUES (2);
+INSERT INTO Version (VersionId) VALUES (3);
 
 CREATE TABLE Counters (
    Counter TINYBLOB NOT NULL,

@@ -73,14 +73,9 @@ static void eliminate_orphaned_jobmedia_records();
 static void eliminate_orphaned_file_records();
 static void eliminate_orphaned_path_records();
 static void eliminate_orphaned_filename_records();
+static void eliminate_orphaned_fileset_records();
 static void do_interactive_mode();
 
-#ifdef xxxx
-static void prtit(void *ctx, char *msg)
-{
-   printf("%s", msg);
-}
-#endif
 
 static void usage()
 {
@@ -106,7 +101,7 @@ int main (int argc, char *argv[])
    memset(&name_list, 0, sizeof(name_list));
 
 
-   while ((ch = getopt(argc, argv, "d:fiv?")) != -1) {
+   while ((ch = getopt(argc, argv, "bd:fv?")) != -1) {
       switch (ch) {
          case 'b':                    /* batch */
 	    batch = TRUE;
@@ -176,6 +171,7 @@ int main (int argc, char *argv[])
       eliminate_orphaned_file_records();
       eliminate_orphaned_path_records();
       eliminate_orphaned_filename_records();
+      eliminate_orphaned_fileset_records();
    } else {
       do_interactive_mode();
    }
@@ -196,16 +192,17 @@ Please select the fuction you want to perform.\n");
 
    while (!quit) {
       printf(_("\n\
- 1) Toggle modify database flag\n\
- 2) Toggle verbose flag\n\
- 3) Eliminate duplicate Filename records\n\
- 4) Eliminate duplicate Path records\n\
- 5) Eliminate orphaned Jobmedia records\n\
- 6) Eliminate orphaned File records\n\
- 7) Eliminate orphaned Path records\n\
- 8) Eliminate orphaned Filename records\n\
- 9) All (3-8)\n\
-10) Quit\n\n"));
+     1) Toggle modify database flag\n\
+     2) Toggle verbose flag\n\
+     3) Eliminate duplicate Filename records\n\
+     4) Eliminate duplicate Path records\n\
+     5) Eliminate orphaned Jobmedia records\n\
+     6) Eliminate orphaned File records\n\
+     7) Eliminate orphaned Path records\n\
+     8) Eliminate orphaned Filename records\n\
+     9) Eliminate orphaned FileSet records\n\
+    10) All (3-9)\n\
+    11) Quit\n"));
 
       cmd = get_cmd(_("Select function number: "));
       if (cmd) {
@@ -213,7 +210,7 @@ Please select the fuction you want to perform.\n");
 	 switch (item) {
 	 case 1:
 	    fix = !fix;
-            printf(_("Database will %sbe modified.\n"), fix?"":_("not "));
+            printf(_("Database will %sbe modified.\n"), fix?"":_("NOT "));
 	    break;
 	 case 2:
 	    verbose = verbose?0:1;
@@ -238,20 +235,57 @@ Please select the fuction you want to perform.\n");
 	    eliminate_orphaned_filename_records();
 	    break;
 	 case 9:
+	    eliminate_orphaned_fileset_records();
+	    break;
+	 case 10:
 	    eliminate_duplicate_filenames();
 	    eliminate_duplicate_paths();
 	    eliminate_orphaned_jobmedia_records();
 	    eliminate_orphaned_file_records();
 	    eliminate_orphaned_path_records();
 	    eliminate_orphaned_filename_records();
+	    eliminate_orphaned_fileset_records();
 	    break;
-	 case 10:
+	 case 11:
 	    quit = 1;
 	    break;
 	 }
       }
    }
 }
+
+static int print_name_handler(void *ctx, int num_fields, char **row)
+{
+   if (row[0]) {
+      printf("%s\n", row[0]);
+   }
+   return 0;
+}
+
+static int print_jobmedia_handler(void *ctx, int num_fields, char **row)
+{
+   printf(_("Orphaned JobMediaId=%s JobId=%s Volume=\"%s\"\n"), 
+	      NPRT(row[0]), NPRT(row[1]), NPRT(row[2]));
+   return 0;
+}
+
+static int print_file_handler(void *ctx, int num_fields, char **row)
+{
+   printf(_("Orphaned FileId=%s JobId=%s Volume=\"%s\"\n"), 
+	      NPRT(row[0]), NPRT(row[1]), NPRT(row[2]));
+   return 0;
+}
+
+static int print_fileset_handler(void *ctx, int num_fields, char **row)
+{
+   printf(_("Orphaned FileSetId=%s FileSet=\"%s\" MD5=%s\n"), 
+	      NPRT(row[0]), NPRT(row[1]), NPRT(row[2]));
+   return 0;
+}
+
+
+
+
   
 /*
  * Called here with each id to be added to the list
@@ -349,7 +383,6 @@ static int make_name_list(char *query, NAME_LIST *name_list)
    return 1;
 }
 
-
 /*
  * Print names in the list
  */
@@ -383,8 +416,14 @@ static void eliminate_duplicate_filenames()
    printf("Checking for duplicate Filename entries.\n");
    
    /* Make list of duplicated names */
+#ifdef really_needed_for_HAVE_SQLITE
    query = "SELECT Name FROM (SELECT COUNT(Name) as Count,Name from Filename "
            "GROUP BY Name) WHERE Count > 1";
+#endif
+
+   query = "SELECT Name,count(Name) as Count FROM Filename GROUP BY Name "
+           "HAVING Count > 1";
+
    if (!make_name_list(query, &name_list)) {
       exit(1);
    }
@@ -422,8 +461,14 @@ static void eliminate_duplicate_paths()
    printf("Checking for duplicate Path entries.\n");
    
    /* Make list of duplicated names */
+#ifdef really_needed_for_HAVE_SQLITE
    query = "SELECT Path FROM (SELECT COUNT(Path) AS Count,Path FROM Path "
            "GROUP BY Path) WHERE Count > 1";
+#endif
+
+   query = "SELECT Path,count(Path) as Count FROM Path "
+           "GROUP BY Path HAVING Count > 1";
+
    if (!make_name_list(query, &name_list)) {
       exit(1);
    }
@@ -459,12 +504,30 @@ static void eliminate_orphaned_jobmedia_records()
    char *query;
 
    printf("Checking for orphaned JobMedia entries.\n");
-   query = "SELECT JobMedia.JobId,Job FROM JobMedia LEFT OUTER JOIN Job ON"
-           " (Job.JobId=JobMediaId) GROUP BY MediaId HAVING Job IS NULL";
+#ifdef really_needed_for_HAVE_SQLITE
+   query = "SELECT X FROM (SELECT JobMedia.JobMediaId as X,Job.JobId as Y "
+           "FROM JobMedia LEFT OUTER JOIN Job ON (JobMedia.JobId=Job.JobId)) "
+           "WHERE Y IS NULL";
+#endif
+
+   query = "SELECT JobMedia.JobMediaId,Job.JobId FROM JobMedia "
+           "LEFT OUTER JOIN Job ON (JobMedia.JobId=Job.JobId) "
+           "WHERE Job.JobId IS NULL";
    if (!make_id_list(query, &id_list)) {
       exit(1);
    }
    printf("Found %d orphaned JobMedia records.\n", id_list.num_ids);
+   if (verbose) {
+      int i;
+      for (i=0; i < id_list.num_ids; i++) {
+	 sprintf(buf, 
+"SELECT JobMedia.JobMediaId,JobMedia.JobId,Media.VolumeName FROM JobMedia,Media "
+"WHERE JobMedia.JobMediaId=%u AND Media.MediaId=JobMedia.MediaId", id_list.Id[i]);
+	 if (!db_sql_query(db, buf, print_jobmedia_handler, NULL)) {
+            printf("%s\n", db_strerror(db));
+	 }
+      }
+   }
    
    if (fix && id_list.num_ids > 0) {
       printf("Deleting %d orphaned JobMedia records.\n", id_list.num_ids);
@@ -476,14 +539,32 @@ static void eliminate_orphaned_file_records()
 {
    char *query;
 
-   printf("Checking for orphaned File entries. This takes some time!\n");
-   query = "SELECT FileId,Job FROM File LEFT OUTER JOIN Job ON"
-           " (Job.JobId=File.JobId) GROUP BY FileId HAVING Job IS NULL";
+   printf("Checking for orphaned File entries. This may take some time!\n");
+#ifdef really_needed_for_HAVE_SQLITE
+   query = "SELECT X FROM (SELECT File.FileId as X,Job.JobId as Y "
+           "FROM File LEFT OUTER JOIN Job ON (File.JobId=Job.JobId)) "
+           "WHERE Y IS NULL";
+#endif
+
+   query = "SELECT File.FileId,Job.JobId FROM File "
+           "LEFT OUTER JOIN Job ON (File.JobId=Job.JobId) "
+           "WHERE Job.JobId IS NULL";
    if (!make_id_list(query, &id_list)) {
       exit(1);
    }
    printf("Found %d orphaned File records.\n", id_list.num_ids);
-   
+   if (verbose) {
+      int i;
+      for (i=0; i < id_list.num_ids; i++) {
+	 sprintf(buf, 
+"SELECT File.FileId,File.JobId,Filename.Name FROM File,Filename "
+"WHERE File.FileId=%u AND File.FilenameId=Filename.FilenameId", id_list.Id[i]);
+	 if (!db_sql_query(db, buf, print_file_handler, NULL)) {
+            printf("%s\n", db_strerror(db));
+	 }
+      }
+   }
+      
    if (fix && id_list.num_ids > 0) {
       printf("Deleting %d orphaned File records.\n", id_list.num_ids);
       delete_id_list("DELETE FROM File WHERE FileId=%u", &id_list);
@@ -495,12 +576,26 @@ static void eliminate_orphaned_path_records()
    char *query;
 
    printf("Checking for orphaned Path entries. This may take some time!\n");
-   query = "SELECT Path.PathId,File.JobId FROM Path LEFT OUTER JOIN File ON"
-           " (File.PathId=Path.PathId) GROUP BY Path.PathId HAVING File.JobId IS NULL";
+#ifdef really_needed_for_HAVE_SQLITE
+   query = "SELECT X FROM (SELECT Path.PathId as X,File.JobId as Y "
+           "FROM Path LEFT OUTER JOIN File ON (Path.PathId=File.PathId)) "
+           "WHERE Y IS NULL";
+#endif
+
+   query = "SELECT Path.PathId,File.PathId FROM Path "
+           "LEFT OUTER JOIN File ON (Path.PathId=File.PathId) "
+           "HAVING File.PathId IS NULL";
    if (!make_id_list(query, &id_list)) {
       exit(1);
    }
    printf("Found %d orphaned Path records.\n", id_list.num_ids);
+   if (verbose) {
+      int i;
+      for (i=0; i < id_list.num_ids; i++) {
+         sprintf(buf, "SELECT Path FROM Path WHERE PathId=%u", id_list.Id[i]);
+	 db_sql_query(db, buf, print_name_handler, NULL);
+      }
+   }
    
    if (fix && id_list.num_ids > 0) {
       printf("Deleting %d orphaned Path records.\n", id_list.num_ids);
@@ -513,19 +608,70 @@ static void eliminate_orphaned_filename_records()
    char *query;
 
    printf("Checking for orphaned Filename entries. This may take some time!\n");
-   query = "SELECT Filename.FilenameId,File.JobId FROM Filename "
-           "LEFT OUTER JOIN File ON  (File.FilenameId=Filename.FilenameId) "
-           "GROUP BY Filename.FilenameId HAVING File.JobId IS NULL";
+#ifdef really_needed_for_HAVE_SQLITE
+   query = "SELECT X FROM (SELECT Filename.FilenameId as X,File.JobId as Y "
+           "FROM Filename LEFT OUTER JOIN File ON "
+           "(Filename.FilenameId=File.FilenameId)) "
+           "WHERE Y IS NULL";
+#endif
+
+   query = "SELECT Filename.FilenameId,File.FilenameId FROM Filename "
+           "LEFT OUTER JOIN File ON (Filename.FilenameId=File.FilenameId) "
+           "WHERE File.FilenameId IS NULL";
+
    if (!make_id_list(query, &id_list)) {
       exit(1);
    }
    printf("Found %d orphaned Filename records.\n", id_list.num_ids);
+   if (verbose) {
+      int i;
+      for (i=0; i < id_list.num_ids; i++) {
+         sprintf(buf, "SELECT Name FROM Filename WHERE FilenameId=%u", id_list.Id[i]);
+	 db_sql_query(db, buf, print_name_handler, NULL);
+      }
+   }
    
    if (fix && id_list.num_ids > 0) {
       printf("Deleting %d orphaned Filename records.\n", id_list.num_ids);
       delete_id_list("DELETE FROM Filename WHERE FilenameId=%u", &id_list);
    }
 }
+
+static void eliminate_orphaned_fileset_records()
+{
+   char *query;
+
+   printf("Checking for orphaned FileSet entries. This takes some time!\n");
+#ifdef really_needed_for_HAVE_SQLITE
+   query = "SELECT X FROM (SELECT FileSet.FileSetId as X,Job.JobId as Y "
+           "FROM FileSet LEFT OUTER JOIN Job ON (FileSet.FileSetId=Job.FileSetId)) "
+           "WHERE Y IS NULL";
+#endif
+
+   query = "SELECT FileSet.FileSetId,Job.FileSetId FROM FileSet "
+           "LEFT OUTER JOIN Job ON (FileSet.FileSetId=Job.FileSetId) "
+           "WHERE Job.FileSetId IS NULL";
+   if (!make_id_list(query, &id_list)) {
+      exit(1);
+   }
+   printf("Found %d orphaned FileSet records.\n", id_list.num_ids);
+   if (verbose) {
+      int i;
+      for (i=0; i < id_list.num_ids; i++) {
+         sprintf(buf, "SELECT FileSetId,FileSet,MD5 FROM FileSet "
+                      "WHERE FileSetId=%u", id_list.Id[i]);
+	 if (!db_sql_query(db, buf, print_fileset_handler, NULL)) {
+            printf("%s\n", db_strerror(db));
+	 }
+      }
+   }
+   
+   if (fix && id_list.num_ids > 0) {
+      printf("Deleting %d orphaned FileSet records.\n", id_list.num_ids);
+      delete_id_list("DELETE FROM FileSet WHERE FileSetId=%u", &id_list);
+   }
+}
+
 
 /*
  * Gen next input command from the terminal

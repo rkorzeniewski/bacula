@@ -309,7 +309,7 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
    int msg_type;
    MEDIA_DBR mr;
    double kbps, compression;
-   btime_t RunTime;
+   utime_t RunTime;
 
    Dmsg0(100, "Enter backup_cleanup()\n");
    memset(&mr, 0, sizeof(mr));

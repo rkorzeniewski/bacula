@@ -70,7 +70,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
 {
    char attribs[MAXSTRING];
    int32_t n;
-   int fid, stat, len;
+   int fid, stat;
    struct MD5Context md5c;
    unsigned char signature[16];
    BSOCK *dir;
@@ -147,15 +147,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
    encode_stat(attribs, &ff_pkt->statp);
      
    jcr->JobFiles++;		     /* increment number of files sent */
-   len = strlen(ff_pkt->fname);
-   jcr->last_fname = check_pool_memory_size(jcr->last_fname, len + 1);
-   jcr->last_fname[len] = 0;	      /* terminate properly before copy */
-   strcpy(jcr->last_fname, ff_pkt->fname);
-    
-   if (ff_pkt->VerifyOpts[0] == 0) {
-      ff_pkt->VerifyOpts[0] = 'V';
-      ff_pkt->VerifyOpts[1] = 0;
-   }
+   pm_strcpy(&jcr->last_fname, ff_pkt->fname);
 
 
    /* 

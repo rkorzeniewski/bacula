@@ -48,7 +48,7 @@ typedef int (DB_RESULT_HANDLER)(void *, int, char **);
 
 #ifdef HAVE_SQLITE
 
-#define BDB_VERSION 2
+#define BDB_VERSION 3
 
 #include <sqlite.h>
 
@@ -134,7 +134,7 @@ extern void my_sqlite_free_table(B_DB *mdb);
 
 #ifdef HAVE_MYSQL
 
-#define BDB_VERSION 2
+#define BDB_VERSION 3
 
 #include <mysql.h>
 
@@ -191,7 +191,7 @@ typedef struct s_db {
 /* Change this each time there is some incompatible
  * file format change!!!!
  */
-#define BDB_VERSION 9                 /* file version number */
+#define BDB_VERSION 10                /* file version number */
 
 struct s_control {
    int bdb_version;                   /* Version number */
@@ -274,7 +274,7 @@ typedef struct {
    time_t SchedTime;                  /* Time job scheduled */
    time_t StartTime;                  /* Job start time */
    time_t EndTime;                    /* Job termination time */
-   btime_t JobTDate;                  /* Backup time/date in seconds */
+   utime_t JobTDate;                  /* Backup time/date in seconds */
    uint32_t VolSessionId;
    uint32_t VolSessionTime;
    uint32_t JobFiles;
@@ -292,9 +292,9 @@ typedef struct {
    uint32_t StartBlock;
    uint32_t EndBlock;
 
-   char cSchedTime[MAX_NAME_LENGTH];
-   char cStartTime[MAX_NAME_LENGTH];
-   char cEndTime[MAX_NAME_LENGTH];
+   char cSchedTime[MAX_TIME_LENGTH];
+   char cStartTime[MAX_TIME_LENGTH];
+   char cEndTime[MAX_TIME_LENGTH];
    /* Extra stuff not in DB */
    faddr_t rec_addr;
 } JOB_DBR;
@@ -358,7 +358,7 @@ typedef struct {
    int AcceptAnyVolume;               /* set to accept any volume sequence */
    int AutoPrune;                     /* set to prune automatically */
    int Recycle;                       /* default Vol recycle flag */
-   btime_t VolRetention;              /* retention period in seconds */
+   utime_t VolRetention;              /* retention period in seconds */
    char PoolType[MAX_NAME_LENGTH];             
    char LabelFormat[MAX_NAME_LENGTH];
    /* Extra stuff not in DB */
@@ -384,20 +384,26 @@ typedef struct {
    uint64_t VolBytes;                 /* Number of bytes written */
    uint64_t VolMaxBytes;              /* max bytes to write */
    uint64_t VolCapacityBytes;         /* capacity estimate */
-   btime_t  VolRetention;             /* Volume retention in seconds */
+   utime_t  VolRetention;             /* Volume retention in seconds */
    int      Recycle;                  /* recycle yes/no */
    int32_t  Slot;                     /* slot in changer */
    char VolStatus[20];                /* Volume status */
    /* Extra stuff not in DB */
    faddr_t rec_addr;                  /* found record address */
+   /* Since the database returns times as strings, this is how we pass
+    *   them back.
+    */
+   char    cFirstWritten[MAX_TIME_LENGTH];  /* FirstWritten returned from DB */
+   char    cLastWritten[MAX_TIME_LENGTH];  /* LastWritten returned from DB */
+   char    cLabelData[MAX_TIME_LENGTH];  /* LabelData returned from DB */
 } MEDIA_DBR;
 
 /* Client record -- same as the database */
 typedef struct {
    uint32_t ClientId;                 /* Unique Client id */
    int AutoPrune;
-   btime_t FileRetention;
-   btime_t JobRetention;
+   utime_t FileRetention;
+   utime_t JobRetention;
    char Name[MAX_NAME_LENGTH];        /* Client name */
    char Uname[256];                   /* Uname for client */
 } CLIENT_DBR;

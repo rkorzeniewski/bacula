@@ -70,14 +70,14 @@ db_create_job_record(B_DB *mdb, JOB_DBR *jr)
    struct tm tm;
    int stat;
    char JobId[30];
-   btime_t JobTDate;
+   utime_t JobTDate;
    char ed1[30];
 
    stime = jr->SchedTime;
 
    localtime_r(&stime, &tm); 
    strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
-   JobTDate = (btime_t)stime;
+   JobTDate = (utime_t)stime;
 
    db_lock(mdb);
    if (!db_next_index(mdb, "Job", JobId)) {

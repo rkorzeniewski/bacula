@@ -161,6 +161,7 @@ void do_verify_volume(JCR *jcr)
 	 }
 	 jcr->JobFiles++;
 	 jcr->num_files_examined++;
+	 pm_strcpy(&jcr->last_fname, fname); /* last file examined */
 
 	 /* 
 	  * Send file attributes to Director

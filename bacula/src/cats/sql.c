@@ -73,8 +73,8 @@ int check_tables_version(B_DB *mdb)
    version = 0;
    db_sql_query(mdb, query, int_handler, (void *)&version);
    if (version != BDB_VERSION) {
-      Mmsg(&mdb->errmsg, "Database version mismatch. Wanted %d, got %d\n",
-	 BDB_VERSION, version);
+      Mmsg(&mdb->errmsg, "Version error for database \"%s\". Wanted %d, got %d\n",
+	 mdb->db_name, BDB_VERSION, version);
       Jmsg(mdb->jcr, M_FATAL, 0, mdb->errmsg);
       return 0;
    }

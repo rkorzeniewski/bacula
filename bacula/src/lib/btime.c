@@ -24,10 +24,23 @@
  */
 
 
+/* Concerning times. There are a number of differnt time standards
+ * in Bacula (fdate_t, ftime_t, time_t (Unix standard), btime_t, and
+ *  utime_t).  fdate_t and ftime_t are deprecated and should no longer
+ *  be used, and in general, Unix time time_t should no longer be used,
+ *  it is being phased out. 
+ *     
+ *  Epoch is the base of Unix time (time_t, ...) and is 1 Jan 1970 at 0:0
+ *
+ *  The major two times that should be left are:
+ *     btime_t	(64 bit integer in microseconds base Epoch)
+ *     utime_t	(64 bit integer in seconds base Epoch)
+ */
+
 #include "bacula.h"
 #include <math.h>
 
-void bstrftime(char *dt, int maxlen, uint32_t tim)
+void bstrftime(char *dt, int maxlen, utime_t tim)
 {
    time_t ttime = tim;
    struct tm tm;
@@ -35,6 +48,19 @@ void bstrftime(char *dt, int maxlen, uint32_t tim)
    /* ***FIXME**** the format and localtime_r() should be user configurable */
    localtime_r(&ttime, &tm);
    strftime(dt, maxlen, "%d-%b-%Y %H:%M", &tm);
+}
+
+utime_t str_to_utime(char *str) 
+{
+   struct tm tm;
+
+   if (sscanf(str, "%d-%d-%d %d:%d:%d", &tm.tm_year, &tm.tm_mon, &tm.tm_mday,
+					&tm.tm_hour, &tm.tm_min, &tm.tm_sec) != 6) {
+      return -1;
+   }
+   tm.tm_mon--;
+   tm.tm_year -= 1900;
+   return (utime_t)mktime(&tm);
 }
 
 void get_current_time(struct date_time *dt)
@@ -71,10 +97,17 @@ btime_t get_current_btime()
 }
 
 /* Convert btime to Unix time */
-time_t btime_to_etime(btime_t bt)
+time_t btime_to_unix(btime_t bt)
 {
    return (time_t)(bt/1000000); 		   
 }
+
+/* Convert btime to utime */
+utime_t btime_to_utime(btime_t bt)
+{
+   return (utime_t)bt;
+}
+
 
 
 /*  date_encode  --  Encode civil date as a Julian day number.	*/

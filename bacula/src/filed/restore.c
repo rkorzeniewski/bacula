@@ -255,6 +255,7 @@ void do_restore(JCR *jcr)
 	    fileAddr = 0;
 	 }
 	 jcr->num_files_examined++;
+	 pm_strcpy(&jcr->last_fname, ofile);
 
       /* Data stream */
       } else if (stream == STREAM_FILE_DATA || stream == STREAM_SPARSE_DATA) {

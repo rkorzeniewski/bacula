@@ -58,7 +58,7 @@ typedef struct s_tree_ctx {
 
 /* Main structure for obtaining JobIds */
 typedef struct s_jobids {
-   btime_t JobTDate;
+   utime_t JobTDate;
    uint32_t ClientId;
    uint32_t TotalFiles;
    char JobIds[200];

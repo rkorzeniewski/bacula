@@ -603,7 +603,7 @@ static int update_volume(UAContext *ua)
 	 }
 	 return 0;
       }
-      bsendmsg(ua, _("Updating Volume %s\n"), mr.VolumeName);
+      bsendmsg(ua, _("Updating Volume \"%s\"\n"), mr.VolumeName);
       start_prompt(ua, _("Parameters to modify:\n"));
       add_prompt(ua, _("Volume Status"));
       add_prompt(ua, _("Volume Retention Period"));
@@ -615,10 +615,11 @@ static int update_volume(UAContext *ua)
 	 /* Modify Volume Status */
          bsendmsg(ua, _("Current value is: %s\n"), mr.VolStatus);
          start_prompt(ua, _("Possible Values are:\n"));
-         add_prompt(ua, "Append");
-         add_prompt(ua, "Archive");
+         add_prompt(ua, "Append");      /* Better not translate these as */
+         add_prompt(ua, "Archive");     /* They are known in the database code */
          add_prompt(ua, "Disabled");
          add_prompt(ua, "Full");
+         add_prompt(ua, "Used");
          if (strcmp(mr.VolStatus, "Purged") == 0) {
             add_prompt(ua, "Recycle");
 	 }
@@ -637,11 +638,11 @@ static int update_volume(UAContext *ua)
 	 break;
       case 1:			      /* Retention */
          bsendmsg(ua, _("Current value is: %s\n"),
-	    edit_btime(mr.VolRetention, ed1));
+	    edit_utime(mr.VolRetention, ed1));
          if (!get_cmd(ua, _("Enter Volume Retention period: "))) {
 	    return 0;
 	 }
-	 if (!string_to_btime(ua->cmd, &mr.VolRetention)) {
+	 if (!duration_to_utime(ua->cmd, &mr.VolRetention)) {
             bsendmsg(ua, _("Invalid retention period specified.\n"));
 	    break;
 	 }

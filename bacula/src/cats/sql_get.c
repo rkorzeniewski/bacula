@@ -349,7 +349,7 @@ FROM Job WHERE JobId=%u", jr->JobId);
    strcpy(jr->cEndTime, row[4]);
    jr->JobFiles = atol(row[5]);
    jr->JobBytes = (uint64_t)strtod(row[6], NULL);
-   jr->JobTDate = (btime_t)strtod(row[7], NULL);
+   jr->JobTDate = (utime_t)strtod(row[7], NULL);
    strcpy(jr->Job, row[8]);
    jr->JobStatus = (int)*row[9];
    jr->Type = (int)*row[10];
@@ -512,7 +512,7 @@ PoolType, LabelFormat FROM Pool WHERE Pool.Name='%s'", pdbr->Name);
 	    pdbr->AcceptAnyVolume = atoi(row[6]);
 	    pdbr->AutoPrune = atoi(row[7]);
 	    pdbr->Recycle = atoi(row[8]);
-	    pdbr->VolRetention = (btime_t)strtod(row[9], NULL);
+	    pdbr->VolRetention = (utime_t)strtod(row[9], NULL);
 	    strcpy(pdbr->PoolType, row[10]);
 	    if (row[11]) {
 	       strcpy(pdbr->LabelFormat, row[11]);
@@ -650,12 +650,12 @@ int db_get_media_record(B_DB *mdb, MEDIA_DBR *mr)
    if (mr->MediaId != 0) {		 /* find by id */
       Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,\
 VolBytes,VolMounts,VolErrors,VolWrites,VolMaxBytes,VolCapacityBytes,\
-MediaType,VolStatus,PoolId,VolRetention,Recycle,Slot \
+MediaType,VolStatus,PoolId,VolRetention,Recycle,Slot, FirstWritten \
 FROM Media WHERE MediaId=%d", mr->MediaId);
    } else {			      /* find by name */
       Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,\
 VolBytes,VolMounts,VolErrors,VolWrites,VolMaxBytes,VolCapacityBytes,\
-MediaType,VolStatus,PoolId,VolRetention,Recycle,Slot \
+MediaType,VolStatus,PoolId,VolRetention,Recycle,Slot,FirstWritten \
 FROM Media WHERE VolumeName='%s'", mr->VolumeName);
    }  
 
@@ -686,9 +686,10 @@ FROM Media WHERE VolumeName='%s'", mr->VolumeName);
 	    strcpy(mr->MediaType, row[11]);
 	    strcpy(mr->VolStatus, row[12]);
 	    mr->PoolId = atoi(row[13]);
-	    mr->VolRetention = (btime_t)strtod(row[14], NULL);
+	    mr->VolRetention = (utime_t)strtod(row[14], NULL);
 	    mr->Recycle = atoi(row[15]);
 	    mr->Slot = atoi(row[16]);
+	    strcpy(mr->cFirstWritten, row[17]);
 	    stat = mr->MediaId;
 	 }
       } else {

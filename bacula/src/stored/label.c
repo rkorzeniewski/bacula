@@ -621,7 +621,7 @@ HostName          : %s\n\
 
    if (dev->VolHdr.VerNum >= 11) {
       char dt[50];
-      bstrftime(dt, sizeof(dt), btime_to_etime(dev->VolHdr.label_btime));
+      bstrftime(dt, sizeof(dt), btime_to_unix(dev->VolHdr.label_btime));
       Pmsg1(-1, "Date label written: %s\n", dt);
    } else {
    dt.julian_day_number   = dev->VolHdr.label_date;
@@ -736,7 +736,7 @@ JobStatus         : %c\n\
    }
    if (label.VerNum >= 11) {
       char dt[50];
-      bstrftime(dt, sizeof(dt), btime_to_etime(label.write_btime));
+      bstrftime(dt, sizeof(dt), btime_to_unix(label.write_btime));
       Pmsg1(-1, _("Date written      : %s\n"), dt);
    } else {
    dt.julian_day_number   = label.write_date;
