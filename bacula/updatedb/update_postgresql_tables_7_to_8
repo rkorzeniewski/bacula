@@ -20,6 +20,13 @@ UPDATE Filename SET Name='' WHERE Name=' ';
 DELETE FROM Version;
 INSERT INTO Version (VersionId) VALUES (8);
 
+create table CDImages 
+(
+   MediaId integer not null,
+   LastBurn timestamp without time zone not null,
+   primary key (MediaId)
+);
+
 END-OF-DATA
 then
    echo "Update of Bacula PostgreSQL tables succeeded."

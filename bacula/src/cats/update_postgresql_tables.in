@@ -31,6 +31,13 @@ create index file_pathid_idx on file(pathid);
 create index file_filenameid_idx on file(filenameid);
 create index file_jpfid_idx on file (jobid, pathid, filenameid);
 
+create table CDImages 
+(
+   MediaId integer not null,
+   LastBurn timestamp without time zone not null,
+   primary key (MediaId)
+);
+
 END-OF-DATA
 then
    echo "Update of Bacula PostgreSQL tables succeeded."

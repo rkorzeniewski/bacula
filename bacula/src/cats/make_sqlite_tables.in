@@ -206,6 +206,13 @@ CREATE TABLE Counters (
    PRIMARY KEY (Counter)
    );
 
+CREATE TABLE CDImages (
+   MediaId INTEGER UNSIGNED NOT NULL,
+   LastBurn DATETIME NOT NULL,
+   PRIMARY KEY (MediaId)
+   );
+
+
 PRAGMA default_synchronous = OFF;
 PRAGMA default_cache_size = 10000;
 

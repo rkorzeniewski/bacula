@@ -258,6 +258,13 @@ create table unsavedfiles
     primary key (UnsavedId)
 );
 
+create table CDImages 
+(
+   MediaId integer not null,
+   LastBurn timestamp without time zone not null,
+   primary key (MediaId)
+);
+
 -- Make sure we have appropriate permissions
 
 
