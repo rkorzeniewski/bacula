@@ -1179,13 +1179,51 @@ static int var_cmd(UAContext *ua, char *cmd)
 
 static int estimate_cmd(UAContext *ua, char *cmd)
 {
-   JOB *job;
+   JOB *job = NULL;
+   CLIENT *client = NULL;
+   FILESET *fileset = NULL;
+   int listing = 0;
    BSOCK *fd;
-   if (ua->argc < 2) {
-      return 1;
+
+   for (int i=1; i<ua->argc; i++) {
+      if (strcasecmp(ua->argk[i], _("client")) == 0) {
+	 if (ua->argv[i]) {
+	    client = (CLIENT *)GetResWithName(R_CLIENT, ua->argv[i]);
+	    continue;
+	 }
+      }
+      if (strcasecmp(ua->argk[i], _("job")) == 0) {
+	 if (ua->argv[i]) {
+	    job = (JOB *)GetResWithName(R_JOB, ua->argv[i]);
+	    continue;
+	 }
+      }
+      if (strcasecmp(ua->argk[i], _("fileset")) == 0) {
+	 if (ua->argv[i]) {
+	    fileset = (FILESET *)GetResWithName(R_FILESET, ua->argv[i]);
+	    continue;
+	 }
+      }
+      if (strcasecmp(ua->argk[i], _("listing")) == 0) {
+	 listing = 1;
+      }
+   } 
+   if (!job && !(client && fileset)) {
+      if (!(job = select_job_resource(ua))) {
+	 return 1;
+      }
    }
-   job = (JOB *)GetResWithName(R_JOB, ua->argk[1]);
-   ua->jcr->client = job->client;
+   if (!job) {
+      job = (JOB *)GetResWithName(R_JOB, ua->argk[1]);
+   }
+   if (!client) {
+      client = job->client;
+   }
+   if (!fileset) {
+      fileset = job->fileset;
+   }
+   ua->jcr->client = client;
+   ua->jcr->fileset = fileset;
    bsendmsg(ua, _("Connecting to Client %s at %s:%d\n"),
       job->client->hdr.name, job->client->address, job->client->FDport);
    if (!connect_to_file_daemon(ua->jcr, 1, 15, 0)) {
@@ -1209,7 +1247,7 @@ static int estimate_cmd(UAContext *ua, char *cmd)
       bsendmsg(ua, "%s", fd->msg);
    }
 
-   bnet_fsend(fd, "estimate list=1\n");
+   bnet_fsend(fd, "estimate listing=%d\n", listing);
    while (bnet_recv(fd) >= 0) {
       bsendmsg(ua, "%s", fd->msg);
    }
