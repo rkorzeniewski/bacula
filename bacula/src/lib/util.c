@@ -333,9 +333,6 @@ char *job_level_to_str(int level)
    case L_DIFFERENTIAL:
       str = _("Differential");
       break;
-   case L_LEVEL:
-      str = _("Level");
-      break;
    case L_SINCE:
       str = _("Since");
       break;

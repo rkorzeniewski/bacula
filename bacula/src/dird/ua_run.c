@@ -411,7 +411,6 @@ JobId:      %s\n"),
             add_prompt(ua, _("Full"));
             add_prompt(ua, _("Incremental"));
             add_prompt(ua, _("Differential"));
-            add_prompt(ua, _("Level"));
             add_prompt(ua, _("Since"));
             switch (do_prompt(ua, _("Select level"), NULL, 0)) {
 	    case 0:
@@ -424,9 +423,6 @@ JobId:      %s\n"),
 	       jcr->JobLevel = L_DIFFERENTIAL;
 	       break;
 	    case 3:
-	       jcr->JobLevel = L_LEVEL;
-	       break;
-	    case 4:
 	       jcr->JobLevel = L_SINCE;
 	       break;
 	    default:

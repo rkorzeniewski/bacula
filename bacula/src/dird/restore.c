@@ -330,7 +330,7 @@ Termination:            %s\n\n"),
 	jcr->client->hdr.name,
 	sdt,
 	edt,
-	edit_uint64_with_commas(jcr->jr.JobFiles, ec1),
+	edit_uint64_with_commas((uint64_t)jcr->jr.JobFiles, ec1),
 	edit_uint64_with_commas(jcr->jr.JobBytes, ec2),
 	(float)kbps,
 	term_msg);

@@ -190,7 +190,7 @@ static int unser_block_header(DEVICE *dev, DEV_BLOCK *block)
    char Id[BLKHDR_ID_LENGTH+1];
    uint32_t CheckSum, BlockCheckSum;
    uint32_t block_len;
-   uint32_t EndBlock;
+   uint32_t block_end;
    uint32_t BlockNumber;
    int bhl;
 
@@ -241,11 +241,11 @@ static int unser_block_header(DEVICE *dev, DEV_BLOCK *block)
    Dmsg1(190, "unser_block_header block_len=%d\n", block_len);
    /* Find end of block or end of buffer whichever is smaller */
    if (block_len > block->read_len) {
-      EndBlock = block->read_len;
+      block_end = block->read_len;
    } else {
-      EndBlock = block_len;
+      block_end = block_len;
    }
-   block->binbuf = EndBlock - bhl;
+   block->binbuf = block_end - bhl;
    block->block_len = block_len;
    block->BlockNumber = BlockNumber;
    Dmsg3(190, "Read binbuf = %d %d block_len=%d\n", block->binbuf,
@@ -355,6 +355,8 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	    edit_uint64(dev->VolCatInfo.VolCatMaxBytes, ed1),  dev->dev_name);
       }
       block->failed_write = TRUE;
+      dev->EndBlock = dev->block_num;
+      dev->EndFile  = dev->file;
       weof_dev(dev, 1); 	      /* end the tape */
       weof_dev(dev, 1); 	      /* write second eof */
       return 0;
@@ -383,6 +385,8 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       Mmsg4(&dev->errmsg, _("Write error on device %s. Write of %u bytes got %d. ERR=%s.\n"), 
 	 dev->dev_name, wlen, stat, strerror(dev->dev_errno));
       block->failed_write = TRUE;
+      dev->EndBlock = dev->block_num;
+      dev->EndFile  = dev->file;
       weof_dev(dev, 1); 	      /* end the tape */
       weof_dev(dev, 1); 	      /* write second eof */
 	
@@ -396,11 +400,7 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
        *   correct.
        */
       if (dev->state & ST_TAPE && dev->capabilities & CAP_BSR) {
-	 uint32_t file, block_num;
 
-	 file = dev->file;
-	 block_num = dev->block_num;
-	 
 	 /* Now back up over what we wrote and read the last block */
 	 if (bsf_dev(dev, 1) != 0 || bsf_dev(dev, 1) != 0) {
 	    ok = FALSE;
@@ -427,8 +427,6 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	    }
 	    free_block(lblock);
 	 }
-	 dev->file = file;
-	 dev->block_num = block_num;
       }
 #endif
       return 0;
@@ -436,6 +434,8 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    dev->VolCatInfo.VolCatBytes += block->binbuf;
    dev->VolCatInfo.VolCatBlocks++;   
    dev->file_addr += wlen;
+   dev->EndBlock = dev->block_num;
+   dev->EndFile  = dev->file;
 
    /* Limit maximum File size on volume to user specified value */
    if (dev->state & ST_TAPE) {

@@ -93,8 +93,9 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       for (JCR *mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
          Dmsg1(100, "create JobMedia for Job %s\n", mjcr->Job);
 	 if (dev->state & ST_TAPE) {
-	    mjcr->EndBlock = dev->block_num;
-	    mjcr->EndFile = dev->file;
+	    mjcr->EndBlock = dev->EndBlock;
+	    mjcr->EndFile  = dev->EndFile;
+            Dmsg2(000, "Fixup EndFile=%u EndBlock=%u\n", mjcr->EndFile, mjcr->EndBlock);
 	 } else {
 	    mjcr->EndBlock = (uint32_t)dev->file_addr;
 	    mjcr->EndFile = (uint32_t)(dev->file_addr >> 32);

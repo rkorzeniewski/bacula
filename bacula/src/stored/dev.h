@@ -150,7 +150,8 @@ typedef struct s_device {
    uint32_t block_num;                /* current block number base 0 */
    uint32_t file;                     /* current file number base 0 */
    uint64_t file_addr;                /* Current file read/write address */
-   uint32_t LastBlockNumWritten;      /* last block written */
+   uint32_t EndBlock;                 /* last block written */
+   uint32_t EndFile;                  /* last file written */
    uint32_t min_block_size;           /* min block size */
    uint32_t max_block_size;           /* max block size */
    uint32_t max_volume_jobs;          /* max jobs to put on one volume */

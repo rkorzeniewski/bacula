@@ -36,7 +36,6 @@
 #define L_FULL                   'F'
 #define L_INCREMENTAL            'I'  /* since last backup */
 #define L_DIFFERENTIAL           'D'  /* since last full backup */
-#define L_LEVEL                  'L'
 #define L_SINCE                  'S'
 #define L_VERIFY_CATALOG         'C'  /* verify from catalog */
 #define L_VERIFY_INIT            'V'  /* verify save (init DB) */

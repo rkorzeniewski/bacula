@@ -236,11 +236,19 @@ int release_device(JCR *jcr, DEVICE *dev)
 
    } else if (dev->num_writers > 0) {
       dev->num_writers--;
+      if (dev->state & ST_TAPE) {
+	 jcr->EndBlock = dev->EndBlock;
+	 jcr->EndFile  = dev->EndFile;
+         Dmsg2(000, "Release device: EndFile=%u EndBlock=%u\n", jcr->EndFile, jcr->EndBlock);
+      } else {
+	 jcr->EndBlock = (uint32_t)dev->file_addr;
+	 jcr->EndFile = (uint32_t)(dev->file_addr >> 32);
+      }
       Dmsg1(100, "There are %d writers in release_device\n", dev->num_writers);
       if (dev->num_writers == 0) {
-	 weof_dev(dev, 1);
          Dmsg0(100, "dir_create_jobmedia_record. Release\n");
 	 dir_create_jobmedia_record(jcr);
+	 weof_dev(dev, 1);
 	 dev->VolCatInfo.VolCatFiles++; 	    /* increment number of files */
 	 dev->VolCatInfo.VolCatJobs++;		    /* increment number of jobs */
 	 /* Note! do volume update before close, which zaps VolCatInfo */

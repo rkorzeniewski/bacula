@@ -66,9 +66,8 @@ mount_next_vol:
       /* 
        * First erase all memory of the current volume	
        */
-      dev->block_num = 0;
-      dev->file = 0;
-      dev->LastBlockNumWritten = 0;
+      dev->block_num = dev->file = 0;
+      dev->EndBlock = dev->EndFile = 0;
       memset(&dev->VolCatInfo, 0, sizeof(dev->VolCatInfo));
       memset(&jcr->VolCatInfo, 0, sizeof(jcr->VolCatInfo));
       memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));

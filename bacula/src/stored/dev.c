@@ -401,8 +401,8 @@ eod_dev(DEVICE *dev)
       }
       while (!(dev->state & ST_EOT)) {
          Dmsg0(200, "Do fsf 1\n");
-	 if (fsf_dev(dev, 1) < 0) {
-            Dmsg0(200, "fsf_dev return < 0\n");
+	 if (!fsf_dev(dev, 1)) {
+            Dmsg0(200, "fsf_dev error.\n");
 	    return 0;
 	 }
       }
@@ -629,6 +629,8 @@ int offline_dev(DEVICE *dev)
 
 /* 
  * Foward space a file	
+ *   Returns: 1 on success
+ *	      0 on failure
  */
 int
 fsf_dev(DEVICE *dev, int num)
@@ -641,16 +643,16 @@ fsf_dev(DEVICE *dev, int num)
       dev->dev_errno = EBADF;
       Mmsg0(&dev->errmsg, _("Bad call to fsf_dev. Archive not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
-      return -1;
+      return 0;
    }
 
    if (!(dev->state & ST_TAPE)) {
-      return 0;
+      return 1;
    }
    if (dev->state & ST_EOT) {
       dev->dev_errno = 0;
       Mmsg1(&dev->errmsg, _("Device %s at End of Tape.\n"), dev->dev_name);
-      return -1;
+      return 0;
    }
    if (dev->state & ST_EOF)
       Dmsg0(200, "ST_EOF set on entry to FSF\n");
@@ -736,7 +738,7 @@ fsf_dev(DEVICE *dev, int num)
    if (dev->state & ST_EOT)
       Dmsg0(200, "ST_EOT set on exit FSF\n");
    Dmsg1(200, "Return from FSF file=%d\n", dev->file);
-   return stat;
+   return stat == 0 ? 1 : 0;
 }
 
 /* 
@@ -989,10 +991,9 @@ static void do_close(DEVICE *dev)
    /* Clean up device packet so it can be reused */
    dev->fd = -1;
    dev->state &= ~(ST_OPENED|ST_LABEL|ST_READ|ST_APPEND|ST_EOT|ST_WEOT|ST_EOF);
-   dev->block_num = 0;
-   dev->file = 0;
+   dev->file = dev->block_num = 0;
    dev->file_addr = 0;
-   dev->LastBlockNumWritten = 0;
+   dev->EndFile = dev->EndBlock = 0;
    memset(&dev->VolCatInfo, 0, sizeof(dev->VolCatInfo));
    memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
    dev->use_count--;

@@ -355,6 +355,9 @@ static int create_volume_label(DEVICE *dev, char *VolName)
       dev->VolHdr.label_time = dt.julian_day_fraction;
    }
 
+   if (gethostname(dev->VolHdr.HostName, sizeof(dev->VolHdr.HostName)) != 0) {
+      dev->VolHdr.HostName[0] = 0;
+   }
    bstrncpy(dev->VolHdr.LabelProg, my_name, sizeof(dev->VolHdr.LabelProg));
    sprintf(dev->VolHdr.ProgVersion, "Ver. %s %s", VERSION, DATE);
    sprintf(dev->VolHdr.ProgDate, "Build %s %s", __DATE__, __TIME__);
@@ -515,8 +518,8 @@ int write_session_label(JCR *jcr, DEV_BLOCK *block, int label)
 	 break;
       case EOS_LABEL:
 	 if (dev->state & ST_TAPE) {
-	    jcr->EndBlock = dev->block_num;
-	    jcr->EndFile  = dev->file;
+	    jcr->EndBlock = dev->EndBlock;
+	    jcr->EndFile  = dev->EndFile;
 	 } else {
 	    jcr->EndBlock = (uint32_t)dev->file_addr;
 	    jcr->EndFile = (uint32_t)(dev->file_addr >> 32);

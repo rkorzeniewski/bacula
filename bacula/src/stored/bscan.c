@@ -84,6 +84,7 @@ static int verbose = 0;
 static int update_db = 0;
 static int update_vol_info = 0;
 static int list_records = 0;
+static int ignored_msgs = 0;
 
 #define CONFIG_FILE "bacula-sd.conf"
 char *configfile;
@@ -327,6 +328,11 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	    break;
 	 case SOS_LABEL:
 	    mr.VolJobs++;
+	    if (ignored_msgs > 0) {
+               Pmsg1(000, _("%d \"errors\" ignored before first Start of Session record.\n"), 
+		     ignored_msgs);
+	       ignored_msgs = 0;
+	    }
 	    unser_session_label(&label, rec);
 	    memset(&jr, 0, sizeof(jr));
 	    jr.JobId = label.JobId;
@@ -511,6 +517,8 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 if (mr.VolJobs > 0) {
             Pmsg2(000, _("Could not find Job SessId=%d SessTime=%d for Attributes record.\n"),
 			 rec->VolSessionId, rec->VolSessionTime);
+	 } else {
+	    ignored_msgs++;
 	 }
 	 return;
       }
@@ -532,6 +540,8 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 if (mr.VolJobs > 0) {
             Pmsg2(000, _("Could not find Job SessId=%d SessTime=%d for File Data record.\n"),
 			 rec->VolSessionId, rec->VolSessionTime);
+	 } else {
+	    ignored_msgs++;
 	 }
 	 return;
       }
@@ -544,6 +554,8 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 if (mr.VolJobs > 0) {
             Pmsg2(000, _("Could not find Job SessId=%d SessTime=%d for Sparse Data record.\n"),
 			 rec->VolSessionId, rec->VolSessionTime);
+	 } else {
+	    ignored_msgs++;
 	 }
 	 return;
       }
@@ -556,6 +568,8 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 if (mr.VolJobs > 0) {
             Pmsg2(000, _("Could not find Job SessId=%d SessTime=%d for GZIP Data record.\n"),
 			 rec->VolSessionId, rec->VolSessionTime);
+	 } else {
+	    ignored_msgs++;
 	 }
 	 return;
       }
@@ -568,6 +582,8 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 if (mr.VolJobs > 0) {
             Pmsg2(000, _("Could not find Job SessId=%d SessTime=%d for Sparse GZIP Data record.\n"),
 			 rec->VolSessionId, rec->VolSessionTime);
+	 } else {
+	    ignored_msgs++;
 	 }
 	 return;
       }
@@ -960,8 +976,8 @@ static int create_jobmedia_record(B_DB *db, JCR *mjcr)
    JOBMEDIA_DBR jmr;
 
    if (dev->state & ST_TAPE) {
-      mjcr->EndBlock = dev->block_num;
-      mjcr->EndFile = dev->file;
+      mjcr->EndBlock = dev->EndBlock;
+      mjcr->EndFile  = dev->EndFile;
    } else {
       mjcr->EndBlock = (uint32_t)dev->file_addr;
       mjcr->EndFile = (uint32_t)(dev->file_addr >> 32);
@@ -1005,6 +1021,8 @@ static int update_MD5_record(B_DB *db, char *MD5buf, DEV_RECORD *rec)
       if (mr.VolJobs > 0) {
          Pmsg2(000, _("Could not find SessId=%d SessTime=%d for MD5 record.\n"),
 		      rec->VolSessionId, rec->VolSessionTime);
+      } else {
+	 ignored_msgs++;
       }
       return 0;
    }
@@ -1075,8 +1093,8 @@ int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
          Pmsg1(000, "create JobMedia for Job %s\n", mjcr->Job);
       }
       if (dev->state & ST_TAPE) {
-	 mjcr->EndBlock = dev->block_num;
-	 mjcr->EndFile = dev->file;
+	 mjcr->EndBlock = dev->EndBlock;
+	 mjcr->EndFile = dev->EndFile;
       } else {
 	 mjcr->EndBlock = (uint32_t)dev->file_addr;
 	 mjcr->StartBlock = (uint32_t)(dev->file_addr >> 32);

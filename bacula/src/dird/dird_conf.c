@@ -64,6 +64,127 @@ static void store_restore(LEX *lc, struct res_items *item, int index, int pass);
 static void store_jobtype(LEX *lc, struct res_items *item, int index, int pass);
 static void store_level(LEX *lc, struct res_items *item, int index, int pass);
 static void store_replace(LEX *lc, struct res_items *item, int index, int pass);
+static void store_fo(LEX *lc, struct res_items *item, int index, int pass);
+static void store_applyto(LEX *lc, struct res_items *item, int index, int pass);
+
+/* Keywords (RHS) permitted in Job Level records   
+ *
+ *   level_name      level		job_type
+ */
+struct s_jl joblevels[] = {
+   {"Full",          L_FULL,            JT_BACKUP},
+   {"Incremental",   L_INCREMENTAL,     JT_BACKUP},
+   {"Differential",  L_DIFFERENTIAL,    JT_BACKUP},
+   {"Since",         L_SINCE,           JT_BACKUP},
+   {"Catalog",       L_VERIFY_CATALOG,  JT_VERIFY},
+   {"Initcatalog",   L_VERIFY_INIT,     JT_VERIFY},
+   {"VolumeToCatalog", L_VERIFY_VOLUME_TO_CATALOG,   JT_VERIFY},
+   {"Data",          L_VERIFY_DATA,     JT_VERIFY},
+   {NULL,	     0}
+};
+
+/* Keywords (RHS) permitted in Job type records   
+ *
+ *   type_name	     job_type
+ */
+struct s_jt jobtypes[] = {
+   {"backup",        JT_BACKUP},
+   {"admin",         JT_ADMIN},
+   {"verify",        JT_VERIFY},
+   {"restore",       JT_RESTORE},
+   {NULL,	     0}
+};
+
+
+/* Keywords (RHS) permitted in Backup and Verify records */
+static struct s_kw BakVerFields[] = {
+   {"client",        'C'},
+   {"fileset",       'F'},
+   {"level",         'L'}, 
+   {NULL,	     0}
+};
+
+/* Keywords (RHS) permitted in Restore records */
+static struct s_kw RestoreFields[] = {
+   {"client",        'C'},
+   {"fileset",       'F'},
+   {"jobid",         'J'},            /* JobId to restore */
+   {"where",         'W'},            /* root of restore */
+   {"replace",       'R'},            /* replacement options */
+   {"bootstrap",     'B'},            /* bootstrap file */
+   {NULL,	       0}
+};
+
+/* Options permitted in Restore replace= */
+struct s_kw ReplaceOptions[] = {
+   {"always",         REPLACE_ALWAYS},
+   {"ifnewer",        REPLACE_IFNEWER},
+   {"ifolder",        REPLACE_IFOLDER},
+   {"never",          REPLACE_NEVER},
+   {NULL,		0}
+};
+
+
+
+/* Define FileSet KeyWord values */
+
+#define INC_KW_NONE	    0
+#define INC_KW_COMPRESSION  1
+#define INC_KW_SIGNATURE    2
+#define INC_KW_ENCRYPTION   3
+#define INC_KW_VERIFY	    4
+#define INC_KW_ONEFS	    5
+#define INC_KW_RECURSE	    6
+#define INC_KW_SPARSE	    7
+#define INC_KW_REPLACE	    8	      /* restore options */
+
+/* Include keywords */
+static struct s_kw FS_option_kw[] = {
+   {"compression", INC_KW_COMPRESSION},
+   {"signature",   INC_KW_SIGNATURE},
+   {"encryption",  INC_KW_ENCRYPTION},
+   {"verify",      INC_KW_VERIFY},
+   {"onefs",       INC_KW_ONEFS},
+   {"recurse",     INC_KW_RECURSE},
+   {"sparse",      INC_KW_SPARSE},
+   {"replace",     INC_KW_REPLACE},
+   {NULL,	   0}
+};
+
+/* Options for FileSet keywords */
+
+struct s_fs_opt {
+   char *name;
+   int keyword;
+   char *option;
+};
+
+/* Options permitted for each keyword and resulting value */
+static struct s_fs_opt FS_options[] = {
+   {"md5",      INC_KW_SIGNATURE,    "M"},
+   {"gzip",     INC_KW_COMPRESSION,  "Z6"},
+   {"gzip1",    INC_KW_COMPRESSION,  "Z1"},
+   {"gzip2",    INC_KW_COMPRESSION,  "Z2"},
+   {"gzip3",    INC_KW_COMPRESSION,  "Z3"},
+   {"gzip4",    INC_KW_COMPRESSION,  "Z4"},
+   {"gzip5",    INC_KW_COMPRESSION,  "Z5"},
+   {"gzip6",    INC_KW_COMPRESSION,  "Z6"},
+   {"gzip7",    INC_KW_COMPRESSION,  "Z7"},
+   {"gzip8",    INC_KW_COMPRESSION,  "Z8"},
+   {"gzip9",    INC_KW_COMPRESSION,  "Z9"},
+   {"blowfish", INC_KW_ENCRYPTION,    "B"},   /* ***FIXME*** not implemented */
+   {"3des",     INC_KW_ENCRYPTION,    "3"},   /* ***FIXME*** not implemented */
+   {"yes",      INC_KW_ONEFS,         "0"},
+   {"no",       INC_KW_ONEFS,         "f"},
+   {"yes",      INC_KW_RECURSE,       "0"},
+   {"no",       INC_KW_RECURSE,       "h"},
+   {"yes",      INC_KW_SPARSE,        "s"},
+   {"no",       INC_KW_SPARSE,        "0"},
+   {"always",   INC_KW_REPLACE,       "a"},
+   {"ifnewer",  INC_KW_REPLACE,       "w"},
+   {"never",    INC_KW_REPLACE,       "n"},
+   {NULL,	0,		     0}
+};
 
 
 /* We build the current resource here as we are
@@ -200,6 +321,26 @@ static struct res_items fs_items[] = {
    {NULL,	   NULL,       NULL,		      0, 0, 0} 
 };
 
+/*
+ * FileOptions resource (options for Include)
+ *
+ */
+static struct res_items fo_items[] = {
+   {"name",        store_name, ITEM(res_fo.hdr.name), 0, ITEM_REQUIRED, 0},
+   {"description", store_str,  ITEM(res_fo.hdr.desc), 0, 0, 0},
+   {"compression", store_fo,   ITEM(res_fo.opts),     INC_KW_COMPRESSION, 0, 0},
+   {"signature",   store_fo,   ITEM(res_fo.opts),     INC_KW_SIGNATURE, 0, 0},
+   {"encryption",  store_fo,   ITEM(res_fo.opts),     INC_KW_ENCRYPTION, 0, 0},
+   {"onefs",       store_fo,   ITEM(res_fo.opts),     INC_KW_ONEFS, 0, 0},
+   {"recurse",     store_fo,   ITEM(res_fo.opts),     INC_KW_RECURSE, 0, 0},
+   {"sparse",      store_fo,   ITEM(res_fo.opts),     INC_KW_SPARSE, 0, 0},
+   {"replace",     store_fo,   ITEM(res_fo.opts),     INC_KW_REPLACE, 0, 0},
+   {"verify",      store_fo,   ITEM(res_fo.opts),     INC_KW_VERIFY, 0, 0},
+   {"applyto",     store_applyto, ITEM(res_fo.applyto), 0, 0, 0},
+   {NULL,	   NULL,       NULL,		      0, 0, 0} 
+};
+
+
 /* Schedule -- see run_conf.c */
 /* Schedule
  *
@@ -282,129 +423,11 @@ struct s_res resources[] = {
    {"pool",          pool_items,  R_POOL,      NULL},
    {"messages",      msgs_items,  R_MSGS,      NULL},
    {"counter",       counter_items, R_COUNTER, NULL},
+   {"fileoptions",   fo_items,    R_FILEOPTIONS, NULL},
    {NULL,	     NULL,	  0,	       NULL}
 };
 
 
-/* Keywords (RHS) permitted in Job Level records   
- *
- *   level_name      level		job_type
- */
-struct s_jl joblevels[] = {
-   {"Full",          L_FULL,            JT_BACKUP},
-   {"Incremental",   L_INCREMENTAL,     JT_BACKUP},
-   {"Differential",  L_DIFFERENTIAL,    JT_BACKUP},
-   {"Level",         L_LEVEL,           JT_BACKUP},
-   {"Since",         L_SINCE,           JT_BACKUP},
-   {"Catalog",       L_VERIFY_CATALOG,  JT_VERIFY},
-   {"Initcatalog",   L_VERIFY_INIT,     JT_VERIFY},
-   {"VolumeToCatalog", L_VERIFY_VOLUME_TO_CATALOG,   JT_VERIFY},
-   {"Data",          L_VERIFY_DATA,     JT_VERIFY},
-   {NULL,	     0}
-};
-
-/* Keywords (RHS) permitted in Job type records   
- *
- *   type_name	     job_type
- */
-struct s_jt jobtypes[] = {
-   {"backup",        JT_BACKUP},
-   {"admin",         JT_ADMIN},
-   {"verify",        JT_VERIFY},
-   {"restore",       JT_RESTORE},
-   {NULL,	     0}
-};
-
-
-/* Keywords (RHS) permitted in Backup and Verify records */
-static struct s_kw BakVerFields[] = {
-   {"client",        'C'},
-   {"fileset",       'F'},
-   {"level",         'L'}, 
-   {NULL,	     0}
-};
-
-/* Keywords (RHS) permitted in Restore records */
-static struct s_kw RestoreFields[] = {
-   {"client",        'C'},
-   {"fileset",       'F'},
-   {"jobid",         'J'},            /* JobId to restore */
-   {"where",         'W'},            /* root of restore */
-   {"replace",       'R'},            /* replacement options */
-   {"bootstrap",     'B'},            /* bootstrap file */
-   {NULL,	       0}
-};
-
-/* Options permitted in Restore replace= */
-struct s_kw ReplaceOptions[] = {
-   {"always",         REPLACE_ALWAYS},
-   {"ifnewer",        REPLACE_IFNEWER},
-   {"ifolder",        REPLACE_IFOLDER},
-   {"never",          REPLACE_NEVER},
-   {NULL,		0}
-};
-
-
-
-/* Define FileSet KeyWord values */
-
-#define INC_KW_NONE	    0
-#define INC_KW_COMPRESSION  1
-#define INC_KW_SIGNATURE    2
-#define INC_KW_ENCRYPTION   3
-#define INC_KW_VERIFY	    4
-#define INC_KW_ONEFS	    5
-#define INC_KW_RECURSE	    6
-#define INC_KW_SPARSE	    7
-#define INC_KW_REPLACE	    8	      /* restore options */
-
-/* Include keywords */
-static struct s_kw FS_option_kw[] = {
-   {"compression", INC_KW_COMPRESSION},
-   {"signature",   INC_KW_SIGNATURE},
-   {"encryption",  INC_KW_ENCRYPTION},
-   {"verify",      INC_KW_VERIFY},
-   {"onefs",       INC_KW_ONEFS},
-   {"recurse",     INC_KW_RECURSE},
-   {"sparse",      INC_KW_SPARSE},
-   {"replace",     INC_KW_REPLACE},
-   {NULL,	   0}
-};
-
-/* Options for FileSet keywords */
-
-struct s_fs_opt {
-   char *name;
-   int keyword;
-   char *option;
-};
-
-/* Options permitted for each keyword and resulting value */
-static struct s_fs_opt FS_options[] = {
-   {"md5",      INC_KW_SIGNATURE,    "M"},
-   {"gzip",     INC_KW_COMPRESSION,  "Z6"},
-   {"gzip1",    INC_KW_COMPRESSION,  "Z1"},
-   {"gzip2",    INC_KW_COMPRESSION,  "Z2"},
-   {"gzip3",    INC_KW_COMPRESSION,  "Z3"},
-   {"gzip4",    INC_KW_COMPRESSION,  "Z4"},
-   {"gzip5",    INC_KW_COMPRESSION,  "Z5"},
-   {"gzip6",    INC_KW_COMPRESSION,  "Z6"},
-   {"gzip7",    INC_KW_COMPRESSION,  "Z7"},
-   {"gzip8",    INC_KW_COMPRESSION,  "Z8"},
-   {"gzip9",    INC_KW_COMPRESSION,  "Z9"},
-   {"blowfish", INC_KW_ENCRYPTION,    "B"},   /* ***FIXME*** not implemented */
-   {"3des",     INC_KW_ENCRYPTION,    "3"},   /* ***FIXME*** not implemented */
-   {"yes",      INC_KW_ONEFS,         "0"},
-   {"no",       INC_KW_ONEFS,         "f"},
-   {"yes",      INC_KW_RECURSE,       "0"},
-   {"no",       INC_KW_RECURSE,       "h"},
-   {"yes",      INC_KW_SPARSE,        "s"},
-   {"no",       INC_KW_SPARSE,        "0"},
-   {"always",   INC_KW_REPLACE,       "a"},
-   {"ifnewer",  INC_KW_REPLACE,       "w"},
-   {"never",    INC_KW_REPLACE,       "n"},
-   {NULL,	0,		     0}
-};
 
 char *level_to_str(int level)
 {
@@ -1358,4 +1381,61 @@ static void store_inc(LEX *lc, struct res_items *item, int index, int pass)
    scan_to_eol(lc);
    lc->options = options;
    set_bit(index, res_all.hdr.item_present);
+}
+
+/* Store FileOptions */
+static void store_fo(LEX *lc, struct res_items *item, int index, int pass)
+{
+   int token, i;
+   int options = lc->options;
+   int keyword;
+   char inc_opts[100];
+   int inc_opts_len;
+
+   lc->options |= LOPT_NO_IDENT;      /* make spaces significant */
+
+   /* Get include options */
+   strcpy(inc_opts, "0");             /* set no options */
+   while ((token=lex_get_token(lc, T_ALL)) != T_BOB) {
+      keyword = INC_KW_NONE;
+      for (i=0; FS_option_kw[i].name; i++) {
+	 if (strcasecmp(lc->str, FS_option_kw[i].name) == 0) {
+	    keyword = FS_option_kw[i].token;
+	    break;
+	 }
+      }
+      if (keyword == INC_KW_NONE) {
+         scan_err1(lc, "Expected a FileSet keyword, got: %s", lc->str);
+      }
+      /* Option keyword should be following by = <option> */
+      if ((token=lex_get_token(lc, T_ALL)) != T_EQUALS) {
+         scan_err1(lc, "expected an = following keyword, got: %s", lc->str);
+      }
+      scan_include_options(lc, keyword, inc_opts, sizeof(inc_opts));
+      if (token == T_BOB) {
+	 break;
+      }
+   }
+   strcat(inc_opts, " ");             /* add field separator */
+   inc_opts_len = strlen(inc_opts);
+
+
+   if (pass == 1) {
+      if (!res_all.res_fs.have_MD5) {
+	 MD5Init(&res_all.res_fs.md5c);
+	 res_all.res_fs.have_MD5 = TRUE;
+      }
+   } else { /* pass 2 */
+      while (lex_get_token(lc, T_ALL) != T_EOB) 
+	 {}
+   }
+   scan_to_eol(lc);
+   lc->options = options;
+   set_bit(index, res_all.hdr.item_present);
+}
+
+/* Store FileOptions */
+static void store_applyto(LEX *lc, struct res_items *item, int index, int pass)
+{
+   scan_to_eol(lc);
 }
