@@ -1,50 +1,18 @@
                  Kern's ToDo List
                   10 June 2004
 
-1.34.4 Items to do:
+1.35 Items to do:
 - Implement SIGHUP in Dir
 - Implement fast tree insert (doubly linked list?)
 - Do tape alerts -- see tapealert.txt
 - When restore started from console, report jobid.
 - Feedback while the tree is being built.    
-- Add reporting in attr despooling.
 - Win32 inc problem when new directory added.
 - On Win95
    The error I when I installed 1.34.2 clients:
    The BACULA-FD file is  
    linked to missing export KERNEL32.DLL:GetFileAttributesExA.
-- Mark a non-removable disk Volume in error rather than asking sys op to
-  mount it.
-- Implement Fixed storage LabelFormat test.
 
-Documentation from Christopher Hull on new client job requests:
-===
-The command can be anything that cmd.exe or command.com will recognize 
-as a executable file.  Specifiying the executable's extention is 
-optional, unless there is an ambiguity. (i.e. ls.bat, ls.exe)
-
-The System %Path% will be searched for the command.  (under the 
-envrionment variable dialog you have have both System Environment and 
-User Environment, we believe that only the System environment will be 
-available to bacual-fd, if it is running as a service.) 
-
-System environment varaible can be called out using the %var% syntax and 
-used as either part of the command name or arguments.
-
-When specifiying a full path to an executable if the path or executable 
-name contains whitespace or special characters they will need to be 
-quoted.  Arguments containing whitespace or special characters will also 
-have to be quoted. 
-
-    ClientRunBeforeJob = "\"C:/Program Files/Software 
-Vendor/Executable\" /arg1 /arg2 \"foo bar\""
-
-The special characters  &()[]{}^=;!'+,`~ will need to be quoted if part 
-of a filename or argument.
-
-If someone is logged in a blank "command" window running the commands 
-will be present during the execution of the command. 
-===
 
 Documentation to do: (any release a little bit at a time)
 - Document query file format.
@@ -1094,3 +1062,8 @@ Block Position: 0
 - Add regression of btape "fill" 
 ==== Done in 1.34.4
 - Implement "label slots=1,2... pool=yyy barcodes"
+- Mark a non-removable disk Volume in error rather than asking sys op to
+  mount it.
+- Implement Fixed storage LabelFormat test.
+- Add reporting in attr despooling.
+
