@@ -750,11 +750,12 @@ reread:
       }
    } while (stat == -1 && (errno == EINTR || errno == EIO) && retry++ < 11);
    if (stat < 0) {
+      berrno be;
       clrerror_dev(dev, -1);
-      Dmsg1(90, "Read device got: ERR=%s\n", strerror(errno));
+      Dmsg1(90, "Read device got: ERR=%s\n", be.strerror());
       block->read_len = 0;
       Mmsg4(dev->errmsg, _("Read error at file:blk %u:%u on device %s. ERR=%s.\n"), 
-	 dev->file, dev->block_num, dev->dev_name, strerror(dev->dev_errno));
+	 dev->file, dev->block_num, dev->dev_name, be.strerror());
       Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       if (dev->state & ST_EOF) {  /* EOF just seen? */
 	 dev->state |= ST_EOT;	  /* yes, error => EOT */

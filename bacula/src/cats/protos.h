@@ -53,7 +53,7 @@ int db_create_media_record(JCR *jcr, B_DB *db, MEDIA_DBR *media_dbr);
 int db_create_client_record(JCR *jcr, B_DB *db, CLIENT_DBR *cr);
 int db_create_fileset_record(JCR *jcr, B_DB *db, FILESET_DBR *fsr);
 int db_create_pool_record(JCR *jcr, B_DB *db, POOL_DBR *pool_dbr);          
-int db_create_jobmedia_record(JCR *jcr, B_DB *mdb, JOBMEDIA_DBR *jr);
+bool db_create_jobmedia_record(JCR *jcr, B_DB *mdb, JOBMEDIA_DBR *jr);
 int db_create_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr);
 
 /* delete.c */

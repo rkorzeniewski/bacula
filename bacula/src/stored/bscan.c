@@ -1198,9 +1198,15 @@ bool	dir_send_job_status(JCR *jcr) {return 1;}
 bool dir_ask_sysop_to_mount_volume(DCR *dcr)
 {
    DEVICE *dev = dcr->dev;
-   JCR *jcr = dcr->jcr;
-   fprintf(stderr, _("Mount Volume \"%s\" on device \"%s\" and press return when ready: "),
-      jcr->VolumeName, dev_name(dev));
+   Dmsg0(20, "Enter dir_ask_sysop_to_mount_volume\n");
+   /* Close device so user can use autochanger if desired */
+   if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
+      offline_dev(dev);
+   }
+   force_close_dev(dev);
+   fprintf(stderr, "Mount Volume \"%s\" on device %s and press return when ready: ",
+	 dcr->VolumeName, dev_name(dev));
    getchar();	
-   return 1;
+   return true;
 }
+

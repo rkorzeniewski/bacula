@@ -8,8 +8,8 @@ echo "Depending on the size of your database,"
 echo "this script may take several minutes to run."
 echo " "
 
-bindir=@SQL_BINDIR@
-cd @working_dir@
+bindir=/home/kern/bacula/depkgs/sqlite
+cd /home/kern/bacula/working
 
 $bindir/sqlite $* bacula.db <<END-OF-DATA
 

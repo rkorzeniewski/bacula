@@ -456,7 +456,7 @@ void close_msg(JCR *jcr)
 	    len = d->max_len+10;
 	    line = get_memory(len);
 	    rewind(d->fd);
-	    while (fgets(mp_chr(line), len, d->fd)) {
+	    while (fgets(line, len, d->fd)) {
 	       fputs(line, bpipe->wfd);
 	    }
 	    if (!close_wpipe(bpipe)) {	     /* close write pipe sending mail */
@@ -470,7 +470,7 @@ void close_msg(JCR *jcr)
 	     */
 	    if (msgs != daemon_msgs) {
 	       /* read what mail prog returned -- should be nothing */
-	       while (fgets(mp_chr(line), len, bpipe->rfd)) {
+	       while (fgets(line, len, bpipe->rfd)) {
                   Jmsg1(jcr, M_INFO, 0, _("Mail prog: %s"), line);
 	       }
 	    }
@@ -488,7 +488,7 @@ void close_msg(JCR *jcr)
 rem_temp_file:
 	    /* Remove temp file */
 	    fclose(d->fd);
-	    unlink(mp_chr(d->mail_filename));
+	    unlink(d->mail_filename);
 	    free_pool_memory(d->mail_filename);
 	    d->mail_filename = NULL;
             Dmsg0(150, "end mail or mail on error\n");
@@ -668,7 +668,7 @@ void dispatch_message(JCR *jcr, int type, int level, char *msg)
 		if (!d->fd) {
 		   POOLMEM *name = get_pool_memory(PM_MESSAGE);
 		   make_unique_mail_filename(jcr, name, d);
-                   d->fd = fopen(mp_chr(name), "w+");
+                   d->fd = fopen(name, "w+");
 		   if (!d->fd) {
 		      d->fd = stdout;
                       Jmsg2(jcr, M_ERROR, 0, "fopen %s failed: ERR=%s\n", name, strerror(errno));
@@ -987,7 +987,7 @@ Jmsg(JCR *jcr, int type, int level, const char *fmt,...)
     if (jcr && jcr->JobId == 0 && jcr->dir_bsock) {
        BSOCK *dir = jcr->dir_bsock;
        va_start(arg_ptr, fmt);
-       dir->msglen = bvsnprintf(mp_chr(dir->msg), sizeof_pool_memory(dir->msg), 
+       dir->msglen = bvsnprintf(dir->msg, sizeof_pool_memory(dir->msg), 
 				fmt, arg_ptr);
        va_end(arg_ptr);
        bnet_send(jcr->dir_bsock);
@@ -1098,7 +1098,7 @@ int m_msg(const char *file, int line, POOLMEM **pool_buf, const char *fmt, ...)
    va_list   arg_ptr;
    int i, len, maxlen;
 
-   i = sprintf(mp_chr(*pool_buf), "%s:%d ", file, line);
+   i = sprintf(*pool_buf, "%s:%d ", file, line);
 
    for (;;) {
       maxlen = sizeof_pool_memory(*pool_buf) - i - 1; 
@@ -1171,6 +1171,25 @@ int Mmsg(POOLMEM *&pool_buf, const char *fmt, ...)
       va_end(arg_ptr);
       if (len < 0 || len >= (maxlen-5)) {
 	 pool_buf = realloc_pool_memory(pool_buf, maxlen + maxlen/2);
+	 continue;
+      }
+      break;
+   }
+   return len;
+}
+
+int Mmsg(POOL_MEM &pool_buf, const char *fmt, ...)
+{
+   va_list   arg_ptr;
+   int len, maxlen;
+
+   for (;;) {
+      maxlen = pool_buf.max_size() - 1; 
+      va_start(arg_ptr, fmt);
+      len = bvsnprintf(pool_buf.c_str(), maxlen, fmt, arg_ptr);
+      va_end(arg_ptr);
+      if (len < 0 || len >= (maxlen-5)) {
+	 pool_buf.realloc_pm(maxlen + maxlen/2);
 	 continue;
       }
       break;

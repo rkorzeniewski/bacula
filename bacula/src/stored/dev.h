@@ -134,6 +134,8 @@ struct VOLUME_CAT_INFO {
    uint32_t VolCatReads;              /* Number of reads this volume */
    uint64_t VolCatRBytes;             /* Number of bytes read */
    uint32_t VolCatRecycles;           /* Number of recycles this volume */
+   uint32_t EndFile;                  /* Last file number */
+   uint32_t EndBlock;                 /* Last block number */
    int32_t  Slot;                     /* Slot in changer */
    bool     InChanger;                /* Set if vol in current magazine */
    uint32_t VolCatMaxJobs;            /* Maximum Jobs to write to volume */

@@ -88,10 +88,20 @@ bash_spaces(char *str)
    }
 }
 
-void bash_spaces(POOL_MEM &pm)
+/* Convert spaces to non-space character. 
+ * This makes scanf of fields containing spaces easier.
+ */
+void
+bash_spaces(POOL_MEM &pm)
 {
-   bash_spaces(pm.c_str());
+   char *str = pm.c_str();
+   while (*str) {
+      if (*str == ' ')
+	 *str = 0x1;
+      str++;
+   }
 }
+
 
 /* Convert non-space characters (0x1) back into spaces */
 void
@@ -108,9 +118,13 @@ unbash_spaces(char *str)
 void
 unbash_spaces(POOL_MEM &pm)
 {
-   unbash_spaces(pm.c_str());
+   char *str = pm.c_str();
+   while (*str) {
+     if (*str == 0x1)
+        *str = ' ';
+     str++;
+   }
 }
-
 
 
 char *encode_time(time_t time, char *buf)

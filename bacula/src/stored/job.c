@@ -100,14 +100,14 @@ bool job_cmd(JCR *jcr)
    jcr->JobId = JobId;
    jcr->VolSessionId = newVolSessionId();
    jcr->VolSessionTime = VolSessionTime;
-   bstrncpy(jcr->Job, job.c_str(), sizeof(jcr->Job));
-   unbash_spaces(job_name.c_str());
+   bstrncpy(jcr->Job, job, sizeof(jcr->Job));
+   unbash_spaces(job_name);
    jcr->job_name = get_pool_memory(PM_NAME);
    pm_strcpy(jcr->job_name, job_name);
-   unbash_spaces(client_name.c_str());
+   unbash_spaces(client_name);
    jcr->client_name = get_pool_memory(PM_NAME);
    pm_strcpy(jcr->client_name, client_name);
-   unbash_spaces(fileset_name.c_str());
+   unbash_spaces(fileset_name);
    jcr->fileset_name = get_pool_memory(PM_NAME);
    pm_strcpy(jcr->fileset_name, fileset_name);
    jcr->JobType = JobType;

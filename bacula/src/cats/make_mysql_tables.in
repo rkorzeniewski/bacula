@@ -118,6 +118,8 @@ CREATE TABLE Media (
    MediaAddressing TINYINT NOT NULL DEFAULT 0,
    VolReadTime BIGINT UNSIGNED NOT NULL DEFAULT 0,
    VolWriteTime BIGINT UNSIGNED NOT NULL DEFAULT 0,
+   EndFile INTEGER UNSIGNED NOT NULL DEFAULT 0;
+   EndBlock INTEGER UNSIGNED NOT NULL DEFAULT 0,
    PRIMARY KEY(MediaId),
    INDEX (PoolId)
    );
@@ -181,7 +183,7 @@ CREATE TABLE Version (
    );
 
 -- Initialize Version		 
-INSERT INTO Version (VersionId) VALUES (7);
+INSERT INTO Version (VersionId) VALUES (8);
 
 CREATE TABLE Counters (
    Counter TINYBLOB NOT NULL,

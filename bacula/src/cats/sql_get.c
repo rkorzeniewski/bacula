@@ -377,7 +377,8 @@ int db_get_job_volume_parameters(JCR *jcr, B_DB *mdb, uint32_t JobId, VOL_PARAMS
 
    db_lock(mdb);
    Mmsg(mdb->cmd, 
-"SELECT VolumeName,FirstIndex,LastIndex,StartFile,EndFile,StartBlock,EndBlock"
+"SELECT VolumeName,FirstIndex,LastIndex,StartFile,JobMedia.EndFile,"
+"StartBlock,JobMedia.EndBlock"
 " FROM JobMedia,Media WHERE JobMedia.JobId=%u"
 " AND JobMedia.MediaId=Media.MediaId ORDER BY VolIndex,JobMediaId", JobId);
 
@@ -401,12 +402,12 @@ int db_get_job_volume_parameters(JCR *jcr, B_DB *mdb, uint32_t JobId, VOL_PARAMS
 	       break;
 	    } else {
 	       bstrncpy(Vols[i].VolumeName, row[0], MAX_NAME_LENGTH);
-	       Vols[i].FirstIndex = atoi(row[1]);
-	       Vols[i].LastIndex = atoi(row[2]);
-	       Vols[i].StartFile = atoi(row[3]);
-	       Vols[i].EndFile = atoi(row[4]);
-	       Vols[i].StartBlock = atoi(row[5]);
-	       Vols[i].EndBlock = atoi(row[6]);
+	       Vols[i].FirstIndex = str_to_uint64(row[1]);
+	       Vols[i].LastIndex = str_to_uint64(row[2]);
+	       Vols[i].StartFile = str_to_uint64(row[3]);
+	       Vols[i].EndFile = str_to_uint64(row[4]);
+	       Vols[i].StartBlock = str_to_uint64(row[5]);
+	       Vols[i].EndBlock = str_to_uint64(row[6]);
 	    }
 	 }
       }
@@ -494,7 +495,7 @@ int db_get_client_ids(JCR *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
       if (*num_ids > 0) {
 	 id = (uint32_t *)malloc(*num_ids * sizeof(uint32_t));
 	 while ((row = sql_fetch_row(mdb)) != NULL) {
-	    id[i++] = (uint32_t)atoi(row[0]);
+	    id[i++] = str_to_uint64(row[0]);
 	 }
 	 *ids = id;
       }
@@ -809,13 +810,13 @@ int db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
          "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
          "MediaType,VolStatus,PoolId,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,"
-         "Recycle,Slot,FirstWritten,LastWritten,InChanger "
+         "Recycle,Slot,FirstWritten,LastWritten,InChanger,EndFile,EndBlock "
          "FROM Media WHERE MediaId=%d", mr->MediaId);
    } else {			      /* find by name */
       Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
          "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
          "MediaType,VolStatus,PoolId,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,"
-         "Recycle,Slot,FirstWritten,LastWritten,InChanger "
+         "Recycle,Slot,FirstWritten,LastWritten,InChanger,EndFile,EndBlock "
          "FROM Media WHERE VolumeName='%s'", mr->VolumeName);
    }  
 
@@ -857,6 +858,8 @@ int db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
             bstrncpy(mr->cLastWritten, row[21]!=NULL?row[21]:"", sizeof(mr->cLastWritten));
 	    mr->LastWritten = (time_t)str_to_utime(mr->cLastWritten);
 	    mr->InChanger = str_to_uint64(row[22]);
+	    mr->EndFile = str_to_uint64(row[23]);
+	    mr->EndBlock = str_to_uint64(row[24]);
 	    stat = mr->MediaId;
 	 }
       } else {

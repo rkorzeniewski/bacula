@@ -39,15 +39,6 @@
 #define __bc_types_INCLUDED
 
 typedef char POOLMEM;   
-#define mp_chr(x) x
-#ifdef  xxxxx
-#define mp_chr(x) ((char*)(x))
-class POOLMEM { 
-public:
-   POOLMEM();
-   operator char * const() { return this; }
-};
-#endif
 
 
 /* Types */

@@ -144,10 +144,10 @@ int start_storage_daemon_job(JCR *jcr)
    pm_strcpy(media_type, storage->media_type);
    pm_strcpy(pool_type, jcr->pool->pool_type);
    pm_strcpy(pool_name, jcr->pool->hdr.name);
-   bash_spaces(device_name.c_str());
-   bash_spaces(media_type.c_str());
-   bash_spaces(pool_type.c_str());
-   bash_spaces(pool_name.c_str());
+   bash_spaces(device_name);
+   bash_spaces(media_type);
+   bash_spaces(pool_type);
+   bash_spaces(pool_name);
    bnet_fsend(sd, use_device, device_name.c_str(), 
 	      media_type.c_str(), pool_name.c_str(), pool_type.c_str());
    Dmsg1(110, ">stored: %s", sd->msg);

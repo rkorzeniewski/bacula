@@ -12,6 +12,9 @@ Version 1.35                Kern (see below)
 
 1.35 Items to do for release:
 - Backspace to beginning of line (conio) does not erase first char.
+- List verify options for DiskToCatalog in doc.
+- Do unmount before removing magazine.
+- Turn on transactions if multiple connections are on in DB.
 
 - Document a get out of jail procedure if everything breaks if 
   you lost/broke the Catalog -- do the same for "I know my
@@ -62,6 +65,9 @@ Testing to do: (painful)
 
 
 For 1.37 Testing/Documentation:
+- If opening a tape in read/write mode fails attempt to open
+  it in read-only mode, and mark the tape for read only.
+- Add a read-only mode to the mount option.
 - Add "Allow multiple connections" in Catalog resource to open a new 
   database connection for each job.
 - Allow Simultaneous Priorities = yes  => run up to Max concurrent jobs even
@@ -1351,4 +1357,5 @@ Block Position: 0
 - Add "Multiple connections = yes/no" to catalog resource.
 - Add new DCR calling sequences everywhere in SD. This will permit 
   simultaneous use of multiple devices by a single job.
+- Fix bscan so that it releases the drive when requesting a new tape.
 

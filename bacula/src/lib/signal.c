@@ -93,6 +93,7 @@ extern "C" void signal_handler(int sig)
       static char *argv[4];
       static char pid_buf[20];
       static char btpath[400];
+      char buf[100];
       pid_t pid;
       int exelen = strlen(exepath);
 
@@ -112,8 +113,17 @@ extern "C" void signal_handler(int sig)
          strcat(exepath, "/");
       }
       strcat(exepath, exename);
-      if (chdir(working_directory) !=0) {  /* dump in working directory */
-         Pmsg2(000, "chdir to %s failed. ERR=%s\n", working_directory,  strerror(errno));
+      if (!working_directory) {
+	 working_directory = buf;
+	 *buf = 0;
+      }
+      if (*working_directory == 0) {
+         strcpy((char *)working_directory, "/tmp/");
+      }
+      if (chdir(working_directory) != 0) {  /* dump in working directory */
+	 berrno be;
+         Pmsg2(000, "chdir to %s failed. ERR=%s\n", working_directory,  be.strerror());
+         strcpy((char *)working_directory, "/tmp/");
       }
       unlink("./core");               /* get rid of any old core file */
       sprintf(pid_buf, "%d", (int)main_pid);

@@ -564,7 +564,7 @@ bool open_attr_spool_file(JCR *jcr, BSOCK *bs)
    POOLMEM *name  = get_pool_memory(PM_MESSAGE);
 
    make_unique_spool_filename(jcr, &name, bs->fd);
-   bs->spool_fd = fopen(mp_chr(name), "w+");
+   bs->spool_fd = fopen(name, "w+");
    if (!bs->spool_fd) {
       berrno be;
       Jmsg(jcr, M_FATAL, 0, _("fopen attr spool file %s failed: ERR=%s\n"), name,
@@ -593,7 +593,7 @@ bool close_attr_spool_file(JCR *jcr, BSOCK *bs)
    V(mutex);
    make_unique_spool_filename(jcr, &name, bs->fd);
    fclose(bs->spool_fd);
-   unlink(mp_chr(name));
+   unlink(name);
    free_pool_memory(name);
    bs->spool_fd = NULL;
    bs->spool = false;

@@ -48,7 +48,7 @@ typedef int (DB_RESULT_HANDLER)(void *, int, char **);
 
 #ifdef HAVE_SQLITE
 
-#define BDB_VERSION 7
+#define BDB_VERSION 8
 
 #include <sqlite.h>
 
@@ -146,7 +146,7 @@ SQL_FIELD *my_sqlite_fetch_field(B_DB *mdb);
 
 #ifdef HAVE_MYSQL
 
-#define BDB_VERSION 7
+#define BDB_VERSION 8
 
 #include <mysql.h>
 
@@ -210,7 +210,7 @@ typedef struct s_db {
 
 #ifdef HAVE_POSTGRESQL
 
-#define BDB_VERSION 7
+#define BDB_VERSION 8
 
 #include <libpq-fe.h>
 
@@ -302,7 +302,7 @@ POSTGRESQL_FIELD * my_postgresql_fetch_field(B_DB *mdb);
 /* Change this each time there is some incompatible
  * file format change!!!!
  */
-#define BDB_VERSION 12                /* file version number */
+#define BDB_VERSION 13                /* file version number */
 
 struct s_control {
    int bdb_version;                   /* Version number */
@@ -529,6 +529,8 @@ struct MEDIA_DBR {
    int32_t  Recycle;                  /* recycle yes/no */
    int32_t  Slot;                     /* slot in changer */
    int32_t  InChanger;                /* Volume currently in changer */
+   uint32_t EndFile;                  /* Last file on volume */
+   uint32_t EndBlock;                 /* Last block on volume */
    char VolStatus[20];                /* Volume status */
    /* Extra stuff not in DB */
    faddr_t rec_addr;                  /* found record address */

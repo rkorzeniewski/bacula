@@ -87,6 +87,8 @@ public:
       mem = check_pool_memory_size(mem, size);
       return mem;
    }
+   int32_t max_size();
+   void realloc_pm(int32_t size);
    int strcpy(const char *str);
    int strcat(const char *str);
 };

@@ -102,13 +102,13 @@ db_create_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 }
 
 /* Create a JobMedia record for medium used this job   
- * Returns: 0 on failure
- *	    1 on success
+ * Returns: false on failure
+ *	    true  on success
  */
-int
+bool
 db_create_jobmedia_record(JCR *jcr, B_DB *mdb, JOBMEDIA_DBR *jm)
 {
-   int stat;
+   bool ok = true;;
    int count;
 
    db_lock(mdb);
@@ -124,7 +124,7 @@ JobId=%d AND MediaId=%d", jm->JobId, jm->MediaId);
 	 sql_free_result(mdb);
 	 db_unlock(mdb);
          Dmsg0(0, "Already have JobMedia record\n");
-	 return 0;
+	 return false;
       }
       sql_free_result(mdb);
    }
@@ -140,23 +140,30 @@ JobId=%d AND MediaId=%d", jm->JobId, jm->MediaId);
 
    /* Must create it */
    Mmsg(mdb->cmd, 
-"INSERT INTO JobMedia (JobId,MediaId,FirstIndex,LastIndex,\
-StartFile,EndFile,StartBlock,EndBlock,VolIndex) \
-VALUES (%u,%u,%u,%u,%u,%u,%u,%u,%u)", 
-       jm->JobId, jm->MediaId, jm->FirstIndex, jm->LastIndex,
-       jm->StartFile, jm->EndFile, jm->StartBlock, jm->EndBlock,count);
+        "INSERT INTO JobMedia (JobId,MediaId,FirstIndex,LastIndex,"
+        "StartFile,EndFile,StartBlock,EndBlock,VolIndex) "
+        "VALUES (%u,%u,%u,%u,%u,%u,%u,%u,%u)",
+	jm->JobId, jm->MediaId, jm->FirstIndex, jm->LastIndex,
+	jm->StartFile, jm->EndFile, jm->StartBlock, jm->EndBlock,count);
 
    Dmsg0(300, mdb->cmd);
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
-      Mmsg2(&mdb->errmsg, _("Create db JobMedia record %s failed. ERR=%s\n"), mdb->cmd, 
+      Mmsg2(&mdb->errmsg, _("Create JobMedia record %s failed: ERR=%s\n"), mdb->cmd, 
 	 sql_strerror(mdb));
-      stat = 0;
+      ok = false;
    } else {
-      stat = 1;
+      Mmsg(mdb->cmd, 
+           "UPDATE Media SET EndFile=%u, EndBlock=%u WHERE MediaId=%u",
+	   jm->EndFile, jm->EndBlock, jm->MediaId);
+      if (!UPDATE_DB(jcr, mdb, mdb->cmd)) {
+         Mmsg2(&mdb->errmsg, _("Update Media record %s failed: ERR=%s\n"), mdb->cmd, 
+	      sql_strerror(mdb));
+	 ok = false;
+      }
    }
    db_unlock(mdb);
    Dmsg0(300, "Return from JobMedia\n");
-   return stat;
+   return ok;
 }
 
 
