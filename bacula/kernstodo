@@ -28,6 +28,7 @@ Documentation to do: (any release a little bit at a time)
 - Create a man page for each binary (Debian package requirement).
           
 Testing to do: (painful)
+- Test drive polling!
 - that ALL console command line options work and are always implemented
 - blocksize recognition code.
 - Test if rewind at end of tape waits for tape to rewind.
@@ -56,24 +57,18 @@ For 1.33 Testing/Documentation:
 - Add subsections to the Disaster Recovery index section.
                 
 For 1.33
+- When a file is set for restore, walk back up the chain of 
+  directories, setting them to be restored.
+- Figure out a way to set restore on a directory without recursively
+  decending.  (recurse off?).
 - Add level to estimate command.
 - Check time/dates printed during restore when using Win32 API.
-- Possibly remove the "|| ap == NULL" on lines 123 and 207 of lib/var.c,
-  which creates compile problems on alpha systems.
-  var.c:123: no match for `va_list & == long int'
-- Check "restore" 3 (JobId), then it asks for Storage resource. Does
-  it verify that the correct volume is chosen?
 - Volume "add"ed to Pool gets recycled in first use. VolBytes=0
 - Get rid of 0 dates in LastWritten, ...
-- Make Bacula "poll a drive".
 - Fix "llist jobid=xx" where no fileset or client exists.
-- Release SQLite 2.8.8
+- Release SQLite 2.8.9
 - If a tape is recycled while it is mounted, Stanislav Tvrudy must do an
   additional mount to deblock the job.
-- Notes for final checking of Nic's code:
-  Could I get you to double check the switch () statements in the
-  job_check_maxwaittime and job_check_maxruntime functions in
-  src/dird/job.c?
 - From Johan Decock:
   bscan: sql_update.c:65 UPDATE File SET MD5='Ij+5kwN6TFIxK+8l8+/I+A' WHERE FileId=0
   bscan: bscan.c:1074 Could not add MD5/SHA1 to File record. ERR=sql_update.c:65 Update problem: affected_rows=0
@@ -1080,3 +1075,13 @@ Done: (see kernsdone for more)
     +---------+------------+---------------------+-----------+
   but perhaps it should fill already used Volumes first, and use
   Append volumes before Purged, or Recycled, ...
+- Possibly remove the "|| ap == NULL" on lines 123 and 207 of lib/var.c,
+  which creates compile problems on alpha systems.
+  var.c:123: no match for `va_list & == long int'
+- Check "restore" 3 (JobId), then it asks for Storage resource. Does
+  it verify that the correct volume is chosen?
+- Make Bacula "poll a drive".
+- Notes for final checking of Nic's code:
+  Could I get you to double check the switch () statements in the
+  job_check_maxwaittime and job_check_maxruntime functions in
+  src/dird/job.c?

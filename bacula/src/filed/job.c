@@ -1035,6 +1035,9 @@ static int restore_cmd(JCR *jcr)
 
 bail_out:
 
+   if (jcr->Errors) {
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
+   }
    /* Send termination status back to Dir */
    bnet_fsend(dir, EndJob, jcr->JobStatus, jcr->JobFiles, 
       edit_uint64(jcr->ReadBytes, ed1), 

@@ -234,9 +234,11 @@ static int markcmd(UAContext *ua, TREE_CTX *tree)
       bsendmsg(ua, _("No files marked.\n"));
       return 1;
    }
-   for (node = tree->node->child; node; node=node->sibling) {
-      if (fnmatch(ua->argk[1], node->fname, 0) == 0) {
-	 count += set_extract(ua, node, tree, true);
+   for (int i=1; i < ua->argc; i++) {
+      for (node = tree->node->child; node; node=node->sibling) {
+	 if (fnmatch(ua->argk[i], node->fname, 0) == 0) {
+	    count += set_extract(ua, node, tree, true);
+	 }
       }
    }
    if (count == 0) {
@@ -494,9 +496,11 @@ static int unmarkcmd(UAContext *ua, TREE_CTX *tree)
       bsendmsg(ua, _("No files unmarked.\n"));
       return 1;
    }
-   for (node = tree->node->child; node; node=node->sibling) {
-      if (fnmatch(ua->argk[1], node->fname, 0) == 0) {
-	 count += set_extract(ua, node, tree, false);
+   for (int i=1; i < ua->argc; i++) {
+      for (node = tree->node->child; node; node=node->sibling) {
+	 if (fnmatch(ua->argk[i], node->fname, 0) == 0) {
+	    count += set_extract(ua, node, tree, false);
+	 }
       }
    }
    if (count == 0) {

@@ -329,7 +329,7 @@ End time:               %s\n\
 Files Restored:         %s\n\
 Bytes Restored:         %s\n\
 Rate:                   %.1f KB/s\n\
-Non-fatal FD Errors:    %d\n\
+FD Errors:              %d\n\
 FD termination status:  %s\n\
 SD termination status:  %s\n\
 Termination:            %s\n\n"),
