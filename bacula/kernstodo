@@ -36,6 +36,7 @@ For 1.33 Testing/Documentation:
   SuSE.
                 
 For 1.33
+- Report CVS problems to SourceForge.
 - Implement .consolerc for Console
 - I want to restore by file to some date.
 - Is it really important to make Job name the same to find the
@@ -1043,4 +1044,3 @@ Done: (see kernsdone for more)
 - Test connect timeouts.
 - Fix FreeBSD build with tcp_wrapper -- should not have -lnsl
 - Implement fast block rejection.
-

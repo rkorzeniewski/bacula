@@ -38,7 +38,7 @@
 
 
 /* Imported functions */
-extern int runcmd(UAContext *ua, char *cmd);
+extern int run_cmd(UAContext *ua, char *cmd);
 extern void print_bsr(UAContext *ua, RBSR *bsr);
 
 /* Imported variables */
@@ -101,9 +101,11 @@ static void build_directory_tree(UAContext *ua, RESTORE_CTX *rx);
 static void free_rx(RESTORE_CTX *rx);
 static void split_path_and_filename(RESTORE_CTX *rx, char *fname);
 static int jobid_fileindex_handler(void *ctx, int num_fields, char **row);
-static int insert_file_into_findex_list(UAContext *ua, RESTORE_CTX *rx, char *file);
-static void insert_one_file(UAContext *ua, RESTORE_CTX *rx);
+static int insert_file_into_findex_list(UAContext *ua, RESTORE_CTX *rx, char *file,
+					char *date);
+static void insert_one_file(UAContext *ua, RESTORE_CTX *rx, char *date);
 static int get_client_name(UAContext *ua, RESTORE_CTX *rx);
+static int get_date(UAContext *ua, char *date, int date_len);
 
 /*
  *   Restore files
@@ -165,7 +167,7 @@ int restore_cmd(UAContext *ua, char *cmd)
    case 1:			      /* select by jobid */
       build_directory_tree(ua, &rx);
       break;
-   case 2:
+   case 2:			      /* select by filename, no tree needed */
       break;
    }
 
@@ -210,10 +212,12 @@ int restore_cmd(UAContext *ua, char *cmd)
           job->hdr.name, rx.ClientName, rx.store?rx.store->hdr.name:"",
 	  working_directory);
    }
-   
+   if (find_arg(ua, _("run")) >= 0) {
+      pm_strcat(&ua->cmd, " run");    /* pass it on to the run command */
+   }
    Dmsg1(400, "Submitting: %s\n", ua->cmd);
    parse_ua_args(ua);
-   runcmd(ua, ua->cmd);
+   run_cmd(ua, ua->cmd);
 
    bsendmsg(ua, _("Restore command done.\n"));
    free_rx(&rx);
@@ -273,6 +277,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
 {
    char *p;
    char date[MAX_TIME_LENGTH];
+   bool have_date = false;
    JobId_t JobId;
    JOB_DBR jr;
    bool done = false;
@@ -285,6 +290,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
       "Select the most recent backup for a client",
       "Select backup for a client before a specified time",
       "Enter a list of files to restore",
+      "Enter a list of files to restore before a specified time",
       "Cancel",
       NULL };
 
@@ -293,24 +299,26 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
       "current",   /* 1 */
       "before",    /* 2 */
       "file",      /* 3 */
+      "select",    /* 4 */
       NULL
    };
 
+   *rx->JobIds = 0;
    switch (find_arg_keyword(ua, kw)) {
    case 0:			      /* jobid */
-      i = find_arg_with_value(ua, _("jobid"));
-      if (i < 0) {
-	 return 0;
+      for ( ;; ) {
+         i = find_arg_with_value(ua, _("jobid"));
+	 if (i < 0) {
+	    break;
+	 }
+	 pm_strcpy(&rx->JobIds, ua->argv[i]);
+         ua->argk[i][0] = 0;          /* "consume" jobid= */
       }
-      pm_strcpy(&rx->JobIds, ua->argv[i]);
       done = true;
       break;
    case 1:			      /* current */
       bstrutime(date, sizeof(date), time(NULL));
-      if (!select_backups_before_date(ua, rx, date)) {
-	 return 0;
-      }
-      done = true;
+      have_date = true;
       break;
    case 2:			      /* before */
       i = find_arg_with_value(ua, _("before"));
@@ -322,12 +330,12 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
 	 return 0;
       }
       bstrncpy(date, ua->argv[i], sizeof(date));
-      if (!select_backups_before_date(ua, rx, date)) {
-	 return 0;
-      }
-      done = true;
+      have_date = true;
       break;
    case 3:			      /* file */
+      if (!have_date) {
+	 bstrutime(date, sizeof(date), time(NULL));
+      }
       if (!get_client_name(ua, rx)) {
 	 return 0;
       }
@@ -337,12 +345,21 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
 	    break;
 	 }
 	 pm_strcpy(&ua->cmd, ua->argv[i]);
-	 insert_one_file(ua, rx);
-	 ua->argk[i][0] = 0;
+	 insert_one_file(ua, rx, date);
+         ua->argk[i][0] = 0;          /* "consume" the file= */
       }
       /* Check MediaType and select storage that corresponds */
       get_storage_from_mediatype(ua, &rx->name_list, rx);
       return 2;
+   case 4:			      /* select */
+      if (!have_date) {
+	 bstrutime(date, sizeof(date), time(NULL));
+      }
+      if (!select_backups_before_date(ua, rx, date)) {
+	 return 0;
+      }
+      done = true;
+      break;
    default:
       break;
    }
@@ -403,23 +420,15 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
 	 }
 	 break;
       case 5:			      /* select backup at specified time */
-         bsendmsg(ua, _("The restored files will the most current backup\n"
-                        "BEFORE the date you specify below.\n\n"));
-	 for ( ;; ) {
-            if (!get_cmd(ua, _("Enter date as YYYY-MM-DD HH:MM:SS :"))) {
-	       return 0;
-	    }
-	    if (str_to_utime(ua->cmd) != 0) {
-	       break;
-	    }
-            bsendmsg(ua, _("Improper date format.\n"));
-	 }		
-	 bstrncpy(date, ua->cmd, sizeof(date));
+	 if (!get_date(ua, date, sizeof(date))) {
+	    return 0;
+	 }
 	 if (!select_backups_before_date(ua, rx, date)) {
 	    return 0;
 	 }
 	 break;
       case 6:			      /* Enter files */
+	 bstrutime(date, sizeof(date), time(NULL));
 	 if (!get_client_name(ua, rx)) {
 	    return 0;
 	 }
@@ -434,13 +443,37 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
 	    if (len == 0) {
 	       break;
 	    }
-	    insert_one_file(ua, rx);
+	    insert_one_file(ua, rx, date);
 	 }
 	 /* Check MediaType and select storage that corresponds */
 	 get_storage_from_mediatype(ua, &rx->name_list, rx);
 	 return 2;
+       case 7:			      /* enter files backed up before specified time */
+	 if (!get_date(ua, date, sizeof(date))) {
+	    return 0;
+	 }
+	 if (!get_client_name(ua, rx)) {
+	    return 0;
+	 }
+         bsendmsg(ua, _("Enter file names, or < to enter a filename\n"      
+                        "containg a list of file names, and terminate\n"
+                        "them with a blank line.\n"));
+	 for ( ;; ) {
+            if (!get_cmd(ua, _("Enter filename: "))) {
+	       return 0;
+	    }
+	    len = strlen(ua->cmd);
+	    if (len == 0) {
+	       break;
+	    }
+	    insert_one_file(ua, rx, date);
+	 }
+	 /* Check MediaType and select storage that corresponds */
+	 get_storage_from_mediatype(ua, &rx->name_list, rx);
+	 return 2;
+
       
-      case 7:			      /* Cancel or quit */
+      case 8:			      /* Cancel or quit */
 	 return 0;
       }
    }
@@ -477,7 +510,24 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
    return 1;
 }
 
-static void insert_one_file(UAContext *ua, RESTORE_CTX *rx)
+static int get_date(UAContext *ua, char *date, int date_len)
+{
+   bsendmsg(ua, _("The restored files will the most current backup\n"
+                  "BEFORE the date you specify below.\n\n"));
+   for ( ;; ) {
+      if (!get_cmd(ua, _("Enter date as YYYY-MM-DD HH:MM:SS :"))) {
+	 return 0;
+      }
+      if (str_to_utime(ua->cmd) != 0) {
+	 break;
+      }
+      bsendmsg(ua, _("Improper date format.\n"));
+   }		  
+   bstrncpy(date, ua->cmd, date_len);
+   return 1;
+}
+
+static void insert_one_file(UAContext *ua, RESTORE_CTX *rx, char *date)
 {
    FILE *ffd;
    char file[5000];
@@ -494,14 +544,14 @@ static void insert_one_file(UAContext *ua, RESTORE_CTX *rx)
       }
       while (fgets(file, sizeof(file), ffd)) {
 	 line++;
-	 if (!insert_file_into_findex_list(ua, rx, file)) {
+	 if (!insert_file_into_findex_list(ua, rx, file, date)) {
             bsendmsg(ua, _("Error occurred on line %d of %s\n"), line, p);
 	 }
       }
       fclose(ffd);
       break;
    default:
-      insert_file_into_findex_list(ua, rx, ua->cmd);
+      insert_file_into_findex_list(ua, rx, ua->cmd, date);
       break;
    }
 }
@@ -511,11 +561,12 @@ static void insert_one_file(UAContext *ua, RESTORE_CTX *rx)
  *   lookup the most recent backup in the catalog to get the JobId
  *   and FileIndex, then insert them into the findex list.
  */
-static int insert_file_into_findex_list(UAContext *ua, RESTORE_CTX *rx, char *file)
+static int insert_file_into_findex_list(UAContext *ua, RESTORE_CTX *rx, char *file, 
+					char *date)
 {
    strip_trailing_junk(file);
    split_path_and_filename(rx, file);
-   Mmsg(&rx->query, uar_jobid_fileindex, rx->path, rx->fname, rx->ClientName);
+   Mmsg(&rx->query, uar_jobid_fileindex, date, rx->path, rx->fname, rx->ClientName);
    rx->found = false;
    /* Find and insert jobid and File Index */
    if (!db_sql_query(ua->db, rx->query, jobid_fileindex_handler, (void *)rx)) {

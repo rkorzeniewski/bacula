@@ -213,7 +213,7 @@ char *uar_inc_dec =
    "Job.Level,Job.JobFiles,Job.StartTime,Media.VolumeName,JobMedia.StartFile,"
    "Job.VolSessionId,Job.VolSessionTime "
    "FROM Job,JobMedia,Media "
-   "WHERE Job.JobTDate>%s AND Job.StartTime < '%s' "
+   "WHERE Job.JobTDate>%s AND Job.StartTime<'%s' "
    "AND Job.ClientId=%u "
    "AND JobMedia.JobId=Job.JobId "
    "AND JobMedia.MediaId=Media.MediaId "
@@ -241,10 +241,11 @@ char *uar_mediatype =
    "SELECT MediaType FROM JobMedia,Media WHERE JobMedia.JobId=%u "
    "AND JobMedia.MediaId=Media.MediaId";
 
-/* Find JobId, FileIndex for a given path/file */
+/* Find JobId, FileIndex for a given path/file and date */
 char *uar_jobid_fileindex = 
    "SELECT Job.JobId, File.FileIndex FROM Job,File,Path,Filename,Client "
    "WHERE Job.JobId=File.JobId "
+   "AND Job.StartTime<'%s' "
    "AND Path.Path='%s' "
    "AND Filename.Name='%s' "
    "AND Client.Name='%s' "
