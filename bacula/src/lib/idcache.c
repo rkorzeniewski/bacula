@@ -77,6 +77,7 @@ void free_getuser_cache()
      tail = tail->next;
      free(otail);
   }
+  user_alist = NULL;
   V(mutex);
 }
 
@@ -126,5 +127,6 @@ void free_getgroup_cache()
      tail = tail->next;
      free(otail);
   }
+  group_alist = NULL;
   V(mutex);
 }

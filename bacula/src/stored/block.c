@@ -439,12 +439,12 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	 /* Now back up over what we wrote and read the last block */
 	 if (bsf_dev(dev, 1) != 0 || bsf_dev(dev, 1) != 0) {
 	    ok = FALSE;
-            Jmsg(jcr, M_ERROR, 0, _("Back space file at EOT failed. ERR=%s\n"), strerror(dev->dev_errno));
+            Jmsg(jcr, M_ERROR, 0, _("Backspace file at EOT failed. ERR=%s\n"), strerror(dev->dev_errno));
 	 }
 	 /* Backspace over record */
 	 if (ok && bsr_dev(dev, 1) != 0) {
 	    ok = FALSE;
-            Jmsg(jcr, M_ERROR, 0, _("Back space record at EOT failed. ERR=%s\n"), strerror(dev->dev_errno));
+            Jmsg(jcr, M_ERROR, 0, _("Backspace record at EOT failed. ERR=%s\n"), strerror(dev->dev_errno));
 	    /*
 	     *	On FreeBSD systems, if the user got here, it is likely that his/her
              *    tape drive is "frozen".  The correct thing to do is a 

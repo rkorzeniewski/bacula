@@ -439,7 +439,7 @@ static void bsfcmd()
    if ((stat=bsf_dev(dev, 1)) < 0) {
       Pmsg1(0, _("Bad status from bsf. ERR=%s\n"), strerror(errno));
    } else {
-      Pmsg0(0, _("Back spaced one file.\n"));
+      Pmsg0(0, _("Backspaced one file.\n"));
    }
 }
 
@@ -453,7 +453,7 @@ static void bsrcmd()
    if ((stat=bsr_dev(dev, 1)) < 0) {
       Pmsg1(0, _("Bad status from bsr. ERR=%s\n"), strerror(errno));
    } else {
-      Pmsg0(0, _("Back spaced one record.\n"));
+      Pmsg0(0, _("Backspaced one record.\n"));
    }
 }
 
@@ -613,16 +613,16 @@ static int re_read_block_test()
    weofcmd();
    weofcmd();
    if (bsf_dev(dev, 1) != 0) {
-      Pmsg1(0, _("Back space file failed! ERR=%s\n"), strerror(dev->dev_errno));
+      Pmsg1(0, _("Backspace file failed! ERR=%s\n"), strerror(dev->dev_errno));
       goto bail_out;
    }
    if (bsf_dev(dev, 1) != 0) {
-      Pmsg1(0, _("Back space file failed! ERR=%s\n"), strerror(dev->dev_errno));
+      Pmsg1(0, _("Backspace file failed! ERR=%s\n"), strerror(dev->dev_errno));
       goto bail_out;
    }
    Pmsg0(0, "Backspaced over two EOFs OK.\n");
    if (bsr_dev(dev, 1) != 0) {
-      Pmsg1(0, _("Back space record failed! ERR=%s\n"), strerror(dev->dev_errno));
+      Pmsg1(0, _("Backspace record failed! ERR=%s\n"), strerror(dev->dev_errno));
       goto bail_out;
    }
    Pmsg0(0, "Backspace record OK.\n");

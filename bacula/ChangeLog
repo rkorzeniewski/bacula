@@ -1,5 +1,16 @@
 
-2003-07-xx Version 1.31 Beta xxJul03
+2003-07-12 Version 1.31 Beta 10Jul03
+- Manual updates.
+- Clean up some unused variables detected by the IRIX compiler.
+- Test two directories on Win32 -- caused a crash. I forgot
+  to NULL the uid cache pointer after releasing it.
+- Use bstrncpy() instead of strcpy() in find_files.
+- Clear a few linked lists in the temp directory packed in find_one.c
+- Eliminate an unnecessary variable in attr.c
+- Clear the cache pointer after release in idcache.c
+- Implement a new C++ doubly linked list class.
+
+2003-07-08 Version 1.31 Beta 08Jul03
 - Update document for Win32 stuff.
 - Ensure VolStatus value for update is permitted.
 - Fix cached_path so that it is local to the jcr, otherwise, there

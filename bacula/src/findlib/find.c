@@ -105,15 +105,15 @@ set_find_options(FF_PKT *ff, int incremental, time_t save_time, int mtime_only)
 int
 find_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt), void *his_pkt) 
 {
-   char *file;
    struct s_included_file *inc = NULL;
 
    while (!job_canceled(jcr) && (inc = get_next_included_file(ff, inc))) {
-      file = inc->fname;
-      strcpy(ff->VerifyOpts, inc->VerifyOpts); /* Copy options for this file */
-      Dmsg1(50, "find_files: file=%s\n", file);
-      if (!file_is_excluded(ff, file)) {
-	 if (!find_one_file(jcr, ff, callback, his_pkt, file, (dev_t)-1, 1)) {
+      /* Copy options for this file */
+      bstrncpy(ff->VerifyOpts, inc->VerifyOpts, sizeof(ff->VerifyOpts)); 
+      Dmsg1(50, "find_files: file=%s\n", inc->fname);
+      if (!file_is_excluded(ff, inc->fname)) {
+	 if (!find_one_file(jcr, ff, callback, his_pkt, inc->fname, 
+	      (dev_t)-1, 1)) {
 	    return 0;		       /* error return */
 	 }
       }

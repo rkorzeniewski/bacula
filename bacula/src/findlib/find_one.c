@@ -252,11 +252,16 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
        *   during the restore, the directory permissions will
        *   be reset after all the files have been restored.
        */
+      Dmsg1(300, "Create temp ff packet for dir: %s\n", ff_pkt->fname);
       FF_PKT *dir_ff_pkt = (FF_PKT *)bmalloc(sizeof(FF_PKT));
       memcpy(dir_ff_pkt, ff_pkt, sizeof(FF_PKT));
       dir_ff_pkt->fname = bstrdup(ff_pkt->fname);
       dir_ff_pkt->link = bstrdup(ff_pkt->link);
       dir_ff_pkt->sys_fname = get_pool_memory(PM_FNAME);
+      dir_ff_pkt->included_files_list = NULL;
+      dir_ff_pkt->excluded_files_list = NULL;
+      dir_ff_pkt->excluded_paths_list = NULL;
+      dir_ff_pkt->linklist = NULL;
 	
       ff_pkt->link = ff_pkt->fname;     /* reset "link" */
 
