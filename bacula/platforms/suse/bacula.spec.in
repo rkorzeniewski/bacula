@@ -2,7 +2,7 @@
 
 # basic defines for every build
 %define depkgs ../depkgs
-%define depkgs_version 24Jul03
+%define depkgs_version 08Mar04
 %define tomsrtbt tomsrtbt-2.0.103
 %define sqlite_bindir /usr/lib/sqlite
 %define working_dir /var/bacula
@@ -419,6 +419,7 @@ mkdir -p $RPM_BUILD_ROOT/etc/bacula/updatedb
 %if ! %{su9}
 mkdir -p $RPM_BUILD_ROOT/etc/pam.d
 mkdir -p $RPM_BUILD_ROOT/etc/security/console.apps
+mkdir -p $RPM_BUILD_ROOT/usr/bin
 %endif
 
 %if %{sqlite}
@@ -487,12 +488,14 @@ cp -p scripts/bacula.png $RPM_BUILD_ROOT/usr/share/pixmaps/bacula.png
 cp -p scripts/bacula.desktop.gnome1.consolehelper $RPM_BUILD_ROOT/usr/share/gnome/apps/System/bacula.desktop
 cp -p scripts/gnome-console.console_apps $RPM_BUILD_ROOT/etc/security/console.apps/gnome-console
 cp -p scripts/gnome-console.pamd $RPM_BUILD_ROOT/etc/pam.d/gnome-console
+ln -sf consolehelper $RPM_BUILD_ROOT/usr/bin/gnome-console
 %endif
 %if %{rh8} || %{rh9} || %{wb3} || %{fc1}
 cp -p scripts/bacula.png $RPM_BUILD_ROOT/usr/share/pixmaps/bacula.png
 cp -p scripts/bacula.desktop.gnome2.consolehelper $RPM_BUILD_ROOT/usr/share/applications/bacula.desktop
 cp -p scripts/gnome-console.console_apps $RPM_BUILD_ROOT/etc/security/console.apps/gnome-console
 cp -p scripts/gnome-console.pamd $RPM_BUILD_ROOT/etc/pam.d/gnome-console
+ln -sf consolehelper $RPM_BUILD_ROOT/usr/bin/gnome-console
 %endif
 
 # install sqlite
@@ -955,18 +958,12 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 # add the console helper files
 %config(noreplace,missingok) /etc/pam.d/gnome-console
 %config(noreplace,missingok) /etc/security/console.apps/gnome-console
-
-%post gconsole
-# add gnome-console consolehelper link
-ln -sf /usr/bin/consolehelper /usr/bin/gnome-console
-
-
-%postun gconsole
-# remove gnome-console consolehelper link
-rm -f /usr/bin/gnome-console
+/usr/bin/gnome-console
 %endif
 
 %changelog
+* Thu Jun 24 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
+- really, really fix symlink creation for gconsole
 * Thu Jun 17 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - fix symlink creation in gconsole post install
 * Sat Jun 12 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
