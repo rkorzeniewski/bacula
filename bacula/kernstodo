@@ -1067,3 +1067,5 @@ Done: (see kernsdone for more)
 - Document delete job command.
 - Document update volume pool and other command line keywords.
 - Add VerifyJob to "run" summary (yes/mod/no) prompt.
+- For listing, eliminate multiple JobIds in restore Jobs listing.
+

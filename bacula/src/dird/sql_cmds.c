@@ -223,7 +223,9 @@ char *uar_inc_dec =
 
 char *uar_list_temp = 
    "SELECT JobId,Level,JobFiles,StartTime,VolumeName,StartFile,"
-   "VolSessionId,VolSessionTime FROM temp";
+   "VolSessionId,VolSessionTime FROM temp "
+   "GROUP by JobId ORDER BY StartTime ASC";
+
 
 char *uar_sel_jobid_temp = "SELECT JobId FROM temp";
 
