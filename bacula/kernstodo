@@ -398,7 +398,7 @@ Done -- Restore part needs better implementation to work correctly
 
 
 Item 2:   Make the Storage daemon use intermediate file storage to buffer data.
-Deferred -- not necessary yet.
+Deferred -- not necessary yet -- possibly implement with Migration.
 
   What:   If data is coming into the SD too fast, buffer it to 
           disk if the user has configured this option.
@@ -454,6 +454,7 @@ Item 4:   Implement Base jobs.
 
 
 Item 5:   Implement Label templates
+Done 
 
   What:   This is a mechanism whereby Bacula can automatically create
           a tape label for new tapes according to a detailed specification
@@ -507,7 +508,6 @@ Item 8:   GUI for interactive backup
 
 
 Item 9:   Add SSL to daemon communications.
-Inprogress as of version 1.31.
 
   What:   This provides for secure communications between the daemons.
 
@@ -980,4 +980,3 @@ Done: (see kernsdone for more)
 - That restoring a hard link that already exists works correctly.
   Same for soft link.
 - Make Pool resource handle Counter resources.
-

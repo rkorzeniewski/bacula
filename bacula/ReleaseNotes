@@ -1,7 +1,7 @@
 
           Release Notes for Bacula 1.31
 
-  Bacula code: Total files = 246 Total lines = 70,476 (*.h *.c *.in)
+  Bacula code: Total files = 250 Total lines = 74,253 (*.h *.c *.in)
 
 Major Changes this Release:
 - The database format has changed. Please see below.
@@ -15,6 +15,7 @@ Major Changes this Release:
   and underscore.
 - Added readline to depkgs (removed from depkgs1) and fixed configuration if
   it is not installed in your system libraries.
+- Implemented generalized tape label formats including counter variables.
 
 
 Other Changes this Release:

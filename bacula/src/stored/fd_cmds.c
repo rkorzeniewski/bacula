@@ -153,7 +153,6 @@ void run_job(JCR *jcr)
    set_jcr_job_status(jcr, JS_Terminated);
    bnet_fsend(dir, Job_end, jcr->Job, jcr->JobStatus, jcr->JobFiles,
       edit_uint64(jcr->JobBytes, ec1));
-
    bnet_sig(dir, BNET_EOD);	      /* send EOD to Director daemon */
    return;
 }
@@ -171,9 +170,9 @@ static int append_data_cmd(JCR *jcr)
    Dmsg1(120, "Append data: %s", fd->msg);
    if (jcr->session_opened) {
       Dmsg1(110, "<bfiled: %s", fd->msg);
+      jcr->JobType = JT_BACKUP;
       if (do_append_data(jcr)) {
 	 bnet_fsend(fd, OK_append);
-	 jcr->JobType = JT_BACKUP;
 	 return 1;
       } else {
 	 bnet_suppress_error_messages(fd, 1); /* ignore errors at this point */
@@ -195,6 +194,7 @@ static int append_end_session(JCR *jcr)
       bnet_fsend(fd, NOT_opened);
       return 0;
    }
+   set_jcr_job_status(jcr, JS_Terminated);
    return bnet_fsend(fd, OK_end);
 }
 
@@ -239,7 +239,7 @@ static int append_close_session(JCR *jcr)
    }
    /* Send final statistics to File daemon */
    bnet_fsend(fd, OK_close, jcr->JobStatus);
-   Dmsg1(160, ">filed: %s\n", fd->msg);
+   Dmsg1(120, ">filed: %s\n", fd->msg);
 
    bnet_sig(fd, BNET_EOD);	      /* send EOD to File daemon */
        

@@ -261,6 +261,6 @@ int do_append_data(JCR *jcr)
 
    dir_send_job_status(jcr);	      /* update director */
 
-   Dmsg0(90, "return from do_append_data()\n");
+   Dmsg1(100, "return from do_append_data() stat=%d\n", ok);
    return ok ? 1 : 0;
 }

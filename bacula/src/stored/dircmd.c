@@ -175,9 +175,7 @@ void *connection_request(void *arg)
 	 break;
       }
    }
-   if (bnet_stat != BNET_TERMINATE) {
-      bnet_sig(bs, BNET_TERMINATE);
-   }
+   bnet_sig(bs, BNET_TERMINATE);
    free_jcr(jcr);
    return NULL;
 }
