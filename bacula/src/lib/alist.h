@@ -20,6 +20,8 @@
    Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
    MA 02111-1307, USA.
 
+   Kern Sibbald, June MMIII
+
  */
 
 /* 
@@ -52,7 +54,7 @@ inline void * alist::operator [](int index) const {
    return items[index];
 }
 
-/*			      
+/*                            
  * This allows us to do explicit initialization,
  *   allowing us to mix C++ classes inside malloc'ed
  *   C structures. Define before called in constructor.

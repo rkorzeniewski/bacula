@@ -151,12 +151,12 @@ db_list_media_records(JCR *jcr, B_DB *mdb, MEDIA_DBR *mdbr,
       }
    } else {
       if (mdbr->VolumeName[0] != 0) {
-         Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,MediaType,VolStatus,"
-            "VolBytes,LastWritten,VolRetention,Recycle,Slot "
+         Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolStatus,"
+            "VolBytes,VolFiles,VolRetention,Recycle,Slot,MediaType,LastWritten "
             "FROM Media WHERE Media.VolumeName='%s'", mdbr->VolumeName);
       } else {
-         Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,MediaType,VolStatus,"
-            "VolBytes,LastWritten,VolRetention,Recycle,Slot "
+         Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolStatus,"
+            "VolBytes,VolFiles,VolRetention,Recycle,Slot,MediaType,LastWritten "
             "FROM Media WHERE Media.PoolId=%u ORDER BY MediaId", mdbr->PoolId);
       }
    }

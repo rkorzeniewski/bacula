@@ -304,7 +304,7 @@ static int do_list_cmd(UAContext *ua, char *cmd, e_list_type llist)
       /* List MEDIA or VOLUMES */
       } else if (strcasecmp(ua->argk[i], _("media")) == 0 ||
                  strcasecmp(ua->argk[i], _("volumes")) == 0) {
-	 int done = FALSE;
+	 bool done = false;
 	 for (j=i+1; j<ua->argc; j++) {
             if (strcasecmp(ua->argk[j], _("job")) == 0 && ua->argv[j]) {
 	       bstrncpy(jr.Job, ua->argv[j], MAX_NAME_LENGTH);
@@ -320,7 +320,7 @@ static int do_list_cmd(UAContext *ua, char *cmd, e_list_type llist)
 	    n = db_get_job_volume_names(ua->jcr, ua->db, jobid, &VolumeName);
             bsendmsg(ua, _("Jobid %d used %d Volume(s): %s\n"), jobid, n, VolumeName);
 	    free_pool_memory(VolumeName);
-	    done = TRUE;
+	    done = true;
 	 }
 	 /* if no job or jobid keyword found, then we list all media */
 	 if (!done) {

@@ -65,6 +65,7 @@ static void signal_handler(int sig)
    if (already_dead) {
       _exit(1);
    }
+   Dmsg1(200, "sig=%d\n", sig);
    /* Ignore certain signals */
    if (sig == SIGCHLD || sig == SIGUSR2) {
       return;
@@ -138,7 +139,7 @@ static void signal_handler(int sig)
 	 waitpid(pid, NULL, 0);       /* wait for child to produce dump */
          fprintf(stderr, "Traceback complete, attempting cleanup ...\n");
          Dmsg0(500, "Done waitpid\n");
-	 exit_handler(1);	      /* clean up if possible */
+	 exit_handler(sig);	      /* clean up if possible */
          Dmsg0(500, "Done exit_handler\n");
       } else {
          Dmsg0(500, "Doing sleep\n");
@@ -148,7 +149,7 @@ static void signal_handler(int sig)
    }
 #endif
 
-   exit_handler(1);
+   exit_handler(sig);
 }
 
 /*

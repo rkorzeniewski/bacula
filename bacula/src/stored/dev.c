@@ -1012,7 +1012,7 @@ weof_dev(DEVICE *dev, int num)
       return -1;
    }
 
-   if (!(dev->state & ST_TAPE)) {
+   if (!(dev_state(dev, ST_TAPE))) {
       return 0;
    }
    dev->state &= ~(ST_EOT | ST_EOF);  /* remove EOF/EOT flags */

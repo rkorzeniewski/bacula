@@ -434,7 +434,7 @@ extern int thr_setconcurrency(int);
 
 #ifdef HAVE_DARWIN_OS
 /* Apparently someone forgot to wrap getdomainname as a C function */
-extern "C" int getdomainname(char *name, size_t len);
+extern "C" int getdomainname(char *name, int len);
 
 /* Darwin lib fnmatch() doesn't work, so use our own */
 #undef HAVE_FNMATCH

@@ -322,8 +322,8 @@ static int do_label(JCR *jcr, int relabel)
 		     dev->dev_blocked == BST_WAITING_FOR_SYSOP ||
 		     dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP)) {
 	    label_volume_if_ok(jcr, dev, oldname, newname, poolname, slot, relabel);
-	 } else if (dev->state & ST_READ || dev->num_writers) {
-	    if (dev->state & ST_READ) {
+	 } else if (dev_state(dev, ST_READ) || dev->num_writers) {
+	    if (dev_state(dev, ST_READ)) {
                 bnet_fsend(dir, _("3911 Device %s is busy with 1 reader.\n"),
 		   dev_name(dev));
 	    } else {
@@ -519,7 +519,7 @@ static int mount_cmd(JCR *jcr)
                Dmsg0(100, "Unmounted waiting for mount. Attempting to wake thread\n");
 	       dev->dev_blocked = BST_MOUNT;
 	    }
-	    if (dev->state & ST_LABEL) {
+	    if (dev_state(dev, ST_LABEL)) {
                bnet_fsend(dir, _("3001 Device %s is mounted with Volume \"%s\"\n"), 
 		  dev->dev_name, dev->VolHdr.VolName);
 	    } else {
@@ -540,8 +540,8 @@ static int mount_cmd(JCR *jcr)
 	    break;
 
 	 case BST_NOT_BLOCKED:
-	    if (dev->state & ST_OPENED) {
-	       if (dev->state & ST_LABEL) {
+	    if (dev_state(dev, ST_OPENED)) {
+	       if (dev_state(dev, ST_LABEL)) {
                   bnet_fsend(dir, _("3001 Device %s is mounted with Volume \"%s\"\n"),
 		     dev->dev_name, dev->VolHdr.VolName);
 	       } else {
@@ -560,7 +560,7 @@ static int mount_cmd(JCR *jcr)
 		  break;
 	       }
 	       read_label(jcr, dev);
-	       if (dev->state & ST_LABEL) {
+	       if (dev_state(dev, ST_LABEL)) {
                   bnet_fsend(dir, _("3001 Device %s is mounted with Volume \"%s\"\n"), 
 		     dev->dev_name, dev->VolHdr.VolName);
 	       } else {
@@ -638,8 +638,8 @@ static int unmount_cmd(JCR *jcr)
             bnet_fsend(dir, _("3903 Device %s is being labeled.\n"),
 	       dev_name(dev));
 
-	 } else if (dev->state & ST_READ || dev->num_writers) {
-	    if (dev->state & ST_READ) {
+	 } else if (dev_state(dev, ST_READ) || dev->num_writers) {
+	    if (dev_state(dev, ST_READ)) {
                 Dmsg0(90, "Device in read mode\n");
                 bnet_fsend(dir, _("3904 Device %s is busy with 1 reader.\n"),
 		   dev_name(dev));
@@ -729,8 +729,8 @@ static int release_cmd(JCR *jcr)
             bnet_fsend(dir, _("3914 Device %s is being labeled.\n"),
 	       dev_name(dev));
 
-	 } else if (dev->state & ST_READ || dev->num_writers) {
-	    if (dev->state & ST_READ) {
+	 } else if (dev_state(dev, ST_READ) || dev->num_writers) {
+	    if (dev_state(dev, ST_READ)) {
                 Dmsg0(90, "Device in read mode\n");
                 bnet_fsend(dir, _("3915 Device %s is busy with 1 reader.\n"),
 		   dev_name(dev));
@@ -806,8 +806,8 @@ static int autochanger_cmd(JCR *jcr)
 		     dev->dev_blocked == BST_WAITING_FOR_SYSOP ||
 		     dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP)) {
 	    autochanger_list(jcr, dev, dir);
-	 } else if (dev->state & ST_READ || dev->num_writers) {
-	    if (dev->state & ST_READ) {
+	 } else if (dev_state(dev, ST_READ) || dev->num_writers) {
+	    if (dev_state(dev, ST_READ)) {
                 bnet_fsend(dir, _("3901 Device %s is busy with 1 reader.\n"),
 		   dev_name(dev));
 	    } else {

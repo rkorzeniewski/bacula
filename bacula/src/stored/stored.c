@@ -107,48 +107,48 @@ int main (int argc, char *argv[])
 
    while ((ch = getopt(argc, argv, "c:d:fg:stu:v?")) != -1) {
       switch (ch) {
-         case 'c':                    /* configuration file */
-	    if (configfile != NULL) {
-	       free(configfile);
-	    }
-	    configfile = bstrdup(optarg);
-	    break;
+      case 'c':                    /* configuration file */
+	 if (configfile != NULL) {
+	    free(configfile);
+	 }
+	 configfile = bstrdup(optarg);
+	 break;
 
-         case 'd':                    /* debug level */
-	    debug_level = atoi(optarg);
-	    if (debug_level <= 0) {
-	       debug_level = 1; 
-	    }
-	    break;
+      case 'd':                    /* debug level */
+	 debug_level = atoi(optarg);
+	 if (debug_level <= 0) {
+	    debug_level = 1; 
+	 }
+	 break;
 
-         case 'f':                    /* run in foreground */
-	    foreground = TRUE;
-	    break;
+      case 'f':                    /* run in foreground */
+	 foreground = TRUE;
+	 break;
 
-         case 'g':                    /* set group id */
-	    gid = optarg;
-	    break;
+      case 'g':                    /* set group id */
+	 gid = optarg;
+	 break;
 
-         case 's':                    /* no signals */
-	    no_signals = TRUE;
-	    break;
+      case 's':                    /* no signals */
+	 no_signals = TRUE;
+	 break;
 
-         case 't':
-	    test_config = TRUE;
-	    break;
+      case 't':
+	 test_config = TRUE;
+	 break;
 
-         case 'u':                    /* set uid */
-	    uid = optarg;
-	    break;
+      case 'u':                    /* set uid */
+	 uid = optarg;
+	 break;
 
-         case 'v':                    /* verbose */
-	    verbose++;
-	    break;
+      case 'v':                    /* verbose */
+	 verbose++;
+	 break;
 
-         case '?':
-	 default:
-	    usage();
-
+      case '?':
+      default:
+	 usage();
+	 break;
       }  
    }
    argc -= optind;
@@ -335,16 +335,47 @@ void terminate_stored(int sig)
 {
    static int in_here = FALSE;
    DEVRES *device;
+   JCR *jcr;
 
    if (in_here) {		      /* prevent loops */
       exit(1);
    }
    in_here = TRUE;
 
+   if (sig == SIGTERM) {	      /* normal shutdown request? */
+      /*
+       * This is a normal shutdown request. We wiffle through
+       *   all open jobs canceling them and trying to wake
+       *   them up so that they will report back the correct
+       *   volume status.
+       */
+      lock_jcr_chain();
+      for (jcr=NULL; (jcr=get_next_jcr(jcr)); ) {
+	 BSOCK *fd;
+	 free_locked_jcr(jcr);
+	 if (jcr->JobId == 0) {
+	    continue;		      /* ignore console */
+	 }
+	 set_jcr_job_status(jcr, JS_Canceled);
+	 fd = jcr->file_bsock;	
+	 if (fd) {
+	    fd->timed_out = TRUE;
+            Dmsg1(100, "killing JobId=%d\n", jcr->JobId);
+	    pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
+	    if (jcr->device && jcr->device->dev && jcr->device->dev->dev_blocked) {
+	       pthread_cond_signal(&jcr->device->dev->wait_next_vol);
+	    }
+	    bmicrosleep(0, 50000);
+	  }
+      }
+      unlock_jcr_chain();
+      bmicrosleep(0, 500000);	      /* give them 1/2 sec to clean up */
+   }
+
    delete_pid_file(me->pid_directory, "bacula-sd", me->SDport);
    stop_watchdog();
 
-   Dmsg0(200, "In terminate_stored()\n");
+   Dmsg1(200, "In terminate_stored() sig=%d\n", sig);
 
    LockRes();
    for (device=NULL; (device=(DEVRES *)GetNextRes(R_DEVICE, (RES *)device)); ) {

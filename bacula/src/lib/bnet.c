@@ -61,6 +61,7 @@ static int32_t read_nbytes(BSOCK *bsock, char *ptr, int32_t nbytes)
 	 errno = 0;
 	 nread = read(bsock->fd, ptr, nleft);	 
 	 if (bsock->timed_out || bsock->terminated) {
+            Dmsg1(000, "timed_out = %d\n", bsock->timed_out);
 	    return nread;
 	 }
       } while (nread == -1 && (errno == EINTR || errno == EAGAIN));
@@ -474,6 +475,50 @@ bnet_wait_data_intr(BSOCK *bsock, int sec)
    }
 }
 
+#ifndef NETDB_INTERNAL
+#define NETDB_INTERNAL	-1	/* See errno. */
+#endif
+#ifndef NETDB_SUCCESS
+#define NETDB_SUCCESS	0	/* No problem. */
+#endif
+#ifndef HOST_NOT_FOUND
+#define HOST_NOT_FOUND	1	/* Authoritative Answer Host not found. */
+#endif
+#ifndef TRY_AGAIN
+#define TRY_AGAIN	2	/* Non-Authoritative Host not found, or SERVERFAIL. */
+#endif
+#ifndef NO_RECOVERY
+#define NO_RECOVERY	3	/* Non recoverable errors, FORMERR, REFUSED, NOTIMP. */
+#endif
+#ifndef NO_DATA
+#define NO_DATA 	4	/* Valid name, no data record of requested type. */
+#endif
+
+extern int h_errno;		/* On error has one of the above */
+
+/*
+ * Get human readable error for gethostbyname()
+ */
+static char *gethost_strerror() 
+{
+   switch (h_errno) {
+   case NETDB_INTERNAL:
+      return strerror(errno);
+   case NETDB_SUCCESS:
+      return "No problem.";
+   case HOST_NOT_FOUND:
+      return "Authoritative answer Host not found.";
+   case TRY_AGAIN:
+      return "Non-authoritative Host not found, or ServerFail.";
+   case NO_RECOVERY:
+      return "Non-recoverable errors, FORMERR, REFUSED, or NOTIMP.";
+   case NO_DATA:
+      return "Valid name, no data record of resquested type.";
+   default:
+      return "Unknown error.";
+   }
+}
+
 
 static pthread_mutex_t ip_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -497,7 +542,7 @@ static uint32_t *bget_host_ip(JCR *jcr, char *host)
       P(ip_mutex);
       if ((hp = gethostbyname(host)) == NULL) {
          Jmsg2(jcr, M_ERROR, 0, "gethostbyname() for %s failed: ERR=%s\n", 
-	       host, strerror(errno));
+	       host, gethost_strerror());
 	 V(ip_mutex);
 	 return NULL;
       }
@@ -512,7 +557,7 @@ Wanted %d got %d bytes for s_addr.\n"), sizeof(inaddr.s_addr), hp->h_length);
 	 i++;
       }
       i++;
-      addr_list = (uint32_t *) malloc(sizeof(uint32_t) * i);
+      addr_list = (uint32_t *)malloc(sizeof(uint32_t) * i);
       i = 0;
       for (p = hp->h_addr_list; *p != 0; p++) {
 	 addr_list[i++] = (*(struct in_addr **)p)->s_addr;

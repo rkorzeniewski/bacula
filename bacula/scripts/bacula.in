@@ -182,63 +182,64 @@ failure() {
 case "$1" in
     start)
        [ -x ${BACBIN}/bacula-sd ] && {
-          echo "Starting the Storage daemon"
-          OPTIONS=''
-          if [ "${SD_USER}" != '' ]; then
-             OPTIONS="${OPTIONS} -u ${SD_USER}"
-          fi
+	  echo "Starting the Storage daemon"
+	  OPTIONS=''
+	  if [ "${SD_USER}" != '' ]; then
+	     OPTIONS="${OPTIONS} -u ${SD_USER}"
+	  fi
 
-          if [ "${SD_GROUP}" != '' ]; then
-             OPTIONS="${OPTIONS} -g ${SD_GROUP}"
-          fi
+	  if [ "${SD_GROUP}" != '' ]; then
+	     OPTIONS="${OPTIONS} -g ${SD_GROUP}"
+	  fi
 
-          ${BACBIN}/bacula-sd $2 ${OPTIONS} -v -c ${BACCFG}/bacula-sd.conf
+	  ${BACBIN}/bacula-sd $2 ${OPTIONS} -v -c ${BACCFG}/bacula-sd.conf
        }
 
        [ -x ${BACBIN}/bacula-fd ] && {
-          echo "Starting the File daemon"
-          OPTIONS=''
-          if [ "${FD_USER}" != '' ]; then
-             OPTIONS="${OPTIONS} -u ${FD_USER}"
-          fi
+	  echo "Starting the File daemon"
+	  OPTIONS=''
+	  if [ "${FD_USER}" != '' ]; then
+	     OPTIONS="${OPTIONS} -u ${FD_USER}"
+	  fi
 
-          if [ "${FD_GROUP}" != '' ]; then
-             OPTIONS="${OPTIONS} -g ${FD_GROUP}"
-          fi
+	  if [ "${FD_GROUP}" != '' ]; then
+	     OPTIONS="${OPTIONS} -g ${FD_GROUP}"
+	  fi
 
-          ${BACBIN}/bacula-fd $2 ${OPTIONS} -v -c ${BACCFG}/bacula-fd.conf
+	  ${BACBIN}/bacula-fd $2 ${OPTIONS} -v -c ${BACCFG}/bacula-fd.conf
        }
 
        [ -x ${BACBIN}/bacula-dir ] && { 
-       	   sleep 2
-       	   echo "Starting the Director daemon"
-          OPTIONS=''
-          if [ "${DIR_USER}" != '' ]; then
-             OPTIONS="${OPTIONS} -u ${DIR_USER}"
-          fi
+	   sleep 2
+	   echo "Starting the Director daemon"
+	  OPTIONS=''
+	  if [ "${DIR_USER}" != '' ]; then
+	     OPTIONS="${OPTIONS} -u ${DIR_USER}"
+	  fi
 
-          if [ "${DIR_GROUP}" != '' ]; then
-             OPTIONS="${OPTIONS} -g ${DIR_GROUP}"
-          fi
+	  if [ "${DIR_GROUP}" != '' ]; then
+	     OPTIONS="${OPTIONS} -g ${DIR_GROUP}"
+	  fi
 
-          ${BACBIN}/bacula-dir $2 ${OPTIONS} -v -c ${BACCFG}/bacula-dir.conf
+	  ${BACBIN}/bacula-dir $2 ${OPTIONS} -v -c ${BACCFG}/bacula-dir.conf
        }
        ;;
 
     stop)
-       [ -x ${BACBIN}/bacula-sd ] && {
-          echo "Stopping the Storage daemon"
-          killproc ${BACBIN}/bacula-sd ${SD_PORT}
+       # Stop the FD first so that SD will fail jobs and update catalog
+       [ -x ${BACBIN}/bacula-fd ] && {
+	  echo "Stopping the File daemon"
+	  killproc ${BACBIN}/bacula-fd ${FD_PORT}
        }
 
-       [ -x ${BACBIN}/bacula-fd ] && {
-          echo "Stopping the File daemon"
-          killproc ${BACBIN}/bacula-fd ${FD_PORT}
+       [ -x ${BACBIN}/bacula-sd ] && {
+	  echo "Stopping the Storage daemon"
+	  killproc ${BACBIN}/bacula-sd ${SD_PORT}
        }
 
        [ -x ${BACBIN}/bacula-dir ] && {
-       	  echo "Stopping the Director daemon"
-          killproc ${BACBIN}/bacula-dir ${DIR_PORT}
+	  echo "Stopping the Director daemon"
+	  killproc ${BACBIN}/bacula-dir ${DIR_PORT}
        }
        echo
        ;;
