@@ -39,10 +39,15 @@ subroutine and free() in higher level routine, which causes
 memory leaks if you forget to free. 
 
 #ifndef TEST_PROGRAM
+
 #include "bacula.h"
 #include "filed.h"
+
+
 #else
 /*
+ * Test program setup 
+ *
  * Compile and set up with eg. with eg.
  *
  *    $ cc -DTEST_PROGRAM -DHAVE_SUN_OS -lsec -o acl acl.c
@@ -57,11 +62,13 @@ memory leaks if you forget to free.
 #include <string.h>
 #include <sys/stat.h>
 #include "acl.h"
+
 #define POOLMEM 	   char
 #define bstrdup 	   strdup
 #define actuallyfree(x)    free(x)
 int aclls(char *fname);
 int aclcp(char *src, char *dst);
+
 #endif
 
 /*
@@ -78,6 +85,7 @@ int aclcp(char *src, char *dst);
       || defined(HAVE_HPUX_OS)      /* man page -- may need flags         */ \
       || defined(HAVE_SUN_OS)       /* tested   -- compile with -lsec     */ \
        )
+
 POOLMEM *bacl_get(char *fname, int acltype)
 {
    return NULL;
@@ -87,7 +95,9 @@ int bacl_set(char *fname, int acltype, char *acltext)
 {
    return -1;
 }
+
 #elif defined(HAVE_AIX_OS)
+
 #include <sys/access.h>
 
 POOLMEM *bacl_get(char *fname, int acltype)
@@ -114,6 +124,7 @@ int bacl_set(char *fname, int acltype, char *acltext)
    || defined(HAVE_IRIX_OS) \
    || defined(HAVE_OSF1_OS) \
    || defined(HAVE_LINUX_OS)
+
 #include <sys/types.h>
 #include <sys/acl.h>
 
@@ -149,11 +160,14 @@ POOLMEM *bacl_get(char *fname, int acltype)
    acl = acl_get_file(fname, ostype);
    if (acl) {
       if ((tmp = acl_to_text(acl, NULL)) != NULL) {
-	 acltext = bstrdup(tmp);
+	 acltext = get_pool_memory(PM_MESSAGE);
+	 pm_strcpy(acltext, tmp);
 	 acl_free(tmp);
       }
       acl_free(acl);
    }
+   /***** Do we really want to silently ignore errors from acl_get_file
+     and acl_to_text?  *****/
    return acltext;
 }
 
@@ -339,6 +353,7 @@ int main(int argc, char **argv)
    return status;
 }
 
+/**** Test program *****/
 int aclcp(char *src, char *dst)
 {
    struct stat st;
@@ -389,6 +404,7 @@ int aclcp(char *src, char *dst)
    return 0;
 }
 
+/**** Test program *****/
 int aclls(char *fname)
 {
    struct stat st;
