@@ -251,7 +251,7 @@ DCR *acquire_device_for_read(JCR *jcr, DEVICE *dev)
 	       break;
 	    }
 	    
-            Jmsg(jcr, M_FATAL, 0, _("Open device %s volume %s failed, ERR=%s\n"),
+            Jmsg(jcr, M_FATAL, 0, _("Open device %s Volume \"%s\" failed: ERR=%s\n"),
 		dev->print_name(), dcr->VolumeName, strerror_dev(dev));
 	    goto get_out;
 	 }
@@ -562,6 +562,7 @@ ok_out:
  */
 bool release_device(DCR *dcr)
 {
+   bool ok = true;
    JCR *jcr = dcr->jcr;
    DEVICE *dev = dcr->dev;
 
@@ -591,6 +592,7 @@ bool release_device(DCR *dcr)
 	 if (!dir_create_jobmedia_record(dcr)) {
             Jmsg(jcr, M_FATAL, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
 	       dcr->VolCatInfo.VolCatName, jcr->Job);
+	    ok = false;
 	 }
 	 /* If no more writers, write an EOF */
 	 if (!dev->num_writers && dev_can_write(dev)) {
@@ -614,6 +616,7 @@ bool release_device(DCR *dcr)
       Jmsg2(jcr, M_FATAL, 0, _("BAD ERROR: release_device %s, Volume \"%s\" not in use.\n"),
 	    dev->print_name(), NPRT(dcr->VolumeName));
       Jmsg2(jcr, M_ERROR, 0, _("num_writers=%d state=%x\n"), dev->num_writers, dev->state);
+      ok = false;
    }
 
    /* Fire off Alert command and include any output */
@@ -645,5 +648,5 @@ bool release_device(DCR *dcr)
    unlock_device(dev);
    free_dcr(dcr);
    jcr->dcr = NULL;
-   return true;
+   return ok;
 }

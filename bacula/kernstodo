@@ -29,6 +29,8 @@ Autochangers:
   
 For 1.37:
 - Add disk seeking on restore.  
+- Make "update slots" when pointing to Autochanger, remove
+  all Volumes from other drives.
 - Don't start a second file job if one is already running.
 - Add Python writable variable for changing the Priority,
     Client, Storage, JobStatus (error), ...
@@ -135,6 +137,9 @@ Regression tests (Scott):
 
 
 1.37 Possibilities:
+- A HOLD command to stop all jobs from starting.
+- A PAUSE command to pause all running jobs ==> release the
+  drive.
 === From Carsten Menke <bootsy52@gmx.net>
 
 Following is a list of what I think in the situations where I'm faced with, 

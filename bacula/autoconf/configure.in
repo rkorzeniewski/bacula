@@ -1452,7 +1452,7 @@ AC_CHECK_FUNCS(strtoll, [AC_DEFINE(HAVE_STRTOLL)])
 
 AC_CHECK_FUNCS(chflags) 
 
-AC_CHECK_FUNCS(snprintf vsnprintf gethostid)
+AC_CHECK_FUNCS(snprintf vsnprintf gethostid fseeko)
 
 dnl# --------------------------------------------------------------------------
 dnl# CHECKING FOR THREAD SAFE FUNCTIONS

@@ -372,7 +372,7 @@ read_volume:
       /* Return an empty block */
       empty_block(block);	      /* we used it for reading so set for write */
    }
-   dev->state |= ST_APPEND;
+   dev->set_append();
    Dmsg0(100, "set APPEND, normal return from read_dev_for_append\n");
    return true;
 }
@@ -406,7 +406,7 @@ bool mount_next_read_volume(DCR *dcr)
     */
    if (jcr->NumVolumes > 1 && jcr->CurVolume < jcr->NumVolumes) {
       close_dev(dev);
-      dev->state &= ~ST_READ;
+      dev->clear_read();
       if (!acquire_device_for_read(jcr, dev)) {
          Jmsg2(jcr, M_FATAL, 0, "Cannot open Dev=%s, Vol=%s\n", dev->print_name(),
 	       dcr->VolumeName);

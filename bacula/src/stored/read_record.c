@@ -5,6 +5,9 @@
  *    archive. It uses a callback to pass you each record in turn,
  *    as well as a callback for mounting the next tape.  It takes
  *    care of reading blocks, applying the bsr, ...
+ *    Note, this routine is really the heart of the restore routines,
+ *    and we are *really* bit pushing here so be careful about making
+ *    any modifications.
  *
  *    Kern E. Sibbald, August MMII
  *
@@ -57,6 +60,7 @@ bool read_records(DCR *dcr,
 
    recs = New(dlist(rec, &rec->link));
    position_to_first_file(jcr, dev);
+   jcr->mount_next_volume = false;
 
    for ( ; ok && !done; ) {
       if (job_canceled(jcr)) {
@@ -66,12 +70,11 @@ bool read_records(DCR *dcr,
       if (!read_block_from_device(dcr, CHECK_BLOCK_NUMBERS)) {
 	 if (dev->at_eot()) {
 	    DEV_RECORD *trec = new_record();
-
             Jmsg(jcr, M_INFO, 0, "End of Volume at file %u on device %s, Volume \"%s\"\n",
 		 dev->file, dev->print_name(), dcr->VolumeName);
 	    if (!mount_cb(dcr)) {
                Jmsg(jcr, M_INFO, 0, "End of all volumes.\n");
-	       ok = false;
+	       ok = false;	      /* Stop everything */
 	       /*
 		* Create EOT Label so that Media record may
 		*  be properly updated because this is the last
@@ -81,8 +84,13 @@ bool read_records(DCR *dcr,
 	       trec->File = dev->file;
 	       ok = record_cb(dcr, trec);
 	       free_record(trec);
+	       if (jcr->mount_next_volume) {
+		  jcr->mount_next_volume = false;
+		  dev->clear_eot();
+	       }
 	       break;
 	    }
+	    jcr->mount_next_volume = false;
 	    /*
 	     * We just have a new tape up, now read the label (first record)
 	     *	and pass it off to the callback routine, then continue
@@ -116,7 +124,7 @@ bool read_records(DCR *dcr,
                Pmsg0(000, "Did fsr\n");
 	       continue;	      /* try to continue */
 	    }
-	    ok = false;
+	    ok = false; 	      /* stop everything */
 	    break;
 	 }
       }
@@ -259,7 +267,11 @@ static int try_repositioning(JCR *jcr, DEV_RECORD *rec, DEVICE *dev)
       Dmsg2(300, "Current postion (file:block) %d:%d\n",
 	 dev->file, dev->block_num);
       jcr->bsr->mount_next_volume = false;
-//    dev->state |= ST_EOT;
+      if (!dev->at_eot()) {
+	 /* Set EOT flag to force mount of next Volume */
+	 jcr->mount_next_volume = true;
+	 dev->state |= ST_EOT;
+      }
       rec->Block = 0;
       return 1;
    }

@@ -285,7 +285,7 @@ bool do_append_data(JCR *jcr)
     * is set to yes, open the next part, so, in case of a device
     * that requires mount, it will be written to the device.
     */
-   if (dev->is_dvd() && jcr->write_part_after_job && (dev->part_size > 0)) {
+   if (ok && dev->is_dvd() && jcr->write_part_after_job && (dev->part_size > 0)) {
       Dmsg0(100, "Writing last part because write_part_after_job is set.\n");
       if (dev->part < dev->num_parts) {
          Jmsg3(jcr, M_FATAL, 0, _("Error while writing, current part number is less than the total number of parts (%d/%d, device=%s)\n"),

@@ -531,17 +531,22 @@ bool commit_attribute_spool(JCR *jcr)
    char ec1[30];
 
    if (are_attributes_spooled(jcr)) {
-      if (fseek(jcr->dir_bsock->spool_fd, 0, SEEK_END) != 0) {
+      if (fseeko(jcr->dir_bsock->spool_fd, 0, SEEK_END) != 0) {
 	 berrno be;
          Jmsg(jcr, M_FATAL, 0, _("Fseek on attributes file failed: ERR=%s\n"),
 	      be.strerror());
+	 goto bail_out;
       }
-      size = ftell(jcr->dir_bsock->spool_fd);
+      size = ftello(jcr->dir_bsock->spool_fd);
+      if (size < 0) {
+	 berrno be;
+         Jmsg(jcr, M_FATAL, 0, _("Fseek on attributes file failed: ERR=%s\n"),
+	      be.strerror());
+	 goto bail_out;
+      }
       P(mutex);
-      if (size > 0) {
-	if (spool_stats.attr_size + size > spool_stats.max_attr_size) {
-	   spool_stats.max_attr_size = spool_stats.attr_size + size;
-	}
+      if (spool_stats.attr_size + size > spool_stats.max_attr_size) {
+	 spool_stats.max_attr_size = spool_stats.attr_size + size;
       }
       spool_stats.attr_size += size;
       V(mutex);
@@ -551,6 +556,10 @@ bool commit_attribute_spool(JCR *jcr)
       return close_attr_spool_file(jcr, jcr->dir_bsock);
    }
    return true;
+
+bail_out:
+   close_attr_spool_file(jcr, jcr->dir_bsock);
+   return false;
 }
 
 static void make_unique_spool_filename(JCR *jcr, POOLMEM **name, int fd)

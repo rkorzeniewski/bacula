@@ -164,6 +164,8 @@ typedef struct s_steal_lock {
 } bsteal_lock_t;
 
 struct DEVRES;                        /* Device resource defined in stored_conf.h */
+int      weof_dev(DEVICE *dev, int num);
+bool     rewind_dev(DEVICE *dev);
 
 /*
  * Device structure definition. There is one of these for
@@ -262,19 +264,27 @@ public:
    int at_eot() const;
    int can_append() const;
    int can_read() const;
+   bool can_steal_lock() const { return dev_blocked &&
+                    (dev_blocked == BST_UNMOUNTED ||
+                     dev_blocked == BST_WAITING_FOR_SYSOP ||
+                     dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP); };
+
+   bool weof() { return !weof_dev(this, 1); };
+   bool rewind() { return rewind_dev(this); };
    const char *strerror() const;
    const char *archive_name() const;
    const char *name() const;
    const char *print_name() const;    /* Name for display purposes */
-   void set_eof();
-   void set_eot();
-   void set_append();
-   void set_read();
-   void set_offline();
+   void set_eof(); /* in dev.c */
+   void set_eot(); /* in dev.c */
+   void set_append() { state |= ST_APPEND; };
+   void set_read() { state |= ST_READ; };
+   void set_offline() { state |= ST_OFFLINE; };
    void clear_append();
    void clear_read();
    void clear_label();
    void clear_offline();
+   void clear_eot() { state &= ~ST_EOT; };
 };
 
 /* Note, these return int not bool! */
@@ -290,9 +300,6 @@ inline int DEVICE::at_eof() const { return state & ST_EOF; }
 inline int DEVICE::at_eot() const { return state & ST_EOT; }
 inline int DEVICE::can_append() const { return state & ST_APPEND; }
 inline int DEVICE::can_read() const { return state & ST_READ; }
-inline void DEVICE::set_append() { state |= ST_APPEND; }
-inline void DEVICE::set_read() { state |= ST_READ; }
-inline void DEVICE::set_offline() { state |= ST_OFFLINE; }
 inline void DEVICE::clear_append() { state &= ~ST_APPEND; }
 inline void DEVICE::clear_read() { state &= ~ST_READ; }
 inline void DEVICE::clear_label() { state &= ~ST_LABEL; }

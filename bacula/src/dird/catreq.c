@@ -235,8 +235,12 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
 	  * Insanity check for VolFiles get set to a smaller value
 	  */
 	 if (sdmr.VolFiles < mr.VolFiles) {
-            Jmsg(jcr, M_ERROR, 0, _("ERROR!! Volume Files at %u being set to %u. This is probably wrong.\n"),
-	       mr.VolFiles, sdmr.VolFiles);
+            Jmsg(jcr, M_FATAL, 0, _("Volume Files at %u being set to %u"
+                 " for Volume \"%s\". This is incorrect.\n"),
+	       mr.VolFiles, sdmr.VolFiles, mr.VolumeName);
+            bnet_fsend(bs, "1992 Update Media error\n");
+	    db_unlock(jcr->db);
+	    return;
 	 }
       }
       Dmsg2(400, "Update media: BefVolJobs=%u After=%u\n", mr.VolJobs, sdmr.VolJobs);

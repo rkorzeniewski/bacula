@@ -228,8 +228,11 @@ bool do_backup(JCR *jcr)
 
    /* Pickup Job termination data */
    stat = wait_for_job_termination(jcr);
-   backup_cleanup(jcr, stat);
-   return stat == JS_Terminated;
+   if (stat == JS_Terminated) {
+      backup_cleanup(jcr, stat);
+      return true;
+   }	 
+   return false;
 }
 
 

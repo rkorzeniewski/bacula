@@ -56,6 +56,7 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
    int slot;
    int drive = dev->device->drive_index;
    int rtn_stat = -1;		      /* error status */
+   POOLMEM *changer;
 
    slot = dcr->VolCatInfo.InChanger ? dcr->VolCatInfo.Slot : 0;
    /*
@@ -74,12 +75,10 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
    }
    Dmsg1(400, "Want changer slot=%d\n", slot);
 
+   changer = get_pool_memory(PM_FNAME);
    if (slot > 0 && dcr->device->changer_name && dcr->device->changer_command) {
       uint32_t timeout = dcr->device->max_changer_wait;
-      POOLMEM *changer;
       int loaded, status;
-
-      changer = get_pool_memory(PM_FNAME);
 
       loaded = get_autochanger_loaded_slot(dcr);
 
@@ -100,8 +99,9 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
 	    if (status != 0) {
 	       berrno be;
 	       be.set_errno(status);
-               Jmsg(jcr, M_INFO, 0, _("3992 Bad autochanger \"unload slot %d, drive %d\": ERR=%s.\n"),
+               Jmsg(jcr, M_FATAL, 0, _("3992 Bad autochanger \"unload slot %d, drive %d\": ERR=%s.\n"),
 		    slot, drive, be.strerror());
+	       goto bail_out;
 	    }
 
             Dmsg1(400, "unload status=%d\n", status);
@@ -122,15 +122,15 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
 	 } else {
 	   berrno be;
 	   be.set_errno(status);
-            Jmsg(jcr, M_INFO, 0, _("3992 Bad autochanger \"load slot %d, drive %d\": ERR=%s.\n"),
+            Jmsg(jcr, M_FATAL, 0, _("3992 Bad autochanger \"load slot %d, drive %d\": ERR=%s.\n"),
 		    slot, drive, be.strerror());
+	    goto bail_out;
 	 }
 	 unlock_changer(dcr);
          Dmsg2(400, "load slot %d status=%d\n", slot, status);
       } else {
 	 status = 0;		      /* we got what we want */
       }
-      free_pool_memory(changer);
       Dmsg1(400, "After changer, status=%d\n", status);
       if (status == 0) {	      /* did we succeed? */
 	 rtn_stat = 1;		      /* tape loaded by changer */
@@ -138,7 +138,14 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
    } else {
       rtn_stat = 0;		      /* no changer found */
    }
+   free_pool_memory(changer);
    return rtn_stat;
+
+bail_out:
+   free_pool_memory(changer);
+   unlock_changer(dcr);
+   return -1;
+
 }
 
 static int get_autochanger_loaded_slot(DCR *dcr)

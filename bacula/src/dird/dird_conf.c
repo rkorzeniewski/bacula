@@ -191,7 +191,8 @@ static RES_ITEM cat_items[] = {
    {"user",     store_str,      ITEM(res_cat.db_user),     0, 0, 0},
    {"dbname",   store_str,      ITEM(res_cat.db_name),     0, ITEM_REQUIRED, 0},
    {"dbsocket", store_str,      ITEM(res_cat.db_socket),   0, 0, 0},
-   {"multipleconnections", store_yesno, ITEM(res_cat.mult_db_connections), 1, 0, 0},
+   /* Turned off for the moment */
+   {"multipleconnections", store_yesno, ITEM(res_cat.mult_db_connections), 0, 0, 0},
    {NULL, NULL, NULL, 0, 0, 0}
 };
 

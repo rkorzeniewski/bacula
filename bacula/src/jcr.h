@@ -252,6 +252,7 @@ struct JCR {
 
    /* Parmaters for Open Read Session */
    BSR *bsr;                          /* Bootstrap record -- has everything */
+   bool mount_next_volume;            /* set to cause next volume mount */
    uint32_t read_VolSessionId;
    uint32_t read_VolSessionTime;
    uint32_t read_StartFile;
