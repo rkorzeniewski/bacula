@@ -24,7 +24,14 @@ self-initalizing and should clean up after itself.
 
 Not all the tests yet report OK.  This is simply because there are
 some spurious differences that I haven't yet taken the time to
-eliminate.
+eliminate.  The working scrips as of 24 Apr 03 are:
+
+backup-bacula-test
+sparse-test
+compressed-test
+sparse-compressed-test
+two-jobs-test
+wierd-files-test
 
 The tests expect you to execute them from the main regress 
 directory!               
@@ -48,4 +55,3 @@ to do:
    make reset
 
 this cleans up any files that may be created with root permissions.
-

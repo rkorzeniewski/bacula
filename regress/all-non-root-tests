@@ -9,4 +9,8 @@ tests/compressed-test
 tests/sparse-compressed-test
 tests/wierd-files-test
 tests/two-jobs-test
+echo " "
+echo " "
+echo "Test results"
+echo " "
 cat test.out

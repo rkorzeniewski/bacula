@@ -39,4 +39,5 @@ bin/bacula stop
 #
 # Save Bacula default conf files for later use
 #
+cp -f bin/*.conf scripts
 scripts/do_sed

@@ -39,11 +39,11 @@ diff -ur build /tmp/bacula-restores${cwd}/build
 if [ $? != 0 ] ; then
    echo " "
    echo " "
-   echo "  ===== Test1 Bacula source failed!!! ===== "
-   echo "  ===== Test1 failed!!! ===== " >>test.out
+   echo "  ===== Backup Bacula Test failed!!! ===== "
+   echo "  ===== Backup Bacula Test failed!!! ===== " >>test.out
    echo " "
 else
-   echo "  ===== Test1 Bacula source OK ===== "
-   echo "  ===== Test1 OK ===== " >>test.out
+   echo "  ===== Backup Bacula Test OK ===== "
+   echo "  ===== Backup Bacula Test OK ===== " >>test.out
 fi
 rm -rf /tmp/bacula-restores
