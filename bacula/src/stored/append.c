@@ -244,13 +244,13 @@ int do_append_data(JCR *jcr)
    }
    /* Write out final block of this session */
    if (!write_block_to_device(jcr, dev, block)) {
-      Pmsg0(000, "Set ok=FALSE after write_block_to_device.\n");
+      Pmsg0(000, _("Set ok=FALSE after write_block_to_device.\n"));
       ok = FALSE;
    }
 
    /* Release the device */
    if (!release_device(jcr, dev)) {
-      Pmsg0(000, "Error in release_device\n");
+      Pmsg0(000, _("Error in release_device\n"));
       ok = FALSE;
    }
 

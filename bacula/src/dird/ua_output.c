@@ -417,7 +417,7 @@ again:
       bs->msglen = len;
       bnet_send(bs);
    } else {			      /* No UA, send to Job */
-      Jmsg(ua->jcr, M_INFO, 0, msg);
+      Jmsg(ua->jcr, M_INFO, 0, "%s", msg);
       free_pool_memory(msg);
    }
 

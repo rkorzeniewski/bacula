@@ -395,6 +395,7 @@ int sm_check_rtn(char *fname, int lineno, Boolean bufdump)
 	   if (bad) {
 	      Emsg2(M_FATAL, 0, 
                  "\nDamaged buffers found at %s:%d\n", fname, lineno);
+
 	      if (bad & 0x1) {
                  Emsg0(M_FATAL, 0, "  discovery of bad prev link.\n");
 	      }

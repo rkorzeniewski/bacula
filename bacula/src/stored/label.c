@@ -190,8 +190,9 @@ int unser_volume_label(DEVICE *dev, DEV_RECORD *rec)
    dev->VolHdr.LabelSize = rec->data_len;
 
 
-  /* Unserialize the record into the Volume Header */
-  ser_begin(rec->data, SER_LENGTH_Volume_Label);
+   /* Unserialize the record into the Volume Header */
+   rec->data = check_pool_memory_size(rec->data, SER_LENGTH_Volume_Label);
+   ser_begin(rec->data, SER_LENGTH_Volume_Label);
 #define Fld(x)	(dev->VolHdr.x)
    unser_string(Fld(Id));
 
@@ -269,6 +270,7 @@ static void create_volume_label_record(JCR *jcr, DEVICE *dev, DEV_RECORD *rec)
 
    /* Serialize the label into the device record. */
 
+   rec->data = check_pool_memory_size(rec->data, SER_LENGTH_Volume_Label);
    ser_begin(rec->data, SER_LENGTH_Volume_Label);
 #define Fld(x)	(dev->VolHdr.x)
    ser_string(Fld(Id));
@@ -449,6 +451,7 @@ void create_session_label(JCR *jcr, DEV_RECORD *rec, int label)
    rec->VolSessionTime = jcr->VolSessionTime;
    rec->Stream	       = jcr->JobId;
 
+   rec->data = check_pool_memory_size(rec->data, SER_LENGTH_Session_Label);
    ser_begin(rec->data, SER_LENGTH_Session_Label);
    ser_string(BaculaId);
    ser_uint32(BaculaTapeVersion);
@@ -643,6 +646,7 @@ int unser_session_label(SESSION_LABEL *label, DEV_RECORD *rec)
 {
    ser_declare;
 
+   rec->data = check_pool_memory_size(rec->data, SER_LENGTH_Session_Label);
    unser_begin(rec->data, SER_LENGTH_Session_Label);
    unser_string(label->Id);
    unser_uint32(label->VerNum);

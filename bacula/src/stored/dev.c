@@ -259,11 +259,11 @@ open_dev(DEVICE *dev, char *VolName, int mode)
        * Handle opening of file
        */
       archive_name = get_pool_memory(PM_FNAME);
-      strcpy(archive_name, dev->dev_name);
+      pm_strcpy(&archive_name, dev->dev_name);
       if (archive_name[strlen(archive_name)] != '/') {
-         strcat(archive_name, "/");
+         pm_strcat(&archive_name, "/");
       }
-      strcat(archive_name, VolName);
+      pm_strcat(&archive_name, VolName);
       Dmsg1(29, "open_dev: device is disk %s\n", archive_name);
       if (mode == READ_WRITE) {
 	 dev->mode = O_CREAT | O_RDWR | O_BINARY;

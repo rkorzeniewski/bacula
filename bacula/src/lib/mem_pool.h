@@ -42,6 +42,11 @@ extern POOLMEM  *sm_realloc_pool_memory(char *fname, int line, POOLMEM *buf, siz
 #define check_pool_memory_size(buf,size) sm_check_pool_memory_size(__FILE__, __LINE__, buf, size)
 extern POOLMEM  *sm_check_pool_memory_size(char *fname, int line, POOLMEM *buf, size_t size);
 
+#define free_pool_memory(x) sm_free_pool_memory(__FILE__, __LINE__, x) 
+#define free_memory(x) sm_free_pool_memory(__FILE__, __LINE__, x) 
+extern void sm_free_pool_memory(char *fname, int line, POOLMEM *buf);
+
+
 #else
 
 extern POOLMEM *get_pool_memory(int pool);
@@ -49,11 +54,11 @@ extern POOLMEM *get_memory(size_t size);
 extern size_t sizeof_pool_memory(POOLMEM *buf);
 extern POOLMEM  *realloc_pool_memory(POOLMEM *buf, size_t size);
 extern POOLMEM  *check_pool_memory_size(POOLMEM *buf, size_t size);
+#define free_memory(x) free_pool_memory(x)
+extern void   free_pool_memory(POOLMEM *buf);
 
 #endif
  
-#define free_memory(x) free_pool_memory(x)
-extern void   free_pool_memory(POOLMEM *buf);
 extern void  close_memory_pool();
 extern void  print_memory_pool_stats();
 

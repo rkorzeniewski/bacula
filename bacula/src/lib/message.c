@@ -529,7 +529,7 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
     Dmsg2(200, "Enter dispatch_msg type=%d msg=%s\n", type, msg);
 
     if (type == M_ABORT || type == M_ERROR_TERM) {
-       fprintf(stdout, msg);	      /* print this here to INSURE that it is printed */
+       fprintf(stdout, "%s", msg);        /* print this here to INSURE that it is printed */
     }
 
     /* Now figure out where to send the message */
@@ -648,11 +648,11 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
 	     case MD_STDOUT:
                 Dmsg1(400, "STDOUT for following msg: %s", msg);
 		if (type != M_ABORT && type != M_ERROR_TERM)  /* already printed */
-		   fprintf(stdout, msg);
+                   fprintf(stdout, "%s", msg);
 		break;
 	     case MD_STDERR:
                 Dmsg1(400, "STDERR for following msg: %s", msg);
-		fprintf(stderr, msg);
+                fprintf(stderr, "%s", msg);
 		break;
 	     default:
 		break;
@@ -700,7 +700,7 @@ d_msg(char *file, int line, int level, char *fmt,...)
        bvsnprintf(buf+i, sizeof(buf)-i, (char *)fmt, arg_ptr);
        va_end(arg_ptr);
 
-       fprintf(stdout, buf);
+       fprintf(stdout, "%s", buf);
     }
 }
 

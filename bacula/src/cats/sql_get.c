@@ -50,13 +50,15 @@
 
 /* Forward referenced functions */
 static int db_get_file_record(B_DB *mdb, FILE_DBR *fdbr);
-static int db_get_filename_record(B_DB *mdb, char *fname);
-static int db_get_path_record(B_DB *mdb, char *path);
+static int db_get_filename_record(B_DB *mdb);
+static int db_get_path_record(B_DB *mdb);
 
 
 /* Imported subroutines */
 extern void print_result(B_DB *mdb);
 extern int QueryDB(char *file, int line, B_DB *db, char *select_cmd);
+extern void split_path_and_filename(B_DB *mdb, char *fname);
+
 
 
 /*
@@ -68,78 +70,19 @@ extern int QueryDB(char *file, int line, B_DB *db, char *select_cmd);
  */
 int db_get_file_attributes_record(B_DB *mdb, char *fname, FILE_DBR *fdbr)
 {
-   int fnl, pnl;
-   char *l, *p;
    int stat;
-   char file[MAXSTRING];
-   char spath[MAXSTRING];
-   char buf[MAXSTRING];
    Dmsg1(20, "Enter get_file_from_catalog fname=%s \n", fname);
 
-   /* Find path without the filename.  
-    * I.e. everything after the last / is a "filename".
-    * OK, maybe it is a directory name, but we treat it like
-    * a filename. If we don't find a / then the whole name
-    * must be a path name (e.g. c:).
-    */
-   for (p=l=fname; *p; p++) {
-      if (*p == '/') {
-	 l = p;
-      }
-   }
-   if (*l == '/') {                   /* did we find a slash? */
-      l++;			      /* yes, point to filename */
-   } else {			      /* no, whole thing must be path name */
-      l = p;
-   }
+   db_lock(mdb);
+   split_path_and_filename(mdb, fname);
 
-   /* If filename doesn't exist (i.e. root directory), we
-    * simply create a blank name consisting of a single 
-    * space. This makes handling zero length filenames
-    * easier.
-    */
-   fnl = p - l;
-   if (fnl > 255) {
-      Jmsg1(mdb->jcr, M_WARNING, 0, _("Filename truncated to 255 chars: %s\n"), l);
-      fnl = 255;
-   }
-   if (fnl > 0) {
-      strncpy(file, l, fnl);	      /* copy filename */
-      file[fnl] = 0;
-   } else {
-      file[0] = ' ';                  /* blank filename */
-      file[1] = 0;
-      fnl = 1;
-   }
+   fdbr->FilenameId = db_get_filename_record(mdb);
 
-   pnl = l - fname;    
-   if (pnl > 255) {
-      Jmsg1(mdb->jcr, M_WARNING, 0, _("Path name truncated to 255 chars: %s\n"), fname);
-      pnl = 255;
-   }
-   strncpy(spath, fname, pnl);
-   spath[pnl] = 0;
-
-   if (pnl == 0) {
-      Mmsg1(&mdb->errmsg, _("Path length is zero. File=%s\n"), fname);
-      Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
-      spath[0] = ' ';
-      spath[1] = 0;
-      pnl = 1;
-   }
-
-   Dmsg1(400, "spath=%s\n", spath);
-   Dmsg1(400, "file=%s\n", file);
-
-   db_escape_string(buf, file, fnl);
-   fdbr->FilenameId = db_get_filename_record(mdb, buf);
-   Dmsg2(400, "db_get_filename_record FilenameId=%u file=%s\n", fdbr->FilenameId, buf);
-
-   db_escape_string(buf, spath, pnl);
-   fdbr->PathId = db_get_path_record(mdb, buf);
-   Dmsg2(400, "db_get_path_record PathId=%u path=%s\n", fdbr->PathId, buf);
+   fdbr->PathId = db_get_path_record(mdb);
 
    stat = db_get_file_record(mdb, fdbr);
+
+   db_unlock(mdb);
 
    return stat;
 }
@@ -162,7 +105,6 @@ int db_get_file_record(B_DB *mdb, FILE_DBR *fdbr)
    SQL_ROW row;
    int stat = 0;
 
-   db_lock(mdb);
    Mmsg(&mdb->cmd, 
 "SELECT FileId, LStat, MD5 from File where File.JobId=%u and File.PathId=%u and \
 File.FilenameId=%u", fdbr->JobId, fdbr->PathId, fdbr->FilenameId);
@@ -196,7 +138,6 @@ File.FilenameId=%u", fdbr->JobId, fdbr->PathId, fdbr->FilenameId);
       }
       sql_free_result(mdb);
    }
-   db_unlock(mdb);
    return stat;
 
 }
@@ -207,18 +148,16 @@ File.FilenameId=%u", fdbr->JobId, fdbr->PathId, fdbr->FilenameId);
  *
  *   DO NOT use Jmsg in this routine (see notes for get_file_record)
  */
-static int db_get_filename_record(B_DB *mdb, char *fname) 
+static int db_get_filename_record(B_DB *mdb)
 {
    SQL_ROW row;
    int FilenameId = 0;
 
-   if (*fname == 0) {
-      Mmsg0(&mdb->errmsg, _("Null name given to db_get_filename_record\n"));
-      Emsg0(M_ABORT, 0, mdb->errmsg);
-   }
-
-   db_lock(mdb);
-   Mmsg(&mdb->cmd, "SELECT FilenameId FROM Filename WHERE Name='%s'", fname);
+   mdb->esc_name = check_pool_memory_size(mdb->esc_name, 2*mdb->fnl+2);
+   db_escape_string(mdb->esc_name, mdb->fname, mdb->fnl);
+   sm_check(__FILE__, __LINE__, True);
+   
+   Mmsg(&mdb->cmd, "SELECT FilenameId FROM Filename WHERE Name='%s'", mdb->esc_name);
    if (QUERY_DB(mdb, mdb->cmd)) {
 
       mdb->num_rows = sql_num_rows(mdb);
@@ -238,11 +177,10 @@ static int db_get_filename_record(B_DB *mdb, char *fname)
 	    }
 	 }
       } else {
-         Mmsg1(&mdb->errmsg, _("Filename record: %s not found.\n"), fname);
+         Mmsg1(&mdb->errmsg, _("Filename record: %s not found.\n"), mdb->fname);
       }
       sql_free_result(mdb);
    }
-   db_unlock(mdb);
    return FilenameId;
 }
 
@@ -252,23 +190,21 @@ static int db_get_filename_record(B_DB *mdb, char *fname)
  *
  *   DO NOT use Jmsg in this routine (see notes for get_file_record)
  */
-static int db_get_path_record(B_DB *mdb, char *path)
+static int db_get_path_record(B_DB *mdb)
 {
    SQL_ROW row;
    uint32_t PathId = 0;
 
-   if (*path == 0) {
-      Emsg0(M_ABORT, 0, _("Null path given to db_get_path_record\n"));
-   }
+   mdb->esc_name = check_pool_memory_size(mdb->esc_name, 2*mdb->pnl+2);
+   db_escape_string(mdb->esc_name, mdb->path, mdb->pnl);
+   sm_check(__FILE__, __LINE__, True);
 
-   db_lock(mdb);
-
-   if (mdb->cached_path_id != 0 && strcmp(mdb->cached_path, path) == 0) {
-      db_unlock(mdb);
+   if (mdb->cached_path_id != 0 && mdb->cached_path_len == mdb->pnl &&
+       strcmp(mdb->cached_path, mdb->path) == 0) {
       return mdb->cached_path_id;
    }	      
 
-   Mmsg(&mdb->cmd, "SELECT PathId FROM Path WHERE Path='%s'", path);
+   Mmsg(&mdb->cmd, "SELECT PathId FROM Path WHERE Path='%s'", mdb->esc_name);
 
    if (QUERY_DB(mdb, mdb->cmd)) {
       char ed1[30];
@@ -291,18 +227,16 @@ static int db_get_path_record(B_DB *mdb, char *path)
 	       /* Cache path */
 	       if (PathId != mdb->cached_path_id) {
 		  mdb->cached_path_id = PathId;
-		  mdb->cached_path = check_pool_memory_size(mdb->cached_path,
-		     strlen(path)+1);
-		  strcpy(mdb->cached_path, path);
+		  mdb->cached_path_len = mdb->pnl;
+		  pm_strcpy(&mdb->cached_path, mdb->path);
 	       }
 	    }
 	 }
       } else {	
-         Mmsg1(&mdb->errmsg, _("Path record: %s not found.\n"), path);
+         Mmsg1(&mdb->errmsg, _("Path record: %s not found.\n"), mdb->path);
       }
       sql_free_result(mdb);
    }
-   db_unlock(mdb);
    return PathId;
 }
 

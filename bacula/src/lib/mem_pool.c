@@ -21,7 +21,7 @@
  */
 
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -50,12 +50,27 @@ struct s_pool_ctl {
    struct abufhead *free_buf;	      /* pointer to free buffers */
 };
 
+#ifndef STRESS_TEST_POOL
+/*
+ * Define default Pool buffer sizes
+ */
 static struct s_pool_ctl pool_ctl[] = {
    {  256,  256, 0, 0, NULL },	      /* PM_NOPOOL no pooling */
    {  256,  256, 0, 0, NULL },	      /* PM_FNAME filename buffers */
    {  512,  512, 0, 0, NULL },	      /* PM_MESSAGE message buffer */
    { 1024, 1024, 0, 0, NULL }	      /* PM_EMSG error message buffer */
 };
+#else
+
+/* This is used ONLY when stress testing the code */
+static struct s_pool_ctl pool_ctl[] = {
+   {   10,   10, 0, 0, NULL },	      /* PM_NOPOOL no pooling */
+   {   10,   10, 0, 0, NULL },	      /* PM_FNAME filename buffers */
+   {   10,   10, 0, 0, NULL },	      /* PM_MESSAGE message buffer */
+   {   10,   10, 0, 0, NULL }	      /* PM_EMSG error message buffer */
+};
+#endif
+
 
 /*  Memory allocation control structures and storage.  */
 struct abufhead {
@@ -152,7 +167,8 @@ POOLMEM *sm_realloc_pool_memory(char *fname, int lineno, POOLMEM *obuf, size_t s
    ASSERT(obuf);
    P(mutex);
    cp -= HEAD_SIZE;
-   buf = realloc(cp, size+HEAD_SIZE);
+   buf = sm_realloc(fname, lineno, cp, size+HEAD_SIZE);
+   sm_check(fname, lineno, True);
    if (buf == NULL) {
       V(mutex);
       Emsg1(M_ABORT, 0, "Out of memory requesting %d bytes\n", size);
@@ -177,7 +193,39 @@ POOLMEM *sm_check_pool_memory_size(char *fname, int lineno, POOLMEM *obuf, size_
    return realloc_pool_memory(obuf, size);
 }
 
+/* Free a memory buffer */
+void sm_free_pool_memory(char *fname, int lineno, POOLMEM *obuf)
+{
+   struct abufhead *buf;
+   int pool;
+
+   sm_check(fname, lineno, True);
+   ASSERT(obuf);
+   P(mutex);
+   buf = (struct abufhead *)((char *)obuf - HEAD_SIZE);
+   pool = buf->pool;
+   pool_ctl[pool].in_use--;
+   if (pool == 0) {
+      free((char *)buf);	      /* free nonpooled memory */
+   } else {			      /* otherwise link it to the free pool chain */
+#ifdef DEBUG
+      struct abufhead *next;
+      /* Don't let him free the same buffer twice */
+      for (next=pool_ctl[pool].free_buf; next; next=next->next) {
+	 ASSERT(next != buf);  /* attempt to free twice */
+      }
+#endif
+      buf->next = pool_ctl[pool].free_buf;
+      pool_ctl[pool].free_buf = buf;
+   }
+   Dmsg2(150, "free_pool_memory %x pool=%d\n", buf, pool);
+   V(mutex);
+}
+
+
 #else
+
+/* ===================================================================	*/
 
 POOLMEM *get_pool_memory(int pool)
 {
@@ -269,10 +317,6 @@ POOLMEM *check_pool_memory_size(POOLMEM *obuf, size_t size)
    return realloc_pool_memory(obuf, size);
 }
 
-#endif /* SMARTALLOC */
-
-
-
 /* Free a memory buffer */
 void free_pool_memory(POOLMEM *obuf)
 {
@@ -301,6 +345,11 @@ void free_pool_memory(POOLMEM *obuf)
    Dmsg2(150, "free_pool_memory %x pool=%d\n", buf, pool);
    V(mutex);
 }
+
+#endif /* SMARTALLOC */
+
+
+
 
 
 

@@ -110,7 +110,7 @@ int main (int argc, char *argv[])
 
          case 'e':                    /* exclude list */
             if ((fd = fopen(optarg, "r")) == NULL) {
-               Pmsg2(0, "Could not open exclude file: %s, ERR=%s\n",
+               Pmsg2(0, _("Could not open exclude file: %s, ERR=%s\n"),
 		  optarg, strerror(errno));
 	       exit(1);
 	    }

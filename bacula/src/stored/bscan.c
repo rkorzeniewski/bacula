@@ -292,7 +292,7 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
       }
       switch (rec->FileIndex) {
 	 case PRE_LABEL:
-            Pmsg0(000, "Volume is prelabeled. This tape cannot be scanned.\n");
+            Pmsg0(000, _("Volume is prelabeled. This tape cannot be scanned.\n"));
 	    return;
 	    break;
 	 case VOL_LABEL:
@@ -302,21 +302,21 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	    strcpy(pr.PoolType, dev->VolHdr.PoolType);
 	    if (db_get_pool_record(db, &pr)) {
 	       if (verbose) {
-                  Pmsg1(000, "Pool record for %s found in DB.\n", pr.Name);
+                  Pmsg1(000, _("Pool record for %s found in DB.\n"), pr.Name);
 	       }
 	    } else {
 	       if (!update_db) {
-                  Pmsg1(000, "VOL_LABEL: Pool record not found for Pool: %s\n",
+                  Pmsg1(000, _("VOL_LABEL: Pool record not found for Pool: %s\n"),
 		     pr.Name);
 	       }
 	       create_pool_record(db, &pr);
 	    }
 	    if (strcmp(pr.PoolType, dev->VolHdr.PoolType) != 0) {
-               Pmsg2(000, "VOL_LABEL: PoolType mismatch. DB=%s Vol=%s\n",
+               Pmsg2(000, _("VOL_LABEL: PoolType mismatch. DB=%s Vol=%s\n"),
 		  pr.PoolType, dev->VolHdr.PoolType);
 	       return;
 	    } else if (verbose) {
-               Pmsg1(000, "Pool type \"%s\" is OK.\n", pr.PoolType);
+               Pmsg1(000, _("Pool type \"%s\" is OK.\n"), pr.PoolType);
 	    }
 
 	    /* Check Media Info */
@@ -325,25 +325,25 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	    mr.PoolId = pr.PoolId;
 	    if (db_get_media_record(db, &mr)) {
 	       if (verbose) {
-                  Pmsg1(000, "Media record for %s found in DB.\n", mr.VolumeName);
+                  Pmsg1(000, _("Media record for %s found in DB.\n"), mr.VolumeName);
 	       }
 	       /* Clear out some volume statistics that will be updated */
 	       mr.VolJobs = mr.VolFiles = mr.VolBlocks = 0;
 	       mr.VolBytes = rec->data_len + 20;
 	    } else {
 	       if (!update_db) {
-                  Pmsg1(000, "VOL_LABEL: Media record not found for Volume: %s\n",
+                  Pmsg1(000, _("VOL_LABEL: Media record not found for Volume: %s\n"),
 		     mr.VolumeName);
 	       }
 	       strcpy(mr.MediaType, dev->VolHdr.MediaType);
 	       create_media_record(db, &mr, &dev->VolHdr);
 	    }
 	    if (strcmp(mr.MediaType, dev->VolHdr.MediaType) != 0) {
-               Pmsg2(000, "VOL_LABEL: MediaType mismatch. DB=%s Vol=%s\n",
+               Pmsg2(000, _("VOL_LABEL: MediaType mismatch. DB=%s Vol=%s\n"),
 		  mr.MediaType, dev->VolHdr.MediaType);
 	       return;
 	    } else if (verbose) {
-               Pmsg1(000, "Media type \"%s\" is OK.\n", mr.MediaType);
+               Pmsg1(000, _("Media type \"%s\" is OK.\n"), mr.MediaType);
 	    }
 	    /* Reset some JCR variables */
 	    for (mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
@@ -352,7 +352,7 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	       mjcr->StartFile = mjcr->EndFile = 0;
 	    }
 
-            Pmsg1(000, "VOL_LABEL: OK for Volume: %s\n", mr.VolumeName);
+            Pmsg1(000, _("VOL_LABEL: OK for Volume: %s\n"), mr.VolumeName);
 	    break;
 	 case SOS_LABEL:
 	    mr.VolJobs++;
@@ -373,7 +373,7 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	    } else {
 	       /* Must create a Job record in DB */
 	       if (!update_db) {
-                  Pmsg1(000, "SOS_LABEL: Job record not found for JobId: %d\n",
+                  Pmsg1(000, _("SOS_LABEL: Job record not found for JobId: %d\n"),
 		     jr.JobId);
 	       }
 	    }
@@ -408,19 +408,19 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	    pm_strcpy(&mjcr->pool_name, label.PoolName);
 
 	    if (rec->VolSessionId != jr.VolSessionId) {
-               Pmsg3(000, "SOS_LABEL: VolSessId mismatch for JobId=%u. DB=%d Vol=%d\n",
+               Pmsg3(000, _("SOS_LABEL: VolSessId mismatch for JobId=%u. DB=%d Vol=%d\n"),
 		  jr.JobId,
 		  jr.VolSessionId, rec->VolSessionId);
 	       return;
 	    }
 	    if (rec->VolSessionTime != jr.VolSessionTime) {
-               Pmsg3(000, "SOS_LABEL: VolSessTime mismatch for JobId=%u. DB=%d Vol=%d\n",
+               Pmsg3(000, _("SOS_LABEL: VolSessTime mismatch for JobId=%u. DB=%d Vol=%d\n"),
 		  jr.JobId,
 		  jr.VolSessionTime, rec->VolSessionTime);
 	       return;
 	    }
 	    if (jr.PoolId != pr.PoolId) {
-               Pmsg3(000, "SOS_LABEL: PoolId mismatch for JobId=%u. DB=%d Vol=%d\n",
+               Pmsg3(000, _("SOS_LABEL: PoolId mismatch for JobId=%u. DB=%d Vol=%d\n"),
 		  jr.JobId,
 		  jr.PoolId, pr.PoolId);
 	       return;
@@ -1118,7 +1118,7 @@ int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
    Dmsg1(100, "Walk attached jcrs. Volume=%s\n", dev->VolCatInfo.VolCatName);
    for (JCR *mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
       if (verbose) {
-         Pmsg1(000, "create JobMedia for Job %s\n", mjcr->Job);
+         Pmsg1(000, _("Create JobMedia for Job %s\n"), mjcr->Job);
       }
       if (dev->state & ST_TAPE) {
 	 mjcr->EndBlock = dev->EndBlock;
@@ -1133,7 +1133,7 @@ int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
       }
    }
 
-   fprintf(stderr, "Mount Volume %s on device %s and press return when ready: ",
+   fprintf(stderr, _("Mount Volume %s on device %s and press return when ready: "),
       jcr->VolumeName, dev_name(dev));
    getchar();	
    return 1;

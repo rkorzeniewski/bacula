@@ -183,15 +183,12 @@ db_update_pool_record(B_DB *mdb, POOL_DBR *pr)
 int
 db_update_media_record(B_DB *mdb, MEDIA_DBR *mr) 
 {
-   char dt[MAX_TIME_LENGTH], dtF[MAX_TIME_LENGTH];
+   char dt[MAX_TIME_LENGTH];
    time_t ttime;
    struct tm tm;
    int stat;
    char ed1[30], ed2[30];
        
-   ttime = mr->LastWritten;
-   localtime_r(&ttime, &tm);
-   strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
 
    Dmsg1(100, "update_media: FirstWritten=%d\n", mr->FirstWritten);
    db_lock(mdb);
@@ -199,21 +196,27 @@ db_update_media_record(B_DB *mdb, MEDIA_DBR *mr)
       Dmsg1(400, "Set FirstWritten Vol=%s\n", mr->VolumeName);
       ttime = mr->FirstWritten;
       localtime_r(&ttime, &tm);
-      strftime(dtF, sizeof(dtF), "%Y-%m-%d %T", &tm);
+      strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
       Mmsg(&mdb->cmd, "UPDATE Media SET FirstWritten='%s'\
- WHERE VolumeName='%s'", dtF, mr->VolumeName);
+ WHERE VolumeName='%s'", dt, mr->VolumeName);
       stat = UPDATE_DB(mdb, mdb->cmd);
       Dmsg1(400, "Firstwritten stat=%d\n", stat);
    }
 
+   ttime = mr->LastWritten;
+   localtime_r(&ttime, &tm);
+   strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
+
    Mmsg(&mdb->cmd, "UPDATE Media SET VolJobs=%u,\
- VolFiles=%u, VolBlocks=%u, VolBytes=%s, VolMounts=%u, VolErrors=%u,\
- VolWrites=%u, MaxVolBytes=%s, LastWritten='%s', VolStatus='%s',\
+ VolFiles=%u,VolBlocks=%u,VolBytes=%s,VolMounts=%u,VolErrors=%u,\
+ VolWrites=%u,MaxVolBytes=%s,LastWritten='%s',VolStatus='%s',\
  Slot=%d WHERE VolumeName='%s'",
    mr->VolJobs, mr->VolFiles, mr->VolBlocks, edit_uint64(mr->VolBytes, ed1),
    mr->VolMounts, mr->VolErrors, mr->VolWrites, 
    edit_uint64(mr->MaxVolBytes, ed2), dt, 
    mr->VolStatus, mr->Slot, mr->VolumeName);
+
+   sm_check(__FILE__, __LINE__, True);
 
    Dmsg1(400, "%s\n", mdb->cmd);
 

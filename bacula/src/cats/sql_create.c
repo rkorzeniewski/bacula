@@ -518,8 +518,9 @@ static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar)
    SQL_ROW row;
    int stat;
 
-   mdb->esc_name = check_pool_memory_size(mdb->esc_name, mdb->pnl+101);
-   db_escape_string(mdb->esc_name, mdb->path, mdb->pnl+100);
+   mdb->esc_name = check_pool_memory_size(mdb->esc_name, 2*mdb->pnl+2);
+   db_escape_string(mdb->esc_name, mdb->path, mdb->pnl);
+   sm_check(__FILE__, __LINE__, True);
 
    if (mdb->cached_path_id != 0 && mdb->cached_path_len == mdb->pnl &&
        strcmp(mdb->cached_path, mdb->path) == 0) {
@@ -592,9 +593,9 @@ static int db_create_filename_record(B_DB *mdb, ATTR_DBR *ar)
 {
    SQL_ROW row;
 
-   
-   mdb->esc_name = check_pool_memory_size(mdb->esc_name, mdb->fnl+101);
-   db_escape_string(mdb->esc_name, mdb->fname, mdb->fnl+100);
+   mdb->esc_name = check_pool_memory_size(mdb->esc_name, 2*mdb->fnl+2);
+   db_escape_string(mdb->esc_name, mdb->fname, mdb->fnl);
+   sm_check(__FILE__, __LINE__, True);
 
    Mmsg(&mdb->cmd, "SELECT FilenameId FROM Filename WHERE Name='%s'", mdb->esc_name);
 

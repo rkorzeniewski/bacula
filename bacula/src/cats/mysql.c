@@ -216,11 +216,62 @@ int db_next_index(B_DB *mdb, char *table, char *index)
 }   
 
 
-
+/*
+ * Escape strings so that MySQL is happy
+ *
+ *   NOTE! len is the length of the old string. Your new
+ *	   string must be long enough (max 2*old) to hold
+ *	   the escaped output.
+ */
 void
 db_escape_string(char *snew, char *old, int len)
 {
-   mysql_escape_string(snew, old, len);
+   char *n, *o;
+
+   n = snew;
+   o = old;
+   while (len--) {
+      switch (*o) {
+      case 0:
+         *n++= '\\';
+         *n++= '0';
+	 o++;
+	 break;
+      case '\n':
+         *n++= '\\';
+         *n++= 'n';
+	 o++;
+	 break;
+      case '\r':
+         *n++= '\\';
+         *n++= 'r';
+	 o++;
+	 break;
+      case '\\':
+         *n++= '\\';
+         *n++= '\\';
+	 o++;
+	 break;
+      case '\'':
+         *n++= '\\';
+         *n++= '\'';
+	 o++;
+	 break;
+      case '"':
+         *n++= '\\';
+         *n++= '"';
+	 o++;
+	 break;
+      case '\032':
+         *n++= '\\';
+         *n++= 'Z';
+	 o++;
+	 break;
+      default:
+	 *n++= *o++;
+      }
+   }
+   *n = 0;
 }
 
 /*

@@ -55,6 +55,10 @@ int newVolume(JCR *jcr, MEDIA_DBR *mr)
 	 mr->LabelDate = 0;
 	 strcpy(mr->MediaType, jcr->store->media_type);
 	 strcpy(name, pr.LabelFormat);	 
+         if (strchr(name, (int)'%') != NULL) {
+            Jmsg(jcr, M_ERROR, 0, _("Illegal character in Label Format\n"));
+	    return 0;
+	 }
          strcat(name, "%04d");
 	 sprintf(mr->VolumeName, name, ++pr.NumVols);
 	 if (db_create_media_record(jcr->db, mr) &&

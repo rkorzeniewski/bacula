@@ -222,7 +222,13 @@ int db_next_index(B_DB *mdb, char *table, char *index)
 }   
 
 
-
+/*
+ * Escape strings so that SQLite is happy
+ *
+ *   NOTE! len is the length of the old string. Your new
+ *	   string must be long enough (max 2*old) to hold
+ *	   the escaped output.
+ */
 void
 db_escape_string(char *snew, char *old, int len)
 {
