@@ -499,7 +499,7 @@ void firePrintEvent(wxString str, int status)
  *  Called by console thread, this function forwards data line by line and end
  *  signals to the GUI.
  */
-void csprint(char* str, int status)
+void csprint(const char* str, int status)
 {
    if (str != 0) {
       firePrintEvent(wxString(str), status);
