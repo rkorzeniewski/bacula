@@ -469,9 +469,6 @@ void make_session_key(char *key, char *seed, int mode)
 #ifdef HAVE_GETHOSTID
      sprintf(s + strlen(s), "%lu", (unsigned long) gethostid());
 #endif
-#ifdef HAVE_GETDOMAINNAME
-     getdomainname(s + strlen(s), 256);
-#endif
      gethostname(s + strlen(s), 256);
      sprintf(s + strlen(s), "%u", (unsigned)getuid());
      sprintf(s + strlen(s), "%u", (unsigned)getgid());

@@ -217,6 +217,10 @@
 /* Defined if Gtk+-2.4 or greater is present */
 #undef HAVE_GTK_2_4
 
+/* Needed on HP-UX/g++ systems to support long long ints (int64) */
+#undef _INCLUDE_LONGLONG
+
+
 /* Define to 1 if the `closedir' function returns void instead of `int'. */
 #undef CLOSEDIR_VOID
 
@@ -268,9 +272,6 @@
 
 /* Define to 1 if you have the `getcwd' function. */
 #undef HAVE_GETCWD
-
-/* Define to 1 if you have the `getdomainname' function. */
-#undef HAVE_GETDOMAINNAME
 
 /* Define to 1 if you have the `gethostbyname2' function. */
 #undef HAVE_GETHOSTBYNAME2
