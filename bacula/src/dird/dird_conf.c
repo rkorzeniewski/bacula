@@ -205,6 +205,9 @@ struct res_items job_items[] = {
    {"messages",  store_res,     ITEM(res_job.messages), R_MSGS, ITEM_REQUIRED, 0},
    {"storage",   store_res,     ITEM(res_job.storage),  R_STORAGE, ITEM_REQUIRED, 0},
    {"pool",      store_res,     ITEM(res_job.pool),     R_POOL, ITEM_REQUIRED, 0},
+   {"fullbackuppool",  store_res,     ITEM(res_job.full_pool),   R_POOL, 0, 0},
+   {"incrementalbackuppool",  store_res, ITEM(res_job.inc_pool), R_POOL, 0, 0},
+   {"differentialbackuppool", store_res, ITEM(res_job.dif_pool), R_POOL, 0, 0},
    {"client",    store_res,     ITEM(res_job.client),   R_CLIENT, ITEM_REQUIRED, 0},
    {"fileset",   store_res,     ITEM(res_job.fileset),  R_FILESET, ITEM_REQUIRED, 0},
    {"schedule",  store_res,     ITEM(res_job.schedule), R_SCHEDULE, 0, 0},
@@ -534,8 +537,18 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
       if (res->res_job.pool) {
          sendit(sock, "  --> ");
 	 dump_resource(-R_POOL, (RES *)res->res_job.pool, sendit, sock);
-      } else {
-         sendit(sock, "!!! No Pool resource\n");
+      }
+      if (res->res_job.full_pool) {
+         sendit(sock, "  --> ");
+	 dump_resource(-R_POOL, (RES *)res->res_job.full_pool, sendit, sock);
+      }
+      if (res->res_job.inc_pool) {
+         sendit(sock, "  --> ");
+	 dump_resource(-R_POOL, (RES *)res->res_job.inc_pool, sendit, sock);
+      }
+      if (res->res_job.dif_pool) {
+         sendit(sock, "  --> ");
+	 dump_resource(-R_POOL, (RES *)res->res_job.dif_pool, sendit, sock);
       }
       if (res->res_job.verify_job) {
          sendit(sock, "  --> ");
@@ -959,6 +972,9 @@ void save_resource(int type, struct res_items *items, int pass)
 	 res->res_job.fileset	 = res_all.res_job.fileset;
 	 res->res_job.storage	 = res_all.res_job.storage;
 	 res->res_job.pool	 = res_all.res_job.pool;
+	 res->res_job.full_pool  = res_all.res_job.full_pool;
+	 res->res_job.inc_pool	 = res_all.res_job.inc_pool;
+	 res->res_job.dif_pool	 = res_all.res_job.dif_pool;
 	 res->res_job.verify_job = res_all.res_job.verify_job;
 	 res->res_job.jobdefs	 = res_all.res_job.jobdefs;
 	 break;

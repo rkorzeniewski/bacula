@@ -501,7 +501,7 @@ int prune_volume(UAContext *ua, MEDIA_DBR *mr)
       
    if (cnt.count == 0) {
       if (ua->verbose) {
-         bsendmsg(ua, "There are no Jobs associated with Volume %s. Marking it purged.\n",
+         bsendmsg(ua, "There are no Jobs associated with Volume \"%s\". Marking it purged.\n",
 	    mr->VolumeName);
       }
       stat = mark_media_purged(ua, mr);
@@ -558,7 +558,7 @@ int prune_volume(UAContext *ua, MEDIA_DBR *mr)
       free(del.JobId);
    }
    if (ua->verbose && del.num_del != 0) {
-      bsendmsg(ua, _("Pruned %d %s on Volume %s from catalog.\n"), del.num_del,
+      bsendmsg(ua, _("Pruned %d %s on Volume \"%s\" from catalog.\n"), del.num_del,
          del.num_del == 1 ? "Job" : "Jobs", mr->VolumeName);
    }
 

@@ -120,10 +120,28 @@ int do_backup(JCR *jcr)
 	jcr->JobId, jcr->Job);
 
    /* 
-    * Get the Pool record  
+    * Get the Pool record -- first apply any level defined pools  
     */
+   switch (jcr->JobLevel) {
+   case L_FULL:
+      if (jcr->full_pool) {
+	 jcr->pool = jcr->full_pool;   
+      }
+      break;
+   case L_INCREMENTAL:
+      if (jcr->inc_pool) {
+	 jcr->pool = jcr->inc_pool;   
+      }
+      break;
+   case L_DIFFERENTIAL:
+      if (jcr->dif_pool) {
+	 jcr->pool = jcr->dif_pool;   
+      }
+      break;
+   }
    memset(&pr, 0, sizeof(pr));
    bstrncpy(pr.Name, jcr->pool->hdr.name, sizeof(pr.Name));
+
    while (!db_get_pool_record(jcr, jcr->db, &pr)) { /* get by Name */
       /* Try to create the pool */
       if (create_pool(jcr, jcr->db, jcr->pool, POOL_OP_CREATE) < 0) {

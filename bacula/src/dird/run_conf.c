@@ -150,12 +150,15 @@ static void set_defaults()
 
 /* Keywords (RHS) permitted in Run records */
 static struct s_kw RunFields[] = {
-   {"pool",     'P'},
-   {"level",    'L'},
-   {"storage",  'S'},
-   {"messages", 'M'},
-   {"priority", 'p'},
-   {NULL,	 0}
+   {"pool",             'P'},
+   {"fullpool",         'f'},
+   {"incrementalpool",  'i'},
+   {"differentialpool", 'd'},
+   {"level",            'L'},
+   {"storage",          'S'},
+   {"messages",         'M'},
+   {"priority",         'p'},
+   {NULL,		  0}
 };
 
 /* 
@@ -222,6 +225,9 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 	       }
 	       break;
             case 'P':                 /* Pool */
+            case 'f':                 /* FullPool */
+            case 'i':                 /* IncPool */
+            case 'd':                 /* DifPool */
 	       token = lex_get_token(lc, T_NAME);
 	       if (pass == 2) {
 		  res = GetResWithName(R_POOL, lc->str);
@@ -230,7 +236,20 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 				lc->str);
 		     /* NOT REACHED */
 		  }
-		  lrun.pool = (POOL *)res;
+		  switch(RunFields[i].token) {
+                  case 'P':
+		     lrun.pool = (POOL *)res;
+		     break;
+                  case 'f':
+		     lrun.full_pool = (POOL *)res;
+		     break;
+                  case 'i':
+		     lrun.inc_pool = (POOL *)res;
+		     break;
+                  case 'd':
+		     lrun.dif_pool = (POOL *)res;
+		     break;
+		  }
 	       }
 	       break;
             case 'S':                 /* storage */

@@ -80,12 +80,13 @@ mount_next_vol:
     * Get Director's idea of what tape we should have mounted. 
     *	 in jcr->VolCatInfo
     */
-   Dmsg0(100, "Before dir_find_next\n");
+   Dmsg0(200, "Before dir_find_next_appendable_volume.\n");
    while (!dir_find_next_appendable_volume(jcr)) {
-       Dmsg0(100, "not dir_find_next\n");
+       Dmsg0(200, "not dir_find_next\n");
        if (!dir_ask_sysop_to_create_appendable_volume(jcr, dev)) {
 	 return 0;
        }
+       Dmsg0(200, "Again dir_find_next_append...\n");
    }
    if (job_canceled(jcr)) {
       return 0;
@@ -130,6 +131,10 @@ mount_next_vol:
       return 0;
    }
    Dmsg1(100, "want vol=%s\n", jcr->VolumeName);
+
+   if (dev->poll && dev_cap(dev, CAP_CLOSEONPOLL)) {
+      force_close_dev(dev);
+   }
 
    /* Open device */
    if  (!(dev_state(dev, ST_OPENED))) {

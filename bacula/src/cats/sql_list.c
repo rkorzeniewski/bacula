@@ -139,14 +139,14 @@ db_list_media_records(JCR *jcr, B_DB *mdb, MEDIA_DBR *mdbr,
             "MediaType,FirstWritten,LastWritten,LabelDate,VolJobs,"
             "VolFiles,VolBlocks,VolMounts,VolBytes,VolErrors,VolWrites,"
             "VolCapacityBytes,VolStatus,Recycle,VolRetention,"
-            "VolUseDuration,MaxVolJobs,MaxVolFiles,MaxVolBytes "
+            "VolUseDuration,MaxVolJobs,MaxVolFiles,MaxVolBytes,InChanger "
             "FROM Media WHERE Media.VolumeName='%s'", mdbr->VolumeName);
       } else {
          Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,Slot,PoolId,"
             "MediaType,FirstWritten,LastWritten,LabelDate,VolJobs,"
             "VolFiles,VolBlocks,VolMounts,VolBytes,VolErrors,VolWrites,"
             "VolCapacityBytes,VolStatus,Recycle,VolRetention,"
-            "VolUseDuration,MaxVolJobs,MaxVolFiles,MaxVolBytes "
+            "VolUseDuration,MaxVolJobs,MaxVolFiles,MaxVolBytes,InChanger "
             "FROM Media WHERE Media.PoolId=%u ORDER BY MediaId", mdbr->PoolId);
       }
    } else {

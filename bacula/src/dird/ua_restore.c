@@ -47,7 +47,7 @@ extern char *uar_del_temp,	 *uar_del_temp1,   *uar_create_temp;
 extern char *uar_create_temp1,	 *uar_last_full,   *uar_full;
 extern char *uar_inc,		 *uar_list_temp,   *uar_sel_jobid_temp;
 extern char *uar_sel_all_temp1,  *uar_sel_fileset, *uar_mediatype;
-extern char *uar_jobid_fileindex, *uar_dec,	   *uar_sel_all_temp;
+extern char *uar_jobid_fileindex, *uar_dif,	   *uar_sel_all_temp;
 
 
 struct NAME_LIST {
@@ -115,11 +115,10 @@ static int get_date(UAContext *ua, char *date, int date_len);
 int restore_cmd(UAContext *ua, char *cmd)
 {
    RESTORE_CTX rx;		      /* restore context */
-   JOB *job = NULL;
+   JOB *job;
    int i;
 
    memset(&rx, 0, sizeof(rx));
-
    rx.path = get_pool_memory(PM_FNAME);
    rx.fname = get_pool_memory(PM_FNAME);
    rx.JobIds = get_pool_memory(PM_FNAME);
@@ -137,7 +136,7 @@ int restore_cmd(UAContext *ua, char *cmd)
 
    /* Ensure there is at least one Restore Job */
    LockRes();
-   while ( (job = (JOB *)GetNextRes(R_JOB, (RES *)job)) ) {
+   foreach_res(job, R_JOB) {
       if (job->JobType == JT_RESTORE) {
 	 if (!rx.restore_job) {
 	    rx.restore_job = job;
@@ -368,7 +367,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
       break;
    case 5:			      /* pool specified */
       i = find_arg_with_value(ua, "pool");
-      if (i >= 0) {
+      if (i >= 0 && acl_access_ok(ua, Pool_ACL, ua->argv[i])) {
 	 rx->pool = (POOL *)GetResWithName(R_POOL, ua->argv[i]);
       } else {
          bsendmsg(ua, _("Error: Pool resource \"%s\" does not exist.\n"), ua->argv[i]);
@@ -519,6 +518,11 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
          bsendmsg(ua, _("Unable to get Job record for JobId=%u: ERR=%s\n"), 
 	    JobId, db_strerror(ua->db));
 	 return 0;
+      }
+      if (!acl_access_ok(ua, Job_ACL, jr.Name)) {
+         bsendmsg(ua, _("No authorization. Job \"%s\" not selected.\n"), 
+	    jr.Name);
+	 continue; 
       }
       rx->TotalFiles += jr.JobFiles;
    }
@@ -839,13 +843,13 @@ static int select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *date
       goto bail_out;
    }
 
-   /* Now find most recent Decremental Job after Full save, if any */
-   Mmsg(&rx->query, uar_dec, edit_uint64(rx->JobTDate, ed1), date,
+   /* Now find most recent Differental Job after Full save, if any */
+   Mmsg(&rx->query, uar_dif, edit_uint64(rx->JobTDate, ed1), date,
 	cr.ClientId, fsr.FileSet, pool_select);
    if (!db_sql_query(ua->db, rx->query, NULL, NULL)) {
       bsendmsg(ua, "%s\n", db_strerror(ua->db));
    }
-   /* Now update JobTDate to lock onto Decremental, if any */
+   /* Now update JobTDate to lock onto Differental, if any */
    rx->JobTDate = 0;
    if (!db_sql_query(ua->db, uar_sel_all_temp, last_full_handler, (void *)rx)) {
       bsendmsg(ua, "%s\n", db_strerror(ua->db));
@@ -855,7 +859,7 @@ static int select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *date
       goto bail_out;
    }
 
-   /* Now find all Incremental Jobs after Full/Dec save */
+   /* Now find all Incremental Jobs after Full/dif save */
    Mmsg(&rx->query, uar_inc, edit_uint64(rx->JobTDate, ed1), date,
 	cr.ClientId, fsr.FileSet, pool_select);
    if (!db_sql_query(ua->db, rx->query, NULL, NULL)) {

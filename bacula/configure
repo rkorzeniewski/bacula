@@ -6685,7 +6685,7 @@ fi;
 # ------------------------------------------
 # Where to place working dir
 # ------------------------------------------
-working_dir=`eval echo ${sysconfdir}/working`
+working_dir=`eval echo ${prefix}/var/bacula/working`
 
 # Check whether --with-working-dir or --without-working-dir was given.
 if test "${with_working_dir+set}" = set; then
@@ -17956,7 +17956,6 @@ slackware)
 	DISTVER=`cat /etc/slackware-version`
 	TAPEDRIVE="/dev/nst0"
 	PSCMD="ps -e -o pid,command"
-	hostname=`hostname -s`
   ;;
 solaris)
 	DISTVER=`uname -r`

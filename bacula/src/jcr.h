@@ -141,6 +141,9 @@ struct JCR {
    STORE *store;                      /* Storage resource */
    CLIENT *client;                    /* Client resource */
    POOL *pool;                        /* Pool resource */
+   POOL *full_pool;                   /* Full backup pool resource */
+   POOL *inc_pool;                    /* Incremental backup pool resource */
+   POOL *dif_pool;                    /* Differential backup pool resource */
    FILESET *fileset;                  /* FileSet resource */
    CAT *catalog;                      /* Catalog resource */
    MSGS *messages;                    /* Default message handler */

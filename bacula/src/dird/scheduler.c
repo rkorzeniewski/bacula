@@ -146,6 +146,15 @@ JCR *wait_for_next_job(char *one_shot_job_to_run)
    if (run->pool) {
       jcr->pool = run->pool;	      /* override pool */
    }
+   if (run->full_pool) {
+      jcr->pool = run->full_pool;     /* override full pool */
+   }
+   if (run->inc_pool) {
+      jcr->pool = run->inc_pool;      /* override inc pool */
+   }
+   if (run->dif_pool) {
+      jcr->pool = run->dif_pool;      /* override dif pool */
+   }
    if (run->storage) {
       jcr->store = run->storage;      /* override storage */
    }

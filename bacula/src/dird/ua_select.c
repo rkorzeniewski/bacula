@@ -495,6 +495,10 @@ int select_pool_and_media_dbr(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
       bsendmsg(ua, "%s", db_strerror(ua->db));
       return 0;
    }
+   if (!acl_access_ok(ua, Pool_ACL, pr->Name)) {
+      bsendmsg(ua, _("No access to Pool \"%s\"\n"), pr->Name);
+      return 0;
+   }
    return 1;
 }
 
