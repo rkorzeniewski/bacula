@@ -55,10 +55,10 @@ messages
 @# now do several restores to ensure we cleanup between jobs
 @#
 @output /dev/null
-restore where=${cwd}/tmp/bacula-restores select all storage=File
+restore where=${cwd}/tmp/bacula-restores select all storage=File done
 yes
 wait
-restore where=${cwd}/tmp/bacula-restores select all storage=File
+restore where=${cwd}/tmp/bacula-restores select all storage=File done
 yes
 wait
 @output tmp/log2.out

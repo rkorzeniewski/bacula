@@ -33,7 +33,7 @@ messages
 @# now do a restore
 @#
 @output tmp/log2.out   
-restore where=${cwd}/tmp/bacula-restores select all storage=File
+restore where=${cwd}/tmp/bacula-restores select all storage=File done
 yes
 wait
 messages

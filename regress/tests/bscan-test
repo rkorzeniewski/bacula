@@ -61,7 +61,7 @@ messages
 @# 
 @# now do a restore
 @#
-restore where=${cwd}/tmp/bacula-restores select all storage=File1
+restore where=${cwd}/tmp/bacula-restores select all storage=File1 done
 yes
 wait
 messages

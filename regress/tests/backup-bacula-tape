@@ -34,7 +34,7 @@ messages
 @# now do a restore
 @#
 @output tmp/log2.out
-restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4
+restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
 yes
 wait
 messages
@@ -52,7 +52,7 @@ messages
 @# now do a second restore
 @#
 @output tmp/log2.out
-restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4
+restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
 yes
 wait
 messages
