@@ -1305,6 +1305,7 @@ gotVol:
    unbash_spaces(mr.VolumeName);
    unbash_spaces(mr.MediaType);
    unbash_spaces(pr.Name);
+   mr.LabelDate = time(NULL);
    if (ok) {
       set_pool_dbr_defaults_in_media_dbr(&mr, &pr);
       if (db_create_media_record(ua->db, &mr)) {

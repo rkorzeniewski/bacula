@@ -225,6 +225,8 @@ db_create_media_record(B_DB *mdb, MEDIA_DBR *mr)
 {
    int stat;
    char ed1[30], ed2[30], ed3[30], ed4[30];
+   char dt[MAX_TIME_LENGTH];
+   struct tm tm;
 
    db_lock(mdb);
    Mmsg(&mdb->cmd, "SELECT MediaId FROM Media WHERE VolumeName='%s'", 
@@ -243,10 +245,16 @@ db_create_media_record(B_DB *mdb, MEDIA_DBR *mr)
    }
 
    /* Must create it */
+   if (mr->LabelDate) {
+      localtime_r(&mr->LabelDate, &tm); 
+      strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
+   } else {
+      strcpy(dt, "0000-00-00 00:00:00");
+   }
    Mmsg(&mdb->cmd, 
 "INSERT INTO Media (VolumeName,MediaType,PoolId,MaxVolBytes,VolCapacityBytes," 
-"Recycle,VolRetention,VolUseDuration,VolStatus,Slot) "
-"VALUES ('%s','%s',%u,%s,%s,%d,%s,%s,'%s',%d)", 
+"Recycle,VolRetention,VolUseDuration,VolStatus,LabelDate,Slot) "
+"VALUES ('%s','%s',%u,%s,%s,%d,%s,%s,'%s','%s',%d)", 
 		  mr->VolumeName,
 		  mr->MediaType, mr->PoolId, 
 		  edit_uint64(mr->MaxVolBytes,ed1),
@@ -254,7 +262,7 @@ db_create_media_record(B_DB *mdb, MEDIA_DBR *mr)
 		  mr->Recycle,
 		  edit_uint64(mr->VolRetention, ed3),
 		  edit_uint64(mr->VolUseDuration, ed4),
-		  mr->VolStatus,
+		  mr->VolStatus, dt,
 		  mr->Slot);
 
    Dmsg1(500, "Create Volume: %s\n", mdb->cmd);

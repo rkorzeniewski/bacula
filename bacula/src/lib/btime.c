@@ -60,11 +60,12 @@ utime_t str_to_utime(char *str)
    }
    if (tm.tm_mon > 0) {
       tm.tm_mon--;
+   } else { 
+      return 0;
    }
    if (tm.tm_year >= 1900) {
-      tm.tm_year -= 1900;
    } else {
-      tm.tm_year = 0;
+      return 0;
    }
    return (utime_t)mktime(&tm);
 }

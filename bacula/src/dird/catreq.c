@@ -103,6 +103,7 @@ next_volume:
             Dmsg1(100, "find_recycled_volume2 %d\n", ok);
 	    if (!ok) {
 	       /* See if we can create a new Volume */
+	       mr.LabelDate = 0;
 	       ok = newVolume(jcr, &mr);
 	    }
 	 }
@@ -222,7 +223,7 @@ next_volume:
 	 return;
       }
       /* Set first written time if this is first job */
-      if (mr.VolJobs == 0) {
+      if (mr.VolJobs == 0 || sdmr.VolJobs == 1) {
 	 mr.FirstWritten = jcr->start_time;   /* use Job start time as first write */
       }
       Dmsg2(200, "Update media: BefVolJobs=%u After=%u\n", mr.VolJobs, sdmr.VolJobs);
