@@ -482,9 +482,11 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 
 int bclose(BFILE *bfd)
 { 
-   int stat = close(bfd->fid);
+   int stat;  
+   stat = close(bfd->fid);
    bfd->berrno = errno;
    bfd->fid = -1;
+
    return stat;
 }
 
