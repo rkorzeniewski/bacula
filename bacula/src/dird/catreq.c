@@ -118,7 +118,7 @@ next_volume:
                Dmsg0(400, "Try purge.\n");
 	       /* Try to purge oldest volume */
 	       ua = new_ua_context(jcr);
-               Jmsg(jcr, M_INFO, 0, _("Purging oldest volume \"%s\"\n"), mr.VolumeName);
+               Jmsg(jcr, M_INFO, 0, _("Recycling oldest volume \"%s\"\n"), mr.VolumeName);
 	       ok = purge_jobs_from_volume(ua, &mr);
 	       free_ua_context(ua);
 	       if (ok) {

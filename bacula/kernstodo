@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                  18 June 2003 
+                  22 June 2003 
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -34,6 +34,13 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
+- Check that Block number in JobMedia are correct.
+- Complain if record dropped in bnet_recv because too long.
+- Suppress Job Name in Jmsg for console
+- Check Jmsg in bnet, may not work, must dup bsock.
+- Use SD returned values in report -- or add them.
+- Increment DB version prior to releasing.
+- Turn off FULL_DEBUG prior to releasing.
 - Implement forward spacing block/file: position_device(bsr) --
   just before read_block_from_device();
 - On Windows with very long path names, it may be impossible to create 
