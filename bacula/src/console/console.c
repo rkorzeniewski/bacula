@@ -72,13 +72,13 @@ static int timecmd(FILE *input, BSOCK *UA_sock);
 static int sleepcmd(FILE *input, BSOCK *UA_sock);
 
 
-#define CONFIG_FILE "./console.conf"   /* default configuration file */
+#define CONFIG_FILE "./bconsole.conf"   /* default configuration file */
 
 static void usage()
 {
    fprintf(stderr, _(
 "\nVersion: " VERSION " (" BDATE ") %s %s %s\n\n"
-"Usage: console [-s] [-c config_file] [-d debug_level] [config_file]\n"
+"Usage: bconsole [-s] [-c config_file] [-d debug_level] [config_file]\n"
 "       -c <file>   set configuration file to file\n"
 "       -dnn        set debug level to nn\n"
 "       -s          no signals\n"
@@ -252,7 +252,7 @@ int main(int argc, char *argv[])
    JCR jcr;
 
    init_stack_dump();
-   my_name_is(argc, argv, "console");
+   my_name_is(argc, argv, "bconsole");
    textdomain("bacula-console");
    init_msg(NULL, NULL);
    working_directory = "/tmp";
@@ -378,6 +378,18 @@ try_again:
    Dmsg0(40, "Opened connection with Director daemon\n");
 
    sendit(_("Enter a period to cancel a command.\n"));
+
+   char *env = getenv("HOME");
+   if (env) {
+      FILE *fd;
+      pm_strcpy(&UA_sock->msg, env);
+      pm_strcat(&UA_sock->msg, "/.bconsolerc");
+      fd = fopen(UA_sock->msg, "r");
+      if (fd) {
+	 read_and_process_input(fd, UA_sock);
+	 fclose(fd);
+      }
+   }
 
    read_and_process_input(stdin, UA_sock);
 

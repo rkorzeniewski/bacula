@@ -4800,7 +4800,7 @@ fi;
 
 STATIC_CONS=
 if test x$support_static_cons = xyes; then
-   STATIC_CONS="static-console"
+   STATIC_CONS="static-bconsole"
 fi
 
 
@@ -17576,7 +17576,7 @@ if test "x${subsysdir}" = "x${sbindir}" ; then
    exit 1
 fi
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ac_config_files="$ac_config_files autoconf/Make.common Makefile rescue/Makefile rescue/linux/Makefile rescue/freebsd/Makefile rescue/solaris/Makefile scripts/startmysql scripts/stopmysql scripts/btraceback scripts/startit scripts/stopit scripts/console scripts/gconsole scripts/bacula scripts/fd scripts/Makefile scripts/logrotate scripts/bacula.desktop.gnome1 scripts/bacula.desktop.gnome2 scripts/mtx-changer doc/Makefile src/Makefile src/host.h src/console/Makefile src/console/console.conf src/gnome-console/Makefile src/gnome-console/gnome-console.conf src/gnome2-console/Makefile src/gnome2-console/gnome-console.conf src/tconsole/Makefile src/dird/Makefile src/dird/bacula-dir.conf src/lib/Makefile src/stored/Makefile src/stored/bacula-sd.conf src/filed/Makefile src/filed/bacula-fd.conf src/filed/win32/Makefile src/cats/Makefile src/cats/make_catalog_backup src/cats/delete_catalog_backup src/cats/alter_mysql_tables src/cats/make_mysql_tables src/cats/drop_mysql_tables src/cats/create_mysql_database src/cats/grant_mysql_privileges src/cats/alter_sqlite_tables src/cats/make_sqlite_tables src/cats/drop_sqlite_tables src/cats/create_sqlite_database src/cats/sqlite src/cats/mysql src/cats/create_bdb_database src/cats/make_bdb_tables src/cats/drop_bdb_tables src/cats/make_bacula_tables src/cats/drop_bacula_tables src/findlib/Makefile src/tools/Makefile $PFILES"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ac_config_files="$ac_config_files autoconf/Make.common Makefile rescue/Makefile rescue/linux/Makefile rescue/freebsd/Makefile rescue/solaris/Makefile scripts/startmysql scripts/stopmysql scripts/btraceback scripts/startit scripts/stopit scripts/bconsole scripts/gconsole scripts/bacula scripts/fd scripts/Makefile scripts/logrotate scripts/bacula.desktop.gnome1 scripts/bacula.desktop.gnome2 scripts/mtx-changer doc/Makefile src/Makefile src/host.h src/console/Makefile src/console/bconsole.conf src/gnome-console/Makefile src/gnome-console/gnome-console.conf src/gnome2-console/Makefile src/gnome2-console/gnome-console.conf src/tconsole/Makefile src/dird/Makefile src/dird/bacula-dir.conf src/lib/Makefile src/stored/Makefile src/stored/bacula-sd.conf src/filed/Makefile src/filed/bacula-fd.conf src/filed/win32/Makefile src/cats/Makefile src/cats/make_catalog_backup src/cats/delete_catalog_backup src/cats/alter_mysql_tables src/cats/make_mysql_tables src/cats/drop_mysql_tables src/cats/create_mysql_database src/cats/grant_mysql_privileges src/cats/alter_sqlite_tables src/cats/make_sqlite_tables src/cats/drop_sqlite_tables src/cats/create_sqlite_database src/cats/sqlite src/cats/mysql src/cats/create_bdb_database src/cats/make_bdb_tables src/cats/drop_bdb_tables src/cats/make_bacula_tables src/cats/drop_bacula_tables src/findlib/Makefile src/tools/Makefile $PFILES"
           ac_config_commands="$ac_config_commands default"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -18116,7 +18116,7 @@ do
   "scripts/btraceback" ) CONFIG_FILES="$CONFIG_FILES scripts/btraceback" ;;
   "scripts/startit" ) CONFIG_FILES="$CONFIG_FILES scripts/startit" ;;
   "scripts/stopit" ) CONFIG_FILES="$CONFIG_FILES scripts/stopit" ;;
-  "scripts/console" ) CONFIG_FILES="$CONFIG_FILES scripts/console" ;;
+  "scripts/bconsole" ) CONFIG_FILES="$CONFIG_FILES scripts/bconsole" ;;
   "scripts/gconsole" ) CONFIG_FILES="$CONFIG_FILES scripts/gconsole" ;;
   "scripts/bacula" ) CONFIG_FILES="$CONFIG_FILES scripts/bacula" ;;
   "scripts/fd" ) CONFIG_FILES="$CONFIG_FILES scripts/fd" ;;
@@ -18129,7 +18129,7 @@ do
   "src/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
   "src/host.h" ) CONFIG_FILES="$CONFIG_FILES src/host.h" ;;
   "src/console/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/console/Makefile" ;;
-  "src/console/console.conf" ) CONFIG_FILES="$CONFIG_FILES src/console/console.conf" ;;
+  "src/console/bconsole.conf" ) CONFIG_FILES="$CONFIG_FILES src/console/bconsole.conf" ;;
   "src/gnome-console/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/gnome-console/Makefile" ;;
   "src/gnome-console/gnome-console.conf" ) CONFIG_FILES="$CONFIG_FILES src/gnome-console/gnome-console.conf" ;;
   "src/gnome2-console/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/gnome2-console/Makefile" ;;
@@ -18931,7 +18931,7 @@ fi
 
 cd scripts
 chmod 755 startmysql stopmysql bacula startit stopit btraceback mtx-changer
-chmod 755 console gconsole mtx-changer
+chmod 755 bconsole gconsole mtx-changer
 cd ..
 chmod 755 src/cats/make_mysql_tables src/cats/drop_mysql_tables
 chmod 755 src/cats/make_test_tables src/cats/drop_test_tables
@@ -19005,16 +19005,16 @@ Configuration on `date`:
   Traceback Email:	      ${dump_email}
   SMTP Host Address:	      ${smtp_host}
 
-  Director Port: 	      ${dir_port}
+  Director Port:	      ${dir_port}
   File daemon Port:	      ${fd_port}
   Storage daemon Port:	      ${sd_port}
 
-  Director User:            ${dir_user}
-  Director Group:           ${dir_group}
-  Storage Daemon User:      ${dir_user}
-  Storage DaemonGroup:      ${dir_group}
-  File Daemon User:         ${dir_user}
-  File Daemon Group:        ${dir_group}
+  Director User:	    ${dir_user}
+  Director Group:	    ${dir_group}
+  Storage Daemon User:	    ${dir_user}
+  Storage DaemonGroup:	    ${dir_group}
+  File Daemon User:	    ${dir_user}
+  File Daemon Group:	    ${dir_group}
 
   SQL binaries Directory      ${SQL_BINDIR}
 
