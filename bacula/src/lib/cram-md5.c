@@ -53,7 +53,7 @@ int cram_md5_auth(BSOCK *bs, char *password)
    }
    Dmsg1(99, "%s", bs->msg);
    if (bnet_wait_data(bs, 180) <= 0 || bnet_recv(bs) <= 0) {
-      sleep(5);
+      bmicrosleep(5, 0);
       return 0;
    }
    hmac_md5((uint8_t *)chal, strlen(chal), (uint8_t *)password, strlen(password), hmac);
@@ -70,7 +70,7 @@ int cram_md5_auth(BSOCK *bs, char *password)
       bnet_fsend(bs, "1000 OK auth\n");
    } else {
       bnet_fsend(bs, "1999 No auth\n");
-      sleep(5);
+      bmicrosleep(5, 0);
    }
    return ok;
 }
@@ -82,12 +82,12 @@ int cram_md5_get_auth(BSOCK *bs, char *password)
    uint8_t hmac[20];
 
    if (bnet_recv(bs) <= 0) {
-      sleep(5);
+      bmicrosleep(5, 0);
       return 0;
    }
    if (bs->msglen >= MAXSTRING || sscanf(bs->msg, "auth cram-md5 %s\n", chal) != 1) {
      Dmsg1(99, "Wanted auth cram... Got: %s", bs->msg);
-     sleep(5);
+     bmicrosleep(5, 0);
      return 0;
    }
    hmac_md5((uint8_t *)chal, strlen(chal), (uint8_t *)password, strlen(password), hmac);
@@ -97,12 +97,12 @@ int cram_md5_get_auth(BSOCK *bs, char *password)
    }
    Dmsg1(99, "sending resp to challenge: %s\n", bs->msg);
    if (bnet_wait_data(bs, 180) <= 0 || bnet_recv(bs) <= 0) {
-      sleep(5);
+      bmicrosleep(5, 0);
       return 0;
    }
    if (strcmp(bs->msg, "1000 OK auth\n") == 0) {
       return 1;
    }
-   sleep(5);
+   bmicrosleep(5, 0);
    return 0;
 }

@@ -163,7 +163,7 @@ int close_bpipe(BPIPE *bpipe)
 	 break;
       }
       if (remaining_wait > 0) {
-	 sleep(1);		      /* wait one second */
+	 bmicrosleep(1, 0);	       /* wait one second */
 	 remaining_wait--;
       } else {
 	 stat = 1;		      /* set error status */

@@ -50,6 +50,7 @@ int runcmd(UAContext *ua, char *cmd)
    JCR *jcr;
    char *job_name, *level_name, *jid, *store_name, *pool_name;
    char *where, *fileset_name, *client_name, *bootstrap, *replace;
+   char *when;
    int i, j, found, opt;
    JOB *job = NULL;
    STORE *store = NULL;
@@ -67,6 +68,7 @@ int runcmd(UAContext *ua, char *cmd)
       N_("where"),
       N_("bootstrap"),
       N_("replace"),
+      N_("when"),
       NULL};
 
    if (!open_db(ua)) {
@@ -79,6 +81,7 @@ int runcmd(UAContext *ua, char *cmd)
    store_name = NULL;
    pool_name = NULL;
    where = NULL;
+   when = NULL;
    client_name = NULL;
    fileset_name = NULL;
    bootstrap = NULL;
@@ -173,6 +176,14 @@ int runcmd(UAContext *ua, char *cmd)
 		     return 1;
 		  }
 		  replace = ua->argv[i];
+		  found = True;
+		  break;
+	       case 10: /* When */
+		  if (when) {
+                     bsendmsg(ua, _("When specified twice.\n"));
+		     return 1;
+		  }
+		  when = ua->argv[i];
 		  found = True;
 		  break;
 	       default:
@@ -282,6 +293,15 @@ int runcmd(UAContext *ua, char *cmd)
       }
       jcr->RestoreWhere = bstrdup(where);
    }
+
+   if (when) {
+      jcr->sched_time = str_to_utime(when);
+      if (jcr->sched_time == 0) {
+         bsendmsg(ua, _("Invalid time, using current time.\n"));
+	 jcr->sched_time = time(NULL);
+      }
+   }
+	 
    if (bootstrap) {
       if (jcr->RestoreBootstrap) {
 	 free(jcr->RestoreBootstrap);
@@ -316,18 +336,20 @@ try_again:
    Dmsg1(20, "JobType=%c\n", jcr->JobType);
    switch (jcr->JobType) {
       char ec1[30];
+      char dt[MAX_TIME_LENGTH];
       case JT_ADMIN:
          bsendmsg(ua, _("Run %s job\n\
 JobName:  %s\n\
 FileSet:  %s\n\
 Client:   %s\n\
-Storage:  %s\n"),
+Storage:  %s\n\
+When:     %s\n"),
                  _("Admin"),
 		 job->hdr.name,
 		 jcr->fileset->hdr.name,
 		 NPRT(jcr->client->hdr.name),
-		 NPRT(jcr->store->hdr.name));
-	 break;
+		 NPRT(jcr->store->hdr.name), 
+		 bstrutime(dt, sizeof(dt), jcr->sched_time));
 	 break;
       case JT_BACKUP:
       case JT_VERIFY:
@@ -354,14 +376,16 @@ FileSet:  %s\n\
 Level:    %s\n\
 Client:   %s\n\
 Storage:  %s\n\
-Pool:     %s\n"),
+Pool:     %s\n\
+When:     %s\n"),
                  jcr->JobType==JT_BACKUP?_("Backup"):_("Verify"),
 		 job->hdr.name,
 		 jcr->fileset->hdr.name,
 		 level_to_str(jcr->JobLevel),
 		 jcr->client->hdr.name,
 		 jcr->store->hdr.name,
-		 NPRT(jcr->pool->hdr.name));
+		 NPRT(jcr->pool->hdr.name), 
+		 bstrutime(dt, sizeof(dt), jcr->sched_time));
 	 break;
       case JT_RESTORE:
 	 if (jcr->RestoreJobId == 0 && !jcr->RestoreBootstrap) {
@@ -385,7 +409,8 @@ Replace:    %s\n\
 FileSet:    %s\n\
 Client:     %s\n\
 Storage:    %s\n\
-JobId:      %s\n"),
+JobId:      %s\n\
+When:       %s\n"),
 		 job->hdr.name,
 		 NPRT(jcr->RestoreBootstrap),
 		 jcr->RestoreWhere?jcr->RestoreWhere:NPRT(job->RestoreWhere),
@@ -393,7 +418,8 @@ JobId:      %s\n"),
 		 jcr->fileset->hdr.name,
 		 jcr->client->hdr.name,
 		 jcr->store->hdr.name, 
-                 jcr->RestoreJobId==0?"*None*":edit_uint64(jcr->RestoreJobId, ec1));
+                 jcr->RestoreJobId==0?"*None*":edit_uint64(jcr->RestoreJobId, ec1), 
+		 bstrutime(dt, sizeof(dt), jcr->sched_time));
 	 break;
       default:
          bsendmsg(ua, _("Unknown Job Type=%d\n"), jcr->JobType);
@@ -407,7 +433,7 @@ JobId:      %s\n"),
    /*
     * At user request modify parameters of job to be run.
     */
-   if (strlen(ua->cmd) == 0) {
+   if (ua->cmd[0] == 0) {
       bsendmsg(ua, _("Job not run.\n"));
       free_jcr(jcr);
       return 0; 		      /* do not run */
@@ -421,14 +447,15 @@ JobId:      %s\n"),
       add_prompt(ua, _("Job"));              /* 2 */
       add_prompt(ua, _("FileSet"));          /* 3 */
       add_prompt(ua, _("Client"));           /* 4 */
+      add_prompt(ua, _("When"));             /* 5 */
       if (jcr->JobType == JT_BACKUP ||
 	  jcr->JobType == JT_VERIFY) {
-         add_prompt(ua, _("Pool"));          /* 5 */
+         add_prompt(ua, _("Pool"));          /* 6 */
       } else if (jcr->JobType == JT_RESTORE) {
-         add_prompt(ua, _("Bootstrap"));     /* 5 */
-         add_prompt(ua, _("Where"));         /* 6 */
-         add_prompt(ua, _("Replace"));       /* 7 */
-         add_prompt(ua, _("JobId"));         /* 8 */
+         add_prompt(ua, _("Bootstrap"));     /* 6 */
+         add_prompt(ua, _("Where"));         /* 7 */
+         add_prompt(ua, _("Replace"));       /* 8 */
+         add_prompt(ua, _("JobId"));         /* 9 */
       }
       switch (do_prompt(ua, _("Select parameter to modify"), NULL, 0)) {
       case 0:
@@ -484,6 +511,7 @@ JobId:      %s\n"),
 	 }
 	 goto try_again;
       case 1:
+	 /* Storage */
 	 store = select_storage_resource(ua);
 	 if (store) {
 	    jcr->store = store;
@@ -508,6 +536,7 @@ JobId:      %s\n"),
 	 }	
 	 break;
       case 4:
+	 /* Client */
 	 client = select_client_resource(ua);
 	 if (client) {
 	    jcr->client = client;
@@ -515,6 +544,21 @@ JobId:      %s\n"),
 	 }
 	 break;
       case 5:
+	 /* When */
+         if (!get_cmd(ua, _("Please enter scheduled start time (return for now): "))) {
+	    break;
+	 }
+	 if (ua->cmd[0] == 0) {
+	    jcr->sched_time = time(NULL);
+	 } else {
+	    jcr->sched_time = str_to_utime(ua->cmd);
+	    if (jcr->sched_time == 0) {
+               bsendmsg(ua, _("Invalid time, using current time.\n"));
+	       jcr->sched_time = time(NULL);
+	    }
+	 }
+	 goto try_again;
+      case 6:
 	 if (jcr->JobType == JT_BACKUP ||
 	     jcr->JobType == JT_VERIFY) {      /* Pool */
 	    pool = select_pool_resource(ua);
@@ -546,7 +590,7 @@ JobId:      %s\n"),
 	    }
 	 }
 	 goto try_again;
-      case 6:
+      case 7:
 	 /* Where */
          if (!get_cmd(ua, _("Please enter path prefix for restore (/ for none): "))) {
 	    break;
@@ -560,7 +604,7 @@ JobId:      %s\n"),
 	 }
 	 jcr->RestoreWhere = bstrdup(ua->cmd);
 	 goto try_again;
-      case 7:
+      case 8:
 	 /* Replace */
          start_prompt(ua, _("Replace:\n"));
 	 for (i=0; ReplaceOptions[i].name; i++) {
@@ -571,7 +615,7 @@ JobId:      %s\n"),
 	    jcr->replace = ReplaceOptions[opt].token;
 	 }
 	 goto try_again;
-      case 8:
+      case 9:
 	 /* JobId */
 	 jid = NULL;		      /* force reprompt */
 	 jcr->RestoreJobId = 0;

@@ -99,7 +99,7 @@ int authenticate_director(JCR *jcr)
    if (!authenticate(R_DIRECTOR, dir)) {
       bnet_fsend(dir, "%s", Dir_sorry);
       Emsg0(M_FATAL, 0, _("Unable to authenticate Director\n"));
-      sleep(5);
+      bmicrosleep(5, 0);
       return 0;
    }
    return bnet_fsend(dir, "%s", OK_hello);

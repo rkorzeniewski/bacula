@@ -70,7 +70,7 @@ bnet_thread_server(char *bind_addr, int port, int max_clients, workq_t *client_w
 	 tlog = 60; 
          Emsg1(M_ERROR, 0, _("Cannot open stream socket: %s. Retrying ...\n"), strerror(errno));
       }
-      sleep(10);
+      bmicrosleep(10, 0);
    }
 
    /*
@@ -106,7 +106,7 @@ bnet_thread_server(char *bind_addr, int port, int max_clients, workq_t *client_w
 	 tlog = 2*60;		      /* Complain every 2 minutes */
          Emsg2(M_WARNING, 0, _("Cannot bind port %d: %s. Retrying ...\n"), port, strerror(errno));
       }
-      sleep(5);
+      bmicrosleep(5, 0);
       if (--tmax <= 0) {
          Emsg2(M_ABORT, 0, _("Cannot bind port %d: %s.\n"), port, strerror(errno));
       }
@@ -198,7 +198,7 @@ bnet_bind(int port)
 	 tlog = 2*60; 
          Emsg1(M_ERROR, 0, _("Cannot open stream socket: %s\n"), strerror(errno));
       }
-      sleep(60);
+      bmicrosleep(60, 0);
    }
 
    /*
@@ -221,7 +221,7 @@ bnet_bind(int port)
 	 tlog = 2*60;
          Emsg2(M_WARNING, 0, _("Cannot bind port %d: %s: retrying ...\n"), port, strerror(errno));
       }
-      sleep(5);
+      bmicrosleep(5, 0);
    }
    listen(sockfd, 1);		      /* tell system we are ready */
    return init_bsock(NULL, sockfd, _("Server socket"), _("client"), port);

@@ -104,8 +104,8 @@ void run_job(JCR *jcr)
    jcr->jr.Type = jcr->JobType;
    jcr->jr.Level = jcr->JobLevel;
    jcr->jr.JobStatus = jcr->JobStatus;
-   strcpy(jcr->jr.Name, jcr->job->hdr.name);
-   strcpy(jcr->jr.Job, jcr->Job);
+   bstrncpy(jcr->jr.Name, jcr->job->hdr.name, sizeof(jcr->jr.Name));
+   bstrncpy(jcr->jr.Job, jcr->Job, sizeof(jcr->jr.Job));
 
    /* Initialize termination condition variable */
    if ((errstat = pthread_cond_init(&jcr->term_wait, NULL)) != 0) {
@@ -268,9 +268,21 @@ bail_out:
  */
 static int acquire_resource_locks(JCR *jcr)
 {
+   time_t now = time(NULL);
+
+   /* Wait until scheduled time arrives */
+   while (jcr->sched_time > now) {
+      Dmsg2(100, "Waiting on sched time, jobid=%d secs=%d\n", jcr->JobId,
+	    jcr->sched_time - now);
+      bmicrosleep(jcr->sched_time - now, 0);
+      now = time(NULL);
+   }
+
+
 #ifdef USE_SEMAPHORE
    int stat;
 
+   /* Initialize semaphores */
    if (jcr->store->sem.valid != SEMLOCK_VALID) {
       if ((stat = sem_init(&jcr->store->sem, jcr->store->MaxConcurrentJobs)) != 0) {
          Emsg1(M_ABORT, 0, _("Could not init Storage semaphore: ERR=%s\n"), strerror(stat));
@@ -472,7 +484,7 @@ void create_unique_job_name(JCR *jcr, char *base_name)
    P(mutex);			      /* lock creation of jobs */
    now = time(NULL);
    while (now == last_start_time) {
-      sleep(1);
+      bmicrosleep(0, 500000);
       now = time(NULL);
    }
    last_start_time = now;

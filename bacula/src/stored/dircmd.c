@@ -371,7 +371,7 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
    for ( ; !(dev->state & ST_OPENED); ) {
        if (open_dev(dev, jcr->VolumeName, READ_WRITE) < 0) {
 	  if (dev->dev_errno == EAGAIN || dev->dev_errno == EBUSY) {
-	     sleep(30);
+	     bmicrosleep(30, 0);
 	  }
           bnet_fsend(dir, _("3910 Unable to open device %s. ERR=%s\n"), 
 	     dev_name(dev), strerror_dev(dev));

@@ -18,9 +18,7 @@ Testing to do: (painful)
 
 For 1.30 release:
 - Fix Bare Metal restore problem.
-- Possibly implement a Slot priority (loaded/not loaded).
 - Test multiple simultaneous Volumes
-- Implement run at "xxx"
 
 - Document new transparent Console commands and wait command.
 - Document new immediate File save configuration (walk user
@@ -35,10 +33,12 @@ For 1.30 release:
 - Document logrotate
 - Document default file backup
 - Document . command
+- Document run when.
 
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 After 1.30:
+- Implement a Slot priority (loaded/not loaded).
 - Implement Automatic Mount even in operator wait.
 - Implement create "FileSet"?
 - Implement Release Device in the Job resource to unmount a drive.
@@ -972,3 +972,6 @@ rufus-dir: Volume used once. Marking Volume "File0003" as Used.
   the binary gets deleted when the daemon is stopped in the
   rc.d/inid.d directory.
 - Do not ignore SIGCHLD
+- Add Cleaning to list of volume statuses 
+- Implement run at "xxx"
+

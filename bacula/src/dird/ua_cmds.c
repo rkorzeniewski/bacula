@@ -683,6 +683,7 @@ static int update_volume(UAContext *ua)
          add_prompt(ua, "Disabled");
          add_prompt(ua, "Full");
          add_prompt(ua, "Used");
+         add_prompt(ua, "Cleaning");
          if (strcmp(mr.VolStatus, "Purged") == 0) {
             add_prompt(ua, "Recycle");
 	 }
@@ -1391,7 +1392,7 @@ int quitcmd(UAContext *ua, char *cmd)
  */
 int waitcmd(UAContext *ua, char *cmd) 
 {
-   usleep(500000);
+   bmicrosleep(0, 200000);	      /* let job actually start */
    for (int running=1; running; ) {
       running = 0;
       lock_jcr_chain();
@@ -1405,7 +1406,7 @@ int waitcmd(UAContext *ua, char *cmd)
       }
       unlock_jcr_chain();
       if (running) {
-	 sleep(1);
+	 bmicrosleep(1, 0);
       }
    }
    return 1;

@@ -43,8 +43,8 @@ static void stop_btimer(btimer_id wid);
 static btimer_id btimer_start_common(uint32_t wait);
 
 /* Static globals */
-static pthread_mutex_t mutex;
-static pthread_cond_t  timer;
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t  timer = PTHREAD_COND_INITIALIZER;
 static int quit;
 static btimer_t *timer_chain = NULL;
 
@@ -75,13 +75,6 @@ int start_watchdog(void)
    sigfillset(&sigtimer.sa_mask);
    sigaction(TIMEOUT_SIGNAL, &sigtimer, NULL);
    watchdog_time = time(NULL);
-   if ((stat = pthread_mutex_init(&mutex, NULL)) != 0) {
-      return stat;
-   }
-   if ((stat = pthread_cond_init(&timer, NULL)) != 0) {
-      pthread_mutex_destroy(&mutex);
-      return stat;
-   }
    quit = FALSE;
    if ((stat = pthread_create(&wdid, NULL, btimer_thread, (void *)NULL)) != 0) {
       pthread_mutex_destroy(&mutex);
@@ -117,8 +110,6 @@ int stop_watchdog(void)
  */
 static void *btimer_thread(void *arg)
 {
-   struct timespec timeout;
-   int stat;
    JCR *jcr;
    BSOCK *fd;
    btimer_t *wid;
@@ -128,8 +119,6 @@ static void *btimer_thread(void *arg)
 
    P(mutex);
    for ( ;!quit; ) {
-      struct timeval tv;
-      struct timezone tz;
       time_t timer_start, now;
 
       Dmsg0(200, "Top of for loop\n");
@@ -182,17 +171,12 @@ static void *btimer_thread(void *arg)
       }
       unlock_jcr_chain();
 
-      gettimeofday(&tv, &tz);
-      timeout.tv_nsec = 0;
-      timeout.tv_sec = tv.tv_sec + SLEEP_TIME;
-
-      Dmsg1(200, "pthread_cond_timedwait sec=%d\n", timeout.tv_sec);
-      /* Note, this unlocks mutex during the sleep */
-      stat = pthread_cond_timedwait(&timer, &mutex, &timeout);
-      Dmsg1(200, "pthread_cond_timedwait stat=%d\n", stat);
-
+      bmicrosleep(SLEEP_TIME, 0);
       now = time(NULL);
 
+      /* 
+       * Now handle child and thread timers set by the code.
+       */
       /* Walk child chain killing off any process overdue */
       for (wid = timer_chain; wid; wid=wid->next) {
 	 int killed = FALSE;
@@ -211,7 +195,7 @@ static void *btimer_thread(void *arg)
 	 /* If we asked a child to die, wait 3 seconds and slam him */
 	 if (killed) {
 	    btimer_t *wid1;
-	    sleep(3);
+	    bmicrosleep(3, 0);
 	    for (wid1 = timer_chain; wid1; wid1=wid1->next) {
 	       if (wid->type == TYPE_CHILD &&
 		   !wid1->killed && now > (wid1->start_time + wid1->wait)) {

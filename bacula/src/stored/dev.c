@@ -258,7 +258,7 @@ open_dev(DEVICE *dev, char *VolName, int mode)
 	 }
 	 if (errno == EBUSY && timeout-- > 0) {
             Dmsg2(100, "Device %s busy. ERR=%s\n", dev->dev_name, strerror(errno));
-	    sleep(1);
+	    bmicrosleep(1, 0);
 	    continue;
 	 }
 	 dev->dev_errno = errno;
@@ -357,7 +357,7 @@ int rewind_dev(DEVICE *dev)
 	    clrerror_dev(dev, MTREW);
 	    if (dev->dev_errno == EIO && i > 0) {
                Dmsg0(200, "Sleeping 5 seconds.\n");
-	       sleep(5);
+	       bmicrosleep(5, 0);
 	       continue;
 	    }
             Mmsg2(&dev->errmsg, _("Rewind error on %s. ERR=%s.\n"),

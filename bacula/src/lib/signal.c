@@ -132,7 +132,7 @@ static void signal_handler(int sig)
          Dmsg0(500, "Done exit_handler\n");
       } else {
          Dmsg0(500, "Doing sleep\n");
-	 sleep(30);
+	 bmicrosleep(30, 0);
       }
       fprintf(stderr, "It looks like the traceback worked ...\n");
    }

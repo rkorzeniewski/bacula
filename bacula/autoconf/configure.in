@@ -346,6 +346,7 @@ AC_HEADER_STAT
 AC_HEADER_DIRENT
 
 AC_CHECK_FUNCS(strcasecmp select setenv putenv tcgetattr setlocale lstat lchown)
+AC_CHECK_FUNCS(nanosleep)
 
 #AC_CHECK_FUNC(getopt_long, AC_DEFINE(HAVE_GETOPT_LONG),
 #   [LIBEXTRAOBJ="$LIBEXTRAOBJ getopt.o getopt1.o"

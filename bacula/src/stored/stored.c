@@ -215,7 +215,7 @@ int main (int argc, char *argv[])
     * Sleep a bit to give device thread a chance to lock the resource
     * chain before we start the server.
     */
-   sleep(1); 
+   bmicrosleep(1, 0);
 				 
    /* Single server used for Director and File daemon */
    bnet_thread_server(me->SDaddr, me->SDport, me->max_concurrent_jobs * 2 + 1,

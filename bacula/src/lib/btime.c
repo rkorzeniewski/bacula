@@ -41,6 +41,7 @@
 #include "bacula.h"
 #include <math.h>
 
+/* Formatted time */
 void bstrftime(char *dt, int maxlen, utime_t tim)
 {
    time_t ttime = tim;
@@ -51,6 +52,17 @@ void bstrftime(char *dt, int maxlen, utime_t tim)
    strftime(dt, maxlen, "%d-%b-%Y %H:%M", &tm);
 }
 
+/* Unix time to standard time string yyyy-mm-dd hh:mm:ss */
+char *bstrutime(char *dt, int maxlen, utime_t tim)
+{
+   time_t ttime = tim;
+   struct tm tm;
+   localtime_r(&ttime, &tm);
+   strftime(dt, maxlen, "%Y-%m-%d %H:%M:%S", &tm);
+   return dt;
+}
+
+/* Convert standard time string yyyy-mm-dd hh:mm:ss to Unix time */
 utime_t str_to_utime(char *str) 
 {
    struct tm tm;
@@ -77,6 +89,7 @@ utime_t str_to_utime(char *str)
    return (utime_t)ttime;
 }
 
+/* Deprecated. Do not use. */
 void get_current_time(struct date_time *dt)
 {
    struct tm tm;
@@ -126,6 +139,7 @@ utime_t btime_to_utime(btime_t bt)
 
 /*  date_encode  --  Encode civil date as a Julian day number.	*/
 
+/* Deprecated. Do not use. */
 fdate_t date_encode(uint32_t year, uint8_t month, uint8_t day)
 {
 
@@ -162,6 +176,7 @@ fdate_t date_encode(uint32_t year, uint8_t month, uint8_t day)
 /*  time_encode  --  Encode time from hours, minutes, and seconds
 		     into a fraction of a day.	*/
 
+/* Deprecated. Do not use. */
 ftime_t time_encode(uint8_t hour, uint8_t minute, uint8_t second,
 		   float32_t second_fraction)
 {
@@ -173,6 +188,7 @@ ftime_t time_encode(uint8_t hour, uint8_t minute, uint8_t second,
 /*  date_time_encode  --  Set day number and fraction from date
 			  and time.  */
 
+/* Deprecated. Do not use. */
 void date_time_encode(struct date_time *dt,
 		      uint32_t year, uint8_t month, uint8_t day,
 		      uint8_t hour, uint8_t minute, uint8_t second,
@@ -184,6 +200,7 @@ void date_time_encode(struct date_time *dt,
 
 /*  date_decode  --  Decode a Julian day number into civil date.  */
 
+/* Deprecated. Do not use. */
 void date_decode(fdate_t date, uint32_t *year, uint8_t *month,
 		 uint8_t *day)
 {
@@ -212,6 +229,7 @@ void date_decode(fdate_t date, uint32_t *year, uint8_t *month,
 
 /*  time_decode  --  Decode a day fraction into civil time.  */
 
+/* Deprecated. Do not use. */
 void time_decode(ftime_t time, uint8_t *hour, uint8_t *minute,
 		 uint8_t *second, float32_t *second_fraction)
 {
@@ -229,6 +247,7 @@ void time_decode(ftime_t time, uint8_t *hour, uint8_t *minute,
 /*  date_time_decode  --  Decode a Julian day and day fraction
 			  into civil date and time.  */
 
+/* Deprecated. Do not use. */
 void date_time_decode(struct date_time *dt,
 		      uint32_t *year, uint8_t *month, uint8_t *day,
 		      uint8_t *hour, uint8_t *minute, uint8_t *second,
@@ -242,6 +261,7 @@ void date_time_decode(struct date_time *dt,
  *		   to a Julian day and day fraction.
  */
 
+/* Deprecated. Do not use. */
 void tm_encode(struct date_time *dt,
 		      struct tm *tm) 
 {
@@ -262,6 +282,7 @@ void tm_encode(struct date_time *dt,
 /*  tm_decode  --  Decode a Julian day and day fraction
 		   into civil date and time in tm structure */
 
+/* Deprecated. Do not use. */
 void tm_decode(struct date_time *dt,
 		      struct tm *tm) 
 {
@@ -287,6 +308,7 @@ void tm_decode(struct date_time *dt,
 				     1	  dt1 > dt2
 */
 
+/* Deprecated. Do not use. */
 int date_time_compare(struct date_time *dt1, struct date_time *dt2)
 {
     if (dt1->julian_day_number == dt2->julian_day_number) {

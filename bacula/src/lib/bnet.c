@@ -517,7 +517,7 @@ bnet_connect(void *vjcr, int retry_interval, int max_retry_time, char *name,
             Jmsg(jcr, M_WARNING, 0, "Could not connect to %s on %s:%d. ERR=%s\n\
 Retrying ...\n", name, host, port, strerror(errno));
       }
-      sleep(retry_interval);
+      bmicrosleep(retry_interval, 0);
       max_retry_time -= retry_interval;
       if (max_retry_time <= 0) {
          Jmsg(jcr, M_FATAL, 0, _("Unable to connect to %s on %s:%d. ERR=%s\n"),

@@ -95,7 +95,7 @@ JCR *wait_for_next_job(char *job_to_run)
       if (rem_runjobs > 0) {
 	 break;
       }
-      sleep(60);
+      bmicrosleep(60, 0);	      /* recheck once per minute */
    }
 
    /* 
@@ -128,14 +128,13 @@ JCR *wait_for_next_job(char *job_to_run)
 
    /* Now wait for the time to run the job */
    for (;;) {
-      int twait;
-      time(&now);
+      time_t twait;
+      now = time(NULL);
       twait = nexttime - now;
-      if (twait <= 0)		      /* time to run it */
+      if (twait <= 0) { 	      /* time to run it */
 	 break;
-      if (twait > 1)		      /* sleep max 20 seconds */
-	 twait--;
-      sleep(twait);
+      }
+      bmicrosleep(twait, 0);
    }
    run = runjobs[jobindex].run;
    job = runjobs[jobindex].job;
