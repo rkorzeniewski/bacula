@@ -54,6 +54,7 @@ bool forge_on = true;
 static void usage()
 {
    fprintf(stderr, _(
+"Copyright (C) 2002-2004 Kern Sibbald and John Walker.\n"
 "\nVersion: " VERSION " (" BDATE ")\n\n"
 "Usage: bcopy [-d debug_level] <input-archive> <output-archive>\n"
 "       -b bootstrap      specify a bootstrap file\n"

@@ -70,6 +70,7 @@ bool forge_on = false;
 static void usage()
 {
    fprintf(stderr,
+"Copyright (C) 2000-2004 Kern Sibbald and John Walker.\n"
 "\nVersion: " VERSION " (" BDATE ")\n\n"
 "Usage: bextract <options> <bacula-archive-device-name> <directory-to-store-files>\n"
 "       -b <file>       specify a bootstrap file\n"

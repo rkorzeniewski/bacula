@@ -58,7 +58,8 @@ SELECT DISTINCT Job.JobId,Client.Name as Client,Level,StartTime,JobFiles,JobByte
 # 6
 :List all backups for a Client
 *Enter Client Name:
-SELECT DISTINCT Job.JobId,Client.Name as Client,Level,StartTime,JobFiles,JobBytes,VolumeName
+SELECT DISTINCT Job.JobId as JobId,Client.Name as Client,Level,StartTime,
+   JobFiles,JobBytes,VolumeName
  FROM Client,Job,JobMedia,Media
  WHERE Client.Name='%1'
  AND Client.ClientId=Job.ClientId

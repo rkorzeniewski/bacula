@@ -39,6 +39,7 @@ extern int r_first;
 extern int r_last;
 extern struct s_res resources[];
 extern char my_name[];
+extern const char *client_backups;
 
 /* Imported functions */
 extern int qmessagescmd(UAContext *ua, const char *cmd);
@@ -54,6 +55,7 @@ static int poolscmd(UAContext *ua, const char *cmd);
 static int storagecmd(UAContext *ua, const char *cmd);
 static int defaultscmd(UAContext *ua, const char *cmd);
 static int typescmd(UAContext *ua, const char *cmd);
+static int backupscmd(UAContext *ua, const char *cmd);
 static int levelscmd(UAContext *ua, const char *cmd);
 
 struct cmdstruct { const char *key; int (*func)(UAContext *ua, const char *cmd); const char *help; }; 
@@ -65,6 +67,7 @@ static struct cmdstruct commands[] = {
  { N_(".msgs"),       msgscmd,      NULL},
  { N_(".pools"),      poolscmd,     NULL},
  { N_(".types"),      typescmd,     NULL},
+ { N_(".backups"),    backupscmd,   NULL},
  { N_(".levels"),     levelscmd,    NULL},
  { N_(".storage"),    storagecmd,   NULL},
  { N_(".defaults"),   defaultscmd,  NULL},
@@ -198,6 +201,31 @@ static int typescmd(UAContext *ua, const char *cmd)
    bsendmsg(ua, "Verify\n");
    return 1;
 }
+
+static int client_backups_handler(void *ctx, int num_field, char **row)
+{
+   UAContext *ua = (UAContext *)ctx;
+   bsendmsg(ua, "| %s | %s | %s | %s | %s | %s | %s |\n",
+      row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]);
+   return 0;
+}
+
+static int backupscmd(UAContext *ua, const char *cmd)
+{
+   if (!open_db(ua)) {
+      return 1;
+   }
+   if (ua->argc == 2 && strcmp(ua->argk[1], "client") != 0) {
+      return 1;
+   }
+   Mmsg(&ua->cmd, client_backups, ua->argv[1]);
+   if (!db_sql_query(ua->db, ua->cmd, client_backups_handler, (void *)ua)) {
+      bsendmsg(ua, _("Query failed: %s. ERR=%s\n"), ua->cmd, db_strerror(ua->db));
+      return 1;
+   }
+   return 1;
+}
+
 
 static int levelscmd(UAContext *ua, const char *cmd)
 {
