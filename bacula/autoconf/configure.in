@@ -1594,7 +1594,7 @@ AC_FUNC_ALLOCA
 AC_FUNC_GETMNTENT
 AC_FUNC_CLOSEDIR_VOID
 AC_FUNC_SETPGRP 		      dnl check for BSD setpgrp.
-AC_FUNC_FNMATCH
+# AC_FUNC_FNMATCH    dnl use local version
 
 
 dnl# FreeBSD needs to link libxpg4

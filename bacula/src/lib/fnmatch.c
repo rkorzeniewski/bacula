@@ -16,7 +16,6 @@
 
 #include "bacula.h"
  
-#ifndef HAVE_FNMATCH
 
 /* Enable GNU extensions in fnmatch.h.	*/
 #ifndef _GNU_SOURCE
@@ -235,5 +234,3 @@ fnmatch (const char *pattern, const char *string, int flags)
 }
 
 #endif	/* _LIBC or not __GNU_LIBRARY__.  */
-
-#endif /* !HAVE_FNMATCH */
