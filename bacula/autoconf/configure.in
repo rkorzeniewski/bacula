@@ -1587,6 +1587,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/cats/drop_bdb_database \
 	   src/cats/create_bacula_database \
 	   src/cats/update_bacula_tables \
+	   src/cats/grant_bacula_privileges \
 	   src/cats/make_bacula_tables \
 	   src/cats/drop_bacula_tables \
 	   src/cats/drop_bacula_database \
