@@ -32,6 +32,10 @@ Suggestions for Preben:
 - Optimized bootstrap.
 
 For 1.37:
+- Add a restore directory-x
+- When labeling tapes, if you enter 000026, Bacula uses
+  the tape index rather than the Volume name 000026.
+- Max Vols limit in Pool off by one?
 - Look at Preben's acl.c error handling code.
 - See multiple-store.txt for Multiple Storage implementation
   design.

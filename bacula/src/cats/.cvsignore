@@ -40,3 +40,9 @@ drop_postgresql_database
 drop_sqlite_database
 grant_bdb_privileges
 update_bdb_tables
+create_sqlite3_database
+drop_sqlite3_database
+drop_sqlite3_tables
+grant_sqlite3_privileges
+make_sqlite3_tables
+update_sqlite3_tables

@@ -443,6 +443,8 @@ void reload_config(int sig)
    SDConnectTimeout = director->SDConnectTimeout;
    Dmsg0(0, "Director's configuration file reread.\n");
 
+   init_device_resources();	      /* Update Device resources */
+
    /* Now release saved resources, if no jobs using the resources */
    if (njobs == 0) {
       free_saved_resources(table);

@@ -1,0 +1,11 @@
+#!/bin/sh
+#
+# shell script to create Bacula SQLite tables
+
+bindir=@SQL_BINDIR@
+cd @working_dir@
+sqlite=@DB_NAME@
+
+${bindir}/${sqlite} $* bacula.db <<END-OF-DATA
+END-OF-DATA
+exit 0
