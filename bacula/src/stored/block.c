@@ -491,12 +491,12 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       if (dev->state & ST_TAPE && dev_cap(dev, CAP_BSR)) {
 
 	 /* Now back up over what we wrote and read the last block */
-	 if (bsf_dev(dev, 1) != 0 || bsf_dev(dev, 1) != 0) {
+	 if (!bsf_dev(dev, 1) || !bsf_dev(dev, 1)) {
 	    ok = false;
             Jmsg(jcr, M_ERROR, 0, _("Backspace file at EOT failed. ERR=%s\n"), strerror(dev->dev_errno));
 	 }
 	 /* Backspace over record */
-	 if (ok && bsr_dev(dev, 1) != 0) {
+	 if (ok && !bsr_dev(dev, 1)) {
 	    ok = false;
             Jmsg(jcr, M_ERROR, 0, _("Backspace record at EOT failed. ERR=%s\n"), strerror(dev->dev_errno));
 	    /*
@@ -668,8 +668,8 @@ reread:
       /* Attempt to reposition to re-read the block */
       if (dev->state & ST_TAPE) {
          Dmsg0(100, "Backspace record for reread.\n");
-	 if (bsr_dev(dev, 1) != 0) {
-            Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
+	 if (!bsr_dev(dev, 1)) {
+            Jmsg(jcr, M_ERROR, 0, "%s", strerror_dev(dev));
 	    block->read_len = 0;
 	    return 0;
 	 }
