@@ -1179,7 +1179,45 @@ static int var_cmd(UAContext *ua, char *cmd)
 
 static int estimate_cmd(UAContext *ua, char *cmd)
 {
-   bsendmsg(ua, "Not yet implemented\n");
+   JOB *job;
+   BSOCK *fd;
+   if (ua->argc < 2) {
+      return 1;
+   }
+   job = (JOB *)GetResWithName(R_JOB, ua->argk[1]);
+   ua->jcr->client = job->client;
+   bsendmsg(ua, _("Connecting to Client %s at %s:%d\n"),
+      job->client->hdr.name, job->client->address, job->client->FDport);
+   if (!connect_to_file_daemon(ua->jcr, 1, 15, 0)) {
+      bsendmsg(ua, _("Failed to connect to Client.\n"));
+      return 1;
+   }
+   fd = ua->jcr->file_bsock;
+
+   if (!send_include_list(ua->jcr)) {
+      bsendmsg(ua, _("Error sending include list.\n"));
+      return 1;
+   }
+
+   if (!send_exclude_list(ua->jcr)) {
+      bsendmsg(ua, _("Error sending exclude list.\n"));
+      return 1;
+   }
+
+   bnet_fsend(fd, "level = full mtime_only=0\n");
+   if (bnet_recv(fd) >= 0) {
+      bsendmsg(ua, "%s", fd->msg);
+   }
+
+   bnet_fsend(fd, "estimate list=1\n");
+   while (bnet_recv(fd) >= 0) {
+      bsendmsg(ua, "%s", fd->msg);
+   }
+
+   bnet_sig(fd, BNET_TERMINATE);
+   bnet_close(fd);
+   ua->jcr->file_bsock = NULL;
+
    return 1;
 }
 

@@ -168,7 +168,7 @@ struct JCR {
    int incremental;                   /* set if incremental for SINCE */
    time_t mtime;                      /* begin time for SINCE */
    int mtime_only;                    /* compare only mtime and not ctime as well */
-   int status;                        /* job status */
+   int listing;                       /* job listing in estimate */
    long Ticket;                       /* Ticket */
    int save_level;                    /* save level */
    char *big_buf;                     /* I/O buffer */

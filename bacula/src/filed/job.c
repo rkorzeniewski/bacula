@@ -98,7 +98,7 @@ static char verifycmd[]   = "verify level=%30s\n";
 static char errmsg[]      = "2999 Invalid command\n";
 static char no_auth[]     = "2998 No Authorization\n";
 static char OKinc[]       = "2000 OK include\n";
-static char OKest[]       = "2000 OK estimate files=%ld bytes=%ld\n";
+static char OKest[]       = "2000 OK estimate files=%u bytes=%s\n";
 static char OKexc[]       = "2000 OK exclude\n";
 static char OKlevel[]     = "2000 OK level\n";
 static char OKbackup[]    = "2000 OK backup\n";
@@ -283,8 +283,14 @@ static int setdebug_cmd(JCR *jcr)
 static int estimate_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
+   char ed2[50];
+
+   jcr->listing = 1;
    make_estimate(jcr);
-   return bnet_fsend(dir, OKest, jcr->num_files_examined, jcr->JobBytes);
+   bnet_fsend(dir, OKest, jcr->num_files_examined, 
+      edit_uint64(jcr->JobBytes, ed2));
+   bnet_sig(dir, BNET_EOD);
+   return 1;
 }
 
 /*
