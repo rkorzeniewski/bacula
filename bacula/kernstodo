@@ -70,6 +70,7 @@ For 1.33 Testing/Documentation:
      http://howtos.linux.com/guides/nag2/x-087-2-nfs.mountd.shtml
 
 For 1.33
+- During install, copy any console.conf to bconsole.conf.
 - Have each daemon save the last_jobs structure when exiting and
   read it back in when starting up.
 - "restore jobid=1 select" calls get_storage_xxx, which prints "JobId 1 is
