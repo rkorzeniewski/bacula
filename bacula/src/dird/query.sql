@@ -6,7 +6,7 @@ SELECT count(*) AS Jobs,sum(JobFiles) AS Files,
 SELECT max(JobId) AS Jobs,sum(JobFiles) AS Files,sum(JobBytes) As Bytes 
  FROM Job;
 # 2 
-:List where a File is saved regardless of the directory:
+:List up to 20 places where a File is saved regardless of the directory:
 *Enter Filename (no path):
 SELECT DISTINCT Job.JobId as JobId, Client.Name as Client,
   Path.Path,Filename.Name,StartTime,Level,JobFiles,JobBytes

@@ -25,6 +25,10 @@ For 1.36.1:
 
 
 1.37 Possibilities:
+- Require restore via the restore command or make a restore Job
+  get the bootstrap file.
+- Use only shell tools no make in CDROM package.
+- Document PostgreSQL performance problems bug 131.
 - Document testing
 - Add performance testing hooks
 - if 2 concurrent backups are attempted on the same tape
