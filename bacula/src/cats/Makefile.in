@@ -63,17 +63,24 @@ clean:
 
 realclean: clean
 	$(RMF) tags
-	$(RMF) make_mysql_tables grant_mysql_privileges drop_mysql_tables
-	$(RMF) make_postgresql_tables grant_postgresql_privileges drop_postgresql_tables
-	$(RMF) create_mysql_database create_postgresql_database make_sqlite_tables sqlite
-	$(RMF) create_bdb_database drop_bdb_tables make_dbd_tables
+
+	$(RMF) create_bacula_database      update_bacula_tables     make_bacula_tables
+	$(RMF) grant_bacula_privileges     drop_bacula_tables       drop_bacula_database
+
+	$(RMF) create_bdb_database         update_bdb_tables        make_bdb_tables
+	$(RMF) grant_bdb_privileges        drop_bdb_tables          drop_bdb_database
+
+	$(RMF) create_mysql_database       update_mysql_tables      make_mysql_tables
+	$(RMF) grant_mysql_privileges      drop_mysql_tables        drop_mysql_database
+
+	$(RMF) create_postgresql_database  update_postgresql_tables make_postgresql_tables
+	$(RMF) grant_postgresql_privileges drop_postgresql_tables   drop_postgresql_database
+
+	$(RMF) create_sqlite_database      update_sqlite_tables     make_sqlite_tables
+	$(RMF) grant_sqlite_privileges     drop_sqlite_tables       drop_sqlite_database
+
+	$(RMF) mysql postgresql sqlite
 	$(RMF) make_catalog_backup delete_catalog_backup
-	$(RMF) update_mysql_tables update_sqlite_tables create_sqlite_database
-	$(RMF) drop_bacula_tables drop_sqlite_tables make_bacula_tables
-	$(RMF) create_bacula_database grant_bacula_privileges
-	$(RMF) grant_sqlite_privileges
-	$(RMF) update_bacula_tables
-	$(RMF) drop_bdb_tables make_bdb_tables mysql postgresql
 
 distclean: realclean
 	if test $(srcdir) = .; then $(MAKE) realclean; fi
@@ -81,35 +88,39 @@ distclean: realclean
 
 install:
 	$(INSTALL_SCRIPT) create_@DB_NAME@_database $(DESTDIR)$(scriptdir)/create_@DB_NAME@_database
-	$(INSTALL_SCRIPT) drop_@DB_NAME@_tables $(DESTDIR)$(scriptdir)/drop_@DB_NAME@_tables
-	$(INSTALL_SCRIPT) make_@DB_NAME@_tables $(DESTDIR)$(scriptdir)/make_@DB_NAME@_tables
 	$(INSTALL_SCRIPT) update_@DB_NAME@_tables $(DESTDIR)$(scriptdir)/update_@DB_NAME@_tables
-	$(INSTALL_SCRIPT) drop_bacula_tables $(DESTDIR)$(scriptdir)/drop_bacula_tables
-	$(INSTALL_SCRIPT) make_bacula_tables $(DESTDIR)$(scriptdir)/make_bacula_tables
+	$(INSTALL_SCRIPT) make_@DB_NAME@_tables $(DESTDIR)$(scriptdir)/make_@DB_NAME@_tables
+	$(INSTALL_SCRIPT) grant_@DB_NAME@_privileges $(DESTDIR)$(scriptdir)/grant_@DB_NAME@_privileges
+	$(INSTALL_SCRIPT) drop_@DB_NAME@_tables $(DESTDIR)$(scriptdir)/drop_@DB_NAME@_tables
+	$(INSTALL_SCRIPT) drop_@DB_NAME@_database $(DESTDIR)$(scriptdir)/drop_@DB_NAME@_database
+
 	$(INSTALL_SCRIPT) create_bacula_database $(DESTDIR)$(scriptdir)/create_bacula_database
-	$(INSTALL_SCRIPT) grant_bacula_privileges $(DESTDIR)$(scriptdir)/grant_bacula_privileges
 	$(INSTALL_SCRIPT) update_bacula_tables $(DESTDIR)$(scriptdir)/update_bacula_tables
+	$(INSTALL_SCRIPT) make_bacula_tables $(DESTDIR)$(scriptdir)/make_bacula_tables
+	$(INSTALL_SCRIPT) grant_bacula_privileges $(DESTDIR)$(scriptdir)/grant_bacula_privileges
+	$(INSTALL_SCRIPT) drop_bacula_tables $(DESTDIR)$(scriptdir)/drop_bacula_tables
+	$(INSTALL_SCRIPT) drop_bacula_database $(DESTDIR)$(scriptdir)/drop_bacula_database
+
 	$(INSTALL_SCRIPT) make_catalog_backup $(DESTDIR)$(scriptdir)/make_catalog_backup  
 	$(INSTALL_SCRIPT) delete_catalog_backup $(DESTDIR)$(scriptdir)/delete_catalog_backup  
-	$(INSTALL_SCRIPT) grant_mysql_privileges $(DESTDIR)$(scriptdir)/grant_mysql_privileges	
-	$(INSTALL_SCRIPT) grant_postgresql_privileges $(DESTDIR)$(scriptdir)/grant_postgresql_privileges	
-	$(INSTALL_SCRIPT) grant_sqlite_privileges $(DESTDIR)$(scriptdir)/grant_sqlite_privileges	
 
 uninstall:
 	(cd $(DESTDIR)$(scriptdir); $(RMF) create_@DB_NAME@_database)
-	(cd $(DESTDIR)$(scriptdir); $(RMF) drop_@DB_NAME@_tables)
-	(cd $(DESTDIR)$(scriptdir); $(RMF) make_@DB_NAME@_tables)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) update_@DB_NAME@_tables)
-	(cd $(DESTDIR)$(scriptdir); $(RMF) drop_bacula_tables)
-	(cd $(DESTDIR)$(scriptdir); $(RMF) make_bacula_tables)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) make_@DB_NAME@_tables)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) grant_@DB_NAME@_privileges)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) drop_@DB_NAME@_tables)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) drop_@DB_NAME@_database)
+
 	(cd $(DESTDIR)$(scriptdir); $(RMF) create_bacula_database)
-	(cd $(DESTDIR)$(scriptdir); $(RMF) grant_bacula_privileges)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) update_bacula_tables)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) make_bacula_tables)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) grant_bacula_privileges)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) drop_bacula_tables)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) drop_bacula_database)
+
 	(cd $(DESTDIR)$(scriptdir); $(RMF) make_catalog_backup)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) delete_catalog_backup)
-	(cd $(DESTDIR)$(scriptdir); $(RMF) grant_mysql_privileges)
-	(cd $(DESTDIR)$(scriptdir); $(RMF) grant_postgresql_privileges)
-	(cd $(DESTDIR)$(scriptdir); $(RMF) grant_sqlite_privileges)
 
 
 # Semi-automatic generation of dependencies:
