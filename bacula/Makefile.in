@@ -60,7 +60,7 @@ configure: autoconf/configure.in autoconf/aclocal.m4 autoconf/acconfig.h autocon
 	chmod 755 configure
 	@rm -f config.cache
 
-old-onfigure: autoconf/configure.in autoconf/aclocal.m4 autoconf/acconfig.h
+old-configure: autoconf/configure.in autoconf/aclocal.m4 autoconf/acconfig.h
 	cd $(srcdir);
 	autoconf --include=$(srcdir)/autoconf \
 	autoconf/configure.in > configure
