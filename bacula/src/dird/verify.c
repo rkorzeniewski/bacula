@@ -48,11 +48,9 @@ extern int debug_level;
 
 /* Commands sent to File daemon */
 static char verifycmd[]   = "verify level=%s\n";
-static char levelcmd[]    = "level = %s%s\n";
 
 /* Responses received from File daemon */
 static char OKverify[]   = "2000 OK verify\n";
-static char OKlevel[]    = "2000 OK level\n";
 
 /* Forward referenced functions */
 static void verify_cleanup(JCR *jcr, int TermCode);
@@ -164,14 +162,9 @@ int do_verify(JCR *jcr)
          Jmsg1(jcr, M_FATAL, 0, _("Unimplemented save level %d\n"), jcr->JobLevel);
 	 goto bail_out;
    }
-   Dmsg1(20, ">filed: %s", fd->msg);
-   bnet_fsend(fd, levelcmd, level, " ");
-   if (!response(fd, OKlevel, "Level")) {
-      goto bail_out;
-   }
 
    /* 
-    * Send verify command to File daemon
+    * Send verify command/level to File daemon
     */
    bnet_fsend(fd, verifycmd, level);
    if (!response(fd, OKverify, "Verify")) {
@@ -201,11 +194,11 @@ int do_verify(JCR *jcr)
       goto bail_out;
    }
 
-   verify_cleanup(jcr, JS_Terminated);
+   verify_cleanup(jcr, jcr->JobStatus);
    return 1;
 
 bail_out:
-   verify_cleanup(jcr, JS_Terminated);
+   verify_cleanup(jcr, JS_ErrorTerminated);
    return 0;
 }
 
@@ -270,7 +263,7 @@ Termination:            %s\n\n"),
 	jcr->client->hdr.name,
 	sdt,
 	edt,
-	edit_uint64_with_commas(jcr->jr.JobFiles, ec1),
+	edit_uint64_with_commas(jcr->JobFiles, ec1),
 	term_msg);
 
    Dmsg0(100, "Leave verify_cleanup()\n");
@@ -322,7 +315,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, int last_full_id)
        * Got attributes stream, decode it
        */
       if (stream == STREAM_UNIX_ATTRIBUTES) {
-	 jcr->jr.JobFiles++;
+	 jcr->JobFiles++;
 	 attr_file_index = file_index;	  /* remember attribute file_index */
 	 len = strlen(fd->msg);
 	 attr = &fd->msg[len+1];
@@ -477,7 +470,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, int last_full_id)
 	    do_MD5 = FALSE;
 	 }
       }
-      jcr->jr.JobFiles = file_index;
+      jcr->JobFiles = file_index;
    } 
    if (n < 0) {
       Jmsg2(jcr, M_FATAL, 0, _("bdird<filed: bad attributes from filed n=%d : %s\n"),

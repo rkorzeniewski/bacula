@@ -212,7 +212,7 @@ msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
        }
 
        if (stream == STREAM_UNIX_ATTRIBUTES) {
-	  jcr->jr.JobFiles++;
+	  jcr->JobFiles++;
 	  len = strlen(fd->msg);      /* length before attributes */
 	  ar.attr = &fd->msg[len+1];
 	  ar.fname = jcr->fname;
@@ -248,7 +248,7 @@ msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
              Jmsg1(jcr, M_WARNING, 0, "%s", db_strerror(jcr->db));
 	  }
        }
-       jcr->jr.JobFiles = file_index;
+       jcr->jr.JobFiles = jcr->JobFiles = file_index;
        jcr->jr.LastIndex = file_index;
    } 
    if (n < 0) {
