@@ -18,8 +18,6 @@
 <widget>
   <class>GtkWindow</class>
   <name>app1</name>
-  <width>800</width>
-  <height>500</height>
   <signal>
     <name>delete_event</name>
     <handler>on_app1_delete_event</handler>
@@ -29,10 +27,9 @@
   <type>GTK_WINDOW_TOPLEVEL</type>
   <position>GTK_WIN_POS_CENTER</position>
   <modal>False</modal>
-  <default_height>500</default_height>
   <allow_shrink>True</allow_shrink>
   <allow_grow>True</allow_grow>
-  <auto_shrink>False</auto_shrink>
+  <auto_shrink>True</auto_shrink>
 
   <widget>
     <class>GtkVBox</class>
@@ -690,8 +687,8 @@
   <type>GTK_WINDOW_TOPLEVEL</type>
   <position>GTK_WIN_POS_CENTER</position>
   <modal>True</modal>
-  <allow_shrink>False</allow_shrink>
-  <allow_grow>False</allow_grow>
+  <allow_shrink>True</allow_shrink>
+  <allow_grow>True</allow_grow>
   <auto_shrink>False</auto_shrink>
 
   <widget>

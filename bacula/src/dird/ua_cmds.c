@@ -43,8 +43,8 @@ extern char *list_pool;
 
 /* Imported functions */
 extern int status_cmd(UAContext *ua, char *cmd);
-extern int listcmd(UAContext *ua, char *cmd);
-extern int llistcmd(UAContext *ua, char *cmd);
+extern int list_cmd(UAContext *ua, char *cmd);
+extern int llist_cmd(UAContext *ua, char *cmd);
 extern int show_cmd(UAContext *ua, char *cmd);
 extern int messagescmd(UAContext *ua, char *cmd);
 extern int autodisplaycmd(UAContext *ua, char *cmd);
@@ -95,8 +95,8 @@ static struct cmdstruct commands[] = {
  { N_("exit"),       quit_cmd,      _("exit = quit")},
  { N_("help"),       help_cmd,      _("print this command")},
  { N_("label"),      label_cmd,     _("label a tape")},
- { N_("list"),       listcmd,       _("list [pools | jobs | jobtotals | media <pool> | files job=<nn>]; from catalog")},
- { N_("llist"),      llistcmd,      _("full or long list like list command")},
+ { N_("list"),       list_cmd,      _("list [pools | jobs | jobtotals | media <pool> | files job=<nn>]; from catalog")},
+ { N_("llist"),      llist_cmd,     _("full or long list like list command")},
  { N_("messages"),   messagescmd,   _("messages")},
  { N_("mount"),      mount_cmd,     _("mount <storage-name>")},
  { N_("prune"),      prunecmd,      _("prune expired records from catalog")},

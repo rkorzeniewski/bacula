@@ -45,8 +45,7 @@ extern brwlock_t con_lock;
 /* Imported functions */
 
 /* Forward referenced functions */
-static int do_listcmd(UAContext *ua, char *cmd, e_list_type llist);
-
+static int do_list_cmd(UAContext *ua, char *cmd, e_list_type llist);
 
 /*
  * Turn auto display of console messages on/off
@@ -59,15 +58,15 @@ int autodisplaycmd(UAContext *ua, char *cmd)
       NULL};
 
    switch (find_arg_keyword(ua, kw)) {
-      case 0:
-	 ua->auto_display_messages = 1;
-	 break;
-      case 1:
-	 ua->auto_display_messages = 0;
-	 break;
-      default:
-         bsendmsg(ua, _("ON or OFF keyword missing.\n"));
-	 break;
+   case 0:
+      ua->auto_display_messages = 1;
+      break;
+   case 1:
+      ua->auto_display_messages = 0;
+      break;
+   default:
+      bsendmsg(ua, _("ON or OFF keyword missing.\n"));
+      break;
    }
    return 1; 
 }
@@ -188,22 +187,24 @@ int show_cmd(UAContext *ua, char *cmd)
  *  list media		- list media for given pool (deprecated)
  *  list volumes	- list Volumes
  *  list clients	- list clients
+ *  list nextvol job=xx  - list the next vol to be used by job
+ *  list nextvolume job=xx - same as above.
  *
  */
 
 /* Do long or full listing */
-int llistcmd(UAContext *ua, char *cmd)
+int llist_cmd(UAContext *ua, char *cmd)
 {
-   return do_listcmd(ua, cmd, VERT_LIST);
+   return do_list_cmd(ua, cmd, VERT_LIST);
 }
 
 /* Do short or summary listing */
-int listcmd(UAContext *ua, char *cmd)
+int list_cmd(UAContext *ua, char *cmd)
 {
-   return do_listcmd(ua, cmd, HORZ_LIST);
+   return do_list_cmd(ua, cmd, HORZ_LIST);
 }
 
-static int do_listcmd(UAContext *ua, char *cmd, e_list_type llist)
+static int do_list_cmd(UAContext *ua, char *cmd, e_list_type llist)
 {
    POOLMEM *VolumeName;
    int jobid, n;
@@ -366,12 +367,89 @@ static int do_listcmd(UAContext *ua, char *cmd, e_list_type llist)
 	 bstrncpy(mr.VolumeName, ua->argv[i], sizeof(mr.VolumeName));
 	 db_list_media_records(ua->jcr, ua->db, &mr, prtit, ua, llist);
 	 return 1;
+      /* List next volume */
+      } else if (strcasecmp(ua->argk[i], _("nextvol")) == 0 || 
+                 strcasecmp(ua->argk[i], _("nextvolume")) == 0) {
+	 JOB *job;
+	 JCR *jcr = ua->jcr;
+         i = find_arg_with_value(ua, "job");
+	 if (i <= 0) {
+	    if ((job = select_job_resource(ua)) == NULL) {
+	       return 1;
+	    }
+	 } else {
+	    job = (JOB *)GetResWithName(R_JOB, ua->argv[i]);
+	    if (!job) {
+               Jmsg(jcr, M_ERROR, 0, _("%s is not a job name.\n"), ua->argv[i]);
+	       if ((job = select_job_resource(ua)) == NULL) {
+		  return 1;
+	       }
+	    }
+	 }
+	 if (!complete_jcr_for_job(jcr, job, NULL)) {
+	    return 1;
+	 }
+	   
+	 if (!find_next_volume_for_append(jcr, &mr, 0)) {
+            bsendmsg(ua, "Could not find next Volume\n");
+	    db_close_database(jcr, jcr->db);
+	    jcr->db = NULL;
+	    return 1;
+	 } else {
+            bsendmsg(ua, "The next Volume to be used by Job \"%s\" will be %s\n", 
+	       job->hdr.name, mr.VolumeName);
+	 }
+	 db_close_database(jcr, jcr->db);
+	 jcr->db = NULL;
       } else {
          bsendmsg(ua, _("Unknown list keyword: %s\n"), NPRT(ua->argk[i]));
       }
    }
    return 1;
 }
+
+/* 
+ * Fill in the remaining fields of the jcr as if it
+ *  is going to run the job.
+ */
+int complete_jcr_for_job(JCR *jcr, JOB *job, POOL *pool)
+{
+   POOL_DBR pr;
+
+   memset(&pr, 0, sizeof(POOL_DBR));   
+   set_jcr_defaults(jcr, job);
+   if (pool) {
+      jcr->pool = pool; 	      /* override */
+   }
+   jcr->db = jcr->db=db_init_database(jcr, jcr->catalog->db_name, jcr->catalog->db_user,
+		      jcr->catalog->db_password, jcr->catalog->db_address,
+		      jcr->catalog->db_port, jcr->catalog->db_socket);
+   if (!jcr->db || !db_open_database(jcr, jcr->db)) {
+      Jmsg(jcr, M_FATAL, 0, _("Could not open database \"%s\".\n"),
+		 jcr->catalog->db_name);
+      if (jcr->db) {
+         Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
+      }
+      return 0;
+   }
+   bstrncpy(pr.Name, jcr->pool->hdr.name, sizeof(pr.Name));
+   while (!db_get_pool_record(jcr, jcr->db, &pr)) { /* get by Name */
+      /* Try to create the pool */
+      if (create_pool(jcr, jcr->db, jcr->pool, POOL_OP_CREATE) < 0) {
+         Jmsg(jcr, M_FATAL, 0, _("Pool %s not in database. %s"), pr.Name, 
+	    db_strerror(jcr->db));
+	 db_close_database(jcr, jcr->db);
+	 jcr->db = NULL;
+	 return 0;
+      } else {
+         Jmsg(jcr, M_INFO, 0, _("Pool %s created in database.\n"), pr.Name);
+      }
+   }
+   jcr->PoolId = pr.PoolId; 
+   jcr->jr.PoolId = pr.PoolId;
+   return 1;
+}
+
 
 static void con_lock_release(void *arg)
 {

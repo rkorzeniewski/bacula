@@ -159,8 +159,10 @@ int close_bpipe(BPIPE *bpipe)
    /* wait for worker child to exit */
    for ( ;; ) {
       Dmsg2(200, "Wait for %d opt=%d\n", bpipe->worker_pid, wait_option);
-      wpid = waitpid(bpipe->worker_pid, &chldstatus, wait_option);
-      if (wpid == bpipe->worker_pid || (wpid == -1 && errno != EINTR)) {
+      do {
+	 wpid = waitpid(bpipe->worker_pid, &chldstatus, wait_option);
+      } while (wpid == -1 && (errno == EINTR || errno == EAGAIN));
+      if (wpid == bpipe->worker_pid || wpid == -1) {
          Dmsg3(200, "Got break wpid=%d status=%d ERR=%s\n", wpid, chldstatus,
             wpid==-1?strerror(errno):"none");
 	 break;

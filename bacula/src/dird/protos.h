@@ -62,7 +62,7 @@ int variable_expansion(JCR *jcr, char *inp, POOLMEM **exp);
 
 /* fd_cmds.c */
 extern int connect_to_file_daemon(JCR *jcr, int retry_interval,
-				  int max_retry_time, int verbose);
+                                  int max_retry_time, int verbose);
 extern int send_include_list(JCR *jcr);
 extern int send_exclude_list(JCR *jcr);
 extern int send_bootstrap_file(JCR *jcr);
@@ -70,7 +70,7 @@ extern int send_level_command(JCR *jcr);
 extern int get_attributes_and_put_in_catalog(JCR *jcr);
 extern int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId);
 extern int put_file_into_catalog(JCR *jcr, long file_index, char *fname, 
-			  char *link, char *attr, int stream);
+                          char *link, char *attr, int stream);
 extern void get_level_since_time(JCR *jcr, char *since, int since_len);
 extern int send_run_before_and_after_commands(JCR *jcr);
 
@@ -93,7 +93,7 @@ extern void mount_request(JCR *jcr, BSOCK *bs, char *buf);
 
 /* msgchan.c */
 extern int connect_to_storage_daemon(JCR *jcr, int retry_interval,    
-			      int max_retry_time, int verbose);
+                              int max_retry_time, int verbose);
 extern int start_storage_daemon_job(JCR *jcr);
 extern int start_storage_daemon_message_thread(JCR *jcr);
 extern int bget_dirmsg(BSOCK *bs);
@@ -129,6 +129,7 @@ int is_volume_name_legal(UAContext *ua, char *name);
 
 /* ua_output.c */
 void prtit(void *ctx, char *msg);
+int complete_jcr_for_job(JCR *jcr, JOB *job, POOL *pool);
 
 /* ua_server.c */
 void bsendmsg(void *sock, char *fmt, ...);
@@ -136,28 +137,28 @@ UAContext *new_ua_context(JCR *jcr);
 void free_ua_context(UAContext *ua);
 
 /* ua_select.c */
-STORE	*select_storage_resource(UAContext *ua);
-JOB	*select_job_resource(UAContext *ua);
-JOB	*select_restore_job_resource(UAContext *ua);
-CLIENT	*select_client_resource(UAContext *ua);
+STORE   *select_storage_resource(UAContext *ua);
+JOB     *select_job_resource(UAContext *ua);
+JOB     *select_restore_job_resource(UAContext *ua);
+CLIENT  *select_client_resource(UAContext *ua);
 FILESET *select_fileset_resource(UAContext *ua);
-int	select_pool_and_media_dbr(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr);
-int	select_media_dbr(UAContext *ua, MEDIA_DBR *mr);
-int	select_pool_dbr(UAContext *ua, POOL_DBR *pr);
-int	select_client_dbr(UAContext *ua, CLIENT_DBR *cr);
+int     select_pool_and_media_dbr(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr);
+int     select_media_dbr(UAContext *ua, MEDIA_DBR *mr);
+int     select_pool_dbr(UAContext *ua, POOL_DBR *pr);
+int     select_client_dbr(UAContext *ua, CLIENT_DBR *cr);
 
-void	start_prompt(UAContext *ua, char *msg);
-void	add_prompt(UAContext *ua, char *prompt);
-int	do_prompt(UAContext *ua, char *automsg, char *msg, char *prompt, int max_prompt);
-CAT    *get_catalog_resource(UAContext *ua);	       
+void    start_prompt(UAContext *ua, char *msg);
+void    add_prompt(UAContext *ua, char *prompt);
+int     do_prompt(UAContext *ua, char *automsg, char *msg, char *prompt, int max_prompt);
+CAT    *get_catalog_resource(UAContext *ua);           
 STORE  *get_storage_resource(UAContext *ua, int use_default);
-int	get_media_type(UAContext *ua, char *MediaType, int max_media);
-int	get_pool_dbr(UAContext *ua, POOL_DBR *pr);
-int	get_client_dbr(UAContext *ua, CLIENT_DBR *cr);
+int     get_media_type(UAContext *ua, char *MediaType, int max_media);
+int     get_pool_dbr(UAContext *ua, POOL_DBR *pr);
+int     get_client_dbr(UAContext *ua, CLIENT_DBR *cr);
 POOL   *get_pool_resource(UAContext *ua);
 POOL   *select_pool_resource(UAContext *ua);
 CLIENT *get_client_resource(UAContext *ua);
-int	get_job_dbr(UAContext *ua, JOB_DBR *jr);
+int     get_job_dbr(UAContext *ua, JOB_DBR *jr);
 
 int find_arg_keyword(UAContext *ua, char **list);
 int find_arg(UAContext *ua, char *keyword);

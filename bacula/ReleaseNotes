@@ -1,7 +1,7 @@
 
           Release Notes for Bacula 1.32
 
-  Bacula code: Total files = 259 Total lines = 77,284 (*.h *.c *.in)
+  Bacula code: Total files = 259 Total lines = 77,334 (*.h *.c *.in)
 
 Major Changes this Release:
 - Fixed gnome-console to compile with RH9 (Gnome 2.0)
