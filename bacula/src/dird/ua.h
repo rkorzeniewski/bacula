@@ -85,6 +85,7 @@ int	get_media_type(UAContext *ua, char *MediaType, int max_media);
 int	get_pool_dbr(UAContext *ua, POOL_DBR *pr);
 int	get_client_dbr(UAContext *ua, CLIENT_DBR *cr);
 POOL   *get_pool_resource(UAContext *ua);
+POOL   *select_pool_resource(UAContext *ua);
 CLIENT *get_client_resource(UAContext *ua);
 int	get_job_dbr(UAContext *ua, JOB_DBR *jr);
 

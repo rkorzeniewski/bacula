@@ -465,8 +465,26 @@ int select_pool_and_media_dbr(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
 }
 
 
+/* 
+ * Select a pool resource from prompt list
+ */
+POOL *select_pool_resource(UAContext *ua)
+{
+   char name[MAX_NAME_LENGTH];	  
+   POOL *pool = NULL;
+
+   start_prompt(ua, _("The defined Pool resources are:\n"));
+   LockRes();
+   while ((pool = (POOL *)GetNextRes(R_POOL, (RES *)pool))) {
+      add_prompt(ua, pool->hdr.name);
+   }
+   UnlockRes();
+   do_prompt(ua, _("Select Pool resource"), name, sizeof(name));
+   pool = (POOL *)GetResWithName(R_POOL, name);
+}
+
+
 /*
- *  This routine is ONLY used in the create command.
  *  If you are thinking about using it, you
  *  probably want to use select_pool_dbr() 
  *  or get_pool_dbr() above.
@@ -487,15 +505,7 @@ POOL *get_pool_resource(UAContext *ua)
 	 break;
       }
    }
-   start_prompt(ua, _("The defined Pool resources are:\n"));
-   LockRes();
-   while ((pool = (POOL *)GetNextRes(R_POOL, (RES *)pool))) {
-      add_prompt(ua, pool->hdr.name);
-   }
-   UnlockRes();
-   do_prompt(ua, _("Select Pool resource"), name, sizeof(name));
-   pool = (POOL *)GetResWithName(R_POOL, name);
-   return pool;
+   return select_pool_resource(ua);
 }
 
 /*

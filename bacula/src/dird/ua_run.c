@@ -49,13 +49,14 @@ extern struct s_kw ReplaceOptions[];
 int runcmd(UAContext *ua, char *cmd)
 {
    JCR *jcr;
-   char *job_name, *level_name, *jid, *store_name;
+   char *job_name, *level_name, *jid, *store_name, *pool_name;
    char *where, *fileset_name, *client_name, *bootstrap, *replace;
    int i, j, found, opt;
    JOB *job = NULL;
    STORE *store = NULL;
    CLIENT *client = NULL;
    FILESET *fileset = NULL;
+   POOL *pool = NULL;
    static char *kw[] = {
       N_("job"),
       N_("jobid"),
@@ -63,6 +64,7 @@ int runcmd(UAContext *ua, char *cmd)
       N_("fileset"),
       N_("level"),
       N_("storage"),
+      N_("pool"), 
       N_("where"),
       N_("bootstrap"),
       N_("replace"),
@@ -76,6 +78,7 @@ int runcmd(UAContext *ua, char *cmd)
    level_name = NULL;
    jid = NULL;
    store_name = NULL;
+   pool_name = NULL;
    where = NULL;
    client_name = NULL;
    fileset_name = NULL;
@@ -141,7 +144,15 @@ int runcmd(UAContext *ua, char *cmd)
 		  store_name = ua->argv[i];
 		  found = True;
 		  break;
-	       case 6: /* where */
+	       case 6: /* pool */
+		  if (pool_name) {
+                     bsendmsg(ua, _("Pool specified twice.\n"));
+		     return 1;
+		  }
+		  pool_name = ua->argv[i];
+		  found = True;
+		  break;
+	       case 7: /* where */
 		  if (where) {
                      bsendmsg(ua, _("Where specified twice.\n"));
 		     return 1;
@@ -149,7 +160,7 @@ int runcmd(UAContext *ua, char *cmd)
 		  where = ua->argv[i];
 		  found = True;
 		  break;
-	       case 7: /* bootstrap */
+	       case 8: /* bootstrap */
 		  if (bootstrap) {
                      bsendmsg(ua, _("Bootstrap specified twice.\n"));
 		     return 1;
@@ -157,7 +168,7 @@ int runcmd(UAContext *ua, char *cmd)
 		  bootstrap = ua->argv[i];
 		  found = True;
 		  break;
-	       case 8: /* replace */
+	       case 9: /* replace */
 		  if (replace) {
                      bsendmsg(ua, _("Replace specified twice.\n"));
 		     return 1;
@@ -220,6 +231,17 @@ int runcmd(UAContext *ua, char *cmd)
       return 1;
    }
 
+
+   if (pool_name) {
+      pool = (POOL *)GetResWithName(R_POOL, pool_name);
+      if (!pool) {
+         bsendmsg(ua, _("Pool \"%s\" not found.\n"), pool_name);
+	 pool = get_pool_resource(ua);
+      }
+   } else {
+      pool = job->pool; 	    /* use default */
+   }
+
    if (client_name) {
       client = (CLIENT *)GetResWithName(R_CLIENT, client_name);
       if (!client) {
@@ -254,6 +276,7 @@ int runcmd(UAContext *ua, char *cmd)
    jcr->store = store;
    jcr->client = client;
    jcr->fileset = fileset;
+   jcr->pool = pool;
    if (where) {
       if (jcr->RestoreWhere) {
 	 free(jcr->RestoreWhere);
@@ -331,13 +354,15 @@ JobName:  %s\n\
 FileSet:  %s\n\
 Level:    %s\n\
 Client:   %s\n\
-Storage:  %s\n"),
+Storage:  %s\n\
+Pool:     %s\n"),
                  jcr->JobType==JT_BACKUP?_("Backup"):_("Verify"),
 		 job->hdr.name,
 		 jcr->fileset->hdr.name,
 		 level_to_str(jcr->JobLevel),
 		 jcr->client->hdr.name,
-		 jcr->store->hdr.name);
+		 jcr->store->hdr.name,
+		 NPRT(jcr->pool->hdr.name));
 	 break;
       case JT_RESTORE:
 	 if (jcr->RestoreJobId == 0 && !jcr->RestoreBootstrap) {
@@ -397,7 +422,10 @@ JobId:      %s\n"),
       add_prompt(ua, _("Job"));              /* 2 */
       add_prompt(ua, _("FileSet"));          /* 3 */
       add_prompt(ua, _("Client"));           /* 4 */
-      if (jcr->JobType == JT_RESTORE) {
+      if (jcr->JobType == JT_BACKUP ||
+	  jcr->JobType == JT_VERIFY) {
+         add_prompt(ua, _("Pool"));          /* 5 */
+      } else if (jcr->JobType == JT_RESTORE) {
          add_prompt(ua, _("Bootstrap"));     /* 5 */
          add_prompt(ua, _("Where"));         /* 6 */
          add_prompt(ua, _("Replace"));       /* 7 */
@@ -488,6 +516,16 @@ JobId:      %s\n"),
 	 }
 	 break;
       case 5:
+	 if (jcr->JobType == JT_BACKUP ||
+	     jcr->JobType == JT_VERIFY) {      /* Pool */
+	    pool = select_pool_resource(ua);
+	    if (pool) {
+	       jcr->pool = pool;
+	       goto try_again;
+	    }
+	    break;
+	 }
+
 	 /* Bootstrap */
          if (!get_cmd(ua, _("Please enter the Bootstrap file name: "))) {
 	    break;

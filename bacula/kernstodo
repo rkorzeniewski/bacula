@@ -16,8 +16,7 @@ Testing to do: (painful)
 - multiple simultaneous Volumes
 
 For 1.30 release:
-- Change stat1= fgets()!=NULL to stat1=fgest()==NULL; in 
-  run_program -- bpipe.c
+- Add chflags() code for FreeBSD file flags
 - Add RunBeforeJob and RunAfterJob to the Client program.
 - Have SD compute MD5 or SHA1 and compare to what FD computes.
 - Make VolumeToCatalog calculate an MD5 or SHA1 from the 
@@ -837,3 +836,6 @@ Done: (see kernsdone for more)
 - Implement multiple simultaneous file Volumes on a single device.
 - Cleanup db_update_media and db_update_pool
 - Flush all the daemon messages at the end of every job.
+- Change stat1= fgets()!=NULL to stat1=fgest()==NULL; in 
+  run_program -- bpipe.c
+

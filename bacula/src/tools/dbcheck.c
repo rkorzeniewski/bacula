@@ -442,7 +442,7 @@ static void eliminate_duplicate_filenames()
       exit(1);
    }
    printf("Found %d duplicate Filename records.\n", name_list.num_ids);
-   if (verbose && yes_no("Print the list? (yes/no): ")) {
+   if (name_list.num_ids && verbose && yes_no("Print the list? (yes/no): ")) {
       print_name_list(&name_list);
    }
    if (fix) {

@@ -645,8 +645,7 @@ static int status_cmd(JCR *jcr)
 
    LockRes();
    for (device=NULL;  (device=(DEVRES *)GetNextRes(R_DEVICE, (RES *)device)); ) {
-      dev = device->dev;
-      if (dev) {
+      for (dev=device->dev; dev; dev=dev->next) {
 	 if (dev->state & ST_OPENED) {
 	    if (dev->state & ST_LABEL) {
                bnet_fsend(user, _("Device %s is mounted with Volume %s\n"), 
@@ -685,10 +684,11 @@ static int status_cmd(JCR *jcr)
 	    job_type_to_str(jcr->JobType), jcr->Job);
       }
       if (jcr->device) {
-         bnet_fsend(user, _("%s %s job %s is using device %s\n"), 
+         bnet_fsend(user, _("%s %s job %s is using device %s volume %s\n"), 
 		   job_level_to_str(jcr->JobLevel),
 		   job_type_to_str(jcr->JobType),
-		   jcr->Job, jcr->device->device_name);
+		   jcr->Job, jcr->device->device_name,
+		   jcr->VolumeName);
 	 sec = time(NULL) - jcr->run_time;
 	 if (sec <= 0) {
 	    sec = 1;
