@@ -5,14 +5,11 @@
 #
 if test xsqlite = x@DB_NAME@ ; then
   @scriptdir@/drop_sqlite_database $*
-  echo "Dropped SQLite database"
 else
   if test xmysql = x@DB_NAME@ ; then 
     echo "Making MySQL database"
     @scriptdir@/drop_mysql_database $*
-    echo "Dropped MySQL database"
   else
     @scriptdir@/drop_postgresql_database $*
-    echo "Dropped PostgreSQL database"
   fi
 fi

@@ -6,10 +6,10 @@
 bindir=@SQL_BINDIR@
 
 if test xmysql = x@DB_NAME@ ; then 
-  if $bindir/mysql $* -f <<END-OF-DATA
+  $bindir/mysql $* -f <<END-OF-DATA
     DROP DATABASE bacula;
-    END-OF-DATA
-  then
+END-OF-DATA
+  if test $? -eq 0 ; then
     echo "Drop of bacula database succeeded."
   else
     echo "Drop of bacula database failed."
