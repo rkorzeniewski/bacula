@@ -658,11 +658,15 @@ parse_config(char *cf)
 		     }
 		     for (i=0; items[i].name; i++) {
 			if (strcasecmp(items[i].name, lc->str) == 0) {
-			   token = lex_get_token(lc, T_ALL);
-                           Dmsg1 (150, "in T_IDENT got token=%s\n", lex_tok_to_str(token));
-			   if (token != T_EQUALS) {
-                              scan_err1(lc, "expected an equals, got: %s", lc->str);
-			      /* NOT REACHED */
+			   /* If the ITEM_NO_EQUALS flag is set we do NOT	       
+			    *	scan for = after the keyword  */
+			   if (!(items[i].flags & ITEM_NO_EQUALS)) {
+			      token = lex_get_token(lc, T_ALL);
+                              Dmsg1 (150, "in T_IDENT got token=%s\n", lex_tok_to_str(token));
+			      if (token != T_EQUALS) {
+                                 scan_err1(lc, "expected an equals, got: %s", lc->str);
+				 /* NOT REACHED */
+			      }
 			   }
                            Dmsg1(150, "calling handler for %s\n", items[i].name);
 			   /* Call item handler */

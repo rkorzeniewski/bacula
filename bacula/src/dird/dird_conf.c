@@ -54,18 +54,17 @@ pthread_mutex_t res_mutex =  PTHREAD_MUTEX_INITIALIZER;
 
 /* Imported subroutines */
 extern void store_run(LEX *lc, struct res_items *item, int index, int pass);
+extern void store_finc(LEX *lc, struct res_items *item, int index, int pass);
+extern void store_inc(LEX *lc, struct res_items *item, int index, int pass);
 
 
 /* Forward referenced subroutines */
 
-static void store_inc(LEX *lc, struct res_items *item, int index, int pass);
-static void store_match(LEX *lc, struct res_items *item, int index, int pass);
 static void store_backup(LEX *lc, struct res_items *item, int index, int pass);
 static void store_restore(LEX *lc, struct res_items *item, int index, int pass);
 static void store_jobtype(LEX *lc, struct res_items *item, int index, int pass);
 static void store_level(LEX *lc, struct res_items *item, int index, int pass);
 static void store_replace(LEX *lc, struct res_items *item, int index, int pass);
-static void store_opts(LEX *lc, struct res_items *item, int index, int pass);
 
 
 /* We build the current resource here as we are
@@ -201,7 +200,9 @@ static struct res_items fs_items[] = {
    {"name",        store_name, ITEM(res_fs.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,  ITEM(res_fs.hdr.desc), 0, 0, 0},
    {"include",     store_inc,  NULL,                  0, 0, 0},
+   {"finclude",    store_finc, NULL,                  0, ITEM_NO_EQUALS, 0},
    {"exclude",     store_inc,  NULL,                  1, 0, 0},
+   {"fexclude",    store_finc, NULL,                  1, ITEM_NO_EQUALS, 0},
    {NULL,	   NULL,       NULL,		      0, 0, 0} 
 };
 
@@ -266,27 +267,6 @@ static struct res_items counter_items[] = {
 };
 
 
-/* 
- * FileOptions Resource
- *   name	      handler	  value 		       code flags default_value
- */
-static struct res_items fo_items[] = {
-   {"name",            store_name,    ITEM(res_fopts.hdr.name),    0, ITEM_REQUIRED, 0},
-   {"description",     store_str,     ITEM(res_fopts.hdr.desc),    0, 0, 0},
-   {"compression",     store_opts,    ITEM(res_fopts.opts),        0, 0, 0},
-   {"signature",       store_opts,    ITEM(res_fopts.opts),        0, 0, 0},
-   {"verify",          store_opts,    ITEM(res_fopts.opts),        0, 0, 0},
-   {"onefs",           store_opts,    ITEM(res_fopts.opts),        0, 0, 0},
-   {"recurse",         store_opts,    ITEM(res_fopts.opts),        0, 0, 0},
-   {"sparse",          store_opts,    ITEM(res_fopts.opts),        0, 0, 0},
-   {"readfifo",        store_opts,    ITEM(res_fopts.opts),        0, 0, 0},
-   {"replace",         store_replace, ITEM(res_fopts.replace),     0, 0, 0},
-   {"match",           store_match,   ITEM(res_fopts.match),       0, 0, 0},
-   {NULL, NULL, NULL, 0, 0, 0} 
-};
-
-
-
 /* Message resource */
 extern struct res_items msgs_items[];
 
@@ -308,7 +288,6 @@ struct s_res resources[] = {
    {"pool",          pool_items,  R_POOL,      NULL},
    {"messages",      msgs_items,  R_MSGS,      NULL},
    {"counter",       counter_items, R_COUNTER, NULL},
-   {"fileoptions",   fo_items,    R_FILEOPTIONS, NULL},
    {NULL,	     NULL,	  0,	       NULL}
 };
 
@@ -370,77 +349,6 @@ struct s_kw ReplaceOptions[] = {
    {NULL,		0}
 };
 
-
-
-/* Define FileSet KeyWord values */
-
-#define INC_KW_NONE	    0
-#define INC_KW_COMPRESSION  1
-#define INC_KW_SIGNATURE    2
-#define INC_KW_ENCRYPTION   3
-#define INC_KW_VERIFY	    4
-#define INC_KW_ONEFS	    5
-#define INC_KW_RECURSE	    6
-#define INC_KW_SPARSE	    7
-#define INC_KW_REPLACE	    8	      /* restore options */
-#define INC_KW_READFIFO     9	      /* Causes fifo data to be read */
-#define INC_KW_FILEOPTIONS 10	      /* file options */
-
-/* Include keywords -- these are keywords that can appear
- *    in the options lists of an include ( Include = compression= ...)
- */
-static struct s_kw FS_option_kw[] = {
-   {"compression", INC_KW_COMPRESSION},
-   {"signature",   INC_KW_SIGNATURE},
-   {"encryption",  INC_KW_ENCRYPTION},
-   {"verify",      INC_KW_VERIFY},
-   {"onefs",       INC_KW_ONEFS},
-   {"recurse",     INC_KW_RECURSE},
-   {"sparse",      INC_KW_SPARSE},
-   {"replace",     INC_KW_REPLACE},
-   {"readfifo",    INC_KW_READFIFO},
-   {"fileoptions", INC_KW_FILEOPTIONS},
-   {NULL,	   0}
-};
-
-/* Options for FileSet keywords */
-
-struct s_fs_opt {
-   char *name;
-   int keyword;
-   char *option;
-};
-
-/* Options permitted for each keyword and resulting value */
-static struct s_fs_opt FS_options[] = {
-   {"md5",      INC_KW_SIGNATURE,    "M"},
-   {"sha1",     INC_KW_SIGNATURE,    "S"},
-   {"gzip",     INC_KW_COMPRESSION,  "Z6"},
-   {"gzip1",    INC_KW_COMPRESSION,  "Z1"},
-   {"gzip2",    INC_KW_COMPRESSION,  "Z2"},
-   {"gzip3",    INC_KW_COMPRESSION,  "Z3"},
-   {"gzip4",    INC_KW_COMPRESSION,  "Z4"},
-   {"gzip5",    INC_KW_COMPRESSION,  "Z5"},
-   {"gzip6",    INC_KW_COMPRESSION,  "Z6"},
-   {"gzip7",    INC_KW_COMPRESSION,  "Z7"},
-   {"gzip8",    INC_KW_COMPRESSION,  "Z8"},
-   {"gzip9",    INC_KW_COMPRESSION,  "Z9"},
-   {"blowfish", INC_KW_ENCRYPTION,    "B"},   /* ***FIXME*** not implemented */
-   {"3des",     INC_KW_ENCRYPTION,    "3"},   /* ***FIXME*** not implemented */
-   {"yes",      INC_KW_ONEFS,         "0"},
-   {"no",       INC_KW_ONEFS,         "f"},
-   {"yes",      INC_KW_RECURSE,       "0"},
-   {"no",       INC_KW_RECURSE,       "h"},
-   {"yes",      INC_KW_SPARSE,        "s"},
-   {"no",       INC_KW_SPARSE,        "0"},
-   {"always",   INC_KW_REPLACE,       "a"},
-   {"ifnewer",  INC_KW_REPLACE,       "w"},
-   {"never",    INC_KW_REPLACE,       "n"},
-   {"yes",      INC_KW_READFIFO,      "r"},
-   {"no",       INC_KW_READFIFO,      "0"},
-   {NULL,	0,		     0}
-};
-
 char *level_to_str(int level)
 {
    int i;
@@ -456,8 +364,6 @@ char *level_to_str(int level)
    }
    return str;
 }
-
-
 
 /* Dump contents of resource */
 void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...), void *sock)
@@ -671,14 +577,6 @@ next_run:
 	 if (res->res_msgs.operator_cmd) 
             sendit(sock, "      opcmd=%s\n", res->res_msgs.operator_cmd);
 	 break;
-      case R_FILEOPTIONS:
-         sendit(sock, "FileOptions: name=%s\n", res->res_msgs.hdr.name);
-         sendit(sock, "      opts=%s replace=%c\n", res->res_fopts.opts,
-		res->res_fopts.replace);
-	 for (int i=0; i < res->res_fopts.num_match; i++) {
-            sendit(sock, "      match=%s\n", res->res_fopts.match[i]);
-	 }
-	 break;
       default:
          sendit(sock, "Unknown resource type %d in dump_resource.\n", type);
 	 break;
@@ -786,6 +684,12 @@ void free_resource(int type)
 	       if (incexe->name_list) {
 		  free(incexe->name_list);
 	       }
+	       for (int i=0; i<incexe->num_match; i++) {
+		  free(incexe->match_list[i]);
+	       }
+	       if (incexe->match_list) {
+		  free(incexe->match_list);
+	       }
 	       free(incexe);
 	    }
 	    free(res->res_fs.include_items);
@@ -799,6 +703,12 @@ void free_resource(int type)
 	       }
 	       if (incexe->name_list) {
 		  free(incexe->name_list);
+	       }
+	       for (int i=0; i<incexe->num_match; i++) {
+		  free(incexe->match_list[i]);
+	       }
+	       if (incexe->match_list) {
+		  free(incexe->match_list);
 	       }
 	       free(incexe);
 	    }
@@ -849,14 +759,6 @@ void free_resource(int type)
 	    free(res->res_msgs.operator_cmd);
 	 free_msgs_res((MSGS *)res);  /* free message resource */
 	 res = NULL;
-	 break;
-      case R_FILEOPTIONS:
-	 if (res->res_fopts.num_match) {
-	    for (int i=0; i < res->res_fopts.num_match; i++) {
-	       free(res->res_fopts.match[i]);
-	    }
-	    free((char *)res->res_fopts.match);   
-	 }
 	 break;
       case R_GROUP:
 	 break;
@@ -912,26 +814,10 @@ void save_resource(int type, struct res_items *items, int pass)
 	 /* Resources not containing a resource */
 	 case R_CATALOG:
 	 case R_STORAGE:
-	 case R_FILEOPTIONS:
 	 case R_GROUP:
 	 case R_POOL:
 	 case R_MSGS:
-	    break;
-
-	 /* Special case for FileSet, all allocations are done
-	  * only in pass 2, so here we must copy the whole structure.
-	  * This is done so that we can have forward references to
-	  *   FileOptions resources within the fileset
-	  */
 	 case R_FILESET:
-	    RES res_save;
-	    if ((res = (URES *)GetResWithName(R_FILESET, res_all.res_dir.hdr.name)) == NULL) {
-               Emsg1(M_ERROR_TERM, 0, "Cannot find FileSet resource %s\n", res_all.res_dir.hdr.name);
-	    }
-	    memcpy(&res_save, &res_all, sizeof(RES));
-	    memcpy(&res_all, res, sizeof(RES));
-	    memcpy(res, &res_all, sizeof(FILESET));
-	    memcpy(&res_all, &res_save, sizeof(RES));
 	    break;
 
 	 /* Resources containing another resource */
@@ -1039,9 +925,6 @@ void save_resource(int type, struct res_items *items, int pass)
 	 break;
       case R_COUNTER:
 	 size = sizeof(COUNTER);
-	 break;
-      case R_FILEOPTIONS:
-	 size = sizeof(FILEOPTIONS);
 	 break;
       default:
          printf("Unknown resource type %d in save_resrouce.\n", type);
@@ -1332,236 +1215,5 @@ static void store_restore(LEX *lc, struct res_items *item, int index, int pass)
       }
    } /* end while */
    lc->options = options;	      /* reset original options */
-   set_bit(index, res_all.hdr.item_present);
-}
-
-
-
-/* 
- * Scan for Include options (keyword=option) is converted into one or
- *  two characters. Verifyopts=xxxx is Vxxxx:
- */
-static void scan_include_options(LEX *lc, int keyword, char *opts, int optlen)
-{
-   int token, i;
-   char option[3];
-
-   option[0] = 0;		      /* default option = none */
-   option[2] = 0;		      /* terminate options */
-   token = lex_get_token(lc, T_NAME);		  /* expect at least one option */	 
-   if (keyword == INC_KW_VERIFY) { /* special case */
-      /* ***FIXME**** ensure these are in permitted set */
-      bstrncat(opts, "V", optlen);         /* indicate Verify */
-      bstrncat(opts, lc->str, optlen);
-      bstrncat(opts, ":", optlen);         /* terminate it */
-
-   /* Standard keyword -- these are now deprecated and should be specified
-    *  in the FileOptions resource
-    */
-   } else {
-      for (i=0; FS_options[i].name; i++) {
-	 if (strcasecmp(lc->str, FS_options[i].name) == 0 && FS_options[i].keyword == keyword) {
-	    /* NOTE! maximum 2 letters here or increase option[3] */
-	    option[0] = FS_options[i].option[0];
-	    option[1] = FS_options[i].option[1];
-	    i = 0;
-	    break;
-	 }
-      }
-      if (i != 0) {
-         scan_err1(lc, "Expected a FileSet option keyword, got:%s:", lc->str);
-      } else { /* add option */
-	 bstrncat(opts, option, optlen);
-         Dmsg3(200, "Catopts=%s option=%s optlen=%d\n", opts, option,optlen);
-      }
-   }
-
-   /* If option terminated by comma, eat it */
-   if (lc->ch == ',') {
-      token = lex_get_token(lc, T_ALL);      /* yes, eat comma */
-   }
-}
-
-/* Store FileSet Include/Exclude info */
-static void store_inc(LEX *lc, struct res_items *item, int index, int pass)
-{
-   int token, i;
-   int options = lc->options;
-   int keyword;
-   char inc_opts[100];
-   int inc_opts_len;
-   RES *res = NULL;
-
-   lc->options |= LOPT_NO_IDENT;      /* make spaces significant */
-
-   /* Get include options */
-   inc_opts[0] = 0;
-   while ((token=lex_get_token(lc, T_ALL)) != T_BOB) {
-      keyword = INC_KW_NONE;
-      for (i=0; FS_option_kw[i].name; i++) {
-	 if (strcasecmp(lc->str, FS_option_kw[i].name) == 0) {
-	    keyword = FS_option_kw[i].token;
-	    break;
-	 }
-      }
-      if (keyword == INC_KW_NONE) {
-         scan_err1(lc, _("Expected a FileSet keyword, got: %s"), lc->str);
-      }
-      /* Option keyword should be following by = <option> */
-      if ((token=lex_get_token(lc, T_ALL)) != T_EQUALS) {
-         scan_err1(lc, _("expected an = following keyword, got: %s"), lc->str);
-      }
-      if (keyword == INC_KW_FILEOPTIONS) {
-	 token = lex_get_token(lc, T_NAME);
-	 if (pass == 2) {
-	    res = GetResWithName(R_FILEOPTIONS, lc->str);
-	    if (res == NULL) {
-               scan_err1(lc, _("Could not find specified FileOptions Resource: %s"), lc->str);
-	    }
-	 }
-      } else {
-	 scan_include_options(lc, keyword, inc_opts, sizeof(inc_opts));
-      }
-      if (token == T_BOB) {
-	 break;
-      }
-   }
-   if (!inc_opts[0]) {
-      strcat(inc_opts, "0");          /* set no options */
-   }
-   inc_opts_len = strlen(inc_opts);
-
-   if (pass == 2) {
-      INCEXE *incexe;
-      if (!res_all.res_fs.have_MD5) {
-	 MD5Init(&res_all.res_fs.md5c);
-	 res_all.res_fs.have_MD5 = TRUE;
-      }
-      /* Create incexe structure */
-      Dmsg0(200, "Create INCEXE structure\n");
-      incexe = (INCEXE *)malloc(sizeof(INCEXE));
-      memset(incexe, 0, sizeof(INCEXE));
-      bstrncpy(incexe->opts, inc_opts, sizeof(incexe->opts));
-      incexe->fileopts = (struct s_res_fopts *)res;
-      Dmsg1(200, "incexe opts=%s\n", incexe->opts);
-      if (item->code == 0) { /* include */
-	 if (res_all.res_fs.num_includes == 0) {
-	    res_all.res_fs.include_items = (INCEXE **)malloc(sizeof(INCEXE *));
-	  } else {
-	    res_all.res_fs.include_items = (INCEXE **)realloc(res_all.res_fs.include_items,
-			   sizeof(INCEXE *) * res_all.res_fs.num_includes + 1);
-	  }
-	  res_all.res_fs.include_items[res_all.res_fs.num_includes++] = incexe;
-          Dmsg1(200, "num_includes=%d\n", res_all.res_fs.num_includes);
-      } else {	  /* exclude */
-	 if (res_all.res_fs.num_excludes == 0) {
-	    res_all.res_fs.exclude_items = (INCEXE **)malloc(sizeof(INCEXE *));
-	  } else {
-	    res_all.res_fs.exclude_items = (INCEXE **)realloc(res_all.res_fs.exclude_items,
-			   sizeof(INCEXE *) * res_all.res_fs.num_excludes + 1);
-	  }
-	  res_all.res_fs.exclude_items[res_all.res_fs.num_excludes++] = incexe;
-          Dmsg1(200, "num_excludes=%d\n", res_all.res_fs.num_excludes);
-     }
-
-      /* Pickup include/exclude names.	They are stored in INCEXE
-       *  structures which contains the options and the name.
-       */
-      while ((token = lex_get_token(lc, T_ALL)) != T_EOB) {
-	 switch (token) {
-	    case T_COMMA:
-	    case T_EOL:
-	       continue;
-
-	    case T_IDENTIFIER:
-	    case T_UNQUOTED_STRING:
-	    case T_QUOTED_STRING:
-	       if (res_all.res_fs.have_MD5) {
-		  MD5Update(&res_all.res_fs.md5c, (unsigned char *)lc->str, lc->str_len);
-	       }
-	       if (incexe->num_names == incexe->max_names) {
-		  incexe->max_names += 10;
-		  if (incexe->name_list == NULL) {
-		     incexe->name_list = (char **)malloc(sizeof(char *) * incexe->max_names);
-		  } else {
-		     incexe->name_list = (char **)realloc(incexe->name_list,
-			   sizeof(char *) * incexe->max_names);
-		  }
-	       }
-	       incexe->name_list[incexe->num_names++] = bstrdup(lc->str);
-               Dmsg1(200, "Add to name_list %s\n", incexe->name_list[incexe->num_names -1]);
-	       break;
-	    default:
-               scan_err1(lc, "Expected a filename, got: %s", lc->str);
-	 }				   
-      }
-      /* Note, MD5Final is done in backup.c */
-   } else { /* pass 1 */
-      while (lex_get_token(lc, T_ALL) != T_EOB) 
-	 {}
-   }
-   scan_to_eol(lc);
-   lc->options = options;
-   set_bit(index, res_all.hdr.item_present);
-}
-
-/* Store FileOptions Match info */
-static void store_match(LEX *lc, struct res_items *item, int index, int pass)
-{
-   int token;
-   char *match;
-
-   if (pass == 1) {
-      /* Pickup Match string
-       */
-      token = lex_get_token(lc, T_ALL); 	   
-      switch (token) {
-	 case T_IDENTIFIER:
-	 case T_UNQUOTED_STRING:
-	 case T_QUOTED_STRING:
-	    match = (char *)malloc(lc->str_len + 1);
-	    strcpy(match, lc->str);
-	    res_all.res_fopts.num_match++;
-	    if (res_all.res_fopts.match == NULL) {
-	       res_all.res_fopts.match = (char **)malloc(sizeof(char *) * res_all.res_fopts.num_match);
-	    } else {
-	       res_all.res_fopts.match = (char **)realloc(res_all.res_fopts.match,
-		  sizeof(char *) * res_all.res_fopts.num_match);
-	    }
-	    res_all.res_fopts.match[res_all.res_fopts.num_match-1] = match;
-	    break;
-	 default:
-            scan_err1(lc, "Expected a filename, got: %s", lc->str);
-      } 				
-   } else { /* pass 2 */
-      lex_get_token(lc, T_ALL); 	 
-   }
-   scan_to_eol(lc);
-   set_bit(index, res_all.hdr.item_present);
-}
-
-static void store_opts(LEX *lc, struct res_items *item, int index, int pass)
-{
-   int i;
-   int keyword;
-   char inc_opts[100];
-
-   inc_opts[0] = 0;
-   keyword = INC_KW_NONE;
-   for (i=0; FS_option_kw[i].name; i++) {
-      if (strcasecmp(item->name, FS_option_kw[i].name) == 0) {
-	 keyword = FS_option_kw[i].token;
-	 break;
-      }
-   }
-   if (keyword == INC_KW_NONE) {
-      scan_err1(lc, "Expected a FileSet keyword, got: %s", lc->str);
-   }
-   Dmsg2(200, "keyword=%d %s\n", keyword, FS_option_kw[keyword].name);
-   scan_include_options(lc, keyword, inc_opts, sizeof(inc_opts));
-
-   bstrncat((char *)item->value, inc_opts, MAX_FO_OPTS);
-
-   scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
 }

@@ -25,7 +25,7 @@ dummy:
 SVRSRCS = dird.c authenticate.c autoprune.c \
 	  backup.c \
 	  catreq.c dird_conf.c \
-	  fd_cmds.c getmsg.c job.c \
+	  fd_cmds.c getmsg.c inc_conf.c job.c \
 	  mountreq.c msgchan.c newvol.c \
 	  recycle.c restore.c run_conf.c \
 	  scheduler.c sql_cmds.c \
@@ -38,7 +38,7 @@ SVRSRCS = dird.c authenticate.c autoprune.c \
 SVROBJS = dird.o authenticate.o autoprune.o \
 	  backup.o \
 	  catreq.o dird_conf.o \
-	  fd_cmds.o getmsg.o job.o \
+	  fd_cmds.o getmsg.o inc_conf.o job.o \
 	  mountreq.o msgchan.o newvol.o \
 	  recycle.o restore.o run_conf.o \
 	  scheduler.o sql_cmds.o \

@@ -143,11 +143,7 @@ int send_include_list(JCR *jcr)
 	       goto bail_out;
 	    }
 	    /* Copy File options */
-	    if (ie->fileopts) {
-	       strcpy(buf, ie->fileopts->opts);
-	    } else {
-	       strcpy(buf, ie->opts);
-	    }
+	    strcpy(buf, ie->opts);
             strcat(buf, " ");
 	    optlen = strlen(buf);
 	    while (fgets(buf+optlen, sizeof(buf)-optlen, bpipe->rfd)) {
@@ -171,11 +167,7 @@ int send_include_list(JCR *jcr)
 	       goto bail_out;
 	    }
 	    /* Copy File options */
-	    if (ie->fileopts) {
-	       strcpy(buf, ie->fileopts->opts);
-	    } else {
-	       strcpy(buf, ie->opts);
-	    }
+	    strcpy(buf, ie->opts);
             strcat(buf, " ");
 	    optlen = strlen(buf);
 	    while (fgets(buf+optlen, sizeof(buf)-optlen, ffd)) {
@@ -188,12 +180,7 @@ int send_include_list(JCR *jcr)
 	    fclose(ffd);
 	    break;
 	 default:
-	    if (ie->fileopts) {
-	       pm_strcpy(&fd->msg, ie->fileopts->opts);
-               Dmsg1(200, "Fileopts=%s\n", fd->msg);
-	    } else {
-	       pm_strcpy(&fd->msg, ie->opts);
-	    }
+	    pm_strcpy(&fd->msg, ie->opts);
             pm_strcat(&fd->msg, " ");
 	    pm_strcat(&fd->msg, ie->name_list[j]);
             Dmsg1(200, "Include name=%s\n", fd->msg);

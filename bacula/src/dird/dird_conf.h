@@ -43,9 +43,8 @@
 #define R_POOL                        1009
 #define R_MSGS                        1010
 #define R_COUNTER                     1011
-#define R_FILEOPTIONS                 1012
 
-#define R_LAST                        R_FILEOPTIONS
+#define R_LAST                        R_COUNTER
 
 /*
  * Some resource attributes
@@ -181,27 +180,16 @@ struct s_res_job {
 };
 typedef struct s_res_job JOB;
 
-/*
- * File Options Resource (options for Includes)
- */
 #define MAX_FO_OPTS 30
-struct s_res_fopts {
-   RES  hdr;
-
-   char opts[MAX_FO_OPTS];            /* Options string */
-   int  replace;                      /* How (overwrite, ...) */
-   char **match;                      /* match strings */
-   int num_match;                     /* number of match strings */
-}; 
-typedef struct s_res_fopts FILEOPTIONS;
 
 /* This is either an include item or an exclude item */
 struct s_incexc_item {
    char opts[MAX_FO_OPTS];            /* options string */
-   struct s_res_fopts *fileopts;      /* File Options resource */
+   char **match_list;                 /* match strings */
+   int num_match;                     /* number of match strings */
    char **name_list;                  /* filename list */
+   int max_names;                     /* malloc'ed size of name list */
    int num_names;                     /* number of names in the list */
-   int max_names;                     /* malloc'ed size of list */
 };
 typedef struct s_incexc_item INCEXE;
 
@@ -212,6 +200,7 @@ typedef struct s_incexc_item INCEXE;
 struct s_res_fs {
    RES   hdr;
 
+   int finclude;                      /* Set if finclude/fexclude used */
    INCEXE **include_items;            /* array of incexe structures */
    int num_includes;                  /* number in array */
    INCEXE **exclude_items;
@@ -297,7 +286,6 @@ union u_res {
    struct s_res_pool    res_pool;
    struct s_res_msgs    res_msgs;
    struct s_res_counter res_counter;
-   struct s_res_fopts   res_fopts;
    RES hdr;
 };
 

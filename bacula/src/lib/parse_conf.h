@@ -74,8 +74,9 @@ struct s_res {
 
 #define MAX_RES_NAME_LENGTH MAX_NAME_LENGTH-1       /* maximum resource name length */
 
-#define ITEM_REQUIRED 0x1             /* item required */
-#define ITEM_DEFAULT  0x2             /* default supplied */
+#define ITEM_REQUIRED    0x1          /* item required */
+#define ITEM_DEFAULT     0x2          /* default supplied */
+#define ITEM_NO_EQUALS   0x4          /* Don't scan = after name */
 
 /* Message Resource */
 struct s_res_msgs {
