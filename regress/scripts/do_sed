@@ -1,8 +1,9 @@
 #!/bin/sh
 #
-if test $# != 2 ; then
+if test $# != 3 ; then
    echo "First arg must be email name"
    echo "  and the second must be a tape drive"
+   echo "  and the third must be a tape control name or /dev/null"
    exit 1
 fi
 out="/tmp/sed_tmp"
@@ -19,6 +20,7 @@ echo "s%@piddir@%${cwd}/working%g" >>${out}
 echo "s%@subsysdir@%${cwd}/working%g" >>${out}
 echo "s%@job_email@%${1}%g" >>${out}
 echo "s%@tape_drive@%${2}%g" >>${out}
+echo "s%@autochanger@%${3}%g" >>${out}
 echo "s%@tmpdir@%${cwd}/tmp%g" >>${out}
 echo "s%@hostname@%${host}%g" >>${out}
 

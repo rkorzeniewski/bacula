@@ -1,0 +1,67 @@
+#!/bin/sh
+#
+# Run a simple backup of the Bacula build directory using the compressed option
+#   then restore it.
+#
+cwd=`pwd`
+scripts/copy-test-confs
+scripts/cleanup
+echo "${cwd}/tmp/build" >/tmp/file-list
+mkdir ${cwd}/tmp/build
+cp -p ${cwd}/build/src/dird/*.c ${cwd}/tmp/build
+cd ${cwd}/tmp/build
+ls >../1
+cd ..
+sed s%^%${cwd}/tmp/build/% 1 >restore-list
+rm -f 1
+cd ${cwd}
+bin/bacula stop  2>&1 >/dev/null
+bin/drop_sqlite_tables
+bin/make_sqlite_tables
+
+echo " "
+echo " "
+echo " === Starting restore-by-file-test ==="
+echo " === Starting restore-by-file-test ===" >>working/log
+echo " "
+
+bin/bacula start 2>&1 >/dev/null
+bin/console -c bin/console.conf <<END_OF_DATA
+@output /dev/null
+messages
+@output tmp/log1.out
+label storage=File volume=TestVolume001
+run job=CompressedTest yes
+wait
+messages
+@# 
+@# now do a restore
+@#
+@output tmp/log2.out
+restore
+7
+<${cwd}/tmp/restore-list
+
+yes
+wait
+messages
+@output
+quit
+END_OF_DATA
+bin/bacula stop 2>&1 >/dev/null
+grep "^Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
+bstat=$?
+grep "^Termination: *Restore OK" tmp/log2.out 2>&1 >/dev/null
+rstat=$?
+diff -r tmp/build /tmp/bacula-restores${cwd}/tmp/build
+if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
+   echo " "
+   echo " "
+   echo "  !!!!! restore-by-file-test Bacula source failed!!! !!!!! "
+   echo "  !!!!! restore-by-file-test failed!!! !!!!! " >>test.out
+   echo " "
+else
+   echo "  ===== restore-by-file-test Bacula source OK ===== "
+   echo "  ===== restore-by-file-test OK ===== " >>test.out
+   scripts/cleanup
+fi
