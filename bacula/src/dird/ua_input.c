@@ -78,6 +78,7 @@ bool get_pint(UAContext *ua, const char *prompt)
 {
    double dval;
    ua->pint32_val = 0;
+   ua->int64_val = 0;
    for (;;) {
       ua->cmd[0] = 0;
       if (!get_cmd(ua, prompt)) {
@@ -85,7 +86,6 @@ bool get_pint(UAContext *ua, const char *prompt)
       }
       /* Kludge for slots blank line => 0 */
       if (ua->cmd[0] == 0 && strncmp(prompt, "Enter slot", 10) == 0) {
-	 ua->pint32_val = 0;
 	 return true;
       }
       if (!is_a_number(ua->cmd)) {
@@ -99,6 +99,7 @@ bool get_pint(UAContext *ua, const char *prompt)
 	 continue;
       }
       ua->pint32_val = (uint32_t)dval;
+      ua->int64_val = (int64_t)dval;
       return true;
    }
 }

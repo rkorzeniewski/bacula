@@ -59,9 +59,11 @@ db_add_SIG_to_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, char *SIG,
 			  int type)
 {
    int stat;
+   char ed1[50];
 
    db_lock(mdb);
-   Mmsg(mdb->cmd, "UPDATE File SET MD5='%s' WHERE FileId=%u", SIG, FileId);
+   Mmsg(mdb->cmd, "UPDATE File SET MD5='%s' WHERE FileId=%s", SIG, 
+      edit_int64(FileId, ed1));
    stat = UPDATE_DB(jcr, mdb, mdb->cmd);
    db_unlock(mdb);
    return stat;
@@ -73,9 +75,11 @@ db_add_SIG_to_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, char *SIG,
 int db_mark_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, JobId_t JobId)
 {
    int stat;
+   char ed1[50], ed2[50];
 
    db_lock(mdb);
-   Mmsg(mdb->cmd, "UPDATE File SET MarkId=%u WHERE FileId=%u", JobId, FileId);
+   Mmsg(mdb->cmd, "UPDATE File SET MarkId=%s WHERE FileId=%s", 
+      edit_int64(JobId, ed1), edit_int64(FileId, ed2));
    stat = UPDATE_DB(jcr, mdb, mdb->cmd);
    db_unlock(mdb);
    return stat;
@@ -95,7 +99,7 @@ db_update_job_start_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    struct tm tm;
    btime_t JobTDate;
    int stat;
-   char ed1[30];
+   char ed1[50], ed2[50], ed3[50];
 
    stime = jr->StartTime;
    localtime_r(&stime, &tm);
@@ -104,9 +108,12 @@ db_update_job_start_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 
    db_lock(mdb);
    Mmsg(mdb->cmd, "UPDATE Job SET JobStatus='%c',Level='%c',StartTime='%s',"
-"ClientId=%u,JobTDate=%s WHERE JobId=%u",
+"ClientId=%s,JobTDate=%s WHERE JobId=%s",
       (char)(jcr->JobStatus),
-      (char)(jr->JobLevel), dt, jr->ClientId, edit_uint64(JobTDate, ed1), jr->JobId);
+      (char)(jr->JobLevel), dt, 
+      edit_int64(jr->ClientId, ed1),
+      edit_uint64(JobTDate, ed2), 
+      edit_int64(jr->JobId, ed3));
 
    stat = UPDATE_DB(jcr, mdb, mdb->cmd);
    mdb->changes = 0;
@@ -119,8 +126,9 @@ db_update_job_start_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
  *
  *
  */
-void edit_num_or_null(char *s, size_t n, uint32_t id) {
-        bsnprintf(s, n, id ? "%u" : "NULL", id);
+static void edit_num_or_null(char *s, size_t n, uint64_t id) {
+   char ed1[50];
+   bsnprintf(s, n, id ? "%s" : "NULL", edit_int64(id, ed1));
 }
 
 
@@ -137,7 +145,7 @@ db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    time_t ttime;
    struct tm tm;
    int stat;
-   char ed1[30], ed2[30];
+   char ed1[30], ed2[30], ed3[50];
    btime_t JobTDate;
    char PoolId	  [50];
    char FileSetId [50];
@@ -158,10 +166,11 @@ db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    Mmsg(mdb->cmd,
       "UPDATE Job SET JobStatus='%c', EndTime='%s', "
 "ClientId=%s, JobBytes=%s, JobFiles=%u, JobErrors=%u, VolSessionId=%u, "
-"VolSessionTime=%u, PoolId=%s, FileSetId=%s, JobTDate=%s WHERE JobId=%u",
+"VolSessionTime=%u, PoolId=%s, FileSetId=%s, JobTDate=%s WHERE JobId=%s",
       (char)(jr->JobStatus), dt, ClientId, edit_uint64(jr->JobBytes, ed1),
       jr->JobFiles, jr->JobErrors, jr->VolSessionId, jr->VolSessionTime,
-      PoolId, FileSetId, edit_uint64(JobTDate, ed2), jr->JobId);
+      PoolId, FileSetId, edit_uint64(JobTDate, ed2), 
+      edit_int64(jr->JobId, ed3));
 
    stat = UPDATE_DB(jcr, mdb, mdb->cmd);
    db_unlock(mdb);
@@ -350,7 +359,7 @@ int
 db_update_media_defaults(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 {
    int stat;
-   char ed1[30], ed2[30], ed3[30];
+   char ed1[50], ed2[50], ed3[50], ed4[50];
 
 
    db_lock(mdb);
@@ -368,12 +377,12 @@ db_update_media_defaults(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       Mmsg(mdb->cmd, "UPDATE Media SET "
            "Recycle=%d,VolRetention=%s,VolUseDuration=%s,"
            "MaxVolJobs=%u,MaxVolFiles=%u,MaxVolBytes=%s"
-           " WHERE PoolId=%u",
+           " WHERE PoolId=%s",
 	   mr->Recycle,edit_uint64(mr->VolRetention, ed1),
 	   edit_uint64(mr->VolUseDuration, ed2),
 	   mr->MaxVolJobs, mr->MaxVolFiles,
 	   edit_uint64(mr->VolBytes, ed3),
-	   mr->PoolId);
+	   edit_int64(mr->PoolId, ed4));
    }
 
    Dmsg1(400, "%s\n", mdb->cmd);
@@ -394,10 +403,12 @@ db_update_media_defaults(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 void
 db_make_inchanger_unique(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 {
+   char ed1[50], ed2[50];
    if (mr->InChanger != 0 && mr->Slot != 0) {
       Mmsg(mdb->cmd, "UPDATE Media SET InChanger=0 WHERE "
-           "Slot=%d AND PoolId=%u AND MediaId!=%u",
-	    mr->Slot, mr->PoolId, mr->MediaId);
+           "Slot=%d AND PoolId=%s AND MediaId!=%s",
+	    mr->Slot, 
+	    edit_int64(mr->PoolId, ed1), edit_int64(mr->MediaId, ed2));
       Dmsg1(400, "%s\n", mdb->cmd);
       UPDATE_DB(jcr, mdb, mdb->cmd);
    }

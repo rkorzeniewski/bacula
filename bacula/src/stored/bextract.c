@@ -91,7 +91,7 @@ int main (int argc, char *argv[])
    int ch;
    FILE *fd;
    char line[1000];
-   int got_inc = FALSE;
+   bool got_inc = false;
 
    working_directory = "/tmp";
    my_name_is(argc, argv, "bextract");
@@ -149,7 +149,7 @@ int main (int argc, char *argv[])
 	    add_fname_to_include_list(ff, 0, line);
 	 }
 	 fclose(fd);
-	 got_inc = TRUE;
+	 got_inc = true;
 	 break;
 
       case 'p':

@@ -133,6 +133,7 @@ void
 db_list_media_records(JCR *jcr, B_DB *mdb, MEDIA_DBR *mdbr,
 		      DB_LIST_HANDLER *sendit, void *ctx, e_list_type type)
 {
+   char ed1[50];
    db_lock(mdb);
    if (type == VERT_LIST) {
       if (mdbr->VolumeName[0] != 0) {
@@ -150,7 +151,8 @@ db_list_media_records(JCR *jcr, B_DB *mdb, MEDIA_DBR *mdbr,
             "VolCapacityBytes,VolStatus,Recycle,VolRetention,"
             "VolUseDuration,MaxVolJobs,MaxVolFiles,MaxVolBytes,InChanger,"
             "EndFile,EndBlock,VolParts,LabelType"
-            " FROM Media WHERE Media.PoolId=%u ORDER BY MediaId", mdbr->PoolId);
+            " FROM Media WHERE Media.PoolId=%s ORDER BY MediaId", 
+	    edit_int64(mdbr->PoolId, ed1));
       }
    } else {
       if (mdbr->VolumeName[0] != 0) {
@@ -160,7 +162,8 @@ db_list_media_records(JCR *jcr, B_DB *mdb, MEDIA_DBR *mdbr,
       } else {
          Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,VolStatus,"
             "VolBytes,VolFiles,VolRetention,Recycle,Slot,InChanger,MediaType,LastWritten "
-            "FROM Media WHERE Media.PoolId=%u ORDER BY MediaId", mdbr->PoolId);
+            "FROM Media WHERE Media.PoolId=%s ORDER BY MediaId", 
+	    edit_int64(mdbr->PoolId, ed1));
       }
    }
 
@@ -178,6 +181,7 @@ db_list_media_records(JCR *jcr, B_DB *mdb, MEDIA_DBR *mdbr,
 void db_list_jobmedia_records(JCR *jcr, B_DB *mdb, uint32_t JobId,
 			      DB_LIST_HANDLER *sendit, void *ctx, e_list_type type)
 {
+   char ed1[50];
    db_lock(mdb);
    if (type == VERT_LIST) {
       if (JobId > 0) {			 /* do by JobId */
@@ -185,7 +189,7 @@ void db_list_jobmedia_records(JCR *jcr, B_DB *mdb, uint32_t JobId,
             "FirstIndex,LastIndex,StartFile,JobMedia.EndFile,StartBlock,"
             "JobMedia.EndBlock "
             "FROM JobMedia,Media WHERE Media.MediaId=JobMedia.MediaId "
-            "AND JobMedia.JobId=%u", JobId);
+            "AND JobMedia.JobId=%s", edit_int64(JobId, ed1));
       } else {
          Mmsg(mdb->cmd, "SELECT JobMediaId,JobId,Media.MediaId,Media.VolumeName,"
             "FirstIndex,LastIndex,StartFile,JobMedia.EndFile,StartBlock,"
@@ -197,7 +201,7 @@ void db_list_jobmedia_records(JCR *jcr, B_DB *mdb, uint32_t JobId,
       if (JobId > 0) {			 /* do by JobId */
          Mmsg(mdb->cmd, "SELECT JobId,Media.VolumeName,FirstIndex,LastIndex "
             "FROM JobMedia,Media WHERE Media.MediaId=JobMedia.MediaId "
-            "AND JobMedia.JobId=%u", JobId);
+            "AND JobMedia.JobId=%s", edit_int64(JobId, ed1));
       } else {
          Mmsg(mdb->cmd, "SELECT JobId,Media.VolumeName,FirstIndex,LastIndex "
             "FROM JobMedia,Media WHERE Media.MediaId=JobMedia.MediaId");
@@ -226,6 +230,7 @@ void
 db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit,
 		    void *ctx, e_list_type type)
 {
+   char ed1[50];
    db_lock(mdb);
    if (type == VERT_LIST) {
       if (jr->JobId == 0 && jr->Job[0] == 0) {
@@ -245,9 +250,10 @@ db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit,
             "StartTime,EndTime,JobTDate,"
             "VolSessionId,VolSessionTime,JobFiles,JobErrors,"
             "JobMissingFiles,Job.PoolId,Pool.Name,Job.FileSetId,FileSet.FileSet "
-            "FROM Job,Client,Pool,FileSet WHERE Job.JobId=%u AND "
+            "FROM Job,Client,Pool,FileSet WHERE Job.JobId=%s AND "
             "Client.ClientId=Job.ClientId AND Pool.PoolId=Job.PoolId "
-            "AND FileSet.FileSetId=Job.FileSetId", jr->JobId);
+            "AND FileSet.FileSetId=Job.FileSetId", 
+	    edit_int64(jr->JobId, ed1));
       }
    } else {
       if (jr->JobId == 0 && jr->Job[0] == 0) {
@@ -256,7 +262,8 @@ db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit,
            "FROM Job ORDER BY StartTime");
       } else {				 /* single record */
          Mmsg(mdb->cmd, "SELECT JobId,Name,StartTime,Type,Level,"
-            "JobFiles,JobBytes,JobStatus FROM Job WHERE JobId=%u", jr->JobId);
+            "JobFiles,JobBytes,JobStatus FROM Job WHERE JobId=%s", 
+	    edit_int64(jr->JobId, ed1));
       }
    }
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
@@ -316,14 +323,15 @@ db_list_job_totals(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, vo
 #endif
 
 void
-db_list_files_for_job(JCR *jcr, B_DB *mdb, uint32_t jobid, DB_LIST_HANDLER *sendit, void *ctx)
+db_list_files_for_job(JCR *jcr, B_DB *mdb, JobId_t jobid, DB_LIST_HANDLER *sendit, void *ctx)
 {
+   char ed1[50];
    db_lock(mdb);
 
    Mmsg(mdb->cmd, "SELECT " FN " AS Filename FROM File,"
-"Filename,Path WHERE File.JobId=%u AND Filename.FilenameId=File.FilenameId "
+"Filename,Path WHERE File.JobId=%s AND Filename.FilenameId=File.FilenameId "
 "AND Path.PathId=File.PathId",
-      jobid);
+      edit_int64(jobid, ed1));
 
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);

@@ -155,6 +155,7 @@ static int do_media_purge(B_DB *mdb, MEDIA_DBR *mr)
 {
    POOLMEM *query = get_pool_memory(PM_MESSAGE);
    struct s_del_ctx del;
+   char ed1[50];
    int i;
 
    del.num_ids = 0;
@@ -173,11 +174,11 @@ static int do_media_purge(B_DB *mdb, MEDIA_DBR *mr)
 
    for (i=0; i < del.num_ids; i++) {
       Dmsg1(400, "Delete JobId=%d\n", del.JobId[i]);
-      Mmsg(query, "DELETE FROM Job WHERE JobId=%u", del.JobId[i]);
+      Mmsg(query, "DELETE FROM Job WHERE JobId=%s", edit_int64(del.JobId[i], ed1));
       db_sql_query(mdb, query, NULL, (void *)NULL);
-      Mmsg(query, "DELETE FROM File WHERE JobId=%u", del.JobId[i]);
+      Mmsg(query, "DELETE FROM File WHERE JobId=%s", edit_int64(del.JobId[i], ed1));
       db_sql_query(mdb, query, NULL, (void *)NULL);
-      Mmsg(query, "DELETE FROM JobMedia WHERE JobId=%u", del.JobId[i]);
+      Mmsg(query, "DELETE FROM JobMedia WHERE JobId=%s", edit_int64(del.JobId[i], ed1));
       db_sql_query(mdb, query, NULL, (void *)NULL);
    }
    free(del.JobId);

@@ -14,7 +14,7 @@
  *
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -2535,7 +2535,7 @@ static void helpcmd()
 static void usage()
 {
    fprintf(stderr, _(
-"Copyright (C) 2000-2004 Kern Sibbald and John Walker.\n"
+"Copyright (C) 2000-2005 Kern Sibbald.\n"
 "\nVersion: " VERSION " (" BDATE ")\n\n"
 "Usage: btape <options> <device_name>\n"
 "       -b <file>   specify bootstrap file\n"

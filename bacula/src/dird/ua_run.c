@@ -8,7 +8,7 @@
  */
 
 /*
-   Copyright (C) 2001-2004 Kern Sibbald
+   Copyright (C) 2001-20054 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -463,7 +463,7 @@ try_again:
       }
    }
    if (jid) {
-      jcr->RestoreJobId = atoi(jid);
+      jcr->RestoreJobId = str_to_int64(jid);
    }
 
    /* Run without prompting? */
@@ -549,12 +549,12 @@ try_again:
    case JT_RESTORE:
       if (jcr->RestoreJobId == 0 && !jcr->RestoreBootstrap) {
 	 if (jid) {
-	    jcr->RestoreJobId = atoi(jid);
+	    jcr->RestoreJobId = str_to_int64(jid);
 	 } else {
             if (!get_pint(ua, _("Please enter a JobId for restore: "))) {
 	       goto bail_out;
 	    }
-	    jcr->RestoreJobId = ua->pint32_val;
+	    jcr->RestoreJobId = ua->int64_val;
 	 }
       }
       jcr->JobLevel = L_FULL;	   /* default level */
@@ -852,7 +852,8 @@ start_job:
       if (JobId == 0) {
          bsendmsg(ua, _("Job failed.\n"));
       } else {
-         bsendmsg(ua, _("Job started. JobId=%u\n"), JobId);
+	 char ed1[50];
+         bsendmsg(ua, _("Job started. JobId=%s\n"), edit_int64(JobId,ed1));
       }
       return JobId;
    }

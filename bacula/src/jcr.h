@@ -51,11 +51,12 @@
 #define JT_VERIFY                'V'  /* Verify Job */
 #define JT_RESTORE               'R'  /* Restore Job */
 #define JT_CONSOLE               'C'  /* console program */
-#define JT_SYSTEM                'S'  /* internal system "job" */
+#define JT_SYSTEM                'I'  /* internal system "job" */
 #define JT_ADMIN                 'D'  /* admin job */
 #define JT_ARCHIVE               'A'  /* Archive Job */
 #define JT_COPY                  'Y'  /* Copy Job */
 #define JT_MIGRATION             'M'  /* Migration Job */
+#define JT_SCAN                  'S'  /* Scan Job */
 
 /* Job Status. Some of these are stored in the DB */
 #define JS_Created               'C'  /* created but not yet running */

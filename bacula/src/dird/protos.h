@@ -46,6 +46,7 @@ void free_bsr(RBSR *bsr);
 int complete_bsr(UAContext *ua, RBSR *bsr);
 uint32_t write_bsr_file(UAContext *ua, RBSR *bsr);
 void add_findex(RBSR *bsr, uint32_t JobId, int32_t findex);
+void add_findex_all(RBSR *bsr, uint32_t JobId);
 RBSR_FINDEX *new_findex();
 
 

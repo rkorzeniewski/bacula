@@ -12,7 +12,7 @@
  */
 
 /*
-   Copyright (C) 2002-2004 Kern Sibbald and John Walker
+   Copyright (C) 2002-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -86,7 +86,7 @@ static int count_handler(void *ctx, int num_fields, char **row)
    struct s_count_ctx *cnt = (struct s_count_ctx *)ctx;
 
    if (row[0]) {
-      cnt->count = atoi(row[0]);
+      cnt->count = str_to_int64(row[0]);
    } else {
       cnt->count = 0;
    }
@@ -240,7 +240,7 @@ int purgecmd(UAContext *ua, const char *cmd)
 	    purge_jobs_from_volume(ua, &mr);
 	 }
 	 *ua->argk[i] = 0;	      /* zap keyword already seen */
-	 bsendmsg(ua, "\n");
+         bsendmsg(ua, "\n");
       }
       return 1;
    default:
@@ -405,9 +405,9 @@ static int purge_jobs_from_client(UAContext *ua, CLIENT *client)
    for (i=0; i < del.num_ids; i++) {
       Dmsg1(050, "Delete JobId=%d\n", del.JobId[i]);
       if (!del.PurgedFiles[i]) {
-	 Mmsg(query, "DELETE FROM File WHERE JobId=%d", del.JobId[i]);
+         Mmsg(query, "DELETE FROM File WHERE JobId=%d", del.JobId[i]);
 	 db_sql_query(ua->db, query, NULL, (void *)NULL);
-	 Dmsg1(050, "Del sql=%s\n", query);
+         Dmsg1(050, "Del sql=%s\n", query);
       }
 
       Mmsg(query, "DELETE FROM Job WHERE JobId=%d", del.JobId[i]);
@@ -435,11 +435,12 @@ bail_out:
 void purge_files_from_job(UAContext *ua, JOB_DBR *jr)
 {
    char *query = (char *)get_pool_memory(PM_MESSAGE);
+   char ed1[50];
 
-   Mmsg(query, "DELETE FROM File WHERE JobId=%u", jr->JobId);
+   Mmsg(query, "DELETE FROM File WHERE JobId=%s", edit_int64(jr->JobId,ed1));
    db_sql_query(ua->db, query, NULL, (void *)NULL);
 
-   Mmsg(query, "UPDATE Job Set PurgedFiles=1 WHERE JobId=%u", jr->JobId);
+   Mmsg(query, "UPDATE Job Set PurgedFiles=1 WHERE JobId=%s", edit_int64(jr->JobId,ed1));
    db_sql_query(ua->db, query, NULL, (void *)NULL);
 
    free_pool_memory(query);
@@ -461,13 +462,13 @@ int purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr)
    JOB_DBR jr;
 
    stat = strcmp(mr->VolStatus, "Append") == 0 ||
-	  strcmp(mr->VolStatus, "Full")   == 0 ||
-	  strcmp(mr->VolStatus, "Used")   == 0 ||
-	  strcmp(mr->VolStatus, "Error")  == 0;
+          strcmp(mr->VolStatus, "Full")   == 0 ||
+          strcmp(mr->VolStatus, "Used")   == 0 ||
+          strcmp(mr->VolStatus, "Error")  == 0;
    if (!stat) {
       bsendmsg(ua, "\n");
       bsendmsg(ua, _("Volume \"%s\" has VolStatus \"%s\" and cannot be purged.\n"
-		     "The VolStatus must be: Append, Full, Used, or Error to be purged.\n"),
+                     "The VolStatus must be: Append, Full, Used, or Error to be purged.\n"),
 		     mr->VolumeName, mr->VolStatus);
       goto bail_out;
    }
@@ -486,7 +487,7 @@ int purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr)
       bsendmsg(ua, "There are no Jobs associated with Volume \"%s\". Marking it purged.\n",
 	 mr->VolumeName);
       if (!mark_media_purged(ua, mr)) {
-	 bsendmsg(ua, "%s", db_strerror(ua->db));
+         bsendmsg(ua, "%s", db_strerror(ua->db));
 	 goto bail_out;
       }
       goto bail_out;
@@ -514,8 +515,8 @@ int purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr)
 
       Mmsg(query, "SELECT JobId FROM JobMedia WHERE MediaId=%d", mr->MediaId);
       if (!db_sql_query(ua->db, query, file_delete_handler, (void *)&del)) {
-	 bsendmsg(ua, "%s", db_strerror(ua->db));
-	 Dmsg0(050, "Count failed\n");
+         bsendmsg(ua, "%s", db_strerror(ua->db));
+         Dmsg0(050, "Count failed\n");
 	 goto bail_out;
       }
    }
@@ -550,7 +551,7 @@ int purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr)
       bsendmsg(ua, "There are no more Jobs associated with Volume \"%s\". Marking it purged.\n",
 	 mr->VolumeName);
       if (!(stat = mark_media_purged(ua, mr))) {
-	 bsendmsg(ua, "%s", db_strerror(ua->db));
+         bsendmsg(ua, "%s", db_strerror(ua->db));
 	 goto bail_out;
       }
    }

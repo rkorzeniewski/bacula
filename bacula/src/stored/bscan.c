@@ -10,7 +10,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2001-2004 Kern Sibbald and John Walker
+   Copyright (C) 2001-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -106,7 +106,7 @@ bool forge_on = false;
 static void usage()
 {
    fprintf(stderr, _(
-"Copyright (C) 2001-2004 Kern Sibbald and John Walker.\n"
+"Copyright (C) 2001-2005 Kern Sibbald.\n"
 "\nVersion: " VERSION " (" BDATE ")\n\n"
 "Usage: bscan [ options ] <bacula-archive>\n"
 "       -b bootstrap      specify a bootstrap file\n"
@@ -300,7 +300,7 @@ static bool bscan_mount_next_read_volume(DCR *dcr)
 	 continue;
       }
       if (verbose) {
-	 Pmsg1(000, _("Create JobMedia for Job %s\n"), mjcr->Job);
+         Pmsg1(000, _("Create JobMedia for Job %s\n"), mjcr->Job);
       }
       if (dev->state & ST_TAPE) {
 	 mdcr->EndBlock = dev->EndBlock;
@@ -310,7 +310,7 @@ static bool bscan_mount_next_read_volume(DCR *dcr)
 	 mdcr->EndFile = (uint32_t)(dev->file_addr >> 32);
       }
       if (!create_jobmedia_record(db, mjcr)) {
-	 Pmsg2(000, _("Could not create JobMedia record for Volume=%s Job=%s\n"),
+         Pmsg2(000, _("Could not create JobMedia record for Volume=%s Job=%s\n"),
 	    dev->VolCatInfo.VolCatName, mjcr->Job);
       }
    }
@@ -364,7 +364,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       if (showProgress) {
 	 int64_t pct = (mr.VolBytes * 100) / currentVolumeSize;
 	 if (pct != last_pct) {
-	    fprintf(stdout, "done: %" lld "\n", pct);
+            fprintf(stdout, "done: %" lld "\n", pct);
 	    fflush(stdout);
 	    last_pct = pct;
 	 }
@@ -388,7 +388,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       }
       switch (rec->FileIndex) {
       case PRE_LABEL:
-	 Pmsg0(000, _("Volume is prelabeled. This tape cannot be scanned.\n"));
+         Pmsg0(000, _("Volume is prelabeled. This tape cannot be scanned.\n"));
 	 return false;
 	 break;
 
@@ -400,21 +400,21 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 	 num_pools++;
 	 if (db_get_pool_record(bjcr, db, &pr)) {
 	    if (verbose) {
-	       Pmsg1(000, _("Pool record for %s found in DB.\n"), pr.Name);
+               Pmsg1(000, _("Pool record for %s found in DB.\n"), pr.Name);
 	    }
 	 } else {
 	    if (!update_db) {
-	       Pmsg1(000, _("VOL_LABEL: Pool record not found for Pool: %s\n"),
+               Pmsg1(000, _("VOL_LABEL: Pool record not found for Pool: %s\n"),
 		  pr.Name);
 	    }
 	    create_pool_record(db, &pr);
 	 }
 	 if (strcmp(pr.PoolType, dev->VolHdr.PoolType) != 0) {
-	    Pmsg2(000, _("VOL_LABEL: PoolType mismatch. DB=%s Vol=%s\n"),
+            Pmsg2(000, _("VOL_LABEL: PoolType mismatch. DB=%s Vol=%s\n"),
 	       pr.PoolType, dev->VolHdr.PoolType);
 	    return true;
 	 } else if (verbose) {
-	    Pmsg1(000, _("Pool type \"%s\" is OK.\n"), pr.PoolType);
+            Pmsg1(000, _("Pool type \"%s\" is OK.\n"), pr.PoolType);
 	 }
 
 	 /* Check Media Info */
@@ -424,25 +424,25 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 	 num_media++;
 	 if (db_get_media_record(bjcr, db, &mr)) {
 	    if (verbose) {
-	       Pmsg1(000, _("Media record for %s found in DB.\n"), mr.VolumeName);
+               Pmsg1(000, _("Media record for %s found in DB.\n"), mr.VolumeName);
 	    }
 	    /* Clear out some volume statistics that will be updated */
 	    mr.VolJobs = mr.VolFiles = mr.VolBlocks = 0;
 	    mr.VolBytes = rec->data_len + 20;
 	 } else {
 	    if (!update_db) {
-	       Pmsg1(000, _("VOL_LABEL: Media record not found for Volume: %s\n"),
+               Pmsg1(000, _("VOL_LABEL: Media record not found for Volume: %s\n"),
 		  mr.VolumeName);
 	    }
 	    bstrncpy(mr.MediaType, dev->VolHdr.MediaType, sizeof(mr.MediaType));
 	    create_media_record(db, &mr, &dev->VolHdr);
 	 }
 	 if (strcmp(mr.MediaType, dev->VolHdr.MediaType) != 0) {
-	    Pmsg2(000, _("VOL_LABEL: MediaType mismatch. DB=%s Vol=%s\n"),
+            Pmsg2(000, _("VOL_LABEL: MediaType mismatch. DB=%s Vol=%s\n"),
 	       mr.MediaType, dev->VolHdr.MediaType);
 	    return true;	      /* ignore error */
 	 } else if (verbose) {
-	    Pmsg1(000, _("Media type \"%s\" is OK.\n"), mr.MediaType);
+            Pmsg1(000, _("Media type \"%s\" is OK.\n"), mr.MediaType);
 	 }
 	 /* Reset some JCR variables */
 	 foreach_dlist(dcr, dev->attached_dcrs) {
@@ -451,14 +451,14 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 	    dcr->StartFile = dcr->EndFile = 0;
 	 }
 
-	 Pmsg1(000, _("VOL_LABEL: OK for Volume: %s\n"), mr.VolumeName);
+         Pmsg1(000, _("VOL_LABEL: OK for Volume: %s\n"), mr.VolumeName);
 	 break;
 
       case SOS_LABEL:
 	 mr.VolJobs++;
 	 num_jobs++;
 	 if (ignored_msgs > 0) {
-	    Pmsg1(000, _("%d \"errors\" ignored before first Start of Session record.\n"),
+            Pmsg1(000, _("%d \"errors\" ignored before first Start of Session record.\n"),
 		  ignored_msgs);
 	    ignored_msgs = 0;
 	 }
@@ -467,14 +467,14 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 	 bstrncpy(jr.Job, label.Job, sizeof(jr.Job));
 	 if (db_get_job_record(bjcr, db, &jr)) {
 	    /* Job record already exists in DB */
-	    update_db = false;  /* don't change db in create_job_record */
+            update_db = false;  /* don't change db in create_job_record */
 	    if (verbose) {
-	       Pmsg1(000, _("SOS_LABEL: Found Job record for JobId: %d\n"), jr.JobId);
+               Pmsg1(000, _("SOS_LABEL: Found Job record for JobId: %d\n"), jr.JobId);
 	    }
 	 } else {
 	    /* Must create a Job record in DB */
 	    if (!update_db) {
-	       Pmsg1(000, _("SOS_LABEL: Job record not found for JobId: %d\n"),
+               Pmsg1(000, _("SOS_LABEL: Job record not found for JobId: %d\n"),
 		  jr.JobId);
 	    }
 	 }
@@ -483,7 +483,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 	    create_client_record(db, &cr);
 	    jr.ClientId = cr.ClientId;
 
-	 /* process label, if Job record exists don't update db */
+         /* process label, if Job record exists don't update db */
 	 mjcr = create_job_record(db, &jr, &label, rec);
 	 dcr = mjcr->dcr;
 	 update_db = save_update_db;
@@ -512,19 +512,19 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 	 bstrncpy(dcr->pool_name, label.PoolName, sizeof(dcr->pool_name));
 
 	 if (rec->VolSessionId != jr.VolSessionId) {
-	    Pmsg3(000, _("SOS_LABEL: VolSessId mismatch for JobId=%u. DB=%d Vol=%d\n"),
+            Pmsg3(000, _("SOS_LABEL: VolSessId mismatch for JobId=%u. DB=%d Vol=%d\n"),
 	       jr.JobId,
 	       jr.VolSessionId, rec->VolSessionId);
 	    return true;	      /* ignore error */
 	 }
 	 if (rec->VolSessionTime != jr.VolSessionTime) {
-	    Pmsg3(000, _("SOS_LABEL: VolSessTime mismatch for JobId=%u. DB=%d Vol=%d\n"),
+            Pmsg3(000, _("SOS_LABEL: VolSessTime mismatch for JobId=%u. DB=%d Vol=%d\n"),
 	       jr.JobId,
 	       jr.VolSessionTime, rec->VolSessionTime);
 	    return true;	      /* ignore error */
 	 }
 	 if (jr.PoolId != pr.PoolId) {
-	    Pmsg3(000, _("SOS_LABEL: PoolId mismatch for JobId=%u. DB=%d Vol=%d\n"),
+            Pmsg3(000, _("SOS_LABEL: PoolId mismatch for JobId=%u. DB=%d Vol=%d\n"),
 	       jr.JobId,
 	       jr.PoolId, pr.PoolId);
 	    return true;	      /* ignore error */
@@ -542,7 +542,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 
 	 mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
 	 if (!mjcr) {
-	    Pmsg2(000, _("Could not find SessId=%d SessTime=%d for EOS record.\n"),
+            Pmsg2(000, _("Could not find SessId=%d SessTime=%d for EOS record.\n"),
 		  rec->VolSessionId, rec->VolSessionTime);
 	    break;
 	 }
@@ -585,7 +585,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 	       jr.JobTDate = (utime_t)mjcr->start_time;
 	       jr.ClientId = mjcr->ClientId;
 	       if (!db_update_job_end_record(bjcr, db, &jr)) {
-		  Pmsg1(0, _("Could not update job record. ERR=%s\n"), db_strerror(db));
+                  Pmsg1(0, _("Could not update job record. ERR=%s\n"), db_strerror(db));
 	       }
 	       mjcr->dcr = NULL;
 	       free_jcr(mjcr);
@@ -596,7 +596,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 	 mr.VolBytes += mr.VolBlocks * WRITE_BLKHDR_LENGTH; /* approx. */
 	 mr.VolMounts++;
 	 update_media_record(db, &mr);
-	 Pmsg3(0, _("End of all Volumes. VolFiles=%u VolBlocks=%u VolBytes=%s\n"), mr.VolFiles,
+         Pmsg3(0, _("End of all Volumes. VolFiles=%u VolBlocks=%u VolBytes=%s\n"), mr.VolFiles,
 		    mr.VolBlocks, edit_uint64_with_commas(mr.VolBytes, ec1));
 	 break;
       default:
@@ -608,7 +608,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
    if (!mjcr) {
       if (mr.VolJobs > 0) {
-	 Pmsg2(000, _("Could not find Job for SessId=%d SessTime=%d record.\n"),
+         Pmsg2(000, _("Could not find Job for SessId=%d SessTime=%d record.\n"),
 		      rec->VolSessionId, rec->VolSessionTime);
       } else {
 	 ignored_msgs++;
@@ -626,11 +626,11 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    case STREAM_UNIX_ATTRIBUTES_EX:
 
       if (!unpack_attributes_record(bjcr, rec->Stream, rec->data, attr)) {
-	 Emsg0(M_ERROR_TERM, 0, _("Cannot continue.\n"));
+         Emsg0(M_ERROR_TERM, 0, _("Cannot continue.\n"));
       }
 
       if (attr->file_index != rec->FileIndex) {
-	 Emsg2(M_ERROR_TERM, 0, _("Record header file index %ld not equal record index %ld\n"),
+         Emsg2(M_ERROR_TERM, 0, _("Record header file index %ld not equal record index %ld\n"),
 	    rec->FileIndex, attr->file_index);
       }
 
@@ -644,7 +644,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       num_files++;
       if (verbose && (num_files & 0x7FFF) == 0) {
 	 char ed1[30], ed2[30], ed3[30], ed4[30];
-	 Pmsg4(000, _("%s file records. At file:blk=%s:%s bytes=%s\n"),
+         Pmsg4(000, _("%s file records. At file:blk=%s:%s bytes=%s\n"),
 		     edit_uint64_with_commas(num_files, ed1),
 		     edit_uint64_with_commas(rec->File, ed2),
 		     edit_uint64_with_commas(rec->Block, ed3),
@@ -687,7 +687,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       char MD5buf[50];
       bin_to_base64(MD5buf, (char *)rec->data, 16); /* encode 16 bytes */
       if (verbose > 1) {
-	 Pmsg1(000, _("Got MD5 record: %s\n"), MD5buf);
+         Pmsg1(000, _("Got MD5 record: %s\n"), MD5buf);
       }
       update_SIG_record(db, MD5buf, rec, MD5_SIG);
       break;
@@ -696,7 +696,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       char SIGbuf[50];
       bin_to_base64(SIGbuf, (char *)rec->data, 20); /* encode 20 bytes */
       if (verbose > 1) {
-	 Pmsg1(000, _("Got SHA1 record: %s\n"), SIGbuf);
+         Pmsg1(000, _("Got SHA1 record: %s\n"), SIGbuf);
       }
       update_SIG_record(db, SIGbuf, rec, SHA1_SIG);
       break;
@@ -704,13 +704,13 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 
    case STREAM_PROGRAM_NAMES:
       if (verbose) {
-	 Pmsg1(000, _("Got Prog Names Stream: %s\n"), rec->data);
+         Pmsg1(000, _("Got Prog Names Stream: %s\n"), rec->data);
       }
       break;
 
    case STREAM_PROGRAM_DATA:
       if (verbose > 1) {
-	 Pmsg0(000, _("Got Prog Data Stream record.\n"));
+         Pmsg0(000, _("Got Prog Data Stream record.\n"));
       }
       break;
    default:
@@ -904,16 +904,16 @@ static int create_fileset_record(B_DB *db, FILESET_DBR *fsr)
    }
    if (db_get_fileset_record(bjcr, db, fsr)) {
       if (verbose) {
-	 Pmsg1(000, _("Fileset \"%s\" already exists.\n"), fsr->FileSet);
+         Pmsg1(000, _("Fileset \"%s\" already exists.\n"), fsr->FileSet);
       }
    } else {
       if (!db_create_fileset_record(bjcr, db, fsr)) {
-	 Pmsg2(0, _("Could not create FileSet record \"%s\". ERR=%s\n"),
+         Pmsg2(0, _("Could not create FileSet record \"%s\". ERR=%s\n"),
 	    fsr->FileSet, db_strerror(db));
 	 return 0;
       }
       if (verbose) {
-	 Pmsg1(000, _("Created FileSet record \"%s\"\n"), fsr->FileSet);
+         Pmsg1(000, _("Created FileSet record \"%s\"\n"), fsr->FileSet);
       }
    }
    return 1;
@@ -1035,18 +1035,18 @@ static int update_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *elabel,
 
       switch (mjcr->JobStatus) {
       case JS_Terminated:
-	 term_msg = _("Backup OK");
+         term_msg = _("Backup OK");
 	 break;
       case JS_FatalError:
       case JS_ErrorTerminated:
-	 term_msg = _("*** Backup Error ***");
+         term_msg = _("*** Backup Error ***");
 	 break;
       case JS_Canceled:
-	 term_msg = _("Backup Canceled");
+         term_msg = _("Backup Canceled");
 	 break;
       default:
 	 term_msg = term_code;
-	 sprintf(term_code, _("Job Termination code: %d"), mjcr->JobStatus);
+         sprintf(term_code, _("Job Termination code: %d"), mjcr->JobStatus);
 	 break;
       }
       bstrftime(sdt, sizeof(sdt), mjcr->start_time);
@@ -1133,7 +1133,7 @@ static int update_SIG_record(B_DB *db, char *SIGbuf, DEV_RECORD *rec, int type)
    mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
    if (!mjcr) {
       if (mr.VolJobs > 0) {
-	 Pmsg2(000, _("Could not find SessId=%d SessTime=%d for MD5/SHA1 record.\n"),
+         Pmsg2(000, _("Could not find SessId=%d SessTime=%d for MD5/SHA1 record.\n"),
 		      rec->VolSessionId, rec->VolSessionTime);
       } else {
 	 ignored_msgs++;
