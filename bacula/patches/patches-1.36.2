@@ -12,3 +12,22 @@
  This patch will prevent the Win32 FD from printing an error message
  when it attempts to restore the permissions for a drive (which Win32
  doesn't permit). The error is harmless in any case.
+
+15Mar05 1.36.2-netbsd.patch
+ This patch corrects a compile problem because of no statfs() 
+ on NetBSD. The patch was submitted by kardel with bug 258.
+
+16Mar05 1.36.2-console.patch
+ This patch causes the output directed to a file to be
+ flushed after every line. This is a bit overkill, IMO, but
+ a user complained about it.
+
+17Mar05 1.36.2-restore-speed.patch
+ This patch will fix a subtle bug that was introduced in 1.36.2
+ which causes Bacula to be very slow restoring a few files. This
+ is because it reads completely to the end of the Volume rather
+ than stopping when all the files on the Volume are loaded. The
+ introduction of the bug was caused by a patch that fixed 
+ Bacula truncating tapes after a restore.
+ Note that all source files will be rebuilt during the make.
+
