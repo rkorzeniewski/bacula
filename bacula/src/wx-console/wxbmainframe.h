@@ -2,7 +2,7 @@
  *
  *   Main frame header file
  *
- *    Nicolas Boichat, April 2004
+ *    Nicolas Boichat, July 2004
  *
  */
 /*
@@ -47,6 +47,8 @@
 #include "console_thread.h"
 
 #include "wxbutils.h"
+
+#include "wxbhistorytextctrl.h"
 
 WX_DEFINE_ARRAY(wxbDataParser*, wxbDataParsers);
 
@@ -135,11 +137,13 @@ private:
    wxbMainFrame(const wxString& title, const wxPoint& pos, const wxSize& size, long style);
    ~wxbMainFrame();
    
+   static wxbMainFrame *frame; /* this */
+
    wxMenu *menuFile;
 
    wxNotebook *notebook; /* main notebook */
    wxTextCtrl *consoleCtrl; /* wxTextCtrl containing graphical console */
-   wxTextCtrl *typeCtrl; /* wxTextCtrl for console user input */
+   wxbHistoryTextCtrl *typeCtrl; /* wxbHistoryTextCtrl for console user input */
    wxButton *sendButton; /* wxButton used to send data */
 
    wxbPanel **panels; /* panels array, contained in the notebook */
@@ -147,14 +151,12 @@ private:
 
    wxbPromptParser* promptparser; /* prompt parser catching uncatched questions */
 
-   static wxbMainFrame *frame; /* this */
-   
    bool lockedbyconsole; /* true if the panels have been locked by something typed in the console */
    
    wxString configfile; /* configfile used */
    
    wxString consoleBuffer; /* Buffer used to print in the console line by line */
-   
+     
    // any class wishing to process wxWindows events must use this macro
    DECLARE_EVENT_TABLE()
 };

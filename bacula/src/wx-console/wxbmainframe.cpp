@@ -2,7 +2,7 @@
  *
  *   Main frame
  *
- *    Nicolas Boichat, April 2004
+ *    Nicolas Boichat, July 2004
  *
  */
 /*
@@ -264,7 +264,7 @@ wxbMainFrame::wxbMainFrame(const wxString& title, const wxPoint& pos, const wxSi
    consoleSizer->AddGrowableCol(0);
    consoleSizer->AddGrowableRow(0);
 
-   typeCtrl = new wxTextCtrl(consolePanel,TypeText,"",wxDefaultPosition,wxSize(200,20), wxTE_PROCESS_ENTER);
+   typeCtrl = new wxbHistoryTextCtrl(consolePanel,TypeText,"",wxDefaultPosition,wxSize(200,20));
    sendButton = new wxButton(consolePanel, SendButton, "Send");
    
    wxFlexGridSizer *typeSizer = new wxFlexGridSizer(1, 3, 0, 0);
@@ -479,6 +479,7 @@ void wxbMainFrame::OnChangeConfig(wxCommandEvent& event) {
                            wxYES_NO | wxICON_QUESTION, this);
          if (answer == wxYES) {
               wxConfigBase::Get()->Write("/ConfigFile", configfile);
+              wxConfigBase::Get()->Flush();
               StartConsoleThread("");
               return;
          }
@@ -512,6 +513,7 @@ void wxbMainFrame::OnEnter(wxCommandEvent& WXUNUSED(event))
 {
    lockedbyconsole = true;
    DisablePanels();
+   typeCtrl->HistoryAdd(typeCtrl->GetValue());
    wxString str = typeCtrl->GetValue() + "\n";
    Send(str);
 }
@@ -538,6 +540,7 @@ void wxbMainFrame::Print(wxString str, int status)
       consoleCtrl->AppendText(consoleBuffer);
       consoleBuffer = "";
       SetStatusText("Console thread terminated.");
+      consoleCtrl->ScrollLines(3);
       ct = NULL;
       DisablePanels();
       int answer = wxMessageBox("Connection to the director lost. Quit program?", "Connection lost",
@@ -569,6 +572,7 @@ void wxbMainFrame::Print(wxString str, int status)
    if (status == CS_DISCONNECTED) {
       consoleCtrl->AppendText(consoleBuffer);
       consoleBuffer = "";
+      consoleCtrl->ScrollLines(3);
       SetStatusText("Disconnected of the director.");
       DisablePanels();
       return;
@@ -637,6 +641,7 @@ void wxbMainFrame::Print(wxString str, int status)
    if (status == CS_DEBUG) {
       consoleCtrl->AppendText(consoleBuffer);
       consoleBuffer = "";
+      consoleCtrl->ScrollLines(3);
       consoleCtrl->SetDefaultStyle(wxTextAttr(wxColour(0, 128, 0)));
    }
    else {

@@ -1,5 +1,9 @@
 general : Show nice messages boxes when errors occurs.
 
+wxbRestorePanel : Crashing when there is no backup to show (fresh install)
+
+GTK2 : The console control is not scrolled correctly
+
 Win32 : Crash when quitting while trying to connect
 
 Mac OS X : "You must first get a unique identifier for your application, 
@@ -22,7 +26,7 @@ wxbUtils : add clients, jobs, filesets, pools... list, merge patch file (wxbnewu
 
 general : add a tab containing messages
 
-wxbMainFrame : Implement command history (accessible with up and down keys)
+wxbMainFrame : Implement command completion (tab)
 
 wxbMainFrame : When an unexpected question is in this format (***? (yes/mod/no):),
    show a list to choose one of these possibilities.
