@@ -211,10 +211,10 @@ Without that I don't know who I am :-(\n"), configfile);
       init_stack_dump();	      /* set new pid */
    }
 
-   drop(uid, gid);
-
    /* Maximum 1 daemon at a time */
    create_pid_file(me->pid_directory, "bacula-fd", me->FDport);
+
+   drop(uid, gid);
 
 #ifdef BOMB
    me += 1000000;

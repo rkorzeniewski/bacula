@@ -185,9 +185,9 @@ int main (int argc, char *argv[])
       init_stack_dump();	      /* pick up new pid */
    }
 
-   drop(uid, gid);
-
    create_pid_file(me->pid_directory, "bacula-sd", me->SDport);
+
+   drop(uid, gid);
 
    /* Ensure that Volume Session Time and Id are both
     * set and are both non-zero.

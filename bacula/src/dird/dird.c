@@ -206,10 +206,10 @@ int main (int argc, char *argv[])
       init_stack_dump();	      /* grab new pid */
    }
 
-   drop(uid, gid);		      /* reduce priveleges if requested */
-
    /* Create pid must come after we are a daemon -- so we have our final pid */
    create_pid_file(director->pid_directory, "bacula-dir", director->DIRport);
+
+   drop(uid, gid);		      /* reduce priveleges if requested */
 
 /* signal(SIGHUP, reload_config); */
 
