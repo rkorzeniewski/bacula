@@ -49,14 +49,15 @@ static char query_device[] = "query device=%127s";
 
 /* Responses sent to Director daemon */
 static char OKjob[]     = "3000 OK Job SDid=%u SDtime=%u Authorization=%s\n";
-static char OK_device[] = "3000 OK use device\n";
+static char OK_device[] = "3000 OK use device device=%s\n";
 static char NO_device[] = "3924 Device \"%s\" not in SD Device resources.\n";
 static char NOT_open[]  = "3925 Device \"%s\" could not be opened or does not exist.\n";
 static char BAD_use[]   = "3913 Bad use command: %s\n";
 static char BAD_job[]   = "3915 Bad Job command: %s\n";
 static char OK_query[]  = "3001 OK query append=%d read=%d num_writers=%d "
-   "num_waiting=%d open=%d use_count=%d labeled=%d offline=%d autochanger=%d "
-   "media_type=%s volume_name=%s";
+   "num_waiting=%d open=%d use_count=%d labeled=%d offline=%d "
+   "autoselect=%d autochanger=%d "
+   "changer_name=%s media_type=%s volume_name=%s";
 static char BAD_query[]   = "3917 Bad query command: %s\n";
 
 /*
@@ -142,6 +143,7 @@ bool use_cmd(JCR *jcr)
    /*
     * Wait for the device, media, and pool information
     */
+   Dmsg1(100, "Use_cmd: %s\n", jcr->dir_bsock->msg);
    if (!use_device_cmd(jcr)) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       memset(jcr->sd_auth_key, 0, strlen(jcr->sd_auth_key));
@@ -157,6 +159,7 @@ bool run_cmd(JCR *jcr)
    struct timespec timeout;
    int errstat;
 
+   Dmsg1(100, "Run_cmd: %s\n", jcr->dir_bsock->msg);
    /* The following jobs don't need the FD */
    switch (jcr->JobType) {
    case JT_MIGRATION:
@@ -260,10 +263,11 @@ static bool use_device_cmd(JCR *jcr)
    POOL_MEM dev_name, media_type, pool_name, pool_type;
    BSOCK *dir = jcr->dir_bsock;
    DEVRES *device;
+   AUTOCHANGER *changer;
    int append;
    bool ok;
 
-   Dmsg1(120, "Use device: %s", dir->msg);
+   Dmsg1(100, "Use_device_cmd: %s", jcr->dir_bsock->msg);
    /*
     * If there are multiple devices, the director sends us
     *	use_device for each device that it wants to use.
@@ -288,7 +292,7 @@ static bool use_device_cmd(JCR *jcr)
 	    }
 	    if (!device->dev) {
                Jmsg(jcr, M_FATAL, 0, _("\n"
-                  "     Archive \"%s\" requested by DIR could not be opened or does not exist.\n"),
+                  "     Device \"%s\" requested by DIR could not be opened or does not exist.\n"),
 		    dev_name.c_str());
 	       bnet_fsend(dir, NOT_open, dev_name.c_str());
 	       return false;
@@ -298,7 +302,7 @@ static bool use_device_cmd(JCR *jcr)
                bnet_fsend(dir, _("3926 Could not get dcr for device: %s\n"), dev_name.c_str());
 	       return false;
 	    }
-            Dmsg1(120, "Found device %s\n", device->hdr.name);
+            Dmsg1(100, "Found device %s\n", device->hdr.name);
 	    bstrncpy(dcr->pool_name, pool_name, name_len);
 	    bstrncpy(dcr->pool_type, pool_type, name_len);
 	    bstrncpy(dcr->media_type, media_type, name_len);
@@ -315,9 +319,61 @@ static bool use_device_cmd(JCR *jcr)
 	       return false;
 	    }
             Dmsg1(220, "Got: %s", dir->msg);
-	    return bnet_fsend(dir, OK_device);
+	    bash_spaces(dev_name);
+	    return bnet_fsend(dir, OK_device, dev_name.c_str());
 	 }
       }
+
+      foreach_res(changer, R_AUTOCHANGER) {
+	 /* Find resource, and make sure we were able to open it */
+	 if (fnmatch(dev_name.c_str(), changer->hdr.name, 0) == 0) {
+	    const int name_len = MAX_NAME_LENGTH;
+	    DCR *dcr;
+	    /* Try each device in this AutoChanger */
+	    foreach_alist(device, changer->device) {
+               Dmsg1(100, "Try changer device %s\n", device->hdr.name);
+	       if (!device->dev) {
+		  device->dev = init_dev(jcr, NULL, device);
+	       }
+	       if (!device->dev) {
+                  Dmsg1(100, "Device %s could not be opened. Skipped\n", dev_name.c_str());
+                  Jmsg(jcr, M_WARNING, 0, _("\n"
+                     "     Device \"%s\" in changer \"%s\" requested by DIR could not be opened or does not exist.\n"),
+		       device->hdr.name, dev_name.c_str());
+		  continue;
+	       }
+	       dcr = new_dcr(jcr, device->dev);
+	       if (!dcr) {
+                  bnet_fsend(dir, _("3926 Could not get dcr for device: %s\n"), dev_name.c_str());
+		  UnlockRes();
+		  return false;
+	       }
+               Dmsg1(100, "Found changer device %s\n", device->hdr.name);
+	       bstrncpy(dcr->pool_name, pool_name, name_len);
+	       bstrncpy(dcr->pool_type, pool_type, name_len);
+	       bstrncpy(dcr->media_type, media_type, name_len);
+	       bstrncpy(dcr->dev_name, dev_name, name_len);
+	       jcr->dcr = dcr;
+	       if (append == SD_APPEND) {
+		  ok = reserve_device_for_append(jcr, device->dev);
+	       } else {
+		  ok = reserve_device_for_read(jcr, device->dev);
+	       }
+	       if (!ok) {
+                  Jmsg(jcr, M_WARNING, 0, _("Could not reserve device: %s\n"), dev_name.c_str());
+		  free_dcr(jcr->dcr);
+		  continue;
+	       }
+               Dmsg1(100, "Device %s opened.\n", dev_name.c_str());
+	       UnlockRes();
+	       pm_strcpy(dev_name, device->hdr.name);
+	       bash_spaces(dev_name);
+	       return bnet_fsend(dir, OK_device, dev_name.c_str());
+	    }
+	    break;		      /* we found it but could not open a device */
+	 }
+      }
+
       UnlockRes();
       if (verbose) {
 	 unbash_spaces(dir->msg);
@@ -351,12 +407,13 @@ static bool use_device_cmd(JCR *jcr)
  */
 bool query_cmd(JCR *jcr)
 {
-   POOL_MEM dev_name;
+   POOL_MEM dev_name;		   
    BSOCK *dir = jcr->dir_bsock;
    DEVRES *device;
+   AUTOCHANGER *changer;
    bool ok;
 
-   Dmsg1(120, "Query: %s", dir->msg);
+   Dmsg1(100, "Query_cmd: %s", dir->msg);
 
    ok = sscanf(dir->msg, query_device, dev_name.c_str()) == 1;
    if (ok) {
@@ -372,7 +429,7 @@ bool query_cmd(JCR *jcr)
 	       break;
 	    }  
 	    DEVICE *dev = device->dev;
-	    POOL_MEM VolumeName, MediaType;
+	    POOL_MEM VolumeName, MediaType, ChangerName;
 	    UnlockRes();
 	    if (dev->is_labeled()) {
 	       pm_strcpy(VolumeName, dev->VolHdr.VolName);
@@ -382,13 +439,32 @@ bool query_cmd(JCR *jcr)
 	    bash_spaces(VolumeName);
 	    pm_strcpy(MediaType, device->media_type);
 	    bash_spaces(MediaType);
+	    if (device->changer_res) {
+	       pm_strcpy(ChangerName, device->changer_res->hdr.name);
+	       bash_spaces(ChangerName);
+	    } else {
+               pm_strcpy(ChangerName, "");
+	    }
 	    return bnet_fsend(dir, OK_query, dev->can_append()!=0,
 	       dev->can_read()!=0, dev->num_writers, dev->num_waiting,
 	       dev->is_open()!=0, dev->use_count, dev->is_labeled()!=0,
-	       dev->is_offline()!=0, device->changer_res!=NULL, 
-	       MediaType.c_str(), VolumeName.c_str());
+	       dev->is_offline()!=0, 0, dev->autoselect,
+	       ChangerName.c_str(), MediaType.c_str(), VolumeName.c_str());
 	 }
       }
+      foreach_res(changer, R_AUTOCHANGER) {
+	 /* Find resource, and make sure we were able to open it */
+	 if (fnmatch(dev_name.c_str(), changer->hdr.name, 0) == 0) {
+	    UnlockRes();
+	    /* This is mostly to indicate that we are here */
+	    return bnet_fsend(dir, OK_query, 0,
+	       0, 0, 0, 
+	       0, 0, 0, 
+               0, 1, "*",                /* Set AutoChanger = 1 */   
+               "*", "*");
+	 }
+      }
+      /* If we get here, the device/autochanger was not found */
       UnlockRes();
       unbash_spaces(dir->msg);
       pm_strcpy(jcr->errmsg, dir->msg);
@@ -398,6 +474,7 @@ bool query_cmd(JCR *jcr)
       pm_strcpy(jcr->errmsg, dir->msg);
       bnet_fsend(dir, BAD_query, jcr->errmsg);
    }
+
    return true;
 }
 

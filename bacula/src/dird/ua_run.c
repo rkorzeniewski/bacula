@@ -617,10 +617,7 @@ try_again:
    /*
     * At user request modify parameters of job to be run.
     */
-   if (ua->cmd[0] == 0) {
-      goto bail_out;
-   }
-   if (strncasecmp(ua->cmd, _("mod"), strlen(ua->cmd)) == 0) {
+   if (ua->cmd[0] != 0 && strncasecmp(ua->cmd, _("mod"), strlen(ua->cmd)) == 0) {
       FILE *fd;
 
       start_prompt(ua, _("Parameters to modify:\n"));
@@ -843,7 +840,7 @@ try_again:
       goto bail_out;
    }
 
-   if (strncasecmp(ua->cmd, _("yes"), strlen(ua->cmd)) == 0) {
+   if (ua->cmd[0] == 0 || strncasecmp(ua->cmd, _("yes"), strlen(ua->cmd)) == 0) {
       JobId_t JobId;
       Dmsg1(800, "Calling run_job job=%x\n", jcr->job);
 start_job:

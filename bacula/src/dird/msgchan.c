@@ -48,10 +48,11 @@ static char query_device[] = "query device=%s";
 
 /* Response from Storage daemon */
 static char OKjob[]      = "3000 OK Job SDid=%d SDtime=%d Authorization=%100s\n";
-static char OK_device[]  = "3000 OK use device\n";
+static char OK_device[]  = "3000 OK use device device=%s\n";
 static char OK_query[]  = "3001 OK query append=%d read=%d num_writers=%d "
-   "num_waiting=%d open=%d use_count=%d labeled=%d offline=%d autochanger=%d "
-   "media_type=%127s volume_name=%127s";
+   "num_waiting=%d open=%d use_count=%d labeled=%d offline=%d "
+   "autoselect=%d autochanger=%d "
+   "changer_name=%127s media_type=%127s volume_name=%127s";
 
 /* Storage Daemon requests */
 static char Job_start[]  = "3010 Job %127s start\n";
@@ -104,9 +105,9 @@ bool connect_to_storage_daemon(JCR *jcr, int retry_interval,
  */
 bool update_device_res(JCR *jcr, DEVICE *dev)
 {
-   POOL_MEM device_name, media_type, volume_name;
+   POOL_MEM device_name, changer_name, media_type, volume_name;
    int dev_open, dev_append, dev_read, dev_labeled;
-   int dev_offline, dev_autochanger;
+   int dev_offline, dev_autochanger, dev_autoselect;
    BSOCK *sd;
    if (!connect_to_storage_daemon(jcr, 5, 30, 0)) {
       return false;
@@ -119,13 +120,15 @@ bool update_device_res(JCR *jcr, DEVICE *dev)
       Dmsg1(400, "<stored: %s", sd->msg);
       if (sscanf(sd->msg, OK_query, &dev_append, &dev_read,
 	  &dev->num_writers, &dev->num_waiting, &dev_open,
-	  &dev->use_count, &dev_labeled, &dev_offline,	
-	  &dev_autochanger,  media_type.c_str(),
-	  volume_name.c_str()) != 11) {
+	  &dev->use_count, &dev_labeled, &dev_offline, &dev_autoselect, 
+	  &dev_autochanger,  changer_name.c_str(), media_type.c_str(),
+	  volume_name.c_str()) != 13) {
 	 return false;
       }
+      unbash_spaces(changer_name);
       unbash_spaces(media_type);
       unbash_spaces(volume_name);
+      bstrncpy(dev->ChangerName, changer_name.c_str(), sizeof(dev->ChangerName));
       bstrncpy(dev->MediaType, media_type.c_str(), sizeof(dev->MediaType));
       bstrncpy(dev->VolumeName, volume_name.c_str(), sizeof(dev->VolumeName));
       dev->open = dev_open;
@@ -133,6 +136,7 @@ bool update_device_res(JCR *jcr, DEVICE *dev)
       dev->read = dev_read;
       dev->labeled = dev_labeled;
       dev->offline = dev_offline;
+      dev->autoselect = dev_autoselect;
       dev->autochanger = dev_autochanger;
       dev->found = true;
    } else {
@@ -201,12 +205,16 @@ int start_storage_daemon_job(JCR *jcr, alist *store, int append)
 		 media_type.c_str(), pool_name.c_str(), pool_type.c_str(),
 		 append);
       Dmsg1(200, ">stored: %s", sd->msg);
-      ok = response(jcr, sd, OK_device, "Use Device", NO_DISPLAY);
-      if (!ok) {
-	 pm_strcpy(pool_type, sd->msg); /* save message */
+      if (bget_dirmsg(sd) > 0) {
+         Dmsg1(400, "<stored: %s", sd->msg);
+	 ok = sscanf(sd->msg, OK_device, device_name.c_str()) == 1;
+      } else {
+	 POOL_MEM err_msg;
+	 ok = false;
+	 pm_strcpy(err_msg, sd->msg); /* save message */
          Jmsg(jcr, M_FATAL, 0, _("\n"
             "     Storage daemon didn't accept Device \"%s\" because:\n     %s"),
-	    device_name.c_str(), pool_type.c_str()/* sd->msg */);
+	    device_name.c_str(), err_msg.c_str()/* sd->msg */);
       }
 // }
    if (ok) {

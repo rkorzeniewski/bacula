@@ -24,17 +24,11 @@ Version 1.37                Kern (see below)
 Suggestions for Preben:
 - Look at adding Client run command that will use the
   port opened by the client.
-- Implement WildFile and WildDir to solve problem of 
-  saving only *.doc files.
-- Bootstrap from JobMedia records.
 - Optimized bootstrap.
 
 Autochangers:
-- Locking (done)
-- Key on Storage rather than Pool (done)
-- Allow multiple drives to use same Pool
-- Synchronize multiple drives so that no more
-  than one loads a tape and any time.
+- Copy Changer Device and Changer Command from Autochanger
+  to Device resource in SD if none given in Device resource.
 - Doc the following
   to activate, check or disable the hardware compression feature on my 
   exb-8900 i use the exabyte "MammothTool" you can get it here:
@@ -42,6 +36,35 @@ Autochangers:
   There is a solaris version of this tool. With option -C 0 or 1 you can 
   disable or activate compression. Start this tool without any options for 
   a small reference.
+- 3.Prevent two drives requesting the same Volume in any given
+     autochanger.
+- 4. Use Changer Device and Changer Command specified in the
+     Autochanger resource, if none is found in the Device resource.
+    You can continue to specify them in the Device resource if you want
+    or need them to be different for each device.
+- 5. Implement a new Device directive (perhaps "Autoselect = yes/no") 
+    that can allow a Device be part of an Autochanger, and hence the changer
+    script protected, but if set to no, will prevent the Device from being 
+    automatically selected from the changer. This allows the device to
+    be directly accessed through its Device name, but not through the
+    AutoChanger name.
+- 7. Implement new Console commands to allow offlining/reserving drives,
+     and possibly manipulating the autochanger (much asked for).
+- 8. Automatic updating of Drive status from SD to DIR when something
+     changes (Volume, offline, append, read, ...).
+
+Autochangers Done:
+- 1. Automatic use of more than one drive in an autochanger (done)
+- 2. Automatic selection of the correct drive for each Job (i.e.
+     selects a drive with an appropriate Volume for the Job) (done)
+- 6. Allow multiple simultaneous Jobs referencing the same pool write
+    to several tapes (some new directive(s) are are probably needed for
+    this) (done)
+- Locking (done)
+- Key on Storage rather than Pool (done)
+- Allow multiple drives to use same Pool (change jobq.c DIR) (done).
+- Synchronize multiple drives so that not more
+  than one loads a tape and any time (done)
 
 
 For 1.37:
@@ -68,7 +91,8 @@ For 1.37:
   > ..\findlib\../../findlib/create_file.c:275 Could not open e:/: ERR=Der
   > Prozess kann nicht auf die Datei zugreifen, da sie von einem anderen
   > Prozess verwendet wird.
-  Restore restores all files, but then fails at the end.
+  Restore restores all files, but then fails at the end trying
+  to set the attributes of e:
 - Add better documentation on how restores can be done
   from failed jobs.
 - Resolve the problem between Device name and Archive name,
@@ -1240,3 +1264,7 @@ Block Position: 0
   for operator intervention.
 - Cancel command should include JobId in list of Jobs.
 - Add performance testing hooks
+- Bootstrap from JobMedia records.
+- Implement WildFile and WildDir to solve problem of 
+  saving only *.doc files.
+
