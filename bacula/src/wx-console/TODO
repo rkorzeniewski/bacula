@@ -3,23 +3,22 @@ FEATURES
 
 wxbRestorePanel : Reconsider start button's labels.
 
-wxbRestorePanel : Add titles to configuration panel
+wxbRestorePanel : Add titles to configuration panels
 
 wxbRestorePanel : When cancelling, check for commands results
 
 general : Show nice messages boxes when errors occurs.
 
-general : Allow the user to quit however the state is (kill thread if necessary)
-
-general : correct segmentation faults when exiting
-
 [postponed to July:]
 
-wxbRestorePanel : Add a way to cancel restore when building tree (needs director modifications)
+wxbRestorePanel : Add a way to cancel restore when building tree
+   (needs director modifications)
 
 wxbMainFrame : set focus to type control when clicking on console
 
 global : create a general class which keeps clients, jobs, filesets, pools... list.
+
+wxbConfigPanel : Create a dialog for selecting dates and paths.
 
 wxbMainFrame : use more often status text
 

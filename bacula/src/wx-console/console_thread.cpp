@@ -193,5 +193,8 @@ void console_thread::Delete() {
       bnet_sig(UA_sock, BNET_TERMINATE); /* send EOF */
       bnet_close(UA_sock);
       UA_sock = NULL;
+      csprint(NULL, CS_END);
+      csprint(NULL, CS_DISCONNECTED);
+      csprint(NULL, CS_TERMINATED);
    }
 }

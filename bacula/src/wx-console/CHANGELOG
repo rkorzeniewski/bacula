@@ -1,3 +1,11 @@
+31-04-2004 :
+ - wxbMainFrame : If the connection drops unexpectedly, it should say 
+   it lost the connection to the Director and then wait for you to
+   either manually exit or (when it becomes possible) reconnect.
+ - wxbMainFrame : corrected segmentation faults when exiting
+     (to be verified)
+ - wxbMainFrame : the user can quit however the state is
+
 30-04-2004 :
  - wxbRestorePanel : Added "Cancel" button to cancel restore at
      all state of restore process.

@@ -308,7 +308,11 @@ void wxbMainFrame::Unregister(wxbDataParser* dp) {
 
 void wxbMainFrame::OnQuit(wxCommandEvent& WXUNUSED(event))
 {
-   // TRUE is to force the frame to close
+   Print("Quitting.\n", CS_DEBUG);
+   if (ct != NULL) {
+      ct->Delete();
+      ct = NULL;
+   }
    Close(TRUE);
 }
 
@@ -352,6 +356,11 @@ void wxbMainFrame::Print(wxString str, int status)
       SetStatusText("Console thread terminated.");
       ct = NULL;
       DisablePanels();
+      int answer = wxMessageBox("Connection to the director lost. Quit program?", "Connection lost",
+                        wxYES_NO | wxICON_EXCLAMATION, this);
+      if (answer == wxYES) {
+         Close(true);
+      }
       return;
    }
    
@@ -513,6 +522,7 @@ void wxbMainFrame::DisablePanels(void* except) {
 /* Enable or disable console typing */
 void wxbMainFrame::EnableConsole(bool enable) {
    typeCtrl->Enable(enable);
+   sendButton->Enable(enable);
    if (enable) {
       typeCtrl->SetFocus();
    }
