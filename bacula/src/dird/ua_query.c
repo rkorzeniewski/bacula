@@ -158,10 +158,11 @@ int querycmd(UAContext *ua, char *cmd)
    return 1;
 }
 
-static char *substitute_prompts(UAContext *ua, 
+static POOLMEM *substitute_prompts(UAContext *ua, 
 		       char *query, char **prompt, int nprompt)
 {
-   char *new_query, *p, *q, *o;
+   char *p, *q, *o;
+   POOLMEM *new_query;
    int i, n, len, olen;
    char *subst[9];
 
@@ -171,8 +172,8 @@ static char *substitute_prompts(UAContext *ua,
    for (i=0; i<9; i++) {
       subst[i] = NULL;
    }
-   new_query = (char *)get_pool_memory(PM_MESSAGE);
-   new_query = (char *)check_pool_memory_size(new_query, strlen(query) +100);
+   new_query = get_pool_memory(PM_MESSAGE);
+   new_query = check_pool_memory_size(new_query, strlen(query) +100);
    o = new_query;
    olen = 0;
    for (q=query; (p=strchr(q, '%')); ) {
@@ -204,7 +205,7 @@ static char *substitute_prompts(UAContext *ua,
 	       p = (char *)malloc(len * 2 + 1);
 	       db_escape_string(p, ua->cmd, len);
 	       subst[n] = p;
-	       o = (char *)check_pool_memory_size(o, olen + strlen(p) + 1);
+	       new_query = check_pool_memory_size(new_query, olen + strlen(p) + 1);
 	       while (*p) {
 		  *o++ = *p++;
 		  olen++;
@@ -227,7 +228,7 @@ static char *substitute_prompts(UAContext *ua,
 	 }
       }
    }
-   o = (char *)check_pool_memory_size(o, olen + strlen(q) + 1);
+   new_query = check_pool_memory_size(new_query, olen + strlen(q) + 1);
    while (*q) {
       *o++ = *q++;
    }
