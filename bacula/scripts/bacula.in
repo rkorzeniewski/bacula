@@ -166,12 +166,12 @@ failure() {
 case "$1" in
     start)
        echo "Starting the Storage daemon"
-       @sbindir@/bacula-sd $2 -c @sysconfdir@/bacula-sd.conf
+       @sbindir@/bacula-sd $2 -v -c @sysconfdir@/bacula-sd.conf
        echo "Starting the File daemon"
-       @sbindir@/bacula-fd $2 -c @sysconfdir@/bacula-fd.conf
+       @sbindir@/bacula-fd $2 -v -c @sysconfdir@/bacula-fd.conf
        sleep 2
        echo "Starting the Director daemon"
-       @sbindir@/bacula-dir $2 -c @sysconfdir@/bacula-dir.conf
+       @sbindir@/bacula-dir $2 -v -c @sysconfdir@/bacula-dir.conf
        ;;
     stop)
        echo "Stopping the File daemon"

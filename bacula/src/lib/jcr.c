@@ -47,7 +47,7 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    JCR *jcr;
 
    Dmsg0(200, "Enter new_jcr\n");
-   jcr = (JCR *) malloc(size);
+   jcr = (JCR *)malloc(size);
    memset(jcr, 0, size);
    jcr->my_thread_id = pthread_self();
    jcr->sched_time = time(NULL);

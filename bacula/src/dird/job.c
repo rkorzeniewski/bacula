@@ -99,6 +99,7 @@ void run_job(JCR *jcr)
    sm_check(__FILE__, __LINE__, True);
    init_msg(jcr, jcr->messages);
    create_unique_job_name(jcr, jcr->job->hdr.name);
+   set_jcr_job_status(jcr, JS_Created);
    jcr->jr.SchedTime = jcr->sched_time;
    jcr->jr.StartTime = jcr->start_time;
    jcr->jr.Type = jcr->JobType;
@@ -271,6 +272,10 @@ static int acquire_resource_locks(JCR *jcr)
    time_t now = time(NULL);
 
    /* Wait until scheduled time arrives */
+   if (jcr->sched_time > now && verbose) {
+      Jmsg(jcr, M_INFO, 0, _("Waiting %d seconds for sched time.\n"), 
+	   jcr->sched_time - now);
+   }
    while (jcr->sched_time > now) {
       Dmsg2(100, "Waiting on sched time, jobid=%d secs=%d\n", jcr->JobId,
 	    jcr->sched_time - now);

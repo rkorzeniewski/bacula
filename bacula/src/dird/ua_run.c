@@ -350,6 +350,7 @@ When:     %s\n"),
 		 NPRT(jcr->client->hdr.name),
 		 NPRT(jcr->store->hdr.name), 
 		 bstrutime(dt, sizeof(dt), jcr->sched_time));
+	 jcr->JobLevel = L_FULL;
 	 break;
       case JT_BACKUP:
       case JT_VERIFY:
@@ -399,7 +400,7 @@ When:     %s\n"),
 	       jcr->RestoreJobId = atoi(ua->cmd);
 	    }
 	 }
-         jcr->JobLevel = 'F';         /* default level */
+	 jcr->JobLevel = L_FULL;      /* default level */
          Dmsg1(20, "JobId to restore=%d\n", jcr->RestoreJobId);
          bsendmsg(ua, _("Run Restore job\n\
 JobName:    %s\n\

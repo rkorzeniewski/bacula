@@ -73,6 +73,7 @@ db_create_job_record(void *jcr, B_DB *mdb, JOB_DBR *jr)
    char ed1[30];
 
    stime = jr->SchedTime;
+   ASSERT(stime != 0);
 
    localtime_r(&stime, &tm); 
    strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
