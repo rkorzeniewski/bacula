@@ -135,8 +135,9 @@ LEX *lex_open_file(LEX *lf, const char *filename, LEX_ERROR_HANDLER *scan_error)
 
    
    if ((fd = fopen(fname, "r")) == NULL) {
+      berrno be;
       Emsg2(M_ERROR_TERM, 0, _("Cannot open config file %s: %s\n"), 
-	    fname, strerror(errno));
+	    fname, be.strerror());
       return NULL; /* Never reached if exit_on_error == 1 */
    }
    Dmsg1(2000, "Open config file: %s\n", fname);
