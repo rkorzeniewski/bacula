@@ -7,7 +7,7 @@
  */
 
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -94,7 +94,7 @@ char *edit_uint64_with_commas(uint64_t val, char *buf)
       mbuf[i--] = '0';
    } else {
       while (val != 0) {
-	 mbuf[i--] = "0123456789"[val%10];
+         mbuf[i--] = "0123456789"[val%10];
 	 val /= 10;
       }
    }
@@ -119,13 +119,42 @@ char *edit_uint64(uint64_t val, char *buf)
       mbuf[i--] = '0';
    } else {
       while (val != 0) {
-	 mbuf[i--] = "0123456789"[val%10];
+         mbuf[i--] = "0123456789"[val%10];
 	 val /= 10;
       }
    }
    strcpy(buf, &mbuf[i+1]);
    return buf;
 }
+
+char *edit_int64(int64_t val, char *buf)
+{
+   /*
+    * Replacement for sprintf(buf, "%" llu, val)
+    */
+   char mbuf[50];
+   bool negative = false;
+   mbuf[sizeof(mbuf)-1] = 0;
+   int i = sizeof(mbuf)-2;		   /* edit backward */
+   if (val == 0) {
+      mbuf[i--] = '0';
+   } else {
+      if (val < 0) {
+	 negative = true;
+	 val = -val;
+      }
+      while (val != 0) {
+         mbuf[i--] = "0123456789"[val%10];
+	 val /= 10;
+      }
+   }
+   if (negative) {
+      mbuf[i--] = '-';
+   }
+   strcpy(buf, &mbuf[i+1]);
+   return buf;
+}
+
 
 /*
  * Given a string "str", separate the integer part into
@@ -206,7 +235,7 @@ int duration_to_utime(char *str, utime_t *value)
     *	Baculas.
     */
    static const char *mod[] = {"n", "seconds", "months", "minutes",
-		  "hours", "days", "weeks",   "quarters",   "years", NULL};
+                  "hours", "days", "weeks",   "quarters",   "years", NULL};
    static const int32_t mult[] = {60,	1, 60*60*24*30, 60,
 		  60*60, 60*60*24, 60*60*24*7, 60*60*24*91, 60*60*24*365};
 
@@ -256,7 +285,7 @@ char *edit_utime(utime_t val, char *buf, int buf_len)
       times = (uint32_t)(val / mult[i]);
       if (times > 0) {
 	 val = val - (utime_t)times * mult[i];
-	 bsnprintf(mybuf, sizeof(mybuf), "%d %s%s ", times, mod[i], times>1?"s":"");
+         bsnprintf(mybuf, sizeof(mybuf), "%d %s%s ", times, mod[i], times>1?"s":"");
 	 bstrncat(buf, mybuf, buf_len);
       }
    }
@@ -372,20 +401,20 @@ bool is_name_valid(char *name, POOLMEM **msg)
 	 continue;
       }
       if (msg) {
-	 Mmsg(msg, _("Illegal character \"%c\" in name.\n"), *p);
+         Mmsg(msg, _("Illegal character \"%c\" in name.\n"), *p);
       }
       return false;
    }
    len = strlen(name);
    if (len >= MAX_NAME_LENGTH) {
       if (msg) {
-	 Mmsg(msg, _("Name too long.\n"));
+         Mmsg(msg, _("Name too long.\n"));
       }
       return false;
    }
    if (len == 0) {
       if (msg) {
-	 Mmsg(msg,  _("Volume name must be at least one character long.\n"));
+         Mmsg(msg,  _("Volume name must be at least one character long.\n"));
       }
       return false;
    }
@@ -437,7 +466,7 @@ int main(int argc, char *argv[])
    for (int i=0; i<8; i++) {
       strcpy(buf, str[i]);
       if (!duration_to_utime(buf, &val)) {
-	 printf("Error return from duration_to_utime for in=%s\n", str[i]);
+         printf("Error return from duration_to_utime for in=%s\n", str[i]);
 	 continue;
       }
       edit_utime(val, outval);

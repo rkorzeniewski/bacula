@@ -135,7 +135,7 @@ char *next_arg(char **s)
    for (p=*s; *p && B_ISSPACE(*p); ) {
       p++;
    }
-   Dmsg1(400, "Next arg=%s\n", p);
+   Dmsg1(900, "Next arg=%s\n", p);
    for (n = q = p; *p ; ) {
       if (*p == '\\') {
 	 p++;
@@ -164,7 +164,7 @@ char *next_arg(char **s)
    }
    *q = 0;
    *s = p;
-   Dmsg2(400, "End arg=%s next=%s\n", n, p);
+   Dmsg2(900, "End arg=%s next=%s\n", n, p);
    return n;
 }
 
@@ -213,9 +213,9 @@ int parse_args(POOLMEM *cmd, POOLMEM **args, int *argc,
       if (p) {
 	 *p++ = 0;		      /* terminate keyword and point to value */
 	 /* Unquote quoted values */
-	 if (*p == '"') {
-	    for (n = q = ++p; *p && *p != '"'; ) {
-	       if (*p == '\\') {
+         if (*p == '"') {
+            for (n = q = ++p; *p && *p != '"'; ) {
+               if (*p == '\\') {
 		  p++;
 	       }
 	       *q++ = *p++;
@@ -314,11 +314,11 @@ int bsscanf(const char *buf, const char *fmt, ...)
 //       Dmsg1(000, "Got %% nxt=%c\n", *fmt);
 switch_top:
 	 switch (*fmt++) {
-	 case 'u':
-	 case 'd':
+         case 'u':
+         case 'd':
 	    value = 0;
 	    while (B_ISDIGIT(*buf)) {
-	       value = B_TIMES10(value) + *buf++ - '0';
+               value = B_TIMES10(value) + *buf++ - '0';
 	    }
 	    vp = (void *)va_arg(ap, void *);
 //          Dmsg2(000, "val=%lld at 0x%lx\n", value, (long unsigned)vp);
@@ -332,28 +332,28 @@ switch_top:
 	    count++;
 	    l = 0;
 	    break;
-	 case 'l':
+         case 'l':
 //          Dmsg0(000, "got l\n");
 	    l = 1;
-	    if (*fmt == 'l') {
+            if (*fmt == 'l') {
 	       l++;
 	       fmt++;
 	    }
-	    if (*fmt == 'd' || *fmt == 'u') {
+            if (*fmt == 'd' || *fmt == 'u') {
 	       goto switch_top;
 	    }
 //          Dmsg1(000, "fmt=%c !=d,u\n", *fmt);
 	    error = true;
 	    break;
-	 case 'q':
+         case 'q':
 	    l = 2;
-	    if (*fmt == 'd' || *fmt == 'u') {
+            if (*fmt == 'd' || *fmt == 'u') {
 	       goto switch_top;
 	    }
 //          Dmsg1(000, "fmt=%c !=d,u\n", *fmt);
 	    error = true;
 	    break;
-	 case 's':
+         case 's':
 //          Dmsg1(000, "Store string max_len=%d\n", max_len);
 	    cp = (char *)va_arg(ap, char *);
 	    while (*buf && !B_ISSPACE(*buf) && max_len-- > 0) {
@@ -363,13 +363,13 @@ switch_top:
 	    count++;
 	    max_len = BIG;
 	    break;
-	 case 'c':
+         case 'c':
 	    cp = (char *)va_arg(ap, char *);
 	    *cp = *buf++;
 	    count++;
 	    break;
-	 case '%':
-	    if (*buf++ != '%') {
+         case '%':
+            if (*buf++ != '%') {
 	       error = true;
 	    }
 	    break;
@@ -377,10 +377,10 @@ switch_top:
 	    fmt--;
 	    max_len = 0;
 	    while (B_ISDIGIT(*fmt)) {
-	       max_len = B_TIMES10(max_len) + *fmt++ - '0';
+               max_len = B_TIMES10(max_len) + *fmt++ - '0';
 	    }
 //          Dmsg1(000, "Default max_len=%d\n", max_len);
-	    if (*fmt == 's') {
+            if (*fmt == 's') {
 	       goto switch_top;
 	    }
 //          Dmsg1(000, "Default c=%c\n", *fmt);

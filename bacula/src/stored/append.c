@@ -44,32 +44,30 @@ bool do_append_data(JCR *jcr)
    BSOCK *ds;
    BSOCK *fd_sock = jcr->file_bsock;
    bool ok = true;
-   DEVICE *dev;
    DEV_RECORD rec;
-   DCR *dcr;
+   DCR *dcr = jcr->dcr;
+   DEVICE *dev = dcr->dev;
+
 
    Dmsg0(10, "Start append data.\n");
 
    ds = fd_sock;
 
-   if (!bnet_set_buffer_size(ds, jcr->device->max_network_buffer_size, BNET_SETBUF_WRITE)) {
+   if (!bnet_set_buffer_size(ds, dcr->device->max_network_buffer_size, BNET_SETBUF_WRITE)) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       Jmsg(jcr, M_FATAL, 0, _("Unable to set network buffer size.\n"));
       return false;
    }
 
-   /*
-    * Acquire output device for writing.  Note, after acquiring a
-    *	device, we MUST release it, which is done at the end of this
-    *	subroutine.
-    */
-   Dmsg0(100, "just before acquire_device\n");
-   if (!(dcr=acquire_device_for_append(jcr))) {
+   if (!acquire_device_for_append(jcr, dev)) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       return false;
    }
-   dev = dcr->dev;
+
    memset(&rec, 0, sizeof(rec));
+
+   set_jcr_job_status(jcr, JS_Running);
+   dir_send_job_status(jcr);
 
    if (dev->VolCatInfo.VolCatName[0] == 0) {
       Dmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
@@ -283,27 +281,27 @@ bool do_append_data(JCR *jcr)
       commit_data_spool(jcr);
    }
    
-   /* If the device is nor a tape, nor a fifo, and WritePartAfterJob
+   /* If the device is nor a dvd and WritePartAfterJob
     * is set to yes, open the next part, so, in case of a device
     * that requires mount, it will be written to the device.
     */
-   if (!(dcr->dev->state & (ST_TAPE|ST_FIFO)) && (jcr->write_part_after_job) && (dcr->dev->part_size > 0)) {
+   if (dev->is_dvd() && jcr->write_part_after_job && (dev->part_size > 0)) {
       Dmsg0(100, "Writing last part because write_part_after_job is set.\n");
-      if (dcr->dev->part < dcr->dev->num_parts) {
-         Jmsg3(dcr->jcr, M_FATAL, 0, _("Error while writing, current part number is less than the total number of parts (%d/%d, device=%s)\n"),
+      if (dev->part < dev->num_parts) {
+         Jmsg3(jcr, M_FATAL, 0, _("Error while writing, current part number is less than the total number of parts (%d/%d, device=%s)\n"),
 	       dev->part, dev->num_parts, dev_name(dev));
-	 dcr->dev->dev_errno = EIO;
+	 dev->dev_errno = EIO;
 	 ok = false;
       }
       
-      if (ok && (open_next_part(dcr->dev) < 0)) {
+      if (ok && (open_next_part(dev) < 0)) {
          Jmsg2(jcr, M_FATAL, 0, _("Unable to open device next part %s. ERR=%s\n"),
-	       dev_name(dcr->dev), strerror_dev(dcr->dev));
-	 dcr->dev->dev_errno = EIO;
+	       dev_name(dev), strerror_dev(dev));
+	 dev->dev_errno = EIO;
 	 ok = false;
       }
       
-      dcr->dev->VolCatInfo.VolCatParts = dcr->dev->num_parts;
+      dev->VolCatInfo.VolCatParts = dev->num_parts;
    }
 
    Dmsg1(200, "calling release device JobStatus=%d\n", jcr->JobStatus);

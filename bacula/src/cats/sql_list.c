@@ -7,7 +7,7 @@
  */
 
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -34,7 +34,7 @@
 #include "bacula.h"
 #include "cats.h"
 
-#if    HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL
+#if    HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL
 
 /* -----------------------------------------------------------------------
  *
@@ -141,7 +141,7 @@ db_list_media_records(JCR *jcr, B_DB *mdb, MEDIA_DBR *mdbr,
             "VolFiles,VolBlocks,VolMounts,VolBytes,VolErrors,VolWrites,"
             "VolCapacityBytes,VolStatus,Recycle,VolRetention,"
             "VolUseDuration,MaxVolJobs,MaxVolFiles,MaxVolBytes,InChanger,"
-            "EndFile,EndBlock,VolParts "
+            "EndFile,EndBlock,VolParts,LabelType "
             "FROM Media WHERE Media.VolumeName='%s'", mdbr->VolumeName);
       } else {
          Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,Slot,PoolId,"
@@ -149,7 +149,7 @@ db_list_media_records(JCR *jcr, B_DB *mdb, MEDIA_DBR *mdbr,
             "VolFiles,VolBlocks,VolMounts,VolBytes,VolErrors,VolWrites,"
             "VolCapacityBytes,VolStatus,Recycle,VolRetention,"
             "VolUseDuration,MaxVolJobs,MaxVolFiles,MaxVolBytes,InChanger,"
-            "EndFile,EndBlock,VolParts "
+            "EndFile,EndBlock,VolParts,LabelType "
             "FROM Media WHERE Media.PoolId=%u ORDER BY MediaId", mdbr->PoolId);
       }
    } else {
@@ -337,4 +337,4 @@ db_list_files_for_job(JCR *jcr, B_DB *mdb, uint32_t jobid, DB_LIST_HANDLER *send
 }
 
 
-#endif /* HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL */
+#endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL*/

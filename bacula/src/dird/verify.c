@@ -15,7 +15,7 @@
  */
 
 /*
-   Copyright (C) 2000-2004 Kern Sibbald
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -74,9 +74,6 @@ bool do_verify(JCR *jcr)
    if (!jcr->verify_jr) {
       jcr->verify_jr = &verify_jr;
    }
-   if (!get_or_create_client_record(jcr)) {
-      goto bail_out;
-   }
 
    Dmsg1(9, "bdird: created client %s record\n", jcr->client->hdr.name);
 
@@ -117,10 +114,6 @@ bool do_verify(JCR *jcr)
    if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
       goto bail_out;
-   }
-
-   if (!jcr->fname) {
-      jcr->fname = get_pool_memory(PM_FNAME);
    }
 
    /* Print Job Start message */
@@ -190,7 +183,7 @@ bool do_verify(JCR *jcr)
       /*
        * Now start a job with the Storage daemon
        */
-      if (!start_storage_daemon_job(jcr)) {
+      if (!start_storage_daemon_job(jcr, jcr->storage, SD_READ)) {
 	 goto bail_out;
       }
       /*

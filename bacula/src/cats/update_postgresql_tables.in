@@ -12,6 +12,10 @@ bindir=@SQL_BINDIR@
 if $bindir/psql $* -f - <<END-OF-DATA
 \c bacula
 
+ALTER TABLE media ADD COLUMN labeltype integer;
+UPDATE media SET labeltype=0;
+ALTER TABLE media ALTER COLUMN labeltype SET NOT NULL;
+
 ALTER TABLE media ADD COLUMN volparts integer;
 UPDATE media SET volparts=0;
 ALTER TABLE media ALTER COLUMN volparts SET NOT NULL;

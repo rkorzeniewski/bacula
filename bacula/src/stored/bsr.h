@@ -7,7 +7,7 @@
  *
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -37,6 +37,7 @@
 struct VOL_LIST {
    VOL_LIST *next;
    char VolumeName[MAX_NAME_LENGTH];
+   char MediaType[MAX_NAME_LENGTH];
    int Slot;
    uint32_t start_file;
 };
@@ -54,6 +55,7 @@ struct VOL_LIST {
 struct BSR_VOLUME {
    BSR_VOLUME *next;
    char VolumeName[MAX_NAME_LENGTH];
+   char MediaType[MAX_NAME_LENGTH];
 };
 
 struct BSR_CLIENT {

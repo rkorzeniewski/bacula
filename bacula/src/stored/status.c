@@ -97,48 +97,47 @@ bool status_cmd(JCR *jcr)
    bnet_fsend(user, _("\nDevice status:\n"));
    LockRes();
    foreach_res(device, R_DEVICE) {
-      for (dev=device->dev; dev; dev=dev->next) {
-	 if (dev_state(dev, ST_OPENED)) {
-	    if (dev_state(dev, ST_LABEL)) {
-               bnet_fsend(user, _("Device \"%s\" is mounted with Volume \"%s\"\n"),
-		  dev_name(dev), dev->VolHdr.VolName);
-	    } else {
-               bnet_fsend(user, _("Device \"%s\" open but no Bacula volume is mounted.\n"), dev_name(dev));
-	    }
-	    send_blocked_status(jcr, dev);
-	    if (dev_state(dev, ST_APPEND)) {
-	       bpb = dev->VolCatInfo.VolCatBlocks;
-	       if (bpb <= 0) {
-		  bpb = 1;
-	       }
-	       bpb = dev->VolCatInfo.VolCatBytes / bpb;
-               bnet_fsend(user, _("    Total Bytes=%s Blocks=%s Bytes/block=%s\n"),
-		  edit_uint64_with_commas(dev->VolCatInfo.VolCatBytes, b1),
-		  edit_uint64_with_commas(dev->VolCatInfo.VolCatBlocks, b2),
-		  edit_uint64_with_commas(bpb, b3));
-	    } else {  /* reading */
-	       bpb = dev->VolCatInfo.VolCatReads;
-	       if (bpb <= 0) {
-		  bpb = 1;
-	       }
-	       if (dev->VolCatInfo.VolCatRBytes > 0) {
-		  bpb = dev->VolCatInfo.VolCatRBytes / bpb;
-	       } else {
-		  bpb = 0;
-	       }
-               bnet_fsend(user, _("    Total Bytes Read=%s Blocks Read=%s Bytes/block=%s\n"),
-		  edit_uint64_with_commas(dev->VolCatInfo.VolCatRBytes, b1),
-		  edit_uint64_with_commas(dev->VolCatInfo.VolCatReads, b2),
-		  edit_uint64_with_commas(bpb, b3));
-	    }
-            bnet_fsend(user, _("    Positioned at File=%s Block=%s\n"),
-	       edit_uint64_with_commas(dev->file, b1),
-	       edit_uint64_with_commas(dev->block_num, b2));
-
+      dev = device->dev;
+      if (dev->is_open()) {
+	 if (dev->is_labeled()) {
+            bnet_fsend(user, _("Device \"%s\" is mounted with Volume \"%s\"\n"),
+	       dev_name(dev), dev->VolHdr.VolName);
 	 } else {
-            bnet_fsend(user, _("Device \"%s\" is not open.\n"), dev_name(dev));
-	    send_blocked_status(jcr, dev);
+            bnet_fsend(user, _("Device \"%s\" open but no Bacula volume is mounted.\n"), dev_name(dev));
 	 }
+	 send_blocked_status(jcr, dev);
+	 if (dev_state(dev, ST_APPEND)) {
+	    bpb = dev->VolCatInfo.VolCatBlocks;
+	    if (bpb <= 0) {
+	       bpb = 1;
+	    }
+	    bpb = dev->VolCatInfo.VolCatBytes / bpb;
+            bnet_fsend(user, _("    Total Bytes=%s Blocks=%s Bytes/block=%s\n"),
+	       edit_uint64_with_commas(dev->VolCatInfo.VolCatBytes, b1),
+	       edit_uint64_with_commas(dev->VolCatInfo.VolCatBlocks, b2),
+	       edit_uint64_with_commas(bpb, b3));
+	 } else {  /* reading */
+	    bpb = dev->VolCatInfo.VolCatReads;
+	    if (bpb <= 0) {
+	       bpb = 1;
+	    }
+	    if (dev->VolCatInfo.VolCatRBytes > 0) {
+	       bpb = dev->VolCatInfo.VolCatRBytes / bpb;
+	    } else {
+	       bpb = 0;
+	    }
+            bnet_fsend(user, _("    Total Bytes Read=%s Blocks Read=%s Bytes/block=%s\n"),
+	       edit_uint64_with_commas(dev->VolCatInfo.VolCatRBytes, b1),
+	       edit_uint64_with_commas(dev->VolCatInfo.VolCatReads, b2),
+	       edit_uint64_with_commas(bpb, b3));
+	 }
+         bnet_fsend(user, _("    Positioned at File=%s Block=%s\n"),
+	    edit_uint64_with_commas(dev->file, b1),
+	    edit_uint64_with_commas(dev->block_num, b2));
+
+      } else {
+         bnet_fsend(user, _("Device \"%s\" is not open.\n"), dev_name(dev));
+	 send_blocked_status(jcr, dev);
       }
    }
    UnlockRes();
@@ -202,22 +201,23 @@ static void send_blocked_status(JCR *jcr, DEVICE *dev)
       bnet_fsend(user, "\n");
 
       bnet_fsend(user, _("Device status:\n"));
-      bnet_fsend(user, "%sOPENED ", dev->state & ST_OPENED ? "" : "!");
-      bnet_fsend(user, "%sTAPE ", dev->state & ST_TAPE ? "" : "!");
-      bnet_fsend(user, "%sLABEL ", dev->state & ST_LABEL ? "" : "!");
+      bnet_fsend(user, "%sOPENED ", dev->is_open() ? "" : "!");
+      bnet_fsend(user, "%sTAPE ", dev->is_tape() ? "" : "!");
+      bnet_fsend(user, "%sLABEL ", dev->is_labeled() ? "" : "!");
       bnet_fsend(user, "%sMALLOC ", dev->state & ST_MALLOC ? "" : "!");
-      bnet_fsend(user, "%sAPPEND ", dev->state & ST_APPEND ? "" : "!");
-      bnet_fsend(user, "%sREAD ", dev->state & ST_READ ? "" : "!");
-      bnet_fsend(user, "%sEOT ", dev->state & ST_EOT ? "" : "!");
+      bnet_fsend(user, "%sAPPEND ", dev->can_append() ? "" : "!");
+      bnet_fsend(user, "%sREAD ", dev->can_read() ? "" : "!");
+      bnet_fsend(user, "%sEOT ", dev->at_eom() ? "" : "!");
       bnet_fsend(user, "%sWEOT ", dev->state & ST_WEOT ? "" : "!");
-      bnet_fsend(user, "%sEOF ", dev->state & ST_EOF ? "" : "!");
+      bnet_fsend(user, "%sEOF ", dev->at_eof() ? "" : "!");
       bnet_fsend(user, "%sNEXTVOL ", dev->state & ST_NEXTVOL ? "" : "!");
       bnet_fsend(user, "%sSHORT ", dev->state & ST_SHORT ? "" : "!");
       bnet_fsend(user, "%sMOUNTED ", dev->state & ST_MOUNTED ? "" : "!");
       bnet_fsend(user, "\n");
 
       bnet_fsend(user, _("Device parameters:\n"));
-      bnet_fsend(user, "Device name: %s\n", dev->dev_name);
+      bnet_fsend(user, "Archive name: %s Device name: %s\n", dev->dev_name,
+	 dev->device->hdr.name);
       bnet_fsend(user, "File=%u block=%u\n", dev->file, dev->block_num);
       bnet_fsend(user, "Min block=%u Max block=%u\n", dev->min_block_size, dev->max_block_size);
    }
@@ -239,7 +239,7 @@ static void list_running_jobs(BSOCK *user)
          bnet_fsend(user, _("%s Job %s waiting for Client connection.\n"),
 	    job_type_to_str(jcr->JobType), jcr->Job);
       }
-      if (jcr->device) {
+      if (jcr->dcr && jcr->dcr->device) {
 	 bstrncpy(JobName, jcr->Job, sizeof(JobName));
 	 /* There are three periods after the Job name */
 	 char *p;
@@ -253,8 +253,8 @@ static void list_running_jobs(BSOCK *user)
 		   job_type_to_str(jcr->JobType),
 		   JobName,
 		   jcr->JobId,
-                   jcr->dcr?jcr->dcr->VolumeName:"*none*",
-                   jcr->device?jcr->device->device_name:"none");
+		   jcr->dcr->VolumeName,
+		   jcr->dcr->device->device_name);
 	 sec = time(NULL) - jcr->run_time;
 	 if (sec <= 0) {
 	    sec = 1;

@@ -7,7 +7,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -50,6 +50,7 @@ void term_job_server();
 void store_jobtype(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_level(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_replace(LEX *lc, RES_ITEM *item, int index, int pass);
+void init_device_resources();
 
 static char *configfile = NULL;
 static char *runjob = NULL;
@@ -74,7 +75,7 @@ extern URES res_all;
 static void usage()
 {
    fprintf(stderr, _(
-"Copyright (C) 2000-2004 Kern Sibbald and John Walker\n"
+"Copyright (C) 2000-2005 Kern Sibbald.\n"
 "\nVersion: " VERSION " (" BDATE ")\n\n"
 "Usage: dird [-f -s] [-c config_file] [-d debug_level] [config_file]\n"
 "       -c <file>   set configuration file to file\n"
@@ -237,6 +238,8 @@ int main (int argc, char *argv[])
    init_jcr_subsystem();	      /* start JCR watchdogs etc. */
 
    init_job_server(director->MaxConcurrentJobs);
+
+   init_device_resources();
 
    Dmsg0(200, "wait for next job\n");
    /* Main loop -- call scheduler to get next job to run */
@@ -499,13 +502,11 @@ static int check_resources()
       if (job->jobdefs) {
 	 /* Handle Storage alists specifically */
 	 JOB *jobdefs = job->jobdefs;
-	 for (i=0; i < MAX_STORE; i++) {
-	    if (jobdefs->storage[i] && !job->storage[i]) {
-	       STORE *st;
-	       job->storage[i] = New(alist(10, not_owned_by_alist));
-	       foreach_alist(st, jobdefs->storage[i]) {
-		  job->storage[i]->append(st);
-	       }
+	 if (jobdefs->storage && !job->storage) {
+	    STORE *st;
+	    job->storage = New(alist(10, not_owned_by_alist));
+	    foreach_alist(st, jobdefs->storage) {
+	       job->storage->append(st);
 	    }
 	 }
 
@@ -637,8 +638,26 @@ static int check_resources()
       foreach_res(pool, R_POOL) {
 	 create_pool(NULL, db, pool, POOL_OP_UPDATE);  /* update request */
       }
-      /* Loop over all counters, defining them in each database */
 
+      /* ***FIXME*** we need to update store and media_type records */
+      STORE *store;
+      foreach_res(store, R_STORAGE) {
+	 STORAGE_DBR sr;
+	 MEDIATYPE_DBR mr;
+	 if (store->media_type) {
+	    bstrncpy(mr.MediaType, store->media_type, sizeof(mr.MediaType));
+	    mr.ReadOnly = 0;
+	    db_create_mediatype_record(NULL, db, &mr);
+	 } else {
+	    mr.MediaTypeId = 0;
+	 }
+	 sr.MediaTypeId = mr.MediaTypeId;
+	 bstrncpy(sr.Name, store->name(), sizeof(sr.Name));
+	 sr.AutoChanger = store->autochanger;
+	 db_create_storage_record(NULL, db, &sr);
+      }
+
+      /* Loop over all counters, defining them in each database */
       /* Set default value in all counters */
       COUNTER *counter;
       foreach_res(counter, R_COUNTER) {

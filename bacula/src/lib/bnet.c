@@ -370,7 +370,7 @@ bool bnet_send(BSOCK * bsock)
       if (rc < 0) {
 	 if (!bsock->suppress_error_msgs && !bsock->timed_out) {
 	    Qmsg4(bsock->jcr, M_ERROR, 0,
-                  _("Write error sending to %s:%s:%d: ERR=%s\n"), bsock->who,
+                  _("Write error sending len to %s:%s:%d: ERR=%s\n"), bsock->who,
 		  bsock->host, bsock->port, bnet_strerror(bsock));
 	 }
       } else {
@@ -400,8 +400,9 @@ bool bnet_send(BSOCK * bsock)
       }
       if (rc < 0) {
 	 if (!bsock->suppress_error_msgs) {
-	    Qmsg4(bsock->jcr, M_ERROR, 0,
-                  _("Write error sending to %s:%s:%d: ERR=%s\n"), bsock->who,
+	    Qmsg5(bsock->jcr, M_ERROR, 0,
+                  _("Write error sending %d bytes to %s:%s:%d: ERR=%s\n"), 
+		  bsock->msglen, bsock->who,
 		  bsock->host, bsock->port, bnet_strerror(bsock));
 	 }
       } else {

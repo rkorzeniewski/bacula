@@ -7,7 +7,7 @@
  */
 
 /*
-   Copyright (C) 2000-2003 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -34,7 +34,7 @@
 #include "bacula.h"
 #include "cats.h"
 
-#if    HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL
+#if    HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL
 
 /* -----------------------------------------------------------------------
  *
@@ -122,9 +122,9 @@ db_create_jobmedia_record(JCR *jcr, B_DB *mdb, JOBMEDIA_DBR *jm)
    count++;
 
    Mmsg(mdb->cmd,
-	"INSERT INTO JobMedia (JobId,MediaId,FirstIndex,LastIndex,"
-	"StartFile,EndFile,StartBlock,EndBlock,VolIndex) "
-	"VALUES (%u,%u,%u,%u,%u,%u,%u,%u,%u)",
+        "INSERT INTO JobMedia (JobId,MediaId,FirstIndex,LastIndex,"
+        "StartFile,EndFile,StartBlock,EndBlock,VolIndex) "
+        "VALUES (%u,%u,%u,%u,%u,%u,%u,%u,%u)",
 	jm->JobId, jm->MediaId, jm->FirstIndex, jm->LastIndex,
 	jm->StartFile, jm->EndFile, jm->StartBlock, jm->EndBlock,count);
 
@@ -136,10 +136,10 @@ db_create_jobmedia_record(JCR *jcr, B_DB *mdb, JOBMEDIA_DBR *jm)
    } else {
       /* Worked, now update the Media record with the EndFile and EndBlock */
       Mmsg(mdb->cmd,
-	   "UPDATE Media SET EndFile=%u, EndBlock=%u WHERE MediaId=%u",
+           "UPDATE Media SET EndFile=%u, EndBlock=%u WHERE MediaId=%u",
 	   jm->EndFile, jm->EndBlock, jm->MediaId);
       if (!UPDATE_DB(jcr, mdb, mdb->cmd)) {
-	 Mmsg2(&mdb->errmsg, _("Update Media record %s failed: ERR=%s\n"), mdb->cmd,
+         Mmsg2(&mdb->errmsg, _("Update Media record %s failed: ERR=%s\n"), mdb->cmd,
 	      sql_strerror(mdb));
 	 ok = false;
       }
@@ -152,13 +152,13 @@ db_create_jobmedia_record(JCR *jcr, B_DB *mdb, JOBMEDIA_DBR *jm)
 
 
 /* Create Unique Pool record
- * Returns: 0 on failure
- *	    1 on success
+ * Returns: false on failure
+ *	    true  on success
  */
-int
+bool
 db_create_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
 {
-   int stat;
+   bool stat;	     
    char ed1[30], ed2[30], ed3[50];
 
    Dmsg0(200, "In create pool\n");
@@ -169,10 +169,10 @@ db_create_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       mdb->num_rows = sql_num_rows(mdb);
       if (mdb->num_rows > 0) {
-	 Mmsg1(&mdb->errmsg, _("pool record %s already exists\n"), pr->Name);
+         Mmsg1(&mdb->errmsg, _("pool record %s already exists\n"), pr->Name);
 	 sql_free_result(mdb);
 	 db_unlock(mdb);
-	 return 0;
+	 return false;
       }
       sql_free_result(mdb);
    }
@@ -198,15 +198,157 @@ db_create_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
       Mmsg2(&mdb->errmsg, _("Create db Pool record %s failed: ERR=%s\n"),
 	    mdb->cmd, sql_strerror(mdb));
       pr->PoolId = 0;
-      stat = 0;
+      stat = false;
    } else {
       pr->PoolId = sql_insert_id(mdb, _("Pool"));
-      stat = 1;
+      stat = true;
    }
    db_unlock(mdb);
-
    return stat;
 }
+
+/*
+ * Create Unique Device record
+ * Returns: false on failure
+ *	    true  on success
+ */
+bool
+db_create_device_record(JCR *jcr, B_DB *mdb, DEVICE_DBR *dr)
+{
+   bool stat;	     
+   char ed1[30], ed2[30];
+
+   Dmsg0(200, "In create Device\n");
+   db_lock(mdb);
+   Mmsg(mdb->cmd, "SELECT DeviceId,Name FROM Device WHERE Name='%s'", dr->Name);
+   Dmsg1(200, "selectdevice: %s\n", mdb->cmd);
+
+   if (QUERY_DB(jcr, mdb, mdb->cmd)) {
+      mdb->num_rows = sql_num_rows(mdb);
+      if (mdb->num_rows > 0) {
+         Mmsg1(&mdb->errmsg, _("Device record %s already exists\n"), dr->Name);
+	 sql_free_result(mdb);
+	 db_unlock(mdb);
+	 return false;
+      }
+      sql_free_result(mdb);
+   }
+
+   /* Must create it */
+   Mmsg(mdb->cmd,
+"INSERT INTO Device (Name,MediaTypeId,StorageId) "
+"VALUES ('%s',%s,%s)",
+		  dr->Name,
+		  edit_uint64(dr->MediaTypeId, ed1),
+		  edit_uint64(dr->StorageId, ed2));
+   Dmsg1(200, "Create Device: %s\n", mdb->cmd);
+   if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
+      Mmsg2(&mdb->errmsg, _("Create db Device record %s failed: ERR=%s\n"),
+	    mdb->cmd, sql_strerror(mdb));
+      dr->DeviceId = 0;
+      stat = false;
+   } else {
+      dr->DeviceId = sql_insert_id(mdb, _("Device"));
+      stat = true;
+   }
+   db_unlock(mdb);
+   return stat;
+}
+
+/*
+ * Create Unique storage record
+ * Returns: false on failure
+ *	    true  on success
+ */
+bool
+db_create_storage_record(JCR *jcr, B_DB *mdb, STORAGE_DBR *sr)
+{
+   bool stat;	     
+
+   Dmsg0(200, "In create storage\n");
+   db_lock(mdb);
+   Mmsg(mdb->cmd, "SELECT StorageId,Name FROM Storage WHERE Name='%s'", sr->Name);
+   Dmsg1(200, "selectstorage: %s\n", mdb->cmd);
+
+   if (QUERY_DB(jcr, mdb, mdb->cmd)) {
+      mdb->num_rows = sql_num_rows(mdb);
+      if (mdb->num_rows > 0) {
+         Mmsg1(&mdb->errmsg, _("Storage record %s already exists\n"), sr->Name);
+	 sql_free_result(mdb);
+	 db_unlock(mdb);
+	 return false;
+      }
+      sql_free_result(mdb);
+   }
+
+   /* Must create it */
+   Mmsg(mdb->cmd,
+"INSERT INTO Storage (Name,AutoChanger) "
+"VALUES ('%s',%d)",
+		  sr->Name,
+		  sr->AutoChanger);
+   Dmsg1(200, "Create storage: %s\n", mdb->cmd);
+   if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
+      Mmsg2(&mdb->errmsg, _("Create db storage record %s failed: ERR=%s\n"),
+	    mdb->cmd, sql_strerror(mdb));
+      sr->StorageId = 0;
+      stat = false;
+   } else {
+      sr->StorageId = sql_insert_id(mdb, _("Storage"));
+      stat = true;
+   }
+   db_unlock(mdb);
+   return stat;
+}
+
+
+/*
+ * Create Unique MediaType record
+ * Returns: false on failure
+ *	    true  on success
+ */
+bool
+db_create_mediatype_record(JCR *jcr, B_DB *mdb, MEDIATYPE_DBR *mr)
+{
+   bool stat;	     
+
+   Dmsg0(200, "In create mediatype\n");
+   db_lock(mdb);
+   Mmsg(mdb->cmd, "SELECT MediaTypeId,MediaType FROM MediaType WHERE MediaType='%s'", mr->MediaType);
+   Dmsg1(200, "selectmediatype: %s\n", mdb->cmd);
+
+   if (QUERY_DB(jcr, mdb, mdb->cmd)) {
+      mdb->num_rows = sql_num_rows(mdb);
+      if (mdb->num_rows > 0) {
+         Mmsg1(&mdb->errmsg, _("mediatype record %s already exists\n"), mr->MediaType);
+	 sql_free_result(mdb);
+	 db_unlock(mdb);
+	 return false;
+      }
+      sql_free_result(mdb);
+   }
+
+   /* Must create it */
+   Mmsg(mdb->cmd,
+"INSERT INTO MediaType (MediaType,ReadOnly) "
+"VALUES ('%s',%d)",
+		  mr->MediaType,
+		  mr->ReadOnly);
+   Dmsg1(200, "Create mediatype: %s\n", mdb->cmd);
+   if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
+      Mmsg2(&mdb->errmsg, _("Create db mediatype record %s failed: ERR=%s\n"),
+	    mdb->cmd, sql_strerror(mdb));
+      mr->MediaTypeId = 0;
+      stat = false;
+   } else {
+      mr->MediaTypeId = sql_insert_id(mdb, _("MediaType"));
+      stat = true;
+   }
+   db_unlock(mdb);
+   return stat;
+}
+
+
 
 
 /*
@@ -230,7 +372,7 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       mdb->num_rows = sql_num_rows(mdb);
       if (mdb->num_rows > 0) {
-	 Mmsg1(&mdb->errmsg, _("Volume \"%s\" already exists.\n"), mr->VolumeName);
+         Mmsg1(&mdb->errmsg, _("Volume \"%s\" already exists.\n"), mr->VolumeName);
 	 sql_free_result(mdb);
 	 db_unlock(mdb);
 	 return 0;
@@ -243,8 +385,8 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 "INSERT INTO Media (VolumeName,MediaType,PoolId,MaxVolBytes,VolCapacityBytes,"
 "Recycle,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,"
 "VolStatus,Slot,VolBytes,InChanger,VolReadTime,VolWriteTime,VolParts,"
-"EndFile,EndBlock) "
-"VALUES ('%s','%s',%u,%s,%s,%d,%s,%s,%u,%u,'%s',%d,%s,%d,%s,%s,%d,0,0)",
+"EndFile,EndBlock,LabelType) "
+"VALUES ('%s','%s',%u,%s,%s,%d,%s,%s,%u,%u,'%s',%d,%s,%d,%s,%s,%d,0,0,%d)",
 		  mr->VolumeName,
 		  mr->MediaType, mr->PoolId,
 		  edit_uint64(mr->MaxVolBytes,ed1),
@@ -260,7 +402,8 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 		  mr->InChanger,
 		  edit_uint64(mr->VolReadTime, ed6),
 		  edit_uint64(mr->VolWriteTime, ed7),
-		  mr->VolParts
+		  mr->VolParts,
+		  mr->LabelType
 		  );
 
 
@@ -275,9 +418,9 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       if (mr->LabelDate) {
 	 char dt[MAX_TIME_LENGTH];
 	 localtime_r(&mr->LabelDate, &tm);
-	 strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
-	 Mmsg(mdb->cmd, "UPDATE Media SET LabelDate='%s' "
-	      "WHERE MediaId=%d", dt, mr->MediaId);
+         strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
+         Mmsg(mdb->cmd, "UPDATE Media SET LabelDate='%s' "
+              "WHERE MediaId=%d", dt, mr->MediaId);
 	 stat = UPDATE_DB(jcr, mdb, mdb->cmd);
       }
    }
@@ -303,7 +446,7 @@ int db_create_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr)
 {
    SQL_ROW row;
    int stat;
-   char ed1[30], ed2[30];
+   char ed1[50], ed2[50];
 
    db_lock(mdb);
    Mmsg(mdb->cmd, "SELECT ClientId,Uname FROM Client WHERE Name='%s'", cr->Name);
@@ -313,18 +456,18 @@ int db_create_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr)
       mdb->num_rows = sql_num_rows(mdb);
       /* If more than one, report error, but return first row */
       if (mdb->num_rows > 1) {
-	 Mmsg1(&mdb->errmsg, _("More than one Client!: %d\n"), (int)(mdb->num_rows));
-	 Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
+         Mmsg1(&mdb->errmsg, _("More than one Client!: %d\n"), (int)(mdb->num_rows));
+         Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
       }
       if (mdb->num_rows >= 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
-	    Mmsg1(&mdb->errmsg, _("error fetching Client row: %s\n"), sql_strerror(mdb));
-	    Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
+            Mmsg1(&mdb->errmsg, _("error fetching Client row: %s\n"), sql_strerror(mdb));
+            Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	    sql_free_result(mdb);
 	    db_unlock(mdb);
 	    return 0;
 	 }
-	 cr->ClientId = atoi(row[0]);
+	 cr->ClientId = str_to_int64(row[0]);
 	 if (row[1]) {
 	    bstrncpy(cr->Uname, row[1], sizeof(cr->Uname));
 	 } else {
@@ -338,9 +481,9 @@ int db_create_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr)
    }
 
    /* Must create it */
-   Mmsg(mdb->cmd, "INSERT INTO Client (Name, Uname, AutoPrune, "
-"FileRetention, JobRetention) VALUES "
-"('%s', '%s', %d, %s, %s)", cr->Name, cr->Uname, cr->AutoPrune,
+   Mmsg(mdb->cmd, "INSERT INTO Client (Name,Uname,AutoPrune,"
+"FileRetention,JobRetention) VALUES "
+"('%s','%s',%d,%s,%s)", cr->Name, cr->Uname, cr->AutoPrune,
       edit_uint64(cr->FileRetention, ed1),
       edit_uint64(cr->JobRetention, ed2));
 
@@ -403,10 +546,10 @@ int db_create_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr)
  *  Returns: 0 on failure
  *	     1 on success with FileSetId in record
  */
-int db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
+bool db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
 {
    SQL_ROW row;
-   int stat;
+   bool stat;
    struct tm tm;
 
    db_lock(mdb);
@@ -418,18 +561,18 @@ int db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       mdb->num_rows = sql_num_rows(mdb);
       if (mdb->num_rows > 1) {
-	 Mmsg1(&mdb->errmsg, _("More than one FileSet!: %d\n"), (int)(mdb->num_rows));
-	 Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
+         Mmsg1(&mdb->errmsg, _("More than one FileSet!: %d\n"), (int)(mdb->num_rows));
+         Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
       }
       if (mdb->num_rows >= 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
-	    Mmsg1(&mdb->errmsg, _("error fetching FileSet row: ERR=%s\n"), sql_strerror(mdb));
-	    Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
+            Mmsg1(&mdb->errmsg, _("error fetching FileSet row: ERR=%s\n"), sql_strerror(mdb));
+            Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	    sql_free_result(mdb);
 	    db_unlock(mdb);
-	    return 0;
+	    return false;
 	 }
-	 fsr->FileSetId = atoi(row[0]);
+	 fsr->FileSetId = str_to_int64(row[0]);
 	 if (row[1] == NULL) {
 	    fsr->cCreateTime[0] = 0;
 	 } else {
@@ -437,7 +580,7 @@ int db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
 	 }
 	 sql_free_result(mdb);
 	 db_unlock(mdb);
-	 return 1;
+	 return true;
       }
       sql_free_result(mdb);
    }
@@ -457,11 +600,11 @@ int db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
 	    mdb->cmd, sql_strerror(mdb));
       Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
       fsr->FileSetId = 0;
-      stat = 0;
+      stat = false;
    } else {
       fsr->FileSetId = sql_insert_id(mdb, _("FileSet"));
       fsr->created = true;
-      stat = 1;
+      stat = true;
    }
 
    db_unlock(mdb);
@@ -558,8 +701,8 @@ static int db_create_file_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 
    /* Must create it */
    Mmsg(mdb->cmd,
-	"INSERT INTO File (FileIndex,JobId,PathId,FilenameId,"
-	"LStat,MD5) VALUES (%u,%u,%u,%u,'%s','0')",
+        "INSERT INTO File (FileIndex,JobId,PathId,FilenameId,"
+        "LStat,MD5) VALUES (%u,%u,%u,%u,'%s','0')",
 	ar->FileIndex, ar->JobId, ar->PathId, ar->FilenameId,
 	ar->attr);
 
@@ -597,21 +740,21 @@ static int db_create_path_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
       mdb->num_rows = sql_num_rows(mdb);
       if (mdb->num_rows > 1) {
 	 char ed1[30];
-	 Mmsg2(&mdb->errmsg, _("More than one Path!: %s for path: %s\n"),
+         Mmsg2(&mdb->errmsg, _("More than one Path!: %s for path: %s\n"),
 	    edit_uint64(mdb->num_rows, ed1), mdb->path);
-	 Jmsg(jcr, M_WARNING, 0, "%s", mdb->errmsg);
+         Jmsg(jcr, M_WARNING, 0, "%s", mdb->errmsg);
       }
       /* Even if there are multiple paths, take the first one */
       if (mdb->num_rows >= 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
-	    Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
-	    Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
+            Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
+            Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	    sql_free_result(mdb);
 	    ar->PathId = 0;
 	    ASSERT(ar->PathId);
 	    return 0;
 	 }
-	 ar->PathId = atoi(row[0]);
+	 ar->PathId = str_to_int64(row[0]);
 	 sql_free_result(mdb);
 	 /* Cache path */
 	 if (ar->PathId != mdb->cached_path_id) {
@@ -661,18 +804,18 @@ static int db_create_filename_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
       mdb->num_rows = sql_num_rows(mdb);
       if (mdb->num_rows > 1) {
 	 char ed1[30];
-	 Mmsg2(&mdb->errmsg, _("More than one Filename! %s for file: %s\n"),
+         Mmsg2(&mdb->errmsg, _("More than one Filename! %s for file: %s\n"),
 	    edit_uint64(mdb->num_rows, ed1), mdb->fname);
-	 Jmsg(jcr, M_WARNING, 0, "%s", mdb->errmsg);
+         Jmsg(jcr, M_WARNING, 0, "%s", mdb->errmsg);
       }
       if (mdb->num_rows >= 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
-	    Mmsg2(&mdb->errmsg, _("Error fetching row for file=%s: ERR=%s\n"),
+            Mmsg2(&mdb->errmsg, _("Error fetching row for file=%s: ERR=%s\n"),
 		mdb->fname, sql_strerror(mdb));
-	    Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
+            Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	    ar->FilenameId = 0;
 	 } else {
-	    ar->FilenameId = atoi(row[0]);
+	    ar->FilenameId = str_to_int64(row[0]);
 	 }
 	 sql_free_result(mdb);
 	 return ar->FilenameId > 0;
@@ -693,4 +836,4 @@ static int db_create_filename_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    return ar->FilenameId > 0;
 }
 
-#endif /* HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL */
+#endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL */

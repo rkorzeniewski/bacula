@@ -45,14 +45,14 @@ static char Find_media[] = "CatReq Job=%127s FindMedia=%d\n";
 static char Get_Vol_Info[] = "CatReq Job=%127s GetVolInfo VolName=%127s write=%d\n";
 
 static char Update_media[] = "CatReq Job=%127s UpdateMedia VolName=%s"
-" VolJobs=%u VolFiles=%u VolBlocks=%u VolBytes=%" lld " VolMounts=%u"
-" VolErrors=%u VolWrites=%u MaxVolBytes=%" lld " EndTime=%d VolStatus=%10s"
-" Slot=%d relabel=%d InChanger=%d VolReadTime=%" lld " VolWriteTime=%" lld
-" VolParts=%u\n";
+   " VolJobs=%u VolFiles=%u VolBlocks=%u VolBytes=%" lld " VolMounts=%u"
+   " VolErrors=%u VolWrites=%u MaxVolBytes=%" lld " EndTime=%d VolStatus=%10s"
+   " Slot=%d relabel=%d InChanger=%d VolReadTime=%" lld " VolWriteTime=%" lld
+   " VolParts=%u\n";
 
 static char Create_job_media[] = "CatReq Job=%127s CreateJobMedia "
-" FirstIndex=%u LastIndex=%u StartFile=%u EndFile=%u "
-" StartBlock=%u EndBlock=%u\n";
+   " FirstIndex=%u LastIndex=%u StartFile=%u EndFile=%u "
+   " StartBlock=%u EndBlock=%u\n";
 
 
 /* Responses  sent to Storage daemon */
@@ -60,7 +60,7 @@ static char OK_media[] = "1000 OK VolName=%s VolJobs=%u VolFiles=%u"
    " VolBlocks=%u VolBytes=%s VolMounts=%u VolErrors=%u VolWrites=%u"
    " MaxVolBytes=%s VolCapacityBytes=%s VolStatus=%s Slot=%d"
    " MaxVolJobs=%u MaxVolFiles=%u InChanger=%d VolReadTime=%s"
-   " VolWriteTime=%s EndFile=%u EndBlock=%u VolParts=%u\n";
+   " VolWriteTime=%s EndFile=%u EndBlock=%u VolParts=%u LabelType=%d\n";
 
 static char OK_create[] = "1000 OK CreateJobMedia\n";
 
@@ -83,9 +83,10 @@ static int send_volume_info_to_storage_daemon(JCR *jcr, BSOCK *sd, MEDIA_DBR *mr
       edit_uint64(mr->VolReadTime, ed4),
       edit_uint64(mr->VolWriteTime, ed5),
       mr->EndFile, mr->EndBlock,
-      mr->VolParts);
+      mr->VolParts,
+      mr->LabelType);
    unbash_spaces(mr->VolumeName);
-   Dmsg2(200, "Vol Info for %s: %s", jcr->Job, sd->msg);
+   Dmsg2(400, "Vol Info for %s: %s", jcr->Job, sd->msg);
    return stat;
 }
 
@@ -104,7 +105,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
    /*
     * Request to find next appendable Volume for this Job
     */
-   Dmsg1(200, "catreq %s", bs->msg);
+   Dmsg1(400, "catreq %s", bs->msg);
    if (sscanf(bs->msg, Find_media, &Job, &index) == 2) {
       ok = find_next_volume_for_append(jcr, &mr, true /*permit create new vol*/);
       /*
@@ -182,21 +183,22 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
     *  of a Storage daemon Job Session, when labeling/relabeling a
     *  Volume, or when an EOF mark is written.
     */
-   } else if (sscanf(bs->msg, Update_media, &Job, &sdmr.VolumeName, &sdmr.VolJobs,
-      &sdmr.VolFiles, &sdmr.VolBlocks, &sdmr.VolBytes, &sdmr.VolMounts, &sdmr.VolErrors,
-      &sdmr.VolWrites, &sdmr.MaxVolBytes, &sdmr.LastWritten, &sdmr.VolStatus,
-      &sdmr.Slot, &label, &sdmr.InChanger, &sdmr.VolReadTime,
-      &sdmr.VolWriteTime, &sdmr.VolParts) == 18) {
+   } else if (sscanf(bs->msg, Update_media, &Job, &sdmr.VolumeName,
+      &sdmr.VolJobs, &sdmr.VolFiles, &sdmr.VolBlocks, &sdmr.VolBytes,
+      &sdmr.VolMounts, &sdmr.VolErrors, &sdmr.VolWrites, &sdmr.MaxVolBytes,
+      &sdmr.LastWritten, &sdmr.VolStatus, &sdmr.Slot, &label, &sdmr.InChanger,
+      &sdmr.VolReadTime, &sdmr.VolWriteTime, &sdmr.VolParts) == 18) {
 
       db_lock(jcr->db);
-      Dmsg3(300, "Update media %s oldStat=%s newStat=%s\n", sdmr.VolumeName,
+      Dmsg3(400, "Update media %s oldStat=%s newStat=%s\n", sdmr.VolumeName,
 	 mr.VolStatus, sdmr.VolStatus);
       bstrncpy(mr.VolumeName, sdmr.VolumeName, sizeof(mr.VolumeName)); /* copy Volume name */
       unbash_spaces(mr.VolumeName);
       if (!db_get_media_record(jcr, jcr->db, &mr)) {
          Jmsg(jcr, M_ERROR, 0, _("Unable to get Media record for Volume %s: ERR=%s\n"),
 	      mr.VolumeName, db_strerror(jcr->db));
-         bnet_fsend(bs, "1991 Catalog Request failed: %s", db_strerror(jcr->db));
+         bnet_fsend(bs, "1991 Catalog Request for vol=%s failed: %s", 
+	    mr.VolumeName, db_strerror(jcr->db));
 	 db_unlock(jcr->db);
 	 return;
       }
@@ -205,7 +207,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
 	 mr.FirstWritten = jcr->start_time;   /* use Job start time as first write */
       }
       /* If we just labeled the tape set time */
-      Dmsg2(300, "label=%d labeldate=%d\n", label, mr.LabelDate);
+      Dmsg2(400, "label=%d labeldate=%d\n", label, mr.LabelDate);
       if (label || mr.LabelDate == 0) {
 	 mr.LabelDate = time(NULL);
       } else {
@@ -217,7 +219,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
 	       mr.VolFiles, sdmr.VolFiles);
 	 }
       }
-      Dmsg2(300, "Update media: BefVolJobs=%u After=%u\n", mr.VolJobs, sdmr.VolJobs);
+      Dmsg2(400, "Update media: BefVolJobs=%u After=%u\n", mr.VolJobs, sdmr.VolJobs);
       /* Copy updated values to original media record */
       mr.VolJobs      = sdmr.VolJobs;
       mr.VolFiles     = sdmr.VolFiles;
@@ -234,7 +236,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
       mr.VolParts     = sdmr.VolParts;
       bstrncpy(mr.VolStatus, sdmr.VolStatus, sizeof(mr.VolStatus));
 
-      Dmsg2(300, "db_update_media_record. Stat=%s Vol=%s\n", mr.VolStatus, mr.VolumeName);
+      Dmsg2(400, "db_update_media_record. Stat=%s Vol=%s\n", mr.VolStatus, mr.VolumeName);
       /*
        * Check if it has expired, and if not update the DB. Note, if
        *   Volume has expired, has_volume_expired() will update the DB.
@@ -247,7 +249,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
          Jmsg(jcr, M_ERROR, 0, _("Catalog error updating Media record. %s"),
 	    db_strerror(jcr->db));
          bnet_fsend(bs, "1992 Update Media error\n");
-         Dmsg0(190, "send error\n");
+         Dmsg0(400, "send error\n");
       }
       db_unlock(jcr->db);
 
@@ -260,14 +262,14 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
 
       jm.JobId = jcr->JobId;
       jm.MediaId = jcr->MediaId;
-      Dmsg6(300, "create_jobmedia JobId=%d MediaId=%d SF=%d EF=%d FI=%d LI=%d\n",
+      Dmsg6(400, "create_jobmedia JobId=%d MediaId=%d SF=%d EF=%d FI=%d LI=%d\n",
 	 jm.JobId, jm.MediaId, jm.StartFile, jm.EndFile, jm.FirstIndex, jm.LastIndex);
       if (!db_create_jobmedia_record(jcr, jcr->db, &jm)) {
          Jmsg(jcr, M_ERROR, 0, _("Catalog error creating JobMedia record. %s"),
 	    db_strerror(jcr->db));
          bnet_fsend(bs, "1991 Update JobMedia error\n");
       } else {
-         Dmsg0(300, "JobMedia record created\n");
+         Dmsg0(400, "JobMedia record created\n");
 	 bnet_fsend(bs, OK_create);
       }
 
@@ -278,8 +280,8 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
       Jmsg1(jcr, M_ERROR, 0, _("Invalid Catalog request: %s"), omsg);
       free_memory(omsg);
    }
-   Dmsg1(300, ">CatReq response: %s", bs->msg);
-   Dmsg1(200, "Leave catreq jcr 0x%x\n", jcr);
+   Dmsg1(400, ">CatReq response: %s", bs->msg);
+   Dmsg1(400, "Leave catreq jcr 0x%x\n", jcr);
    return;
 }
 
@@ -320,8 +322,8 @@ void catalog_update(JCR *jcr, BSOCK *bs, char *msg)
    unser_uint32(data_len);
    p += unser_length(p);
 
-   Dmsg1(300, "UpdCat msg=%s\n", bs->msg);
-   Dmsg5(300, "UpdCat VolSessId=%d VolSessT=%d FI=%d Strm=%d data_len=%d\n",
+   Dmsg1(400, "UpdCat msg=%s\n", bs->msg);
+   Dmsg5(400, "UpdCat VolSessId=%d VolSessT=%d FI=%d Strm=%d data_len=%d\n",
       VolSessionId, VolSessionTime, FileIndex, Stream, data_len);
 
    if (Stream == STREAM_UNIX_ATTRIBUTES || Stream == STREAM_UNIX_ATTRIBUTES_EX) {
@@ -333,8 +335,8 @@ void catalog_update(JCR *jcr, BSOCK *bs, char *msg)
       len = strlen(fname);	  /* length before attributes */
       attr = &fname[len+1];
 
-      Dmsg2(300, "dird<stored: stream=%d %s\n", Stream, fname);
-      Dmsg1(300, "dird<stored: attr=%s\n", attr);
+      Dmsg2(400, "dird<stored: stream=%d %s\n", Stream, fname);
+      Dmsg1(400, "dird<stored: attr=%s\n", attr);
       ar.attr = attr;
       ar.fname = fname;
       ar.FileIndex = FileIndex;
@@ -342,8 +344,8 @@ void catalog_update(JCR *jcr, BSOCK *bs, char *msg)
       ar.link = NULL;
       ar.JobId = jcr->JobId;
 
-      Dmsg2(300, "dird<filed: stream=%d %s\n", Stream, fname);
-      Dmsg1(120, "dird<filed: attr=%s\n", attr);
+      Dmsg2(400, "dird<filed: stream=%d %s\n", Stream, fname);
+      Dmsg1(400, "dird<filed: attr=%s\n", attr);
 
       if (!db_create_file_attributes_record(jcr, jcr->db, &ar)) {
          Jmsg1(jcr, M_FATAL, 0, _("Attribute create error. %s"), db_strerror(jcr->db));
@@ -367,7 +369,7 @@ void catalog_update(JCR *jcr, BSOCK *bs, char *msg)
 	    type = SHA1_SIG;
 	 }
 	 bin_to_base64(SIGbuf, fname, len);
-         Dmsg3(190, "SIGlen=%d SIG=%s type=%d\n", strlen(SIGbuf), SIGbuf, Stream);
+         Dmsg3(400, "SIGlen=%d SIG=%s type=%d\n", strlen(SIGbuf), SIGbuf, Stream);
 	 if (!db_add_SIG_to_file_record(jcr, jcr->db, jcr->FileId, SIGbuf, type)) {
             Jmsg(jcr, M_ERROR, 0, _("Catalog error updating MD5/SHA1. %s"),
 	       db_strerror(jcr->db));

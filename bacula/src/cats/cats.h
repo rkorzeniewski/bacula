@@ -15,7 +15,7 @@
  */
 
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -47,16 +47,6 @@ typedef int (DB_RESULT_HANDLER)(void *, int, char **);
 #ifdef __SQL_C
 
 #ifdef HAVE_SQLITE
-
-#ifdef HAVE_SQLITE3
-#define sqlite_last_insert_rowid sqlite3_last_insert_rowid
-#define sqlite_open sqlite3_open
-#define sqlite_close sqlite3_close
-#define sqlite_result sqlite3_result
-#define sqlite_exec sqlite3_exec
-#define sqlite_get_table sqlite3_get_table
-#define sqlite_free_table sqlite3_free_table
-#endif  
 
 #define BDB_VERSION 8
 
@@ -127,6 +117,125 @@ typedef struct s_db {
  * "Generic" names for easier conversion
  *
  *                    S Q L I T E
+ */
+#define sql_store_result(x)   (x)->result
+#define sql_free_result(x)    my_sqlite_free_table(x)
+#define sql_fetch_row(x)      my_sqlite_fetch_row(x)
+#define sql_query(x, y)       my_sqlite_query((x), (y))
+#ifdef HAVE_SQLITE3
+#define sql_insert_id(x,y)    sqlite3_last_insert_rowid((x)->db)
+#define sql_close(x)          sqlite3_close((x)->db)
+#else
+#define sql_insert_id(x,y)    sqlite_last_insert_rowid((x)->db)
+#define sql_close(x)          sqlite_close((x)->db)
+#endif
+#define sql_strerror(x)       (x)->sqlite_errmsg?(x)->sqlite_errmsg:"unknown"
+#define sql_num_rows(x)       (x)->nrow
+#define sql_data_seek(x, i)   (x)->row = (i)
+#define sql_affected_rows(x)  1
+#define sql_field_seek(x, y)  my_sqlite_field_seek((x), (y))
+#define sql_fetch_field(x)    my_sqlite_fetch_field(x)
+#define sql_num_fields(x)     ((x)->ncolumn)
+#define SQL_ROW               char**
+
+
+
+/* In cats/sqlite.c */
+void       my_sqlite_free_table(B_DB *mdb);
+SQL_ROW    my_sqlite_fetch_row(B_DB *mdb);
+int        my_sqlite_query(B_DB *mdb, char *cmd);
+void       my_sqlite_field_seek(B_DB *mdb, int field);
+SQL_FIELD *my_sqlite_fetch_field(B_DB *mdb);
+
+
+#else
+
+/*                    S Q L I T E 3            */
+ 
+
+#ifdef HAVE_SQLITE3
+
+
+#define BDB_VERSION 8
+
+#include <sqlite3.h>
+
+/* Define opaque structure for sqlite */
+struct sqlite3 {
+   char dummy;
+};
+
+#define IS_NUM(x)             ((x) == 1)
+#define IS_NOT_NULL(x)        ((x) == 1)
+
+typedef struct s_sql_field {
+   char *name;                        /* name of column */
+   int length;                        /* length */
+   int max_length;                    /* max length */
+   uint32_t type;                     /* type */
+   uint32_t flags;                    /* flags */
+} SQL_FIELD;
+
+/*
+ * This is the "real" definition that should only be
+ * used inside sql.c and associated database interface
+ * subroutines.
+ *                    S Q L I T E
+ */
+typedef struct s_db {
+   BQUEUE bq;                         /* queue control */
+   brwlock_t lock;                    /* transaction lock */
+   struct sqlite3 *db;
+   char **result;
+   int status;
+   int nrow;                          /* nrow returned from sqlite */
+   int ncolumn;                       /* ncolum returned from sqlite */
+   int num_rows;                      /* used by code */
+   int row;                           /* seek row */
+   int field;                         /* seek field */
+   SQL_FIELD **fields;                /* defined fields */
+   int ref_count;
+   char *db_name;
+   char *db_user;
+   char *db_address;                  /* host name address */
+   char *db_socket;                   /* socket for local access */
+   char *db_password;
+   int  db_port;                      /* port for host name address */
+   bool connected;                    /* connection made to db */
+   bool have_insert_id;               /* do not have insert id */
+   bool fields_defined;               /* set when fields defined */
+   char *sqlite_errmsg;               /* error message returned by sqlite */
+   POOLMEM *errmsg;                   /* nicely edited error message */
+   POOLMEM *cmd;                      /* SQL command string */
+   POOLMEM *cached_path;              /* cached path name */
+   int cached_path_len;               /* length of cached path */
+   uint32_t cached_path_id;           /* cached path id */
+   bool allow_transactions;           /* transactions allowed */
+   bool transaction;                  /* transaction started */
+   int changes;                       /* changes during transaction */
+   POOLMEM *fname;                    /* Filename only */
+   POOLMEM *path;                     /* Path only */
+   POOLMEM *esc_name;                 /* Escaped file/path name */
+   int fnl;                           /* file name length */
+   int pnl;                           /* path name length */
+} B_DB;
+
+/*
+ * Conversion of sqlite 2 names to sqlite3
+ */
+#define sqlite_last_insert_rowid sqlite3_last_insert_rowid
+#define sqlite_open sqlite3_open
+#define sqlite_close sqlite3_close
+#define sqlite_result sqlite3_result
+#define sqlite_exec sqlite3_exec
+#define sqlite_get_table sqlite3_get_table
+#define sqlite_free_table sqlite3_free_table
+
+
+/*
+ * "Generic" names for easier conversion
+ *
+ *                    S Q L I T E 3
  */
 #define sql_store_result(x)   (x)->result
 #define sql_free_result(x)    my_sqlite_free_table(x)
@@ -357,6 +466,7 @@ typedef struct s_db {
    uint32_t cached_path_id;
 } B_DB;
 
+#endif /* HAVE_SQLITE3 */
 #endif /* HAVE_MYSQL */
 #endif /* HAVE_SQLITE */
 #endif /* HAVE_POSTGRESQL */
@@ -454,6 +564,7 @@ struct JOBMEDIA_DBR {
 /* Volume Parameter structure */
 struct VOL_PARAMS {
    char VolumeName[MAX_NAME_LENGTH];  /* Volume name */
+   char MediaType[MAX_NAME_LENGTH];   /* Media Type */
    uint32_t VolIndex;                 /* Volume seqence no. */
    uint32_t FirstIndex;               /* First index this Volume */
    uint32_t LastIndex;                /* Last index this Volume */
@@ -491,7 +602,6 @@ struct FILE_DBR {
    DBId_t PathId;
    JobId_t  MarkId;
    char LStat[256];
-/*   int Status; */
    char SIG[50];
    int SigType;                       /* NO_SIG/MD5_SIG/SHA1_SIG */
 };
@@ -502,6 +612,7 @@ struct POOL_DBR {
    char Name[MAX_NAME_LENGTH];        /* Pool name */
    uint32_t NumVols;                  /* total number of volumes */
    uint32_t MaxVols;                  /* max allowed volumes */
+   int32_t LabelType;                 /* Bacula/ANSI/IBM */
    int32_t UseOnce;                   /* set to use once only */
    int32_t UseCatalog;                /* set to use catalog */
    int32_t AcceptAnyVolume;           /* set to accept any volume sequence */
@@ -518,6 +629,40 @@ struct POOL_DBR {
    faddr_t rec_addr;
 };
 
+class DEVICE_DBR {
+public:
+   DBId_t DeviceId;
+   char Name[MAX_NAME_LENGTH];        /* Device name */
+   DBId_t MediaTypeId;                /* MediaType */
+   DBId_t StorageId;                  /* Storage id if autochanger */
+   uint32_t DevMounts;                /* Number of times mounted */
+   uint32_t DevErrors;                /* Number of read/write errors */
+   uint64_t DevReadBytes;             /* Number of bytes read */
+   uint64_t DevWriteBytes;            /* Number of bytew written */
+   uint64_t DevReadTime;              /* time spent reading volume */
+   uint64_t DevWriteTime;             /* time spent writing volume */
+   uint64_t DevReadTimeSincCleaning;  /* read time since cleaning */
+   uint64_t DevWriteTimeSincCleaning; /* write time since cleaning */
+   time_t   CleaningDate;             /* time last cleaned */
+   utime_t  CleaningPeriod;           /* time between cleanings */
+};
+
+class STORAGE_DBR {
+public:
+   DBId_t StorageId;
+   char Name[MAX_NAME_LENGTH];        /* Device name */
+   DBId_t MediaTypeId;                /* MediaType */
+   int AutoChanger;                   /* Set if autochanger */
+};
+
+class MEDIATYPE_DBR {
+public:
+   DBId_t MediaTypeId;
+   char MediaType[MAX_NAME_LENGTH];   /* MediaType string */
+   int ReadOnly;                      /* Set if read-only */
+};
+
+
 /* Media record -- same as the database */
 struct MEDIA_DBR {
    DBId_t MediaId;                    /* Unique volume id */
@@ -527,6 +672,7 @@ struct MEDIA_DBR {
    time_t   FirstWritten;             /* Time Volume first written */
    time_t   LastWritten;              /* Time Volume last written */
    time_t   LabelDate;                /* Date/Time Volume labeled */
+   int32_t  LabelType;                /* Label (Bacula/ANSI/IBM) */
    uint32_t VolJobs;                  /* number of jobs on this medium */
    uint32_t VolFiles;                 /* Number of files */
    uint32_t VolBlocks;                /* Number of blocks */

@@ -149,7 +149,7 @@ int do_a_command(UAContext *ua, const char *cmd)
 
    stat = 1;
 
-   Dmsg1(200, "Command: %s\n", ua->UA_sock->msg);
+   Dmsg1(900, "Command: %s\n", ua->UA_sock->msg);
    if (ua->argc == 0) {
       return 1;
    }
@@ -186,6 +186,7 @@ void set_pool_dbr_defaults_in_media_dbr(MEDIA_DBR *mr, POOL_DBR *pr)
    mr->MaxVolJobs = pr->MaxVolJobs;
    mr->MaxVolFiles = pr->MaxVolFiles;
    mr->MaxVolBytes = pr->MaxVolBytes;
+   mr->LabelType = pr->LabelType;
 }
 
 
@@ -224,7 +225,7 @@ static int add_cmd(UAContext *ua, const char *cmd)
    while (pr.MaxVols > 0 && pr.NumVols >= pr.MaxVols) {
       bsendmsg(ua, _("Pool already has maximum volumes = %d\n"), pr.MaxVols);
       for (;;) {
-	 if (!get_pint(ua, _("Enter new maximum (zero for unlimited): "))) {
+         if (!get_pint(ua, _("Enter new maximum (zero for unlimited): "))) {
 	    return 1;
 	 }
 	 pr.MaxVols = ua->pint32_val;
@@ -251,7 +252,7 @@ static int add_cmd(UAContext *ua, const char *cmd)
       }
       num = ua->pint32_val;
       if (num < 0 || num > max) {
-	 bsendmsg(ua, _("The number must be between 0 and %d\n"), max);
+         bsendmsg(ua, _("The number must be between 0 and %d\n"), max);
 	 continue;
       }
       break;
@@ -281,15 +282,15 @@ getVolName:
 
    bstrncpy(name, ua->cmd, sizeof(name));
    if (num > 0) {
-      strcat(name, "%04d");
+      bstrncat(name, "%04d", sizeof(name));
 
       for (;;) {
-	 if (!get_pint(ua, _("Enter the starting number: "))) {
+         if (!get_pint(ua, _("Enter the starting number: "))) {
 	    return 1;
 	 }
 	 startnum = ua->pint32_val;
 	 if (startnum < 1) {
-	    bsendmsg(ua, _("Start number must be greater than zero.\n"));
+            bsendmsg(ua, _("Start number must be greater than zero.\n"));
 	    continue;
 	 }
 	 break;
@@ -317,7 +318,7 @@ getVolName:
       mr.InChanger = InChanger;
       Dmsg1(200, "Create Volume %s\n", mr.VolumeName);
       if (!db_create_media_record(ua->jcr, ua->db, &mr)) {
-	 bsendmsg(ua, "%s", db_strerror(ua->db));
+         bsendmsg(ua, "%s", db_strerror(ua->db));
 	 return 1;
       }
       if (i == startnum) {
@@ -381,7 +382,7 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
 	 }
 	 JobId = str_to_int64(ua->argv[i]);
 	 if (!(jcr=get_jcr_by_id(JobId))) {
-	    bsendmsg(ua, _("JobId %d is not running.\n"),  JobId);
+            bsendmsg(ua, _("JobId %d is not running.\n"),  JobId);
 	    return 1;
 	 }
 	 break;
@@ -390,7 +391,7 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
 	    break;
 	 }
 	 if (!(jcr=get_jcr_by_partial_name(ua->argv[i]))) {
-	    bsendmsg(ua, _("Job %s is not running.\n"), ua->argv[i]);
+            bsendmsg(ua, _("Job %s is not running.\n"), ua->argv[i]);
 	    return 1;
 	 }
 	 break;
@@ -400,6 +401,7 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
     *	throw up a list and ask the user to select one.
     */
    if (!jcr) {
+      char buf[1000];
       /* Count Jobs running */
       lock_jcr_chain();
       foreach_jcr(jcr) {
@@ -413,7 +415,7 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
       unlock_jcr_chain();
 
       if (njobs == 0) {
-	 bsendmsg(ua, _("No Jobs running.\n"));
+         bsendmsg(ua, _("No Jobs running.\n"));
 	 return 1;
       }
       start_prompt(ua, _("Select Job:\n"));
@@ -423,23 +425,25 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
 	    free_locked_jcr(jcr);
 	    continue;
 	 }
-	 add_prompt(ua, jcr->Job);
+         bsnprintf(buf, sizeof(buf), "JobId=%d Job=%s", jcr->JobId, jcr->Job);
+	 add_prompt(ua, buf);
 	 free_locked_jcr(jcr);
       }
       unlock_jcr_chain();
 
-      if (do_prompt(ua, _("Job"),  _("Choose Job to cancel"), JobName, sizeof(JobName)) < 0) {
+      if (do_prompt(ua, _("Job"),  _("Choose Job to cancel"), buf, sizeof(buf)) < 0) {
 	 return 1;
       }
       if (njobs == 1) {
-	 if (!get_yesno(ua, _("Confirm cancel (yes/no): ")) || ua->pint32_val == 0) {
+         if (!get_yesno(ua, _("Confirm cancel (yes/no): ")) || ua->pint32_val == 0) {
 	    return 1;
 	 }
       }
       /* NOTE! This increments the ref_count */
+      sscanf(buf, "JobId=%d Job=%127s", &njobs, JobName);
       jcr = get_jcr_by_full_name(JobName);
       if (!jcr) {
-	 bsendmsg(ua, _("Job %s not found.\n"), JobName);
+         bsendmsg(ua, _("Job %s not found.\n"), JobName);
 	 return 1;
       }
    }
@@ -459,7 +463,7 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
  */
 static void set_pooldbr_from_poolres(POOL_DBR *pr, POOL *pool, e_pool_op op)
 {
-   strcpy(pr->PoolType, pool->pool_type);
+   bstrncpy(pr->PoolType, pool->pool_type, sizeof(pr->PoolType));
    if (op == POOL_OP_CREATE) {
       pr->MaxVols = pool->max_volumes;
       pr->NumVols = 0;
@@ -471,6 +475,7 @@ static void set_pooldbr_from_poolres(POOL_DBR *pr, POOL *pool, e_pool_op op)
 	 pr->MaxVols = pr->NumVols;
       }
    }
+   pr->LabelType = pool->LabelType;
    pr->UseOnce = pool->use_volume_once;
    pr->UseCatalog = pool->use_catalog;
    pr->AcceptAnyVolume = pool->accept_any_volume;
@@ -483,9 +488,9 @@ static void set_pooldbr_from_poolres(POOL_DBR *pr, POOL *pool, e_pool_op op)
    pr->AutoPrune = pool->AutoPrune;
    pr->Recycle = pool->Recycle;
    if (pool->label_format) {
-      strcpy(pr->LabelFormat, pool->label_format);
+      bstrncpy(pr->LabelFormat, pool->label_format, sizeof(pr->LabelFormat));
    } else {
-      strcpy(pr->LabelFormat, "*");    /* none */
+      bstrncpy(pr->LabelFormat, "*", sizeof(pr->LabelFormat));    /* none */
    }
 }
 
@@ -504,7 +509,7 @@ int create_pool(JCR *jcr, B_DB *db, POOL *pool, e_pool_op op)
 
    memset(&pr, 0, sizeof(POOL_DBR));
 
-   strcpy(pr.Name, pool->hdr.name);
+   bstrncpy(pr.Name, pool->hdr.name, sizeof(pr.Name));
 
    if (db_get_pool_record(jcr, db, &pr)) {
       /* Pool Exists */
@@ -545,7 +550,7 @@ static int create_cmd(UAContext *ua, const char *cmd)
    switch (create_pool(ua->jcr, ua->db, pool, POOL_OP_CREATE)) {
    case 0:
       bsendmsg(ua, _("Error: Pool %s already exists.\n"
-	       "Use update to change it.\n"), pool->hdr.name);
+               "Use update to change it.\n"), pool->hdr.name);
       break;
 
    case -1:
@@ -571,7 +576,7 @@ static int python_cmd(UAContext *ua, const char *cmd)
    if (strcasecmp(ua->argk[1], _("restart")) == 0) {
       term_python_interpreter();
       init_python_interpreter(director->hdr.name, director->scripts_directory ?
-	 director->scripts_directory : ".");
+         director->scripts_directory : ".");
       bsendmsg(ua, _("Python interpreter restarted.\n"));
    } else {
       bsendmsg(ua, _("Nothing done.\n"));
@@ -702,9 +707,9 @@ static void update_volstatus(UAContext *ua, const char *val, MEDIA_DBR *mr)
       Mmsg(query, "UPDATE Media SET VolStatus='%s' WHERE MediaId=%u",
 	 mr->VolStatus, mr->MediaId);
       if (!db_sql_query(ua->db, query, NULL, NULL)) {
-	 bsendmsg(ua, "%s", db_strerror(ua->db));
+         bsendmsg(ua, "%s", db_strerror(ua->db));
       } else {
-	 bsendmsg(ua, _("New Volume status is: %s\n"), mr->VolStatus);
+         bsendmsg(ua, _("New Volume status is: %s\n"), mr->VolStatus);
       }
    }
    free_pool_memory(query);
@@ -817,7 +822,7 @@ static void update_volrecycle(UAContext *ua, char *val, MEDIA_DBR *mr)
       bsendmsg(ua, "%s", db_strerror(ua->db));
    } else {
       bsendmsg(ua, _("New Recycle flag is: %s\n"),
-	 mr->Recycle==1?_("yes"):_("no"));
+         mr->Recycle==1?_("yes"):_("no"));
    }
    free_pool_memory(query);
 }
@@ -846,11 +851,11 @@ static void update_vol_pool(UAContext *ua, char *val, MEDIA_DBR *mr, POOL_DBR *o
       bsendmsg(ua, _("New Pool is: %s\n"), pr.Name);
       opr->NumVols--;
       if (!db_update_pool_record(ua->jcr, ua->db, opr)) {
-	 bsendmsg(ua, "%s", db_strerror(ua->db));
+         bsendmsg(ua, "%s", db_strerror(ua->db));
       }
       pr.NumVols++;
       if (!db_update_pool_record(ua->jcr, ua->db, &pr)) {
-	 bsendmsg(ua, "%s", db_strerror(ua->db));
+         bsendmsg(ua, "%s", db_strerror(ua->db));
       }
       db_make_inchanger_unique(ua->jcr, ua->db, mr);
    }
@@ -963,7 +968,7 @@ static int update_volume(UAContext *ua)
 	    memset(&pr, 0, sizeof(POOL_DBR));
 	    pr.PoolId = mr.PoolId;
 	    if (!db_get_pool_record(ua->jcr, ua->db, &pr)) {
-	       bsendmsg(ua, "%s", db_strerror(ua->db));
+               bsendmsg(ua, "%s", db_strerror(ua->db));
 	       break;
 	    }
 	    update_vol_pool(ua, ua->argv[j], &mr, &pr);
@@ -1002,60 +1007,60 @@ static int update_volume(UAContext *ua)
       switch (do_prompt(ua, "", _("Select parameter to modify"), NULL, 0)) {
       case 0:			      /* Volume Status */
 	 /* Modify Volume Status */
-	 bsendmsg(ua, _("Current Volume status is: %s\n"), mr.VolStatus);
-	 start_prompt(ua, _("Possible Values are:\n"));
-	 add_prompt(ua, "Append");      /* Better not translate these as */
-	 add_prompt(ua, "Archive");     /* They are known in the database code */
-	 add_prompt(ua, "Disabled");
-	 add_prompt(ua, "Full");
-	 add_prompt(ua, "Used");
-	 add_prompt(ua, "Cleaning");
-	 if (strcmp(mr.VolStatus, "Purged") == 0) {
-	    add_prompt(ua, "Recycle");
+         bsendmsg(ua, _("Current Volume status is: %s\n"), mr.VolStatus);
+         start_prompt(ua, _("Possible Values are:\n"));
+         add_prompt(ua, "Append");      /* Better not translate these as */
+         add_prompt(ua, "Archive");     /* They are known in the database code */
+         add_prompt(ua, "Disabled");
+         add_prompt(ua, "Full");
+         add_prompt(ua, "Used");
+         add_prompt(ua, "Cleaning");
+         if (strcmp(mr.VolStatus, "Purged") == 0) {
+            add_prompt(ua, "Recycle");
 	 }
-	 add_prompt(ua, "Read-Only");
-	 if (do_prompt(ua, "", _("Choose new Volume Status"), ua->cmd, sizeof(mr.VolStatus)) < 0) {
+         add_prompt(ua, "Read-Only");
+         if (do_prompt(ua, "", _("Choose new Volume Status"), ua->cmd, sizeof(mr.VolStatus)) < 0) {
 	    return 1;
 	 }
 	 update_volstatus(ua, ua->cmd, &mr);
 	 break;
       case 1:			      /* Retention */
-	 bsendmsg(ua, _("Current retention period is: %s\n"),
+         bsendmsg(ua, _("Current retention period is: %s\n"),
 	    edit_utime(mr.VolRetention, ed1, sizeof(ed1)));
-	 if (!get_cmd(ua, _("Enter Volume Retention period: "))) {
+         if (!get_cmd(ua, _("Enter Volume Retention period: "))) {
 	    return 0;
 	 }
 	 update_volretention(ua, ua->cmd, &mr);
 	 break;
 
       case 2:			      /* Use Duration */
-	 bsendmsg(ua, _("Current use duration is: %s\n"),
+         bsendmsg(ua, _("Current use duration is: %s\n"),
 	    edit_utime(mr.VolUseDuration, ed1, sizeof(ed1)));
-	 if (!get_cmd(ua, _("Enter Volume Use Duration: "))) {
+         if (!get_cmd(ua, _("Enter Volume Use Duration: "))) {
 	    return 0;
 	 }
 	 update_voluseduration(ua, ua->cmd, &mr);
 	 break;
 
       case 3:			      /* Max Jobs */
-	 bsendmsg(ua, _("Current max jobs is: %u\n"), mr.MaxVolJobs);
-	 if (!get_pint(ua, _("Enter new Maximum Jobs: "))) {
+         bsendmsg(ua, _("Current max jobs is: %u\n"), mr.MaxVolJobs);
+         if (!get_pint(ua, _("Enter new Maximum Jobs: "))) {
 	    return 0;
 	 }
 	 update_volmaxjobs(ua, ua->cmd, &mr);
 	 break;
 
       case 4:			      /* Max Files */
-	 bsendmsg(ua, _("Current max files is: %u\n"), mr.MaxVolFiles);
-	 if (!get_pint(ua, _("Enter new Maximum Files: "))) {
+         bsendmsg(ua, _("Current max files is: %u\n"), mr.MaxVolFiles);
+         if (!get_pint(ua, _("Enter new Maximum Files: "))) {
 	    return 0;
 	 }
 	 update_volmaxfiles(ua, ua->cmd, &mr);
 	 break;
 
       case 5:			      /* Max Bytes */
-	 bsendmsg(ua, _("Current value is: %s\n"), edit_uint64(mr.MaxVolBytes, ed1));
-	 if (!get_cmd(ua, _("Enter new Maximum Bytes: "))) {
+         bsendmsg(ua, _("Current value is: %s\n"), edit_uint64(mr.MaxVolBytes, ed1));
+         if (!get_cmd(ua, _("Enter new Maximum Bytes: "))) {
 	    return 0;
 	 }
 	 update_volmaxbytes(ua, ua->cmd, &mr);
@@ -1063,9 +1068,9 @@ static int update_volume(UAContext *ua)
 
 
       case 6:			      /* Recycle */
-	 bsendmsg(ua, _("Current recycle flag is: %s\n"),
-	    mr.Recycle==1?_("yes"):_("no"));
-	 if (!get_yesno(ua, _("Enter new Recycle status: "))) {
+         bsendmsg(ua, _("Current recycle flag is: %s\n"),
+            mr.Recycle==1?_("yes"):_("no"));
+         if (!get_yesno(ua, _("Enter new Recycle status: "))) {
 	    return 0;
 	 }
 	 update_volrecycle(ua, ua->cmd, &mr);
@@ -1077,16 +1082,16 @@ static int update_volume(UAContext *ua)
 	 memset(&pr, 0, sizeof(POOL_DBR));
 	 pr.PoolId = mr.PoolId;
 	 if (!db_get_pool_record(ua->jcr, ua->db, &pr)) {
-	    bsendmsg(ua, "%s", db_strerror(ua->db));
+            bsendmsg(ua, "%s", db_strerror(ua->db));
 	    return 0;
 	 }
-	 bsendmsg(ua, _("Current Slot is: %d\n"), mr.Slot);
-	 if (!get_pint(ua, _("Enter new Slot: "))) {
+         bsendmsg(ua, _("Current Slot is: %d\n"), mr.Slot);
+         if (!get_pint(ua, _("Enter new Slot: "))) {
 	    return 0;
 	 }
 	 Slot = ua->pint32_val;
 	 if (pr.MaxVols > 0 && Slot > (int)pr.MaxVols) {
-	    bsendmsg(ua, _("Invalid slot, it must be between 0 and %d\n"),
+            bsendmsg(ua, _("Invalid slot, it must be between 0 and %d\n"),
 	       pr.MaxVols);
 	    break;
 	 }
@@ -1096,15 +1101,15 @@ static int update_volume(UAContext *ua)
 	  *   so that any Slot is handled correctly.
 	  */
 	 if (!db_update_media_record(ua->jcr, ua->db, &mr)) {
-	    bsendmsg(ua, _("Error updating media record Slot: ERR=%s"), db_strerror(ua->db));
+            bsendmsg(ua, _("Error updating media record Slot: ERR=%s"), db_strerror(ua->db));
 	 } else {
-	    bsendmsg(ua, _("New Slot is: %d\n"), mr.Slot);
+            bsendmsg(ua, _("New Slot is: %d\n"), mr.Slot);
 	 }
 	 break;
 
       case 8:			      /* InChanger */
-	 bsendmsg(ua, _("Current InChanger flag is: %d\n"), mr.InChanger);
-	 if (!get_yesno(ua, _("Set InChanger flag? yes/no: "))) {
+         bsendmsg(ua, _("Current InChanger flag is: %d\n"), mr.InChanger);
+         if (!get_yesno(ua, _("Set InChanger flag? yes/no: "))) {
 	    return 0;
 	 }
 	 mr.InChanger = ua->pint32_val;
@@ -1113,35 +1118,35 @@ static int update_volume(UAContext *ua)
 	  *   so that any Slot is handled correctly.
 	  */
 	 if (!db_update_media_record(ua->jcr, ua->db, &mr)) {
-	    bsendmsg(ua, _("Error updating media record Slot: ERR=%s"), db_strerror(ua->db));
+            bsendmsg(ua, _("Error updating media record Slot: ERR=%s"), db_strerror(ua->db));
 	 } else {
-	    bsendmsg(ua, _("New InChanger flag is: %d\n"), mr.InChanger);
+            bsendmsg(ua, _("New InChanger flag is: %d\n"), mr.InChanger);
 	 }
 	 break;
 
 
       case 9:			      /* Volume Files */
 	 int32_t VolFiles;
-	 bsendmsg(ua, _("Warning changing Volume Files can result\n"
-			"in loss of data on your Volume\n\n"));
-	 bsendmsg(ua, _("Current Volume Files is: %u\n"), mr.VolFiles);
-	 if (!get_pint(ua, _("Enter new number of Files for Volume: "))) {
+         bsendmsg(ua, _("Warning changing Volume Files can result\n"
+                        "in loss of data on your Volume\n\n"));
+         bsendmsg(ua, _("Current Volume Files is: %u\n"), mr.VolFiles);
+         if (!get_pint(ua, _("Enter new number of Files for Volume: "))) {
 	    return 0;
 	 }
 	 VolFiles = ua->pint32_val;
 	 if (VolFiles != (int)(mr.VolFiles + 1)) {
-	    bsendmsg(ua, _("Normally, you should only increase Volume Files by one!\n"));
-	    if (!get_yesno(ua, _("Continue? (yes/no): ")) || ua->pint32_val == 0) {
+            bsendmsg(ua, _("Normally, you should only increase Volume Files by one!\n"));
+            if (!get_yesno(ua, _("Continue? (yes/no): ")) || ua->pint32_val == 0) {
 	       break;
 	    }
 	 }
 	 query = get_pool_memory(PM_MESSAGE);
-	 Mmsg(query, "UPDATE Media SET VolFiles=%u WHERE MediaId=%u",
+         Mmsg(query, "UPDATE Media SET VolFiles=%u WHERE MediaId=%u",
 	    VolFiles, mr.MediaId);
 	 if (!db_sql_query(ua->db, query, NULL, NULL)) {
-	    bsendmsg(ua, "%s", db_strerror(ua->db));
+            bsendmsg(ua, "%s", db_strerror(ua->db));
 	 } else {
-	    bsendmsg(ua, _("New Volume Files is: %u\n"), VolFiles);
+            bsendmsg(ua, _("New Volume Files is: %u\n"), VolFiles);
 	 }
 	 free_pool_memory(query);
 	 break;
@@ -1150,11 +1155,11 @@ static int update_volume(UAContext *ua)
 	 memset(&pr, 0, sizeof(POOL_DBR));
 	 pr.PoolId = mr.PoolId;
 	 if (!db_get_pool_record(ua->jcr, ua->db, &pr)) {
-	    bsendmsg(ua, "%s", db_strerror(ua->db));
+            bsendmsg(ua, "%s", db_strerror(ua->db));
 	    return 0;
 	 }
-	 bsendmsg(ua, _("Current Pool is: %s\n"), pr.Name);
-	 if (!get_cmd(ua, _("Enter new Pool name: "))) {
+         bsendmsg(ua, _("Current Pool is: %s\n"), pr.Name);
+         if (!get_cmd(ua, _("Enter new Pool name: "))) {
 	    return 0;
 	 }
 	 update_vol_pool(ua, ua->cmd, &mr, &pr);
@@ -1167,7 +1172,7 @@ static int update_volume(UAContext *ua)
 	 update_all_vols_from_pool(ua);
 	 return 1;
       default:			      /* Done or error */
-	 bsendmsg(ua, "Selection done.\n");
+         bsendmsg(ua, "Selection done.\n");
 	 return 1;
       }
    }
@@ -1190,7 +1195,7 @@ static int update_pool(UAContext *ua)
    }
 
    memset(&pr, 0, sizeof(pr));
-   strcpy(pr.Name, pool->hdr.name);
+   bstrncpy(pr.Name, pool->hdr.name, sizeof(pr.Name));
    if (!get_pool_dbr(ua, &pr)) {
       return 0;
    }
@@ -1295,7 +1300,7 @@ static void do_all_setdebug(UAContext *ua, int level, int trace_flag)
       }
       if (!found) {
 	 unique_store[i++] = store;
-	 Dmsg2(140, "Stuffing: %s:%d\n", store->address, store->SDport);
+         Dmsg2(140, "Stuffing: %s:%d\n", store->address, store->SDport);
       }
    }
    UnlockRes();
@@ -1329,7 +1334,7 @@ static void do_all_setdebug(UAContext *ua, int level, int trace_flag)
       }
       if (!found) {
 	 unique_client[i++] = client;
-	 Dmsg2(140, "Stuffing: %s:%d\n", client->address, client->FDport);
+         Dmsg2(140, "Stuffing: %s:%d\n", client->address, client->FDport);
       }
    }
    UnlockRes();
@@ -1385,13 +1390,13 @@ static int setdebug_cmd(UAContext *ua, const char *cmd)
 	 return 1;
       }
       if (strcasecmp(ua->argk[i], _("dir")) == 0 ||
-	  strcasecmp(ua->argk[i], _("director")) == 0) {
+          strcasecmp(ua->argk[i], _("director")) == 0) {
 	 debug_level = level;
 	 set_trace(trace_flag);
 	 return 1;
       }
       if (strcasecmp(ua->argk[i], _("client")) == 0 ||
-	  strcasecmp(ua->argk[i], _("fd")) == 0) {
+          strcasecmp(ua->argk[i], _("fd")) == 0) {
 	 client = NULL;
 	 if (ua->argv[i]) {
 	    client = (CLIENT *)GetResWithName(R_CLIENT, ua->argv[i]);
@@ -1408,8 +1413,8 @@ static int setdebug_cmd(UAContext *ua, const char *cmd)
       }
 
       if (strcasecmp(ua->argk[i], _("store")) == 0 ||
-	  strcasecmp(ua->argk[i], _("storage")) == 0 ||
-	  strcasecmp(ua->argk[i], _("sd")) == 0) {
+          strcasecmp(ua->argk[i], _("storage")) == 0 ||
+          strcasecmp(ua->argk[i], _("sd")) == 0) {
 	 store = NULL;
 	 if (ua->argv[i]) {
 	    store = (STORE *)GetResWithName(R_STORAGE, ua->argv[i]);
@@ -1515,7 +1520,7 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
    jcr->JobLevel = L_FULL;
    for (int i=1; i<ua->argc; i++) {
       if (strcasecmp(ua->argk[i], _("client")) == 0 ||
-	  strcasecmp(ua->argk[i], _("fd")) == 0) {
+          strcasecmp(ua->argk[i], _("fd")) == 0) {
 	 if (ua->argv[i]) {
 	    client = (CLIENT *)GetResWithName(R_CLIENT, ua->argv[i]);
 	    continue;
@@ -1539,7 +1544,7 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
       }
       if (strcasecmp(ua->argk[i], _("level")) == 0) {
 	 if (!get_level_from_name(ua->jcr, ua->argv[i])) {
-	    bsendmsg(ua, _("Level %s not valid.\n"), ua->argv[i]);
+            bsendmsg(ua, _("Level %s not valid.\n"), ua->argv[i]);
 	 }
 	 continue;
       }
@@ -1552,7 +1557,7 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
    if (!job) {
       job = (JOB *)GetResWithName(R_JOB, ua->argk[1]);
       if (!job) {
-	 bsendmsg(ua, _("No job specified.\n"));
+         bsendmsg(ua, _("No job specified.\n"));
 	 return 1;
       }
    }
@@ -1725,26 +1730,26 @@ static void delete_job(UAContext *ua)
 	s = bstrdup(ua->argv[i]);
 	tok = s;
 	/*
-	 * We could use strtok() here.  But we're not going to, because:
+         * We could use strtok() here.  But we're not going to, because:
 	 * (a) strtok() is deprecated, having been replaced by strsep();
 	 * (b) strtok() is broken in significant ways.
-	 * we could use strsep() instead, but it's not universally available.
+         * we could use strsep() instead, but it's not universally available.
 	 * so we grow our own using strchr().
 	 */
-	sep = strchr(tok, ',');
+        sep = strchr(tok, ',');
 	while (sep != NULL) {
-	   *sep = '\0';
-	   if (strchr(tok, '-')) {
+           *sep = '\0';
+           if (strchr(tok, '-')) {
 	       delete_job_id_range(ua, tok);
 	   } else {
 	      JobId = str_to_int64(tok);
 	      do_job_delete(ua, JobId);
 	   }
 	   tok = ++sep;
-	   sep = strchr(tok, ',');
+           sep = strchr(tok, ',');
 	}
 	/* pick up the last token */
-	if (strchr(tok, '-')) {
+        if (strchr(tok, '-')) {
 	    delete_job_id_range(ua, tok);
 	} else {
 	    JobId = str_to_int64(tok);
@@ -1864,7 +1869,7 @@ static void do_mount_cmd(UAContext *ua, const char *command)
    }
 
    Dmsg2(120, "Found storage, MediaType=%s DevName=%s\n",
-      store->media_type, store->dev_name);
+      store->media_type, store->dev_name());
 
    set_storage(jcr, store);
    if (!connect_to_storage_daemon(jcr, 10, SDConnectTimeout, 1)) {
@@ -1872,7 +1877,7 @@ static void do_mount_cmd(UAContext *ua, const char *command)
       return;
    }
    sd = jcr->store_bsock;
-   bstrncpy(dev_name, store->dev_name, sizeof(dev_name));
+   bstrncpy(dev_name, store->dev_name(), sizeof(dev_name));
    bash_spaces(dev_name);
    bnet_fsend(sd, "%s %s", command, dev_name);
    while (bnet_recv(sd) >= 0) {
@@ -2013,10 +2018,10 @@ int open_db(UAContext *ua)
       ua->catalog = (CAT *)GetNextRes(R_CATALOG, NULL);
       UnlockRes();
       if (!ua->catalog) {
-	 bsendmsg(ua, _("Could not find a Catalog resource\n"));
+         bsendmsg(ua, _("Could not find a Catalog resource\n"));
 	 return 0;
       } else {
-	 bsendmsg(ua, _("Using default Catalog name=%s DB=%s\n"),
+         bsendmsg(ua, _("Using default Catalog name=%s DB=%s\n"),
 	    ua->catalog->hdr.name, ua->catalog->db_name);
       }
    }
@@ -2032,7 +2037,7 @@ int open_db(UAContext *ua)
       bsendmsg(ua, _("Could not open database \"%s\".\n"),
 		 ua->catalog->db_name);
       if (ua->db) {
-	 bsendmsg(ua, "%s", db_strerror(ua->db));
+         bsendmsg(ua, "%s", db_strerror(ua->db));
       }
       close_db(ua);
       return 0;

@@ -35,7 +35,7 @@
 #include "bacula.h"
 #include "cats.h"
 
-#ifdef HAVE_SQLITE
+#if    HAVE_SQLITE || HAVE_SQLITE3
 
 /* -----------------------------------------------------------------------
  *
@@ -70,7 +70,7 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
    if (!mult_db_connections) {
       for (mdb=NULL; (mdb=(B_DB *)qnext(&db_list, &mdb->bq)); ) {
 	 if (strcmp(mdb->db_name, db_name) == 0) {
-	    Dmsg2(300, "DB REopen %d %s\n", mdb->ref_count, db_name);
+            Dmsg2(300, "DB REopen %d %s\n", mdb->ref_count, db_name);
 	    mdb->ref_count++;
 	    V(mutex);
 	    return mdb; 		 /* already open */
@@ -139,16 +139,27 @@ db_open_database(JCR *jcr, B_DB *mdb)
       V(mutex);
       return 0;
    }
+
+#ifdef HAVE_SQLITE3
+   int stat = sqlite3_open(db_name, &mdb->db);
+   if (stat != SQLITE_OK) {
+      mdb->sqlite_errmsg = (char *)sqlite3_errmsg(mdb->db); 
+   } else {
+      mdb->sqlite_errmsg = NULL;
+   }
+
+#else
    mdb->db = sqlite_open(
 	db_name,		      /* database name */
 	644,			      /* mode */
 	&mdb->sqlite_errmsg);	      /* error message */
+#endif
 
    Dmsg0(300, "sqlite_open\n");
 
    if (mdb->db == NULL) {
       Mmsg2(&mdb->errmsg, _("Unable to open Database=%s. ERR=%s\n"),
-	 db_name, mdb->sqlite_errmsg ? mdb->sqlite_errmsg : _("unknown"));
+         db_name, mdb->sqlite_errmsg ? mdb->sqlite_errmsg : _("unknown"));
       free(db_name);
       V(mutex);
       return 0;
@@ -159,7 +170,7 @@ db_open_database(JCR *jcr, B_DB *mdb)
       return 0;
    }
 
-   mdb->connected = TRUE;
+   mdb->connected = true;
    V(mutex);
    return 1;
 }
@@ -198,6 +209,7 @@ db_close_database(JCR *jcr, B_DB *mdb)
  */
 int db_next_index(JCR *jcr, B_DB *mdb, char *table, char *index)
 {
+#ifdef xxxx
    SQL_ROW row;
 
    db_lock(mdb);
@@ -227,6 +239,8 @@ int db_next_index(JCR *jcr, B_DB *mdb, char *table, char *index)
    sql_free_result(mdb);
 
    db_unlock(mdb);
+#endif
+   strcpy(index, "NULL");
    return 1;
 }
 
@@ -248,12 +262,12 @@ db_escape_string(char *snew, char *old, int len)
    while (len--) {
       switch (*o) {
       case '\'':
-	 *n++ = '\'';
-	 *n++ = '\'';
+         *n++ = '\'';
+         *n++ = '\'';
 	 o++;
 	 break;
       case 0:
-	 *n++ = '\\';
+         *n++ = '\\';
 	 *n++ = 0;
 	 o++;
 	 break;
@@ -294,7 +308,11 @@ int db_sql_query(B_DB *mdb, const char *query, DB_RESULT_HANDLER *result_handler
 
    db_lock(mdb);
    if (mdb->sqlite_errmsg) {
+#ifdef HAVE_SQLITE3
+      sqlite3_free(mdb->sqlite_errmsg);
+#else
       actuallyfree(mdb->sqlite_errmsg);
+#endif
       mdb->sqlite_errmsg = NULL;
    }
    rh_data.result_handler = result_handler;
@@ -392,7 +410,5 @@ SQL_FIELD *my_sqlite_fetch_field(B_DB *mdb)
 {
    return mdb->fields[mdb->field++];
 }
-
-
 
 #endif /* HAVE_SQLITE */

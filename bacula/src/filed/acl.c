@@ -97,7 +97,7 @@ JCR jcr;
  *    with what we have and give all ACL streams a new number/type.
  */
 #endif
-#if !defined(HAVE_ACL) || ! defined(HAVE_LINUX_OS)
+#if !defined(HAVE_ACL) || !defined(HAVE_LINUX_OS)
 
 /* bacl_get() returns the lenght of the string, or -1 on error. */
 int bacl_get(JCR *jcr, int acltype)
@@ -181,7 +181,7 @@ int bacl_get(JCR *jcr, int acltype)
    }
    /***** Do we really want to silently ignore errors from acl_get_file
      and acl_to_text?  *****/
-   return -1;
+   return 0;
 }
 
 int bacl_set(JCR *jcr, int acltype)
@@ -418,7 +418,7 @@ int aclcp(char *src, char *dst)
    if (S_ISDIR(st.st_mode) && (BACL_CAP & BACL_CAP_DEFAULTS_DIR)) {
       jcr.last_fname = src;
       if (bacl_get(&jcr, BACL_TYPE_DEFAULT) < 0) {
-	 Dmsg1(200, "aclcp: could not read default ACLs for %s\n", jcr.last_fname);
+         Dmsg1(200, "aclcp: could not read default ACLs for %s\n", jcr.last_fname);
 	 return EXIT_FAILURE;
       } else {
 	 jcr.last_fname = dst;

@@ -104,8 +104,8 @@ JCR *setup_jcr(const char *name, char *dev_name, BSR *bsr,
    if (!bsr && VolumeName) {
       bstrncpy(dcr->VolumeName, VolumeName, sizeof(dcr->VolumeName));
    }
-   strcpy(dcr->pool_name, "Default");
-   strcpy(dcr->pool_type, "Backup");
+   bstrncpy(dcr->pool_name, "Default", sizeof(dcr->pool_name));
+   bstrncpy(dcr->pool_type, "Backup", sizeof(dcr->pool_type));
    return jcr;
 }
 
@@ -136,9 +136,9 @@ static DCR *setup_to_access_device(JCR *jcr, char *dev_name, const char *VolumeN
 	 /* Try stripping file part */
 	 p = dev_name + strlen(dev_name);
 
-	 while (p >= dev_name && *p != '/')
+         while (p >= dev_name && *p != '/')
 	    p--;
-	 if (*p == '/') {
+         if (*p == '/') {
 	    bstrncpy(VolName, p+1, sizeof(VolName));
 	    *p = 0;
 	 }
@@ -150,7 +150,6 @@ static DCR *setup_to_access_device(JCR *jcr, char *dev_name, const char *VolumeN
 	   dev_name, configfile);
       return NULL;
    }
-   jcr->device = device;
 
    dev = init_dev(NULL, device);
    if (!dev) {
@@ -172,7 +171,7 @@ static DCR *setup_to_access_device(JCR *jcr, char *dev_name, const char *VolumeN
    create_vol_list(jcr);
 
    if (mode) {			      /* read only access? */
-      if (!acquire_device_for_read(jcr)) {
+      if (!acquire_device_for_read(jcr, dev)) {
 	 return NULL;
       }
    }
@@ -235,10 +234,11 @@ static DEVRES *find_device_res(char *device_name, int read_access)
    if (!found) {
       /* Search for name of Device resource rather than archive name */
       if (device_name[0] == '"') {
-	 strcpy(device_name, device_name+1);
 	 int len = strlen(device_name);
+	 bstrncpy(device_name, device_name+1, len+1);
+	 len--;
 	 if (len > 0) {
-	    device_name[len-1] = 0;   /* zap trailing " */
+            device_name[len-1] = 0;   /* zap trailing " */
 	 }
       }
       foreach_res(device, R_DEVICE) {
@@ -255,7 +255,7 @@ static DEVRES *find_device_res(char *device_name, int read_access)
       return NULL;
    }
    Pmsg2(0, _("Using device: \"%s\" for %s.\n"), device_name,
-	     read_access?"reading":"writing");
+             read_access?"reading":"writing");
    return device;
 }
 

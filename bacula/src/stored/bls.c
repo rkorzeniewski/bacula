@@ -5,7 +5,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -65,9 +65,9 @@ static BSR *bsr = NULL;
 static void usage()
 {
    fprintf(stderr,
-"Copyright (C) 2000-2004 Kern Sibbald and John Walker.\n"
+"Copyright (C) 2000-2005 Kern Sibbald.\n"
 "\nVersion: " VERSION " (" BDATE ")\n\n"
-"Usage: bls [-d debug_level] <physical-device-name>\n"
+"Usage: bls [options] <device-name>\n"
 "       -b <file>       specify a bootstrap file\n"
 "       -c <file>       specify a config file\n"
 "       -d <level>      specify debug level\n"
@@ -254,14 +254,10 @@ static void do_close(JCR *jcr)
 /* List just block information */
 static void do_blocks(char *infname)
 {
-   if (verbose) {
-      dump_volume_label(dev);
-      rec = new_record();
-   }
    for ( ;; ) {
       if (!read_block_from_device(dcr, NO_BLOCK_NUMBER_CHECK)) {
-         Dmsg1(100, "!read_block(): ERR=%s\n", strerror_dev(dev));
-	 if (dev->state & ST_EOT) {
+         Dmsg1(100, "!read_block(): ERR=%s\n", dev->strerror());
+	 if (dev->at_eom()) {
 	    if (!mount_next_read_volume(dcr)) {
                Jmsg(jcr, M_INFO, 0, _("Got EOM at file %u on device %s, Volume \"%s\"\n"),
 		  dev->file, dev_name(dev), dcr->VolumeName);
@@ -275,8 +271,7 @@ static void do_blocks(char *infname)
 	    get_session_record(dev, record, &sessrec);
 	    free_record(record);
             Jmsg(jcr, M_INFO, 0, _("Mounted Volume \"%s\".\n"), dcr->VolumeName);
-
-	 } else if (dev->state & ST_EOF) {
+	 } else if (dev->at_eof()) {
             Jmsg(jcr, M_INFO, 0, _("Got EOF at file %u on device %s, Volume \"%s\"\n"),
 	       dev->file, dev_name(dev), dcr->VolumeName);
             Dmsg0(20, "read_record got eof. try again\n");
@@ -359,11 +354,6 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    if (rec->Stream == STREAM_UNIX_ATTRIBUTES ||
        rec->Stream == STREAM_UNIX_ATTRIBUTES_EX) {
 
-      if (verbose > 1) {
-         const char *rtype = "Attributes";
-         Pmsg5(-1, "%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
-	       rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
-      }
       if (!unpack_attributes_record(jcr, rec->Stream, rec->data, attr)) {
 	 if (!forge_on) {
             Emsg0(M_ERROR_TERM, 0, _("Cannot continue.\n"));
@@ -381,6 +371,10 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       build_attr_output_fnames(jcr, attr);
 
       if (file_is_included(&ff, attr->fname) && !file_is_excluded(&ff, attr->fname)) {
+	 if (verbose) {
+            Pmsg5(-1, "FileIndex=%d VolSessionId=%d VolSessionTime=%d Stream=%d DataLen=%d\n",
+		  rec->FileIndex, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
+	 }
 	 print_ls_output(jcr, attr);
 	 num_files++;
       }

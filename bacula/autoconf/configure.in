@@ -147,6 +147,7 @@ fi
 
 support_mysql=no
 support_sqlite=no
+support_sqlite3=no
 support_postgresql=no
 support_smartalloc=yes
 support_readline=yes
@@ -576,6 +577,12 @@ if test ! x$CDRECORD = x ; then
    CDSTL=`${CDRECORD} -scanbus 2>/dev/null | grep CD-RW | ${AWK} '{print $1}'`
    if test x${CDSTL} = x ; then
       CDSTL=`${CDRECORD} -scanbus 2>/dev/null | grep CD+RW | ${AWK} '{print $1}'`
+   fi
+   if test x${CDSTL} = x ; then
+      CDSTL=`${CDRECORD} -scanbus 2>/dev/null | grep DVD+RW | ${AWK} '{print $1}'`
+   fi
+   if test x${CDSTL} = x ; then
+      CDSTL=`${CDRECORD} -scanbus 2>/dev/null | grep DVD-RW | ${AWK} '{print $1}'`
    fi
    if test x${CDSTL} = x ; then
       CDSTL="3,0,0"
@@ -1186,6 +1193,8 @@ AC_SUBST(SBINPERM)
 BA_CHECK_POSTGRESQL_DB
 
 BA_CHECK_MYSQL_DB
+
+BA_CHECK_SQLITE3_DB
 
 BA_CHECK_SQLITE_DB
 
@@ -1959,8 +1968,8 @@ AC_OUTPUT([autoconf/Make.common \
 	   scripts/dvd-writepart \
 	   scripts/dvd-freespace \
 	   scripts/bacula-tray-monitor.desktop \
-           scripts/logwatch/Makefile \
-           scripts/logwatch/logfile.bacula.conf \
+	   scripts/logwatch/Makefile \
+	   scripts/logwatch/logfile.bacula.conf \
 	   doc/Makefile \
 	   src/Makefile \
 	   src/host.h \
@@ -2003,6 +2012,12 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/cats/grant_sqlite_privileges \
 	   src/cats/drop_sqlite_tables \
 	   src/cats/drop_sqlite_database \
+	   src/cats/create_sqlite3_database \
+	   src/cats/update_sqlite3_tables \
+	   src/cats/make_sqlite3_tables \
+	   src/cats/grant_sqlite3_privileges \
+	   src/cats/drop_sqlite3_tables \
+	   src/cats/drop_sqlite3_database \
 	   src/cats/sqlite \
 	   src/cats/mysql \
 	   src/cats/create_bdb_database \
@@ -2091,7 +2106,7 @@ if test "x${db_name}" = "xInternal" ; then
    echo " "
    echo " "
    echo "You have not specified either --enable-client-only or one of the"
-   echo "  supported databases: MySQL, PostgreSQL, or SQLite".
+   echo "  supported databases: MySQL, PostgreSQL, SQLite3 or SQLite."
    echo "  This is not permitted. Please reconfigure."
    echo " "
    echo "Aborting the configuration ..."

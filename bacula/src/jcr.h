@@ -86,6 +86,8 @@
 #define foreach_jcr(jcr) \
    for ((jcr)=NULL; ((jcr)=get_next_jcr(jcr)); )
 
+#define SD_APPEND 1
+#define SD_READ   0
 
 
 struct JCR;
@@ -141,7 +143,6 @@ struct JCR {
    /* This should be empty in the library */
 
 #ifdef DIRECTOR_DAEMON
-#define MAX_STORE 2
    /* Director Daemon specific part of JCR */
    pthread_t SD_msg_chan;             /* Message channel thread id */
    pthread_cond_t term_wait;          /* Wait for job termination */
@@ -150,7 +151,7 @@ struct JCR {
    BSOCK *ua;                         /* User agent */
    JOB *job;                          /* Job resource */
    JOB *verify_job;                   /* Job resource of verify target job */
-   alist *storage[MAX_STORE];         /* Storage possibilities */
+   alist *storage;                    /* Storage possibilities */
    STORE *store;                      /* Storage daemon selected */
    CLIENT *client;                    /* Client resource */
    POOL *pool;                        /* Pool resource */
@@ -224,7 +225,8 @@ struct JCR {
    pthread_cond_t job_start_wait;     /* Wait for FD to start Job */
    int type;
    DCR *dcr;                          /* device context record */
-   DEVRES *device;                    /* device resource to use */
+   alist *dcrs;                       /* list of dcrs open */
+// DEVRES *device;                    /* device resource to use */
    POOLMEM *job_name;                 /* base Job name (not unique) */
    POOLMEM *fileset_name;             /* FileSet */
    POOLMEM *fileset_md5;              /* MD5 for FileSet */

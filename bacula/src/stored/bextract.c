@@ -8,7 +8,7 @@
  *
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -70,7 +70,7 @@ bool forge_on = false;
 static void usage()
 {
    fprintf(stderr,
-"Copyright (C) 2000-2004 Kern Sibbald and John Walker.\n"
+"Copyright (C) 2000-2005 Kern Sibbald.\n"
 "\nVersion: " VERSION " (" BDATE ")\n\n"
 "Usage: bextract <options> <bacula-archive-device-name> <directory-to-store-files>\n"
 "       -b <file>       specify a bootstrap file\n"
@@ -122,30 +122,30 @@ int main (int argc, char *argv[])
 	 break;
 
       case 'e':                    /* exclude list */
-	 if ((fd = fopen(optarg, "r")) == NULL) {
+         if ((fd = fopen(optarg, "r")) == NULL) {
 	    berrno be;
-	    Pmsg2(0, "Could not open exclude file: %s, ERR=%s\n",
+            Pmsg2(0, "Could not open exclude file: %s, ERR=%s\n",
 	       optarg, be.strerror());
 	    exit(1);
 	 }
 	 while (fgets(line, sizeof(line), fd) != NULL) {
 	    strip_trailing_junk(line);
-	    Dmsg1(900, "add_exclude %s\n", line);
+            Dmsg1(900, "add_exclude %s\n", line);
 	    add_fname_to_exclude_list(ff, line);
 	 }
 	 fclose(fd);
 	 break;
 
       case 'i':                    /* include list */
-	 if ((fd = fopen(optarg, "r")) == NULL) {
+         if ((fd = fopen(optarg, "r")) == NULL) {
 	    berrno be;
-	    Pmsg2(0, "Could not open include file: %s, ERR=%s\n",
+            Pmsg2(0, "Could not open include file: %s, ERR=%s\n",
 	       optarg, be.strerror());
 	    exit(1);
 	 }
 	 while (fgets(line, sizeof(line), fd) != NULL) {
 	    strip_trailing_junk(line);
-	    Dmsg1(900, "add_include %s\n", line);
+            Dmsg1(900, "add_include %s\n", line);
 	    add_fname_to_include_list(ff, 0, line);
 	 }
 	 fclose(fd);
@@ -273,18 +273,18 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
        */
       if (extract) {
 	 if (!is_bopen(&bfd)) {
-	    Emsg0(M_ERROR, 0, _("Logic error output file should be open but is not.\n"));
+            Emsg0(M_ERROR, 0, _("Logic error output file should be open but is not.\n"));
 	 }
 	 set_attributes(jcr, attr, &bfd);
 	 extract = false;
       }
 
       if (!unpack_attributes_record(jcr, rec->Stream, rec->data, attr)) {
-	 Emsg0(M_ERROR_TERM, 0, _("Cannot continue.\n"));
+         Emsg0(M_ERROR_TERM, 0, _("Cannot continue.\n"));
       }
 
       if (attr->file_index != rec->FileIndex) {
-	 Emsg2(M_ERROR_TERM, 0, _("Record header file index %ld not equal record index %ld\n"),
+         Emsg2(M_ERROR_TERM, 0, _("Record header file index %ld not equal record index %ld\n"),
 	    rec->FileIndex, attr->file_index);
       }
 
@@ -293,7 +293,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 	 attr->data_stream = decode_stat(attr->attr, &attr->statp, &attr->LinkFI);
 	 if (!is_stream_supported(attr->data_stream)) {
 	    if (!non_support_data++) {
-	       Jmsg(jcr, M_ERROR, 0, _("%s stream not supported on this Client.\n"),
+               Jmsg(jcr, M_ERROR, 0, _("%s stream not supported on this Client.\n"),
 		  stream_to_ascii(attr->data_stream));
 	    }
 	    extract = false;
@@ -342,7 +342,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 	       fileAddr = faddr;
 	       if (blseek(&bfd, (off_t)fileAddr, SEEK_SET) < 0) {
 		  berrno be;
-		  Emsg2(M_ERROR_TERM, 0, _("Seek error on %s: %s\n"),
+                  Emsg2(M_ERROR_TERM, 0, _("Seek error on %s: %s\n"),
 		     attr->ofname, be.strerror());
 	       }
 	    }
@@ -351,10 +351,10 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 	    wsize = rec->data_len;
 	 }
 	 total += wsize;
-	 Dmsg2(8, "Write %u bytes, total=%u\n", wsize, total);
+         Dmsg2(8, "Write %u bytes, total=%u\n", wsize, total);
 	 if ((uint32_t)bwrite(&bfd, wbuf, wsize) != wsize) {
 	    berrno be;
-	    Emsg2(M_ERROR_TERM, 0, _("Write error on %s: %s\n"),
+            Emsg2(M_ERROR_TERM, 0, _("Write error on %s: %s\n"),
 	       attr->ofname, be.strerror());
 	 }
 	 fileAddr += wsize;
@@ -382,7 +382,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 	       fileAddr = faddr;
 	       if (blseek(&bfd, (off_t)fileAddr, SEEK_SET) < 0) {
 		  berrno be;
-		  Emsg3(M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"),
+                  Emsg3(M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"),
 		     edit_uint64(fileAddr, ec1), attr->ofname, be.strerror());
 		  extract = false;
 		  return true;
@@ -395,28 +395,28 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 	 compress_len = compress_buf_size;
 	 if ((stat=uncompress((Bytef *)compress_buf, &compress_len,
 	       (const Bytef *)wbuf, (uLong)wsize) != Z_OK)) {
-	    Emsg1(M_ERROR, 0, _("Uncompression error. ERR=%d\n"), stat);
+            Emsg1(M_ERROR, 0, _("Uncompression error. ERR=%d\n"), stat);
 	    extract = false;
 	    return true;
 	 }
 
-	 Dmsg2(100, "Write uncompressed %d bytes, total before write=%d\n", compress_len, total);
+         Dmsg2(100, "Write uncompressed %d bytes, total before write=%d\n", compress_len, total);
 	 if ((uLongf)bwrite(&bfd, compress_buf, (size_t)compress_len) != compress_len) {
 	    berrno be;
-	    Pmsg0(0, "===Write error===\n");
-	    Emsg2(M_ERROR, 0, _("Write error on %s: %s\n"),
+            Pmsg0(0, "===Write error===\n");
+            Emsg2(M_ERROR, 0, _("Write error on %s: %s\n"),
 	       attr->ofname, be.strerror());
 	    extract = false;
 	    return true;
 	 }
 	 total += compress_len;
 	 fileAddr += compress_len;
-	 Dmsg2(100, "Compress len=%d uncompressed=%d\n", rec->data_len,
+         Dmsg2(100, "Compress len=%d uncompressed=%d\n", rec->data_len,
 	    compress_len);
       }
 #else
       if (extract) {
-	 Emsg0(M_ERROR, 0, "GZIP data stream found, but GZIP not configured!\n");
+         Emsg0(M_ERROR, 0, "GZIP data stream found, but GZIP not configured!\n");
 	 extract = false;
 	 return true;
       }
@@ -430,7 +430,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    case STREAM_PROGRAM_NAMES:
    case STREAM_PROGRAM_DATA:
       if (!prog_name_msg) {
-	 Pmsg0(000, "Got Program Name or Data Stream. Ignored.\n");
+         Pmsg0(000, "Got Program Name or Data Stream. Ignored.\n");
 	 prog_name_msg++;
       }
       break;
@@ -439,7 +439,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       /* If extracting, wierd stream (not 1 or 2), close output file anyway */
       if (extract) {
 	 if (!is_bopen(&bfd)) {
-	    Emsg0(M_ERROR, 0, "Logic error output file should be open but is not.\n");
+            Emsg0(M_ERROR, 0, "Logic error output file should be open but is not.\n");
 	 }
 	 set_attributes(jcr, attr, &bfd);
 	 extract = false;

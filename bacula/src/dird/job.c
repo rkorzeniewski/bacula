@@ -134,6 +134,15 @@ JobId_t run_job(JCR *jcr)
 
    Dmsg4(100, "Created job record JobId=%d Name=%s Type=%c Level=%c\n",
        jcr->JobId, jcr->Job, jcr->jr.JobType, jcr->jr.JobLevel);
+
+   if (!get_or_create_client_record(jcr)) {
+      goto bail_out;
+   }
+
+   if (!jcr->fname) {
+      jcr->fname = get_pool_memory(PM_FNAME);
+   }
+
    Dmsg0(200, "Add jrc to work queue\n");
 
    /* Queue the job to be run */
@@ -343,7 +352,7 @@ int cancel_job(UAContext *ua, JCR *jcr)
 
       /* Cancel Storage daemon */
       if (jcr->store_bsock) {
-	 if (!ua->jcr->storage[0]) {
+	 if (!ua->jcr->storage) {
 	    copy_storage(ua->jcr, jcr);
 	 } else {
 	    set_storage(ua->jcr, jcr->store);
@@ -381,7 +390,7 @@ static void job_monitor_watchdog(watchdog_t *self)
 
    control_jcr = (JCR *)self->data;
 
-   Dmsg1(400, "job_monitor_watchdog %p called\n", self);
+   Dmsg1(800, "job_monitor_watchdog %p called\n", self);
 
    lock_jcr_chain();
 
@@ -389,7 +398,7 @@ static void job_monitor_watchdog(watchdog_t *self)
       bool cancel;
 
       if (jcr->JobId == 0) {
-         Dmsg2(400, "Skipping JCR %p (%s) with JobId 0\n",
+         Dmsg2(800, "Skipping JCR %p (%s) with JobId 0\n",
 	       jcr, jcr->Job);
 	 /* Keep reference counts correct */
 	 free_locked_jcr(jcr);
@@ -403,7 +412,7 @@ static void job_monitor_watchdog(watchdog_t *self)
       cancel |= job_check_maxruntime(control_jcr, jcr);
 
       if (cancel) {
-         Dmsg3(200, "Cancelling JCR %p jobid %d (%s)\n",
+         Dmsg3(800, "Cancelling JCR %p jobid %d (%s)\n",
 	       jcr, jcr->JobId, jcr->Job);
 
 	 UAContext *ua = new_ua_context(jcr);
@@ -411,7 +420,7 @@ static void job_monitor_watchdog(watchdog_t *self)
 	 cancel_job(ua, jcr);
 	 free_ua_context(ua);
 
-         Dmsg1(200, "Have cancelled JCR %p\n", jcr);
+         Dmsg1(800, "Have cancelled JCR %p\n", jcr);
       }
 
       /* Keep reference counts correct */
@@ -432,11 +441,11 @@ static bool job_check_maxwaittime(JCR *control_jcr, JCR *jcr)
       return false;
    }
    if ((watchdog_time - jcr->start_time) < jcr->job->MaxWaitTime) {
-      Dmsg3(200, "Job %p (%s) with MaxWaitTime %d not expired\n",
+      Dmsg3(800, "Job %p (%s) with MaxWaitTime %d not expired\n",
 	    jcr, jcr->Job, jcr->job->MaxWaitTime);
       return false;
    }
-   Dmsg3(200, "Job %d (%s): MaxWaitTime of %d seconds exceeded, "
+   Dmsg3(800, "Job %d (%s): MaxWaitTime of %d seconds exceeded, "
          "checking status\n",
 	 jcr->JobId, jcr->Job, jcr->job->MaxWaitTime);
    switch (jcr->JobStatus) {
@@ -454,16 +463,16 @@ static bool job_check_maxwaittime(JCR *control_jcr, JCR *jcr)
       Dmsg0(200, "JCR blocked in #1\n");
       break;
    case JS_Running:
-      Dmsg0(200, "JCR running, checking SD status\n");
+      Dmsg0(800, "JCR running, checking SD status\n");
       switch (jcr->SDJobStatus) {
       case JS_WaitMount:
       case JS_WaitMedia:
       case JS_WaitFD:
 	 cancel = true;
-         Dmsg0(200, "JCR blocked in #2\n");
+         Dmsg0(800, "JCR blocked in #2\n");
 	 break;
       default:
-         Dmsg0(200, "JCR not blocked in #2\n");
+         Dmsg0(800, "JCR not blocked in #2\n");
 	 break;
       }
       break;
@@ -471,13 +480,13 @@ static bool job_check_maxwaittime(JCR *control_jcr, JCR *jcr)
    case JS_ErrorTerminated:
    case JS_Canceled:
    case JS_FatalError:
-      Dmsg0(200, "JCR already dead in #3\n");
+      Dmsg0(800, "JCR already dead in #3\n");
       break;
    default:
       Jmsg1(jcr, M_ERROR, 0, _("Unhandled job status code %d\n"),
 	    jcr->JobStatus);
    }
-   Dmsg3(200, "MaxWaitTime result: %scancel JCR %p (%s)\n",
+   Dmsg3(800, "MaxWaitTime result: %scancel JCR %p (%s)\n",
          cancel ? "" : "do not ", jcr, jcr->job);
 
    return cancel;
@@ -727,10 +736,8 @@ void dird_free_jcr(JCR *jcr)
       pthread_cond_destroy(&jcr->term_wait);
    }
    /* Delete lists setup to hold storage pointers */
-   for (int i=0; i<MAX_STORE; i++) {
-      if (jcr->storage[i]) {
-	 delete jcr->storage[i];
-      }
+   if (jcr->storage) {
+      delete jcr->storage;
    }
    jcr->job_end_push.destroy();
    Dmsg0(200, "End dird free_jcr\n");
@@ -745,6 +752,7 @@ void dird_free_jcr(JCR *jcr)
  */
 void set_jcr_defaults(JCR *jcr, JOB *job)
 {
+   STORE *st;
    jcr->job = job;
    jcr->JobType = job->JobType;
    switch (jcr->JobType) {
@@ -758,20 +766,17 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    }
    jcr->JobPriority = job->Priority;
    /* Copy storage definitions -- deleted in dir_free_jcr above */
-   for (int i=0; i < MAX_STORE; i++) {
-      STORE *st;
-      if (job->storage[i]) {
-	 if (jcr->storage[i]) {
-	    delete jcr->storage[i];
-	 }
-	 jcr->storage[i] = New(alist(10, not_owned_by_alist));
-	 foreach_alist(st, job->storage[i]) {
-	    jcr->storage[i]->append(st);
-	 }
+   if (job->storage) {
+      if (jcr->storage) {
+	 delete jcr->storage;
+      }
+      jcr->storage = New(alist(10, not_owned_by_alist));
+      foreach_alist(st, job->storage) {
+	 jcr->storage->append(st);
       }
    }
-   if (jcr->storage[0]) {
-      jcr->store = (STORE *)jcr->storage[0]->first();
+   if (jcr->storage) {
+      jcr->store = (STORE *)jcr->storage->first();
    }
    jcr->client = job->client;
    if (!jcr->client_name) {
@@ -821,28 +826,34 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
  */
 void copy_storage(JCR *new_jcr, JCR *old_jcr)
 {
-   for (int i=0; i < MAX_STORE; i++) {
-      if (old_jcr->storage[i]) {
-	 STORE *st;
-	 if (old_jcr->storage[i]) {
-	    delete old_jcr->storage[i];
-	 }
-	 new_jcr->storage[i] = New(alist(10, not_owned_by_alist));
-	 foreach_alist(st, old_jcr->storage[i]) {
-	    new_jcr->storage[i]->append(st);
-	 }
+   if (old_jcr->storage) {
+      STORE *st;
+      if (old_jcr->storage) {
+	 delete old_jcr->storage;
       }
-      if (old_jcr->store) {
-	 new_jcr->store = old_jcr->store;
-      } else if (new_jcr->storage[0]) {
-	 new_jcr->store = (STORE *)new_jcr->storage[0]->first();
+      new_jcr->storage = New(alist(10, not_owned_by_alist));
+      foreach_alist(st, old_jcr->storage) {
+	 new_jcr->storage->append(st);
       }
+   }
+   if (old_jcr->store) {
+      new_jcr->store = old_jcr->store;
+   } else if (new_jcr->storage) {
+      new_jcr->store = (STORE *)new_jcr->storage->first();
    }
 }
 
 /* Set storage override */
 void set_storage(JCR *jcr, STORE *store)
 {
+   STORE *storage;
+
    jcr->store = store;
-   jcr->storage[0]->prepend(store);
+   foreach_alist(storage, jcr->storage) {
+      if (store == storage) {
+	 return;
+      }
+   }
+   /* Store not in list, so add it */
+   jcr->storage->prepend(store);
 }

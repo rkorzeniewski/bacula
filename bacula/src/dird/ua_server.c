@@ -8,7 +8,7 @@
  */
 
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -30,8 +30,6 @@
 #include "bacula.h"
 #include "dird.h"
 
-/* Imported subroutines */
-
 /* Imported variables */
 extern int r_first;
 extern int r_last;
@@ -39,17 +37,9 @@ extern struct s_res resources[];
 extern int console_msg_pending;
 extern char my_name[];
 
-/* Static variables */
-
-/* Exported variables */
-int quit_cmd_thread = 0;
-
-/* Imported functions */
 
 /* Forward referenced functions */
-
 extern "C" void *connect_thread(void *arg);
-
 static void *handle_UA_client_request(void *arg);
 
 
@@ -74,8 +64,7 @@ void start_UA_server(dlist *addrs)
 
    if ((status=pthread_create(&thid, NULL, connect_thread, (void *)myaddrs)) != 0) {
       berrno be;
-      be.set_errno(status);
-      Emsg1(M_ABORT, 0, _("Cannot create UA thread: %s\n"), be.strerror());
+      Emsg1(M_ABORT, 0, _("Cannot create UA thread: %s\n"), be.strerror(status));
    }
    started = TRUE;
    return;
@@ -86,7 +75,7 @@ void *connect_thread(void *arg)
 {
    pthread_detach(pthread_self());
 
-   /*  ****FIXME**** put # 10 (timeout) on config parameter */
+   /* Permit 10 console connections */
    bnet_thread_server((dlist*)arg, 10, &ua_workq, handle_UA_client_request);
    return NULL;
 }
@@ -127,14 +116,13 @@ static void *handle_UA_client_request(void *arg)
    int stat;
    UAContext *ua;
    JCR *jcr;
-   BSOCK *UA_sock = (BSOCK *)arg;
 
    pthread_detach(pthread_self());
 
    jcr = new_control_jcr("*Console*", JT_CONSOLE);
 
    ua = new_ua_context(jcr);
-   ua->UA_sock = UA_sock;
+   ua->UA_sock = (BSOCK *)arg;
 
    bnet_recv(ua->UA_sock);	    /* Get first message */
    if (!authenticate_user_agent(ua)) {
@@ -146,18 +134,18 @@ static void *handle_UA_client_request(void *arg)
       if (stat >= 0) {
 	 pm_strcpy(ua->cmd, ua->UA_sock->msg);
 	 parse_ua_args(ua);
-	 if (ua->argc > 0 && ua->argk[0][0] == '.') {
+         if (ua->argc > 0 && ua->argk[0][0] == '.') {
 	    do_a_dot_command(ua, ua->cmd);
 	 } else {
 	    do_a_command(ua, ua->cmd);
 	 }
 	 if (!ua->quit) {
 	    if (ua->auto_display_messages) {
-	       strcpy(ua->cmd, "messages");
+               pm_strcpy(ua->cmd, "messages");
 	       qmessagescmd(ua, ua->cmd);
 	       ua->user_notified_msg_pending = FALSE;
 	    } else if (!ua->user_notified_msg_pending && console_msg_pending) {
-	       bsendmsg(ua, _("You have messages.\n"));
+               bsendmsg(ua, _("You have messages.\n"));
 	       ua->user_notified_msg_pending = TRUE;
 	    }
 	    bnet_sig(ua->UA_sock, BNET_EOD); /* send end of command */
@@ -213,6 +201,7 @@ void free_ua_context(UAContext *ua)
 
    if (ua->UA_sock) {
       bnet_close(ua->UA_sock);
+      ua->UA_sock = NULL;
    }
    free(ua);
 }
@@ -226,5 +215,4 @@ void term_ua_server()
    if (!started) {
       return;
    }
-   quit_cmd_thread = TRUE;
 }

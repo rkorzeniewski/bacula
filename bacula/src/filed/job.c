@@ -533,8 +533,8 @@ static void add_fname_to_list(JCR *jcr, char *fname, int list)
       /* Copy File options */
       if (list == INC_LIST) {
 	 *q = 0;		      /* terminate options */
-	 strcpy(buf, fname);
-         strcat(buf, " ");
+	 bstrncpy(buf, fname, sizeof(buf));
+         bstrncat(buf, " ", sizeof(buf));
 	 optlen = strlen(buf);
       } else {
 	 optlen = 0;
@@ -564,8 +564,8 @@ static void add_fname_to_list(JCR *jcr, char *fname, int list)
       /* Copy File options */
       if (list == INC_LIST) {
 	 *q = 0;		      /* terminate options */
-	 strcpy(buf, fname);
-         strcat(buf, " ");
+	 bstrncpy(buf, fname, sizeof(buf));
+         bstrncat(buf, " ", sizeof(buf));
 	 optlen = strlen(buf);
       } else {
 	 optlen = 0;

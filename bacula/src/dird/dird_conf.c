@@ -63,8 +63,10 @@ extern void store_inc(LEX *lc, RES_ITEM *item, int index, int pass);
 
 void store_jobtype(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_level(LEX *lc, RES_ITEM *item, int index, int pass);
+void store_label(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_replace(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_acl(LEX *lc, RES_ITEM *item, int index, int pass);
+static void store_device(LEX *lc, RES_ITEM *item, int index, int pass);
 
 
 /* We build the current resource here as we are
@@ -164,8 +166,7 @@ static RES_ITEM store_items[] = {
    {"sdaddress",   store_str,      ITEM(res_store.address),    0, 0, 0},
    {"password",    store_password, ITEM(res_store.password),   0, ITEM_REQUIRED, 0},
    {"sdpassword",  store_password, ITEM(res_store.password),   0, 0, 0},
-   {"device",      store_strname,  ITEM(res_store.dev_name),   0, ITEM_REQUIRED, 0},
-   {"sddevicename", store_strname, ITEM(res_store.dev_name),   0, 0, 0},
+   {"device",      store_device,   ITEM(res_store.device),     R_DEVICE, ITEM_REQUIRED, 0},
    {"mediatype",   store_strname,  ITEM(res_store.media_type), 0, ITEM_REQUIRED, 0},
    {"autochanger", store_yesno,    ITEM(res_store.autochanger), 1, ITEM_DEFAULT, 0},
    {"enablessl",   store_yesno,    ITEM(res_store.enable_ssl),  1, ITEM_DEFAULT, 0},
@@ -206,7 +207,7 @@ RES_ITEM job_items[] = {
    {"type",      store_jobtype, ITEM(res_job.JobType),  0, ITEM_REQUIRED, 0},
    {"level",     store_level,   ITEM(res_job.JobLevel),    0, 0, 0},
    {"messages",  store_res,     ITEM(res_job.messages), R_MSGS, ITEM_REQUIRED, 0},
-   {"storage",   store_alist_res, ITEM(res_job.storage),  R_STORAGE, ITEM_REQUIRED, MAX_STORE},
+   {"storage",   store_alist_res, ITEM(res_job.storage),  R_STORAGE, ITEM_REQUIRED, 0},
    {"pool",      store_res,     ITEM(res_job.pool),     R_POOL, ITEM_REQUIRED, 0},
    {"fullbackuppool",  store_res, ITEM(res_job.full_pool),   R_POOL, 0, 0},
    {"incrementalbackuppool",  store_res, ITEM(res_job.inc_pool), R_POOL, 0, 0},
@@ -279,22 +280,23 @@ static RES_ITEM pool_items[] = {
    {"description",     store_str,     ITEM(res_pool.hdr.desc),      0, 0,     0},
    {"pooltype",        store_strname, ITEM(res_pool.pool_type),     0, ITEM_REQUIRED, 0},
    {"labelformat",     store_strname, ITEM(res_pool.label_format),  0, 0,     0},
-   {"cleaningprefix",  store_strname, ITEM(res_pool.cleaning_prefix),  0, 0,     0},
-   {"usecatalog",      store_yesno, ITEM(res_pool.use_catalog),     1, ITEM_DEFAULT,  1},
-   {"usevolumeonce",   store_yesno, ITEM(res_pool.use_volume_once), 1, 0,        0},
+   {"labeltype",       store_label,   ITEM(res_pool.LabelType),     0, 0,     0},     
+   {"cleaningprefix",  store_strname, ITEM(res_pool.cleaning_prefix), 0, 0,     0},
+   {"usecatalog",      store_yesno,   ITEM(res_pool.use_catalog),    1, ITEM_DEFAULT,  1},
+   {"usevolumeonce",   store_yesno,   ITEM(res_pool.use_volume_once),1, 0,        0},
    {"purgeoldestvolume", store_yesno, ITEM(res_pool.purge_oldest_volume), 1, 0, 0},
-   {"recycleoldestvolume", store_yesno, ITEM(res_pool.recycle_oldest_volume), 1, 0, 0},
+   {"recycleoldestvolume", store_yesno,  ITEM(res_pool.recycle_oldest_volume), 1, 0, 0},
    {"recyclecurrentvolume", store_yesno, ITEM(res_pool.recycle_current_volume), 1, 0, 0},
-   {"maximumvolumes",  store_pint,  ITEM(res_pool.max_volumes),     0, 0,        0},
+   {"maximumvolumes",  store_pint,    ITEM(res_pool.max_volumes),   0, 0,        0},
    {"maximumvolumejobs", store_pint,  ITEM(res_pool.MaxVolJobs),    0, 0,       0},
    {"maximumvolumefiles", store_pint, ITEM(res_pool.MaxVolFiles),   0, 0,       0},
    {"maximumvolumebytes", store_size, ITEM(res_pool.MaxVolBytes),   0, 0,       0},
-   {"acceptanyvolume", store_yesno, ITEM(res_pool.accept_any_volume), 1, ITEM_DEFAULT,     1},
-   {"catalogfiles",    store_yesno, ITEM(res_pool.catalog_files),   1, ITEM_DEFAULT,  1},
-   {"volumeretention", store_time,  ITEM(res_pool.VolRetention),    0, ITEM_DEFAULT, 60*60*24*365},
-   {"volumeuseduration", store_time,  ITEM(res_pool.VolUseDuration),0, 0, 0},
-   {"autoprune",       store_yesno, ITEM(res_pool.AutoPrune), 1, ITEM_DEFAULT, 1},
-   {"recycle",         store_yesno, ITEM(res_pool.Recycle),     1, ITEM_DEFAULT, 1},
+   {"acceptanyvolume", store_yesno,   ITEM(res_pool.accept_any_volume), 1, ITEM_DEFAULT,     1},
+   {"catalogfiles",    store_yesno,   ITEM(res_pool.catalog_files),  1, ITEM_DEFAULT,  1},
+   {"volumeretention", store_time,    ITEM(res_pool.VolRetention),   0, ITEM_DEFAULT, 60*60*24*365},
+   {"volumeuseduration", store_time,  ITEM(res_pool.VolUseDuration), 0, 0, 0},
+   {"autoprune",       store_yesno,   ITEM(res_pool.AutoPrune), 1, ITEM_DEFAULT, 1},
+   {"recycle",         store_yesno,   ITEM(res_pool.Recycle),     1, ITEM_DEFAULT, 1},
    {NULL, NULL, NULL, 0, 0, 0}
 };
 
@@ -338,6 +340,7 @@ RES_TABLE resources[] = {
    {"counter",       counter_items, R_COUNTER},
    {"console",       con_items,   R_CONSOLE},
    {"jobdefs",       job_items,   R_JOBDEFS},
+   {"device",        NULL,        R_DEVICE},  /* info obtained from SD */
    {NULL,	     NULL,	  0}
 };
 
@@ -373,6 +376,19 @@ struct s_jt jobtypes[] = {
    {"restore",       JT_RESTORE},
    {NULL,	     0}
 };
+
+/* 
+ * Tape Label types permitted in Pool records 
+ *
+ *   tape label      label code = token
+ */
+struct s_kw tapelabels[] = {
+   {"bacula",        B_BACULA_LABEL},
+   {"ansi",          B_ANSI_LABEL},
+   {"ibm",           B_IBM_LABEL},
+   {NULL,	     0}
+};
+
 
 #ifdef old_deprecated_code
 
@@ -427,6 +443,7 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
    URES *res = (URES *)reshdr;
    bool recurse = true;
    char ed1[100], ed2[100];
+   DEVICE *dev;
 
    if (res == NULL) {
       sendit(sock, "No %s resource defined\n", res_to_str(type));
@@ -484,12 +501,22 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
 	 dump_resource(-R_CATALOG, (RES *)res->res_client.catalog, sendit, sock);
       }
       break;
+   case R_DEVICE:
+      dev = &res->res_dev;
+      sendit(sock, "Device: name=%s ok=%d num_writers=%d num_waiting=%d\n"
+"      use_cnt=%d open=%d append=%d read=%d labeled=%d\n"
+"      volname=%s MediaType=%s\n",
+	 dev->hdr.name, dev->found, dev->num_writers, dev->num_waiting,
+	 dev->use_count, dev->open, dev->append, dev->read, dev->labeled,
+	 dev->VolumeName, dev->MediaType);
+      break;
    case R_STORAGE:
       sendit(sock, "Storage: name=%s address=%s SDport=%d MaxJobs=%u\n"
 "      DeviceName=%s MediaType=%s\n",
 	 res->res_store.hdr.name, res->res_store.address, res->res_store.SDport,
 	 res->res_store.MaxConcurrentJobs,
-	 res->res_store.dev_name, res->res_store.media_type);
+	 res->res_store.dev_name(),
+	 res->res_store.media_type);
       break;
    case R_CATALOG:
       sendit(sock, "Catalog: name=%s address=%s DBport=%d db_name=%s\n"
@@ -539,10 +566,12 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       if (res->res_job.WriteBootstrap) {
          sendit(sock, "  --> WriteBootstrap=%s\n", NPRT(res->res_job.WriteBootstrap));
       }
-      if (res->res_job.storage[0]) {
-         sendit(sock, "  --> ");
-	 /* ***FIXME*** */
-//	   dump_resource(-R_STORAGE, (RES *)res->res_job.storage, sendit, sock);
+      if (res->res_job.storage) {
+	 STORE *store;
+	 foreach_alist(store, res->res_job.storage) {
+            sendit(sock, "  --> ");
+	    dump_resource(-R_STORAGE, (RES *)store, sendit, sock);
+	 }
       }
       if (res->res_job.pool) {
          sendit(sock, "  --> ");
@@ -832,6 +861,7 @@ void free_resource(RES *sres, int type)
 	 free_addresses(res->res_dir.DIRaddrs);
       }
       break;
+   case R_DEVICE:
    case R_COUNTER:
        break;
    case R_CONSOLE:
@@ -863,8 +893,8 @@ void free_resource(RES *sres, int type)
       if (res->res_store.media_type) {
 	 free(res->res_store.media_type);
       }
-      if (res->res_store.dev_name) {
-	 free(res->res_store.dev_name);
+      if (res->res_store.device) {
+	 delete res->res_store.device;
       }
       break;
    case R_CATALOG:
@@ -948,10 +978,8 @@ void free_resource(RES *sres, int type)
       if (res->res_job.ClientRunAfterJob) {
 	 free(res->res_job.ClientRunAfterJob);
       }
-      for (int i=0; i < MAX_STORE; i++) {
-	 if (res->res_job.storage[i]) {
-	    delete (alist *)res->res_job.storage[i];
-	 }
+      if (res->res_job.storage) {
+	 delete res->res_job.storage;
       }
       break;
    case R_MSGS:
@@ -987,7 +1015,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
    URES *res;
    int rindex = type - r_first;
    int i, size;
-   int error = 0;
+   bool error = false;
 
    /* Check Job requirements after applying JobDefs */
    if (type != R_JOB && type != R_JOBDEFS) {
@@ -1019,18 +1047,26 @@ void save_resource(int type, RES_ITEM *items, int pass)
       /* Resources not containing a resource */
       case R_CONSOLE:
       case R_CATALOG:
-      case R_STORAGE:
       case R_POOL:
       case R_MSGS:
       case R_FILESET:
+      case R_DEVICE:
 	 break;
 
-      /* Resources containing another resource */
+      /* Resources containing another resource or alist */
       case R_DIRECTOR:
 	 if ((res = (URES *)GetResWithName(R_DIRECTOR, res_all.res_dir.hdr.name)) == NULL) {
             Emsg1(M_ERROR_TERM, 0, "Cannot find Director resource %s\n", res_all.res_dir.hdr.name);
 	 }
 	 res->res_dir.messages = res_all.res_dir.messages;
+	 break;
+      case R_STORAGE:
+	 if ((res = (URES *)GetResWithName(type, res_all.res_store.hdr.name)) == NULL) {
+            Emsg1(M_ERROR_TERM, 0, "Cannot find Storage resource %s\n",
+		  res_all.res_dir.hdr.name);
+	 }
+	 /* we must explicitly copy the device alist pointer */
+	 res->res_store.device	 = res_all.res_store.device;
 	 break;
       case R_JOB:
       case R_JOBDEFS:
@@ -1042,9 +1078,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
 	 res->res_job.schedule	 = res_all.res_job.schedule;
 	 res->res_job.client	 = res_all.res_job.client;
 	 res->res_job.fileset	 = res_all.res_job.fileset;
-	 for (int i=0; i < MAX_STORE; i++) {
-	    res->res_job.storage[i] = res_all.res_job.storage[i];
-	 }
+	 res->res_job.storage	 = res_all.res_job.storage;
 	 res->res_job.pool	 = res_all.res_job.pool;
 	 res->res_job.full_pool  = res_all.res_job.full_pool;
 	 res->res_job.inc_pool	 = res_all.res_job.inc_pool;
@@ -1080,7 +1114,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
 	 break;
       default:
          Emsg1(M_ERROR, 0, "Unknown resource type %d in save_resource.\n", type);
-	 error = 1;
+	 error = true;
 	 break;
       }
       /* Note, the resource name was already saved during pass 1,
@@ -1135,10 +1169,12 @@ void save_resource(int type, RES_ITEM *items, int pass)
    case R_COUNTER:
       size = sizeof(COUNTER);
       break;
+   case R_DEVICE:
+      error = true;
+      break;
    default:
       printf("Unknown resource type %d in save_resrouce.\n", type);
-      error = 1;
-      size = 1;
+      error = true; 
       break;
    }
    /* Common */
@@ -1165,6 +1201,55 @@ void save_resource(int type, RES_ITEM *items, int pass)
       }
    }
 }
+
+/*
+ * Store Device. Note, the resource is created upon the
+ *  first reference. The details of the resource are obtained
+ *  later from the SD.
+ */
+static void store_device(LEX *lc, RES_ITEM *item, int index, int pass)
+{
+   int token;
+   URES *res;
+   int rindex = R_DEVICE - r_first;
+   int size = sizeof(DEVICE);
+   bool found = false;
+
+   if (pass == 1) {
+      token = lex_get_token(lc, T_NAME);
+      if (!res_head[rindex]) {
+	 res = (URES *)malloc(size);
+	 memset(res, 0, size);
+	 res->res_dev.hdr.name = bstrdup(lc->str);
+	 res_head[rindex] = (RES *)res; /* store first entry */
+         Dmsg3(900, "Inserting first %s res: %s index=%d\n", res_to_str(R_DEVICE),
+	       res->res_dir.hdr.name, rindex);
+      } else {
+	 RES *next;
+	 /* See if it is already defined */
+	 for (next=res_head[rindex]; next->next; next=next->next) {
+	    if (strcmp(next->name, lc->str) == 0) {
+	       found = true;
+	       break;
+	    }
+	 }
+	 if (!found) {
+	    res = (URES *)malloc(size);
+	    memset(res, 0, size);
+	    res->res_dev.hdr.name = bstrdup(lc->str);
+	    next->next = (RES *)res;
+            Dmsg4(900, "Inserting %s res: %s index=%d pass=%d\n", res_to_str(R_DEVICE),
+	       res->res_dir.hdr.name, rindex, pass);
+	 }
+      }
+
+      scan_to_eol(lc);
+      set_bit(index, res_all.hdr.item_present);
+   } else {
+      store_alist_res(lc, item, index, pass);
+   }
+}
+
 
 /*
  * Store JobType (backup, verify, restore)
@@ -1213,6 +1298,33 @@ void store_level(LEX *lc, RES_ITEM *item, int index, int pass)
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
 }
+
+
+/*
+ * Store Tape Label Type (Bacula, ANSI, IBM)
+ *
+ */
+void store_label(LEX *lc, RES_ITEM *item, int index, int pass)
+{
+   int token, i;
+
+   token = lex_get_token(lc, T_NAME);
+   /* Store the label pass 2 so that type is defined */
+   for (i=0; tapelabels[i].name; i++) {
+      if (strcasecmp(lc->str, tapelabels[i].name) == 0) {
+	 *(int *)(item->value) = tapelabels[i].token;
+	 i = 0;
+	 break;
+      }
+   }
+   if (i != 0) {
+      scan_err1(lc, "Expected a Tape Label keyword, got: %s", lc->str);
+   }
+   scan_to_eol(lc);
+   set_bit(index, res_all.hdr.item_present);
+}
+
+
 
 void store_replace(LEX *lc, RES_ITEM *item, int index, int pass)
 {

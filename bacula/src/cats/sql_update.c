@@ -7,7 +7,7 @@
  */
 
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -34,7 +34,7 @@
 #include "bacula.h"
 #include "cats.h"
 
-#if    HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL
+#if    HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL
 
 /* -----------------------------------------------------------------------
  *
@@ -120,7 +120,7 @@ db_update_job_start_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
  *
  */
 void edit_num_or_null(char *s, size_t n, uint32_t id) {
-	bsnprintf(s, n, id ? "%u" : "NULL", id);
+        bsnprintf(s, n, id ? "%u" : "NULL", id);
 }
 
 
@@ -261,7 +261,7 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    time_t ttime;
    struct tm tm;
    int stat;
-   char ed1[30], ed2[30], ed3[30], ed4[30], ed5[30];
+   char ed1[30], ed2[30], ed3[30], ed4[30];
 
 
    Dmsg1(100, "update_media: FirstWritten=%d\n", mr->FirstWritten);
@@ -286,7 +286,7 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       localtime_r(&ttime, &tm);
       strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
       Mmsg(mdb->cmd, "UPDATE Media SET LabelDate='%s' "
-	   "WHERE VolumeName='%s'", dt, mr->VolumeName);
+           "WHERE VolumeName='%s'", dt, mr->VolumeName);
       stat = UPDATE_DB(jcr, mdb, mdb->cmd);
    }
 
@@ -296,31 +296,35 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
 
       Mmsg(mdb->cmd, "UPDATE Media SET VolJobs=%u,"
-	   "VolFiles=%u,VolBlocks=%u,VolBytes=%s,VolMounts=%u,VolErrors=%u,"
-	   "VolWrites=%u,MaxVolBytes=%s,LastWritten='%s',VolStatus='%s',"
-	   "Slot=%d,InChanger=%d,VolReadTime=%s,VolWriteTime=%s,VolParts=%s "
-	   " WHERE VolumeName='%s'",
+           "VolFiles=%u,VolBlocks=%u,VolBytes=%s,VolMounts=%u,VolErrors=%u,"
+           "VolWrites=%u,MaxVolBytes=%s,LastWritten='%s',VolStatus='%s',"
+           "Slot=%d,InChanger=%d,VolReadTime=%s,VolWriteTime=%s,VolParts=%d,"
+           "LabelType=%d"
+           " WHERE VolumeName='%s'",
 	   mr->VolJobs, mr->VolFiles, mr->VolBlocks, edit_uint64(mr->VolBytes, ed1),
 	   mr->VolMounts, mr->VolErrors, mr->VolWrites,
 	   edit_uint64(mr->MaxVolBytes, ed2), dt,
 	   mr->VolStatus, mr->Slot, mr->InChanger,
 	   edit_uint64(mr->VolReadTime, ed3),
 	   edit_uint64(mr->VolWriteTime, ed4),
-           edit_uint64(mr->VolParts, ed5),
+	   mr->VolParts,
+	   mr->LabelType,
 	   mr->VolumeName);
    } else {
       Mmsg(mdb->cmd, "UPDATE Media SET VolJobs=%u,"
-	   "VolFiles=%u,VolBlocks=%u,VolBytes=%s,VolMounts=%u,VolErrors=%u,"
-	   "VolWrites=%u,MaxVolBytes=%s,VolStatus='%s',"
-                 "Slot=%d,InChanger=%d,VolReadTime=%s,VolWriteTime=%s,VolParts=%s "
-	   " WHERE VolumeName='%s'",
+           "VolFiles=%u,VolBlocks=%u,VolBytes=%s,VolMounts=%u,VolErrors=%u,"
+           "VolWrites=%u,MaxVolBytes=%s,VolStatus='%s',"
+           "Slot=%d,InChanger=%d,VolReadTime=%s,VolWriteTime=%s,VolParts=%d,"
+           "LabelType=%d"
+           " WHERE VolumeName='%s'",
 	   mr->VolJobs, mr->VolFiles, mr->VolBlocks, edit_uint64(mr->VolBytes, ed1),
 	   mr->VolMounts, mr->VolErrors, mr->VolWrites,
 	   edit_uint64(mr->MaxVolBytes, ed2),
 	   mr->VolStatus, mr->Slot, mr->InChanger,
 	   edit_uint64(mr->VolReadTime, ed3),
 	   edit_uint64(mr->VolWriteTime, ed4),
-           edit_uint64(mr->VolParts, ed5),
+	   mr->VolParts,
+	   mr->LabelType,
 	   mr->VolumeName);
    }
 
@@ -351,9 +355,9 @@ db_update_media_defaults(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    db_lock(mdb);
    if (mr->VolumeName[0]) {
       Mmsg(mdb->cmd, "UPDATE Media SET "
-	   "Recycle=%d,VolRetention=%s,VolUseDuration=%s,"
-	   "MaxVolJobs=%u,MaxVolFiles=%u,MaxVolBytes=%s"
-	   " WHERE VolumeName='%s'",
+           "Recycle=%d,VolRetention=%s,VolUseDuration=%s,"
+           "MaxVolJobs=%u,MaxVolFiles=%u,MaxVolBytes=%s"
+           " WHERE VolumeName='%s'",
 	   mr->Recycle,edit_uint64(mr->VolRetention, ed1),
 	   edit_uint64(mr->VolUseDuration, ed2),
 	   mr->MaxVolJobs, mr->MaxVolFiles,
@@ -361,9 +365,9 @@ db_update_media_defaults(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 	   mr->VolumeName);
    } else {
       Mmsg(mdb->cmd, "UPDATE Media SET "
-	   "Recycle=%d,VolRetention=%s,VolUseDuration=%s,"
-	   "MaxVolJobs=%u,MaxVolFiles=%u,MaxVolBytes=%s"
-	   " WHERE PoolId=%u",
+           "Recycle=%d,VolRetention=%s,VolUseDuration=%s,"
+           "MaxVolJobs=%u,MaxVolFiles=%u,MaxVolBytes=%s"
+           " WHERE PoolId=%u",
 	   mr->Recycle,edit_uint64(mr->VolRetention, ed1),
 	   edit_uint64(mr->VolUseDuration, ed2),
 	   mr->MaxVolJobs, mr->MaxVolFiles,
@@ -391,7 +395,7 @@ db_make_inchanger_unique(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 {
    if (mr->InChanger != 0 && mr->Slot != 0) {
       Mmsg(mdb->cmd, "UPDATE Media SET InChanger=0 WHERE "
-	   "Slot=%d AND PoolId=%u AND MediaId!=%u",
+           "Slot=%d AND PoolId=%u AND MediaId!=%u",
 	    mr->Slot, mr->PoolId, mr->MediaId);
       Dmsg1(400, "%s\n", mdb->cmd);
       UPDATE_DB(jcr, mdb, mdb->cmd);
@@ -407,4 +411,4 @@ db_make_inchanger_unique(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
   return;
 }
 
-#endif /* HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL*/
+#endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL*/

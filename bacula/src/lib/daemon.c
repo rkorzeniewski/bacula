@@ -53,7 +53,7 @@ daemon_start()
     *  Become a daemon.
     */
 
-   Dmsg0(200, "Enter daemon_start\n");
+   Dmsg0(900, "Enter daemon_start\n");
    if ( (cpid = fork() ) < 0)
       Emsg1(M_ABORT, 0, "Cannot fork to become daemon: %s\n", strerror(errno));
    else if (cpid > 0)
@@ -106,5 +106,5 @@ daemon_start()
    }
 
 #endif /* HAVE_CYGWIN */
-   Dmsg0(200, "Exit daemon_start\n");
+   Dmsg0(900, "Exit daemon_start\n");
 }

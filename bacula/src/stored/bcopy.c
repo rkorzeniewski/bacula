@@ -169,7 +169,7 @@ int main (int argc, char *argv[])
       exit(1);
    }
    unlock_device(out_dev);
-   if (!acquire_device_for_append(out_jcr)) {
+   if (!acquire_device_for_append(out_jcr, out_dev)) {
       free_jcr(in_jcr);
       exit(1);
    }
@@ -212,37 +212,37 @@ static bool record_cb(DCR *in_dcr, DEV_RECORD *rec)
       }
       switch (rec->FileIndex) {
       case PRE_LABEL:
-	 Pmsg0(000, "Volume is prelabeled. This volume cannot be copied.\n");
+         Pmsg0(000, "Volume is prelabeled. This volume cannot be copied.\n");
 	 return false;
       case VOL_LABEL:
-	 Pmsg0(000, "Volume label not copied.\n");
+         Pmsg0(000, "Volume label not copied.\n");
 	 return true;
       case SOS_LABEL:
 	 jobs++;
 	 break;
       case EOS_LABEL:
 	 while (!write_record_to_block(out_block, rec)) {
-	    Dmsg2(150, "!write_record_to_block data_len=%d rem=%d\n", rec->data_len,
+            Dmsg2(150, "!write_record_to_block data_len=%d rem=%d\n", rec->data_len,
 		       rec->remainder);
 	    if (!write_block_to_device(out_jcr->dcr)) {
-	       Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
+               Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
 		  dev_name(out_dev), strerror_dev(out_dev));
-	       Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
+               Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
 		     strerror_dev(out_dev));
 	    }
 	 }
 	 if (!write_block_to_device(out_jcr->dcr)) {
-	    Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
+            Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
 	       dev_name(out_dev), strerror_dev(out_dev));
-	    Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
+            Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
 		  strerror_dev(out_dev));
 	 }
 	 break;
       case EOM_LABEL:
-	 Pmsg0(000, "EOM label not copied.\n");
+         Pmsg0(000, "EOM label not copied.\n");
 	 return true;
       case EOT_LABEL:		   /* end of all tapes */
-	 Pmsg0(000, "EOT label not copied.\n");
+         Pmsg0(000, "EOT label not copied.\n");
 	 return true;
       default:
 	 break;
@@ -255,9 +255,9 @@ static bool record_cb(DCR *in_dcr, DEV_RECORD *rec)
       Dmsg2(150, "!write_record_to_block data_len=%d rem=%d\n", rec->data_len,
 		 rec->remainder);
       if (!write_block_to_device(out_jcr->dcr)) {
-	 Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
+         Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
 	    dev_name(out_dev), strerror_dev(out_dev));
-	 Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
+         Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
 	       strerror_dev(out_dev));
 	 break;
       }

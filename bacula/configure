@@ -922,6 +922,10 @@ Optional Packages:
                           install directory, default is to search through
                           a number of common places for the MySQL files.
 
+  --with-sqlite3=DIR    Include SQLite3 support.  DIR is the SQLite3 base
+                          install directory, default is to search through
+                          a number of common places for the SQLite3 files.
+
   --with-sqlite=DIR     Include SQLite support.  DIR is the SQLite base
                           install directory, default is to search through
                           a number of common places for the SQLite files.
@@ -4701,6 +4705,7 @@ fi
 
 support_mysql=no
 support_sqlite=no
+support_sqlite3=no
 support_postgresql=no
 support_smartalloc=yes
 support_readline=yes
@@ -7484,6 +7489,12 @@ if test ! x$CDRECORD = x ; then
       CDSTL=`${CDRECORD} -scanbus 2>/dev/null | grep CD+RW | ${AWK} '{print $1}'`
    fi
    if test x${CDSTL} = x ; then
+      CDSTL=`${CDRECORD} -scanbus 2>/dev/null | grep DVD+RW | ${AWK} '{print $1}'`
+   fi
+   if test x${CDSTL} = x ; then
+      CDSTL=`${CDRECORD} -scanbus 2>/dev/null | grep DVD-RW | ${AWK} '{print $1}'`
+   fi
+   if test x${CDSTL} = x ; then
       CDSTL="3,0,0"
    fi
 fi
@@ -8998,6 +9009,85 @@ echo "${ECHO_T}no" >&6
 fi;
 
 
+
+
+
+
+
+
+
+db_found=no
+echo "$as_me:$LINENO: checking for SQLite3 support" >&5
+echo $ECHO_N "checking for SQLite3 support... $ECHO_C" >&6
+
+# Check whether --with-sqlite3 or --without-sqlite3 was given.
+if test "${with_sqlite3+set}" = set; then
+  withval="$with_sqlite3"
+
+  if test "$withval" != "no"; then
+     if test "$withval" = "yes"; then
+        if test -f /usr/local/include/sqlite3.h; then
+           SQLITE_INCDIR=/usr/local/include
+           SQLITE_LIBDIR=/usr/local/lib
+           SQLITE_BINDIR=/usr/local/bin
+        elif test -f /usr/include/sqlite3.h; then
+           SQLITE_INCDIR=/usr/include
+           SQLITE_LIBDIR=/usr/lib
+           SQLITE_BINDIR=/usr/bin
+        elif test -f $prefix/include/sqlite3.h; then
+           SQLITE_INCDIR=$prefix/include
+           SQLITE_LIBDIR=$prefix/lib
+           SQLITE_BINDIR=$prefix/bin
+        else
+           echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+           { { echo "$as_me:$LINENO: error: Unable to find sqlite3.h in standard locations" >&5
+echo "$as_me: error: Unable to find sqlite3.h in standard locations" >&2;}
+   { (exit 1); exit 1; }; }
+        fi
+     else
+        if test -f $withval/sqlite3.h; then
+           SQLITE_INCDIR=$withval
+           SQLITE_LIBDIR=$withval
+           SQLITE_BINDIR=$withval
+        elif test -f $withval/include/sqlite3.h; then
+           SQLITE_INCDIR=$withval/include
+           SQLITE_LIBDIR=$withval/lib
+           SQLITE_BINDIR=$withval/bin
+        else
+           echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+           { { echo "$as_me:$LINENO: error: Invalid SQLite3 directory $withval - unable to find sqlite3.h under $withval" >&5
+echo "$as_me: error: Invalid SQLite3 directory $withval - unable to find sqlite3.h under $withval" >&2;}
+   { (exit 1); exit 1; }; }
+        fi
+     fi
+     SQL_INCLUDE=-I$SQLITE_INCDIR
+     SQL_LFLAGS="-L$SQLITE_LIBDIR -lsqlite3"
+     SQL_BINDIR=$SQLITE_BINDIR
+
+     cat >>confdefs.h <<\_ACEOF
+#define HAVE_SQLITE3 1
+_ACEOF
+
+     echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+     db_found=yes
+     support_sqlite3=yes
+     db_name=SQLite3
+     DB_NAME=sqlite3
+
+  else
+     echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+  fi
+
+else
+
+  echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+
+fi;
 
 
 
@@ -21411,7 +21501,7 @@ if test "x${subsysdir}" = "x${sbindir}" ; then
    exit 1
 fi
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ac_config_files="$ac_config_files autoconf/Make.common Makefile rescue/Makefile rescue/linux/Makefile rescue/linux/floppy/Makefile rescue/linux/cdrom/Makefile rescue/linux/cdrom/bacula/Makefile rescue/freebsd/Makefile rescue/solaris/Makefile scripts/startmysql scripts/stopmysql scripts/btraceback scripts/startit scripts/stopit scripts/bconsole scripts/gconsole scripts/bacula scripts/devel_bacula scripts/Makefile scripts/logrotate scripts/bacula.desktop.gnome1 scripts/bacula.desktop.gnome2 scripts/bacula.desktop.gnome1.consolehelper scripts/bacula.desktop.gnome2.consolehelper scripts/bacula.desktop.gnome1.xsu scripts/bacula.desktop.gnome2.xsu scripts/gnome-console.console_apps scripts/mtx-changer scripts/dvd-writepart scripts/dvd-freespace scripts/bacula-tray-monitor.desktop scripts/logwatch/Makefile scripts/logwatch/logfile.bacula.conf doc/Makefile src/Makefile src/host.h src/console/Makefile src/console/bconsole.conf src/gnome-console/Makefile src/gnome-console/gnome-console.conf src/gnome2-console/Makefile src/gnome2-console/gnome-console.conf src/wx-console/Makefile src/wx-console/wx-console.conf src/tray-monitor/Makefile src/tray-monitor/tray-monitor.conf src/dird/Makefile src/dird/bacula-dir.conf src/lib/Makefile src/stored/Makefile src/stored/bacula-sd.conf src/filed/Makefile src/filed/bacula-fd.conf src/filed/win32/Makefile src/cats/Makefile src/cats/make_catalog_backup src/cats/delete_catalog_backup src/cats/create_postgresql_database src/cats/update_postgresql_tables src/cats/make_postgresql_tables src/cats/grant_postgresql_privileges src/cats/drop_postgresql_tables src/cats/drop_postgresql_database src/cats/create_mysql_database src/cats/update_mysql_tables src/cats/make_mysql_tables src/cats/grant_mysql_privileges src/cats/drop_mysql_tables src/cats/drop_mysql_database src/cats/create_sqlite_database src/cats/update_sqlite_tables src/cats/make_sqlite_tables src/cats/grant_sqlite_privileges src/cats/drop_sqlite_tables src/cats/drop_sqlite_database src/cats/sqlite src/cats/mysql src/cats/create_bdb_database src/cats/update_bdb_tables src/cats/make_bdb_tables src/cats/grant_bdb_privileges src/cats/drop_bdb_tables src/cats/drop_bdb_database src/cats/create_bacula_database src/cats/update_bacula_tables src/cats/grant_bacula_privileges src/cats/make_bacula_tables src/cats/drop_bacula_tables src/cats/drop_bacula_database src/findlib/Makefile src/tools/Makefile src/win32/winbacula.nsi src/win32/baculafd/bacula-fd.conf src/win32/Makefile src/win32/console/bconsole.conf src/win32/wx-console/wx-console.conf src/win32/pebuilder/Makefile src/bimagemgr/Makefile src/bimagemgr/bacula-bimagemgr.spec $PFILES"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ac_config_files="$ac_config_files autoconf/Make.common Makefile rescue/Makefile rescue/linux/Makefile rescue/linux/floppy/Makefile rescue/linux/cdrom/Makefile rescue/linux/cdrom/bacula/Makefile rescue/freebsd/Makefile rescue/solaris/Makefile scripts/startmysql scripts/stopmysql scripts/btraceback scripts/startit scripts/stopit scripts/bconsole scripts/gconsole scripts/bacula scripts/devel_bacula scripts/Makefile scripts/logrotate scripts/bacula.desktop.gnome1 scripts/bacula.desktop.gnome2 scripts/bacula.desktop.gnome1.consolehelper scripts/bacula.desktop.gnome2.consolehelper scripts/bacula.desktop.gnome1.xsu scripts/bacula.desktop.gnome2.xsu scripts/gnome-console.console_apps scripts/mtx-changer scripts/dvd-writepart scripts/dvd-freespace scripts/bacula-tray-monitor.desktop scripts/logwatch/Makefile scripts/logwatch/logfile.bacula.conf doc/Makefile src/Makefile src/host.h src/console/Makefile src/console/bconsole.conf src/gnome-console/Makefile src/gnome-console/gnome-console.conf src/gnome2-console/Makefile src/gnome2-console/gnome-console.conf src/wx-console/Makefile src/wx-console/wx-console.conf src/tray-monitor/Makefile src/tray-monitor/tray-monitor.conf src/dird/Makefile src/dird/bacula-dir.conf src/lib/Makefile src/stored/Makefile src/stored/bacula-sd.conf src/filed/Makefile src/filed/bacula-fd.conf src/filed/win32/Makefile src/cats/Makefile src/cats/make_catalog_backup src/cats/delete_catalog_backup src/cats/create_postgresql_database src/cats/update_postgresql_tables src/cats/make_postgresql_tables src/cats/grant_postgresql_privileges src/cats/drop_postgresql_tables src/cats/drop_postgresql_database src/cats/create_mysql_database src/cats/update_mysql_tables src/cats/make_mysql_tables src/cats/grant_mysql_privileges src/cats/drop_mysql_tables src/cats/drop_mysql_database src/cats/create_sqlite_database src/cats/update_sqlite_tables src/cats/make_sqlite_tables src/cats/grant_sqlite_privileges src/cats/drop_sqlite_tables src/cats/drop_sqlite_database src/cats/create_sqlite3_database src/cats/update_sqlite3_tables src/cats/make_sqlite3_tables src/cats/grant_sqlite3_privileges src/cats/drop_sqlite3_tables src/cats/drop_sqlite3_database src/cats/sqlite src/cats/mysql src/cats/create_bdb_database src/cats/update_bdb_tables src/cats/make_bdb_tables src/cats/grant_bdb_privileges src/cats/drop_bdb_tables src/cats/drop_bdb_database src/cats/create_bacula_database src/cats/update_bacula_tables src/cats/grant_bacula_privileges src/cats/make_bacula_tables src/cats/drop_bacula_tables src/cats/drop_bacula_database src/findlib/Makefile src/tools/Makefile src/win32/winbacula.nsi src/win32/baculafd/bacula-fd.conf src/win32/Makefile src/win32/console/bconsole.conf src/win32/wx-console/wx-console.conf src/win32/pebuilder/Makefile src/bimagemgr/Makefile src/bimagemgr/bacula-bimagemgr.spec $PFILES"
           ac_config_commands="$ac_config_commands default"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -22016,6 +22106,12 @@ do
   "src/cats/grant_sqlite_privileges" ) CONFIG_FILES="$CONFIG_FILES src/cats/grant_sqlite_privileges" ;;
   "src/cats/drop_sqlite_tables" ) CONFIG_FILES="$CONFIG_FILES src/cats/drop_sqlite_tables" ;;
   "src/cats/drop_sqlite_database" ) CONFIG_FILES="$CONFIG_FILES src/cats/drop_sqlite_database" ;;
+  "src/cats/create_sqlite3_database" ) CONFIG_FILES="$CONFIG_FILES src/cats/create_sqlite3_database" ;;
+  "src/cats/update_sqlite3_tables" ) CONFIG_FILES="$CONFIG_FILES src/cats/update_sqlite3_tables" ;;
+  "src/cats/make_sqlite3_tables" ) CONFIG_FILES="$CONFIG_FILES src/cats/make_sqlite3_tables" ;;
+  "src/cats/grant_sqlite3_privileges" ) CONFIG_FILES="$CONFIG_FILES src/cats/grant_sqlite3_privileges" ;;
+  "src/cats/drop_sqlite3_tables" ) CONFIG_FILES="$CONFIG_FILES src/cats/drop_sqlite3_tables" ;;
+  "src/cats/drop_sqlite3_database" ) CONFIG_FILES="$CONFIG_FILES src/cats/drop_sqlite3_database" ;;
   "src/cats/sqlite" ) CONFIG_FILES="$CONFIG_FILES src/cats/sqlite" ;;
   "src/cats/mysql" ) CONFIG_FILES="$CONFIG_FILES src/cats/mysql" ;;
   "src/cats/create_bdb_database" ) CONFIG_FILES="$CONFIG_FILES src/cats/create_bdb_database" ;;
@@ -22988,7 +23084,7 @@ if test "x${db_name}" = "xInternal" ; then
    echo " "
    echo " "
    echo "You have not specified either --enable-client-only or one of the"
-   echo "  supported databases: MySQL, PostgreSQL, or SQLite".
+   echo "  supported databases: MySQL, PostgreSQL, SQLite3 or SQLite."
    echo "  This is not permitted. Please reconfigure."
    echo " "
    echo "Aborting the configuration ..."

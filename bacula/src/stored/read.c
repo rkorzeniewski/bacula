@@ -46,11 +46,11 @@ bool do_read_data(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
    bool ok = true;
-   DCR *dcr;
+   DCR *dcr = jcr->dcr;
 
    Dmsg0(20, "Start read data.\n");
 
-   if (!bnet_set_buffer_size(fd, jcr->device->max_network_buffer_size, BNET_SETBUF_WRITE)) {
+   if (!bnet_set_buffer_size(fd, dcr->device->max_network_buffer_size, BNET_SETBUF_WRITE)) {
       return false;
    }
 
@@ -66,11 +66,10 @@ bool do_read_data(JCR *jcr)
    Dmsg2(200, "Found %d volumes names to restore. First=%s\n", jcr->NumVolumes,
       jcr->VolList->VolumeName);
 
-   /*
-    * Ready device for reading, and read records
-    */
-   if (!(dcr=acquire_device_for_read(jcr))) {
+   /* Ready device for reading */
+   if (!acquire_device_for_read(jcr, dcr->dev)) {
       free_vol_list(jcr);
+      bnet_fsend(fd, FD_error);
       return false;
    }
 

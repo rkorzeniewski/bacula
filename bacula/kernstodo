@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     31 December 2004
+                     23 January 2005
 
 Major development:      
 Project                     Developer
@@ -12,8 +12,10 @@ Version 1.37                Kern (see below)
 
 1.37 Major Projects:
 #3   Migration (Move, Copy, Archive Jobs)
-#4   Embedded Python Scripting (implemented in Dir)
-#5   Events that call a Python program (Implemented in Dir)
+#4   Embedded Python Scripting 
+     (Implemented in Dir/SD)
+#5   Events that call a Python program 
+     (Implemented in Dir/SD)
 #6   Select one from among Multiple Storage Devices for Job
 #7   Single Job Writing to Multiple Storage Devices
 
@@ -33,7 +35,6 @@ For 1.37:
 - Look at Preben's acl.c error handling code.
 - See multiple-store.txt for Multiple Storage implementation
   design.
-- Add Set Error from Python.
 - Create a new GUI chapter explaining all the GUI programs.
 - Tell the "restore" user when browsing is no longer possible.
 - Add disk seeking on restore.  
@@ -42,9 +43,10 @@ For 1.37:
   get the bootstrap file.
 - Add dump of VolSessionId/Time and FileIndex with bls.
 - Make bootstrap file handle multiple MediaTypes (SD)
-- Add offline command to Bacula console.
+- Add offline tape command to Bacula console.
 - Add performance testing hooks
-- Add Python writable variable for changing the Priority.
+- Add Python writable variable for changing the Priority,
+    Client, Storage, JobStatus (error), ...
 - Document that Bootstrap files can be written with cataloging
   turned off.
 - Look at adding full Volume and Pool information to a Volume 

@@ -8,10 +8,10 @@
  *    the randomness. In this program, the hash table can grow when
  *    it gets too full, so the table size here is a binary number. The
  *    hashing is provided using an idea from Tcl where the initial
- *    hash code is then "randomized" using a simple calculation from
+ *    hash code is "randomized" using a simple calculation from
  *    a random number generator that multiplies by a big number
  *    (I multiply by a prime number, while Tcl did not)
- *    then shifts the results down and does the binary division
+ *    then shifts the result down and does the binary division
  *    by masking.  Increasing the size of the hash table is simple.
  *    Just create a new larger table, walk the old table and
  *    re-hash insert each entry into the new table.
@@ -23,7 +23,7 @@
  *
  */
 /*
-   Copyright (C) 2003-2004 Kern Sibbald and John Walker
+   Copyright (C) 2003-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -90,33 +90,30 @@ void htable::init(void *item, void *link, int tsize)
    walk_index = 0;
 }
 
-#ifdef xxx
-void * htable::operator new(size_t)
-{
-   return malloc(sizeof(htable));
-}
-
-void htable::operator delete(void *tbl)
-{
-   ((htable *)tbl)->destroy();
-   free(tbl);
-}
-#endif
-
 uint32_t htable::size()
 {
    return num_items;
 }
 
+/*
+ * Take each hash link and walk down the chain of items
+ *  that hash there counting them (i.e. the hits), 
+ *  then report that number.
+ *  Obiously, the more hits in a chain, the more time
+ *  it takes to reference them. Empty chains are not so
+ *  hot either -- as it means unused or wasted space.
+ */
+#define MAX_COUNT 20
 void htable::stats()
 {
-   int count[10];
+   int hits[MAX_COUNT];
    int max = 0;
    int i, j;
    hlink *p;
-   printf("\n\nNumItems=%d\nBuckets=%d\n", num_items, buckets);
-   for (i=0; i<10; i++) {
-      count[i] = 0;
+   printf("\n\nNumItems=%d\nTotal buckets=%d\n", num_items, buckets);
+   printf("Hits/bucket: buckets\n");
+   for (i=0; i < MAX_COUNT; i++) {
+      hits[i] = 0;
    }
    for (i=0; i<(int)buckets; i++) {
       p = table[i];
@@ -128,14 +125,14 @@ void htable::stats()
       if (j > max) {
 	 max = j;
       }
-      if (j < 10) {
-	 count[j]++;
+      if (j < MAX_COUNT) {
+	 hits[j]++;
       }
    }
-   for (i=0; i<10; i++) {
-      printf("%2d: %d\n",i, count[i]);
+   for (i=0; i < MAX_COUNT; i++) {
+      printf("%2d:           %d\n",i, hits[i]);
    }
-   printf("max = %d\n", max);
+   printf("max hits in a bucket = %d\n", max);
 }
 
 void htable::grow_table()
@@ -217,7 +214,7 @@ void *htable::lookup(char *key)
    for (hlink *hp=table[index]; hp; hp=(hlink *)hp->next) {
 //    Dmsg2(100, "hp=0x%x key=%s\n", (long)hp, hp->key);
       if (hash == hp->hash && strcmp(key, hp->key) == 0) {
-	 Dmsg1(100, "lookup return %x\n", ((char *)hp)-loffset);
+         Dmsg1(100, "lookup return %x\n", ((char *)hp)-loffset);
 	 return ((char *)hp)-loffset;
       }
    }
@@ -233,7 +230,7 @@ void *htable::next()
    while (!walkptr && walk_index < buckets) {
       walkptr = table[walk_index++];
       if (walkptr) {
-	 Dmsg3(100, "new walkptr=0x%x next=0x%x inx=%d\n", (unsigned)walkptr,
+         Dmsg3(100, "new walkptr=0x%x next=0x%x inx=%d\n", (unsigned)walkptr,
 	    (unsigned)(walkptr->next), walk_index-1);
       }
    }
@@ -254,7 +251,7 @@ void *htable::first()
    while (!walkptr && walk_index < buckets) {
       walkptr = table[walk_index++];  /* go to next bucket */
       if (walkptr) {
-	 Dmsg3(100, "first new walkptr=0x%x next=0x%x inx=%d\n", (unsigned)walkptr,
+         Dmsg3(100, "first new walkptr=0x%x next=0x%x inx=%d\n", (unsigned)walkptr,
 	    (unsigned)(walkptr->next), walk_index-1);
       }
    }

@@ -36,7 +36,7 @@ const char *list_pool = "SELECT * FROM Pool WHERE PoolId=%u";
 /* For ua_dotcmds.c */
 const char *client_backups =
 "SELECT DISTINCT Job.JobId,Client.Name as Client,Level,StartTime,"
-"JobFiles,JobBytes,VolumeName"
+"JobFiles,JobBytes,VolumeName,MediaType"
 " FROM Client,Job,JobMedia,Media"
 " WHERE Client.Name='%s'"
 " AND Client.ClientId=Job.ClientId"

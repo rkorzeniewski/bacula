@@ -10,7 +10,7 @@
  */
 
 /*
-   Copyright (C) 2002-2004 Kern Sibbald and John Walker
+   Copyright (C) 2002-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -126,7 +126,7 @@ bool user_select_files_from_tree(TREE_CTX *tree)
 	    break;
 	 }
       if (!found) {
-	 bsendmsg(tree->ua, _("Illegal command. Enter \"done\" to exit.\n"));
+         bsendmsg(tree->ua, _("Illegal command. Enter \"done\" to exit.\n"));
 	 continue;
       }
       if (!stat) {
@@ -208,7 +208,7 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
    if (node->inserted) {
       tree->FileCount++;
       if (tree->DeltaCount > 0 && (tree->FileCount-tree->LastCount) > tree->DeltaCount) {
-	 bsendmsg(tree->ua, "+");
+         bsendmsg(tree->ua, "+");
 	 tree->LastCount = tree->FileCount;
       }
    }
@@ -311,7 +311,7 @@ static int markcmd(UAContext *ua, TREE_CTX *tree)
       bsendmsg(ua, _("No files marked.\n"));
    } else {
       bsendmsg(ua, _("%s file%s marked.\n"),
-	       edit_uint64_with_commas(count, ec1), count==0?"":"s");
+               edit_uint64_with_commas(count, ec1), count==0?"":"s");
    }
    return 1;
 }
@@ -340,7 +340,7 @@ static int markdircmd(UAContext *ua, TREE_CTX *tree)
       bsendmsg(ua, _("No directories marked.\n"));
    } else {
       bsendmsg(ua, _("%s director%s marked.\n"),
-	       edit_uint64_with_commas(count, ec1), count==1?"y":"ies");
+               edit_uint64_with_commas(count, ec1), count==1?"y":"ies");
    }
    return 1;
 }
@@ -381,13 +381,13 @@ static int findcmd(UAContext *ua, TREE_CTX *tree)
 	    const char *tag;
 	    tree_getpath(node, cwd, sizeof(cwd));
 	    if (node->extract) {
-	       tag = "*";
+               tag = "*";
 	    } else if (node->extract_dir) {
-	       tag = "+";
+               tag = "+";
 	    } else {
-	       tag = "";
+               tag = "";
 	    }
-	    bsendmsg(ua, "%s%s\n", tag, cwd);
+            bsendmsg(ua, "%s%s\n", tag, cwd);
 	 }
       }
    }
@@ -407,13 +407,13 @@ static int lscmd(UAContext *ua, TREE_CTX *tree)
       if (ua->argc == 1 || fnmatch(ua->argk[1], node->fname, 0) == 0) {
 	 const char *tag;
 	 if (node->extract) {
-	    tag = "*";
+            tag = "*";
 	 } else if (node->extract_dir) {
-	    tag = "+";
+            tag = "+";
 	 } else {
-	    tag = "";
+            tag = "";
 	 }
-	 bsendmsg(ua, "%s%s%s\n", tag, node->fname, tree_node_has_child(node)?"/":"");
+         bsendmsg(ua, "%s%s%s\n", tag, node->fname, tree_node_has_child(node)?"/":"");
       }
    }
    return 1;
@@ -433,13 +433,13 @@ static void rlsmark(UAContext *ua, TREE_NODE *tnode)
 	  (node->extract || node->extract_dir)) {
 	 const char *tag;
 	 if (node->extract) {
-	    tag = "*";
+            tag = "*";
 	 } else if (node->extract_dir) {
-	    tag = "+";
+            tag = "+";
 	 } else {
-	    tag = "";
+            tag = "";
 	 }
-	 bsendmsg(ua, "%s%s%s\n", tag, node->fname, tree_node_has_child(node)?"/":"");
+         bsendmsg(ua, "%s%s%s\n", tag, node->fname, tree_node_has_child(node)?"/":"");
 	 if (tree_node_has_child(node)) {
 	    rlsmark(ua, node);
 	 }
@@ -507,11 +507,11 @@ static int dircmd(UAContext *ua, TREE_CTX *tree)
       const char *tag;
       if (ua->argc == 1 || fnmatch(ua->argk[1], node->fname, 0) == 0) {
 	 if (node->extract) {
-	    tag = "*";
+            tag = "*";
 	 } else if (node->extract_dir) {
-	    tag = "+";
+            tag = "+";
 	 } else {
-	    tag = " ";
+            tag = " ";
 	 }
 	 tree_getpath(node, cwd, sizeof(cwd));
 	 fdbr.FileId = 0;
@@ -541,7 +541,7 @@ static int dircmd(UAContext *ua, TREE_CTX *tree)
 	    memset(&statp, 0, sizeof(statp));
 	 }
 	 ls_output(buf, cwd, tag, &statp);
-	 bsendmsg(ua, "%s\n", buf);
+         bsendmsg(ua, "%s\n", buf);
       }
    }
    return 1;
@@ -617,12 +617,12 @@ static int cdcmd(UAContext *ua, TREE_CTX *tree)
    if (!node) {
       /* Try once more if Win32 drive -- make absolute */
       if (ua->argk[1][1] == ':') {  /* win32 drive */
-	 bstrncpy(cwd, "/", sizeof(cwd));
+         bstrncpy(cwd, "/", sizeof(cwd));
 	 bstrncat(cwd, ua->argk[1], sizeof(cwd));
 	 node = tree_cwd(cwd, tree->root, tree->node);
       }
       if (!node) {
-	 bsendmsg(ua, _("Invalid path given.\n"));
+         bsendmsg(ua, _("Invalid path given.\n"));
       } else {
 	 tree->node = node;
       }

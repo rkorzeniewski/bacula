@@ -115,7 +115,7 @@ void my_name_is(int argc, char *argv[], const char *name)
    if (argc>0 && argv && argv[0]) {
       /* strip trailing filename and save exepath */
       for (l=p=argv[0]; *p; p++) {
-	 if (*p == '/') {
+         if (*p == '/') {
 	    l = p;			 /* set pos of last slash */
 	 }
       }
@@ -125,7 +125,7 @@ void my_name_is(int argc, char *argv[], const char *name)
 	 l = argv[0];
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
 	 /* On Windows allow c: junk */
-	 if (l[1] == ':') {
+         if (l[1] == ':') {
 	    l += 2;
 	 }
 #endif
@@ -297,7 +297,7 @@ void add_msg_dest(MSGS *msg, int dest_code, int msg_type, char *where, char *mai
    for (d=msg->dest_chain; d; d=d->next) {
       if (dest_code == d->dest_code && ((where == NULL && d->where == NULL) ||
 		     (strcmp(where, d->where) == 0))) {
-	 Dmsg4(200, "Add to existing d=%x msgtype=%d destcode=%d where=%s\n",
+         Dmsg4(850, "Add to existing d=%x msgtype=%d destcode=%d where=%s\n",
 	     d, msg_type, dest_code, NPRT(where));
 	 set_bit(msg_type, d->msg_types);
 	 set_bit(msg_type, msg->send_msg);  /* set msg_type bit in our local */
@@ -317,7 +317,7 @@ void add_msg_dest(MSGS *msg, int dest_code, int msg_type, char *where, char *mai
    if (mail_cmd) {
       d->mail_cmd = bstrdup(mail_cmd);
    }
-   Dmsg5(200, "add new d=%x msgtype=%d destcode=%d where=%s mailcmd=%s\n",
+   Dmsg5(850, "add new d=%x msgtype=%d destcode=%d where=%s mailcmd=%s\n",
 	  d, msg_type, dest_code, NPRT(where), NPRT(d->mail_cmd));
    msg->dest_chain = d;
 }
@@ -332,14 +332,14 @@ void rem_msg_dest(MSGS *msg, int dest_code, int msg_type, char *where)
    DEST *d;
 
    for (d=msg->dest_chain; d; d=d->next) {
-      Dmsg2(200, "Remove_msg_dest d=%x where=%s\n", d, NPRT(d->where));
+      Dmsg2(850, "Remove_msg_dest d=%x where=%s\n", d, NPRT(d->where));
       if (bit_is_set(msg_type, d->msg_types) && (dest_code == d->dest_code) &&
 	  ((where == NULL && d->where == NULL) ||
 		     (strcmp(where, d->where) == 0))) {
-	 Dmsg3(200, "Found for remove d=%x msgtype=%d destcode=%d\n",
+         Dmsg3(850, "Found for remove d=%x msgtype=%d destcode=%d\n",
 	       d, msg_type, dest_code);
 	 clear_bit(msg_type, d->msg_types);
-	 Dmsg0(200, "Return rem_msg_dest\n");
+         Dmsg0(850, "Return rem_msg_dest\n");
 	 return;
       }
    }
@@ -358,7 +358,7 @@ static void make_unique_mail_filename(JCR *jcr, POOLMEM *&name, DEST *d)
       Mmsg(name, "%s/%s.mail.%s.%d", working_directory, my_name,
 		 my_name, (int)(long)d);
    }
-   Dmsg1(200, "mailname=%s\n", name);
+   Dmsg1(850, "mailname=%s\n", name);
 }
 
 /*
@@ -401,7 +401,7 @@ void close_msg(JCR *jcr)
    POOLMEM *cmd, *line;
    int len, stat;
 
-   Dmsg1(350, "Close_msg jcr=0x%x\n", jcr);
+   Dmsg1(850, "Close_msg jcr=0x%x\n", jcr);
 
    if (jcr == NULL) {		     /* NULL -> global chain */
       msgs = daemon_msgs;
@@ -413,7 +413,7 @@ void close_msg(JCR *jcr)
    if (msgs == NULL) {
       return;
    }
-   Dmsg1(350, "===Begin close msg resource at 0x%x\n", msgs);
+   Dmsg1(850, "===Begin close msg resource at 0x%x\n", msgs);
    cmd = get_pool_memory(PM_MESSAGE);
    for (d=msgs->dest_chain; d; ) {
       if (d->fd) {
@@ -426,7 +426,7 @@ void close_msg(JCR *jcr)
 	    break;
 	 case MD_MAIL:
 	 case MD_MAIL_ON_ERROR:
-	    Dmsg0(350, "Got MD_MAIL or MD_MAIL_ON_ERROR\n");
+            Dmsg0(850, "Got MD_MAIL or MD_MAIL_ON_ERROR\n");
 	    if (!d->fd) {
 	       break;
 	    }
@@ -436,10 +436,10 @@ void close_msg(JCR *jcr)
 	    }
 
 	    if (!(bpipe=open_mail_pipe(jcr, cmd, d))) {
-	       Pmsg0(000, "open mail pipe failed.\n");
+               Pmsg0(000, "open mail pipe failed.\n");
 	       goto rem_temp_file;
 	    }
-	    Dmsg0(350, "Opened mail pipe\n");
+            Dmsg0(850, "Opened mail pipe\n");
 	    len = d->max_len+10;
 	    line = get_memory(len);
 	    rewind(d->fd);
@@ -448,18 +448,18 @@ void close_msg(JCR *jcr)
 	    }
 	    if (!close_wpipe(bpipe)) {	     /* close write pipe sending mail */
 	       berrno be;
-	       Pmsg1(000, "close error: ERR=%s\n", be.strerror());
+               Pmsg1(000, "close error: ERR=%s\n", be.strerror());
 	    }
 
 	    /*
-	     * Since we are closing all messages, before "recursing"
+             * Since we are closing all messages, before "recursing"
 	     * make sure we are not closing the daemon messages, otherwise
 	     * kaboom.
 	     */
 	    if (msgs != daemon_msgs) {
 	       /* read what mail prog returned -- should be nothing */
 	       while (fgets(line, len, bpipe->rfd)) {
-		  Jmsg1(jcr, M_INFO, 0, _("Mail prog: %s"), line);
+                  Jmsg1(jcr, M_INFO, 0, _("Mail prog: %s"), line);
 	       }
 	    }
 
@@ -467,10 +467,10 @@ void close_msg(JCR *jcr)
 	    if (stat != 0 && msgs != daemon_msgs) {
 	       berrno be;
 	       be.set_errno(stat);
-	       Dmsg1(350, "Calling emsg. CMD=%s\n", cmd);
-	       Jmsg2(jcr, M_ERROR, 0, _("Mail program terminated in error.\n"
-					"CMD=%s\n"
-					"ERR=%s\n"), cmd, be.strerror());
+               Dmsg1(850, "Calling emsg. CMD=%s\n", cmd);
+               Jmsg2(jcr, M_ERROR, 0, _("Mail program terminated in error.\n"
+                                        "CMD=%s\n"
+                                        "ERR=%s\n"), cmd, be.strerror());
 	    }
 	    free_memory(line);
 rem_temp_file:
@@ -479,7 +479,7 @@ rem_temp_file:
 	    unlink(d->mail_filename);
 	    free_pool_memory(d->mail_filename);
 	    d->mail_filename = NULL;
-	    Dmsg0(350, "end mail or mail on error\n");
+            Dmsg0(850, "end mail or mail on error\n");
 	    break;
 	 default:
 	    break;
@@ -489,14 +489,14 @@ rem_temp_file:
       d = d->next;		      /* point to next buffer */
    }
    free_pool_memory(cmd);
-   Dmsg0(350, "Done walking message chain.\n");
+   Dmsg0(850, "Done walking message chain.\n");
    if (jcr) {
       free_msgs_res(msgs);
       msgs = NULL;
    } else {
       V(mutex);
    }
-   Dmsg0(350, "===End close msg resource\n");
+   Dmsg0(850, "===End close msg resource\n");
 }
 
 /*
@@ -532,7 +532,7 @@ void free_msgs_res(MSGS *msgs)
  */
 void term_msg()
 {
-   Dmsg0(300, "Enter term_msg\n");
+   Dmsg0(850, "Enter term_msg\n");
    close_msg(NULL);		      /* close global chain */
    free_msgs_res(daemon_msgs);	      /* free the resources */
    daemon_msgs = NULL;
@@ -570,7 +570,7 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
     MSGS *msgs;
     BPIPE *bpipe;
 
-    Dmsg2(800, "Enter dispatch_msg type=%d msg=%s\n", type, msg);
+    Dmsg2(850, "Enter dispatch_msg type=%d msg=%s\n", type, msg);
 
     /*
      * Most messages are prefixed by a date and time. If mtime is
@@ -601,7 +601,7 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
        /* If we don't exit on error, error messages are parsed by UA */
        if (exit_on_error) {
-	  MessageBox(NULL, msg, "Bacula", MB_OK);
+          MessageBox(NULL, msg, "Bacula", MB_OK);
        }
 #endif
 #endif
@@ -619,10 +619,10 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
        if (bit_is_set(type, d->msg_types)) {
 	  switch (d->dest_code) {
 	     case MD_CONSOLE:
-		Dmsg1(800, "CONSOLE for following msg: %s", msg);
+                Dmsg1(850, "CONSOLE for following msg: %s", msg);
 		if (!con_fd) {
-		   con_fd = fopen(con_fname, "a+");
-		   Dmsg0(800, "Console file not open.\n");
+                   con_fd = fopen(con_fname, "a+");
+                   Dmsg0(850, "Console file not open.\n");
 		}
 		if (con_fd) {
 		   Pw(con_lock);      /* get write lock on console message file */
@@ -633,11 +633,11 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
 		   len = strlen(msg);
 		   if (len > 0) {
 		      fwrite(msg, len, 1, con_fd);
-		      if (msg[len-1] != '\n') {
-			 fwrite("\n", 2, 1, con_fd);
+                      if (msg[len-1] != '\n') {
+                         fwrite("\n", 2, 1, con_fd);
 		      }
 		   } else {
-		      fwrite("\n", 2, 1, con_fd);
+                      fwrite("\n", 2, 1, con_fd);
 		   }
 		   fflush(con_fd);
 		   console_msg_pending = TRUE;
@@ -645,14 +645,14 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
 		}
 		break;
 	     case MD_SYSLOG:
-		Dmsg1(800, "SYSLOG for collowing msg: %s\n", msg);
+                Dmsg1(850, "SYSLOG for collowing msg: %s\n", msg);
 		/*
 		 * We really should do an openlog() here.
 		 */
-		syslog(LOG_DAEMON|LOG_ERR, "%s", msg);
+                syslog(LOG_DAEMON|LOG_ERR, "%s", msg);
 		break;
 	     case MD_OPERATOR:
-		Dmsg1(800, "OPERATOR for following msg: %s\n", msg);
+                Dmsg1(850, "OPERATOR for following msg: %s\n", msg);
 		mcmd = get_pool_memory(PM_MESSAGE);
 		if ((bpipe=open_mail_pipe(jcr, mcmd, d))) {
 		   int stat;
@@ -663,24 +663,24 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
 		   if (stat != 0) {
 		      berrno be;
 		      be.set_errno(stat);
-		      Qmsg2(jcr, M_ERROR, 0, _("Operator mail program terminated in error.\n"
-			    "CMD=%s\n"
-			    "ERR=%s\n"), mcmd, be.strerror());
+                      Qmsg2(jcr, M_ERROR, 0, _("Operator mail program terminated in error.\n"
+                            "CMD=%s\n"
+                            "ERR=%s\n"), mcmd, be.strerror());
 		   }
 		}
 		free_pool_memory(mcmd);
 		break;
 	     case MD_MAIL:
 	     case MD_MAIL_ON_ERROR:
-		Dmsg1(800, "MAIL for following msg: %s", msg);
+                Dmsg1(850, "MAIL for following msg: %s", msg);
 		if (!d->fd) {
 		   POOLMEM *name = get_pool_memory(PM_MESSAGE);
 		   make_unique_mail_filename(jcr, name, d);
-		   d->fd = fopen(name, "w+");
+                   d->fd = fopen(name, "w+");
 		   if (!d->fd) {
 		      berrno be;
 		      d->fd = stdout;
-		      Qmsg2(jcr, M_ERROR, 0, "fopen %s failed: ERR=%s\n", name,
+                      Qmsg2(jcr, M_ERROR, 0, "fopen %s failed: ERR=%s\n", name,
 			    be.strerror());
 		      d->fd = NULL;
 		      free_pool_memory(name);
@@ -696,13 +696,13 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
 		fputs(msg, d->fd);
 		break;
 	     case MD_FILE:
-		Dmsg1(800, "FILE for following msg: %s", msg);
+                Dmsg1(850, "FILE for following msg: %s", msg);
 		if (!d->fd) {
-		   d->fd = fopen(d->where, "w+");
+                   d->fd = fopen(d->where, "w+");
 		   if (!d->fd) {
 		      berrno be;
 		      d->fd = stdout;
-		      Qmsg2(jcr, M_ERROR, 0, "fopen %s failed: ERR=%s\n", d->where,
+                      Qmsg2(jcr, M_ERROR, 0, "fopen %s failed: ERR=%s\n", d->where,
 			    be.strerror());
 		      d->fd = NULL;
 		      break;
@@ -712,13 +712,13 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
 		fputs(msg, d->fd);
 		break;
 	     case MD_APPEND:
-		Dmsg1(800, "APPEND for following msg: %s", msg);
+                Dmsg1(850, "APPEND for following msg: %s", msg);
 		if (!d->fd) {
-		   d->fd = fopen(d->where, "a");
+                   d->fd = fopen(d->where, "a");
 		   if (!d->fd) {
 		      berrno be;
 		      d->fd = stdout;
-		      Qmsg2(jcr, M_ERROR, 0, "fopen %s failed: ERR=%s\n", d->where,
+                      Qmsg2(jcr, M_ERROR, 0, "fopen %s failed: ERR=%s\n", d->where,
 			    be.strerror());
 		      d->fd = NULL;
 		      break;
@@ -728,21 +728,21 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
 		fputs(msg, d->fd);
 		break;
 	     case MD_DIRECTOR:
-		Dmsg1(800, "DIRECTOR for following msg: %s", msg);
+                Dmsg1(850, "DIRECTOR for following msg: %s", msg);
 		if (jcr && jcr->dir_bsock && !jcr->dir_bsock->errors) {
-		   bnet_fsend(jcr->dir_bsock, "Jmsg Job=%s type=%d level=%d %s",
+                   bnet_fsend(jcr->dir_bsock, "Jmsg Job=%s type=%d level=%d %s",
 		      jcr->Job, type, mtime, msg);
 		}
 		break;
 	     case MD_STDOUT:
-		Dmsg1(800, "STDOUT for following msg: %s", msg);
+                Dmsg1(850, "STDOUT for following msg: %s", msg);
 		if (type != M_ABORT && type != M_ERROR_TERM) { /* already printed */
 		   fputs(dt, stdout);
 		   fputs(msg, stdout);
 		}
 		break;
 	     case MD_STDERR:
-		Dmsg1(800, "STDERR for following msg: %s", msg);
+                Dmsg1(850, "STDERR for following msg: %s", msg);
 		fputs(dt, stderr);
 		fputs(msg, stderr);
 		break;
@@ -783,9 +783,9 @@ d_msg(const char *file, int line, int level, const char *fmt,...)
 	  /* visual studio passes the whole path to the file as well
 	   * which makes for very long lines
 	   */
-	  const char *f = strrchr(file, '\\');
+          const char *f = strrchr(file, '\\');
 	  if (f) file = f + 1;
-	  len = bsnprintf(buf, sizeof(buf), "%s: %s:%d ", my_name, file, line);
+          len = bsnprintf(buf, sizeof(buf), "%s: %s:%d ", my_name, file, line);
        } else {
 	  len = 0;
        }
@@ -797,13 +797,13 @@ d_msg(const char *file, int line, int level, const char *fmt,...)
        va_end(arg_ptr);
 
        /*
-	* Used the "trace on" command in the console to turn on
-	*  output to the trace file.  "trace off" will close the file.
+        * Used the "trace on" command in the console to turn on
+        *  output to the trace file.  "trace off" will close the file.
 	*/
        if (trace) {
 	  if (!trace_fd) {
-	     bsnprintf(buf, sizeof(buf), "%s/bacula.trace", working_directory ? working_directory : ".");
-	     trace_fd = fopen(buf, "a+");
+             bsnprintf(buf, sizeof(buf), "%s/bacula.trace", working_directory ? working_directory : ".");
+             trace_fd = fopen(buf, "a+");
 	  }
 	  if (trace_fd) {
 	     fputs(buf, trace_fd);
@@ -895,13 +895,13 @@ t_msg(const char *file, int line, int level, const char *fmt,...)
 
     if (level <= debug_level) {
        if (!trace_fd) {
-	  bsnprintf(buf, sizeof(buf), "%s/bacula.trace", working_directory);
-	  trace_fd = fopen(buf, "a+");
+          bsnprintf(buf, sizeof(buf), "%s/bacula.trace", working_directory);
+          trace_fd = fopen(buf, "a+");
        }
 
 #ifdef FULL_LOCATION
        if (details) {
-	  len = bsnprintf(buf, sizeof(buf), "%s: %s:%d ", my_name, file, line);
+          len = bsnprintf(buf, sizeof(buf), "%s: %s:%d ", my_name, file, line);
        } else {
 	  len = 0;
        }
@@ -951,15 +951,15 @@ e_msg(const char *file, int line, int type, int level, const char *fmt,...)
        break;
     case M_FATAL:
        if (level == -1) 	   /* skip details */
-	  len = bsnprintf(buf, sizeof(buf), "%s: Fatal Error because: ", my_name);
+          len = bsnprintf(buf, sizeof(buf), "%s: Fatal Error because: ", my_name);
        else
-	  len = bsnprintf(buf, sizeof(buf), "%s: Fatal Error at %s:%d because:\n", my_name, file, line);
+          len = bsnprintf(buf, sizeof(buf), "%s: Fatal Error at %s:%d because:\n", my_name, file, line);
        break;
     case M_ERROR:
        if (level == -1) 	   /* skip details */
-	  len = bsnprintf(buf, sizeof(buf), "%s: ERROR: ", my_name);
+          len = bsnprintf(buf, sizeof(buf), "%s: ERROR: ", my_name);
        else
-	  len = bsnprintf(buf, sizeof(buf), "%s: ERROR in %s:%d ", my_name, file, line);
+          len = bsnprintf(buf, sizeof(buf), "%s: ERROR in %s:%d ", my_name, file, line);
        break;
     case M_WARNING:
        len = bsnprintf(buf, sizeof(buf), "%s: Warning: ", my_name);
@@ -1002,7 +1002,7 @@ Jmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...)
     const char *job;
 
 
-    Dmsg1(800, "Enter Jmsg type=%d\n", type);
+    Dmsg1(850, "Enter Jmsg type=%d\n", type);
 
     /* Special case for the console, which has a dir_bsock and JobId==0,
      *	in that case, we send the message directly back to the

@@ -3,7 +3,7 @@
  */
 
 /*
-   Copyright (C) 2000-2003 Kern Sibbald and John Walker
+   Copyright (C) 2003-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -32,9 +32,9 @@
  * Loop var through each member of table
  */
 #define foreach_htable(var, tbl) \
-	for(((void *)(var))=(tbl)->first(); \
-	    (var); \
-	    ((void *)(var))=(tbl)->next())
+        for((*((void **)&(var))=(void *)((tbl)->first())); \
+            (var); \
+            (*((void **)&(var))=(void *)((tbl)->next())))
 
 struct hlink {
    void *next;                        /* next hash item */

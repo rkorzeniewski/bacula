@@ -5,7 +5,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -184,6 +184,13 @@
 #define MD5_SIG  1
 #define SHA1_SIG 2
 
+/*
+ * Tape label types -- stored in catalog
+ */
+#define B_BACULA_LABEL 0
+#define B_ANSI_LABEL   1
+#define B_IBM_LABEL    2
+
 /* Size of File Address stored in STREAM_SPARSE_DATA. Do NOT change! */
 #define SPARSE_FADDR_SIZE (sizeof(uint64_t))
 
@@ -260,13 +267,13 @@ extern void _v(char *file, int line, pthread_mutex_t *m);
 #define P(x) \
    do { int errstat; if ((errstat=pthread_mutex_lock(&(x)))) \
       e_msg(__FILE__, __LINE__, M_ABORT, 0, "Mutex lock failure. ERR=%s\n",\
-	   strerror(errstat)); \
+           strerror(errstat)); \
    } while(0)
 
 #define V(x) \
    do { int errstat; if ((errstat=pthread_mutex_unlock(&(x)))) \
-	 e_msg(__FILE__, __LINE__, M_ABORT, 0, "Mutex unlock failure. ERR=%s\n",\
-	   strerror(errstat)); \
+         e_msg(__FILE__, __LINE__, M_ABORT, 0, "Mutex unlock failure. ERR=%s\n",\
+           strerror(errstat)); \
    } while(0)
 
 #endif /* DEBUG_MUTEX */
@@ -275,13 +282,13 @@ extern void _v(char *file, int line, pthread_mutex_t *m);
 #define Pw(x) \
    do { int errstat; if ((errstat=rwl_writelock(&(x)))) \
       e_msg(__FILE__, __LINE__, M_ABORT, 0, "Write lock lock failure. ERR=%s\n",\
-	   strerror(errstat)); \
+           strerror(errstat)); \
    } while(0)
 
 #define Vw(x) \
    do { int errstat; if ((errstat=rwl_writeunlock(&(x)))) \
-	 e_msg(__FILE__, __LINE__, M_ABORT, 0, "Write lock unlock failure. ERR=%s\n",\
-	   strerror(errstat)); \
+         e_msg(__FILE__, __LINE__, M_ABORT, 0, "Write lock unlock failure. ERR=%s\n",\
+           strerror(errstat)); \
    } while(0)
 
 #define LockRes()   b_LockRes(__FILE__, __LINE__)
