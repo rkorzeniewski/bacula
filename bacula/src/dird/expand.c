@@ -130,6 +130,9 @@ static int job_item(JCR *jcr, int code,
 struct s_built_in_vars {char *var_name; int code; int (*func)(JCR *jcr, int code,
 			 const char **val_ptr, int *val_len, int *val_size);};
 
+/*
+ * Table of build in variables
+ */
 static struct s_built_in_vars built_in_vars[] = {
    { N_("Year"),       1, date_item},
    { N_("Month"),      2, date_item},
@@ -156,6 +159,10 @@ static struct s_built_in_vars built_in_vars[] = {
 };
 
 
+/*
+ * Search the table of built-in variables, and if found,
+ *   call the appropriate subroutine to do the work.
+ */
 static var_rc_t lookup_built_in_var(var_t *ctx, void *my_ctx, 
 	  const char *var_ptr, int var_len, int var_index, 
 	  const char **val_ptr, int *val_len, int *val_size)
@@ -200,30 +207,32 @@ static var_rc_t lookup_counter_var(var_t *ctx, void *my_ctx,
 	 *val_ptr = bstrdup(buf);
 	 *val_len = strlen(buf);
 	 *val_size = *val_len;
-	 if (var_inc && counter->Catalog) {
-	    COUNTER_DBR cr;
-	    JCR *jcr = (JCR *)my_ctx;
-	    memset(&cr, 0, sizeof(cr));
-	    bstrncpy(cr.Counter, counter->hdr.name, sizeof(cr.Counter));
-	    cr.MinValue = counter->MinValue;
-	    cr.MaxValue = counter->MaxValue;
+	 if (var_inc) { 	      /* increment the variable? */
 	    if (counter->CurrentValue == counter->MaxValue) {
 	       counter->CurrentValue = counter->MinValue;
 	    } else {
 	       counter->CurrentValue++;
 	    }
-	    cr.CurrentValue = counter->CurrentValue;
-            Dmsg1(100, "New value=%d\n", cr.CurrentValue);
-	    if (counter->WrapCounter) {
-	       bstrncpy(cr.WrapCounter, counter->WrapCounter->hdr.name, sizeof(cr.WrapCounter));
-	    } else {
-	       cr.WrapCounter[0] = 0;
+	    if (counter->Catalog) {   /* update catalog if need be */
+	       COUNTER_DBR cr;
+	       JCR *jcr = (JCR *)my_ctx;
+	       memset(&cr, 0, sizeof(cr));
+	       bstrncpy(cr.Counter, counter->hdr.name, sizeof(cr.Counter));
+	       cr.MinValue = counter->MinValue;
+	       cr.MaxValue = counter->MaxValue;
+	       cr.CurrentValue = counter->CurrentValue;
+               Dmsg1(100, "New value=%d\n", cr.CurrentValue);
+	       if (counter->WrapCounter) {
+		  bstrncpy(cr.WrapCounter, counter->WrapCounter->hdr.name, sizeof(cr.WrapCounter));
+	       } else {
+		  cr.WrapCounter[0] = 0;
+	       }
+	       if (!db_update_counter_record(jcr, jcr->db, &cr)) {
+                  Jmsg(jcr, M_ERROR, 0, _("Count not update counter %s: ERR=%s\n"),
+		     counter->hdr.name, db_strerror(jcr->db));
+	       }
 	    }
-	    if (!db_update_counter_record(jcr, jcr->db, &cr)) {
-               Jmsg(jcr, M_ERROR, 0, _("Count not update counter %s: ERR=%s\n"),
-		  counter->hdr.name, db_strerror(jcr->db));
-	    }
-	 }  
+	 }	 
 	 stat = VAR_OK;
 	 break;
       }
@@ -234,7 +243,7 @@ static var_rc_t lookup_counter_var(var_t *ctx, void *my_ctx,
 
 
 /*
- * Called here to look up a variable   
+ * Called here from "core" expand code to look up a variable   
  */
 static var_rc_t lookup_var(var_t *ctx, void *my_ctx, 
 	  const char *var_ptr, int var_len, int var_inc, int var_index, 
@@ -244,6 +253,7 @@ static var_rc_t lookup_var(var_t *ctx, void *my_ctx,
    var_rc_t stat;
    int count;
 
+   /* Note, if val_size > 0 and val_ptr!=NULL, the core code will free() it */
    if ((stat = lookup_built_in_var(ctx, my_ctx, var_ptr, var_len, var_index,
 	val_ptr, val_len, val_size)) == VAR_OK) {
       return VAR_OK;
@@ -268,7 +278,7 @@ static var_rc_t lookup_var(var_t *ctx, void *my_ctx,
    if (var_index == 0) {
       *val_ptr = val;
       *val_len = strlen(val);
-      *val_size = 0;
+      *val_size = 0;                  /* don't try to free val_ptr */
       return VAR_OK;
    }
    /* He wants to index the "array" */

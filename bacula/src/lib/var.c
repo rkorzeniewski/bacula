@@ -690,11 +690,12 @@ parse_opargtext_or_variable(
 		goto error_return;
 	    }
 	}
+	tokenbuf_free(&tmp);	      /* KES 11/9/2003 */
     } while (rc > 0);
     tokenbuf_free(&tmp);
     return (p - begin);
 
-    error_return:
+error_return:
     tokenbuf_free(&tmp);
     tokenbuf_free(result);
     return rc;
@@ -740,12 +741,13 @@ parse_exptext_or_variable(
 		goto error_return;
 	    }
 	}
+	tokenbuf_free(&tmp);	      /* KES 11/9/2003 */
     } while (rc > 0);
 
     tokenbuf_free(&tmp);
     return (p - begin);
 
-    error_return:
+error_return:
     tokenbuf_free(&tmp);
     tokenbuf_free(result);
     return rc;
@@ -791,12 +793,13 @@ parse_substext_or_variable(
 		goto error_return;
 	    }
 	}
+	tokenbuf_free(&tmp);	      /* KES 11/9/2003 */
     } while (rc > 0);
 
     tokenbuf_free(&tmp);
     return (p - begin);
 
-    error_return:
+error_return:
     tokenbuf_free(&tmp);
     tokenbuf_free(result);
     return rc;
@@ -934,7 +937,7 @@ op_transpose(
     tokenbuf_free(&dstclass);
     return VAR_OK;
 
-    error_return:
+error_return:
     tokenbuf_free(search);
     tokenbuf_free(replace);
     tokenbuf_free(&srcclass);
@@ -1633,7 +1636,7 @@ parse_operation(
     return (p - begin);
 
     /* return with an error */
-    error_return:
+error_return:
     tokenbuf_free(data);
     tokenbuf_free(&tmptokbuf);
     tokenbuf_free(&search);
@@ -1695,10 +1698,10 @@ parse_numexp_operand(
 		return rc;
 	    p += rc;
 	    *result = 0;
-	}
-	else if (rc < 0)
+	    tokenbuf_free(&tmp);      /* KES 11/9/2003 */
+	} else if (rc < 0) {
 	    return rc;
-	else {
+	} else {
 	    p += rc;
 	    /* parse remaining numerical expression */
 	    rc = parse_numexp(var, ctx, tmp.begin, tmp.end, result, failed);
@@ -1926,6 +1929,7 @@ parse_variable_complex(
 	    }
 	    p += rc;
 	}
+	tokenbuf_free(&tmp);	      /* KES 11/9/2003 */
     } while (rc > 0);
 
     /* we must have the complete expanded variable name now, 
@@ -1996,7 +2000,7 @@ parse_variable_complex(
     }
 
     /* parse optional post-operations */
-    goahead:
+goahead:
     if (p[-1] == ':') {
 	tokenbuf_free(&tmp);
 	tokenbuf_init(&tmp);
@@ -2029,9 +2033,9 @@ parse_variable_complex(
 	if (ctx->force_expand) {
 	    rc = VAR_ERR_UNDEFINED_VARIABLE;
 	    goto error_return;
-	}
-	else
+	} else {
 	    tokenbuf_set(result, begin - 1, p, 0);
+	}
     }
 
     /* return successfully */
@@ -2040,7 +2044,7 @@ parse_variable_complex(
     return (p - begin);
 
     /* return with an error */
-    error_return:
+error_return:
     tokenbuf_free(&name);
     tokenbuf_free(&tmp);
     tokenbuf_free(result);

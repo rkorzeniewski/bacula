@@ -60,8 +60,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                    PSTR CmdLine, int iCmdShow)
 {
    char *szCmdLine = CmdLine;
-   char *wordPtr,*tempPtr;
-   int i,quote;
+   char *wordPtr, *tempPtr;
+   int i, quote;
 
    /* Save the application instance and main thread id */
    hAppInstance = hInstance;
@@ -80,15 +80,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     * the last character before first space is a double
     * quote, we throw away the junk.
     */
+
    wordPtr = szCmdLine;
    while (*wordPtr && *wordPtr != ' ')
       wordPtr++;
    if (wordPtr > szCmdLine)      /* backup to char before space */
       wordPtr--;
    /* if first character is not a quote and last is, junk it */
-   if (*szCmdLine != '"' && *wordPtr == '"')
+   if (*szCmdLine != '"' && *wordPtr == '"') {
       szCmdLine = wordPtr + 1;
-   //      MessageBox(NULL, szCmdLine, "Cmdline", MB_OK);
+   }
+// MessageBox(NULL, szCmdLine, "Cmdline", MB_OK);
 
    /* Build Unix style argc *argv[] */      
 
