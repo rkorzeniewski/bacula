@@ -7,7 +7,6 @@ New directives:
 - "Close on Poll = yes/no" in SD Device resource.
 - "Volume Poll Interval = time-interval" in SD Device resource.
 - "Two EOF = yes/no" in SD Device resource.
-- "Close on Poll = yes/no" in SD Device resource.
 - "Maximum Network Buffer Size = size" in SD Device resource.
 - "Maximum Network Buffer Size = size" in FD FileDaemon (or Client) resource.
 - "Console" new resource in Director conf file.

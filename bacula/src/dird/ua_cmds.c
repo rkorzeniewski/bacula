@@ -554,7 +554,7 @@ static int create_cmd(UAContext *ua, char *cmd)
 static int setip_cmd(UAContext *ua, char *cmd) 
 {
    CLIENT *client;
-   if (!ua->cons && acl_access_ok(ua, Client_ACL, ua->cons->hdr.name)) {
+   if (!ua->cons || !acl_access_ok(ua, Client_ACL, ua->cons->hdr.name)) {
       bsendmsg(ua, _("Illegal command from this console.\n"));
       return 1;
    }

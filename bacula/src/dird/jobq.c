@@ -197,20 +197,20 @@ int jobq_add(jobq_t *jq, JCR *jcr)
    wait_pkt *sched_pkt;
     
     
-   Dmsg1(100, "jobq_add jobid=%d\n", jcr->JobId);
    if (jq->valid != JOBQ_VALID) {
       return EINVAL;
    }
 
    jcr->use_count++;		      /* mark jcr in use by us */
 
+   Dmsg3(100, "jobq_add jobid=%d jcr=0x%x use_count=%d\n", jcr->JobId, jcr, jcr->use_count);
    if (!job_canceled(jcr) && wtime > 0) {
       set_thread_concurrency(jq->max_workers + 2);
       sched_pkt = (wait_pkt *)malloc(sizeof(wait_pkt));
       sched_pkt->jcr = jcr;
       sched_pkt->jq = jq;
       stat = pthread_create(&id, &jq->attr, sched_wait, (void *)sched_pkt);	   
-      if (!stat) {		      /* thread not created */
+      if (stat != 0) {		      /* thread not created */
 	 jcr->use_count--;	      /* release jcr */
       }
       return stat;
@@ -233,7 +233,7 @@ int jobq_add(jobq_t *jq, JCR *jcr)
       Dmsg1(100, "Prepended job=%d to ready queue\n", jcr->JobId);
    } else {
       /* Add this job to the wait queue in priority sorted order */
-      foreach_dlist (li, jq->waiting_jobs) {
+      foreach_dlist(li, jq->waiting_jobs) {
          Dmsg2(100, "waiting item jobid=%d priority=%d\n",
 	    li->jcr->JobId, li->jcr->JobPriority);
 	 if (li->jcr->JobPriority > jcr->JobPriority) {
@@ -274,7 +274,7 @@ int jobq_remove(jobq_t *jq, JCR *jcr)
    bool found = false;
    jobq_item_t *item;
     
-   Dmsg1(100, "jobq_remove jobid=%d\n", jcr->JobId);
+   Dmsg2(100, "jobq_remove jobid=%d jcr=0x%x\n", jcr->JobId, jcr);
    if (jq->valid != JOBQ_VALID) {
       return EINVAL;
    }
@@ -283,19 +283,22 @@ int jobq_remove(jobq_t *jq, JCR *jcr)
       return stat;
    }
 
-   foreach_dlist (item, jq->waiting_jobs) {
+   foreach_dlist(item, jq->waiting_jobs) {
       if (jcr == item->jcr) {
 	 found = true;
 	 break;
       }
    }
    if (!found) {
+      pthread_mutex_unlock(&jq->mutex);
+      Dmsg2(100, "jobq_remove jobid=%d jcr=0x%x not in wait queue\n", jcr->JobId, jcr);
       return EINVAL;
    }
 
    /* Move item to be the first on the list */
    jq->waiting_jobs->remove(item);
    jq->ready_jobs->prepend(item);
+   Dmsg2(100, "jobq_remove jobid=%d jcr=0x%x moved to ready queue\n", jcr->JobId, jcr);
    
    stat = start_server(jq);
 

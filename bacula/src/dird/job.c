@@ -85,7 +85,7 @@ static void job_monitor_watchdog(watchdog_t *self)
 
    control_jcr = (JCR *) self->data;
 
-   Dmsg1(200, "job_monitor_watchdog %p called\n", self);
+   Dmsg1(400, "job_monitor_watchdog %p called\n", self);
 
    lock_jcr_chain();
 
@@ -93,7 +93,7 @@ static void job_monitor_watchdog(watchdog_t *self)
       bool cancel;
 
       if (jcr->JobId == 0) {
-         Dmsg2(200, "Skipping JCR %p (%s) with JobId 0\n",
+         Dmsg2(400, "Skipping JCR %p (%s) with JobId 0\n",
 	       jcr, jcr->Job);
 	 /* Keep reference counts correct */
 	 free_locked_jcr(jcr);
@@ -291,7 +291,6 @@ void run_job(JCR *jcr)
       goto bail_out;
    }
    jcr->JobId = jcr->jr.JobId;
-   ASSERT(jcr->jr.JobId > 0);
 
    Dmsg4(50, "Created job record JobId=%d Name=%s Type=%c Level=%c\n", 
        jcr->JobId, jcr->Job, jcr->jr.Type, jcr->jr.Level);
@@ -299,7 +298,8 @@ void run_job(JCR *jcr)
 
    /* Queue the job to be run */
    if ((stat = jobq_add(&job_queue, jcr)) != 0) {
-      Emsg1(M_ABORT, 0, _("Could not add job queue: ERR=%s\n"), strerror(stat));
+      Jmsg(jcr, M_FATAL, 0, _("Could not add job queue: ERR=%s\n"), strerror(stat));
+      goto bail_out;
    }
    Dmsg0(100, "Done run_job()\n");
 

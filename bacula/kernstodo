@@ -70,6 +70,13 @@ For 1.33 Testing/Documentation:
      http://howtos.linux.com/guides/nag2/x-087-2-nfs.mountd.shtml
 
 For 1.33
+- Allow "delete job jobid=xx jobid=xxx".   
+- Allow "delete job jobid=xxx,yyy,aaa-bbb" i.e. list + ranges.
+- Implement multiple Volume in "purge jobs volume=".
+- Implement a JobSet, which groups any number of jobs. If the
+  JobSet is started, all the jobs are started together.
+  Allow Pool, Level, and Schedule overrides.
+- Enhance cancel to timout BSOCK packets after a specific delay.
 - When I restore to Windows the Created, Accessed and Modifiedtimes are
   those of the time of the restore, not those of the originalfile.  
   The dates you will find in your restore log seem to be the original
@@ -78,8 +85,8 @@ For 1.33
 - Write a Qmsg() to be used in bnet.c to prevent recursion.  Queue the
   message. If dequeueing toss the messages. Lock while dequeuing so that
   it cannot be called recursively and set dequeuing flag.
-- Look at ASSERT() at 384 src/lib/bnet.c
-- Add all pools in Dir conf to DB.
+- Add all pools in Dir conf to DB also update them to catch changed
+  LabelFormats and such.
 - Symbolic link a directory to another one, then backup the symbolic
   link.
 - Build console in client-only build.
@@ -1221,3 +1228,4 @@ Done: (see kernsdone for more)
      Incremental Backup Pool = yyy
      Differential Backup Pool = zzz
    }
+- Look at ASSERT() at 384 src/lib/bnet.c

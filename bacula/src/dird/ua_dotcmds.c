@@ -79,14 +79,13 @@ static struct cmdstruct commands[] = {
  */
 int do_a_dot_command(UAContext *ua, char *cmd)
 {
-   unsigned int i;
+   int i;
    int len, stat;  
-   int found;
+   bool found = false;
 
-   found = 0;
    stat = 1;
 
-   Dmsg1(200, "Dot command: %s\n", ua->UA_sock->msg);
+   Dmsg1(400, "Dot command: %s\n", ua->UA_sock->msg);
    if (ua->argc == 0) {
       return 1;
    }
@@ -95,15 +94,15 @@ int do_a_dot_command(UAContext *ua, char *cmd)
    if (len == 1) {
       return 1; 		      /* no op */
    }
-   for (i=0; i<comsize; i++) {	   /* search for command */
+   for (i=0; i<(int)comsize; i++) {	/* search for command */
       if (strncasecmp(ua->argk[0],  _(commands[i].key), len) == 0) {
 	 stat = (*commands[i].func)(ua, cmd);	/* go execute command */
-	 found = 1;
+	 found = true;
 	 break;
       }
    }
    if (!found) {
-      strcat(ua->UA_sock->msg, _(": is an illegal command\n"));
+      pm_strcat(&ua->UA_sock->msg, _(": is an illegal command\n"));
       ua->UA_sock->msglen = strlen(ua->UA_sock->msg);
       bnet_send(ua->UA_sock);
    }

@@ -234,10 +234,10 @@ void free_jcr(JCR *jcr)
 
    P(jcr_chain_mutex);
    jcr->use_count--;		      /* decrement use count */
-   Dmsg3(200, "Dec jcr 0x%x use_count=%d jobid=%d\n", jcr, jcr->use_count, jcr->JobId);
+   Dmsg3(200, "Dec free_jcr 0x%x use_count=%d jobid=%d\n", jcr, jcr->use_count, jcr->JobId);
    if (jcr->use_count > 0) {	      /* if in use */
       V(jcr_chain_mutex);
-      Dmsg2(200, "jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
+      Dmsg2(200, "free_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
       return;
    }
    remove_jcr(jcr);
@@ -275,7 +275,7 @@ void free_jcr(JCR *jcr)
 void free_locked_jcr(JCR *jcr)
 {
    jcr->use_count--;		      /* decrement use count */
-   Dmsg2(200, "Dec jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
+   Dmsg2(200, "Dec free_locked_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
    if (jcr->use_count > 0) {	      /* if in use */
       return;
    }
@@ -302,7 +302,7 @@ JCR *get_jcr_by_id(uint32_t JobId)
 	 P(jcr->mutex);
 	 jcr->use_count++;
 	 V(jcr->mutex);
-         Dmsg2(200, "Inc jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
+         Dmsg2(200, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
 	 break;
       }
    }
@@ -326,7 +326,7 @@ JCR *get_jcr_by_session(uint32_t SessionId, uint32_t SessionTime)
 	 P(jcr->mutex);
 	 jcr->use_count++;
 	 V(jcr->mutex);
-         Dmsg2(200, "Inc jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
+         Dmsg2(200, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
 	 break;
       }
    }
@@ -357,7 +357,7 @@ JCR *get_jcr_by_partial_name(char *Job)
 	 P(jcr->mutex);
 	 jcr->use_count++;
 	 V(jcr->mutex);
-         Dmsg2(200, "Inc jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
+         Dmsg2(200, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
 	 break;
       }
    }
@@ -385,7 +385,7 @@ JCR *get_jcr_by_full_name(char *Job)
 	 P(jcr->mutex);
 	 jcr->use_count++;
 	 V(jcr->mutex);
-         Dmsg2(200, "Inc jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
+         Dmsg2(200, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
 	 break;
       }
    }
@@ -428,22 +428,22 @@ void unlock_jcr_chain()
 }
 
 
-JCR *get_next_jcr(JCR *jcr)
+JCR *get_next_jcr(JCR *prev_jcr)
 {
-   JCR *rjcr;
+   JCR *jcr;
 
-   if (jcr == NULL) {
-      rjcr = jobs;
+   if (prev_jcr == NULL) {
+      jcr = jobs;
    } else {
-      rjcr = jcr->next;
+      jcr = prev_jcr->next;
    }
-   if (rjcr) {
-      P(rjcr->mutex);
-      rjcr->use_count++;
-      V(rjcr->mutex);
-      Dmsg1(200, "Inc jcr use_count=%d\n", rjcr->use_count);
+   if (jcr) {
+      P(jcr->mutex);
+      jcr->use_count++;
+      V(jcr->mutex);
+      Dmsg2(200, "Inc get_next_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
    }
-   return rjcr;
+   return jcr;
 }
 
 bool init_jcr_subsystem(void)
@@ -466,7 +466,7 @@ static void jcr_timeout_check(watchdog_t *self)
    BSOCK *fd;
    time_t timer_start;
 
-   Dmsg0(200, "Start JCR timeout checks\n");
+   Dmsg0(400, "Start JCR timeout checks\n");
 
    /* Walk through all JCRs checking if any one is 
     * blocked for more than specified max time.

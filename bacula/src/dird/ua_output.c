@@ -441,8 +441,6 @@ RUN *find_next_run(RUN *run, JOB *job, time_t &runtime)
    int woy, twoy;
    int tod, tom;
 
-   Dmsg0(200, "enter find_runs()\n");
-
    sched = job->schedule;
    if (sched == NULL) { 	   /* scheduled? */
       return NULL;		   /* no nothing to report */
@@ -517,7 +515,7 @@ RUN *find_next_run(RUN *run, JOB *job, time_t &runtime)
 	 tm.tm_min = run->minute;
 	 tm.tm_sec = 0;
 	 runtime = mktime(&tm);
-         Dmsg2(200, "truntime=%d now=%d\n", runtime, now);
+//       Dmsg2(200, "truntime=%d now=%d\n", runtime, now);
 	 if (runtime < tomorrow) {
 	    return run; 	      /* found it, return run resource */
 	 }

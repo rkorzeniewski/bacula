@@ -74,11 +74,11 @@ struct RESTORE_CTX {
    uint32_t selected_files;
    char *where;
    RBSR *bsr;
-   POOLMEM *fname;
-   POOLMEM *path;
+   POOLMEM *fname;		      /* filename only */
+   POOLMEM *path;		      /* path only */
    POOLMEM *query;
-   int fnl;
-   int pnl;
+   int fnl;			      /* filename length */
+   int pnl;			      /* path length */
    bool found;
    NAME_LIST name_list;
 };

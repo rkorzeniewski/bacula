@@ -17980,7 +17980,8 @@ suse)
 	    platforms/suse/Makefile \
 	    platforms/suse/bacula-fd \
 	    platforms/suse/bacula-sd \
-	    platforms/suse/bacula-dir"
+	    platforms/suse/bacula-dir \
+	    platforms/suse/bacula.spec"
   ;;
 suse5)
 	DISTNAME=suse
