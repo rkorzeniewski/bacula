@@ -565,19 +565,20 @@ static int setip_cmd(UAContext *ua, char *cmd)
       bsendmsg(ua, _("Illegal command from this console.\n"));
       return 1;
    }
+   LockRes();
    client = (CLIENT *)GetResWithName(R_CLIENT, ua->cons->hdr.name);
 
    if (!client) {
       bsendmsg(ua, _("Client \"%s\" not found.\n"), ua->cons->hdr.name);
-      return 1;
+      goto get_out;
    }
-   LockRes();
    if (client->address) {
       free(client->address);
    }
    client->address = bstrdup(inet_ntoa(ua->UA_sock->client_addr.sin_addr));
    bsendmsg(ua, _("Client \"%s\" address set to %s\n"),
 	    client->hdr.name, client->address);
+get_out:
    UnlockRes();
    return 1;
 }
@@ -591,6 +592,8 @@ static int setip_cmd(UAContext *ua, char *cmd)
  *	   updates pool from Pool resource
  *    update media pool=<pool-name> volume=<volume-name>
  *	   changes pool info for volume
+ *    update slots [scan=...]
+ *	   updates autochanger slots
  */
 static int update_cmd(UAContext *ua, char *cmd) 
 {

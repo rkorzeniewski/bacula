@@ -766,9 +766,10 @@ STORE *get_storage_resource(UAContext *ua, int use_default)
 
    for (i=1; i<ua->argc; i++) {
       if (use_default && !ua->argv[i]) {
-	 /* Ignore scan and barcode(s) keywords */
+	 /* Ignore slots, scan and barcode(s) keywords */
          if (strncasecmp("scan", ua->argk[i], 4) == 0 ||
-             strncasecmp("barcode", ua->argk[i], 7) == 0) {
+             strncasecmp("barcode", ua->argk[i], 7) == 0 ||
+             strncasecmp("slots", ua->argk[i], 5) == 0) {
 	    continue;
 	 }
 	 /* Default argument is storage */
