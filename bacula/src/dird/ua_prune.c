@@ -268,20 +268,25 @@ int prunecmd(UAContext *ua, char *cmd)
  * temporary tables are needed. We simply make an in memory list of
  * the JobIds meeting the prune conditions, then delete all File records
  * pointing to each of those JobIds.
+ *
+ * This routine assumes you want the pruning to be done. All checking
+ *  must be done before calling this routine.
  */
 int prune_files(UAContext *ua, CLIENT *client)
 {
    struct s_file_del_ctx del;
-   char *query = (char *)get_pool_memory(PM_MESSAGE);
+   POOLMEM *query = get_pool_memory(PM_MESSAGE);
    int i;
    btime_t now, period;
    CLIENT_DBR cr;
    char ed1[50], ed2[50];
 
+   db_lock(ua->db);
    memset(&cr, 0, sizeof(cr));
    memset(&del, 0, sizeof(del));
    strcpy(cr.Name, client->hdr.name);
    if (!db_create_client_record(ua->db, &cr)) {
+      db_unlock(ua->db);
       return 0;
    }
 
@@ -344,6 +349,7 @@ int prune_files(UAContext *ua, CLIENT *client)
       ed1, ed2, client->hdr.name, client->catalog->hdr.name);
    
 bail_out:
+   db_unlock(ua->db);
    if (del.JobId) {
       free(del.JobId);
    }
@@ -394,10 +400,12 @@ int prune_jobs(UAContext *ua, CLIENT *client)
    CLIENT_DBR cr;
    char ed1[50];
 
+   db_lock(ua->db);
    memset(&cr, 0, sizeof(cr));
    memset(&del, 0, sizeof(del));
    strcpy(cr.Name, client->hdr.name);
    if (!db_create_client_record(ua->db, &cr)) {
+      db_unlock(ua->db);
       return 0;
    }
 
@@ -441,7 +449,7 @@ int prune_jobs(UAContext *ua, CLIENT *client)
       
    if (cnt.count == 0) {
       if (ua->verbose) {
-         bsendmsg(ua, _("No Jobs for client %s found to prune from %s catalog.\n"),
+         bsendmsg(ua, _("No Jobs found for client %s to prune from %s catalog.\n"),
 	    client->hdr.name, client->catalog->hdr.name);
       }
       goto bail_out;
@@ -484,6 +492,7 @@ int prune_jobs(UAContext *ua, CLIENT *client)
    
 bail_out:
    drop_temp_tables(ua);
+   db_unlock(ua->db);
    if (del.JobId) {
       free(del.JobId);
    }
@@ -495,17 +504,18 @@ bail_out:
 }
 
 /*
- * Prune volumes
+ * Prune a given Volume
  */
 int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
 {
    char *query = (char *)get_pool_memory(PM_MESSAGE);
    struct s_count_ctx cnt;
    struct s_file_del_ctx del;
-   int i;
+   int i, stat = 0;
    JOB_DBR jr;
    btime_t now, period;
 
+   db_lock(ua->db);
    memset(&jr, 0, sizeof(jr));
    memset(&del, 0, sizeof(del));
    cnt.count = 0;
@@ -513,7 +523,7 @@ int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
    if (!db_sql_query(ua->db, query, count_handler, (void *)&cnt)) {
       bsendmsg(ua, "%s", db_strerror(ua->db));
       Dmsg0(050, "Count failed\n");
-      goto bail_out;
+      goto rtn;
    }
       
    if (cnt.count == 0) {
@@ -521,10 +531,8 @@ int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
          bsendmsg(ua, "There are no Jobs associated with Volume %s. It is purged.\n",
 	    mr->VolumeName);
       }
-      if (!mark_media_purged(ua, mr)) {
-	 goto bail_out;
-      }
-      goto bail_out;
+      stat = mark_media_purged(ua, mr);
+      goto rtn;
    }
 
    if (cnt.count < MAX_DEL_LIST_LEN) {
@@ -535,28 +543,32 @@ int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
 
    del.JobId = (JobId_t *)malloc(sizeof(JobId_t) * del.max_ids);
 
+   /* ***FIXME*** could make this do JobTDate check too */
    Mmsg(&query, "SELECT JobId FROM JobMedia WHERE MediaId=%d", mr->MediaId);
    if (!db_sql_query(ua->db, query, file_delete_handler, (void *)&del)) {
       if (ua->verbose) {
          bsendmsg(ua, "%s", db_strerror(ua->db));
       }
       Dmsg0(050, "Count failed\n");
-      goto bail_out;
+      goto rtn;
    }
 
-   /* Use Volume Retention to purge Jobs and Files */
+   /* Use Volume Retention to prune Jobs and Files */
    period = mr->VolRetention;
    now = (btime_t)time(NULL);
 
+   Dmsg3(200, "Now=%d period=%d now-period=%d\n", (int)now, (int)period,
+      (int)(now-period));
    for (i=0; i < del.num_ids; i++) {
       jr.JobId = del.JobId[i];
       if (!db_get_job_record(ua->db, &jr)) {
 	 continue;
       }
+      Dmsg2(200, "Looking at %s JobTdate=%d\n", jr.Job, (int)jr.JobTDate);
       if (jr.JobTDate >= (now - period)) {
 	 continue;
       }
-      Dmsg1(050, "Delete JobId=%d\n", del.JobId[i]);
+      Dmsg2(200, "Delete JobId=%d Job=%s\n", del.JobId[i], jr.Job);
       Mmsg(&query, "DELETE FROM File WHERE JobId=%d", del.JobId[i]);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
       Mmsg(&query, "DELETE FROM Job WHERE JobId=%d", del.JobId[i]);
@@ -569,17 +581,21 @@ int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
    if (del.JobId) {
       free(del.JobId);
    }
-   bsendmsg(ua, _("Pruned %d Jobs on Volume %s from catalog.\n"), del.num_del,
-      mr->VolumeName);
+   if (ua->verbose) {
+      bsendmsg(ua, _("Pruned %d Jobs on Volume %s from catalog.\n"), del.num_del,
+	 mr->VolumeName);
+   }
 
    /* If purged, mark it so */
    if (del.num_ids == del.num_del) {
-      mark_media_purged(ua, mr);
+      Dmsg0(200, "Volume is purged.\n");
+      stat = mark_media_purged(ua, mr);
    }
 
-bail_out:   
+rtn:
+   db_unlock(ua->db);
    free_pool_memory(query);
-   return 1;
+   return stat;
 }
 
 static int mark_media_purged(UAContext *ua, MEDIA_DBR *mr)
@@ -593,6 +609,7 @@ static int mark_media_purged(UAContext *ua, MEDIA_DBR *mr)
 	 }
 	 return 0;
       }
+      return 1;
    }
-   return 1;
+   return strcpy(mr->VolStatus, "Purged") == 0;
 }

@@ -281,13 +281,13 @@ void rem_msg_dest(MSGS *msg, int dest_code, int msg_type, char *where)
  * Concatenate a string (str) onto a message (msg)
  *  return new message pointer
  */
-static void add_str(char **base, char **msg, char *str)
+static void add_str(POOLMEM **base, char **msg, char *str)
 {
    int len = strlen(str) + 1;
    char *b, *m;
 
    b = *base;
-   *base = (char *) check_pool_memory_size(*base, len);
+   *base = check_pool_memory_size(*base, len);
    m = *base - b + *msg;
    while (*str) {
       *m++ = *str++;
@@ -306,8 +306,12 @@ static char *job_status_to_str(int stat)
    case JS_Terminated:
       str = "OK";
       break;
-   case JS_Errored:
+   case JS_ErrorTerminated:
+   case JS_Error:
       str = "Error";
+      break;
+   case JS_FatalError:
+      str = "Fatal Error";
       break;
    case JS_Cancelled:
       str = "Cancelled";
@@ -628,7 +632,7 @@ void term_msg()
 /*
  * Handle sending the message to the appropriate place
  */
-void dispatch_message(void *vjcr, int type, int level, char *buf)
+void dispatch_message(void *vjcr, int type, int level, char *msg)
 {
     DEST *d;   
     char cmd[MAXSTRING];
@@ -637,10 +641,10 @@ void dispatch_message(void *vjcr, int type, int level, char *buf)
     int len;
     MSGS *msgs;
 
-    Dmsg2(200, "Enter dispatch_msg type=%d msg=%s\n", type, buf);
+    Dmsg2(200, "Enter dispatch_msg type=%d msg=%s\n", type, msg);
 
     if (type == M_ABORT) {
-       fprintf(stdout, buf);	      /* print this here to INSURE that it is printed */
+       fprintf(stdout, msg);	      /* print this here to INSURE that it is printed */
     }
 
     /* Now figure out where to send the message */
@@ -655,7 +659,7 @@ void dispatch_message(void *vjcr, int type, int level, char *buf)
        if (bit_is_set(type, d->msg_types)) {
 	  switch (d->dest_code) {
 	     case MD_CONSOLE:
-                Dmsg1(200, "CONSOLE for following err: %s\n", buf);
+                Dmsg1(200, "CONSOLE for following err: %s\n", msg);
 		if (!con_fd) {
                    con_fd = fopen(con_fname, "a+");
                    Dmsg0(200, "Console file not open.\n");
@@ -667,29 +671,29 @@ void dispatch_message(void *vjcr, int type, int level, char *buf)
 		   len = strlen(cmd);
                    cmd[len++] = ' ';
 		   fwrite(cmd, len, 1, con_fd);
-		   len = strlen(buf);
-                   if (len > 0 && buf[len-1] != '\n') {
-                      buf[len++] = '\n';
-		      buf[len] = 0;
+		   len = strlen(msg);
+                   if (len > 0 && msg[len-1] != '\n') {
+                      msg[len++] = '\n';
+		      msg[len] = 0;
 		   }
-		   fwrite(buf, len, 1, con_fd);
+		   fwrite(msg, len, 1, con_fd);
 		   fflush(con_fd);
 		   fcntl(fileno(con_fd), F_UNLCK);
 		   console_msg_pending = TRUE;
 		}
 		break;
 	     case MD_SYSLOG:
-                Dmsg1(200, "SYSLOG for following err: %s\n", buf);
+                Dmsg1(200, "SYSLOG for following err: %s\n", msg);
 		/* We really should do an openlog() here */
-		syslog(LOG_DAEMON|LOG_ERR, buf);
+		syslog(LOG_DAEMON|LOG_ERR, msg);
 		break;
 	     case MD_OPERATOR:
-                Dmsg1(200, "OPERATOR for following err: %s\n", buf);
+                Dmsg1(200, "OPERATOR for following err: %s\n", msg);
 		mcmd = get_pool_memory(PM_MESSAGE);
 		d->fd = open_mail_pipe(jcr, &mcmd, d);
 		free_pool_memory(mcmd);
 		if (d->fd) {
-		   fputs(buf, d->fd);
+		   fputs(msg, d->fd);
 		   /* Messages to the operator go one at a time */
 		   pclose(d->fd);
 		   d->fd = NULL;
@@ -697,9 +701,9 @@ void dispatch_message(void *vjcr, int type, int level, char *buf)
 		break;
 	     case MD_MAIL:
 	     case MD_MAIL_ON_ERROR:
-                Dmsg1(200, "MAIL for following err: %s\n", buf);
+                Dmsg1(200, "MAIL for following err: %s\n", msg);
 		if (!d->fd) {
-		   char *name  = (char *)get_pool_memory(PM_MESSAGE);
+		   POOLMEM *name  = get_pool_memory(PM_MESSAGE);
 		   make_unique_mail_filename(jcr, &name, d);
                    d->fd = fopen(name, "w+");
 		   if (!d->fd) {
@@ -709,14 +713,14 @@ void dispatch_message(void *vjcr, int type, int level, char *buf)
 		   }
 		   d->mail_filename = name;
 		}
-		len = strlen(buf);
+		len = strlen(msg);
 		if (len > d->max_len) {
 		   d->max_len = len;	  /* keep max line length */
 		}
-		fputs(buf, d->fd);
+		fputs(msg, d->fd);
 		break;
 	     case MD_FILE:
-                Dmsg1(200, "FILE for following err: %s\n", buf);
+                Dmsg1(200, "FILE for following err: %s\n", msg);
 		if (!d->fd) {
                    d->fd = fopen(d->where, "w+");
 		   if (!d->fd) {
@@ -724,10 +728,10 @@ void dispatch_message(void *vjcr, int type, int level, char *buf)
 		      break;
 		   }
 		}
-		fputs(buf, d->fd);
+		fputs(msg, d->fd);
 		break;
 	     case MD_APPEND:
-                Dmsg1(200, "APPEND for following err: %s\n", buf);
+                Dmsg1(200, "APPEND for following err: %s\n", msg);
 		if (!d->fd) {
                    d->fd = fopen(d->where, "a");
 		   if (!d->fd) {
@@ -735,26 +739,26 @@ void dispatch_message(void *vjcr, int type, int level, char *buf)
 		      break;
 		   }
 		}
-		fputs(buf, d->fd);
+		fputs(msg, d->fd);
 		break;
 	     case MD_DIRECTOR:
-                Dmsg1(200, "DIRECTOR for following err: %s\n", buf);
+                Dmsg1(200, "DIRECTOR for following err: %s\n", msg);
 		if (jcr && jcr->dir_bsock && !jcr->dir_bsock->errors) {
 
 		   jcr->dir_bsock->msglen = Mmsg(&(jcr->dir_bsock->msg),
                         "Jmsg Job=%s type=%d level=%d %s", jcr->Job,
-			 type, level, buf) + 1;
+			 type, level, msg) + 1;
 		   bnet_send(jcr->dir_bsock);
 		}
 		break;
 	     case MD_STDOUT:
-                Dmsg1(200, "STDOUT for following err: %s\n", buf);
+                Dmsg1(200, "STDOUT for following err: %s\n", msg);
 		if (type != M_ABORT && type != M_FATAL)  /* already printed */
-		   fprintf(stdout, buf);
+		   fprintf(stdout, msg);
 		break;
 	     case MD_STDERR:
-                Dmsg1(200, "STDERR for following err: %s\n", buf);
-		fprintf(stderr, buf);
+                Dmsg1(200, "STDERR for following err: %s\n", msg);
+		fprintf(stderr, msg);
 		break;
 	     default:
 		break;
@@ -879,16 +883,28 @@ Jmsg(void *vjcr, int type, int level, char *fmt,...)
     int i, len;
     JCR *jcr = (JCR *) vjcr;
     int typesave = type;
+    MSGS *msgs;
+    char *job;
 
     
     Dmsg1(200, "Enter Jmsg type=%d\n", type);
+
+    msgs = NULL;
+    if (jcr) {
+       msgs = jcr->msgs;
+       job = jcr->Job;
+    } 
+    if (msgs == NULL) {
+       msgs = daemon_msgs;
+       job = "*None*";
+    }
 
     buf = rbuf; 		   /* we are the Director */
     /* 
      * Check if we have a message destination defined.	
      * We always report M_ABORT 
      */
-    if (type != M_ABORT && jcr->msgs && !bit_is_set(type, jcr->msgs->send_msg)) {
+    if (type != M_ABORT && msgs && !bit_is_set(type, msgs->send_msg)) {
        Dmsg1(200, "No bit set for type %d\n", type);
        return;			      /* no destination */
     }
@@ -897,13 +913,19 @@ Jmsg(void *vjcr, int type, int level, char *fmt,...)
           sprintf(buf, "%s ABORTING due to ERROR\n", my_name);
 	  break;
        case M_FATAL:
-          sprintf(buf, "%s: Job %s Cancelled because: ", my_name, jcr->Job);
+          sprintf(buf, "%s: Job %s Fatal error: ", my_name, job);
+	  if (jcr) {
+	     jcr->JobStatus = JS_FatalError;
+	  }
 	  break;
        case M_ERROR:
-          sprintf(buf, "%s: Job %s Error: ", my_name, jcr->Job);
+          sprintf(buf, "%s: Job %s Error: ", my_name, job);
+	  if (jcr) {
+	     jcr->Errors++;
+	  }
 	  break;
        case M_WARNING:
-          sprintf(buf, "%s: Job %s Warning: ", my_name, jcr->Job);
+          sprintf(buf, "%s: Job %s Warning: ", my_name, job);
 	  break;
        default:
           sprintf(buf, "%s: ", my_name);
@@ -962,20 +984,24 @@ again:
    len = bvsnprintf(*pool_buf, maxlen, fmt, arg_ptr);
    va_end(arg_ptr);
    if (len < 0 || len >= maxlen) {
-      *pool_buf = (char *) realloc_pool_memory(*pool_buf, maxlen + 200);
+      *pool_buf = realloc_pool_memory(*pool_buf, maxlen + 200);
       goto again;
    }
    return len;
 }
 
 
+/*
+ * If we come here, prefix the message with the file:line-number,
+ *  then pass it on to the normal Jmsg routine.
+ */
 void j_msg(char *file, int line, void *jcr, int type, int level, char *fmt,...)
 {
    va_list   arg_ptr;
    int i, len, maxlen;
-   char *pool_buf;
+   POOLMEM *pool_buf;
 
-   pool_buf = (char *) get_pool_memory(PM_EMSG);
+   pool_buf = get_pool_memory(PM_EMSG);
    sprintf(pool_buf, "%s:%d ", file, line);
    i = strlen(pool_buf);
 
@@ -985,7 +1011,7 @@ again:
    len = bvsnprintf(pool_buf+i, maxlen, fmt, arg_ptr);
    va_end(arg_ptr);
    if (len < 0 || len >= maxlen) {
-      pool_buf = (char *) realloc_pool_memory(pool_buf, maxlen + i + 200);
+      pool_buf = realloc_pool_memory(pool_buf, maxlen + i + 200);
       goto again;
    }
 

@@ -80,9 +80,9 @@ int db_create_job_record(B_DB *mdb, JOB_DBR *jr)
 {
    int len;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    if (!bdb_open_jobs_file(mdb)) {
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 0;
    }
    mdb->control.JobId++;
@@ -93,11 +93,11 @@ int db_create_job_record(B_DB *mdb, JOB_DBR *jr)
    fseek(mdb->jobfd, 0L, SEEK_END);
    if (fwrite(jr, len, 1, mdb->jobfd) != 1) {
       Mmsg1(&mdb->errmsg, "Error writing DB Jobs file. ERR=%s\n", strerror(errno));
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 0;
    }
    fflush(mdb->jobfd);
-   V(mdb->mutex);
+   db_unlock(mdb);
    return 1;
 }
 
@@ -109,9 +109,9 @@ int db_create_jobmedia_record(B_DB *mdb, JOBMEDIA_DBR *jm)
 {
    int len;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    if (!bdb_open_jobmedia_file(mdb)) {
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 0;
    }
    mdb->control.JobMediaId++;
@@ -123,11 +123,11 @@ int db_create_jobmedia_record(B_DB *mdb, JOBMEDIA_DBR *jm)
    fseek(mdb->jobmediafd, 0L, SEEK_END);
    if (fwrite(jm, len, 1, mdb->jobmediafd) != 1) {
       Mmsg1(&mdb->errmsg, "Error writing DB JobMedia file. ERR=%s\n", strerror(errno));
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 0;
    }
    fflush(mdb->jobmediafd);
-   V(mdb->mutex);
+   db_unlock(mdb);
    return jm->JobMediaId;
 }
 
@@ -149,9 +149,9 @@ int db_create_pool_record(B_DB *mdb, POOL_DBR *pr)
       return 0;
    }
 
-   P(mdb->mutex);
+   db_lock(mdb);
    if (!bdb_open_pools_file(mdb)) {
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 0;
    }
 
@@ -163,11 +163,11 @@ int db_create_pool_record(B_DB *mdb, POOL_DBR *pr)
    fseek(mdb->poolfd, 0L, SEEK_END);
    if (fwrite(pr, len, 1, mdb->poolfd) != 1) {
       Mmsg1(&mdb->errmsg, "Error writing DB Pools file. ERR=%s\n", strerror(errno));
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 0;
    }
    fflush(mdb->poolfd);
-   V(mdb->mutex);
+   db_unlock(mdb);
    return 1;
 }
 
@@ -192,7 +192,7 @@ int db_create_media_record(B_DB *mdb, MEDIA_DBR *mr)
       return 0;
    }
 
-   P(mdb->mutex);
+   db_lock(mdb);
 
    mdb->control.MediaId++;
    mr->MediaId = mdb->control.MediaId;
@@ -202,11 +202,11 @@ int db_create_media_record(B_DB *mdb, MEDIA_DBR *mr)
    fseek(mdb->mediafd, 0L, SEEK_END);
    if (fwrite(mr, len, 1, mdb->mediafd) != 1) {
       Mmsg1(&mdb->errmsg, "Error writing DB Media file. ERR=%s\n", strerror(errno));
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 0;
    }
    fflush(mdb->mediafd);
-   V(mdb->mutex);
+   db_unlock(mdb);
    return 1;
 }
 
@@ -227,9 +227,9 @@ int db_create_client_record(B_DB *mdb, CLIENT_DBR *cr)
       return 1;
    }
 
-   P(mdb->mutex);
+   db_lock(mdb);
    if (!bdb_open_client_file(mdb)) {
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 0;
    }
 
@@ -241,11 +241,11 @@ int db_create_client_record(B_DB *mdb, CLIENT_DBR *cr)
    len = sizeof(lcr);
    if (fwrite(cr, len, 1, mdb->clientfd) != 1) {
       Mmsg1(&mdb->errmsg, "Error writing DB Client file. ERR=%s\n", strerror(errno));
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 0;
    }
    fflush(mdb->clientfd);
-   V(mdb->mutex);
+   db_unlock(mdb);
    return 1;
 }
 
@@ -268,9 +268,9 @@ int db_create_fileset_record(B_DB *mdb, FILESET_DBR *fsr)
       return 1;
    }
 
-   P(mdb->mutex);
+   db_lock(mdb);
    if (!bdb_open_fileset_file(mdb)) {
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 0;
    }
 
@@ -282,11 +282,11 @@ int db_create_fileset_record(B_DB *mdb, FILESET_DBR *fsr)
    len = sizeof(lfsr);
    if (fwrite(fsr,  len, 1, mdb->filesetfd) != 1) {
       Mmsg1(&mdb->errmsg, "Error writing DB FileSet file. ERR=%s\n", strerror(errno));
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 0;
    }
    fflush(mdb->filesetfd);
-   V(mdb->mutex);
+   db_unlock(mdb);
    return 1;
 }
 

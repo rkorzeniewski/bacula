@@ -42,7 +42,7 @@
 /* ****FIXME***** implement 64 bit file addresses ! */
 #define faddr_t long 
 
-#define POOLMEM char
+typedef char POOLMEM;
 
 /* Types */
 

@@ -68,11 +68,12 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 #define DB_CLIENT_FILENAME   "client.db"
 #define DB_FILESET_FILENAME  "fileset.db"
 
-static char *make_filename(B_DB *mdb, char *name)
+static POOLMEM *make_filename(B_DB *mdb, char *name)
 {
-   char *dbf, sep;
+   char sep;
+   POOLMEM *dbf;
 
-   dbf = (char *) get_pool_memory(PM_FNAME);
+   dbf = get_pool_memory(PM_FNAME);
    if (working_directory[strlen(working_directory)-1] == '/') {
       sep = 0;
    } else {
@@ -117,9 +118,9 @@ db_init_database(char *db_name, char *db_user, char *db_password)
    memset(mdb, 0, sizeof(B_DB));
    Dmsg0(200, "DB struct init\n");
    mdb->db_name = bstrdup(db_name);
-   mdb->errmsg = (char *) get_pool_memory(PM_EMSG);
+   mdb->errmsg = get_pool_memory(PM_EMSG);
    *mdb->errmsg = 0;
-   mdb->cmd = (char *) get_pool_memory(PM_EMSG);  /* command buffer */
+   mdb->cmd = get_pool_memory(PM_EMSG);  /* command buffer */
    mdb->ref_count = 1;
    qinsert(&db_list, &mdb->bq);       /* put db in list */
    Dmsg0(200, "Done db_open_database()\n");
@@ -143,13 +144,21 @@ db_open_database(B_DB *mdb)
    Dmsg1(200, "db_open_database() %s\n", mdb->db_name);
 
    P(mutex);
+#ifdef needed
    if ((errstat = pthread_mutex_init(&(mdb->mutex), NULL)) != 0) {
       Mmsg1(&mdb->errmsg, "Unable to initialize DB mutex. ERR=%s\n", strerror(errstat));
       V(mutex);
       return 0;
    }
-   P(mdb->mutex);		      /* test it once */
-   V(mdb->mutex);
+   db_lock(mdb);		     /* test it once */
+   db_unlock(mdb);
+#endif
+
+   if (rwl_init(&mdb->lock) != 0) {
+      Mmsg1(&mdb->errmsg, "Unable to initialize DB lock. ERR=%s\n", strerror(errno));
+      V(mutex);
+      return 0;
+   }
 
    Dmsg0(200, "make_filename\n");
    dbf = make_filename(mdb, DB_CONTROL_FILENAME);
@@ -257,7 +266,8 @@ void db_close_database(B_DB *mdb)
       if (mdb->filesetfd) {
 	 fclose(mdb->filesetfd);
       }
-      pthread_mutex_destroy(&mdb->mutex);
+/*    pthread_mutex_destroy(&mdb->mutex); */
+      rwl_destroy(&mdb->lock);	     
       free_pool_memory(mdb->errmsg);
       free_pool_memory(mdb->cmd);
       free(mdb);
@@ -415,5 +425,24 @@ int bdb_open_media_file(B_DB *mdb)
    }
    return 1;
 }
+
+
+void _db_lock(char *file, int line, B_DB *mdb)
+{
+   int errstat;
+   if ((errstat=rwl_writelock(&mdb->lock)) != 0) {
+      e_msg(file, line, M_ABORT, 0, "rwl_writelock failure. ERR=%s\n",
+	   strerror(errstat));
+   }
+}    
+
+void _db_unlock(char *file, int line, B_DB *mdb)
+{
+   int errstat;
+   if ((errstat=rwl_writeunlock(&mdb->lock)) != 0) {
+      e_msg(file, line, M_ABORT, 0, "rwl_writeunlock failure. ERR=%s\n",
+	   strerror(errstat));
+   }
+}    
 
 #endif /* HAVE_BACULA_DB */

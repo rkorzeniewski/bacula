@@ -198,4 +198,23 @@ char *db_strerror(B_DB *mdb)
    return mdb->errmsg;
 }
 
+void _db_lock(char *file, int line, B_DB *mdb)
+{
+   int errstat;
+   if ((errstat=rwl_writelock(&mdb->lock)) != 0) {
+      e_msg(file, line, M_ABORT, 0, "rwl_writelock failure. ERR=%s\n",
+	   strerror(errstat));
+   }
+}    
+
+void _db_unlock(char *file, int line, B_DB *mdb)
+{
+   int errstat;
+   if ((errstat=rwl_writeunlock(&mdb->lock)) != 0) {
+      e_msg(file, line, M_ABORT, 0, "rwl_writeunlock failure. ERR=%s\n",
+	   strerror(errstat));
+   }
+}    
+
+
 #endif /* HAVE_MYSQL | HAVE_SQLITE */

@@ -26,8 +26,6 @@
 
  */
 
-/* *****FIXME**** fix fixed length of select_cmd[] and insert_cmd[] */
-
 /* The following is necessary so that we do not include
  * the dummy external definition of DB.
  */
@@ -49,14 +47,6 @@
 extern void print_result(B_DB *mdb);
 extern int UpdateDB(char *file, int line, B_DB *db, char *update_cmd);
 
-static int do_update(B_DB *mdb, char *cmd)
-{
-   int stat;
-
-   stat = UPDATE_DB(mdb, cmd);
-   return stat;
-}
-
 /* -----------------------------------------------------------------------
  *
  *   Generic Routines (or almost generic)
@@ -69,10 +59,10 @@ db_add_MD5_to_file_record(B_DB *mdb, FileId_t FileId, char *MD5)
 {
    int stat;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    Mmsg(&mdb->cmd, "UPDATE File SET MD5=\"%s\" WHERE FileId=%d", MD5, FileId);
    stat = UPDATE_DB(mdb, mdb->cmd);
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat;
 }
 
@@ -83,10 +73,10 @@ int db_mark_file_record(B_DB *mdb, FileId_t FileId, int JobId)
 {
    int stat;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    Mmsg(&mdb->cmd, "UPDATE File SET FileIndex=%d WHERE FileId=%d", JobId, FileId);
    stat = UPDATE_DB(mdb, mdb->cmd);
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat;
 }
 
@@ -111,12 +101,12 @@ db_update_job_start_record(B_DB *mdb, JOB_DBR *jr)
    strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
    JobTDate = (btime_t)stime;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    Mmsg(&mdb->cmd, "UPDATE Job SET Level='%c', StartTime=\"%s\", \
 ClientId=%d, JobTDate=%s WHERE JobId=%d",
       (char)(jr->Level), dt, jr->ClientId, edit_uint64(JobTDate, ed1), jr->JobId);
    stat = UPDATE_DB(mdb, mdb->cmd);
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat;
 }
 
@@ -143,7 +133,7 @@ db_update_job_end_record(B_DB *mdb, JOB_DBR *jr)
    strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
    JobTDate = ttime;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    Mmsg(&mdb->cmd,
       "UPDATE Job SET JobStatus='%c', EndTime='%s', \
 ClientId=%d, JobBytes=%s, JobFiles=%d, JobErrors=%d, VolSessionId=%d, \
@@ -153,7 +143,7 @@ VolSessionTime=%d, PoolId=%d, FileSetId=%d, JobTDate=%s WHERE JobId=%d",
       jr->PoolId, jr->FileSetId, edit_uint64(JobTDate, ed2), jr->JobId);
 
    stat = UPDATE_DB(mdb, mdb->cmd);
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat;
 }
 
@@ -163,7 +153,7 @@ db_update_pool_record(B_DB *mdb, POOL_DBR *pr)
 {
    int stat;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    Mmsg(&mdb->cmd,
 "UPDATE Pool SET NumVols=%d, MaxVols=%d, UseOnce=%d, UseCatalog=%d, \
 AcceptAnyVolume=%d, LabelFormat=\"%s\" WHERE PoolId=%d",
@@ -171,7 +161,7 @@ AcceptAnyVolume=%d, LabelFormat=\"%s\" WHERE PoolId=%d",
       pr->AcceptAnyVolume, pr->LabelFormat, pr->PoolId);
 
    stat = UPDATE_DB(mdb, mdb->cmd);
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat;
 }
 
@@ -195,14 +185,11 @@ db_update_media_record(B_DB *mdb, MEDIA_DBR *mr)
    strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
 
    Dmsg1(100, "update_media: FirstWritten=%d\n", mr->FirstWritten);
-   P(mdb->mutex);
+   db_lock(mdb);
    if (mr->VolMounts == 1) {
       Mmsg(&mdb->cmd, "UPDATE Media SET FirstWritten=\"%s\"\
  WHERE VolumeName=\"%s\"", dt, mr->VolumeName);
-      if (do_update(mdb, mdb->cmd) == 0) {
-	 V(mdb->mutex);
-	 return 0;
-      }
+      UPDATE_DB(mdb, mdb->cmd);
    }
 
    Mmsg(&mdb->cmd, "UPDATE Media SET VolJobs=%d,\
@@ -215,7 +202,7 @@ db_update_media_record(B_DB *mdb, MEDIA_DBR *mr)
    mr->VolStatus, mr->VolumeName);
 
    stat = UPDATE_DB(mdb, mdb->cmd);
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat;
 }
 

@@ -77,9 +77,9 @@ int db_find_job_start_time(B_DB *mdb, JOB_DBR *jr, char *stime)
    long addr;
 
    strcpy(stime, "0000-00-00 00:00:00");   /* default */
-   P(mdb->mutex);
+   db_lock(mdb);
    if (!bdb_open_jobs_file(mdb)) {
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 0;
    }
    fseek(mdb->jobfd, 0L, SEEK_SET);   /* rewind file */
@@ -132,7 +132,7 @@ StartTime=%100s", &JobId, Name, cType, cLevel, StartTime) == 5) {
 	 }
       }
    }
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat;
 }
 
@@ -152,9 +152,9 @@ int db_find_next_volume(B_DB *mdb, int item, MEDIA_DBR *mr)
    int index = 0;
    int len;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    if (!bdb_open_media_file(mdb)) {
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 0;
    }
    fseek(mdb->mediafd, 0L, SEEK_SET);	/* rewind file */
@@ -173,7 +173,7 @@ int db_find_next_volume(B_DB *mdb, int item, MEDIA_DBR *mr)
 	 break; 		      /* found it */
       }
    }
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat; 		
 }
 

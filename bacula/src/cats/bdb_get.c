@@ -75,15 +75,15 @@ int db_get_job_record(B_DB *mdb, JOB_DBR *jr)
    int stat = 0;
    int len;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    if (jr->JobId == 0 && jr->Name[0] == 0) { /* he wants # of Job records */
       jr->JobId = mdb->control.JobId;
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 1;
    }
    Dmsg0(200, "Open Jobs\n");
    if (!bdb_open_jobs_file(mdb)) {
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 0;
    }
    fseek(mdb->jobfd, 0L, SEEK_SET);   /* rewind file */
@@ -117,7 +117,7 @@ int db_get_job_record(B_DB *mdb, JOB_DBR *jr)
    if (!found) {
       strcpy(mdb->errmsg, "Job record not found.\n");
    }
-   V(mdb->mutex);
+   db_unlock(mdb);
    Dmsg1(200, "Return job stat=%d\n", stat);
    return stat;
 }
@@ -133,9 +133,9 @@ int db_get_num_pool_records(B_DB *mdb)
 {
    int stat = 0;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    stat = mdb->control.PoolId;
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat;
 }
 
@@ -153,10 +153,10 @@ int db_get_pool_ids(B_DB *mdb, int *num_ids, uint32_t *ids[])
    POOL_DBR opr;
    int len;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    *ids = NULL;
    if (!bdb_open_pools_file(mdb)) {
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 0;
    }
    fseek(mdb->poolfd, 0L, SEEK_SET);   /* rewind file */
@@ -169,7 +169,7 @@ int db_get_pool_ids(B_DB *mdb, int *num_ids, uint32_t *ids[])
       id[i++] = opr.PoolId;
    }
    *ids = id;
-   V(mdb->mutex);
+   db_unlock(mdb);
    return 1;
 }
 
@@ -190,10 +190,10 @@ int db_get_pool_record(B_DB *mdb, POOL_DBR *pr)
    int stat = 0;
    int len;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    Dmsg0(200, "Open pools\n");
    if (!bdb_open_pools_file(mdb)) {
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 0;
    }
    fseek(mdb->poolfd, 0L, SEEK_SET);   /* rewind file */
@@ -227,7 +227,7 @@ int db_get_pool_record(B_DB *mdb, POOL_DBR *pr)
    if (!found) {
       strcpy(mdb->errmsg, "Pool record not found.\n");
    }
-   V(mdb->mutex);
+   db_unlock(mdb);
    Dmsg1(200, "Return pool stat=%d\n", stat);
    return stat;
 }
@@ -242,9 +242,9 @@ int db_get_num_media_records(B_DB *mdb)
 {
    int stat = 0;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    stat = mdb->control.MediaId;
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat;
 }
 
@@ -262,10 +262,10 @@ int db_get_media_ids(B_DB *mdb, int *num_ids, uint32_t *ids[])
    MEDIA_DBR omr;
    int len;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    *ids = NULL;
    if (!bdb_open_media_file(mdb)) {
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 0;
    }
    fseek(mdb->mediafd, 0L, SEEK_SET);	/* rewind file */
@@ -278,7 +278,7 @@ int db_get_media_ids(B_DB *mdb, int *num_ids, uint32_t *ids[])
       id[i++] = omr.MediaId;
    }
    *ids = id;
-   V(mdb->mutex);
+   db_unlock(mdb);
    return 1;
 }
 
@@ -298,9 +298,9 @@ int db_get_media_record(B_DB *mdb, MEDIA_DBR *mr)
    int len;
    MEDIA_DBR omr;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    if (!bdb_open_media_file(mdb)) {
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 0;
    }
    fseek(mdb->mediafd, 0L, SEEK_SET);	/* rewind file */
@@ -338,7 +338,7 @@ int db_get_media_record(B_DB *mdb, MEDIA_DBR *mr)
    if (stat == 0) {
       strcpy(mdb->errmsg, "Could not find requested Media record.\n");
    }
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat;
 }
 
@@ -356,13 +356,13 @@ int db_get_job_volume_names(B_DB *mdb, uint32_t JobId, char *VolumeNames)
    MEDIA_DBR mr;
    int jmlen, mrlen;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    if (!bdb_open_jobmedia_file(mdb)) {
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 0;
    }
    if (!bdb_open_media_file(mdb)) {
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 0;
    }
    jmlen = sizeof(jm);
@@ -387,7 +387,7 @@ int db_get_job_volume_names(B_DB *mdb, uint32_t JobId, char *VolumeNames)
    if (!found) {
       strcpy(mdb->errmsg, "No Volumes found.\n");
    }
-   V(mdb->mutex);
+   db_unlock(mdb);
    return found; 
 }
 
@@ -405,9 +405,9 @@ int db_get_client_record(B_DB *mdb, CLIENT_DBR *cr)
    int len;
    int stat = 0;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    if (!bdb_open_client_file(mdb)) {
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 0;
    }
    fseek(mdb->clientfd, 0L, SEEK_SET);	 /* rewind file */
@@ -434,7 +434,7 @@ int db_get_client_record(B_DB *mdb, CLIENT_DBR *cr)
    if (!stat) {
       strcpy(mdb->errmsg, "Client record not found.\n");
    }
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat;
 }
 
@@ -451,9 +451,9 @@ int db_get_fileset_record(B_DB *mdb, FILESET_DBR *fsr)
    FILESET_DBR lfsr;
    int stat = 0;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    if (!bdb_open_fileset_file(mdb)) {
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 0;
    }
    fseek(mdb->filesetfd, 0L, SEEK_SET);   /* rewind file */
@@ -481,7 +481,7 @@ int db_get_fileset_record(B_DB *mdb, FILESET_DBR *fsr)
    if (!stat) {
       strcpy(mdb->errmsg, "FileSet record not found.\n");
    }
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat;
 }
 

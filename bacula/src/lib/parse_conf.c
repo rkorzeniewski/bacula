@@ -174,7 +174,8 @@ void init_resource(int type, struct res_items *items)
 void store_msgs(LEX *lc, struct res_items *item, int index, int pass)
 {
    int token;
-   char *dest, *cmd;
+   char *cmd;
+   POOLMEM *dest;
    int dest_len;
 
    Dmsg2(200, "store_msgs pass=%d code=%d\n", pass, item->code);
@@ -195,7 +196,7 @@ void store_msgs(LEX *lc, struct res_items *item, int index, int pass)
 	    } else {
 	       cmd = res_all.res_msgs.mail_cmd;
 	    }
-	    dest = (char *) get_pool_memory(PM_MESSAGE);
+	    dest = get_pool_memory(PM_MESSAGE);
 	    dest_len = 0;
 	    dest[0] = 0;
 	    /* Pick up comma separated list of destinations */
@@ -228,13 +229,13 @@ void store_msgs(LEX *lc, struct res_items *item, int index, int pass)
 	    break;
 	 case MD_FILE:		      /* file */
 	 case MD_APPEND:	      /* append */
-	    dest = (char *) get_pool_memory(PM_MESSAGE);
+	    dest = get_pool_memory(PM_MESSAGE);
 	    /* Pick up a single destination */
 	    token = lex_get_token(lc);	  /* scan destination */
 	    if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
                scan_err1(lc, "expected a message destination, got: %s", lc->str);
 	    }
-	    dest = (char *) check_pool_memory_size(dest, dest_len + lc->str_len + 2);
+	    dest = check_pool_memory_size(dest, dest_len + lc->str_len + 2);
 	    strcpy(dest, lc->str);
 	    dest_len = lc->str_len;
 	    token = lex_get_token(lc);

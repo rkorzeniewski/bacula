@@ -65,7 +65,7 @@ db_delete_pool_record(B_DB *mdb, POOL_DBR *pr)
 {
    SQL_ROW row;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    Mmsg(&mdb->cmd, "SELECT PoolId FROM Pool WHERE Name=\"%s\"", pr->Name);
    Dmsg1(10, "selectpool: %s\n", mdb->cmd);
 
@@ -78,17 +78,18 @@ db_delete_pool_record(B_DB *mdb, POOL_DBR *pr)
       if (mdb->num_rows == 0) {
          Mmsg(&mdb->errmsg, _("No pool record %s exists\n"), pr->Name);
 	 sql_free_result(mdb);
-	 V(mdb->mutex);
+	 db_unlock(mdb);
 	 return 0;
       } else if (mdb->num_rows != 1) {
          Mmsg(&mdb->errmsg, _("Expecting one pool record, got %d\n"), mdb->num_rows);
 	 sql_free_result(mdb);
-	 V(mdb->mutex);
+	 db_unlock(mdb);
 	 return 0;
       }
       if ((row = sql_fetch_row(mdb)) == NULL) {
-	 V(mdb->mutex);
-         Emsg1(M_ABORT, 0, _("Error fetching row %s\n"), sql_strerror(mdb));
+         Mmsg1(&mdb->errmsg, _("Error fetching row %s\n"), sql_strerror(mdb));
+	 db_unlock(mdb);
+	 return 0;
       }
       pr->PoolId = atoi(row[0]);
       sql_free_result(mdb);
@@ -107,7 +108,7 @@ db_delete_pool_record(B_DB *mdb, POOL_DBR *pr)
    pr->PoolId = DELETE_DB(mdb, mdb->cmd);
    Dmsg1(200, "Deleted %d Pool records\n", pr->PoolId);
 
-   V(mdb->mutex);
+   db_unlock(mdb);
    return 1;
 }
 

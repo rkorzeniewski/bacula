@@ -171,7 +171,10 @@ static struct res_items job_items[] = {
    {"client",   store_res,     ITEM(res_job.client),   R_CLIENT, 0, 0},
    {"fileset",  store_res,     ITEM(res_job.fs),       R_FILESET, 0, 0},
    {"maxruntime", store_time,  ITEM(res_job.MaxRunTime), 0, 0, 0},
-   {"maxstartdelay", store_time, ITEM(res_job.MaxStartDelay), 0, 0, 0},
+   {"maxstartdelay", store_time,ITEM(res_job.MaxStartDelay), 0, 0, 0},
+   {"prunejobs",   store_yesno, ITEM(res_job.PruneJobs), 1, ITEM_DEFAULT, 0},
+   {"prunefiles",  store_yesno, ITEM(res_job.PruneFiles), 1, ITEM_DEFAULT, 0},
+   {"prunevolumes", store_yesno, ITEM(res_job.PruneVolumes), 1, ITEM_DEFAULT, 0},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 
@@ -276,6 +279,7 @@ struct s_jl joblevels[] = {
  */
 struct s_jt jobtypes[] = {
    {"backup",        JT_BACKUP},
+   {"admin",         JT_ADMIN},
    {"verify",        JT_VERIFY},
    {"restore",       JT_RESTORE},
    {NULL,	     0}

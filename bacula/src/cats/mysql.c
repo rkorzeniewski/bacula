@@ -77,9 +77,9 @@ db_init_database(char *db_name, char *db_user, char *db_password)
    mdb->db_user = bstrdup(db_user);
    mdb->db_password = bstrdup(db_password);
    mdb->have_insert_id = TRUE;
-   mdb->errmsg = (char *) get_pool_memory(PM_EMSG); /* get error message buffer */
+   mdb->errmsg = get_pool_memory(PM_EMSG); /* get error message buffer */
    *mdb->errmsg = 0;
-   mdb->cmd = (char *) get_pool_memory(PM_EMSG);    /* get command buffer */
+   mdb->cmd = get_pool_memory(PM_EMSG);    /* get command buffer */
    mdb->ref_count = 1;
    qinsert(&db_list, &mdb->bq); 	   /* put db in list */
    V(mutex);
@@ -99,8 +99,16 @@ db_open_database(B_DB *mdb)
       return 1;
    }
    mdb->connected = FALSE;
+#ifdef needed
    if (pthread_mutex_init(&mdb->mutex, NULL) != 0) {
       Mmsg1(&mdb->errmsg, "Unable to initialize DB mutex. ERR=%s\n", strerror(errno));
+      V(mutex);
+      return 0;
+   }
+#endif
+
+   if (rwl_init(&mdb->lock) != 0) {
+      Mmsg1(&mdb->errmsg, "Unable to initialize DB lock. ERR=%s\n", strerror(errno));
       V(mutex);
       return 0;
    }
@@ -164,7 +172,8 @@ db_close_database(B_DB *mdb)
       if (mdb->connected && mdb->db) {
 	 sql_close(mdb);
       }
-      pthread_mutex_destroy(&mdb->mutex);
+/*    pthread_mutex_destroy(&mdb->mutex); */
+      rwl_destroy(&mdb->lock);	     
       free_pool_memory(mdb->errmsg);
       free_pool_memory(mdb->cmd);
       if (mdb->db_name) {
@@ -209,10 +218,10 @@ int db_sql_query(B_DB *mdb, char *query, DB_RESULT_HANDLER *result_handler, void
 {
    SQL_ROW row;
   
-   P(mdb->mutex);
+   db_lock(mdb);
    if (sql_query(mdb, query) != 0) {
       Mmsg(&mdb->errmsg, _("Query failed: %s: ERR=%s\n"), query, sql_strerror(mdb));
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 0;
    }
    if (result_handler != NULL) {
@@ -227,7 +236,7 @@ int db_sql_query(B_DB *mdb, char *query, DB_RESULT_HANDLER *result_handler, void
 	 sql_free_result(mdb);
       }
    }
-   V(mdb->mutex);
+   db_unlock(mdb);
    return 1;
 
 }

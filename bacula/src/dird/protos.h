@@ -30,6 +30,11 @@ extern int authenticate_user_agent(BSOCK *ua);
 
 /* autoprune.c */
 extern int do_autoprune(JCR *jcr);
+int prune_volumes(JCR *jcr);
+
+/* autorecycle.c */
+int recycle_a_volume(JCR *jcr, MEDIA_DBR *mr);
+int find_recycled_volume(JCR *jcr, MEDIA_DBR *mr);
 
 
 /* catreq.c */

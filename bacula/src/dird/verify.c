@@ -168,7 +168,7 @@ int do_verify(JCR *jcr)
          level = "data";
 	 break;
       default:
-         Emsg1(M_FATAL, 0, _("Unimplemented save level %d\n"), jcr->level);
+         Jmsg1(jcr, M_FATAL, 0, _("Unimplemented save level %d\n"), jcr->level);
 	 verify_cleanup(jcr, JS_ErrorTerminated);		     
 	 return 0;
    }
@@ -204,7 +204,7 @@ int do_verify(JCR *jcr)
       get_attributes_and_put_in_catalog(jcr);
 
    } else {
-      Emsg1(M_FATAL, 0, _("Unimplemented save level %d\n"), jcr->level);
+      Jmsg1(jcr, M_FATAL, 0, _("Unimplemented save level %d\n"), jcr->level);
       verify_cleanup(jcr, JS_ErrorTerminated);			  
       return 0;
    }

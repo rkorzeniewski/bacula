@@ -71,11 +71,11 @@ int db_delete_pool_record(B_DB *mdb, POOL_DBR *pr)
       Mmsg1(&mdb->errmsg, "No pool record %s exists\n", pr->Name);
       return 0;
    }
-   P(mdb->mutex);
+   db_lock(mdb);
    fseek(mdb->poolfd, pr->rec_addr, SEEK_SET);
    memset(&opr, 0, sizeof(opr));
    stat = fwrite(&opr, sizeof(opr), 1, mdb->poolfd);
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat; 
 }
 
@@ -88,11 +88,11 @@ int db_delete_media_record(B_DB *mdb, MEDIA_DBR *mr)
       Mmsg0(&mdb->errmsg, "Media record not found.\n");
       return 0;
    }
-   P(mdb->mutex);
+   db_lock(mdb);
    fseek(mdb->mediafd, mr->rec_addr, SEEK_SET);
    memset(&omr, 0, sizeof(omr));
    stat = fwrite(&omr, sizeof(omr), 1, mdb->mediafd);
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat; 
 }
 

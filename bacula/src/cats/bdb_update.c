@@ -74,7 +74,7 @@ int db_update_job_start_record(B_DB *mdb, JOB_DBR *jr)
       return 0;
    }
 
-   P(mdb->mutex);
+   db_lock(mdb);
 
    fseek(mdb->jobfd, ojr.rec_addr, SEEK_SET);
    if (fwrite(jr, len, 1, mdb->jobfd) != 1) {
@@ -83,7 +83,7 @@ int db_update_job_start_record(B_DB *mdb, JOB_DBR *jr)
    }
    fflush(mdb->jobfd);
 
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat;
 }
 
@@ -104,7 +104,7 @@ int db_update_job_end_record(B_DB *mdb, JOB_DBR *jr)
       return 0;
    }
 
-   P(mdb->mutex);
+   db_lock(mdb);
 
    fseek(mdb->jobfd, ojr.rec_addr, SEEK_SET);
    if (fwrite(jr, len, 1, mdb->jobfd) != 1) {
@@ -113,7 +113,7 @@ int db_update_job_end_record(B_DB *mdb, JOB_DBR *jr)
    }
    fflush(mdb->jobfd);
 
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat;
 }
 
@@ -133,7 +133,7 @@ int db_update_media_record(B_DB *mdb, MEDIA_DBR *mr)
       return 0;
    }
 
-   P(mdb->mutex);
+   db_lock(mdb);
 
    /* Don't allow some fields to change by copying from master record */
    strcpy(mr->VolumeName, omr.VolumeName);
@@ -151,7 +151,7 @@ int db_update_media_record(B_DB *mdb, MEDIA_DBR *mr)
    }
    fflush(mdb->mediafd);
 
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat;
 }
 
@@ -169,7 +169,7 @@ int db_update_pool_record(B_DB *mdb, POOL_DBR *pr)
       return 0;
    }
 
-   P(mdb->mutex);
+   db_lock(mdb);
 
    /* Update specific fields */
    opr.NumVols = pr->NumVols;
@@ -188,7 +188,7 @@ int db_update_pool_record(B_DB *mdb, POOL_DBR *pr)
    }
    fflush(mdb->poolfd);
 
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat;
 }
 

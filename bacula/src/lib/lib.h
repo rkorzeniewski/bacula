@@ -1,5 +1,9 @@
 /* 
- * Library includes for Bacula lib directory
+ *   Library includes for Bacula lib directory
+ *
+ *   This file contains an include for each library file
+ *   that we use within Bacula. bacula.h includes this
+ *   file and thus picks up everything we need in lib.
  *
  *   Version $Id$
  */
@@ -34,6 +38,7 @@
 #include "bsock.h"
 #include "bshm.h"
 #include "workq.h"
+#include "rwlock.h"
 #include "queue.h"
 #include "serial.h"
 #ifndef HAVE_FNMATCH

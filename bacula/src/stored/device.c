@@ -461,7 +461,7 @@ mount_next_vol:
       }
       /* *****FIXME**** we might do some checking for files too */
       if (dev_is_tape(dev)) {
-         Jmsg(jcr, M_INFO, 0, _("Ready to append at EOM File=%d.\n"), dev_file(dev));
+         Jmsg(jcr, M_INFO, 0, _("Ready to append to end of Volume at file=%d.\n"), dev_file(dev));
 	 if (dev->VolCatInfo.VolCatFiles != dev_file(dev) + 1) {
 	    /* ****FIXME**** this should refuse to write on tape */
             Jmsg(jcr, M_INFO, 0, _("Hey! Num files mismatch! Catalog Files=%d\n"), dev->VolCatInfo.VolCatFiles);

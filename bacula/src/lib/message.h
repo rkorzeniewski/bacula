@@ -59,7 +59,7 @@ typedef struct s_dest {
    char msg_types[nbytes_for_bits(M_MAX+1)]; /* message type mask */
    char *where; 		      /* filename/program name */
    char *mail_cmd;		      /* mail command */
-   char *mail_filename; 	      /* unique mail filename */
+   POOLMEM *mail_filename;	      /* unique mail filename */
 } DEST;
 
 /* Message Destination values for dest field of DEST */

@@ -67,7 +67,7 @@ db_find_job_start_time(B_DB *mdb, JOB_DBR *jr, char *stime)
    int JobId;
 
    strcpy(stime, "0000-00-00 00:00:00");   /* default */
-   P(mdb->mutex);
+   db_lock(mdb);
    /* If no Id given, we must find corresponding job */
    if (jr->JobId == 0) {
       /* Differential is since last Full backup */
@@ -87,19 +87,18 @@ ORDER by StartTime DESC LIMIT 1",
 	   jr->ClientId);
       } else {
          Mmsg1(&mdb->errmsg, _("Unknown level=%d\n"), jr->Level);
-	 Emsg0(M_ERROR, 0, mdb->errmsg);
-	 V(mdb->mutex);
+	 db_unlock(mdb);
 	 return 0;
       }
       Dmsg1(100, "Submitting: %s\n", mdb->cmd);
       if (!QUERY_DB(mdb, mdb->cmd)) {
-         Emsg1(M_ERROR, 0, _("Query error for start time request: %s\n"), mdb->cmd);
-	 V(mdb->mutex);
+         Mmsg1(&mdb->errmsg, _("Query error for start time request: %s\n"), mdb->cmd);
+	 db_unlock(mdb);
 	 return 0;
       }
       if ((row = sql_fetch_row(mdb)) == NULL) {
 	 sql_free_result(mdb);
-	 V(mdb->mutex);
+	 db_unlock(mdb);
 	 return 0;
       }
       JobId = atoi(row[0]);
@@ -112,16 +111,16 @@ ORDER by StartTime DESC LIMIT 1",
    Mmsg(&mdb->cmd, "SELECT StartTime from Job WHERE Job.JobId=%d", JobId);
 
    if (!QUERY_DB(mdb, mdb->cmd)) {
-      Emsg1(M_ERROR, 0, _("Query error for start time request: %s\n"), mdb->cmd);
-      V(mdb->mutex);
+      Mmsg1(&mdb->errmsg, _("Query error for start time request: %s\n"), mdb->cmd);
+      db_unlock(mdb);
       return 0;
    }
 
    if ((row = sql_fetch_row(mdb)) == NULL) {
       *stime = 0;		      /* set EOS */
-      Emsg2(M_ERROR, 0, _("No Job found for JobId=%d: %s\n"), JobId, sql_strerror(mdb));
+      Mmsg2(&mdb->errmsg, _("No Job found for JobId=%d: %s\n"), JobId, sql_strerror(mdb));
       sql_free_result(mdb);
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 0;
    }
    Dmsg1(100, "Got start time: %s\n", row[0]);
@@ -129,7 +128,7 @@ ORDER by StartTime DESC LIMIT 1",
 
    sql_free_result(mdb);
 
-   V(mdb->mutex);
+   db_unlock(mdb);
    return 1;
 }
 
@@ -144,9 +143,9 @@ db_find_last_full_verify(B_DB *mdb, JOB_DBR *jr)
    SQL_ROW row;
 
    /* Find last full */
-   P(mdb->mutex);
+   db_lock(mdb);
    if (jr->Level != L_VERIFY_CATALOG) {
-      Emsg2(M_FATAL, 0, _("Expecting Level=%c, got %c\n"), L_VERIFY_CATALOG, jr->Level);
+      Mmsg2(&mdb->errmsg, _("Expecting Level=%c, got %c\n"), L_VERIFY_CATALOG, jr->Level);
       return 0;
    }
    Mmsg(&mdb->cmd, 
@@ -155,13 +154,13 @@ ClientId=%d ORDER by StartTime DESC LIMIT 1",
 	   JT_VERIFY, L_VERIFY_INIT, jr->Name, jr->ClientId);
 
    if (!QUERY_DB(mdb, mdb->cmd)) {
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 0;
    }
    if ((row = sql_fetch_row(mdb)) == NULL) {
-      Emsg0(M_FATAL, 0, _("No Job found for last full verify.\n"));
+      Mmsg0(&mdb->errmsg, _("No Job found for last full verify.\n"));
       sql_free_result(mdb);
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 0;
    }
 
@@ -170,12 +169,12 @@ ClientId=%d ORDER by StartTime DESC LIMIT 1",
 
    Dmsg1(100, "db_get_last_full_verify: got JobId=%d\n", jr->JobId);
    if (jr->JobId <= 0) {
-      Emsg1(M_FATAL, 0, _("No Verify Job found for: %s\n"), mdb->cmd);
-      V(mdb->mutex);
+      Mmsg1(&mdb->errmsg, _("No Verify Job found for: %s\n"), mdb->cmd);
+      db_unlock(mdb);
       return 0;
    }
 
-   V(mdb->mutex);
+   db_unlock(mdb);
    return 1;
 }
 
@@ -193,20 +192,22 @@ db_find_next_volume(B_DB *mdb, int item, MEDIA_DBR *mr)
    SQL_ROW row;
    int numrows;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,\
 VolBytes,VolMounts,VolErrors,VolWrites,VolMaxBytes,VolCapacityBytes \
 FROM Media WHERE PoolId=%d AND MediaType=\"%s\" AND VolStatus=\"%s\" \
 ORDER BY MediaId", mr->PoolId, mr->MediaType, mr->VolStatus); 
 
    if (!QUERY_DB(mdb, mdb->cmd)) {
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 0;
    }
 
    numrows = sql_num_rows(mdb);
    if (item > numrows) {
-      V(mdb->mutex);
+      Mmsg2(&mdb->errmsg, _("Request for Volume item %d greater than max %d\n"),
+	 item, numrows);
+      db_unlock(mdb);
       return 0;
    }
    
@@ -216,9 +217,9 @@ ORDER BY MediaId", mr->PoolId, mr->MediaType, mr->VolStatus);
    sql_data_seek(mdb, item-1);
 
    if ((row = sql_fetch_row(mdb)) == NULL) {
-      Emsg1(M_ERROR, 0, _("No media record found for item %d.\n"), item);
+      Mmsg1(&mdb->errmsg, _("No Volume record found for item %d.\n"), item);
       sql_free_result(mdb);
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 0;
    }
 
@@ -237,7 +238,7 @@ ORDER BY MediaId", mr->PoolId, mr->MediaType, mr->VolStatus);
 
    sql_free_result(mdb);
 
-   V(mdb->mutex);
+   db_unlock(mdb);
    return numrows;
 }
 

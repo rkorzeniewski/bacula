@@ -79,11 +79,11 @@ db_create_job_record(B_DB *mdb, JOB_DBR *jr)
    strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
    JobTDate = (btime_t)stime;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    JobId = db_next_index(mdb, "Job");
    if (!JobId) {
       jr->JobId = 0;
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 0;
    }
    /* Must create it */
@@ -102,7 +102,7 @@ db_create_job_record(B_DB *mdb, JOB_DBR *jr)
       jr->JobId = sql_insert_id(mdb);
       stat = 1;
    }
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat;
 }
 
@@ -115,7 +115,7 @@ db_create_jobmedia_record(B_DB *mdb, JOBMEDIA_DBR *jm)
 {
    int stat;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    Mmsg(&mdb->cmd, "SELECT JobId, MediaId FROM JobMedia WHERE \
 JobId=%d AND MediaId=%d", jm->JobId, jm->MediaId);
 
@@ -125,7 +125,7 @@ JobId=%d AND MediaId=%d", jm->JobId, jm->MediaId);
       if (mdb->num_rows > 0) {
          Mmsg0(&mdb->errmsg, _("Create JobMedia failed. Record already exists.\n"));
 	 sql_free_result(mdb);
-	 V(mdb->mutex);
+	 db_unlock(mdb);
          Dmsg0(0, "Already have JobMedia record\n");
 	 return 0;
       }
@@ -146,7 +146,7 @@ VALUES (%d, %d, %u, %u)",
    } else {
       stat = 1;
    }
-   V(mdb->mutex);
+   db_unlock(mdb);
    Dmsg0(30, "Return from JobMedia\n");
    return stat;
 }
@@ -163,7 +163,7 @@ db_create_pool_record(B_DB *mdb, POOL_DBR *pr)
    int stat;
    char ed1[30];
 
-   P(mdb->mutex);
+   db_lock(mdb);
    Mmsg(&mdb->cmd, "SELECT PoolId,Name FROM Pool WHERE Name=\"%s\"", pr->Name);
    Dmsg1(20, "selectpool: %s\n", mdb->cmd);
 
@@ -174,7 +174,7 @@ db_create_pool_record(B_DB *mdb, POOL_DBR *pr)
       if (mdb->num_rows > 0) {
          Mmsg1(&mdb->errmsg, _("pool record %s already exists\n"), pr->Name);
 	 sql_free_result(mdb);
-	 V(mdb->mutex);
+	 db_unlock(mdb);
 	 return 0;
       }
       sql_free_result(mdb);
@@ -202,7 +202,7 @@ VALUES (\"%s\", %d, %d, %d, %d, %d, %d, %d, %s, \"%s\", \"%s\")",
       pr->PoolId = sql_insert_id(mdb);
       stat = 1;
    }
-   V(mdb->mutex);
+   db_unlock(mdb);
    
    return stat;
 }
@@ -219,7 +219,7 @@ db_create_media_record(B_DB *mdb, MEDIA_DBR *mr)
    int stat;
    char ed1[30], ed2[30], ed3[30];
 
-   P(mdb->mutex);
+   db_lock(mdb);
    Mmsg(&mdb->cmd, "SELECT MediaId FROM Media WHERE VolumeName=\"%s\"", 
 	   mr->VolumeName);
    Dmsg1(110, "selectpool: %s\n", mdb->cmd);
@@ -229,7 +229,7 @@ db_create_media_record(B_DB *mdb, MEDIA_DBR *mr)
       if (mdb->num_rows > 0) {
          Mmsg1(&mdb->errmsg, _("Media record %s already exists\n"), mr->VolumeName);
 	 sql_free_result(mdb);
-	 V(mdb->mutex);
+	 db_unlock(mdb);
 	 return 0;
       }
       sql_free_result(mdb);
@@ -256,7 +256,7 @@ Recycle, VolRetention, VolStatus) VALUES (\"%s\", \"%s\", %d, %s, %s, %d, %s, \"
       mr->MediaId = sql_insert_id(mdb);
       stat = 1;
    }
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat;
 }
 
@@ -273,7 +273,7 @@ int db_create_client_record(B_DB *mdb, CLIENT_DBR *cr)
    int stat;
    char ed1[30], ed2[30];
 
-   P(mdb->mutex);
+   db_lock(mdb);
    Mmsg(&mdb->cmd, "SELECT ClientId FROM Client WHERE Name=\"%s\"", cr->Name);
 
    cr->ClientId = 0;
@@ -289,14 +289,13 @@ int db_create_client_record(B_DB *mdb, CLIENT_DBR *cr)
       if (mdb->num_rows >= 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
             Mmsg1(&mdb->errmsg, _("error fetching Client row: %s\n"), sql_strerror(mdb));
-	    Emsg0(M_ERROR, 0, mdb->errmsg);
 	    sql_free_result(mdb);
-	    V(mdb->mutex);
+	    db_unlock(mdb);
 	    return 0;
 	 }
 	 sql_free_result(mdb);
 	 cr->ClientId = atoi(row[0]);
-	 V(mdb->mutex);
+	 db_unlock(mdb);
 	 return 1;
       }
       sql_free_result(mdb);
@@ -318,7 +317,7 @@ FileRetention, JobRetention) VALUES \
       cr->ClientId = sql_insert_id(mdb);
       stat = 1;
    }
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat;
 }
 
@@ -334,7 +333,7 @@ int db_create_fileset_record(B_DB *mdb, FILESET_DBR *fsr)
    SQL_ROW row;
    int stat;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    Mmsg(&mdb->cmd, "SELECT FileSetId FROM FileSet WHERE \
 FileSet=\"%s\" and MD5=\"%s\"", fsr->FileSet, fsr->MD5);
 
@@ -350,14 +349,13 @@ FileSet=\"%s\" and MD5=\"%s\"", fsr->FileSet, fsr->MD5);
       if (mdb->num_rows >= 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
             Mmsg1(&mdb->errmsg, _("error fetching FileSet row: ERR=%s\n"), sql_strerror(mdb));
-	    Emsg0(M_ERROR, 0, mdb->errmsg);
 	    sql_free_result(mdb);
-	    V(mdb->mutex);
+	    db_unlock(mdb);
 	    return 0;
 	 }
 	 sql_free_result(mdb);
 	 fsr->FileSetId = atoi(row[0]);
-	 V(mdb->mutex);
+	 db_unlock(mdb);
 	 return 1;
       }
       sql_free_result(mdb);
@@ -377,7 +375,7 @@ FileSet=\"%s\" and MD5=\"%s\"", fsr->FileSet, fsr->MD5);
       stat = 1;
    }
 
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat;
 }
 
@@ -512,7 +510,7 @@ static int db_create_file_record(B_DB *mdb, ATTR_DBR *ar)
 {
    int stat;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    /* Must create it */
    Mmsg(&mdb->cmd,
 "INSERT INTO File (FileIndex, JobId, PathId, FilenameId, \
@@ -523,14 +521,13 @@ LStat, MD5) VALUES (%d, %d, %d, %d, \"%s\", \"0\")",
    if (!INSERT_DB(mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db File record %s failed. ERR=%s"),       
 	 mdb->cmd, sql_strerror(mdb));
-      Emsg1(M_ERROR, 0, "%s", mdb->errmsg);
       ar->FileId = 0;
       stat = 0;
    } else {
       ar->FileId = sql_insert_id(mdb);
       stat = 1;
    }
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat;
 }
 
@@ -544,16 +541,15 @@ static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar, char *path)
 
    if (*path == 0) {
       Mmsg0(&mdb->errmsg, _("Null path given to db_create_path_record\n"));
-      Emsg0(M_ERROR, 0, mdb->errmsg);
       ar->PathId = 0;
       return 0;
    }
 
-   P(mdb->mutex);
+   db_lock(mdb);
 
    if (cached_id != 0 && strcmp(cached_path, path) == 0) {
       ar->PathId = cached_id;
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 1;
    }
 
@@ -572,9 +568,8 @@ static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar, char *path)
       }
       if (mdb->num_rows >= 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
-	    V(mdb->mutex);
+	    db_unlock(mdb);
             Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
-	    Emsg0(M_ERROR, 0, mdb->errmsg);
 	    sql_free_result(mdb);
 	    ar->PathId = 0;
 	    return 0;
@@ -586,7 +581,7 @@ static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar, char *path)
 	    strncpy(cached_path, path, sizeof(cached_path));
 	    cached_path[sizeof(cached_path)-1] = 0;
 	 }
-	 V(mdb->mutex);
+	 db_unlock(mdb);
 	 return 1;
       }
 
@@ -598,7 +593,6 @@ static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar, char *path)
    if (!INSERT_DB(mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db Path record %s failed. ERR=%s\n"), 
 	 mdb->cmd, sql_strerror(mdb));
-      Emsg1(M_ERROR, 0, "%s", mdb->errmsg);
       ar->PathId = 0;
       stat = 0;
    } else {
@@ -611,7 +605,7 @@ static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar, char *path)
       strncpy(cached_path, path, sizeof(cached_path));
       cached_path[sizeof(cached_path)-1] = 0;
    }
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat;
 }
 
@@ -621,7 +615,7 @@ static int db_create_filename_record(B_DB *mdb, ATTR_DBR *ar, char *fname)
    SQL_ROW row;
    int stat;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    Mmsg(&mdb->cmd, "SELECT FilenameId FROM Filename WHERE Name=\"%s\"", fname);
 
    if (QUERY_DB(mdb, mdb->cmd)) {
@@ -637,14 +631,13 @@ static int db_create_filename_record(B_DB *mdb, ATTR_DBR *ar, char *fname)
             Mmsg2(&mdb->errmsg, _("error fetching row for file=%s: ERR=%s\n"), 
 		fname, sql_strerror(mdb));
 	    sql_free_result(mdb);
-	    V(mdb->mutex);
-	    Emsg0(M_ERROR, 0, mdb->errmsg);
+	    db_unlock(mdb);
 	    ar->FilenameId = 0;
 	    return 0;
 	 }
 	 sql_free_result(mdb);
 	 ar->FilenameId = atoi(row[0]);
-	 V(mdb->mutex);
+	 db_unlock(mdb);
 	 return 1;
       }
       sql_free_result(mdb);
@@ -656,7 +649,6 @@ VALUES (\"%s\")", fname);
    if (!INSERT_DB(mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db Filename record %s failed. ERR=%s\n"), 
 	    mdb->cmd, sql_strerror(mdb));
-      Emsg1(M_ERROR, 0, "%s", mdb->errmsg);
       ar->FilenameId = 0;
       stat = 0;
    } else {
@@ -664,7 +656,7 @@ VALUES (\"%s\")", fname);
       stat = 1;
    }
 
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat;
 }
 

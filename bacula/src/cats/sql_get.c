@@ -126,8 +126,9 @@ static
 int db_get_file_record(B_DB *mdb, FILE_DBR *fdbr)
 {
    SQL_ROW row;
+   int stat = 0;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    Mmsg(&mdb->cmd, 
 "SELECT FileId, LStat, MD5 from File where File.JobId=%d and File.PathId=%d and \
 File.FilenameId=%d", fdbr->JobId, fdbr->PathId, fdbr->FilenameId);
@@ -142,27 +143,24 @@ File.FilenameId=%d", fdbr->JobId, fdbr->PathId, fdbr->FilenameId);
        */
       if (mdb->num_rows > 1) {
          Emsg1(M_WARNING, 0, _("get_file_record want 1 got rows=%d\n"), mdb->num_rows);
-         Emsg1(M_WARNING, 0, "%s\n", mdb->cmd);
+         Emsg1(M_ERROR, 0, "%s\n", mdb->cmd);
       }
       if (mdb->num_rows >= 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
-            Emsg1(M_ERROR, 0, "Error fetching row: %s\n", sql_strerror(mdb));
+            Mmsg1(&mdb->errmsg, "Error fetching row: %s\n", sql_strerror(mdb));
 	 } else {
 	    fdbr->FileId = (FileId_t)strtod(row[0], NULL);
 	    strncpy(fdbr->LStat, row[1], sizeof(fdbr->LStat));
 	    fdbr->LStat[sizeof(fdbr->LStat)] = 0;
 	    strncpy(fdbr->MD5, row[2], sizeof(fdbr->MD5));
 	    fdbr->MD5[sizeof(fdbr->MD5)] = 0;
-	    sql_free_result(mdb);
-	    V(mdb->mutex);
-	    return 1;
+	    stat = 1;
 	 }
       }
-
       sql_free_result(mdb);
    }
-   V(mdb->mutex);
-   return 0;			      /* failed */
+   db_unlock(mdb);
+   return stat;
 
 }
 
@@ -180,7 +178,7 @@ static int db_get_filename_record(B_DB *mdb, char *fname)
       Emsg0(M_ABORT, 0, mdb->errmsg);
    }
 
-   P(mdb->mutex);
+   db_lock(mdb);
    Mmsg(&mdb->cmd, "SELECT FilenameId FROM Filename WHERE Name=\"%s\"", fname);
    if (QUERY_DB(mdb, mdb->cmd)) {
 
@@ -188,26 +186,24 @@ static int db_get_filename_record(B_DB *mdb, char *fname)
 
       if (mdb->num_rows > 1) {
          Mmsg1(&mdb->errmsg, _("More than one Filename!: %d\n"), (int)(mdb->num_rows));
-	 Emsg0(M_FATAL, 0, mdb->errmsg);
       } else if (mdb->num_rows == 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
             Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
-	    Emsg0(M_FATAL, 0, mdb->errmsg);
-	 }
-	 FilenameId = atoi(row[0]);
-	 if (FilenameId <= 0) {
-            Mmsg2(&mdb->errmsg, _("Create db Filename record %s found bad record: %d\n"),
-	       mdb->cmd, FilenameId); 
-	    Emsg0(M_ERROR, 0, mdb->errmsg);
+	    FilenameId = 0;
+	 } else {
+	    FilenameId = atoi(row[0]);
+	    if (FilenameId <= 0) {
+               Mmsg2(&mdb->errmsg, _("Create db Filename record %s found bad record: %d\n"),
+		  mdb->cmd, FilenameId); 
+	    }
 	 }
 	 sql_free_result(mdb);
-	 V(mdb->mutex);
+	 db_unlock(mdb);
 	 return FilenameId;
-
       }
       sql_free_result(mdb);
    }
-   V(mdb->mutex);
+   db_unlock(mdb);
    return 0;			      /* failed */
 }
 
@@ -218,9 +214,9 @@ static int db_get_filename_record(B_DB *mdb, char *fname)
 static int db_get_path_record(B_DB *mdb, char *path)
 {
    SQL_ROW row;
-   int PathId;
+   uint32_t PathId = 0;
    /*******FIXME***** move into mdb record and allocate */
-   static int cached_id = 0;
+   static uint32_t cached_id = 0;
    static char cached_path[MAXSTRING];
 
    if (*path == 0) {
@@ -230,7 +226,7 @@ static int db_get_path_record(B_DB *mdb, char *path)
       return cached_id;
    }	      
 
-   P(mdb->mutex);
+   db_lock(mdb);
    Mmsg(&mdb->cmd, "SELECT PathId FROM Path WHERE Path=\"%s\"", path);
 
    if (QUERY_DB(mdb, mdb->cmd)) {
@@ -240,25 +236,21 @@ static int db_get_path_record(B_DB *mdb, char *path)
       if (mdb->num_rows > 1) {
          Mmsg1(&mdb->errmsg, _("More than one Path!: %s\n"), 
 	    edit_uint64(mdb->num_rows, ed1));
-	 Emsg0(M_FATAL, 0, mdb->errmsg);
       } else if (mdb->num_rows == 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
             Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
-	    Emsg0(M_FATAL, 0, mdb->errmsg);
+	 } else {
+	    PathId = atoi(row[0]);
+	    /* Cache path if it will fit in our static buffer */
+	    if (PathId != cached_id && strlen(path) < sizeof(cached_path)+2) {
+	       cached_id = PathId;
+	       strcpy(cached_path, path);
+	    }
 	 }
-	 PathId = atoi(row[0]);
-	 if (PathId != cached_id) {
-	    cached_id = PathId;
-	    strcpy(cached_path, path);
-	 }
-	 sql_free_result(mdb);
-	 V(mdb->mutex);
-	 return PathId;
       }
-
       sql_free_result(mdb);
    }
-   V(mdb->mutex);
+   db_unlock(mdb);
    return 0;			      /* failed */
 }
 
@@ -272,7 +264,7 @@ int db_get_job_record(B_DB *mdb, JOB_DBR *jr)
 {
    SQL_ROW row;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    if (jr->JobId == 0) {
       Mmsg(&mdb->cmd, "SELECT VolSessionId, VolSessionTime, \
 PoolId, StartTime, EndTime, JobFiles, JobBytes, JobTDate, Job \
@@ -284,13 +276,13 @@ FROM Job WHERE JobId=%d", jr->JobId);
     }
 
    if (!QUERY_DB(mdb, mdb->cmd)) {
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 0; 		      /* failed */
    }
    if ((row = sql_fetch_row(mdb)) == NULL) {
       Mmsg1(&mdb->errmsg, _("No Job found for JobId %d\n"), jr->JobId);
       sql_free_result(mdb);
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 0; 		      /* failed */
    }
 
@@ -305,7 +297,7 @@ FROM Job WHERE JobId=%d", jr->JobId);
    strcpy(jr->Job, row[8]);
    sql_free_result(mdb);
 
-   V(mdb->mutex);
+   db_unlock(mdb);
    return 1;
 }
 
@@ -322,7 +314,7 @@ int db_get_job_volume_names(B_DB *mdb, uint32_t JobId, char *VolumeNames)
    int stat = 0;
    int i;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    Mmsg(&mdb->cmd, 
 "SELECT VolumeName FROM JobMedia,Media WHERE JobMedia.JobId=%d \
 AND JobMedia.MediaId=Media.MediaId", JobId);
@@ -352,7 +344,7 @@ AND JobMedia.MediaId=Media.MediaId", JobId);
       }
       sql_free_result(mdb);
    }
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat;
 }
 
@@ -367,10 +359,10 @@ int db_get_num_pool_records(B_DB *mdb)
 {
    int stat = 0;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    Mmsg(&mdb->cmd, "SELECT count(*) from Pool");
    stat = get_sql_record_max(mdb);
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat;
 }
 
@@ -388,7 +380,7 @@ int db_get_pool_ids(B_DB *mdb, int *num_ids, uint32_t *ids[])
    int i = 0;
    uint32_t *id;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    *ids = NULL;
    Mmsg(&mdb->cmd, "SELECT PoolId FROM Pool");
    if (QUERY_DB(mdb, mdb->cmd)) {
@@ -406,7 +398,7 @@ int db_get_pool_ids(B_DB *mdb, int *num_ids, uint32_t *ids[])
       Mmsg(&mdb->errmsg, _("Pool id select failed: ERR=%s\n"), sql_strerror(mdb));
       stat = 0;
    }
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat;
 }
 
@@ -423,7 +415,7 @@ int db_get_pool_record(B_DB *mdb, POOL_DBR *pdbr)
    SQL_ROW row;
    int stat = 0;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    if (pdbr->PoolId != 0) {		  /* find by id */
       Mmsg(&mdb->cmd, 
 "SELECT PoolId, Name, NumVols, MaxVols, UseOnce, UseCatalog, AcceptAnyVolume, \
@@ -442,11 +434,9 @@ PoolType, LabelFormat FROM Pool WHERE Pool.Name=\"%s\"", pdbr->Name);
 	 char ed1[30];
          Mmsg1(&mdb->errmsg, _("More than one Pool!: %s\n"), 
 	    edit_uint64(mdb->num_rows, ed1));
-	 Emsg0(M_ERROR, 0, mdb->errmsg);
       } else if (mdb->num_rows == 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
             Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
-	    Emsg0(M_ERROR, 0, mdb->errmsg);
 	 } else {
 	    pdbr->PoolId = atoi(row[0]);
 	    strcpy(pdbr->Name, row[1]);
@@ -469,7 +459,7 @@ PoolType, LabelFormat FROM Pool WHERE Pool.Name=\"%s\"", pdbr->Name);
       }
       sql_free_result(mdb);
    }
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat;
 }
 
@@ -484,10 +474,10 @@ int db_get_num_media_records(B_DB *mdb)
 {
    int stat = 0;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    Mmsg(&mdb->cmd, "SELECT count(*) from Media");
    stat = get_sql_record_max(mdb);
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat;
 }
 
@@ -506,7 +496,7 @@ int db_get_media_ids(B_DB *mdb, int *num_ids, uint32_t *ids[])
    int i = 0;
    uint32_t *id;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    *ids = NULL;
    Mmsg(&mdb->cmd, "SELECT MediaId FROM Media");
    if (QUERY_DB(mdb, mdb->cmd)) {
@@ -524,7 +514,7 @@ int db_get_media_ids(B_DB *mdb, int *num_ids, uint32_t *ids[])
       Mmsg(&mdb->errmsg, _("Media id select failed: ERR=%s\n"), sql_strerror(mdb));
       stat = 0;
    }
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat;
 }
 
@@ -539,17 +529,17 @@ int db_get_media_record(B_DB *mdb, MEDIA_DBR *mr)
    SQL_ROW row;
    int stat = 0;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    if (mr->MediaId == 0 && mr->VolumeName[0] == 0) {
       Mmsg(&mdb->cmd, "SELECT count(*) from Media");
       mr->MediaId = get_sql_record_max(mdb);
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 1;
    }
    if (mr->MediaId != 0) {		 /* find by id */
       Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,\
 VolBytes,VolMounts,VolErrors,VolWrites,VolMaxBytes,VolCapacityBytes,\
-MediaType,VolStatus,PoolId,VoRetention,Recycle \
+MediaType,VolStatus,PoolId,VolRetention,Recycle \
 FROM Media WHERE MediaId=%d", mr->MediaId);
    } else {			      /* find by name */
       Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,\
@@ -564,11 +554,9 @@ FROM Media WHERE VolumeName=\"%s\"", mr->VolumeName);
 	 char ed1[30];
          Mmsg1(&mdb->errmsg, _("More than one Volume!: %s\n"), 
 	    edit_uint64(mdb->num_rows, ed1));
-	 Emsg0(M_ERROR, 0, mdb->errmsg);
       } else if (mdb->num_rows == 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
             Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
-	    Emsg0(M_ERROR, 0, mdb->errmsg);
 	 } else {
 	    /* return values */
 	    mr->MediaId = atoi(row[0]);
@@ -594,7 +582,7 @@ FROM Media WHERE VolumeName=\"%s\"", mr->VolumeName);
       }
       sql_free_result(mdb);
    }
-   V(mdb->mutex);
+   db_unlock(mdb);
    return stat;
 }
 

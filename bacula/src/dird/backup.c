@@ -358,7 +358,8 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
       case JS_Terminated:
          term_msg = _("Backup OK");
 	 break;
-      case JS_Errored:
+      case JS_FatalError:
+      case JS_ErrorTerminated:
          term_msg = _("*** Backup Error ***"); 
 	 msg_type = M_ERROR;	      /* Generate error message */
 	 if (jcr->store_bsock) {

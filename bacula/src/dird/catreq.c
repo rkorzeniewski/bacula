@@ -92,15 +92,15 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
 	 ok = TRUE;
       } else {
 	 /* Well, try finding recycled tapes */
-         strcpy(mr.VolStatus, "Recycle");
-	 if (db_find_next_volume(jcr->db, index, &mr)) {
-	    jcr->MediaId = mr.MediaId;
-            Dmsg1(20, "Find_next_vol MediaId=%d\n", jcr->MediaId);
-	    strcpy(jcr->VolumeName, mr.VolumeName);
-	    ok = TRUE;
-	 } else {
-	    /* See if we can create a new Volume */
-	    ok = newVolume(jcr);
+	 ok = find_recycled_volume(jcr, &mr);
+	 if (!ok) {
+	    if (prune_volumes(jcr)) {
+	       ok = recycle_a_volume(jcr, &mr);
+	    }
+	    if (!ok) {
+	       /* See if we can create a new Volume */
+	       ok = newVolume(jcr);
+	    }
 	 }
       }
       /*
@@ -117,7 +117,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
       }
 
    /* 
-    * Request to find specific volume information
+    * Request to find specific Volume information
     */
    } else if (sscanf(bs->msg, Get_Vol_Info, &Job, &mr.VolumeName) == 2) {
       Dmsg1(120, "CatReq GetVolInfo Vol=%s\n", mr.VolumeName);

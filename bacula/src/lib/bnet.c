@@ -151,7 +151,7 @@ bnet_recv(BSOCK *bsock)
 
    /* Make sure the buffer is big enough + one byte for EOS */
    if (pktsiz >= (int32_t)sizeof_pool_memory(bsock->msg)) {
-      bsock->msg = (char *) realloc_pool_memory(bsock->msg, pktsiz + 100);
+      bsock->msg = realloc_pool_memory(bsock->msg, pktsiz + 100);
    }
 
    bsock->timer_start = watchdog_time;	/* set start wait time */
@@ -457,7 +457,7 @@ again:
    bs->msglen = bvsnprintf(bs->msg, maxlen, fmt, arg_ptr);
    va_end(arg_ptr);
    if (bs->msglen < 0 || bs->msglen >= maxlen) {
-      bs->msg = (POOLMEM *)realloc_pool_memory(bs->msg, maxlen + 200);
+      bs->msg = realloc_pool_memory(bs->msg, maxlen + 200);
       goto again;
    }
    return bnet_send(bs) < 0 ? 0 : 1;
@@ -481,7 +481,7 @@ int bnet_set_buffer_size(BSOCK *bs, uint32_t size, int rw)
 #endif
 
    dbuf_size = size;
-   if ((bs->msg = (char *) realloc_pool_memory(bs->msg, dbuf_size+100)) == NULL) {
+   if ((bs->msg = realloc_pool_memory(bs->msg, dbuf_size+100)) == NULL) {
       Emsg0(M_FATAL, 0, "Could not malloc 32K BSOCK data buffer\n");
       return 0;
    }
@@ -578,8 +578,8 @@ init_bsock(int sockfd, char *who, char *host, int port)
    memset(bsock, 0, sizeof(BSOCK));
    bsock->fd = sockfd;
    bsock->errors = 0;
-   bsock->msg = (POOLMEM *)get_pool_memory(PM_MESSAGE);
-   bsock->errmsg = (POOLMEM *)get_pool_memory(PM_MESSAGE);
+   bsock->msg = get_pool_memory(PM_MESSAGE);
+   bsock->errmsg = get_pool_memory(PM_MESSAGE);
    bsock->who = bstrdup(who);
    bsock->host = bstrdup(host);
    bsock->port = port;
@@ -599,8 +599,8 @@ dup_bsock(BSOCK *osock)
       Emsg0(M_ABORT, 0, "Out of memory in dup_bsock.\n");
    }
    memcpy(bsock, osock, sizeof(BSOCK));
-   bsock->msg = (POOLMEM *)get_pool_memory(PM_MESSAGE);
-   bsock->errmsg = (POOLMEM *)get_pool_memory(PM_MESSAGE);
+   bsock->msg = get_pool_memory(PM_MESSAGE);
+   bsock->errmsg = get_pool_memory(PM_MESSAGE);
    bsock->duped = TRUE;
    return bsock;
 }

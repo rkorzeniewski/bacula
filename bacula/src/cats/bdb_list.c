@@ -73,9 +73,9 @@ void db_list_pool_records(B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx)
    POOL_DBR pr;
 
    Dmsg0(90, "Enter list_pool_records\n");
-   P(mdb->mutex);
+   db_lock(mdb);
    if (!bdb_open_pools_file(mdb)) {
-      V(mdb->mutex);
+      db_unlock(mdb);
       return;
    }
    sendit(ctx, "  PoolId NumVols MaxVols  Type       PoolName\n");
@@ -88,7 +88,7 @@ void db_list_pool_records(B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx)
 	 sendit(ctx, mdb->cmd);
    }
    sendit(ctx, "===================================================\n");
-   V(mdb->mutex);
+   db_unlock(mdb);
    Dmsg0(90, "Leave list_pool_records\n");
    return;
 }
@@ -103,9 +103,9 @@ void db_list_media_records(B_DB *mdb, MEDIA_DBR *mdbr, DB_LIST_HANDLER *sendit, 
    int len;
    MEDIA_DBR mr;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    if (!bdb_open_media_file(mdb)) {
-      V(mdb->mutex);
+      db_unlock(mdb);
       return;
    }
    sendit(ctx, "  Status           VolBytes  MediaType        VolumeName\n");
@@ -119,7 +119,7 @@ void db_list_media_records(B_DB *mdb, MEDIA_DBR *mdbr, DB_LIST_HANDLER *sendit, 
 	 sendit(ctx, mdb->cmd);
    }
    sendit(ctx, "====================================================================\n");
-   V(mdb->mutex);
+   db_unlock(mdb);
    return;
 }
 
@@ -129,13 +129,13 @@ void db_list_jobmedia_records(B_DB *mdb, uint32_t JobId, DB_LIST_HANDLER *sendit
    MEDIA_DBR mr;
    int jmlen, mrlen;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    if (!bdb_open_jobmedia_file(mdb)) {
-      V(mdb->mutex);
+      db_unlock(mdb);
       return;
    }
    if (!bdb_open_media_file(mdb)) {
-      V(mdb->mutex);
+      db_unlock(mdb);
       return;
    }
    sendit(ctx, "    JobId VolumeName    FirstIndex LastIndex\n");
@@ -173,7 +173,7 @@ void db_list_jobmedia_records(B_DB *mdb, uint32_t JobId, DB_LIST_HANDLER *sendit
    }
 
    sendit(ctx, "============================================\n");
-   V(mdb->mutex);
+   db_unlock(mdb);
    return;
 }
 
@@ -190,9 +190,9 @@ void db_list_job_records(B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, void *
    char dt[MAX_TIME_LENGTH];
    struct tm tm;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    if (!bdb_open_jobs_file(mdb)) {
-      V(mdb->mutex);
+      db_unlock(mdb);
       return;
    }
    fseek(mdb->jobfd, 0L, SEEK_SET);   /* rewind file */
@@ -220,7 +220,7 @@ void db_list_job_records(B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, void *
       sendit(ctx, mdb->cmd);
    }
    sendit(ctx, "============================================================================\n");
-   V(mdb->mutex);
+   db_unlock(mdb);
    return;
 }
 
@@ -237,9 +237,9 @@ void db_list_job_totals(B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, void *c
    uint64_t total_files = 0;
    uint32_t total_jobs = 0;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    if (!bdb_open_jobs_file(mdb)) {
-      V(mdb->mutex);
+      db_unlock(mdb);
       return;
    }
    fseek(mdb->jobfd, 0L, SEEK_SET);   /* rewind file */
@@ -260,7 +260,7 @@ void db_list_job_totals(B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, void *c
 	     edit_uint64_with_commas(total_bytes, ewc3));
    sendit(ctx, mdb->cmd);
    sendit(ctx, "=======================================\n");
-   V(mdb->mutex);
+   db_unlock(mdb);
    return;
 }
 

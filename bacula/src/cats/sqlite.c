@@ -78,9 +78,9 @@ db_init_database(char *db_name, char *db_user, char *db_password)
    memset(mdb, 0, sizeof(B_DB));
    mdb->db_name = bstrdup(db_name);
    mdb->have_insert_id = TRUE; 
-   mdb->errmsg = (char *) get_pool_memory(PM_EMSG); /* get error message buffer */
+   mdb->errmsg = get_pool_memory(PM_EMSG); /* get error message buffer */
    *mdb->errmsg = 0;
-   mdb->cmd = (char *) get_pool_memory(PM_EMSG);    /* get command buffer */
+   mdb->cmd = get_pool_memory(PM_EMSG);    /* get command buffer */
    mdb->ref_count = 1;
    qinsert(&db_list, &mdb->bq); 	   /* put db in list */
    V(mutex);
@@ -104,8 +104,16 @@ db_open_database(B_DB *mdb)
       return 1;
    }
    mdb->connected = FALSE;
+#ifdef needed
    if (pthread_mutex_init(&mdb->mutex, NULL) != 0) {
       Mmsg1(&mdb->errmsg, _("Unable to initialize DB mutex. ERR=%s\n"), strerror(errno));
+      V(mutex);
+      return 0;
+   }
+#endif
+
+   if (rwl_init(&mdb->lock) != 0) {
+      Mmsg1(&mdb->errmsg, "Unable to initialize DB lock. ERR=%s\n", strerror(errno));
       V(mutex);
       return 0;
    }
@@ -159,7 +167,8 @@ db_close_database(B_DB *mdb)
       if (mdb->connected && mdb->db) {
 	 sqlite_close(mdb->db);
       }
-      pthread_mutex_destroy(&mdb->mutex);
+/*    pthread_mutex_destroy(&mdb->mutex); */
+      rwl_destroy(&mdb->lock);	     
       free_pool_memory(mdb->errmsg);
       free_pool_memory(mdb->cmd);
       if (mdb->db_name) {
@@ -273,7 +282,7 @@ int db_sql_query(B_DB *mdb, char *query, DB_RESULT_HANDLER *result_handler, void
    struct rh_data rh_data;
    int stat;
 
-   P(mdb->mutex);
+   db_lock(mdb);
    if (mdb->sqlite_errmsg) {
       actuallyfree(mdb->sqlite_errmsg);
       mdb->sqlite_errmsg = NULL;
@@ -283,10 +292,10 @@ int db_sql_query(B_DB *mdb, char *query, DB_RESULT_HANDLER *result_handler, void
    stat = sqlite_exec(mdb->db, query, sqlite_result, (void *)&rh_data, &mdb->sqlite_errmsg);
    if (stat != 0) {
       Mmsg(&mdb->errmsg, _("Query failed: %s: ERR=%s\n"), query, sql_strerror(mdb));
-      V(mdb->mutex);
+      db_unlock(mdb);
       return 0;
    }
-   V(mdb->mutex);
+   db_unlock(mdb);
    return 1;
 }
 

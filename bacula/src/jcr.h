@@ -57,8 +57,9 @@
 #define JS_Running               'R'
 #define JS_Blocked               'B'
 #define JS_Terminated            'T'  /* terminated normally */
-#define JS_ErrorTerminated       'E'
-#define JS_Errored               'E'
+#define JS_ErrorTerminated       'E'  /* Job terminated in error */
+#define JS_Error                 'e'  /* Non-fatal error */
+#define JS_FatalError            'f'  /* Fatal error */
 #define JS_Differences           'D'  /* Verify differences */
 #define JS_Cancelled             'A'  /* cancelled by user */
 #define JS_WaitFD                'F'  /* waiting on File daemon */
@@ -83,16 +84,16 @@ struct s_jcr {
    BSOCK *file_bsock;                 /* File daemon connection socket */
    JCR_free_HANDLER *daemon_free_jcr; /* Local free routine */
    int use_count;                     /* use count */
-   char *errmsg;                      /* edited error message */
+   POOLMEM *errmsg;                   /* edited error message */
    char Job[MAX_NAME_LENGTH];         /* Job name */
    uint32_t JobId;                    /* Director's JobId */
    uint32_t VolSessionId;
    uint32_t VolSessionTime;
    uint32_t JobFiles;                 /* Number of files written, this job */
-   uint32_t JobErrors;
+   uint32_t JobErrors;                /* */
    uint64_t JobBytes;                 /* Number of bytes processed this job */
+   uint32_t Errors;                   /* Number of non-fatal errors */
    int JobStatus;                     /* ready, running, blocked, terminated */ 
-   int JobTermCode;                   /* termination code */
    int JobType;                       /* backup, restore, verify ... */
    int level;
    int authenticated;                 /* set when client authenticated */
