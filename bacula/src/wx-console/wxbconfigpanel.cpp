@@ -64,7 +64,7 @@ wxbConfigParam::~wxbConfigParam() {
 }
   
 void wxbConfigParam::AddControl(wxWindow* parent, wxSizer* sizer) {
-   sizer->Add(new wxStaticText(parent, -1, title + ": ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND | wxALIGN_CENTER_HORIZONTAL);
+   sizer->Add(new wxStaticText(parent, -1, title + ": ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 0, wxEXPAND | wxALIGN_CENTER_HORIZONTAL);
    switch (type) {
    case text:
       statictext = new wxStaticText(parent, -1, value, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
@@ -75,7 +75,7 @@ void wxbConfigParam::AddControl(wxWindow* parent, wxSizer* sizer) {
       sizer->Add(textctrl, 1, wxEXPAND | wxADJUST_MINSIZE);
       break;
    case choice:
-      choicectrl = new wxChoice(parent, id, wxDefaultPosition, wxDefaultSize, nvalues, values);
+      choicectrl = new wxChoice(parent, id, wxDefaultPosition, wxSize(150, 20), nvalues, values);
       sizer->Add(choicectrl, 1, wxEXPAND);
       break;
    }
@@ -154,12 +154,17 @@ void wxbConfigParam::Add(wxString value) {
 }
 
 /* Creates a new config panel, config must be allocated with new */
-wxbConfigPanel::wxbConfigPanel(wxWindow* parent, wxbConfig* config,
+wxbConfigPanel::wxbConfigPanel(wxWindow* parent, wxbConfig* config, wxString title,
       wxWindowID ok, wxWindowID cancel, wxWindowID apply): wxPanel(parent) {
 
    this->config = config;
 
    wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
+   
+   mainSizer->Add(
+      new wxStaticText(this, -1, title, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER),
+            0, wxALIGN_CENTER_HORIZONTAL | wxALL, 5);
+
    wxFlexGridSizer* cfgSizer = new wxFlexGridSizer(config->GetCount()+1, 2, 8, 5);
    unsigned int i;
    for (i = 0; i < config->GetCount(); i++) {

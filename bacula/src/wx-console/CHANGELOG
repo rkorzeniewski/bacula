@@ -1,4 +1,9 @@
 31-04-2004 :
+ - wxbRestorePanel : Corrected a problem when you double-clicked an 
+      a folder in the list, the list was then refreshed two times
+      (instead of one) in the new directory
+ - wxbRestorePanel : Improved configuration panels' look
+ - wxbRestorePanel : Added titles to configuration panels
  - wxbMainFrame : If the connection drops unexpectedly, it should say 
    it lost the connection to the Director and then wait for you to
    either manually exit or (when it becomes possible) reconnect.

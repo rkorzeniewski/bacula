@@ -171,6 +171,7 @@ wxbMainFrame::~wxbMainFrame()
    if (ct != NULL) { // && (!ct->IsRunning())
       ct->Delete();
    }
+   frame = NULL;
 }
 
 /*
@@ -313,6 +314,7 @@ void wxbMainFrame::OnQuit(wxCommandEvent& WXUNUSED(event))
       ct->Delete();
       ct = NULL;
    }
+   frame = NULL;
    Close(TRUE);
 }
 
@@ -359,6 +361,7 @@ void wxbMainFrame::Print(wxString str, int status)
       int answer = wxMessageBox("Connection to the director lost. Quit program?", "Connection lost",
                         wxYES_NO | wxICON_EXCLAMATION, this);
       if (answer == wxYES) {
+         frame = NULL;
          Close(true);
       }
       return;
@@ -542,8 +545,10 @@ void firePrintEvent(wxString str, int status)
 
    wxbThreadEvent evt(Thread);
    evt.SetEventPrintObject(po);
-
-   wxbMainFrame::GetInstance()->AddPendingEvent(evt);
+   
+   if (wxbMainFrame::GetInstance()) {
+      wxbMainFrame::GetInstance()->AddPendingEvent(evt);
+   }
 }
 
 //wxString csBuffer; /* Temporary buffer for receiving data from console thread */

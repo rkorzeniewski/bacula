@@ -81,7 +81,7 @@ WX_DECLARE_OBJARRAY(wxbConfigParam, wxbConfig);
 class wxbConfigPanel : public wxPanel {
 public:
    /* Creates a new config panel, config must be allocated with new */
-	wxbConfigPanel(wxWindow* parent, wxbConfig* config, wxWindowID ok, wxWindowID cancel, wxWindowID apply = -1);
+	wxbConfigPanel(wxWindow* parent, wxbConfig* config, wxString title, wxWindowID ok, wxWindowID cancel, wxWindowID apply = -1);
 	~wxbConfigPanel();
    
    void SetRowString(const char* title, wxString value);

@@ -1,10 +1,6 @@
 FEATURES
 --------
 
-wxbRestorePanel : Reconsider start button's labels.
-
-wxbRestorePanel : Add titles to configuration panels
-
 wxbRestorePanel : When cancelling, check for commands results
 
 general : Show nice messages boxes when errors occurs.
@@ -16,7 +12,8 @@ wxbRestorePanel : Add a way to cancel restore when building tree
 
 wxbMainFrame : set focus to type control when clicking on console
 
-global : create a general class which keeps clients, jobs, filesets, pools... list.
+global : create a general class which keeps clients, jobs, 
+	filesets, pools... list, and with functions like WaitForEnd.
 
 wxbConfigPanel : Create a dialog for selecting dates and paths.
 
@@ -29,10 +26,6 @@ wxbRestorePanel : Ask Kern for a dot command which gives restore
 wxbRestorePanel : Add buttons to mark/unmark directories/files.
 
 wxbRestorePanel : Add a button to force to refresh the whole tree
-
-wxbRestorePanel : Put titles above the Client drop down 
-     box and the Backup date drop down box. It isn't immediately 
-     obvious that the dates correspond to the backup dates.
 
 wxbRestorePanel : There needs to be some way of marking/unmarking a range of 
      files selected with shift-click or multiple files selected 
@@ -88,10 +81,3 @@ bacula-dir : correct director to handle correctly + marked status
    (not a file), and then unmark it, its parents keep the "+" status.)
 
 general : make a good documentation with snapshots
-
-BUGS
-----
-
-wxRestorePanel : When you double-click an a folder in the list, 
-      the list is then refreshed two times (instead of one) 
-      in the new directory

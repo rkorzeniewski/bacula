@@ -308,7 +308,7 @@ wxbRestorePanel::wxbRestorePanel(wxWindow* parent): wxbPanel(parent) {
    config->Add(new wxbConfigParam("Storage", ConfigStorage, choice, 0, elist));
    config->Add(new wxbConfigParam("Before", ConfigWhen, choice, 0, elist));
    
-   configPanel = new wxbConfigPanel(this, config, RestoreStart, RestoreCancel, -1);
+   configPanel = new wxbConfigPanel(this, config, "Please configure parameters concerning files to restore :", RestoreStart, RestoreCancel, -1);
    
    configPanel->Show(true);
    configPanel->Enable(false);
@@ -325,7 +325,7 @@ wxbRestorePanel::wxbRestorePanel(wxWindow* parent): wxbPanel(parent) {
    config->Add(new wxbConfigParam("When", ConfigWhen, modifiableText, ""));
    config->Add(new wxbConfigParam("Priority", ConfigPriority, modifiableText, ""));
    
-   restorePanel = new wxbConfigPanel(this, config, ConfigOk, ConfigCancel, ConfigApply);
+   restorePanel = new wxbConfigPanel(this, config, "Please configure parameters concerning files restoration :", ConfigOk, ConfigCancel, ConfigApply);
     
    restorePanel->Show(false);
    
@@ -653,6 +653,7 @@ void wxbRestorePanel::CmdStart() {
 
       WaitForEnd("unmark *\n");
       wxTreeItemId root = tree->AddRoot(configPanel->GetRowString("Client"), -1, -1, new wxbTreeItemData("/", configPanel->GetRowString("Client"), 0));
+      currentTreeItem = root;
       tree->Refresh();
       UpdateTreeItem(root, true);
       wxbMainFrame::GetInstance()->SetStatusText("Right click on a file or on a directory, or double-click on its mark to add it to the restore list.");
@@ -859,7 +860,6 @@ void wxbRestorePanel::CmdCancel() {
    cancelled = 1;
    
    if (status == restoring) {
-      int n = 0;
       if (jobid != "") {
          wxbMainFrame::GetInstance()->Send(wxString("cancel job=") << jobid << "\n");
       }
@@ -1246,12 +1246,10 @@ wxbDataTokenizer* wxbRestorePanel::WaitForEnd(wxString cmd, bool keepresults, bo
 /* Run a dir command, and waits until result is fully received. */
 void wxbRestorePanel::UpdateTreeItem(wxTreeItemId item, bool updatelist) {
 //   this->updatelist = updatelist;
-   currentTreeItem = item;
-
    wxbDataTokenizer* dt;
 
    dt = WaitForEnd(wxString("cd \"") << 
-      static_cast<wxbTreeItemData*>(tree->GetItemData(currentTreeItem))
+      static_cast<wxbTreeItemData*>(tree->GetItemData(item))
          ->GetPath() << "\"\n", false);
 
    /* TODO: check command result */
@@ -1286,7 +1284,7 @@ void wxbRestorePanel::UpdateTreeItem(wxTreeItemId item, bool updatelist) {
          wxString itemStr;
 
          long cookie;
-         treeid = tree->GetFirstChild(currentTreeItem, cookie);
+         treeid = tree->GetFirstChild(item, cookie);
 
          bool updated = false;
 
@@ -1302,12 +1300,12 @@ void wxbRestorePanel::UpdateTreeItem(wxTreeItemId item, bool updatelist) {
                updated = true;
                break;
             }
-            treeid = tree->GetNextChild(currentTreeItem, cookie);
+            treeid = tree->GetNextChild(item, cookie);
          }
 
          if (!updated) {
             int img = wxbTreeItemData::GetMarkedStatus(file[6]);
-            treeid = tree->AppendItem(currentTreeItem, file[8], img, img, new wxbTreeItemData(file[7], file[8], file[6]));
+            treeid = tree->AppendItem(item, file[8], img, img, new wxbTreeItemData(file[7], file[8], file[6]));
          }
       }
 
@@ -1804,9 +1802,13 @@ void wxbRestorePanel::OnTreeChanged(wxTreeEvent& event) {
    if (working) {
       return;
    }
+   if (currentTreeItem == event.GetItem()) {
+      return;
+   }
    SetCursor(*wxHOURGLASS_CURSOR);
    markWhenListingDone = false;
    working = true;
+   currentTreeItem = event.GetItem();
    CmdList(event.GetItem());
    if (markWhenListingDone) {
       CmdMark(event.GetItem(), -1);
@@ -1876,7 +1878,7 @@ void wxbRestorePanel::OnListActivated(wxListEvent& event) {
                SetCursor(*wxSTANDARD_CURSOR);
                tree->Expand(currentTreeItem);
                tree->SelectItem(currentChild);
-               tree->Refresh();
+               //tree->Refresh();
                return;
             }
             currentChild = tree->GetNextChild(currentTreeItem, cookie);
