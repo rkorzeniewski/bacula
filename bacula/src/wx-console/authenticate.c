@@ -25,8 +25,7 @@
 
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place - Suite 330, Boston, 
-   MA  02111-1307, USA.
+   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
 #include "bacula.h"
@@ -36,7 +35,7 @@
 #include "csprint.h"
 
 void senditf(char *fmt, ...);
-void sendit(char *buf); 
+void sendit(char *buf);
 
 /* Commands sent to Director */
 static char hello[]    = "Hello %s calling\n";
@@ -56,7 +55,7 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
    char bashed_name[MAX_NAME_LENGTH];
    char *password;
 
-   /* 
+   /*
     * Send my name to the Director then do authentication
     */
    if (cons) {
@@ -71,19 +70,19 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
    btimer_t *tid = start_bsock_timer(dir, 60 * 5);
    bnet_fsend(dir, hello, bashed_name);
 
-   if (!cram_md5_get_auth(dir, password, ssl_need) || 
+   if (!cram_md5_get_auth(dir, password, ssl_need) ||
        !cram_md5_auth(dir, password, ssl_need)) {
       stop_bsock_timer(tid);
-      csprint("Director authorization problem.\nMost likely the passwords do not agree.\n", CS_DATA);  
+      csprint("Director authorization problem.\nMost likely the passwords do not agree.\n", CS_DATA);
       return 0;
    }
 
    Dmsg1(6, ">dird: %s", dir->msg);
    if (bnet_recv(dir) <= 0) {
       stop_bsock_timer(tid);
-      csprint("Bad response to Hello command: ERR=", CS_DATA);  
+      csprint("Bad response to Hello command: ERR=", CS_DATA);
       csprint(bnet_strerror(dir), CS_DATA);
-      csprint("\n", CS_DATA);  
+      csprint("\n", CS_DATA);
       return 0;
    }
    Dmsg1(10, "<dird: %s", dir->msg);
