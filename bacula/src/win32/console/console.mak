@@ -40,6 +40,7 @@ ALL : "$(OUTDIR)\bconsole.exe" "$(OUTDIR)\console.pch"
 
 
 CLEAN :
+        -@erase "$(INTDIR)\address_conf.obj"
         -@erase "$(INTDIR)\alist.obj"
         -@erase "$(INTDIR)\authenticate.obj"
         -@erase "$(INTDIR)\base64.obj"
@@ -89,6 +90,7 @@ BSC32_SBRS= \
 LINK32=link.exe
 LINK32_FLAGS=wsock32.lib pthreadVCE.lib /nologo /subsystem:console /pdb:none /machine:I386 /out:"$(OUTDIR)\bconsole.exe" /libpath:"../../../../depkgs-win32/pthreads" 
 LINK32_OBJS= \
+        "$(INTDIR)\address_conf.obj" \
         "$(INTDIR)\alist.obj" \
         "$(INTDIR)\authenticate.obj" \
         "$(INTDIR)\base64.obj" \
@@ -141,6 +143,7 @@ ALL : "$(OUTDIR)\bconsole.exe" "$(OUTDIR)\console.pch"
 
 
 CLEAN :
+        -@erase "$(INTDIR)\address_conf.obj"
         -@erase "$(INTDIR)\alist.obj"
         -@erase "$(INTDIR)\authenticate.obj"
         -@erase "$(INTDIR)\base64.obj"
@@ -191,6 +194,7 @@ BSC32_SBRS= \
 LINK32=link.exe
 LINK32_FLAGS=wsock32.lib pthreadVCE.lib /nologo /subsystem:console /pdb:none /debug /machine:I386 /out:"$(OUTDIR)\bconsole.exe" /libpath:"../../../../depkgs-win32/pthreads" 
 LINK32_OBJS= \
+        "$(INTDIR)\address_conf.obj" \
         "$(INTDIR)\alist.obj" \
         "$(INTDIR)\authenticate.obj" \
         "$(INTDIR)\base64.obj" \
@@ -274,10 +278,17 @@ LINK32_OBJS= \
 
 
 !IF "$(CFG)" == "console - Win32 Release" || "$(CFG)" == "console - Win32 Debug"
+
+SOURCE=..\lib\address_conf.cpp
+
+"$(INTDIR)\address_conf.obj" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
+
 SOURCE=..\lib\alist.cpp
 
 "$(INTDIR)\alist.obj" : $(SOURCE) "$(INTDIR)"
         $(CPP) $(CPP_PROJ) $(SOURCE)
+
 
 
 SOURCE=.\authenticate.cpp

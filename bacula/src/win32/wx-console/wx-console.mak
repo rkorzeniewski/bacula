@@ -40,6 +40,7 @@ ALL : "$(OUTDIR)\wx-console.exe"
 
 
 CLEAN :
+	-@erase "$(INTDIR)\address_conf.obj"
 	-@erase "$(INTDIR)\alist.obj"
 	-@erase "$(INTDIR)\alloc.obj"
 	-@erase "$(INTDIR)\attr.obj"
@@ -113,6 +114,7 @@ LINK32_FLAGS=wxmsw.lib rpcrt4.lib oleaut32.lib ole32.lib uuid.lib winspool.lib w
   wldap32.lib pthreadVCE.lib zlib.lib /nodefaultlib:libcmt.lib \
   /nologo /subsystem:windows /machine:I386 /out:"$(OUTDIR)\wx-console.exe" /libpath:"../../../../depkgs-win32/wx/lib" /libpath:"../../../../depkgs-win32/pthreads" /libpath:"../../../../depkgs-win32/zlib" 
 LINK32_OBJS= \
+	"$(INTDIR)\address_conf.obj" \
 	"$(INTDIR)\alist.obj" \
 	"$(INTDIR)\alloc.obj" \
 	"$(INTDIR)\attr.obj" \
@@ -187,6 +189,8 @@ OutDir=.\Debug
 ALL : "$(OUTDIR)\wx-console.exe" "$(OUTDIR)\wx-console.bsc"
 
 CLEAN :
+	-@erase "$(INTDIR)\address_conf.obj
+	-@erase "$(INTDIR)\address_conf.sbr"
 	-@erase "$(INTDIR)\alist.obj
 	-@erase "$(INTDIR)\alist.sbr"
 	-@erase "$(INTDIR)\alloc.obj
@@ -311,6 +315,7 @@ RSC_PROJ=/l 0x409 /fo"$(INTDIR)\winres.res" /d "_DEBUG"
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\wx-console.bsc" 
 BSC32_SBRS= \
+	"$(INTDIR)\address_conf.sbr" \
 	"$(INTDIR)\alist.sbr" \
 	"$(INTDIR)\alloc.sbr" \
 	"$(INTDIR)\attr.sbr" \
@@ -379,6 +384,7 @@ LINK32_FLAGS=wxmswd.lib rpcrt4.lib oleaut32.lib ole32.lib uuid.lib winspool.lib 
   wldap32.lib pthreadVCE.lib zlib.lib /nodefaultlib:libcmtd.lib \
   /nologo /subsystem:windows /pdb:none /debug /machine:I386 /out:"$(OUTDIR)\wx-console.exe" /libpath:"../../../../depkgs-win32/wx/lib" /libpath:"../../../../depkgs-win32/pthreads" /libpath:"../../../../depkgs-win32/zlib" 
 LINK32_OBJS= \
+	"$(INTDIR)\address_conf.obj" \
 	"$(INTDIR)\alist.obj" \
 	"$(INTDIR)\alloc.obj" \
 	"$(INTDIR)\attr.obj" \
@@ -487,6 +493,25 @@ SOURCE=..\..\wx-console\wx-console_private.rc
 
 "$(INTDIR)\wx-console_private.res" : $(SOURCE) "$(INTDIR)"
         $(RSC) /l 0x409 /fo"$(INTDIR)\wx-console_private.res" /d "NDEBUG" $(SOURCE)
+
+FILENAME=address_conf
+SOURCE=..\lib\address_conf.cpp
+!IF  "$(CFG)" == "wx-console - Win32 Release"
+
+
+"$(INTDIR)\$(FILENAME).obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "wx-console - Win32 Debug"
+
+
+"$(INTDIR)\$(FILENAME).obj"	"$(INTDIR)\$(FILENAME).sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 
 FILENAME=alist
 SOURCE=..\lib\alist.cpp

@@ -238,6 +238,12 @@ void *handle_client_request(void *dirp)
 	    fo->regex.destroy();
 	    fo->wild.destroy();
 	    fo->base.destroy();
+	    if (fo->reader) {
+	       free(fo->reader);
+	    }
+	    if (fo->writer) {
+	       free(fo->writer);
+	    }
 	 }
 	 incexe->opts_list.destroy();
 	 incexe->name_list.destroy();
@@ -747,6 +753,16 @@ static void add_fileset(JCR *jcr, const char *item)
       set_options(current_opts, item);
       state = state_options;
       break;
+   case 'D':
+      current_opts = start_options(ff);
+      current_opts->reader = bstrdup(item);
+      state = state_options;
+      break;
+   case 'T':
+      current_opts = start_options(ff);
+      current_opts->writer = bstrdup(item);
+      state = state_options;
+      break;
    default:
       Jmsg(jcr, M_FATAL, 0, "Invalid FileSet command: %s\n", item);
       state = state_error;
@@ -774,6 +790,12 @@ static bool term_fileset(JCR *jcr)
 	 }
 	 for (k=0; k<fo->base.size(); k++) {
             Dmsg1(400, "B %s\n", (char *)fo->base.get(k));
+	 }
+	 if (fo->reader) {
+            Dmsg1(400, "D %s\n", fo->reader);
+	 }
+	 if (fo->writer) {
+            Dmsg1(400, "T %s\n", fo->writer);
 	 }
       }
       for (j=0; j<incexe->name_list.size(); j++) {

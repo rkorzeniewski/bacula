@@ -671,7 +671,7 @@ static BSOCK *bnet_open(JCR * jcr, const char *name, char *host, char *service,
 
    foreach_dlist(ipaddr, addr_list) {
       ipaddr->set_port(htons(port));
-      char allbuf[256 * addr_list->size()];
+      char allbuf[256 * 10];
       char curbuf[256];
       Dmsg2(100, "Current %sAll %s\n", 
 		   ipaddr->build_address_str(curbuf, sizeof(curbuf)), 

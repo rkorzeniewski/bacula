@@ -105,10 +105,6 @@ void binit(BFILE *bfd)
    bfd->fid = -1;
    bfd->mode = BF_CLOSED;
    bfd->use_backup_api = have_win32_api();
-   bfd->errmsg = NULL;
-   bfd->lpContext = NULL;
-   bfd->lerror = 0;
-   bfd->berrno = 0;
 }
 
 /*
@@ -128,6 +124,12 @@ int set_portable_backup(BFILE *bfd)
 {
    bfd->use_backup_api = 0;
    return 1;
+}
+
+void set_prog(BFILE *bfd, char *prog, JCR *jcr)
+{
+   bfd->prog = prog;
+   bfd->jcr = jcr;
 }
 
 /*
@@ -462,6 +464,13 @@ int is_portable_backup(BFILE *bfd)
    return 1;			      /* portable by definition */
 }
 
+void set_prog(BFILE *bfd, char *prog, JCR *jcr)
+{
+   bfd->prog = prog;
+   bfd->jcr = jcr;
+}
+
+
 int is_stream_supported(int stream)
 {
    /* No Win32 backup on this machine */
@@ -496,6 +505,34 @@ int is_stream_supported(int stream)
 
 int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 {
+   /* Open reader/writer program */
+   if (bfd->prog) {
+      POOLMEM *ecmd = get_pool_memory(PM_FNAME);
+      ecmd = edit_job_codes(bfd->jcr, ecmd, bfd->prog, fname);
+      char *pmode;
+      if (flags & O_RDONLY) {
+         pmode = "r";
+      } else {
+         pmode = "w";
+      }
+      bfd->bpipe = open_bpipe(ecmd, 0, pmode);
+      if (bfd->bpipe == NULL) {
+	 bfd->berrno = errno;
+	 bfd->fid = -1;
+	 free_pool_memory(ecmd);
+	 return -1;
+      }
+      free_pool_memory(ecmd);
+      if (flags & O_RDONLY) {
+	 bfd->fid = fileno(bfd->bpipe->rfd);
+      } else {
+	 bfd->fid = fileno(bfd->bpipe->wfd);
+      }
+      errno = 0;
+      return bfd->fid;
+   }
+
+   /* Normal file open */
    bfd->fid = open(fname, flags, mode);
    bfd->berrno = errno;
    Dmsg1(400, "Open file %d\n", bfd->fid);
@@ -510,10 +547,19 @@ int bclose(BFILE *bfd)
    if (bfd->fid == -1) {
       return 0;
    }
+   /* Close reader/writer program */
+   if (bfd->prog && bfd->bpipe) {
+      stat = close_bpipe(bfd->bpipe);
+      bfd->berrno = errno;
+      bfd->fid = -1;
+      bfd->bpipe = NULL;
+      return stat;
+   }
+   
+   /* Close normal file */
    stat = close(bfd->fid);
    bfd->berrno = errno;
    bfd->fid = -1;
-
    return stat;
 }
 

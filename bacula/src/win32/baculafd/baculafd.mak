@@ -40,6 +40,7 @@ ALL : "$(OUTDIR)\bacula-fd.exe"
 
 
 CLEAN :
+        -@erase "$(INTDIR)\address_conf.obj"
         -@erase "$(INTDIR)\alist.obj"
         -@erase "$(INTDIR)\alloc.obj"
         -@erase "$(INTDIR)\attr.obj"
@@ -127,6 +128,7 @@ BSC32_SBRS= \
 LINK32=link.exe
 LINK32_FLAGS=user32.lib advapi32.lib gdi32.lib wsock32.lib shell32.lib pthreadVCE.lib zlib.lib /nologo /subsystem:windows /pdb:none /machine:I386 /nodefaultlib:"MSVCRT.lib" /out:"$(OUTDIR)\bacula-fd.exe" /libpath:"../../../../depkgs-win32/pthreads" /libpath:"../../../../depkgs-win32/zlib" 
 LINK32_OBJS= \
+        "$(INTDIR)\address_conf.obj" \
         "$(INTDIR)\alist.obj" \
         "$(INTDIR)\alloc.obj" \
         "$(INTDIR)\attr.obj" \
@@ -217,6 +219,8 @@ ALL : "$(OUTDIR)\bacula-fd.exe" "$(OUTDIR)\baculafd.bsc"
 
 
 CLEAN :
+        -@erase "$(INTDIR)\address_conf.obj"
+        -@erase "$(INTDIR)\address_conf.sbr"
         -@erase "$(INTDIR)\alist.obj"
         -@erase "$(INTDIR)\alist.sbr"
         -@erase "$(INTDIR)\alloc.obj"
@@ -373,6 +377,7 @@ RSC_PROJ=/l 0x409 /fo"$(INTDIR)\winres.res" /d "_DEBUG"
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\baculafd.bsc" 
 BSC32_SBRS= \
+        "$(INTDIR)\address_conf.sbr" \
         "$(INTDIR)\alist.sbr" \
         "$(INTDIR)\alloc.sbr" \
         "$(INTDIR)\attr.sbr" \
@@ -453,6 +458,7 @@ BSC32_SBRS= \
 LINK32=link.exe
 LINK32_FLAGS=user32.lib advapi32.lib gdi32.lib shell32.lib wsock32.lib pthreadVCE.lib zlib.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /pdb:none /debug /machine:I386 /nodefaultlib:"MSVCRT.lib" /out:"$(OUTDIR)\bacula-fd.exe" /libpath:"../../../../depkgs-win32/pthreads" /libpath:"../../../../depkgs-win32/zlib" 
 LINK32_OBJS= \
+        "$(INTDIR)\address_conf.obj" \
         "$(INTDIR)\alist.obj" \
         "$(INTDIR)\alloc.obj" \
         "$(INTDIR)\attr.obj" \
@@ -574,6 +580,25 @@ LINK32_OBJS= \
 
 
 !IF "$(CFG)" == "baculafd - Win32 Release" || "$(CFG)" == "baculafd - Win32 Debug"
+
+SOURCE=..\lib\address_conf.cpp
+
+!IF  "$(CFG)" == "baculafd - Win32 Release"
+
+
+"$(INTDIR)\address_conf.obj" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
+
+
+"$(INTDIR)\address_conf.obj"   "$(INTDIR)\address_conf.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 SOURCE=..\lib\alist.cpp
 
 !IF  "$(CFG)" == "baculafd - Win32 Release"
@@ -591,6 +616,7 @@ SOURCE=..\lib\alist.cpp
 
 
 !ENDIF 
+
 
 SOURCE=..\lib\alloc.cpp
 

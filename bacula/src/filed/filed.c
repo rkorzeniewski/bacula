@@ -240,25 +240,25 @@ Without that I don't know who I am :-(\n"), configfile);
    if (inetd_request) {
       /* Socket is on fd 0 */	       
       struct sockaddr client_addr;
-	 int port = -1;
-	 size_t client_addr_len = sizeof(client_addr);
-	 if (getsockname(0, &client_addr, &client_addr_len) == 0) {
-	    if (client_addr.sa_family == AF_INET) {
-	       port = ((struct sockaddr_in*)&client_addr)->sin_port;
-	    }
+      int port = -1;
+      socklen_t client_addr_len = sizeof(client_addr);
+      if (getsockname(0, &client_addr, &client_addr_len) == 0) {
+	 if (client_addr.sa_family == AF_INET) {
+	    port = ((struct sockaddr_in*)&client_addr)->sin_port;
+	 }
 #ifdef HAVE_IPV6
-	    else if (client_addr.sa_family == AF_INET6) {
-	       port = ((struct sockaddr_in6*)&client_addr)->sin6_port;
-	    }
+	 else if (client_addr.sa_family == AF_INET6) {
+	    port = ((struct sockaddr_in6*)&client_addr)->sin6_port;
+	 }
 #endif
-	  }
+      }
       BSOCK *bs = init_bsock(NULL, 0, "client", "unknown client", port, &client_addr);
       handle_client_request((void *)bs);
    } else {
       /* Become server, and handle requests */
       IPADDR *p;
       foreach_dlist(p, me->FDaddrs) {
-        Dmsg1(10, "filed: listening on port %d\n", ntohs(p->get_port()));
+         Dmsg1(10, "filed: listening on port %d\n", ntohs(p->get_port()));
       }
       bnet_thread_server(me->FDaddrs, me->MaxConcurrentJobs, &dir_workq, handle_client_request);
    }

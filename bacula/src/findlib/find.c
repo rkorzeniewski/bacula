@@ -159,10 +159,12 @@ static bool accept_file(FF_PKT *ff)
 
    for (j=0; j<incexe->opts_list.size(); j++) {
       findFOPTS *fo = (findFOPTS *)incexe->opts_list.get(j);
+      ff->flags = fo->flags;
+      ff->GZIP_level = fo->GZIP_level;
+      ff->reader = fo->reader;
+      ff->writer = fo->writer;
       for (k=0; k<fo->wild.size(); k++) {
 	 if (fnmatch((char *)fo->wild.get(k), ff->fname, 0) == 0) {
-	    ff->flags = fo->flags;
-	    ff->GZIP_level = fo->GZIP_level;
 	    if (ff->flags & FO_EXCLUDE) {
 	       return false;	      /* reject file */
 	    }
@@ -174,8 +176,6 @@ static bool accept_file(FF_PKT *ff)
 	 const int nmatch = 30;
 	 regmatch_t pmatch[nmatch];
 	 if (regexec((regex_t *)fo->regex.get(k), ff->fname, nmatch, pmatch,  0) == 0) {
-	    ff->flags = fo->flags;
-	    ff->GZIP_level = fo->GZIP_level;
 	    if (ff->flags & FO_EXCLUDE) {
 	       return false;	      /* reject file */
 	    }

@@ -58,6 +58,9 @@ struct BFILE {
    DWORD rw_bytes;                    /* Bytes read or written */
    DWORD lerror;                      /* Last error code */
    int berrno;                        /* errno */
+   char *prog;                        /* reader/writer program if any */
+   BPIPE *bpipe;                      /* pipe for reader */
+   JCR *jcr;                          /* jcr for editing job codes */
 };      
 
 HANDLE bget_handle(BFILE *bfd);
@@ -75,6 +78,9 @@ HANDLE bget_handle(BFILE *bfd);
 struct BFILE {
    int fid;                           /* file id on Unix */
    int berrno;
+   char *prog;                        /* reader/writer program if any */
+   BPIPE *bpipe;                      /* pipe for reader */
+   JCR *jcr;                          /* jcr for editing job codes */
 };      
 
 #endif
@@ -83,6 +89,7 @@ void    binit(BFILE *bfd);
 int     is_bopen(BFILE *bfd);
 int     set_win32_backup(BFILE *bfd);
 int     set_portable_backup(BFILE *bfd);
+void    set_prog(BFILE *bfd, char *prog, JCR *jcr);
 int     have_win32_api();
 int     is_portable_backup(BFILE *bfd);
 int     is_stream_supported(int stream);

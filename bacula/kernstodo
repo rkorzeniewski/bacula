@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                   05 August 2004
+                   06 August 2004
 
 Major development:      
 Project                     Developer
@@ -71,6 +71,7 @@ For 1.37 Testing/Documentation:
   non-existent directories will not be restored properly.
 
 Wish list:  
+- Allow the user to select JobType for manual pruning/purging.
 - Look at adding Client run command that will use the
   port opened by the client.
 - bscan does not put first of two volumes back with all info in
