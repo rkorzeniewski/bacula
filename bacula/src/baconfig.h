@@ -135,7 +135,11 @@
 #define STREAM_WIN32_GZIP_DATA   12    /* Gzipped Win32 BackupRead data */
 #define STREAM_MACOS_FORK_DATA   13    /* Mac resource fork */
 #define STREAM_HFSPLUS_ATTRIBUTES 14   /* Mac OS extra attributes */
-#define STREAM_UNIX_ATTRIBUTES_ACL 15 /* ACL attributes on UNIX */
+/*** FIXME ***/
+#define STREAM_UNIX_ATTRIBUTES_ACCESS_ACL 15 /* Standard ACL attributes on UNIX */
+#define STREAM_UNIX_ATTRIBUTES_DEFAULT_ACL 16 /* Default ACL attributes on UNIX */
+/*** FIXME ***/
+
 
 /* 
  *  File type (Bacula defined).           
