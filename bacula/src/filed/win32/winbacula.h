@@ -74,3 +74,6 @@ const char BaculaShowHelp[]              = "/help";
 
 // Usage string
 const char BaculaUsageText[] = "Bacula [/run] [/kill] [/install] [/remove] [/about] [/status] [/events]\n";
+
+void LogErrorMsg(char *msg, char *fname, int lineno);
+#define log_error_message(msg) LogErrorMsg((msg), __FILE__, __LINE__)

@@ -46,9 +46,7 @@ char con_fname[500];		      /* Console filename */
 FILE *con_fd = NULL;		      /* Console file descriptor */
 brwlock_t con_lock;		      /* Console lock structure */
 
-#ifdef TRACE_FILE
 FILE *trace_fd = NULL;
-#endif
 
 /* Forward referenced functions */
 
@@ -539,7 +537,7 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
     MSGS *msgs;
     BPIPE *bpipe;
 
-    Dmsg2(200, "Enter dispatch_msg type=%d msg=%s\n", type, msg);
+    Dmsg2(800, "Enter dispatch_msg type=%d msg=%s\n", type, msg);
 
     if (type == M_ABORT || type == M_ERROR_TERM) {
        fputs(msg, stdout);	   /* print this here to INSURE that it is printed */
@@ -557,10 +555,10 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
        if (bit_is_set(type, d->msg_types)) {
 	  switch (d->dest_code) {
 	     case MD_CONSOLE:
-                Dmsg1(400, "CONSOLE for following msg: %s", msg);
+                Dmsg1(800, "CONSOLE for following msg: %s", msg);
 		if (!con_fd) {
                    con_fd = fopen(con_fname, "a+");
-                   Dmsg0(200, "Console file not open.\n");
+                   Dmsg0(800, "Console file not open.\n");
 		}
 		if (con_fd) {
 		   Pw(con_lock);      /* get write lock on console message file */
@@ -584,14 +582,14 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
 		}
 		break;
 	     case MD_SYSLOG:
-                Dmsg1(400, "SYSLOG for collowing msg: %s\n", msg);
+                Dmsg1(800, "SYSLOG for collowing msg: %s\n", msg);
 		/*
 		 * We really should do an openlog() here.  
 		 */
                 syslog(LOG_DAEMON|LOG_ERR, "%s", msg);
 		break;
 	     case MD_OPERATOR:
-                Dmsg1(400, "OPERATOR for collowing msg: %s\n", msg);
+                Dmsg1(800, "OPERATOR for collowing msg: %s\n", msg);
 		mcmd = get_pool_memory(PM_MESSAGE);
 		if ((bpipe=open_mail_pipe(jcr, &mcmd, d))) {
 		   int stat;
@@ -607,7 +605,7 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
 		break;
 	     case MD_MAIL:
 	     case MD_MAIL_ON_ERROR:
-                Dmsg1(400, "MAIL for following msg: %s", msg);
+                Dmsg1(800, "MAIL for following msg: %s", msg);
 		if (!d->fd) {
 		   POOLMEM *name  = get_pool_memory(PM_MESSAGE);
 		   make_unique_mail_filename(jcr, &name, d);
@@ -628,7 +626,7 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
 		fputs(msg, d->fd);
 		break;
 	     case MD_FILE:
-                Dmsg1(400, "FILE for following msg: %s", msg);
+                Dmsg1(800, "FILE for following msg: %s", msg);
 		if (!d->fd) {
                    d->fd = fopen(d->where, "w+");
 		   if (!d->fd) {
@@ -641,7 +639,7 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
 		fputs(msg, d->fd);
 		break;
 	     case MD_APPEND:
-                Dmsg1(400, "APPEND for following msg: %s", msg);
+                Dmsg1(800, "APPEND for following msg: %s", msg);
 		if (!d->fd) {
                    d->fd = fopen(d->where, "a");
 		   if (!d->fd) {
@@ -654,7 +652,7 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
 		fputs(msg, d->fd);
 		break;
 	     case MD_DIRECTOR:
-                Dmsg1(400, "DIRECTOR for following msg: %s", msg);
+                Dmsg1(800, "DIRECTOR for following msg: %s", msg);
 		if (jcr && jcr->dir_bsock && !jcr->dir_bsock->errors) {
 
 		   jcr->dir_bsock->msglen = Mmsg(&(jcr->dir_bsock->msg),
@@ -664,13 +662,13 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
 		}
 		break;
 	     case MD_STDOUT:
-                Dmsg1(400, "STDOUT for following msg: %s", msg);
+                Dmsg1(800, "STDOUT for following msg: %s", msg);
 		if (type != M_ABORT && type != M_ERROR_TERM) { /* already printed */
 		   fputs(msg, stdout);
 		}
 		break;
 	     case MD_STDERR:
-                Dmsg1(400, "STDERR for following msg: %s", msg);
+                Dmsg1(800, "STDERR for following msg: %s", msg);
 		fputs(msg, stderr);
 		break;
 	     default:
@@ -706,6 +704,16 @@ d_msg(char *file, int line, int level, char *fmt,...)
     }
 
     if (level <= debug_level) {
+#ifdef SEND_DMSG_TO_FILE
+       if (!trace_fd) {
+          bsnprintf(buf, sizeof(buf), "%s/bacula.trace", working_directory);
+          trace_fd = fopen(buf, "a+");
+	  if (!trace_fd) {
+             Emsg2(M_ABORT, 0, _("Cannot open %s: ERR=%s\n"),
+		  buf, strerror(errno));
+	  }
+       }
+#endif
 #ifdef FULL_LOCATION
        if (details) {
           len= sprintf(buf, "%s: %s:%d ", my_name, file, line);
@@ -719,7 +727,12 @@ d_msg(char *file, int line, int level, char *fmt,...)
        bvsnprintf(buf+len, sizeof(buf)-len, (char *)fmt, arg_ptr);
        va_end(arg_ptr);
 
+#ifdef SEND_DMSG_TO_FILE
+       fputs(buf, trace_fd);
+       fflush(trace_fd);
+#else
        fputs(buf, stdout);
+#endif
     }
 }
 
@@ -751,10 +764,11 @@ t_msg(char *file, int line, int level, char *fmt,...)
 
     if (level <= debug_level) {
        if (!trace_fd) {
-          trace_fd = fopen("bacula.trace", "a+");
+          bsnprintf(buf, sizeof(buf), "%s/bacula.trace", working_directory);
+          trace_fd = fopen(buf, "a+");
 	  if (!trace_fd) {
-             Emsg1(M_ABORT, 0, _("Cannot open bacula.trace: ERR=%s\n"),
-		  strerror(errno));
+             Emsg2(M_ABORT, 0, _("Cannot open %s: ERR=%s\n"),
+		  buf, strerror(errno));
 	  }
        }
     
@@ -858,7 +872,7 @@ Jmsg(void *vjcr, int type, int level, char *fmt,...)
     char *job;
 
     
-    Dmsg1(200, "Enter Jmsg type=%d\n", type);
+    Dmsg1(800, "Enter Jmsg type=%d\n", type);
 
     msgs = NULL;
     job = NULL;

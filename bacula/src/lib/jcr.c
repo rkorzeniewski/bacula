@@ -176,7 +176,7 @@ void free_jcr(JCR *jcr)
 
    P(mutex);
    jcr->use_count--;		      /* decrement use count */
-   Dmsg2(200, "Decrement jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
+   Dmsg2(200, "Dec jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
    if (jcr->use_count > 0) {	      /* if in use */
       V(mutex);
       Dmsg2(200, "jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
@@ -204,7 +204,7 @@ void free_jcr(JCR *jcr)
 void free_locked_jcr(JCR *jcr)
 {
    jcr->use_count--;		      /* decrement use count */
-   Dmsg2(200, "Decrement jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
+   Dmsg2(200, "Dec jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
    if (jcr->use_count > 0) {	      /* if in use */
       return;
    }
@@ -229,7 +229,7 @@ JCR *get_jcr_by_id(uint32_t JobId)
    for (jcr = jobs; jcr; jcr=jcr->next) {
       if (jcr->JobId == JobId) {
 	 jcr->use_count++;
-         Dmsg2(200, "Increment jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
+         Dmsg2(200, "Inc jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
 	 break;
       }
    }
@@ -251,7 +251,7 @@ JCR *get_jcr_by_session(uint32_t SessionId, uint32_t SessionTime)
       if (jcr->VolSessionId == SessionId && 
 	  jcr->VolSessionTime == SessionTime) {
 	 jcr->use_count++;
-         Dmsg2(200, "Increment jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
+         Dmsg2(200, "Inc jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
 	 break;
       }
    }
@@ -277,7 +277,7 @@ JCR *get_jcr_by_partial_name(char *Job)
    for (jcr = jobs; jcr; jcr=jcr->next) {
       if (strncmp(Job, jcr->Job, len) == 0) {
 	 jcr->use_count++;
-         Dmsg2(200, "Increment jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
+         Dmsg2(200, "Inc jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
 	 break;
       }
    }
@@ -300,7 +300,7 @@ JCR *get_jcr_by_full_name(char *Job)
    for (jcr = jobs; jcr; jcr=jcr->next) {
       if (strcmp(jcr->Job, Job) == 0) {
 	 jcr->use_count++;
-         Dmsg2(200, "Increment jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
+         Dmsg2(200, "Inc jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
 	 break;
       }
    }
@@ -354,7 +354,7 @@ JCR *get_next_jcr(JCR *jcr)
    }
    if (rjcr) {
       rjcr->use_count++;
-      Dmsg1(200, "Increment jcr use_count=%d\n", rjcr->use_count);
+      Dmsg1(200, "Inc jcr use_count=%d\n", rjcr->use_count);
    }
    return rjcr;
 }

@@ -66,6 +66,7 @@ static void do_status(void sendit(char *msg, int len, void *sarg), void *arg)
 	   termstat);
       sendit(msg, len, arg);
    }
+   Dmsg0(200, "Begin status jcr loop.\n");
    lock_jcr_chain();
    for (njcr=NULL; (njcr=get_next_jcr(njcr)); ) {
       bstrftime(dt, sizeof(dt), njcr->start_time);
@@ -115,6 +116,7 @@ static void do_status(void sendit(char *msg, int len, void *sarg), void *arg)
       free_locked_jcr(njcr);
    }
    unlock_jcr_chain();
+   Dmsg0(200, "Begin status jcr loop.\n");
    if (!found) {
       len = Mmsg(&msg, _("No jobs running.\n"));
       sendit(msg, len, arg);
@@ -204,6 +206,7 @@ char *bac_status(int stat)
 	    break;
       }
    }
+   Dmsg0(200, "Begin bac_status jcr loop.\n");
    lock_jcr_chain();
    for (njcr=NULL; (njcr=get_next_jcr(njcr)); ) {
       if (njcr->JobId != 0) {
@@ -215,6 +218,7 @@ char *bac_status(int stat)
       free_locked_jcr(njcr);
    }
    unlock_jcr_chain();
+   Dmsg0(200, "End bac_status jcr loop.\n");
    strcpy(buf, termstat);
    return buf;
 }

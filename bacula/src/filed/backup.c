@@ -51,6 +51,8 @@ int blast_data_to_storage_daemon(JCR *jcr, char *addr)
 
    sd = jcr->store_bsock;
 
+   get_backup_privileges(jcr, 0);
+
    set_jcr_job_status(jcr, JS_Running);
 
    Dmsg1(110, "bfiled: opened data connection %d to stored\n", sd->fd);
@@ -94,6 +96,7 @@ int blast_data_to_storage_daemon(JCR *jcr, char *addr)
       free_pool_memory(jcr->compress_buf);
       jcr->compress_buf = NULL;
    }
+   Dmsg1(110, "end blast_data stat=%d\n", stat);
    return stat;
 }	   
 

@@ -118,7 +118,7 @@ static void *btimer_thread(void *arg)
    for ( ;!quit; ) {
       time_t timer_start, now;
 
-      Dmsg0(200, "Top of for loop\n");
+      Dmsg0(200, "Top of watchdog loop\n");
 
       watchdog_time = time(NULL);     /* update timer */
 
@@ -168,6 +168,7 @@ static void *btimer_thread(void *arg)
       }
       unlock_jcr_chain();
 
+      Dmsg0(200, "Watchdog sleep.\n");
       bmicrosleep(SLEEP_TIME, 0);
       now = time(NULL);
 

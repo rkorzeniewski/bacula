@@ -273,10 +273,6 @@ int encode_attribsEx(void *jcr, char *attribsEx, FF_PKT *ff_pkt)
    return STREAM_UNIX_ATTRIBUTES;
 }
 
-void SetServicePrivileges(void *jcr)
- { }
-
-
 #endif
 
 
@@ -480,105 +476,5 @@ void unix_name_to_win32(POOLMEM **win32_name, char *name)
    *win32_name = check_pool_memory_size(*win32_name, 2*strlen(name)+1);
    cygwin_conv_to_win32_path(name, *win32_name);
 }
-
-/*
- * Setup privileges we think we will need.  We probably do not need
- *  the SE_SECURITY_NAME, but since nothing seems to be working,
- *  we get it hoping to fix the problems.
- */
-void SetServicePrivileges(void *jcr)
-{
-    HANDLE hToken;
-    TOKEN_PRIVILEGES tkp, tkpPrevious;
-    DWORD cbPrevious = sizeof(TOKEN_PRIVILEGES);
-    DWORD lerror;
-    // Get a token for this process. 
-    if (!OpenProcessToken(GetCurrentProcess(), 
-	    TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken)) {
-       win_error(jcr, "OpenProcessToken", GetLastError());
-       /* Forge on anyway */
-    } 
-
-    // Get the LUID for the security privilege. 
-    if (!LookupPrivilegeValue(NULL, SE_SECURITY_NAME,  &tkp.Privileges[0].Luid)) {
-       win_error(jcr, "LookupPrivilegeValue", GetLastError());
-    }
-
-    tkp.PrivilegeCount = 1;
-    tkp.Privileges[0].Attributes = 0;
-    /* Get the privilege */
-    AdjustTokenPrivileges(hToken, FALSE, &tkp, sizeof(TOKEN_PRIVILEGES),
-			    &tkpPrevious, &cbPrevious);
-    lerror = GetLastError();
-    if (lerror != ERROR_SUCCESS) {
-       win_error(jcr, "AdjustTokenPrivileges get SECURITY_NAME", lerror);
-    } 
-
-    tkpPrevious.PrivilegeCount = 1;
-    tkpPrevious.Privileges[0].Attributes |= (SE_PRIVILEGE_ENABLED); 
-       
-    /* Set the security privilege for this process. */
-    AdjustTokenPrivileges(hToken, FALSE, &tkpPrevious, sizeof(TOKEN_PRIVILEGES),
-			    (PTOKEN_PRIVILEGES)NULL, (PDWORD)NULL);
-    lerror = GetLastError();
-    if (lerror != ERROR_SUCCESS) {
-       win_error(jcr, "AdjustTokenPrivileges set SECURITY_NAME", lerror);
-    } 
-
-    // Get the LUID for the backup privilege. 
-    if (!LookupPrivilegeValue(NULL, SE_BACKUP_NAME,  &tkp.Privileges[0].Luid)) {
-       win_error(jcr, "LookupPrivilegeValue", GetLastError());
-    }
-
-    tkp.PrivilegeCount = 1;
-    tkp.Privileges[0].Attributes = 0;
-    /* Get the current privilege */
-    AdjustTokenPrivileges(hToken, FALSE, &tkp, sizeof(TOKEN_PRIVILEGES),
-			    &tkpPrevious, &cbPrevious);
-    lerror = GetLastError();
-    if (lerror != ERROR_SUCCESS) {
-       win_error(jcr, "AdjustTokenPrivileges get BACKUP_NAME", lerror);
-    } 
-
-    tkpPrevious.PrivilegeCount = 1;
-    tkpPrevious.Privileges[0].Attributes |= (SE_PRIVILEGE_ENABLED); 
-       
-    /* Set the backup privilege for this process. */
-    AdjustTokenPrivileges(hToken, FALSE, &tkpPrevious, sizeof(TOKEN_PRIVILEGES),
-			    (PTOKEN_PRIVILEGES)NULL, (PDWORD)NULL);  
-    lerror = GetLastError();
-    if (lerror != ERROR_SUCCESS) {
-       win_error(jcr, "AdjustTokenPrivileges set BACKUP_NAME", lerror);
-    } 
-     
-    // Get the LUID for the restore privilege. 
-    if (!LookupPrivilegeValue(NULL, SE_RESTORE_NAME, &tkp.Privileges[0].Luid)) {
-       win_error(jcr, "LookupPrivilegeValue", GetLastError());
-    }
-
-    tkp.PrivilegeCount = 1;
-    tkp.Privileges[0].Attributes = 0;
-    /* Get the privilege */
-    AdjustTokenPrivileges(hToken, FALSE, &tkp, sizeof(TOKEN_PRIVILEGES),
-			    &tkpPrevious, &cbPrevious);
-    lerror = GetLastError();
-    if (lerror != ERROR_SUCCESS) {
-       win_error(jcr, "AdjustTokenPrivileges get RESTORE_NAME", lerror);
-    } 
-
-    tkpPrevious.PrivilegeCount = 1;
-    tkpPrevious.Privileges[0].Attributes |= (SE_PRIVILEGE_ENABLED); 
-       
-    /* Set the security privilege for this process. */
-    AdjustTokenPrivileges(hToken, FALSE, &tkpPrevious, sizeof(TOKEN_PRIVILEGES),
-			    (PTOKEN_PRIVILEGES)NULL, (PDWORD)NULL);
-    lerror = GetLastError();
-    if (lerror != ERROR_SUCCESS) {
-       win_error(jcr, "AdjustTokenPrivileges set RESTORE_NAME", lerror);
-    } 
-    CloseHandle(hToken);
-}
-
-//     MessageBox(NULL, "Get restore priv failed: AdjustTokePrivileges", "restore", MB_OK);
 
 #endif	/* HAVE_CYGWIN */

@@ -71,7 +71,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
        return handle_file(ff_pkt, pkt);
    }
 
-   Dmsg1(60, "File ----: %s\n", fname);
+   Dmsg1(300, "File ----: %s\n", fname);
 
    /* Save current times of this directory in case we need to
     * reset them because the user doesn't want them changed.
@@ -86,7 +86,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
     * or Incremental.
     */
    if (ff_pkt->incremental && !S_ISDIR(ff_pkt->statp.st_mode)) {
-      Dmsg1(100, "Non-directory incremental: %s\n", ff_pkt->fname);
+      Dmsg1(300, "Non-directory incremental: %s\n", ff_pkt->fname);
       /* Not a directory */
       if (ff_pkt->statp.st_mtime < ff_pkt->save_time
 	  && (ff_pkt->mtime_only || 

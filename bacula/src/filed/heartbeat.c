@@ -67,7 +67,7 @@ static void *sd_heartbeat_thread(void *arg)
       }
       if (n == 1) {		      /* input waiting */
 	 bnet_recv(sd); 	      /* read it -- probably heartbeat from sd */
-/*       Dmsg1(000, "Got %d from SD\n", sd->msglen); */
+         Dmsg1(100, "Got %d from SD\n", sd->msglen);     
       }
    }
    bnet_close(sd);
@@ -95,7 +95,10 @@ void stop_heartbeat_monitor(JCR *jcr)
 
    /* Wait for heartbeat thread to stop */
    while (jcr->hb_bsock) {
+#ifndef HAVE_CYGWIN
+      /* Naturally, Cygwin 1.3.20 craps out on the following */
       pthread_kill(jcr->heartbeat_id, TIMEOUT_SIGNAL);	/* make heartbeat thread go away */
+#endif
       bmicrosleep(0, 500);
    }
 }

@@ -270,7 +270,7 @@ void *Main_Msg_Loop(LPVOID lpwThreadParam)
    // Create tray icon & menu if we're running as an app
    bacMenu *menu = new bacMenu();
    if (menu == NULL) {
-//    LogErrorMsg("Could not create sys tray menu");
+//    log_error_message("Could not create sys tray menu");
       PostQuitMessage(0);
    }
 

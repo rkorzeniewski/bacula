@@ -185,7 +185,7 @@ void *handle_client_request(void *dirp)
 	    found = TRUE;		 /* indicate command found */
 	    if (!cmds[i].func(jcr)) {	 /* do command */
 	       quit = TRUE;		 /* error or fully terminated,	get out */
-               Pmsg0(20, "Command error\n");
+               Pmsg0(20, "Command error or Job done.\n");
 	    }
 	    break;
 	 }
@@ -290,7 +290,7 @@ static int job_cmd(JCR *jcr)
    jcr->sd_auth_key = bstrdup(sd_auth_key);
    free_pool_memory(sd_auth_key);
    if (jcr->use_win_backup_api) {
-      SetServicePrivileges(jcr);
+      get_backup_privileges(jcr, 1 /* ignore_errors */);
    }
    Dmsg2(120, "JobId=%d Auth=%s\n", jcr->JobId, jcr->sd_auth_key);
    return bnet_fsend(dir, OKjob);

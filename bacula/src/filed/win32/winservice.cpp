@@ -42,11 +42,6 @@
 #include "winservice.h"
 #include "wintray.h"
 
-// Error message logging
-void LogErrorMsg(char *message);
-#ifdef needed
-void SetServicePrivileges();
-#endif
 
 // OS-SPECIFIC ROUTINES
 
@@ -348,7 +343,7 @@ bacService::BaculaServiceMain()
       if (RegisterService == NULL) {
          MessageBox(NULL, "Registry service not found: Bacula service not started",
             "Bacula Service", MB_OK);
-         LogErrorMsg("Registry service not found"); 
+         log_error_message("Registry service not found"); 
          break;
       }
       
@@ -378,7 +373,7 @@ bacService::BaculaServiceMain()
 
       // Call the service control dispatcher with our entry table
       if (!StartServiceCtrlDispatcher(dispatchTable)) {
-         LogErrorMsg("StartServiceCtrlDispatcher failed.");
+         log_error_message("StartServiceCtrlDispatcher failed.");
       }
       break;
       } /* end case */
@@ -396,7 +391,7 @@ void WINAPI ServiceMain(DWORD argc, char **argv)
     g_hstatus = RegisterServiceCtrlHandler(BAC_SERVICENAME, ServiceCtrl);
 
     if (g_hstatus == 0) {
-       LogErrorMsg("RegisterServiceCtlHandler failed"); 
+       log_error_message("RegisterServiceCtlHandler failed"); 
        MessageBox(NULL, "Contact Register Service Handler failure",
           "Bacula service", MB_OK);
        return;
@@ -413,7 +408,7 @@ void WINAPI ServiceMain(DWORD argc, char **argv)
             45000)) {                       // Hint as to how long Bacula should have hung before you assume error
 
         ReportStatus(SERVICE_STOPPED, g_error,  0);
-        LogErrorMsg("ReportStatus failed 1"); 
+        log_error_message("ReportStatus STOPPED failed 1"); 
         return;
     }
 
@@ -437,7 +432,7 @@ DWORD WINAPI ServiceWorkThread(LPVOID lpwThreadParam)
         NO_ERROR,              // exit code
         0)) {                  // wait hint
        MessageBox(NULL, "Report Service failure", "Bacula Service", MB_OK);
-        LogErrorMsg("ReportStatus failed 2"); 
+        log_error_message("ReportStatus RUNNING failed"); 
        return 0;
     }
 
@@ -452,71 +447,6 @@ DWORD WINAPI ServiceWorkThread(LPVOID lpwThreadParam)
     return 0;
 }
 
-#ifdef needed
-/*
- * Setup privileges we think we will need.  We probably do not need
- *  the SE_SECURITY_NAME, but since nothing seems to be working,
- *  we get it hoping to fix the problems.
- */
-void SetServicePrivileges()
-{
-    HANDLE hToken;
-    TOKEN_PRIVILEGES tkp;
-    // Get a token for this process. 
-    if (!OpenProcessToken(GetCurrentProcess(), 
-            TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken)) {
-       /* Forge on anyway */
-    } 
-
-    // Get the LUID for the security privilege. 
-    LookupPrivilegeValue(NULL, SE_SECURITY_NAME,  &tkp.Privileges[0].Luid); 
-
-    tkp.PrivilegeCount = 1;  // one privilege to set    
-    tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED; 
-       
-    // Get the security privilege for this process. 
-    AdjustTokenPrivileges(hToken, FALSE, &tkp, sizeof(TOKEN_PRIVILEGES),
-                            (PTOKEN_PRIVILEGES)NULL, (PDWORD)0);
-       
-    // Cannot test the return value of AdjustTokenPrivileges. 
-    if (GetLastError() != ERROR_SUCCESS) {
-//     MessageBox(NULL, "Get security priv failed: AdjustTokePrivileges", "backup", MB_OK);
-    } 
-
-    // Get the LUID for the backup privilege. 
-    LookupPrivilegeValue(NULL, SE_BACKUP_NAME,  &tkp.Privileges[0].Luid); 
-
-    tkp.PrivilegeCount = 1;  // one privilege to set    
-    tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED; 
-       
-    // Get the backup privilege for this process. 
-    AdjustTokenPrivileges(hToken, FALSE, &tkp, sizeof(TOKEN_PRIVILEGES),
-                            (PTOKEN_PRIVILEGES)NULL, (PDWORD)0);
-       
-    // Cannot test the return value of AdjustTokenPrivileges. 
-    if (GetLastError() != ERROR_SUCCESS) {
-//     MessageBox(NULL, "Get backup priv failed: AdjustTokePrivileges", "backup", MB_OK);
-    } 
-     
-    // Get the LUID for the restore privilege. 
-    LookupPrivilegeValue(NULL, SE_RESTORE_NAME, &tkp.Privileges[0].Luid); 
-
-    tkp.PrivilegeCount = 1;  // one privilege to set    
-    tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED; 
-       
-    // Get the restore privilege for this process. 
-    AdjustTokenPrivileges(hToken, FALSE, &tkp, sizeof(TOKEN_PRIVILEGES),
-                            (PTOKEN_PRIVILEGES)NULL, (PDWORD)0);
-       
-    // Cannot test the return value of AdjustTokenPrivileges. 
-    if (GetLastError() != ERROR_SUCCESS) {
-//     MessageBox(NULL, "Get restore priv failed: AdjustTokePrivileges", "restore", MB_OK);
-    } 
-
-    CloseHandle(hToken);
-}
-
-#endif
 
 // SERVICE STOP ROUTINE - post a quit message to the relevant thread
 void ServiceStop()
@@ -556,7 +486,7 @@ bacService::InstallService()
       strcat(servicecmd, "\\bacula-fd.conf");
 
    } else {
-      LogErrorMsg("Service commend length too long"); 
+      log_error_message("Service command length too long"); 
       MessageBox(NULL, "Service command length too long. Service not registered.",
           szAppName, MB_ICONEXCLAMATION | MB_OK);
       return 0;
@@ -572,7 +502,7 @@ bacService::InstallService()
       if (RegCreateKey(HKEY_LOCAL_MACHINE, 
               "Software\\Microsoft\\Windows\\CurrentVersion\\RunServices",
               &runservices) != ERROR_SUCCESS) {
-         LogErrorMsg("Cannot write System Registry"); 
+         log_error_message("Cannot write System Registry"); 
          MessageBox(NULL, "The System Registry could not be updated - the Bacula service was not installed", szAppName, MB_ICONEXCLAMATION | MB_OK);
          break;
       }
@@ -580,7 +510,7 @@ bacService::InstallService()
       // Attempt to add a Bacula key
       if (RegSetValueEx(runservices, szAppName, 0, REG_SZ, (unsigned char *)servicecmd, strlen(servicecmd)+1) != ERROR_SUCCESS) {
          RegCloseKey(runservices);
-         LogErrorMsg("Cannot add Bacula key to System Registry"); 
+         log_error_message("Cannot add Bacula key to System Registry"); 
          MessageBox(NULL, "The Bacula service could not be installed", szAppName, MB_ICONEXCLAMATION | MB_OK);
          break;
       }
@@ -629,7 +559,7 @@ bacService::InstallService()
       // Open the default, local Service Control Manager database
       hsrvmanager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
       if (hsrvmanager == NULL) {
-         LogErrorMsg("OpenSCManager failed"); 
+         log_error_message("OpenSCManager failed"); 
          MessageBox(NULL,
             "The Service Control Manager could not be contacted - the Bacula service was not installed",
             szAppName, MB_ICONEXCLAMATION | MB_OK);
@@ -654,7 +584,7 @@ bacService::InstallService()
               NULL);                          // no password
       if (hservice == NULL) {
          CloseServiceHandle(hsrvmanager);
-         LogErrorMsg("CreateService failed"); 
+         log_error_message("CreateService failed"); 
          MessageBox(NULL,
              "The Bacula service could not be installed",
               szAppName, MB_ICONEXCLAMATION | MB_OK);
@@ -699,7 +629,7 @@ bacService::InstallService()
               MB_ICONINFORMATION | MB_OK);
       break;
    default:
-      LogErrorMsg("Unknow Windows OP Sys"); 
+      log_error_message("Unknown Windows System version"); 
       MessageBox(NULL, 
                  "Unknown Windows operating system.\n"     
                  "Cannot install Bacula service.\n",
@@ -871,14 +801,14 @@ BOOL ReportStatus(DWORD state,
 
     // Tell the SCM our new status
     if (!(result = SetServiceStatus(g_hstatus, &g_srvstatus))) {
-       LogErrorMsg("SetServiceStatus failed");
+       log_error_message("SetServiceStatus failed");
     }
 
     return result;
 }
 
 // Error reporting
-void LogErrorMsg(char *message)
+void LogErrorMsg(char *message, char *fname, int lineno)
 {
    char        msgbuff[256];
    HANDLE      heventsrc;
@@ -899,7 +829,8 @@ void LogErrorMsg(char *message)
    // Use event logging to log the error
    heventsrc = RegisterEventSource(NULL, BAC_SERVICENAME);
 
-   sprintf(msgbuff, "%s error: %ld", BAC_SERVICENAME, g_error);
+   sprintf(msgbuff, "\n\n%s error: %ld at %s:%d", 
+     BAC_SERVICENAME, g_error, fname, lineno);
    strings[0] = msgbuff;
    strings[1] = message;
    strings[2] = msg;

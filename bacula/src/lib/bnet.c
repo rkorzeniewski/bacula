@@ -393,18 +393,18 @@ bnet_wait_data(BSOCK *bsock, int sec)
    tv.tv_usec = 0;
    for ( ;; ) {
       switch(select(bsock->fd + 1, &fdset, NULL, NULL, &tv)) {
-	 case 0:			 /* timeout */
-	    bsock->b_errno = 0;
-	    return 0;
-	 case -1:
-	    bsock->b_errno = errno;
-	    if (errno == EINTR || errno == EAGAIN) {
-	       continue;
-	    }
-	    return -1;			/* error return */
-	 default:
-	    bsock->b_errno = 0;
-	    return 1;
+      case 0:			      /* timeout */
+	 bsock->b_errno = 0;
+	 return 0;
+      case -1:
+	 bsock->b_errno = errno;
+	 if (errno == EINTR || errno == EAGAIN) {
+	    continue;
+	 }
+	 return -1;		     /* error return */
+      default:
+	 bsock->b_errno = 0;
+	 return 1;
       }
    }
 }
@@ -424,15 +424,15 @@ bnet_wait_data_intr(BSOCK *bsock, int sec)
    tv.tv_usec = 0;
    for ( ;; ) {
       switch(select(bsock->fd + 1, &fdset, NULL, NULL, &tv)) {
-	 case 0:			 /* timeout */
-	    bsock->b_errno = 0;
-	    return 0;
-	 case -1:
-	    bsock->b_errno = errno;
-	    return -1;			/* error return */
-	 default:
-	    bsock->b_errno = 0;
-	    return 1;
+      case 0:			      /* timeout */
+	 bsock->b_errno = 0;
+	 return 0;
+      case -1:
+	 bsock->b_errno = errno;
+	 return -1;		     /* error return */
+      default:
+	 bsock->b_errno = 0;
+	 return 1;
       }
    }
 }
@@ -747,7 +747,7 @@ init_bsock(void *jcr, int sockfd, char *who, char *host, int port)
 BSOCK *
 dup_bsock(BSOCK *osock)
 {
-   BSOCK *bsock = (BSOCK *) malloc(sizeof(BSOCK));
+   BSOCK *bsock = (BSOCK *)malloc(sizeof(BSOCK));
    memcpy(bsock, osock, sizeof(BSOCK));
    bsock->msg = get_pool_memory(PM_MESSAGE);
    bsock->errmsg = get_pool_memory(PM_MESSAGE);
