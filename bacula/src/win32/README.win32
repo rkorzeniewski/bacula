@@ -40,8 +40,6 @@ To build it:
 - You may have to build wx with VC++ (as was the case for me).
   After starting VC++, use File->Open Workspace then
   open wx/src/wxWindows.dsw then use
-  Project->Set Active Project
-  then
   Build->Build All or Build->build wxmsw.lib should work too.
 - cd bacula
   ./configure --enable-client-only

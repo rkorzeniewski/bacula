@@ -37,7 +37,7 @@ static char OK_data[]    = "3000 OK data\n";
  *  Append Data sent from File daemon	
  *
  */
-int do_append_data(JCR *jcr) 
+bool do_append_data(JCR *jcr) 
 {
    int32_t n;
    int32_t file_index, stream, last_file_index;
@@ -56,7 +56,7 @@ int do_append_data(JCR *jcr)
    if (!bnet_set_buffer_size(ds, jcr->device->max_network_buffer_size, BNET_SETBUF_WRITE)) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       Jmsg(jcr, M_FATAL, 0, _("Unable to set network buffer size.\n"));
-      return 0;
+      return false;
    }
 
    /* 
@@ -67,7 +67,7 @@ int do_append_data(JCR *jcr)
    Dmsg0(100, "just before acquire_device\n");
    if (!(dcr=acquire_device_for_append(jcr))) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
-      return 0;
+      return false;
    }
    dev = dcr->dev;
    block = dcr->block;

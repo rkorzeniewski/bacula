@@ -566,7 +566,8 @@ bool write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
 	    dev->file, dev->block_num, dev->dev_name, strerror(dev->dev_errno));
       } else {
 	dev->dev_errno = ENOSPC;	    /* out of space */
-         Jmsg(jcr, M_INFO, 0, _("End of medium at %u:%u on device %s. Write of %u bytes got %d.\n"), 
+         Jmsg(jcr, M_INFO, 0, _("End of Volume \"%s\" at %u:%u on device %s. Write of %u bytes got %d.\n"), 
+	    dev->VolCatInfo.VolCatName,
 	    dev->file, dev->block_num, dev->dev_name, wlen, stat);
       }  
 
