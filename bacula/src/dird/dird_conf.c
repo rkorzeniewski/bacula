@@ -89,8 +89,9 @@ static RES_ITEM dir_items[] = {
    {"name",        store_name,     ITEM(res_dir.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,      ITEM(res_dir.hdr.desc), 0, 0, 0},
    {"messages",    store_res,      ITEM(res_dir.messages), R_MSGS, 0, 0},
-   {"dirport",     store_pint,     ITEM(res_dir.DIRport),  0, ITEM_DEFAULT, 9101},
-   {"diraddress",  store_str,      ITEM(res_dir.DIRaddr),  0, 0, 0},
+   {"dirport",     store_addresses_port,    ITEM(res_dir.DIRaddrs),  0, ITEM_DEFAULT, 9101},
+   {"diraddress",  store_addresses_address, ITEM(res_dir.DIRaddrs),  0, ITEM_DEFAULT, 9101},
+   {"diraddresses",store_addresses,         ITEM(res_dir.DIRaddrs),  0, ITEM_DEFAULT, 9101},
    {"queryfile",   store_dir,      ITEM(res_dir.query_file), 0, ITEM_REQUIRED, 0},
    {"workingdirectory", store_dir, ITEM(res_dir.working_directory), 0, ITEM_REQUIRED, 0},
    {"piddirectory",store_dir,     ITEM(res_dir.pid_directory), 0, ITEM_REQUIRED, 0},
@@ -784,8 +785,8 @@ void free_resource(RES *sres, int type)
       if (res->res_dir.query_file) {
 	 free(res->res_dir.query_file);
       }
-      if (res->res_dir.DIRaddr) {
-	 free(res->res_dir.DIRaddr);
+      if (res->res_dir.DIRaddrs) {
+	 free_addresses(res->res_dir.DIRaddrs);
       }
       break;
    case R_COUNTER:

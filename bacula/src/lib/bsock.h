@@ -55,7 +55,7 @@ struct BSOCK {
    BSOCK *next;                       /* next BSOCK if duped */
    FILE *spool_fd;                    /* spooling file */
    JCR *jcr;                          /* jcr or NULL for error msgs */
-   struct sockaddr_in client_addr;    /* client's IP address */
+   struct sockaddr client_addr;    /* client's IP address */
 };      
 
 /* Signal definitions for use in bnet_sig() */

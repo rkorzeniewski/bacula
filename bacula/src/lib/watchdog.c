@@ -72,8 +72,8 @@ int start_watchdog(void)
       Emsg1(M_ABORT, 0, _("Unable to initialize watchdog lock. ERR=%s\n"), 
 	    strerror(errstat));
    }
-   wd_queue = new dlist(wd_queue, &dummy->link);
-   wd_inactive = new dlist(wd_inactive, &dummy->link);
+   wd_queue = new dlist(dummy, &dummy->link);
+   wd_inactive = new dlist(dummy, &dummy->link);
 
    if ((stat = pthread_create(&wd_tid, NULL, watchdog_thread, NULL)) != 0) {
       return stat;

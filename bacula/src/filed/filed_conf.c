@@ -82,8 +82,10 @@ int  res_all_size = sizeof(res_all);
 static RES_ITEM cli_items[] = {
    {"name",        store_name,  ITEM(res_client.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,   ITEM(res_client.hdr.desc), 0, 0, 0},
-   {"fdport",      store_pint,  ITEM(res_client.FDport),  0, ITEM_DEFAULT, 9102},
-   {"fdaddress",   store_str,   ITEM(res_client.FDaddr),  0, 0, 0},
+   {"fdport",      store_addresses_port,    ITEM(res_client.FDaddrs),  0, ITEM_DEFAULT, 9102},
+   {"fdaddress",   store_addresses_address, ITEM(res_client.FDaddrs),  0, ITEM_DEFAULT, 9102},
+   {"fdaddresses", store_addresses,         ITEM(res_client.FDaddrs),  0, ITEM_DEFAULT, 9102},
+
    {"workingdirectory",  store_dir, ITEM(res_client.working_directory), 0, ITEM_REQUIRED, 0}, 
    {"piddirectory",  store_dir,     ITEM(res_client.pid_directory),     0, ITEM_REQUIRED, 0}, 
    {"subsysdirectory",  store_dir,  ITEM(res_client.subsys_directory),  0, 0, 0}, 
@@ -143,7 +145,7 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
 	 break;
       case R_CLIENT:
          sendit(sock, "Client: name=%s FDport=%d\n", reshdr->name,
-		 res->res_client.FDport);
+		 get_first_port(res->res_client.FDaddrs));
 	 break;
       case R_MSGS:
          sendit(sock, "Messages: name=%s\n", res->res_msgs.hdr.name);
@@ -185,38 +187,38 @@ void free_resource(RES *sres, int type)
    }
 
    switch (type) {
-      case R_DIRECTOR:
-	 if (res->res_dir.password) {
-	    free(res->res_dir.password);
-	 }
-	 if (res->res_dir.address) {
-	    free(res->res_dir.address);
-	 }
-	 break;
-      case R_CLIENT:
-	 if (res->res_client.working_directory) {
-	    free(res->res_client.working_directory);
-	 }
-	 if (res->res_client.pid_directory) {
-	    free(res->res_client.pid_directory);
-	 }
-	 if (res->res_client.subsys_directory) {
-	    free(res->res_client.subsys_directory);
-	 }
-	 if (res->res_client.FDaddr) {
-	    free(res->res_client.FDaddr);
-	 }
-	 break;
-      case R_MSGS:
-	 if (res->res_msgs.mail_cmd)
-	    free(res->res_msgs.mail_cmd);
-	 if (res->res_msgs.operator_cmd)
-	    free(res->res_msgs.operator_cmd);
-	 free_msgs_res((MSGS *)res);  /* free message resource */
-	 res = NULL;
-	 break;
-      default:
-         printf("Unknown resource type %d\n", type);
+   case R_DIRECTOR:
+      if (res->res_dir.password) {
+	 free(res->res_dir.password);
+      }
+      if (res->res_dir.address) {
+	 free(res->res_dir.address);
+      }
+      break;
+   case R_CLIENT:
+      if (res->res_client.working_directory) {
+	 free(res->res_client.working_directory);
+      }
+      if (res->res_client.pid_directory) {
+	 free(res->res_client.pid_directory);
+      }
+      if (res->res_client.subsys_directory) {
+	 free(res->res_client.subsys_directory);
+      }
+      if (res->res_client.FDaddrs) {
+	 free_addresses(res->res_client.FDaddrs);
+      }
+      break;
+   case R_MSGS:
+      if (res->res_msgs.mail_cmd)
+	 free(res->res_msgs.mail_cmd);
+      if (res->res_msgs.operator_cmd)
+	 free(res->res_msgs.operator_cmd);
+      free_msgs_res((MSGS *)res);  /* free message resource */
+      res = NULL;
+      break;
+   default:
+      printf("Unknown resource type %d\n", type);
    }
    /* Common stuff again -- free the resource, recurse to next one */
    if (res) {

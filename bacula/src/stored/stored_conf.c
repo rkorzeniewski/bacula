@@ -55,11 +55,11 @@ int res_all_size = sizeof(res_all);
 static RES_ITEM store_items[] = {
    {"name",                  store_name, ITEM(res_store.hdr.name),   0, ITEM_REQUIRED, 0},
    {"description",           store_str,  ITEM(res_dir.hdr.desc),     0, 0, 0},
-   {"address",               store_str,  ITEM(res_store.address),    0, 0, 0}, /* deprecated */
-   {"sdaddress",             store_str,  ITEM(res_store.SDaddr),     0, 0, 0},
+   {"sdaddress",             store_addresses_address,  ITEM(res_store.sdaddrs),     0, ITEM_DEFAULT, 9103},
+   {"sdaddresses",           store_addresses,  ITEM(res_store.sdaddrs), 0, ITEM_DEFAULT, 9103},
    {"messages",              store_res,  ITEM(res_store.messages),   0, R_MSGS, 0},
-   {"sdport",                store_int,  ITEM(res_store.SDport),     0, ITEM_DEFAULT, 9103},
-   {"sddport",               store_int,  ITEM(res_store.SDDport),    0, 0, 0}, /* deprecated */
+   {"sdport",                store_addresses_port,  ITEM(res_store.sdaddrs),     0, ITEM_DEFAULT, 9103},
+   {"sddport",               store_addresses_port,  ITEM(res_store.sddaddrs),    0, 0, 0}, /* deprecated */
    {"workingdirectory",      store_dir,  ITEM(res_store.working_directory), 0, ITEM_REQUIRED, 0},
    {"piddirectory",          store_dir,  ITEM(res_store.pid_directory), 0, ITEM_REQUIRED, 0},
    {"subsysdirectory",       store_dir,  ITEM(res_store.subsys_directory), 0, 0, 0},
@@ -75,7 +75,6 @@ static RES_ITEM dir_items[] = {
    {"name",        store_name,     ITEM(res_dir.hdr.name),   0, ITEM_REQUIRED, 0},
    {"description", store_str,      ITEM(res_dir.hdr.desc),   0, 0, 0},
    {"password",    store_password, ITEM(res_dir.password),   0, ITEM_REQUIRED, 0},
-   {"address",     store_str,      ITEM(res_dir.address),    0, 0, 0},
    {"enablessl",   store_yesno,    ITEM(res_dir.enable_ssl), 1, ITEM_DEFAULT, 0},
    {NULL, NULL, 0, 0, 0, 0} 
 };
@@ -141,12 +140,14 @@ RES_TABLE resources[] = {
 
 
 
+
 /* Dump contents of resource */
 void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fmt, ...), void *sock)
 {
    URES *res = (URES *)reshdr;
    char buf[MAXSTRING];
    int recurse = 1;
+   IPADDR *p;
    if (res == NULL) {
       sendit(sock, _("Warning: no \"%s\" resource (%d) defined.\n"), res_to_str(type), type);
       return;
@@ -162,9 +163,19 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       break;
    case R_STORAGE:
       sendit(sock, "Storage: name=%s SDaddr=%s SDport=%d SDDport=%d HB=%s\n",
-	 res->res_store.hdr.name, NPRT(res->res_store.SDaddr),
-	 res->res_store.SDport, res->res_store.SDDport,
-	 edit_utime(res->res_store.heartbeat_interval, buf));
+	   res->res_store.hdr.name, 
+	   NPRT(get_first_address(res->res_store.sdaddrs, buf, sizeof(buf))),
+	   get_first_port(res->res_store.sdaddrs), 
+	   get_first_port(res->res_store.sddaddrs),
+	   edit_utime(res->res_store.heartbeat_interval, buf));
+	  foreach_dlist(p, res->res_store.sdaddrs) {
+                sendit(sock, "        SDaddr=%s SDport=%d\n", 
+			     p->get_address(buf, sizeof(buf)), p->get_port());
+	  }
+	  foreach_dlist(p, res->res_store.sddaddrs) {
+                sendit(sock, "        SDDaddr=%s SDDport=%d\n", 
+			     p->get_address(buf, sizeof(buf)), p->get_port());
+	  }
       break;
    case R_DEVICE:
       sendit(sock, "Device: name=%s MediaType=%s Device=%s\n",
@@ -271,11 +282,11 @@ void free_resource(RES *sres, int type)
 	 }
 	 break;
       case R_STORAGE:
-	 if (res->res_store.address) {	/* ***FIXME*** deprecated */
-	    free(res->res_store.address);
+	 if (res->res_store.sdaddrs) {
+	    free_addresses(res->res_store.sdaddrs);
 	 }
-	 if (res->res_store.SDaddr) {
-	    free(res->res_store.SDaddr);
+	 if (res->res_store.sddaddrs) {
+	    free_addresses(res->res_store.sddaddrs);
 	 }
 	 if (res->res_store.working_directory) {
 	    free(res->res_store.working_directory);

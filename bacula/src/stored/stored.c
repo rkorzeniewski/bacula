@@ -41,6 +41,8 @@ static void check_config();
 
 extern "C" void *device_allocation(void *arg);
 
+
+
 #define CONFIG_FILE "bacula-sd.conf"  /* Default config file */
 
 
@@ -194,8 +196,8 @@ int main (int argc, char *argv[])
       init_stack_dump();	      /* pick up new pid */
    }
 
-   create_pid_file(me->pid_directory, "bacula-sd", me->SDport);
-   read_state_file(me->working_directory, "bacula-sd", me->SDport);
+   create_pid_file(me->pid_directory, "bacula-sd", get_first_port(me->sdaddrs));
+   read_state_file(me->working_directory, "bacula-sd", get_first_port(me->sdaddrs));
 
    drop(uid, gid);
 
@@ -228,7 +230,7 @@ int main (int argc, char *argv[])
    bmicrosleep(1, 0);
 				 
    /* Single server used for Director and File daemon */
-   bnet_thread_server(me->SDaddr, me->SDport, me->max_concurrent_jobs * 2 + 1,
+   bnet_thread_server(me->sdaddrs, me->max_concurrent_jobs * 2 + 1,
 		      &dird_workq, handle_connection_request);
    exit(1);			      /* to keep compiler quiet */
 }
@@ -390,8 +392,8 @@ void terminate_stored(int sig)
       bmicrosleep(0, 500000);	      /* give them 1/2 sec to clean up */
    }
 
-   write_state_file(me->working_directory, "bacula-sd", me->SDport);
-   delete_pid_file(me->pid_directory, "bacula-sd", me->SDport);
+   write_state_file(me->working_directory, "bacula-sd", get_first_port(me->sdaddrs));
+   delete_pid_file(me->pid_directory, "bacula-sd", get_first_port(me->sdaddrs));
 
    Dmsg1(200, "In terminate_stored() sig=%d\n", sig);
 

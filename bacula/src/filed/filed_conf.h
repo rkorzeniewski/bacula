@@ -55,8 +55,7 @@ struct DIRRES {
 
 struct CLIENT {
    RES   hdr;
-   int   FDport;                      /* where we listen for Directors */ 
-   char *FDaddr;                      /* bind address */
+   dlist *FDaddrs;
    char *working_directory;
    char *pid_directory;
    char *subsys_directory;

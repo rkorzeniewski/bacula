@@ -56,5 +56,6 @@
 #include "bpipe.h"
 #include "attr.h"
 #include "var.h"
+#include "address_conf.h"
 
 #include "protos.h"

@@ -3,7 +3,7 @@
  */
 
 /*
-   Copyright (C) 2000-2003 Kern Sibbald and John Walker
+   Copyright (C) 2000-2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -54,7 +54,7 @@ struct dlink {
 class dlist {
    void *head;
    void *tail;
-   uint16_t loffset;
+   int16_t loffset;
    uint32_t num_items;
 public:
    dlist(void *item, void *link);
@@ -84,19 +84,31 @@ public:
  *   allowing us to mix C++ classes inside malloc'ed
  *   C structures. Define before called in constructor.
  */
+#define M_ABORT 1
 inline void dlist::init(void *item, void *link) 
 {
    head = tail = NULL;
    loffset = (char *)link - (char *)item;
+   if (loffset < 0 || loffset > 5000) {
+      Emsg0(M_ABORT, 0, "Improper dlist initialization.\n");
+   }
    num_items = 0;
 }
 
-/* Constructor */
+/*             
+ * Constructor called with the address of a 
+ *   member of the list (not the list head), and
+ *   the address of the link within that member.
+ * If the link is at the beginning of the list member,
+ *   then there is no need to specify the link address 
+ *   since the offset is zero.
+ */
 inline dlist::dlist(void *item, void *link)
 {
    this->init(item, link);
 }
 
+/* Constructor with link at head of item */
 inline dlist::dlist(void)
 {
    memset(this, 0, sizeof(dlist));
