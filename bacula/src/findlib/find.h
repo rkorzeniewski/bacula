@@ -4,7 +4,7 @@
  *     Kern Sibbald MIM
  */
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -72,6 +72,7 @@
 #define FT_NORECURSE 13               /* No recursion into directory */
 #define FT_NOFSCHG   14               /* Different file system, prohibited */
 #define FT_NOOPEN    15               /* Could not open directory */
+#define FT_RAW       16               /* Raw block device */
 
 /* Options saved in "flag" of ff packet */
 #define FO_MD5          0x01          /* Do MD5 checksum */

@@ -8,7 +8,7 @@
  *
  */
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -51,8 +51,6 @@ int make_estimate(JCR *jcr)
 /* 
  * Called here by find() for each file included.
  *
- *  *****FIXME*****   add FSMs File System Modules
- *
  */
 static int tally_file(FF_PKT *ff_pkt, void *ijcr)
 {
@@ -66,6 +64,7 @@ static int tally_file(FF_PKT *ff_pkt, void *ijcr)
    case FT_LNK:
    case FT_DIR:
    case FT_SPEC:
+   case FT_RAW:
       break;
    case FT_NOACCESS:
    case FT_NOFOLLOW:

@@ -5,7 +5,7 @@
  *  Kern E. Sibbald, MM
  */
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -133,8 +133,8 @@ void
 term_find_files(FF_PKT *ff)
 {
   term_include_exclude_files(ff);
-  term_find_one(ff);
   free_pool_memory(ff->sys_fname);
+  term_find_one(ff);
   free(ff);
   return;
 }

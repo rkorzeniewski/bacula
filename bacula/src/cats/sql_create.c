@@ -7,7 +7,7 @@
  */
 
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -47,8 +47,8 @@
 
 /* Forward referenced subroutines */
 static int db_create_file_record(B_DB *mdb, ATTR_DBR *ar);
-static int db_create_filename_record(B_DB *mdb, ATTR_DBR *ar, char *fname);
-static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar, char *path);
+static int db_create_filename_record(B_DB *mdb, ATTR_DBR *ar);
+static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar);
 
 
 /* Imported subroutines */
@@ -56,6 +56,7 @@ extern void print_dashes(B_DB *mdb);
 extern void print_result(B_DB *mdb);
 extern int QueryDB(char *file, int line, B_DB *db, char *select_cmd);
 extern int InsertDB(char *file, int line, B_DB *db, char *select_cmd);
+extern void split_path_and_filename(B_DB *mdb, char *fname);
 
 
 /* Create a new record for the Job
@@ -431,17 +432,11 @@ FileSet='%s' and MD5='%s'", fsr->FileSet, fsr->MD5);
  */
 int db_create_file_attributes_record(B_DB *mdb, ATTR_DBR *ar)
 {
-   int fnl, pnl;
-   char *l, *p;
-   /* ****FIXME***** malloc these */
-   char file[MAXSTRING];
-   char spath[MAXSTRING];
-   char buf[MAXSTRING];
 
    Dmsg1(100, "Fname=%s\n", ar->fname);
    Dmsg0(50, "put_file_into_catalog\n");
-   /* For the moment, we only handle Unix attributes.  Note, we are
-    * also getting any MD5 signature that was computed.
+   /*
+    * Make sure we have an acceptable attributes record.
     */
    if (!(ar->Stream == STREAM_UNIX_ATTRIBUTES || ar->Stream == STREAM_WIN32_ATTRIBUTES)) {
       Mmsg0(&mdb->errmsg, _("Attempt to put non-attributes into catalog\n"));
@@ -449,84 +444,39 @@ int db_create_file_attributes_record(B_DB *mdb, ATTR_DBR *ar)
       return 0;
    }
 
-   /* Find path without the filename.  
-    * I.e. everything after the last / is a "filename".
-    * OK, maybe it is a directory name, but we treat it like
-    * a filename. If we don't find a / then the whole name
-    * must be a path name (e.g. c:).
-    */
-   for (p=l=ar->fname; *p; p++) {
-      if (*p == '/') {
-	 l = p; 		      /* set pos of last slash */
-      }
-   }
-   if (*l == '/') {                   /* did we find a slash? */
-      l++;			      /* yes, point to filename */
-   } else {			      /* no, whole thing must be path name */
-      l = p;
-   }
+   db_lock(mdb);
 
-   /* If filename doesn't exist (i.e. root directory), we
-    * simply create a blank name consisting of a single 
-    * space. This makes handling zero length filenames
-    * easier.
-    */
-   fnl = p - l;
-   if (fnl > 255) {
-      Jmsg(mdb->jcr, M_WARNING, 0, _("Filename truncated to 255 chars: %s\n"), l);
-      fnl = 255;
-   }
-   if (fnl > 0) {
-      strncpy(file, l, fnl);	      /* copy filename */
-      file[fnl] = 0;
-   } else {
-      file[0] = ' ';                  /* blank filename */
-      file[1] = 0;
-      fnl = 1;
-   }
+   split_path_and_filename(mdb, ar->fname);
 
-   pnl = l - ar->fname;    
-   if (pnl > 255) {
-      Jmsg(mdb->jcr, M_WARNING, 0, _("Path name truncated to 255 chars: %s\n"), ar->fname);
-      pnl = 255;
-   }
-   strncpy(spath, ar->fname, pnl);
-   spath[pnl] = 0;
-
-   if (pnl == 0) {
-      Mmsg1(&mdb->errmsg, _("Path length is zero. File=%s\n"), ar->fname);
-      Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
-      spath[0] = ' ';
-      spath[1] = 0;
-      pnl = 1;
-   }
-
-   Dmsg1(100, "spath=%s\n", spath);
-   Dmsg1(100, "file=%s\n", file);
-
-   db_escape_string(buf, file, fnl);
-
-   if (!db_create_filename_record(mdb, ar, buf)) {
+   if (!db_create_filename_record(mdb, ar)) {
+      db_unlock(mdb);
       return 0;
    }
-   Dmsg1(100, "db_create_filename_record: %s\n", buf);
+   Dmsg1(100, "db_create_filename_record: %s\n", mdb->esc_name);
 
-   db_escape_string(buf, spath, pnl);
 
-   if (!db_create_path_record(mdb, ar, buf)) {
+   if (!db_create_path_record(mdb, ar)) {
+      db_unlock(mdb);
       return 0;
    }
-   Dmsg1(100, "db_create_path_record\n", buf);
+   Dmsg1(100, "db_create_path_record\n", mdb->esc_name);
 
+   /* Now create master File record */
    if (!db_create_file_record(mdb, ar)) {
+      db_unlock(mdb);
       return 0;
    }
    Dmsg0(50, "db_create_file_record\n");
 
-   Dmsg3(100, "Path=%s File=%s FilenameId=%d\n", spath, file, ar->FilenameId);
+   Dmsg3(100, "Path=%s File=%s FilenameId=%d\n", mdb->path, mdb->fname, ar->FilenameId);
+   db_unlock(mdb);
    return 1;
 }
 
+/*
+ * This is the master File entry containing the attributes.
+ *  The filename and path records have already been created.
+ */
 static int db_create_file_record(B_DB *mdb, ATTR_DBR *ar)
 {
    int stat;
@@ -535,7 +485,6 @@ static int db_create_file_record(B_DB *mdb, ATTR_DBR *ar)
    ASSERT(ar->PathId);
    ASSERT(ar->FilenameId);
 
-   db_lock(mdb);
    /* Must create it */
    Mmsg(&mdb->cmd,
 "INSERT INTO File (FileIndex, JobId, PathId, FilenameId, \
@@ -553,34 +502,26 @@ LStat, MD5) VALUES (%u, %u, %u, %u, '%s', '0')",
       ar->FileId = sql_insert_id(mdb);
       stat = 1;
    }
-   db_unlock(mdb);
    return stat;
 }
 
 /* Create a Unique record for the Path -- no duplicates */
-static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar, char *path)
+static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar)
 {
    SQL_ROW row;
    int stat;
 
-   if (*path == 0) {
-      Mmsg0(&mdb->errmsg, _("Null path given to db_create_path_record\n"));
-      Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
-      ar->PathId = 0;
-      ASSERT(ar->PathId);
-      return 0;
-   }
+   mdb->esc_name = check_pool_memory_size(mdb->esc_name, mdb->pnl+1);
+   db_escape_string(mdb->esc_name, mdb->path, mdb->pnl);
 
-   db_lock(mdb);
-
-   if (mdb->cached_path_id != 0 && strcmp(mdb->cached_path, path) == 0) {
+   if (mdb->cached_path_id != 0 && mdb->cached_path_len == mdb->pnl &&
+       strcmp(mdb->cached_path, mdb->path) == 0) {
       ar->PathId = mdb->cached_path_id;
       ASSERT(ar->PathId);
-      db_unlock(mdb);
       return 1;
    }	      
 
-   Mmsg(&mdb->cmd, "SELECT PathId FROM Path WHERE Path='%s'", path);
+   Mmsg(&mdb->cmd, "SELECT PathId FROM Path WHERE Path='%s'", mdb->path);
 
    if (QUERY_DB(mdb, mdb->cmd)) {
 
@@ -589,12 +530,11 @@ static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar, char *path)
       if (mdb->num_rows > 1) {
 	 char ed1[30];
          Mmsg2(&mdb->errmsg, _("More than one Path!: %s for Path=%s\n"), 
-	    edit_uint64(mdb->num_rows, ed1), path);
+	    edit_uint64(mdb->num_rows, ed1), mdb->path);
          Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
       }
       if (mdb->num_rows >= 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
-	    db_unlock(mdb);
             Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
             Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	    sql_free_result(mdb);
@@ -607,19 +547,17 @@ static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar, char *path)
 	 /* Cache path */
 	 if (ar->PathId != mdb->cached_path_id) {
 	    mdb->cached_path_id = ar->PathId;
-	    mdb->cached_path = check_pool_memory_size(mdb->cached_path,
-	       strlen(path)+1);
-	    strcpy(mdb->cached_path, path);
+	    mdb->cached_path_len = mdb->pnl;
+	    pm_strcpy(&mdb->cached_path, mdb->path);
 	 }
 	 ASSERT(ar->PathId);
-	 db_unlock(mdb);
 	 return 1;
       }
 
       sql_free_result(mdb);
    }
 
-   Mmsg(&mdb->cmd, "INSERT INTO Path (Path)  VALUES ('%s')", path);
+   Mmsg(&mdb->cmd, "INSERT INTO Path (Path)  VALUES ('%s')", mdb->path);
 
    if (!INSERT_DB(mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db Path record %s failed. ERR=%s\n"), 
@@ -635,48 +573,48 @@ static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar, char *path)
    /* Cache path */
    if (ar->PathId != mdb->cached_path_id) {
       mdb->cached_path_id = ar->PathId;
-      mdb->cached_path = check_pool_memory_size(mdb->cached_path,
-	 strlen(path)+1);
-      strcpy(mdb->cached_path, path);
+      mdb->cached_path_len = mdb->pnl;
+      pm_strcpy(&mdb->cached_path, mdb->path);
    }
    ASSERT(ar->PathId);
-   db_unlock(mdb);
    return stat;
 }
 
 /* Create a Unique record for the filename -- no duplicates */
-static int db_create_filename_record(B_DB *mdb, ATTR_DBR *ar, char *fname) 
+static int db_create_filename_record(B_DB *mdb, ATTR_DBR *ar) 
 {
    SQL_ROW row;
 
-   db_lock(mdb);
-   Mmsg(&mdb->cmd, "SELECT FilenameId FROM Filename WHERE Name='%s'", fname);
+   
+   mdb->esc_name = check_pool_memory_size(mdb->esc_name, mdb->fnl+1);
+   db_escape_string(mdb->esc_name, mdb->fname, mdb->fnl);
+
+   Mmsg(&mdb->cmd, "SELECT FilenameId FROM Filename WHERE Name='%s'", mdb->esc_name);
 
    if (QUERY_DB(mdb, mdb->cmd)) {
       mdb->num_rows = sql_num_rows(mdb);
       if (mdb->num_rows > 1) {
          Mmsg2(&mdb->errmsg, _("More than one Filename!: %d File=%s\n"), 
-	    (int)(mdb->num_rows), fname);
+	    (int)(mdb->num_rows), mdb->esc_name);
          Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
       }
       if (mdb->num_rows >= 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
             Mmsg2(&mdb->errmsg, _("error fetching row for file=%s: ERR=%s\n"), 
-		fname, sql_strerror(mdb));
+		mdb->fname, sql_strerror(mdb));
             Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	    ar->FilenameId = 0;
 	 } else {
 	    ar->FilenameId = atoi(row[0]);
 	 }
 	 sql_free_result(mdb);
-	 db_unlock(mdb);
 	 return ar->FilenameId > 0;
       }
       sql_free_result(mdb);
    }
 
    Mmsg(&mdb->cmd, "INSERT INTO Filename (Name) \
-VALUES ('%s')", fname);
+VALUES ('%s')", mdb->fname);
 
    if (!INSERT_DB(mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db Filename record %s failed. ERR=%s\n"), 
@@ -687,7 +625,6 @@ VALUES ('%s')", fname);
       ar->FilenameId = sql_insert_id(mdb);
    }
 
-   db_unlock(mdb);
    return ar->FilenameId > 0;
 }
 

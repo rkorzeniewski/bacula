@@ -7,7 +7,7 @@
  *
  */
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -123,31 +123,38 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
 
       fnl = p - f;
       if (fnl == 0) {
+	 /* The filename length must not be zero here because we
+	  *  are dealing with a file (i.e. FT_REGE or FT_REG).
+	  */
          Jmsg1(jcr, M_ERROR, 0, _("Zero length filename: %s\n"), fname);
 	 return CF_ERROR;
       }
 
       pnl = f - ofile - 1;    
-      if (pnl <= 0) {
-         Jmsg1(jcr, M_ERROR, 0, _("Zero length path: %s\n"), fname);
-	 return CF_ERROR;
-      }
-      savechr = ofile[pnl];
-      ofile[pnl] = 0;		      /* terminate path */
 
-      Dmsg1(50, "Make path %s\n", ofile);
       /*
-       * If we need to make the directory, ensure that it is with
-       * execute bit set (i.e. parent_mode), and preserve what already
-       * exists. Normally, this should do nothing.
+       * If path length is <= 0 we are making a file in the root
+       *  directory. Assume that the directory already exists.
        */
-      stat = !make_path(jcr, ofile, parent_mode, parent_mode, uid, gid, 1, NULL);
-      if (stat == 0) {
-         Dmsg1(0, "Could not make path. %s\n", ofile);
-	 return CF_ERROR;
-      }
+      if (pnl > 0) {
+	 savechr = ofile[pnl];
+	 ofile[pnl] = 0;		 /* terminate path */
+
+         Dmsg1(50, "Make path %s\n", ofile);
+	 /*
+	  * If we need to make the directory, ensure that it is with
+	  * execute bit set (i.e. parent_mode), and preserve what already
+	  * exists. Normally, this should do nothing.
+	  */
+	 stat = !make_path(jcr, ofile, parent_mode, parent_mode, uid, gid, 1, NULL);
+	 if (stat == 0) {
+            Dmsg1(0, "Could not make path. %s\n", ofile);
+	    return CF_ERROR;
+	 }
       
-      ofile[pnl] = savechr;	      /* restore full name */
+	 ofile[pnl] = savechr;		 /* restore full name */
+      }
+
       Dmsg1(100, "Create file %s\n", ofile);
       mode =  O_WRONLY | O_CREAT | O_TRUNC | O_BINARY;
       if (IS_CTG(statp->st_mode)) {
@@ -174,20 +181,30 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
 	 return CF_ERROR;
       }
       return CF_CREATED;
+   case FT_RAW:
    case FT_SPEC:
       if (S_ISFIFO(statp->st_mode)) {
          Dmsg1(200, "Restore fifo: %s\n", ofile);
-	 if (mkfifo(ofile, statp->st_mode) != 0) {
+	 if (mkfifo(ofile, statp->st_mode) != 0 && errno != EEXIST) {
             Jmsg2(jcr, M_ERROR, 0, _("Cannot make fifo %s: ERR=%s\n"), ofile, strerror(errno));
 	    return CF_ERROR;
 	 }
       } else {		
          Dmsg1(200, "Restore node: %s\n", ofile);
-	 if (mknod(ofile, statp->st_mode, statp->st_rdev) != 0) {
+	 if (mknod(ofile, statp->st_mode, statp->st_rdev) != 0 && errno != EEXIST) {
             Jmsg2(jcr, M_ERROR, 0, _("Cannot make node %s: ERR=%s\n"), ofile, strerror(errno));
 	    return CF_ERROR;
 	 }
       }       
+      if (type == FT_RAW) {
+         Dmsg1(200, "FT_RAW %s\n", ofile);
+	 mode =  O_WRONLY | O_BINARY;
+	 if ((*ofd = open(ofile, mode)) < 0) {
+            Jmsg2(jcr, M_ERROR, 0, _("Could not open %s: ERR=%s\n"), ofile, strerror(errno));
+	    return CF_ERROR;
+	 }
+	 return CF_EXTRACT;
+      }
       Dmsg1(200, "FT_SPEC %s\n", ofile);
       return CF_CREATED;
 

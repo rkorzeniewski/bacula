@@ -310,8 +310,16 @@ find_one_file(FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), void *pkt
        return rtn_stat;
    } /* end check for directory */
 
-   /* The only remaining types are special (character, ...) files */
-   ff_pkt->type = FT_SPEC;
+   /*
+    * If it is explicitly mentioned (i.e. top_level) and is
+    *  a block device, we do a raw backup of it.
+    */
+   if (top_level && S_ISBLK(ff_pkt->statp.st_mode)) {
+      ff_pkt->type = FT_RAW;	      /* raw partition */
+   } else {
+      /* The only remaining types are special (character, ...) files */
+      ff_pkt->type = FT_SPEC;
+   }
    return handle_file(ff_pkt, pkt);
 }
 

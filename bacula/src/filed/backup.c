@@ -8,7 +8,7 @@
  *
  */
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -67,7 +67,6 @@ int blast_data_to_storage_daemon(JCR *jcr, char *addr)
    Dmsg0(110, "start find files\n");
 
    /* Subroutine save_file() is called for each file */
-   /* ***FIXME**** add FSM code */
    if (!find_files(jcr->ff, save_file, (void *)jcr)) {
       stat = 0; 		      /* error */
    }
@@ -130,6 +129,9 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
    case FT_SPEC:
       Dmsg1(130, "FT_SPEC saving: %s\n", ff_pkt->fname);
       break;
+   case FT_RAW:
+      Dmsg1(130, "FT_RAW saving: %s\n", ff_pkt->fname);
+      break;
    case FT_NOACCESS:
       Jmsg(jcr, M_NOTSAVED, -1, _("     Could not access %s: ERR=%s\n"), ff_pkt->fname, 
 	 strerror(ff_pkt->ff_errno));
@@ -166,8 +168,8 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
       return 1;
    }
 
-   if (ff_pkt->type != FT_LNKSAVED && S_ISREG(ff_pkt->statp.st_mode) && 
-	 ff_pkt->statp.st_size > 0) {
+   if (ff_pkt->type != FT_LNKSAVED && (S_ISREG(ff_pkt->statp.st_mode) && 
+	 ff_pkt->statp.st_size > 0) || ff_pkt->type == FT_RAW) {
       if ((ff_pkt->fid = open(ff_pkt->fname, O_RDONLY | O_BINARY)) < 0) {
 	 ff_pkt->ff_errno = errno;
          Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open %s: ERR=%s.\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));

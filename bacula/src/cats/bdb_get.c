@@ -17,7 +17,7 @@
  */
 
 /*
-   Copyright (C) 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2001-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -498,10 +498,6 @@ int db_get_job_volume_parameters(B_DB *mdb, uint32_t JobId, VOL_PARAMS **VolPara
 { return 0; }
 
 int db_get_client_ids(B_DB *mdb, int *num_ids, uint32_t *ids[])
-{ return 0; }
-
-
-int db_get_client_record(B_DB *mdb, CLIENT_DBR *cdbr)
 { return 0; }
 
 #endif /* HAVE_BACULA_DB */

@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                 29 December 2002
+                 01 January 2003 
 
 Documentation to do: (a little bit at a time)
 - Document running a test version.
@@ -15,8 +15,11 @@ For 1.28 release:
 - Look at ua_prune.c in detail. Why did JobType work at all??????
 - Figure out how to allow multiple simultaneous file Volumes on
   a single device.
+- Why are save/restore of device different sizes (sparse?)
 
 For 1.29 release:
+- Backup of raw partitions
+- Figure out some way to automatically backup all local partitions
 - Enable avoid backing up archive device (findlib/find_one.c:128)
 - Implement FileOptions (see end of this document)
 - Implement Bacula plugins -- design API

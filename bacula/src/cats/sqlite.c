@@ -7,7 +7,7 @@
  */
 
 /*
-   Copyright (C) 2002 Kern Sibbald and John Walker
+   Copyright (C) 2002-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -84,6 +84,9 @@ db_init_database(void *jcr, char *db_name, char *db_user, char *db_password)
    mdb->cached_path = get_pool_memory(PM_FNAME);
    mdb->cached_path_id = 0;
    mdb->ref_count = 1;
+   mdb->fname = get_pool_memory(PM_FNAME);
+   mdb->path = get_pool_memory(PM_FNAME);
+   mdb->esc_name = get_pool_memory(PM_FNAME);
    qinsert(&db_list, &mdb->bq); 	   /* put db in list */
    mdb->jcr = jcr;
    V(mutex);
@@ -169,6 +172,9 @@ db_close_database(B_DB *mdb)
       free_pool_memory(mdb->errmsg);
       free_pool_memory(mdb->cmd);
       free_pool_memory(mdb->cached_path);
+      free_pool_memory(mdb->fname);
+      free_pool_memory(mdb->path);
+      free_pool_memory(mdb->esc_name);
       if (mdb->db_name) {
 	 free(mdb->db_name);
       }

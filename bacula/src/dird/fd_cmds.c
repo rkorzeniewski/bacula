@@ -13,7 +13,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -244,7 +244,6 @@ msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
          Dmsg2(111, "dird<filed: stream=%d %s\n", stream, jcr->fname);
          Dmsg1(120, "dird<filed: attr=%s\n", attr);
 
-	 /* ***FIXME*** fix link field */
 	 if (!db_create_file_attributes_record(jcr->db, &ar)) {
             Jmsg1(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
 	    jcr->JobStatus = JS_Error;
