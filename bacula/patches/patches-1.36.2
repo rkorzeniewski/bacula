@@ -3,3 +3,12 @@
  This patch should fix a problem with th %l editing in the 
  client (FD) where it edited nothing. With this fix, it should
  edit "since".  
+
+04Mar05 1.36.2-pool.patch
+ This patch corrects a problem preventing multiple 
+ simultaneous jobs from different pools.
+
+09Mar05 1.36.2-win32-drive.patch
+ This patch will prevent the Win32 FD from printing an error message
+ when it attempts to restore the permissions for a drive (which Win32
+ doesn't permit). The error is harmless in any case.
