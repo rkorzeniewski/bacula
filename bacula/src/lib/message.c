@@ -901,6 +901,9 @@ e_msg(char *file, int line, int type, int level, char *fmt,...)
     case M_WARNING:
        len = bsnprintf(buf, sizeof(buf), "%s: Warning: ", my_name);
        break;
+    case M_SECURITY:
+       len = bsnprintf(buf, sizeof(buf), "%s: Security violation: ", my_name);
+       break;
     default:
        len = bsnprintf(buf, sizeof(buf), "%s: ", my_name);
        break;
@@ -994,6 +997,9 @@ Jmsg(JCR *jcr, int type, int level, char *fmt,...)
        break;
     case M_WARNING:
        len = bsnprintf(rbuf, sizeof(rbuf), "%s: %s Warning: ", my_name, job);
+       break;
+    case M_SECURITY:
+       len = bsnprintf(rbuf, sizeof(rbuf), "%s: %s Security violation: ", my_name, job);
        break;
     default:
        len = bsnprintf(rbuf, sizeof(rbuf), "%s: ", my_name);
