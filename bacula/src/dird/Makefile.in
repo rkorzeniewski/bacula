@@ -19,6 +19,7 @@ thisdir = src/dird
 DEBUG=@DEBUG@
 
 PYTHON_LIBS = @PYTHON_LIBS@
+PYTHON_INC = @PYTHON_INCDIR@
 
 first_rule: all
 dummy:
@@ -30,6 +31,7 @@ SVRSRCS = dird.c admin.c authenticate.c \
 	  fd_cmds.c getmsg.c inc_conf.c job.c \
 	  jobq.c mac.c \
 	  mountreq.c msgchan.c next_vol.c newvol.c \
+	  python.c \
 	  recycle.c restore.c run_conf.c \
 	  scheduler.c sql_cmds.c \
 	  ua_acl.c ua_cmds.c ua_dotcmds.c \
@@ -44,6 +46,7 @@ SVROBJS = dird.o admin.o authenticate.o \
 	  fd_cmds.o getmsg.o inc_conf.o job.o \
 	  jobq.o mac.o \
 	  mountreq.o msgchan.o next_vol.o newvol.o \
+	  python.o \
 	  recycle.o restore.o run_conf.o \
 	  scheduler.o sql_cmds.o \
 	  ua_acl.o ua_cmds.o ua_dotcmds.o \
@@ -62,7 +65,7 @@ EXTRAOBJS = @OBJLIST@
 
 # inference rules
 .c.o:
-	$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+	$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
 all: Makefile bacula-dir @STATIC_DIR@
 	@echo "==== Make of dird is good ===="
@@ -134,7 +137,7 @@ depend:
 	@$(MV) Makefile Makefile.bak
 	@$(SED) "/^# DO NOT DELETE:/,$$ d" Makefile.bak > Makefile
 	@$(ECHO) "# DO NOT DELETE: nice dependency list follows" >> Makefile
-	@$(CXX) -S -M $(CPPFLAGS) $(XINC) -I$(srcdir) -I$(basedir) $(SQL_INC) *.c >> Makefile
+	@$(CXX) -S -M $(CPPFLAGS) $(XINC) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(SQL_INC) *.c >> Makefile
 	@if test -f Makefile ; then \
 	    $(RMF) Makefile.bak; \
 	else \

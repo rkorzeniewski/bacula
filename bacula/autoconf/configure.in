@@ -516,15 +516,15 @@ AC_ARG_WITH(python,
 			  install directory, default is to search through
 			  a number of common places for the Python files.],
 [
-  PYTHON_INCDIR=.
+  PYTHON_INCDIR= 
   PYTHON_LIBS=
   if test "$withval" != "no"; then
      if test "$withval" = "yes"; then
 	if test -f /usr/include/python2.2/Python.h; then
-	   PYTHON_INCDIR=/usr/include/python2.2
+	   PYTHON_INCDIR=-I/usr/include/python2.2
 	   PYTHON_LIBS="-L/usr/lib/python2.2/config -lpython2.2 -lutil -ldl"
 	elif test -f $prefix/include/Python.h; then
-	   PYTHON_INCDIR=$prefix/include
+	   PYTHON_INCDIR=-I$prefix/include
 	   PYTHON_LIBS="-L$prefix/lib/config -lpython -lutil -ldl"
 	else
 	   AC_MSG_RESULT(no)
@@ -532,10 +532,10 @@ AC_ARG_WITH(python,
 	fi
      else
 	if test -f $withval/Python.h; then
-	   PYTHON_INCDIR=$withval
+	   PYTHON_INCDIR=-I$withval
 	   PYTHON_LIBS="-L$withval/config -lpython -lutil -ldl"
 	elif test -f $withval/include/Python.h; then
-	   PYTHON_INCDIR=$withval/include
+	   PYTHON_INCDIR=-I$withval/include
 	   PYTHON_LIBS="-L$withval/lib/config -lpython -lutil -ldl"
 	else
 	   AC_MSG_RESULT(no)

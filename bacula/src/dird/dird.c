@@ -223,7 +223,7 @@ int main (int argc, char *argv[])
 
    init_console_msg(working_directory);
 
-   init_python_interpreter(director->hdr.name);
+   init_python_interpreter(director->hdr.name, ".");
 
    set_thread_concurrency(director->MaxConcurrentJobs * 2 +
       4 /* UA */ + 4 /* sched+watchdog+jobsvr+misc */);

@@ -174,7 +174,8 @@ char *getgroup (gid_t gid);
 void free_getgroup_cache();
 
 /* python.c */
-void init_python_interpreter(char *progname);
+void init_python_interpreter(char *progname, char *scripts);
+void term_python_interpreter();
 int generate_event(JCR *jcr, const char *event);
 
 /* signal.c */
