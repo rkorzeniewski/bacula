@@ -461,6 +461,9 @@ lex_get_token(LEX *lf, int expect)
              ch == ';' || ch == ','   || ch == '"' || ch == '#') {
 	    lf->state = lex_none;
 	    lf = lex_open_file(lf, lf->str, NULL);
+       if (lf == NULL) {
+         return T_ERROR;
+       }
 	    break;
 	 }
 	 add_str(lf, ch);
