@@ -132,7 +132,12 @@ int close_wpipe(BPIPE *bpipe)
    return stat;
 }
 
-/* Close both pipes and free resources */
+/* 
+ * Close both pipes and free resources	 
+ *
+ *  Returns: 0 on success
+ *	     errno on failure
+ */
 int close_bpipe(BPIPE *bpipe) 
 {
    int chldstatus = 0;
@@ -176,8 +181,7 @@ int close_bpipe(BPIPE *bpipe)
 	 bmicrosleep(1, 0);	       /* wait one second */
 	 remaining_wait--;
       } else {
-	 stat = 1;		      /* set error status */
-	 errno = ETIME; 	      /* set timed out */
+	 stat = ETIME;		      /* set error status */
 	 wpid = -1;
          break;                       /* don't wait any longer */
       }
@@ -185,13 +189,13 @@ int close_bpipe(BPIPE *bpipe)
    if (wpid > 0) {
       if (WIFEXITED(chldstatus)) {	     /* process exit()ed */
 	 stat = WEXITSTATUS(chldstatus);
-          Dmsg1(200, "status =%d\n", stat);
+	 if (stat != 0) {
+	    stat = ECHILD;
+	 }
+         Dmsg1(200, "status =%d\n", stat);
       } else if (WIFSIGNALED(chldstatus)) {  /* process died */
-	 stat = 1;
+	 stat = ECHILD;
          Dmsg0(200, "Signaled\n");
-      }
-      if (stat != 0) {
-	 errno = ECHILD;	      /* set child errno */
       }
    }  
    if (bpipe->timer_id) {
@@ -211,7 +215,7 @@ int close_bpipe(BPIPE *bpipe)
  * Contrary to my normal calling conventions, this program 
  *
  *  Returns: 0 on success
- *	     non-zero on error
+ *	     non-zero on error == errno
  */
 int run_program(char *prog, int wait, POOLMEM *results)
 {
@@ -222,7 +226,7 @@ int run_program(char *prog, int wait, POOLMEM *results)
    mode = (char *)(results != NULL ? "r" : "");
    bpipe = open_bpipe(prog, wait, mode);
    if (!bpipe) {
-      return 0;
+      return ENOENT;
    }
    if (results) {
       mp_chr(results)[0] = 0;

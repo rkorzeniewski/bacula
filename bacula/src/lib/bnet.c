@@ -540,7 +540,7 @@ static uint32_t *bget_host_ip(JCR *jcr, char *host)
    } else {
       P(ip_mutex);
       if ((hp = gethostbyname(host)) == NULL) {
-         Jmsg2(jcr, M_ERROR, 0, "gethostbyname() for %s failed: ERR=%s\n", 
+         Jmsg2(jcr, M_ERROR, 0, "gethostbyname() for host \"%s\" failed: ERR=%s\n", 
 	       host, gethost_strerror());
 	 V(ip_mutex);
 	 return NULL;
