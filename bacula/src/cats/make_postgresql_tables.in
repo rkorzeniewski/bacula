@@ -17,7 +17,7 @@ INSERT INTO Version (VersionId) VALUES (7);
 create table counters
 (
     counter           text                  not null,
-    MinValue          integer                       ,
+    minvalue          integer                       ,
     maxvalue          integer                       ,
     currentvalue      integer                       ,
     wrapcounter       text                  not null,
@@ -36,37 +36,41 @@ create index filename_name_idx on filename (name);
 create table path
 (
     pathid            serial                not null,
-    name              text                  not null,
+    path              text                  not null,
     primary key (pathid)
 );
 
-create index path_name_idx on path (name);
+create index path_name_idx on path (path);
 
 create table fileset
 (
     filesetid         serial                not null,
-    name              text                  not null,
+    fileset           text                  not null,
     md5               text                  not null,
     createtime        timestamp without time zone not null,
     primary key (filesetid)
 );
 
-create index fileset_name_idx on fileset (name);
+create index fileset_name_idx on fileset (fileset);
 
 create table pool
 (
     poolid            serial                not null,
     name              text                  not null,
-    numvols           integer               not null,
-    maxvols           integer               not null,
+    numvols           integer               not null
+        default 0,
+    maxvols           integer               not null
+        default 0,
     useonce           smallint              not null,
     usecatalog        smallint              not null,
     acceptanyvolume   smallint                      
         default 0,
     volretention      bigint                not null,
     voluseduration    bigint                not null,
-    maxvoljobs        integer               not null,
-    maxvolfiles       integer               not null,
+    maxvoljobs        integer               not null
+        default 0,
+    maxvolfiles       integer               not null
+        default 0,
     maxvolbytes       bigint                not null,
     autoprune         smallint              not null
         default 0,
@@ -106,26 +110,42 @@ create table media
         default 0,
     poolid            integer               not null,
     mediatype         text                  not null,
-    firstwritten      timestamp without time zone not null,
-    lastwritten       timestamp without time zone not null,
-    labeldate         timestamp without time zone not null,
-    voljobs           integer               not null,
-    volfiles          integer               not null,
-    volblocks         integer               not null,
-    volmounts         integer               not null,
-    volbytes          bigint                not null,
-    volerrors         integer               not null,
-    volwrites         integer               not null,
+    firstwritten      timestamp without time zone not null
+        default current_timestamp,
+    lastwritten       timestamp without time zone not null
+        default current_timestamp,
+    labeldate         timestamp without time zone not null
+       default current_timestamp,
+    voljobs           integer               not null
+        default 0,
+    volfiles          integer               not null
+        default 0,
+    volblocks         integer               not null
+        default 0,
+    volmounts         integer               not null
+        default 0,
+    volbytes          bigint                not null
+        default 0,
+    volerrors         integer               not null
+        default 0,
+    volwrites         integer               not null
+        default 0,
     volcapacitybytes  bigint                not null,
     volstatus         text                  not null
         check (volstatus in ('Full','Archive','Append','Recycle','Purged','Read-Only','Disabled','Error','Busy',
             'Used','Cleaning')),
-    recycle           smallint              not null,
-    volretention      bigint                not null,
-    voluseduration    bigint                not null,
-    maxvoljobs        integer               not null,
-    maxvolfiles       integer               not null,
-    maxvolbytes       bigint                not null,
+    recycle           smallint              not null
+        default 0,
+    volretention      bigint                not null
+        default 0,
+    voluseduration    bigint                not null
+        default 0,
+    maxvoljobs        integer               not null
+        default 0,
+    maxvolfiles       integer               not null
+        default 0,
+    maxvolbytes       bigint                not null
+        default 0,
     drive             integer               not null
         default 0,
     inchanger         smallint              not null
@@ -135,6 +155,8 @@ create table media
     primary key (mediaid)
 );
 
+create unique index media_volumename_id on media (volumename);
+
 create table job
 (
     jobid             serial                not null,
@@ -142,20 +164,26 @@ create table job
     name              text                  not null,
     type              char(1)               not null,
     level             char(1)               not null,
-    clientid          integer               not null,
+    clientid          integer                       ,
     jobstatus         char(1)               not null,
     schedtime         timestamp without time zone not null,
-    starttime         timestamp without time zone not null,
-    endtime           timestamp without time zone not null,
+    starttime         timestamp without time zone         ,
+    endtime           timestamp without time zone         ,
     jobtdate          bigint                not null,
-    volsessionid      integer               not null,
-    volsessiontime    integer               not null,
-    jobfiles          integer               not null,
-    jobbytes          bigint                not null,
-    joberrors         integer               not null,
-    jobmissingfiles   integer               not null,
-    poolid            integer               not null,
-    filesetid         integer               not null,
+    volsessionid      integer               not null
+        default 0,
+    volsessiontime    integer               not null
+        default 0,
+    jobfiles          integer               not null
+       default 0,
+    jobbytes          bigint                not null
+        default 0,
+    joberrors         integer               not null
+        default 0,
+    jobmissingfiles   integer               not null
+        default 0,
+    poolid            integer                       ,
+    filesetid         integer                       ,
     purgedfiles       smallint              not null
         default 0,
     hasbase           smallint              not null
@@ -168,7 +196,8 @@ create index job_name_idx on job (name);
 create table file
 (
     fileid            serial                not null,
-    fileindex         integer               not null,
+    fileindex         integer               not null
+        default 0,
     jobid             integer               not null,
     pathid            integer               not null,
     filenameid        bigint                not null,
@@ -184,13 +213,20 @@ create table jobmedia
     jobmediaid        serial                not null,
     jobid             integer               not null,
     mediaid           integer               not null,
-    firstindex        integer               not null,
-    lastindex         integer               not null,
-    startfile         integer               not null,
-    endfile           integer               not null,
-    startblock        integer               not null,
-    endblock          integer               not null,
-    volindex          integer               not null,
+    firstindex        integer               not null
+        default 0,
+    lastindex         integer               not null
+        default 0,
+    startfile         integer               not null
+        default 0,
+    endfile           integer               not null
+        default 0,
+    startblock        integer               not null
+        default 0,
+    endblock          integer               not null
+        default 0,
+    volindex          integer               not null
+        default 0,
     primary key (jobmediaid)
 );
 
@@ -282,7 +318,6 @@ alter table unsavedfiles
 alter table unsavedfiles
     add foreign key  (filenameid)
        references filename (filenameid) on update restrict on delete restrict;
-
 
 
 
