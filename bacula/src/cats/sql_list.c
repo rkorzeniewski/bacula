@@ -232,7 +232,7 @@ db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit,
             "JobMissingFiles,Job.PoolId,Pool.Name,Job.FileSetId,FileSet.FileSet "
             "FROM Job,Client,Pool,FileSet WHERE "
             "Client.ClientId=Job.ClientId AND Pool.PoolId=Job.PoolId "
-            "AND FileSet.FileSetId=Job.FileSetId  ORDER BY JobId");
+            "AND FileSet.FileSetId=Job.FileSetId  ORDER BY StartTime");
       } else {				 /* single record */
 	 Mmsg(&mdb->cmd, 
             "SELECT JobId,Job,Job.Name,PurgedFiles,Type,Level,"
@@ -248,7 +248,7 @@ db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit,
       if (jr->JobId == 0 && jr->Job[0] == 0) {
 	 Mmsg(&mdb->cmd, 
            "SELECT JobId,Name,StartTime,Type,Level,JobFiles,JobBytes,JobStatus "
-           "FROM Job ORDER BY JobId");
+           "FROM Job ORDER BY StartTime");
       } else {				 /* single record */
          Mmsg(&mdb->cmd, "SELECT JobId,Name,StartTime,Type,Level,"
             "JobFiles,JobBytes,JobStatus FROM Job WHERE JobId=%u", jr->JobId);
@@ -274,8 +274,8 @@ db_list_job_totals(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, vo
    db_lock(mdb);
 
    /* List by Job */
-   Mmsg(&mdb->cmd, "SELECT  count(*) AS Jobs, sum(JobFiles) \
-AS Files, sum(JobBytes) AS Bytes, Name AS Job FROM Job GROUP BY Name");
+   Mmsg(&mdb->cmd, "SELECT  count(*) AS Jobs,sum(JobFiles) "
+      "AS Files,sum(JobBytes) AS Bytes,Name AS Job FROM Job GROUP BY Name");
 
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);

@@ -1,4 +1,17 @@
 
+21Feb04
+- Add Volker's bacula script to the SuSE directory and convert it
+  to bacula.in
+- Make LockRes() and UnlockRes() use read/write locks and have
+  debug info to trace locking and unlocking.
+- Begin work of implementing SIGHUP. It is now enabled for
+  the Director and works only if there are no jobs running,
+  in addition, if the new conf file is incorrect, it will
+  terminate Bacula. Much more work to be done.  I've figured
+  out a scheme to implement it with running jobs without
+  adding individual semaphores or use counts.  
+- Sort "list jobs" by StartTime rather than JobId, which can
+  be random.
 16Feb04
 - Add a lot of "const" to char * arguments to keep the native
   Sun compiler happy.

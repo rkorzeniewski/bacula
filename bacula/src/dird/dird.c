@@ -211,7 +211,7 @@ int main (int argc, char *argv[])
 
    drop(uid, gid);		      /* reduce priveleges if requested */
 
-/* signal(SIGHUP, reload_config); */
+   signal(SIGHUP, reload_config);
 
    init_console_msg(working_directory);
 
@@ -280,8 +280,10 @@ static void terminate_dird(int sig)
  */
 static void reload_config(int sig)
 {
-   static int already_here = FALSE;
+   static bool already_here = false;
    sigset_t set;	
+   JCR *jcr;
+   int njobs = 0;
 
    if (already_here) {
       abort();			      /* Oops, recursion -> die */
@@ -290,11 +292,23 @@ static void reload_config(int sig)
    sigfillset(&set);
    sigprocmask(SIG_BLOCK, &set, NULL);
 
+   lock_jcr_chain();
+   LockRes();
+
+   foreach_jcr(jcr) {
+      if (jcr->JobId != 0) {	  /* this is a console */
+	 njobs++;
+      }
+      free_locked_jcr(jcr);
+   }
+   if (njobs > 0) {
+      goto bail_out;
+   }
+
    free_config_resources();
 
    parse_config(configfile);
 
-   Dmsg0(200, "check_resources()\n");
    if (!check_resources()) {
       Jmsg(NULL, M_ERROR_TERM, 0, _("Please correct configuration file: %s\n"), configfile);
    }
@@ -303,11 +317,14 @@ static void reload_config(int sig)
    set_working_directory(director->working_directory);
    FDConnectTimeout = director->FDConnectTimeout;
    SDConnectTimeout = director->SDConnectTimeout;
- 
+   Dmsg0(0, "Director's configuration file reread.\n");
+
+bail_out:
+   UnlockRes();
+   unlock_jcr_chain();
    sigprocmask(SIG_UNBLOCK, &set, NULL);
    signal(SIGHUP, reload_config);
-   already_here = FALSE;
-   Dmsg0(0, "Director's configuration file reread.\n");
+   already_here = false;
 }
 
 /*

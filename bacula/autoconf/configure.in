@@ -1467,6 +1467,7 @@ suse)
 	    platforms/suse/bacula-fd \
 	    platforms/suse/bacula-sd \
 	    platforms/suse/bacula-dir \
+	    platforms/suse/bacula \
 	    platforms/suse/bacula.spec"
   ;;
 suse5)

@@ -47,7 +47,6 @@
  */
 int r_first = R_FIRST;
 int r_last  = R_LAST;
-pthread_mutex_t res_mutex =  PTHREAD_MUTEX_INITIALIZER;
 
 /* Forward referenced subroutines */
 

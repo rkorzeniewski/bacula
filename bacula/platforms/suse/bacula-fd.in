@@ -3,6 +3,8 @@
 # bacula       This shell script takes care of starting and stopping
 #	       the bacula File daemon.
 #
+# This file is reported not to work by Alan Brown 21Feb04
+#
 # chkconfig: 2345 90 99
 # description: It comes by night and sucks the vital essence from your computers.
 #

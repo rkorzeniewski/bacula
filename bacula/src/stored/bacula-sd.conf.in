@@ -87,8 +87,8 @@ Device {
 #  AlwaysOpen = yes
 #  Offline On Unmount = no
 ## The min/max blocksizes of 32768 are *required*
-#  Minimum Block Size = 32768                             
-#  Maximum Block Size = 32768
+#  Minimum Block Size = 32768
+#  Maximum Block Size = 32768
 #}
  
 

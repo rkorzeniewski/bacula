@@ -64,7 +64,6 @@ extern int debug_level;
  */
 extern int r_first;
 extern int r_last;
-extern pthread_mutex_t res_mutex;
 extern struct s_res resources[];
 #ifdef HAVE_WIN32
 // work around visual studio name manling preventing external linkage since res_all
@@ -77,7 +76,8 @@ extern int res_all_size;
 #endif
 
 
-static bool res_locked = false;        /* set when resource chains locked */
+static brwlock_t res_lock;	      /* resource lock */
+static int res_locked = 0;	      /* set when resource chains locked -- for debug */
 
 /* Forward referenced subroutines */
 static void scan_types(LEX *lc, MSGS *msg, int dest, char *where, char *cmd);
@@ -157,6 +157,14 @@ void init_resource(int type, struct res_items *items)
 {
    int i;
    int rindex = type - r_first;
+   static bool first = true;
+   int errstat;
+
+   if (first && (errstat=rwl_init(&res_lock)) != 0) {
+      Emsg1(M_ABORT, 0, _("Unable to initialize resource lock. ERR=%s\n"), 
+	    strerror(errstat));
+   }
+   first = false;
 
    memset(&res_all, 0, res_all_size);
    res_all.hdr.rcode = type;
@@ -587,17 +595,34 @@ void store_yesno(LEX *lc, struct res_items *item, int index, int pass)
 }
 
 
+/* #define TRACE_RES */
 
-void LockRes()
+void b_LockRes(const char *file, int line)
 {
-   P(res_mutex);
-   res_locked = true;
+   int errstat;
+#ifdef TRACE_RES
+   Dmsg4(000, "LockRes   %d,%d at %s:%d\n", res_locked, res_lock.w_active,
+	 file, line);
+#endif
+   if ((errstat=rwl_writelock(&res_lock)) != 0) {
+      Emsg3(M_ABORT, 0, "rwl_writelock failure at %s:%d:  ERR=%s\n",
+	   file, line, strerror(errstat));
+   }
+   res_locked++;
 }
 
-void UnlockRes()
+void b_UnlockRes(const char *file, int line)
 {
-   res_locked = false;
-   V(res_mutex);
+   int errstat;
+   res_locked--;
+#ifdef TRACE_RES
+   Dmsg4(000, "UnLockRes %d,%d at %s:%d\n", res_locked, res_lock.w_active,
+	 file, line);
+#endif
+   if ((errstat=rwl_writeunlock(&res_lock)) != 0) {
+      Emsg3(M_ABORT, 0, "rwl_writeunlock failure at %s:%d:. ERR=%s\n",
+	   file, line, strerror(errstat));
+   }
 }
 
 /*
@@ -782,5 +807,6 @@ free_config_resources()
    int i;
    for (i=r_first; i<=r_last; i++) {
       free_resource(i);
+      resources[i-r_first].res_head = NULL;
    }
 }

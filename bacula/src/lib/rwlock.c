@@ -236,7 +236,7 @@ int rwl_writelock(brwlock_t *rwl)
       rwl->w_wait--;		      /* we are no longer waiting */
    }
    if (stat == 0) {
-      rwl->w_active = 1;	      /* we are running */
+      rwl->w_active++;		      /* we are running */
       rwl->writer_id = pthread_self(); /* save writer thread's id */
    }
    pthread_mutex_unlock(&rwl->mutex);
@@ -285,8 +285,11 @@ int rwl_writeunlock(brwlock_t *rwl)
    if ((stat = pthread_mutex_lock(&rwl->mutex)) != 0) {
       return stat;
    }
+   if (rwl->w_active <= 0) {
+      Emsg0(M_ABORT, 0, "rwl_writeunlock called too many times.\n");
+   }
    rwl->w_active--;
-   if (rwl->w_active < 0 || !pthread_equal(pthread_self(), rwl->writer_id)) {
+   if (!pthread_equal(pthread_self(), rwl->writer_id)) {
       Emsg0(M_ABORT, 0, "rwl_writeunlock by non-owner.\n");
    }
    if (rwl->w_active > 0) {

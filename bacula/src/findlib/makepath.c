@@ -225,7 +225,7 @@ make_path(
       /* If we've saved the cwd and DIRPATH is an absolute pathname,
          we must chdir to `/' in order to enable the chdir optimization.
          So if chdir ("/") fails, turn off the optimization.  */
-      if (cwd.do_chdir && isAbsolute(dirpath) && chdir ("/") < 0) {
+      if (cwd.do_chdir && isAbsolute(dirpath) && (chdir("/") < 0)) {
 	 cwd.do_chdir = 0;
       }
 

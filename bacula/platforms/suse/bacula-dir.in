@@ -1,5 +1,7 @@
 #! /bin/sh
 #
+# This file is reported not to work by Alan Brown 21Feb04
+#
 # bacula       This shell script takes care of starting and stopping
 #	       the bacula Director daemon
 #
