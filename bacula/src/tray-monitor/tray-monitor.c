@@ -150,6 +150,12 @@ int main(int argc, char *argv[])
    working_directory = "/tmp";
    args = get_pool_memory(PM_FNAME);
 
+   struct sigaction sigignore;
+   sigignore.sa_flags = 0;
+   sigignore.sa_handler = SIG_IGN;	 
+   sigfillset(&sigignore.sa_mask);
+   sigaction(SIGPIPE, &sigignore, NULL);
+
    gtk_init (&argc, &argv);
 
    while ((ch = getopt(argc, argv, "bc:d:th?f:s:")) != -1) {
