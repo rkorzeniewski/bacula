@@ -1198,7 +1198,7 @@ AC_OUTPUT([autoconf/Make.common \
 	  [(echo "Doing make of dependencies"; make depend;) ]
 )
 
-chmod 755 startmysql stopmysql bacula startit stopit btraceback
+chmod 755 startmysql stopmysql bacula startit stopit btraceback mtx-changer
 cp -f startit stopit btraceback btraceback.gdb src/console
 cp -f startit stopit btraceback btraceback.gdb src/dird
 cp -f startit stopit btraceback btraceback.gdb src/filed
