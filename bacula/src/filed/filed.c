@@ -7,7 +7,7 @@
  *
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -62,8 +62,8 @@ static pthread_t server_tid;
 
 static void usage()
 {
-   fprintf(stderr, _(
-"Copyright (C) 2000-2004 Kern Sibbald and John Walker\n"
+   Pmsg0(-1, _(
+"Copyright (C) 2000-2005 Kern Sibbald\n"
 "\nVersion: " VERSION " (" BDATE ")\n\n"
 "Usage: bacula-fd [-f -s] [-c config_file] [-d debug_level]\n"
 "        -c <file>   use <file> as configuration file\n"
@@ -202,7 +202,7 @@ int main (int argc, char *argv[])
 	 me->messages = (MSGS *)GetNextRes(R_MSGS, NULL);
 	 UnlockRes();
 	 if (!me->messages) {
-	     Emsg1(M_ABORT, 0, _("No Messages resource defined in %s\n"), configfile);
+             Emsg1(M_ABORT, 0, _("No Messages resource defined in %s\n"), configfile);
 	 }
       }
       close_msg(NULL);		      /* close temp message handler */
@@ -253,7 +253,7 @@ int main (int argc, char *argv[])
       /* Become server, and handle requests */
       IPADDR *p;
       foreach_dlist(p, me->FDaddrs) {
-	 Dmsg1(10, "filed: listening on port %d\n", p->get_port_host_order());
+         Dmsg1(10, "filed: listening on port %d\n", p->get_port_host_order());
       }
       bnet_thread_server(me->FDaddrs, me->MaxConcurrentJobs, &dir_workq, handle_client_request);
    }

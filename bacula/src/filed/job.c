@@ -248,7 +248,11 @@ void *handle_client_request(void *dirp)
 	       regfree((regex_t *)fo->regex.get(k));
 	    }
 	    fo->regex.destroy();
+	    fo->regexdir.destroy();
+	    fo->regexfile.destroy();
 	    fo->wild.destroy();
+	    fo->wilddir.destroy();
+	    fo->wildfile.destroy();
 	    fo->base.destroy();
 	    fo->fstype.destroy();
 	    if (fo->reader) {
@@ -269,7 +273,11 @@ void *handle_client_request(void *dirp)
 	 for (j=0; j<incexe->opts_list.size(); j++) {
 	    findFOPTS *fo = (findFOPTS *)incexe->opts_list.get(j);
 	    fo->regex.destroy();
+	    fo->regexdir.destroy();
+	    fo->regexfile.destroy();
 	    fo->wild.destroy();
+	    fo->wilddir.destroy();
+	    fo->wildfile.destroy();
 	    fo->base.destroy();
 	    fo->fstype.destroy();
 	 }
@@ -632,7 +640,11 @@ static findFOPTS *start_options(FF_PKT *ff)
       findFOPTS *fo = (findFOPTS *)malloc(sizeof(findFOPTS));
       memset(fo, 0, sizeof(findFOPTS));
       fo->regex.init(1, true);
+      fo->regexdir.init(1, true);
+      fo->regexfile.init(1, true);
       fo->wild.init(1, true);
+      fo->wilddir.init(1, true);
+      fo->wildfile.init(1, true);
       fo->base.init(1, true);
       fo->fstype.init(1, true);
       incexe->current_opts = fo;
@@ -706,14 +718,34 @@ static void add_fileset(JCR *jcr, const char *item)
    int state = fileset->state;
    findFOPTS *current_opts;
 
+   /* Get code, optional subcode, and position item past the dividing space */
    Dmsg1(100, "%s\n", item);
    int code = item[0];
-   if (item[1] == ' ') {              /* If string follows */
-      item += 2;		      /* point to string */
+   if (code != '\0') {
+      ++item;
+   }
+   int subcode = ' ';		    /* A space is always a valid subcode */
+   if (item[0] != '\0' && item[0] != ' ') {
+      subcode = item[0];
+      ++item;
+   }
+   if (*item == ' ') {
+      ++item;
    }
 
+   /* Skip all lines we receive after an error */
    if (state == state_error) {
       return;
+   }
+
+   /*
+    * The switch tests the code for validity.
+    * The subcode is always good if it is a space, otherwise we must confirm.
+    * We set state to state_error first assuming the subcode is invalid,
+    * requiring state to be set in cases below that handle subcodes.
+    */
+   if (subcode != ' ') {
+      state = state_error;
    }
    switch (code) {
    case 'I':
@@ -759,8 +791,16 @@ static void add_fileset(JCR *jcr, const char *item)
 	 state = state_error;
 	 break;
       }
-      current_opts->regex.append(preg);
       state = state_options;
+      if (subcode == ' ') {
+	 current_opts->regex.append(preg);
+      } else if (subcode == 'D') {
+	 current_opts->regexdir.append(preg);
+      } else if (subcode == 'F') {
+	 current_opts->regexfile.append(preg);
+      } else {
+	 state = state_error;
+      }
       break;
    case 'B':
       current_opts = start_options(ff);
@@ -774,8 +814,16 @@ static void add_fileset(JCR *jcr, const char *item)
       break;
    case 'W':
       current_opts = start_options(ff);
-      current_opts->wild.append(bstrdup(item));
       state = state_options;
+      if (subcode == ' ') {
+	 current_opts->wild.append(bstrdup(item));
+      } else if (subcode == 'D') {
+	 current_opts->wilddir.append(bstrdup(item));
+      } else if (subcode == 'F') {
+	 current_opts->wildfile.append(bstrdup(item));
+      } else {
+	 state = state_error;
+      }
       break;
    case 'O':
       current_opts = start_options(ff);
@@ -814,9 +862,21 @@ static bool term_fileset(JCR *jcr)
 	 for (k=0; k<fo->regex.size(); k++) {
             Dmsg1(400, "R %s\n", (char *)fo->regex.get(k));
 	 }
-	 for (k=0; k<fo->wild.size(); k++) {
-            Dmsg1(400, "W %s\n", (char *)fo->wild.get(k));
-	 }
+ 	 for (k=0; k<fo->regexdir.size(); k++) {
+ 	    Dmsg1(400, "RD %s\n", (char *)fo->regexdir.get(k));
+ 	 }
+ 	 for (k=0; k<fo->regexfile.size(); k++) {
+ 	    Dmsg1(400, "RF %s\n", (char *)fo->regexfile.get(k));
+ 	 }
+  	 for (k=0; k<fo->wild.size(); k++) {
+  	    Dmsg1(400, "W %s\n", (char *)fo->wild.get(k));
+  	 }
+ 	 for (k=0; k<fo->wilddir.size(); k++) {
+ 	    Dmsg1(400, "WD %s\n", (char *)fo->wilddir.get(k));
+ 	 }
+ 	 for (k=0; k<fo->wildfile.size(); k++) {
+ 	    Dmsg1(400, "WF %s\n", (char *)fo->wildfile.get(k));
+ 	 }
 	 for (k=0; k<fo->base.size(); k++) {
             Dmsg1(400, "B %s\n", (char *)fo->base.get(k));
 	 }
@@ -842,9 +902,21 @@ static bool term_fileset(JCR *jcr)
 	 for (k=0; k<fo->regex.size(); k++) {
             Dmsg1(400, "R %s\n", (char *)fo->regex.get(k));
 	 }
-	 for (k=0; k<fo->wild.size(); k++) {
-            Dmsg1(400, "W %s\n", (char *)fo->wild.get(k));
-	 }
+ 	 for (k=0; k<fo->regexdir.size(); k++) {
+ 	    Dmsg1(400, "RD %s\n", (char *)fo->regexdir.get(k));
+ 	 }
+ 	 for (k=0; k<fo->regexfile.size(); k++) {
+ 	    Dmsg1(400, "RF %s\n", (char *)fo->regexfile.get(k));
+ 	 }
+  	 for (k=0; k<fo->wild.size(); k++) {
+  	    Dmsg1(400, "W %s\n", (char *)fo->wild.get(k));
+  	 }
+ 	 for (k=0; k<fo->wilddir.size(); k++) {
+ 	    Dmsg1(400, "WD %s\n", (char *)fo->wilddir.get(k));
+ 	 }
+ 	 for (k=0; k<fo->wildfile.size(); k++) {
+ 	    Dmsg1(400, "WF %s\n", (char *)fo->wildfile.get(k));
+ 	 }
 	 for (k=0; k<fo->base.size(); k++) {
             Dmsg1(400, "B %s\n", (char *)fo->base.get(k));
 	 }

@@ -128,7 +128,11 @@ struct findFOPTS {
    int GZIP_level;                    /* GZIP level */
    char VerifyOpts[MAX_FOPTS];        /* verify options */
    alist regex;                       /* regex string(s) */
+   alist regexdir;                    /* regex string(s) for directories */
+   alist regexfile;                   /* regex string(s) for files */
    alist wild;                        /* wild card strings */
+   alist wilddir;                     /* wild card strings for directories */
+   alist wildfile;                    /* wild card strings for files */
    alist base;                        /* list of base names */
    alist fstype;                      /* file system type limitation */
    char *reader;                      /* reader program */

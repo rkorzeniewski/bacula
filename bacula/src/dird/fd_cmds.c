@@ -400,8 +400,20 @@ static int send_fileset(JCR *jcr)
 	    for (k=0; k<fo->regex.size(); k++) {
 	       bnet_fsend(fd, "R %s\n", fo->regex.get(k));
 	    }
+	    for (k=0; k<fo->regexdir.size(); k++) {
+	       bnet_fsend(fd, "RD %s\n", fo->regexdir.get(k));
+	    }
+	    for (k=0; k<fo->regexfile.size(); k++) {
+	       bnet_fsend(fd, "RF %s\n", fo->regexfile.get(k));
+	    }
 	    for (k=0; k<fo->wild.size(); k++) {
 	       bnet_fsend(fd, "W %s\n", fo->wild.get(k));
+	    }
+	    for (k=0; k<fo->wilddir.size(); k++) {
+	       bnet_fsend(fd, "WD %s\n", fo->wilddir.get(k));
+	    }
+	    for (k=0; k<fo->wildfile.size(); k++) {
+	       bnet_fsend(fd, "WF %s\n", fo->wildfile.get(k));
 	    }
 	    for (k=0; k<fo->base.size(); k++) {
 	       bnet_fsend(fd, "B %s\n", fo->base.get(k));

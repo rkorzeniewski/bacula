@@ -43,9 +43,9 @@
 			   "HAVE_SUN_OS\n"
 #define POOLMEM 	   char
 #define bstrdup 	   strdup
-#define Dmsg0(n,s)         fprintf(stderr, s "\n");
-#define Dmsg1(n,s,a1)      fprintf(stderr, s "\n", a1);
-#define Dmsg2(n,s,a1,a2)   fprintf(stderr, s "\n", a1, a2);
+#define Dmsg0(n,s)         fprintf(stderr, s);
+#define Dmsg1(n,s,a1)      fprintf(stderr, s, a1);
+#define Dmsg2(n,s,a1,a2)   fprintf(stderr, s, a1, a2);
 #endif
 
 /*
@@ -65,7 +65,7 @@ POOLMEM *fstype(const char *fname)
    if (statfs(fname, &st) == 0) {
       return bstrdup(st.f_fstypename);
    }
-   Dmsg1(50, "statfs() failed for \"%s\"", fname);
+   Dmsg1(50, "statfs() failed for \"%s\"\n", fname);
    return NULL;
 }
 
@@ -79,7 +79,7 @@ POOLMEM *fstype(const char *fname)
    if (statvfs(fname, &st) == 0) {
       return bstrdup(st.f_basetype);
    }
-   Dmsg1(50, "statfs() failed for \"%s\"", fname);
+   Dmsg1(50, "statfs() failed for \"%s\"\n", fname);
    return NULL;
 }
 
@@ -172,12 +172,12 @@ POOLMEM *fstype(const char *fname)
 #endif
 
       default:
-	 Dmsg2(10, "Unknown file system type \"0x%x\" for \"%s\".", st.f_type,
+	 Dmsg2(10, "Unknown file system type \"0x%x\" for \"%s\".\n", st.f_type,
 	       fname);
 	 return NULL;
       }
    }
-   Dmsg1(50, "statfs() failed for \"%s\"", fname);
+   Dmsg1(50, "statfs() failed for \"%s\"\n", fname);
    return NULL;
 }
 
@@ -190,14 +190,14 @@ POOLMEM *fstype(const char *fname)
    if (lstat(fname, &st) == 0) {
       return bstrdup(st.st_fstype);
    }
-   Dmsg1(50, "lstat() failed for \"%s\"", fname);
+   Dmsg1(50, "lstat() failed for \"%s\"\n", fname);
    return NULL;
 }
 
 #else	 /* No recognised OS */
 POOLMEM *fstype(const char *fname)
 {
-   Dmsg0(10, "!!! fstype() not implemented for this OS. !!!");
+   Dmsg0(10, "!!! fstype() not implemented for this OS. !!!\n");
 #ifdef TEST_PROGRAM
    Dmsg1(10, "Please define one of the following when compiling:\n\n%s\n",
 	 SUPPORTEDOSES);

@@ -35,3 +35,7 @@ void start_heartbeat_monitor(JCR *jcr);
 void stop_heartbeat_monitor(JCR *jcr);
 void start_dir_heartbeat(JCR *jcr);
 void stop_dir_heartbeat(JCR *jcr);
+
+/* From acl.c */
+POOLMEM *bacl_get(char *fname, int acltype);
+int bacl_set(char *fname, int acltype, char *acltext);

@@ -180,6 +180,29 @@ static bool accept_file(FF_PKT *ff)
       ff->writer = fo->writer;
       ff->fstypes = fo->fstype;
       ic = (ff->flags & FO_IGNORECASE) ? FNM_CASEFOLD : 0;
+      if (S_ISDIR(ff->statp.st_mode)) {
+	 for (k=0; k<fo->wilddir.size(); k++) {
+	    if (fnmatch((char *)fo->wilddir.get(k), ff->fname, fnmode|ic) == 0) {
+	       if (ff->flags & FO_EXCLUDE) {
+		  Dmsg2(100, "Exclude wilddir: %s file=%s\n", (char *)fo->wilddir.get(k),
+		     ff->fname);
+		  return false;	      /* reject file */
+	       }
+	       return true;	      /* accept file */
+	    }
+	 }
+      } else {
+	 for (k=0; k<fo->wildfile.size(); k++) {
+	    if (fnmatch((char *)fo->wildfile.get(k), ff->fname, fnmode|ic) == 0) {
+	       if (ff->flags & FO_EXCLUDE) {
+		  Dmsg2(100, "Exclude wildfile: %s file=%s\n", (char *)fo->wildfile.get(k),
+		     ff->fname);
+		  return false;	      /* reject file */
+	       }
+	       return true;	      /* accept file */
+	    }
+	 }
+      }
       for (k=0; k<fo->wild.size(); k++) {
 	 if (fnmatch((char *)fo->wild.get(k), ff->fname, fnmode|ic) == 0) {
 	    if (ff->flags & FO_EXCLUDE) {
@@ -191,6 +214,29 @@ static bool accept_file(FF_PKT *ff)
 	 }
       }
 #ifndef WIN32
+      if (S_ISDIR(ff->statp.st_mode)) {
+	 for (k=0; k<fo->regexdir.size(); k++) {
+	    const int nmatch = 30;
+	    regmatch_t pmatch[nmatch];
+	    if (regexec((regex_t *)fo->regexdir.get(k), ff->fname, nmatch, pmatch,  0) == 0) {
+	       if (ff->flags & FO_EXCLUDE) {
+		  return false;	      /* reject file */
+	       }
+	       return true;	      /* accept file */
+	    }
+	 }
+      } else {
+	 for (k=0; k<fo->regexfile.size(); k++) {
+	    const int nmatch = 30;
+	    regmatch_t pmatch[nmatch];
+	    if (regexec((regex_t *)fo->regexfile.get(k), ff->fname, nmatch, pmatch,  0) == 0) {
+	       if (ff->flags & FO_EXCLUDE) {
+		  return false;	      /* reject file */
+	       }
+	       return true;	      /* accept file */
+	    }
+	 }
+      }
       for (k=0; k<fo->regex.size(); k++) {
 	 const int nmatch = 30;
 	 regmatch_t pmatch[nmatch];
