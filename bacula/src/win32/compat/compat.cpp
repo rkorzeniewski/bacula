@@ -22,8 +22,8 @@
 // Author          : Christopher S. Hull
 // Created On      : Sat Jan 31 15:55:00 2004
 // Last Modified By: Christopher S. Hull
-// Last Modified On: Tue Feb 24 11:01:09 2004
-// Update Count    : 664
+// Last Modified On: Tue Feb 24 11:27:33 2004
+// Update Count    : 665
 // $Id$
 
 #include <stdio.h>
@@ -1103,7 +1103,7 @@ utime(const char *fname, struct utimbuf *times)
     if (h == INVALID_HANDLE_VALUE) {
         const char *err = errorString();
         d_msg(__FILE__, __LINE__, 99,
-              "Cannot open file for stat (%s):%s\n", tmpbuf, err);
+              "Cannot open file for utime(%s,...):%s\n", tmpbuf, err);
         LocalFree((void *)err);
         return -1;
     }
