@@ -6,15 +6,7 @@
 cwd=`pwd`
 bin/bacula stop  2>&1 >/dev/null
 scripts/copy-tape-confs
-mtx -f /dev/sg0 unload
-mtx -f /dev/sg0 load 1
-mt -f /dev/nst0 rewind
-mt -f /dev/nst0 weof
-mtx -f /dev/sg0 unload
-mtx -f /dev/sg0 load 2
-mt -f /dev/nst0 rewind
-mt -f /dev/nst0 weof
-mtx -f /dev/sg0 unload
+scripts/prepare-two-tapes
 echo "${cwd}/build" >/tmp/file-list
 bin/drop_sqlite_tables
 bin/make_sqlite_tables
