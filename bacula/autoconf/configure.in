@@ -1602,24 +1602,26 @@ chmod 755 startmysql stopmysql bacula startit stopit btraceback mtx-changer
 chmod 755 bconsole gconsole mtx-changer
 cd ..
 
-chmod 755 create_bacula_database      update_bacula_tables     make_bacula_tables
-chmod 755 grant_bacula_privileges     drop_bacula_tables       drop_bacula_database
+c=src/cats
 
-chmod 755 create_bdb_database         update_bdb_tables        make_bdb_tables
-chmod 755 grant_bdb_privileges        drop_bdb_tables          drop_bdb_database
+chmod 755 $c/create_bacula_database   $c/update_bacula_tables  $c/make_bacula_tables
+chmod 755 $c/grant_bacula_privileges  $c/drop_bacula_tables    $c/drop_bacula_database
 
-chmod 755 create_mysql_database       update_mysql_tables      make_mysql_tables
-chmod 755 grant_mysql_privileges      drop_mysql_tables        drop_mysql_database
+chmod 755 $c/create_bdb_database      $c/update_bdb_tables     $c/make_bdb_tables
+chmod 755 $c/grant_bdb_privileges     $c/drop_bdb_tables       $c/drop_bdb_database
 
-chmod 755 create_postgresql_database  update_postgresql_tables make_postgresql_tables
-chmod 755 grant_postgresql_privileges drop_postgresql_tables   drop_postgresql_database
+chmod 755 $c/create_mysql_database    $c/update_mysql_tables   $c/make_mysql_tables
+chmod 755 $c/grant_mysql_privileges   $c/drop_mysql_tables     $c/drop_mysql_database
 
-chmod 755 create_sqlite_database       update_sqlite_tables    make_sqlite_tables
-chmod 755 grant_sqlite_privileges      drop_sqlite_tables      drop_sqlite_database
+chmod 755 $c/create_sqlite_database   $c/update_sqlite_tables  $c/make_sqlite_tables
+chmod 755 $c/grant_sqlite_privileges  $c/drop_sqlite_tables    $c/drop_sqlite_database
 
-chmod 755 src/cats/make_catalog_backup src/cats/delete_catalog_backup
-chmod 755 src/cats/sqlite
-chmod 755 src/cats/mysql
+chmod 755 $c/create_postgresql_database  $c/update_postgresql_tables $c/make_postgresql_tables
+chmod 755 $c/grant_postgresql_privileges $c/drop_postgresql_tables   $c/drop_postgresql_database
+
+chmod 755 $c/make_catalog_backup $c/delete_catalog_backup
+chmod 755 $c/sqlite
+chmod 755 $c/mysql
 
 if test "x$ac_cv_sys_largefile_CFLAGS" != "xno" ; then
    largefile_support="yes"

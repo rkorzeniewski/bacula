@@ -1,4 +1,6 @@
 1
+2
+3
 Makefile
 make_catalog_backup
 delete_catalog_backup
@@ -31,3 +33,10 @@ update_bacula_tables
 update_mysql_tables
 update_postgresql_tables
 update_sqlite_tables
+drop_bacula_database
+drop_bdb_database
+drop_mysql_database
+drop_postgresql_database
+drop_sqlite_database
+grant_bdb_privileges
+update_bdb_tables

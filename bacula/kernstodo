@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                18 December 2003  
+                22 December 2003  
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -55,6 +55,14 @@ For 1.33 Testing/Documentation:
 - Add subsections to the Disaster Recovery index section.
                 
 For 1.33
+- In restore, provide option for limiting to a particular Pool.
+- In restore, list FileSets that only have different base names --
+  i.e. any FileSet with the same name should be treated as the same.
+- From Johan Decock:
+  bscan: sql_update.c:65 UPDATE File SET MD5='Ij+5kwN6TFIxK+8l8+/I+A' WHERE FileId=0
+  bscan: bscan.c:1074 Could not add MD5/SHA1 to File record. ERR=sql_update.c:65 Update problem: affected_rows=0
+- Do scheduling by UTC using gmtime_r() in run_conf, scheduler, and   
+  ua_status.!!! Thanks to Alan Brown for this tip.
 - Look at Dan's field width problems in PostgreSQL.
 - Look at effect of removing GROUP BYs.
 - In restore take all filesets with same base name.

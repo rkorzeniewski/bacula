@@ -432,12 +432,12 @@ try_again:
 /* Cleanup and then exit */
 static void terminate_console(int sig)
 {
-   static int already_here = FALSE;
+   static bool already_here = false;
 
    if (already_here) {		      /* avoid recursive temination problems */
       exit(1);
    }
-   already_here = TRUE;
+   already_here = true;
    free_pool_memory(args);
    con_term();
    if (sig != 0) {
