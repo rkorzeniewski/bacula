@@ -77,12 +77,12 @@ int recycle_oldest_purged_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
    POOLMEM *query = get_pool_memory(PM_EMSG);
    char *select1 =
           "SELECT MediaId,LastWritten FROM Media "
-          "WHERE PoolId=%u AND Recycle=1 AND VolStatus=\"Purged\" "
-          "AND MediaType=\"%s\" AND InChanger=1";
+          "WHERE PoolId=%u AND Recycle=1 AND VolStatus='Purged' "
+          "AND MediaType='%s' AND InChanger=1";
    char *select2 =
           "SELECT MediaId,LastWritten FROM Media "
-          "WHERE PoolId=%u AND Recycle=1 AND VolStatus=\"Purged\" "
-          "AND MediaType=\"%s\"";
+          "WHERE PoolId=%u AND Recycle=1 AND VolStatus='Purged' "
+          "AND MediaType='%s'";
 
 
    Dmsg0(100, "Enter recycle_oldest_purged_volume\n");
@@ -106,7 +106,7 @@ int recycle_oldest_purged_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
       mr->MediaId = oldest.MediaId;
       if (db_get_media_record(jcr, jcr->db, mr)) {
 	 if (recycle_volume(jcr, mr)) {
-            Jmsg(jcr, M_INFO, 0, "Recycled volume \"%s\"\n", mr->VolumeName);
+            Jmsg(jcr, M_INFO, 0, "Recycled volume '%s'\n", mr->VolumeName);
             Dmsg1(100, "Exit 1  recycle_oldest_purged_volume Vol=%s\n", mr->VolumeName);
 	    return 1;
 	 }
