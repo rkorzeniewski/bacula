@@ -8,7 +8,6 @@ Documentation to do: (a little bit at a time)
 - Document how to automatically backup all local partitions
 - Document problems with Verify and pruning.
 - Document how to use multiple databases.
-- Document Maximum File Size
 - Add a section to the doc on Manual cycling of Volumes.
 
 - Document logrotate
@@ -22,10 +21,14 @@ Testing to do: (painful)
 For 1.30 release:
 - Fix Bare Metal restore problem.
 - Fix "access not allowed" for backup of files on WinXP.
+- Document new transparent Console commands and wait command.
+- Document new immediate File save capability.
 
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 After 1.30:
+- Make | and < work on FD side.
+- Pass prefix_links to FD.
 - Implement a M_SECURITY message class.
 - Allow multiple Storage specifications (or multiple names on
   a single Storage specification) in the Job record. Thus a job 
@@ -920,4 +923,3 @@ rufus-dir: Volume used once. Marking Volume "File0003" as Used.
 - Add IP address to authentication failures. 
 - Add a default File storage so that new users can do backup
   and restores right away.
-
