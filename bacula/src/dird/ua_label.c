@@ -42,7 +42,7 @@ typedef struct s_vol_list {
 static int do_label(UAContext *ua, char *cmd, int relabel);
 static void label_from_barcodes(UAContext *ua);
 static int send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr, 
-	       POOL_DBR *pr, int relabel);
+	       POOL_DBR *pr, int relabel, bool media_record_exits);
 static vol_list_t *get_slot_list_from_SD(UAContext *ua);
 static int is_cleaning_tape(UAContext *ua, MEDIA_DBR *mr, POOL_DBR *pr);
 
@@ -151,6 +151,7 @@ static int do_label(UAContext *ua, char *cmd, int relabel)
    int ok = FALSE;
    int mounted = FALSE;
    int i;
+   bool media_record_exists = false;
    static char *barcode_keyword[] = {
       "barcode",
       "barcodes",
@@ -207,6 +208,7 @@ checkVol:
 
    /* Get a new Volume name */
    for ( ;; ) {
+      media_record_exists = false;
       if (!get_cmd(ua, _("Enter new Volume name: "))) {
 	 return 1;
       }
@@ -217,10 +219,14 @@ checkName:
 
       memset(&mr, 0, sizeof(mr));
       bstrncpy(mr.VolumeName, ua->cmd, sizeof(mr.VolumeName));
+      /* If VolBytes are zero the Volume is not labeled */
       if (db_get_media_record(ua->jcr, ua->db, &mr)) {
-          bsendmsg(ua, _("Media record for new Volume \"%s\" already exists.\n"), 
-	     mr.VolumeName);
-	  continue;
+	 if (mr.VolBytes != 0) {
+             bsendmsg(ua, _("Media record for new Volume \"%s\" already exists.\n"), 
+		mr.VolumeName);
+	     continue;
+	  }
+	  media_record_exists = true;
       }
       break;			      /* Got it */
    }
@@ -255,7 +261,7 @@ checkName:
    }
    sd = ua->jcr->store_bsock;
 
-   ok = send_label_request(ua, &mr, &omr, &pr, relabel);
+   ok = send_label_request(ua, &mr, &omr, &pr, relabel, media_record_exists);
 
    if (ok) {
       if (relabel) {
@@ -303,6 +309,7 @@ static void label_from_barcodes(UAContext *ua)
    POOL_DBR pr;
    MEDIA_DBR mr, omr;
    vol_list_t *vl, *vol_list = NULL;
+   bool media_record_exists;
 
    vol_list = get_slot_list_from_SD(ua);
 
@@ -334,10 +341,14 @@ static void label_from_barcodes(UAContext *ua)
 
       memset(&mr, 0, sizeof(mr));
       bstrncpy(mr.VolumeName, vl->VolName, sizeof(mr.VolumeName));
+      media_record_exists = false;
       if (db_get_media_record(ua->jcr, ua->db, &mr)) {
-          bsendmsg(ua, _("Media record for Slot %d Volume \"%s\" already exists.\n"), 
-	     vl->Slot, mr.VolumeName);
-	  continue;
+	  if (mr.VolBytes != 0) {
+             bsendmsg(ua, _("Media record for Slot %d Volume \"%s\" already exists.\n"), 
+		vl->Slot, mr.VolumeName);
+	     continue;
+	  } 
+	  media_record_exists = true;
       }
       /*
        * Deal with creating cleaning tape here. Normal tapes created in
@@ -367,7 +378,7 @@ static void label_from_barcodes(UAContext *ua)
       }
 
       mr.Slot = vl->Slot;
-      send_label_request(ua, &mr, &omr, &pr, 0);
+      send_label_request(ua, &mr, &omr, &pr, 0, media_record_exists);
    }
 
 
@@ -427,7 +438,7 @@ int is_volume_name_legal(UAContext *ua, char *name)
 }
 
 static int send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr, 
-			      POOL_DBR *pr, int relabel)
+			      POOL_DBR *pr, int relabel, bool media_record_exists)
 {
    BSOCK *sd;
    char dev_name[MAX_NAME_LENGTH];
@@ -465,14 +476,22 @@ static int send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
    unbash_spaces(pr->Name);
    mr->LabelDate = time(NULL);
    if (ok) {
-      set_pool_dbr_defaults_in_media_dbr(mr, pr);
-      mr->VolBytes = 1; 	      /* flag indicating Volume labeled */
-      if (db_create_media_record(ua->jcr, ua->db, mr)) {
-         bsendmsg(ua, _("Catalog record for Volume \"%s\", Slot %d  successfully created.\n"),
+      if (media_record_exists) {      /* we update it */
+	 mr->VolBytes = 1;
+	 if (!db_update_media_record(ua->jcr, ua->db, mr)) {
+             bsendmsg(ua, "%s", db_strerror(ua->db));
+	     ok = FALSE;
+	 }
+      } else {			      /* create the media record */
+	 set_pool_dbr_defaults_in_media_dbr(mr, pr);
+	 mr->VolBytes = 1;		 /* flag indicating Volume labeled */
+	 if (db_create_media_record(ua->jcr, ua->db, mr)) {
+            bsendmsg(ua, _("Catalog record for Volume \"%s\", Slot %d  successfully created.\n"),
 	    mr->VolumeName, mr->Slot);
-      } else {
-         bsendmsg(ua, "%s", db_strerror(ua->db));
-	 ok = FALSE;
+	 } else {
+            bsendmsg(ua, "%s", db_strerror(ua->db));
+	    ok = FALSE;
+	 }
       }
    } else {
       bsendmsg(ua, _("Label command failed.\n"));

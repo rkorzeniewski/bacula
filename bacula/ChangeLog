@@ -1,4 +1,27 @@
 
+2003-09-26 Version 1.32 26Sep03 Beta
+- Add regression and GUI-interface chapters to the manual.
+- Fix "label" of a volume that is already in the catalog,
+  but not yet labeled.
+- Correct the test for spooling attributes which was backward.
+  This caused the creation of a spool file in the working
+  directory for every job run.
+- Print to the job output stream when block checksum errors
+  occur, but continue processing. If more than one occurs,
+  print number at end of job.
+- Remove a few unneeded tests from configure.in
+- Modify configure to use -pthread on FreeBSD 4.8,
+  but nothing on FreeBSD 5.1
+- Clarify that bmicrosleep() takes sec and microsecs
+- Apply Franc Carter's code to specify a DB host in 
+  bscan.
+- Fix sanity login length test in stored/dircmd.c
+- remove old code fro stored/job.c
+- Lots of work on regress so that it works on FreeBSD
+  and Solaris.
+- Make the default gnome-console wider (console.c)
+- Add \r to the items that terminate a token.
+
 2003-09-20 Version 1.32 20Sep03 Beta
 - Replace a number strcpy() calls with bstrncpy().
 - Added code to ensure that the names for each resource

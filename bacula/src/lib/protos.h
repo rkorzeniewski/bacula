@@ -53,7 +53,7 @@ int       pool_sprintf           (char *pool_buf, char *fmt, ...);
 void      create_pid_file        (char *dir, char *progname, int port);
 int       delete_pid_file        (char *dir, char *progname, int port);
 void      drop                   (char *uid, char *gid);
-int       bmicrosleep            (time_t sec, long msec);
+int       bmicrosleep            (time_t sec, long usec);
 char     *bfgets                 (char *s, int size, FILE *fd);
 void      make_unique_filename   (POOLMEM **name, int Id, char *what);
 #ifndef HAVE_STRTOLL

@@ -127,6 +127,18 @@ DEV_BLOCK *new_block(DEVICE *dev)
    return block;
 }
 
+/* 
+ * Only the first block checksum error was reported.
+ *   If there are more, report it now.
+ */
+void print_block_errors(JCR *jcr, DEV_BLOCK *block)
+{
+   if (block->checksum_errors > 1) {
+      Jmsg(jcr, M_ERROR, 0, _("%d block checksum errors ignored.\n"),
+	 block->checksum_errors);
+   }
+}
+
 /*
  * Free block 
  */
@@ -180,13 +192,13 @@ static void ser_block_header(DEV_BLOCK *block)
 }
 
 /*
- * Unserialized the block header for reading block.
+ * Unserialize the block header for reading block.
  *  This includes setting all the buffer pointers correctly.
  *
  *  Returns: 0 on failure (not a block)
  *	     1 on success
  */
-static int unser_block_header(DEVICE *dev, DEV_BLOCK *block)
+static int unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 {
    ser_declare;
    char Id[BLKHDR_ID_LENGTH+1];
@@ -260,7 +272,10 @@ static int unser_block_header(DEVICE *dev, DEV_BLOCK *block)
 	    CheckSum);
          Mmsg3(&dev->errmsg, _("Block checksum mismatch in block %u: calc=%x blk=%x\n"), 
 	    (unsigned)BlockNumber, BlockCheckSum, CheckSum);
-	 return 0;
+	 if (block->checksum_errors == 0) {
+            Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
+	 }
+	 block->checksum_errors++;
       }
    }
    return 1;
@@ -630,7 +645,8 @@ reread:
    }  
 
    BlockNumber = block->BlockNumber + 1;
-   if (!unser_block_header(dev, block)) {
+   if (!unser_block_header(jcr, dev, block)) {
+      Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       block->read_len = 0;
       return 0;
    }
@@ -673,8 +689,8 @@ reread:
    }
 
    if (block->block_len > block->read_len) {
-      Mmsg2(&dev->errmsg, _("Short block of %d bytes on device %s discarded.\n"), 
-	 block->read_len, dev->dev_name);
+      Mmsg3(&dev->errmsg, _("Short block at %u of %d bytes on device %s discarded.\n"), 
+	 dev->block_num, block->read_len, dev->dev_name);
       Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       dev->state |= ST_SHORT;	/* set short block */
       block->read_len = block->binbuf = 0;

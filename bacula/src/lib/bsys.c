@@ -389,12 +389,12 @@ static pthread_mutex_t timer_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t timer = PTHREAD_COND_INITIALIZER;
 
 /*
- * This routine will sleep (sec, msec).  Note, however, that if a 
+ * This routine will sleep (sec, microsec).  Note, however, that if a 
  *   signal occurs, it will return early.  It is up to the caller
  *   to recall this routine if he/she REALLY wants to sleep the
  *   requested time.
  */
-int bmicrosleep(time_t sec, long msec)
+int bmicrosleep(time_t sec, long usec)
 {
    struct timespec timeout;
    struct timeval tv;
@@ -402,7 +402,7 @@ int bmicrosleep(time_t sec, long msec)
    int stat;
 
    timeout.tv_sec = sec;
-   timeout.tv_nsec = msec * 1000;
+   timeout.tv_nsec = usec * 1000;
 
 #ifdef HAVE_NANOSLEEP
    stat = nanosleep(&timeout, NULL);

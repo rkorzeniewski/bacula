@@ -247,7 +247,7 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       mdb->num_rows = sql_num_rows(mdb);
       if (mdb->num_rows > 0) {
-         Mmsg1(&mdb->errmsg, _("Volume \"%s\" already exists\n."), mr->VolumeName);
+         Mmsg1(&mdb->errmsg, _("Volume \"%s\" already exists.\n"), mr->VolumeName);
 	 sql_free_result(mdb);
 	 db_unlock(mdb);
 	 return 0;

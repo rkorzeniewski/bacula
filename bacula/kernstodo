@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                20 September 2003 
+                26 September 2003 
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -21,6 +21,7 @@ Testing to do: (painful)
 - Test cancel at EOM.       
 - Test not zeroing Autochanger slot when it is wrong.
 - Figure out how to use ssh or stunnel to protect Bacula communications.
+- Test connect timeouts.
 
 For 1.32 Testing/Documentation:
 - Document new records in Director. SDAddress SDDeviceName, SDPassword.
@@ -29,15 +30,28 @@ For 1.32 Testing/Documentation:
 - Document new Include/Exclude ...
 - Document all the status codes JobLevel, JobType, JobStatus.
 - Add test of exclusion, test multiple Include {} statements.
+- Add counter variable test.
                 
 For 1.32:
+- Look at Cleaning tape in ua_label.c for media create/update 
+- Fix get_storage_from_media_type (ua_restore) to use command line     
+  storage=
+- Document list nextvol and status output.
+- Add GUI interface to manual
+- Add regression testing to the manual
+
+
+For 1.33
 - Enhance "update slots" to include a "scan" feature
   scan 1; scan 1-5; scan 1,2,4 ...  to update the catalog 
 - Allow a slot or range of slots on the label barcodes command.
 - Don't print "Warning: Wrong Volume mounted ..." if mounting second volume.
-
-
-For 1.33
+- Make Dmsg look at global before calling subroutine.
+- Enable trace output at runtime for Win32
+- Make sure that Volumes are recycled based on "Least recently used"
+  rather than lowest MediaId.
+- Available volumes for autochangers (see patrick@baanboard.com 3 Sep 03 
+  and 4 Sep) scan slots.
 - Upgrade to cygwin 1.5
 - Get MySQL 3.23.58
 - Get and test MySQL 4.0
@@ -930,3 +944,6 @@ Done: (see kernsdone for more)
 - Require some modifer.
 - Restrict characters permitted in a Resource name, and don't permit
   duplicate names.
+- Figure out some way to ignore or get past checksum errors in
+  reading.
+- The SD spooling file gets created even if it is not used.

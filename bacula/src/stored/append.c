@@ -283,33 +283,30 @@ int do_append_data(JCR *jcr)
 
 static bool is_spooled(JCR *jcr)
 {
-   if (jcr->spool_attributes && jcr->dir_bsock->spool_fd) {
-      return true;
-   }
-   return false;
+   return jcr->spool_attributes && jcr->dir_bsock->spool_fd;
 }
 
 static int begin_attribute_spool(JCR *jcr)
 {
    if (!jcr->no_attributes && jcr->spool_attributes) {
-      return 0;
+      return open_spool_file(jcr, jcr->dir_bsock);
    }
-   return open_spool_file(jcr, jcr->dir_bsock);
+   return 1;
 }
 
 static int discard_attribute_spool(JCR *jcr)
 {
-   if (!is_spooled(jcr)) {
-      return 0;
+   if (is_spooled(jcr)) {
+      return close_spool_file(jcr, jcr->dir_bsock);
    }
-   return close_spool_file(jcr, jcr->dir_bsock);
+   return 1;
 }
 
 static int commit_attribute_spool(JCR *jcr)
 {
-   if (!is_spooled(jcr)) {
-      return 0;
+   if (is_spooled(jcr)) {
+      bnet_despool(jcr->dir_bsock);
+      return close_spool_file(jcr, jcr->dir_bsock);
    }
-   bnet_despool(jcr->dir_bsock);
-   return close_spool_file(jcr, jcr->dir_bsock);
+   return 1;
 }
