@@ -70,7 +70,7 @@ void wxbTreeCtrl::OnRightClicked(wxMouseEvent& event) {
    if (treeid.IsOk()) {
       wxbTreeMarkedEvent evt(GetId(), treeid);
 
-      bool res = GetParent()->GetEventHandler()->ProcessEvent(evt);
+      GetParent()->GetEventHandler()->ProcessEvent(evt);
    }
    event.Skip();
 }
