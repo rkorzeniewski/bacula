@@ -142,15 +142,8 @@ int main(int argc, char *argv[])
 
    init_stack_dump();
    my_name_is(argc, argv, "console");
+   init_msg(NULL, NULL);
    working_directory = "/tmp";
-
-   /*
-    * Ensure that every message is always printed
-    */
-   for (i=1; i<=M_MAX; i++) {
-      add_msg_dest(NULL, MD_STDOUT, i, NULL, NULL);
-   }
-
 
    while ((ch = getopt(argc, argv, "bc:d:r:st?")) != -1) {
       switch (ch) {

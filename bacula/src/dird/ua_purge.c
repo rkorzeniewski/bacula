@@ -8,7 +8,7 @@
  *
  *     Kern Sibbald, February MMII
  *
- *     $Id:
+ *     $Id$
  */
 
 /*

@@ -61,11 +61,16 @@ struct s_kw {
 
 /* Job Level keyword structure */
 struct s_jl {
-   char *level_name;
-   int  level;
-   int  job_class;
+   char *level_name;                  /* level keyword */
+   int  level;                        /* level */
+   int  job_type;                     /* JobType permitting this level */
 };
 
+/* Job Type keyword structure */
+struct s_jt {
+   char *type_name;
+   int job_type;
+};
 
 /* Definition of the contents of each Resource */
 
@@ -81,7 +86,7 @@ struct s_res_dir {
    char *working_directory;           /* WorkingDirectory */
    char *pid_directory;               /* PidDirectory */
    char *subsys_directory;            /* SubsysDirectory */
-   struct s_res_msgs *messages;
+   struct s_res_msgs *messages;       /* Daemon message handler */
    int   MaxConcurrentJobs;
    btime_t FDConnectTimeout;          /* timeout for connect in seconds */
    btime_t SDConnectTimeout;          /* timeout in seconds */
@@ -244,7 +249,7 @@ typedef union u_res URES;
 struct s_run {
    struct s_run *next;                /* points to next run record */
    int level;
-   int job_class;  
+   int job_type;  
    char *since;
    int level_no;
    int minute;                        /* minute to run job */

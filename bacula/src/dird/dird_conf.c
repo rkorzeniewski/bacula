@@ -19,7 +19,7 @@
  *
  *     Kern Sibbald, January MM
  *
- *     $Id:
+ *     $Id$
  */
 /*
    Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
@@ -61,6 +61,8 @@ extern void store_run(LEX *lc, struct res_items *item, int index, int pass);
 static void store_inc(LEX *lc, struct res_items *item, int index, int pass);
 static void store_backup(LEX *lc, struct res_items *item, int index, int pass);
 static void store_restore(LEX *lc, struct res_items *item, int index, int pass);
+static void store_jobtype(LEX *lc, struct res_items *item, int index, int pass);
+static void store_level(LEX *lc, struct res_items *item, int index, int pass);
 
 
 /* We build the current resource here as we are
@@ -155,16 +157,20 @@ static struct res_items cat_items[] = {
  *   name	   handler     value		     code flags    default_value
  */
 static struct res_items job_items[] = {
-   {"name",     store_name,   ITEM(res_job.hdr.name), 0, ITEM_REQUIRED, 0},
-   {"description", store_str, ITEM(res_job.hdr.desc), 0, 0, 0},
-   {"backup",   store_backup, ITEM(res_job),          JT_BACKUP, 0, 0},
-   {"verify",   store_backup, ITEM(res_job),          JT_VERIFY, 0, 0},
-   {"restore",  store_restore, ITEM(res_job),         JT_RESTORE, 0, 0},
-   {"schedule", store_res,    ITEM(res_job.schedule), R_SCHEDULE, 0, 0},
-   {"messages", store_res,    ITEM(res_job.messages), R_MSGS, 0, 0},
-   {"storage",  store_res,    ITEM(res_job.storage),  R_STORAGE, 0, 0},
-   {"pool",     store_res,    ITEM(res_job.pool),     R_POOL, 0, 0},
-   {"maxruntime", store_time, ITEM(res_job.MaxRunTime), 0, 0, 0},
+   {"name",     store_name,    ITEM(res_job.hdr.name), 0, ITEM_REQUIRED, 0},
+   {"description", store_str,  ITEM(res_job.hdr.desc), 0, 0, 0},
+   {"backup",   store_backup,  ITEM(res_job),          JT_BACKUP, 0, 0},
+   {"verify",   store_backup,  ITEM(res_job),          JT_VERIFY, 0, 0},
+   {"restore",  store_restore, ITEM(res_job),          JT_RESTORE, 0, 0},
+   {"schedule", store_res,     ITEM(res_job.schedule), R_SCHEDULE, 0, 0},
+   {"type",     store_jobtype, ITEM(res_job),          0, 0, 0},
+   {"level",    store_level,   ITEM(res_job),          0, 0, 0},
+   {"messages", store_res,     ITEM(res_job.messages), R_MSGS, 0, 0},
+   {"storage",  store_res,     ITEM(res_job.storage),  R_STORAGE, 0, 0},
+   {"pool",     store_res,     ITEM(res_job.pool),     R_POOL, 0, 0},
+   {"client",   store_res,     ITEM(res_job.client),   R_CLIENT, 0, 0},
+   {"fileset",  store_res,     ITEM(res_job.fs),       R_FILESET, 0, 0},
+   {"maxruntime", store_time,  ITEM(res_job.MaxRunTime), 0, 0, 0},
    {"maxstartdelay", store_time, ITEM(res_job.MaxStartDelay), 0, 0, 0},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
@@ -249,7 +255,7 @@ struct s_res resources[] = {
 
 /* Keywords (RHS) permitted in Job Level records   
  *
- *   level_name      level		level_class
+ *   level_name      level		job_type
  */
 struct s_jl joblevels[] = {
    {"Full",          L_FULL,            JT_BACKUP},
@@ -263,6 +269,18 @@ struct s_jl joblevels[] = {
    {"Data",          L_VERIFY_DATA,     JT_VERIFY},
    {NULL,	     0}
 };
+
+/* Keywords (RHS) permitted in Job type records   
+ *
+ *   type_name	     job_type
+ */
+struct s_jt jobtypes[] = {
+   {"backup",        JT_BACKUP},
+   {"verify",        JT_VERIFY},
+   {"restore",       JT_RESTORE},
+   {NULL,	     0}
+};
+
 
 /* Keywords (RHS) permitted in Backup and Verify records */
 static struct s_kw BakVerFields[] = {
@@ -586,6 +604,8 @@ void free_resource(int type)
 	    free(res->res_msgs.mail_cmd);
 	 if (res->res_msgs.operator_cmd)
 	    free(res->res_msgs.operator_cmd);
+	 free_msgs_res((MSGS *)res);  /* free message resource */
+	 res = NULL;
 	 break;
       case R_GROUP:
 	 break;
@@ -593,13 +613,17 @@ void free_resource(int type)
          printf("Unknown resource type %d\n", type);
    }
    /* Common stuff again -- free the resource, recurse to next one */
-   free(res);
+   if (res) {
+      free(res);
+   }
    resources[rindex].res_head = nres;
-   if (nres)
+   if (nres) {
       free_resource(type);
+   }
 }
 
-/* Save the new resource by chaining it into the head list for
+/*
+ * Save the new resource by chaining it into the head list for
  * the resource. If this is pass 2, we update any resource
  * pointers (currently only in the Job resource).
  */
@@ -660,6 +684,23 @@ void save_resource(int type, struct res_items *items, int pass)
 	    res->res_job.fs	  = res_all.res_job.fs;
 	    res->res_job.storage  = res_all.res_job.storage;
 	    res->res_job.pool	  = res_all.res_job.pool;
+	    if (res->res_job.JobType == 0) {
+               Emsg1(M_ABORT, 0, "Job Type not defined for Job resource %s\n", res_all.res_dir.hdr.name);
+	    }
+	    if (res->res_job.level != 0) {
+	       int i;
+	       for (i=0; joblevels[i].level_name; i++) {
+		  if (joblevels[i].level == res->res_job.level &&
+		      joblevels[i].job_type == res->res_job.JobType) {
+		     i = 0;
+		     break;
+		  }
+	       }
+	       if (i != 0) {
+                  Emsg1(M_ABORT, 0, "Inappropriate level specified in Job resource %s\n", 
+		     res_all.res_dir.hdr.name);
+	       }
+	    }
 	    break;
 	 case R_CLIENT:
 	    if ((res = (URES *)GetResWithName(R_CLIENT, res_all.res_client.hdr.name)) == NULL) {
@@ -678,6 +719,10 @@ void save_resource(int type, struct res_items *items, int pass)
       if (res_all.res_dir.hdr.name) {
 	 free(res_all.res_dir.hdr.name);
 	 res_all.res_dir.hdr.name = NULL;
+      }
+      if (res_all.res_dir.hdr.desc) {
+	 free(res_all.res_dir.hdr.desc);
+	 res_all.res_dir.hdr.desc = NULL;
       }
       return;
    }
@@ -731,6 +776,64 @@ void save_resource(int type, struct res_items *items, int pass)
 }
 
 /* 
+ * Store JobType (backup, verify, restore)
+ *
+ */
+static void store_jobtype(LEX *lc, struct res_items *item, int index, int pass)
+{
+   int token, i;   
+
+   token = lex_get_token(lc);
+   if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
+      scan_err1(lc, "expected an identifier or string, got: %s", lc->str);
+   } else {
+      /* Store the type both pass 1 and pass 2 */
+      for (i=0; jobtypes[i].type_name; i++) {
+	 if (strcasecmp(lc->str, jobtypes[i].type_name) == 0) {
+	    ((JOB *)(item->value))->JobType = jobtypes[i].job_type;
+	    i = 0;
+	    break;
+	 }
+      }
+      if (i != 0) {
+         scan_err1(lc, "Expected a Job Type keyword, got: %s", lc->str);
+      }
+   }
+   scan_to_eol(lc);
+   set_bit(index, res_all.hdr.item_present);
+}
+
+/* 
+ * Store Job Level (Full, Incremental, ...)
+ *
+ */
+static void store_level(LEX *lc, struct res_items *item, int index, int pass)
+{
+   int token, i;
+
+   token = lex_get_token(lc);
+   if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
+      scan_err1(lc, "expected an identifier or string, got: %s", lc->str);
+   } else {
+      /* Store the level pass 2 so that type is defined */
+      for (i=0; joblevels[i].level_name; i++) {
+	 if (strcasecmp(lc->str, joblevels[i].level_name) == 0) {
+	    ((JOB *)(item->value))->level = joblevels[i].level;
+	    i = 0;
+	    break;
+	 }
+      }
+      if (i != 0) {
+         scan_err1(lc, "Expected a Job Level keyword, got: %s", lc->str);
+      }
+   }
+   scan_to_eol(lc);
+   set_bit(index, res_all.hdr.item_present);
+}
+
+
+
+/* 
  * Store backup/verify info for Job record 
  *
  * Note, this code is used for both BACKUP and VERIFY jobs
@@ -753,7 +856,6 @@ static void store_backup(LEX *lc, struct res_items *item, int index, int pass)
       if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
          scan_err1(lc, "Expected a backup/verify keyword, got: %s", lc->str);
       } else {
-	 lcase(lc->str);
          Dmsg1(190, "Got keyword: %s\n", lc->str);
 	 found = FALSE;
 	 for (i=0; BakVerFields[i].name; i++) {
@@ -792,9 +894,8 @@ static void store_backup(LEX *lc, struct res_items *item, int index, int pass)
 		     break;
                   case 'L':
 		     /* Get level */
-		     lcase(lc->str);
 		     for (i=0; joblevels[i].level_name; i++) {
-			if (joblevels[i].job_class == item->code && 
+			if (joblevels[i].job_type == item->code && 
 			     strcasecmp(lc->str, joblevels[i].level_name) == 0) {
 			   ((JOB *)(item->value))->level = joblevels[i].level;
 			   i = 0;
@@ -841,11 +942,10 @@ static void store_restore(LEX *lc, struct res_items *item, int index, int pass)
       if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
          scan_err1(lc, "Expected a Restore keyword, got: %s", lc->str);
       } else {
-	 lcase(lc->str);
 	 found = FALSE;
 	 for (i=0; RestoreFields[i].name; i++) {
             Dmsg1(190, "Restore kw=%s\n", lc->str);
-	    if (strcmp(lc->str, RestoreFields[i].name) == 0) {
+	    if (strcasecmp(lc->str, RestoreFields[i].name) == 0) {
 	       found = TRUE;
 	       if (lex_get_token(lc) != T_EQUALS) {
                   scan_err1(lc, "Expected an equals, got: %s", lc->str);
@@ -901,10 +1001,9 @@ static void store_restore(LEX *lc, struct res_items *item, int index, int pass)
 		     if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
                         scan_err1(lc, "Expected a keyword name, got: %s", lc->str);
 		     }
-		     lcase(lc->str);
 		     /* Fix to scan Replacement options */
 		     for (i=0; ReplaceOptions[i].name; i++) {
-			if (strcmp(lc->str, ReplaceOptions[i].name) == 0) {
+			if (strcasecmp(lc->str, ReplaceOptions[i].name) == 0) {
 			    ((JOB *)(item->value))->RestoreOptions = ReplaceOptions[i].token;
 			   i = 0;
 			   break;
@@ -945,7 +1044,6 @@ static char *scan_fs_options(LEX *lc, int keyword)
       if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
          scan_err1(lc, "expected a FileSet option, got: %s", lc->str);
       }
-      lcase(lc->str);
       if (keyword == FS_KW_VERIFY) { /* special case */
 	 /* ***FIXME**** ensure these are in permitted set */
          strcpy(option, "V");         /* indicate Verify */
@@ -953,7 +1051,7 @@ static char *scan_fs_options(LEX *lc, int keyword)
          strcat(option, ":");         /* terminate it */
       } else {
 	 for (i=0; FS_options[i].name; i++) {
-	    if (strcmp(lc->str, FS_options[i].name) == 0 && FS_options[i].keyword == keyword) {
+	    if (strcasecmp(lc->str, FS_options[i].name) == 0 && FS_options[i].keyword == keyword) {
 	       option[0] = FS_options[i].option;
 	       i = 0;
 	       break;
@@ -995,9 +1093,8 @@ static void store_inc(LEX *lc, struct res_items *item, int index, int pass)
          scan_err1(lc, "expected a FileSet option keyword, got: %s", lc->str);
       } else {
 	 keyword = FS_KW_NONE;
-	 lcase(lc->str);
 	 for (i=0; FS_option_kw[i].name; i++) {
-	    if (strcmp(lc->str, FS_option_kw[i].name) == 0) {
+	    if (strcasecmp(lc->str, FS_option_kw[i].name) == 0) {
 	       keyword = FS_option_kw[i].token;
 	       break;
 	    }

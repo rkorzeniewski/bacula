@@ -2,6 +2,7 @@
  *
  *  Dumb program to do an "ls" of a Bacula 1.0 mortal file.
  *
+ *   $Id$
  */
 /*
    Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
@@ -67,6 +68,7 @@ int main (int argc, char *argv[])
    char line[1000];
 
    my_name_is(argc, argv, "bls");
+   init_msg(NULL, NULL);	      /* initialize message handler */
 
    memset(&ff, 0, sizeof(ff));
    init_include_exclude_files(&ff);
@@ -144,19 +146,11 @@ int main (int argc, char *argv[])
       add_fname_to_include_list(&ff, 0, "/");
    }
 
-   /*
-    * Ensure that every message is always printed
-    */
-   for (i=1; i<=M_MAX; i++) {
-      add_msg_dest(NULL, MD_STDOUT, i, NULL, NULL);
-   }
-
    /* Try default device */
    if (default_tape) {
       do_ls(DEFAULT_TAPE_DRIVE);
       return 0;
    }
-
 
    for (i=0; i < argc; i++) {
       if (list_blocks) {

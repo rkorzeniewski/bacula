@@ -68,27 +68,12 @@ int do_restore(JCR *jcr)
    char dt[MAX_TIME_LENGTH];
    BSOCK   *fd;
    JOB_DBR rjr; 		      /* restore job record */
-   CLIENT_DBR cr;
 
-   /*
-    * Get or Create a client record
-    */
-   memset(&cr, 0, sizeof(cr));
-   strcpy(cr.Name, jcr->client->hdr.name);
-   cr.AutoPrune = jcr->client->AutoPrune;
-   cr.FileRetention = jcr->client->FileRetention;
-   cr.JobRetention = jcr->client->JobRetention;
-   if (jcr->client_name) {
-      free(jcr->client_name);
-   }
-   jcr->client_name = bstrdup(jcr->client->hdr.name);
-   if (!db_create_client_record(jcr->db, &cr)) {
-      Jmsg(jcr, M_ERROR, 0, _("Could not create Client record. %s"), 
-	 db_strerror(jcr->db));
+
+   if (!get_or_create_client_record(jcr)) {
       restore_cleanup(jcr, JS_ErrorTerminated);
       return 0;
    }
-   jcr->jr.ClientId = cr.ClientId;
 
    memset(&rjr, 0, sizeof(rjr));
    jcr->jr.Level = 'F';            /* Full restore */
@@ -258,14 +243,9 @@ static void restore_cleanup(JCR *jcr, int status)
    char dt[MAX_TIME_LENGTH];
 
    Dmsg0(20, "In restore_cleanup\n");
-   if (jcr->jr.EndTime == 0) {
-      jcr->jr.EndTime = time(NULL);
-   }
-   jcr->jr.JobStatus = jcr->JobStatus = status;
-   if (!db_update_job_end_record(jcr->db, &jcr->jr)) {
-      Jmsg(jcr, M_WARNING, 0, _("Error updating job record. %s"), 
-	 db_strerror(jcr->db));
-   }
+   jcr->JobStatus = status;
+
+   update_job_end_record(jcr);
 
    bstrftime(dt, sizeof(dt), jcr->jr.EndTime);
    Jmsg(jcr, M_INFO, 0, _("%s End Restore Job %s.\n"),

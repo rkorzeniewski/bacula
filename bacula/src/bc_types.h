@@ -40,6 +40,8 @@
 /* ****FIXME***** implement 64 bit file addresses ! */
 #define faddr_t long 
 
+#define POOLMEM char
+
 /* Types */
 
 /* If sys/types.h does not supply intXX_t, supply them ourselves */

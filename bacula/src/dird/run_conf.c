@@ -174,11 +174,16 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
    if (token != T_STRING) {
       scan_err1(lc, _("Expected a Job level identifier, got: %s"), lc->str);
    } else {
-      lcase(lc->str);
+      if (strcasecmp(lc->str, "level")) {
+	 if (lex_get_token(lc) != T_EQUALS) {
+            scan_err1(lc, "Expected an equals, got: %s", lc->str);
+	 }
+	 token = lex_get_token(lc);
+      }
       for (i=0; joblevels[i].level_name; i++) {
 	 if (strcasecmp(lc->str, joblevels[i].level_name) == 0) {
 	    lrun.level = joblevels[i].level;
-	    lrun.job_class = joblevels[i].job_class;
+	    lrun.job_type = joblevels[i].job_type;
 	    i = 0;
 	    break;
 	 }

@@ -93,6 +93,7 @@ int main (int argc, char *argv[])
 
    init_stack_dump();
    my_name_is(argc, argv, "stored");
+   init_msg(NULL, NULL);
    daemon_start_time = time(NULL);
    memset(&last_job, 0, sizeof(last_job));
 
@@ -162,7 +163,6 @@ int main (int argc, char *argv[])
       configfile = bstrdup(CONFIG_FILE);
    }
 
-   init_msg(NULL, NULL);
    parse_config(configfile);
    check_config();
 
@@ -175,6 +175,8 @@ int main (int argc, char *argv[])
       daemon_start();		      /* become daemon */
       init_stack_dump();	      /* pick up new pid */
    }
+
+   create_pid_file(me->pid_directory, "bacula-sd", me->SDport);
 
    /*  ****FIXME**** clean this up */
    /* Create and attach to shared memory. This is a
@@ -318,6 +320,15 @@ static void check_config()
       Emsg1(M_ABORT, 0, _("No Device resource defined in %s. Cannot continue.\n"),
 	   configfile);
    }
+   if (!me->messages) {
+      me->messages = (MSGS *)GetNextRes(R_MSGS, NULL);
+      if (!me->messages) {
+         Emsg1(M_ABORT, 0, _("No Messages resource defined in %s. Cannot continue.\n"),
+	    configfile);
+      }
+   }
+   close_msg(NULL);		      /* close temp message handler */
+   init_msg(NULL, me->messages);      /* open daemon message handler */
 
    UnlockRes();
 
@@ -347,6 +358,7 @@ void terminate_stored(int sig)
    }
    in_here = TRUE;
 
+   delete_pid_file(me->pid_directory, "bacula-sd", me->SDport);
    stop_watchdog();
 
    Dmsg0(200, "In terminate_stored()\n");
@@ -363,13 +375,15 @@ void terminate_stored(int sig)
    free(configfile);
    free_config_resources();
 
-   if (debug_level > 10)
+   if (debug_level > 10) {
       print_memory_pool_stats();
+   }
+   term_msg();
    close_memory_pool();
 
-   if (shm)
-   free(shm);
-   term_msg();
+   if (shm) {
+      free(shm);
+   }
 
    sm_dump(False);		      /* dump orphaned buffers */
    exit(1);

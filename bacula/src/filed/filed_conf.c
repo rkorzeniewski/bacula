@@ -72,9 +72,10 @@ static struct res_items cli_items[] = {
    {"name",     store_name,     ITEM(res_client.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,   ITEM(res_client.hdr.desc), 0, 0, 0},
    {"fdport",   store_pint,     ITEM(res_client.FDport),  0, ITEM_REQUIRED, 0},
-   {"workingdirectory",  store_dir,  ITEM(res_client.working_directory), 0, ITEM_REQUIRED, 0}, 
-   {"piddirectory",  store_dir,  ITEM(res_client.pid_directory), 0, ITEM_REQUIRED, 0}, 
+   {"workingdirectory",  store_dir, ITEM(res_client.working_directory), 0, ITEM_REQUIRED, 0}, 
+   {"piddirectory",  store_dir, ITEM(res_client.pid_directory), 0, ITEM_REQUIRED, 0}, 
    {"subsysdirectory",  store_dir,  ITEM(res_client.subsys_directory), 0, ITEM_REQUIRED, 0}, 
+   {"messages",      store_res, ITEM(res_client.messages), R_MSGS, 0, 0},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 
@@ -128,6 +129,10 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
 	 break;
       case R_MSGS:
          sendit(sock, "Messages: name=%s\n", res->res_msgs.hdr.name);
+	 if (res->res_msgs.mail_cmd) 
+            sendit(sock, "      mailcmd=%s\n", res->res_msgs.mail_cmd);
+	 if (res->res_msgs.operator_cmd) 
+            sendit(sock, "      opcmd=%s\n", res->res_msgs.operator_cmd);
 	 break;
       default:
          sendit(sock, "Unknown resource type %d\n", type);
@@ -182,12 +187,16 @@ void free_resource(int type)
 	    free(res->res_msgs.mail_cmd);
 	 if (res->res_msgs.operator_cmd)
 	    free(res->res_msgs.operator_cmd);
+	 free_msgs_res((MSGS *)res);  /* free message resource */
+	 res = NULL;
 	 break;
       default:
          printf("Unknown resource type %d\n", type);
    }
    /* Common stuff again -- free the resource, recurse to next one */
-   free(res);
+   if (res) {
+      free(res);
+   }
    resources[rindex].res_head = nres;
    if (nres) {
       free_resource(type);
@@ -227,9 +236,15 @@ void save_resource(int type, struct res_items *items, int pass)
 	 /* Resources not containing a resource */
 	 case R_MSGS:
 	 case R_DIRECTOR:
-	 case R_CLIENT:
 	    break;
 
+	 /* Resources containing another resource */
+	 case R_CLIENT:
+	    if ((res = (URES *)GetResWithName(R_CLIENT, res_all.res_dir.hdr.name)) == NULL) {
+               Emsg1(M_ABORT, 0, "Cannot find Client resource %s\n", res_all.res_dir.hdr.name);
+	    }
+	    res->res_client.messages = res_all.res_client.messages;
+	    break;
 	 default:
             Emsg1(M_ERROR, 0, _("Unknown resource type %d\n"), type);
 	    error = 1;
@@ -266,7 +281,7 @@ void save_resource(int type, struct res_items *items, int pass)
    }
    /* Common */
    if (!error) {
-      res = (URES *) malloc(size);
+      res = (URES *)malloc(size);
       memcpy(res, &res_all, size);
       res->res_dir.hdr.next = resources[rindex].res_head;
       resources[rindex].res_head = (RES *)res;

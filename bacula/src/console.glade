@@ -1196,12 +1196,13 @@
       <widget>
 	<class>GtkHBox</class>
 	<name>hbox19</name>
+	<height>22</height>
 	<homogeneous>False</homogeneous>
 	<spacing>0</spacing>
 	<child>
 	  <padding>0</padding>
 	  <expand>False</expand>
-	  <fill>True</fill>
+	  <fill>False</fill>
 	</child>
 
 	<widget>

@@ -68,34 +68,14 @@ int do_backup(JCR *jcr)
    int stat;
    BSOCK   *fd;
    POOL_DBR pr;
-#ifdef needed
-   MEDIA_DBR mr;
-#endif
-   CLIENT_DBR cr;
    FILESET_DBR fsr;
 
    since[0] = 0;
-   /*
-    * Get or Create client record
-    */
-   memset(&cr, 0, sizeof(cr));
-   strcpy(cr.Name, jcr->client->hdr.name);
-   cr.AutoPrune = jcr->client->AutoPrune;
-   cr.FileRetention = jcr->client->FileRetention;
-   cr.JobRetention = jcr->client->JobRetention;
-   if (jcr->client_name) {
-      free(jcr->client_name);
-   }
-   jcr->client_name = bstrdup(jcr->client->hdr.name);
-   if (!db_create_client_record(jcr->db, &cr)) {
-      Jmsg(jcr, M_ERROR, 0, _("Could not create Client record. %s"), 
-	 db_strerror(jcr->db));
+
+   if (!get_or_create_client_record(jcr)) {
       backup_cleanup(jcr, JS_ErrorTerminated, since);
-      return 0;
    }
-   jcr->jr.ClientId = cr.ClientId;
-   Dmsg2(9, "Created Client %s record %d\n", jcr->client->hdr.name, 
-      jcr->jr.ClientId);
+
 
    /*
     * Get or Create FileSet record
@@ -354,22 +334,12 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
    int msg_type;
    MEDIA_DBR mr;
 
-   memset(&mr, 0, sizeof(mr));
    Dmsg0(100, "Enter backup_cleanup()\n");
-   if (jcr->jr.EndTime == 0) {
-      jcr->jr.EndTime = time(NULL);
-   }
-   jcr->end_time = jcr->jr.EndTime;
-   jcr->jr.JobId = jcr->JobId;
-   jcr->jr.JobStatus = jcr->JobStatus = TermCode;
-   jcr->jr.JobFiles = jcr->JobFiles;
-   jcr->jr.JobBytes = jcr->JobBytes;
-   jcr->jr.VolSessionId = jcr->VolSessionId;
-   jcr->jr.VolSessionTime = jcr->VolSessionTime;
-   if (!db_update_job_end_record(jcr->db, &jcr->jr)) {
-      Jmsg(jcr, M_WARNING, 0, _("Error updating job record. %s"), 
-	 db_strerror(jcr->db));
-   }
+   memset(&mr, 0, sizeof(mr));
+   jcr->JobStatus = TermCode;
+
+   update_job_end_record(jcr);	      /* update database */
+   
    if (!db_get_job_record(jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_WARNING, 0, _("Error getting job record for stats: %s"), 
 	 db_strerror(jcr->db));

@@ -59,7 +59,8 @@ void init_job_server(int max_workers)
 }
 
 /*
- * Run a job
+ * Run a job -- typically called by the scheduler, but may also
+ *		be called by the UA (Console program).
  *
  */
 void run_job(JCR *jcr)
@@ -124,7 +125,11 @@ void run_job(JCR *jcr)
    Dmsg0(200, "Done run_job()\n");
 }
 
-/* This is the engine called by workq_add() */
+/* 
+ * This is the engine called by workq_add() when we were pulled 	       
+ *  from the work queue.
+ *  At this point, we are running in our own thread 
+ */
 static void job_thread(void *arg)
 {
    time_t now;
@@ -137,27 +142,83 @@ static void job_thread(void *arg)
    if (jcr->job->MaxStartDelay != 0 && jcr->job->MaxStartDelay <
        (btime_t)(jcr->start_time - jcr->sched_time)) {
       Jmsg(jcr, M_FATAL, 0, _("Job cancelled because max delay time exceeded.\n"));
-      free_jcr(jcr);
-   }
-   jcr->JobStatus = JS_Running;
+      jcr->JobStatus = JS_ErrorTerminated;
+      update_job_end_record(jcr);
+   } else {
 
-   switch (jcr->JobType) {
-      case JT_BACKUP:
-	 do_backup(jcr);
-	 break;
-      case JT_VERIFY:
-	 do_verify(jcr);
-	 break;
-      case JT_RESTORE:
-	 do_restore(jcr);
-	 break;
-      default:
-         Dmsg1(0, "Unimplemented job type: %d\n", jcr->JobType);
-	 break;
+      /* Run Job */
+      jcr->JobStatus = JS_Running;
+
+      switch (jcr->JobType) {
+	 case JT_BACKUP:
+	    do_backup(jcr);
+	    break;
+	 case JT_VERIFY:
+	    do_verify(jcr);
+	    break;
+	 case JT_RESTORE:
+	    do_restore(jcr);
+	    break;
+	 case JT_ADMIN:
+	    /* No actual job */
+	    break;
+	 default:
+            Dmsg1(0, "Unimplemented job type: %d\n", jcr->JobType);
+	    break;
+	 }
    }
    Dmsg0(50, "Before free jcr\n");
    free_jcr(jcr);
    Dmsg0(50, "======== End Job ==========\n");
+}
+
+/*
+ * Get or create a Client record for this Job
+ */
+int get_or_create_client_record(JCR *jcr)
+{
+   CLIENT_DBR cr;
+
+   memset(&cr, 0, sizeof(cr));
+   strcpy(cr.Name, jcr->client->hdr.name);
+   cr.AutoPrune = jcr->client->AutoPrune;
+   cr.FileRetention = jcr->client->FileRetention;
+   cr.JobRetention = jcr->client->JobRetention;
+   if (jcr->client_name) {
+      free(jcr->client_name);
+   }
+   jcr->client_name = bstrdup(jcr->client->hdr.name);
+   if (!db_create_client_record(jcr->db, &cr)) {
+      Jmsg(jcr, M_ERROR, 0, _("Could not create Client record. %s"), 
+	 db_strerror(jcr->db));
+      return 0;
+   }
+   jcr->jr.ClientId = cr.ClientId;
+   Dmsg2(9, "Created Client %s record %d\n", jcr->client->hdr.name, 
+      jcr->jr.ClientId);
+   return 1;
+}
+
+
+/*
+ * Write status and such in DB
+ */
+void update_job_end_record(JCR *jcr)
+{
+   if (jcr->jr.EndTime == 0) {
+      jcr->jr.EndTime = time(NULL);
+   }
+   jcr->end_time = jcr->jr.EndTime;
+   jcr->jr.JobId = jcr->JobId;
+   jcr->jr.JobStatus = jcr->JobStatus;
+   jcr->jr.JobFiles = jcr->JobFiles;
+   jcr->jr.JobBytes = jcr->JobBytes;
+   jcr->jr.VolSessionId = jcr->VolSessionId;
+   jcr->jr.VolSessionTime = jcr->VolSessionTime;
+   if (!db_update_job_end_record(jcr->db, &jcr->jr)) {
+      Jmsg(jcr, M_WARNING, 0, _("Error updating job record. %s"), 
+	 db_strerror(jcr->db));
+   }
 }
 
 /*

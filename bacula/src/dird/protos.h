@@ -49,6 +49,8 @@ extern int put_file_into_catalog(JCR *jcr, long file_index, char *fname,
 extern void free_jcr(JCR *jcr);
 extern void set_jcr_defaults(JCR *jcr, JOB *job);
 extern void create_unique_job_name(JCR *jcr, char *base_name);
+extern void update_job_end_record(JCR *jcr);
+extern int get_or_create_client_record(JCR *jcr);
 
 /* mountreq.c */
 extern void mount_request(JCR *jcr, BSOCK *bs, char *buf);

@@ -42,8 +42,6 @@
 #undef malloc
 #undef free
       
-#define FULL_SM_CHECK 1
-
 /*LINTLIBRARY*/
 
 
@@ -104,9 +102,7 @@ static void *smalloc(char *fname, int lineno, unsigned int nbytes)
 	   buf[nbytes - 1] = (((long) buf) & 0xFF) ^ 0xC5;
 	   buf += HEAD_SIZE;  /* Increment to user data start */
 	}
-#ifdef FULL_SM_CHECK
 	sm_check(fname, lineno, True);
-#endif
         Dmsg4(1150, "smalloc %d at %x from %s:%d\n", nbytes, buf, fname, lineno);
 	return (void *) buf;
 }
@@ -132,9 +128,7 @@ void sm_free(char *file, int line, void *fp)
 	char *cp = (char *) fp;
 	struct b_queue *qp;
 
-#ifdef FULL_SM_CHECK
 	sm_check(__FILE__, __LINE__, True);
-#endif
 	if (cp == NULL) {
            Emsg2(M_ABORT, 0, "Attempt to free NULL called from %s:%d\n", file, line);
 	}
@@ -224,9 +218,7 @@ void *sm_realloc(char *fname, int lineno, void *ptr, unsigned int size)
 	void *buf;
 	char *cp = (char *) ptr;
 
-#ifdef FULL_SM_CHECK
 	sm_check(fname, lineno, True);
-#endif
 	if (size <= 0) {
            e_msg(fname, lineno, M_ABORT, 0, "sm_realloc size: %d\n", size);
 	}
@@ -266,9 +258,7 @@ void *sm_realloc(char *fname, int lineno, void *ptr, unsigned int size)
 	   sm_free(__FILE__, __LINE__, ptr);
 	}
         Dmsg4(150, "sm_realloc %d at %x from %s:%d\n", size, buf, fname, lineno);
-#ifdef FULL_SM_CHECK
 	sm_check(fname, lineno, True);
-#endif
 	return buf;
 }
 
@@ -311,8 +301,10 @@ void actuallyfree(void *cp)
 }
 
 /*  SM_DUMP  --  Print orphaned buffers (and dump them if BUFDUMP is
-		 True). */
-
+ *		 True).
+ *  N.B. DO NOT USE any Bacula print routines (Dmsg, Jmsg, Emsg, ...)
+ *    as they have all been shut down at this point.
+ */
 void sm_dump(Boolean bufdump)
 {
 	struct abufhead *ap = (struct abufhead *) abqueue.qnext;
@@ -364,6 +356,7 @@ void sm_dump(Boolean bufdump)
 	}
 }
 
+#undef sm_check
 /*  SM_CHECK --  Check the buffers and dump if any damage exists. */
 void sm_check(char *fname, int lineno, Boolean bufdump)
 {
@@ -373,6 +366,7 @@ void sm_check(char *fname, int lineno, Boolean bufdump)
 	}
 }
 
+#undef sm_check_rtn
 /*  SM_CHECK_RTN -- Check the buffers and return 1 if OK otherwise 0 */
 int sm_check_rtn(char *fname, int lineno, Boolean bufdump)
 {

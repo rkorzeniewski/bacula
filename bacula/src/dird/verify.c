@@ -54,7 +54,7 @@ static char OKverify[]   = "2000 OK verify\n";
 static char OKlevel[]    = "2000 OK level\n";
 
 /* Forward referenced functions */
-static void verify_cleanup(JCR *jcr);
+static void verify_cleanup(JCR *jcr, int TermCode);
 static void prt_fname(JCR *jcr);
 static int missing_handler(void *ctx, int num_fields, char **row);
 
@@ -70,25 +70,11 @@ int do_verify(JCR *jcr)
    BSOCK   *fd;
    JOB_DBR jr;
    int last_full_id;
-   CLIENT_DBR cr;
 
-   memset(&cr, 0, sizeof(cr));
-   cr.AutoPrune = jcr->client->AutoPrune;
-   cr.FileRetention = jcr->client->FileRetention;
-   cr.JobRetention = jcr->client->JobRetention;
-   strcpy(cr.Name, jcr->client->hdr.name);
-   if (jcr->client_name) {
-      free(jcr->client_name);
-   }
-   jcr->client_name = bstrdup(jcr->client->hdr.name);
-   if (!db_create_client_record(jcr->db, &cr)) {
-      Jmsg(jcr, M_ERROR, 0, _("Could not create Client record. %s"), 
-	 db_strerror(jcr->db));
-      jcr->JobStatus = JS_ErrorTerminated;
-      verify_cleanup(jcr);		      
+   if (!get_or_create_client_record(jcr)) {
+      verify_cleanup(jcr, JS_ErrorTerminated);			  
       return 0;
    }
-   jcr->jr.ClientId = cr.ClientId;
 
    Dmsg1(9, "bdird: created client %s record\n", jcr->client->hdr.name);
 
@@ -101,8 +87,7 @@ int do_verify(JCR *jcr)
       if (!db_find_last_full_verify(jcr->db, &jr)) {
          Jmsg(jcr, M_FATAL, 0, _("Unable to find last full verify. %s"),
 	    db_strerror(jcr->db));
-	 jcr->JobStatus = JS_ErrorTerminated;
-	 verify_cleanup(jcr);
+	 verify_cleanup(jcr, JS_ErrorTerminated);		     
 	 return 0;
       }
       last_full_id = jr.JobId;
@@ -114,8 +99,7 @@ int do_verify(JCR *jcr)
    jcr->jr.Level = jcr->level;
    if (!db_update_job_start_record(jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
-      jcr->JobStatus = JS_ErrorTerminated;
-      verify_cleanup(jcr);
+      verify_cleanup(jcr, JS_ErrorTerminated);			  
       return 0;
    }
 
@@ -134,8 +118,7 @@ int do_verify(JCR *jcr)
       jr.JobId = last_full_id;
       if (!db_get_job_record(jcr->db, &jr)) {
          Jmsg(jcr, M_ERROR, 0, _("Could not get job record. %s"), db_strerror(jcr->db));
-	 jcr->JobStatus = JS_ErrorTerminated;
-	 verify_cleanup(jcr);
+	 verify_cleanup(jcr, JS_ErrorTerminated);		     
 	 return 0;
       }
       Jmsg(jcr, M_INFO, 0, _("Verifying against Init JobId %d run %s\n"),
@@ -148,8 +131,7 @@ int do_verify(JCR *jcr)
     */
    jcr->sd_auth_key = bstrdup("dummy");    /* dummy Storage daemon key */
    if (!connect_to_file_daemon(jcr, 10, FDConnectTimeout, 1)) {
-      jcr->JobStatus = JS_ErrorTerminated;
-      verify_cleanup(jcr);
+      verify_cleanup(jcr, JS_ErrorTerminated);			  
       return 0;
    }
 
@@ -157,15 +139,13 @@ int do_verify(JCR *jcr)
 
    Dmsg0(30, ">filed: Send include list\n");
    if (!send_include_list(jcr)) {
-      jcr->JobStatus = JS_ErrorTerminated;
-      verify_cleanup(jcr);
+      verify_cleanup(jcr, JS_ErrorTerminated);			  
       return 0;
    }
 
    Dmsg0(30, ">filed: Send exclude list\n");
    if (!send_exclude_list(jcr)) {
-      jcr->JobStatus = JS_ErrorTerminated;
-      verify_cleanup(jcr);
+      verify_cleanup(jcr, JS_ErrorTerminated);			  
       return 0;
    }
 
@@ -188,15 +168,13 @@ int do_verify(JCR *jcr)
 	 break;
       default:
          Emsg1(M_FATAL, 0, _("Unimplemented save level %d\n"), jcr->level);
-	 jcr->JobStatus = JS_ErrorTerminated;
-	 verify_cleanup(jcr);
+	 verify_cleanup(jcr, JS_ErrorTerminated);		     
 	 return 0;
    }
    Dmsg1(20, ">filed: %s", fd->msg);
    bnet_fsend(fd, levelcmd, level, " ");
    if (!response(fd, OKlevel, "Level")) {
-      jcr->JobStatus = JS_ErrorTerminated;
-      verify_cleanup(jcr);
+      verify_cleanup(jcr, JS_ErrorTerminated);			  
       return 0;
    }
 
@@ -205,8 +183,7 @@ int do_verify(JCR *jcr)
     */
    bnet_fsend(fd, verifycmd);
    if (!response(fd, OKverify, "Verify")) {
-      jcr->JobStatus = JS_ErrorTerminated;
-      verify_cleanup(jcr);
+      verify_cleanup(jcr, JS_ErrorTerminated);			  
       return 0;
    }
 
@@ -227,12 +204,11 @@ int do_verify(JCR *jcr)
 
    } else {
       Emsg1(M_FATAL, 0, _("Unimplemented save level %d\n"), jcr->level);
-      jcr->JobStatus = JS_ErrorTerminated;
-      verify_cleanup(jcr);
+      verify_cleanup(jcr, JS_ErrorTerminated);			  
       return 0;
    }
 
-   verify_cleanup(jcr);
+   verify_cleanup(jcr, JS_Terminated);
    return 1;
 }
 
@@ -240,40 +216,28 @@ int do_verify(JCR *jcr)
  * Release resources allocated during backup.
  *
  */
-static void verify_cleanup(JCR *jcr)
+static void verify_cleanup(JCR *jcr, int TermCode)
 {
    char sdt[50], edt[50];
    char ec1[30];
    char term_code[100];
    char *term_msg;
    int msg_type;
-   int TermCode;
    int last_full_id;
 
    Dmsg0(100, "Enter verify_cleanup()\n");
 
    last_full_id = jcr->jr.JobId;
+   jcr->JobStatus = TermCode;
 
-
-   if (jcr->jr.EndTime == 0) {
-      jcr->jr.EndTime = time(NULL);
-   }
-   jcr->end_time = jcr->jr.EndTime;
-   jcr->jr.JobId = jcr->JobId;
-   jcr->jr.JobStatus = jcr->JobStatus;
-   TermCode = jcr->JobStatus;
-
-   if (!db_update_job_end_record(jcr->db, &jcr->jr)) {
-      Jmsg(jcr, M_WARNING, 0, _("Error updating job record. %s"), 
-	 db_strerror(jcr->db));
-   }
+   update_job_end_record(jcr);
 
    msg_type = M_INFO;		      /* by default INFO message */
    switch (TermCode) {
       case JS_Terminated:
          term_msg = _("Verify OK");
 	 break;
-      case JS_Errored:
+      case JS_ErrorTerminated:
          term_msg = _("*** Verify Error ***"); 
 	 msg_type = M_ERROR;	      /* Generate error message */
 	 break;

@@ -5,7 +5,7 @@
  *
  *     Kern Sibbald, February MMII
  *
- *     $Id:
+ *     $Id$
  */
 
 /*
@@ -134,7 +134,7 @@ static int count_handler(void *ctx, int num_fields, char **row)
 
 
 /*
- * Called here to count entries to be deleted 
+ * Called here to count the number of Jobs to be pruned
  */
 static int file_count_handler(void *ctx, int num_fields, char **row)
 {
@@ -276,7 +276,7 @@ int prune_files(UAContext *ua, CLIENT *client)
    int i;
    btime_t now, period;
    CLIENT_DBR cr;
-   char ed1[50];
+   char ed1[50], ed2[50];
 
    memset(&cr, 0, sizeof(cr));
    memset(&del, 0, sizeof(del));
@@ -320,7 +320,12 @@ int prune_files(UAContext *ua, CLIENT *client)
    db_sql_query(ua->db, query, file_delete_handler, (void *)&del);
 
    for (i=0; i < del.num_ids; i++) {
+      struct s_count_ctx cnt;
       Dmsg1(050, "Delete JobId=%d\n", del.JobId[i]);
+      Mmsg(&query, "SELECT count(*) FROM File WHERE JobId=%d", del.JobId[i]);
+      cnt.count = 0;
+      db_sql_query(ua->db, query, count_handler, (void *)&cnt);
+      del.tot_ids += cnt.count;
       Mmsg(&query, "DELETE FROM File WHERE JobId=%d", del.JobId[i]);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
       /* 
@@ -333,8 +338,10 @@ int prune_files(UAContext *ua, CLIENT *client)
       db_sql_query(ua->db, query, NULL, (void *)NULL);
       Dmsg1(050, "Del sql=%s\n", query);
    }
-   bsendmsg(ua, _("Pruned %d Files for client %s from %s catalog.\n"), del.num_ids,
-      client->hdr.name, client->catalog->hdr.name);
+   edit_uint64_with_commas(del.tot_ids, ed1);
+   edit_uint64_with_commas(del.num_ids, ed2);
+   bsendmsg(ua, _("Pruned %s Files from %s Jobs for client %s from %s catalog.\n"), 
+      ed1, ed2, client->hdr.name, client->catalog->hdr.name);
    
 bail_out:
    if (del.JobId) {

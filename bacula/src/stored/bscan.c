@@ -6,6 +6,8 @@
  *
  *   Kern E. Sibbald, December 2001
  *
+ *
+ *   $Id$
  */
 /*
    Copyright (C) 2001, 2002 Kern Sibbald and John Walker
@@ -56,9 +58,10 @@ static void my_free_jcr(JCR *jcr)
 
 int main (int argc, char *argv[])
 {
-   int ch, i;
+   int ch;
 
    my_name_is(argc, argv, "bscan");
+   init_msg(NULL, NULL);
 
 
    while ((ch = getopt(argc, argv, "d:?")) != -1) {
@@ -81,13 +84,6 @@ int main (int argc, char *argv[])
    if (argc != 1) {
       Dmsg0(0, "Wrong number of arguments: \n");
       usage();
-   }
-
-   /*
-    * Ensure that every message is always printed
-    */
-   for (i=1; i<=M_MAX; i++) {
-      add_msg_dest(NULL, MD_STDOUT, i, NULL, NULL);
    }
 
    jcr = new_jcr(sizeof(JCR), my_free_jcr);

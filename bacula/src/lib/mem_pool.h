@@ -26,22 +26,22 @@
 #ifdef SMARTALLOC
 
 #define get_pool_memory(pool) sm_get_pool_memory(__FILE__, __LINE__, pool)
-extern void *sm_get_pool_memory(char *file, int line, int pool);
+extern POOLMEM *sm_get_pool_memory(char *file, int line, int pool);
 #define get_memory(size) sm_get_memory(__FILE__, __LINE__, size)
-extern void *sm_get_memory(char *fname, int line, size_t size);
+extern POOLMEM *sm_get_memory(char *fname, int line, size_t size);
 
 #else
 
-extern void *get_pool_memory(int pool);
-extern void *get_memory(size_t size);
+extern POOLMEM *get_pool_memory(int pool);
+extern POOLMEM *get_memory(size_t size);
 
 #endif
  
 #define free_memory(x) free_pool_memory(x)
-extern void   free_pool_memory(void *buf);
-extern size_t sizeof_pool_memory(void *buf);
-extern void  *realloc_pool_memory(void *buf, size_t size);
-extern void  *check_pool_memory_size(void *buf, size_t size);
+extern void   free_pool_memory(POOLMEM *buf);
+extern size_t sizeof_pool_memory(POOLMEM *buf);
+extern POOLMEM  *realloc_pool_memory(POOLMEM *buf, size_t size);
+extern POOLMEM  *check_pool_memory_size(POOLMEM *buf, size_t size);
 extern void  close_memory_pool();
 extern void  print_memory_pool_stats();
 

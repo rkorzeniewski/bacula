@@ -4,6 +4,8 @@
  *
  *   Kern E. Sibbald
  *
+ *    $Id$
+ *
  */
 /*
    Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
@@ -58,11 +60,12 @@ static void my_free_jcr(JCR *jcr)
 
 int main (int argc, char *argv[])
 {
-   int ch, i;
+   int ch;   
    FILE *fd;
    char line[1000];
 
    my_name_is(argc, argv, "bextract");
+   init_msg(NULL, NULL);	      /* setup message handler */
 
    memset(ff, 0, sizeof(FF_PKT));
    init_include_exclude_files(ff);
@@ -115,13 +118,6 @@ int main (int argc, char *argv[])
    if (argc != 2) {
       Dmsg0(0, "Wrong number of arguments: \n");
       usage();
-   }
-
-   /*
-    * Ensure that every message is always printed
-    */
-   for (i=1; i<=M_MAX; i++) {
-      add_msg_dest(NULL, MD_STDOUT, i, NULL, NULL);
    }
 
    jcr = new_jcr(sizeof(JCR), my_free_jcr);

@@ -89,6 +89,7 @@ int main (int argc, char *argv[])
 
    init_stack_dump();
    my_name_is(argc, argv, "bacula-dir");
+   init_msg(NULL, NULL);	      /* initialize message handler */
    daemon_start_time = time(NULL);
    memset(&last_job, 0, sizeof(last_job));
 
@@ -160,28 +161,28 @@ int main (int argc, char *argv[])
       configfile = bstrdup(CONFIG_FILE);
    }
 
-   init_msg(NULL, NULL);	      /* initialize message handler */
    parse_config(configfile);
 
    if (!check_resources()) {
       Emsg1(M_ABORT, 0, "Please correct configuration file: %s\n", configfile);
    }
 
-   my_name_is(0, (char **)NULL, director->hdr.name);	/* set user defined name */
+   if (test_config) {
+      terminate_dird(0);
+   }
+
+   my_name_is(0, NULL, director->hdr.name);    /* set user defined name */
 
    FDConnectTimeout = director->FDConnectTimeout;
    SDConnectTimeout = director->SDConnectTimeout;
-
-
-   if (test_config) {
-      terminate_dird(0);
-      exit(0);
-   }
 
    if (background) {
       daemon_start();
       init_stack_dump();	      /* grab new pid */
    }
+
+   /* Create pid must come after we are a daemon -- so we have our final pid */
+   create_pid_file(director->pid_directory, "bacula-dir", director->DIRport);
 
    signal(SIGHUP, reload_config);
 
@@ -203,7 +204,6 @@ int main (int argc, char *argv[])
    }
 
    terminate_dird(0);
-   exit(0);			      /* for compiler */
 }
 
 /* Cleanup and then exit */
@@ -215,6 +215,8 @@ static void terminate_dird(int sig)
       exit(1);
    }
    already_here = TRUE;
+   delete_pid_file(director->pid_directory, "bacula-dir",  
+		   director->DIRport);
    stop_watchdog();
    signal(SIGCHLD, SIG_IGN);          /* don't worry about children now */
    term_scheduler();
@@ -229,10 +231,10 @@ static void terminate_dird(int sig)
    }
    free_config_resources();
    term_ua_server();
-   close_memory_pool(); 	      /* free memory in pool */
    term_msg();			      /* terminate message handler */
+   close_memory_pool(); 	      /* release free memory in pool */
    sm_dump(False);
-   exit(0);
+   exit(sig != 0);
 }
 
 /*
@@ -291,39 +293,48 @@ static int check_resources()
    job	= (JOB *)GetNextRes(R_JOB, NULL);
    director = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);
    if (!director) {
-      Emsg1(M_WARNING, 0, _("No Director resource defined in %s\n\
+      Emsg1(M_FATAL, 0, _("No Director resource defined in %s\n\
 Without that I don't know who I am :-(\n"), configfile);
       OK = FALSE;
+   } else {
+      if (!director->working_directory) {
+         Emsg0(M_FATAL, 0, _("No working directory specified. Cannot continue.\n"));
+	 OK = FALSE;
+      }       
+      working_directory = director->working_directory;
+      if (!director->messages) {       /* If message resource not specified */
+	 director->messages = (MSGS *)GetNextRes(R_MSGS, NULL);
+	 if (!director->messages) {
+            Emsg1(M_FATAL, 0, _("No Messages resource defined in %s\n"), configfile);
+	    OK = FALSE;
+	 }
+      }
+      if (GetNextRes(R_DIRECTOR, (RES *)director) != NULL) {
+         Emsg1(M_FATAL, 0, _("Only one Director resource permitted in %s\n"),
+	    configfile);
+	 OK = FALSE;
+      } 
    }
-   if (GetNextRes(R_DIRECTOR, (RES *)director) != NULL) {
-      Emsg1(M_WARNING, 0, _("Only one Director resource permitted in %s\n"),
-	 configfile);
-      OK = FALSE;
-   } 
-   if (!director->working_directory) {
-      Emsg0(M_WARNING, 0, _("No working directory specified. Cannot continue.\n"));
-      OK = FALSE;
-   }	   
-   working_directory = director->working_directory;
+
    if (!job) {
-      Emsg1(M_WARNING, 0, _("No Job records defined in %s\n"), configfile);
+      Emsg1(M_FATAL, 0, _("No Job records defined in %s\n"), configfile);
       OK = FALSE;
    }
    for (job=NULL; (job = (JOB *)GetNextRes(R_JOB, (RES *)job)); ) {
       if (!job->client) {
-         Emsg1(M_WARNING, 0, _("No Client record defined for job %s\n"), job->hdr.name);
+         Emsg1(M_FATAL, 0, _("No Client record defined for job %s\n"), job->hdr.name);
 	 OK = FALSE;
       }
       if (!job->fs) {
-         Emsg1(M_WARNING, 0, _("No FileSet record defined for job %s\n"), job->hdr.name);
+         Emsg1(M_FATAL, 0, _("No FileSet record defined for job %s\n"), job->hdr.name);
 	 OK = FALSE;
       }
       if (!job->storage && job->JobType != JT_VERIFY) {
-         Emsg1(M_WARNING, 0, _("No Storage resource defined for job %s\n"), job->hdr.name);
+         Emsg1(M_FATAL, 0, _("No Storage resource defined for job %s\n"), job->hdr.name);
 	 OK = FALSE;
       }
       if (!job->pool) {
-         Emsg1(M_WARNING, 0, _("No Pool resource defined for job %s\n"), job->hdr.name);
+         Emsg1(M_FATAL, 0, _("No Pool resource defined for job %s\n"), job->hdr.name);
 	 OK = FALSE;
       }
       if (job->client->catalog) {
@@ -337,16 +348,20 @@ Without that I don't know who I am :-(\n"), configfile);
 	 db = db_init_database(catalog->db_name, catalog->db_user,
 			    catalog->db_password);
 	 if (!db_open_database(db)) {
-            Emsg1(M_WARNING,  0, "%s", db_strerror(db));
+            Emsg1(M_FATAL,  0, "%s", db_strerror(db));
 	 }
 	 db_close_database(db);
       } else {
-         Emsg1(M_WARNING, 0, _("No Catalog resource defined for client %s\n"), 
+         Emsg1(M_FATAL, 0, _("No Catalog resource defined for client %s\n"), 
 	       job->client->hdr.name);
 	 OK = FALSE;
       }
    }
 
    UnlockRes();
+   if (OK) {
+      close_msg(NULL);		      /* close temp message handler */
+      init_msg(NULL, director->messages); /* open daemon message handler */
+   }
    return OK;
 }

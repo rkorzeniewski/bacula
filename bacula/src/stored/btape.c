@@ -10,6 +10,8 @@
  *   Note, this program reads stored.conf, and will only
  *     talk to devices that are configured.
  *
+ *   $Id$
+ *
  */
 /*
    Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
@@ -98,7 +100,7 @@ int read_dev(DEVICE *dev, char *buf, size_t len)
  */
 int main(int argc, char *argv[])
 {
-   int ch, i;
+   int ch;
 
    /* Sanity checks */
    if (TAPE_BSIZE % DEV_BSIZE != 0 || TAPE_BSIZE / DEV_BSIZE == 0) {
@@ -147,6 +149,7 @@ int main(int argc, char *argv[])
 
 
    my_name_is(argc, argv, "btape");
+   init_msg(NULL, NULL);
    
    if (signals) {
       init_signals(terminate_btape);
@@ -159,13 +162,6 @@ int main(int argc, char *argv[])
    daemon_start_time = time(NULL);
 
    parse_config(configfile);
-
-   /*
-    * Ensure that every message is always printed
-    */
-   for (i=1; i<=M_MAX; i++) {
-      add_msg_dest(NULL, MD_STDOUT, i, NULL, NULL);
-   }
 
 
    /* See if we can open a device */

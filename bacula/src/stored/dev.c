@@ -1017,13 +1017,13 @@ term_dev(DEVICE *dev)
       dev->dev_name = NULL;
    }
    if (dev->errmsg) {
-      free_memory(dev->errmsg);
+      free_pool_memory(dev->errmsg);
       dev->errmsg = NULL;
    }
    pthread_mutex_destroy(&dev->mutex);
    pthread_cond_destroy(&dev->wait);
    pthread_cond_destroy(&dev->wait_next_vol);
    if (dev->state & ST_MALLOC) {
-      free_memory(dev);
+      free_pool_memory((POOLMEM *)dev);
    }
 }

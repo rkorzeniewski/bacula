@@ -264,7 +264,7 @@ DWORD WINAPI Main_Msg_Loop(LPVOID lpwThreadParam)
    }
 
 
-   // Now enter the message handling loop until told to quit!
+   // Now enter the Windows message handling loop until told to quit!
    MSG msg;
    while (GetMessage(&msg, NULL, 0,0) ) {
       TranslateMessage(&msg);
@@ -281,7 +281,7 @@ DWORD WINAPI Main_Msg_Loop(LPVOID lpwThreadParam)
       // Tell the service manager that we've stopped.
       ReportStatus(SERVICE_STOPPED, g_error, 0);
    }   
-   kill(main_pid, SIGTERM);
+   kill(main_pid, SIGTERM);           /* ask main thread to terminate */
    _exit(0);
 }
  

@@ -69,9 +69,9 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 #define HEAD_SIZE BALIGN(sizeof(struct abufhead))
 
-extern void *sm_malloc(char *fname, int lineno, int nbytes);
+extern POOLMEM *sm_malloc(char *fname, int lineno, int nbytes);
 
-void *sm_get_pool_memory(char *fname, int lineno, int pool)
+POOLMEM *sm_get_pool_memory(char *fname, int lineno, int pool)
 {
    struct abufhead *buf;
 
@@ -90,7 +90,7 @@ void *sm_get_pool_memory(char *fname, int lineno, int pool)
       V(mutex);
       Dmsg3(150, "sm_get_pool_memory reuse %x to %s:%d\n", buf, fname, lineno);
       sm_new_owner(fname, lineno, (char *)buf);
-      return (void *)((char *)buf+HEAD_SIZE);
+      return (POOLMEM *)((char *)buf+HEAD_SIZE);
    }
       
    if ((buf = (struct abufhead *) sm_malloc(fname, lineno, pool_ctl[pool].size+HEAD_SIZE)) == NULL) {
@@ -105,11 +105,11 @@ void *sm_get_pool_memory(char *fname, int lineno, int pool)
    }
    V(mutex);
    Dmsg3(150, "sm_get_pool_memory give %x to %s:%d\n", buf, fname, lineno);
-   return (void *)((char *)buf+HEAD_SIZE);
+   return (POOLMEM *)((char *)buf+HEAD_SIZE);
 }
 
 /* Get nonpool memory of size requested */
-void *sm_get_memory(char *fname, int lineno, size_t size)
+POOLMEM *sm_get_memory(char *fname, int lineno, size_t size)
 {
    struct abufhead *buf;
    int pool = 0;
@@ -124,12 +124,12 @@ void *sm_get_memory(char *fname, int lineno, size_t size)
    pool_ctl[pool].in_use++;
    if (pool_ctl[pool].in_use > pool_ctl[pool].max_used)
       pool_ctl[pool].max_used = pool_ctl[pool].in_use;
-   return (void *)(((char *)buf)+HEAD_SIZE);
+   return (POOLMEM *)(((char *)buf)+HEAD_SIZE);
 }
 
 #else
 
-void *get_pool_memory(int pool)
+POOLMEM *get_pool_memory(int pool)
 {
    struct abufhead *buf;
 
@@ -138,7 +138,7 @@ void *get_pool_memory(int pool)
       buf = pool_ctl[pool].free_buf;
       pool_ctl[pool].free_buf = buf->next;
       V(mutex);
-      return (void *)((char *)buf+HEAD_SIZE);
+      return (POOLMEM *)((char *)buf+HEAD_SIZE);
    }
       
    if ((buf=malloc(pool_ctl[pool].size+HEAD_SIZE)) == NULL) {
@@ -153,11 +153,11 @@ void *get_pool_memory(int pool)
       pool_ctl[pool].max_used = pool_ctl[pool].in_use;
    }
    V(mutex);
-   return (void *)(((char *)buf)+HEAD_SIZE);
+   return (POOLMEM *)(((char *)buf)+HEAD_SIZE);
 }
 
 /* Get nonpool memory of size requested */
-void *get_memory(size_t size)
+POOLMEM *get_memory(size_t size)
 {
    struct abufhead *buf;
    int pool = 0;
@@ -172,14 +172,14 @@ void *get_memory(size_t size)
    if (pool_ctl[pool].in_use > pool_ctl[pool].max_used) {
       pool_ctl[pool].max_used = pool_ctl[pool].in_use;
    }
-   return (void *)(((char *)buf)+HEAD_SIZE);
+   return (POOLMEM *)(((char *)buf)+HEAD_SIZE);
 }
 #endif /* SMARTALLOC */
 
 
 
 /* Free a memory buffer */
-void free_pool_memory(void *obuf)
+void free_pool_memory(POOLMEM *obuf)
 {
    struct abufhead *buf;
    int pool;
@@ -202,7 +202,7 @@ void free_pool_memory(void *obuf)
 
 
 /* Return the size of a memory buffer */
-size_t sizeof_pool_memory(void *obuf)
+size_t sizeof_pool_memory(POOLMEM *obuf)
 {
    char *cp = (char *)obuf;
 
@@ -213,7 +213,7 @@ size_t sizeof_pool_memory(void *obuf)
 }
 
 /* Realloc pool memory buffer */
-void *realloc_pool_memory(void *obuf, size_t size)
+POOLMEM *realloc_pool_memory(POOLMEM *obuf, size_t size)
 {
    char *cp = (char *)obuf;
    void *buf;
@@ -235,10 +235,10 @@ void *realloc_pool_memory(void *obuf, size_t size)
    }
    V(mutex);
    sm_check(__FILE__, __LINE__, False);
-   return (void *)(((char *)buf)+HEAD_SIZE);
+   return (POOLMEM *)(((char *)buf)+HEAD_SIZE);
 }
 
-void *check_pool_memory_size(void *obuf, size_t size)
+POOLMEM *check_pool_memory_size(POOLMEM *obuf, size_t size)
 {
    sm_check(__FILE__, __LINE__, False);
    ASSERT(obuf);
@@ -263,6 +263,7 @@ void close_memory_pool()
 	 free((char *)buf);
 	 buf = next;
       }
+      pool_ctl[i].free_buf = NULL;
    }
    V(mutex);
 }

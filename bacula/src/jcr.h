@@ -46,6 +46,8 @@
 #define JT_VERIFY                'V'
 #define JT_RESTORE               'R'
 #define JT_CONSOLE               'C'  /* console program */
+#define JT_ADMIN                 'D'  /* admin job */
+#define JT_ARCHIVE               'A'
 
 /* Job Status */
 #define JS_Created               'C'
@@ -95,12 +97,10 @@ struct s_jcr {
    time_t start_time;                 /* when job actually started */
    time_t run_time;                   /* used for computing speed */
    time_t end_time;                   /* job end time */
-   char *VolumeName;                  /* Volume name desired -- pool_memory */
+   POOLMEM *VolumeName;               /* Volume name desired -- pool_memory */
    char *client_name;                 /* client name */
    char *sd_auth_key;                 /* SD auth key */
    MSGS *msgs;                        /* Message resource */
-   DEST *dest_chain;                  /* Job message destination chain */
-   char send_msg[nbytes_for_bits(M_MAX+1)]; /* message bit mask */
 
    /* Daemon specific part of JCR */
    /* This should be empty in the library */

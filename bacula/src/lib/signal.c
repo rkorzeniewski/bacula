@@ -64,7 +64,7 @@ static void signal_handler(int sig)
    if (already_dead) {
       _exit(1);
    }
-   already_dead = TRUE;
+   already_dead = sig;
    if (sig == SIGTERM) {
       Emsg1(M_TERM, -1, "Shutting down Bacula service: %s ...\n", my_name);
    } else {
@@ -78,7 +78,7 @@ static void signal_handler(int sig)
       static char btpath[400];
       pid_t pid;
 
-      Dmsg1(000, "Kaboom! Got signal %d. Attempting traceback\n", sig);
+      fprintf(stderr, "Kaboom! Got signal %d. Attempting traceback.\n", sig);
       if (strlen(exepath) + 12 > (int)sizeof(btpath)) {
          strcpy(btpath, "btraceback");
       } else {
@@ -97,6 +97,7 @@ static void signal_handler(int sig)
       Dmsg1(300, "exepath=%s\n", exepath);
       switch (pid = fork()) {
       case -1:			      /* error */
+         fprintf(stderr, "Fork error: ERR=%s\n", strerror(errno));
 	 break;
       case 0:			      /* child */
 	 argv[0] = btpath;	      /* path to btraceback */
@@ -118,6 +119,7 @@ static void signal_handler(int sig)
       if (pid > 0) {
          Dmsg0(500, "Doing waitpid\n");
 	 waitpid(pid, NULL, 0);       /* wait for child to produce dump */
+         fprintf(stderr, "Traceback complete, attempting cleanup ...\n");
          Dmsg0(500, "Done waitpid\n");
 	 exit_handler(1);	      /* clean up if possible */
          Dmsg0(500, "Done exit_handler\n");
@@ -125,6 +127,7 @@ static void signal_handler(int sig)
          Dmsg0(500, "Doing sleep\n");
 	 sleep(30);
       }
+      fprintf(stderr, "It looks like the traceback worked ...\n");
    }
 #endif
 

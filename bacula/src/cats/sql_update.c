@@ -192,7 +192,7 @@ db_update_media_record(B_DB *mdb, MEDIA_DBR *mr)
    localtime_r(&ttime, &tm);
    strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
 
-   Dmsg1(000, "update_media: FirstWritte=%d\n", mr->FirstWritten);
+   Dmsg1(100, "update_media: FirstWritten=%d\n", mr->FirstWritten);
    P(mdb->mutex);
    if (mr->VolMounts == 1) {
       Mmsg(&mdb->cmd, "UPDATE Media SET FirstWritten=\"%s\"\

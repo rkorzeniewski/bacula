@@ -53,6 +53,7 @@ static struct res_items store_items[] = {
    {"name",                  store_name, ITEM(res_store.hdr.name),   0, ITEM_REQUIRED, 0},
    {"description",           store_str,  ITEM(res_dir.hdr.desc),     0, 0, 0},
    {"address",               store_str,  ITEM(res_store.address),    0, ITEM_REQUIRED, 0},
+   {"messages",              store_res,  ITEM(res_store.messages),   0, R_MSGS, 0},
    {"sdport",                store_int,  ITEM(res_store.SDport),     0, ITEM_REQUIRED, 0},
    {"sddport",               store_int,  ITEM(res_store.SDDport),    0, 0, 0}, /* depricated */
    {"workingdirectory",      store_dir,  ITEM(res_store.working_directory), 0, ITEM_REQUIRED, 0},
@@ -194,6 +195,10 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
 	 break;
       case R_MSGS:
          sendit(sock, "Messages: name=%s\n", res->res_msgs.hdr.name);
+	 if (res->res_msgs.mail_cmd) 
+            sendit(sock, "      mailcmd=%s\n", res->res_msgs.mail_cmd);
+	 if (res->res_msgs.operator_cmd) 
+            sendit(sock, "      opcmd=%s\n", res->res_msgs.operator_cmd);
 	 break;
       default:
          sendit(sock, _("Warning: unknown resource type %d\n"), type);
@@ -253,16 +258,21 @@ void free_resource(int type)
 	    free(res->res_msgs.mail_cmd);
 	 if (res->res_msgs.operator_cmd)
 	    free(res->res_msgs.operator_cmd);
+	 free_msgs_res((MSGS *)res);  /* free message resource */
+	 res = NULL;
 	 break;
       default:
          Dmsg1(0, "Unknown resource type %d\n", type);
 	 break;
    }
    /* Common stuff again -- free the resource, recurse to next one */
-   free(res);
+   if (res) {
+      free(res);
+   }
    resources[rindex].res_head = (RES *)nres;
-   if (nres)
+   if (nres) {
       free_resource(type);
+   }
 }
 
 /* Save the new resource by chaining it into the head list for
@@ -299,16 +309,26 @@ void save_resource(int type, struct res_items *items, int pass)
     */
    if (pass == 2) {
       switch (type) {
+	 /* Resources not containing a resource */
 	 case R_DIRECTOR:
-	 case R_STORAGE:
 	 case R_DEVICE:
 	 case R_MSGS:
+	    break;
+
+	 /* Resources containing a resource */
+	 case R_STORAGE:
+	    if ((res = (URES *)GetResWithName(R_STORAGE, res_all.res_dir.hdr.name)) == NULL) {
+               Emsg1(M_ABORT, 0, "Cannot find Storage resource %s\n", res_all.res_dir.hdr.name);
+	    }
+	    res->res_store.messages = res_all.res_store.messages;
 	    break;
 	 default:
             printf("Unknown resource type %d\n", type);
 	    error = 1;
 	    break;
       }
+
+
       if (res_all.res_dir.hdr.name) {
 	 free(res_all.res_dir.hdr.name);
 	 res_all.res_dir.hdr.name = NULL;

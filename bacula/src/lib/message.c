@@ -46,7 +46,10 @@ FILE *con_fd = NULL;
 
 /* Imported functions */
 
-static MSGS daemon_msg; 	      /* global messages */
+
+/* Static storage */
+
+static MSGS *daemon_msgs;	       /* global messages */
 
 /* 
  * Set daemon name. Also, find canonical execution
@@ -120,35 +123,64 @@ void my_name_is(int argc, char *argv[], char *name)
    }
 }
 
-/* Initialize message handler */
+/* 
+ * Initialize message handler for a daemon or a Job
+ * 
+ *   NULL for jcr -> initialize global messages for daemon
+ *   non-NULL	  -> initialize jcr using Message resource
+ */
 void
 init_msg(void *vjcr, MSGS *msg)
 {
    DEST *d, *dnew, *temp_chain = NULL;
    JCR *jcr = (JCR *)vjcr;
 
-   if (!msg) {			      /* If nothing specified, use */
-      msg = &daemon_msg;	      /*  daemon global message resource */
-   }
-   if (!jcr) {	
-      memset(msg, 0, sizeof(msg));	      /* init daemon global message */
-   } else {				      /* init for job */
-      /* Walk down the global chain duplicating it
-       * for the current Job.  No need to duplicate
-       * the attached strings.
-       */
-      for (d=daemon_msg.dest_chain; d; d=d->next) {
-	 dnew = (DEST *) malloc(sizeof(DEST));
-	 memcpy(dnew, d, sizeof(DEST));
-	 dnew->next = temp_chain;
-	 dnew->fd = NULL;
-	 dnew->mail_filename = NULL;
-	 temp_chain = dnew;
+   /*
+    * If msg is NULL, initialize global chain for STDOUT and syslog
+    */
+   if (msg == NULL) {
+      int i;
+      daemon_msgs = (MSGS *)malloc(sizeof(MSGS));
+      memset(daemon_msgs, 0, sizeof(MSGS));
+      for (i=1; i<=M_MAX; i++) {
+	 add_msg_dest(daemon_msgs, MD_STDOUT, i, NULL, NULL);
+	 add_msg_dest(daemon_msgs, MD_SYSLOG, i, NULL, NULL);
       }
-
-      jcr->dest_chain = temp_chain;
-      memcpy(jcr->send_msg, daemon_msg.send_msg, sizeof(daemon_msg.send_msg));
+      Dmsg1(050, "Create daemon global message resource 0x%x\n", daemon_msgs);
+      return;
    }
+
+   /*
+    * Walk down the message resource chain duplicating it
+    * for the current Job.
+    */
+   for (d=msg->dest_chain; d; d=d->next) {
+      dnew = (DEST *) malloc(sizeof(DEST));
+      memcpy(dnew, d, sizeof(DEST));
+      dnew->next = temp_chain;
+      dnew->fd = NULL;
+      dnew->mail_filename = NULL;
+      if (d->mail_cmd) {
+	 dnew->mail_cmd = bstrdup(d->mail_cmd);
+      }
+      if (d->where) {
+	 dnew->where = bstrdup(d->where);
+      }
+      temp_chain = dnew;
+   }
+
+   if (jcr) {
+      jcr->msgs = (MSGS *)malloc(sizeof(MSGS));
+      memset(jcr->msgs, 0, sizeof(MSGS));
+      jcr->msgs->dest_chain = temp_chain;
+      memcpy(jcr->msgs->send_msg, msg->send_msg, sizeof(msg->send_msg));
+   } else {
+      daemon_msgs = (MSGS *)malloc(sizeof(MSGS));
+      memset(daemon_msgs, 0, sizeof(MSGS));
+      daemon_msgs->dest_chain = temp_chain;
+      memcpy(daemon_msgs->send_msg, msg->send_msg, sizeof(msg->send_msg));
+   }
+   Dmsg2(050, "Copy message resource 0x%x to 0x%x\n", msg, temp_chain);
 }
 
 /* Initialize so that the console (User Agent) can
@@ -187,27 +219,27 @@ void init_console_msg(char *wd)
 void add_msg_dest(MSGS *msg, int dest_code, int msg_type, char *where, char *mail_cmd)
 {
    DEST *d; 
-
-   /* First search the existing chain and see if we
+   /*
+    * First search the existing chain and see if we
     * can simply add this msg_type to an existing entry.
     */
-   for (d=daemon_msg.dest_chain; d; d=d->next) {
+   for (d=msg->dest_chain; d; d=d->next) {
       if (dest_code == d->dest_code && ((where == NULL && d->where == NULL) ||
 		     (strcmp(where, d->where) == 0))) {  
          Dmsg4(200, "Add to existing d=%x msgtype=%d destcode=%d where=%s\n", 
 	     d, msg_type, dest_code, where);
 	 set_bit(msg_type, d->msg_types);
-	 set_bit(msg_type, daemon_msg.send_msg);  /* set msg_type bit in our local */
+	 set_bit(msg_type, msg->send_msg);  /* set msg_type bit in our local */
 	 return;
       }
    }
    /* Not found, create a new entry */
-   d = (DEST *) malloc(sizeof(DEST));
+   d = (DEST *)malloc(sizeof(DEST));
    memset(d, 0, sizeof(DEST));
-   d->next = daemon_msg.dest_chain;
+   d->next = msg->dest_chain;
    d->dest_code = dest_code;
    set_bit(msg_type, d->msg_types);	 /* set type bit in structure */
-   set_bit(msg_type, daemon_msg.send_msg); /* set type bit in our local */
+   set_bit(msg_type, msg->send_msg);	 /* set type bit in our local */
    if (where) {
       d->where = bstrdup(where);
    }
@@ -217,7 +249,7 @@ void add_msg_dest(MSGS *msg, int dest_code, int msg_type, char *where, char *mai
    Dmsg5(200, "add new d=%x msgtype=%d destcode=%d where=%s mailcmd=%s\n", 
           d, msg_type, dest_code, where?where:"(null)", 
           d->mail_cmd?d->mail_cmd:"(null)");
-   daemon_msg.dest_chain = d;
+   msg->dest_chain = d;
 }
 
 /* 
@@ -229,7 +261,7 @@ void rem_msg_dest(MSGS *msg, int dest_code, int msg_type, char *where)
 {
    DEST *d;
 
-   for (d=daemon_msg.dest_chain; d; d=d->next) {
+   for (d=msg->dest_chain; d; d=d->next) {
       Dmsg2(200, "Remove_msg_dest d=%x where=%s\n", d, d->where);
       if (bit_is_set(msg_type, d->msg_types) && (dest_code == d->dest_code) &&
 	  ((where == NULL && d->where == NULL) ||
@@ -457,36 +489,39 @@ static FILE *open_mail_pipe(JCR *jcr, char **cmd, DEST *d)
    Dmsg1(200, "mailcmd=%s\n", cmd);
    pfd = popen(*cmd, "w");
    if (!pfd) {
-      Emsg2(M_ERROR, 0, "popen %s failed: ERR=%s\n", cmd, strerror(errno));
-      if (jcr) {
-         Jmsg(jcr, M_ERROR, 0, "mail popen %s failed: ERR=%s\n", cmd, strerror(errno));
-      }
+      Jmsg(jcr, M_ERROR, 0, "mail popen %s failed: ERR=%s\n", cmd, strerror(errno));
    } 
    return pfd;
 }
 
 /* 
- * Close the messages for this job, which means to close
+ * Close the messages for this Messages resource, which means to close
  *  any open files, and dispatch any pending email messages.
- *	
- * This closes messages only for this job, other jobs can   
- *   still send messages.
- * 
- * Note, we free our local message destination chain, but
- * the global chain remains allowing other jobs to
- * start.
  */
 void close_msg(void *vjcr)
 {
-   DEST *d, *old;
-   FILE *pfd;
-   char *cmd, *line;
-   int len;
+   MSGS *msgs;
    JCR *jcr = (JCR *)vjcr;
+   DEST *d;
+   FILE *pfd;
+   POOLMEM *cmd, *line;
+   int len;
    
-   Dmsg0(200, "Close_msg\n");
-   cmd = (char *)get_pool_memory(PM_MESSAGE);
-   for (d=jcr->dest_chain; d; ) {
+   Dmsg1(050, "Close_msg jcr=0x%x\n", jcr);
+
+   if (jcr == NULL) {		     /* NULL -> global chain */
+      msgs = daemon_msgs;
+      daemon_msgs = NULL;
+   } else {
+      msgs = jcr->msgs;
+      jcr->msgs = NULL;
+   }
+   if (msgs == NULL) {
+      return;
+   }
+   Dmsg1(050, "close msg resource at 0x%x\n", msgs);
+   cmd = get_pool_memory(PM_MESSAGE);
+   for (d=msgs->dest_chain; d; ) {
       if (d->fd) {
 	 switch (d->dest_code) {
 	 case MD_FILE:
@@ -500,7 +535,7 @@ void close_msg(void *vjcr)
 	    if (!d->fd) {
 	       break;
 	    }
-	    if (d->dest_code == MD_MAIL_ON_ERROR && 
+	    if (d->dest_code == MD_MAIL_ON_ERROR && jcr &&
 		jcr->JobStatus == JS_Terminated) {
 	       goto rem_temp_file;
 	    }
@@ -510,7 +545,7 @@ void close_msg(void *vjcr)
 	       goto rem_temp_file;
 	    }
 	    len = d->max_len+10;
-	    line = (char *)get_memory(len);
+	    line = get_memory(len);
 	    rewind(d->fd);
 	    while (fgets(line, len, d->fd)) {
 	       fputs(line, pfd);
@@ -529,43 +564,48 @@ rem_temp_file:
 	 }
 	 d->fd = NULL;
       }
+      d = d->next;		      /* point to next buffer */
+   }
+   free_pool_memory(cmd);
+
+   free_msgs_res(msgs);
+}
+
+/*
+ * Free memory associated with Messages resource  
+ */
+void free_msgs_res(MSGS *msgs)
+{
+   DEST *d, *old;
+
+   for (d=msgs->dest_chain; d; ) {
+      if (d->where) {
+	 free(d->where);
+      }
+      if (d->mail_cmd) {
+	 free(d->mail_cmd);
+      }
       old = d;			      /* save pointer to release */
       d = d->next;		      /* point to next buffer */
       free(old);		      /* free the destination item */
    }
-   free_pool_memory(cmd);
-   jcr->dest_chain = NULL;
+   msgs->dest_chain = NULL;
+   free(msgs);
 }
 
 
 /* 
  * Terminate the message handler for good. 
  * Release the global destination chain.
+ * 
+ * Also, clean up a few other items (cons, exepath). Note,
+ *   these really should be done elsewhere.
  */
 void term_msg()
 {
-   DEST *d, *n;
-   
-   for (d=daemon_msg.dest_chain; d; d=n) {
-      if (d->fd) {
-	 if (d->dest_code == MD_FILE || d->dest_code == MD_APPEND) {
-	    fclose(d->fd);	      /* close open file descriptor */
-	    d->fd = NULL;
-	 } else if (d->dest_code == MD_MAIL || d->dest_code == MD_MAIL_ON_ERROR) {
-	    fclose(d->fd);
-	    d->fd = NULL;
-	    unlink(d->mail_filename);
-	    free_pool_memory(d->mail_filename);
-	    d->mail_filename = NULL;
-	 }
-      }
-      n = d->next;
-      if (d->where)
-	 free(d->where);	      /* free destination address */
-      if (d->mail_cmd)
-	 free(d->mail_cmd);
-      free(d);
-   }
+   Dmsg0(100, "Enter term_msg\n");
+   close_msg(NULL);		      /* close global chain */
+   daemon_msgs = NULL;
    if (con_fd) {
       fflush(con_fd);
       fclose(con_fd);
@@ -589,9 +629,11 @@ void term_msg()
 void dispatch_message(void *vjcr, int type, int level, char *buf)
 {
     DEST *d;   
-    char cmd[MAXSTRING], *mcmd;
+    char cmd[MAXSTRING];
+    POOLMEM *mcmd;
     JCR *jcr = (JCR *) vjcr;
     int len;
+    MSGS *msgs;
 
     Dmsg2(200, "Enter dispatch_msg type=%d msg=%s\n", type, buf);
 
@@ -600,12 +642,14 @@ void dispatch_message(void *vjcr, int type, int level, char *buf)
     }
 
     /* Now figure out where to send the message */
+    msgs = NULL;
     if (jcr) {
-       d = jcr->dest_chain;	      /* use job message chain */
-    } else {
-       d = daemon_msg.dest_chain;     /* use global chain */
+       msgs = jcr->msgs;
+    } 
+    if (msgs == NULL) {
+       msgs = daemon_msgs;
     }
-    for ( ; d; d=d->next) {
+    for (d=msgs->dest_chain; d; d=d->next) {
        if (bit_is_set(type, d->msg_types)) {
 	  switch (d->dest_code) {
 	     case MD_CONSOLE:
@@ -639,7 +683,7 @@ void dispatch_message(void *vjcr, int type, int level, char *buf)
 		break;
 	     case MD_OPERATOR:
                 Dmsg1(200, "OPERATOR for following err: %s\n", buf);
-		mcmd = (char *) get_pool_memory(PM_MESSAGE);
+		mcmd = get_pool_memory(PM_MESSAGE);
 		d->fd = open_mail_pipe(jcr, &mcmd, d);
 		free_pool_memory(mcmd);
 		if (d->fd) {
@@ -771,7 +815,7 @@ d_msg(char *file, int line, int level, char *fmt,...)
 void 
 e_msg(char *file, int line, int type, int level, char *fmt,...)
 {
-    char     buf[1000];
+    char     buf[2000];
     va_list   arg_ptr;
     int i;
 
@@ -779,7 +823,8 @@ e_msg(char *file, int line, int type, int level, char *fmt,...)
      * Check if we have a message destination defined.	
      * We always report M_ABORT 
      */
-    if (type != M_ABORT && !bit_is_set(type, daemon_msg.send_msg))
+    if (!daemon_msgs || (type != M_ABORT && 
+			 !bit_is_set(type, daemon_msgs->send_msg)))
        return;			      /* no destination */
     switch (type) {
        case M_ABORT:
@@ -841,7 +886,7 @@ Jmsg(void *vjcr, int type, int level, char *fmt,...)
      * Check if we have a message destination defined.	
      * We always report M_ABORT 
      */
-    if (type != M_ABORT && !bit_is_set(type, jcr->send_msg)) {
+    if (type != M_ABORT && jcr->msgs && !bit_is_set(type, jcr->msgs->send_msg)) {
        Dmsg1(200, "No bit set for type %d\n", type);
        return;			      /* no destination */
     }

@@ -48,6 +48,7 @@ int win32_client = 0;
 static char *configfile = NULL;
 static int foreground = 0;
 static workq_t dir_workq;	      /* queue of work from Director */
+static CLIENT *me;		      /* my resource */
 
 static void usage()
 {
@@ -78,11 +79,11 @@ int main (int argc, char *argv[])
    int ch;
    int no_signals = FALSE;
    int test_config = FALSE;
-   CLIENT *me;			      /* my resource */
    DIRRES *director;
 
    init_stack_dump();
    my_name_is(argc, argv, "filed");
+   init_msg(NULL, NULL);
    daemon_start_time = time(NULL);
 
    memset(&last_job, 0, sizeof(last_job));
@@ -143,8 +144,6 @@ int main (int argc, char *argv[])
       configfile = bstrdup(CONFIG_FILE);
    }
 
-
-   init_msg(NULL, NULL);
    parse_config(configfile);
 
    LockRes();
@@ -162,7 +161,17 @@ int main (int argc, char *argv[])
       Emsg1(M_ABORT, 0, _("No File daemon resource defined in %s\n\
 Without that I don't know who I am :-(\n"), configfile);
    } else {
-      my_name_is(0, (char **)NULL, me->hdr.name);
+      my_name_is(0, NULL, me->hdr.name);
+      if (!me->messages) {
+	 LockRes();
+	 me->messages = (MSGS *)GetNextRes(R_MSGS, NULL);
+	 UnlockRes();
+	 if (!me->messages) {
+             Emsg1(M_ABORT, 0, _("No Messages resource defined in %s\n"), configfile);
+	 }
+      }
+      close_msg(NULL);		      /* close temp message handler */
+      init_msg(NULL, me->messages);   /* open user specified message handler */
    }
    working_directory = me->working_directory;
 
@@ -174,6 +183,8 @@ Without that I don't know who I am :-(\n"), configfile);
       daemon_start();
       init_stack_dump();	      /* set new pid */
    }
+
+   create_pid_file(me->pid_directory, "bacula-fd", me->FDport);
 
 #ifdef BOMB
    me += 1000000;
@@ -198,9 +209,10 @@ void terminate_filed(int sig)
    if (debug_level > 5) {
       print_memory_pool_stats(); 
    }
+   delete_pid_file(me->pid_directory, "bacula-fd", me->FDport);
    free_config_resources();
-   close_memory_pool(); 	      /* free memory in pool */
    term_msg();
+   close_memory_pool(); 	      /* release free memory in pool */
    sm_dump(False);		      /* dump orphaned buffers */
    exit(1);
 }
