@@ -54,7 +54,6 @@ GtkAdjustment *vadj;
 pthread_mutex_t cmd_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t	cmd_wait;
 char cmd[1000];
-int cmd_ready = FALSE;
 int reply;
 BSOCK *UA_sock = NULL;
 GList *job_list, *client_list, *fileset_list;
@@ -72,9 +71,9 @@ static DIRRES *dir;
 static CONRES *con; 
 static int ndir;
 static int director_reader_running = FALSE;
-static int at_prompt = FALSE;
-static int ready = FALSE;
-static int quit = FALSE;
+static bool at_prompt = false;
+static bool ready = false;
+static bool quit = false;
 static guint initial;
 
 #define CONFIG_FILE "./gnome-console.conf"   /* default configuration file */
@@ -243,7 +242,7 @@ Without that I don't how to speak to the Director :-(\n"), configfile);
    initial = gtk_timeout_add(100, initial_connect_to_director, (gpointer)NULL);
 
    gtk_main();
-   quit = TRUE;
+   quit = true;
    disconnect_from_director((gpointer)NULL);
    return 0;
 }
@@ -439,7 +438,7 @@ int connect_to_director(gpointer data)
 void write_director(gchar *msg)
 {
    if (UA_sock) {
-      at_prompt = FALSE;
+      at_prompt = false;
       set_status(_(" Processing command ..."));
       UA_sock->msglen = strlen(msg);
       pm_strcpy(&UA_sock->msg, msg);
@@ -462,7 +461,7 @@ void read_director(gpointer data, gint fd, GdkInputCondition condition)
    if (stat >= 0) {
       if (at_prompt) {
          set_text("\n", 1);
-	 at_prompt = FALSE;
+	 at_prompt = false;
       }
       set_text(UA_sock->msg, UA_sock->msglen);
       return;
@@ -473,7 +472,7 @@ void read_director(gpointer data, gint fd, GdkInputCondition condition)
    }
    /* Must be a signal -- either do something or ignore it */
    if (UA_sock->msglen == BNET_PROMPT) {
-      at_prompt = TRUE;
+      at_prompt = true;
       set_status(_(" At prompt waiting for input ..."));
    }
    if (UA_sock->msglen == BNET_EOD) {
@@ -539,13 +538,6 @@ static void truncate_text_chars()
    text_chars -= del_chars;
    len = gtk_text_buffer_get_char_count(textbuf);
    gtk_text_iter_set_offset(&iter, len);
-
-/*
-   gtk_text_set_point(GTK_TEXT(text1), del_chars);
-   gtk_text_backward_delete(GTK_TEXT(text1), del_chars);
-   text_chars -= del_chars;
-   gtk_text_set_point(GTK_TEXT(text1), text_chars);
- */
 }
 
 void set_textf(char *fmt, ...)
@@ -568,21 +560,21 @@ void set_text(char *buf, int len)
    buf_len = gtk_text_buffer_get_char_count(textbuf);
    gtk_text_buffer_get_iter_at_offset(textbuf, &iter, buf_len - 1);
    gtk_text_buffer_insert(textbuf, &iter, buf, -1);
-/*
-   gtk_text_insert(GTK_TEXT(text1), text_font, NULL, NULL, buf, -1);
- */
    text_chars += len;
    if (text_chars > MAX_TEXT_CHARS) {
       truncate_text_chars();
    }
    buf_len = gtk_text_buffer_get_char_count(textbuf);
+   gtk_text_buffer_get_iter_at_offset(textbuf, &iter, buf_len - 1);
    gtk_text_iter_set_offset(&iter, buf_len);
    /*
     * Force the scroll bars to the bottom so that most
     * recent text is on screen.
     */
-   vadj = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scroll1));
-   gtk_adjustment_set_value(vadj, vadj->upper);
+   if (ready || at_prompt) {
+      vadj = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scroll1));
+      gtk_adjustment_set_value(vadj, vadj->upper);
+   }
 }
 
 void set_statusf(char *fmt, ...)
@@ -593,17 +585,23 @@ void set_statusf(char *fmt, ...)
    va_start(arg_ptr, fmt);
    len = bvsnprintf(buf, sizeof(buf), fmt, arg_ptr);
    gtk_label_set_text(GTK_LABEL(status1), buf);
-   ready = FALSE;
+   ready = false;
 }
 
 void set_status_ready()    
 {
+   GtkTextBuffer *textbuf;
    gtk_label_set_text(GTK_LABEL(status1), " Ready");
-   ready = TRUE;
+   if (!ready) {
+      textbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text1));
+      vadj = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scroll1));
+      gtk_adjustment_set_value(vadj, vadj->upper);
+   }
+   ready = true;
 }
 
 void set_status(char *buf)
 {
    gtk_label_set_text(GTK_LABEL(status1), buf);
-   ready = FALSE;
+   ready = false;
 }
