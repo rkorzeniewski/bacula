@@ -1,0 +1,12 @@
+#!/bin/sh
+#
+# Run all tape tests
+#
+tests/test0
+tests/backup-bacula-tape
+tests/small-file-size-tape
+echo " "
+echo " "
+echo "Test results"
+cat test.out
+scripts/cleanup

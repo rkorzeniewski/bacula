@@ -7,3 +7,6 @@ test-bacula-fd.conf
 test-bacula-sd.conf
 test-console.conf
 testa-bacula-dir.conf
+bacula-dir-tape.conf
+bacula-sd-tape.conf
+cleanup-tape

@@ -25,10 +25,8 @@ estimate job=CompressedTest listing
 estimate job=CompressedTest listing
 messages
 @output tmp/log1.out
-label storage=File
-TestVolume001
-run job=CompressedTest
-yes
+label storage=File volume=TestVolume001
+run job=CompressedTest yes
 wait
 messages
 quit
