@@ -290,13 +290,12 @@ static void check_config()
  */
 static void *device_allocation(void *arg)
 {
-   int i;
    DEVRES *device;
 
    LockRes();
    pthread_detach(pthread_self());
 
-   for (device=NULL,i=0;  (device=(DEVRES *)GetNextRes(R_DEVICE, (RES *)device)); i++) {
+   foreach_res(device, R_DEVICE) {
       Dmsg1(90, "calling init_dev %s\n", device->device_name);
       device->dev = init_dev(NULL, device);
       Dmsg1(10, "SD init done %s\n", device->device_name);
@@ -353,7 +352,7 @@ void terminate_stored(int sig)
        *   volume status.
        */
       lock_jcr_chain();
-      for (jcr=NULL; (jcr=get_next_jcr(jcr)); ) {
+      foreach_jcr(jcr) {
 	 BSOCK *fd;
 	 free_locked_jcr(jcr);
 	 if (jcr->JobId == 0) {
@@ -381,7 +380,7 @@ void terminate_stored(int sig)
    Dmsg1(200, "In terminate_stored() sig=%d\n", sig);
 
    LockRes();
-   for (device=NULL; (device=(DEVRES *)GetNextRes(R_DEVICE, (RES *)device)); ) {
+   foreach_res(device, R_DEVICE) {
       if (device->dev) {
 	 term_dev(device->dev);
       }

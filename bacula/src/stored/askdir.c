@@ -166,6 +166,7 @@ int dir_find_next_appendable_volume(JCR *jcr)
 	  lock_jcr_chain();
 	  foreach_jcr(njcr) {
 	     if (jcr == njcr) {
+		free_locked_jcr(njcr);
 		continue;	      /* us */
 	     }
              Dmsg2(200, "Compare to JobId=%d using Vol=%s\n", njcr->JobId, njcr->VolumeName);
