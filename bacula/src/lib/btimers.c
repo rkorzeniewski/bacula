@@ -165,7 +165,7 @@ btimer_t *start_bsock_timer(BSOCK *bsock, uint32_t wait)
    wid->wd->interval = wait;
    register_watchdog(wid->wd);
 
-   Dmsg3(200, "Start thread timer %p tip %p for %d secs.\n", wid, wid->tid, wait);
+   Dmsg3(50, "Start thread timer %p tip %p for %d secs.\n", wid, wid->tid, wait);
 
    return wid;
 }
@@ -179,7 +179,7 @@ void stop_bsock_timer(btimer_t *wid)
       Dmsg0(200, "stop_bsock_timer called with NULL btimer_id\n");
       return;
    }
-   Dmsg2(200, "Stop bsock timer %p tid %p.\n", wid, wid->tid);
+   Dmsg2(50, "Stop bsock timer %p tid %p.\n", wid, wid->tid);
    stop_btimer(wid);
 }
 
@@ -210,10 +210,10 @@ static void callback_thread_timer(watchdog_t *self)
 {
    btimer_t *wid = (btimer_t *)self->data;
 
-   Dmsg2(200, "watchdog %p kill thread %d\n", self, wid->tid);
+   Dmsg2(50, "watchdog %p kill thread %d\n", self, wid->tid);
 
    if (wid->type == TYPE_BSOCK && wid->bsock) {
-      Dmsg0(200, "kill type bsock ...\n");
+      Dmsg0(50, "kill type bsock ...\n");
       wid->bsock->timed_out = true;
    }
    pthread_kill(wid->tid, TIMEOUT_SIGNAL);
