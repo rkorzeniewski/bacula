@@ -757,7 +757,7 @@ winver::winver(void)
     snprintf(WIN_VERSION, sizeof(WIN_VERSION), "%s %d.%d.%d",
              platform, osvinfo.dwMajorVersion, osvinfo.dwMinorVersion, osvinfo.dwBuildNumber);
 
-#if 1
+#if 0
     HANDLE h = CreateFile("G:\\foobar", GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, NULL);
     CloseHandle(h);
 #endif

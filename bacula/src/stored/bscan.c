@@ -286,7 +286,7 @@ static int bscan_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	 dcr->EndFile = dev->EndFile;
       } else {
 	 dcr->EndBlock = (uint32_t)dev->file_addr;
-	 dcr->StartBlock = (uint32_t)(dev->file_addr >> 32);
+	 dcr->EndFile = (uint32_t)(dev->file_addr >> 32);
       }
       if (!create_jobmedia_record(db, mjcr)) {
          Pmsg2(000, _("Could not create JobMedia record for Volume=%s Job=%s\n"),
@@ -454,7 +454,11 @@ static int record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 jr.PoolId = pr.PoolId;
 	 /* Set start positions into JCR */
 	 if (dev->state & ST_TAPE) {
-	    dcr->StartBlock = dev->block_num;
+	    /*
+	     * Note, we have already advanced past current block,
+	     *	so the correct number is block_num - 1 
+	     */ 
+	    dcr->StartBlock = dev->block_num - 1;
 	    dcr->StartFile = dev->file;
 	 } else {
 	    dcr->StartBlock = (uint32_t)dev->file_addr;
