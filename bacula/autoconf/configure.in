@@ -1337,6 +1337,7 @@ WLDFLAGS=
 PFILES="platforms/Makefile"
 PSCMD="ps -e"
 WIN32=
+MACOSX=
 hostname=`uname -n | cut -d '.' -f 1`
 case "$DISTNAME" in
 aix)
@@ -1384,6 +1385,7 @@ darwin)
 	DISTVER=`uname -r`
 	TAPEDRIVE="/dev/nst0"
 	PSCMD="ps -e -o pid,command"
+	MACOSX=macosx
 	PFILES="${PFILES} \
 	   platforms/darwin/Makefile"
   ;;
@@ -1558,6 +1560,7 @@ AC_DEFINE_UNQUOTED(llu, "$llu")
 AC_SUBST(TAPEDRIVE)
 AC_SUBST(PSCMD)
 AC_SUBST(WIN32)
+AC_SUBST(MACOSX)
 AC_SUBST(DISTNAME)
 AC_SUBST(DISTVER)
 
