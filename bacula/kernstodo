@@ -11,7 +11,8 @@ Version 1.35                Kern (see below)
 ========================================================
 
 1.35 Items to do for release:
-- Bacula rescue CDROM implement isolinux
+- Restore c: with a prefix into /prefix/c/ to prevent c: and d:
+  files with the same name from overwritting each other.
 - Add new DCR calling sequences everywhere in SD. This will permit 
   simultaneous use of multiple devices by a single job.
 - Look at patches/bacula_db.b2z postgresql that loops during restore.
@@ -107,6 +108,10 @@ Testing to do: (painful)
 
 
 For 1.37 Testing/Documentation:
+- Add "Allow multiple connections" in Catalog resource to open a new 
+  database connection for each job.
+- Allow Simultaneous Priorities = yes  => run up to Max concurrent jobs even
+  with multiple priorities.
 - Fix find_device in stored/dircmd.c:462 (see code) 
 - Add db check test to regression. Test each function like delete,
   purge, ...
@@ -1290,4 +1295,5 @@ Block Position: 0
 - Fix error handling in spooling both data and attribute.
 - Implement Ignore FileSet Change.
 - Doc new duration time input editing.
+- Bacula rescue CDROM implement isolinux
  
