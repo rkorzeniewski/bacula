@@ -362,6 +362,8 @@ bnet_wait_data(BSOCK *bsock, int sec)
    }
 }
 
+static pthread_mutex_t ip_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 /*
  * Convert a hostname or dotted IP address into   
  * a s_addr.  We handle only IPv4.
@@ -379,16 +381,18 @@ static uint32_t *bget_host_ip(void *jcr, char *host)
       addr_list[0] = inaddr.s_addr;
       addr_list[1] = (uint32_t) -1;
    } else {
-      /******FIXME***** use gethostbyname_r or mutex ****/
+      P(ip_mutex);
       if ((hp = gethostbyname(host)) == NULL) {
          Jmsg2(jcr, M_ERROR, 0, "gethostbyname() for %s failed: ERR=%s\n", 
 	       host, strerror(errno));
+	 V(ip_mutex);
 	 return NULL;
       }
       if (hp->h_length != sizeof(inaddr.s_addr) || hp->h_addrtype != AF_INET) {
-          Jmsg2(jcr, M_ERROR, 0, _("gethostbyname() network address length error.\n\
+         Jmsg2(jcr, M_ERROR, 0, _("gethostbyname() network address length error.\n\
 Wanted %d got %d bytes for s_addr.\n"), sizeof(inaddr.s_addr), hp->h_length);
-	  return NULL;
+	 V(ip_mutex);
+	 return NULL;
       }
       i = 0;
       for (p = hp->h_addr_list; *p != 0; p++) {
@@ -401,6 +405,7 @@ Wanted %d got %d bytes for s_addr.\n"), sizeof(inaddr.s_addr), hp->h_length);
 	 addr_list[i++] = (*(struct in_addr **)p)->s_addr;
       }
       addr_list[i] = (uint32_t) -1;
+      V(ip_mutex);
    }
    return addr_list;
 }

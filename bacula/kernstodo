@@ -16,8 +16,12 @@ Test:
 - blocksize recognition code.
 
 For 1.27 release:
+- Add ORDER BY JobId to list of Jobs in query.sql, and in
+  ua_list.c (list command).
+- Make gethostbyname() thread safe in bnet.c
 
 After 1.27
+- Check if both CatalogFiles and UseCatalog are set to SD.
 - Check if we can bump Bacula FD priorty in Win2000
 - Implement FileOptions.
 - Make bcopy read through bad tape records.
