@@ -341,7 +341,7 @@ int select_client_dbr(UAContext *ua, CLIENT_DBR *cr)
       return 0;
    }
    if (num_clients <= 0) {
-      bsendmsg(ua, _("No clients defined. Run a job to create one.\n"));
+      bsendmsg(ua, _("No clients defined. You must run a job before using this command.\n"));
       return 0;
    }
      

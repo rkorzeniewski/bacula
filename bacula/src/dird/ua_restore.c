@@ -109,7 +109,7 @@ static int get_client_name(UAContext *ua, RESTORE_CTX *rx);
  *   Restore files
  *
  */
-int restorecmd(UAContext *ua, char *cmd)
+int restore_cmd(UAContext *ua, char *cmd)
 {
    RESTORE_CTX rx;		      /* restore context */
    JOB *job = NULL;
@@ -223,6 +223,7 @@ int restorecmd(UAContext *ua, char *cmd)
 static void free_rx(RESTORE_CTX *rx) 
 {
    free_bsr(rx->bsr);
+   rx->bsr = NULL;
    if (rx->JobIds) {
       free_pool_memory(rx->JobIds);
       rx->JobIds = NULL;
@@ -895,6 +896,7 @@ static void free_name_list(NAME_LIST *name_list)
    }
    if (name_list->name) {
       free(name_list->name);
+      name_list->name = NULL;
    }
    name_list->max_ids = 0;
    name_list->num_ids = 0;
