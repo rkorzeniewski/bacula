@@ -518,7 +518,6 @@ static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar)
 
    mdb->esc_name = check_pool_memory_size(mdb->esc_name, 2*mdb->pnl+2);
    db_escape_string(mdb->esc_name, mdb->path, mdb->pnl);
-   sm_check(__FILE__, __LINE__, True);
 
    if (mdb->cached_path_id != 0 && mdb->cached_path_len == mdb->pnl &&
        strcmp(mdb->cached_path, mdb->path) == 0) {
@@ -534,6 +533,7 @@ static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar)
 	 char ed1[30];
          Mmsg2(&mdb->errmsg, _("More than one Path!: %s for path: %s\n"), 
 	    edit_uint64(mdb->num_rows, ed1), mdb->path);
+	 sm_check(__FILE__, __LINE__, True);
          Jmsg(mdb->jcr, M_WARNING, 0, "%s", mdb->errmsg);
       }
       /* Even if there are multiple paths, take the first one */
