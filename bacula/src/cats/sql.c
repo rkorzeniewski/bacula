@@ -75,6 +75,7 @@ int check_tables_version(B_DB *mdb)
    if (version != BDB_VERSION) {
       Mmsg(&mdb->errmsg, "Database version mismatch. Wanted %d, got %d\n",
 	 BDB_VERSION, version);
+      Jmsg(mdb->jcr, M_FATAL, 0, mdb->errmsg);
       return 0;
    }
    return 1;
@@ -86,7 +87,7 @@ QueryDB(char *file, int line, B_DB *mdb, char *cmd)
 {
    if (sql_query(mdb, cmd)) {
       m_msg(file, line, &mdb->errmsg, _("query %s failed:\n%s\n"), cmd, sql_strerror(mdb));
-      e_msg(file, line, M_FATAL, 0, mdb->errmsg);
+      j_msg(file, line, mdb->jcr, M_FATAL, 0, mdb->errmsg);
       return 0;
    }
    mdb->result = sql_store_result(mdb);
@@ -104,7 +105,7 @@ InsertDB(char *file, int line, B_DB *mdb, char *cmd)
 {
    if (sql_query(mdb, cmd)) {
       m_msg(file, line, &mdb->errmsg,  _("insert %s failed:\n%s\n"), cmd, sql_strerror(mdb));
-      e_msg(file, line, M_FATAL, 0, mdb->errmsg);
+      j_msg(file, line, mdb->jcr, M_FATAL, 0, mdb->errmsg);
       return 0;
    }
    if (mdb->have_insert_id) {
@@ -116,7 +117,7 @@ InsertDB(char *file, int line, B_DB *mdb, char *cmd)
       char ed1[30];
       m_msg(file, line, &mdb->errmsg, _("Insertion problem: affect_rows=%s\n"), 
 	 edit_uint64(mdb->num_rows, ed1));
-      e_msg(file, line, M_FATAL, 0, mdb->errmsg);  /* ***FIXME*** remove me */
+      j_msg(file, line, mdb->jcr, M_FATAL, 0, mdb->errmsg);  /* ***FIXME*** remove me */
       return 0;
    }
    mdb->changes++;
@@ -133,8 +134,8 @@ UpdateDB(char *file, int line, B_DB *mdb, char *cmd)
 
    if (sql_query(mdb, cmd)) {
       m_msg(file, line, &mdb->errmsg, _("update %s failed:\n%s\n"), cmd, sql_strerror(mdb));
-      e_msg(file, line, M_ERROR, 0, mdb->errmsg);
-      e_msg(file, line, M_ERROR, 0, "%s\n", cmd);
+      j_msg(file, line, mdb->jcr, M_ERROR, 0, mdb->errmsg);
+      j_msg(file, line, mdb->jcr, M_ERROR, 0, "%s\n", cmd);
       return 0;
    }
    mdb->num_rows = sql_affected_rows(mdb);
@@ -142,8 +143,8 @@ UpdateDB(char *file, int line, B_DB *mdb, char *cmd)
       char ed1[30];
       m_msg(file, line, &mdb->errmsg, _("Update problem: affect_rows=%s\n"), 
 	 edit_uint64(mdb->num_rows, ed1));
-      e_msg(file, line, M_ERROR, 0, mdb->errmsg);
-      e_msg(file, line, M_ERROR, 0, "%s\n", cmd);
+      j_msg(file, line, mdb->jcr, M_ERROR, 0, mdb->errmsg);
+      j_msg(file, line, mdb->jcr, M_ERROR, 0, "%s\n", cmd);
       return 0;
    }
    mdb->changes++;
@@ -161,7 +162,7 @@ DeleteDB(char *file, int line, B_DB *mdb, char *cmd)
 
    if (sql_query(mdb, cmd)) {
       m_msg(file, line, &mdb->errmsg, _("delete %s failed:\n%s\n"), cmd, sql_strerror(mdb));
-      e_msg(file, line, M_ERROR, 0, mdb->errmsg);
+      j_msg(file, line, mdb->jcr, M_ERROR, 0, mdb->errmsg);
       return -1;
    }
    mdb->changes++;
@@ -205,7 +206,7 @@ void _db_lock(char *file, int line, B_DB *mdb)
 {
    int errstat;
    if ((errstat=rwl_writelock(&mdb->lock)) != 0) {
-      e_msg(file, line, M_ABORT, 0, "rwl_writelock failure. ERR=%s\n",
+      j_msg(file, line, mdb->jcr, M_ABORT, 0, "rwl_writelock failure. ERR=%s\n",
 	   strerror(errstat));
    }
 }    
@@ -214,7 +215,7 @@ void _db_unlock(char *file, int line, B_DB *mdb)
 {
    int errstat;
    if ((errstat=rwl_writeunlock(&mdb->lock)) != 0) {
-      e_msg(file, line, M_ABORT, 0, "rwl_writeunlock failure. ERR=%s\n",
+      j_msg(file, line, mdb->jcr, M_ABORT, 0, "rwl_writeunlock failure. ERR=%s\n",
 	   strerror(errstat));
    }
 }    

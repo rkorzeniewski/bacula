@@ -356,6 +356,12 @@ Without that I don't know who I am :-(\n"), configfile);
 	 if (!db_open_database(db)) {
             Jmsg(NULL, M_FATAL,  0, "%s", db_strerror(db));
 	 }
+	 /* If a pool is defined for this job, create the pool DB	
+	  *  record if it is not already created. 
+	  */
+	 if (job->pool) {
+	    create_pool(db, job->pool);
+	 }
 	 db_close_database(db);
       } else {
 	 if (job->client) {

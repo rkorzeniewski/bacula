@@ -72,6 +72,7 @@ mount_next_vol:
       memset(&dev->VolCatInfo, 0, sizeof(dev->VolCatInfo));
       memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
       dev->state &= ~ST_LABEL;	      /* label not yet read */
+      jcr->VolumeName[0] = 0;
 
       if (!dev_is_tape(dev) || !(dev->capabilities & CAP_ALWAYSOPEN)) {
 	 if (dev->capabilities & CAP_OFFLINEUNMOUNT) {
@@ -91,14 +92,16 @@ mount_next_vol:
 	 }
       }
       ask = 1;			      /* ask operator to mount tape */
-   } else {
-      /* 
-       * Get Director's idea of what tape we should have mounted. 
-       */
-      if (!dir_find_next_appendable_volume(jcr)) {
-	 ask = 1;		      /* we must ask */
-      }
    }
+
+   /* 
+    * Get Director's idea of what tape we should have mounted. 
+    */
+   if (!dir_find_next_appendable_volume(jcr)) {
+      ask = 1;			   /* we must ask */
+   }
+   Dmsg2(100, "After find_next_append. Vol=%s Slot=%d\n",
+      jcr->VolCatInfo.VolCatName, jcr->VolCatInfo.Slot);
    release = 1;                       /* release if we "recurse" */
 
    /* 
@@ -161,6 +164,7 @@ mount_next_vol:
 	    force_close_dev(dev);
 	    if (loaded != 0) {	      /* must unload drive */
                Dmsg0(100, "Doing changer unload.\n");
+               Jmsg(jcr, M_INFO, 0, _("Issuing autochanger \"unload\" command.\n"));
 	       changer = edit_device_codes(jcr, changer, 
                            jcr->device->changer_command, "unload");
 	       status = run_program(changer, timeout, NULL);
@@ -170,6 +174,8 @@ mount_next_vol:
 	     * Load the desired cassette    
 	     */
             Dmsg1(100, "Doing changer load slot %d\n", slot);
+            Jmsg(jcr, M_INFO, 0, _("Issuing autochanger \"load slot %d\" command.\n"),
+	       slot);
 	    changer = edit_device_codes(jcr, changer, 
                          jcr->device->changer_command, "load");
 	    status = run_program(changer, timeout, NULL);
@@ -365,6 +371,7 @@ read_volume:
    Dmsg0(100, "Normal return from read_dev_for_append\n");
    return 1; 
 }
+
 
 int mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 {

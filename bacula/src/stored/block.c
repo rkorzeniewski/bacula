@@ -240,12 +240,10 @@ static int unser_block_header(DEVICE *dev, DEV_BLOCK *block)
 int write_block_to_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 {
    int stat = 1;
-   new_lock_device(dev);
    lock_device(dev);
    if (!write_block_to_dev(dev, block)) {
        stat = fixup_device_block_write_error(jcr, dev, block);
    }
-   new_unlock_device(dev);
    unlock_device(dev);
    return stat;
 }

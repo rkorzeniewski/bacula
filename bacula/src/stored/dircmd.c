@@ -226,18 +226,19 @@ static int cancel_cmd(JCR *cjcr)
  */
 static int label_cmd(JCR *jcr) 
 {
-   char *dname, *volname, *poolname, *mtype;
+   POOLMEM *dname, *volname, *poolname, *mtype;
    BSOCK *dir = jcr->dir_bsock;
    DEVRES *device;
    DEVICE *dev;
    int found = 0;
+   int slot;	
 
-   dname = (char *) get_memory(dir->msglen+1);
-   volname = (char *) get_memory(dir->msglen+1);
-   poolname = (char *) get_memory(dir->msglen+1);
-   mtype = (char *) get_memory(dir->msglen+1);
-   if (sscanf(dir->msg, "label %s VolumeName=%s PoolName=%s MediaType=%s", 
-       dname, volname, poolname, mtype) == 4) {
+   dname = get_memory(dir->msglen+1);
+   volname = get_memory(dir->msglen+1);
+   poolname = get_memory(dir->msglen+1);
+   mtype = get_memory(dir->msglen+1);
+   if (sscanf(dir->msg, "label %s VolumeName=%s PoolName=%s MediaType=%s Slot=%d",
+       dname, volname, poolname, mtype, &slot) == 5) {
       unbash_spaces(dname);
       unbash_spaces(volname);
       unbash_spaces(poolname);
@@ -254,13 +255,11 @@ static int label_cmd(JCR *jcr)
       }
       UnlockRes();
       if (found) {
-#ifdef NEW_LOCK
-	 int label_it = FALSE;
-	 brwsteal_t hold;
-#endif
 	 /******FIXME**** compare MediaTypes */
 	 jcr->device = device;
 	 dev = device->dev;
+
+/* *****FIXME***** add autochanger code */
 
 #ifdef NEW_LOCK
 	 P(dev->lock.mutex);
@@ -346,11 +345,9 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *vname, char *poolnam
 {
    BSOCK *dir = jcr->dir_bsock;
    DEV_BLOCK *block;
-#ifndef NEW_LOCK
    bsteal_lock_t hold;
    
    steal_device_lock(dev, &hold, BST_WRITING_LABEL);
-#endif
    
    strcpy(jcr->VolumeName, vname);
    block = new_block(dev);
@@ -375,9 +372,7 @@ Unknown status %d from read_volume_label()\n"), jcr->label_status);
 	 break;
    }
    free_block(block);
-#ifndef NEW_LOCK
    return_device_lock(dev, &hold);
-#endif
 }
 
 

@@ -28,6 +28,7 @@ From Chuck:
 --sd.conf password does not match dir.conf storage password
 =======
 
+- Create all pools when Director starts
 - Implement autochanger for restore. ARRRGGG! I forgot!
 - Make BSR accept count (total files to be restored).
 - Make BSR return next_block when it knows record is not

@@ -41,7 +41,6 @@ int acquire_device_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 {
    int stat;
 
-   new_lock_device_state(dev, BST_DOING_ACQUIRE);
    lock_device(dev);
    if (dev->state & ST_READ || dev->num_writers > 0) {
       Jmsg(jcr, M_FATAL, 0, _("Device %s is busy.\n"), dev_name(dev));
@@ -53,12 +52,9 @@ int acquire_device_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    block_device(dev, BST_DOING_ACQUIRE);
    unlock_device(dev);
    stat = ready_dev_for_read(jcr, dev, block);	
-#ifndef NEW_LOCK
    P(dev->mutex); 
    unblock_device(dev);
    V(dev->mutex);
-#endif
-   new_unlock_device(dev);
    return stat;
 }
 
@@ -74,7 +70,6 @@ int acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    int release = 0;
    int do_mount = 0;
 
-   new_lock_device_state(dev, BST_DOING_ACQUIRE);
    lock_device(dev);
    Dmsg1(190, "acquire_append device is %s\n", dev_is_tape(dev)?"tape":"disk");
 
@@ -97,7 +92,6 @@ int acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	 if (dev->num_writers != 0) {
             Jmsg(jcr, M_FATAL, 0, _("Device %s is busy writing with another Volume.\n"), dev_name(dev));
 	    unlock_device(dev);
-	    new_unlock_device(dev);
 	    return 0;
 	 }
 	 /* Wrong tape mounted, release it, then fall through to get correct one */
@@ -109,7 +103,6 @@ int acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       if (dev->state & ST_READ) {
          Jmsg(jcr, M_FATAL, 0, _("Device %s is busy reading.\n"), dev_name(dev));
 	 unlock_device(dev);
-	 new_unlock_device(dev);
 	 return 0;
       } 
       ASSERT(dev->num_writers == 0);
@@ -122,18 +115,13 @@ int acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       if (!mount_next_write_volume(jcr, dev, block, release)) {
          Jmsg(jcr, M_FATAL, 0, _("Could not ready device %s for append.\n"),
 	    dev_name(dev));
-#ifndef NEW_LOCK
 	 P(dev->mutex);
 	 unblock_device(dev);
 	 unlock_device(dev);
-#endif
-	 new_unlock_device(dev);
 	 return 0;
       }
-#ifndef NEW_LOCK
       P(dev->mutex);
       unblock_device(dev);
-#endif
    }
 
    dev->num_writers++;
@@ -146,7 +134,6 @@ int acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    }
    attach_jcr_to_device(dev, jcr);    /* attach jcr to device */
    unlock_device(dev);
-   new_unlock_device(dev);
    return 1;			      /* got it */
 }
 
@@ -157,10 +144,7 @@ int acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
  */
 int release_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 {
-#ifndef NEW_LOCK
    P(dev->mutex);
-#endif
-   new_lock_device(dev);
    Dmsg1(100, "release_device device is %s\n", dev_is_tape(dev)?"tape":"disk");
    if (dev->state & ST_READ) {
       dev->state &= ~ST_READ;	      /* clear read bit */
@@ -200,9 +184,7 @@ int release_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       Jmsg1(jcr, M_ERROR, 0, _("BAD ERROR: release_device %s not in use.\n"), dev_name(dev));
    }
    detach_jcr_from_device(dev, jcr);
-#ifndef NEW_LOCK
    V(dev->mutex);
-#endif
    new_unlock_device(dev);
    return 1;
 }

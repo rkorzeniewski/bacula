@@ -80,10 +80,11 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    wait_time = time(NULL);
    status_dev(dev, &stat);
    if (stat & MT_EOD) {
-      Dmsg0(190, "======= Got EOD ========\n");
+      Dmsg0(100, "======= Got EOD ========\n");
 
-      new_lock_device_state(dev, BST_DOING_ACQUIRE);
       block_device(dev, BST_DOING_ACQUIRE);
+      /* Unlock, but leave BLOCKED */
+      unlock_device(dev);
 
       /* 
        * Walk through all attached jcrs creating a jobmedia_record()
@@ -96,6 +97,8 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	 if (!dir_create_jobmedia_record(mjcr)) {
             Jmsg(mjcr, M_ERROR, 0, _("Could not create JobMedia record for Volume=%s Job=%s\n"),
 	       dev->VolCatInfo.VolCatName, mjcr->Job);
+	    P(dev->mutex);
+	    unblock_device(dev);
 	    return 0;
 	 }
       }
@@ -106,7 +109,8 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       if (!dir_update_volume_info(jcr, &dev->VolCatInfo, 0)) {	  /* send Volume info to Director */
          Jmsg(jcr, M_ERROR, 0, _("Could not update Volume info Volume=%s Job=%s\n"),
 	    dev->VolCatInfo.VolCatName, jcr->Job);
-	 new_unlock_device(dev);
+	 P(dev->mutex);
+	 unblock_device(dev);
 	 return 0;		      /* device locked */
       }
       Dmsg0(190, "Back from update_vol_info\n");
@@ -121,19 +125,12 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	   PrevVolName, edit_uint64_with_commas(dev->VolCatInfo.VolCatBytes, b1),
 	   edit_uint64_with_commas(dev->VolCatInfo.VolCatBlocks, b2));
 
-      /* Unlock, but leave BLOCKED */
-      unlock_device(dev);
       if (!mount_next_write_volume(jcr, dev, label_blk, 1)) {
-	 new_unlock_device(dev);
-#ifndef NEW_LOCK
 	 P(dev->mutex);
-#endif
 	 unblock_device(dev);
 	 return 0;		      /* device locked */
       }
-#ifndef NEW_LOCK
       P(dev->mutex);		      /* lock again */
-#endif
 
       Jmsg(jcr, M_INFO, 0, _("New volume %s mounted on device %s\n"),
 	 jcr->VolumeName, dev_name(dev));
@@ -149,7 +146,6 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
          Pmsg1(0, "write_block_to_device Volume label failed. ERR=%s",
 	   strerror_dev(dev));
 	 free_block(label_blk);
-	 new_unlock_device(dev);
 	 unblock_device(dev);
 	 return 0;		      /* device locked */
       }
@@ -160,7 +156,6 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
          Pmsg1(0, "write_block_to_device overflow block failed. ERR=%s",
 	   strerror_dev(dev));
 	 free_block(label_blk);
-	 new_unlock_device(dev);
 	 unblock_device(dev);
 	 return 0;		      /* device locked */
       }
@@ -175,14 +170,12 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	 mjcr->VolFirstFile = mjcr->JobFiles;
 	 mjcr->run_time += time(NULL) - wait_time; /* correct run time */
       }
-      new_unlock_device(dev);
       unblock_device(dev);
       return 1; 			       /* device locked */
    }
    if (label_blk) {
       free_block(label_blk);
    }
-   new_unlock_device(dev);
    return 0;			      /* device locked */
 }
 
@@ -208,13 +201,11 @@ int open_device(DEVICE *dev)
       return 0;
    }
 
-   new_lock_device(dev);
    lock_device(dev);
 
    /* Defer opening files */
    if (!dev_is_tape(dev)) {
       Dmsg0(129, "Device is file, deferring open.\n");
-      new_unlock_device(dev);
       unlock_device(dev);
       return 1;
    }
@@ -223,14 +214,12 @@ int open_device(DEVICE *dev)
       Dmsg0(129, "Opening device.\n");
       if (open_dev(dev, NULL, READ_WRITE) < 0) {
          Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), dev->errmsg);
-	 new_unlock_device(dev);
 	 unlock_device(dev);
 	 return 0;
       }
    }
    Dmsg1(129, "open_dev %s OK\n", dev_name(dev));
 
-   new_unlock_device(dev);
    unlock_device(dev);
    return 1;
 }
@@ -240,11 +229,10 @@ int open_device(DEVICE *dev)
  * must wait. The no_wait_id thread is out obtaining a new volume
  * and preparing the label.
  */
-void lock_device(DEVICE *dev)
+void _lock_device(char *file, int line, DEVICE *dev)
 {
-#ifndef NEW_LOCK
    int stat;
-   Dmsg1(190, "lock %d\n", dev->dev_blocked);
+   Dmsg3(100, "lock %d from %s:%d\n", dev->dev_blocked, file, line);
    P(dev->mutex);
    if (dev->dev_blocked && !pthread_equal(dev->no_wait_id, pthread_self())) {
       dev->num_waiting++;	      /* indicate that I am waiting */
@@ -257,15 +245,12 @@ void lock_device(DEVICE *dev)
       }
       dev->num_waiting--;	      /* no longer waiting */
    }
-#endif
 }
 
-void unlock_device(DEVICE *dev) 
+void _unlock_device(char *file, int line, DEVICE *dev) 
 {
-#ifndef NEW_LOCK
-   Dmsg0(190, "unlock\n");
+   Dmsg2(100, "unlock from %s:%d\n", file, line);
    V(dev->mutex);
-#endif
 }
 
 /* 
@@ -276,49 +261,45 @@ void unlock_device(DEVICE *dev)
  *  the current thread can do slip through the lock_device()
  *  calls without blocking.
  */
-void block_device(DEVICE *dev, int state)
+void _block_device(char *file, int line, DEVICE *dev, int state)
 {
-#ifndef NEW_LOCK
-   Dmsg1(190, "block set %d\n", state);
+   Dmsg3(100, "block set %d from %s:%d\n", state, file, line);
    ASSERT(dev->dev_blocked == BST_NOT_BLOCKED);
    dev->dev_blocked = state;	      /* make other threads wait */
    dev->no_wait_id = pthread_self();  /* allow us to continue */
-#endif
 }
 
 /*
  * Unblock the device, and wake up anyone who went to sleep.
  */
-void unblock_device(DEVICE *dev)
+void _unblock_device(char *file, int line, DEVICE *dev)
 {
-#ifndef NEW_LOCK
-   Dmsg1(190, "unblock %d\n", dev->dev_blocked);
+   Dmsg3(100, "unblock %d from %s:%d\n", dev->dev_blocked, file, line);
    ASSERT(dev->dev_blocked);
    dev->dev_blocked = BST_NOT_BLOCKED;
    if (dev->num_waiting > 0) {
       pthread_cond_broadcast(&dev->wait); /* wake them up */
    }
-#endif
 }
 
-void steal_device_lock(DEVICE *dev, bsteal_lock_t *hold, int state)
+void _steal_device_lock(char *file, int line, DEVICE *dev, bsteal_lock_t *hold, int state)
 {
-#ifndef NEW_LOCK
+   Dmsg4(100, "steal lock. old=%d new=%d from %s:%d\n", dev->dev_blocked, state,
+      file, line);
    hold->dev_blocked = dev->dev_blocked;
    hold->no_wait_id = dev->no_wait_id;
    dev->dev_blocked = state;
    dev->no_wait_id = pthread_self();
    V(dev->mutex);
-#endif
 }
 
-void return_device_lock(DEVICE *dev, bsteal_lock_t *hold)	    
+void _return_device_lock(char *file, int line, DEVICE *dev, bsteal_lock_t *hold)	   
 {
-#ifndef NEW_LOCK
+   Dmsg4(100, "return lock. old=%d new=%d from %s:%d\n", 
+      dev->dev_blocked, hold->dev_blocked, file, line);
    P(dev->mutex);
    dev->dev_blocked = hold->dev_blocked;
    dev->no_wait_id = hold->no_wait_id;
-#endif
 }
 
 
@@ -331,7 +312,7 @@ void return_device_lock(DEVICE *dev, bsteal_lock_t *hold)
 /*
  * New device locking scheme 
  */
-void _lock_device(char *file, int line, DEVICE *dev)
+void _new_lock_device(char *file, int line, DEVICE *dev)
 {
 #ifdef NEW_LOCK
    int errstat;
@@ -342,7 +323,7 @@ void _lock_device(char *file, int line, DEVICE *dev)
 #endif
 }    
 
-void _lock_device(char *file, int line, DEVICE *dev, int state)
+void _new_lock_device(char *file, int line, DEVICE *dev, int state)
 {
 #ifdef NEW_LOCK
    int errstat;
@@ -354,7 +335,7 @@ void _lock_device(char *file, int line, DEVICE *dev, int state)
 #endif
 }    
 
-void _unlock_device(char *file, int line, DEVICE *dev)
+void _new_unlock_device(char *file, int line, DEVICE *dev)
 {
 #ifdef NEW_LOCK
    int errstat;

@@ -97,7 +97,7 @@ db_list_media_records(B_DB *mdb, MEDIA_DBR *mdbr, DB_LIST_HANDLER *sendit, void 
 {
 
    Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,MediaType,VolStatus,\
-VolBytes,LastWritten,VolRetention,Recycle \
+VolBytes,LastWritten,VolRetention,Recycle,Slot \
 FROM Media WHERE Media.PoolId=%d ORDER BY MediaId", mdbr->PoolId);
 
    db_lock(mdb);

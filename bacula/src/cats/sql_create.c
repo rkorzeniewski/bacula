@@ -238,15 +238,16 @@ db_create_media_record(B_DB *mdb, MEDIA_DBR *mr)
 
    /* Must create it */
    Mmsg(&mdb->cmd, 
-"INSERT INTO Media (VolumeName, MediaType, PoolId, VolMaxBytes, VolCapacityBytes, \
-Recycle, VolRetention, VolStatus) VALUES ('%s', '%s', %d, %s, %s, %d, %s, '%s')", 
+"INSERT INTO Media (VolumeName,MediaType,PoolId,VolMaxBytes,VolCapacityBytes, \
+Recycle,VolRetention,VolStatus,Slot) VALUES ('%s', '%s', %d, %s, %s, %d, %s, '%s', %d)", 
 		  mr->VolumeName,
 		  mr->MediaType, mr->PoolId, 
 		  edit_uint64(mr->VolMaxBytes,ed1),
 		  edit_uint64(mr->VolCapacityBytes, ed2),
 		  mr->Recycle,
 		  edit_uint64(mr->VolRetention, ed3),
-		  mr->VolStatus);
+		  mr->VolStatus,
+		  mr->Slot);
 
    Dmsg1(500, "Create Volume: %s\n", mdb->cmd);
    if (!INSERT_DB(mdb, mdb->cmd)) {

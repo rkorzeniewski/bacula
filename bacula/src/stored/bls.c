@@ -134,7 +134,7 @@ int main (int argc, char *argv[])
 	    }
 	    while (fgets(line, sizeof(line), fd) != NULL) {
 	       strip_trailing_junk(line);
-               Dmsg1(000, "add_exclude %s\n", line);
+               Dmsg1(100, "add_exclude %s\n", line);
 	       add_fname_to_exclude_list(&ff, line);
 	    }
 	    fclose(fd);
@@ -148,7 +148,7 @@ int main (int argc, char *argv[])
 	    }
 	    while (fgets(line, sizeof(line), fd) != NULL) {
 	       strip_trailing_junk(line);
-               Dmsg1(000, "add_include %s\n", line);
+               Dmsg1(100, "add_include %s\n", line);
 	       add_fname_to_include_list(&ff, 0, line);
 	    }
 	    fclose(fd);
@@ -245,7 +245,7 @@ static void do_setup(char *infname)
 	 *p = 0;
       }
    }
-   Dmsg2(000, "Device=%s, Vol=%s.\n", infname, VolName);
+   Dmsg2(100, "Device=%s, Vol=%s.\n", infname, VolName);
    dev = init_dev(NULL, infname);
    if (!dev) {
       Emsg1(M_FATAL, 0, "Cannot open %s\n", infname);
@@ -490,14 +490,14 @@ Warning, this Volume is a continuation of Volume %s\n",
          Dmsg0(20, "!read_record()\n");
 	 if (dev->state & ST_EOT) {
 	    DEV_RECORD *record;
-            Dmsg3(000, "EOT. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
+            Dmsg3(100, "EOT. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
 		  block->BlockNumber, rec->remainder);
 	    if (!mount_next_volume(infname)) {
-               Dmsg3(000, "After mount next vol. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
+               Dmsg3(100, "After mount next vol. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
 		  block->BlockNumber, rec->remainder);
 	       break;
 	    }
-            Dmsg3(000, "After mount next vol. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
+            Dmsg3(100, "After mount next vol. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
 		  block->BlockNumber, rec->remainder);
 	    record = new_record();
 	    read_block_from_device(dev, block);

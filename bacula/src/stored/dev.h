@@ -31,9 +31,16 @@
 
 /* #define NEW_LOCK 1 */
 
-#define new_lock_device(dev)             _lock_device(__FILE__, __LINE__, (dev)) 
-#define new_lock_device_state(dev,state) _lock_device(__FILE__, __LINE__, (dev), (state))
-#define new_unlock_device(dev)           _unlock_device(__FILE__, __LINE__, (dev))
+#define new_lock_device(dev)             _new_lock_device(__FILE__, __LINE__, (dev)) 
+#define new_lock_device_state(dev,state) _new_lock_device(__FILE__, __LINE__, (dev), (state))
+#define new_unlock_device(dev)           _new_unlock_device(__FILE__, __LINE__, (dev))
+
+#define lock_device(d) _lock_device(__FILE__, __LINE__, (d))
+#define unlock_device(d) _unlock_device(__FILE__, __LINE__, (d))
+#define block_device(d, s) _block_device(__FILE__, __LINE__, (d), s)
+#define unblock_device(d) _unblock_device(__FILE__, __LINE__, (d))
+#define steal_device_lock(d, p, s) _steal_device_lock(__FILE__, __LINE__, (d), (p), s)
+#define return_device_lock(d, p) _return_device_lock(__FILE__, __LINE__, (d), (p))
 
 /* Arguments to open_dev() */
 #define READ_WRITE 0

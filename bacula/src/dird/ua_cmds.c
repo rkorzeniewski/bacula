@@ -145,11 +145,13 @@ static int addcmd(UAContext *ua, char *cmd)
    int num, i, max, startnum;
    int first_id = 0;
    char name[MAX_NAME_LENGTH];
+   STORE *store;
+   int slot = 0;
 
    bsendmsg(ua, _(
 "You probably don't want to be using this command since it\n"
 "creates database records without labeling the Volumes.\n"
-"You probably want to use the label command.\n\n"));
+"You probably want to use the \"label\" command.\n\n"));
 
    if (!open_db(ua)) {
       return 1;
@@ -180,10 +182,15 @@ static int addcmd(UAContext *ua, char *cmd)
       }
    }
 
-   if (!get_media_type(ua, mr.MediaType)) {
-      return 1;
+   /* Get media type */
+   if ((store = get_storage_resource(ua, cmd)) != NULL) {
+      strcpy(mr.MediaType, store->media_type);
+   } else {
+      if (!get_media_type(ua, mr.MediaType)) {
+	 return 1;
+      }
    }
-
+      
    if (pr.MaxVols == 0) {
       max = 1000;
    } else {
@@ -212,6 +219,7 @@ getVolName:
 	 return 1;
       }
    }
+   /* Don't allow | in Volume name because it is the volume separator character */
    if (strchr(ua->cmd, '|')) {
       bsendmsg(ua, _("Illegal character | in a volume name.\n"));
       goto getVolName;
@@ -244,6 +252,13 @@ getVolName:
       startnum = 1;
       num = 1;
    }
+
+   if (store && store->autochanger) {
+      if (!get_cmd(ua, _("Enter slot (0 for none): "))) {
+	 return 1;
+      }
+      slot = atoi(ua->cmd);
+   }
 	   
    mr.PoolId = pr.PoolId;
    strcpy(mr.VolStatus, "Append");
@@ -251,6 +266,7 @@ getVolName:
    mr.VolRetention = pr.VolRetention;
    for (i=startnum; i < num+startnum; i++) { 
       sprintf(mr.VolumeName, name, i);
+      mr.Slot = slot++;
       Dmsg1(200, "Create Volume %s\n", mr.VolumeName);
       if (!db_create_media_record(ua->db, &mr)) {
 	 bsendmsg(ua, db_strerror(ua->db));
@@ -1075,6 +1091,7 @@ static int labelcmd(UAContext *ua, char *cmd)
    int ok = FALSE;
    int mounted = FALSE;
    int i;
+   int slot = 0;
    static char *keyword[] = {
       "volume",
       NULL};
@@ -1111,6 +1128,7 @@ gotVol:
       goto getVol;
    }
 
+
    memset(&mr, 0, sizeof(mr));
    strcpy(mr.VolumeName, ua->cmd);
    if (db_get_media_record(ua->db, &mr)) {
@@ -1118,7 +1136,16 @@ gotVol:
 	  mr.VolumeName);
        return 1;
    }
+
+   /* Do some more checking on slot ****FIXME**** */
+   if (store->autochanger) {
+      if (!get_cmd(ua, _("Enter slot (0 for none): "))) {
+	 return 1;
+      }
+      slot = atoi(ua->cmd);
+   }
    strcpy(mr.MediaType, store->media_type);
+   mr.Slot = slot;
 
    memset(&pr, 0, sizeof(pr));
    if (!select_pool_dbr(ua, &pr)) {
@@ -1142,8 +1169,8 @@ gotVol:
    bash_spaces(mr.VolumeName);
    bash_spaces(mr.MediaType);
    bash_spaces(pr.Name);
-   bnet_fsend(sd, _("label %s VolumeName=%s PoolName=%s MediaType=%s"), 
-      dev_name, mr.VolumeName, pr.Name, mr.MediaType);
+   bnet_fsend(sd, _("label %s VolumeName=%s PoolName=%s MediaType=%s Slot=%d"), 
+      dev_name, mr.VolumeName, pr.Name, mr.MediaType, mr.Slot);
    bsendmsg(ua, "Sending label command ...\n");
    while (bget_msg(sd, 0) > 0) {
       bsendmsg(ua, "%s", sd->msg);
