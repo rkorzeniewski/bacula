@@ -278,8 +278,13 @@ int main (int argc, char *argv[])
 static bool bscan_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 {
    Dmsg1(100, "Walk attached jcrs. Volume=%s\n", dev->VolCatInfo.VolCatName);
+#ifdef xxx
    for (JCR *mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
       DCR *dcr = mjcr->dcr;
+#endif
+   DCR *dcr;
+   foreach_dlist(dcr, dev->attached_dcrs) {
+      JCR *mjcr = dcr->jcr;
       if (verbose) {
          Pmsg1(000, _("Create JobMedia for Job %s\n"), mjcr->Job);
       }

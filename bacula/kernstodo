@@ -1,8 +1,9 @@
                  Kern's ToDo List
-                   14 July 2004
+                   22 July 2004
 
 1.35 Items to do:
 - Do tape alerts -- see tapealert.txt
+- Fix errno handling in win32 compat routines.
 - Revisit and revise Disaster Recovery (fix SCSI and RAID 
   disk detection)
 - Document a get out of jail procedure if everything breaks if 
@@ -20,6 +21,8 @@
 - Add new DCR calling sequences everywhere in SD.
   This will permit simultaneous use of multiple 
   devices by a single job.
+- bscan does not put first of two volumes back with all info in
+  bscan-test.
 
 Documentation to do: (any release a little bit at a time)
 - Document query file format.
@@ -58,6 +61,10 @@ For 1.37 Testing/Documentation:
   non-existent directories will not be restored properly.
 
 Wish list:  
+- Figure out how to make named console messages go only to that
+  console and to the non-restricted console (new console class?).
+- Make restricted console prompt for password if *ask* is set or
+  perhaps if password is undefined.
 - Implement "from ISO-date/time every x hours/days/weeks/months" in
   schedules.
 - Compaction of Disk space by "migrating" Volumes that have pruned
@@ -1098,4 +1105,3 @@ Block Position: 0
 - Fix GROUP BYs in all SQL (done by Dan -- thanks)
 - Make entering multiple Storage names in Dir illegal.
 - Make btape release the drive during the "test" append.
-
