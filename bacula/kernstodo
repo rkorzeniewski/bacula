@@ -55,7 +55,8 @@ For 1.33 Testing/Documentation:
 - Add subsections to the Disaster Recovery index section.
                 
 For 1.33
-- Restrict characters permitted in a name.
+- Make Bacula "poll a drive".
+- Fix "llist jobid=xx" where no fileset or client exists.
 - Release SQLite 2.8.8
 - If a tape is recycled while it is mounted, Stanislav Tvrudy must do an
   additional mount to deblock the job.
@@ -63,33 +64,20 @@ For 1.33
   Could I get you to double check the switch () statements in the
   job_check_maxwaittime and job_check_maxruntime functions in
   src/dird/job.c?
-- In restore, provide option for limiting to a particular Pool.
-- In restore, list FileSets that only have different base names --
-  i.e. any FileSet with the same name should be treated as the same.
 - From Johan Decock:
   bscan: sql_update.c:65 UPDATE File SET MD5='Ij+5kwN6TFIxK+8l8+/I+A' WHERE FileId=0
   bscan: bscan.c:1074 Could not add MD5/SHA1 to File record. ERR=sql_update.c:65 Update problem: affected_rows=0
 - Do scheduling by UTC using gmtime_r() in run_conf, scheduler, and   
   ua_status.!!! Thanks to Alan Brown for this tip.
-- Look at Dan's field width problems in PostgreSQL.
-- Look at effect of removing GROUP BYs.
-- In restore take all filesets with same base name.
-- From Alan Brown <ajb2@mssl.ucl.ac.uk>
-    BTW, there's a make install bug in 1.33 - with --enable-gnome,
-    gnome-console is built, but the binary and .conf are not being installed.
-- Make Scheduler sort jobs by StartTime, Priority.
-- Make sure smtp and any other useful program is executable by the world
-  in case Bacula is not running as root.
 - Look at updating Volume Jobs so that Max Volume Jobs = 1 will work
   correctly for multiple simultaneous jobs.
 - Correct code so that FileSet MD5 is calculated for < and | filename   
   generation.
-- Permit Bacula and apcupsd donations.
 - Mark Volume in error on error from WEOF.
 - Why does Bacula need the drive open to do "autochanger list" ?
 - Add a .list all files in the restore tree (probably also a list all files)
   Do both a long and short form.
-- Add a Media record flag that indicates that the Volume does disk
+- Implement the Media record flag that indicates that the Volume does disk 
   addressing.
 - Implement VolAddr, which is used when Volume is addressed like a disk,
   and form it from VolFile and VolBlock.
@@ -113,7 +101,6 @@ For 1.33
   resources, like Level? If so, I think I'd make it an optional directive
   in Job, Client, and Pool, with precedence such that Job overrides Client
   which in turn overrides Pool.
-- Fix Ctl-C crashing the Console (readline?).
 - Finish work on conio.c
 - To pass Include 1 or two letter commands
   I Name           Include name - first record
@@ -1054,3 +1041,19 @@ Done: (see kernsdone for more)
 - Setup a standard job that builds a bootstrap file and saves
   it with the catalog database.
 - See if a restore job can add a file to the tape (prohibit this).
+- Restrict characters permitted in a name.
+- In restore, provide option for limiting to a particular Pool.
+- In restore, list FileSets that only have different base names --
+  i.e. any FileSet with the same name should be treated as the same.
+- Make Scheduler sort jobs by StartTime, Priority.
+- Make sure smtp and any other useful program is executable by the world
+  in case Bacula is not running as root.
+- Look at Dan's field width problems in PostgreSQL.
+- Look at effect of removing GROUP BYs.
+- In restore take all filesets with same base name.
+- From Alan Brown <ajb2@mssl.ucl.ac.uk>
+    BTW, there's a make install bug in 1.33 - with --enable-gnome,
+    gnome-console is built, but the binary and .conf are not being installed.
+- Permit Bacula and apcupsd donations (not done for apcupsd).
+- Fix Ctl-C crashing the Console (readline?).
+
