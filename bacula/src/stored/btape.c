@@ -333,6 +333,7 @@ static bool open_the_device()
       }
    }
    Pmsg1(000, "open_dev %s OK\n", dev_name(dev));
+   dev->state |= ST_APPEND;
    unlock_device(dev);
    free_block(block);
    return true;
@@ -1747,6 +1748,7 @@ This may take a long time -- hours! ...\n\n");
    /* Use fixed block size to simplify read back */
    min_block_size = dev->min_block_size;
    dev->min_block_size = dev->max_block_size;
+   set_volume_name("TestVolume1", 1);
 
    /* 
     * Acquire output device for writing.  Note, after acquiring a
