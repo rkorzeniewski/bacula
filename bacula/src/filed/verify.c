@@ -205,7 +205,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
       char MD5buf[40];		      /* 24 should do */
       MD5Init(&md5c);
       while ((n=bread(&bfd, jcr->big_buf, jcr->buf_size)) > 0) {
-	 MD5Update(&md5c, ((unsigned char *) jcr->big_buf), n);
+	 MD5Update(&md5c, ((unsigned char *)jcr->big_buf), (int)n);
 	 jcr->JobBytes += n;
 	 jcr->ReadBytes += n;
       }
@@ -225,7 +225,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
       char SHA1buf[40]; 	      /* 24 should do */
       SHA1Init(&sha1c);
       while ((n=bread(&bfd, jcr->big_buf, jcr->buf_size)) > 0) {
-	 SHA1Update(&sha1c, ((unsigned char *) jcr->big_buf), n);
+	 SHA1Update(&sha1c, ((unsigned char *)jcr->big_buf), (int)n);
 	 jcr->JobBytes += n;
 	 jcr->ReadBytes += n;
       }
