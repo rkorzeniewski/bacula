@@ -181,6 +181,10 @@ void free_jcr(JCR *jcr)
       jcr->daemon_free_jcr(jcr);      /* call daemon free routine */
    }
    free_common_jcr(jcr);
+
+   P(mutex);
+   close_msg(NULL);		      /* flush any daemon messages */
+   V(mutex);
    Dmsg0(200, "Exit free_jcr\n");
 }
 

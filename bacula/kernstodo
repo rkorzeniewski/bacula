@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                 25 January 2003 
+                 05 February 2003 
 
 Documentation to do: (a little bit at a time)
 - Document running a test version.
@@ -45,10 +45,8 @@ For 1.30 release:
 - Need a verbose mode in restore, perhaps to bsr.
 - bscan without -v is too quiet -- perhaps show jobs.
 - Add code to reject whole blocks if not wanted on restore.
-- Implement multiple simultaneous file Volumes on a single device.
 - Start working on Base jobs.
 - Make sure the MaxVolFiles is fully implemented in SD
-- Flush all the daemon messages at the end of every job.
 - Check if both CatalogFiles and UseCatalog are set to SD.
 - Check if we can increase Bacula FD priorty in Win2000
 - Need return status on read_cb() from read_records(). Need multiple
@@ -833,4 +831,7 @@ Done: (see kernsdone for more)
 - Umasked 022 daemons
 - Fix restore of hard linked file.
 - Figure out how to allow multiple simultaneous file Volumes on a single device.
+- Implement multiple simultaneous file Volumes on a single device.
 - Cleanup db_update_media and db_update_pool
+- Flush all the daemon messages at the end of every job.
+

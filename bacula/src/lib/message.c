@@ -41,9 +41,9 @@ char my_name[20];		      /* daemon name is stored here */
 char *exepath = (char *)NULL;
 char *exename = (char *)NULL;
 int console_msg_pending = 0;
-char con_fname[1000];
-FILE *con_fd = NULL;
-brwlock_t con_lock; 
+char con_fname[500];		      /* Console filename */
+FILE *con_fd = NULL;		      /* Console file descriptor */
+brwlock_t con_lock;		      /* Console lock structure */
 
 #ifdef TRACE_FILE
 FILE *trace_fd = NULL;
@@ -161,7 +161,7 @@ init_msg(void *vjcr, MSGS *msg)
 
    /*
     * Walk down the message resource chain duplicating it
-    * for the current Job.   ****FIXME***** segfault on memcpy
+    * for the current Job.
     */
    for (d=msg->dest_chain; d; d=d->next) {
       dnew = (DEST *)malloc(sizeof(DEST));
@@ -184,6 +184,10 @@ init_msg(void *vjcr, MSGS *msg)
       jcr->jcr_msgs->dest_chain = temp_chain;
       memcpy(jcr->jcr_msgs->send_msg, msg->send_msg, sizeof(msg->send_msg));
    } else {
+      /* If we have default values, release them now */
+      if (daemon_msgs) {
+	 free_msgs_res(daemon_msgs);
+      }
       daemon_msgs = (MSGS *)malloc(sizeof(MSGS));
       memset(daemon_msgs, 0, sizeof(MSGS));
       daemon_msgs->dest_chain = temp_chain;
@@ -200,7 +204,7 @@ void init_console_msg(char *wd)
 {
    int fd;
 
-   sprintf(con_fname, "%s/%s.conmsg", wd, my_name);
+   bsnprintf(con_fname, sizeof(con_fname), "%s/%s.conmsg", wd, my_name);
    fd = open(con_fname, O_CREAT|O_RDWR|O_BINARY, 0600);
    if (fd == -1) {
       Emsg2(M_ERROR_TERM, 0, _("Could not open console message file %s: ERR=%s\n"),
@@ -376,7 +380,6 @@ void close_msg(void *vjcr)
 
    if (jcr == NULL) {		     /* NULL -> global chain */
       msgs = daemon_msgs;
-      daemon_msgs = NULL;
    } else {
       msgs = jcr->jcr_msgs;
       jcr->jcr_msgs = NULL;
@@ -457,8 +460,10 @@ rem_temp_file:
    }
    free_pool_memory(cmd);
    Dmsg0(150, "Done walking message chain.\n");
-   free_msgs_res(msgs);
-   msgs = NULL;
+   if (jcr) {
+      free_msgs_res(msgs);
+      msgs = NULL;
+   }
    Dmsg0(150, "===End close msg resource\n");
 }
 
@@ -469,6 +474,7 @@ void free_msgs_res(MSGS *msgs)
 {
    DEST *d, *old;
 
+   /* Walk down the message chain releasing allocated buffers */
    for (d=msgs->dest_chain; d; ) {
       if (d->where) {
 	 free(d->where);
@@ -481,7 +487,7 @@ void free_msgs_res(MSGS *msgs)
       free(old);		      /* free the destination item */
    }
    msgs->dest_chain = NULL;
-   free(msgs);
+   free(msgs);			      /* free the head */
 }
 
 
@@ -496,6 +502,7 @@ void term_msg()
 {
    Dmsg0(100, "Enter term_msg\n");
    close_msg(NULL);		      /* close global chain */
+   free_msgs_res(daemon_msgs);	      /* free the resources */
    daemon_msgs = NULL;
    if (con_fd) {
       fflush(con_fd);
