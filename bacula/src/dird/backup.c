@@ -350,6 +350,7 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
    }
    kbps = (double)jcr->jr.JobBytes / (1000 * RunTime);
    if (!db_get_job_volume_names(jcr->db, jcr->jr.JobId, &jcr->VolumeName)) {
+      Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
       jcr->VolumeName[0] = 0;	      /* none */
    }
 

@@ -153,7 +153,7 @@ int db_get_file_attributes_record(B_DB *mdb, char *fname, FILE_DBR *fdbr)
  *  DO NOT use Jmsg in this routine.
  *
  *  Note in this routine, we do not use Jmsg because it may be
- *    called to get attributes of a non-existant file, which is
+ *    called to get attributes of a non-existent file, which is
  *    "normal" if a new file is found during Verify.
  */
 static
@@ -313,12 +313,12 @@ int db_get_job_record(B_DB *mdb, JOB_DBR *jr)
 
    db_lock(mdb);
    if (jr->JobId == 0) {
-      Mmsg(&mdb->cmd, "SELECT VolSessionId, VolSessionTime, \
-PoolId, StartTime, EndTime, JobFiles, JobBytes, JobTDate, Job, JobStatus \
+      Mmsg(&mdb->cmd, "SELECT VolSessionId,VolSessionTime,\
+PoolId,StartTime,EndTime,JobFiles,JobBytes,JobTDate,Job,JobStatus \
 FROM Job WHERE Job='%s'", jr->Job);
     } else {
-      Mmsg(&mdb->cmd, "SELECT VolSessionId, VolSessionTime, \
-PoolId, StartTime, EndTime, JobFiles, JobBytes, JobTDate, Job, JobStatus \
+      Mmsg(&mdb->cmd, "SELECT VolSessionId,VolSessionTime,\
+PoolId,StartTime,EndTime,JobFiles,JobBytes,JobTDate,Job,JobStatus \
 FROM Job WHERE JobId=%u", jr->JobId);
     }
 
@@ -328,7 +328,6 @@ FROM Job WHERE JobId=%u", jr->JobId);
    }
    if ((row = sql_fetch_row(mdb)) == NULL) {
       Mmsg1(&mdb->errmsg, _("No Job found for JobId %u\n"), jr->JobId);
-      Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
       sql_free_result(mdb);
       db_unlock(mdb);
       return 0; 		      /* failed */
@@ -356,6 +355,8 @@ FROM Job WHERE JobId=%u", jr->JobId);
  *	     number of volumes on success
  *		Volumes are concatenated in VolumeNames
  *		separated by a vertical bar (|).
+ *
+ *  Returns: number of volumes on success
  */
 int db_get_job_volume_names(B_DB *mdb, uint32_t JobId, POOLMEM **VolumeNames)
 {
@@ -374,8 +375,7 @@ AND JobMedia.MediaId=Media.MediaId", JobId);
       mdb->num_rows = sql_num_rows(mdb);
       Dmsg1(130, "Num rows=%d\n", mdb->num_rows);
       if (mdb->num_rows <= 0) {
-         Mmsg1(&mdb->errmsg, _("No volumes found for JobId=%d"), JobId);
-         Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
+         Mmsg1(&mdb->errmsg, _("No volumes found for JobId=%d\n"), JobId);
 	 stat = 0;
       } else {
 	 stat = mdb->num_rows;
