@@ -1,4 +1,18 @@
-2002-08-30 Version 1.25 (30Aug02) Beta
+2002-09-04 Version 1.25 (01Sep02) Released
+  General:
+- Added .cvsignore files in each directory to cut down on the
+  CVS output when scanning directories and finding Makefiles
+  and such which are not part of the CVS tree.
+
+  Changes submitted this submission:
+- Cleaned up a lot of the error messages in Verify, including
+  indenting.
+- Had to remove some of the "automatic" error message printing
+  in the DB because they are in fact things that come up 
+  for Verify but not really errors.
+
+
+  2002-08-30 Version 1.25 (30Aug02) Beta
   From kes30Aug02
 - Fixed a bug where only the first file was restored if
   it is hard linked. The other links were lost.
@@ -68,6 +82,7 @@
   reading them back much easier.
 - Fixed another restore bug concerning tape labels on multi-volume saves.
 
+=============================================================================
 2002-08-14 Version 1.24
   From kes12Aug02
 - Made a new tools directory.
@@ -200,11 +215,12 @@
 - Fixed improper printing of filenames containing a space in bls.c
   Thanks to Carlos for reporting this.
 
-
+===========================================================================
 2002-07-26 Release 1.23a
 - Fix segmentation fault is FD status.
 - Turn off TRANSACTIONs for SQLite.                        
 
+===========================================================================
 2002-07-23 Release 1.23
   From kes22Jul02
 - Updated Bacula to handle some minor differences in MySQL 4.0.2
@@ -393,7 +409,7 @@
   by the user in the config file. OffLineOnUnmount in Device resource.
 - Implemented AutoChanger = yes/no in Device resource.
 
-
+===========================================================================
 2002-07-07 Release 1.22
 - All the basic Restore code to handle the boostrap file is
   now implemented with the exception of the Console Restore command.
@@ -487,6 +503,7 @@
 - Add first cut of bootstrap to bextract.
 - Added File Size limit -- writes EOF after limit exeeded.
 
+===========================================================================
 2002-06-12 Release 1.21
 - Fixed several problems with filenames being truncated if
   they contain spaces. Thanks to the user that reported this.
@@ -557,7 +574,7 @@
   code duplication that creeped in when I added different listing
   options. Also, changing tapes is now handled uniformily in a subroutine.
 
-
+===========================================================================
 2002-05-27 Release 1.20
 - Started documenting Catalog Pruning and Recycling.
   Added catmaintenance.html and recycling.html
@@ -641,6 +658,7 @@
 - Cleaned up most of sm_check() to be turned on/off by define
   in version.h
 
+===========================================================================
 2002-05-10 Release 1.19
 - Allow the user to select a new period for pruning.
 - Lots of additions to the manual -- prune and purge
@@ -776,6 +794,7 @@
   message resources. Much more work to be done.
 - Moved scanning for time into new library routine string_to_btime().
 
+===========================================================================
 2002-04-22 Release 1.18
 - Applied Phil's configure.in fix for --prefix, ...
 - Fixed bug found by Phil (patch supplied) in updating
@@ -801,6 +820,7 @@
 - Turn off gnome options in gnome-console by constructing empty
   argv.
 
+===========================================================================
 2002-04-18 Release 1.17 Kern Sibbald
 - Ensure that platforms Makefiles are called for clean  
   and distclean.
@@ -834,6 +854,7 @@
 - Made a local copy of tcpd.h and corrected the function 
   prototype problem for C++.
 
+===========================================================================
 2002-04-14 First public release 1.16 Kern Sibbald
  - Many intervening changes/updates.
 
