@@ -87,6 +87,7 @@ TREE_ROOT *new_tree(int count)
    }
    Dmsg2(400, "count=%d size=%d\n", count, size);
    malloc_buf(root, size);
+   root->cached_path_len = -1;
    root->cached_path = get_pool_memory(PM_FNAME);
    root->type = TN_ROOT;
    root->fname = "";

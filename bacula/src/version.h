@@ -10,14 +10,25 @@
 #define TRACEBACK 1
 #define SMCHECK     
 #define TRACE_FILE 1  
+
+/* If this is set stdout will not be closed on startup */
 #define DEVELOPER 1
 
+
+/*
+ * Set to time limit for other end to respond to
+ *  authentication.  Normally 10 minutes is *way*
+ *  more than enough.
+ */
+#define AUTH_TIMEOUT 60 * 1000
 
 /* Debug flags not normally turned on */
 
 /* #define TRACE_JCR_CHAIN 1 */
 /* #define TRACE_RES 1 */
 /* #define DEBUG_MEMSET 1 */
+
+/* Check if header of tape block is zero before writing */
 #define DEBUG_BLOCK_ZEROING 1
 
 /* #define FULL_DEBUG 1 */   /* normally on for testing only */
