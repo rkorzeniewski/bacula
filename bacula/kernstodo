@@ -40,24 +40,6 @@ For 1.31 release:
 - lstat() is not going to work on Win32 for testing date.
 - Implement a Recycle command
 - Something is not right in last block of fill command.
-- Check this below from Phil.
-  This was SD reported data rather than FD data!
-  > When the job was done, Bacula reported 11084 files restored:
-  > 
-  > JobId:                  527                                                     
-  > Job:                    Zocalo_Restore.2003-06-05_16.42.01                      
-  > Client:                 Zocalo                                                  
-  > Start time:             05-Jun-2003 16:42                                       
-  > End time:               06-Jun-2003 01:21                                       
-  > Files Restored:         11,084                                                  
-  > Bytes Restored:         65,474,772                                              
-  > Rate:                   2.1 KB/s                                                
-  > FD termination status:  OK                                                      
-  > Termination:            Restore OK                                              
-  > 
-  > when it should probably have reported 11084 files scanned, 250 restored.
-  > The bytes restored count looks about right.
-  > 
 - If during a restore, a hard linked file already exists (on option), delete
   the file and re-link it.  This is to avoid the possibility that the
   user had re-linked the file between the backup and the restore.
@@ -71,13 +53,11 @@ For 1.31 release:
 - Check if Incremental is working correctly when it looks for the previous Job 
   (Phil's problem).
 - Add next Volume to be used to status output.
-- Add a recycle command.
 - Make bootstrap filename unique.
 - Sort JobIds entered into recover tree.
 - The bsr for Dan's job has file indexes covering the whole range rather
   than only the range contained on the volume.
   Constrain FileIndex to be within range for Volume.
-- Should Bacula make an Append tape as Purged when purging?
 - Test a second language e.g. french.
 - Start working on Base jobs.
 - Make "make binary-release" work from any directory.
@@ -85,7 +65,6 @@ For 1.31 release:
 - Unsaved Flag in Job record.
 - Base Flag in Job record.
 - Implement UnsavedFiles DB record.
-- Use switch() in backup.c and restore.c in FD instead of giant if statement.
 - Implement argc/argv for daemon command line scanning using table driven
   stuff below.
 - Implement table driven single argc/argv scanner to pickup all arguments.
@@ -113,6 +92,7 @@ For 1.31 release:
 - Implement new serialize subroutines
    send(socket, "string", &Vol, "uint32", &i, NULL)
 - Audit all UA commands to ensure that we always prompt where possible.
+- Scratch Pool where the volumes can be re-assigned to any Pool.
 
 
 After 1.31:
@@ -975,3 +955,24 @@ Done: (see kernsdone for more)
 - Fix restore on Win95/98  
 - Remove the Jmsg() in sql_find.c:102 or only print on hard error.
 - Implement FileSet VolIndex -- done, but must update old records.
+- Check this below from Phil.
+  This was SD reported data rather than FD data!
+  > When the job was done, Bacula reported 11084 files restored:
+  > 
+  > JobId:                  527                                                     
+  > Job:                    Zocalo_Restore.2003-06-05_16.42.01                      
+  > Client:                 Zocalo                                                  
+  > Start time:             05-Jun-2003 16:42                                       
+  > End time:               06-Jun-2003 01:21                                       
+  > Files Restored:         11,084                                                  
+  > Bytes Restored:         65,474,772                                              
+  > Rate:                   2.1 KB/s                                                
+  > FD termination status:  OK                                                      
+  > Termination:            Restore OK                                              
+  > 
+  > when it should probably have reported 11084 files scanned, 250 restored.
+  > The bytes restored count looks about right.
+  > 
+- Should Bacula make an Append tape as Purged when purging?
+- Use switch() in backup.c and restore.c in FD instead of giant if statement.
+

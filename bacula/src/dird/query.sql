@@ -2,7 +2,7 @@
 SELECT  count(*) AS Jobs, sum(JobFiles) AS Files, 
  sum(JobBytes) AS Bytes, Name AS Job FROM Job GROUP BY Name;
 SELECT max(JobId) AS Jobs,sum(JobFiles) AS Files,
- sum(JobBytes) As Bytes FROM Job
+ sum(JobBytes) As Bytes FROM Job;
 #
 :List where a file is saved:
 *Enter path with trailing slash:

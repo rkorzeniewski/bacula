@@ -454,7 +454,7 @@ static void print_jobs_scheduled(UAContext *ua)
 
          Dmsg2(200, "tod=%d tom=%d\n", tod, tom);
 	 found = FALSE;
-	 if (tod) {
+	 if (tod) {		      /* Jobs scheduled today (next 24 hours) */
 	    /* find time (time_t) job is to be run */
 	    localtime_r(&now, &tm);
 	    hour = 0;
@@ -477,8 +477,8 @@ static void print_jobs_scheduled(UAContext *ua)
 	    }
 	 }
 
-//      Dmsg2(200, "runtime=%d now=%d\n", runtime, now);
-	if (!found && tom) {
+//       Dmsg2(200, "runtime=%d now=%d\n", runtime, now);
+	 if (!found && tom) {		 /* look at jobs scheduled tomorrow */
 	    localtime_r(&tomorrow, &tm);
 	    hour = 0;
 	    for (i=0; i < 24; i++) {
@@ -500,8 +500,8 @@ static void print_jobs_scheduled(UAContext *ua)
 	       prt_runtime(ua, job, level, runtime);
 	    }
 	 }
-      }  
-   }
+      } /* end for loop over runs */ 
+   } /* end for loop over resources */
    UnlockRes();
    Dmsg0(200, "Leave find_runs()\n");
 }

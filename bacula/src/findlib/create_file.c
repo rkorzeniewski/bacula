@@ -67,6 +67,8 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *ofd, int replace)
    uid_t uid;
    gid_t gid;
    int pnl;
+   bool exists = false;
+   struct stat mstatp;
 
    binit(ofd);
    new_mode = attr->statp.st_mode;
@@ -76,27 +78,29 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *ofd, int replace)
    uid = attr->statp.st_uid;
 
    Dmsg2(400, "Replace=%c %d\n", (char)replace, replace);
-   /* If not always replacing, do a stat and decide */
-   if (replace != REPLACE_ALWAYS) {
-      struct stat mstatp;
-      if (lstat(attr->ofname, &mstatp) == 0) {
-	 switch (replace) {
-	 case REPLACE_IFNEWER:
-	    if (attr->statp.st_mtime <= mstatp.st_mtime) {
-               Jmsg(jcr, M_SKIPPED, 0, _("File skipped. Not newer: %s\n"), attr->ofname);
-	       return CF_SKIP;
-	    }
-	    break;
-	 case REPLACE_IFOLDER:
-	    if (attr->statp.st_mtime >= mstatp.st_mtime) {
-               Jmsg(jcr, M_SKIPPED, 0, _("File skipped. Not older: %s\n"), attr->ofname);
-	       return CF_SKIP;
-	    }
-	    break;
-	 case REPLACE_NEVER:
-            Jmsg(jcr, M_SKIPPED, 0, _("File skipped. Already exists: %s\n"), attr->ofname);
+   if (lstat(attr->ofname, &mstatp) == 0) {
+      exists = true;
+      switch (replace) {
+      case REPLACE_IFNEWER:
+	 if (attr->statp.st_mtime <= mstatp.st_mtime) {
+            Jmsg(jcr, M_SKIPPED, 0, _("File skipped. Not newer: %s\n"), attr->ofname);
 	    return CF_SKIP;
 	 }
+	 break;
+
+      case REPLACE_IFOLDER:
+	 if (attr->statp.st_mtime >= mstatp.st_mtime) {
+            Jmsg(jcr, M_SKIPPED, 0, _("File skipped. Not older: %s\n"), attr->ofname);
+	    return CF_SKIP;
+	 }
+	 break;
+
+      case REPLACE_NEVER:
+         Jmsg(jcr, M_SKIPPED, 0, _("File skipped. Already exists: %s\n"), attr->ofname);
+	 return CF_SKIP;
+
+      case REPLACE_ALWAYS:
+	 break;
       }
    }
    switch (attr->type) {
@@ -107,6 +111,14 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *ofd, int replace)
    case FT_SPEC:
    case FT_REGE:		      /* empty file */
    case FT_REG: 		      /* regular file */
+      if (exists) {
+	 /* Get rid of old copy */
+	 if (unlink(attr->ofname) == -1) {
+            Jmsg(jcr, M_ERROR, 0, _("File %s already exists and could not be replaced. ERR=%s.\n"),
+	       attr->ofname, strerror(errno));
+	    /* Continue despite error */
+	 }
+      }
       /* 
        * Here we do some preliminary work for all the above
        *   types to create the path to the file if it does
@@ -220,7 +232,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *ofd, int replace)
       } /* End inner switch */
 
    case FT_DIR:
-      Dmsg2(300, "Make dir mode=%o dir=%s\n", new_mode, attr->ofname);
+      Dmsg2(200, "Make dir mode=%o dir=%s\n", new_mode, attr->ofname);
       if (make_path(jcr, attr->ofname, new_mode, parent_mode, uid, gid, 0, NULL) != 0) {
 	 return CF_ERROR;
       }

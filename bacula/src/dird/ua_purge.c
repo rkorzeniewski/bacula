@@ -453,6 +453,18 @@ int purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr)
    int i, stat = 0;
    JOB_DBR jr;
 
+   stat = strcmp(mr->VolStatus, "Append") == 0 || 
+          strcmp(mr->VolStatus, "Full")   == 0 ||
+          strcmp(mr->VolStatus, "Used")   == 0 || 
+          strcmp(mr->VolStatus, "Error")  == 0; 
+   if (!stat) {
+      bsendmsg(ua, "\n");
+      bsendmsg(ua, _("Volume \"%s\" has VolStatus \"%s\" and cannot be purged.\n"
+                     "The VolStatus must be: Append, Full, Used, or Error to be purged.\n"),
+		     mr->VolumeName, mr->VolStatus);
+      goto bail_out;
+   }
+   
    memset(&jr, 0, sizeof(jr));
    memset(&del, 0, sizeof(del));
    cnt.count = 0;

@@ -76,9 +76,9 @@ int recycle_oldest_purged_volume(JCR *jcr, MEDIA_DBR *mr)
    struct s_oldest_ctx oldest;
    POOLMEM *query = get_pool_memory(PM_EMSG);
    char *select =
-"SELECT MediaId, LastWritten FROM Media "
-"WHERE PoolId=%d AND Recycle=1 AND VolStatus=\"Purged\" "
-"AND MediaType=\"%s\"";
+          "SELECT MediaId, LastWritten FROM Media "
+          "WHERE PoolId=%d AND Recycle=1 AND VolStatus=\"Purged\" "
+          "AND MediaType=\"%s\"";
 
    Dmsg0(100, "Enter recycle_oldest_purged_volume\n");
    oldest.MediaId = 0;

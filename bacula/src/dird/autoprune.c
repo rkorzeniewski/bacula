@@ -150,8 +150,10 @@ int prune_volumes(JCR *jcr)
       if (pr.PoolId != mr.PoolId) {
 	 continue;
       }
-      /* Prune only Volumes with status "Full"  or "Used" */
-      if (strcmp(mr.VolStatus, "Full") == 0 || strcmp(mr.VolStatus, "Used") == 0) {
+      /* Prune only Volumes with status "Full", "Used", or "Append" */
+      if (strcmp(mr.VolStatus, "Full")   == 0 || 
+          strcmp(mr.VolStatus, "Append") == 0 ||
+          strcmp(mr.VolStatus, "Used")   == 0) {
          Dmsg1(200, "Prune Volume %s\n", mr.VolumeName);
 	 stat += prune_volume(&ua, &pr, &mr); 
          Dmsg1(200, "Num pruned = %d\n", stat);
