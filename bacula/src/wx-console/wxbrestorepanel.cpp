@@ -580,7 +580,7 @@ void wxbRestorePanel::CmdStart() {
       int tot = 0;
       long l;
       
-      for (i = 0; i < tableparser->size(); i++) {
+      for (i = 0; i < tableparser->GetCount(); i++) {
          str = (*tableparser)[i][2];
          str.Replace(",", "");
          if (str.ToLong(&l)) {
@@ -610,7 +610,7 @@ void wxbRestorePanel::CmdStart() {
                if (((*dt)[lastindex].Find("Building directory tree for JobId ") == 0) && 
                      ((i = (*dt)[lastindex].Find(" ...")) > 0)) {
                   str = (*dt)[lastindex].Mid(34, i-34);
-                  for (i = 0; i < tableparser->size(); i++) {
+                  for (i = 0; i < tableparser->GetCount(); i++) {
                      if (str == (*tableparser)[i][0]) {
                         str = (*tableparser)[i][2];
                         str.Replace(",", "");
@@ -765,12 +765,12 @@ void wxbRestorePanel::CmdStart() {
          
          wxDateTime jobtime;
          
-         if (jobname == (*tableparser)[tableparser->size()-1][1]) {
-            wxStringTokenizer jtkz((*tableparser)[tableparser->size()-1][2], " ", wxTOKEN_STRTOK);
+         if (jobname == (*tableparser)[tableparser->GetCount()-1][1]) {
+            wxStringTokenizer jtkz((*tableparser)[tableparser->GetCount()-1][2], " ", wxTOKEN_STRTOK);
             if ((jobtime.ParseDate(jtkz.GetNextToken()) != NULL) && // Date
                   (jobtime.ParseTime(jtkz.GetNextToken()) != NULL)) { // Time
                if (jobtime.IsLaterThan(currenttime)) {
-                  jobid = (*tableparser)[tableparser->size()-1][0];
+                  jobid = (*tableparser)[tableparser->GetCount()-1][0];
                   cmd << jobid << "\n";
                   delete tableparser;
                   cancel->Enable(true);
@@ -1063,7 +1063,7 @@ void wxbRestorePanel::CmdListJobs() {
       WaitForPrompt("6\n");
       wxbTableParser* tableparser = CreateAndWaitForParser(configPanel->GetRowString("Client") + "\n");
 
-      for (int i = tableparser->size()-1; i > -1; i--) {
+      for (int i = tableparser->GetCount()-1; i > -1; i--) {
          wxString str = (*tableparser)[i][3];
          wxDateTime datetime;
          const char* chr;

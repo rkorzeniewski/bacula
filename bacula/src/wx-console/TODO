@@ -5,8 +5,6 @@ console_thread : Allow the user to choose his director when there's multiple
 
 Win32 : Crash when quitting while trying to connect
 
-Mac OS X : Problem if config file in Mac file format (new line = ASCII 13).
-
 Mac OS X : "You must first get a unique identifier for your application, 
   a so called creator, a four letter constant. All you need to know about
   this step is at http://developer.apple.com/dev/cftype/" (wxWiki)
@@ -21,8 +19,6 @@ wxbConfigFileEditor : create a more precise editor, with something like
    a tree structure
 
 wxbRestorePanel : When cancelling, check for commands results
-
-general : Do not quit when configuration file not found.
 
 wxbRestorePanel : Add a way to cancel restore when building tree
    (needs director modifications)
@@ -53,15 +49,11 @@ wxbRestorePanel : Is there any way to add a width adjustment handle between
      the tree view window and the file view window so that the 
      width of the tree view can be changed?
 
-general : Implement dis/reconnecting
-
 wxbRestorePanel : Use ".default job=RestoreFiles" to get defaults parameters
 	when changing a restore parameter fails.
 
-wxbDataParser : Add a boolean in the constructor to avoid storing data is 
+wxbDataParser : Add a boolean in the constructor to avoid storing data which 
     will not be used.
-
-wxbTableParser : Replace wxHashMap by wxArray
 
 wxbRestorePanel : Check if commands ran successfully (cd, mark, mods...).
 

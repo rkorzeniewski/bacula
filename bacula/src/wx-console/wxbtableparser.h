@@ -47,12 +47,19 @@
 
 #include "wxbutils.h"
 
-#include <wx/hashmap.h>
+#include <wx/dynarray.h>
 
-/* int-indexed array of wxString, used for one line */
-WX_DECLARE_HASH_MAP( int, wxString, wxIntegerHash, wxIntegerEqual, wxbTableRow );
-/* int-indexed array of wxbTableRow, contains the whole table */
-WX_DECLARE_HASH_MAP( int, wxbTableRow, wxIntegerHash, wxIntegerEqual, wxbTable );
+/* 
+ * Allow the use of Object Array (auto-deletion, object returned as themselves 
+ * and not as pointers)
+ */
+class wxbArrayString: public wxArrayString, public wxObject {
+   public:
+      wxbArrayString(int n = 1);
+      virtual ~wxbArrayString();
+};
+
+WX_DECLARE_OBJARRAY( wxbArrayString, wxbTable );
 
 /*
  * Class used to parse tables received from director. Data can be accessed with
@@ -79,9 +86,9 @@ class wxbTableParser: public wxbTable, public wxbDataParser
       /*
        *   Returns table header as an array of wxStrings.
        */
-      wxbTableRow* GetHeader();
+      const wxbArrayString& GetHeader();
    private:
-      wxbTableRow tableHeader;
+      wxbArrayString tableHeader;
 
       /*
        * 0 - Table has not begun

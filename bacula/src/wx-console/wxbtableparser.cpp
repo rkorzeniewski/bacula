@@ -38,12 +38,24 @@
 
 #include "wxbmainframe.h"
 
+#include <wx/arrimpl.cpp>
+
+WX_DEFINE_OBJARRAY(wxbTable);
+
+wxbArrayString::wxbArrayString(int n) : wxArrayString(), wxObject() {
+   Alloc(n);
+}
+
+wxbArrayString::~wxbArrayString() {
+   
+}
+
 /*
  *   wxbTableParser constructor
  */
-wxbTableParser::wxbTableParser() : wxbTable(5), wxbDataParser(true) {
+wxbTableParser::wxbTableParser() : wxbTable(), wxbDataParser(true) {
    separatorNum = 0;
-   tableHeader = wxbTableRow(5);
+   tableHeader = wxbArrayString();
 }
 
 /*
@@ -56,8 +68,8 @@ wxbTableParser::~wxbTableParser() {
 /*
  *   Returns table header as an array of wxStrings.
  */
-wxbTableRow* wxbTableParser::GetHeader() {
-   return &tableHeader;
+const wxbArrayString& wxbTableParser::GetHeader() {
+   return tableHeader;
 }
 
 /*
@@ -81,18 +93,16 @@ bool wxbTableParser::Analyse(wxString str, int status) {
          wxStringTokenizer tkz(str, "|", wxTOKEN_STRTOK);
 
          if (separatorNum == 1) {
-            int i = 0;
             while ( tkz.HasMoreTokens() ) {
-               tableHeader[i++] = tkz.GetNextToken().Trim(true).Trim(false);
+               tableHeader.Add(tkz.GetNextToken().Trim(true).Trim(false));
             }
          }
          else if (separatorNum == 2) {
-            wxbTableRow tablerow(tableHeader.size());
-            int i = 0;
+            wxbArrayString tablerow(tableHeader.GetCount());
             while ( tkz.HasMoreTokens() ) {
-               tablerow[i++] = tkz.GetNextToken().Trim(true).Trim(false);
+               tablerow.Add(tkz.GetNextToken().Trim(true).Trim(false));
             }
-            (*this)[size()] = tablerow;
+            Add(tablerow);
          }
       }
    }
