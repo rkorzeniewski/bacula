@@ -34,7 +34,9 @@
 #define USE_WIN32_COMPAT_IO 1
 
 extern void d_msg(const char *file, int line, int level, const char *fmt,...);
+#ifndef HAVE_MINGW
 extern DWORD   g_platform_id;
+#endif
 
 // from CYGWIN (should be diff between Jan 1 1601 and Jan 1 1970
 #ifdef HAVE_MINGW
@@ -360,6 +362,8 @@ stat(const char *file, struct stat *sb)
     return 0;
 }
 
+#endif //HAVE_MINGW
+
 int
 lstat(const char *file, struct stat *sb)
 {
@@ -371,8 +375,6 @@ sleep(int sec)
 {
     Sleep(sec * 1000);
 }
-
-#endif //HAVE_MINGW
 
 int
 geteuid(void)
@@ -496,7 +498,6 @@ getgrgid(uid_t)
     return NULL;
 }
 
-#ifndef HAVE_MINGW
 // implement opendir/readdir/closedir on top of window's API
 typedef struct _dir
 {
@@ -519,6 +520,7 @@ opendir(const char *path)
     char *tspec = (char *)malloc(max_len);
     if (tspec == NULL) goto err1;
 
+#ifndef HAVE_MINGW
     if (g_platform_id != VER_PLATFORM_WIN32_WINDOWS) {
         // allow path to be 32767 bytes
         tspec[0] = '\\';
@@ -530,6 +532,9 @@ opendir(const char *path)
     } else {
         cygwin_conv_to_win32_path(path, tspec);
     }
+#else
+    cygwin_conv_to_win32_path(path, tspec);
+#endif
     strncat(tspec, "\\*", max_len);
     rval->spec = tspec;
 
@@ -590,6 +595,7 @@ copyin(struct dirent &dp, const char *fname)
         *cp = 0;
     return dp.d_reclen;
 }
+
 int
 readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result)
 {
@@ -609,7 +615,6 @@ readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result)
     dp->valid = FindNextFile(dp->dirh, &dp->data);
     return 0;
 }
-#endif //HAVE_MINGW
 
 int
 inet_aton(const char *a, struct in_addr *inp)

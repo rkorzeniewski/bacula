@@ -129,6 +129,7 @@ typedef UINT32 uid_t;
 typedef UINT32 gid_t;
 typedef UINT32 mode_t;
 typedef INT64  ssize_t;
+#endif //HAVE_MINGW
 
 struct dirent {
     uint64_t    d_ino;
@@ -136,8 +137,6 @@ struct dirent {
     uint16_t    d_reclen;
     char        d_name[256];
 };
-
-#endif //HAVE_MINGW
 
 typedef void DIR;
 
@@ -290,10 +289,8 @@ int readlink(const char *, char *, int);
 
 int geteuid();
 
-#ifndef HAVE_MINGW
 DIR *opendir(const char *name);
 int closedir(DIR *dir);
-#endif //HAVE_MINGW
 
 struct passwd {
     char *foo;

@@ -123,7 +123,9 @@
 /* #undef ino_t */
 
 /* Define to 1 if utime.h exists and declares struct utimbuf.  */
-/* #undef HAVE_UTIME_H 1 */
+#ifdef HAVE_MINGW
+#define HAVE_UTIME_H 1
+#endif
 
 #if (HAVE_MYSQL||HAVE_PGSQL||HAVE_MSQL||HAVE_IODBC||HAVE_UNIXODBC||HAVE_SOLID||HAVE_VIRT||HAVE_IBASE||HAVE_ORACLE8||HAVE_ORACLE7||HAVE_EASYSOFT)
 #define HAVE_SQL
