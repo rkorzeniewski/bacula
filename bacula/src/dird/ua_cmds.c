@@ -37,12 +37,8 @@ extern int r_first;
 extern int r_last;
 extern struct s_res resources[];
 extern char my_name[];
-#ifndef USE_SEMAPHORE 
 #ifdef JOB_QUEUE
 extern jobq_t job_queue;	      /* job queue */
-#else
-extern workq_t job_wq;		      /* work queue */
-#endif
 #endif
 
 extern char *list_pool;
@@ -435,14 +431,10 @@ static int cancelcmd(UAContext *ua, char *cmd)
       set_jcr_job_status(jcr, JS_Canceled);
       bsendmsg(ua, _("JobId %d, Job %s marked to be canceled.\n"),
 	      jcr->JobId, jcr->Job);
-#ifndef USE_SEMAPHORE
 #ifdef JOB_QUEUE
       jobq_remove(&job_queue, jcr); /* attempt to remove it from queue */
-#else
-      workq_remove(&job_wq, jcr->work_item); /* attempt to remove it from queue */
 #endif
-#endif
-      free_jcr(jcr);
+      free_jcr(jcr);		      /* this decrements the use count only */
       return 1;
 	 
    default:

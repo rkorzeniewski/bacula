@@ -31,7 +31,6 @@
 #include "dird.h"
 
 /* Imported subroutines */
-extern void run_job(JCR *jcr);
 
 /* Imported variables */
 extern struct s_jl joblevels[];
@@ -71,8 +70,10 @@ int runcmd(UAContext *ua, char *cmd)
       N_("replace"),
       N_("when"),
       N_("priority"),
-      N_("yes"),          /* 12 -- see below */
+      N_("yes"),          /* 12 -- if you change this change YES_POS too */
       NULL};
+
+#define YES_POS 12
 
    if (!open_db(ua)) {
       return 1;
@@ -96,116 +97,116 @@ int runcmd(UAContext *ua, char *cmd)
       for (j=0; !found && kw[j]; j++) {
 	 if (strcasecmp(ua->argk[i], _(kw[j])) == 0) {
 	    /* Note, yes has no value, so do not err */
-	    if (!ua->argv[i] && j != 11 /*yes*/) {
+	    if (!ua->argv[i] && j != YES_POS /*yes*/) {
                bsendmsg(ua, _("Value missing for keyword %s\n"), ua->argk[i]);
 	       return 1;
 	    }
             Dmsg1(200, "Got keyword=%s\n", kw[j]);
 	    switch (j) {
-	       case 0: /* job */
-		  if (job_name) {
-                     bsendmsg(ua, _("Job name specified twice.\n"));
-		     return 1;
-		  }
-		  job_name = ua->argv[i];
-		  found = True;
-		  break;
-	       case 1: /* JobId */
-		  if (jid) {
-                     bsendmsg(ua, _("JobId specified twice.\n"));
-		     return 1;
-		  }
-		  jid = ua->argv[i];
-		  found = True;
-		  break;
-	       case 2: /* client */
-		  if (client_name) {
-                     bsendmsg(ua, _("Client specified twice.\n"));
-		     return 1;
-		  }
-		  client_name = ua->argv[i];
-		  found = True;
-		  break;
-	       case 3: /* fileset */
-		  if (fileset_name) {
-                     bsendmsg(ua, _("FileSet specified twice.\n"));
-		     return 1;
-		  }
-		  fileset_name = ua->argv[i];
-		  found = True;
-		  break;
-	       case 4: /* level */
-		  if (level_name) {
-                     bsendmsg(ua, _("Level specified twice.\n"));
-		     return 1;
-		  }
-		  level_name = ua->argv[i];
-		  found = True;
-		  break;
-	       case 5: /* storage */
-		  if (store_name) {
-                     bsendmsg(ua, _("Storage specified twice.\n"));
-		     return 1;
-		  }
-		  store_name = ua->argv[i];
-		  found = True;
-		  break;
-	       case 6: /* pool */
-		  if (pool_name) {
-                     bsendmsg(ua, _("Pool specified twice.\n"));
-		     return 1;
-		  }
-		  pool_name = ua->argv[i];
-		  found = True;
-		  break;
-	       case 7: /* where */
-		  if (where) {
-                     bsendmsg(ua, _("Where specified twice.\n"));
-		     return 1;
-		  }
-		  where = ua->argv[i];
-		  found = True;
-		  break;
-	       case 8: /* bootstrap */
-		  if (bootstrap) {
-                     bsendmsg(ua, _("Bootstrap specified twice.\n"));
-		     return 1;
-		  }
-		  bootstrap = ua->argv[i];
-		  found = True;
-		  break;
-	       case 9: /* replace */
-		  if (replace) {
-                     bsendmsg(ua, _("Replace specified twice.\n"));
-		     return 1;
-		  }
-		  replace = ua->argv[i];
-		  found = True;
-		  break;
-	       case 10: /* When */
-		  if (when) {
-                     bsendmsg(ua, _("When specified twice.\n"));
-		     return 1;
-		  }
-		  when = ua->argv[i];
-		  found = True;
-		  break;
-	       case 11:  /* Priority */
-		  if (Priority) {
-                     bsendmsg(ua, _("Priority specified twice.\n"));
-		     return 1;
-		  }
-		  Priority = atoi(ua->argv[i]);
-		  if (Priority <= 0) {
-                     bsendmsg(ua, _("Priority must be positive nonzero setting it to 10.\n"));
-		     Priority = 10;
-		  }
-		  break;
-	       case 12: /* yes */
-		  found = True;
-		  break;
-	       default:
-		  break;
+	    case 0: /* job */
+	       if (job_name) {
+                  bsendmsg(ua, _("Job name specified twice.\n"));
+		  return 1;
+	       }
+	       job_name = ua->argv[i];
+	       found = True;
+	       break;
+	    case 1: /* JobId */
+	       if (jid) {
+                  bsendmsg(ua, _("JobId specified twice.\n"));
+		  return 1;
+	       }
+	       jid = ua->argv[i];
+	       found = True;
+	       break;
+	    case 2: /* client */
+	       if (client_name) {
+                  bsendmsg(ua, _("Client specified twice.\n"));
+		  return 1;
+	       }
+	       client_name = ua->argv[i];
+	       found = True;
+	       break;
+	    case 3: /* fileset */
+	       if (fileset_name) {
+                  bsendmsg(ua, _("FileSet specified twice.\n"));
+		  return 1;
+	       }
+	       fileset_name = ua->argv[i];
+	       found = True;
+	       break;
+	    case 4: /* level */
+	       if (level_name) {
+                  bsendmsg(ua, _("Level specified twice.\n"));
+		  return 1;
+	       }
+	       level_name = ua->argv[i];
+	       found = True;
+	       break;
+	    case 5: /* storage */
+	       if (store_name) {
+                  bsendmsg(ua, _("Storage specified twice.\n"));
+		  return 1;
+	       }
+	       store_name = ua->argv[i];
+	       found = True;
+	       break;
+	    case 6: /* pool */
+	       if (pool_name) {
+                  bsendmsg(ua, _("Pool specified twice.\n"));
+		  return 1;
+	       }
+	       pool_name = ua->argv[i];
+	       found = True;
+	       break;
+	    case 7: /* where */
+	       if (where) {
+                  bsendmsg(ua, _("Where specified twice.\n"));
+		  return 1;
+	       }
+	       where = ua->argv[i];
+	       found = True;
+	       break;
+	    case 8: /* bootstrap */
+	       if (bootstrap) {
+                  bsendmsg(ua, _("Bootstrap specified twice.\n"));
+		  return 1;
+	       }
+	       bootstrap = ua->argv[i];
+	       found = True;
+	       break;
+	    case 9: /* replace */
+	       if (replace) {
+                  bsendmsg(ua, _("Replace specified twice.\n"));
+		  return 1;
+	       }
+	       replace = ua->argv[i];
+	       found = True;
+	       break;
+	    case 10: /* When */
+	       if (when) {
+                  bsendmsg(ua, _("When specified twice.\n"));
+		  return 1;
+	       }
+	       when = ua->argv[i];
+	       found = True;
+	       break;
+	    case 11:  /* Priority */
+	       if (Priority) {
+                  bsendmsg(ua, _("Priority specified twice.\n"));
+		  return 1;
+	       }
+	       Priority = atoi(ua->argv[i]);
+	       if (Priority <= 0) {
+                  bsendmsg(ua, _("Priority must be positive nonzero setting it to 10.\n"));
+		  Priority = 10;
+	       }
+	       break;
+	    case 12: /* yes */
+	       found = True;
+	       break;
+	    default:
+	       break;
 	    }
 	 } /* end strcase compare */
       } /* end keyword loop */
