@@ -493,8 +493,8 @@ Without that I don't know who I am :-(\n"), configfile);
 		  counter->CurrentValue = counter->MinValue;  /* default value */
 	       }
 	    }
-	    db_close_database(NULL, db);
 	 }
+	 db_close_database(NULL, db);
       }
    }
 
