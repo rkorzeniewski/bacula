@@ -1,7 +1,7 @@
                 
 Projects:
                      Bacula Projects Roadmap 
-                       13 April 2004
+                       03 August 2004
 
 Item 1:   Implement Base jobs.
 
@@ -36,6 +36,7 @@ Item 1:   Implement Base jobs.
 
 Item 2:   Add Regular Expression Matching and Plug-ins to the
           FileSet Include statements.
+Done: Regular expression matching.  Plug-ins are not yet started.
 
   What:   Allow users to specify wild-card and/or regular
           expressions to be matched in both the Include and
@@ -98,6 +99,7 @@ Item 5:   Implement Events
 
 
 Item 6:   Multiple Storage Devices for a Single Job
+Modifications to SD in progress: 1.35
 
   What:   Allow any Job to use more than one Storage device.
 
@@ -108,6 +110,7 @@ Item 6:   Multiple Storage Devices for a Single Job
 
 Item  7:  Backup a Single Job Simultaneously to Multiple Storage 
           Devices
+Modifications to SD in progress: 1.35
 
   What:   Make two copies of the backup data at the same time.
 
@@ -132,6 +135,7 @@ Item  8:  Break the one-to-one Relationship between a Job and a
 
 Item  9:  Implement data encryption (as opposed to communications
           encryption)
+Assigned: to Meno Abels (both data and communications encryption).
 
   What:   Currently the data that is stored on the Volume is not
           encrypted. For confidentiality, encryption of data at
