@@ -125,7 +125,7 @@ create table media
     voluseduration    bigint                not null,
     maxvoljobs        integer               not null,
     maxvolfiles       integer               not null,
-    mavvolbytes       bigint                not null,
+    maxvolbytes       bigint                not null,
     drive             integer               not null
         default 0,
     inchanger         smallint              not null
