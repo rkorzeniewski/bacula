@@ -215,14 +215,14 @@ typedef struct s_db {
 #include <libpq-fe.h>
 
 /* TEMP: the following is taken from select OID, typname from pg_type; */
-#define IS_NUM(x)             ((x) == 20 || (x) == 21 || (x) == 23 || (x) == 700 || (x) == 701 )
+#define IS_NUM(x)             ((x) == 20 || (x) == 21 || (x) == 23 || (x) == 700 || (x) == 701)
 #define IS_NOT_NULL(x)        ((x) == 1)
 
 typedef char **POSTGRESQL_ROW;
 typedef struct pg_field {
         char         *name;
         int           max_length;
-        unsigned int  type;        // 1 = number
+        unsigned int  type;
         unsigned int  flags;       // 1 == not null
 } POSTGRESQL_FIELD;
 
@@ -251,21 +251,21 @@ typedef struct s_db {
    char *db_user;
    char *db_password;
    char *db_address;              /* host address */
-   char *db_socket;                   /* socket for local access */
-   int db_port;                       /* port of host address */
+   char *db_socket;               /* socket for local access */
+   int db_port;                   /* port of host address */
    int have_insert_id;            /* do have insert_id() */
    int connected;
-   POOLMEM *errmsg;                   /* nicely edited error message */
-   POOLMEM *cmd;                      /* SQL command string */
+   POOLMEM *errmsg;               /* nicely edited error message */
+   POOLMEM *cmd;                  /* SQL command string */
    POOLMEM *cached_path;
    int cached_path_len;           /* length of cached path */
    uint32_t cached_path_id;
-   int changes;                       /* changes made to db */
-   POOLMEM *fname;                    /* Filename only */
-   POOLMEM *path;                     /* Path only */
+   int changes;                   /* changes made to db */
+   POOLMEM *fname;                /* Filename only */
+   POOLMEM *path;                 /* Path only */
    POOLMEM *esc_name;             /* Escaped file/path name */
-   int fnl;                               /* file name length */
-   int pnl;                               /* path name length */
+   int fnl;                       /* file name length */
+   int pnl;                       /* path name length */
 } B_DB;
 
 void               my_postgresql_free_result(B_DB *mdb);
@@ -534,9 +534,9 @@ struct MEDIA_DBR {
    /* Since the database returns times as strings, this is how we pass
     *   them back.
     */
-   char    cFirstWritten[MAX_TIME_LENGTH];  /* FirstWritten returned from DB */
+   char    cFirstWritten[MAX_TIME_LENGTH]; /* FirstWritten returned from DB */
    char    cLastWritten[MAX_TIME_LENGTH];  /* LastWritten returned from DB */
-   char    cLabelData[MAX_TIME_LENGTH];  /* LabelData returned from DB */
+   char    cLabelData[MAX_TIME_LENGTH];    /* LabelData returned from DB */
 };
 
 /* Client record -- same as the database */
