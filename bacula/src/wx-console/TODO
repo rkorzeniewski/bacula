@@ -1,7 +1,6 @@
 general : Show nice messages boxes when errors occurs.
 
-wxbRestorePanel : Be sure of which job we just have run (not suppositions
-   as I'm doing now): implement the director modification.
+wxbRestorePanel : implement .backups client=xxx (2.1a)
    
 wxbRestorePanel : list jobs and list jobid=# will probably crash if there
    is nothing to show (db error or empty table)
@@ -46,11 +45,7 @@ wxbMainFrame : set focus to type control when clicking on console
 wxbConfigPanel : Create a dialog for selecting dates and paths.
 
 wxbMainFrame : use more often status text
-
-wxbRestorePanel : Ask Kern for a dot command which gives restore
-  dates for a client (with an interval, last 20 for example, or last
-  40 excluding last 20).
-    
+   
 wxbRestorePanel : Use ".default job=RestoreFiles" to get defaults parameters
 	when changing a restore parameter fails.
 

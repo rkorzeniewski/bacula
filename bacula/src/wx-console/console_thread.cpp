@@ -260,7 +260,7 @@ void* console_thread::Entry() {
    
    csprint(NULL, CS_CONNECTED);
    
-   Write("messages\n");
+   Write(".messages\n");
 
    int stat;
 

@@ -777,10 +777,32 @@ void wxbRestorePanel::CmdStart() {
       wxbDataTokenizer* dt;
     
       SetStatus(restoring);
-      wxbUtils::WaitForEnd("yes\n");
+      dt = wxbUtils::WaitForEnd("yes\n", true);
 
       gauge->SetValue(0);
       gauge->SetRange(totfilemessages);
+
+      int j;
+            
+      for (i = 0; i < dt->GetCount(); i++) {
+         if ((j = (*dt)[i].Find("Job started. JobId=")) > -1) {
+            jobid = (*dt)[i].Mid(j+19);
+            wxbMainFrame::GetInstance()->SetStatusText("Restore started, jobid=" + jobid);
+            break;
+         }
+
+         if ((j = (*dt)[i].Find("Job failed.")) > -1) {
+            wxbMainFrame::GetInstance()->Print("Restore failed, please look at messages.\n", CS_DEBUG);
+            wxbMainFrame::GetInstance()->SetStatusText("Restore failed, please look at messages in console.");
+            return;
+         }
+      }
+      
+      if (jobid == "") {
+         wxbMainFrame::GetInstance()->Print("Failed to retrieve jobid.\n", CS_DEBUG);
+         wxbMainFrame::GetInstance()->SetStatusText("Failed to retrieve jobid.\n");
+         return;         
+      }
 
       wxDateTime currenttime;
       
@@ -810,67 +832,104 @@ void wxbRestorePanel::CmdStart() {
          return;
       }
 
-      wxString cmd = "list jobid=";
-
-      wxString jobname = restorePanel->GetRowString("Job Name");
-
-      wxStopWatch sw;
+      wxString cmd = wxString("list jobid=") + jobid;
 
       wxbTableParser* tableparser;
+      
+      long filemessages = 0;
+      
+      bool ended = false;
+      bool waitforever = false;
+      
+      char status = '?';
 
+      wxStopWatch sw;
+           
       while (true) {
-         tableparser = wxbUtils::CreateAndWaitForParser("list jobs\n");
-         
-         wxDateTime jobtime;
-         
-         for (i = 0; i < tableparser->GetCount(); i++) {
-            if (jobname == (*tableparser)[i][1]) {
-               wxStringTokenizer jtkz((*tableparser)[i][2], " ", wxTOKEN_STRTOK);
-               if ((jobtime.ParseDate(jtkz.GetNextToken()) != NULL) && // Date
-                     (jobtime.ParseTime(jtkz.GetNextToken()) != NULL)) { // Time
-                  if (jobtime.IsLaterThan(currenttime)) {
-                     jobid = (*tableparser)[i][0];
-                     cmd << jobid << "\n";
-                     delete tableparser;
-                     tableparser = NULL;
-                     cancel->Enable(true);
-                     break;
-                  }
-               }
-            }
-         }
-   
-         if (tableparser == NULL) { //The job was found
+         tableparser = wxbUtils::CreateAndWaitForParser(cmd);
+         ended = false;
+         status = (*tableparser)[0][7].GetChar(0);
+         switch (status) {
+         case JS_Created:
+            wxbMainFrame::GetInstance()->SetStatusText("Restore job created, but not yet running.");
+            waitforever = false;
+            break;
+         case JS_Running:
+            wxbMainFrame::GetInstance()->SetStatusText(
+               wxString("Restore job running, please wait (") << filemessages << 
+               " of " << totfilemessages << " files restored)...");
+            waitforever = true;
+            break;
+         case JS_Terminated:
+            wxbMainFrame::GetInstance()->SetStatusText("Restore job terminated successfully.");
+            wxbMainFrame::GetInstance()->Print("Restore job terminated successfully.\n", CS_DEBUG);
+            waitforever = false;
+            ended = true;
+            break;
+         case JS_ErrorTerminated:
+            wxbMainFrame::GetInstance()->SetStatusText("Restore job terminated in error, see messages in console.");
+            wxbMainFrame::GetInstance()->Print("Restore job terminated in error, see messages.\n", CS_DEBUG);
+            waitforever = false;
+            ended = true;
+            break;
+         case JS_Error:
+            wxbMainFrame::GetInstance()->SetStatusText("Restore job reported a non-fatal error.");
+            waitforever = false;
+            break;
+         case JS_FatalError:
+            wxbMainFrame::GetInstance()->SetStatusText("Restore job reported a fatal error.");
+            waitforever = false;
+            ended = true;
+            break;
+         case JS_Canceled:
+            wxbMainFrame::GetInstance()->SetStatusText("Restore job cancelled by user.");
+            wxbMainFrame::GetInstance()->Print("Restore job cancelled by user.\n", CS_DEBUG);
+            waitforever = false;
+            ended = true;
+            break;
+         case JS_WaitFD:
+            wxbMainFrame::GetInstance()->SetStatusText("Restore job is waiting on File daemon.");
+            waitforever = false;
+            break;
+         case JS_WaitMedia:
+            wxbMainFrame::GetInstance()->SetStatusText("Restore job is waiting for new media.");
+            waitforever = false;
+            break;
+         case JS_WaitStoreRes:
+            wxbMainFrame::GetInstance()->SetStatusText("Restore job is waiting for storage resource.");
+            waitforever = false;
+            break;
+         case JS_WaitJobRes:
+            wxbMainFrame::GetInstance()->SetStatusText("Restore job is waiting for job resource.");
+            waitforever = false;
+            break;
+         case JS_WaitClientRes:
+            wxbMainFrame::GetInstance()->SetStatusText("Restore job is waiting for Client resource.");
+            waitforever = false;
+            break;
+         case JS_WaitMaxJobs:
+            wxbMainFrame::GetInstance()->SetStatusText("Restore job is waiting for maximum jobs.");
+            waitforever = false;
+            break;
+         case JS_WaitStartTime:
+            wxbMainFrame::GetInstance()->SetStatusText("Restore job is waiting for start time.");
+            waitforever = false;
+            break;
+         case JS_WaitPriority:
+            wxbMainFrame::GetInstance()->SetStatusText("Restore job is waiting for higher priority jobs to finish.");
+            waitforever = false;
             break;
          }
-         
          delete tableparser;
-         
+
          wxStopWatch sw2;
-         while (sw2.Time() < 2000) {
+         while (sw2.Time() < 1000) {  
             wxTheApp->Yield(true);
             ::wxUsleep(100);
          }
-         if (sw.Time() > 60000) {
-            wxbMainFrame::GetInstance()->Print("The restore job has not been created within one minute, wx-console will not wait for its completion anymore.\n", CS_DEBUG);
-            wxbMainFrame::GetInstance()->SetStatusText("The restore job has not been created within one minute, wx-console will not wait for its completion anymore.");
-            SetStatus(finished);
-            cancel->Enable(true);
-            return;
-         }
-      }
-      
-      long filemessages = 0;
-
-      while (true) {
-         tableparser = wxbUtils::CreateAndWaitForParser(cmd);
-         if ((*tableparser)[0][7] != "C") {
-            break;
-         }
-         delete tableparser;
-
-         dt = wxbUtils::WaitForEnd("messages\n", true);
          
+         dt = wxbUtils::WaitForEnd(".messages\n", true);
+                  
          for (unsigned int i = 0; i < dt->GetCount(); i++) {
             wxStringTokenizer tkz((*dt)[i], " ", wxTOKEN_STRTOK);
    
@@ -900,29 +959,32 @@ void wxbRestorePanel::CmdStart() {
          }
          
          delete dt;
-
-         wxbMainFrame::GetInstance()->SetStatusText(wxString("Restoring, please wait (") << filemessages << " of " << totfilemessages << " files done)...");
-
+         
          wxStopWatch sw2;
-         while (sw2.Time() < 10000) {  
+         while (sw2.Time() < 1000) {  
             wxTheApp->Yield(true);
             ::wxUsleep(100);
          }
+         
+         if (ended) {
+            break;
+         }
+         
+         if ((!waitforever) && (sw.Time() > 60000)) {
+            wxbMainFrame::GetInstance()->Print("The restore job has not been started within one minute, wx-console will not wait for its completion anymore.\n", CS_DEBUG);
+            wxbMainFrame::GetInstance()->SetStatusText("The restore job has not been started within one minute, wx-console will not wait for its completion anymore.");
+            break;
+         }
       }
 
-      wxbUtils::WaitForEnd("messages\n");
+      wxbUtils::WaitForEnd(".messages\n");
 
       gauge->SetValue(totfilemessages);
 
-      if ((*tableparser)[0][7] == "T") {
+      if (status == JS_Terminated) {
          wxbMainFrame::GetInstance()->Print("Restore done successfully.\n", CS_DEBUG);
          wxbMainFrame::GetInstance()->SetStatusText("Restore done successfully.");
       }
-      else {
-         wxbMainFrame::GetInstance()->Print("Restore failed, please look at messages.\n", CS_DEBUG);
-         wxbMainFrame::GetInstance()->SetStatusText("Restore failed, please look at messages in console.");
-      }
-      delete tableparser;
       SetStatus(finished);
    }
 }
