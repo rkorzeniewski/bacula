@@ -77,17 +77,20 @@ void read_last_jobs_list(int fd, uint64_t addr)
    struct s_last_job *je, job;
    uint32_t num;
 
+   Dmsg1(010, "read_last_jobs seek to %d\n", (int)addr);
    if (addr == 0 || lseek(fd, addr, SEEK_SET) < 0) {
       return;
    }
-   if (read(fd, &num, sizeof(num)) < 0) {
+   if (read(fd, &num, sizeof(num)) != sizeof(num)) {
       return;
    }
+   Dmsg1(010, "Read num_items=%d\n", num);
    if (num > 4 * MAX_LAST_JOBS) {  /* sanity check */
       return;
    }
    for ( ; num; num--) {
-      if (read(fd, &job, sizeof(job)) < 0) {
+      if (read(fd, &job, sizeof(job)) != sizeof(job)) {
+         Dmsg1(000, "Read job entry. ERR=%s\n", strerror(errno));
 	 return;
       }
       if (job.JobId > 0) {
@@ -109,17 +112,20 @@ uint64_t write_last_jobs_list(int fd, uint64_t addr)
    struct s_last_job *je;
    uint32_t num;
 
+   Dmsg1(010, "write_last_jobs seek to %d\n", (int)addr);
    if (lseek(fd, addr, SEEK_SET) < 0) {
       return 0;
    }
    if (last_jobs) {
       /* First record is number of entires */
       num = last_jobs->size();
-      if (write(fd, &num, sizeof(num)) < 0) {
+      if (write(fd, &num, sizeof(num)) != sizeof(num)) {
+         Dmsg1(000, "Error writing num_items: ERR=%s\n", strerror(errno));
 	 return 0;
       }
       foreach_dlist(je, last_jobs) {
-	 if (write(fd, je, sizeof(struct s_last_job)) < 0) {
+	 if (write(fd, je, sizeof(struct s_last_job)) != sizeof(struct s_last_job)) {
+            Dmsg1(000, "Error writing job: ERR=%s\n", strerror(errno));
 	    return 0;
 	 }
       }
