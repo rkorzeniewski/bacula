@@ -268,7 +268,7 @@ console program.
 
 Summary: Bacula - The Network Backup Solution
 Group: System Environment/Daemons
-Requires: coreutils, util-linux, libc5, bacula-fd, cdrecord, mkisofs, make
+Requires: coreutils, util-linux, bacula-fd, cdrecord, mkisofs, make
 
 %description rescue
 Bacula - It comes by night and sucks the vital essence from your computers.
@@ -1065,8 +1065,8 @@ fi
 
 %post rescue
 # link our current installed conf file to the rescue directory
-ln -s /etc/bacula-fd.conf /etc/bacula/rescue/floppy/bacula-fd.conf
-ln -s /etc/bacula-fd.conf /etc/bacula/rescue/cdrom/bin/bacula-fd.conf
+ln -s /etc/bacula/bacula-fd.conf /etc/bacula/rescue/floppy/bacula-fd.conf
+ln -s /etc/bacula/bacula-fd.conf /etc/bacula/rescue/cdrom/bin/bacula-fd.conf
 
 # run getdiskinfo
 echo "Creating rescue files for this system..."
