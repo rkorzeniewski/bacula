@@ -16,10 +16,7 @@
 
 #ifdef HAVE_CONIO
 
-/*
-#include <curses.h>
-#include <term.h>
-*/
+#include <termios.h>
 #include <termcap.h>
 #include "func.h"
 
