@@ -41,6 +41,12 @@
 #define clrbrk()
 #define usrbrk() 0  
 #endif
+
+#ifdef HAVE_WIN32
+#include <windows.h>
+#define isatty(fd) (fd==1)
+DWORD  g_platform_id = VER_PLATFORM_WIN32_WINDOWS;
+#endif
  
 /* Exported variables */
 
@@ -332,6 +338,7 @@ int main(int argc, char *argv[])
       init_signals(terminate_console);
    }
 
+#if !defined(HAVE_WIN32)
    /* Override Bacula default signals */
    signal(SIGCHLD, SIG_IGN);
    signal(SIGQUIT, SIG_IGN);
@@ -340,6 +347,7 @@ int main(int argc, char *argv[])
    signal(SIGTTIN, got_sigtin);
    signal(SIGTTOU, got_sigtout);
    trapctlc();
+#endif
 
    if (argc) {
       usage();
