@@ -86,7 +86,7 @@ DEVICE *setup_to_access_device(JCR *jcr, int read_access)
          while (p >= jcr->dev_name && *p != '/')
 	    p--;
          if (*p == '/') {
-	    strcpy(jcr->VolumeName, p+1);
+	    pm_strcpy(&jcr->VolumeName, p+1);
 	    *p = 0;
 	 }
       }
@@ -211,14 +211,14 @@ JCR *setup_jcr(char *name, char *device, BSR *bsr, char *VolumeName)
    jcr->pool_type = get_pool_memory(PM_FNAME);
    strcpy(jcr->pool_type, "Backup");
    jcr->job_name = get_pool_memory(PM_FNAME);
-   strcpy(jcr->job_name, "Dummy.Job.Name");
+   pm_strcpy(&jcr->job_name, "Dummy.Job.Name");
    jcr->client_name = get_pool_memory(PM_FNAME);
-   strcpy(jcr->client_name, "Dummy.Client.Name");
-   strcpy(jcr->Job, name);
+   pm_strcpy(&jcr->client_name, "Dummy.Client.Name");
+   bstrncpy(jcr->Job, name, sizeof(jcr->Job));
    jcr->fileset_name = get_pool_memory(PM_FNAME);
-   strcpy(jcr->fileset_name, "Dummy.fileset.name");
+   pm_strcpy(&jcr->fileset_name, "Dummy.fileset.name");
    jcr->fileset_md5 = get_pool_memory(PM_FNAME);
-   strcpy(jcr->fileset_md5, "Dummy.fileset.md5");
+   pm_strcpy(&jcr->fileset_md5, "Dummy.fileset.md5");
    jcr->JobId = 1;
    jcr->JobType = JT_BACKUP;
    jcr->JobLevel = L_FULL;

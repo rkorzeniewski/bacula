@@ -483,12 +483,12 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	 if (dev->dev_errno == 0) {
 	    dev->dev_errno = ENOSPC;	    /* out of space */
 	 }
-         Jmsg(jcr, M_ERROR, 0, _("Write error on device %s. ERR=%s.\n"), 
-	    dev->dev_name, strerror(dev->dev_errno));
+         Jmsg(jcr, M_ERROR, 0, _("Write error at %u:%u on device %s. ERR=%s.\n"), 
+	    dev->file, dev->block_num, dev->dev_name, strerror(dev->dev_errno));
       } else {
 	dev->dev_errno = ENOSPC;	    /* out of space */
-         Jmsg3(jcr, M_INFO, 0, _("End of medium on device %s. Write of %u bytes got %d.\n"), 
-	    dev->dev_name, wlen, stat);
+         Jmsg(jcr, M_INFO, 0, _("End of medium at %u:%u on device %s. Write of %u bytes got %d.\n"), 
+	    dev->file, dev->block_num, dev->dev_name, wlen, stat);
       }  
 
       Dmsg6(100, "=== Write error. size=%u rtn=%d dev_blk=%d blk_blk=%d errno=%d: ERR=%s\n", 

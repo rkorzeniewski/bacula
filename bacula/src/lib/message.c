@@ -684,11 +684,8 @@ void dispatch_message(JCR *jcr, int type, int level, char *msg)
 	     case MD_DIRECTOR:
                 Dmsg1(800, "DIRECTOR for following msg: %s", msg);
 		if (jcr && jcr->dir_bsock && !jcr->dir_bsock->errors) {
-
-		   jcr->dir_bsock->msglen = Mmsg(&(jcr->dir_bsock->msg),
-                        "Jmsg Job=%s type=%d level=%d %s", jcr->Job,
-			 type, level, msg) + 1;
-		   bnet_send(jcr->dir_bsock);
+                   bnet_fsend(jcr->dir_bsock, "Jmsg Job=%s type=%d level=%d %s", 
+		      jcr->Job, type, level, msg);
 		}
 		break;
 	     case MD_STDOUT:

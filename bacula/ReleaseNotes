@@ -1,12 +1,27 @@
 
           Release Notes for Bacula 1.33
 
-  Bacula code: Total files = 259 Total lines = 78,087 (*.h *.c *.in)
+  Bacula code: Total files = 259 Total lines = 78,302 (*.h *.c *.in)
 
 Most Significant Changes since 1.32d
 - Implement "update slots scan" that reads the volume label.
+- Turn off changer Volumes that are not current in the changer.
+- Enhance "fill" command of btape.
+- Added an autochanger test to the btape test command.
+- New "estimate" and "lsmark" in restore command. Estimate gives
+  a byte estimate for the restore, and lsmark does an ls listing 
+  of marked files.
+- Implement Fast Forward Space File.
+- New version 1.5.5 Cygwin.
+- Select the oldest LastWritten volume during recycling.
+- Modify SD to update the catalog database when it is shutdown,
+  even if the job is canceled.
 
-
+Other Changes since 1.32d
+- The console program will run all commands it finds in ~/.bconsolerc
+  at startup.
+- Add Dan Langille's changes to the bacula start/stop script that 
+  permit dropping root permissions just after startup.
 
 Items to note:  !!!!!
 - The daemon protocol has changed, you must update everything at once.
@@ -19,4 +34,7 @@ Items to note:  !!!!!
   which will delete ALL prior catalog information, or you can
   update your database with:
 
-    ./alter_bacula_tables
+    ./update_bacula_tables
+- smtp has now become bsmtp
+- console has now become bconsole.
+- console.conf is now bconsole.conf

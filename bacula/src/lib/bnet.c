@@ -61,7 +61,6 @@ static int32_t read_nbytes(BSOCK *bsock, char *ptr, int32_t nbytes)
 	 errno = 0;
 	 nread = read(bsock->fd, ptr, nleft);	 
 	 if (bsock->timed_out || bsock->terminated) {
-            Dmsg1(400, "timed_out = %d\n", bsock->timed_out);
 	    return nread;
 	 }
       } while (nread == -1 && (errno == EINTR || errno == EAGAIN));
@@ -684,6 +683,9 @@ bnet_fsend(BSOCK *bs, char *fmt, ...)
    va_list arg_ptr;
    int maxlen;
 
+   if (bs->errors || bs->terminated) {
+      return 0;
+   }
    /* This probably won't work, but we vsnprintf, then if we
     * get a negative length or a length greater than our buffer
     * (depending on which library is used), the printf was truncated, so
@@ -698,7 +700,7 @@ again:
       bs->msg = realloc_pool_memory(bs->msg, maxlen + 200);
       goto again;
    }
-   return bnet_send(bs) < 0 ? 0 : 1;
+   return bnet_send(bs);
 }
 
 /* 
