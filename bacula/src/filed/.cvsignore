@@ -3,6 +3,7 @@ bacula-fd
 bacula-fd.conf
 btraceback
 btraceback.gdb
-startit
-stopit
 host.h
+startit
+static-bacula-fd
+stopit
