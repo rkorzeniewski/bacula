@@ -29,7 +29,6 @@
 
  */
 
-/* *****FIXME**** fix fixed length of select_cmd[] and insert_cmd[] */
 
 /* The following is necessary so that we do not include
  * the dummy external definition of DB.
@@ -159,12 +158,15 @@ static int db_get_filename_record(B_DB *mdb)
    
    Mmsg(&mdb->cmd, "SELECT FilenameId FROM Filename WHERE Name='%s'", mdb->esc_name);
    if (QUERY_DB(mdb, mdb->cmd)) {
+      char ed1[30];
 
       mdb->num_rows = sql_num_rows(mdb);
 
       if (mdb->num_rows > 1) {
-         Mmsg1(&mdb->errmsg, _("More than one Filename!: %d\n"), (int)(mdb->num_rows));
-      }
+         Mmsg2(&mdb->errmsg, _("More than one Filename!: %s for file: %s\n"),
+	    edit_uint64(mdb->num_rows, ed1), mdb->fname);
+         Jmsg(mdb->jcr, M_WARNING, 0, "%s", mdb->errmsg);
+      } 
       if (mdb->num_rows >= 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
             Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
@@ -211,10 +213,12 @@ static int db_get_path_record(B_DB *mdb)
       mdb->num_rows = sql_num_rows(mdb);
 
       if (mdb->num_rows > 1) {
-         Mmsg1(&mdb->errmsg, _("More than one Path!: %s\n"), 
-	    edit_uint64(mdb->num_rows, ed1));
-         Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
-      } else if (mdb->num_rows == 1) {
+         Mmsg2(&mdb->errmsg, _("More than one Path!: %s for path: %s\n"),
+	    edit_uint64(mdb->num_rows, ed1), mdb->path);
+         Jmsg(mdb->jcr, M_WARNING, 0, "%s", mdb->errmsg);
+      } 
+      /* Even if there are multiple paths, take the first one */
+      if (mdb->num_rows >= 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
             Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
 	 } else {

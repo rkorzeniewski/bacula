@@ -1437,7 +1437,6 @@ static struct cmdstruct commands[] = {
  {"cap",        capcmd,       "list device capabilities"},
  {"clear",      clearcmd,     "clear tape errors"},
  {"eod",        eodcmd,       "go to end of Bacula data for append"},
- {"test",       testcmd,      "General test Bacula tape functions"},
  {"eom",        eomcmd,       "go to the physical end of medium"},
  {"fill",       fillcmd,      "fill tape, write onto second volume"},
  {"unfill",     unfillcmd,    "read filled tape"},
@@ -1453,6 +1452,7 @@ static struct cmdstruct commands[] = {
  {"rewind",     rewindcmd,    "rewind the tape"},
  {"scan",       scancmd,      "read tape block by block to EOT and report"}, 
  {"status",     statcmd,      "print tape status"},
+ {"test",       testcmd,      "General test Bacula tape functions"},
  {"weof",       weofcmd,      "write an EOF on the tape"},
  {"wr",         wrcmd,        "write a single record of 2048 bytes"}, 
 	     };

@@ -26,8 +26,6 @@
 
  */
 
-/* *****FIXME**** fix fixed length of select_cmd[] and insert_cmd[] */
-
 /* The following is necessary so that we do not include
  * the dummy external definition of DB.
  */
@@ -525,22 +523,20 @@ static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar)
    if (mdb->cached_path_id != 0 && mdb->cached_path_len == mdb->pnl &&
        strcmp(mdb->cached_path, mdb->path) == 0) {
       ar->PathId = mdb->cached_path_id;
-      ASSERT(ar->PathId);
       return 1;
    }	      
 
    Mmsg(&mdb->cmd, "SELECT PathId FROM Path WHERE Path='%s'", mdb->esc_name);
 
    if (QUERY_DB(mdb, mdb->cmd)) {
-
       mdb->num_rows = sql_num_rows(mdb);
-
       if (mdb->num_rows > 1) {
 	 char ed1[30];
-         Mmsg2(&mdb->errmsg, _("More than one Path!: %s for Path=%s\n"), 
+         Mmsg2(&mdb->errmsg, _("More than one Path!: %s for path: %s\n"), 
 	    edit_uint64(mdb->num_rows, ed1), mdb->path);
-         Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
+         Jmsg(mdb->jcr, M_WARNING, 0, "%s", mdb->errmsg);
       }
+      /* Even if there are multiple paths, take the first one */
       if (mdb->num_rows >= 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
             Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
@@ -579,12 +575,11 @@ static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar)
    }
 
    /* Cache path */
-   if (ar->PathId != mdb->cached_path_id) {
+   if (stat && ar->PathId != mdb->cached_path_id) {
       mdb->cached_path_id = ar->PathId;
       mdb->cached_path_len = mdb->pnl;
       pm_strcpy(&mdb->cached_path, mdb->path);
    }
-   ASSERT(ar->PathId);
    return stat;
 }
 
@@ -602,13 +597,14 @@ static int db_create_filename_record(B_DB *mdb, ATTR_DBR *ar)
    if (QUERY_DB(mdb, mdb->cmd)) {
       mdb->num_rows = sql_num_rows(mdb);
       if (mdb->num_rows > 1) {
-         Mmsg2(&mdb->errmsg, _("More than one Filename!: %d File=%s\n"), 
-	    (int)(mdb->num_rows), mdb->fname);
-         Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
+	 char ed1[30];
+         Mmsg2(&mdb->errmsg, _("More than one Filename! %s for file: %s\n"), 
+	    edit_uint64(mdb->num_rows, ed1), mdb->fname);
+         Jmsg(mdb->jcr, M_WARNING, 0, "%s", mdb->errmsg);
       }
       if (mdb->num_rows >= 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
-            Mmsg2(&mdb->errmsg, _("error fetching row for file=%s: ERR=%s\n"), 
+            Mmsg2(&mdb->errmsg, _("Error fetching row for file=%s: ERR=%s\n"), 
 		mdb->fname, sql_strerror(mdb));
             Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	    ar->FilenameId = 0;
@@ -631,7 +627,6 @@ static int db_create_filename_record(B_DB *mdb, ATTR_DBR *ar)
    } else {
       ar->FilenameId = sql_insert_id(mdb);
    }
-
    return ar->FilenameId > 0;
 }
 

@@ -254,6 +254,11 @@ void db_end_transaction(B_DB *mdb)
 #endif
 }
 
+/*
+ * Given a full filename, split it into its path
+ *  and filename parts. They are returned in pool memory
+ *  in the mdb structure.
+ */
 void split_path_and_filename(B_DB *mdb, char *fname)
 {
    char *p, *f;
@@ -283,7 +288,7 @@ void split_path_and_filename(B_DB *mdb, char *fname)
    mdb->fnl = p - f;
    if (mdb->fnl > 0) {
       mdb->fname = check_pool_memory_size(mdb->fname, mdb->fnl+1);
-      strncpy(mdb->fname, f, mdb->fnl);    /* copy filename */
+      memcpy(mdb->fname, f, mdb->fnl);	  /* copy filename */
       mdb->fname[mdb->fnl] = 0;
    } else {
       mdb->fname[0] = ' ';            /* blank filename */
@@ -294,7 +299,7 @@ void split_path_and_filename(B_DB *mdb, char *fname)
    mdb->pnl = f - fname;    
    if (mdb->pnl > 0) {
       mdb->path = check_pool_memory_size(mdb->path, mdb->pnl+1);
-      strncpy(mdb->path, fname, mdb->pnl);
+      memcpy(mdb->path, fname, mdb->pnl);
       mdb->path[mdb->pnl] = 0;
    } else {
       Mmsg1(&mdb->errmsg, _("Path length is zero. File=%s\n"), fname);

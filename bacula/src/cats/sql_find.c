@@ -11,7 +11,7 @@
  */
 
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -30,7 +30,6 @@
 
  */
 
-/* *****FIXME**** fix fixed length of select_cmd[] and insert_cmd[] */
 
 /* The following is necessary so that we do not include
  * the dummy external definition of DB.

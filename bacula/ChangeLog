@@ -1,6 +1,7 @@
 
+
 =============================================================================
-2003-01-05 Version 1.28a released
+2003-01-05 Version 1.28b released
 - Corrected a typo of working_directory in bacula-dir.conf
   reported by James MacLean.
 - Fixed the fact that path and filenames in some cases were not

@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                 12 January 2003 
+                 14 January 2003 
 
 Documentation to do: (a little bit at a time)
 - Document running a test version.
@@ -7,34 +7,30 @@ Documentation to do: (a little bit at a time)
 - Document static linking
 - Document fixing tape file after crash (update Media set VolFiles=xx
   where MediaId=yy; update status to append).
+- Document fifo and | and <
 
 
 Testing to do: (painful)
 - that console command line options work
 - blocksize recognition code.
-- test fifo code
-- test and fix < code and | code.
 
 For 1.29 release:
 - Add include list to end of chain in findlib
 - Look into Pruning/purging problems or why there seem to
   be so many files listed each night.
-- Check out DB errors seen during recover.
-- Write Unix emulator for Windows.
 - Why is catreq.c:111 Find vol called twice for a job?
 - Fix cancel in find_one -- need jcr.
 - Cancel does not work for restore in FD.
 - Write SetJobStatus() function so cancel status not lost.
 - Find out why Full saves run slower and slower (hashing?)
-- Make 1.28c release
+- Make 1.28c release ???
 - Rewrite find_one.c to use only pool_memory instead of 
   alloca and malloc.
 - Make sure btraceback goes into /sbin not sysconf directory.
 - Get correct error status from run_program or open_bpipe().
 - Figure out how to allow multiple simultaneous file Volumes on
   a single device.
-- Why are save/restore of device different sizes (sparse?)
-  Yup! Fix it.
+- Why are save/restore of device different sizes (sparse?)   Yup! Fix it.
 
 - Implement some why for the Console to dynamically create a job.
 - Restore to a particular time -- e.g. before date, after date. 
@@ -123,6 +119,7 @@ For 1.29 release:
 - Implement LabelTemplate (at least first cut).
 - Implement script driven addition of File daemon to config files.
 - Think about how to make Bacula work better with File (non-tape) archives.
+- Write Unix emulator for Windows.
 
 - Implement new serialize subroutines
    send(socket, "string", &Vol, "uint32", &i, NULL)
@@ -667,63 +664,3 @@ Results:
 ====================================
 
 Done: (see kernsdone for more)
-- Add EOM records? No, not at this time. The current system works and
-  above all is simple.
-- Add VolumeUseDuration and MaximumVolumeJobs to Pool db record and
-  to Media db record.
-- Add VOLUME_CAT_INFO to the EOS tape record (as
-  well as to the EOD record). -- No, not at this time.
-- Put MaximumVolumeSize in Director (MaximumVolumeJobs, MaximumVolumeFiles,
-   MaximumFileSize).
-- Enhance schedule to have 1stSat, ...
-- Make sure catalog doesn't keep growing.
-- On I/O error, write EOF, then try to write again ? No, keep it simple.
-- Figure out how compress everything except .gz,... files.
-  Implement FileOptions.
-- Put Bacula version somewhere in Job stream, probably Start Session Labels.
-- Fix start/end blocks for File devices
-- Make Job err if WriteBootstrap fails.
-- Test that mod of restore options works.
-- Test that week position schedule code works.
-- Make BSR accept count (total files to be restored).
-- Add code to fast seek to proper place on tape/file when doing Restore.
-- Replace popen() and pclose() -- fail safe and timeout, no SIG dep.
-- Add code to put VolFile in bsr for restore command.
-- Volumes can be listed multiple times in Restore volume list.
-- Add watchdog timeout for child processes start_child_timer()
-  end_child_timer();
-- Get rid of bscan.c:534 error message (one time only).
-- Print some statistics when get EOF on device in bscan -- feedback
-  to let user know it is working.
-- DateWritten field on tape may be wrong.
-- Ensure that restore of differential jobs works (check SQL).
-- Count number of ignored messages in bscan and print when first SOS is found.
-- Test that EndFile/Block are correctly updated at end of tape 
-  (in view of new block reading code).
-- Test watchdog child timer code.
-- Test new BSR code (mostly done).
-- Work more on how to to a Bacula restore beginning with
-  just a Bacula tape and a boot floppy (bare metal recovery).
-- Restore options (overwrite, overwrite if older,
-   overwrite if newer, never overwrite, ...)
-- Fill all fields in Vol/Job Header -- ensure that everything
-  needed is written to tape. Think about restore to Catalog
-  from tape.  Client record needs improving.
-- Implement ./configure --with-client-only
-- Finish up static linking 
-- that restore options work in FD               
-- Backup of raw partitions
-- Document nofollow flag
-- Make sure restore options are documented
-- Should we dump a SOS when starting a new tape? (no -- too complicated)
-- Fix gethostbyname() to use gethostbyname_r() -- no added mutex
-- Add HOST to Volume label.
-- Need to save contents of FileSet to tape? -- no not now
-- Fix db_get_fileset in cats/sql_get.c for multiple records.
-- Fix catalog filename truncation in sql_get and sql_create. Use
-  only a single filename split routine.
-- Figure out how to save the catalog (possibly a special FileSet).
-- Figure out how to restore the catalog.
-- Make sure differential handled correctly
-- Look at ua_prune.c in detail. Why did JobType work at all??????
-- Test size of hash table needed in find_one using testfind (about 1300).
