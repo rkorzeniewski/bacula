@@ -574,7 +574,7 @@ static void eliminate_orphaned_path_records()
    printf("Checking for orphaned Path entries. This may take some time!\n");
    query = "SELECT Path.PathId,File.PathId FROM Path "
            "LEFT OUTER JOIN File ON (Path.PathId=File.PathId) "
-           "HAVING File.PathId IS NULL";
+           "GROUP BY Path.PathId HAVING File.PathId IS NULL";
    if (!make_id_list(query, &id_list)) {
       exit(1);
    }

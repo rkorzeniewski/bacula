@@ -23,7 +23,6 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.32:
-- Document restore by files.
 - Document new Include/Exclude ...
 - Document all the status codes JobLevel, JobType, JobStatus.
 - Add test of exclusion, test multiple Include {} statements.
@@ -31,8 +30,7 @@ For 1.32:
   scan 1; scan 1-5; scan 1,2,4 ...  to update the catalog 
 - Allow a slot or range of slots on the label barcodes command.
   when the magazine is changed.
-- Don't print "Warning: Wrong Volume mounted ..." if mounting second
-  volume.
+- Don't print "Warning: Wrong Volume mounted ..." if mounting second volume.
 - Implement List Volume Job=xxx  or List scheduled volumes or Status Director 
 
 For 1.33
@@ -695,27 +693,27 @@ Problem:
 Proposed Implementation:
   To solve this problem, I propose the following:
 
-  - Add a new Director resource type called FileOptions.  
+  - Add a new Director resource type called Options.  
 
-  - The FileOptions resource will have records for all
+  - The Options resource will have records for all
     options that can currently be specified on the Include record 
     (in a FileSet).  Examples below.
 
-  - The FileOptions resource will permit an exclude option as well
+  - The Options resource will permit an exclude option as well
     as a number of additional options.
 
-  - The heart of the FileOptions resource is the ability to
-    supply any number of ApplyTo records which specify POSIX
-    regular expressions.  These ApplyTo regular expressions are
+  - The heart of the Options resource is the ability to
+    supply any number of Match records which specify POSIX
+    regular expressions.  These Match regular expressions are
     applied to the fully qualified filename (path and all). If
-    one matches, then the FileOptions will be used.
+    one matches, then the Options will be used.
 
-  - When an ApplyTo specification matches an included file, the
-    options specified in the FileOptions resource will override
+  - When an Match specification matches an included file, the
+    options specified in the Options resource will override
     the default options specified on the Include record.
 
   - Include records will be modified to permit referencing one or
-    more FileOptions resources.  The FileOptions will be used
+    more Options resources.  The Options will be used
     in the order listed on the Include record and the first
     one that matches will be applied.
 
@@ -724,10 +722,10 @@ Proposed Implementation:
     year or so from now).
 
   - The Exclude record will be deprecated as the same functionality
-    can be obtained by using an Exclude = yes in the FileOptions.
+    can be obtained by using an Exclude = yes in the Options.
 
-FileOptions records:
-  The following records can appear in the FileOptions resource. An
+Options records:
+  The following records can appear in the Options resource. An
   asterisk preceding the name indicates a feature not currently
   implemented.
 
@@ -747,16 +745,16 @@ FileOptions records:
 
   For Restore Jobs:
     - replace= (always/ifnewer/ifolder/never) - replace options currently
-                                                implemented in 1.27
+                                                implemented in 1.31
     - *Writer= (filename)   - external write (restore) program
 
 
 Implementation:
   Currently options specifying compression, MD5 signatures, recursion,
   ... of a FileSet are supplied on the Include record. These will now
-  all be collected into a FileOptions resource, which will be
-  specified on the Include in place of the options. Multiple FileOptions
-  may be specified.  Since the FileOptions contain regular expressions
+  all be collected into a Options resource, which will be
+  specified in the Include in place of the options. Multiple Options
+  may be specified.  Since the Options may contain regular expressions
   that are applied to the full filename, this will give the ability
   to specify backup options on a file by file basis to whatever level
   of detail you wish.
@@ -776,7 +774,7 @@ Example:
 
     FileSet {
       Name = "FullSet"
-      FInclude {
+      Include {
         Compression = GZIP;
         Signature = MD5
         Match = /*.?*/                # matches all files.
@@ -787,18 +785,20 @@ Example:
   That's a lot more to do the same thing, but it gives the ability to
   apply options on a file by file basis.  For example, suppose you
   want to compress all files but not any file with extensions .gz or .Z.
-  You could do so as follows:
+  In that case, you will need to group two sets of options using
+  the Options resource as follows:
+
 
     FileSet {
       Name = "FullSet"
-      FInclude {
-        FileOptions {
+      Include {
+        Options {
           Signature = MD5
           # Note multiple Matches are ORed
           Match = /*.gz/   # matches .gz files */
           Match = /*.Z/    # matches .Z files */
         }
-        FileOptions {
+        Options {
           Compression = GZIP
           Signature = MD5
           Match = /*.?*/   # matches all files
@@ -807,10 +807,10 @@ Example:
       }
     }
 
-  Now, since the NoCompress FileOptions is specified first on the
-  Include line, any *.gz or *.Z file will have an MD5 signature computed,
-  but will not be compressed. For all other files, the NoCompress will not
-  match, so the Opts options will be used which will include GZIP
+  Now, since the no Compression option is specified in the
+  first group of Options, *.gz or *.Z file will have an MD5 signature computed,
+  but will not be compressed. For all other files, the *.gz *.Z will not
+  match, so the second group of options will be used which will include GZIP
   compression.
 
 Questions:
@@ -898,3 +898,4 @@ Done: (see kernsdone for more)
   in recycle.c).
 - Document SDConnectTimeout (in FD).
 - Add restore by filename test.
+- Document restore by files.

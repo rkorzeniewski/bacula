@@ -326,7 +326,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
       }
       done = true;
       break;
-   case 3:
+   case 3:			      /* file */
       if (!get_client_name(ua, rx)) {
 	 return 0;
       }
