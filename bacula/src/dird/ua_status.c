@@ -42,7 +42,7 @@ static void do_client_status(UAContext *ua, CLIENT *client);
 static void do_director_status(UAContext *ua);
 static void do_all_status(UAContext *ua);
 
-static char OKqstatus[]   = "2000 OK .status\n";
+static char OKqstatus[]   = "1000 OK .status\n";
 static char DotStatusJob[] = "JobId=%d JobStatus=%c JobErrors=%d\n";
 
 /*
@@ -59,7 +59,7 @@ int qstatus_cmd(UAContext *ua, const char *cmd)
    Dmsg1(20, "status:%s:\n", cmd);
 
    if ((ua->argc != 3) || (strcasecmp(ua->argk[1], "dir"))) {
-      bsendmsg(ua, "2900 Bad .status command, missing arguments.\n");
+      bsendmsg(ua, "1900 Bad .status command, missing arguments.\n");
       return 1;
    }
    
@@ -82,7 +82,7 @@ int qstatus_cmd(UAContext *ua, const char *cmd)
       }
    }
    else {
-      bsendmsg(ua, "2900 Bad .status command, wrong argument.\n");
+      bsendmsg(ua, "1900 Bad .status command, wrong argument.\n");
       return 1;
    }
   

@@ -43,7 +43,7 @@ extern int num_jobs_run;
 /* Static variables */
 static char qstatus[] = ".status %s\n";
 
-static char OKqstatus[]   = "2000 OK .status\n";
+static char OKqstatus[]   = "3000 OK .status\n";
 static char DotStatusJob[] = "JobId=%d JobStatus=%c JobErrors=%d\n";
 
 
@@ -432,7 +432,7 @@ int qstatus_cmd(JCR *jcr)
    if (sscanf(dir->msg, qstatus, time) != 1) {
       pm_strcpy(&jcr->errmsg, dir->msg);
       Jmsg1(jcr, M_FATAL, 0, _("Bad .status command: %s\n"), jcr->errmsg);
-      bnet_fsend(dir, "2900 Bad .status command, missing argument.\n");
+      bnet_fsend(dir, "3900 Bad .status command, missing argument.\n");
       bnet_sig(dir, BNET_EOD);
       return 0;
    }
@@ -459,7 +459,7 @@ int qstatus_cmd(JCR *jcr)
    else {
       pm_strcpy(&jcr->errmsg, dir->msg);
       Jmsg1(jcr, M_FATAL, 0, _("Bad .status command: %s\n"), jcr->errmsg);
-      bnet_fsend(dir, "2900 Bad .status command, wrong argument.\n");
+      bnet_fsend(dir, "3900 Bad .status command, wrong argument.\n");
       bnet_sig(dir, BNET_EOD);
       return 0;
    }
