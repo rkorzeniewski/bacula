@@ -35,33 +35,38 @@
  */
 class wxbTreeItemData : public wxTreeItemData {
    public:
-      wxbTreeItemData(wxString path, wxString name, int marked);
-      wxbTreeItemData(wxString path, wxString name, wxString marked);
+      wxbTreeItemData(wxString path, wxString name, int marked, long listid = -1);
+      wxbTreeItemData(wxString path, wxString name, wxString marked, long listid = -1);
       ~wxbTreeItemData();
       wxString GetPath();
       wxString GetName();
-      //wxbTreeItemData* GetChild(wxString dirname);
+            
       int GetMarked();
       void SetMarked(int marked);
       void SetMarked(wxString marked);
+      
+      long GetListId();
 
       static int GetMarkedStatus(wxString file);
    private:
       wxString* path; /* Full path */
       wxString* name; /* File name */
       int marked; /* 0 - Not Marked, 1 - Marked, 2 - Some file under is marked */
+      long listid; /* list ID : >-1 if this data is in the list (and/or on the tree) */
 };
 
-wxbTreeItemData::wxbTreeItemData(wxString path, wxString name, int marked): wxTreeItemData() {
+wxbTreeItemData::wxbTreeItemData(wxString path, wxString name, int marked, long listid): wxTreeItemData() {
    this->path = new wxString(path);
    this->name = new wxString(name);
    this->marked = marked;
+   this->listid = listid;
 }
 
-wxbTreeItemData::wxbTreeItemData(wxString path, wxString name, wxString marked): wxTreeItemData() {
+wxbTreeItemData::wxbTreeItemData(wxString path, wxString name, wxString marked, long listid): wxTreeItemData() {
    this->path = new wxString(path);
    this->name = new wxString(name);
    SetMarked(marked);
+   this->listid = listid;
 }
 
 wxbTreeItemData::~wxbTreeItemData() {
@@ -87,6 +92,10 @@ void wxbTreeItemData::SetMarked(wxString marked) {
 
 void wxbTreeItemData::SetMarked(int marked) {
    this->marked = marked;
+}
+
+long wxbTreeItemData::GetListId() {
+   return listid;
 }
 
 wxString wxbTreeItemData::GetPath() {
@@ -133,9 +142,11 @@ BEGIN_EVENT_TABLE(wxbRestorePanel, wxPanel)
    EVT_TREE_SEL_CHANGING(TreeCtrl, wxbRestorePanel::OnTreeChanging)
    EVT_TREE_SEL_CHANGED(TreeCtrl, wxbRestorePanel::OnTreeChanged)
    EVT_TREE_ITEM_EXPANDING(TreeCtrl, wxbRestorePanel::OnTreeExpanding)
-   EVT_TREE_ITEM_RIGHT_CLICK(TreeCtrl, wxbRestorePanel::OnTreeRightClicked)
-   EVT_LIST_ITEM_RIGHT_CLICK(ListCtrl, wxbRestorePanel::OnListRightClicked)
    EVT_LIST_ITEM_ACTIVATED(ListCtrl, wxbRestorePanel::OnListActivated)
+
+   EVT_TREE_MARKED_EVENT(wxID_ANY, wxbRestorePanel::OnTreeMarked)
+   EVT_LIST_ITEM_RIGHT_CLICK(ListCtrl, wxbRestorePanel::OnListRightClicked)   
+  
    EVT_CHOICE(ClientChoice, wxbRestorePanel::OnClientChoiceChanged)
 END_EVENT_TABLE()
 
@@ -169,7 +180,7 @@ wxbRestorePanel::wxbRestorePanel(wxWindow* parent): wxbPanel(parent) {
 
    wxFlexGridSizer *secondSizer = new wxFlexGridSizer(1, 2, 10, 10);
 
-   tree = new wxTreeCtrl(this, TreeCtrl, wxDefaultPosition, wxSize(250, 10));
+   tree = new wxbTreeCtrl(this, TreeCtrl, wxDefaultPosition, wxSize(200,50));
    secondSizer->Add(tree, 1, wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL | wxEXPAND, 10);
 
    tree->SetImageList(imagelist);
@@ -263,39 +274,42 @@ void wxbRestorePanel::Print(wxString str, int stat) {
       if (file == NULL)
             return;
 
+      wxTreeItemId treeid;
+
       if (file[8].GetChar(file[8].Length()-1) == '/') {
          wxString itemStr;
 
          long cookie;
-         wxTreeItemId currentChild = tree->GetFirstChild(currentTreeItem, cookie);
+         treeid = tree->GetFirstChild(currentTreeItem, cookie);
 
          bool updated = false;
 
-         while (currentChild.IsOk()) {
-            itemStr = tree->GetItemText(currentChild);
+         while (treeid.IsOk()) {
+            itemStr = tree->GetItemText(treeid);
             if (file[8] == itemStr) {
                int stat = wxbTreeItemData::GetMarkedStatus(file[6]);
-               if (static_cast<wxbTreeItemData*>(tree->GetItemData(currentChild))->GetMarked() != stat) {
-                  tree->SetItemImage(currentChild, stat, wxTreeItemIcon_Normal);
-                  tree->SetItemImage(currentChild, stat, wxTreeItemIcon_Selected);
-                  static_cast<wxbTreeItemData*>(tree->GetItemData(currentChild))->SetMarked(file[6]);
+               if (static_cast<wxbTreeItemData*>(tree->GetItemData(treeid))->GetMarked() != stat) {
+                  tree->SetItemImage(treeid, stat, wxTreeItemIcon_Normal);
+                  tree->SetItemImage(treeid, stat, wxTreeItemIcon_Selected);
+                  static_cast<wxbTreeItemData*>(tree->GetItemData(treeid))->SetMarked(file[6]);
                }
                updated = true;
                break;
             }
-            currentChild = tree->GetNextChild(currentTreeItem, cookie);
+            treeid = tree->GetNextChild(currentTreeItem, cookie);
          }
 
          if (!updated) {
             int img = wxbTreeItemData::GetMarkedStatus(file[6]);
-            tree->AppendItem(currentTreeItem, file[8], img, img, new wxbTreeItemData(file[7], file[8], file[6]));
+            treeid = tree->AppendItem(currentTreeItem, file[8], img, img, new wxbTreeItemData(file[7], file[8], file[6]));
          }
       }
 
       if (updatelist) {
          long ind = list->InsertItem(list->GetItemCount(), wxbTreeItemData::GetMarkedStatus(file[6]));
-         long data = (long)(new wxbTreeItemData(file[7], file[8], file[6]));
-         list->SetItemData(ind, data);
+         wxbTreeItemData* data = new wxbTreeItemData(file[7], file[8], file[6], ind);
+         data->SetId(treeid);
+         list->SetItemData(ind, (long)data);
          list->SetItem(ind, 1, file[8]); // filename
          list->SetItem(ind, 2, file[4]); //Size
          list->SetItem(ind, 3, file[5]); //date
@@ -561,71 +575,26 @@ void wxbRestorePanel::CmdMark(wxTreeItemId treeitem, long listitem) {
       WaitForEnd(wxString("cd ") << dir << "\n");
       WaitForEnd(wxString((itemdata->GetMarked() == 1) ? "unmark " : "mark ") << file << "\n");
 
-      if ((dir == "/") && (file == "*")) {
+      /*if ((dir == "/") && (file == "*")) {
             itemdata->SetMarked((itemdata->GetMarked() == 1) ? 0 : 1);
-      }
+      }*/
 
-      if (listitem != -1) {
-         treeitem = tree->GetSelection();
+      if (listitem == -1) { /* tree item state changed */
+         SetTreeItemState(treeitem, (itemdata->GetMarked() == 1) ? 0 : 1);
+         /*treeitem = tree->GetSelection();
          UpdateTree(treeitem, true);
-         treeitem = tree->GetItemParent(treeitem);
+         treeitem = tree->GetItemParent(treeitem);*/
       }
       else {
-         UpdateTree(treeitem, (tree->GetSelection() == treeitem));
-         treeitem = tree->GetItemParent(treeitem);
+         SetListItemState(listitem, (itemdata->GetMarked() == 1) ? 0 : 1);
+         /*UpdateTree(treeitem, (tree->GetSelection() == treeitem));
+         treeitem = tree->GetItemParent(treeitem);*/
       }
 
-      while (treeitem.IsOk()) {
+      /*while (treeitem.IsOk()) {
          WaitForList(treeitem, false);
          treeitem = tree->GetItemParent(treeitem);
-      }
-      
-      /* Update root marked status */
-      treeitem = tree->GetRootItem();
-      long cookie;
-      wxTreeItemId currentChild = tree->GetFirstChild(treeitem, cookie);
-
-      bool onechildmarked = false;
-      bool onechildunmarked = false;
-
-      while (currentChild.IsOk()) {
-         itemdata = (wxbTreeItemData*)tree->GetItemData(currentChild);
-         switch (itemdata->GetMarked()) {
-         case 0:
-            onechildunmarked = true;
-            break;
-         case 1:
-            onechildmarked = true;
-            break;
-         case 2:
-            onechildmarked = true;
-            onechildunmarked = true;
-            break;
-         }
-         
-         if (onechildmarked && onechildunmarked) {
-            break;
-         }
-         
-         currentChild = tree->GetNextChild(treeitem, cookie);
-      }
-      
-      itemdata = (wxbTreeItemData*)tree->GetItemData(treeitem);
-      if (onechildmarked && onechildunmarked) {
-         itemdata->SetMarked(2);
-         tree->SetItemImage(treeitem, 2, wxTreeItemIcon_Normal);
-         tree->SetItemImage(treeitem, 2, wxTreeItemIcon_Selected);
-      }
-      else if (onechildmarked) {
-         itemdata->SetMarked(1);
-         tree->SetItemImage(treeitem, 1, wxTreeItemIcon_Normal);
-         tree->SetItemImage(treeitem, 1, wxTreeItemIcon_Selected);
-      }
-      else {
-         itemdata->SetMarked(0);
-         tree->SetItemImage(treeitem, 0, wxTreeItemIcon_Normal);
-         tree->SetItemImage(treeitem, 0, wxTreeItemIcon_Selected);
-      }
+      }*/
    }
 }
 
@@ -715,12 +684,156 @@ wxString* wxbRestorePanel::ParseList(wxString line) {
    return ret;
 }
 
-/* Update a tree item, and all its childs. */
-void wxbRestorePanel::UpdateTree(wxTreeItemId item, bool updatelist) {
-   WaitForList(item, updatelist);
+/* Sets a list item state, and update its parents and children if it is a directory */
+void wxbRestorePanel::SetListItemState(long listitem, int newstate) {
+   wxbTreeItemData* itemdata = (wxbTreeItemData*)list->GetItemData(listitem);
+   
+   wxTreeItemId treeitem;
+   
+   itemdata->SetMarked(newstate);
+   list->SetItemImage(listitem, newstate, 0); /* TODO: Find what these ints are for */
+   list->SetItemImage(listitem, newstate, 1);
+      
+   if ((treeitem = itemdata->GetId()).IsOk()) {
+      SetTreeItemState(treeitem, newstate);
+   }
+   else {
+      UpdateTreeItemState(tree->GetSelection());
+   }
+}
 
-   /* Updated all child which are not collapsed */
+/* Sets a tree item state, and update its children, parents and list (if necessary) */
+void wxbRestorePanel::SetTreeItemState(wxTreeItemId item, int newstate) {
    long cookie;
+   wxTreeItemId currentChild = tree->GetFirstChild(item, cookie);
+
+   bool onechildmarked = false;
+   bool onechildunmarked = false;
+
+   wxbTreeItemData* itemdata;
+
+   while (currentChild.IsOk()) {
+      itemdata = (wxbTreeItemData*)tree->GetItemData(currentChild);
+      int state = itemdata->GetMarked();
+      
+      if (state != newstate) {
+         itemdata->SetMarked(newstate);
+         tree->SetItemImage(currentChild, newstate, wxTreeItemIcon_Normal);
+         tree->SetItemImage(currentChild, newstate, wxTreeItemIcon_Selected);
+      }
+      
+      currentChild = tree->GetNextChild(item, cookie);
+   }
+     
+   itemdata = (wxbTreeItemData*)tree->GetItemData(item);  
+   itemdata->SetMarked(newstate);
+   tree->SetItemImage(item, newstate, wxTreeItemIcon_Normal);
+   tree->SetItemImage(item, newstate, wxTreeItemIcon_Selected);
+   tree->Refresh();
+   
+   if (tree->GetSelection() == item) {
+      for (long i = 0; i < list->GetItemCount(); i++) {
+         list->SetItemImage(i, newstate, 0); /* TODO: Find what these ints are for */
+         list->SetItemImage(i, newstate, 1);
+      }
+   }
+   
+   UpdateTreeItemState(tree->GetParent(item));
+}
+
+/* Update a tree item state, and its parents' state */
+void wxbRestorePanel::UpdateTreeItemState(wxTreeItemId item) {  
+   if (!item.IsOk()) {
+      return;
+   }
+   
+   int state = 0;
+       
+   long cookie;
+   wxTreeItemId currentChild = tree->GetFirstChild(item, cookie);
+
+   bool onechildmarked = false;
+   bool onechildunmarked = false;
+
+   while (currentChild.IsOk()) {
+      state = ((wxbTreeItemData*)tree->GetItemData(currentChild))->GetMarked();
+      switch (state) {
+      case 0:
+         onechildunmarked = true;
+         break;
+      case 1:
+         onechildmarked = true;
+         break;
+      case 2:
+         onechildmarked = true;
+         onechildunmarked = true;
+         break;
+      }
+      
+      if (onechildmarked && onechildunmarked) {
+         break;
+      }
+      
+      currentChild = tree->GetNextChild(item, cookie);
+   }
+   
+   if (tree->GetSelection() == item) {
+      for (long i = 0; i < list->GetItemCount(); i++) {
+         state = ((wxbTreeItemData*)list->GetItemData(i))->GetMarked();
+         
+         switch (state) {
+         case 0:
+            onechildunmarked = true;
+            break;
+         case 1:
+            onechildmarked = true;
+            break;
+         case 2:
+            onechildmarked = true;
+            onechildunmarked = true;
+            break;
+         }
+         
+         if (onechildmarked && onechildunmarked) {
+            break;
+         }
+      }
+   }
+   
+   state = 0;
+   
+   if (onechildmarked && onechildunmarked) {
+      state = 2;
+   }
+   else if (onechildmarked) {
+      state = 1;
+   }
+   else if (onechildunmarked) {
+      state = 0;
+   }
+   else { // no child, don't change anything
+      UpdateTreeItemState(tree->GetParent(item));
+      return;
+   }
+   
+   wxbTreeItemData* itemdata = (wxbTreeItemData*)tree->GetItemData(item);
+      
+   itemdata->SetMarked(state);
+   tree->SetItemImage(item, state, wxTreeItemIcon_Normal);
+   tree->SetItemImage(item, state, wxTreeItemIcon_Selected);
+   
+   UpdateTreeItemState(tree->GetParent(item));
+}
+
+/* 
+ * Refresh a tree item, and all its childs, 
+ * by asking the director for new lists 
+ */
+void wxbRestorePanel::RefreshTree(wxTreeItemId item) {
+/*   WaitForList(item, updatelist);
+
+   /* Update all child which are not collapsed */
+/*   long cookie;
    wxTreeItemId currentChild = tree->GetFirstChild(item, cookie);
 
    while (currentChild.IsOk()) {
@@ -728,7 +841,7 @@ void wxbRestorePanel::UpdateTree(wxTreeItemId item, bool updatelist) {
          UpdateTree(currentChild, false);
 
       currentChild = tree->GetNextChild(item, cookie);
-   }
+   }*/
 }
 
 /*----------------------------------------------------------------------------
@@ -838,14 +951,15 @@ void wxbRestorePanel::OnTreeChanged(wxTreeEvent& event) {
    working = false;
 }
 
-void wxbRestorePanel::OnTreeRightClicked(wxTreeEvent& event) {
+void wxbRestorePanel::OnTreeMarked(wxbTreeMarkedEvent& event) {
+   //wxbMainFrame::GetInstance()->Print(wxString("MARKED\n"), CS_DEBUG);
    if (working) {
-      event.Skip();
+      //event.Skip();
       return;
    }
    working = true;
    CmdMark(event.GetItem(), -1);
-   event.Skip();
+   //event.Skip();
    tree->Refresh();
    working = false;
 }
@@ -898,3 +1012,4 @@ void wxbRestorePanel::OnListActivated(wxListEvent& event) {
    }
    working = false;
 }
+

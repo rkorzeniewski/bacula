@@ -34,6 +34,8 @@
 
 #include "wxbpanel.h"
 
+#include "wxbtreectrl.h"
+
 /*
  * wxbPanel for restoring files
  */
@@ -87,8 +89,17 @@ class wxbRestorePanel : public wxbPanel
       /* Parse dir command results. */
       wxString* ParseList(wxString line);
 
-      /* Update a tree item, and all its childs. */
-      void UpdateTree(wxTreeItemId item, bool updatelist);
+      /* Sets a list item state, and update its parents and children if it is a directory */
+      void SetListItemState(long listitem, int newstate);
+
+      /* Sets a tree item state, and update its children, parents and list (if necessary) */
+      void SetTreeItemState(wxTreeItemId item, int newstate);
+      
+      /* Update a tree item parents' state */
+      void UpdateTreeItemState(wxTreeItemId item);
+
+      /* Refresh a tree item, and all its children. */
+      void RefreshTree(wxTreeItemId item);
 
 /* Status related */
       enum status_enum
@@ -115,7 +126,7 @@ class wxbRestorePanel : public wxbPanel
       void OnTreeChanging(wxTreeEvent& event);
       void OnTreeExpanding(wxTreeEvent& event);
       void OnTreeChanged(wxTreeEvent& event);
-      void OnTreeRightClicked(wxTreeEvent& event);
+      void OnTreeMarked(wxbTreeMarkedEvent& event);
       void OnListRightClicked(wxListEvent& event);
       void OnListActivated(wxListEvent& event);
       void OnClientChoiceChanged(wxCommandEvent& event);
@@ -126,7 +137,7 @@ class wxbRestorePanel : public wxbPanel
       wxButton* start;
       wxChoice* clientChoice;
       wxChoice* jobChoice;
-      wxTreeCtrl* tree;
+      wxbTreeCtrl* tree;
       wxListCtrl* list;
       wxGauge* gauge;
 

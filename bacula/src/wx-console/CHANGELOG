@@ -1,3 +1,11 @@
+16-04-2004 :
+ - wxbRestorePanel : Allow the user to change the status by double-clicking on the check mark
+
+15-04-2004 :
+ - project renamed in wx-console
+ - console_thread : Uses wx-console.conf instead of console.conf
+ - wxbRestorePanel : Change the marked state without redoing a dir
+
 12-04-2004 :
  - The source code is now better documented
  - wxbRestorePanel : Check if a client was selected before
