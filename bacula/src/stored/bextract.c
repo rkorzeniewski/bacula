@@ -98,7 +98,7 @@ int main (int argc, char *argv[])
    init_include_exclude_files(ff);
    binit(&bfd);
 
-   while ((ch = getopt(argc, argv, "b:c:d:e:i:?")) != -1) {
+   while ((ch = getopt(argc, argv, "b:c:d:e:i:V:?")) != -1) {
       switch (ch) {
       case 'b':                    /* bootstrap file */
 	 bsr = parse_bsr(NULL, optarg);
