@@ -1,6 +1,6 @@
 
 =============================================================================
-2002-11-29 Version 2.27c
+2002-11-29 Version 1.27c
 - Yet another silly error duplicating a column name in the SQLite
   make tables.  No code change, just a make file.
 
