@@ -40,11 +40,12 @@
 
 typedef char POOLMEM;   
 #define mp_chr(x) x
-#ifdef xxxxx
+#ifdef  xxxxx
 #define mp_chr(x) ((char*)(x))
-struct POOLMEM { 
-   POOLMEM() {}
-   operator const char*() const { return (char *)this; }
+class POOLMEM { 
+public:
+   POOLMEM() { }
+   operator char * const() { return this; }
 };
 #endif
 

@@ -1,7 +1,7 @@
 
           Release Notes for Bacula 1.31
 
-  Bacula code: Total files = 258 Total lines = 76,596 (*.h *.c *.in)
+  Bacula code: Total files = 258 Total lines = 76,670 (*.h *.c *.in)
 
 Major Changes this Release:
 - Implemented a new job scheduling algorithm with priorities.
@@ -71,9 +71,12 @@ Other Changes this Release:
 
 Items to note:  !!!!!
 - Recycle Oldest Volume has changed to be Purge Oldest Volume
-  Please change your Director's .conf file.
+  Please change your Director's .conf file.  Recycle Oldest Volume
+  still works but respects retention periods.
+
 - The default time interval is now days instead of seconds. Please
   check your .conf files!
+
 - For MySQL users, you must have the thread safe client libraries 
   available.  If you build MySQL yourself, add the --enable-thread-safe-client
   option on the ./configure.  You will most likely need to do an ldconfig.
