@@ -26,6 +26,8 @@ Suggestions for Preben:
   port opened by the client.
 - Implement WildFile and WildDir to solve problem of 
   saving only *.doc files.
+- Bootstrap from JobMedia records.
+- Optimized bootstrap.
 
 For 1.37:
 - Create a new GUI chapter explaining all the GUI programs.
@@ -82,6 +84,28 @@ Regression tests (Jo):
 - Win32 systems with FAT32 can be much slower than NTFS for
   more than 1000 files per directory.
 
+Design:
+  Storage Group (SDs?)
+  Device Group
+   - Media Type (read/write)
+   - Specific Devices
+  Device
+   - Media Type (read/write)
+   - Mount retention
+   - Mount wait
+  File Device
+   - Mount limit
+   - Max capacity
+   - Directory
+  Pool
+   - Media Type (read/write)
+   - Device Group
+  Media
+   - Autochanger Id
+   - List of Devices/Device Groups/Storage groups
+     (i.e. physical restraint) 
+  Autochanger
+   - Device list
 
 1.37 Possibilities:
 - Can one write tapes faster with 8192 byte block sizes?
@@ -206,6 +230,12 @@ For 1.37 Testing/Documentation:
   perhaps if password is undefined.
 - Implement "from ISO-date/time every x hours/days/weeks/months" in
   schedules.
+=== rate design
+  jcr->last_rate
+  jcr->last_runtime
+  MA = (last_MA * 3 + rate) / 4
+  rate = (bytes - last_bytes) / (runtime - last_runtime)
+
 ==== from Marc Schoechlin
 - the help-command should be more verbose
   (it should explain the paramters of the different 
@@ -1068,4 +1098,3 @@ Block Position: 0
 - Implement Preben's suggestion to add
   File System Types = ext2, ext3 
   to FileSets, thus simplifying backup of *all* local partitions.
-
