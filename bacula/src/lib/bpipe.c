@@ -108,6 +108,9 @@ BPIPE *open_bpipe(char *prog, int wait, char *mode)
    }
    bpipe->worker_stime = time(NULL);
    bpipe->wait = wait;
+   if (wait > 0) {
+      bpipe->timer_id = start_child_timer(bpipe->worker_pid, wait);
+   }
    return bpipe;
 }
 
@@ -166,6 +169,9 @@ int close_bpipe(BPIPE *bpipe)
    }
    if (WIFEXITED(chldstatus)) {
       stat = WEXITSTATUS(chldstatus);
+   }
+   if (bpipe->timer_id) {
+      stop_child_timer(bpipe->timer_id);
    }
    free(bpipe);
    return stat;

@@ -174,6 +174,10 @@ static void my_free_jcr(JCR *jcr)
       free_pool_memory(jcr->fileset_name);
       jcr->fileset_name = NULL;
    }
+   if (jcr->fileset_md5) {
+      free_pool_memory(jcr->fileset_md5);
+      jcr->fileset_md5 = NULL;
+   }
    if (jcr->dev_name) {
       free_pool_memory(jcr->dev_name);
       jcr->dev_name = NULL;

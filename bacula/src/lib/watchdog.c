@@ -38,12 +38,13 @@ time_t watchdog_time;		      /* this has granularity of SLEEP_TIME */
 #define SLEEP_TIME 30		      /* examine things every 30 seconds */
 
 /* Forward referenced functions */
-static void *watchdog_thread(void *arg);
+static void *btimer_thread(void *arg);
 
 /* Static globals */
 static pthread_mutex_t mutex;
 static pthread_cond_t  timer;
 static int quit;
+static btimer_t *child_chain = NULL;
 
 
 /*
@@ -80,7 +81,7 @@ int start_watchdog(void)
       return stat;
    }
    quit = FALSE;
-   if ((stat = pthread_create(&wdid, NULL, watchdog_thread, (void *)NULL)) != 0) {
+   if ((stat = pthread_create(&wdid, NULL, btimer_thread, (void *)NULL)) != 0) {
       pthread_mutex_destroy(&mutex);
       pthread_cond_destroy(&timer);
       return stat;
@@ -98,18 +99,14 @@ int stop_watchdog(void)
 {
    int stat;
 
-   if ((stat = pthread_mutex_lock(&mutex)) != 0) {
-      return stat;
-   }
+   P(mutex);
    quit = TRUE;
 
    if ((stat = pthread_cond_signal(&timer)) != 0) {
-      pthread_mutex_unlock(&mutex);
+      V(mutex);
       return stat;
    }
-   if ((stat = pthread_mutex_unlock(&mutex)) != 0) {
-      return stat;
-   }
+   V(mutex);
    return 0;
 }
 
@@ -117,24 +114,22 @@ int stop_watchdog(void)
 /* 
  * This is the actual watchdog thread.
  */
-static void *watchdog_thread(void *arg)
+static void *btimer_thread(void *arg)
 {
    struct timespec timeout;
    int stat;
    JCR *jcr;
    BSOCK *fd;
+   btimer_t *wid;
 
    Dmsg0(200, "Start watchdog thread\n");
    pthread_detach(pthread_self());
 
-   if ((stat = pthread_mutex_lock(&mutex)) != 0) {
-      return NULL;
-   }
-
+   P(mutex);
    for ( ;!quit; ) {
       struct timeval tv;
       struct timezone tz;
-      time_t timer_start;
+      time_t timer_start, now;
 
       Dmsg0(200, "Top of for loop\n");
 
@@ -191,12 +186,89 @@ static void *watchdog_thread(void *arg)
       timeout.tv_sec = tv.tv_sec + SLEEP_TIME;
 
       Dmsg1(200, "pthread_cond_timedwait sec=%d\n", timeout.tv_sec);
+      /* Note, this unlocks mutex during the sleep */
       stat = pthread_cond_timedwait(&timer, &mutex, &timeout);
       Dmsg1(200, "pthread_cond_timedwait stat=%d\n", stat);
+
+      now = time(NULL);
+
+      /* Walk child chain killing off any process overdue */
+      for (wid = child_chain; wid; wid=wid->next) {
+	 int killed = FALSE;
+	 /* First ask him politely to go away */
+	 if (!wid->killed && now > (wid->start_time + wid->wait)) {
+//          Dmsg1(000, "Watchdog sigterm pid=%d\n", wid->pid);
+	    kill(wid->pid, SIGTERM);
+	    killed = TRUE;
+	 }
+	 /* If we asked somone to die, wait 3 seconds and slam him */
+	 if (killed) {
+	    btimer_t *wid1;
+	    sleep(3);
+	    for (wid1 = child_chain; wid1; wid1=wid1->next) {
+	       if (!wid1->killed && now > (wid1->start_time + wid1->wait)) {
+		  kill(wid1->pid, SIGKILL);
+//                Dmsg1(000, "Watchdog killed pid=%d\n", wid->pid);
+		  wid1->killed = TRUE;
+	       }
+	    }
+	 }
+      }
       
    } /* end of big for loop */
 
-   pthread_mutex_unlock(&mutex);      /* for good form */
+   V(mutex);
    Dmsg0(200, "End watchdog\n");
    return NULL;
+}
+
+/* 
+ * Start a timer on a child process of pid, kill it after wait seconds.
+ *   NOTE!  Granularity is SLEEP_TIME (i.e. 30 seconds)
+ *
+ *  Returns: btimer_id (pointer to btimer_t struct) on success
+ *	     NULL on failure
+ */
+btimer_id start_child_timer(pid_t pid, uint32_t wait)
+{
+   btimer_id wid = (btimer_id)malloc(sizeof(btimer_t));
+
+   P(mutex);
+   /* Chain it into child_chain as the first item */
+   wid->prev = NULL;
+   wid->next = child_chain;
+   if (child_chain) {
+      child_chain->prev = wid;
+   }
+   child_chain = wid;
+   wid->start_time = time(NULL);
+   wid->wait = wait;
+   wid->pid = pid;
+   wid->killed = FALSE;
+   Dmsg2(200, "Start child timer 0x%x for %d secs.\n", wid, wait);
+   V(mutex);
+   return wid;
+}
+
+/*
+ * Stop child timer
+ */
+void stop_child_timer(btimer_id wid)
+{
+   if (wid == NULL) {
+      Emsg0(M_ABORT, 0, _("NULL btimer_id.\n"));
+   }
+   P(mutex);
+   /* Remove wid from child_chain */
+   if (!wid->prev) {		      /* if no prev */
+      child_chain = wid->next;	      /* set new head */
+   } else {
+      wid->prev->next = wid->next;    /* update prev */
+   }
+   if (wid->next) {
+      wid->next->prev = wid->prev;    /* unlink it */
+   }
+   V(mutex);
+   Dmsg2(200, "Stop child timer 0x%x for %d secs.\n", wid, wid->wait);
+   free(wid);
 }

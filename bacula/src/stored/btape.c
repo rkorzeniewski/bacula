@@ -539,10 +539,89 @@ plus the header exceeds the block size (by default about 64K\n");
  */
 static void testcmd()
 {
-   Pmsg0(0, "Append files test.\n\n\
-I'm going to write one record  in file 0,\n\
-                   two records in file 1,\n\
-             and three records in file 2\n\n");
+   DEV_BLOCK *block;
+   DEV_RECORD *rec;
+   int len;
+
+   Pmsg0(0, "\nWrite, backup, and re-read test.\n\n"
+"I'm going to write three records and two eof's\n"
+"then backup over the eof's and re-read the last record.\n\n");
+   rewindcmd();
+   block = new_block(dev);
+   rec = new_record();
+   rec->data = check_pool_memory_size(rec->data, block->buf_len);
+   len = rec->data_len = block->buf_len-100;
+   memset(rec->data, 1, rec->data_len);
+   if (!write_record_to_block(block, rec)) {
+      Pmsg0(0, "Error writing record to block.\n"); 
+      goto bail_out;
+   }
+   if (!write_block_to_dev(jcr, dev, block)) {
+      Pmsg0(0, "Error writing block to device.\n"); 
+      goto bail_out;
+   } else {
+      Pmsg1(0, "Wrote one record of %d bytes.\n", rec->data_len);
+   }
+   memset(rec->data, 2, rec->data_len);
+   if (!write_record_to_block(block, rec)) {
+      Pmsg0(0, "Error writing record to block.\n"); 
+      goto bail_out;
+   }
+   if (!write_block_to_dev(jcr, dev, block)) {
+      Pmsg0(0, "Error writing block to device.\n"); 
+      goto bail_out;
+   } else {
+      Pmsg1(0, "Wrote one record of %d bytes.\n", rec->data_len);
+   }
+   memset(rec->data, 3, rec->data_len);
+   if (!write_record_to_block(block, rec)) {
+      Pmsg0(0, "Error writing record to block.\n"); 
+      goto bail_out;
+   }
+   if (!write_block_to_dev(jcr, dev, block)) {
+      Pmsg0(0, "Error writing block to device.\n"); 
+      goto bail_out;
+   } else {
+      Pmsg1(0, "Wrote one record of %d bytes.\n", rec->data_len);
+   }
+   weofcmd();
+   weofcmd();
+   if (bsf_dev(dev, 1) != 0) {
+      Pmsg1(0, "Back space file failed! ERR=%s\n", strerror(dev->dev_errno));
+      goto bail_out;
+   }
+   if (bsf_dev(dev, 1) != 0) {
+      Pmsg1(0, "Back space file failed! ERR=%s\n", strerror(dev->dev_errno));
+      goto bail_out;
+   }
+   Pmsg0(0, "Backspaced over two EOFs OK.\n");
+   if (bsr_dev(dev, 1) != 0) {
+      Pmsg1(0, "Back space record failed! ERR=%s\n", strerror(dev->dev_errno));
+      goto bail_out;
+   }
+   Pmsg0(0, "Backspace record OK.\n");
+   if (!read_block_from_dev(dev, block)) {
+      Pmsg1(0, "Read block failed! ERR=%s\n", strerror(dev->dev_errno));
+      goto bail_out;
+   }
+   memset(rec->data, 0, rec->data_len);
+   if (!read_record_from_block(block, rec)) {
+      Pmsg1(0, "Read block failed! ERR=%s\n", strerror(dev->dev_errno));
+      goto bail_out;
+   }
+   for (int i=0; i<len; i++) {
+      if (rec->data[i] != 3) {
+         Pmsg0(0, "Bad data in record. Test failed!\n");
+	 goto bail_out;
+      }
+   }
+   Pmsg0(0, "Test succeeded!\n\n");
+
+
+   Pmsg0(0, "\nAppend files test.\n\n"
+"I'm going to write one record  in file 0,\n"
+"                   two records in file 1,\n"
+"             and three records in file 2\n\n");
    rewindcmd();
    wrcmd();
    weofcmd();	   /* end file 0 */
@@ -566,10 +645,12 @@ We should be in file 3. I am at file %d. This is %s\n\n",
    weofcmd();
 //   weofcmd();
    rewindcmd();
+   Pmsg0(0, "Done writing, scanning results ...\n\n");
    scancmd();
    Pmsg0(0, "End Append to the tape test.\n\
 The above scan should have four files of:\n\
-One record, two records, three records, and one record respectively.\n\n");
+One record, two records, three records, and one record \n\
+respectively each with 64,512 bytes.\n\n");
 
 
    Pmsg0(0, "Append block test.\n\
@@ -590,9 +671,12 @@ block in the first file.\n\n");
    wrcmd();
    weofcmd();
    rewindcmd();
-   Pmsg0(0, "Done writing, scanning results\n");
+   Pmsg0(0, "Done writing, scanning results ...\n\n");
    scancmd();
-   Pmsg0(0, "The above should have one file of two blocks.\n");
+   Pmsg0(0, "The above should have one file of two blocks 64,512 bytes each.\n");
+bail_out:
+   free_record(rec);
+   free_block(block);
 }
 
 

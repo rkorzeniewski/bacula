@@ -36,6 +36,10 @@ Changes submitted this submission:
 - Improved error messages in smtp.
 
 =============================================================================
+2002-12-12 Version 1.27d
+- This is a minor update that fixes a segmentation fault in btape
+  as well as reduces non-important error messages in bscan.
+
 2002-11-29 Version 1.27c
 - Yet another silly error duplicating a column name in the SQLite
   make tables.  No code change, just a make file.

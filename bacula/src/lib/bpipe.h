@@ -25,10 +25,10 @@
  */
 
 typedef struct s_bpipe {
-   int worker_pid;
+   pid_t worker_pid;
    time_t worker_stime;
    int wait;
+   btimer_id timer_id;
    FILE *rfd;
    FILE *wfd;
 } BPIPE;
-

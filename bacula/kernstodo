@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                 5 December 2002
+                 11 December 2002
 
 Documentation to do: (a little bit at a time)
 - Document running a test version.
@@ -11,10 +11,10 @@ Testing to do: (painful)
 - that console command line options work
 - blocksize recognition code.
 - Test new BSR code (mostly done).
+- Test watchdog child timer code.
 
 
 For 1.28 release:
-- Add count output to restore.
 - Need a verbose mode in restore, perhaps to bsr.
 - Should we dump a SOS when starting a new tape?
 - bscan without -v is too quiet -- perhaps show jobs.
@@ -22,8 +22,6 @@ For 1.28 release:
 - Print some statistics when get EOF on device in bscan -- feedback
   to let user know it is working.
 - Add code to reject whole blocks if not wanted on restore.
-- Add watchdog timeout for child processes start_child_timer()
-  end_child_timer();
 
 - Figure out how to allow multiple simultaneous file Volumes on
   a single device.
@@ -33,11 +31,14 @@ For 1.28 release:
 - Make sure the MaxVolFiles is fully implemented in SD
 - Flush all the daemon messages at the end of every job.
 - Check if both CatalogFiles and UseCatalog are set to SD.
-- Check if we can bump Bacula FD priorty in Win2000
+- Check if we can increase Bacula FD priorty in Win2000
 - Make bcopy read through bad tape records.
 - Need return status on read_cb() from read_records(). Need multiple
   records -- one per Job, maybe a JCR or some other structure with
   a block and a record.
+
+- Look at hierarchial storage for Bacula.
+- Implement Bacula plugins -- design API
 
 - Work more on how to to a Bacula restore beginning with
   just a Bacula tape and a boot floppy (bare metal recovery).
@@ -622,4 +623,6 @@ Done: (see kernsdone for more)
 - Replace popen() and pclose() -- fail safe and timeout, no SIG dep.
 - Add code to put VolFile in bsr for restore command.
 - Volumes can be listed multiple times in Restore volume list.
+- Add watchdog timeout for child processes start_child_timer()
+  end_child_timer();
 

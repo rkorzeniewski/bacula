@@ -198,7 +198,7 @@ char *uar_inc =
    "WHERE Job.JobTDate>%s AND Job.ClientId=%u "
    "AND JobMedia.JobId=Job.JobId "
    "AND JobMedia.MediaId=Media.MediaId "
-   "AND Job.Level='I' AND JobStatus='T' "
+   "AND Job.Level IN ('I', 'D') AND JobStatus='T' "
    "AND Job.FileSetId=%u "
    "GROUP BY Job.JobId";
 
