@@ -894,6 +894,8 @@ Optional Packages:
   --with-sd-group=GROUP		 specify group for Storage daemon
   --with-fd-user=USER		 specify user for File daemon
   --with-fd-group=GROUP		 specify group for File daemon
+  --with-postgresql=DIR      Include PostgreSQL support.  DIR is the PostgreSQL
+                          base install directory, defaults to /usr/local/pgsql
 
 Which DBMS do you want to use (please select only one):
   --with-mysql=DIR      Include MySQL support.  DIR is the MySQL base
@@ -7011,7 +7013,215 @@ fi;
 # ------------------------------------------------
 # Bacula check for various SQL database engines
 # ------------------------------------------------
-BA_CHECK_POSTGRESQL_DB
+
+db_found=no
+echo "$as_me:$LINENO: checking for PostgreSQL support" >&5
+echo $ECHO_N "checking for PostgreSQL support... $ECHO_C" >&6
+
+# Check whether --with-postgresql or --without-postgresql was given.
+if test "${with_postgresql+set}" = set; then
+  withval="$with_postgresql"
+
+  if test "$withval" != "no"; then
+      if test "$db_found" = "yes"; then
+          echo "$as_me:$LINENO: result: error" >&5
+echo "${ECHO_T}error" >&6
+          { { echo "$as_me:$LINENO: error: \"You can configure for only one database.\"" >&5
+echo "$as_me: error: \"You can configure for only one database.\"" >&2;}
+   { (exit 1); exit 1; }; };
+      fi
+      if test "$withval" = "yes"; then
+          if test -f /usr/local/include/libpq-fe.h; then
+              POSTGRESQL_INCDIR=/usr/local/include
+              POSTGRESQL_LIBDIR=/usr/local/lib
+              POSTGRESQL_BINDIR=/usr/local/bin
+          elif test -f /usr/include/libpq-fe.h; then
+              POSTGRESQL_INCDIR=/usr/include
+              POSTGRESQL_LIBDIR=/usr/lib
+              POSTGRESQL_BINDIR=/usr/bin
+          else
+              echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+              { { echo "$as_me:$LINENO: error: Unable to find libpq-fe.h in standard locations" >&5
+echo "$as_me: error: Unable to find libpq-fe.h in standard locations" >&2;}
+   { (exit 1); exit 1; }; }
+          fi
+      elif test -f $withval/libpq-fe.h; then
+          POSTGRESQL_INCDIR=$withval
+          POSTGRESQL_LIBDIR=$withval
+          POSTGRESQL_BINDIR=$withval
+      else
+          echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+          { { echo "$as_me:$LINENO: error: Invalid SQLite directory $withval - unable to find libpq-fe.h under $withval" >&5
+echo "$as_me: error: Invalid SQLite directory $withval - unable to find libpq-fe.h under $withval" >&2;}
+   { (exit 1); exit 1; }; }
+      fi
+      POSTGRESQL_LFLAGS="-L$POSTGRESQL_LIBDIR -lpq"
+      echo "$as_me:$LINENO: checking for crypt" >&5
+echo $ECHO_N "checking for crypt... $ECHO_C" >&6
+if test "${ac_cv_func_crypt+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+#line $LINENO "configure"
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+/* System header to define __stub macros and hopefully few prototypes,
+    which can conflict with char crypt (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char crypt ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_crypt) || defined (__stub___crypt)
+choke me
+#else
+char (*f) () = crypt;
+#endif
+#ifdef __cplusplus
+}
+#endif
+
+int
+main ()
+{
+return f != crypt;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+         { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_func_crypt=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_func_crypt=no
+fi
+rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
+fi
+echo "$as_me:$LINENO: result: $ac_cv_func_crypt" >&5
+echo "${ECHO_T}$ac_cv_func_crypt" >&6
+if test $ac_cv_func_crypt = yes; then
+  :
+else
+  echo "$as_me:$LINENO: checking for crypt in -lcrypt" >&5
+echo $ECHO_N "checking for crypt in -lcrypt... $ECHO_C" >&6
+if test "${ac_cv_lib_crypt_crypt+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lcrypt  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+#line $LINENO "configure"
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char crypt ();
+int
+main ()
+{
+crypt ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+         { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_crypt_crypt=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_lib_crypt_crypt=no
+fi
+rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_crypt_crypt" >&5
+echo "${ECHO_T}$ac_cv_lib_crypt_crypt" >&6
+if test $ac_cv_lib_crypt_crypt = yes; then
+  POSTGRESQL_LFLAGS="-lcrypt $POSTGRESQL_LFLAGS"
+fi
+
+fi
+
+      SQL_INCLUDE=-I$POSTGRESQL_INCDIR
+      SQL_LFLAGS=$POSTGRSQL_LFLAGS
+      SQL_BINDIR=$POSTGRESQL_BINDIR
+      cat >>confdefs.h <<\_ACEOF
+#define HAVE_POSTGRESQL 1
+_ACEOF
+
+      echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+      db_found=yes
+      support_postgresql=yes
+      db_name=PostgreSQL
+      DB_NAME=postgresql
+  else
+      echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+  fi
+
+else
+
+  echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+
+fi;
+
+
+
+
+
 
 
 db_found=no

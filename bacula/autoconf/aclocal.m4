@@ -545,6 +545,64 @@ AC_SUBST(SQL_BINDIR)
 ])
 
 
+AC_DEFUN(BA_CHECK_POSTGRESQL_DB,
+[
+db_found=no
+AC_MSG_CHECKING(for PostgreSQL support)
+AC_ARG_WITH(postgresql,
+[  --with-postgresql[=DIR]      Include PostgreSQL support.  DIR is the PostgreSQL
+                          base install directory, defaults to /usr/local/pgsql],
+[
+  if test "$withval" != "no"; then
+      if test "$db_found" = "yes"; then
+          AC_MSG_RESULT(error)
+          AC_MSG_ERROR("You can configure for only one database.");
+      fi
+      if test "$withval" = "yes"; then
+          if test -f /usr/local/include/libpq-fe.h; then
+              POSTGRESQL_INCDIR=/usr/local/include
+              POSTGRESQL_LIBDIR=/usr/local/lib
+              POSTGRESQL_BINDIR=/usr/local/bin
+          elif test -f /usr/include/libpq-fe.h; then
+              POSTGRESQL_INCDIR=/usr/include
+              POSTGRESQL_LIBDIR=/usr/lib
+              POSTGRESQL_BINDIR=/usr/bin
+          else
+              AC_MSG_RESULT(no)
+              AC_MSG_ERROR(Unable to find libpq-fe.h in standard locations)
+          fi
+      elif test -f $withval/libpq-fe.h; then
+          POSTGRESQL_INCDIR=$withval
+          POSTGRESQL_LIBDIR=$withval
+          POSTGRESQL_BINDIR=$withval
+      else
+          AC_MSG_RESULT(no)
+          AC_MSG_ERROR(Invalid SQLite directory $withval - unable to find libpq-fe.h under $withval)
+      fi
+      POSTGRESQL_LFLAGS="-L$POSTGRESQL_LIBDIR -lpq"
+      AC_CHECK_FUNC(crypt, , AC_CHECK_LIB(crypt, crypt, [POSTGRESQL_LFLAGS="-lcrypt $POSTGRESQL_LFLAGS"]))
+      SQL_INCLUDE=-I$POSTGRESQL_INCDIR
+      SQL_LFLAGS=$POSTGRSQL_LFLAGS
+      SQL_BINDIR=$POSTGRESQL_BINDIR
+      AC_DEFINE(HAVE_POSTGRESQL)
+      AC_MSG_RESULT(yes)
+      db_found=yes
+      support_postgresql=yes
+      db_name=PostgreSQL
+      DB_NAME=postgresql
+  else
+      AC_MSG_RESULT(no)
+  fi
+],[
+  AC_MSG_RESULT(no)
+])
+AC_SUBST(SQL_LFLAGS)
+AC_SUBST(SQL_INCLUDE)
+AC_SUBST(SQL_BINDIR)
+
+])
+
+
 
 AC_DEFUN(BA_CHECK_SQL_DB, 
 [AC_MSG_CHECKING(Checking for various databases)
@@ -614,55 +672,6 @@ if test x$support_berkleydb = xyes; then
 fi
 
 
-AC_MSG_CHECKING(for PostgreSQL support)
-AC_ARG_WITH(postgresql,
-[  --with-postgresql[=DIR]      Include PostgreSQL support.  DIR is the PostgreSQL
-                          base install directory, defaults to /usr/local/pgsql.],
-[
-  if test "$withval" != "no"; then
-      if test "$have_db" = "yes"; then
-          AC_MSG_RESULT(error)
-          AC_MSG_ERROR("You can configure for only one database.");
-      fi
-        if test "$withval" = "yes"; then
-                if test -f /usr/include/pgsql/libpq-fe.h; then
-                        POSTGRESQL_INCDIR=/usr/include/pgsql
-                else
-                        if test -f /usr/include/libpq-fe.h; then
-                        else
-                            POSTGRESQL_INCDIR=/usr/local/pgsql/include
-                        fi
-                fi
-                if test -f /usr/lib/libpq.a; then
-                        POSTGRESQL_LIBDIR=/usr/lib
-                else
-                        if test -f /usr/local/lib/libpq.a; then
-                            POSTGRESQL_LIBDIR=/usr/local/lib
-                        else
-                            POSTGRESQL_LIBDIR=/usr/local/pgsql/lib
-                        fi
-                fi
-        else
-                POSTGRESQL_INCDIR=$withval/include
-                test -d $withval/include/pgsql && POSTGRESQL_INCDIR=$withval/include/pgsql
-                POSTGRESQL_LIBDIR=$withval/lib
-                test -d $withval/lib/pgsql && POSTGRESQL_LIBDIR=$withval/lib/pgsql
-        fi
-    POSTGRESQL_INCLUDE=-I$POSTGRESQL_INCDIR
-    POSTGRESQL_LFLAGS="-L$POSTGRESQL_LIBDIR -lpq"
-    AC_CHECK_FUNC(crypt, , AC_CHECK_LIB(crypt, crypt, [LIBS="-lcrypt $LIBS"]))
-
-    AC_DEFINE(HAVE_POSTGRESQL)
-    AC_MSG_RESULT(yes)
-    have_db=yes
-  else
-    AC_MSG_RESULT(no)
-  fi
-],[
-  AC_MSG_RESULT(no)
-])
-AC_SUBST(POSTGRESQL_LFLAGS)
-AC_SUBST(POSTGRESQL_INCLUDE)
 
 
 AC_MSG_CHECKING(for mSQL support)
