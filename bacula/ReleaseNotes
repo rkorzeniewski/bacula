@@ -1,14 +1,14 @@
 
           Release Notes for Bacula 1.31
 
-  Bacula code: Total files = 258 Total lines = 76,670 (*.h *.c *.in)
+  Bacula code: Total files = 258 Total lines = 76,681 (*.h *.c *.in)
 
 Major Changes this Release:
 - Implemented a new job scheduling algorithm with priorities.
 - The database format has changed from version 1.30a. Please see below.
 - Support to save and restore all files on WinNT/2K/XP systems 
   including the permissions. Unfortunately files that are in use by another
-  program cannot be saved.
+  program cannot be saved -- complain to Microsoft about this.
 - Support for Win95 systems (untested since I don't have Win95).
 - Heartbeat every 20 minutes between daemons to prevent network
   timeouts. The heartbeat interval can be set.
@@ -66,7 +66,11 @@ Other Changes this Release:
 - Better messages if a job is upgraded from Diff or Inc to Full.
 - Replaced FileSet MD5 with date created -- more aestetic and readable.
 - Fixed a FD crash on long directory names (Win32 specific).
-
+- Added backup script to the examples directory. This allows one command
+  to backup any client.  For Win32, the release now contains CygwinBackup.bat
+  and Backup.bat, as well as backup. The bat files call the backup file.
+  By placing an icon on your desktop, you can double click and backup
+  your client.
 
 
 Items to note:  !!!!!
