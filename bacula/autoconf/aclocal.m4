@@ -390,7 +390,7 @@ Which one DBMS do you want to use (please select only one):
 AC_ARG_WITH(embedded-mysql,
 [
 Which one DBMS do you want to use (please select only one):
-  --with-embedde-mysql[=DIR] Include MySQL support.  DIR is the MySQL base
+  --with-embedded-mysql[=DIR] Include MySQL support.  DIR is the MySQL base
                           install directory, default is to search through
                           a number of common places for the MySQL files.],
 [

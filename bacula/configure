@@ -64,7 +64,7 @@ Which one DBMS do you want to use (please select only one):
 ac_help="$ac_help
 
 Which one DBMS do you want to use (please select only one):
-  --with-embedde-mysql[=DIR] Include MySQL support.  DIR is the MySQL base
+  --with-embedded-mysql[=DIR] Include MySQL support.  DIR is the MySQL base
                           install directory, default is to search through
                           a number of common places for the MySQL files."
 ac_help="$ac_help
