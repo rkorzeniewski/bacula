@@ -243,7 +243,8 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
 #endif
       } /* End inner switch */
 
-   case FT_DIR:
+   case FT_DIRBEGIN:
+   case FT_DIREND:
       Dmsg2(200, "Make dir mode=%o dir=%s\n", new_mode, attr->ofname);
       if (make_path(jcr, attr->ofname, new_mode, parent_mode, uid, gid, 0, NULL) != 0) {
 	 return CF_ERROR;
