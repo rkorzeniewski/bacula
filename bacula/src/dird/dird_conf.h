@@ -124,17 +124,17 @@ public:
    RES hdr;
 
    bool found;                        /* found with SD */
-   int num_writers;
+   int num_writers;                   /* number of writers */
    int max_writers;                   /* = 1 for files */
    int reserved;                      /* number of reserves */
    int num_drives;                    /* for autochanger */
    bool autochanger;                  /* set if device is autochanger */
-   bool open;
+   bool open;                         /* drive open */
    bool append;                       /* in append mode */
-   bool read;
-   bool labeled;
-   bool offline;
-   bool autoselect;
+   bool read;                         /* in read mode */
+   bool labeled;                      /* Volume name valid */
+   bool offline;                      /* not available */
+   bool autoselect;                   /* can be selected via autochanger */
    uint32_t PoolId;
    char ChangerName[MAX_NAME_LENGTH];
    char VolumeName[MAX_NAME_LENGTH];

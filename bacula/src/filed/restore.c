@@ -482,7 +482,6 @@ static const char *zlib_strerror(int stat)
 int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
       uint64_t *addr, int flags)
 {
-   uLong compress_len;
    int stat;
    char *wbuf;			      /* write buffer */
    uint32_t wsize;		      /* write size */
@@ -515,6 +514,7 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
 
    if (flags & FO_GZIP) {
 #ifdef HAVE_LIBZ
+      uLong compress_len;
       /* 
        * NOTE! We only use uLong and Byte because they are
        *  needed by the zlib routines, they should not otherwise
