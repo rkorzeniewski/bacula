@@ -204,6 +204,8 @@ default_path:
    dev->state &= ~ST_APPEND;	      /* clear any previous append mode */
    dev->state |= ST_READ;	      /* set read mode */
    attach_jcr_to_device(dev, jcr);    /* attach jcr to device */
+   set_jcr_job_status(jcr, JS_Running);
+   dir_send_job_status(jcr);
    Jmsg(jcr, M_INFO, 0, _("Ready to read from volume \"%s\" on device %s.\n"),
       jcr->VolumeName, dev_name(dev));
 
@@ -330,6 +332,8 @@ DCR *acquire_device_for_append(JCR *jcr)
       jcr->NumVolumes = 1;
    }
    attach_jcr_to_device(dev, jcr);    /* attach jcr to device */
+   set_jcr_job_status(jcr, JS_Running);
+   dir_send_job_status(jcr);
    goto ok_out;
 
 /*
