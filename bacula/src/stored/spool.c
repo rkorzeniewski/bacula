@@ -42,9 +42,9 @@ struct spool_stats_t {
    uint32_t attr_jobs;		      
    uint32_t total_data_jobs;	      /* total jobs to have spooled data */
    uint32_t total_attr_jobs;
-   uint64_t max_data_size;	      /* max data size */
-   uint64_t max_attr_size;
-   uint64_t data_size;		      /* current data size (all jobs running) */
+   int64_t max_data_size;	      /* max data size */
+   int64_t max_attr_size;
+   int64_t data_size;		      /* current data size (all jobs running) */
    int64_t attr_size;
 };
 

@@ -180,6 +180,9 @@
 #define B_ISUPPER(c) (isascii((int)(c)) && isupper((int)(c)))
 #define B_ISDIGIT(c) (isascii((int)(c)) && isdigit((int)(c)))
 
+/* For multiplying by 10 with shift and addition */
+#define B_TIMES10(d) ((d<<3)+(d<<1))
+
 
 typedef void (HANDLER)();
 typedef int (INTHANDLER)();
@@ -414,6 +417,9 @@ int  m_msg(const char *file, int line, POOLMEM **msgbuf, const char *fmt,...);
 /* Use our fgets which handles interrupts */
 #undef fgets
 #define fgets(x,y,z) bfgets((x), (y), (z))
+
+/* Use our sscanf, which is safer and works with known sizes */
+// #define sscanf bsscanf
 
 #ifdef DEBUG
 #define bstrdup(str) strcpy((char *)b_malloc(__FILE__,__LINE__,strlen((str))+1),(str))

@@ -96,12 +96,13 @@ int read_dev_volume_label(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    record = new_record();
    Dmsg0(90, "Big if statement in read_volume_label\n");
    if (!read_block_from_dev(jcr, dev, block, NO_BLOCK_NUMBER_CHECK)) { 
-      Mmsg(&jcr->errmsg, _("Volume on %s is not a Bacula labeled Volume, \
-because:\n   %s"), dev_name(dev), strerror_dev(dev));
+      Mmsg(&jcr->errmsg, _("Requested Volume \"%s\" on %s is not a Bacula "
+           "labeled Volume, because: ERR=%s"), NPRT(VolName), dev_name(dev), 
+	   strerror_dev(dev));
    } else if (!read_record_from_block(block, record)) {
       Mmsg(&jcr->errmsg, _("Could not read Volume label from block.\n"));
    } else if (!unser_volume_label(dev, record)) {
-      Mmsg(&jcr->errmsg, _("Could not unserialize Volume label: %s\n"),
+      Mmsg(&jcr->errmsg, _("Could not unserialize Volume label: ERR=%s\n"),
 	 strerror_dev(dev));
    } else if (strcmp(dev->VolHdr.Id, BaculaId) != 0 && 
 	      strcmp(dev->VolHdr.Id, OldBaculaId) != 0) {

@@ -241,8 +241,8 @@ struct DCR {
    uint32_t StartFile;                /* Start write file */
    uint32_t StartBlock;               /* Start write block */
    uint32_t EndBlock;                 /* Ending block written */
-   uint64_t spool_size;               /* Current spool size */
-   uint64_t max_spool_size;           /* Max job spool size */
+   int64_t spool_size;                /* Current spool size */
+   int64_t max_spool_size;            /* Max job spool size */
    char VolumeName[MAX_NAME_LENGTH];  /* Volume name */
    VOLUME_CAT_INFO VolCatInfo;        /* Catalog info for desired volume */
 };

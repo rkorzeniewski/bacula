@@ -112,7 +112,7 @@ static bool is_volume_selected(RBSR_FINDEX *fi,
 
 static void print_findex(UAContext *ua, RBSR_FINDEX *fi)
 {
-   bsendmsg(ua, "fi=0x%x\n", (unsigned)fi);
+   bsendmsg(ua, "fi=0x%lx\n", fi);
    for ( ; fi; fi=fi->next) {
       if (fi->findex == fi->findex2) {
          bsendmsg(ua, "FileIndex=%d\n", fi->findex);

@@ -185,6 +185,8 @@ int              parse_args(POOLMEM *cmd, POOLMEM **args, int *argc,
                         char **argk, char **argv, int max_args);
 void            split_path_and_filename(const char *fname, POOLMEM **path, 
                         int *pnl, POOLMEM **file, int *fnl);
+int             bsscanf(const char *buf, const char *fmt, ...);
+
 
 /* util.c */
 int              is_buf_zero             (char *buf, int len);

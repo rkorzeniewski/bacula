@@ -129,6 +129,10 @@ mount_next_vol:
    if (!release && dev_is_tape(dev) && dev_cap(dev, CAP_AUTOMOUNT)) {
       ask = false;                 /* don't ask SYSOP this time */
    }
+   /* Don't ask if not removable */
+   if (!dev_cap(dev, CAP_REM)) {
+      ask = false;
+   }
    Dmsg2(100, "Ask=%d autochanger=%d\n", ask, autochanger);
    release = true;                /* release next time if we "recurse" */
 
@@ -181,6 +185,17 @@ read_volume:
    case VOL_NAME_ERROR:
       VOLUME_CAT_INFO VolCatInfo;
 
+      /* If not removable, Volume is broken */
+      if (!dev_cap(dev, CAP_REM)) {
+         bstrncpy(jcr->VolCatInfo.VolCatStatus, "Error",
+	    sizeof(jcr->VolCatInfo.VolCatStatus));
+	 memcpy(&dev->VolCatInfo, &jcr->VolCatInfo, sizeof(dev->VolCatInfo));
+	 dir_update_volume_info(jcr, dev, 1);  /* indicate tape labeled */
+         Jmsg(jcr, M_WARNING, 0, _("Volume \"%s\" not on device %s. Volume marked in error.\n"),
+	    jcr->VolumeName, dev_name(dev));
+	 goto mount_next_vol;
+      }
+	 
       Dmsg1(100, "Vol NAME Error Name=%s\n", jcr->VolumeName);
       /* If polling and got a previous bad name, ignore it */
       if (dev->poll && strcmp(dev->BadVolName, dev->VolHdr.VolName) == 0) {
@@ -247,6 +262,16 @@ read_volume:
 	    jcr->VolumeName, dev_name(dev));
 	 goto read_volume;	/* read label we just wrote */
       } 
+      /* If not removable, Volume is broken */
+      if (!dev_cap(dev, CAP_REM)) {
+         bstrncpy(jcr->VolCatInfo.VolCatStatus, "Error",
+	    sizeof(jcr->VolCatInfo.VolCatStatus));
+	 memcpy(&dev->VolCatInfo, &jcr->VolCatInfo, sizeof(dev->VolCatInfo));
+	 dir_update_volume_info(jcr, dev, 1);  /* indicate tape labeled */
+         Jmsg(jcr, M_WARNING, 0, _("Volume \"%s\" not on device %s. Volume marked in error.\n"),
+	    jcr->VolumeName, dev_name(dev));
+	 goto mount_next_vol;
+      }
       /* NOTE! Fall-through wanted. */
    case VOL_NO_MEDIA:
    default:

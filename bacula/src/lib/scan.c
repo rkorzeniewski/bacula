@@ -291,3 +291,196 @@ void split_path_and_filename(const char *fname, POOLMEM **path, int *pnl,
    Dmsg2(200, "pnl=%d fnl=%d\n", *pnl, *fnl);
    Dmsg3(200, "split fname=%s path=%s file=%s\n", fname, *path, *file);
 }
+
+/*
+ * Extremely simple sscanf. Handles only %(u,d,ld,lu,lld,llu,c,nns) 
+ */
+const int BIG = 1000;
+int bsscanf(const char *buf, const char *fmt, ...)
+{
+   va_list ap;
+   int count = 0;
+   void *vp;
+   char *cp;
+   int l = 0;
+   int max_len = BIG;
+   uint64_t value;
+   bool error = false;
+
+   va_start(ap, fmt);
+   while (*fmt && !error) {
+//    Dmsg1(000, "fmt=%c\n", *fmt);
+      if (*fmt == '%') {
+	 fmt++;
+//       Dmsg1(000, "Got %% nxt=%c\n", *fmt);
+switch_top:
+	 switch (*fmt++) {
+         case 'u':
+         case 'd':
+	    value = 0;
+	    while (B_ISDIGIT(*buf)) {
+               value = B_TIMES10(value) + *buf++ - '0';
+	    }
+	    vp = (void *)va_arg(ap, void *);
+//          Dmsg2(000, "val=%lld at 0x%lx\n", value, (long unsigned)vp);
+	    if (l < 2) {
+	       *((uint32_t *)vp) = (uint32_t)value;
+//             Dmsg0(000, "Store 32 bit int\n");
+	    } else {
+	       *((uint64_t *)vp) = (uint64_t)value;
+//             Dmsg0(000, "Store 64 bit int\n");
+	    }
+	    count++;
+	    l = 0;
+	    break;
+         case 'l':
+//          Dmsg0(000, "got l\n");
+	    l = 1;
+            if (*fmt == 'l') {
+	       l++;
+	       fmt++;
+	    }
+            if (*fmt == 'd' || *fmt == 'u') {
+	       goto switch_top;
+	    }
+//          Dmsg1(000, "fmt=%c !=d,u\n", *fmt);
+	    error = true;
+	    break;
+         case 'q':
+	    l = 2;
+            if (*fmt == 'd' || *fmt == 'u') {
+	       goto switch_top;
+	    }
+//          Dmsg1(000, "fmt=%c !=d,u\n", *fmt);
+	    error = true;
+	    break;
+         case 's':
+//          Dmsg1(000, "Store string max_len=%d\n", max_len);
+	    cp = (char *)va_arg(ap, char *);
+	    while (*buf && !B_ISSPACE(*buf) && max_len-- > 0) {
+	       *cp++ = *buf++;
+	    }
+	    *cp = 0;
+	    count++;
+	    max_len = BIG;
+	    break;
+         case 'c':
+	    cp = (char *)va_arg(ap, char *);
+	    *cp = *buf++;
+	    count++;
+	    break;
+         case '%':
+            if (*buf++ != '%') {
+	       error = true;
+	    }
+	    break;
+	 default:
+	    fmt--;
+	    max_len = 0;
+	    while (B_ISDIGIT(*fmt)) {
+               max_len = B_TIMES10(max_len) + *fmt++ - '0';
+	    }
+//          Dmsg1(000, "Default max_len=%d\n", max_len);
+            if (*fmt == 's') {
+	       goto switch_top;
+	    }
+//          Dmsg1(000, "Default c=%c\n", *fmt);
+	    error = true;
+	    break;		      /* error: unknown format */
+	 }
+	 continue;
+
+      /* White space eats zero or more whitespace */
+      } else if (B_ISSPACE(*fmt)) {
+	 fmt++;
+	 while (B_ISSPACE(*buf)) {
+	    buf++;
+	 }
+      /* Plain text must match */
+      } else if (*buf++ != *fmt++) {
+//       Dmsg2(000, "Mismatch buf=%c fmt=%c\n", *--buf, *--fmt);
+	 error = true;
+      }
+   }
+   va_end(ap);
+// Dmsg2(000, "Error=%d count=%d\n", error, count);
+   if (error) {
+      count = -1;
+   }
+   return count;
+}
+
+#ifdef TEST_PROGRAM
+int main(int argc, char *argv[])
+{
+   char buf[100];
+   uint32_t val32;
+   uint64_t val64;
+   uint32_t FirstIndex, LastIndex, StartFile, EndFile, StartBlock, EndBlock;
+   char Job[200];
+   int cnt;
+   char *helloreq= "Hello *UserAgent* calling\n";
+   char *hello = "Hello %127s calling\n";
+   char *catreq = 
+"CatReq Job=NightlySave.2004-06-11_19.11.32 CreateJobMedia FirstIndex=1 LastIndex=114 StartFile=0 EndFile=0 StartBlock=208 EndBlock=2903248";
+static char Create_job_media[] = "CatReq Job=%127s CreateJobMedia "
+  "FirstIndex=%u LastIndex=%u StartFile=%u EndFile=%u "
+  "StartBlock=%u EndBlock=%u\n";
+static char OK_media[] = "1000 OK VolName=%127s VolJobs=%u VolFiles=%u"
+   " VolBlocks=%u VolBytes=%" lld " VolMounts=%u VolErrors=%u VolWrites=%u"
+   " MaxVolBytes=%" lld " VolCapacityBytes=%" lld " VolStatus=%20s"
+   " Slot=%d MaxVolJobs=%u MaxVolFiles=%u InChanger=%d"
+   " VolReadTime=%" lld " VolWriteTime=%" lld;
+   char *media =
+"1000 OK VolName=TestVolume001 VolJobs=0 VolFiles=0 VolBlocks=0 VolBytes=1 VolMounts=0 VolErrors=0 VolWrites=0 MaxVolBytes=0 VolCapacityBytes=0 VolStatus=Append Slot=0 MaxVolJobs=0 MaxVolFiles=0 InChanger=1 VolReadTime=0 VolWriteTime=0";
+struct VOLUME_CAT_INFO {
+   /* Media info for the current Volume */
+   uint32_t VolCatJobs; 	      /* number of jobs on this Volume */
+   uint32_t VolCatFiles;	      /* Number of files */
+   uint32_t VolCatBlocks;	      /* Number of blocks */
+   uint64_t VolCatBytes;	      /* Number of bytes written */
+   uint32_t VolCatMounts;	      /* Number of mounts this volume */
+   uint32_t VolCatErrors;	      /* Number of errors this volume */
+   uint32_t VolCatWrites;	      /* Number of writes this volume */
+   uint32_t VolCatReads;	      /* Number of reads this volume */
+   uint64_t VolCatRBytes;	      /* Number of bytes read */
+   uint32_t VolCatRecycles;	      /* Number of recycles this volume */
+   int32_t  Slot;		      /* Slot in changer */
+   bool     InChanger;		      /* Set if vol in current magazine */
+   uint32_t VolCatMaxJobs;	      /* Maximum Jobs to write to volume */
+   uint32_t VolCatMaxFiles;	      /* Maximum files to write to volume */
+   uint64_t VolCatMaxBytes;	      /* Max bytes to write to volume */
+   uint64_t VolCatCapacityBytes;      /* capacity estimate */
+   uint64_t VolReadTime;	      /* time spent reading */
+   uint64_t VolWriteTime;	      /* time spent writing this Volume */
+   char VolCatStatus[20];	      /* Volume status */
+   char VolCatName[MAX_NAME_LENGTH];  /* Desired volume to mount */
+};		  
+   struct VOLUME_CAT_INFO vol;
+
+#ifdef xxx
+   bsscanf("Hello_world 123 1234", "%120s %ld %lld", buf, &val32, &val64);
+   printf("%s %d %lld\n", buf, val32, val64);
+
+   *Job=0;
+   cnt = bsscanf(catreq, Create_job_media, &Job,
+      &FirstIndex, &LastIndex, &StartFile, &EndFile,
+      &StartBlock, &EndBlock);
+   printf("cnt=%d Job=%s\n", cnt, Job);
+   cnt = bsscanf(helloreq, hello, &Job);
+   printf("cnt=%d Agent=%s\n", cnt, Job);
+#endif
+   cnt = bsscanf(media, OK_media,
+	       vol.VolCatName,
+	       &vol.VolCatJobs, &vol.VolCatFiles,
+	       &vol.VolCatBlocks, &vol.VolCatBytes,
+	       &vol.VolCatMounts, &vol.VolCatErrors,
+	       &vol.VolCatWrites, &vol.VolCatMaxBytes,
+	       &vol.VolCatCapacityBytes, vol.VolCatStatus,
+	       &vol.Slot, &vol.VolCatMaxJobs, &vol.VolCatMaxFiles,
+	       &vol.InChanger, &vol.VolReadTime, &vol.VolWriteTime);
+   printf("cnt=%d Vol=%s\n", cnt, vol.VolCatName);
+
+}
+
+#endif

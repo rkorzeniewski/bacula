@@ -79,5 +79,23 @@ daemon_start()
    umask(oldmask);
 
    Dmsg0(200, "Exit daemon_start\n");
+
+   /*
+    * Make sure we have fd's 0, 1, 2 open
+    *  If we don't do this one of our sockets may open
+    *  there and if we then use stdout, it could
+    *  send total garbage to our socket.
+    *
+    */
+   int fd;
+   fd = open("/dev/null", O_RDONLY, 0644);
+   if (fd > 2) {
+      close(fd);
+   } else {
+      for(i=1; fd + i <= 2; i++) {
+	 dup2(fd, fd+i);
+      }
+   }
+
 #endif /* HAVE_CYGWIN */
 }

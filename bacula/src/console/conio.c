@@ -723,9 +723,9 @@ putline(char *newl, int newlen)
        nptr = (struct lstr *)((char *)lptr + newlen + PHDRL);
        /* Appropriate byte alignment - normally 2 byte, but on
 	  sparc we need 4 byte alignment, so we always do 4 */
-       if (((unsigned)nptr & 3) != 0) { /* test four byte alignment */
+       if (((long unsigned)nptr & 3) != 0) { /* test four byte alignment */
 	   p = (char *)nptr;
-	   nptr = (struct lstr *)((((unsigned) p) & ~3) + 4);
+	   nptr = (struct lstr *)((((long unsigned) p) & ~3) + 4);
        }
        nptr->len = lptr->len - ((char *)nptr - (char *)lptr);
        lptr->len -= nptr->len;

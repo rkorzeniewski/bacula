@@ -172,6 +172,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
          Dmsg1(50, "Create file: %s\n", attr->ofname);
 	 if (is_bopen(bfd)) {
             Jmsg1(jcr, M_ERROR, 0, "bpkt already open fid=%d\n", bfd->fid);
+	    bclose(bfd);
 	 }
 	 if ((bopen(bfd, attr->ofname, mode, S_IRUSR | S_IWUSR)) < 0) {
             Jmsg2(jcr, M_ERROR, 0, _("Could not create %s: ERR=%s\n"), 

@@ -79,6 +79,7 @@ static int do_get_volume_info(JCR *jcr)
     DCR *dcr = jcr->dcr;
     VOLUME_CAT_INFO vol;
     int n;
+    int InChanger;
 
     jcr->VolumeName[0] = 0;	      /* No volume */
     dcr->VolumeName[0] = 0;	      /* No volume */
@@ -96,12 +97,13 @@ static int do_get_volume_info(JCR *jcr)
 	       &vol.VolCatWrites, &vol.VolCatMaxBytes,
 	       &vol.VolCatCapacityBytes, vol.VolCatStatus,
 	       &vol.Slot, &vol.VolCatMaxJobs, &vol.VolCatMaxFiles,
-	       &vol.InChanger, &vol.VolReadTime, &vol.VolWriteTime);
+	       &InChanger, &vol.VolReadTime, &vol.VolWriteTime);
     if (n != 17) {
        Dmsg2(100, "Bad response from Dir fields=%d: %s\n", n, dir->msg);
        Mmsg(&jcr->errmsg, _("Error getting Volume info: %s\n"), dir->msg);
        return 0;
     }
+    vol.InChanger = InChanger;	      /* bool in structure */
     unbash_spaces(vol.VolCatName);
     pm_strcpy(&jcr->VolumeName, vol.VolCatName); /* set desired VolumeName */
     bstrncpy(dcr->VolumeName, vol.VolCatName, sizeof(dcr->VolumeName));
@@ -195,7 +197,8 @@ int dir_find_next_appendable_volume(JCR *jcr)
     
 /*
  * After writing a Volume, send the updated statistics
- * back to the director.
+ * back to the director. The information comes from the
+ * dev record.	   
  */
 int dir_update_volume_info(JCR *jcr, DEVICE *dev, int label)
 {
@@ -203,6 +206,7 @@ int dir_update_volume_info(JCR *jcr, DEVICE *dev, int label)
    time_t LastWritten = time(NULL);
    char ed1[50], ed2[50], ed3[50], ed4[50];
    VOLUME_CAT_INFO *vol = &dev->VolCatInfo;
+   int InChanger;
 
    if (vol->VolCatName[0] == 0) {
       Jmsg0(jcr, M_ERROR, 0, _("NULL Volume name. This shouldn't happen!!!\n"));
@@ -224,13 +228,14 @@ int dir_update_volume_info(JCR *jcr, DEVICE *dev, int label)
       vol->VolCatBytes = 1;	      /* indicates tape labeled */
    }
    bash_spaces(vol->VolCatName);
+   InChanger = vol->InChanger;
    bnet_fsend(dir, Update_media, jcr->Job, 
       vol->VolCatName, vol->VolCatJobs, vol->VolCatFiles,
       vol->VolCatBlocks, edit_uint64(vol->VolCatBytes, ed1),
       vol->VolCatMounts, vol->VolCatErrors,
       vol->VolCatWrites, edit_uint64(vol->VolCatMaxBytes, ed2), 
       LastWritten, vol->VolCatStatus, vol->Slot, label,
-      vol->InChanger,
+      InChanger,		      /* bool in structure */
       edit_uint64(vol->VolReadTime, ed3), 
       edit_uint64(vol->VolWriteTime, ed4) );
 
@@ -468,6 +473,7 @@ int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
 	 return 0;
       }
 
+#ifdef needed
       /*
        * If we have a valid volume name and we are not
        *   removable media, return now, or if we have a
@@ -478,6 +484,7 @@ int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
          Dmsg0(100, "Return 1 from mount without wait.\n");
 	 return 1;
       }
+#endif
 
       if (!dev->poll) {
          msg = _("Please mount");
