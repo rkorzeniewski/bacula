@@ -100,6 +100,7 @@ DEVICE *setup_to_access_device(JCR *jcr, int read_access)
    
    dev = init_dev(NULL, device);
    jcr->device->dev = dev;
+   new_dcr(jcr, dev);	     
    if (!dev || !first_open_device(dev)) {
       Jmsg1(jcr, M_FATAL, 0, _("Cannot open %s\n"), jcr->dev_name);
       return NULL;

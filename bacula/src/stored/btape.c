@@ -302,7 +302,7 @@ static bool open_the_device()
 	 return false;
       }
    }
-   Dmsg1(000, "open_dev %s OK\n", dev_name(dev));
+   Pmsg1(000, "open_dev %s OK\n", dev_name(dev));
    unlock_device(dev);
    free_block(block);
    return true;
@@ -1043,8 +1043,9 @@ static int autochanger_test()
       return 1;
    }
 
-   Pmsg0(-1, "\nTo test the autochanger you must have a blank tape in Slot 1.\n"
-             "I'm going to write on it.\n");
+   Pmsg0(-1, "\nAh, I see you have an autochanger configured.\n"
+             "To test the autochanger you must have a blank tape\n"
+             " that I can write on in Slot 1.\n");
    if (!get_cmd("\nDo you wish to continue with the Autochanger test? (y/n): ")) {
       return 0;
    }
@@ -1239,7 +1240,7 @@ test_again:
    if (dev->file != 5) {
       goto bail_out;
    }
-
+   Pmsg0(-1, _("\n=== End Forward space files test ===\n\n"));
    return 1;
 
 bail_out:
