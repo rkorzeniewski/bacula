@@ -2,12 +2,6 @@ Makefile
 bacula-dir
 bacula-fd
 bacula-sd
-bacula.spec
-bacula.sqlite.rh8.spec
-bacula.client.rh8.spec
-bacula.mysql.rh8.spec
-bacula.sqlite.rh7.spec
-bacula.client.rh7.spec
-bacula.mysql.rh7.spec
-
-
+bacula.mysql.spec
+bacula.sqlite.spec
+bacula.sqlite.ul.spec

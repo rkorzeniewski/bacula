@@ -9512,8 +9512,10 @@ redhat)
 	    platforms/redhat/bacula-fd \
 	    platforms/redhat/bacula-sd \
 	    platforms/redhat/bacula-dir \
-	    platforms/redhat/bacula.mysql.rh8.spec \
-	    platforms/redhat/bacula.sqlite.rh8.spec"
+	    platforms/redhat/bacula.mysql.spec \
+	    platforms/redhat/bacula.sqlite.ul.spec \
+	    platforms/redhat/bacula.sqlite.spec \
+	    "
 	hostname=`hostname -s`
   ;;
 gentoo)

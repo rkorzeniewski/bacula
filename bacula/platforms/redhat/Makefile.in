@@ -18,28 +18,28 @@ install-autostart: install-autostart-fd install-autostart-sd install-autostart-d
 
 	
 install-autostart-fd:
-	@if test -f /etc/rc.d/init.d/bacula-fd; then \
+	@if test -f $(DESTDIR)/etc/rc.d/init.d/bacula-fd; then \
 	    /sbin/chkconfig --del bacula-fd; \
 	fi
-	@$(INSTALL_PROGRAM) -m 744 bacula-fd /etc/rc.d/init.d/bacula-fd
+	@$(INSTALL_PROGRAM) -m 744 bacula-fd $(DESTDIR)/etc/rc.d/init.d/bacula-fd
 	# set symlinks for script at startup and shutdown
 	@/sbin/chkconfig --add bacula-fd
 
 
 install-autostart-sd:
-	@if test -f /etc/rc.d/init.d/bacula-sd; then \
+	@if test -f  $(DESTDIR)/etc/rc.d/init.d/bacula-sd; then \
 	    /sbin/chkconfig --del bacula-sd; \
 	fi
-	@$(INSTALL_PROGRAM) -m 744 bacula-sd /etc/rc.d/init.d/bacula-sd
+	@$(INSTALL_PROGRAM) -m 744 bacula-sd  $(DESTDIR)/etc/rc.d/init.d/bacula-sd
 	# set symlinks for script at startup and shutdown
 	@/sbin/chkconfig --add bacula-sd
 
 
 install-autostart-dir:
-	@if test -f /etc/rc.d/init.d/bacula-dir; then \
+	@if test -f  $(DESTDIR)/etc/rc.d/init.d/bacula-dir; then \
 	    /sbin/chkconfig --del bacula-dir; \
 	fi
-	@$(INSTALL_PROGRAM) -m 744 bacula-dir /etc/rc.d/init.d/bacula-dir
+	@$(INSTALL_PROGRAM) -m 744 bacula-dir  $(DESTDIR)/etc/rc.d/init.d/bacula-dir
 	# set symlinks for script at startup and shutdown
 	@/sbin/chkconfig --add bacula-dir
 
@@ -49,23 +49,23 @@ uninstall: uninstall-autostart
 uninstall-autostart: uninstall-autostart-fd uninstall-autostart-sd uninstall-autostart-dir
 
 uninstall-autostart-fd:
-	@if test -f /etc/rc.d/init.d/bacula-fd; then \
+	@if test -f  $(DESTDIR)/etc/rc.d/init.d/bacula-fd; then \
 	    /sbin/chkconfig --del bacula-fd; \
 	fi
-	@rm -f /etc/rc.d/init.d/bacula-fd
+	@rm -f	$(DESTDIR)/etc/rc.d/init.d/bacula-fd
 
 
 uninstall-autostart-sd:
-	@if test -f /etc/rc.d/init.d/bacula-sd; then \
+	@if test -f  $(DESTDIR)/etc/rc.d/init.d/bacula-sd; then \
 	    /sbin/chkconfig --del bacula-sd; \
 	fi
-	@rm -f /etc/rc.d/init.d/bacula-sd
+	@rm -f	$(DESTDIR)/etc/rc.d/init.d/bacula-sd
 
 uninstall-autostart-dir:
-	@if test -f /etc/rc.d/init.d/bacula-dir; then \
+	@if test -f  $(DESTDIR)/etc/rc.d/init.d/bacula-dir; then \
 	    /sbin/chkconfig --del bacula-dir; \
 	fi
-	@rm -f /etc/rc.d/init.d/bacula-dir
+	@rm -f	$(DESTDIR)/etc/rc.d/init.d/bacula-dir
 
 clean:
 

@@ -21,7 +21,7 @@ DISTVER=@DISTVER@
 all:
 	@for subdir in ${SUBDIRS}; do \
 	    if [ -f $${subdir}/Makefile ]; then \
-	       (cd $${subdir}; make;) \
+	       (cd $${subdir}; $(MAKE) DESTDIR=$(DESTDIR);) \
 	    fi; \
 	done
 
@@ -31,19 +31,19 @@ install: install-autostart-dir install-autostart-fd install-autostart-sd
 install-autostart-dir:
 	@if test x$(DISTNAME) != x ; then \
 	   (cd $(DISTNAME); \
-	      $(MAKE) "DISTNAME=$(DISTNAME)" "DISTVER=$(DISTVER)" $@) \
+	      $(MAKE) DESTDIR=$(DESTDIR) "DISTNAME=$(DISTNAME)" "DISTVER=$(DISTVER)" $@) \
 	fi
 
 install-autostart-fd:
 	@if test x$(DISTNAME) != x ; then \
 	   (cd $(DISTNAME); \
-	      $(MAKE) "DISTNAME=$(DISTNAME)" "DISTVER=$(DISTVER)" $@) \
+	      $(MAKE) DESTDIR=$(DESTDIR) "DISTNAME=$(DISTNAME)" "DISTVER=$(DISTVER)" $@) \
 	fi
 
 install-autostart-sd:
 	@if test x$(DISTNAME) != x ; then \
 	   (cd $(DISTNAME); \
-	      $(MAKE) "DISTNAME=$(DISTNAME)" "DISTVER=$(DISTVER)" $@) \
+	      $(MAKE) DESTDIR=$(DESTDIR) "DISTNAME=$(DISTNAME)" "DISTVER=$(DISTVER)" $@) \
 	fi
 
 uninstall: uninstall-autostart-dir uninstall-autostart-fd uninstall-autrun-sd
@@ -51,19 +51,19 @@ uninstall: uninstall-autostart-dir uninstall-autostart-fd uninstall-autrun-sd
 uninstall-autostart-dir:
 	@if test x$(DISTNAME) != x ; then \
 	   (cd $(DISTNAME); \
-	     $(MAKE) "DISTNAME=$(DISTNAME)" "DISTVER=$(DISTVER)" $@) \
+	     $(MAKE) DESTDIR=$(DESTDIR) "DISTNAME=$(DISTNAME)" "DISTVER=$(DISTVER)" $@) \
 	fi
 
 uninstall-autostart-fd:
 	@if test x$(DISTNAME) != x ; then \
 	   (cd $(DISTNAME); \
-	     $(MAKE) "DISTNAME=$(DISTNAME)" "DISTVER=$(DISTVER)" $@) \
+	     $(MAKE) DESTDIR=$(DESTDIR) "DISTNAME=$(DISTNAME)" "DISTVER=$(DISTVER)" $@) \
 	fi
 
 uninstall-autostart-sd:
 	@if test x$(DISTNAME) != x ; then \
 	   (cd $(DISTNAME); \
-	     $(MAKE) "DISTNAME=$(DISTNAME)" "DISTVER=$(DISTVER)" $@) \
+	     $(MAKE) DESTDIR=$(DESTDIR) "DISTNAME=$(DISTNAME)" "DISTVER=$(DISTVER)" $@) \
 	fi
 
 depend:
@@ -71,7 +71,7 @@ depend:
 clean:
 	@for subdir in ${SUBDIRS}; do \
 	    if [ -f $${subdir}/Makefile ]; then \
-		    (cd $${subdir}; make clean) \
+		    (cd $${subdir}; $(MAKE) clean) \
 	    fi; \
 	done
 	rm -f 1 2 3
@@ -81,7 +81,7 @@ distclean:
 	@rm -rf CVS
 	@for subdir in ${SUBDIRS}; do \
 	    if [ -f $${subdir}/Makefile ]; then \
-		     (cd $${subdir}; make distclean) \
+		     (cd $${subdir}; $(MAKE) distclean) \
 	    fi; \
 	    (cd $${subdir}; rm -rf CVS) \
 	done

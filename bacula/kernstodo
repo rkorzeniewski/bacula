@@ -28,6 +28,7 @@ For 1.31 release:
    xeon-fd:      Could not stat c:/Documents and Settings/All 
    Users/Application Data/Humc:\Documents and Settings\All User98_AIX.kbf: 
    ERR=No such file or directory
+- Implement argv/argk in place of sscanf in the daemon protocol.
 - Examine Bare Metal restore problem.
 - Test multiple simultaneous Volumes
 - Document FInclude ...
@@ -747,4 +748,3 @@ Done: (see kernsdone for more)
   stream.
 - Change M_INFO to M_RESTORED for all restored files.
 - Fix command prompt in gnome-console by checking on Ready.
-
