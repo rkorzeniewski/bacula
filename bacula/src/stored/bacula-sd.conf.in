@@ -42,6 +42,9 @@ Device {
   AlwaysOpen = no;
 }
 
+#
+# A Linux or Solaris tape drive
+#
 #Device {
 #  Name = DDS-4                        # 
 #  Media Type = DDS-4
@@ -51,6 +54,46 @@ Device {
 #  RemovableMedia = yes;
 #  RandomAccess = no;
 #}
+
+#
+# A FreeBSD tape drive
+#
+#Device {
+#  Name = DDS-4 
+#  Description = "DDS-4 for FreeBSD"
+#  Media Type = DDS-4
+#  Archive Device = /dev/nsa1
+#  AutomaticMount = yes;               # when device opened, read it
+#  AlwaysOpen = yes
+#  Offline On Unmount = no
+#  Hardware End of Medium = no
+#  BSF at EOM = yes
+#  Backward Space Record = no
+#  Fast Forward Space File = no
+#  TWO EOF = yes
+#}
+
+#
+# A OnStream tape drive. 
+# You need the kernel osst driver 0.9.14 or later, and
+#   do "mt -f /dev/nosst0 defblksize 32768" once as root.
+#
+#Device {
+#  Name = OnStream
+#  Description = "OnStream drive on Linux"
+#  Media Type = OnStream
+#  Archive Device = @TAPEDRIVE@
+#  AutomaticMount = yes;               # when device opened, read it
+#  AlwaysOpen = yes
+#  Offline On Unmount = no
+## The min/max blocksizes of 32768 are *required*
+#  Minimum Block Size = 32768                             
+#  Maximum Block Size = 32768
+#}
+ 
+
+ 
+
 
 #
 # A very old Exabyte with no end of media detection
