@@ -509,7 +509,7 @@ get_cmd(FILE *input, const char *prompt, BSOCK *sock, int sec)
    char *line;
 
    rl_catch_signals = 0;	      /* do it ourselves */
-   line = readline(prompt);
+   line = readline((char *)prompt);   /* cast needed for old readlines */
 
    if (!line) {
       exit(1);

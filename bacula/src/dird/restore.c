@@ -73,8 +73,7 @@ int do_restore(JCR *jcr)
    }
 
    memset(&rjr, 0, sizeof(rjr));
-   jcr->jr.Level = L_FULL;	   /* Full restore */
-   jcr->jr.StartTime = jcr->start_time;
+   jcr->jr.JobLevel = L_FULL;	      /* Full restore */
    if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
       restore_cleanup(jcr, JS_ErrorTerminated);
@@ -240,7 +239,7 @@ int do_restore(JCR *jcr)
    } else if (jcr->job->RestoreWhere) {
       where = jcr->job->RestoreWhere; /* no override take from job */
    } else {
-      where = &empty;                 /* None */
+      where = &empty;		      /* None */
    }
    jcr->prefix_links = jcr->job->PrefixLinks;
    bash_spaces(where);

@@ -82,12 +82,12 @@ int db_mark_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, JobId_t JobId)
 }
 
 /*
- * Update the Job record at end of Job
+ * Update the Job record at start of Job
  *
  *  Returns: 0 on failure
  *	     1 on success
  */
-int
+bool
 db_update_job_start_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 {
    char dt[MAX_TIME_LENGTH];
@@ -103,9 +103,10 @@ db_update_job_start_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    JobTDate = (btime_t)stime;
 
    db_lock(mdb);
-   Mmsg(&mdb->cmd, "UPDATE Job SET Level='%c', StartTime='%s',"
-"ClientId=%u, JobTDate=%s WHERE JobId=%u",
-      (char)(jr->Level), dt, jr->ClientId, edit_uint64(JobTDate, ed1), jr->JobId);
+   Mmsg(&mdb->cmd, "UPDATE Job SET JobStatus='%c',Level='%c',StartTime='%s',"
+"ClientId=%u,JobTDate=%s WHERE JobId=%u",
+      (char)(jcr->JobStatus), 
+      (char)(jr->JobLevel), dt, jr->ClientId, edit_uint64(JobTDate, ed1), jr->JobId);
 
    stat = UPDATE_DB(jcr, mdb, mdb->cmd);
    mdb->changes = 0;

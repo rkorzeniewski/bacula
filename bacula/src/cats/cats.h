@@ -383,12 +383,12 @@ struct JOB_DBR {
    JobId_t JobId;
    char Job[MAX_NAME_LENGTH];         /* Job unique name */
    char Name[MAX_NAME_LENGTH];        /* Job base name */
-   int Type;                          /* actually char(1) */
-   int Level;                         /* actually char(1) */
+   int JobType;                       /* actually char(1) */
+   int JobLevel;                      /* actually char(1) */
    int JobStatus;                     /* actually char(1) */
-   uint32_t ClientId;                 /* Id of client */
-   uint32_t PoolId;                   /* Id of pool */
-   uint32_t FileSetId;                /* Id of FileSet */
+   DBId_t ClientId;                   /* Id of client */
+   DBId_t PoolId;                     /* Id of pool */
+   DBId_t FileSetId;                  /* Id of FileSet */
    time_t SchedTime;                  /* Time job scheduled */
    time_t StartTime;                  /* Job start time */
    time_t EndTime;                    /* Job termination time */
@@ -422,9 +422,9 @@ struct JOB_DBR {
  */
 /* JobMedia record */
 struct JOBMEDIA_DBR {
-   uint32_t JobMediaId;               /* record id */
+   DBId_t JobMediaId;                 /* record id */
    JobId_t  JobId;                    /* JobId */
-   uint32_t MediaId;                  /* MediaId */
+   DBId_t MediaId;                    /* MediaId */
    uint32_t FirstIndex;               /* First index this Volume */
    uint32_t LastIndex;                /* Last index this Volume */
    uint32_t StartFile;                /* File for start of data */
@@ -458,9 +458,9 @@ struct ATTR_DBR {
    uint32_t FileIndex;
    uint32_t Stream;
    JobId_t  JobId;
-   uint32_t ClientId;
-   uint32_t PathId;
-   uint32_t FilenameId;
+   DBId_t ClientId;
+   DBId_t PathId;
+   DBId_t FilenameId;
    FileId_t FileId;
 };
 
@@ -470,8 +470,8 @@ struct FILE_DBR {
    FileId_t FileId;
    uint32_t FileIndex;
    JobId_t  JobId;
-   uint32_t FilenameId;
-   uint32_t PathId;
+   DBId_t FilenameId;
+   DBId_t PathId;
    JobId_t  MarkId;
    char LStat[256];
 /*   int Status; */
@@ -481,7 +481,7 @@ struct FILE_DBR {
 
 /* Pool record -- same format as database */
 struct POOL_DBR {
-   uint32_t PoolId;
+   DBId_t PoolId;
    char Name[MAX_NAME_LENGTH];        /* Pool name */
    uint32_t NumVols;                  /* total number of volumes */
    uint32_t MaxVols;                  /* max allowed volumes */
@@ -503,10 +503,10 @@ struct POOL_DBR {
 
 /* Media record -- same as the database */
 struct MEDIA_DBR {
-   uint32_t MediaId;                  /* Unique volume id */
+   DBId_t MediaId;                    /* Unique volume id */
    char VolumeName[MAX_NAME_LENGTH];  /* Volume name */
    char MediaType[MAX_NAME_LENGTH];   /* Media type */
-   uint32_t PoolId;                   /* Pool id */
+   DBId_t PoolId;                     /* Pool id */
    time_t   FirstWritten;             /* Time Volume first written */
    time_t   LastWritten;              /* Time Volume last written */
    time_t   LabelDate;                /* Date/Time Volume labeled */
@@ -542,7 +542,7 @@ struct MEDIA_DBR {
 
 /* Client record -- same as the database */
 struct CLIENT_DBR {
-   uint32_t ClientId;                 /* Unique Client id */
+   DBId_t ClientId;                   /* Unique Client id */
    int AutoPrune;
    utime_t FileRetention;
    utime_t JobRetention;
@@ -562,7 +562,7 @@ struct COUNTER_DBR {
 
 /* FileSet record -- same as the database */
 struct FILESET_DBR {
-   uint32_t FileSetId;                /* Unique FileSet id */
+   DBId_t FileSetId;                  /* Unique FileSet id */
    char FileSet[MAX_NAME_LENGTH];     /* FileSet name */
    char MD5[50];                      /* MD5 signature of include/exclude */
    time_t CreateTime;                 /* date created */

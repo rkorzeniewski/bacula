@@ -465,7 +465,7 @@ static int record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	    dcr->StartFile = (uint32_t)(dev->file_addr >> 32);
 	 }
 	 mjcr->start_time = jr.StartTime;
-	 mjcr->JobLevel = jr.Level;
+	 mjcr->JobLevel = jr.JobLevel;
 
 	 mjcr->client_name = get_pool_memory(PM_FNAME);
 	 pm_strcpy(&mjcr->client_name, label.ClientName);
@@ -892,8 +892,8 @@ static JCR *create_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *label,
    struct tm tm;
 
    jr->JobId = label->JobId;
-   jr->Type = label->JobType;
-   jr->Level = label->JobLevel;
+   jr->JobType = label->JobType;
+   jr->JobLevel = label->JobLevel;
    jr->JobStatus = JS_Created;
    bstrncpy(jr->Name, label->JobName, sizeof(jr->Name));
    bstrncpy(jr->Job, label->Job, sizeof(jr->Job));
@@ -1129,8 +1129,8 @@ static JCR *create_jcr(JOB_DBR *jr, DEV_RECORD *rec, uint32_t JobId)
     *	the JobId and the ClientId.
     */
    jobjcr = new_jcr(sizeof(JCR), bscan_free_jcr);
-   jobjcr->JobType = jr->Type;
-   jobjcr->JobLevel = jr->Level;
+   jobjcr->JobType = jr->JobType;
+   jobjcr->JobLevel = jr->JobLevel;
    jobjcr->JobStatus = jr->JobStatus;
    bstrncpy(jobjcr->Job, jr->Job, sizeof(jobjcr->Job));
    jobjcr->JobId = JobId;      /* this is JobId on tape */

@@ -76,13 +76,13 @@ db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
 "SELECT StartTime FROM Job WHERE JobStatus='T' AND Type='%c' AND "
 "Level='%c' AND Name='%s' AND ClientId=%u AND FileSetId=%u "
 "ORDER BY StartTime DESC LIMIT 1",
-	   jr->Type, L_FULL, jr->Name, jr->ClientId, jr->FileSetId);
+	   jr->JobType, L_FULL, jr->Name, jr->ClientId, jr->FileSetId);
 
-      if (jr->Level == L_DIFFERENTIAL) {
+      if (jr->JobLevel == L_DIFFERENTIAL) {
 	 /* SQL cmd for Differential backup already edited above */
 
       /* Incremental is since last Full, Incremental, or Differential */
-      } else if (jr->Level == L_INCREMENTAL) {
+      } else if (jr->JobLevel == L_INCREMENTAL) {
 	 /* 
 	  * For an Incremental job, we must first ensure
 	  *  that a Full backup was done (cmd edited above)
@@ -107,10 +107,10 @@ db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
 "SELECT StartTime FROM Job WHERE JobStatus='T' AND Type='%c' AND "
 "Level IN ('%c','%c','%c') AND Name='%s' AND ClientId=%u "
 "AND FileSetId=%u ORDER BY StartTime DESC LIMIT 1",
-	    jr->Type, L_INCREMENTAL, L_DIFFERENTIAL, L_FULL, jr->Name,
+	    jr->JobType, L_INCREMENTAL, L_DIFFERENTIAL, L_FULL, jr->Name,
 	    jr->ClientId, jr->FileSetId);
       } else {
-         Mmsg1(&mdb->errmsg, _("Unknown level=%d\n"), jr->Level);
+         Mmsg1(&mdb->errmsg, _("Unknown level=%d\n"), jr->JobLevel);
 	 db_unlock(mdb);
 	 return 0;
       }
@@ -157,14 +157,14 @@ db_find_last_jobid(JCR *jcr, B_DB *mdb, const char *Name, JOB_DBR *jr)
 
    /* Find last full */
    db_lock(mdb);
-   if (jr->Level == L_VERIFY_CATALOG) {
+   if (jr->JobLevel == L_VERIFY_CATALOG) {
       Mmsg(&mdb->cmd, 
 "SELECT JobId FROM Job WHERE Type='V' AND Level='%c' AND "
 " JobStatus='T' AND Name='%s' AND "
 "ClientId=%u ORDER BY StartTime DESC LIMIT 1",
 	   L_VERIFY_INIT, jr->Name, jr->ClientId);
-   } else if (jr->Level == L_VERIFY_VOLUME_TO_CATALOG ||
-	      jr->Level == L_VERIFY_DISK_TO_CATALOG) {
+   } else if (jr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG ||
+	      jr->JobLevel == L_VERIFY_DISK_TO_CATALOG) {
       if (Name) {
 	 Mmsg(&mdb->cmd,
 "SELECT JobId FROM Job WHERE Type='B' AND JobStatus='T' AND "
@@ -175,7 +175,7 @@ db_find_last_jobid(JCR *jcr, B_DB *mdb, const char *Name, JOB_DBR *jr)
 "ClientId=%u ORDER BY StartTime DESC LIMIT 1", jr->ClientId);
       }
    } else {
-      Mmsg1(&mdb->errmsg, _("Unknown Job level=%c\n"), jr->Level);
+      Mmsg1(&mdb->errmsg, _("Unknown Job level=%c\n"), jr->JobLevel);
       db_unlock(mdb);
       return 0;
    }

@@ -310,6 +310,9 @@ then
 elif test -f /etc/mandrake-release
 then
         DISTNAME=mandrake
+elif test -f /etc/whitebox-release
+then
+       DISTNAME=redhat
 elif test -f /etc/redhat-release
 then
         DISTNAME=redhat

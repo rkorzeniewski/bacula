@@ -82,16 +82,6 @@ void run_job(JCR *jcr)
    P(jcr->mutex);
    sm_check(__FILE__, __LINE__, true);
    init_msg(jcr, jcr->messages);
-   create_unique_job_name(jcr, jcr->job->hdr.name);
-   set_jcr_job_status(jcr, JS_Created);
-   jcr->jr.SchedTime = jcr->sched_time;
-   jcr->jr.StartTime = jcr->start_time;
-   jcr->jr.EndTime = 0; 	      /* perhaps rescheduled, clear it */
-   jcr->jr.Type = jcr->JobType;
-   jcr->jr.Level = jcr->JobLevel;
-   jcr->jr.JobStatus = jcr->JobStatus;
-   bstrncpy(jcr->jr.Name, jcr->job->hdr.name, sizeof(jcr->jr.Name));
-   bstrncpy(jcr->jr.Job, jcr->Job, sizeof(jcr->jr.Job));
 
    /* Initialize termination condition variable */
    if ((errstat = pthread_cond_init(&jcr->term_wait, NULL)) != 0) {
@@ -120,15 +110,17 @@ void run_job(JCR *jcr)
    /*
     * Create Job record  
     */
-   jcr->jr.JobStatus = jcr->JobStatus;
+   create_unique_job_name(jcr, jcr->job->hdr.name);
+   set_jcr_job_status(jcr, JS_Created);
+   init_jcr_job_record(jcr);
    if (!db_create_job_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
       goto bail_out;
    }
    jcr->JobId = jcr->jr.JobId;
 
-   Dmsg4(50, "Created job record JobId=%d Name=%s Type=%c Level=%c\n", 
-       jcr->JobId, jcr->Job, jcr->jr.Type, jcr->jr.Level);
+   Dmsg4(100, "Created job record JobId=%d Name=%s Type=%c Level=%c\n", 
+       jcr->JobId, jcr->Job, jcr->jr.JobType, jcr->jr.JobLevel);
    Dmsg0(200, "Add jrc to work queue\n");
 
    /* Queue the job to be run */
@@ -513,7 +505,7 @@ static bool job_check_maxruntime(JCR *control_jcr, JCR *jcr)
 /*
  * Get or create a Client record for this Job
  */
-int get_or_create_client_record(JCR *jcr)
+bool get_or_create_client_record(JCR *jcr)
 {
    CLIENT_DBR cr;
 
@@ -529,7 +521,7 @@ int get_or_create_client_record(JCR *jcr)
    if (!db_create_client_record(jcr, jcr->db, &cr)) {
       Jmsg(jcr, M_FATAL, 0, _("Could not create Client record. ERR=%s\n"), 
 	 db_strerror(jcr->db));
-      return 0;
+      return false;
    }
    jcr->jr.ClientId = cr.ClientId;
    if (cr.Uname[0]) {
@@ -540,9 +532,53 @@ int get_or_create_client_record(JCR *jcr)
    }
    Dmsg2(100, "Created Client %s record %d\n", jcr->client->hdr.name, 
       jcr->jr.ClientId);
-   return 1;
+   return true;
 }
 
+bool get_or_create_fileset_record(JCR *jcr, FILESET_DBR *fsr)
+{
+   /*
+    * Get or Create FileSet record
+    */
+   memset(fsr, 0, sizeof(FILESET_DBR));
+   bstrncpy(fsr->FileSet, jcr->fileset->hdr.name, sizeof(fsr->FileSet));
+   if (jcr->fileset->have_MD5) {
+      struct MD5Context md5c;
+      unsigned char signature[16];
+      memcpy(&md5c, &jcr->fileset->md5c, sizeof(md5c));
+      MD5Final(signature, &md5c);
+      bin_to_base64(fsr->MD5, (char *)signature, 16); /* encode 16 bytes */
+      bstrncpy(jcr->fileset->MD5, fsr->MD5, sizeof(jcr->fileset->MD5));
+   } else {
+      Jmsg(jcr, M_WARNING, 0, _("FileSet MD5 signature not found.\n"));
+   }
+   if (!db_create_fileset_record(jcr, jcr->db, fsr)) {
+      Jmsg(jcr, M_ERROR, 0, _("Could not create FileSet \"%s\" record. ERR=%s\n"), 
+	 fsr->FileSet, db_strerror(jcr->db));
+      return false;
+   }   
+   jcr->jr.FileSetId = fsr->FileSetId;
+   if (fsr->created) {
+      Jmsg(jcr, M_INFO, 0, _("Created new FileSet record \"%s\" %s\n"), 
+	 fsr->FileSet, fsr->cCreateTime);
+   }
+   Dmsg2(119, "Created FileSet %s record %u\n", jcr->fileset->hdr.name, 
+      jcr->jr.FileSetId);
+   return true;
+}
+
+void init_jcr_job_record(JCR *jcr)
+{
+   jcr->jr.SchedTime = jcr->sched_time;
+   jcr->jr.StartTime = jcr->start_time;
+   jcr->jr.EndTime = 0; 	      /* perhaps rescheduled, clear it */
+   jcr->jr.JobType = jcr->JobType;
+   jcr->jr.JobLevel = jcr->JobLevel;
+   jcr->jr.JobStatus = jcr->JobStatus;
+   jcr->jr.JobId = jcr->JobId;
+   bstrncpy(jcr->jr.Name, jcr->job->hdr.name, sizeof(jcr->jr.Name));
+   bstrncpy(jcr->jr.Job, jcr->Job, sizeof(jcr->jr.Job));
+}
 
 /*
  * Write status and such in DB
