@@ -471,8 +471,8 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
 	 res->res_client.hdr.name, res->res_client.address, res->res_client.FDport,
 	 res->res_client.MaxConcurrentJobs);
       sendit(sock, "      JobRetention=%s FileRetention=%s AutoPrune=%d\n",
-	 edit_utime(res->res_client.JobRetention, ed1), 
-	 edit_utime(res->res_client.FileRetention, ed2),
+	 edit_utime(res->res_client.JobRetention, ed1, sizeof(ed1)),
+	 edit_utime(res->res_client.FileRetention, ed2, sizeof(ed2)),
 	 res->res_client.AutoPrune);
       if (res->res_client.catalog) {
          sendit(sock, "  --> ");
@@ -697,9 +697,9 @@ next_run:
 	      res->res_pool.accept_any_volume, res->res_pool.catalog_files);
       sendit(sock, "      max_vols=%d auto_prune=%d VolRetention=%s\n",
 	      res->res_pool.max_volumes, res->res_pool.AutoPrune,
-	      edit_utime(res->res_pool.VolRetention, ed1));
+	      edit_utime(res->res_pool.VolRetention, ed1, sizeof(ed1)));
       sendit(sock, "      VolUse=%s recycle=%d LabelFormat=%s\n", 
-	      edit_utime(res->res_pool.VolUseDuration, ed1),
+	      edit_utime(res->res_pool.VolUseDuration, ed1, sizeof(ed1)),
 	      res->res_pool.Recycle,
 	      NPRT(res->res_pool.label_format));
       sendit(sock, "      CleaningPrefix=%s\n",

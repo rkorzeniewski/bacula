@@ -695,7 +695,7 @@ static void update_volstatus(UAContext *ua, const char *val, MEDIA_DBR *mr)
 
 static void update_volretention(UAContext *ua, char *val, MEDIA_DBR *mr)
 {
-   char ed1[50];
+   char ed1[150];
    POOLMEM *query;
    if (!duration_to_utime(val, &mr->VolRetention)) {
       bsendmsg(ua, _("Invalid retention period specified: %s\n"), val);
@@ -707,15 +707,15 @@ static void update_volretention(UAContext *ua, char *val, MEDIA_DBR *mr)
    if (!db_sql_query(ua->db, query, NULL, NULL)) {  
       bsendmsg(ua, "%s", db_strerror(ua->db));
    } else {
-      bsendmsg(ua, _("New retention seconds is: %s\n"),
-	 edit_utime(mr->VolRetention, ed1));
+      bsendmsg(ua, _("New retention period is: %s\n"),
+	 edit_utime(mr->VolRetention, ed1, sizeof(ed1)));
    }
    free_pool_memory(query);
 }
 
 static void update_voluseduration(UAContext *ua, char *val, MEDIA_DBR *mr)
 {
-   char ed1[50];
+   char ed1[150];
    POOLMEM *query;
 
    if (!duration_to_utime(val, &mr->VolUseDuration)) {
@@ -729,7 +729,7 @@ static void update_voluseduration(UAContext *ua, char *val, MEDIA_DBR *mr)
       bsendmsg(ua, "%s", db_strerror(ua->db));
    } else {
       bsendmsg(ua, _("New use duration is: %s\n"),
-	 edit_utime(mr->VolUseDuration, ed1));
+	 edit_utime(mr->VolUseDuration, ed1, sizeof(ed1)));
    }
    free_pool_memory(query);
 }
@@ -896,7 +896,7 @@ static int update_volume(UAContext *ua)
    MEDIA_DBR mr;
    POOL_DBR pr;
    POOLMEM *query;
-   char ed1[30];
+   char ed1[130];
    bool done = false;
    const char *kw[] = {
       N_("VolStatus"),                /* 0 */
@@ -998,8 +998,8 @@ static int update_volume(UAContext *ua)
 	 update_volstatus(ua, ua->cmd, &mr);
 	 break;
       case 1:			      /* Retention */
-         bsendmsg(ua, _("Current retention seconds is: %s\n"),
-	    edit_utime(mr.VolRetention, ed1));
+         bsendmsg(ua, _("Current retention period is: %s\n"),
+	    edit_utime(mr.VolRetention, ed1, sizeof(ed1)));
          if (!get_cmd(ua, _("Enter Volume Retention period: "))) {
 	    return 0;
 	 }
@@ -1008,7 +1008,7 @@ static int update_volume(UAContext *ua)
 
       case 2:			      /* Use Duration */
          bsendmsg(ua, _("Current use duration is: %s\n"),
-	    edit_utime(mr.VolUseDuration, ed1));
+	    edit_utime(mr.VolUseDuration, ed1, sizeof(ed1)));
          if (!get_cmd(ua, _("Enter Volume Use Duration: "))) {
 	    return 0;
 	 }

@@ -29,9 +29,10 @@ Version 1.35                Kern (see below)
 - Document a get out of jail procedure if everything breaks if 
   you lost/broke the Catalog -- do the same for "I know my
   file is there how do I get it back?".
-- Test Tape Alerts
+- Test/doc Tape Alerts
 - Doc update AllFromVol
 - Doc dbcheck eliminate orphaned clients.
+- Doc new duration time input editing.
    
 
 Documentation to do: (any release a little bit at a time)
@@ -1166,4 +1167,3 @@ Block Position: 0
 - When passwords do not match, print message that points the
   user to the doc.
 - Do tape alerts -- see tapealert.txt
-

@@ -131,9 +131,10 @@ char *edit_uint64(uint64_t val, char *buf)
  * Given a string "str", separate the integer part into
  *   str, and the modifier into mod.
  */
-static bool get_modifier(char *str, char *mod, int mod_len)
+static bool get_modifier(char *str, char *num, int num_len, char *mod, int mod_len)
 {
-   int i, len;
+   int i, len, num_begin, num_end, mod_begin, mod_end;
+	 
    /*
     * Look for modifier by walking back looking for the first
     *	space or digit.
@@ -141,36 +142,50 @@ static bool get_modifier(char *str, char *mod, int mod_len)
    strip_trailing_junk(str);
    len = strlen(str);
 
-   /* Find beginning of the modifier */
-   for (i=len; i > 0; i--) {
-      if (!B_ISALPHA(str[i-1])) {
+   for (i=0; i<len; i++) {
+      if (!B_ISSPACE(str[i])) {
 	 break;
       }
    }
+   num_begin = i;
 
-   /* If nothing found, error */
-   if (i == 0) {
-      Dmsg2(900, "error i=%d len=%d\n", i, len);
-      return false;
-   }
-
-   /* Move modifier to its location */
-   bstrncpy(mod, &str[i], mod_len);
-   Dmsg2(900, "in=%s  mod=%s:\n", str, mod);
-
-   /* Backup over any spaces in front of modifier */
-   for ( ; i > 0; i--) {
-      if (B_ISSPACE(str[i-1])) {
-	 continue;
+   /* Walk through integer part */
+   for ( ; i<len; i++) {
+      if (!B_ISDIGIT(str[i])) {
+	 break;
       }
-      str[i] = 0;
-      break;
    }
-   /* The remainder (beginning) should be our number */
-   if (!is_a_number(str)) {
-      Dmsg0(900, "input not a number\n");
+   num_end = i;
+   if (num_len > (num_end - num_begin + 1)) {
+      num_len = num_end - num_begin + 1;
+   }
+   if (num_len == 0) {
       return false;
    }
+   for ( ; i<len; i++) {
+      if (!B_ISSPACE(str[i])) {
+	 break;
+      }
+   }
+   mod_begin = i;
+   for ( ; i<len; i++) {
+      if (!B_ISALPHA(str[i])) {
+	 break;
+      }
+   }
+   mod_end = i;
+   if (mod_len > (mod_end - mod_begin + 1)) {
+      mod_len = mod_end - mod_begin + 1;
+   }
+   Dmsg5(900, "str=%s: num_beg=%d num_end=%d mod_beg=%d mod_end=%d\n",
+      str, num_begin, num_end, mod_begin, mod_end);
+   bstrncpy(num, &str[num_begin], num_len);
+   bstrncpy(mod, &str[mod_begin], mod_len);
+   if (!is_a_number(num)) {
+      return false;
+   }
+   bstrncpy(str, &str[mod_end], len);
+
    return true;
 }
 
@@ -182,8 +197,9 @@ static bool get_modifier(char *str, char *mod, int mod_len)
 int duration_to_utime(char *str, utime_t *value)
 {
    int i, mod_len;
-   double val;
+   double val, total = 0.0;
    char mod_str[20];
+   char num_str[50];
    /*
     * The "n" = mins and months appears before minutes so that m maps
     *   to months. These "kludges" make it compatible with pre 1.31 
@@ -194,35 +210,42 @@ int duration_to_utime(char *str, utime_t *value)
    static const int32_t mult[] = {60,	1, 60*60*24*30, 60, 
 		  60*60, 60*60*24, 60*60*24*7, 60*60*24*91, 60*60*24*365};
 
-   if (!get_modifier(str, mod_str, sizeof(mod_str))) {
-      return 0;
-   }
-   /* Now find the multiplier corresponding to the modifier */
-   mod_len = strlen(mod_str);
-   for (i=0; mod[i]; i++) {
-      if (strncasecmp(mod_str, mod[i], mod_len) == 0) {
-	 break;
+   while (*str) {
+      if (!get_modifier(str, num_str, sizeof(num_str), mod_str, sizeof(mod_str))) {
+	 return 0;
       }
+      /* Now find the multiplier corresponding to the modifier */
+      mod_len = strlen(mod_str);
+      if (mod_len == 0) {
+	 i = 1; 			 /* assume seconds */
+      } else {
+	 for (i=0; mod[i]; i++) {
+	    if (strncasecmp(mod_str, mod[i], mod_len) == 0) {
+	       break;
+	    }
+	 }
+	 if (mod[i] == NULL) {
+	    i = 1;			 /* no modifier, assume secs */
+	 }
+      }
+      Dmsg2(900, "str=%s: mult=%d\n", num_str, mult[i]);
+      errno = 0;
+      val = strtod(num_str, NULL);
+      if (errno != 0 || val < 0) {
+	 return 0;
+      }
+      total += val * mult[i];
    }
-   if (mod[i] == NULL) {
-      i = 1;			      /* no modifier, assume 1 */
-   }
-   Dmsg2(900, "str=%s: mult=%d\n", str, mult[i]);
-   errno = 0;
-   val = strtod(str, NULL);
-   if (errno != 0 || val < 0) {
-      return 0;
-   }
-  *value = (utime_t)(val * mult[i]);
+   *value = (utime_t)total;
    return 1;
 }
 
 /*
  * Edit a utime "duration" into ASCII
  */
-char *edit_utime(utime_t val, char *buf)
+char *edit_utime(utime_t val, char *buf, int buf_len)
 {
-   char mybuf[30];
+   char mybuf[200];
    static const int32_t mult[] = {60*60*24*365, 60*60*24*30, 60*60*24, 60*60, 60};
    static const char *mod[]  = {"year",  "month",  "day", "hour", "min"};
    int i;
@@ -233,21 +256,21 @@ char *edit_utime(utime_t val, char *buf)
       times = (uint32_t)(val / mult[i]);
       if (times > 0) {
 	 val = val - (utime_t)times * mult[i];
-         sprintf(mybuf, "%d %s%s ", times, mod[i], times>1?"s":"");
-	 strcat(buf, mybuf);
+         bsnprintf(mybuf, sizeof(mybuf), "%d %s%s ", times, mod[i], times>1?"s":"");
+	 bstrncat(buf, mybuf, buf_len);
       }
    }
    if (val == 0 && strlen(buf) == 0) {	   
-      strcat(buf, "0 secs");
+      bstrncat(buf, "0 secs", buf_len);
    } else if (val != 0) {
-      sprintf(mybuf, "%d sec%s", (uint32_t)val, val>1?"s":"");
-      strcat(buf, mybuf);
+      bsnprintf(mybuf, sizeof(mybuf), "%d sec%s", (uint32_t)val, val>1?"s":"");
+      bstrncat(buf, mybuf, buf_len);
    }
    return buf;
 }
 
 /*
- * Convert a size size in bytes to uint64_t
+ * Convert a size in bytes to uint64_t
  * Returns 0: if error
 	   1: if OK, and value stored in value
  */
@@ -256,6 +279,7 @@ int size_to_uint64(char *str, int str_len, uint64_t *value)
    int i, mod_len;
    double val;
    char mod_str[20];
+   char num_str[50];
    static const char *mod[]  = {"*", "k", "kb", "m", "mb",  "g", "gb",  NULL}; /* first item * not used */
    const int64_t mult[] = {1,		  /* byte */
 			   1024,	  /* kilobyte */
@@ -265,7 +289,7 @@ int size_to_uint64(char *str, int str_len, uint64_t *value)
 			   1073741824,	  /* gigabyte */
 			   1000000000};   /* gb gigabyte */
 
-   if (!get_modifier(str, mod_str, sizeof(mod_str))) {
+   if (!get_modifier(str, num_str, sizeof(num_str), mod_str, sizeof(mod_str))) {
       return 0;
    }
    /* Now find the multiplier corresponding to the modifier */
@@ -280,7 +304,7 @@ int size_to_uint64(char *str, int str_len, uint64_t *value)
    }
    Dmsg2(900, "str=%s: mult=%d\n", str, mult[i]);
    errno = 0;
-   val = strtod(str, NULL);
+   val = strtod(num_str, NULL);
    if (errno != 0 || val < 0) {
       return 0;
    }
@@ -292,7 +316,7 @@ int size_to_uint64(char *str, int str_len, uint64_t *value)
  * Check if specified string is a number or not.
  *  Taken from SQLite, cool, thanks.
  */
-int is_a_number(const char *n)
+bool is_a_number(const char *n)
 {
    bool digit_seen = false;
 
@@ -318,7 +342,7 @@ int is_a_number(const char *n)
 /*
  * Check if the specified string is an integer	 
  */
-int is_an_integer(const char *n)
+bool is_an_integer(const char *n)
 {
    bool digit_seen = false;
    while (B_ISDIGIT(*n)) {

@@ -168,7 +168,7 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
 	   NPRT(get_first_address(res->res_store.sdaddrs, buf, sizeof(buf))),
 	   get_first_port(res->res_store.sdaddrs), 
 	   get_first_port(res->res_store.sddaddrs),
-	   edit_utime(res->res_store.heartbeat_interval, buf));
+	   edit_utime(res->res_store.heartbeat_interval, buf, sizeof(buf)));
 	  foreach_dlist(p, res->res_store.sdaddrs) {
                 sendit(sock, "        SDaddr=%s SDport=%d\n", 
 			     p->get_address(buf, sizeof(buf)), p->get_port());
