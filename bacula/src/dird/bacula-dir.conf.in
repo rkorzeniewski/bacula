@@ -36,6 +36,7 @@ Job {
   Messages = Standard
   Pool = Default
   Write Bootstrap = "@working_dir@/Client1.bsr"
+  Priority = 10
 }
 
 # Backup the catalog database (after the nightly save)
@@ -53,6 +54,7 @@ Job {
   # This deletes the copy of the catalog
   RunAfterJob  = "@scriptdir@/delete_catalog_backup"
   Write Bootstrap = "@working_dir@/BackupCatalog.bsr"
+  Priority = 11                   # run after main backup
 }
 
 # Standard Restore template, to be changed by Console program
