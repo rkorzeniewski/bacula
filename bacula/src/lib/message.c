@@ -665,8 +665,9 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
 		break;
 	     case MD_STDOUT:
                 Dmsg1(400, "STDOUT for following msg: %s", msg);
-		if (type != M_ABORT && type != M_ERROR_TERM)  /* already printed */
+		if (type != M_ABORT && type != M_ERROR_TERM) { /* already printed */
 		   fputs(msg, stdout);
+		}
 		break;
 	     case MD_STDERR:
                 Dmsg1(400, "STDERR for following msg: %s", msg);
@@ -700,7 +701,8 @@ d_msg(char *file, int line, int level, char *fmt,...)
 
     if (level < 0) {
        details = FALSE;
-       level = -level;
+//     level = -level;
+       level = 0;
     }
 
     if (level <= debug_level) {
