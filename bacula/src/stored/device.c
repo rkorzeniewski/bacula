@@ -134,7 +134,7 @@ bool fixup_device_block_write_error(DCR *dcr)
    P(dev->mutex);		   /* lock again */
 
    Jmsg(jcr, M_INFO, 0, _("New volume \"%s\" mounted on device %s at %s.\n"),
-      dcr->VolumeName, dev_name(dev), bstrftime(dt, sizeof(dt), time(NULL)));
+      dcr->VolumeName, dev->print_name(), bstrftime(dt, sizeof(dt), time(NULL)));
 
    /*
     * If this is a new tape, the label_blk will contain the
@@ -290,7 +290,7 @@ bool first_open_device(DEVICE *dev)
 	 return false;
       }
    }
-   Dmsg1(129, "open_dev %s OK\n", dev_name(dev));
+   Dmsg1(129, "open_dev %s OK\n", dev->print_name());
 
    unlock_device(dev);
    return true;
@@ -313,10 +313,10 @@ bool open_device(DCR *dcr)
       if (open_dev(dev, dcr->VolCatInfo.VolCatName, mode) < 0) {
 	 /* If polling, ignore the error */
 	 if (!dev->poll) {
-            Jmsg2(dcr->jcr, M_FATAL, 0, _("Unable to open archive %s. ERR=%s\n"),
-	       dev_name(dev), strerror_dev(dev));
-            Pmsg2(000, "Unable to open archive %s. ERR=%s\n", 
-	       dev_name(dev), strerror_dev(dev));
+            Jmsg2(dcr->jcr, M_FATAL, 0, _("Unable to open archive %s: ERR=%s\n"),
+	       dev->print_name(), strerror_dev(dev));
+            Pmsg2(000, "Unable to open archive %s: ERR=%s\n", 
+	       dev->print_name(), strerror_dev(dev));
 	 }
 	 return false;
       }

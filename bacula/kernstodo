@@ -46,6 +46,8 @@ For 1.37:
   label so that bscan can get *all* the info. 
 - Scratch Pool where the volumes can be re-assigned to any Pool.
 - Implement Maximum Job Spool Size
+- Implement EOF/EOV labels for ANSI labels
+- Implement IBM labels.
 
 Maybe in 1.37:
 - By the way: on page http://www.bacula.org/?page=tapedrives , at the 
@@ -1255,4 +1257,3 @@ Block Position: 0
 #5   Events that call a Python program 
      (Implemented in Dir/SD)
 - Make sure the Device name is in the Query packet returned.
-

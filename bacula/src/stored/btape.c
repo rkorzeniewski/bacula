@@ -332,7 +332,7 @@ static bool open_the_device()
 	 return false;
       }
    }
-   Pmsg1(000, "open_dev %s OK\n", dev_name(dev));
+   Pmsg1(000, "open_dev %s OK\n", dev->print_name());
    dev->state |= ST_APPEND;
    unlock_device(dev);
    free_block(block);
@@ -420,7 +420,7 @@ static void loadcmd()
    if (!load_dev(dev)) {
       Pmsg1(0, "Bad status from load. ERR=%s\n", strerror_dev(dev));
    } else
-      Pmsg1(0, "Loaded %s\n", dev_name(dev));
+      Pmsg1(0, "Loaded %s\n", dev->print_name());
 }
 
 /*
@@ -432,7 +432,7 @@ static void rewindcmd()
       Pmsg1(0, "Bad status from rewind. ERR=%s\n", strerror_dev(dev));
       clrerror_dev(dev, -1);
    } else {
-      Pmsg1(0, "Rewound %s\n", dev_name(dev));
+      Pmsg1(0, "Rewound %s\n", dev->print_name());
    }
 }
 
@@ -462,7 +462,7 @@ static void weofcmd()
       Pmsg2(0, "Bad status from weof %d. ERR=%s\n", stat, strerror_dev(dev));
       return;
    } else {
-      Pmsg3(0, "Wrote %d EOF%s to %s\n", num, num==1?"":"s", dev_name(dev));
+      Pmsg3(0, "Wrote %d EOF%s to %s\n", num, num==1?"":"s", dev->print_name());
    }
 }
 
@@ -1192,14 +1192,14 @@ try_again:
       sleep_time += 30;
       goto try_again;
    } else {
-      Pmsg1(0, "Rewound %s\n", dev_name(dev));
+      Pmsg1(0, "Rewound %s\n", dev->print_name());
    }
 
    if ((status = weof_dev(dev, 1)) < 0) {
       Pmsg2(0, "Bad status from weof %d. ERR=%s\n", status, strerror_dev(dev));
       goto bail_out;
    } else {
-      Pmsg1(0, "Wrote EOF to %s\n", dev_name(dev));
+      Pmsg1(0, "Wrote EOF to %s\n", dev->print_name());
    }
 
    if (sleep_time) {
@@ -1768,7 +1768,7 @@ static void fillcmd()
       return;
    }
 
-   Dmsg1(20, "Begin append device=%s\n", dev_name(dev));
+   Dmsg1(20, "Begin append device=%s\n", dev->print_name());
    Dmsg1(20, "MaxVolSize=%s\n", edit_uint64(dev->max_volume_size, ec1));
 
    /* Use fixed block size to simplify read back */
@@ -2627,10 +2627,10 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
    Pmsg1(-1, "%s", dev->errmsg);           /* print reason */
    if (dcr->VolumeName[0] == 0 || strcmp(dcr->VolumeName, "TestVolume2") == 0) {
       fprintf(stderr, "Mount second Volume on device %s and press return when ready: ",
-	 dev_name(dev));
+	 dev->print_name());
    } else {
       fprintf(stderr, "Mount Volume \"%s\" on device %s and press return when ready: ",
-	 dcr->VolumeName, dev_name(dev));
+	 dcr->VolumeName, dev->print_name());
    }
    getchar();
    return true;
@@ -2654,7 +2654,7 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
    if (!autochanger) {
       force_close_dev(dev);
       fprintf(stderr, "Mount blank Volume on device %s and press return when ready: ",
-	 dev_name(dev));
+	 dev->print_name());
       getchar();
    }
    open_device(dcr);
@@ -2698,7 +2698,7 @@ static bool my_mount_next_read_volume(DCR *dcr)
    close_dev(dev);
    dev->state &= ~ST_READ;
    if (!acquire_device_for_read(jcr, dev)) {
-      Pmsg2(0, "Cannot open Dev=%s, Vol=%s\n", dev_name(dev), dcr->VolumeName);
+      Pmsg2(0, "Cannot open Dev=%s, Vol=%s\n", dev->print_name(), dcr->VolumeName);
       return false;
    }
    return true; 		   /* next volume mounted */

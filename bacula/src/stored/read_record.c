@@ -68,7 +68,7 @@ bool read_records(DCR *dcr,
 	    DEV_RECORD *trec = new_record();
 
             Jmsg(jcr, M_INFO, 0, "End of Volume at file %u on device %s, Volume \"%s\"\n",
-		 dev->file, dev_name(dev), dcr->VolumeName);
+		 dev->file, dev->print_name(), dcr->VolumeName);
 	    if (!mount_cb(dcr)) {
                Jmsg(jcr, M_INFO, 0, "End of all volumes.\n");
 	       ok = false;
@@ -100,10 +100,10 @@ bool read_records(DCR *dcr,
 	 } else if (dev->at_eof()) {
 	    if (verbose) {
                Jmsg(jcr, M_INFO, 0, "Got EOF at file %u  on device %s, Volume \"%s\"\n",
-		  dev->file, dev_name(dev), dcr->VolumeName);
+		  dev->file, dev->print_name(), dcr->VolumeName);
 	    }
             Dmsg3(200, "Got EOF at file %u  on device %s, Volume \"%s\"\n",
-		  dev->file, dev_name(dev), dcr->VolumeName);
+		  dev->file, dev->print_name(), dcr->VolumeName);
 	    continue;
 	 } else if (dev_state(dev, ST_SHORT)) {
             Jmsg1(jcr, M_ERROR, 0, "%s", dev->errmsg);

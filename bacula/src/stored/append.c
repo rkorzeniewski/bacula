@@ -72,7 +72,7 @@ bool do_append_data(JCR *jcr)
    if (dev->VolCatInfo.VolCatName[0] == 0) {
       Pmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
    }
-   Dmsg1(20, "Begin append device=%s\n", dev_name(dev));
+   Dmsg1(20, "Begin append device=%s\n", dev->print_name());
 
    begin_data_spool(dcr);
    begin_attribute_spool(jcr);
@@ -195,9 +195,9 @@ bool do_append_data(JCR *jcr)
 		       rec.remainder);
 	    if (!write_block_to_device(dcr)) {
                Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
-		  dev_name(dev), strerror_dev(dev));
+		  dev->print_name(), strerror_dev(dev));
                Jmsg2(jcr, M_FATAL, 0, _("Fatal append error on device %s: ERR=%s\n"),
-		     dev_name(dev), strerror_dev(dev));
+		     dev->print_name(), strerror_dev(dev));
 	       ok = false;
 	       break;
 	    }
@@ -289,14 +289,14 @@ bool do_append_data(JCR *jcr)
       Dmsg0(100, "Writing last part because write_part_after_job is set.\n");
       if (dev->part < dev->num_parts) {
          Jmsg3(jcr, M_FATAL, 0, _("Error while writing, current part number is less than the total number of parts (%d/%d, device=%s)\n"),
-	       dev->part, dev->num_parts, dev_name(dev));
+	       dev->part, dev->num_parts, dev->print_name());
 	 dev->dev_errno = EIO;
 	 ok = false;
       }
       
       if (ok && (open_next_part(dev) < 0)) {
-         Jmsg2(jcr, M_FATAL, 0, _("Unable to open device next part %s. ERR=%s\n"),
-	       dev_name(dev), strerror_dev(dev));
+         Jmsg2(jcr, M_FATAL, 0, _("Unable to open device next part %s: ERR=%s\n"),
+	       dev->print_name(), strerror_dev(dev));
 	 dev->dev_errno = EIO;
 	 ok = false;
       }

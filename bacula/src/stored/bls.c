@@ -260,7 +260,7 @@ static void do_blocks(char *infname)
 	 if (dev->at_eot()) {
 	    if (!mount_next_read_volume(dcr)) {
                Jmsg(jcr, M_INFO, 0, _("Got EOM at file %u on device %s, Volume \"%s\"\n"),
-		  dev->file, dev_name(dev), dcr->VolumeName);
+		  dev->file, dev->print_name(), dcr->VolumeName);
 	       break;
 	    }
 	    /* Read and discard Volume label */
@@ -273,7 +273,7 @@ static void do_blocks(char *infname)
             Jmsg(jcr, M_INFO, 0, _("Mounted Volume \"%s\".\n"), dcr->VolumeName);
 	 } else if (dev->at_eof()) {
             Jmsg(jcr, M_INFO, 0, _("Got EOF at file %u on device %s, Volume \"%s\"\n"),
-	       dev->file, dev_name(dev), dcr->VolumeName);
+	       dev->file, dev->print_name(), dcr->VolumeName);
             Dmsg0(20, "read_record got eof. try again\n");
 	    continue;
 	 } else if (dev->state & ST_SHORT) {
@@ -432,7 +432,7 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
 {
    DEVICE *dev = dcr->dev;
    fprintf(stderr, "Mount Volume \"%s\" on device %s and press return when ready: ",
-      dcr->VolumeName, dev_name(dev));
+      dcr->VolumeName, dev->print_name());
    getchar();
    return true;
 }

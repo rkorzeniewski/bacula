@@ -489,16 +489,16 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
 
       stat = wait_for_sysop(dcr);
       if (dev->poll) {
-         Dmsg1(400, "Poll timeout in create append vol on device %s\n", dev_name(dev));
+         Dmsg1(400, "Poll timeout in create append vol on device %s\n", dev->print_name());
 	 continue;
       }
 
       if (stat == ETIMEDOUT) {
 	 if (!double_dev_wait_time(dev)) {
-            Mmsg(dev->errmsg, _("Max time exceeded waiting to mount Storage Device \"%s\" for Job %s\n"),
-	       dev_name(dev), jcr->Job);
+            Mmsg(dev->errmsg, _("Max time exceeded waiting to mount Storage Device %s for Job %s\n"),
+	       dev->print_name(), jcr->Job);
             Jmsg(jcr, M_FATAL, 0, "%s", dev->errmsg);
-            Dmsg1(400, "Gave up waiting on device %s\n", dev_name(dev));
+            Dmsg1(400, "Gave up waiting on device %s\n", dev->print_name());
 	    return false;	      /* exceeded maximum waits */
 	 }
 	 continue;
@@ -515,7 +515,7 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
          Jmsg(jcr, M_WARNING, 0, _("pthread error in mount_next_volume stat=%d ERR=%s\n"), stat,
 	    be.strerror(stat));
       }
-      Dmsg1(400, "Someone woke me for device %s\n", dev_name(dev));
+      Dmsg1(400, "Someone woke me for device %s\n", dev->print_name());
 
       /* If no VolumeName, and cannot get one, try again */
       if (dcr->VolumeName[0] == 0 && !job_canceled(jcr) &&
@@ -589,17 +589,17 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
 
       stat = wait_for_sysop(dcr);    ;	   /* wait on device */
       if (dev->poll) {
-         Dmsg1(400, "Poll timeout in mount vol on device %s\n", dev_name(dev));
+         Dmsg1(400, "Poll timeout in mount vol on device %s\n", dev->print_name());
          Dmsg1(400, "Blocked=%s\n", edit_blocked_reason(dev));
 	 return true;
       }
 
       if (stat == ETIMEDOUT) {
 	 if (!double_dev_wait_time(dev)) {
-            Mmsg(dev->errmsg, _("Max time exceeded waiting to mount Storage Device \"%s\" for Job %s\n"),
-	       dev_name(dev), jcr->Job);
+            Mmsg(dev->errmsg, _("Max time exceeded waiting to mount Storage Device %s for Job %s\n"),
+	       dev->print_name(), jcr->Job);
             Jmsg(jcr, M_FATAL, 0, "%s", dev->errmsg);
-            Dmsg1(400, "Gave up waiting on device %s\n", dev_name(dev));
+            Dmsg1(400, "Gave up waiting on device %s\n", dev->print_name());
 	    return false;	      /* exceeded maximum waits */
 	 }
 	 continue;
@@ -613,10 +613,10 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
       }
       if (stat != 0) {
 	 berrno be;
-         Jmsg(jcr, M_FATAL, 0, _("pthread error in mount_next_volume stat=%d ERR=%s\n"), stat,
+         Jmsg(jcr, M_FATAL, 0, _("pthread error in mount_next_volume stat=%d: ERR=%s\n"), stat,
 	    be.strerror(stat));
       }
-      Dmsg1(400, "Someone woke me for device %s\n", dev_name(dev));
+      Dmsg1(400, "Someone woke me for device %s\n", dev->print_name());
       break;
    }
    set_jcr_job_status(jcr, JS_Running);
@@ -674,7 +674,7 @@ static int wait_for_sysop(DCR *dcr)
    for ( ; !job_canceled(jcr); ) {
       time_t now, start;
 
-      Dmsg3(400, "I'm going to sleep on device %s. HB=%d wait=%d\n", dev_name(dev),
+      Dmsg3(400, "I'm going to sleep on device %s. HB=%d wait=%d\n", dev->print_name(),
 	 (int)me->heartbeat_interval, dev->wait_sec);
       start = time(NULL);
       /* Wait required time */

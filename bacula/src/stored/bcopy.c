@@ -225,15 +225,15 @@ static bool record_cb(DCR *in_dcr, DEV_RECORD *rec)
             Dmsg2(150, "!write_record_to_block data_len=%d rem=%d\n", rec->data_len,
 		       rec->remainder);
 	    if (!write_block_to_device(out_jcr->dcr)) {
-               Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
-		  dev_name(out_dev), strerror_dev(out_dev));
+               Dmsg2(90, "Got write_block_to_dev error on device %s: ERR=%s\n",
+		  out_dev->print_name(), strerror_dev(out_dev));
                Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
 		     strerror_dev(out_dev));
 	    }
 	 }
 	 if (!write_block_to_device(out_jcr->dcr)) {
-            Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
-	       dev_name(out_dev), strerror_dev(out_dev));
+            Dmsg2(90, "Got write_block_to_dev error on device %s: ERR=%s\n",
+	       out_dev->print_name(), strerror_dev(out_dev));
             Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
 		  strerror_dev(out_dev));
 	 }
@@ -255,8 +255,8 @@ static bool record_cb(DCR *in_dcr, DEV_RECORD *rec)
       Dmsg2(150, "!write_record_to_block data_len=%d rem=%d\n", rec->data_len,
 		 rec->remainder);
       if (!write_block_to_device(out_jcr->dcr)) {
-         Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
-	    dev_name(out_dev), strerror_dev(out_dev));
+         Dmsg2(90, "Got write_block_to_dev error on device %s: ERR=%s\n",
+	    out_dev->print_name(), strerror_dev(out_dev));
          Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
 	       strerror_dev(out_dev));
 	 break;
@@ -280,7 +280,7 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
 {
    DEVICE *dev = dcr->dev;
    fprintf(stderr, "Mount Volume \"%s\" on device %s and press return when ready: ",
-      dcr->VolumeName, dev_name(dev));
+      dcr->VolumeName, dev->print_name());
    getchar();
    return true;
 }

@@ -68,7 +68,7 @@ mount_next_vol:
       dcr->VolCatInfo.Slot = 0;
       if (!dir_ask_sysop_to_mount_volume(dcr)) {
          Jmsg(jcr, M_FATAL, 0, _("Too many errors trying to mount device %s.\n"),
-	      dev_name(dev));
+	      dev->print_name());
 	 return false;
       }
    }
@@ -214,7 +214,7 @@ read_volume:
       /* If not removable, Volume is broken */
       if (!dev_cap(dev, CAP_REM)) {
          Jmsg(jcr, M_WARNING, 0, _("Volume \"%s\" not on device %s.\n"),
-	    dcr->VolumeName, dev_name(dev));
+	    dcr->VolumeName, dev->print_name());
 	 mark_volume_in_error(dcr);
 	 goto mount_next_vol;
       }
@@ -285,13 +285,13 @@ read_volume:
 	    return false;
 	 }
          Jmsg(jcr, M_INFO, 0, _("Labeled new Volume \"%s\" on device %s.\n"),
-	    dcr->VolumeName, dev_name(dev));
+	    dcr->VolumeName, dev->print_name());
 	 goto read_volume;	/* read label we just wrote */
       }
       /* If not removable, Volume is broken */
       if (!dev_cap(dev, CAP_REM)) {
          Jmsg(jcr, M_WARNING, 0, _("Volume \"%s\" not on device %s.\n"),
-	    dcr->VolumeName, dev_name(dev));
+	    dcr->VolumeName, dev->print_name());
 	 mark_volume_in_error(dcr);
 	 if (autochanger) {
 	    mark_volume_not_inchanger(dcr);
@@ -342,8 +342,8 @@ read_volume:
       Jmsg(jcr, M_INFO, 0, _("Volume \"%s\" previously written, moving to end of data.\n"),
 	 dcr->VolumeName);
       if (!eod_dev(dev)) {
-         Jmsg(jcr, M_ERROR, 0, _("Unable to position to end of data on device \"%s\". ERR=%s\n"),
-	    dev_name(dev), strerror_dev(dev));
+         Jmsg(jcr, M_ERROR, 0, _("Unable to position to end of data on device %s: ERR=%s\n"),
+	    dev->print_name(), strerror_dev(dev));
 	 mark_volume_in_error(dcr);
 	 goto mount_next_vol;
       }
@@ -408,7 +408,7 @@ bool mount_next_read_volume(DCR *dcr)
       close_dev(dev);
       dev->state &= ~ST_READ;
       if (!acquire_device_for_read(jcr, dev)) {
-         Jmsg2(jcr, M_FATAL, 0, "Cannot open Dev=%s, Vol=%s\n", dev_name(dev),
+         Jmsg2(jcr, M_FATAL, 0, "Cannot open Dev=%s, Vol=%s\n", dev->print_name(),
 	       dcr->VolumeName);
 	 return false;
       }

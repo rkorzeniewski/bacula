@@ -142,7 +142,7 @@ bool reserve_device_for_read(JCR *jcr, DEVICE *dev)
    ASSERT(dcr);
    if (device_is_unmounted(dev)) {
       Jmsg(jcr, M_WARNING, 0, _("device %s is BLOCKED due to user unmount.\n"),
-	 dev_name(dev));
+	 dev->print_name());
       return false;
    }
    lock_device(dev);
@@ -151,7 +151,7 @@ bool reserve_device_for_read(JCR *jcr, DEVICE *dev)
 
    if (dev->is_busy()) {
       Jmsg2(jcr, M_FATAL, 0, _("Device %s is busy. Job %d canceled.\n"),
-	    dev->name(), jcr->JobId);
+	    dev->print_name(), jcr->JobId);
       goto get_out;
    }
    if (!dcr) {
@@ -252,10 +252,10 @@ DCR *acquire_device_for_read(JCR *jcr, DEVICE *dev)
 	    }
 	    
             Jmsg(jcr, M_FATAL, 0, _("Open device %s volume %s failed, ERR=%s\n"),
-		dev_name(dev), dcr->VolumeName, strerror_dev(dev));
+		dev->print_name(), dcr->VolumeName, strerror_dev(dev));
 	    goto get_out;
 	 }
-         Dmsg1(129, "open_dev %s OK\n", dev_name(dev));
+         Dmsg1(129, "open_dev %s OK\n", dev->print_name());
       }
       
       if (dev->is_dvd()) {
@@ -324,8 +324,8 @@ default_path:
       break;
    } /* end for loop */
    if (!vol_ok) {
-      Jmsg1(jcr, M_FATAL, 0, _("Too many errors trying to mount device \"%s\".\n"),
-	    dev_name(dev));
+      Jmsg1(jcr, M_FATAL, 0, _("Too many errors trying to mount device %s.\n"),
+	    dev->print_name());
       goto get_out;
    }
 
@@ -334,7 +334,7 @@ default_path:
    set_jcr_job_status(jcr, JS_Running);
    dir_send_job_status(jcr);
    Jmsg(jcr, M_INFO, 0, _("Ready to read from volume \"%s\" on device %s.\n"),
-      dcr->VolumeName, dev_name(dev));
+      dcr->VolumeName, dev->print_name());
 
 get_out:
    P(dev->mutex);
@@ -373,12 +373,12 @@ bool reserve_device_for_append(JCR *jcr, DEVICE *dev)
    block_device(dev, BST_DOING_ACQUIRE);
    unlock_device(dev);
    if (dev->can_read()) {
-      Jmsg(jcr, M_WARNING, 0, _("Device %s is busy reading.\n"), dev->name());
+      Jmsg(jcr, M_WARNING, 0, _("Device %s is busy reading.\n"), dev->print_name());
       goto bail_out;
    }
    if (device_is_unmounted(dev)) {
       Jmsg(jcr, M_WARNING, 0, _("device %s is BLOCKED due to user unmount.\n"),
-	 dev_name(dev));
+	 dev->print_name());
       goto bail_out;
    }
    Dmsg1(190, "reserve_append device is %s\n", dev_is_tape(dev)?"tape":"disk");
@@ -394,7 +394,7 @@ bool reserve_device_for_append(JCR *jcr, DEVICE *dev)
 	    /* OK, compatible device */
 	 } else {
 	    /* Drive not suitable for us */
-            Jmsg(jcr, M_WARNING, 0, _("Device %s is busy writing on another Volume.\n"), dev->name());
+            Jmsg(jcr, M_WARNING, 0, _("Device %s is busy writing on another Volume.\n"), dev->print_name());
 	    goto bail_out;
 	 }
       } else {
@@ -417,7 +417,7 @@ bool reserve_device_for_append(JCR *jcr, DEVICE *dev)
 	 /* OK, compatible device */
       } else {
 	 /* Drive not suitable for us */
-         Jmsg(jcr, M_WARNING, 0, _("Device %s is busy writing on another Volume.\n"), dev->name());
+         Jmsg(jcr, M_WARNING, 0, _("Device %s is busy writing on another Volume.\n"), dev->print_name());
 	 goto bail_out;
       }
    } else {
@@ -470,7 +470,7 @@ DCR *acquire_device_for_append(JCR *jcr, DEVICE *dev)
     * With the reservation system, this should not happen
     */
    if (dev->can_read()) {
-      Jmsg(jcr, M_FATAL, 0, _("Device %s is busy reading.\n"), dev_name(dev));
+      Jmsg(jcr, M_FATAL, 0, _("Device %s is busy reading.\n"), dev->print_name());
       goto get_out;
    }
 
@@ -491,7 +491,7 @@ DCR *acquire_device_for_append(JCR *jcr, DEVICE *dev)
 	    strcmp(dev->VolHdr.VolName, dcr->VolumeName) == 0)) { /* wrong tape mounted */
          Dmsg0(190, "Wrong tape mounted.\n");
 	 if (dev->num_writers != 0 || dev->reserved_device) {
-            Jmsg(jcr, M_FATAL, 0, _("Device %s is busy writing on another Volume.\n"), dev_name(dev));
+            Jmsg(jcr, M_FATAL, 0, _("Device %s is busy writing on another Volume.\n"), dev->print_name());
 	    goto get_out;
 	 }
 	 /* Wrong tape mounted, release it, then fall through to get correct one */
@@ -528,8 +528,8 @@ DCR *acquire_device_for_append(JCR *jcr, DEVICE *dev)
       if (!mounted) {
 	 if (!job_canceled(jcr)) {
             /* Reduce "noise" -- don't print if job canceled */
-            Jmsg(jcr, M_FATAL, 0, _("Could not ready device \"%s\" for append.\n"),
-	       dev_name(dev));
+            Jmsg(jcr, M_FATAL, 0, _("Could not ready device %s for append.\n"),
+	       dev->print_name());
 	 }
 	 goto get_out;
       }
@@ -609,7 +609,7 @@ bool release_device(DCR *dcr)
       }
    } else {
       Jmsg2(jcr, M_FATAL, 0, _("BAD ERROR: release_device %s, Volume \"%s\" not in use.\n"),
-	    dev_name(dev), NPRT(dcr->VolumeName));
+	    dev->print_name(), NPRT(dcr->VolumeName));
       Jmsg2(jcr, M_ERROR, 0, _("num_writers=%d state=%x\n"), dev->num_writers, dev->state);
    }
 

@@ -323,7 +323,7 @@ char *edit_device_codes(DCR *dcr, char *omsg, const char *cmd)
             str = "%";
 	    break;
          case 'a':
-	    str = dev_name(dcr->dev);
+	    str = dcr->dev->archive_name();
 	    break;
          case 'c':
 	    str = NPRT(dcr->device->changer_name);

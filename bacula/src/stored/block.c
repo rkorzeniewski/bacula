@@ -758,14 +758,14 @@ static bool do_dvd_size_checks(DCR *dcr)
 	(dev->part_size + block->binbuf) >= dev->max_part_size) {
       if (dev->part < dev->num_parts) {
          Jmsg3(dcr->jcr, M_FATAL, 0, _("Error while writing, current part number is less than the total number of parts (%d/%d, device=%s)\n"),
-	       dev->part, dev->num_parts, dev_name(dev));
+	       dev->part, dev->num_parts, dev->print_name());
 	 dev->dev_errno = EIO;
 	 return false;
       }
       
       if (open_next_part(dev) < 0) {
-         Jmsg2(dcr->jcr, M_FATAL, 0, _("Unable to open device next part %s. ERR=%s\n"),
-		dev_name(dev), strerror_dev(dev));
+         Jmsg2(dcr->jcr, M_FATAL, 0, _("Unable to open device next part %s: ERR=%s\n"),
+		dev->print_name(), strerror_dev(dev));
 	 dev->dev_errno = EIO;
 	 return false;
       }
@@ -867,8 +867,8 @@ reread:
 	((dev->file_size-dev->part_start) == dev->part_size) && 
 	(dev->part < dev->num_parts)) {
       if (open_next_part(dev) < 0) {
-         Jmsg2(dcr->jcr, M_FATAL, 0, _("Unable to open device next part %s. ERR=%s\n"),
-	       dev_name(dev), strerror_dev(dev));
+         Jmsg2(dcr->jcr, M_FATAL, 0, _("Unable to open device next part %s: ERR=%s\n"),
+	       dev->print_name(), strerror_dev(dev));
 	 dev->dev_errno = EIO;
 	 return false;
       }
