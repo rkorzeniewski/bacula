@@ -112,15 +112,6 @@ DEV_BLOCK *new_block(DEVICE *dev)
    } else {
       block->buf_len = dev->max_block_size;
    }
-   /* ****FIXME***** move this up to init_dev() */
-   if (block->buf_len % TAPE_BSIZE != 0) {
-      uint32_t old_len = block->buf_len;
-      block->buf_len = ((old_len + TAPE_BSIZE - 1) / TAPE_BSIZE) * TAPE_BSIZE;
-      Mmsg3(&dev->errmsg, _("Block size %u forced to %u to be multiple of %d\n"), 
-	 old_len, block->buf_len, TAPE_BSIZE);
-      Emsg0(M_WARNING, 0, dev->errmsg);
-      dev->max_block_size = block->buf_len;  /* force block size */
-   }
    block->block_len = block->buf_len;  /* default block size */
    block->buf = get_memory(block->buf_len); 
    if (block->buf == NULL) {
@@ -327,6 +318,7 @@ int write_block_to_dev(DEVICE *dev, DEV_BLOCK *block)
 	 if (wlen < dev->min_block_size) {
 	    wlen =  ((dev->min_block_size + TAPE_BSIZE - 1) / TAPE_BSIZE) * TAPE_BSIZE;
 	 }
+	 /* check for fixed block size */
 	 if (dev->min_block_size == dev->max_block_size) {
 	    wlen = block->buf_len;    /* fixed block size already rounded */
 	 }

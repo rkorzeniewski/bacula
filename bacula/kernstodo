@@ -1,45 +1,33 @@
                  Kern's ToDo List
-                 29 October 2002
+                 30 October 2002
 
 To do:    
 - Document that two Verifys at same time on same client do not work.
 - Document how to recycle a tape in 7 days even if the backup takes a long time.
-
-- Figure out why my Catalog size keeps growing (Filename and Path
-  tables keep growing) -- fix it.
-
-- Add Doc on saving MySQL databases, where to find code for shutting 
+- Document to have patience when SD first starts.
+- Document running a test version.
+- Document buffer size considerations with Sparse files --
+- Document saving MySQL databases, where to find code for shutting 
   down and saving other databases.
 
 For 1.27 release:
 - Continue improving the restore process (handling
   of tapes, efficiency improvements e.g. use FSF to
   position the tape, ...)
-- Allow restore with options (e.g. overwrite, overwrite
-  if newer, no overwrite, permit changing ownership, ...).
-- Test recovery of a damaged tape.
 - Work more on how to to a Bacula restore beginning with
   just a Bacula tape and a boot floppy (bare metal recovery).
-- Possibly add a File System Module permitting an external
-  program do the file reading and writing during save and
-  restore (i.e. with this you could backup/restore
-  ANYTHING to and from a Bacula Volume, including horrible
-  stuff like Windows ACLs).
 
+- Finish implementation of restore "replace" options, and document.
 - Write bcopy program.
-- Preprocessing command per file.
-- Postprocessing command per file (when restoring).
-- File system type from File daemon
+- Recovery of a bad tape (bcopy)
+
+- Program files (i.e. execute a program to read/write files).
+  Pass read date of last backup, size of file last time.
+
+- Put system type returned by FD into catalog.
 - Decide what to do with JobTDate in catalog (make real btime_t?)
-- File daemon should pass Director the operating system info
-  to be stored in the Client Record (or verified that it has
-  not changed).
 - Add VOLUME_CAT_INFO to the EOS tape record (as
   well as to the EOD record).
-- Send Volumes needed during restore to Console (just after
-  create_volume_list) -- also in restore command?
-- Document buffer size considerations with Sparse files --
-- Move block size code from block.c to init_dev().
 - Add code to fast seek to proper place on tape/file
   when doing Restore. If it doesn't work, try linear
   search as before.
@@ -48,21 +36,14 @@ For 1.27 release:
   long and a job is waiting on the drive.
 - What to do with btime and JobTDate?
 - Add FileSet MD5 to bscan.
-- Finish implementation of restore "replace" options, and document.
 - Strip trailing slashes from Include directory names in the FD.
 - Use read_record.c in SD code.
-- Allow changing ownership/group of files on restore.
-- Restore options (overwrite, ...)
-- Program files (i.e. execute a program to read/write files).
-  Pass read date of last backup, size of file last time.
 - Try bare metal Windows restore
-- Recovery of a bad tape (bcopy)
-- EOM records?????????????????
+- Add EOM records ???????
 - Why don't we get an error message from Win32 FD when bootstrap 
   file cannot be created for restore command?
-- Put MaximumVolumeSize in Director.
-- Document to have patience when SD first starts.
-- Document running a test version.
+- Put MaximumVolumeSize in Director (MaximumVolumeJobs, MaximumVolumeFiles,
+   MaximumFileSize).
 - When Marking a file in Restore that is a hard link, also
   mark the link so that the data will be reloaded.
 - Restore program that errors in SD due to no tape reports
@@ -72,7 +53,16 @@ For 1.27 release:
   in block, done when count is reached, and possibly other
   optimizations. I.e. add a state word.
 
+Test:
+- that restore prints volumes.
+- that restore options work in FD.
+- that mod of restore options works.
+- that Bacula won't write on tape where tape/catalog files differ.
+- that console command line options work
+
 After 1.27
+- Make sure catalog doesn't keep growing.
+- Permit changing ownership during restore.
 - After unmount, if restore job started, ask to mount.
 - Fix db_get_fileset in cats/sql_get.c for multiple records.
 - Fix start/end blocks for File devices
@@ -561,3 +551,8 @@ Done: (see kernsdone for more)
 - Document all daemon tools MUST have a config file.
 - Why does btape error when pointed to a file?
 - Disallow compile if long long not 64 bits.
+- Send Volumes needed during restore to Console (just after
+  create_volume_list) -- also in restore command?
+- File system type from File daemon
+- Move block size code from block.c to init_dev().
+

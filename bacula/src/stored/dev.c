@@ -125,7 +125,7 @@ init_dev(DEVICE *dev, DEVRES *device)
       if (dev) {
 	 dev->dev_errno = ENODEV;
       }
-      Emsg2(M_FATAL, 0, "%s is an unknown device type. Must be tape or directory. st_mode=%x\n", 
+      Emsg2(M_FATAL, 0, _("%s is an unknown device type. Must be tape or directory. st_mode=%x\n"),
 	 dev_name, statp.st_mode);
       return NULL;
    }
@@ -155,7 +155,16 @@ init_dev(DEVICE *dev, DEVRES *device)
    dev->max_open_wait = device->max_open_wait;
    dev->device = device;
 
-
+   if (dev->max_block_size > 1000000) {
+      Emsg3(M_ERROR, 0, _("Block size %u on device %s is too large, using default %u\n"), 
+	 dev->max_block_size, dev->dev_name, DEFAULT_BLOCK_SIZE);
+      dev->max_block_size = 0;
+   }
+   if (dev->max_block_size % TAPE_BSIZE != 0) {
+      Emsg2(M_WARNING, 0, _("Max block size %u not multiple of device %s block size.\n"),
+	 dev->max_block_size, dev->dev_name);
+   }   
+	 
    dev->errmsg = get_pool_memory(PM_EMSG);
    *dev->errmsg = 0;
 

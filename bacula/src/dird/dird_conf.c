@@ -63,6 +63,7 @@ static void store_backup(LEX *lc, struct res_items *item, int index, int pass);
 static void store_restore(LEX *lc, struct res_items *item, int index, int pass);
 static void store_jobtype(LEX *lc, struct res_items *item, int index, int pass);
 static void store_level(LEX *lc, struct res_items *item, int index, int pass);
+static void store_replace(LEX *lc, struct res_items *item, int index, int pass);
 
 
 /* We build the current resource here as we are
@@ -173,6 +174,7 @@ static struct res_items job_items[] = {
    {"client",   store_res,     ITEM(res_job.client),   R_CLIENT, 0, 0},
    {"fileset",  store_res,     ITEM(res_job.fileset),  R_FILESET, 0, 0},
    {"where",    store_dir,     ITEM(res_job.RestoreWhere), 0, 0, 0},
+   {"replace",  store_replace, ITEM(res_job.replace), 'a', ITEM_DEFAULT, 0},
    {"bootstrap",store_dir,     ITEM(res_job.RestoreBootstrap), 0, 0, 0},
    {"maxruntime", store_time,  ITEM(res_job.MaxRunTime), 0, 0, 0},
    {"maxstartdelay", store_time,ITEM(res_job.MaxStartDelay), 0, 0, 0},
@@ -330,7 +332,7 @@ static struct s_kw RestoreFields[] = {
 };
 
 /* Options permitted in Restore replace= */
-static struct s_kw ReplaceOptions[] = {
+struct s_kw ReplaceOptions[] = {
    {"always",         'a'},           /* always */
    {"ifnewer",        'w'},
    {"never",          'n'},
@@ -990,7 +992,24 @@ static void store_level(LEX *lc, struct res_items *item, int index, int pass)
    set_bit(index, res_all.hdr.item_present);
 }
 
-
+static void store_replace(LEX *lc, struct res_items *item, int index, int pass)
+{
+   int token, i;
+   token = lex_get_token(lc, T_NAME);
+   /* Scan Replacement options */
+   for (i=0; ReplaceOptions[i].name; i++) {
+      if (strcasecmp(lc->str, ReplaceOptions[i].name) == 0) {
+	  ((JOB *)(item->value))->replace = ReplaceOptions[i].token;
+	 i = 0;
+	 break;
+      }
+   }
+   if (i != 0) {
+      scan_err1(lc, "Expected a Restore replacement option, got: %s", lc->str);
+   }
+   scan_to_eol(lc);
+   set_bit(index, res_all.hdr.item_present);
+}
 
 /* 
  * Store backup/verify info for Job record 
@@ -1170,7 +1189,7 @@ static void store_restore(LEX *lc, struct res_items *item, int index, int pass)
 		  /* Fix to scan Replacement options */
 		  for (i=0; ReplaceOptions[i].name; i++) {
 		     if (strcasecmp(lc->str, ReplaceOptions[i].name) == 0) {
-			 ((JOB *)(item->value))->RestoreOptions = ReplaceOptions[i].token;
+			 ((JOB *)(item->value))->replace = ReplaceOptions[i].token;
 			i = 0;
 			break;
 		     }

@@ -56,7 +56,7 @@ int read_records(JCR *jcr,  DEVICE *dev,
       if (!read_block_from_device(dev, block)) {
          Dmsg0(20, "!read_record()\n");
 	 if (dev->state & ST_EOT) {
-	    DEV_RECORD *record = new_record();
+	    DEV_RECORD *trec = new_record();
 
             Dmsg3(100, "EOT. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
 		  block->BlockNumber, rec->remainder);
@@ -69,11 +69,11 @@ int read_records(JCR *jcr,  DEVICE *dev,
 		*  be properly updated because this is the last
 		*  tape.
 		*/
-	       record->FileIndex = EOT_LABEL;
-	       record->File = dev->file;
-	       record->Block = rec->Block; /* return block last read */
-	       record_cb(jcr, dev, block, record);
-	       free_record(record);
+	       trec->FileIndex = EOT_LABEL;
+	       trec->File = dev->file;
+	       trec->Block = rec->Block; /* return block last read */
+	       record_cb(jcr, dev, block, trec);
+	       free_record(trec);
 	       break;
 	    }
             Dmsg3(100, "After mount next vol. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
@@ -84,11 +84,11 @@ int read_records(JCR *jcr,  DEVICE *dev,
 	     *	most likely reading the previous record.
 	     */
 	    read_block_from_device(dev, block);
-	    read_record_from_block(block, record);
-	    get_session_record(dev, record, &sessrec);
-	    record->File = dev->file;
-	    record_cb(jcr, dev, block, record);
-	    free_record(record);
+	    read_record_from_block(block, trec);
+	    get_session_record(dev, trec, &sessrec);
+	    trec->File = dev->file;
+	    record_cb(jcr, dev, block, trec);
+	    free_record(trec);
 	    goto next_record;
 	 }
 	 if (dev->state & ST_EOF) {

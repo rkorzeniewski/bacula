@@ -683,6 +683,7 @@ static int write_bsr_file(UAContext *ua, RBSR *bsr)
    FILE *fd;
    POOLMEM *fname = get_pool_memory(PM_MESSAGE);
    int stat;
+   RBSR *nbsr;
 
    Mmsg(&fname, "%s/restore.bsr", working_directory);
    fd = fopen(fname, "w+");
@@ -695,7 +696,14 @@ static int write_bsr_file(UAContext *ua, RBSR *bsr)
    write_bsr(ua, bsr, fd);
    stat = !ferror(fd);
    fclose(fd);
-// bsendmsg(ua, _("Bootstrap records written to %s\n"), fname);
+   bsendmsg(ua, _("Bootstrap records written to %s\n"), fname);
+   bsendmsg(ua, _("\nThe restore job will require the following Volumes:\n"));
+   for (nbsr=bsr; nbsr; nbsr=nbsr->next) {
+      if (nbsr->VolumeName) {
+         bsendmsg(ua, "   %s\n", nbsr->VolumeName);
+      }
+   }
+   bsendmsg(ua, "\n");
    free_pool_memory(fname);
    return stat;
 }

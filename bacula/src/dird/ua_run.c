@@ -36,6 +36,7 @@ extern void run_job(JCR *jcr);
 
 /* Imported variables */
 extern struct s_jl joblevels[];
+extern struct s_kw ReplaceOptions[];
 
 /*
  * For Backup and Verify Jobs
@@ -49,8 +50,8 @@ int runcmd(UAContext *ua, char *cmd)
 {
    JCR *jcr;
    char *job_name, *level_name, *jid, *store_name;
-   char *where, *fileset_name, *client_name, *bootstrap;
-   int i, j, found;
+   char *where, *fileset_name, *client_name, *bootstrap, *replace;
+   int i, j, found, opt;
    JOB *job = NULL;
    STORE *store = NULL;
    CLIENT *client = NULL;
@@ -64,6 +65,7 @@ int runcmd(UAContext *ua, char *cmd)
       N_("storage"),
       N_("where"),
       N_("bootstrap"),
+      N_("replace"),
       NULL};
 
    if (!open_db(ua)) {
@@ -78,6 +80,7 @@ int runcmd(UAContext *ua, char *cmd)
    client_name = NULL;
    fileset_name = NULL;
    bootstrap = NULL;
+   replace = NULL;
 
    for (i=1; i<ua->argc; i++) {
       found = False;
@@ -152,6 +155,14 @@ int runcmd(UAContext *ua, char *cmd)
 		     return 1;
 		  }
 		  bootstrap = ua->argv[i];
+		  found = True;
+		  break;
+	       case 8: /* replace */
+		  if (replace) {
+                     bsendmsg(ua, _("Replace specified twice.\n"));
+		     return 1;
+		  }
+		  replace = ua->argv[i];
 		  found = True;
 		  break;
 	       default:
@@ -256,8 +267,28 @@ int runcmd(UAContext *ua, char *cmd)
       jcr->RestoreBootstrap = bstrdup(bootstrap);
    }
 
-
-
+   if (replace) {
+      jcr->replace = 0;
+      for (i=0; ReplaceOptions[i].name; i++) {
+	 if (strcasecmp(replace, ReplaceOptions[i].name) == 0) {
+	    jcr->replace = ReplaceOptions[i].token;
+	 }
+      }
+      if (!jcr->replace) {
+         bsendmsg(ua, _("Invalid replace option: %s\n"), replace);
+	 return 0;
+      }
+   } else if (job->replace) {
+      jcr->replace = job->replace;
+   } else {
+      jcr->replace = 'a';
+   }
+   replace = ReplaceOptions[0].name;
+   for (i=0; ReplaceOptions[i].name; i++) {
+      if (ReplaceOptions[i].token == jcr->replace) {
+	 replace = ReplaceOptions[i].name;
+      }
+   }
 
 try_again:
    Dmsg1(20, "JobType=%c\n", jcr->JobType);
@@ -326,6 +357,7 @@ Storage:  %s\n"),
 JobName:    %s\n\
 Bootstrap:  %s\n\
 Where:      %s\n\
+Replace:    %s\n\
 FileSet:    %s\n\
 Client:     %s\n\
 Storage:    %s\n\
@@ -333,6 +365,7 @@ JobId:      %s\n"),
 		 job->hdr.name,
 		 NPRT(jcr->RestoreBootstrap),
 		 jcr->RestoreWhere?jcr->RestoreWhere:NPRT(job->RestoreWhere),
+		 replace,
 		 jcr->fileset->hdr.name,
 		 jcr->client->hdr.name,
 		 jcr->store->hdr.name, 
@@ -367,7 +400,8 @@ JobId:      %s\n"),
       if (jcr->JobType == JT_RESTORE) {
          add_prompt(ua, _("Bootstrap"));     /* 5 */
          add_prompt(ua, _("Where"));         /* 6 */
-         add_prompt(ua, _("JobId"));         /* 7 */
+         add_prompt(ua, _("Replace"));       /* 7 */
+         add_prompt(ua, _("JobId"));         /* 8 */
       }
       switch (do_prompt(ua, _("Select parameter to modify"), NULL)) {
       case 0:
@@ -494,6 +528,17 @@ JobId:      %s\n"),
 	 jcr->RestoreWhere = bstrdup(ua->cmd);
 	 goto try_again;
       case 7:
+	 /* Replace */
+         start_prompt(ua, _("Replace:\n"));
+	 for (i=0; ReplaceOptions[i].name; i++) {
+	    add_prompt(ua, ReplaceOptions[i].name);
+	 }
+         opt = do_prompt(ua, _("Select replace option"), NULL);
+	 if (opt <=  0) {
+	    jcr->replace = ReplaceOptions[opt].token;
+	 }
+	 goto try_again;
+      case 8:
 	 /* JobId */
 	 jid = NULL;		      /* force reprompt */
 	 jcr->RestoreJobId = 0;

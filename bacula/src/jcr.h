@@ -141,6 +141,7 @@ struct s_jcr {
    uint32_t RestoreJobId;             /* Id specified by UA */
    char *RestoreWhere;                /* Where to restore the files */
    POOLMEM *client_uname;             /* client uname */ 
+   int replace;                       /* Replace option */
 #endif /* DIRECTOR_DAEMON */
 
 #ifdef FILE_DAEMON

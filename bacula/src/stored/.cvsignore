@@ -6,6 +6,7 @@ bextract
 bls
 bscan
 btape
+bcopy
 btraceback
 btraceback.gdb
 file1Job1.bsr

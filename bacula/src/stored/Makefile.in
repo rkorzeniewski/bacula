@@ -52,14 +52,10 @@ SCNOBJS = bscan.o block.o device.o dev.o label.o \
 	  acquire.o mount.o record.o match_bsr.o parse_bsr.o \
 	  butil.o read_record.o stored_conf.o
 
-
-# bpool is deprecated
-#POOLSRCS = bpool.c block.c dev.c device.c askdir.c label.c \
-#	    record.c stored_conf.c 
-#POOLOBJS = bpool.o block.o dev.o device.o askdir.o label.o \
-#	    record.o stored_conf.o 
-
-
+# bcopy
+COPYOBJS = bcopy.o block.o device.o dev.o label.o \
+	   acquire.o mount.o record.o match_bsr.o parse_bsr.o \
+	   butil.o read_record.o stored_conf.o
 
 
 
@@ -77,15 +73,12 @@ FDLIBS=@FDLIBS@
 .c.o:
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
-all: Makefile bacula-sd bls bextract bscan btape 
+all: Makefile bacula-sd bls bextract bscan btape
 	@echo "===== Make of stored is good ===="
 	@echo " "
 
 bacula-sd: $(SVROBJS) ../lib/libbac.a
 	$(CXX) $(LDFLAGS) -L../lib -o $@ $(SVROBJS) $(FDLIBS) -lbac -lm $(LIBS) $(DLIB)
-
-#bpool:  $(POOLOBJS) ../lib/libbac.a ../cats/libsql.a
-#	 $(CXX) $(LDFLAGS) -L../lib -L../cats  -o $@ $(POOLOBJS) -lsql $(LIBS) $(DLIB) -lbac -lm
 
 btape:	$(TAPEOBJS) ../lib/libbac.a ../cats/libsql.a
 	$(CXX) $(TTOOL_LDFLSGS) $(LDFLAGS) -L../lib -L../cats  -o $@ $(TAPEOBJS) -lsql $(LIBS) $(DLIB) -lbac -lm
@@ -96,10 +89,11 @@ bls:	../findlib/libfind.a $(BLSOBJS) ../lib/libbac.a
 bextract: ../findlib/libfind.a $(BEXTOBJS) ../lib/libbac.a
 	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(BEXTOBJS) $(LIBS) $(DLIB) $(FDLIBS) -lfind -lbac -lm
 
-bscan: ../findlib/libfind.a $(SCNOBJS) ../cats/libsql.a
+bscan:	../findlib/libfind.a $(SCNOBJS) ../cats/libsql.a
 	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../cats -L../findlib -o $@ $(SCNOBJS) -lsql $(LIBS) $(DB_LIBS) $(FDLIBS) -lfind -lbac -lm
 
-
+bcopy:	$(COPYOBJS) ../findlib/libfind.a ../lib/libbac.a
+	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(COPYOBJS)  $(LIBS) $(DB_LIBS) $(FDLIBS) -lfind -lbac -lm
 
 
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
@@ -110,7 +104,8 @@ install: all
 	$(INSTALL_PROGRAM) bacula-sd $(DESTDIR)$(sbindir)/bacula-sd
 	$(INSTALL_PROGRAM) bls $(DESTDIR)$(sbindir)/bls
 	$(INSTALL_PROGRAM) bextract $(DESTDIR)$(sbindir)/bextract
-#	$(INSTALL_PROGRAM) bpool $(DESTDIR)$(sbindir)/bpool
+	$(INSTALL_PROGRAM) bcopy $(DESTDIR)$(sbindir)/bcopy
+	$(INSTALL_PROGRAM) bscan $(DESTDIR)$(sbindir)/bscan
 	$(INSTALL_PROGRAM) btape $(DESTDIR)$(sbindir)/btape
 	@srcconf=bacula-sd.conf; \
 	if  test -f ${DESTDIR}${sysconfdir}/$$srcconf; then \
@@ -126,13 +121,15 @@ uninstall:
 	(cd $(DESTDIR)$(sbindir); $(RMF) bacula-sd)
 	(cd $(DESTDIR)$(sbindir); $(RMF) bls)
 	(cd $(DESTDIR)$(sbindir); $(RMF) bextract)
-#	(cd $(DESTDIR)$(sbindir); $(RMF) bpool)
+	(cd $(DESTDIR)$(sbindir); $(RMF) bcopy)
+	(cd $(DESTDIR)$(sbindir); $(RMF) bscan)
+	(cd $(DESTDIR)$(sbindir); $(RMF) btape)
 	(cd $(DESTDIR)$(sysconfdir); $(RMF) bacula-sd.conf)
 
 
 clean:
 	@$(RMF) bacula-sd stored bls bextract bpool btape shmfree core core.* a.out *.o *.bak *~ *.intpro *.extpro 1 2 3
-	@$(RMF) bscan
+	@$(RMF) bscan bcopy
 
 realclean: clean
 	@$(RMF) tags bacula-sd.conf
