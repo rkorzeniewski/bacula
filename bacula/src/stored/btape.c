@@ -777,7 +777,7 @@ all_done:
         "End of File mark.\n"
         "1 block of 64448 bytes in file 4\n" 
         "End of File mark.\n"
-        "Total files=4, blocks=7, bytes = 451136\n"
+        "Total files=4, blocks=7, bytes = 451,136\n"
         "=== End sample correct output ===\n\n"));
 
    Pmsg0(-1, _("If the above scan output is not identical to the\n"

@@ -267,6 +267,9 @@ char *job_level_to_str(int level)
    case L_VERIFY_VOLUME_TO_CATALOG:
       str = _("Verify Volume to Catalog");
       break;
+   case L_VERIFY_DISK_TO_CATALOG:
+      str - _("Verify Disk to Catalog");
+      break;
    case L_VERIFY_DATA:
       str = _("Verify Data");
       break;
