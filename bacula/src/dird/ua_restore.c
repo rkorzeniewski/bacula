@@ -676,6 +676,7 @@ static int complete_bsr(UAContext *ua, RBSR *bsr)
          bsendmsg(ua, _("Unable to get Job Volume Parameters. ERR=%s\n"), db_strerror(ua->db));
 	 if (bsr->VolParams) {
 	    free(bsr->VolParams);
+	    bsr->VolParams = NULL;
 	 }
 	 return 0;
       }

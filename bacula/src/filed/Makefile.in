@@ -65,7 +65,7 @@ win32:	$(WIN32OBJS)
 	@rm -f bacula-fd.exe
 
 bacula-fd:  $(SVROBJS) ../findlib/libfind.a ../lib/libbac.a @WIN32@
-	$(CXX) $(LDFLAGS) -L../lib -L../findlib -o $@ $(SVROBJS) \
+	$(CXX) $(LDFLAGS) $(FD_LDFLAGS) -L../lib -L../findlib -o $@ $(SVROBJS) \
 	  $(WIN32LIBS) $(FDLIBS) -lfind -lbac -lm $(LIBS) $(DLIB)
 
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status

@@ -336,6 +336,8 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
       BPIPE *bpipe = NULL;
       int got_pipe = 0;
       char *fname = jcr->job->WriteBootstrap;
+      VOL_PARAMS *VolParams = NULL;
+      int VolCount;
 
       if (*fname == '|') {
 	 fname++;
@@ -346,10 +348,27 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
          fd = fopen(fname, jcr->JobLevel==L_FULL?"w+":"a+");
       }
       if (fd) {
-	 /* Write the record */
-         fprintf(fd, "Volume=\"%s\"\n", jcr->VolumeName);
-         fprintf(fd, "VolSessionId=%u\n", jcr->VolSessionId);
-         fprintf(fd, "VolSessionTime=%u\n", jcr->VolSessionTime);
+	 VolCount = db_get_job_volume_parameters(jcr->db, jcr->JobId,
+		    &VolParams);
+	 if (VolCount == 0) {
+            Jmsg(jcr, M_ERROR, 0, _("Could not get Job Volume Parameters. ERR=%s\n"),
+		 db_strerror(jcr->db));
+	 }
+	 for (int i=0; i < VolCount; i++) {
+	    /* Write the record */
+            fprintf(fd, "Volume=\"%s\"\n", VolParams[i].VolumeName);
+            fprintf(fd, "VolSessionId=%u\n", jcr->VolSessionId);
+            fprintf(fd, "VolSessionTime=%u\n", jcr->VolSessionTime);
+            fprintf(fd, "VolFile=%u-%u\n", VolParams[i].StartFile,
+			 VolParams[i].EndFile);
+            fprintf(fd, "VolBlock=%u-%u\n", VolParams[i].StartBlock,
+			 VolParams[i].EndBlock);
+            fprintf(fd, "FileIndex=%d-%d\n", VolParams[i].FirstIndex,
+			 VolParams[i].LastIndex);
+	 }
+	 if (VolParams) {
+	    free(VolParams);
+	 }
 	 if (got_pipe) {
 	    close_bpipe(bpipe);
 	 } else {

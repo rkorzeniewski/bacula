@@ -95,7 +95,7 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	 if (dev->state & ST_TAPE) {
 	    mjcr->EndBlock = dev->EndBlock;
 	    mjcr->EndFile  = dev->EndFile;
-            Dmsg2(000, "Fixup EndFile=%u EndBlock=%u\n", mjcr->EndFile, mjcr->EndBlock);
+            Dmsg2(200, "Fixup EndFile=%u EndBlock=%u\n", mjcr->EndFile, mjcr->EndBlock);
 	 } else {
 	    mjcr->EndBlock = (uint32_t)dev->file_addr;
 	    mjcr->EndFile = (uint32_t)(dev->file_addr >> 32);

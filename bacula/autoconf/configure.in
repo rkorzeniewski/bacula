@@ -142,6 +142,9 @@ support_smartalloc=yes
 support_readline=yes
 support_gnome=no
 support_static_tools=no
+support_static_fd=no
+support_static_sd=no
+support_static_dir=no
 cats=
 db_name=Internal
 DB_NAME=bdb
@@ -199,6 +202,53 @@ if test x$support_static_tools = xyes; then
    TTOOL_LDFLAGS="-static"
 fi
 AC_SUBST(TTOOL_LDFLAGS)
+
+# -------------------------------------------
+# static-fd    (default off)
+# -------------------------------------------
+AC_ARG_ENABLE(static-fd,
+   [  --enable-static-fd    enable static File daemon				*],
+   [if test x$enableval = xyes; then
+     support_static_fd=yes
+   fi])
+
+FD_LDFLAGS=
+if test x$support_static_fd = xyes; then
+   FD_LDFLAGS="-static"
+fi
+AC_SUBST(FD_LDFLAGS)
+
+# -------------------------------------------
+# static-sd    (default off)
+# -------------------------------------------
+AC_ARG_ENABLE(static-sd,
+   [  --enable-static-sd    enable static Storage daemon			 *],
+   [if test x$enableval = xyes; then
+     support_static_sd=yes
+   fi])
+
+SD_LDFLAGS=
+if test x$support_static_sd = xyes; then
+   SD_LDFLAGS="-static"
+fi
+AC_SUBST(SD_LDFLAGS)
+
+# -------------------------------------------
+# static-dir   (default off)
+# -------------------------------------------
+AC_ARG_ENABLE(static-dir,
+   [  --enable-static-dir   enable static Director				*],
+   [if test x$enableval = xyes; then
+     support_static_dir=yes
+   fi])
+
+DIR_LDFLAGS=
+if test x$support_static_dir = xyes; then
+   DIR_LDFLAGS="-static"
+fi
+AC_SUBST(DIR_LDFLAGS)
+
+
 
 
 
@@ -1292,6 +1342,7 @@ Configuration on `date`:
   Linker flags: 	      ${LDFLAGS}
   Libraries:		      ${LIBS}
   Statically Linked Tools:    ${support_static_tools}
+  Statically Linked FD:       ${support_static_fd}
   Database type:	      ${db_name}
   Database lib: 	      ${DB_LIBS}
 

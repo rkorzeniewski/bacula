@@ -239,7 +239,7 @@ int release_device(JCR *jcr, DEVICE *dev)
       if (dev->state & ST_TAPE) {
 	 jcr->EndBlock = dev->EndBlock;
 	 jcr->EndFile  = dev->EndFile;
-         Dmsg2(000, "Release device: EndFile=%u EndBlock=%u\n", jcr->EndFile, jcr->EndBlock);
+         Dmsg2(200, "Release device: EndFile=%u EndBlock=%u\n", jcr->EndFile, jcr->EndBlock);
       } else {
 	 jcr->EndBlock = (uint32_t)dev->file_addr;
 	 jcr->EndFile = (uint32_t)(dev->file_addr >> 32);

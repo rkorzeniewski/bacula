@@ -318,6 +318,8 @@ typedef struct {
 /* Volume Parameter structure */
 typedef struct {
    char VolumeName[MAX_NAME_LENGTH];  /* Volume name */
+   uint32_t FirstIndex;               /* First index this Volume */
+   uint32_t LastIndex;                /* Last index this Volume */
    uint32_t StartFile;                /* File for start of data */
    uint32_t EndFile;                  /* End file on Volume */
    uint32_t StartBlock;               /* start block on tape */

@@ -427,7 +427,7 @@ int db_get_job_volume_parameters(B_DB *mdb, uint32_t JobId, VOL_PARAMS **VolPara
 
    db_lock(mdb);
    Mmsg(&mdb->cmd, 
-"SELECT VolumeName,StartFile,EndFile,StartBlock,EndBlock"
+"SELECT VolumeName,FirstIndex,LastIndex,StartFile,EndFile,StartBlock,EndBlock"
 " FROM JobMedia,Media WHERE JobMedia.JobId=%u"
 " AND JobMedia.MediaId=Media.MediaId", JobId);
 
@@ -451,10 +451,12 @@ int db_get_job_volume_parameters(B_DB *mdb, uint32_t JobId, VOL_PARAMS **VolPara
 	       break;
 	    } else {
 	       bstrncpy(Vols[i].VolumeName, row[0], MAX_NAME_LENGTH);
-	       Vols[i].StartFile = atoi(row[1]);
-	       Vols[i].EndFile = atoi(row[2]);
-	       Vols[i].StartBlock = atoi(row[3]);
-	       Vols[i].EndBlock = atoi(row[4]);
+	       Vols[i].FirstIndex = atoi(row[1]);
+	       Vols[i].LastIndex = atoi(row[2]);
+	       Vols[i].StartFile = atoi(row[3]);
+	       Vols[i].EndFile = atoi(row[4]);
+	       Vols[i].StartBlock = atoi(row[5]);
+	       Vols[i].EndBlock = atoi(row[6]);
 	    }
 	 }
       }
