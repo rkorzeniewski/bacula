@@ -77,8 +77,8 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
       return 0;
    }
 
-   /* Timeout Hello after 5 mins */
-   btimer_t *tid = start_bsock_timer(bs, 60 * 5);
+   /* Timeout Hello after 10 mins */
+   btimer_t *tid = start_bsock_timer(bs, 60 * 10);
    if (!cram_md5_auth(bs, director->password, ssl_need) ||
        !cram_md5_get_auth(bs, director->password, ssl_need)) {
       stop_bsock_timer(tid);
@@ -124,7 +124,7 @@ int authenticate_filed(JCR *jcr)
    int ssl_need = BNET_SSL_NONE;
 
    /* Timeout Hello after 5 mins */
-   btimer_t *tid = start_bsock_timer(fd, 60 * 5);
+   btimer_t *tid = start_bsock_timer(fd, 60 * 10);
    if (cram_md5_auth(fd, jcr->sd_auth_key, ssl_need) &&
        cram_md5_get_auth(fd, jcr->sd_auth_key, ssl_need)) {
       jcr->authenticated = true;
