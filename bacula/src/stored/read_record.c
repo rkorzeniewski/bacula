@@ -271,7 +271,7 @@ static int try_repositioning(JCR *jcr, DEV_RECORD *rec, DEVICE *dev)
       return 1;
    }	 
    if (bsr) {
-      if (verbose > 1) {
+      if (verbose) {
          Jmsg(jcr, M_INFO, 0, "Reposition from (file:block) %d:%d to %d:%d\n",
 	    dev->file, dev->block_num, bsr->volfile->sfile,
 	    bsr->volblock->sblock);
