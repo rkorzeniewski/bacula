@@ -320,17 +320,12 @@ int db_get_job_volume_names(JCR *jcr, B_DB *mdb, uint32_t JobId, POOLMEM **Volum
    int i;
 
    db_lock(mdb);
-#ifdef HAVE_POSTGRESQL
+   /* Get one entry per VolumeName, but "sort" by VolIndex */
    Mmsg(&mdb->cmd, 
-        "SELECT DISTINCT VolumeName FROM JobMedia,Media WHERE "
-        "JobMedia.JobId=%u AND JobMedia.MediaId=Media.MediaId ", JobId);
-#else
-   Mmsg(&mdb->cmd, 
-        "SELECT VolumeName,VolIndex FROM JobMedia,Media WHERE "
+        "SELECT VolumeName,MAX(VolIndex) FROM JobMedia,Media WHERE "
         "JobMedia.JobId=%u AND JobMedia.MediaId=Media.MediaId "
         "GROUP BY VolumeName "
-        "ORDER BY VolIndex", JobId);
-#endif
+        "ORDER BY 2 ASC", JobId);
 
    Dmsg1(130, "VolNam=%s\n", mdb->cmd);
    *VolumeNames[0] = 0;

@@ -1,7 +1,24 @@
 
           Release Notes for Bacula 1.33.4
 
-  Bacula code: Total files = 301 Total lines = 89,118 (*.h *.c *.in)
+  Bacula code: Total files = 306 Total lines = 90,715 (*.h *.c *.in)
+
+Major Features:
+- Data spooling which eliminates tape shoe-shine during Inc backups,         
+  and permits multiple simultaneous backups without interleaved blocks.
+- Polling of devices eliminating need to unmount and mount from
+  console.
+- Native Win32 client -- much faster and restores permissions correctly
+  (thanks to Christopher Hull)
+- PostgreSQL database driver (thanks to Dan Langille).
+- Improved Autochange support of Slots (update slots scan).
+- Autochanger support for multiple drives.
+- New conio code to implement Console command line editing and history.
+- JobDefs resource permits smaller .conf files for Director
+- Access console lists for the Console
+- Pool level overrides.
+- Daemon statistics memory.
+- Improved btape "test" and "fill" commands.
 
 New directives:
 - "Close on Poll = yes/no" in SD Device resource.
@@ -39,14 +56,11 @@ New Commands:
 - "unmarkdir" command in restore tree.
 - "quit" command in restore tree.
 - Trace option on "setdebug trace=1/0 ..."
+- Update slots scan
 
 
-Most Significant Changes since 1.32f-4
-- Native Win32 Client -- much faster and does better restores than old
-  Cygwin Win32 Client.
+Additional changes:
 - Implement Gnome 2.0 restore GUI
-- Implement data spooling
-- Implement Volume Polling
 - Add a missing unlock in the jobq handler.
 - Fix bug where a soft linked file and a directory had the same name
   by treating the soft link as a directory and putting the entries under
@@ -99,10 +113,8 @@ Most Significant Changes since 1.32f-4
 - Fixed seg fault in restore of multiple simultaneous jobs to 
   a single Volume.
 - Fixed thread race problem in multiple simultaneous jobs to
-  a single Volume where the volume lable is not in the first 
+  a single Volume where the volume label is not in the first 
   tape block, so the tape is not recognized.
-
-Other Changes since 1.32d
 - Restore directory tree automatically selects all higher level
   directories to be restored.
 - Implement conio.c to use in console program -- mini-readline.

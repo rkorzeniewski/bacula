@@ -163,6 +163,7 @@ static int file_delete_handler(void *ctx, int num_fields, char **row)
  */
 int purgecmd(UAContext *ua, char *cmd)
 {
+   int i;
    CLIENT *client;
    MEDIA_DBR mr;
    JOB_DBR  jr;
@@ -234,8 +235,12 @@ int purgecmd(UAContext *ua, char *cmd)
       }
    /* Volume */
    case 2:
-      if (select_media_dbr(ua, &mr)) {
-	 purge_jobs_from_volume(ua, &mr);
+      while ((i=find_arg(ua, _("volume"))) >= 0) {
+	 if (select_media_dbr(ua, &mr)) {
+	    purge_jobs_from_volume(ua, &mr);
+	 }
+	 *ua->argk[i] = 0;	      /* zap keyword already seen */
+         bsendmsg(ua, "\n");
       }
       return 1;
    default:

@@ -74,11 +74,9 @@ For 1.33 Testing/Documentation:
 For 1.33
 - Complete Win32 installer
 - Finish work on Gnome restore GUI.
-- Fix query buffer clobber ua_query.c
 - On unknown client in restore "client=xxx"
   Could not find Client "Matou": ERR=Query failed: DROP TABLE temp1: 
      ERR=no such table: temp1
-- Allow "delete job jobid=xx jobid=xxx".   
 - Implement multiple Volume in "purge jobs volume=".
 - Fix "llist jobid=xx" where no fileset or client exists.
 - Build console in client-only build.
@@ -1419,3 +1417,6 @@ Block Position: 0
 - Estimate to Tibs never returns.
 - Symbolic link a directory to another one, then backup the symbolic link.
 - Check and possibly fix problems with hard links.
+- Fix query buffer clobber ua_query.c
+- Allow "delete job jobid=xx jobid=xxx".   
+
