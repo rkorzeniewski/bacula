@@ -83,7 +83,7 @@ EXTRAOBJS = @OBJLIST@
 	$(XDVI) -s 0 $<
 
 #-------------------------------------------------------------------------
-all: Makefile libbac.a smtp
+all: Makefile libbac.a
 	@echo "==== Make of lib is good ===="
 	@echo " "
 
@@ -96,9 +96,6 @@ Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	cd $(topdir) \
 	  && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
-smtp:	smtp.o
-	$(CXX) $(LDFLAGS) -L. -o $@ smtp.o $(LIBS) $(DLIB) -lbac -lm
-
 rwlock_test:  rwlock.o
 	rm -f rwlock.o
 	$(CXX) -DTEST_RWLOCK $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(GMP_INC) $(CFLAGS) rwlock.c
@@ -107,14 +104,12 @@ rwlock_test:  rwlock.o
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(GMP_INC) $(CFLAGS) rwlock.c
 	 
 install:
-	$(INSTALL_PROGRAM) smtp $(DESTDIR)/$(sbindir)/smtp
 
 uninstall:
-	(cd $(DESTDIR)$(sbindir); $(RMF) smtp)
 
 clean:
 	$(RMF) *.a core a.out *.o *.bak *.tex *.pdf *~ *.intpro *.extpro 1 2 3
-	$(RMF) smtp rwlock_test
+	$(RMF) rwlock_test
 
 realclean: clean
 	$(RMF) tags

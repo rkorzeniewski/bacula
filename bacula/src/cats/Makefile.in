@@ -48,7 +48,7 @@ libsql.a: $(LIBOBJS)
 	$(RANLIB) $@
 
 cats: $(SVROBJS) ../findlib/libfind.a
-	$(CC) $(LDFLAGS) -L../findlib -L../lib -o $@ $(SVROBJS) $(LIBS) $(DLIB) -lfind -lbac
+	$(CC) $(LDFLAGS) -L../findlib -L../lib -o $@ $(SVROBJS) $(LIBS) $(DB_LIBS) -lfind -lbac
 
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	cd $(topdir) \

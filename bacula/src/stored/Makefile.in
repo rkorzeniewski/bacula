@@ -84,7 +84,7 @@ bextract: ../findlib/libfind.a $(BEXTOBJS) ../lib/libbac.a
 	$(CXX) $(LDFLAGS) -L../lib -L../findlib -o $@ $(BEXTOBJS) $(LIBS) $(DLIB) $(FDLIBS) -lbac -lfind -lm
 
 bscan: ../findlib/libfind.a $(SCNOBJS) ../cats/libsql.a
-	$(CXX) $(LDFLAGS) -L../lib -L../cats -L../findlib -o $@ $(SCNOBJS) -lsql $(LIBS) $(DLIB) $(FDLIBS) -lbac -lfind -lm
+	$(CXX) $(LDFLAGS) -L../lib -L../cats -L../findlib -o $@ $(SCNOBJS) -lsql $(LIBS) $(DB_LIBS) $(FDLIBS) -lbac -lfind -lm
 
 
 

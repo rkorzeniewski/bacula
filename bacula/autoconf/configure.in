@@ -992,7 +992,7 @@ AC_DEFINE(FDLIBS)
 
 CFLAGS=${CFLAGS--O}
 LDFLAGS=${LDFLAGS--O}
-LIBS="${LIBS} ${SQL_LFLAGS}"
+DB_LIBS="${SQL_LFLAGS}"
 
 CPPFLAGS="$CPPFLAGS"
 AC_SUBST(DEBUG)
@@ -1003,6 +1003,7 @@ AC_SUBST(LDFLAGS)
 AC_SUBST(X_CFLAGS)
 AC_SUBST(LIBS)
 AC_SUBST(DLIB)
+AC_SUBST(DB_LIBS)
 AC_SUBST(X_LIBS)
 AC_SUBST(X_EXTRA_LIBS)
 
@@ -1212,6 +1213,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/cats/make_bdb_tables \
 	   src/cats/drop_bdb_tables \
 	   src/findlib/Makefile \
+	   src/tools/Makefile \
 	   $PFILES ],  
 	  [(echo "Doing make of dependencies"; make depend;) ]
 )
@@ -1250,6 +1252,7 @@ Configuration on `date`:
   Libraries:		      ${LIBS}
   Database found:	      ${have_db}
   Database type:	      ${db_name}
+  Database lib: 	      ${DB_LIBS}
 
   Job Output Email:	      ${job_email}
   Traceback Email:	      ${dump_email}

@@ -8861,9 +8861,10 @@ EOF
 
 CFLAGS=${CFLAGS--O}
 LDFLAGS=${LDFLAGS--O}
-LIBS="${LIBS} ${SQL_LFLAGS}"
+DB_LIBS="${SQL_LFLAGS}"
 
 CPPFLAGS="$CPPFLAGS"
+
 
 
 
@@ -9186,6 +9187,7 @@ trap 'rm -fr `echo "autoconf/Make.common \
 	   src/cats/make_bdb_tables \
 	   src/cats/drop_bdb_tables \
 	   src/findlib/Makefile \
+	   src/tools/Makefile \
 	   $PFILES  src/config.h:autoconf/config.h.in" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
 cat >> $CONFIG_STATUS <<EOF
@@ -9341,6 +9343,7 @@ s%@FDLIBS@%$FDLIBS%g
 s%@DEBUG@%$DEBUG%g
 s%@DINCLUDE@%$DINCLUDE%g
 s%@DLIB@%$DLIB%g
+s%@DB_LIBS@%$DB_LIBS%g
 s%@OBJLIST@%$OBJLIST%g
 s%@hostname@%$hostname%g
 s%@TAPEDRIVE@%$TAPEDRIVE%g
@@ -9432,6 +9435,7 @@ CONFIG_FILES=\${CONFIG_FILES-"autoconf/Make.common \
 	   src/cats/make_bdb_tables \
 	   src/cats/drop_bdb_tables \
 	   src/findlib/Makefile \
+	   src/tools/Makefile \
 	   $PFILES "}
 EOF
 cat >> $CONFIG_STATUS <<\EOF
@@ -9646,6 +9650,7 @@ Configuration on `date`:
   Libraries:		      ${LIBS}
   Database found:	      ${have_db}
   Database type:	      ${db_name}
+  Database lib: 	      ${DB_LIBS}
 
   Job Output Email:	      ${job_email}
   Traceback Email:	      ${dump_email}

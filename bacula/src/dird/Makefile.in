@@ -66,7 +66,7 @@ all: Makefile bacula-dir
 
 bacula-dir:  $(SVROBJS) ../lib/libbac.a ../cats/libsql.a
 	$(CXX) $(LDFLAGS) -L../lib -L../cats -o $@ $(SVROBJS) \
-	      -lsql -lbac -lm $(LIBS) $(DLIB)
+	      -lsql -lbac -lm $(LIBS) $(DLIB) $(DB_LIBS)
 
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	cd $(topdir) \
