@@ -1,0 +1,9 @@
+
+03Dec04  1.36.1-pool.patch
+ This patch should hold jobs in the Director's start queue if
+ more than one simultaneous backup job wants to use the same
+ Storage device with two different Pools (i.e. 2 Volumes).
+
+03Dec04  1.16.1-slots.patch
+ This patch should fix "update slots" with two different magazines
+ in different pools by checking the pool when zapping the InChanger.

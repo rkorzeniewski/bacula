@@ -35,6 +35,8 @@ FD_GROUP=@fd_group@
 SD_USER=@sd_user@
 SD_GROUP=@sd_group@
 
+PIDOF=@PIDOF@	
+
 # A function to stop a program.
 killproc() {
     RC=0
@@ -120,8 +122,8 @@ pidofproc() {
     fi
 
     # Next try "pidof"
-   if [ -x /sbin/pidof ] ; then
-       pid=`/sbin/pidof $1`
+   if [ -x ${PIDOF} ] ; then
+       pid=`${PIDOF} $1`
    fi
    if [ "$pid" != "" ] ; then
        echo $pid
@@ -144,8 +146,8 @@ status() {
     base=`basename $1`
 
    # First try "pidof"
-   if [ -x /sbin/pidof ] ; then
-       pid=`/sbin/pidof $1`
+   if [ -x ${PIDOF} ] ; then
+       pid=`${PIDOF} $1`
    fi
    if [ "$pid" != "" ] ; then
        echo "$base (pid $pid) is running..."
