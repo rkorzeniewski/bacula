@@ -351,7 +351,7 @@ struct s_jl joblevels[] = {
    {"Data",          L_VERIFY_DATA,     JT_VERIFY},
    {" ",             L_NONE,            JT_ADMIN},
    {" ",             L_NONE,            JT_RESTORE},
-   {NULL,	     0}
+   {NULL,	     0, 			 0}
 };
 
 /* Keywords (RHS) permitted in Job type records   
