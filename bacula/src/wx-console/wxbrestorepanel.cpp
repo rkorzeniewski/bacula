@@ -399,13 +399,14 @@ void wxbRestorePanel::EnablePanel(bool enable) {
 
 /* The main button has been clicked */
 void wxbRestorePanel::CmdStart() {
+   unsigned int i;
    if (status == activable) {
       wxbDataTokenizer* dt = WaitForEnd(".clients\n", true, false);
       wxString str;
 
       clientChoice->Clear();
       cfgClient->Clear();
-      for (unsigned int i = 0; i < dt->GetCount(); i++) {
+      for (i = 0; i < dt->GetCount(); i++) {
          str = (*dt)[i];
          str.RemoveLast();
          clientChoice->Append(str);
@@ -417,7 +418,7 @@ void wxbRestorePanel::CmdStart() {
       dt = WaitForEnd(".filesets\n", true, false);
 
       cfgFileset->Clear();
-      for (unsigned int i = 0; i < dt->GetCount(); i++) {
+      for (i = 0; i < dt->GetCount(); i++) {
          str = (*dt)[i];
          str.RemoveLast();
          cfgFileset->Append(str);
@@ -1630,4 +1631,3 @@ void wxbTreeListPanel::OnTreeMarked(wxbTreeMarkedEvent& event) {
 void wxbTreeListPanel::OnListMarked(wxbListMarkedEvent& event) {
    parent->OnListMarked(event);
 }
-
