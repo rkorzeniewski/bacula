@@ -287,7 +287,7 @@ wxbRestorePanel::wxbRestorePanel(wxWindow* parent): wxbPanel(parent) {
    
    cfgJobname = new wxStaticText(restorePanel, -1, "  ", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
    cfgBootstrap = new wxStaticText(restorePanel, -1, "  ", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
-   cfgWhere = new wxTextCtrl(restorePanel, ConfigWhere);
+   cfgWhere = new wxTextCtrl(restorePanel, ConfigWhere, "", wxDefaultPosition, wxSize(150, 25));
    elist = new wxString[4];
    elist[0] = "always";
    elist[1] = "ifnewer";
@@ -297,26 +297,26 @@ wxbRestorePanel::wxbRestorePanel(wxWindow* parent): wxbPanel(parent) {
    cfgFileset = new wxStaticText(restorePanel, -1, "  ", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
    cfgClient = new wxStaticText(restorePanel, -1, "  ", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
    cfgStorage = new wxStaticText(restorePanel, -1, "  ", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
-   cfgWhen = new wxTextCtrl(restorePanel, ConfigWhen);
-   cfgPriority = new wxTextCtrl(restorePanel, ConfigPriority);
+   cfgWhen = new wxTextCtrl(restorePanel, ConfigWhen, "0000-00-00 00:00:00", wxDefaultPosition, wxSize(150, 25));
+   cfgPriority = new wxTextCtrl(restorePanel, ConfigPriority, "", wxDefaultPosition, wxSize(50, 25));
    
-   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Job Name", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND);
+   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Job Name: ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND);
    cfgSizer->Add(cfgJobname, 1, wxEXPAND);
-   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Bootstrap", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND);
+   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Bootstrap: ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND);
    cfgSizer->Add(cfgBootstrap, 1, wxEXPAND);
-   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Where", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND);
+   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Where: ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND);
    cfgSizer->Add(cfgWhere, 1, wxEXPAND);
-   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Replace", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND);
+   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Replace: ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND);
    cfgSizer->Add(cfgReplace, 1, wxEXPAND);
-   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Fileset", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND);
+   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Fileset: ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND);
    cfgSizer->Add(cfgFileset, 1, wxEXPAND);
-   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Client", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND);
+   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Client: ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND);
    cfgSizer->Add(cfgClient, 1, wxEXPAND);
-   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Storage", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND);
+   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Storage: ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND);
    cfgSizer->Add(cfgStorage, 1, wxEXPAND);
-   cfgSizer->Add(new wxStaticText(restorePanel, -1, "When", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND);
+   cfgSizer->Add(new wxStaticText(restorePanel, -1, "When: ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND);
    cfgSizer->Add(cfgWhen, 1, wxEXPAND);
-   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Priority", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND);
+   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Priority: ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND);
    cfgSizer->Add(cfgPriority, 1, wxEXPAND);
       
    restoreSizer->Add(cfgSizer, 1, wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL | wxALL, 5);
@@ -1357,12 +1357,14 @@ void wxbRestorePanel::OnListActivated(wxListEvent& event) {
 }
 
 void wxbRestorePanel::OnConfigUpdated(wxCommandEvent& event) {
+   if (status != configuring) return;
    cfgApply->Enable(true);
    cfgOk->Enable(false);
    cfgUpdated = cfgUpdated | (1 << event.GetId());
 }
 
 void wxbRestorePanel::OnConfigOk(wxEvent& WXUNUSED(event)) {
+   if (status != configuring) return;
    if (working) {
       return;
    }
@@ -1372,6 +1374,7 @@ void wxbRestorePanel::OnConfigOk(wxEvent& WXUNUSED(event)) {
 }
 
 void wxbRestorePanel::OnConfigApply(wxEvent& WXUNUSED(event)) {
+   if (status != configuring) return;
    if (working) {
       return;
    }
@@ -1385,6 +1388,7 @@ void wxbRestorePanel::OnConfigApply(wxEvent& WXUNUSED(event)) {
 }
 
 void wxbRestorePanel::OnConfigCancel(wxEvent& WXUNUSED(event)) {
+   if (status != configuring) return;
    if (working) {
       return;
    }
