@@ -358,7 +358,7 @@ Start time:             %s\n\
 End time:               %s\n\
 Files Written:          %s\n\
 Bytes Written:          %s\n\
-Rate:                   %.1f KBps\n\
+Rate:                   %.1f KB/s\n\
 Volume names(s):        %s\n\
 Volume Session Id:      %d\n\
 Volume Session Time:    %d\n\
