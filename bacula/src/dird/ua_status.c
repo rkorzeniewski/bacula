@@ -531,7 +531,7 @@ static void list_terminated_jobs(UAContext *ua)
    char dt[MAX_TIME_LENGTH], b1[30], b2[30];
    char level[10];
 
-   if (last_jobs->size() == 0) {
+   if (last_jobs->empty()) {
       bsendmsg(ua, _("No Terminated Jobs.\n"));
       return;
    }

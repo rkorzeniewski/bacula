@@ -56,6 +56,7 @@ For 1.33 Testing/Documentation:
                 
 For 1.33
 - Look at Dan's field width problems in PostgreSQL.
+- Look at effect of removing GROUP BYs.
 - In restore take all filesets with same base name.
 - From Alan Brown <ajb2@mssl.ucl.ac.uk>
     BTW, there's a make install bug in 1.33 - with --enable-gnome,
