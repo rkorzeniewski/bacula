@@ -19,7 +19,6 @@ Version 1.35                Kern (see below)
 - Perhaps add read/write programs and/or plugins to FileSets.
 
 - Add bscan to four-concurrent-jobs regression.
-- Doc new IPv6 syntax
 - Add IPv6 to regression
 - Alternative to static linking "ldd prog" save all binaries listed,
   restore them and point LD_LIBRARY_PATH to them.
@@ -29,35 +28,8 @@ Version 1.35                Kern (see below)
 - Test/doc Tape Alerts
 - Doc update AllFromVol
 - Doc dbcheck eliminate orphaned clients.
-- Doc new duration time input editing.
 - Doc -p option in stored
 - Document that console commands can be abbreviated.
-   
-
-Documentation to do: (any release a little bit at a time)
-- Document query file format.
-- Add more documentation for bsr files.
-- Document problems with Verify and pruning.
-- Document how to use multiple databases.
-- VXA drives have a "cleaning required"
-  indicator, but Exabyte recommends preventive cleaning after every 75
-  hours of operation.
-  From Phil:
-    In this context, it should be noted that Exabyte has a command-line
-    vxatool utility available for free download.  (The current version is
-    vxatool-3.72.) It can get diagnostic info, read, write and erase tapes,
-    test the drive, unload tapes, change drive settings, flash new firmware,
-    etc.
-    Of particular interest in this context is that vxatool <device> -i will
-    report, among other details, the time since last cleaning in tape motion
-    minutes.  This information can be retrieved (and settings changed, for
-    that matter) through the generic-SCSI device even when Bacula has the
-    regular tape device locked.  (Needless to say, I don't recommend
-    changing tape settings while a job is running.)
-- Lookup HP cleaning recommendations.
-- Lookup HP tape replacement recommendations (see trouble shooting autochanger)
-- Add more obvious documentation of @ for conf files.
-- Document doing table repair
 - New IP address specification is used as follows:
     [sdaddresses|diraddresses|fdaddresses] = { [[ip|ipv4|ipv6] = { 
            [[addr|port] = [^ ]+[\n;]+] }] }
@@ -100,6 +72,32 @@ Documentation to do: (any release a little bit at a time)
   An ipv4 section forces the resolution to be only ipv4, and an ipv6 section
   forces the resolution to be only ipv6.
 
+   
+
+Documentation to do: (any release a little bit at a time)
+- Document query file format.
+- Add more documentation for bsr files.
+- Document problems with Verify and pruning.
+- Document how to use multiple databases.
+- VXA drives have a "cleaning required"
+  indicator, but Exabyte recommends preventive cleaning after every 75
+  hours of operation.
+  From Phil:
+    In this context, it should be noted that Exabyte has a command-line
+    vxatool utility available for free download.  (The current version is
+    vxatool-3.72.) It can get diagnostic info, read, write and erase tapes,
+    test the drive, unload tapes, change drive settings, flash new firmware,
+    etc.
+    Of particular interest in this context is that vxatool <device> -i will
+    report, among other details, the time since last cleaning in tape motion
+    minutes.  This information can be retrieved (and settings changed, for
+    that matter) through the generic-SCSI device even when Bacula has the
+    regular tape device locked.  (Needless to say, I don't recommend
+    changing tape settings while a job is running.)
+- Lookup HP cleaning recommendations.
+- Lookup HP tape replacement recommendations (see trouble shooting autochanger)
+- Add more obvious documentation of @ for conf files.
+- Document doing table repair
   
           
 Testing to do: (painful)
@@ -1288,3 +1286,5 @@ Block Position: 0
 - Look at Chris' patch for bscan bug.
 - Fix error handling in spooling both data and attribute.
 - Implement Ignore FileSet Change.
+- Doc new duration time input editing.
+ 

@@ -40,6 +40,10 @@ Items to note!!!
 - Regular expressions are not implemented in the Win32 FD.
 
 Other Items:
+- A duration specification may have any number of integer/modificator
+  specifications. E.g.:
+  1 week 2 days 3 hours 10 mins
+  1 month 2 days 30 sec
 - Print error message if Alert Command fails in bpipe_open().
 - Doc Alert command.
 - Eliminate unnecessary class in findlib/attribs.c
