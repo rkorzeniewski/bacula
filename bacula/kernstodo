@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                07 December 2003  
+                16 December 2003  
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -48,8 +48,24 @@ For 1.33 Testing/Documentation:
 - Document Dan's new --with-dir-user, ... options.
 - Figure out how to use ssh or stunnel to protect Bacula communications.
   Add Dan's work to manual
+- Add db check test to regression. Test each function like delete,
+  purge, ...
+- Add subsections to the Disaster Recovery index section.
                 
 For 1.33
+- From Alan Brown <ajb2@mssl.ucl.ac.uk>
+    BTW, there's a make install bug in 1.33 - with --enable-gnome,
+    gnome-console is built, but the binary and .conf are not being installed.
+- Make Scheduler sort jobs by StartTime, Priority.
+- Make sure smtp and any other useful program is executable by the world
+  in case Bacula is not running as root.
+- Look at updating Volume Jobs so that Max Volume Jobs = 1 will work
+  correctly for multiple simultaneous jobs.
+- Correct code so that FileSet MD5 is calculated for < and | filename   
+  generation.
+- Permit Bacula and apcupsd donations.
+- Mark Volume in error on error from WEOF.
+- Why does Bacula need the drive open to do "autochanger list" ?
 - Add a .list all files in the restore tree (probably also a list all files)
   Do both a long and short form.
 - Add a Media record flag that indicates that the Volume does disk
@@ -61,7 +77,6 @@ For 1.33
 - Implement MediaType keyword in bsr?   
 - Fix fast block rejection (stored/read_record.c:118). It passes a null
   pointer (rec) to try_repositioning().
-- See if a restore job can add a file to the tape (prohibit this).
 - Look at extracting Win data from BackupRead.
 - Having dashes in filenames apparently creates problems for restore
   by filename.
@@ -79,7 +94,56 @@ For 1.33
   which in turn overrides Pool.
 - Fix Ctl-C crashing the Console (readline?).
 - Finish work on conio.c
-
+- To pass Include 1 or two letter commands
+  I Name           Include name - first record
+  B Name           Base name - repeat
+  R "xxx"          Regexp
+  W "xxx"          Wild Card
+  E zzz            Exclude expression (wild card)
+  P "plugin"       Plugin
+  D "reader"       Reader program
+  T "writer"       Writer program
+  O Options        In current commpressed format
+    (compression, signature, onefs, recurse, sparse,
+     replace, verify options, ...)
+  N                End option set
+  B BaseName       Start second option set any letter
+  ...
+  E
+  F Number         Number of filenames to follow
+  <file-name>
+  B Name
+  ...
+  N                End option set
+  F Number         Number of filenames to follow
+  <file-name>
+  ...
+- New Storage specifications:
+  Passed to SD as a sort of BSR record called Storage Specification
+    Record or SSR.
+    SSR                    
+      Next -> Next SSR
+      MediaType -> Next MediaType
+      Pool -> Next Pool
+      Device -> Next Device
+  Write Copy Resource that makes a copy of a resource.
+  Job Resource
+     Allow multiple Storage specifications
+     New flags
+        One Archive = yes
+        One Device = yes
+        One Storage = yes
+        One MediaType = yes
+        One Pool = yes
+  Storage
+     Allow Multiple Pool specifications (note, Pool currently
+       in Job resource).
+     Allow Multiple MediaType specifications
+     Allow Multiple Device specifications
+     Perhaps keep this in a single SSR
+  Tie a Volume to a specific device by using a MediaType that 
+    is contained in only one device.
+  In SD allow Device to have Multiple MediaTypes
 
 After 1.33:
 - Look at adding SQL server and Exchange support for Windows. 
@@ -533,34 +597,33 @@ After 1.33:
   > 
 
 - From Terry Manderson <terry@apnic.net>
-   jobset { # new structure
-   name = "monthlyUnixBoxen"
-   type = backup
-   level = full
-   jobs = "wakame;durian;soy;wasabi;miso" #new!
-   schedule = monthly
-   storage = DLT
-   messages = Standard
-   pool = MonthlyPool
-   priority = 10
+   jobdefs { # new structure
+     name = "monthlyUnixBoxen"
+     type = backup
+     level = full
+     schedule = monthly
+     storage = DLT
+     messages = Standard
+     pool = MonthlyPool
+     priority = 10
    }
 
    job {
-   name = "wakame"
-    fileset = "genericUnixSet"
-   client = wakame-fd
+     name = "wakame"
+     jobdefs = "genericUnixSet"
+     client = wakame-fd
    }
 
    job {
-   name = "durian"
-   fileset = "genericUnixSet"
-   client = durian-fd
+     name = "durian"
+     jobdefs = "genericUnixSet"
+     client = durian-fd
    }
 
    job {
-   name = "soy"
-   fileset = "UnixDevelBoxSet"
-   client = soy-fd
+     name = "soy"
+     jobdefs = "UnixDevelBoxSet"
+     client = soy-fd
    }
 
 
@@ -831,19 +894,23 @@ Example:
   apply options on a file by file basis.  For example, suppose you
   want to compress all files but not any file with extensions .gz or .Z.
   In that case, you will need to group two sets of options using
-  the Options resource as follows:
-
+  the Options resource. Files may be anywhere except in an
+  option set???  All OptionSets apply to all files in the order
+  the OptionSets were specified.  To have files included with
+  different option sets without using wild-cards, use two or more
+  Includes -- each one is handled in turn using only the files and
+  optionsets specified in the include.
 
     FileSet {
       Name = "FullSet"
       Include {
-        Options {
+        OptionSet {
           Signature = MD5
           # Note multiple Matches are ORed
           Wild  = "*.gz"   # matches .gz files
           Wild  = "*.Z"    # matches .Z files
         }
-        Options {
+        OptionSet {
           Compression = GZIP
           Signature = MD5
           Wild  = "*.?*"   # matches all files
@@ -965,4 +1032,4 @@ Done: (see kernsdone for more)
 - Document lsmark command in tree.
 - Setup a standard job that builds a bootstrap file and saves
   it with the catalog database.
-
+- See if a restore job can add a file to the tape (prohibit this).
