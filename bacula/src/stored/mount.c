@@ -109,7 +109,9 @@ mount_next_vol:
     */
    dev->state &= ~(ST_APPEND|ST_READ|ST_EOT|ST_WEOT|ST_EOF);
 
-   autochanger = autoload_device(jcr, dev, 1, NULL);
+   if (autoload_device(jcr, dev, 1, NULL) > 0) {
+      autochanger = true;
+   }
    Dmsg1(100, "autoload_dev returns %d\n", autochanger);
    /*
     * If we autochanged to correct Volume or (we have not just

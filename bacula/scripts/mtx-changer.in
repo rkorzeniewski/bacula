@@ -6,17 +6,17 @@
 #
 #  If you set in your Device resource
 #
-#  Changer Command = "path-to-this-script/mtx-changer" %c %o %S %a
+#  Changer Command = "path-to-this-script/mtx-changer" %c %o %S %a %d
 #    you will have the following input to this script:
 #
-#  mtx-changer "changer-device" "command" "slot" "archive-device"
+#  mtx-changer "changer-device" "command" "slot" "archive-device" "drive-index"
 #
 #  for example:
 #
-#  mtx-changer /dev/sg0 load 1 /dev/nst0 (on a Linux system)
+#  mtx-changer /dev/sg0 load 1 /dev/nst0 0 (on a Linux system)
 #
-#  If you need to to an offline, refer to the drive as $4
-#    e.g.   mt -f $f offline
+#  If you need to an offline, refer to the drive as $4
+#    e.g.   mt -f $4 offline
 #
 #  Many changers need an offline after the unload. Also many
 #   changers need a sleep 60 after the mtx load.
@@ -30,16 +30,16 @@ MTX=@MTX@
 
 case "$2" in 
    unload)
-#     echo "Doing mtx -f $1 unload"
+#     echo "Doing mtx -f $1 unload $3 $5"
 #
 # enable the following line if you need to eject the cartridge
 #     mt -f $4 offline
-      ${MTX} -f $1 unload
+      ${MTX} -f $1 unload $3 $5
       ;;
 
    load)
-#     echo "Doing mtx -f $1 load $3"
-      ${MTX} -f $1 load $3
+#     echo "Doing mtx -f $1 load $3 $5"
+      ${MTX} -f $1 load $3 $5
       rtn=$?
 #
 # Increase the sleep time if you have a slow device
@@ -53,11 +53,10 @@ case "$2" in
       ;;
 
    loaded)
-#     echo "Request loaded"
       ${MTX} -f $1 status >/tmp/mtx.$$
       rtn=$?
-      cat /tmp/mtx.$$ | grep "^Data Transfer Element 0:Full" | awk "{print \$7}"
-      cat /tmp/mtx.$$ | grep "^Data Transfer Element 0:Empty" | awk "{print 0}"
+      cat /tmp/mtx.$$ | grep "^Data Transfer Element $5:Full" | awk "{print \$7}"
+      cat /tmp/mtx.$$ | grep "^Data Transfer Element $5:Empty" | awk "{print 0}"
       rm -f /tmp/mtx.$$
       exit $rtn
       ;;
