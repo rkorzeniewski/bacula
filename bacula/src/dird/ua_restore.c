@@ -48,14 +48,19 @@ extern char *uar_inc_dec,	*uar_list_temp,   *uar_sel_jobid_temp;
 extern char *uar_sel_all_temp1, *uar_sel_fileset, *uar_mediatype;
 
 
-/* Main structure for obtaining JobIds */
-struct JOBIDS {
+/* Main structure for obtaining JobIds or Files to be restored */
+struct RESTORE_CTX {
    utime_t JobTDate;
    uint32_t TotalFiles;
    char ClientName[MAX_NAME_LENGTH];
    char last_jobid[10];
    char JobIds[200];		      /* User entered string of JobIds */
    STORE  *store;
+   JOB *restore_job;
+   int restore_jobs;
+   uint32_t selected_files;
+   char *where;
+   RBSR *bsr;
 };
 
 struct NAME_LIST {
@@ -73,13 +78,14 @@ struct NAME_LIST {
 static int last_full_handler(void *ctx, int num_fields, char **row);
 static int jobid_handler(void *ctx, int num_fields, char **row);
 static int next_jobid_from_list(char **p, uint32_t *JobId);
-static int user_select_jobids(UAContext *ua, JOBIDS *ji);
+static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx);
 static int fileset_handler(void *ctx, int num_fields, char **row);
 static void print_name_list(UAContext *ua, NAME_LIST *name_list);
 static int unique_name_list_handler(void *ctx, int num_fields, char **row);
 static void free_name_list(NAME_LIST *name_list);
-static void get_storage_from_mediatype(UAContext *ua, NAME_LIST *name_list, JOBIDS *ji);
-static int select_backups_before_date(UAContext *ua, JOBIDS *ji, char *date);
+static void get_storage_from_mediatype(UAContext *ua, NAME_LIST *name_list, RESTORE_CTX *rx);
+static int select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *date);
+static void build_directory_tree(UAContext *ua, RESTORE_CTX *rx);
 
 /*
  *   Restore files
@@ -87,141 +93,73 @@ static int select_backups_before_date(UAContext *ua, JOBIDS *ji, char *date);
  */
 int restorecmd(UAContext *ua, char *cmd)
 {
-   POOLMEM *query;
-   TREE_CTX tree;
-   JobId_t JobId, last_JobId;
-   char *p;
-   RBSR *bsr;
-   char *nofname = "";
-   JOBIDS ji;
+   RESTORE_CTX rx;		      /* restore context */
    JOB *job = NULL;
-   JOB *restore_job = NULL;
-   int restore_jobs = 0;
-   NAME_LIST name_list;
-   uint32_t selected_files = 0;
-   char *where = NULL;
    int i;
+
+   memset(&rx, 0, sizeof(rx));
 
    i = find_arg_with_value(ua, "where");
    if (i >= 0) {
-      where = ua->argv[i];
+      rx.where = ua->argv[i];
    }
 
    if (!open_db(ua)) {
       return 0;
    }
 
-   memset(&tree, 0, sizeof(TREE_CTX));
-   memset(&name_list, 0, sizeof(name_list));
-   memset(&ji, 0, sizeof(ji));
-
    /* Ensure there is at least one Restore Job */
    LockRes();
    while ( (job = (JOB *)GetNextRes(R_JOB, (RES *)job)) ) {
       if (job->JobType == JT_RESTORE) {
-	 if (!restore_job) {
-	    restore_job = job;
+	 if (!rx.restore_job) {
+	    rx.restore_job = job;
 	 }
-	 restore_jobs++;
+	 rx.restore_jobs++;
       }
    }
    UnlockRes();
-   if (!restore_jobs) {
+   if (!rx.restore_jobs) {
       bsendmsg(ua, _(
          "No Restore Job Resource found. You must create at least\n"
          "one before running this command.\n"));
       return 0;
    }
 
+   rx.bsr = new_bsr();
    /* 
-    * Request user to select JobIds by various different methods
+    * Request user to select JobIds or files by various different methods
     *  last 20 jobs, where File saved, most recent backup, ...
+    *  In the end, a list of files are pumped into
+    *  add_findex()
     */
-   if (!user_select_jobids(ua, &ji)) {
-      return 0;
+   switch (user_select_jobids_or_files(ua, &rx)) {
+   case 0:
+      free_bsr(rx.bsr);
+      return 0; 		      /* error */
+   case 1:			      /* select by jobid */
+      build_directory_tree(ua, &rx);
+      break;
+   case 2:
+      break;
    }
 
-   /* 
-    * Build the directory tree containing JobIds user selected
-    */
-   tree.root = new_tree(ji.TotalFiles);
-   tree.root->fname = nofname;
-   tree.ua = ua;
-   query = get_pool_memory(PM_MESSAGE);
-   last_JobId = 0;
-   /*
-    * For display purposes, the same JobId, with different volumes may
-    * appear more than once, however, we only insert it once.
-    */
-   int items = 0;
-   for (p=ji.JobIds; next_jobid_from_list(&p, &JobId) > 0; ) {
-
-      if (JobId == last_JobId) {	     
-	 continue;		      /* eliminate duplicate JobIds */
-      }
-      last_JobId = JobId;
-      bsendmsg(ua, _("Building directory tree for JobId %u ...\n"), JobId);
-      items++;
-      /*
-       * Find files for this JobId and insert them in the tree
-       */
-      Mmsg(&query, uar_sel_files, JobId);
-      if (!db_sql_query(ua->db, query, insert_tree_handler, (void *)&tree)) {
-         bsendmsg(ua, "%s", db_strerror(ua->db));
-      }
-      /*
-       * Find the FileSets for this JobId and add to the name_list
-       */
-      Mmsg(&query, uar_mediatype, JobId);
-      if (!db_sql_query(ua->db, query, unique_name_list_handler, (void *)&name_list)) {
-         bsendmsg(ua, "%s", db_strerror(ua->db));
-      }
-   }
-   bsendmsg(ua, "%d Job%s inserted into the tree and marked for extraction.\n", 
-      items, items==1?"":"s");
-   free_pool_memory(query);
-
-   /* Check MediaType and select storage that corresponds */
-   get_storage_from_mediatype(ua, &name_list, &ji);
-   free_name_list(&name_list);
-
-   if (find_arg(ua, _("all")) < 0) {
-      /* Let the user select which files to restore */
-      user_select_files_from_tree(&tree);
-   }
-
-   /*
-    * Walk down through the tree finding all files marked to be 
-    *  extracted making a bootstrap file.
-    */
-   bsr = new_bsr();
-   for (TREE_NODE *node=first_tree_node(tree.root); node; node=next_tree_node(node)) {
-      Dmsg2(400, "FI=%d node=0x%x\n", node->FileIndex, node);
-      if (node->extract) {
-         Dmsg2(400, "type=%d FI=%d\n", node->type, node->FileIndex);
-	 add_findex(bsr, node->JobId, node->FileIndex);
-	 selected_files++;
-      }
-   }
-
-   free_tree(tree.root);	      /* free the directory tree */
-
-   if (bsr->JobId) {
-      if (!complete_bsr(ua, bsr)) {   /* find Vol, SessId, SessTime from JobIds */
+   if (rx.bsr->JobId) {
+      if (!complete_bsr(ua, rx.bsr)) {	 /* find Vol, SessId, SessTime from JobIds */
          bsendmsg(ua, _("Unable to construct a valid BSR. Cannot continue.\n"));
-	 free_bsr(bsr);
+	 free_bsr(rx.bsr);
 	 return 0;
       }
-//    print_bsr(ua, bsr);
-      write_bsr_file(ua, bsr);
-      bsendmsg(ua, _("\n%u files selected to restore.\n\n"), selected_files);
+//    print_bsr(ua, rx.bsr);
+      write_bsr_file(ua, rx.bsr);
+      bsendmsg(ua, _("\n%u files selected to restore.\n\n"), rx.selected_files);
    } else {
       bsendmsg(ua, _("No files selected to restore.\n"));
    }
-   free_bsr(bsr);
+   free_bsr(rx.bsr);
 
-   if (restore_jobs == 1) {
-      job = restore_job;
+   if (rx.restore_jobs == 1) {
+      job = rx.restore_job;
    } else {
       job = select_restore_job_resource(ua);
    }
@@ -231,26 +169,26 @@ int restorecmd(UAContext *ua, char *cmd)
    }
 
    /* If no client name specified yet, get it now */
-   if (!ji.ClientName[0]) {
+   if (!rx.ClientName[0]) {
       CLIENT_DBR cr;
       memset(&cr, 0, sizeof(cr));
       if (!get_client_dbr(ua, &cr)) {
 	 return 0;
       }
-      bstrncpy(ji.ClientName, cr.Name, sizeof(ji.ClientName));
+      bstrncpy(rx.ClientName, cr.Name, sizeof(rx.ClientName));
    }
 
    /* Build run command */
-   if (where) {
+   if (rx.where) {
       Mmsg(&ua->cmd, 
           "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s/restore.bsr\""
           " where=\"%s\"",
-          job->hdr.name, ji.ClientName, ji.store?ji.store->hdr.name:"",
-	  working_directory, where);
+          job->hdr.name, rx.ClientName, rx.store?rx.store->hdr.name:"",
+	  working_directory, rx.where);
    } else {
       Mmsg(&ua->cmd, 
           "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s/restore.bsr\"",
-          job->hdr.name, ji.ClientName, ji.store?ji.store->hdr.name:"",
+          job->hdr.name, rx.ClientName, rx.store?rx.store->hdr.name:"",
 	  working_directory);
    }
    
@@ -267,7 +205,7 @@ int restorecmd(UAContext *ua, char *cmd)
  *  select a list of JobIds from which he will subsequently
  *  select which files are to be restored.
  */
-static int user_select_jobids(UAContext *ua, JOBIDS *ji)
+static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
 {
    char *p;
    char date[MAX_TIME_LENGTH];
@@ -283,6 +221,7 @@ static int user_select_jobids(UAContext *ua, JOBIDS *ji)
       "Enter SQL list command", 
       "Select the most recent backup for a client",
       "Select backup for a client before a specified time",
+      "Enter a list of files to restore",
       "Cancel",
       NULL };
 
@@ -299,12 +238,12 @@ static int user_select_jobids(UAContext *ua, JOBIDS *ji)
       if (i < 0) {
 	 return 0;
       }
-      bstrncpy(ji->JobIds, ua->argv[i], sizeof(ji->JobIds));
+      bstrncpy(rx->JobIds, ua->argv[i], sizeof(rx->JobIds));
       done = true;
       break;
    case 1:			      /* current */
       bstrutime(date, sizeof(date), time(NULL));
-      if (!select_backups_before_date(ua, ji, date)) {
+      if (!select_backups_before_date(ua, rx, date)) {
 	 return 0;
       }
       done = true;
@@ -319,7 +258,7 @@ static int user_select_jobids(UAContext *ua, JOBIDS *ji)
 	 return 0;
       }
       bstrncpy(date, ua->argv[i], sizeof(date));
-      if (!select_backups_before_date(ua, ji, date)) {
+      if (!select_backups_before_date(ua, rx, date)) {
 	 return 0;
       }
       done = true;
@@ -369,7 +308,7 @@ static int user_select_jobids(UAContext *ua, JOBIDS *ji)
          if (!get_cmd(ua, _("Enter JobId(s), comma separated, to restore: "))) {
 	    return 0;
 	 }
-	 bstrncpy(ji->JobIds, ua->cmd, sizeof(ji->JobIds));
+	 bstrncpy(rx->JobIds, ua->cmd, sizeof(rx->JobIds));
 	 break;
       case 3:			      /* Enter an SQL list command */
          if (!get_cmd(ua, _("Enter SQL list command: "))) {
@@ -380,7 +319,7 @@ static int user_select_jobids(UAContext *ua, JOBIDS *ji)
 	 break;
       case 4:			      /* Select the most recent backups */
 	 bstrutime(date, sizeof(date), time(NULL));
-	 if (!select_backups_before_date(ua, ji, date)) {
+	 if (!select_backups_before_date(ua, rx, date)) {
 	    return 0;
 	 }
 	 break;
@@ -397,26 +336,30 @@ static int user_select_jobids(UAContext *ua, JOBIDS *ji)
             bsendmsg(ua, _("Improper date format.\n"));
 	 }		
 	 bstrncpy(date, ua->cmd, sizeof(date));
-	 if (!select_backups_before_date(ua, ji, date)) {
+	 if (!select_backups_before_date(ua, rx, date)) {
 	    return 0;
 	 }
-
-      case 6:			      /* Cancel or quit */
+	 break;
+      case 6:			      /* Enter files */
+         bsendmsg(ua, "Not yet implemented\n");
+	 return 0;
+      
+      case 7:			      /* Cancel or quit */
 	 return 0;
       }
    }
 
-   if (*ji->JobIds == 0) {
+   if (*rx->JobIds == 0) {
       bsendmsg(ua, _("No Jobs selected.\n"));
       return 0;
    }
    bsendmsg(ua, _("You have selected the following JobId%s: %s\n"), 
-      strchr(ji->JobIds,',')?"s":"",ji->JobIds);
+      strchr(rx->JobIds,',')?"s":"",rx->JobIds);
 
    memset(&jr, 0, sizeof(JOB_DBR));
 
-   ji->TotalFiles = 0;
-   for (p=ji->JobIds; ; ) {
+   rx->TotalFiles = 0;
+   for (p=rx->JobIds; ; ) {
       int stat = next_jobid_from_list(&p, &JobId);
       if (stat < 0) {
          bsendmsg(ua, _("Invalid JobId in list.\n"));
@@ -433,16 +376,93 @@ static int user_select_jobids(UAContext *ua, JOBIDS *ji)
          bsendmsg(ua, _("Unable to get Job record. ERR=%s\n"), db_strerror(ua->db));
 	 return 0;
       }
-      ji->TotalFiles += jr.JobFiles;
+      rx->TotalFiles += jr.JobFiles;
    }
    return 1;
 }
+
+static void build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
+{
+   TREE_CTX tree;
+   NAME_LIST name_list;
+   JobId_t JobId, last_JobId;
+   char *p;
+   POOLMEM *query;
+   char *nofname = "";
+
+   memset(&tree, 0, sizeof(TREE_CTX));
+   memset(&name_list, 0, sizeof(name_list));
+   /* 
+    * Build the directory tree containing JobIds user selected
+    */
+   tree.root = new_tree(rx->TotalFiles);
+   tree.root->fname = nofname;
+   tree.ua = ua;
+   query = get_pool_memory(PM_MESSAGE);
+   last_JobId = 0;
+   /*
+    * For display purposes, the same JobId, with different volumes may
+    * appear more than once, however, we only insert it once.
+    */
+   int items = 0;
+   for (p=rx->JobIds; next_jobid_from_list(&p, &JobId) > 0; ) {
+
+      if (JobId == last_JobId) {	     
+	 continue;		      /* eliminate duplicate JobIds */
+      }
+      last_JobId = JobId;
+      bsendmsg(ua, _("Building directory tree for JobId %u ...\n"), JobId);
+      items++;
+      /*
+       * Find files for this JobId and insert them in the tree
+       */
+      Mmsg(&query, uar_sel_files, JobId);
+      if (!db_sql_query(ua->db, query, insert_tree_handler, (void *)&tree)) {
+         bsendmsg(ua, "%s", db_strerror(ua->db));
+      }
+      /*
+       * Find the FileSets for this JobId and add to the name_list
+       */
+      Mmsg(&query, uar_mediatype, JobId);
+      if (!db_sql_query(ua->db, query, unique_name_list_handler, (void *)&name_list)) {
+         bsendmsg(ua, "%s", db_strerror(ua->db));
+      }
+   }
+   bsendmsg(ua, "%d Job%s inserted into the tree and marked for extraction.\n", 
+      items, items==1?"":"s");
+   free_pool_memory(query);
+
+   /* Check MediaType and select storage that corresponds */
+   get_storage_from_mediatype(ua, &name_list, rx);
+   free_name_list(&name_list);
+
+   if (find_arg(ua, _("all")) < 0) {
+      /* Let the user select which files to restore */
+      user_select_files_from_tree(&tree);
+   }
+
+   /*
+    * Walk down through the tree finding all files marked to be 
+    *  extracted making a bootstrap file.
+    */
+   for (TREE_NODE *node=first_tree_node(tree.root); node; node=next_tree_node(node)) {
+      Dmsg2(400, "FI=%d node=0x%x\n", node->FileIndex, node);
+      if (node->extract) {
+         Dmsg2(400, "type=%d FI=%d\n", node->type, node->FileIndex);
+	 add_findex(rx->bsr, node->JobId, node->FileIndex);
+	 rx->selected_files++;
+      }
+   }
+
+   free_tree(tree.root);	      /* free the directory tree */
+}
+
 
 /*
  * This routine is used to get the current backup or a backup
  *   before the specified date.
  */
-static int select_backups_before_date(UAContext *ua, JOBIDS *ji, char *date)
+static int select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *date)
 {
    int stat = 0;
    POOLMEM *query;
@@ -469,7 +489,7 @@ static int select_backups_before_date(UAContext *ua, JOBIDS *ji, char *date)
    if (!get_client_dbr(ua, &cr)) {
       goto bail_out;
    }
-   bstrncpy(ji->ClientName, cr.Name, sizeof(ji->ClientName));
+   bstrncpy(rx->ClientName, cr.Name, sizeof(rx->ClientName));
 
    /*
     * Select FileSet 
@@ -506,30 +526,30 @@ static int select_backups_before_date(UAContext *ua, JOBIDS *ji, char *date)
    /* Note, this is needed as I don't seem to get the callback
     * from the call just above.
     */
-   ji->JobTDate = 0;
-   if (!db_sql_query(ua->db, uar_sel_all_temp1, last_full_handler, (void *)ji)) {
+   rx->JobTDate = 0;
+   if (!db_sql_query(ua->db, uar_sel_all_temp1, last_full_handler, (void *)rx)) {
       bsendmsg(ua, "%s\n", db_strerror(ua->db));
    }
-   if (ji->JobTDate == 0) {
+   if (rx->JobTDate == 0) {
       bsendmsg(ua, _("No Full backup before %s found.\n"), date);
       goto bail_out;
    }
 
    /* Now find all Incremental/Decremental Jobs after Full save */
-   Mmsg(&query, uar_inc_dec, edit_uint64(ji->JobTDate, ed1), date,
+   Mmsg(&query, uar_inc_dec, edit_uint64(rx->JobTDate, ed1), date,
 	cr.ClientId, fsr.FileSetId);
    if (!db_sql_query(ua->db, query, NULL, NULL)) {
       bsendmsg(ua, "%s\n", db_strerror(ua->db));
    }
 
    /* Get the JobIds from that list */
-   ji->JobIds[0] = 0;
-   ji->last_jobid[0] = 0;
-   if (!db_sql_query(ua->db, uar_sel_jobid_temp, jobid_handler, (void *)ji)) {
+   rx->JobIds[0] = 0;
+   rx->last_jobid[0] = 0;
+   if (!db_sql_query(ua->db, uar_sel_jobid_temp, jobid_handler, (void *)rx)) {
       bsendmsg(ua, "%s\n", db_strerror(ua->db));
    }
 
-   if (ji->JobIds[0] != 0) {
+   if (rx->JobIds[0] != 0) {
       /* Display a list of Jobs selected for this restore */
       db_list_sql_query(ua->jcr, ua->db, uar_list_temp, prtit, ua, 1, HORZ_LIST);
    } else {
@@ -573,18 +593,18 @@ static int next_jobid_from_list(char **p, uint32_t *JobId)
  */
 static int jobid_handler(void *ctx, int num_fields, char **row)
 {
-   JOBIDS *ji = (JOBIDS *)ctx;
+   RESTORE_CTX *rx = (RESTORE_CTX *)ctx;
 
-   if (strcmp(ji->last_jobid, row[0]) == 0) {		
+   if (strcmp(rx->last_jobid, row[0]) == 0) {		
       return 0; 		      /* duplicate id */
    }
-   bstrncpy(ji->last_jobid, row[0], sizeof(ji->last_jobid));
+   bstrncpy(rx->last_jobid, row[0], sizeof(rx->last_jobid));
    /* Concatenate a JobId if it does not exceed array size */
-   if (strlen(ji->JobIds)+strlen(row[0])+2 < sizeof(ji->JobIds)) {
-      if (ji->JobIds[0] != 0) {
-         strcat(ji->JobIds, ",");
+   if (strlen(rx->JobIds)+strlen(row[0])+2 < sizeof(rx->JobIds)) {
+      if (rx->JobIds[0] != 0) {
+         strcat(rx->JobIds, ",");
       }
-      strcat(ji->JobIds, row[0]);
+      strcat(rx->JobIds, row[0]);
    }
    return 0;
 }
@@ -595,9 +615,9 @@ static int jobid_handler(void *ctx, int num_fields, char **row)
  */
 static int last_full_handler(void *ctx, int num_fields, char **row)
 {
-   JOBIDS *ji = (JOBIDS *)ctx;
+   RESTORE_CTX *rx = (RESTORE_CTX *)ctx;
 
-   ji->JobTDate = strtoll(row[1], NULL, 10);
+   rx->JobTDate = strtoll(row[1], NULL, 10);
 
    return 0;
 }
@@ -673,7 +693,7 @@ static void free_name_list(NAME_LIST *name_list)
    name_list->num_ids = 0;
 }
 
-static void get_storage_from_mediatype(UAContext *ua, NAME_LIST *name_list, JOBIDS *ji)
+static void get_storage_from_mediatype(UAContext *ua, NAME_LIST *name_list, RESTORE_CTX *rx)
 {
    char name[MAX_NAME_LENGTH];
    STORE *store = NULL;
@@ -682,13 +702,13 @@ static void get_storage_from_mediatype(UAContext *ua, NAME_LIST *name_list, JOBI
       bsendmsg(ua, _("Warning, the JobIds that you selected refer to more than one MediaType.\n"
          "Restore is not possible. The MediaTypes used are:\n"));
       print_name_list(ua, name_list);
-      ji->store = select_storage_resource(ua);
+      rx->store = select_storage_resource(ua);
       return;
    }
 
    if (name_list->num_ids == 0) {
       bsendmsg(ua, _("No MediaType found for your JobIds.\n"));
-      ji->store = select_storage_resource(ua);
+      rx->store = select_storage_resource(ua);
       return;
    }
 
@@ -701,8 +721,8 @@ static void get_storage_from_mediatype(UAContext *ua, NAME_LIST *name_list, JOBI
    }
    UnlockRes();
    do_prompt(ua, _("Storage"),  _("Select Storage resource"), name, sizeof(name));
-   ji->store = (STORE *)GetResWithName(R_STORAGE, name);
-   if (!ji->store) {
+   rx->store = (STORE *)GetResWithName(R_STORAGE, name);
+   if (!rx->store) {
       bsendmsg(ua, _("\nWarning. Unable to find Storage resource for\n"
          "MediaType %s, needed by the Jobs you selected.\n"
          "You will be allowed to select a Storage device later.\n"),
