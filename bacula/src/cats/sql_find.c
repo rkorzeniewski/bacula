@@ -160,7 +160,8 @@ db_find_last_jobid(JCR *jcr, B_DB *mdb, char *Name, JOB_DBR *jr)
    db_lock(mdb);
    if (jr->Level == L_VERIFY_CATALOG) {
       Mmsg(&mdb->cmd, 
-"SELECT JobId FROM Job WHERE Type='V' AND Level='%c' AND Name='%s' AND "
+"SELECT JobId FROM Job WHERE Type='V' AND Level='%c' AND "
+" JobStatus='T' AND Name='%s' AND "
 "ClientId=%u ORDER BY StartTime DESC LIMIT 1",
 	   L_VERIFY_INIT, jr->Name, jr->ClientId);
    } else if (jr->Level == L_VERIFY_VOLUME_TO_CATALOG ||
@@ -170,8 +171,8 @@ db_find_last_jobid(JCR *jcr, B_DB *mdb, char *Name, JOB_DBR *jr)
 "SELECT JobId FROM Job WHERE Type='B' AND JobStatus='T' AND "
 "Name='%s' ORDER BY StartTime DESC LIMIT 1", Name);
       } else {
-      Mmsg(&mdb->cmd, 
-"SELECT JobId FROM Job WHERE Type='B' AND "
+	 Mmsg(&mdb->cmd, 
+"SELECT JobId FROM Job WHERE Type='B' AND JobStatus='T' AND "
 "ClientId=%u ORDER BY StartTime DESC LIMIT 1", jr->ClientId);
       }
    } else {

@@ -70,6 +70,10 @@ int do_verify(JCR *jcr)
    JobId_t verify_jobid = 0;
    int stat;
 
+   memset(&verify_jr, 0, sizeof(verify_jr));
+   if (!jcr->verify_jr) {
+      jcr->verify_jr = &verify_jr;
+   }
    if (!get_or_create_client_record(jcr)) {
       goto bail_out;
    }
@@ -133,7 +137,6 @@ int do_verify(JCR *jcr)
    if (jcr->JobLevel == L_VERIFY_CATALOG || 
        jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG ||
        jcr->JobLevel == L_VERIFY_DISK_TO_CATALOG) {
-      memset(&verify_jr, 0, sizeof(verify_jr));
       verify_jr.JobId = verify_jobid;
       if (!db_get_job_record(jcr, jcr->db, &verify_jr)) {
          Jmsg(jcr, M_FATAL, 0, _("Could not get job record for previous Job. ERR=%s"), 
@@ -207,7 +210,6 @@ int do_verify(JCR *jcr)
       jcr->fileset = jcr->job->verify_job->fileset;
    }
    Dmsg2(100, "ClientId=%u JobLevel=%c\n", verify_jr.ClientId, jcr->JobLevel);
-   jcr->verify_jr = &verify_jr;
 
    /*
     * OK, now connect to the File daemon
@@ -404,7 +406,7 @@ static void verify_cleanup(JCR *jcr, int TermCode)
 
    jobstatus_to_ascii(jcr->FDJobStatus, fd_term_msg, sizeof(fd_term_msg));
    if (jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG) {
-       jobstatus_to_ascii(jcr->SDJobStatus, sd_term_msg, sizeof(sd_term_msg));
+      jobstatus_to_ascii(jcr->SDJobStatus, sd_term_msg, sizeof(sd_term_msg));
       Jmsg(jcr, msg_type, 0, _("Bacula " VERSION " (" LSMDATE "): %s\n\
 JobId:                  %d\n\
 Job:                    %s\n\
