@@ -454,11 +454,22 @@ eod_dev(DEVICE *dev)
       if (!rewind_dev(dev)) {
 	 return 0;
       }
-      while (!(dev->state & ST_EOT)) {
-         Dmsg0(200, "Do fsf 1\n");
+      /* 
+       * Move file by file to the end of the tape
+       */
+      int file_num;
+      for (file_num=0; !(dev->state & ST_EOT); ) {
+         Dmsg0(200, "eod_dev: doing fsf 1\n");
 	 if (!fsf_dev(dev, 1)) {
             Dmsg0(200, "fsf_dev error.\n");
 	    return 0;
+	 }
+	 /*
+	  * Avoid infinite loop. ***FIXME*** possibly add code
+	  *   to set EOD or to turn off CAP_FASTFSF if on.
+	  */
+	 if (file_num++ != (int)dev->file) {
+	    return 0;		      /* we are not progressing, bail out */
 	 }
       }
    }
@@ -739,7 +750,7 @@ fsf_dev(DEVICE *dev, int num)
       mt_com.mt_op = MTFSF;
       mt_com.mt_count = num;
       stat = ioctl(dev->fd, MTIOCTOP, (char *)&mt_com);
-      if (stat < 0) {		      /* error => EOT */
+      if (stat < 0 || ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) < 0) {
 	 dev->state |= ST_EOT;
          Dmsg0(200, "Set ST_EOT\n");
 	 clrerror_dev(dev, MTFSF);
@@ -747,14 +758,6 @@ fsf_dev(DEVICE *dev, int num)
 	    dev->dev_name, strerror(dev->dev_errno));
          Dmsg1(200, "%s", dev->errmsg);
 	 return 0;
-      } else if (ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) < 0) {
-	    dev->state |= ST_EOT;
-	    clrerror_dev(dev, MTFSF);
-	    dev->dev_errno = errno;
-            Mmsg2(&dev->errmsg, _("ioctl MTIOCGET error on %s. ERR=%s.\n"),
-	       dev->dev_name, strerror(dev->dev_errno));
-            Dmsg1(200, "%s", dev->errmsg);
-	    return 0;
       }
       Dmsg2(200, "fsf file=%d block=%d\n", mt_stat.mt_fileno, mt_stat.mt_blkno);
       dev->file = mt_stat.mt_fileno;

@@ -309,6 +309,48 @@ int is_an_integer(const char *n)
 }
 
 /*
+ * Check if Bacula Resoure Name is valid
+ */
+/* 
+ * Check if the Volume name has legal characters
+ * If ua is non-NULL send the message
+ */
+bool is_name_valid(char *name, POOLMEM **msg)
+{
+   int len;
+   char *p;
+   /* Special characters to accept */
+   const char *accept = ":.-_ ";
+
+   /* Restrict the characters permitted in the Volume name */
+   for (p=name; *p; p++) {
+      if (B_ISALPHA(*p) || B_ISDIGIT(*p) || strchr(accept, (int)(*p))) {
+	 continue;
+      }
+      if (msg) {
+         Mmsg(msg, _("Illegal character \"%c\" in name.\n"), *p);
+      }
+      return false;
+   }
+   len = strlen(name);
+   if (len >= MAX_NAME_LENGTH) {
+      if (msg) {
+         Mmsg(msg, _("Name too long.\n"));
+      }
+      return false;
+   }
+   if (len == 0) {
+      if (msg) {
+         Mmsg(msg,  _("Volume name must be at least one character long.\n"));
+      }
+      return false;
+   }
+   return true;
+}
+
+
+
+/*
  * Add commas to a string, which is presumably
  * a number.  
  */
