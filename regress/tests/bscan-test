@@ -12,8 +12,8 @@ echo "${cwd}/build" >/tmp/file-list
 
 echo " "
 echo " "
-echo " === Starting bscan-test `date +%R:%S` ==="
-echo " === Starting bscan-test `date +%R:%S` ===" >working/log
+echo " === Starting bscan-test at `date +%R:%S` ==="
+echo " === Starting bscan-test at `date +%R:%S` ===" >working/log
 echo " "
 
 bin/bacula start 2>&1 >/dev/null

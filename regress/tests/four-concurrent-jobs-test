@@ -9,8 +9,8 @@ echo "${cwd}/build" >/tmp/file-list
 
 echo " "
 echo " "
-echo " === Starting four-concurrent-jobs-test `date +%R:%S` ==="
-echo " === Starting four-concurrent-jobs-test `date +%R:%S` ===" >>working/log
+echo " === Starting four-concurrent-jobs-test at `date +%R:%S` ==="
+echo " === Starting four-concurrent-jobs-test at `date +%R:%S` ===" >>working/log
 echo " "
 
 bin/bacula start 2>&1 >/dev/null

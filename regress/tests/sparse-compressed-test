@@ -11,8 +11,8 @@ bin/bacula stop 2>&1 >/dev/null
 
 echo " "
 echo " "
-echo " === Starting sparse-compressed-test `date +%R:%S` ==="
-echo " === Starting sparse-compressed-test `date +%R:%S` ===" >>working/log
+echo " === Starting sparse-compressed-test at `date +%R:%S` ==="
+echo " === Starting sparse-compressed-test at `date +%R:%S` ===" >>working/log
 echo " "
 
 bin/bacula start 2>&1 >/dev/null

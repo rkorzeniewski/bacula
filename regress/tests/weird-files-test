@@ -22,8 +22,8 @@ echo "${cwd}/weird-files" >>/tmp/file-list
 
 echo " "
 echo " "
-echo " === Starting weird filenames test `date +%R:%S` ==="
-echo " === Starting weird filenames test `date +%R:%S` ===" >>working/log
+echo " === Starting weird filenames test at `date +%R:%S` ==="
+echo " === Starting weird filenames test at `date +%R:%S` ===" >>working/log
 echo " "
 
 bin/bacula start 2>&1 >/dev/null
