@@ -13,9 +13,9 @@ Documentation to do: (a little bit at a time)
 Testing to do: (painful)
 - that console command line options work
 - blocksize recognition code.
+- multiple simultaneous Volumes
 
 For 1.30 release:
-- Fix restore of hard linked file.
 - Implement FileOptions (see end of this document)
 - Implement Bacula plugins -- design API
 - Make bcopy read through bad tape records.
@@ -23,6 +23,7 @@ For 1.30 release:
 - Program files (i.e. execute a program to read/write files).
   Pass read date of last backup, size of file last time.
 - Add Signature type to File DB record.
+- Make Restore report an error if FD or SD term codes are not OK.
 - CD into subdirectory when open()ing files for backup to
   speed up things.  Test with testfind().
 - Add prefixlinks to where or not where absolute links to FD.
@@ -31,7 +32,6 @@ For 1.30 release:
 - Implement Bar code handling
 - Why is catreq.c:111 Find vol called twice for a job?
 - Find out why Full saves run slower and slower (hashing?)
-- Figure out how to allow multiple simultaneous file Volumes on a single device.
 - Why are save/restore of device different sizes (sparse?)   Yup! Fix it.
 - Implement some way for the Console to dynamically create a job.
 - Restore to a particular time -- e.g. before date, after date. 
@@ -53,19 +53,18 @@ For 1.30 release:
   a block and a record.
 - Figure out how to do a bare metal Windows restore
 - Put system type returned by FD into catalog.
+- Need to specify MaximumConcurrentJobs in the Job resource.
 - Possibly add email to Watchdog if drive is unmounted too
   long and a job is waiting on the drive.
 - Strip trailing slashes from Include directory names in the FD.
 - Use read_record.c in SD code.
 - Why don't we get an error message from Win32 FD when bootstrap 
   file cannot be created for restore command?
-- Need to specify MaximumConcurrentJobs in the Job resource.
 - When Marking a file in Restore that is a hard link, also
   mark the link so that the data will be reloaded.
 - Restore program that errors in SD due to no tape reports
   OK incorrectly in output.
 - After unmount, if restore job started, ask to mount.
-- Make Restore report an error if FD or SD term codes are not OK.
 - Convert all %x substitution variables, which are hard to remember
   and read to %(variable-name).  Idea from TMDA.
 - Add JobLevel in FD status (but make sure it is defined).
@@ -73,7 +72,6 @@ For 1.30 release:
 - Remove NextId for SQLite. Optimize.
 - Strip trailing / from Include
 - Move all SQL statements into a single location.
-- Cleanup db_update_media and db_update_pool
 - Add UA rc and history files.
 - put termcap (used by console) in ./configure and
   allow -with-termcap-dir.
@@ -830,3 +828,7 @@ Done: (see kernsdone for more)
 - Get correct error status from run_program or open_bpipe().    
 - Restrict permissions on File Volumes (now 0640).                   
 - Umasked 022 daemons
+- Fix restore of hard linked file.
+- Figure out how to allow multiple simultaneous file Volumes on a single device.
+- Cleanup db_update_media and db_update_pool
+

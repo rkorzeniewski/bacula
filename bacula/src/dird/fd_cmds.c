@@ -116,8 +116,7 @@ int send_include_list(JCR *jcr)
 {
    FILESET *fileset;
    BSOCK   *fd;
-   int i, j;
-   char *msgsave;
+   int i;   
 
    fd = jcr->file_bsock;
    fileset = jcr->fileset;
@@ -128,14 +127,13 @@ int send_include_list(JCR *jcr)
       BPIPE *bpipe;
       FILE *ffd;
       char buf[1000];
-      char *o, *p, *q;
+      char *p;
       int optlen, stat;
+      INCEXE *ie;
 
       Dmsg1(120, "dird>filed: include file: %s\n", fileset->include_array[i]);
-      o = p = fileset->include_array[i];
-      skip_nonspaces(&p);	      /* skip options */
-      skip_spaces(&p);
-      q = p;			      /* save end of options */
+      ie = fileset->include_array[i];
+      p = ie->name;
       switch (*p++) {
       case '|':
          fd->msg = edit_job_codes(jcr, fd->msg, p, "");
@@ -146,10 +144,8 @@ int send_include_list(JCR *jcr)
 	    goto bail_out;
 	 }
 	 /* Copy File options */
-	 optlen = q - o;
-	 for (j=0; j < optlen; j++) {
-	    buf[j] = *o++;
-	 }
+	 strcpy(buf, ie->opts);
+	 optlen = strlen(buf);
 	 while (fgets(buf+optlen, sizeof(buf)-optlen, bpipe->rfd)) {
             fd->msglen = Mmsg(&fd->msg, "%s", buf);
             Dmsg2(200, "Including len=%d: %s", fd->msglen, fd->msg);
@@ -171,10 +167,8 @@ int send_include_list(JCR *jcr)
 	    goto bail_out;
 	 }
 	 /* Copy File options */
-	 optlen = q - o;
-	 for (j=0; j < optlen; j++) {
-	    buf[j] = *o++;
-	 }
+	 strcpy(buf, ie->opts);
+	 optlen = strlen(buf);
 	 while (fgets(buf+optlen, sizeof(buf)-optlen, ffd)) {
             fd->msglen = Mmsg(&fd->msg, "%s", buf);
 	    if (!bnet_send(fd)) {
@@ -185,14 +179,13 @@ int send_include_list(JCR *jcr)
 	 fclose(ffd);
 	 break;
       default:
-	 msgsave = fd->msg;
-	 fd->msg = fileset->include_array[i];
-	 fd->msglen = strlen(fileset->include_array[i]);
+	 strcpy(fd->msg, ie->opts);
+	 pm_strcat(&fd->msg, ie->name);
+	 fd->msglen = strlen(fd->msg);
 	 if (!bnet_send(fd)) {
             Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
 	    goto bail_out;
 	 }
-	fd->msg = msgsave;
 	 break;
       }
    }
@@ -216,18 +209,16 @@ int send_exclude_list(JCR *jcr)
    FILESET *fileset;
    BSOCK   *fd;
    int i;
-   char *msgsave;
 
    fd = jcr->file_bsock;
    fileset = jcr->fileset;
 
-   msgsave = fd->msg;
    fd->msglen = sprintf(fd->msg, exc);
    bnet_send(fd);
    for (i=0; i < fileset->num_excludes; i++) {
-      fd->msglen = strlen(fileset->exclude_array[i]);
-      Dmsg1(120, "dird>filed: exclude file: %s\n", fileset->exclude_array[i]);
-      fd->msg = fileset->exclude_array[i];
+      pm_strcpy(&fd->msg, fileset->exclude_array[i]->name);
+      fd->msglen = strlen(fd->msg);
+      Dmsg1(120, "dird>filed: exclude file: %s\n", fileset->exclude_array[i]->name);
       if (!bnet_send(fd)) {
          Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
 	 set_jcr_job_status(jcr, JS_ErrorTerminated);
@@ -235,7 +226,6 @@ int send_exclude_list(JCR *jcr)
       }
    }
    bnet_sig(fd, BNET_EOD);
-   fd->msg = msgsave;
    if (!response(fd, OKexc, "Exclude")) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       return 0;

@@ -59,6 +59,7 @@ extern void store_run(LEX *lc, struct res_items *item, int index, int pass);
 /* Forward referenced subroutines */
 
 static void store_inc(LEX *lc, struct res_items *item, int index, int pass);
+static void store_applyto(LEX *lc, struct res_items *item, int index, int pass);
 static void store_backup(LEX *lc, struct res_items *item, int index, int pass);
 static void store_restore(LEX *lc, struct res_items *item, int index, int pass);
 static void store_jobtype(LEX *lc, struct res_items *item, int index, int pass);
@@ -197,6 +198,7 @@ static struct res_items fo_items[] = {
    {"name",        store_name, ITEM(res_fo.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,  ITEM(res_fo.hdr.desc), 0, 0, 0},
    {"replace",     store_replace, ITEM(res_fo.replace), REPLACE_ALWAYS, ITEM_DEFAULT, 0},
+   {"applyto",     store_applyto, NULL,               0, 0, 0},
    {NULL,	   NULL,       NULL,		      0, 0, 0} 
 };
 
@@ -543,9 +545,9 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
       case R_FILESET:
          sendit(sock, "FileSet: name=%s\n", res->res_fs.hdr.name);
 	 for (i=0; i<res->res_fs.num_includes; i++)
-            sendit(sock, "      Inc: %s\n", res->res_fs.include_array[i]);
+            sendit(sock, "      Inc: %s\n", res->res_fs.include_array[i]->name);
 	 for (i=0; i<res->res_fs.num_excludes; i++)
-            sendit(sock, "      Exc: %s\n", res->res_fs.exclude_array[i]);
+            sendit(sock, "      Exc: %s\n", res->res_fs.exclude_array[i]->name);
 	 break;
       case R_SCHEDULE:
 	 if (res->res_sch.run) {
@@ -735,13 +737,15 @@ void free_resource(int type)
 	 break;
       case R_FILESET:
 	 if ((num=res->res_fs.num_includes)) {
-	    while (--num >= 0)	  
+	    while (--num >= 0) {   
 	       free(res->res_fs.include_array[num]);
+	    }
 	    free(res->res_fs.include_array);
 	 }
 	 if ((num=res->res_fs.num_excludes)) {
-	    while (--num >= 0)	  
+	    while (--num >= 0) {   
 	       free(res->res_fs.exclude_array[num]);
+	    }
 	    free(res->res_fs.exclude_array);
 	 }
 	 break;
@@ -1292,7 +1296,6 @@ static void store_inc(LEX *lc, struct res_items *item, int index, int pass)
    int token, i;
    int options = lc->options;
    int keyword;
-   char *fname;
    char inc_opts[100];
    int inc_opts_len;
 
@@ -1347,36 +1350,37 @@ static void store_inc(LEX *lc, struct res_items *item, int index, int pass)
 	    case T_IDENTIFIER:
 	    case T_UNQUOTED_STRING:
 	    case T_QUOTED_STRING:
-	       fname = (char *)malloc(lc->str_len + inc_opts_len + 1);
-	       strcpy(fname, inc_opts);
-	       strcat(fname, lc->str);
+	       INCEXE *incexe;
+	       incexe = (INCEXE *)malloc(lc->str_len + sizeof(INCEXE));
+	       memset(incexe, 0, sizeof(INCEXE));
+	       bstrncpy(incexe->opts, inc_opts, sizeof(incexe->opts));
+	       strcpy(incexe->name, lc->str);
 	       if (res_all.res_fs.have_MD5) {
-		  MD5Update(&res_all.res_fs.md5c, (unsigned char *) fname, inc_opts_len + lc->str_len);
+		  MD5Update(&res_all.res_fs.md5c, (unsigned char *)incexe, 
+			    sizeof(INCEXE) + lc->str_len);
 	       }
 	       if (item->code == 0) { /* include */
 		  if (res_all.res_fs.num_includes == res_all.res_fs.include_size) {
 		     res_all.res_fs.include_size += 10;
 		     if (res_all.res_fs.include_array == NULL) {
-			res_all.res_fs.include_array = (char **) malloc(sizeof(char *) * res_all.res_fs.include_size);
+			res_all.res_fs.include_array = (INCEXE **)malloc(sizeof(INCEXE *) * res_all.res_fs.include_size);
 		     } else {
-			res_all.res_fs.include_array = (char **) realloc(res_all.res_fs.include_array,
-			   sizeof(char *) * res_all.res_fs.include_size);
+			res_all.res_fs.include_array = (INCEXE **)realloc(res_all.res_fs.include_array,
+			   sizeof(INCEXE *) * res_all.res_fs.include_size);
 		     }
 		  }
-		  res_all.res_fs.include_array[res_all.res_fs.num_includes++] =    
-		     fname;
+		  res_all.res_fs.include_array[res_all.res_fs.num_includes++] = incexe;
 	       } else { 	       /* exclude */
 		  if (res_all.res_fs.num_excludes == res_all.res_fs.exclude_size) {
 		     res_all.res_fs.exclude_size += 10;
 		     if (res_all.res_fs.exclude_array == NULL) {
-			res_all.res_fs.exclude_array = (char **)malloc(sizeof(char *) * res_all.res_fs.exclude_size);
+			res_all.res_fs.exclude_array = (INCEXE **)malloc(sizeof(INCEXE *) * res_all.res_fs.exclude_size);
 		     } else {
-			res_all.res_fs.exclude_array = (char **)realloc(res_all.res_fs.exclude_array,
-			   sizeof(char *) * res_all.res_fs.exclude_size);
+			res_all.res_fs.exclude_array = (INCEXE **)realloc(res_all.res_fs.exclude_array,
+			   sizeof(INCEXE *) * res_all.res_fs.exclude_size);
 		     }
 		  }
-		  res_all.res_fs.exclude_array[res_all.res_fs.num_excludes++] =    
-		     fname;
+		  res_all.res_fs.exclude_array[res_all.res_fs.num_excludes++] = incexe;
 	       }
 	       break;
 	    default:
@@ -1389,5 +1393,46 @@ static void store_inc(LEX *lc, struct res_items *item, int index, int pass)
    }
    scan_to_eol(lc);
    lc->options = options;
+   set_bit(index, res_all.hdr.item_present);
+}
+
+/* Store FileOptions ApplyTo info */
+static void store_applyto(LEX *lc, struct res_items *item, int index, int pass)
+{
+   int token;
+   char *applyto;
+
+   if (pass == 1) {
+      /* Pickup ApplyTo string
+       */
+      while ((token = lex_get_token(lc, T_ALL)) != T_EOB) {
+	 switch (token) {
+	    case T_COMMA:
+	    case T_EOL:
+	       continue;
+
+	    case T_IDENTIFIER:
+	    case T_UNQUOTED_STRING:
+	    case T_QUOTED_STRING:
+	       applyto = (char *)malloc(lc->str_len + 1);
+	       strcpy(applyto, lc->str);
+	       res_all.res_fo.num_applyto++;
+	       if (res_all.res_fo.applyto == NULL) {
+		  res_all.res_fo.applyto = (char **)malloc(sizeof(char *) * res_all.res_fo.num_applyto);
+	       } else {
+		  res_all.res_fo.applyto = (char **)realloc(res_all.res_fo.applyto,
+		     sizeof(char *) * res_all.res_fo.num_applyto);
+	       }
+	       res_all.res_fo.applyto[res_all.res_fo.num_applyto-1] = applyto;
+	       break;
+	    default:
+               scan_err1(lc, "Expected a filename, got: %s", lc->str);
+	 }				   
+      }
+   } else { /* pass 2 */
+      while (lex_get_token(lc, T_ALL) != T_EOB) 
+	 {}
+   }
+   scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
 }
