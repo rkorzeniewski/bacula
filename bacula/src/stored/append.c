@@ -97,7 +97,12 @@ bool do_append_data(JCR *jcr)
    }
 
    /* Tell File daemon to send data */
-   bnet_fsend(fd_sock, OK_data);
+   if (!bnet_fsend(fd_sock, OK_data)) {
+      berrno be;
+      Jmsg1(jcr, M_FATAL, 0, _("Network send error to FD. ERR=%s\n"),
+	    be.strerror(fd_sock->b_errno));
+      ok = false;
+   }
 
    /* 
     * Get Data from File daemon, write to device.  To clarify what is
@@ -132,7 +137,7 @@ bool do_append_data(JCR *jcr)
 	    break;		      /* end of data */
 	 }
          Jmsg1(jcr, M_FATAL, 0, _("Error reading data header from FD. ERR=%s\n"),
-	    bnet_strerror(ds));
+	       bnet_strerror(ds));
 	 ok = false;
 	 break;
       }
@@ -229,7 +234,7 @@ bool do_append_data(JCR *jcr)
       }
       if (is_bnet_error(ds)) {
          Jmsg1(jcr, M_FATAL, 0, _("Network error on data channel. ERR=%s\n"),
-	    bnet_strerror(ds));
+	       bnet_strerror(ds));
 	 ok = false;
 	 break;
       }
@@ -250,7 +255,7 @@ bool do_append_data(JCR *jcr)
    if (ok || dev_can_write(dev)) {
       if (!write_session_label(dcr, EOS_LABEL)) {
          Jmsg1(jcr, M_FATAL, 0, _("Error writting end session label. ERR=%s\n"),
-	     strerror_dev(dev));
+	       strerror_dev(dev));
 	 set_jcr_job_status(jcr, JS_ErrorTerminated);
 	 ok = false;
       }

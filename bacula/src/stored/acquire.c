@@ -132,6 +132,7 @@ DCR *acquire_device_for_read(JCR *jcr)
    bstrncpy(dcr->VolumeName, vol->VolumeName, sizeof(dcr->VolumeName));
 
    for (i=0; i<5; i++) {
+      dcr->dev->state &= ~ST_LABEL;	      /* force reread of label */
       if (job_canceled(jcr)) {
          Mmsg1(dev->errmsg, _("Job %d canceled.\n"), jcr->JobId);
 	 goto get_out;		      /* error return */
@@ -144,6 +145,9 @@ DCR *acquire_device_for_read(JCR *jcr)
       for ( ; !(dev->state & ST_OPENED); ) {
          Dmsg1(120, "bstored: open vol=%s\n", dcr->VolumeName);
 	 if (open_dev(dev, dcr->VolumeName, OPEN_READ_ONLY) < 0) {
+	    if (dev->dev_errno == EIO) {   /* no tape loaded */
+	       goto default_path;
+	    }
             Jmsg(jcr, M_FATAL, 0, _("Open device %s volume %s failed, ERR=%s\n"), 
 		dev_name(dev), dcr->VolumeName, strerror_dev(dev));
 	    goto get_out;
@@ -154,7 +158,6 @@ DCR *acquire_device_for_read(JCR *jcr)
        *  correctly possitioned.  Possibly have way user can turn
        *  this optimization (to be implemented) off.
        */
-      dcr->dev->state &= ~ST_LABEL;	      /* force reread of label */
       Dmsg0(200, "calling read-vol-label\n");
       switch (read_dev_volume_label(dcr)) {
       case VOL_OK:
