@@ -136,7 +136,7 @@ int generate_event(JCR *jcr, const char *event)
  */
 
 int generate_event(JCR *jcr, const char *event) { return 0; }
-void init_python_interpreter(char *progname) { }
+void init_python_interpreter(const char *progname, const char *scripts) { }
 void term_python_interpreter() { }
 
 

@@ -23,6 +23,21 @@ For 1.36.1:
 #6   Select one from among Multiple Storage Devices for Job
 #7   Single Job Writing to Multiple Storage Devices
 
+Regression tests:
+- Add Pool/Storage override regression test.
+- Add delete JobId to regression.
+- Add a regression test for dbcheck.  
+- New test to add bscan to four-concurrent-jobs regression,
+  i.e. after the four-concurrent jobs zap the
+  database as is done in the bscan-test, then use bscan to
+  restore the database, do a restore and compare with the
+  original.
+- Add restore of specific JobId to regression (item 3
+  on the restore prompt)
+- Add IPv6 to regression
+- Add database test to regression. Test each function like delete,
+  purge, ...
+
 
 1.37 Possibilities:
 - Require restore via the restore command or make a restore Job
@@ -41,7 +56,6 @@ For 1.36.1:
 - Implement a Pool of type Cleaning?
 - Implement VolReadTime and VolWriteTime in SD
 - Modify Backing up Your Database to include a bootstrap file.
-- Add restore of specific JobId to regression.
 - Think about making certain database errors fatal.
 - Look at correcting the time jump in the sceduler for daylight
   savings time changes.
@@ -62,12 +76,8 @@ For 1.36.1:
 - Implement Total Bytes Written, ... for restore job.
 - Check dates entered by user for correctness (month/day/... ranges)
 - Compress restore Volume listing by date and first file.
-- Add Pool/Storage override regression test.
-- Add delete JobId to regression.
-- Add bscan to four-concurrent-jobs regression.
 - Look at patches/bacula_db.b2z postgresql that loops during restore.
   See Gregory Wright.
-- Add IPv6 to regression
 - Perhaps add read/write programs and/or plugins to FileSets.
 - How to handle backing up portables ...
 - Add some sort of guaranteed Interval for upgrading jobs.
@@ -122,8 +132,6 @@ For 1.37 Testing/Documentation:
 - Add a read-only mode to the mount option.
 - Allow Simultaneous Priorities = yes  => run up to Max concurrent jobs even
   with multiple priorities.
-- Add db check test to regression. Test each function like delete,
-  purge, ...
 - If you use restore replace=never, the directory attributes for
   non-existent directories will not be restored properly.
 
@@ -252,7 +260,6 @@ For 1.37 Testing/Documentation:
    creation date of files, we can be evensmarter about this and not count
    entirely upon the length.On a restore, the full and all incrementals
    since it will beapplied in sequence to restore the file.  
-- Add a regression test for dbcheck.  
 - Allow for optional cancelling of SD and FD in case DIR
   gets a fatal error. Requested by Jesse Guardiani <jesse@wingnet.net>
 - Add "limit=n" for "list jobs"
