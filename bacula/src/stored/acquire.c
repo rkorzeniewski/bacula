@@ -100,11 +100,11 @@ int acquire_device_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	  *  error messages when nothing is mounted.
 	  */
 	 if (tape_previously_mounted) {
-            Jmsg1(jcr, M_WARNING, 0, "%s", jcr->errmsg);                         
+            Jmsg(jcr, M_WARNING, 0, "%s", jcr->errmsg);                         
 	 }
 	 goto default_path;
       default:
-         Jmsg1(jcr, M_WARNING, 0, "%s", jcr->errmsg);
+         Jmsg(jcr, M_WARNING, 0, "%s", jcr->errmsg);
 default_path:
 	 tape_previously_mounted = 1;
 	 if (autochanger) {
