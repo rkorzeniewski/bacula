@@ -309,6 +309,7 @@ static void terminate_btape(int stat)
       free_block(this_block);
    }
 
+   stop_watchdog();
    term_msg();
    close_memory_pool(); 	      /* free memory in pool */
 
@@ -349,7 +350,7 @@ void quitcmd()
 static void labelcmd()
 {
    if (VolumeName) {
-      pm_strcpy(&cmd, VolumeName);
+      pm_strcpy(cmd, VolumeName);
    } else {
       if (!get_cmd("Enter Volume Name: ")) {
 	 return;
@@ -646,6 +647,7 @@ static int re_read_block_test()
       "tape to verify that the block was written correctly.\n\n"
       "This is not an *essential* feature ...\n\n")); 
    rewindcmd();
+   empty_block(block);
    rec = new_record();
    rec->data = check_pool_memory_size(rec->data, block->buf_len);
    len = rec->data_len = block->buf_len-100;
@@ -754,7 +756,7 @@ static int write_read_test()
       "then write 1000 records and an EOF, then rewind,\n"     
       "and re-read the data to verify that it is correct.\n\n"
       "This is an *essential* feature ...\n\n")); 
-   block = new_block(dev);
+   block = dcr->block;
    rec = new_record();
    if (!rewind_dev(dev)) {
       Pmsg1(0, "Bad status from rewind. ERR=%s\n", strerror_dev(dev));
@@ -836,7 +838,6 @@ read_again:
    stat = 1;
 
 bail_out:
-   free_block(block);
    free_record(rec);
    return stat;
 }
@@ -848,7 +849,7 @@ bail_out:
  */
 static int position_test()
 {
-   DEV_BLOCK *block;
+   DEV_BLOCK *block = dcr->block;
    DEV_RECORD *rec;
    int stat = 0;
    int len, i, j;
@@ -862,7 +863,7 @@ static int position_test()
       "then write 1000 records and an EOF, then rewind,\n"     
       "and position to a few blocks and verify that it is correct.\n\n"
       "This is an *essential* feature ...\n\n")); 
-   block = new_block(dev);
+   empty_block(block);
    rec = new_record();
    if (!rewind_dev(dev)) {
       Pmsg1(0, "Bad status from rewind. ERR=%s\n", strerror_dev(dev));
@@ -987,7 +988,6 @@ read_again:
    stat = 1;
 
 bail_out:
-   free_block(block);
    free_record(rec);
    return stat;
 }
@@ -1160,8 +1160,12 @@ try_again:
    if (!open_the_device()) {
       goto bail_out;
    }
+   /*  
+    * Start with sleep_time 0 then increment by 30 seconds if we get
+    * a failure.
+    */
    bmicrosleep(sleep_time, 0);
-   if (!rewind_dev(dev)) {
+   if (!rewind_dev(dev) || weof_dev(dev,1) < 0) {
       Pmsg1(0, "Bad status from rewind. ERR=%s\n", strerror_dev(dev));
       clrerror_dev(dev, -1);
       Pmsg0(-1, "\nThe test failed, probably because you need to put\n"
@@ -1460,7 +1464,10 @@ static void wrcmd()
    int i;
 
    sm_check(__FILE__, __LINE__, false);
-   dump_block(block, "test");
+   empty_block(block);
+   if (verbose > 1) {
+      dump_block(block, "test");
+   }
 
    i = block->buf_len - 100;
    ASSERT (i > 0);
@@ -1596,13 +1603,13 @@ static void scan_blocks()
    int blocks, tot_blocks, tot_files;
    uint32_t block_size;
    uint64_t bytes;
-   DEV_BLOCK *block;
+   DEV_BLOCK *block = dcr->block;
    char ec1[50];
 
-   block = new_block(dev);
    blocks = block_size = tot_blocks = 0;
    bytes = 0;
 
+   empty_block(block);
    update_pos_dev(dev);
    tot_files = dev->file;
    for (;;) {
@@ -1666,7 +1673,6 @@ static void scan_blocks()
 
    }
 bail_out:
-   free_block(block);
    tot_files = dev->file - tot_files;
    printf("Total files=%d, blocks=%d, bytes = %s\n", tot_files, tot_blocks, 
       edit_uint64_with_commas(bytes, ec1));
