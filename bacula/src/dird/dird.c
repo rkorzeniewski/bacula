@@ -390,7 +390,11 @@ Without that I don't know who I am :-(\n"), configfile);
 		  cr.MinValue = counter->MinValue;
 		  cr.MaxValue = counter->MaxValue;
 		  cr.CurrentValue = counter->MinValue;
-		  bstrncpy(cr.WrapCounter, counter->WrapCounter->hdr.name, sizeof(cr.WrapCounter));
+		  if (counter->WrapCounter) {
+		     bstrncpy(cr.WrapCounter, counter->WrapCounter->hdr.name, sizeof(cr.WrapCounter));
+		  } else {
+		     cr.WrapCounter[0] = 0;  /* empty string */
+		  }
 		  if (db_create_counter_record(NULL, db, &cr)) {
 		     counter->CurrentValue = cr.CurrentValue;
 		     counter->created = true;

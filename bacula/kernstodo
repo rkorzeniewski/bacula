@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                 3 September 2003 
+                 9 September 2003 
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -34,10 +34,14 @@ For 1.32:
   scan 1; scan 1-5; scan 1,2,4 ...  to update the catalog 
 - Allow a slot or range of slots on the label barcodes command.
   when the magazine is changed.
-- Figure out what is interrupting sql command in console.
 - Don't print "Warning: Wrong Volume mounted ..." if mounting second
   volume.
 - Implement List Volume Job=xxx  or List scheduled volumes or Status Director 
+   
+
+For 1.33
+- If pool specified to label command and Label Format is specified,
+  automatically generate the Volume name.
 - Take a careful look a the Basic recycling algorithm.  When Bacula
   chooses, the order should be:
    - Look for Append
@@ -52,9 +56,7 @@ For 1.32:
 
   Define a "available" status, which is the currently mounted 
   Volume and all volumes that are currently in the autochanger.
-   
 
-For 1.33
 - Why can't SQL do the filename sort for restore?
 - Is a pool specification really needed for a restore?  Yes, and
   you may want to exclude archive Pools.
@@ -890,3 +892,7 @@ Done: (see kernsdone for more)
 - Specify list of files to restore
 - Implement ClientRunBeforeJob and ClientRunAfterJob.
 - Make | and < work on FD side.
+- Check to see if "blocked" is set during restore.
+- Figure out what is interrupting sql command in console.
+- Make new job print warning User Unmounted Tape.
+
