@@ -89,6 +89,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
       /*
        * Find the Next Volume for Append
        */
+      db_lock(jcr->db);
       for ( ;; ) {
          strcpy(mr.VolStatus, "Append");  /* want only appendable volumes */
 	 ok = db_find_next_volume(jcr, jcr->db, index, &mr);  
@@ -155,6 +156,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
 	 }
 	 break;
       } /* end for loop */
+      db_unlock(jcr->db);
 
       /*
        * Send Find Media response to Storage daemon 
@@ -245,6 +247,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
       &sdmr.VolWrites, &sdmr.MaxVolBytes, &sdmr.LastWritten, &sdmr.VolStatus, 
       &sdmr.Slot, &relabel) == 14) {
 
+      db_lock(jcr->db);
       Dmsg3(400, "Update media %s oldStat=%s newStat=%s\n", sdmr.VolumeName,
 	 mr.VolStatus, sdmr.VolStatus);
       bstrncpy(mr.VolumeName, sdmr.VolumeName, sizeof(mr.VolumeName)); /* copy Volume name */
@@ -253,6 +256,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
          Jmsg(jcr, M_ERROR, 0, _("Unable to get Media record for Volume %s: ERR=%s\n"),
 	      mr.VolumeName, db_strerror(jcr->db));
          bnet_fsend(bs, "1991 Catalog Request failed: %s", db_strerror(jcr->db));
+	 db_unlock(jcr->db);
 	 return;
       }
       /* Set first written time if this is first job */
@@ -323,6 +327,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
          bnet_fsend(bs, "1992 Update Media error\n");
          Dmsg0(190, "send error\n");
       }
+      db_unlock(jcr->db);
 
    /*
     * Request to create a JobMedia record

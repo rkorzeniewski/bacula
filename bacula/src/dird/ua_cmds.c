@@ -57,8 +57,8 @@ extern int retentioncmd(UAContext *ua, char *cmd);
 extern int prunecmd(UAContext *ua, char *cmd);
 extern int purgecmd(UAContext *ua, char *cmd);
 extern int restorecmd(UAContext *ua, char *cmd);
-extern int labelcmd(UAContext *ua, char *cmd);
-extern int relabelcmd(UAContext *ua, char *cmd);
+extern int label_cmd(UAContext *ua, char *cmd);
+extern int relabel_cmd(UAContext *ua, char *cmd);
 extern int update_slots(UAContext *ua);  /* ua_label.c */
 
 /* Forward referenced functions */
@@ -94,7 +94,7 @@ static struct cmdstruct commands[] = {
  { N_("estimate"),   estimate_cmd,  _("performs FileSet estimate debug=1 give full listing")},
  { N_("exit"),       quit_cmd,      _("exit = quit")},
  { N_("help"),       help_cmd,      _("print this command")},
- { N_("label"),      labelcmd,      _("label a tape")},
+ { N_("label"),      label_cmd,     _("label a tape")},
  { N_("list"),       listcmd,       _("list [pools | jobs | jobtotals | media <pool> | files job=<nn>]; from catalog")},
  { N_("llist"),      llistcmd,      _("full or long list like list command")},
  { N_("messages"),   messagescmd,   _("messages")},
@@ -103,7 +103,7 @@ static struct cmdstruct commands[] = {
  { N_("purge"),      purgecmd,      _("purge records from catalog")},
  { N_("query"),      querycmd,      _("query catalog")},
  { N_("quit"),       quit_cmd,      _("quit")},
- { N_("relabel"),    relabelcmd,    _("relabel a tape")},
+ { N_("relabel"),    relabel_cmd,   _("relabel a tape")},
  { N_("release"),    release_cmd,   _("release <storage-name>")},
  { N_("restore"),    restorecmd,    _("restore files")},
  { N_("run"),        runcmd,        _("run <job-name>")},
@@ -668,11 +668,12 @@ static void update_volstatus(UAContext *ua, char *val, MEDIA_DBR *mr)
 static void update_volretention(UAContext *ua, char *val, MEDIA_DBR *mr)
 {
    char ed1[50];
-   POOLMEM *query = get_pool_memory(PM_MESSAGE);
+   POOLMEM *query;
    if (!duration_to_utime(val, &mr->VolRetention)) {
-      bsendmsg(ua, _("Invalid retention period specified.\n"));
+      bsendmsg(ua, _("Invalid retention period specified: %s\n"), val);
       return;
    }
+   query = get_pool_memory(PM_MESSAGE);
    Mmsg(&query, "UPDATE Media SET VolRetention=%s WHERE MediaId=%u",
       edit_uint64(mr->VolRetention, ed1), mr->MediaId);
    if (!db_sql_query(ua->db, query, NULL, NULL)) {  
@@ -687,12 +688,12 @@ static void update_volretention(UAContext *ua, char *val, MEDIA_DBR *mr)
 static void update_voluseduration(UAContext *ua, char *val, MEDIA_DBR *mr)
 {
    char ed1[50];
-   POOLMEM *query = get_pool_memory(PM_MESSAGE);
+   POOLMEM *query;
+
    if (!duration_to_utime(val, &mr->VolUseDuration)) {
-      bsendmsg(ua, _("Invalid use duration specified.\n"));
+      bsendmsg(ua, _("Invalid use duration specified: %s\n"), val);
       return;
    }
-   query = get_pool_memory(PM_MESSAGE);
    Mmsg(&query, "UPDATE Media SET VolUseDuration=%s WHERE MediaId=%u",
       edit_uint64(mr->VolUseDuration, ed1), mr->MediaId);
    if (!db_sql_query(ua->db, query, NULL, NULL)) {  
@@ -734,11 +735,13 @@ static void update_volmaxbytes(UAContext *ua, char *val, MEDIA_DBR *mr)
 {
    uint64_t maxbytes;
    char ed1[50];
-   POOLMEM *query = get_pool_memory(PM_MESSAGE);
+   POOLMEM *query;
+
    if (!size_to_uint64(val, strlen(val), &maxbytes)) {
-      bsendmsg(ua, _("Invalid byte size specification.\n"));
+      bsendmsg(ua, _("Invalid max. bytes specification: %s\n"), val);
       return;
    } 
+   query = get_pool_memory(PM_MESSAGE);
    Mmsg(&query, "UPDATE Media SET MaxVolBytes=%s WHERE MediaId=%u",
       edit_uint64(maxbytes, ed1), mr->MediaId);
    if (!db_sql_query(ua->db, query, NULL, NULL)) {  
@@ -752,7 +755,7 @@ static void update_volmaxbytes(UAContext *ua, char *val, MEDIA_DBR *mr)
 static void update_volrecycle(UAContext *ua, char *val, MEDIA_DBR *mr)
 {
    int recycle;
-   POOLMEM *query = get_pool_memory(PM_MESSAGE);
+   POOLMEM *query;
    if (strcasecmp(val, _("yes")) == 0) {
       recycle = 1;
    } else if (strcasecmp(val, _("no")) == 0) {
@@ -761,6 +764,7 @@ static void update_volrecycle(UAContext *ua, char *val, MEDIA_DBR *mr)
       bsendmsg(ua, _("Invalid value. It must by yes or no.\n"));
       return;
    }
+   query = get_pool_memory(PM_MESSAGE);
    Mmsg(&query, "UPDATE Media SET Recycle=%d WHERE MediaId=%u",
       recycle, mr->MediaId);
    if (!db_sql_query(ua->db, query, NULL, NULL)) {  
@@ -790,6 +794,7 @@ static int update_volume(UAContext *ua)
       N_("VolUse"),
       N_("MaxVolJobs"),
       N_("MaxVolFiles"),
+      N_("MaxVolBytes"),
       N_("Recycle"),
       NULL };
 
@@ -797,10 +802,29 @@ static int update_volume(UAContext *ua)
       return 0;
    }
    for (int i=0; kw[i]; i++) {
-      if (find_arg_with_value(ua, kw[i]) > 0) {
+      int j;
+      if ((j=find_arg_with_value(ua, kw[i])) > 0) {
 	 switch (i) {
 	 case 0:
-	    update_volstatus(ua, ua->argv[i], &mr);
+	    update_volstatus(ua, ua->argv[j], &mr);
+	    break;
+	 case 1:
+	    update_volretention(ua, ua->argv[j], &mr);
+	    break;
+	 case 2:
+	    update_voluseduration(ua, ua->argv[j], &mr);
+	    break;
+	 case 3:
+	    update_volmaxjobs(ua, ua->argv[j], &mr);
+	    break;
+	 case 4:
+	    update_volmaxfiles(ua, ua->argv[j], &mr);
+	    break;
+	 case 5:
+	    update_volmaxbytes(ua, ua->argv[j], &mr);
+	    break;
+	 case 6:
+	    update_volrecycle(ua, ua->argv[j], &mr);
 	    break;
 	 }
 	 done = true;

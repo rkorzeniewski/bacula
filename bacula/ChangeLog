@@ -1,5 +1,12 @@
 
 2003-07-xx Version 1.31 Beta xxJul03
+- Lock database while recycling.
+- Fix a bug in editing since where I forgot to update to the new size.  
+- Implement all the command line update arguments.
+- Modify label to use volume=xxx for the new volume and oldvolume=yyy
+  if doing a relable.
+- Added yes to run command line arguments.
+- Clear errno in editing a string to utime.
 - In restore print only volumes that will actually be used.
 - Fix bextract -- add appropriate breaks in new case code.
 - Add a new test -- bsr-opt-test for testing bsr optimization. As usual,
