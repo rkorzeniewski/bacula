@@ -1,3 +1,70 @@
+Changes to 1.35.2
+30Aug04
+- Inhibit printing of FileSet for a restore as it is misleading.
+- Cleaned up a number of minor scripting problems with the CDROM
+  creation.
+- Fixed a race condition causing a Director crash on termination,
+  if a large number of SIGHUPs were sent during a multiple concurrent
+  set of backups.
+28Aug04
+- Completed integration of Rescue CD scripts with Bacula source.
+28Aug04
+- Added Ignore FileSet Changes = yes
+- Added more error checking to the spooling code.
+24Aug04
+- Applied a patch from Peter Eriksson that removes a dynamic stack
+  allocation (replaced by alloca) and fixes some const problems.
+- Fixed a free() of a static variable in the new IP code bnet.c
+- Got the new Bacula Rescue CDROM booting.
+- Replaced a dynamic template by a simple store when using the
+  native C compiler.
+- Reworked some of the block.c error handling.
+- Changed a Dmsgx(000, to Dmsgx(100 in dev.c that was dumping
+  debug output on a user.
+- Integrated patch from 1.34.6 block.c to 1.35
+17Aug04
+- Fix conio.c problem on Solaris.
+- Add debug code to lock_jcr_chain().
+- Lock jcr chain around less code.
+- Implement call by reference for Mmsg() and pm_strxxx() to
+  simplify calls.
+- New IP address specification is used as follows:
+    [sdaddresses|diraddresses|fdaddresses] = { [[ip|ipv4|ipv6] = { 
+           [[addr|port] = [^ ]+[\n;]+] }] }
+
+  so it could look for example like this:
+     SDaddresses  = { ip = {
+            addr = 1.2.3.4; port = 1205; }
+        ipv4 = {
+            addr = 1.2.3.4; port = http; }
+        ipv6 = {
+            addr = 1.2.3.4;
+            port = 1205;
+        }
+        ip = {
+            addr = 1.2.3.4
+            port = 1205
+        }
+        ip = {
+            addr = 1.2.3.4
+        }
+        ip = {
+            addr = 2001:220:222::2
+        }
+        ip = {
+            addr = bluedot.thun.net
+        }
+     }
+  as a consequence, you can now specify multiple IP addresses and
+  ports to be used. In the case of a server, it will listen on
+  all those that you specify. In the case of connecting to the server,
+  Bacula will attempt connecting to one at a time until it succeeds.
+  And, in a few other special cases, Bacula will use only the first
+  address specified.
+
+  The default port numbers are still the same and the services and hosts 
+  are also resolved by name. So now  you could use the real names for the 
+  port numbers.
 
 Changes to 1.35.1:
 14Aug04
