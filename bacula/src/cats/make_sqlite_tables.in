@@ -147,13 +147,15 @@ INSERT INTO Version (VersionId) VALUES (2);
 
 CREATE TABLE Counters (
    Counter TEXT NOT NULL,     
-   PoolId INTEGER UNSIGNED REFERENCES Pool NOT NULL,
+   PoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
    MinValue INTEGER DEFAULT 0, 
    MaxValue INTEGER DEFAULT 0,
    CurrentValue INTEGER DEFAULT 0,
    WrapCounter TEXT NOT NULL,
    PRIMARY KEY (Counter)
    );
+
+PRAGMA default_synchronous=OFF;
 
 END-OF-DATA
 exit 0

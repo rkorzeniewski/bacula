@@ -107,6 +107,9 @@ ClientId=%d, JobTDate=%s WHERE JobId=%d",
       (char)(jr->Level), dt, jr->ClientId, edit_uint64(JobTDate, ed1), jr->JobId);
    stat = UPDATE_DB(mdb, mdb->cmd);
    db_unlock(mdb);
+#ifdef HAVE_SQLITE
+   my_sqlite_query(mdb, "BEGIN");     /* begin transaction */
+#endif
    return stat;
 }
 
@@ -143,6 +146,9 @@ VolSessionTime=%d, PoolId=%d, FileSetId=%d, JobTDate=%s WHERE JobId=%d",
       jr->PoolId, jr->FileSetId, edit_uint64(JobTDate, ed2), jr->JobId);
 
    stat = UPDATE_DB(mdb, mdb->cmd);
+#ifdef HAVE_SQLITE
+   my_sqlite_query(mdb, "COMMIT");    /* end transaction */
+#endif
    db_unlock(mdb);
    return stat;
 }

@@ -148,14 +148,13 @@ CREATE TABLE Version (
 -- Initialize Version		 
 INSERT INTO Version (VersionId) VALUES (2);
 
-CREATE TABLE Counters {
+CREATE TABLE Counters (
    Counter TINYBLOB NOT NULL,
-   PoolId INTEGER UNSIGNED REFERENCES Pool NOT NULL,
+   PoolId INTEGER UNSIGNED NOT NULL REFERENCES Pool,
    MinValue INTEGER,
    MaxValue INTEGER,
    CurrentValue INTEGER,
-   WrapCounter TINYBLOB NOT NULL,
-   PRIMARY KEY (Counter)
+   WrapCounter TINYBLOB NOT NULL
    );
 
 ## Experimental
