@@ -15,31 +15,25 @@ Testing to do: (painful)
 - blocksize recognition code.
 - multiple simultaneous Volumes
 
+- Figure out how to use ssh or stunnel to protect Bacula communications.
+
+
 For 1.31 release:
+- Fix "access not allowed" for backup of files on WinXP.
 - Check for existence of all new Win32 API's.  See LoadLibrary in 
   winservice.cpp
-- Fix Dir heartbeat in restore and verify vol.  Be sure to make
-  bnet_recv() ignore BNET_HEARTBEAT.
+- Add Progress command that periodically reports the progress of
+  a job or all jobs.
 - Fix problem reported by Christopher McCurdy <cmccurdy@eecis.udel.edu>
    xeon-fd:      Could not stat c:/Documents and Settings/All 
    Users/Application Data/Humc:\Documents and Settings\All User98_AIX.kbf: 
    ERR=No such file or directory
-
 - Examine Bare Metal restore problem.
 - Test multiple simultaneous Volumes
 - Document FInclude ...
-
 - Test and implement get_pint and get_yesno.
 - Implement timeout in response() when it should come quickly.
-
-- Figure out how to use ssh or stunnel to protect Bacula communications.
-
-- Fix command prompt in gnome-console by checking on Ready.
-- Implement HEART_BEAT while SD waiting for tapes.
-- Include RunBeforeJob and RunAfterJob output in the message
-  stream.
 - Check if Job/File retentions apply to multivolume jobs.
-- Change M_INFO to M_RESTORED for all restored files.
 - Remove subsysdir from conf files (used only in autostart scripts).
 - Implement console @echo command.
 - Implement global with DB name and add to btraceback.gdb
@@ -57,8 +51,7 @@ For 1.31 release:
 - Implement all command line args on run.
 - Implement command line "restore" args.
 - Implement "restore current select=no"
-- Fix watchdog pthread crash on Win32
-- Fix "access not allowed" for backup of files on WinXP.
+- Fix watchdog pthread crash on Win32 (this is pthread_kill() Cygwin bug)
 - Implement "scratch pool" where tapes are defined and can be
   taken by any pool that needs them.
 - Implement restore "current system", but take all files without
@@ -85,7 +78,7 @@ For 1.31 release:
 - Allow multiple Storage specifications (or multiple names on
   a single Storage specification) in the Job record. Thus a job 
   can be backed up to a number of storage devices.
-- Implement dump label to UA
+- Implement dump/print label to UA
 - Add prefixlinks to where or not where absolute links to FD.
 - Look at Python for a Bacula scripting language -- www.python.org
 - Issue message to mount a new tape before the rewind.
@@ -307,7 +300,6 @@ Longer term to do:
 - Identify unchanged or "system" files and save them to a
   special tape thus removing them from the standard 
   backup FileSet -- BASE backup.
-- Heartbeat between daemons.
 - Audit M_ error codes to ensure they are correct and consistent.
 - Add variable break characters to lex analyzer.
   Either a bit mask or a string of chars so that
@@ -331,10 +323,11 @@ Longer term to do:
 Projects:
             Bacula Projects Roadmap 
                17 August 2002
-           last update 5 January 2003
+           last update 8 May 2003
 
 Item 1:   Multiple simultaneous Jobs. (done)
 Done -- Restore part needs better implementation to work correctly
+        Also, it needs considerable testing
 
   What:   Permit multiple simultaneous jobs in Bacula.
 
@@ -463,6 +456,7 @@ Item 8:   GUI for interactive backup
 
 
 Item 9:   Add SSL to daemon communications.
+Inprogress as of version 1.31.
 
   What:   This provides for secure communications between the daemons.
 
@@ -561,22 +555,6 @@ Need:
   the Base job.  The Base Job record will be fetched to get the
   VolSessionId and VolSessionTime.
 =========================================================  
-
-========================================================== 
-    Unsaved File design
-For each Incremental job that is run, there may be files that
-were found but not saved because they were locked (this applies
-only to Windows). Such a system could send back to the Director
-a list of Unsaved files.
-Need:
-- New UnSavedFiles table that contains:
-  JobId
-  PathId
-  FilenameId
-- Then in the next Incremental job, the list of Unsaved Files will be
-  feed to the FD, who will ensure that they are explicitly chosen even
-  if standard date/time check would not have selected them.
-=============================================================
 
   
 
@@ -739,260 +717,34 @@ Results:
   After implementing the above, the user will be able to specify
   on a file by file basis (using regular expressions) what options are
   applied for the backup.
-====================================
-
-=========================================
-Proposal by Bill Sellers
-
-Return-Path: <w.a.sellers@larc.nasa.gov>
-Received: from post.larc.nasa.gov (post.larc.nasa.gov [128.155.4.45]) by matou.sibbald.com (8.11.6/8.11.6) with ESMTP id h0ELUIm07622 for <kern@sibbald.com>; Tue, 14 Jan 2003 22:30:18 +0100
-Received: from Baron.larc.nasa.gov (baron.larc.nasa.gov [128.155.40.132]) by post.larc.nasa.gov (pohub4.6) with ESMTP id QAA09768 for <kern@sibbald.com>; Tue, 14 Jan 2003 16:30:14 -0500 (EST)
-Message-Id: <5.1.0.14.2.20030114153452.028dbae8@pop.larc.nasa.gov>
-X-Sender: w.a.sellers@pop.larc.nasa.gov
-X-Mailer: QUALCOMM Windows Eudora Version 5.1
-Date: Tue, 14 Jan 2003 16:30:18 -0500
-To: Kern Sibbald <kern@sibbald.com>
-From: Bill Sellers <w.a.sellers@larc.nasa.gov>
-Subject: Re: [Bacula-users] Bacula remote storage?
-In-Reply-To: <1042565382.1845.177.camel@rufus>
-References: <5.1.0.14.2.20030114113004.0293a210@pop.larc.nasa.gov> <5.1.0.14.2.20030113170650.028dad88@pop.larc.nasa.gov> <5.1.0.14.2.20030113170650.028dad88@pop.larc.nasa.gov> <5.1.0.14.2.20030114113004.0293a210@pop.larc.nasa.gov>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
-X-Annoyance-Filter-Junk-Probability: 0
-X-Annoyance-Filter-Classification: Mail
-At 06:29 PM 1/14/2003 +0100, you wrote:
->Hello Bill,
->
->Well, if you cannot put a Bacula client on the machine,
->then it is a big problem.  If you know of some software
->that can do what you want, let me know, because I
->really just don't know how to do it -- at least not
->directly.
-
-
-Hi Kern,
-
-We have been able to get Amanda to use the HSM as a storage 
-device.  Someone here wrote a driver for Amanda.  BUT, Amanda doesn't 
-handle Windows systems very well (or at all without Samba).  So I am 
-looking for a backup system that has a Windows client.  I really like the 
-Windows integration of Bacula.
-
-From the command line, its rather trivial to move the data around.  We use 
-something like-
-
-tar cf - ./files | gzip -c | rsh hsm dd of=path/file.tgz
-
-or if you use GNU tar:
-
-tar czf hsm:path/file.tgz ./files
-
-One idea for you to consider; Sendmail offers pipes in the aliases file; 
-(mailpipe:  "|/usr/bin/vacation root")  and Perl supports pipes in the 
-"open" statement (open FILE, "|/bin/nroff -man";)  Could you could make a 
-pipe available, as a storage device? Then we could use any command that 
-handles stdin as a  storage destination.
-
-Something like-
-
-Storage {
-        Name = HSM-RSH
-        Address = hsm
-        #Password is not used in rsh, but might be used in ftp.
-        Device = "| gzip -c | rsh hsm dd of=path/file.tgz"
-        MediaType = Pipe
-}
-
-Storage {
-        Name = HSM-FTP
-        Address = hsm
-        Password = "foobar&-"
-        Device = "| ncftpput -c hsm /path/file.bacula"
-        MediaType = Pipe
-}
-
->If you have some local storage available, you could
->use Bacula to backup to disk volumes, then use some
->other software (ftp, scp) to move them to the HSM
->machine. However, this is a bit kludgy.
-
-
-It is, but maybe worth a try.  Is there some function in Bacula to put 
-variables in filenames?  i.e. backup.2003-01-15.root
-
-Thanks!
-Bill
-
----
-Bill Sellers
-w.a.sellers@larc.nasa.gov
-
-==============================================
-   The Project for the above
-
-I finally realized that this is not at all
-the same as reader/writer programs or plugins,
-which are alternate ways of accessing the 
-files to be backed up. Rather, it is an alternate
-form of storage device, and I have always planned
-that Bacula should be able to handle all sorts
-of storage devices.
-
-So, I propose the following phases:
-
-1. OK from you to invest some time in testing
-   this as I implement it (requires that you
-   know how to download from the SourceForge
-   cvs -- which I imagine is a piece of cake
-   for you).
-
-2. Dumb implementation by allowing a device to
-   be a fifo for write only.
-   Reason: easy to implement, proof of concept.
-
-3. Try reading from fifo but with fixed block
-   sizes.
-   Reason: proof of concept, easy to implement.
-
-4. Extend reading from fifo (restores) to handle
-   variable blocks.
-   Reason: requires some delicate low level coding
-   which could destabilize all of Bacula.
-
-5. Implementation of above but to a program. E.g.
-    Device = "|program"  (not full pipeline).
-   Reason: routines already exist, and program can
-   be a shell script which contains anything.
-
-6. Add full pipeline as a possibility. E.g.
-    Device = "| gzip -c | rsh hsm dd of=path/file.tgz"
-   Reason: needs additional coding to implement full
-   pipeline (must fire off either a shell or all
-   programs and connect their pipes).
-
-There are a good number of details in each step
-that I have left out, but I will specify them at
-every stage, and there may be a few changes as things
-evolve. I expect that to get to stage 5 will take a
-few weeks, and at that point, you will have 
-everything you need (just inside a script).
-Stage 6 will probably take longer, but if this
-project pleases you, what we do for 5 should 
-be adequate for some time.
-
 
 
 =============================================
 
+========================================================== 
+    Unsaved File design
+For each Incremental job that is run, there may be files that
+were found but not saved because they were locked (this applies
+only to Windows). Such a system could send back to the Director
+a list of Unsaved files.
+Need:
+- New UnSavedFiles table that contains:
+  JobId
+  PathId
+  FilenameId
+- Then in the next Incremental job, the list of Unsaved Files will be
+  feed to the FD, who will ensure that they are explicitly chosen even
+  if standard date/time check would not have selected them.
+=============================================================
+
+
 Done: (see kernsdone for more)
-- Look into Pruning/purging problems or why there seem to
-  be so many files listed each night.
-- Fix cancel in find_one -- need jcr.
-- Cancel does not work for restore in FD.
-- Write SetJobStatus() function so cancel status not lost.
-- Add include list to end of chain in findlib
-- Zap sd_auth_key after use
-- Add Bar code reading capabilities (new mtx-changer)
-- Figure out some way to automatically backup all local partitions
-- Make hash table for linked files in findlib/find_one.c:161
-  (not necessary)
-- Rewrite find_one.c to use only pool_memory instead of 
-  alloca and malloc (probably not necessary).
-- Make sure btraceback goes into /sbin not sysconf directory.
-- InitVerify is getting pruned and it shouldn't (document it)
-- Make 1.28c release ??? NO do 1.29 directly
-- Set timeout on opening fifo for save or restore (findlib)
-- Document FIFO storage device.
-- Document fifo and | and <
-====== 1.30 =======
-- Implement SHA1
-- Get correct error status from run_program or open_bpipe().    
-- Restrict permissions on File Volumes (now 0640).                   
-- Umasked 022 daemons
-- Fix restore of hard linked file.
-- Figure out how to allow multiple simultaneous file Volumes on a single device.
-- Implement multiple simultaneous file Volumes on a single device.
-- Cleanup db_update_media and db_update_pool
-- Flush all the daemon messages at the end of every job.
-- Change stat1= fgets()!=NULL to stat1=fgest()==NULL; in 
-  run_program -- bpipe.c
-- Apparently cancel does not work for jobs waiting to be
-  scheduled.
-- Implement TCP/IP connection for MySQL
-- Pull a canceled job from the Scheduling queue.
-- Implement max_file_size in block.c (already done, just tweaked).
-- Look at purge jobs volume (at least document it, and see if it is
-  logical).
-- Add list volumes does all pools. list volumes pool=xxx now works.
-- Add pool= to "list media" in ua_output.c
-- Strip trailing slashes from Include directory names in the FD.
-- Fix Error: bnet.c:408 gethostbyname() for lpmatou failed: 
-     ERR=Operation not permited loop.
-- Add code if there is no mtio.h (cannot do -- too many ioctl defines needed)
-- Produce better error messages in when error/eof writing block.
-- Cancelling of a queued job does NOT work!!!!!!
-- Get two 
-rufus-dir: Volume used once. Marking Volume "File0003" as Used.
-rufus-sd: Recycled volume File0003 on device /home/kern/bacula/working, all previous data lost.
-rufus-dir: Volume used once. Marking Volume "File0003" as Used.
-- Ability to backup to a file then later transfer to a tape -- Migration.
-  Migration based on MaxJobs(MinJobs),MaxVols(MinVols),AgeJobs,MaxBytes(MinBytes)
-  (i.e. HighwaterMark, LowwaterMark).
-- Eugeny Fisher <efischer@vip-rus.com> wants to cycle through a
-  set of volumes recycling the oldest volume when it is needed.
-- gethostbyname failure in bnet_connect() continues
-  generating errors -- should stop.
-- Add chflags() code for FreeBSD file flags
-- Bevan Anderson suggests having a run queue for each device
-  so that multiple simultaneous jobs can run but each writing
-  to a different Volume.
-- Look at handling <> in smtp doesn't work with exim.
-- Need to specify MaximumConcurrentJobs in the Job resource.
-- ***test GetFileAttributexEx, and remove MessageBox at 335 of winservice.cpp ****
-- Implement finer multiprocessing options.
-- Implement | and < in Exclude statements.
-- Figure out some way to specify a retention period for files
-  that no longer exist on the machine -- so that we maintain
-  say backups for 30 days, but if the file is deleted, we maintain
-  the last copy for 1 year.  -- answer Volume retention.
-- Make non-zero status from RunJobBefore/After error the job.
-- Need define of int_least16_t in sha1.h for SuSE.
-- Implement bar code reader for autochangers
-- Document new MaximumConcurrentJob records (Job, Client, Storage) 
-- Write up how to use/manage disk Volume Storage. ******
-- Remove kern and kelvin from mysql_grant...
-- Install grant_mysql...
-- Strip trailing / from Include
-- add #define ENABLE_NLS for Gnome compile on SuSE.
-- Add Client FS/OS id (Linux, Win95/98, ...).
-- Concept of VolumeSet during restore which is a list
-  of Volume names needed.
-- Turn virutally all sprintfs into snprintfs.
-- Update volume=Test01 requests pool, then lists volumes.
-  **** Test select_pool_and_media ...
-- Document relabel
-- Add IP address to authentication failures. 
-- Add a default File storage so that new users can do backup
-  and restores right away.
-- Forbid sbindir and with-subsys-dir from being the same (otherwise
-  the binary gets deleted when the daemon is stopped in the
-  rc.d/inid.d directory.
-- Do not ignore SIGCHLD
-- Add Cleaning to list of volume statuses 
-- Implement run at "xxx"
-- Document new transparent Console commands and wait command.
-- Document . and @ commands
-- Document run when.
-- Document Lutz Kittler's trick of using "Run Before Job" to
-  abort a job on a particular day.
-- Document Ludovic Strappazon's Win32 raw device save/restore.
-- Document not to restore .journal .autofsck
-- Document labeling a whole magazine using "cat"
-- Document how to automatically backup all local partitions
-- Document logrotate
-- Document OPTIMIZE TABLE in MySQL
-- Document new immediate File save configuration (walk user
-  through first save to file Volume with automatic Volume labeling?).
-- Implement scheduling of one time "run" jobs (i.e. instead of
-  starting immediately start at some specified time).
-- Bug: up arrow prints garbage in command line on gnome-console!
+- Heartbeat between daemons.
+- Fix Dir heartbeat in restore and verify vol.  Be sure to make
+  bnet_recv() ignore BNET_HEARTBEAT.
+- Implement HEART_BEAT while SD waiting for tapes.
+- Include RunBeforeJob and RunAfterJob output in the message
+  stream.
+- Change M_INFO to M_RESTORED for all restored files.
+- Fix command prompt in gnome-console by checking on Ready.
+
