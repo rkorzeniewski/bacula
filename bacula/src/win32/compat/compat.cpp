@@ -22,8 +22,8 @@
 // Author          : Christopher S. Hull
 // Created On      : Sat Jan 31 15:55:00 2004
 // Last Modified By: Christopher S. Hull
-// Last Modified On: Wed Feb 18 09:12:15 2004
-// Update Count    : 593
+// Last Modified On: Mon Feb  9 17:22:31 2004
+// Update Count    : 591
 // $Id$
 
 #include <stdio.h>
@@ -38,17 +38,26 @@ extern DWORD   g_platform_id;
 extern "C" void
 cygwin_conv_to_win32_path(const char *name, char *win32_name)
 {
+    const char *fname = name;
     while (*name) {
-	if (*name == '/')
-	    *win32_name++ = '\\';
-	else
-	    *win32_name++ = *name;
-	name++;
+        /* Check for Unix separator and convert to Win32 */
+        if (*name == '/') {
+            *win32_name++ = '\\';     /* convert char */
+        /* If Win32 separated that is "quoted", remove quote */
+        } else if (*name == '\\' && name[1] == '\\') {
+            *win32_name++ = '\\';
+            name++;                   /* skip first \ */
+        } else {
+            *win32_name++ = *name;    /* copy character */
+        }
+        name++;
     }
-    if (win32_name[-1] == '\\')
-	win32_name[-1] = 0;
-    else
-	*win32_name = 0;
+    /* Strip any trailing slash, if we stored something */
+    if (*fname != 0 && win32_name[-1] == '\\') {
+        win32_name[-1] = 0;
+    } else {
+        *win32_name = 0;
+    }
 }
 
 
@@ -72,17 +81,17 @@ open(const char *file, int flags, int mode)
     if (flags & O_TRUNC) create = TRUNCATE_EXISTING;
     
     if (!(flags & O_EXCL))
-	shareMode = FILE_SHARE_DELETE|FILE_SHARE_READ|FILE_SHARE_WRITE;
+        shareMode = FILE_SHARE_DELETE|FILE_SHARE_READ|FILE_SHARE_WRITE;
     
     if (flags & O_APPEND)
     {
-	printf("open...APPEND not implemented yet.");
-	exit(-1);
+        printf("open...APPEND not implemented yet.");
+        exit(-1);
     }
     
     foo = CreateFile(file, access, shareMode, NULL, create, msflags, NULL);
     if (INVALID_HANDLE_VALUE == foo)
-	return(int) -1;
+        return(int) -1;
 
     return (int)foo;
 
@@ -93,7 +102,7 @@ int
 close(int fd)
 {
     if (!CloseHandle((HANDLE)fd))
-	return -1;
+        return -1;
 
     return 0;
 }
@@ -173,9 +182,9 @@ cvt(const FILETIME &time)
     mstime <<= 32;
     mstime |= time.dwLowDateTime;
 
-    mstime /= 10000000;		// convert to seconds.
+    mstime /= 10000000;         // convert to seconds.
     mstime -= 3234336I64*3600I64; // difference between jan 1, 1601
-				  // and jan, 1 1970
+                                  // and jan, 1 1970
 
     return (time_t) (mstime & 0xffffffff);
 }
@@ -186,14 +195,14 @@ errorString(void)
     LPVOID lpMsgBuf;
 
     FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
-		  FORMAT_MESSAGE_FROM_SYSTEM |
-		  FORMAT_MESSAGE_IGNORE_INSERTS,
-		  NULL,
-		  GetLastError(),
-		  MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default lang
-		  (LPTSTR) &lpMsgBuf,
-		  0,
-		  NULL);
+                  FORMAT_MESSAGE_FROM_SYSTEM |
+                  FORMAT_MESSAGE_IGNORE_INSERTS,
+                  NULL,
+                  GetLastError(),
+                  MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default lang
+                  (LPTSTR) &lpMsgBuf,
+                  0,
+                  NULL);
 
     return (const char *) lpMsgBuf;
 }
@@ -201,36 +210,36 @@ errorString(void)
 static int
 statDir(const char *file, struct stat *sb)
 {
-    WIN32_FIND_DATA info;	// window's file info
+    WIN32_FIND_DATA info;       // window's file info
     sb->st_mode |= S_IFDIR;
 
     if (file[1] == ':' && file[2] == 0)
     {
-	d_msg(__FILE__, __LINE__, 99, "faking ROOT attrs(%s).\n", file);
-	sb->st_mode |= S_IREAD|S_IEXEC|S_IWRITE;
-	time(&sb->st_ctime);
-	time(&sb->st_mtime);
-	time(&sb->st_atime);
-	return 0;
+        d_msg(__FILE__, __LINE__, 99, "faking ROOT attrs(%s).\n", file);
+        sb->st_mode |= S_IREAD|S_IEXEC|S_IWRITE;
+        time(&sb->st_ctime);
+        time(&sb->st_mtime);
+        time(&sb->st_atime);
+        return 0;
     }
     HANDLE h = FindFirstFile(file, &info);
 
     if (h == INVALID_HANDLE_VALUE) {
-	const char *err = errorString();
-	d_msg(__FILE__, __LINE__, 99, "FindFirstFile(%s):%s\n", file, err);
-	LocalFree((void *)err);
-	errno = GetLastError();
-	return -1;
+        const char *err = errorString();
+        d_msg(__FILE__, __LINE__, 99, "FindFirstFile(%s):%s\n", file, err);
+        LocalFree((void *)err);
+        errno = GetLastError();
+        return -1;
     }
 
     sb->st_mode |= (S_IREAD | S_IEXEC);
     if (!(info.dwFileAttributes & FILE_ATTRIBUTE_READONLY))
-	sb->st_mode |= S_IWRITE;
+        sb->st_mode |= S_IWRITE;
     
     if (info.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM)
-	sb->st_mode |= S_IRGRP;
+        sb->st_mode |= S_IRGRP;
     if (info.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN)
-	sb->st_mode |= S_IROTH;
+        sb->st_mode |= S_IROTH;
     sb->st_size = info.nFileSizeHigh;
     sb->st_size <<= 32;
     sb->st_size |= info.nFileSizeLow;
@@ -255,40 +264,40 @@ stat2(const char *file, struct stat *sb)
     DWORD attr = GetFileAttributes(tmpbuf);
 
     if (attr == -1) {
-	const char *err = errorString();
-	d_msg(__FILE__, __LINE__, 99,
-	      "GetFileAttrubtes(%s): %s\n", tmpbuf, err);
-	LocalFree((void *)err);
-	errno = GetLastError();
-	return -1;
+        const char *err = errorString();
+        d_msg(__FILE__, __LINE__, 99,
+              "GetFileAttrubtes(%s): %s\n", tmpbuf, err);
+        LocalFree((void *)err);
+        errno = GetLastError();
+        return -1;
     }
     
     if (attr & FILE_ATTRIBUTE_DIRECTORY) 
-	return statDir(tmpbuf, sb);
+        return statDir(tmpbuf, sb);
 
     sb->st_mode |= S_IFREG;
     
     h = CreateFile(tmpbuf, GENERIC_READ,
-		   FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+                   FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
 
     if (h == INVALID_HANDLE_VALUE) {
-	const char *err = errorString();
-	d_msg(__FILE__, __LINE__, 99,
-	      "Cannot open file for stat (%s):%s\n", tmpbuf, err);
-	LocalFree((void *)err);
-	rval = -1;
-	errno = GetLastError();
-	goto error;
+        const char *err = errorString();
+        d_msg(__FILE__, __LINE__, 99,
+              "Cannot open file for stat (%s):%s\n", tmpbuf, err);
+        LocalFree((void *)err);
+        rval = -1;
+        errno = GetLastError();
+        goto error;
     }
     
     if (!GetFileInformationByHandle(h, &info)) {
-	const char *err = errorString();
-	d_msg(__FILE__, __LINE__, 99,
-	      "GetfileInformationByHandle(%s): %s\n", tmpbuf, err);
-	LocalFree((void *)err);
-	rval = -1;
-	errno = GetLastError();
-	goto error;
+        const char *err = errorString();
+        d_msg(__FILE__, __LINE__, 99,
+              "GetfileInformationByHandle(%s): %s\n", tmpbuf, err);
+        LocalFree((void *)err);
+        rval = -1;
+        errno = GetLastError();
+        goto error;
     }
     
     sb->st_dev = info.dwVolumeSerialNumber;
@@ -298,12 +307,12 @@ stat2(const char *file, struct stat *sb)
     sb->st_nlink = (short)info.nNumberOfLinks;
     sb->st_mode |= (S_IREAD | S_IEXEC);
     if (!(info.dwFileAttributes & FILE_ATTRIBUTE_READONLY))
-	sb->st_mode |= S_IWRITE;
+        sb->st_mode |= S_IWRITE;
 
     if (info.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM)
-	sb->st_mode |= S_IRGRP;
+        sb->st_mode |= S_IRGRP;
     if (info.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN)
-	sb->st_mode |= S_IROTH;
+        sb->st_mode |= S_IROTH;
     sb->st_size = info.nFileSizeHigh;
     sb->st_size <<= 32;
     sb->st_size |= info.nFileSizeLow;
@@ -327,25 +336,25 @@ stat(const char *file, struct stat *sb)
     memset(sb, 0, sizeof(*sb));
 
     if (g_platform_id == VER_PLATFORM_WIN32_WINDOWS)
-	return stat2(file, sb);
+        return stat2(file, sb);
 
     if (!GetFileAttributesEx(file, GetFileExInfoStandard, &data))
-	return stat2(file, sb);
+        return stat2(file, sb);
 
     if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-	sb->st_mode |= S_IFDIR;
+        sb->st_mode |= S_IFDIR;
     else
-	sb->st_mode |= S_IFREG;
+        sb->st_mode |= S_IFREG;
 
     sb->st_nlink = 1;
     sb->st_mode |= (S_IREAD | S_IEXEC);
     if (!(data.dwFileAttributes & FILE_ATTRIBUTE_READONLY))
-	sb->st_mode |= S_IWRITE;
+        sb->st_mode |= S_IWRITE;
 
     if (data.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM)
-	sb->st_mode |= S_IRGRP;
+        sb->st_mode |= S_IRGRP;
     if (data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN)
-	sb->st_mode |= S_IROTH;
+        sb->st_mode |= S_IROTH;
     sb->st_size = data.nFileSizeHigh;
     sb->st_size <<= 32;
     sb->st_size |= data.nFileSizeLow;
@@ -416,16 +425,16 @@ lseek(int fd, int offset, int whence)
     DWORD method = 0;
     switch (whence) {
     case SEEK_SET :
-	method = FILE_BEGIN;
-	break;
+        method = FILE_BEGIN;
+        break;
     case SEEK_CUR:
-	method = FILE_CURRENT;
-	break;
+        method = FILE_CURRENT;
+        break;
     case SEEK_END:
-	method = FILE_END;
-	break;
+        method = FILE_END;
+        break;
     default:
-	return -1;
+        return -1;
     }
     
     return SetFilePointer((HANDLE)fd, (DWORD)offset, NULL, method);
@@ -437,17 +446,17 @@ strcasecmp(const char *s1, const char *s2)
     register int ch1, ch2;
     
     if (s1==s2)
-	return 0;	/* strings are equal if same object. */
+        return 0;       /* strings are equal if same object. */
     else if (!s1)
-	return -1;
+        return -1;
     else if (!s2)
-	return 1;
+        return 1;
     do
     {
-	ch1 = *s1;
-	ch2 = *s2;
-	s1++;
-	s2++;
+        ch1 = *s1;
+        ch2 = *s2;
+        s1++;
+        s2++;
     } while (ch1 != 0 && tolower(ch1) == tolower(ch2));
     
   return(ch1 - ch2);
@@ -459,17 +468,17 @@ strncasecmp(const char *s1, const char *s2, int len)
     register int ch1, ch2;
     
     if (s1==s2)
-	return 0;	/* strings are equal if same object. */
+        return 0;       /* strings are equal if same object. */
     else if (!s1)
-	return -1;
+        return -1;
     else if (!s2)
-	return 1;
+        return 1;
     do
     {
-	ch1 = *s1;
-	ch2 = *s2;
-	s1++;
-	s2++;
+        ch1 = *s1;
+        ch2 = *s2;
+        s1++;
+        s2++;
     } while (len-- && ch1 != 0 && tolower(ch1) == tolower(ch2));
     
     return(ch1 - ch2);
@@ -517,50 +526,50 @@ getgrgid(uid_t)
 // implement opendir/readdir/closedir on top of window's API
 typedef struct _dir
 {
-    WIN32_FIND_DATA data;	// window's file info
-    const char *spec;		// the directory we're traversing
-    HANDLE	dirh;		// the search handle
-    BOOL	valid;		// the info in data field is valid
-    UINT32	offset;		// pseudo offset for d_off
+    WIN32_FIND_DATA data;       // window's file info
+    const char *spec;           // the directory we're traversing
+    HANDLE      dirh;           // the search handle
+    BOOL        valid;          // the info in data field is valid
+    UINT32      offset;         // pseudo offset for d_off
 } _dir;
 
 DIR *
 opendir(const char *path)
 {
+    int max_len = strlen(path) + 16;
     _dir *rval = NULL;
     if (path == NULL) return NULL;
     
     rval = (_dir *)malloc(sizeof(_dir));
     if (rval == NULL) return NULL;
-    char *tspec = (char *)malloc(strlen(path)+16);
+    char *tspec = (char *)malloc(max_len);
     if (tspec == NULL) goto err1;
     
     if (g_platform_id != VER_PLATFORM_WIN32_WINDOWS) {
-	// allow path to be 32767 bytes
-	tspec[0] = '\\';
-	tspec[1] = '\\';
-	tspec[2] = '?';
-	tspec[3] = '\\';
-	tspec[4] = 0;
-	cygwin_conv_to_win32_path(path, tspec+4); 
-   }
-    else {
-	cygwin_conv_to_win32_path(path, tspec);
+        // allow path to be 32767 bytes
+        tspec[0] = '\\';
+        tspec[1] = '\\';
+        tspec[2] = '?';
+        tspec[3] = '\\';
+        tspec[4] = 0;
+        cygwin_conv_to_win32_path(path, tspec+4); 
+    } else {
+        cygwin_conv_to_win32_path(path, tspec);
     }
-    strcat(tspec, "\\*");
+    strncat(tspec, "\\*", max_len);
     rval->spec = tspec;
 
     rval->dirh = FindFirstFile(rval->spec, &rval->data);
     d_msg(__FILE__, __LINE__,
-	  99, "opendir(%s)\n\tspec=%s,\n\tFindFirstFile returns %d\n",
-	  path, rval->spec, rval->dirh);
+          99, "opendir(%s)\n\tspec=%s,\n\tFindFirstFile returns %d\n",
+          path, rval->spec, rval->dirh);
 
     rval->offset = 0;
     if (rval->dirh == INVALID_HANDLE_VALUE)
-	goto err;
+        goto err;
     rval->valid = 1;
     d_msg(__FILE__, __LINE__,
-	  99, "\tFirstFile=%s\n", rval->data.cFileName);
+          99, "\tFirstFile=%s\n", rval->data.cFileName);
     return (DIR *)rval;
 err:
     free((void *)rval->spec);
@@ -601,10 +610,10 @@ copyin(struct dirent &dp, const char *fname)
     dp.d_reclen = 0;
     char *cp = dp.d_name;
     while (*fname) {
-	*cp++ = *fname++;
-	dp.d_reclen++;
+        *cp++ = *fname++;
+        dp.d_reclen++;
     }
-	*cp = 0;
+        *cp = 0;
     return dp.d_reclen;
 }
 int
@@ -613,14 +622,16 @@ readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result)
 
     _dir *dp = (_dir *)dirp;
     if (dp->valid) {
-	entry->d_off = dp->offset;
-	dp->offset += copyin(*entry, dp->data.cFileName);
-	d_msg(__FILE__, __LINE__,
-	      99, "readdir_r(%p, { d_name=\"%s\", d_reclen=%d, d_off=%d\n",
-	      dirp, entry->d_name, entry->d_reclen, entry->d_off);
+        entry->d_off = dp->offset;
+        dp->offset += copyin(*entry, dp->data.cFileName);
+        *result = entry;              /* return entry address */
+        d_msg(__FILE__, __LINE__,
+              99, "readdir_r(%p, { d_name=\"%s\", d_reclen=%d, d_off=%d\n",
+              dirp, entry->d_name, entry->d_reclen, entry->d_off);
+    } else {
+//      d_msg(__FILE__, __LINE__, 99, "readdir_r !valid\n");
+        return -1;
     }
-    else
-	return -1;
     dp->valid = FindNextFile(dp->dirh, &dp->data);
     return 0;
 }
@@ -635,14 +646,14 @@ inet_aton(const char *a, struct in_addr *inp)
     int dotc = 0;
     if (!isdigit(*a)) return 0;
     while (*cp) {
-	if (isdigit(*cp))
-	    tmp = (tmp * 10) + (*cp -'0');
-	else if (*cp == '.') {
-	    if (tmp > 255) return 0;
-	    acc = (acc << 8) + tmp;
-	    dotc++;
-	}
-	else return 0;
+        if (isdigit(*cp))
+            tmp = (tmp * 10) + (*cp -'0');
+        else if (*cp == '.') {
+            if (tmp > 255) return 0;
+            acc = (acc << 8) + tmp;
+            dotc++;
+        }
+        else return 0;
     }
 
     if (dotc != 3) return 0;
@@ -654,7 +665,7 @@ int
 nanosleep(const struct timespec *req, struct timespec *rem)
 {
     if (rem)
-	rem->tv_sec = rem->tv_nsec = 0;
+        rem->tv_sec = rem->tv_nsec = 0;
     Sleep((req->tv_sec * 1000) + (req->tv_nsec/100000));
     return 0;
 }
@@ -677,10 +688,10 @@ pathconf(const char *path, int name)
 {
     switch(name) {
     case _PC_PATH_MAX :
-	if (strncmp(path, "\\\\?\\", 4) == 0)
-	    return 32767;
+        if (strncmp(path, "\\\\?\\", 4) == 0)
+            return 32767;
     case _PC_NAME_MAX :
-	return 255;
+        return 255;
     }
 
     return -1;
@@ -697,8 +708,8 @@ WSA_Init(void)
     
     if (err != 0)
     {
-	printf("Can not start Windows Sockets\n");
-	return -1;
+        printf("Can not start Windows Sockets\n");
+        return -1;
     }
 
     return 0;
@@ -738,7 +749,7 @@ public:
     winver(void);
 };
 
-static winver INIT;			// cause constructor to be called before main()
+static winver INIT;                     // cause constructor to be called before main()
 
 #include "bacula.h"
 #include "jcr.h"
@@ -752,33 +763,32 @@ winver::winver(void)
 
     // Get the current OS version
     if (!GetVersionEx(&osvinfo)) {
-	version = "Unknown";
-	platform = "Unknown";
+        version = "Unknown";
+        platform = "Unknown";
     }
     else
-	switch (_mkversion(osvinfo.dwPlatformId, osvinfo.dwMajorVersion, osvinfo.dwMinorVersion))
-	{
-	case MS_WINDOWS_95: (version =  "Windows 95"); break;
-	case MS_WINDOWS_98: (version =  "Windows 98"); break;
-	case MS_WINDOWS_ME: (version =  "Windows ME"); break;
-	case MS_WINDOWS_NT4:(version =  "Windows NT 4.0"); platform = "NT"; break;
-	case MS_WINDOWS_2K: (version =  "Windows 2000");platform = "NT"; break;
-	case MS_WINDOWS_XP: (version =  "Windows XP");platform = "NT"; break;
-	case MS_WINDOWS_S2003: (version =  "Windows Server 2003");platform = "NT"; break;
-	default: version = "Windows ??"; break;
-	}
+        switch (_mkversion(osvinfo.dwPlatformId, osvinfo.dwMajorVersion, osvinfo.dwMinorVersion))
+        {
+        case MS_WINDOWS_95: (version =  "Windows 95"); break;
+        case MS_WINDOWS_98: (version =  "Windows 98"); break;
+        case MS_WINDOWS_ME: (version =  "Windows ME"); break;
+        case MS_WINDOWS_NT4:(version =  "Windows NT 4.0"); platform = "NT"; break;
+        case MS_WINDOWS_2K: (version =  "Windows 2000");platform = "NT"; break;
+        case MS_WINDOWS_XP: (version =  "Windows XP");platform = "NT"; break;
+        case MS_WINDOWS_S2003: (version =  "Windows Server 2003");platform = "NT"; break;
+        default: version = "Windows ??"; break;
+        }
 
-    strcpy(WIN_VERSION_LONG, version);
+    bstrncpy(WIN_VERSION_LONG, version, sizeof(WIN_VERSION_LONG));
     snprintf(WIN_VERSION, sizeof(WIN_VERSION), "%s %d.%d.%d",
-	     platform, osvinfo.dwMajorVersion, osvinfo.dwMinorVersion, osvinfo.dwBuildNumber);
+             platform, osvinfo.dwMajorVersion, osvinfo.dwMinorVersion, osvinfo.dwBuildNumber);
 
 #if 0
     BPIPE *b = open_bpipe("ls -l", 10, "r");
     char buf[1024];
     while (!feof(b->rfd)) {
-	fgets(buf, sizeof(buf), b->rfd);
+        fgets(buf, sizeof(buf), b->rfd);
     }
-
     close_bpipe(b);
 #endif
 }
@@ -803,7 +813,7 @@ getArgv0(const char *cmdline)
     cp = cmdline;
     char *rp = rval;
     while (len--)
-	*rp++ = *cp++;
+        *rp++ = *cp++;
 
     *rp = 0;
     return rval;
@@ -830,18 +840,18 @@ CreateChildProcess(const char *cmdline, HANDLE in, HANDLE out, HANDLE err)
     siStartInfo.dwFlags = STARTF_USESTDHANDLES;
 
     if (in != INVALID_HANDLE_VALUE)
-	siStartInfo.hStdInput = in;
+        siStartInfo.hStdInput = in;
     else
-	siStartInfo.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
+        siStartInfo.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
     
     if (out != INVALID_HANDLE_VALUE)
-	siStartInfo.hStdOutput = out;
+        siStartInfo.hStdOutput = out;
     else
-	siStartInfo.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+        siStartInfo.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
     if (err != INVALID_HANDLE_VALUE)
-	siStartInfo.hStdError = err;
+        siStartInfo.hStdError = err;
     else
-	siStartInfo.hStdError = GetStdHandle(STD_ERROR_HANDLE);
+        siStartInfo.hStdError = GetStdHandle(STD_ERROR_HANDLE);
     // Create the child process. 
     
     char cmdLine[1024];
@@ -851,25 +861,25 @@ CreateChildProcess(const char *cmdline, HANDLE in, HANDLE out, HANDLE err)
     const char *exeName = getArgv0(cmdline);
     // check to see if absolute path was passed to us already?
     if (exeName[1] != ':'
-	|| (strchr(cmdline, '/') == NULL
-	    && strchr(cmdline, '\\') == NULL))
+        || (strchr(cmdline, '/') == NULL
+            && strchr(cmdline, '\\') == NULL))
     {
-	// only command name so perform search of PATH to find 
-	char *file;
-	DWORD rval = SearchPath(NULL,
-				exeName,
-				".exe",
-				sizeof(exeFile),
-				exeFile,
-				&file);
-	if (rval == 0)
-	    return INVALID_HANDLE_VALUE;
-	if (rval > sizeof(exeFile))
-	    return INVALID_HANDLE_VALUE;
+        // only command name so perform search of PATH to find 
+        char *file;
+        DWORD rval = SearchPath(NULL,
+                                exeName,
+                                ".exe",
+                                sizeof(exeFile),
+                                exeFile,
+                                &file);
+        if (rval == 0)
+            return INVALID_HANDLE_VALUE;
+        if (rval > sizeof(exeFile))
+            return INVALID_HANDLE_VALUE;
 
     }
     else 
-	strcpy(exeFile, exeName);
+        strcpy(exeFile, exeName);
 
     // exeFile now has absolute path to program to execute.
     free((void *)exeName);
@@ -877,19 +887,19 @@ CreateChildProcess(const char *cmdline, HANDLE in, HANDLE out, HANDLE err)
     strcpy(cmdLine, cmdline);
     // try to execute program
     bFuncRetn = CreateProcess(exeFile, 
-			      cmdLine, // command line 
-			      NULL, // process security attributes 
-			      NULL, // primary thread security attributes 
-			      TRUE, // handles are inherited 
-			      0, // creation flags 
-			      NULL, // use parent's environment 
-			      NULL, // use parent's current directory 
-			      &siStartInfo, // STARTUPINFO pointer 
-			      &piProcInfo); // receives PROCESS_INFORMATION
+                              cmdLine, // command line 
+                              NULL, // process security attributes 
+                              NULL, // primary thread security attributes 
+                              TRUE, // handles are inherited 
+                              0, // creation flags 
+                              NULL, // use parent's environment 
+                              NULL, // use parent's current directory 
+                              &siStartInfo, // STARTUPINFO pointer 
+                              &piProcInfo); // receives PROCESS_INFORMATION
     
     if (bFuncRetn == 0) {
-	ErrorExit("CreateProcess failed\n");
-	return INVALID_HANDLE_VALUE;
+        ErrorExit("CreateProcess failed\n");
+        return INVALID_HANDLE_VALUE;
     }
     // we don't need a handle on the process primary thread so we close
     // this now.
@@ -921,7 +931,7 @@ static void
 CloseIfValid(HANDLE handle)
 {
     if (handle != INVALID_HANDLE_VALUE)
-	CloseHandle(handle);
+        CloseHandle(handle);
 }
 // include <io.h> causes to many conflicts with some of
 // the fuctions we define here.
@@ -933,16 +943,16 @@ BPIPE *
 open_bpipe(char *prog, int wait, const char *mode)
 {
     HANDLE hChildStdinRd, hChildStdinWr, hChildStdinWrDup, 
-	hChildStdoutRd, hChildStdoutWr, hChildStdoutRdDup, 
-	hInputFile;
+        hChildStdoutRd, hChildStdoutWr, hChildStdoutRdDup, 
+        hInputFile;
     
     SECURITY_ATTRIBUTES saAttr; 
 
     BOOL fSuccess; 
 
     hChildStdinRd = hChildStdinWr = hChildStdinWrDup = 
-	hChildStdoutRd = hChildStdoutWr = hChildStdoutRdDup = 
-	hInputFile = INVALID_HANDLE_VALUE;
+        hChildStdoutRd = hChildStdoutWr = hChildStdoutRdDup = 
+        hInputFile = INVALID_HANDLE_VALUE;
     
     BPIPE *bpipe = (BPIPE *)malloc(sizeof(BPIPE));
     memset((void *)bpipe, 0, sizeof(BPIPE));
@@ -958,80 +968,80 @@ open_bpipe(char *prog, int wait, const char *mode)
     saAttr.lpSecurityDescriptor = NULL; 
     
     if (mode_read) {
-	
-	// Create a pipe for the child process's STDOUT. 
-	if (! CreatePipe(&hChildStdoutRd, &hChildStdoutWr, &saAttr, 0)) {
-	    ErrorExit("Stdout pipe creation failed\n");
-	    goto cleanup;
-	}
-	// Create noninheritable read handle and close the inheritable read 
-	// handle. 
-	
-	fSuccess = DuplicateHandle(GetCurrentProcess(), hChildStdoutRd,
-				   GetCurrentProcess(), &hChildStdoutRdDup , 0,
-				   FALSE,
-				   DUPLICATE_SAME_ACCESS);
-	if( !fSuccess ) {
-	    ErrorExit("DuplicateHandle failed");
-	    goto cleanup;
-	}
-	
-	CloseHandle(hChildStdoutRd);
+        
+        // Create a pipe for the child process's STDOUT. 
+        if (! CreatePipe(&hChildStdoutRd, &hChildStdoutWr, &saAttr, 0)) {
+            ErrorExit("Stdout pipe creation failed\n");
+            goto cleanup;
+        }
+        // Create noninheritable read handle and close the inheritable read 
+        // handle. 
+        
+        fSuccess = DuplicateHandle(GetCurrentProcess(), hChildStdoutRd,
+                                   GetCurrentProcess(), &hChildStdoutRdDup , 0,
+                                   FALSE,
+                                   DUPLICATE_SAME_ACCESS);
+        if( !fSuccess ) {
+            ErrorExit("DuplicateHandle failed");
+            goto cleanup;
+        }
+        
+        CloseHandle(hChildStdoutRd);
     }
     
     if (mode_write) {
-	
-	// Create a pipe for the child process's STDIN. 
-	
-	if (! CreatePipe(&hChildStdinRd, &hChildStdinWr, &saAttr, 0)) {
-	    ErrorExit("Stdin pipe creation failed\n");
-	    goto cleanup;
-	}
-	
-	// Duplicate the write handle to the pipe so it is not inherited. 
-	fSuccess = DuplicateHandle(GetCurrentProcess(), hChildStdinWr, 
-				   GetCurrentProcess(), &hChildStdinWrDup,
-				   0, 
-				   FALSE,                  // not inherited 
-				   DUPLICATE_SAME_ACCESS); 
-	if (!fSuccess) {
-	    ErrorExit("DuplicateHandle failed");
-	    goto cleanup;
-	}
-	
-	CloseHandle(hChildStdinWr); 
+        
+        // Create a pipe for the child process's STDIN. 
+        
+        if (! CreatePipe(&hChildStdinRd, &hChildStdinWr, &saAttr, 0)) {
+            ErrorExit("Stdin pipe creation failed\n");
+            goto cleanup;
+        }
+        
+        // Duplicate the write handle to the pipe so it is not inherited. 
+        fSuccess = DuplicateHandle(GetCurrentProcess(), hChildStdinWr, 
+                                   GetCurrentProcess(), &hChildStdinWrDup,
+                                   0, 
+                                   FALSE,                  // not inherited 
+                                   DUPLICATE_SAME_ACCESS); 
+        if (!fSuccess) {
+            ErrorExit("DuplicateHandle failed");
+            goto cleanup;
+        }
+        
+        CloseHandle(hChildStdinWr); 
     }
     // spawn program with redirected handles as appropriate
     bpipe->worker_pid = (pid_t)
-	CreateChildProcess(prog, // commandline
-			   hChildStdinRd, // stdin HANDLE
-			   hChildStdoutWr, // stdout HANDLE
-			   hChildStdoutWr);// stderr HANDLE
+        CreateChildProcess(prog, // commandline
+                           hChildStdinRd, // stdin HANDLE
+                           hChildStdoutWr, // stdout HANDLE
+                           hChildStdoutWr);// stderr HANDLE
     
     if ((HANDLE) bpipe->worker_pid == INVALID_HANDLE_VALUE)
-	goto cleanup;
+        goto cleanup;
     
     bpipe->wait = wait;
     bpipe->worker_stime = time(NULL);
     
     if (mode_read) {
-	CloseHandle(hChildStdoutWr); // close our write side so when
-				     // process terminates we can
-				     // detect eof.
-	// ugly but convert WIN32 HANDLE to FILE*
-	int rfd = _open_osfhandle((long)hChildStdoutRdDup, O_RDONLY);
-	bpipe->rfd = _fdopen(rfd, "r");
+        CloseHandle(hChildStdoutWr); // close our write side so when
+                                     // process terminates we can
+                                     // detect eof.
+        // ugly but convert WIN32 HANDLE to FILE*
+        int rfd = _open_osfhandle((long)hChildStdoutRdDup, O_RDONLY);
+        bpipe->rfd = _fdopen(rfd, "r");
     }
     if (mode_write) {
-	CloseHandle(hChildStdinRd); // close our read side so as not
-				    // to interfre with child's copy
-	// ugly but convert WIN32 HANDLE to FILE*
-	int wfd = _open_osfhandle((long)hChildStdinWrDup, O_WRONLY);
-	bpipe->wfd = _fdopen(wfd, "w");
+        CloseHandle(hChildStdinRd); // close our read side so as not
+                                    // to interfre with child's copy
+        // ugly but convert WIN32 HANDLE to FILE*
+        int wfd = _open_osfhandle((long)hChildStdinWrDup, O_WRONLY);
+        bpipe->wfd = _fdopen(wfd, "w");
     }
     
     if (wait > 0) {
-	bpipe->timer_id = start_child_timer(bpipe->worker_pid, wait);
+        bpipe->timer_id = start_child_timer(bpipe->worker_pid, wait);
     }
     
     return bpipe;
@@ -1053,7 +1063,7 @@ kill(int pid, int signal)
 {
     int rval = 0;
     if (!TerminateProcess((HANDLE)pid, (UINT) signal))
-	rval = -1;
+        rval = -1;
     CloseHandle((HANDLE)pid);
     return rval;
 }
@@ -1066,30 +1076,30 @@ close_bpipe(BPIPE *bpipe)
     if (bpipe->wfd) fclose(bpipe->wfd);
 
     if (bpipe->wait) {
-	int remaining_wait = bpipe->wait;
-	do 
-	{
-	    DWORD exitCode;
-	    if (!GetExitCodeProcess((HANDLE)bpipe->worker_pid, &exitCode))
-	    {
-		const char *err = errorString();
-		rval = GetLastError();
-		d_msg(__FILE__, __LINE__, 0, 
-		      "GetExitCode error %s\n", err);
-		LocalFree((void *)err);
-		break;
-	    }
-	    
-	    if (exitCode == STILL_ACTIVE) {
-		bmicrosleep(1, 0);	       /* wait one second */
-		remaining_wait--;
-	    }
-	    else break;
-	} while(remaining_wait);
+        int remaining_wait = bpipe->wait;
+        do 
+        {
+            DWORD exitCode;
+            if (!GetExitCodeProcess((HANDLE)bpipe->worker_pid, &exitCode))
+            {
+                const char *err = errorString();
+                rval = GetLastError();
+                d_msg(__FILE__, __LINE__, 0, 
+                      "GetExitCode error %s\n", err);
+                LocalFree((void *)err);
+                break;
+            }
+            
+            if (exitCode == STILL_ACTIVE) {
+                bmicrosleep(1, 0);             /* wait one second */
+                remaining_wait--;
+            }
+            else break;
+        } while(remaining_wait);
     }
     
     if (bpipe->timer_id) {
-	stop_child_timer(bpipe->timer_id);
+        stop_child_timer(bpipe->timer_id);
     }
     free((void *)bpipe);    
     return rval;
@@ -1101,11 +1111,11 @@ close_wpipe(BPIPE *bpipe)
     int stat = 1;
     
     if (bpipe->wfd) {
-	fflush(bpipe->wfd);
-	if (fclose(bpipe->wfd) != 0) {
-	    stat = 0;
+        fflush(bpipe->wfd);
+        if (fclose(bpipe->wfd) != 0) {
+            stat = 0;
       }
-	bpipe->wfd = NULL;
+        bpipe->wfd = NULL;
     }
     return stat;
 }
