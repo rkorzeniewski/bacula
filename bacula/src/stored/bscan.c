@@ -90,6 +90,11 @@ static int update_vol_info = 0;
 static int list_records = 0;
 static int ignored_msgs = 0;
 
+static int num_jobs = 0;
+static int num_pools = 0;
+static int num_media = 0;
+static int num_files = 0;
+
 #define CONFIG_FILE "bacula-sd.conf"
 char *configfile;
 bool forge_on = false;
@@ -256,6 +261,8 @@ int main (int argc, char *argv[])
    }
 
    do_scan();
+   printf("Records added to catalog:\n%7d Media\n%7d Pool\n%7d Job\n%7d File\n",
+      num_media, num_pools, num_jobs, num_files);
 
    free_jcr(bjcr);
    return 0;
@@ -352,6 +359,7 @@ static int record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 /* Check Pool info */
 	 bstrncpy(pr.Name, dev->VolHdr.PoolName, sizeof(pr.Name));
 	 bstrncpy(pr.PoolType, dev->VolHdr.PoolType, sizeof(pr.PoolType));
+	 num_pools++;
 	 if (db_get_pool_record(bjcr, db, &pr)) {
 	    if (verbose) {
                Pmsg1(000, _("Pool record for %s found in DB.\n"), pr.Name);
@@ -375,6 +383,7 @@ static int record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 memset(&mr, 0, sizeof(mr));
 	 bstrncpy(mr.VolumeName, dev->VolHdr.VolName, sizeof(mr.VolumeName));
 	 mr.PoolId = pr.PoolId;
+	 num_media++;
 	 if (db_get_media_record(bjcr, db, &mr)) {
 	    if (verbose) {
                Pmsg1(000, _("Media record for %s found in DB.\n"), mr.VolumeName);
@@ -410,6 +419,7 @@ static int record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 
       case SOS_LABEL:
 	 mr.VolJobs++;
+	 num_jobs++;
 	 if (ignored_msgs > 0) {
             Pmsg1(000, _("%d \"errors\" ignored before first Start of Session record.\n"), 
 		  ignored_msgs);
@@ -589,6 +599,7 @@ static int record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
       }
       fr.JobId = mjcr->JobId;
       fr.FileId = 0;
+      num_files++;
       if (db_get_file_attributes_record(bjcr, db, attr->fname, NULL, &fr)) {
 	 if (verbose > 1) {
             Pmsg1(000, _("File record already exists for: %s\n"), attr->fname);
