@@ -82,26 +82,26 @@ main (int argc, char *const *argv)
 
    while ((ch = getopt(argc, argv, "ad:e:i:?")) != -1) {
       switch (ch) {
-	 case 'a':                    /* print extended attributes *debug* */
+         case 'a':                    /* print extended attributes *debug* */
 	    attrs = 1;
 	    break;
 
-	 case 'd':                    /* set debug level */
+         case 'd':                    /* set debug level */
 	    debug_level = atoi(optarg);
 	    if (debug_level <= 0) {
 	       debug_level = 1;
 	    }
 	    break;
 
-	 case 'e':                    /* exclude patterns */
+         case 'e':                    /* exclude patterns */
 	    exc = optarg;
 	    break;
 
-	 case 'i':                    /* include patterns */
+         case 'i':                    /* include patterns */
 	    inc = optarg;
 	    break;
 
-	 case '?':
+         case '?':
 	 default:
 	    usage();
 
@@ -117,7 +117,7 @@ main (int argc, char *const *argv)
       add_fname_to_include_list(ff, 0, "/"); /* default to / */
    } else {
       for (i=0; i < argc; i++) {
-	 if (strcmp(argv[i], "-") == 0) {
+         if (strcmp(argv[i], "-") == 0) {
 	     while (fgets(name, sizeof(name)-1, stdin)) {
 		strip_trailing_junk(name);
 		add_fname_to_include_list(ff, 0, name);
@@ -130,7 +130,7 @@ main (int argc, char *const *argv)
    if (inc) {
       fd = fopen(inc, "r");
       if (!fd) {
-	 printf("Could not open include file: %s\n", inc);
+         printf("Could not open include file: %s\n", inc);
 	 exit(1);
       }
       while (fgets(name, sizeof(name)-1, fd)) {
@@ -143,7 +143,7 @@ main (int argc, char *const *argv)
    if (exc) {
       fd = fopen(exc, "r");
       if (!fd) {
-	 printf("Could not open exclude file: %s\n", exc);
+         printf("Could not open exclude file: %s\n", exc);
 	 exit(1);
       }
       while (fgets(name, sizeof(name)-1, fd)) {
@@ -152,7 +152,8 @@ main (int argc, char *const *argv)
       }
       fclose(fd);
    }
-   find_files(jcr, ff, print_file, NULL);
+   match_files(jcr, ff, print_file, NULL);
+   term_include_exclude_files(ff);
    hard_links = term_find_files(ff);
 
    printf(_(""
@@ -177,32 +178,32 @@ static int print_file(FF_PKT *ff, void *pkt)
    switch (ff->type) {
    case FT_LNKSAVED:
       if (debug_level == 1) {
-	 printf("%s\n", ff->fname);
+         printf("%s\n", ff->fname);
       } else if (debug_level > 1) {
-	 printf("Lnka: %s -> %s\n", ff->fname, ff->link);
+         printf("Lnka: %s -> %s\n", ff->fname, ff->link);
       }
       break;
    case FT_REGE:
       if (debug_level == 1) {
-	 printf("%s\n", ff->fname);
+         printf("%s\n", ff->fname);
       } else if (debug_level > 1) {
-	 printf("Empty: %s\n", ff->fname);
+         printf("Empty: %s\n", ff->fname);
       }
       count_files(ff);
       break;
    case FT_REG:
       if (debug_level == 1) {
-	 printf("%s\n", ff->fname);
+         printf("%s\n", ff->fname);
       } else if (debug_level > 1) {
-	 printf("Reg: %s\n", ff->fname);
+         printf("Reg: %s\n", ff->fname);
       }
       count_files(ff);
       break;
    case FT_LNK:
       if (debug_level == 1) {
-	 printf("%s\n", ff->fname);
+         printf("%s\n", ff->fname);
       } else if (debug_level > 1) {
-	 printf("Lnk: %s -> %s\n", ff->fname, ff->link);
+         printf("Lnk: %s -> %s\n", ff->fname, ff->link);
       }
       count_files(ff);
       break;
@@ -213,24 +214,24 @@ static int print_file(FF_PKT *ff, void *pkt)
    case FT_INVALIDFS:
    case FT_DIREND:
       if (debug_level) {
-	 char errmsg[100] = "";
+         char errmsg[100] = "";
 	 if (ff->type == FT_NORECURSE) {
-	    bstrncpy(errmsg, "\t[will not descend: recursion turned off]", sizeof(errmsg));
+            bstrncpy(errmsg, "\t[will not descend: recursion turned off]", sizeof(errmsg));
 	 } else if (ff->type == FT_NOFSCHG) {
-	    bstrncpy(errmsg, "\t[will not descend: file system change not allowed]", sizeof(errmsg));
+            bstrncpy(errmsg, "\t[will not descend: file system change not allowed]", sizeof(errmsg));
 	 } else if (ff->type == FT_INVALIDFS) {
-	    bstrncpy(errmsg, "\t[will not descend: disallowed file system]", sizeof(errmsg));
+            bstrncpy(errmsg, "\t[will not descend: disallowed file system]", sizeof(errmsg));
 	 }
-	 printf("%s%s%s\n", (debug_level > 1 ? "Dir: " : ""), ff->fname, errmsg);
+         printf("%s%s%s\n", (debug_level > 1 ? "Dir: " : ""), ff->fname, errmsg);
       }
       ff->type = FT_DIREND;
       count_files(ff);
       break;
    case FT_SPEC:
       if (debug_level == 1) {
-	 printf("%s\n", ff->fname);
+         printf("%s\n", ff->fname);
       } else if (debug_level > 1) {
-	 printf("Spec: %s\n", ff->fname);
+         printf("Spec: %s\n", ff->fname);
       }
       count_files(ff);
       break;
@@ -260,7 +261,7 @@ static int print_file(FF_PKT *ff, void *pkt)
       char attr[200];
       encode_attribsEx(NULL, attr, ff);
       if (*attr != 0) {
-	 printf("AttrEx=%s\n", attr);
+         printf("AttrEx=%s\n", attr);
       }
 //    set_attribsEx(NULL, ff->fname, NULL, NULL, ff->type, attr);
    }

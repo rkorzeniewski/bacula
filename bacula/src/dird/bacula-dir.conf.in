@@ -46,6 +46,13 @@ Job {
   Write Bootstrap = "@working_dir@/Client1.bsr"
 }
 
+#Job {
+#  Name = "Client2"
+#  Client = @hostname@2-fd
+#  JobDefs = "DefaultJob"
+#  Write Bootstrap = "@working_dir@/Client2.bsr"
+#}
+
 # Backup the catalog database (after the nightly save)
 Job {
   Name = "BackupCatalog"
@@ -61,7 +68,10 @@ Job {
   Priority = 11                   # run after main backup
 }
 
+#
 # Standard Restore template, to be changed by Console program
+#  Only one such job is needed for all Jobs/Clients/Storage ...
+#
 Job {
   Name = "RestoreFiles"
   Type = Restore
@@ -149,6 +159,22 @@ Client {
   Job Retention = 6 months            # six months
   AutoPrune = yes                     # Prune expired Jobs/Files
 }
+
+#
+# Second Client (File Services) to backup
+#  You should change Name, Address, and Password before using
+#
+#Client {
+#  Name = @hostname@2-fd                
+#  Address = @hostname@2
+#  FDPort = @fd_port@
+#  Catalog = MyCatalog
+#  Password = "@fd_password@2"         # password for FileDaemon 2
+#  File Retention = 30 days            # 30 days
+#  Job Retention = 6 months            # six months
+#  AutoPrune = yes                     # Prune expired Jobs/Files
+#}
+
 
 # Definiton of file storage device
 Storage {

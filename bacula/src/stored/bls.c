@@ -58,7 +58,7 @@ char *configfile;
 bool forge_on = false;
 
 
-static FF_PKT ff;
+static FF_PKT *ff;
 
 static BSR *bsr = NULL;
 
@@ -98,8 +98,7 @@ int main (int argc, char *argv[])
    my_name_is(argc, argv, "bls");
    init_msg(NULL, NULL);	      /* initialize message handler */
 
-   memset(&ff, 0, sizeof(ff));
-   init_include_exclude_files(&ff);
+   ff = init_find_files();
 
    while ((ch = getopt(argc, argv, "b:c:d:e:i:jkLpvV:?")) != -1) {
       switch (ch) {
@@ -129,7 +128,7 @@ int main (int argc, char *argv[])
 	 while (fgets(line, sizeof(line), fd) != NULL) {
 	    strip_trailing_junk(line);
             Dmsg1(100, "add_exclude %s\n", line);
-	    add_fname_to_exclude_list(&ff, line);
+	    add_fname_to_exclude_list(ff, line);
 	 }
 	 fclose(fd);
 	 break;
@@ -143,7 +142,7 @@ int main (int argc, char *argv[])
 	 while (fgets(line, sizeof(line), fd) != NULL) {
 	    strip_trailing_junk(line);
             Dmsg1(100, "add_include %s\n", line);
-	    add_fname_to_include_list(&ff, 0, line);
+	    add_fname_to_include_list(ff, 0, line);
 	 }
 	 fclose(fd);
 	 break;
@@ -193,8 +192,8 @@ int main (int argc, char *argv[])
 
    parse_config(configfile);
 
-   if (ff.included_files_list == NULL) {
-      add_fname_to_include_list(&ff, 0, "/");
+   if (ff->included_files_list == NULL) {
+      add_fname_to_include_list(ff, 0, "/");
    }
 
    for (i=0; i < argc; i++) {
@@ -236,6 +235,8 @@ int main (int argc, char *argv[])
    if (bsr) {
       free_bsr(bsr);
    }
+   term_include_exclude_files(ff);
+   term_find_files(ff);
    return 0;
 }
 
@@ -370,7 +371,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       attr->data_stream = decode_stat(attr->attr, &attr->statp, &attr->LinkFI);
       build_attr_output_fnames(jcr, attr);
 
-      if (file_is_included(&ff, attr->fname) && !file_is_excluded(&ff, attr->fname)) {
+      if (file_is_included(ff, attr->fname) && !file_is_excluded(ff, attr->fname)) {
 	 if (verbose) {
             Pmsg5(-1, "FileIndex=%d VolSessionId=%d VolSessionTime=%d Stream=%d DataLen=%d\n",
 		  rec->FileIndex, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);

@@ -36,10 +36,10 @@
 int32_t name_max;	       /* filename max length */
 int32_t path_max;	       /* path name max length */
 
-
-/* ****FIXME**** debug until stable */
+#ifdef DEBUG
 #undef bmalloc
 #define bmalloc(x) sm_malloc(__FILE__, __LINE__, x)
+#endif
 static int our_callback(FF_PKT *ff, void *hpkt);
 static bool accept_file(FF_PKT *ff);
 
@@ -62,8 +62,6 @@ FF_PKT *init_find_files()
   memset(ff, 0, sizeof(FF_PKT));
 
   ff->sys_fname = get_pool_memory(PM_FNAME);
-
-  init_include_exclude_files(ff);	    /* init lists */
 
    /* Get system path and filename maximum lengths */
    path_max = pathconf(".", _PC_PATH_MAX);
@@ -143,20 +141,6 @@ find_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt), void 
             Dmsg1(100, "F %s\n", (char *)incexe->name_list.get(j));
 	    char *fname = (char *)incexe->name_list.get(j);
 	    if (find_one_file(jcr, ff, our_callback, his_pkt, fname, (dev_t)-1, 1) == 0) {
-	       return 0;		  /* error return */
-	    }
-	 }
-      }
-   } else {
-      struct s_included_file *inc = NULL;
-
-      /* This is the old deprecated way */
-      while (!job_canceled(jcr) && (inc = get_next_included_file(ff, inc))) {
-	 /* Copy options for this file */
-	 bstrncat(ff->VerifyOpts, inc->VerifyOpts, sizeof(ff->VerifyOpts));
-         Dmsg1(100, "find_files: file=%s\n", inc->fname);
-	 if (!file_is_excluded(ff, inc->fname)) {
-	    if (find_one_file(jcr, ff, callback, his_pkt, inc->fname, (dev_t)-1, 1) ==0) {
 	       return 0;		  /* error return */
 	    }
 	 }
@@ -327,7 +311,6 @@ term_find_files(FF_PKT *ff)
 {
   int hard_links;
 
-  term_include_exclude_files(ff);
   free_pool_memory(ff->sys_fname);
   hard_links = term_find_one(ff);
   free(ff);

@@ -44,8 +44,7 @@ static DEVICE *dev = NULL;
 static DCR *dcr;
 static BFILE bfd;
 static JCR *jcr;
-static FF_PKT my_ff;
-static FF_PKT *ff = &my_ff;
+static FF_PKT *ff;
 static BSR *bsr = NULL;
 static bool extract = false;
 static int non_support_data = 0;
@@ -97,8 +96,7 @@ int main (int argc, char *argv[])
    my_name_is(argc, argv, "bextract");
    init_msg(NULL, NULL);	      /* setup message handler */
 
-   memset(ff, 0, sizeof(FF_PKT));
-   init_include_exclude_files(ff);
+   ff = init_find_files();
    binit(&bfd);
 
    while ((ch = getopt(argc, argv, "b:c:d:e:i:pvV:?")) != -1) {
@@ -202,6 +200,8 @@ int main (int argc, char *argv[])
       Pmsg1(000, "%d Win32 data or Win32 gzip data stream records. Ignored.\n",
 	 win32_data_msg);
    }
+   term_include_exclude_files(ff);
+   term_find_files(ff);
    return 0;
 }
 

@@ -36,8 +36,6 @@
 #include "dird.h"
 
 /* Commands sent to File daemon */
-static char inc[]         = "include\n";
-static char exc[]         = "exclude\n";
 static char fileset[]     = "fileset\n"; /* set full fileset */
 static char jobcmd[]      = "JobId=%d Job=%s SDid=%u SDtime=%u Authorization=%s\n";
 /* Note, mtime_only is not used here -- implemented as file option */
@@ -48,7 +46,6 @@ static char runafter[]    = "RunAfterJob %s\n";
 
 /* Responses received from File daemon */
 static char OKinc[]       = "2000 OK include\n";
-static char OKexc[]       = "2000 OK exclude\n";
 static char OKjob[]       = "2000 OK Job";
 static char OKbootstrap[] = "2000 OK bootstrap\n";
 static char OKlevel[]     = "2000 OK level\n";
@@ -212,7 +209,7 @@ static void send_since_time(JCR *jcr)
  * Send level command to FD.
  * Used for backup jobs and estimate command.
  */
-int send_level_command(JCR *jcr)
+bool send_level_command(JCR *jcr)
 {
    BSOCK   *fd = jcr->file_bsock;
    /*
@@ -247,139 +244,6 @@ int send_level_command(JCR *jcr)
    }
    return 1;
 }
-
-
-/*
- * Send either an Included or an Excluded list to FD
- */
-static int send_list(JCR *jcr, int list)
-{
-   FILESET *fileset;
-   BSOCK   *fd;
-   int num;
-
-   fd = jcr->file_bsock;
-   fileset = jcr->fileset;
-
-   if (list == INC_LIST) {
-      num = fileset->num_includes;
-   } else {
-      num = fileset->num_excludes;
-   }
-
-   for (int i=0; i<num; i++) {
-      BPIPE *bpipe;
-      FILE *ffd;
-      char buf[2000];
-      char *p;
-      int optlen, stat;
-      INCEXE *ie;
-
-
-      if (list == INC_LIST) {
-	 ie = fileset->include_items[i];
-      } else {
-	 ie = fileset->exclude_items[i];
-      }
-      for (int j=0; j<ie->name_list.size(); j++) {
-	 p = (char *)ie->name_list.get(j);
-	 switch (*p) {
-         case '|':
-	    p++;		      /* skip over the | */
-            fd->msg = edit_job_codes(jcr, fd->msg, p, "");
-            bpipe = open_bpipe(fd->msg, 0, "r");
-	    if (!bpipe) {
-	       berrno be;
-               Jmsg(jcr, M_FATAL, 0, _("Cannot run program: %s. ERR=%s\n"),
-		  p, be.strerror());
-	       goto bail_out;
-	    }
-	    /* Copy File options */
-	    if (ie->num_opts) {
-	       bstrncpy(buf, ie->opts_list[0]->opts, sizeof(buf));
-               bstrncat(buf, " ", sizeof(buf));
-	    } else {
-               bstrncpy(buf, "0 ", sizeof(buf));
-	    }
-            Dmsg1(500, "Opts=%s\n", buf);
-	    optlen = strlen(buf);
-	    while (fgets(buf+optlen, sizeof(buf)-optlen, bpipe->rfd)) {
-               fd->msglen = Mmsg(fd->msg, "%s", buf);
-               Dmsg2(500, "Inc/exc len=%d: %s", fd->msglen, fd->msg);
-	       if (!bnet_send(fd)) {
-                  Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
-		  goto bail_out;
-	       }
-	    }
-	    if ((stat=close_bpipe(bpipe)) != 0) {
-	       berrno be;
-               Jmsg(jcr, M_FATAL, 0, _("Error running program %p: ERR=%s\n"),
-		  p, be.strerror(stat));
-	       goto bail_out;
-	    }
-	    break;
-         case '<':
-	    p++;		      /* skip over < */
-            if ((ffd = fopen(p, "r")) == NULL) {
-               Jmsg(jcr, M_FATAL, 0, _("Cannot open %s file: %s. ERR=%s\n"),
-                  list==INC_LIST?"included":"excluded", p, strerror(errno));
-	       goto bail_out;
-	    }
-	    /* Copy File options */
-	    if (ie->num_opts) {
-	       bstrncpy(buf, ie->opts_list[0]->opts, sizeof(buf));
-               bstrncat(buf, " ", sizeof(buf));
-	    } else {
-               bstrncpy(buf, "0 ", sizeof(buf));
-	    }
-            Dmsg1(500, "Opts=%s\n", buf);
-	    optlen = strlen(buf);
-	    while (fgets(buf+optlen, sizeof(buf)-optlen, ffd)) {
-               fd->msglen = Mmsg(fd->msg, "%s", buf);
-	       if (!bnet_send(fd)) {
-                  Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
-		  goto bail_out;
-	       }
-	    }
-	    fclose(ffd);
-	    break;
-         case '\\':
-            p++;                      /* skip over \ */
-	    /* Note, fall through wanted */
-	 default:
-	    if (ie->num_opts) {
-               Dmsg2(500, "numopts=%d opts=%s\n", ie->num_opts, NPRT(ie->opts_list[0]->opts));
-	       pm_strcpy(fd->msg, ie->opts_list[0]->opts);
-               pm_strcat(fd->msg, " ");
-	    } else {
-               pm_strcpy(fd->msg, "0 ");
-	    }
-	    fd->msglen = pm_strcat(fd->msg, p);
-            Dmsg1(500, "Inc/Exc name=%s\n", fd->msg);
-	    if (!bnet_send(fd)) {
-               Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
-	       goto bail_out;
-	    }
-	    break;
-	 }
-      }
-   }
-   bnet_sig(fd, BNET_EOD);	      /* end of data */
-   if (list == INC_LIST) {
-      if (!response(jcr, fd, OKinc, "Include", DISPLAY_ERROR)) {
-	 goto bail_out;
-      }
-   } else if (!response(jcr, fd, OKexc, "Exclude", DISPLAY_ERROR)) {
-	goto bail_out;
-   }
-   return 1;
-
-bail_out:
-   set_jcr_job_status(jcr, JS_ErrorTerminated);
-   return 0;
-
-}
-
 
 /*
  * Send either an Included or an Excluded list to FD
@@ -538,30 +402,26 @@ bail_out:
 /*
  * Send include list to File daemon
  */
-int send_include_list(JCR *jcr)
+bool send_include_list(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
    if (jcr->fileset->new_include) {
       bnet_fsend(fd, fileset);
       return send_fileset(jcr);
-   } else {
-      bnet_fsend(fd, inc);
    }
-   return send_list(jcr, INC_LIST);
+   return true;
 }
 
 
 /*
  * Send exclude list to File daemon
+ *   Under the new scheme, the Exclude list
+ *   is part of the FileSet sent with the
+ *   "include_list" above.
  */
-int send_exclude_list(JCR *jcr)
+bool send_exclude_list(JCR *jcr)
 {
-   BSOCK *fd = jcr->file_bsock;
-   if (jcr->fileset->new_include) {
-      return 1;
-   }
-   bnet_fsend(fd, exc);
-   return send_list(jcr, EXC_LIST);
+   return true;
 }
 
 
@@ -569,7 +429,7 @@ int send_exclude_list(JCR *jcr)
  * Send bootstrap file if any to the File daemon.
  *  This is used for restore and verify VolumeToCatalog
  */
-int send_bootstrap_file(JCR *jcr)
+bool send_bootstrap_file(JCR *jcr)
 {
    FILE *bs;
    char buf[1000];

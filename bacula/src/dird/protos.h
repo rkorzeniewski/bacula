@@ -73,10 +73,10 @@ int variable_expansion(JCR *jcr, char *inp, POOLMEM **exp);
 /* fd_cmds.c */
 extern int connect_to_file_daemon(JCR *jcr, int retry_interval,
                                   int max_retry_time, int verbose);
-extern int send_include_list(JCR *jcr);
-extern int send_exclude_list(JCR *jcr);
-extern int send_bootstrap_file(JCR *jcr);
-extern int send_level_command(JCR *jcr);
+extern bool send_include_list(JCR *jcr);
+extern bool send_exclude_list(JCR *jcr);
+extern bool send_bootstrap_file(JCR *jcr);
+extern bool send_level_command(JCR *jcr);
 extern int get_attributes_and_put_in_catalog(JCR *jcr);
 extern int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId);
 extern int put_file_into_catalog(JCR *jcr, long file_index, char *fname,

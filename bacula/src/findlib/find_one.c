@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2000-20054 Kern Sibbald
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -163,8 +163,8 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
 	 if (ff_pkt->flags & FO_KEEPATIME) {
 	    utime(fname, &restore_times);
 	 }
-	 Jmsg1(jcr, M_ERROR, 0, _("Top level directory \"%s\" has an unlisted fstype\n"), fname);
-	 return 1;      /* Just ignore this error - or the whole backup is cancelled */
+         Jmsg1(jcr, M_ERROR, 0, _("Top level directory \"%s\" has an unlisted fstype\n"), fname);
+	 return 1;	/* Just ignore this error - or the whole backup is cancelled */
       }
       ff_pkt->volhas_attrlist = volume_has_attrlist(fname);
    }

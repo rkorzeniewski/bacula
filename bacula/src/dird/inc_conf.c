@@ -128,8 +128,10 @@ enum {
 };
 
 /*
- * Include keywords -- these are keywords that can appear
- *    in the options lists of an old include ( Include = compression= ...)
+ * This is the list of options that can be stored by store_opts
+ *   Note, now that the old style Include/Exclude code is gone,
+ *   the INC_KW code could be put into the "code" field of the
+ *   options given above.
  */
 static struct s_kw FS_option_kw[] = {
    {"compression", INC_KW_COMPRESSION},
@@ -271,11 +273,7 @@ static void scan_include_options(LEX *lc, int keyword, char *opts, int optlen)
  */
 void store_inc(LEX *lc, RES_ITEM *item, int index, int pass)
 {
-   int token, i;
-   int options = lc->options;
-   int keyword;
-   char inc_opts[100];
-   int inc_opts_len;
+   int token;
 
    /*
     * Decide if we are doing a new Include or an old include. The
@@ -287,113 +285,7 @@ void store_inc(LEX *lc, RES_ITEM *item, int index, int pass)
       store_newinc(lc, item, index, pass);
       return;
    }
-
-   /* What follows is scanning for the OLD style Include/Exclude */
-
-   if (token != T_EQUALS) {
-      scan_err1(lc, _("Expecting an equals sign, got: %s\n"), lc->str);
-   }
-   lc->options |= LOPT_NO_IDENT;      /* make spaces significant */
-   memset(&res_incexe, 0, sizeof(INCEXE));
-
-   /* Get include options */
-   inc_opts[0] = 0;
-   while ((token=lex_get_token(lc, T_SKIP_EOL)) != T_BOB) {
-
-      keyword = INC_KW_NONE;
-      for (i=0; FS_option_kw[i].name; i++) {
-	 if (strcasecmp(lc->str, FS_option_kw[i].name) == 0) {
-	    keyword = FS_option_kw[i].token;
-	    break;
-	 }
-      }
-      if (keyword == INC_KW_NONE) {
-         scan_err1(lc, _("Expected a FileSet keyword, got: %s"), lc->str);
-      }
-      /* Option keyword should be following by = <option> */
-      if ((token=lex_get_token(lc, T_SKIP_EOL)) != T_EQUALS) {
-         scan_err1(lc, _("expected an = following keyword, got: %s"), lc->str);
-      } else {
-	 /* Scan right hand side of option */
-	 scan_include_options(lc, keyword, inc_opts, sizeof(inc_opts));
-      }
-      if (token == T_BOB) {
-	 break;
-      }
-   }
-
-   if (!inc_opts[0]) {
-      bstrncat(inc_opts, "0", sizeof(inc_opts));   /* set no options */
-   }
-   inc_opts_len = strlen(inc_opts);
-
-   if (pass == 1) {
-      INCEXE *incexe;
-      if (!res_all.res_fs.have_MD5) {
-	 MD5Init(&res_all.res_fs.md5c);
-	 res_all.res_fs.have_MD5 = TRUE;
-      }
-      setup_current_opts();
-      bstrncpy(res_incexe.current_opts->opts, inc_opts, MAX_FOPTS);
-      Dmsg2(900, "old pass=%d incexe opts=%s\n", pass, res_incexe.current_opts->opts);
-
-      /* Create incexe structure */
-      Dmsg0(900, "Create INCEXE structure\n");
-      incexe = (INCEXE *)malloc(sizeof(INCEXE));
-      memcpy(incexe, &res_incexe, sizeof(INCEXE));
-      memset(&res_incexe, 0, sizeof(INCEXE));
-      if (item->code == 0) { /* include */
-	 if (res_all.res_fs.num_includes == 0) {
-	    res_all.res_fs.include_items = (INCEXE **)malloc(sizeof(INCEXE *));
-	  } else {
-	    res_all.res_fs.include_items = (INCEXE **)realloc(res_all.res_fs.include_items,
-			   sizeof(INCEXE *) * (res_all.res_fs.num_includes + 1));
-	  }
-	  res_all.res_fs.include_items[res_all.res_fs.num_includes++] = incexe;
-          Dmsg1(900, "num_includes=%d\n", res_all.res_fs.num_includes);
-      } else {	  /* exclude */
-	 if (res_all.res_fs.num_excludes == 0) {
-	    res_all.res_fs.exclude_items = (INCEXE **)malloc(sizeof(INCEXE *));
-	  } else {
-	    res_all.res_fs.exclude_items = (INCEXE **)realloc(res_all.res_fs.exclude_items,
-			   sizeof(INCEXE *) * (res_all.res_fs.num_excludes + 1));
-	  }
-	  res_all.res_fs.exclude_items[res_all.res_fs.num_excludes++] = incexe;
-          Dmsg1(900, "num_excludes=%d\n", res_all.res_fs.num_excludes);
-      }
-
-      /* Pickup include/exclude names.	They are stored in INCEXE
-       *  structures which contains the options and the name.
-       */
-      while ((token = lex_get_token(lc, T_SKIP_EOL)) != T_EOB) {
-	 switch (token) {
-	 case T_COMMA:
-	    continue;
-
-	 case T_IDENTIFIER:
-	 case T_UNQUOTED_STRING:
-	 case T_QUOTED_STRING:
-	    if (res_all.res_fs.have_MD5) {
-	       MD5Update(&res_all.res_fs.md5c, (unsigned char *)lc->str, lc->str_len);
-	    }
-	    if (incexe->name_list.size() == 0) {
-	       incexe->name_list.init(10, true);
-	    }
-	    incexe->name_list.append(bstrdup(lc->str));
-            Dmsg1(900, "Add to name_list %s\n", lc->str);
-	    break;
-	 default:
-            scan_err1(lc, "Expected a filename, got: %s", lc->str);
-	 }
-      }
-      /* Note, MD5Final is done in backup.c */
-   } else { /* pass 2 */
-      while (lex_get_token(lc, T_ALL) != T_EOB)
-	 {}
-   }
-   scan_to_eol(lc);
-   lc->options = options;
-   set_bit(index, res_all.hdr.item_present);
+   scan_err0(lc, _("Old style Include/Exclude not supported\n"));
 }
 
 

@@ -141,7 +141,7 @@ depend:
 	@$(MV) Makefile Makefile.bak
 	@$(SED) "/^# DO NOT DELETE:/,$$ d" Makefile.bak > Makefile
 	@$(ECHO) "# DO NOT DELETE: nice dependency list follows" >> Makefile
-	@$(CXX) -S -M $(CPPFLAGS) $(XINC) -I$(srcdir) -I$(basedir) $(SQL_INC) *.c >> Makefile
+	@$(CXX) -S -M $(CPPFLAGS) $(XINC) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(SQL_INC) *.c >> Makefile
 	@if test -f Makefile ; then \
 	    $(RMF) Makefile.bak; \
 	else \
