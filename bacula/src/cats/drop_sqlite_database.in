@@ -2,5 +2,9 @@
 #
 # shell script to drop Bacula SQLite tables
 
-cd @working_dir@
-rm -rf bacula.db
+if test xsqlite = x@DB_NAME@ ; then 
+  cd @working_dir@
+  rm -rf bacula.db
+else
+  echo "Bacula is not configured for an SQLite database."
+fi

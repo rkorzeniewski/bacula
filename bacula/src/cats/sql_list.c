@@ -301,15 +301,23 @@ AS Files,sum(JobBytes) As Bytes FROM Job");
    db_unlock(mdb);
 }
 
+/* 
+ * Stupid MySQL is NON-STANDARD !  
+ */
+#ifdef HAVE_MYSQL
+#define FN "CONCAT(Path.Path,Filename.Name)"
+#else
+#define FN "Path.Path||Filename.Name"
+#endif
 
 void
 db_list_files_for_job(JCR *jcr, B_DB *mdb, uint32_t jobid, DB_LIST_HANDLER *sendit, void *ctx)
 {
    db_lock(mdb);
 
-   Mmsg(&mdb->cmd, "SELECT Path.Path,Filename.Name FROM File,\
-Filename,Path WHERE File.JobId=%u AND Filename.FilenameId=File.FilenameId \
-AND Path.PathId=File.PathId",
+   Mmsg(&mdb->cmd, "SELECT " FN " AS Filename FROM File,"
+"Filename,Path WHERE File.JobId=%u AND Filename.FilenameId=File.FilenameId "
+"AND Path.PathId=File.PathId",
       jobid);
 
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {

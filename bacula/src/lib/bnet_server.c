@@ -128,7 +128,7 @@ bnet_thread_server(char *bind_addr, int port, int max_clients, workq_t *client_w
       FD_SET(sockfd, &sockset);
       errno = 0;
       if ((stat = select(sockfd+1, &sockset, NULL, NULL, NULL)) < 0) {
-	 if (errno == EINTR) {
+	 if (errno == EINTR || errno == EAGAIN) {
 	    continue;
 	 }
 	 /* Error, get out */
@@ -141,7 +141,7 @@ bnet_thread_server(char *bind_addr, int port, int max_clients, workq_t *client_w
       do {
 	 clilen = sizeof(cli_addr);
 	 newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, &clilen);
-      } while (newsockfd < 0 && errno == EINTR);
+      } while (newsockfd < 0 && (errno == EINTR || errno == EAGAIN));
       if (newsockfd < 0) {
 	 continue;
       }
@@ -212,7 +212,7 @@ bnet_bind(int port)
     * Open a TCP socket  
     */
    for (tlog=0; (sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0; tlog -= 10 ) {
-      if (errno == EINTR) {
+      if (errno == EINTR || errno == EAGAIN) {
 	 continue;
       }
       if (tlog <= 0) {
@@ -238,7 +238,7 @@ bnet_bind(int port)
    serv_addr.sin_port = htons(port);
 
    for (tlog=0; bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0; tlog -= 5 ) {
-      if (errno == EINTR) {
+      if (errno == EINTR || errno == EAGAIN) {
 	 continue;
       }
       if (tlog <= 0) {
@@ -280,7 +280,7 @@ bnet_accept(BSOCK *bsock, char *who)
        */
       ready = sockset;
       if ((stat = select(bsock->fd+1, &ready, NULL, NULL, NULL)) < 0) {
-	 if (errno == EINTR) {
+	 if (errno == EINTR || errno = EAGAIN) {
 	    errno = 0;
 	    continue;
 	 }
@@ -291,7 +291,7 @@ bnet_accept(BSOCK *bsock, char *who)
       do {
 	 clilen = sizeof(cli_addr);
 	 newsockfd = accept(bsock->fd, (struct sockaddr *)&cli_addr, &clilen);
-      } while (newsockfd < 0 && errno == EINTR);
+      } while (newsockfd < 0 && (errno == EINTR || errno = EAGAIN));
       if (newsockfd >= 0) {
 	 break;
       }
