@@ -44,7 +44,7 @@
 
 #ifdef HAVE_WIN32
 #include <windows.h>
-#define isatty(fd) (fd==1)
+#define isatty(fd) (fd==0)
 DWORD  g_platform_id = VER_PLATFORM_WIN32_WINDOWS;
 #endif
  
@@ -381,6 +381,10 @@ Without that I don't how to speak to the Director :-(\n"), configfile);
    memset(&jcr, 0, sizeof(jcr));
 
 
+#ifdef HAVE_WIN32
+   WSA_Init();			      /* Initialize Windows sockets */
+#endif
+
    if (ndir > 1) {
       struct sockaddr_in client_addr;
       memset(&client_addr, 0, sizeof(client_addr));
@@ -519,6 +523,9 @@ wait_for_data(int fd, int sec)
 {
    fd_set fdset;
    struct timeval tv;
+#ifdef HAVE_WIN32
+   return 1;                          /* select doesn't seem to work on Win32 */
+#endif
 
    tv.tv_sec = sec;
    tv.tv_usec = 0;
@@ -731,6 +738,8 @@ void sendit(char *buf)
     if (tee) {
        fputs(buf, stdout);
     }
-    fflush(stdout);
+    if (output == stdout || tee) {
+       fflush(stdout);
+    }
 #endif
 }

@@ -56,8 +56,15 @@ int r_last  = R_LAST;
  * then move it to allocated memory when the resource
  * scan is complete.
  */
+#if defined(HAVE_WIN32) && !defined(HAVE_CYGWIN)  && !defined(HAVE_MINGW)
+extern "C" { // work around visual compiler mangling variables
+    URES res_all;
+    int  res_all_size = sizeof(res_all);
+}
+#else
 URES res_all;
 int  res_all_size = sizeof(res_all);
+#endif
 
 /* Definition of records permitted within each
  * resource with the routine to process the record 

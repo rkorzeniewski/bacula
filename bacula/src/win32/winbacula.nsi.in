@@ -148,7 +148,19 @@ Section "Bacula File Service" SecService
  Start:
   Exec '"$INSTDIR\bin\bacula-fd.exe" -c "$INSTDIR\bin\bacula-fd.conf"'
  NoStart:
+SectionEnd
 
+Section "Install Console" SecConsole
+  SetOutPath "$INSTDIR\bin"
+  File console\Release\bconsole.exe
+  IfFileExists "$INSTDIR\bin\bconsole.conf" newconf 
+  File console\bconsole.conf
+  goto do_next
+ newconf:
+  File /oname=bconsole.conf.new console\bconsole.conf
+       
+  ; If /service was given jump to the service install part
+ do_next:
 SectionEnd
 
 
@@ -165,10 +177,12 @@ SectionEnd
 ;
 
   LangString DESC_SecService ${LANG_ENGLISH} "Install Bacula client on this system."
+  LangString DESC_SecConsole ${LANG_ENGLISH} "Install Console program on this system."
   LangString DESC_SecDoc ${LANG_ENGLISH} "Install Documenation on this system."
 
   !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
     !insertmacro MUI_DESCRIPTION_TEXT ${SecService} $(DESC_SecService)
+    !insertmacro MUI_DESCRIPTION_TEXT ${SecConsole} $(DESC_SecConsole)
     !insertmacro MUI_DESCRIPTION_TEXT ${SecDoc} $(DESC_SecDoc)
   !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
@@ -198,6 +212,7 @@ Section "Uninstall"
   Delete /REBOOTOK "$INSTDIR\bin\*.*"
   Delete /REBOOTOK "$INSTDIR\doc\*.*"
   CopyFiles /SILENT "$INSTDIR\bacula-fd.conf" "$INSTDIR\bin\bacula-fd.conf"
+  CopyFiles /SILENT "$INSTDIR\bconsole.conf" "$INSTDIR\bin\bconsole.conf"
   Delete /REBOOTOK "$INSTDIR\bacula-fd.conf"
   Delete /REBOOTOK "$INSTDIR\Uninstall.exe"
 
