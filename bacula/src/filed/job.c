@@ -471,8 +471,8 @@ static int run_cmd(JCR *jcr, char *cmd, const char *name)
    }
    while (fgets(line, sizeof(line), bpipe->rfd)) {
       int len = strlen(line);
-      if (len > 0 && line[len-1] ! = '\n') {
-         bstrncat(line, sizeof(line), "\n");
+      if (len > 0 && line[len-1] != '\n') {
+         bstrncat(line, "\n", sizeof(line));
       }
       Jmsg(jcr, M_INFO, 0, _("%s: %s"), name, line);
    }

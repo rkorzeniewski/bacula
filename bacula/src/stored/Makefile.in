@@ -23,6 +23,7 @@ SVRSRCS = stored.c autochanger.c acquire.c append.c \
 	  block.c butil.c dev.c \
 	  device.c dircmd.c fd_cmds.c job.c \
 	  label.c match_bsr.c mount.c parse_bsr.c \
+	  python.c \
 	  read.c read_record.c record.c \
 	  spool.c status.c stored_conf.c
 SVROBJS = stored.o autochanger.o acquire.o append.o \
@@ -30,6 +31,7 @@ SVROBJS = stored.o autochanger.o acquire.o append.o \
 	  block.o butil.o dev.o \
 	  device.o dircmd.o fd_cmds.o job.o \
 	  label.o match_bsr.o mount.o parse_bsr.o \
+	  python.o \
 	  read.o read_record.o record.o \
 	  spool.o status.o stored_conf.o
 
@@ -75,7 +77,7 @@ FDLIBS=@FDLIBS@
 
 # inference rules
 .c.o:
-	$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+	$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
 
 all: Makefile bacula-sd @STATIC_SD@ bls bextract bscan btape bcopy
@@ -83,10 +85,12 @@ all: Makefile bacula-sd @STATIC_SD@ bls bextract bscan btape bcopy
 	@echo " "
 
 bacula-sd: $(SVROBJS) ../lib/libbac.a
-	$(CXX) $(WLDFLAGS) $(LDFLAGS) -L../lib -o $@ $(SVROBJS) $(FDLIBS) -lbac -lm $(DLIB) $(LIBS) 
+	$(CXX) $(WLDFLAGS) $(LDFLAGS) -L../lib -o $@ $(SVROBJS) $(FDLIBS) \
+	  -lbac -lm $(PYTHON_LIBS) $(DLIB) $(LIBS) 
 
 static-bacula-sd: $(SVROBJS) ../lib/libbac.a
-	$(CXX) $(WLDFLAGS) $(LDFLAGS) -static -L../lib -o $@ $(SVROBJS) $(FDLIBS) -lbac -lm $(DLIB) $(LIBS) 
+	$(CXX) $(WLDFLAGS) $(LDFLAGS) -static -L../lib -o $@ $(SVROBJS) $(FDLIBS) \
+	  -lbac -lm $(PYTHON_LIBS) $(DLIB) $(LIBS) 
 	strip $@
 
 btape.o: btape.c
@@ -178,7 +182,7 @@ depend:
 	@$(MV) Makefile Makefile.bak
 	@$(SED) "/^# DO NOT DELETE:/,$$ d" Makefile.bak > Makefile
 	@$(ECHO) "# DO NOT DELETE: nice dependency list follows" >> Makefile
-	@$(CXX) -S -M $(CPPFLAGS) $(XINC) -I$(srcdir) -I$(basedir) $(SQL_INC) *.c >> Makefile
+	@$(CXX) -S -M $(CPPFLAGS) $(XINC) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(SQL_INC) *.c >> Makefile
 	@if test -f Makefile ; then \
 	    $(RMF) Makefile.bak; \
 	else \
