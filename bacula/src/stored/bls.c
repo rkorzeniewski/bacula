@@ -98,7 +98,7 @@ int main (int argc, char *argv[])
    memset(&ff, 0, sizeof(ff));
    init_include_exclude_files(&ff);
 
-   while ((ch = getopt(argc, argv, "b:c:d:e:i:jkLvV:?")) != -1) {
+   while ((ch = getopt(argc, argv, "b:c:d:e:i:jkLpvV:?")) != -1) {
       switch (ch) {
       case 'b':
 	 bsrName = optarg;

@@ -100,6 +100,10 @@ Items to note:  !!!!!
   update your database with:
 
     ./update_bacula_tables
+
+  Please save your old database before dropping the tables or doing
+  an upgrade or you may regret it later.
+
 - smtp has now become bsmtp
 - console has now become bconsole.
 - console.conf is now bconsole.conf

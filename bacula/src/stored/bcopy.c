@@ -58,9 +58,10 @@ static void usage()
 "       -b bootstrap      specify a bootstrap file\n"
 "       -c <file>         specify configuration file\n"
 "       -d <nn>           set debug level to nn\n"
-"       -v                verbose\n"
 "       -i                specify input Volume names (separated by |)\n"
 "       -o                specify output Volume names (separated by |)\n"
+"       -p                proceed inspite of errors\n"
+"       -v                verbose\n"
 "       -w <dir>          specify working directory (default /tmp)\n"
 "       -?                print this message\n\n"));
    exit(1);
@@ -71,11 +72,12 @@ int main (int argc, char *argv[])
    int ch;
    char *iVolumeName = NULL;
    char *oVolumeName = NULL;
+   bool ignore_label_errors = false;
 
-   my_name_is(argc, argv, "bscan");
+   my_name_is(argc, argv, "bcopy");
    init_msg(NULL, NULL);
 
-   while ((ch = getopt(argc, argv, "b:c:d:mn:p:rsu:vV:w:?")) != -1) {
+   while ((ch = getopt(argc, argv, "b:c:d:i:o:pvw:?")) != -1) {
       switch (ch) {
       case 'b':
 	 bsr = parse_bsr(NULL, optarg);
@@ -94,10 +96,6 @@ int main (int argc, char *argv[])
 	    debug_level = 1; 
 	 break;
 
-      case 'v':
-	 verbose++;
-	 break;
-
       case 'i':                    /* input Volume name */
 	 iVolumeName = optarg;
 	 break;
@@ -106,6 +104,13 @@ int main (int argc, char *argv[])
 	 oVolumeName = optarg;
 	 break;
 
+      case 'p':
+	 ignore_label_errors = true;
+	 break;
+  
+      case 'v':
+	 verbose++;
+	 break;
 
       case 'w':
 	 wd = optarg;
@@ -135,6 +140,7 @@ int main (int argc, char *argv[])
 
    /* Setup and acquire input device for reading */
    in_jcr = setup_jcr("bcopy", argv[0], bsr, iVolumeName);
+   in_jcr->ignore_label_errors = ignore_label_errors;
    in_dev = setup_to_access_device(in_jcr, 1);	 /* read device */
    if (!in_dev) { 
       exit(1);
@@ -178,7 +184,9 @@ int main (int argc, char *argv[])
 }
   
 
-
+/*
+ * read_records() calls back here for each record it gets
+ */
 static int record_cb(JCR *in_jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 {
    if (list_records) {
@@ -263,7 +271,7 @@ int	dir_send_job_status(JCR *jcr) {return 1;}
 
 int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
 {
-   fprintf(stderr, "Mount Volume %s on device %s and press return when ready: ",
+   fprintf(stderr, "Mount Volume \"%s\" on device \"%s\" and press return when ready: ",
       in_jcr->VolumeName, dev_name(dev));
    getchar();	
    return 1;
