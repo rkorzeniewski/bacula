@@ -532,6 +532,13 @@ int do_mount_dev(DEVICE* dev, int mount, int dotimeout) {
  * part file).
  * So, if the DVD does not contains a Bacula volume, a random file is opened,
  * and no valid label could be read from this file.
+ *
+ * It is useful, so the operator can be told that a wrong volume is mounted, with
+ * the label name of the current volume. We can also check that the currently
+ * mounted disk is writable. (See also read_dev_volume_label_guess in label.c).
+ *
+ * Note that if the right volume is mounted, open_guess_name_dev returns the same
+ * result as an usual open_dev.
  */
 int open_guess_name_dev(DEVICE *dev) {
    Dmsg1(29, "open_guess_name_dev: dev=%s\n", dev->dev_name);
