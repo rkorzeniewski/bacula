@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                   7 July 2003 
+                   10 July 2003 
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -16,13 +16,7 @@ Documentation to do: (any release a little bit at a time)
 - Document FInclude ...
 - Document need to add "-u root" to most of MySQL script calls
   (./create_mys... ./make_my...).
-- Document c:/working directory better than /working directory.
 - Document all the status codes JobLevel, JobType, JobStatus.
-- Document update volume: jobid, current, before, all
-- Document run "yes".
-- Document that bscan does not work with multiple simultaneous jobs.
-- Update Automatic Volume Labeling in disk.wml
-- Document portable=yes
 
           
 Testing to do: (painful)
@@ -53,6 +47,7 @@ For 1.31 release:
 - Implement List Volume Job=xxx  or List scheduled volumes or Status Director 
 - Check if Incremental is working correctly when it looks for the previous Job 
   (Phil's problem).
+- Add FileSet to command line arguments for restore.
 
 
 For 1.32:
@@ -1022,4 +1017,9 @@ Done: (see kernsdone for more)
    ERR=The system cannot find the path specified.
 - Finish Windows implementation (add setting of correct type on restore,
   add Portable Data Format flag).
-
+- Document portable=yes
+- Document c:/working directory better than /working directory.
+- Document run "yes".
+- Document update volume: jobid, current, before, all
+- Document that bscan does not work with multiple simultaneous jobs.
+- Update Automatic Volume Labeling in disk.wml
