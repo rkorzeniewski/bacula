@@ -203,7 +203,7 @@ int jobq_add(jobq_t *jq, JCR *jcr)
    pthread_t id;
    wait_pkt *sched_pkt;
     
-   Dmsg3(000, "jobq_add jobid=%d jcr=0x%x use_count=%d\n", jcr->JobId, jcr, jcr->use_count);
+   Dmsg3(010, "jobq_add jobid=%d jcr=0x%x use_count=%d\n", jcr->JobId, jcr, jcr->use_count);
    if (jq->valid != JOBQ_VALID) {
       Jmsg0(jcr, M_ERROR, 0, "Jobq_add queue not initialized.\n");
       return EINVAL;

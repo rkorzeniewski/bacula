@@ -1,9 +1,9 @@
 /*
- *  Bacula doubly linked list routines.          
+ *  Bacula doubly linked list routines. 	 
  *
  *    dlist is a doubly linked list with the links being in the
- *       list data item.
- *                
+ *	 list data item.
+ *		  
  *   Kern Sibbald, July MMIII
  *
  *   Version $Id$
@@ -39,14 +39,14 @@
  */
 void dlist::append(void *item) 
 {
-   ((dlink *)((char *)item+loffset))->next = NULL;
-   ((dlink *)((char *)item+loffset))->prev = tail;
+   ((dlink *)(((char *)item)+loffset))->next = NULL;
+   ((dlink *)(((char *)item)+loffset))->prev = tail;
    if (tail) {
-      ((dlink *)((char *)tail+loffset))->next = item;
+      ((dlink *)(((char *)tail)+loffset))->next = item;
    }
    tail = item;
-   if (head == NULL) {                /* if empty list, */
-      head = item;                    /* item is head as well */
+   if (head == NULL) {		      /* if empty list, */
+      head = item;		      /* item is head as well */
    }
    num_items++;
 }
@@ -56,46 +56,46 @@ void dlist::append(void *item)
  */
 void dlist::prepend(void *item) 
 {
-   ((dlink *)((char *)item+loffset))->next = head;
-   ((dlink *)((char *)item+loffset))->prev = NULL;
+   ((dlink *)(((char *)item)+loffset))->next = head;
+   ((dlink *)(((char *)item)+loffset))->prev = NULL;
    if (head) {
-      ((dlink *)((char *)head+loffset))->prev = item;
+      ((dlink *)(((char *)head)+loffset))->prev = item;
    }
    head = item;
-   if (tail == NULL) {                /* if empty list, */                    
-      tail = item;                    /* item is tail too */
+   if (tail == NULL) {		      /* if empty list, */		      
+      tail = item;		      /* item is tail too */
    }
    num_items++;
 }
 
-void dlist::insert_before(void *item, void *where)       
+void dlist::insert_before(void *item, void *where)	 
 {
    dlink *where_link = (dlink *)((char *)where+loffset);     
 
-   ((dlink *)((char *)item+loffset))->next = where;
-   ((dlink *)((char *)item+loffset))->prev = where_link->prev;
+   ((dlink *)(((char *)item)+loffset))->next = where;
+   ((dlink *)(((char *)item)+loffset))->prev = where_link->prev;
 
    if (where_link->prev) {
-      ((dlink *)((char *)(where_link->prev)+loffset))->next = item;
-      where_link->prev = item;
+      ((dlink *)(((char *)(where_link->prev))+loffset))->next = item;
    }
+   where_link->prev = item;
    if (head == where) {
       head = item;
    }
    num_items++;
 }
 
-void dlist::insert_after(void *item, void *where)       
+void dlist::insert_after(void *item, void *where)	
 {
    dlink *where_link = (dlink *)((char *)where+loffset);     
 
-   ((dlink *)((char *)item+loffset))->next = where_link->next;
-   ((dlink *)((char *)item+loffset))->prev = where;
+   ((dlink *)(((char *)item)+loffset))->next = where_link->next;
+   ((dlink *)(((char *)item)+loffset))->prev = where;
 
    if (where_link->next) {
-      ((dlink *)((char *)(where_link->next)+loffset))->prev = item;
-      where_link->next = item;
+      ((dlink *)(((char *)(where_link->next))+loffset))->prev = item;
    }
+   where_link->next = item;
    if (tail == where) {
       tail = item;
    }
@@ -106,25 +106,25 @@ void dlist::insert_after(void *item, void *where)
 void dlist::remove(void *item)
 {
    void *xitem;
-   dlink *ilink = (dlink *)((char *)item+loffset);   /* item's link */
+   dlink *ilink = (dlink *)(((char *)item)+loffset);   /* item's link */
    if (item == head) {
       head = ilink->next;
       if (head) {
-         ((dlink *)((char *)head+loffset))->prev = NULL;
+	 ((dlink *)(((char *)head)+loffset))->prev = NULL;
       }
       if (item == tail) {
-         tail = ilink->prev;
+	 tail = ilink->prev;
       }
    } else if (item == tail) {
       tail = ilink->prev;
       if (tail) {
-         ((dlink *)((char *)tail+loffset))->next = NULL;
+	 ((dlink *)(((char *)tail)+loffset))->next = NULL;
       }
    } else {
       xitem = ilink->next;
-      ((dlink *)((char *)xitem+loffset))->prev = ilink->prev;
+      ((dlink *)(((char *)xitem)+loffset))->prev = ilink->prev;
       xitem = ilink->prev;
-      ((dlink *)((char *)xitem+loffset))->next = ilink->next;
+      ((dlink *)(((char *)xitem)+loffset))->next = ilink->next;
    }
    num_items--;
 }
@@ -134,7 +134,7 @@ void * dlist::next(void *item)
    if (item == NULL) {
       return head;
    }
-   return ((dlink *)((char *)item+loffset))->next;
+   return ((dlink *)(((char *)item)+loffset))->next;
 }
 
 void * dlist::prev(void *item)
@@ -142,7 +142,7 @@ void * dlist::prev(void *item)
    if (item == NULL) {
       return tail;
    }
-   return ((dlink *)((char *)item+loffset))->prev;
+   return ((dlink *)(((char *)item)+loffset))->prev;
 }
 
 
@@ -150,7 +150,7 @@ void * dlist::prev(void *item)
 void dlist::destroy()
 {
    for (void *n=head; n; ) {
-      void *ni = ((dlink *)((char *)n+loffset))->next;
+      void *ni = ((dlink *)(((char *)n)+loffset))->next;
       free(n);
       n = ni;
    }
@@ -184,7 +184,7 @@ int main()
       jcr->buf = bstrdup(buf);
       jcr_chain->prepend(jcr);
       if (i == 10) {
-         save_jcr = jcr;
+	 save_jcr = jcr;
       }
    }
 
@@ -213,7 +213,7 @@ int main()
       jcr->buf = bstrdup(buf);
       jcr_chain->append(jcr);
       if (i == 10) {
-         save_jcr = jcr;
+	 save_jcr = jcr;
       }
    }
 

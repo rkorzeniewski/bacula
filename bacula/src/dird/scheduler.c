@@ -32,7 +32,7 @@
 #include "bacula.h"
 #include "dird.h"
 
-#define PHIL
+/* #define PHIL */
 
 
 /* Local variables */
@@ -317,8 +317,9 @@ static void add_job(JOB *job, RUN *run, time_t now, time_t runtime)
       bstrftime_nc(dt, sizeof(dt), runtime);  
       bstrftime_nc(dt1, sizeof(dt1), run->last_run);
       bstrftime_nc(dt2, sizeof(dt2), now);
-      Dmsg4(000, "Drop: Job=%s run=%s. last_run=%s. now=%s\n", job->hdr.name, 
+      Dmsg4(000, "Drop: Job=\"%s\" run=%s. last_run=%s. now=%s\n", job->hdr.name, 
 	    dt, dt1, dt2);
+      fflush(stdout);
 #endif
       return;
    }
@@ -348,6 +349,10 @@ static void add_job(JOB *job, RUN *run, time_t now, time_t runtime)
       jobs_to_run->append(je);
       dump_job(je, "Appended job");
    }
+   foreach_dlist(ji, jobs_to_run) {
+      dump_job(ji, "Run queue");
+   }
+   Dmsg0(000, "End run queue\n");
 }
 
 static void dump_job(job_item *ji, char *msg) 
@@ -362,6 +367,7 @@ static void dump_job(job_item *ji, char *msg)
    bstrftime_nc(dt, sizeof(dt), ji->runtime);  
    Dmsg4(200, "%s: Job=%s priority=%d run %s\n", msg, ji->job->hdr.name, 
       ji->Priority, dt);
+   fflush(stdout);
    debug_level = save_debug;
 #endif
 }

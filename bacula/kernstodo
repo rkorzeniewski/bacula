@@ -68,8 +68,15 @@ For 1.33 Testing/Documentation:
   "soft" and "intr"remount options may well help you.  The only way of
   being sure would be totry it.See, for example,
      http://howtos.linux.com/guides/nag2/x-087-2-nfs.mountd.shtml
+- Add the following devices as working:
+   Adic Scalar 100 DLT
+   Adic Fastor 22 DLT
+   (both HVD)
+   Overland LoaderXpress LTO (LVD)
+   Overland Neo2000 (LVD)
 
 For 1.33
+- Use SHA1 on authentication if possible.
 - Check: Run = Level=Differential feb-dec 1 at 1:05 to see if wday is empty.
 - Look at installation file permissions with Scott so that make install
   and the rpms agree.
@@ -1395,4 +1402,3 @@ Block Position: 0
 - Make column listing for running jobs JobId Level Type Started Name  Status
 - Why does Bacula need the drive open to do "autochanger list" ?
 - Add data compare on write/read in btape "test". 
-
