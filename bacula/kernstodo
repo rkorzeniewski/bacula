@@ -1,10 +1,11 @@
                  Kern's ToDo List
-                 22 December 2002
+                 29 December 2002
 
 Documentation to do: (a little bit at a time)
 - Document running a test version.
 - Make sure restore options are documented
 - Document query file format.
+- Document static linking
 
 Testing to do: (painful)
 - that restore options work in FD (mostly done).
@@ -13,16 +14,19 @@ Testing to do: (painful)
 
 For 1.28 release:
 - Look at ua_prune.c in detail. Why did JobType work at all??????
+- Figure out how to allow multiple simultaneous file Volumes on
+  a single device.
+
+For 1.29 release:
 - Implement FileOptions (see end of this document)
+- Implement Bacula plugins -- design API
 - Make hash table for linked files in findlib/find_one.c:161
 - Make bcopy read through bad tape records.
 - Need a verbose mode in restore, perhaps to bsr.
 - Should we dump a SOS when starting a new tape?
 - bscan without -v is too quiet -- perhaps show jobs.
 - Add code to reject whole blocks if not wanted on restore.
-
-- Figure out how to allow multiple simultaneous file Volumes on
-  a single device.
+- Implement multiple simultaneous file Volumes on a single device.
 - Start working on Base jobs.
 - Make sure the MaxVolFiles is fully implemented in SD
 - Flush all the daemon messages at the end of every job.
@@ -31,12 +35,7 @@ For 1.28 release:
 - Need return status on read_cb() from read_records(). Need multiple
   records -- one per Job, maybe a JCR or some other structure with
   a block and a record.
-
-- Implement Bacula plugins -- design API
-
-- Work more on how to to a Bacula restore beginning with
-  just a Bacula tape and a boot floppy (bare metal recovery).
-- Try bare metal Windows restore
+- Figure out how to do a bare metal Windows restore
 - Fix read_record to handle multiple sessions.
 - Program files (i.e. execute a program to read/write files).
   Pass read date of last backup, size of file last time.
@@ -47,6 +46,7 @@ For 1.28 release:
 - Use read_record.c in SD code.
 - Why don't we get an error message from Win32 FD when bootstrap 
   file cannot be created for restore command?
+- Need to specify MaximumConcurrentJobs in the Job resource.
 - When Marking a file in Restore that is a hard link, also
   mark the link so that the data will be reloaded.
 - Restore program that errors in SD due to no tape reports
@@ -62,7 +62,6 @@ For 1.28 release:
 - Make Pool resource handle Counter resources.
 - Remove NextId for SQLite. Optimize.
 - Fix gethostbyname() to use gethostbyname_r()
-- Implement ./configure --with-client-only
 - Strip trailing / from Include
 - Move all SQL statements into a single location.
 - Cleanup db_update_media and db_update_pool
@@ -76,8 +75,6 @@ For 1.28 release:
 - Add Client FS/OS id (Linux, Win95/98, ...).
 - Test a second language e.g. french.
 - Compare tape to Client files (attributes, or attributes and data) 
-- Restore options (overwrite, overwrite if older,
-   overwrite if newer, never overwrite, ...)
 - Restore to a particular time -- e.g. before date, after date. 
 - Make all database Ids 64 bit.
 - Write an applet for Linux.
@@ -104,7 +101,7 @@ For 1.28 release:
 - Handle ctl-c in Console
 - Implement LabelTemplate (at least first cut).
 - Implement script driven addition of File daemon to config files.
-- Think about how to make Bacula work better with File archives.
+- Think about how to make Bacula work better with File (non-tape) archives.
 
 - see setgroup and user for Bacula p4-5 of stunnel.c
 - Implement new serialize subroutines
@@ -140,9 +137,6 @@ For 1.28 release:
 - If SD cannot open a drive, make it periodically retry.
 - Remove duplicate fields from jcr (e.g. jcr.level and jcr.jr.Level, ...).
 - Timout a job or terminate if link goes down, or reopen link and query.
-- Fill all fields in Vol/Job Header -- ensure that everything
-  needed is written to tape. Think about restore to Catalog
-  from tape.  Client record needs improving.
 - Find general solution for sscanf size problems (as well
   as sprintf. Do at run time?
 - Concept of precious tapes (cannot be reused).
@@ -151,7 +145,7 @@ For 1.28 release:
 
 - Restore should get Device and Pool information from
   job record rather than from config.
-- Autolabel should be specified by DR instead of SD.
+- Autolabel should be specified by DIR instead of SD.
 - Find out how to get the system tape block limits, e.g.:
   Apr 22 21:22:10 polymatou kernel: st1: Block limits 1 - 245760 bytes.  
   Apr 22 21:22:10 polymatou kernel: st0: Block limits 2 - 16777214 bytes.
@@ -182,13 +176,13 @@ For 1.28 release:
   - MaxWarnings
   - MaxErrors (job?)
 =====
-- FD sends unsaved file list to Director at end of job. 
+- FD sends unsaved file list to Director at end of job (see
+  RFC below).
 - Write a Storage daemon that uses pipes and
   standard Unix programs to write to the tape.
   See afbackup.
 - Need something that monitors the JCR queue and
   times out jobs by asking the deamons where they are.
-
 - Enhance Jmsg code to permit buffering and saving to disk.
 - device driver = "xxxx" for drives.
 - restart: paranoid: read label fsf to
@@ -432,9 +426,74 @@ Item 11:  New daemon communication protocol.
 
 
 
-====================================
+======================================================
+        Base Jobs design
+It is somewhat like a Full save becomes an incremental since
+the Base job (or jobs) plus other non-base files.
+Need:
+- New BaseFile table that contains:
+    JobId, BaseJobId, FileId (from Base).
+  i.e. for each base file that exists but is not saved because
+  it has not changed, the File daemon sends the JobId, BaseId,
+  and FileId back to the Director who creates the DB entry.
+- To initiate a Base save, the Director sends the FD 
+  the FileId, and full filename for each file in the Base.
+- When the FD finds a Base file, he requests the Director to
+  send him the full File entry (stat packet plus MD5), or
+  conversely, the FD sends it to the Director and the Director
+  says yes or no. This can be quite rapid if the FileId is kept
+  by the FD for each Base Filename.          
+- It is probably better to have the comparison done by the FD
+  despite the fact that the File entry must be sent across the
+  network.
+- An alternative would be to send the FD the whole File entry
+  from the start. The disadvantage is that it requires a lot of
+  space. The advantage is that it requires less communications
+  during the save.
+- The Job record must be updated to indicate that one or more
+  Bases were used.
+- At end of Job, FD returns:   
+   1. Count of base files/bytes not written to tape (i.e. matches)
+   2. Count of base file that were saved i.e. had changed.
+- No tape record would be written for a Base file that matches, in the
+  same way that no tape record is written for Incremental jobs where
+  the file is not saved because it is unchanged.
+- On a restore, all the Base file records must explicitly be
+  found from the BaseFile tape. I.e. for each Full save that is marked
+  to have one or more Base Jobs, search the BaseFile for all occurrences
+  of JobId.
+- An optimization might be to make the BaseFile have:
+     JobId
+     BaseId
+     FileId
+  plus
+     FileIndex
+  This would avoid the need to explicitly fetch each File record for
+  the Base job.  The Base Job record will be fetched to get the
+  VolSessionId and VolSessionTime.
+=========================================================  
 
-                Request For Comments
+========================================================== 
+    Unsaved File design
+For each Incremental job that is run, there may be files that
+were found but not saved because they were locked (this applies
+only to Windows). Such a system could send back to the Director
+a list of Unsaved files.
+Need:
+- New UnSavedFiles table that contains:
+  JobId
+  PathId
+  FilenameId
+- Then in the next Incremental job, the list of Unsaved Files will be
+  feed to the FD, who will ensure that they are explicitly chosen even
+  if standard date/time check would not have selected them.
+=============================================================
+
+  
+
+=============================================================
+
+                Request For Comments For File Backup Options
                    10 November 2002
 
 Subject: File Backup Options
@@ -495,6 +554,7 @@ FileOptions records:
     - Sparse=     (yes/no)    - do sparse file backup
     - *Exclude=   (yes/no)    - exclude file from being saved
     - *Reader=    (filename)  - external read (backup) program
+    - *Plugin=    (filename)  - read/write plugin module
 
   For Verify Jobs:
     - verify=     (ipnougsamc5) - verify options
@@ -628,4 +688,13 @@ Done: (see kernsdone for more)
   (in view of new block reading code).
 - Test watchdog child timer code.
 - Test new BSR code (mostly done).
+- Work more on how to to a Bacula restore beginning with
+  just a Bacula tape and a boot floppy (bare metal recovery).
+- Restore options (overwrite, overwrite if older,
+   overwrite if newer, never overwrite, ...)
+- Fill all fields in Vol/Job Header -- ensure that everything
+  needed is written to tape. Think about restore to Catalog
+  from tape.  Client record needs improving.
+- Implement ./configure --with-client-only
+- Finish up static linking 
     

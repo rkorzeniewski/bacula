@@ -1,61 +1,32 @@
-          Release Notes for Bacula 1.27
+          Release Notes for Bacula 1.28
 
-  Bacula code: Total files = 222 Total lines = 60,486 (*.h *.c *.in)
+  Bacula code: Total files = 226 Total lines = 61,863 (*.h *.c *.in)
 
 Major Changes this Release:
-- Implemented support for Sparse files.
-- Implemented support for all Win32 attributes.
-- New Volume format. Will permit faster restores,
-  and correct restores of Volumes written with multiple
-  simultaneous jobs.
-- Important change to communications protocol. Eliminated
-  deprecated 0 signal. 
-- Implemented VolumeUseDuration (duration Volume can be written)
-- Implemented MaximumVolumeJobs (max jobs written to volume) see
-  the Pool documentation for the Director for more details.
-- Rework of the Web site.
-- New format for the User's Guide (manual).
-- New bcopy tool (works but not totally complete).
-- All bxxx tool programs MUST read a Storage daemon configuration file.
-- Mount Anonymous Volumes is now dropped from the Storage
-  daemon configuration files.
-- Accept Any Volume is by default "Yes" and permits Bacula
-  to accept any appendable volume from the pool. Previously,
-  it would accept ONLY the next appendable volume. To get
-  the old behavior add "Accept Any Volume = No" to the
-  Storage resources of your Director's configuration file.
-- New database format. You must either re-initialize your database or
-  use <bacula-src>/src/cats/alter_mysql_tables (or alter_sqlite_tables)
-  to upgrade an existing database.
+- Bare Metal Recovery for Linux systems.
+- Optimized restore, forward spaces to correct tape file and
+  stops reading the archive when all files are restored.
+- Schedule permits specification of 1st, 2nd, ... week e.g.
+  1st Sun ...
 
 Minor Changes this Release:
-- A number of small bug fixes.
-- Improve handling of the "Where" prefix on Win32 by first
-  stripping any previous drive. This allows restoration to
-  any drive.
-- Modified Director-FD logon sequence to pass the OS id strings
-  to the director.
-- Fixed mount loop when the autochanger slot is incorrect in 
-  the catalog.
-- Updated the bacula start/stop script to work on more systems.
-- Fixed many places prone to buffer overflows.
-- Scripts are now found in <bacula-src>/scripts
-- A mtx-changer script was contributed for the Sony
-  TLS-11000 autochanger.  It is in <bacula-src>/examples
+- New bidirectional timed pipe mechanism for running child processes
+  permits better error messages.
+- Faster Storage daemon initialization (using pthreads)
+- Unlimited devices in Storage daemon (previously hard coded to 20).
+- Fixed bug that recognized only the last option specified on Include record.
+- Easier building of statically linked version of Bacula.
+- Fixed pruning bug.
+- Fixes for VolUseDuration (problems putting it in DB).
+- Fix for / specified as Where.
+- Enhanced WriteBootstrap (more precise parameters -- e.g. volfile, ...)
+- Improved handling of Differential jobs (now on par with Incremental)
+- User supplied script in examples directory for backing up AFS file system.
+- User supplied script for Sun-desktop autoloader (examples/devices).
+- Added configure options for building static versions of the 
+  daemons and the console program.
+- Added a --enable-client-only    option that will cause "make" to only
+  build the File daemon and the libraries it needs.
 
 Items to note:
-- You must re-initialize or alter your databases.
-- The inter-daemon protocol has changed so you must
-  upgrade all your daemons (and all Clients).
-
-Altering your database:
-- First make a backup.
-- Configure and build Bacula
-
-- For MySQL
-   cd <bacula-src>/src/cats
-   ./alter_mysql_tables
-
-- For SQLite
-   cd <bacula-src>/src/cats
-   ./alter_sqlite_tables
+- Nothing in particular.

@@ -43,7 +43,7 @@ WIN32LIBS = $(@WIN32@)
 .c.o:
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
-all: Makefile @WIN32@ bacula-fd       
+all: Makefile @WIN32@ bacula-fd @STATIC_FD@
 	@echo "==== Make of filed is good ===="
 	@echo " "
 
@@ -65,7 +65,7 @@ win32:	$(WIN32OBJS)
 	@rm -f bacula-fd.exe
 
 bacula-fd:  $(SVROBJS) ../findlib/libfind.a ../lib/libbac.a @WIN32@
-	$(CXX) $(LDFLAGS) $(FD_LDFLAGS) -L../lib -L../findlib -o $@ $(SVROBJS) \
+	$(CXX) $(LDFLAGS) -L../lib -L../findlib -o $@ $(SVROBJS) \
 	  $(WIN32LIBS) $(FDLIBS) -lfind -lbac -lm $(LIBS) $(DLIB)
 
 static-bacula-fd:  $(SVROBJS) ../findlib/libfind.a ../lib/libbac.a @WIN32@
@@ -80,6 +80,7 @@ Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 
 clean:
 	@$(RMF) bacula-fd filed core core.* a.out *.o *.bak *~ *.intpro *.extpro 1 2 3
+	@$(RMF) static-bacula-fd
 	if test -f win32/Makefile; then \
 	   (cd win32; $(MAKE) clean); \
 	fi

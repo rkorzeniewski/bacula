@@ -60,16 +60,16 @@ EXTRAOBJS = @OBJLIST@
 .c.o:
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
-all: Makefile bacula-dir
+all: Makefile bacula-dir @STATIC_DIR@
 	@echo "==== Make of dird is good ===="
 	@echo " "
 
 bacula-dir:  $(SVROBJS) ../lib/libbac.a ../cats/libsql.a ../findlib/libfind.a
-	$(CXX) $(LDFLAGS) $(DIR_LDFLAGS) -L../lib -L../cats -L../findlib -o $@ $(SVROBJS) \
+	$(CXX) $(LDFLAGS) -L../lib -L../cats -L../findlib -o $@ $(SVROBJS) \
 	      -lsql -lbac -lfind -lm $(LIBS) $(DLIB) $(DB_LIBS)
 
 static-bacula-dir:  $(SVROBJS) ../lib/libbac.a ../cats/libsql.a ../findlib/libfind.a
-	$(CXX) $(LDFLAGS) $(DIR_LDFLAGS) -L../lib -L../cats -L../findlib -o $@ $(SVROBJS) \
+	$(CXX) $(LDFLAGS) -static -L../lib -L../cats -L../findlib -o $@ $(SVROBJS) \
 	      -lsql -lbac -lfind -lm $(LIBS) $(DLIB) $(DB_LIBS)
 	strip $@
 
@@ -80,6 +80,7 @@ Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 
 clean:
 	@$(RMF) dird bacula-dir core core.* a.out *.o *.bak *~ *.intpro *.extpro 1 2 3
+	@$(RMF) static-bacula-dir
 
 realclean: clean
 	@$(RMF) tags bacula-dir.conf

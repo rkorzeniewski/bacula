@@ -74,15 +74,15 @@ FDLIBS=@FDLIBS@
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
 
-all: Makefile bacula-sd bls bextract bscan btape bcopy
+all: Makefile bacula-sd @STATIC_SD@ bls bextract bscan btape bcopy
 	@echo "===== Make of stored is good ===="
 	@echo " "
 
 bacula-sd: $(SVROBJS) ../lib/libbac.a
-	$(CXX) $(LDFLAGS) $(SD_LDFLAGS) -L../lib -o $@ $(SVROBJS) $(FDLIBS) -lbac -lm $(LIBS) $(DLIB)
+	$(CXX) $(LDFLAGS) -L../lib -o $@ $(SVROBJS) $(FDLIBS) -lbac -lm $(LIBS) $(DLIB)
 
 static-bacula-sd: $(SVROBJS) ../lib/libbac.a
-	$(CXX) $(LDFLAGS) $(SD_LDFLAGS) -L../lib -o $@ $(SVROBJS) $(FDLIBS) -lbac -lm $(LIBS) $(DLIB)
+	$(CXX) $(LDFLAGS) -static -L../lib -o $@ $(SVROBJS) $(FDLIBS) -lbac -lm $(LIBS) $(DLIB)
 	strip $@
 
 btape:	$(TAPEOBJS) ../lib/libbac.a ../cats/libsql.a
@@ -134,7 +134,7 @@ uninstall:
 
 clean:
 	@$(RMF) bacula-sd stored bls bextract bpool btape shmfree core core.* a.out *.o *.bak *~ *.intpro *.extpro 1 2 3
-	@$(RMF) bscan bcopy
+	@$(RMF) bscan bcopy static-bacula-sd
 
 realclean: clean
 	@$(RMF) tags bacula-sd.conf

@@ -38,7 +38,7 @@ CONS_LDFLAGS=@CONS_LDFLAGS@
 .c.o:
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(CONS_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
-all: Makefile console
+all: Makefile console @STATIC_CONS@
 	@echo "==== Make of console is good ===="
 	@echo " "
 
@@ -58,10 +58,11 @@ Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	  && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 clean:
-	$(RMF) console core core.* a.out *.o *.bak *~ *.intpro *.extpro 1 2 3
+	@$(RMF) console core core.* a.out *.o *.bak *~ *.intpro *.extpro 1 2 3
+	@$(RMF) static-console
 
 realclean: clean
-	$(RMF) tags console.conf
+	@$(RMF) tags console.conf
 
 distclean: realclean
 	if test $(srcdir) = .; then $(MAKE) realclean; fi

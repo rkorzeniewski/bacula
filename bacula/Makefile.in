@@ -15,12 +15,14 @@ thisdir = .
 first_rule: all
 dummy:
 
-subdirs = src scripts doc src/lib src/findlib src/cats \
-	  @READLINE_SRC@ src/console src/dird src/filed \
-	  src/stored @GNOME_DIR@ src/tools \
-	  rescue rescue/linux
+fd_subdirs = src scripts doc src/lib src/findlib src/filed \
+	     rescue rescue/linux
 
-FDsubdirs = src/lib src/findlib src/filed
+
+subdirs =    src/cats @READLINE_SRC@ src/console src/dird \
+	     src/stored @GNOME_DIR@ src/tools
+
+all_subdirs = ${fd_subdirs} ${@ALL_DIRS@}
 
 DIST =	INSTALL README.configure configure Makefile Makefile.in ChangeLog
 
@@ -33,18 +35,18 @@ MKDIR = $(srcdir)/autoconf/mkinstalldirs
 #-------------------------------------------------------------------------
 
 all: Makefile
-	@for I in ${subdirs}; \
+	@for I in ${all_subdirs}; \
 	  do (cd $$I; echo "==>Entering directory `pwd`"; \
 	      $(MAKE) $@ || (echo ""; echo ""; echo -e "  \a\a ====== Error in `pwd` ======\a\a"; \
 			    echo ""; echo "";)); \
 	done
 
 depend:
-	@for I in ${subdirs}; \
+	@for I in ${all_subdirs}; \
 	  do (cd $$I; echo "==>Entering directory `pwd`"; $(MAKE) $@ || exit 1); done
 	
 bacula-fd: Makefile	   
-	@for I in ${FDsubdirs}; \
+	@for I in ${fd_subdirs}; \
 	  do (cd $$I; echo "==>Entering directory `pwd`"; \
 	      $(MAKE) all || (echo ""; echo ""; echo -e "  \a\a ====== Error in `pwd` ======\a\a"; \
 			    echo ""; echo "";)); \
@@ -74,10 +76,10 @@ installdirs:
 #	$(MKDIR) $(DESTDIR)$(mandir)
 
 install: installdirs
-	@for I in $(subdirs); do (cd $$I; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1); done
+	@for I in $(all_subdirs); do (cd $$I; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1); done
 
 uninstall:
-	@for I in $(subdirs); do (cd $$I; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1); done
+	@for I in $(all_subdirs); do (cd $$I; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1); done
 
 install-autostart: install-autostart-dir install-autostart-fd install-autostart-sd
 
@@ -122,7 +124,7 @@ Makefiles:
 	chmod 755 src/cats/grant_mysql_privileges
 
 clean:
-	@for I in ${subdirs}; \
+	@for I in ${all_subdirs}; \
 	  do (cd $$I; echo "==>Entering directory `pwd`"; ${MAKE} $@ || exit 1); done
 	@(cd platforms; echo "==>Entering directory `pwd`"; ${MAKE} $@ || exit 1)
 	@$(RMF) *~ 1 2 3 core core.* config.guess console.log console.sum
@@ -130,8 +132,8 @@ clean:
 
 # clean for distribution
 distclean:
-	@for I in $(subdirs); do (cd $$I; $(MAKE) $@ || exit 1); done
-	@for I in $(subdirs); do (cd $$I; $(RMF) startit stopit btraceback); done
+	@for I in $(all_subdirs); do (cd $$I; $(MAKE) $@ || exit 1); done
+	@for I in $(all_subdirs); do (cd $$I; $(RMF) startit stopit btraceback); done
 	@(cd $(srcdir); $(RMF) *~ config.cache config.h config.log config.status config.out)
 	@(cd $(srcdir); $(RMF) Makefile autoconf/Make.common)
 	@(cd platforms; echo "==>Entering directory `pwd`"; ${MAKE} $@ || exit 1)
@@ -148,12 +150,12 @@ distclean:
 distdirs:
 	mkdir ../$(VERNAME);
 	mkdir ../$(VERNAME)/autoconf;
-	@for I in $(subdirs); do (cd $$I; $(MAKE) $@ || (echo "Failed to make distclean in $$I"; exit 0) ); done
+	@for I in $(all_subdirs); do (cd $$I; $(MAKE) $@ || (echo "Failed to make distclean in $$I"; exit 0) ); done
 
 distcopy:
 	$(CP) -p $(DIST) ../$(VERNAME);
 	$(CP) -p $(DIST_CFG) ../$(VERNAME)/autoconf;
-	@for I in $(subdirs); do (cd $$I; $(MAKE) $@ || exit 1); done
+	@for I in $(all_subdirs); do (cd $$I; $(MAKE) $@ || exit 1); done
 
 distrib: configure autoconf/config.h.in distdirs distcopy
 
