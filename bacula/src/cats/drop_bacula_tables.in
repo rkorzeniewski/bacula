@@ -4,9 +4,9 @@
 #    MySQL or SQLite
 #
 if test xsqlite = x@DB_NAME@ ; then
-  source ./drop_sqlite_tables
+  . ./drop_sqlite_tables
   echo "Dropped SQLite tables"
 else
-  source ./drop_mysql_tables
+  . ./drop_mysql_tables
   echo "Dropped MySQL tables"
 fi

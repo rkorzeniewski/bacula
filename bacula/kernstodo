@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                 07 January 2003 
+                 08 January 2003 
 
 Documentation to do: (a little bit at a time)
 - Document running a test version.
@@ -12,15 +12,15 @@ Documentation to do: (a little bit at a time)
 Testing to do: (painful)
 - that console command line options work
 - blocksize recognition code.
+- test fifo code
+- test and fix < code and | code.
 
-For 1.28 release:
-- Look at ua_prune.c in detail. Why did JobType work at all??????
+For 1.29 release:
 - Figure out how to allow multiple simultaneous file Volumes on
   a single device.
 - Why are save/restore of device different sizes (sparse?)
-- Make sure differential handled correctly
+  Yup! Fix it.
 
-For 1.29 release:
 - Implement some why for the Console to dynamically create
   a job.
 - Cancel does not work for restore in FD.
@@ -711,4 +711,6 @@ Done: (see kernsdone for more)
   only a single filename split routine.
 - Figure out how to save the catalog (possibly a special FileSet).
 - Figure out how to restore the catalog.
+- Make sure differential handled correctly
+- Look at ua_prune.c in detail. Why did JobType work at all??????
     
