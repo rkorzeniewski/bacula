@@ -65,8 +65,8 @@ int read_dev_volume_label(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       dev_name(dev), VolName);
 
    if (dev->state & ST_LABEL) {       /* did we already read label? */
-      /* Compare Volume Names */
-      if (VolName && *VolName && strcmp(dev->VolHdr.VolName, VolName) != 0) {
+      /* Compare Volume Names allow special wild card */
+      if (VolName && *VolName && *VolName != '*' && strcmp(dev->VolHdr.VolName, VolName) != 0) {
          Mmsg(&jcr->errmsg, _("Volume name mismatch on device %s: Wanted %s got %s\n"),
 	    dev_name(dev), VolName, dev->VolHdr.VolName);
 	 /*
@@ -133,7 +133,7 @@ because:\n   %s"), dev_name(dev), strerror_dev(dev));
 
    /* Compare Volume Names */
    Dmsg2(30, "Compare Vol names: VolName=%s hdr=%s\n", VolName?VolName:"*", dev->VolHdr.VolName);
-   if (VolName && *VolName && strcmp(dev->VolHdr.VolName, VolName) != 0) {
+   if (VolName && *VolName && *VolName != '*' && strcmp(dev->VolHdr.VolName, VolName) != 0) {
       Mmsg(&jcr->errmsg, _("Volume name mismatch. Wanted %s got %s\n"),
 	 VolName, dev->VolHdr.VolName);
       /*

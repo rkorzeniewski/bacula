@@ -67,9 +67,9 @@ static void usage()
 "       -i <file>       include list\n"
 "       -j              list jobs\n"
 "       -k              list blocks\n"
-"       -L              list tape label\n"
 "    (none of above)    list saved files\n"
 "       -v              be verbose\n"
+"       -V              specify Volume names (separated by |)\n"
 "       -?              print this message\n\n");
    exit(1);
 }
@@ -80,6 +80,8 @@ int main (int argc, char *argv[])
    int i, ch;
    FILE *fd;
    char line[1000];
+   char *VolumeName= NULL;
+   char *bsrName = NULL;
 
    working_directory = "/tmp";
    my_name_is(argc, argv, "bls");
@@ -88,11 +90,10 @@ int main (int argc, char *argv[])
    memset(&ff, 0, sizeof(ff));
    init_include_exclude_files(&ff);
 
-   while ((ch = getopt(argc, argv, "b:c:d:e:i:jkLtv?")) != -1) {
+   while ((ch = getopt(argc, argv, "b:c:d:e:i:jkLtvV:?")) != -1) {
       switch (ch) {
          case 'b':
-	    bsr = parse_bsr(NULL, optarg);
-//	    dump_bsr(bsr);
+	    bsrName = optarg;
 	    break;
 
          case 'c':                    /* specify config file */
@@ -152,6 +153,10 @@ int main (int argc, char *argv[])
 	    verbose++;
 	    break;
 
+         case 'V':                    /* Volume name */
+	    VolumeName = optarg;
+	    break;
+
          case '?':
 	 default:
 	    usage();
@@ -172,13 +177,15 @@ int main (int argc, char *argv[])
 
    parse_config(configfile);
 
-
    if (ff.included_files_list == NULL) {
       add_fname_to_include_list(&ff, 0, "/");
    }
 
    for (i=0; i < argc; i++) {
-      jcr = setup_jcr("bls", argv[i], bsr);
+      if (bsrName) {
+	 bsr = parse_bsr(NULL, bsrName);
+      }
+      jcr = setup_jcr("bls", argv[i], bsr, VolumeName);
       dev = setup_to_access_device(jcr, 1);   /* acquire for read */
       if (!dev) {
 	 exit(1);
@@ -301,7 +308,6 @@ static void do_ls(char *infname)
       dump_volume_label(dev);
       return;
    }
-
    read_records(jcr, dev, record_cb, mount_next_read_volume);
    printf("%u files found.\n", num_files);
 }

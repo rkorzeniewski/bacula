@@ -30,7 +30,8 @@
 /* Database prototypes */
 
 /* sql.c */
-B_DB *db_init_database(void *jcr, char *db_name, char *db_user, char *db_password);
+B_DB *db_init_database(void *jcr, char *db_name, char *db_user, char *db_password, 
+                       char *db_address, int db_port, char *db_socket);
 int db_open_database(void *jcr, B_DB *db);
 void db_close_database(void *jcr, B_DB *db);
 void db_escape_string(char *snew, char *old, int len);

@@ -206,7 +206,7 @@ int main(int argc, char *argv[])
       exit(1);
    }
 
-   jcr = setup_jcr("btape", argv[0], bsr);
+   jcr = setup_jcr("btape", argv[0], bsr, NULL);
    dev = setup_to_access_device(jcr, 0);     /* acquire for write */
    if (!dev) {
       exit(1);

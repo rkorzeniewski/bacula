@@ -63,6 +63,7 @@ static POOLMEM *compress_buf;
 static int type;
 static int stream;
 static int prog_name_msg = 0;
+static char *VolumeName = NULL;
 
 static char *wbuf;		      /* write buffer address */
 static uint32_t wsize;		      /* write size */
@@ -82,6 +83,7 @@ static void usage()
 "       -dnn            set debug level to nn\n"
 "       -e <file>       exclude list\n"
 "       -i <file>       include list\n"
+"       -V              specify Volume names (separated by |)\n"
 "       -?              print this message\n\n");
    exit(1);
 }
@@ -150,6 +152,10 @@ int main (int argc, char *argv[])
 	    got_inc = TRUE;
 	    break;
 
+         case 'V':                    /* Volume name */
+	    VolumeName = optarg;
+	    break;
+
          case '?':
 	 default:
 	    usage();
@@ -186,7 +192,7 @@ int main (int argc, char *argv[])
 static void do_extract(char *devname)
 {
 
-   jcr = setup_jcr("bextract", devname, bsr);
+   jcr = setup_jcr("bextract", devname, bsr, VolumeName);
    dev = setup_to_access_device(jcr, 1);    /* acquire for read */
    if (!dev) {
       exit(1);

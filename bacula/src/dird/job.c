@@ -93,7 +93,8 @@ void run_job(JCR *jcr)
     */
    Dmsg0(50, "Open database\n");
    jcr->db=db_init_database(jcr, jcr->catalog->db_name, jcr->catalog->db_user,
-			    jcr->catalog->db_password);
+			    jcr->catalog->db_password, jcr->catalog->db_address,
+			    jcr->catalog->db_port, jcr->catalog->db_socket);
    if (!db_open_database(jcr, jcr->db)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
       db_close_database(jcr, jcr->db);

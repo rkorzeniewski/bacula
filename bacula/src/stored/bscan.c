@@ -107,6 +107,7 @@ static void usage()
 "       -r                list records\n"
 "       -s                synchronize or store in database\n"
 "       -v                verbose\n"
+"       -V              specify Volume names (separated by |)\n"
 "       -w dir            specify working directory (default from conf file)\n"
 "       -?                print this message\n\n"));
    exit(1);
@@ -116,6 +117,7 @@ int main (int argc, char *argv[])
 {
    int ch;
    struct stat stat_buf;
+   char *VolumeName = NULL;
 
    my_name_is(argc, argv, "bscan");
    init_msg(NULL, NULL);
@@ -166,6 +168,10 @@ int main (int argc, char *argv[])
 
          case 'v':
 	    verbose++;
+	    break;
+
+         case 'V':                    /* Volume name */
+	    VolumeName = optarg;
 	    break;
 
          case 'w':
@@ -219,13 +225,13 @@ int main (int argc, char *argv[])
 	 working_directory);
    }
 
-   bjcr = setup_jcr("bscan", argv[0], bsr);
+   bjcr = setup_jcr("bscan", argv[0], bsr, VolumeName);
    dev = setup_to_access_device(bjcr, 1);   /* read device */
    if (!dev) { 
       exit(1);
    }
 
-   if ((db=db_init_database(NULL, db_name, db_user, db_password)) == NULL) {
+   if ((db=db_init_database(NULL, db_name, db_user, db_password, NULL, 0, NULL)) == NULL) {
       Emsg0(M_ERROR_TERM, 0, _("Could not init Bacula database\n"));
    }
    if (!db_open_database(NULL, db)) {

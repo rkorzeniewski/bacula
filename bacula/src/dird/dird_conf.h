@@ -139,8 +139,9 @@ typedef struct s_res_store STORE;
 struct s_res_cat {
    RES	 hdr;
 
-   int	 DBport;		      /* Port -- not yet implemented */
-   char *address;
+   int	 db_port;		      /* Port -- not yet implemented */
+   char *db_address;		      /* host name for remote access */
+   char *db_socket;		      /* Socket for local access */
    char *db_password;
    char *db_user;
    char *db_name;

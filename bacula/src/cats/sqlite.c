@@ -59,7 +59,8 @@ int QueryDB(char *file, int line, void *jcr, B_DB *db, char *select_cmd);
  * never have errors, or it is really fatal.
  */
 B_DB *
-db_init_database(void *jcr, char *db_name, char *db_user, char *db_password)
+db_init_database(void *jcr, char *db_name, char *db_user, char *db_password,
+		 char *db_address, int db_port, char *db_socket) 
 {
    B_DB *mdb;
 

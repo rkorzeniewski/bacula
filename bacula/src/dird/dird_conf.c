@@ -146,12 +146,14 @@ static struct res_items store_items[] = {
 static struct res_items cat_items[] = {
    {"name",     store_name,     ITEM(res_cat.hdr.name),    0, ITEM_REQUIRED, 0},
    {"description", store_str,   ITEM(res_cat.hdr.desc),    0, 0, 0},
-   {"address",  store_str,      ITEM(res_cat.address),     0, 0, 0},
-   {"dbport",   store_pint,     ITEM(res_cat.DBport),      0, 0, 0},
+   {"address",  store_str,      ITEM(res_cat.db_address),  0, 0, 0},
+   {"dbaddress", store_str,     ITEM(res_cat.db_address),  0, 0, 0},
+   {"dbport",   store_pint,     ITEM(res_cat.db_port),      0, 0, 0},
    /* keep this password as store_str for the moment */
    {"password", store_str,      ITEM(res_cat.db_password), 0, 0, 0},
    {"user",     store_str,      ITEM(res_cat.db_user),     0, 0, 0},
    {"dbname",   store_str,      ITEM(res_cat.db_name),     0, ITEM_REQUIRED, 0},
+   {"dbsocket", store_str,      ITEM(res_cat.db_socket),   0, 0, 0}, 
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 
@@ -494,8 +496,8 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
       case R_CATALOG:
          sendit(sock, "Catalog: name=%s address=%s DBport=%d db_name=%s\n\
          db_user=%s\n",
-	    res->res_cat.hdr.name, NPRT(res->res_cat.address),
-	    res->res_cat.DBport, res->res_cat.db_name, NPRT(res->res_cat.db_user));
+	    res->res_cat.hdr.name, NPRT(res->res_cat.db_address),
+	    res->res_cat.db_port, res->res_cat.db_name, NPRT(res->res_cat.db_user));
 	 break;
       case R_JOB:
          sendit(sock, "Job: name=%s JobType=%d level=%s\n", res->res_job.hdr.name, 
@@ -716,24 +718,35 @@ void free_resource(int type)
 	 }
 	 break;
       case R_STORAGE:
-	 if (res->res_store.address)
+	 if (res->res_store.address) {
 	    free(res->res_store.address);
-	 if (res->res_store.password)
+	 }
+	 if (res->res_store.password) {
 	    free(res->res_store.password);
-	 if (res->res_store.media_type)
+	 }
+	 if (res->res_store.media_type) {
 	    free(res->res_store.media_type);
-	 if (res->res_store.dev_name)
+	 }
+	 if (res->res_store.dev_name) {
 	    free(res->res_store.dev_name);
+	 }
 	 break;
       case R_CATALOG:
-	 if (res->res_cat.address)
-	    free(res->res_cat.address);
-	 if (res->res_cat.db_user)
+	 if (res->res_cat.db_address) {
+	    free(res->res_cat.db_address);
+	 }
+	 if (res->res_cat.db_socket) {
+	    free(res->res_cat.db_socket);
+	 }
+	 if (res->res_cat.db_user) {
 	    free(res->res_cat.db_user);
-	 if (res->res_cat.db_name)
+	 }
+	 if (res->res_cat.db_name) {
 	    free(res->res_cat.db_name);
-	 if (res->res_cat.db_password)
+	 }
+	 if (res->res_cat.db_password) {
 	    free(res->res_cat.db_password);
+	 }
 	 break;
       case R_FILESET:
 	 if ((num=res->res_fs.num_includes)) {

@@ -365,7 +365,8 @@ Without that I don't know who I am :-(\n"), configfile);
 	  * message because the server is probably not running.
 	  */
 	 db = db_init_database(NULL, catalog->db_name, catalog->db_user,
-			    catalog->db_password);
+			    catalog->db_password, catalog->db_address,
+			    catalog->db_port, catalog->db_socket);
 	 if (!db_open_database(NULL, db)) {
             Jmsg(NULL, M_FATAL,  0, "%s", db_strerror(db));
 	 } else {

@@ -75,15 +75,20 @@ DEVICE *setup_to_access_device(JCR *jcr, int read_access)
    char *p;
    DEVRES *device;
 
-   jcr->VolumeName[0] = 0;
-   if (strncmp(jcr->dev_name, "/dev/", 5) != 0) {
-      /* Try stripping file part */
-      p = jcr->dev_name + strlen(jcr->dev_name);
-      while (p >= jcr->dev_name && *p != '/')
-	 p--;
-      if (*p == '/') {
-	 strcpy(jcr->VolumeName, p+1);
-	 *p = 0;
+   /*
+    * If no volume name already given and no bsr, and it is a file,
+    * try getting name from Filename  
+    */
+   if (!jcr->bsr && jcr->VolumeName[0] == 0) {
+      if (strncmp(jcr->dev_name, "/dev/", 5) != 0) {
+	 /* Try stripping file part */
+	 p = jcr->dev_name + strlen(jcr->dev_name);
+         while (p >= jcr->dev_name && *p != '/')
+	    p--;
+         if (*p == '/') {
+	    strcpy(jcr->VolumeName, p+1);
+	    *p = 0;
+	 }
       }
    }
 
@@ -192,13 +197,13 @@ static void my_free_jcr(JCR *jcr)
  * Setup a "daemon" JCR for the various standalone
  *  tools (e.g. bls, bextract, bscan, ...)
  */
-JCR *setup_jcr(char *name, char *device, BSR *bsr) 
+JCR *setup_jcr(char *name, char *device, BSR *bsr, char *VolumeName)
 {
    JCR *jcr = new_jcr(sizeof(JCR), my_free_jcr);
    jcr->VolSessionId = 1;
    jcr->VolSessionTime = (uint32_t)time(NULL);
    jcr->bsr = bsr;
-   jcr->NumVolumes = 1;
+   jcr->NumVolumes = 0;
    jcr->pool_name = get_pool_memory(PM_FNAME);
    strcpy(jcr->pool_name, "Default");
    jcr->pool_type = get_pool_memory(PM_FNAME);
@@ -218,6 +223,9 @@ JCR *setup_jcr(char *name, char *device, BSR *bsr)
    jcr->JobStatus = JS_Terminated;
    jcr->dev_name = get_pool_memory(PM_FNAME);
    pm_strcpy(&jcr->dev_name, device);
+   if (!bsr && VolumeName) {
+      pm_strcpy(&jcr->VolumeName, VolumeName);
+   }
    return jcr;
 }
 

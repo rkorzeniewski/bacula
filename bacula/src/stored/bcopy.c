@@ -60,6 +60,8 @@ static void usage()
 "       -c <file>         specify configuration file\n"
 "       -dnn              set debug level to nn\n"
 "       -v                verbose\n"
+"       -i                specify input Volume names (separated by |)\n"
+"       -o                specify output Volume names (separated by |)\n"
 "       -w dir            specify working directory (default /tmp)\n"
 "       -?                print this message\n\n"));
    exit(1);
@@ -68,11 +70,13 @@ static void usage()
 int main (int argc, char *argv[])
 {
    int ch;
+   char *iVolumeName = NULL;
+   char *oVolumeName = NULL;
 
    my_name_is(argc, argv, "bscan");
    init_msg(NULL, NULL);
 
-   while ((ch = getopt(argc, argv, "b:c:d:mn:p:rsu:vw:?")) != -1) {
+   while ((ch = getopt(argc, argv, "b:c:d:mn:p:rsu:vV:w:?")) != -1) {
       switch (ch) {
          case 'b':
 	    bsr = parse_bsr(NULL, optarg);
@@ -94,6 +98,15 @@ int main (int argc, char *argv[])
          case 'v':
 	    verbose++;
 	    break;
+
+         case 'i':                    /* input Volume name */
+	    iVolumeName = optarg;
+	    break;
+
+         case 'o':                    /* output Volume name */
+	    oVolumeName = optarg;
+	    break;
+
 
          case 'w':
 	    wd = optarg;
@@ -122,14 +135,14 @@ int main (int argc, char *argv[])
    parse_config(configfile);
 
    /* Setup and acquire input device for reading */
-   in_jcr = setup_jcr("bcopy", argv[0], bsr);
+   in_jcr = setup_jcr("bcopy", argv[0], bsr, iVolumeName);
    in_dev = setup_to_access_device(in_jcr, 1);	 /* read device */
    if (!in_dev) { 
       exit(1);
    }
 
    /* Setup output device for writing */
-   out_jcr = setup_jcr("bcopy", argv[1], bsr);
+   out_jcr = setup_jcr("bcopy", argv[1], bsr, oVolumeName);
    out_dev = setup_to_access_device(out_jcr, 0);   /* no acquire */  
    if (!out_dev) { 
       exit(1);	    

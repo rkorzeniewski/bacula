@@ -56,7 +56,8 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
  * never have errors, or it is really fatal.
  */
 B_DB *
-db_init_database(void *jcr, char *db_name, char *db_user, char *db_password)
+db_init_database(void *jcr, char *db_name, char *db_user, char *db_password, 
+		 char *db_address, int db_port, char *db_socket) 
 {
    B_DB *mdb;
 
@@ -76,6 +77,13 @@ db_init_database(void *jcr, char *db_name, char *db_user, char *db_password)
    mdb->db_name = bstrdup(db_name);
    mdb->db_user = bstrdup(db_user);
    mdb->db_password = bstrdup(db_password);
+   if (db_address) {
+      mdb->db_address = bstrdup(db_address);
+   }
+   if (db_socket) {
+      mdb->db_socket = bstrdup(db_socket);
+   }
+   mdb->db_port = db_port;
    mdb->have_insert_id = TRUE;
    mdb->errmsg = get_pool_memory(PM_EMSG); /* get error message buffer */
    *mdb->errmsg = 0;
@@ -122,24 +130,24 @@ db_open_database(void *jcr, B_DB *mdb)
    Dmsg0(50, "mysql_init done\n");
    mdb->db = mysql_real_connect(
 	&(mdb->mysql),		      /* db */
-	NULL,			      /* default = localhost */
+	mdb->db_address,	      /* default = localhost */
 	mdb->db_user,		      /*  login name */
 	mdb->db_password,	      /*  password */
 	mdb->db_name,		      /* database name */
-	0,			      /* default port */
-	NULL,			      /* default = socket */
+	mdb->db_port,		      /* default port */
+	mdb->db_socket, 	      /* default = socket */
 	0);			      /* flags = none */
 
    /* If no connect, try once more incase it is a timing problem */
    if (mdb->db == NULL) {
       mdb->db = mysql_real_connect(
 	   &(mdb->mysql),		 /* db */
-	   NULL,			 /* default = localhost */
+	   mdb->db_address,		 /* default = localhost */
 	   mdb->db_user,		 /*  login name */
 	   mdb->db_password,		 /*  password */
 	   mdb->db_name,		 /* database name */
-	   0,				 /* default port */
-	   NULL,			 /* default = socket */
+	   mdb->db_port,		 /* default port */
+	   mdb->db_socket,		 /* default = socket */
 	   0);				 /* flags = none */
    }
     
@@ -195,6 +203,12 @@ db_close_database(void *jcr, B_DB *mdb)
       }
       if (mdb->db_password) {
 	 free(mdb->db_password);
+      }
+      if (mdb->db_address) {
+	 free(mdb->db_address);
+      }
+      if (mdb->db_socket) {
+	 free(mdb->db_socket);
       }
       free(mdb);
    }

@@ -100,7 +100,8 @@ int bdb_write_control_file(B_DB *mdb)
  * never have errors, or it is really fatal.
  */
 B_DB *
-db_init_database(void *jcr, char *db_name, char *db_user, char *db_password)
+db_init_database(void *jcr, char *db_name, char *db_user, char *db_password,
+		 char *db_address, int db_port, char *db_socket)
 {
    B_DB *mdb;
    P(mutex);			      /* lock DB queue */
