@@ -62,7 +62,7 @@ void console_thread::InitLib() {
    init_stack_dump();
    my_name_is(0, NULL, "wx-console");
    //textdomain("bacula-console");
-   working_directory = "/tmp";
+   working_directory = ".";
    
    inited = true;
 }
