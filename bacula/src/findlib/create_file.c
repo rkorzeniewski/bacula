@@ -149,6 +149,7 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
 	 stat = !make_path(jcr, ofile, parent_mode, parent_mode, uid, gid, 1, NULL);
 	 if (stat == 0) {
             Dmsg1(0, "Could not make path. %s\n", ofile);
+            Jmsg1(jcr, M_ERROR, 0, _("Could not make path. %s\n"), ofile);
 	    return CF_ERROR;
 	 }
       

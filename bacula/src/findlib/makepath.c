@@ -73,8 +73,9 @@ cleanup(struct saved_cwd *cwd)
    if (cwd->do_chdir) {
       int _fail = restore_cwd(cwd, NULL, NULL);
       free_cwd(cwd);
-      if (_fail)
+      if (_fail) {
 	 return 1;
+      }
    }
    return 0;
 }
@@ -93,9 +94,11 @@ make_dir(void *jcr, const char *dir, const char *dirpath, mode_t mode, int *crea
 {
   int fail = 0;
   int created_dir;
+  int save_errno;
 
   Dmsg2(300, "make_dir mode=%o dir=%s\n", mode, dir);
   created_dir = (mkdir(dir, mode) == 0);
+  save_errno = errno;
 
   if (!created_dir) {
       struct stat stats;
@@ -110,7 +113,7 @@ make_dir(void *jcr, const char *dir, const char *dirpath, mode_t mode, int *crea
 
       if (stat(dir, &stats)) {
           Jmsg(jcr, M_ERROR, 0, "Cannot create directory %s: %s\n", 
-		  dirpath, strerror(errno));
+		  dirpath, strerror(save_errno));
 	  fail = 1;
       } else if (!S_ISDIR(stats.st_mode)) {
           Jmsg(jcr, M_ERROR, 0, "%s exists but is not a directory\n", quote(dirpath));
@@ -177,7 +180,7 @@ make_path(
       char *dirpath;
 
       /* Temporarily relax umask in case it's overly restrictive.  */
-      mode_t oldmask = umask (0);
+      mode_t oldmask = umask(0);
 
       /* Make a copy of ARGPATH that we can scribble NULs on.  */
       dirpath = (char *)alloca(strlen(argpath) + 1);
@@ -188,15 +191,13 @@ make_path(
 	 or should have set[ug]id or sticky bits set and we are setting
 	 their owners, we need to fix their permissions after making them.  */
       if (((parent_mode & WX_USR) != WX_USR)
-	  || ((owner != (uid_t) -1 || group != (gid_t) -1)
-	      && (parent_mode & (S_ISUID | S_ISGID | S_ISVTX)) != 0))
-	{
-	  tmp_mode = S_IRWXU;
-	  re_protect = 1;
-	}
-      else {
-	  tmp_mode = parent_mode;
-	  re_protect = 0;
+	  || ((owner != (uid_t)-1 || group != (gid_t)-1)
+	      && (parent_mode & (S_ISUID | S_ISGID | S_ISVTX)) != 0)) {
+	 tmp_mode = S_IRWXU;
+	 re_protect = 1;
+      } else {
+	 tmp_mode = parent_mode;
+	 re_protect = 0;
       }
 
       /* If we can record the current working directory, we may be able
@@ -244,27 +245,22 @@ make_path(
 
 	  if (newly_created_dir) {
               Dmsg0(300, "newly_created_dir\n");
-	      if (verbose_fmt_string) {
-		 Jmsg(jcr, M_ERROR, 0, verbose_fmt_string, quote(dirpath));
-	      }
 
-	      if ((owner != (uid_t) -1 || group != (gid_t) -1)
-		  && chown (basename_dir, owner, group)
+	      if ((owner != (uid_t)-1 || group != (gid_t)-1)
+		  && chown(basename_dir, owner, group)
 #if defined(AFS) && defined (EPERM)
 		  && errno != EPERM
 #endif
 		  ) {
-                 Jmsg(jcr, M_ERROR, 0, "Cannot change owner and/or group of %s: %s\n",
-		      quote (dirpath), strerror(errno));
-		 umask(oldmask);
-		 cleanup(&cwd);
-		 return 1;
+		 /* Note, if we are restoring as NON-root, this may not be fatal */
+                 Jmsg(jcr, M_WARNING, 0, "Cannot change owner and/or group of %s: %s\n",
+		      quote(dirpath), strerror(errno));
 	      }
               Dmsg0(300, "Chown done.\n");
 
 	      if (re_protect) {
 		 struct ptr_list *pnew = (struct ptr_list *)
-		    alloca (sizeof (struct ptr_list));
+		    alloca(sizeof (struct ptr_list));
 		 pnew->dirname_end = slash;
 		 pnew->next = leading_dirs;
 		 leading_dirs = pnew;
@@ -278,7 +274,7 @@ make_path(
 	     stat and mkdir process O(n^2) file name components.  */
 	  if (cwd.do_chdir && chdir(basename_dir) < 0) {
               Jmsg(jcr, M_ERROR, 0, "Cannot chdir to directory, %s: %s\n",
-		     quote (dirpath), strerror(errno));
+		     quote(dirpath), strerror(errno));
 	      umask(oldmask);
 	      cleanup(&cwd);
 	      return 1;
@@ -307,22 +303,17 @@ make_path(
       }
 
       /* Done creating directories.  Restore original umask.  */
-      umask (oldmask);
+      umask(oldmask);
 
-      if (verbose_fmt_string != NULL) {
-	 Jmsg(jcr, M_ERROR, 0, verbose_fmt_string, dirpath);
-      }
-
-      if (owner != (uid_t) -1 || group != (gid_t) -1) {
+      if (owner != (uid_t)-1 || group != (gid_t)-1) {
 	  if (chown(basename_dir, owner, group)
 #ifdef AFS
 	      && errno != EPERM
 #endif
 	      )
 	    {
-              Jmsg(jcr, M_ERROR, 0, "Cannot change owner and/or group of %s: %s\n",
-		     quote (dirpath), strerror(errno));
-	      retval = 1;
+              Jmsg(jcr, M_WARNING, 0, "Cannot change owner and/or group of %s: %s\n",
+		     quote(dirpath), strerror(errno));
 	    }
       }
 
@@ -335,13 +326,13 @@ make_path(
          Dmsg1(300, "Final chmod mode=%o\n", mode);
       }
       if ((mode & ~S_IRWXUGO) && chmod(basename_dir, mode)) {
-          Jmsg(jcr, M_ERROR, 0, "Cannot change permissions of %s: %s\n", 
+          Jmsg(jcr, M_WARNING, 0, "Cannot change permissions of %s: %s\n", 
 	     quote(dirpath), strerror(errno));
-	  retval = 1;
       }
 
-     if (cleanup(&cwd))
+     if (cleanup(&cwd)) {
 	return 1;
+     }
 
       /* If the mode for leading directories didn't include owner "wx"
 	 privileges, we have to reset their protections to the correct
@@ -350,9 +341,8 @@ make_path(
           *(p->dirname_end) = '\0';
           Dmsg2(300, "Reset parent mode=%o dir=%s\n", parent_mode, dirpath);
 	  if (chmod(dirpath, parent_mode)) {
-              Jmsg(jcr, M_ERROR, 0, "Cannot change permissions of %s: %s\n",
+              Jmsg(jcr, M_WARNING, 0, "Cannot change permissions of %s: %s\n",
 		     quote (dirpath), strerror(errno));
-	      retval = 1;
 	  }
       }
   } else {
@@ -373,21 +363,18 @@ make_path(
 	     On System V, users can give away files with chown and then not
              be able to chmod them.  So don't give files away.  */
 
-	  if ((owner != (uid_t) -1 || group != (gid_t) -1)
+	  if ((owner != (uid_t)-1 || group != (gid_t)-1)
 	      && chown(dirpath, owner, group)
 #ifdef AFS
 	      && errno != EPERM
 #endif
-	      )
-	    {
-              Jmsg(jcr, M_ERROR, 0, "Cannot change owner and/or group of %s: %s\n",
+	      ) {
+              Jmsg(jcr, M_WARNING, 0, "Cannot change owner and/or group of %s: %s\n",
 		     quote(dirpath), strerror(errno));
-	      retval = 1;
 	    }
 	  if (chmod(dirpath, mode)) {
-              Jmsg(jcr, M_ERROR, 0, "Cannot change permissions of %s: %s\n",
+              Jmsg(jcr, M_WARNING, 0, "Cannot change permissions of %s: %s\n",
 				 quote(dirpath), strerror(errno));
-	      retval = 1;
 	  }
           Dmsg2(300, "pathexists chmod mode=%o dir=%s\n", mode, dirpath);
       }

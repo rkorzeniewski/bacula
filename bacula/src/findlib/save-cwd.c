@@ -33,7 +33,7 @@
    called, but doing so is ok.	Otherwise, return zero.  */
 
 int
-save_cwd (struct saved_cwd *cwd)
+save_cwd(struct saved_cwd *cwd)
 {
   static int have_working_fchdir = 1;
 
@@ -51,7 +51,7 @@ save_cwd (struct saved_cwd *cwd)
 # if __sun__ || sun
       /* On SunOS 4, fchdir returns EINVAL if accounting is enabled,
 	 so we have to fall back to chdir.  */
-      if (fchdir (cwd->desc)) {
+      if (fchdir(cwd->desc)) {
 	  if (errno == EINVAL) {
 	      close(cwd->desc);
 	      cwd->desc = -1;
@@ -108,8 +108,10 @@ restore_cwd(const struct saved_cwd *cwd, const char *dest, const char *from)
 void
 free_cwd(struct saved_cwd *cwd)
 {
-  if (cwd->desc >= 0)
+  if (cwd->desc >= 0) {
      close(cwd->desc);
-  if (cwd->name)
+  }
+  if (cwd->name) {
      free_pool_memory(cwd->name);
+  }
 }

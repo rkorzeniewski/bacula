@@ -170,6 +170,8 @@ int set_attributes(void *jcr, char *fname, char *ofile, char *lname,
 		   char *attribsEx, int *ofd)
 {
    struct utimbuf ut;	 
+   mode_t old_mask;
+   int stat = 1;
 
 #ifdef HAVE_CYGWIN
    if (set_win32_attributes(jcr, fname, ofile, lname, type, stream,
@@ -183,6 +185,7 @@ int set_attributes(void *jcr, char *fname, char *ofile, char *lname,
     */
 #endif
 
+   old_mask = umask(0);
    if (*ofd != -1) {
       close(*ofd);		      /* first close file */
       *ofd = -1;
@@ -194,21 +197,21 @@ int set_attributes(void *jcr, char *fname, char *ofile, char *lname,
    /* ***FIXME**** optimize -- don't do if already correct */
    if (type == FT_LNK) {
       if (lchown(ofile, statp->st_uid, statp->st_gid) < 0) {
-         Jmsg2(jcr, M_ERROR, 0, "Unable to set file owner %s: ERR=%s\n",
+         Jmsg2(jcr, M_WARNING, 0, "Unable to set file owner %s: ERR=%s\n",
 	    ofile, strerror(errno));
-	 return 0;
+	 stat = 0;
       }
    } else {
       if (chown(ofile, statp->st_uid, statp->st_gid) < 0) {
-         Jmsg2(jcr, M_ERROR, 0, "Unable to set file owner %s: ERR=%s\n",
+         Jmsg2(jcr, M_WARNING, 0, "Unable to set file owner %s: ERR=%s\n",
 	    ofile, strerror(errno));
-	 return 0;
+	 stat = 0;
       }
    }
    if (chmod(ofile, statp->st_mode) < 0) {
       Jmsg2(jcr, M_ERROR, 0, "Unable to set file modes %s: ERR=%s\n",
 	 ofile, strerror(errno));
-      return 0;
+      stat = 0;
    }
 
    /*
@@ -217,9 +220,10 @@ int set_attributes(void *jcr, char *fname, char *ofile, char *lname,
    if (utime(ofile, &ut) < 0) {
       Jmsg2(jcr, M_ERROR, 0, "Unable to set file times %s: ERR=%s\n",
 	 ofile, strerror(errno));
-      return 0;
+      stat = 0;
    }
-   return 1;
+   umask(old_mask);
+   return stat;
 }
 
 

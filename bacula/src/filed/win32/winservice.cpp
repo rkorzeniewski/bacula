@@ -71,6 +71,11 @@ bacService::bacService()
    } else {
       g_platform_id = osversioninfo.dwPlatformId;
    }
+   if (osversioninfo.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS &&
+       osversioninfo.dwMinorVersion == 0) {
+       /* Running Win95 so no GetFileAttributesEx available */
+       NoGetFileAttributesEx = 1;
+   }
 }
 
 
@@ -334,15 +339,6 @@ bacService::BaculaServiceMain()
          MessageBox(NULL, "KERNEL32.DLL not found: Bacula service not started", 
              "Bacula Service", MB_OK);
          break;
-      }
-
-      /* Test for GetFileAttributesEx which is not in Win95 */
-      if (GetProcAddress(kerneldll, "GetFileAttributesEx") == NULL) {
-          NoGetFileAttributesEx = 1;
-          /*****FIXME***** remove after testing */
-          MessageBox(NULL, "winserv NoGetFileAttributesEx", "Bacula", MB_OK);
-      } else { 
-          MessageBox(NULL, "winserv Got GetFileAttributesEx", "Bacula", MB_OK);
       }
 
       // And find the RegisterServiceProcess function
