@@ -8,6 +8,12 @@
 # added cdrom rescue for 1.36.1
 # init script now comes from source package not ${FILES} dir
 # 26 Nov 2004 D. Scott Barninger <barninger at fairfieldcomputers dot com>
+#
+# fix symlink creation in rescue package in post script
+# remove mask on x86 keyword
+# fix post script so it doesn't talk about server config for client-only build
+# bug #181 - unable to reproduce on 2.4 kernel system so add FEATURES="-sandbox"
+# 04 Dec 2004 D. Scott Barninger <barninger at fairfieldcomputers dot com>
 
 DESCRIPTION="featureful client/server network backup suite"
 HOMEPAGE="http://www.bacula.org/"
@@ -15,8 +21,17 @@ SRC_URI="mirror://sourceforge/bacula/${P}.tar.gz"
 
 LICENSE="GPL-2"
 SLOT="0"
-KEYWORDS="~x86 ~ppc ~sparc"
+KEYWORDS="x86 ~ppc ~sparc"
 IUSE="readline tcpd gnome mysql sqlite X static postgres wxwindows"
+
+# 2.6 kernel user reports sandbox error with client build
+# can't replicate this on 2.4 soo...
+KERNEL=`uname -r | head -c 3`
+if [ $KERNEL = "2.6" ]; then
+	if [ -n $BUILD_CLIENT_ONLY ]; then
+		FEATURES="-sandbox"
+	fi
+fi
 
 inherit eutils
 
@@ -220,7 +235,7 @@ pkg_postinst() {
 	install -m0750 -o root -g bacula -d ${ROOT}/var/bacula
 
 	# link installed bacula-fd.conf into rescue directory
-	ln -s /etc/bacula/rescue/cdrom/bacula-fd.conf /etc/bacula/bacula-fd.conf
+	ln -s /etc/bacula/bacula-fd.conf /etc/bacula/rescue/cdrom/bacula-fd.conf
 
 	einfo
 	einfo "The CDRom rescue disk package has been installed into the"
@@ -228,6 +243,7 @@ pkg_postinst() {
 	einfo "for information on creating a rescue CD."
 	einfo
 
+	if [ ! $BUILD_CLIENT_ONLY ]; then
 	einfo
 	einfo "Please note either/or nature of database USE flags for"
 	einfo "Bacula.  If mysql is set, it will be used, else postgres"
@@ -317,9 +333,15 @@ pkg_postinst() {
 		einfo "version to the current version."
 		fi
 	fi
+	fi
 
 	einfo
 	einfo "Review your configuration files in /etc/bacula and"
+	if [ $BUILD_CLIENT_ONLY ]; then
+		einfo "since this is a client-only build edit the init"
+		einfo "script /etc/init.d/bacula and comment out the sections"
+		einfo "for the director and storage daemons and then"
+	fi
 	einfo "start the daemons:"
 	einfo " /etc/init.d/bacula start"
 	einfo
