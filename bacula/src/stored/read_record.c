@@ -41,10 +41,12 @@ static int try_repositioning(JCR *jcr, DEV_RECORD *rec, DEVICE *dev);
 static char *rec_state_to_str(DEV_RECORD *rec);
 #endif
 
-bool read_records(JCR *jcr,  DEVICE *dev, 
+bool read_records(DCR *dcr,
        bool record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec),
        bool mount_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block))
 {
+   JCR *jcr = dcr->jcr;
+   DEVICE *dev = dcr->dev;
    DEV_BLOCK *block;
    DEV_RECORD *rec = NULL;
    uint32_t record;
@@ -62,7 +64,7 @@ bool read_records(JCR *jcr,  DEVICE *dev,
 	 ok = false;
 	 break;
       }
-      if (!read_block_from_device(jcr, dev, block, CHECK_BLOCK_NUMBERS)) {
+      if (!read_block_from_device(dcr, block, CHECK_BLOCK_NUMBERS)) {
 	 if (dev_state(dev, ST_EOT)) {
 	    DEV_RECORD *trec = new_record();
 
@@ -87,7 +89,7 @@ bool read_records(JCR *jcr,  DEVICE *dev,
 	     *	and pass it off to the callback routine, then continue
 	     *	most likely reading the previous record.
 	     */
-	    read_block_from_device(jcr, dev, block, NO_BLOCK_NUMBER_CHECK);
+	    read_block_from_device(dcr, block, NO_BLOCK_NUMBER_CHECK);
 	    read_record_from_block(block, trec);
 	    handle_session_record(dev, trec, &sessrec);
 	    ok = record_cb(jcr, dev, block, trec);

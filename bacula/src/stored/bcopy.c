@@ -168,7 +168,7 @@ int main (int argc, char *argv[])
    }
    out_block = out_jcr->dcr->block;
 
-   read_records(in_jcr, in_dev, record_cb, mount_next_read_volume);
+   read_records(in_jcr->dcr, record_cb, mount_next_read_volume);
    if (!write_block_to_device(out_jcr->dcr, out_block)) {
       Pmsg0(000, _("Write of last block failed.\n"));
    }

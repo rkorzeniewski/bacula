@@ -318,7 +318,7 @@ static void do_scan()
    /* Detach bscan's jcr as we are not a real Job on the tape */
    detach_jcr_from_device(dev, bjcr);
 
-   read_records(bjcr, dev, record_cb, bscan_mount_next_read_volume);
+   read_records(bjcr->dcr, record_cb, bscan_mount_next_read_volume);
    release_device(bjcr);
 
    free_attr(attr);

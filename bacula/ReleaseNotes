@@ -1,7 +1,48 @@
 
-          Release Notes for Bacula 1.34.4
+          Release Notes for Bacula 1.34.5
 
   Bacula code: Total files = 364 Total lines = 103,481 (*.h *.c *.in)
+
+Changes for 1.34.5:
+Major Changes:
+- Correct socket close on Win32 in bnet.c (in addition to compat.cpp).
+  Caused fd leak in Win32 for each connection.
+- Fix a number of places in query.sql where multiple JobIds are
+  printed (due to JobMedia records).
+- Abort configure if Internal is selected as the database.
+- Close socket in SD when connection rejected. Caused fd leaks.
+
+Items to note!!!!
+- If you are upgrading from 1.32, please be sure to see the database
+  upgrade procedure under the 1.34.0 notes.
+
+Other Items:
+- Fixed Gnome crash on up/down arrow with no history.
+- Fixed btape "fill" crash with multiple tape option.
+- Add new query: List jobs on Volume given Volume name.   
+- Remove vol labeled test in askdir update_volume_info so that non-labeled
+  Volume in catalog can be marked in error.
+- Initialize job_start_wait cond variable after every new_jcr() otherwise
+  NetBSD gets error in library when trying to delete it without being inited.
+- Fix typo (9 instead of 0) return status in write_new_volume_label.
+- Fix mount.c to call routine that correctly marks a volume in error.
+- Eliminate printing INFO message in UpdateDB (cats) -- it generates
+  "false" error messages.
+- Eliminate some GTK error messages when running the Gnome2 console.
+- Apply Peter Eriksson's lib file order changes in linking for IRIX.
+- Add testimonials to the Web page
+- Add the bugs list to the Web page "lists".
+- Clarify the English in SuSE and Slackware when SD not running.
+- Applied the patches sent by Andreas Jellinghaus: build Gnome and  
+  wx-console in client-only build if configured; add ./configure option
+  to permit setting of sbin modes -- default is 0745 as before; remove
+  cats library from Gnome console build; remove old version from Gnome
+  About box. Thanks Andreas.
+- Correct a typo in the FreeBSD SD autostart install.
+- New bacula.spec.in from Scott.
+- Use /usr/lib/sendmail instead of mail if no mail program is configured.
+  Submitted by Peter Eriksson. This *should* be more portable.
+
 
 Changes for 1.34.4:
 Major Changes/Features:

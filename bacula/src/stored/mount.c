@@ -170,7 +170,7 @@ read_volume:
       create_volume_label(dev, jcr->VolumeName, "Default");
       dev->VolHdr.LabelType = PRE_LABEL;
    } else {
-      vol_label_status = read_dev_volume_label(jcr, dev, block);
+      vol_label_status = read_dev_volume_label(jcr->dcr, block);
    }
 
    Dmsg2(100, "dirVol=%s dirStat=%s\n", jcr->VolumeName,

@@ -383,7 +383,7 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
    }
 
    /* See what we have for a Volume */
-   switch (read_dev_volume_label(jcr, dev, block)) {		    
+   switch (read_dev_volume_label(jcr->dcr, block)) {		    
    case VOL_NAME_ERROR:
    case VOL_VERSION_ERROR:
    case VOL_LABEL_ERROR:
@@ -443,7 +443,7 @@ static int read_label(JCR *jcr, DEVICE *dev)
    jcr->VolumeName[0] = 0;
    block = new_block(dev);
    dev->state &= ~ST_LABEL;	      /* force read of label */
-   switch (read_dev_volume_label(jcr, dev, block)) {		    
+   switch (read_dev_volume_label(jcr->dcr, block)) {		    
    case VOL_OK:
       bnet_fsend(dir, _("3001 Mounted Volume: %s\n"), dev->VolHdr.VolName);
       stat = 1;
@@ -523,7 +523,7 @@ static int mount_cmd(JCR *jcr)
 	       break;
 	    }
 	    block = new_block(dev);
-	    read_dev_volume_label(jcr, dev, block);
+	    read_dev_volume_label(jcr->dcr, block);
 	    free_block(block);
 	    if (dev->dev_blocked == BST_UNMOUNTED) {
 	       /* We blocked the device, so unblock it */
@@ -866,7 +866,7 @@ static void read_volume_label(JCR *jcr, DEVICE *dev, int Slot)
    }
 
    dev->state &= ~ST_LABEL;	      /* force read of label */
-   switch (read_dev_volume_label(jcr, dev, block)) {		    
+   switch (read_dev_volume_label(jcr->dcr, block)) {		    
    case VOL_OK:
       /* DO NOT add quotes around the Volume name. It is scanned in the DIR */
       bnet_fsend(dir, _("3001 Volume=%s Slot=%d\n"), dev->VolHdr.VolName, Slot);

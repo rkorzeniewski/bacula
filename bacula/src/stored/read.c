@@ -46,7 +46,7 @@ bool do_read_data(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
    bool ok = true;
-   DEVICE *dev;
+   DCR *dcr;
    
    Dmsg0(20, "Start read data.\n");
 
@@ -71,17 +71,14 @@ bool do_read_data(JCR *jcr)
    /* 
     * Ready device for reading, and read records
     */
-   if (!acquire_device_for_read(jcr)) {
+   if (!(dcr=acquire_device_for_read(jcr))) {
       free_vol_list(jcr);
       return false;
    }
 
-   dev = jcr->dcr->dev;
-   Dmsg1(20, "Begin read device=%s\n", dev_name(dev));
-
    /* Tell File daemon we will send data */
    bnet_fsend(fd, OK_data);
-   ok = read_records(jcr, dev, record_cb, mount_next_read_volume);
+   ok = read_records(dcr, record_cb, mount_next_read_volume);
 
    /* Send end of data to FD */
    bnet_sig(fd, BNET_EOD);

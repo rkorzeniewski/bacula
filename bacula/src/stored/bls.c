@@ -42,6 +42,7 @@ static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sess
 static bool record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
 
 static DEVICE *dev;
+static DCR *dcr;
 static bool dump_label = false;
 static bool list_blocks = false;
 static bool list_jobs = false;
@@ -205,6 +206,7 @@ int main (int argc, char *argv[])
       if (!dev) {
 	 exit(1);
       }
+      dcr = jcr->dcr;
       rec = new_record();
       block = new_block(dev);
       attr = new_attr();
@@ -253,7 +255,7 @@ static void do_blocks(char *infname)
       rec = new_record();
    }
    for ( ;; ) {
-      if (!read_block_from_device(jcr, dev, block, NO_BLOCK_NUMBER_CHECK)) {
+      if (!read_block_from_device(dcr, block, NO_BLOCK_NUMBER_CHECK)) {
          Dmsg1(100, "!read_block(): ERR=%s\n", strerror_dev(dev));
 	 if (dev->state & ST_EOT) {
 	    if (!mount_next_read_volume(jcr, dev, block)) {
@@ -264,7 +266,7 @@ static void do_blocks(char *infname)
 	    /* Read and discard Volume label */
 	    DEV_RECORD *record;
 	    record = new_record();
-	    read_block_from_device(jcr, dev, block, NO_BLOCK_NUMBER_CHECK);
+	    read_block_from_device(dcr, block, NO_BLOCK_NUMBER_CHECK);
 	    read_record_from_block(block, record);
 	    get_session_record(dev, record, &sessrec);
 	    free_record(record);
@@ -295,7 +297,8 @@ static void do_blocks(char *infname)
 	block->VolSessionId, block->VolSessionTime);
       if (verbose == 1) {
 	 read_record_from_block(block, rec);
-         Pmsg7(-1, "Block: %u blen=%u First rec FI=%s SessId=%u SessTim=%u Strm=%s rlen=%d\n",
+         Pmsg9(-1, "File:blk=%u:%u blk_num=%u blen=%u First rec FI=%s SessId=%u SessTim=%u Strm=%s rlen=%d\n",
+	      dev->file, dev->block_num,
 	      block->BlockNumber, block->block_len,
 	      FI_to_ascii(rec->FileIndex), rec->VolSessionId, rec->VolSessionTime,
 	      stream_to_ascii(rec->Stream, rec->FileIndex), rec->data_len);
@@ -325,7 +328,7 @@ static bool jobs_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 /* Do list job records */
 static void do_jobs(char *infname)
 {
-   read_records(jcr, dev, jobs_cb, mount_next_read_volume);
+   read_records(dcr, jobs_cb, mount_next_read_volume);
 }
 
 /* Do an ls type listing of an archive */
@@ -335,7 +338,7 @@ static void do_ls(char *infname)
       dump_volume_label(dev);
       return;
    }
-   read_records(jcr, dev, record_cb, mount_next_read_volume);
+   read_records(dcr, record_cb, mount_next_read_volume);
    printf("%u files found.\n", num_files);
 }
 
