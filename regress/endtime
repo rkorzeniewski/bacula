@@ -1,0 +1,8 @@
+#!/usr/bin/python
+from time import time as now 
+ 
+t = now()
+fn = open('time.out', 'r')
+s = fn.readline()     
+fn.close()
+print 'Total time: %d secs' % (t - float(s))
