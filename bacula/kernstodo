@@ -20,14 +20,12 @@ Testing to do: (painful)
 - multiple simultaneous Volumes
 
 For 1.30 release:
-- Pool requested twice in "relabel" command.
-  Must delete old volume from catalog.
-- Make non-zero status from RunJobBefore/After error the job.
+- Add IP address to authentication failures. Implement M_SECURITY
+  message class.
 - Remove kern and kelvin from mysql_grant...
 - Install grant_mysql...
 - Look at Python for a Bacula scripting language -- www.python.org
 - add #define ENABLE_NLS for Gnome compile on SuSE.
-- Need define of int_least16_t in sha1.h for SuSE.
 - Figure out how to use ssh to protect Bacula communications.
 - Fix "access not allowed" for backup of files on WinXP.
 - Issue message to mount a new tape before the rewind.
@@ -914,3 +912,5 @@ rufus-dir: Volume used once. Marking Volume "File0003" as Used.
   that no longer exist on the machine -- so that we maintain
   say backups for 30 days, but if the file is deleted, we maintain
   the last copy for 1 year.  -- answer Volume retention.
+- Make non-zero status from RunJobBefore/After error the job.
+- Need define of int_least16_t in sha1.h for SuSE.

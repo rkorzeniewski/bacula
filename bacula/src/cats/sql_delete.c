@@ -190,14 +190,20 @@ static int do_media_purge(B_DB *mdb, MEDIA_DBR *mr)
  */
 int db_delete_media_record(void *jcr, B_DB *mdb, MEDIA_DBR *mr)
 {
+   db_lock(mdb);
    if (mr->MediaId == 0 && !db_get_media_record(jcr, mdb, mr)) {
+      db_unlock(mdb);
       return 0;
    } 
-   /* Delete associated records */
-   do_media_purge(mdb, mr);
+   /* Do purge if not already purged */
+   if (strcmp(mr->VolStatus, "Purged") != 0) {
+      /* Delete associated records */
+      do_media_purge(mdb, mr);
+   }
 
    Mmsg(&mdb->cmd, "DELETE FROM Media WHERE MediaId=%d", mr->MediaId);
    db_sql_query(mdb, mdb->cmd, NULL, (void *)NULL);
+   db_unlock(mdb);
    return 1;
 }
 
@@ -209,18 +215,22 @@ int db_delete_media_record(void *jcr, B_DB *mdb, MEDIA_DBR *mr)
  */
 int db_purge_media_record(void *jcr, B_DB *mdb, MEDIA_DBR *mr)
 {
+   db_lock(mdb);
    if (mr->MediaId == 0 && !db_get_media_record(jcr, mdb, mr)) {
+      db_unlock(mdb);
       return 0;
    } 
    /* Delete associated records */
-   do_media_purge(mdb, mr);
+   do_media_purge(mdb, mr);	      /* Note, always purge */
 
    /* Mark Volume as purged */
    strcpy(mr->VolStatus, "Purged");
    if (!db_update_media_record(jcr, mdb, mr)) {
+      db_unlock(mdb);
       return 0;
    }
 
+   db_unlock(mdb);
    return 1;
 }
 

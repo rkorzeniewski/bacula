@@ -18,12 +18,14 @@ first_rule: all
 dummy:
 
 # bacula-sd
-SVRSRCS = stored.c acquire.c append.c askdir.c authenticate.c \
+SVRSRCS = stored.c autochanger.c acquire.c append.c \
+	  askdir.c authenticate.c \
 	  block.c dev.c \
 	  device.c dircmd.c fd_cmds.c fdmsg.c job.c \
 	  label.c match_bsr.c parse_bsr.c \
 	  read.c record.c stored_conf.c mount.c
-SVROBJS = stored.o acquire.o append.o askdir.o authenticate.o \
+SVROBJS = stored.o autochanger.o acquire.o append.o \
+	  askdir.o authenticate.o \
 	  block.o dev.o \
 	  device.o dircmd.o fd_cmds.o fdmsg.o job.o \
 	  label.o match_bsr.o mount.o parse_bsr.o \
@@ -34,27 +36,27 @@ TAPESRCS = btape.c block.c butil.c dev.c device.c label.c \
 	   acquire.c mount.c record.c read_record.c \
 	   stored_conf.c match_bsr.c parse_bsr.o
 TAPEOBJS = btape.o block.o butil.o dev.o device.o label.o \
-	   acquire.o mount.o record.o read_record.o \
+	   autochanger.o acquire.o mount.o record.o read_record.o \
 	   stored_conf.o match_bsr.o parse_bsr.o
 
 # bls
 BLSOBJS = bls.o block.o butil.o device.o dev.o label.o match_bsr.o \
-	  acquire.o mount.o parse_bsr.o record.o  \
+	  autochanger.o acquire.o mount.o parse_bsr.o record.o	\
 	  read_record.o stored_conf.o
 
 # bextract
 BEXTOBJS = bextract.o block.o device.o dev.o label.o record.o \
-	   acquire.o mount.o match_bsr.o parse_bsr.o butil.o \
+	   autochanger.o acquire.o mount.o match_bsr.o parse_bsr.o butil.o \
 	   read_record.o stored_conf.o
 
 # bscan
 SCNOBJS = bscan.o block.o device.o dev.o label.o \
-	  acquire.o mount.o record.o match_bsr.o parse_bsr.o \
+	  autochanger.o acquire.o mount.o record.o match_bsr.o parse_bsr.o \
 	  butil.o read_record.o stored_conf.o
 
 # bcopy
 COPYOBJS = bcopy.o block.o device.o dev.o label.o \
-	   acquire.o mount.o record.o match_bsr.o parse_bsr.o \
+	   autochanger.o acquire.o mount.o record.o match_bsr.o parse_bsr.o \
 	   butil.o read_record.o stored_conf.o
 
 

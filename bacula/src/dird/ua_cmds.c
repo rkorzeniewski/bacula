@@ -58,6 +58,8 @@ extern int retentioncmd(UAContext *ua, char *cmd);
 extern int prunecmd(UAContext *ua, char *cmd);
 extern int purgecmd(UAContext *ua, char *cmd);
 extern int restorecmd(UAContext *ua, char *cmd);
+extern int labelcmd(UAContext *ua, char *cmd);
+extern int relabelcmd(UAContext *ua, char *cmd);
 
 /* Forward referenced functions */
 static int addcmd(UAContext *ua, char *cmd),  createcmd(UAContext *ua, char *cmd), cancelcmd(UAContext *ua, char *cmd);
@@ -65,15 +67,14 @@ static int setdebugcmd(UAContext *ua, char *cmd);
 static int helpcmd(UAContext *ua, char *cmd);
 static int deletecmd(UAContext *ua, char *cmd);
 static int usecmd(UAContext *ua, char *cmd),  unmountcmd(UAContext *ua, char *cmd);
-static int labelcmd(UAContext *ua, char *cmd), mountcmd(UAContext *ua, char *cmd), updatecmd(UAContext *ua, char *cmd);
-static int relabelcmd(UAContext *ua, char *cmd), mountcmd(UAContext *ua, char *cmd), updatecmd(UAContext *ua, char *cmd);
 static int versioncmd(UAContext *ua, char *cmd), automountcmd(UAContext *ua, char *cmd);
 static int timecmd(UAContext *ua, char *cmd);
 static int update_volume(UAContext *ua);
 static int update_pool(UAContext *ua);
 static int delete_volume(UAContext *ua);
 static int delete_pool(UAContext *ua);
-static int do_label(UAContext *ua, char *cmd, int relabel);
+static int mountcmd(UAContext *ua, char *cmd);
+static int updatecmd(UAContext *ua, char *cmd);
 
 int quitcmd(UAContext *ua, char *cmd);
 
@@ -1110,7 +1111,7 @@ static int setdebugcmd(UAContext *ua, char *cmd)
       if (strcasecmp(ua->argk[i], _("client")) == 0) {
 	 client = NULL;
 	 if (ua->argv[i]) {
-	    client = (CLIENT *) GetResWithName(R_CLIENT, ua->argv[i]);
+	    client = (CLIENT *)GetResWithName(R_CLIENT, ua->argv[i]);
 	    if (client) {
 	       do_client_setdebug(ua, client, level);
 	       return 1;
@@ -1121,7 +1122,18 @@ static int setdebugcmd(UAContext *ua, char *cmd)
 	    do_client_setdebug(ua, client, level);
 	    return 1;
 	 }
+      }
 
+      if (strcasecmp(ua->argk[i], _("store")) == 0 ||
+          strcasecmp(ua->argk[i], _("storage")) == 0) {
+	 store = NULL;
+	 if (ua->argv[i]) {
+	    store = (STORE *)GetResWithName(R_STORAGE, ua->argv[i]);
+	    if (store) {
+	       do_storage_setdebug(ua, store, level);
+	       return 1;
+	    }
+	 }
 	 store = get_storage_resource(ua, cmd);
 	 if (store) {
 	    do_storage_setdebug(ua, store, level);
@@ -1269,199 +1281,6 @@ static int delete_pool(UAContext *ua)
    return 1;
 }
 
-
-/*
- * Label a tape 
- *  
- *   label storage=xxx volume=vvv
- */
-static int labelcmd(UAContext *ua, char *cmd)
-{
-   return do_label(ua, cmd, 0);       /* standard label */
-}
-
-static int relabelcmd(UAContext *ua, char *cmd)
-{
-   return do_label(ua, cmd, 1);      /* relabel tape */
-}
-
-
-/*
- * Common routine for both label and relabel
- */
-static int do_label(UAContext *ua, char *cmd, int relabel)
-{
-   STORE *store;
-   BSOCK *sd;
-   char dev_name[MAX_NAME_LENGTH];
-   MEDIA_DBR mr, omr;
-   POOL_DBR pr;
-   int ok = FALSE;
-   int mounted = FALSE;
-   int i;
-   int slot = 0;
-   static char *name_keyword[] = {
-      "name",
-      NULL};
-
-   static char *vol_keyword[] = {
-      "volume",
-      NULL};
-
-
-   if (!open_db(ua)) {
-      return 1;
-   }
-   store = get_storage_resource(ua, cmd);
-   if (!store) {
-      return 1;
-   }
-
-   /* If relabel get name of Volume to relabel */
-   if (relabel) {
-      i = find_arg_keyword(ua, vol_keyword); 
-      if (i >= 0 && ua->argv[i]) {
-	 memset(&omr, 0, sizeof(omr));
-	 bstrncpy(omr.VolumeName, ua->argv[i], sizeof(omr.VolumeName));
-	 if (!db_get_media_record(ua->jcr, ua->db, &omr)) {
-            bsendmsg(ua, "%s", db_strerror(ua->db));
-	    goto getVol;
-	 }
-	 goto gotVol;
-      }
-getVol:
-      if (!select_pool_and_media_dbr(ua, &pr, &omr)) {
-	 return 1;
-      }
-
-gotVol:
-      if (strcmp(omr.VolStatus, "Purged") != 0) {
-         bsendmsg(ua, _("Volume \"%s\" has VolStatus %s. It must be purged before relabeling.\n"),
-	    omr.VolumeName, omr.VolStatus);
-	 return 1;
-      }
-   }
-
-   i = find_arg_keyword(ua, name_keyword);
-   if (i >=0 && ua->argv[i]) {
-      strcpy(ua->cmd, ua->argv[i]);
-      goto gotName;
-   }
-
-getName:
-   if (!get_cmd(ua, _("Enter new Volume name: "))) {
-      return 1;
-   }
-gotName:
-   /* ****FIXME*** be much more restrictive in the name */
-   if (strpbrk(ua->cmd, "`~!@#$%^&*()[]{}|\\;'\"<>?,/")) {
-      bsendmsg(ua, _("Illegal character | in a volume name.\n"));
-      goto getName;
-   }
-   if (strlen(ua->cmd) >= MAX_NAME_LENGTH) {
-      bsendmsg(ua, _("Volume name too long.\n"));
-      goto getVol;
-   }
-   if (strlen(ua->cmd) == 0) {
-      bsendmsg(ua, _("Volume name must be at least one character long.\n"));
-      goto getName;
-   }
-
-   memset(&mr, 0, sizeof(mr));
-   strcpy(mr.VolumeName, ua->cmd);
-   if (db_get_media_record(ua->jcr, ua->db, &mr)) {
-       bsendmsg(ua, _("Media record for new Volume \"%s\" already exists.\n"), 
-	  mr.VolumeName);
-       goto getName;
-   }
-
-   /* Do some more checking on slot ****FIXME**** */
-   if (store->autochanger) {
-      if (!get_cmd(ua, _("Enter slot (0 for none): "))) {
-	 return 1;
-      }
-      slot = atoi(ua->cmd);
-   }
-   strcpy(mr.MediaType, store->media_type);
-   mr.Slot = slot;
-
-   memset(&pr, 0, sizeof(pr));
-   if (!select_pool_dbr(ua, &pr)) {
-      return 1;
-   }
-
-   ua->jcr->store = store;
-   bsendmsg(ua, _("Connecting to Storage daemon %s at %s:%d ...\n"), 
-      store->hdr.name, store->address, store->SDport);
-   if (!connect_to_storage_daemon(ua->jcr, 10, SDConnectTimeout, 1)) {
-      bsendmsg(ua, _("Failed to connect to Storage daemon.\n"));
-      return 1;   
-   }
-   sd = ua->jcr->store_bsock;
-   strcpy(dev_name, store->dev_name);
-   bash_spaces(dev_name);
-   bash_spaces(mr.VolumeName);
-   bash_spaces(mr.MediaType);
-   bash_spaces(pr.Name);
-   if (relabel) {
-      bash_spaces(omr.VolumeName);
-      bnet_fsend(sd, _("relabel %s OldName=%s NewName=%s PoolName=%s MediaType=%s Slot=%d"), 
-	 dev_name, omr.VolumeName, mr.VolumeName, pr.Name, mr.MediaType, mr.Slot);
-      bsendmsg(ua, _("Sending relabel command ...\n"));
-   } else {
-      bnet_fsend(sd, _("label %s VolumeName=%s PoolName=%s MediaType=%s Slot=%d"), 
-	 dev_name, mr.VolumeName, pr.Name, mr.MediaType, mr.Slot);
-      bsendmsg(ua, _("Sending label command ...\n"));
-   }
-   while (bget_msg(sd, 0) >= 0) {
-      bsendmsg(ua, "%s", sd->msg);
-      if (strncmp(sd->msg, "3000 OK label.", 14) == 0) {
-	 ok = TRUE;
-      } else {
-         bsendmsg(ua, _("Label command failed.\n"));
-      }
-   }
-   ua->jcr->store_bsock = NULL;
-   unbash_spaces(dev_name);
-   unbash_spaces(mr.VolumeName);
-   unbash_spaces(mr.MediaType);
-   unbash_spaces(pr.Name);
-   mr.LabelDate = time(NULL);
-   if (ok) {
-      set_pool_dbr_defaults_in_media_dbr(&mr, &pr);
-      if (db_create_media_record(ua->jcr, ua->db, &mr)) {
-         bsendmsg(ua, _("Media record for Volume \"%s\" successfully created.\n"),
-	    mr.VolumeName);
-	 if (ua->automount) {
-            bsendmsg(ua, _("Requesting mount %s ...\n"), dev_name);
-	    bash_spaces(dev_name);
-            bnet_fsend(sd, "mount %s", dev_name);
-	    unbash_spaces(dev_name);
-	    while (bnet_recv(sd) >= 0) {
-               bsendmsg(ua, "%s", sd->msg);
-	       /* Here we can get
-		*  3001 OK mount. Device=xxx	  or
-		*  3001 Mounted Volume vvvv
-		*/
-               if (strncmp(sd->msg, "3001 ", 5) == 0) {
-		  mounted = TRUE;
-		  /***** ****FIXME***** find job waiting for  
-		   ***** mount, and change to waiting for SD  
-		   */
-	       }
-	    }
-	 }
-      } else {
-         bsendmsg(ua, "%s", db_strerror(ua->db));
-      }
-   }
-   if (!mounted) {
-      bsendmsg(ua, _("Do not forget to mount the drive!!!\n"));
-   }
-   bnet_sig(sd, BNET_TERMINATE);
-   bnet_close(sd);
-   return 1;
-}
 
 static void do_mount_cmd(int mount, UAContext *ua, char *cmd)
 {

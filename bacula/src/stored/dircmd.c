@@ -68,6 +68,7 @@ static int cancel_cmd(JCR *cjcr);
 static int mount_cmd(JCR *jcr);
 static int unmount_cmd(JCR *jcr);
 static int status_cmd(JCR *sjcr);
+static int autochanger_cmd(JCR *sjcr);
 static int do_label(JCR *jcr, int relabel);
 static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
 			       char *newname, char *poolname, 
@@ -91,6 +92,7 @@ static struct s_cmds cmds[] = {
    {"mount",     mount_cmd},
    {"unmount",   unmount_cmd},
    {"status",    status_cmd},
+   {"autochanger", autochanger_cmd},
    {NULL,	 NULL}		      /* list terminator */
 };
 
@@ -800,4 +802,70 @@ static void send_blocked_status(JCR *jcr, DEVICE *dev)
       default:
 	 break;
    }
+}
+
+/*
+ * Autochanger command from Director
+ */
+static int autochanger_cmd(JCR *jcr)
+{
+   char *devname;
+   BSOCK *dir = jcr->dir_bsock;
+   DEVRES *device;
+   DEVICE *dev;
+   int found = 0;
+
+   devname = (char *)get_memory(dir->msglen);
+   if (sscanf(dir->msg, "autochanger list %s ", devname) == 1) {
+      unbash_spaces(devname);
+      device = NULL;
+      LockRes();
+      while ((device=(DEVRES *)GetNextRes(R_DEVICE, (RES *)device))) {
+	 /* Find resource, and make sure we were able to open it */
+	 if (strcmp(device->hdr.name, devname) == 0 && device->dev) {
+            Dmsg1(20, "Found device %s\n", device->hdr.name);
+	    found = 1;
+	    break;
+	 }
+      }
+      UnlockRes();
+      if (found) {
+	 jcr->device = device;
+	 dev = device->dev;
+	 P(dev->mutex); 	      /* Use P to avoid indefinite block */
+	 if (!(dev->state & ST_OPENED)) {
+	    if (open_dev(dev, NULL, READ_WRITE) < 0) {
+               bnet_fsend(dir, _("3994 Connot open device: %s\n"), strerror_dev(dev));
+	    } else {
+	       autochanger_list(jcr, dev, dir);
+	       force_close_dev(dev);
+	    }
+         /* Under certain "safe" conditions, we can steal the lock */
+	 } else if (dev->dev_blocked && 
+		    (dev->dev_blocked == BST_UNMOUNTED ||
+		     dev->dev_blocked == BST_WAITING_FOR_SYSOP ||
+		     dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP)) {
+	    autochanger_list(jcr, dev, dir);
+	 } else if (dev->state & ST_READ || dev->num_writers) {
+	    if (dev->state & ST_READ) {
+                bnet_fsend(dir, _("3901 Device %s is busy with 1 reader.\n"),
+		   dev_name(dev));
+	    } else {
+                bnet_fsend(dir, _("3902 Device %s is busy with %d writer(s).\n"),
+		   dev_name(dev), dev->num_writers);
+	    }
+	 } else {		      /* device not being used */
+	    autochanger_list(jcr, dev, dir);
+	 }
+	 V(dev->mutex);
+      } else {
+         bnet_fsend(dir, _("3999 Device %s not found\n"), devname);
+      }
+   } else {
+      strcpy(devname, dir->msg);
+      bnet_fsend(dir, _("3907 Error scanning autocharger list command: %s\n"), devname);
+   }
+   free_memory(devname);
+   bnet_sig(dir, BNET_EOD);
+   return 1;
 }

@@ -61,6 +61,7 @@
 #define JS_FatalError            'f'  /* Fatal error */
 #define JS_Differences           'D'  /* Verify differences */
 #define JS_Cancelled             'A'  /* cancelled by user */
+#define JS_Canceled              'A'  /* canceled by user */
 #define JS_WaitFD                'F'  /* waiting on File daemon */
 #define JS_WaitSD                'S'  /* waiting on the Storage daemon */
 #define JS_WaitMedia             'm'  /* waiting for new media */
@@ -71,9 +72,15 @@
 #define JS_WaitMaxJobs           'd'  /* Waiting for maximum jobs */
 
 #define job_cancelled(jcr) \
-  (jcr->JobStatus == JS_Cancelled || \
+  (jcr->JobStatus == JS_Canceled || \
    jcr->JobStatus == JS_ErrorTerminated || \
    jcr->JobStatus == JS_FatalError)
+
+#define job_canceled(jcr) \
+  (jcr->JobStatus == JS_Canceled || \
+   jcr->JobStatus == JS_ErrorTerminated || \
+   jcr->JobStatus == JS_FatalError)
+
 
 typedef void (JCR_free_HANDLER)(struct s_jcr *jcr);
 

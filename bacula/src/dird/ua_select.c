@@ -660,7 +660,6 @@ int do_prompt(UAContext *ua, char *msg, char *prompt, int max_prompt)
 
 /*
  * We scan what the user has entered looking for
- *    <storage-resource>
  *    device=<device-name>	???? does this work ????
  *    storage=<storage-resource>
  *    job=<job_name>
@@ -676,10 +675,6 @@ STORE *get_storage_resource(UAContext *ua, char *cmd)
    JCR *jcr;
    int i;
       
-   if (ua->argc == 1) {
-      return select_storage_resource(ua);
-   }
-   
    device_name = NULL;
    store_name = NULL;
 

@@ -176,18 +176,18 @@ static void *job_thread(void *arg)
    sm_check(__FILE__, __LINE__, True);
 
    if (!acquire_resource_locks(jcr)) {
-      set_jcr_job_status(jcr, JS_Cancelled);
+      set_jcr_job_status(jcr, JS_Canceled);
    }
 
    Dmsg0(200, "=====Start Job=========\n");
    jcr->start_time = time(NULL);      /* set the real start time */
-   Dmsg2(200, "jcr->JobStatus=%d %c\n", jcr->JobStatus, (char)jcr->JobStatus);
-   if (job_cancelled(jcr)) {
+
+   if (job_canceled(jcr)) {
       update_job_end_record(jcr);
    } else if (jcr->job->MaxStartDelay != 0 && jcr->job->MaxStartDelay <
        (utime_t)(jcr->start_time - jcr->sched_time)) {
-      Jmsg(jcr, M_FATAL, 0, _("Job cancelled because max start delay time exceeded.\n"));
-      set_jcr_job_status(jcr, JS_Cancelled);
+      Jmsg(jcr, M_FATAL, 0, _("Job canceled because max start delay time exceeded.\n"));
+      set_jcr_job_status(jcr, JS_Canceled);
       update_job_end_record(jcr);
    } else {
 
@@ -200,6 +200,14 @@ static void *job_thread(void *arg)
 	 
 	 before = edit_run_codes(jcr, before, jcr->job->RunBeforeJob);
 	 status = run_program(before, 0, NULL);
+	 if (status != 0) {
+            Jmsg(jcr, M_FATAL, 0, _("RunBeforeJob returned non-zero status=%d\n"),
+	       status);
+	    set_jcr_job_status(jcr, JS_FatalError);
+	    update_job_end_record(jcr);
+	    free_pool_memory(before);
+	    goto bail_out;
+	 }
 	 free_pool_memory(before);
       }
       switch (jcr->JobType) {
@@ -236,9 +244,16 @@ static void *job_thread(void *arg)
       
 	 after = edit_run_codes(jcr, after, jcr->job->RunAfterJob);
 	 status = run_program(after, 0, NULL);
+	 if (status != 0) {
+            Jmsg(jcr, M_FATAL, 0, _("RunAfterJob returned non-zero status=%d\n"),
+	       status);
+	    set_jcr_job_status(jcr, JS_FatalError);
+	    update_job_end_record(jcr);
+	 }
 	 free_pool_memory(after);
       }
    }
+bail_out:
    release_resource_locks(jcr);
    Dmsg0(50, "Before free jcr\n");
    free_jcr(jcr);
