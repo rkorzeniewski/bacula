@@ -454,7 +454,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	    }
 	    sd->msg = wbuf;	      /* set correct write buffer */
 	    if (!bnet_send(sd)) {
-	       sd->msg = msgsave;     /* restore read buffer */
+	       sd->msg = msgsave;     /* restore bnet buffer */
 	       sd->msglen = 0;
 	       bclose(&ff_pkt->bfd);
 	       set_jcr_job_status(jcr, JS_ErrorTerminated);
