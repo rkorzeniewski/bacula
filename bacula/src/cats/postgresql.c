@@ -364,15 +364,10 @@ POSTGRESQL_FIELD * my_postgresql_fetch_field(B_DB *mdb)
 
 		for (i = 0; i < mdb->num_fields; i++) {
 			Dmsg1(50, "filling field %d\n", i);
-			mdb->fields[i].name	      = PQfname    (mdb->result, i);
-
-			// I am not sure this returns the max width of the result set
+			mdb->fields[i].name	      = PQfname(mdb->result, i);
 			mdb->fields[i].max_length = my_postgresql_max_length(mdb, i);
-
-			// I am not sure this returns what we can use
-			mdb->fields[i].type       = PQftype    (mdb->result, i);
-
-			mdb->fields[i].flags = 0;
+			mdb->fields[i].type       = PQftype(mdb->result, i);
+			mdb->fields[i].flags      = 0;
 
 			Dmsg4(50, "my_postgresql_fetch_field finds field '%s' has length='%d' type='%d' and IsNull=%d\n", 
 			   mdb->fields[i].name, mdb->fields[i].max_length, mdb->fields[i].type,
