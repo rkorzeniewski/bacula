@@ -96,15 +96,19 @@ void start_heartbeat_monitor(JCR *jcr)
 /* Terminate the heartbeat thread. Used for both SD and DIR */
 void stop_heartbeat_monitor(JCR *jcr) 
 {
-   /* Wait for heartbeat thread to start */
-   while (jcr->hb_bsock == NULL) {
+   int cnt = 0;
+   /* Wait max 10 secs for heartbeat thread to start */
+   while (jcr->hb_bsock == NULL && cnt++ < 200) {
       bmicrosleep(0, 50);	      /* avoid race */
    }
-   jcr->hb_bsock->timed_out = 1;      /* set timed_out to terminate read */
-   jcr->hb_bsock->terminated = 1;     /* set to terminate read */
 
-   /* Wait for heartbeat thread to stop */
-   while (jcr->hb_bsock) {
+   if (jcr->hb_bsock) {
+      jcr->hb_bsock->timed_out = 1;   /* set timed_out to terminate read */
+      jcr->hb_bsock->terminated = 1;  /* set to terminate read */
+   }
+   cnt = 0;
+   /* Wait max 100 secs for heartbeat thread to stop */
+   while (jcr->hb_bsock && cnt++ < 200) {
       /* Naturally, Cygwin 1.3.20 craps out on the following */
       pthread_kill(jcr->heartbeat_id, TIMEOUT_SIGNAL);	/* make heartbeat thread go away */
       bmicrosleep(0, 500);
