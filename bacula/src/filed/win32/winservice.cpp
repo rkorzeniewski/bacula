@@ -57,14 +57,15 @@ BOOL    g_impersonating_user = 0;
 
 bacService::bacService()
 {
-    OSVERSIONINFO osversioninfo;
-    osversioninfo.dwOSVersionInfoSize = sizeof(osversioninfo);
+   OSVERSIONINFO osversioninfo;
+   osversioninfo.dwOSVersionInfoSize = sizeof(osversioninfo);
 
-    // Get the current OS version
-    if (!GetVersionEx(&osversioninfo))
-            g_platform_id = 0;
-    else
-            g_platform_id = osversioninfo.dwPlatformId;
+   // Get the current OS version
+   if (!GetVersionEx(&osversioninfo)) {
+      g_platform_id = 0;
+   } else {
+      g_platform_id = osversioninfo.dwPlatformId;
+   }
 }
 
 
@@ -88,14 +89,15 @@ bacService::IsWinNT()
 BOOL
 PostToBacula(UINT message, WPARAM wParam, LPARAM lParam)
 {
-   // Locate the hidden Bacula menu window
-   HWND hservwnd = FindWindow(MENU_CLASS_NAME, NULL);
-   if (hservwnd == NULL)
-           return FALSE;
+  // Locate the hidden Bacula menu window
+  HWND hservwnd = FindWindow(MENU_CLASS_NAME, NULL);
+  if (hservwnd == NULL) {
+     return FALSE;
+  }
 
-   // Post the message to Bacula
-   PostMessage(hservwnd, message, wParam, lParam);
-   return TRUE;
+  // Post the message to Bacula
+  PostMessage(hservwnd, message, wParam, lParam);
+  return TRUE;
 }
 
 
@@ -138,12 +140,12 @@ bacService::ShowDefaultProperties()
 BOOL
 bacService::ShowAboutBox()
 {
-   // Post to the Bacula menu window
-   if (!PostToBacula(MENU_ABOUTBOX_SHOW, 0, 0)) {
-      MessageBox(NULL, "No existing instance of Bacula could be contacted", szAppName, MB_ICONEXCLAMATION | MB_OK);
-      return FALSE;
-   }
-   return TRUE;
+  // Post to the Bacula menu window
+  if (!PostToBacula(MENU_ABOUTBOX_SHOW, 0, 0)) {
+     MessageBox(NULL, "No existing instance of Bacula could be contacted", szAppName, MB_ICONEXCLAMATION | MB_OK);
+     return FALSE;
+  }
+  return TRUE;
 }
 
 // Static routine to show the Status dialog for a currently-running
@@ -152,12 +154,12 @@ bacService::ShowAboutBox()
 BOOL
 bacService::ShowStatus()
 {
-   // Post to the Bacula menu window
-   if (!PostToBacula(MENU_STATUS_SHOW, 0, 0)) {
-      MessageBox(NULL, "No existing instance of Bacula could be contacted", szAppName, MB_ICONEXCLAMATION | MB_OK);
-      return FALSE;
-   }
-   return TRUE;
+  // Post to the Bacula menu window
+  if (!PostToBacula(MENU_STATUS_SHOW, 0, 0)) {
+     MessageBox(NULL, "No existing instance of Bacula could be contacted", szAppName, MB_ICONEXCLAMATION | MB_OK);
+     return FALSE;
+  }
+  return TRUE;
 }
 
 // Static routine to show the Events dialog for a currently-running
@@ -166,12 +168,12 @@ bacService::ShowStatus()
 BOOL
 bacService::ShowEvents()
 {
-   // Post to the Bacula menu window
-   if (!PostToBacula(MENU_EVENTS_SHOW, 0, 0)) {
-      MessageBox(NULL, "No existing instance of Bacula could be contacted", szAppName, MB_ICONEXCLAMATION | MB_OK);
-      return FALSE;
-   }
-   return TRUE;
+  // Post to the Bacula menu window
+  if (!PostToBacula(MENU_EVENTS_SHOW, 0, 0)) {
+     MessageBox(NULL, "No existing instance of Bacula could be contacted", szAppName, MB_ICONEXCLAMATION | MB_OK);
+     return FALSE;
+  }
+  return TRUE;
 }
 
 
@@ -181,13 +183,13 @@ bacService::ShowEvents()
 BOOL
 bacService::PostAddNewClient(unsigned long ipaddress)
 {
-   // Post to the Bacula menu window
-   if (!PostToBacula(MENU_ADD_CLIENT_MSG, 0, ipaddress)) {
-      MessageBox(NULL, "No existing instance of Bacula could be contacted", szAppName, MB_ICONEXCLAMATION | MB_OK);
-      return FALSE;
-   }
+  // Post to the Bacula menu window
+  if (!PostToBacula(MENU_ADD_CLIENT_MSG, 0, ipaddress)) {
+     MessageBox(NULL, "No existing instance of Bacula could be contacted", szAppName, MB_ICONEXCLAMATION | MB_OK);
+     return FALSE;
+  }
 
-   return TRUE;
+  return TRUE;
 }
 
 // SERVICE-MODE ROUTINES
@@ -203,8 +205,7 @@ bacService::PostAddNewClient(unsigned long ipaddress)
 // Displayed service name
 #define BAC_SERVICEDISPLAYNAME "Bacula File Server"
 
-// List of other required services ("dependency 1\0dependency 2\0\0")
-// *** These need filling in properly
+// List other required serves 
 #define BAC_DEPENDENCIES       ""
 
 // Internal service state
@@ -238,9 +239,9 @@ bacService::RunningAsService()
 BOOL
 bacService::KillRunningCopy()
 {
-   while (PostToBacula(WM_CLOSE, 0, 0)) {
-   }
-   return TRUE;
+  while (PostToBacula(WM_CLOSE, 0, 0)) {
+  }
+  return TRUE;
 }
 
 
@@ -250,27 +251,30 @@ bacService::KillRunningCopy()
 BOOL
 bacService::PostUserHelperMessage()
 {
-   // - Check the platform type
-   if (!IsWinNT())
-           return TRUE;
+  // - Check the platform type
+  if (!IsWinNT()) {
+     return TRUE;
+  }
 
-   // - Get the current process ID
-   DWORD processId = GetCurrentProcessId();
+  // - Get the current process ID
+  DWORD processId = GetCurrentProcessId();
 
-   // - Post it to the existing Bacula
-   if (!PostToBacula(MENU_SERVICEHELPER_MSG, 0, (LPARAM)processId))
-           return FALSE;
+  // - Post it to the existing Bacula
+  if (!PostToBacula(MENU_SERVICEHELPER_MSG, 0, (LPARAM)processId)) {
+     return FALSE;
+  }
 
-   // - Wait until it's been used
-   return TRUE;
+  // - Wait until it's been used
+  return TRUE;
 }
 
 // ROUTINE TO PROCESS AN INCOMING INSTANCE OF THE ABOVE MESSAGE
 BOOL
 bacService::ProcessUserHelperMessage(WPARAM wParam, LPARAM lParam) {
    // - Check the platform type
-   if (!IsWinNT() || !bacService::RunningAsService())
-           return TRUE;
+   if (!IsWinNT() || !bacService::RunningAsService()) {
+      return TRUE;
+   }
 
    // - Close the HKEY_CURRENT_USER key, to force NT to reload it for the new user
    // NB: Note that this is _really_ dodgy if ANY other thread is accessing the key!
@@ -317,7 +321,7 @@ bacService::BaculaServiceMain()
    // How to run as a service depends upon the OS being used
    switch (g_platform_id) {
 
-           // Windows 95/98
+   // Windows 95/98
    case VER_PLATFORM_WIN32_WINDOWS:
       {
       // Obtain a handle to the kernel library
@@ -341,7 +345,7 @@ bacService::BaculaServiceMain()
       // Register this process with the OS as a service!
       RegisterService(0, 1);
 
-      // Run the service itself
+      // Run the main program as a service
       BaculaAppMain();
 
       // Then remove the service from the system service table
@@ -355,7 +359,7 @@ bacService::BaculaServiceMain()
  //         ExitProcess(0);
       break;
       }
-           // Windows NT
+   // Windows NT
    case VER_PLATFORM_WIN32_NT:
       {
       // Create a service entry table
@@ -374,7 +378,7 @@ bacService::BaculaServiceMain()
 }
 
 // SERVICE MAIN ROUTINE - NT ONLY !!!
-// NT ONLY !!!
+// NT/Win2K/WinXP ONLY !!!
 void WINAPI ServiceMain(DWORD argc, char **argv)
 {
     DWORD dwThreadID;
@@ -434,13 +438,10 @@ DWORD WINAPI ServiceWorkThread(LPVOID lpwThreadParam)
        
       if (!OpenProcessToken(GetCurrentProcess(), 
               TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken)) {
-// Forge onward anyway in the hopes of succeeding.
-//       MessageBox(NULL, "System shutdown failed: OpenProcessToken", "shutdown", MB_OK);
-//       exit(1);
+         /* Forge on anyway */
       } 
 
       // Get the LUID for the backup privilege. 
-       
       LookupPrivilegeValue(NULL, SE_BACKUP_NAME, 
               &tkp.Privileges[0].Luid); 
 
@@ -448,33 +449,27 @@ DWORD WINAPI ServiceWorkThread(LPVOID lpwThreadParam)
       tkp.PrivilegeCount = 1;  // one privilege to set    
       tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED; 
        
-      // Get the shutdown privilege for this process. 
-       
+      // Get the backup privilege for this process. 
       AdjustTokenPrivileges(hToken, FALSE, &tkp, 0, 
               (PTOKEN_PRIVILEGES)NULL, 0); 
        
       // Cannot test the return value of AdjustTokenPrivileges. 
-       
       if (GetLastError() != ERROR_SUCCESS) {
 //       MessageBox(NULL, "System shutdown failed: AdjustTokePrivileges", "shutdown", MB_OK);
       } 
      
       // Get the LUID for the restore privilege. 
-       
       LookupPrivilegeValue(NULL, SE_RESTORE_NAME, 
               &tkp.Privileges[0].Luid); 
 
-       
       tkp.PrivilegeCount = 1;  // one privilege to set    
       tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED; 
        
-      // Get the shutdown privilege for this process. 
-       
+      // Get the restore privilege for this process. 
       AdjustTokenPrivileges(hToken, FALSE, &tkp, 0, 
               (PTOKEN_PRIVILEGES)NULL, 0); 
        
       // Cannot test the return value of AdjustTokenPrivileges. 
-       
       if (GetLastError() != ERROR_SUCCESS) {
 //       MessageBox(NULL, "System shutdown failed: AdjustTokePrivileges", "shutdown", MB_OK);
       } 
@@ -482,14 +477,11 @@ DWORD WINAPI ServiceWorkThread(LPVOID lpwThreadParam)
     /* Call Bacula main code */
     BaculaAppMain();
 
-    // Mark that we're no longer running
+    /* Mark that we're no longer running */
     g_servicethread = 0;
 
-    // Tell the service manager that we've stopped.
-    ReportStatus(
-                SERVICE_STOPPED,
-                g_error,
-                0);
+    /* Tell the service manager that we've stopped */
+    ReportStatus(SERVICE_STOPPED, g_error, 0);
     return 0;
 }
 

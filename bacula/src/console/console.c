@@ -327,7 +327,7 @@ get_cmd(FILE *input, char *prompt, BSOCK *sock, int sec)
 {
    char *line;
 
-   rl_catch_signals = 1;
+   rl_catch_signals = 0;	      /* do it ourselves */
    line = readline(prompt);
 
    if (!line) {
