@@ -352,13 +352,20 @@ static int record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
    if (rec->Stream == STREAM_UNIX_ATTRIBUTES || 
        rec->Stream == STREAM_UNIX_ATTRIBUTES_EX) {
 
+      if (verbose > 1) {
+         char *rtype = "Attributes";
+         Pmsg5(-1, "%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
+	       rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
+      }
       if (!unpack_attributes_record(jcr, rec->Stream, rec->data, attr)) {
-         Emsg0(M_ERROR_TERM, 0, _("Cannot continue.\n"));
+	 if (!forge_on) {
+            Emsg0(M_ERROR_TERM, 0, _("Cannot continue.\n"));
+	 }
       }
 
       if (attr->file_index != rec->FileIndex) {
-         Emsg2(M_ERROR_TERM, 0, _("Record header file index %ld not equal record index %ld\n"),
-	    rec->FileIndex, attr->file_index);
+         Emsg2(forge_on?M_WARNING:M_ERROR_TERM, 0, _("Record header file index %ld not equal record index %ld\n"),
+	       rec->FileIndex, attr->file_index);
       }
 
       attr->data_stream = decode_stat(attr->attr, &attr->statp, &attr->LinkFI);
@@ -401,6 +408,10 @@ static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sess
    }
    Dmsg5(10, "%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
 	 rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
+   if (verbose) {
+      Pmsg5(-1, "%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
+	    rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
+   }
 }
 
 

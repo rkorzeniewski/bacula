@@ -71,6 +71,7 @@ int do_append_data(JCR *jcr)
    }
    dev = dcr->dev;
    block = dcr->block;
+   memset(&rec, 0, sizeof(rec));
 
    Dmsg1(20, "Begin append device=%s\n", dev_name(dev));
 

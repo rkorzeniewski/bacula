@@ -547,6 +547,9 @@ bool is_volume_name_legal(UAContext *ua, char *name)
    return 1;
 }
 
+/*
+ * NOTE! This routine opens the SD socket but leaves it open
+ */
 static int send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr, 
 			      POOL_DBR *pr, int relabel, bool media_record_exists)
 {
@@ -583,7 +586,6 @@ static int send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
 	 ok = TRUE;
       } 
    }
-   close_sd_bsock(ua);
    unbash_spaces(mr->VolumeName);
    unbash_spaces(mr->MediaType);
    unbash_spaces(pr->Name);
@@ -754,7 +756,7 @@ static vol_list_t *get_vol_list_from_SD(UAContext *ua, bool scan)
       } else {
 	 vl->VolName = NULL;
       }
-      Dmsg2(100, "Add slot=%d Vol=%s to list.\n", vl->Slot, NPRT(vl->VolName));
+      Dmsg2(100, "Add slot=%d Vol=%s to SD list.\n", vl->Slot, NPRT(vl->VolName));
       if (!vol_list) {
 	 vl->next = vol_list;
 	 vol_list = vl;

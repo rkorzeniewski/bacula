@@ -101,6 +101,7 @@ extern "C" HANDLE get_osfhandle(int fd);
 
 void binit(BFILE *bfd)
 {
+   memset(bfd, 0, sizeof(BFILE));
    bfd->fid = -1;
    bfd->mode = BF_CLOSED;
    bfd->use_backup_api = have_win32_api();
@@ -412,6 +413,7 @@ off_t blseek(BFILE *bfd, off_t offset, int whence)
  */
 void binit(BFILE *bfd)
 {
+   memset(bfd, 0, sizeof(BFILE));
    bfd->fid = -1;
 }
 

@@ -334,7 +334,7 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 
 /* 
  * If we have a non-zero InChanger, ensure that no other Media
- *  record in this Pool has InChanger set on the same Slot.
+ *  record has InChanger set on the same Slot.
  *
  * This routine assumes the database is already locked.
  */
@@ -342,8 +342,8 @@ void
 db_make_inchanger_unique(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr) 
 {
    if (mr->InChanger != 0 && mr->Slot != 0) {
-      Mmsg(&mdb->cmd, "UPDATE Media SET InChanger=0 WHERE PoolId=%u "
-           "AND Slot=%d AND MediaId!=%u", mr->PoolId, mr->Slot, mr->MediaId);
+      Mmsg(&mdb->cmd, "UPDATE Media SET InChanger=0 WHERE "
+           "Slot=%d AND MediaId!=%u", mr->Slot, mr->MediaId);
       Dmsg1(400, "%s\n", mdb->cmd);
       UPDATE_DB(jcr, mdb, mdb->cmd);
    }
