@@ -42,13 +42,9 @@ static int oldest_handler(void *ctx, int num_fields, char **row)
    struct s_oldest_ctx *oldest = (struct s_oldest_ctx *)ctx;
 
    if (row[0]) {
-      Dmsg2(100, "oldest_handler %s %s\n", row[0], row[1]);
-   }
-   /* Find oldest Media record */
-   if (row[1] && strcmp(row[1], oldest->LastWritten) < 0) {
-      oldest->MediaId = atoi(row[0]);
-      bstrncpy(oldest->LastWritten, row[1], sizeof(oldest->LastWritten));
-      Dmsg1(100, "New oldest %s\n", row[1]);
+      oldest->MediaId = str_to_int64(row[0]);
+      bstrncpy(oldest->LastWritten, row[1]?row[1]:"", sizeof(oldest->LastWritten));
+      Dmsg1(100, "New oldest %s\n", row[1]?row[1]:"");
    }
    return 1;
 }
@@ -75,28 +71,23 @@ int recycle_oldest_purged_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
 {
    struct s_oldest_ctx oldest;
    POOLMEM *query = get_pool_memory(PM_EMSG);
-   char *select1 =
+   char *select =
           "SELECT MediaId,LastWritten FROM Media "
           "WHERE PoolId=%u AND Recycle=1 AND VolStatus='Purged' "
-          "AND MediaType='%s' AND InChanger=1";
-   char *select2 =
-          "SELECT MediaId,LastWritten FROM Media "
-          "WHERE PoolId=%u AND Recycle=1 AND VolStatus='Purged' "
-          "AND MediaType='%s'";
-
+          "AND MediaType='%s' %s"
+          "ORDER BY LastWritten ASC,MediaId LIMIT 1";
 
    Dmsg0(100, "Enter recycle_oldest_purged_volume\n");
    oldest.MediaId = 0;
-   bstrncpy(oldest.LastWritten, "9999-99-99 99:99:99", sizeof(oldest.LastWritten));
    if (InChanger) {
-      Mmsg(&query, select1, mr->PoolId, mr->MediaType);
+      Mmsg(&query, select, mr->PoolId, mr->MediaType, "AND InChanger=1 ");
    } else {
-      Mmsg(&query, select2, mr->PoolId, mr->MediaType);
+      Mmsg(&query, select, mr->PoolId, mr->MediaType, "");
    }
 
    if (!db_sql_query(jcr->db, query, oldest_handler, (void *)&oldest)) {
       Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
-      Dmsg0(100, "Exit 0  recycle_oldest_purged_volume query\n");
+      Dmsg0(100, "return 0  recycle_oldest_purged_volume query\n");
       free_pool_memory(query);
       return 0;
    }
@@ -107,13 +98,13 @@ int recycle_oldest_purged_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
       if (db_get_media_record(jcr, jcr->db, mr)) {
 	 if (recycle_volume(jcr, mr)) {
             Jmsg(jcr, M_INFO, 0, "Recycled volume \"%s\"\n", mr->VolumeName);
-            Dmsg1(100, "Exit 1  recycle_oldest_purged_volume Vol=%s\n", mr->VolumeName);
+            Dmsg1(100, "return 1  recycle_oldest_purged_volume Vol=%s\n", mr->VolumeName);
 	    return 1;
 	 }
       }
       Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
    }
-   Dmsg0(100, "Exit 0  recycle_oldest_purged_volume end\n");
+   Dmsg0(100, "return 0  recycle_oldest_purged_volume end\n");
    return 0;	
 }
 

@@ -55,6 +55,8 @@ For 1.33 Testing/Documentation:
 - Add subsections to the Disaster Recovery index section.
                 
 For 1.33
+- Look at code in recycle_oldes_purged_volume() recycle.c. Why not
+  let SQL do ORDER BY LastWritten ASC?
 - Look at find_next_volume() algorithm. Currently, it selects:
     +---------+------------+---------------------+-----------+
     | MediaId | VolumeName | LastWritten         | VolBytes  |
