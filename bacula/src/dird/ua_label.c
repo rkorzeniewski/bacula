@@ -569,6 +569,11 @@ static int is_cleaning_tape(UAContext *ua, MEDIA_DBR *mr, POOL_DBR *pr)
    if (ua->jcr->pool->cleaning_prefix == NULL) {
       return 0;
    }
+   Dmsg4(200, "CLNprefix=%s: Vol=%s: len=%d strncmp=%d\n",
+      ua->jcr->pool->cleaning_prefix, mr->VolumeName,
+      strlen(ua->jcr->pool->cleaning_prefix), 
+      strncmp(mr->VolumeName, ua->jcr->pool->cleaning_prefix,
+		  strlen(ua->jcr->pool->cleaning_prefix)));
    return strncmp(mr->VolumeName, ua->jcr->pool->cleaning_prefix,
 		  strlen(ua->jcr->pool->cleaning_prefix)) == 0;
 }

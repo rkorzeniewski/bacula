@@ -31,7 +31,6 @@
 
 /* Forward referenced subroutines */
 static void *job_thread(void *arg);
-static char *edit_run_codes(JCR *jcr, char *omsg, char *imsg);
 static int acquire_resource_locks(JCR *jcr);
 #ifdef USE_SEMAPHORE
 static void backoff_resource_locks(JCR *jcr, int count);
@@ -200,7 +199,7 @@ static void *job_thread(void *arg)
 	    BPIPE *bpipe;
 	    char line[MAXSTRING];
 	    
-	    before = edit_run_codes(jcr, before, jcr->job->RunBeforeJob);
+            before = edit_job_codes(jcr, before, jcr->job->RunBeforeJob, "");
             bpipe = open_bpipe(before, 0, "r");
 	    free_pool_memory(before);
 	    while (fgets(line, sizeof(line), bpipe->rfd)) {
@@ -250,7 +249,7 @@ static void *job_thread(void *arg)
 	    BPIPE *bpipe;
 	    char line[MAXSTRING];
 	    
-	    after = edit_run_codes(jcr, after, jcr->job->RunAfterJob);
+            after = edit_job_codes(jcr, after, jcr->job->RunAfterJob, "");
             bpipe = open_bpipe(after, 0, "r");
 	    free_pool_memory(after);
 	    while (fgets(line, sizeof(line), bpipe->rfd)) {
@@ -679,81 +678,4 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
 	 break;
       }
    }
-}
-
-/*
- * Edit codes into Run command
- *  %% = %
- *  %c = Client's name
- *  %d = Director's name
- *  %i = JobId
- *  %e = Job Exit
- *  %j = Job
- *  %l = Job Level
- *  %n = Job name
- *  %t = Job type
- *
- *  omsg = edited output message
- *  imsg = input string containing edit codes (%x)
- *
- */
-static char *edit_run_codes(JCR *jcr, char *omsg, char *imsg) 
-{
-   char *p;
-   const char *str;
-   char add[20];
-
-   *omsg = 0;
-   Dmsg1(200, "edit_run_codes: %s\n", imsg);
-   for (p=imsg; *p; p++) {
-      if (*p == '%') {
-	 switch (*++p) {
-         case '%':
-            str = "%";
-	    break;
-         case 'c':
-	    str = jcr->client_name;
-	    if (!str) {
-               str = "";
-	    }
-	    break;
-         case 'd':
-	    str = my_name;
-	    break;
-         case 'e':
-	    str = job_status_to_str(jcr->JobStatus);
-	    break;
-         case 'i':
-            sprintf(add, "%d", jcr->JobId);
-	    str = add;
-	    break;
-         case 'j':                    /* Job */
-	    str = jcr->Job;
-	    break;
-         case 'l':
-	    str = job_level_to_str(jcr->JobLevel);
-	    break;
-         case 'n':
-	    str = jcr->job->hdr.name;
-	    break;
-         case 't':
-	    str = job_type_to_str(jcr->JobType);
-	    break;
-	 default:
-            add[0] = '%';
-	    add[1] = *p;
-	    add[2] = 0;
-	    str = add;
-	    break;
-	 }
-      } else {
-	 add[0] = *p;
-	 add[1] = 0;
-	 str = add;
-      }
-      Dmsg1(200, "add_str %s\n", str);
-      pm_strcat(&omsg, (char *)str);
-      Dmsg1(200, "omsg=%s\n", omsg);
-   }
-   return omsg;
 }

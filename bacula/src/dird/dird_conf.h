@@ -239,9 +239,7 @@ struct INCEXE {
    FOPTS *current_opts;               /* points to current options structure */
    FOPTS **opts_list;                 /* options list */
    int num_opts;                      /* number of options items */
-   char **name_list;                  /* filename list */
-   int max_names;                     /* malloc'ed size of name list */
-   int num_names;                     /* number of names in the list */
+   alist name_list;                   /* filename list -- holds char * */
 };
 
 /* 

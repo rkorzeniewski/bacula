@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                   29 July 2003 
+                   15 August 2003 
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -26,11 +26,25 @@ Testing to do: (painful)
   in recycle.c).
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
-For 1.31 release:
-
-
-
 For 1.32:
+- Implement job in VerifyToCatalog
+- Implement migrate
+- Implement List Volume Job=xxx  or List scheduled volumes or Status Director 
+- Allow a slot or range of slots on the label barcodes command.
+- Implement a PostgreSQL driver.
+- Is a pool specification really needed for a restore?
+- Bacula needs to propagate SD errors.
+  > > cluster-dir: Start Backup JobId 252, Job=REUTERS.2003-08-11_15.04.12
+  > > prod4-sd: REUTERS.2003-08-11_15.04.12 Error: Write error on device 
+       /dev/nst0. ERR=Input/output error.
+  > > prod4-sd: REUTERS.2003-08-11_15.04.12 Error: Re-read of last block failed. 
+       Last block=5162 Current block=5164.
+  > > prod4-sd: End of medium on Volume "REU007" Bytes=16,303,521,933 
+
+- Use autochanger to handle multiple devices.
+- Fix packet too big problem.
+- Add SuSE install doc to list.
+- Check and rechedk "Invalid block number"
 - Make bextract release the drive properly between tapes 
   so that an autochanger can be made to work.
 - Fix "restore all" to bypass building the tree.
@@ -45,7 +59,6 @@ For 1.32:
 - lstat() is not going to work on Win32 for testing date.
 - Something is not right in last block of fill command.
 - Implement a Recycle command
-- Implement List Volume Job=xxx  or List scheduled volumes or Status Director 
 - Add FileSet to command line arguments for restore.
 - Do full check the command line args in update (e.g. VolStatus ...).
 - Allow multiple Storage specifications (or multiple names on
@@ -54,7 +67,6 @@ For 1.32:
 - Add client name to cram-md5 challenge so Director can immediately
   verify if it is the correct client.
 - Implement ClientRunBeforeJob and ClientRunAfterJob.
-- Implement new alist in FileSet scanning.
 - Add JobLevel in FD status (but make sure it is defined).
 - Audit all UA commands to ensure that we always prompt where possible.
 - Restrict characters permitted in a Resource name, and don't permit
@@ -70,8 +82,6 @@ For 1.32:
 - Test a second language e.g. french.
 - Start working on Base jobs.
 - Make "make binary-release" work from any directory.
-- Unsaved Flag in Job record (use JobMissingFiles).
-- Base Flag in Job record.
 - Implement UnsavedFiles DB record.
 - Implement argc/argv for daemon command line scanning using table driven
   stuff below.
@@ -704,15 +714,12 @@ Example:
 
     FileSet {
       Name = "FullSet"
-      Include = FileOptions=Opts {
-        /
+      FInclude {
+        Compression = GZIP;
+        Signature = MD5
+        Match = /*.?*/                # matches all files.
+        File = /
       }
-    }
-    FileOptions {
-      Name = Opts
-      Compression = GZIP
-      Signature = MD5
-      ApplyTo = /*.?*/
     }
 
   That's a lot more to do the same thing, but it gives the ability to
@@ -722,22 +729,20 @@ Example:
 
     FileSet {
       Name = "FullSet"
-      Include = FileOptions=NoCompress FileOptions=Opts {
-        /
+      FInclude {
+        FileOptions {
+          Signature = MD5
+          # Note multiple Matches are ORed
+          Match = /*.gz/   # matches .gz files */
+          Match = /*.Z/    # matches .Z files */
+        }
+        FileOptions {
+          Compression = GZIP
+          Signature = MD5
+          Match = /*.?*/   # matches all files
+        }
+        File = /
       }
-    }
-    FileOptions {
-      Name = Opts
-      Compression = GZIP
-      Signature = MD5
-      ApplyTo = /*.?*/   # matches all files
-    }
-    FileOptions {
-      Name = NoCompress
-      Signature = MD5
-      # Note multiple ApplyTos are ORed
-      ApplyTo = /*.gz/   # matches .gz files */
-      ApplyTo = /*.Z/    # matches .Z files */
     }
 
   Now, since the NoCompress FileOptions is specified first on the
@@ -750,7 +755,7 @@ Questions:
   - Is it necessary to provide some means of ANDing regular expressions
     and negation?  (not currently planned)
 
-    e.g.  ApplyTo = /*.gz/ && !/big.gz/
+    e.g.  Match = /*.gz/ && !/big.gz/
 
   - I see that Networker has a "null" module which, if specified, does not 
     backup the file, but does make an record of the file in the catalog
@@ -786,253 +791,10 @@ Need:
 
 
 Done: (see kernsdone for more)
-- Heartbeat between daemons.
-- Fix Dir heartbeat in restore and verify vol.  Be sure to make
-  bnet_recv() ignore BNET_HEARTBEAT.
-- Implement HEART_BEAT while SD waiting for tapes.
-- Include RunBeforeJob and RunAfterJob output in the message
-  stream.
-- Change M_INFO to M_RESTORED for all restored files.
-- Fix command prompt in gnome-console by checking on Ready.
-- Merge SQLite, MySQL, and Rel spec into a single file.
-- Fix config of "console"
-- Check if cancel works with FD (fixed).
-- Properly configure console and gconsole (currently for source not
-  configured for installation).
-- Error labeling tape from console gets Jmsg error because of no Job.
-- Test and implement get_pint and get_yesno.
-- Implement global with DB name and add to btraceback.gdb
-- Remove subsysdir from conf files (used only in autostart scripts).
-- Fix the following:
-  rufus-dir: Max configured use duration exceeded. Marking Volume "MatouBackup" as Used.
-   rufus-sd: Volume "" previously written, moving to end of data.
-   rufus-sd: Matou.2003-05-10_10.39.18 Error: I canot write on this volume because:
-      The number of files mismatch! Volume=1 Catalog=0
-   rufus-sd: Matou.2003-05-10_10.39.18 Error: askdir.c:155 NULL Volume name. This shouldn't happen!!!
-- Shell character expansion is failing occassionally.
-- Add a section to the doc on Manual cycling of Volumes.
-- Check if Job/File retentions apply to multivolume jobs.
-- Fix missing casette in autoloader during read:
-  14-May-2003 14:41 undef-sd: RestoreFiles.2003-05-14_14.41.00 Warning: acquire.c:106 Volume name mismatch. Wanted TestVolume0005 got TestVolume0010
-  14-May-2003 14:41 undef-sd: 3301 Issuing autochanger "loaded" command.
-  14-May-2003 14:41 undef-sd: 3302 Issuing autochanger "unload" command.
-  14-May-2003 14:42 undef-sd: 3303 Issuing autochanger "load slot 1" command.
-  14-May-2003 14:42 undef-sd: 3304 Autochanger "load slot 1" status is OK.
-  14-May-2003 14:42 undef-sd: RestoreFiles.2003-05-14_14.41.00 Warning: acquire.c:106 Volume name mismatch. Wanted TestVolume0005 got TestVolume0009
-  14-May-2003 14:42 undef-sd: 3301 Issuing autochanger "loaded" command.
-  14-May-2003 14:42 undef-sd: RestoreFiles.2003-05-14_14.41.00 Warning: acquire.c:106 Volume name mismatch. Wanted TestVolume0005 got TestVolume0009
-  14-May-2003 14:42 undef-sd: 3301 Issuing autochanger "loaded" command.
-  14-May-2003 14:42 undef-sd: RestoreFiles.2003-05-14_14.41.00 Warning: acquire.c:106 Volume name mismatch. Wanted TestVolume0005 got TestVolume0009
-  14-May-2003 14:42 undef-sd: 3301 Issuing autochanger "loaded" command.
-  14-May-2003 14:42 undef-sd: RestoreFiles.2003-05-14_14.41.00 Warning: acquire.c:106 Volume name mismatch. Wanted TestVolume0005 got TestVolume0009
-  14-May-2003 14:42 undef-sd: 3301 Issuing autochanger "loaded" command.
-  14-May-2003 14:42 undef-sd: RestoreFiles.2003-05-14_14.41.00 Fatal error: acquire.c:129 Too many errors trying to mount device "/dev/nrsa0".
-  14-May-2003 14:42 undef-dir: Bacula 1.31 (12May03): 14-May-2003 14:42
-- Fix problem reported by Christopher McCurdy <cmccurdy@eecis.udel.edu>
-   xeon-fd:      Could not stat c:/Documents and Settings/All 
-   Users/Application Data/Humc:\Documents and Settings\All User98_AIX.kbf: 
-   ERR=No such file or directory
-   Cannot reproduce.
-- The following  Re-read last block at EOT failed. ERR=block.c:523 Read zero bytes on device /dev/nrsa0.
-    undef-sd: block.c:523 Read zero bytes on device /dev/nrsa0.
-  apparently masks the standard EOM message.
-- BSD (probably) does not have strtoll()
-- BSD does not have ioctl() MTEOM
-- BSD defines a number of MT_xxx variables which conflict
-  with those defined by Bacula.
-- Make default duration days if no qualifier (e.g. s) is specified.
-- BSDI fix finding gcc version
-- When the FD errs (e.g. disk full) have a more graceful shutdown.
-- Make sure Bacula prunes/purges canceled and failed jobs too and all
-  jobs with zero JobFiles.
-- Implement Volume name checking.
-- Document what characters can go into Volume names.
-- Getting the following on all directories on Win32
-  19-May-2003 01:14 tibs-fd:      Could not access c:/cygwin/home/kern/rxvt: ERR=Permission denied
-- Cancellation caused JobMedia error:
-     babylon5-dir: Last FULL backup time not found. Doing FULL backup.               
-     babylon5-dir: Start Backup JobId 416, Job=Zocalo_Save.2003-05-19_02.15.06       
-     babylon5-sd: End of media on Volume VXA-V17-Inc-001 Bytes=31,982,900,672 Blocks=495,781.
-     babylon5-sd: Job Zocalo_Save.2003-05-19_02.15.06 waiting. Cannot find any appendable volumes.
-     babylon5-sd: Someone woke me up, but I cannot find any appendable volumes
-       for Job=Zocalo_Save.2003-05-19_02.15.06.                                
-     babylon5-sd: Zocalo_Save.2003-05-19_02.15.06 Fatal error: Job
-       Zocalo_Save.2003-05-19_02.15.06 canceled while waiting for mount on
-       Storage Device "Ecrix_VXA-1".
-     babylon5-sd: Zocalo_Save.2003-05-19_02.15.06 Fatal error: Cannot fixup device
-       error. Job Zocalo_Save.2003-05-19_02.15.06 canceled while waiting for
-       mount on Storage Device "Ecrix_VXA-1".
-                                                                                     
-     babylon5-dir: Zocalo_Save.2003-05-19_02.15.06 Error: Catalog error creating
-       JobMedia record. sql_create.c:125 Create JobMedia failed. Record already
-       exists.
-     babylon5-sd: Zocalo_Save.2003-05-19_02.15.06 Error: Error creating JobMedia
-       record: 1991 Update JobMedia error
-                                                                                     
-     babylon5-sd: Zocalo_Save.2003-05-19_02.15.06 Error: askdir.c:158 NULL Volume
-       name. This shouldn't happen!!!
-     zocalo-fd: Zocalo_Save.2003-05-19_02.15.06 Error: bnet.c:310 Write error
-       sending to Storage daemon:babylon5:9103: ERR=Broken pipe
-- Volume names with spaces get jammed into the catalog with 0x1 
-  i.e. the SD bashes the Volume but they are not unbased by Dir.
-  jerom-dir: MonthlySave.2003-05-10_17.12.01 Error: Unable to get Media
-  record for Volume Tape^A1: ERR=sql_get.c:788 Media record for Volume
-  "Tape^A1" not found.
-   jerom-sd: MonthlySave.2003-05-10_17.12.01 Error: Error updating Volume
-   Info: 1991 Catalog Request failed: sql_get.c:788 Media record for Volume
-   "Tape^A1" not found.
-- ChangeServiceConfig2A does not exist on WinNT (ADVAPI32.DLL).
-- Fix "access not allowed" for backup of files on WinXP.
-- Check for existence of all new Win32 API's.  See LoadLibrary in 
-  winservice.cpp
-- Count errors during restore and print them in the Job report.
-- Bug: fix access problems on files restored on WinXP.
-- Put system type returned by FD into catalog.
-- Finish WIN32_DATA stream code (bextract, check if can handle stream)
-- Make SD keep track of Files, Bytes during restore.
-- If you enter the userid by hand for restore, you get:
-  Enter JobId(s), comma separated, to restore: 74
-  You have selected the following JobId: 74
-  Building directory tree for JobId 74 ...
-  134645140 items inserted into the tree and marked for extraction.
-- Add SDWriteSeqNo to SD, and probably Read on FD side.
-- If bootstrap is non-zero for restore, do not show JobId in the
-  OK to run? (yes/mod/no): list.
-- When all cassettes in magazine are used, got:
-  22-May-2003 18:24 undef-sd: 3304 Autochanger "load slot 1" status is OK.
-  22-May-2003 18:24 undef-sd: NightlySave.2003-05-22_14.08.16 Warning: mount.c:245 Director wanted Volume "TestVolume0009".
-      Current Volume "TestVolume0005" not acceptable because:
-      1998 Volume "TestVolume0005" not Append or Recycle.
-  22-May-2003 18:24 undef-sd: NightlySave.2003-05-22_14.08.16 Error: Autochanger Volume "TestVolume0009" not found in slot 1.
-      Setting slot to zero in catalog.
-  22-May-2003 18:24 undef-sd: Please mount Volume "TestVolume0009" on Storage Device "ARCHIVE 4586" for Job NightlySave.2003-05-22_14
-  .08.16
-  Use "mount" command to release Job.
-  22-May-2003 19:24 undef-sd: Please mount Volume "TestVolume0009" on Storage Device "ARCHIVE 4586" for Job NightlySave.2003-05-22_14
-  .08.16
-  Use "mount" command to release Job.
-- Don't zero the Slot when the wrong volume is found -- simply ask
-  the operator.
-- Implement MTIOCERRSTAT on FreeBSD to clear tape error conditions.
-- Shell expansion fails for working_directory in SD from time to time.
-- File the Automatically selected: xxx
-  to say Automatically selected Pool: xxx
-- Default duration with no qualifier is sec should be 1 day
-- zap sd_auth_key in SD after FD connection.
-- Find a solution for the multiple FileSet problem (when it is changed). Add date?
-- Look at Python for a Bacula scripting language -- www.python.org
-- When Marking a file in Restore that is a hard link, also
-  mark the link so that the data will be reloaded.
-- Emergency restore info:
-  - Backup Bacula
-  - Backup working directory
-  - Backup Catalog
-- Why don't we get an error message from Win32 FD when bootstrap 
-  file cannot be created for restore command?
-- Fix Win2000 error with no messages during startup.
-- Make restore more robust in counting error and not immediately bailing
-  out. Also print error message once, but try to continue.
-- Add code to check that blocks are sequential on restore.
-- Remove "rufus" and such references from regress.
-- No READLINE_SRC if found in alternate directory.
-- If ./btape is called without /dev, assume argument is a Storage resource name.
-- Find general solution for sscanf size problems (as well as sprintf. Do at run time?
-- Bytes restored is wrong.
-- The "List last 20 Jobs run" doesnt work correctly in restore.
-  It doesnt show the last 20 jobs , but some older ones.
-- Fix Verify VolumeToCatalog to use BSRs -- it is broken.
-- Implement Release Storage=xxx
-- Fix restore on Win95/98  
-- Remove the Jmsg() in sql_find.c:102 or only print on hard error.
-- Implement FileSet VolIndex -- done, but must update old records.
-- Check this below from Phil.
-  This was SD reported data rather than FD data!
-  > When the job was done, Bacula reported 11084 files restored:
-  > 
-  > JobId:                  527                                                     
-  > Job:                    Zocalo_Restore.2003-06-05_16.42.01                      
-  > Client:                 Zocalo                                                  
-  > Start time:             05-Jun-2003 16:42                                       
-  > End time:               06-Jun-2003 01:21                                       
-  > Files Restored:         11,084                                                  
-  > Bytes Restored:         65,474,772                                              
-  > Rate:                   2.1 KB/s                                                
-  > FD termination status:  OK                                                      
-  > Termination:            Restore OK                                              
-  > 
-  > when it should probably have reported 11084 files scanned, 250 restored.
-  > The bytes restored count looks about right.
-  > 
-- Should Bacula make an Append tape as Purged when purging?
-- Use switch() in backup.c and restore.c in FD instead of giant if statement.
-- If during a restore, a hard linked file already exists (on option), delete
-  the file and re-link it.  This is to avoid the possibility that the
-  user had re-linked the file between the backup and the restore.
-  Do lstat() to see if it is already properly linked.
-  Same for symlinked file.
-  Make sure ifnewer, ifolder, never, ... apply correctly.
-- Flag so that no connect does not error, and Reschedule a job.
-- Implement "Reschedule OnError=yes interval=nnn times=xxx"
-- That restoring a hard link that already exists works correctly.
-  Same for soft link.
-- Make Pool resource handle Counter resources.
-- Fix first block number after label to be zero instead of 1 (reset after label).
-- Grep for Backup OK in regression script.
-- Do NOT reuse same JobId if tape written.
-- Implement non-blocking writes and bsock->terminate in heartbeat
-  thread, or set it in status.c cancel (used pthread_kill() instead of
-  non-blocking I/O.
-- Add restore to specific date.
-- Instrument use_count on DEVICE packets and ensure that the device is
-  being close()ed at the appropriate time.
-- Test long path names (>64 chars) in Windows -- crashes FD?
-- Implement fast block rejection: match_bsr_block().
-- Complain if record dropped in bnet_recv because too long.
-- Test multiple simultaneous Volumes
-- Document recycling algorithm.
-- Make Restore report an error if FD or SD term codes are not OK.
-- To link with mysqlclient_r may require -lssl -lcrypto
-- Document Heart beat code 
-- Non-fatal errors are not correct counting attribs.c:277
-- Check that Block number in JobMedia are correct.
-- The bsr for Dan's job has file indexes covering the whole range rather
-  than only the range contained on the volume.
-  Constrain FileIndex to be within range for Volume.
-- Pass prefix_links to FD.
-- Fix restore list of volumes if Volume not selected.
-- Complete (or turn off) the command line code in update.
-- Testing Tibs job erred and hung director on Storage resource.  This was
-  because there were a whole pile of jobs hanging around in the SD  
-  waiting for a connection from the FD that was never coming.
-- Possibly update all client records at startup.
-- Listing of Win32 restored files has ??????? for user.
-- In Win portable restore the directory is not create    
-   27-Jun-2003 16:52 tibs-fd: kernsrestore.2003-06-27_16.52.20 Error:
-   create_file.c:175 Could not create
-   /tmp/bacula-restores/cygwin/home/kern/bacula/k/src/dird/dird_conf.o: 0
-   ERR=The system cannot find the path specified.
-- Finish Windows implementation (add setting of correct type on restore,
-  add Portable Data Format flag).
-- Document portable=yes
-- Document c:/working directory better than /working directory.
-- Document run "yes".
-- Document update volume: jobid, current, before, all
-- Document that bscan does not work with multiple simultaneous jobs.
-- Update Automatic Volume Labeling in disk.wml
-- Figure out how to handle DHCP IP addresses -- use dynamic DNS.
-- Add OS, GCC version to traceback output.
-- Implement a Recycle or Prune Current Volume (as from Nic Bellamy),
-  possibly implement Prune Oldest Volume.
-- Backup on havana gave:
-  Total Bytes Read=4,629,249,084,728,272,628 Blocks Read=0 Bytes/block=134,735,604
-- Move JobFiles and JobBytes to SD rather than FD -- more correct.
-- Test of last block is correct in JobMedia when splitting file 
-  over two volumes.
-- Doc win32 table from Marc Brueckner der Megauser
-- Fix default time in seconds without qualifier -- bacula-dir.conf
-- Add Nic Bellamy's backup scheme.
-- Document using multiple Pools for daily rotating tapes.
-- Check if Incremental is working correctly when it looks for the previous Job 
-  (Phil's problem).
-- Increment DB version prior to releasing.
-- Turn off FULL_DEBUG prior to releasing.
+- Implement new alist in FileSet scanning.
+- bls should continue reading even if it finds Win32 data on the tape.
+  The error should be Warning rather the Error.
+- Add user configurable timeout for connecting to SD.
+- Unsaved Flag in Job record (use JobMissingFiles).
+- Base Flag in Job record.
+

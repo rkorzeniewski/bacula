@@ -523,14 +523,14 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
       sendit(sock, "FileSet: name=%s\n", res->res_fs.hdr.name);
       for (int i=0; i<res->res_fs.num_includes; i++) {
 	 INCEXE *incexe = res->res_fs.include_items[i];
-	 for (int j=0; j<incexe->num_names; j++) {
-            sendit(sock, "      Inc: %s\n", incexe->name_list[j]);
+	 for (int j=0; j<incexe->name_list.size(); j++) {
+            sendit(sock, "      Inc: %s\n", incexe->name_list.get(j));
 	 }
       }
       for (int i=0; i<res->res_fs.num_excludes; i++) {
 	 INCEXE *incexe = res->res_fs.exclude_items[i];
-	 for (int j=0; j<incexe->num_names; j++) {
-            sendit(sock, "      Exc: %s\n", incexe->name_list[j]);
+	 for (int j=0; j<incexe->name_list.size(); j++) {
+            sendit(sock, "      Exc: %s\n", incexe->name_list.get(j));
 	 }
       }
       break;
@@ -653,12 +653,7 @@ next_run:
  */
 static void free_incexe(INCEXE *incexe)
 {
-   for (int i=0; i<incexe->num_names; i++) {
-      free(incexe->name_list[i]);
-   }
-   if (incexe->name_list) {
-      free(incexe->name_list);
-   }
+   incexe->name_list.destroy();
    for (int i=0; i<incexe->num_opts; i++) {
       FOPTS *fopt = incexe->opts_list[i];
       fopt->match.destroy();

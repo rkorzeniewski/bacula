@@ -519,7 +519,7 @@ static int storage_cmd(JCR *jcr)
    Dmsg3(110, "Open storage: %s:%d ssl=%d\n", jcr->stored_addr, stored_port, enable_ssl);
    /* Open command communications with Storage daemon */
    /* Try to connect for 1 hour at 10 second intervals */
-   sd = bnet_connect(jcr, 10, 3600, _("Storage daemon"), 
+   sd = bnet_connect(jcr, 10, me->SDConnectTimeout, _("Storage daemon"), 
 		     jcr->stored_addr, NULL, stored_port, 1);
    if (sd == NULL) {
       Jmsg(jcr, M_FATAL, 0, _("Failed to connect to Storage daemon: %s:%d\n"),

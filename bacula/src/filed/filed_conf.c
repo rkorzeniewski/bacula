@@ -81,7 +81,8 @@ static struct res_items cli_items[] = {
    {"requiressl",  store_yesno,     ITEM(res_client.require_ssl),       1, ITEM_DEFAULT, 0},
    {"maximumconcurrentjobs", store_pint,  ITEM(res_client.MaxConcurrentJobs), 0, ITEM_DEFAULT, 10},
    {"messages",      store_res, ITEM(res_client.messages), R_MSGS, 0, 0},
-   {"heartbeatinterval", store_time, ITEM(res_client.heartbeat_interval), 0, ITEM_DEFAULT, 20*60},
+   {"heartbeatinterval", store_time, ITEM(res_client.heartbeat_interval), 0, ITEM_DEFAULT, 0},
+   {"sdconnecttimeout", store_time,ITEM(res_client.SDConnectTimeout), 0, ITEM_DEFAULT, 60 * 30},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 

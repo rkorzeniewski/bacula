@@ -662,6 +662,7 @@ static void update_volstatus(UAContext *ua, char *val, MEDIA_DBR *mr)
       "Full",
       "Used", 
       "Cleaning", 
+      "Recycle",
       "Read-Only",
       NULL};
    bool found = false;

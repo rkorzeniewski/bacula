@@ -285,17 +285,11 @@ void store_inc(LEX *lc, struct res_items *item, int index, int pass)
 	       if (res_all.res_fs.have_MD5) {
 		  MD5Update(&res_all.res_fs.md5c, (unsigned char *)lc->str, lc->str_len);
 	       }
-	       if (incexe->num_names == incexe->max_names) {
-		  incexe->max_names += 10;
-		  if (incexe->name_list == NULL) {
-		     incexe->name_list = (char **)malloc(sizeof(char *) * incexe->max_names);
-		  } else {
-		     incexe->name_list = (char **)realloc(incexe->name_list,
-			   sizeof(char *) * incexe->max_names);
-		  }
+	       if (incexe->name_list.size() == 0) {
+		  incexe->name_list.init(10, true);
 	       }
-	       incexe->name_list[incexe->num_names++] = bstrdup(lc->str);
-               Dmsg1(200, "Add to name_list %s\n", incexe->name_list[incexe->num_names -1]);
+	       incexe->name_list.append(bstrdup(lc->str));
+               Dmsg1(200, "Add to name_list %s\n", lc->str);
 	       break;
 	    default:
                scan_err1(lc, "Expected a filename, got: %s", lc->str);
@@ -452,17 +446,11 @@ static void store_fname(LEX *lc, struct res_items *item, int index, int pass)
 	       MD5Update(&res_all.res_fs.md5c, (unsigned char *)lc->str, lc->str_len);
 	    }
 	    incexe = &res_incexe;
-	    if (incexe->num_names == incexe->max_names) {
-	       incexe->max_names += 10;
-	       if (incexe->name_list == NULL) {
-		  incexe->name_list = (char **)malloc(sizeof(char *) * incexe->max_names);
-	       } else {
-		  incexe->name_list = (char **)realloc(incexe->name_list,
-			sizeof(char *) * incexe->max_names);
-	       }
+	    if (incexe->name_list.size() == 0) {
+	       incexe->name_list.init(10, true);
 	    }
-	    incexe->name_list[incexe->num_names++] = bstrdup(lc->str);
-            Dmsg1(200, "Add to name_list %s\n", incexe->name_list[incexe->num_names -1]);
+	    incexe->name_list.append(bstrdup(lc->str));
+            Dmsg1(200, "Add to name_list %s\n", lc->str);
 	    break;
 	 default:
             scan_err1(lc, _("Expected a filename, got: %s"), lc->str);
