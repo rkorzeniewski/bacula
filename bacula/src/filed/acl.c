@@ -51,6 +51,7 @@
  *
  * For a list of compiler flags, see the list preceding the big #if below.
  */
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -175,9 +176,16 @@ int bacl_get(JCR *jcr, int acltype)
    if (acl) {
       if ((acl_text = acl_to_text(acl, NULL)) != NULL) {
 	 len = pm_strcpy(jcr->acl_text, acl_text);
+	 acl_free(acl);
 	 acl_free(acl_text);
 	 return len;
       }
+      acl_free(acl);
+#ifndef HAVE_OSF1_OS	      /* BACL_ENOTSUP not defined for OSF1 */
+   } else if (errno == BACL_ENOTSUP) {
+      /* Not supported, just pretend there is nothing to see */
+      return pm_strcpy(jcr->acl_text, "");
+#endif
    }
    /***** Do we really want to silently ignore errors from acl_get_file
      and acl_to_text?  *****/
@@ -234,6 +242,9 @@ int bacl_get(JCR *jcr, int acltype)
    char *acl_text;
 
    if ((n = getacl(jcr->last_fname, 0, acls)) <= 0) {
+      if (errno == BACL_ENOTSUP) {
+	 return pm_strcpy(jcr->acl_text, "");
+      }
       return -1;
    }
    if ((n = getacl(jcr->last_fname, n, acls)) > 0) {
@@ -274,15 +285,18 @@ int bacl_get(JCR *jcr, int acltype)
    char *acl_text;
 
    n = acl(jcr->last_fname, GETACLCNT, 0, NULL);
-   if (n <= 0) {
+   if (n < MIN_ACL_ENTRIES) {
       return -1;
+   } else if (n == MIN_ACL_ENTRIES) {
+      /* The ACLs simply reflect the (already known) standard permissions */
+      return pm_strcpy(jcr->acl_text, "");
    }
    if ((acls = (aclent_t *)malloc(n * sizeof(aclent_t))) == NULL) {
       return -1;
    }
    if (acl(jcr->last_fname, GETACL, n, acls) == n) {
       if ((acl_text = acltotext(acls, n)) != NULL) {
-	 pm_strcpy(jcr->acl_text, acl_text);
+	 len = pm_strcpy(jcr->acl_text, acl_text);
 	 free(acl_text);
 	 free(acls);
 	 return len;
@@ -436,6 +450,7 @@ int aclcp(char *src, char *dst)
 int aclls(char *fname)
 {
    struct stat st;
+   int len;
 
    if (lstat(fname, &st) != 0) {
       Dmsg0(200, "acl: source does not exist\n");
@@ -448,18 +463,26 @@ int aclls(char *fname)
 
    jcr.last_fname = fname;
 
-   if (bacl_get(&jcr, BACL_TYPE_ACCESS) < 0) {
+   len = bacl_get(&jcr, BACL_TYPE_ACCESS);
+   if (len < 0) {
       Dmsg1(200, "acl: could not read ACLs for %s\n", jcr.last_fname);
       return EXIT_FAILURE;
+   } else if (len == 0) {
+      printf("#file: %s [standard permissions - or unsupported]\n\n", jcr.last_fname);
+   } else {
+      printf("#file: %s\n%s\n", jcr.last_fname, jcr.acl_text);
    }
-   printf("#file: %s\n%s\n", jcr.last_fname, jcr.acl_text);
 
    if (S_ISDIR(st.st_mode) && (BACL_CAP & BACL_CAP_DEFAULTS_DIR)) {
-      if (bacl_get(&jcr, BACL_TYPE_DEFAULT) < 0) {
+      len = bacl_get(&jcr, BACL_TYPE_DEFAULT);
+      if (len < 0) {
          Dmsg1(200, "acl: could not read default ACLs for %s\n", jcr.last_fname);
 	 return EXIT_FAILURE;
+      } else if (len == 0) {
+	 printf("#file: %s [default, none - or unsupported]\n\n", jcr.last_fname);
+      } else {
+	 printf("#file: %s [default]\n%s\n", jcr.last_fname, jcr.acl_text);
       }
-      printf("#file: %s [default]\n%s\n", jcr.last_fname, jcr.acl_text);
    }
 
    return 0;

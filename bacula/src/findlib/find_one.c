@@ -89,6 +89,39 @@ static int accept_fstype(FF_PKT *ff, void *dummy) {
 }
 
 /*
+ * This function determines whether we can use getattrlist()
+ * It's odd, but we have to use the function to determine that...
+ * Also, the man pages talk about things as if they were implemented.
+ *
+ * On Mac OS X, this succesfully differentiates between HFS+ and UFS
+ * volumes, which makes me trust it is OK for others, too.
+ */
+static bool volume_has_attrlist(const char *fname)
+{
+#ifdef HAVE_DARWIN_OS
+   struct statfs st;
+   struct volinfo_struct {
+      unsigned long length;		  /* Mandatory field */
+      vol_capabilities_attr_t info;	  /* Volume capabilities */
+   } vol;
+   struct attrlist attrList;
+
+   memset(&attrList, 0, sizeof(attrList));
+   attrList.bitmapcount = ATTR_BIT_MAP_COUNT;
+   attrList.volattr = ATTR_VOL_INFO | ATTR_VOL_CAPABILITIES;
+   if (statfs(fname, &st) == 0) {
+      /* We need to check on the mount point */
+      if (getattrlist(st.f_mntonname, &attrList, &vol, sizeof(vol), FSOPT_NOFOLLOW) == 0
+	    && (vol.info.capabilities[VOL_CAPABILITIES_INTERFACES] & VOL_CAP_INT_ATTRLIST)
+	    && (vol.info.valid[VOL_CAPABILITIES_INTERFACES] & VOL_CAP_INT_ATTRLIST)) {
+	 return true;
+      }
+   }
+#endif
+   return false;
+}
+
+/*
  * Find a single file.
  * handle_file is the callback for handling the file.
  * p is the filename
@@ -124,13 +157,16 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
    /*
     * We check for allowed fstypes at top_level and fstype change (below).
     */
-   if (top_level && !accept_fstype(ff_pkt, NULL)) {
-      ff_pkt->type = FT_INVALIDFS;
-      if (ff_pkt->flags & FO_KEEPATIME) {
-	 utime(fname, &restore_times);
+   if (top_level) {
+      if (!accept_fstype(ff_pkt, NULL)) {
+	 ff_pkt->type = FT_INVALIDFS;
+	 if (ff_pkt->flags & FO_KEEPATIME) {
+	    utime(fname, &restore_times);
+	 }
+	 Jmsg1(jcr, M_ERROR, 0, _("Top level directory \"%s\" has an unlisted fstype\n"), fname);
+	 return 1;      /* Just ignore this error - or the whole backup is cancelled */
       }
-      Jmsg1(jcr, M_ERROR, 0, _("Top level directory \"%s\" has an unlisted fstype\n"), fname);
-      return 1;      /* Just ignore this error - or the whole backup is cancelled */
+      ff_pkt->volhas_attrlist = volume_has_attrlist(fname);
    }
 
    /*
@@ -151,7 +187,8 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
    }
 
 #ifdef HAVE_DARWIN_OS
-   if (S_ISREG(ff_pkt->statp.st_mode) && ff_pkt->flags & FO_HFSPLUS) {
+   if (ff_pkt->flags & FO_HFSPLUS && ff_pkt->volhas_attrlist
+	 && S_ISREG(ff_pkt->statp.st_mode)) {
        /* TODO: initialise attrList once elsewhere? */
        struct attrlist attrList;
        memset(&attrList, 0, sizeof(attrList));
@@ -159,7 +196,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
        attrList.commonattr = ATTR_CMN_FNDRINFO;
        attrList.fileattr = ATTR_FILE_RSRCLENGTH;
        if (getattrlist(fname, &attrList, &ff_pkt->hfsinfo,
-		sizeof(ff_pkt->hfsinfo), 0) != 0) {
+		sizeof(ff_pkt->hfsinfo), FSOPT_NOFOLLOW) != 0) {
 	  ff_pkt->type = FT_NOSTAT;
 	  ff_pkt->ff_errno = errno;
 	  return handle_file(ff_pkt, pkt);
@@ -276,6 +313,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
       int status;
       dev_t our_device = ff_pkt->statp.st_dev;
       bool recurse = true;
+      bool volhas_attrlist = ff_pkt->volhas_attrlist;	 /* Remember this if we recurse */
 
       /*
        * If we are using Win32 (non-portable) backup API, don't check
@@ -370,8 +408,11 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
 	 } else if (!accept_fstype(ff_pkt, NULL)) {
 	    ff_pkt->type = FT_INVALIDFS;
 	    recurse = false;
+	 } else {
+	    ff_pkt->volhas_attrlist = volume_has_attrlist(fname);
 	 }
       }
+      /* If not recursing, just backup dir and return */
       if (!recurse) {
 	 rtn_stat = handle_file(ff_pkt, pkt);
 	 if (ff_pkt->linked) {
@@ -466,6 +507,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
       if (ff_pkt->flags & FO_KEEPATIME) {
 	 utime(fname, &restore_times);
       }
+      ff_pkt->volhas_attrlist = volhas_attrlist;      /* Restore value in case it changed. */
       return rtn_stat;
    } /* end check for directory */
 
