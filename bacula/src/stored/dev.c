@@ -521,7 +521,7 @@ status_dev(DEVICE *dev, uint32_t *status)
 
    if (dev->state & (ST_EOT | ST_WEOT)) {
       stat |= BMT_EOD;
-      Dmsg0(-20, " EOD");
+      Dmsg0(-20, " EOD-");
    }
    if (dev->state & ST_EOF) {
       stat |= BMT_EOF;
@@ -558,7 +558,7 @@ status_dev(DEVICE *dev, uint32_t *status)
       }
       if (GMT_EOD(mt_stat.mt_gstat)) {
 	 stat |= BMT_EOD;
-         Dmsg0(-20, " EOD");
+         Dmsg0(-20, " EOD+");
       }
       if (GMT_WR_PROT(mt_stat.mt_gstat)) {
 	 stat |= BMT_WR_PROT;
@@ -1191,25 +1191,22 @@ term_dev(DEVICE *dev)
 }
 
 
-/* To make following two functions more readable */
-
-#define attached_jcrs ((JCR *)(dev->attached_jcrs))
 
 void attach_jcr_to_device(DEVICE *dev, JCR *jcr)
 {
-   jcr->prev_dev = NULL;
-   jcr->next_dev = attached_jcrs;
-   if (attached_jcrs) {
-      attached_jcrs->prev_dev = jcr;
+   jcr->prev_dev = (JCR *)NULL;
+   jcr->next_dev = dev->attached_jcrs;
+   if (dev->attached_jcrs) {
+      dev->attached_jcrs->prev_dev = jcr;
    }
-   attached_jcrs = jcr;
+   dev->attached_jcrs = jcr;
    Dmsg1(100, "Attached Job %s\n", jcr->Job);
 }
 
 void detach_jcr_from_device(DEVICE *dev, JCR *jcr)
 {
    if (!jcr->prev_dev) {
-      attached_jcrs = jcr->next_dev;
+      dev->attached_jcrs = jcr->next_dev;
    } else {
       jcr->prev_dev->next_dev = jcr->next_dev;
    }
@@ -1222,8 +1219,8 @@ void detach_jcr_from_device(DEVICE *dev, JCR *jcr)
 
 JCR *next_attached_jcr(DEVICE *dev, JCR *jcr)
 {
-   if (jcr == NULL) {
-      return attached_jcrs;
+   if (jcr == (JCR *)NULL) {
+      return dev->attached_jcrs;
    }
    return jcr->next_dev;
 }

@@ -31,31 +31,31 @@
 
  */
 
-typedef struct s_bsock {
+struct BSOCK {
    uint64_t read_seqno;               /* read sequence number */
-   uint32_t in_msg_no;                /* intput message number */
+   uint32_t in_msg_no;                /* input message number */
    uint32_t out_msg_no;               /* output message number */
    int fd;                            /* socket file descriptor */
    int32_t msglen;                    /* message length */
    int port;                          /* desired port */
-   int errors;                        /* set if errors on socket */
-   int suppress_error_msgs;           /* set to suppress error messages */
+   volatile int errors;               /* set if errors on socket */
+   volatile int suppress_error_msgs;  /* set to suppress error messages */
    int b_errno;                       /* bsock errno */
-   time_t timer_start;                /* time started read/write */
-   int timed_out;                     /* timed out in read/write */
-   int timeout;                       /* time out after this value */
-   int terminated;                    /* set when BNET_TERMINATE arrives */
+   volatile time_t timer_start;       /* time started read/write */
+   volatile int timed_out;            /* timed out in read/write */
+   volatile int timeout;              /* time out after this value */
+   volatile int terminated;           /* set when BNET_TERMINATE arrives */
    int duped;                         /* set if duped BSOCK */
    POOLMEM *msg;                      /* message pool buffer */
    char *who;                         /* Name of daemon to which we are talking */
    char *host;                        /* Host name/IP */
    POOLMEM *errmsg;                   /* edited error message (to be implemented) */
    RES *res;                          /* Resource to which we are connected */
-   struct s_bsock *next;              /* next BSOCK if duped */
+   BSOCK *next;                       /* next BSOCK if duped */
    int spool;                         /* set for spooling */
    FILE *spool_fd;                    /* spooling file */
    JCR *jcr;                          /* jcr or NULL for error msgs */
-} BSOCK;
+};      
 
 /* Signal definitions for use in bnet_sig() */
 #define BNET_EOD         -1           /* End of data stream, new data may follow */

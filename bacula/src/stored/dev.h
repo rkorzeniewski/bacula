@@ -139,12 +139,13 @@ typedef struct s_steal_lock {
    int               dev_blocked;     /* state */
 } bsteal_lock_t;
 
+struct DEVRES;                        /* Device resource defined in stored_conf.h */
 
 /* Device structure definition */
-typedef struct s_device {
-   struct s_device *next;             /* pointer to next open device */
-   struct s_device *prev;             /* pointer to prev open device */
-   void *attached_jcrs;               /* attached JCR list */
+struct DEVICE {
+   DEVICE *next;                      /* pointer to next open device */
+   DEVICE *prev;                      /* pointer to prev open device */
+   JCR *attached_jcrs;              /* attached JCR list */
    pthread_mutex_t mutex;             /* access control */
    pthread_cond_t wait;               /* thread wait variable */
    pthread_cond_t wait_next_vol;      /* wait for tape to be mounted */
@@ -173,43 +174,14 @@ typedef struct s_device {
    uint32_t max_rewind_wait;          /* max secs to allow for rewind */
    uint32_t max_open_wait;            /* max secs to allow for open */
    uint32_t max_open_vols;            /* max simultaneous open volumes */
-   void *device;                      /* pointer to Device Resource */
+   DEVRES *device;                    /* pointer to Device Resource */
    btimer_id tid;                     /* timer id */
 
    VOLUME_CAT_INFO VolCatInfo;        /* Volume Catalog Information */
    VOLUME_LABEL VolHdr;               /* Actual volume label */
 
-} DEVICE;
+};
 
-
-
-
-#ifdef SunOS
-#define DEFAULT_TAPE_DRIVE "/dev/rmt/0cbn"
-#endif
-#ifdef AIX
-#define DEFAULT_TAPE_DRIVE "/dev/rmt0.1"
-#endif
-#ifdef SGI
-#define DEFAULT_TAPE_DRIVE "/dev/tps0d4nr"
-#endif
-#ifdef Linux
-#define DEFAULT_TAPE_DRIVE "/dev/nst0"
-#endif
-#ifdef OSF
-#define DEFAULT_TAPE_DRIVE "/dev/nrmt0"
-#endif
-#ifdef HPUX
-#define DEFAULT_TAPE_DRIVE "/dev/rmt/0hnb"
-#endif
-#ifdef FreeBSD
-#define DEFAULT_TAPE_DRIVE "/dev/nrst0"
-#endif
-
-/* Default default */
-#ifndef DEFAULT_TAPE_DRIVE
-#define DEFAULT_TAPE_DRIVE "/dev/nst0"
-#endif
 
 /* Get some definition of function to position
  *  to the end of the medium in MTEOM. System

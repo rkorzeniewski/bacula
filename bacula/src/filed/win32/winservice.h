@@ -1,6 +1,6 @@
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
-//  This file is part of the ups system.
+//  This file was part of the ups system.
 //
 //  The ups system is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by

@@ -47,49 +47,56 @@ extern char *uar_sel_all_temp1, *uar_sel_fileset, *uar_mediatype;
 
 
 /* Context for insert_tree_handler() */
-typedef struct s_tree_ctx {
+struct TREE_CTX {
    TREE_ROOT *root;		      /* root */
    TREE_NODE *node;		      /* current node */
    TREE_NODE *avail_node;	      /* unused node last insert */
    int cnt;			      /* count for user feedback */
    UAContext *ua;
-} TREE_CTX;
+};
 
 /* Main structure for obtaining JobIds */
-typedef struct s_jobids {
+struct JobIds {
    utime_t JobTDate;
    uint32_t TotalFiles;
    char ClientName[MAX_NAME_LENGTH];
    char JobIds[200];
    STORE  *store;
-} JobIds;
+};
 
 
-/* FileIndex entry in bootstrap record */
-typedef struct s_rbsr_findex {
-   struct s_rbsr_findex *next;
+/* FileIndex entry in restore bootstrap record */
+struct RBSR_FINDEX {
+   RBSR_FINDEX *next;
    int32_t findex;
    int32_t findex2;
-} RBSR_FINDEX;
+};
 
-/* Restore bootstrap record -- not the real one, but useful here */
-typedef struct s_rbsr {
-   struct s_rbsr *next; 	      /* next JobId */
+/* 
+ * Restore bootstrap record -- not the real one, but useful here   
+ *  The restore bsr is a chain of BSR records (linked by next).
+ *  Each BSR represents a single JobId, and within it, it
+ *    contains a linked list of file indexes for that JobId.
+ *    The complete_bsr() routine, will then add all the volumes
+ *    on which the Job is stored to the BSR.
+ */
+struct RBSR {
+   RBSR *next;			      /* next JobId */
    uint32_t JobId;		      /* JobId this bsr */
    uint32_t VolSessionId;		    
    uint32_t VolSessionTime;
    int	    VolCount;		      /* Volume parameter count */
    VOL_PARAMS *VolParams;	      /* Volume, start/end file/blocks */
    RBSR_FINDEX *fi;		      /* File indexes this JobId */
-} RBSR;
+};
 
-typedef struct s_name_ctx {
+struct NAME_LIST {
    char **name; 		      /* list of names */
    int num_ids; 		      /* ids stored */
    int max_ids; 		      /* size of array */
    int num_del; 		      /* number deleted */
    int tot_ids; 		      /* total to process */
-} NAME_LIST;
+};
 
 #define MAX_ID_LIST_LEN 1000000
 
@@ -113,6 +120,7 @@ static void print_name_list(UAContext *ua, NAME_LIST *name_list);
 static int unique_name_list_handler(void *ctx, int num_fields, char **row);
 static void free_name_list(NAME_LIST *name_list);
 static void get_storage_from_mediatype(UAContext *ua, NAME_LIST *name_list, JobIds *ji);
+static RBSR *sort_bsr(RBSR *bsr);
 
 
 /*
@@ -274,7 +282,7 @@ int restorecmd(UAContext *ua, char *cmd)
    if (where) {
       Mmsg(&ua->cmd, 
           "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s/restore.bsr\""
-          "where=\"%s\"",
+          " where=\"%s\"",
           job->hdr.name, ji.ClientName, ji.store?ji.store->hdr.name:"",
 	  working_directory, where);
    } else {
@@ -719,7 +727,6 @@ static int write_bsr_file(UAContext *ua, RBSR *bsr)
    FILE *fd;
    POOLMEM *fname = get_pool_memory(PM_MESSAGE);
    int stat;
-   RBSR *nbsr;
 
    Mmsg(&fname, "%s/restore.bsr", working_directory);
    fd = fopen(fname, "w+");
@@ -729,14 +736,19 @@ static int write_bsr_file(UAContext *ua, RBSR *bsr)
       free_pool_memory(fname);
       return 0;
    }
+   /* Sort the bsr chain */
+   bsr = sort_bsr(bsr);
+   /* Write them to file */
    write_bsr(ua, bsr, fd);
    stat = !ferror(fd);
    fclose(fd);
    bsendmsg(ua, _("Bootstrap records written to %s\n"), fname);
+
+   /* Tell the user what he will need to mount */
    bsendmsg(ua, _("\nThe restore job will require the following Volumes:\n"));
    /* Create Unique list of Volumes using prompt list */
    start_prompt(ua, "");
-   for (nbsr=bsr; nbsr; nbsr=nbsr->next) {
+   for (RBSR *nbsr=bsr; nbsr; nbsr=nbsr->next) {
       for (int i=0; i < nbsr->VolCount; i++) {
 	 add_prompt(ua, nbsr->VolParams[i].VolumeName);
       }
@@ -749,6 +761,40 @@ static int write_bsr_file(UAContext *ua, RBSR *bsr)
    bsendmsg(ua, "\n");
    free_pool_memory(fname);
    return stat;
+}
+
+int comp_vol_params(const void *v1, const void *v2)
+{
+   VOL_PARAMS *vol1 = (VOL_PARAMS *)v1;
+   VOL_PARAMS *vol2 = (VOL_PARAMS *)v2;
+
+   if (vol1->FirstIndex < vol2->FirstIndex) {
+      return -1;
+   } else if (vol1->FirstIndex > vol2->FirstIndex) {
+      return 1;
+   } else {
+      return 0;
+   }
+}
+
+/*
+ * First sort the bsr chain, then sort the VolParams   
+ */
+static RBSR *sort_bsr(RBSR *bsr)
+{
+   if (!bsr) {
+      return bsr;
+   }
+   /* ****FIXME**** sort the bsr chain */
+   /* Sort the VolParams for each bsr */
+   for (RBSR *nbsr=bsr; nbsr; nbsr=nbsr->next) {
+      if (nbsr->VolCount > 1) {
+         Dmsg1(100, "VolCount=%d\n", nbsr->VolCount);
+	 qsort((void *)nbsr->VolParams, nbsr->VolCount, sizeof(VOL_PARAMS), 
+	       comp_vol_params);
+      }
+   }
+   return bsr;
 }
 
 static void write_bsr(UAContext *ua, RBSR *bsr, FILE *fd)

@@ -25,6 +25,24 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
+- Add SDWriteSeqNo to SD, and probably Read on FD side.
+- Make sure all restore counters are working correctly in the FD.
+- When all cassettes in magazine are used, got:
+  22-May-2003 18:24 undef-sd: 3304 Autochanger "load slot 1" status is OK.
+  22-May-2003 18:24 undef-sd: NightlySave.2003-05-22_14.08.16 Warning: mount.c:245 Director wanted Volume "TestVolume0009".
+      Current Volume "TestVolume0005" not acceptable because:
+      1998 Volume "TestVolume0005" not Append or Recycle.
+  22-May-2003 18:24 undef-sd: NightlySave.2003-05-22_14.08.16 Error: Autochanger Volume "TestVolume0009" not found in slot 1.
+      Setting slot to zero in catalog.
+  22-May-2003 18:24 undef-sd: Please mount Volume "TestVolume0009" on Storage Device "ARCHIVE 4586" for Job NightlySave.2003-05-22_14
+  .08.16
+  Use "mount" command to release Job.
+  22-May-2003 19:24 undef-sd: Please mount Volume "TestVolume0009" on Storage Device "ARCHIVE 4586" for Job NightlySave.2003-05-22_14
+  .08.16
+  Use "mount" command to release Job.
+
+- SD Bytes Read is wrong.
+- Configure mtx-changer to have correct path to mtx.
 - Look at ALL higher level routines that call block.c to be sure
   they don't expect something in errmsg.
 - Fix Verify VolumeToCatalog to use BSRs -- it is broken.

@@ -9466,6 +9466,7 @@ aix)
 	PSCMD="ps -e -o pid,comm"
 	PFILES="${PFILES} \
 	   platforms/aix/Makefile"
+	TAPEDRIVE="/dev/rmt0.1" 
   ;;	  
 alpha)
 	DISTVER=`uname -r`

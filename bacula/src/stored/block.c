@@ -395,7 +395,7 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	 wlen, stat, dev->dev_errno, strerror(dev->dev_errno));
 
       if (stat == -1) {
-         Jmsg2(jcr, M_ERROR, 0, _("Write error on device %s. ERR=%s.\n"), 
+         Jmsg(jcr, M_ERROR, 0, _("Write error on device %s. ERR=%s.\n"), 
 	    dev->dev_name, strerror(dev->dev_errno));
       } else {
          Jmsg3(jcr, M_INFO, 0, _("End of media on device %s. Write of %u bytes got %d.\n"), 

@@ -306,6 +306,7 @@ mount_error:
       dev->VolCatInfo.VolCatFiles = 0;
       dev->VolCatInfo.VolCatErrors = 0;
       dev->VolCatInfo.VolCatBlocks = 0;
+      dev->VolCatInfo.VolCatRBytes = 0;
       if (recycle) {
 	 dev->VolCatInfo.VolCatMounts++;  
 	 dev->VolCatInfo.VolCatRecycles++;

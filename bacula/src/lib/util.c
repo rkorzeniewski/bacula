@@ -440,10 +440,15 @@ int do_shell_expansion(char *name, int name_len)
           if ((shellcmd = getenv("SHELL")) == NULL) {
              shellcmd = "/bin/sh";
 	  }
-	  close(1); dup(pfd[1]);	  /* attach pipes to stdin and stdout */
+#ifdef xxx
+	  close(1); dup(pfd[1]);	  /* attach pipes to stdout and stderr */
 	  close(2); dup(pfd[1]);
 	  for (i = 3; i < 32; i++)	  /* close everything else */
 	     close(i);
+#endif
+	  close(pfd[0]);		  /* close stdin */
+	  dup2(pfd[1], 1);		  /* attach to stdout */
+	  dup2(pfd[1], 2);		  /* and stderr */
           strcpy(echout, "echo ");        /* form echo command */
 	  bstrncat(echout, name, sizeof(echout));
           execl(shellcmd, shellcmd, "-c", echout, NULL); /* give to shell */
@@ -452,7 +457,10 @@ int do_shell_expansion(char *name, int name_len)
        default: 			  /* parent */
 	  /* read output from child */
 	  echout[0] = 0;
-	  i = read(pfd[0], echout, sizeof echout);
+	  do {
+	     i = read(pfd[0], echout, sizeof echout);
+	  } while (i == -1 && errno == EINTR); 
+
 	  if (i > 0) {
 	     echout[--i] = 0;		     /* set end of string */
 	     /* look for first line. */

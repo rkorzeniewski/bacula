@@ -279,7 +279,7 @@ typedef uint32_t JobId_t;
  * it also contains fields found in the JobMedia record.
  */
 /* Job record */
-typedef struct {
+struct JOB_DBR {
    JobId_t JobId;
    char Job[MAX_NAME_LENGTH];         /* Job unique name */
    char Name[MAX_NAME_LENGTH];        /* Job base name */
@@ -315,13 +315,13 @@ typedef struct {
    char cEndTime[MAX_TIME_LENGTH];
    /* Extra stuff not in DB */
    faddr_t rec_addr;
-} JOB_DBR;
+};
 
 /* Job Media information used to create the media records
  * for each Volume used for the job.
  */
 /* JobMedia record */
-typedef struct {
+struct JOBMEDIA_DBR {
    uint32_t JobMediaId;               /* record id */
    JobId_t  JobId;                    /* JobId */
    uint32_t MediaId;                  /* MediaId */
@@ -331,10 +331,11 @@ typedef struct {
    uint32_t EndFile;                  /* End file on Volume */
    uint32_t StartBlock;               /* start block on tape */
    uint32_t EndBlock;                 /* last block */
-} JOBMEDIA_DBR;
+};
+
 
 /* Volume Parameter structure */
-typedef struct {
+struct VOL_PARAMS {
    char VolumeName[MAX_NAME_LENGTH];  /* Volume name */
    uint32_t FirstIndex;               /* First index this Volume */
    uint32_t LastIndex;                /* Last index this Volume */
@@ -342,14 +343,14 @@ typedef struct {
    uint32_t EndFile;                  /* End file on Volume */
    uint32_t StartBlock;               /* start block on tape */
    uint32_t EndBlock;                 /* last block */
-} VOL_PARAMS;
+};
 
 
 /* Attributes record -- NOT same as in database because
  *  in general, this "record" creates multiple database
  *  records (e.g. pathname, filename, fileattributes).
  */
-typedef struct {
+struct ATTR_DBR {
    char *fname;                       /* full path & filename */
    char *link;                        /* link if any */
    char *attr;                        /* attributes statp */
@@ -360,11 +361,11 @@ typedef struct {
    uint32_t PathId;
    uint32_t FilenameId;
    FileId_t FileId;
-} ATTR_DBR;
+};
 
 
 /* File record -- same format as database */
-typedef struct {
+struct FILE_DBR {
    FileId_t FileId;
    uint32_t FileIndex;
    JobId_t  JobId;
@@ -375,10 +376,10 @@ typedef struct {
 /*   int Status; */
    char SIG[50];
    int SigType;                       /* NO_SIG/MD5_SIG/SHA1_SIG */
-} FILE_DBR;
+};
 
 /* Pool record -- same format as database */
-typedef struct {
+struct POOL_DBR {
    uint32_t PoolId;
    char Name[MAX_NAME_LENGTH];        /* Pool name */
    uint32_t NumVols;                  /* total number of volumes */
@@ -397,10 +398,10 @@ typedef struct {
    char LabelFormat[MAX_NAME_LENGTH];
    /* Extra stuff not in DB */
    faddr_t rec_addr;
-} POOL_DBR;
+};
 
 /* Media record -- same as the database */
-typedef struct {
+struct MEDIA_DBR {
    uint32_t MediaId;                  /* Unique volume id */
    char VolumeName[MAX_NAME_LENGTH];  /* Volume name */
    char MediaType[MAX_NAME_LENGTH];   /* Media type */
@@ -433,24 +434,24 @@ typedef struct {
    char    cFirstWritten[MAX_TIME_LENGTH];  /* FirstWritten returned from DB */
    char    cLastWritten[MAX_TIME_LENGTH];  /* LastWritten returned from DB */
    char    cLabelData[MAX_TIME_LENGTH];  /* LabelData returned from DB */
-} MEDIA_DBR;
+};
 
 /* Client record -- same as the database */
-typedef struct {
+struct CLIENT_DBR {
    uint32_t ClientId;                 /* Unique Client id */
    int AutoPrune;
    utime_t FileRetention;
    utime_t JobRetention;
    char Name[MAX_NAME_LENGTH];        /* Client name */
    char Uname[256];                   /* Uname for client */
-} CLIENT_DBR;
+};
 
 /* FileSet record -- same as the database */
-typedef struct {
+struct FILESET_DBR {
    uint32_t FileSetId;                /* Unique FileSet id */
    char FileSet[MAX_NAME_LENGTH];     /* FileSet name */
    char MD5[50];                      /* MD5 signature of include/exclude */
-} FILESET_DBR;
+};
 
 
 #include "protos.h"

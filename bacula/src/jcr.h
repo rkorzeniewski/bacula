@@ -92,7 +92,7 @@ struct JCR {
    BSOCK *store_bsock;                /* Storage connection socket */
    BSOCK *file_bsock;                 /* File daemon connection socket */
    JCR_free_HANDLER *daemon_free_jcr; /* Local free routine */
-   int use_count;                     /* use count */
+   volatile int use_count;            /* use count */
    POOLMEM *errmsg;                   /* edited error message */
    char Job[MAX_NAME_LENGTH];         /* Unique name of this Job */
    uint32_t JobId;                    /* Director's JobId */
@@ -103,7 +103,7 @@ struct JCR {
    uint64_t JobBytes;                 /* Number of bytes processed this job */
    uint64_t ReadBytes;                /* Bytes read -- before compression */
    uint32_t Errors;                   /* Number of non-fatal errors */
-   int JobStatus;                     /* ready, running, blocked, terminated */ 
+   volatile int JobStatus;            /* ready, running, blocked, terminated */ 
    int JobType;                       /* backup, restore, verify ... */
    int JobLevel;                      /* Job level */
    int authenticated;                 /* set when client authenticated */
@@ -126,7 +126,7 @@ struct JCR {
    pthread_t SD_msg_chan;             /* Message channel thread id */
    pthread_cond_t term_wait;          /* Wait for job termination */
    workq_ele_t *work_item;            /* Work queue item if scheduled */
-   int msg_thread_done;               /* Set when Storage message thread terms */
+   volatile int msg_thread_done;      /* Set when Storage message thread terms */
    BSOCK *ua;                         /* User agent */
    JOB *job;                          /* Job resource */
    STORE *store;                      /* Storage resource */
@@ -135,8 +135,8 @@ struct JCR {
    FILESET *fileset;                  /* FileSet resource */
    CAT *catalog;                      /* Catalog resource */
    MSGS *messages;                    /* Default message handler */
-   int SDJobStatus;                   /* Storage Job Status */
-   int FDJobStatus;                   /* File daemon Job Status */
+   volatile int SDJobStatus;          /* Storage Job Status */
+   volatile int FDJobStatus;          /* File daemon Job Status */
    int mode;                          /* manual/auto run */
    B_DB *db;                          /* database pointer */
    uint32_t MediaId;                  /* DB record IDs associated with this job */
@@ -180,7 +180,7 @@ struct JCR {
    uint32_t StartBlock;
    uint32_t EndBlock;
    pthread_t heartbeat_id;            /* id of heartbeat thread */
-   BSOCK *hb_bsock;                   /* duped SD socket */
+   volatile BSOCK *hb_bsock;          /* duped SD socket */
 #endif /* FILE_DAEMON */
 
 

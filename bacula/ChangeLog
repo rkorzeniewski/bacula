@@ -1,4 +1,4 @@
-2003-05-20 Version 1.31 Beta 22May03
+2003-05-22 Version 1.31 Beta 22May03
 - I discovered that C++ permits "prototyping" structures e.g. struct A; is
   a valid statement. This permitted me to eliminate all the void *jcr, in
   favor of JCR *jcr, which pointed out a number of bugs in block.c.

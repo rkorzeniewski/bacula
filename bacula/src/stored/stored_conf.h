@@ -40,14 +40,13 @@
 #define R_BACKUP                      3024
 
 /* Definition of the contents of each Resource */
-struct s_res_dir {
+struct DIRRES {
    RES   hdr;
 
    char *password;                    /* Director password */
    char *address;                     /* Director IP address or zero */
    int enable_ssl;                    /* Use SSL with this Director */
 };
-typedef struct s_res_dir DIRRES;
 
 
 /* Storage daemon "global" definitions */
@@ -69,7 +68,7 @@ struct s_res_store {
 typedef struct s_res_store STORES;
 
 /* Device specific definitions */
-struct s_res_dev {
+struct DEVRES {
    RES   hdr;
 
    char *media_type;                  /* User assigned media type */
@@ -90,13 +89,11 @@ struct s_res_dev {
    int64_t volume_capacity;           /* advisory capacity */
    DEVICE *dev;                       /* Pointer to phyical dev -- set at runtime */
 };
-typedef struct s_res_dev DEVRES;
 
-union u_res {
-   struct s_res_dir     res_dir;
-   struct s_res_store   res_store;
-   struct s_res_dev     res_dev;
-   struct s_res_msgs    res_msgs;
-   RES hdr;
+union URES {
+   DIRRES res_dir;
+   STORES res_store;
+   DEVRES res_dev;
+   MSGS   res_msgs;
+   RES    hdr;
 };
-typedef union u_res URES;

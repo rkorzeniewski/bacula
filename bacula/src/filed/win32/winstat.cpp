@@ -44,8 +44,8 @@ void
 bacStatus::Show(BOOL show)
 {
    if (show && !visible) {
-         DialogBoxParam(hAppInstance, MAKEINTRESOURCE(IDD_STATUS), NULL,
-             (DLGPROC)DialogProc, (LONG)this);
+      DialogBoxParam(hAppInstance, MAKEINTRESOURCE(IDD_STATUS), NULL,
+          (DLGPROC)DialogProc, (LONG)this);
    }
 }
 

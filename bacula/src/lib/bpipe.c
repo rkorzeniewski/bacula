@@ -78,7 +78,7 @@ BPIPE *open_bpipe(char *prog, int wait, char *mode)
    }
    /* Start worker process */
    switch (bpipe->worker_pid = fork()) {
-   case -1:
+   case -1:			      /* error */
       free(bpipe);
       return NULL;
 
