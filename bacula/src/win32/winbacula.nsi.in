@@ -5,6 +5,11 @@
 ; Updated by Kern Sibbald for native Win32 Bacula
 ;    added a number of elements from Christopher Hull's installer
 ;
+; D. Scott Barninger Nov 13 2004
+; added configuration editing for bconsole.conf and wx-console.conf
+; better explanation in dialog boxes for editing config files
+; added Start Menu items
+;
 ; Command line options:
 ;
 ; /cygwin     -  do cygwin install into c:\cygwin\bacula
