@@ -202,7 +202,7 @@ egg_tray_icon_manager_filter (GdkXEvent *xevent, GdkEvent *event, gpointer user_
 
   if (xev->xany.type == ClientMessage &&
       xev->xclient.message_type == icon->manager_atom &&
-      xev->xclient.data.l[1] == icon->selection_atom)
+      (unsigned long)xev->xclient.data.l[1] == icon->selection_atom)
     {
       egg_tray_icon_update_manager_window (icon);
     }

@@ -94,7 +94,7 @@ void                  egg_status_icon_set_balloon_text   (EggStatusIcon      *st
 G_CONST_RETURN gchar *egg_status_icon_get_balloon_text   (EggStatusIcon      *status_icon);
 
 void                  egg_status_icon_set_is_blinking    (EggStatusIcon      *status_icon,
-							  gboolean            enable_blinking);
+							  guint            enable_blinking);
 gboolean              egg_status_icon_get_is_blinking    (EggStatusIcon      *status_icon);
 
 EggTrayIcon*          egg_status_icon_get_tray_icon      (EggStatusIcon      *status_icon);

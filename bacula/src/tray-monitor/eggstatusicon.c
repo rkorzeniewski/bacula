@@ -754,7 +754,7 @@ egg_status_icon_disable_blinking (EggStatusIcon *status_icon)
 
 void
 egg_status_icon_set_is_blinking (EggStatusIcon *status_icon,
-				 gboolean       is_blinking)
+				 guint       is_blinking)
 {
   g_return_if_fail (EGG_IS_STATUS_ICON (status_icon));
 

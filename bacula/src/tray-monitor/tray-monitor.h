@@ -25,14 +25,24 @@
 
  */
 
+#include <gtk/gtk.h>
+ 
 #include "tray_conf.h"
 
-#define TRAY_MONITOR 1
-
 #include "jcr.h"
+
+enum stateenum {
+   idle = 0,
+   running = 1,
+   warn = 2,
+   error = 3
+};
 
 struct monitoritem {
    rescode type; /* R_CLIENT or R_STORAGE */
    void* resource; /* CLIENT* or STORE* */
+   BSOCK *D_sock;
+   stateenum state;
+   GtkWidget* image;
+   GtkWidget* label;
 };
-
