@@ -466,7 +466,7 @@ RUN *find_next_run(RUN *run, JOB *job, time_t &runtime)
    time_t now, tomorrow;
    SCHED *sched;
    struct tm tm;
-   int mday, wday, month, wom, tmday, twday, tmonth, twom, i, hour;
+   int mday, wday, month, wom, tmday, twday, tmonth, twom, i;
    int woy, twoy;
    int tod, tom;
 
@@ -501,29 +501,46 @@ RUN *find_next_run(RUN *run, JOB *job, time_t &runtime)
       /* 
        * Find runs in next 24 hours
        */
-      tod = (bit_is_set(mday, run->mday) || bit_is_set(wday, run->wday)) && 
-	     bit_is_set(month, run->month) && bit_is_set(wom, run->wom) &&
-	     bit_is_set(woy, run->woy);
+      tod = bit_is_set(mday, run->mday) && bit_is_set(wday, run->wday) && 
+	    bit_is_set(month, run->month) && bit_is_set(wom, run->wom) &&
+	    bit_is_set(woy, run->woy);
 
-      tom = (bit_is_set(tmday, run->mday) || bit_is_set(twday, run->wday)) &&
-	     bit_is_set(tmonth, run->month) && bit_is_set(twom, run->wom) &&
-	     bit_is_set(twoy, run->woy);
+      tom = bit_is_set(tmday, run->mday) && bit_is_set(twday, run->wday) &&
+	    bit_is_set(tmonth, run->month) && bit_is_set(twom, run->wom) &&
+	    bit_is_set(twoy, run->woy);
 
-//    Dmsg2(200, "tod=%d tom=%d\n", tod, tom);
-//    Dmsg2(200, "wom=%d twom=%d\n", wom, twom);
-//    Dmsg1(200, "bit_set_wom=%d\n", bit_is_set(wom, run->wom));
+#ifdef xxx
+      Dmsg2(000, "tod=%d tom=%d\n", tod, tom);
+      Dmsg1(000, "bit_set_mday=%d\n", bit_is_set(mday, run->mday));
+      Dmsg1(000, "bit_set_wday=%d\n", bit_is_set(wday, run->wday));
+      Dmsg1(000, "bit_set_month=%d\n", bit_is_set(month, run->month));
+      Dmsg1(000, "bit_set_wom=%d\n", bit_is_set(wom, run->wom));
+      Dmsg1(000, "bit_set_woy=%d\n", bit_is_set(woy, run->woy));
+#endif xxx
       if (tod) {		   /* Jobs scheduled today (next 24 hours) */
+#ifdef xxx
+	 char buf[300], num[10];
+         bsnprintf(buf, sizeof(buf), "tm.hour=%d hour=", tm.tm_hour);
+	 for (i=0; i<24; i++) {
+	    if (bit_is_set(i, run->hour)) {
+               bsnprintf(num, sizeof(num), "%d ", i);
+	       bstrncat(buf, num, sizeof(buf));
+	    }
+	 }
+         bstrncat(buf, "\n", sizeof(buf));
+         Dmsg1(000, "%s", buf);
+#endif 
 	 /* find time (time_t) job is to be run */
 	 localtime_r(&now, &tm);
-	 hour = 0;
 	 for (i=tm.tm_hour; i < 24; i++) {
 	    if (bit_is_set(i, run->hour)) {
 	       tm.tm_hour = i;
 	       tm.tm_min = run->minute;
 	       tm.tm_sec = 0;
 	       runtime = mktime(&tm);
+               Dmsg2(200, "now=%d runtime=%d\n", now, runtime);
 	       if (runtime > now) {
-                  Dmsg2(100, "Found it level=%d %c\n", run->level, run->level);
+                  Dmsg2(200, "Found it level=%d %c\n", run->level, run->level);
 		  return run;	      /* found it, return run resource */
 	       }
 	    }
@@ -533,20 +550,18 @@ RUN *find_next_run(RUN *run, JOB *job, time_t &runtime)
 //    Dmsg2(200, "runtime=%d now=%d\n", runtime, now);
       if (tom) {		/* look at jobs scheduled tomorrow */
 	 localtime_r(&tomorrow, &tm);
-	 hour = 0;
 	 for (i=0; i < 24; i++) {
 	    if (bit_is_set(i, run->hour)) {
-	       hour = i;
-	       break;
+	       tm.tm_hour = i;
+	       tm.tm_min = run->minute;
+	       tm.tm_sec = 0;
+	       runtime = mktime(&tm);
+               Dmsg2(200, "now=%d runtime=%d\n", now, runtime);
+	       if (runtime < tomorrow) {
+                  Dmsg2(200, "Found it level=%d %c\n", run->level, run->level);
+		  return run;	      /* found it, return run resource */
+	       }
 	    }
-	 }
-	 tm.tm_hour = hour;
-	 tm.tm_min = run->minute;
-	 tm.tm_sec = 0;
-	 runtime = mktime(&tm);
-//       Dmsg2(200, "truntime=%d now=%d\n", runtime, now);
-	 if (runtime < tomorrow) {
-	    return run; 	      /* found it, return run resource */
 	 }
       }
    } /* end for loop over runs */ 
