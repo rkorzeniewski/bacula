@@ -79,7 +79,6 @@ distclean: realclean
 	(cd $(srcdir); $(RMF) Makefile; $(RMF) -r CVS)
 
 install:
-	$(MKDIR) $(DESTDIR)$(datadir)/bacula
 	$(INSTALL_SCRIPT) create_@DB_NAME@_database $(DESTDIR)$(scriptdir)/create_@DB_NAME@_database
 	$(INSTALL_SCRIPT) drop_@DB_NAME@_tables $(DESTDIR)$(scriptdir)/drop_@DB_NAME@_tables
 	$(INSTALL_SCRIPT) make_@DB_NAME@_tables $(DESTDIR)$(scriptdir)/make_@DB_NAME@_tables
