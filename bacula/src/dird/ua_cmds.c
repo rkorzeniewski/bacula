@@ -87,6 +87,7 @@ static int release_cmd(UAContext *ua, const char *cmd);
 static int update_cmd(UAContext *ua, const char *cmd);
 static int wait_cmd(UAContext *ua, const char *cmd);
 static int setip_cmd(UAContext *ua, const char *cmd);
+static int python_cmd(UAContext *ua, const char *cmd);
 static void do_job_delete(UAContext *ua, JobId_t JobId);
 static void delete_job_id_range(UAContext *ua, char *tok);
 
@@ -113,6 +114,7 @@ static struct cmdstruct commands[] = {
  { N_("mount"),      mount_cmd,     _("mount <storage-name>")},
  { N_("prune"),      prunecmd,      _("prune expired records from catalog")},
  { N_("purge"),      purgecmd,      _("purge records from catalog")},
+ { N_("python"),     python_cmd,    _("python control commands")},
  { N_("quit"),       quit_cmd,      _("quit")},
  { N_("query"),      querycmd,      _("query catalog")},
  { N_("restore"),    restore_cmd,   _("restore files")},
@@ -555,6 +557,26 @@ static int create_cmd(UAContext *ua, const char *cmd)
      break;
    }
    bsendmsg(ua, _("Pool %s created.\n"), pool->hdr.name);
+   return 1;
+}
+
+
+extern DIRRES *director;
+
+/*
+ * Python control command
+ *  python restart (restarts interpreter)
+ */
+static int python_cmd(UAContext *ua, const char *cmd)
+{
+   if (strcasecmp(ua->argk[1], _("restart")) == 0) {
+      term_python_interpreter();
+      init_python_interpreter(director->hdr.name, director->scripts_directory ?
+         director->scripts_directory : ".");
+      bsendmsg(ua, _("Python interpreter restarted.\n"));
+   } else {
+      bsendmsg(ua, _("Nothing done.\n"));
+   }
    return 1;
 }
 

@@ -49,41 +49,75 @@ PyMethodDef BaculaMethods[] = {
 };
 
 
+struct s_vars {
+   const char *name;
+   char *fmt;
+};     
+
+static struct s_vars vars[] = {
+   { N_("Job"),        "s"},
+   { N_("Dir"),        "s"},
+   { N_("Level"),      "s"},
+   { N_("Type"),       "s"},
+   { N_("JobId"),      "i"},
+   { N_("Client"),     "s"},
+   { N_("NumVols"),    "i"},
+   { N_("Pool"),       "s"},
+   { N_("Storage"),    "s"},
+   { N_("Catalog"),    "s"},
+   { N_("MediaType"),  "s"},
+   { N_("JobName"),    "s"},
+   
+   { NULL,	       NULL}
+};
+
 /* Return Bacula variables */
 PyObject *bacula_get(PyObject *self, PyObject *args)
 {
    PyObject *CObject;
    JCR *jcr;
    char *item;
+   bool found = false;
+   int i;
+
    if (!PyArg_ParseTuple(args, "Os:get", &CObject, &item)) {
       return NULL;
    }
    jcr = (JCR *)PyCObject_AsVoidPtr(CObject);
-   /* ***FIXME*** put this in a table */
-   if (strcmp(item, "JobId") == 0) {
-      return Py_BuildValue("i", jcr->JobId);
-   } else if (strcmp(item, "Client") == 0) {
-      return Py_BuildValue("s", jcr->client->hdr.name);
-   } else if (strcmp(item, "Pool") == 0) {
-      return Py_BuildValue("s", jcr->pool->hdr.name);
-   } else if (strcmp(item, "Storage") == 0) {
-      return Py_BuildValue("s", jcr->store->hdr.name);
-   } else if (strcmp(item, "Catalog") == 0) {
-      return Py_BuildValue("s", jcr->catalog->hdr.name);
-   } else if (strcmp(item, "MediaType") == 0) {
-      return Py_BuildValue("s", jcr->store->media_type);
-   } else if (strcmp(item, "NumVols") == 0) {
-      return Py_BuildValue("i", jcr->NumVols);
-   } else if (strcmp(item, "DirName") == 0) {
-      return Py_BuildValue("s", my_name);
-   } else if (strcmp(item, "Level") == 0) {
-      return Py_BuildValue("s", job_level_to_str(jcr->JobLevel));
-   } else if (strcmp(item, "Type") == 0) {
-      return Py_BuildValue("s", job_type_to_str(jcr->JobType));
-   } else if (strcmp(item, "Job") == 0) {
-      return Py_BuildValue("s", jcr->job->hdr.name);
-   } else if (strcmp(item, "JobName") == 0) {
-      return Py_BuildValue("s", jcr->Job);
+   for (i=0; vars[i].name; i++) {
+      if (strcmp(vars[i].name, item) == 0) {
+	 found = true;
+	 break;
+      }
+   }
+   if (!found) {
+      return NULL;
+   }
+   switch (i) {
+   case 0:			      /* Job */
+      return Py_BuildValue(vars[i].fmt, jcr->job->hdr.name);
+   case 1:                            /* Director's name */
+      return Py_BuildValue(vars[i].fmt, my_name);
+   case 2:			      /* level */
+      return Py_BuildValue(vars[i].fmt, job_level_to_str(jcr->JobLevel));
+   case 3:			      /* type */
+      return Py_BuildValue(vars[i].fmt, job_type_to_str(jcr->JobType));
+   case 4:			      /* JobId */
+      return Py_BuildValue(vars[i].fmt, jcr->JobId);
+   case 5:			      /* Client */
+      return Py_BuildValue(vars[i].fmt, jcr->client->hdr.name);
+   case 6:			      /* NumVols */
+      return Py_BuildValue(vars[i].fmt, jcr->NumVols);
+   case 7:			      /* Pool */
+      return Py_BuildValue(vars[i].fmt, jcr->pool->hdr.name);
+   case 8:			      /* Storage */
+      return Py_BuildValue(vars[i].fmt, jcr->store->hdr.name);
+   case 9:
+      return Py_BuildValue(vars[i].fmt, jcr->catalog->hdr.name);
+   case 10:			      /* MediaType */
+      return Py_BuildValue(vars[i].fmt, jcr->store->media_type);
+   case 11:			      /* JobName */
+      return Py_BuildValue(vars[i].fmt, jcr->Job);
    }
    return NULL;
 }
@@ -101,6 +135,7 @@ PyObject *bacula_set(PyObject *self, PyObject *args, PyObject *keyw)
       return NULL;
    }
    jcr = (JCR *)PyCObject_AsVoidPtr(CObject);
+
    if (msg) {
       Jmsg(jcr, M_INFO, 0, "%s", msg);
    }
