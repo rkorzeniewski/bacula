@@ -390,6 +390,7 @@ static void list_running_jobs(UAContext *ua)
    bool pool_mem = false;
 
    Dmsg0(200, "enter list_run_jobs()\n");
+   bsendmsg(ua, _("Running Jobs:\n"));
    lock_jcr_chain();
    foreach_jcr(jcr) {
       njobs++;
@@ -407,7 +408,8 @@ static void list_running_jobs(UAContext *ua)
    }
    if (njobs == 0) {
       unlock_jcr_chain();
-      bsendmsg(ua, _("No Running Jobs.\n"));
+      /* Note the following message is used in regress -- don't change */
+      bsendmsg(ua, _("No Jobs running.\n====\n"));
       Dmsg0(200, "leave list_run_jobs()\n");
       return;
    }
@@ -535,7 +537,7 @@ static void list_running_jobs(UAContext *ua)
       free_locked_jcr(jcr);
    }
    unlock_jcr_chain();
-   bsendmsg(ua, "\n");
+   bsendmsg(ua, "====\n");
    Dmsg0(200, "leave list_run_jobs()\n");
 }
 

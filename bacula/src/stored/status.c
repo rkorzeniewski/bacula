@@ -81,7 +81,7 @@ int status_cmd(JCR *jcr)
    /*
     * List devices
     */
-   bnet_fsend(user, _("Device status:\n"));
+   bnet_fsend(user, _("\nDevice status:\n"));
    LockRes();
    foreach_res(device, R_DEVICE) {
       for (dev=device->dev; dev; dev=dev->next) {
@@ -264,7 +264,7 @@ static void list_running_jobs(BSOCK *user)
    }
    unlock_jcr_chain();
    if (!found) {
-      bnet_fsend(user, _("No jobs running.\n"));
+      bnet_fsend(user, _("No Jobs running.\n"));
    }
    bnet_fsend(user, "====\n");
 }
@@ -342,7 +342,7 @@ static void list_terminated_jobs(void *arg)
 	 dt, JobName);
       sendit(buf, strlen(buf), arg);
    }
-   sendit("====\n", 1, arg);
+   sendit("====\n", 5, arg);
    unlock_last_jobs_list();
 }
 

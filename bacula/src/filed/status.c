@@ -87,6 +87,8 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
     * List running jobs  
     */
    Dmsg0(1000, "Begin status jcr loop.\n");
+   len = Mmsg(&msg, _("Running Jobs:\n"));
+   sendit(msg, len, arg);
    lock_jcr_chain();
    foreach_jcr(njcr) {
       bstrftime_nc(dt, sizeof(dt), njcr->start_time);
@@ -138,9 +140,11 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
    unlock_jcr_chain();
    Dmsg0(1000, "Begin status jcr loop.\n");
    if (!found) {
-      len = Mmsg(&msg, _("No jobs running.\n"));
+      len = Mmsg(&msg, _("No Jobs running.\n"));
       sendit(msg, len, arg);
    }
+   len = Mmsg(&msg, _("====\n"));
+   sendit(msg, len, arg);
    free_pool_memory(msg);
 }
 
