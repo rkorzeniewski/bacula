@@ -197,6 +197,11 @@ int close_bpipe(BPIPE *bpipe)
  * Run an external program. Optionally wait a specified number
  *   of seconds. Program killed if wait exceeded. Optionally
  *   return the output from the program (normally a single line).
+ *
+ * Contrary to my normal calling conventions, this program 
+ *
+ *  Returns: 0 on success
+ *	     non-zero on error
  */
 int run_program(char *prog, int wait, POOLMEM *results)
 {
@@ -211,12 +216,12 @@ int run_program(char *prog, int wait, POOLMEM *results)
    }
    if (results) {
       results[0] = 0;
-      stat1 = fgets(results, sizeof_pool_memory(results), bpipe->rfd) != NULL;
+      stat1 = fgets(results, sizeof_pool_memory(results), bpipe->rfd) == NULL;
    } else {
-      stat1 = 1;
+      stat1 = 0;
    }
    stat2 = close_bpipe(bpipe);
-   return stat1 && stat2;
+   return stat2 != 0 ? stat2 : stat1; 
 }
 
 
