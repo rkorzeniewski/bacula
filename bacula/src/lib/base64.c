@@ -34,7 +34,7 @@
 #endif
 
 
-static char const base64_digits[64] =
+static uint8_t const base64_digits[64] =
 {
   'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
   'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
@@ -44,7 +44,7 @@ static char const base64_digits[64] =
 };
 
 static int base64_inited = 0;
-static char base64_map[128];
+static uint8_t base64_map[128];
   
 
 /* Initialize the Base 64 conversion routines */
@@ -54,7 +54,7 @@ base64_init(void)
    int i; 
    memset(base64_map, 0, sizeof(base64_map));
    for (i=0; i<64; i++)
-      base64_map[(int)base64_digits[i]] = i;
+      base64_map[(uint8_t)base64_digits[i]] = i;
    base64_inited = 1;
 }
 
@@ -90,7 +90,7 @@ to_base64(intmax_t value, char *where)
    val = value;
    where[i] = 0;
    do {
-      where[--i] = base64_digits[val & (unsigned)0x3F];
+      where[--i] = base64_digits[val & (uintmax_t)0x3F];
       val >>= 6;
    } while (val);
    return n;
@@ -120,7 +120,7 @@ from_base64(intmax_t *value, char *where)
    /* Construct value */
    while (where[i] != 0 && where[i] != ' ') {
       val <<= 6;
-      val += base64_map[(int)where[i++]];
+      val += base64_map[(uint8_t)where[i++]];
    }
 	 
    *value = neg ? -(intmax_t)val : (intmax_t)val;
@@ -227,7 +227,7 @@ decode_stat(char *buf, struct stat *statp)
 int
 bin_to_base64(char *buf, char *bin, int len)
 {
-   unsigned int reg, save, mask;
+   uint32_t reg, save, mask;
    int rem, i;
    int j = 0;
 
@@ -236,12 +236,12 @@ bin_to_base64(char *buf, char *bin, int len)
    for (i=0; i<len; ) {
       if (rem < 6) {
 	 reg <<= 8;
-	 reg |= bin[i++];
+	 reg |= (uint8_t)bin[i++];
 	 rem += 8;
       }
       save = reg;
       reg >>= (rem - 6);
-      buf[j++] = base64_digits[reg & (unsigned)0x3F];
+      buf[j++] = base64_digits[reg & (uint32_t)0x3F];
       reg = save;
       rem -= 6;
    }
