@@ -424,15 +424,15 @@ static void weofcmd()
 static void eomcmd()
 {
    if (!eod_dev(dev)) {
-      Pmsg1(0, _("Bad status from eod. ERR=%s\n"), strerror_dev(dev));
+      Pmsg1(0, _("Bad status from MTEOD. ERR=%s\n"), strerror_dev(dev));
       return;
    } else {
-      Pmsg0(0, _("Moved to end of media\n"));
+      Pmsg0(0, _("Moved to end of medium.\n"));
    }
 }
 
 /*
- * Go to the end of the media (either hardware determined
+ * Go to the end of the medium (either hardware determined
  *  or defined by two eofs.
  */
 static void eodcmd()
@@ -695,7 +695,7 @@ static int append_test()
    wrcmd();
    weofcmd();	  /* end file 2 */
    rewindcmd();
-   Pmsg0(0, _("Now moving to end of media.\n"));
+   Pmsg0(0, _("Now moving to end of medium.\n"));
    eodcmd();
    Pmsg2(-1, _("We should be in file 3. I am at file %d. This is %s\n"), 
       dev->file, dev->file == 3 ? "correct!" : "NOT correct!!!!");
