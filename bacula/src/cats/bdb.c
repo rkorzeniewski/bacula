@@ -102,7 +102,7 @@ int bdb_write_control_file(B_DB *mdb)
  * never have errors, or it is really fatal.
  */
 B_DB *
-db_init_database(void *jcr, char *db_name, char *db_user, char *db_password,
+db_init_database(JCR *jcr, char *db_name, char *db_user, char *db_password,
 		 char *db_address, int db_port, char *db_socket)
 {
    B_DB *mdb;
@@ -142,7 +142,7 @@ db_init_database(void *jcr, char *db_name, char *db_user, char *db_password,
  * which are returned in the errmsg
  */
 int
-db_open_database(void *jcr, B_DB *mdb)
+db_open_database(JCR *jcr, B_DB *mdb)
 {
    char *dbf;
    int fd, badctl;
@@ -237,7 +237,7 @@ Please reinitialize the working directory.\n"),
    return 1;
 }
 
-void db_close_database(void *jcr, B_DB *mdb)		
+void db_close_database(JCR *jcr, B_DB *mdb)	       
 {
    P(mutex);
    mdb->ref_count--;
@@ -451,11 +451,11 @@ void _db_unlock(char *file, int line, B_DB *mdb)
  *  much more efficient. Usually started when inserting 
  *  file attributes.
  */
-void db_start_transaction(void *jcr, B_DB *mdb)
+void db_start_transaction(JCR *jcr, B_DB *mdb)
 {
 }
 
-void db_end_transaction(void *jcr, B_DB *mdb)
+void db_end_transaction(JCR *jcr, B_DB *mdb)
 {
 }
 

@@ -65,7 +65,7 @@
  * Returns: 0 on failure
  *	    1 on success, jr unchanged, but stime set
  */
-int db_find_job_start_time(void *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
+int db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
 {
    char cmd[MAXSTRING], Name[MAX_NAME_LENGTH], StartTime[MAXSTRING];
    int Type, Level;
@@ -144,7 +144,7 @@ StartTime=%100s", &JobId, Name, cType, cLevel, StartTime) == 5) {
  * Returns: 0 on failure
  *	    numrows on success
  */
-int db_find_next_volume(void *jcr, B_DB *mdb, int item, MEDIA_DBR *mr)
+int db_find_next_volume(JCR *jcr, B_DB *mdb, int item, MEDIA_DBR *mr)
 {
    MEDIA_DBR omr;
    int stat = 0;
@@ -176,7 +176,7 @@ int db_find_next_volume(void *jcr, B_DB *mdb, int item, MEDIA_DBR *mr)
    return stat; 		
 }
 
-int db_find_last_jobid(void *jcr, B_DB *mdb, JOB_DBR *jr) { return 0; }
+int db_find_last_jobid(JCR *jcr, B_DB *mdb, JOB_DBR *jr) { return 0; }
 
 
 #endif /* HAVE_BACULA_DB */

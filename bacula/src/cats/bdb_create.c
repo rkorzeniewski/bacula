@@ -55,13 +55,13 @@ int db_create_pool_record(B_DB *mdb, POOL_DBR *pr);
  * -----------------------------------------------------------------------
  */
 
-int db_create_file_attributes_record(void *jcr, B_DB *mdb, ATTR_DBR *ar)
+int db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 {
    /* *****FIXME***** implement this */
    return 1;
 }
 
-int db_create_file_item(void *jcr, B_DB *mdb, ATTR_DBR *ar)
+int db_create_file_item(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 {	     
    /****FIXME***** not implemented */
    return 1;
@@ -76,7 +76,7 @@ int db_create_file_item(void *jcr, B_DB *mdb, ATTR_DBR *ar)
  * Returns: 0 on failure
  *	    1 on success
  */
-int db_create_job_record(void *jcr, B_DB *mdb, JOB_DBR *jr)
+int db_create_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 {
    int len;
 
@@ -105,7 +105,7 @@ int db_create_job_record(void *jcr, B_DB *mdb, JOB_DBR *jr)
  * Returns: 0 on failure
  *	    record-id on success
  */
-int db_create_jobmedia_record(void *jcr, B_DB *mdb, JOBMEDIA_DBR *jm)
+int db_create_jobmedia_record(JCR *jcr, B_DB *mdb, JOBMEDIA_DBR *jm)
 {
    int len;
 
@@ -137,7 +137,7 @@ int db_create_jobmedia_record(void *jcr, B_DB *mdb, JOBMEDIA_DBR *jm)
  * Returns: 0 on failure
  *	    1 on success
  */
-int db_create_pool_record(void *jcr, B_DB *mdb, POOL_DBR *pr)
+int db_create_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
 {
    int len;
    POOL_DBR mpr;
@@ -180,7 +180,7 @@ int db_create_pool_record(void *jcr, B_DB *mdb, POOL_DBR *pr)
  * Returns: 0 on failure
  *	    1 on success
  */ 
-int db_create_media_record(void *jcr, B_DB *mdb, MEDIA_DBR *mr)
+int db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 {
    int len;
    MEDIA_DBR mmr;
@@ -217,7 +217,7 @@ int db_create_media_record(void *jcr, B_DB *mdb, MEDIA_DBR *mr)
  * Returns: 0 on failure
  *	    1 on success
  */
-int db_create_client_record(void *jcr, B_DB *mdb, CLIENT_DBR *cr)
+int db_create_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr)
 {
    int len;
    CLIENT_DBR lcr;
@@ -259,7 +259,7 @@ int db_create_client_record(void *jcr, B_DB *mdb, CLIENT_DBR *cr)
  * Returns: 0 on failure
  *	    1 on success
  */
-int db_create_fileset_record(void *jcr, B_DB *mdb, FILESET_DBR *fsr)
+int db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
 {
    int len;
    FILESET_DBR lfsr;

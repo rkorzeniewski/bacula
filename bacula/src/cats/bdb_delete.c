@@ -61,7 +61,7 @@
  * Returns: 0 on error
  *	    the number of records deleted on success 
  */
-int db_delete_pool_record(void *jcr, B_DB *mdb, POOL_DBR *pr)
+int db_delete_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
 {
    int stat;
    POOL_DBR opr;
@@ -80,7 +80,7 @@ int db_delete_pool_record(void *jcr, B_DB *mdb, POOL_DBR *pr)
    return stat; 
 }
 
-int db_delete_media_record(void *jcr, B_DB *mdb, MEDIA_DBR *mr) 
+int db_delete_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr) 
 { 
    int stat;
    MEDIA_DBR omr;

@@ -65,7 +65,7 @@
  *	    1 on success
  */
 
-int db_get_job_record(void *jcr, B_DB *mdb, JOB_DBR *jr)
+int db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 { 
    JOB_DBR ojr;
    faddr_t rec_addr;
@@ -127,7 +127,7 @@ int db_get_job_record(void *jcr, B_DB *mdb, JOB_DBR *jr)
  * Returns: -1 on failure
  *	    number on success
  */
-int db_get_num_pool_records(void *jcr, B_DB *mdb)
+int db_get_num_pool_records(JCR *jcr, B_DB *mdb)
 {
    int stat = 0;
 
@@ -144,7 +144,7 @@ int db_get_num_pool_records(void *jcr, B_DB *mdb)
  *  Returns 0: on failure
  *	    1: on success
  */
-int db_get_pool_ids(void *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
+int db_get_pool_ids(JCR *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
 {
    int i = 0;
    uint32_t *id;
@@ -180,7 +180,7 @@ int db_get_pool_ids(void *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
  * Returns: 0 on failure
  *	    id on success 
  */
-int db_get_pool_record(void *jcr, B_DB *mdb, POOL_DBR *pr)
+int db_get_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
 {
    POOL_DBR opr;
    faddr_t rec_addr;
@@ -236,7 +236,7 @@ int db_get_pool_record(void *jcr, B_DB *mdb, POOL_DBR *pr)
  * Returns: -1 on failure
  *	    number on success
  */
-int db_get_num_media_records(void *jcr, B_DB *mdb)
+int db_get_num_media_records(JCR *jcr, B_DB *mdb)
 {
    int stat = 0;
 
@@ -253,7 +253,7 @@ int db_get_num_media_records(void *jcr, B_DB *mdb)
  *  Returns 0: on failure
  *	    1: on success
  */
-int db_get_media_ids(void *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
+int db_get_media_ids(JCR *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
 {
    int i = 0;
    uint32_t *id;
@@ -292,7 +292,7 @@ int db_get_media_ids(void *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
  * Returns: 0 on failure
  *	    id on success 
  */
-int db_get_media_record(void *jcr, B_DB *mdb, MEDIA_DBR *mr)
+int db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 {
    faddr_t rec_addr;
    int found = 0;
@@ -351,7 +351,7 @@ int db_get_media_record(void *jcr, B_DB *mdb, MEDIA_DBR *mr)
  *		Volumes are concatenated in VolumeNames
  *		separated by a vertical bar (|).
  */
-int db_get_job_volume_names(void *jcr, B_DB *mdb, uint32_t JobId, POOLMEM **VolumeNames)
+int db_get_job_volume_names(JCR *jcr, B_DB *mdb, uint32_t JobId, POOLMEM **VolumeNames)
 {
    int found = 0;
    JOBMEDIA_DBR jm;
@@ -401,7 +401,7 @@ int db_get_job_volume_names(void *jcr, B_DB *mdb, uint32_t JobId, POOLMEM **Volu
  * Returns: 0 on failure
  *	    id on success 
  */
-int db_get_client_record(void *jcr, B_DB *mdb, CLIENT_DBR *cr)
+int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr)
 {
    CLIENT_DBR lcr;
    int len;
@@ -448,7 +448,7 @@ int db_get_client_record(void *jcr, B_DB *mdb, CLIENT_DBR *cr)
  * Returns: 0 on failure
  *	    id on success 
  */
-int db_get_fileset_record(void *jcr, B_DB *mdb, FILESET_DBR *fsr)
+int db_get_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
 {
    FILESET_DBR lfsr;
    int stat = 0;
@@ -489,13 +489,13 @@ int db_get_fileset_record(void *jcr, B_DB *mdb, FILESET_DBR *fsr)
 
 
 
-int db_get_file_attributes_record(void *jcr, B_DB *mdb, char *fname, FILE_DBR *fdbr) 
+int db_get_file_attributes_record(JCR *jcr, B_DB *mdb, char *fname, FILE_DBR *fdbr) 
 { return 0; }
 
-int db_get_job_volume_parameters(void *jcr, B_DB *mdb, uint32_t JobId, VOL_PARAMS **VolParams)
+int db_get_job_volume_parameters(JCR *jcr, B_DB *mdb, uint32_t JobId, VOL_PARAMS **VolParams)
 { return 0; }
 
-int db_get_client_ids(void *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
+int db_get_client_ids(JCR *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
 { return 0; }
 
 #endif /* HAVE_BACULA_DB */

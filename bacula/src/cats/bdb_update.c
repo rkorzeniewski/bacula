@@ -61,7 +61,7 @@
  * most current start fields to the job record.
  * It is assumed that you did a db_create_job_record() already.
  */
-int db_update_job_start_record(void *jcr, B_DB *mdb, JOB_DBR *jr)    
+int db_update_job_start_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)    
 {
    int len, stat = 1;
    JOB_DBR ojr;
@@ -93,7 +93,7 @@ int db_update_job_start_record(void *jcr, B_DB *mdb, JOB_DBR *jr)
  * This is called at Job termination time to add all the
  * other fields to the job record.
  */
-int db_update_job_end_record(void *jcr, B_DB *mdb, JOB_DBR *jr)    
+int db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)	  
 {
    int len, stat = 1;
    JOB_DBR ojr;
@@ -121,7 +121,7 @@ int db_update_job_end_record(void *jcr, B_DB *mdb, JOB_DBR *jr)
 }
 
 
-int db_update_media_record(void *jcr, B_DB *mdb, MEDIA_DBR *mr) 
+int db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr) 
 { 
    int stat = 1;
    MEDIA_DBR omr;
@@ -159,7 +159,7 @@ int db_update_media_record(void *jcr, B_DB *mdb, MEDIA_DBR *mr)
    return stat;
 }
 
-int db_update_pool_record(void *jcr, B_DB *mdb, POOL_DBR *pr) 
+int db_update_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr) 
 { 
    int stat = 1;
    POOL_DBR opr;
@@ -197,17 +197,17 @@ int db_update_pool_record(void *jcr, B_DB *mdb, POOL_DBR *pr)
    return stat;
 }
 
-int db_add_SIG_to_file_record(void *jcr, B_DB *mdb, FileId_t FileId, char *SIG, int type)
+int db_add_SIG_to_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, char *SIG, int type)
 {
    return 1;
 }
 
-int db_mark_file_record(void *jcr, B_DB *mdb, FileId_t FileId, JobId_t JobId)
+int db_mark_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, JobId_t JobId)
 { 
    return 1;
 }
 
-int db_update_client_record(void *jcr, B_DB *mdb, CLIENT_DBR *cr)
+int db_update_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr)
 {
    return 1;
 }
