@@ -251,7 +251,7 @@ hp:
       exit(1);
    }
    if (connect(s, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
-      Pmsg1(0, "Fatal connect error: ERR=%s\n", strerror(errno));
+      Pmsg2(0, "Fatal connect error to %s: ERR=%s\n", mailhost, strerror(errno));
       exit(1);
    }
    Dmsg0(20, "Connected\n");

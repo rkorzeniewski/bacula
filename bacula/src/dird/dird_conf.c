@@ -191,7 +191,7 @@ struct res_items job_items[] = {
    {"name",      store_name,    ITEM(res_job.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,   ITEM(res_job.hdr.desc), 0, 0, 0},
    {"type",      store_jobtype, ITEM(res_job.JobType),  0, ITEM_REQUIRED, 0},
-   {"level",     store_level,   ITEM(res_job.level),    0, ITEM_REQUIRED, 0},
+   {"level",     store_level,   ITEM(res_job.level),    0, 0, 0},
    {"messages",  store_res,     ITEM(res_job.messages), R_MSGS, ITEM_REQUIRED, 0},
    {"storage",   store_res,     ITEM(res_job.storage),  R_STORAGE, ITEM_REQUIRED, 0},
    {"pool",      store_res,     ITEM(res_job.pool),     R_POOL, ITEM_REQUIRED, 0},
