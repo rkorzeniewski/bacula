@@ -1,35 +1,25 @@
 FEATURES
 --------
 
-wxbMainFrame : Add some text in front of the command window such as 
-   "Command: " so that the user knows he can type into the 
-   command line
-   
 wxbRestorePanel : Reconsider start button's labels.
-
-wxbRestorePanel : Implement cancel button when first configuring
-
-wxbRestorePanel : Change defaults values when Job Name changes (first configure)
 
 wxbRestorePanel : Add titles to configuration panel
 
+wxbRestorePanel : When cancelling, check for commands results
+
 general : Show nice messages boxes when errors occurs.
-
-wxbMainFrame : set focus to type control when clicking on console
-
-wxbRestorePanel : Add a Cancel Restore button
-   (may need to implement BNET_BREAK to break current command)
 
 general : Allow the user to quit however the state is (kill thread if necessary)
 
-general : correct segmentation fault when exiting
-
-wxbRestorePanel : Check more carefully which job we just have run
-   (an elegant solution would need director modification).
+general : correct segmentation faults when exiting
 
 [postponed to July:]
 
-global : create a general class which keeps clients, filesets, pools... list.
+wxbRestorePanel : Add a way to cancel restore when building tree (needs director modifications)
+
+wxbMainFrame : set focus to type control when clicking on console
+
+global : create a general class which keeps clients, jobs, filesets, pools... list.
 
 wxbMainFrame : use more often status text
 
@@ -54,7 +44,7 @@ wxbRestorePanel : Is there any way to add a width adjustment handle between
      the tree view window and the file view window so that the 
      width of the tree view can be changed?
 
-general : Implement reconnecting
+general : Implement dis/reconnecting
 
 wxbRestorePanel : Use ".default job=RestoreFiles" to get defaults parameters
 	when changing a restore parameter fails.
@@ -90,6 +80,9 @@ wxbRestorePanel : The + only appears when one selects a directory,
    to indicate it has subdirectories
 
 wxbRestorePanel : Add a timeout when waiting for commands results
+
+wxbRestorePanel : Be sure of which job we just have run (not suppositions
+   as I'm doing now) : needs director modification.
 
 bacula-dir : correct director to handle correctly + marked status
    (In fact there is a bug in the director : If you mark a directory

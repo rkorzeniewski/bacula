@@ -131,8 +131,9 @@ private:
    ~wxbMainFrame();
 
    wxNotebook *notebook; /* main notebook */
-   wxTextCtrl *typeCtrl; /* wxTextCtrl for console user input */
    wxTextCtrl *consoleCtrl; /* wxTextCtrl containing graphical console */
+   wxTextCtrl *typeCtrl; /* wxTextCtrl for console user input */
+   wxButton *sendButton; /* wxButton used to send data */
 
    wxbPanel **panels; /* panels array, contained in the notebook */
    wxbDataParsers parsers; /* Data parsers, which need to receive director informations */

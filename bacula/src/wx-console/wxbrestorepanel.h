@@ -60,6 +60,9 @@ class wxbRestorePanel : public wxbPanel
       /* The main button has been clicked */
       void CmdStart();
 
+      /* The cancel button has been clicked */
+      void CmdCancel();
+
       /* Apply configuration changes */
       void CmdConfigApply();
 
@@ -76,10 +79,11 @@ class wxbRestorePanel : public wxbPanel
       void CmdMark(wxTreeItemId treeitem, long listitem);
 
 /* General functions and variables */
-      bool ended; /* The last command send has finished */
+      //bool ended; /* The last command send has finished */
 
-      long filemessages; /* When restoring, number of files restored */
+      //long filemessages; /* When restoring, number of files restored */
       long totfilemessages; /* When restoring, number of files to be restored */
+      wxString jobid;
 
       /* Parse a table in tableParser */
       wxbTableParser* CreateAndWaitForParser(wxString cmd);
@@ -112,8 +116,11 @@ class wxbRestorePanel : public wxbPanel
       /* Refresh a tree item, and all its children. */
       void RefreshTree(wxTreeItemId item);
       
-      /* Update config */
-      bool UpdateConfig(wxbDataTokenizer* dt);
+      /* Update first config, adapting settings to the job name selected */
+      void UpdateFirstConfig();
+      
+      /* Update second config */
+      bool UpdateSecondConfig(wxbDataTokenizer* dt);
       
 /* Status related */
       enum status_enum
@@ -130,6 +137,12 @@ class wxbRestorePanel : public wxbPanel
 
       status_enum status;
 
+      /* Cancelled status :
+       *  - 0 - !cancelled
+       *  - 1 - will be cancelled
+       *  - 2 - has been cancelled */
+      int cancelled;
+
       /* Set current status by enabling/disabling components */
       void SetStatus(status_enum newstatus);
 
@@ -143,13 +156,13 @@ class wxbRestorePanel : public wxbPanel
 
 /* Event handling */
       void OnStart(wxEvent& WXUNUSED(event));
+      void OnCancel(wxEvent& WXUNUSED(event));
       void OnTreeChanging(wxTreeEvent& event);
       void OnTreeExpanding(wxTreeEvent& event);
       void OnTreeChanged(wxTreeEvent& event);
       void OnTreeMarked(wxbTreeMarkedEvent& event);
       void OnListMarked(wxbListMarkedEvent& event);
       void OnListActivated(wxListEvent& event);
-      void OnClientChoiceChanged(wxCommandEvent& event);
       void OnConfigUpdated(wxCommandEvent& event);
       void OnConfigOk(wxEvent& WXUNUSED(event));
       void OnConfigApply(wxEvent& WXUNUSED(event));
@@ -164,6 +177,7 @@ class wxbRestorePanel : public wxbPanel
       wxImageList* imagelist; //image list for tree and list
 
       wxButton* start;
+      wxButton* cancel;
       wxbTreeCtrl* tree;
       wxbListCtrl* list;
       wxGauge* gauge;

@@ -1,4 +1,17 @@
 30-04-2004 :
+ - wxbRestorePanel : Added "Cancel" button to cancel restore at
+     all state of restore process.
+ - wxbMainFrame : Added "Send" button
+ - wxbRestorePanel (first configure) : Changed defaults values when
+     Job Name changes
+ - wxbRestorePanel (first configure) : corrected problem when bad
+     parameters are chosen
+ - wxbRestorePanel : Checking more carefully which job we just have run
+ - wxbRestorePanel : Using wxStopWatch instead of GetTicks to manage
+     timeouts.
+ - wxbMainFrame : Added "Command: " in front of the command window
+     so that the user knows he can type into the command line
+     (thanks to Kern)
  - wxbMainFrame : Fixed 100% CPU usage in GTK : added buffering when
      receiving data to print to the console (thanks to Phil)
  - wxbRestorePanel : Fixed 100% CPU usage in GTK : added sleeps between

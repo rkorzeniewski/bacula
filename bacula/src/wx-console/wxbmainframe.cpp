@@ -33,6 +33,8 @@
 
 #include <wx/arrimpl.cpp>
 
+#include <wx/stattext.h>
+
 // ----------------------------------------------------------------------------
 // event tables and other macros for wxWindows
 // ----------------------------------------------------------------------------
@@ -52,7 +54,8 @@ enum
    // (where it is special and put into the "Apple" menu)
    Minimal_About = wxID_ABOUT,
    TypeText = 2,
-   Thread = 3
+   SendButton = 3,
+   Thread = 4
 };
 
 /*
@@ -71,6 +74,7 @@ BEGIN_EVENT_TABLE(wxbMainFrame, wxFrame)
    EVT_MENU(Minimal_Quit,  wxbMainFrame::OnQuit)
    EVT_MENU(Minimal_About, wxbMainFrame::OnAbout)
    EVT_TEXT_ENTER(TypeText, wxbMainFrame::OnEnter)
+   EVT_BUTTON(SendButton, wxbMainFrame::OnEnter)
    EVT_CUSTOM(wxbTHREAD_EVENT, Thread, wxbMainFrame::OnPrint)
 END_EVENT_TABLE()
 
@@ -199,10 +203,8 @@ wxbMainFrame::wxbMainFrame(const wxString& title, const wxPoint& pos, const wxSi
    SetMenuBar(menuBar);
 #endif // wxUSE_MENUS
 
-#if wxUSE_STATUSBAR
    CreateStatusBar(1);
    SetStatusText(wxString("Welcome to bacula wx-console ") << VERSION << " (" << BDATE << ")!\n");
-#endif // wxUSE_STATUSBAR
 
    wxPanel* global = new wxPanel(this, -1);
 
@@ -216,14 +218,23 @@ wxbMainFrame::wxbMainFrame(const wxString& title, const wxPoint& pos, const wxSi
    consoleCtrl = new wxTextCtrl(consolePanel,-1,"",wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxTE_READONLY | wxTE_RICH);
    consoleCtrl->SetDefaultStyle(wxTextAttr(*wxBLACK, wxNullColour, wxFont(10, wxMODERN, wxNORMAL, wxNORMAL)));
 
-   typeCtrl = new wxTextCtrl(consolePanel,TypeText,"",wxDefaultPosition,wxSize(200,20), wxTE_PROCESS_ENTER);
-
    wxFlexGridSizer *consoleSizer = new wxFlexGridSizer(2, 1, 0, 0);
    consoleSizer->AddGrowableCol(0);
    consoleSizer->AddGrowableRow(0);
 
+   typeCtrl = new wxTextCtrl(consolePanel,TypeText,"",wxDefaultPosition,wxSize(200,20), wxTE_PROCESS_ENTER);
+   sendButton = new wxButton(consolePanel, SendButton, "Send");
+   
+   wxFlexGridSizer *typeSizer = new wxFlexGridSizer(1, 3, 0, 0);
+   typeSizer->AddGrowableCol(1);
+   typeSizer->AddGrowableRow(0);
+
+   typeSizer->Add(new wxStaticText(consolePanel, -1, "Command: "), 0, wxALIGN_CENTER | wxALL, 0);
+   typeSizer->Add(typeCtrl, 1, wxEXPAND | wxALL, 0);
+   typeSizer->Add(sendButton, 1, wxEXPAND | wxLEFT, 5);
+
    consoleSizer->Add(consoleCtrl, 1, wxEXPAND | wxALL, 0);
-   consoleSizer->Add(typeCtrl, 0, wxEXPAND | wxALL, 0);
+   consoleSizer->Add(typeSizer, 0, wxEXPAND | wxALL, 0);
 
    consolePanel->SetAutoLayout( TRUE );
    consolePanel->SetSizer( consoleSizer );
@@ -418,6 +429,8 @@ void wxbMainFrame::Print(wxString str, int status)
    }
 
    if (status == CS_DEBUG) {
+      consoleCtrl->AppendText(consoleBuffer);
+      consoleBuffer = "";
       consoleCtrl->SetDefaultStyle(wxTextAttr(wxColour(0, 128, 0)));
    }
    else {
