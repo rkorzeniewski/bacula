@@ -178,6 +178,11 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
       stat = bnet_fsend(dir, "%d %d %s %s%c%s%c%s%c", jcr->JobFiles,
 		    STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->fname, 
 		    0, attribs, 0, ff_pkt->link, 0);
+   } else if (ff_pkt->type == FT_DIR) {
+      /* Here link is the canonical filename (i.e. with trailing slash) */
+      stat = bnet_fsend(dir,"%d %d %s %s%c%s%c%c", jcr->JobFiles,
+		    STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->link, 
+		    0, attribs, 0, 0);
    } else {
       stat = bnet_fsend(dir,"%d %d %s %s%c%s%c%c", jcr->JobFiles,
 		    STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->fname, 
@@ -199,6 +204,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
       while ((n=bread(&bfd, jcr->big_buf, jcr->buf_size)) > 0) {
 	 MD5Update(&md5c, ((unsigned char *) jcr->big_buf), n);
 	 jcr->JobBytes += n;
+	 jcr->ReadBytes += n;
       }
       if (n < 0) {
          Jmsg(jcr, M_ERROR, -1, _("Error reading file %s: ERR=%s\n"), 
@@ -218,6 +224,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
       while ((n=bread(&bfd, jcr->big_buf, jcr->buf_size)) > 0) {
 	 SHA1Update(&sha1c, ((unsigned char *) jcr->big_buf), n);
 	 jcr->JobBytes += n;
+	 jcr->ReadBytes += n;
       }
       if (n < 0) {
          Jmsg(jcr, M_ERROR, -1, _("Error reading file %s: ERR=%s\n"), 

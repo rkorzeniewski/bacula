@@ -67,7 +67,7 @@ int do_verify(JCR *jcr)
    char *level, *Name;
    BSOCK   *fd;
    JOB_DBR jr, verify_jr;
-   JobId_t JobId = 0;
+   JobId_t verify_jobid = 0;
    int stat;
 
    if (!get_or_create_client_record(jcr)) {
@@ -83,10 +83,12 @@ int do_verify(JCR *jcr)
     *	    last backup Job.
     */
    if (jcr->JobLevel == L_VERIFY_CATALOG || 
-       jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG) {
+       jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG ||
+       jcr->JobLevel == L_VERIFY_DISK_TO_CATALOG) {
       memcpy(&jr, &jcr->jr, sizeof(jr));
-      if (jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG &&
-	  jcr->job->verify_job) {
+      if (jcr->job->verify_job &&
+	  (jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG ||
+	   jcr->JobLevel == L_VERIFY_DISK_TO_CATALOG)) {
 	 Name = jcr->job->verify_job->hdr.name;
       } else {
 	 Name = NULL;
@@ -104,8 +106,8 @@ int do_verify(JCR *jcr)
 	 }   
 	 goto bail_out;
       }
-      JobId = jr.JobId;
-      Dmsg1(100, "Last full Jobid=%d\n", JobId);
+      verify_jobid = jr.JobId;
+      Dmsg1(100, "Last full jobid=%d\n", verify_jobid);
    } 
 
    jcr->jr.JobId = jcr->JobId;
@@ -126,13 +128,13 @@ int do_verify(JCR *jcr)
 
    /*
     * Now get the job record for the previous backup that interests
-    *	us. We use the JobId that we found above.
+    *	us. We use the verify_jobid that we found above.
     */
    if (jcr->JobLevel == L_VERIFY_CATALOG || 
        jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG ||
        jcr->JobLevel == L_VERIFY_DISK_TO_CATALOG) {
       memset(&verify_jr, 0, sizeof(verify_jr));
-      verify_jr.JobId = JobId;
+      verify_jr.JobId = verify_jobid;
       if (!db_get_job_record(jcr, jcr->db, &verify_jr)) {
          Jmsg(jcr, M_FATAL, 0, _("Could not get job record for previous Job. ERR=%s"), 
 	      db_strerror(jcr->db));
@@ -140,7 +142,7 @@ int do_verify(JCR *jcr)
       }
       if (verify_jr.JobStatus != 'T') {
          Jmsg(jcr, M_FATAL, 0, _("Last Job %d did not terminate normally. JobStatus=%c\n"),
-	    JobId, verify_jr.JobStatus);
+	    verify_jobid, verify_jr.JobStatus);
 	 goto bail_out;
       }
       Jmsg(jcr, M_INFO, 0, _("Verifying against JobId=%d Job=%s\n"),
@@ -201,10 +203,10 @@ int do_verify(JCR *jcr)
       jcr->sd_auth_key = bstrdup("dummy");    /* dummy Storage daemon key */
    }
 
-   if (jcr->JobLevel == L_VERIFY_DISK_TO_CATALOG &&
-       jcr->job->verify_job) {
-       jcr->fileset = jcr->job->verify_job->fileset;
+   if (jcr->JobLevel == L_VERIFY_DISK_TO_CATALOG && jcr->job->verify_job) {
+      jcr->fileset = jcr->job->verify_job->fileset;
    }
+   Dmsg2(100, "ClientId=%u JobLevel=%c\n", verify_jr.ClientId, jcr->JobLevel);
    jcr->verify_jr = &verify_jr;
 
    /*
@@ -313,17 +315,19 @@ int do_verify(JCR *jcr)
       Dmsg0(10, "Verify level=catalog\n");
       jcr->sd_msg_thread_done = true;	/* no SD msg thread, so it is done */
       jcr->SDJobStatus = JS_Terminated;
-      get_attributes_and_compare_to_catalog(jcr, JobId);
+      get_attributes_and_compare_to_catalog(jcr, verify_jobid);
       break;
 
    case L_VERIFY_VOLUME_TO_CATALOG:
       Dmsg0(10, "Verify level=volume\n");
-      get_attributes_and_compare_to_catalog(jcr, JobId);
+      get_attributes_and_compare_to_catalog(jcr, verify_jobid);
       break;
 
    case L_VERIFY_DISK_TO_CATALOG:
       Dmsg0(10, "Verify level=disk_to_catalog\n");
-      get_attributes_and_compare_to_catalog(jcr, JobId);
+      jcr->sd_msg_thread_done = true;	/* no SD msg thread, so it is done */
+      jcr->SDJobStatus = JS_Terminated;
+      get_attributes_and_compare_to_catalog(jcr, verify_jobid);
       break;
 
    case L_VERIFY_INIT:
@@ -340,7 +344,6 @@ int do_verify(JCR *jcr)
    }
 
    stat = wait_for_job_termination(jcr);
-
    verify_cleanup(jcr, stat);
    return 1;
 
@@ -361,6 +364,7 @@ static void verify_cleanup(JCR *jcr, int TermCode)
    char *term_msg;
    int msg_type;
    JobId_t JobId;
+   char *Name;
 
 // Dmsg1(000, "Enter verify_cleanup() TermCod=%d\n", TermCode);
 
@@ -386,11 +390,17 @@ static void verify_cleanup(JCR *jcr, int TermCode)
       break;
    default:
       term_msg = term_code;
-      sprintf(term_code, _("Inappropriate term code: %c\n"), TermCode);
+      bsnprintf(term_code, sizeof(term_code), 
+                _("Inappropriate term code: %d %c\n"), TermCode, TermCode);
       break;
    }
    bstrftime(sdt, sizeof(sdt), jcr->jr.StartTime);
    bstrftime(edt, sizeof(edt), jcr->jr.EndTime);
+   if (jcr->job->verify_job) {
+      Name = jcr->job->verify_job->hdr.name;
+   } else {
+      Name = "";
+   }
 
    jobstatus_to_ascii(jcr->FDJobStatus, fd_term_msg, sizeof(fd_term_msg));
    if (jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG) {
@@ -401,6 +411,8 @@ Job:                    %s\n\
 FileSet:                %s\n\
 Verify Level:           %s\n\
 Client:                 %s\n\
+Verify JobId:           %d\n\
+Verify Job:             %s\n\
 Start time:             %s\n\
 End time:               %s\n\
 Files Examined:         %s\n\
@@ -414,6 +426,8 @@ Termination:            %s\n\n"),
 	 jcr->fileset->hdr.name,
 	 level_to_str(jcr->JobLevel),
 	 jcr->client->hdr.name,
+	 jcr->verify_jr->JobId,
+	 Name,
 	 sdt,
 	 edt,
 	 edit_uint64_with_commas(jcr->JobFiles, ec1),
@@ -428,6 +442,8 @@ Job:                    %s\n\
 FileSet:                %s\n\
 Verify Level:           %s\n\
 Client:                 %s\n\
+Verify JobId:           %d\n\
+Verify Job:             %s\n\
 Start time:             %s\n\
 End time:               %s\n\
 Files Examined:         %s\n\
@@ -440,6 +456,8 @@ Termination:            %s\n\n"),
 	 jcr->fileset->hdr.name,
 	 level_to_str(jcr->JobLevel),
 	 jcr->client->hdr.name,
+	 jcr->verify_jr->JobId,
+	 Name,
 	 sdt,
 	 edt,
 	 edit_uint64_with_commas(jcr->JobFiles, ec1),
@@ -493,7 +511,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
 
       fname = check_pool_memory_size(fname, fd->msglen);
       jcr->fname = check_pool_memory_size(jcr->fname, fd->msglen);
-      Dmsg1(400, "Atts+SIG=%s\n", fd->msg);
+      Dmsg1(200, "Atts+SIG=%s\n", fd->msg);
       if ((len = sscanf(fd->msg, "%ld %d %100s", &file_index, &stream, 
 	    fname)) != 3) {
          Jmsg3(jcr, M_FATAL, 0, _("bird<filed: bad attributes, expected 3 fields got %d\n\

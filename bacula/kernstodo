@@ -36,6 +36,8 @@ For 1.33 Testing/Documentation:
   SuSE.
                 
 For 1.33
+- Limit the number of block checksum/header BB01, ... errors 
+  printed.
 - Add VerifyJob to "run" summary (yes/mod/no) prompt.
 - Add device name to "Current Volume not acceptable because ..."
 - Make sure that Bacula rechecks the tape after the 20 min wait.
