@@ -38,6 +38,7 @@ For 1.33 Testing/Documentation:
   non-existent directories will not be restored properly.
 
 For version 1.35:
+- Finish SIGHUP work.
 - Check that all change in wait status in the SD are        
   signaled to the Director.
 - Add a block copy option to bcopy.
