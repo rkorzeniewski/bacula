@@ -100,18 +100,6 @@ bool fixup_device_block_write_error(DCR *dcr)
    /* Unlock, but leave BLOCKED */
    unlock_device(dev);
 
-   bstrncpy(dev->VolCatInfo.VolCatStatus, "Full", sizeof(dev->VolCatInfo.VolCatStatus));
-   Dmsg2(100, "Call update_vol_info Stat=%s Vol=%s\n",
-      dev->VolCatInfo.VolCatStatus, dev->VolCatInfo.VolCatName);
-   dev->VolCatInfo.VolCatFiles = dev->file;   /* set number of files */
-   dev->VolCatInfo.VolCatJobs++;	      /* increment number of jobs */
-   if (!dir_update_volume_info(dcr, false)) {	 /* send Volume info to Director */
-      P(dev->mutex);
-      unblock_device(dev);
-      return false;		   /* device locked */
-   }
-   Dmsg0(100, "Back from update_vol_info\n");
-
    bstrncpy(PrevVolName, dev->VolCatInfo.VolCatName, sizeof(PrevVolName));
    bstrncpy(dev->VolHdr.PrevVolName, PrevVolName, sizeof(dev->VolHdr.PrevVolName));
 
@@ -284,14 +272,16 @@ bool first_open_device(DEVICE *dev)
 	  mode = OPEN_READ_WRITE;
        }
       Dmsg0(129, "Opening device.\n");
+      dev->open_nowait = true;
       if (open_dev(dev, NULL, mode) < 0) {
          Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), dev->errmsg);
+	 dev->open_nowait = false;
 	 unlock_device(dev);
 	 return false;
       }
    }
    Dmsg1(129, "open_dev %s OK\n", dev->print_name());
-
+   dev->open_nowait = false;
    unlock_device(dev);
    return true;
 }

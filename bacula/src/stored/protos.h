@@ -127,6 +127,10 @@ uint32_t dev_block(DEVICE *dev);
 uint32_t dev_file(DEVICE *dev);
 bool     dev_is_tape(DEVICE *dev);
 
+/* From dvd.c */
+bool dvd_close_job(DCR *dcr);
+
+
 /* From device.c */
 bool     open_device(DCR *dcr);
 bool     first_open_device(DEVICE *dev);

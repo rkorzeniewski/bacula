@@ -371,8 +371,8 @@ static void prt_runtime(UAContext *ua, sched_pkt *sp)
    bool close_db = false;
    JCR *jcr = ua->jcr;
    MEDIA_DBR mr;
+
    memset(&mr, 0, sizeof(mr));
-   mr.PoolId = jcr->PoolId;
    if (sp->job->JobType == JT_BACKUP) {
       jcr->db = NULL;
       ok = complete_jcr_for_job(jcr, sp->job, sp->pool);
@@ -380,6 +380,7 @@ static void prt_runtime(UAContext *ua, sched_pkt *sp)
 	 close_db = true;	      /* new db opened, remember to close it */
       }
       if (ok) {
+         mr.PoolId = jcr->PoolId;
 	 ok = find_next_volume_for_append(jcr, &mr, 0);
       }
       if (!ok) {

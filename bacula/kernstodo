@@ -26,13 +26,13 @@ Autochangers:
      and possibly manipulating the autochanger (much asked for).
   
 For 1.37:
+- Add disk seeking on restore.  
 - If the user puts "Purge Oldest Volume = yes" or "Recycle Oldest Volume = yes"
   and there is only one volume in the pool, refuse to do it -- otherwise
   he fills the Volume, then immediately starts reusing it.
-- Add disk seeking on restore.  
 - Implement "NewVolumeEachJob = yes|no" in Dir.
 - Make "update slots" when pointing to Autochanger, remove
-  all Volumes from other drives.
+  all Volumes from other drives.  "update slots all-drives"?
 - Add Python writable variable for changing the Priority,
     Client, Storage, JobStatus (error), ...
 - SD Python
@@ -44,7 +44,6 @@ For 1.37:
 - Look at Preben's acl.c error handling code.
 - Look at adding full Volume and Pool information to a Volume 
   label so that bscan can get *all* the info. 
-- Scratch Pool where the volumes can be re-assigned to any Pool.
 - Implement Maximum Job Spool Size
 - 28-Mar 23:19 rufus-sd: acquire.c:379 Device "DDS-4" (/dev/nst0) 
   is busy reading. Job 6 canceled.
@@ -54,7 +53,14 @@ For 1.37:
   Dir next_vol.c
 - Finish implementation of passing all Storage and Device needs to
   the SD.
-
+- Check locking of resources -- be sure to lock devices where previously
+  resources were locked. 
+- Add global lock on all devices when creating a device structure.
+- Remove separate thread for opening devices in SD.  On the other
+  hand, don't block waiting for open() for devices.
+- Make sure that Python has access to Client address/port so that
+  it can check if Clients are alive.
+- Implement copies and stripes.
 
 Maybe in 1.37:
 - By the way: on page http://www.bacula.org/?page=tapedrives , at the 
@@ -1275,3 +1281,4 @@ Block Position: 0
 - When Python creates a new label, the tape is immediately
   recycled and no label created. This happens when using   
   autolabeling -- even when Python doesn't generate the name.
+- Scratch Pool where the volumes can be re-assigned to any Pool.

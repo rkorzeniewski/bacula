@@ -421,7 +421,6 @@ static bool list_nextvol(UAContext *ua)
    MEDIA_DBR mr;
 
    memset(&mr, 0, sizeof(mr));
-   mr.PoolId = jcr->PoolId;
    int i = find_arg_with_value(ua, "job");
    if (i <= 0) {
       if ((job = select_job_resource(ua)) == NULL) {
@@ -437,11 +436,14 @@ static bool list_nextvol(UAContext *ua)
       }
    }
    for (run=NULL; (run = find_next_run(run, job, runtime)); ) {
-      pool = run ? run->pool : NULL;
+      pool = run->pool ? run->pool : NULL;
       if (!complete_jcr_for_job(jcr, job, pool)) {
 	 return false;
       }
-
+      mr.PoolId = jcr->PoolId;
+      if (run->storage) {
+	 jcr->store = run->storage;
+      }
       if (!find_next_volume_for_append(jcr, &mr, 0)) {
          bsendmsg(ua, _("Could not find next Volume.\n"));
       } else {

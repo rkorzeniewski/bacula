@@ -77,9 +77,8 @@ extern	CURES res_all;
 extern int res_all_size;
 #endif
 
+extern brwlock_t res_lock;	      /* resource lock */
 
-static brwlock_t res_lock;	      /* resource lock */
-static int res_locked = 0;	      /* set when resource chains locked -- for debug */
 
 /* Forward referenced subroutines */
 static void scan_types(LEX *lc, MSGS *msg, int dest, char *where, char *cmd);
@@ -724,82 +723,6 @@ void store_label(LEX *lc, RES_ITEM *item, int index, int pass)
    }
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
-}
-
-
-/* #define TRACE_RES */
-
-void b_LockRes(const char *file, int line)
-{
-   int errstat;
-#ifdef TRACE_RES
-   Pmsg4(000, "LockRes   %d,%d at %s:%d\n", res_locked, res_lock.w_active,
-	 file, line);
-#endif
-   if ((errstat=rwl_writelock(&res_lock)) != 0) {
-      Emsg3(M_ABORT, 0, "rwl_writelock failure at %s:%d:  ERR=%s\n",
-	   file, line, strerror(errstat));
-   }
-   res_locked++;
-}
-
-void b_UnlockRes(const char *file, int line)
-{
-   int errstat;
-   res_locked--;
-#ifdef TRACE_RES
-   Pmsg4(000, "UnLockRes %d,%d at %s:%d\n", res_locked, res_lock.w_active,
-	 file, line);
-#endif
-   if ((errstat=rwl_writeunlock(&res_lock)) != 0) {
-      Emsg3(M_ABORT, 0, "rwl_writeunlock failure at %s:%d:. ERR=%s\n",
-	   file, line, strerror(errstat));
-   }
-}
-
-/*
- * Return resource of type rcode that matches name
- */
-RES *
-GetResWithName(int rcode, char *name)
-{
-   RES *res;
-   int rindex = rcode - r_first;
-
-   LockRes();
-   res = res_head[rindex];
-   while (res) {
-      if (strcmp(res->name, name) == 0) {
-	 break;
-      }
-      res = res->next;
-   }
-   UnlockRes();
-   return res;
-
-}
-
-/*
- * Return next resource of type rcode. On first
- * call second arg (res) is NULL, on subsequent
- * calls, it is called with previous value.
- */
-RES *
-GetNextRes(int rcode, RES *res)
-{
-   RES *nres;
-   int rindex = rcode - r_first;
-
-
-   if (!res_locked) {
-      Emsg0(M_ABORT, 0, "Resource chain not locked.\n");
-   }
-   if (res == NULL) {
-      nres = res_head[rindex];
-   } else {
-      nres = res->next;
-   }
-   return nres;
 }
 
 

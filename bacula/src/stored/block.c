@@ -36,6 +36,7 @@ extern int debug_level;
 static bool terminate_writing_volume(DCR *dcr);
 static bool do_new_file_bookkeeping(DCR *dcr);
 static bool do_dvd_size_checks(DCR *dcr);
+static void reread_last_block(DCR *dcr);
 
 /*
  * Dump the block header, then walk through
@@ -434,7 +435,7 @@ bool write_block_to_dev(DCR *dcr)
       blen = wlen;
 
       /* Adjust write size to min/max for tapes only */
-      if (dev->state & ST_TAPE) {
+      if (dev->is_tape()) {
 	 /* check for fixed block size */
 	 if (dev->min_block_size == dev->max_block_size) {
 	    wlen = block->buf_len;    /* fixed block size already rounded */
@@ -470,6 +471,7 @@ bool write_block_to_dev(DCR *dcr)
       Jmsg(jcr, M_INFO, 0, _("User defined maximum volume capacity %s exceeded on device %s.\n"),
 	    edit_uint64_with_commas(max_cap, ed1),  dev->dev_name);
       terminate_writing_volume(dcr);
+      reread_last_block(dcr);	/* DEBUG */
       dev->dev_errno = ENOSPC;
       return false;
    }
@@ -511,6 +513,9 @@ bool write_block_to_dev(DCR *dcr)
    }
 #endif
 
+   /*
+    * Do write here
+    */ 
    stat = write(dev->fd, block->buf, (size_t)wlen);
 
 #ifdef DEBUG_BLOCK_ZEROING
@@ -551,60 +556,9 @@ bool write_block_to_dev(DCR *dcr)
       if (!ok && !forge_on) {
 	 return false;
       }
-
-#define CHECK_LAST_BLOCK
-#ifdef	CHECK_LAST_BLOCK
-      /*
-       * If the device is a tape and it supports backspace record,
-       *   we backspace over one or two eof marks depending on
-       *   how many we just wrote, then over the last record,
-       *   then re-read it and verify that the block number is
-       *   correct.
-       */
-      if (ok && (dev->state & ST_TAPE) && dev_cap(dev, CAP_BSR)) {
-	 /* Now back up over what we wrote and read the last block */
-	 if (!bsf_dev(dev, 1)) {
-	    ok = false;
-            Jmsg(jcr, M_ERROR, 0, _("Backspace file at EOT failed. ERR=%s\n"), strerror(dev->dev_errno));
-	 }
-	 if (ok && dev_cap(dev, CAP_TWOEOF) && !bsf_dev(dev, 1)) {
-	    ok = false;
-            Jmsg(jcr, M_ERROR, 0, _("Backspace file at EOT failed. ERR=%s\n"), strerror(dev->dev_errno));
-	 }
-	 /* Backspace over record */
-	 if (ok && !bsr_dev(dev, 1)) {
-	    ok = false;
-            Jmsg(jcr, M_ERROR, 0, _("Backspace record at EOT failed. ERR=%s\n"), strerror(dev->dev_errno));
-	    /*
-	     *	On FreeBSD systems, if the user got here, it is likely that his/her
-             *    tape drive is "frozen".  The correct thing to do is a
-	     *	  rewind(), but if we do that, higher levels in cleaning up, will
-	     *	  most likely write the EOS record over the beginning of the
-	     *	  tape.  The rewind *is* done later in mount.c when another
-	     *	  tape is requested. Note, the clrerror_dev() call in bsr_dev()
-	     *	  calls ioctl(MTCERRSTAT), which *should* fix the problem.
-	     */
-	 }
-	 if (ok) {
-	    DEV_BLOCK *lblock = new_block(dev);
-	    /* Note, this can destroy dev->errmsg */
-	    dcr->block = lblock;
-	    if (!read_block_from_dev(dcr, NO_BLOCK_NUMBER_CHECK)) {
-               Jmsg(jcr, M_ERROR, 0, _("Re-read last block at EOT failed. ERR=%s"), dev->errmsg);
-	    } else {
-	       if (lblock->BlockNumber+1 == block->BlockNumber) {
-                  Jmsg(jcr, M_INFO, 0, _("Re-read of last block succeeded.\n"));
-	       } else {
-		  Jmsg(jcr, M_ERROR, 0, _(
-"Re-read of last block failed. Last block=%u Current block=%u.\n"),
-		       lblock->BlockNumber, block->BlockNumber);
-	       }
-	    }
-	    free_block(lblock);
-	    dcr->block = block;
-	 }
+      if (ok) {
+	 reread_last_block(dcr);
       }
-#endif
       return false;
    }
 
@@ -618,7 +572,7 @@ bool write_block_to_dev(DCR *dcr)
    block->BlockNumber++;
 
    /* Update dcr values */
-   if (dev_state(dev, ST_TAPE)) {
+   if (dev->is_tape()) {
       dcr->EndBlock = dev->EndBlock;
       dcr->EndFile  = dev->EndFile;
    } else {
@@ -640,6 +594,74 @@ bool write_block_to_dev(DCR *dcr)
    Dmsg2(300, "write_block: wrote block %d bytes=%d\n", dev->block_num, wlen);
    empty_block(block);
    return true;
+}
+
+static void reread_last_block(DCR *dcr)
+{
+#define CHECK_LAST_BLOCK
+#ifdef	CHECK_LAST_BLOCK
+   bool ok = true;
+   DEVICE *dev = dcr->dev;
+   JCR *jcr = dcr->jcr;
+   DEV_BLOCK *block = dcr->block;
+   /*
+    * If the device is a tape and it supports backspace record,
+    *	we backspace over one or two eof marks depending on
+    *	how many we just wrote, then over the last record,
+    *	then re-read it and verify that the block number is
+    *	correct.
+    */
+   if (dev->is_tape() && dev_cap(dev, CAP_BSR)) {
+      /* Now back up over what we wrote and read the last block */
+      if (!bsf_dev(dev, 1)) {
+	 berrno be;
+	 ok = false;
+         Jmsg(jcr, M_ERROR, 0, _("Backspace file at EOT failed. ERR=%s\n"), 
+	      be.strerror(dev->dev_errno));
+      }
+      if (ok && dev_cap(dev, CAP_TWOEOF) && !bsf_dev(dev, 1)) {
+	 berrno be;
+	 ok = false;
+         Jmsg(jcr, M_ERROR, 0, _("Backspace file at EOT failed. ERR=%s\n"), 
+	      be.strerror(dev->dev_errno));
+      }
+      /* Backspace over record */
+      if (ok && !bsr_dev(dev, 1)) {
+	 berrno be;
+	 ok = false;
+         Jmsg(jcr, M_ERROR, 0, _("Backspace record at EOT failed. ERR=%s\n"), 
+	      be.strerror(dev->dev_errno));
+	 /*
+	  *  On FreeBSD systems, if the user got here, it is likely that his/her
+          *    tape drive is "frozen".  The correct thing to do is a
+	  *    rewind(), but if we do that, higher levels in cleaning up, will
+	  *    most likely write the EOS record over the beginning of the
+	  *    tape.  The rewind *is* done later in mount.c when another
+	  *    tape is requested. Note, the clrerror_dev() call in bsr_dev()
+	  *    calls ioctl(MTCERRSTAT), which *should* fix the problem.
+	  */
+      }
+      if (ok) {
+	 DEV_BLOCK *lblock = new_block(dev);
+	 /* Note, this can destroy dev->errmsg */
+	 dcr->block = lblock;
+	 if (!read_block_from_dev(dcr, NO_BLOCK_NUMBER_CHECK)) {
+            Jmsg(jcr, M_ERROR, 0, _("Re-read last block at EOT failed. ERR=%s"), 
+		 dev->errmsg);
+	 } else {
+	    if (lblock->BlockNumber+1 == block->BlockNumber) {
+               Jmsg(jcr, M_INFO, 0, _("Re-read of last block succeeded.\n"));
+	    } else {
+	       Jmsg(jcr, M_ERROR, 0, _(
+"Re-read of last block failed. Last block=%u Current block=%u.\n"),
+		    lblock->BlockNumber, block->BlockNumber);
+	    }
+	 }
+	 free_block(lblock);
+	 dcr->block = block;
+      }
+   }
+#endif
 }
 
 static bool terminate_writing_volume(DCR *dcr)
@@ -668,7 +690,9 @@ static bool terminate_writing_volume(DCR *dcr)
    if (ok) {
       ok = write_ansi_ibm_labels(dcr, ANSI_EOV_LABEL, dev->VolHdr.VolName);
    }
-   dev->VolCatInfo.VolCatFiles = dev->file;
+   bstrncpy(dev->VolCatInfo.VolCatStatus, "Full", sizeof(dev->VolCatInfo.VolCatStatus));
+   dev->VolCatInfo.VolCatFiles = dev->file;   /* set number of files */
+   dev->VolCatInfo.VolCatJobs++;	      /* increment number of jobs */
    
    if (dev->is_dvd()) { /* Write the current (and last) part. */
       open_next_part(dev);
@@ -699,7 +723,7 @@ static bool terminate_writing_volume(DCR *dcr)
       Jmsg(dcr->jcr, M_ERROR, 0, "%s", dev->errmsg);
    }
 bail_out:
-   dev->set_eot();
+   dev->set_eot();		      /* no more writing this tape */
    Dmsg1(100, "Leave terminate_writing_volume -- %s\n", ok?"OK":"ERROR");
    return ok;
 }
@@ -954,7 +978,7 @@ reread:
       Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       Pmsg1(000, "%s", dev->errmsg);
       /* Attempt to reposition to re-read the block */
-      if (dev->state & ST_TAPE) {
+      if (dev->is_tape()) {
          Dmsg0(200, "BSR for reread; block too big for buffer.\n");
 	 if (!bsr_dev(dev, 1)) {
             Jmsg(jcr, M_ERROR, 0, "%s", strerror_dev(dev));
@@ -1002,7 +1026,7 @@ reread:
    dev->block_num++;
 
    /* Update dcr values */
-   if (dev->state & ST_TAPE) {
+   if (dev->is_tape()) {
       dcr->EndBlock = dev->EndBlock;
       dcr->EndFile  = dev->EndFile;
    } else {

@@ -42,7 +42,7 @@ static bool use_storage_cmd(JCR *jcr);
 static char jobcmd[] = "JobId=%d job=%127s job_name=%127s client_name=%127s "
       "type=%d level=%d FileSet=%127s NoAttr=%d SpoolAttr=%d FileSetMD5=%127s "
       "SpoolData=%d WritePartAfterJob=%d NewVol=%d\n";
-static char use_storage[]  = "use storage media_type=%127s "
+static char use_storage[]  = "use storage=%127s media_type=%127s "
    "pool_name=%127s pool_type=%127s append=%d\n";
 static char use_device[]  = "use device=%127s\n";
 //static char query_device[] = "query device=%127s";
@@ -261,9 +261,22 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
  *    Ensure that the device exists and is opened, then store
  *	the media and pool info in the JCR.
  */
+class DIRSTORE {
+public:
+   alist *device;
+   char name[MAX_NAME_LENGTH];
+   char media_type[MAX_NAME_LENGTH];
+   char pool_name[MAX_NAME_LENGTH];
+   char pool_type[MAX_NAME_LENGTH];
+};
+
+class DIRDEVICE {
+   alist *device;
+};
+   
 static bool use_storage_cmd(JCR *jcr)
 {
-   POOL_MEM dev_name, media_type, pool_name, pool_type;
+   POOL_MEM store_name, dev_name, media_type, pool_name, pool_type;
    BSOCK *dir = jcr->dir_bsock;
    DEVRES *device;
    AUTOCHANGER *changer;
@@ -275,9 +288,11 @@ static bool use_storage_cmd(JCR *jcr)
     *	use_device for each device that it wants to use.
     */
    Dmsg1(100, "<dird: %s", dir->msg);
-   ok = sscanf(dir->msg, use_storage, media_type.c_str(),
-	       pool_name.c_str(), pool_type.c_str(), &append) == 4;
+   ok = sscanf(dir->msg, use_storage, store_name.c_str(), 
+               media_type.c_str(), pool_name.c_str(), 
+	       pool_type.c_str(), &append) == 5;
    if (ok) {
+      unbash_spaces(store_name);
       unbash_spaces(media_type);
       unbash_spaces(pool_name);
       unbash_spaces(pool_type);

@@ -282,8 +282,10 @@ void *handle_client_request(void *dirp)
       fileset->exclude_list.destroy();
       free(fileset);
    }
+   ff->fileset = NULL;
    Dmsg0(100, "Calling term_find_files\n");
    term_find_files((FF_PKT *)jcr->ff);
+   jcr->ff = NULL;
    Dmsg0(100, "Done with term_find_files\n");
    free_jcr(jcr);		      /* destroy JCR record */
    Dmsg0(100, "Done with free_jcr\n");

@@ -8,7 +8,7 @@
  */
 
 /*
-   Copyright (C) 2001-20054 Kern Sibbald
+   Copyright (C) 2001-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -118,7 +118,7 @@ int run_cmd(UAContext *ua, const char *cmd)
                bsendmsg(ua, _("Value missing for keyword %s\n"), ua->argk[i]);
 	       return 1;
 	    }
-            Dmsg1(800, "Got keyword=%s\n", kw[j]);
+            Dmsg1(800, "Got keyword=%s\n", NPRT(kw[j]));
 	    switch (j) {
 	    case 0: /* job */
 	       if (job_name) {
@@ -287,7 +287,7 @@ int run_cmd(UAContext *ua, const char *cmd)
 	   return 0;
        }
    }
-   Dmsg1(800, "Using catalog=%s\n", catalog_name);
+   Dmsg1(800, "Using catalog=%s\n", NPRT(catalog_name));
 
    if (job_name) {
       /* Find Job */
