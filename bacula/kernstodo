@@ -38,6 +38,10 @@ For 1.33 Testing/Documentation:
   non-existent directories will not be restored properly.
 
 For version 1.35:
+- Check that all change in wait status in the SD are        
+  signaled to the Director.
+- Add a block copy option to bcopy.
+- Investigate adding Mac Resource Forks.
 - Finish work on Gnome restore GUI.
 - Fix "llist jobid=xx" where no fileset or client exists.
 - From Chris Hull:
@@ -1395,4 +1399,3 @@ Block Position: 0
   job is "stuck" in the run queue.
 - Test work on conio.c -- particularly linking.
 - Complete Win32 installer
-

@@ -1,63 +1,67 @@
                 
 Projects:
                      Bacula Projects Roadmap 
-                       22 February 2004
+                       05 April 2004
 
 Item 1:   Implement Base jobs.
 
   What:   A base job is sort of like a Full save except that you 
-          will want the FileSet to contain only files that are unlikely
-          to change in the future (i.e. a snapshot of most of your
-          system after installing it). After the base job has been run,
-          when you are doing a Full save, you specify one or more
-          Base jobs to be used. All files that have been backed up in  
-          the Base job/jobs but not modified will then be excluded from
-          the backup.  During a restore, the Base jobs will be
-          automatically pulled in where necessary.
+          will want the FileSet to contain only files that are
+          unlikely to change in the future (i.e.  a snapshot of
+          most of your system after installing it).  After the
+          base job has been run, when you are doing a Full save,
+          you specify one or more Base jobs to be used.  All
+          files that have been backed up in the Base job/jobs but
+          not modified will then be excluded from the backup.
+          During a restore, the Base jobs will be automatically
+          pulled in where necessary.
 
-  Why:    This is something none of the competition does, as far as we
-know
-          (except BackupPC, which is a Perl program that saves to disk
-          only).  It is big win for the user, it makes Bacula stand out
-          as offering a unique optimization that immediately saves time
-          and money. Basically, imagine that you have 100 nearly
-identical
-          Windows or Linux machine containing the OS and user files.
-          Now for the OS part, a Base job will be backed up once, and 
-          rather than making 100 copies of the OS, there will be only
-          one. If one or more of the systems have some files updated,
-          no problem, they will be automatically restored.
+  Why:    This is something none of the competition does, as far as
+          we know (except BackupPC, which is a Perl program that
+          saves to disk only).  It is big win for the user, it
+          makes Bacula stand out as offering a unique
+          optimization that immediately saves time and money.
+          Basically, imagine that you have 100 nearly identical
+          Windows or Linux machine containing the OS and user
+          files.  Now for the OS part, a Base job will be backed
+          up once, and rather than making 100 copies of the OS,
+          there will be only one.  If one or more of the systems
+          have some files updated, no problem, they will be
+          automatically restored.
 
-  Notes: Huge savings in tape usage even for a single machine.  Will
-          require more resources because the DIR must send FD a list of
-          files/attribs, and the FD must search the list and compare it
-          for each file to be saved.
+  Notes:  Huge savings in tape usage even for a single machine.
+          Will require more resources because the DIR must send
+          FD a list of files/attribs, and the FD must search the
+          list and compare it for each file to be saved.
 
 
 Item 2:   Job Data Spooling.
+Implemented in 1.34
 
   What:   Make the Storage daemon use intermediate file storage to
 buffer
           the data to disk before writing it to the tape. 
 
   Why:    This would be a nice project and is the most requested
-feature.
-          Even though you may finish a client job quicker by spooling to
-          disk, you still have to eventually get it onto tape.  If
-          intermediate disk buffering allows us to improve write
-          bandwidth to tape, it may make sense. In addition, you can
-          run multiple simultaneous jobs all spool to disk, then the
-          data can be written one job at a time to the tape at full
-          tape speed. This keeps the tape running smoothly and prevents
-          blocks from different simultaneous jobs from being intermixed
-          on the tape, which is very inefficient for restores.
+          feature.  Even though you may finish a client job
+          quicker by spooling to disk, you still have to
+          eventually get it onto tape.  If intermediate disk
+          buffering allows us to improve write bandwidth to tape,
+          it may make sense.  In addition, you can run multiple
+          simultaneous jobs all spool to disk, then the data can
+          be written one job at a time to the tape at full tape
+          speed.  This keeps the tape running smoothly and
+          prevents blocks from different simultaneous jobs from
+          being intermixed on the tape, which is very inefficient
+          for restores.
 
-  Notes:  Need multiple spool directories. Should possibly be able
-          to spool by Job type, ... Possibly need high and low spool
-          data levels.
+  Notes:  Need multiple spool directories.  Should possibly be
+          able to spool by Job type, ...  Possibly need high and
+          low spool data levels.
 
 
 Item 3:   GUI for interactive restore
+Partially Implemented in 1.34
 Item 4:   GUI for interactive backup
 
   What:   The current interactive restore is implemented with a tty
@@ -68,17 +72,16 @@ Item 4:   GUI for interactive backup
 
   Why:    Ease of use -- especially for the end user.
 
-  Notes:  Rather than implementing in Gtk, we probably should go
-directly
-          for a Browser implementation, even if doing so meant the
-          capability wouldn't be available until much later.  Not only
-          is there the question of Windows sites, most
-          Solaris/HP/IRIX, etc,  shops can't currently run Gtk programs
-          without installing lots of stuff admins are very wary about.
-          Real sysadmins will always use the command line anyway, and
-          the user who's doing an interactive restore or backup of his
-          own files will in most cases be on a Windows machine running
-          Exploder.
+  Notes: Rather than implementing in Gtk, we probably should go
+          directly for a Browser implementation, even if doing so
+          meant the capability wouldn't be available until much
+          later.  Not only is there the question of Windows
+          sites, most Solaris/HP/IRIX, etc, shops can't currently
+          run Gtk programs without installing lots of stuff
+          admins are very wary about.  Most sysadmins will always
+          use the command line anyway, and the user who's doing
+          an interactive restore or backup of his own files will
+          in most cases be on a Windows machine running Exploder.
 
 
 Item 5:   Implement a Migration job type that will move the job
@@ -87,15 +90,14 @@ Item 5:   Implement a Migration job type that will move the job
   What:   The ability to copy, move, or archive data that is on a
           device to another device is very important. 
 
-  Why:    An ISP might want to backup to disk, but after 30 days 
-          migrate the data to tape backup and delete it from disk.
-          Bacula should be able to handle this automatically. It needs
-to
-          know what was put where, and when, and what to migrate -- it
-          is a bit like retention periods. Doing so would allow space to
-          be freed up for current backups while maintaining older data
-on
-          tape drives.
+  Why:    An ISP might want to backup to disk, but after 30 days
+          migrate the data to tape backup and delete it from
+          disk.  Bacula should be able to handle this
+          automatically.  It needs to know what was put where,
+          and when, and what to migrate -- it is a bit like
+          retention periods.  Doing so would allow space to be
+          freed up for current backups while maintaining older
+          data on tape drives.
 
   Notes:  Migration could be triggered by:
            Number of Jobs
@@ -118,7 +120,7 @@ Item 6:   Embedded Perl Scripting (precursor to 7).
   Notes:  This needs Events.
 
 
-Item 7:   Implement Events (requires 6).
+Item 7:   Implement Events
 
   What:   When a particular user defined Event occurs, call the
           embedded Perl interpreter.
@@ -147,17 +149,17 @@ Item  9:  Backup a Single Job Simultaneously to Multiple Storage
 
   Why:    Large shops typically do this and then take one set of
           backups off-site.  Some design work it needed in how to
-          specify the type of backup (backup, archive, ...) for each
-          Device.
+          specify the type of backup (backup, archive, ...) for
+          each Device.
 
 
 Item 10:  Break the one-to-one Relationship between a Job and a
           Specific Storage Device (or Devices if #10 is implemented).
 
-  What:   Allow a Job to simply specify one or more MediaType, and the
-          Storage daemon will select a device for it.  In fact, the user
-          should be able to specify one or more MediaType, Storage
-          daemon, and/or device to be used.
+  What:   Allow a Job to simply specify one or more MediaType, and
+          the Storage daemon will select a device for it.  In
+          fact, the user should be able to specify one or more
+          MediaType, Storage daemon, and/or device to be used.
 
   Why:    To allow more flexibility in large shops that have multiple 
           drives and/or multiple drives of different types.
@@ -166,14 +168,15 @@ Item 10:  Break the one-to-one Relationship between a Job and a
 Item 11:  Add Regular Expression Matching and Plug-ins to the
           FileSet Include statements.
 
-  What:   Allow users to specify wild-card and/or regular expressions
-          to be matched in both the Include and Exclude directives
-          in a FileSet. At the same time, allow users to define plug-ins
-          to be called (based on regular expression/wild-card matching).
+  What:   Allow users to specify wild-card and/or regular
+          expressions to be matched in both the Include and
+          Exclude directives in a FileSet.  At the same time,
+          allow users to define plug-ins to be called (based on
+          regular expression/wild-card matching).
 
-  Why:    This would give the users the ultimate ability to control how
-          files are backed up/restored. A user could write a plug-in 
-          knows how to backup his Oracle database without
+  Why:    This would give the users the ultimate ability to control
+          how files are backed up/restored.  A user could write a
+          plug-in knows how to backup his Oracle database without
           stopping/starting it, for example.
 
 
@@ -202,18 +205,19 @@ Item 13:  New daemon communication protocol.
           retain the current ASCII sending, but would add an 
           argc, argv like table driven scanner to replace sscanf.
 
-  Why:    Named fields will permit error checking to ensure that what is
-          sent is what the receiver really wants. The fields can be in
-          any order and additional fields can be ignored allowing better
-          upward compatibility. Much better checking of the types and
-          values passed can be done.
+  Why:    Named fields will permit error checking to ensure that
+          what is sent is what the receiver really wants.  The
+          fields can be in any order and additional fields can be
+          ignored allowing better upward compatibility.  Much
+          better checking of the types and values passed can be
+          done.
 
   Notes:  These are internal improvements in the interest of the
-          long-term stability and evolution of the program.  On the one
-          hand, the sooner they're done, the less code we have to rip
-          up when the time comes to install them.  On the other hand,
-          they don't bring an immediately perceptible benefit to
-          potential users. 
+          long-term stability and evolution of the program.  On
+          the one hand, the sooner they're done, the less code we
+          have to rip up when the time comes to install them.  On
+          the other hand, they don't bring an immediately
+          perceptible benefit to potential users.
 
 
 Completed items from last year's list:
