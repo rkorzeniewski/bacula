@@ -184,6 +184,8 @@ static bool close_data_spool_file(JCR *jcr)
    return true;
 }
 
+static const char *spool_name = "*spool*";
+
 static bool despool_data(DCR *dcr, bool commit) 
 {
    DEVICE *rdev;
@@ -202,11 +204,15 @@ static bool despool_data(DCR *dcr, bool commit)
    lock_device(dcr->dev);
    dcr->dev_locked = true; 
 
-   /* Setup a dev structure to read */
+   /* 
+    * This is really quite kludgy and should be fixed some time.
+    * We create a dev structure to read from the spool file 
+    * in rdev and rdcr.
+    */
    rdev = (DEVICE *)malloc(sizeof(DEVICE));
    memset(rdev, 0, sizeof(DEVICE));
-   rdev->dev_name = get_memory(strlen("spool")+1);
-   strcpy(rdev->dev_name, "spool");
+   rdev->dev_name = get_memory(strlen(spool_name)+1);
+   strcpy(rdev->dev_name, spool_name);
    rdev->errmsg = get_pool_memory(PM_EMSG);
    *rdev->errmsg = 0;
    rdev->max_block_size = dcr->dev->max_block_size;
@@ -216,6 +222,7 @@ static bool despool_data(DCR *dcr, bool commit)
    rdcr->spool_fd = dcr->spool_fd; 
    rdcr->jcr = jcr;		      /* set a valid jcr */
    block = rdcr->block;
+
    Dmsg1(800, "read/write block size = %d\n", block->buf_len);
    lseek(rdcr->spool_fd, 0, SEEK_SET); /* rewind */
 
@@ -256,9 +263,10 @@ static bool despool_data(DCR *dcr, bool commit)
    V(dcr->dev->spool_mutex);
    free_memory(rdev->dev_name);
    free_pool_memory(rdev->errmsg);
-   free(rdev);
+   /* Be careful to NULL the jcr and free rdev after free_dcr() */
    rdcr->jcr = NULL;
    free_dcr(rdcr);
+   free(rdev);
    unlock_device(dcr->dev);
    dcr->dev_locked = false;
    dcr->spooling = true;	   /* turn on spooling again */

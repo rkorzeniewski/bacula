@@ -266,6 +266,7 @@ int main (int argc, char *argv[])
       num_media, num_pools, num_jobs, num_files);
 
    free_jcr(bjcr);
+   term_dev(dev);
    return 0;
 }
   
@@ -322,7 +323,6 @@ static void do_scan()
    release_device(bjcr);
 
    free_attr(attr);
-   term_dev(dev);
 }
 
 /*

@@ -230,10 +230,10 @@ static void do_extract(char *devname)
       set_attributes(jcr, attr, &bfd);
    }
    release_device(jcr);
-
    free_attr(attr);
-   term_dev(dev);
    free_jcr(jcr);
+   term_dev(dev);
+
    printf("%u files restored.\n", num_files);
    return;
 }

@@ -175,10 +175,11 @@ int main (int argc, char *argv[])
 
    Pmsg2(000, _("%u Jobs copied. %u records copied.\n"), jobs, records);
 
-   term_dev(in_dev);
-   term_dev(out_dev);
    free_jcr(in_jcr);
    free_jcr(out_jcr);
+
+   term_dev(in_dev);
+   term_dev(out_dev);
    return 0;
 }
   

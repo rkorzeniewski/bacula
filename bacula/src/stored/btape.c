@@ -266,19 +266,19 @@ static void terminate_btape(int stat)
       cmd = NULL;
    }
 
+   if (bsr) {
+      free_bsr(bsr);
+   }
+
+   free_jcr(jcr);
+   jcr = NULL;
+
    if (dev) {
       term_dev(dev);
    }
 
    if (debug_level > 10)
       print_memory_pool_stats(); 
-
-   free_jcr(jcr);
-   jcr = NULL;
-
-   if (bsr) {
-      free_bsr(bsr);
-   }
 
    if (this_block) {
       free_block(this_block);
