@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                 28 February 2003 
+                 01 March 2003 
 
 Documentation to do: (a little bit at a time)
 - Document running a test version.
@@ -22,10 +22,7 @@ For 1.30 release:
   the last copy for 1 year.
 - Have Bacula "poll" the tape to see if it is there.
 - Add more of the config info to the tape label.
-- Apparently cancel does not work for jobs waiting to be
-  scheduled.
 - Implement bar code reader for autochangers
-- Pull a canceled job from the Scheduling queue.
 - Add a default File storage so that new users can do backup
   and restores right away.
 - Implement a Mount Command and an Unmount Command where
@@ -42,7 +39,6 @@ For 1.30 release:
   to the user, who would then use "mount" as described above 
   once he had actually inserted the disk.
 
-- Implement TCP/IP connection for MySQL
 - Make some way so that if a machine is skipped because it is not up 
   that Bacula will continue retrying for a specified period of time --
   periodically.
@@ -871,3 +867,8 @@ Done: (see kernsdone for more)
 - Flush all the daemon messages at the end of every job.
 - Change stat1= fgets()!=NULL to stat1=fgest()==NULL; in 
   run_program -- bpipe.c
+- Apparently cancel does not work for jobs waiting to be
+  scheduled.
+- Implement TCP/IP connection for MySQL
+- Pull a canceled job from the Scheduling queue.
+
