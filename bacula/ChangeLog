@@ -1,4 +1,4 @@
-2002-06-xx Release 1.22
+2002-07-07 Release 1.22
 - All the basic Restore code to handle the boostrap file is
   now implemented with the exception of the Console Restore command.
 - Retained compatibility with previous Restore providing no 
