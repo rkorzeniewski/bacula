@@ -391,10 +391,10 @@ static void weofcmd()
 static void eomcmd()
 {
    if (!eod_dev(dev)) {
-      Pmsg1(0, "Bad status from eod. ERR=%s\n", strerror_dev(dev));
+      Pmsg1(0, _("Bad status from eod. ERR=%s\n"), strerror_dev(dev));
       return;
    } else {
-      Pmsg0(0, "Moved to end of media\n");
+      Pmsg0(0, _("Moved to end of media\n"));
    }
 }
 
@@ -415,9 +415,9 @@ static void bsfcmd()
    int stat;
 
    if ((stat=bsf_dev(dev, 1)) < 0) {
-      Pmsg1(0, "Bad status from bsf. ERR=%s\n", strerror(errno));
+      Pmsg1(0, _("Bad status from bsf. ERR=%s\n"), strerror(errno));
    } else {
-      Pmsg0(0, "Back spaced one file.\n");
+      Pmsg0(0, _("Back spaced one file.\n"));
    }
 }
 
@@ -429,9 +429,9 @@ static void bsrcmd()
    int stat;
 
    if ((stat=bsr_dev(dev, 1)) < 0) {
-      Pmsg1(0, "Bad status from bsr. ERR=%s\n", strerror(errno));
+      Pmsg1(0, _("Bad status from bsr. ERR=%s\n"), strerror(errno));
    } else {
-      Pmsg0(0, "Back spaced one record.\n");
+      Pmsg0(0, _("Back spaced one record.\n"));
    }
 }
 
@@ -441,7 +441,7 @@ static void bsrcmd()
  */
 static void capcmd()
 {
-   Pmsg0(0, "Device capabilities: ");
+   printf(_("Device capabilities:\n"));
    printf("%sEOF ", dev->capabilities & CAP_EOF ? "" : "!");
    printf("%sBSR ", dev->capabilities & CAP_BSR ? "" : "!");
    printf("%sBSF ", dev->capabilities & CAP_BSF ? "" : "!");
@@ -455,6 +455,21 @@ static void capcmd()
    printf("%sANONVOLS ", dev->capabilities & CAP_ANONVOLS ? "" : "!");
    printf("%sALWAYSOPEN ", dev->capabilities & CAP_ALWAYSOPEN ? "" : "!");
    printf("\n");
+
+   printf(_("Device status:\n"));
+   printf("%sOPENED ", dev->state & ST_OPENED ? "" : "!");
+   printf("%sTAPE ", dev->state & ST_TAPE ? "" : "!");
+   printf("%sLABEL ", dev->state & ST_LABEL ? "" : "!");
+   printf("%sMALLOC ", dev->state & ST_MALLOC ? "" : "!");
+   printf("%sAPPEND ", dev->state & ST_APPEND ? "" : "!");
+   printf("%sREAD ", dev->state & ST_READ ? "" : "!");
+   printf("%sEOT ", dev->state & ST_EOT ? "" : "!");
+   printf("%sWEOT ", dev->state & ST_WEOT ? "" : "!");
+   printf("%sEOF ", dev->state & ST_EOF ? "" : "!");
+   printf("%sNEXTVOL ", dev->state & ST_NEXTVOL ? "" : "!");
+   printf("%sSHORT ", dev->state & ST_SHORT ? "" : "!");
+   printf("\n");
+
 }
 
 /*
@@ -1113,7 +1128,7 @@ do_tape_cmds()
 	    break;
 	 }
       if (!found)
-         Pmsg1(0, "%s is an illegal command\n", cmd);
+         Pmsg1(0, _("%s is an illegal command\n"), cmd);
       if (quit)
 	 break;
    }
@@ -1123,7 +1138,7 @@ static void helpcmd()
 {
    unsigned int i;
    usage();
-   printf("  Command    Description\n  =======    ===========\n");
+   printf(_("  Command    Description\n  =======    ===========\n"));
    for (i=0; i<comsize; i++)
       printf("  %-10s %s\n", commands[i].key, commands[i].help);
    printf("\n");
@@ -1131,7 +1146,7 @@ static void helpcmd()
 
 static void usage()
 {
-   fprintf(stderr,
+   fprintf(stderr, _(
 "\nVersion: " VERSION " (" DATE ")\n\n"
 "Usage: btape [-c config_file] [-d debug_level] [device_name]\n"
 "       -c <file>   set configuration file to file\n"
@@ -1139,7 +1154,7 @@ static void usage()
 "       -s          turn off signals\n"
 "       -t          open the default tape device\n"
 "       -?          print this message.\n"  
-"\n");
+"\n"));
 
 }
 

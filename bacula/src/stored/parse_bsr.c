@@ -711,6 +711,7 @@ void free_vol_list(JCR *jcr)
       free(next);
       next = tmp;
    }
+   jcr->VolList = NULL;
 }
 
 void create_vol_list(JCR *jcr)

@@ -112,8 +112,22 @@ DEVICE *setup_to_access_device(JCR *jcr, int read_access)
    if (read_access) {
       if (!acquire_device_for_read(jcr, dev, block)) {
 	 Emsg0(M_ERROR, 0, dev->errmsg);
+	 free_block(block);
 	 return NULL;
       }
+   } else {
+      lock_device(dev);
+      if (!(dev->state & ST_OPENED)) {
+         Dmsg0(129, "Opening device.\n");
+	 if (open_dev(dev, jcr->VolumeName, READ_WRITE) < 0) {
+            Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), dev->errmsg);
+	    unlock_device(dev);
+	    free_block(block);
+	    return NULL;
+	 }
+      }
+      Dmsg1(129, "open_dev %s OK\n", dev_name(dev));
+      unlock_device(dev);
    }
    free_block(block);
    return dev;
@@ -181,6 +195,9 @@ static void my_free_jcr(JCR *jcr)
       free_pool_memory(jcr->dev_name);
       jcr->dev_name = NULL;
    }
+   if (jcr->VolList) {
+      free_vol_list(jcr);
+   }  
      
    return;
 }

@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                 25 October 2002
+                 29 October 2002
 
 To do:    
 - Document that two Verifys at same time on same client do not work.
@@ -26,6 +26,7 @@ For 1.27 release:
   ANYTHING to and from a Bacula Volume, including horrible
   stuff like Windows ACLs).
 
+- Write bcopy program.
 - Preprocessing command per file.
 - Postprocessing command per file (when restoring).
 - File system type from File daemon
@@ -38,16 +39,13 @@ For 1.27 release:
 - Send Volumes needed during restore to Console (just after
   create_volume_list) -- also in restore command?
 - Document buffer size considerations with Sparse files --
-- Document all daemon tools MUST have a config file.
 - Move block size code from block.c to init_dev().
 - Add code to fast seek to proper place on tape/file
   when doing Restore. If it doesn't work, try linear
   search as before.
 - Add code to reject whole blocks if not wanted on restore.
-- Why does btape error when pointed to a file?
 - Possibly add email to Watchdog if drive is unmounted too
   long and a job is waiting on the drive.
-- Disallow compile if long long not 64 bits.
 - What to do with btime and JobTDate?
 - Add FileSet MD5 to bscan.
 - Finish implementation of restore "replace" options, and document.
@@ -560,3 +558,6 @@ Done: (see kernsdone for more)
 - Label (asks for slot, return and it stops).
 - Make SD reject writing on tape where Catalog and tape # files
   don't agree (possibly OK if tape > catalog).
+- Document all daemon tools MUST have a config file.
+- Why does btape error when pointed to a file?
+- Disallow compile if long long not 64 bits.
