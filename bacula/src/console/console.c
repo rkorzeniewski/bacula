@@ -380,8 +380,7 @@ Without that I don't how to speak to the Director :-(\n"), configfile);
 
    memset(&jcr, 0, sizeof(jcr));
 
-
-   WSA_Init();			      /* Initialize Windows sockets */
+   (void)WSA_Init();			    /* Initialize Windows sockets */
 
    if (ndir > 1) {
       struct sockaddr_in client_addr;
@@ -397,8 +396,8 @@ try_again:
       }
       UnlockRes();
       if (get_cmd(stdin, _("Select Director: "), UA_sock, 600) < 0) {
-         WSACleanup();               /* Cleanup Windows sockets */
-         return 1;
+	 (void)WSACleanup();		   /* Cleanup Windows sockets */
+	 return 1;
       }
       item = atoi(UA_sock->msg);
       if (item < 0 || item > ndir) {
@@ -469,7 +468,6 @@ try_again:
 /* Cleanup and then exit */
 static void terminate_console(int sig)
 {
-   WSACleanup();               /* Cleanup Windows sockets */
 
    static bool already_here = false;
 
@@ -479,6 +477,7 @@ static void terminate_console(int sig)
    already_here = true;
    free_pool_memory(args);
    con_term();
+   (void)WSACleanup();		     /* Cleanup Windows sockets */
    if (sig != 0) {
       exit(1);
    }
