@@ -96,7 +96,7 @@ case $cmd in
 
    list) 
 #     echo "Requested list"
-      ${MTX} -f $ctl status | grep " *Storage Element [0-9]*:.*Full" | awk "{print \$slot \$device}" | sed "s/Full *\(:VolumeTag=\)*//"
+      ${MTX} -f $ctl status | grep " *Storage Element [0-9]*:.*Full" | awk "{print \$3 \$4}" | sed "s/Full *\(:VolumeTag=\)*//"
       ;;
 
    loaded)
@@ -110,6 +110,6 @@ case $cmd in
 
    slots)
 #     echo "Request slots"
-      ${MTX} -f $ctl status | grep " *Storage Changer" | awk "{print \$drive}"
+      ${MTX} -f $ctl status | grep " *Storage Changer" | awk "{print \$5}"
       ;;
 esac

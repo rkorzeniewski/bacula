@@ -245,9 +245,11 @@ static int send_list(JCR *jcr, int list)
       } else {
 	 ie = fileset->exclude_items[i];
       }
-      fo = ie->opts_list[0];
-      for (int j=0; j<fo->match.size(); j++) {
-         Dmsg1(100, "Match=%s\n", fo->match.get(j));
+      if (ie->num_opts) {
+	 fo = ie->opts_list[0];
+	 for (int j=0; j<fo->match.size(); j++) {
+            Dmsg1(100, "Match=%s\n", fo->match.get(j));
+	 }
       }
       for (int j=0; j<ie->name_list.size(); j++) {
 	 p = (char *)ie->name_list.get(j);
@@ -313,8 +315,8 @@ static int send_list(JCR *jcr, int list)
             p++;                      /* skip over \ */
 	    /* Note, fall through wanted */
 	 default:
-            Dmsg2(100, "numopts=%d opts=%s\n", ie->num_opts, NPRT(ie->opts_list[0]->opts));
 	    if (ie->num_opts) {
+               Dmsg2(100, "numopts=%d opts=%s\n", ie->num_opts, NPRT(ie->opts_list[0]->opts));
 	       pm_strcpy(&fd->msg, ie->opts_list[0]->opts);
                pm_strcat(&fd->msg, " ");
 	    } else {

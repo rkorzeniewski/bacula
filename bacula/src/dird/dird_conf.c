@@ -561,20 +561,38 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
       }
       break;
    case R_FILESET:
+   {
+      int i, j, k;
       sendit(sock, "FileSet: name=%s\n", res->res_fs.hdr.name);
-      for (int i=0; i<res->res_fs.num_includes; i++) {
+      for (i=0; i<res->res_fs.num_includes; i++) {
 	 INCEXE *incexe = res->res_fs.include_items[i];
-	 for (int j=0; j<incexe->name_list.size(); j++) {
-            sendit(sock, "      Inc: %s\n", incexe->name_list.get(j));
+	 for (j=0; j<incexe->num_opts; j++) {
+	    FOPTS *fo = incexe->opts_list[j];
+            sendit(sock, "      O %s\n", fo->opts);
+	    for (k=0; k<fo->match.size(); k++) {
+               sendit(sock, "      W %s\n", fo->match.get(j));
+	    }
+            sendit(sock, "      N\n");
+	 }
+	 for (j=0; j<incexe->name_list.size(); j++) {
+            sendit(sock, "      I %s\n", incexe->name_list.get(j));
+	 }
+	 if (incexe->name_list.size()) {
+            sendit(sock, "      N\n");
 	 }
       }
-      for (int i=0; i<res->res_fs.num_excludes; i++) {
+	 
+      for (i=0; i<res->res_fs.num_excludes; i++) {
 	 INCEXE *incexe = res->res_fs.exclude_items[i];
-	 for (int j=0; j<incexe->name_list.size(); j++) {
-            sendit(sock, "      Exc: %s\n", incexe->name_list.get(j));
+	 for (j=0; j<incexe->name_list.size(); j++) {
+            sendit(sock, "      E %s\n", incexe->name_list.get(j));
+	 }
+	 if (incexe->name_list.size()) {
+            sendit(sock, "      N\n");
 	 }
       }
       break;
+   }
    case R_SCHEDULE:
       if (res->res_sch.run) {
 	 int i;

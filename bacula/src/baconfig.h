@@ -487,4 +487,15 @@ extern "C" int getdomainname(char *name, int len);
 #define REPLACE_NEVER    'n'
 #define REPLACE_IFOLDER  'o'
 
+#ifdef HAVE_SETLOCALE
+#include <locale.h>
+#else
+#define setlocale(x, y) ("ANSI_X3.4-1968")
+#endif
+#ifdef HAVE_NL_LANGINFO
+#include <langinfo.h>
+#else 
+#define nl_langinfo(x) ("ANSI_X3.4-1968")
+#endif
+
 #endif /* _BACONFIG_H */
