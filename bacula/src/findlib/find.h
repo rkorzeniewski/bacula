@@ -102,6 +102,47 @@ struct s_excluded_file {
    char fname[1];
 };
 
+/* FileSet definitions very similar to the resource
+ *  contained in the Director because the components
+ *  of the structure are passed by the Director to the
+ *  File daemon and recompiled back into this structure
+ */
+#undef  MAX_FOPTS 
+#define MAX_FOPTS 30
+
+enum {
+   state_none,
+   state_options,
+   state_include,
+   state_error
+};
+
+/* File options structure */
+struct findFOPTS {
+   char opts[MAX_FOPTS];              /* options string */
+   alist regex;                       /* regex string(s) */
+   alist wild;                        /* wild card strings */
+   alist base;                        /* list of base names */
+};
+
+
+/* This is either an include item or an exclude item */
+struct findINCEXE {
+   findFOPTS *current_opts;           /* points to current options structure */
+   alist opts_list;                   /* options list */
+   alist name_list;                   /* filename list -- holds char * */
+};
+
+/* 
+ *   FileSet Resource
+ *
+ */
+struct findFILESET {
+   int state;
+   findINCEXE *incexe;                /* current item */
+   alist include_list;
+};
+
 
 /*
  * Definition of the find_files packet passed as the
@@ -128,6 +169,7 @@ struct FF_PKT {
    struct s_included_file *included_files_list;
    struct s_excluded_file *excluded_files_list;
    struct s_excluded_file *excluded_paths_list;
+   findFILESET *fileset;
 
    /* List of all hard linked files found */
    struct f_link *linklist;           /* hard linked files */

@@ -38,7 +38,7 @@
 /* Commands sent to File daemon */
 static char inc[]         = "include\n";
 static char exc[]         = "exclude\n";
-static char incopts[]     = "incopts\n"; /* new include with options */
+static char fileset[]     = "fileset\n"; /* set full fileset */
 static char jobcmd[]      = "JobId=%d Job=%s SDid=%u SDtime=%u Authorization=%s\n";
 static char levelcmd[]    = "level = %s%s mtime_only=%d\n";
 static char runbefore[]   = "RunBeforeJob %s\n";
@@ -231,7 +231,7 @@ static int send_list(JCR *jcr, int list)
       num = fileset->num_excludes;
    }
 
-   for (int i=0; i < num; i++) {
+   for (int i=0; i<num; i++) {
       BPIPE *bpipe;
       FILE *ffd;
       char buf[2000];
@@ -346,7 +346,7 @@ bail_out:
 /*
  * Send either an Included or an Excluded list to FD
  */
-static int send_incopts(JCR *jcr)
+static int send_fileset(JCR *jcr)
 {
    FILESET *fileset = jcr->fileset;
    BSOCK   *fd = jcr->file_bsock;
@@ -362,6 +362,7 @@ static int send_incopts(JCR *jcr)
       int j, k;
 
       ie = fileset->include_items[i];
+      bnet_fsend(fd, "I\n");
 
       for (j=0; j<ie->num_opts; j++) {
 	 FOPTS *fo = ie->opts_list[j];
@@ -390,7 +391,7 @@ static int send_incopts(JCR *jcr)
 		  p, strerror(errno));
 	       goto bail_out;
 	    }
-            bstrncpy(buf, "I ", sizeof(buf));
+            bstrncpy(buf, "F ", sizeof(buf));
             Dmsg1(100, "Opts=%s\n", buf);
 	    optlen = strlen(buf);
 	    while (fgets(buf+optlen, sizeof(buf)-optlen, bpipe->rfd)) {
@@ -414,7 +415,7 @@ static int send_incopts(JCR *jcr)
 		  p, strerror(errno));
 	       goto bail_out;
 	    }
-            bstrncpy(buf, "I ", sizeof(buf));
+            bstrncpy(buf, "F ", sizeof(buf));
             Dmsg1(100, "Opts=%s\n", buf);
 	    optlen = strlen(buf);
 	    while (fgets(buf+optlen, sizeof(buf)-optlen, ffd)) {
@@ -430,7 +431,7 @@ static int send_incopts(JCR *jcr)
             p++;                      /* skip over \ */
 	    /* Note, fall through wanted */
 	 default:
-            pm_strcpy(&fd->msg, "I ");
+            pm_strcpy(&fd->msg, "F ");
 	    fd->msglen = pm_strcat(&fd->msg, p);
             Dmsg1(100, "Inc/Exc name=%s\n", fd->msg);
 	    if (!bnet_send(fd)) {
@@ -463,8 +464,8 @@ int send_include_list(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
    if (jcr->fileset->new_include) {
-      bnet_fsend(fd, incopts);
-      return send_incopts(jcr);
+      bnet_fsend(fd, fileset);
+      return send_fileset(jcr);
    } else {
       bnet_fsend(fd, inc);
    }
