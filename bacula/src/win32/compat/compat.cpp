@@ -1090,13 +1090,13 @@ cleanup:
 int
 kill(int pid, int signal)
 {
-    int rval = 0;
-    if (!TerminateProcess((HANDLE)pid, (UINT) signal)) {
-        rval = -1;
-        errno = b_errno_win32;
-    }
-    CloseHandle((HANDLE)pid);
-    return rval;
+   int rval = 0;
+   if (!TerminateProcess((HANDLE)pid, (UINT) signal)) {
+      rval = -1;
+      errno = b_errno_win32;
+   }
+   CloseHandle((HANDLE)pid);
+   return rval;
 }
 
 #ifndef HAVE_MINGW
@@ -1104,37 +1104,40 @@ kill(int pid, int signal)
 int
 close_bpipe(BPIPE *bpipe)
 {
-    int rval = 0;
-    if (bpipe->rfd) fclose(bpipe->rfd);
-    if (bpipe->wfd) fclose(bpipe->wfd);
+   int rval = 0;
+   if (bpipe->rfd) fclose(bpipe->rfd);
+   if (bpipe->wfd) fclose(bpipe->wfd);
 
-    if (bpipe->wait) {
-        int remaining_wait = bpipe->wait;
-        do {
-            DWORD exitCode;
-            if (!GetExitCodeProcess((HANDLE)bpipe->worker_pid, &exitCode)) {
-                const char *err = errorString();
-                rval = b_errno_win32;
-                d_msg(__FILE__, __LINE__, 0,
-                      "GetExitCode error %s\n", err);
-                LocalFree((void *)err);
-                break;
-            }
+   if (bpipe->wait) {
+      int remaining_wait = bpipe->wait;
+      do {
+         DWORD exitCode;
+         if (!GetExitCodeProcess((HANDLE)bpipe->worker_pid, &exitCode)) {
+            const char *err = errorString();
+            rval = b_errno_win32;
+            d_msg(__FILE__, __LINE__, 0,
+                  "GetExitCode error %s\n", err);
+            LocalFree((void *)err);
+            break;
+         }
 
-            if (exitCode == STILL_ACTIVE) {
-                bmicrosleep(1, 0);             /* wait one second */
-                remaining_wait--;
-            }
-            else break;
-        } while(remaining_wait);
-        rval = ETIME;                 /* timed out */
-    }
+         if (exitCode == STILL_ACTIVE) {
+            bmicrosleep(1, 0);             /* wait one second */
+            remaining_wait--;
+         } else if (exitCode != 0) {
+            rval = exitCode | b_errno_exit;
+            break;
+         } else {
+            break;
+         }
+      } while(remaining_wait);
+      rval = ETIME;                 /* timed out */   }
 
-    if (bpipe->timer_id) {
-        stop_child_timer(bpipe->timer_id);
-    }
-    free((void *)bpipe);
-    return rval;
+   if (bpipe->timer_id) {
+       stop_child_timer(bpipe->timer_id);
+   }
+   free((void *)bpipe);
+   return rval;
 }
 
 int

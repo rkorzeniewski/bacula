@@ -30,6 +30,7 @@ Suggestions for Preben:
 - Optimized bootstrap.
 
 For 1.37:
+- Add Set Error from Python.
 - Create a new GUI chapter explaining all the GUI programs.
 - Tell the "restore" user when browsing is no longer possible.
 - Add disk seeking on restore.  
@@ -99,11 +100,20 @@ Design:
    - Directory
   Pool
    - Media Type (read/write)
-   - Device Group
+   - Device List 
+   - Next Pool
+   - Migration High
+   - Migration Low
+   - Migration Time (time after which data migrated to next Pool)
+   - Maximum Devices (that can use Pool simultaneously)
   Media
    - Autochanger Id
    - List of Devices/Device Groups/Storage groups
      (i.e. physical restraint) 
+   - Migration High
+   - Migration Low
+   - Migration Time (time after which data migrated to next Pool)
+   - Maximum Devices (that can use Pool simultaneously)
   Autochanger
    - Device list
 

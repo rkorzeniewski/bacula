@@ -272,6 +272,7 @@ bool is_bnet_stop(BSOCK * bsock)
  */
 int is_bnet_error(BSOCK * bsock)
 {
+   errno = bsock->b_errno;
    return bsock->errors;
 }
 
