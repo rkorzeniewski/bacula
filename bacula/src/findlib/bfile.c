@@ -313,31 +313,6 @@ int bclose(BFILE *bfd)
    return stat;
 }
 
-/*
- * Generate error message 
- */
-/* DO NOT USE */
-char *xberror(BFILE *bfd)
-{
-   LPTSTR msg;
-
-   FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER|
-		 FORMAT_MESSAGE_FROM_SYSTEM,
-		 NULL,
-		 bfd->lerror,
-		 0,
-		 (LPTSTR)&msg,
-		 0,
-		 NULL);
-   strip_trailing_junk(msg);
-   if (!bfd->errmsg) {
-      bfd->errmsg = get_pool_memory(PM_FNAME);
-   }
-   pm_strcpy(bfd->errmsg, msg);
-   LocalFree(msg);
-   return bfd->errmsg;
-}
-
 /* Returns: bytes read on success
  *	     0	       on EOF
  *	    -1	       on error

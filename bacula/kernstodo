@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                   17 Septermber 2004
+                     04 October 2004
 
 Major development:      
 Project                     Developer
@@ -11,25 +11,19 @@ Version 1.35                Kern (see below)
 ========================================================
 
 1.35 Items to do for release:
-- Backspace to beginning of line (conio) does not erase first char.
-- Doc to do unmount before removing magazine.
-- Detect fixed tape block mode during positioning by looking at
-  block numbers in btape "test".  Possibly adjust in Bacula.
-- Fix possible bug in update volumefrompool (email 9/28 from
-  jesk@killall.org
-- Make restore check if the file size restored is correct.
-
 - Document a get out of jail procedure if everything breaks if 
   you lost/broke the Catalog -- do the same for "I know my
   file is there how do I get it back?".
 
+- Add Pool/Storage override regression test.
+- Add relabel regression test.
+- Add delete JobId to regression.
+- Add bscan to four-concurrent-jobs regression.
 
    
 Maybe for 1.35:
 - Look at patches/bacula_db.b2z postgresql that loops during restore.
   See Gregory Wright.
-- Add delete JobId to regression.
-- Add bscan to four-concurrent-jobs regression.
 - Add IPv6 to regression
 - Perhaps add read/write programs and/or plugins to FileSets.
 - How to handle backing up portables ...
@@ -37,6 +31,7 @@ Maybe for 1.35:
 - Add some sort of guaranteed Interval for upgrading jobs.
 
 Documentation to do: (any release a little bit at a time)
+- Doc to do unmount before removing magazine.
 - Alternative to static linking "ldd prog" save all binaries listed,
   restore them and point LD_LIBRARY_PATH to them.
 - Document add "</dev/null >/dev/null 2>&1" to the bacula-fd command line
@@ -61,7 +56,6 @@ Documentation to do: (any release a little bit at a time)
     changing tape settings while a job is running.)
 - Lookup HP cleaning recommendations.
 - Lookup HP tape replacement recommendations (see trouble shooting autochanger)
-- Add more obvious documentation of @ for conf files.
 - Document doing table repair
   
           
@@ -69,6 +63,10 @@ Testing to do: (painful)
 
 
 For 1.37 Testing/Documentation:
+- When an error in input occurs and conio beeps, you can back
+  up through the prompt.
+- Detect fixed tape block mode during positioning by looking at
+  block numbers in btape "test".  Possibly adjust in Bacula.
 - Implement a Client filename case fold option (default = fold
   on Win32).
 - Fix list volumes to output volume retention in some other
@@ -1370,4 +1368,7 @@ Block Position: 0
 - Turn on transactions if multiple connections are on in DB.
 - Fix storage overrides in Run directives.
 - Look into failing Excludes in Win32
-
+- Make restore check if the file size restored is correct.
+- Backspace to beginning of line (conio) does not erase first char.
+- Fix possible bug in update volumefrompool (email 9/28 from
+  jesk@killall.org

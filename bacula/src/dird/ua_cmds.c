@@ -128,6 +128,7 @@ static struct cmdstruct commands[] = {
  { N_("time"),       time_cmd,      _("print current time")},
  { N_("trace"),      trace_cmd,     _("turn on/off trace to file")},
  { N_("unmount"),    unmount_cmd,   _("unmount <storage-name>")},
+ { N_("umount"),     unmount_cmd,   _("umount <storage-name> for old-time Unix guys")},
  { N_("update"),     update_cmd,    _("update Volume or Pool")},
  { N_("use"),        use_cmd,       _("use catalog xxx")},
  { N_("var"),        var_cmd,       _("does variable expansion")},
@@ -845,14 +846,16 @@ static void update_volfrompool(UAContext *ua, MEDIA_DBR *mr)
 
    memset(&pr, 0, sizeof(pr));
    pr.PoolId = mr->PoolId;
-   if (!get_pool_dbr(ua, &pr)) {
+   if (!db_get_pool_record(ua->jcr, ua->db, &pr) ||
+       !acl_access_ok(ua, Pool_ACL, pr.Name)) {
       return;
    }
    set_pool_dbr_defaults_in_media_dbr(mr, &pr);
    if (!db_update_media_defaults(ua->jcr, ua->db, mr)) {
       bsendmsg(ua, _("Error updating Volume record: ERR=%s"), db_strerror(ua->db));
    } else {
-      bsendmsg(ua, _("Volume defaults updated from Pool record.\n"));
+      bsendmsg(ua, _("Volume defaults updated from \"%s\" Pool record.\n"),
+	 pr.Name);
    }
 }
 
@@ -866,10 +869,10 @@ static void update_all_vols_from_pool(UAContext *ua)
    MEDIA_DBR mr;
 
    memset(&pr, 0, sizeof(pr));
+   memset(&mr, 0, sizeof(mr));
    if (!get_pool_dbr(ua, &pr)) {
       return;
    }
-   memset(&mr, 0, sizeof(mr));
    set_pool_dbr_defaults_in_media_dbr(&mr, &pr);
    mr.PoolId = pr.PoolId;
    if (!db_update_media_defaults(ua->jcr, ua->db, &mr)) {
@@ -946,9 +949,10 @@ static int update_volume(UAContext *ua)
 	    break;
 	 case 8:
 	    update_volfrompool(ua, &mr);
-	    break;
+	    return 1;
 	 case 9:
 	    update_all_vols_from_pool(ua);
+	    return 1;
 	 }
 	 done = true;
       }
@@ -1137,10 +1141,10 @@ static int update_volume(UAContext *ua)
 
       case 11:
 	 update_volfrompool(ua, &mr);
-	 break;
+	 return 1;
       case 12:
 	 update_all_vols_from_pool(ua);
-	 break;
+	 return 1;
       default:			      /* Done or error */
          bsendmsg(ua, "Selection done.\n");
 	 return 1;
