@@ -272,7 +272,7 @@ static bool use_device_cmd(JCR *jcr)
 	    bstrncpy(dcr->media_type, media_type, name_len);
 	    bstrncpy(dcr->dev_name, dev_name, name_len);
 	    jcr->device = device;
-	    Dmsg4(120, use_device, dev_name.c_str(), media_type.c_str(), pool_name.c_str(), pool_type.c_str());
+            Dmsg1(220, "Got: %s", dir->msg);
 	    return bnet_fsend(dir, OK_device);
 	 }
       }

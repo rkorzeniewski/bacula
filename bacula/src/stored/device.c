@@ -100,15 +100,6 @@ bool fixup_device_block_write_error(DCR *dcr)
    /* Unlock, but leave BLOCKED */
    unlock_device(dev);
 
-   /* Create a jobmedia record for this job */
-   if (!dir_create_jobmedia_record(dcr)) {
-       Jmsg(jcr, M_ERROR, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
-	    dcr->VolCatInfo.VolCatName, jcr->Job);
-       P(dev->mutex);
-       unblock_device(dev);
-       return false;
-   }
-
    bstrncpy(dev->VolCatInfo.VolCatStatus, "Full", sizeof(dev->VolCatInfo.VolCatStatus));
    Dmsg2(100, "Call update_vol_info Stat=%s Vol=%s\n", 
       dev->VolCatInfo.VolCatStatus, dev->VolCatInfo.VolCatName);
@@ -153,8 +144,9 @@ bool fixup_device_block_write_error(DCR *dcr)
     */
    Dmsg0(190, "write label block to dev\n");
    if (!write_block_to_dev(dcr)) {
+      berrno be;
       Pmsg1(0, "write_block_to_device Volume label failed. ERR=%s",
-	strerror_dev(dev));
+	be.strerror(dev->dev_errno));
       free_block(label_blk);
       dcr->block = block;
       unblock_device(dev);
@@ -189,8 +181,9 @@ bool fixup_device_block_write_error(DCR *dcr)
    /* Write overflow block to device */
    Dmsg0(190, "Write overflow block to dev\n");
    if (!write_block_to_dev(dcr)) {
+      berrno be;
       Pmsg1(0, "write_block_to_device overflow block failed. ERR=%s",
-	strerror_dev(dev));
+	be.strerror(dev->dev_errno));
       unblock_device(dev);
       return false;		   /* device locked */
    }

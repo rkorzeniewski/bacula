@@ -397,6 +397,7 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *Po
 
    Dmsg0(99, "write_volume_label()\n");
    empty_block(dcr->block);
+   /* Create PRE_LABEL */	
    create_volume_label(dev, VolName, PoolName);
 
    if (!rewind_dev(dev)) {
@@ -410,6 +411,8 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *Po
    create_volume_label_record(dcr, dcr->rec);
    dcr->rec->Stream = 0;
 
+   /* Temporarily mark in append state to enable writing */
+   dev->state |= ST_APPEND;
    if (!write_record_to_block(dcr->block, dcr->rec)) {
       Dmsg2(30, "Bad Label write on %s. ERR=%s\n", dev_name(dev), strerror_dev(dev));
       memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
@@ -426,15 +429,17 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *Po
    }
    Dmsg0(99, " Wrote block to device\n");
      
-   weof_dev(dev, 1);
-   dev->state |= ST_LABEL;
-   ok = true;
+   if (weof_dev(dev, 1) == 0) {
+      dev->state |= ST_LABEL;
+      ok = true;
+   }
 
    if (debug_level >= 20)  {
       dump_volume_label(dev);
    }
 
 bail_out:
+   dev->state &= ~ST_APPEND;	      /* remove append since this is PRE_LABEL */
    return ok;
 }     
 
@@ -556,8 +561,8 @@ bool write_session_label(DCR *dcr, int label)
       return false;
    }
 
-   Dmsg6(20, "Write sesson_label record JobId=%d FI=%s SessId=%d Strm=%s len=%d\n\
-remainder=%d\n", jcr->JobId,
+   Dmsg6(20, "Write sesson_label record JobId=%d FI=%s SessId=%d Strm=%s len=%d " 
+             "remainder=%d\n", jcr->JobId,
       FI_to_ascii(rec->FileIndex), rec->VolSessionId, 
       stream_to_ascii(rec->Stream, rec->FileIndex), rec->data_len,
       rec->remainder);

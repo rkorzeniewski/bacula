@@ -159,6 +159,7 @@ DCR *acquire_device_for_read(JCR *jcr)
       switch (read_dev_volume_label(dcr)) {
       case VOL_OK:
 	 vol_ok = true;
+	 memcpy(&dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dev->VolCatInfo));
 	 break; 		   /* got it */
       case VOL_IO_ERROR:
 	 /*
@@ -258,8 +259,8 @@ DCR *acquire_device_for_append(JCR *jcr)
    P(mutex);			     /* lock all devices */
    Dmsg1(190, "acquire_append device is %s\n", dev_is_tape(dev)?"tape":"disk");
 	     
-
    if (dev_state(dev, ST_APPEND)) {
+      Dmsg0(190, "device already in append.\n");
       /* 
        * Device already in append mode	 
        *
@@ -273,6 +274,7 @@ DCR *acquire_device_for_append(JCR *jcr)
       if (!dir_get_volume_info(dcr, GET_VOL_INFO_FOR_WRITE) &&
 	  !(dir_find_next_appendable_volume(dcr) &&
 	    strcmp(dev->VolHdr.VolName, dcr->VolumeName) == 0)) { /* wrong tape mounted */
+         Dmsg0(190, "Wrong tape mounted.\n");
 	 if (dev->num_writers != 0) {
 	    DEVICE *d = ((DEVRES *)dev->device)->dev;
 	    uint32_t open_vols = 0;
@@ -301,6 +303,7 @@ DCR *acquire_device_for_append(JCR *jcr)
 	    }
 	 }
 	 /* Wrong tape mounted, release it, then fall through to get correct one */
+         Dmsg0(190, "Wrong tape mounted, release and try mount.\n");
 	 release = true;
 	 do_mount = true;
       } else {
@@ -310,14 +313,19 @@ DCR *acquire_device_for_append(JCR *jcr)
 	  *   we need to recycle the tape.
 	  */
           recycle = strcmp(dcr->VolCatInfo.VolCatStatus, "Recycle") == 0;
+          Dmsg1(190, "Correct tape mounted. recycle=%d\n", recycle);
 	  if (recycle && dev->num_writers != 0) {
              Jmsg(jcr, M_FATAL, 0, _("Cannot recycle volume \"%s\""
                   " because it is in use by another job.\n"));
 	     goto get_out;
 	  }
+	  if (dev->num_writers == 0) {
+	     memcpy(&dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dev->VolCatInfo));
+	  }
        }
    } else { 
       /* Not already in append mode, so mount the device */
+      Dmsg0(190, "Not in append mode, try mount.\n");
       if (dev_state(dev, ST_READ)) {
          Jmsg(jcr, M_FATAL, 0, _("Device %s is busy reading.\n"), dev_name(dev));
 	 goto get_out;
@@ -327,6 +335,7 @@ DCR *acquire_device_for_append(JCR *jcr)
    }
 
    if (do_mount || recycle) {
+      Dmsg0(190, "Do mount_next_write_vol\n");
       if (!mount_next_write_volume(dcr, release)) {
 	 if (!job_canceled(jcr)) {
             /* Reduce "noise" -- don't print if job canceled */
@@ -410,7 +419,7 @@ bool release_device(JCR *jcr)
    }
 
    /* Fire off Alert command and include any output */
-   if (jcr->device->alert_command) {
+   if (!job_canceled(jcr) && jcr->device->alert_command) {
       POOLMEM *alert;
       int status = 1;
       BPIPE *bpipe;

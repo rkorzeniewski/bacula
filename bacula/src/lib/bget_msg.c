@@ -32,7 +32,7 @@
 extern char OK_msg[];
 extern char TERM_msg[];
 
-#define msglvl 200
+#define msglvl 500
 
 /*	 
  * This routine does a bnet_recv(), then if a signal was

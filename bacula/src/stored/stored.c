@@ -337,6 +337,7 @@ void *device_allocation(void *arg)
 	 dcr = new_dcr(jcr, device->dev);
 	 switch (read_dev_volume_label(dcr)) {
 	    case VOL_OK:
+	       memcpy(&dcr->dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dcr->dev->VolCatInfo));
 	       break;
 	    default:
                Emsg1(M_WARNING, 0, _("Could not mount device %s\n"), device->device_name);
