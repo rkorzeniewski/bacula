@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                  23 March 2004
+                  25 March 2004
 
 Documentation to do: (any release a little bit at a time)
 - DB upgrade to version 5 in bacula-1.27b, DB upgrade to
@@ -77,13 +77,12 @@ For 1.33
 - On unknown client in restore "client=xxx"
   Could not find Client "Matou": ERR=Query failed: DROP TABLE temp1: 
      ERR=no such table: temp1
-- Implement multiple Volume in "purge jobs volume=".
 - Fix "llist jobid=xx" where no fileset or client exists.
 - Build console in client-only build.
 - Test Qmsg() code to be used in bnet.c to prevent recursion.  Queue the
   message. If dequeueing toss the messages. Lock while dequeuing so that
   it cannot be called recursively and set dequeuing flag.
-- Finish work on conio.c -- particularly linking.
+- Test work on conio.c -- particularly linking.
 - Phil says that Windows file sizes mismatch in Verify when they should,
   and that either the file size or the catalog size was zero.
 - Check time/dates printed during restore when using Win32 API.
@@ -99,8 +98,9 @@ From Chris Hull:
   then list last 20 backups.
 - Add all pools in Dir conf to DB also update them to catch changed
   LabelFormats and such.
-- Update volume FromPool (or FromPool=xxx) refreshes the Volume defaults from Pool.
 - Update volumes FromPool=xxx does all volumes.
+- Once a job is canceled, make sure the status reflects that even if the
+  job is "stuck" in the run queue.
 
 
 For version 1.35:
@@ -1419,4 +1419,5 @@ Block Position: 0
 - Check and possibly fix problems with hard links.
 - Fix query buffer clobber ua_query.c
 - Allow "delete job jobid=xx jobid=xxx".   
-
+- Update volume FromPool (or FromPool=xxx) refreshes the Volume defaults from Pool.
+- Implement multiple Volume in "purge jobs volume=".
