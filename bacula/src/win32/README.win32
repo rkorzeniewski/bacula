@@ -53,13 +53,17 @@ The native Win32 interface code was written by:
 
 For more details of building wx, see depkgs-win32/wx/docs/msw/install.txt
 
+The easiest way to build this is to have a Visual Studio C++ 6.0. 
+However, you can use the free Microsoft C++ compiler with a bit
+of additional work.
+
 Here are additional pointers on building wx-console supplied by Nicolas Boichat:
 
 
 Tools I used (I think the 3 first one are included in VStudio) :
 - VC++ toolkit : http://msdn.microsoft.com/visualc/vctoolkit2003/
 - Windows Platform SDK :
-http://www.microsoft.com/msdownload/platformsdk/sdkupdate/
+   http://www.microsoft.com/msdownload/platformsdk/sdkupdate/
    (Core SDK and Internet Development SDK)
 - nmake (it got it with .Net Framework SDK)
 - lib.exe found in the SDK-base/Bin/win64 directory (works fine
@@ -74,13 +78,10 @@ Instructions if you want to build wx-console :
   + Follow the instructions in docs/msw/install.txt
      (Visual C++ 6.0 compilation - Using makefiles)
 
-- Add Platform SDK and wxWidgets dirs to VC++ vcvars.bat
-  Example :
-    Set PATH=F:\MSVC++\bin;F:\MSSDK\bin;%PATH%
-    Set
-INCLUDE=F:\MSVC++\include;F:\MSSDK\include;F:\wxWindows-2.4.2\include;F:
-\wxWindows-2.4.2\lib\msw;%INCLUDE%
-    Set LIB=F:\MSVC++\lib;F:\MSSDK\lib;F:\wxWindows-2.4.2\lib;%LIB%
+- Make sure that the environment variables are set as:
+  - PATH includes the directories bin of both the C++ Toolkit and the SDK
+  - INCLUDE includes the directories include of both the C++ Toolkit and the SDK
+  - LIB includes the directories Lib of both the C++ Toolkit and the SDK
     
 - Compile bacula depkg-win32 with Visual Studio or try the
   supplied makefiles as described in the doc.
@@ -88,3 +89,5 @@ INCLUDE=F:\MSVC++\include;F:\MSSDK\include;F:\wxWindows-2.4.2\include;F:
 - Compile wx-console with nmake -f wx-console.mak in
   src/win32/wx-console
 
+- Additional information on using the free Micrsosoft C++ see
+  http://sapdb.2scale.net/moin.cgi/MS_20C_2b_2b_20Toolkit
