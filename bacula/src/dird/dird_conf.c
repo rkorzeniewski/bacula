@@ -1030,7 +1030,7 @@ void save_resource(int type, struct res_items *items, int pass)
       memcpy(res, &res_all, size);
       if (!resources[rindex].res_head) {
 	 resources[rindex].res_head = (RES *)res; /* store first entry */
-         Dmsg3(000, "Inserting first %s res: %s index=%d\n", res_to_str(type),
+         Dmsg3(200, "Inserting first %s res: %s index=%d\n", res_to_str(type),
 	       res->res_dir.hdr.name, rindex);
       } else {
 	 RES *next;
@@ -1038,7 +1038,7 @@ void save_resource(int type, struct res_items *items, int pass)
 	 for (next=resources[rindex].res_head; next->next; next=next->next)
 	    { }
 	 next->next = (RES *)res;
-         Dmsg3(000, "Inserting %s res: %s index=%d\n", res_to_str(type),
+         Dmsg3(200, "Inserting %s res: %s index=%d\n", res_to_str(type),
 	       res->res_dir.hdr.name, rindex);
       }
    }
@@ -1357,17 +1357,6 @@ static void scan_include_options(LEX *lc, int keyword, char *opts, int optlen)
    }
 }
 
-static void prtmsg(void *sock, char *fmt, ...)
-{
-   va_list arg_ptr;
-
-   va_start(arg_ptr, fmt);
-   vfprintf(stdout, fmt, arg_ptr);
-   va_end(arg_ptr);
-}
-
-
-
 /* Store FileSet Include/Exclude info */
 static void store_inc(LEX *lc, struct res_items *item, int index, int pass)
 {
@@ -1400,9 +1389,6 @@ static void store_inc(LEX *lc, struct res_items *item, int index, int pass)
       if (keyword == INC_KW_FILEOPTIONS) {
 	 token = lex_get_token(lc, T_NAME);
 	 if (pass == 2) {
-	    for (int i=r_first; i<=r_last; i++) {
-	       dump_resource(i, resources[i-r_first].res_head, prtmsg, NULL);
-	    }
 	    res = GetResWithName(R_FILEOPTIONS, lc->str);
 	    if (res == NULL) {
                scan_err1(lc, _("Could not find specified FileOptions Resource: %s"), lc->str);

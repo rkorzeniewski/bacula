@@ -47,7 +47,7 @@ extern int do_verify(JCR *jcr);
 extern void backup_cleanup(void);
 
 /* Queue of jobs to be run */
-static workq_t job_wq;		      /* our job work queue */
+workq_t job_wq; 		  /* our job work queue */
 
 
 void init_job_server(int max_workers)
@@ -68,6 +68,7 @@ void init_job_server(int max_workers)
 void run_job(JCR *jcr)
 {
    int stat, errstat;
+   workq_ele_t *work_item;
 
    sm_check(__FILE__, __LINE__, True);
    init_msg(jcr, jcr->messages);
@@ -124,9 +125,10 @@ void run_job(JCR *jcr)
 
 
    /* Queue the job to be run */
-   if ((stat = workq_add(&job_wq, (void *)jcr)) != 0) {
+   if ((stat = workq_add(&job_wq, (void *)jcr, &work_item, 0)) != 0) {
       Emsg1(M_ABORT, 0, _("Could not add job to work queue: ERR=%s\n"), strerror(stat));
    }
+   jcr->work_item = work_item;
    Dmsg0(200, "Done run_job()\n");
 }
 
@@ -145,7 +147,9 @@ static void job_thread(void *arg)
 
    Dmsg0(100, "=====Start Job=========\n");
    jcr->start_time = now;	      /* set the real start time */
-   if (jcr->job->MaxStartDelay != 0 && jcr->job->MaxStartDelay <
+   if (job_cancelled(jcr)) {
+      update_job_end_record(jcr);
+   } else if (jcr->job->MaxStartDelay != 0 && jcr->job->MaxStartDelay <
        (utime_t)(jcr->start_time - jcr->sched_time)) {
       Jmsg(jcr, M_FATAL, 0, _("Job cancelled because max delay time exceeded.\n"));
       set_jcr_job_status(jcr, JS_ErrorTerminated);
@@ -191,14 +195,14 @@ static void job_thread(void *arg)
             Pmsg1(0, "Unimplemented job type: %d\n", jcr->JobType);
 	    break;
 	 }
-   }
-   if (jcr->job->RunAfterJob) {
-      POOLMEM *after = get_pool_memory(PM_FNAME);
-      int status;
+      if (jcr->job->RunAfterJob) {
+	 POOLMEM *after = get_pool_memory(PM_FNAME);
+	 int status;
       
-      after = edit_run_codes(jcr, after, jcr->job->RunAfterJob);
-      status = run_program(after, 0, NULL);
-      free_pool_memory(after);
+	 after = edit_run_codes(jcr, after, jcr->job->RunAfterJob);
+	 status = run_program(after, 0, NULL);
+	 free_pool_memory(after);
+      }
    }
    Dmsg0(50, "Before free jcr\n");
    free_jcr(jcr);

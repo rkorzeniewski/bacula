@@ -219,7 +219,7 @@ int send_exclude_list(JCR *jcr)
    for (i=0; i < fileset->num_excludes; i++) {
       pm_strcpy(&fd->msg, fileset->exclude_array[i]->name);
       fd->msglen = strlen(fd->msg);
-      Dmsg1(000, "dird>filed: exclude file: %s\n", fileset->exclude_array[i]->name);
+      Dmsg1(200, "dird>filed: exclude file: %s\n", fileset->exclude_array[i]->name);
       if (!bnet_send(fd)) {
          Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
 	 set_jcr_job_status(jcr, JS_ErrorTerminated);

@@ -160,7 +160,7 @@ bnet_thread_server(char *bind_addr, int port, int max_clients, workq_t *client_w
 
       /* Queue client to be served */
       if ((stat = workq_add(client_wq, 
-            (void *)init_bsock(NULL, newsockfd, "client", caller, port))) != 0) {
+            (void *)init_bsock(NULL, newsockfd, "client", caller, port), NULL, 0)) != 0) {
          Jmsg1(NULL, M_ABORT, 0, _("Could not add job to client queue: ERR=%s\n"), strerror(stat));
       }
    }

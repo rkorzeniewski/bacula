@@ -117,6 +117,7 @@ struct s_jcr {
    /* Director Daemon specific part of JCR */
    pthread_t SD_msg_chan;             /* Message channel thread id */
    pthread_cond_t term_wait;          /* Wait for job termination */
+   workq_ele_t *work_item;            /* Work queue item if scheduled */
    int msg_thread_done;               /* Set when Storage message thread terms */
    BSOCK *ua;                         /* User agent */
    JOB *job;                          /* Job resource */

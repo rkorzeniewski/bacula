@@ -39,6 +39,7 @@ extern int r_first;
 extern int r_last;
 extern struct s_res resources[];
 extern char my_name[];
+extern workq_t job_wq;		      /* work queue */
 
 /* Imported functions */
 extern int statuscmd(UAContext *ua, char *cmd);
@@ -414,11 +415,11 @@ static int cancelcmd(UAContext *ua, char *cmd)
       set_jcr_job_status(jcr, JS_Cancelled);
       bsendmsg(ua, _("JobId %d, Job %s marked to be cancelled.\n"),
 	      jcr->JobId, jcr->Job);
+      workq_remove(&job_wq, jcr->work_item); /* attempt to remove it from queue */
       free_jcr(jcr);
       return 1;
 	 
    default:
-
       set_jcr_job_status(jcr, JS_Cancelled);
       /* Cancel File daemon */
       ua->jcr->client = jcr->client;
