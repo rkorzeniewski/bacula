@@ -53,6 +53,8 @@ extern time_t watchdog_time;
 #define socketClose(fd) 	  close(fd)
 #endif
 
+static pthread_mutex_t ip_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 /*
  * Read a nbytes from the network.
  * It is possible that the total bytes require in several
@@ -548,7 +550,6 @@ static const char *gethost_strerror()
 }
 
 
-static pthread_mutex_t ip_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 
 static IPADDR *add_any(int family)
