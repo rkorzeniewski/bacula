@@ -25,22 +25,21 @@ Testing to do: (painful)
 
 For 1.33 Testing/Documentation:
 - bextract is sending everything to the log file ****FIXME****
-- Document to start higher priorty jobs before lower ones.
-- suppress "Do not forget to mount the drive!!!" if error
 - Document new records in Director. SDAddress SDDeviceName, SDPassword.
   FDPassword, FDAddress, DBAddress, DBPort, DBPassword.
 - Document new Include/Exclude ...
 - Add test of exclusion, test multiple Include {} statements.
 - Add counter variable test.
 - Document ln -sf /usr/lib/libncurses.so /usr/lib/libtermcap.so
-  and install the esound-dev  package for compiling Console on 
-  SuSE.
+  and install the esound-dev  package for compiling Console on SuSE.
 - Add an example of using a FIFO in dirdconf.wml 
 - Add an item to the FAQ about running jobs in different timezones.
                 
 For 1.32c
 
 For 1.33
+- Check and double check tree code, why does it take so long?
+- Upgrade to cygwin 1.5
 - Fix time difference problem between Bacula and Client
   so that everything is in GMT.
 - Finish implementation of Verify=DiskToCatalog
@@ -66,10 +65,8 @@ For 1.33
     By the way can bacula automatically "move" an empry/purged volume say 
     in the "short" pool to the "long" pool if this pool runs out of volume 
     space?
-- Implement a move Volume from one pool to another.
 - Either restrict the characters in a name, or fix the problem 
   emailing with names containing / (smtp command line breaks).
-- Eliminate ua_retention.c (retentioncmd) if possible.
 - Eliminate orphaned jobs: dbcheck, normal pruning, delete job command.
   Hm.  Well, there are the remaining orphaned job records:
 
@@ -121,8 +118,6 @@ For 1.33
 - Walk through the Pool records rather than the Job records
   in dird.c to create/update pools.
 - What to do about "list files job=xxx".
-- Implement delete Job.
-- Document need to put LabelFormat in quotes.
 - Implement scan: for every slot it finds, zero the slot of
   Volume other volume having that slot.
 - When job rescheduled, status gives is waiting for Client Rufus 
@@ -140,7 +135,6 @@ For 1.33
   rather than lowest MediaId.
 - Available volumes for autochangers (see patrick@baanboard.com 3 Sep 03 
   and 4 Sep) scan slots.
-- Upgrade to cygwin 1.5
 - Get MySQL 3.23.58
 - Get and test MySQL 4.0
 - Do a complete audit of all pthreads_mutex, cond, ... to ensure that
@@ -201,7 +195,6 @@ For 1.33
 - Make things like list where a file is saved case independent for
   Windows.
 - Edit the Client/Storage name into authentication failure messages.
-- Implement job in VerifyToCatalog
 - Implement migrate
 - Implement a PostgreSQL driver.
 - Bacula needs to propagate SD errors.
@@ -1068,4 +1061,12 @@ Done: (see kernsdone for more)
 - Document update volume pool and other command line keywords.
 - Add VerifyJob to "run" summary (yes/mod/no) prompt.
 - For listing, eliminate multiple JobIds in restore Jobs listing.
+- Document to start higher priorty jobs before lower ones.
+- suppress "Do not forget to mount the drive!!!" if error
+- Change error message when closing brace left off ...
+- Implement a move Volume from one pool to another.
+- Implement delete Job.
+- Document need to put LabelFormat in quotes.
+- Implement job in VerifyToCatalog
+- Eliminate ua_retention.c (retentioncmd) if possible.
 

@@ -678,7 +678,8 @@ parse_config(char *cf)
 		     if (i >= 0) {
                         Dmsg2(150, "level=%d id=%s\n", level, lc->str);
                         Dmsg1(150, "Keyword = %s\n", lc->str);
-                        scan_err1(lc, "Keyword \"%s\" not permitted in this resource", lc->str);
+                        scan_err1(lc, "Keyword \"%s\" not permitted in this resource.\n"
+                           "Perhaps you left the trailing brace off of the previous resource.", lc->str);
 			/* NOT REACHED */
 		     }
 		     break;

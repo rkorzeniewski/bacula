@@ -1,6 +1,12 @@
 
 2003-10-24 Version 1.32c 24Oct03 Beta
 24Oct03
+- Eliminate ua_retention.c that was not used.
+- Improve error message when closing brace missing in conf file.
+- More doc updates.
+- Eliminate Don't forget to mount if it is a disk file.
+- Fix Gnome2 scrolling and blank screen problems.
+- Eliminate multiple JobIds in restore selection list.
 - Fix non-portable varargs code in var.c
 - Make doc fixes/changes suggested by Dan Languille
 23Oct03
