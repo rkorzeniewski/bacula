@@ -101,7 +101,7 @@ static void update_free_space_dev(DEVICE* dev);
  *
  */
 DEVICE *
-init_dev(DEVICE *dev, DEVRES *device)
+init_dev(JCR *jcr, DEVICE *dev, DEVRES *device)
 {
    struct stat statp;
    bool tape, fifo;
@@ -114,7 +114,7 @@ init_dev(DEVICE *dev, DEVRES *device)
       if (dev) {
 	 dev->dev_errno = errno;
       }
-      Jmsg2(NULL, M_FATAL, 0, _("Unable to stat device %s: ERR=%s\n"), 
+      Jmsg2(jcr, M_FATAL, 0, _("Unable to stat device %s: ERR=%s\n"), 
 	 device->device_name, be.strerror());
       return NULL;
    }
@@ -132,7 +132,7 @@ init_dev(DEVICE *dev, DEVRES *device)
       if (dev) {
 	 dev->dev_errno = ENODEV;
       }
-      Emsg2(M_FATAL, 0, _("%s is an unknown device type. Must be tape or directory. st_mode=%x\n"),
+      Jmsg2(jcr, M_FATAL, 0, _("%s is an unknown device type. Must be tape or directory. st_mode=%x\n"),
 	 device->device_name, statp.st_mode);
       return NULL;
    }
@@ -188,26 +188,26 @@ init_dev(DEVICE *dev, DEVRES *device)
       if (stat(device->mount_point, &statp) < 0) {
 	 berrno be;
 	 dev->dev_errno = errno;
-         Jmsg2(NULL, M_FATAL, 0, _("Unable to stat mount point %s: ERR=%s\n"), 
+         Jmsg2(jcr, M_FATAL, 0, _("Unable to stat mount point %s: ERR=%s\n"), 
 	    device->mount_point, be.strerror());
 	 return NULL;
       }
       if (!device->mount_command || !device->unmount_command) {
-         Jmsg0(NULL, M_ERROR_TERM, 0, _("Mount and unmount commands must defined for a device which requires mount.\n"));
+         Jmsg0(jcr, M_ERROR_TERM, 0, _("Mount and unmount commands must defined for a device which requires mount.\n"));
       }
       if (!device->write_part_command) {
-         Jmsg0(NULL, M_ERROR_TERM, 0, _("Write part command must be defined for a device which requires mount.\n"));
+         Jmsg0(jcr, M_ERROR_TERM, 0, _("Write part command must be defined for a device which requires mount.\n"));
       }
       dev->state |= ST_DVD;
    }
 
    if (dev->max_block_size > 1000000) {
-      Emsg3(M_ERROR, 0, _("Block size %u on device %s is too large, using default %u\n"),
+      Jmsg3(jcr, M_ERROR, 0, _("Block size %u on device %s is too large, using default %u\n"),
 	 dev->max_block_size, dev->dev_name, DEFAULT_BLOCK_SIZE);
       dev->max_block_size = 0;
    }
    if (dev->max_block_size % TAPE_BSIZE != 0) {
-      Emsg2(M_WARNING, 0, _("Max block size %u not multiple of device %s block size.\n"),
+      Jmsg2(jcr, M_WARNING, 0, _("Max block size %u not multiple of device %s block size.\n"),
 	 dev->max_block_size, dev->dev_name);
    }
 
@@ -218,31 +218,31 @@ init_dev(DEVICE *dev, DEVRES *device)
       berrno be;
       dev->dev_errno = errstat;
       Mmsg1(dev->errmsg, _("Unable to init mutex: ERR=%s\n"), be.strerror(errstat));
-      Emsg0(M_FATAL, 0, dev->errmsg);
+      Jmsg0(jcr, M_ERROR_TERM, 0, dev->errmsg);
    }
    if ((errstat = pthread_cond_init(&dev->wait, NULL)) != 0) {
       berrno be;
       dev->dev_errno = errstat;
       Mmsg1(dev->errmsg, _("Unable to init cond variable: ERR=%s\n"), be.strerror(errstat));
-      Emsg0(M_ERROR_TERM, 0, dev->errmsg);
+      Jmsg0(jcr, M_ERROR_TERM, 0, dev->errmsg);
    }
    if ((errstat = pthread_cond_init(&dev->wait_next_vol, NULL)) != 0) {
       berrno be;
       dev->dev_errno = errstat;
       Mmsg1(dev->errmsg, _("Unable to init cond variable: ERR=%s\n"), be.strerror(errstat));
-      Emsg0(M_ERROR_TERM, 0, dev->errmsg);
+      Jmsg0(jcr, M_ERROR_TERM, 0, dev->errmsg);
    }
    if ((errstat = pthread_mutex_init(&dev->spool_mutex, NULL)) != 0) {
       berrno be;
       dev->dev_errno = errstat;
       Mmsg1(dev->errmsg, _("Unable to init mutex: ERR=%s\n"), be.strerror(errstat));
-      Emsg0(M_ERROR_TERM, 0, dev->errmsg);
+      Jmsg0(jcr, M_ERROR_TERM, 0, dev->errmsg);
    }
    if ((errstat = rwl_init(&dev->lock)) != 0) {
       berrno be;
       dev->dev_errno = errstat;
       Mmsg1(dev->errmsg, _("Unable to init mutex: ERR=%s\n"), be.strerror(errstat));
-      Emsg0(M_ERROR_TERM, 0, dev->errmsg);
+      Jmsg0(jcr, M_ERROR_TERM, 0, dev->errmsg);
    }
 
    dev->fd = -1;

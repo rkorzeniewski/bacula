@@ -292,7 +292,7 @@ void split_path_and_filename(const char *fname, POOLMEM **path, int *pnl,
 }
 
 /*
- * Extremely simple sscanf. Handles only %(u,d,ld,lu,lld,llu,c,nns)
+ * Extremely simple sscanf. Handles only %(u,d,ld,qd,qu,lu,lld,llu,c,nns)
  */
 const int BIG = 1000;
 int bsscanf(const char *buf, const char *fmt, ...)

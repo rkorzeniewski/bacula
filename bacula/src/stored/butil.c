@@ -151,7 +151,7 @@ static DCR *setup_to_access_device(JCR *jcr, char *dev_name, const char *VolumeN
       return NULL;
    }
 
-   dev = init_dev(NULL, device);
+   dev = init_dev(jcr, NULL, device);
    if (!dev) {
       Jmsg1(jcr, M_FATAL, 0, _("Cannot init device %s\n"), dev_name);
       return NULL;

@@ -135,6 +135,7 @@ CREATE TABLE media
     maxvolfiles       integer	  not null default 0,
     maxvolbytes       bigint	  not null default 0,
     inchanger	      smallint	  not null default 0,
+    StorageId	      integer		   default 0,
     mediaaddressing   smallint	  not null default 0,
     volreadtime       bigint	  not null default 0,
     volwritetime      bigint	  not null default 0,
@@ -200,8 +201,12 @@ CREATE TABLE pool
     labeltype	      integer	  not null default 0,
     labelformat       text	  not null,
     enabled	      smallint	  not null default 1,
-    scratchpoolid     integer,			     
-    recyclepoolid     integer,
+    scratchpoolid     integer default 0,
+    recyclepoolid     integer default 0,
+    NextPoolId	      integer default 0,
+    MigrationHighBytes BIGINT DEFAULT 0,
+    MigrationLowBytes  BIGINT DEFAULT 0,
+    MigrationTime      BIGINT DEFAULT 0,
     primary key (poolid)
 );
 

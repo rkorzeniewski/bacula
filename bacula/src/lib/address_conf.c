@@ -207,7 +207,7 @@ const char *IPADDR::build_address_str(char *buf, int blen)
 
 const char *build_addresses_str(dlist *addrs, char *buf, int blen)
 {
-   if (addrs->size() == 0) {
+   if (!addrs || addrs->size() == 0) {
       bstrncpy(buf, "", blen);
       return buf;
    }
@@ -231,12 +231,20 @@ const char *get_first_address(dlist * addrs, char *outputbuf, int outlen)
 
 int get_first_port_net_order(dlist * addrs)
 {
-   return ((IPADDR *)(addrs->first()))->get_port_net_order();
+   if (!addrs) {
+      return 0;
+   } else {
+      return ((IPADDR *)(addrs->first()))->get_port_net_order();
+   }
 }
 
 int get_first_port_host_order(dlist * addrs)
 {
-   return ((IPADDR *)(addrs->first()))->get_port_host_order();
+   if (!addrs) {
+      return 0;
+   } else {
+      return ((IPADDR *)(addrs->first()))->get_port_host_order();
+   }
 }
 
 void init_default_addresses(dlist **out, int port)

@@ -186,6 +186,19 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
    Dmsg2(100, "Level=%c last start time=%s\n", jcr->JobLevel, jcr->stime);
 }
 
+static void send_since_time(JCR *jcr)
+{
+   BSOCK   *fd = jcr->file_bsock;
+   utime_t stime;
+   char ed1[50];
+
+   stime = str_to_utime(jcr->stime);
+   bnet_fsend(fd, levelcmd, "since_utime ", edit_uint64(stime, ed1), 0);
+   while (bget_dirmsg(fd) >= 0) {  /* allow him to poll us to sync clocks */
+      Jmsg(jcr, M_INFO, 0, "%s\n", fd->msg);
+   }
+}
+
 
 /*
  * Send level command to FD.
@@ -194,8 +207,6 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
 int send_level_command(JCR *jcr)
 {
    BSOCK   *fd = jcr->file_bsock;
-   utime_t stime;
-   char ed1[50];
    /*
     * Send Level command to File daemon
     */
@@ -209,12 +220,12 @@ int send_level_command(JCR *jcr)
       bnet_fsend(fd, levelcmd, "full", " ", 0);
       break;
    case L_DIFFERENTIAL:
+      bnet_fsend(fd, levelcmd, "differential", " ", 0);
+      send_since_time(jcr);
+      break;
    case L_INCREMENTAL:
-      stime = str_to_utime(jcr->stime);
-      bnet_fsend(fd, levelcmd, "since_utime ", edit_uint64(stime, ed1), 0);
-      while (bget_dirmsg(fd) >= 0) {  /* allow him to poll us to sync clocks */
-         Jmsg(jcr, M_INFO, 0, "%s\n", fd->msg);
-      }
+      bnet_fsend(fd, levelcmd, "incremental", " ", 0);
+      send_since_time(jcr);
       break;
    case L_SINCE:
    default:

@@ -46,7 +46,8 @@ extern JCR *jobs;
 extern "C" void *jobq_server(void *arg);
 extern "C" void *sched_wait(void *arg);
 
-static int   start_server(jobq_t *jq);
+static int  start_server(jobq_t *jq);
+static bool acquire_resources(JCR *jcr);
 
 
 
@@ -530,7 +531,7 @@ void *jobq_server(void *arg)
        *  move it to the ready queue
        */
       Dmsg0(2300, "Done check ready, now check wait queue.\n");
-      while (!jq->waiting_jobs->empty() && !jq->quit) {
+      if (!jq->waiting_jobs->empty() && !jq->quit) {
 	 int Priority;
 	 je = (jobq_item_t *)jq->waiting_jobs->first();
 	 jobq_item_t *re = (jobq_item_t *)jq->running_jobs->first();
@@ -548,79 +549,22 @@ void *jobq_server(void *arg)
 	 for ( ; je;  ) {
 	    /* je is current job item on the queue, jn is the next one */
 	    JCR *jcr = je->jcr;
-	    bool skip_this_jcr = false;
 	    jobq_item_t *jn = (jobq_item_t *)jq->waiting_jobs->next(je);
+
             Dmsg3(2300, "Examining Job=%d JobPri=%d want Pri=%d\n",
 	       jcr->JobId, jcr->JobPriority, Priority);
+
 	    /* Take only jobs of correct Priority */
 	    if (jcr->JobPriority != Priority) {
 	       set_jcr_job_status(jcr, JS_WaitPriority);
 	       break;
 	    }
-	    if (jcr->JobType == JT_RESTORE || jcr->JobType == JT_VERIFY) {
-	       /* Let only one Restore/verify job run at a time regardless of MaxConcurrentJobs */
-	       if (jcr->store->NumConcurrentJobs == 0) {
-		  jcr->store->NumConcurrentJobs = 1;
-	       } else {
-		  set_jcr_job_status(jcr, JS_WaitStoreRes);
-		  je = jn;	      /* point to next waiting job */
-		  continue;
-	       }
-	    /* We are not doing a Restore or Verify */
-	    } else if (jcr->store->NumConcurrentJobs == 0 &&
-		       jcr->store->NumConcurrentJobs < jcr->store->MaxConcurrentJobs) {
-		/* Simple case, first job */
-		jcr->store->NumConcurrentJobs = 1;
-	    } else if (jcr->store->NumConcurrentJobs < jcr->store->MaxConcurrentJobs) {
-	       /*
-		* At this point, we already have at least one Job running
-		*  for this Storage daemon, so we must ensure that there
-		*  is no Volume conflict. In general, it should be OK, if
-		*  all Jobs pull from the same Pool, so we check the Pools.
-		*/
-		JCR *njcr;
-		lock_jcr_chain();
-		for (njcr=jobs; njcr; njcr=njcr->next) {
-		   if (njcr->JobId == 0 || njcr == jcr) {
-		      continue;
-		   }
-		   if (njcr->pool != jcr->pool) {
-		      skip_this_jcr = true;
-		      break;
-		   }
-		}
-		unlock_jcr_chain();
-		if (!skip_this_jcr) {
-		   jcr->store->NumConcurrentJobs++;
-		}
-	    } else {
-	       skip_this_jcr = true;
-	    }
-	    if (skip_this_jcr) {
-	       set_jcr_job_status(jcr, JS_WaitStoreRes);
-	       je = jn; 	      /* point to next waiting job */
+
+	    if (!acquire_resources(jcr)) {
+	       je = jn; 	   /* point to next waiting job */
 	       continue;
 	    }
 
-	    if (jcr->client->NumConcurrentJobs < jcr->client->MaxConcurrentJobs) {
-	       jcr->client->NumConcurrentJobs++;
-	    } else {
-	       /* Back out previous locks */
-	       jcr->store->NumConcurrentJobs--;
-	       set_jcr_job_status(jcr, JS_WaitClientRes);
-	       je = jn; 	      /* point to next waiting job */
-	       continue;
-	    }
-	    if (jcr->job->NumConcurrentJobs < jcr->job->MaxConcurrentJobs) {
-	       jcr->job->NumConcurrentJobs++;
-	    } else {
-	       /* Back out previous locks */
-	       jcr->store->NumConcurrentJobs--;
-	       jcr->client->NumConcurrentJobs--;
-	       set_jcr_job_status(jcr, JS_WaitJobRes);
-	       je = jn; 	      /* Point to next waiting job */
-	       continue;
-	    }
 	    /* Got all locks, now remove it from wait queue and append it
 	     *	 to the ready queue
 	     */
@@ -630,8 +574,9 @@ void *jobq_server(void *arg)
             Dmsg1(2300, "moved JobId=%d from wait to ready queue\n", je->jcr->JobId);
 	    je = jn;		      /* Point to next waiting job */
 	 } /* end for loop */
-	 break;
-      } /* end while loop */
+
+      } /* end if */
+
       Dmsg0(2300, "Done checking wait queue.\n");
       /*
        * If no more ready work and we are asked to quit, then do it
@@ -665,19 +610,9 @@ void *jobq_server(void *arg)
 	  *   important, release the lock so that a job that has
 	  *   terminated can give us the resource.
 	  */
-	 if ((stat = pthread_mutex_unlock(&jq->mutex)) != 0) {
-	    berrno be;
-            Jmsg1(NULL, M_ERROR, 0, "pthread_mutex_unlock: ERR=%s\n", be.strerror(stat));
-	    jq->num_workers--;
-	    return NULL;
-	 }
+	 V(jq->mutex);
 	 bmicrosleep(2, 0);		 /* pause for 2 seconds */
-	 if ((stat = pthread_mutex_lock(&jq->mutex)) != 0) {
-	    berrno be;
-            Jmsg1(NULL, M_ERROR, 0, "pthread_mutex_lock: ERR=%s\n", be.strerror(stat));
-	    jq->num_workers--;
-	    return NULL;
-	 }
+	 P(jq->mutex);
 	 /* Recompute work as something may have changed in last 2 secs */
 	 work = !jq->ready_jobs->empty() || !jq->waiting_jobs->empty();
       }
@@ -685,10 +620,83 @@ void *jobq_server(void *arg)
    } /* end of big for loop */
 
    Dmsg0(200, "unlock mutex\n");
-   if ((stat = pthread_mutex_unlock(&jq->mutex)) != 0) {
-      berrno be;
-      Jmsg1(NULL, M_ERROR, 0, "pthread_mutex_unlock: ERR=%s\n", be.strerror(stat));
-   }
+   V(jq->mutex);
    Dmsg0(2300, "End jobq_server\n");
    return NULL;
+}
+
+/*
+ * See if we can acquire all the necessary resources for the job (JCR)
+ *
+ *  Returns: true  if successful
+ *	     false if resource failure
+ */
+static bool acquire_resources(JCR *jcr)
+{
+   bool skip_this_jcr = false;
+
+   if (jcr->JobType == JT_RESTORE || jcr->JobType == JT_VERIFY) {
+      /* 
+       * Let only one Restore/verify job run at a time regardless
+       *   of MaxConcurrentJobs.
+       */ 
+      if (jcr->store->NumConcurrentJobs == 0) {
+	 jcr->store->NumConcurrentJobs = 1;
+      } else {
+	 set_jcr_job_status(jcr, JS_WaitStoreRes);
+	 return false;
+      }
+   /* We are not doing a Restore or Verify */
+   } else if (jcr->store->NumConcurrentJobs == 0 &&
+	      jcr->store->NumConcurrentJobs < jcr->store->MaxConcurrentJobs) {
+       /* Simple case, first job */
+       jcr->store->NumConcurrentJobs = 1;
+   } else if (jcr->store->NumConcurrentJobs < jcr->store->MaxConcurrentJobs) {
+      /*
+       * At this point, we already have at least one Job running
+       *  for this Storage daemon, so we must ensure that there
+       *  is no Volume conflict. In general, it should be OK, if
+       *  all Jobs pull from the same Pool, so we check the Pools.
+       */
+       JCR *njcr;
+       lock_jcr_chain();
+       for (njcr=jobs; njcr; njcr=njcr->next) {
+	  if (njcr->JobId == 0 || njcr == jcr) {
+	     continue;
+	  }
+	  if (njcr->pool != jcr->pool) {
+	     skip_this_jcr = true;
+	     break;
+	  }
+       }
+       unlock_jcr_chain();
+       if (!skip_this_jcr) {
+	  jcr->store->NumConcurrentJobs++;
+       }
+   } else {
+      skip_this_jcr = true;
+   }
+   if (skip_this_jcr) {
+      set_jcr_job_status(jcr, JS_WaitStoreRes);
+      return false;
+   }
+
+   if (jcr->client->NumConcurrentJobs < jcr->client->MaxConcurrentJobs) {
+      jcr->client->NumConcurrentJobs++;
+   } else {
+      /* Back out previous locks */
+      jcr->store->NumConcurrentJobs--;
+      set_jcr_job_status(jcr, JS_WaitClientRes);
+      return false;
+   }
+   if (jcr->job->NumConcurrentJobs < jcr->job->MaxConcurrentJobs) {
+      jcr->job->NumConcurrentJobs++;
+   } else {
+      /* Back out previous locks */
+      jcr->store->NumConcurrentJobs--;
+      jcr->client->NumConcurrentJobs--;
+      set_jcr_job_status(jcr, JS_WaitJobRes);
+      return false;
+   }
+   return true;
 }
