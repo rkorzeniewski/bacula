@@ -57,6 +57,7 @@ bool authenticate_storage_daemon(JCR *jcr, STORE *store)
    BSOCK *sd = jcr->store_bsock;
    char dirname[MAX_NAME_LENGTH];
    int ssl_need = BNET_SSL_NONE;
+   bool get_auth, auth = false;
 
    /* 
     * Send my name to the Storage daemon then do authentication
@@ -67,12 +68,22 @@ bool authenticate_storage_daemon(JCR *jcr, STORE *store)
    btimer_t *tid = start_bsock_timer(sd, 60 * 10);
    if (!bnet_fsend(sd, hello, dirname)) {
       stop_bsock_timer(tid);
+      Dmsg1(50, _("Error sending Hello to Storage daemon. ERR=%s\n"), bnet_strerror(sd));
       Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to Storage daemon. ERR=%s\n"), bnet_strerror(sd));
       return 0;
    }
-   if (!cram_md5_get_auth(sd, store->password, ssl_need) || 
-       !cram_md5_auth(sd, store->password, ssl_need)) {
+   get_auth = cram_md5_get_auth(sd, store->password, ssl_need);   
+   if (get_auth) {
+      auth = cram_md5_auth(sd, store->password, ssl_need);  
+      if (!auth) {
+         Dmsg1(50, "cram_auth failed for %s\n", sd->who);
+      }
+   } else {
+      Dmsg1(50, "cram_get_auth failed for %s\n", sd->who);
+   }
+   if (!get_auth || !auth) {
       stop_bsock_timer(tid);
+      Dmsg0(50, _("Director and Storage daemon passwords or names not the same.\n"));
       Jmsg0(jcr, M_FATAL, 0, _("Director and Storage daemon passwords or names not the same.\n"   
        "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"));
       return 0;
@@ -87,6 +98,7 @@ bool authenticate_storage_daemon(JCR *jcr, STORE *store)
    Dmsg1(110, "<stored: %s", sd->msg);
    stop_bsock_timer(tid);
    if (strncmp(sd->msg, OKhello, sizeof(OKhello)) != 0) {
+      Dmsg0(50, _("Storage daemon rejected Hello command\n"));
       Jmsg0(jcr, M_FATAL, 0, _("Storage daemon rejected Hello command\n"));
       return 0;
    }
@@ -101,6 +113,7 @@ int authenticate_file_daemon(JCR *jcr)
    BSOCK *fd = jcr->file_bsock;
    char dirname[MAX_NAME_LENGTH];
    int ssl_need = BNET_SSL_NONE;
+   bool get_auth, auth = false;
 
    /* 
     * Send my name to the File daemon then do authentication
@@ -114,9 +127,18 @@ int authenticate_file_daemon(JCR *jcr)
       Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to File daemon. ERR=%s\n"), bnet_strerror(fd));
       return 0;
    }
-   if (!cram_md5_get_auth(fd, jcr->client->password, ssl_need) || 
-       !cram_md5_auth(fd, jcr->client->password, ssl_need)) {
+   get_auth = cram_md5_get_auth(fd, jcr->client->password, ssl_need);	
+   if (get_auth) {
+      auth = cram_md5_auth(fd, jcr->client->password, ssl_need);  
+      if (!auth) {
+         Dmsg1(50, "cram_auth failed for %s\n", fd->who);
+      }
+   } else {
+      Dmsg1(50, "cram_get_auth failed for %s\n", fd->who);
+   }
+   if (!get_auth || !auth) {
       stop_bsock_timer(tid);
+      Dmsg0(50, _("Director and File daemon passwords or names not the same.\n"));
       Jmsg(jcr, M_FATAL, 0, _("Director and File daemon passwords or names not the same.\n"   
        "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"));
       return 0;
@@ -124,6 +146,8 @@ int authenticate_file_daemon(JCR *jcr)
    Dmsg1(116, ">filed: %s", fd->msg);
    if (bnet_recv(fd) <= 0) {
       stop_bsock_timer(tid);
+      Dmsg1(50, _("Bad response from File daemon to Hello command: ERR=%s\n"),
+	 bnet_strerror(fd));
       Jmsg(jcr, M_FATAL, 0, _("Bad response from File daemon to Hello command: ERR=%s\n"),
 	 bnet_strerror(fd));
       return 0;
@@ -131,6 +155,7 @@ int authenticate_file_daemon(JCR *jcr)
    Dmsg1(110, "<stored: %s", fd->msg);
    stop_bsock_timer(tid);
    if (strncmp(fd->msg, FDOKhello, sizeof(FDOKhello)) != 0) {
+      Dmsg0(50, _("File daemon rejected Hello command\n"));
       Jmsg(jcr, M_FATAL, 0, _("File daemon rejected Hello command\n"));
       return 0;
    }
