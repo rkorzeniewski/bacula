@@ -55,6 +55,7 @@ bool forge_on = false;
 static uint32_t btape_state_level = 2;
 
 DEVICE *dev = NULL;
+DCR *dcr;
 DEVRES *device = NULL;
 
 	    
@@ -235,6 +236,7 @@ int main(int margc, char *margv[])
    if (!dev) {
       exit(1);
    }
+   dcr = jcr->dcr;
    if (!open_the_device()) {
       goto terminate;
    }
@@ -349,32 +351,32 @@ static void readlabelcmd()
    DEV_BLOCK *block;
 
    block = new_block(dev);
-   stat = read_dev_volume_label(jcr, dev, block);
+   stat = read_dev_volume_label(dcr, block);
    switch (stat) {
-      case VOL_NO_LABEL:
-         Pmsg0(0, "Volume has no label.\n");
-	 break;
-      case VOL_OK:
-         Pmsg0(0, "Volume label read correctly.\n");
-	 break;
-      case VOL_IO_ERROR:
-         Pmsg1(0, "I/O error on device: ERR=%s", strerror_dev(dev));
-	 break;
-      case VOL_NAME_ERROR:
-         Pmsg0(0, "Volume name error\n");
-	 break;
-      case VOL_CREATE_ERROR:
-         Pmsg1(0, "Error creating label. ERR=%s", strerror_dev(dev));
-	 break;
-      case VOL_VERSION_ERROR:
-         Pmsg0(0, "Volume version error.\n");
-	 break;
-      case VOL_LABEL_ERROR:
-         Pmsg0(0, "Bad Volume label type.\n");
-	 break;
-      default:
-         Pmsg0(0, "Unknown error.\n");
-	 break;
+   case VOL_NO_LABEL:
+      Pmsg0(0, "Volume has no label.\n");
+      break;
+   case VOL_OK:
+      Pmsg0(0, "Volume label read correctly.\n");
+      break;
+   case VOL_IO_ERROR:
+      Pmsg1(0, "I/O error on device: ERR=%s", strerror_dev(dev));
+      break;
+   case VOL_NAME_ERROR:
+      Pmsg0(0, "Volume name error\n");
+      break;
+   case VOL_CREATE_ERROR:
+      Pmsg1(0, "Error creating label. ERR=%s", strerror_dev(dev));
+      break;
+   case VOL_VERSION_ERROR:
+      Pmsg0(0, "Volume version error.\n");
+      break;
+   case VOL_LABEL_ERROR:
+      Pmsg0(0, "Bad Volume label type.\n");
+      break;
+   default:
+      Pmsg0(0, "Unknown error.\n");
+      break;
    }
 
    debug_level = 20;
@@ -679,7 +681,7 @@ static int re_read_block_test()
       goto bail_out;
    }
    Pmsg0(0, "Backspace record OK.\n");
-   if (!read_block_from_dev(jcr, dev, block, NO_BLOCK_NUMBER_CHECK)) {
+   if (!read_block_from_dev(dcr, block, NO_BLOCK_NUMBER_CHECK)) {
       Pmsg1(0, _("Read block failed! ERR=%s\n"), strerror(dev->dev_errno));
       goto bail_out;
    }
@@ -784,7 +786,7 @@ static int write_read_test()
    }
    for (i=1; i<=2000; i++) {
 read_again:
-      if (!read_block_from_dev(jcr, dev, block, NO_BLOCK_NUMBER_CHECK)) {
+      if (!read_block_from_dev(dcr, block, NO_BLOCK_NUMBER_CHECK)) {
 	 if (dev_state(dev, ST_EOF)) {
             Pmsg0(-1, _("Got EOF on tape.\n"));
 	    goto read_again;
@@ -934,7 +936,7 @@ static int position_test()
 	 goto bail_out;
       }
 read_again:
-      if (!read_block_from_dev(jcr, dev, block, NO_BLOCK_NUMBER_CHECK)) {
+      if (!read_block_from_dev(dcr, block, NO_BLOCK_NUMBER_CHECK)) {
 	 if (dev_state(dev, ST_EOF)) {
             Pmsg0(-1, _("Got EOF on tape.\n"));
 	    goto read_again;
@@ -1578,7 +1580,7 @@ static void scan_blocks()
    update_pos_dev(dev);
    tot_files = dev->file;
    for (;;) {
-      if (!read_block_from_device(jcr, dev, block, NO_BLOCK_NUMBER_CHECK)) {
+      if (!read_block_from_device(dcr, block, NO_BLOCK_NUMBER_CHECK)) {
          Dmsg1(100, "!read_block(): ERR=%s\n", strerror_dev(dev));
 	 if (dev->state & ST_EOT) {
 	    if (blocks > 0) {
@@ -2000,14 +2002,14 @@ static void do_unfill()
    rewind_dev(dev);		      /* get to a known place on tape */
    /* Read the first 1000 records */
    Pmsg0(-1, _("Reading the first 1000 records.\n"));
-   read_records(jcr, dev, quickie_cb, my_mount_next_read_volume);
+   read_records(dcr, quickie_cb, my_mount_next_read_volume);
    Pmsg4(-1, _("Reposition from %u:%u to %u:%u\n"), dev->file, dev->block_num,
 	 last_file, last_block_num);
    if (!reposition_dev(dev, last_file, last_block_num)) {
       Pmsg1(-1, "Reposition error. ERR=%s\n", strerror_dev(dev));
    }
    Pmsg1(-1, _("Reading block %u.\n"), last_block_num);
-   if (!read_block_from_device(jcr, dev, block, NO_BLOCK_NUMBER_CHECK)) {
+   if (!read_block_from_device(dcr, block, NO_BLOCK_NUMBER_CHECK)) {
       Pmsg1(-1, _("Error reading block: ERR=%s\n"), strerror_dev(dev));
       goto bail_out;
    }
@@ -2058,7 +2060,7 @@ static void do_unfill()
       goto bail_out;
    }
    Pmsg1(-1, _("Reading block %d.\n"), dev->block_num);
-   if (!read_block_from_device(jcr, dev, block, NO_BLOCK_NUMBER_CHECK)) {
+   if (!read_block_from_device(dcr, block, NO_BLOCK_NUMBER_CHECK)) {
       Pmsg1(-1, _("Error reading block: ERR=%s\n"), strerror_dev(dev));
       goto bail_out;
    }
@@ -2074,7 +2076,7 @@ static void do_unfill()
       goto bail_out;
    }
    Pmsg1(-1, _("Reading block %d.\n"), dev->block_num);
-   if (!read_block_from_device(jcr, dev, block, NO_BLOCK_NUMBER_CHECK)) {
+   if (!read_block_from_device(dcr, block, NO_BLOCK_NUMBER_CHECK)) {
       Pmsg1(-1, _("Error reading block: ERR=%s\n"), strerror_dev(dev));
       goto bail_out;
    }

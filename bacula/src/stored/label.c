@@ -56,11 +56,13 @@ extern int debug_level;
  *    VOL_LABEL_ERROR
  *    VOL_NO_MEDIA
  */  
-int read_dev_volume_label(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
+int read_dev_volume_label(DCR *dcr, DEV_BLOCK *block)
 {
+   JCR *jcr = dcr->jcr;
+   DEVICE *dev = dcr->dev;
    char *VolName = jcr->VolumeName;
    DEV_RECORD *record;
-   int ok = 0;
+   bool ok = false;
 
    Dmsg3(100, "Enter read_volume_label device=%s vol=%s dev_Vol=%s\n", 
       dev_name(dev), VolName, dev->VolHdr.VolName);
@@ -95,7 +97,7 @@ int read_dev_volume_label(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    /* Read the Volume label block */
    record = new_record();
    Dmsg0(90, "Big if statement in read_volume_label\n");
-   if (!read_block_from_dev(jcr, dev, block, NO_BLOCK_NUMBER_CHECK)) { 
+   if (!read_block_from_dev(dcr, block, NO_BLOCK_NUMBER_CHECK)) { 
       Mmsg(&jcr->errmsg, _("Requested Volume \"%s\" on %s is not a Bacula "
            "labeled Volume, because: ERR=%s"), NPRT(VolName), dev_name(dev), 
 	   strerror_dev(dev));
@@ -108,7 +110,7 @@ int read_dev_volume_label(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	      strcmp(dev->VolHdr.Id, OldBaculaId) != 0) {
       Mmsg(&jcr->errmsg, _("Volume Header Id bad: %s\n"), dev->VolHdr.Id);
    } else {
-      ok = 1;
+      ok = true;
    }
    if (!ok) {
       free_record(record);

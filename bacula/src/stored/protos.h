@@ -66,8 +66,8 @@ void    ser_block_header(DEV_BLOCK *block);
 
 #define CHECK_BLOCK_NUMBERS    true
 #define NO_BLOCK_NUMBER_CHECK  false
-int     read_block_from_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, bool check_block_numbers);
-int     read_block_from_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, bool check_block_numbers);
+bool    read_block_from_device(DCR *dcr, DEV_BLOCK *block, bool check_block_numbers);
+bool    read_block_from_dev(DCR *dcr, DEV_BLOCK *block, bool check_block_numbers);
 
 /* From butil.c -- utilities for SD tool programs */
 void    print_ls_output(const char *fname, const char *link, int type, struct stat *statp);
@@ -145,7 +145,7 @@ void     connection_from_filed(void *arg);
 void     handle_filed_connection(BSOCK *fd, char *job_name);
 
 /* From label.c */
-int      read_dev_volume_label(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
+int      read_dev_volume_label(DCR *dcr, DEV_BLOCK *block);
 void     create_session_label(JCR *jcr, DEV_RECORD *rec, int label);
 void     create_volume_label(DEVICE *dev, const char *VolName, const char *PoolName);
 bool     write_new_volume_label_to_dev(JCR *jcr, DEVICE *dev, const char *VolName, const char *PoolName);
@@ -195,7 +195,7 @@ DEV_RECORD *new_record();
 void     free_record(DEV_RECORD *rec);
 
 /* From read_record.c */
-bool read_records(JCR *jcr,  DEVICE *dev, 
+bool read_records(DCR *dcr,
        bool record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec),
        bool mount_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block));
 

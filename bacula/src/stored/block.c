@@ -233,15 +233,13 @@ static bool unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       block->bufp = block->buf + bhl;
       if (strncmp(Id, BLKHDR1_ID, BLKHDR_ID_LENGTH) != 0) {
 	 dev->dev_errno = EIO;
-         Mmsg4(&dev->errmsg, _("Volume data error at %u:%u! Wanted ID: %s, got %s. Buffer discarded.\n"),
+         Mmsg4(&dev->errmsg, _("Volume data error at %u:%u! Wanted ID: \"%s\", got \"%s\". Buffer discarded.\n"),
 	    dev->file, dev->block_num, BLKHDR1_ID, Id);
 	 if (block->read_errors == 0 || verbose >= 2) {
             Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
 	 }
 	 block->read_errors++;
-	 if (!forge_on) {
-	    return false;
-	 }
+	 return false;
       }
    } else if (Id[3] == '2') {
       unser_uint32(block->VolSessionId);
@@ -251,32 +249,25 @@ static bool unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       block->bufp = block->buf + bhl;
       if (strncmp(Id, BLKHDR2_ID, BLKHDR_ID_LENGTH) != 0) {
 	 dev->dev_errno = EIO;
-         Mmsg4(&dev->errmsg, _("Volume data error at %u:%u! Wanted ID: %s, got %s. Buffer discarded.\n"),
+         Mmsg4(&dev->errmsg, _("Volume data error at %u:%u! Wanted ID: \"%s\", got \"%s\". Buffer discarded.\n"),
 	    dev->file, dev->block_num, BLKHDR2_ID, Id);
 	 if (block->read_errors == 0 || verbose >= 2) {
             Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
 	 }
 	 block->read_errors++;
-	 if (!forge_on) {
-	    return false;
-	 }
+	 return false;
       }
    } else {
       dev->dev_errno = EIO;
-      Mmsg4(&dev->errmsg, _("Volume data error at %u:%u! Wanted ID: %s, got %s. Buffer discarded.\n"),
+      Mmsg4(&dev->errmsg, _("Volume data error at %u:%u! Wanted ID: \"%s\", got \"%s\". Buffer discarded.\n"),
 	  dev->file, dev->block_num, BLKHDR2_ID, Id);
       if (block->read_errors == 0 || verbose >= 2) {
          Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       }
       block->read_errors++;
-      if (!forge_on) {
-	 return false;
-      }
       unser_uint32(block->VolSessionId);
       unser_uint32(block->VolSessionTime);
-      bhl = BLKHDR2_LENGTH;
-      block->BlockVer = 2;
-      block->bufp = block->buf + bhl;
+      return false;
    }
 
    /* Sanity check */
@@ -288,9 +279,7 @@ static bool unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
          Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       }
       block->read_errors++;
-      if (!forge_on) {
-	 return false;
-      }
+      return false;
    }
 
    Dmsg1(190, "unser_block_header block_len=%d\n", block_len);
@@ -525,7 +514,21 @@ bool write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
 
    dev->VolCatInfo.VolCatWrites++;
    Dmsg1(200, "Write block of %u bytes\n", wlen);      
+#ifdef DEBUG_BLOCK_ZEROING
+   uint32_t *bp = (uint32_t *)block->buf;
+   if (bp[0] == 0 && bp[1] == 0 && bp[2] == 0 && block->buf[12] == 0) {
+      Jmsg0(jcr, M_ABORT, 0, "Write block header zeroed.\n");
+   }
+#endif
+
    stat = write(dev->fd, block->buf, (size_t)wlen);
+
+#ifdef DEBUG_BLOCK_ZEROING
+   if (bp[0] == 0 && bp[1] == 0 && bp[2] == 0 && block->buf[12] == 0) {
+      Jmsg0(jcr, M_ABORT, 0, "Write block header zeroed.\n");
+   }
+#endif
+
    if (stat != (ssize_t)wlen) {
       /* We should check for errno == ENOSPC, BUT many 
        * devices simply report EIO when the volume is full.
@@ -581,7 +584,7 @@ bool write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
        *   then re-read it and verify that the block number is
        *   correct.
        */
-      if (dev->state & ST_TAPE && dev_cap(dev, CAP_BSR)) {
+      if ((dev->state & ST_TAPE) && dev_cap(dev, CAP_BSR)) {
 
 	 /* Now back up over what we wrote and read the last block */
 	 if (!bsf_dev(dev, 1)) {
@@ -609,7 +612,7 @@ bool write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
 	 if (ok) {
 	    DEV_BLOCK *lblock = new_block(dev);
 	    /* Note, this can destroy dev->errmsg */
-	    if (!read_block_from_dev(jcr, dev, lblock, NO_BLOCK_NUMBER_CHECK)) {
+	    if (!read_block_from_dev(dcr, lblock, NO_BLOCK_NUMBER_CHECK)) {
                Jmsg(jcr, M_ERROR, 0, _("Re-read last block at EOT failed. ERR=%s"), dev->errmsg);
 	    } else {
 	       if (lblock->BlockNumber+1 == block->BlockNumber) {
@@ -665,12 +668,13 @@ bool write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
  * Read block with locking
  *
  */
-int read_block_from_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, bool check_block_numbers)
+bool read_block_from_device(DCR *dcr, DEV_BLOCK *block, bool check_block_numbers)
 {
-   int stat;
+   bool stat;
+   DEVICE *dev = dcr->dev;
    Dmsg0(90, "Enter read_block_from_device\n");
    lock_device(dev);
-   stat = read_block_from_dev(jcr, dev, block, check_block_numbers);
+   stat = read_block_from_dev(dcr, block, check_block_numbers);
    unlock_device(dev);
    Dmsg0(90, "Leave read_block_from_device\n");
    return stat;
@@ -681,19 +685,17 @@ int read_block_from_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, bool check_b
  *  the block header.  For a file, the block may be partially
  *  or completely in the current buffer.
  */
-int read_block_from_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, bool check_block_numbers)
+bool read_block_from_dev(DCR *dcr, DEV_BLOCK *block, bool check_block_numbers)
 {
    ssize_t stat;
    int looping;
    uint32_t BlockNumber;
    int retry;
-   DCR *dcr = jcr->dcr;
+   JCR *jcr = dcr->jcr;
+   DEVICE *dev = dcr->dev;
 
-   if (!dcr) {
-      Jmsg0(jcr, M_ABORT, 0, _("DCR is NULL!\n"));
-   }
    if (dev_state(dev, ST_EOT)) {
-      return 0;
+      return false;
    }
    looping = 0;
    Dmsg1(100, "Full read() in read_block_from_device() len=%d\n",
@@ -705,32 +707,39 @@ reread:
 	 dev->dev_name);
       Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       block->read_len = 0;
-      return 0;
+      return false;
    }
    retry = 0;
    do {
+//    uint32_t *bp = (uint32_t *)block->buf;
+//    Dmsg3(000, "Read %p %u at %llu\n", block->buf, block->buf_len, lseek(dev->fd, 0, SEEK_CUR));
+
       stat = read(dev->fd, block->buf, (size_t)block->buf_len);
+
+//    Dmsg8(000, "stat=%d Csum=%u blen=%u bnum=%u %c%c%c%c\n",stat, bp[0],bp[1],bp[2],
+//	block->buf[12],block->buf[13],block->buf[14],block->buf[15]);
+
       if (retry == 1) {
 	 dev->VolCatInfo.VolCatErrors++;   
       }
    } while (stat == -1 && (errno == EINTR || errno == EIO) && retry++ < 11);
-// Dmsg1(100, "read stat = %d\n", stat);
    if (stat < 0) {
       Dmsg1(90, "Read device got: ERR=%s\n", strerror(errno));
       clrerror_dev(dev, -1);
       block->read_len = 0;
-      Mmsg4(&dev->errmsg, _("Read error at file:block %d:%d on device %s. ERR=%s.\n"), 
+      Mmsg4(&dev->errmsg, _("Read error at file:blk %u:%u on device %s. ERR=%s.\n"), 
 	 dev->file, dev->block_num, dev->dev_name, strerror(dev->dev_errno));
       Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       if (dev->state & ST_EOF) {  /* EOF just seen? */
 	 dev->state |= ST_EOT;	  /* yes, error => EOT */
       }
-      return 0;
+      return false;
    }
    Dmsg1(90, "Read device got %d bytes\n", stat);
    if (stat == 0) {		/* Got EOF ! */
       dev->block_num = block->read_len = 0;
-      Mmsg1(&dev->errmsg, _("Read zero bytes on device %s.\n"), dev->dev_name);
+      Mmsg3(&dev->errmsg, _("Read zero bytes at %u:%u on device %s.\n"), 
+	 dev->file, dev->block_num, dev->dev_name);
       if (dev->state & ST_EOF) { /* EOF already read? */
 	 dev->state |= ST_EOT;	/* yes, 2 EOFs => EOT */
 	 block->read_len = 0;
@@ -739,24 +748,28 @@ reread:
       dev->file++;		/* increment file */
       dev->state |= ST_EOF;	/* set EOF read */
       block->read_len = 0;
-      return 0; 		/* return eof */
+      return false;		/* return eof */
    }
    /* Continue here for successful read */
    block->read_len = stat;	/* save length read */
    if (block->read_len < BLKHDR2_LENGTH) {
       dev->dev_errno = EIO;
-      Mmsg2(&dev->errmsg, _("Volume data error! Very short block of %d bytes on device %s discarded.\n"), 
-	 block->read_len, dev->dev_name);
+      Mmsg4(&dev->errmsg, _("Volume data error at %u:%u! Very short block of %d bytes on device %s discarded.\n"), 
+	 dev->file, dev->block_num, block->read_len, dev->dev_name);
       Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       dev->state |= ST_SHORT;	/* set short block */
       block->read_len = block->binbuf = 0;
-      return 0; 		/* return error */
+      return false;		/* return error */
    }  
 
    BlockNumber = block->BlockNumber + 1;
    if (!unser_block_header(jcr, dev, block)) {
-      block->read_len = 0;
-      return 0;
+      if (forge_on) {
+	 dev->file_addr += block->read_len;
+	 dev->file_size += block->read_len;
+	 goto reread;
+      }
+      return false;
    }
 
    /*
@@ -776,10 +789,10 @@ reread:
 	 if (!bsr_dev(dev, 1)) {
             Jmsg(jcr, M_ERROR, 0, "%s", strerror_dev(dev));
 	    block->read_len = 0;
-	    return 0;
+	    return false;
 	 }
       } else {
-         Dmsg0(100, "Seek to beginning of block for reread.\n");
+         Dmsg0(200, "Seek to beginning of block for reread.\n");
 	 off_t pos = lseek(dev->fd, (off_t)0, SEEK_CUR); /* get curr pos */
 	 pos -= block->read_len;
 	 lseek(dev->fd, pos, SEEK_SET);   
@@ -805,7 +818,7 @@ reread:
       Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       dev->state |= ST_SHORT;	/* set short block */
       block->read_len = block->binbuf = 0;
-      return 0; 		/* return error */
+      return false;		/* return error */
    }  
 
    dev->state &= ~(ST_EOF|ST_SHORT); /* clear EOF and short block */
@@ -849,12 +862,13 @@ reread:
       off_t pos = lseek(dev->fd, (off_t)0, SEEK_CUR); /* get curr pos */
       pos -= (block->read_len - block->block_len);
       lseek(dev->fd, pos, SEEK_SET);   
-      Dmsg2(100, "Did lseek blk_size=%d rdlen=%d\n", block->block_len,
+      Dmsg2(200, "Did lseek blk_size=%d rdlen=%d\n", block->block_len,
 	    block->read_len);
       dev->file_addr = pos;
+      dev->file_size = pos;
    }
    Dmsg2(200, "Exit read_block read_len=%d block_len=%d\n",
       block->read_len, block->block_len);
    block->block_read = true;
-   return 1;
+   return true;
 }

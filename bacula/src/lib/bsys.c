@@ -283,6 +283,19 @@ void _v(char *file, int line, pthread_mutex_t *m)
 }
 #endif /* DEBUG_MUTEX */
 
+#ifdef DEBUG_MEMSET
+/* These routines are not normally turned on */
+#undef memset
+void b_memset(const char *file, int line, void *mem, int val, size_t num)
+{
+   /* Testing for 2000 byte zero at beginning of Volume block */
+   if (num > 1900 && num < 3000) {
+      Pmsg3(000, "Memset for %d bytes at %s:%d\n", (int)num, file, line);
+   }
+   memset(mem, val, num);
+}
+#endif
+
 #if !defined(HAVE_CYGWIN) && !defined(HAVE_WIN32)
 static int del_pid_file_ok = FALSE;
 #endif

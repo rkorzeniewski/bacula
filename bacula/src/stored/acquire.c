@@ -146,7 +146,7 @@ DCR *acquire_device_for_read(JCR *jcr)
        */
       dcr->dev->state &= ~ST_LABEL;	      /* force reread of label */
       Dmsg0(200, "calling read-vol-label\n");
-      switch (read_dev_volume_label(jcr, dev, dcr->block)) {
+      switch (read_dev_volume_label(dcr, dcr->block)) {
       case VOL_OK:
 	 vol_ok = true;
 	 break; 		   /* got it */

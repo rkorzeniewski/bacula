@@ -2,8 +2,8 @@
 #undef  VERSION
 #define VERSION "1.35.0"
 #define VSTRING "1"
-#define BDATE   "07 July 2004"
-#define LSMDATE "07Jul04"
+#define BDATE   "08 July 2004"
+#define LSMDATE "08Jul04"
 
 /* Debug flags */
 #undef  DEBUG
@@ -12,8 +12,13 @@
 #define SMCHECK     
 #define TRACE_FILE 1  
 
-// #define TRACE_JCR_CHAIN 1
-// #define TRACE_RES 1
+
+/* Debug flags not normally turned on */
+
+/* #define TRACE_JCR_CHAIN 1 */
+/* #define TRACE_RES 1 */
+/* #define DEBUG_MEMSET 1 */
+#define DEBUG_BLOCK_ZEROING 1
 
 /* #define FULL_DEBUG 1 */   /* normally on for testing only */
 

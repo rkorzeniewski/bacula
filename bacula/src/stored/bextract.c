@@ -41,6 +41,7 @@ static void do_extract(char *fname);
 static bool record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
 
 static DEVICE *dev = NULL;
+static DCR *dcr;
 static BFILE bfd;
 static JCR *jcr;
 static FF_PKT my_ff;
@@ -204,6 +205,7 @@ static void do_extract(char *devname)
    if (!dev) {
       exit(1);
    }
+   dcr = jcr->dcr;
 
    /* Make sure where directory exists and that it is a directory */
    if (stat(where, &statp) < 0) {
@@ -220,7 +222,7 @@ static void do_extract(char *devname)
 
    compress_buf = get_memory(compress_buf_size);
 
-   read_records(jcr, dev, record_cb, mount_next_read_volume);
+   read_records(dcr, record_cb, mount_next_read_volume);
    /* If output file is still open, it was the last one in the
     * archive since we just hit an end of file, so close the file. 
     */

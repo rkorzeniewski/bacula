@@ -273,6 +273,11 @@ extern void _v(char *file, int line, pthread_mutex_t *m);
 #define LockRes()   b_LockRes(__FILE__, __LINE__)
 #define UnlockRes() b_UnlockRes(__FILE__, __LINE__)
 
+#ifdef DEBUG_MEMSET
+#define memset(a, v, n) b_memset(__FILE__, __LINE__, a, v, n)
+void b_memset(const char *file, int line, void *mem, int val, size_t num);
+#endif
+
 
 /*
  * The digit following Dmsg and Emsg indicates the number of substitutions in
