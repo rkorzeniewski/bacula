@@ -25,6 +25,7 @@ tests/restore2-by-file-test
 tests/four-jobs-test
 tests/incremental-test
 tests/decremental-test
+tests/restore-disk-seek-test
 echo " "
 echo " "
 echo "Test results"

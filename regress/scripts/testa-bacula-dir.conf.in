@@ -120,8 +120,7 @@ Messages {
 Messages {
   Name = NoEmail
   mailcommand = "@sbindir@/bsmtp -h localhost -f \"\(Bacula Regression\) %r\" -s \"Bacula: %t %e of %c %l\" %r"
-  console = all, !skipped
-
+  console = all, !skipped, !terminate
   append = "@working_dir@/log" = all, !skipped
 }
 
