@@ -43,6 +43,7 @@ struct monitoritem {
    void* resource; /* DIRRES*, CLIENT* or STORE* */
    BSOCK *D_sock;
    stateenum state;
+   stateenum oldstate;
    GtkWidget* image;
    GtkWidget* label;
 };

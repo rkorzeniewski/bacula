@@ -32,11 +32,7 @@
 
 #include "eggstatusicon.h"
 
-#include "idle.xpm"
-#include "error.xpm"
-#include "running.xpm"
-//#include "saving.xpm"
-#include "warn.xpm"
+#include "generic.xpm"
 
 /* Imported functions */
 int authenticate_director(JCR *jcr, MONITOR *monitor, DIRRES *director);
@@ -46,7 +42,7 @@ int authenticate_storage_daemon(JCR *jcr, MONITOR *monitor, STORE* store);
 /* Forward referenced functions */
 void writecmd(monitoritem* item, const char* command);
 int docmd(monitoritem* item, const char* command, GSList** list);
-stateenum getstatus(monitoritem* item, int current, GString** str);
+void getstatus(monitoritem* item, int current, GString** str);
 
 /* Static variables */
 static char *configfile = NULL;
@@ -54,7 +50,7 @@ static MONITOR *monitor;
 static POOLMEM *args;
 static JCR jcr;
 static int nitems = 0;
-static int fullitem = -1; //Item to be display in detailled status window
+static int fullitem = 0; //Item to be display in detailled status window
 static int lastupdated = -1; //Last item updated
 static monitoritem items[32];
 
@@ -64,26 +60,30 @@ static char DotStatusJob[] = "JobId=%d JobStatus=%c JobErrors=%d\n";
 
 /* UI variables and functions */
 
-stateenum currentstatus = warn;
-
 static gboolean fd_read(gpointer data);
 void trayMessage(const char *fmt,...);
-void changeStatus(monitoritem* item, stateenum status);
+void updateStatusIcon(monitoritem* item);
 void changeStatusMessage(monitoritem* item, const char *fmt,...);
+static const char** generateXPM(stateenum newstate, stateenum oldstate);
 
 /* Callbacks */
 static void TrayIconActivate(GtkWidget *widget, gpointer data);
 static void TrayIconExit(unsigned int activateTime, unsigned int button);
 static void TrayIconPopupMenu(unsigned int button, unsigned int activateTime);
 static void MonitorAbout(GtkWidget *widget, gpointer data);
+static void MonitorRefresh(GtkWidget *widget, gpointer data);
+static void IntervalChanged(GtkWidget *widget, gpointer data);
+static void DaemonChanged(GtkWidget *widget, monitoritem* data);
 static gboolean delete_event(GtkWidget *widget, GdkEvent  *event, gpointer   data);
 
-static gint timerTag;
+static guint timerTag;
 static EggStatusIcon *mTrayIcon;
 static GtkWidget *mTrayMenu;
 static GtkWidget *window;
 static GtkWidget *textview;
 static GtkTextBuffer *buffer;
+static GtkWidget *timeoutspinner;
+char** xpm_generic_var;
 
 #define CONFIG_FILE "./tray-monitor.conf"   /* default configuration file */
 
@@ -223,7 +223,14 @@ Without that I don't how to get status from the File or Storage Daemon :-(\n"), 
       exit(0);
    }
    
-   (void)WSA_Init();			    /* Initialize Windows sockets */
+   //Copy the content of xpm_generic in xpm_generic_var to be able to modify it
+   xpm_generic_var = (char**)g_malloc(sizeof(xpm_generic));
+   for (i = 0; i < (int)(sizeof(xpm_generic)/sizeof(const char*)); i++) {
+      xpm_generic_var[i] = (char*)g_malloc(strlen(xpm_generic[i])*sizeof(char));
+      strcpy(xpm_generic_var[i], xpm_generic[i]);
+   }
+   
+   (void)WSA_Init();                /* Initialize Windows sockets */
 
    LockRes();
    monitor = (MONITOR*)GetNextRes(R_MONITOR, (RES *)NULL);
@@ -231,7 +238,7 @@ Without that I don't how to get status from the File or Storage Daemon :-(\n"), 
    
    gtk_init (&argc, &argv);
    
-   GdkPixbuf* pixbuf = gdk_pixbuf_new_from_xpm_data(xpm_warn);
+   GdkPixbuf* pixbuf = gdk_pixbuf_new_from_xpm_data(generateXPM(warn, warn));
    // This should be ideally replaced by a completely libpr0n-based icon rendering.
    mTrayIcon = egg_status_icon_new_from_pixbuf(pixbuf);
    g_signal_connect(G_OBJECT(mTrayIcon), "activate", G_CALLBACK(TrayIconActivate), NULL);
@@ -254,7 +261,7 @@ Without that I don't how to get status from the File or Storage Daemon :-(\n"), 
    
    gtk_widget_show_all(mTrayMenu);
    
-   timerTag = g_timeout_add( 5000/nitems, fd_read, NULL );
+   timerTag = g_timeout_add( 2000, fd_read, NULL );
       
    window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
    
@@ -267,33 +274,18 @@ Without that I don't how to get status from the File or Storage Daemon :-(\n"), 
    
    GtkWidget* vbox = gtk_vbox_new(FALSE, 10);
    
-   /*textview = gtk_text_view_new();
-
-   buffer = gtk_text_buffer_new(NULL);
-
-   gtk_text_buffer_set_text(buffer, "", -1);
-
-   PangoFontDescription *font_desc = pango_font_description_from_string ("Fixed 10");
-   gtk_widget_modify_font(textview, font_desc);
-   pango_font_description_free(font_desc);
-   
-   gtk_text_view_set_left_margin(GTK_TEXT_VIEW(textview), 20);
-   gtk_text_view_set_right_margin(GTK_TEXT_VIEW(textview), 20);
-   
-   gtk_text_view_set_editable(GTK_TEXT_VIEW(textview), FALSE);
-   
-   gtk_text_view_set_buffer(GTK_TEXT_VIEW(textview), buffer);
-   
-   gtk_box_pack_start(GTK_BOX(vbox), textview, TRUE, FALSE, 0);*/
-   
-   GtkWidget* daemon_table = gtk_table_new((nitems*2)+1, 3, FALSE);
+   GtkWidget* daemon_table = gtk_table_new((nitems*2)+2, 3, FALSE);
    
    gtk_table_set_col_spacings(GTK_TABLE(daemon_table), 8);
-
+   
    GtkWidget* separator = gtk_hseparator_new();
    gtk_table_attach_defaults(GTK_TABLE(daemon_table), separator, 0, 3, 0, 1);
       
-   GString *str;   
+   GString *str;
+   GSList *group = NULL;
+   GtkWidget* radio;
+   GtkWidget* align;
+   
    for (int i = 0; i < nitems; i++) {
       switch (items[i].type) {
       case R_DIRECTOR:
@@ -312,34 +304,72 @@ Without that I don't how to get status from the File or Storage Daemon :-(\n"), 
          continue;
       }
       
-      GtkWidget* label = gtk_label_new(str->str);
-      GdkPixbuf* pixbuf = gdk_pixbuf_new_from_xpm_data(xpm_warn);
+      radio = gtk_radio_button_new_with_label(group, str->str);
+      gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radio), i == 0);
+      g_signal_connect(G_OBJECT(radio), "toggled", G_CALLBACK(DaemonChanged), &(items[i]));
+      
+      pixbuf = gdk_pixbuf_new_from_xpm_data(generateXPM(warn, warn));
       items[i].image = gtk_image_new_from_pixbuf(pixbuf);
       
       items[i].label =  gtk_label_new(_("Unknown status."));
-      GtkWidget* align = gtk_alignment_new(0.0, 0.5, 0.0, 1.0);
+      align = gtk_alignment_new(0.0, 0.5, 0.0, 1.0);
       gtk_container_add(GTK_CONTAINER(align), items[i].label);
             
-      gtk_table_attach_defaults(GTK_TABLE(daemon_table), label, 0, 1, (i*2)+1, (i*2)+2);
-      gtk_table_attach_defaults(GTK_TABLE(daemon_table), items[i].image, 1, 2, (i*2)+1, (i*2)+2);
-      gtk_table_attach_defaults(GTK_TABLE(daemon_table), align, 2, 3, (i*2)+1, (i*2)+2);
+      gtk_table_attach(GTK_TABLE(daemon_table), radio, 0, 1, (i*2)+1, (i*2)+2, 
+         GTK_FILL, (GtkAttachOptions)(GTK_EXPAND | GTK_FILL), 0, 0);
+      gtk_table_attach(GTK_TABLE(daemon_table), items[i].image, 1, 2, (i*2)+1, (i*2)+2, 
+         GTK_FILL, (GtkAttachOptions)(GTK_EXPAND | GTK_FILL), 0, 0);
+      gtk_table_attach(GTK_TABLE(daemon_table), align, 2, 3, (i*2)+1, (i*2)+2, 
+         (GtkAttachOptions)(GTK_EXPAND | GTK_FILL), (GtkAttachOptions)(GTK_EXPAND | GTK_FILL), 0, 0);
    
-      GtkWidget* separator = gtk_hseparator_new();
+      separator = gtk_hseparator_new();
       gtk_table_attach_defaults(GTK_TABLE(daemon_table), separator, 0, 3, (i*2)+2, (i*2)+3);
+      
+      group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(radio));
    }
    
-   gtk_box_pack_start(GTK_BOX(vbox), daemon_table, TRUE, FALSE, 0);
+   gtk_box_pack_start(GTK_BOX(vbox), daemon_table, FALSE, FALSE, 0);
+   
+   textview = gtk_text_view_new();
+
+   buffer = gtk_text_buffer_new(NULL);
+
+   gtk_text_buffer_set_text(buffer, "", -1);
+
+   PangoFontDescription *font_desc = pango_font_description_from_string ("Fixed 10");
+   gtk_widget_modify_font(textview, font_desc);
+   pango_font_description_free(font_desc);
+   
+   gtk_text_view_set_left_margin(GTK_TEXT_VIEW(textview), 20);
+   gtk_text_view_set_right_margin(GTK_TEXT_VIEW(textview), 20);
+   
+   gtk_text_view_set_editable(GTK_TEXT_VIEW(textview), FALSE);
+   
+   gtk_text_view_set_buffer(GTK_TEXT_VIEW(textview), buffer);
+   
+   gtk_box_pack_start(GTK_BOX(vbox), textview, TRUE, TRUE, 0);
    
    GtkWidget* hbox = gtk_hbox_new(FALSE, 10);
-         
-   GtkWidget* button = new_image_button("gtk-help", "About");
-   g_signal_connect_swapped(G_OBJECT(button), "clicked", G_CALLBACK(MonitorAbout), NULL);
+
+   GtkWidget* hbox2 = gtk_hbox_new(FALSE, 0);
+   GtkWidget* label = gtk_label_new(_("Refresh interval in seconds: "));
+   gtk_box_pack_start(GTK_BOX(hbox2), label, TRUE, FALSE, 0);
+   GtkAdjustment *spinner_adj = (GtkAdjustment *) gtk_adjustment_new (nitems*2, nitems, 120.0, 1.0, 5.0, 5.0);
+   timeoutspinner = gtk_spin_button_new (spinner_adj, 1.0, 0);
+   g_signal_connect(G_OBJECT(timeoutspinner), "value-changed", G_CALLBACK(IntervalChanged), NULL);
+   gtk_box_pack_start(GTK_BOX(hbox2), timeoutspinner, TRUE, FALSE, 0);
+   gtk_box_pack_start(GTK_BOX(hbox), hbox2, TRUE, FALSE, 0);
    
+   GtkWidget* button = new_image_button("gtk-refresh", _("Refresh now"));
+   g_signal_connect_swapped(G_OBJECT(button), "clicked", G_CALLBACK(MonitorRefresh), NULL);
    gtk_box_pack_start(GTK_BOX(hbox), button, TRUE, FALSE, 0);
    
-   button = new_image_button("gtk-close", "Close");
-   g_signal_connect_swapped(G_OBJECT(button), "clicked", G_CALLBACK(gtk_widget_hide), G_OBJECT(window));
+   button = new_image_button("gtk-help", _("About"));
+   g_signal_connect_swapped(G_OBJECT(button), "clicked", G_CALLBACK(MonitorAbout), NULL);
+   gtk_box_pack_start(GTK_BOX(hbox), button, TRUE, FALSE, 0);
    
+   button = new_image_button("gtk-close", _("Close"));
+   g_signal_connect_swapped(G_OBJECT(button), "clicked", G_CALLBACK(gtk_widget_hide), G_OBJECT(window)); 
    gtk_box_pack_start(GTK_BOX(hbox), button, TRUE, FALSE, 0);
    
    gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
@@ -360,6 +390,13 @@ Without that I don't how to get status from the File or Storage Daemon :-(\n"), 
 
    free_pool_memory(args);
    (void)WSACleanup();		     /* Cleanup Windows sockets */
+   
+   //Free xpm_generic_var
+   for (i = 0; i < (int)(sizeof(xpm_generic)/sizeof(const char*)); i++) {
+      g_free(xpm_generic_var[i]);
+   }
+   g_free(xpm_generic_var);
+   
    return 0;
 }
 
@@ -383,6 +420,12 @@ static void MonitorAbout(GtkWidget *widget, gpointer data) {
    gtk_widget_destroy(about);
 }
 
+static void MonitorRefresh(GtkWidget *widget, gpointer data) {
+   for (int i = 0; i < nitems; i++) {
+      fd_read(NULL);
+   }
+}
+
 static gboolean delete_event( GtkWidget *widget,
                               GdkEvent  *event,
                               gpointer   data ) {
@@ -401,6 +444,32 @@ static void TrayIconPopupMenu(unsigned int activateTime, unsigned int button) {
 
 static void TrayIconExit(unsigned int activateTime, unsigned int button) {
    gtk_main_quit();
+}
+
+static void IntervalChanged(GtkWidget *widget, gpointer data) {
+   g_source_remove(timerTag);
+   timerTag = g_timeout_add(
+      (guint)(
+         gtk_spin_button_get_value(GTK_SPIN_BUTTON(timeoutspinner))*1000/nitems
+      ), fd_read, NULL );
+}
+
+static void DaemonChanged(GtkWidget *widget, monitoritem* data) {
+   if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
+      fullitem = -1;
+      for (int i = 0; i < nitems; i++) {
+         if (data == &(items[i])) {
+            fullitem = i;
+            break;
+         }
+      }
+      g_return_if_fail(fullitem != -1);
+
+      int oldlastupdated = lastupdated;
+      lastupdated = fullitem-1;
+      fd_read(NULL);
+      lastupdated = oldlastupdated;
+   }
 }
 
 static int authenticate_daemon(monitoritem* item, JCR *jcr) {
@@ -426,7 +495,6 @@ static gboolean fd_read(gpointer data) {
    GtkTextIter start, stop, nstart, nstop;
 
    GSList *list, *it;
-   stateenum stat = idle, nstat;
    
    GString *strlast, *strcurrent;
    
@@ -434,20 +502,12 @@ static gboolean fd_read(gpointer data) {
    if (lastupdated == nitems) {
       lastupdated = 0;
    }
-   
-   nstat = getstatus(&items[lastupdated], 1, &strcurrent);
-   if (nstat > stat) stat = nstat;
-   nstat = getstatus(&items[lastupdated], 0, &strlast);
-   if (nstat > stat) stat = nstat;
-   
-   changeStatusMessage(&items[lastupdated], "Current job: %s\nLast job: %s", strcurrent->str, strlast->str);
-   changeStatus(&items[lastupdated], stat);
-   
-   g_string_free(strcurrent, TRUE);
-   g_string_free(strlast, TRUE);
-   
+     
    if (lastupdated == fullitem) {
-      docmd(&items[lastupdated], "status", &list);
+      if (items[lastupdated].type == R_DIRECTOR)
+         docmd(&items[lastupdated], "status Director\n", &list);
+      else
+         docmd(&items[lastupdated], "status\n", &list);
       
       it = list->next;
       do {
@@ -474,11 +534,22 @@ static gboolean fd_read(gpointer data) {
       buffer = newbuffer;
       gtk_text_view_set_buffer(GTK_TEXT_VIEW(textview), buffer);
    }
+   
+   getstatus(&items[lastupdated], 1, &strcurrent);
+   getstatus(&items[lastupdated], 0, &strlast);
+   updateStatusIcon(&items[lastupdated]);
+     
+   changeStatusMessage(&items[lastupdated], "Current job: %s\nLast job: %s", strcurrent->str, strlast->str);
+   
+   updateStatusIcon(NULL);
+   
+   g_string_free(strcurrent, TRUE);
+   g_string_free(strlast, TRUE);
       
    return 1;
 }
 
-stateenum getstatus(monitoritem* item, int current, GString** str) {
+void getstatus(monitoritem* item, int current, GString** str) {
    GSList *list, *it;
    stateenum ret = error;
    int jobid = 0, joberrors = 0;
@@ -490,15 +561,15 @@ stateenum getstatus(monitoritem* item, int current, GString** str) {
    
    if (current) {
       if (item->type == R_DIRECTOR)
-         docmd(&items[lastupdated], ".status dir current", &list);
+         docmd(&items[lastupdated], ".status dir current\n", &list);
       else
-         docmd(&items[lastupdated], ".status current", &list);
+         docmd(&items[lastupdated], ".status current\n", &list);
    }
    else {
       if (item->type == R_DIRECTOR)
-         docmd(&items[lastupdated], ".status dir last", &list);
+         docmd(&items[lastupdated], ".status dir last\n", &list);
       else
-         docmd(&items[lastupdated], ".status last", &list);
+         docmd(&items[lastupdated], ".status last\n", &list);
    }
 
    it = list->next;
@@ -567,7 +638,12 @@ stateenum getstatus(monitoritem* item, int current, GString** str) {
    
    g_slist_free(list);
    
-   return ret;
+   if (current) {
+      item->state = ret;
+   }
+   else {
+      item->oldstate = ret;
+   }
 }
 
 int docmd(monitoritem* item, const char* command, GSList** list) {
@@ -616,7 +692,8 @@ int docmd(monitoritem* item, const char* command, GSList** list) {
       if (item->D_sock == NULL) {
          g_slist_append(*list, g_string_new("Cannot connect to daemon.\n"));
          changeStatusMessage(item, "Cannot connect to daemon.");
-         changeStatus(NULL, error);
+         item->state = error;
+         item->oldstate = error;
          return 0;
       }
       
@@ -624,7 +701,8 @@ int docmd(monitoritem* item, const char* command, GSList** list) {
          str = g_string_sized_new(64);
          g_string_printf(str, "ERR=%s\n", item->D_sock->msg);
          g_slist_append(*list, str);
-         changeStatus(NULL, error);
+         item->state = error;
+         item->oldstate = error;
          changeStatusMessage(item, "Authentication error : %s", item->D_sock->msg);
          item->D_sock = NULL;
          return 0;
@@ -649,9 +727,21 @@ int docmd(monitoritem* item, const char* command, GSList** list) {
          return 0;
          break;
       }
-   }
       
-   writecmd(item, command);
+      if (item->type == R_DIRECTOR) { /* Read connection messages... */
+         GSList *list, *it;
+         docmd(item, "", &list); /* Usually invalid, but no matter */
+         it = list;
+         do {
+            if (it->data) g_string_free((GString*)it->data, TRUE);
+         } while ((it = it->next) != NULL);
+         
+         g_slist_free(list);         
+      }
+   }
+   
+   if (command[0] != 0)
+      writecmd(item, command);
    
    while(1) {
       if ((stat = bnet_recv(item->D_sock)) >= 0) {
@@ -659,7 +749,13 @@ int docmd(monitoritem* item, const char* command, GSList** list) {
       }
       else if (stat == BNET_SIGNAL) {
          if (item->D_sock->msglen == BNET_EOD) {
+            //fprintf(stderr, "<< EOD >>\n");
             return 1;
+         }
+         else if (item->D_sock->msglen == BNET_PROMPT) {
+            //fprintf(stderr, "<< PROMPT >>\n");
+            g_slist_append(*list, g_string_new("<< Error: BNET_PROMPT signal received. >>\n"));
+            return 0;
          }
          else if (item->D_sock->msglen == BNET_HEARTBEAT) {
             bnet_sig(item->D_sock, BNET_HB_RESPONSE);
@@ -674,16 +770,20 @@ int docmd(monitoritem* item, const char* command, GSList** list) {
       else { /* BNET_HARDEOF || BNET_ERROR */
          g_slist_append(*list, g_string_new("<ERROR>\n"));
          item->D_sock = NULL;
-         changeStatus(NULL, error);
+         item->state = error;
+         item->oldstate = error;
          changeStatusMessage(item, "Error : BNET_HARDEOF or BNET_ERROR");
+         //fprintf(stderr, "<< ERROR >>\n");
          return 0;
       }
            
       if (is_bnet_stop(item->D_sock)) {
          g_string_append_printf(str, "<STOP>\n");
          item->D_sock = NULL;
-         changeStatus(NULL, error);
+         item->state = error;
+         item->oldstate = error;
          changeStatusMessage(item, "Error : Connection closed.");
+         //fprintf(stderr, "<< STOP >>\n");
          return 0;            /* error or term */
       }
    }
@@ -722,47 +822,66 @@ void changeStatusMessage(monitoritem* item, const char *fmt,...) {
    gtk_label_set_text(GTK_LABEL(item->label), buf);
 }
 
-void changeStatus(monitoritem* item, stateenum status) {
+void updateStatusIcon(monitoritem* item) {
+   const char** xpm;
+   
    if (item == NULL) {
-      if (status == currentstatus)
-         return;
+      stateenum state, oldstate;
+      state = idle;
+      oldstate = idle;
+      for (int i = 0; i < nitems; i++) {
+         if (items[i].state > state) state = items[i].state;
+         if (items[i].oldstate > oldstate) oldstate = items[i].oldstate;
+      }
+      xpm = generateXPM(state, oldstate);
    }
    else {
-      if (status == item->state)
-         return;
-   }
-
-   const char** xpm;
-
-   switch (status) {
-   case error:
-      xpm = (const char**)&xpm_error;
-      break;
-   case idle:
-      xpm = (const char**)&xpm_idle;
-      break;
-   case running:
-      xpm = (const char**)&xpm_running;
-      break;
-/*   case saving:
-      xpm = (const char**)&xpm_saving;
-      break;*/
-   case warn:
-      xpm = (const char**)&xpm_warn;
-      break;
-   default:
-      xpm = NULL;
-      break;
+      xpm = generateXPM(item->state, item->oldstate);
    }
    
    GdkPixbuf* pixbuf = gdk_pixbuf_new_from_xpm_data(xpm);
    if (item == NULL) {
       egg_status_icon_set_from_pixbuf(mTrayIcon, pixbuf);
       gtk_window_set_icon(GTK_WINDOW(window), pixbuf);
-      currentstatus = status;
    }
    else {
       gtk_image_set_from_pixbuf(GTK_IMAGE(item->image), pixbuf);
-      item->state = status;
    }
+}
+
+/* Note: result should not be stored, as it is a reference to xpm_generic_var */
+static const char** generateXPM(stateenum newstate, stateenum oldstate) {
+   char* address = &xpm_generic_var[xpm_generic_first_color][xpm_generic_column];
+   switch (newstate) {
+   case error:
+      strcpy(address, "ff0000");
+      break;
+   case idle:
+      strcpy(address, "ffffff");
+      break;
+   case running:
+      strcpy(address, "00ff00");
+      break;
+   case warn:
+      strcpy(address, "ffff00");
+      break;
+   }
+   
+   address = &xpm_generic_var[xpm_generic_second_color][xpm_generic_column];
+   switch (oldstate) {
+   case error:
+      strcpy(address, "ff0000");
+      break;
+   case idle:
+      strcpy(address, "ffffff");
+      break;
+   case running:
+      strcpy(address, "00ff00");
+      break;
+   case warn:
+      strcpy(address, "ffff00");
+      break;
+   }
+   
+   return (const char**)xpm_generic_var;
 }
