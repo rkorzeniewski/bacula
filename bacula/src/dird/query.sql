@@ -50,30 +50,3 @@ SELECT count(*) AS Jobs, sum(JobFiles) AS Files,
  WHERE JobMedia.JobId=Job.JobId
  AND JobMedia.MediaId=Media.MediaId
  GROUP by VolumeName;  
-#
-# create list of files to be deleted
-#
-:List files older than n days to be dropped:
-*Enter retention period:
-# First cleanup
-drop table if exists retension;
-# First create table with all files older than n days
-create temporary table retension
-  select Job.JobId,File.FileId,Path.PathId,Filename.FilenameId
-  from Filename,File,Path,JobMedia,Media,Job
-  where JobMedia.JobId=File.JobId 
-  and Job.JobId=File.JobId
-  and Media.MediaId=JobMedia.MediaId 
-  and Filename.FilenameId=File.FilenameId
-  and Path.PathId=File.PathId
-  and (to_days(current_date) - to_days(EndTime)) > %1;
-# Now select entries that have a more recent backup
-select retension.JobId,retension.FileId,Path.Path,Filename.Name
-  from retension,Filename,File,Path,Job
-  where Job.JobId!=retension.JobId
-  and (to_days(current_date) - to_days(Job.EndTime)) <= %1
-  and Job.JobId=File.JobId
-  and Filename.FilenameId=File.FilenameId
-  and Path.PathId=File.PathId
-  and retension.PathId=File.PathId
-  and retension.FilenameId=File.FilenameId;
