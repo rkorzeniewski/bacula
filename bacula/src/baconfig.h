@@ -377,7 +377,7 @@ extern void _v(char *file, int line, pthread_mutex_t *m);
 #define Mmsg15(buf,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15) m_msg(__FILE__,__LINE__,buf,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15)
 
 /* Edit message into Pool Memory buffer -- no __FILE__ and __LINE__ */
-int  Mmsg(char **msgbuf, char *fmt,...);
+int  Mmsg(POOLMEM **msgbuf, char *fmt,...);
 
 
 struct JCR;
@@ -385,7 +385,7 @@ void d_msg(char *file, int line, int level, char *fmt,...);
 void p_msg(char *file, int line, int level, char *fmt,...);
 void e_msg(char *file, int line, int type, int level, char *fmt,...);
 void j_msg(char *file, int line, JCR *jcr, int type, int level, char *fmt,...);
-int  m_msg(char *file, int line, char **msgbuf, char *fmt,...);
+int  m_msg(char *file, int line, POOLMEM **msgbuf, char *fmt,...);
 
 
 /* Use our strdup with smartalloc */

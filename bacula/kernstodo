@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                  06 June 2003 
+                  10 June 2003 
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -73,7 +73,6 @@ For 1.31 release:
 - Add next Volume to be used to status output.
 - Add a recycle command.
 - Make bootstrap filename unique.
-- Implement FileSet VolIndex -- done, but must update old records.
 - Sort JobIds entered into recover tree.
 - The bsr for Dan's job has file indexes covering the whole range rather
   than only the range contained on the volume.
@@ -975,3 +974,4 @@ Done: (see kernsdone for more)
 - Implement Release Storage=xxx
 - Fix restore on Win95/98  
 - Remove the Jmsg() in sql_find.c:102 or only print on hard error.
+- Implement FileSet VolIndex -- done, but must update old records.

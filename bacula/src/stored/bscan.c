@@ -109,7 +109,7 @@ static void usage()
 "       -r                list records\n"
 "       -s                synchronize or store in database\n"
 "       -v                verbose\n"
-"       -V              specify Volume names (separated by |)\n"
+"       -V                specify Volume names (separated by |)\n"
 "       -w dir            specify working directory (default from conf file)\n"
 "       -?                print this message\n\n"));
    exit(1);
@@ -125,7 +125,7 @@ int main (int argc, char *argv[])
    init_msg(NULL, NULL);
 
 
-   while ((ch = getopt(argc, argv, "b:c:d:mn:p:rsu:vw:?")) != -1) {
+   while ((ch = getopt(argc, argv, "b:c:d:mn:p:rsu:vVw:?")) != -1) {
       switch (ch) {
       case 'b':
 	 bsr = parse_bsr(NULL, optarg);
@@ -250,6 +250,39 @@ int main (int argc, char *argv[])
    return 0;
 }
   
+/*  
+ * We are at the end of reading a tape. Now, we simulate handling
+ *   the end of writing a tape by wiffling through the attached
+ *   jcrs creating jobmedia records.
+ */
+static int bscan_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
+{
+   Dmsg1(100, "Walk attached jcrs. Volume=%s\n", dev->VolCatInfo.VolCatName);
+   for (JCR *mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
+      if (verbose) {
+         Pmsg1(000, _("Create JobMedia for Job %s\n"), mjcr->Job);
+      }
+      if (dev->state & ST_TAPE) {
+	 mjcr->EndBlock = dev->EndBlock;
+	 mjcr->EndFile = dev->EndFile;
+      } else {
+	 mjcr->EndBlock = (uint32_t)dev->file_addr;
+	 mjcr->StartBlock = (uint32_t)(dev->file_addr >> 32);
+      }
+      if (!create_jobmedia_record(db, mjcr)) {
+         Pmsg2(000, _("Could not create JobMedia record for Volume=%s Job=%s\n"),
+	    dev->VolCatInfo.VolCatName, mjcr->Job);
+      }
+   }  
+   /* Now let common read routine get up next tape. Note,
+    * we call mount_next... with bscan's jcr because that is where we
+    * have the Volume list, but we get attached.
+    */
+   int stat = mount_next_read_volume(jcr, dev, block);
+   /* we must once more detach ourselves (attached by mount_next ...) */
+   detach_jcr_from_device(dev, jcr); /* detach bscan jcr */
+   return stat;
+}
 
 static void do_scan()		  
 {
@@ -262,9 +295,10 @@ static void do_scan()
    memset(&fsr, 0, sizeof(fsr));
    memset(&fr, 0, sizeof(fr));
 
+   /* Detach bscan's jcr as we are not a real Job on the tape */
    detach_jcr_from_device(dev, bjcr);
 
-   read_records(bjcr, dev, record_cb, mount_next_read_volume);
+   read_records(bjcr, dev, record_cb, bscan_mount_next_read_volume);
    release_device(bjcr, dev);
 
    free_attr(attr);
@@ -299,6 +333,7 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
          Pmsg0(000, _("Volume is prelabeled. This tape cannot be scanned.\n"));
 	 return;
 	 break;
+
       case VOL_LABEL:
 	 unser_volume_label(dev, rec);
 	 /* Check Pool info */
@@ -358,6 +393,7 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 
          Pmsg1(000, _("VOL_LABEL: OK for Volume: %s\n"), mr.VolumeName);
 	 break;
+
       case SOS_LABEL:
 	 mr.VolJobs++;
 	 if (ignored_msgs > 0) {
@@ -430,6 +466,7 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	    return;
 	 }
 	 break;
+
       case EOS_LABEL:
 	 unser_session_label(&elabel, rec);
 
@@ -458,8 +495,10 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 free_jcr(mjcr);
 
 	 break;
+
       case EOM_LABEL:
 	 break;
+
       case EOT_LABEL:		   /* end of all tapes */
 	 /* 
 	  * Wiffle through all jobs still open and close
@@ -486,7 +525,7 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 mr.VolBytes += mr.VolBlocks * WRITE_BLKHDR_LENGTH; /* approx. */
 	 mr.VolMounts++;
 	 update_media_record(db, &mr);
-         Pmsg3(0, _("End of Volume. VolFiles=%u VolBlocks=%u VolBytes=%s\n"), mr.VolFiles,
+         Pmsg3(0, _("End of all Volumes. VolFiles=%u VolBlocks=%u VolBytes=%s\n"), mr.VolFiles,
 		    mr.VolBlocks, edit_uint64_with_commas(mr.VolBytes, ec1));
 	 break;
       default:
@@ -1112,29 +1151,6 @@ int	dir_send_job_status(JCR *jcr) {return 1;}
 
 int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
 {
-   /*  
-    * We are at the end of reading a tape. Now, we simulate handling
-    *	the end of writing a tape by wiffling through the attached
-    *	jcrs creating jobmedia records.
-    */
-   Dmsg1(100, "Walk attached jcrs. Volume=%s\n", dev->VolCatInfo.VolCatName);
-   for (JCR *mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
-      if (verbose) {
-         Pmsg1(000, _("Create JobMedia for Job %s\n"), mjcr->Job);
-      }
-      if (dev->state & ST_TAPE) {
-	 mjcr->EndBlock = dev->EndBlock;
-	 mjcr->EndFile = dev->EndFile;
-      } else {
-	 mjcr->EndBlock = (uint32_t)dev->file_addr;
-	 mjcr->StartBlock = (uint32_t)(dev->file_addr >> 32);
-      }
-      if (!create_jobmedia_record(db, mjcr)) {
-         Pmsg2(000, _("Could not create JobMedia record for Volume=%s Job=%s\n"),
-	    dev->VolCatInfo.VolCatName, mjcr->Job);
-      }
-   }
-
    fprintf(stderr, _("Mount Volume %s on device %s and press return when ready: "),
       jcr->VolumeName, dev_name(dev));
    getchar();	

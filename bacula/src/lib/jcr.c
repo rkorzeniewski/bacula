@@ -59,9 +59,9 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    pthread_mutex_init(&(jcr->mutex), NULL);
    jcr->JobStatus = JS_Created;       /* ready to run */
    jcr->VolumeName = get_pool_memory(PM_FNAME);
-   jcr->VolumeName[0] = 0;
+   mp_chr(jcr->VolumeName)[0] = 0;
    jcr->errmsg = get_pool_memory(PM_MESSAGE);
-   jcr->errmsg[0] = 0;
+   mp_chr(jcr->errmsg)[0] = 0;
    strcpy(jcr->Job, "*Console*");     /* default */
 
    sigtimer.sa_flags = 0;

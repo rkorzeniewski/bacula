@@ -103,8 +103,8 @@ int unpack_attributes_record(JCR *jcr, int32_t stream, char *rec, ATTR *attr)
    Dmsg7(200, "unpack_attr FI=%d Type=%d fname=%s attr=%s lname=%s attrEx=%s ds=%d\n",
       attr->file_index, attr->type, attr->fname, attr->attr, attr->lname,
       attr->attrEx, attr->data_stream);
-   *attr->ofname = 0;
-   *attr->olname = 0;
+   *mp_chr(attr->ofname) = 0;
+   *mp_chr(attr->olname) = 0;
    return 1;
 }
 
@@ -153,7 +153,7 @@ void build_attr_output_fnames(JCR *jcr, ATTR *attr)
 	    pm_strcpy(&attr->olname, jcr->where);
 	    add_link = true;
 	 } else {
-	    attr->olname[0] = 0;
+	    mp_chr(attr->olname)[0] = 0;
 	    add_link = false;
 	 }
          if (win32_client && attr->lname[1] == ':') {
@@ -193,7 +193,7 @@ void print_ls_output(JCR *jcr, ATTR *attr)
    p = encode_time(attr->statp.st_ctime, p);
    *p++ = ' ';
    *p++ = ' ';
-   for (f=attr->ofname; *f && (p-buf) < (int)sizeof(buf)-10; ) {
+   for (f=mp_chr(attr->ofname); *f && (p-buf) < (int)sizeof(buf)-10; ) {
       *p++ = *f++;
    }
    if (attr->type == FT_LNK) {
@@ -202,7 +202,7 @@ void print_ls_output(JCR *jcr, ATTR *attr)
       *p++ = '>';
       *p++ = ' ';
       /* Copy link name */
-      for (f=attr->olname; *f && (p-buf) < (int)sizeof(buf)-10; ) {
+      for (f=mp_chr(attr->olname); *f && (p-buf) < (int)sizeof(buf)-10; ) {
 	 *p++ = *f++;
       }
    }

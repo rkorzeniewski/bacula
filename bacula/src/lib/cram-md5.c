@@ -64,7 +64,7 @@ int cram_md5_auth(BSOCK *bs, char *password, int ssl_need)
    }
    hmac_md5((uint8_t *)chal, strlen(chal), (uint8_t *)password, strlen(password), hmac);
    bin_to_base64(host, (char *)hmac, 16);
-   ok = strcmp(bs->msg, host) == 0;
+   ok = strcmp(mp_chr(bs->msg), host) == 0;
    Dmsg3(99, "Authenticate %s: wanted %s, got %s\n", 
               ok ? "OK" : "NOT OK", host, bs->msg);
    if (ok) {
@@ -92,9 +92,9 @@ int cram_md5_get_auth(BSOCK *bs, char *password, int ssl_need)
       bmicrosleep(5, 0);
       return 0;
    }
-   if (sscanf(bs->msg, "auth cram-md5 %s ssl=%d\n", chal, &ssl_has) != 2) {
+   if (sscanf(mp_chr(bs->msg), "auth cram-md5 %s ssl=%d\n", chal, &ssl_has) != 2) {
       ssl_has = BNET_SSL_NONE;
-      if (sscanf(bs->msg, "auth cram-md5 %s\n", chal) != 1) {
+      if (sscanf(mp_chr(bs->msg), "auth cram-md5 %s\n", chal) != 1) {
 	 bmicrosleep(5, 0);
 	 return 0;
       }
@@ -104,7 +104,7 @@ int cram_md5_get_auth(BSOCK *bs, char *password, int ssl_need)
    }
 
    hmac_md5((uint8_t *)chal, strlen(chal), (uint8_t *)password, strlen(password), hmac);
-   bs->msglen = bin_to_base64(bs->msg, (char *)hmac, 16) + 1;
+   bs->msglen = bin_to_base64(mp_chr(bs->msg), (char *)hmac, 16) + 1;
    if (!bnet_send(bs)) {
       return 0;
    }
@@ -113,7 +113,7 @@ int cram_md5_get_auth(BSOCK *bs, char *password, int ssl_need)
       bmicrosleep(5, 0);
       return 0;
    }
-   if (strcmp(bs->msg, "1000 OK auth\n") == 0) {
+   if (strcmp(mp_chr(bs->msg), "1000 OK auth\n") == 0) {
       return 1;
    }
    bmicrosleep(5, 0);

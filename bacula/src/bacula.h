@@ -95,8 +95,8 @@
  *  includes before these.  
  */
 #include "version.h"
-#include "baconfig.h"
 #include "bc_types.h"
+#include "baconfig.h"
 #include "lib/lib.h"
 
 #ifndef HAVE_ZLIB_H

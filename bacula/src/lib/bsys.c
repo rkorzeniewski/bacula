@@ -299,10 +299,10 @@ void create_pid_file(char *dir, char *progname, int port)
    struct stat statp;
 
    Mmsg(&fname, "%s/%s.%d.pid", dir, progname, port);
-   if (stat(fname, &statp) == 0) {
+   if (stat(mp_chr(fname), &statp) == 0) {
       /* File exists, see what we have */
       *pidbuf = 0;
-      if ((pidfd = open(fname, O_RDONLY)) < 0 || 
+      if ((pidfd = open(mp_chr(fname), O_RDONLY)) < 0 || 
 	   read(pidfd, &pidbuf, sizeof(pidbuf)) < 0 ||
            sscanf(pidbuf, "%d", &oldpid) != 1) {
          Emsg2(M_ERROR_TERM, 0, _("Cannot open pid file. %s ERR=%s\n"), fname, strerror(errno));
@@ -313,10 +313,10 @@ void create_pid_file(char *dir, char *progname, int port)
 	       progname, oldpid, fname);
       }
       /* He is not alive, so take over file ownership */
-      unlink(fname);		      /* remove stale pid file */
+      unlink(mp_chr(fname));		      /* remove stale pid file */
    }
    /* Create new pid file */
-   if ((pidfd = open(fname, O_CREAT | O_TRUNC | O_WRONLY, 0644)) >= 0) {
+   if ((pidfd = open(mp_chr(fname), O_CREAT | O_TRUNC | O_WRONLY, 0644)) >= 0) {
       len = sprintf(pidbuf, "%d\n", (int)getpid());
       write(pidfd, pidbuf, len);
       close(pidfd);
@@ -342,7 +342,7 @@ int delete_pid_file(char *dir, char *progname, int port)
    }
    del_pid_file_ok = FALSE;
    Mmsg(&fname, "%s/%s.%d.pid", dir, progname, port);
-   unlink(fname);
+   unlink(mp_chr(fname));
    free_pool_memory(fname);
 #endif
    return 1;

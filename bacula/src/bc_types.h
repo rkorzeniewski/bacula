@@ -39,7 +39,12 @@
 #ifndef __bc_types_INCLUDED
 #define __bc_types_INCLUDED
 
-typedef char POOLMEM;
+typedef char POOLMEM;   
+#define mp_chr(x) x
+#ifdef xxxxx
+#define mp_chr(x) ((char*)(x))
+struct POOLMEM { };
+#endif
 
 /* Types */
 

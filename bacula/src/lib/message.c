@@ -315,7 +315,7 @@ int open_spool_file(JCR *jcr, BSOCK *bs)
     POOLMEM *name  = get_pool_memory(PM_MESSAGE);
 
     make_unique_spool_filename(jcr, &name, bs->fd);
-    bs->spool_fd = fopen(name, "w+");
+    bs->spool_fd = fopen(mp_chr(name), "w+");
     if (!bs->spool_fd) {
        Jmsg(jcr, M_ERROR, 0, "fopen spool file %s failed: ERR=%s\n", name, strerror(errno));
        free_pool_memory(name);
@@ -331,7 +331,7 @@ int close_spool_file(JCR *jcr, BSOCK *bs)
 
     make_unique_spool_filename(jcr, &name, bs->fd);
     fclose(bs->spool_fd);
-    unlink(name);
+    unlink(mp_chr(name));
     free_pool_memory(name);
     bs->spool_fd = NULL;
     bs->spool = 0;
@@ -368,7 +368,8 @@ static BPIPE *open_mail_pipe(JCR *jcr, POOLMEM **cmd, DEST *d)
    fflush(stdout);
 
    if (!(bpipe = open_bpipe(*cmd, 120, "rw"))) {
-      Jmsg(jcr, M_ERROR, 0, "open mail pipe %s failed: ERR=%s\n", *cmd, strerror(errno));
+      Jmsg(jcr, M_ERROR, 0, "open mail pipe %s failed: ERR=%s\n", 
+	 *cmd, strerror(errno));
    } 
    return bpipe;
 }
@@ -426,7 +427,7 @@ void close_msg(JCR *jcr)
 	    len = d->max_len+10;
 	    line = get_memory(len);
 	    rewind(d->fd);
-	    while (fgets(line, len, d->fd)) {
+	    while (fgets(mp_chr(line), len, d->fd)) {
 	       fputs(line, bpipe->wfd);
 	    }
 	    if (!close_wpipe(bpipe)) {	     /* close write pipe sending mail */
@@ -440,7 +441,7 @@ void close_msg(JCR *jcr)
 	     */
 	    if (msgs != daemon_msgs) {
 	       /* read what mail prog returned -- should be nothing */
-	       while (fgets(line, len, bpipe->rfd)) {
+	       while (fgets(mp_chr(line), len, bpipe->rfd)) {
                   Jmsg1(jcr, M_INFO, 0, _("Mail prog: %s"), line);
 	       }
 	    }
@@ -455,7 +456,7 @@ void close_msg(JCR *jcr)
 rem_temp_file:
 	    /* Remove temp file */
 	    fclose(d->fd);
-	    unlink(d->mail_filename);
+	    unlink(mp_chr(d->mail_filename));
 	    free_pool_memory(d->mail_filename);
 	    d->mail_filename = NULL;
             Dmsg0(150, "end mail or mail on error\n");
@@ -616,9 +617,9 @@ void dispatch_message(JCR *jcr, int type, int level, char *msg)
 	     case MD_MAIL_ON_ERROR:
                 Dmsg1(800, "MAIL for following msg: %s", msg);
 		if (!d->fd) {
-		   POOLMEM *name  = get_pool_memory(PM_MESSAGE);
-		   make_unique_mail_filename(jcr, &name, d);
-                   d->fd = fopen(name, "w+");
+		   POOLMEM *name = get_pool_memory(PM_MESSAGE);
+		   make_unique_mail_filename(jcr, &mp_chr(name), d);
+                   d->fd = fopen(mp_chr(name), "w+");
 		   if (!d->fd) {
 		      d->fd = stdout;
                       Emsg2(M_ERROR, 0, "fopen %s failed: ERR=%s\n", name, strerror(errno));
@@ -918,7 +919,8 @@ Jmsg(JCR *jcr, int type, int level, char *fmt,...)
     if (jcr && jcr->JobId == 0 && jcr->dir_bsock) {
        BSOCK *dir = jcr->dir_bsock;
        va_start(arg_ptr, fmt);
-       dir->msglen = bvsnprintf(dir->msg, sizeof_pool_memory(dir->msg), fmt, arg_ptr);
+       dir->msglen = bvsnprintf(mp_chr(dir->msg), sizeof_pool_memory(dir->msg), 
+				fmt, arg_ptr);
        va_end(arg_ptr);
        bnet_send(jcr->dir_bsock);
        return;
@@ -995,7 +997,7 @@ int m_msg(char *file, int line, POOLMEM **pool_buf, char *fmt, ...)
    va_list   arg_ptr;
    int i, len, maxlen;
 
-   i = sprintf(*pool_buf, "%s:%d ", file, line);
+   i = sprintf(mp_chr(*pool_buf), "%s:%d ", file, line);
 
 again:
    maxlen = sizeof_pool_memory(*pool_buf) - i - 1; 
