@@ -27,6 +27,11 @@
 #ifndef _BACULA_H
 #define _BACULA_H 1
 
+#ifdef __cplusplus
+/* Workaround for SGI IRIX 6.5 */
+#define _LANGUAGE_C_PLUS_PLUS 1
+#endif
+
 #ifdef HAVE_WIN32
 #include "winconfig.h"
 #include "winhost.h"

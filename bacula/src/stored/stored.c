@@ -38,7 +38,8 @@
 /* Forward referenced functions */
 void terminate_stored(int sig);
 static void check_config();
-static void *device_allocation(void *arg);
+
+extern "C" void *device_allocation(void *arg);
 
 #define CONFIG_FILE "bacula-sd.conf"  /* Default config file */
 
@@ -295,7 +296,8 @@ static void check_config()
  * We are started as a separate thread.  The
  *  resources are alread locked.
  */
-static void *device_allocation(void *arg)
+extern "C"
+void *device_allocation(void *arg)
 {
    DEVRES *device;
 

@@ -58,6 +58,10 @@ static pid_t main_pid = 0;
 /* 
  * Handle signals here
  */
+extern "C" {
+    static void signal_handler(int sig);
+}
+
 static void signal_handler(int sig)
 {
    static int already_dead = 0;

@@ -34,7 +34,8 @@ static void terminate_dird(int sig);
 static int check_resources();
 
 /* Exported subroutines */
-void reload_config(int sig);
+
+extern "C" void reload_config(int sig);
 
 
 /* Imported subroutines */
@@ -341,6 +342,7 @@ static int find_free_table()
  * If we get here, we have received a SIGHUP, which means to
  *    reread our configuration file. 
  */
+extern "C"
 void reload_config(int sig)
 {
    static bool already_here = false;

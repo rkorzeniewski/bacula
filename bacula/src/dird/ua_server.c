@@ -48,7 +48,8 @@ int quit_cmd_thread = 0;
 
 /* Forward referenced functions */
 
-static void *connect_thread(void *arg);
+extern "C" void *connect_thread(void *arg);
+
 static void *handle_UA_client_request(void *arg);
 
 
@@ -80,7 +81,8 @@ void start_UA_server(char *UA_addr, int UA_port)
    return;
 }
 
-static void *connect_thread(void *arg)
+extern "C" 
+void *connect_thread(void *arg)
 {
    struct s_addr_port *UA = (struct s_addr_port *)arg;
 

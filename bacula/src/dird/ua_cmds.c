@@ -1526,7 +1526,7 @@ static int time_cmd(UAContext *ua, const char *cmd)
 /*
  * reload the conf file
  */
-extern void reload_config(int sig);
+extern "C" void reload_config(int sig);
 
 static int reload_cmd(UAContext *ua, const char *cmd)
 {

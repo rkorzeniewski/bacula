@@ -50,7 +50,7 @@
 #include "bacula.h"
 
 /* Forward referenced functions */
-static void *workq_server(void *arg);
+extern "C" void *workq_server(void *arg);
 
 /*   
  * Initialize a work queue
@@ -282,7 +282,8 @@ int workq_remove(workq_t *wq, workq_ele_t *work_item)
  * This is the worker thread that serves the work queue.
  * In due course, it will call the user's engine.
  */
-static void *workq_server(void *arg)
+extern "C"
+void *workq_server(void *arg)
 {
    struct timespec timeout;
    workq_t *wq = (workq_t *)arg;

@@ -62,8 +62,12 @@ GList *type_list, *level_list;
 
 /* Forward referenced functions */
 void terminate_console(int sig);
-static gint message_handler(gpointer data);
-static int initial_connect_to_director(gpointer data);
+
+extern "C" {
+    static gint message_handler(gpointer data);
+    static int initial_connect_to_director(gpointer data);
+}
+
 static void set_scroll_bar_to_end(void);
 
 /* Static variables */
@@ -463,6 +467,7 @@ void write_director(const gchar *msg)
    }
 }
 
+extern "C"
 void read_director(gpointer data, gint fd, GdkInputCondition condition)
 {
    int stat;

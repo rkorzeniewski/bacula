@@ -36,7 +36,8 @@ time_t watchdog_time = 0;	      /* this has granularity of SLEEP_TIME */
 #define SLEEP_TIME 1		      /* examine things every second */
 
 /* Forward referenced functions */
-static void *watchdog_thread(void *arg);
+extern "C" void *watchdog_thread(void *arg);
+
 static void wd_lock();
 static void wd_unlock();
 
@@ -214,7 +215,7 @@ bool unregister_watchdog(watchdog_t *wd)
    return ret;
 }
 
-static void *watchdog_thread(void *arg)
+extern "C" void *watchdog_thread(void *arg)
 {
    Dmsg0(400, "NicB-reworked watchdog thread entered\n");
 

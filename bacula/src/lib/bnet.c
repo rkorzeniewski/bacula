@@ -117,7 +117,7 @@ static int32_t write_nbytes(BSOCK *bsock, char *ptr, int32_t nbytes)
 	 struct timeval tv;
 
 	 FD_ZERO(&fdset);
-	 FD_SET(bsock->fd, &fdset);
+	 FD_SET((unsigned)bsock->fd, &fdset);
 	 tv.tv_sec = 10;
 	 tv.tv_usec = 0;
 	 select(bsock->fd + 1, NULL, &fdset, NULL, &tv);
@@ -439,7 +439,7 @@ bnet_wait_data(BSOCK *bsock, int sec)
    struct timeval tv;
 
    FD_ZERO(&fdset);
-   FD_SET(bsock->fd, &fdset);
+   FD_SET((unsigned)bsock->fd, &fdset);
    tv.tv_sec = sec;
    tv.tv_usec = 0;
    for ( ;; ) {
@@ -470,7 +470,7 @@ bnet_wait_data_intr(BSOCK *bsock, int sec)
    struct timeval tv;
 
    FD_ZERO(&fdset);
-   FD_SET(bsock->fd, &fdset);
+   FD_SET((unsigned)bsock->fd, &fdset);
    tv.tv_sec = sec;
    tv.tv_usec = 0;
    for ( ;; ) {

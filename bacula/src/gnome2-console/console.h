@@ -24,7 +24,7 @@ extern GtkWidget *entry1;     /* entry box */
 extern GtkWidget *combo1;     /* Directory combo */
 extern GtkWidget *dir_dialog; 
 extern GtkWidget *dir_select;
-extern GtkWidget *run_dialog;	    /* run dialog */
+extern GtkWidget *run_dialog;       /* run dialog */
 extern GtkWidget *label_dialog;     
 extern GtkWidget *restore_dialog;   /* restore dialog */
 extern GtkWidget *restore_file_selection;   /* restore files dialog */
@@ -56,8 +56,9 @@ int disconnect_from_director(gpointer data);
 void start_director_reader(gpointer data);
 void stop_director_reader(gpointer data);
 void write_director(const gchar *msg);
-void read_director(gpointer data, gint fd, GdkInputCondition condition);
 void set_restore_dialog_defaults();
 void select_restore_files();
+
+extern "C" void read_director(gpointer data, gint fd, GdkInputCondition condition);
 
 #endif

@@ -68,6 +68,12 @@ static int do_outputcmd(FILE *input, BSOCK *UA_sock);
 void senditf(const char *fmt, ...);
 void sendit(const char *buf);
 
+extern "C" void got_sigstop(int sig);
+extern "C" void got_sigcontinue(int sig);
+extern "C" void got_sigtout(int sig);
+extern "C" void got_sigtin(int sig);
+
+
 /* Static variables */
 static char *configfile = NULL;
 static BSOCK *UA_sock = NULL;
@@ -106,25 +112,31 @@ static void usage()
 "\n"), HOST_OS, DISTNAME, DISTVER);
 }
 
+
+extern "C" 
 void got_sigstop(int sig)
 {
    stop = true;
 }
 
+extern "C" 
 void got_sigcontinue(int sig)
 {
    stop = false;
 }
 
+extern "C" 
 void got_sigtout(int sig) 
 {
 // printf("Got tout\n");
 }
 
+extern "C" 
 void got_sigtin(int sig)
 {   
 // printf("Got tin\n");
 }
+
 
 static int zed_keyscmd(FILE *input, BSOCK *UA_sock)
 {
@@ -531,7 +543,7 @@ wait_for_data(int fd, int sec)
    tv.tv_usec = 0;
    for ( ;; ) {
       FD_ZERO(&fdset);
-      FD_SET(fd, &fdset);
+      FD_SET((unsigned)fd, &fdset);
       switch(select(fd + 1, &fdset, NULL, NULL, &tv)) {
       case 0:			      /* timeout */
 	 return 0;

@@ -21,11 +21,14 @@
 
 void terminate_console(int sig);
 
+extern "C" gint compare_func(const void *data1, const void *data2);
+
 gboolean
 on_console_delete_event(GtkWidget *widget, GdkEvent *event, gpointer user_data)
 {
    gtk_main_quit();
    terminate_console(0);     
+   return TRUE;
 }
 
 void
@@ -224,7 +227,8 @@ on_select_director_cancel_clicked(GtkButton *button, gpointer user_data)
 /*
  * Compare list string items
  */
-static gint compare_func(const void *data1, const void *data2)
+extern "C"
+gint compare_func(const void *data1, const void *data2)
 {
    return strcmp((const char *)data1, (const char *)data2);
 }
