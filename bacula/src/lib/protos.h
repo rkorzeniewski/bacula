@@ -84,7 +84,7 @@ int        bnet_wait_data_intr   (BSOCK *bsock, int sec);
 int        bnet_despool_to_bsock (BSOCK *bsock);
 int        is_bnet_stop          (BSOCK *bsock);
 int        is_bnet_error         (BSOCK *bsock);
-void       bnet_suppress_error_messages(BSOCK *bsock, int flag);
+void       bnet_suppress_error_messages(BSOCK *bsock, bool flag);
 
 /* bget_msg.c */
 int      bget_msg(BSOCK *sock);
