@@ -122,7 +122,8 @@ void *connection_request(void *arg)
 {
    BSOCK *bs = (BSOCK *)arg;
    JCR *jcr;
-   int i, found, quit;
+   int i;
+   bool found, quit;
    int bnet_stat = 0;
    char name[MAX_NAME_LENGTH];
 
@@ -168,20 +169,20 @@ void *connection_request(void *arg)
 	 break; 		      /* connection terminated */
       }
       Dmsg1(9, "<dird: %s\n", bs->msg);
-      found = FALSE;
+      found = false;
       for (i=0; cmds[i].cmd; i++) {
 	 if (strncmp(cmds[i].cmd, bs->msg, strlen(cmds[i].cmd)) == 0) {
 	    if (!cmds[i].func(jcr)) {	 /* do command */
-	       quit = TRUE;		 /* error, get out */
+	       quit = true;		 /* error, get out */
                Dmsg1(90, "Command %s requsts quit\n", cmds[i].cmd);
 	    }
-	    found = TRUE;	     /* indicate command found */
+	    found = true;	     /* indicate command found */
 	    break;
 	 }
       }
       if (!found) {		      /* command not found */
 	 bnet_fsend(bs, derrmsg);
-	 quit = TRUE;
+	 quit = true;
 	 break;
       }
    }
