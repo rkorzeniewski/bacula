@@ -289,11 +289,7 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       stat = UPDATE_DB(jcr, mdb, mdb->cmd);
    }
    
-   /* Make sure InChanger is 0 for any record having the same Slot */
-   db_make_inchanger_unique(jcr, mdb, mr);
-
    if (mr->LastWritten != 0) {
-
       ttime = mr->LastWritten;
       localtime_r(&ttime, &tm);
       strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
@@ -328,6 +324,10 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    Dmsg1(400, "%s\n", mdb->cmd);
 
    stat = UPDATE_DB(jcr, mdb, mdb->cmd);
+
+   /* Make sure InChanger is 0 for any record having the same Slot */
+   db_make_inchanger_unique(jcr, mdb, mr);
+
    db_unlock(mdb);
    return stat;
 }
@@ -343,7 +343,7 @@ db_make_inchanger_unique(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 {
    if (mr->InChanger != 0 && mr->Slot != 0) {
       Mmsg(&mdb->cmd, "UPDATE Media SET InChanger=0 WHERE PoolId=%u "
-           "AND Slot=%d\n", mr->PoolId, mr->Slot);
+           "AND Slot=%d AND MediaId!=%u", mr->PoolId, mr->Slot, mr->MediaId);
       Dmsg1(400, "%s\n", mdb->cmd);
       UPDATE_DB(jcr, mdb, mdb->cmd);
    }

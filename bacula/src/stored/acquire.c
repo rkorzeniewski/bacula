@@ -88,6 +88,7 @@ DCR *acquire_device_for_read(JCR *jcr)
    block_device(dev, BST_DOING_ACQUIRE);
    unlock_device(dev);
 
+   init_dev_wait_timers(dev);
    if (dev_state(dev, ST_READ) || dev->num_writers > 0) {
       Jmsg2(jcr, M_FATAL, 0, _("Device %s is busy. Job %d canceled.\n"), 
 	    dev_name(dev), jcr->JobId);
