@@ -147,6 +147,7 @@ int32_t bnet_recv(BSOCK *bsock)
    int32_t nbytes;
    int32_t pktsiz;
 
+   ASSERT(bsock != NULL);
    mp_chr(bsock->msg)[0] = 0;
    if (bsock->errors || bsock->terminated) {
       return BNET_HARDEOF;
