@@ -12,6 +12,6 @@ else
     @scriptdir@/create_mysql_database $*
   else
     echo "Creating PostgreSQL database"
-    @scriptdir@/create_postgresql_database
+    @scriptdir@/create_postgresql_database template1
   fi
 fi
