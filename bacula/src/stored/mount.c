@@ -280,18 +280,18 @@ read_volume:
        */
       if (!dev_cap(dev, CAP_STREAM)) {
 	 if (!rewind_dev(dev)) {
-            Jmsg2(jcr, M_WARNING, 0, _("Rewind error on device %s. ERR=%s\n"), 
+            Jmsg2(jcr, M_WARNING, 0, _("Rewind error on device \"%s\". ERR=%s\n"), 
 		  dev_name(dev), strerror_dev(dev));
 	 }
 	 if (recycle) {
 	    if (!truncate_dev(dev)) {
-               Jmsg2(jcr, M_WARNING, 0, _("Truncate error on device %s. ERR=%s\n"), 
+               Jmsg2(jcr, M_WARNING, 0, _("Truncate error on device \"%s\". ERR=%s\n"), 
 		     dev_name(dev), strerror_dev(dev));
 	    }
 	 }
 	 /* Attempt write to check write permission */
 	 if (!write_block_to_dev(jcr, dev, block)) {
-            Jmsg2(jcr, M_ERROR, 0, _("Unable to write device %s. ERR=%s\n"),
+            Jmsg2(jcr, M_ERROR, 0, _("Unable to write device \"%s\". ERR=%s\n"),
 	       dev_name(dev), strerror_dev(dev));
 	    goto mount_next_vol;
 	 }
@@ -332,10 +332,10 @@ read_volume:
       bstrncpy(dev->VolCatInfo.VolCatStatus, "Append", sizeof(dev->VolCatInfo.VolCatStatus));
       dir_update_volume_info(jcr, dev, 1);  /* indicate doing relabel */
       if (recycle) {
-         Jmsg(jcr, M_INFO, 0, _("Recycled volume \"%s\" on device %s, all previous data lost.\n"),
+         Jmsg(jcr, M_INFO, 0, _("Recycled volume \"%s\" on device \"%s\", all previous data lost.\n"),
 	    jcr->VolumeName, dev_name(dev));
       } else {
-         Jmsg(jcr, M_INFO, 0, _("Wrote label to prelabeled Volume \"%s\" on device %s\n"),
+         Jmsg(jcr, M_INFO, 0, _("Wrote label to prelabeled Volume \"%s\" on device \"%s\"\n"),
 	    jcr->VolumeName, dev_name(dev));
       }
       /*
@@ -353,7 +353,7 @@ read_volume:
       Jmsg(jcr, M_INFO, 0, _("Volume \"%s\" previously written, moving to end of data.\n"),
 	 jcr->VolumeName);
       if (!eod_dev(dev)) {
-         Jmsg(jcr, M_ERROR, 0, _("Unable to position to end of data %s. ERR=%s\n"),
+         Jmsg(jcr, M_ERROR, 0, _("Unable to position to end of data on device \"%s\". ERR=%s\n"),
 	    dev_name(dev), strerror_dev(dev));
 	 mark_volume_in_error(jcr, dev);
 	 goto mount_next_vol;
@@ -365,12 +365,12 @@ read_volume:
 	  * that the database says we should be.
 	  */
 	 if (dev->VolCatInfo.VolCatFiles == dev_file(dev)) {
-            Jmsg(jcr, M_INFO, 0, _("Ready to append to end of Volume at file=%d.\n"), 
-		 dev_file(dev));
+            Jmsg(jcr, M_INFO, 0, _("Ready to append to end of Volume \"%s\" at file=%d.\n"), 
+		 jcr->VolumeName, dev_file(dev));
 	 } else {
-            Jmsg(jcr, M_ERROR, 0, _("I canot write on this volume because:\n\
+            Jmsg(jcr, M_ERROR, 0, _("I canot write on Volume \"%s\" because:\n\
 The number of files mismatch! Volume=%u Catalog=%u\n"), 
-		 dev_file(dev), dev->VolCatInfo.VolCatFiles);
+		 jcr->VolumeName, dev_file(dev), dev->VolCatInfo.VolCatFiles);
 	    mark_volume_in_error(jcr, dev);
 	    goto mount_next_vol;
 	 }

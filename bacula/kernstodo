@@ -166,6 +166,39 @@ For 1.33
   In SD allow Device to have Multiple MediaTypes
 
 After 1.33:
+Ideas from Jerry Scharf:
+  First let's point out some big pluses that bacula has for this
+        it's open source
+        more importantly it's active. Thank you so much for that
+        even more important, it's not flaky
+        it has an open access catalog, opening many possibilities
+        it's pushing toward heterogeneous systems capability
+  simple things:
+        I don't remember an include file directive for config files
+                (not filesets, actual config directives)
+        can you check the configs without starting the daemon?
+        some warnings about possible common mistakes
+  big things:
+   doing the testing and blessing of concurrent backup writes
+        this is absolutely necessary in the enterprise
+   easy user recovery GUI with full access checking
+   Macintosh file client
+        macs are an interesting niche, but I fear a server is a rathole
+   working bare iron recovery for windows
+   much better handling on running config changes
+        thinking through the logic of what happens to jobs in progress
+   the option for  inc/diff backups not reset on fileset revision
+        a) use both change and inode update time against base time
+        b) do the full catalog check (expensive but accurate)
+   sizing guide (how much system is needed to back up N systems/files)
+   consultants on using bacula in building a disaster recovery system
+   an integration guide
+        or how to get at fancy things that one could do with bacula
+   logwatch code for bacula logs (or similar)
+   linux distro inclusion of bacula (brings good and bad, but necessary)
+   win2k/XP server capability (icky but you asked)
+   support for Oracle database ??
+===
 - Look at adding SQL server and Exchange support for Windows. 
 - Restore: Enter Filename: 'C:/Documents and Settings/Comercial/My
   Documents/MOP/formulário de registro BELAS ARTES.doc' causes Bacula to

@@ -35,6 +35,7 @@ struct UAContext {
    JCR *jcr;
    B_DB *db;
    CAT *catalog;
+   CONRES *cons;                      /* console resource */
    POOLMEM *cmd;                      /* return command/name buffer */
    POOLMEM *args;                     /* command line arguments */
    char *argk[MAX_CMD_ARGS];          /* argument keywords */

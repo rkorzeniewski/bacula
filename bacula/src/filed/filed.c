@@ -228,7 +228,10 @@ Without that I don't know who I am :-(\n"), configfile);
 
    if (inetd_request) {
       /* Socket is on fd 0 */	       
-      BSOCK *bs = init_bsock(NULL, 0, "client", "unknown client", me->FDport);
+      struct sockaddr_in client_addr;
+      memset(&client_addr, 0, sizeof(client_addr));
+      BSOCK *bs = init_bsock(NULL, 0, "client", "unknown client", me->FDport, 
+			     &client_addr);
       handle_client_request((void *)bs);
    } else {
       /* Become server, and handle requests */

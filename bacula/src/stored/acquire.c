@@ -247,7 +247,7 @@ DEVICE *acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
           recycle = strcmp(jcr->VolCatInfo.VolCatStatus, "Recycle") == 0;
 	  if (recycle && dev->num_writers != 0) {
              Jmsg(jcr, M_FATAL, 0, _("Cannot recycle volume \"%s\""
-                  " because it is in use by another job."));
+                  " because it is in use by another job.\n"));
 	     goto get_out;
 	  }
        }
@@ -265,7 +265,7 @@ DEVICE *acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       if (!mount_next_write_volume(jcr, dev, block, release)) {
 	 if (!job_canceled(jcr)) {
             /* Reduce "noise" -- don't print if job canceled */
-            Jmsg(jcr, M_FATAL, 0, _("Could not ready device %s for append.\n"),
+            Jmsg(jcr, M_FATAL, 0, _("Could not ready device \"%s\" for append.\n"),
 	       dev_name(dev));
 	 }
 	 goto get_out;

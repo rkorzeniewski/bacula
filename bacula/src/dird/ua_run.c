@@ -52,7 +52,7 @@ int run_cmd(UAContext *ua, char *cmd)
    char *when, *verify_job_name;
    int Priority = 0;
    int i, j, opt;
-   bool found;
+   bool kw_ok;
    JOB *job = NULL;
    JOB *verify_job = NULL;
    STORE *store = NULL;
@@ -75,7 +75,8 @@ int run_cmd(UAContext *ua, char *cmd)
       N_("when"),                     /* 12 */
       N_("priority"),                 /* 13 */
       N_("yes"),          /* 14 -- if you change this change YES_POS too */
-      N_("verifyjob"),                /* 16 */
+      N_("verifyjob"),                /* 15 */
+      N_("files"),                    /* 16 number of files to restore */
       NULL};
 
 #define YES_POS 14
@@ -98,9 +99,10 @@ int run_cmd(UAContext *ua, char *cmd)
    verify_job_name = NULL;
 
    for (i=1; i<ua->argc; i++) {
-      found = false;
       Dmsg2(200, "Doing arg %d = %s\n", i, ua->argk[i]);
-      for (j=0; !found && kw[j]; j++) {
+      kw_ok = false;
+      /* Keep looking until we find a good keyword */
+      for (j=0; !kw_ok && kw[j]; j++) {
 	 if (strcasecmp(ua->argk[i], _(kw[j])) == 0) {
 	    /* Note, yes and run have no value, so do not err */
 	    if (!ua->argv[i] && j != YES_POS /*yes*/) {  
@@ -115,7 +117,7 @@ int run_cmd(UAContext *ua, char *cmd)
 		  return 1;
 	       }
 	       job_name = ua->argv[i];
-	       found = true;
+	       kw_ok = true;
 	       break;
 	    case 1: /* JobId */
 	       if (jid) {
@@ -123,7 +125,7 @@ int run_cmd(UAContext *ua, char *cmd)
 		  return 1;
 	       }
 	       jid = ua->argv[i];
-	       found = true;
+	       kw_ok = true;
 	       break;
 	    case 2: /* client */
 	    case 3: /* fd */
@@ -132,7 +134,7 @@ int run_cmd(UAContext *ua, char *cmd)
 		  return 1;
 	       }
 	       client_name = ua->argv[i];
-	       found = true;
+	       kw_ok = true;
 	       break;
 	    case 4: /* fileset */
 	       if (fileset_name) {
@@ -140,7 +142,7 @@ int run_cmd(UAContext *ua, char *cmd)
 		  return 1;
 	       }
 	       fileset_name = ua->argv[i];
-	       found = true;
+	       kw_ok = true;
 	       break;
 	    case 5: /* level */
 	       if (level_name) {
@@ -148,7 +150,7 @@ int run_cmd(UAContext *ua, char *cmd)
 		  return 1;
 	       }
 	       level_name = ua->argv[i];
-	       found = true;
+	       kw_ok = true;
 	       break;
 	    case 6: /* storage */
 	    case 7: /* sd */
@@ -157,7 +159,7 @@ int run_cmd(UAContext *ua, char *cmd)
 		  return 1;
 	       }
 	       store_name = ua->argv[i];
-	       found = true;
+	       kw_ok = true;
 	       break;
 	    case 8: /* pool */
 	       if (pool_name) {
@@ -165,7 +167,7 @@ int run_cmd(UAContext *ua, char *cmd)
 		  return 1;
 	       }
 	       pool_name = ua->argv[i];
-	       found = true;
+	       kw_ok = true;
 	       break;
 	    case 9: /* where */
 	       if (where) {
@@ -173,7 +175,7 @@ int run_cmd(UAContext *ua, char *cmd)
 		  return 1;
 	       }
 	       where = ua->argv[i];
-	       found = true;
+	       kw_ok = true;
 	       break;
 	    case 10: /* bootstrap */
 	       if (bootstrap) {
@@ -181,7 +183,7 @@ int run_cmd(UAContext *ua, char *cmd)
 		  return 1;
 	       }
 	       bootstrap = ua->argv[i];
-	       found = true;
+	       kw_ok = true;
 	       break;
 	    case 11: /* replace */
 	       if (replace) {
@@ -189,7 +191,7 @@ int run_cmd(UAContext *ua, char *cmd)
 		  return 1;
 	       }
 	       replace = ua->argv[i];
-	       found = true;
+	       kw_ok = true;
 	       break;
 	    case 12: /* When */
 	       if (when) {
@@ -197,7 +199,7 @@ int run_cmd(UAContext *ua, char *cmd)
 		  return 1;
 	       }
 	       when = ua->argv[i];
-	       found = true;
+	       kw_ok = true;
 	       break;
 	    case 13:  /* Priority */
 	       if (Priority) {
@@ -209,9 +211,10 @@ int run_cmd(UAContext *ua, char *cmd)
                   bsendmsg(ua, _("Priority must be positive nonzero setting it to 10.\n"));
 		  Priority = 10;
 	       }
+	       kw_ok = true;
 	       break;
 	    case 14: /* yes */
-	       found = true;
+	       kw_ok = true;
 	       break;
 	    case 15: /* Verify Job */
 	       if (verify_job_name) {
@@ -219,7 +222,10 @@ int run_cmd(UAContext *ua, char *cmd)
 		  return 1;
 	       }
 	       verify_job_name = ua->argv[i];
-	       found = true;
+	       kw_ok = true;
+	       break;
+	    case 16: /* files  -- ignore for now */
+	       kw_ok = true;
 	       break;
 
 	    default:
@@ -227,7 +233,10 @@ int run_cmd(UAContext *ua, char *cmd)
 	    }
 	 } /* end strcase compare */
       } /* end keyword loop */
-      if (!found) {
+      /*
+       * End of keyword for loop -- if not found, we got a bogus keyword
+       */
+      if (!kw_ok) {
          Dmsg1(200, "%s not found\n", ua->argk[i]);
 	 /*
 	  * Special case for Job Name, it can be the first
@@ -385,11 +394,11 @@ try_again:
    }
    if (level_name) {
       /* Look up level name and pull code */
-      found = 0;
+      bool found = false;
       for (i=0; joblevels[i].level_name; i++) {
 	 if (strcasecmp(level_name, _(joblevels[i].level_name)) == 0) {
 	    jcr->JobLevel = joblevels[i].level;
-	    found = 1;
+	    found = true;
 	    break;
 	 }
       }

@@ -126,11 +126,12 @@ int authenticate_file_daemon(JCR *jcr)
 /********************************************************************* 
  *
  */
-int authenticate_user_agent(BSOCK *ua)
+int authenticate_user_agent(UAContext *uac) 
 {
    char name[MAX_NAME_LENGTH];
    int ssl_need = BNET_SSL_NONE;
    bool ok;    
+   BSOCK *ua = uac->UA_sock;
 
    if (ua->msglen < 16 || ua->msglen >= MAX_NAME_LENGTH + 15) {
       Emsg2(M_ERROR, 0, _("UA Hello from %s is invalid. Len=%d\n"), ua->who, 
@@ -144,6 +145,7 @@ int authenticate_user_agent(BSOCK *ua)
 	    ua->msg);
       return 0;
    }
+// Dmsg2(000, "Console=%s addr=%s\n", name, inet_ntoa(ua->client_addr.sin_addr));
    name[MAXSTRING-1] = 0;	      /* terminate name */
    if (strcmp(name, "*UserAgent*") == 0) {  /* default console */
       ok = cram_md5_auth(ua, director->password, ssl_need) &&
@@ -154,6 +156,9 @@ int authenticate_user_agent(BSOCK *ua)
       if (cons) {
 	 ok = cram_md5_auth(ua, cons->password, ssl_need) &&
 	      cram_md5_get_auth(ua, cons->password, ssl_need);
+	 if (ok) {
+	    uac->cons = cons;	      /* save console resource pointer */
+	 }
       } else {
 	 ok = false;
       }

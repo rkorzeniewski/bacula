@@ -31,7 +31,7 @@
 #include "jcr.h"
 
 /* Exported globals */
-time_t watchdog_time;		      /* this has granularity of SLEEP_TIME */
+time_t watchdog_time = 0;	      /* this has granularity of SLEEP_TIME */
 
 #define SLEEP_TIME 1		      /* examine things every second */
 

@@ -625,7 +625,7 @@ bnet_open(JCR *jcr, char *name, char *host, char *service, int port, int *fatal)
       close(sockfd);
       return NULL;
    }
-   return init_bsock(jcr, sockfd, name, host, port);
+   return init_bsock(jcr, sockfd, name, host, port, &tcp_serv_addr);
 }
 
 /*
@@ -807,7 +807,8 @@ char *bnet_sig_to_ascii(BSOCK *bs)
  *  This probably should be done in net_open
  */
 BSOCK *
-init_bsock(JCR *jcr, int sockfd, char *who, char *host, int port) 
+init_bsock(JCR *jcr, int sockfd, char *who, char *host, int port, 
+	   struct sockaddr_in *client_addr) 
 {
    BSOCK *bsock = (BSOCK *)malloc(sizeof(BSOCK));
    memset(bsock, 0, sizeof(BSOCK));
@@ -818,6 +819,7 @@ init_bsock(JCR *jcr, int sockfd, char *who, char *host, int port)
    bsock->who = bstrdup(who);
    bsock->host = bstrdup(host);
    bsock->port = port;
+   memcpy(&bsock->client_addr, client_addr, sizeof(bsock->client_addr));
    /*
     * ****FIXME**** reduce this to a few hours once   
     *	heartbeats are implemented
