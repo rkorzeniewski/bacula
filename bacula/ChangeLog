@@ -1,4 +1,10 @@
 
+2003-08-02 Version 1.31 30Jul03 Released
+- Added a missing CLIENT_FOUND_ROWS to the second attempt to open
+  the MySQL database -- this prevents UPDATE errors if nothing
+  actually changed.
+- Applied corrections to the manual supplied by Bob Collins.  Many thanks!
+
 2003-07-30 Version 1.31 Beta 30Jul03
 - Integrated Robert Mathews improved description of Priorities into
   the manual.
