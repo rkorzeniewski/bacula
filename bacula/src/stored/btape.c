@@ -1090,7 +1090,7 @@ If you have selected the multiple tape test, when the first tape\n\
 fills, it will ask for a second, and after writing a few more \n\
 blocks, it will stop.  Then it will begin re-reading the\n\
 two tapes.\n\n\
-This may take a long time. I.e. hours! ...\n\n");
+This may take a long time -- hours! ...\n\n");
 
    get_cmd("Insert a blank tape then indicate if you want\n"
            "to run the simplified test (s) with one tape or\n"
@@ -1138,6 +1138,7 @@ This may take a long time. I.e. hours! ...\n\n");
 	 strerror_dev(dev));
       ok = FALSE;
    }
+   Pmsg0(-1, "Wrote session label.\n");
 
    memset(&rec, 0, sizeof(rec));
    rec.data = get_memory(100000);     /* max record size */
@@ -1161,7 +1162,7 @@ This may take a long time. I.e. hours! ...\n\n");
        */
       uint64_t *lp = (uint64_t *)rec.data;
       for (uint32_t i=0; i < (REC_SIZE-sizeof(uint64_t))/sizeof(uint64_t); i++) {
-	 *lp++ = file_index;
+	 *lp++ = ~file_index;
       }
 
       Dmsg4(250, "before writ_rec FI=%d SessId=%d Strm=%s len=%d\n",
@@ -1190,14 +1191,14 @@ This may take a long time. I.e. hours! ...\n\n");
 	    if (now <= 0) {
 	       now = 1;
 	    }
-	    kbs = (double)dev->VolCatInfo.VolCatBytes / (1000 * now);
-            Pmsg3(000, "Wrote block=%u, VolBytes=%s rate=%.1f KB/s\n", block->BlockNumber,
+	    kbs = (double)dev->VolCatInfo.VolCatBytes / (1000.0 * (double)now);
+            Pmsg3(-1, "Wrote block=%u, VolBytes=%s rate=%.1f KB/s\n", block->BlockNumber,
 	       edit_uint64_with_commas(dev->VolCatInfo.VolCatBytes, ec1), (float)kbs);
 	 }
-	 /* Every 50000 blocks (approx 3.2MB) write an eof.
+	 /* Every 15000 blocks (approx 1GB) write an eof.
 	  */
-	 if ((block->BlockNumber % 50000) == 0) {
-            Pmsg0(000, "Flush block, write EOF\n");
+	 if ((block->BlockNumber % 15000) == 0) {
+            Pmsg0(-1, "Flush block, write EOF\n");
 	    flush_block(block, 0);
 	    weof_dev(dev, 1);
 	    /* The weof resets the block number */
@@ -1231,14 +1232,14 @@ This may take a long time. I.e. hours! ...\n\n");
       }
       /* Write out final block of this session */
       if (!write_block_to_device(jcr, dev, block)) {
-         Pmsg0(000, _("Set ok=FALSE after write_block_to_device.\n"));
+         Pmsg0(-1, _("Set ok=FALSE after write_block_to_device.\n"));
 	 ok = FALSE;
       }
    }
 
    /* Release the device */
    if (!release_device(jcr, dev)) {
-      Pmsg0(000, _("Error in release_device\n"));
+      Pmsg0(-1, _("Error in release_device\n"));
       ok = FALSE;
    }
 
@@ -1270,9 +1271,8 @@ static void unfillcmd()
    dev->capabilities &= ~CAP_LABEL;   /* don't label anything here */
 
    end_of_tape = 0;
-   if (!simple) {
-      get_cmd(_("Mount first of two tapes. Press enter when ready: ")); 
-   }
+
+   get_cmd(_("Mount first tape. Press enter when ready: ")); 
    
    free_vol_list(jcr);
    pm_strcpy(&jcr->VolumeName, "TestVolume1");
@@ -1281,7 +1281,7 @@ static void unfillcmd()
    close_dev(dev);
    dev->state &= ~ST_READ;
    if (!acquire_device_for_read(jcr, dev, block)) {
-      Pmsg0(000, dev->errmsg);
+      Pmsg1(-1, "%s", dev->errmsg);
       return;
    }
 
@@ -1321,11 +1321,13 @@ static void unfillcmd()
             Pmsg1(-1, _("At block %u\n"), i);
 	 }
       }
-      dump_block(last_block, _("Last block written"));
-      dump_block(block, _("Block read back"));
-      Pmsg0(-1, _("Except for the buffer address, the contents of\n"
-                  "the above two block dumps should be the same.\n"
-                  "If not you have a problem ...\n"));
+      if (last_block != 0) {
+         dump_block(last_block, _("Last block written"));
+         dump_block(block, _("Block read back"));
+         Pmsg0(-1, _("Except for the buffer address, the contents of\n"
+                     "the above two block dumps should be the same.\n"
+                     "If not you have a problem ...\n"));
+      }
    }
 
 bail_out:
@@ -1336,8 +1338,7 @@ bail_out:
 
 
 /* 
- * We are called here from "unfill" for each record on the
- *   tape.
+ * We are called here from "unfill" for each record on the tape.
  */
 static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 {
@@ -1414,8 +1415,9 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
     * Now check that the right data is in the record.
     */
    uint64_t *lp = (uint64_t *)rec->data;
+   uint64_t val = ~file_index;
    for (uint32_t i=0; i < (REC_SIZE-sizeof(uint64_t))/sizeof(uint64_t); i++) {
-      if (*lp++ != (uint64_t)file_index) {
+      if (*lp++ != val) {
          Pmsg2(000, "Record %d contains bad data in Block %u.\n",
 	    file_index, block->BlockNumber);
 	 break;
@@ -1641,7 +1643,7 @@ int	dir_send_job_status(JCR *jcr) {return 1;}
 
 int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
 {
-   Pmsg0(000, dev->errmsg);	      /* print reason */
+   Pmsg1(-1, "%s", dev->errmsg);           /* print reason */
    fprintf(stderr, "Mount Volume \"%s\" on device %s and press return when ready: ",
       jcr->VolumeName, dev_name(dev));
    getchar();	
@@ -1654,6 +1656,7 @@ int dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev)
       dev_name(dev));
    getchar();	
    VolumeName = "TestVolume2";
+   pm_strcpy(&jcr->VolumeName, "TestVolume2");
    labelcmd();
    VolumeName = NULL;
    return 1;
@@ -1674,8 +1677,8 @@ static int my_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    if (now <= 0) {
       now = 1;
    }
-   kbs = (double)VolBytes / (1000 * now);
-   Pmsg3(000, "Read block=%u, VolBytes=%s rate=%.1f KB/s\n", block->BlockNumber,
+   kbs = (double)VolBytes / (1000.0 * (double)now);
+   Pmsg3(-1, "Read block=%u, VolBytes=%s rate=%.1f KB/s\n", block->BlockNumber,
 	    edit_uint64_with_commas(VolBytes, ec1), (float)kbs);
 
    if (strcmp(jcr->VolumeName, "TestVolume2") == 0) {
