@@ -592,6 +592,7 @@ static int insert_file_into_findex_list(UAContext *ua, RESTORE_CTX *rx, char *fi
    strip_trailing_junk(file);
    split_path_and_filename(rx, file);
    Mmsg(&rx->query, uar_jobid_fileindex, date, rx->path, rx->fname, rx->ClientName);
+   Dmsg1(000, "Query=%s\n", rx->query);
    rx->found = false;
    /* Find and insert jobid and File Index */
    if (!db_sql_query(ua->db, rx->query, jobid_fileindex_handler, (void *)rx)) {
