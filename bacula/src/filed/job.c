@@ -1139,6 +1139,9 @@ static int level_cmd(JCR *jcr)
       buf = get_memory(dir->msglen+1);
       utime_t since_time, adj;
       btime_t his_time, bt_start, rt=0, bt_adj=0;
+      if (jcr->JobLevel == 0) {
+	 jcr->JobLevel = L_SINCE;     /* if no other job level set, do it now */
+      }
       if (sscanf(dir->msg, "level = since_utime %s mtime_only=%d",
 		 buf, &mtime_only) != 2) {
 	 goto bail_out;
