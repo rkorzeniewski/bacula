@@ -60,6 +60,15 @@ For 1.33 Testing/Documentation:
 - Document lsmark command in tree.
                 
 For 1.33
+- Add a .list all files in the restore tree (probably also a list all files)
+  Do both a long and short form.
+- Add a Media record flag that indicates that the Volume does disk
+  addressing.
+- Implement VolAddr, which is used when Volume is addressed like a disk,
+  and form it from VolFile and VolBlock.
+- Make multiple restore jobs for multiple media types specifying 
+  the proper storage type.
+- Implement MediaType keyword in bsr?   
 - Fix fast block rejection (stored/read_record.c:118). It passes a null
   pointer (rec) to try_repositioning().
 - See if a restore job can add a file to the tape (prohibit this).
