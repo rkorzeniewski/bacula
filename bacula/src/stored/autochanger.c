@@ -48,8 +48,10 @@ static int get_autochanger_loaded_slot(JCR *jcr);
  *	     0 on failure (no changer available) 
  *	    -1 on error on autochanger
  */
-int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
+int autoload_device(DCR *dcr, int writing, BSOCK *dir)
 {
+   JCR *jcr = dcr->jcr;
+   DEVICE *dev = dcr->dev;
    int slot = jcr->VolCatInfo.Slot;
    int drive = jcr->device->drive_index;
    int rtn_stat = -1;		      /* error status */
@@ -62,7 +64,7 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
       if (dir) {
 	 return 0;		      /* For user, bail out right now */
       }
-      if (dir_find_next_appendable_volume(jcr)) {
+      if (dir_find_next_appendable_volume(dcr)) {
 	 slot = jcr->VolCatInfo.Slot; 
       } else {
 	 slot = 0;
@@ -168,15 +170,17 @@ static int get_autochanger_loaded_slot(JCR *jcr)
  * The Volume is not in the correct slot, so mark this 
  *   Volume as not being in the Changer.
  */
-void invalid_slot_in_catalog(JCR *jcr, DEVICE *dev)
+void invalid_slot_in_catalog(DCR *dcr)
 {
+   JCR *jcr = dcr->jcr;
+   DEVICE *dev = dcr->dev;
    Jmsg(jcr, M_ERROR, 0, _("Autochanger Volume \"%s\" not found in slot %d.\n"
 "    Setting slot to zero in catalog.\n"),
 	jcr->VolCatInfo.VolCatName, jcr->VolCatInfo.Slot);
    jcr->VolCatInfo.InChanger = false;
    dev->VolCatInfo.InChanger = false;
    Dmsg0(100, "update vol info in mount\n");
-   dir_update_volume_info(jcr, true);  /* set new status */
+   dir_update_volume_info(dcr, true);  /* set new status */
 }
 
 /*
@@ -184,8 +188,10 @@ void invalid_slot_in_catalog(JCR *jcr, DEVICE *dev)
  *   with their barcodes.
  *   We assume that it is always the Console that is calling us.
  */
-int autochanger_list(JCR *jcr, DEVICE *dev, BSOCK *dir)
+bool autochanger_list(DCR *dcr, BSOCK *dir)
 {
+   DEVICE *dev = dcr->dev;
+   JCR *jcr = dcr->jcr;
    uint32_t timeout = jcr->device->max_changer_wait;
    POOLMEM *changer;
    BPIPE *bpipe;
@@ -195,7 +201,7 @@ int autochanger_list(JCR *jcr, DEVICE *dev, BSOCK *dir)
    if (!dev_cap(dev, CAP_AUTOCHANGER) || !jcr->device->changer_name ||
        !jcr->device->changer_command) {
       bnet_fsend(dir, _("3993 Not a autochanger device.\n"));
-      return 0;
+      return false;
    }
 
    changer = get_pool_memory(PM_FNAME);
@@ -220,7 +226,8 @@ int autochanger_list(JCR *jcr, DEVICE *dev, BSOCK *dir)
    bpipe = open_bpipe(changer, timeout, "r");
    if (!bpipe) {
       bnet_fsend(dir, _("3993 Open bpipe failed.\n"));
-      goto bail_out;
+      free_pool_memory(changer);
+      return false;
    }
    /* Get output from changer */
    while (fgets(dir->msg, len, bpipe->rfd)) { 
@@ -230,11 +237,9 @@ int autochanger_list(JCR *jcr, DEVICE *dev, BSOCK *dir)
    bnet_sig(dir, BNET_EOD);
    close_bpipe(bpipe);
 
-bail_out:
    free_pool_memory(changer);
-   return 1;
+   return true;
 }
-
 
 
 /*

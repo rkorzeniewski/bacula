@@ -172,6 +172,10 @@ public:
    int dev_prev_blocked;              /* previous blocked state */
    int num_waiting;                   /* number of threads waiting */
    int num_writers;                   /* number of writing threads */
+
+   /* New access control in process of being implemented */
+   brwlock_t lock;                    /* New mutual exclusion lock */
+
    int use_count;                     /* usage count on this device */
    int fd;                            /* file descriptor */
    int capabilities;                  /* capabilities mask */

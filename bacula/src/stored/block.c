@@ -344,20 +344,20 @@ bool write_block_to_device(DCR *dcr, DEV_BLOCK *block)
     */
    if (dcr->NewVol || dcr->NewFile) {
       /* Create a jobmedia record for this job */
-      if (!dir_create_jobmedia_record(jcr)) {
+      if (!dir_create_jobmedia_record(dcr)) {
 	 dev->dev_errno = EIO;
          Jmsg(jcr, M_ERROR, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
 	    jcr->VolCatInfo.VolCatName, jcr->Job);
-	 set_new_volume_parameters(jcr, dev);
+	 set_new_volume_parameters(dcr);
 	 stat = false;
 	 goto bail_out;
       }
       if (dcr->NewVol) {
 	 /* Note, setting a new volume also handles any pending new file */
-	 set_new_volume_parameters(jcr, dev);
+	 set_new_volume_parameters(dcr);
 	 dcr->NewFile = false;	      /* this handled for new file too */
       } else {
-	 set_new_file_parameters(jcr, dev);
+	 set_new_file_parameters(dcr);
       }
    }
 
@@ -459,7 +459,7 @@ bool write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
       /* Don't do update after second EOF or file count will be wrong */
       Dmsg0(100, "dir_update_volume_info\n");
       dev->VolCatInfo.VolCatFiles = dev->file;
-      dir_update_volume_info(jcr, false);
+      dir_update_volume_info(dcr, false);
       if (dev_cap(dev, CAP_TWOEOF) && weof_dev(dev, 1) != 0) {	/* write eof */
          Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
 	 dev->VolCatInfo.VolCatErrors++;
@@ -481,7 +481,7 @@ bool write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
 	 dev->state |= (ST_EOF | ST_EOT | ST_WEOT);
          Dmsg0(100, "dir_update_volume_info\n");
 	 dev->VolCatInfo.VolCatFiles = dev->file;
-	 dir_update_volume_info(jcr, false);
+	 dir_update_volume_info(dcr, false);
 	 dev->dev_errno = ENOSPC;
 	 return false;
       }
@@ -489,8 +489,8 @@ bool write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
       /* Create a JobMedia record so restore can seek */
       Dmsg0(100, "dir_update_volume_info\n");
       dev->VolCatInfo.VolCatFiles = dev->file;
-      dir_update_volume_info(jcr, false);
-      if (!dir_create_jobmedia_record(jcr)) {
+      dir_update_volume_info(dcr, false);
+      if (!dir_create_jobmedia_record(dcr)) {
 	 dev->dev_errno = EIO;
           Jmsg(jcr, M_ERROR, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
 	       dcr->VolCatInfo.VolCatName, jcr->Job);
@@ -509,7 +509,7 @@ bool write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
 	 }
 	 mjcr->dcr->NewFile = true;   /* set reminder to do set_new_file_params */
       }
-      set_new_file_parameters(jcr, dev);
+      set_new_file_parameters(dcr);
    }
 
    dev->VolCatInfo.VolCatWrites++;
@@ -567,7 +567,7 @@ bool write_block_to_dev(DCR *dcr, DEV_BLOCK *block)
       }
       Dmsg0(100, "dir_update_volume_info\n");
       dev->VolCatInfo.VolCatFiles = dev->file;
-      dir_update_volume_info(jcr, false);
+      dir_update_volume_info(dcr, false);
       if (dev_cap(dev, CAP_TWOEOF) && weof_dev(dev, 1) != 0) {	/* end the tape */
 	 dev->VolCatInfo.VolCatErrors++;
          Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);

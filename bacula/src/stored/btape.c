@@ -1977,7 +1977,7 @@ static void do_unfill()
       if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
 	 offline_dev(dev);
       }
-      autochanger = autoload_device(jcr, dev, 1, NULL);
+      autochanger = autoload_device(dcr, 1, NULL);
       if (!autochanger) {
 	 force_close_dev(dev);
          get_cmd(_("Mount first tape. Press enter when ready: ")); 
@@ -2039,7 +2039,7 @@ static void do_unfill()
    set_volume_name("TestVolume2", 2);
    jcr->bsr = NULL;
    create_vol_list(jcr);
-   autochanger = autoload_device(jcr, dev, 1, NULL);
+   autochanger = autoload_device(dcr, 1, NULL);
    if (!autochanger) {
       force_close_dev(dev);
       get_cmd(_("Mount second tape. Press enter when ready: ")); 
@@ -2509,41 +2509,44 @@ get_cmd(const char *prompt)
 }
 
 /* Dummies to replace askdir.c */
-bool	dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec) { return 1;}
+bool	dir_update_file_attributes(DCR *dcr, DEV_RECORD *rec) { return 1;}
 bool	dir_send_job_status(JCR *jcr) {return 1;}
 
-bool dir_update_volume_info(JCR *jcr, bool relabel) 
+bool dir_update_volume_info(DCR *dcr, bool relabel) 
 { 
    return 1;
 }
 
 
-bool dir_get_volume_info(JCR *jcr, enum get_vol_info_rw  writing)	      
+bool dir_get_volume_info(DCR *dcr, enum get_vol_info_rw  writing)	      
 {
+   JCR *jcr = dcr->jcr;
    Dmsg0(20, "Enter dir_get_volume_info\n");
    bstrncpy(jcr->VolCatInfo.VolCatName, jcr->VolumeName, sizeof(jcr->VolCatInfo.VolCatName));
    return 1;
 }
 
-bool dir_create_jobmedia_record(JCR *jcr)
+bool dir_create_jobmedia_record(DCR *dcr)
 {
-   jcr->dcr->WroteVol = false;
+   dcr->WroteVol = false;
    return 1;
 }
 
 
-bool dir_find_next_appendable_volume(JCR *jcr) 
+bool dir_find_next_appendable_volume(DCR *dcr) 
 { 
+   JCR *jcr = dcr->jcr;
    Dmsg1(20, "Enter dir_find_next_appendable_volume. stop=%d\n", stop);
    return jcr->VolumeName[0] != 0;
 }
 
-bool dir_ask_sysop_to_mount_volume(JCR *jcr)
+bool dir_ask_sysop_to_mount_volume(DCR *dcr)
 {
-   DEVICE *dev = jcr->dcr->dev;
+   DEVICE *dev = dcr->dev;
+   JCR *jcr = dcr->jcr;
    Dmsg0(20, "Enter dir_ask_sysop_to_mount_volume\n");
    if (jcr->VolumeName[0] == 0) {
-      return dir_ask_sysop_to_create_appendable_volume(jcr);
+      return dir_ask_sysop_to_create_appendable_volume(dcr);
    }
    /* Close device so user can use autochanger if desired */
    if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
@@ -2562,10 +2565,11 @@ bool dir_ask_sysop_to_mount_volume(JCR *jcr)
    return true;
 }
 
-bool dir_ask_sysop_to_create_appendable_volume(JCR *jcr)
+bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
 {
    bool autochanger;
-   DEVICE *dev = jcr->dcr->dev;
+   DEVICE *dev = dcr->dev;
+   JCR *jcr = dcr->jcr;
    Dmsg0(20, "Enter dir_ask_sysop_to_create_appendable_volume\n");
    if (stop == 0) {
       set_volume_name("TestVolume1", 1);
@@ -2576,7 +2580,7 @@ bool dir_ask_sysop_to_create_appendable_volume(JCR *jcr)
    if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
       offline_dev(dev);
    }
-   autochanger = autoload_device(jcr, dev, 1, NULL);
+   autochanger = autoload_device(dcr, 1, NULL);
    if (!autochanger) {
       force_close_dev(dev);
       fprintf(stderr, "Mount blank Volume on device %s and press return when ready: ",

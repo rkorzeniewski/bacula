@@ -54,7 +54,7 @@ static char OK_media[] = "1000 OK VolName=%127s VolJobs=%u VolFiles=%u"
 static char OK_create[] = "1000 OK CreateJobMedia\n";
 
 /* Forward referenced functions */
-static int wait_for_sysop(JCR *jcr, DEVICE *dev);
+static int wait_for_sysop(DCR *dcr);
 
 /*
  * Send current JobStatus to Director
@@ -73,10 +73,10 @@ bool dir_send_job_status(JCR *jcr)
  *  Returns: true  on success and vol info in jcr->VolCatInfo
  *	     false on failure
  */
-static bool do_get_volume_info(JCR *jcr)
+static bool do_get_volume_info(DCR *dcr)
 {
+    JCR *jcr = dcr->jcr;
     BSOCK *dir = jcr->dir_bsock;
-    DCR *dcr = jcr->dcr;
     VOLUME_CAT_INFO vol;
     int n;
     int InChanger;
@@ -126,8 +126,9 @@ static bool do_get_volume_info(JCR *jcr)
  *
  *	    Volume information returned in jcr
  */
-bool dir_get_volume_info(JCR *jcr, enum get_vol_info_rw writing)
+bool dir_get_volume_info(DCR *dcr, enum get_vol_info_rw writing)
 {
+    JCR *jcr = dcr->jcr;
     BSOCK *dir = jcr->dir_bsock;
 
     bstrncpy(jcr->VolCatInfo.VolCatName, jcr->VolumeName, sizeof(jcr->VolCatInfo.VolCatName));
@@ -135,7 +136,7 @@ bool dir_get_volume_info(JCR *jcr, enum get_vol_info_rw writing)
     bash_spaces(jcr->VolCatInfo.VolCatName);
     bnet_fsend(dir, Get_Vol_Info, jcr->Job, jcr->VolCatInfo.VolCatName, 
        writing==GET_VOL_INFO_FOR_WRITE?1:0);
-    return do_get_volume_info(jcr);
+    return do_get_volume_info(dcr);
 }
 
 
@@ -148,15 +149,16 @@ bool dir_get_volume_info(JCR *jcr, enum get_vol_info_rw writing)
  *	    Volume information returned in jcr
  *
  */
-bool dir_find_next_appendable_volume(JCR *jcr)
+bool dir_find_next_appendable_volume(DCR *dcr)
 {
+    JCR *jcr = dcr->jcr;
     BSOCK *dir = jcr->dir_bsock;
     JCR *njcr;
 
     Dmsg0(200, "dir_find_next_appendable_volume\n");
     for (int vol_index=1;  vol_index < 3; vol_index++) {
        bnet_fsend(dir, Find_media, jcr->Job, vol_index);
-       if (do_get_volume_info(jcr)) {
+       if (do_get_volume_info(dcr)) {
           Dmsg2(200, "JobId=%d got possible Vol=%s\n", jcr->JobId, jcr->VolumeName);
 	  bool found = false;
 	  /* 
@@ -200,10 +202,11 @@ bool dir_find_next_appendable_volume(JCR *jcr)
  * back to the director. The information comes from the
  * dev record.	   
  */
-bool dir_update_volume_info(JCR *jcr, bool label)
+bool dir_update_volume_info(DCR *dcr, bool label)
 {
+   JCR *jcr = dcr->jcr;
    BSOCK *dir = jcr->dir_bsock;
-   DEVICE *dev = jcr->dcr->dev;
+   DEVICE *dev = dcr->dev;
    time_t LastWritten = time(NULL);
    char ed1[50], ed2[50], ed3[50], ed4[50];
    VOLUME_CAT_INFO *vol = &dev->VolCatInfo;
@@ -239,7 +242,7 @@ bool dir_update_volume_info(JCR *jcr, bool label)
    Dmsg1(120, "update_volume_info(): %s", dir->msg);
    unbash_spaces(vol->VolCatName);
 
-   if (!do_get_volume_info(jcr)) {
+   if (!do_get_volume_info(dcr)) {
       Jmsg(jcr, M_ERROR, 0, "%s", jcr->errmsg);
       return false;
    }
@@ -252,10 +255,10 @@ bool dir_update_volume_info(JCR *jcr, bool label)
 /*
  * After writing a Volume, create the JobMedia record.
  */
-bool dir_create_jobmedia_record(JCR *jcr)
+bool dir_create_jobmedia_record(DCR *dcr)
 {
+   JCR *jcr = dcr->jcr;
    BSOCK *dir = jcr->dir_bsock;
-   DCR *dcr = jcr->dcr;
 
    if (!dcr->WroteVol) {
       return true;		      /* nothing written to tape */
@@ -286,8 +289,9 @@ bool dir_create_jobmedia_record(JCR *jcr)
 /* 
  * Update File Attribute data
  */
-bool dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec)
+bool dir_update_file_attributes(DCR *dcr, DEV_RECORD *rec)
 {
+   JCR *jcr = dcr->jcr;
    BSOCK *dir = jcr->dir_bsock;
    ser_declare;
 
@@ -324,12 +328,13 @@ bool dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec)
  *	actually be mounted. The calling routine must read it and
  *	verify the label.
  */
-bool dir_ask_sysop_to_create_appendable_volume(JCR *jcr)
+bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
 {
    int stat = 0, jstat;
    bool unmounted;
    bool first = true;
-   DEVICE *dev = jcr->dcr->dev;
+   DEVICE *dev = dcr->dev;
+   JCR *jcr = dcr->jcr;
 
    Dmsg0(130, "enter dir_ask_sysop_to_create_appendable_volume\n");
    ASSERT(dev->dev_blocked);
@@ -342,7 +347,7 @@ bool dir_ask_sysop_to_create_appendable_volume(JCR *jcr)
 	 return false;
       }
       /* First pass, we *know* there are no appendable volumes, so no need to call */
-      if (!first && dir_find_next_appendable_volume(jcr)) { /* get suggested volume */
+      if (!first && dir_find_next_appendable_volume(dcr)) { /* get suggested volume */
 	 unmounted = (dev->dev_blocked == BST_UNMOUNTED) ||
 		     (dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP);
 	 /*
@@ -386,7 +391,7 @@ Please use the \"label\"  command to create a new Volume for:\n\
       jcr->JobStatus = jstat;
       dir_send_job_status(jcr);
 
-      stat = wait_for_sysop(jcr, dev);
+      stat = wait_for_sysop(dcr);
       if (dev->poll) {
          Dmsg1(200, "Poll timeout in create append vol on device %s\n", dev_name(dev));
 	 continue;
@@ -416,7 +421,7 @@ Please use the \"label\"  command to create a new Volume for:\n\
 
       /* If no VolumeName, and cannot get one, try again */
       if (jcr->VolumeName[0] == 0 && !job_canceled(jcr) &&
-	  !dir_find_next_appendable_volume(jcr)) {
+	  !dir_find_next_appendable_volume(dcr)) {
 	 Jmsg(jcr, M_MOUNT, 0, _(
 "Someone woke me up, but I cannot find any appendable\n\
 volumes for Job=%s.\n"), jcr->Job);
@@ -453,11 +458,12 @@ volumes for Job=%s.\n"), jcr->Job);
  *		Note, must create dev->errmsg on error return.
  *
  */
-bool dir_ask_sysop_to_mount_volume(JCR *jcr)
+bool dir_ask_sysop_to_mount_volume(DCR *dcr)
 {
    int stat = 0;
    const char *msg;
-   DEVICE *dev = jcr->dcr->dev;
+   DEVICE *dev = dcr->dev;
+   JCR *jcr = dcr->jcr;
 
    Dmsg0(130, "enter dir_ask_sysop_to_mount_volume\n");
    if (!jcr->VolumeName[0]) {
@@ -483,7 +489,7 @@ bool dir_ask_sysop_to_mount_volume(JCR *jcr)
       jcr->JobStatus = JS_WaitMount;
       dir_send_job_status(jcr);
 
-      stat = wait_for_sysop(jcr, dev);	   /* wait on device */
+      stat = wait_for_sysop(dcr);    ;	   /* wait on device */
       if (dev->poll) {
          Dmsg1(200, "Poll timeout in mount vol on device %s\n", dev_name(dev));
          Dmsg1(200, "Blocked=%d\n", dev->dev_blocked);
@@ -522,7 +528,7 @@ bool dir_ask_sysop_to_mount_volume(JCR *jcr)
 /*
  * Wait for SysOp to mount a tape
  */
-static int wait_for_sysop(JCR *jcr, DEVICE *dev)
+static int wait_for_sysop(DCR *dcr)
 {
    struct timeval tv;
    struct timezone tz;
@@ -532,6 +538,8 @@ static int wait_for_sysop(JCR *jcr, DEVICE *dev)
    int stat = 0;
    int add_wait;
    bool unmounted;
+   DEVICE *dev = dcr->dev;
+   JCR *jcr = dcr->jcr;
    
    P(dev->mutex);
    unmounted = (dev->dev_blocked == BST_UNMOUNTED) ||
