@@ -141,7 +141,7 @@
 #define FT_REGE       2               /* Regular file but empty */
 #define FT_REG        3               /* Regular file */
 #define FT_LNK        4               /* Soft Link */
-#define FT_DIR        5               /* Directory */
+#define FT_DIREND     5               /* Directory at end (saved) */
 #define FT_SPEC       6               /* Special file -- chr, blk, fifo, sock */
 #define FT_NOACCESS   7               /* Not able to access */
 #define FT_NOFOLLOW   8               /* Could not follow link */
@@ -154,6 +154,7 @@
 #define FT_NOOPEN    15               /* Could not open directory */
 #define FT_RAW       16               /* Raw block device */
 #define FT_FIFO      17               /* Raw fifo device */
+#define FT_DIRBEGIN  18               /* Directory at beginning (not saved) */
 
 /* Definitions for upper part of type word (see above). */
 #define AR_DATA_STREAM (1<<16)        /* Data stream id present */

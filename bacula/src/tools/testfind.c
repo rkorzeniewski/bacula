@@ -206,7 +206,9 @@ static int print_file(FF_PKT *ff, void *pkt)
       }
       count_files(ff);
       break;
-   case FT_DIR:
+   case FT_DIRBEGIN:
+      return 1;
+   case FT_DIREND:
       if (debug_level == 1) {
          printf("%s\n", ff->fname);
       } else if (debug_level > 1) {

@@ -4,7 +4,7 @@
  *     Kern Sibbald MIM
  */
 /*
-   Copyright (C) 2000-2003 Kern Sibbald and John Walker
+   Copyright (C) 2000-2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -121,6 +121,9 @@ enum {
 /* File options structure */
 struct findFOPTS {
    char opts[MAX_FOPTS];              /* options string */
+   uint32_t flags;                    /* options in bits */
+   int GZIP_level;                    /* GZIP level */
+   char VerifyOpts[MAX_FOPTS];        /* verify options */
    alist regex;                       /* regex string(s) */
    alist wild;                        /* wild card strings */
    alist base;                        /* list of base names */
@@ -172,6 +175,7 @@ struct FF_PKT {
    struct s_excluded_file *excluded_files_list;
    struct s_excluded_file *excluded_paths_list;
    findFILESET *fileset;
+   int (*callback)(FF_PKT *, void *); /* User's callback */
 
    /* List of all hard linked files found */
    struct f_link *linklist;           /* hard linked files */

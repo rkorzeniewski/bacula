@@ -64,11 +64,12 @@ static int tally_file(FF_PKT *ff_pkt, void *ijcr)
    case FT_REGE:
    case FT_REG:
    case FT_LNK:
-   case FT_DIR:
+   case FT_DIREND:
    case FT_SPEC:
    case FT_RAW:
    case FT_FIFO:
       break;
+   case FT_DIRBEGIN:
    case FT_NOACCESS:
    case FT_NOFOLLOW:
    case FT_NOSTAT:
