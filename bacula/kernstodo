@@ -28,6 +28,8 @@ From Chuck:
 --sd.conf password does not match dir.conf storage password
 =======
 
+- Fix catalog filename truncation in sql_get and elsewhere. Use
+  only a single filename split routine.
 - Add command to reset VolFiles to a larger value (don't allow
   a smaller number or print big warning).
 - Make SD disallow writing on Volume with fewer files than in

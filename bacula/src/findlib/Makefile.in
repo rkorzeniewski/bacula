@@ -23,9 +23,6 @@ dummy:
 LIBSRCS = find.c match.c find_one.c
 LIBOBJS = find.o match.o find_one.o
 
-FINDSRCS = testfind.c
-FINDOBJS = testfind.o
-
 .SUFFIXES:	.c .o
 .PHONY:
 .DONTCARE:
@@ -43,9 +40,6 @@ libfind.a: $(LIBOBJS)
 	$(AR) cru $@ $(LIBOBJS)
 	$(RANLIB) $@
 
-testfind: libfind.a $(FINDOBJS)
-	$(CC) -g $(LDFLAGS) -L. -L../lib -o $@ $(FINDOBJS) $(LIBS) $(DLIB) -lfind -lbac -lm
-
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	cd $(topdir) \
 	  && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
@@ -56,7 +50,7 @@ uninstall:
 
 
 clean:
-	$(RMF) find testfind core a.out *.a *.o *.bak *~ *.intpro *.extpro 1 2 3
+	$(RMF) find core a.out *.a *.o *.bak *~ *.intpro *.extpro 1 2 3
 
 realclean: clean
 	$(RMF) tags

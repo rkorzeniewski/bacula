@@ -39,19 +39,11 @@
 extern int runcmd(UAContext *ua, char *cmd);
 
 /* Imported variables */
-extern char *uar_list_jobs;
-extern char *uar_file;
-extern char *uar_sel_files;
-extern char *uar_del_temp;
-extern char *uar_del_temp1;
-extern char *uar_create_temp;
-extern char *uar_create_temp1;
-extern char *uar_last_full;
-extern char *uar_full;
-extern char *uar_inc;
-extern char *uar_list_temp;
-extern char *uar_sel_jobid_temp;
-extern char *uar_sel_all_temp1;
+extern char *uar_list_jobs, *uar_file, *uar_sel_files;
+extern char *uar_del_temp, *uar_del_temp1, *uar_create_temp;
+extern char *uar_create_temp1, *uar_last_full, *uar_full;
+extern char *uar_inc, *uar_list_temp, *uar_sel_jobid_temp;
+extern char *uar_sel_all_temp1, *uar_sel_fileset;
 
 /* Context for insert_tree_handler() */
 typedef struct s_tree_ctx {
@@ -102,6 +94,7 @@ static int jobid_handler(void *ctx, int num_fields, char **row);
 static int next_jobid_from_list(char **p, uint32_t *JobId);
 static int user_select_jobids(UAContext *ua, JobIds *ji);
 static void user_select_files(TREE_CTX *tree);
+static int fileset_handler(void *ctx, int num_fields, char **row);
 
 
 /*
@@ -222,7 +215,7 @@ int restorecmd(UAContext *ua, char *cmd)
 	 job->hdr.name, working_directory);
    }
 
-   Dmsg1(000, "Submitting: %s\n", ua->cmd);
+   Dmsg1(400, "Submitting: %s\n", ua->cmd);
    
    parse_command_args(ua);
    runcmd(ua, ua->cmd);
@@ -238,7 +231,9 @@ int restorecmd(UAContext *ua, char *cmd)
  */
 static int user_select_jobids(UAContext *ua, JobIds *ji)
 {
+   char fileset_name[MAX_NAME_LENGTH];
    char *p;
+   FILESET_DBR fsr;
    JobId_t JobId;
    JOB_DBR jr;
    POOLMEM *query;
@@ -294,6 +289,7 @@ static int user_select_jobids(UAContext *ua, JobIds *ji)
 	 done = 0;
 	 break;
       case 4:			      /* Select the most recent backups */
+	 query = get_pool_memory(PM_MESSAGE);
 	 db_sql_query(ua->db, uar_del_temp, NULL, NULL);
 	 db_sql_query(ua->db, uar_del_temp1, NULL, NULL);
 	 if (!db_sql_query(ua->db, uar_create_temp, NULL, NULL)) {
@@ -302,11 +298,34 @@ static int user_select_jobids(UAContext *ua, JobIds *ji)
 	 if (!db_sql_query(ua->db, uar_create_temp1, NULL, NULL)) {
             bsendmsg(ua, "%s\n", db_strerror(ua->db));
 	 }
+	 /*
+	  * Select Client 
+	  */
 	 if (!(ji->client = get_client_resource(ua))) {
 	    return 0;
 	 }
-	 query = get_pool_memory(PM_MESSAGE);
-	 Mmsg(&query, uar_last_full, ji->client->hdr.name);
+
+	 /*
+	  * Select FileSet 
+	  */
+	 Mmsg(&query, uar_sel_fileset, ji->client->hdr.name);
+         start_prompt(ua, _("The defined FileSet resources are:\n"));
+	 if (!db_sql_query(ua->db, query, fileset_handler, (void *)ua)) {
+            bsendmsg(ua, "%s\n", db_strerror(ua->db));
+	 }
+         if (do_prompt(ua, _("Select FileSet resource"), fileset_name) < 0) {
+	    free_pool_memory(query);
+	    return 0;
+	 }
+	 fsr.FileSetId = 0;
+	 strcpy(fsr.FileSet, fileset_name);
+	 if (!db_get_fileset_record(ua->db, &fsr)) {
+            bsendmsg(ua, "%s\n", db_strerror(ua->db));
+	    free_pool_memory(query);
+	    return 0;
+	 }
+
+	 Mmsg(&query, uar_last_full, ji->client->hdr.name, fsr.FileSetId);
 	 /* Find JobId of full Backup of system */
 	 if (!db_sql_query(ua->db, query, NULL, NULL)) {
             bsendmsg(ua, "%s\n", db_strerror(ua->db));
@@ -322,7 +341,7 @@ static int user_select_jobids(UAContext *ua, JobIds *ji)
             bsendmsg(ua, "%s\n", db_strerror(ua->db));
 	 }
 	 /* Now find all Incremental Jobs */
-	 Mmsg(&query, uar_inc, (uint32_t)ji->JobTDate, ji->ClientId);
+	 Mmsg(&query, uar_inc, (uint32_t)ji->JobTDate, ji->ClientId, fsr.FileSetId);
 	 if (!db_sql_query(ua->db, query, NULL, NULL)) {
             bsendmsg(ua, "%s\n", db_strerror(ua->db));
 	 }
@@ -422,8 +441,14 @@ static int last_full_handler(void *ctx, int num_fields, char **row)
    return 0;
 }
 
-
-
+/*
+ * Callback handler build fileset prompt list
+ */
+static int fileset_handler(void *ctx, int num_fields, char **row)
+{
+   add_prompt((UAContext *)ctx, row[1]);
+   return 0;
+}
 
 /* Forward referenced commands */
 
@@ -431,6 +456,7 @@ static int markcmd(UAContext *ua, TREE_CTX *tree);
 static int countcmd(UAContext *ua, TREE_CTX *tree);
 static int findcmd(UAContext *ua, TREE_CTX *tree);
 static int lscmd(UAContext *ua, TREE_CTX *tree);
+static int dircmd(UAContext *ua, TREE_CTX *tree);
 static int helpcmd(UAContext *ua, TREE_CTX *tree);
 static int cdcmd(UAContext *ua, TREE_CTX *tree);
 static int pwdcmd(UAContext *ua, TREE_CTX *tree);
@@ -445,7 +471,7 @@ static struct cmdstruct commands[] = {
  { N_("cd"),         cdcmd,        _("change current directory")},
  { N_("pwd"),        pwdcmd,       _("print current working directory")},
  { N_("ls"),         lscmd,        _("list current directory")},    
- { N_("dir"),        lscmd,        _("list current directory")},    
+ { N_("dir"),        dircmd,       _("list current directory")},    
  { N_("count"),      countcmd,     _("count marked files")},
  { N_("find"),       findcmd,      _("find files")},
  { N_("done"),       quitcmd,      _("leave file selection mode")},
@@ -876,6 +902,60 @@ static int lscmd(UAContext *ua, TREE_CTX *tree)
    }
    return 1;
 }
+
+extern char *getuser(uid_t uid);
+extern char *getgroup(gid_t gid);
+
+static void ls_output(char *buf, char *fname, struct stat *statp)
+{
+   char *p, *f;
+   int n;
+
+   p = encode_mode(statp->st_mode, buf);
+   n = sprintf(p, "  %2d ", (uint32_t)statp->st_nlink);
+   p += n;
+   n = sprintf(p, "%-8.8s %-8.8s", getuser(statp->st_uid), getgroup(statp->st_gid));
+   p += n;
+   n = sprintf(p, "%8ld  ", statp->st_size);
+   p += n;
+   p = encode_time(statp->st_ctime, p);
+   *p++ = ' ';
+   *p++ = ' ';
+   for (f=fname; *f; )
+      *p++ = *f++;
+   *p = 0;
+}
+
+
+/*
+ * Like ls command, but give more detail on each file
+ */
+static int dircmd(UAContext *ua, TREE_CTX *tree)
+{
+   TREE_NODE *node;
+   FILE_DBR fdbr;
+   struct stat statp;
+   char buf[1000];
+   char cwd[1100];
+
+   if (!tree->node->child) {	 
+      return 1;
+   }
+   for (node = tree->node->child; node; node=node->sibling) {
+      if (ua->argc == 1 || fnmatch(ua->argk[1], node->fname, 0) == 0) {
+	 tree_getpath(node, cwd, sizeof(cwd));
+	 fdbr.FileId = 0;
+	 fdbr.JobId = node->JobId;
+	 if (db_get_file_attributes_record(ua->db, cwd, &fdbr)) {
+	    decode_stat(fdbr.LStat, &statp); /* decode stat pkt */
+	    ls_output(buf, cwd, &statp);
+            bsendmsg(ua, "%s\n", buf);
+	 }
+      }
+   }
+   return 1;
+}
+
 
 static int helpcmd(UAContext *ua, TREE_CTX *tree) 
 {

@@ -133,11 +133,11 @@ int db_get_file_attributes_record(B_DB *mdb, char *fname, FILE_DBR *fdbr)
 
    db_escape_string(buf, file, fnl);
    fdbr->FilenameId = db_get_filename_record(mdb, buf);
-   Dmsg1(50, "db_get_filename_record FilenameId=%d\n", fdbr->FilenameId);
+   Dmsg2(100, "db_get_filename_record FilenameId=%d file=%s\n", fdbr->FilenameId, buf);
 
    db_escape_string(buf, spath, pnl);
    fdbr->PathId = db_get_path_record(mdb, buf);
-   Dmsg2(50, "db_get_path_record PathId=%d path=%s\n", fdbr->PathId, buf);
+   Dmsg2(100, "db_get_path_record PathId=%d path=%s\n", fdbr->PathId, buf);
 
    id = db_get_file_record(mdb, fdbr);
 
@@ -500,6 +500,51 @@ PoolType, LabelFormat FROM Pool WHERE Pool.Name='%s'", pdbr->Name);
 	       pdbr->LabelFormat[0] = 0;
 	    }
 	    stat = pdbr->PoolId;
+	 }
+      }
+      sql_free_result(mdb);
+   }
+   db_unlock(mdb);
+   return stat;
+}
+
+/* Get FileSet Record	
+ * If the FileSetId is non-zero, we get its record,
+ *  otherwise, we search on the name
+ *
+ * Returns: 0 on failure
+ *	    id on success 
+ */
+int db_get_fileset_record(B_DB *mdb, FILESET_DBR *fsr)
+{
+   SQL_ROW row;
+   int stat = 0;
+
+   db_lock(mdb);
+   if (fsr->FileSetId != 0) {		    /* find by id */
+      Mmsg(&mdb->cmd, 
+           "SELECT FileSetId, FileSet, MD5 FROM FileSet "
+           "WHERE FileSetId=%u", fsr->FileSetId);
+   } else {			      /* find by name */
+      Mmsg(&mdb->cmd, 
+           "SELECT FileSetId, FileSet, MD5 FROM FileSet "
+           "WHERE FileSet='%s'", fsr->FileSet);
+   }  
+
+   if (QUERY_DB(mdb, mdb->cmd)) {
+      mdb->num_rows = sql_num_rows(mdb);
+      if (mdb->num_rows > 1) {
+	 char ed1[30];
+         Mmsg1(&mdb->errmsg, _("More than one Pool!: %s\n"), 
+	    edit_uint64(mdb->num_rows, ed1));
+      } else if (mdb->num_rows == 1) {
+	 if ((row = sql_fetch_row(mdb)) == NULL) {
+            Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
+	 } else {
+	    fsr->FileSetId = atoi(row[0]);
+	    strcpy(fsr->FileSet, row[1]);
+	    strcpy(fsr->MD5, row[2]);
+	    stat = fsr->FileSetId;
 	 }
       }
       sql_free_result(mdb);

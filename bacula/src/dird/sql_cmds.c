@@ -115,12 +115,16 @@ char *select_restore_del =
 
 /* ======= ua_restore.c */
 
+/* List last 20 Jobs */
 char *uar_list_jobs = 
    "SELECT JobId,Client.Name as Client,StartTime,Type as "
    "JobType,JobFiles,JobBytes "
    "FROM Client,Job WHERE Client.ClientId=Job.ClientId AND JobStatus='T' "
    "LIMIT 20";
 
+#ifdef HAVE_MYSQL
+/*  MYSQL IS NOT STANDARD SQL !!!!! */
+/* List Jobs where a particular file is saved */
 char *uar_file = 
    "SELECT Job.JobId as JobId, Client.Name as Client, "
    "CONCAT(Path.Path,Filename.Name) as Name, "
@@ -129,6 +133,18 @@ char *uar_file =
    "AND JobStatus='T' AND Job.JobId=File.JobId "
    "AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId "
    "AND Filename.Name='%s' LIMIT 20";
+#else
+/* List Jobs where a particular file is saved */
+char *uar_file = 
+   "SELECT Job.JobId as JobId, Client.Name as Client, "
+   "Path.Path||Filename.Name as Name, "
+   "StartTime,Type as JobType,JobFiles,JobBytes "
+   "FROM Client,Job,File,Filename,Path WHERE Client.ClientId=Job.ClientId "
+   "AND JobStatus='T' AND Job.JobId=File.JobId "
+   "AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId "
+   "AND Filename.Name='%s' LIMIT 20";
+#endif
+
 
 char *uar_sel_files = 
    "SELECT Path.Path,Filename.Name,FileIndex,JobId "
@@ -163,6 +179,7 @@ char *uar_last_full =
    "AND Level='F' AND JobStatus='T' "
    "AND JobMedia.JobId=Job.JobId "
    "AND JobMedia.MediaId=Media.MediaId "
+   "AND Job.FileSetId=%u "
    "ORDER BY Job.JobTDate DESC LIMIT 1";
 
 char *uar_full = 
@@ -183,6 +200,7 @@ char *uar_inc =
    "AND JobMedia.JobId=Job.JobId "
    "AND JobMedia.MediaId=Media.MediaId "
    "AND Job.Level='I' AND JobStatus='T' "
+   "AND Job.FileSetId=%u "
    "GROUP BY Job.JobId";
 
 char *uar_list_temp = 
@@ -192,3 +210,9 @@ char *uar_list_temp =
 char *uar_sel_jobid_temp = "SELECT JobId FROM temp";
 
 char *uar_sel_all_temp1 = "SELECT * FROM temp1";
+
+char *uar_sel_fileset = 
+   "SELECT FileSet.FileSetId,FileSet.FileSet FROM Job,"
+   "Client,FileSet WHERE Job.FileSetId=FileSet.FileSetId "
+   "AND Job.ClientId=Client.ClientId AND Client.Name='%s' "
+   "GROUP BY FileSetId";
