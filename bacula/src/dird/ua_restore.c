@@ -59,10 +59,9 @@ typedef struct s_tree_ctx {
 /* Main structure for obtaining JobIds */
 typedef struct s_jobids {
    utime_t JobTDate;
-   uint32_t ClientId;
    uint32_t TotalFiles;
+   char ClientName[MAX_NAME_LENGTH];
    char JobIds[200];
-   CLIENT *client;
    STORE  *store;
 } JobIds;
 
@@ -80,11 +79,8 @@ typedef struct s_rbsr {
    uint32_t JobId;		      /* JobId this bsr */
    uint32_t VolSessionId;		    
    uint32_t VolSessionTime;
-   uint32_t StartFile;
-   uint32_t EndFile;
-   uint32_t StartBlock;
-   uint32_t EndBlock;
-   char *VolumeName;		      /* Volume name */
+   int	    VolCount;		      /* Volume parameter count */
+   VOL_PARAMS *VolParams;	      /* Volume, start/end file/blocks */
    RBSR_FINDEX *fi;		      /* File indexes this JobId */
 } RBSR;
 
@@ -255,10 +251,10 @@ int restorecmd(UAContext *ua, char *cmd)
       return 0;
    }
 
-   if (ji.client) {
+   if (ji.ClientName[0]) {
       Mmsg(&ua->cmd, 
          "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s/restore.bsr\"",
-         job->hdr.name, ji.client->hdr.name, ji.store?ji.store->hdr.name:"",
+         job->hdr.name, ji.ClientName, ji.store?ji.store->hdr.name:"",
 	 working_directory);
    } else {
       Mmsg(&ua->cmd, 
@@ -284,8 +280,9 @@ int restorecmd(UAContext *ua, char *cmd)
 static int user_select_jobids(UAContext *ua, JobIds *ji)
 {
    char fileset_name[MAX_NAME_LENGTH];
-   char *p;
+   char *p, ed1[50];
    FILESET_DBR fsr;
+   CLIENT_DBR cr;
    JobId_t JobId;
    JOB_DBR jr;
    POOLMEM *query;
@@ -351,16 +348,21 @@ static int user_select_jobids(UAContext *ua, JobIds *ji)
             bsendmsg(ua, "%s\n", db_strerror(ua->db));
 	 }
 	 /*
-	  * Select Client 
+	  * Select Client from the Catalog
 	  */
-	 if (!(ji->client = get_client_resource(ua))) {
+	 memset(&cr, 0, sizeof(cr));
+	 if (!get_client_dbr(ua, &cr)) {
+	    free_pool_memory(query);
+	    db_sql_query(ua->db, uar_del_temp, NULL, NULL);
+	    db_sql_query(ua->db, uar_del_temp1, NULL, NULL);
 	    return 0;
 	 }
+	 bstrncpy(ji->ClientName, cr.Name, sizeof(ji->ClientName));
 
 	 /*
 	  * Select FileSet 
 	  */
-	 Mmsg(&query, uar_sel_fileset, ji->client->hdr.name);
+	 Mmsg(&query, uar_sel_fileset, cr.ClientId, cr.ClientId);
          start_prompt(ua, _("The defined FileSet resources are:\n"));
 	 if (!db_sql_query(ua->db, query, fileset_handler, (void *)ua)) {
             bsendmsg(ua, "%s\n", db_strerror(ua->db));
@@ -368,6 +370,8 @@ static int user_select_jobids(UAContext *ua, JobIds *ji)
          if (do_prompt(ua, _("Select FileSet resource"), 
 		       fileset_name, sizeof(fileset_name)) < 0) {
 	    free_pool_memory(query);
+	    db_sql_query(ua->db, uar_del_temp, NULL, NULL);
+	    db_sql_query(ua->db, uar_del_temp1, NULL, NULL);
 	    return 0;
 	 }
 	 fsr.FileSetId = atoi(fileset_name);  /* Id is first part of name */
@@ -378,7 +382,7 @@ static int user_select_jobids(UAContext *ua, JobIds *ji)
 	 }
 
 	 /* Find JobId of last Full backup for this client, fileset */
-	 Mmsg(&query, uar_last_full, ji->client->hdr.name, fsr.FileSetId);
+	 Mmsg(&query, uar_last_full, cr.ClientId, cr.ClientId, fsr.FileSetId);
 	 if (!db_sql_query(ua->db, query, NULL, NULL)) {
             bsendmsg(ua, "%s\n", db_strerror(ua->db));
 	 }
@@ -393,7 +397,7 @@ static int user_select_jobids(UAContext *ua, JobIds *ji)
             bsendmsg(ua, "%s\n", db_strerror(ua->db));
 	 }
 	 /* Now find all Incremental Jobs */
-	 Mmsg(&query, uar_inc, (uint32_t)ji->JobTDate, ji->ClientId, fsr.FileSetId);
+	 Mmsg(&query, uar_inc, edit_uint64(ji->JobTDate, ed1), cr.ClientId, fsr.FileSetId);
 	 if (!db_sql_query(ua->db, query, NULL, NULL)) {
             bsendmsg(ua, "%s\n", db_strerror(ua->db));
 	 }
@@ -487,8 +491,7 @@ static int last_full_handler(void *ctx, int num_fields, char **row)
 {
    JobIds *ji = (JobIds *)ctx;
 
-   ji->JobTDate = atoi(row[1]);
-   ji->ClientId = atoi(row[2]);
+   ji->JobTDate = strtoll(row[1], NULL, 10);
 
    return 0;
 }
@@ -644,8 +647,8 @@ static void free_bsr(RBSR *bsr)
    if (bsr) {
       free_findex(bsr->fi);
       free_bsr(bsr->next);
-      if (bsr->VolumeName) {
-	 free(bsr->VolumeName);
+      if (bsr->VolParams) {
+	 free(bsr->VolParams);
       }
       free(bsr);
    }
@@ -658,8 +661,6 @@ static void free_bsr(RBSR *bsr)
 static int complete_bsr(UAContext *ua, RBSR *bsr)
 {
    JOB_DBR jr;
-   VOL_PARAMS *VolParams;
-   int count = 0;
 
    if (bsr) {
       memset(&jr, 0, sizeof(jr));
@@ -670,17 +671,14 @@ static int complete_bsr(UAContext *ua, RBSR *bsr)
       }
       bsr->VolSessionId = jr.VolSessionId;
       bsr->VolSessionTime = jr.VolSessionTime;
-      if ((count=db_get_job_volume_parameters(ua->db, bsr->JobId, &VolParams)) == 0) {
+      if ((bsr->VolCount=db_get_job_volume_parameters(ua->db, bsr->JobId, 
+	   &(bsr->VolParams))) == 0) {
          bsendmsg(ua, _("Unable to get Job Volume Parameters. ERR=%s\n"), db_strerror(ua->db));
-	 free((char *)VolParams);
+	 if (bsr->VolParams) {
+	    free(bsr->VolParams);
+	 }
 	 return 0;
       }
-      bsr->VolumeName = bstrdup(VolParams[0].VolumeName);
-      bsr->StartFile  = VolParams[0].StartFile;
-      bsr->EndFile    = VolParams[0].EndFile;
-      bsr->StartBlock = VolParams[0].StartBlock;
-      bsr->EndBlock   = VolParams[0].EndBlock;
-      free((char *)VolParams);
       return complete_bsr(ua, bsr->next);
    }
    return 1;
@@ -709,11 +707,18 @@ static int write_bsr_file(UAContext *ua, RBSR *bsr)
    fclose(fd);
    bsendmsg(ua, _("Bootstrap records written to %s\n"), fname);
    bsendmsg(ua, _("\nThe restore job will require the following Volumes:\n"));
+   /* Create Unique list of Volumes using prompt list */
+   start_prompt(ua, "");
    for (nbsr=bsr; nbsr; nbsr=nbsr->next) {
-      if (nbsr->VolumeName) {
-         bsendmsg(ua, "   %s\n", nbsr->VolumeName);
+      for (int i=0; i < nbsr->VolCount; i++) {
+	 add_prompt(ua, nbsr->VolParams[i].VolumeName);
       }
    }
+   for (int i=1; i < ua->num_prompts; i++) {
+      bsendmsg(ua, "   %s\n", ua->prompt[i]);
+      free(ua->prompt[i]);
+   }
+   ua->num_prompts = 0;
    bsendmsg(ua, "\n");
    free_pool_memory(fname);
    return stat;
@@ -722,13 +727,16 @@ static int write_bsr_file(UAContext *ua, RBSR *bsr)
 static void write_bsr(UAContext *ua, RBSR *bsr, FILE *fd)
 {
    if (bsr) {
-      if (bsr->VolumeName) {
-         fprintf(fd, "Volume=\"%s\"\n", bsr->VolumeName);
+      for (int i=0; i < bsr->VolCount; i++) {
+         fprintf(fd, "Volume=\"%s\"\n", bsr->VolParams[i].VolumeName);
+         fprintf(fd, "VolSessionId=%u\n", bsr->VolSessionId);
+         fprintf(fd, "VolSessionTime=%u\n", bsr->VolSessionTime);
+         fprintf(fd, "VolFile=%u-%u\n", bsr->VolParams[i].StartFile, 
+		 bsr->VolParams[i].EndFile);
+         fprintf(fd, "VolBlock=%u-%u\n", bsr->VolParams[i].StartBlock,
+		 bsr->VolParams[i].EndBlock);
+	 write_findex(ua, bsr->fi, fd);
       }
-      fprintf(fd, "VolSessionId=%u\n", bsr->VolSessionId);
-      fprintf(fd, "VolSessionTime=%u\n", bsr->VolSessionTime);
-      fprintf(fd, "VolFile=%u-%u\n", bsr->StartFile, bsr->EndFile);
-      write_findex(ua, bsr->fi, fd);
       write_bsr(ua, bsr->next, fd);
    }
 }
@@ -736,12 +744,16 @@ static void write_bsr(UAContext *ua, RBSR *bsr, FILE *fd)
 static void print_bsr(UAContext *ua, RBSR *bsr)
 {
    if (bsr) {
-      if (bsr->VolumeName) {
-         bsendmsg(ua, "Volume=\"%s\"\n", bsr->VolumeName);
+      for (int i=0; i < bsr->VolCount; i++) {
+         bsendmsg(ua, "Volume=\"%s\"\n", bsr->VolParams[i].VolumeName);
+         bsendmsg(ua, "VolSessionId=%u\n", bsr->VolSessionId);
+         bsendmsg(ua, "VolSessionTime=%u\n", bsr->VolSessionTime);
+         bsendmsg(ua, "VolFile=%u-%u\n", bsr->VolParams[i].StartFile, 
+		  bsr->VolParams[i].EndFile);
+         bsendmsg(ua, "VolBlock=%u-%u\n", bsr->VolParams[i].StartBlock,
+		  bsr->VolParams[i].EndBlock);
+	 print_findex(ua, bsr->fi);
       }
-      bsendmsg(ua, "VolSessionId=%u\n", bsr->VolSessionId);
-      bsendmsg(ua, "VolSessionTime=%u\n", bsr->VolSessionTime);
-      print_findex(ua, bsr->fi);
       print_bsr(ua, bsr->next);
    }
 }

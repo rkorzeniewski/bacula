@@ -87,7 +87,6 @@ int read_records(JCR *jcr,  DEVICE *dev,
 	    read_block_from_device(dev, block);
 	    read_record_from_block(block, trec);
 	    get_session_record(dev, trec, &sessrec);
-	    trec->File = dev->file;
 	    record_cb(jcr, dev, block, trec);
 	    free_record(trec);
 	    goto next_record;
@@ -118,7 +117,6 @@ next_record:
 		  block->BlockNumber, rec->remainder);
 	    break;
 	 }
-	 rec->File = dev->file;
          Dmsg3(10, "read-OK. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
 		  block->BlockNumber, rec->remainder);
 	 /*

@@ -256,13 +256,99 @@ CLIENT *get_client_resource(UAContext *ua)
 
 /* Scan what the user has entered looking for:
  * 
+ *  client=<client-name>
+ *
+ *  if error or not found, put up a list of client DBRs
+ *  to choose from.
+ *
+ *   returns: 0 on error
+ *	      1 on success and fills in CLIENT_DBR
+ */
+int get_client_dbr(UAContext *ua, CLIENT_DBR *cr)
+{
+   int i;
+
+   if (cr->Name[0]) {		      /* If name already supplied */
+      if (db_get_client_record(ua->db, cr)) {
+	 return 1;
+      }
+      bsendmsg(ua, _("Could not find Client %s: ERR=%s"), cr->Name, db_strerror(ua->db));
+   }
+   for (i=1; i<ua->argc; i++) {
+      if (strcasecmp(ua->argk[i], _("client")) == 0 && ua->argv[i]) {
+	 bstrncpy(cr->Name, ua->argv[i], sizeof(cr->Name));
+	 if (!db_get_client_record(ua->db, cr)) {
+            bsendmsg(ua, _("Could not find Client %s: ERR=%s"), ua->argv[i],
+		     db_strerror(ua->db));
+	    cr->ClientId = 0;
+	    break;
+	 }
+	 return 1;
+      }
+   }
+   if (!select_client_dbr(ua, cr)) {  /* try once more by proposing a list */
+      return 0;
+   }
+   return 1;
+}
+
+/*
+ * Select a Client record from the catalog
+ *  Returns 1 on success
+ *	    0 on failure
+ */
+int select_client_dbr(UAContext *ua, CLIENT_DBR *cr)
+{
+   CLIENT_DBR ocr;
+   char name[MAX_NAME_LENGTH];
+   int num_clients, i;
+   uint32_t *ids; 
+
+
+   cr->ClientId = 0;
+   if (!db_get_client_ids(ua->db, &num_clients, &ids)) {
+      bsendmsg(ua, _("Error obtaining client ids. ERR=%s\n"), db_strerror(ua->db));
+      return 0;
+   }
+   if (num_clients <= 0) {
+      bsendmsg(ua, _("No clients defined. Run a job to create one.\n"));
+      return 0;
+   }
+     
+   start_prompt(ua, _("Defined Clients:\n"));
+   for (i=0; i < num_clients; i++) {
+      ocr.ClientId = ids[i];
+      if (!db_get_client_record(ua->db, &ocr)) {
+	 continue;
+      }
+      add_prompt(ua, ocr.Name);
+   }
+   free(ids);
+   if (do_prompt(ua, _("Select the Client"), name, sizeof(name)) < 0) {
+      return 0;
+   }
+   memset(&ocr, 0, sizeof(ocr));
+   bstrncpy(ocr.Name, name, sizeof(ocr.Name));
+
+   if (!db_get_client_record(ua->db, &ocr)) {
+      bsendmsg(ua, _("Could not find Client %s: ERR=%s"), name, db_strerror(ua->db));
+      return 0;
+   }
+   memcpy(cr, &ocr, sizeof(ocr));
+   return 1;
+}
+
+
+
+/* Scan what the user has entered looking for:
+ * 
  *  pool=<pool-name>   
  *
  *  if error or not found, put up a list of pool DBRs
  *  to choose from.
  *
  *   returns: 0 on error
- *	      poolid on success and fills in POOL_DBR
+ *	      1 on success and fills in POOL_DBR
  */
 int get_pool_dbr(UAContext *ua, POOL_DBR *pr)
 {
@@ -289,7 +375,7 @@ int get_pool_dbr(UAContext *ua, POOL_DBR *pr)
    if (!select_pool_dbr(ua, pr)) {  /* try once more */
       return 0;
    }
-   return pr->PoolId;
+   return 1;
 }
 
 /*
@@ -325,7 +411,7 @@ int select_pool_dbr(UAContext *ua, POOL_DBR *pr)
    if (do_prompt(ua, _("Select the Pool"), name, sizeof(name)) < 0) {
       return 0;
    }
-   memset(&opr, 0, sizeof(pr));
+   memset(&opr, 0, sizeof(opr));
    bstrncpy(opr.Name, name, sizeof(opr.Name));
 
    if (!db_get_pool_record(ua->db, &opr)) {
@@ -333,7 +419,7 @@ int select_pool_dbr(UAContext *ua, POOL_DBR *pr)
       return 0;
    }
    memcpy(pr, &opr, sizeof(opr));
-   return opr.PoolId;
+   return 1;
 }
 
 /*

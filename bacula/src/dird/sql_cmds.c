@@ -45,7 +45,7 @@ char *sel_JobMedia = "SELECT JobId FROM JobMedia WHERE MediaId=%u";
 char *select_job =
    "SELECT JobId from Job "    
    "WHERE JobTDate < %s "
-   "AND ClientId=%d "
+   "AND ClientId=%u "
    "AND PurgedFiles=0";
 
 /* Delete temp tables and indexes  */
@@ -70,7 +70,7 @@ char *insert_delcand =
    "INSERT INTO DelCandidates "
    "SELECT JobId, PurgedFiles, FileSetId FROM Job "
    "WHERE JobTDate < %s " 
-   "AND ClientId=%d";
+   "AND ClientId=%u";
 
 /* Select files from the DelCandidates table that have a
  * more recent backup -- i.e. are not the only backup.
@@ -80,7 +80,7 @@ char *select_backup_del =
    "SELECT DelCandidates.JobId "
    "FROM Job,DelCandidates "
    "WHERE Job.JobTDate >= %s "
-   "AND Job.ClientId=%d "
+   "AND Job.ClientId=%u "
    "AND Job.JobType='B' "
    "AND Job.Level='F' "
    "AND Job.JobStatus='T' "
@@ -94,7 +94,7 @@ char *select_verify_del =
    "SELECT DelCandidates.JobId "
    "FROM Job,DelCandidates "
    "WHERE Job.JobTDate >= %s "
-   "AND Job.ClientId=%d "
+   "AND Job.ClientId=%u "
    "AND Job.JobType='V' "
    "AND Job.Level='V' "
    "AND Job.JobStatus='T' "
@@ -108,7 +108,7 @@ char *select_restore_del =
    "SELECT DelCandidates.JobId "
    "FROM Job,DelCandidates "
    "WHERE Job.JobTDate >= %s "
-   "AND Job.ClientId=%d "   
+   "AND Job.ClientId=%u "   
    "AND Job.JobType='R'";
 
 
@@ -169,13 +169,12 @@ char *uar_create_temp =
 
 char *uar_create_temp1 = 
    "CREATE TABLE temp1 (JobId INTEGER UNSIGNED NOT NULL,"
-   "JobTDate BIGINT UNSIGNED,"
-   "ClientId INTEGER UNSIGNED)";
+   "JobTDate BIGINT UNSIGNED)";
 
 char *uar_last_full =
-   "INSERT INTO temp1 SELECT Job.JobId,JobTdate,Job.ClientId "
-   "FROM Client,Job,JobMedia,Media WHERE Client.Name='%s' "
-   "AND Client.ClientId=Job.ClientId "
+   "INSERT INTO temp1 SELECT Job.JobId,JobTdate "
+   "FROM Client,Job,JobMedia,Media WHERE Client.ClientId=%u "
+   "AND Job.ClientId=%u "
    "AND Level='F' AND JobStatus='T' "
    "AND JobMedia.JobId=Job.JobId "
    "AND JobMedia.MediaId=Media.MediaId "
@@ -196,7 +195,7 @@ char *uar_inc =
    "Job.Level,Job.JobFiles,Job.StartTime,Media.VolumeName,JobMedia.StartFile,"
    "Job.VolSessionId,Job.VolSessionTime "
    "FROM Job,JobMedia,Media "
-   "WHERE Job.JobTDate>%d AND Job.ClientId=%u "
+   "WHERE Job.JobTDate>%s AND Job.ClientId=%u "
    "AND JobMedia.JobId=Job.JobId "
    "AND JobMedia.MediaId=Media.MediaId "
    "AND Job.Level='I' AND JobStatus='T' "
@@ -215,7 +214,7 @@ char *uar_sel_all_temp1 = "SELECT * FROM temp1";
 char *uar_sel_fileset = 
    "SELECT FileSet.FileSetId,FileSet.FileSet,FileSet.MD5 FROM Job,"
    "Client,FileSet WHERE Job.FileSetId=FileSet.FileSetId "
-   "AND Job.ClientId=Client.ClientId AND Client.Name='%s' "
+   "AND Job.ClientId=%u AND Client.ClientId=%u "
    "GROUP BY FileSet.FileSetId";
 
 /* Find MediaType used by this Job */

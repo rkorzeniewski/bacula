@@ -235,23 +235,23 @@ ORDER BY MediaId", mr->PoolId, mr->MediaType, mr->VolStatus);
    }
 
    /* Return fields in Media Record */
-   mr->MediaId = atoi(row[0]);
+   mr->MediaId = str_to_int64(row[0]);
    bstrncpy(mr->VolumeName, row[1], sizeof(mr->VolumeName));
-   mr->VolJobs = atoi(row[2]);
-   mr->VolFiles = atoi(row[3]);
-   mr->VolBlocks = atoi(row[4]);
-   mr->VolBytes = (uint64_t)strtod(row[5], NULL);
-   mr->VolMounts = atoi(row[6]);
-   mr->VolErrors = atoi(row[7]);
-   mr->VolWrites = atoi(row[8]);
-   mr->MaxVolBytes = (uint64_t)strtod(row[9], NULL);
-   mr->VolCapacityBytes = (uint64_t)strtod(row[10], NULL);
-   mr->VolRetention = (utime_t)strtod(row[11], NULL);
-   mr->VolUseDuration = (utime_t)strtod(row[12], NULL);
-   mr->MaxVolJobs = atoi(row[13]);
-   mr->MaxVolFiles = atoi(row[14]);
-   mr->Recycle = atoi(row[15]);
-   mr->Slot = atoi(row[16]);
+   mr->VolJobs = str_to_int64(row[2]);
+   mr->VolFiles = str_to_int64(row[3]);
+   mr->VolBlocks = str_to_int64(row[4]);
+   mr->VolBytes = str_to_uint64(row[5]);
+   mr->VolMounts = str_to_int64(row[6]);
+   mr->VolErrors = str_to_int64(row[7]);
+   mr->VolWrites = str_to_int64(row[8]);
+   mr->MaxVolBytes = str_to_uint64(row[9]);
+   mr->VolCapacityBytes = str_to_uint64(row[10]);
+   mr->VolRetention = str_to_uint64(row[11]);
+   mr->VolUseDuration = str_to_uint64(row[12]);
+   mr->MaxVolJobs = str_to_int64(row[13]);
+   mr->MaxVolFiles = str_to_int64(row[14]);
+   mr->Recycle = str_to_int64(row[15]);
+   mr->Slot = str_to_int64(row[16]);
    bstrncpy(mr->cFirstWritten, row[17]!=NULL?row[17]:"", sizeof(mr->cFirstWritten));
 
    sql_free_result(mdb);

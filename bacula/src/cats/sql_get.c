@@ -185,7 +185,7 @@ File.FilenameId=%u", fdbr->JobId, fdbr->PathId, fdbr->FilenameId);
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
             Mmsg1(&mdb->errmsg, _("Error fetching row: %s\n"), sql_strerror(mdb));
 	 } else {
-	    fdbr->FileId = (FileId_t)strtod(row[0], NULL);
+	    fdbr->FileId = (FileId_t)str_to_int64(row[0]);
 	    strncpy(fdbr->LStat, row[1], sizeof(fdbr->LStat));
 	    fdbr->LStat[sizeof(fdbr->LStat)] = 0;
 	    strncpy(fdbr->MD5, row[2], sizeof(fdbr->MD5));
@@ -342,14 +342,14 @@ FROM Job WHERE JobId=%u", jr->JobId);
       return 0; 		      /* failed */
    }
 
-   jr->VolSessionId = atol(row[0]);
-   jr->VolSessionTime = atol(row[1]);
+   jr->VolSessionId = str_to_uint64(row[0]);
+   jr->VolSessionTime = str_to_uint64(row[1]);
    jr->PoolId = atoi(row[2]);
    bstrncpy(jr->cStartTime, row[3]!=NULL?row[3]:"", sizeof(jr->cStartTime));
    bstrncpy(jr->cEndTime, row[4]!=NULL?row[4]:"", sizeof(jr->cEndTime));
    jr->JobFiles = atol(row[5]);
-   jr->JobBytes = (uint64_t)strtod(row[6], NULL);
-   jr->JobTDate = (utime_t)strtod(row[7], NULL);
+   jr->JobBytes = str_to_int64(row[6]);
+   jr->JobTDate = str_to_int64(row[7]);
    bstrncpy(jr->Job, row[8]!=NULL?row[8]:"", sizeof(jr->Job));
    jr->JobStatus = (int)*row[9];
    jr->Type = (int)*row[10];
@@ -520,6 +520,44 @@ int db_get_pool_ids(B_DB *mdb, int *num_ids, uint32_t *ids[])
    return stat;
 }
 
+/*
+ * This function returns a list of all the Client record ids.
+ *  The caller must free ids if non-NULL.
+ *
+ *  Returns 0: on failure
+ *	    1: on success
+ */
+int db_get_client_ids(B_DB *mdb, int *num_ids, uint32_t *ids[])
+{
+   SQL_ROW row;
+   int stat = 0;
+   int i = 0;
+   uint32_t *id;
+
+   db_lock(mdb);
+   *ids = NULL;
+   Mmsg(&mdb->cmd, "SELECT ClientId FROM Client");
+   if (QUERY_DB(mdb, mdb->cmd)) {
+      *num_ids = sql_num_rows(mdb);
+      if (*num_ids > 0) {
+	 id = (uint32_t *)malloc(*num_ids * sizeof(uint32_t));
+	 while ((row = sql_fetch_row(mdb)) != NULL) {
+	    id[i++] = (uint32_t)atoi(row[0]);
+	 }
+	 *ids = id;
+      }
+      sql_free_result(mdb);
+      stat = 1;
+   } else {
+      Mmsg(&mdb->errmsg, _("Client id select failed: ERR=%s\n"), sql_strerror(mdb));
+      Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
+      stat = 0;
+   }
+   db_unlock(mdb);
+   return stat;
+}
+
+
 
 /* Get Pool Record   
  * If the PoolId is non-zero, we get its record,
@@ -538,7 +576,7 @@ int db_get_pool_record(B_DB *mdb, POOL_DBR *pdbr)
       Mmsg(&mdb->cmd, 
 "SELECT PoolId,Name,NumVols,MaxVols,UseOnce,UseCatalog,AcceptAnyVolume,\
 AutoPrune,Recycle,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,\
-MaxVolBytes,PoolType,LabelFormat FROM Pool WHERE Pool.PoolId=%d", pdbr->PoolId);
+MaxVolBytes,PoolType,LabelFormat FROM Pool WHERE Pool.PoolId=%u", pdbr->PoolId);
    } else {			      /* find by name */
       Mmsg(&mdb->cmd, 
 "SELECT PoolId,Name,NumVols,MaxVols,UseOnce,UseCatalog,AcceptAnyVolume,\
@@ -558,20 +596,20 @@ MaxVolBytes,PoolType,LabelFormat FROM Pool WHERE Pool.Name='%s'", pdbr->Name);
             Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
             Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	 } else {
-	    pdbr->PoolId = atoi(row[0]);
+	    pdbr->PoolId = str_to_int64(row[0]);
             bstrncpy(pdbr->Name, row[1]!=NULL?row[1]:"", sizeof(pdbr->Name));
-	    pdbr->NumVols = atoi(row[2]);
-	    pdbr->MaxVols = atoi(row[3]);
-	    pdbr->UseOnce = atoi(row[4]);
-	    pdbr->UseCatalog = atoi(row[5]);
-	    pdbr->AcceptAnyVolume = atoi(row[6]);
-	    pdbr->AutoPrune = atoi(row[7]);
-	    pdbr->Recycle = atoi(row[8]);
-	    pdbr->VolRetention = (utime_t)strtod(row[9], NULL);
-	    pdbr->VolUseDuration = (utime_t)strtod(row[10], NULL);
-	    pdbr->MaxVolJobs = atoi(row[11]);
-	    pdbr->MaxVolFiles = atoi(row[12]);
-	    pdbr->MaxVolBytes = (uint64_t)strtod(row[13], NULL);
+	    pdbr->NumVols = str_to_int64(row[2]);
+	    pdbr->MaxVols = str_to_int64(row[3]);
+	    pdbr->UseOnce = str_to_int64(row[4]);
+	    pdbr->UseCatalog = str_to_int64(row[5]);
+	    pdbr->AcceptAnyVolume = str_to_int64(row[6]);
+	    pdbr->AutoPrune = str_to_int64(row[7]);
+	    pdbr->Recycle = str_to_int64(row[8]);
+	    pdbr->VolRetention = str_to_int64(row[9]);
+	    pdbr->VolUseDuration = str_to_int64(row[10]);
+	    pdbr->MaxVolJobs = str_to_int64(row[11]);
+	    pdbr->MaxVolFiles = str_to_int64(row[12]);
+	    pdbr->MaxVolBytes = str_to_uint64(row[13]);
             bstrncpy(pdbr->PoolType, row[13]!=NULL?row[14]:"", sizeof(pdbr->PoolType));
             bstrncpy(pdbr->LabelFormat, row[14]!=NULL?row[15]:"", sizeof(pdbr->LabelFormat));
 	    stat = pdbr->PoolId;
@@ -582,6 +620,57 @@ MaxVolBytes,PoolType,LabelFormat FROM Pool WHERE Pool.Name='%s'", pdbr->Name);
    db_unlock(mdb);
    return stat;
 }
+
+/* Get Client Record   
+ * If the ClientId is non-zero, we get its record,
+ *  otherwise, we search on the Client Name
+ *
+ * Returns: 0 on failure
+ *	    1 on success 
+ */
+int db_get_client_record(B_DB *mdb, CLIENT_DBR *cdbr)
+{
+   SQL_ROW row;
+   int stat = 0;
+
+   db_lock(mdb);
+   if (cdbr->ClientId != 0) {		    /* find by id */
+      Mmsg(&mdb->cmd, 
+"SELECT ClientId,Name,Uname,AutoPrune,FileRetention,JobRetention "
+"FROM Client WHERE Client.ClientId=%u", cdbr->ClientId);
+   } else {			      /* find by name */
+      Mmsg(&mdb->cmd, 
+"SELECT ClientId,Name,Uname,AutoPrune,FileRetention,JobRetention "
+"FROM Client WHERE Client.Name='%s'", cdbr->Name);
+   }  
+
+   if (QUERY_DB(mdb, mdb->cmd)) {
+      mdb->num_rows = sql_num_rows(mdb);
+      if (mdb->num_rows > 1) {
+	 char ed1[30];
+         Mmsg1(&mdb->errmsg, _("More than one Client!: %s\n"), 
+	    edit_uint64(mdb->num_rows, ed1));
+         Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
+      } else if (mdb->num_rows == 1) {
+	 if ((row = sql_fetch_row(mdb)) == NULL) {
+            Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
+            Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
+	 } else {
+	    cdbr->ClientId = str_to_int64(row[0]);
+            bstrncpy(cdbr->Name, row[1]!=NULL?row[1]:"", sizeof(cdbr->Name));
+            bstrncpy(cdbr->Uname, row[2]!=NULL?row[1]:"", sizeof(cdbr->Uname));
+	    cdbr->AutoPrune = str_to_int64(row[3]);
+	    cdbr->FileRetention = str_to_int64(row[4]);
+	    cdbr->JobRetention = str_to_int64(row[5]);
+	    stat = 1;
+	 }
+      }
+      sql_free_result(mdb);
+   }
+   db_unlock(mdb);
+   return stat;
+}
+
 
 /* Get FileSet Record	
  * If the FileSetId is non-zero, we get its record,
@@ -729,26 +818,26 @@ FROM Media WHERE VolumeName='%s'", mr->VolumeName);
             Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	 } else {
 	    /* return values */
-	    mr->MediaId = atoi(row[0]);
+	    mr->MediaId = str_to_int64(row[0]);
             bstrncpy(mr->VolumeName, row[1]!=NULL?row[1]:"", sizeof(mr->VolumeName));
-	    mr->VolJobs = atoi(row[2]);
-	    mr->VolFiles = atoi(row[3]);
-	    mr->VolBlocks = atoi(row[4]);
-	    mr->VolBytes = (uint64_t)strtod(row[5], NULL);
-	    mr->VolMounts = atoi(row[6]);
-	    mr->VolErrors = atoi(row[7]);
-	    mr->VolWrites = atoi(row[8]);
-	    mr->MaxVolBytes = (uint64_t)strtod(row[9], NULL);
-	    mr->VolCapacityBytes = (uint64_t)strtod(row[10], NULL);
+	    mr->VolJobs = str_to_int64(row[2]);
+	    mr->VolFiles = str_to_int64(row[3]);
+	    mr->VolBlocks = str_to_int64(row[4]);
+	    mr->VolBytes = str_to_uint64(row[5]);
+	    mr->VolMounts = str_to_int64(row[6]);
+	    mr->VolErrors = str_to_int64(row[7]);
+	    mr->VolWrites = str_to_int64(row[8]);
+	    mr->MaxVolBytes = str_to_uint64(row[9]);
+	    mr->VolCapacityBytes = str_to_uint64(row[10]);
             bstrncpy(mr->MediaType, row[11]!=NULL?row[11]:"", sizeof(mr->MediaType));
             bstrncpy(mr->VolStatus, row[12]!=NULL?row[12]:"", sizeof(mr->VolStatus));
-	    mr->PoolId = atoi(row[13]);
-	    mr->VolRetention = (utime_t)strtod(row[14], NULL);
-	    mr->VolUseDuration = (utime_t)strtod(row[15], NULL);
-	    mr->MaxVolJobs = atoi(row[16]);
-	    mr->MaxVolFiles = atoi(row[17]);
-	    mr->Recycle = atoi(row[18]);
-	    mr->Slot = atoi(row[19]);
+	    mr->PoolId = str_to_int64(row[13]);
+	    mr->VolRetention = str_to_uint64(row[14]);
+	    mr->VolUseDuration = str_to_uint64(row[15]);
+	    mr->MaxVolJobs = str_to_int64(row[16]);
+	    mr->MaxVolFiles = str_to_int64(row[17]);
+	    mr->Recycle = str_to_int64(row[18]);
+	    mr->Slot = str_to_int64(row[19]);
             bstrncpy(mr->cFirstWritten, row[20]!=NULL?row[20]:"", sizeof(mr->cFirstWritten));
 	    stat = mr->MediaId;
 	 }

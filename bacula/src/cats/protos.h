@@ -73,8 +73,10 @@ int db_get_media_record(B_DB *mdb, MEDIA_DBR *mr);
 int db_get_num_media_records(B_DB *mdb);
 int db_get_num_pool_records(B_DB *mdb);
 int db_get_pool_ids(B_DB *mdb, int *num_ids, uint32_t **ids);
+int db_get_client_ids(B_DB *mdb, int *num_ids, uint32_t **ids);
 int db_get_media_ids(B_DB *mdb, int *num_ids, uint32_t **ids);
 int db_get_job_volume_parameters(B_DB *mdb, uint32_t JobId, VOL_PARAMS **VolParams);
+int db_get_client_record(B_DB *mdb, CLIENT_DBR *cdbr);
 
 
 /* list.c */

@@ -141,7 +141,7 @@ static int delete_handler(void *ctx, int num_fields, char **row)
       del->JobId = (JobId_t *)brealloc(del->JobId, sizeof(JobId_t) *
 	 del->max_ids);
    }
-   del->JobId[del->num_ids++] = (JobId_t)strtod(row[0], NULL);
+   del->JobId[del->num_ids++] = (JobId_t)str_to_int64(row[0]);
    return 0;
 }
 

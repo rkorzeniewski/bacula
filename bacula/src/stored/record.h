@@ -65,6 +65,7 @@
 #define REC_BLOCK_EMPTY      0x04     /* not enough data in block */
 #define REC_NO_MATCH         0x08     /* No match on continuation data */
 #define REC_CONTINUATION     0x10     /* Continuation record found */
+#define REC_ISTAPE           0x20     /* Set if device is tape */
 
 #define is_partial_record(r) ((r)->state & REC_PARTIAL_RECORD)
 #define is_block_empty(r)    ((r)->state & REC_BLOCK_EMPTY)

@@ -41,6 +41,7 @@ static BSR *store_joblevel(LEX *lc, BSR *bsr);
 static BSR *store_findex(LEX *lc, BSR *bsr);
 static BSR *store_sessid(LEX *lc, BSR *bsr);
 static BSR *store_volfile(LEX *lc, BSR *bsr);
+static BSR *store_volblock(LEX *lc, BSR *bsr);
 static BSR *store_sesstime(LEX *lc, BSR *bsr);
 static BSR *store_include(LEX *lc, BSR *bsr);
 static BSR *store_exclude(LEX *lc, BSR *bsr);
@@ -69,6 +70,7 @@ struct kw_items items[] = {
    {"include", store_include},
    {"exclude", store_exclude},
    {"volfile", store_volfile},
+   {"volblock", store_volblock},
    {"stream",  store_stream},
    {"slot",    store_slot},
    {NULL, NULL}
@@ -399,6 +401,41 @@ static BSR *store_volfile(LEX *lc, BSR *bsr)
 }
 
 
+/*
+ * Routine to handle Volume start/end Block  
+ */
+static BSR *store_volblock(LEX *lc, BSR *bsr)
+{
+   int token;
+   BSR_VOLBLOCK *volblock;
+
+   for (;;) {
+      token = lex_get_token(lc, T_PINT32_RANGE);
+      if (token == T_ERROR) {
+	 return NULL;
+      }
+      volblock = (BSR_VOLBLOCK *)malloc(sizeof(BSR_VOLBLOCK));
+      memset(volblock, 0, sizeof(BSR_VOLBLOCK));
+      volblock->sblock = lc->pint32_val;
+      volblock->eblock = lc->pint32_val2;
+      /* Add it to the end of the chain */
+      if (!bsr->volblock) {
+	 bsr->volblock = volblock;
+      } else {
+	 /* Add to end of chain */
+	 BSR_VOLBLOCK *bs = bsr->volblock;
+	 for ( ;bs->next; bs=bs->next)
+	    {  }
+	 bs->next = volblock;
+      }
+      token = lex_get_token(lc, T_ALL);
+      if (token != T_COMMA) {
+	 break;
+      }
+   }
+   return bsr;
+}
+
 
 static BSR *store_sessid(LEX *lc, BSR *bsr)
 {
@@ -528,6 +565,15 @@ void dump_volfile(BSR_VOLFILE *volfile)
    }
 }
 
+void dump_volblock(BSR_VOLBLOCK *volblock)
+{
+   if (volblock) {
+      Dmsg2(-1, "VolBlock    : %u-%u\n", volblock->sblock, volblock->eblock);
+      dump_volblock(volblock->next);
+   }
+}
+
+
 void dump_findex(BSR_FINDEX *FileIndex)
 {
    if (FileIndex) {
@@ -613,6 +659,7 @@ void dump_bsr(BSR *bsr)
    dump_sessid(bsr->sessid);
    dump_sesstime(bsr->sesstime);
    dump_volfile(bsr->volfile);
+   dump_volblock(bsr->volblock);
    dump_client(bsr->client);
    dump_jobid(bsr->JobId);
    dump_job(bsr->job);
@@ -654,6 +701,7 @@ void free_bsr(BSR *bsr)
    free_bsr_item((BSR *)bsr->sessid);
    free_bsr_item((BSR *)bsr->sesstime);
    free_bsr_item((BSR *)bsr->volfile);
+   free_bsr_item((BSR *)bsr->volblock);
    free_bsr_item((BSR *)bsr->JobId);
    free_bsr_item((BSR *)bsr->job);
    free_bsr_item((BSR *)bsr->FileIndex);

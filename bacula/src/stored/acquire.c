@@ -127,7 +127,7 @@ default_path:
    attach_jcr_to_device(dev, jcr);    /* attach jcr to device */
    stat = 1;			      /* good return */
    if ((dev->state & ST_TAPE) && vol->start_file > 0) {
-      Dmsg1(100, "====== Got start_file = %d\n", vol->start_file);
+      Dmsg1(200, "====== Got start_file = %d\n", vol->start_file);
       fsf_dev(dev, vol->start_file);
    }
 

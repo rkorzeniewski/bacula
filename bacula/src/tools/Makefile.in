@@ -44,7 +44,7 @@ smtp:	smtp.o ../lib/libbac.a
 	$(CXX) $(LDFLAGS) -L../lib -o $@ smtp.o -lbac -lm $(LIBS) $(DLIB)
 
 dbcheck: dbcheck.o ../lib/libbac.a ../cats/libsql.a
-	$(CXX) $(LDFLAGS) -L../lib -L../cats -o $@ dbcheck.o -lbac -lsql -lm $(LIBS) $(DB_LIBS)
+	$(CXX) $(LDFLAGS) -L../lib -L../cats -o $@ dbcheck.o -lsql -lbac -lm $(LIBS) $(DB_LIBS)
 
 testfind: ../findlib/libfind.a ../lib/libbac.a $(FINDOBJS)
 	$(CXX) -g $(LDFLAGS) -L. -L../lib -L../findlib -o $@ $(FINDOBJS) \

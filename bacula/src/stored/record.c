@@ -359,9 +359,14 @@ int read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
 
    remlen = block->binbuf;
    rec->Block = block->BlockNumber;
+   rec->File = ((DEVICE *)block->dev)->file;
 
-   /* Clear state flags */
+   /* Clear state flags */	 
    rec->state = 0;
+   if (((DEVICE *)block->dev)->state & ST_TAPE) {
+      rec->state |= REC_ISTAPE;
+   }
+
 
    /* 
     * Get the header. There is always a full header,

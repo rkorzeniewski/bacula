@@ -33,7 +33,7 @@ dummy:
 
 LIBSRCS = alloc.c base64.c bmisc.c bnet.c bnet_server.c \
 	  bpipe.c bshm.c btime.c \
-	  cram-md5.c crc32.c daemon.c fnmatch.c \
+	  cram-md5.c crc32.c daemon.c edit.c fnmatch.c \
 	  hmac.c idcache.c jcr.c lex.c	\
 	  md5.c message.c mem_pool.c parse_conf.c \
 	  queue.c rwlock.c serial.c \
@@ -43,7 +43,7 @@ LIBSRCS = alloc.c base64.c bmisc.c bnet.c bnet_server.c \
 
 LIBOBJS = alloc.o base64.o bmisc.o bnet.o bnet_server.o \
 	  bpipe.o bshm.o btime.o \
-	  cram-md5.o crc32.o daemon.o fnmatch.o \
+	  cram-md5.o crc32.o daemon.o edit.o fnmatch.o \
 	  hmac.o idcache.o jcr.o lex.o	\
 	  md5.o message.o mem_pool.o parse_conf.o \
 	  queue.o rwlock.o serial.o \

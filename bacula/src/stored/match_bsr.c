@@ -85,10 +85,9 @@ static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
    if (!match_volume(bsr, bsr->volume, volrec, 1)) {
       goto no_match;
    }
-   /* Not yet working */
-// if (!match_volfile(bsr, bsr->volfile, rec, 1)) {
-//    goto no_match;
-// }
+   if (!match_volfile(bsr, bsr->volfile, rec, 1)) {
+      goto no_match;
+   }
    if (!match_sesstime(bsr, bsr->sesstime, rec, 1)) {
       goto no_match;
    }
@@ -222,6 +221,12 @@ static int match_volfile(BSR *bsr, BSR_VOLFILE *volfile, DEV_RECORD *rec, int do
    if (!volfile) {
       return 1; 		      /* no specification matches all */
    }
+   /* For the moment, these tests work only with tapes. */
+   if (!(rec->state & REC_ISTAPE)) {
+      return 1; 		      /* All File records OK for this match */
+   }
+// Dmsg3(000, "match_volfile: sfile=%d efile=%d recfile=%d\n",
+//	       volfile->sfile, volfile->efile, rec->File);
    if (volfile->sfile <= rec->File && volfile->efile >= rec->File) {
       return 1;
    }

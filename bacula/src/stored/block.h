@@ -84,6 +84,7 @@
  */
 typedef struct s_dev_block {
    struct s_dev_block *next;          /* pointer to next one */
+   void *dev;                         /* pointer to device (DEVICE not defined yet) */
    /* binbuf is the number of bytes remaining
     * in the buffer. For writes, it is bytes not yet written.
     * For reads, it is remaining bytes not yet read.

@@ -497,5 +497,11 @@ int db_get_file_attributes_record(B_DB *mdb, char *fname, FILE_DBR *fdbr)
 int db_get_job_volume_parameters(B_DB *mdb, uint32_t JobId, VOL_PARAMS **VolParams)
 { return 0; }
 
+int db_get_client_ids(B_DB *mdb, int *num_ids, uint32_t *ids[])
+{ return 0; }
+
+
+int db_get_client_record(B_DB *mdb, CLIENT_DBR *cdbr)
+{ return 0; }
 
 #endif /* HAVE_BACULA_DB */

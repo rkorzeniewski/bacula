@@ -113,6 +113,7 @@ DEV_BLOCK *new_block(DEVICE *dev)
    } else {
       block->buf_len = dev->max_block_size;
    }
+   block->dev = dev;
    block->block_len = block->buf_len;  /* default block size */
    block->buf = get_memory(block->buf_len); 
    if (block->buf == NULL) {
