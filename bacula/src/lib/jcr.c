@@ -63,7 +63,9 @@ void term_last_jobs_list()
 {
    if (last_jobs) {
       while (!last_jobs->empty()) {
-	 free(last_jobs->first());     
+	 void *je = last_jobs->first(); 
+	 last_jobs->remove(je);
+	 free(je);     
       }
       delete last_jobs;
       last_jobs = NULL;
@@ -100,7 +102,9 @@ void read_last_jobs_list(int fd, uint64_t addr)
 	 }
 	 last_jobs->append(je);
 	 if (last_jobs->size() > max_last_jobs) {
-	    last_jobs->remove(last_jobs->first());
+	    je = (struct s_last_job *)last_jobs->first();
+	    last_jobs->remove(je);
+	    free(je);
 	 }
       }
    }
@@ -275,7 +279,9 @@ static void free_common_jcr(JCR *jcr)
 	 }
 	 last_jobs->append(je);
 	 if (last_jobs->size() > max_last_jobs) {
-	    last_jobs->remove(last_jobs->first());
+	    je = (struct s_last_job *)last_jobs->first();
+	    last_jobs->remove(je);
+	    free(je);
 	 }
       }
       break;
