@@ -516,7 +516,7 @@ eod_dev(DEVICE *dev)
             Dmsg1(100, "fsf_dev did not advance from file %d\n", file_num);
 	    if (ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) == 0 && 
 		      mt_stat.mt_fileno >= 0) {
-               Dmsg2(000, "Adjust file from %d to %d\n", dev->file , mt_stat.mt_fileno);
+               Dmsg2(100, "Adjust file from %d to %d\n", dev->file , mt_stat.mt_fileno);
 	       dev->file = mt_stat.mt_fileno;
 	    }
 	    stat = 0;

@@ -519,22 +519,30 @@ int bnet_wait_data_intr(BSOCK * bsock, int sec)
  */
 static const char *gethost_strerror()
 {
+   const char *msg;
    switch (h_errno) {
    case NETDB_INTERNAL:
-      return strerror(errno);
+      msg = strerror(errno);
+      break;
    case NETDB_SUCCESS:
-      return "No problem.";
+      msg = "No problem.";
+      break;
    case HOST_NOT_FOUND:
-      return "Authoritative answer Host not found.";
+      msg = "Authoritative answer for host not found.";
+      break;
    case TRY_AGAIN:
-      return "Non-authoritative Host not found, or ServerFail.";
+      msg = "Non-authoritative for host not found, or ServerFail.";
+      break;
    case NO_RECOVERY:
-      return "Non-recoverable errors, FORMERR, REFUSED, or NOTIMP.";
+      msg = "Non-recoverable errors, FORMERR, REFUSED, or NOTIMP.";
+      break;
    case NO_DATA:
-      return "Valid name, no data record of resquested type.";
+      msg = "Valid name, no data record of resquested type.";
+      break;
    default:
-      return "Unknown error.";
+      msg = "Unknown error.";
    }
+   return msg;
 }
 
 
@@ -549,10 +557,10 @@ static IPADDR *add_any(int family)
    return addr;
 }
 
-static int resolv_host(int family, const char *host, dlist * addr_list,
-		       const char **errstr)
+static const char *resolv_host(int family, const char *host, dlist * addr_list)
 {
    struct hostent *hp;
+   const char *errmsg;
 
    P(ip_mutex);
 #ifdef HAVE_GETHOSTBYNAME2
@@ -561,9 +569,9 @@ static int resolv_host(int family, const char *host, dlist * addr_list,
    if ((hp = gethostbyname(host)) == NULL) {
 #endif
       /* may be the strerror give not the right result -:( */
-      *errstr = gethost_strerror();
+      errmsg = gethost_strerror();
       V(ip_mutex);
-      return 0;
+      return errmsg;
    } else {
       char **p;
       for (p = hp->h_addr_list; *p != 0; p++) {
@@ -581,7 +589,7 @@ static int resolv_host(int family, const char *host, dlist * addr_list,
       }
       V(ip_mutex);
    }
-   return 1;
+   return NULL;
 }
 
 /*
@@ -591,6 +599,7 @@ dlist *bnet_host2ipaddrs(const char *host, int family, const char **errstr)
 {
    struct in_addr inaddr;
    IPADDR *addr = 0;
+   const char *errmsg;
 #ifdef HAVE_IPV6
    struct in6_addr inaddr6;
 #endif
@@ -621,17 +630,27 @@ dlist *bnet_host2ipaddrs(const char *host, int family, const char **errstr)
 #endif
    {
       if (family != 0) {
-	 if (!resolv_host(family, host, addr_list, errstr)) {
+	 errmsg = resolv_host(family, host, addr_list);
+	 if (errmsg) {
+	    *errstr = errmsg;
 	    free_addresses(addr_list);
 	    return 0;
 	 }
       } else {
 	 int done = 0;
-	 done |= resolv_host(AF_INET, host, addr_list, errstr);
+	 errmsg = resolv_host(AF_INET, host, addr_list);
 #ifdef HAVE_IPV6
-	 done |= resolv_host(AF_INET6, host, addr_list, errstr);
+	 if (errmsg) {
+	    errmsg = resolv_host(AF_INET6, host, addr_list);
+	    if (!errmsg) {
+	       done = 1;
+	    }
+	 } else {  
+	    done = 1;
+	 }
 #endif
 	 if (!done) {
+	    *errstr = errmsg;
 	    free_addresses(addr_list);
 	    return 0;
 	 }
@@ -662,9 +681,9 @@ static BSOCK *bnet_open(JCR * jcr, const char *name, char *host, char *service,
     * the server that we want to connect with.
     */
    if ((addr_list = bnet_host2ipaddrs(host, 0, &errstr)) == NULL) {
+      /* Note errstr is not malloc'ed */
       Qmsg2(jcr, M_ERROR, 0, "gethostbyname() for host \"%s\" failed: ERR=%s\n",
 	    host, errstr);
-      free((void *)errstr);
       *fatal = 1;
       return NULL;
    }
@@ -706,7 +725,7 @@ static BSOCK *bnet_open(JCR * jcr, const char *name, char *host, char *service,
    }
 
    if (!connected) {
-         free_addresses(addr_list);
+	 free_addresses(addr_list);
       errno = save_errno;
       return NULL;
    }

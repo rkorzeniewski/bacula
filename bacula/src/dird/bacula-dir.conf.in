@@ -227,6 +227,4 @@ Console {
   Name = @hostname@-mon
   Password = "@mon_dir_password@"
   CommandACL = status, .status
-  ClientACL = ""
-  StorageACL = ""
 }
