@@ -4,21 +4,16 @@
 #   then restore it.
 #
 cwd=`pwd`
-bin/bacula stop 2>&1 >/dev/null
-cd bin
-./drop_bacula_tables >/dev/null 2>&1
-./make_bacula_tables >/dev/null 2>&1
-./grant_bacula_privileges 2>&1 >/dev/null
-cd ..
-
 scripts/copy-tape-confs
 scripts/cleanup-tape
 echo "/usr" >/tmp/file-list
+
 echo " "
 echo " "
 echo " === Starting usr-tape-root test ==="
 echo " "
 echo " "
+
 bin/bacula start 2>&1 >/dev/null
 bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
 @output /dev/null
@@ -57,8 +52,8 @@ diff tmp/original tmp/restored 2>&1 1>/dev/nul
 if [ $? != 0 ] ; then
    echo " "
    echo " "
-   echo "  ===== usr-tape-root failed!!! ===== "
-   echo "  ===== usr-tape-root failed!!! ===== " >>test.out
+   echo "  ===== !!!! usr-tape-root failed !!!! ===== "
+   echo "  ===== !!!! usr-tape-root failed !!!! ===== " >>test.out
    echo " "
 else
    echo "  ===== usr-tape-root OK ===== "

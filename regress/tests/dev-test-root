@@ -7,8 +7,8 @@ MUID=`/usr/bin/id -u`
 if [ $MUID != 0 ] ; then
    echo " "
    echo "You must be root to run this test."
-   echo "  ===== dev test failed!!! ===== "
-   echo "  ===== dev test failed!!! ===== " >>test.out
+   echo "  ===== !!!! dev-test-root not run !!!! ===== "
+   echo "  ===== !!!! dev-test-root not run !!!! ===== " >>test.out
    echo " "
    exit 1
 fi
@@ -16,26 +16,23 @@ cwd=`pwd`
 scripts/copy-test-confs
 scripts/cleanup
 echo "/dev" >/tmp/file-list
-bin/bacula stop 2>&1 >/dev/null
-cd bin
-./drop_bacula_tables >/dev/null 2>&1
-./make_bacula_tables >/dev/null 2>&1
-./grant_bacula_privileges 2>&1 >/dev/null
-cd ..
+
 echo " "
 echo " "
-echo " === Starting /dev save/restore test ==="
+echo " ===     Starting dev-test-root test       ==="
+echo " "
+echo " ===  Note, this test can fail for trivial ==="
+echo " ===  reasons on non-Linux systems.        ==="
 echo " "
 echo " "
+
 bin/bacula start 2>&1 >/dev/null
 bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
 @output /dev/null
 messages
 @output tmp/log1.out
-label storage=File
-TestVolume001
-run job=NightlySave
-yes
+label storage=File volume=TestVolume001
+run job=NightlySave yes
 wait
 messages
 @# 
@@ -55,27 +52,34 @@ ${cwd}/bin/testls -e ${cwd}/scripts/exclude-etc-test dev >${cwd}/tmp/original
 cd ${cwd}/tmp/bacula-restores
 ${cwd}/bin/testls -e ${cwd}/scripts/exclude-etc-test dev >${cwd}/tmp/restored
 cd ${cwd}/tmp
+#
+# Use sed to cut out parts that *always* change
+#
 cat >sed.scr <<END_OF_DATA
 s%.*dev$%dev%
 s%.*[0-9][0-9]:[0-9][0-9]:[0-9][0-9] dev/ptmx%dev/ptmx%
 s%.*[0-9][0-9]:[0-9][0-9]:[0-9][0-9] dev/ttyp1%dev/ttyp1%
 s%.*[0-9][0-9]:[0-9][0-9]:[0-9][0-9] dev/null%dev/null%
 END_OF_DATA
-sed -f sed.scr original | sort >original
+
+# strip file system change messages then sed and sort
+grep -v "Skip: File system change prohibited." original >1
+sed -f sed.scr 1 | sort >original
 #
-sed -f sed.scr restored | sort >restored
+mv -f restored 1
+sed -f sed.scr 1 | sort >restored
 rm -f sed.scr
 #
 cd ${cwd}
-diff tmp/original tmp/restored 2>&1 1>/dev/null 2>&1 1>/dev/null
+diff tmp/original tmp/restored 2>&1 1>/dev/null
 if [ $? != 0 ] ; then
    echo " "
    echo " "
-   echo "  ===== dev test failed!!! ===== "
-   echo "  ===== dev test failed!!! ===== " >>test.out
+   echo "  ===== !!!! dev-test-root failed !!!! ===== "
+   echo "  ===== !!!! dev-test-root failed !!!! ===== " >>test.out
    echo " "
 else
-   echo "  ===== dev test OK ===== "
-   echo "  ===== dev test OK ===== " >>test.out
+   echo "  ===== dev-test-root OK ===== "
+   echo "  ===== dev-test-root OK ===== " >>test.out
    scripts/cleanup
 fi
