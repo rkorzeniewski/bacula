@@ -50,14 +50,20 @@ static void s_err(char *file, int line, LEX *lc, char *msg, ...)
 {
    va_list arg_ptr;
    char buf[MAXSTRING];
+   char more[MAXSTRING];
 
    va_start(arg_ptr, msg);
    bvsnprintf(buf, sizeof(buf), msg, arg_ptr);
    va_end(arg_ptr);
      
-   e_msg(file, line, M_ERROR_TERM, 0, "Config error: %s\n\
-            : Line %d, col %d of file %s\n%s\n",
-      buf, lc->line_no, lc->col_no, lc->fname, lc->line);
+   if (lc->line_no > lc->begin_line_no) {
+      sprintf(more, _("Problem probably begins at Line %d.\n"), lc->begin_line_no);
+   } else {
+      more[0] = 0;
+   }
+   e_msg(file, line, M_ERROR_TERM, 0, _("Config error: %s\n\
+            : Line %d, col %d of file %s\n%s\n%s"),
+      buf, lc->line_no, lc->col_no, lc->fname, lc->line, more);
 }
 
 
@@ -185,7 +191,9 @@ lex_unget_char(LEX *lf)
 static void add_str(LEX *lf, int ch)
 {
    if (lf->str_len >= MAXSTRING-3) {
-      Emsg2(M_ERROR_TERM, 0, "Token too long, file: %s, line %s\n", lf->fname, lf->line_no);
+      Emsg3(M_ERROR_TERM, 0, _(
+            "Token too long, file: %s, line %d, begins at line %d\n"), 
+	     lf->fname, lf->line_no, lf->begin_line_no);
    }
    lf->str[lf->str_len++] = ch;
    lf->str[lf->str_len] = 0;
@@ -198,8 +206,10 @@ static void begin_str(LEX *lf, int ch)
 {
    lf->str_len = 0;
    lf->str[0] = 0;
-   if (ch != 0)
+   if (ch != 0) {
       add_str(lf, ch);
+   }
+   lf->begin_line_no = lf->line_no;   /* save start string line no */
 }
 
 #ifdef DEBUG
