@@ -509,11 +509,14 @@ int bmicrosleep(time_t sec, long usec)
       timeout.tv_sec++;
    }
 
-   Dmsg1(200, "pthread_cond_timedwait sec=%d\n", timeout.tv_sec);
+   Dmsg2(200, "pthread_cond_timedwait sec=%d usec=%d\n", sec, usec);
    /* Note, this unlocks mutex during the sleep */
    P(timer_mutex);
    stat = pthread_cond_timedwait(&timer, &timer_mutex, &timeout);
-   Dmsg1(200, "pthread_cond_timedwait stat=%d\n", stat);
+   if (stat != 0) {
+      Dmsg2(200, "pthread_cond_timedwait stat=%d ERR=%s\n", stat,
+	 strerror(stat));
+   }
    V(timer_mutex);
    return stat;
 }

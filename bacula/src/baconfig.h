@@ -483,6 +483,12 @@ extern "C" int getdomainname(char *name, int len);
 
 #ifdef HAVE_AIX_OS
 #endif
+
+#ifdef HAVE_OSF1_OS
+#undef HAVE_CHFLAGS  /* chflags is incorrectly detected */
+extern "C" int fchdir(int filedes);
+extern "C" long gethostid(void);
+#endif
  
 /* This probably should be done on a machine by machine basic, but it works */
 #define ALIGN_SIZE (sizeof(double))
