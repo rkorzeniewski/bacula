@@ -50,7 +50,7 @@ void wxbHistoryTextCtrl::HistoryAdd(wxString cmd) {
 void wxbHistoryTextCtrl::OnKeyUp(wxKeyEvent& event) {
    if (event.m_keyCode == WXK_UP) {
       if (index > 0) {
-         if (index == (history.Count()-1)) {
+         if (index == ((int)history.Count()-1)) {
             history[index] = GetValue();
          }
          index--;
@@ -59,7 +59,7 @@ void wxbHistoryTextCtrl::OnKeyUp(wxKeyEvent& event) {
       }
    }
    else if (event.m_keyCode == WXK_DOWN) {
-      if (index < (history.Count()-1)) {
+      if (index < ((int)history.Count()-1)) {
          index++;
          SetValue(history[index]);
          SetInsertionPointEnd();

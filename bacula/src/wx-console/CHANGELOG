@@ -1,4 +1,5 @@
 17-07-2004 :
+ - wxbRestorePanel & wxbHistoryTextCtrl : Fixed unsigned comparisons.
  - wxbRestorePanel : Fixed problem when the newly created job is not
     at the end of the list.
 

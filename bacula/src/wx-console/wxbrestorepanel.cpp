@@ -1121,8 +1121,8 @@ void wxbRestorePanel::CmdListJobs() {
       wxbDataTokenizer* dt = wxbUtils::WaitForEnd(configPanel->GetRowString("Client") + "\n", true);
 
       if (!tableparser->hasFinished()) {
-         for (int i = 0; i < dt->Count(); i++) {
-            if ((*dt)[i].Index("No results to list.") == 0) {
+         for (unsigned int i = 0; i < dt->Count(); i++) {
+            if ((*dt)[i].Find("No results to list.") == 0) {
                configPanel->AddRowChoice("Before", "No backup found for this client.");
                configPanel->SetRowSelection("Before", 0);
                configPanel->EnableApply(true); // Enabling the not existing apply button disables the ok button.
@@ -1130,7 +1130,7 @@ void wxbRestorePanel::CmdListJobs() {
                delete dt;
                return;
             }
-            else if (((*dt)[i].Index("ERROR") > -1) || ((*dt)[i].Index("Query failed") > -1)) {
+            else if (((*dt)[i].Find("ERROR") > -1) || ((*dt)[i].Find("Query failed") > -1)) {
                configPanel->AddRowChoice("Before", "Cannot get previous backups list, see console.");
                configPanel->SetRowSelection("Before", 0);
                configPanel->EnableApply(true); // Enabling the not existing apply button disables the ok button.
