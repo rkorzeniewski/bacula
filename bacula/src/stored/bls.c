@@ -535,6 +535,7 @@ static void print_ls_output(char *fname, char *link, int type, struct stat *stat
 int	dir_get_volume_info(JCR *jcr) { return 1;}
 int	dir_find_next_appendable_volume(JCR *jcr) { return 1;}
 int	dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int relabel) { return 1; }
+int	dir_create_job_media_record(JCR *jcr) { return 1; }
 int	dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev) { return 1; }
 int	dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec) { return 1;}
 int	dir_send_job_status(JCR *jcr) {return 1;}

@@ -27,6 +27,7 @@
  */
 
 #include "bacula.h"
+#include "jcr.h"
 #include "findlib/find.h"
 
 /*
@@ -319,6 +320,60 @@ char *encode_time(time_t time, char *buf)
 		   tm.tm_hour, tm.tm_min, tm.tm_sec);
    }
    return buf+n;
+}
+
+/*
+ * Concatenate a string (str) onto a poolmem message (msg)
+ *  return new message pointer. The base of the pool memory
+ *  is base.
+ */
+void add_str_to_pool_mem(POOLMEM **base, char **msg, char *str)
+{
+   int len = strlen(str) + 1;
+   char *b, *m;
+
+   b = *base;
+   *base = check_pool_memory_size(*base, len);
+   m = *base - b + *msg;
+   while (*str) {
+      *m++ = *str++;
+   }
+   *msg = m;
+}
+
+
+/*
+ * Convert a JobStatus code into a human readable form
+ */
+void jobstatus_to_ascii(int JobStatus, char *msg, int maxlen)
+{
+   char *termstat, jstat[2];
+
+   switch (JobStatus) {
+      case JS_Terminated:
+         termstat = _("OK");
+	 break;
+     case JS_FatalError:
+     case JS_ErrorTerminated:
+         termstat = _("Error");
+	 break;
+     case JS_Error:
+         termstat = _("Non-fatal error");
+	 break;
+     case JS_Cancelled:
+         termstat = _("Cancelled");
+	 break;
+     case JS_Differences:
+         termstat = _("Verify differences");
+	 break;
+     default:
+	 jstat[0] = last_job.JobStatus;
+	 jstat[1] = 0;
+	 termstat = jstat;
+	 break;
+   }
+   strncpy(msg, termstat, maxlen);
+   msg[maxlen-1] = 0;
 }
 
 /***********************************************************************

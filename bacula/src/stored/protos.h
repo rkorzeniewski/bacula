@@ -35,6 +35,7 @@ int	dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev);
 int	dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev);
 int	dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec);
 int	dir_send_job_status(JCR *jcr);
+int	dir_create_job_media_record(JCR *jcr);
 
 /* authenticate.c */
 int	authenticate_director(JCR *jcr);

@@ -181,10 +181,12 @@
 
 #undef HAVE_FCHDIR
 
-#undef HAVE_LOCALTIME_R
-
-#undef HAVE_READDIR_R
-
 #undef HAVE_GETOPT_LONG
 
 #undef HAVE_LIBSM
+
+/* Check for thread safe routines */
+#undef HAVE_LOCALTIME_R
+#undef HAVE_READDIR_R
+#undef HAVE_STRERROR_R
+#undef HAVE_GETHOSTBYNAME_R

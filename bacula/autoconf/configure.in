@@ -933,9 +933,17 @@ AC_CHECK_FUNCS(fchdir, [AC_DEFINE(HAVE_FCHDIR)])
 
 AC_CHECK_FUNCS(snprintf vsnprintf)
 
-AC_CHECK_FUNCS(localtime_r, [AC_DEFINE(HAVE_LOCALTIME_R)])
+dnl# --------------------------------------------------------------------------
+dnl# CHECKING FOR THREAD SAFE FUNCTIONS
+dnl# --------------------------------------------------------------------------
+AC_CHECK_FUNCS(localtime_r readdir_r strerror_r gethostbyname_r)
 
-AC_CHECK_FUNCS(readdir_r, [AC_DEFINE(HAVE_READDIR_R)])
+# If resolver functions are not in libc check for -lnsl or -lresolv.
+AC_CHECK_FUNC(gethostbyname_r,
+    AC_MSG_RESULT(using libc's resolver),
+    AC_CHECK_LIB(nsl,gethostbyname_r)
+    AC_CHECK_LIB(resolv,gethostbyname_r))
+
 
 # Find where sockets are (especially for Solaris)
 AC_CHECK_FUNC(socket,
@@ -943,12 +951,6 @@ AC_CHECK_FUNC(socket,
     AC_CHECK_LIB(xnet,socket)
     AC_CHECK_LIB(socket,socket)
     AC_CHECK_LIB(inet,socket))
-
-# If resolver functions are not in libc check for -lnsl or -lresolv.
-AC_CHECK_FUNC(gethostbyname,
-    AC_MSG_RESULT(using libc's resolver),
-    AC_CHECK_LIB(nsl,gethostbyname)
-    AC_CHECK_LIB(resolv,gethostbyname))
 
 
 AC_FUNC_STRFTIME

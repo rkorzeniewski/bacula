@@ -43,6 +43,10 @@ int       bvsnprintf             (char *str, size_t size, const char  *format, v
 int       pool_sprintf           (char *pool_buf, char *fmt, ...);
 void      create_pid_file        (char *dir, char *progname, int port);
 int       delete_pid_file        (char *dir, char *progname, int port);
+#ifndef HAVE_STRERROR_R
+int       strerror_r             (int errnum, char *buf, size_t bufsiz);
+#endif
+
 
 /* bnet.c */
 int32_t    bnet_recv             (BSOCK *bsock);
@@ -145,6 +149,8 @@ int              do_shell_expansion      (char *name);
 int              is_a_number             (const char *num);
 int              string_to_btime         (char *str, btime_t *value);
 char             *edit_btime             (btime_t val, char *buf);
+void             jobstatus_to_ascii      (int JobStatus, char *msg, int maxlen);
+void             add_str_to_pool_mem     (POOLMEM **base, char **msg, char *str);
 
 
 /*

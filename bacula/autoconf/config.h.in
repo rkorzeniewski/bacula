@@ -270,10 +270,6 @@
 
 #undef HAVE_FCHDIR
 
-#undef HAVE_LOCALTIME_R
-
-#undef HAVE_READDIR_R
-
 #undef HAVE_GETOPT_LONG
 
 /* The number of bytes in a char.  */
@@ -302,6 +298,9 @@
 
 /* Define if you have the getcwd function.  */
 #undef HAVE_GETCWD
+
+/* Define if you have the gethostbyname_r function.  */
+#undef HAVE_GETHOSTBYNAME_R
 
 /* Define if you have the gethostname function.  */
 #undef HAVE_GETHOSTNAME
@@ -353,6 +352,9 @@
 
 /* Define if you have the strerror function.  */
 #undef HAVE_STRERROR
+
+/* Define if you have the strerror_r function.  */
+#undef HAVE_STRERROR_R
 
 /* Define if you have the strncmp function.  */
 #undef HAVE_STRNCMP

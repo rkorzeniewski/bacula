@@ -579,6 +579,7 @@ int offline_dev(DEVICE *dev)
 	 dev->dev_name, strerror(dev->dev_errno));
       return 0;
    }
+   Dmsg1(000, "Offlined device %s\n", dev->dev_name);
    return 1;
 }
 

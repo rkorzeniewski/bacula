@@ -50,6 +50,11 @@ static char Update_media[] = "CatReq Job=%127s UpdateMedia VolName=%s\
  FirstIndex=%d LastIndex=%d StartFile=%d EndFile=%d \
  StartBlock=%d EndBlock=%d relabel=%d Slot=%d\n";
 
+static char Create_job_media[] = "CatReq Job=%127s CreateJobMedia \
+ FirstIndex=%d LastIndex=%d StartFile=%d EndFile=%d \
+ StartBlock=%d EndBlock=%d\n";
+
+
 /* Responses  sent to Storage daemon */
 static char OK_media[] = "1000 OK VolName=%s VolJobs=%d VolFiles=%d\
  VolBlocks=%d VolBytes=%" lld " VolMounts=%d VolErrors=%d VolWrites=%d\
@@ -172,25 +177,6 @@ MediaType=%s\n", mr.PoolId, jcr->PoolId, mr.VolStatus, mr.MediaType);
          strcpy(mr.VolStatus, "Full");
       }
 
-      jm.JobId = jcr->JobId;
-      jm.MediaId = jcr->MediaId;
-      /*
-       * If relabel is set, it means we just labeled the tape,
-       * so no need to create a jobmedia record.
-       * Otherwise, record the fact that this job used this Volume 
-       */
-      if (!relabel) {
-         Dmsg6(100, "create_jobmedia JobId=%d MediaId=%d SF=%d EF=%d FI=%d LI=%d\n",
-	    jm.JobId, jm.MediaId, jm.StartFile, jm.EndFile, jm.FirstIndex, jm.LastIndex);
-	 if(!db_create_jobmedia_record(jcr->db, &jm)) {
-            Jmsg(jcr, M_ERROR, 0, _("Catalog error creating JobMedia record. %s"),
-	       db_strerror(jcr->db));
-            bnet_fsend(bs, "1991 Update JobMedia error\n");
-	 } else {
-            Dmsg0(20, "JobMedia record created\n");
-	 }
-      }
-
       Dmsg0(20, "db_update_media_record\n");
       if (db_update_media_record(jcr->db, &mr)) {
 	 bnet_fsend(bs, OK_update);
@@ -201,6 +187,27 @@ MediaType=%s\n", mr.PoolId, jcr->PoolId, mr.VolStatus, mr.MediaType);
          bnet_fsend(bs, "1992 Update Media error\n");
          Dmsg0(90, "send error\n");
       }
+
+   /*
+    * Request to create a JobMedia record
+    */
+   } else if (sscanf(bs->msg, Create_job_media, &Job,
+      &jm.FirstIndex, &jm.LastIndex, &jm.StartFile, &jm.EndFile,
+      &jm.StartBlock, &jm.EndBlock) == 7) {
+
+      jm.JobId = jcr->JobId;
+      jm.MediaId = jcr->MediaId;
+      Dmsg6(100, "create_jobmedia JobId=%d MediaId=%d SF=%d EF=%d FI=%d LI=%d\n",
+	 jm.JobId, jm.MediaId, jm.StartFile, jm.EndFile, jm.FirstIndex, jm.LastIndex);
+      if(!db_create_jobmedia_record(jcr->db, &jm)) {
+         Jmsg(jcr, M_ERROR, 0, _("Catalog error creating JobMedia record. %s"),
+	    db_strerror(jcr->db));
+         bnet_fsend(bs, "1991 Update JobMedia error\n");
+      } else {
+         Dmsg0(20, "JobMedia record created\n");
+	 bnet_fsend(bs, OK_update);
+      }
+
    } else {
       omsg = (char *) get_memory(bs->msglen+1);
       strcpy(omsg, bs->msg);

@@ -156,7 +156,7 @@ init_msg(void *vjcr, MSGS *msg)
 
    /*
     * Walk down the message resource chain duplicating it
-    * for the current Job.
+    * for the current Job.   ****FIXME***** segfault on memcpy
     */
    for (d=msg->dest_chain; d; d=d->next) {
       dnew = (DEST *)malloc(sizeof(DEST));
@@ -278,23 +278,6 @@ void rem_msg_dest(MSGS *msg, int dest_code, int msg_type, char *where)
    }
 }
 
-/*
- * Concatenate a string (str) onto a message (msg)
- *  return new message pointer
- */
-static void add_str(POOLMEM **base, char **msg, char *str)
-{
-   int len = strlen(str) + 1;
-   char *b, *m;
-
-   b = *base;
-   *base = check_pool_memory_size(*base, len);
-   m = *base - b + *msg;
-   while (*str) {
-      *m++ = *str++;
-   }
-   *msg = m;
-}
 
 /*
  * Convert Job Termination Status into a string
@@ -405,6 +388,11 @@ static char *job_level_to_str(int level)
  *  %c = Client's name
  *  %r = Recipients
  *  %d = Director's name
+ *
+ *  omsg = edited output message
+ *  imsg = input string containing edit codes (%x)
+ *  to = recepients list 
+ *
  */
 static char *edit_job_codes(JCR *jcr, char *omsg, char *imsg, char *to)   
 {
@@ -458,7 +446,7 @@ static char *edit_job_codes(JCR *jcr, char *omsg, char *imsg, char *to)
 	 str = add;
       }
       Dmsg1(200, "add_str %s\n", str);
-      add_str(&omsg, &o, str);
+      add_str_to_pool_mem(&omsg, &o, str);
       *o = 0;
       Dmsg1(200, "omsg=%s\n", omsg);
    }

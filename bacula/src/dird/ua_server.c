@@ -117,6 +117,7 @@ static void handle_UA_client_request(void *arg)
 
    while (!ua.quit) {
       stat = bnet_recv(ua.UA_sock);
+      Dmsg1(500, "stat=%d\n", stat);
       if (stat > 0) {
 	 strncpy(cmd, ua.UA_sock->msg, sizeof(cmd));
 	 cmd[sizeof(cmd)-1] = 0;       /* ensure it is terminated/trucated */
@@ -138,10 +139,12 @@ static void handle_UA_client_request(void *arg)
 	    bnet_sig(ua.UA_sock, BNET_EOD); /* send end of command */
 	 }
       } else if (stat == 0) {
-	 if (ua.UA_sock->msglen == BNET_TERMINATE) {
+	 if (ua.UA_sock->msglen == BNET_TERMINATE || 
+	     ua.UA_sock->msglen == BNET_EOF) {
 	    ua.quit = TRUE;
 	    break;
 	 }
+         Dmsg1(000, "stat=0 msglen=%d\n", ua.UA_sock->msglen);
 	 bnet_sig(ua.UA_sock, BNET_POLL);
       } else {
 	 break; 		   /* error, exit */

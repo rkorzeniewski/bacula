@@ -52,8 +52,7 @@
 #include "stored.h"                   /* pull in Storage Deamon headers */
 
 /* Forward referenced functions */
-static int ready_dev_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
-static int mount_next_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *label_blk);
+static int mount_next_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *label_blk, int release);
 
 extern char my_name[];
 extern int debug_level;
@@ -96,36 +95,14 @@ int acquire_device_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
  */
 int acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 {
+   int release = 0;
+   int do_mount = 0;
 
    lock_device(dev);
    Dmsg1(90, "acquire_append device is %s\n", dev_is_tape(dev)?"tape":"disk");
-   if (!(dev->state & ST_APPEND)) {
-      if (dev->state & ST_READ) {
-         Jmsg(jcr, M_FATAL, 0, _("Device %s is busy reading.\n"), dev_name(dev));
-	 unlock_device(dev);
-	 return 0;
-      } 
-      ASSERT(dev->num_writers == 0);
-      block_device(dev, BST_DOING_ACQUIRE);
-      unlock_device(dev);
-      if (!ready_dev_for_append(jcr, dev, block)) {
-         Jmsg(jcr, M_FATAL, 0, _("Could not ready device %s for append.\n"),
-	    dev_name(dev));
-	 P(dev->mutex);
-	 unblock_device(dev);
-	 V(dev->mutex);
-	 return 0;
-      }
-      P(dev->mutex);
-      dev->VolCatInfo.VolCatJobs++;	    /* increment number of jobs on this media */
-      dev->num_writers = 1;
-      if (jcr->NumVolumes == 0) {
-	 jcr->NumVolumes = 1;
-      }
-      unblock_device(dev);
-      V(dev->mutex);
-      return 1;
-   } else { 
+
+
+   if (dev->state & ST_APPEND) {
       /* 
        * Device already in append mode	 
        *
@@ -145,21 +122,36 @@ int acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	    unlock_device(dev);
 	    return 0;
 	 }
-	 /* Wrong tape currently mounted */  
-	 block_device(dev, BST_DOING_ACQUIRE);
+	 /* Wrong tape mounted, release it, then fall through to get correct one */
+	 release = 1;
+	 do_mount = 1;
+      }
+   } else { 
+      /* Not already in append mode, so mount the device */
+      if (dev->state & ST_READ) {
+         Jmsg(jcr, M_FATAL, 0, _("Device %s is busy reading.\n"), dev_name(dev));
 	 unlock_device(dev);
-	 if (!mount_next_volume(jcr, dev, block)) {
-            Jmsg(jcr, M_FATAL, 0, _("Unable to mount desired volume.\n"));
-	    P(dev->mutex);
-	    unblock_device(dev);
-	    V(dev->mutex);
-	    return 0;
-	 }
+	 return 0;
+      } 
+      ASSERT(dev->num_writers == 0);
+      do_mount = 1;
+   }
+
+   if (do_mount) {
+      block_device(dev, BST_DOING_ACQUIRE);
+      unlock_device(dev);
+      if (!mount_next_volume(jcr, dev, block, release)) {
+         Jmsg(jcr, M_FATAL, 0, _("Could not ready device %s for append.\n"),
+	    dev_name(dev));
 	 P(dev->mutex);
 	 unblock_device(dev);
+	 unlock_device(dev);
+	 return 0;
       }
+      P(dev->mutex);
+      unblock_device(dev);
    }
-   dev->VolCatInfo.VolCatJobs++;	    /* increment number of jobs on this media */
+
    dev->num_writers++;
    if (dev->num_writers > 1) {
       Dmsg2(0, "Hey!!!! There are %d writers on device %s\n", dev->num_writers,
@@ -193,6 +185,7 @@ int release_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       Dmsg1(90, "There are %d writers in release_device\n", dev->num_writers);
       if (dev->num_writers == 0) {
 	 weof_dev(dev, 1);
+	 dir_create_job_media_record(jcr);
 	 dev->VolCatInfo.VolCatFiles++; 	    /* increment number of files */
 	 /* Note! do volume update before close, which zaps VolCatInfo */
 	 dir_update_volume_info(jcr, &dev->VolCatInfo, 0); /* send Volume info to Director */
@@ -202,6 +195,7 @@ int release_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
             Dmsg0(90, "Device is tape leave open in release_device\n");
 	 }
       } else {
+	 dir_create_job_media_record(jcr);
 	 dir_update_volume_info(jcr, &dev->VolCatInfo, 0); /* send Volume info to Director */
       }
    } else {
@@ -214,101 +208,87 @@ int release_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 
 
 /*
- * We rewind the current volume, which we no longer want, and
- *  ask the user (console) to mount the next volume.
+ * If release is set, we rewind the current volume, 
+ * which we no longer want, and ask the user (console) 
+ * to mount the next volume.
  *
- *  Continue trying until we get it, and we call
- *  ready_dev_for_append() so that we can write on it.
+ *  Continue trying until we get it, and then ensure
+ *  that we can write on it.
  *
- * This routine retuns a 0 only if it is REALLY
+ * This routine returns a 0 only if it is REALLY
  *  impossible to get the requested Volume.
  */
-static int mount_next_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *label_blk)
+static int mount_next_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, int release)
 {
+   int recycle, ask;
+
    Dmsg0(90, "Enter mount_next_volume()\n");
 
-   /* 
-    * First erase all memory of the current volume   
-    */
-   dev->block_num = 0;
-   dev->file = 0;
-   dev->LastBlockNumWritten = 0;
-   memset(&dev->VolCatInfo, 0, sizeof(dev->VolCatInfo));
-   memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
-
-   /* Keep trying until we get something good mounted */
-   for ( ;; ) {
-      if (job_cancelled(jcr)) {
-         Mmsg0(&dev->errmsg, "Job cancelled.\n");
-	 return 0;
-      }
-
-      if (dev->state & ST_OPENED && !rewind_dev(dev)) {
-         Jmsg2(jcr, M_WARNING, 0, _("Rewind error on device %s. ERR=%s\n"), 
-	       dev_name(dev), strerror_dev(dev));
-      }
-
-      /*
-       * Ask to mount and wait if necessary   
-       */
-      if (!dir_ask_sysop_to_mount_next_volume(jcr, dev)) {
-         Jmsg(jcr, M_FATAL, 0, _("Unable to mount next Volume on device %s\n"),
-	    dev_name(dev));
-	 return 0;
-      }
-
-      /* 
-       * Ready output device for writing
-       */
-      Dmsg1(120, "just before ready_dev_for_append dev=%x\n", dev);
-      if (!ready_dev_for_append(jcr, dev, label_blk)) {
-	 continue;
-      }
-      dev->VolCatInfo.VolCatMounts++;
-      jcr->VolFirstFile = 0;
-      break;			   /* Got new volume, continue */
+mount_next_vol:
+   if (job_cancelled(jcr)) {
+      Mmsg0(&dev->errmsg, _("Job cancelled.\n"));
+      return 0;
    }
-   return 1;
-}
+   recycle = 0;
+   ask = 0;
+   if (release) {
+      Dmsg0(500, "mount_next_volume release=1\n");
+      /* 
+       * First erase all memory of the current volume	
+       */
+      dev->block_num = 0;
+      dev->file = 0;
+      dev->LastBlockNumWritten = 0;
+      memset(&dev->VolCatInfo, 0, sizeof(dev->VolCatInfo));
+      memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
+      dev->state &= ~ST_LABEL;	      /* label not yet read */
 
+      /* Rewind device */				     
+      if (dev->state & ST_OPENED) {
+	 if (!rewind_dev(dev)) {
+            Jmsg2(jcr, M_WARNING, 0, _("Rewind error on device %s. ERR=%s\n"), 
+		  dev_name(dev), strerror_dev(dev));
+	 }
+      }
+      ask = 1;			      /* ask operator to mount tape */
+   } else {
+      /* 
+       * Get Director's idea of what tape we should have mounted. 
+       */
+      if (!dir_find_next_appendable_volume(jcr)) {
+	 ask = 1;		      /* we must ask */
+      }
+   }
+   release = 1;                       /* release if we "recurse" */
 
-/*
- * This routine ensures that the device is ready for
- * writing. We start from the assumption that there
- * may not be a tape mounted. 
- *
- * If the device is a file, we create the output
- * file. If it is a tape, we check the volume name
- * and move the tape to the end of data.
- *
- * It assumes that the device is not already in use!
- *
- *  Returns 0 on failure
- *  Returns 1 on success
- */
-static int ready_dev_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
-{
-   int mounted = 0;
-   int recycle = 0;
+   /* 
+    * Get next volume and ready it for append
+    * This code ensures that the device is ready for
+    * writing. We start from the assumption that there
+    * may not be a tape mounted. 
+    *
+    * If the device is a file, we create the output
+    * file. If it is a tape, we check the volume name
+    * and move the tape to the end of data.
+    *
+    * It assumes that the device is not already in use!
+    *
+    */
 
    Dmsg0(100, "Enter ready_dev_for_append\n");
 
-   dev->state &= ~(ST_LABEL|ST_APPEND|ST_READ|ST_EOT|ST_WEOT|ST_EOF);
+   dev->state &= ~(ST_APPEND|ST_READ|ST_EOT|ST_WEOT|ST_EOF);
 
-
+   jcr->VolFirstFile = 0;	      /* first update of Vol FileIndex */
    for ( ;; ) {
-      if (job_cancelled(jcr)) {
-         Mmsg(&dev->errmsg, "Job %s cancelled.\n", jcr->Job);
-	 return 0;
-      }
 
-      /* 
-       * Ask Director for Volume Info (Name, attributes) to use.	 
-       */
-      if (!dir_find_next_appendable_volume(jcr)) {
+      Dmsg1(000, "Have changer. Dev=%s\n", NPRT(jcr->device->changer_name));
+      if (ask) {
+	 if (dev->capabilities && CAP_AUTOCHANGER) {
+            Dmsg1(000, "Have changer. Dev=%s\n", NPRT(jcr->device->changer_name));
+ /*** ****FIXME**** add changer code here */
+	 }
 	 if (!dir_ask_sysop_to_mount_next_volume(jcr, dev)) {
-            Jmsg1(jcr, M_FATAL, 0, _("Unable to mount desired Volume for device %s.\n"),
-	       dev_name(dev));
 	    return 0;		   /* error return */
 	 }
       }
@@ -320,7 +300,7 @@ static int ready_dev_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	     if (dev->dev_errno == EAGAIN || dev->dev_errno == EBUSY) {
 		sleep(30);
 	     }
-             Jmsg2(jcr, M_ERROR, 0, _("Unable to open device %s. ERR=%s\n"), 
+             Jmsg2(jcr, M_FATAL, 0, _("Unable to open device %s. ERR=%s\n"), 
 		dev_name(dev), strerror_dev(dev));
 	     return 0;
 	  }
@@ -329,19 +309,20 @@ static int ready_dev_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       /*
        * Now make sure we have the right tape mounted
        */
+read_volume:
       switch (read_dev_volume_label(jcr, dev, block)) {
 	 case VOL_OK:
-            Dmsg1(200, "Vol OK name=%s\n", jcr->VolumeName);
+            Dmsg1(500, "Vol OK name=%s\n", jcr->VolumeName);
 	    memcpy(&dev->VolCatInfo, &jcr->VolCatInfo, sizeof(jcr->VolCatInfo));
             if (strcmp(dev->VolCatInfo.VolCatStatus, "Recycle") == 0) {
 	       recycle = 1;
 	    }
 	    break;		      /* got it */
 	 case VOL_NAME_ERROR:
+            Dmsg1(500, "Vol NAME Error Name=%s\n", jcr->VolumeName);
 	    /* Check if we can accept this as an anonymous volume */
 	    strcpy(jcr->VolumeName, dev->VolHdr.VolName);
-	    if (!dev->capabilities & CAP_ANONVOLS ||
-		!dir_get_volume_info(jcr)) {
+	    if (!dev->capabilities & CAP_ANONVOLS || !dir_get_volume_info(jcr)) {
 	       goto mount_next_vol;
 	    }
             Dmsg1(200, "want new name=%s\n", jcr->VolumeName);
@@ -350,36 +331,25 @@ static int ready_dev_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 
 	 case VOL_NO_LABEL:
 	 case VOL_IO_ERROR:
+            Dmsg1(500, "Vol NO_LABEL or IO_ERROR name=%s\n", jcr->VolumeName);
 	    /* If permitted, create a label */
 	    if (dev->capabilities & CAP_LABEL) {
                Dmsg0(90, "Create volume label\n");
 	       if (!write_volume_label_to_dev(jcr, (DEVRES *)dev->device, jcr->VolumeName,
 		      jcr->pool_name)) {
-		  return 0;
+		  goto mount_next_vol;
 	       }
                Jmsg(jcr, M_INFO, 0, _("Created Volume label %s on device %s.\n"),
 		  jcr->VolumeName, dev_name(dev));
-	       mounted = 1;
-	       continue;	      /* read label we just wrote */
+	       goto read_volume;      /* read label we just wrote */
 	    } 
 	    /* NOTE! Fall-through wanted. */
 	 default:
-mount_next_vol:
-	    /* Send error message generated by read_dev_volume_label() */
+	    /* Send error message */
             Jmsg(jcr, M_WARNING, 0, "%s", jcr->errmsg);                         
-	    rewind_dev(dev);
-	    if (!dir_ask_sysop_to_mount_next_volume(jcr, dev)) {
-               Jmsg1(jcr, M_FATAL, 0, _("Unable to mount desired Volume for device %s.\n"),
-		  dev_name(dev));
-	       return 0;	      /* error return */
-	    }
-	    mounted = 1;
-	    continue;		      /* try reading again */
+	    goto mount_next_vol;
       }
       break;
-   }
-   if (mounted) {
-      dev->VolCatInfo.VolCatMounts++;
    }
 
    /* 
@@ -417,12 +387,12 @@ mount_next_vol:
       if (!write_block_to_dev(dev, block)) {
          Jmsg2(jcr, M_ERROR, 0, _("Unable to write device %s. ERR=%s\n"),
 	    dev_name(dev), strerror_dev(dev));
-	 return 0;
+	 goto mount_next_vol;
       }
       if (!rewind_dev(dev)) {
          Jmsg2(jcr, M_ERROR, 0, _("Unable to rewind device %s. ERR=%s\n"),
 	    dev_name(dev), strerror_dev(dev));
-	 return 0;
+	 goto mount_next_vol;
       }
       /* Recreate a correct volume label and return it in the block */
       write_volume_label_to_block(jcr, dev, block);
@@ -450,8 +420,10 @@ mount_next_vol:
       }
 
    } else {
-      /* OK, at this point, we have a valid Bacula label, but
-       * we need to position to the end of the volume.
+      /*
+       * OK, at this point, we have a valid Bacula label, but
+       * we need to position to the end of the volume, since we are
+       * just now putting it into append mode.
        */
       Dmsg0(20, "Device previously written, moving to end of data\n");
       Jmsg(jcr, M_INFO, 0, _("Volume %s previously written, moving to end of data.\n"),
@@ -463,16 +435,24 @@ mount_next_vol:
 	    jcr->VolumeName);
          strcpy(dev->VolCatInfo.VolCatStatus, "Error");
 	 dir_update_volume_info(jcr, &dev->VolCatInfo, 0);
-	 return 0;
+	 goto mount_next_vol;
       }
-      /* *****FIXME**** we might do some checking for files too */
+      /* *****FIXME**** we should do some checking for files too */
       if (dev_is_tape(dev)) {
          Jmsg(jcr, M_INFO, 0, _("Ready to append to end of Volume at file=%d.\n"), dev_file(dev));
+	 /*
+	  * Check if we are positioned on the tape at the same place
+	  * that the database says we should be.
+	  */
 	 if (dev->VolCatInfo.VolCatFiles != dev_file(dev) + 1) {
 	    /* ****FIXME**** this should refuse to write on tape */
-            Jmsg(jcr, M_INFO, 0, _("Hey! Num files mismatch! Catalog Files=%d\n"), dev->VolCatInfo.VolCatFiles);
+            Jmsg(jcr, M_ERROR, 0, _("Hey! Num files mismatch! Volume=%d Catalog=%d\n"), 
+	       dev_file(dev)+1, dev->VolCatInfo.VolCatFiles);
 	 }
       }
+      /* Update Volume Info -- will be written at end of Job */
+      dev->VolCatInfo.VolCatMounts++;	   /* Update mounts */
+      dev->VolCatInfo.VolCatJobs++;
       /* Return an empty block */
       empty_block(block);	      /* we used it for reading so set for write */
    }
@@ -520,6 +500,7 @@ int ready_dev_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
                Jmsg2(jcr, M_WARNING, 0, _("Rewind error on device %s. ERR=%s\n"), 
 		     dev_name(dev), strerror_dev(dev));
 	    }
+	    /* Mount a specific volume and no other */
 	    if (!dir_ask_sysop_to_mount_volume(jcr, dev)) {
 	       return 0;	      /* error return */
 	    }
@@ -565,7 +546,12 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       /* Update position counters */
       jcr->end_block = dev->block_num;
       jcr->end_file = dev->file;
-      if (!dir_update_volume_info(jcr, &dev->VolCatInfo, 0)) {	  /* send Volume info to Director */
+      /*
+       * ****FIXME**** update JobMedia record of every job using
+       * this device 
+       */
+      if (!dir_create_job_media_record(jcr) ||
+	  !dir_update_volume_info(jcr, &dev->VolCatInfo, 0)) {	  /* send Volume info to Director */
          Jmsg(jcr, M_ERROR, 0, _("Could not update Volume info Volume=%s Job=%s\n"),
 	    dev->VolCatInfo.VolCatName, jcr->Job);
 	 return 0;		      /* device locked */
@@ -588,7 +574,7 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 
       /* Unlock, but leave BLOCKED */
       unlock_device(dev);
-      if (!mount_next_volume(jcr, dev, label_blk)) {
+      if (!mount_next_volume(jcr, dev, label_blk, 1)) {
 	 P(dev->mutex);
 	 unblock_device(dev);
 	 return 0;		      /* device locked */
@@ -741,4 +727,93 @@ void unblock_device(DEVICE *dev)
    if (dev->num_waiting > 0) {
       pthread_cond_broadcast(&dev->wait); /* wake them up */
    }
+}
+
+
+
+/*
+ * Edit codes into ChangerDevice
+ *  %% = %
+ *  %a = archive device name
+ *  %c = changer device name
+ *  %f = Client's name
+ *  %j = Job name
+ *  %o = command
+ *  %s = Slot base 0
+ *  %S = Slot base 1
+ *  %v = Volume name
+ *
+ *
+ *  omsg = edited output message
+ *  imsg = input string containing edit codes (%x)
+ *  cmd = command string (load, unload, ...) 
+ *
+ */
+char *edit_device_codes(JCR *jcr, char *omsg, char *imsg, char *cmd) 
+{
+   char *p, *o, *str;
+   char add[20];
+
+   Dmsg1(200, "edit_job_codes: %s\n", imsg);
+   add[2] = 0;
+   o = omsg;
+   for (p=imsg; *p; p++) {
+      if (*p == '%') {
+	 switch (*++p) {
+         case '%':
+            add[0] = '%';
+	    add[1] = 0;
+	    str = add;
+	    break;
+         case 'a':
+	    str = jcr->device->dev->dev_name;
+	    break;
+         case 'c':
+	    str = jcr->device->changer_name;
+	    break;
+         case 'o':
+	    str = cmd;
+	    break;
+         case 's':
+            sprintf(add, "%d", jcr->device->dev->VolCatInfo.Slot - 1);
+	    str = add;
+	    break;
+         case 'S':
+            sprintf(add, "%d", jcr->device->dev->VolCatInfo.Slot);
+	    str = add;
+	    break;
+         case 'j':                    /* Job name */
+	    str = jcr->Job;
+	    break;
+         case 'v':
+	    str = jcr->VolumeName;
+	    if (!str) {
+               str = "";
+	    }
+	    break;
+         case 'f':
+	    str = jcr->client_name;
+	    if (!str) {
+               str = "";
+	    }
+	    break;
+
+	 default:
+            add[0] = '%';
+	    add[1] = *p;
+	    str = add;
+	    break;
+	 }
+      } else {
+	 add[0] = *p;
+	 add[1] = 0;
+	 str = add;
+      }
+      Dmsg1(200, "add_str %s\n", str);
+      add_str_to_pool_mem(&omsg, &o, str);
+      *o = 0;
+      Dmsg1(200, "omsg=%s\n", omsg);
+   }
+   *o = 0;
+   return omsg;
 }

@@ -39,6 +39,11 @@ static char Update_media[] = "CatReq Job=%s UpdateMedia VolName=%s\
  FirstIndex=%d LastIndex=%d StartFile=%d EndFile=%d \
  StartBlock=%d EndBlock=%d relabel=%d Slot=%d\n";
 
+static char Create_job_media[] = "CatReq Job=%s CreateJobMedia \
+ FirstIndex=%d LastIndex=%d StartFile=%d EndFile=%d \
+ StartBlock=%d EndBlock=%d\n";
+
+
 static char FileAttributes[] = "UpdCat Job=%s FileAttributes ";
 
 static char Job_status[]   = "3012 Job %s jobstatus %d\n";
@@ -173,6 +178,32 @@ int dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int relabel)
    return 1;
 }
 
+/*
+ * After writing a Volume, create the JobMedia record.
+ */
+int dir_create_job_media_record(JCR *jcr)
+{
+   BSOCK *dir = jcr->dir_bsock;
+
+   bnet_fsend(dir, Create_job_media, jcr->Job, 
+      jcr->VolFirstFile, jcr->JobFiles,
+      jcr->start_file, jcr->end_file,
+      jcr->start_block, jcr->end_block);
+   Dmsg1(20, "create_job_media(): %s", dir->msg);
+   if (bnet_recv(dir) <= 0) {
+      Dmsg0(90, "create_jobmedia error bnet_recv\n");
+      return 0;
+   }
+   Dmsg1(20, "Create_jobmedia: %s", dir->msg);
+   if (strcmp(dir->msg, OK_update) != 0) {
+      Dmsg1(30, "Bad response from Dir: %s\n", dir->msg);
+      Jmsg(jcr, M_ERROR, 0, _("Error creating JobMedia record: %s\n"), dir->msg);
+      return 0;
+   }
+   return 1;
+}
+
+
 /* 
  * Update File Attribute data
  */
@@ -208,6 +239,10 @@ int dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec)
  *    On success, jcr->VolumeName and jcr->VolCatInfo contain
  *	information on suggested volume, but this may not be the
  *	same as what is actually mounted.
+ *
+ *    When we return with success, the correct tape may or may not
+ *	actually be mounted. The calling routine must read it and
+ *	verify the label.
  */
 int dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev)
 {
@@ -232,6 +267,7 @@ int dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev)
       if (job_cancelled(jcr)) {
          Mmsg(&dev->errmsg, _("Job %s cancelled while waiting for mount on Storage Device \"%s\".\n"), 
 	      jcr->Job, jcr->dev_name);
+         Jmsg(jcr, M_FATAL, 0, "%s", dev->errmsg);
 	 return 0;
       }
       if (dir_find_next_appendable_volume(jcr)) {    /* get suggested volume */
@@ -317,7 +353,7 @@ Use \"mount\" to resume the job.\n"),
 	 return 0;
       }
       if (stat != 0) {
-         Jmsg(jcr, M_ERROR, 0, _("pthread error in mount_next_volume stat=%d ERR=%s\n"), stat,
+         Jmsg(jcr, M_WARNING, 0, _("pthread error in mount_next_volume stat=%d ERR=%s\n"), stat,
 	    strerror(stat));
       }
       Dmsg1(90, "Someone woke me for device %s\n", dev->dev_name);

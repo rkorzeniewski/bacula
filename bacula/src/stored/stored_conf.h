@@ -70,9 +70,10 @@ typedef struct s_res_store STORES;
 struct s_res_dev {
    RES	 hdr;
 
-   char *media_type;
-   char *device_name;
-   int	cap_bits;
+   char *media_type;		      /* User assigned media type */
+   char *device_name;		      /* Archive device name */
+   char *changer_name;		      /* Changer device name */
+   int	cap_bits;		      /* Capabilities of this device */
    uint32_t max_rewind_wait;	      /* maximum secs to wait for rewind */
    uint32_t min_block_size;	      /* min block size */
    uint32_t max_block_size;	      /* max block size */
@@ -81,7 +82,7 @@ struct s_res_dev {
    int64_t max_volume_size;	      /* max bytes to put on one volume */
    int64_t max_file_size;	      /* max file size in bytes */
    int64_t volume_capacity;	      /* advisory capacity */
-   DEVICE *dev;
+   DEVICE *dev; 		      /* Pointer to phyical dev -- set at runtime */
 };
 typedef struct s_res_dev DEVRES;
 

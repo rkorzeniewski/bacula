@@ -524,6 +524,7 @@ int do_prompt(UAContext *ua, char *msg, char *prompt)
       /* Either a . or an @ will get you out of the loop */
       if (!get_cmd(ua, pmsg) || *ua->cmd == '.' || *ua->cmd == '@') {
 	 item = -1;		      /* error */
+         bsendmsg(ua, _("Selection aborted, nothing done.\n"));
 	 break;
       }
       item = atoi(ua->cmd);

@@ -616,7 +616,7 @@ bnet_close(BSOCK *bsock)
    for ( ; bsock != NULL; bsock = next) {
       next = bsock->next;
       if (!bsock->duped) {
-	 shutdown(bsock->fd, SHUT_RDWR);
+//	 shutdown(bsock->fd, SHUT_RDWR);
 	 close(bsock->fd);
 	 term_bsock(bsock);
       } else {

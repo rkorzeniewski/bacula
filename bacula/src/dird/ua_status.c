@@ -203,23 +203,11 @@ static void do_director_status(UAContext *ua, char *cmd)
    bsendmsg(ua, _("Daemon started %s, %d Job%s run.\n"), dt, last_job.NumJobs,
         last_job.NumJobs == 1 ? "" : "s");
    if (last_job.NumJobs > 0) {
-      char *termstat, jstat[2];
+      char termstat[30];
 
       bstrftime(dt, sizeof(dt), last_job.end_time);
       bsendmsg(ua, _("Last Job %s finished at %s\n"), last_job.Job, dt);
-      switch (last_job.JobStatus) {
-	 case JS_Terminated:
-            termstat = _("OK");
-	    break;
-	case JS_ErrorTerminated:
-            termstat = _("Error");
-	    break;
-	default:
-	    jstat[0] = last_job.JobStatus;
-	    jstat[1] = 0;
-	    termstat = jstat;
-	    break;
-      }
+      jobstatus_to_ascii(last_job.JobStatus, termstat, sizeof(termstat));
 	   
       bsendmsg(ua, _("  Files=%s Bytes=%s Termination Status=%s\n"), 
 	   edit_uint64_with_commas(last_job.JobFiles, b1),
