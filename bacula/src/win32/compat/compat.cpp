@@ -22,8 +22,8 @@
 // Author          : Christopher S. Hull
 // Created On      : Sat Jan 31 15:55:00 2004
 // Last Modified By: Christopher S. Hull
-// Last Modified On: Mon Feb  9 17:22:31 2004
-// Update Count    : 591
+// Last Modified On: Sun Feb 22 12:55:40 2004
+// Update Count    : 634
 // $Id$
 
 #include <stdio.h>
@@ -34,9 +34,39 @@
 extern void d_msg(const char *file, int line, int level, const char *fmt,...);
 extern DWORD   g_platform_id;
 
+// from CYGWIN (should be diff between Jan 1 1601 and Jan 1 1970
+#define WIN32_FILETIME_ADJUST 0x19DB1DED53E8000I64
+
+#define WIN32_FILETIME_SCALE  10000000		   // 100ns/second
 
 extern "C" void
 cygwin_conv_to_win32_path(const char *name, char *win32_name)
+{
+    const char *fname = name;
+    while (*name) {
+        /* Check for Unix separator and convert to Win32 */
+        if (*name == '/') {
+            *win32_name++ = '\\';     /* convert char */
+        /* If Win32 separated that is "quoted", remove quote */
+        } else if (*name == '\\' && name[1] == '\\') {
+            *win32_name++ = '\\';
+            name++;                   /* skip first \ */
+        } else {
+            *win32_name++ = *name;    /* copy character */
+        }
+        name++;
+    }
+    /* Strip any trailing slash, if we stored something */
+    if (*fname != 0 && win32_name[-1] == '\\') {
+        win32_name[-1] = 0;
+    } else {
+        *win32_name = 0;
+    }
+}
+
+
+void
+wchar_win32_path(const char *name, WCHAR *win32_name)
 {
     const char *fname = name;
     while (*name) {
@@ -154,6 +184,7 @@ lchown(const char *k, uid_t, gid_t)
     return 0;
 }
 
+
 int
 utime(const char *, struct utimbuf *)
 {
@@ -175,6 +206,17 @@ srandom(unsigned int seed)
 // /////////////////////////////////////////////////////////////////
 // convert from Windows concept of time to Unix concept of time
 // /////////////////////////////////////////////////////////////////
+void
+cvt(const time_t  &time, FILETIME &wintime)
+{
+    uint64_t mstime = time;
+    mstime *= WIN32_FILETIME_SCALE;
+    mstime += WIN32_FILETIME_ADJUST;
+
+    wintime.dwLowDateTime = (DWORD)(mstime & 0xffffffffI64);
+    wintime.dwHighDateTime = (DWORD) ((mstime>>32)& 0xffffffffUL);
+}
+
 time_t
 cvt_ftime_to_utime(const FILETIME &time)
 {
@@ -182,12 +224,8 @@ cvt_ftime_to_utime(const FILETIME &time)
     mstime <<= 32;
     mstime |= time.dwLowDateTime;
 
-//  mstime /= 10000000;         // convert to seconds.
-//  mstime -= 3234336I64*3600I64; // difference between jan 1, 1601
-                                  // and jan, 1 1970
-    mstime -= 116444736000000000; // convert to 1 Jan 1970
-    mstime /= 10000000;         // convert to seconds.
-
+    mstime -= WIN32_FILETIME_ADJUST;
+    mstime /= WIN32_FILETIME_SCALE; // convert to seconds.
 
     return (time_t) (mstime & 0xffffffff);
 }
@@ -248,9 +286,11 @@ statDir(const char *file, struct stat *sb)
     sb->st_size |= info.nFileSizeLow;
     sb->st_blksize = 4096;
     sb->st_blocks = (uint32_t)(sb->st_size + 4095)/4096;
+
     sb->st_atime = cvt_ftime_to_utime(info.ftLastAccessTime);
     sb->st_mtime = cvt_ftime_to_utime(info.ftLastWriteTime);
     sb->st_ctime = cvt_ftime_to_utime(info.ftLastWriteTime);
+    FindClose(h);
 
     return 0;
 }
@@ -336,14 +376,29 @@ stat(const char *file, struct stat *sb)
     WIN32_FILE_ATTRIBUTE_DATA data;
     errno = 0;
 
+
     memset(sb, 0, sizeof(*sb));
 
     if (g_platform_id == VER_PLATFORM_WIN32_WINDOWS)
         return stat2(file, sb);
 
+    // otherwise we're on NT
+#if 0
+    WCHAR buf[32767];
+    buf[0] = '\\';
+    buf[1] = '\\';
+    buf[2] = '?';
+    buf[3] = '\\';
+
+    wchar_win32_path(file, buf+4);
+
+    if (!GetFileAttributesExW((WCHAR *)buf, GetFileExInfoStandard, &data))
+        return stat2(file, sb);
+#else
     if (!GetFileAttributesEx(file, GetFileExInfoStandard, &data))
         return stat2(file, sb);
-
+#endif
+    
     sb->st_mode = 0777;               /* start with everything */
     if (data.dwFileAttributes & FILE_ATTRIBUTE_READONLY)
         sb->st_mode &= ~(S_IRUSR|S_IRGRP|S_IROTH);
@@ -351,6 +406,7 @@ stat(const char *file, struct stat *sb)
         sb->st_mode &= ~S_IRWXO; /* remove everything for other */
     if (data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN)
         sb->st_mode |= S_ISVTX; /* use sticky bit -> hidden */
+
     if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
         sb->st_mode |= S_IFDIR;
     else
@@ -499,7 +555,8 @@ gettimeofday(struct timeval *tv, struct timezone *)
     int64_t _100nsec = tmp.dwHighDateTime;
     _100nsec <<= 32;
     _100nsec |= tmp.dwLowDateTime;
-    _100nsec -= (3234336I64*3600I64 * 10000000I64);
+    _100nsec -= WIN32_FILETIME_ADJUST;
+    
     tv->tv_sec =(long) (_100nsec / 10000000);
     tv->tv_usec = (long) ((_100nsec % 10000000)/10);
     return 0;
@@ -1121,3 +1178,4 @@ close_wpipe(BPIPE *bpipe)
     }
     return stat;
 }
+
