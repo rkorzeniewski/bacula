@@ -8,7 +8,14 @@ if test xmysql = x@DB_NAME@ ; then
   echo "Granting MySQL privileges"
   . ./grant_mysql_privileges
 else
-  echo "Granting PostgreSQL privileges"
-  # hard coded database name
-  . ./grant_postgresql_privileges bacula
+  if test xpostgresql = x@DB_NAME@ ; then 
+    echo "Granting PostgreSQL privileges"
+    # hard coded database name
+    . ./grant_postgresql_privileges bacula
+  else
+    if test xsqlite = x@DB_NAME@ ; then 
+      echo "Granting SQLite privileges"
+      # hard coded database name
+      . ./grant_sqlite_privileges
+  fi
 fi
