@@ -42,18 +42,18 @@ int num_jobs_run;
 dlist *last_jobs = NULL;
 static const int max_last_jobs = 10;
 
-static JCR *jobs = NULL;              /* pointer to JCR chain */
-static brwlock_t lock;                /* lock for last jobs and JCR chain */
+static JCR *jobs = NULL;	      /* pointer to JCR chain */
+static brwlock_t lock;		      /* lock for last jobs and JCR chain */
 
 void init_last_jobs_list()
 {
    int errstat;
    struct s_last_job *job_entry = NULL;
    if (!last_jobs) {
-      last_jobs = new dlist(job_entry,  &job_entry->link);
+      last_jobs = new dlist(job_entry,	&job_entry->link);
       if ((errstat=rwl_init(&lock)) != 0) {
          Emsg1(M_ABORT, 0, _("Unable to initialize jcr_chain lock. ERR=%s\n"), 
-               strerror(errstat));
+	       strerror(errstat));
       }
    }
 
@@ -64,7 +64,7 @@ void term_last_jobs_list()
    struct s_last_job *je;
    if (last_jobs) {
       foreach_dlist(je, last_jobs) {
-         free(je);                     
+	 free(je);		       
       }
       delete last_jobs;
       last_jobs = NULL;
@@ -77,32 +77,32 @@ void read_last_jobs_list(int fd, uint64_t addr)
    struct s_last_job *je, job;
    uint32_t num;
 
-   Dmsg1(010, "read_last_jobs seek to %d\n", (int)addr);
+   Dmsg1(100, "read_last_jobs seek to %d\n", (int)addr);
    if (addr == 0 || lseek(fd, addr, SEEK_SET) < 0) {
       return;
    }
    if (read(fd, &num, sizeof(num)) != sizeof(num)) {
       return;
    }
-   Dmsg1(010, "Read num_items=%d\n", num);
+   Dmsg1(100, "Read num_items=%d\n", num);
    if (num > 4 * max_last_jobs) {  /* sanity check */
       return;
    }
    for ( ; num; num--) {
       if (read(fd, &job, sizeof(job)) != sizeof(job)) {
          Dmsg1(000, "Read job entry. ERR=%s\n", strerror(errno));
-         return;
+	 return;
       }
       if (job.JobId > 0) {
-         je = (struct s_last_job *)malloc(sizeof(struct s_last_job));
-         memcpy((char *)je, (char *)&job, sizeof(job));
-         if (!last_jobs) {
-            init_last_jobs_list();
-         }
-         last_jobs->append(je);
-         if (last_jobs->size() > max_last_jobs) {
-            last_jobs->remove(last_jobs->first());
-         }
+	 je = (struct s_last_job *)malloc(sizeof(struct s_last_job));
+	 memcpy((char *)je, (char *)&job, sizeof(job));
+	 if (!last_jobs) {
+	    init_last_jobs_list();
+	 }
+	 last_jobs->append(je);
+	 if (last_jobs->size() > max_last_jobs) {
+	    last_jobs->remove(last_jobs->first());
+	 }
       }
    }
 }
@@ -112,7 +112,7 @@ uint64_t write_last_jobs_list(int fd, uint64_t addr)
    struct s_last_job *je;
    uint32_t num;
 
-   Dmsg1(010, "write_last_jobs seek to %d\n", (int)addr);
+   Dmsg1(100, "write_last_jobs seek to %d\n", (int)addr);
    if (lseek(fd, addr, SEEK_SET) < 0) {
       return 0;
    }
@@ -121,13 +121,13 @@ uint64_t write_last_jobs_list(int fd, uint64_t addr)
       num = last_jobs->size();
       if (write(fd, &num, sizeof(num)) != sizeof(num)) {
          Dmsg1(000, "Error writing num_items: ERR=%s\n", strerror(errno));
-         return 0;
+	 return 0;
       }
       foreach_dlist(je, last_jobs) {
-         if (write(fd, je, sizeof(struct s_last_job)) != sizeof(struct s_last_job)) {
+	 if (write(fd, je, sizeof(struct s_last_job)) != sizeof(struct s_last_job)) {
             Dmsg1(000, "Error writing job: ERR=%s\n", strerror(errno));
-            return 0;
-         }
+	    return 0;
+	 }
       }
    }
    /* Return current address */
@@ -181,7 +181,7 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    MQUEUE_ITEM *item = NULL;
    struct sigaction sigtimer;
 
-   Dmsg0(200, "Enter new_jcr\n");
+   Dmsg0(400, "Enter new_jcr\n");
    jcr = (JCR *)malloc(size);
    memset(jcr, 0, size);
    jcr->msg_queue = new dlist(item, &item->link);
@@ -197,7 +197,7 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    jcr->errmsg = get_pool_memory(PM_MESSAGE);
    jcr->errmsg[0] = 0;
    /* Setup some dummy values */
-   jcr->Job[0] = 0;                   /* no job name by default */
+   jcr->Job[0] = 0;		      /* no job name by default */
    jcr->JobId = 0;
    jcr->JobType = JT_ADMIN;
    jcr->JobLevel = L_NONE;
@@ -223,23 +223,23 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
 /*
  * Remove a JCR from the chain
  * NOTE! The chain must be locked prior to calling
- *       this routine.
+ *	 this routine.
  */
 static void remove_jcr(JCR *jcr)
 {
-   Dmsg0(150, "Enter remove_jcr\n");
+   Dmsg0(400, "Enter remove_jcr\n");
    if (!jcr) {
       Emsg0(M_ABORT, 0, "NULL jcr.\n");
    }
-   if (!jcr->prev) {                  /* if no prev */
-      jobs = jcr->next;               /* set new head */
+   if (!jcr->prev) {		      /* if no prev */
+      jobs = jcr->next; 	      /* set new head */
    } else {
       jcr->prev->next = jcr->next;    /* update prev */
    }
    if (jcr->next) {
       jcr->next->prev = jcr->prev;
    }
-   Dmsg0(150, "Leave remove_jcr\n");
+   Dmsg0(400, "Leave remove_jcr\n");
 }
 
 /*
@@ -270,15 +270,15 @@ static void free_common_jcr(JCR *jcr)
       last_job.end_time = time(NULL);
       /* Keep list of last jobs, but not Console where JobId==0 */
       if (last_job.JobId > 0) {
-         je = (struct s_last_job *)malloc(sizeof(struct s_last_job));
-         memcpy((char *)je, (char *)&last_job, sizeof(last_job));
-         if (!last_jobs) {
-            init_last_jobs_list();
-         }
-         last_jobs->append(je);
-         if (last_jobs->size() > max_last_jobs) {
-            last_jobs->remove(last_jobs->first());
-         }
+	 je = (struct s_last_job *)malloc(sizeof(struct s_last_job));
+	 memcpy((char *)je, (char *)&last_job, sizeof(last_job));
+	 if (!last_jobs) {
+	    init_last_jobs_list();
+	 }
+	 last_jobs->append(je);
+	 if (last_jobs->size() > max_last_jobs) {
+	    last_jobs->remove(last_jobs->first());
+	 }
       }
       break;
    default:
@@ -286,7 +286,7 @@ static void free_common_jcr(JCR *jcr)
    }
    pthread_mutex_destroy(&jcr->mutex);
 
-   close_msg(jcr);                    /* close messages for this job */
+   close_msg(jcr);		      /* close messages for this job */
    delete jcr->msg_queue;
 
    /* do this after closing messages */
@@ -332,42 +332,42 @@ static void free_common_jcr(JCR *jcr)
 #ifdef DEBUG
 void b_free_jcr(const char *file, int line, JCR *jcr)
 {
-   Dmsg3(200, "Enter free_jcr 0x%x from %s:%d\n", jcr, file, line);
+   Dmsg3(400, "Enter free_jcr 0x%x from %s:%d\n", jcr, file, line);
 
 #else
 
 void free_jcr(JCR *jcr)
 {
 
-   Dmsg1(200, "Enter free_jcr 0x%x\n", jcr);
+   Dmsg1(400, "Enter free_jcr 0x%x\n", jcr);
 
 #endif
 
    lock_jcr_chain();
-   jcr->use_count--;                  /* decrement use count */
+   jcr->use_count--;		      /* decrement use count */
    if (jcr->use_count < 0) {
       Emsg2(M_ERROR, 0, _("JCR use_count=%d JobId=%d\n"),
-         jcr->use_count, jcr->JobId);
+	 jcr->use_count, jcr->JobId);
    }
-   Dmsg3(200, "Dec free_jcr 0x%x use_count=%d jobid=%d\n", jcr, jcr->use_count, jcr->JobId);
-   if (jcr->use_count > 0) {          /* if in use */
+   Dmsg3(400, "Dec free_jcr 0x%x use_count=%d jobid=%d\n", jcr, jcr->use_count, jcr->JobId);
+   if (jcr->use_count > 0) {	      /* if in use */
       unlock_jcr_chain();
-      Dmsg2(200, "free_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
+      Dmsg2(400, "free_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
       return;
    }
    remove_jcr(jcr);
-   job_end_pop(jcr);                  /* pop and call hooked routines */
+   job_end_pop(jcr);		      /* pop and call hooked routines */
 
-   Dmsg1(200, "End job=%d\n", jcr->JobId);
+   Dmsg1(400, "End job=%d\n", jcr->JobId);
    if (jcr->daemon_free_jcr) {
       jcr->daemon_free_jcr(jcr);      /* call daemon free routine */
    }
 
    free_common_jcr(jcr);
 
-   close_msg(NULL);                   /* flush any daemon messages */
+   close_msg(NULL);		      /* flush any daemon messages */
    unlock_jcr_chain();
-   Dmsg0(200, "Exit free_jcr\n");
+   Dmsg0(400, "Exit free_jcr\n");
 }
 
 
@@ -377,35 +377,35 @@ void free_jcr(JCR *jcr)
  */
 void free_locked_jcr(JCR *jcr)
 {
-   jcr->use_count--;                  /* decrement use count */
-   Dmsg2(200, "Dec free_locked_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
-   if (jcr->use_count > 0) {          /* if in use */
+   jcr->use_count--;		      /* decrement use count */
+   Dmsg2(400, "Dec free_locked_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
+   if (jcr->use_count > 0) {	      /* if in use */
       return;
    }
    remove_jcr(jcr);
-   jcr->daemon_free_jcr(jcr);         /* call daemon free routine */
+   jcr->daemon_free_jcr(jcr);	      /* call daemon free routine */
    free_common_jcr(jcr);
 }
 
 
 
 /*
- * Given a JobId, find the JCR      
+ * Given a JobId, find the JCR	    
  *   Returns: jcr on success
- *            NULL on failure
+ *	      NULL on failure
  */
 JCR *get_jcr_by_id(uint32_t JobId)
 {
-   JCR *jcr;       
+   JCR *jcr;	   
 
-   lock_jcr_chain();                    /* lock chain */
+   lock_jcr_chain();			/* lock chain */
    for (jcr = jobs; jcr; jcr=jcr->next) {
       if (jcr->JobId == JobId) {
-         P(jcr->mutex);
-         jcr->use_count++;
-         V(jcr->mutex);
-         Dmsg2(200, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
-         break;
+	 P(jcr->mutex);
+	 jcr->use_count++;
+	 V(jcr->mutex);
+         Dmsg2(400, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
+	 break;
       }
    }
    unlock_jcr_chain();
@@ -413,23 +413,23 @@ JCR *get_jcr_by_id(uint32_t JobId)
 }
 
 /*
- * Given a SessionId and SessionTime, find the JCR      
+ * Given a SessionId and SessionTime, find the JCR	
  *   Returns: jcr on success
- *            NULL on failure
+ *	      NULL on failure
  */
 JCR *get_jcr_by_session(uint32_t SessionId, uint32_t SessionTime)
 {
-   JCR *jcr;       
+   JCR *jcr;	   
 
    lock_jcr_chain();
    for (jcr = jobs; jcr; jcr=jcr->next) {
       if (jcr->VolSessionId == SessionId && 
-          jcr->VolSessionTime == SessionTime) {
-         P(jcr->mutex);
-         jcr->use_count++;
-         V(jcr->mutex);
-         Dmsg2(200, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
-         break;
+	  jcr->VolSessionTime == SessionTime) {
+	 P(jcr->mutex);
+	 jcr->use_count++;
+	 V(jcr->mutex);
+         Dmsg2(400, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
+	 break;
       }
    }
    unlock_jcr_chain();
@@ -438,15 +438,15 @@ JCR *get_jcr_by_session(uint32_t SessionId, uint32_t SessionTime)
 
 
 /*
- * Given a Job, find the JCR      
+ * Given a Job, find the JCR	  
  *  compares on the number of characters in Job
  *  thus allowing partial matches.
  *   Returns: jcr on success
- *            NULL on failure
+ *	      NULL on failure
  */
 JCR *get_jcr_by_partial_name(char *Job)
 {
-   JCR *jcr;       
+   JCR *jcr;	   
    int len;
 
    if (!Job) {
@@ -456,11 +456,11 @@ JCR *get_jcr_by_partial_name(char *Job)
    len = strlen(Job);
    for (jcr = jobs; jcr; jcr=jcr->next) {
       if (strncmp(Job, jcr->Job, len) == 0) {
-         P(jcr->mutex);
-         jcr->use_count++;
-         V(jcr->mutex);
-         Dmsg2(200, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
-         break;
+	 P(jcr->mutex);
+	 jcr->use_count++;
+	 V(jcr->mutex);
+         Dmsg2(400, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
+	 break;
       }
    }
    unlock_jcr_chain();
@@ -469,14 +469,14 @@ JCR *get_jcr_by_partial_name(char *Job)
 
 
 /*
- * Given a Job, find the JCR      
+ * Given a Job, find the JCR	  
  *  requires an exact match of names.
  *   Returns: jcr on success
- *            NULL on failure
+ *	      NULL on failure
  */
 JCR *get_jcr_by_full_name(char *Job)
 {
-   JCR *jcr;       
+   JCR *jcr;	   
 
    if (!Job) {
       return NULL;
@@ -484,11 +484,11 @@ JCR *get_jcr_by_full_name(char *Job)
    lock_jcr_chain();
    for (jcr = jobs; jcr; jcr=jcr->next) {
       if (strcmp(jcr->Job, Job) == 0) {
-         P(jcr->mutex);
-         jcr->use_count++;
-         V(jcr->mutex);
-         Dmsg2(200, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
-         break;
+	 P(jcr->mutex);
+	 jcr->use_count++;
+	 V(jcr->mutex);
+         Dmsg2(400, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
+	 break;
       }
    }
    unlock_jcr_chain();
@@ -521,7 +521,7 @@ void lock_jcr_chain()
    int errstat;
    if ((errstat=rwl_writelock(&lock)) != 0) {
       Emsg1(M_ABORT, 0, "rwl_writelock failure. ERR=%s\n",
-           strerror(errstat));
+	   strerror(errstat));
    }
 }
 
@@ -533,7 +533,7 @@ void unlock_jcr_chain()
    int errstat;
    if ((errstat=rwl_writeunlock(&lock)) != 0) {
       Emsg1(M_ABORT, 0, "rwl_writeunlock failure. ERR=%s\n",
-           strerror(errstat));
+	   strerror(errstat));
    }
 }
 
@@ -551,7 +551,7 @@ JCR *get_next_jcr(JCR *prev_jcr)
       P(jcr->mutex);
       jcr->use_count++;
       V(jcr->mutex);
-      Dmsg2(200, "Inc get_next_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
+      Dmsg2(400, "Inc get_next_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
    }
    return jcr;
 }
@@ -561,8 +561,8 @@ bool init_jcr_subsystem(void)
    watchdog_t *wd = new_watchdog();
 
    wd->one_shot = false;
-   wd->interval = 30;   /* FIXME: should be configurable somewhere, even
-                         if only with a #define */
+   wd->interval = 30;	/* FIXME: should be configurable somewhere, even
+			 if only with a #define */
    wd->callback = jcr_timeout_check;
 
    register_watchdog(wd);
@@ -583,51 +583,51 @@ static void jcr_timeout_check(watchdog_t *self)
     */
    lock_jcr_chain();
    foreach_jcr(jcr) {
-      free_locked_jcr(jcr);           /* OK to free now cuz chain is locked */
+      free_locked_jcr(jcr);	      /* OK to free now cuz chain is locked */
       if (jcr->JobId == 0) {
-         continue;
+	 continue;
       }
       fd = jcr->store_bsock;
       if (fd) {
-         timer_start = fd->timer_start;
-         if (timer_start && (watchdog_time - timer_start) > fd->timeout) {
-            fd->timer_start = 0;      /* turn off timer */
-            fd->timed_out = TRUE;
-            Jmsg(jcr, M_ERROR, 0, _(
+	 timer_start = fd->timer_start;
+	 if (timer_start && (watchdog_time - timer_start) > fd->timeout) {
+	    fd->timer_start = 0;      /* turn off timer */
+	    fd->timed_out = TRUE;
+	    Jmsg(jcr, M_ERROR, 0, _(
 "Watchdog sending kill after %d secs to thread stalled reading Storage daemon.\n"),
-                 watchdog_time - timer_start);
-            pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
-         }
+		 watchdog_time - timer_start);
+	    pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
+	 }
       }
       fd = jcr->file_bsock;
       if (fd) {
-         timer_start = fd->timer_start;
-         if (timer_start && (watchdog_time - timer_start) > fd->timeout) {
-            fd->timer_start = 0;      /* turn off timer */
-            fd->timed_out = TRUE;
-            Jmsg(jcr, M_ERROR, 0, _(
+	 timer_start = fd->timer_start;
+	 if (timer_start && (watchdog_time - timer_start) > fd->timeout) {
+	    fd->timer_start = 0;      /* turn off timer */
+	    fd->timed_out = TRUE;
+	    Jmsg(jcr, M_ERROR, 0, _(
 "Watchdog sending kill after %d secs to thread stalled reading File daemon.\n"),
-                 watchdog_time - timer_start);
-            pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
-         }
+		 watchdog_time - timer_start);
+	    pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
+	 }
       }
       fd = jcr->dir_bsock;
       if (fd) {
-         timer_start = fd->timer_start;
-         if (timer_start && (watchdog_time - timer_start) > fd->timeout) {
-            fd->timer_start = 0;      /* turn off timer */
-            fd->timed_out = TRUE;
-            Jmsg(jcr, M_ERROR, 0, _(
+	 timer_start = fd->timer_start;
+	 if (timer_start && (watchdog_time - timer_start) > fd->timeout) {
+	    fd->timer_start = 0;      /* turn off timer */
+	    fd->timed_out = TRUE;
+	    Jmsg(jcr, M_ERROR, 0, _(
 "Watchdog sending kill after %d secs to thread stalled reading Director.\n"),
-                 watchdog_time - timer_start);
-            pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
-         }
+		 watchdog_time - timer_start);
+	    pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
+	 }
       }
 
    }
    unlock_jcr_chain();
 
-   Dmsg0(200, "Finished JCR timeout checks\n");
+   Dmsg0(400, "Finished JCR timeout checks\n");
 }
 
 /*
@@ -635,5 +635,5 @@ static void jcr_timeout_check(watchdog_t *self)
  */
 static void timeout_handler(int sig)
 {
-   return;                            /* thus interrupting the function */
+   return;			      /* thus interrupting the function */
 }

@@ -1,4 +1,139 @@
 
+13Mar04
+- Added two tar files that Phil sent for adding slackware support.
+  Thanks Phil and Matt Howard.
+- Fix relabel command -- || should have been &&.
+- Correct once more the scheduling algorithm -- this time it should
+  be much better.
+12Mar04
+- Implement simple spool statistics printed by "status sd".
+- Cleanup/add spool error messages.
+- On multiple ctl-c, exit from console quickly.
+- Implement code to select a different Volume in the SD if the
+  current Volume is busy -- requested by Patrick Cole.
+- Change postgreSQL make tables to use bigint instead of integer 
+  for StartBlock and EndBlock because
+  there is no unsigned integer in postgreSQL and these fields use 32 bits.
+- Implement multiple drive autochanger support -- prompted by email of
+  Patrick Cole.
+11Mar04
+- Update version and date in Win32 build.
+- Fix bug in run_conf with month range zapping wday and wom.
+- Correct editing of port for PQsetdbLogin in postgresql.c as reported
+  by J. Conroy, and do a second try.
+10Mar04
+- Integrate Phil's Makefile patch.
+- Add SpoolDirectory to SD Device resource.
+- Add MaximumJobSpoolSize to SD Device resource.
+- Add MaximumSpoolSize to SD Device resource.
+- Implement the above.
+- Make despooling lock the device so only it writes
+  to the device during despooling.
+09Mar04
+- Data spooling now passes the regression tests.
+- Added "Files Expected" to the restore job report.
+- Implemented SpoolData = yes/no in the Job resource
+- Implemented SpoolData = yes/no in the Run overrides.
+- Note, you must have a 1.33.4-09Mar05 SD or later with the Director since
+  the DIR->SD protocol has changed to support data spooling.
+- Remove the confusing "Which DBMS do you want to use (please select only one):"
+  messages from ./configure.
+- Fix broken Jmsg with missing argument in find_one.c
+08Mar04
+- Second cut data spooling code.
+- Fix missing piece of yesterday's patch.
+07Mar04
+- Integrate patches supplied by Jason Conroy that fix Slot numbers 
+  getting lost.
+06Mar04
+- This version contains a *major* addition to the SD structures.
+  Many variables have been moved out of the JCR into a new DCR
+  (Device Context Record). This required quite a few changes, and 
+  introduced a bit of instability. In the end, after a few more
+  rounds of changes, the DCR will replace virtually all arguments
+  to the low level SD read/write routines. This change permits
+  (with a bit more code) the SD to write to multiple devices at
+  the same time for a single Job. It also facilitates adding the
+  data spooling code.
+- Added a patch that fixed the port specification for postgresql.
+- Fixed findlib/find_one.c so that it will complain about backing
+  up a hard linked file twice, which makes a restore impossible.
+- Tighten up permissions on pid file.  
+- Attempt to avoid warnings when casting 64 bit pointers to an
+  integer.
+- Added skeleton code for data spooling.
+- Make sure spooled attributes are discarded on error.
+03Mar04
+- Updated getdiskinfo in rescue/linux to handle the fact that the
+  sfdisk -s option now includes info on partitions. Also, before 
+  creating the diskinfo files, clean out the old ones.
+02Mar04
+- Add debug and error output to jobq.c
+- Fix some minor errors in debug output of scheduler.c
+- Add "trace on/off" command and modify trace code in message.c
+  to work off trace flag rather than #defines.
+01Mar04
+- If console is found during install warn user (new name is bconsole).
+- On install copy console.conf to bconsole.conf if it exists.
+- Make RunAfterJob error non-fatal.
+- Rework minor details in status output.
+- Attempt to define all values for "consoles" in JCR to avoid
+  confusion.
+28Feb04
+- Use net start bacula to start Bacula on WinXP/NT/2K 
+  systems after installation. 
+- Change a few strcpy()s to bstrncpy()s in signal.
+- Add "gui on/off" command to console to turn on gui mode,
+  which will adapt Bacula better to batch or gui programs.
+  Currently, it prevents commas from being inserted into
+  numbers in the list command.
+- Tweak some of the Makefiles so that the install is done with
+  the right program (nothing really changed).
+- Install logrotate in the "make autostart" of Bacula on RedHat.
+- Implement SIGHUP while jobs are running. It *seems* to work but is
+  a bit fragile and still crashes if you push it. More work needed.
+- Applied Phil's GNOME 1.4 patch. Very clean. Thanks Phil.
+- Major updates to the native Win32 installer.
+27Feb04
+- Restructure free of conf resources to handle job_end_push()
+  and SIGHUP.  Lots of changes little substance.
+26Feb04
+- Add mtimeonly=yes/no and keepatime=yes/no to Include list           
+  1.33 style.
+- Allow no modifier in time and size specifications.
+- Attempt to implement disk seeking. More work needed.
+- Implement more in win32 installer and test it.
+25Feb04
+- Implement kb, mb, and gb modifiers for size, which mean
+  1,000 bytes, 1,000,000, ... bytes.
+- Add Makefile to src/win32 to allow building the full 
+  release -- it calls nmake where appropriate.
+- Remove the rsi directory from win32 as suggested by Christopher
+- Add Michel Meyers' nsi file to win32 and integrate it with
+  the build.
+24Feb04
+- Add the frigging _O_BINARY to the right variable. Win32 works!
+- Add debug code to state file. There is a problem with Win32 read
+  returning one byte less than it should.
+- Implement a number of new functions for alist so that it has
+  equivalent functionality to dlist.  It will be used for
+  job_end_push().
+- More work on state file. 
+- Added a popup message box on Windows if Bacula Aborts.
+- Attempt to shutdown the FD server, but doesn't work on Windows. This
+  would have given a cleaner shutdown, no problem.
+23Feb04
+- Update projects
+- Attempt to fix state file on Win32 -- no luck.
+- Add HPUX tweaks to configure.in 
+- Update quickstart and install.wml of doc.
+- Eliminate extern int h_errno from bnet.c by including netdb.h
+- Eliminate NumJobs from last_job structure so that FD and SD
+  correctly report what is in the state file.
+22Feb04
+- Implement daemon state file, and save/restore last_jobs list.
+- Fix time routines in win32 compat.cpp
+- Fix a bug of not checking the bpipe_open() status in do_shell_expansion().
 21Feb04
 - Add Volker's bacula script to the SuSE directory and convert it
   to bacula.in

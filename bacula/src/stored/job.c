@@ -167,8 +167,9 @@ int job_cmd(JCR *jcr)
    timeout.tv_sec = tv.tv_sec + 30 * 60;	/* wait 30 minutes */
 
 
-   Dmsg1(100, "%s waiting on job_start_wait\n", jcr->Job);
-   /* Wait for the File daemon to contact us to start the Job,
+   Dmsg1(100, "%s waiting on FD to contact SD\n", jcr->Job);
+   /*
+    * Wait for the File daemon to contact us to start the Job,
     *  when he does, we will be released, unless the 30 minutes
     *  expires.
     */

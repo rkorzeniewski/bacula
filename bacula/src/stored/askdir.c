@@ -155,7 +155,7 @@ int dir_find_next_appendable_volume(JCR *jcr)
     for (int vol_index=1;  vol_index < 3; vol_index++) {
        bnet_fsend(dir, Find_media, jcr->Job, vol_index);
        if (do_get_volume_info(jcr)) {
-          Dmsg1(200, "Got possible Vol=%s\n", jcr->VolumeName);
+          Dmsg2(200, "JobId=%d got possible Vol=%s\n", jcr->JobId, jcr->VolumeName);
 	  bool found = false;
 	  /* 
 	   * Walk through all jobs and see if the volume is   
@@ -168,6 +168,7 @@ int dir_find_next_appendable_volume(JCR *jcr)
 	     if (jcr == njcr) {
 		continue;	      /* us */
 	     }
+             Dmsg2(200, "Compare to JobId=%d using Vol=%s\n", njcr->JobId, njcr->VolumeName);
 	     if (strcmp(jcr->VolumeName, njcr->VolumeName) == 0) {
 		found = true;
                 Dmsg1(200, "Vol in use by JobId=%u\n", njcr->JobId);
@@ -182,11 +183,12 @@ int dir_find_next_appendable_volume(JCR *jcr)
 	     return true;	      /* Got good Volume */
 	  }
        } else {
-	  break;
+          Dmsg0(200, "No volume info, return false\n");
+	  return false;
        }
     }
-    Dmsg0(200, "dir_find_next_appendable_volume return false\n");
-    return false;
+    Dmsg0(200, "dir_find_next_appendable_volume return true\n");
+    return true; 
 }
 
     
