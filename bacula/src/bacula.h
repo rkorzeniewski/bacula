@@ -102,7 +102,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <pthread.h>
-     
+
 /* Local Bacula includes. Be sure to put all the system
  *  includes before these.  
  */

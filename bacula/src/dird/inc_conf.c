@@ -37,6 +37,7 @@ static void store_newinc(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_match(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_opts(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_fname(LEX *lc, RES_ITEM *item, int index, int pass);
+static void options_res(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_base(LEX *lc, RES_ITEM *item, int index, int pass);
 static void setup_current_opts(void);
 
@@ -54,9 +55,18 @@ static INCEXE res_incexe;
 
 /* 
  * new Include/Exclude items
- *   name	      handler	  value 		       code flags default_value
+ *   name	      handler	  value    code flags default_value
  */
 static RES_ITEM newinc_items[] = {
+   {"file",            store_fname,   NULL,     0, 0, 0},
+   {"options",         options_res,   NULL,     0, 0, 0},
+   {NULL, NULL, NULL, 0, 0, 0} 
+};
+
+/*
+ * Items that are valid in an Options resource
+ */
+static RES_ITEM options_items[] = {
    {"compression",     store_opts,    NULL,     0, 0, 0},
    {"signature",       store_opts,    NULL,     0, 0, 0},
    {"verify",          store_opts,    NULL,     0, 0, 0},
@@ -67,10 +77,10 @@ static RES_ITEM newinc_items[] = {
    {"replace",         store_opts,    NULL,     0, 0, 0},
    {"portable",        store_opts,    NULL,     0, 0, 0},
    {"match",           store_match,   NULL,     0, 0, 0},
-   {"file",            store_fname,   NULL,     0, 0, 0},
    {"base",            store_base,    NULL,     0, 0, 0},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
+
 
 /* Define FileSet KeyWord values */
 
@@ -162,6 +172,7 @@ static struct s_fs_opt FS_options[] = {
  * Scan for right hand side of Include options (keyword=option) is 
  *    converted into one or two characters. Verifyopts=xxxx is Vxxxx:
  *    Whatever is found is concatenated to the opts string.
+ * This code is also used inside an Options resource.
  */
 static void scan_include_options(LEX *lc, int keyword, char *opts, int optlen)
 {
@@ -205,7 +216,10 @@ static void scan_include_options(LEX *lc, int keyword, char *opts, int optlen)
    }
 }
 
-/* Store FileSet Include/Exclude info */
+/* 
+ * 
+ * Store FileSet Include/Exclude info	
+ */
 void store_inc(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int token, i;
@@ -342,6 +356,7 @@ static void store_newinc(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int token, i;
    INCEXE *incexe;
+   bool options;  
 
    if (!res_all.res_fs.have_MD5) {
       MD5Init(&res_all.res_fs.md5c);
@@ -360,10 +375,13 @@ static void store_newinc(LEX *lc, RES_ITEM *item, int index, int pass)
          scan_err1(lc, _("Expecting keyword, got: %s\n"), lc->str);
       }
       for (i=0; newinc_items[i].name; i++) {
+         options = strcasecmp(lc->str, "options") == 0;
 	 if (strcasecmp(newinc_items[i].name, lc->str) == 0) {
-	    token = lex_get_token(lc, T_ALL);
-	    if (token != T_EQUALS) {
-               scan_err1(lc, "expected an equals, got: %s", lc->str);
+	    if (!options) {
+	       token = lex_get_token(lc, T_ALL);
+	       if (token != T_EQUALS) {
+                  scan_err1(lc, "expected an equals, got: %s", lc->str);
+	       }
 	    }
 	    /* Call item handler */
 	    newinc_items[i].handler(lc, &newinc_items[i], i, pass);
@@ -484,6 +502,48 @@ static void store_fname(LEX *lc, RES_ITEM *item, int index, int pass)
 }
 
 /*
+ * Come here when Options seen in Include/Exclude
+ */
+static void options_res(LEX *lc, RES_ITEM *item, int index, int pass)
+{
+   int token, i;
+
+   token = lex_get_token(lc, T_ALL);		
+   if (token != T_BOB) {
+      scan_err1(lc, "Expecting open brace. Got %s", lc->str);
+   }
+
+   while ((token = lex_get_token(lc, T_ALL)) != T_EOF) {
+      if (token == T_EOL) {
+	 continue;
+      }
+      if (token == T_EOB) {
+	 break;
+      }
+      if (token != T_IDENTIFIER) {
+         scan_err1(lc, _("Expecting keyword, got: %s\n"), lc->str);
+      }
+      for (i=0; options_items[i].name; i++) {
+	 if (strcasecmp(options_items[i].name, lc->str) == 0) {
+	    token = lex_get_token(lc, T_ALL);
+	    if (token != T_EQUALS) {
+               scan_err1(lc, "expected an equals, got: %s", lc->str);
+	    }
+	    /* Call item handler */
+	    options_items[i].handler(lc, &options_items[i], i, pass);
+	    i = -1;
+	    break;
+	 }
+      }
+      if (i >=0) {
+         scan_err1(lc, "Keyword %s not permitted in this resource", lc->str);
+      }
+   }
+   scan_to_eol(lc);
+}
+
+
+/*
  * New style options come here
  */
 static void store_opts(LEX *lc, RES_ITEM *item, int index, int pass)
@@ -508,7 +568,7 @@ static void store_opts(LEX *lc, RES_ITEM *item, int index, int pass)
    scan_include_options(lc, keyword, inc_opts, sizeof(inc_opts));
    if (pass == 1) {
       setup_current_opts();
-      bstrncpy(res_incexe.current_opts->opts, inc_opts, MAX_FOPTS);
+      bstrncat(res_incexe.current_opts->opts, inc_opts, MAX_FOPTS);
       Dmsg2(100, "new pass=%d incexe opts=%s\n", pass, res_incexe.current_opts->opts);
    }
    scan_to_eol(lc);
