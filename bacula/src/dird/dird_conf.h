@@ -98,6 +98,7 @@ struct DIRRES {
    int enable_ssl;                    /* Use SSL for UA */
    char *query_file;                  /* SQL query file */
    char *working_directory;           /* WorkingDirectory */
+   const char *scripts_directory;     /* ScriptsDirectory */
    char *pid_directory;               /* PidDirectory */
    char *subsys_directory;            /* SubsysDirectory */
    int require_ssl;                   /* Require SSL for all connections */
