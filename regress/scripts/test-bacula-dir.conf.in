@@ -133,29 +133,33 @@ Job {
 # List of files to be backed up
 FileSet {
   Name = "Full Set"
-  Include = signature=MD5 { 
-    </tmp/file-list
+  Include  { Options { signature=MD5 }
+    File = </tmp/file-list
   }
 }
 
 FileSet {
   Name = "SparseSet"
-  Include = signature=MD5 sparse=yes { 
-    </tmp/file-list
+  Include { Options { signature=MD5; sparse=yes }
+    File=</tmp/file-list
   }
 }
 
 FileSet {
   Name = "CompressedSet"
-  Include = signature=MD5 compression=GZIP { 
-    </tmp/file-list
+  Include {
+    Options { signature=MD5; compression=GZIP }
+    File =</tmp/file-list
   }
 }
 
 FileSet {
   Name = "SparseCompressedSet"
-  Include = signature=MD5 compression=GZIP { 
-    </tmp/file-list
+  Include {
+    Options {
+      signature=MD5; compression=GZIP
+    }
+    File= </tmp/file-list
   }
 }
 
@@ -181,8 +185,8 @@ Schedule {
 # This is the backup of the catalog
 FileSet {
   Name = "Catalog"
-  Include = signature=MD5 {
-     /home/kern/bacula/regress/bin/working/bacula.sql
+  Include { Options { signature=MD5 }
+     File=/home/kern/bacula/regress/bin/working/bacula.sql
   }
 }
 

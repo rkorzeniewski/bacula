@@ -56,8 +56,8 @@ Job {
 # List of files to be backed up
 FileSet {
   Name = "Full Set"
-  Include = signature=MD5 { 
-    </tmp/file-list
+  Include { Options { signature=MD5 }
+    File =  </tmp/file-list
   }
 }
 
