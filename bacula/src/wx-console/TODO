@@ -13,6 +13,8 @@ Mac OS X : "You must first get a unique identifier for your application,
 Mac OS X : Ask kern for the status of this distribution (who is
   the package releaser ?)
 
+wxbRestorePanel : List's columns not resized correctly in the first directory.
+
 [postponed to July:]
 
 wxbConfigFileEditor : create a more precise editor, with something like
@@ -45,10 +47,6 @@ wxbRestorePanel : There needs to be some way of marking/unmarking a range of
      with ctl-click. The GTX console uses a button to mark/unmark 
      the selected entries.
      
-wxbRestorePanel : Is there any way to add a width adjustment handle between 
-     the tree view window and the file view window so that the 
-     width of the tree view can be changed?
-
 wxbRestorePanel : Use ".default job=RestoreFiles" to get defaults parameters
 	when changing a restore parameter fails.
 
@@ -61,7 +59,7 @@ GTK : Improve look
 
 wxblistctrl/wxbtreectrl : Find why events are not forwarded correctly 
   to parent' parent, and correct bad actual implementation.
-   (remove wxbTreeListPanel)
+   (remove wxbSplitterWindow)
 
 general : find out why I had to modify string.cpp and string.h
   + In include/wx/string.h, replace line 195 by

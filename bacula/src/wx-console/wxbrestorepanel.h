@@ -39,6 +39,7 @@
 #include <wx/treectrl.h>
 #include <wx/gauge.h>
 #include <wx/stattext.h>
+#include <wx/splitter.h>
 
 #include "wxbutils.h"
 
@@ -46,7 +47,7 @@
 #include "wxbtreectrl.h"
 #include "wxblistctrl.h"
 
-class wxbTreeListPanel;
+class wxbSplitterWindow;
 
 /*
  * wxbPanel for restoring files
@@ -177,7 +178,7 @@ class wxbRestorePanel : public wxbPanel
 
 /* Components */
       wxBoxSizer *centerSizer; /* Center sizer */
-      wxbTreeListPanel *treelistPanel; /* Panel which contains tree and list */
+      wxbSplitterWindow *treelistPanel; /* Panel which contains tree and list */
       wxbConfigPanel *configPanel; /* Panel which contains initial restore options */
       wxbConfigPanel *restorePanel; /* Panel which contains final restore options */
 
@@ -205,14 +206,14 @@ class wxbRestorePanel : public wxbPanel
       wxTextCtrl*   cfgWhen;
       wxTextCtrl*   cfgPriority;*/
 
-      friend class wxbTreeListPanel;
+      friend class wxbSplitterWindow;
 
       DECLARE_EVENT_TABLE();    
 };
 
-class wxbTreeListPanel: public wxPanel {
+class wxbSplitterWindow: public wxSplitterWindow {
 public:
-     wxbTreeListPanel(wxbRestorePanel* parent);
+     wxbSplitterWindow(wxbRestorePanel* parent);
 private:
      void OnTreeMarked(wxbTreeMarkedEvent& event);
      void OnListMarked(wxbListMarkedEvent& event);

@@ -1,3 +1,7 @@
+13-05-2004 :
+ - wxbRestorePanel : Width adjustments between the tree view window
+     and the file view window are now possible.
+
 10-05-2004 :
  - wxbTableParser : wxHashMap replaced by wxArray
 

@@ -216,9 +216,9 @@ BEGIN_EVENT_TABLE(wxbRestorePanel, wxPanel)
    EVT_BUTTON(ConfigCancel, wxbRestorePanel::OnConfigCancel)
 END_EVENT_TABLE()
 
-BEGIN_EVENT_TABLE(wxbTreeListPanel, wxPanel)
-   EVT_TREE_MARKED_EVENT(wxID_ANY, wxbTreeListPanel::OnTreeMarked)
-   EVT_LIST_MARKED_EVENT(wxID_ANY, wxbTreeListPanel::OnListMarked)   
+BEGIN_EVENT_TABLE(wxbSplitterWindow, wxSplitterWindow)
+   EVT_TREE_MARKED_EVENT(wxID_ANY, wxbSplitterWindow::OnTreeMarked)
+   EVT_LIST_MARKED_EVENT(wxID_ANY, wxbSplitterWindow::OnListMarked)   
 END_EVENT_TABLE()
 
 /*
@@ -255,17 +255,18 @@ wxbRestorePanel::wxbRestorePanel(wxWindow* parent): wxbPanel(parent) {
 
    mainSizer->Add(firstSizer, 1, wxEXPAND, 10);
 
-   treelistPanel = new wxbTreeListPanel(this);
+   //treelistPanel = new wxbTreeListPanel(this);
    
-   wxFlexGridSizer* treelistSizer = new wxFlexGridSizer(1, 2, 10, 10);
+   //wxFlexGridSizer* treelistSizer = new wxFlexGridSizer(1, 2, 10, 10);
+   treelistPanel = new wxbSplitterWindow(this);
 
    tree = new wxbTreeCtrl(treelistPanel, TreeCtrl, wxDefaultPosition, wxSize(200,50));
-   treelistSizer->Add(tree, 1, wxEXPAND, 10);
-
+   //treelistSizer->Add(tree, 1, wxEXPAND, 10);
+   
    tree->SetImageList(imagelist);
    
    list = new wxbListCtrl(treelistPanel, ListCtrl, wxDefaultPosition, wxSize(200,50));
-   treelistSizer->Add(list, 1, wxEXPAND, 10);
+   //treelistSizer->Add(list, 1, wxEXPAND, 10);
 
    list->SetImageList(imagelist, wxIMAGE_LIST_SMALL);
 
@@ -299,12 +300,14 @@ wxbRestorePanel::wxbRestorePanel(wxWindow* parent): wxbPanel(parent) {
    info.SetAlign(wxLIST_FORMAT_RIGHT);
    list->InsertColumn(6, info);
    
-   treelistSizer->AddGrowableCol(1);
-   treelistSizer->AddGrowableRow(0);
+   treelistPanel->SplitVertically(tree, list, 200);
    
-   treelistPanel->SetSizer(treelistSizer);
-   treelistSizer->SetSizeHints(treelistPanel);
+   //treelistSizer->AddGrowableCol(1);
+   //treelistSizer->AddGrowableRow(0);
    
+   //treelistPanel->SetSizer(treelistSizer);
+   //treelistSizer->SetSizeHints(treelistPanel);
+     
    treelistPanel->Show(false);
    
    wxbConfig* config = new wxbConfig();
@@ -1093,7 +1096,7 @@ void wxbRestorePanel::CmdList(wxTreeItemId item) {
       }
       UpdateTreeItem(item, (tree->GetSelection() == item));
     
-      if (list->GetItemCount() > 1) {
+      if (list->GetItemCount() >= 1) {
          int firstwidth = list->GetSize().GetWidth(); 
          for (int i = 2; i < 7; i++) {
             list->SetColumnWidth(i, wxLIST_AUTOSIZE);
@@ -1104,7 +1107,7 @@ void wxbRestorePanel::CmdList(wxTreeItemId item) {
          firstwidth -= 18;
          list->SetColumnWidth(1, wxLIST_AUTOSIZE);
          if (list->GetColumnWidth(1) < firstwidth) {
-            list->SetColumnWidth(1, firstwidth-20);
+            list->SetColumnWidth(1, firstwidth-25);
          }
       }
    }
@@ -1969,14 +1972,14 @@ void wxbRestorePanel::OnConfigCancel(wxCommandEvent& WXUNUSED(event)) {
 
 /* TODO : correct that bad implementation of tree marked event forwarding */
 
-wxbTreeListPanel::wxbTreeListPanel(wxbRestorePanel* parent): wxPanel(parent, -1) {
+wxbSplitterWindow::wxbSplitterWindow(wxbRestorePanel* parent): wxSplitterWindow(parent, -1) {
    this->parent = parent;
 }
 
-void wxbTreeListPanel::OnTreeMarked(wxbTreeMarkedEvent& event) {
+void wxbSplitterWindow::OnTreeMarked(wxbTreeMarkedEvent& event) {
    parent->OnTreeMarked(event);
 }
 
-void wxbTreeListPanel::OnListMarked(wxbListMarkedEvent& event) {
+void wxbSplitterWindow::OnListMarked(wxbListMarkedEvent& event) {
    parent->OnListMarked(event);
 }
