@@ -30,6 +30,16 @@ Suggestions for Preben:
 - Optimized bootstrap.
 
 For 1.37:
+- Windows restore:
+  data-fd: RestoreFiles.2004-12-07_15.56.42 Error:
+  > ..\findlib\../../findlib/create_file.c:275 Could not open e:/: ERR=Der
+  > Prozess kann nicht auf die Datei zugreifen, da sie von einem anderen
+  > Prozess verwendet wird.
+  Restore restores all files, but then fails at the end.
+- Add better documentation on how restores can be done
+  from failed jobs.
+- Resolve the problem between Device name and Archive name,
+  and fix SD messages.
 - Make sure SD deletes spool files on error exit.
 - Delete old spool files when SD starts.
 - When Python creates a new label, the tape is immediately

@@ -257,7 +257,7 @@ static void do_blocks(char *infname)
    for ( ;; ) {
       if (!read_block_from_device(dcr, NO_BLOCK_NUMBER_CHECK)) {
          Dmsg1(100, "!read_block(): ERR=%s\n", dev->strerror());
-	 if (dev->at_eom()) {
+	 if (dev->at_eot()) {
 	    if (!mount_next_read_volume(dcr)) {
                Jmsg(jcr, M_INFO, 0, _("Got EOM at file %u on device %s, Volume \"%s\"\n"),
 		  dev->file, dev_name(dev), dcr->VolumeName);

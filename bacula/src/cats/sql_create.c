@@ -415,8 +415,11 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    } else {
       mr->MediaId = sql_insert_id(mdb, _("Media"));
       stat = 1;
-      if (mr->LabelDate) {
+      if (mr->set_label_date) {
 	 char dt[MAX_TIME_LENGTH];
+	 if (mr->LabelDate == 0) {
+	    mr->LabelDate = time(NULL);
+	 }
 	 localtime_r(&mr->LabelDate, &tm);
          strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
          Mmsg(mdb->cmd, "UPDATE Media SET LabelDate='%s' "

@@ -276,7 +276,7 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 
    Dmsg1(100, "update_media: FirstWritten=%d\n", mr->FirstWritten);
    db_lock(mdb);
-   if (mr->VolJobs == 1) {
+   if (mr->set_first_written) {
       Dmsg1(400, "Set FirstWritten Vol=%s\n", mr->VolumeName);
       ttime = mr->FirstWritten;
       localtime_r(&ttime, &tm);
@@ -284,11 +284,11 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       Mmsg(mdb->cmd, "UPDATE Media SET FirstWritten='%s'"
            " WHERE VolumeName='%s'", dt, mr->VolumeName);
       stat = UPDATE_DB(jcr, mdb, mdb->cmd);
-      Dmsg1(400, "Firstwritten stat=%d\n", stat);
+      Dmsg1(400, "Firstwritten=%d\n", mr->FirstWritten);
    }
 
    /* Label just done? */
-   if (mr->VolBytes == 1) {
+   if (mr->set_label_date) {
       ttime = mr->LabelDate;
       if (ttime == 0) {
 	 ttime = time(NULL);

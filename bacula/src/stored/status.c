@@ -211,7 +211,7 @@ static void send_blocked_status(JCR *jcr, DEVICE *dev)
       bnet_fsend(user, "%sMALLOC ", dev->state & ST_MALLOC ? "" : "!");
       bnet_fsend(user, "%sAPPEND ", dev->can_append() ? "" : "!");
       bnet_fsend(user, "%sREAD ", dev->can_read() ? "" : "!");
-      bnet_fsend(user, "%sEOT ", dev->at_eom() ? "" : "!");
+      bnet_fsend(user, "%sEOT ", dev->at_eot() ? "" : "!");
       bnet_fsend(user, "%sWEOT ", dev->state & ST_WEOT ? "" : "!");
       bnet_fsend(user, "%sEOF ", dev->at_eof() ? "" : "!");
       bnet_fsend(user, "%sNEXTVOL ", dev->state & ST_NEXTVOL ? "" : "!");

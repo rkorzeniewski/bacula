@@ -437,12 +437,7 @@ void *jobq_server(void *arg)
          Dmsg1(2300, "Took jobid=%d from ready and appended to run\n", jcr->JobId);
 
 	 /* Release job queue lock */
-	 if ((stat = pthread_mutex_unlock(&jq->mutex)) != 0) {
-	    berrno be;
-            Jmsg1(NULL, M_ERROR, 0, "pthread_mutex_unlock: ERR=%s\n", be.strerror(stat));
-	    jq->num_workers--;
-	    return NULL;
-	 }
+	 V(jq->mutex);
 
          /* Call user's routine here */
          Dmsg1(2300, "Calling user engine for jobid=%d\n", jcr->JobId);
@@ -451,13 +446,7 @@ void *jobq_server(void *arg)
          Dmsg1(2300, "Back from user engine jobid=%d.\n", jcr->JobId);
 
 	 /* Reacquire job queue lock */
-	 if ((stat = pthread_mutex_lock(&jq->mutex)) != 0) {
-	    berrno be;
-            Jmsg1(NULL, M_ERROR, 0, "pthread_mutex_lock: ERR=%s\n", be.strerror(stat));
-	    jq->num_workers--;
-	    free(je);		      /* release job entry */
-	    return NULL;
-	 }
+	 P(jq->mutex);
          Dmsg0(200, "Done lock mutex after running job. Release locks.\n");
 	 jq->running_jobs->remove(je);
 	 /*
@@ -467,9 +456,6 @@ void *jobq_server(void *arg)
 	  */
 	 if (jcr->acquired_resource_locks) {
 	    jcr->store->NumConcurrentJobs--;
-	    if (jcr->JobType == JT_RESTORE || jcr->JobType == JT_VERIFY) {
-	       jcr->store->MaxConcurrentJobs = jcr->saveMaxConcurrentJobs;
-	    }
 	    jcr->client->NumConcurrentJobs--;
 	    jcr->job->NumConcurrentJobs--;
 	 }
@@ -574,9 +560,7 @@ void *jobq_server(void *arg)
 	    if (jcr->JobType == JT_RESTORE || jcr->JobType == JT_VERIFY) {
 	       /* Let only one Restore/verify job run at a time regardless of MaxConcurrentJobs */
 	       if (jcr->store->NumConcurrentJobs == 0) {
-		  jcr->store->NumConcurrentJobs++;
-		  jcr->saveMaxConcurrentJobs = jcr->store->MaxConcurrentJobs;
-		  jcr->store->MaxConcurrentJobs = 1;
+		  jcr->store->NumConcurrentJobs = 1;
 	       } else {
 		  set_jcr_job_status(jcr, JS_WaitStoreRes);
 		  je = jn;	      /* point to next waiting job */
@@ -609,6 +593,8 @@ void *jobq_server(void *arg)
 		if (!skip_this_jcr) {
 		   jcr->store->NumConcurrentJobs++;
 		}
+	    } else {
+	       skip_this_jcr = true;
 	    }
 	    if (skip_this_jcr) {
 	       set_jcr_job_status(jcr, JS_WaitStoreRes);
@@ -621,9 +607,6 @@ void *jobq_server(void *arg)
 	    } else {
 	       /* Back out previous locks */
 	       jcr->store->NumConcurrentJobs--;
-	       if (jcr->JobType == JT_RESTORE || jcr->JobType == JT_VERIFY) {
-		  jcr->store->MaxConcurrentJobs = jcr->saveMaxConcurrentJobs;
-	       }
 	       set_jcr_job_status(jcr, JS_WaitClientRes);
 	       je = jn; 	      /* point to next waiting job */
 	       continue;
@@ -633,9 +616,6 @@ void *jobq_server(void *arg)
 	    } else {
 	       /* Back out previous locks */
 	       jcr->store->NumConcurrentJobs--;
-	       if (jcr->JobType == JT_RESTORE || jcr->JobType == JT_VERIFY) {
-		  jcr->store->MaxConcurrentJobs = jcr->saveMaxConcurrentJobs;
-	       }
 	       jcr->client->NumConcurrentJobs--;
 	       set_jcr_job_status(jcr, JS_WaitJobRes);
 	       je = jn; 	      /* Point to next waiting job */

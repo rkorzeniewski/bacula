@@ -562,7 +562,7 @@ static void capcmd()
    printf("%sMALLOC ", dev->state & ST_MALLOC ? "" : "!");
    printf("%sAPPEND ", dev->can_append() ? "" : "!");
    printf("%sREAD ", dev->can_read() ? "" : "!");
-   printf("%sEOT ", dev->at_eom() ? "" : "!");
+   printf("%sEOT ", dev->at_eot() ? "" : "!");
    printf("%sWEOT ", dev->state & ST_WEOT ? "" : "!");
    printf("%sEOF ", dev->at_eof() ? "" : "!");
    printf("%sNEXTVOL ", dev->state & ST_NEXTVOL ? "" : "!");

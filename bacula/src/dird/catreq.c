@@ -106,6 +106,14 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
     * Request to find next appendable Volume for this Job
     */
    Dmsg1(400, "catreq %s", bs->msg);
+   if (!jcr->db) {
+      omsg = get_memory(bs->msglen+1);
+      pm_strcpy(omsg, bs->msg);
+      bnet_fsend(bs, "1990 Invalid Catalog Request: %s", omsg);    
+      Jmsg1(jcr, M_FATAL, 0, _("Invalid Catalog request; DB not open: %s"), omsg);
+      free_memory(omsg);
+      return;
+   }
    if (sscanf(bs->msg, Find_media, &Job, &index) == 2) {
       ok = find_next_volume_for_append(jcr, &mr, true /*permit create new vol*/);
       /*
@@ -177,7 +185,6 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
          bnet_fsend(bs, "1997 Volume \"%s\" not in catalog.\n", mr.VolumeName);
       }
 
-
    /*
     * Request to update Media record. Comes typically at the end
     *  of a Storage daemon Job Session, when labeling/relabeling a
@@ -203,13 +210,15 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
 	 return;
       }
       /* Set first written time if this is first job */
-      if (mr.VolJobs == 0 || sdmr.VolJobs == 1) {
+      if (mr.FirstWritten == 0) {
 	 mr.FirstWritten = jcr->start_time;   /* use Job start time as first write */
+	 mr.set_first_written = true;
       }
       /* If we just labeled the tape set time */
-      Dmsg2(400, "label=%d labeldate=%d\n", label, mr.LabelDate);
       if (label || mr.LabelDate == 0) {
-	 mr.LabelDate = time(NULL);
+	 mr.LabelDate = jcr->start_time;
+	 mr.set_label_date = true;
+         Dmsg2(400, "label=%d labeldate=%d\n", label, mr.LabelDate);
       } else {
 	 /*
 	  * Insanity check for VolFiles get set to a smaller value
@@ -246,7 +255,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
       } else if (db_update_media_record(jcr, jcr->db, &mr)) {
 	 send_volume_info_to_storage_daemon(jcr, bs, &mr);
       } else {
-         Jmsg(jcr, M_ERROR, 0, _("Catalog error updating Media record. %s"),
+         Jmsg(jcr, M_FATAL, 0, _("Catalog error updating Media record. %s"),
 	    db_strerror(jcr->db));
          bnet_fsend(bs, "1992 Update Media error\n");
          Dmsg0(400, "send error\n");
@@ -265,7 +274,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
       Dmsg6(400, "create_jobmedia JobId=%d MediaId=%d SF=%d EF=%d FI=%d LI=%d\n",
 	 jm.JobId, jm.MediaId, jm.StartFile, jm.EndFile, jm.FirstIndex, jm.LastIndex);
       if (!db_create_jobmedia_record(jcr, jcr->db, &jm)) {
-         Jmsg(jcr, M_ERROR, 0, _("Catalog error creating JobMedia record. %s"),
+         Jmsg(jcr, M_FATAL, 0, _("Catalog error creating JobMedia record. %s"),
 	    db_strerror(jcr->db));
          bnet_fsend(bs, "1991 Update JobMedia error\n");
       } else {
@@ -277,7 +286,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
       omsg = get_memory(bs->msglen+1);
       pm_strcpy(omsg, bs->msg);
       bnet_fsend(bs, "1990 Invalid Catalog Request: %s", omsg);
-      Jmsg1(jcr, M_ERROR, 0, _("Invalid Catalog request: %s"), omsg);
+      Jmsg1(jcr, M_FATAL, 0, _("Invalid Catalog request: %s"), omsg);
       free_memory(omsg);
    }
    Dmsg1(400, ">CatReq response: %s", bs->msg);

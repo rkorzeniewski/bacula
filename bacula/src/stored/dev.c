@@ -458,7 +458,7 @@ open_dev(DEVICE *dev, char *VolName, int mode)
       }
       Dmsg4(29, "open_dev: disk fd=%d opened, part=%d/%d, part_size=%u\n", dev->fd, dev->part, dev->num_parts, dev->part_size);
       if (dev->is_dvd() && (dev->mode != OPEN_READ_ONLY) && 
-	  ((dev->free_space_errno == 0) || (dev->num_parts == dev->part))) {
+	  (dev->free_space_errno == 0 || dev->num_parts == dev->part)) {
 	 update_free_space_dev(dev);
       }
    }
@@ -1100,6 +1100,16 @@ void DEVICE::set_eof()
    file_addr = 0;
    file_size = 0;
    block_num = 0;
+}
+
+/*
+ * Called to indicate we are now at the end of the tape, and
+ *   writing is not possible.
+ */
+void DEVICE::set_eot() 
+{
+   state |= (ST_EOF|ST_EOT|ST_WEOT);
+   state &= ~ST_APPEND; 	 /* make tape read-only */
 }
 
 /*

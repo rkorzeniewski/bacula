@@ -64,7 +64,7 @@ bool read_records(DCR *dcr,
 	 break;
       }
       if (!read_block_from_device(dcr, CHECK_BLOCK_NUMBERS)) {
-	 if (dev_state(dev, ST_EOT)) {
+	 if (dev->at_eot()) {
 	    DEV_RECORD *trec = new_record();
 
             Jmsg(jcr, M_INFO, 0, "End of Volume at file %u on device %s, Volume \"%s\"\n",
@@ -97,7 +97,7 @@ bool read_records(DCR *dcr,
 	    /* After reading label, we must read first data block */
 	    continue;
 
-	 } else if (dev_state(dev, ST_EOF)) {
+	 } else if (dev->at_eof()) {
 	    if (verbose) {
                Jmsg(jcr, M_INFO, 0, "Got EOF at file %u  on device %s, Volume \"%s\"\n",
 		  dev->file, dev_name(dev), dcr->VolumeName);
@@ -259,7 +259,7 @@ static int try_repositioning(JCR *jcr, DEV_RECORD *rec, DEVICE *dev)
       Dmsg2(300, "Current postion (file:block) %d:%d\n",
 	 dev->file, dev->block_num);
       jcr->bsr->mount_next_volume = false;
-      dev->state |= ST_EOT;
+//    dev->state |= ST_EOT;
       rec->Block = 0;
       return 1;
    }
