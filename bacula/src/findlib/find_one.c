@@ -69,20 +69,20 @@ static int accept_fstype(FF_PKT *ff, void *dummy) {
    char *fs;
    bool accept = true;
 
-   if (ff->fstypes->size()) {
+   if (ff->fstypes.size()) {
       accept = false;
       fs = fstype(ff->fname);
       if (fs == NULL) {
          Dmsg1(50, "Cannot determine file system type for \"%s\"\n", ff->fname);
       } else {
-	 for (i = 0; i < ff->fstypes->size(); ++i) {
-	    if (strcmp(fs, (char *)ff->fstypes->get(i)) == 0) {
+	 for (i = 0; i < ff->fstypes.size(); ++i) {
+	    if (strcmp(fs, (char *)ff->fstypes.get(i)) == 0) {
                Dmsg2(100, "Accepting fstype %s for \"%s\"\n", fs, ff->fname);
 	       accept = true;
 	       break;
 	    }
             Dmsg3(200, "fstype %s for \"%s\" does not match %s\n", fs,
-		  ff->fname, ff->fstypes->get(i));
+		  ff->fname, ff->fstypes.get(i));
 	 }
 	 free(fs);
       }

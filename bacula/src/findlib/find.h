@@ -4,7 +4,7 @@
  *     Kern Sibbald MIM
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2004 Kern Sibbald 
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -197,7 +197,7 @@ struct FF_PKT {
    int GZIP_level;                    /* compression level */
    char *reader;                      /* reader program */
    char *writer;                      /* writer program */
-   alist *fstypes;		      /* allowed file system types */
+   alist fstypes;                     /* allowed file system types */
 
    /* List of all hard linked files found */
    struct f_link *linklist;           /* hard linked files */
