@@ -85,7 +85,7 @@ FileSet {
   /
 
   }
-  Exclude = { }
+  Exclude = { /proc; /tmp }
 }
 
 #
@@ -125,37 +125,6 @@ Client {
   AutoPrune = yes                     # Prune expired Jobs/Files
 }
 
-
-# Definition of DLT tape storage device
-Storage {
-  Name = DLTDrive
-  Address = @hostname@                # N.B. Use a fully qualified name here
-  SDPort = @sd_port@
-  Password = "@sd_password@"          # password for Storage daemon
-  Device = "HP DLT 80"                # must be same as Device in Storage daemon
-  Media Type = DLT8000                # must be same as MediaType in Storage daemon
-}
-
-# Definition of DDS tape storage device
-Storage {
-  Name = SDT-10000
-  Address = @hostname@                # N.B. Use a fully qualified name here
-  SDPort = @sd_port@
-  Password = "@sd_password@"          # password for Storage daemon
-  Device = SDT-10000                  # must be same as Device in Storage daemon
-  Media Type = DDS-4                  # must be same as MediaType in Storage daemon
-}
-
-# Definition of 8mm tape storage device
-Storage {
-  Name = "8mmDrive"
-  Address = @hostname@                # N.B. Use a fully qualified name here
-  SDPort = @sd_port@
-  Password = "@sd_password@"
-  Device = "Exabyte 8mm"
-  MediaType = "8mm"
-}
-
 # Definiton of file storage device
 Storage {
   Name = File
@@ -165,6 +134,36 @@ Storage {
   Device = FileStorage
   Media Type = File
 }
+
+# Definition of DLT tape storage device
+#Storage {
+#  Name = DLTDrive
+#  Address = @hostname@                # N.B. Use a fully qualified name here
+#  SDPort = @sd_port@
+#  Password = "@sd_password@"          # password for Storage daemon
+#  Device = "HP DLT 80"                # must be same as Device in Storage daemon
+#  Media Type = DLT8000                # must be same as MediaType in Storage daemon
+#}
+
+# Definition of DDS tape storage device
+#Storage {
+#  Name = SDT-10000
+#  Address = @hostname@                # N.B. Use a fully qualified name here
+#  SDPort = @sd_port@
+#  Password = "@sd_password@"          # password for Storage daemon
+#  Device = SDT-10000                  # must be same as Device in Storage daemon
+#  Media Type = DDS-4                  # must be same as MediaType in Storage daemon
+#}
+
+# Definition of 8mm tape storage device
+#Storage {
+#  Name = "8mmDrive"
+#  Address = @hostname@                # N.B. Use a fully qualified name here
+#  SDPort = @sd_port@
+#  Password = "@sd_password@"
+#  Device = "Exabyte 8mm"
+#  MediaType = "8mm"
+#}
 
 
 # Generic catalog service
@@ -198,4 +197,4 @@ Pool {
   AutoPrune = yes                     # Prune expired volumes
   Volume Retention = 365d             # one year
   Accept Any Volume = yes             # write on any volume in the pool
-}
+

@@ -146,8 +146,6 @@ init_dev(DEVICE *dev, DEVRES *device)
    dev->capabilities = device->cap_bits;
    dev->min_block_size = device->min_block_size;
    dev->max_block_size = device->max_block_size;
-   dev->max_volume_jobs = device->max_volume_jobs;
-   dev->max_volume_files = device->max_volume_files;
    dev->max_volume_size = device->max_volume_size;
    dev->max_file_size = device->max_file_size;
    dev->volume_capacity = device->volume_capacity;

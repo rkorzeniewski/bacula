@@ -47,7 +47,8 @@ static int authenticate(int rcode, BSOCK *bs)
       return 0;
    }
    if (bs->msglen < 25 || bs->msglen > 200) {
-      Emsg1(M_FATAL, 0, _("Bad Hello command from Director. Len=%d.\n"), bs->msglen);
+      Emsg2(M_FATAL, 0, _("Bad Hello command from Director at %s. Len=%d.\n"), 
+	    bs->who, bs->msglen);
       return 0;
    }
    dirname = get_pool_memory(PM_MESSAGE);
@@ -55,7 +56,8 @@ static int authenticate(int rcode, BSOCK *bs)
 
    if (sscanf(bs->msg, "Hello Director %127s calling\n", dirname) != 1) {
       bs->msg[100] = 0;
-      Emsg1(M_FATAL, 0, _("Bad Hello command from Director: %s\n"), bs->msg);
+      Emsg2(M_FATAL, 0, _("Bad Hello command from Director at %s: %s\n"), 
+	    bs->who, bs->msg);
       return 0;
    }
    director = NULL;
@@ -67,7 +69,8 @@ static int authenticate(int rcode, BSOCK *bs)
    }
    UnlockRes();
    if (!director) {
-      Emsg1(M_FATAL, 0, _("Connection from unknown Director %s rejected.\n"), dirname);
+      Emsg2(M_FATAL, 0, _("Connection from unknown Director %s at %s rejected.\n"), 
+	    dirname, bs->who);
       goto bail_out;
    }
    if (!cram_md5_auth(bs, director->password) ||
@@ -101,7 +104,7 @@ int authenticate_director(JCR *jcr)
 
    if (!authenticate(R_DIRECTOR, dir)) {
       bnet_fsend(dir, "%s", Dir_sorry);
-      Emsg0(M_ERROR, 0, _("Unable to authenticate Director\n"));
+      Emsg1(M_ERROR, 0, _("Unable to authenticate Director at %s.\n"), dir->who);
       sleep(5);
       return 0;
    }
@@ -117,7 +120,8 @@ int authenticate_filed(JCR *jcr)
       jcr->authenticated = TRUE;
    }
    if (!jcr->authenticated) {
-      Jmsg(jcr, M_FATAL, 0, _("Incorrect authorization key from File daemon rejected.\n"));
+      Jmsg(jcr, M_FATAL, 0, _("Incorrect authorization key from File daemon at %s rejected.\n"), 
+	   fd->who);
    }
    return jcr->authenticated;
 }

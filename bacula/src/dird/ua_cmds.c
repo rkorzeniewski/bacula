@@ -649,22 +649,13 @@ static int updatecmd(UAContext *ua, char *cmd)
  */		 
 static int update_volume(UAContext *ua)
 {
-   POOL_DBR pr;
    MEDIA_DBR mr;
    POOLMEM *query;
    char ed1[30];
 
-   if (!select_pool_and_media_dbr(ua, &pr, &mr)) {
-      return 0;
-   }
 
    for (int done=0; !done; ) {
-      if (!db_get_media_record(ua->jcr, ua->db, &mr)) {
-	 if (mr.MediaId != 0) {
-            bsendmsg(ua, _("Volume record for MediaId %d not found.\n"), mr.MediaId);
-	 } else {
-            bsendmsg(ua, _("Volume record for %s not found.\n"), mr.VolumeName);
-	 }
+      if (!select_media_dbr(ua, &mr)) {
 	 return 0;
       }
       bsendmsg(ua, _("Updating Volume \"%s\"\n"), mr.VolumeName);
@@ -846,6 +837,14 @@ static int update_volume(UAContext *ua)
 
       case 7:			      /* Slot */
 	 int slot;
+	 POOL_DBR pr;
+
+	 memset(&pr, 0, sizeof(POOL_DBR));
+	 pr.PoolId = mr.PoolId;
+	 if (!db_get_pool_record(ua->jcr, ua->db, &pr)) {
+            bsendmsg(ua, "%s", db_strerror(ua->db));
+	    return 0;
+	 }
          bsendmsg(ua, _("Current Slot is: %d\n"), mr.Slot);
          if (!get_cmd(ua, _("Enter new Slot: "))) {
 	    return 0;
@@ -1250,10 +1249,9 @@ static int deletecmd(UAContext *ua, char *cmd)
  */
 static int delete_volume(UAContext *ua)
 {
-   POOL_DBR pr;
    MEDIA_DBR mr;
 
-   if (!select_pool_and_media_dbr(ua, &pr, &mr)) {
+   if (!select_media_dbr(ua, &mr)) {
       return 1;
    }
    bsendmsg(ua, _("\nThis command will delete volume %s\n"

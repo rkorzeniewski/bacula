@@ -105,8 +105,6 @@ static struct res_items dev_items[] = {
    {"maximumrewindwait",     store_pint,   ITEM(res_dev.max_rewind_wait), 0, ITEM_DEFAULT, 5 * 60},
    {"minimumblocksize",      store_pint,   ITEM(res_dev.min_block_size), 0, 0, 0},
    {"maximumblocksize",      store_pint,   ITEM(res_dev.max_block_size), 0, 0, 0},
-   {"maximumvolumejobs",     store_pint,   ITEM(res_dev.max_volume_jobs), 0, 0, 0},
-   {"maximumvolumefiles",    store_int64,  ITEM(res_dev.max_volume_files), 0, 0, 0},
    {"maximumvolumesize",     store_size,   ITEM(res_dev.max_volume_size), 0, 0, 0},
    {"maximumfilesize",       store_size,   ITEM(res_dev.max_file_size), 0, 0, 0},
    {"volumecapacity",        store_size,   ITEM(res_dev.volume_capacity), 0, 0, 0},

@@ -132,7 +132,7 @@ File.FilenameId=%u", fdbr->JobId, fdbr->PathId, fdbr->FilenameId);
 	    stat = 1;
 	 }
       } else {
-         Mmsg2(&mdb->errmsg, _("File record not found for PathId=%u FilenameId=%u\n"),
+         Mmsg2(&mdb->errmsg, _("File record for PathId=%u FilenameId=%u not found.\n"),
 	    fdbr->PathId, fdbr->FilenameId);
       }
       sql_free_result(mdb);
@@ -640,7 +640,7 @@ int db_get_fileset_record(void *jcr, B_DB *mdb, FILESET_DBR *fsr)
 	 sql_data_seek(mdb, mdb->num_rows-1);
       }
       if ((row = sql_fetch_row(mdb)) == NULL) {
-         Mmsg1(&mdb->errmsg, _("Error: FileSet record \"%s\" not found\n"), fsr->FileSet);
+         Mmsg1(&mdb->errmsg, _("FileSet record \"%s\" not found.\n"), fsr->FileSet);
       } else {
 	 fsr->FileSetId = atoi(row[0]);
          bstrncpy(fsr->FileSet, row[1]!=NULL?row[1]:"", sizeof(fsr->FileSet));
@@ -781,7 +781,12 @@ FROM Media WHERE VolumeName='%s'", mr->VolumeName);
 	    stat = mr->MediaId;
 	 }
       } else {
-         Mmsg0(&mdb->errmsg, _("Media record not found.\n"));
+	 if (mr->MediaId != 0) {
+            Mmsg1(&mdb->errmsg, _("Media record MediaId=%u not found.\n"), mr->MediaId);
+	 } else {
+            Mmsg1(&mdb->errmsg, _("Media record for Volume \"%s\" not found.\n"), 
+		  mr->VolumeName);
+	 }
       }
       sql_free_result(mdb);
    }

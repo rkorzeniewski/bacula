@@ -149,12 +149,6 @@ static int do_label(UAContext *ua, char *cmd, int relabel)
    int ok = FALSE;
    int mounted = FALSE;
    int i;
-   static char *name_keyword[] = {
-      "name",
-      NULL};
-   static char *vol_keyword[] = {
-      "volume",
-      NULL};
    static char *barcode_keyword[] = {
       "barcode",
       "barcodes",
@@ -179,7 +173,7 @@ static int do_label(UAContext *ua, char *cmd, int relabel)
    /* If relabel get name of Volume to relabel */
    if (relabel) {
       /* Check for volume=OldVolume */
-      i = find_arg_keyword(ua, vol_keyword); 
+      i = find_arg(ua, "volume"); 
       if (i >= 0 && ua->argv[i]) {
 	 memset(&omr, 0, sizeof(omr));
 	 bstrncpy(omr.VolumeName, ua->argv[i], sizeof(omr.VolumeName));
@@ -189,7 +183,7 @@ static int do_label(UAContext *ua, char *cmd, int relabel)
          bsendmsg(ua, "%s", db_strerror(ua->db));
       }
       /* No keyword or Vol not found, ask user to select */
-      if (!select_pool_and_media_dbr(ua, &pr, &omr)) {
+      if (!select_media_dbr(ua, &omr)) {
 	 return 1;
       }
 
@@ -203,8 +197,8 @@ checkVol:
    }
 
    /* Check for name=NewVolume */
-   i = find_arg_keyword(ua, name_keyword);
-   if (i >=0 && ua->argv[i]) {
+   i = find_arg(ua, "name");
+   if (i >= 0 && ua->argv[i]) {
       pm_strcpy(&ua->cmd, ua->argv[i]);
       goto checkName;
    }

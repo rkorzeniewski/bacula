@@ -164,7 +164,6 @@ int purgecmd(UAContext *ua, char *cmd)
 {
    CLIENT *client;
    MEDIA_DBR mr;
-   POOL_DBR pr;
    JOB_DBR  jr;
    static char *keywords[] = {
       N_("files"),
@@ -185,11 +184,12 @@ int purgecmd(UAContext *ua, char *cmd)
       NULL};
       
    bsendmsg(ua, _(
-      "This command is DANGEROUS!!!\n"
+      "\nThis command is can be DANGEROUS!!!\n\n"
       "It purges (deletes) all Files from a Job,\n"
       "JobId, Client or Volume; or it purges (deletes)\n"
-      "all Jobs from a Client or Volume. Normally you\n" 
-      "should use the PRUNE command instead.\n"));
+      "all Jobs from a Client or Volume without regard\n"
+      "for retention periods. Normally you should use the\n" 
+      "PRUNE command, which respects retention periods.\n"));
 
    if (!open_db(ua)) {
       return 1;
@@ -209,7 +209,7 @@ int purgecmd(UAContext *ua, char *cmd)
 	 purge_files_from_client(ua, client);
 	 return 1;
       case 3:			      /* Volume */
-	 if (select_pool_and_media_dbr(ua, &pr, &mr)) {
+	 if (select_media_dbr(ua, &mr)) {
 	    purge_files_from_volume(ua, &mr);
 	 }
 	 return 1;
@@ -222,14 +222,14 @@ int purgecmd(UAContext *ua, char *cmd)
 	 purge_jobs_from_client(ua, client);
 	 return 1;
       case 1:			      /* Volume */
-	 if (select_pool_and_media_dbr(ua, &pr, &mr)) {
+	 if (select_media_dbr(ua, &mr)) {
 	    purge_jobs_from_volume(ua, &mr);
 	 }
 	 return 1;
       }
    /* Volume */
    case 2:
-      if (select_pool_and_media_dbr(ua, &pr, &mr)) {
+      if (select_media_dbr(ua, &mr)) {
 	 purge_jobs_from_volume(ua, &mr);
       }
       return 1;
@@ -252,7 +252,7 @@ int purgecmd(UAContext *ua, char *cmd)
       purge_jobs_from_client(ua, client);
       break;
    case 2:			      /* Volume */
-      if (select_pool_and_media_dbr(ua, &pr, &mr)) {
+      if (select_media_dbr(ua, &mr)) {
 	 purge_jobs_from_volume(ua, &mr);
       }
       break;

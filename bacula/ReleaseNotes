@@ -1,6 +1,6 @@
           Release Notes for Bacula 1.30
 
-  Bacula code: Total files = 233 Total lines = 65,765 (*.h *.c *.in)
+  Bacula code: Total files = 233 Total lines = 66,066 (*.h *.c *.in)
 
 Major Changes this Release:
 - The Windows Client now uses Cygwin 1.3.20 and should be much 
@@ -10,6 +10,10 @@ Major Changes this Release:
 - Support for SHA1 signatures in addition to MD5 (more secure).
 - The btape "test" command is much more comprehensive and automatically
   tries different options.
+- Implemented support for barcodes ("label barcodes", "update slots").
+- Make Incremental and Differential saves backup all files changed as
+  well as all files moved into save path (added st_ctime to check).
+- Preliminary support for cleaning tapes in autochangers.
 
 Other Changes this Release:
 - Added "BSF at EOM = yes/no" for supporting FreeBSD tape drives.
@@ -28,6 +32,11 @@ Other Changes this Release:
   several other utility programs.
 - Full listing of most catalog records (llist command).
 - Relabel Purged tapes with the relabel command.
+- Correct misentered path separators on Win32 systems to
+  prevent creating files names with mixed conventions.
+- Print IP address on failed connections to servers.
+- Cancel command works much better (cancels waiting jobs in Dir
+  and in SD).
 
 
 Items to note:

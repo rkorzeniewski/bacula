@@ -130,13 +130,15 @@ int authenticate_user_agent(BSOCK *ua)
    int ok;    
 
    if (ua->msglen < 16 || ua->msglen >= MAXSTRING-1) {
-      Emsg1(M_ERROR, 0, _("UA Hello is invalid. Len=%d\n"), ua->msglen);
+      Emsg2(M_ERROR, 0, _("UA Hello from %s is invalid. Len=%d\n"), ua->who, 
+	    ua->msglen);
       return 0;
    }
 
    if (sscanf(ua->msg, "Hello %127s calling\n", name) != 1) {
       ua->msg[100] = 0; 	      /* terminate string */
-      Emsg1(M_ERROR, 0, _("UA Hello is invalid. Got: %s\n"), ua->msg);
+      Emsg2(M_ERROR, 0, _("UA Hello from %s is invalid. Got: %s\n"), ua->who,
+	    ua->msg);
       return 0;
    }
 
@@ -145,7 +147,8 @@ int authenticate_user_agent(BSOCK *ua)
 
    if (!ok) {
       bnet_fsend(ua, "%s", _(Dir_sorry));
-      Emsg0(M_WARNING, 0, _("Unable to authenticate User Agent\n"));
+      Emsg1(M_WARNING, 0, _("Unable to authenticate User Agent at %s.\n"),
+	    ua->who);
       sleep(5);
       return 0;
    }

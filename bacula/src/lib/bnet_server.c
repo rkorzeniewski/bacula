@@ -36,11 +36,12 @@
 #include <resolv.h>
 #endif
 
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
 #ifdef HAVE_LIBWRAP
 #include "tcpd.h"
 int allow_severity = LOG_NOTICE;
 int deny_severity = LOG_WARNING;
-static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 #endif
 
 /* Become Threaded Network Server */
@@ -159,7 +160,8 @@ bnet_thread_server(char *bind_addr, int port, int max_clients, workq_t *client_w
       }
 
       /* see who client is. i.e. who connected to us. */
-      caller = inet_ntoa(cli_addr.sin_addr);
+      P(mutex);
+      caller = inet_ntoa(cli_addr.sin_addr);  /* NOT thread safe, use mutex */
       if (caller == NULL) {
          caller = "unknown client";
       }
@@ -167,8 +169,10 @@ bnet_thread_server(char *bind_addr, int port, int max_clients, workq_t *client_w
       /* Queue client to be served */
       if ((stat = workq_add(client_wq, 
             (void *)init_bsock(NULL, newsockfd, "client", caller, port), NULL, 0)) != 0) {
+	 V(mutex);
          Jmsg1(NULL, M_ABORT, 0, _("Could not add job to client queue: ERR=%s\n"), strerror(stat));
       }
+      V(mutex);
    }
 }   
 

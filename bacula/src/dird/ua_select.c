@@ -83,6 +83,22 @@ int find_arg_keyword(UAContext *ua, char **list)
 }
 
 /* 
+ * Given a single keyword, find it in the argument list.
+ * Returns: -1 if not found
+ *	     list index (base 0) on success
+ */
+int find_arg(UAContext *ua, char *keyword)
+{
+   for (int i=1; i<ua->argc; i++) {
+      if (strcasecmp(keyword, ua->argk[i]) == 0) {
+	 return i;
+      }
+   }
+   return -1;
+}
+
+
+/* 
  * Given a list of keywords, prompt the user 
  * to choose one.
  *
@@ -425,25 +441,38 @@ int select_pool_dbr(UAContext *ua, POOL_DBR *pr)
  */
 int select_pool_and_media_dbr(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
 {
-   int i;
-   static char *kw[] = {
-      N_("volume"),
-      NULL};
 
-   memset(pr, 0, sizeof(POOL_DBR));
-   memset(mr, 0, sizeof(MEDIA_DBR));
-
-   /* Get the pool, possibly from pool=<pool-name> */
-   if (!get_pool_dbr(ua, pr)) {
+   if (!select_media_dbr(ua, mr)) {
       return 0;
    }
-   mr->PoolId = pr->PoolId;
+   memset(pr, 0, sizeof(POOL_DBR));
+   pr->PoolId = mr->PoolId;
+   if (!db_get_pool_record(ua->jcr, ua->db, pr)) {
+      bsendmsg(ua, "%s", db_strerror(ua->db));
+      return 0;
+   }
+   return 1;
+}
 
-   i = find_arg_keyword(ua, kw);
-   if (i == 0 && ua->argv[i]) {
+/* Select a Media (Volume) record from the database */
+int select_media_dbr(UAContext *ua, MEDIA_DBR *mr)
+{
+   int i;
+
+   memset(mr, 0, sizeof(MEDIA_DBR));
+
+   i = find_arg(ua, "volume");
+   if (i >= 0 && ua->argv[i]) {
       bstrncpy(mr->VolumeName, ua->argv[i], sizeof(mr->VolumeName));
    }
    if (mr->VolumeName[0] == 0) {
+      POOL_DBR pr;
+      memset(&pr, 0, sizeof(pr));
+      /* Get the pool from pool=<pool-name> */
+      if (!get_pool_dbr(ua, &pr)) {
+	 return 0;
+      }
+      mr->PoolId = pr.PoolId;
       db_list_media_records(ua->jcr, ua->db, mr, prtit, ua, 0);
       if (!get_cmd(ua, _("Enter MediaId or Volume name: "))) {
 	 return 0;
@@ -751,11 +780,8 @@ int get_media_type(UAContext *ua, char *MediaType, int max_media)
 {
    STORE *store;
    int i;
-   static char *keyword[] = {
-      "mediatype",
-      NULL};
 
-   i = find_arg_keyword(ua, keyword);
+   i = find_arg(ua, "mediatype");
    if (i >= 0 && ua->argv[i]) {
       bstrncpy(MediaType, ua->argv[i], max_media);
       return 1;

@@ -31,14 +31,26 @@ Director {
 # To connect, the Director's bacula-dir.conf must have the
 #  same Name and MediaType. 
 #
+
 Device {
-  Name = "HP DLT 80"
-  Media Type = DLT8000
-  Archive Device = @TAPEDRIVE@
+  Name = FileStorage
+  Media Type = File
+  Archive Device = /tmp
+  LabelMedia = yes;                   # lets Bacula label unlabelled media
+  Random Access = Yes;
   AutomaticMount = yes;               # when device opened, read it
-  AlwaysOpen = yes;
-  RemovableMedia = yes;
+  RemovableMedia = no;
+  AlwaysOpen = no;
 }
+
+#Device {
+#  Name = "HP DLT 80"
+#  Media Type = DLT8000
+#  Archive Device = @TAPEDRIVE@
+#  AutomaticMount = yes;               # when device opened, read it
+#  AlwaysOpen = yes;
+#  RemovableMedia = yes;
+#}
 
 #Device {
 #  Name = SDT-7000                     # 
@@ -56,17 +68,6 @@ Device {
 #  RemovableMedia = yes;
 #  Random Access = Yes;
 #  AutomaticMount = yes;               # when device opened, read it
-#  AlwaysOpen = no;
-#}
-
-#Device {
-#  Name = FileStorage
-#  Media Type = File
-#  Archive Device = /tmp
-#  LabelMedia = yes;                   # lets Bacula label unlabelled media
-#  Random Access = Yes;
-#  AutomaticMount = yes;               # when device opened, read it
-#  RemovableMedia = no;
 #  AlwaysOpen = no;
 #}
 
@@ -90,5 +91,4 @@ Device {
 Messages {
   Name = Standard
   director = @hostname@-dir = all
-# operator = @job_email@ = mount
 }

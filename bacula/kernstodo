@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                  7 April 2003 
+                  9 April 2003 
 
 Documentation to do: (a little bit at a time)
 - Document running a test version.
@@ -9,29 +9,35 @@ Documentation to do: (a little bit at a time)
 - Document problems with Verify and pruning.
 - Document how to use multiple databases.
 - Document Maximum File Size
-          
 - Add a section to the doc on Manual cycling of Volumes.
 
+- Document logrotate
+- Document default file backup
+          
 Testing to do: (painful)
 - that ALL console command line options work and are always implemented
 - blocksize recognition code.
 - multiple simultaneous Volumes
 
 For 1.30 release:
-- Update volume=Test01 requests pool, then lists volumes.
-- Add IP address to authentication failures. Implement M_SECURITY
-  message class.
-- Look at Python for a Bacula scripting language -- www.python.org
-- add #define ENABLE_NLS for Gnome compile on SuSE.
-- Figure out how to use ssh to protect Bacula communications.
+- Fix Bare Metal restore problem.
 - Fix "access not allowed" for backup of files on WinXP.
+
+- Figure out how to use ssh or stunnel to protect Bacula communications.
+
+After 1.30:
+- Implement a M_SECURITY message class.
+- Allow multiple Storage specifications (or multiple names on
+  a single Storage specification) in the Job record. Thus a job 
+  can be backed up to a number of storage devices.
+- Implement dump label to UA
+- Add prefixlinks to where or not where absolute links to FD.
+- Look at Python for a Bacula scripting language -- www.python.org
 - Issue message to mount a new tape before the rewind.
 - Simplified client job initiation for portables.
 - If SD cannot open a drive, make it periodically retry.
 - Implement LabelTemplate (at least first cut).
 - Add more of the config info to the tape label.
-- Add a default File storage so that new users can do backup
-  and restores right away.
 - Implement a Mount Command and an Unmount Command where
   the users could specify a system command to be performed
   to do the mount, after which Bacula could attempt to
@@ -72,7 +78,6 @@ For 1.30 release:
 - Make Restore report an error if FD or SD term codes are not OK.
 - CD into subdirectory when open()ing files for backup to
   speed up things.  Test with testfind().
-- Add prefixlinks to where or not where absolute links to FD.
 - Priority job to go to top of list.
 - Find out why Full saves run slower and slower (hashing?)
 - Why are save/restore of device different sizes (sparse?)   Yup! Fix it.
@@ -85,9 +90,9 @@ For 1.30 release:
 - bscan without -v is too quiet -- perhaps show jobs.
 - Add code to reject whole blocks if not wanted on restore.
 - Start working on Base jobs.
+- Check if we can increase Bacula FD priorty in Win2000
 - Make sure the MaxVolFiles is fully implemented in SD
 - Check if both CatalogFiles and UseCatalog are set to SD.
-- Check if we can increase Bacula FD priorty in Win2000
 - Need return status on read_cb() from read_records(). Need multiple
   records -- one per Job, maybe a JCR or some other structure with
   a block and a record.
@@ -116,7 +121,6 @@ For 1.30 release:
 - Fix Autoprune for Volumes to respect need for full save.
 - Fix Win32 config file definition name on /install
 - No READLINE_SRC if found in alternate directory.
-- Add Client FS/OS id (Linux, Win95/98, ...).
 - Test a second language e.g. french.
 - Compare tape to Client files (attributes, or attributes and data) 
 - Make all database Ids 64 bit.
@@ -145,7 +149,6 @@ For 1.30 release:
 - Implement script driven addition of File daemon to config files.
 - Think about how to make Bacula work better with File (non-tape) archives.
 - Write Unix emulator for Windows.
-
 - Implement new serialize subroutines
    send(socket, "string", &Vol, "uint32", &i, NULL)
 - Audit all UA commands to ensure that we always prompt where possible.
@@ -156,12 +159,6 @@ For 1.30 release:
 - Set flag for uname -a.  Add to Volume label.
 - Implement throttled work queue.
 - Check for EOT at ENOSPC or EIO or ENXIO (unix Pc)
-- Allow multiple Storage specifications (or multiple names on
-  a single Storage specification) in the Job record. Thus a job 
-  can be backed up to a number of storage devices.
-- Implement dump label to UA
-- Concept of VolumeSet during restore which is a list
-  of Volume names needed.
 - Restore files modified after date
 - Restore file modified before date
 - Emergency restore info:
@@ -243,8 +240,6 @@ For 1.30 release:
 - Need a structure for pending actions:
   - buffered messages
   - termination status (part of buffered msgs?)
-- Concept of grouping Storage devices and job can use
-  any of a number of devices
 - Drive management
   Read, Write, Clean, Delete
 - Login to Bacula; Bacula users with different permissions:
@@ -258,7 +253,6 @@ Longer term to do:
 - Identify unchanged or "system" files and save them to a
   special tape thus removing them from the standard 
   backup FileSet -- BASE backup.
-- Turn virutally all sprintfs into snprintfs.
 - Heartbeat between daemons.
 - Audit M_ error codes to ensure they are correct and consistent.
 - Add variable break characters to lex analyzer.
@@ -915,3 +909,15 @@ rufus-dir: Volume used once. Marking Volume "File0003" as Used.
 - Remove kern and kelvin from mysql_grant...
 - Install grant_mysql...
 - Strip trailing / from Include
+- add #define ENABLE_NLS for Gnome compile on SuSE.
+- Add Client FS/OS id (Linux, Win95/98, ...).
+- Concept of VolumeSet during restore which is a list
+  of Volume names needed.
+- Turn virutally all sprintfs into snprintfs.
+- Update volume=Test01 requests pool, then lists volumes.
+  **** Test select_pool_and_media ...
+- Document relabel
+- Add IP address to authentication failures. 
+- Add a default File storage so that new users can do backup
+  and restores right away.
+

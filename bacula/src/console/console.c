@@ -28,7 +28,6 @@
 #include "bacula.h"
 #include "console_conf.h"
 #include "jcr.h"
-#include <termios.h>
  
 /* Imported functions */
 int authenticate_director(JCR *jcr, DIRRES *director);

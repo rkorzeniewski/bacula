@@ -163,24 +163,34 @@ int prunecmd(UAContext *ua, char *cmd)
    CLIENT *client;
    POOL_DBR pr;
    MEDIA_DBR mr;
+   int kw;
 
    static char *keywords[] = {
       N_("Files"),
       N_("Jobs"),
       N_("Volume"),
       NULL};
+
    if (!open_db(ua)) {
       return 01;
    }
-   switch (find_arg_keyword(ua, keywords)) {
-   case 0:
+
+   /* First search args */
+   kw = find_arg_keyword(ua, keywords);  
+   if (kw < 0 || kw > 2) {
+      /* no args, so ask user */
+      kw = do_keyword_prompt(ua, _("Choose item to prune"), keywords);  
+   }	   
+    
+   switch (kw) {
+   case 0:  /* prune files */
       client = select_client_resource(ua);
       if (!client || !confirm_retention(ua, &client->FileRetention, "File")) {
 	 return 0;
       }
       prune_files(ua, client);
       return 1;
-   case 1:
+   case 1:  /* prune jobs */
       client = select_client_resource(ua);
       if (!client || !confirm_retention(ua, &client->JobRetention, "Job")) {
 	 return 0;
@@ -188,7 +198,7 @@ int prunecmd(UAContext *ua, char *cmd)
       /* ****FIXME**** allow user to select JobType */
       prune_jobs(ua, client, JT_BACKUP);
       return 1;
-   case 2:
+   case 2:  /* prune volume */
       if (!select_pool_and_media_dbr(ua, &pr, &mr)) {
 	 return 0;
       }
@@ -200,32 +210,7 @@ int prunecmd(UAContext *ua, char *cmd)
    default:
       break;
    }
-   switch (do_keyword_prompt(ua, _("Choose item to prune"), keywords)) {
-   case 0:
-      client = select_client_resource(ua);
-      if (!client || !confirm_retention(ua, &client->FileRetention, "File")) {
-	 return 0;
-      }
-      prune_files(ua, client);
-      break;
-   case 1:
-      client = select_client_resource(ua);
-      if (!client || !confirm_retention(ua, &client->JobRetention, "Job")) {
-	 return 0;
-      }
-      /* ****FIXME**** allow user to select JobType */
-      prune_jobs(ua, client, JT_BACKUP);
-      break;
-   case 2:
-      if (!select_pool_and_media_dbr(ua, &pr, &mr)) {
-	 return 0;
-      }
-      if (!confirm_retention(ua, &mr.VolRetention, "Volume")) {
-	 return 0;
-      }
-      prune_volume(ua, &pr, &mr);
-      return 1;
-   }
+
    return 1;
 }
 

@@ -46,7 +46,8 @@ static int authenticate(int rcode, BSOCK *bs)
       return 0;
    }
    if (bs->msglen < 25 || bs->msglen > 200) {
-      Emsg1(M_FATAL, 0, _("Bad Hello command from Director. Len=%d.\n"), bs->msglen);
+      Emsg2(M_FATAL, 0, _("Bad Hello command from Director at %s. Len=%d.\n"), 
+	    bs->who, bs->msglen);
       return 0;
    }
    dirname = get_pool_memory(PM_MESSAGE);
@@ -55,7 +56,8 @@ static int authenticate(int rcode, BSOCK *bs)
    if (sscanf(bs->msg, "Hello Director %s calling\n", dirname) != 1) {
       free_pool_memory(dirname);
       bs->msg[100] = 0;
-      Emsg1(M_FATAL, 0, _("Bad Hello command from Director: %s\n"), bs->msg);
+      Emsg2(M_FATAL, 0, _("Bad Hello command from Director at %s: %s\n"), 
+	    bs->who, bs->msg);
       return 0;
    }
    director = NULL;
@@ -67,13 +69,15 @@ static int authenticate(int rcode, BSOCK *bs)
    }
    UnlockRes();
    if (!director) {
-      Emsg1(M_FATAL, 0, _("Connection from unknown Director %s rejected.\n"), dirname);
+      Emsg2(M_FATAL, 0, _("Connection from unknown Director %s at %s rejected.\n"), 
+	    dirname, bs->who);
       free_pool_memory(dirname);
       return 0;
    }
    if (!cram_md5_auth(bs, director->password) ||
        !cram_md5_get_auth(bs, director->password)) {
-      Emsg0(M_FATAL, 0, _("Incorrect password given by Director.\n"));
+      Emsg1(M_FATAL, 0, _("Incorrect password given by Director at %s.\n"),
+	    bs->who);
       director = NULL;
    }
    free_pool_memory(dirname);
