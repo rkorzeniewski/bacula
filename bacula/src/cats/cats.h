@@ -48,6 +48,16 @@ typedef int (DB_RESULT_HANDLER)(void *, int, char **);
 
 #ifdef HAVE_SQLITE
 
+#ifdef HAVE_SQLITE3
+#define sqlite_last_insert_rowid sqlite3_last_insert_rowid
+#define sqlite_open sqlite3_open
+#define sqlite_close sqlite3_close
+#define sqlite_result sqlite3_result
+#define sqlite_exec sqlite3_exec
+#define sqlite_get_table sqlite3_get_table
+#define sqlite_free_table sqlite3_free_table
+#endif  
+
 #define BDB_VERSION 8
 
 #include <sqlite.h>
@@ -122,12 +132,17 @@ typedef struct s_db {
 #define sql_free_result(x)    my_sqlite_free_table(x)
 #define sql_fetch_row(x)      my_sqlite_fetch_row(x)
 #define sql_query(x, y)       my_sqlite_query((x), (y))
+#ifdef HAVE_SQLITE3
+#define sql_insert_id(x,y)    sqlite3_last_insert_rowid((x)->db)
+#define sql_close(x)          sqlite3_close((x)->db)
+#else
+#define sql_insert_id(x,y)    sqlite_last_insert_rowid((x)->db)
 #define sql_close(x)          sqlite_close((x)->db)
+#endif
 #define sql_strerror(x)       (x)->sqlite_errmsg?(x)->sqlite_errmsg:"unknown"
 #define sql_num_rows(x)       (x)->nrow
 #define sql_data_seek(x, i)   (x)->row = (i)
 #define sql_affected_rows(x)  1
-#define sql_insert_id(x,y)    sqlite_last_insert_rowid((x)->db)
 #define sql_field_seek(x, y)  my_sqlite_field_seek((x), (y))
 #define sql_fetch_field(x)    my_sqlite_fetch_field(x)
 #define sql_num_fields(x)     ((x)->ncolumn)
@@ -221,10 +236,10 @@ typedef struct s_db {
 
 typedef char **POSTGRESQL_ROW;
 typedef struct pg_field {
-	char         *name;
-	int           max_length;
-	unsigned int  type;
-	unsigned int  flags;       // 1 == not null
+        char         *name;
+        int           max_length;
+        unsigned int  type;
+        unsigned int  flags;       // 1 == not null
 } POSTGRESQL_FIELD;
 
 
