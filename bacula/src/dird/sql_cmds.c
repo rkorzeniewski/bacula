@@ -30,6 +30,9 @@
 #include "bacula.h"
 #include "dird.h"
 
+/* For ua_cmds.c */
+char *list_pool = "SELECT * FROM Pool WHERE PoolId=%u";
+
 /* ====== ua_prune.c */
 
 char *cnt_File     = "SELECT count(*) FROM File WHERE JobId=%u";

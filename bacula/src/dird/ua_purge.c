@@ -170,6 +170,7 @@ int purgecmd(UAContext *ua, char *cmd)
    static char *keywords[] = {
       N_("files"),
       N_("jobs"),
+      N_("volume"),
       NULL};
 
    static char *files_keywords[] = {
@@ -199,7 +200,7 @@ int purgecmd(UAContext *ua, char *cmd)
    case 0:
       switch(find_arg_keyword(ua, files_keywords)) {
       case 0:			      /* Job */
-      case 1:
+      case 1:			      /* JobId */
 	 if (get_job_dbr(ua, &jr)) {
 	    purge_files_from_job(ua, &jr);
 	 }
@@ -208,7 +209,7 @@ int purgecmd(UAContext *ua, char *cmd)
 	 client = select_client_resource(ua);
 	 purge_files_from_client(ua, client);
 	 return 1;
-      case 3:
+      case 3:			      /* Volume */
 	 if (select_pool_and_media_dbr(ua, &pr, &mr)) {
 	    purge_files_from_volume(ua, &pr, &mr);
 	 }
@@ -221,29 +222,40 @@ int purgecmd(UAContext *ua, char *cmd)
 	 client = select_client_resource(ua);
 	 purge_jobs_from_client(ua, client);
 	 return 1;
-      case 1:
+      case 1:			      /* Volume */
 	 if (select_pool_and_media_dbr(ua, &pr, &mr)) {
 	    purge_jobs_from_volume(ua, &pr, &mr);
 	 }
 	 return 1;
       }
+   /* Volume */
+   case 2:
+      if (select_pool_and_media_dbr(ua, &pr, &mr)) {
+	 purge_jobs_from_volume(ua, &pr, &mr);
+      }
+      return 1;
    default:
       break;
    }
    switch (do_keyword_prompt(ua, _("Choose item to purge"), keywords)) {
-   case 0:
+   case 0:			      /* files */
       client = select_client_resource(ua);
       if (!client) {
 	 return 1;
       }
       purge_files_from_client(ua, client);
       break;
-   case 1:
+   case 1:			      /* jobs */
       client = select_client_resource(ua);
       if (!client) {
 	 return 1;
       }
       purge_jobs_from_client(ua, client);
+      break;
+   case 2:			      /* Volume */
+      if (select_pool_and_media_dbr(ua, &pr, &mr)) {
+	 purge_jobs_from_volume(ua, &pr, &mr);
+      }
       break;
    }
    return 1;
@@ -450,6 +462,7 @@ void purge_jobs_from_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
       bsendmsg(ua, "There are no Jobs associated with Volume %s. Marking it purged.\n",
 	 mr->VolumeName);
       if (!mark_media_purged(ua, mr)) {
+         bsendmsg(ua, "%s", db_strerror(ua->db));
 	 goto bail_out;
       }
       goto bail_out;
@@ -489,7 +502,9 @@ void purge_jobs_from_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
 
    /* If purged, mark it so */
    if (del.num_ids == del.num_del) {
-      mark_media_purged(ua, mr);
+      if (!mark_media_purged(ua, mr)) {
+         bsendmsg(ua, "%s", db_strerror(ua->db));
+      }
    }
 
 bail_out:   
@@ -497,22 +512,22 @@ bail_out:
 }
 
 /*
- * IF volume status is Append, Full, or Used, mark it Purged
+ * IF volume status is Append, Full, Used, or Error, mark it Purged
  *   Purged volumes can then be recycled (if enabled).
  */
 int mark_media_purged(UAContext *ua, MEDIA_DBR *mr)
 {
    if (strcmp(mr->VolStatus, "Append") == 0 || 
        strcmp(mr->VolStatus, "Full")   == 0 ||
-       strcmp(mr->VolStatus, "Used") == 0) {
+       strcmp(mr->VolStatus, "Used")   == 0 || 
+       strcmp(mr->VolStatus, "Error")  == 0) {
       strcpy(mr->VolStatus, "Purged");
       if (!db_update_media_record(ua->jcr, ua->db, mr)) {
-	 if (ua->verbose) {
-            bsendmsg(ua, "%s", db_strerror(ua->db));
-	 }
 	 return 0;
       }
       return 1;
+   } else {
+      bsendmsg(ua, _("Cannot purge Volume with VolStatus=%s\n"), mr->VolStatus);
    }
    return strcpy(mr->VolStatus, "Purged") == 0;
 }

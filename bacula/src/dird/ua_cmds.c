@@ -41,6 +41,8 @@ extern struct s_res resources[];
 extern char my_name[];
 extern workq_t job_wq;		      /* work queue */
 
+extern char *list_pool;
+
 /* Imported functions */
 extern int statuscmd(UAContext *ua, char *cmd);
 extern int listcmd(UAContext *ua, char *cmd);
@@ -891,6 +893,7 @@ static int update_pool(UAContext *ua)
    POOL_DBR  pr;
    int id;
    POOL *pool;
+   POOLMEM *query;	 
    
    
    pool = get_pool_resource(ua);
@@ -911,6 +914,10 @@ static int update_pool(UAContext *ua)
       bsendmsg(ua, _("db_update_pool_record returned %d. ERR=%s\n"),
 	 id, db_strerror(ua->db));
    }
+   query = get_pool_memory(PM_MESSAGE);
+   Mmsg(&query, list_pool, pr.PoolId);
+   db_list_sql_query(ua->jcr, ua->db, query, prtit, ua, 1);
+   free_pool_memory(query);
    bsendmsg(ua, _("Pool DB record updated from resource.\n"));
    return 1;
 }

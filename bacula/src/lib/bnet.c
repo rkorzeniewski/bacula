@@ -503,7 +503,7 @@ bnet_connect(void *vjcr, int retry_interval, int max_retry_time, char *name,
    JCR *jcr = (JCR *)vjcr;
 
    for (i=0; (bsock = bnet_open(jcr, name, host, service, port)) == NULL; i -= retry_interval) {
-     if (job_cancelled(jcr)) {
+     if (jcr && job_cancelled(jcr)) {
 	break;
      }
      Dmsg4(100, "Unable to connect to %s on %s:%d. ERR=%s\n",

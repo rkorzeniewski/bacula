@@ -185,7 +185,8 @@ int showcmd(UAContext *ua, char *cmd)
  *  list files job=name
  *  list pools		- list pool records
  *  list jobtotals	- list totals for all jobs
- *  list media		- list media for given pool
+ *  list media		- list media for given pool (deprecated)
+ *  list volumes	- list Volumes
  *  list clients	- list clients
  *
  */
@@ -309,11 +310,34 @@ int listcmd(UAContext *ua, char *cmd)
 	 }
 	 /* if no job or jobid keyword found, then we list all media */
 	 if (!done) {
-	    if (!get_pool_dbr(ua, &pr)) {
+	    int num_pools;
+	    uint32_t *ids;
+	    /* Is a specific pool wanted? */
+	    for (i=1; i<ua->argc; i++) {
+               if (strcasecmp(ua->argk[i], _("pool")) == 0) {
+		  if (!get_pool_dbr(ua, &pr)) {
+		     return 1;
+		  }
+		  mr.PoolId = pr.PoolId;
+		  db_list_media_records(ua->jcr, ua->db, &mr, prtit, ua);
+		  return 1;
+	       }
+	    }
+	    /* List Volumes in all pools */
+	    if (!db_get_pool_ids(ua->jcr, ua->db, &num_pools, &ids)) {
+               bsendmsg(ua, _("Error obtaining pool ids. ERR=%s\n"), 
+			db_strerror(ua->db));
 	       return 1;
 	    }
-	    mr.PoolId = pr.PoolId;
-	    db_list_media_records(ua->jcr, ua->db, &mr, prtit, ua);
+	    if (num_pools <= 0) {
+	       return 1;
+	    }
+	    for (i=0; i < num_pools; i++) {
+	       mr.PoolId = ids[i];
+	       db_list_media_records(ua->jcr, ua->db, &mr, prtit, ua);
+	    }
+	    free(ids);
+	    return 1;
 	 }
       } else {
          bsendmsg(ua, _("Unknown list keyword: %s\n"), NPRT(ua->argk[i]));
