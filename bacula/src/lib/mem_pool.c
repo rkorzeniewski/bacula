@@ -108,12 +108,12 @@ POOLMEM *sm_get_pool_memory(char *fname, int lineno, int pool)
 	 pool_ctl[pool].max_used = pool_ctl[pool].in_use;
       }
       V(mutex);
-      Dmsg3(150, "sm_get_pool_memory reuse %x to %s:%d\n", buf, fname, lineno);
+      Dmsg3(300, "sm_get_pool_memory reuse %x to %s:%d\n", buf, fname, lineno);
       sm_new_owner(fname, lineno, (char *)buf);
       return (POOLMEM *)((char *)buf+HEAD_SIZE);
    }
       
-   if ((buf = (struct abufhead *) sm_malloc(fname, lineno, pool_ctl[pool].size+HEAD_SIZE)) == NULL) {
+   if ((buf = (struct abufhead *)sm_malloc(fname, lineno, pool_ctl[pool].size+HEAD_SIZE)) == NULL) {
       V(mutex);
       Emsg1(M_ABORT, 0, "Out of memory requesting %d bytes\n", pool_ctl[pool].size);
    }
@@ -124,7 +124,7 @@ POOLMEM *sm_get_pool_memory(char *fname, int lineno, int pool)
       pool_ctl[pool].max_used = pool_ctl[pool].in_use;
    }
    V(mutex);
-   Dmsg3(150, "sm_get_pool_memory give %x to %s:%d\n", buf, fname, lineno);
+   Dmsg3(300, "sm_get_pool_memory give %x to %s:%d\n", buf, fname, lineno);
    return (POOLMEM *)((char *)buf+HEAD_SIZE);
 }
 
@@ -208,13 +208,17 @@ void sm_free_pool_memory(char *fname, int lineno, POOLMEM *obuf)
       struct abufhead *next;
       /* Don't let him free the same buffer twice */
       for (next=pool_ctl[pool].free_buf; next; next=next->next) {
-	 ASSERT(next != buf);  /* attempt to free twice */
+	 if (next == buf) {
+            Dmsg4(300, "bad free_pool_memory %x pool=%d from %s:%d\n", buf, pool, fname, lineno);
+	    V(mutex);		      /* unblock the pool */
+	    ASSERT(next != buf);      /* attempt to free twice */
+	 }
       }
 #endif
       buf->next = pool_ctl[pool].free_buf;
       pool_ctl[pool].free_buf = buf;
    }
-   Dmsg2(150, "free_pool_memory %x pool=%d\n", buf, pool);
+   Dmsg4(300, "free_pool_memory %x pool=%d from %s:%d\n", buf, pool, fname, lineno);
    V(mutex);
 }
 
@@ -331,13 +335,16 @@ void free_pool_memory(POOLMEM *obuf)
       struct abufhead *next;
       /* Don't let him free the same buffer twice */
       for (next=pool_ctl[pool].free_buf; next; next=next->next) {
-	 ASSERT(next != buf);  /* attempt to free twice */
+	 if (next == buf) {
+	    V(mutex);
+	    ASSERT(next != buf);  /* attempt to free twice */
+	 }
       }
 #endif
       buf->next = pool_ctl[pool].free_buf;
       pool_ctl[pool].free_buf = buf;
    }
-   Dmsg2(150, "free_pool_memory %x pool=%d\n", buf, pool);
+   Dmsg2(300, "free_pool_memory %x pool=%d\n", buf, pool);
    V(mutex);
 }
 
