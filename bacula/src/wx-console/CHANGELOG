@@ -1,3 +1,9 @@
+07-05-2004 :
+ - console_thread : Added support for the new parse_config which
+      returns a status code.
+ - wxbMainFrame/console_thread : A command line parameter now
+      allows the user to choose his config file.
+
 06-05-2004 :
  - wxbMainFrame : Corrected font bug in GTK+ 1.2
  - console_thread : Added support for Mac OS X configuration

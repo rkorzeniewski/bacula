@@ -1,9 +1,15 @@
 FEATURES
 --------
 
-wxbRestorePanel : When cancelling, check for commands results
-
 general : Show nice messages boxes when errors occurs.
+
+console_thread : Check for config file parsing error messages
+    in console file.
+
+console_thread : Allow the user to choose his config file.
+
+console_thread : Allow the user to choose his director when there's multiple
+    directors.
 
 Mac OS X : Integrate Mac OS X into the automake process
   (note : add -DNO_GCC_PRAGMA to CPPFLAGS, build app,
@@ -18,6 +24,8 @@ Mac OS X : Ask kern for the status of this distribution (who is
   the package releaser ?)
 
 [postponed to July:]
+
+wxbRestorePanel : When cancelling, check for commands results
 
 general : Do not quit when configuration file not found.
 
@@ -54,11 +62,6 @@ general : Implement dis/reconnecting
 
 wxbRestorePanel : Use ".default job=RestoreFiles" to get defaults parameters
 	when changing a restore parameter fails.
-
-console_thread : Allow the user to choose his config file.
-
-console_thread : Allow the user to choose his director when there's multiple
-    directors.
 
 wxbDataParser : Add a boolean in the constructor to avoid storing data is 
     will not be used.

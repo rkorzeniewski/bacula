@@ -39,7 +39,7 @@ class console_thread : public wxThread
 {
    public:
       // class constructor
-      console_thread();
+      console_thread(wxString configfile);
       // class destructor
       ~console_thread();
 
@@ -49,6 +49,7 @@ class console_thread : public wxThread
    private:
       BSOCK* UA_sock;
       JCR jcr;
+      wxString configfile;
 };
 
 int pm_cst_strcpy(POOLMEM **pm, const char *str);

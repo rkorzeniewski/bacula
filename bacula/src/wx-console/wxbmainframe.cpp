@@ -299,7 +299,26 @@ void wxbMainFrame::StartConsoleThread()
    else {
       promptparser = new wxbPromptParser();      
    }
-   ct = new console_thread();
+   
+   wxString configfile;
+   
+   
+   if ((wxTheApp->argc == 3) && (wxString(wxTheApp->argv[1]) == "-c")) {
+      configfile = wxTheApp->argv[2];
+   }
+   else {
+#ifdef HAVE_MACOSX
+      configfile = "/Library/Preferences/org.bacula.wxconsole.conf";
+#else
+      configfile = "./wx-console.conf";
+#endif
+      if (wxTheApp->argc > 1) {
+         Print("Error while parsing command line arguments, using defaults.\n", CS_DEBUG);
+         Print("Usage: wx-console [-c configfile]\n", CS_DEBUG);
+      }
+   }
+   
+   ct = new console_thread(configfile);
    ct->Create();
    ct->Run();
    SetStatusText("Connecting to the director...");

@@ -42,18 +42,13 @@ char OK_msg[]   = "2000 OK\n";
 char TERM_msg[] = "2999 Terminate\n";
 #endif
 
-#ifdef HAVE_MACOSX
-#define CONFIGFILE "/Library/Preferences/org.bacula.wxconsole/wx-console.conf"
-#else
-#define CONFIGFILE "./wx-console.conf"
-#endif
-
 /* Imported functions */
 int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons);
 
 // class constructor
-console_thread::console_thread() {
+console_thread::console_thread(wxString configfile) {
    UA_sock = NULL;
+   this->configfile = configfile;
 }
 
 // class destructor
@@ -87,11 +82,34 @@ void* console_thread::Entry() {
    init_stack_dump();
    my_name_is(0, NULL, "wx-console");
    //textdomain("bacula-console");
-   init_msg(NULL, NULL);
+   
+   MSGS* msgs = (MSGS *)malloc(sizeof(MSGS));
+   memset(msgs, 0, sizeof(MSGS));
+   for (int i=1; i<=M_MAX; i++) {
+#ifndef WIN32
+      add_msg_dest(msgs, MD_STDOUT, i, NULL, NULL);
+#endif
+      add_msg_dest(msgs, MD_SYSLOG, i, NULL, NULL);
+      add_msg_dest(msgs, MD_CONSOLE, i, NULL, NULL);
+   }
+   
+   init_msg(NULL, msgs);
+   init_console_msg(".");
 
    /* TODO (#4#): Allow the user to choose his config file. */
-   parse_config(CONFIGFILE);
-
+   if (!parse_config(configfile.c_str(), 0)) {
+      csprint("Unable to read configuration file.\n");
+      csprint(NULL, CS_END);
+      csprint(NULL, CS_DISCONNECTED);
+      csprint(NULL, CS_TERMINATED);
+      #ifdef HAVE_WIN32
+         Exit();
+      #endif
+      return NULL;
+   }
+   
+   init_msg(NULL, NULL);
+   
    LockRes();
    DIRRES *dir = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);
    UnlockRes();
