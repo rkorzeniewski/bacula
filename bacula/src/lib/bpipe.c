@@ -72,12 +72,24 @@ BPIPE *open_bpipe(char *prog, int wait, const char *mode)
       return NULL;
    }
    if (mode_read && pipe(readp) == -1) {
+      if (mode_write) {
+	 close(writep[0]);
+	 close(writep[1]);
+      }
       free(bpipe);
       return NULL;
    }
    /* Start worker process */
    switch (bpipe->worker_pid = fork()) {
    case -1:			      /* error */
+      if (mode_write) {
+	 close(writep[0]);
+	 close(writep[1]);
+      }
+      if (mode_read) {
+	 close(readp[0]);
+	 close(readp[1]);
+      }
       free(bpipe);
       return NULL;
 
@@ -91,7 +103,8 @@ BPIPE *open_bpipe(char *prog, int wait, const char *mode)
 	 dup2(readp[1], 1);	      /* dup our read to his stdout */
 	 dup2(readp[1], 2);	      /*   and his stderr */
       }
-      for (i=3; i<=32; i++) {	  /* close any open file descriptors */
+      closelog();		      /* close syslog if open */
+      for (i=3; i<=32; i++) {	      /* close any open file descriptors */
 	 close(i);
       }
       execvp(bargv[0], bargv);	      /* call the program */
