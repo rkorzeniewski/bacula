@@ -1,0 +1,13 @@
+#!/bin/sh
+#
+# Create two blank tapes
+#
+@changer_path@ -f @autochanger@ unload
+@changer_path@ -f @autochanger@ load 1
+mt -f @tape_drive@ rewind
+mt -f @tape_drive@ weof
+@changer_path@ -f @autochanger@ unload
+@changer_path@ -f @autochanger@ load 2
+mt -f @tape_drive@ rewind
+mt -f @tape_drive@ weof
+@changer_path@ -f @autochanger@ unload
