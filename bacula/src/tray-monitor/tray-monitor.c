@@ -34,6 +34,8 @@
 
 #include "generic.xpm"
 
+#define TRAY_DEBUG_MEMORY 0
+
 /* Imported functions */
 int authenticate_director(JCR *jcr, MONITOR *monitor, DIRRES *director);
 int authenticate_file_daemon(JCR *jcr, MONITOR *monitor, CLIENT* client);
@@ -47,7 +49,6 @@ void getstatus(monitoritem* item, int current, GString** str);
 /* Static variables */
 static char *configfile = NULL;
 static MONITOR *monitor;
-static POOLMEM *args;
 static JCR jcr;
 static int nitems = 0;
 static int fullitem = 0; //Item to be display in detailled status window
@@ -133,6 +134,27 @@ static GtkWidget *new_image_button(const gchar *stock_id,
     return button;
 }
 
+int sm_line = 0;
+
+#if TRAY_DEBUG_MEMORY
+gpointer smt_malloc(gsize    n_bytes) {
+   return sm_malloc("GLib", sm_line, n_bytes);
+}
+  
+gpointer smt_realloc(gpointer mem, gsize    n_bytes) {
+   return sm_realloc("GLib", sm_line, mem, n_bytes);
+}
+
+gpointer smt_calloc(gsize    n_blocks,
+                    gsize    n_block_bytes) {
+   return sm_calloc("GLib", sm_line, n_blocks, n_block_bytes);
+}
+
+void     smt_free(gpointer mem) {
+   sm_free("Glib", sm_line, mem);
+}
+#endif
+
 /*********************************************************************
  *
  *	   Main Bacula Tray Monitor -- User Interface Program
@@ -140,6 +162,17 @@ static GtkWidget *new_image_button(const gchar *stock_id,
  */
 int main(int argc, char *argv[])
 {
+#if TRAY_DEBUG_MEMORY
+   GMemVTable smvtable;
+   smvtable.malloc = &smt_malloc;
+   smvtable.realloc = &smt_realloc;
+   smvtable.free = &smt_free;
+   smvtable.calloc = &smt_calloc;
+   smvtable.try_malloc = NULL;
+   smvtable.try_realloc = NULL;
+   g_mem_set_vtable(&smvtable);
+#endif
+   
    int ch, i;
    bool test_config = false;
    DIRRES* dird;
@@ -151,7 +184,6 @@ int main(int argc, char *argv[])
    textdomain("bacula");
    init_msg(NULL, NULL);
    working_directory = "/tmp";
-   args = get_pool_memory(PM_FNAME);
 
    struct sigaction sigignore;
    sigignore.sa_flags = 0;
@@ -252,7 +284,7 @@ int main(int argc, char *argv[])
    //Copy the content of xpm_generic in xpm_generic_var to be able to modify it
    g_assert((xpm_generic_var = (char**)g_malloc(sizeof(xpm_generic))));
    for (i = 0; i < (int)(sizeof(xpm_generic)/sizeof(const char*)); i++) {
-      g_assert((xpm_generic_var[i] = (char*)g_malloc(strlen(xpm_generic[i])*sizeof(char))));
+      g_assert((xpm_generic_var[i] = (char*)g_malloc((strlen(xpm_generic[i])+1)*sizeof(char))));
       strcpy(xpm_generic_var[i], xpm_generic[i]);
    }
 
@@ -410,6 +442,10 @@ int main(int argc, char *argv[])
    gtk_widget_show_all(vbox);
 
    gtk_main();
+   
+   g_source_remove(timerTag);
+   
+   sm_line = 0;
 
    for (i = 0; i < nitems; i++) {
       if (items[i].D_sock) {
@@ -419,7 +455,6 @@ int main(int argc, char *argv[])
       }
    }
 
-   free_pool_memory(args);
    (void)WSACleanup();		     /* Cleanup Windows sockets */
 
    //Free xpm_generic_var
@@ -427,7 +462,15 @@ int main(int argc, char *argv[])
       g_free(xpm_generic_var[i]);
    }
    g_free(xpm_generic_var);
+   
+   gtk_object_destroy(GTK_OBJECT(window));
+   gtk_object_destroy(GTK_OBJECT(mTrayMenu));
+   term_msg();
 
+#if TRAY_DEBUG_MEMORY
+   sm_dump(false);
+#endif
+   
    return 0;
 }
 
@@ -531,7 +574,11 @@ static gboolean blink(gpointer data) {
 }
 
 static gboolean fd_read(gpointer data) {
-   GtkTextBuffer *newbuffer = gtk_text_buffer_new(NULL);
+   sm_line++;
+#if TRAY_DEBUG_MEMORY
+   printf("sm_line=%d\n", sm_line);
+#endif
+   GtkTextBuffer *newbuffer;
    GtkTextIter start, stop, nstart, nstop;
 
    GSList *list, *it;
@@ -544,6 +591,8 @@ static gboolean fd_read(gpointer data) {
    }
 
    if (lastupdated == fullitem) {
+      newbuffer = gtk_text_buffer_new(NULL);
+      
       if (items[lastupdated].type == R_DIRECTOR)
 	 docmd(&items[lastupdated], "status Director\n", &list);
       else
@@ -556,6 +605,8 @@ static gboolean fd_read(gpointer data) {
 	 if (it->data) g_string_free((GString*)it->data, TRUE);
       } while ((it = it->next) != NULL);
 
+      g_slist_free(list);
+            
       /* Keep the selection if necessary */
       if (gtk_text_buffer_get_selection_bounds(buffer, &start, &stop)) {
 	 gtk_text_buffer_get_iter_at_offset(newbuffer, &nstart, gtk_text_iter_get_offset(&start));
@@ -961,6 +1012,7 @@ void updateStatusIcon(monitoritem* item) {
    else {
       gtk_image_set_from_pixbuf(GTK_IMAGE(item->image), pixbuf);
    }
+   g_object_unref(G_OBJECT(pixbuf));
 }
 
 /* Note: result should not be stored, as it is a reference to xpm_generic_var */
