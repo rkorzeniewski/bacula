@@ -25,7 +25,20 @@ Using GNU autoconfig
 
         A typical Bacula development configuration for Linux is:
 
-        CFLAGS="-g -Wall" ./configure --enable-smartalloc --enable-mysql
+        CFLAGS="-g -O2 -Wall" \
+          ./configure \
+            --sbindir=$HOME/bacula/bin \
+            --sysconfdir=$HOME/bacula/bin \
+            --with-pid-dir=$HOME/bacula/bin/working \
+            --with-subsys-dir=$HOME/bacula/bin/working \
+            --enable-smartalloc \
+            --with-mysql=$HOME/mysql \
+            --with-working-dir=$HOME/bacula/bin/working \
+            --with-dump-email=your@address.com \
+            --with-job-email=your@address.com \
+            --with-smtp-host=localhost \
+            --with-baseport=9101
+
 
         See the README for a few additional details and the online manual
         for all the gory details:  http://www.bacula.org/html-manual

@@ -21,7 +21,11 @@ ALTER TABLE media ALTER COLUMN EndBlock SET NOT NULL;
 
 UPDATE Filename SET Name='' WHERE Name=' ';
 
-ALTER TABLE file ALTER COLUMN filenameid SET integer;
+alter table file alter column filenameid rename to filenameid-old;
+alter table file add column filenameid integer;
+update file set filenameid = filenameid-old;
+alter table file alter column filenameid set not null;
+alter table file drop column filenameid-old;
 
 DELETE FROM Version;
 INSERT INTO Version (VersionId) VALUES (8);
@@ -37,6 +41,8 @@ create table CDImages
    LastBurn timestamp without time zone not null,
    primary key (MediaId)
 );
+
+vacuum;
 
 END-OF-DATA
 then

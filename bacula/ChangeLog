@@ -1,4 +1,57 @@
 
+Changes to 1.35.9:
+19Oct04
+- Modify install of make_catalog_backup and delete_catalog_backup so
+  that it will not overwrite any existing file.
+- Additional documentation.
+- Modified detection of largefiles to always set all flags regardless
+  of the machine.
+- Modify autostart scripts to start Bacula late in the process and
+  terminate it early.
+- Drop CDImages table in drop database tables scripts.
+- Alter casting of (void *) in gnome2-console/restore.c to pass
+  by a (long int) so that it works with 64 bit machines.
+- Add more debug to heartbeat.c in FD for problem of dropped connections.
+18Oct04
+- Adjust priorities for starting/stopping daemons to be
+  started late and stopped early as suggested by Marc Williams.
+18Oct04
+- Adjust priorities for starting/stopping daemons to be
+  started late and stopped early as suggested by Marc Williams.
+18Oct04
+- Fix crash on exit with -t option in FD on 2.6 kernels -- 
+  uninitialized thread id variable.
+- Add additional SD and FD debug info to detect network hang.
+- Fix bnet_strerror() routine not to return stack pointer.
+- Put latest update routines in updatedb.
+16Oct04
+- Fix error during restore error reported by Christopher Hull when
+  no tape in the drive (open fails).
+- Add more precise error reporting to FD when a network error
+  occurs.
+15Oct04
+- Fix empty files reported by Marin (zero file_size in dev.c).
+- Update all the db update scripts to include the new multiple
+  key index on File proposed by Martin, and to fix up a few
+  minor things with PostgreSQL.
+- Apply Christopher Hull's patch for getting the catalog correct
+  during a restore.
+- Created a patch for 1.34.6 (and code in 1.35) to detect passing
+  the A option to the FD, which means enable ACL processing.
+  Submitted by Ben Vitale.
+13Oct04
+- Fix syntax error in make_mysql_tables.in pointed out by Scott.
+12Oct04
+- Add a kludge to detect bad date/times, which cause a seg fault in
+  Microsoft's version of localtime_r().  So, now we know that Microsoft
+  programmers do not check return codes!
+- Minor update to web site (new projects page).
+- Remove bigint for filenameid from postgresql table -- as demonstrated
+  by Martin, it has negative performance repercussions.
+- Rework getuser() and getgroup() to avoid any possible race condition 
+  by returning the value in a buffer rather than from the cached table.
+- Add a bit more debug code to the FD status output.
+
 Changes to 1.35.8:
 09Oct04
 - Documentation.
