@@ -49,7 +49,7 @@ extern int debug_level;
 
 /* Commands sent to File daemon */
 static char verifycmd[]    = "verify level=%s\n";
-static char storaddr[]     = "storage address=%s port=%d\n";
+static char storaddr[]     = "storage address=%s port=%d ssl=0\n";
 static char sessioncmd[]   = "session %s %ld %ld %ld %ld %ld %ld\n";  
 
 /* Responses received from File daemon */
