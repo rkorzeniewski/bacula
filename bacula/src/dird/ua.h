@@ -48,6 +48,7 @@ struct UAContext {
    bool automount;                    /* if set, mount after label */
    bool quit;                         /* if set, quit */
    bool verbose;                      /* set for normal UA verbosity */
+   bool batch;                        /* set for non-interactive mode */
    uint32_t pint32_val;               /* positive integer */
    int32_t  int32_val;                /* positive/negative */
 };          

@@ -38,7 +38,6 @@
 
 
 /* Imported functions */
-extern int run_cmd(UAContext *ua, const char *cmd);
 extern void print_bsr(UAContext *ua, RBSR *bsr);
 
 /* Imported variables */

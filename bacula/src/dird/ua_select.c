@@ -693,6 +693,12 @@ int do_prompt(UAContext *ua, const char *automsg, const char *msg, char *prompt,
       bsendmsg(ua, _("Automatically selected %s: %s\n"), automsg, ua->prompt[1]);
       goto done;
    }
+   /* If running non-interactive, bail out */
+   if (ua->batch) {
+      bsendmsg(ua, _("Cannot select %s in batch mode.\n"), automsg);
+      item = -1;
+      goto done;
+   }
    bsendmsg(ua, ua->prompt[0]);
    for (i=1; i < ua->num_prompts; i++) {
       bsendmsg(ua, "%6d: %s\n", i, ua->prompt[i]);

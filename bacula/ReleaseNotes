@@ -24,7 +24,7 @@ Major Changes:
   Once the Python script gets control, it can have access to Bacula
   variables by doing:
 
-  import bacula
+     import bacula
 
   The script is called with one argument, typically called j. This
   argument *must* be passed unchanged to each bacula function. The
@@ -33,21 +33,28 @@ Major Changes:
 
   Bacula variables can be read with:
 
-  bacula.get(j, "Variable-name")
+     bacula.get(j, "Variable-name")
 
-  where j is the argument passed to the function, and Variable-name
-  is on of the following:
+    where j is the argument passed to the function, and Variable-name
+    is on of the following:
 
-   JoId, Client, Pool, Storage, Catalog, MediaType, NumVols, DirName,
-     Level, Type, Job, JobName, JobStatus
+     JobId, Client, Pool, Storage, Catalog, MediaType, NumVols, DirName,
+       Level, Type, Job, JobName, JobStatus
 
    Bacula varibles can be set using Python keyword arguments:
 
-   bacula.set(jcr=j, VolumeName="xyz")
+      bacula.set(jcr=j, VolumeName="xyz")
 
-   The two currently implemented writable "variables" are:
+    The two currently implemented writable "variables" are:
 
-   VolumeName and JobReport
+    VolumeName and JobReport
+
+   It is possible to submit a Bacula run command with the following:
+
+     bacula.run(j, "run kernsave client=Matou storage=File")
+
+   this function returns the JobId of the job that was started. If
+   there is an error, the return value is zero.
 
    Example:
 
@@ -58,6 +65,10 @@ def EndJob(j):
     jobid = bacula.get(j, "JobId")
     client = bacula.get(j, "Client") 
     bacula.set(jcr=j, JobReport="EndJob output: JobId=%d Client=%s.\n" % (jobid, client))
+    if (jobid < 5) :
+       startid = bacula.run(j, "run kernsave")
+       print "Python started jobid=", startid
+
     return 1
 ====
 

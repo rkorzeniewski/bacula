@@ -73,7 +73,7 @@ int autodisplay_cmd(UAContext *ua, const char *cmd)
 }
 
 /*
- * Turn gui processing on/off
+ * Turn batch processing on/off
  */
 int gui_cmd(UAContext *ua, const char *cmd)
 {
@@ -84,9 +84,11 @@ int gui_cmd(UAContext *ua, const char *cmd)
 
    switch (find_arg_keyword(ua, kw)) {
    case 0:
+      ua->batch = true;
       ua->jcr->gui = true;
       break;
    case 1:
+      ua->batch = false;
       ua->jcr->gui = false;
       break;
    default:
