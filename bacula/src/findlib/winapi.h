@@ -28,9 +28,11 @@
 #ifndef __WINAPI_H
 #define __WINAPI_H
 #if defined(HAVE_WIN32)
-#if !defined(HAVE_MINGW) // native.h not present on mingw
+/* Commented out native.h include statement, which is not distributed with the 
+ * free version of VC++, and which is not used in bacula. */
+/*#if !defined(HAVE_MINGW) // native.h not present on mingw
 #include <native.h>
-#endif
+#endif*/
 #include <windef.h>
 #endif
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
