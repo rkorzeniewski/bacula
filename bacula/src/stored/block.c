@@ -497,7 +497,6 @@ int read_block_from_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 {
    ssize_t stat;
    int looping;
-   uint32_t BlockNumber;
 
    looping = 0;
    Dmsg1(100, "Full read() in read_block_from_device() len=%d\n",
@@ -544,14 +543,9 @@ reread:
       return 0; 		/* return error */
    }  
 
-   BlockNumber = block->BlockNumber + 1;
    if (!unser_block_header(dev, block)) {
       block->read_len = 0;
       return 0;
-   }
-   if (verbose && (block->BlockNumber != BlockNumber)) {
-      Jmsg(jcr, M_ERROR, 0, _("Incorrect block number: expected %u, got %u\n"),
-	 BlockNumber, block->BlockNumber);
    }
 
    /*
