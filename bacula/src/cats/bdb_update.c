@@ -63,7 +63,7 @@
  */
 int db_update_job_start_record(B_DB *mdb, JOB_DBR *jr)	  
 {
-   int len, stat;
+   int len, stat = 1;
    JOB_DBR ojr;
 
    Dmsg0(200, "In db_update_job_start_record\n");
@@ -93,7 +93,7 @@ int db_update_job_start_record(B_DB *mdb, JOB_DBR *jr)
  */
 int db_update_job_end_record(B_DB *mdb, JOB_DBR *jr)	
 {
-   int len, stat;
+   int len, stat = 1;
    JOB_DBR ojr;
 
    Dmsg0(200, "In db_update_job_start_record\n");
