@@ -83,3 +83,19 @@ To avoid re-doing a make setup if you have made a change to the
 conf files, and you do not need a new copy of the source, you can simply do:
 
    scripts/do-sed <your-email-address>
+
+Debugging failed tests:
+The simplest thing to do is to edit tests/xxxx where xxxx is the name of
+a or the test that is failing and change all:
+ 
+ @output
+
+to
+  
+ @tee
+
+re-run the test. The output will display on your terminal.  In rare cases,        
+for example to get bacula debug output, you might want to remove the
+"2>&1 >/dev/null" from the end of the bin/bacula call or from the end
+of the diff call, assuming you want to "see" the diff output.
+    
