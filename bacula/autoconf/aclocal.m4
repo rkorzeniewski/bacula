@@ -567,6 +567,10 @@ AC_ARG_WITH(postgresql,
               POSTGRESQL_INCDIR=/usr/include
               POSTGRESQL_LIBDIR=/usr/lib
               POSTGRESQL_BINDIR=/usr/bin
+          elif test -f /usr/include/pgsql/libpq-fe.h; then
+              POSTGRESQL_INCDIR=/usr/include/pgsql
+              POSTGRESQL_LIBDIR=/usr/lib/pgsql
+              POSTGRESQL_BINDIR=/usr/bin
           else
               AC_MSG_RESULT(no)
               AC_MSG_ERROR(Unable to find libpq-fe.h in standard locations)
