@@ -289,7 +289,7 @@ bacService::BaculaServiceMain()
       }
 
       // And find the RegisterServiceProcess function
-      DWORD (*RegisterService)(DWORD, DWORD);
+      DWORD WINAPI (*RegisterService)(DWORD, DWORD);
       RegisterService = (DWORD (*)(DWORD, DWORD))
               GetProcAddress(kerneldll, "RegisterServiceProcess");
       if (RegisterService == NULL) {
@@ -781,7 +781,7 @@ void LogErrorMsg(char *message, char *fname, int lineno)
    }
    LocalFree(msg);
 }
-typedef BOOL (*WinAPI)(SC_HANDLE, DWORD, LPVOID);
+typedef BOOL WINAPI (*WinAPI)(SC_HANDLE, DWORD, LPVOID);
 
 void set_service_description(SC_HANDLE hSCManager, SC_HANDLE hService,
                              LPSTR lpDesc) 

@@ -34,31 +34,33 @@
 #include "winapi.h"
 
 #define BF_CLOSED 0
-#define BF_READ   1                   /* BackupRead */
-#define BF_WRITE  2                   /* BackupWrite */
+#define BF_READ   1		      /* BackupRead */
+#define BF_WRITE  2		      /* BackupWrite */
 
 /* In bfile.c */
 
 /* Basic low level I/O file packet */
 typedef struct s_bfile {
-   int use_win_api;                   /* set if using WinAPI */
-   int use_backup_api;                /* set if using BackupRead/Write */
-   int mode;                          /* set if file is open */
-   HANDLE fh;                         /* Win32 file handle */
-   int fid;                           /* fd if doing Unix style */
-   LPVOID lpContext;                  /* BackupRead/Write context */
-   POOLMEM *errmsg;                   /* error message buffer */
-   DWORD rw_bytes;                    /* Bytes read or written */
-   DWORD lerror;                      /* Last error code */
+#ifdef xxx
+   int use_win_api;		      /* set if using WinAPI */
+#endif
+   int use_backup_api;		      /* set if using BackupRead/Write */
+   int mode;			      /* set if file is open */
+   HANDLE fh;			      /* Win32 file handle */
+   int fid;			      /* fd if doing Unix style */
+   LPVOID lpContext;		      /* BackupRead/Write context */
+   POOLMEM *errmsg;		      /* error message buffer */
+   DWORD rw_bytes;		      /* Bytes read or written */
+   DWORD lerror;		      /* Last error code */
 } BFILE;
 
 HANDLE bget_handle(BFILE *bfd);
 
-#else   /* Linux/Unix systems */
+#else	/* Linux/Unix systems */
 
 /* Basic low level I/O file packet */
 typedef struct s_bfile {
-   int fid;                           /* file id on Unix */
+   int fid;			      /* file id on Unix */
    int berrno;
 } BFILE;
 

@@ -163,6 +163,7 @@ void *handle_client_request(void *dirp)
    jcr->client_name = get_memory(strlen(my_name) + 1);
    pm_strcpy(&jcr->client_name, my_name);
    dir->jcr = (void *)jcr;
+   get_backup_privileges(NULL, 1 /* ignore_errors */);
 
    /**********FIXME******* add command handler error code */
 
@@ -297,7 +298,6 @@ static int job_cmd(JCR *jcr)
    }
    jcr->sd_auth_key = bstrdup(sd_auth_key);
    free_pool_memory(sd_auth_key);
-   get_backup_privileges(jcr, 1 /* ignore_errors */);
    Dmsg2(120, "JobId=%d Auth=%s\n", jcr->JobId, jcr->sd_auth_key);
    return bnet_fsend(dir, OKjob);
 }

@@ -51,8 +51,6 @@ int blast_data_to_storage_daemon(JCR *jcr, char *addr)
 
    sd = jcr->store_bsock;
 
-   get_backup_privileges(jcr, 0);
-
    set_jcr_job_status(jcr, JS_Running);
 
    Dmsg1(110, "bfiled: opened data connection %d to stored\n", sd->fd);
@@ -194,7 +192,11 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
    /* Open any file with data that we intend to save */
    if (ff_pkt->type != FT_LNKSAVED && (S_ISREG(ff_pkt->statp.st_mode) && 
 	 ff_pkt->statp.st_size > 0) || 
-	 ff_pkt->type == FT_RAW || ff_pkt->type == FT_FIFO) {
+	 ff_pkt->type == FT_RAW || ff_pkt->type == FT_FIFO
+#ifdef HAVE_CYGWIN
+	 || ff_pkt->type == FT_DIR
+#endif
+      ) {
       btimer_id tid;	
       if (ff_pkt->type == FT_FIFO) {
 	 tid = start_thread_timer(pthread_self(), 60);

@@ -33,6 +33,10 @@ extern char my_name[];
 extern struct s_last_job last_job;
 extern time_t daemon_start_time;
 
+#ifdef HAVE_CYGWIN
+static int privs = 0;
+#endif
+
 /*
  * General status generator
  */
@@ -52,6 +56,22 @@ static void do_status(void sendit(char *msg, int len, void *sarg), void *arg)
    len = Mmsg(&msg, _("Daemon started %s, %d Job%s run.\n"), dt, last_job.NumJobs,
         last_job.NumJobs == 1 ? "" : "s");
    sendit(msg, len, arg);
+#ifdef HAVE_CYGWIN
+   if (!privs) {
+      privs = get_backup_privileges(NULL, 1);
+   }
+   len = Mmsg(&msg, 
+      _("Priv 0x%x APIs=%sOPT,%sATP,%sLPV,%sGFAE,%sBR,%sBW,%sSPSP\n"), privs,
+      p_OpenProcessToken?"":"!",
+      p_AdjustTokenPrivileges?"":"!",
+      p_LookupPrivilegeValue?"":"!",
+      p_GetFileAttributesEx?"":"!",
+      p_BackupRead?"":"!",
+      p_BackupWrite?"":"!",
+      p_SetProcessShutdownParameters?"":"!");
+   sendit(msg, len, arg);
+#endif
+
    if (last_job.NumJobs > 0) {
       char termstat[30];
 

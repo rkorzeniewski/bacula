@@ -59,7 +59,7 @@ int term_find_one(FF_PKT *ff);
 
 
 /* From get_priv.c */
-void get_backup_privileges(void *jcr, int ignore_errors);
+int get_backup_privileges(void *jcr, int ignore_errors);
 
 
 /* from makepath.c */
@@ -68,4 +68,3 @@ int make_path(void *jcr, const char *argpath, int mode,
            int preserve_existing, char *verbose_fmt_string);
 
 /* from bfile.c -- see bfile.h */
-

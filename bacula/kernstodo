@@ -19,6 +19,8 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
+- Find a solution for the multiple FileSet problem (when it is changed).
+  Add date?
 - Cancel waiting for Client connect in SD if FD goes away.
 - Testing Tibs job erred and hung director on Storage resource.
 - Make restore more robust in counting error and not immediately bailing

@@ -354,7 +354,6 @@ int set_win32_attributes(void *jcr, char *fname, char *ofile, char *lname,
    int64_t val;
    WIN32_FILE_ATTRIBUTE_DATA atts;
    ULARGE_INTEGER li;
-   int stat;
    POOLMEM *win32_ofile;
 
    if (!p || !*p) {		      /* we should have attributes */
@@ -391,11 +390,14 @@ int set_win32_attributes(void *jcr, char *fname, char *ofile, char *lname,
    p += from_base64(&val, p);
    atts.nFileSizeLow = val;
 
-   /* At this point, we have reconstructed the WIN32_FILE_ATTRIBUTE_DATA pkt */
-
    /* Convert to Windows path format */
    win32_ofile = get_pool_memory(PM_FNAME);
    unix_name_to_win32(&win32_ofile, ofile);
+
+
+
+   /* At this point, we have reconstructed the WIN32_FILE_ATTRIBUTE_DATA pkt */
+
 
    if (!is_bopen(ofd)) {
       Dmsg1(100, "File not open: %s\n", ofile);
@@ -404,20 +406,20 @@ int set_win32_attributes(void *jcr, char *fname, char *ofile, char *lname,
 
    if (is_bopen(ofd)) {
       Dmsg1(100, "SetFileTime %s\n", ofile);
-      stat = SetFileTime(bget_handle(ofd),
+      if (!SetFileTime(bget_handle(ofd),
 			 &atts.ftCreationTime,
 			 &atts.ftLastAccessTime,
-			 &atts.ftLastWriteTime);
-      if (stat != 1) {
+			 &atts.ftLastWriteTime)) {
          win_error(jcr, "SetFileTime:", win32_ofile);
       }
       bclose(ofd);
    }
 
    Dmsg1(100, "SetFileAtts %s\n", ofile);
-   stat = SetFileAttributes(win32_ofile, atts.dwFileAttributes & SET_ATTRS);
-   if (stat != 1) {
-      win_error(jcr, "SetFileAttributes:", win32_ofile);
+   if (!(atts.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+      if (!SetFileAttributes(win32_ofile, atts.dwFileAttributes & SET_ATTRS)) {
+         win_error(jcr, "SetFileAttributes:", win32_ofile);
+      }
    }
    free_pool_memory(win32_ofile);
    return 1;
@@ -438,7 +440,7 @@ void win_error(void *vjcr, char *prefix, POOLMEM *win32_ofile)
 		 NULL);
    Dmsg3(100, "Error in %s on file %s: ERR=%s\n", prefix, win32_ofile, msg);
    strip_trailing_junk(msg);
-   Jmsg3(jcr, M_INFO, 0, _("Error in %s file %s: ERR=%s\n"), prefix, win32_ofile, msg);
+   Jmsg(jcr, M_INFO, 0, _("Error in %s file %s: ERR=%s\n"), prefix, win32_ofile, msg);
    LocalFree(msg);
 }
 

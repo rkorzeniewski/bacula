@@ -41,7 +41,6 @@ void binit(BFILE *bfd)
 {
    bfd->fid = -1;
    bfd->mode = BF_CLOSED;
-   bfd->use_win_api = 1;
    bfd->use_backup_api = p_BackupRead && p_BackupWrite;
    bfd->errmsg = NULL;
    bfd->lpContext = NULL;
@@ -71,9 +70,11 @@ int is_win32_data(BFILE *bfd)
 
 HANDLE bget_handle(BFILE *bfd)
 {
+#ifdef xxx
    if (!bfd->use_win_api) {
       return get_osfhandle(bfd->fid);
    }
+#endif
    return bfd->fh;
 }
 
@@ -81,6 +82,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 {
    POOLMEM *win32_fname;
 
+#ifdef xxx
    if (!bfd->use_win_api) {
       bfd->fid = open(fname, flags, mode);
       if (bfd->fid >= 0) {
@@ -88,41 +90,44 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
       }
       return bfd->fid;
    }
+#endif
 
    /* Convert to Windows path format */
    win32_fname = get_pool_memory(PM_FNAME);
    unix_name_to_win32(&win32_fname, (char *)fname);
 
-   if (flags & O_WRONLY) {	      /* creating */
+   if (flags & O_CREAT) {
       bfd->fh = CreateFile(win32_fname,
-		   FILE_ALL_ACCESS|WRITE_DAC|ACCESS_SYSTEM_SECURITY,	/* access */
-		   0,
-		   NULL,				   /* SecurityAttributes */
-		   CREATE_ALWAYS,			   /* CreationDisposition */
-		   FILE_ATTRIBUTE_NORMAL|FILE_FLAG_BACKUP_SEMANTICS,   /* Flags and attributes */
-		   NULL);				   /* TemplateFile */
-
-      if (bfd->fh == INVALID_HANDLE_VALUE) {
-	 bfd->lerror = GetLastError();
-	 bfd->mode = BF_CLOSED;
-      } else {
-	 bfd->mode = BF_WRITE;
-      }
+	     GENERIC_WRITE|FILE_ALL_ACCESS|WRITE_OWNER|WRITE_DAC|ACCESS_SYSTEM_SECURITY,    /* access */
+	     0,
+	     NULL,				     /* SecurityAttributes */
+	     CREATE_ALWAYS,			     /* CreationDisposition */
+	     FILE_FLAG_BACKUP_SEMANTICS,	     /* Flags and attributes */
+	     NULL);				     /* TemplateFile */
+      bfd->mode = BF_WRITE;
+   } else if (flags & O_WRONLY) {	     /* creating */
+      bfd->fh = CreateFile(win32_fname,
+	     FILE_ALL_ACCESS|WRITE_OWNER|WRITE_DAC|ACCESS_SYSTEM_SECURITY,    /* access */
+	     0,
+	     NULL,				     /* SecurityAttributes */
+	     OPEN_EXISTING,			     /* CreationDisposition */
+	     FILE_FLAG_BACKUP_SEMANTICS,	     /* Flags and attributes */
+	     NULL);
+      bfd->mode = BF_WRITE;
    } else {
       bfd->fh = CreateFile(win32_fname,
-		   GENERIC_READ|ACCESS_SYSTEM_SECURITY,       /* access */
-		   FILE_SHARE_READ,			    /* shared mode */
-		   NULL,				   /* SecurityAttributes */
-		   OPEN_EXISTING,			   /* CreationDisposition */
-		   FILE_FLAG_BACKUP_SEMANTICS,	/* Flags and attributes */
-		   NULL);				   /* TemplateFile */
+	     GENERIC_READ|READ_CONTROL|ACCESS_SYSTEM_SECURITY,	     /* access */
+	     FILE_SHARE_READ,			      /* shared mode */
+	     NULL,				     /* SecurityAttributes */
+	     OPEN_EXISTING,			     /* CreationDisposition */
+	     FILE_FLAG_BACKUP_SEMANTICS,  /* Flags and attributes */
+	     NULL);			  /* TemplateFile */
 
-      if (bfd->fh == INVALID_HANDLE_VALUE) {
-	 bfd->lerror = GetLastError();
-	 bfd->mode = BF_CLOSED;
-      } else {
-	 bfd->mode = BF_READ;
-      }
+      bfd->mode = BF_READ;
+   }
+   if (bfd->fh == INVALID_HANDLE_VALUE) {
+      bfd->lerror = GetLastError();
+      bfd->mode = BF_CLOSED;
    }
    bfd->errmsg = NULL;
    bfd->lpContext = NULL;
@@ -136,12 +141,14 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 int bclose(BFILE *bfd)
 { 
    int stat = 0;
+#ifdef xxx
    if (!bfd->use_win_api) {
       int stat = close(bfd->fid);
       bfd->fid = -1;
       bfd->mode = BF_CLOSED;
       return stat;
    }
+#endif
    if (bfd->errmsg) {
       free_pool_memory(bfd->errmsg);
       bfd->errmsg = NULL;
@@ -186,10 +193,11 @@ int bclose(BFILE *bfd)
 char *berror(BFILE *bfd)
 {
    LPTSTR msg;
-
+#ifdef xxx
    if (!bfd->use_win_api) {
       return strerror(errno);
    }
+#endif
    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER|
 		 FORMAT_MESSAGE_FROM_SYSTEM,
 		 NULL,
@@ -213,9 +221,11 @@ char *berror(BFILE *bfd)
  */
 ssize_t bread(BFILE *bfd, void *buf, size_t count)
 {
+#ifdef xxx
    if (!bfd->use_win_api) {
       return read(bfd->fid, buf, count);
    }
+#endif
    bfd->rw_bytes = 0;
 
    if (bfd->use_backup_api) {
@@ -245,9 +255,11 @@ ssize_t bread(BFILE *bfd, void *buf, size_t count)
 
 ssize_t bwrite(BFILE *bfd, void *buf, size_t count)
 {
+#ifdef xxx
    if (!bfd->use_win_api) {
       return write(bfd->fid, buf, count);
    }
+#endif
    bfd->rw_bytes = 0;
 
    if (bfd->use_backup_api) {
@@ -281,9 +293,12 @@ int is_bopen(BFILE *bfd)
 
 off_t blseek(BFILE *bfd, off_t offset, int whence)
 {
+#ifdef xxx
    if (!bfd->use_win_api) {
       return lseek(bfd->fid, offset, whence);
    }
+#endif
+   /* ****FIXME**** this is needed if we want to read Win32 Archives */
    return -1;
 }
 
