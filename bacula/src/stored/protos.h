@@ -224,3 +224,6 @@ bool	discard_attribute_spool   (JCR *jcr);
 bool	commit_attribute_spool	  (JCR *jcr);
 bool	write_block_to_spool_file (DCR *dcr);
 void	list_spool_stats	  (BSOCK *bs);
+
+/* From wait.c */
+int wait_for_sysop(DCR *dcr);

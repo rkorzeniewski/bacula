@@ -26,7 +26,7 @@ SVRSRCS = stored.c ansi_label.c \
 	  label.c match_bsr.c mount.c parse_bsr.c \
 	  python.c \
 	  read.c read_record.c record.c \
-	  spool.c status.c stored_conf.c
+	  spool.c status.c stored_conf.c wait.c
 SVROBJS = stored.o ansi_label.o \
 	  autochanger.o acquire.o append.o \
 	  askdir.o authenticate.o \
@@ -35,7 +35,7 @@ SVROBJS = stored.o ansi_label.o \
 	  label.o match_bsr.o mount.o parse_bsr.o \
 	  python.o \
 	  read.o read_record.o record.o \
-	  spool.o status.o stored_conf.o
+	  spool.o status.o stored_conf.o wait.o
 
 # btape
 TAPESRCS = btape.c block.c butil.c dev.c device.c label.c \

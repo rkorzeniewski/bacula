@@ -56,9 +56,7 @@ void init_job_server(int max_workers)
       berrno be;
       Emsg1(M_ABORT, 0, _("Could not init job queue: ERR=%s\n"), be.strerror(stat));
    }
-   if ((wd = new_watchdog()) == NULL) {
-      Emsg0(M_ABORT, 0, _("Could not init job monitor watchdogs\n"));
-   }
+   wd = new_watchdog();
    wd->callback = job_monitor_watchdog;
    wd->destructor = job_monitor_destructor;
    wd->one_shot = false;

@@ -268,7 +268,10 @@ public:
                     (dev_blocked == BST_UNMOUNTED ||
                      dev_blocked == BST_WAITING_FOR_SYSOP ||
                      dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP); };
-
+   bool waiting_for_mount() const { return 
+                    (dev_blocked == BST_UNMOUNTED ||
+                     dev_blocked == BST_WAITING_FOR_SYSOP ||
+                     dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP); };
    bool weof() { return !weof_dev(this, 1); };
    bool rewind() { return rewind_dev(this); };
    const char *strerror() const;
@@ -278,12 +281,13 @@ public:
    void set_eof(); /* in dev.c */
    void set_eot(); /* in dev.c */
    void set_append() { state |= ST_APPEND; };
+   void set_label() { state |= ST_LABEL; };
    void set_read() { state |= ST_READ; };
    void set_offline() { state |= ST_OFFLINE; };
-   void clear_append();
-   void clear_read();
-   void clear_label();
-   void clear_offline();
+   void clear_append() { state &= ~ST_APPEND; };
+   void clear_read() { state &= ~ST_READ; };
+   void clear_label() { state &= ~ST_LABEL; };
+   void clear_offline() { state &= ~ST_OFFLINE; };
    void clear_eot() { state &= ~ST_EOT; };
 };
 
@@ -300,10 +304,6 @@ inline int DEVICE::at_eof() const { return state & ST_EOF; }
 inline int DEVICE::at_eot() const { return state & ST_EOT; }
 inline int DEVICE::can_append() const { return state & ST_APPEND; }
 inline int DEVICE::can_read() const { return state & ST_READ; }
-inline void DEVICE::clear_append() { state &= ~ST_APPEND; }
-inline void DEVICE::clear_read() { state &= ~ST_READ; }
-inline void DEVICE::clear_label() { state &= ~ST_LABEL; }
-inline void DEVICE::clear_offline() { state &= ~ST_OFFLINE; }
 inline const char *DEVICE::strerror() const { return errmsg; }
 inline const char *DEVICE::archive_name() const { return dev_name; }
 inline const char *DEVICE::print_name() const { return prt_name; }

@@ -163,6 +163,9 @@ void *handle_connection_request(void *arg)
       return NULL;
    }
 
+   /* 
+    * This is a connection from the Director, so setup a JCR 
+    */
    Dmsg0(110, "Start Dir Job\n");
    jcr = new_jcr(sizeof(JCR), stored_free_jcr); /* create Job Control Record */
    jcr->dir_bsock = bs; 	      /* save Director bsock */
@@ -267,10 +270,7 @@ static bool cancel_cmd(JCR *cjcr)
 	    bnet_sig(jcr->file_bsock, BNET_TERMINATE);
 	 }
 	 /* If thread waiting on mount, wake him */
-	 if (jcr->dcr && jcr->dcr->dev &&
-	      (jcr->dcr->dev->dev_blocked == BST_WAITING_FOR_SYSOP ||
-	       jcr->dcr->dev->dev_blocked == BST_UNMOUNTED ||
-	       jcr->dcr->dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP)) {
+	 if (jcr->dcr && jcr->dcr->dev && jcr->dcr->dev->waiting_for_mount()) {
 	     pthread_cond_signal(&jcr->dcr->dev->wait_next_vol);
 	 }
          bnet_fsend(dir, _("3000 Job %s marked to be canceled.\n"), jcr->Job);
