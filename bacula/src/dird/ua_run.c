@@ -350,7 +350,12 @@ JobId:      %s\n"),
    /*
     * At user request modify parameters of job to be run.
     */
-   if (strcasecmp(ua->cmd, _("mod")) == 0) {
+   if (strlen(ua->cmd) == 0) {
+      bsendmsg(ua, _("Job not run.\n"));
+      free_jcr(jcr);
+      return 0; 		      /* do not run */
+   }
+   if (strncasecmp(ua->cmd, _("mod"), strlen(ua->cmd)) == 0) {
       FILE *fd;
 
       start_prompt(ua, _("Parameters to modify:\n"));
@@ -504,13 +509,14 @@ JobId:      %s\n"),
       free_jcr(jcr);
       return 0; 		      /* error do no run Job */
    }
-   if (strcasecmp(ua->cmd, _("yes")) != 0) {
-      bsendmsg(ua, _("Job not run.\n"));
-      free_jcr(jcr);
-      return 0; 		      /* do not run */
+   if (strncasecmp(ua->cmd, _("yes"), strlen(ua->cmd)) == 0) {
+      Dmsg1(200, "Calling run_job job=%x\n", jcr->job);
+      run_job(jcr);
+      return 1;
    }
 
-   Dmsg1(200, "Calling run_job job=%x\n", jcr->job);
-   run_job(jcr);
-   return 1;
+   bsendmsg(ua, _("Job not run.\n"));
+   free_jcr(jcr);
+   return 0;			   /* do not run */
+
 }

@@ -1029,10 +1029,10 @@ static int delete_volume(UAContext *ua)
       "and all Jobs saved on that volume from the Catalog\n"),
       mr.VolumeName);
 
-   if (!get_cmd(ua, _("If you want to continue enter pretty please: "))) {
+   if (!get_cmd(ua, _("Are you sure you want to delete this Volume? (yes/no): "))) {
       return 1;
    }
-   if (strcmp(ua->cmd, _("pretty please")) == 0) {
+   if (strcasecmp(ua->cmd, _("yes")) == 0) {
       db_delete_media_record(ua->db, &mr);
    }
    return 1;
@@ -1050,10 +1050,10 @@ static int delete_pool(UAContext *ua)
    if (!get_pool_dbr(ua, &pr)) {
       return 1;
    }
-   if (!get_cmd(ua, _("If you want to continue enter pretty please: "))) {
+   if (!get_cmd(ua, _("Are you sure you want to delete this Pool? (yes/no): "))) {
       return 1;
    }
-   if (strcmp(ua->cmd, _("pretty please")) == 0) {
+   if (strcasecmp(ua->cmd, _("yes")) == 0) {
       db_delete_pool_record(ua->db, &pr);
    }
    return 1;

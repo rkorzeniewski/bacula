@@ -375,6 +375,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
    char buf[MAXSTRING];
    POOLMEM *fname = get_pool_memory(PM_MESSAGE);
    int do_MD5 = FALSE;
+   long file_index = 0, attr_file_index = 0;
 
    memset(&fdbr, 0, sizeof(FILE_DBR));
    fd = jcr->file_bsock;
@@ -392,7 +393,6 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
     *	Link name  ???
     */
    while ((n=bget_msg(fd, 0)) > 0 && !job_cancelled(jcr)) {
-      long file_index = 0, attr_file_index = 0;
       int stream;
       char *attr, *p, *fn;
       char Opts_MD5[MAXSTRING];        /* Verify Opts or MD5 signature */

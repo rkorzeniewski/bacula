@@ -90,7 +90,7 @@ binary-release:
 	@cp -f ../bacula-fd.exe wr/$(sbindir)/bacula-fd.exe 
 	@cp -f ../../tools/smtp.exe wr/$(sbindir)/smtp.exe 
 	@echo "Copying bacula-fd.conf..."
-	@cp -f ../bacula-fd.conf wr/$(sysconfdir)/bacula-fd.conf
+	@cp -f ../bacula-fd.conf wr/$(sysconfdir)/bacula-fd.conf.new
 # the two dummy files are necessary to insure that WinZip
 # actually creates the directories.
 	@echo "dummy" >wr/tmp/dummy.txt

@@ -1102,6 +1102,7 @@ void detach_jcr_from_device(DEVICE *dev, JCR *jcr)
    if (jcr->next_dev) {
       jcr->next_dev->prev_dev = jcr->prev_dev; 
    }
+   jcr->next_dev = jcr->prev_dev = NULL;
    Dmsg1(000, "Detached Job %s\n", jcr->Job);
 }
 
