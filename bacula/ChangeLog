@@ -1,4 +1,23 @@
 
+18Apr04
+- Found and fixed SD crash during restore.
+- Added FreeBSD Bare Metal Recovery documentation by Alex Torres 
+  Molina and others.
+- Added nice graphics produced by Aristedes Maniatis giving an
+  overall view of Bacula.
+- Changed textdomain to be "bacula" in all progs.
+- Fixed a major race condition in the job scheduler when multiple
+  simultaneous jobs is enabled. This occurred only when on job had
+  blocked another because of resource usage. This caused a deadlock
+  and CPU usage. Reported by Michel Meyers.
+- Changed the backup report to indicate "Backup OK -- with warnings
+  if any warning messages were generated.
+- Change output of restore report to indicate:
+  "Restore OK -- warning file count mismatch"
+- Make backup report say "Backup OK with warnings" if either FD or SD
+  report any non-fatal errors.
+- Modify bscan to print some elementary statistics (#Jobs, #Files, ...)
+  added to catalog.
 16Apr04
 - Modify bscan to print some elementary statistics (#Jobs, #Files, ...)
   added to catalog.

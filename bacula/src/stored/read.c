@@ -47,8 +47,6 @@ int do_read_data(JCR *jcr)
    BSOCK *fd = jcr->file_bsock;
    int ok = TRUE;
    DEVICE *dev;
-   DEV_BLOCK *block;
-   DCR *dcr;
    
    Dmsg0(20, "Start read data.\n");
 
@@ -83,8 +81,6 @@ int do_read_data(JCR *jcr)
       free_vol_list(jcr);
       return 0;
    }
-
-   block = dcr->block;
 
    /* Tell File daemon we will send data */
    bnet_fsend(fd, OK_data);

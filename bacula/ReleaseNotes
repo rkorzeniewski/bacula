@@ -10,6 +10,7 @@ Changes for 1.34.1:
 - Fixed a major race condition in the job scheduler when multiple
   simultaneous jobs is enabled. This occurred only when on job had
   blocked another because of resource usage.
+- Fixed crash in SD during restore.
 - Changed the backup report to indicate "Backup OK -- with warnings
   if any warning messages were generated.
 - Change output of restore report to indicate:
