@@ -60,6 +60,9 @@ Media: LTO-2
 Model: SSL1016
 Slots: 16
 Cap: 200GB
+- Supported drive:
+  Wangtek 6525ES (SCSI-1 QIC drive, 525MB), under Linux 2.4.something, 
+  bacula 1.36.0/1 works with blocksize 16k INSIDE bacula-sd.conf.
 - Save mount point for directories not traversed with  
   onefs=yes.
 - Implement WildFile and WildDir to solve problem of 
