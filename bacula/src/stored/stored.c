@@ -196,8 +196,8 @@ int main (int argc, char *argv[])
       init_stack_dump();	      /* pick up new pid */
    }
 
-   create_pid_file(me->pid_directory, "bacula-sd", get_first_port(me->sdaddrs));
-   read_state_file(me->working_directory, "bacula-sd", get_first_port(me->sdaddrs));
+   create_pid_file(me->pid_directory, "bacula-sd", get_first_port_host_order(me->sdaddrs));
+   read_state_file(me->working_directory, "bacula-sd", get_first_port_host_order(me->sdaddrs));
 
    drop(uid, gid);
 
@@ -392,8 +392,8 @@ void terminate_stored(int sig)
       bmicrosleep(0, 500000);	      /* give them 1/2 sec to clean up */
    }
 
-   write_state_file(me->working_directory, "bacula-sd", get_first_port(me->sdaddrs));
-   delete_pid_file(me->pid_directory, "bacula-sd", get_first_port(me->sdaddrs));
+   write_state_file(me->working_directory, "bacula-sd", get_first_port_host_order(me->sdaddrs));
+   delete_pid_file(me->pid_directory, "bacula-sd", get_first_port_host_order(me->sdaddrs));
 
    Dmsg1(200, "In terminate_stored() sig=%d\n", sig);
 

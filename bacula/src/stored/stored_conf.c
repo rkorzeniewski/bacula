@@ -166,16 +166,16 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       sendit(sock, "Storage: name=%s SDaddr=%s SDport=%d SDDport=%d HB=%s\n",
 	   res->res_store.hdr.name, 
 	   NPRT(get_first_address(res->res_store.sdaddrs, buf, sizeof(buf))),
-	   get_first_port(res->res_store.sdaddrs), 
-	   get_first_port(res->res_store.sddaddrs),
+	   get_first_port_host_order(res->res_store.sdaddrs), 
+	   get_first_port_host_order(res->res_store.sddaddrs),
 	   edit_utime(res->res_store.heartbeat_interval, buf, sizeof(buf)));
 	  foreach_dlist(p, res->res_store.sdaddrs) {
                 sendit(sock, "        SDaddr=%s SDport=%d\n", 
-			     p->get_address(buf, sizeof(buf)), p->get_port());
+			     p->get_address(buf, sizeof(buf)), p->get_port_host_order());
 	  }
 	  foreach_dlist(p, res->res_store.sddaddrs) {
                 sendit(sock, "        SDDaddr=%s SDDport=%d\n", 
-			     p->get_address(buf, sizeof(buf)), p->get_port());
+			     p->get_address(buf, sizeof(buf)), p->get_port_host_order());
 	  }
       break;
    case R_DEVICE:

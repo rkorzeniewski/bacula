@@ -1207,7 +1207,7 @@ void store_acl(LEX *lc, RES_ITEM *item, int index, int pass)
       token = lex_get_token(lc, T_NAME);
       if (pass == 1) {
 	 if (((alist **)item->value)[item->code] == NULL) {   
-	    ((alist **)item->value)[item->code] = new alist(10, owned_by_alist); 
+	    ((alist **)item->value)[item->code] = New(alist(10, owned_by_alist)); 
 //          Dmsg1(900, "Defined new ACL alist at %d\n", item->code);
 	 }
 	 ((alist **)item->value)[item->code]->append(bstrdup(lc->str));

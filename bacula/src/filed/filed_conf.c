@@ -145,7 +145,7 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
 	 break;
       case R_CLIENT:
          sendit(sock, "Client: name=%s FDport=%d\n", reshdr->name,
-		 get_first_port(res->res_client.FDaddrs));
+		 get_first_port_host_order(res->res_client.FDaddrs));
 	 break;
       case R_MSGS:
          sendit(sock, "Messages: name=%s\n", res->res_msgs.hdr.name);
@@ -185,7 +185,6 @@ void free_resource(RES *sres, int type)
    if (res->res_dir.hdr.desc) {
       free(res->res_dir.hdr.desc);
    }
-
    switch (type) {
    case R_DIRECTOR:
       if (res->res_dir.password) {

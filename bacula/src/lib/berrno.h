@@ -42,7 +42,7 @@
  *  must to a GetLastError() to get the error code for formatting.
  * If bit 29 in berrno_ is not set, then it is a Unix errno.
  */
-class berrno {
+class berrno : public SMARTALLOC {
    POOLMEM *buf_;
    int berrno_;
 public:

@@ -155,7 +155,7 @@ const char *res_to_str(int rcode)
  * Initialize the static structure to zeros, then
  *  apply all the default values.
  */
-void init_resource(int type, RES_ITEM *items)
+void init_resource(int type, RES_ITEM *items, int pass)
 {
    int i;
    int rindex = type - r_first;
@@ -188,7 +188,7 @@ void init_resource(int type, RES_ITEM *items)
 	    *(uint64_t *)(items[i].value) = (uint64_t)items[i].default_value;
 	 } else if (items[i].handler == store_time) {
 	    *(utime_t *)(items[i].value) = (utime_t)items[i].default_value;
-	 } else if (items[i].handler == store_addresses) {
+	 } else if (pass == 1 && items[i].handler == store_addresses) {
 	    init_default_addresses((dlist**)items[i].value, items[i].default_value);
 	 }
       }
@@ -729,7 +729,7 @@ parse_config(const char *cf, int exit_on_error)
 		  state = p_resource;
 		  items = resources[i].items;
 		  res_type = resources[i].rcode;
-		  init_resource(res_type, items);
+		  init_resource(res_type, items, pass);
 		  break;
 	       }
 	    if (state == p_none) {

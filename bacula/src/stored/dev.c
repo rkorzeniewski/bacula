@@ -204,7 +204,7 @@ init_dev(DEVICE *dev, DEVRES *device)
    }
 
    dev->fd = -1;
-   dev->attached_dcrs = new dlist(dcr, &dcr->dev_link);
+   dev->attached_dcrs = New(dlist(dcr, &dcr->dev_link));
    Dmsg2(29, "init_dev: tape=%d dev_name=%s\n", dev_is_tape(dev), dev->dev_name);
 
    return dev;

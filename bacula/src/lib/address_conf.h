@@ -26,7 +26,7 @@
  */
 
 
-class IPADDR {
+class IPADDR : public SMARTALLOC {
  public:
    typedef enum { R_SINGLE, R_SINGLE_PORT, R_SINGLE_ADDR, R_MULTIPLE,
                   R_DEFAULT, R_EMPTY
@@ -51,8 +51,12 @@ class IPADDR {
  public:
    void set_type(i_type o);
    i_type get_type() const;
-   unsigned short get_port() const;
-   void set_port(unsigned short port);
+   unsigned short get_port_net_order() const;
+   unsigned short get_port_host_order() const
+   {
+      return ntohs(get_port_net_order());
+   }
+   void set_port_net(unsigned short port);
    int get_family() const;
    struct sockaddr *get_sockaddr();
    int get_sockaddr_len();
@@ -77,6 +81,10 @@ extern void store_addresses_port(LEX * lc, RES_ITEM * item, int index, int pass)
 extern void init_default_addresses(dlist ** addr, int port);
 
 extern const char *get_first_address(dlist * addrs, char *outputbuf, int outlen);
-extern int get_first_port(dlist * addrs);
+extern int get_first_port_net_order(dlist * addrs);
+extern int get_first_port_host_order(dlist * addrs);
 
 extern const char *build_addresses_str(dlist *addrs, char *buf, int blen);
+
+extern int sockaddr_get_port_net_order(const struct sockaddr *sa);
+extern int sockaddr_to_ascii(const struct sockaddr *sa, char *buf, int len);

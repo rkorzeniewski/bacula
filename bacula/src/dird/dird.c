@@ -214,8 +214,8 @@ int main (int argc, char *argv[])
    }
 
    /* Create pid must come after we are a daemon -- so we have our final pid */
-   create_pid_file(director->pid_directory, "bacula-dir", get_first_port(director->DIRaddrs));
-   read_state_file(director->working_directory, "bacula-dir", get_first_port(director->DIRaddrs));
+   create_pid_file(director->pid_directory, "bacula-dir", get_first_port_host_order(director->DIRaddrs));
+   read_state_file(director->working_directory, "bacula-dir", get_first_port_host_order(director->DIRaddrs));
 
    drop(uid, gid);		      /* reduce priveleges if requested */
 
@@ -257,8 +257,8 @@ static void terminate_dird(int sig)
       exit(1);
    }
    already_here = TRUE;
-   write_state_file(director->working_directory, "bacula-dir", get_first_port(director->DIRaddrs));
-   delete_pid_file(director->pid_directory, "bacula-dir", get_first_port(director->DIRaddrs));
+   write_state_file(director->working_directory, "bacula-dir", get_first_port_host_order(director->DIRaddrs));
+   delete_pid_file(director->pid_directory, "bacula-dir", get_first_port_host_order(director->DIRaddrs));
 // signal(SIGCHLD, SIG_IGN);          /* don't worry about children now */
    term_scheduler();
    term_job_server();

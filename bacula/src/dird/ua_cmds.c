@@ -564,8 +564,7 @@ static int create_cmd(UAContext *ua, const char *cmd)
 static int setip_cmd(UAContext *ua, const char *cmd) 
 {
    CLIENT *client;
-   char mybuf[1024]; 
-   char *buf = mybuf;
+   char buf[1024]; 
    if (!ua->cons || !acl_access_ok(ua, Client_ACL, ua->cons->hdr.name)) {
       bsendmsg(ua, _("Illegal command from this console.\n"));
       return 1;
@@ -580,15 +579,8 @@ static int setip_cmd(UAContext *ua, const char *cmd)
    if (client->address) {
       free(client->address);
    }
-#ifdef HAVE_INET_NTOP
-   inet_ntop(ua->UA_sock->client_addr.sa_family, 
-		&(ua->UA_sock->client_addr), buf,
-		ua->UA_sock->client_addr.sa_family == AF_INET ?
-		sizeof(sockaddr_in) : sizeof(sockaddr_in6));
-#else
-   buf = inet_ntoa(((struct sockaddr_in *)&(ua->UA_sock->client_addr))->sin_addr);
-#endif
-
+   /* MA Bug 6 remove ifdef */
+   sockaddr_to_ascii(&(ua->UA_sock->client_addr), buf, sizeof(buf)); 
    client->address = bstrdup(buf);
    bsendmsg(ua, _("Client \"%s\" address set to %s\n"),
 	    client->hdr.name, client->address);

@@ -89,7 +89,7 @@ extern void *b_malloc();
 
 #ifdef SMARTALLOC
 
-#define New(type) new(__FILE__, __LINE__ type
+#define New(type) new(__FILE__, __LINE__) type /* BUG 2 brace is missing */
 
 #undef SMARTALLOC 
 #define SMARTALLOC SMARTALLOC
@@ -125,7 +125,6 @@ void *operator new[](size_t s) throw() { return 0; }
  
 
 #else
-
 #define New(type) new type
 
 class SMARTALLOC
