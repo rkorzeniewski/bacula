@@ -21,13 +21,14 @@ dummy:
 
 #
 CONSSRCS = main.cpp console_thread.cpp authenticate.c console_conf.c wxbrestorepanel.cpp \
-	     wxbmainframe.cpp wxbtableparser.cpp
+	     wxbmainframe.cpp wxbtableparser.cpp wxbtreectrl.cpp
 CONSOBJS = main.o console_thread.o authenticate.o console_conf.o wxbrestorepanel.o \
-	     wxbmainframe.o wxbtableparser.o
+	     wxbmainframe.o wxbtableparser.o wxbtreectrl.o
 
 @if test "@DISTNAME@" = "cygwin" then \
-CONSSRCS = $(CONSSRCS) wx-console_private.rc; \
-CONSOBJS = $(CONSOBJS) wx-console_private.res; \
+RES = wx-console_private.res; \
+else \
+RES = ;\
 fi
 
 # these are the objects that are changed by the .configure process
@@ -60,8 +61,8 @@ all: Makefile wx-console
 	@echo " "
 
 
-wx-console: $(CONSOBJS) ../lib/libbac.a
-	$(CXX) $(CONSOBJS) -o $@ $(LIBS) -L../lib $(CONS_LDFLAGS) -lbac
+wx-console: $(CONSOBJS) $(RES) ../lib/libbac.a
+	$(CXX) $(CONSOBJS) $(RES) -o $@ $(LIBS) -L../lib $(CONS_LDFLAGS) -lbac
 	
 wx-console_private.res: wx-console_private.rc 
 	windres.exe -i wx-console_private.rc -I rc -o wx-console_private.res -O coff 
