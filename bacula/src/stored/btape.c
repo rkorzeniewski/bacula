@@ -72,9 +72,9 @@ static void qfillcmd();
 static void statcmd();
 static void unfillcmd();
 static int flush_block(DEV_BLOCK *block, int dump);
-static int quickie_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
+static bool quickie_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
 static bool compare_blocks(DEV_BLOCK *last_block, DEV_BLOCK *block);
-static int my_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
+static bool my_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
 static void scan_blocks();
 static void set_volume_name(const char *VolName, int volnum);
 static void rawfill_cmd();
@@ -335,7 +335,7 @@ static void labelcmd()
       }
    }
    rewind_dev(dev);
-   write_new_volume_label_to_dev(jcr, jcr->device, cmd, "Default");
+   write_new_volume_label_to_dev(jcr, jcr->device->dev, cmd, "Default");
    Pmsg1(-1, "Wrote Volume label for volume \"%s\".\n", cmd);
 }
 
@@ -2090,7 +2090,7 @@ bail_out:
 }
 
 /* Read 1000 records then stop */
-static int quickie_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
+static bool quickie_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 {
    quickie_count++;
    return quickie_count <= 1000;
@@ -2586,7 +2586,7 @@ int dir_ask_sysop_to_create_appendable_volume(JCR *jcr, DEVICE *dev)
    return 1;
 }
 
-static int my_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
+static bool my_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 {
    char ec1[50];
 
@@ -2608,7 +2608,7 @@ static int my_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 
    if (strcmp(jcr->VolumeName, "TestVolume2") == 0) {
       end_of_tape = 1;
-      return 0;
+      return false;
    }
 
    free_vol_list(jcr);
@@ -2619,9 +2619,9 @@ static int my_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    dev->state &= ~ST_READ; 
    if (!acquire_device_for_read(jcr)) {
       Pmsg2(0, "Cannot open Dev=%s, Vol=%s\n", dev_name(dev), jcr->VolumeName);
-      return 0;
+      return false;
    }
-   return 1;			   /* next volume mounted */
+   return true; 		   /* next volume mounted */
 }
 
 static void set_volume_name(const char *VolName, int volnum) 

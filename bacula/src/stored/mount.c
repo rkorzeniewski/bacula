@@ -45,7 +45,7 @@ static bool rewrite_volume_label(JCR *jcr, DEVICE *dev, DEV_BLOCK *bloc, bool re
  *  impossible to get the requested Volume.
  *
  */
-int mount_next_write_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, bool release)
+bool mount_next_write_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, bool release)
 {
    int retry = 0;
    bool ask = false, recycle, autochanger;
@@ -68,12 +68,12 @@ mount_next_vol:
       if (!dir_ask_sysop_to_mount_volume(jcr, dev)) {
          Jmsg(jcr, M_FATAL, 0, _("Too many errors trying to mount device %s.\n"), 
 	      dev_name(dev));
-	 return 0;
+	 return false;
       }
    }
    if (job_canceled(jcr)) {
       Jmsg(jcr, M_FATAL, 0, _("Job %d canceled.\n"), jcr->JobId);
-      return 0;
+      return false;
    }
    recycle = false;
    if (release) {
@@ -90,12 +90,12 @@ mount_next_vol:
    while (!dir_find_next_appendable_volume(jcr)) {
        Dmsg0(200, "not dir_find_next\n");
        if (!dir_ask_sysop_to_create_appendable_volume(jcr, dev)) {
-	 return 0;
+	 return false;
        }
        Dmsg0(200, "Again dir_find_next_append...\n");
    }
    if (job_canceled(jcr)) {
-      return 0;
+      return false;
    }
    Dmsg2(100, "After find_next_append. Vol=%s Slot=%d\n",
 	 jcr->VolCatInfo.VolCatName, jcr->VolCatInfo.Slot);
@@ -141,10 +141,10 @@ mount_next_vol:
 
    if (ask && !dir_ask_sysop_to_mount_volume(jcr, dev)) {
       Dmsg0(100, "Error return ask_sysop ...\n");
-      return 0; 	     /* error return */
+      return false;	     /* error return */
    }
    if (job_canceled(jcr)) {
-      return 0;
+      return false;
    }
    Dmsg1(100, "want vol=%s\n", jcr->VolumeName);
 
@@ -154,7 +154,7 @@ mount_next_vol:
 
    /* Ensure the device is open */
    if (!open_device(jcr, dev)) {
-      return 0;
+      return false;
    }
 
    /*
@@ -250,7 +250,7 @@ read_volume:
                                    "Recycle") == 0))) {
          Dmsg0(100, "Create volume label\n");
 	 /* Create a new Volume label and write it to the device */
-	 if (!write_new_volume_label_to_dev(jcr, (DEVRES *)dev->device, jcr->VolumeName,
+	 if (!write_new_volume_label_to_dev(jcr, dev, jcr->VolumeName,
 		jcr->pool_name)) {
             Dmsg0(100, "!write_vol_label\n");
 	    goto mount_next_vol;
@@ -340,7 +340,7 @@ The number of files mismatch! Volume=%u Catalog=%u\n"),
    }
    dev->state |= ST_APPEND;
    Dmsg0(100, "Normal return from read_dev_for_append\n");
-   return 1; 
+   return true;
 }
 
 /*
@@ -428,7 +428,7 @@ void mark_volume_in_error(JCR *jcr, DEVICE *dev)
  * If we are reading, we come here at the end of the tape
  *  and see if there are more volumes to be mounted.
  */
-int mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
+bool mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 {
    Dmsg2(90, "NumVolumes=%d CurVolume=%d\n", jcr->NumVolumes, jcr->CurVolume);
    /*
@@ -440,12 +440,12 @@ int mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       if (!acquire_device_for_read(jcr)) {
          Jmsg2(jcr, M_FATAL, 0, "Cannot open Dev=%s, Vol=%s\n", dev_name(dev),
 	       jcr->VolumeName);
-	 return 0;
+	 return false;
       }
-      return 1; 		      /* next volume mounted */
+      return true;		      /* next volume mounted */
    }
    Dmsg0(90, "End of Device reached.\n");
-   return 0;
+   return false;
 }
 
 /*

@@ -29,7 +29,7 @@
 #include "stored.h"
 
 /* Forward referenced subroutines */
-static int record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
+static bool record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
 
 
 /* Responses sent to the File daemon */
@@ -42,10 +42,10 @@ static char rec_header[] = "rechdr %ld %ld %ld %ld %ld";
  *   Returns: 0 on failure
  *	      1 on success
  */
-int do_read_data(JCR *jcr) 
+bool do_read_data(JCR *jcr) 
 {
    BSOCK *fd = jcr->file_bsock;
-   int ok = TRUE;
+   bool ok = true;
    DEVICE *dev;
    
    Dmsg0(20, "Start read data.\n");
@@ -55,7 +55,7 @@ int do_read_data(JCR *jcr)
    Dmsg1(10, "bstored>filed: %s\n", fd->msg);
 
    if (!bnet_set_buffer_size(fd, jcr->device->max_network_buffer_size, BNET_SETBUF_WRITE)) {
-      return 0;
+      return false;
    }
 
 
@@ -66,7 +66,7 @@ int do_read_data(JCR *jcr)
       Jmsg(jcr, M_FATAL, 0, _("No Volume names found for restore.\n"));
       free_vol_list(jcr);
       bnet_fsend(fd, FD_error);
-      return 0;
+      return false;
    }
 
    Dmsg2(200, "Found %d volumes names to restore. First=%s\n", jcr->NumVolumes, 
@@ -79,7 +79,7 @@ int do_read_data(JCR *jcr)
     */
    if (!acquire_device_for_read(jcr)) {
       free_vol_list(jcr);
-      return 0;
+      return false;
    }
 
    /* Tell File daemon we will send data */
@@ -90,25 +90,27 @@ int do_read_data(JCR *jcr)
    bnet_sig(fd, BNET_EOD);
 
    if (!release_device(jcr)) {
-      ok = FALSE;
+      ok = false;
    }
    
    free_vol_list(jcr);
    Dmsg0(30, "Done reading.\n");
-   return ok ? 1 : 0;
+   return ok;
 }
 
 /*
  * Called here for each record from read_records()
+ *  Returns: true if OK
+ *	     false if error
  */
-static int record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
+static bool record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 {
    BSOCK *fd = jcr->file_bsock;
-   int ok = TRUE;
+   bool ok = true;
    POOLMEM *save_msg;
 
    if (rec->FileIndex < 0) {
-      return 1;
+      return true;
    }
    Dmsg5(100, "Send to FD: SessId=%u SessTim=%u FI=%d Strm=%d, len=%d\n",
       rec->VolSessionId, rec->VolSessionTime, rec->FileIndex, rec->Stream,
@@ -120,7 +122,7 @@ static int record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
       Dmsg1(30, ">filed: Error Hdr=%s\n", fd->msg);
       Jmsg1(jcr, M_FATAL, 0, _("Error sending to File daemon. ERR=%s\n"),
 	 bnet_strerror(fd));
-      return FALSE;
+      return false;
    } else {
       Dmsg1(30, ">filed: Hdr=%s\n", fd->msg);
    }
@@ -136,7 +138,7 @@ static int record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
       Jmsg1(jcr, M_FATAL, 0, _("Error sending to File daemon. ERR=%s\n"),
 	 bnet_strerror(fd));
 
-      ok = FALSE;
+      ok = false;
    }
    fd->msg = save_msg;		      /* restore fd message pointer */
    return ok;

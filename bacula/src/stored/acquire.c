@@ -6,7 +6,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2002-2003 Kern Sibbald and John Walker
+   Copyright (C) 2002-2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -232,7 +232,7 @@ get_out:
  */
 DCR *acquire_device_for_append(JCR *jcr)
 {
-   int release = 0;
+   bool release = false;
    bool recycle = false;
    bool do_mount = false;
    DCR *dcr;
@@ -280,8 +280,10 @@ DCR *acquire_device_for_append(JCR *jcr)
 	       P(dev->mutex); 
 	       unblock_device(dev);
 	       V(dev->mutex);
+	       free_dcr(dcr);	      /* release dcr pointing to old dev */
 	       /* Make new device current device and lock it */
 	       dev = d;
+	       dcr = new_dcr(jcr, dev); /* get new dcr for new device */
 	       lock_device(dev);
 	       block_device(dev, BST_DOING_ACQUIRE);
 	       unlock_device(dev);
@@ -291,7 +293,7 @@ DCR *acquire_device_for_append(JCR *jcr)
 	    }
 	 }
 	 /* Wrong tape mounted, release it, then fall through to get correct one */
-	 release = 1;
+	 release = true;
 	 do_mount = true;
       } else {
 	 /*	  

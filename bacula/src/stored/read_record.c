@@ -41,14 +41,14 @@ static int try_repositioning(JCR *jcr, DEV_RECORD *rec, DEVICE *dev);
 static char *rec_state_to_str(DEV_RECORD *rec);
 #endif
 
-int read_records(JCR *jcr,  DEVICE *dev, 
-       int record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec),
-       int mount_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block))
+bool read_records(JCR *jcr,  DEVICE *dev, 
+       bool record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec),
+       bool mount_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block))
 {
    DEV_BLOCK *block;
    DEV_RECORD *rec = NULL;
    uint32_t record;
-   int ok = TRUE;
+   bool ok = true;
    bool done = false;
    SESSION_LABEL sessrec;
    dlist *recs; 			/* linked list of rec packets open */
@@ -59,7 +59,7 @@ int read_records(JCR *jcr,  DEVICE *dev,
 
    for ( ; ok && !done; ) {
       if (job_canceled(jcr)) {
-	 ok = FALSE;
+	 ok = false;
 	 break;
       }
       if (!read_block_from_device(jcr, dev, block, CHECK_BLOCK_NUMBERS)) {
@@ -70,7 +70,7 @@ int read_records(JCR *jcr,  DEVICE *dev,
 		 dev->file, dev_name(dev), jcr->VolumeName);
 	    if (!mount_cb(jcr, dev, block)) {
                Jmsg(jcr, M_INFO, 0, "End of all volumes.\n");
-	       ok = FALSE;
+	       ok = false;
 	       /*
 		* Create EOT Label so that Media record may
 		*  be properly updated because this is the last
@@ -115,7 +115,7 @@ int read_records(JCR *jcr,  DEVICE *dev,
                Dmsg0(000, "Did fsr\n");
 	       continue;	      /* try to continue */
 	    }
-	    ok = FALSE;
+	    ok = false;
 	    break;
 	 }
       }

@@ -137,7 +137,7 @@ db_open_database(JCR *jcr, B_DB *mdb)
    mysql_init(&(mdb->mysql));
    Dmsg0(50, "mysql_init done\n");
    /* If connection fails, try at 5 sec intervals for 30 seconds. */
-   for (int return=0; retry < 6; retry++) {
+   for (int retry=0; retry < 6; retry++) {
       mdb->db = mysql_real_connect(
 	   &(mdb->mysql),		 /* db */
 	   mdb->db_address,		 /* default = localhost */

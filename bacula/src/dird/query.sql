@@ -171,14 +171,15 @@ SELECT Job.JobId,Job.Name,Job.StartTime,Job.Type,
   FROM JobMedia,Job
   WHERE JobMedia.JobId=Job.JobId
   AND JobMedia.MediaId=%1 
-  GROUP BY Job.JobId;
+  GROUP BY Job.JobId ORDER by Job.StartTime;
 # 15  
 :List Jobs stored for a given Volume name:
 *Enter Volume name:
-SELECT Job.JobId,Job.Name,Job.StartTime,Job.Type,
- Job.Level,Job.JobFiles,Job.JobBytes,Job.JobStatus
+SELECT Job.JobId as JobId,Job.Name as Name,Job.StartTime as StartTime,
+  Job.Type as Type,Job.Level as Level,Job.JobFiles as Files,
+  Job.JobBytes as Bytes,Job.JobStatus as Status
   FROM Media,JobMedia,Job
   WHERE Media.VolumeName='%1'
   AND Media.MediaId=JobMedia.MediaId              
   AND JobMedia.JobId=Job.JobId
-  GROUP BY Job.JobId;
+  GROUP BY Job.JobId ORDER by Job.StartTime;
