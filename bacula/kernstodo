@@ -10,9 +10,6 @@ Documentation to do: (a little bit at a time)
 - Document how to use multiple databases.
 - Add a section to the doc on Manual cycling of Volumes.
 
-- Document logrotate
-- Document default file backup
-- Document . command
           
 Testing to do: (painful)
 - that ALL console command line options work and are always implemented
@@ -20,19 +17,29 @@ Testing to do: (painful)
 - multiple simultaneous Volumes
 
 For 1.30 release:
-- Do not ignore SIGCHLD
 - Fix Bare Metal restore problem.
-- Fix "access not allowed" for backup of files on WinXP.
+- Implement create "FileSet"?
+- Test multiple simultaneous Volumes
+
 - Document new transparent Console commands and wait command.
-- Document new immediate File save capability.
+- Document new immediate File save configuration (walk user
+  through first save to file Volume with automatic Volume
+  labeling?).
 - Document OPTIMIZE TABLE in MySQL
-- Fix watchdog pthread crash on Win32
 - Document labeling a whole magazine using "cat"
-- Implement create "FileSet"
+- Document Lutz Kittler's trick of using "Run Before Job" to
+  abort a job on a particular day.
+- Document Ludovic Strappazon's Win32 raw device save/restore.
+- Document not to restore .journal .autofsck
+- Document logrotate
+- Document default file backup
+- Document . command
 
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 After 1.30:
+- Fix watchdog pthread crash on Win32
+- Fix "access not allowed" for backup of files on WinXP.
 - Implement "scratch pool" where tapes are defined and can be
   taken by any pool that needs them.
 - Implement restore "current system", but take all files without
@@ -950,3 +957,8 @@ rufus-dir: Volume used once. Marking Volume "File0003" as Used.
 - Add IP address to authentication failures. 
 - Add a default File storage so that new users can do backup
   and restores right away.
+- Forbid sbindir and with-subsys-dir from being the same (otherwise
+  the binary gets deleted when the daemon is stopped in the
+  rc.d/inid.d directory.
+- Do not ignore SIGCHLD
+

@@ -9536,7 +9536,6 @@ esac
 
 
 
-
 LIBS="$PTHREAD_LIB $LIBS"
 
 cat >> confdefs.h <<EOF
@@ -9555,6 +9554,19 @@ EOF
 
 MCOMMON=./autoconf/Make.common
 
+
+if test "x${subsysdir}" = "x${sbindir}" ; then
+   echo " "
+   echo " "
+   echo "You have set both --sbindir and --with-subsys-dir"
+   echo "  equal to: ${subsysdir} "
+   echo "This is not permitted. Please reconfigure."
+   echo " "
+   echo "Aborting configuration ..."
+   echo " "
+   echo " "
+   exit 1
+fi 
 
 trap '' 1 2 15
 cat > confcache <<\EOF
@@ -10186,6 +10198,18 @@ fi
 CCVERSION=`${CC} --version | cut -b-15`
 CXXVERSION=`${CXX} --version | cut -b-15`
 
+if test "x${subsysdir}" = "x${sbindir}" ; then
+   echo " "
+   echo " "
+   echo "You have set --sbindir and --with-subsys-dir"
+   echo "  both equal to: ${subsysdir} "
+   echo "  This is not permitted. Please reconfigure."
+   echo "Aborting configuration ..."
+   echo " "
+   echo " "
+   exit 1
+fi 
+
 echo "
 Configuration on `date`:
 
@@ -10194,8 +10218,10 @@ Configuration on `date`:
   Source code location:       ${srcdir}
   Install binaries:	      ${sbindir}
   Install config files:       ${sysconfdir}
-  Scripts directory	      ${scriptdir}
-  Working directory	      ${working_dir}
+  Scripts directory:	      ${scriptdir}
+  Working directory:	      ${working_dir}
+  PID directory:	      ${piddir}
+  Subsys directory:	      ${subsysdir}
   C Compiler:		      ${CC} ${CCVERSION}
   C++ Compiler: 	      ${CXX} ${CXXVERSION}
   Compiler flags:	      ${WCFLAGS} ${CFLAGS} 
