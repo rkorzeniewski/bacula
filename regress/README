@@ -1,33 +1,33 @@
      Bacula Regression
-     Kern Sibbald
-     April 2003
+      Kern Sibbald
+       April 2003
 
 This is Bacula's regression script directory.  At this time
-(May 2003), it is still in development, so all the tests are
+(December 2003), it is still in development, so all the tests are
 not complete.
 
-To set it up, first edit Makefile and set BACULA-SOURCE to point
-to your source.
+To set it up, create your personal configuration file, by
+copying prototype.conf to xxx.conf or simply editing prototype.conf
+directly.
 
-!!!!!!!!!! IMPORTANT !!!!!!!!
-Second, edit the EMAIL address in the Makefile to be your
-email address and not mine or I will get LOTS of unwanted
-email!
+Then edit your conf file and define appropriate values
+for the variables that are in that file.  If you want to see
+a real example, look at kern.conf, but please don't use my
+email address!
 
-Third, edit the DEPKGS path in the Makefile to point to the
-depkgs directory.
-
-Fourth, make sure that depkgs is pre-built if it isn't 
+Make sure that depkgs is pre-built if it isn't 
 already: (cd your-depkgs; make sqlite).
 
 Then do:
 
+   ./config xxx.conf
    make setup
 
-You run the above one time.  This will copy the Bacula
-source, configure, build it, and configure all the scripts
-and conf files.  If you change your source, you will need
-to redo this command. 
+You run the above one time.  This will build a Makefile from
+Makefile.in and your xxx.conf file, copy the Bacula source,
+configure, build it, and configure all the Bacula scripts
+and conf files.  If you change your source, you will need to
+redo this command.
 
 Then you can run any of the tests in the tests subdirectory.
 Each test whose name ends in -root requires you to be root for
