@@ -51,8 +51,9 @@ RBSR_FINDEX *new_findex()
 /* Free all BSR FileIndex entries */
 static void free_findex(RBSR_FINDEX *fi)
 {
-   if (fi) {
-      free_findex(fi->next);
+   RBSR_FINDEX *next;
+   for ( ; fi; fi=next) {
+      next = fi->next;
       free(fi);
    }
 }
@@ -134,12 +135,13 @@ RBSR *new_bsr()
 /* Free the entire BSR */
 void free_bsr(RBSR *bsr)
 {
-   if (bsr) {
+   RBSR *next;
+   for ( ; bsr; bsr=next) {
       free_findex(bsr->fi);
       if (bsr->VolParams) {
          free(bsr->VolParams);
       }
-      free_bsr(bsr->next);
+      next = bsr->next;
       free(bsr);
    }
 }
@@ -148,15 +150,15 @@ void free_bsr(RBSR *bsr)
  * Complete the BSR by filling in the VolumeName and
  *  VolSessionId and VolSessionTime using the JobId
  */
-int complete_bsr(UAContext *ua, RBSR *bsr)
+bool complete_bsr(UAContext *ua, RBSR *bsr)
 {
-   if (bsr) {
+   for ( ; bsr; bsr=bsr->next) {
       JOB_DBR jr;
       memset(&jr, 0, sizeof(jr));
       jr.JobId = bsr->JobId;
       if (!db_get_job_record(ua->jcr, ua->db, &jr)) {
          bsendmsg(ua, _("Unable to get Job record. ERR=%s\n"), db_strerror(ua->db));
-         return 0;
+         return false;
       }
       bsr->VolSessionId = jr.VolSessionId;
       bsr->VolSessionTime = jr.VolSessionTime;
@@ -167,11 +169,10 @@ int complete_bsr(UAContext *ua, RBSR *bsr)
             free(bsr->VolParams);
             bsr->VolParams = NULL;
          }
-         return 0;
+         return false;
       }
-      return complete_bsr(ua, bsr->next);
    }
-   return 1;
+   return true;
 }
 
 /*
@@ -239,7 +240,7 @@ static uint32_t write_bsr(UAContext *ua, RBSR *bsr, FILE *fd)
    uint32_t total_count = 0;
    uint32_t LastIndex = 0;
    bool first = true;
-   if (bsr) {
+   for ( ; bsr; bsr=bsr->next) {
       /*
        * For a given volume, loop over all the JobMedia records.
        *   VolCount is the number of JobMedia records.
@@ -285,14 +286,13 @@ static uint32_t write_bsr(UAContext *ua, RBSR *bsr, FILE *fd)
          first = false;
          LastIndex = bsr->VolParams[i].LastIndex;
       }
-      write_bsr(ua, bsr->next, fd);
    }
    return total_count;
 }
 
 void print_bsr(UAContext *ua, RBSR *bsr)
 {
-   if (bsr) {
+   for ( ; bsr; bsr=bsr->next) {
       for (int i=0; i < bsr->VolCount; i++) {
          bsendmsg(ua, "Volume=\"%s\"\n", bsr->VolParams[i].VolumeName);
          bsendmsg(ua, "MediaType\"%s\"\n", bsr->VolParams[i].MediaType);
