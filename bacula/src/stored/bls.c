@@ -504,7 +504,7 @@ Warning, this Volume is a continuation of Volume %s\n",
       }
 
       record = 0;
-      for ( ;; ) {
+      for (rec->state=0;!(rec->state & REC_BLOCK_EMPTY); ) {
 	 if (!read_record_from_block(block, rec)) {
 	    if (rec->state & REC_NO_HEADER) {
                Dmsg2(30, "!read,nohdr-break. stat=%s blk=%d\n", rec_state_to_str(rec), 
@@ -584,13 +584,7 @@ Warning, this Volume is a continuation of Volume %s\n",
 	       break;			      /* yes, get out */
 	    }
 	    rec->remainder = 0;
-	    if (rec->state & REC_BLOCK_EMPTY) {
-               Dmsg0(100, "Empty, break.\n");
-               break;                 /* don't want record, read next block */
-	    } else {
-               Dmsg0(100, "Label, continue.\n");
-               continue;              /* we don't want record, read next one */
-	    }
+            continue;              /* we don't want record, read next one */
 	 } /* end if label record */
 
 	 /* 
@@ -603,13 +597,7 @@ Warning, this Volume is a continuation of Volume %s\n",
 		  rec->FileIndex);
 	    }
 	    rec->remainder = 0;
-	    if (rec->state & REC_BLOCK_EMPTY) {
-               Dmsg0(100, "Empty, break.\n");
-               break;                 /* don't want record, read next block */
-	    } else {
-               Dmsg0(100, "BSR reject, continue.\n");
-               continue;              /* we don't want record, read next one */
-	    }
+            continue;              /* we don't want record, read next one */
 	 }
 	 if (rec->state & REC_PARTIAL_RECORD) {
             Dmsg6(10, "Partial, break. recno=%d state=%s blk=%d SI=%d ST=%d FI=%d\n", record,
