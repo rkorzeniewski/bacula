@@ -33,7 +33,7 @@
 #define __JCR_H_ 1
 
 /* Backup/Verify level code. These are stored in the DB */
-#define L_FULL                   'F'
+#define L_FULL                   'F'  /* Full backup */
 #define L_INCREMENTAL            'I'  /* since last backup */
 #define L_DIFFERENTIAL           'D'  /* since last full backup */
 #define L_SINCE                  'S'
@@ -41,6 +41,7 @@
 #define L_VERIFY_INIT            'V'  /* verify save (init DB) */
 #define L_VERIFY_VOLUME_TO_CATALOG 'O'  /* verify Volume to catalog entries */
 #define L_VERIFY_DATA            'A'  /* verify data on volume */
+#define L_BASE                   'B'  /* Base level job */
 
 
 /* Job Types. These are stored in the DB */

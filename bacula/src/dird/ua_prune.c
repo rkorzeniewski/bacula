@@ -489,6 +489,11 @@ int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
    db_lock(ua->db);
    memset(&jr, 0, sizeof(jr));
    memset(&del, 0, sizeof(del));
+
+   /*
+    * Find out how many Jobs remain on this Volume by 
+    *  counting the JobMedia records.
+    */
    cnt.count = 0;
    Mmsg(&query, cnt_JobMedia, mr->MediaId);
    if (!db_sql_query(ua->db, query, count_handler, (void *)&cnt)) {
@@ -512,9 +517,11 @@ int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
       del.max_ids = MAX_DEL_LIST_LEN; 
    }
 
+   /* 
+    * Now get a list of JobIds for Jobs written to this Volume
+    *	Could optimize here by adding JobTDate > (now - period).
+    */
    del.JobId = (JobId_t *)malloc(sizeof(JobId_t) * del.max_ids);
-
-   /* ***FIXME*** could make this do JobTDate check too */
    Mmsg(&query, sel_JobMedia, mr->MediaId);
    if (!db_sql_query(ua->db, query, file_delete_handler, (void *)&del)) {
       if (ua->verbose) {
@@ -524,12 +531,13 @@ int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
       goto bail_out;
    }
 
-   /* Use Volume Retention to prune Jobs and Files */
+   /* Use Volume Retention to prune Jobs and their Files */
    period = mr->VolRetention;
    now = (utime_t)time(NULL);
 
    Dmsg3(200, "Now=%d period=%d now-period=%d\n", (int)now, (int)period,
       (int)(now-period));
+
    for (i=0; i < del.num_ids; i++) {
       jr.JobId = del.JobId[i];
       if (!db_get_job_record(ua->jcr, ua->db, &jr)) {

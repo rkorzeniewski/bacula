@@ -405,10 +405,11 @@ static int level_cmd(JCR *jcr)
       free_memory(level);
       return 0;
    }
-   /*
-    * Full backup requested
-    */
-   if (strcmp(level, "full") == 0) {
+   /* Base backup requested? */
+   if (strcmp(level, "base") == 0) {
+      jcr->save_level = L_BASE;
+   /* Full backup requested? */ 
+   } else if (strcmp(level, "full") == 0) {
       jcr->save_level = L_FULL;
    /* 
     * Backup requested since <date> <time>
@@ -429,8 +430,8 @@ static int level_cmd(JCR *jcr)
       tm.tm_isdst = -1;
       mtime = mktime(&tm);
       Dmsg1(100, "Got since time: %s", ctime(&mtime));
-      jcr->incremental = 1;
-      jcr->mtime = mtime;
+      jcr->incremental = 1;	      /* set incremental or decremental backup */
+      jcr->mtime = mtime;	      /* set since time */
    } else {
       Jmsg1(jcr, M_FATAL, 0, "Unknown backup level: %s\n", level);
       free_memory(level);

@@ -34,6 +34,12 @@
 
 /* Forward referenced functions */
 
+/*
+ * The pruning code was written to be referenced by the
+ *   User Agent (i.e. the console), so to properly access it and
+ *   to ensure that the Job gets the proper output, we create
+ *   a User Agent context.  This is a sort of mini-kludge.
+ */
 void create_ua_context(JCR *jcr, UAContext *ua)
 {
    memset(ua, 0, sizeof(UAContext));
@@ -55,8 +61,8 @@ void free_ua_context(UAContext *ua)
 }
 
 /*
- * Auto Prune Jobs and Files
- *   Volumes are done separately
+ * Auto Prune Jobs and Files. This is called at the end of every
+ *   Job.  We do not prune volumes here.
  */
 int do_autoprune(JCR *jcr)
 {
@@ -94,7 +100,9 @@ int do_autoprune(JCR *jcr)
 }
 
 /*
- * Prune all volumes in current Pool.
+ * Prune all volumes in current Pool. This is called from
+ *   catreq.c when the Storage daemon is asking for another
+ *   volume and no appendable volumes are available.
  *
  *  Return 0: on error
  *	   number of Volumes Purged
@@ -119,13 +127,14 @@ int prune_volumes(JCR *jcr)
 
    db_lock(jcr->db);
 
+   /* Get the Pool Record and a list of Media Id's in the Pool */
    pr.PoolId = jcr->PoolId;
    if (!db_get_pool_record(jcr, jcr->db, &pr) || !db_get_media_ids(jcr, jcr->db, &num_ids, &ids)) {
       Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
       goto bail_out;
    }
 
-
+   /* Visit each Volume and Prune it */
    for (i=0; i<num_ids; i++) {
       mr.MediaId = ids[i];
       if (!db_get_media_record(jcr, jcr->db, &mr)) {

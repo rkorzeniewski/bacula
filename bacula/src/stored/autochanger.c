@@ -130,6 +130,16 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
    return rtn_stat;
 }
 
+void invalidate_slot_in_catalog(JCR *jcr)
+{
+   Jmsg(jcr, M_ERROR, 0, _("Autochanger Volume \"%s\" not found in slot %d.\n"
+"    Setting slot to zero in catalog.\n"),
+	jcr->VolCatInfo.VolCatName, jcr->VolCatInfo.Slot);
+   jcr->VolCatInfo.Slot = 0; /* invalidate slot */
+   Dmsg0(200, "update vol info in mount\n");
+   dir_update_volume_info(jcr, &jcr->VolCatInfo, 1);  /* set slot */
+}
+
 /*
  * List the Volumes that are in the autoloader possibly
  *   with their barcodes.

@@ -216,6 +216,9 @@ int do_backup(JCR *jcr)
     * Send Level command to File daemon
     */
    switch (jcr->JobLevel) {
+      case L_BASE:
+         bnet_fsend(fd, levelcmd, "base", " ");
+	 break;
       case L_FULL:
          bnet_fsend(fd, levelcmd, "full", " ");
 	 break;
@@ -347,6 +350,7 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
          bpipe = open_bpipe(fname, 0, "w");
 	 fd = bpipe ? bpipe->wfd : NULL;
       } else {
+	 /* ***FIXME*** handle BASE */
          fd = fopen(fname, jcr->JobLevel==L_FULL?"w+":"a+");
       }
       if (fd) {

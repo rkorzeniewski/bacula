@@ -82,6 +82,8 @@ utime_t str_to_utime(char *str)
    } else {
       return 0;
    }
+   tm.tm_wday = tm.tm_yday = 0;
+   tm.tm_isdst = -1;
    ttime = mktime(&tm);
    if (ttime == -1) {	    
       ttime = 0;

@@ -322,6 +322,7 @@ struct s_res resources[] = {
  */
 struct s_jl joblevels[] = {
    {"Full",          L_FULL,            JT_BACKUP},
+   {"Base",          L_BASE,            JT_BACKUP},
    {"Incremental",   L_INCREMENTAL,     JT_BACKUP},
    {"Differential",  L_DIFFERENTIAL,    JT_BACKUP},
    {"Since",         L_SINCE,           JT_BACKUP},

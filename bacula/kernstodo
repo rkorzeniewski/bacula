@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                  13 May  2003 
+                  14 May  2003 
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -7,7 +7,6 @@ Documentation to do: (any release a little bit at a time)
 - Document static linking
 - Document problems with Verify and pruning.
 - Document how to use multiple databases.
-- Add a section to the doc on Manual cycling of Volumes.
 - For FreeBSD typical /dev/nrsa0 and for mtx /dev/pass1
 
           
@@ -20,7 +19,32 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
-- Check if Job/File retentions apply to multivolume jobs.
+14-May-2003 14:41 undef-sd: RestoreFiles.2003-05-14_14.41.00 Warning: acquire.c:106 Volume name mismatch. Wanted TestVolume0005 got TestVolume0010
+14-May-2003 14:41 undef-sd: 3301 Issuing autochanger "loaded" command.
+14-May-2003 14:41 undef-sd: 3302 Issuing autochanger "unload" command.
+14-May-2003 14:42 undef-sd: 3303 Issuing autochanger "load slot 1" command.
+14-May-2003 14:42 undef-sd: 3304 Autochanger "load slot 1" status is OK.
+14-May-2003 14:42 undef-sd: RestoreFiles.2003-05-14_14.41.00 Warning: acquire.c:106 Volume name mismatch. Wanted TestVolume0005 got TestVolume0009
+14-May-2003 14:42 undef-sd: 3301 Issuing autochanger "loaded" command.
+14-May-2003 14:42 undef-sd: RestoreFiles.2003-05-14_14.41.00 Warning: acquire.c:106 Volume name mismatch. Wanted TestVolume0005 got TestVolume0009
+14-May-2003 14:42 undef-sd: 3301 Issuing autochanger "loaded" command.
+14-May-2003 14:42 undef-sd: RestoreFiles.2003-05-14_14.41.00 Warning: acquire.c:106 Volume name mismatch. Wanted TestVolume0005 got TestVolume0009
+14-May-2003 14:42 undef-sd: 3301 Issuing autochanger "loaded" command.
+14-May-2003 14:42 undef-sd: RestoreFiles.2003-05-14_14.41.00 Warning: acquire.c:106 Volume name mismatch. Wanted TestVolume0005 got TestVolume0009
+14-May-2003 14:42 undef-sd: 3301 Issuing autochanger "loaded" command.
+14-May-2003 14:42 undef-sd: RestoreFiles.2003-05-14_14.41.00 Fatal error: acquire.c:129 Too many errors trying to mount device "/dev/nrsa0".
+14-May-2003 14:42 undef-dir: Bacula 1.31 (12May03): 14-May-2003 14:42
+
+- Implement MTIOCERRSTAT on FreeBSD to clear tape error conditions.
+
+- BSD (probably) does not have strtoll()
+- BSD does not have ioctl() MTEOM
+- BSD defines a number of MT_xxx variables which conflict
+  with those defined by Bacula.
+
+- The following  Re-read last block at EOT failed. ERR=block.c:523 Read zero bytes on device /dev/nrsa0.
+    undef-sd: block.c:523 Read zero bytes on device /dev/nrsa0.
+  apparently masks the standard EOM message.
 - Add Progress command that periodically reports the progress of
   a job or all jobs.
 - Implement "Reschedule OnError=yes interval=nnn times=xxx"
@@ -40,7 +64,6 @@ For 1.31 release:
    xeon-fd:      Could not stat c:/Documents and Settings/All 
    Users/Application Data/Humc:\Documents and Settings\All User98_AIX.kbf: 
    ERR=No such file or directory
-- Implement argv/argk in place of sscanf in the daemon protocol.
 - Examine Bare Metal restore problem (a FD crash exists somewhere ...).
 - Test multiple simultaneous Volumes
 - Document FInclude ...
@@ -784,3 +807,5 @@ Done: (see kernsdone for more)
       The number of files mismatch! Volume=1 Catalog=0
    rufus-sd: Matou.2003-05-10_10.39.18 Error: askdir.c:155 NULL Volume name. This shouldn't happen!!!
 - Shell character expansion is failing occassionally.
+- Add a section to the doc on Manual cycling of Volumes.
+- Check if Job/File retentions apply to multivolume jobs.

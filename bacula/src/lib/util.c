@@ -324,6 +324,8 @@ char *job_level_to_str(int level)
    char *str;
 
    switch (level) {
+   case L_BASE:
+      str = _("Base");
    case L_FULL:
       str = _("Full");
       break;

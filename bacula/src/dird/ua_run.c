@@ -463,21 +463,25 @@ When:       %s\n"),
 	 /* Level */
 	 if (jcr->JobType == JT_BACKUP) {
             start_prompt(ua, _("Levels:\n"));
+            add_prompt(ua, _("Base"));
             add_prompt(ua, _("Full"));
             add_prompt(ua, _("Incremental"));
             add_prompt(ua, _("Differential"));
             add_prompt(ua, _("Since"));
             switch (do_prompt(ua, _("Select level"), NULL, 0)) {
 	    case 0:
-	       jcr->JobLevel = L_FULL;
+	       jcr->JobLevel = L_BASE;
 	       break;
 	    case 1:
-	       jcr->JobLevel = L_INCREMENTAL;
+	       jcr->JobLevel = L_FULL;
 	       break;
 	    case 2:
-	       jcr->JobLevel = L_DIFFERENTIAL;
+	       jcr->JobLevel = L_INCREMENTAL;
 	       break;
 	    case 3:
+	       jcr->JobLevel = L_DIFFERENTIAL;
+	       break;
+	    case 4:
 	       jcr->JobLevel = L_SINCE;
 	       break;
 	    default:
