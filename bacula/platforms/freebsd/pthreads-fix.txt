@@ -155,7 +155,7 @@ machine.
 
 2 - Apply this patch.
 
-http://www.freebsd.org/cgi/cvsweb.cgi/src/lib/libc_r/uthread/uthread_write.c.diff?r1=1.16.2.6&r2=1.16.2.7
+http://www.freebsd.org/cgi/cvsweb.cgi/src/lib/libc_r/uthread/uthread_write.c.diff?r1=1.16.2.6&r2=1.16.2.8
 
 To apply the patch, follow these instructions as root.  
 
