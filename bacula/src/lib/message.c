@@ -374,16 +374,11 @@ static void make_unique_mail_filename(JCR *jcr, POOLMEM *&name, DEST *d)
 static BPIPE *open_mail_pipe(JCR *jcr, POOLMEM *&cmd, DEST *d)
 {
    BPIPE *bpipe;
-   int use_bsmtp = (d->mail_cmd && jcr);
        
-   if (use_bsmtp) {
+   if (d->mail_cmd) {
       cmd = edit_job_codes(jcr, cmd, d->mail_cmd, d->where);
    } else {
-#if 1
       Mmsg(cmd, "/usr/lib/sendmail -F Bacula %s", d->where);
-#else
-      Mmsg(cmd, "mail -s \"Bacula Message\" %s", d->where);
-#endif
    }
    fflush(stdout);
 
@@ -393,11 +388,10 @@ static BPIPE *open_mail_pipe(JCR *jcr, POOLMEM *&cmd, DEST *d)
 	 cmd, be.strerror());
    }
 
-#if 1
-   if (!use_bsmtp) {
+   /* If we had to use sendmail, add subject */
+   if (!d->mail_cmd) {
        fprintf(bpipe->wfd, "Subject: Bacula Message\r\n\r\n");
    }
-#endif
    
    return bpipe;
 }
@@ -655,7 +649,7 @@ void dispatch_message(JCR *jcr, int type, int level, char *msg)
 		   if (stat != 0) {
 		      berrno be;
 		      be.set_errno(stat);
-                      Jmsg2(jcr, M_ERROR, 0, _("Operator mail program terminated in error.\n"
+                      Qmsg2(jcr, M_ERROR, 0, _("Operator mail program terminated in error.\n"
                             "CMD=%s\n"
                             "ERR=%s\n"), mcmd, be.strerror());
 		   }
@@ -671,7 +665,7 @@ void dispatch_message(JCR *jcr, int type, int level, char *msg)
                    d->fd = fopen(name, "w+");
 		   if (!d->fd) {
 		      d->fd = stdout;
-                      Jmsg2(jcr, M_ERROR, 0, "fopen %s failed: ERR=%s\n", name, strerror(errno));
+                      Qmsg2(jcr, M_ERROR, 0, "fopen %s failed: ERR=%s\n", name, strerror(errno));
 		      d->fd = NULL;
 		      free_pool_memory(name);
 		      break;
@@ -690,7 +684,7 @@ void dispatch_message(JCR *jcr, int type, int level, char *msg)
                    d->fd = fopen(d->where, "w+");
 		   if (!d->fd) {
 		      d->fd = stdout;
-                      Jmsg2(jcr, M_ERROR, 0, "fopen %s failed: ERR=%s\n", d->where, strerror(errno));
+                      Qmsg2(jcr, M_ERROR, 0, "fopen %s failed: ERR=%s\n", d->where, strerror(errno));
 		      d->fd = NULL;
 		      break;
 		   }
@@ -703,7 +697,7 @@ void dispatch_message(JCR *jcr, int type, int level, char *msg)
                    d->fd = fopen(d->where, "a");
 		   if (!d->fd) {
 		      d->fd = stdout;
-                      Jmsg2(jcr, M_ERROR, 0, "fopen %s failed: ERR=%s\n", d->where, strerror(errno));
+                      Qmsg2(jcr, M_ERROR, 0, "fopen %s failed: ERR=%s\n", d->where, strerror(errno));
 		      d->fd = NULL;
 		      break;
 		   }

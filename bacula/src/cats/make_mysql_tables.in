@@ -32,12 +32,19 @@ CREATE TABLE File (
    LStat TINYBLOB NOT NULL,
    MD5 TINYBLOB NOT NULL,
    PRIMARY KEY(FileId),
-   INDEX (JobId),
-   INDEX (PathId),
-   INDEX (FilenameId),
-   INDEX (JobId, PathId, FilenameId)
+   INDEX (FilenameId, PathId)
    );
 
+#
+# Possibly add one or more of the following indexes
+#  to the above File table if your Verifies are
+#  too slow.
+#
+#  INDEX (JobId),
+#  INDEX (PathId),
+#  INDEX (FilenameId),
+#  INDEX (JobId, PathId, FilenameId)
+#
 
 CREATE TABLE Job (
    JobId INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,

@@ -220,7 +220,7 @@ int close_bpipe(BPIPE *bpipe)
       if (WIFEXITED(chldstatus)) {    /* process exit()ed */
 	 stat = WEXITSTATUS(chldstatus);
 	 if (stat != 0) {
-            Dmsg1(100, "Non-zero status %s returned from child.\n", stat);
+            Dmsg1(200, "Non-zero status %d returned from child.\n", stat);
 	    stat |= b_errno_exit;	 /* exit status returned */
 	 }
          Dmsg1(200, "child status=%d\n", stat & ~b_errno_exit);

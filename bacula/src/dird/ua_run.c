@@ -580,7 +580,6 @@ Priority:    %d\n"),
                        "Bootstrap:  %s\n"
                        "Where:      %s\n"
                        "Replace:    %s\n"
-                       "FileSet:    %s\n"
                        "Client:     %s\n"
                        "Storage:    %s\n"
                        "JobId:      %s\n"
