@@ -492,7 +492,7 @@ int db_get_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
 
 
 
-int db_get_file_attributes_record(JCR *jcr, B_DB *mdb, char *fname, FILE_DBR *fdbr) 
+int db_get_file_attributes_record(JCR *jcr, B_DB *mdb, char *fname, JOB_DBR *jr, FILE_DBR *fdbr)
 { return 0; }
 
 int db_get_job_volume_parameters(JCR *jcr, B_DB *mdb, uint32_t JobId, VOL_PARAMS **VolParams)

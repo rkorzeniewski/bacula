@@ -72,11 +72,11 @@ db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
    /* If no Id given, we must find corresponding job */
    if (jr->JobId == 0) {
       /* Differential is since last Full backup */
-      Mmsg(&mdb->cmd, 
+	 Mmsg(&mdb->cmd, 
 "SELECT StartTime FROM Job WHERE JobStatus='T' AND Type='%c' AND "
 "Level='%c' AND Name='%s' AND ClientId=%u AND FileSetId=%u "
 "ORDER BY StartTime DESC LIMIT 1",
-	 jr->Type, L_FULL, jr->Name, jr->ClientId, jr->FileSetId);
+	   jr->Type, L_FULL, jr->Name, jr->ClientId, jr->FileSetId);
 
       if (jr->Level == L_DIFFERENTIAL) {
       /* Incremental is since last Full, Incremental, or Differential */
@@ -89,19 +89,19 @@ db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
 	  *  then we do a second look to find the most recent
 	  *  backup
 	  */
-	 if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
-            Mmsg2(&mdb->errmsg, _("Query error for start time request: ERR=%s\nCMD=%s\n"), 
-	       sql_strerror(mdb), mdb->cmd);
-	    db_unlock(mdb);
-	    return 0;
-	 }
-	 if ((row = sql_fetch_row(mdb)) == NULL) {
-	    sql_free_result(mdb);
-            Mmsg(&mdb->errmsg, _("No prior Full backup Job record found.\n"));
-	    db_unlock(mdb);
-	    return 0;
-	 }
+      if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
+         Mmsg2(&mdb->errmsg, _("Query error for start time request: ERR=%s\nCMD=%s\n"), 
+	    sql_strerror(mdb), mdb->cmd);
+	 db_unlock(mdb);
+	 return 0;
+      }
+      if ((row = sql_fetch_row(mdb)) == NULL) {
 	 sql_free_result(mdb);
+            Mmsg(&mdb->errmsg, _("No prior Full backup Job record found.\n"));
+	 db_unlock(mdb);
+	 return 0;
+      }
+      sql_free_result(mdb);
 	 /* Now edit SQL command for Incremental Job */
 	 Mmsg(&mdb->cmd, 
 "SELECT StartTime FROM Job WHERE JobStatus='T' AND Type='%c' AND "
@@ -109,13 +109,13 @@ db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
 "ORDER BY StartTime DESC LIMIT 1",
 	   jr->Type, L_INCREMENTAL, L_DIFFERENTIAL, L_FULL, jr->Name,
 	   jr->ClientId);
-      } else {
+   } else {
          Mmsg1(&mdb->errmsg, _("Unknown level=%d\n"), jr->Level);
 	 db_unlock(mdb);
 	 return 0;
-      }
+   }
    } else {
-      Dmsg1(100, "Submitting: %s\n", mdb->cmd);
+   Dmsg1(100, "Submitting: %s\n", mdb->cmd);
       Mmsg(&mdb->cmd, "SELECT StartTime FROM Job WHERE Job.JobId=%u", jr->JobId);
    }
 
@@ -170,7 +170,7 @@ db_find_last_jobid(JCR *jcr, B_DB *mdb, char *Name, JOB_DBR *jr)
 "SELECT JobId FROM Job WHERE Type='B' AND JobStatus='T' AND "
 "Name='%s' ORDER BY StartTime DESC LIMIT 1", Name);
       } else {
-	 Mmsg(&mdb->cmd, 
+      Mmsg(&mdb->cmd, 
 "SELECT JobId FROM Job WHERE Type='B' AND "
 "ClientId=%u ORDER BY StartTime DESC LIMIT 1", jr->ClientId);
       }
