@@ -1,6 +1,6 @@
-          Release Notes for Bacula 1.30
+          Release Notes for Bacula 1.30-22Apr03 BETA
 
-  Bacula code: Total files = 235 Total lines = 66,658 (*.h *.c *.in)
+  Bacula code: Total files = 235 Total lines = 67,254 (*.h *.c *.in)
 
 Major Changes this Release:
 - The Windows Client now uses Cygwin 1.3.20 and should be much 

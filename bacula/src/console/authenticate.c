@@ -55,7 +55,8 @@ int authenticate_director(JCR *jcr, DIRRES *director)
 
    if (!cram_md5_get_auth(dir, director->password) || 
        !cram_md5_auth(dir, director->password)) {
-      Dmsg0(-1, "Director authorization problem.\n");
+      Dmsg0(-1, _("Director authorization problem.\n"
+            "Most likely the passwords do not agree.\n"));  
       return 0;
    }
 

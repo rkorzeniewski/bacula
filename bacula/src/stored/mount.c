@@ -133,7 +133,7 @@ mount_next_vol:
        *   and read the label. If there is no tape in the drive,
        *   we will err, recurse and ask the operator the next time.
        */
-      if (autochanger || (!release && dev_cap(dev, CAP_AUTOMOUNT))) {
+      if (autochanger || (!release && dev_is_tape(dev) && dev_cap(dev, CAP_AUTOMOUNT))) {
          ask = 0;                     /* don't ask SYSOP this time */
       }
 

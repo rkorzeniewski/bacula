@@ -69,7 +69,7 @@ int cram_md5_auth(BSOCK *bs, char *password)
    if (ok) {
       bnet_fsend(bs, "1000 OK auth\n");
    } else {
-      bnet_fsend(bs, "1999 No auth\n");
+      bnet_fsend(bs, "1999 Authorization failed.\n");
       bmicrosleep(5, 0);
    }
    return ok;

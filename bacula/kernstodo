@@ -17,6 +17,9 @@ Testing to do: (painful)
 - multiple simultaneous Volumes
 
 For 1.30 release:
+- Bug: up arrow prints garbage in command line on gnome-console!
+- Bug: fix access problems on files restored on WinXP (possibly do
+       this in a later update.
 - Fix Bare Metal restore problem.
 - Test multiple simultaneous Volumes
 
