@@ -142,7 +142,8 @@ clean:
 	@for I in ${subdirs}; \
 	  do (cd $$I; echo "==>Entering directory `pwd`"; ${MAKE} $@ || exit 1); done
 	@(cd platforms; echo "==>Entering directory `pwd`"; ${MAKE} $@ || exit 1)
-	@$(RMF) *~ 1 2 3 core core.*
+	@$(RMF) *~ 1 2 3 core core.* config.guess console.log console.sum
+
 
 # distclean goal is for making a clean source tree, but if you have run
 # configure from a different directory, then doesn't destroy all your
@@ -157,7 +158,7 @@ distclean:
 	@(cd platforms; echo "==>Entering directory `pwd`"; ${MAKE} $@ || exit 1)
 	@$(RMF) bacula fd Makefile startmysql stopmysql startit stopit btraceback
 	@$(RMF) console gconsole
-	@$(RMF) *~ 1 2 3 core core.*
+	@$(RMF) *~ 1 2 3 core core.* config.guess console.log console.sum
 	@$(RMF) working/*
 
 distdirs:
@@ -171,6 +172,13 @@ distcopy:
 	@for I in $(subdirs); do (cd $$I; $(MAKE) $@ || exit 1); done
 
 distrib: configure autoconf/config.h.in distdirs distcopy
+
+test:
+	$(CP) ./autoconf/config.guess .
+	runtest
+	$(RMF) config.guess
+	cat console.sum
+
 
 tar.gz:  ../$(VERNAME).tar.gz
 ../$(VERNAME).tar.gz:

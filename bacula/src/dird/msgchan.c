@@ -93,7 +93,7 @@ int start_storage_daemon_job(JCR *jcr)
    int status;
    STORE *storage;
    BSOCK *sd;
-   char auth_key[100];		      /* max 17 chars */
+   char auth_key[100];
    char *device_name, *pool_name, *pool_type, *media_type;
    int device_name_len, pool_name_len, pool_type_len, media_type_len;
 

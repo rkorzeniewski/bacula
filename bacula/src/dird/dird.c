@@ -355,14 +355,15 @@ Without that I don't know who I am :-(\n"), configfile);
 			    catalog->db_password);
 	 if (!db_open_database(db)) {
             Jmsg(NULL, M_FATAL,  0, "%s", db_strerror(db));
+	 } else {
+	    /* If a pool is defined for this job, create the pool DB	   
+	     *	record if it is not already created. 
+	     */
+	    if (job->pool) {
+	       create_pool(db, job->pool);
+	    }
+	    db_close_database(db);
 	 }
-	 /* If a pool is defined for this job, create the pool DB	
-	  *  record if it is not already created. 
-	  */
-	 if (job->pool) {
-	    create_pool(db, job->pool);
-	 }
-	 db_close_database(db);
       } else {
 	 if (job->client) {
             Jmsg(NULL, M_FATAL, 0, _("No Catalog resource defined for client %s\n"), 

@@ -1,4 +1,4 @@
-# autoconf/Make.common.in        -*- Makefile -*-
+# autoconf/Make.common.in	 -*- Makefile -*-
 # release date (man), LSM date, version number/name, current maintainer
 DATE="@DATE@"
 LSMDATE=@LSMDATE@
@@ -57,6 +57,7 @@ INSTALL_SCRIPT = @INSTALL@ -m 755
 CFLAGS = @CFLAGS@ 
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
+TTOOL_LDFLAGS = @TTOOL_LDFLAGS@
 #DEFS = @DEFS@
 LIBS = @LIBS@
 DINCLUDE = @DINCLUDE@

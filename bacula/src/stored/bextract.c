@@ -47,7 +47,6 @@ static JCR *jcr;
 static FF_PKT my_ff;
 static FF_PKT *ff = &my_ff;
 static BSR *bsr = NULL;
-static DEV_BLOCK *block;
 static int extract = FALSE;
 static long record_file_index;
 static long total = 0;
@@ -387,7 +386,7 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 
 
 /* Dummies to replace askdir.c */
-int	dir_get_volume_info(JCR *jcr) { return 1;}
+int	dir_get_volume_info(JCR *jcr, int writing) { return 1;}
 int	dir_find_next_appendable_volume(JCR *jcr) { return 1;}
 int	dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int relabel) { return 1; }
 int	dir_create_jobmedia_record(JCR *jcr) { return 1; }

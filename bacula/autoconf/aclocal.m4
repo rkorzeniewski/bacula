@@ -1,40 +1,119 @@
 dnl
-dnl If available, use support for large files unless the user specified
-dnl one of the CPPFLAGS, LDFLAGS, or LIBS variables (<eggert@twinsun.com>
-dnl via GNU patch 2.5)
-dnl
-AC_DEFUN(LARGE_FILE_SUPPORT,
-[AC_MSG_CHECKING(whether large file support needs explicit enabling)
-ac_getconfs=''
-ac_result=yes
-ac_set=''
-ac_shellvars='CPPFLAGS LDFLAGS LIBS'
-for ac_shellvar in $ac_shellvars; do
-  case $ac_shellvar in
-  CPPFLAGS) ac_lfsvar=LFS_CFLAGS ac_lfs64var=LFS64_CFLAGS ;;
-  *) ac_lfsvar=LFS_$ac_shellvar ac_lfs64var=LFS64_$ac_shellvar ;;
-  esac
-  eval test '"${'$ac_shellvar'+set}"' = set && ac_set=$ac_shellvar
-  (getconf $ac_lfsvar) >/dev/null 2>&1 || { ac_result=no; break; }
-  ac_getconf=`getconf $ac_lfsvar`
-  ac_getconf64=`getconf $ac_lfs64var`
-  ac_getconfs=$ac_getconfs$ac_getconf\ $ac_getconf64
-  eval ac_test_$ac_shellvar="\$ac_getconf\ \$ac_getconf64"
-done
-case "$ac_result$ac_getconfs" in
-yes) ac_result=no ;;
-esac
-case "$ac_result$ac_set" in
-yes?*) ac_result="yes, but $ac_set is already set, so use its settings"
-esac
-AC_MSG_RESULT($ac_result)
-case $ac_result in
-yes)
-  for ac_shellvar in $ac_shellvars; do
-    eval $ac_shellvar=\$ac_test_$ac_shellvar
-  done ;;
-esac
-])
+dnl =========  Large File Support ==============
+dnl By default, many hosts won't let programs access large files;
+dnl one must use special compiler options to get large-file access to work.
+dnl For more details about this brain damage please see:
+dnl http://www.sas.com/standards/large.file/x_open.20Mar96.html
+
+dnl Written by Paul Eggert <eggert@twinsun.com>.
+
+dnl Internal subroutine of AC_SYS_LARGEFILE.
+dnl AC_SYS_LARGEFILE_FLAGS(FLAGSNAME)
+AC_DEFUN(AC_SYS_LARGEFILE_FLAGS,
+  [AC_CACHE_CHECK([for $1 value to request large file support],
+     ac_cv_sys_largefile_$1,
+     [ac_cv_sys_largefile_$1=`($GETCONF LFS_$1) 2>/dev/null` || {
+        ac_cv_sys_largefile_$1=no
+        ifelse($1, CFLAGS,
+          [case "$host_os" in
+           # IRIX 6.2 and later require cc -n32.
+changequote(, )dnl
+           irix6.[2-9]* | irix6.1[0-9]* | irix[7-9].* | irix[1-9][0-9]*)
+changequote([, ])dnl
+             if test "$GCC" != yes; then
+               ac_cv_sys_largefile_CFLAGS=-n32
+             fi
+             ac_save_CC="$CC"
+             CC="$CC $ac_cv_sys_largefile_CFLAGS"
+             AC_TRY_LINK(, , , ac_cv_sys_largefile_CFLAGS=no)
+             CC="$ac_save_CC"
+           esac])
+      }])])
+
+dnl Internal subroutine of AC_SYS_LARGEFILE.
+dnl AC_SYS_LARGEFILE_SPACE_APPEND(VAR, VAL)
+AC_DEFUN(AC_SYS_LARGEFILE_SPACE_APPEND,
+  [case $2 in
+   no) ;;
+   ?*)
+     case "[$]$1" in
+     '') $1=$2 ;;
+     *) $1=[$]$1' '$2 ;;
+     esac ;;
+   esac])
+
+dnl Internal subroutine of AC_SYS_LARGEFILE.
+dnl AC_SYS_LARGEFILE_MACRO_VALUE(C-MACRO, CACHE-VAR, COMMENT, CODE-TO-SET-DEFAULT)
+AC_DEFUN(AC_SYS_LARGEFILE_MACRO_VALUE,
+  [AC_CACHE_CHECK([for $1], $2,
+     [$2=no
+changequote(, )dnl
+      $4
+      for ac_flag in $ac_cv_sys_largefile_CFLAGS no; do
+        case "$ac_flag" in
+        -D$1)
+          $2=1 ;;
+        -D$1=*)
+          $2=`expr " $ac_flag" : '[^=]*=\(.*\)'` ;;
+        esac
+      done
+changequote([, ])dnl
+      ])
+   if test "[$]$2" != no; then
+     AC_DEFINE_UNQUOTED([$1], [$]$2, [$3])
+   fi])
+
+AC_DEFUN(AC_SYS_LARGEFILE,
+  [AC_REQUIRE([AC_CANONICAL_HOST])
+   AC_ARG_ENABLE(largefile,
+     [  --disable-largefile     omit support for large files])
+   if test "$enable_largefile" != no; then
+     AC_CHECK_TOOL(GETCONF, getconf)
+     AC_SYS_LARGEFILE_FLAGS(CFLAGS)
+     AC_SYS_LARGEFILE_FLAGS(LDFLAGS)
+     AC_SYS_LARGEFILE_FLAGS(LIBS)
+
+     for ac_flag in $ac_cv_sys_largefile_CFLAGS no; do
+       case "$ac_flag" in
+       no) ;;
+       -D_FILE_OFFSET_BITS=*) ;;
+       -D_LARGEFILE_SOURCE | -D_LARGEFILE_SOURCE=*) ;;
+       -D_LARGE_FILES | -D_LARGE_FILES=*) ;;
+       -D?* | -I?*)
+         AC_SYS_LARGEFILE_SPACE_APPEND(CPPFLAGS, "$ac_flag") ;;
+       *)
+         AC_SYS_LARGEFILE_SPACE_APPEND(CFLAGS, "$ac_flag") ;;
+       esac
+     done
+     AC_SYS_LARGEFILE_SPACE_APPEND(LDFLAGS, "$ac_cv_sys_largefile_LDFLAGS")
+     AC_SYS_LARGEFILE_SPACE_APPEND(LIBS, "$ac_cv_sys_largefile_LIBS")
+     AC_SYS_LARGEFILE_MACRO_VALUE(_FILE_OFFSET_BITS,
+       ac_cv_sys_file_offset_bits,
+       [Number of bits in a file offset, on hosts where this is settable.],
+       [case "$host_os" in
+        # HP-UX 10.20 and later
+        hpux10.[2-9][0-9]* | hpux1[1-9]* | hpux[2-9][0-9]*)
+          ac_cv_sys_file_offset_bits=64 ;;
+        esac])
+     AC_SYS_LARGEFILE_MACRO_VALUE(_LARGEFILE_SOURCE,
+       ac_cv_sys_largefile_source,
+       [Define to make fseeko etc. visible, on some hosts.],
+       [case "$host_os" in
+        # HP-UX 10.20 and later
+        hpux10.[2-9][0-9]* | hpux1[1-9]* | hpux[2-9][0-9]*)
+          ac_cv_sys_largefile_source=1 ;;
+        esac])
+     AC_SYS_LARGEFILE_MACRO_VALUE(_LARGE_FILES,
+       ac_cv_sys_large_files,
+       [Define for large files, on AIX-style hosts.],
+       [case "$host_os" in
+        # AIX 4.2 and later
+        aix4.[2-9]* | aix4.1[0-9]* | aix[5-9].* | aix[1-9][0-9]*)
+          ac_cv_sys_large_files=1 ;;
+        esac])
+   fi
+  ])
+dnl ==========================================================
 
 dnl Check type of signal routines (posix, 4.2bsd, 4.1bsd or v7)
 AC_DEFUN(SIGNAL_CHECK,
@@ -291,7 +370,7 @@ Which one DBMS do you want to use (please select only one):
                 fi
         fi
     SQL_INCLUDE=-I$MYSQL_INCDIR
-    SQL_LFLAGS="-L$MYSQL_LIBDIR -lmysqlclient"
+    SQL_LFLAGS="-L$MYSQL_LIBDIR -lmysqlclient -lz"
     SQL_BINDIR=$MYSQL_BINDIR
 
     AC_DEFINE(HAVE_MYSQL)

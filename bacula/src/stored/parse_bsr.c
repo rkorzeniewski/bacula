@@ -35,6 +35,7 @@ static BSR *store_vol(LEX *lc, BSR *bsr);
 static BSR *store_client(LEX *lc, BSR *bsr);
 static BSR *store_job(LEX *lc, BSR *bsr);
 static BSR *store_jobid(LEX *lc, BSR *bsr);
+static BSR *store_count(LEX *lc, BSR *bsr);
 static BSR *store_jobtype(LEX *lc, BSR *bsr);
 static BSR *store_joblevel(LEX *lc, BSR *bsr);
 static BSR *store_findex(LEX *lc, BSR *bsr);
@@ -59,6 +60,7 @@ struct kw_items items[] = {
    {"client", store_client},
    {"job", store_job},
    {"jobid", store_jobid},
+   {"count", store_count},
    {"fileindex", store_findex},
    {"jobtype", store_jobtype},
    {"joblevel", store_joblevel},
@@ -172,6 +174,10 @@ static BSR *store_vol(LEX *lc, BSR *bsr)
    token = lex_get_token(lc, T_STRING);
    if (token == T_ERROR) {
       return NULL;
+   }
+   if (bsr->volume) {
+      bsr->next = new_bsr();
+      bsr = bsr->next;
    }
    /* This may actually be more than one volume separated by a |  
     * If so, separate them.
@@ -323,6 +329,21 @@ static BSR *store_jobid(LEX *lc, BSR *bsr)
    }
    return bsr;
 }
+
+
+static BSR *store_count(LEX *lc, BSR *bsr)
+{
+   int token;
+
+   token = lex_get_token(lc, T_PINT32);
+   if (token == T_ERROR) {
+      return NULL;
+   }
+   bsr->count = lc->pint32_val;
+   scan_to_eol(lc);
+   return bsr;
+}
+
 
 static BSR *store_jobtype(LEX *lc, BSR *bsr)
 {
@@ -596,6 +617,12 @@ void dump_bsr(BSR *bsr)
    dump_jobid(bsr->JobId);
    dump_job(bsr->job);
    dump_findex(bsr->FileIndex);
+   if (bsr->Slot) {
+      Dmsg1(-1, "Slot        : %u\n", bsr->Slot);
+   }
+   if (bsr->count) {
+      Dmsg1(-1, "count       : %u\n", bsr->count);
+   }
    if (bsr->next) {
       Dmsg0(-1, "\n");
       dump_bsr(bsr->next);

@@ -538,7 +538,7 @@ static void user_select_files(TREE_CTX *tree)
    bsendmsg(tree->ua, _( 
       "\nYou are now entering file selection mode where you add and\n"
       "remove files to be restored. All files are initially added.\n"
-      "Enter done to leave this mode.\n\n"));
+      "Enter \"done\" to leave this mode.\n\n"));
    /*
     * Enter interactive command handler allowing selection
     *  of individual files.
@@ -955,6 +955,7 @@ extern char *getgroup(gid_t gid);
 static void ls_output(char *buf, char *fname, struct stat *statp)
 {
    char *p, *f;
+   char ec1[30];
    int n;
 
    p = encode_mode(statp->st_mode, buf);
@@ -962,7 +963,7 @@ static void ls_output(char *buf, char *fname, struct stat *statp)
    p += n;
    n = sprintf(p, "%-8.8s %-8.8s", getuser(statp->st_uid), getgroup(statp->st_gid));
    p += n;
-   n = sprintf(p, "%8ld  ", statp->st_size);
+   n = sprintf(p, "%8.8s  ", edit_uint64(statp->st_size, ec1));
    p += n;
    p = encode_time(statp->st_ctime, p);
    *p++ = ' ';
@@ -1150,7 +1151,7 @@ static void get_storage_from_mediatype(UAContext *ua, NAME_LIST *name_list, JobI
    start_prompt(ua, _("The defined Storage resources are:\n"));
    LockRes();
    while ((store = (STORE *)GetNextRes(R_STORAGE, (RES *)store))) {
-      if (strcmp(store->hdr.name, name_list->name[0]) == 0) {
+      if (strcmp(store->media_type, name_list->name[0]) == 0) {
 	 add_prompt(ua, store->hdr.name);
       }
    }

@@ -55,11 +55,14 @@ static char Dir_sorry[]  = N_("1999 You are not authorized.\n");
 int authenticate_storage_daemon(JCR *jcr)
 {
    BSOCK *sd = jcr->store_bsock;
+   char dirname[MAX_NAME_LENGTH];
 
    /* 
     * Send my name to the Storage daemon then do authentication
     */
-   if (!bnet_fsend(sd, hello, director->hdr.name)) {
+   strcpy(dirname, director->hdr.name);
+   bash_spaces(dirname);
+   if (!bnet_fsend(sd, hello, dirname)) {
       Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to Storage daemon. ERR=%s\n"), bnet_strerror(sd));
       return 0;
    }
@@ -88,10 +91,13 @@ int authenticate_storage_daemon(JCR *jcr)
 int authenticate_file_daemon(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
+   char dirname[MAX_NAME_LENGTH];
 
    /* 
     * Send my name to the File daemon then do authentication
     */
+   strcpy(dirname, director->hdr.name);
+   bash_spaces(dirname);
    if (!bnet_fsend(fd, hello, director->hdr.name)) {
       Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to File daemon. ERR=%s\n"), bnet_strerror(fd));
       return 0;

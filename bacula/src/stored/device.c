@@ -269,6 +269,8 @@ void _block_device(char *file, int line, DEVICE *dev, int state)
    dev->no_wait_id = pthread_self();  /* allow us to continue */
 }
 
+
+
 /*
  * Unblock the device, and wake up anyone who went to sleep.
  */

@@ -304,8 +304,14 @@
 /* Define if you have the getcwd function.  */
 #undef HAVE_GETCWD
 
+/* Define if you have the getdomainname function.  */
+#undef HAVE_GETDOMAINNAME
+
 /* Define if you have the gethostbyname_r function.  */
 #undef HAVE_GETHOSTBYNAME_R
+
+/* Define if you have the gethostid function.  */
+#undef HAVE_GETHOSTID
 
 /* Define if you have the gethostname function.  */
 #undef HAVE_GETHOSTNAME
@@ -465,3 +471,13 @@
 
 /* Define if you have the xnet library (-lxnet).  */
 #undef HAVE_LIBXNET
+
+/* Number of bits in a file offset, on hosts where this is settable. */
+#undef _FILE_OFFSET_BITS
+
+/* Define to make fseeko etc. visible, on some hosts. */
+#undef _LARGEFILE_SOURCE
+
+/* Define for large files, on AIX-style hosts. */
+#undef _LARGE_FILES
+

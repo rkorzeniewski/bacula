@@ -80,16 +80,16 @@ bacula-sd: $(SVROBJS) ../lib/libbac.a
 #	 $(CXX) $(LDFLAGS) -L../lib -L../cats  -o $@ $(POOLOBJS) -lsql $(LIBS) $(DLIB) -lbac -lm
 
 btape:	$(TAPEOBJS) ../lib/libbac.a ../cats/libsql.a
-	$(CXX) $(LDFLAGS) -L../lib -L../cats  -o $@ $(TAPEOBJS) -lsql $(LIBS) $(DLIB) -lbac -lm
+	$(CXX) $(TTOOL_LDFLSGS) $(LDFLAGS) -L../lib -L../cats  -o $@ $(TAPEOBJS) -lsql $(LIBS) $(DLIB) -lbac -lm
 
 bls:	../findlib/libfind.a $(BLSOBJS) ../lib/libbac.a
-	$(CXX) $(LDFLAGS) -L../lib -L../findlib -o $@ $(BLSOBJS) $(LIBS) $(DLIB) -lbac -lfind -lm
+	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(BLSOBJS) $(LIBS) $(DLIB) -lbac -lfind -lm
 
 bextract: ../findlib/libfind.a $(BEXTOBJS) ../lib/libbac.a
-	$(CXX) $(LDFLAGS) -L../lib -L../findlib -o $@ $(BEXTOBJS) $(LIBS) $(DLIB) $(FDLIBS) -lbac -lfind -lm
+	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(BEXTOBJS) $(LIBS) $(DLIB) $(FDLIBS) -lbac -lfind -lm
 
 bscan: ../findlib/libfind.a $(SCNOBJS) ../cats/libsql.a
-	$(CXX) $(LDFLAGS) -L../lib -L../cats -L../findlib -o $@ $(SCNOBJS) -lsql $(LIBS) $(DB_LIBS) $(FDLIBS) -lbac -lfind -lm
+	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../cats -L../findlib -o $@ $(SCNOBJS) -lsql $(LIBS) $(DB_LIBS) $(FDLIBS) -lbac -lfind -lm
 
 
 

@@ -15,3 +15,5 @@ make_mysql_tables
 make_sqlite_tables
 mysql
 sqlite
+make_bacula_tables
+drop_bacula_tables

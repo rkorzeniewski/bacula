@@ -404,7 +404,7 @@ int update_pos_dev(DEVICE *dev)
 #ifdef xxxx
    struct mtget mt_stat;
 #endif
-   int32_t pos;
+   int64_t pos;
    int stat = 0;
 
    if (dev->fd < 0) {

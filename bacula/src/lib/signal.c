@@ -251,7 +251,7 @@ void init_signals(void terminate(int sig))
    sigaction(SIGXCPU,	&sigdefault, NULL);
    sigaction(SIGXFSZ,	&sigdefault, NULL);
 
-   sigaction(SIGHUP,	&sighandle, NULL);
+   sigaction(SIGHUP,	&sigignore, NULL);
    sigaction(SIGQUIT,	&sighandle, NULL);   
    sigaction(SIGILL,	&sighandle, NULL);    
    sigaction(SIGTRAP,	&sighandle, NULL);   

@@ -181,6 +181,7 @@ static struct res_items job_items[] = {
    {"runbeforejob", store_str,  ITEM(res_job.RunBeforeJob), 0, 0, 0},
    {"runafterjob",  store_str,  ITEM(res_job.RunAfterJob),  0, 0, 0},
    {"spoolattributes", store_yesno, ITEM(res_job.SpoolAttributes), 1, ITEM_DEFAULT, 0},
+   {"writebootstrap", store_dir, ITEM(res_job.WriteBootstrap), 0, 0, 0},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 
@@ -486,6 +487,9 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
 	 if (res->res_job.RunAfterJob) {
             sendit(sock, "  --> RunAfter=%s\n", NPRT(res->res_job.RunAfterJob));
 	 }
+	 if (res->res_job.WriteBootstrap) {
+            sendit(sock, "  --> WriteBootstrap=%s\n", NPRT(res->res_job.WriteBootstrap));
+	 }
 	 if (res->res_job.storage) {
             sendit(sock, "  --> ");
 	    dump_resource(-R_STORAGE, (RES *)res->res_job.storage, sendit, sock);
@@ -712,6 +716,9 @@ void free_resource(int type)
 	 }
 	 if (res->res_job.RestoreBootstrap) {
 	    free(res->res_job.RestoreBootstrap);
+	 }
+	 if (res->res_job.WriteBootstrap) {
+	    free(res->res_job.WriteBootstrap);
 	 }
 	 if (res->res_job.RunBeforeJob) {
 	    free(res->res_job.RunBeforeJob);

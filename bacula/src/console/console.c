@@ -25,11 +25,11 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <termios.h>
 #include "bacula.h"
 #include "console_conf.h"
 #include "jcr.h"
-
+#include <termios.h>
+ 
 /* Imported functions */
 int authenticate_director(JCR *jcr, DIRRES *director);
 

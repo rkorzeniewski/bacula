@@ -357,12 +357,18 @@ void store_str(LEX *lc, struct res_items *item, int index, int pass)
    set_bit(index, res_all.hdr.item_present);
 }
 
-/* Store a directory name at specified address */
+/*
+ * Store a directory name at specified address. Note, we do
+ *   shell expansion except if the string begins with a vertical
+ *   bar (i.e. it will likely be passed to the shell later).
+ */
 void store_dir(LEX *lc, struct res_items *item, int index, int pass)
 {
    lex_get_token(lc, T_STRING);
    if (pass == 1) {
-      do_shell_expansion(lc->str);
+      if (lc->str[0] != '|') {
+	 do_shell_expansion(lc->str);
+      }
       *(item->value) = bstrdup(lc->str);
    }
    scan_to_eol(lc);

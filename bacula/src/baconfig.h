@@ -323,6 +323,12 @@ extern int thr_setconcurrency(int);
 #define socklen_t int
 #endif
 
+#ifdef HAVE_CYGWIN
+/* They don't really have it */
+#undef HAVE_GETDOMAINNAME
+#endif
+ 
+
 #define ALIGN_SIZE (sizeof(double))
 #define BALIGN(x) (((x) + ALIGN_SIZE - 1) & ~(ALIGN_SIZE -1))
 

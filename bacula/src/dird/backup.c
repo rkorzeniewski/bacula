@@ -297,6 +297,7 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
    int msg_type;
    MEDIA_DBR mr;
    double kbps;
+   btime_t RunTime;
 
    Dmsg0(100, "Enter backup_cleanup()\n");
    memset(&mr, 0, sizeof(mr));
@@ -343,7 +344,11 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
    }
    bstrftime(sdt, sizeof(sdt), jcr->jr.StartTime);
    bstrftime(edt, sizeof(edt), jcr->jr.EndTime);
-   kbps = (double)jcr->jr.JobBytes / (1000 * (jcr->jr.EndTime - jcr->jr.StartTime));
+   RunTime = jcr->jr.EndTime - jcr->jr.StartTime;
+   if (RunTime <= 0) {
+      RunTime = 1;
+   }
+   kbps = (double)jcr->jr.JobBytes / (1000 * RunTime);
    if (!db_get_job_volume_names(jcr->db, jcr->jr.JobId, &jcr->VolumeName)) {
       jcr->VolumeName[0] = 0;	      /* none */
    }
@@ -381,5 +386,33 @@ Termination:            %s\n\n"),
 	edit_uint64_with_commas(mr.VolBytes, ec3),
 	term_msg);
 
+
+   /* Now update the bootstrap file if any */
+   if (jcr->job->WriteBootstrap) {
+      FILE *fd;
+      int got_pipe = 0;
+      char *fname = jcr->job->WriteBootstrap;
+
+      if (*fname == '|') {
+	 fname++;
+	 got_pipe = 1;
+         fd = popen(fname, "w");
+      } else {
+         fd = fopen(fname, jcr->JobLevel==L_FULL?"w+":"a+");
+      }
+      if (!fd) {
+         Jmsg(jcr, M_ERROR, 0, _("Could not open WriteBootstrap file:\n"
+              "%s: ERR=%s\n"), fname, strerror(errno));
+	 return;
+      }
+      fprintf(fd, "Volume=\"%s\"\n", jcr->VolumeName);
+      fprintf(fd, "VolSessionId=%u\n", jcr->VolSessionId);
+      fprintf(fd, "VolSessionTime=%u\n", jcr->VolSessionTime);
+      if (got_pipe) {
+	 pclose(fd);
+      } else {
+	 fclose(fd);
+      }
+   }
    Dmsg0(100, "Leave backup_cleanup()\n");
 }

@@ -31,7 +31,7 @@
 
 /* Requests sent to the Director */
 static char Find_media[]    = "CatReq Job=%s FindMedia=%d\n";
-static char Get_Vol_Info[] = "CatReq Job=%s GetVolInfo VolName=%s\n";
+static char Get_Vol_Info[] = "CatReq Job=%s GetVolInfo VolName=%s write=%d\n";
 
 static char Update_media[] = "CatReq Job=%s UpdateMedia VolName=%s\
  VolJobs=%d VolFiles=%d VolBlocks=%d VolBytes=%" lld " VolMounts=%d\
@@ -78,7 +78,7 @@ static int do_request_volume_info(JCR *jcr)
 
     jcr->VolumeName[0] = 0;	      /* No volume */
     if (bnet_recv(dir) <= 0) {
-       Dmsg0(130, "getvolname error bnet_recv\n");
+       Dmsg0(200, "getvolname error bnet_recv\n");
        return 0;
     }
     if (sscanf(dir->msg, OK_media, vol->VolCatName, 
@@ -88,13 +88,13 @@ static int do_request_volume_info(JCR *jcr)
 	       &vol->VolCatWrites, &vol->VolCatMaxBytes, 
 	       &vol->VolCatCapacityBytes, vol->VolCatStatus,
 	       &vol->Slot) != 12) {
-       Dmsg1(130, "Bad response from Dir: %s\n", dir->msg);
+       Dmsg1(200, "Bad response from Dir: %s\n", dir->msg);
        return 0;
     }
     unbash_spaces(vol->VolCatName);
     strcpy(jcr->VolumeName, vol->VolCatName); /* set desired VolumeName */
     
-    Dmsg2(130, "do_reqest_vol_info got slot=%d Volume=%s\n", 
+    Dmsg2(200, "do_reqest_vol_info got slot=%d Volume=%s\n", 
        vol->Slot, vol->VolCatName);
     return 1;
 }
@@ -110,14 +110,14 @@ static int do_request_volume_info(JCR *jcr)
  *
  *	    Volume information returned in jcr
  */
-int dir_get_volume_info(JCR *jcr)
+int dir_get_volume_info(JCR *jcr, int writing)
 {
     BSOCK *dir = jcr->dir_bsock;
 
     strcpy(jcr->VolCatInfo.VolCatName, jcr->VolumeName);
     Dmsg1(200, "dir_get_volume_info=%s\n", jcr->VolCatInfo.VolCatName);
     bash_spaces(jcr->VolCatInfo.VolCatName);
-    bnet_fsend(dir, Get_Vol_Info, jcr->Job, jcr->VolCatInfo.VolCatName);
+    bnet_fsend(dir, Get_Vol_Info, jcr->Job, jcr->VolCatInfo.VolCatName, writing);
     return do_request_volume_info(jcr);
 }
 
@@ -283,7 +283,9 @@ int dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev)
 	 } else {
             msg = "Please mount";
 	 }
-         Jmsg(jcr, M_MOUNT, 0, _("%s Volume \"%s\" on Storage Device \"%s\" for Job %s\n"),
+	 Jmsg(jcr, M_MOUNT, 0, _(
+"%s Volume \"%s\" on Storage Device \"%s\" for Job %s\n"
+"Use \"mount\" command to release Job.\n"),
 	      msg, jcr->VolumeName, jcr->dev_name, jcr->Job);
          Dmsg3(190, "Mount %s on %s for Job %s\n",
 		jcr->VolumeName, jcr->dev_name, jcr->Job);
@@ -291,10 +293,14 @@ int dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev)
 	 jstat = JS_WaitMedia;
 	 Jmsg(jcr, M_MOUNT, 0, _(
 "Job %s waiting. Cannot find any appendable volumes.\n\
-Please use the \"label\"  command to create new Volumes for:\n\
-   Storage Device \"%s\" with Pool \"%s\" and Media type \"%s\".\n\
-Use \"mount\" to resume the job.\n"),
-	      jcr->Job, jcr->dev_name, jcr->pool_name, jcr->media_type);
+Please use the \"label\"  command to create a new Volume for:\n\
+    Storage:      %s\n\
+    Media type:   %s\n\
+    Pool:         %s\n"),
+	      jcr->Job, 
+	      jcr->dev_name, 
+	      jcr->media_type,
+	      jcr->pool_name);
       }
       /*
        * Wait then send message again

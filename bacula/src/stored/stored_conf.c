@@ -235,8 +235,13 @@ void free_resource(int type)
 
    /* common stuff -- free the resource name */
    nres = (URES *)res->res_dir.hdr.next;
-   if (res->res_dir.hdr.name)
+   if (res->res_dir.hdr.name) {
       free(res->res_dir.hdr.name);
+   }
+   if (res->res_dir.hdr.desc) {
+      free(res->res_dir.hdr.desc);
+   }
+
 
    switch (type) {
       case R_DIRECTOR:

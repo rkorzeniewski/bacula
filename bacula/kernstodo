@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                  04 September 2002
+                 14 September 2002
 
 Irix conversion notes:
 - no uuencode
@@ -25,15 +25,14 @@ From Chuck:
 --should be able to specify e.g. --with-sqlite=/opt/local and have it find
   lib, bin, sbin for itself
   I tried this and it didn't find sqlite.h
---sd.conf password does not match dir.conf storage password
 =======
 
-- Apparently Description records are not freed. Storage daemon
-  Device reported orphaned buffer 45 bytes probably for a Description.
+- Take another stab at 64 bit file addresses
+- When Marking a file in Restore that is a hard link, also
+  mark the link so that the data will be reloaded.
+- Restore program that errors in SD due to no tape reports
+  OK incorrectly in output.
 - Write updated bootstrap after every Job.
-- Correct Warning: Volume name mismatch. Wanted test2 got test1
-  when reading a tape and want the next one.
-- Implement autochanger for restore. ARRRGGG! I forgot!
 - Make BSR accept count (total files to be restored).
 - Make BSR return next_block when it knows record is not
   in block, done when count is reached, and possibly other
@@ -586,4 +585,9 @@ Done: (see kernsdone for more)
 - When we are at EOM, we must ask each job to write JobMedia
   record (update_volume_info).
 - Create all pools when Director starts
-
+- Correct Warning: Volume name mismatch. Wanted test2 got test1
+  when reading a tape and want the next one.
+- Implement autochanger for restore. ARRRGGG! I forgot!
+- sd.conf password does not match dir.conf storage password
+- Apparently Description records are not freed. Storage daemon
+  Device reported orphaned buffer 45 bytes probably for a Description.

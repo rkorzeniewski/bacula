@@ -124,72 +124,10 @@ mount_next_vol:
 
    jcr->VolFirstFile = jcr->JobFiles; /* first update of Vol FileIndex */
    for ( ;; ) {
-      int slot = jcr->VolCatInfo.Slot;
-	
-      /*
-       * Handle autoloaders here.  If we cannot autoload it, we
-       *  will fall through to ask the sysop.
-       */
-      if (dev->capabilities && CAP_AUTOCHANGER && slot <= 0) {
-	 if (dir_find_next_appendable_volume(jcr)) {
-	    slot = jcr->VolCatInfo.Slot; 
-	 }
+      autochanger = autoload_device(jcr, dev, 1);
+      if (autochanger) {
+	 ask = 0;		      /* if autochange no need to ask sysop */
       }
-      Dmsg1(100, "Want changer slot=%d\n", slot);
-
-      if (slot > 0 && jcr->device->changer_name && jcr->device->changer_command) {
-	 uint32_t timeout = jcr->device->max_changer_wait;
-	 POOLMEM *changer, *results;
-	 int status, loaded;
-
-	 results = get_pool_memory(PM_MESSAGE);
-	 changer = get_pool_memory(PM_FNAME);
-	 /* Find out what is loaded */
-	 changer = edit_device_codes(jcr, changer, jcr->device->changer_command, 
-                      "loaded");
-	 status = run_program(changer, timeout, results);
-	 if (status == 0) {
-	    loaded = atoi(results);
-	 } else {
-	    loaded = -1;	      /* force unload */
-	 }
-         Dmsg1(100, "loaded=%s\n", results);
-
-	 /* If bad status or tape we want is not loaded, load it. */
-	 if (status != 0 || loaded != slot) { 
-	    if (dev->capabilities & CAP_OFFLINEUNMOUNT) {
-	       offline_dev(dev);
-	    }
-	    /* We are going to load a new tape, so close the device */
-	    force_close_dev(dev);
-	    if (loaded != 0) {	      /* must unload drive */
-               Dmsg0(100, "Doing changer unload.\n");
-               Jmsg(jcr, M_INFO, 0, _("Issuing autochanger \"unload\" command.\n"));
-	       changer = edit_device_codes(jcr, changer, 
-                           jcr->device->changer_command, "unload");
-	       status = run_program(changer, timeout, NULL);
-               Dmsg1(100, "unload status=%d\n", status);
-	    }
-	    /*
-	     * Load the desired cassette    
-	     */
-            Dmsg1(100, "Doing changer load slot %d\n", slot);
-            Jmsg(jcr, M_INFO, 0, _("Issuing autochanger \"load slot %d\" command.\n"),
-	       slot);
-	    changer = edit_device_codes(jcr, changer, 
-                         jcr->device->changer_command, "load");
-	    status = run_program(changer, timeout, NULL);
-            Dmsg2(100, "load slot %d status=%d\n", slot, status);
-	 }
-	 free_pool_memory(changer);
-	 free_pool_memory(results);
-         Dmsg1(100, "After changer, status=%d\n", status);
-	 if (status == 0) {	      /* did we succeed? */
-	    ask = 0;		      /* yes, got vol, no need to ask sysop */
-	    autochanger = 1;	      /* tape loaded by changer */
-	 }
-      }
-
 
       if (ask && !dir_ask_sysop_to_mount_next_volume(jcr, dev)) {
 	 return 0;		/* error return */
@@ -224,7 +162,7 @@ read_volume:
             Dmsg1(500, "Vol NAME Error Name=%s\n", jcr->VolumeName);
 	    /* Check if we can accept this as an anonymous volume */
 	    strcpy(jcr->VolumeName, dev->VolHdr.VolName);
-	    if (!dev->capabilities & CAP_ANONVOLS || !dir_get_volume_info(jcr)) {
+	    if (!dev->capabilities & CAP_ANONVOLS || !dir_get_volume_info(jcr, 1)) {
 	       goto mount_next_vol;
 	    }
             Dmsg1(200, "want new name=%s\n", jcr->VolumeName);
@@ -248,7 +186,7 @@ read_volume:
 	    /* NOTE! Fall-through wanted. */
 	 default:
 	    /* Send error message */
-            Jmsg(jcr, M_WARNING, 0, "%s", jcr->errmsg);                         
+            Jmsg1(jcr, M_WARNING, 0, "%s", jcr->errmsg);                         
 	    if (autochanger) {
                Jmsg(jcr, M_ERROR, 0, _("Autochanger Volume %s not found in slot %d.\n\
     Setting slot to zero in catalog.\n"),
@@ -401,6 +339,87 @@ int mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    Dmsg0(90, "End of Device reached.\n");
    return 0;
 }
+
+/*
+ * Called here to do an autoload using the autochanger, if
+ *  configured, and if a Slot has been defined for this Volume.
+ *  On success this routine loads the indicated tape, but the
+ *  label is not read, so it must be verified.
+ *
+ *  Returns: 1 on success
+ *	     0 on failure
+ */
+int autoload_device(JCR *jcr, DEVICE *dev, int writing)
+{
+   int slot = jcr->VolCatInfo.Slot;
+   int rtn_stat = 0;
+     
+   /*
+    * Handle autoloaders here.	If we cannot autoload it, we
+    *  will return FALSE to ask the sysop.
+    */
+   if (writing && dev->capabilities && CAP_AUTOCHANGER && slot <= 0) {
+      if (dir_find_next_appendable_volume(jcr)) {
+	 slot = jcr->VolCatInfo.Slot; 
+      }
+   }
+   Dmsg1(100, "Want changer slot=%d\n", slot);
+
+   if (slot > 0 && jcr->device->changer_name && jcr->device->changer_command) {
+      uint32_t timeout = jcr->device->max_changer_wait;
+      POOLMEM *changer, *results;
+      int status, loaded;
+
+      results = get_pool_memory(PM_MESSAGE);
+      changer = get_pool_memory(PM_FNAME);
+
+      /* Find out what is loaded, zero means device is unloaded */
+      changer = edit_device_codes(jcr, changer, jcr->device->changer_command, 
+                   "loaded");
+      status = run_program(changer, timeout, results);
+      if (status == 0) {
+	 loaded = atoi(results);
+      } else {
+	 loaded = -1;		   /* force unload */
+      }
+      Dmsg1(100, "loaded=%s\n", results);
+
+      /* If bad status or tape we want is not loaded, load it. */
+      if (status != 0 || loaded != slot) { 
+	 if (dev->capabilities & CAP_OFFLINEUNMOUNT) {
+	    offline_dev(dev);
+	 }
+	 /* We are going to load a new tape, so close the device */
+	 force_close_dev(dev);
+	 if (loaded != 0) {	   /* must unload drive */
+            Dmsg0(100, "Doing changer unload.\n");
+            Jmsg(jcr, M_INFO, 0, _("Issuing autochanger \"unload\" command.\n"));
+	    changer = edit_device_codes(jcr, changer, 
+                        jcr->device->changer_command, "unload");
+	    status = run_program(changer, timeout, NULL);
+            Dmsg1(100, "unload status=%d\n", status);
+	 }
+	 /*
+	  * Load the desired cassette	 
+	  */
+         Dmsg1(100, "Doing changer load slot %d\n", slot);
+         Jmsg(jcr, M_INFO, 0, _("Issuing autochanger \"load slot %d\" command.\n"),
+	    slot);
+	 changer = edit_device_codes(jcr, changer, 
+                      jcr->device->changer_command, "load");
+	 status = run_program(changer, timeout, NULL);
+         Dmsg2(100, "load slot %d status=%d\n", slot, status);
+      }
+      free_pool_memory(changer);
+      free_pool_memory(results);
+      Dmsg1(100, "After changer, status=%d\n", status);
+      if (status == 0) {	   /* did we succeed? */
+	 rtn_stat = 1;		   /* tape loaded by changer */
+      }
+   }
+   return rtn_stat;
+}
+
 
 
 /*

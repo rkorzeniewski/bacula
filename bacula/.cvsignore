@@ -32,3 +32,5 @@ startit
 startmysql
 stopit
 stopmysql
+console.log
+console.sum

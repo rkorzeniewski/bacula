@@ -82,8 +82,17 @@ int do_read_data(JCR *jcr)
    block = new_block(dev);
 
    create_vol_list(jcr);
+   if (jcr->NumVolumes == 0) {
+      Jmsg(jcr, M_FATAL, 0, _("No Volume names found for restore.\n"));
+      free_block(block);
+      free_vol_list(jcr);
+      return 0;
+   }
 
-   Dmsg1(20, "Found %d volumes names to restore.\n", jcr->NumVolumes);
+   Dmsg2(200, "Found %d volumes names to restore. First=%s\n", jcr->NumVolumes, 
+      jcr->VolList->VolumeName);
+
+   pm_strcpy(&jcr->VolumeName, jcr->VolList->VolumeName);
 
    /* 
     * Ready device for reading, and read records

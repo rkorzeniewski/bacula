@@ -39,29 +39,30 @@ static char OK_hello[]  = "3000 OK Hello\n";
  */
 static int authenticate(int rcode, BSOCK *bs)
 {
-   POOLMEM *name;
+   POOLMEM *dirname;
    DIRRES *director = NULL;
 
    if (rcode != R_DIRECTOR) {
       Emsg1(M_FATAL, 0, _("I only authenticate Directors, not %d\n"), rcode);
       return 0;
    }
-   name = get_pool_memory(PM_MESSAGE);
-   name = check_pool_memory_size(name, bs->msglen);
+   dirname = get_pool_memory(PM_MESSAGE);
+   dirname = check_pool_memory_size(dirname, bs->msglen);
 
-   if (sscanf(bs->msg, "Hello Director %127s calling\n", name) != 1) {
+   if (sscanf(bs->msg, "Hello Director %127s calling\n", dirname) != 1) {
       Emsg1(M_FATAL, 0, _("Bad Hello command from Director: %s\n"), bs->msg);
       return 0;
    }
    director = NULL;
+   unbash_spaces(dirname);
    LockRes();
    while ((director=(DIRRES *)GetNextRes(rcode, (RES *)director))) {
-      if (strcmp(director->hdr.name, name) == 0)
+      if (strcmp(director->hdr.name, dirname) == 0)
 	 break;
    }
    UnlockRes();
    if (!director) {
-      Emsg1(M_FATAL, 0, _("Connection from unknown Director %s rejected.\n"), name);
+      Emsg1(M_FATAL, 0, _("Connection from unknown Director %s rejected.\n"), dirname);
       goto bail_out;
    }
    if (!cram_md5_auth(bs, director->password) ||
@@ -69,11 +70,11 @@ static int authenticate(int rcode, BSOCK *bs)
       Emsg0(M_FATAL, 0, _("Incorrect password given by Director.\n"));
       goto bail_out;
    }
-   free_pool_memory(name);
+   free_pool_memory(dirname);
    return 1;
 
 bail_out:
-   free_pool_memory(name);
+   free_pool_memory(dirname);
    return 0;
 }
 

@@ -546,7 +546,6 @@ int db_get_fileset_record(B_DB *mdb, FILESET_DBR *fsr)
 	 char ed1[30];
          Mmsg1(&mdb->errmsg, _("Got %s FileSets expected only one!\n"), 
 	    edit_uint64(mdb->num_rows, ed1));
-         Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	 sql_data_seek(mdb, mdb->num_rows-1);
       }
       if ((row = sql_fetch_row(mdb)) == NULL) {

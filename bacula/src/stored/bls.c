@@ -89,6 +89,7 @@ int main (int argc, char *argv[])
       switch (ch) {
          case 'b':
 	    bsr = parse_bsr(NULL, optarg);
+//	    dump_bsr(bsr);
 	    break;
 
          case 'd':                    /* debug level */
@@ -377,7 +378,7 @@ static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sess
 
 
 /* Dummies to replace askdir.c */
-int	dir_get_volume_info(JCR *jcr) { return 1;}
+int	dir_get_volume_info(JCR *jcr, int writing) { return 1;}
 int	dir_find_next_appendable_volume(JCR *jcr) { return 1;}
 int	dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int relabel) { return 1; }
 int	dir_create_jobmedia_record(JCR *jcr) { return 1; }
