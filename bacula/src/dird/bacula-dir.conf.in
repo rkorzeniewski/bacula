@@ -48,7 +48,7 @@ Job {
   Messages = Standard
   Pool = Default
   # This creates an ASCII copy of the catalog
-  RunBeforeJob = "@scriptdir@/make_catalog_backup"
+  RunBeforeJob = "@scriptdir@/make_catalog_backup -u bacula"
   # This deletes the copy of the catalog
   RunAfterJob  = "@scriptdir@/delete_catalog_backup"
   Write Bootstrap = "@working_dir@/BackupCatalog.bsr"
@@ -197,4 +197,3 @@ Pool {
   AutoPrune = yes                     # Prune expired volumes
   Volume Retention = 365d             # one year
   Accept Any Volume = yes             # write on any volume in the pool
-
