@@ -82,6 +82,7 @@ int main (int argc, char *argv[])
    char line[1000];
    int got_inc = FALSE;
 
+   working_directory = "/tmp";
    my_name_is(argc, argv, "bextract");
    init_msg(NULL, NULL);	      /* setup message handler */
 

@@ -108,7 +108,8 @@ static char OKstore[]      = "2000 OK storage\n";
 static char OKjob[]        = "2000 OK Job\n";
 static char OKsetdebug[]   = "2000 OK setdebug=%d\n";
 static char BADjob[]       = "2901 Bad Job\n";
-static char EndJob[]       = "2800 End Job TermCode=%d JobFiles=%u JobBytes=%" lld "\n";
+static char EndRestore[]   = "2800 End Job TermCode=%d JobFiles=%u JobBytes=%" lld "\n";
+static char EndBackup[]    = "2801 End Backup Job TermCode=%d JobFiles=%u ReadBytes=%" lld " JobBytes=%" lld "\n";
 
 /* Responses received from Storage Daemon */
 static char OK_end[]       = "3000 OK end\n";
@@ -582,6 +583,8 @@ cleanup:
       bnet_sig(sd, BNET_TERMINATE);
    }
 
+   bnet_fsend(dir, EndBackup, jcr->JobStatus, jcr->JobFiles, jcr->ReadBytes, jcr->JobBytes);
+
    /* Inform Director that we are done */
    bnet_sig(dir, BNET_TERMINATE);
 
@@ -699,7 +702,7 @@ static int restore_cmd(JCR *jcr)
    /* Inform Storage daemon that we are done */
    bnet_sig(sd, BNET_TERMINATE);
 
-   bnet_fsend(dir, EndJob, jcr->JobStatus, jcr->num_files_examined, jcr->JobBytes);
+   bnet_fsend(dir, EndRestore, jcr->JobStatus, jcr->num_files_examined, jcr->JobBytes);
 
    /* Inform Director that we are done */
    bnet_sig(dir, BNET_TERMINATE);

@@ -94,6 +94,7 @@ struct s_jcr {
    uint32_t JobFiles;                 /* Number of files written, this job */
    uint32_t JobErrors;                /* */
    uint64_t JobBytes;                 /* Number of bytes processed this job */
+   uint64_t ReadBytes;                /* Bytes read -- before compression */
    uint32_t Errors;                   /* Number of non-fatal errors */
    int JobStatus;                     /* ready, running, blocked, terminated */ 
    int JobType;                       /* backup, restore, verify ... */

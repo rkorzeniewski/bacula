@@ -28,8 +28,6 @@ From Chuck:
 =======
 
 - Figure out why my Catalog size keeps growing.
-- Document bscan.
-- Document Restore.
 
 - Make SD disallow writing on Volume with fewer files than in
   the catalog.
@@ -554,3 +552,6 @@ Longer term to do:
 
 
 Done: (see kernsdone for more)
+- Document bscan.
+- Document Restore.
+

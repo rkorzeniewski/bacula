@@ -264,6 +264,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 
       msgsave = sd->msg;
       while ((sd->msglen=read(fid, sd->msg, jcr->buf_size)) > 0) {
+	 jcr->ReadBytes += sd->msglen; /* count bytes read */
 	 if (ff_pkt->flags & FO_MD5) {
 	    MD5Update(&md5c, (unsigned char *)(sd->msg), sd->msglen);
 	    gotMD5 = 1;
@@ -296,7 +297,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 	    }
             Dmsg1(130, "Send data to FD len=%d\n", sd->msglen);
 #endif
-	    jcr->JobBytes += sd->msglen;
+	    jcr->JobBytes += sd->msglen; /* count compressed bytes saved */
 	    sd->msg = msgsave;	      /* restore read buffer */
 	    continue;
 	 }
@@ -308,7 +309,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 	 }
          Dmsg1(130, "Send data to FD len=%d\n", sd->msglen);
 #endif
-	 jcr->JobBytes += sd->msglen;
+	 jcr->JobBytes += sd->msglen;	/* count bytes saved */
       } /* end while */
 
       if (sd->msglen < 0) {

@@ -256,4 +256,5 @@ void wait_for_storage_daemon_termination(JCR *jcr)
       pthread_cond_timedwait(&jcr->term_wait, &jcr->mutex, &timeout);
    }
    V(jcr->mutex);
+   jcr->JobStatus = jcr->SDJobStatus;
 }

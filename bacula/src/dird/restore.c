@@ -53,7 +53,7 @@ static char OKrestore[]   = "2000 OK restore\n";
 static char OKstore[]     = "2000 OK storage\n";
 static char OKsession[]   = "2000 OK session\n";
 static char OKbootstrap[] = "2000 OK bootstrap\n";
-static char EndJob[]      = "2800 End Job TermCode=%d JobFiles=%u JobBytes=%" lld "\n";
+static char EndRestore[]  = "2800 End Job TermCode=%d JobFiles=%u JobBytes=%" lld "\n";
 
 /* Forward referenced functions */
 static void restore_cleanup(JCR *jcr, int status);
@@ -244,7 +244,7 @@ int do_restore(JCR *jcr)
    Dmsg0(20, "wait for job termination\n");
    while (bget_msg(fd, 0) >  0) {
       Dmsg1(100, "dird<filed: %s\n", fd->msg);
-      if (sscanf(fd->msg, EndJob, &jcr->JobStatus, &jcr->JobFiles,
+      if (sscanf(fd->msg, EndRestore, &jcr->JobStatus, &jcr->JobFiles,
 	  &jcr->JobBytes) == 3) {
 	 ok = TRUE;
       }

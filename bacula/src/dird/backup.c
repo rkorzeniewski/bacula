@@ -47,9 +47,11 @@ static char storaddr[]  = "storage address=%s port=%d\n";
 static char levelcmd[]  = "level = %s%s\n";
 
 /* Responses received from File daemon */
-static char OKbackup[] = "2000 OK backup\n";
-static char OKstore[]  = "2000 OK storage\n";
-static char OKlevel[]  = "2000 OK level\n";
+static char OKbackup[]  = "2000 OK backup\n";
+static char OKstore[]   = "2000 OK storage\n";
+static char OKlevel[]   = "2000 OK level\n";
+static char EndBackup[] = "2801 End Backup Job TermCode=%d JobFiles=%u ReadBytes=%" lld " JobBytes=%" lld "\n";
+
 
 /* Forward referenced functions */
 static void backup_cleanup(JCR *jcr, int TermCode, char *since);
@@ -257,19 +259,23 @@ bail_out:
 }
 
 /*
- *  NOTE! This is no longer really needed as the Storage
- *	  daemon now passes this information directly
- *	  back to us.	
+ * Here we wait for the File daemon to signal termination,
+ *   then we wait for the Storage daemon.  When both
+ *   are done, we return the job status.
  */
 static int wait_for_job_termination(JCR *jcr)
 {
    int32_t n = 0;
    BSOCK *fd = jcr->file_bsock;
+   int fd_ok = FALSE;
 
    jcr->JobStatus = JS_WaitFD;
    /* Wait for Client to terminate */
    while ((n = bget_msg(fd, 0)) > 0 && !job_cancelled(jcr)) {
-      /* get and discard Client output */
+      if (sscanf(fd->msg, EndBackup, &jcr->JobStatus, &jcr->JobFiles,
+	  &jcr->ReadBytes, &jcr->JobBytes) == 4) {
+	 fd_ok = TRUE;
+      }
    }
    bnet_sig(fd, BNET_TERMINATE);      /* tell Client we are terminating */
    if (n < 0) {
@@ -279,7 +285,11 @@ static int wait_for_job_termination(JCR *jcr)
 
    wait_for_storage_daemon_termination(jcr);
 
-   if (n < 0) { 				    
+   /* Return the first error status we find FD or SD */
+   if (fd_ok && jcr->JobStatus != JS_Terminated) {
+      return jcr->JobStatus;
+   }
+   if (!fd_ok || n < 0) {				      
       return JS_ErrorTerminated;
    }
    return jcr->SDJobStatus;
@@ -296,7 +306,7 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
    char *term_msg;
    int msg_type;
    MEDIA_DBR mr;
-   double kbps;
+   double kbps, compression;
    btime_t RunTime;
 
    Dmsg0(100, "Enter backup_cleanup()\n");
@@ -354,6 +364,12 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
       jcr->VolumeName[0] = 0;	      /* none */
    }
 
+   if (jcr->ReadBytes == 0) {
+      compression = 0.0;
+   } else {
+      compression = (double)100 - 100.0 * ((double)jcr->JobBytes / (double)jcr->ReadBytes);
+   }
+
    Jmsg(jcr, msg_type, 0, _("%s\n\
 JobId:                  %d\n\
 Job:                    %s\n\
@@ -365,6 +381,7 @@ End time:               %s\n\
 Files Written:          %s\n\
 Bytes Written:          %s\n\
 Rate:                   %.1f KB/s\n\
+Software Compression:   %.1f %%\n\
 Volume names(s):        %s\n\
 Volume Session Id:      %d\n\
 Volume Session Time:    %d\n\
@@ -381,6 +398,7 @@ Termination:            %s\n\n"),
 	edit_uint64_with_commas(jcr->jr.JobFiles, ec1),
 	edit_uint64_with_commas(jcr->jr.JobBytes, ec2),
 	(float)kbps,
+	(float)compression,
 	jcr->VolumeName,
 	jcr->VolSessionId,
 	jcr->VolSessionTime,

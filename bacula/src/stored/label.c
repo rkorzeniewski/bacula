@@ -453,15 +453,16 @@ void create_session_label(JCR *jcr, DEV_RECORD *rec, int label)
       ser_btime(get_current_btime());
       ser_float64(0);
    } else {
-   get_current_time(&dt);
-   ser_float64(dt.julian_day_number);
-   ser_float64(dt.julian_day_fraction);
+      get_current_time(&dt);
+      ser_float64(dt.julian_day_number);
+      ser_float64(dt.julian_day_fraction);
    }
 
    ser_string(jcr->pool_name);
    ser_string(jcr->pool_type);
    ser_string(jcr->job_name);	      /* base Job name */
    ser_string(jcr->client_name);
+
    /* Added in VerNum 10 */
    ser_string(jcr->Job);	      /* Unique name of this Job */
    ser_string(jcr->fileset_name);
@@ -476,6 +477,7 @@ void create_session_label(JCR *jcr, DEV_RECORD *rec, int label)
       ser_uint32(jcr->StartFile);
       ser_uint32(jcr->EndFile);
       ser_uint32(jcr->JobErrors);
+
       /* Added in VerNum 11 */
       ser_uint32(jcr->JobStatus);
    }

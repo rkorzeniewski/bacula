@@ -78,6 +78,7 @@ int main (int argc, char *argv[])
    FILE *fd;
    char line[1000];
 
+   working_directory = "/tmp";
    my_name_is(argc, argv, "bls");
    init_msg(NULL, NULL);	      /* initialize message handler */
 
@@ -392,7 +393,7 @@ int	dir_send_job_status(JCR *jcr) {return 1;}
 
 int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
 {
-   fprintf(stderr, "Mount Volume %s on device %s and press return when ready: ",
+   fprintf(stderr, "Mount Volume \"%s\" on device %s and press return when ready: ",
       jcr->VolumeName, dev_name(dev));
    getchar();	
    return 1;

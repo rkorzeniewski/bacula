@@ -59,7 +59,11 @@ static void clearcmd();
 static void wrcmd();
 static void eodcmd();
 static int find_device_res();
-
+static void fillcmd();
+static void unfillcmd();
+static int flush_block(DEV_BLOCK *block);
+static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
+static int my_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
 
 #define CONFIG_FILE "stored.conf"
 
@@ -67,8 +71,20 @@ static char *configfile;
 static char cmd[1000];
 static int signals = TRUE;
 static int default_tape = FALSE;
+static int ok;
+static int stop;
+static uint64_t vol_size;
+static uint64_t VolBytes;
+static time_t now;
+static double kbs;
+static long file_index;
+static int verbose = 0;
+static int end_of_tape = 0;
+static uint32_t LastBlock = 0;
 
-static JCR *jcr;
+static char *VolumeName = NULL;
+
+static JCR *jcr = NULL;
 
 
 static void usage();
@@ -77,6 +93,27 @@ int get_cmd(char *prompt);
 
 static void my_free_jcr(JCR *jcr)
 {
+   if (jcr->pool_name) {
+      free_pool_memory(jcr->pool_name);
+      jcr->pool_name = NULL;
+   }
+   if (jcr->pool_type) {
+      free_pool_memory(jcr->pool_type);
+      jcr->pool_type = NULL;
+   }
+   if (jcr->job_name) {
+      free_pool_memory(jcr->job_name);
+      jcr->job_name = NULL;
+   }
+   if (jcr->client_name) {
+      free_pool_memory(jcr->client_name);
+      jcr->client_name = NULL;
+   }
+   if (jcr->fileset_name) {
+      free_pool_memory(jcr->fileset_name);
+      jcr->fileset_name = NULL;
+   }
+     
    return;
 }
 
@@ -113,7 +150,11 @@ int main(int argc, char *argv[])
 
    printf("Tape block granularity is %d bytes.\n", TAPE_BSIZE);
 
-   while ((ch = getopt(argc, argv, "c:d:st?")) != -1) {
+   working_directory = "/tmp";
+   my_name_is(argc, argv, "btape");
+   init_msg(NULL, NULL);
+
+   while ((ch = getopt(argc, argv, "c:d:stv?")) != -1) {
       switch (ch) {
          case 'c':                    /* specify config file */
 	    if (configfile != NULL) {
@@ -129,12 +170,16 @@ int main(int argc, char *argv[])
 	    }
 	    break;
 
+         case 's':
+	    signals = FALSE;
+	    break;
+
          case 't':
 	    default_tape = TRUE;
 	    break;
 
-         case 's':
-	    signals = FALSE;
+         case 'v':
+	    verbose++;
 	    break;
 
          case '?':
@@ -148,8 +193,6 @@ int main(int argc, char *argv[])
    argv += optind;
 
 
-   my_name_is(argc, argv, "btape");
-   init_msg(NULL, NULL);
    
    if (signals) {
       init_signals(terminate_btape);
@@ -188,10 +231,26 @@ int main(int argc, char *argv[])
       }
    }
 
+   /* Setup a "dummy" JCR that should work for most everything */
    jcr = new_jcr(sizeof(JCR), my_free_jcr);
    jcr->VolSessionId = 1;
    jcr->VolSessionTime = (uint32_t)time(NULL);
    jcr->NumVolumes = 1;
+   jcr->pool_name = get_pool_memory(PM_FNAME);
+   strcpy(jcr->pool_name, "Default");
+   jcr->pool_type = get_pool_memory(PM_FNAME);
+   strcpy(jcr->pool_type, "Backup");
+   jcr->job_name = get_pool_memory(PM_FNAME);
+   strcpy(jcr->job_name, "Dummy.Job.Name");
+   jcr->client_name = get_pool_memory(PM_FNAME);
+   strcpy(jcr->client_name, "Dummy.Client.Name");
+   strcpy(jcr->Job, "Dummy.Job");
+   jcr->fileset_name = get_pool_memory(PM_FNAME);
+   strcpy(jcr->fileset_name, "Dummy.fileset.name");
+   jcr->JobId = 1;
+   jcr->JobType = JT_BACKUP;
+   jcr->JobLevel = L_FULL;
+   jcr->JobStatus = JS_Terminated;
 
 
    Dmsg0(200, "Do tape commands\n");
@@ -287,8 +346,12 @@ static void labelcmd()
       return;
    }
 
-   if (!get_cmd("Enter Volume Name: ")) {
-      return;
+   if (VolumeName) {
+      strcpy(cmd, VolumeName);
+   } else {
+      if (!get_cmd("Enter Volume Name: ")) {
+	 return;
+      }
    }
 	 
    if (!(dev->state & ST_OPENED)) {
@@ -609,7 +672,8 @@ I'm going to write one record  in file 0,\n\
    rewindcmd();
    Pmsg0(0, "Now moving to end of media.\n");
    eodcmd();
-   Pmsg2(0, "\nWe should be in file 3. I am at file %d. This is %s\n\n", 
+   Pmsg2(0, "End Append files test.\n\
+We should be in file 3. I am at file %d. This is %s\n\n", 
       dev->file, dev->file == 3 ? "correct!" : "NOT correct!!!!");
 
    Pmsg0(0, "\nNow I am going to attempt to append to the tape.\n");
@@ -618,14 +682,15 @@ I'm going to write one record  in file 0,\n\
 //   weofcmd();
    rewindcmd();
    scancmd();
-   Pmsg0(0, "The above scan should have four files of:\n\
+   Pmsg0(0, "End Append to the tape test.\n\
+The above scan should have four files of:\n\
 One record, two records, three records, and one record respectively.\n\n");
 
 
-   Pmsg0(0, "Append block test.\n\n\
+   Pmsg0(0, "Append block test.\n\
 I'm going to write a block, an EOF, rewind, go to EOM,\n\
-then backspace over the EOF and attempt to append a\
-second block in the first file.\n\n");
+then backspace over the EOF and attempt to append a second\n\
+block in the first file.\n\n");
    rewindcmd();
    wrcmd();
    weofcmd();
@@ -748,6 +813,7 @@ static void scancmd()
       Pmsg0(0, "No device: Use device command.\n");
       return;
    }
+
    blocks = block_size = tot_blocks = 0;
    bytes = 0;
    if (dev->state & ST_EOT) {
@@ -826,6 +892,319 @@ static void statcmd()
 }
 
 
+/* 
+ * First we label the tape, then we fill
+ *  it with data get a new tape and write a few blocks.
+ */			       
+static void fillcmd()
+{
+   DEV_RECORD rec;
+   DEV_BLOCK  *block;
+   char ec1[50];
+   char *p;
+
+   if (!dev) {
+      Pmsg0(0, "No device: Use device command.\n");
+      return;
+   }
+
+   ok = TRUE;
+   stop = FALSE;
+
+   Pmsg0(000, "\n\
+This command simulates Bacula writing to a tape.\n\
+It command requires two blank tapes, which it\n\
+will label and write. It will print a status approximately\n\
+every 322 MB, and write an EOF every 3.2 GB.  When the first tape\n\
+fills, it will ask for a second, and after writing a few \n\
+blocks, it will stop.  Then it will begin re-reading the\n\
+This may take a long time. I.e. hours! ...\n\n");
+
+   get_cmd("Do you wish to continue? (y/n): ");
+   if (cmd[0] != 'y') {
+      Pmsg0(000, "Command aborted.\n");
+      return;
+   }
+
+   VolumeName = "TestVolume1";
+   labelcmd();
+   VolumeName = NULL;
+
+   
+   Dmsg1(20, "Begin append device=%s\n", dev_name(dev));
+
+   block = new_block(dev);
+
+   /* 
+    * Acquire output device for writing.  Note, after acquiring a
+    *	device, we MUST release it, which is done at the end of this
+    *	subroutine.
+    */
+   Dmsg0(100, "just before acquire_device\n");
+   if (!acquire_device_for_append(jcr, dev, block)) {
+      jcr->JobStatus = JS_Cancelled;
+      free_block(block);
+      return;
+   }
+
+   Dmsg0(100, "Just after acquire_device_for_append\n");
+   /*
+    * Write Begin Session Record
+    */
+   if (!write_session_label(jcr, block, SOS_LABEL)) {
+      jcr->JobStatus = JS_Cancelled;
+      Jmsg1(jcr, M_FATAL, 0, _("Write session label failed. ERR=%s\n"),
+	 strerror_dev(dev));
+      ok = FALSE;
+   }
+
+   memset(&rec, 0, sizeof(rec));
+   rec.data = get_memory(100000);     /* max record size */
+   /* 
+    * Fill write buffer with random data
+    */
+#define REC_SIZE 32768
+   p = rec.data;
+   for (int i=0; i < REC_SIZE; ) {
+      makeSessionKey(p, NULL, 0);
+      p += 16;
+      i += 16;
+   }
+   rec.data_len = REC_SIZE;
+
+   /* 
+    * Get Data from File daemon, write to device   
+    */
+   jcr->VolFirstFile = 0;
+   time(&jcr->run_time);	      /* start counting time for rates */
+   for (file_index = 0; ok && !job_cancelled(jcr); ) {
+      uint64_t *lp;
+      rec.VolSessionId = jcr->VolSessionId;
+      rec.VolSessionTime = jcr->VolSessionTime;
+      rec.FileIndex = ++file_index;
+      rec.Stream = STREAM_FILE_DATA;
+      /* Write file_index at beginning of buffer */
+      lp = (uint64_t *)rec.data;
+      *lp = (uint64_t)file_index;
+
+      Dmsg4(250, "before writ_rec FI=%d SessId=%d Strm=%s len=%d\n",
+	 rec.FileIndex, rec.VolSessionId, stream_to_ascii(rec.Stream), 
+	 rec.data_len);
+       
+      if (!write_record_to_block(block, &rec)) {
+         Dmsg2(150, "!write_record_to_block data_len=%d rem=%d\n", rec.data_len,
+		    rec.remainder);
+	 if (!flush_block(block)) {
+	    return;
+	 }
+
+	 /* Every 5000 blocks (approx 322MB) report where we are.
+	  */
+	 if ((block->BlockNumber % 5000) == 0) {
+	    now = time(NULL);
+	    now -= jcr->run_time;
+	    if (now <= 0) {
+	       now = 1;
+	    }
+	    kbs = (double)dev->VolCatInfo.VolCatBytes / (1000 * now);
+            Pmsg3(000, "Wrote block=%u, VolBytes=%s rate=%.1f KB/s\n", block->BlockNumber,
+	       edit_uint64_with_commas(dev->VolCatInfo.VolCatBytes, ec1), (float)kbs);
+	 }
+	 /* Every 50000 blocks (approx 3.2MB) write an eof.
+	  */
+	 if ((block->BlockNumber % 50000) == 0) {
+            Pmsg0(000, "Flush block, write EOF\n");
+	    flush_block(block);
+	    weof_dev(dev, 1);
+	    /* The weof resets the block number */
+	 }
+
+	 if (block->BlockNumber > 10 && stop) {      /* get out */
+	    break;
+	 }
+      }
+      if (!ok) {
+         Pmsg0(000, "Not OK\n");
+	 break;
+      }
+      jcr->JobBytes += rec.data_len;   /* increment bytes this job */
+      Dmsg4(190, "write_record FI=%s SessId=%d Strm=%s len=%d\n",
+	 FI_to_ascii(rec.FileIndex), rec.VolSessionId, 
+	 stream_to_ascii(rec.Stream), rec.data_len);
+   }
+   Dmsg0(000, "Write_end_session_label()\n");
+   /* Create Job status for end of session label */
+   if (!job_cancelled(jcr) && ok) {
+      jcr->JobStatus = JS_Terminated;
+   } else if (!ok) {
+      jcr->JobStatus = JS_ErrorTerminated;
+   }
+   if (!write_session_label(jcr, block, EOS_LABEL)) {
+      Pmsg1(000, _("Error writting end session label. ERR=%s\n"), strerror_dev(dev));
+      ok = FALSE;
+   }
+   /* Write out final block of this session */
+   if (!write_block_to_device(jcr, dev, block)) {
+      Pmsg0(000, "Set ok=FALSE after write_block_to_device.\n");
+      ok = FALSE;
+   }
+
+   /* Release the device */
+   if (!release_device(jcr, dev)) {
+      Pmsg0(000, "Error in release_device\n");
+      ok = FALSE;
+   }
+
+   free_block(block);
+   Pmsg0(000, "Done with fill command. Now beginning re-read of tapes...\n");
+
+   unfillcmd();
+}
+
+/*
+ * Read two tapes written by the "fill" command and ensure
+ *  that the data is valid.
+ */
+static void unfillcmd()
+{
+   DEV_BLOCK *block;
+
+   VolBytes = 0;
+   LastBlock = 0;
+   block = new_block(dev);
+
+   dev->capabilities |= CAP_ANONVOLS; /* allow reading any volume */
+   dev->capabilities &= ~CAP_LABEL;   /* don't label anything here */
+
+   end_of_tape = 0;
+   get_cmd("Mount first of two tapes. Press enter when ready: "); 
+   
+   pm_strcpy(&jcr->VolumeName, "TestVolume1");
+   close_dev(dev);
+   dev->state &= ~ST_READ;
+   if (!acquire_device_for_read(jcr, dev, block)) {
+      Pmsg0(000, dev->errmsg);
+      return;
+   }
+
+   time(&jcr->run_time);	      /* start counting time for rates */
+   read_records(jcr, dev, record_cb, my_mount_next_read_volume);
+   free_block(block);
+
+   Pmsg0(000, "Done with unfillcmd.\n");
+}
+
+
+static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
+{
+   SESSION_LABEL label;
+   if (rec->FileIndex < 0) {
+      if (verbose > 1) {
+	 dump_label_record(dev, rec, 1);
+      }
+      switch (rec->FileIndex) {
+	 case PRE_LABEL:
+            Pmsg0(000, "Volume is prelabeled. This tape cannot be scanned.\n");
+	    return;
+	 case VOL_LABEL:
+	    unser_volume_label(dev, rec);
+            Pmsg2(000, "VOL_LABEL: block=%u vol=%s\n", block->BlockNumber, 
+	       dev->VolHdr.VolName);
+	    break;
+	 case SOS_LABEL:
+	    unser_session_label(&label, rec);
+            Pmsg1(000, "SOS_LABEL: JobId=%u\n", label.JobId);
+	    break;
+	 case EOS_LABEL:
+	    unser_session_label(&label, rec);
+            Pmsg2(000, "EOS_LABEL: block=%u JobId=%u\n", block->BlockNumber, 
+	       label.JobId);
+	    break;
+	 case EOM_LABEL:
+            Pmsg0(000, "EOM_LABEL:\n");
+	    break;
+	 case EOT_LABEL:	      /* end of all tapes */
+	    char ec1[50];
+
+	    if (LastBlock != block->BlockNumber) {
+	       VolBytes += block->block_len;
+	    }
+	    LastBlock = block->BlockNumber;
+	    now = time(NULL);
+	    now -= jcr->run_time;
+	    if (now <= 0) {
+	       now = 1;
+	    }
+	    kbs = (double)VolBytes / (1000 * now);
+            Pmsg3(000, "Read block=%u, VolBytes=%s rate=%.1f KB/s\n", block->BlockNumber,
+		     edit_uint64_with_commas(VolBytes, ec1), (float)kbs);
+
+            Pmsg0(000, "End of all tapes.\n");
+
+	    break;
+	 default:
+	    break;
+      }
+      return;
+   }
+   if (LastBlock != block->BlockNumber) {
+      VolBytes += block->block_len;
+   }
+   if ((block->BlockNumber != LastBlock) && (block->BlockNumber % 50000) == 0) {
+      char ec1[50];
+      now = time(NULL);
+      now -= jcr->run_time;
+      if (now <= 0) {
+	 now = 1;
+      }
+      kbs = (double)VolBytes / (1000 * now);
+      Pmsg3(000, "Read block=%u, VolBytes=%s rate=%.1f KB/s\n", block->BlockNumber,
+	       edit_uint64_with_commas(VolBytes, ec1), (float)kbs);
+   }
+   LastBlock = block->BlockNumber;
+   if (end_of_tape) {
+      Pmsg1(000, "End of all blocks. Block=%u\n", block->BlockNumber);
+   }
+}
+
+
+
+/*
+ * Write current block to tape regardless of whether or
+ *   not it is full. If the tape fills, attempt to
+ *   acquire another tape.
+ */
+static int flush_block(DEV_BLOCK *block)
+{
+   char ec1[50];
+   lock_device(dev);
+   if (!write_block_to_dev(dev, block)) {
+      Pmsg2(000, "Doing fixup device error. FileIndex=%u Block=%u\n", 
+	 (unsigned)file_index, block->BlockNumber);
+      now = time(NULL);
+      now -= jcr->run_time;
+      if (now <= 0) {
+	 now = 1;
+      }
+      kbs = (double)dev->VolCatInfo.VolCatBytes / (1000 * now);
+      vol_size = dev->VolCatInfo.VolCatBytes;
+      Pmsg2(000, "End of tape. VolumeCapacity=%s. Write rate = %.1f KB/s\n", 
+	 edit_uint64_with_commas(dev->VolCatInfo.VolCatBytes, ec1), kbs);
+      if (!fixup_device_block_write_error(jcr, dev, block)) {
+         Pmsg1(000, _("Cannot fixup device error. %s\n"), strerror_dev(dev));
+	 ok = FALSE;
+	 unlock_device(dev);
+	 return 0;
+      }
+      Pmsg1(000, "Changed tapes. Block=%u\n", block->BlockNumber);
+      stop = 1; 						    
+      unlock_device(dev);
+      return 1;     /* write one more block to next tape then stop */
+   }
+   unlock_device(dev);
+   return 1;
+}
+
 
 struct cmdstruct { char *key; void (*func)(); char *help; }; 
 static struct cmdstruct commands[] = {
@@ -837,6 +1216,8 @@ static struct cmdstruct commands[] = {
  {"eod",        eodcmd,       "go to end of Bacula data for append"},
  {"test",       testcmd,      "General test Bacula tape functions"},
  {"eom",        eomcmd,       "go to the physical end of medium"},
+ {"fill",       fillcmd,      "fill tape, write onto second volume"},
+ {"unfill",     unfillcmd,    "read filled tape"},
  {"fsf",        fsfcmd,       "forward space a file"},
  {"fsr",        fsrcmd,       "forward space a record"},
  {"help",       helpcmd,      "print this command"},
@@ -931,4 +1312,65 @@ get_cmd(char *prompt)
    }
    quit = 1;
    return 0;
+}
+
+/* Dummies to replace askdir.c */
+int	dir_get_volume_info(JCR *jcr, int writing) { return 1;}
+int	dir_find_next_appendable_volume(JCR *jcr) { return 1;}
+int	dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int relabel) { return 1; }
+int	dir_create_jobmedia_record(JCR *jcr) { return 1; }
+int	dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec) { return 1;}
+int	dir_send_job_status(JCR *jcr) {return 1;}
+
+
+int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
+{
+   fprintf(stderr, "Mount Volume \"%s\" on device %s and press return when ready: ",
+      jcr->VolumeName, dev_name(dev));
+   getchar();	
+   return 1;
+}
+
+int dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev)
+{
+   fprintf(stderr, "Mount next Volume on device %s and press return when ready: ",
+      dev_name(dev));
+   getchar();	
+   VolumeName = "TestVolume2";
+   labelcmd();
+   VolumeName = NULL;
+   return 1;
+}
+
+static int my_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
+{
+   char ec1[50];
+
+   Pmsg1(000, "End of Volume \"%s\"\n", jcr->VolumeName);
+
+   if (LastBlock != block->BlockNumber) {
+      VolBytes += block->block_len;
+   }
+   LastBlock = block->BlockNumber;
+   now = time(NULL);
+   now -= jcr->run_time;
+   if (now <= 0) {
+      now = 1;
+   }
+   kbs = (double)VolBytes / (1000 * now);
+   Pmsg3(000, "Read block=%u, VolBytes=%s rate=%.1f KB/s\n", block->BlockNumber,
+	    edit_uint64_with_commas(VolBytes, ec1), (float)kbs);
+
+   if (strcmp(jcr->VolumeName, "TestVolume2") == 0) {
+      end_of_tape = 1;
+      return 0;
+   }
+   pm_strcpy(&jcr->VolumeName, "TestVolume2");
+   close_dev(dev);
+   dev->state &= ~ST_READ; 
+   if (!acquire_device_for_read(jcr, dev, block)) {
+      Pmsg2(0, "Cannot open Dev=%s, Vol=%s\n", dev_name(dev), jcr->VolumeName);
+      return 0;
+   }
+   return 1;			   /* next volume mounted */
 }

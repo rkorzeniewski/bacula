@@ -17,7 +17,7 @@ DEBUG=@DEBUG@
 first_rule: all
 dummy:
 
-#
+# bacula-sd
 SVRSRCS = stored.c acquire.c append.c askdir.c authenticate.c \
 	  block.c dev.c \
 	  device.c dircmd.c fd_cmds.c fdmsg.c job.c \
@@ -29,29 +29,37 @@ SVROBJS = stored.o acquire.o append.o askdir.o authenticate.o \
 	  label.o match_bsr.o mount.o parse_bsr.o \
 	  read.o record.o stored_conf.o
 
+# btape
+TAPESRCS = btape.c block.c butil.c dev.c device.c label.c \
+	   acquire.c mount.c record.c read_record.c \
+	   stored_conf.c match_bsr.c parse_bsr.o
+TAPEOBJS = btape.o block.o butil.o dev.o device.o label.o \
+	   acquire.o mount.o record.o read_record.o \
+	   stored_conf.o match_bsr.o parse_bsr.o
+
+# bls
+BLSOBJS = bls.o block.o device.o dev.o label.o match_bsr.o \
+	  acquire.o mount.o parse_bsr.o record.o butil.o \
+	  read_record.o 
+
+# bextract
+BEXTOBJS = bextract.o block.o device.o dev.o label.o record.o \
+	   acquire.o mount.o match_bsr.o parse_bsr.o butil.o \
+	   read_record.o
+
+# bscan
+SCNOBJS = bscan.o block.o device.o dev.o label.o \
+	  acquire.o mount.o record.o match_bsr.o parse_bsr.o \
+	  butil.o read_record.o
+
+
 # bpool is deprecated
 #POOLSRCS = bpool.c block.c dev.c device.c askdir.c label.c \
 #	    record.c stored_conf.c 
 #POOLOBJS = bpool.o block.o dev.o device.o askdir.o label.o \
 #	    record.o stored_conf.o 
 
-#
-TAPESRCS = btape.c block.c dev.c device.c askdir.c label.c \
-	   acquire.c mount.c record.c stored_conf.c 
-TAPEOBJS = btape.o block.o dev.o device.o askdir.o label.o \
-	   acquire.o mount.o record.o stored_conf.o 
 
-BLSOBJS = bls.o block.o device.o dev.o label.o match_bsr.o \
-	  acquire.o mount.o parse_bsr.o record.o butil.o \
-	  read_record.o 
-
-BEXTOBJS = bextract.o block.o device.o dev.o label.o record.o \
-	   acquire.o mount.o match_bsr.o parse_bsr.o butil.o \
-	   read_record.o
-
-SCNOBJS = bscan.o block.o device.o dev.o label.o \
-	  acquire.o mount.o record.o match_bsr.o parse_bsr.o \
-	  butil.o read_record.o
 
 
 
