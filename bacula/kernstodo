@@ -11,6 +11,8 @@ To do:
 - Document specifically how to add new File daemon to config files.
 - Document forcing a new tape to be used.
 
+- Eliminate MySQL shared libraries from smtp and daemons not
+  using MySQL.
 - Pass "Catalog Files = no" to storage daemon to eliminate
   network traffic.
 - Implement alter_sqlite_tables

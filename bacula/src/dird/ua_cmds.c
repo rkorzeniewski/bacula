@@ -219,6 +219,10 @@ getVolName:
       bsendmsg(ua, _("Volume name too long.\n"));
       goto getVolName;
    }
+   if (strlen(ua->cmd) == 0) {
+      bsendmsg(ua, _("Volume name must be at least one character long.\n"));
+      goto getVolName;
+   }
 
    strcpy(name, ua->cmd);
    if (num > 0) {
@@ -1116,6 +1120,10 @@ gotVol:
    }
    if (strlen(ua->cmd) >= MAX_NAME_LENGTH) {
       bsendmsg(ua, _("Volume name too long.\n"));
+      goto getVol;
+   }
+   if (strlen(ua->cmd) == 0) {
+      bsendmsg(ua, _("Volume name must be at least one character long.\n"));
       goto getVol;
    }
 

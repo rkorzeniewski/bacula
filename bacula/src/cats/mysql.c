@@ -295,7 +295,7 @@ list_result(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx)
    sql_field_seek(mdb, 0);
    for (i = 0; i < sql_num_fields(mdb); i++) {
       field = sql_fetch_field(mdb);
-      sprintf(buf, " %-*s |", field->max_length, field->name);
+      sprintf(buf, " %-*s |", (int)field->max_length, field->name);
       send(ctx, buf);
    }
    send(ctx, "\n");
@@ -307,12 +307,12 @@ list_result(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx)
       for (i = 0; i < sql_num_fields(mdb); i++) {
 	 field = sql_fetch_field(mdb);
 	 if (row[i] == NULL) {
-            sprintf(buf, " %-*s |", field->max_length, "NULL");
+            sprintf(buf, " %-*s |", (int)field->max_length, "NULL");
 	 } else if (IS_NUM(field->type)) {
-            sprintf(buf, " %*s |", field->max_length,       
+            sprintf(buf, " %*s |", (int)field->max_length,       
 	       add_commas(row[i], ewc));
 	 } else {
-            sprintf(buf, " %-*s |", field->max_length, row[i]);
+            sprintf(buf, " %-*s |", (int)field->max_length, row[i]);
 	 }
 	 send(ctx, buf);
       }
