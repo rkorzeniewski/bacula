@@ -377,8 +377,8 @@ void read_state_file(char *dir, const char *progname, int port)
    if ((sfd = open(mp_chr(fname), O_RDONLY, 0)) < 0 ||
        read(sfd, &hdr, sizeof(hdr)) < 0 ||
        hdr.version != state_hdr.version) {
-      Dmsg2(000, "Could not open or read state file. sfd=%d: ERR=%s\n",
-	    sfd, strerror(errno));
+      Dmsg2(000, "Could not open or read state file. sfd=%d: ERR=%s\n", 
+		    sfd, strerror(errno));
       goto bail_out;
    }
    hdr.id[13] = 0;
