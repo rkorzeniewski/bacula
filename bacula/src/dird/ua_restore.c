@@ -433,7 +433,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
 	 done = false;
 	 break;
       case 1:			      /* list where a file is saved */
-         if (!get_cmd(ua, _("Enter Filename: "))) {
+         if (!get_cmd(ua, _("Enter Filename (no path):"))) {
 	    return 0;
 	 }
 	 len = strlen(ua->cmd);
@@ -482,11 +482,11 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
 	 if (!get_client_name(ua, rx)) {
 	    return 0;
 	 }
-         bsendmsg(ua, _("Enter file names, or < to enter a filename\n"      
-                        "containg a list of file names, and terminate\n"
+         bsendmsg(ua, _("Enter file names with paths, or < to enter a filename\n"      
+                        "containg a list of file names with paths, and terminate\n"
                         "them with a blank line.\n"));
 	 for ( ;; ) {
-            if (!get_cmd(ua, _("Enter filename: "))) {
+            if (!get_cmd(ua, _("Enter full filename: "))) {
 	       return 0;
 	    }
 	    len = strlen(ua->cmd);
@@ -507,11 +507,11 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
 	 if (!get_client_name(ua, rx)) {
 	    return 0;
 	 }
-         bsendmsg(ua, _("Enter file names, or < to enter a filename\n"      
-                        "containg a list of file names, and terminate\n"
+         bsendmsg(ua, _("Enter file names with paths, or < to enter a filename\n"      
+                        "containg a list of file names with paths, and terminate\n"
                         "them with a blank line.\n"));
 	 for ( ;; ) {
-            if (!get_cmd(ua, _("Enter filename: "))) {
+            if (!get_cmd(ua, _("Enter full filename: "))) {
 	       return 0;
 	    }
 	    len = strlen(ua->cmd);

@@ -17,6 +17,9 @@ Version 1.35                Kern (see below)
 - Look at patches/bacula_db.b2z postgresql that loops during restore.
   See Gregory Wright.
 - Perhaps add read/write programs and/or plugins to FileSets.
+- Make sure Qmsgs are dequeued by FD and SD.
+- Check if ACLs allocated at dird_conf.c:1214 are being properly
+  released.
 
 - Add bscan to four-concurrent-jobs regression.
 - Add IPv6 to regression

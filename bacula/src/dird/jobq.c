@@ -163,11 +163,11 @@ void *sched_wait(void *arg)
    Dmsg0(300, "Enter sched_wait.\n");
    free(arg);
    time_t wtime = jcr->sched_time - time(NULL);
+   set_jcr_job_status(jcr, JS_WaitStartTime);
    /* Wait until scheduled time arrives */
-   if (wtime > 0 && verbose) {
+   if (wtime > 0) {
       Jmsg(jcr, M_INFO, 0, _("Job %s waiting %d seconds for scheduled start time.\n"), 
 	 jcr->Job, wtime);
-      set_jcr_job_status(jcr, JS_WaitStartTime);
    }
    /* Check every 30 seconds if canceled */ 
    while (wtime > 0) {
@@ -212,17 +212,16 @@ int jobq_add(jobq_t *jq, JCR *jcr)
    }
 
    jcr->use_count++;		      /* mark jcr in use by us */
-
    Dmsg3(300, "jobq_add jobid=%d jcr=0x%x use_count=%d\n", jcr->JobId, jcr, jcr->use_count);
    if (!job_canceled(jcr) && wtime > 0) {
       set_thread_concurrency(jq->max_workers + 2);
       sched_pkt = (wait_pkt *)malloc(sizeof(wait_pkt));
       sched_pkt->jcr = jcr;
       sched_pkt->jq = jq;
+      jcr->use_count--; 	   /* release our use of jcr */
       stat = pthread_create(&id, &jq->attr, sched_wait, (void *)sched_pkt);	   
       if (stat != 0) {		      /* thread not created */
          Jmsg1(jcr, M_ERROR, 0, "pthread_thread_create: ERR=%s\n", strerror(stat));
-	 jcr->use_count--;	      /* release jcr */
       }
       return stat;
    }
@@ -478,10 +477,12 @@ void *jobq_server(void *arg)
 	    bstrftime(dt, sizeof(dt), time(NULL));
             Jmsg(jcr, M_INFO, 0, _("Rescheduled Job %s at %s to re-run in %d seconds.\n"),
 	       jcr->Job, dt, (int)jcr->job->RescheduleInterval);
-	    jcr->JobStatus = JS_Created; /* force new status */
 	    dird_free_jcr(jcr); 	 /* partial cleanup old stuff */
+	    jcr->JobStatus = JS_WaitStartTime;
+	    jcr->SDJobStatus = 0;
 	    if (jcr->JobBytes == 0) {
                Dmsg1(300, "Requeue job=%d\n", jcr->JobId);
+	       jcr->JobStatus = JS_WaitStartTime;
 	       V(jq->mutex);
 	       jobq_add(jq, jcr);     /* queue the job to run again */
 	       P(jq->mutex);
@@ -514,7 +515,8 @@ void *jobq_server(void *arg)
 	    db_close_database(jcr, jcr->db);
 	    jcr->db = NULL;
 	 }
-         Dmsg1(300, "====== Termination job=%d\n", jcr->JobId);
+         Dmsg2(300, "====== Termination job=%d use_cnt=%d\n", jcr->JobId, jcr->use_count);
+	 jcr->SDJobStatus = 0;
 	 V(jq->mutex);		      /* release internal lock */
 	 free_jcr(jcr);
 	 free(je);		      /* release job entry */

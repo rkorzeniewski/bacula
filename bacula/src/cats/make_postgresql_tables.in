@@ -206,6 +206,8 @@ create table file
     primary key (fileid)
 );
 
+create index file_jobid_idx on file (jobid);
+
 create table jobmedia
 (
     jobmediaid	      serial		    not null,

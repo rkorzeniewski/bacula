@@ -185,7 +185,7 @@ const char *uar_file =
    "FROM Client,Job,File,Filename,Path WHERE Client.ClientId=Job.ClientId "
    "AND JobStatus='T' AND Job.JobId=File.JobId "
    "AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId "
-   "AND Filename.Name='%s' LIMIT 20";
+   "AND Filename.Name='%s' ORDER BY StartTime DESC LIMIT 20";
 #else
 /* List Jobs where a particular file is saved */
 const char *uar_file = 
@@ -195,7 +195,7 @@ const char *uar_file =
    "FROM Client,Job,File,Filename,Path WHERE Client.ClientId=Job.ClientId "
    "AND JobStatus='T' AND Job.JobId=File.JobId "
    "AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId "
-   "AND Filename.Name='%s' LIMIT 20";
+   "AND Filename.Name='%s' ORDER BY StartTime DESC LIMIT 20";
 #endif
 
 
