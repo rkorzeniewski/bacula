@@ -106,8 +106,8 @@ cd ..
 
 bin/bacula stop 2>&1 >/dev/null
 echo "volume=TestVolume001" >tmp/bscan.bsr
-# bin/bscan -w working -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf ${cwd}/tmp 2>&1 >/dev/null
-bin/bscan -w working -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf /dev/nst0
+bin/bscan -w working -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf                           
+bin/bscan -w working -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf /dev/nst0 2>&1 >/dev/null
 bin/bacula start 2>&1 >/dev/null
 bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
 @output /dev/null
