@@ -183,5 +183,9 @@ int
 db_find_last_jobid(JCR *jcr, B_DB *mdb, const char *Name, JOB_DBR *jr)
 { return 0; }
 
+bool
+db_find_failed_job_since(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM *stime, int &JobLevel)
+{ return false; }
+
 
 #endif /* HAVE_BACULA_DB */

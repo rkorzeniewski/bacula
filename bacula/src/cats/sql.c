@@ -305,6 +305,13 @@ void db_start_transaction(JCR *jcr, B_DB *mdb)
 
 void db_end_transaction(JCR *jcr, B_DB *mdb)
 {
+   /*
+    * This can be called during thread cleanup and 
+    *	the db may already be closed.  So simply return.
+    */
+   if (!mdb) {
+      return;
+   }
 #ifdef HAVE_SQLITE
    if (!mdb->allow_transactions) {
       return;

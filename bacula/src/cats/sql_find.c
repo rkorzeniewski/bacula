@@ -159,11 +159,11 @@ db_find_failed_job_since(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM *stime, int &
    db_lock(mdb);
    /* Differential is since last Full backup */
    Mmsg(mdb->cmd, 
-"SELECT JobLevel FROM Job WHERE JobStatus!='T' AND Type='%c' AND "
+"SELECT Level FROM Job WHERE JobStatus!='T' AND Type='%c' AND "
 "Level IN ('%c','%c') AND Name='%s' AND ClientId=%u "
 "AND FileSetId=%u AND StartTime>'%s' "
 "ORDER BY StartTime DESC LIMIT 1",
-	 jr->JobType, L_INCREMENTAL, L_DIFFERENTIAL, jr->Name,
+	 jr->JobType, L_FULL, L_DIFFERENTIAL, jr->Name,
 	 jr->ClientId, jr->FileSetId, stime);
 
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
@@ -176,7 +176,7 @@ db_find_failed_job_since(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM *stime, int &
       db_unlock(mdb);
       return false;
    }
-   JobLevel = str_to_int64(row[0]);
+   JobLevel = (int)*row[0];
    sql_free_result(mdb);
 
    db_unlock(mdb);
