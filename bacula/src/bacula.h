@@ -72,7 +72,7 @@
 #else
 #include "lib/getopt.h"
 #endif
-#endif 
+#endif
 
 #include <string.h>
 #include <strings.h>
@@ -110,7 +110,7 @@
 #include <pthread.h>
 
 /* Local Bacula includes. Be sure to put all the system
- *  includes before these.  
+ *  includes before these.
  */
 #include "version.h"
 #include "bc_types.h"

@@ -65,7 +65,7 @@ static void usage()
    fprintf(stderr, _(
 "Copyright (C) 2000-2004 Kern Sibbald and John Walker\n"
 "\nVersion: " VERSION " (" BDATE ")\n\n"
-"Usage: bacula-fd [-f -s] [-c config_file] [-d debug_level]\n"  
+"Usage: bacula-fd [-f -s] [-c config_file] [-d debug_level]\n"
 "        -c <file>   use <file> as configuration file\n"
 "        -dnn        set debug level to nn\n"
 "        -f          run in foreground (for debugging)\n"
@@ -76,14 +76,14 @@ static void usage()
 "        -u          userid\n"
 "        -v          verbose user messages\n"
 "        -?          print this message.\n"
-"\n"));         
+"\n"));
    exit(1);
 }
 
 
-/********************************************************************* 
+/*********************************************************************
  *
- *  Main Bacula Unix Client Program			   
+ *  Main Bacula Unix Client Program
  *
  */
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
@@ -116,7 +116,7 @@ int main (int argc, char *argv[])
       case 'd':                    /* debug level */
 	 debug_level = atoi(optarg);
 	 if (debug_level <= 0) {
-	    debug_level = 1; 
+	    debug_level = 1;
 	 }
 	 break;
 
@@ -151,7 +151,7 @@ int main (int argc, char *argv[])
       default:
 	 usage();
 
-      }  
+      }
    }
    argc -= optind;
    argv += optind;
@@ -160,7 +160,7 @@ int main (int argc, char *argv[])
       if (configfile != NULL)
 	 free(configfile);
       configfile = bstrdup(*argv);
-      argc--; 
+      argc--;
       argv++;
    }
    if (argc) {
@@ -193,8 +193,8 @@ int main (int argc, char *argv[])
    me = (CLIENT *)GetNextRes(R_CLIENT, NULL);
    UnlockRes();
    if (!me) {
-      Emsg1(M_ABORT, 0, _("No File daemon resource defined in %s\n\
-Without that I don't know who I am :-(\n"), configfile);
+      Emsg1(M_ABORT, 0, _("No File daemon resource defined in %s\n"
+"Without that I don't know who I am :-(\n"), configfile);
    } else {
       my_name_is(0, NULL, me->hdr.name);
       if (!me->messages) {
@@ -202,7 +202,7 @@ Without that I don't know who I am :-(\n"), configfile);
 	 me->messages = (MSGS *)GetNextRes(R_MSGS, NULL);
 	 UnlockRes();
 	 if (!me->messages) {
-             Emsg1(M_ABORT, 0, _("No Messages resource defined in %s\n"), configfile);
+	     Emsg1(M_ABORT, 0, _("No Messages resource defined in %s\n"), configfile);
 	 }
       }
       close_msg(NULL);		      /* close temp message handler */
@@ -239,7 +239,7 @@ Without that I don't know who I am :-(\n"), configfile);
    server_tid = pthread_self();
 
    if (inetd_request) {
-      /* Socket is on fd 0 */	       
+      /* Socket is on fd 0 */
       struct sockaddr client_addr;
       int port = -1;
       socklen_t client_addr_len = sizeof(client_addr);
@@ -253,7 +253,7 @@ Without that I don't know who I am :-(\n"), configfile);
       /* Become server, and handle requests */
       IPADDR *p;
       foreach_dlist(p, me->FDaddrs) {
-         Dmsg1(10, "filed: listening on port %d\n", p->get_port_host_order());
+	 Dmsg1(10, "filed: listening on port %d\n", p->get_port_host_order());
       }
       bnet_thread_server(me->FDaddrs, me->MaxConcurrentJobs, &dir_workq, handle_client_request);
    }
@@ -271,7 +271,7 @@ void terminate_filed(int sig)
       free(configfile);
    }
    if (debug_level > 5) {
-      print_memory_pool_stats(); 
+      print_memory_pool_stats();
    }
    free_config_resources();
    term_msg();

@@ -32,15 +32,15 @@
 
 class wxbConfigFileEditor : public wxDialog {
 public:
-        wxbConfigFileEditor(wxWindow* parent, wxString filename);
-        virtual ~wxbConfigFileEditor();
+	wxbConfigFileEditor(wxWindow* parent, wxString filename);
+	virtual ~wxbConfigFileEditor();
 private:
    wxString filename;
-   
+
    wxTextCtrl* textCtrl;
-   
+
    void OnSave(wxCommandEvent& event);
    void OnQuit(wxCommandEvent& event);
-   
+
    DECLARE_EVENT_TABLE()
 };

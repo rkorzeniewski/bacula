@@ -2,7 +2,7 @@
  *
  *   Bacula scheduler
  *     It looks at what jobs are to be run and when
- *     and waits around until it is time to 
+ *     and waits around until it is time to
  *     fire them up.
  *
  *     Kern Sibbald, May MM, major revision December MMIII
@@ -36,13 +36,13 @@
 
 
 /* Local variables */
-struct job_item {  
+struct job_item {
    RUN *run;
    JOB *job;
    time_t runtime;
    int Priority;
    dlink link;			      /* link for list */
-};		
+};
 
 /* List of jobs to be run. They were scheduled in this hour or the next */
 static dlist *jobs_to_run;		 /* list of jobs to be run */
@@ -82,9 +82,9 @@ JCR *wait_for_next_job(char *one_shot_job_to_run)
       if (one_shot_job_to_run) {	    /* one shot */
 	 job = (JOB *)GetResWithName(R_JOB, one_shot_job_to_run);
 	 if (!job) {
-            Emsg1(M_ABORT, 0, _("Job %s not found\n"), one_shot_job_to_run);
+	    Emsg1(M_ABORT, 0, _("Job %s not found\n"), one_shot_job_to_run);
 	 }
-         Dmsg1(5, "Found one_shot_job_to_run %s\n", one_shot_job_to_run);
+	 Dmsg1(5, "Found one_shot_job_to_run %s\n", one_shot_job_to_run);
 	 jcr = new_jcr(sizeof(JCR), dird_free_jcr);
 	 set_jcr_defaults(jcr, job);
 	 return jcr;
@@ -107,7 +107,7 @@ JCR *wait_for_next_job(char *one_shot_job_to_run)
       dump_job(je, "Walk queue");
    }
 #endif
-   /* 
+   /*
     * Pull the first job to run (already sorted by runtime and
     *  Priority, then wait around until it is time to run it.
     */
@@ -174,7 +174,7 @@ JCR *wait_for_next_job(char *one_shot_job_to_run)
 
 
 /*
- * Shutdown the scheduler  
+ * Shutdown the scheduler
  */
 void term_scheduler()
 {
@@ -188,7 +188,7 @@ void term_scheduler()
    }
 }
 
-/*	    
+/*
  * Find all jobs to be run this hour and the next hour.
  */
 static void find_runs()
@@ -205,7 +205,7 @@ static void find_runs()
 
    Dmsg0(200, "enter find_runs()\n");
 
-   
+
    /* compute values for time now */
    now = time(NULL);
    localtime_r(&now, &tm);
@@ -217,12 +217,12 @@ static void find_runs()
    wom = mday / 7;
    woy = tm_woy(now);			  /* get week of year */
 
-   /* 
+   /*
     * Compute values for next hour from now.
     * We do this to be sure we don't miss a job while
     * sleeping.
     */
-   next_hour = now + 3600;  
+   next_hour = now + 3600;
    localtime_r(&next_hour, &tm);
    nh_hour = tm.tm_hour;
    nh_mday = tm.tm_mday - 1;
@@ -242,14 +242,14 @@ static void find_runs()
       Dmsg1(200, "Got job: %s\n", job->hdr.name);
       for (run=sched->run; run; run=run->next) {
 	 bool run_now, run_nh;
-	 /* 
+	 /*
 	  * Find runs scheduled between now and the next hour.
 	  */
 #ifdef xxxx
-         Dmsg0(000, "\n");
-         Dmsg6(000, "run h=%d m=%d md=%d wd=%d wom=%d woy=%d\n", 
+	 Dmsg0(000, "\n");
+	 Dmsg6(000, "run h=%d m=%d md=%d wd=%d wom=%d woy=%d\n",
 	    hour, month, mday, wday, wom, woy);
-         Dmsg6(000, "bitset bsh=%d bsm=%d bsmd=%d bswd=%d bswom=%d bswoy=%d\n", 
+	 Dmsg6(000, "bitset bsh=%d bsm=%d bsmd=%d bswd=%d bswom=%d bswoy=%d\n",
 	    bit_is_set(hour, run->hour),
 	    bit_is_set(month, run->month),
 	    bit_is_set(mday, run->mday),
@@ -257,9 +257,9 @@ static void find_runs()
 	    bit_is_set(wom, run->wom),
 	    bit_is_set(woy, run->woy));
 
-         Dmsg6(000, "nh_run h=%d m=%d md=%d wd=%d wom=%d woy=%d\n", 
+	 Dmsg6(000, "nh_run h=%d m=%d md=%d wd=%d wom=%d woy=%d\n",
 	    nh_hour, nh_month, nh_mday, nh_wday, nh_wom, nh_woy);
-         Dmsg6(000, "nh_bitset bsh=%d bsm=%d bsmd=%d bswd=%d bswom=%d bswoy=%d\n", 
+	 Dmsg6(000, "nh_bitset bsh=%d bsm=%d bsmd=%d bswd=%d bswom=%d bswoy=%d\n",
 	    bit_is_set(nh_hour, run->hour),
 	    bit_is_set(nh_month, run->month),
 	    bit_is_set(nh_mday, run->mday),
@@ -269,20 +269,20 @@ static void find_runs()
 #endif
 
 	 run_now = bit_is_set(hour, run->hour) &&
-	    bit_is_set(mday, run->mday) && 
+	    bit_is_set(mday, run->mday) &&
 	    bit_is_set(wday, run->wday) &&
 	    bit_is_set(month, run->month) &&
 	    bit_is_set(wom, run->wom) &&
 	    bit_is_set(woy, run->woy);
 
 	 run_nh = bit_is_set(nh_hour, run->hour) &&
-	    bit_is_set(nh_mday, run->mday) && 
+	    bit_is_set(nh_mday, run->mday) &&
 	    bit_is_set(nh_wday, run->wday) &&
 	    bit_is_set(nh_month, run->month) &&
 	    bit_is_set(nh_wom, run->wom) &&
 	    bit_is_set(nh_woy, run->woy);
 
-         Dmsg2(200, "run_now=%d run_nh=%d\n", run_now, run_nh);
+	 Dmsg2(200, "run_now=%d run_nh=%d\n", run_now, run_nh);
 
 	 /* find time (time_t) job is to be run */
 	 localtime_r(&now, &tm);      /* reset tm structure */
@@ -302,7 +302,7 @@ static void find_runs()
 	    runtime = mktime(&tm);
 	    add_job(job, run, now, runtime);
 	 }
-      }  
+      }
    }
    UnlockRes();
    Dmsg0(200, "Leave find_runs()\n");
@@ -319,10 +319,10 @@ static void add_job(JOB *job, RUN *run, time_t now, time_t runtime)
    if (((runtime - run->last_run) < 61) || ((runtime+59) < now)) {
 #ifdef SCHED_DEBUG
       char dt[50], dt1[50], dt2[50];
-      bstrftime_nc(dt, sizeof(dt), runtime);  
+      bstrftime_nc(dt, sizeof(dt), runtime);
       bstrftime_nc(dt1, sizeof(dt1), run->last_run);
       bstrftime_nc(dt2, sizeof(dt2), now);
-      Dmsg4(000, "Drop: Job=\"%s\" run=%s. last_run=%s. now=%s\n", job->hdr.name, 
+      Dmsg4(000, "Drop: Job=\"%s\" run=%s. last_run=%s. now=%s\n", job->hdr.name,
 	    dt, dt1, dt2);
       fflush(stdout);
 #endif
@@ -341,10 +341,10 @@ static void add_job(JOB *job, RUN *run, time_t now, time_t runtime)
 
    /* Add this job to the wait queue in runtime, priority sorted order */
    foreach_dlist(ji, jobs_to_run) {
-      if (ji->runtime > je->runtime || 
+      if (ji->runtime > je->runtime ||
 	  (ji->runtime == je->runtime && ji->Priority > je->Priority)) {
 	 jobs_to_run->insert_before(je, ji);
-         dump_job(je, "Inserted job");
+	 dump_job(je, "Inserted job");
 	 inserted = true;
 	 break;
       }
@@ -362,7 +362,7 @@ static void add_job(JOB *job, RUN *run, time_t now, time_t runtime)
 #endif
 }
 
-static void dump_job(job_item *ji, const char *msg) 
+static void dump_job(job_item *ji, const char *msg)
 {
 #ifdef SCHED_DEBUG
    char dt[MAX_TIME_LENGTH];
@@ -371,8 +371,8 @@ static void dump_job(job_item *ji, const char *msg)
    if (debug_level < 200) {
       return;
    }
-   bstrftime_nc(dt, sizeof(dt), ji->runtime);  
-   Dmsg4(200, "%s: Job=%s priority=%d run %s\n", msg, ji->job->hdr.name, 
+   bstrftime_nc(dt, sizeof(dt), ji->runtime);
+   Dmsg4(200, "%s: Job=%s priority=%d run %s\n", msg, ji->job->hdr.name,
       ji->Priority, dt);
    fflush(stdout);
    debug_level = save_debug;

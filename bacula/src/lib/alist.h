@@ -24,7 +24,7 @@
 
  */
 
-/* 
+/*
  * There is a lot of extra casting here to work around the fact
  * that some compilers (Sun and Visual C++) do not accept
  * (void *) as an lvalue on the left side of an equal.
@@ -36,7 +36,7 @@
 
 #ifdef the_easy_way
 #define foreach_alist(var, list) \
-        for((void*(var))=(list)->first(); (var); (void *(var))=(list)->next(var)); )
+	for((void*(var))=(list)->first(); (var); (void *(var))=(list)->next(var)); )
 #endif
 
 
@@ -46,7 +46,7 @@ enum {
   not_owned_by_alist = false
 };
 
-/* 
+/*
  * Array list -- much like a simplified STL vector
  *   array of pointers to inserted items
  */
@@ -90,7 +90,7 @@ inline bool alist::empty() const
    return this ? num_items == 0 : true;
 }
 
-/*                            
+/*
  * This allows us to do explicit initialization,
  *   allowing us to mix C++ classes inside malloc'ed
  *   C structures. Define before called in constructor.
@@ -112,11 +112,11 @@ inline alist::alist(int num, bool own) {
 inline alist::~alist() {
    destroy();
 }
-   
+
 
 
 /* Current size of list */
-inline int alist::size() const 
+inline int alist::size() const
 {
    /*
     * Check for null pointer, which allows test
@@ -127,7 +127,7 @@ inline int alist::size() const
 }
 
 /* How much to grow by each time */
-inline void alist::grow(int num) 
+inline void alist::grow(int num)
 {
    num_grow = num;
 }

@@ -1,6 +1,6 @@
 /*
  * Bacula Catalog Database interface routines
- * 
+ *
  *     Almost generic set of SQL database interface routines
  *	(with a little more work)
  *
@@ -64,7 +64,7 @@ static int int_handler(void *ctx, int num_fields, char **row)
    Dmsg0(800, "int_handler finishes\n");
    return 0;
 }
-       
+
 
 
 /* NOTE!!! The following routines expect that the
@@ -75,7 +75,7 @@ static int int_handler(void *ctx, int num_fields, char **row)
 int check_tables_version(JCR *jcr, B_DB *mdb)
 {
    const char *query = "SELECT VersionId FROM Version";
-  
+
    bacula_db_version = 0;
    db_sql_query(mdb, query, int_handler, (void *)&bacula_db_version);
    if (bacula_db_version != BDB_VERSION) {
@@ -96,7 +96,7 @@ QueryDB(const char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
       m_msg(file, line, &mdb->errmsg, _("query %s failed:\n%s\n"), cmd, sql_strerror(mdb));
       j_msg(file, line, jcr, M_FATAL, 0, "%s", mdb->errmsg);
       if (verbose) {
-         j_msg(file, line, jcr, M_INFO, 0, "%s\n", cmd);
+	 j_msg(file, line, jcr, M_INFO, 0, "%s\n", cmd);
       }
       return 0;
    }
@@ -106,9 +106,9 @@ QueryDB(const char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
    return mdb->result != NULL;
 }
 
-/* 
- * Utility routine to do inserts   
- * Returns: 0 on failure      
+/*
+ * Utility routine to do inserts
+ * Returns: 0 on failure
  *	    1 on success
  */
 int
@@ -118,7 +118,7 @@ InsertDB(const char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
       m_msg(file, line, &mdb->errmsg,  _("insert %s failed:\n%s\n"), cmd, sql_strerror(mdb));
       j_msg(file, line, jcr, M_FATAL, 0, "%s", mdb->errmsg);
       if (verbose) {
-         j_msg(file, line, jcr, M_INFO, 0, "%s\n", cmd);
+	 j_msg(file, line, jcr, M_INFO, 0, "%s\n", cmd);
       }
       return 0;
    }
@@ -129,10 +129,10 @@ InsertDB(const char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
    }
    if (mdb->num_rows != 1) {
       char ed1[30];
-      m_msg(file, line, &mdb->errmsg, _("Insertion problem: affected_rows=%s\n"), 
+      m_msg(file, line, &mdb->errmsg, _("Insertion problem: affected_rows=%s\n"),
 	 edit_uint64(mdb->num_rows, ed1));
       if (verbose) {
-         j_msg(file, line, jcr, M_INFO, 0, "%s\n", cmd);
+	 j_msg(file, line, jcr, M_INFO, 0, "%s\n", cmd);
       }
       return 0;
    }
@@ -142,7 +142,7 @@ InsertDB(const char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
 
 /* Utility routine for updates.
  *  Returns: 0 on failure
- *	     1 on success  
+ *	     1 on success
  */
 int
 UpdateDB(const char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
@@ -152,14 +152,14 @@ UpdateDB(const char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
       m_msg(file, line, &mdb->errmsg, _("update %s failed:\n%s\n"), cmd, sql_strerror(mdb));
       j_msg(file, line, jcr, M_ERROR, 0, "%s", mdb->errmsg);
       if (verbose) {
-         j_msg(file, line, jcr, M_INFO, 0, "%s\n", cmd);
+	 j_msg(file, line, jcr, M_INFO, 0, "%s\n", cmd);
       }
       return 0;
    }
    mdb->num_rows = sql_affected_rows(mdb);
    if (mdb->num_rows < 1) {
       char ed1[30];
-      m_msg(file, line, &mdb->errmsg, _("Update problem: affected_rows=%s\n"), 
+      m_msg(file, line, &mdb->errmsg, _("Update problem: affected_rows=%s\n"),
 	 edit_uint64(mdb->num_rows, ed1));
       if (verbose) {
 //       j_msg(file, line, jcr, M_INFO, 0, "%s\n", cmd);
@@ -170,7 +170,7 @@ UpdateDB(const char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
    return 1;
 }
 
-/* Utility routine for deletes	 
+/* Utility routine for deletes
  *
  * Returns: -1 on error
  *	     n number of rows affected
@@ -183,7 +183,7 @@ DeleteDB(const char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
       m_msg(file, line, &mdb->errmsg, _("delete %s failed:\n%s\n"), cmd, sql_strerror(mdb));
       j_msg(file, line, jcr, M_ERROR, 0, "%s", mdb->errmsg);
       if (verbose) {
-         j_msg(file, line, jcr, M_INFO, 0, "%s\n", cmd);
+	 j_msg(file, line, jcr, M_INFO, 0, "%s\n", cmd);
       }
       return -1;
    }
@@ -206,7 +206,7 @@ int get_sql_record_max(JCR *jcr, B_DB *mdb)
 
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       if ((row = sql_fetch_row(mdb)) == NULL) {
-         Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
+	 Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
 	 stat = -1;
       } else {
 	 stat = atoi(row[0]);
@@ -240,7 +240,7 @@ void _db_lock(const char *file, int line, B_DB *mdb)
       e_msg(file, line, M_ABORT, 0, "rwl_writelock failure. ERR=%s\n",
 	   be.strerror(errstat));
    }
-}    
+}
 
 /*
  * Unlock the database. This can be called multiple times by the
@@ -255,11 +255,11 @@ void _db_unlock(const char *file, int line, B_DB *mdb)
       e_msg(file, line, M_ABORT, 0, "rwl_writeunlock failure. ERR=%s\n",
 	   be.strerror(errstat));
    }
-}    
+}
 
 /*
  * Start a transaction. This groups inserts and makes things
- *  much more efficient. Usually started when inserting 
+ *  much more efficient. Usually started when inserting
  *  file attributes.
  */
 void db_start_transaction(JCR *jcr, B_DB *mdb)
@@ -273,7 +273,7 @@ void db_start_transaction(JCR *jcr, B_DB *mdb)
    if (mdb->transaction && mdb->changes > 10000) {
       db_end_transaction(jcr, mdb);
    }
-   if (!mdb->transaction) {   
+   if (!mdb->transaction) {
       my_sqlite_query(mdb, "BEGIN");  /* begin transaction */
       Dmsg0(400, "Start SQLite transaction\n");
       mdb->transaction = 1;
@@ -283,7 +283,7 @@ void db_start_transaction(JCR *jcr, B_DB *mdb)
 
 /*
  * This is turned off because transactions break
- * if multiple simultaneous jobs are run.    
+ * if multiple simultaneous jobs are run.
  */
 #ifdef HAVE_POSTGRESQL
    if (!mdb->allow_transactions) {
@@ -294,7 +294,7 @@ void db_start_transaction(JCR *jcr, B_DB *mdb)
    if (mdb->transaction && mdb->changes > 25000) {
       db_end_transaction(jcr, mdb);
    }
-   if (!mdb->transaction) {   
+   if (!mdb->transaction) {
       db_sql_query(mdb, "BEGIN", NULL, NULL);  /* begin transaction */
       Dmsg0(400, "Start PosgreSQL transaction\n");
       mdb->transaction = 1;
@@ -306,7 +306,7 @@ void db_start_transaction(JCR *jcr, B_DB *mdb)
 void db_end_transaction(JCR *jcr, B_DB *mdb)
 {
    /*
-    * This can be called during thread cleanup and 
+    * This can be called during thread cleanup and
     *	the db may already be closed.  So simply return.
     */
    if (!mdb) {
@@ -350,7 +350,7 @@ void split_path_and_file(JCR *jcr, B_DB *mdb, const char *fname)
 {
    const char *p, *f;
 
-   /* Find path without the filename.  
+   /* Find path without the filename.
     * I.e. everything after the last / is a "filename".
     * OK, maybe it is a directory name, but we treat it like
     * a filename. If we don't find a / then the whole name
@@ -368,7 +368,7 @@ void split_path_and_file(JCR *jcr, B_DB *mdb, const char *fname)
    }
 
    /* If filename doesn't exist (i.e. root directory), we
-    * simply create a blank name consisting of a single 
+    * simply create a blank name consisting of a single
     * space. This makes handling zero length filenames
     * easier.
     */
@@ -382,7 +382,7 @@ void split_path_and_file(JCR *jcr, B_DB *mdb, const char *fname)
       mdb->fnl = 0;
    }
 
-   mdb->pnl = f - fname;    
+   mdb->pnl = f - fname;
    if (mdb->pnl > 0) {
       mdb->path = check_pool_memory_size(mdb->path, mdb->pnl+1);
       memcpy(mdb->path, fname, mdb->pnl);
@@ -411,7 +411,7 @@ list_dashes(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx)
    for (i = 0; i < sql_num_fields(mdb); i++) {
       field = sql_fetch_field(mdb);
       for (j = 0; j < (int)field->max_length + 2; j++) {
-         send(ctx, "-");
+	 send(ctx, "-");
       }
       send(ctx, "+");
    }
@@ -419,8 +419,8 @@ list_dashes(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx)
 }
 
 /*
- * If full_list is set, we list vertically, otherwise, we 
- * list on one line horizontally.      
+ * If full_list is set, we list vertically, otherwise, we
+ * list on one line horizontally.
  */
 void
 list_result(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type type)
@@ -455,7 +455,7 @@ list_result(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type t
 	    col_len = field->max_length;
 	 }
 	 if (col_len < 4 && !IS_NOT_NULL(field->flags)) {
-            col_len = 4;                 /* 4 = length of the word "NULL" */
+	    col_len = 4;                 /* 4 = length of the word "NULL" */
 	 }
 	 field->max_length = col_len;	 /* reset column info */
       }
@@ -486,12 +486,12 @@ list_result(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type t
       for (i = 0; i < sql_num_fields(mdb); i++) {
 	 field = sql_fetch_field(mdb);
 	 if (row[i] == NULL) {
-            bsnprintf(buf, sizeof(buf), " %-*s |", (int)field->max_length, "NULL");
+	    bsnprintf(buf, sizeof(buf), " %-*s |", (int)field->max_length, "NULL");
 	 } else if (IS_NUM(field->type) && !jcr->gui && is_an_integer(row[i])) {
-            bsnprintf(buf, sizeof(buf), " %*s |", (int)field->max_length,       
+	    bsnprintf(buf, sizeof(buf), " %*s |", (int)field->max_length,
 		      add_commas(row[i], ewc));
 	 } else {
-            bsnprintf(buf, sizeof(buf), " %-*s |", (int)field->max_length, row[i]);
+	    bsnprintf(buf, sizeof(buf), " %-*s |", (int)field->max_length, row[i]);
 	 }
 	 send(ctx, buf);
       }
@@ -501,19 +501,19 @@ list_result(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type t
    return;
 
 vertical_list:
-   
+
    Dmsg1(800, "list_result starts vertical list at %d fields\n", sql_num_fields(mdb));
    while ((row = sql_fetch_row(mdb)) != NULL) {
       sql_field_seek(mdb, 0);
       for (i = 0; i < sql_num_fields(mdb); i++) {
 	 field = sql_fetch_field(mdb);
 	 if (row[i] == NULL) {
-            bsnprintf(buf, sizeof(buf), " %*s: %s\n", max_len, field->name, "NULL");
+	    bsnprintf(buf, sizeof(buf), " %*s: %s\n", max_len, field->name, "NULL");
 	 } else if (IS_NUM(field->type) && !jcr->gui && is_an_integer(row[i])) {
-            bsnprintf(buf, sizeof(buf), " %*s: %s\n", max_len, field->name, 
+	    bsnprintf(buf, sizeof(buf), " %*s: %s\n", max_len, field->name,
 		add_commas(row[i], ewc));
 	 } else {
-            bsnprintf(buf, sizeof(buf), " %*s: %s\n", max_len, field->name, row[i]);
+	    bsnprintf(buf, sizeof(buf), " %*s: %s\n", max_len, field->name, row[i]);
 	 }
 	 send(ctx, buf);
       }

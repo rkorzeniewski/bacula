@@ -51,7 +51,7 @@ struct UAContext {
    bool batch;                        /* set for non-interactive mode */
    uint32_t pint32_val;               /* positive integer */
    int32_t  int32_val;                /* positive/negative */
-};          
+};
 
 /* Context for insert_tree_handler() */
 struct TREE_CTX {

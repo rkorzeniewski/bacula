@@ -1,6 +1,6 @@
 /*
- *   edit.c  edit string to ascii, and ascii to internal 
- * 
+ *   edit.c  edit string to ascii, and ascii to internal
+ *
  *    Kern Sibbald, December MMII
  *
  *   Version $Id$
@@ -30,7 +30,7 @@
 #include <math.h>
 
 /* We assume ASCII input and don't worry about overflow */
-uint64_t str_to_uint64(char *str) 
+uint64_t str_to_uint64(char *str)
 {
    register char *p = str;
    register uint64_t value = 0;
@@ -51,7 +51,7 @@ uint64_t str_to_uint64(char *str)
    return value;
 }
 
-int64_t str_to_int64(char *str) 
+int64_t str_to_int64(char *str)
 {
    register char *p = str;
    register int64_t value;
@@ -84,7 +84,7 @@ int64_t str_to_int64(char *str)
  */
 char *edit_uint64_with_commas(uint64_t val, char *buf)
 {
-   /*  
+   /*
     * Replacement for sprintf(buf, "%" llu, val)
     */
    char mbuf[50];
@@ -94,7 +94,7 @@ char *edit_uint64_with_commas(uint64_t val, char *buf)
       mbuf[i--] = '0';
    } else {
       while (val != 0) {
-         mbuf[i--] = "0123456789"[val%10];
+	 mbuf[i--] = "0123456789"[val%10];
 	 val /= 10;
       }
    }
@@ -109,7 +109,7 @@ char *edit_uint64_with_commas(uint64_t val, char *buf)
  */
 char *edit_uint64(uint64_t val, char *buf)
 {
-   /*  
+   /*
     * Replacement for sprintf(buf, "%" llu, val)
     */
    char mbuf[50];
@@ -119,7 +119,7 @@ char *edit_uint64(uint64_t val, char *buf)
       mbuf[i--] = '0';
    } else {
       while (val != 0) {
-         mbuf[i--] = "0123456789"[val%10];
+	 mbuf[i--] = "0123456789"[val%10];
 	 val /= 10;
       }
    }
@@ -134,7 +134,7 @@ char *edit_uint64(uint64_t val, char *buf)
 static bool get_modifier(char *str, char *num, int num_len, char *mod, int mod_len)
 {
    int i, len, num_begin, num_end, mod_begin, mod_end;
-	 
+
    /*
     * Look for modifier by walking back looking for the first
     *	space or digit.
@@ -202,12 +202,12 @@ int duration_to_utime(char *str, utime_t *value)
    char num_str[50];
    /*
     * The "n" = mins and months appears before minutes so that m maps
-    *   to months. These "kludges" make it compatible with pre 1.31 
+    *   to months. These "kludges" make it compatible with pre 1.31
     *	Baculas.
     */
-   static const char *mod[] = {"n", "seconds", "months", "minutes", 
-                  "hours", "days", "weeks",   "quarters",   "years", NULL};
-   static const int32_t mult[] = {60,	1, 60*60*24*30, 60, 
+   static const char *mod[] = {"n", "seconds", "months", "minutes",
+		  "hours", "days", "weeks",   "quarters",   "years", NULL};
+   static const int32_t mult[] = {60,	1, 60*60*24*30, 60,
 		  60*60, 60*60*24, 60*60*24*7, 60*60*24*91, 60*60*24*365};
 
    while (*str) {
@@ -256,11 +256,11 @@ char *edit_utime(utime_t val, char *buf, int buf_len)
       times = (uint32_t)(val / mult[i]);
       if (times > 0) {
 	 val = val - (utime_t)times * mult[i];
-         bsnprintf(mybuf, sizeof(mybuf), "%d %s%s ", times, mod[i], times>1?"s":"");
+	 bsnprintf(mybuf, sizeof(mybuf), "%d %s%s ", times, mod[i], times>1?"s":"");
 	 bstrncat(buf, mybuf, buf_len);
       }
    }
-   if (val == 0 && strlen(buf) == 0) {	   
+   if (val == 0 && strlen(buf) == 0) {
       bstrncat(buf, "0 secs", buf_len);
    } else if (val != 0) {
       bsnprintf(mybuf, sizeof(mybuf), "%d sec%s", (uint32_t)val, val>1?"s":"");
@@ -340,7 +340,7 @@ bool is_a_number(const char *n)
 }
 
 /*
- * Check if the specified string is an integer	 
+ * Check if the specified string is an integer
  */
 bool is_an_integer(const char *n)
 {
@@ -355,7 +355,7 @@ bool is_an_integer(const char *n)
 /*
  * Check if Bacula Resoure Name is valid
  */
-/* 
+/*
  * Check if the Volume name has legal characters
  * If ua is non-NULL send the message
  */
@@ -372,20 +372,20 @@ bool is_name_valid(char *name, POOLMEM **msg)
 	 continue;
       }
       if (msg) {
-         Mmsg(msg, _("Illegal character \"%c\" in name.\n"), *p);
+	 Mmsg(msg, _("Illegal character \"%c\" in name.\n"), *p);
       }
       return false;
    }
    len = strlen(name);
    if (len >= MAX_NAME_LENGTH) {
       if (msg) {
-         Mmsg(msg, _("Name too long.\n"));
+	 Mmsg(msg, _("Name too long.\n"));
       }
       return false;
    }
    if (len == 0) {
       if (msg) {
-         Mmsg(msg,  _("Volume name must be at least one character long.\n"));
+	 Mmsg(msg,  _("Volume name must be at least one character long.\n"));
       }
       return false;
    }
@@ -396,7 +396,7 @@ bool is_name_valid(char *name, POOLMEM **msg)
 
 /*
  * Add commas to a string, which is presumably
- * a number.  
+ * a number.
  */
 char *add_commas(char *val, char *buf)
 {
@@ -420,7 +420,7 @@ char *add_commas(char *val, char *buf)
 	  *q-- = *p--;
       }
       *q-- = ',';
-   }   
+   }
    return buf;
 }
 
@@ -437,7 +437,7 @@ int main(int argc, char *argv[])
    for (int i=0; i<8; i++) {
       strcpy(buf, str[i]);
       if (!duration_to_utime(buf, &val)) {
-         printf("Error return from duration_to_utime for in=%s\n", str[i]);
+	 printf("Error return from duration_to_utime for in=%s\n", str[i]);
 	 continue;
       }
       edit_utime(val, outval);

@@ -1,7 +1,7 @@
 /*
  *
- *  Higher Level Device routines. 
- *  Knows about Bacula tape labels and such  
+ *  Higher Level Device routines.
+ *  Knows about Bacula tape labels and such
  *
  *  NOTE! In general, subroutines that have the word
  *        "device" in the name do locking.  Subroutines
@@ -10,22 +10,22 @@
  *	  yyy_dev(), all is OK, but if xxx_device()
  *	  calls yyy_device(), everything will hang.
  *	  Obviously, no zzz_dev() is allowed to call
- *	  a www_device() or everything falls apart. 
+ *	  a www_device() or everything falls apart.
  *
  * Concerning the routines lock_device() and block_device()
  *  see the end of this module for details.  In general,
  *  blocking a device leaves it in a state where all threads
- *  other than the current thread block when they attempt to 
+ *  other than the current thread block when they attempt to
  *  lock the device. They remain suspended (blocked) until the device
  *  is unblocked. So, a device is blocked during an operation
  *  that takes a long time (initialization, mounting a new
  *  volume, ...) locking a device is done for an operation
- *  that takes a short time such as writing data to the   
+ *  that takes a short time such as writing data to the
  *  device.
  *
  *
  *   Kern Sibbald, MM, MMI
- *			      
+ *
  *   Version $Id$
  */
 /*
@@ -64,11 +64,11 @@ extern int debug_level;
  * Here are a few things to know:
  *  dcr->VolCatInfo contains the info on the "current" tape for this job.
  *  dev->VolCatInfo contains the info on the tape in the drive.
- *    The tape in the drive could have changed several times since 
+ *    The tape in the drive could have changed several times since
  *    the last time the job used it (jcr->VolCatInfo).
  *  dcr->VolumeName is the name of the current/desired tape in the drive.
  *
- * We enter with device locked, and 
+ * We enter with device locked, and
  *     exit with device locked.
  *
  * Note, we are called only from one place in block.c
@@ -101,7 +101,7 @@ bool fixup_device_block_write_error(DCR *dcr)
    unlock_device(dev);
 
    bstrncpy(dev->VolCatInfo.VolCatStatus, "Full", sizeof(dev->VolCatInfo.VolCatStatus));
-   Dmsg2(100, "Call update_vol_info Stat=%s Vol=%s\n", 
+   Dmsg2(100, "Call update_vol_info Stat=%s Vol=%s\n",
       dev->VolCatInfo.VolCatStatus, dev->VolCatInfo.VolCatName);
    dev->VolCatInfo.VolCatFiles = dev->file;   /* set number of files */
    dev->VolCatInfo.VolCatJobs++;	      /* increment number of jobs */
@@ -119,7 +119,7 @@ bool fixup_device_block_write_error(DCR *dcr)
    dcr->block = label_blk;
 
    /* Inform User about end of medium */
-   Jmsg(jcr, M_INFO, 0, _("End of medium on Volume \"%s\" Bytes=%s Blocks=%s at %s.\n"), 
+   Jmsg(jcr, M_INFO, 0, _("End of medium on Volume \"%s\" Bytes=%s Blocks=%s at %s.\n"),
 	PrevVolName, edit_uint64_with_commas(dev->VolCatInfo.VolCatBytes, b1),
 	edit_uint64_with_commas(dev->VolCatInfo.VolCatBlocks, b2),
 	bstrftime(dt, sizeof(dt), time(NULL)));
@@ -136,7 +136,7 @@ bool fixup_device_block_write_error(DCR *dcr)
    Jmsg(jcr, M_INFO, 0, _("New volume \"%s\" mounted on device %s at %s.\n"),
       dcr->VolumeName, dev_name(dev), bstrftime(dt, sizeof(dt), time(NULL)));
 
-   /* 
+   /*
     * If this is a new tape, the label_blk will contain the
     *  label, so write it now. If this is a previously
     *  used tape, mount_next_write_volume() will return an
@@ -155,8 +155,8 @@ bool fixup_device_block_write_error(DCR *dcr)
    free_block(label_blk);
    dcr->block = block;
 
-   /* 
-    * Walk through all attached jcrs indicating the volume has changed	 
+   /*
+    * Walk through all attached jcrs indicating the volume has changed
     */
    Dmsg1(100, "Walk attached jcrs. Volume=%s\n", dev->VolCatInfo.VolCatName);
 // for (JCR *mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
@@ -228,7 +228,7 @@ void set_new_volume_parameters(DCR *dcr)
 void set_new_file_parameters(DCR *dcr)
 {
    DEVICE *dev = dcr->dev;
-    
+
    /* Set new start/end positions */
    if (dev_state(dev, ST_TAPE)) {
       dcr->StartBlock = dev->block_num;
@@ -247,15 +247,15 @@ void set_new_file_parameters(DCR *dcr)
 
 
 /*
- *   First Open of the device. Expect dev to already be initialized.  
+ *   First Open of the device. Expect dev to already be initialized.
  *
- *   This routine is used only when the Storage daemon starts 
+ *   This routine is used only when the Storage daemon starts
  *   and always_open is set, and in the stand-alone utility
  *   routines such as bextract.
  *
  *   Note, opening of a normal file is deferred to later so
  *    that we can get the filename; the device_name for
- *    a file is the directory only. 
+ *    a file is the directory only.
  *
  *   Returns: false on failure
  *	      true  on success
@@ -285,7 +285,7 @@ bool first_open_device(DEVICE *dev)
        }
       Dmsg0(129, "Opening device.\n");
       if (open_dev(dev, NULL, mode) < 0) {
-         Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), dev->errmsg);
+	 Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), dev->errmsg);
 	 unlock_device(dev);
 	 return false;
       }
@@ -296,8 +296,8 @@ bool first_open_device(DEVICE *dev)
    return true;
 }
 
-/* 
- * Make sure device is open, if not do so 
+/*
+ * Make sure device is open, if not do so
  */
 bool open_device(DCR *dcr)
 {
@@ -313,7 +313,7 @@ bool open_device(DCR *dcr)
        if (open_dev(dev, dcr->VolCatInfo.VolCatName, mode) < 0) {
 	  /* If polling, ignore the error */
 	  if (!dev->poll) {
-             Jmsg2(dcr->jcr, M_FATAL, 0, _("Unable to open device %s. ERR=%s\n"), 
+	     Jmsg2(dcr->jcr, M_FATAL, 0, _("Unable to open device %s. ERR=%s\n"),
 		dev_name(dev), strerror_dev(dev));
 	  }
 	  return false;
@@ -338,7 +338,7 @@ void dev_unlock(DEVICE *dev)
    }
 }
 
-/* 
+/*
  * When dev_blocked is set, all threads EXCEPT thread with id no_wait_id
  * must wait. The no_wait_id thread is out obtaining a new volume
  * and preparing the label.
@@ -353,7 +353,7 @@ void _lock_device(const char *file, int line, DEVICE *dev)
       while (dev->dev_blocked) {
 	 if ((stat = pthread_cond_wait(&dev->wait, &dev->mutex)) != 0) {
 	    V(dev->mutex);
-            Emsg1(M_ABORT, 0, _("pthread_cond_wait failure. ERR=%s\n"),
+	    Emsg1(M_ABORT, 0, _("pthread_cond_wait failure. ERR=%s\n"),
 	       strerror(stat));
 	 }
       }
@@ -381,7 +381,7 @@ const char *edit_blocked_reason(DEVICE *dev)
    case BST_UNMOUNTED:
       return "user unmounted device";
    case BST_WAITING_FOR_SYSOP:
-      return "waiting for operator action";      
+      return "waiting for operator action";
    case BST_DOING_ACQUIRE:
       return "opening, validating, or positioning tape";
    case BST_WRITING_LABEL:
@@ -395,13 +395,13 @@ const char *edit_blocked_reason(DEVICE *dev)
    }
 }
 
-void _unlock_device(const char *file, int line, DEVICE *dev) 
+void _unlock_device(const char *file, int line, DEVICE *dev)
 {
    Dmsg2(500, "unlock from %s:%d\n", file, line);
    V(dev->mutex);
 }
 
-/* 
+/*
  * Block all other threads from using the device
  *  Device must already be locked.  After this call,
  *  the device is blocked to any thread calling lock_device(),
@@ -451,11 +451,11 @@ void _steal_device_lock(const char *file, int line, DEVICE *dev, bsteal_lock_t *
 
 /*
  * Enter with device blocked by us but not locked
- * Exit with device locked, and blocked by previous owner 
+ * Exit with device locked, and blocked by previous owner
  */
-void _give_back_device_lock(const char *file, int line, DEVICE *dev, bsteal_lock_t *hold)	      
+void _give_back_device_lock(const char *file, int line, DEVICE *dev, bsteal_lock_t *hold)
 {
-   Dmsg4(500, "return lock. old=%d new=%d from %s:%d\n", 
+   Dmsg4(500, "return lock. old=%d new=%d from %s:%d\n",
       dev->dev_blocked, hold->dev_blocked, file, line);
    P(dev->mutex);
    dev->dev_blocked = hold->dev_blocked;

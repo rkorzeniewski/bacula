@@ -58,25 +58,25 @@ static int quitcmd(UAContext *ua, TREE_CTX *tree);
 static int donecmd(UAContext *ua, TREE_CTX *tree);
 
 
-struct cmdstruct { const char *key; int (*func)(UAContext *ua, TREE_CTX *tree); const char *help; }; 
+struct cmdstruct { const char *key; int (*func)(UAContext *ua, TREE_CTX *tree); const char *help; };
 static struct cmdstruct commands[] = {
  { N_("cd"),         cdcmd,        _("change current directory")},
  { N_("count"),      countcmd,     _("count marked files in and below the cd")},
- { N_("dir"),        dircmd,       _("list current directory")},    
+ { N_("dir"),        dircmd,       _("list current directory")},
  { N_("done"),       donecmd,      _("leave file selection mode")},
  { N_("estimate"),   estimatecmd,  _("estimate restore size")},
  { N_("exit"),       donecmd,      _("exit = done")},
  { N_("find"),       findcmd,      _("find files -- wildcards allowed")},
  { N_("help"),       helpcmd,      _("print help")},
- { N_("ls"),         lscmd,        _("list current directory -- wildcards allowed")},    
- { N_("lsmark"),     lsmarkcmd,    _("list the marked files in and below the cd")},    
+ { N_("ls"),         lscmd,        _("list current directory -- wildcards allowed")},
+ { N_("lsmark"),     lsmarkcmd,    _("list the marked files in and below the cd")},
  { N_("mark"),       markcmd,      _("mark dir/file to be restored -- recursively in dirs")},
  { N_("markdir"),    markdircmd,   _("mark directory name to be restored (no files)")},
  { N_("pwd"),        pwdcmd,       _("print current working directory")},
  { N_("unmark"),     unmarkcmd,    _("unmark dir/file to be restored -- recursively in dir")},
  { N_("unmarkdir"),  unmarkdircmd, _("unmark directory name only -- no recursion")},
  { N_("quit"),       quitcmd,      _("quit")},
- { N_("?"),          helpcmd,      _("print help")},    
+ { N_("?"),          helpcmd,      _("print help")},
 	     };
 #define comsize (sizeof(commands)/sizeof(struct cmdstruct))
 
@@ -94,7 +94,7 @@ bool user_select_files_from_tree(TREE_CTX *tree)
    UAContext *ua = new_ua_context(tree->ua->jcr);
    ua->UA_sock = tree->ua->UA_sock;   /* patch in UA socket */
 
-   bsendmsg(tree->ua, _( 
+   bsendmsg(tree->ua, _(
       "\nYou are now entering file selection mode where you add (mark) and\n"
       "remove (unmark) files to be restored. No files are initially added, unless\n"
       "you used the \"all\" keyword on the command line.\n"
@@ -106,7 +106,7 @@ bool user_select_files_from_tree(TREE_CTX *tree)
    tree->node = (TREE_NODE *)tree->root;
    tree_getpath(tree->node, cwd, sizeof(cwd));
    bsendmsg(tree->ua, _("cwd is: %s\n"), cwd);
-   for ( ;; ) {       
+   for ( ;; ) {
       int found, len, i;
       if (!get_cmd(ua, "$ ")) {
 	 break;
@@ -126,7 +126,7 @@ bool user_select_files_from_tree(TREE_CTX *tree)
 	    break;
 	 }
       if (!found) {
-         bsendmsg(tree->ua, _("Illegal command. Enter \"done\" to exit.\n"));
+	 bsendmsg(tree->ua, _("Illegal command. Enter \"done\" to exit.\n"));
 	 continue;
       }
       if (!stat) {
@@ -208,7 +208,7 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
    if (node->inserted) {
       tree->FileCount++;
       if (tree->DeltaCount > 0 && (tree->FileCount-tree->LastCount) > tree->DeltaCount) {
-         bsendmsg(tree->ua, "+");
+	 bsendmsg(tree->ua, "+");
 	 tree->LastCount = tree->FileCount;
       }
    }
@@ -219,7 +219,7 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
 
 /*
  * Set extract to value passed. We recursively walk
- *  down the tree setting all children if the 
+ *  down the tree setting all children if the
  *  node is a directory.
  */
 static int set_extract(UAContext *ua, TREE_NODE *node, TREE_CTX *tree, bool extract)
@@ -287,7 +287,7 @@ static int set_extract(UAContext *ua, TREE_NODE *node, TREE_CTX *tree, bool extr
 }
 
 /*
- * Recursively mark the current directory to be restored as 
+ * Recursively mark the current directory to be restored as
  *  well as all directories and files below it.
  */
 static int markcmd(UAContext *ua, TREE_CTX *tree)
@@ -310,8 +310,8 @@ static int markcmd(UAContext *ua, TREE_CTX *tree)
    if (count == 0) {
       bsendmsg(ua, _("No files marked.\n"));
    } else {
-      bsendmsg(ua, _("%s file%s marked.\n"),        
-               edit_uint64_with_commas(count, ec1), count==0?"":"s");
+      bsendmsg(ua, _("%s file%s marked.\n"),
+	       edit_uint64_with_commas(count, ec1), count==0?"":"s");
    }
    return 1;
 }
@@ -339,8 +339,8 @@ static int markdircmd(UAContext *ua, TREE_CTX *tree)
    if (count == 0) {
       bsendmsg(ua, _("No directories marked.\n"));
    } else {
-      bsendmsg(ua, _("%s director%s marked.\n"), 
-               edit_uint64_with_commas(count, ec1), count==1?"y":"ies");
+      bsendmsg(ua, _("%s director%s marked.\n"),
+	       edit_uint64_with_commas(count, ec1), count==1?"y":"ies");
    }
    return 1;
 }
@@ -360,8 +360,8 @@ static int countcmd(UAContext *ua, TREE_CTX *tree)
 	 }
       }
    }
-   bsendmsg(ua, "%s total files/dirs. %s marked to be restored.\n", 
-	    edit_uint64_with_commas(total, ec1), 
+   bsendmsg(ua, "%s total files/dirs. %s marked to be restored.\n",
+	    edit_uint64_with_commas(total, ec1),
 	    edit_uint64_with_commas(num_extract, ec2));
    return 1;
 }
@@ -374,20 +374,20 @@ static int findcmd(UAContext *ua, TREE_CTX *tree)
       bsendmsg(ua, _("No file specification given.\n"));
       return 0;
    }
-   
+
    for (int i=1; i < ua->argc; i++) {
       for (TREE_NODE *node=first_tree_node(tree->root); node; node=next_tree_node(node)) {
 	 if (fnmatch(ua->argk[i], node->fname, 0) == 0) {
 	    const char *tag;
 	    tree_getpath(node, cwd, sizeof(cwd));
 	    if (node->extract) {
-               tag = "*";
+	       tag = "*";
 	    } else if (node->extract_dir) {
-               tag = "+";
+	       tag = "+";
 	    } else {
-               tag = "";
+	       tag = "";
 	    }
-            bsendmsg(ua, "%s%s\n", tag, cwd);
+	    bsendmsg(ua, "%s%s\n", tag, cwd);
 	 }
       }
    }
@@ -400,20 +400,20 @@ static int lscmd(UAContext *ua, TREE_CTX *tree)
 {
    TREE_NODE *node;
 
-   if (!tree_node_has_child(tree->node)) {     
+   if (!tree_node_has_child(tree->node)) {
       return 1;
    }
    foreach_child(node, tree->node) {
       if (ua->argc == 1 || fnmatch(ua->argk[1], node->fname, 0) == 0) {
 	 const char *tag;
 	 if (node->extract) {
-            tag = "*";
+	    tag = "*";
 	 } else if (node->extract_dir) {
-            tag = "+";
+	    tag = "+";
 	 } else {
-            tag = "";
+	    tag = "";
 	 }
-         bsendmsg(ua, "%s%s%s\n", tag, node->fname, tree_node_has_child(node)?"/":"");
+	 bsendmsg(ua, "%s%s%s\n", tag, node->fname, tree_node_has_child(node)?"/":"");
       }
    }
    return 1;
@@ -422,10 +422,10 @@ static int lscmd(UAContext *ua, TREE_CTX *tree)
 /*
  * Ls command that lists only the marked files
  */
-static void rlsmark(UAContext *ua, TREE_NODE *tnode) 
+static void rlsmark(UAContext *ua, TREE_NODE *tnode)
 {
    TREE_NODE *node;
-   if (!tree_node_has_child(tnode)) {	  
+   if (!tree_node_has_child(tnode)) {
       return;
    }
    foreach_child(node, tnode) {
@@ -433,13 +433,13 @@ static void rlsmark(UAContext *ua, TREE_NODE *tnode)
 	  (node->extract || node->extract_dir)) {
 	 const char *tag;
 	 if (node->extract) {
-            tag = "*";
+	    tag = "*";
 	 } else if (node->extract_dir) {
-            tag = "+";
+	    tag = "+";
 	 } else {
-            tag = "";
+	    tag = "";
 	 }
-         bsendmsg(ua, "%s%s%s\n", tag, node->fname, tree_node_has_child(node)?"/":"");
+	 bsendmsg(ua, "%s%s%s\n", tag, node->fname, tree_node_has_child(node)?"/":"");
 	 if (tree_node_has_child(node)) {
 	    rlsmark(ua, node);
 	 }
@@ -498,7 +498,7 @@ static int dircmd(UAContext *ua, TREE_CTX *tree)
    char buf[1100];
    char cwd[1100], *pcwd;
 
-   if (!tree_node_has_child(tree->node)) {     
+   if (!tree_node_has_child(tree->node)) {
       bsendmsg(ua, "Node %s has no children.\n", tree->node->fname);
       return 1;
    }
@@ -507,11 +507,11 @@ static int dircmd(UAContext *ua, TREE_CTX *tree)
       const char *tag;
       if (ua->argc == 1 || fnmatch(ua->argk[1], node->fname, 0) == 0) {
 	 if (node->extract) {
-            tag = "*";
+	    tag = "*";
 	 } else if (node->extract_dir) {
-            tag = "+";
+	    tag = "+";
 	 } else {
-            tag = " ";
+	    tag = " ";
 	 }
 	 tree_getpath(node, cwd, sizeof(cwd));
 	 fdbr.FileId = 0;
@@ -541,7 +541,7 @@ static int dircmd(UAContext *ua, TREE_CTX *tree)
 	    memset(&statp, 0, sizeof(statp));
 	 }
 	 ls_output(buf, cwd, tag, &statp);
-         bsendmsg(ua, "%s\n", buf);
+	 bsendmsg(ua, "%s\n", buf);
       }
    }
    return 1;
@@ -580,14 +580,14 @@ static int estimatecmd(UAContext *ua, TREE_CTX *tree)
 	 }
       }
    }
-   bsendmsg(ua, "%d total files; %d marked to be restored; %s bytes.\n", 
+   bsendmsg(ua, "%d total files; %d marked to be restored; %s bytes.\n",
 	    total, num_extract, edit_uint64_with_commas(total_bytes, ec1));
    return 1;
 }
 
 
 
-static int helpcmd(UAContext *ua, TREE_CTX *tree) 
+static int helpcmd(UAContext *ua, TREE_CTX *tree)
 {
    unsigned int i;
 
@@ -605,7 +605,7 @@ static int helpcmd(UAContext *ua, TREE_CTX *tree)
  *   we assume it is a Win32 absolute cd rather than relative and
  *   try a second time with /x: ...  Win32 kludge.
  */
-static int cdcmd(UAContext *ua, TREE_CTX *tree) 
+static int cdcmd(UAContext *ua, TREE_CTX *tree)
 {
    TREE_NODE *node;
    char cwd[2000];
@@ -617,12 +617,12 @@ static int cdcmd(UAContext *ua, TREE_CTX *tree)
    if (!node) {
       /* Try once more if Win32 drive -- make absolute */
       if (ua->argk[1][1] == ':') {  /* win32 drive */
-         bstrncpy(cwd, "/", sizeof(cwd));
+	 bstrncpy(cwd, "/", sizeof(cwd));
 	 bstrncat(cwd, ua->argk[1], sizeof(cwd));
 	 node = tree_cwd(cwd, tree->root, tree->node);
       }
       if (!node) {
-         bsendmsg(ua, _("Invalid path given.\n"));
+	 bsendmsg(ua, _("Invalid path given.\n"));
       } else {
 	 tree->node = node;
       }
@@ -634,7 +634,7 @@ static int cdcmd(UAContext *ua, TREE_CTX *tree)
    return 1;
 }
 
-static int pwdcmd(UAContext *ua, TREE_CTX *tree) 
+static int pwdcmd(UAContext *ua, TREE_CTX *tree)
 {
    char cwd[2000];
    tree_getpath(tree->node, cwd, sizeof(cwd));
@@ -648,7 +648,7 @@ static int unmarkcmd(UAContext *ua, TREE_CTX *tree)
    TREE_NODE *node;
    int count = 0;
 
-   if (ua->argc < 2 || !tree_node_has_child(tree->node)) {     
+   if (ua->argc < 2 || !tree_node_has_child(tree->node)) {
       bsendmsg(ua, _("No files unmarked.\n"));
       return 1;
    }
@@ -697,12 +697,12 @@ static int unmarkdircmd(UAContext *ua, TREE_CTX *tree)
 }
 
 
-static int donecmd(UAContext *ua, TREE_CTX *tree) 
+static int donecmd(UAContext *ua, TREE_CTX *tree)
 {
    return 0;
 }
 
-static int quitcmd(UAContext *ua, TREE_CTX *tree) 
+static int quitcmd(UAContext *ua, TREE_CTX *tree)
 {
    ua->quit = true;
    return 0;

@@ -25,7 +25,7 @@
 
    You should have received a copy of the GNU General Public
    License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, 
+   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
    MA 02111-1307, USA.
  */
 
@@ -34,7 +34,7 @@
 #include "jcr.h"
 
 void senditf(const char *fmt, ...);
-void sendit(const char *buf); 
+void sendit(const char *buf);
 
 /* Commands sent to Director */
 static char DIRhello[]    = "Hello %s calling\n";
@@ -66,16 +66,16 @@ int authenticate_director(JCR *jcr, MONITOR *mon, DIRRES *director)
    bstrncpy(bashed_name, mon->hdr.name, sizeof(bashed_name));
    bash_spaces(bashed_name);
    password = mon->password;
-   
+
    /* Timeout Hello after 5 mins */
    btimer_t *tid = start_bsock_timer(dir, 60 * 5);
    bnet_fsend(dir, DIRhello, bashed_name);
 
-   if (!cram_md5_get_auth(dir, password, ssl_need) || 
+   if (!cram_md5_get_auth(dir, password, ssl_need) ||
        !cram_md5_auth(dir, password, ssl_need)) {
       stop_bsock_timer(tid);
       Jmsg0(jcr, M_FATAL, 0, _("Director authorization problem.\n"
-            "Most likely the passwords do not agree.\n"     
+	    "Most likely the passwords do not agree.\n"
        "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"));
       return 0;
    }
@@ -107,7 +107,7 @@ int authenticate_storage_daemon(JCR *jcr, MONITOR *monitor, STORE* store)
    char dirname[MAX_NAME_LENGTH];
    int ssl_need = BNET_SSL_NONE;
 
-   /* 
+   /*
     * Send my name to the Storage daemon then do authentication
     */
    bstrncpy(dirname, monitor->hdr.name, sizeof(dirname));
@@ -119,10 +119,10 @@ int authenticate_storage_daemon(JCR *jcr, MONITOR *monitor, STORE* store)
       Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to Storage daemon. ERR=%s\n"), bnet_strerror(sd));
       return 0;
    }
-   if (!cram_md5_get_auth(sd, store->password, ssl_need) || 
+   if (!cram_md5_get_auth(sd, store->password, ssl_need) ||
        !cram_md5_auth(sd, store->password, ssl_need)) {
       stop_bsock_timer(tid);
-      Jmsg0(jcr, M_FATAL, 0, _("Director and Storage daemon passwords or names not the same.\n"   
+      Jmsg0(jcr, M_FATAL, 0, _("Director and Storage daemon passwords or names not the same.\n"
        "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"));
       return 0;
    }
@@ -151,7 +151,7 @@ int authenticate_file_daemon(JCR *jcr, MONITOR *monitor, CLIENT* client)
    char dirname[MAX_NAME_LENGTH];
    int ssl_need = BNET_SSL_NONE;
 
-   /* 
+   /*
     * Send my name to the File daemon then do authentication
     */
    bstrncpy(dirname, monitor->hdr.name, sizeof(dirname));
@@ -163,10 +163,10 @@ int authenticate_file_daemon(JCR *jcr, MONITOR *monitor, CLIENT* client)
       Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to File daemon. ERR=%s\n"), bnet_strerror(fd));
       return 0;
    }
-   if (!cram_md5_get_auth(fd, client->password, ssl_need) || 
+   if (!cram_md5_get_auth(fd, client->password, ssl_need) ||
        !cram_md5_auth(fd, client->password, ssl_need)) {
       stop_bsock_timer(tid);
-      Jmsg(jcr, M_FATAL, 0, _("Director and File daemon passwords or names not the same.\n"   
+      Jmsg(jcr, M_FATAL, 0, _("Director and File daemon passwords or names not the same.\n"
        "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"));
       return 0;
    }

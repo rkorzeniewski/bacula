@@ -36,7 +36,7 @@ G_BEGIN_DECLS
 #define EGG_IS_STATUS_ICON(o)        (G_TYPE_CHECK_INSTANCE_TYPE ((o), EGG_TYPE_STATUS_ICON))
 #define EGG_IS_STATUS_ICON_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k), EGG_TYPE_STATUS_ICON))
 #define EGG_STATUS_ICON_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o), EGG_TYPE_STATUS_ICON, EggStatusIconClass))
-	
+
 typedef struct _EggStatusIcon	     EggStatusIcon;
 typedef struct _EggStatusIconClass   EggStatusIconClass;
 typedef struct _EggStatusIconPrivate EggStatusIconPrivate;

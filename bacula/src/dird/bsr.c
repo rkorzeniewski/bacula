@@ -2,7 +2,7 @@
  *
  *   Bacula Director -- Bootstrap Record routines.
  *
- *	BSR (bootstrap record) handling routines split from 
+ *	BSR (bootstrap record) handling routines split from
  *	  ua_restore.c July MMIII
  *
  *     Kern Sibbald, July MMII
@@ -39,9 +39,9 @@ void print_bsr(UAContext *ua, RBSR *bsr);
 
 
 /*
- * Create new FileIndex entry for BSR 
+ * Create new FileIndex entry for BSR
  */
-RBSR_FINDEX *new_findex() 
+RBSR_FINDEX *new_findex()
 {
    RBSR_FINDEX *fi = (RBSR_FINDEX *)bmalloc(sizeof(RBSR_FINDEX));
    memset(fi, 0, sizeof(RBSR_FINDEX));
@@ -61,14 +61,14 @@ static void free_findex(RBSR_FINDEX *fi)
  * Our data structures were not designed completely
  *  correctly, so the file indexes cover the full
  *  range regardless of volume. The FirstIndex and LastIndex
- *  passed in here are for the current volume, so when 
+ *  passed in here are for the current volume, so when
  *  writing out the fi, constrain them to those values.
  *
  * We are called here once for each JobMedia record
  *  for each Volume.
  */
-static uint32_t write_findex(UAContext *ua, RBSR_FINDEX *fi, 
-	      int32_t FirstIndex, int32_t LastIndex, FILE *fd) 
+static uint32_t write_findex(UAContext *ua, RBSR_FINDEX *fi,
+	      int32_t FirstIndex, int32_t LastIndex, FILE *fd)
 {
    uint32_t count = 0;
    for ( ; fi; fi=fi->next) {
@@ -79,10 +79,10 @@ static uint32_t write_findex(UAContext *ua, RBSR_FINDEX *fi,
 	 findex = fi->findex < FirstIndex ? FirstIndex : fi->findex;
 	 findex2 = fi->findex2 > LastIndex ? LastIndex : fi->findex2;
 	 if (findex == findex2) {
-            fprintf(fd, "FileIndex=%d\n", findex);
+	    fprintf(fd, "FileIndex=%d\n", findex);
 	    count++;
 	 } else {
-            fprintf(fd, "FileIndex=%d-%d\n", findex, findex2);
+	    fprintf(fd, "FileIndex=%d-%d\n", findex, findex2);
 	    count += findex2 - findex + 1;
 	 }
       }
@@ -94,8 +94,8 @@ static uint32_t write_findex(UAContext *ua, RBSR_FINDEX *fi,
  * Find out if Volume defined with FirstIndex and LastIndex
  *   falls within the range of selected files in the bsr.
  */
-static bool is_volume_selected(RBSR_FINDEX *fi, 
-	      int32_t FirstIndex, int32_t LastIndex) 
+static bool is_volume_selected(RBSR_FINDEX *fi,
+	      int32_t FirstIndex, int32_t LastIndex)
 {
    if (fi) {
       if ((fi->findex >= FirstIndex && fi->findex <= LastIndex) ||
@@ -115,10 +115,10 @@ static void print_findex(UAContext *ua, RBSR_FINDEX *fi)
    bsendmsg(ua, "fi=0x%lx\n", fi);
    for ( ; fi; fi=fi->next) {
       if (fi->findex == fi->findex2) {
-         bsendmsg(ua, "FileIndex=%d\n", fi->findex);
+	 bsendmsg(ua, "FileIndex=%d\n", fi->findex);
 //       Dmsg1(100, "FileIndex=%d\n", fi->findex);
       } else {
-         bsendmsg(ua, "FileIndex=%d-%d\n", fi->findex, fi->findex2);
+	 bsendmsg(ua, "FileIndex=%d-%d\n", fi->findex, fi->findex2);
 //       Dmsg2(100, "FileIndex=%d-%d\n", fi->findex, fi->findex2);
       }
    }
@@ -156,14 +156,14 @@ int complete_bsr(UAContext *ua, RBSR *bsr)
       memset(&jr, 0, sizeof(jr));
       jr.JobId = bsr->JobId;
       if (!db_get_job_record(ua->jcr, ua->db, &jr)) {
-         bsendmsg(ua, _("Unable to get Job record. ERR=%s\n"), db_strerror(ua->db));
+	 bsendmsg(ua, _("Unable to get Job record. ERR=%s\n"), db_strerror(ua->db));
 	 return 0;
       }
       bsr->VolSessionId = jr.VolSessionId;
       bsr->VolSessionTime = jr.VolSessionTime;
-      if ((bsr->VolCount=db_get_job_volume_parameters(ua->jcr, ua->db, bsr->JobId, 
+      if ((bsr->VolCount=db_get_job_volume_parameters(ua->jcr, ua->db, bsr->JobId,
 	   &(bsr->VolParams))) == 0) {
-         bsendmsg(ua, _("Unable to get Job Volume Parameters. ERR=%s\n"), db_strerror(ua->db));
+	 bsendmsg(ua, _("Unable to get Job Volume Parameters. ERR=%s\n"), db_strerror(ua->db));
 	 if (bsr->VolParams) {
 	    free(bsr->VolParams);
 	    bsr->VolParams = NULL;
@@ -189,7 +189,7 @@ uint32_t write_bsr_file(UAContext *ua, RBSR *bsr)
    fd = fopen(fname, "w+");
    if (!fd) {
       berrno be;
-      bsendmsg(ua, _("Unable to create bootstrap file %s. ERR=%s\n"), 
+      bsendmsg(ua, _("Unable to create bootstrap file %s. ERR=%s\n"),
 	 fname, be.strerror());
       goto bail_out;
    }
@@ -237,7 +237,7 @@ bail_out:
 static uint32_t write_bsr(UAContext *ua, RBSR *bsr, FILE *fd)
 {
    uint32_t count = 0;
-   uint32_t total_count = 0; 
+   uint32_t total_count = 0;
    uint32_t LastIndex = 0;
    bool first = true;
    if (bsr) {
@@ -251,19 +251,19 @@ static uint32_t write_bsr(UAContext *ua, RBSR *bsr, FILE *fd)
 	    bsr->VolParams[i].VolumeName[0] = 0;  /* zap VolumeName */
 	    continue;
 	 }
-         fprintf(fd, "Volume=\"%s\"\n", bsr->VolParams[i].VolumeName);
-         fprintf(fd, "VolSessionId=%u\n", bsr->VolSessionId);
-         fprintf(fd, "VolSessionTime=%u\n", bsr->VolSessionTime);
+	 fprintf(fd, "Volume=\"%s\"\n", bsr->VolParams[i].VolumeName);
+	 fprintf(fd, "VolSessionId=%u\n", bsr->VolSessionId);
+	 fprintf(fd, "VolSessionTime=%u\n", bsr->VolSessionTime);
 	 if (bsr->VolParams[i].StartFile == bsr->VolParams[i].EndFile) {
-            fprintf(fd, "VolFile=%u\n", bsr->VolParams[i].StartFile);
+	    fprintf(fd, "VolFile=%u\n", bsr->VolParams[i].StartFile);
 	 } else {
-            fprintf(fd, "VolFile=%u-%u\n", bsr->VolParams[i].StartFile, 
+	    fprintf(fd, "VolFile=%u-%u\n", bsr->VolParams[i].StartFile,
 		    bsr->VolParams[i].EndFile);
 	 }
 	 if (bsr->VolParams[i].StartBlock == bsr->VolParams[i].EndBlock) {
-            fprintf(fd, "VolFile=%u\n", bsr->VolParams[i].StartBlock);
+	    fprintf(fd, "VolFile=%u\n", bsr->VolParams[i].StartBlock);
 	 } else {
-            fprintf(fd, "VolBlock=%u-%u\n", bsr->VolParams[i].StartBlock,
+	    fprintf(fd, "VolBlock=%u-%u\n", bsr->VolParams[i].StartBlock,
 		    bsr->VolParams[i].EndBlock);
 	 }
 //       Dmsg2(100, "bsr VolParam FI=%u LI=%u\n",
@@ -272,7 +272,7 @@ static uint32_t write_bsr(UAContext *ua, RBSR *bsr, FILE *fd)
 	 count = write_findex(ua, bsr->fi, bsr->VolParams[i].FirstIndex,
 			      bsr->VolParams[i].LastIndex, fd);
 	 if (count) {
-            fprintf(fd, "Count=%u\n", count);
+	    fprintf(fd, "Count=%u\n", count);
 	 }
 	 total_count += count;
 	 /* If the same file is present on two tapes or in two files
@@ -294,12 +294,12 @@ void print_bsr(UAContext *ua, RBSR *bsr)
 {
    if (bsr) {
       for (int i=0; i < bsr->VolCount; i++) {
-         bsendmsg(ua, "Volume=\"%s\"\n", bsr->VolParams[i].VolumeName);
-         bsendmsg(ua, "VolSessionId=%u\n", bsr->VolSessionId);
-         bsendmsg(ua, "VolSessionTime=%u\n", bsr->VolSessionTime);
-         bsendmsg(ua, "VolFile=%u-%u\n", bsr->VolParams[i].StartFile, 
+	 bsendmsg(ua, "Volume=\"%s\"\n", bsr->VolParams[i].VolumeName);
+	 bsendmsg(ua, "VolSessionId=%u\n", bsr->VolSessionId);
+	 bsendmsg(ua, "VolSessionTime=%u\n", bsr->VolSessionTime);
+	 bsendmsg(ua, "VolFile=%u-%u\n", bsr->VolParams[i].StartFile,
 		  bsr->VolParams[i].EndFile);
-         bsendmsg(ua, "VolBlock=%u-%u\n", bsr->VolParams[i].StartBlock,
+	 bsendmsg(ua, "VolBlock=%u-%u\n", bsr->VolParams[i].StartBlock,
 		  bsr->VolParams[i].EndBlock);
 	 print_findex(ua, bsr->fi);
       }
@@ -321,7 +321,7 @@ void add_findex(RBSR *bsr, uint32_t JobId, int32_t findex)
    if (findex == 0) {
       return;			      /* probably a dummy directory */
    }
-   
+
    if (bsr->fi == NULL) {	      /* if no FI add one */
       /* This is the first FileIndex item in the chain */
       bsr->fi = new_findex();
@@ -341,7 +341,7 @@ void add_findex(RBSR *bsr, uint32_t JobId, int32_t findex)
 
       if (!nbsr) {		      /* Must add new JobId */
 	 /* Add new JobId at end of chain */
-	 for (nbsr=bsr; nbsr->next; nbsr=nbsr->next) 
+	 for (nbsr=bsr; nbsr->next; nbsr=nbsr->next)
 	    {  }
 	 nbsr->next = new_bsr();
 	 nbsr->next->JobId = JobId;
@@ -352,7 +352,7 @@ void add_findex(RBSR *bsr, uint32_t JobId, int32_t findex)
       }
    }
 
-   /* 
+   /*
     * At this point, bsr points to bsr containing this JobId,
     *  and we are sure that there is at least one fi record.
     */
@@ -373,13 +373,13 @@ void add_findex(RBSR *bsr, uint32_t JobId, int32_t findex)
    /* Walk down fi chain and find where to insert insert new FileIndex */
    for ( ; fi; fi=fi->next) {
       if (findex == (fi->findex2 + 1)) {  /* extend up */
-	 RBSR_FINDEX *nfi;     
+	 RBSR_FINDEX *nfi;
 	 fi->findex2 = findex;
 	 /*
 	  * If the following record contains one higher, merge its
 	  *   file index by extending it up.
 	  */
-	 if (fi->next && ((findex+1) == fi->next->findex)) { 
+	 if (fi->next && ((findex+1) == fi->next->findex)) {
 	    nfi = fi->next;
 	    fi->findex2 = nfi->findex2;
 	    fi->next = nfi->next;

@@ -1,7 +1,7 @@
-/*     
+/*
  *   Match Bootstrap Records (used for restores) against
  *     Volume Records
- *  
+ *
  *     Kern Sibbald, June MMII
  *
  *   Version $Id$
@@ -65,7 +65,7 @@ void position_bsr_block(BSR *bsr, DEV_BLOCK *block)
 
 /*********************************************************************
  *
- *  Do fast block rejection based on bootstrap records. 
+ *  Do fast block rejection based on bootstrap records.
  *    use_fast_rejection will be set if we have VolSessionId and VolSessTime
  *    in each record. When BlockVer is >= 2, we have those in the block header
  *    so can do fast rejection.
@@ -142,7 +142,7 @@ int match_bsr(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, SESSION_LABEL *se
    if (bsr) {
       bsr->reposition = false;
       stat = match_all(bsr, rec, volrec, sessrec, true);
-      /* 
+      /*
        * Note, bsr->reposition is set by match_all when
        *  a bsr is done. We turn it off if a match was
        *  found or if we cannot use positioning
@@ -165,7 +165,7 @@ BSR *find_next_bsr(BSR *root_bsr, DEVICE *dev)
    BSR *bsr;
    BSR *found_bsr = NULL;
 
-   if (!root_bsr || !root_bsr->use_positioning || 
+   if (!root_bsr || !root_bsr->use_positioning ||
        !root_bsr->reposition || !dev_is_tape(dev)) {
       Dmsg2(100, "No nxt_bsr use_pos=%d repos=%d\n", root_bsr->use_positioning, root_bsr->reposition);
       return NULL;
@@ -241,12 +241,12 @@ static BSR *find_smallest_volfile(BSR *found_bsr, BSR *bsr)
    return return_bsr;
 }
 
-/* 
+/*
  * Called to tell the matcher that the end of
  *   the current file has been reached.
  *  The bsr argument is not used, but is included
  *    for consistency with the other match calls.
- * 
+ *
  * Returns: true if we should reposition
  *	  : false otherwise.
  */
@@ -269,13 +269,13 @@ bool match_set_eof(BSR *bsr, DEV_RECORD *rec)
    return false;
 }
 
-/* 
+/*
  * Match all the components of current record
  *   returns  1 on match
  *   returns  0 no match
  *   returns -1 no additional matches possible
  */
-static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, 
+static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
 		     SESSION_LABEL *sessrec, bool done)
 {
    if (bsr->done) {
@@ -328,7 +328,7 @@ static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
     */
    if (!match_jobid(bsr, bsr->JobId, sessrec, 1)) {
       goto no_match;
-       
+
    }
    if (!match_job(bsr, bsr->job, sessrec, 1)) {
       goto no_match;
@@ -357,7 +357,7 @@ no_match:
    return 0;
 }
 
-static int match_volume(BSR *bsr, BSR_VOLUME *volume, VOLUME_LABEL *volrec, bool done) 
+static int match_volume(BSR *bsr, BSR_VOLUME *volume, VOLUME_LABEL *volrec, bool done)
 {
    if (!volume) {
       return 0; 		      /* Volume must match */
@@ -467,7 +467,7 @@ static int match_volfile(BSR *bsr, BSR_VOLFILE *volfile, DEV_RECORD *rec, bool d
    if (volfile->done && done) {
       bsr->done = true;
       bsr->root->reposition = true;
-      Dmsg2(100, "bsr done from volfile rec=%d volefile=%d\n", 
+      Dmsg2(100, "bsr done from volfile rec=%d volefile=%d\n",
 	 rec->File, volfile->efile);
    }
    return 0;

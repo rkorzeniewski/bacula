@@ -39,8 +39,8 @@
 #include "dird.h"
 
 /* Commands sent to Storage daemon */
-static char jobcmd[]     = "JobId=%d job=%s job_name=%s client_name=%s \
-type=%d level=%d FileSet=%s NoAttr=%d SpoolAttr=%d FileSetMD5=%s SpoolData=%d";
+static char jobcmd[]     = "JobId=%d job=%s job_name=%s client_name=%s "
+"type=%d level=%d FileSet=%s NoAttr=%d SpoolAttr=%d FileSetMD5=%s SpoolData=%d";
 static char use_device[] = "use device=%s media_type=%s pool_name=%s pool_type=%s\n";
 
 /* Response from Storage daemon */
@@ -49,7 +49,7 @@ static char OK_device[]  = "3000 OK use device\n";
 
 /* Storage Daemon requests */
 static char Job_start[]  = "3010 Job %127s start\n";
-static char Job_end[]	 = 
+static char Job_end[]	 =
    "3099 Job %127s end JobStatus=%d JobFiles=%d JobBytes=%" lld "\n";
 static char Job_status[] = "3012 Job %127s jobstatus %d\n";
 
@@ -58,9 +58,9 @@ extern "C" void *msg_thread(void *arg);
 
 /*
  * Establish a message channel connection with the Storage daemon
- * and perform authentication. 
+ * and perform authentication.
  */
-bool connect_to_storage_daemon(JCR *jcr, int retry_interval,	
+bool connect_to_storage_daemon(JCR *jcr, int retry_interval,
 			      int max_retry_time, int verbose)
 {
    BSOCK *sd;
@@ -69,12 +69,12 @@ bool connect_to_storage_daemon(JCR *jcr, int retry_interval,
    store = (STORE *)jcr->storage[0]->first();
 
    /*
-    *  Open message channel with the Storage daemon   
+    *  Open message channel with the Storage daemon
     */
    Dmsg2(200, "bnet_connect to Storage daemon %s:%d\n", store->address,
       store->SDport);
    sd = bnet_connect(jcr, retry_interval, max_retry_time,
-          _("Storage daemon"), store->address, 
+	  _("Storage daemon"), store->address,
 	  NULL, store->SDport, verbose);
    if (sd == NULL) {
       return false;
@@ -110,8 +110,8 @@ int start_storage_daemon_job(JCR *jcr)
    if (jcr->fileset->MD5[0] == 0) {
       strcpy(jcr->fileset->MD5, "**Dummy**");
    }
-   bnet_fsend(sd, jobcmd, jcr->JobId, jcr->Job, jcr->job->hdr.name, 
-	      jcr->client->hdr.name, jcr->JobType, jcr->JobLevel, 
+   bnet_fsend(sd, jobcmd, jcr->JobId, jcr->Job, jcr->job->hdr.name,
+	      jcr->client->hdr.name, jcr->JobType, jcr->JobLevel,
 	      jcr->fileset->hdr.name, !jcr->pool->catalog_files,
 	      jcr->job->SpoolAttributes, jcr->fileset->MD5, jcr->spool_data);
    Dmsg1(200, "Jobcmd=%s\n", sd->msg);
@@ -120,14 +120,14 @@ int start_storage_daemon_job(JCR *jcr)
    unbash_spaces(jcr->fileset->hdr.name);
    if (bget_dirmsg(sd) > 0) {
        Dmsg1(110, "<stored: %s", sd->msg);
-       if (sscanf(sd->msg, OKjob, &jcr->VolSessionId, 
+       if (sscanf(sd->msg, OKjob, &jcr->VolSessionId,
 		  &jcr->VolSessionTime, &auth_key) != 3) {
-          Dmsg1(100, "BadJob=%s\n", sd->msg);
-          Jmsg(jcr, M_FATAL, 0, _("Storage daemon rejected Job command: %s\n"), sd->msg);
+	  Dmsg1(100, "BadJob=%s\n", sd->msg);
+	  Jmsg(jcr, M_FATAL, 0, _("Storage daemon rejected Job command: %s\n"), sd->msg);
 	  return 0;
        } else {
 	  jcr->sd_auth_key = bstrdup(auth_key);
-          Dmsg1(150, "sd_auth_key=%s\n", jcr->sd_auth_key);
+	  Dmsg1(150, "sd_auth_key=%s\n", jcr->sd_auth_key);
        }
    } else {
       Jmsg(jcr, M_FATAL, 0, _("<stored: bad response to Job command: %s\n"),
@@ -150,14 +150,14 @@ int start_storage_daemon_job(JCR *jcr)
 	 bash_spaces(media_type);
 	 bash_spaces(pool_type);
 	 bash_spaces(pool_name);
-	 bnet_fsend(sd, use_device, device_name.c_str(), 
+	 bnet_fsend(sd, use_device, device_name.c_str(),
 		    media_type.c_str(), pool_name.c_str(), pool_type.c_str());
-         Dmsg1(110, ">stored: %s", sd->msg);
-         status = response(jcr, sd, OK_device, "Use Device", NO_DISPLAY);
+	 Dmsg1(110, ">stored: %s", sd->msg);
+	 status = response(jcr, sd, OK_device, "Use Device", NO_DISPLAY);
 	 if (!status) {
 	    pm_strcpy(pool_type, sd->msg); /* save message */
-            Jmsg(jcr, M_FATAL, 0, _("\n"
-               "     Storage daemon didn't accept Device \"%s\" because:\n     %s"),
+	    Jmsg(jcr, M_FATAL, 0, _("\n"
+	       "     Storage daemon didn't accept Device \"%s\" because:\n     %s"),
 	       device_name.c_str(), pool_type.c_str()/* sd->msg */);
 	 }
       }
@@ -165,7 +165,7 @@ int start_storage_daemon_job(JCR *jcr)
    return status;
 }
 
-/* 
+/*
  * Start a thread to handle Storage daemon messages and
  *  Catalog requests.
  */
@@ -182,12 +182,12 @@ int start_storage_daemon_message_thread(JCR *jcr)
    Dmsg0(100, "Start SD msg_thread.\n");
    if ((status=pthread_create(&thid, NULL, msg_thread, (void *)jcr)) != 0) {
       Jmsg1(jcr, M_ABORT, 0, _("Cannot create message thread: %s\n"), strerror(status));
-   }	     
+   }
    Dmsg0(100, "SD msg_thread started.\n");
    /* Wait for thread to start */
    while (jcr->SD_msg_chan == 0) {
       bmicrosleep(0, 50);
-   }  
+   }
    return 1;
 }
 
@@ -239,13 +239,13 @@ void *msg_thread(void *arg)
 	 jcr->SDJobFiles = JobFiles;
 	 jcr->SDJobBytes = JobBytes;
 	 break;
-      }     
+      }
       if (sscanf(sd->msg, Job_status, &Job, &JobStatus) == 2) {
 	 jcr->SDJobStatus = JobStatus; /* current status */
 	 continue;
       }
    }
-   if (is_bnet_error(sd)) {		      
+   if (is_bnet_error(sd)) {
       jcr->SDJobStatus = JS_ErrorTerminated;
    }
    pthread_cleanup_pop(1);

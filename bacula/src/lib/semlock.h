@@ -2,7 +2,7 @@
  * Bacula Semaphore code. This code permits setting up
  *  a semaphore that lets through a specified number
  *  of callers simultaneously. Once the number of callers
- *  exceed the limit, they block.      
+ *  exceed the limit, they block.
  *
  *  Kern Sibbald, March MMIII
  *
@@ -31,7 +31,7 @@
 
  */
 
-#ifndef __SEMLOCK_H 
+#ifndef __SEMLOCK_H
 #define __SEMLOCK_H 1
 
 typedef struct s_semlock_tag {
@@ -49,7 +49,7 @@ typedef struct s_semlock_tag {
    {PTHREAD_MUTEX_INITIALIZER, PTHREAD_COND_INITIALIZER, \
     PTHREAD_COND_INITIALIZER, SEMLOCK_VALID, 0, 0, 0, 0}
 
-/* 
+/*
  * semaphore lock prototypes
  */
 extern int sem_init(semlock_t *sem, int max_active);

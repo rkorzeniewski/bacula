@@ -38,9 +38,9 @@
 static int save_file(FF_PKT *ff_pkt, void *pkt);
 static int send_data(int stream, FF_PKT *ff_pkt, BSOCK *sd, JCR *jcr, struct CHKSUM *chksum);
 
-/* 
+/*
  * Find all the requested files and send them
- * to the Storage daemon. 
+ * to the Storage daemon.
  *
  * Note, we normally carry on a one-way
  * conversation from this point on with the SD, simply blasting
@@ -48,9 +48,9 @@ static int send_data(int stream, FF_PKT *ff_pkt, BSOCK *sd, JCR *jcr, struct CHK
  * also run a "heartbeat" monitor which reads the socket and
  * reacts accordingly (at the moment it has nothing to do
  * except echo the heartbeat to the Director).
- * 
+ *
  */
-bool blast_data_to_storage_daemon(JCR *jcr, char *addr) 
+bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
 {
    BSOCK *sd;
    bool ok = true;
@@ -76,7 +76,7 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
       return false;
    }
 
-   jcr->buf_size = sd->msglen;		   
+   jcr->buf_size = sd->msglen;
    /* Adjust for compression so that output buffer is
     * 12 bytes + 0.1% larger than input buffer plus 18 bytes.
     * This gives a bit extra plus room for the sparse addr if any.
@@ -113,9 +113,9 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
    }
    Dmsg1(300, "end blast_data stat=%d\n", ok);
    return ok;
-}	   
+}
 
-/* 
+/*
  * Called here by find() for each file included.
  *
  *  *****FIXME*****   add FSMs File System Modules
@@ -162,13 +162,13 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
    case FT_INVALIDFS:
    case FT_DIREND:
       if (ff_pkt->type == FT_NORECURSE) {
-         Jmsg(jcr, M_INFO, 1, _("     Recursion turned off. Will not descend into %s\n"), 
+	 Jmsg(jcr, M_INFO, 1, _("     Recursion turned off. Will not descend into %s\n"),
 	    ff_pkt->fname);
       } else if (ff_pkt->type == FT_NOFSCHG) {
-         Jmsg(jcr, M_INFO, 1, _("     File system change prohibited. Will not descend into %s\n"), 
+	 Jmsg(jcr, M_INFO, 1, _("     File system change prohibited. Will not descend into %s\n"),
 	    ff_pkt->fname);
       } else if (ff_pkt->type == FT_INVALIDFS) {
-         Jmsg(jcr, M_INFO, 1, _("     Disallowed filesystem. Will not descend into %s\n"), 
+	 Jmsg(jcr, M_INFO, 1, _("     Disallowed filesystem. Will not descend into %s\n"),
 	    ff_pkt->fname);
       }
       ff_pkt->type = FT_DIREND;       /* value is used below */
@@ -186,7 +186,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
    case FT_NOACCESS: {
       berrno be;
       be.set_errno(ff_pkt->ff_errno);
-      Jmsg(jcr, M_NOTSAVED, 0, _("     Could not access %s: ERR=%s\n"), ff_pkt->fname, 
+      Jmsg(jcr, M_NOTSAVED, 0, _("     Could not access %s: ERR=%s\n"), ff_pkt->fname,
 	 be.strerror());
       jcr->Errors++;
       return 1;
@@ -194,7 +194,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
    case FT_NOFOLLOW: {
       berrno be;
       be.set_errno(ff_pkt->ff_errno);
-      Jmsg(jcr, M_NOTSAVED, 0, _("     Could not follow link %s: ERR=%s\n"), ff_pkt->fname, 
+      Jmsg(jcr, M_NOTSAVED, 0, _("     Could not follow link %s: ERR=%s\n"), ff_pkt->fname,
 	 be.strerror());
       jcr->Errors++;
       return 1;
@@ -202,7 +202,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
    case FT_NOSTAT: {
       berrno be;
       be.set_errno(ff_pkt->ff_errno);
-      Jmsg(jcr, M_NOTSAVED, 0, _("     Could not stat %s: ERR=%s\n"), ff_pkt->fname, 
+      Jmsg(jcr, M_NOTSAVED, 0, _("     Could not stat %s: ERR=%s\n"), ff_pkt->fname,
 	 be.strerror());
       jcr->Errors++;
       return 1;
@@ -217,7 +217,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
    case FT_NOOPEN: {
       berrno be;
       be.set_errno(ff_pkt->ff_errno);
-      Jmsg(jcr, M_NOTSAVED, 0, _("     Could not open directory %s: ERR=%s\n"), ff_pkt->fname, 
+      Jmsg(jcr, M_NOTSAVED, 0, _("     Could not open directory %s: ERR=%s\n"), ff_pkt->fname,
 	 be.strerror());
       jcr->Errors++;
       return 1;
@@ -238,13 +238,13 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
    attr_stream = encode_attribsEx(jcr, attribsEx, ff_pkt);
 
    Dmsg3(300, "File %s\nattribs=%s\nattribsEx=%s\n", ff_pkt->fname, attribs, attribsEx);
-     
+
    P(jcr->mutex);
    jcr->JobFiles++;		       /* increment number of files sent */
    ff_pkt->FileIndex = jcr->JobFiles;  /* return FileIndex */
    pm_strcpy(jcr->last_fname, ff_pkt->fname);
    V(jcr->mutex);
-    
+
    /*
     * Send Attributes header to Storage daemon
     *	 <file-index> <stream> <info>
@@ -271,15 +271,15 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
     */
    if (ff_pkt->type == FT_LNK || ff_pkt->type == FT_LNKSAVED) {
       Dmsg2(300, "Link %s to %s\n", ff_pkt->fname, ff_pkt->link);
-      stat = bnet_fsend(sd, "%ld %d %s%c%s%c%s%c%s%c", jcr->JobFiles, 
+      stat = bnet_fsend(sd, "%ld %d %s%c%s%c%s%c%s%c", jcr->JobFiles,
 	       ff_pkt->type, ff_pkt->fname, 0, attribs, 0, ff_pkt->link, 0,
 	       attribsEx, 0);
    } else if (ff_pkt->type == FT_DIREND) {
       /* Here link is the canonical filename (i.e. with trailing slash) */
-      stat = bnet_fsend(sd, "%ld %d %s%c%s%c%c%s%c", jcr->JobFiles, 
+      stat = bnet_fsend(sd, "%ld %d %s%c%s%c%c%s%c", jcr->JobFiles,
 	       ff_pkt->type, ff_pkt->link, 0, attribs, 0, 0, attribsEx, 0);
    } else {
-      stat = bnet_fsend(sd, "%ld %d %s%c%s%c%c%s%c", jcr->JobFiles, 
+      stat = bnet_fsend(sd, "%ld %d %s%c%s%c%c%s%c", jcr->JobFiles,
 	       ff_pkt->type, ff_pkt->fname, 0, attribs, 0, 0, attribsEx, 0);
    }
 
@@ -306,17 +306,17 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       set_prog(&ff_pkt->bfd, ff_pkt->reader, jcr);
    }
 
-   /* 
+   /*
     * Open any file with data that we intend to save, then save it.
     *
     * Note, if is_win32_backup, we must open the Directory so that
     * the BackupRead will save its permissions and ownership streams.
     */
-   if (ff_pkt->type != FT_LNKSAVED && (S_ISREG(ff_pkt->statp.st_mode) && 
-	 ff_pkt->statp.st_size > 0) || 
+   if (ff_pkt->type != FT_LNKSAVED && (S_ISREG(ff_pkt->statp.st_mode) &&
+	 ff_pkt->statp.st_size > 0) ||
 	 ff_pkt->type == FT_RAW || ff_pkt->type == FT_FIFO ||
 	 (!is_portable_backup(&ff_pkt->bfd) && ff_pkt->type == FT_DIREND)) {
-      btimer_t *tid;	
+      btimer_t *tid;
       if (ff_pkt->type == FT_FIFO) {
 	 tid = start_thread_timer(pthread_self(), 60);
       } else {
@@ -325,7 +325,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       if (bopen(&ff_pkt->bfd, ff_pkt->fname, O_RDONLY | O_BINARY, 0) < 0) {
 	 ff_pkt->ff_errno = errno;
 	 berrno be;
-         Jmsg(jcr, M_NOTSAVED, 0, _("     Cannot open %s: ERR=%s.\n"), ff_pkt->fname, 
+	 Jmsg(jcr, M_NOTSAVED, 0, _("     Cannot open %s: ERR=%s.\n"), ff_pkt->fname,
 	      be.strerror());
 	 jcr->Errors++;
 	 if (tid) {
@@ -354,7 +354,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	 if (!bopen_rsrc(&ff_pkt->bfd, ff_pkt->fname, O_RDONLY | O_BINARY, 0) < 0) {
 	    ff_pkt->ff_errno = errno;
 	    berrno be;
-            Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open resource fork for %s: ERR=%s.\n"), ff_pkt->fname, 
+	    Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open resource fork for %s: ERR=%s.\n"), ff_pkt->fname,
 		  be.strerror());
 	    jcr->Errors++;
 	    if (is_bopen(&ff_pkt->bfd)) {
@@ -389,51 +389,51 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
    if (ff_pkt->flags & FO_ACL) {
       char *acl_text = NULL;
       char *aclDef_text = NULL;
-      
+
       /* Read ACLs for files, dirs and links */
       if (ff_pkt->type == FT_DIREND) {
 	 /* Directory: Check for default ACL*/
 	 acl_t myDefAcl = acl_get_file(ff_pkt->fname, ACL_TYPE_DEFAULT);
-         /* Check for Access ACL */
-         acl_t myAccAcl = acl_get_file(ff_pkt->fname, ACL_TYPE_ACCESS);
-         if (!myDefAcl || !myAccAcl) {
-            Jmsg1(jcr, M_WARNING, 0, "Error while trying to get ACL of directory: %s!\n", ff_pkt->fname);
-         }
-         if(myDefAcl){
-            aclDef_text = acl_to_any_text(myDefAcl, NULL, ',', TEXT_ABBREVIATE);
-            acl_free(myDefAcl);
-         }
-         if(myAccAcl){
-            acl_text = acl_to_any_text(myAccAcl, NULL, ',', TEXT_ABBREVIATE);
-            acl_free(myAccAcl);
-         }
+	 /* Check for Access ACL */
+	 acl_t myAccAcl = acl_get_file(ff_pkt->fname, ACL_TYPE_ACCESS);
+	 if (!myDefAcl || !myAccAcl) {
+	    Jmsg1(jcr, M_WARNING, 0, "Error while trying to get ACL of directory: %s!\n", ff_pkt->fname);
+	 }
+	 if(myDefAcl){
+	    aclDef_text = acl_to_any_text(myDefAcl, NULL, ',', TEXT_ABBREVIATE);
+	    acl_free(myDefAcl);
+	 }
+	 if(myAccAcl){
+	    acl_text = acl_to_any_text(myAccAcl, NULL, ',', TEXT_ABBREVIATE);
+	    acl_free(myAccAcl);
+	 }
       } else {
 	 /* Files or links */
-         acl_t myAcl = acl_get_file(ff_pkt->fname, ACL_TYPE_ACCESS);
+	 acl_t myAcl = acl_get_file(ff_pkt->fname, ACL_TYPE_ACCESS);
 	 if (!myAcl) {
-            Jmsg1(jcr, M_WARNING, 0, "Error while trying to get ACL of file: %s!\n", ff_pkt->fname);
+	    Jmsg1(jcr, M_WARNING, 0, "Error while trying to get ACL of file: %s!\n", ff_pkt->fname);
 	    acl_free(myAcl);
 	 }
-         acl_text = acl_to_any_text(myAcl, NULL, ',', TEXT_ABBREVIATE);
+	 acl_text = acl_to_any_text(myAcl, NULL, ',', TEXT_ABBREVIATE);
 	 acl_free(myAcl);
       }
-      
+
       POOLMEM *msgsave;
-      
+
       /* If there is an ACL, send it to the Storage daemon */
       if (acl_text != NULL) {
 	 sd = jcr->store_bsock;
 	 pm_strcpy(&jcr->last_fname, ff_pkt->fname);
-      
-	 
+
+
 	 // Send ACL header
-         if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_UNIX_ATTRIBUTES_ACCESS_ACL)) {
+	 if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_UNIX_ATTRIBUTES_ACCESS_ACL)) {
 	    berrno be;
-            Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+	    Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
 		  bnet_strerror(sd));
 	    return 0;
 	 }
-      
+
 	 /* Send the buffer to the storage deamon */
 	 msgsave = sd->msg;
 	 sd->msg = acl_text;
@@ -442,34 +442,34 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	    berrno be;
 	    sd->msg = msgsave;
 	    sd->msglen = 0;
-            Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+	    Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
 		  bnet_strerror(sd));
 	 } else {
 	    jcr->JobBytes += sd->msglen;
 	    sd->msg = msgsave;
 	    if (!bnet_sig(sd, BNET_EOD)) {
 	       berrno be;
-               Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+	       Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
 		     bnet_strerror(sd));
 	    } else {
-               Dmsg1(200, "ACL of file: %s successfully backed up!\n", ff_pkt->fname);
+	       Dmsg1(200, "ACL of file: %s successfully backed up!\n", ff_pkt->fname);
 	    }
-	 }  
+	 }
       }
       /* If there is an Default ACL, send it to the Storage daemon */
       if (aclDef_text != NULL) {
 	 sd = jcr->store_bsock;
 	 pm_strcpy(&jcr->last_fname, ff_pkt->fname);
-      
-	 
+
+
 	 // Send ACL header
 	 if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_UNIX_ATTRIBUTES_DEFAULT_ACL)) {
 	    berrno be;
-            Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+	    Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
 		  bnet_strerror(sd));
 	    return 0;
 	 }
-      
+
 	 // Send the buffer to the storage deamon
 	 msgsave = sd->msg;
 	 sd->msg = aclDef_text;
@@ -478,21 +478,21 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	    berrno be;
 	    sd->msg = msgsave;
 	    sd->msglen = 0;
-            Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+	    Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
 		  bnet_strerror(sd));
 	 } else {
 	    jcr->JobBytes += sd->msglen;
 	    sd->msg = msgsave;
 	    if (!bnet_sig(sd, BNET_EOD)) {
 	       berrno be;
-               Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+	       Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
 		     bnet_strerror(sd));
 	    } else {
-               Dmsg1(200, "ACL of file: %s successfully backed up!\n", ff_pkt->fname);
+	       Dmsg1(200, "ACL of file: %s successfully backed up!\n", ff_pkt->fname);
 	    }
-	 }  
+	 }
       }
-   }   
+   }
 #endif
 
    /* Terminate any signature and send it to Storage daemon and the Director */
@@ -504,11 +504,11 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       } else if (chksum.type == CHKSUM_SHA1) {
 	 stream = STREAM_SHA1_SIGNATURE;
       } else {
-         Jmsg1(jcr, M_WARNING, 0, _("Unknown signature type %i."), chksum.type);
+	 Jmsg1(jcr, M_WARNING, 0, _("Unknown signature type %i."), chksum.type);
       }
       if (stream != 0) {
-         bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, stream);
-         Dmsg1(300, "bfiled>stored:header %s\n", sd->msg);
+	 bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, stream);
+	 Dmsg1(300, "bfiled>stored:header %s\n", sd->msg);
 	 memcpy(sd->msg, chksum.signature, chksum.length);
 	 sd->msglen = chksum.length;
 	 bnet_send(sd);
@@ -537,7 +537,7 @@ int send_data(int stream, FF_PKT *ff_pkt, BSOCK *sd, JCR *jcr, struct CHKSUM *ch
    POOLMEM *msgsave;
 
    msgsave = sd->msg;
-   rbuf = sd->msg;		      /* read buffer */ 	    
+   rbuf = sd->msg;		      /* read buffer */
    wbuf = sd->msg;		      /* write buffer */
 
 
@@ -574,13 +574,13 @@ int send_data(int stream, FF_PKT *ff_pkt, BSOCK *sd, JCR *jcr, struct CHKSUM *ch
 
    /*
     * Make space at beginning of buffer for fileAddr because this
-    *	same buffer will be used for writing if compression if off. 
+    *	same buffer will be used for writing if compression if off.
     */
    if (ff_pkt->flags & FO_SPARSE) {
       rbuf += SPARSE_FADDR_SIZE;
       rsize -= SPARSE_FADDR_SIZE;
 #ifdef HAVE_FREEBSD_OS
-      /* 
+      /*
        * To read FreeBSD partitions, the read size must be
        *  a multiple of 512.
        */
@@ -588,7 +588,7 @@ int send_data(int stream, FF_PKT *ff_pkt, BSOCK *sd, JCR *jcr, struct CHKSUM *ch
 #endif
    }
 
-   /* 
+   /*
     * Read the file data
     */
    while ((sd->msglen=(uint32_t)bread(&ff_pkt->bfd, rbuf, rsize)) > 0) {
@@ -597,14 +597,14 @@ int send_data(int stream, FF_PKT *ff_pkt, BSOCK *sd, JCR *jcr, struct CHKSUM *ch
       /* Check for sparse blocks */
       if (ff_pkt->flags & FO_SPARSE) {
 	 ser_declare;
-	 if (sd->msglen == rsize && 
+	 if (sd->msglen == rsize &&
 	     (fileAddr+sd->msglen < (uint64_t)ff_pkt->statp.st_size)) {
 	    sparseBlock = is_buf_zero(rbuf, rsize);
 	 }
-	    
+
 	 ser_begin(wbuf, SPARSE_FADDR_SIZE);
 	 ser_uint64(fileAddr);	   /* store fileAddr in begin of buffer */
-      } 
+      }
 
       jcr->ReadBytes += sd->msglen;	    /* count bytes read */
       fileAddr += sd->msglen;
@@ -617,19 +617,19 @@ int send_data(int stream, FF_PKT *ff_pkt, BSOCK *sd, JCR *jcr, struct CHKSUM *ch
       if (!sparseBlock && ff_pkt->flags & FO_GZIP) {
 	 int zstat;
 	 compress_len = max_compress_len;
-         Dmsg4(400, "cbuf=0x%x len=%u rbuf=0x%x len=%u\n", cbuf, compress_len,
+	 Dmsg4(400, "cbuf=0x%x len=%u rbuf=0x%x len=%u\n", cbuf, compress_len,
 	    rbuf, sd->msglen);
 	 /* NOTE! This call modifies compress_len !!! */
-	 if ((zstat=compress2((Bytef *)cbuf, &compress_len, 
+	 if ((zstat=compress2((Bytef *)cbuf, &compress_len,
 	       (const Bytef *)rbuf, (uLong)sd->msglen,
 	       ff_pkt->GZIP_level)) != Z_OK) {
-            Jmsg(jcr, M_FATAL, 0, _("Compression error: %d\n"), zstat);
+	    Jmsg(jcr, M_FATAL, 0, _("Compression error: %d\n"), zstat);
 	    sd->msg = msgsave;
 	    sd->msglen = 0;
 	    set_jcr_job_status(jcr, JS_ErrorTerminated);
 	    return 0;
 	 }
-         Dmsg2(400, "compressed len=%d uncompressed len=%d\n", 
+	 Dmsg2(400, "compressed len=%d uncompressed len=%d\n",
 	    compress_len, sd->msglen);
 
 	 sd->msglen = compress_len;	 /* set compressed length */
@@ -644,7 +644,7 @@ int send_data(int stream, FF_PKT *ff_pkt, BSOCK *sd, JCR *jcr, struct CHKSUM *ch
 	 sd->msg = wbuf;	      /* set correct write buffer */
 	 if (!bnet_send(sd)) {
 	    berrno be;
-            Jmsg2(jcr, M_FATAL, 0, _("Network send error %d to SD. ERR=%s\n"),
+	    Jmsg2(jcr, M_FATAL, 0, _("Network send error %d to SD. ERR=%s\n"),
 		  sd->msglen, bnet_strerror(sd));
 	    sd->msg = msgsave;	   /* restore bnet buffer */
 	    sd->msglen = 0;

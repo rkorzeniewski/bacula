@@ -52,7 +52,7 @@ HANDLE bget_handle(BFILE *bfd);
 /*=============================================================*/
 
 /*
- * Return the data stream that will be used 
+ * Return the data stream that will be used
  */
 int select_data_stream(FF_PKT *ff_pkt)
 {
@@ -82,8 +82,8 @@ int select_data_stream(FF_PKT *ff_pkt)
 }
 
 
-/* 
- * Encode a stat structure into a base64 character string   
+/*
+ * Encode a stat structure into a base64 character string
  *   All systems must create such a structure.
  *   In addition, we tack on the LinkFI, which is non-zero in
  *   the case of a hard linked file that has no data.  This
@@ -160,7 +160,7 @@ template <class T> void plug(T &st, uint64_t val)
 
 
 /* Decode a stat packet from base64 characters */
-int decode_stat(char *buf, struct stat *statp, int32_t *LinkFI) 
+int decode_stat(char *buf, struct stat *statp, int32_t *LinkFI)
 {
    char *p = buf;
    int64_t val;
@@ -233,7 +233,7 @@ int decode_stat(char *buf, struct stat *statp, int32_t *LinkFI)
       statp->st_flags  = 0;
 #endif
    }
-    
+
    /* Look for data stream id */
    if (*p == ' ' || (*p != 0 && *(p+1) == ' ')) {
       p++;
@@ -289,7 +289,7 @@ int32_t decode_LinkFI(char *buf, struct stat *statp)
 /*
  * Set file modes, permissions and times
  *
- *  fname is the original filename  
+ *  fname is the original filename
  *  ofile is the output filename (may be in a different directory)
  *
  * Returns:  true  on success
@@ -297,7 +297,7 @@ int32_t decode_LinkFI(char *buf, struct stat *statp)
  */
 bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
 {
-   struct utimbuf ut;	 
+   struct utimbuf ut;
    mode_t old_mask;
    bool ok = true;
    off_t fsize;
@@ -306,7 +306,7 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    if (attr->stream == STREAM_UNIX_ATTRIBUTES_EX &&
        set_win32_attributes(jcr, attr, ofd)) {
        if (is_bopen(ofd)) {
-	   bclose(ofd); 
+	   bclose(ofd);
        }
        pm_strcpy(attr->ofname, "*none*");
        return true;
@@ -314,7 +314,7 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    if (attr->data_stream == STREAM_WIN32_DATA ||
        attr->data_stream == STREAM_WIN32_GZIP_DATA) {
       if (is_bopen(ofd)) {
-	 bclose(ofd); 
+	 bclose(ofd);
       }
       pm_strcpy(attr->ofname, "*none*");
       return true;
@@ -323,7 +323,7 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
 
    /*
     * If Windows stuff failed, e.g. attempt to restore Unix file
-    *  to Windows, simply fall through and we will do it the	 
+    *  to Windows, simply fall through and we will do it the
     *  universal way.
     */
 #endif
@@ -334,7 +334,7 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
       fsize = blseek(ofd, 0, SEEK_CUR);
       bclose(ofd);		      /* first close file */
       if (fsize > 0 && fsize != attr->statp.st_size) {
-         Jmsg3(jcr, M_ERROR, 0, _("File size of restored file %s not correct. Original %s, restored %s.\n"),
+	 Jmsg3(jcr, M_ERROR, 0, _("File size of restored file %s not correct. Original %s, restored %s.\n"),
 	    attr->ofname, edit_uint64(attr->statp.st_size, ec1),
 	    edit_uint64(fsize, ec2));
       }
@@ -344,7 +344,7 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    ut.modtime = attr->statp.st_mtime;
 
    /* ***FIXME**** optimize -- don't do if already correct */
-   /* 
+   /*
     * For link, change owner of link using lchown, but don't
     *	try to do a chmod as that will update the file behind it.
     */
@@ -352,20 +352,20 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
       /* Change owner of link, not of real file */
       if (lchown(attr->ofname, attr->statp.st_uid, attr->statp.st_gid) < 0) {
 	 berrno be;
-         Jmsg2(jcr, M_ERROR, 0, _("Unable to set file owner %s: ERR=%s\n"),
+	 Jmsg2(jcr, M_ERROR, 0, _("Unable to set file owner %s: ERR=%s\n"),
 	    attr->ofname, be.strerror());
 	 ok = false;
       }
    } else {
       if (chown(attr->ofname, attr->statp.st_uid, attr->statp.st_gid) < 0) {
 	 berrno be;
-         Jmsg2(jcr, M_ERROR, 0, _("Unable to set file owner %s: ERR=%s\n"),
+	 Jmsg2(jcr, M_ERROR, 0, _("Unable to set file owner %s: ERR=%s\n"),
 	    attr->ofname, be.strerror());
 	 ok = false;
       }
       if (chmod(attr->ofname, attr->statp.st_mode) < 0) {
 	 berrno be;
-         Jmsg2(jcr, M_ERROR, 0, _("Unable to set file modes %s: ERR=%s\n"),
+	 Jmsg2(jcr, M_ERROR, 0, _("Unable to set file modes %s: ERR=%s\n"),
 	    attr->ofname, be.strerror());
 	 ok = false;
       }
@@ -375,7 +375,7 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
        */
       if (utime(attr->ofname, &ut) < 0) {
 	 berrno be;
-         Jmsg2(jcr, M_ERROR, 0, _("Unable to set file times %s: ERR=%s\n"),
+	 Jmsg2(jcr, M_ERROR, 0, _("Unable to set file times %s: ERR=%s\n"),
 	    attr->ofname, be.strerror());
 	 ok = false;
       }
@@ -389,7 +389,7 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
        */
       if (chflags(attr->ofname, attr->statp.st_flags) < 0) {
 	 berrno be;
-         Jmsg2(jcr, M_ERROR, 0, _("Unable to set file flags %s: ERR=%s\n"),
+	 Jmsg2(jcr, M_ERROR, 0, _("Unable to set file flags %s: ERR=%s\n"),
 	    attr->ofname, be.strerror());
 	 ok = false;
       }
@@ -408,7 +408,7 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
 /*=============================================================*/
 
 #if !defined(HAVE_CYGWIN) && !defined(HAVE_WIN32)
-    
+
 /*
  * It is possible to piggyback additional data e.g. ACLs on
  *   the encode_stat() data by returning the extended attributes
@@ -453,7 +453,7 @@ int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
 
    attribsEx[0] = 0;		      /* no extended attributes */
 
-   if (!p_GetFileAttributesEx) {				 
+   if (!p_GetFileAttributesEx) {
       return STREAM_UNIX_ATTRIBUTES;
    }
 
@@ -487,20 +487,20 @@ int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
 
 /* Define attributes that are legal to set with SetFileAttributes() */
 #define SET_ATTRS ( \
-         FILE_ATTRIBUTE_ARCHIVE| \
-         FILE_ATTRIBUTE_HIDDEN| \
-         FILE_ATTRIBUTE_NORMAL| \
-         FILE_ATTRIBUTE_NOT_CONTENT_INDEXED| \
-         FILE_ATTRIBUTE_OFFLINE| \
-         FILE_ATTRIBUTE_READONLY| \
-         FILE_ATTRIBUTE_SYSTEM| \
+	 FILE_ATTRIBUTE_ARCHIVE| \
+	 FILE_ATTRIBUTE_HIDDEN| \
+	 FILE_ATTRIBUTE_NORMAL| \
+	 FILE_ATTRIBUTE_NOT_CONTENT_INDEXED| \
+	 FILE_ATTRIBUTE_OFFLINE| \
+	 FILE_ATTRIBUTE_READONLY| \
+	 FILE_ATTRIBUTE_SYSTEM| \
 	 FILE_ATTRIBUTE_TEMPORARY)
 
 
 /*
  * Set Extended File Attributes for Win32
  *
- *  fname is the original filename  
+ *  fname is the original filename
  *  ofile is the output filename (may be in a different directory)
  *
  * Returns:  true  on success
@@ -514,7 +514,7 @@ static bool set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    ULARGE_INTEGER li;
    POOLMEM *win32_ofile;
 
-   if (!p_GetFileAttributesEx) {				 
+   if (!p_GetFileAttributesEx) {
       return false;
    }
 
@@ -545,7 +545,7 @@ static bool set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    li.QuadPart = val;
    atts.ftLastWriteTime.dwLowDateTime = li.LowPart;
    atts.ftLastWriteTime.dwHighDateTime = li.HighPart;
-   p++;   
+   p++;
    p += from_base64(&val, p);
    plug(atts.nFileSizeHigh, val);
    p++;
@@ -571,7 +571,7 @@ static bool set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
 			 &atts.ftCreationTime,
 			 &atts.ftLastAccessTime,
 			 &atts.ftLastWriteTime)) {
-         win_error(jcr, "SetFileTime:", win32_ofile);
+	 win_error(jcr, "SetFileTime:", win32_ofile);
       }
       bclose(ofd);
    }
@@ -579,7 +579,7 @@ static bool set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    Dmsg1(100, "SetFileAtts %s\n", attr->ofname);
    if (!(atts.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
       if (!SetFileAttributes(win32_ofile, atts.dwFileAttributes & SET_ATTRS)) {
-         win_error(jcr, "SetFileAttributes:", win32_ofile);
+	 win_error(jcr, "SetFileAttributes:", win32_ofile);
       }
    }
    free_pool_memory(win32_ofile);

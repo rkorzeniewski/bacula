@@ -3,7 +3,7 @@
 		   Serialisation Support Functions
 			  John Walker
 
-  
+
      Version $Id$
 */
 /*
@@ -168,7 +168,7 @@ void serial_float64(uint8_t * * const ptr, const float64_t v)
 void serial_string(uint8_t * * const ptr, const char * const str)
 {
    int len = strlen(str) + 1;
-   
+
    memcpy(*ptr, str, len);
    *ptr += len;
 }

@@ -30,7 +30,7 @@
 
 /*  =======================================================
  *
- *   W I N D O W S 
+ *   W I N D O W S
  *
  *  =======================================================
  */
@@ -61,7 +61,7 @@ struct BFILE {
    char *prog;                        /* reader/writer program if any */
    BPIPE *bpipe;                      /* pipe for reader */
    JCR *jcr;                          /* jcr for editing job codes */
-};      
+};
 
 HANDLE bget_handle(BFILE *bfd);
 
@@ -69,7 +69,7 @@ HANDLE bget_handle(BFILE *bfd);
 
 /*  =======================================================
  *
- *   U N I X 
+ *   U N I X
  *
  *  =======================================================
  */
@@ -81,7 +81,7 @@ struct BFILE {
    char *prog;                        /* reader/writer program if any */
    BPIPE *bpipe;                      /* pipe for reader */
    JCR *jcr;                          /* jcr for editing job codes */
-};      
+};
 
 #endif
 

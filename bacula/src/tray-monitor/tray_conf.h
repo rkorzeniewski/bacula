@@ -30,7 +30,7 @@
 /* NOTE:  #includes at the end of this file */
 
 /*
- * Resource codes -- they must be sequential for indexing   
+ * Resource codes -- they must be sequential for indexing
  */
 enum rescode {
    R_MONITOR = 1001,
@@ -61,8 +61,8 @@ struct DIRRES {
    int enable_ssl;                    /* Use SSL */
 };
 
-/* 
- *   Tray Monitor Resource  
+/*
+ *   Tray Monitor Resource
  *
  */
 struct MONITOR {
@@ -91,7 +91,7 @@ struct CLIENT {
 
 /*
  *   Store Resource
- * 
+ *
  */
 struct STORE {
    RES   hdr;

@@ -117,32 +117,32 @@ int main (int argc, char *argv[])
       case 'd':                    /* debug level */
 	 debug_level = atoi(optarg);
 	 if (debug_level <= 0)
-	    debug_level = 1; 
+	    debug_level = 1;
 	 break;
 
       case 'e':                    /* exclude list */
-         if ((fd = fopen(optarg, "r")) == NULL) {
-            Pmsg2(0, _("Could not open exclude file: %s, ERR=%s\n"),
+	 if ((fd = fopen(optarg, "r")) == NULL) {
+	    Pmsg2(0, _("Could not open exclude file: %s, ERR=%s\n"),
 	       optarg, strerror(errno));
 	    exit(1);
 	 }
 	 while (fgets(line, sizeof(line), fd) != NULL) {
 	    strip_trailing_junk(line);
-            Dmsg1(100, "add_exclude %s\n", line);
+	    Dmsg1(100, "add_exclude %s\n", line);
 	    add_fname_to_exclude_list(&ff, line);
 	 }
 	 fclose(fd);
 	 break;
 
       case 'i':                    /* include list */
-         if ((fd = fopen(optarg, "r")) == NULL) {
-            Pmsg2(0, "Could not open include file: %s, ERR=%s\n",
+	 if ((fd = fopen(optarg, "r")) == NULL) {
+	    Pmsg2(0, "Could not open include file: %s, ERR=%s\n",
 	       optarg, strerror(errno));
 	    exit(1);
 	 }
 	 while (fgets(line, sizeof(line), fd) != NULL) {
 	    strip_trailing_junk(line);
-            Dmsg1(100, "add_include %s\n", line);
+	    Dmsg1(100, "add_include %s\n", line);
 	    add_fname_to_include_list(&ff, 0, line);
 	 }
 	 fclose(fd);
@@ -201,7 +201,7 @@ int main (int argc, char *argv[])
       if (bsrName) {
 	 bsr = parse_bsr(NULL, bsrName);
       }
-      jcr = setup_jcr("bls", argv[i], bsr, VolumeName, 1); /* acquire for read */ 
+      jcr = setup_jcr("bls", argv[i], bsr, VolumeName, 1); /* acquire for read */
       if (!jcr) {
 	 exit(1);
       }
@@ -216,11 +216,11 @@ int main (int argc, char *argv[])
       attr = new_attr();
       /*
        * Assume that we have already read the volume label.
-       * If on second or subsequent volume, adjust buffer pointer 
+       * If on second or subsequent volume, adjust buffer pointer
        */
       if (dev->VolHdr.PrevVolName[0] != 0) { /* second volume */
-         Pmsg1(0, "\n\
-Warning, this Volume is a continuation of Volume %s\n",
+	 Pmsg1(0, "\n"
+"Warning, this Volume is a continuation of Volume %s\n",
 		dev->VolHdr.PrevVolName);
       }
 
@@ -260,10 +260,10 @@ static void do_blocks(char *infname)
    }
    for ( ;; ) {
       if (!read_block_from_device(dcr, NO_BLOCK_NUMBER_CHECK)) {
-         Dmsg1(100, "!read_block(): ERR=%s\n", strerror_dev(dev));
+	 Dmsg1(100, "!read_block(): ERR=%s\n", strerror_dev(dev));
 	 if (dev->state & ST_EOT) {
 	    if (!mount_next_read_volume(dcr)) {
-               Jmsg(jcr, M_INFO, 0, _("Got EOM at file %u on device %s, Volume \"%s\"\n"), 
+	       Jmsg(jcr, M_INFO, 0, _("Got EOM at file %u on device %s, Volume \"%s\"\n"),
 		  dev->file, dev_name(dev), dcr->VolumeName);
 	       break;
 	    }
@@ -274,15 +274,15 @@ static void do_blocks(char *infname)
 	    read_record_from_block(block, record);
 	    get_session_record(dev, record, &sessrec);
 	    free_record(record);
-            Jmsg(jcr, M_INFO, 0, _("Mounted Volume \"%s\".\n"), dcr->VolumeName);
-	    
+	    Jmsg(jcr, M_INFO, 0, _("Mounted Volume \"%s\".\n"), dcr->VolumeName);
+
 	 } else if (dev->state & ST_EOF) {
-            Jmsg(jcr, M_INFO, 0, _("Got EOF at file %u on device %s, Volume \"%s\"\n"), 
+	    Jmsg(jcr, M_INFO, 0, _("Got EOF at file %u on device %s, Volume \"%s\"\n"),
 	       dev->file, dev_name(dev), dcr->VolumeName);
-            Dmsg0(20, "read_record got eof. try again\n");
+	    Dmsg0(20, "read_record got eof. try again\n");
 	    continue;
 	 } else if (dev->state & ST_SHORT) {
-            Jmsg(jcr, M_INFO, 0, "%s", dev->errmsg);
+	    Jmsg(jcr, M_INFO, 0, "%s", dev->errmsg);
 	    continue;
 	 } else {
 	    /* I/O error */
@@ -291,7 +291,7 @@ static void do_blocks(char *infname)
 	 }
       }
       if (!match_bsr_block(bsr, block)) {
-         Dmsg5(100, "reject Blk=%u blen=%u bVer=%d SessId=%u SessTim=%u\n",
+	 Dmsg5(100, "reject Blk=%u blen=%u bVer=%d SessId=%u SessTim=%u\n",
 	    block->BlockNumber, block->block_len, block->BlockVer,
 	    block->VolSessionId, block->VolSessionTime);
 	 continue;
@@ -301,16 +301,16 @@ static void do_blocks(char *infname)
 	block->VolSessionId, block->VolSessionTime);
       if (verbose == 1) {
 	 read_record_from_block(block, rec);
-         Pmsg9(-1, "File:blk=%u:%u blk_num=%u blen=%u First rec FI=%s SessId=%u SessTim=%u Strm=%s rlen=%d\n",
+	 Pmsg9(-1, "File:blk=%u:%u blk_num=%u blen=%u First rec FI=%s SessId=%u SessTim=%u Strm=%s rlen=%d\n",
 	      dev->file, dev->block_num,
 	      block->BlockNumber, block->block_len,
 	      FI_to_ascii(rec->FileIndex), rec->VolSessionId, rec->VolSessionTime,
 	      stream_to_ascii(rec->Stream, rec->FileIndex), rec->data_len);
 	 rec->remainder = 0;
       } else if (verbose > 1) {
-         dump_block(block, "");
+	 dump_block(block, "");
       } else {
-         printf("Block: %d size=%d\n", block->BlockNumber, block->block_len);
+	 printf("Block: %d size=%d\n", block->BlockNumber, block->block_len);
       }
 
    }
@@ -356,24 +356,24 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       return true;
    }
    /* File Attributes stream */
-   if (rec->Stream == STREAM_UNIX_ATTRIBUTES || 
+   if (rec->Stream == STREAM_UNIX_ATTRIBUTES ||
        rec->Stream == STREAM_UNIX_ATTRIBUTES_EX) {
 
       if (verbose > 1) {
-         const char *rtype = "Attributes";
-         Pmsg5(-1, "%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
+	 const char *rtype = "Attributes";
+	 Pmsg5(-1, "%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
 	       rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
       }
       if (!unpack_attributes_record(jcr, rec->Stream, rec->data, attr)) {
 	 if (!forge_on) {
-            Emsg0(M_ERROR_TERM, 0, _("Cannot continue.\n"));
+	    Emsg0(M_ERROR_TERM, 0, _("Cannot continue.\n"));
 	 }
 	 num_files++;
 	 return true;
       }
 
       if (attr->file_index != rec->FileIndex) {
-         Emsg2(forge_on?M_WARNING:M_ERROR_TERM, 0, _("Record header file index %ld not equal record index %ld\n"),
+	 Emsg2(forge_on?M_WARNING:M_ERROR_TERM, 0, _("Record header file index %ld not equal record index %ld\n"),
 	       rec->FileIndex, attr->file_index);
       }
 
@@ -395,7 +395,7 @@ static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sess
    memset(sessrec, 0, sizeof(sessrec));
    switch (rec->FileIndex) {
    case PRE_LABEL:
-      rtype = "Fresh Volume Label";   
+      rtype = "Fresh Volume Label";
       break;
    case VOL_LABEL:
       rtype = "Volume Label";
@@ -439,6 +439,6 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
    DEVICE *dev = dcr->dev;
    fprintf(stderr, "Mount Volume \"%s\" on device %s and press return when ready: ",
       dcr->VolumeName, dev_name(dev));
-   getchar();	
+   getchar();
    return true;
 }

@@ -1,6 +1,6 @@
 /*
  * Windows APIs that are different for each system.
- *   We use pointers to the entry points so that a 
+ *   We use pointers to the entry points so that a
  *   single binary will run on all Windows systems.
  *
  *     Kern Sibbald MMIII

@@ -1,6 +1,6 @@
 /*
  * Directory tree build/traverse routines
- * 
+ *
  *    Kern Sibbald, June MMII
  *
 */
@@ -60,7 +60,7 @@ struct s_tree_node {
    unsigned int extract: 1;	      /* extract item */
    unsigned int extract_dir: 1;       /* extract dir entry only */
    unsigned int hard_link: 1;	      /* set if have hard link */
-   unsigned int soft_link: 1;	      /* set if is soft link */  
+   unsigned int soft_link: 1;	      /* set if is soft link */
    unsigned int inserted: 1;	      /* set when newly inserted */
    struct s_tree_node *parent;
    struct s_tree_node *next;	      /* next hash of FileIndex */
@@ -120,7 +120,7 @@ struct s_tree_node {
    unsigned int extract: 1;	      /* extract item */
    unsigned int extract_dir: 1;       /* extract dir entry only */
    unsigned int hard_link: 1;	      /* set if have hard link */
-   unsigned int soft_link: 1;	      /* set if is soft link */  
+   unsigned int soft_link: 1;	      /* set if is soft link */
    unsigned int inserted: 1;	      /* set when newly inserted */
    struct s_tree_node *parent;
    struct s_tree_node *sibling_;
@@ -177,7 +177,7 @@ int tree_getpath(TREE_NODE *node, char *buf, int buf_size);
 /*
  * Use the following for traversing the whole tree. It will be
  *   traversed in the order the entries were inserted into the
- *   tree.	  
+ *   tree.
  */
 #ifdef SLOW_WAY
 TREE_NODE *first_tree_node(TREE_ROOT *root);

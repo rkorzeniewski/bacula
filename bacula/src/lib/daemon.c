@@ -9,9 +9,9 @@
  *   in the UNIX Environment"
  *
  * Initialize a daemon process completely detaching us from
- * any terminal processes. 
+ * any terminal processes.
  *
- */ 
+ */
 
 /*
    Copyright (C) 2000-2004 Kern Sibbald and John Walker
@@ -37,7 +37,7 @@
 #include "bacula.h"
 extern int debug_level;
 
-void 
+void
 daemon_start()
 {
 #if !defined(HAVE_CYGWIN) && !defined(HAVE_WIN32)
@@ -59,7 +59,7 @@ daemon_start()
    else if (cpid > 0)
       exit(0);		    /* parent exits */
    /* Child continues */
-      
+
    setsid();
 
    /* In the PRODUCTION system, we close ALL
@@ -79,7 +79,7 @@ daemon_start()
    chdir("/");
 #endif
 
-   /* 
+   /*
     * Avoid creating files 666 but don't override any
     * more restrictive mask set by the user.
     */

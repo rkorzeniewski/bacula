@@ -47,7 +47,7 @@ class console_thread : public wxThread
       void* Entry();
       void Write(const char* str);
       virtual void Delete();
-      
+
       static void InitLib();
       static void FreeLib();
       static wxString LoadConfig(wxString configfile);
@@ -55,13 +55,13 @@ class console_thread : public wxThread
    private:
       static bool inited;
       static bool configloaded;
-      
+
       bool choosingdirector;
-      
+
       static wxString working_dir;
-      
+
       int directorchoosen;
-      
+
       BSOCK* UA_sock;
       JCR jcr;
 };

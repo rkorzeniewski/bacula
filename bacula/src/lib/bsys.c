@@ -1,8 +1,8 @@
 /*
  * Miscellaneous Bacula memory and thread safe routines
  *   Generally, these are interfaces to system or standard
- *   library routines. 
- * 
+ *   library routines.
+ *
  *  Bacula utility functions are in util.c
  *
  *   Version $Id$
@@ -126,7 +126,7 @@ void *bcalloc (size_t size1, size_t size2)
 /*
  * Implement snprintf
  */
-int bsnprintf(char *str, int32_t size, const char *fmt,  ...) 
+int bsnprintf(char *str, int32_t size, const char *fmt,  ...)
 {
    va_list   arg_ptr;
    int len;
@@ -171,7 +171,7 @@ struct tm *localtime_r(const time_t *timep, struct tm *tm)
 {
     static pthread_mutex_t mutex;
     static bool first = true;
-    struct tm *ltm, 
+    struct tm *ltm,
 
     if (first) {
        pthread_mutex_init(&mutex, NULL);
@@ -258,12 +258,12 @@ void _p(char *file, int line, pthread_mutex_t *m)
       e_msg(file, line, M_ERROR, 0, _("Possible mutex deadlock.\n"));
       /* We didn't get the lock, so do it definitely now */
       if ((errstat=pthread_mutex_lock(m))) {
-         e_msg(file, line, M_ABORT, 0, _("Mutex lock failure. ERR=%s\n"),
+	 e_msg(file, line, M_ABORT, 0, _("Mutex lock failure. ERR=%s\n"),
 	       strerror(errstat));
       } else {
-         e_msg(file, line, M_ERROR, 0, _("Possible mutex deadlock resolved.\n"));
+	 e_msg(file, line, M_ERROR, 0, _("Possible mutex deadlock resolved.\n"));
       }
-	 
+
    }
 }
 
@@ -315,14 +315,14 @@ void create_pid_file(char *dir, const char *progname, int port)
    if (stat(fname, &statp) == 0) {
       /* File exists, see what we have */
       *pidbuf = 0;
-      if ((pidfd = open(fname, O_RDONLY|O_BINARY, 0)) < 0 || 
+      if ((pidfd = open(fname, O_RDONLY|O_BINARY, 0)) < 0 ||
 	   read(pidfd, &pidbuf, sizeof(pidbuf)) < 0 ||
-           sscanf(pidbuf, "%d", &oldpid) != 1) {
-         Emsg2(M_ERROR_TERM, 0, _("Cannot open pid file. %s ERR=%s\n"), fname, strerror(errno));
+	   sscanf(pidbuf, "%d", &oldpid) != 1) {
+	 Emsg2(M_ERROR_TERM, 0, _("Cannot open pid file. %s ERR=%s\n"), fname, strerror(errno));
       }
       /* See if other Bacula is still alive */
       if (kill(oldpid, 0) != -1 || errno != ESRCH) {
-         Emsg3(M_ERROR_TERM, 0, _("%s is already running. pid=%d\nCheck file %s\n"),
+	 Emsg3(M_ERROR_TERM, 0, _("%s is already running. pid=%d\nCheck file %s\n"),
 	       progname, oldpid, fname);
       }
       /* He is not alive, so take over file ownership */
@@ -369,7 +369,7 @@ struct s_state_hdr {
    uint64_t reserved[20];
 };
 
-static struct s_state_hdr state_hdr = { 
+static struct s_state_hdr state_hdr = {
    "Bacula State\n",
    3,
    0
@@ -390,17 +390,17 @@ void read_state_file(char *dir, const char *progname, int port)
    /* If file exists, see what we have */
 // Dmsg1(10, "O_BINARY=%d\n", O_BINARY);
    if ((sfd = open(fname, O_RDONLY|O_BINARY, 0)) < 0) {
-      Dmsg3(010, "Could not open state file. sfd=%d size=%d: ERR=%s\n", 
+      Dmsg3(010, "Could not open state file. sfd=%d size=%d: ERR=%s\n",
 		    sfd, sizeof(hdr), strerror(errno));
 	   goto bail_out;
    }
    if ((stat=read(sfd, &hdr, hdr_size)) != hdr_size) {
-      Dmsg4(010, "Could not read state file. sfd=%d stat=%d size=%d: ERR=%s\n", 
+      Dmsg4(010, "Could not read state file. sfd=%d stat=%d size=%d: ERR=%s\n",
 		    sfd, (int)stat, hdr_size, strerror(errno));
       goto bail_out;
    }
    if (hdr.version != state_hdr.version) {
-      Dmsg2(010, "Bad hdr version. Wanted %d got %d\n", 
+      Dmsg2(010, "Bad hdr version. Wanted %d got %d\n",
 	 state_hdr.version, hdr.version);
    }
    hdr.id[13] = 0;
@@ -438,12 +438,12 @@ void write_state_file(char *dir, const char *progname, int port)
    }
 // Dmsg1(010, "Wrote header of %d bytes\n", sizeof(state_hdr));
    state_hdr.last_jobs_addr = sizeof(state_hdr);
-   state_hdr.reserved[0] = write_last_jobs_list(sfd, state_hdr.last_jobs_addr);   
+   state_hdr.reserved[0] = write_last_jobs_list(sfd, state_hdr.last_jobs_addr);
 // Dmsg1(010, "write last job end = %d\n", (int)state_hdr.reserved[0]);
    if (lseek(sfd, 0, SEEK_SET) < 0) {
       Dmsg1(000, "lseek error: ERR=%s\n", strerror(errno));
       goto bail_out;
-   }  
+   }
    if (write(sfd, &state_hdr, sizeof(state_hdr)) != sizeof(state_hdr)) {
       Pmsg1(000, "Write final hdr error: ERR=%s\n", strerror(errno));
    }
@@ -467,14 +467,14 @@ void drop(char *uid, char *gid)
       gid_t gr_list[1];
 
       if ((group = getgrnam(gid)) == NULL) {
-         Emsg1(M_ERROR_TERM, 0, _("Could not find specified group: %s\n"), gid);
+	 Emsg1(M_ERROR_TERM, 0, _("Could not find specified group: %s\n"), gid);
       }
       if (setgid(group->gr_gid)) {
-         Emsg1(M_ERROR_TERM, 0, _("Could not set specified group: %s\n"), gid);
+	 Emsg1(M_ERROR_TERM, 0, _("Could not set specified group: %s\n"), gid);
       }
       gr_list[0] = group->gr_gid;
       if (setgroups(1, gr_list)) {
-         Emsg1(M_ERROR_TERM, 0, _("Could not set specified group: %s\n"), gid);
+	 Emsg1(M_ERROR_TERM, 0, _("Could not set specified group: %s\n"), gid);
       }
    }
 #endif
@@ -483,21 +483,21 @@ void drop(char *uid, char *gid)
    if (uid) {
       struct passwd *passw;
       if ((passw = getpwnam(uid)) == NULL) {
-         Emsg1(M_ERROR_TERM, 0, _("Could not find specified userid: %s\n"), uid);
+	 Emsg1(M_ERROR_TERM, 0, _("Could not find specified userid: %s\n"), uid);
       }
       if (setuid(passw->pw_uid)) {
-         Emsg1(M_ERROR_TERM, 0, _("Could not set specified userid: %s\n"), uid);
+	 Emsg1(M_ERROR_TERM, 0, _("Could not set specified userid: %s\n"), uid);
       }
    }
 #endif
-	  
+
 }
 
 static pthread_mutex_t timer_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t timer = PTHREAD_COND_INITIALIZER;
 
 /*
- * This routine will sleep (sec, microsec).  Note, however, that if a 
+ * This routine will sleep (sec, microsec).  Note, however, that if a
  *   signal occurs, it will return early.  It is up to the caller
  *   to recall this routine if he/she REALLY wants to sleep the
  *   requested time.
@@ -515,7 +515,7 @@ int bmicrosleep(time_t sec, long usec)
 #ifdef HAVE_NANOSLEEP
    stat = nanosleep(&timeout, NULL);
    if (!(stat < 0 && errno == ENOSYS)) {
-      return stat;		     
+      return stat;
    }
    /* If we reach here it is because nanosleep is not supported by the OS */
 #endif
@@ -547,7 +547,7 @@ int bmicrosleep(time_t sec, long usec)
 long long int
 strtoll(const char *ptr, char **endptr, int base)
 {
-   return (long long int)strtod(ptr, endptr);	
+   return (long long int)strtod(ptr, endptr);
 }
 #endif
 
@@ -559,7 +559,7 @@ strtoll(const char *ptr, char **endptr, int base)
 char *bfgets(char *s, int size, FILE *fd)
 {
    char *p = s;
-   int ch;	 
+   int ch;
    *p = 0;
    for (int i=0; i < size-1; i++) {
       do {
@@ -577,15 +577,15 @@ char *bfgets(char *s, int size, FILE *fd)
       *p = 0;
       if (ch == '\r') { /* Support for Mac/Windows file format */
 	 ch = fgetc(fd);
-         if (ch == '\n') { /* Windows (\r\n) */
+	 if (ch == '\n') { /* Windows (\r\n) */
 	    *p++ = ch;
 	    *p = 0;
 	 }
-         else { /* Mac (\r only) */
+	 else { /* Mac (\r only) */
 	    ungetc(ch, fd); /* Push next character back to fd */
 	 }
 	 break;
-      }      
+      }
       if (ch == '\n') {
 	 break;
       }

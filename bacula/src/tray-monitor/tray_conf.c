@@ -7,7 +7,7 @@
 *
 *   1. The generic lexical scanner in lib/lex.c and lib/lex.h
 *
-*   2. The generic config  scanner in lib/parse_config.c and 
+*   2. The generic config  scanner in lib/parse_config.c and
 *	lib/parse_config.h.
 *	These files contain the parser code, some utility
 *	routines, and the common store routines (name, int,
@@ -63,10 +63,10 @@ int  res_all_size = sizeof(res_all);
 
 
 /* Definition of records permitted within each
-* resource with the routine to process the record 
+* resource with the routine to process the record
 * information.  NOTE! quoted names must be in lower case.
-*/ 
-/* 
+*/
+/*
 *    Monitor Resource
 *
 *   name	   handler     value		     code flags    default_value
@@ -89,10 +89,10 @@ static RES_ITEM dir_items[] = {
    {"dirport",     store_int,      ITEM(res_dir.DIRport),  0, ITEM_DEFAULT, 9101},
    {"address",     store_str,      ITEM(res_dir.address),  0, 0, 0},
    {"enablessl",   store_yesno,    ITEM(res_dir.enable_ssl), 1, ITEM_DEFAULT, 0},
-   {NULL, NULL, NULL, 0, 0, 0} 
+   {NULL, NULL, NULL, 0, 0, 0}
 };
 
-/* 
+/*
 *    Client or File daemon resource
 *
 *   name	   handler     value		     code flags    default_value
@@ -105,7 +105,7 @@ static RES_ITEM cli_items[] = {
    {"fdport",   store_pint,       ITEM(res_client.FDport),   0, ITEM_DEFAULT, 9102},
    {"password", store_password,   ITEM(res_client.password), 0, ITEM_REQUIRED, 0},
    {"enablessl", store_yesno,     ITEM(res_client.enable_ssl), 1, ITEM_DEFAULT, 0},
-   {NULL, NULL, NULL, 0, 0, 0} 
+   {NULL, NULL, NULL, 0, 0, 0}
 };
 
 /* Storage daemon resource
@@ -121,11 +121,11 @@ static RES_ITEM store_items[] = {
    {"password",    store_password, ITEM(res_store.password),   0, ITEM_REQUIRED, 0},
    {"sdpassword",  store_password, ITEM(res_store.password),   0, 0, 0},
    {"enablessl",   store_yesno,    ITEM(res_store.enable_ssl),  1, ITEM_DEFAULT, 0},
-   {NULL, NULL, NULL, 0, 0, 0} 
+   {NULL, NULL, NULL, 0, 0, 0}
 };
 
-/* 
-* This is the master resource definition.  
+/*
+* This is the master resource definition.
 * It must have one item for each of the resources.
 *
 *  NOTE!!! keep it in the same order as the R_codes
@@ -158,8 +158,8 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
    }
    switch (type) {
    case R_MONITOR:
-      sendit(sock, "Monitor: name=%s FDtimeout=%s SDtimeout=%s\n", 
-   reshdr->name, 
+      sendit(sock, "Monitor: name=%s FDtimeout=%s SDtimeout=%s\n",
+   reshdr->name,
    edit_uint64(res->res_monitor.FDConnectTimeout, ed1),
    edit_uint64(res->res_monitor.SDConnectTimeout, ed2));
       break;
@@ -185,10 +185,10 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
 }
 
 
-/* 
+/*
 * Free memory of resource -- called when daemon terminates.
 * NB, we don't need to worry about freeing any references
-* to other resources as they will be freed when that 
+* to other resources as they will be freed when that
 * resource chain is traversed.  Mainly we worry about freeing
 * allocated strings (names).
 */
@@ -243,7 +243,7 @@ void free_resource(RES *sres, int type)
 /*
 * Save the new resource by chaining it into the head list for
 * the resource. If this is pass 2, we update any resource
-* pointers because they may not have been defined until 
+* pointers because they may not have been defined until
 * later in pass 1.
 */
 void save_resource(int type, RES_ITEM *items, int pass)
@@ -252,25 +252,25 @@ void save_resource(int type, RES_ITEM *items, int pass)
    int rindex = type - r_first;
    int i, size;
    int error = 0;
-   
-   /* 
+
+   /*
    * Ensure that all required items are present
    */
    for (i=0; items[i].name; i++) {
       if (items[i].flags & ITEM_REQUIRED) {
-         if (!bit_is_set(i, res_all.res_monitor.hdr.item_present)) {
-               Emsg2(M_ERROR_TERM, 0, "%s item is required in %s resource, but not found.\n",
-                  items[i].name, resources[rindex]);
-         }
+	 if (!bit_is_set(i, res_all.res_monitor.hdr.item_present)) {
+	       Emsg2(M_ERROR_TERM, 0, "%s item is required in %s resource, but not found.\n",
+		  items[i].name, resources[rindex]);
+	 }
       }
       /* If this triggers, take a look at lib/parse_conf.h */
       if (i >= MAX_RES_ITEMS) {
-         Emsg1(M_ERROR_TERM, 0, "Too many items in %s resource\n", resources[rindex]);
+	 Emsg1(M_ERROR_TERM, 0, "Too many items in %s resource\n", resources[rindex]);
       }
    }
 
    /*
-   * During pass 2 in each "store" routine, we looked up pointers 
+   * During pass 2 in each "store" routine, we looked up pointers
    * to all the resources referrenced in the current resource, now we
    * must copy their addresses from the static record to the allocated
    * record.
@@ -282,28 +282,28 @@ void save_resource(int type, RES_ITEM *items, int pass)
       case R_CLIENT:
       case R_STORAGE:
       case R_DIRECTOR:
-         break;
+	 break;
       default:
-         Emsg1(M_ERROR, 0, "Unknown resource type %d in save_resource.\n", type);
-         error = 1;
-         break;
+	 Emsg1(M_ERROR, 0, "Unknown resource type %d in save_resource.\n", type);
+	 error = 1;
+	 break;
       }
       /* Note, the resource name was already saved during pass 1,
       * so here, we can just release it.
       */
       if (res_all.res_monitor.hdr.name) {
-         free(res_all.res_monitor.hdr.name);
-         res_all.res_monitor.hdr.name = NULL;
+	 free(res_all.res_monitor.hdr.name);
+	 res_all.res_monitor.hdr.name = NULL;
       }
       if (res_all.res_monitor.hdr.desc) {
-         free(res_all.res_monitor.hdr.desc);
-         res_all.res_monitor.hdr.desc = NULL;
+	 free(res_all.res_monitor.hdr.desc);
+	 res_all.res_monitor.hdr.desc = NULL;
       }
       return;
    }
 
    /*
-   * The following code is only executed during pass 1   
+   * The following code is only executed during pass 1
    */
    switch (type) {
    case R_MONITOR:
@@ -316,7 +316,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
       size = sizeof(CLIENT);
       break;
    case R_STORAGE:
-      size = sizeof(STORE); 
+      size = sizeof(STORE);
       break;
    default:
       printf("Unknown resource type %d in save_resrouce.\n", type);
@@ -330,21 +330,21 @@ void save_resource(int type, RES_ITEM *items, int pass)
       memcpy(res, &res_all, size);
       if (!res_head[rindex]) {
    res_head[rindex] = (RES *)res; /* store first entry */
-         Dmsg3(900, "Inserting first %s res: %s index=%d\n", res_to_str(type),
-         res->res_monitor.hdr.name, rindex);
+	 Dmsg3(900, "Inserting first %s res: %s index=%d\n", res_to_str(type),
+	 res->res_monitor.hdr.name, rindex);
       } else {
    RES *next;
    /* Add new res to end of chain */
    for (next=res_head[rindex]; next->next; next=next->next) {
       if (strcmp(next->name, res->res_monitor.hdr.name) == 0) {
-         Emsg2(M_ERROR_TERM, 0,
-                  _("Attempt to define second %s resource named \"%s\" is not permitted.\n"),
-         resources[rindex].name, res->res_monitor.hdr.name);
+	 Emsg2(M_ERROR_TERM, 0,
+		  _("Attempt to define second %s resource named \"%s\" is not permitted.\n"),
+	 resources[rindex].name, res->res_monitor.hdr.name);
       }
    }
    next->next = (RES *)res;
-         Dmsg4(900, "Inserting %s res: %s index=%d pass=%d\n", res_to_str(type),
-         res->res_monitor.hdr.name, rindex, pass);
+	 Dmsg4(900, "Inserting %s res: %s index=%d pass=%d\n", res_to_str(type),
+	 res->res_monitor.hdr.name, rindex, pass);
       }
    }
 }

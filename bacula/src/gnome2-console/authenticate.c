@@ -52,7 +52,7 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
    char bashed_name[MAX_NAME_LENGTH];
    char *password;
 
-   /* 
+   /*
     * Send my name to the Director then do authentication
     */
    if (cons) {
@@ -67,13 +67,13 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
    btimer_t *tid = start_bsock_timer(dir, 60 * 5);
    bnet_fsend(dir, hello, bashed_name);
 
-   if (!cram_md5_get_auth(dir, password, ssl_need) || 
+   if (!cram_md5_get_auth(dir, password, ssl_need) ||
        !cram_md5_auth(dir, password, ssl_need)) {
       stop_bsock_timer(tid);
       printf(_("%s: Director authorization problem.\n"), my_name);
       set_text(_("Director authorization problem.\n"), -1);
       set_text(_(
-       "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"), 
+       "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"),
 	-1);
       return 0;
    }

@@ -34,12 +34,12 @@
 #ifdef HAVE_CONIO
 #include "conio.h"
 #else
-#define con_init(x) 
+#define con_init(x)
 #define con_term()
 #define con_set_zed_keys();
 #define trapctlc()
 #define clrbrk()
-#define usrbrk() 0  
+#define usrbrk() 0
 #endif
 
 #ifdef HAVE_WIN32
@@ -47,7 +47,7 @@
 #define isatty(fd) (fd==0)
 DWORD  g_platform_id = VER_PLATFORM_WIN32_WINDOWS;
 #endif
- 
+
 /* Exported variables */
 
 #ifdef HAVE_CYGWIN
@@ -77,7 +77,7 @@ extern "C" void got_sigtin(int sig);
 /* Static variables */
 static char *configfile = NULL;
 static BSOCK *UA_sock = NULL;
-static DIRRES *dir; 
+static DIRRES *dir;
 static FILE *output = stdout;
 static bool tee = false;		  /* output to output and stdout */
 static bool stop = false;
@@ -109,32 +109,32 @@ static void usage()
 "       -dnn        set debug level to nn\n"
 "       -s          no signals\n"
 "       -t          test - read configuration and exit\n"
-"       -?          print this message.\n"  
+"       -?          print this message.\n"
 "\n"), HOST_OS, DISTNAME, DISTVER);
 }
 
 
-extern "C" 
+extern "C"
 void got_sigstop(int sig)
 {
    stop = true;
 }
 
-extern "C" 
+extern "C"
 void got_sigcontinue(int sig)
 {
    stop = false;
 }
 
-extern "C" 
-void got_sigtout(int sig) 
+extern "C"
+void got_sigtout(int sig)
 {
 // printf("Got tout\n");
 }
 
-extern "C" 
+extern "C"
 void got_sigtin(int sig)
-{   
+{
 // printf("Got tin\n");
 }
 
@@ -148,7 +148,7 @@ static int zed_keyscmd(FILE *input, BSOCK *UA_sock)
 /*
  * These are the @command
  */
-struct cmdstruct { const char *key; int (*func)(FILE *input, BSOCK *UA_sock); const char *help; }; 
+struct cmdstruct { const char *key; int (*func)(FILE *input, BSOCK *UA_sock); const char *help; };
 static struct cmdstruct commands[] = {
  { N_("input"),      inputcmd,     _("input from file")},
  { N_("output"),     outputcmd,    _("output to file")},
@@ -199,18 +199,18 @@ static int do_a_command(FILE *input, BSOCK *UA_sock)
 }
 
 
-static void read_and_process_input(FILE *input, BSOCK *UA_sock) 
+static void read_and_process_input(FILE *input, BSOCK *UA_sock)
 {
    const char *prompt = "*";
    bool at_prompt = false;
    int tty_input = isatty(fileno(input));
    int stat;
 
-   for ( ;; ) { 
+   for ( ;; ) {
       if (at_prompt) {                /* don't prompt multiple times */
-         prompt = "";
+	 prompt = "";
       } else {
-         prompt = "*";
+	 prompt = "*";
 	 at_prompt = true;
       }
       if (tty_input) {
@@ -239,15 +239,15 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
       if (stat < 0) {
 	 break; 		      /* error or interrupt */
       } else if (stat == 0) {	      /* timeout */
-         if (strcmp(prompt, "*") == 0) {
-            bnet_fsend(UA_sock, ".messages");
+	 if (strcmp(prompt, "*") == 0) {
+	    bnet_fsend(UA_sock, ".messages");
 	 } else {
 	    continue;
 	 }
       } else {
 	 at_prompt = FALSE;
 	 /* @ => internal command for us */
-         if (UA_sock->msg[0] == '@') {
+	 if (UA_sock->msg[0] == '@') {
 	    parse_args(UA_sock->msg, &args, &argc, argk, argv, MAX_CMD_ARGS);
 	    if (!do_a_command(input, UA_sock)) {
 	       break;
@@ -264,7 +264,7 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
       while ((stat = bnet_recv(UA_sock)) >= 0) {
 	 if (at_prompt) {
 	    if (!stop) {
-               sendit("\n");
+	       sendit("\n");
 	    }
 	    at_prompt = false;
 	 }
@@ -287,7 +287,7 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
 	 if (UA_sock->msglen == BNET_PROMPT) {
 	    at_prompt = true;
 	 }
-         Dmsg1(100, "Got poll %s\n", bnet_sig_to_ascii(UA_sock));
+	 Dmsg1(100, "Got poll %s\n", bnet_sig_to_ascii(UA_sock));
       }
    }
 }
@@ -342,7 +342,7 @@ int main(int argc, char *argv[])
 	 usage();
 	 con_term();
 	 exit(1);
-      }  
+      }
    }
    argc -= optind;
    argv += optind;
@@ -382,8 +382,8 @@ int main(int argc, char *argv[])
    UnlockRes();
    if (ndir == 0) {
       con_term();
-      Emsg1(M_ERROR_TERM, 0, _("No Director resource defined in %s\n\
-Without that I don't how to speak to the Director :-(\n"), configfile);
+      Emsg1(M_ERROR_TERM, 0, _("No Director resource defined in %s\n"
+"Without that I don't how to speak to the Director :-(\n"), configfile);
    }
 
    if (test_config) {
@@ -404,7 +404,7 @@ try_again:
       LockRes();
       ndir = 0;
       foreach_res(dir, R_DIRECTOR) {
-         senditf( _("%d  %s at %s:%d\n"), 1+ndir++, dir->hdr.name, dir->address,
+	 senditf( _("%d  %s at %s:%d\n"), 1+ndir++, dir->hdr.name, dir->address,
 	    dir->DIRport);
       }
       UnlockRes();
@@ -414,7 +414,7 @@ try_again:
       }
       item = atoi(UA_sock->msg);
       if (item < 0 || item > ndir) {
-         senditf(_("You must enter a number between 1 and %d\n"), ndir);
+	 senditf(_("You must enter a number between 1 and %d\n"), ndir);
 	 goto try_again;
       }
       LockRes();
@@ -429,9 +429,9 @@ try_again:
       dir = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);
       UnlockRes();
    }
-      
+
    senditf(_("Connecting to Director %s:%d\n"), dir->address,dir->DIRport);
-   UA_sock = bnet_connect(NULL, 5, 15, "Director daemon", dir->address, 
+   UA_sock = bnet_connect(NULL, 5, 15, "Director daemon", dir->address,
 			  NULL, dir->DIRport, 0);
    if (UA_sock == NULL) {
       terminate_console(0);
@@ -504,7 +504,7 @@ static void terminate_console(int sig)
 #include "history.h"
 
 
-int 
+int
 get_cmd(FILE *input, const char *prompt, BSOCK *sock, int sec)
 {
    char *line;
@@ -559,17 +559,17 @@ wait_for_data(int fd, int sec)
    }
 }
 
-/*	
- * Get next input command from terminal. 
+/*
+ * Get next input command from terminal.
  *
  *   Returns: 1 if got input
  *	      0 if timeout
  *	     -1 if EOF or error
  */
-int 
+int
 get_cmd(FILE *input, const char *prompt, BSOCK *sock, int sec)
 {
-   int len;  
+   int len;
    if (!stop) {
       if (output == stdout || tee) {
 	 sendit(prompt);
@@ -579,7 +579,7 @@ again:
    switch (wait_for_data(fileno(input), sec)) {
    case 0:
       return 0; 		   /* timeout */
-   case -1: 
+   case -1:
       return -1;		   /* error */
    default:
       len = sizeof_pool_memory(sock->msg) - 1;
@@ -629,9 +629,9 @@ static int inputcmd(FILE *input, BSOCK *UA_sock)
    }
    fd = fopen(argk[1], "r");
    if (!fd) {
-      senditf(_("Cannot open file %s for input. ERR=%s\n"), 
+      senditf(_("Cannot open file %s for input. ERR=%s\n"),
 	 argk[1], strerror(errno));
-      return 1; 
+      return 1;
    }
    read_and_process_input(fd, UA_sock);
    fclose(fd);
@@ -675,9 +675,9 @@ static int do_outputcmd(FILE *input, BSOCK *UA_sock)
    }
    fd = fopen(argk[1], mode);
    if (!fd) {
-      senditf(_("Cannot open file %s for output. ERR=%s\n"), 
+      senditf(_("Cannot open file %s for output. ERR=%s\n"),
 	 argk[1], strerror(errno));
-      return 1; 
+      return 1;
    }
    output = fd;
    return 1;
@@ -726,18 +726,18 @@ void sendit(const char *buf)
 {
 #ifdef xHAVE_CONIO
     if (output == stdout || tee) {
-       char *p, *q;	
+       char *p, *q;
        /*
-        * Here, we convert every \n into \r\n because the
-	*  terminal is in raw mode when we are using 
+	* Here, we convert every \n into \r\n because the
+	*  terminal is in raw mode when we are using
 	*  conio.
 	*/
        for (p=q=buf; (p=strchr(q, '\n')); ) {
 	  if (p-q > 0) {
 	     t_sendl(q, p-q);
 	  }
-          t_sendl("\r\n", 2);
-          q = ++p;                    /* point after \n */
+	  t_sendl("\r\n", 2);
+	  q = ++p;                    /* point after \n */
        }
        if (*q) {
 	  t_send(q);

@@ -4,7 +4,7 @@
  *  Note, generally, these routines are more complicated
  *	  that a simple search by name or id. Such simple
  *	  request are in get.c
- * 
+ *
  *    Kern Sibbald, December 2000
  *
  *    Version $Id$
@@ -57,7 +57,7 @@ extern int QueryDB(const char *file, int line, JCR *jcr, B_DB *db, char *select_
  * find last full save for Incremental and Differential saves.
  *
  *  StartTime is returned in stime
- *	
+ *
  * Returns: 0 on failure
  *	    1 on success, jr is unchanged, but stime is set
  */
@@ -72,7 +72,7 @@ db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
    /* If no Id given, we must find corresponding job */
    if (jr->JobId == 0) {
       /* Differential is since last Full backup */
-	 Mmsg(mdb->cmd, 
+	 Mmsg(mdb->cmd,
 "SELECT StartTime FROM Job WHERE JobStatus='T' AND Type='%c' AND "
 "Level='%c' AND Name='%s' AND ClientId=%u AND FileSetId=%u "
 "ORDER BY StartTime DESC LIMIT 1",
@@ -83,34 +83,34 @@ db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
 
       /* Incremental is since last Full, Incremental, or Differential */
       } else if (jr->JobLevel == L_INCREMENTAL) {
-	 /* 
+	 /*
 	  * For an Incremental job, we must first ensure
 	  *  that a Full backup was done (cmd edited above)
 	  *  then we do a second look to find the most recent
 	  *  backup
 	  */
 	 if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
-            Mmsg2(&mdb->errmsg, _("Query error for start time request: ERR=%s\nCMD=%s\n"), 
+	    Mmsg2(&mdb->errmsg, _("Query error for start time request: ERR=%s\nCMD=%s\n"),
 	       sql_strerror(mdb), mdb->cmd);
 	    db_unlock(mdb);
 	    return 0;
 	 }
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
 	    sql_free_result(mdb);
-            Mmsg(mdb->errmsg, _("No prior Full backup Job record found.\n"));
+	    Mmsg(mdb->errmsg, _("No prior Full backup Job record found.\n"));
 	    db_unlock(mdb);
 	    return 0;
 	 }
 	 sql_free_result(mdb);
 	 /* Now edit SQL command for Incremental Job */
-	 Mmsg(mdb->cmd, 
+	 Mmsg(mdb->cmd,
 "SELECT StartTime FROM Job WHERE JobStatus='T' AND Type='%c' AND "
 "Level IN ('%c','%c','%c') AND Name='%s' AND ClientId=%u "
 "AND FileSetId=%u ORDER BY StartTime DESC LIMIT 1",
 	    jr->JobType, L_INCREMENTAL, L_DIFFERENTIAL, L_FULL, jr->Name,
 	    jr->ClientId, jr->FileSetId);
       } else {
-         Mmsg1(&mdb->errmsg, _("Unknown level=%d\n"), jr->JobLevel);
+	 Mmsg1(&mdb->errmsg, _("Unknown level=%d\n"), jr->JobLevel);
 	 db_unlock(mdb);
 	 return 0;
       }
@@ -144,7 +144,7 @@ db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
 }
 
 /*
- * Find last failed job since given start-time 
+ * Find last failed job since given start-time
  *   it must be either Full or Diff.
  *
  * Returns: false on failure
@@ -158,7 +158,7 @@ db_find_failed_job_since(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM *stime, int &
 
    db_lock(mdb);
    /* Differential is since last Full backup */
-   Mmsg(mdb->cmd, 
+   Mmsg(mdb->cmd,
 "SELECT Level FROM Job WHERE JobStatus!='T' AND Type='%c' AND "
 "Level IN ('%c','%c') AND Name='%s' AND ClientId=%u "
 "AND FileSetId=%u AND StartTime>'%s' "
@@ -184,7 +184,7 @@ db_find_failed_job_since(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM *stime, int &
 }
 
 
-/* 
+/*
  * Find JobId of last job that ran.  E.g. for
  *   VERIFY_CATALOG we want the JobId of the last INIT.
  *   For VERIFY_VOLUME_TO_CATALOG, we want the JobId of the last Job.
@@ -200,7 +200,7 @@ db_find_last_jobid(JCR *jcr, B_DB *mdb, const char *Name, JOB_DBR *jr)
    /* Find last full */
    db_lock(mdb);
    if (jr->JobLevel == L_VERIFY_CATALOG) {
-      Mmsg(mdb->cmd, 
+      Mmsg(mdb->cmd,
 "SELECT JobId FROM Job WHERE Type='V' AND Level='%c' AND "
 " JobStatus='T' AND Name='%s' AND "
 "ClientId=%u ORDER BY StartTime DESC LIMIT 1",
@@ -212,7 +212,7 @@ db_find_last_jobid(JCR *jcr, B_DB *mdb, const char *Name, JOB_DBR *jr)
 "SELECT JobId FROM Job WHERE Type='B' AND JobStatus='T' AND "
 "Name='%s' ORDER BY StartTime DESC LIMIT 1", Name);
       } else {
-	 Mmsg(mdb->cmd, 
+	 Mmsg(mdb->cmd,
 "SELECT JobId FROM Job WHERE Type='B' AND JobStatus='T' AND "
 "ClientId=%u ORDER BY StartTime DESC LIMIT 1", jr->ClientId);
       }
@@ -247,7 +247,7 @@ db_find_last_jobid(JCR *jcr, B_DB *mdb, const char *Name, JOB_DBR *jr)
    return 1;
 }
 
-/* 
+/*
  * Find Available Media (Volume) for Pool
  *
  * Find a Volume for a given PoolId, MediaType, and Status.
@@ -256,7 +256,7 @@ db_find_last_jobid(JCR *jcr, B_DB *mdb, const char *Name, JOB_DBR *jr)
  *	    numrows on success
  */
 int
-db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr) 
+db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr)
 {
    SQL_ROW row;
    int numrows;
@@ -266,33 +266,33 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
    if (item == -1) {	   /* find oldest volume */
       /* Find oldest volume */
       Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
-          "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
-          "VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,Recycle,Slot,"
-          "FirstWritten,LastWritten,VolStatus,InChanger "
-          "FROM Media WHERE PoolId=%u AND MediaType='%s' AND VolStatus IN ('Full',"
-          "'Recycle','Purged','Used','Append') "
-          "ORDER BY LastWritten LIMIT 1", mr->PoolId, mr->MediaType); 
+	  "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
+	  "VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,Recycle,Slot,"
+	  "FirstWritten,LastWritten,VolStatus,InChanger "
+	  "FROM Media WHERE PoolId=%u AND MediaType='%s' AND VolStatus IN ('Full',"
+	  "'Recycle','Purged','Used','Append') "
+	  "ORDER BY LastWritten LIMIT 1", mr->PoolId, mr->MediaType);
      item = 1;
    } else {
       /* Find next available volume */
       if (InChanger) {
-         changer = "AND InChanger=1";
+	 changer = "AND InChanger=1";
       } else {
-         changer = "";
+	 changer = "";
       }
       if (strcmp(mr->VolStatus, "Recycled") == 0 ||
-          strcmp(mr->VolStatus, "Purged") == 0) {
-         order = "ORDER BY LastWritten ASC,MediaId";  /* take oldest */
+	  strcmp(mr->VolStatus, "Purged") == 0) {
+	 order = "ORDER BY LastWritten ASC,MediaId";  /* take oldest */
       } else {
-         order = "ORDER BY LastWritten IS NULL,LastWritten DESC,MediaId";   /* take most recently written */
-      }  
+	 order = "ORDER BY LastWritten IS NULL,LastWritten DESC,MediaId";   /* take most recently written */
+      }
       Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
-          "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
-          "VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,Recycle,Slot,"
-          "FirstWritten,LastWritten,VolStatus,InChanger "
-          "FROM Media WHERE PoolId=%u AND MediaType='%s' AND VolStatus='%s' "
-          "%s " 
-          "%s LIMIT %d",
+	  "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
+	  "VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,Recycle,Slot,"
+	  "FirstWritten,LastWritten,VolStatus,InChanger "
+	  "FROM Media WHERE PoolId=%u AND MediaType='%s' AND VolStatus='%s' "
+	  "%s "
+	  "%s LIMIT %d",
 	  mr->PoolId, mr->MediaType, mr->VolStatus, changer, order, item);
    }
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
@@ -307,8 +307,8 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
       db_unlock(mdb);
       return 0;
    }
-   
-   /* Seek to desired item 
+
+   /* Seek to desired item
     * Note, we use base 1; SQL uses base 0
     */
    sql_data_seek(mdb, item-1);

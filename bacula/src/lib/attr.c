@@ -1,6 +1,6 @@
 /*
  *   attr.c  Unpack an Attribute record returned from the tape
- * 
+ *
  *    Kern Sibbald, June MMIII	(code pulled from filed/restore.c and updated)
  *
  *   Version $Id$
@@ -52,7 +52,7 @@ void free_attr(ATTR *attr)
 int unpack_attributes_record(JCR *jcr, int32_t stream, char *rec, ATTR *attr)
 {
    char *p;
-   /*		   
+   /*
     * An Attributes record consists of:
     *	 File_index
     *	 Type	(FT_types)
@@ -83,7 +83,7 @@ int unpack_attributes_record(JCR *jcr, int32_t stream, char *rec, ATTR *attr)
       { }
    while (*p++ != ' ')               /* skip type */
       { }
-   
+
    attr->fname = p;		      /* set filname position */
    while (*p++ != 0)		      /* skip filename */
       { }
@@ -112,7 +112,7 @@ int unpack_attributes_record(JCR *jcr, int32_t stream, char *rec, ATTR *attr)
 
 /*
  * Build attr->ofname from attr->fname and
- *	 attr->olname from attr->olname 
+ *	 attr->olname from attr->olname
  */
 void build_attr_output_fnames(JCR *jcr, ATTR *attr)
 {
@@ -124,7 +124,7 @@ void build_attr_output_fnames(JCR *jcr, ATTR *attr)
     *	a drive letter -- we simply change the drive
     *	from, for example, c: to c/ for
     *	every filename if a prefix is supplied.
-    *	  
+    *
     */
    if (jcr->where[0] == 0) {
       pm_strcpy(attr->ofname, attr->fname);
@@ -134,13 +134,13 @@ void build_attr_output_fnames(JCR *jcr, ATTR *attr)
       int wherelen = strlen(jcr->where);
       pm_strcpy(attr->ofname, jcr->where);  /* copy prefix */
       if (win32_client && attr->fname[1] == ':') {
-         attr->fname[1] = '/';     /* convert : to / */
+	 attr->fname[1] = '/';     /* convert : to / */
       }
       fn = attr->fname; 	   /* take whole name */
       /* Ensure where is terminated with a slash */
       if (jcr->where[wherelen-1] != '/' && fn[0] != '/') {
-         pm_strcat(attr->ofname, "/");
-      }   
+	 pm_strcat(attr->ofname, "/");
+      }
       pm_strcat(attr->ofname, fn); /* copy rest of name */
       /*
        * Fixup link name -- if it is an absolute path
@@ -150,7 +150,7 @@ void build_attr_output_fnames(JCR *jcr, ATTR *attr)
 	 /* Always add prefix to hard links (FT_LNKSAVED) and
 	  *  on user request to soft links
 	  */
-         if (attr->lname[0] == '/' &&
+	 if (attr->lname[0] == '/' &&
 	     (attr->type == FT_LNKSAVED || jcr->prefix_links)) {
 	    pm_strcpy(attr->olname, jcr->where);
 	    add_link = true;
@@ -158,14 +158,14 @@ void build_attr_output_fnames(JCR *jcr, ATTR *attr)
 	    attr->olname[0] = 0;
 	    add_link = false;
 	 }
-         if (win32_client && attr->lname[1] == ':') {
-            attr->lname[1] = '/';    /* turn : into / */
+	 if (win32_client && attr->lname[1] == ':') {
+	    attr->lname[1] = '/';    /* turn : into / */
 	 }
 	 fn = attr->lname;	 /* take whole name */
 	 /* Ensure where is terminated with a slash */
-         if (add_link && jcr->where[wherelen-1] != '/' && fn[0] != '/') {
-            pm_strcat(attr->olname, "/");
-	 }   
+	 if (add_link && jcr->where[wherelen-1] != '/' && fn[0] != '/') {
+	    pm_strcat(attr->olname, "/");
+	 }
 	 pm_strcat(attr->olname, fn);	  /* copy rest of link */
       }
    }
@@ -179,7 +179,7 @@ extern char *getgroup(gid_t gid, char *name, int len);
  */
 void print_ls_output(JCR *jcr, ATTR *attr)
 {
-   char buf[5000]; 
+   char buf[5000];
    char ec1[30];
    char en1[30], en2[30];
    char *p, *f;

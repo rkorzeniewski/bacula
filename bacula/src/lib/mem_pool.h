@@ -46,8 +46,8 @@ extern POOLMEM  *sm_realloc_pool_memory(const char *fname, int line, POOLMEM *bu
 #define check_pool_memory_size(buf,size) sm_check_pool_memory_size(__FILE__, __LINE__, buf, size)
 extern POOLMEM  *sm_check_pool_memory_size(const char *fname, int line, POOLMEM *buf, int32_t size);
 
-#define free_pool_memory(x) sm_free_pool_memory(__FILE__, __LINE__, x) 
-#define free_memory(x) sm_free_pool_memory(__FILE__, __LINE__, x) 
+#define free_pool_memory(x) sm_free_pool_memory(__FILE__, __LINE__, x)
+#define free_memory(x) sm_free_pool_memory(__FILE__, __LINE__, x)
 extern void sm_free_pool_memory(const char *fname, int line, POOLMEM *buf);
 
 
@@ -62,11 +62,11 @@ extern POOLMEM  *check_pool_memory_size(POOLMEM *buf, int32_t size);
 extern void   free_pool_memory(POOLMEM *buf);
 
 #endif
- 
+
 extern void  close_memory_pool();
 extern void  print_memory_pool_stats();
 
-   
+
 
 #define PM_NOPOOL  0                  /* nonpooled memory */
 #define PM_NAME    1                  /* Bacula name */
@@ -83,7 +83,7 @@ public:
    ~POOL_MEM() { free_pool_memory(mem); mem = NULL; }
    char *c_str() const { return mem; }
    int size() const { return sizeof_pool_memory(mem); }
-   char *check_size(int32_t size) { 
+   char *check_size(int32_t size) {
       mem = check_pool_memory_size(mem, size);
       return mem;
    }

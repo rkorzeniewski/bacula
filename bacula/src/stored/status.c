@@ -4,7 +4,7 @@
  *     Kern Sibbald, May MMIII
  *
  *   Version $Id$
- *  
+ *
  */
 /*
    Copyright (C) 2000-2004 Kern Sibbald and John Walker
@@ -71,7 +71,7 @@ bool status_cmd(JCR *jcr)
 	      HOST_OS, DISTNAME, DISTVER);
    bstrftime_nc(dt, sizeof(dt), daemon_start_time);
    bnet_fsend(user, _("Daemon started %s, %d Job%s run since started.\n"), dt, num_jobs_run,
-        num_jobs_run == 1 ? "" : "s");
+	num_jobs_run == 1 ? "" : "s");
    if (debug_level > 0) {
       char b1[35], b2[35], b3[35], b4[35];
       bnet_fsend(user, _(" Heap: bytes=%s max_bytes=%s bufs=%s max_bufs=%s\n"),
@@ -100,10 +100,10 @@ bool status_cmd(JCR *jcr)
       for (dev=device->dev; dev; dev=dev->next) {
 	 if (dev_state(dev, ST_OPENED)) {
 	    if (dev_state(dev, ST_LABEL)) {
-               bnet_fsend(user, _("Device \"%s\" is mounted with Volume \"%s\"\n"), 
+	       bnet_fsend(user, _("Device \"%s\" is mounted with Volume \"%s\"\n"),
 		  dev_name(dev), dev->VolHdr.VolName);
 	    } else {
-               bnet_fsend(user, _("Device \"%s\" open but no Bacula volume is mounted.\n"), dev_name(dev));
+	       bnet_fsend(user, _("Device \"%s\" open but no Bacula volume is mounted.\n"), dev_name(dev));
 	    }
 	    send_blocked_status(jcr, dev);
 	    if (dev_state(dev, ST_APPEND)) {
@@ -112,9 +112,9 @@ bool status_cmd(JCR *jcr)
 		  bpb = 1;
 	       }
 	       bpb = dev->VolCatInfo.VolCatBytes / bpb;
-               bnet_fsend(user, _("    Total Bytes=%s Blocks=%s Bytes/block=%s\n"),
+	       bnet_fsend(user, _("    Total Bytes=%s Blocks=%s Bytes/block=%s\n"),
 		  edit_uint64_with_commas(dev->VolCatInfo.VolCatBytes, b1),
-		  edit_uint64_with_commas(dev->VolCatInfo.VolCatBlocks, b2), 
+		  edit_uint64_with_commas(dev->VolCatInfo.VolCatBlocks, b2),
 		  edit_uint64_with_commas(bpb, b3));
 	    } else {  /* reading */
 	       bpb = dev->VolCatInfo.VolCatReads;
@@ -126,17 +126,17 @@ bool status_cmd(JCR *jcr)
 	       } else {
 		  bpb = 0;
 	       }
-               bnet_fsend(user, _("    Total Bytes Read=%s Blocks Read=%s Bytes/block=%s\n"),
+	       bnet_fsend(user, _("    Total Bytes Read=%s Blocks Read=%s Bytes/block=%s\n"),
 		  edit_uint64_with_commas(dev->VolCatInfo.VolCatRBytes, b1),
-		  edit_uint64_with_commas(dev->VolCatInfo.VolCatReads, b2), 
+		  edit_uint64_with_commas(dev->VolCatInfo.VolCatReads, b2),
 		  edit_uint64_with_commas(bpb, b3));
 	    }
-            bnet_fsend(user, _("    Positioned at File=%s Block=%s\n"), 
+	    bnet_fsend(user, _("    Positioned at File=%s Block=%s\n"),
 	       edit_uint64_with_commas(dev->file, b1),
 	       edit_uint64_with_commas(dev->block_num, b2));
 
 	 } else {
-            bnet_fsend(user, _("Device \"%s\" is not open.\n"), dev_name(dev));
+	    bnet_fsend(user, _("Device \"%s\" is not open.\n"), dev_name(dev));
 	    send_blocked_status(jcr, dev);
 	 }
       }
@@ -156,7 +156,7 @@ bool status_cmd(JCR *jcr)
    return true;
 }
 
-static void send_blocked_status(JCR *jcr, DEVICE *dev) 
+static void send_blocked_status(JCR *jcr, DEVICE *dev)
 {
    BSOCK *user = jcr->dir_bsock;
    DCR *dcr = jcr->dcr;
@@ -170,10 +170,10 @@ static void send_blocked_status(JCR *jcr, DEVICE *dev)
       break;
    case BST_WAITING_FOR_SYSOP:
       if (jcr->JobStatus == JS_WaitMount) {
-         bnet_fsend(user, _("    Device is BLOCKED waiting for mount of volume \"%s\".\n"),
+	 bnet_fsend(user, _("    Device is BLOCKED waiting for mount of volume \"%s\".\n"),
 	    dcr->VolumeName);
       } else {
-         bnet_fsend(user, _("    Device is BLOCKED waiting for appendable media.\n"));
+	 bnet_fsend(user, _("    Device is BLOCKED waiting for appendable media.\n"));
       }
       break;
    case BST_DOING_ACQUIRE:
@@ -230,12 +230,12 @@ static void list_running_jobs(BSOCK *user)
    JCR *jcr;
    char JobName[MAX_NAME_LENGTH];
    char b1[30], b2[30], b3[30];
-   
+
    bnet_fsend(user, _("\nRunning Jobs:\n"));
    lock_jcr_chain();
    foreach_jcr(jcr) {
       if (jcr->JobStatus == JS_WaitFD) {
-         bnet_fsend(user, _("%s Job %s waiting for Client connection.\n"),
+	 bnet_fsend(user, _("%s Job %s waiting for Client connection.\n"),
 	    job_type_to_str(jcr->JobType), jcr->Job);
       }
       if (jcr->device) {
@@ -243,35 +243,35 @@ static void list_running_jobs(BSOCK *user)
 	 /* There are three periods after the Job name */
 	 char *p;
 	 for (int i=0; i<3; i++) {
-            if ((p=strrchr(JobName, '.')) != NULL) {
+	    if ((p=strrchr(JobName, '.')) != NULL) {
 	       *p = 0;
 	    }
 	 }
-         bnet_fsend(user, _("%s %s job %s JobId=%d Volume=\"%s\" device=\"%s\"\n"), 
+	 bnet_fsend(user, _("%s %s job %s JobId=%d Volume=\"%s\" device=\"%s\"\n"),
 		   job_level_to_str(jcr->JobLevel),
 		   job_type_to_str(jcr->JobType),
 		   JobName,
 		   jcr->JobId,
-                   jcr->dcr?jcr->dcr->VolumeName:"*none*",
-                   jcr->device?jcr->device->device_name:"none");
+		   jcr->dcr?jcr->dcr->VolumeName:"*none*",
+		   jcr->device?jcr->device->device_name:"none");
 	 sec = time(NULL) - jcr->run_time;
 	 if (sec <= 0) {
 	    sec = 1;
 	 }
 	 bps = jcr->JobBytes / sec;
-         bnet_fsend(user, _("    Files=%s Bytes=%s Bytes/sec=%s\n"), 
+	 bnet_fsend(user, _("    Files=%s Bytes=%s Bytes/sec=%s\n"),
 	    edit_uint64_with_commas(jcr->JobFiles, b1),
 	    edit_uint64_with_commas(jcr->JobBytes, b2),
 	    edit_uint64_with_commas(bps, b3));
 	 found = true;
 #ifdef DEBUG
 	 if (jcr->file_bsock) {
-            bnet_fsend(user, "    FDReadSeqNo=%s in_msg=%u out_msg=%d fd=%d\n", 
+	    bnet_fsend(user, "    FDReadSeqNo=%s in_msg=%u out_msg=%d fd=%d\n",
 	       edit_uint64_with_commas(jcr->file_bsock->read_seqno, b1),
 	       jcr->file_bsock->in_msg_no, jcr->file_bsock->out_msg_no,
 	       jcr->file_bsock->fd);
 	 } else {
-            bnet_fsend(user, "    FDSocket closed\n");
+	    bnet_fsend(user, "    FDSocket closed\n");
 	 }
 #endif
       }
@@ -292,16 +292,16 @@ static void list_terminated_jobs(void *arg)
    const char *msg;
 
    if (last_jobs->size() == 0) {
-      msg = _("No Terminated Jobs.\n"); 
+      msg = _("No Terminated Jobs.\n");
       sendit(msg, strlen(msg), arg);
       return;
    }
    lock_last_jobs_list();
-   msg =  _("\nTerminated Jobs:\n"); 
+   msg =  _("\nTerminated Jobs:\n");
    sendit(msg, strlen(msg), arg);
    msg =  _(" JobId  Level   Files          Bytes Status   Finished        Name \n");
    sendit(msg, strlen(msg), arg);
-   msg = _("======================================================================\n"); 
+   msg = _("======================================================================\n");
    sendit(msg, strlen(msg), arg);
    foreach_dlist(je, last_jobs) {
       char JobName[MAX_NAME_LENGTH];
@@ -312,7 +312,7 @@ static void list_terminated_jobs(void *arg)
       switch (je->JobType) {
       case JT_ADMIN:
       case JT_RESTORE:
-         bstrncpy(level, "    ", sizeof(level));
+	 bstrncpy(level, "    ", sizeof(level));
 	 break;
       default:
 	 bstrncpy(level, level_to_str(je->JobLevel), sizeof(level));
@@ -321,38 +321,38 @@ static void list_terminated_jobs(void *arg)
       }
       switch (je->JobStatus) {
       case JS_Created:
-         termstat = "Created";
+	 termstat = "Created";
 	 break;
       case JS_FatalError:
       case JS_ErrorTerminated:
-         termstat = "Error";
+	 termstat = "Error";
 	 break;
       case JS_Differences:
-         termstat = "Diffs";
+	 termstat = "Diffs";
 	 break;
       case JS_Canceled:
-         termstat = "Cancel";
+	 termstat = "Cancel";
 	 break;
       case JS_Terminated:
-         termstat = "OK";
+	 termstat = "OK";
 	 break;
       default:
-         termstat = "Other";
+	 termstat = "Other";
 	 break;
       }
       bstrncpy(JobName, je->Job, sizeof(JobName));
       /* There are three periods after the Job name */
       char *p;
       for (int i=0; i<3; i++) {
-         if ((p=strrchr(JobName, '.')) != NULL) {
+	 if ((p=strrchr(JobName, '.')) != NULL) {
 	    *p = 0;
 	 }
       }
-      bsnprintf(buf, sizeof(buf), _("%6d  %-6s %8s %14s %-7s  %-8s %s\n"), 
+      bsnprintf(buf, sizeof(buf), _("%6d  %-6s %8s %14s %-7s  %-8s %s\n"),
 	 je->JobId,
-	 level, 
+	 level,
 	 edit_uint64_with_commas(je->JobFiles, b1),
-	 edit_uint64_with_commas(je->JobBytes, b2), 
+	 edit_uint64_with_commas(je->JobBytes, b2),
 	 termstat,
 	 dt, JobName);
       sendit(buf, strlen(buf), arg);
@@ -364,7 +364,7 @@ static void list_terminated_jobs(void *arg)
 /*
  * Convert Job Level into a string
  */
-static const char *level_to_str(int level) 
+static const char *level_to_str(int level)
 {
    const char *str;
 
@@ -409,7 +409,7 @@ static const char *level_to_str(int level)
 }
 
 /*
- * Send to Director 
+ * Send to Director
  */
 static void sendit(const char *msg, int len, void *arg)
 {
@@ -438,7 +438,7 @@ bool qstatus_cmd(JCR *jcr)
       return false;
    }
    unbash_spaces(time);
-   
+
    if (strcmp(time.c_str(), "current") == 0) {
       bnet_fsend(dir, OKqstatus, time.c_str());
       lock_jcr_chain();

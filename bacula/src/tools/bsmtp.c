@@ -28,9 +28,9 @@
        www.engelschall.com
 
    Kern Sibbald, July 2001
-  
+
    Version $Id$
-    
+
  */
 
 #ifdef APCUPSD
@@ -70,7 +70,7 @@ static char my_hostname[MAXSTRING];
 
 
 /*
- *  examine message from server 
+ *  examine message from server
  */
 static void get_response(void)
 {
@@ -83,12 +83,12 @@ static void get_response(void)
 	if (len > 0) {
 	   buf[len-1] = 0;
 	}
-        Dmsg2(10, "%s --> %s\n", mailhost, buf);
-        if (!isdigit((int)buf[0]) || buf[0] > '3') {
-            Pmsg2(0, "Fatal malformed reply from %s: %s\n", mailhost, buf);
+	Dmsg2(10, "%s --> %s\n", mailhost, buf);
+	if (!isdigit((int)buf[0]) || buf[0] > '3') {
+	    Pmsg2(0, "Fatal malformed reply from %s: %s\n", mailhost, buf);
 	    exit(1);
 	}
-        if (buf[3] != '-') {
+	if (buf[3] != '-') {
 	    break;
 	}
     }
@@ -105,11 +105,11 @@ static void chat(const char *fmt, ...)
     va_start(ap, fmt);
     vfprintf(sfp, fmt, ap);
     if (debug_level >= 10) {
-       fprintf(stdout, "%s --> ", my_hostname); 
+       fprintf(stdout, "%s --> ", my_hostname);
        vfprintf(stdout, fmt, ap);
     }
     va_end(ap);
-  
+
     fflush(sfp);
     if (debug_level >= 10) {
        fflush(stdout);
@@ -128,7 +128,7 @@ static void usage()
 "       -f          set the From: field\n"
 "       -h          use mailhost:port as the SMTP server\n"
 "       -s          set the Subject: field\n"
-"       -?          print this message.\n"  
+"       -?          print this message.\n"
 "\n", MY_NAME);
 
    exit(1);
@@ -154,17 +154,17 @@ int main (int argc, char *argv[])
 
    while ((ch = getopt(argc, argv, "c:d:f:h:r:s:?")) != -1) {
       switch (ch) {
-      case 'c':                    
-         Dmsg1(20, "cc=%s\n", optarg);
+      case 'c':
+	 Dmsg1(20, "cc=%s\n", optarg);
 	 cc_addr = optarg;
 	 break;
 
       case 'd':                    /* set debug level */
 	 debug_level = atoi(optarg);
 	 if (debug_level <= 0) {
-	    debug_level = 1; 
+	    debug_level = 1;
 	 }
-         Dmsg1(20, "Debug level = %d\n", debug_level);
+	 Dmsg1(20, "Debug level = %d\n", debug_level);
 	 break;
 
       case 'f':                    /* from */
@@ -172,8 +172,8 @@ int main (int argc, char *argv[])
 	 break;
 
       case 'h':                    /* smtp host */
-         Dmsg1(20, "host=%s\n", optarg);
-         p = strchr(optarg, ':');
+	 Dmsg1(20, "host=%s\n", optarg);
+	 p = strchr(optarg, ':');
 	 if (p) {
 	    *p++ = 0;
 	    mailport = atoi(p);
@@ -182,7 +182,7 @@ int main (int argc, char *argv[])
 	 break;
 
       case 's':                    /* subject */
-         Dmsg1(20, "subject=%s\n", optarg);
+	 Dmsg1(20, "subject=%s\n", optarg);
 	 subject = optarg;
 	 break;
 
@@ -194,7 +194,7 @@ int main (int argc, char *argv[])
       default:
 	 usage();
 
-      }  
+      }
    }
    argc -= optind;
    argv += optind;
@@ -212,12 +212,12 @@ int main (int argc, char *argv[])
       if ((cp = getenv("SMTPSERVER")) != NULL) {
 	 mailhost = cp;
       } else {
-         mailhost = "localhost";
+	 mailhost = "localhost";
       }
    }
 
    /*
-    *  Find out my own host name for HELO; 
+    *  Find out my own host name for HELO;
     *  if possible, get the fully qualified domain name
     */
    if (gethostname(my_hostname, sizeof(my_hostname) - 1) < 0) {
@@ -237,9 +237,9 @@ int main (int argc, char *argv[])
     */
    if (from_addr == NULL) {
       if ((pwd = getpwuid(getuid())) == 0) {
-         sprintf(buf, "userid-%d@%s", (int)getuid(), my_hostname);
+	 sprintf(buf, "userid-%d@%s", (int)getuid(), my_hostname);
       } else {
-         sprintf(buf, "%s@%s", pwd->pw_name, my_hostname);
+	 sprintf(buf, "%s@%s", pwd->pw_name, my_hostname);
       }
       from_addr = bstrdup(buf);
    }
@@ -253,8 +253,8 @@ hp:
       Pmsg2(0, "Error unknown mail host \"%s\": ERR=%s\n", mailhost,
 	 strerror(errno));
       if (strcasecmp(mailhost, "localhost") != 0) {
-         Pmsg0(0, "Retrying connection using \"localhost\".\n");
-         mailhost = "localhost";
+	 Pmsg0(0, "Retrying connection using \"localhost\".\n");
+	 mailhost = "localhost";
 	 goto hp;
       }
       exit(1);
@@ -290,7 +290,7 @@ hp:
       exit(1);
    }
 
-   /* 
+   /*
     *  Send SMTP headers
     */
    get_response(); /* banner */
@@ -308,7 +308,7 @@ hp:
    Dmsg0(20, "Data\n");
    chat("data\r\n");
 
-   /* 
+   /*
     *  Send message header
     */
    fprintf(sfp, "From: %s\r\n", from_addr);
@@ -344,25 +344,25 @@ hp:
 
    fprintf(sfp, "\r\n");
 
-   /* 
-    *  Send message body 
+   /*
+    *  Send message body
     */
    while (fgets(buf, sizeof(buf), stdin)) {
       buf[strlen(buf)-1] = 0;
       if (strcmp(buf, ".") == 0) { /* quote lone dots */
-         fprintf(sfp, "..\r\n");
+	 fprintf(sfp, "..\r\n");
       } else {			   /* pass body through unchanged */
-         fprintf(sfp, "%s\r\n", buf);
+	 fprintf(sfp, "%s\r\n", buf);
       }
    }
 
-   /* 
+   /*
     *  Send SMTP quit command
     */
    chat(".\r\n");
    chat("quit\r\n");
 
-   /* 
+   /*
     *  Go away gracefully ...
     */
    exit(0);

@@ -37,17 +37,17 @@ static char OK_data[]    = "3000 OK data\n";
 static char FD_error[]   = "3000 error\n";
 static char rec_header[] = "rechdr %ld %ld %ld %ld %ld";
 
-/* 
+/*
  *  Read Data and send to File Daemon
  *   Returns: false on failure
  *	      true  on success
  */
-bool do_read_data(JCR *jcr) 
+bool do_read_data(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
    bool ok = true;
    DCR *dcr;
-   
+
    Dmsg0(20, "Start read data.\n");
 
    if (!bnet_set_buffer_size(fd, jcr->device->max_network_buffer_size, BNET_SETBUF_WRITE)) {
@@ -63,10 +63,10 @@ bool do_read_data(JCR *jcr)
       return false;
    }
 
-   Dmsg2(200, "Found %d volumes names to restore. First=%s\n", jcr->NumVolumes, 
+   Dmsg2(200, "Found %d volumes names to restore. First=%s\n", jcr->NumVolumes,
       jcr->VolList->VolumeName);
 
-   /* 
+   /*
     * Ready device for reading, and read records
     */
    if (!(dcr=acquire_device_for_read(jcr))) {
@@ -84,7 +84,7 @@ bool do_read_data(JCR *jcr)
    if (!release_device(jcr)) {
       ok = false;
    }
-   
+
    free_vol_list(jcr);
    Dmsg0(30, "Done reading.\n");
    return ok;

@@ -38,7 +38,7 @@
 #ifndef __bc_types_INCLUDED
 #define __bc_types_INCLUDED
 
-typedef char POOLMEM;   
+typedef char POOLMEM;
 
 
 /* Types */
@@ -139,14 +139,14 @@ typedef u_int64_t u_intmax_t;
 
 
 /* Limits for the above types. */
-#undef INT8_MIN  
-#undef INT8_MAX  
-#undef UINT8_MAX 
-#undef INT16_MIN 
-#undef INT16_MAX 
+#undef INT8_MIN
+#undef INT8_MAX
+#undef UINT8_MAX
+#undef INT16_MIN
+#undef INT16_MAX
 #undef UINT16_MAX
-#undef INT32_MIN 
-#undef INT32_MAX 
+#undef INT32_MIN
+#undef INT32_MAX
 #undef UINT32_MAX
 
 #define INT8_MIN        (-127-1)

@@ -59,7 +59,7 @@ bool newVolume(JCR *jcr, MEDIA_DBR *mr)
 	 set_pool_dbr_defaults_in_media_dbr(mr, &pr);
 	 jcr->VolumeName[0] = 0;
 	 bstrncpy(mr->MediaType, jcr->store->media_type, sizeof(mr->MediaType));
-         if (generate_event(jcr, "NewVolume") == 1 && jcr->VolumeName[0]) {
+	 if (generate_event(jcr, "NewVolume") == 1 && jcr->VolumeName[0]) {
 	    bstrncpy(mr->VolumeName, jcr->VolumeName, sizeof(mr->VolumeName));
 	 /* Check for special characters */
 	 } else if (is_volume_name_legal(NULL, pr.LabelFormat)) {
@@ -69,11 +69,11 @@ bool newVolume(JCR *jcr, MEDIA_DBR *mr)
 	    }
 	 } else {  /* try full substitution */
 	    /* Found special characters, so try substitution */
-	    if (!perform_full_name_substitution(jcr, mr, &pr)) { 
+	    if (!perform_full_name_substitution(jcr, mr, &pr)) {
 	       goto bail_out;
 	    }
 	    if (!is_volume_name_legal(NULL, mr->VolumeName)) {
-               Jmsg(jcr, M_ERROR, 0, _("Illegal character in Volume name \"%s\"\n"),
+	       Jmsg(jcr, M_ERROR, 0, _("Illegal character in Volume name \"%s\"\n"),
 		  mr->VolumeName);
 	       goto bail_out;
 	    }
@@ -82,11 +82,11 @@ bool newVolume(JCR *jcr, MEDIA_DBR *mr)
 	 if (db_create_media_record(jcr, jcr->db, mr) &&
 	    db_update_pool_record(jcr, jcr->db, &pr)) {
 	    db_unlock(jcr->db);
-            Jmsg(jcr, M_INFO, 0, _("Created new Volume \"%s\" in catalog.\n"), mr->VolumeName);
-            Dmsg1(90, "Created new Volume=%s\n", mr->VolumeName);
+	    Jmsg(jcr, M_INFO, 0, _("Created new Volume \"%s\" in catalog.\n"), mr->VolumeName);
+	    Dmsg1(90, "Created new Volume=%s\n", mr->VolumeName);
 	    return true;
 	 } else {
-            Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
+	    Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
 	 }
       }
    }
@@ -110,8 +110,8 @@ static int create_simple_name(JCR *jcr, MEDIA_DBR *mr, POOL_DBR *pr)
       bstrncpy(tmr.VolumeName, name, sizeof(tmr.VolumeName));
       bstrncat(tmr.VolumeName, num, sizeof(tmr.VolumeName));
       if (db_get_media_record(jcr, jcr->db, &tmr)) {
-	 Jmsg(jcr, M_WARNING, 0, 
-             _("Wanted to create Volume \"%s\", but it already exists. Trying again.\n"), 
+	 Jmsg(jcr, M_WARNING, 0,
+	     _("Wanted to create Volume \"%s\", but it already exists. Trying again.\n"),
 	     tmr.VolumeName);
 	 continue;
       }

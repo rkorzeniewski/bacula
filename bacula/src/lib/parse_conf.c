@@ -1,6 +1,6 @@
 /*
  *   Master Configuration routines.
- *  
+ *
  *   This file contains the common parts of the Bacula
  *   configuration routines.
  *
@@ -8,7 +8,7 @@
  *
  *   1. The generic lexical scanner in lib/lex.c and lib/lex.h
  *
- *   2. The generic config  scanner in lib/parse_conf.c and 
+ *   2. The generic config  scanner in lib/parse_conf.c and
  *	lib/parse_conf.h.
  *	These files contain the parser code, some utility
  *	routines, and the common store routines (name, int,
@@ -58,7 +58,7 @@
 
 extern int debug_level;
 
-/* Each daemon has a slightly different set of 
+/* Each daemon has a slightly different set of
  * resources, so it will define the following
  * global values.
  */
@@ -95,7 +95,7 @@ RES_ITEM msgs_items[] = {
    {"description", store_str,     ITEM(res_msgs.hdr.desc),  0, 0, 0},
    {"mailcommand", store_str,     ITEM(res_msgs.mail_cmd),  0, 0, 0},
    {"operatorcommand", store_str, ITEM(res_msgs.operator_cmd), 0, 0, 0},
-   {"syslog",      store_msgs, ITEM(res_msgs), MD_SYSLOG,   0, 0}, 
+   {"syslog",      store_msgs, ITEM(res_msgs), MD_SYSLOG,   0, 0},
    {"mail",        store_msgs, ITEM(res_msgs), MD_MAIL,     0, 0},
    {"mailonerror", store_msgs, ITEM(res_msgs), MD_MAIL_ON_ERROR, 0, 0},
    {"file",        store_msgs, ITEM(res_msgs), MD_FILE,     0, 0},
@@ -103,14 +103,14 @@ RES_ITEM msgs_items[] = {
    {"stdout",      store_msgs, ITEM(res_msgs), MD_STDOUT,   0, 0},
    {"stderr",      store_msgs, ITEM(res_msgs), MD_STDERR,   0, 0},
    {"director",    store_msgs, ITEM(res_msgs), MD_DIRECTOR, 0, 0},
-   {"console",     store_msgs, ITEM(res_msgs), MD_CONSOLE,  0, 0},   
+   {"console",     store_msgs, ITEM(res_msgs), MD_CONSOLE,  0, 0},
    {"operator",    store_msgs, ITEM(res_msgs), MD_OPERATOR, 0, 0},
    {NULL, NULL,    NULL,       0,	       0}
 };
 
-struct s_mtypes {	
+struct s_mtypes {
    const char *name;
-   int token;	
+   int token;
 };
 /* Various message types */
 static struct s_mtypes msg_types[] = {
@@ -153,7 +153,7 @@ const char *res_to_str(int rcode)
 }
 
 
-/* 
+/*
  * Initialize the static structure to zeros, then
  *  apply all the default values.
  */
@@ -165,7 +165,7 @@ void init_resource(int type, RES_ITEM *items, int pass)
    int errstat;
 
    if (first && (errstat=rwl_init(&res_lock)) != 0) {
-      Emsg1(M_ABORT, 0, _("Unable to initialize resource lock. ERR=%s\n"), 
+      Emsg1(M_ABORT, 0, _("Unable to initialize resource lock. ERR=%s\n"),
 	    strerror(errstat));
    }
    first = false;
@@ -176,12 +176,12 @@ void init_resource(int type, RES_ITEM *items, int pass)
 
    for (i=0; items[i].name; i++) {
       Dmsg3(900, "Item=%s def=%s defval=%d\n", items[i].name,
-            (items[i].flags & ITEM_DEFAULT) ? "yes" : "no",      
+	    (items[i].flags & ITEM_DEFAULT) ? "yes" : "no",
 	    items[i].default_value);
       if (items[i].flags & ITEM_DEFAULT && items[i].default_value != 0) {
 	 if (items[i].handler == store_yesno) {
 	    *(int *)(items[i].value) |= items[i].code;
-	 } else if (items[i].handler == store_pint || 
+	 } else if (items[i].handler == store_pint ||
 		    items[i].handler == store_int) {
 	    *(int *)(items[i].value) = items[i].default_value;
 	 } else if (items[i].handler == store_int64) {
@@ -196,7 +196,7 @@ void init_resource(int type, RES_ITEM *items, int pass)
       }
       /* If this triggers, take a look at lib/parse_conf.h */
       if (i >= MAX_RES_ITEMS) {
-         Emsg1(M_ERROR_TERM, 0, _("Too many items in %s resource\n"), resources[rindex]);
+	 Emsg1(M_ERROR_TERM, 0, _("Too many items in %s resource\n"), resources[rindex]);
       }
    }
 }
@@ -208,7 +208,7 @@ void store_msgs(LEX *lc, RES_ITEM *item, int index, int pass)
    int token;
    char *cmd;
    POOLMEM *dest;
-   int dest_len;    
+   int dest_len;
 
    Dmsg2(900, "store_msgs pass=%d code=%d\n", pass, item->code);
    if (pass == 1) {
@@ -236,25 +236,25 @@ void store_msgs(LEX *lc, RES_ITEM *item, int index, int pass)
 	    token = lex_get_token(lc, T_NAME);	 /* scan destination */
 	    dest = check_pool_memory_size(dest, dest_len + lc->str_len + 2);
 	    if (dest[0] != 0) {
-               pm_strcat(dest, " ");  /* separate multiple destinations with space */
+	       pm_strcat(dest, " ");  /* separate multiple destinations with space */
 	       dest_len++;
 	    }
 	    pm_strcat(dest, lc->str);
 	    dest_len += lc->str_len;
-            Dmsg2(900, "store_msgs newdest=%s: dest=%s:\n", lc->str, NPRT(dest));
+	    Dmsg2(900, "store_msgs newdest=%s: dest=%s:\n", lc->str, NPRT(dest));
 	    token = lex_get_token(lc, T_SKIP_EOL);
-	    if (token == T_COMMA) { 
+	    if (token == T_COMMA) {
 	       continue;	   /* get another destination */
 	    }
 	    if (token != T_EQUALS) {
-               scan_err1(lc, _("expected an =, got: %s"), lc->str); 
+	       scan_err1(lc, _("expected an =, got: %s"), lc->str);
 	    }
 	    break;
 	 }
-         Dmsg1(900, "mail_cmd=%s\n", NPRT(cmd));
+	 Dmsg1(900, "mail_cmd=%s\n", NPRT(cmd));
 	 scan_types(lc, (MSGS *)(item->value), item->code, dest, cmd);
 	 free_pool_memory(dest);
-         Dmsg0(900, "done with dest codes\n");
+	 Dmsg0(900, "done with dest codes\n");
 	 break;
       case MD_FILE:		   /* file */
       case MD_APPEND:		   /* append */
@@ -264,17 +264,17 @@ void store_msgs(LEX *lc, RES_ITEM *item, int index, int pass)
 	 pm_strcpy(dest, lc->str);
 	 dest_len = lc->str_len;
 	 token = lex_get_token(lc, T_SKIP_EOL);
-         Dmsg1(900, "store_msgs dest=%s:\n", NPRT(dest));
+	 Dmsg1(900, "store_msgs dest=%s:\n", NPRT(dest));
 	 if (token != T_EQUALS) {
-            scan_err1(lc, _("expected an =, got: %s"), lc->str); 
+	    scan_err1(lc, _("expected an =, got: %s"), lc->str);
 	 }
 	 scan_types(lc, (MSGS *)(item->value), item->code, dest, NULL);
 	 free_pool_memory(dest);
-         Dmsg0(900, "done with dest codes\n");
+	 Dmsg0(900, "done with dest codes\n");
 	 break;
 
       default:
-         scan_err1(lc, _("Unknown item code: %d\n"), item->code);
+	 scan_err1(lc, _("Unknown item code: %d\n"), item->code);
 	 break;
       }
    }
@@ -283,7 +283,7 @@ void store_msgs(LEX *lc, RES_ITEM *item, int index, int pass)
    Dmsg0(900, "Done store_msgs\n");
 }
 
-/* 
+/*
  * Scan for message types and add them to the message
  * destination. The basic job here is to connect message types
  *  (WARNING, ERROR, FATAL, INFO, ...) with an appropriate
@@ -296,7 +296,7 @@ static void scan_types(LEX *lc, MSGS *msg, int dest_code, char *where, char *cmd
    char *str;
 
    for (quit=0; !quit;) {
-      lex_get_token(lc, T_NAME);	    /* expect at least one type */	 
+      lex_get_token(lc, T_NAME);	    /* expect at least one type */
       found = FALSE;
       if (lc->str[0] == '!') {
 	 is_not = TRUE;
@@ -313,7 +313,7 @@ static void scan_types(LEX *lc, MSGS *msg, int dest_code, char *where, char *cmd
 	 }
       }
       if (!found) {
-         scan_err1(lc, _("message type: %s not found"), str);
+	 scan_err1(lc, _("message type: %s not found"), str);
 	 /* NOT REACHED */
       }
 
@@ -338,7 +338,7 @@ static void scan_types(LEX *lc, MSGS *msg, int dest_code, char *where, char *cmd
 }
 
 
-/* 
+/*
  * This routine is ONLY for resource names
  *  Store a name at specified address.
  */
@@ -352,7 +352,7 @@ void store_name(LEX *lc, RES_ITEM *item, int index, int pass)
    free_pool_memory(msg);
    /* Store the name both pass 1 and pass 2 */
    if (*(item->value)) {
-      scan_err2(lc, _("Attempt to redefine name \"%s\" to \"%s\"."), 
+      scan_err2(lc, _("Attempt to redefine name \"%s\" to \"%s\"."),
 	 *(item->value), lc->str);
    }
    *(item->value) = bstrdup(lc->str);
@@ -421,7 +421,7 @@ void store_password(LEX *lc, RES_ITEM *item, int index, int pass)
       MD5Update(&md5c, (unsigned char *) (lc->str), lc->str_len);
       MD5Final(signature, &md5c);
       for (i = j = 0; i < sizeof(signature); i++) {
-         sprintf(&sig[j], "%02x", signature[i]); 
+	 sprintf(&sig[j], "%02x", signature[i]);
 	 j += 2;
       }
       *(item->value) = bstrdup(sig);
@@ -432,7 +432,7 @@ void store_password(LEX *lc, RES_ITEM *item, int index, int pass)
 
 
 /* Store a resource at specified address.
- * If we are in pass 2, do a lookup of the 
+ * If we are in pass 2, do a lookup of the
  * resource.
  */
 void store_res(LEX *lc, RES_ITEM *item, int index, int pass)
@@ -443,11 +443,11 @@ void store_res(LEX *lc, RES_ITEM *item, int index, int pass)
    if (pass == 2) {
       res = GetResWithName(item->code, lc->str);
       if (res == NULL) {
-         scan_err3(lc, _("Could not find config Resource %s referenced on line %d : %s\n"), 
+	 scan_err3(lc, _("Could not find config Resource %s referenced on line %d : %s\n"),
 	    lc->str, lc->line_no, lc->line);
       }
       if (*(item->value)) {
-         scan_err3(lc, _("Attempt to redefine resource \"%s\" referenced on line %d : %s\n"), 
+	 scan_err3(lc, _("Attempt to redefine resource \"%s\" referenced on line %d : %s\n"),
 	    item->name, lc->line_no, lc->line);
       }
       *(item->value) = (char *)res;
@@ -460,7 +460,7 @@ void store_res(LEX *lc, RES_ITEM *item, int index, int pass)
  * Store a resource in an alist. default_value indicates how many
  *   times this routine can be called -- i.e. how many alists
  *   there are.
- * If we are in pass 2, do a lookup of the 
+ * If we are in pass 2, do a lookup of the
  *   resource.
  */
 void store_alist_res(LEX *lc, RES_ITEM *item, int index, int pass)
@@ -474,7 +474,7 @@ void store_alist_res(LEX *lc, RES_ITEM *item, int index, int pass)
       /* Find empty place to store this directive */
       while ((item->value)[i] != NULL && i++ < count) { }
       if (i >= count) {
-         scan_err3(lc, _("Too many Storage directives. Max. is %d. line %d: %s\n"),
+	 scan_err3(lc, _("Too many Storage directives. Max. is %d. line %d: %s\n"),
 	    count, lc->line_no, lc->line);
       }
       list = New(alist(10, not_owned_by_alist));
@@ -483,12 +483,12 @@ void store_alist_res(LEX *lc, RES_ITEM *item, int index, int pass)
 	 lex_get_token(lc, T_NAME);   /* scan next item */
 	 res = GetResWithName(item->code, lc->str);
 	 if (res == NULL) {
-            scan_err3(lc, _("Could not find config Resource \"%s\" referenced on line %d : %s\n"), 
+	    scan_err3(lc, _("Could not find config Resource \"%s\" referenced on line %d : %s\n"),
 	       lc->str, lc->line_no, lc->line);
 	 }
 	 list->append(res);
 	 (item->value)[i] = (char *)list;
-         if (lc->ch != ',') {         /* if no other item follows */
+	 if (lc->ch != ',') {         /* if no other item follows */
 	    break;		      /* get out */
 	 }
 	 lex_get_token(lc, T_ALL);    /* eat comma */
@@ -501,7 +501,7 @@ void store_alist_res(LEX *lc, RES_ITEM *item, int index, int pass)
 
 /*
  * Store default values for Resource from xxxDefs
- * If we are in pass 2, do a lookup of the 
+ * If we are in pass 2, do a lookup of the
  * resource and store everything not explicitly set
  * in main resource.
  *
@@ -517,16 +517,16 @@ void store_defs(LEX *lc, RES_ITEM *item, int index, int pass)
      Dmsg2(900, "Code=%d name=%s\n", item->code, lc->str);
      res = GetResWithName(item->code, lc->str);
      if (res == NULL) {
-        scan_err3(lc, _("Missing config Resource \"%s\" referenced on line %d : %s\n"), 
+	scan_err3(lc, _("Missing config Resource \"%s\" referenced on line %d : %s\n"),
 	   lc->str, lc->line_no, lc->line);
      }
      /* for each item not set, we copy the field from res */
 #ifdef xxx
      for (int i=0; item->name;; i++, item++) {
 	if (bit_is_set(i, res->item_present)) {
-           Dmsg2(900, "Item %d is present in %s\n", i, res->name);
+	   Dmsg2(900, "Item %d is present in %s\n", i, res->name);
 	} else {
-           Dmsg2(900, "Item %d is not present in %s\n", i, res->name);
+	   Dmsg2(900, "Item %d is not present in %s\n", i, res->name);
 	}
      }
      /* ***FIXME **** add code */
@@ -579,7 +579,7 @@ void store_size(LEX *lc, RES_ITEM *item, int index, int pass)
    case T_IDENTIFIER:
    case T_UNQUOTED_STRING:
       if (!size_to_uint64(lc->str, lc->str_len, &uvalue)) {
-         scan_err1(lc, _("expected a size number, got: %s"), lc->str);
+	 scan_err1(lc, _("expected a size number, got: %s"), lc->str);
       }
       *(uint64_t *)(item->value) = uvalue;
       break;
@@ -596,7 +596,7 @@ void store_size(LEX *lc, RES_ITEM *item, int index, int pass)
 /* Store a time period in seconds */
 void store_time(LEX *lc, RES_ITEM *item, int index, int pass)
 {
-   int token; 
+   int token;
    utime_t utime;
    char period[500];
 
@@ -617,7 +617,7 @@ void store_time(LEX *lc, RES_ITEM *item, int index, int pass)
 	 }
       }
       if (!duration_to_utime(period, &utime)) {
-         scan_err1(lc, _("expected a time period, got: %s"), period);
+	 scan_err1(lc, _("expected a time period, got: %s"), period);
       }
       *(utime_t *)(item->value) = utime;
       break;
@@ -697,7 +697,7 @@ GetResWithName(int rcode, char *name)
    }
    UnlockRes();
    return res;
-   
+
 }
 
 /*
@@ -710,7 +710,7 @@ GetNextRes(int rcode, RES *res)
 {
    RES *nres;
    int rindex = rcode - r_first;
-       
+
 
    if (!res_locked) {
       Emsg0(M_ABORT, 0, "Resource chain not locked.\n");
@@ -733,10 +733,10 @@ enum parse_state {
 /*********************************************************************
  *
  *	Parse configuration file
- * 
+ *
  * Return 0 if reading failed, 1 otherwise
  */
-int 
+int
 parse_config(const char *cf, int exit_on_error)
 {
    set_exit_on_error(exit_on_error);
@@ -748,7 +748,7 @@ parse_config(const char *cf, int exit_on_error)
    int level = 0;
 
    /* Make two passes. The first builds the name symbol table,
-    * and the second picks up the items. 
+    * and the second picks up the items.
     */
    Dmsg0(900, "Enter parse_config()\n");
    for (pass=1; pass <= 2; pass++) {
@@ -758,14 +758,14 @@ parse_config(const char *cf, int exit_on_error)
 	 return 0;
       }
       while ((token=lex_get_token(lc, T_ALL)) != T_EOF) {
-         Dmsg1(900, "parse got token=%s\n", lex_tok_to_str(token));
+	 Dmsg1(900, "parse got token=%s\n", lex_tok_to_str(token));
 	 switch (state) {
 	 case p_none:
 	    if (token == T_EOL) {
 	       break;
 	    }
 	    if (token != T_IDENTIFIER) {
-               scan_err1(lc, _("Expected a Resource name identifier, got: %s"), lc->str);
+	       scan_err1(lc, _("Expected a Resource name identifier, got: %s"), lc->str);
 	       set_exit_on_error(1); /* Never reached if exit_on_error == 1 */
 	       return 0;
 	    }
@@ -778,7 +778,7 @@ parse_config(const char *cf, int exit_on_error)
 		  break;
 	       }
 	    if (state == p_none) {
-               scan_err1(lc, _("expected resource name, got: %s"), lc->str);
+	       scan_err1(lc, _("expected resource name, got: %s"), lc->str);
 	       set_exit_on_error(1); /* Never reached if exit_on_error == 1 */
 	       return 0;
 	    }
@@ -790,24 +790,24 @@ parse_config(const char *cf, int exit_on_error)
 	       break;
 	    case T_IDENTIFIER:
 	       if (level != 1) {
-                  scan_err1(lc, _("not in resource definition: %s"), lc->str);
+		  scan_err1(lc, _("not in resource definition: %s"), lc->str);
 		  set_exit_on_error(1); /* Never reached if exit_on_error == 1 */
 		  return 0;
 	       }
 	       for (i=0; items[i].name; i++) {
 		  if (strcasecmp(items[i].name, lc->str) == 0) {
-		     /* If the ITEM_NO_EQUALS flag is set we do NOT		 
+		     /* If the ITEM_NO_EQUALS flag is set we do NOT
 		      *   scan for = after the keyword	*/
 		     if (!(items[i].flags & ITEM_NO_EQUALS)) {
 			token = lex_get_token(lc, T_SKIP_EOL);
-                        Dmsg1 (900, "in T_IDENT got token=%s\n", lex_tok_to_str(token));
+			Dmsg1 (900, "in T_IDENT got token=%s\n", lex_tok_to_str(token));
 			if (token != T_EQUALS) {
-                           scan_err1(lc, _("expected an equals, got: %s"), lc->str);
+			   scan_err1(lc, _("expected an equals, got: %s"), lc->str);
 			   set_exit_on_error(1); /* Never reached if exit_on_error == 1 */
 			   return 0;
 			}
 		     }
-                     Dmsg1(900, "calling handler for %s\n", items[i].name);
+		     Dmsg1(900, "calling handler for %s\n", items[i].name);
 		     /* Call item handler */
 		     items[i].handler(lc, &items[i], i, pass);
 		     i = -1;
@@ -815,10 +815,10 @@ parse_config(const char *cf, int exit_on_error)
 		  }
 	       }
 	       if (i >= 0) {
-                  Dmsg2(900, "level=%d id=%s\n", level, lc->str);
-                  Dmsg1(900, "Keyword = %s\n", lc->str);
-                  scan_err1(lc, _("Keyword \"%s\" not permitted in this resource.\n"
-                     "Perhaps you left the trailing brace off of the previous resource."), lc->str);
+		  Dmsg2(900, "level=%d id=%s\n", level, lc->str);
+		  Dmsg1(900, "Keyword = %s\n", lc->str);
+		  scan_err1(lc, _("Keyword \"%s\" not permitted in this resource.\n"
+		     "Perhaps you left the trailing brace off of the previous resource."), lc->str);
 		  set_exit_on_error(1); /* Never reached if exit_on_error == 1 */
 		  return 0;
 	       }
@@ -827,7 +827,7 @@ parse_config(const char *cf, int exit_on_error)
 	    case T_EOB:
 	       level--;
 	       state = p_none;
-               Dmsg0(900, "T_EOB => define new resource\n");
+	       Dmsg0(900, "T_EOB => define new resource\n");
 	       save_resource(res_type, items, pass);  /* save resource */
 	       break;
 
@@ -835,20 +835,20 @@ parse_config(const char *cf, int exit_on_error)
 	       break;
 
 	    default:
-               scan_err2(lc, _("unexpected token %d %s in resource definition"),    
+	       scan_err2(lc, _("unexpected token %d %s in resource definition"),
 		  token, lex_tok_to_str(token));
 	       set_exit_on_error(1); /* Never reached if exit_on_error == 1 */
 	       return 0;
 	    }
 	    break;
 	 default:
-            scan_err1(lc, _("Unknown parser state %d\n"), state);
+	    scan_err1(lc, _("Unknown parser state %d\n"), state);
 	    set_exit_on_error(1); /* Never reached if exit_on_error == 1 */
 	    return 0;
 	 }
       }
       if (state != p_none) {
-         scan_err0(lc, _("End of conf file reached with unclosed resource."));
+	 scan_err0(lc, _("End of conf file reached with unclosed resource."));
 	 set_exit_on_error(1); /* Never reached if exit_on_error == 1 */
 	 return 0;
       }
@@ -878,7 +878,7 @@ void free_config_resources()
    }
 }
 
-RES **save_config_resources() 
+RES **save_config_resources()
 {
    int num = r_last - r_first + 1;
    RES **res = (RES **)malloc(num*sizeof(RES *));

@@ -4,7 +4,7 @@
  *     Kern Sibbald MIM
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald 
+   Copyright (C) 2000-2004 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -59,7 +59,7 @@ int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result);
 #endif
 
 
-/* 
+/*
  * Status codes returned by create_file()
  */
 enum {
@@ -71,7 +71,7 @@ enum {
 
 
 /* Options saved int "options" of the include/exclude lists.
- * They are directly jammed ito  "flag" of ff packet 
+ * They are directly jammed ito  "flag" of ff packet
  */
 #define FO_MD5          (1<<1)        /* Do MD5 checksum */
 #define FO_GZIP         (1<<2)        /* Do Zlib compression */
@@ -112,7 +112,7 @@ struct s_excluded_file {
  *  of the structure are passed by the Director to the
  *  File daemon and recompiled back into this structure
  */
-#undef  MAX_FOPTS 
+#undef  MAX_FOPTS
 #define MAX_FOPTS 30
 
 enum {
@@ -143,7 +143,7 @@ struct findINCEXE {
    alist name_list;                   /* filename list -- holds char * */
 };
 
-/* 
+/*
  *   FileSet Resource
  *
  */
@@ -188,7 +188,7 @@ struct FF_PKT {
    findFILESET *fileset;
    int (*callback)(FF_PKT *, void *); /* User's callback */
 
-   /* Values set by accept_file while processing Options */  
+   /* Values set by accept_file while processing Options */
    uint32_t flags;                    /* backup options */
    int GZIP_level;                    /* compression level */
    char *reader;                      /* reader program */

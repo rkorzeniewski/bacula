@@ -50,8 +50,8 @@
 
 #include <wx/dynarray.h>
 
-/* 
- * Allow the use of Object Array (auto-deletion, object returned as themselves 
+/*
+ * Allow the use of Object Array (auto-deletion, object returned as themselves
  * and not as pointers)
  */
 class wxbArrayString: public wxArrayString, public wxObject {

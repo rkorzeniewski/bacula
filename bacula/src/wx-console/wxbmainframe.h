@@ -62,13 +62,13 @@ class wxbPrintObject: public wxObject {
       wxString str;
       int status;
       wxbPrintObject(wxString str, int status): wxObject() {
-         this->str = str;
-         this->status = status;
+	 this->str = str;
+	 this->status = status;
       }
 
       wxbPrintObject(const wxbPrintObject& pe) {
-         this->str = pe.str;
-         this->status = pe.status;
+	 this->str = pe.str;
+	 this->status = pe.status;
       }
 };
 
@@ -107,7 +107,7 @@ public:
    /* Enable and disable panels */
    void EnablePanels();
    void DisablePanels(void* except = NULL);
-   
+
    void EnableConsole(bool enable = true);
 
    /*
@@ -124,10 +124,10 @@ public:
     *  If config is not empty, uses this config file.
     */
    void StartConsoleThread(const wxString& config);
-   
+
    /* Register a new wxbDataParser */
    void Register(wxbDataParser* dp);
-   
+
    /* Unregister a wxbDataParser */
    void Unregister(wxbDataParser* dp);
 
@@ -137,7 +137,7 @@ private:
    /* private constructor, singleton */
    wxbMainFrame(const wxString& title, const wxPoint& pos, const wxSize& size, long style);
    ~wxbMainFrame();
-   
+
    static wxbMainFrame *frame; /* this */
 
    wxMenu *menuFile;
@@ -154,11 +154,11 @@ private:
    wxbPromptParser* promptparser; /* prompt parser catching uncatched questions */
 
    bool lockedbyconsole; /* true if the panels have been locked by something typed in the console */
-   
+
    wxString configfile; /* configfile used */
-   
+
    wxString consoleBuffer; /* Buffer used to print in the console line by line */
-     
+
    // any class wishing to process wxWindows events must use this macro
    DECLARE_EVENT_TABLE()
 };

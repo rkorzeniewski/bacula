@@ -3,7 +3,7 @@
  *   Bacula GNOME Console interface to the Director
  *
  *     Kern Sibbald, March MMII
- *     
+ *
  *     Version $Id$
  */
 
@@ -34,7 +34,7 @@
 /* Imported functions */
 int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons);
 void select_restore_setup();
-       
+
 /* Exported variables */
 GtkWidget *console;   /* application window */
 GtkWidget *text1;	     /* text window */
@@ -72,7 +72,7 @@ static void set_scroll_bar_to_end(void);
 
 /* Static variables */
 static char *configfile = NULL;
-static DIRRES *dir; 
+static DIRRES *dir;
 static int ndir;
 static bool director_reader_running = false;
 static bool at_prompt = false;
@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
 
    struct sigaction sigignore;
    sigignore.sa_flags = 0;
-   sigignore.sa_handler = SIG_IGN;	 
+   sigignore.sa_handler = SIG_IGN;
    sigfillset(&sigignore.sa_mask);
    sigaction(SIGPIPE, &sigignore, NULL);
 
@@ -156,7 +156,7 @@ int main(int argc, char *argv[])
       case '?':
       default:
 	 usage();
-      }  
+      }
    }
    argc -= optind;
    argv += optind;
@@ -183,8 +183,8 @@ int main(int argc, char *argv[])
    }
    UnlockRes();
    if (ndir == 0) {
-      Emsg1(M_ERROR_TERM, 0, _("No director resource defined in %s\n\
-Without that I don't how to speak to the Director :-(\n"), configfile);
+      Emsg1(M_ERROR_TERM, 0, _("No director resource defined in %s\n"
+"Without that I don't how to speak to the Director :-(\n"), configfile);
    }
 
 
@@ -217,24 +217,24 @@ Without that I don't how to speak to the Director :-(\n"), configfile);
    LockRes();
    foreach_res(con_font, R_CONSOLE_FONT) {
        if (!con_font->fontface) {
-          Dmsg1(400, "No fontface for %s\n", con_font->hdr.name);
+	  Dmsg1(400, "No fontface for %s\n", con_font->hdr.name);
 	  continue;
        }
        text_font = gdk_font_load(con_font->fontface);
        if (text_font == NULL) {
-           Dmsg2(400, "Load of requested ConsoleFont \"%s\" (%s) failed!\n",
+	   Dmsg2(400, "Load of requested ConsoleFont \"%s\" (%s) failed!\n",
 		  con_font->hdr.name, con_font->fontface);
        } else {
-           Dmsg2(400, "ConsoleFont \"%s\" (%s) loaded.\n",
+	   Dmsg2(400, "ConsoleFont \"%s\" (%s) loaded.\n",
 		  con_font->hdr.name, con_font->fontface);
 	   break;
-       }	   
+       }
    }
    UnlockRes();
 
    if (text_font == NULL) {
        Dmsg1(400, "Attempting to load fallback font %s\n",
-              "-misc-fixed-medium-r-normal-*-*-130-*-*-c-*-iso8859-1");
+	      "-misc-fixed-medium-r-normal-*-*-130-*-*-c-*-iso8859-1");
        text_font = gdk_font_load("-misc-fixed-medium-r-normal-*-*-130-*-*-c-*-iso8859-1");
    }
    font_desc = pango_font_description_from_string("LucidaTypewriter 9");
@@ -310,7 +310,7 @@ static GList *get_list(char *cmd)
       options = g_list_append(options, msg);
    }
    return options;
-   
+
 }
 
 static GList *get_and_fill_combo(GtkWidget *dialog, const char *combo_name, const char *cm)
@@ -363,7 +363,7 @@ int connect_to_director(gpointer data)
       combo = lookup_widget(dir_dialog, "combo1");
       dir_select = lookup_widget(dir_dialog, "dirselect");
       if (dirs) {
-	 gtk_combo_set_popdown_strings(GTK_COMBO(combo), dirs);   
+	 gtk_combo_set_popdown_strings(GTK_COMBO(combo), dirs);
       }
       gtk_widget_show(dir_dialog);
       gtk_main();
@@ -392,19 +392,19 @@ int connect_to_director(gpointer data)
    }
 
    memset(&jcr, 0, sizeof(jcr));
-   
+
    set_statusf(_(" Connecting to Director %s:%d"), dir->address,dir->DIRport);
    set_textf(_("Connecting to Director %s:%d\n\n"), dir->address,dir->DIRport);
 
    while (gtk_events_pending()) {     /* fully paint screen */
       gtk_main_iteration();
    }
-   UA_sock = bnet_connect(NULL, 5, 15, "Director daemon", dir->address, 
+   UA_sock = bnet_connect(NULL, 5, 15, "Director daemon", dir->address,
 			  NULL, dir->DIRport, 0);
    if (UA_sock == NULL) {
       return 0;
    }
-   
+
    jcr.dir_bsock = UA_sock;
    LockRes();
    /* If cons==NULL, default console will be used */
@@ -481,7 +481,7 @@ void read_director(gpointer data, gint fd, GdkInputCondition condition)
    stat = bnet_recv(UA_sock);
    if (stat >= 0) {
       if (at_prompt) {
-         set_text("\n", 1);
+	 set_text("\n", 1);
 	 at_prompt = false;
       }
       set_text(UA_sock->msg, UA_sock->msglen);
@@ -611,7 +611,7 @@ void set_statusf(const char *fmt, ...)
    ready = false;
 }
 
-void set_status_ready()    
+void set_status_ready()
 {
    gtk_label_set_text(GTK_LABEL(status1), " Ready");
    ready = true;
@@ -637,6 +637,6 @@ static void set_scroll_bar_to_end(void)
    gtk_text_iter_set_offset(&iter, buf_len);
    gtk_text_buffer_place_cursor(textbuf, &iter);
    gtk_text_view_scroll_to_mark(GTK_TEXT_VIEW(text1),
-              gtk_text_buffer_get_mark(textbuf, "insert"), 
+	      gtk_text_buffer_get_mark(textbuf, "insert"),
 	      0, TRUE, 0.0, 1.0);
 }

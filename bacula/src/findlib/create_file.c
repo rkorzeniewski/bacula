@@ -45,19 +45,19 @@ static int path_already_seen(JCR *jcr, char *path, int pnl);
 /*
  * Create the file, or the directory
  *
- *  fname is the original filename  
+ *  fname is the original filename
  *  ofile is the output filename (may be in a different directory)
  *
  * Returns:  CF_SKIP	 if file should be skipped
  *	     CF_ERROR	 on error
- *	     CF_EXTRACT  file created and data to restore  
+ *	     CF_EXTRACT  file created and data to restore
  *	     CF_CREATED  file created no data to restore
  *
  *   Note, we create the file here, except for special files,
- *     we do not set the attributes because we want to first 
+ *     we do not set the attributes because we want to first
  *     write the file, then when the writing is done, set the
  *     attributes.
- *   So, we return with the file descriptor open for normal 
+ *   So, we return with the file descriptor open for normal
  *     files.
  *
  */
@@ -70,7 +70,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
    bool exists = false;
    struct stat mstatp;
 
-   if (is_win32_stream(attr->data_stream)) { 
+   if (is_win32_stream(attr->data_stream)) {
       set_win32_backup(bfd);
    } else {
       set_portable_backup(bfd);
@@ -88,20 +88,20 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
       switch (replace) {
       case REPLACE_IFNEWER:
 	 if (attr->statp.st_mtime <= mstatp.st_mtime) {
-            Jmsg(jcr, M_SKIPPED, 0, _("File skipped. Not newer: %s\n"), attr->ofname);
+	    Jmsg(jcr, M_SKIPPED, 0, _("File skipped. Not newer: %s\n"), attr->ofname);
 	    return CF_SKIP;
 	 }
 	 break;
 
       case REPLACE_IFOLDER:
 	 if (attr->statp.st_mtime >= mstatp.st_mtime) {
-            Jmsg(jcr, M_SKIPPED, 0, _("File skipped. Not older: %s\n"), attr->ofname);
+	    Jmsg(jcr, M_SKIPPED, 0, _("File skipped. Not older: %s\n"), attr->ofname);
 	    return CF_SKIP;
 	 }
 	 break;
 
       case REPLACE_NEVER:
-         Jmsg(jcr, M_SKIPPED, 0, _("File skipped. Already exists: %s\n"), attr->ofname);
+	 Jmsg(jcr, M_SKIPPED, 0, _("File skipped. Already exists: %s\n"), attr->ofname);
 	 return CF_SKIP;
 
       case REPLACE_ALWAYS:
@@ -120,12 +120,12 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
 	 /* Get rid of old copy */
 	 if (unlink(attr->ofname) == -1) {
 	    berrno be;
-            Jmsg(jcr, M_ERROR, 0, _("File %s already exists and could not be replaced. ERR=%s.\n"),
+	    Jmsg(jcr, M_ERROR, 0, _("File %s already exists and could not be replaced. ERR=%s.\n"),
 	       attr->ofname, be.strerror());
 	    /* Continue despite error */
 	 }
       }
-      /* 
+      /*
        * Here we do some preliminary work for all the above
        *   types to create the path to the file if it does
        *   not already exist.  Below, we will split to
@@ -146,14 +146,14 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
 	 attr->ofname[pnl] = 0; 		/* terminate path */
 
 	 if (!path_already_seen(jcr, attr->ofname, pnl)) {
-            Dmsg1(50, "Make path %s\n", attr->ofname);
+	    Dmsg1(50, "Make path %s\n", attr->ofname);
 	    /*
 	     * If we need to make the directory, ensure that it is with
 	     * execute bit set (i.e. parent_mode), and preserve what already
 	     * exists. Normally, this should do nothing.
 	     */
 	    if (make_path(jcr, attr->ofname, parent_mode, parent_mode, uid, gid, 1, NULL) != 0) {
-               Dmsg1(10, "Could not make path. %s\n", attr->ofname);
+	       Dmsg1(10, "Could not make path. %s\n", attr->ofname);
 	       attr->ofname[pnl] = savechr;	/* restore full name */
 	       return CF_ERROR;
 	    }
@@ -165,20 +165,20 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
       switch(attr->type) {
       case FT_REGE:
       case FT_REG:
-         Dmsg1(100, "Create file %s\n", attr->ofname);
+	 Dmsg1(100, "Create file %s\n", attr->ofname);
 	 mode =  O_WRONLY | O_CREAT | O_TRUNC | O_BINARY; /*  O_NOFOLLOW; */
 	 if (IS_CTG(attr->statp.st_mode)) {
 	    mode |= O_CTG;		 /* set contiguous bit if needed */
 	 }
-         Dmsg1(50, "Create file: %s\n", attr->ofname);
+	 Dmsg1(50, "Create file: %s\n", attr->ofname);
 	 if (is_bopen(bfd)) {
-            Jmsg1(jcr, M_ERROR, 0, "bpkt already open fid=%d\n", bfd->fid);
+	    Jmsg1(jcr, M_ERROR, 0, "bpkt already open fid=%d\n", bfd->fid);
 	    bclose(bfd);
 	 }
 	 if ((bopen(bfd, attr->ofname, mode, S_IRUSR | S_IWUSR)) < 0) {
 	    berrno be;
 	    be.set_errno(bfd->berrno);
-            Jmsg2(jcr, M_ERROR, 0, _("Could not create %s: ERR=%s\n"), 
+	    Jmsg2(jcr, M_ERROR, 0, _("Could not create %s: ERR=%s\n"),
 		  attr->ofname, be.strerror());
 	    return CF_ERROR;
 	 }
@@ -186,27 +186,27 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
 #ifndef HAVE_WIN32  // none of these exists on MS Windows
       case FT_RAW:		      /* Bacula raw device e.g. /dev/sda1 */
       case FT_FIFO:		      /* Bacula fifo to save data */
-      case FT_SPEC:			 
+      case FT_SPEC:
 	 if (S_ISFIFO(attr->statp.st_mode)) {
-            Dmsg1(200, "Restore fifo: %s\n", attr->ofname);
+	    Dmsg1(200, "Restore fifo: %s\n", attr->ofname);
 	    if (mkfifo(attr->ofname, attr->statp.st_mode) != 0 && errno != EEXIST) {
 	       berrno be;
-               Jmsg2(jcr, M_ERROR, 0, _("Cannot make fifo %s: ERR=%s\n"), 
+	       Jmsg2(jcr, M_ERROR, 0, _("Cannot make fifo %s: ERR=%s\n"),
 		     attr->ofname, be.strerror());
 	       return CF_ERROR;
 	    }
-	 } else {	   
-            Dmsg1(200, "Restore node: %s\n", attr->ofname);
+	 } else {
+	    Dmsg1(200, "Restore node: %s\n", attr->ofname);
 	    if (mknod(attr->ofname, attr->statp.st_mode, attr->statp.st_rdev) != 0 && errno != EEXIST) {
 	       berrno be;
-               Jmsg2(jcr, M_ERROR, 0, _("Cannot make node %s: ERR=%s\n"), 
+	       Jmsg2(jcr, M_ERROR, 0, _("Cannot make node %s: ERR=%s\n"),
 		     attr->ofname, be.strerror());
 	       return CF_ERROR;
 	    }
-	 }	 
+	 }
 	 if (attr->type == FT_RAW || attr->type == FT_FIFO) {
 	    btimer_t *tid;
-            Dmsg1(200, "FT_RAW|FT_FIFO %s\n", attr->ofname);
+	    Dmsg1(200, "FT_RAW|FT_FIFO %s\n", attr->ofname);
 	    mode =  O_WRONLY | O_BINARY;
 	    /* Timeout open() in 60 seconds */
 	    if (attr->type == FT_FIFO) {
@@ -215,12 +215,12 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
 	       tid = NULL;
 	    }
 	    if (is_bopen(bfd)) {
-               Jmsg1(jcr, M_ERROR, 0, "bpkt already open fid=%d\n", bfd->fid);
+	       Jmsg1(jcr, M_ERROR, 0, "bpkt already open fid=%d\n", bfd->fid);
 	    }
 	    if ((bopen(bfd, attr->ofname, mode, 0)) < 0) {
 	       berrno be;
 	       be.set_errno(bfd->berrno);
-               Jmsg2(jcr, M_ERROR, 0, _("Could not open %s: ERR=%s\n"), 
+	       Jmsg2(jcr, M_ERROR, 0, _("Could not open %s: ERR=%s\n"),
 		     attr->ofname, be.strerror());
 	       stop_thread_timer(tid);
 	       return CF_ERROR;
@@ -228,24 +228,24 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
 	    stop_thread_timer(tid);
 	    return CF_EXTRACT;
 	 }
-         Dmsg1(200, "FT_SPEC %s\n", attr->ofname);
+	 Dmsg1(200, "FT_SPEC %s\n", attr->ofname);
 	 return CF_CREATED;
 
       case FT_LNK:
-         Dmsg2(130, "FT_LNK should restore: %s -> %s\n", attr->ofname, attr->olname);
+	 Dmsg2(130, "FT_LNK should restore: %s -> %s\n", attr->ofname, attr->olname);
 	 if (symlink(attr->olname, attr->ofname) != 0 && errno != EEXIST) {
 	    berrno be;
-            Jmsg3(jcr, M_ERROR, 0, _("Could not symlink %s -> %s: ERR=%s\n"),
+	    Jmsg3(jcr, M_ERROR, 0, _("Could not symlink %s -> %s: ERR=%s\n"),
 		  attr->ofname, attr->olname, be.strerror());
 	    return CF_ERROR;
 	 }
 	 return CF_CREATED;
 
       case FT_LNKSAVED: 		 /* Hard linked, file already saved */
-         Dmsg2(130, "Hard link %s => %s\n", attr->ofname, attr->olname);
+	 Dmsg2(130, "Hard link %s => %s\n", attr->ofname, attr->olname);
 	 if (link(attr->olname, attr->ofname) != 0) {
 	    berrno be;
-            Jmsg3(jcr, M_ERROR, 0, _("Could not hard link %s -> %s: ERR=%s\n"),
+	    Jmsg3(jcr, M_ERROR, 0, _("Could not hard link %s -> %s: ERR=%s\n"),
 		  attr->ofname, attr->olname, be.strerror());
 	    return CF_ERROR;
 	 }
@@ -266,12 +266,12 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
        */
       if (!is_portable_backup(bfd)) {
 	 if (is_bopen(bfd)) {
-            Jmsg1(jcr, M_ERROR, 0, "bpkt already open fid=%d\n", bfd->fid);
+	    Jmsg1(jcr, M_ERROR, 0, "bpkt already open fid=%d\n", bfd->fid);
 	 }
 	 if ((bopen(bfd, attr->ofname, O_WRONLY|O_BINARY, 0)) < 0) {
 	    berrno be;
 	    be.set_errno(bfd->berrno);
-            Jmsg2(jcr, M_ERROR, 0, _("Could not open %s: ERR=%s\n"), 
+	    Jmsg2(jcr, M_ERROR, 0, _("Could not open %s: ERR=%s\n"),
 		  attr->ofname, be.strerror());
 	    return CF_ERROR;
 	 }
@@ -303,7 +303,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
  *  Returns: > 0 index into path where last path char is.
  *	     0	no path
  *	     -1 filename is zero length
- */ 
+ */
 static int separate_path_and_file(JCR *jcr, char *fname, char *ofile)
 {
    char *f, *p;
@@ -327,12 +327,12 @@ static int separate_path_and_file(JCR *jcr, char *fname, char *ofile)
       Jmsg1(jcr, M_ERROR, 0, _("Zero length filename: %s\n"), fname);
       return -1;
    }
-   pnl = f - ofile - 1;    
+   pnl = f - ofile - 1;
    return pnl;
 }
 
-/* 
- * Primitive caching of path to prevent recreating a pathname 
+/*
+ * Primitive caching of path to prevent recreating a pathname
  *   each time as long as we remain in the same directory.
  */
 static int path_already_seen(JCR *jcr, char *path, int pnl)

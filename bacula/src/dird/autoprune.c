@@ -1,6 +1,6 @@
 /*
  *
- *   Bacula Director -- Automatic Pruning 
+ *   Bacula Director -- Automatic Pruning
  *	Applies retention periods
  *
  *     Kern Sibbald, May MMII
@@ -60,7 +60,7 @@ int do_autoprune(JCR *jcr)
    } else {
       pruned = false;
    }
-  
+
    if (jcr->job->PruneFiles || jcr->client->AutoPrune) {
       Jmsg(jcr, M_INFO, 0, _("Begin pruning Files.\n"));
       prune_files(ua, client);
@@ -71,7 +71,7 @@ int do_autoprune(JCR *jcr)
    }
 
    free_ua_context(ua);
-   return 1;	
+   return 1;
 }
 
 /*
@@ -110,7 +110,7 @@ int prune_volumes(JCR *jcr)
    for (i=0; i<num_ids; i++) {
       mr.MediaId = ids[i];
       if (!db_get_media_record(jcr, jcr->db, &mr)) {
-         Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
+	 Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
 	 continue;
       }
       /* Prune only Volumes from current Pool */
@@ -118,14 +118,14 @@ int prune_volumes(JCR *jcr)
 	 continue;
       }
       /* Prune only Volumes with status "Full", "Used", or "Append" */
-      if (strcmp(mr.VolStatus, "Full")   == 0 || 
-          strcmp(mr.VolStatus, "Append") == 0 ||
-          strcmp(mr.VolStatus, "Used")   == 0) {
-         Dmsg1(200, "Prune Volume %s\n", mr.VolumeName);
-	 stat += prune_volume(ua, &mr); 
-         Dmsg1(200, "Num pruned = %d\n", stat);
+      if (strcmp(mr.VolStatus, "Full")   == 0 ||
+	  strcmp(mr.VolStatus, "Append") == 0 ||
+	  strcmp(mr.VolStatus, "Used")   == 0) {
+	 Dmsg1(200, "Prune Volume %s\n", mr.VolumeName);
+	 stat += prune_volume(ua, &mr);
+	 Dmsg1(200, "Num pruned = %d\n", stat);
       }
-   }   
+   }
 
 bail_out:
    db_unlock(jcr->db);

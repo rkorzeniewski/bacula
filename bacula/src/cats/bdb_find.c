@@ -11,8 +11,8 @@
  *  The purpose of these routines is to ensure that Bacula
  *  can limp along if no real database is loaded on the
  *  system.
- *   
- *    Kern Sibbald, January MMI 
+ *
+ *    Kern Sibbald, January MMI
  *
  *    Version $Id$
  */
@@ -58,7 +58,7 @@
  */
 
 
-/* 
+/*
  * Find job start time. Used to find last full save that terminated normally
  * so we can do Incremental and Differential saves.
  *
@@ -86,8 +86,8 @@ int db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
     */
 
    while (fgets(cmd, sizeof(cmd), mdb->jobfd)) {
-      if (sscanf(cmd, "JobStart JobId=%d Name=%127s Type=%1s Level=%1s \
-StartTime=%100s", &JobId, Name, cType, cLevel, StartTime) == 5) {
+      if (sscanf(cmd, "JobStart JobId=%d Name=%127s Type=%1s Level=%1s "
+"StartTime=%100s", &JobId, Name, cType, cLevel, StartTime) == 5) {
 	 if (JobId < jr->JobId) {
 	    continue;		      /* older not a candidate */
 	 }
@@ -95,15 +95,15 @@ StartTime=%100s", &JobId, Name, cType, cLevel, StartTime) == 5) {
 	 Level = cLevel[0];
 	 unbash_spaces(Name);
 	 unbash_spaces(StartTime);
-         Dmsg4(200, "Got Type=%c Level=%c Name=%s StartTime=%s\n",
+	 Dmsg4(200, "Got Type=%c Level=%c Name=%s StartTime=%s\n",
 	    Type, Level, Name, StartTime);
-         Dmsg3(200, "Want Type=%c Level=%c Name=%s\n", jr->JobType, jr->JobLevel,     
+	 Dmsg3(200, "Want Type=%c Level=%c Name=%s\n", jr->JobType, jr->JobLevel,
 	    jr->Name);
 	 /* Differential is since last Full backup */
 	 /* Incremental is since last FULL or Incremental or Differential */
-	 if (((jr->JobLevel == L_DIFFERENTIAL) && (Type == jr->JobType && 
+	 if (((jr->JobLevel == L_DIFFERENTIAL) && (Type == jr->JobType &&
 	       Level == L_FULL && strcmp(Name, jr->Name) == 0)) ||
-	     ((jr->JobLevel == L_INCREMENTAL) && (Type == jr->JobType && 
+	     ((jr->JobLevel == L_INCREMENTAL) && (Type == jr->JobType &&
 	       (Level == L_FULL || Level == L_INCREMENTAL ||
 		Level == L_DIFFERENTIAL) && strcmp(Name, jr->Name) == 0))) {
 	    addr = ftell(mdb->jobfd);	 /* save current location */
@@ -111,10 +111,10 @@ StartTime=%100s", &JobId, Name, cType, cLevel, StartTime) == 5) {
 	    found = 0;
 	    /* Search for matching JobEnd record */
 	    while (!found && fgets(cmd, sizeof(cmd), mdb->jobfd)) {
-               if (sscanf(cmd, "JobEnd JobId=%d JobStatus=%1s ClientId=%d",
+	       if (sscanf(cmd, "JobEnd JobId=%d JobStatus=%1s ClientId=%d",
 		  &EndId, JobStatus, &ClientId) == 3) {
-                  if (EndId == JobId && *JobStatus == 'T' && ClientId == jr->ClientId) {
-                     Dmsg0(200, "====found EndJob matching Job\n");
+		  if (EndId == JobId && *JobStatus == 'T' && ClientId == jr->ClientId) {
+		     Dmsg0(200, "====found EndJob matching Job\n");
 		     found = 1;
 		     break;
 		  }
@@ -125,7 +125,7 @@ StartTime=%100s", &JobId, Name, cType, cLevel, StartTime) == 5) {
 	    if (found) {
 	       pm_strcpy(stime, StartTime);
 	       stat = 1;	      /* Got a candidate */
-               Dmsg5(200, "Got candidate JobId=%d Type=%c Level=%c Name=%s StartTime=%s\n",
+	       Dmsg5(200, "Got candidate JobId=%d Type=%c Level=%c Name=%s StartTime=%s\n",
 		  JobId, Type, Level, Name, StartTime);
 	    }
 	 }
@@ -136,18 +136,18 @@ StartTime=%100s", &JobId, Name, cType, cLevel, StartTime) == 5) {
 }
 
 
-/* 
+/*
  * Find Available Media (Volume) for Pool
  *
  * Find a Volume for a given PoolId, MediaType, and VolStatus
  *
- *   Note! this does not correctly implement InChanger. 	  
+ *   Note! this does not correctly implement InChanger.
  *
  * Returns: 0 on failure
  *	    numrows on success
- */	
+ */
 int
-db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr) 
+db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr)
 {
    MEDIA_DBR omr;
    int stat = 0;
@@ -164,19 +164,19 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
    while (fread(&omr, len, 1, mdb->mediafd) > 0) {
       if (mr->PoolId == omr.PoolId && strcmp(mr->VolStatus, omr.VolStatus) == 0 &&
 	  strcmp(mr->MediaType, omr.MediaType) == 0) {
-         if (!(++index == item)) {    /* looking for item'th entry */
-            Dmsg0(200, "Media record matches, but not index\n");
+	 if (!(++index == item)) {    /* looking for item'th entry */
+	    Dmsg0(200, "Media record matches, but not index\n");
 	    continue;
 	 }
-         Dmsg0(200, "Media record matches\n");
+	 Dmsg0(200, "Media record matches\n");
 	 memcpy(mr, &omr, len);
-         Dmsg1(200, "Findnextvol MediaId=%d\n", mr->MediaId);
+	 Dmsg1(200, "Findnextvol MediaId=%d\n", mr->MediaId);
 	 stat = 1;
 	 break; 		      /* found it */
       }
    }
    db_unlock(mdb);
-   return stat; 		
+   return stat;
 }
 
 int

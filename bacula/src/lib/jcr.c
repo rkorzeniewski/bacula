@@ -53,7 +53,7 @@ void init_last_jobs_list()
    if (!last_jobs) {
       last_jobs = New(dlist(job_entry, &job_entry->link));
       if ((errstat=rwl_init(&lock)) != 0) {
-         Emsg1(M_ABORT, 0, _("Unable to initialize jcr_chain lock. ERR=%s\n"), 
+	 Emsg1(M_ABORT, 0, _("Unable to initialize jcr_chain lock. ERR=%s\n"),
 	       strerror(errstat));
       }
    }
@@ -64,9 +64,9 @@ void term_last_jobs_list()
 {
    if (last_jobs) {
       while (!last_jobs->empty()) {
-	 void *je = last_jobs->first(); 
+	 void *je = last_jobs->first();
 	 last_jobs->remove(je);
-	 free(je);     
+	 free(je);
       }
       delete last_jobs;
       last_jobs = NULL;
@@ -92,7 +92,7 @@ void read_last_jobs_list(int fd, uint64_t addr)
    }
    for ( ; num; num--) {
       if (read(fd, &job, sizeof(job)) != sizeof(job)) {
-         Dmsg1(000, "Read job entry. ERR=%s\n", strerror(errno));
+	 Dmsg1(000, "Read job entry. ERR=%s\n", strerror(errno));
 	 return;
       }
       if (job.JobId > 0) {
@@ -124,12 +124,12 @@ uint64_t write_last_jobs_list(int fd, uint64_t addr)
       /* First record is number of entires */
       num = last_jobs->size();
       if (write(fd, &num, sizeof(num)) != sizeof(num)) {
-         Dmsg1(000, "Error writing num_items: ERR=%s\n", strerror(errno));
+	 Dmsg1(000, "Error writing num_items: ERR=%s\n", strerror(errno));
 	 return 0;
       }
       foreach_dlist(je, last_jobs) {
 	 if (write(fd, je, sizeof(struct s_last_job)) != sizeof(struct s_last_job)) {
-            Dmsg1(000, "Error writing job: ERR=%s\n", strerror(errno));
+	    Dmsg1(000, "Error writing job: ERR=%s\n", strerror(errno));
 	    return 0;
 	 }
       }
@@ -140,16 +140,16 @@ uint64_t write_last_jobs_list(int fd, uint64_t addr)
       stat = 0;
    }
    return stat;
-      
+
 }
 
-void lock_last_jobs_list() 
+void lock_last_jobs_list()
 {
    /* Use jcr chain mutex */
    lock_jcr_chain();
 }
 
-void unlock_last_jobs_list() 
+void unlock_last_jobs_list()
 {
    /* Use jcr chain mutex */
    unlock_jcr_chain();
@@ -251,7 +251,7 @@ static void remove_jcr(JCR *jcr)
 
 /*
  * Free stuff common to all JCRs.  N.B. Be careful to include only
- *  generic stuff in the common part of the jcr. 
+ *  generic stuff in the common part of the jcr.
  */
 static void free_common_jcr(JCR *jcr)
 {
@@ -336,7 +336,7 @@ static void free_common_jcr(JCR *jcr)
    free(jcr);
 }
 
-/* 
+/*
  * Global routine to free a jcr
  */
 #ifdef DEBUG
@@ -381,7 +381,7 @@ void free_jcr(JCR *jcr)
 }
 
 
-/* 
+/*
  * Global routine to free a jcr
  *  JCR chain is already locked
  */
@@ -400,13 +400,13 @@ void free_locked_jcr(JCR *jcr)
 
 
 /*
- * Given a JobId, find the JCR	    
+ * Given a JobId, find the JCR
  *   Returns: jcr on success
  *	      NULL on failure
  */
 JCR *get_jcr_by_id(uint32_t JobId)
 {
-   JCR *jcr;	   
+   JCR *jcr;
 
    lock_jcr_chain();			/* lock chain */
    for (jcr = jobs; jcr; jcr=jcr->next) {
@@ -414,41 +414,41 @@ JCR *get_jcr_by_id(uint32_t JobId)
 	 P(jcr->mutex);
 	 jcr->use_count++;
 	 V(jcr->mutex);
-         Dmsg2(400, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
+	 Dmsg2(400, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
 	 break;
       }
    }
    unlock_jcr_chain();
-   return jcr; 
+   return jcr;
 }
 
 /*
- * Given a SessionId and SessionTime, find the JCR	
+ * Given a SessionId and SessionTime, find the JCR
  *   Returns: jcr on success
  *	      NULL on failure
  */
 JCR *get_jcr_by_session(uint32_t SessionId, uint32_t SessionTime)
 {
-   JCR *jcr;	   
+   JCR *jcr;
 
    lock_jcr_chain();
    for (jcr = jobs; jcr; jcr=jcr->next) {
-      if (jcr->VolSessionId == SessionId && 
+      if (jcr->VolSessionId == SessionId &&
 	  jcr->VolSessionTime == SessionTime) {
 	 P(jcr->mutex);
 	 jcr->use_count++;
 	 V(jcr->mutex);
-         Dmsg2(400, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
+	 Dmsg2(400, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
 	 break;
       }
    }
    unlock_jcr_chain();
-   return jcr; 
+   return jcr;
 }
 
 
 /*
- * Given a Job, find the JCR	  
+ * Given a Job, find the JCR
  *  compares on the number of characters in Job
  *  thus allowing partial matches.
  *   Returns: jcr on success
@@ -456,7 +456,7 @@ JCR *get_jcr_by_session(uint32_t SessionId, uint32_t SessionTime)
  */
 JCR *get_jcr_by_partial_name(char *Job)
 {
-   JCR *jcr;	   
+   JCR *jcr;
    int len;
 
    if (!Job) {
@@ -469,24 +469,24 @@ JCR *get_jcr_by_partial_name(char *Job)
 	 P(jcr->mutex);
 	 jcr->use_count++;
 	 V(jcr->mutex);
-         Dmsg2(400, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
+	 Dmsg2(400, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
 	 break;
       }
    }
    unlock_jcr_chain();
-   return jcr; 
+   return jcr;
 }
 
 
 /*
- * Given a Job, find the JCR	  
+ * Given a Job, find the JCR
  *  requires an exact match of names.
  *   Returns: jcr on success
  *	      NULL on failure
  */
 JCR *get_jcr_by_full_name(char *Job)
 {
-   JCR *jcr;	   
+   JCR *jcr;
 
    if (!Job) {
       return NULL;
@@ -497,12 +497,12 @@ JCR *get_jcr_by_full_name(char *Job)
 	 P(jcr->mutex);
 	 jcr->use_count++;
 	 V(jcr->mutex);
-         Dmsg2(400, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
+	 Dmsg2(400, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
 	 break;
       }
    }
    unlock_jcr_chain();
-   return jcr; 
+   return jcr;
 }
 
 void set_jcr_job_status(JCR *jcr, int JobStatus)
@@ -527,7 +527,7 @@ void set_jcr_job_status(JCR *jcr, int JobStatus)
 static int lock_count = 0;
 #endif
 
-/* 
+/*
  * Lock the chain
  */
 #ifdef TRACE_JCR_CHAIN
@@ -537,7 +537,7 @@ void lock_jcr_chain()
 #endif
 {
    int errstat;
-#ifdef TRACE_JCR_CHAIN 
+#ifdef TRACE_JCR_CHAIN
    Dmsg3(400, "Lock jcr chain %d from %s:%d\n", ++lock_count,
       fname, line);
 #endif
@@ -557,7 +557,7 @@ void unlock_jcr_chain()
 #endif
 {
    int errstat;
-#ifdef TRACE_JCR_CHAIN 
+#ifdef TRACE_JCR_CHAIN
    Dmsg3(400, "Unlock jcr chain %d from %s:%d\n", lock_count--,
       fname, line);
 #endif
@@ -608,7 +608,7 @@ static void jcr_timeout_check(watchdog_t *self)
 
    Dmsg0(400, "Start JCR timeout checks\n");
 
-   /* Walk through all JCRs checking if any one is 
+   /* Walk through all JCRs checking if any one is
     * blocked for more than specified max time.
     */
    lock_jcr_chain();

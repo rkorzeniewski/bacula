@@ -33,11 +33,11 @@ static char OK_data[]    = "3000 OK data\n";
 
 /* Forward referenced functions */
 
-/* 
- *  Append Data sent from File daemon	
+/*
+ *  Append Data sent from File daemon
  *
  */
-bool do_append_data(JCR *jcr) 
+bool do_append_data(JCR *jcr)
 {
    int32_t n;
    int32_t file_index, stream, last_file_index;
@@ -47,7 +47,7 @@ bool do_append_data(JCR *jcr)
    DEVICE *dev;
    DEV_RECORD rec;
    DCR *dcr;
-   
+
    Dmsg0(10, "Start append data.\n");
 
    ds = fd_sock;
@@ -58,7 +58,7 @@ bool do_append_data(JCR *jcr)
       return false;
    }
 
-   /* 
+   /*
     * Acquire output device for writing.  Note, after acquiring a
     *	device, we MUST release it, which is done at the end of this
     *	subroutine.
@@ -104,9 +104,9 @@ bool do_append_data(JCR *jcr)
       ok = false;
    }
 
-   /* 
+   /*
     * Get Data from File daemon, write to device.  To clarify what is
-    *	going on here.	We expect:	  
+    *	going on here.	We expect:
     *	  - A stream header
     *	  - Multiple records of data
     *	  - EOD record
@@ -115,10 +115,10 @@ bool do_append_data(JCR *jcr)
     *	 none of the stream header is written to tape.
     *	 The Multiple records of data, contain first the Attributes,
     *	 then after another stream header, the file data, then
-    *	 after another stream header, the MD5 data if any.  
+    *	 after another stream header, the MD5 data if any.
     *
     *	So we get the (stream header, data, EOD) three time for each
-    *	file. 1. for the Attributes, 2. for the file data if any, 
+    *	file. 1. for the Attributes, 2. for the file data if any,
     *	and 3. for the MD5 if any.
     */
    dcr->VolFirstIndex = dcr->VolLastIndex = 0;
@@ -136,16 +136,16 @@ bool do_append_data(JCR *jcr)
 	 if (n == BNET_SIGNAL && ds->msglen == BNET_EOD) {
 	    break;		      /* end of data */
 	 }
-         Jmsg1(jcr, M_FATAL, 0, _("Error reading data header from FD. ERR=%s\n"),
+	 Jmsg1(jcr, M_FATAL, 0, _("Error reading data header from FD. ERR=%s\n"),
 	       bnet_strerror(ds));
 	 ok = false;
 	 break;
       }
-	
-      /* 
+
+      /*
        * This hand scanning is a bit more complicated than a simple
        *   sscanf, but it allows us to handle any size integer up to
-       *   int64_t without worrying about whether %d, %ld, %lld, or %q 
+       *   int64_t without worrying about whether %d, %ld, %lld, or %q
        *   is the correct format for each different architecture.
        * It is a real pity that sscanf() is not portable.
        */
@@ -158,7 +158,7 @@ bool do_append_data(JCR *jcr)
 	 p++;
       }
       if (!B_ISSPACE(*p) || !B_ISDIGIT(*(p+1))) {
-         Jmsg1(jcr, M_FATAL, 0, _("Malformed data header from FD: %s\n"), ds->msg);
+	 Jmsg1(jcr, M_FATAL, 0, _("Malformed data header from FD: %s\n"), ds->msg);
 	 ok = false;
 	 break;
       }
@@ -168,7 +168,7 @@ bool do_append_data(JCR *jcr)
 
       if (!(file_index > 0 && (file_index == last_file_index ||
 	  file_index == last_file_index + 1))) {
-         Jmsg0(jcr, M_FATAL, 0, _("File index from FD not positive or sequential\n"));
+	 Jmsg0(jcr, M_FATAL, 0, _("File index from FD not positive or sequential\n"));
 	 ok = false;
 	 break;
       }
@@ -176,7 +176,7 @@ bool do_append_data(JCR *jcr)
 	 jcr->JobFiles = file_index;
 	 last_file_index = file_index;
       }
-      
+
       /* Read data stream from the File daemon.
        *  The data stream is just raw bytes
        */
@@ -188,42 +188,42 @@ bool do_append_data(JCR *jcr)
 	 rec.data_len = ds->msglen;
 	 rec.data = ds->msg;		/* use message buffer */
 
-         Dmsg4(850, "before writ_rec FI=%d SessId=%d Strm=%s len=%d\n",
-	    rec.FileIndex, rec.VolSessionId, stream_to_ascii(rec.Stream,rec.FileIndex), 
+	 Dmsg4(850, "before writ_rec FI=%d SessId=%d Strm=%s len=%d\n",
+	    rec.FileIndex, rec.VolSessionId, stream_to_ascii(rec.Stream,rec.FileIndex),
 	    rec.data_len);
-	  
+
 	 while (!write_record_to_block(dcr->block, &rec)) {
-            Dmsg2(850, "!write_record_to_block data_len=%d rem=%d\n", rec.data_len,
+	    Dmsg2(850, "!write_record_to_block data_len=%d rem=%d\n", rec.data_len,
 		       rec.remainder);
 	    if (!write_block_to_device(dcr)) {
-               Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
+	       Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
 		  dev_name(dev), strerror_dev(dev));
-               Jmsg(jcr, M_FATAL, 0, _("Fatal device error: ERR=%s\n"),
+	       Jmsg(jcr, M_FATAL, 0, _("Fatal device error: ERR=%s\n"),
 		     strerror_dev(dev));
 	       ok = false;
 	       break;
 	    }
 	 }
 	 if (!ok) {
-            Dmsg0(400, "Not OK\n");
+	    Dmsg0(400, "Not OK\n");
 	    break;
 	 }
 	 jcr->JobBytes += rec.data_len;   /* increment bytes this job */
-         Dmsg4(850, "write_record FI=%s SessId=%d Strm=%s len=%d\n",
-	    FI_to_ascii(rec.FileIndex), rec.VolSessionId, 
+	 Dmsg4(850, "write_record FI=%s SessId=%d Strm=%s len=%d\n",
+	    FI_to_ascii(rec.FileIndex), rec.VolSessionId,
 	    stream_to_ascii(rec.Stream, rec.FileIndex), rec.data_len);
 
 	 /* Send attributes and MD5 to Director for Catalog */
 	 if (stream == STREAM_UNIX_ATTRIBUTES	 || stream == STREAM_MD5_SIGNATURE ||
-	     stream == STREAM_UNIX_ATTRIBUTES_EX || stream == STREAM_SHA1_SIGNATURE) { 
+	     stream == STREAM_UNIX_ATTRIBUTES_EX || stream == STREAM_SHA1_SIGNATURE) {
 	    if (!jcr->no_attributes) {
 	       if (are_attributes_spooled(jcr)) {
 		  jcr->dir_bsock->spool = true;
 	       }
-               Dmsg0(850, "Send attributes to dir.\n");
+	       Dmsg0(850, "Send attributes to dir.\n");
 	       if (!dir_update_file_attributes(dcr, &rec)) {
 		  jcr->dir_bsock->spool = false;
-                  Jmsg(jcr, M_FATAL, 0, _("Error updating file attributes. ERR=%s\n"),
+		  Jmsg(jcr, M_FATAL, 0, _("Error updating file attributes. ERR=%s\n"),
 		     bnet_strerror(jcr->dir_bsock));
 		  ok = false;
 		  break;
@@ -231,12 +231,12 @@ bool do_append_data(JCR *jcr)
 	       jcr->dir_bsock->spool = false;
 	    }
 	 }
-         Dmsg0(350, "Enter bnet_get\n");
+	 Dmsg0(350, "Enter bnet_get\n");
       }
       Dmsg1(350, "End read loop with FD. Stat=%d\n", n);
       if (is_bnet_error(ds)) {
-         Dmsg1(350, "Network read error from FD. ERR=%s\n", bnet_strerror(ds));
-         Jmsg1(jcr, M_FATAL, 0, _("Network error on data channel. ERR=%s\n"),
+	 Dmsg1(350, "Network read error from FD. ERR=%s\n", bnet_strerror(ds));
+	 Jmsg1(jcr, M_FATAL, 0, _("Network error on data channel. ERR=%s\n"),
 	       bnet_strerror(ds));
 	 ok = false;
 	 break;
@@ -257,18 +257,18 @@ bool do_append_data(JCR *jcr)
     */
    if (ok || dev_can_write(dev)) {
       if (!write_session_label(dcr, EOS_LABEL)) {
-         Jmsg1(jcr, M_FATAL, 0, _("Error writting end session label. ERR=%s\n"),
+	 Jmsg1(jcr, M_FATAL, 0, _("Error writting end session label. ERR=%s\n"),
 	       strerror_dev(dev));
 	 set_jcr_job_status(jcr, JS_ErrorTerminated);
 	 ok = false;
       }
       if (dev->VolCatInfo.VolCatName[0] == 0) {
-         Dmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
+	 Dmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
       }
       Dmsg0(90, "back from write_end_session_label()\n");
       /* Flush out final partial block of this session */
       if (!write_block_to_device(dcr)) {
-         Dmsg0(100, _("Set ok=FALSE after write_block_to_device.\n"));
+	 Dmsg0(100, _("Set ok=FALSE after write_block_to_device.\n"));
 	 set_jcr_job_status(jcr, JS_ErrorTerminated);
 	 ok = false;
       }

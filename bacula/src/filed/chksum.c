@@ -45,7 +45,7 @@ int chksum_init(CHKSUM *chksum, int flags)
       status = SHA1Init(&chksum->context.sha1);
       if (status == 0) {
 	 chksum->type = CHKSUM_SHA1;
-         bstrncpy(chksum->name, "SHA1", sizeof(chksum->name));
+	 bstrncpy(chksum->name, "SHA1", sizeof(chksum->name));
       }
    }
    return status;

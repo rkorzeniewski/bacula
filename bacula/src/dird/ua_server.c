@@ -81,7 +81,7 @@ void start_UA_server(dlist *addrs)
    return;
 }
 
-extern "C" 
+extern "C"
 void *connect_thread(void *arg)
 {
    pthread_detach(pthread_self());
@@ -119,7 +119,7 @@ JCR *new_control_jcr(const char *base_name, int job_type)
 }
 
 /*
- * Handle Director User Agent commands	 
+ * Handle Director User Agent commands
  *
  */
 static void *handle_UA_client_request(void *arg)
@@ -146,18 +146,18 @@ static void *handle_UA_client_request(void *arg)
       if (stat >= 0) {
 	 pm_strcpy(ua->cmd, ua->UA_sock->msg);
 	 parse_ua_args(ua);
-         if (ua->argc > 0 && ua->argk[0][0] == '.') {
+	 if (ua->argc > 0 && ua->argk[0][0] == '.') {
 	    do_a_dot_command(ua, ua->cmd);
 	 } else {
 	    do_a_command(ua, ua->cmd);
 	 }
 	 if (!ua->quit) {
 	    if (ua->auto_display_messages) {
-               strcpy(ua->cmd, "messages");
+	       strcpy(ua->cmd, "messages");
 	       qmessagescmd(ua, ua->cmd);
 	       ua->user_notified_msg_pending = FALSE;
 	    } else if (!ua->user_notified_msg_pending && console_msg_pending) {
-               bsendmsg(ua, _("You have messages.\n"));
+	       bsendmsg(ua, _("You have messages.\n"));
 	       ua->user_notified_msg_pending = TRUE;
 	    }
 	    bnet_sig(ua->UA_sock, BNET_EOD); /* send end of command */
@@ -179,7 +179,7 @@ getout:
 
 /*
  * Create a UAContext for a Job that is running so that
- *   it can the User Agent routines and    
+ *   it can the User Agent routines and
  *   to ensure that the Job gets the proper output.
  *   This is a sort of mini-kludge, and should be
  *   unified at some point.
@@ -219,7 +219,7 @@ void free_ua_context(UAContext *ua)
 
 
 /*
- * Called from main Bacula thread 
+ * Called from main Bacula thread
  */
 void term_ua_server()
 {

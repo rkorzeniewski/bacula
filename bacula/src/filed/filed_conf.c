@@ -7,7 +7,7 @@
  *
  *   1. The generic lexical scanner in lib/lex.c and lib/lex.h
  *
- *   2. The generic config  scanner in lib/parse_config.c and 
+ *   2. The generic config  scanner in lib/parse_config.c and
  *	lib/parse_config.h.
  *	These files contain the parser code, some utility
  *	routines, and the common store routines (name, int,
@@ -74,9 +74,9 @@ int  res_all_size = sizeof(res_all);
 #endif
 
 /* Definition of records permitted within each
- * resource with the routine to process the record 
+ * resource with the routine to process the record
  * information.
- */ 
+ */
 
 /* Client or File daemon "Global" resources */
 static RES_ITEM cli_items[] = {
@@ -86,16 +86,16 @@ static RES_ITEM cli_items[] = {
    {"fdaddress",   store_addresses_address, ITEM(res_client.FDaddrs),  0, ITEM_DEFAULT, 9102},
    {"fdaddresses", store_addresses,         ITEM(res_client.FDaddrs),  0, ITEM_DEFAULT, 9102},
 
-   {"workingdirectory",  store_dir, ITEM(res_client.working_directory), 0, ITEM_REQUIRED, 0}, 
-   {"piddirectory",  store_dir,     ITEM(res_client.pid_directory),     0, ITEM_REQUIRED, 0}, 
-   {"subsysdirectory",  store_dir,  ITEM(res_client.subsys_directory),  0, 0, 0}, 
+   {"workingdirectory",  store_dir, ITEM(res_client.working_directory), 0, ITEM_REQUIRED, 0},
+   {"piddirectory",  store_dir,     ITEM(res_client.pid_directory),     0, ITEM_REQUIRED, 0},
+   {"subsysdirectory",  store_dir,  ITEM(res_client.subsys_directory),  0, 0, 0},
    {"requiressl",  store_yesno,     ITEM(res_client.require_ssl),       1, ITEM_DEFAULT, 0},
    {"maximumconcurrentjobs", store_pint,  ITEM(res_client.MaxConcurrentJobs), 0, ITEM_DEFAULT, 10},
    {"messages",      store_res, ITEM(res_client.messages), R_MSGS, 0, 0},
    {"heartbeatinterval", store_time, ITEM(res_client.heartbeat_interval), 0, ITEM_DEFAULT, 0},
    {"sdconnecttimeout", store_time,ITEM(res_client.SDConnectTimeout), 0, ITEM_DEFAULT, 60 * 30},
    {"maximumnetworkbuffersize", store_pint, ITEM(res_client.max_network_buffer_size), 0, 0, 0},
-   {NULL, NULL, NULL, 0, 0, 0} 
+   {NULL, NULL, NULL, 0, 0, 0}
 };
 
 /* Directors that can use our services */
@@ -106,14 +106,14 @@ static RES_ITEM dir_items[] = {
    {"address",     store_str,      ITEM(res_dir.address),   0, 0, 0},
    {"enablessl",   store_yesno,    ITEM(res_dir.enable_ssl),1, ITEM_DEFAULT, 0},
    {"monitor",     store_yesno,    ITEM(res_dir.monitor),   1, ITEM_DEFAULT, 0},
-   {NULL, NULL, NULL, 0, 0, 0} 
+   {NULL, NULL, NULL, 0, 0, 0}
 };
 
 /* Message resource */
 extern RES_ITEM msgs_items[];
 
-/* 
- * This is the master resource definition.  
+/*
+ * This is the master resource definition.
  * It must have one item for each of the resources.
  */
 RES_TABLE resources[] = {
@@ -141,31 +141,31 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
    }
    switch (type) {
       case R_DIRECTOR:
-         sendit(sock, "Director: name=%s password=%s\n", reshdr->name, 
+	 sendit(sock, "Director: name=%s password=%s\n", reshdr->name,
 		 res->res_dir.password);
 	 break;
       case R_CLIENT:
-         sendit(sock, "Client: name=%s FDport=%d\n", reshdr->name,
+	 sendit(sock, "Client: name=%s FDport=%d\n", reshdr->name,
 		 get_first_port_host_order(res->res_client.FDaddrs));
 	 break;
       case R_MSGS:
-         sendit(sock, "Messages: name=%s\n", res->res_msgs.hdr.name);
-	 if (res->res_msgs.mail_cmd) 
-            sendit(sock, "      mailcmd=%s\n", res->res_msgs.mail_cmd);
-	 if (res->res_msgs.operator_cmd) 
-            sendit(sock, "      opcmd=%s\n", res->res_msgs.operator_cmd);
+	 sendit(sock, "Messages: name=%s\n", res->res_msgs.hdr.name);
+	 if (res->res_msgs.mail_cmd)
+	    sendit(sock, "      mailcmd=%s\n", res->res_msgs.mail_cmd);
+	 if (res->res_msgs.operator_cmd)
+	    sendit(sock, "      opcmd=%s\n", res->res_msgs.operator_cmd);
 	 break;
       default:
-         sendit(sock, "Unknown resource type %d\n", type);
+	 sendit(sock, "Unknown resource type %d\n", type);
    }
    if (recurse && res->res_dir.hdr.next)
       dump_resource(type, res->res_dir.hdr.next, sendit, sock);
 }
 
-/* 
- * Free memory of resource.  
+/*
+ * Free memory of resource.
  * NB, we don't need to worry about freeing any references
- * to other resources as they will be freed when that 
+ * to other resources as they will be freed when that
  * resource chain is traversed.  Mainly we worry about freeing
  * allocated strings (names).
  */
@@ -240,13 +240,13 @@ void save_resource(int type, RES_ITEM *items, int pass)
    int i, size;
    int error = 0;
 
-   /* 
+   /*
     * Ensure that all required items are present
     */
    for (i=0; items[i].name; i++) {
       if (items[i].flags & ITEM_REQUIRED) {
-	    if (!bit_is_set(i, res_all.res_dir.hdr.item_present)) {  
-               Emsg2(M_ABORT, 0, _("%s item is required in %s resource, but not found.\n"),
+	    if (!bit_is_set(i, res_all.res_dir.hdr.item_present)) {
+	       Emsg2(M_ABORT, 0, _("%s item is required in %s resource, but not found.\n"),
 		 items[i].name, resources[rindex]);
 	     }
       }
@@ -267,12 +267,12 @@ void save_resource(int type, RES_ITEM *items, int pass)
 	 /* Resources containing another resource */
 	 case R_CLIENT:
 	    if ((res = (URES *)GetResWithName(R_CLIENT, res_all.res_dir.hdr.name)) == NULL) {
-               Emsg1(M_ABORT, 0, "Cannot find Client resource %s\n", res_all.res_dir.hdr.name);
+	       Emsg1(M_ABORT, 0, "Cannot find Client resource %s\n", res_all.res_dir.hdr.name);
 	    }
 	    res->res_client.messages = res_all.res_client.messages;
 	    break;
 	 default:
-            Emsg1(M_ERROR, 0, _("Unknown resource type %d\n"), type);
+	    Emsg1(M_ERROR, 0, _("Unknown resource type %d\n"), type);
 	    error = 1;
 	    break;
       }
@@ -302,7 +302,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
 	 size = sizeof(MSGS);
 	 break;
       default:
-         printf(_("Unknown resource type %d\n"), type);
+	 printf(_("Unknown resource type %d\n"), type);
 	 error = 1;
 	 size = 1;
 	 break;
@@ -319,12 +319,12 @@ void save_resource(int type, RES_ITEM *items, int pass)
 	 for (next=res_head[rindex]; next->next; next=next->next) {
 	    if (strcmp(next->name, res->res_dir.hdr.name) == 0) {
 	       Emsg2(M_ERROR_TERM, 0,
-                  _("Attempt to define second %s resource named \"%s\" is not permitted.\n"),
+		  _("Attempt to define second %s resource named \"%s\" is not permitted.\n"),
 		  resources[rindex].name, res->res_dir.hdr.name);
 	    }
 	 }
 	 next->next = (RES *)res;
-         Dmsg2(90, "Inserting %s res: %s\n", res_to_str(type),
+	 Dmsg2(90, "Inserting %s res: %s\n", res_to_str(type),
 	       res->res_dir.hdr.name);
       }
    }

@@ -42,7 +42,7 @@ IPADDR::IPADDR(const IPADDR &src) : type(src.type)
 {
   memcpy(&saddrbuf, &src.saddrbuf, sizeof(saddrbuf));
   saddr  = &saddrbuf.dontuse;
-  saddr4 = &saddrbuf.dontuse4; 
+  saddr4 = &saddrbuf.dontuse4;
 #ifdef HAVE_IPV6
   saddr6 = &saddrbuf.dontuse6;
 #endif
@@ -60,7 +60,7 @@ IPADDR::IPADDR(int af) : type(R_EMPTY)
   }
 #endif
   saddr  = &saddrbuf.dontuse;
-  saddr4 = &saddrbuf.dontuse4; 
+  saddr4 = &saddrbuf.dontuse4;
 #ifdef HAVE_IPV6
   saddr6 = &saddrbuf.dontuse6;
 #endif
@@ -80,8 +80,8 @@ IPADDR::IPADDR(int af) : type(R_EMPTY)
   saddr->sa_len = sizeof(sockaddr_in);
 #endif
 #endif
-   set_addr_any(); 
-} 
+   set_addr_any();
+}
 
 void IPADDR::set_type(i_type o)
 {
@@ -122,7 +122,7 @@ void IPADDR::set_port_net(unsigned short port)
 int IPADDR::get_family() const
 {
     return saddr->sa_family;
-}	
+}
 
 struct sockaddr *IPADDR::get_sockaddr()
 {
@@ -147,7 +147,7 @@ void IPADDR::copy_addr(IPADDR *src)
       saddr6->sin6_addr = src->saddr6->sin6_addr;
    }
 #endif
-} 
+}
 
 void IPADDR::set_addr_any()
 {
@@ -162,7 +162,7 @@ void IPADDR::set_addr_any()
 }
 
 void IPADDR::set_addr4(struct in_addr *ip4)
-{ 
+{
    if (saddr->sa_family != AF_INET) {
       Emsg1(M_ERROR_TERM, 0, _("It was tried to assign a ipv6 address to a ipv4(%d)\n"), saddr->sa_family);
    }
@@ -171,7 +171,7 @@ void IPADDR::set_addr4(struct in_addr *ip4)
 
 #ifdef HAVE_IPV6
 void IPADDR::set_addr6(struct in6_addr *ip6)
-{ 
+{
    if (saddr->sa_family != AF_INET6) {
       Emsg1(M_ERROR_TERM, 0, _("It was tried to assign a ipv4 address to a ipv6(%d)\n"), saddr->sa_family);
    }
@@ -196,16 +196,16 @@ const char *IPADDR::get_address(char *outputbuf, int outlen)
    return outputbuf;
 }
 
-const char *IPADDR::build_address_str(char *buf, int blen) 
+const char *IPADDR::build_address_str(char *buf, int blen)
 {
    char tmp[1024];
    bsnprintf(buf, blen, "host[%s:%s:%hu] ",
-            get_family() == AF_INET ? "ipv4" : "ipv6",
+	    get_family() == AF_INET ? "ipv4" : "ipv6",
 	    get_address(tmp, sizeof(tmp) - 1), get_port_host_order());
    return buf;
 }
 
-const char *build_addresses_str(dlist *addrs, char *buf, int blen) 
+const char *build_addresses_str(dlist *addrs, char *buf, int blen)
 {
    if (addrs->size() == 0) {
       bstrncpy(buf, "", blen);
@@ -231,12 +231,12 @@ const char *get_first_address(dlist * addrs, char *outputbuf, int outlen)
 
 int get_first_port_net_order(dlist * addrs)
 {
-   return ((IPADDR *)(addrs->first()))->get_port_net_order();				  
+   return ((IPADDR *)(addrs->first()))->get_port_net_order();
 }
 
 int get_first_port_host_order(dlist * addrs)
 {
-   return ((IPADDR *)(addrs->first()))->get_port_host_order();				  
+   return ((IPADDR *)(addrs->first()))->get_port_host_order();
 }
 
 void init_default_addresses(dlist **out, int port)
@@ -274,7 +274,7 @@ static int add_address(dlist **out, IPADDR::i_type type, unsigned short defaultp
 	 } else if (iaddr->get_type() != type) {
 	    *errstr = (char *)malloc(1024);
 	    bsnprintf(*errstr, 1023,
-                      "the old style addresses cannot be mixed with new style");
+		      "the old style addresses cannot be mixed with new style");
 	    return 0;
 	 }
       }
@@ -292,12 +292,12 @@ static int add_address(dlist **out, IPADDR::i_type type, unsigned short defaultp
       if (0 < pnum && pnum < 0xffff) {
 	 port = htons(pnum);
       } else {
-         struct servent *s = getservbyname(port_str, "tcp");
+	 struct servent *s = getservbyname(port_str, "tcp");
 	 if (s) {
 	    port = s->s_port;
 	 } else {
 	    *errstr = (char *)malloc(1024);
-            bsnprintf(*errstr, 1023, "can't resolve service(%s)", port_str);
+	    bsnprintf(*errstr, 1023, "can't resolve service(%s)", port_str);
 	    return 0;
 	 }
       }
@@ -317,7 +317,7 @@ static int add_address(dlist **out, IPADDR::i_type type, unsigned short defaultp
       if (addrs->size()) {
 	 addr = (IPADDR *)addrs->first();
       } else {
-	 addr = New(IPADDR(family)); 
+	 addr = New(IPADDR(family));
 	 addr->set_type(type);
 	 addr->set_port_net(defaultport);
 	 addr->set_addr_any();
@@ -335,13 +335,13 @@ static int add_address(dlist **out, IPADDR::i_type type, unsigned short defaultp
 	 /* for duplicates */
 	 foreach_dlist(jaddr, addrs) {
 	    if (iaddr->get_sockaddr_len() == jaddr->get_sockaddr_len() &&
-	    !memcmp(iaddr->get_sockaddr(), jaddr->get_sockaddr(), 
+	    !memcmp(iaddr->get_sockaddr(), jaddr->get_sockaddr(),
 		    iaddr->get_sockaddr_len()))
 		{
 	       goto skip;	   /* no price */
 	    }
 	 }
-	 clone = New(IPADDR(*iaddr)); 
+	 clone = New(IPADDR(*iaddr));
 	 clone->set_type(type);
 	 clone->set_port_net(port);
 	 addrs->append(clone);
@@ -357,27 +357,27 @@ static int add_address(dlist **out, IPADDR::i_type type, unsigned short defaultp
  *   my tests
  *   positiv
  *   = { ip = { addr = 1.2.3.4; port = 1205; } ipv4 = { addr = 1.2.3.4; port = http; } }
- *   = { ip = { 
- *	   addr = 1.2.3.4; port = 1205; } 
- *     ipv4 = { 
- *	   addr = 1.2.3.4; port = http; } 
- *     ipv6 = { 
- *	 addr = 1.2.3.4; 
+ *   = { ip = {
+ *	   addr = 1.2.3.4; port = 1205; }
+ *     ipv4 = {
+ *	   addr = 1.2.3.4; port = http; }
+ *     ipv6 = {
+ *	 addr = 1.2.3.4;
  *	 port = 1205;
- *     } 
+ *     }
  *     ip = {
  *	 addr = 1.2.3.4
  *	 port = 1205
- *     } 
+ *     }
  *     ip = {
  *	 addr = 1.2.3.4
- *     } 
+ *     }
  *     ip = {
  *	 addr = 2001:220:222::2
- *     } 
+ *     }
  *     ip = {
  *	 addr = bluedot.thun.net
- (     } 
+ (     }
  *   }
  *   negativ
  *   = { ip = { } }
@@ -405,7 +405,7 @@ void store_addresses(LEX * lc, RES_ITEM * item, int index, int pass)
    }
    do {
       if (!(token == T_UNQUOTED_STRING || token == T_IDENTIFIER)) {
-         scan_err1(lc, _("Expected a string, got: %s"), lc->str);
+	 scan_err1(lc, _("Expected a string, got: %s"), lc->str);
       }
       if (strcasecmp("ip", lc->str) == 0 || strcasecmp("ipv4", lc->str) == 0) {
 	 family = AF_INET;
@@ -414,46 +414,46 @@ void store_addresses(LEX * lc, RES_ITEM * item, int index, int pass)
       else if (strcasecmp("ipv6", lc->str) == 0) {
 	 family = AF_INET6;
       } else {
-         scan_err1(lc, _("Expected a string [ip|ipv4|ipv6], got: %s"), lc->str);
+	 scan_err1(lc, _("Expected a string [ip|ipv4|ipv6], got: %s"), lc->str);
       }
 #else
       else {
-         scan_err1(lc, _("Expected a string [ip|ipv4], got: %s"), lc->str);
+	 scan_err1(lc, _("Expected a string [ip|ipv4], got: %s"), lc->str);
       }
 #endif
       token = lex_get_token(lc, T_SKIP_EOL);
       if (token != T_EQUALS) {
-         scan_err1(lc, _("Expected a equal =, got: %s"), lc->str);
+	 scan_err1(lc, _("Expected a equal =, got: %s"), lc->str);
       }
       token = lex_get_token(lc, T_SKIP_EOL);
       if (token != T_BOB) {
-         scan_err1(lc, _("Expected a block beginn { , got: %s"), lc->str);
+	 scan_err1(lc, _("Expected a block beginn { , got: %s"), lc->str);
       }
       token = lex_get_token(lc, T_SKIP_EOL);
       exist = EMPTYLINE;
       port_str[0] = hostname_str[0] = '\0';
       do {
 	 if (token != T_IDENTIFIER) {
-            scan_err1(lc, _("Expected a identifier [addr|port], got: %s"), lc->str);
+	    scan_err1(lc, _("Expected a identifier [addr|port], got: %s"), lc->str);
 	 }
-         if (strcasecmp("port", lc->str) == 0) {
+	 if (strcasecmp("port", lc->str) == 0) {
 	    next_line = PORTLINE;
 	    if (exist & PORTLINE) {
-               scan_err0(lc, _("Only one port per address block"));
+	       scan_err0(lc, _("Only one port per address block"));
 	    }
 	    exist |= PORTLINE;
-         } else if (strcasecmp("addr", lc->str) == 0) {
+	 } else if (strcasecmp("addr", lc->str) == 0) {
 	    next_line = ADDRLINE;
 	    if (exist & ADDRLINE) {
-               scan_err0(lc, _("Only one addr per address block"));
+	       scan_err0(lc, _("Only one addr per address block"));
 	    }
 	    exist |= ADDRLINE;
 	 } else {
-            scan_err1(lc, _("Expected a identifier [addr|port], got: %s"), lc->str);
+	    scan_err1(lc, _("Expected a identifier [addr|port], got: %s"), lc->str);
 	 }
 	 token = lex_get_token(lc, T_SKIP_EOL);
 	 if (token != T_EQUALS) {
-            scan_err1(lc, _("Expected a equal =, got: %s"), lc->str);
+	    scan_err1(lc, _("Expected a equal =, got: %s"), lc->str);
 	 }
 	 token = lex_get_token(lc, T_SKIP_EOL);
 	 switch (next_line) {
@@ -461,31 +461,31 @@ void store_addresses(LEX * lc, RES_ITEM * item, int index, int pass)
 	    if (!
 		(token == T_UNQUOTED_STRING || token == T_NUMBER
 		 || token == T_IDENTIFIER)) {
-               scan_err1(lc, _("Expected a number or a string, got: %s"), lc->str);
+	       scan_err1(lc, _("Expected a number or a string, got: %s"), lc->str);
 	    }
 	    bstrncpy(port_str, lc->str, sizeof(port_str));
 	    break;
 	 case ADDRLINE:
 	    if (!(token == T_UNQUOTED_STRING || token == T_IDENTIFIER)) {
-               scan_err1(lc, _("Expected an IP number or a hostname, got: %s"),
+	       scan_err1(lc, _("Expected an IP number or a hostname, got: %s"),
 			 lc->str);
 	    }
 	    bstrncpy(hostname_str, lc->str, sizeof(hostname_str));
 	    break;
 	 case EMPTYLINE:
-            scan_err0(lc, _("State machine missmatch"));
+	    scan_err0(lc, _("State machine missmatch"));
 	    break;
 	 }
 	 token = lex_get_token(lc, T_SKIP_EOL);
       } while (token == T_IDENTIFIER);
       if (token != T_EOB) {
-         scan_err1(lc, _("Expected a end of block }, got: %s"), lc->str);
+	 scan_err1(lc, _("Expected a end of block }, got: %s"), lc->str);
       }
 
       char *errstr;
-      if (pass == 1 && !add_address((dlist **)(item->value), IPADDR::R_MULTIPLE, 
+      if (pass == 1 && !add_address((dlist **)(item->value), IPADDR::R_MULTIPLE,
 	       htons(item->default_value), family, hostname_str, port_str, &errstr)) {
-           scan_err3(lc, _("Can't add hostname(%s) and port(%s) to addrlist (%s)"),
+	   scan_err3(lc, _("Can't add hostname(%s) and port(%s) to addrlist (%s)"),
 		   hostname_str, port_str, errstr);
 	   free(errstr);
 	}

@@ -34,7 +34,7 @@ class IPADDR : public SMARTALLOC {
    IPADDR(int af);
    IPADDR(const IPADDR & src);
  private:
-   IPADDR() {  /* block this construction */ } 
+   IPADDR() {  /* block this construction */ }
    i_type type;
    union {
       struct sockaddr dontuse;

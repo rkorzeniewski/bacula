@@ -7,7 +7,7 @@
  *
  *   1. The generic lexical scanner in lib/lex.c and lib/lex.h
  *
- *   2. The generic config  scanner in lib/parse_config.c and 
+ *   2. The generic config  scanner in lib/parse_config.c and
  *	lib/parse_config.h.
  *	These files contain the parser code, some utility
  *	routines, and the common store routines (name, int,
@@ -77,10 +77,10 @@ int  res_all_size = sizeof(res_all);
 
 
 /* Definition of records permitted within each
- * resource with the routine to process the record 
+ * resource with the routine to process the record
  * information.  NOTE! quoted names must be in lower case.
- */ 
-/* 
+ */
+/*
  *    Director Resource
  *
  *   name	   handler     value		     code flags    default_value
@@ -106,7 +106,7 @@ static RES_ITEM dir_items[] = {
    {NULL, NULL, NULL, 0, 0, 0}
 };
 
-/* 
+/*
  *    Console Resource
  *
  *   name	   handler     value		     code flags    default_value
@@ -129,7 +129,7 @@ static RES_ITEM con_items[] = {
 };
 
 
-/* 
+/*
  *    Client or File daemon resource
  *
  *   name	   handler     value		     code flags    default_value
@@ -149,7 +149,7 @@ static RES_ITEM cli_items[] = {
    {"autoprune", store_yesno,     ITEM(res_client.AutoPrune), 1, ITEM_DEFAULT, 1},
    {"enablessl", store_yesno,     ITEM(res_client.enable_ssl), 1, ITEM_DEFAULT, 0},
    {"maximumconcurrentjobs", store_pint, ITEM(res_client.MaxConcurrentJobs), 0, ITEM_DEFAULT, 1},
-   {NULL, NULL, NULL, 0, 0, 0} 
+   {NULL, NULL, NULL, 0, 0, 0}
 };
 
 /* Storage daemon resource
@@ -171,10 +171,10 @@ static RES_ITEM store_items[] = {
    {"enablessl",   store_yesno,    ITEM(res_store.enable_ssl),  1, ITEM_DEFAULT, 0},
    {"maximumconcurrentjobs", store_pint, ITEM(res_store.MaxConcurrentJobs), 0, ITEM_DEFAULT, 1},
    {"sddport", store_pint, ITEM(res_store.SDDport), 0, 0, 0}, /* deprecated */
-   {NULL, NULL, NULL, 0, 0, 0} 
+   {NULL, NULL, NULL, 0, 0, 0}
 };
 
-/* 
+/*
  *    Catalog Resource Directives
  *
  *   name	   handler     value		     code flags    default_value
@@ -190,12 +190,12 @@ static RES_ITEM cat_items[] = {
    {"dbpassword", store_str,    ITEM(res_cat.db_password), 0, 0, 0},
    {"user",     store_str,      ITEM(res_cat.db_user),     0, 0, 0},
    {"dbname",   store_str,      ITEM(res_cat.db_name),     0, ITEM_REQUIRED, 0},
-   {"dbsocket", store_str,      ITEM(res_cat.db_socket),   0, 0, 0}, 
+   {"dbsocket", store_str,      ITEM(res_cat.db_socket),   0, 0, 0},
    {"multipleconnections", store_yesno, ITEM(res_cat.mult_db_connections), 1, 0, 0},
-   {NULL, NULL, NULL, 0, 0, 0} 
+   {NULL, NULL, NULL, 0, 0, 0}
 };
 
-/* 
+/*
  *    Job Resource Directives
  *
  *   name	   handler     value		     code flags    default_value
@@ -241,7 +241,7 @@ RES_ITEM job_items[] = {
    {"rescheduleinterval", store_time, ITEM(res_job.RescheduleInterval), 0, ITEM_DEFAULT, 60 * 30},
    {"rescheduletimes", store_pint, ITEM(res_job.RescheduleTimes), 0, 0, 0},
    {"priority",   store_pint, ITEM(res_job.Priority), 0, ITEM_DEFAULT, 10},
-   {NULL, NULL, NULL, 0, 0, 0} 
+   {NULL, NULL, NULL, 0, 0, 0}
 };
 
 /* FileSet resource
@@ -254,7 +254,7 @@ static RES_ITEM fs_items[] = {
    {"include",     store_inc,  NULL,                  0, ITEM_NO_EQUALS, 0},
    {"exclude",     store_inc,  NULL,                  1, ITEM_NO_EQUALS, 0},
    {"ignorefilesetchanges", store_yesno, ITEM(res_fs.ignore_fs_changes), 1, ITEM_DEFAULT, 0},
-   {NULL,	   NULL,       NULL,		      0, 0, 0} 
+   {NULL,	   NULL,       NULL,		      0, 0, 0}
 };
 
 /* Schedule -- see run_conf.c */
@@ -266,7 +266,7 @@ static RES_ITEM sch_items[] = {
    {"name",     store_name,  ITEM(res_sch.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str, ITEM(res_sch.hdr.desc), 0, 0, 0},
    {"run",      store_run,   ITEM(res_sch.run),      0, 0, 0},
-   {NULL, NULL, NULL, 0, 0, 0} 
+   {NULL, NULL, NULL, 0, 0, 0}
 };
 
 /* Pool resource
@@ -294,10 +294,10 @@ static RES_ITEM pool_items[] = {
    {"volumeuseduration", store_time,  ITEM(res_pool.VolUseDuration),0, 0, 0},
    {"autoprune",       store_yesno, ITEM(res_pool.AutoPrune), 1, ITEM_DEFAULT, 1},
    {"recycle",         store_yesno, ITEM(res_pool.Recycle),     1, ITEM_DEFAULT, 1},
-   {NULL, NULL, NULL, 0, 0, 0} 
+   {NULL, NULL, NULL, 0, 0, 0}
 };
 
-/* 
+/*
  * Counter Resource
  *   name	      handler	  value 		       code flags default_value
  */
@@ -308,15 +308,15 @@ static RES_ITEM counter_items[] = {
    {"maximum",         store_pint,    ITEM(res_counter.MaxValue),        0, ITEM_DEFAULT, INT32_MAX},
    {"wrapcounter",     store_res,     ITEM(res_counter.WrapCounter),     R_COUNTER, 0, 0},
    {"catalog",         store_res,     ITEM(res_counter.Catalog),         R_CATALOG, 0, 0},
-   {NULL, NULL, NULL, 0, 0, 0} 
+   {NULL, NULL, NULL, 0, 0, 0}
 };
 
 
 /* Message resource */
 extern RES_ITEM msgs_items[];
 
-/* 
- * This is the master resource definition.  
+/*
+ * This is the master resource definition.
  * It must have one item for each of the resources.
  *
  *  NOTE!!! keep it in the same order as the R_codes
@@ -341,7 +341,7 @@ RES_TABLE resources[] = {
 };
 
 
-/* Keywords (RHS) permitted in Job Level records   
+/* Keywords (RHS) permitted in Job Level records
  *
  *   level_name      level		job_type
  */
@@ -361,7 +361,7 @@ struct s_jl joblevels[] = {
    {NULL,	     0, 			 0}
 };
 
-/* Keywords (RHS) permitted in Job type records   
+/* Keywords (RHS) permitted in Job type records
  *
  *   type_name	     job_type
  */
@@ -379,7 +379,7 @@ struct s_jt jobtypes[] = {
 static struct s_kw BakVerFields[] = {
    {"client",        'C'},
    {"fileset",       'F'},
-   {"level",         'L'}, 
+   {"level",         'L'},
    {NULL,	     0}
 };
 
@@ -437,35 +437,35 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
    }
    switch (type) {
    case R_DIRECTOR:
-      sendit(sock, "Director: name=%s MaxJobs=%d FDtimeout=%s SDtimeout=%s\n", 
-	 reshdr->name, res->res_dir.MaxConcurrentJobs, 
+      sendit(sock, "Director: name=%s MaxJobs=%d FDtimeout=%s SDtimeout=%s\n",
+	 reshdr->name, res->res_dir.MaxConcurrentJobs,
 	 edit_uint64(res->res_dir.FDConnectTimeout, ed1),
 	 edit_uint64(res->res_dir.SDConnectTimeout, ed2));
       if (res->res_dir.query_file) {
-         sendit(sock, "   query_file=%s\n", res->res_dir.query_file);
+	 sendit(sock, "   query_file=%s\n", res->res_dir.query_file);
       }
       if (res->res_dir.messages) {
-         sendit(sock, "  --> ");
+	 sendit(sock, "  --> ");
 	 dump_resource(-R_MSGS, (RES *)res->res_dir.messages, sendit, sock);
       }
       break;
    case R_CONSOLE:
-      sendit(sock, "Console: name=%s SSL=%d\n", 
+      sendit(sock, "Console: name=%s SSL=%d\n",
 	 res->res_con.hdr.name, res->res_con.enable_ssl);
       break;
    case R_COUNTER:
       if (res->res_counter.WrapCounter) {
-         sendit(sock, "Counter: name=%s min=%d max=%d cur=%d wrapcntr=%s\n",
-	    res->res_counter.hdr.name, res->res_counter.MinValue, 
+	 sendit(sock, "Counter: name=%s min=%d max=%d cur=%d wrapcntr=%s\n",
+	    res->res_counter.hdr.name, res->res_counter.MinValue,
 	    res->res_counter.MaxValue, res->res_counter.CurrentValue,
 	    res->res_counter.WrapCounter->hdr.name);
       } else {
-         sendit(sock, "Counter: name=%s min=%d max=%d\n",
-	    res->res_counter.hdr.name, res->res_counter.MinValue, 
+	 sendit(sock, "Counter: name=%s min=%d max=%d\n",
+	    res->res_counter.hdr.name, res->res_counter.MinValue,
 	    res->res_counter.MaxValue);
       }
       if (res->res_counter.Catalog) {
-         sendit(sock, "  --> ");
+	 sendit(sock, "  --> ");
 	 dump_resource(-R_CATALOG, (RES *)res->res_counter.Catalog, sendit, sock);
       }
       break;
@@ -479,29 +479,29 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
 	 edit_utime(res->res_client.FileRetention, ed2, sizeof(ed2)),
 	 res->res_client.AutoPrune);
       if (res->res_client.catalog) {
-         sendit(sock, "  --> ");
+	 sendit(sock, "  --> ");
 	 dump_resource(-R_CATALOG, (RES *)res->res_client.catalog, sendit, sock);
       }
       break;
    case R_STORAGE:
-      sendit(sock, "Storage: name=%s address=%s SDport=%d MaxJobs=%u\n\
-      DeviceName=%s MediaType=%s\n",
+      sendit(sock, "Storage: name=%s address=%s SDport=%d MaxJobs=%u\n"
+"      DeviceName=%s MediaType=%s\n",
 	 res->res_store.hdr.name, res->res_store.address, res->res_store.SDport,
 	 res->res_store.MaxConcurrentJobs,
 	 res->res_store.dev_name, res->res_store.media_type);
       break;
    case R_CATALOG:
-      sendit(sock, "Catalog: name=%s address=%s DBport=%d db_name=%s\n\
-      db_user=%s MutliDBConn=%d\n",
+      sendit(sock, "Catalog: name=%s address=%s DBport=%d db_name=%s\n"
+"      db_user=%s MutliDBConn=%d\n",
 	 res->res_cat.hdr.name, NPRT(res->res_cat.db_address),
-	 res->res_cat.db_port, res->res_cat.db_name, NPRT(res->res_cat.db_user), 
+	 res->res_cat.db_port, res->res_cat.db_name, NPRT(res->res_cat.db_user),
 	 res->res_cat.mult_db_connections);
       break;
    case R_JOB:
    case R_JOBDEFS:
-      sendit(sock, "%s: name=%s JobType=%d level=%s Priority=%d MaxJobs=%u\n", 
-         type == R_JOB ? "Job" : "JobDefs",
-	 res->res_job.hdr.name, res->res_job.JobType, 
+      sendit(sock, "%s: name=%s JobType=%d level=%s Priority=%d MaxJobs=%u\n",
+	 type == R_JOB ? "Job" : "JobDefs",
+	 res->res_job.hdr.name, res->res_job.JobType,
 	 level_to_str(res->res_job.JobLevel), res->res_job.Priority,
 	 res->res_job.MaxConcurrentJobs);
       sendit(sock, "     Resched=%d Times=%d Interval=%s Spool=%d\n",
@@ -509,63 +509,63 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
 	  edit_uint64_with_commas(res->res_job.RescheduleInterval, ed1),
 	  res->res_job.spool_data);
       if (res->res_job.client) {
-         sendit(sock, "  --> ");
+	 sendit(sock, "  --> ");
 	 dump_resource(-R_CLIENT, (RES *)res->res_job.client, sendit, sock);
       }
       if (res->res_job.fileset) {
-         sendit(sock, "  --> ");
+	 sendit(sock, "  --> ");
 	 dump_resource(-R_FILESET, (RES *)res->res_job.fileset, sendit, sock);
       }
       if (res->res_job.schedule) {
-         sendit(sock, "  --> ");
+	 sendit(sock, "  --> ");
 	 dump_resource(-R_SCHEDULE, (RES *)res->res_job.schedule, sendit, sock);
       }
       if (res->res_job.RestoreWhere) {
-         sendit(sock, "  --> Where=%s\n", NPRT(res->res_job.RestoreWhere));
+	 sendit(sock, "  --> Where=%s\n", NPRT(res->res_job.RestoreWhere));
       }
       if (res->res_job.RestoreBootstrap) {
-         sendit(sock, "  --> Bootstrap=%s\n", NPRT(res->res_job.RestoreBootstrap));
+	 sendit(sock, "  --> Bootstrap=%s\n", NPRT(res->res_job.RestoreBootstrap));
       }
       if (res->res_job.RunBeforeJob) {
-         sendit(sock, "  --> RunBefore=%s\n", NPRT(res->res_job.RunBeforeJob));
+	 sendit(sock, "  --> RunBefore=%s\n", NPRT(res->res_job.RunBeforeJob));
       }
       if (res->res_job.RunAfterJob) {
-         sendit(sock, "  --> RunAfter=%s\n", NPRT(res->res_job.RunAfterJob));
+	 sendit(sock, "  --> RunAfter=%s\n", NPRT(res->res_job.RunAfterJob));
       }
       if (res->res_job.RunAfterFailedJob) {
-         sendit(sock, "  --> RunAfterFailed=%s\n", NPRT(res->res_job.RunAfterFailedJob));
+	 sendit(sock, "  --> RunAfterFailed=%s\n", NPRT(res->res_job.RunAfterFailedJob));
       }
       if (res->res_job.WriteBootstrap) {
-         sendit(sock, "  --> WriteBootstrap=%s\n", NPRT(res->res_job.WriteBootstrap));
+	 sendit(sock, "  --> WriteBootstrap=%s\n", NPRT(res->res_job.WriteBootstrap));
       }
       if (res->res_job.storage[0]) {
-         sendit(sock, "  --> ");
+	 sendit(sock, "  --> ");
 	 /* ***FIXME*** */
 //	   dump_resource(-R_STORAGE, (RES *)res->res_job.storage, sendit, sock);
       }
       if (res->res_job.pool) {
-         sendit(sock, "  --> ");
+	 sendit(sock, "  --> ");
 	 dump_resource(-R_POOL, (RES *)res->res_job.pool, sendit, sock);
       }
       if (res->res_job.full_pool) {
-         sendit(sock, "  --> ");
+	 sendit(sock, "  --> ");
 	 dump_resource(-R_POOL, (RES *)res->res_job.full_pool, sendit, sock);
       }
       if (res->res_job.inc_pool) {
-         sendit(sock, "  --> ");
+	 sendit(sock, "  --> ");
 	 dump_resource(-R_POOL, (RES *)res->res_job.inc_pool, sendit, sock);
       }
       if (res->res_job.dif_pool) {
-         sendit(sock, "  --> ");
+	 sendit(sock, "  --> ");
 	 dump_resource(-R_POOL, (RES *)res->res_job.dif_pool, sendit, sock);
       }
       if (res->res_job.verify_job) {
-         sendit(sock, "  --> ");
+	 sendit(sock, "  --> ");
 	 dump_resource(-type, (RES *)res->res_job.verify_job, sendit, sock);
       }
       break;
       if (res->res_job.messages) {
-         sendit(sock, "  --> ");
+	 sendit(sock, "  --> ");
 	 dump_resource(-R_MSGS, (RES *)res->res_job.messages, sendit, sock);
       }
       break;
@@ -577,42 +577,42 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
 	 INCEXE *incexe = res->res_fs.include_items[i];
 	 for (j=0; j<incexe->num_opts; j++) {
 	    FOPTS *fo = incexe->opts_list[j];
-            sendit(sock, "      O %s\n", fo->opts);
+	    sendit(sock, "      O %s\n", fo->opts);
 	    for (k=0; k<fo->regex.size(); k++) {
-               sendit(sock, "      R %s\n", fo->regex.get(k));
+	       sendit(sock, "      R %s\n", fo->regex.get(k));
 	    }
 	    for (k=0; k<fo->wild.size(); k++) {
-               sendit(sock, "      W %s\n", fo->wild.get(k));
+	       sendit(sock, "      W %s\n", fo->wild.get(k));
 	    }
 	    for (k=0; k<fo->base.size(); k++) {
-               sendit(sock, "      B %s\n", fo->base.get(k));
+	       sendit(sock, "      B %s\n", fo->base.get(k));
 	    }
 	    for (k=0; k<fo->fstype.size(); k++) {
-               sendit(sock, "      X %s\n", fo->fstype.get(k));
+	       sendit(sock, "      X %s\n", fo->fstype.get(k));
 	    }
 	    if (fo->reader) {
-               sendit(sock, "      D %s\n", fo->reader);
+	       sendit(sock, "      D %s\n", fo->reader);
 	    }
 	    if (fo->writer) {
-               sendit(sock, "      T %s\n", fo->writer);
+	       sendit(sock, "      T %s\n", fo->writer);
 	    }
-            sendit(sock, "      N\n");
+	    sendit(sock, "      N\n");
 	 }
 	 for (j=0; j<incexe->name_list.size(); j++) {
-            sendit(sock, "      I %s\n", incexe->name_list.get(j));
+	    sendit(sock, "      I %s\n", incexe->name_list.get(j));
 	 }
 	 if (incexe->name_list.size()) {
-            sendit(sock, "      N\n");
+	    sendit(sock, "      N\n");
 	 }
       }
-	 
+
       for (i=0; i<res->res_fs.num_excludes; i++) {
 	 INCEXE *incexe = res->res_fs.exclude_items[i];
 	 for (j=0; j<incexe->name_list.size(); j++) {
-            sendit(sock, "      E %s\n", incexe->name_list.get(j));
+	    sendit(sock, "      E %s\n", incexe->name_list.get(j));
 	 }
 	 if (incexe->name_list.size()) {
-            sendit(sock, "      N\n");
+	    sendit(sock, "      N\n");
 	 }
       }
       break;
@@ -622,77 +622,77 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
 	 int i;
 	 RUN *run = res->res_sch.run;
 	 char buf[1000], num[30];
-         sendit(sock, "Schedule: name=%s\n", res->res_sch.hdr.name);
+	 sendit(sock, "Schedule: name=%s\n", res->res_sch.hdr.name);
 	 if (!run) {
 	    break;
 	 }
 next_run:
-         sendit(sock, "  --> Run Level=%s\n", level_to_str(run->level));
-         bstrncpy(buf, "      hour=", sizeof(buf));
+	 sendit(sock, "  --> Run Level=%s\n", level_to_str(run->level));
+	 bstrncpy(buf, "      hour=", sizeof(buf));
 	 for (i=0; i<24; i++) {
 	    if (bit_is_set(i, run->hour)) {
-               bsnprintf(num, sizeof(num), "%d ", i);
+	       bsnprintf(num, sizeof(num), "%d ", i);
 	       bstrncat(buf, num, sizeof(buf));
 	    }
 	 }
-         bstrncat(buf, "\n", sizeof(buf));
+	 bstrncat(buf, "\n", sizeof(buf));
 	 sendit(sock, buf);
-         bstrncpy(buf, "      mday=", sizeof(buf));
+	 bstrncpy(buf, "      mday=", sizeof(buf));
 	 for (i=0; i<31; i++) {
 	    if (bit_is_set(i, run->mday)) {
-               bsnprintf(num, sizeof(num), "%d ", i);
+	       bsnprintf(num, sizeof(num), "%d ", i);
 	       bstrncat(buf, num, sizeof(buf));
 	    }
 	 }
-         bstrncat(buf, "\n", sizeof(buf));
+	 bstrncat(buf, "\n", sizeof(buf));
 	 sendit(sock, buf);
-         bstrncpy(buf, "      month=", sizeof(buf));
+	 bstrncpy(buf, "      month=", sizeof(buf));
 	 for (i=0; i<12; i++) {
 	    if (bit_is_set(i, run->month)) {
-               bsnprintf(num, sizeof(num), "%d ", i);
+	       bsnprintf(num, sizeof(num), "%d ", i);
 	       bstrncat(buf, num, sizeof(buf));
 	    }
 	 }
-         bstrncat(buf, "\n", sizeof(buf));
+	 bstrncat(buf, "\n", sizeof(buf));
 	 sendit(sock, buf);
-         bstrncpy(buf, "      wday=", sizeof(buf));
+	 bstrncpy(buf, "      wday=", sizeof(buf));
 	 for (i=0; i<7; i++) {
 	    if (bit_is_set(i, run->wday)) {
-               bsnprintf(num, sizeof(num), "%d ", i);
+	       bsnprintf(num, sizeof(num), "%d ", i);
 	       bstrncat(buf, num, sizeof(buf));
 	    }
 	 }
-         bstrncat(buf, "\n", sizeof(buf));
+	 bstrncat(buf, "\n", sizeof(buf));
 	 sendit(sock, buf);
-         bstrncpy(buf, "      wom=", sizeof(buf));
+	 bstrncpy(buf, "      wom=", sizeof(buf));
 	 for (i=0; i<5; i++) {
 	    if (bit_is_set(i, run->wom)) {
-               bsnprintf(num, sizeof(num), "%d ", i);
+	       bsnprintf(num, sizeof(num), "%d ", i);
 	       bstrncat(buf, num, sizeof(buf));
 	    }
 	 }
-         bstrncat(buf, "\n", sizeof(buf));
+	 bstrncat(buf, "\n", sizeof(buf));
 	 sendit(sock, buf);
-         bstrncpy(buf, "      woy=", sizeof(buf));
+	 bstrncpy(buf, "      woy=", sizeof(buf));
 	 for (i=0; i<54; i++) {
 	    if (bit_is_set(i, run->woy)) {
-               bsnprintf(num, sizeof(num), "%d ", i);
+	       bsnprintf(num, sizeof(num), "%d ", i);
 	       bstrncat(buf, num, sizeof(buf));
 	    }
 	 }
-         bstrncat(buf, "\n", sizeof(buf));
+	 bstrncat(buf, "\n", sizeof(buf));
 	 sendit(sock, buf);
-         sendit(sock, "      mins=%d\n", run->minute);
+	 sendit(sock, "      mins=%d\n", run->minute);
 	 if (run->pool) {
-            sendit(sock, "     --> ");
+	    sendit(sock, "     --> ");
 	    dump_resource(-R_POOL, (RES *)run->pool, sendit, sock);
 	 }
 	 if (run->storage) {
-            sendit(sock, "     --> ");
+	    sendit(sock, "     --> ");
 	    dump_resource(-R_STORAGE, (RES *)run->storage, sendit, sock);
 	 }
 	 if (run->msgs) {
-            sendit(sock, "     --> ");
+	    sendit(sock, "     --> ");
 	    dump_resource(-R_MSGS, (RES *)run->msgs, sendit, sock);
 	 }
 	 /* If another Run record is chained in, go print it */
@@ -701,7 +701,7 @@ next_run:
 	    goto next_run;
 	 }
       } else {
-         sendit(sock, "Schedule: name=%s\n", res->res_sch.hdr.name);
+	 sendit(sock, "Schedule: name=%s\n", res->res_sch.hdr.name);
       }
       break;
    case R_POOL:
@@ -713,23 +713,23 @@ next_run:
       sendit(sock, "      max_vols=%d auto_prune=%d VolRetention=%s\n",
 	      res->res_pool.max_volumes, res->res_pool.AutoPrune,
 	      edit_utime(res->res_pool.VolRetention, ed1, sizeof(ed1)));
-      sendit(sock, "      VolUse=%s recycle=%d LabelFormat=%s\n", 
+      sendit(sock, "      VolUse=%s recycle=%d LabelFormat=%s\n",
 	      edit_utime(res->res_pool.VolUseDuration, ed1, sizeof(ed1)),
 	      res->res_pool.Recycle,
 	      NPRT(res->res_pool.label_format));
       sendit(sock, "      CleaningPrefix=%s\n",
 	      NPRT(res->res_pool.cleaning_prefix));
       sendit(sock, "      RecyleOldest=%d PurgeOldest=%d MaxVolJobs=%d MaxVolFiles=%d\n",
-	      res->res_pool.recycle_oldest_volume, 
-	      res->res_pool.purge_oldest_volume, 
+	      res->res_pool.recycle_oldest_volume,
+	      res->res_pool.purge_oldest_volume,
 	      res->res_pool.MaxVolJobs, res->res_pool.MaxVolFiles);
       break;
    case R_MSGS:
       sendit(sock, "Messages: name=%s\n", res->res_msgs.hdr.name);
-      if (res->res_msgs.mail_cmd) 
-         sendit(sock, "      mailcmd=%s\n", res->res_msgs.mail_cmd);
-      if (res->res_msgs.operator_cmd) 
-         sendit(sock, "      opcmd=%s\n", res->res_msgs.operator_cmd);
+      if (res->res_msgs.mail_cmd)
+	 sendit(sock, "      mailcmd=%s\n", res->res_msgs.mail_cmd);
+      if (res->res_msgs.operator_cmd)
+	 sendit(sock, "      opcmd=%s\n", res->res_msgs.operator_cmd);
       break;
    default:
       sendit(sock, "Unknown resource type %d in dump_resource.\n", type);
@@ -766,10 +766,10 @@ static void free_incexe(INCEXE *incexe)
    free(incexe);
 }
 
-/* 
+/*
  * Free memory of resource -- called when daemon terminates.
  * NB, we don't need to worry about freeing any references
- * to other resources as they will be freed when that 
+ * to other resources as they will be freed when that
  * resource chain is traversed.  Mainly we worry about freeing
  * allocated strings (names).
  */
@@ -869,14 +869,14 @@ void free_resource(RES *sres, int type)
       break;
    case R_FILESET:
       if ((num=res->res_fs.num_includes)) {
-	 while (--num >= 0) {	
+	 while (--num >= 0) {
 	    free_incexe(res->res_fs.include_items[num]);
 	 }
 	 free(res->res_fs.include_items);
       }
       res->res_fs.num_includes = 0;
       if ((num=res->res_fs.num_excludes)) {
-	 while (--num >= 0) {	
+	 while (--num >= 0) {
 	    free_incexe(res->res_fs.exclude_items[num]);
 	 }
 	 free(res->res_fs.exclude_items);
@@ -962,7 +962,7 @@ void free_resource(RES *sres, int type)
 /*
  * Save the new resource by chaining it into the head list for
  * the resource. If this is pass 2, we update any resource
- * pointers because they may not have been defined until 
+ * pointers because they may not have been defined until
  * later in pass 1.
  */
 void save_resource(int type, RES_ITEM *items, int pass)
@@ -971,28 +971,28 @@ void save_resource(int type, RES_ITEM *items, int pass)
    int rindex = type - r_first;
    int i, size;
    int error = 0;
-   
+
    /* Check Job requirements after applying JobDefs */
    if (type != R_JOB && type != R_JOBDEFS) {
-      /* 
+      /*
        * Ensure that all required items are present
        */
       for (i=0; items[i].name; i++) {
 	 if (items[i].flags & ITEM_REQUIRED) {
-	       if (!bit_is_set(i, res_all.res_dir.hdr.item_present)) {	
-                  Emsg2(M_ERROR_TERM, 0, "%s item is required in %s resource, but not found.\n",
+	       if (!bit_is_set(i, res_all.res_dir.hdr.item_present)) {
+		  Emsg2(M_ERROR_TERM, 0, "%s item is required in %s resource, but not found.\n",
 		    items[i].name, resources[rindex]);
 		}
 	 }
 	 /* If this triggers, take a look at lib/parse_conf.h */
 	 if (i >= MAX_RES_ITEMS) {
-            Emsg1(M_ERROR_TERM, 0, "Too many items in %s resource\n", resources[rindex]);
+	    Emsg1(M_ERROR_TERM, 0, "Too many items in %s resource\n", resources[rindex]);
 	 }
       }
    }
 
    /*
-    * During pass 2 in each "store" routine, we looked up pointers 
+    * During pass 2 in each "store" routine, we looked up pointers
     * to all the resources referrenced in the current resource, now we
     * must copy their addresses from the static record to the allocated
     * record.
@@ -1011,14 +1011,14 @@ void save_resource(int type, RES_ITEM *items, int pass)
       /* Resources containing another resource */
       case R_DIRECTOR:
 	 if ((res = (URES *)GetResWithName(R_DIRECTOR, res_all.res_dir.hdr.name)) == NULL) {
-            Emsg1(M_ERROR_TERM, 0, "Cannot find Director resource %s\n", res_all.res_dir.hdr.name);
+	    Emsg1(M_ERROR_TERM, 0, "Cannot find Director resource %s\n", res_all.res_dir.hdr.name);
 	 }
 	 res->res_dir.messages = res_all.res_dir.messages;
 	 break;
       case R_JOB:
       case R_JOBDEFS:
 	 if ((res = (URES *)GetResWithName(type, res_all.res_dir.hdr.name)) == NULL) {
-            Emsg1(M_ERROR_TERM, 0, "Cannot find Job resource %s\n", 
+	    Emsg1(M_ERROR_TERM, 0, "Cannot find Job resource %s\n",
 		  res_all.res_dir.hdr.name);
 	 }
 	 res->res_job.messages	 = res_all.res_job.messages;
@@ -1037,7 +1037,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
 	 break;
       case R_COUNTER:
 	 if ((res = (URES *)GetResWithName(R_COUNTER, res_all.res_counter.hdr.name)) == NULL) {
-            Emsg1(M_ERROR_TERM, 0, "Cannot find Counter resource %s\n", res_all.res_counter.hdr.name);
+	    Emsg1(M_ERROR_TERM, 0, "Cannot find Counter resource %s\n", res_all.res_counter.hdr.name);
 	 }
 	 res->res_counter.Catalog = res_all.res_counter.Catalog;
 	 res->res_counter.WrapCounter = res_all.res_counter.WrapCounter;
@@ -1045,24 +1045,24 @@ void save_resource(int type, RES_ITEM *items, int pass)
 
       case R_CLIENT:
 	 if ((res = (URES *)GetResWithName(R_CLIENT, res_all.res_client.hdr.name)) == NULL) {
-            Emsg1(M_ERROR_TERM, 0, "Cannot find Client resource %s\n", res_all.res_client.hdr.name);
+	    Emsg1(M_ERROR_TERM, 0, "Cannot find Client resource %s\n", res_all.res_client.hdr.name);
 	 }
 	 res->res_client.catalog = res_all.res_client.catalog;
 	 break;
       case R_SCHEDULE:
 	 /*
 	  * Schedule is a bit different in that it contains a RUN record
-          * chain which isn't a "named" resource. This chain was linked
-	  * in by run_conf.c during pass 2, so here we jam the pointer 
-	  * into the Schedule resource. 			
+	  * chain which isn't a "named" resource. This chain was linked
+	  * in by run_conf.c during pass 2, so here we jam the pointer
+	  * into the Schedule resource.
 	  */
 	 if ((res = (URES *)GetResWithName(R_SCHEDULE, res_all.res_client.hdr.name)) == NULL) {
-            Emsg1(M_ERROR_TERM, 0, "Cannot find Schedule resource %s\n", res_all.res_client.hdr.name);
+	    Emsg1(M_ERROR_TERM, 0, "Cannot find Schedule resource %s\n", res_all.res_client.hdr.name);
 	 }
 	 res->res_sch.run = res_all.res_sch.run;
 	 break;
       default:
-         Emsg1(M_ERROR, 0, "Unknown resource type %d in save_resource.\n", type);
+	 Emsg1(M_ERROR, 0, "Unknown resource type %d in save_resource.\n", type);
 	 error = 1;
 	 break;
       }
@@ -1081,7 +1081,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
    }
 
    /*
-    * The following code is only executed during pass 1   
+    * The following code is only executed during pass 1
     */
    switch (type) {
    case R_DIRECTOR:
@@ -1094,7 +1094,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
       size =sizeof(CLIENT);
       break;
    case R_STORAGE:
-      size = sizeof(STORE); 
+      size = sizeof(STORE);
       break;
    case R_CATALOG:
       size = sizeof(CAT);
@@ -1130,7 +1130,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
       memcpy(res, &res_all, size);
       if (!res_head[rindex]) {
 	 res_head[rindex] = (RES *)res; /* store first entry */
-         Dmsg3(900, "Inserting first %s res: %s index=%d\n", res_to_str(type),
+	 Dmsg3(900, "Inserting first %s res: %s index=%d\n", res_to_str(type),
 	       res->res_dir.hdr.name, rindex);
       } else {
 	 RES *next;
@@ -1138,24 +1138,24 @@ void save_resource(int type, RES_ITEM *items, int pass)
 	 for (next=res_head[rindex]; next->next; next=next->next) {
 	    if (strcmp(next->name, res->res_dir.hdr.name) == 0) {
 	       Emsg2(M_ERROR_TERM, 0,
-                  _("Attempt to define second %s resource named \"%s\" is not permitted.\n"),
+		  _("Attempt to define second %s resource named \"%s\" is not permitted.\n"),
 		  resources[rindex].name, res->res_dir.hdr.name);
 	    }
 	 }
 	 next->next = (RES *)res;
-         Dmsg4(900, "Inserting %s res: %s index=%d pass=%d\n", res_to_str(type),
+	 Dmsg4(900, "Inserting %s res: %s index=%d pass=%d\n", res_to_str(type),
 	       res->res_dir.hdr.name, rindex, pass);
       }
    }
 }
 
-/* 
+/*
  * Store JobType (backup, verify, restore)
  *
  */
 void store_jobtype(LEX *lc, RES_ITEM *item, int index, int pass)
 {
-   int token, i;   
+   int token, i;
 
    token = lex_get_token(lc, T_NAME);
    /* Store the type both pass 1 and pass 2 */
@@ -1173,7 +1173,7 @@ void store_jobtype(LEX *lc, RES_ITEM *item, int index, int pass)
    set_bit(index, res_all.hdr.item_present);
 }
 
-/* 
+/*
  * Store Job Level (Full, Incremental, ...)
  *
  */
@@ -1216,7 +1216,7 @@ void store_replace(LEX *lc, RES_ITEM *item, int index, int pass)
    set_bit(index, res_all.hdr.item_present);
 }
 
-/* 
+/*
  * Store ACL (access control list)
  *
  */
@@ -1227,12 +1227,12 @@ void store_acl(LEX *lc, RES_ITEM *item, int index, int pass)
    for (;;) {
       token = lex_get_token(lc, T_NAME);
       if (pass == 1) {
-	 if (((alist **)item->value)[item->code] == NULL) {   
-	    ((alist **)item->value)[item->code] = New(alist(10, owned_by_alist)); 
-            Dmsg1(900, "Defined new ACL alist at %d\n", item->code);
+	 if (((alist **)item->value)[item->code] == NULL) {
+	    ((alist **)item->value)[item->code] = New(alist(10, owned_by_alist));
+	    Dmsg1(900, "Defined new ACL alist at %d\n", item->code);
 	 }
 	 ((alist **)item->value)[item->code]->append(bstrdup(lc->str));
-         Dmsg2(900, "Appended to %d %s\n", item->code, lc->str);
+	 Dmsg2(900, "Appended to %d %s\n", item->code, lc->str);
       }
       token = lex_get_token(lc, T_ALL);
       if (token == T_COMMA) {

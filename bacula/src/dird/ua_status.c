@@ -52,7 +52,7 @@ int qstatus_cmd(UAContext *ua, const char *cmd)
 {
    JCR* njcr;
    s_last_job* job;
-   
+
    if (!open_db(ua)) {
       return 1;
    }
@@ -62,7 +62,7 @@ int qstatus_cmd(UAContext *ua, const char *cmd)
       bsendmsg(ua, "1900 Bad .status command, missing arguments.\n");
       return 1;
    }
-   
+
    if (strcasecmp(ua->argk[2], "current") == 0) {
       bsendmsg(ua, OKqstatus, ua->argk[2]);
       lock_jcr_chain();
@@ -85,7 +85,7 @@ int qstatus_cmd(UAContext *ua, const char *cmd)
       bsendmsg(ua, "1900 Bad .status command, wrong argument.\n");
       return 1;
    }
-  
+
    return 1;
 }
 
@@ -108,7 +108,7 @@ int status_cmd(UAContext *ua, const char *cmd)
 	 do_all_status(ua);
 	 return 1;
       } else if (strcasecmp(ua->argk[i], _("dir")) == 0 ||
-                 strcasecmp(ua->argk[i], _("director")) == 0) {
+		 strcasecmp(ua->argk[i], _("director")) == 0) {
 	 do_director_status(ua);
 	 return 1;
       } else if (strcasecmp(ua->argk[i], _("client")) == 0) {
@@ -126,9 +126,9 @@ int status_cmd(UAContext *ua, const char *cmd)
       }
    }
    /* If no args, ask for status type */
-   if (ua->argc == 1) { 				   
-       char prmt[MAX_NAME_LENGTH];		
-       
+   if (ua->argc == 1) {
+       char prmt[MAX_NAME_LENGTH];
+
       start_prompt(ua, _("Status available for:\n"));
       add_prompt(ua, _("Director"));
       add_prompt(ua, _("Storage"));
@@ -139,7 +139,7 @@ int status_cmd(UAContext *ua, const char *cmd)
 	 return 1;
       }
       Dmsg1(20, "item=%d\n", item);
-      switch (item) { 
+      switch (item) {
       case 0:			      /* Director */
 	 do_director_status(ua);
 	 break;
@@ -181,7 +181,7 @@ static void do_all_status(UAContext *ua)
       i++;
    }
    unique_store = (STORE **) malloc(i * sizeof(STORE));
-   /* Find Unique Storage address/port */	  
+   /* Find Unique Storage address/port */
    i = 0;
    foreach_res(store, R_STORAGE) {
       found = false;
@@ -197,7 +197,7 @@ static void do_all_status(UAContext *ua)
       }
       if (!found) {
 	 unique_store[i++] = store;
-         Dmsg2(40, "Stuffing: %s:%d\n", store->address, store->SDport);
+	 Dmsg2(40, "Stuffing: %s:%d\n", store->address, store->SDport);
       }
    }
    UnlockRes();
@@ -215,7 +215,7 @@ static void do_all_status(UAContext *ua)
       i++;
    }
    unique_client = (CLIENT **)malloc(i * sizeof(CLIENT));
-   /* Find Unique Client address/port */	 
+   /* Find Unique Client address/port */
    i = 0;
    foreach_res(client, R_CLIENT) {
       found = false;
@@ -231,7 +231,7 @@ static void do_all_status(UAContext *ua)
       }
       if (!found) {
 	 unique_client[i++] = client;
-         Dmsg2(40, "Stuffing: %s:%d\n", client->address, client->FDport);
+	 Dmsg2(40, "Stuffing: %s:%d\n", client->address, client->FDport);
       }
    }
    UnlockRes();
@@ -241,7 +241,7 @@ static void do_all_status(UAContext *ua)
       do_client_status(ua, unique_client[j]);
    }
    free(unique_client);
-   
+
 }
 
 static void do_director_status(UAContext *ua)
@@ -251,8 +251,8 @@ static void do_director_status(UAContext *ua)
    bsendmsg(ua, "%s Version: " VERSION " (" BDATE ") %s %s %s\n", my_name,
 	    HOST_OS, DISTNAME, DISTVER);
    bstrftime_nc(dt, sizeof(dt), daemon_start_time);
-   bsendmsg(ua, _("Daemon started %s, %d Job%s run since started.\n"), 
-        dt, num_jobs_run, num_jobs_run == 1 ? "" : "s");
+   bsendmsg(ua, _("Daemon started %s, %d Job%s run since started.\n"),
+	dt, num_jobs_run, num_jobs_run == 1 ? "" : "s");
    if (debug_level > 0) {
       char b1[35], b2[35], b3[35], b4[35];
       bsendmsg(ua, _(" Heap: bytes=%s max_bytes=%s bufs=%s max_bufs=%s\n"),
@@ -266,12 +266,12 @@ static void do_director_status(UAContext *ua)
     */
    list_scheduled_jobs(ua);
 
-   /* 
+   /*
     * List running jobs
     */
    list_running_jobs(ua);
 
-   /* 
+   /*
     * List terminated jobs
     */
    list_terminated_jobs(ua);
@@ -284,7 +284,7 @@ static void do_storage_status(UAContext *ua, STORE *store)
 
    set_storage(ua->jcr, store);
    /* Try connecting for up to 15 seconds */
-   bsendmsg(ua, _("Connecting to Storage daemon %s at %s:%d\n"), 
+   bsendmsg(ua, _("Connecting to Storage daemon %s at %s:%d\n"),
       store->hdr.name, store->address, store->SDport);
    if (!connect_to_storage_daemon(ua->jcr, 1, 15, 0)) {
       bsendmsg(ua, _("\nFailed to connect to Storage daemon %s.\n====\n"),
@@ -292,7 +292,7 @@ static void do_storage_status(UAContext *ua, STORE *store)
       if (ua->jcr->store_bsock) {
 	 bnet_close(ua->jcr->store_bsock);
 	 ua->jcr->store_bsock = NULL;
-      } 	
+      }
       return;
    }
    Dmsg0(20, _("Connected to storage daemon\n"));
@@ -304,9 +304,9 @@ static void do_storage_status(UAContext *ua, STORE *store)
    bnet_sig(sd, BNET_TERMINATE);
    bnet_close(sd);
    ua->jcr->store_bsock = NULL;
-   return;  
+   return;
 }
-   
+
 static void do_client_status(UAContext *ua, CLIENT *client)
 {
    BSOCK *fd;
@@ -322,7 +322,7 @@ static void do_client_status(UAContext *ua, CLIENT *client)
    ua->jcr->sd_auth_key = bstrdup("dummy");
 
    /* Try to connect for 15 seconds */
-   bsendmsg(ua, _("Connecting to Client %s at %s:%d\n"), 
+   bsendmsg(ua, _("Connecting to Client %s at %s:%d\n"),
       client->hdr.name, client->address, client->FDport);
    if (!connect_to_file_daemon(ua->jcr, 1, 15, 0)) {
       bsendmsg(ua, _("Failed to connect to Client %s.\n====\n"),
@@ -330,7 +330,7 @@ static void do_client_status(UAContext *ua, CLIENT *client)
       if (ua->jcr->file_bsock) {
 	 bnet_close(ua->jcr->file_bsock);
 	 ua->jcr->file_bsock = NULL;
-      } 	
+      }
       return;
    }
    Dmsg0(20, _("Connected to file daemon\n"));
@@ -343,7 +343,7 @@ static void do_client_status(UAContext *ua, CLIENT *client)
    bnet_close(fd);
    ua->jcr->file_bsock = NULL;
 
-   return;  
+   return;
 }
 
 static void prt_runhdr(UAContext *ua)
@@ -365,7 +365,7 @@ struct sched_pkt {
 
 static void prt_runtime(UAContext *ua, sched_pkt *sp)
 {
-   char dt[MAX_TIME_LENGTH];	   
+   char dt[MAX_TIME_LENGTH];
    const char *level_ptr;
    bool ok = false;
    bool close_db = false;
@@ -382,7 +382,7 @@ static void prt_runtime(UAContext *ua, sched_pkt *sp)
 	 ok = find_next_volume_for_append(jcr, &mr, 0);
       }
       if (!ok) {
-         bstrncpy(mr.VolumeName, "*unknown*", sizeof(mr.VolumeName));
+	 bstrncpy(mr.VolumeName, "*unknown*", sizeof(mr.VolumeName));
       }
    }
    bstrftime_nc(dt, sizeof(dt), sp->runtime);
@@ -395,8 +395,8 @@ static void prt_runtime(UAContext *ua, sched_pkt *sp)
       level_ptr = level_to_str(sp->level);
       break;
    }
-   bsendmsg(ua, _("%-14s %-8s %3d  %-18s %-18s %s\n"), 
-      level_ptr, job_type_to_str(sp->job->JobType), sp->priority, dt, 
+   bsendmsg(ua, _("%-14s %-8s %3d  %-18s %-18s %s\n"),
+      level_ptr, job_type_to_str(sp->job->JobType), sp->priority, dt,
       sp->job->hdr.name, mr.VolumeName);
    if (close_db) {
       db_close_database(jcr, jcr->db);
@@ -416,7 +416,7 @@ static int my_compare(void *item1, void *item2)
       return -1;
    } else if (p1->runtime > p2->runtime) {
       return 1;
-   }	 
+   }
    if (p1->priority < p2->priority) {
       return -1;
    } else if (p1->priority > p2->priority) {
@@ -425,7 +425,7 @@ static int my_compare(void *item1, void *item2)
    return 0;
 }
 
-/*	    
+/*
  * Find all jobs to be run in roughly the
  *  next 24 hours.
  */
@@ -453,7 +453,7 @@ static void list_scheduled_jobs(UAContext *ua)
 	 if (run->level) {
 	    level = run->level;
 	 }
-	 priority = job->Priority;   
+	 priority = job->Priority;
 	 if (run->Priority) {
 	    priority = run->Priority;
 	 }
@@ -477,7 +477,7 @@ static void list_scheduled_jobs(UAContext *ua)
    }
    if (num_jobs == 0) {
       bsendmsg(ua, _("No Scheduled Jobs.\n"));
-   } 
+   }
    bsendmsg(ua, "====\n");
    Dmsg0(200, "Leave list_sched_jobs_runs()\n");
 }
@@ -503,7 +503,7 @@ static void list_running_jobs(UAContext *ua)
 	  */
 	 if (jcr->JobType == JT_CONSOLE) {
 	    bstrftime_nc(dt, sizeof(dt), jcr->start_time);
-            bsendmsg(ua, _("Console connected at %s\n"), dt);
+	    bsendmsg(ua, _("Console connected at %s\n"), dt);
 	 }
 	 njobs--;
       }
@@ -527,72 +527,72 @@ static void list_running_jobs(UAContext *ua)
       njobs++;
       switch (jcr->JobStatus) {
       case JS_Created:
-         msg = _("is waiting execution");
+	 msg = _("is waiting execution");
 	 break;
       case JS_Running:
-         msg = _("is running");
+	 msg = _("is running");
 	 break;
       case JS_Blocked:
-         msg = _("is blocked");
+	 msg = _("is blocked");
 	 break;
       case JS_Terminated:
-         msg = _("has terminated");
+	 msg = _("has terminated");
 	 break;
       case JS_ErrorTerminated:
-         msg = _("has erred");
+	 msg = _("has erred");
 	 break;
       case JS_Error:
-         msg = _("has errors");
+	 msg = _("has errors");
 	 break;
       case JS_FatalError:
-         msg = _("has a fatal error");
+	 msg = _("has a fatal error");
 	 break;
       case JS_Differences:
-         msg = _("has verify differences");
+	 msg = _("has verify differences");
 	 break;
       case JS_Canceled:
-         msg = _("has been canceled");
+	 msg = _("has been canceled");
 	 break;
       case JS_WaitFD:
 	 emsg = (char *) get_pool_memory(PM_FNAME);
-         Mmsg(emsg, _("is waiting on Client %s"), jcr->client->hdr.name);
+	 Mmsg(emsg, _("is waiting on Client %s"), jcr->client->hdr.name);
 	 pool_mem = true;
 	 msg = emsg;
 	 break;
       case JS_WaitSD:
 	 emsg = (char *) get_pool_memory(PM_FNAME);
-         Mmsg(emsg, _("is waiting on Storage %s"), jcr->store->hdr.name);
+	 Mmsg(emsg, _("is waiting on Storage %s"), jcr->store->hdr.name);
 	 pool_mem = true;
 	 msg = emsg;
 	 break;
       case JS_WaitStoreRes:
-         msg = _("is waiting on max Storage jobs");
+	 msg = _("is waiting on max Storage jobs");
 	 break;
       case JS_WaitClientRes:
-         msg = _("is waiting on max Client jobs");
+	 msg = _("is waiting on max Client jobs");
 	 break;
       case JS_WaitJobRes:
-         msg = _("is waiting on max Job jobs");
+	 msg = _("is waiting on max Job jobs");
 	 break;
       case JS_WaitMaxJobs:
-         msg = _("is waiting on max total jobs");
+	 msg = _("is waiting on max total jobs");
 	 break;
       case JS_WaitStartTime:
-         msg = _("is waiting for its start time");
+	 msg = _("is waiting for its start time");
 	 break;
       case JS_WaitPriority:
-         msg = _("is waiting for higher priority jobs to finish");
+	 msg = _("is waiting for higher priority jobs to finish");
 	 break;
 
       default:
 	 emsg = (char *) get_pool_memory(PM_FNAME);
-         Mmsg(emsg, _("is in unknown state %c"), jcr->JobStatus);
+	 Mmsg(emsg, _("is in unknown state %c"), jcr->JobStatus);
 	 pool_mem = true;
 	 msg = emsg;
 	 break;
       }
-      /* 
-       * Now report Storage daemon status code 
+      /*
+       * Now report Storage daemon status code
        */
       switch (jcr->SDJobStatus) {
       case JS_WaitMount:
@@ -600,21 +600,21 @@ static void list_running_jobs(UAContext *ua)
 	    free_pool_memory(emsg);
 	    pool_mem = false;
 	 }
-         msg = _("is waiting for a mount request");
+	 msg = _("is waiting for a mount request");
 	 break;
       case JS_WaitMedia:
 	 if (pool_mem) {
 	    free_pool_memory(emsg);
 	    pool_mem = false;
 	 }
-         msg = _("is waiting for an appendable Volume");
+	 msg = _("is waiting for an appendable Volume");
 	 break;
       case JS_WaitFD:
 	 if (!pool_mem) {
 	    emsg = (char *) get_pool_memory(PM_FNAME);
 	    pool_mem = true;
 	 }
-         Mmsg(emsg, _("is waiting for Client %s to connect to Storage %s"),
+	 Mmsg(emsg, _("is waiting for Client %s to connect to Storage %s"),
 	      jcr->client->hdr.name, jcr->store->hdr.name);
 	 msg = emsg;
 	 break;
@@ -622,7 +622,7 @@ static void list_running_jobs(UAContext *ua)
       switch (jcr->JobType) {
       case JT_ADMIN:
       case JT_RESTORE:
-         bstrncpy(level, "      ", sizeof(level));
+	 bstrncpy(level, "      ", sizeof(level));
 	 break;
       default:
 	 bstrncpy(level, level_to_str(jcr->JobLevel), sizeof(level));
@@ -630,9 +630,9 @@ static void list_running_jobs(UAContext *ua)
 	 break;
       }
 
-      bsendmsg(ua, _("%6d %-6s  %-20s %s\n"), 
+      bsendmsg(ua, _("%6d %-6s  %-20s %s\n"),
 	 jcr->JobId,
-	 level, 
+	 level,
 	 jcr->Job,
 	 msg);
 
@@ -669,7 +669,7 @@ static void list_terminated_jobs(UAContext *ua)
       switch (je->JobType) {
       case JT_ADMIN:
       case JT_RESTORE:
-         bstrncpy(level, "    ", sizeof(level));
+	 bstrncpy(level, "    ", sizeof(level));
 	 break;
       default:
 	 bstrncpy(level, level_to_str(je->JobLevel), sizeof(level));
@@ -678,38 +678,38 @@ static void list_terminated_jobs(UAContext *ua)
       }
       switch (je->JobStatus) {
       case JS_Created:
-         termstat = "Created";
+	 termstat = "Created";
 	 break;
       case JS_FatalError:
       case JS_ErrorTerminated:
-         termstat = "Error";
+	 termstat = "Error";
 	 break;
       case JS_Differences:
-         termstat = "Diffs";
+	 termstat = "Diffs";
 	 break;
       case JS_Canceled:
-         termstat = "Cancel";
+	 termstat = "Cancel";
 	 break;
       case JS_Terminated:
-         termstat = "OK";
+	 termstat = "OK";
 	 break;
       default:
-         termstat = "Other";
+	 termstat = "Other";
 	 break;
       }
       bstrncpy(JobName, je->Job, sizeof(JobName));
       /* There are three periods after the Job name */
       char *p;
       for (int i=0; i<3; i++) {
-         if ((p=strrchr(JobName, '.')) != NULL) {
+	 if ((p=strrchr(JobName, '.')) != NULL) {
 	    *p = 0;
 	 }
       }
-      bsendmsg(ua, _("%6d  %-6s %8s %14s %-7s  %-8s %s\n"), 
+      bsendmsg(ua, _("%6d  %-6s %8s %14s %-7s  %-8s %s\n"),
 	 je->JobId,
-	 level, 
+	 level,
 	 edit_uint64_with_commas(je->JobFiles, b1),
-	 edit_uint64_with_commas(je->JobBytes, b2), 
+	 edit_uint64_with_commas(je->JobBytes, b2),
 	 termstat,
 	 dt, JobName);
    }

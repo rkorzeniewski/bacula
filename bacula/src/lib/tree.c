@@ -1,6 +1,6 @@
 /*
  * Directory tree build/traverse routines
- * 
+ *
  *    Kern Sibbald, June MMII
  *
 */
@@ -27,10 +27,10 @@
 
 #include "bacula.h"
 #include "findlib/find.h"
-	     
+
 
 /* Forward referenced subroutines */
-static TREE_NODE *search_and_insert_tree_node(char *fname, int type, 
+static TREE_NODE *search_and_insert_tree_node(char *fname, int type,
 	       TREE_ROOT *root, TREE_NODE *parent);
 static char *tree_alloc(TREE_ROOT *root, int size);
 
@@ -94,7 +94,7 @@ TREE_ROOT *new_tree(int count)
    return root;
 }
 
-/* 
+/*
  * Create a new tree node.
  */
 static TREE_NODE *new_tree_node(TREE_ROOT *root)
@@ -108,7 +108,7 @@ static TREE_NODE *new_tree_node(TREE_ROOT *root)
 
 #ifdef USE_DLIST
 /*
- * This routine can be called to release the 
+ * This routine can be called to release the
  *  previously allocated tree node.
  */
 static void free_tree_node(TREE_ROOT *root)
@@ -167,7 +167,7 @@ void free_tree(TREE_ROOT *root)
 }
 
 
-/* 
+/*
  * Insert a node in the tree. This is the main subroutine
  *   called when building a tree.
  *
@@ -205,7 +205,7 @@ TREE_NODE *insert_tree_node(char *path, char *fname, int type,
    }
    if (*fname) {
       if (!parent) {		      /* if no parent, we need to make one */
-         Dmsg1(100, "make_tree_path for %s\n", path);
+	 Dmsg1(100, "make_tree_path for %s\n", path);
 	 path_len = strlen(path);     /* get new length */
 	 if (path_len == root->cached_path_len &&
 	     strcmp(path, root->cached_path) == 0) {
@@ -214,9 +214,9 @@ TREE_NODE *insert_tree_node(char *path, char *fname, int type,
 	    root->cached_path_len = path_len;
 	    pm_strcpy(&root->cached_path, path);
 	    parent = make_tree_path(path, root);
-	    root->cached_parent = parent; 
+	    root->cached_parent = parent;
 	 }
-         Dmsg1(100, "parent=%s\n", parent->fname);
+	 Dmsg1(100, "parent=%s\n", parent->fname);
       }
    } else {
       fname = path;
@@ -265,7 +265,7 @@ TREE_NODE *make_tree_path(char *path, TREE_ROOT *root)
    }
    node = search_and_insert_tree_node(fname, type, root, parent);
    return node;
-}  
+}
 
 #ifdef USE_DLIST
 static int node_compare(void *item1, void *item2)
@@ -284,7 +284,7 @@ static int node_compare(void *item1, void *item2)
 /*
  *  See if the fname already exists. If not insert a new node for it.
  */
-static TREE_NODE *search_and_insert_tree_node(char *fname, int type, 
+static TREE_NODE *search_and_insert_tree_node(char *fname, int type,
 	       TREE_ROOT *root, TREE_NODE *parent)
 {
 #ifdef USE_DLIST
@@ -321,7 +321,7 @@ static TREE_NODE *search_and_insert_tree_node(char *fname, int type,
    int cmp;
 
    /* Is it already a sibling? */
-   foreach_child(sibling, parent) {    
+   foreach_child(sibling, parent) {
       Dmsg2(000, "sibling->fname=%s fname=%s\n", sibling->fname, fname);
       if (fname[0] > sibling->fname[0] || (cmp=strcmp(fname, sibling->fname)) > 0) {
 	 last_sibling = sibling;
@@ -336,7 +336,7 @@ static TREE_NODE *search_and_insert_tree_node(char *fname, int type,
 	 if (sibling == first_child(parent)) { /* if sibling was at head of list */
 	    parent->child_ = NULL;	  /* force parent to be updated below */
 	 }
-         Dmsg2(000, "insert before sibling->fname=%s fname=%s\n", sibling->fname, fname);
+	 Dmsg2(000, "insert before sibling->fname=%s fname=%s\n", sibling->fname, fname);
 	 break;
       }
       /* Found it */
@@ -345,8 +345,8 @@ static TREE_NODE *search_and_insert_tree_node(char *fname, int type,
    }
 
 
-   /* 
-    * At this point, the fname is not found. We must add it 
+   /*
+    * At this point, the fname is not found. We must add it
     */
    if (!node) {
       node = new_tree_node(root);
@@ -398,13 +398,13 @@ int tree_getpath(TREE_NODE *node, char *buf, int buf_size)
       return 1;
    }
    tree_getpath(node->parent, buf, buf_size);
-   /* 
-    * Fixup for Win32. If we have a Win32 directory and 
+   /*
+    * Fixup for Win32. If we have a Win32 directory and
     *	 there is only a / in the buffer, remove it since
     *    win32 names don't generally start with /
     */
    if (node->type == TN_DIR_NLS && buf[0] == '/' && buf[1] == 0) {
-      buf[0] = 0;   
+      buf[0] = 0;
    }
    bstrncat(buf, node->fname, buf_size);
    /* Add a slash for all directories unless we are at the root,
@@ -418,7 +418,7 @@ int tree_getpath(TREE_NODE *node, char *buf, int buf_size)
    return 1;
 }
 
-/* 
+/*
  * Change to specified directory
  */
 TREE_NODE *tree_cwd(char *path, TREE_ROOT *root, TREE_NODE *node)
@@ -464,7 +464,7 @@ TREE_NODE *tree_relcwd(char *path, TREE_ROOT *root, TREE_NODE *node)
    Dmsg2(100, "tree_relcwd: len=%d path=%s\n", len, path);
    foreach_child(cd, node) {
       Dmsg1(100, "tree_relcwd: test cd=%s\n", cd->fname);
-      if (cd->fname[0] == path[0] && len == (int)strlen(cd->fname)    
+      if (cd->fname[0] == path[0] && len == (int)strlen(cd->fname)
 	  && strncmp(cd->fname, path, len) == 0) {
 	 break;
       }
@@ -542,7 +542,7 @@ void FillDirectoryTree(char *path, TREE_ROOT *root, TREE_NODE *parent)
    char file[MAXPATHLEN];
    int type;
    int i;
-   
+
    Dmsg1(100, "FillDirectoryTree: %s\n", path);
    dp = opendir(path);
    if (!dp) {
@@ -555,7 +555,7 @@ void FillDirectoryTree(char *path, TREE_ROOT *root, TREE_NODE *parent)
       bstrncpy(file, dir->d_name, sizeof(file));
       snprintf(pathbuf, MAXPATHLEN-1, "%s/%s", path, file);
       if (lstat(pathbuf, &statbuf) < 0) {
-         printf("lstat() failed. ERR=%s\n", strerror(errno));
+	 printf("lstat() failed. ERR=%s\n", strerror(errno));
 	 continue;
       }
 //      printf("got file=%s, pathbuf=%s\n", file, pathbuf);
@@ -576,7 +576,7 @@ void FillDirectoryTree(char *path, TREE_ROOT *root, TREE_NODE *parent)
 	 type = TN_FILE; /* sock */
       else {
 	 type = TN_FILE;
-         printf("Unknown file type: 0x%x\n", statbuf.st_mode);
+	 printf("Unknown file type: 0x%x\n", statbuf.st_mode);
       }
 
       Dmsg2(100, "Doing: %d %s\n", type, pathbuf);
@@ -584,7 +584,7 @@ void FillDirectoryTree(char *path, TREE_ROOT *root, TREE_NODE *parent)
       node->FileIndex = ++FileIndex;
       parent = insert_tree_node(pathbuf, node, root, parent);
       if (S_ISDIR(statbuf.st_mode) && !S_ISLNK(statbuf.st_mode)) {
-         Dmsg2(100, "calling fill. pathbuf=%s, file=%s\n", pathbuf, file);
+	 Dmsg2(100, "calling fill. pathbuf=%s, file=%s\n", pathbuf, file);
 	 FillDirectoryTree(pathbuf, root, node);
       }
    }
@@ -606,7 +606,7 @@ void print_tree(char *path, TREE_NODE *tree)
    switch (tree->type) {
    case TN_DIR_NLS:
    case TN_DIR:
-   case TN_NEWDIR:  
+   case TN_NEWDIR:
       termchr = "/";
       break;
    case TN_ROOT:

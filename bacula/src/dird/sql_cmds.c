@@ -52,13 +52,13 @@ const char *del_File     = "DELETE FROM File WHERE JobId=%u";
 const char *upd_Purged   = "UPDATE Job Set PurgedFiles=1 WHERE JobId=%u";
 const char *cnt_DelCand  = "SELECT count(*) FROM DelCandidates";
 const char *del_Job      = "DELETE FROM Job WHERE JobId=%u";
-const char *del_JobMedia = "DELETE FROM JobMedia WHERE JobId=%u"; 
+const char *del_JobMedia = "DELETE FROM JobMedia WHERE JobId=%u";
 const char *cnt_JobMedia = "SELECT count(*) FROM JobMedia WHERE MediaId=%u";
 const char *sel_JobMedia = "SELECT JobId FROM JobMedia WHERE MediaId=%u";
 
 /* Select JobIds for File deletion. */
 const char *select_job =
-   "SELECT JobId from Job "    
+   "SELECT JobId from Job "
    "WHERE JobTDate<%s "
    "AND ClientId=%u "
    "AND PurgedFiles=0";
@@ -100,11 +100,11 @@ const char *create_deltabs[] = {
 /* Fill candidates table with all Jobs subject to being deleted.
  *  This is used for pruning Jobs (first the files, then the Jobs).
  */
-const char *insert_delcand = 
+const char *insert_delcand =
    "INSERT INTO DelCandidates "
    "SELECT JobId,PurgedFiles,FileSetId,JobFiles,JobStatus FROM Job "
    "WHERE Type='%c' "
-   "AND JobTDate<%s " 
+   "AND JobTDate<%s "
    "AND ClientId=%u";
 
 /* Select Jobs from the DelCandidates table that have a
@@ -149,7 +149,7 @@ const char *select_restore_del =
    "FROM Job,DelCandidates "
    "WHERE (Job.JobTdate<%s AND delCandidates.JobStatus!='T') OR "
    "(Job.JobTDate>%s "
-   "AND Job.ClientId=%u "   
+   "AND Job.ClientId=%u "
    "AND Job.Type='R')";
 
 /* Select Jobs from the DelCandidates table.
@@ -160,7 +160,7 @@ const char *select_admin_del =
    "FROM Job,DelCandidates "
    "WHERE (Job.JobTdate<%s AND delCandidates.JobStatus!='T') OR "
    "(Job.JobTDate>%s "
-   "AND Job.ClientId=%u "   
+   "AND Job.ClientId=%u "
    "AND Job.Type='D')";
 
 
@@ -169,7 +169,7 @@ const char *uar_count_files =
    "SELECT JobFiles FROM Job WHERE JobId=%u";
 
 /* List last 20 Jobs */
-const char *uar_list_jobs = 
+const char *uar_list_jobs =
    "SELECT JobId,Client.Name as Client,StartTime,Level as "
    "JobLevel,JobFiles,JobBytes "
    "FROM Client,Job WHERE Client.ClientId=Job.ClientId AND JobStatus='T' "
@@ -178,7 +178,7 @@ const char *uar_list_jobs =
 #ifdef HAVE_MYSQL
 /*  MYSQL IS NOT STANDARD SQL !!!!! */
 /* List Jobs where a particular file is saved */
-const char *uar_file = 
+const char *uar_file =
    "SELECT Job.JobId as JobId, Client.Name as Client, "
    "CONCAT(Path.Path,Filename.Name) as Name, "
    "StartTime,Type as JobType,JobFiles,JobBytes "
@@ -188,7 +188,7 @@ const char *uar_file =
    "AND Filename.Name='%s' ORDER BY StartTime DESC LIMIT 20";
 #else
 /* List Jobs where a particular file is saved */
-const char *uar_file = 
+const char *uar_file =
    "SELECT Job.JobId as JobId, Client.Name as Client, "
    "Path.Path||Filename.Name as Name, "
    "StartTime,Type as JobType,JobFiles,JobBytes "
@@ -203,7 +203,7 @@ const char *uar_file =
  * Find all files for a particular JobId and insert them into
  *  the tree during a restore.
  */
-const char *uar_sel_files = 
+const char *uar_sel_files =
    "SELECT Path.Path,Filename.Name,FileIndex,JobId,LStat "
    "FROM File,Filename,Path "
    "WHERE File.JobId=%u AND Filename.FilenameId=File.FilenameId "
@@ -212,7 +212,7 @@ const char *uar_sel_files =
 const char *uar_del_temp  = "DROP TABLE temp";
 const char *uar_del_temp1 = "DROP TABLE temp1";
 
-const char *uar_create_temp = 
+const char *uar_create_temp =
    "CREATE TABLE temp ("
 #ifdef HAVE_POSTGRESQL
    "JobId INTEGER NOT NULL,"
@@ -238,7 +238,7 @@ const char *uar_create_temp =
    "VolSessionTime INTEGER UNSIGNED)";
 #endif
 
-const char *uar_create_temp1 = 
+const char *uar_create_temp1 =
    "CREATE TABLE temp1 ("
 #ifdef HAVE_POSTGRESQL
    "JobId INTEGER NOT NULL,"
@@ -261,8 +261,8 @@ const char *uar_last_full =
    "%s"
    "ORDER BY Job.JobTDate DESC LIMIT 1";
 
-const char *uar_full = 
-   "INSERT INTO temp SELECT Job.JobId,Job.JobTDate,"          
+const char *uar_full =
+   "INSERT INTO temp SELECT Job.JobId,Job.JobTDate,"
    " Job.ClientId,Job.Level,Job.JobFiles,"
    " StartTime,VolumeName,JobMedia.StartFile,VolSessionId,VolSessionTime "
    "FROM temp1,Job,JobMedia,Media WHERE temp1.JobId=Job.JobId "
@@ -270,7 +270,7 @@ const char *uar_full =
    "AND JobMedia.JobId=Job.JobId "
    "AND JobMedia.MediaId=Media.MediaId";
 
-const char *uar_dif = 
+const char *uar_dif =
    "INSERT INTO temp SELECT Job.JobId,Job.JobTDate,Job.ClientId,"
    "Job.Level,Job.JobFiles,Job.StartTime,Media.VolumeName,JobMedia.StartFile,"
    "Job.VolSessionId,Job.VolSessionTime "
@@ -282,7 +282,7 @@ const char *uar_dif =
    "AND Job.Level='D' AND JobStatus='T' "
    "AND Job.FileSetId=FileSet.FileSetId "
    "AND FileSet.FileSet='%s' "
-   "%s" 
+   "%s"
    "ORDER BY Job.JobTDate DESC LIMIT 1";
 
 const char *uar_inc =
@@ -299,7 +299,7 @@ const char *uar_inc =
    "AND FileSet.FileSet='%s' "
    "%s";
 
-const char *uar_list_temp = 
+const char *uar_list_temp =
    "SELECT JobId,Level,JobFiles,StartTime,VolumeName,StartFile,"
    "VolSessionId,VolSessionTime FROM temp "
    "ORDER BY StartTime ASC";
@@ -314,7 +314,7 @@ const char *uar_sel_all_temp = "SELECT * FROM temp";
 
 
 /* Select FileSet names for this Client */
-const char *uar_sel_fileset = 
+const char *uar_sel_fileset =
    "SELECT DISTINCT FileSet.FileSet FROM Job,"
    "Client,FileSet WHERE Job.FileSetId=FileSet.FileSetId "
    "AND Job.ClientId=%u AND Client.ClientId=%u "
@@ -325,11 +325,11 @@ const char *uar_mediatype =
    "SELECT MediaType FROM JobMedia,Media WHERE JobMedia.JobId=%u "
    "AND JobMedia.MediaId=Media.MediaId";
 
-/* 
- *  Find JobId, FileIndex for a given path/file and date   
+/*
+ *  Find JobId, FileIndex for a given path/file and date
  *  for use when inserting individual files into the tree.
  */
-const char *uar_jobid_fileindex = 
+const char *uar_jobid_fileindex =
    "SELECT Job.JobId, File.FileIndex FROM Job,File,Path,Filename,Client "
    "WHERE Job.JobId=File.JobId "
    "AND Job.StartTime<'%s' "
@@ -341,7 +341,7 @@ const char *uar_jobid_fileindex =
    "AND Filename.FilenameId=File.FilenameId "
    "ORDER BY Job.StartTime DESC LIMIT 1";
 
-const char *uar_jobids_fileindex = 
+const char *uar_jobids_fileindex =
    "SELECT Job.JobId, File.FileIndex FROM Job,File,Path,Filename,Client "
    "WHERE Job.JobId IN (%s) "
    "AND Job.JobId=File.JobId "

@@ -2,7 +2,7 @@
  *  Implement routines to determine file system types.
  *
  *   Written by Preben 'Peppe' Guldberg, December MMIV
- * 
+ *
  *   Version $Id$
  */
 
@@ -34,13 +34,13 @@
 #include <stdlib.h>
 #include <string.h>
 #define SUPPORTEDOSES      "HAVE_DARWIN_OS\n" \
-                           "HAVE_FREEBSD_OS\n" \
-                           "HAVE_HPUX_OS\n" \
-                           "HAVE_IRIX_OS\n" \
-                           "HAVE_LINUX_OS\n" \
-                           "HAVE_NETBSD_OS\n" \
-                           "HAVE_OPENBSD_OS\n" \
-                           "HAVE_SUN_OS\n"
+			   "HAVE_FREEBSD_OS\n" \
+			   "HAVE_HPUX_OS\n" \
+			   "HAVE_IRIX_OS\n" \
+			   "HAVE_LINUX_OS\n" \
+			   "HAVE_NETBSD_OS\n" \
+			   "HAVE_OPENBSD_OS\n" \
+			   "HAVE_SUN_OS\n"
 #define POOLMEM 	   char
 #define bstrdup 	   strdup
 #define Dmsg0(n,s)         fprintf(stderr, s "\n");
@@ -90,7 +90,7 @@ POOLMEM *fstype(const char *fname)
    struct statfs st;
    if (statfs(fname, &st) == 0) {
       /*
-       * Values nicked from statfs(2), testing and 
+       * Values nicked from statfs(2), testing and
        *
        *    $ grep -r SUPER_MAGIC /usr/include/linux
        *
@@ -172,7 +172,7 @@ POOLMEM *fstype(const char *fname)
 #endif
 
       default:
-         Dmsg2(10, "Unknown file system type \"0x%x\" for \"%s\".", st.f_type,
+	 Dmsg2(10, "Unknown file system type \"0x%x\" for \"%s\".", st.f_type,
 	       fname);
 	 return NULL;
       }
@@ -216,7 +216,7 @@ int main(int argc, char **argv)
    if (argc < 2) {
       p = (argc < 1) ? "fstype" : argv[0];
       printf("usage:\t%s path ...\n"
-            "\t%s prints the file system type and pathname of the paths.\n",
+	    "\t%s prints the file system type and pathname of the paths.\n",
 	    p, p);
       return EXIT_FAILURE;
    }
@@ -224,7 +224,7 @@ int main(int argc, char **argv)
       if ((p = fstype(*argv)) == NULL) {
 	 status = EXIT_FAILURE;
       } else {
-         printf("%s\t%s\n", p, *argv);
+	 printf("%s\t%s\n", p, *argv);
       }
    }
    return status;

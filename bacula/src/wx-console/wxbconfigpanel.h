@@ -42,36 +42,36 @@ enum wxbConfigType {
 };
 
 class wxbConfigParam {
-   public:  
+   public:
       /* Create a new config parameter */
       wxbConfigParam(wxString title, wxWindowID id, wxbConfigType type, wxString value);
       wxbConfigParam(wxString title, wxWindowID id, wxbConfigType type, int n, wxString values[]);
      ~wxbConfigParam();
-     
+
      void AddControl(wxWindow* parent, wxSizer* sizer);
-     
+
      wxString GetValue();
      void SetValue(wxString str);
-     
+
      int GetIndex();
      void SetIndex(int ind);
-     
+
      void Clear();
      void Add(wxString value);
-     
+
      wxString GetTitle();
-   
+
    private:
       wxString value;
       wxString* values;
       int nvalues;
-   
+
       wxString title;
-      
+
       wxWindowID id;
-      
+
       wxbConfigType type;
-   
+
       wxChoice* choicectrl;
       wxTextCtrl* textctrl;
       wxStaticText* statictext;
@@ -82,9 +82,9 @@ WX_DECLARE_OBJARRAY(wxbConfigParam, wxbConfig);
 class wxbConfigPanel : public wxPanel {
 public:
    /* Creates a new config panel, config must be allocated with new */
-        wxbConfigPanel(wxWindow* parent, wxbConfig* config, wxString title, wxWindowID ok, wxWindowID cancel, wxWindowID apply = -1);
-        ~wxbConfigPanel();
-   
+	wxbConfigPanel(wxWindow* parent, wxbConfig* config, wxString title, wxWindowID ok, wxWindowID cancel, wxWindowID apply = -1);
+	~wxbConfigPanel();
+
    void SetRowString(const char* title, wxString value);
    wxString GetRowString(const char* title);
    int GetRowSelection(const char* title);
@@ -104,7 +104,7 @@ private:
    wxButton* cfgOk;
    wxButton* cfgCancel;
    wxButton* cfgApply;
-   
+
    int FindRow(const char* title);
 };
 

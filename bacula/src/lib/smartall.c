@@ -13,7 +13,7 @@
 
 		  http://www.fourmilab.ch/smartall/
 
-  
+
 	 Version $Id$
 
 */
@@ -46,7 +46,7 @@
 #undef free
 
 /* We normally turn off debugging here.
- *  If you want it, simply #ifdef all the 
+ *  If you want it, simply #ifdef all the
  *  following off.
  */
 #undef Dmsg1
@@ -57,7 +57,7 @@
 #define Dmsg2(l,f,a1,a2)
 #define Dmsg3(l,f,a1,a2,a3)
 #define Dmsg4(l,f,a1,a2,a3,a4)
-      
+
 
 uint64_t sm_max_bytes = 0;
 uint64_t sm_bytes = 0;
@@ -83,7 +83,7 @@ struct abufhead {
    struct b_queue abq;	       /* Links on allocated queue */
    unsigned ablen;	       /* Buffer length in bytes */
    const char *abfname;        /* File name pointer */
-   sm_ushort ablineno;	       /* Line number of allocation */ 
+   sm_ushort ablineno;	       /* Line number of allocation */
 };
 
 static struct b_queue abqueue = {    /* Allocated buffer queue */
@@ -170,8 +170,8 @@ void sm_free(const char *file, int line, void *fp)
    struct abufhead *head = (struct abufhead *)cp;
 
    P(mutex);
-   Dmsg4(1150, "sm_free %d at %x from %s:%d\n", 
-	 head->ablen, fp, 
+   Dmsg4(1150, "sm_free %d at %x from %s:%d\n",
+	 head->ablen, fp,
 	 head->abfname, head->ablineno);
 
    /* The following assertions will catch virtually every release
@@ -221,7 +221,7 @@ void *sm_malloc(const char *fname, int lineno, unsigned int nbytes)
 
       /* To catch sloppy code that assumes  buffers  obtained  from
 	 malloc()  are	zeroed,  we  preset  the buffer contents to
-         "designer garbage" consisting of alternating bits.  */
+	 "designer garbage" consisting of alternating bits.  */
 
       memset(buf, 0x55, (int) nbytes);
    } else {
@@ -246,7 +246,7 @@ void *sm_calloc(const char *fname, int lineno,
 }
 
 /*  SM_REALLOC	--  Adjust the size of a  previously  allocated  buffer.
-                    Note  that  the trick of "resurrecting" a previously
+		    Note  that  the trick of "resurrecting" a previously
 		    freed buffer with realloc() is NOT supported by this
 		    function.	Further, because of the need to maintain
 		    our control storage, SM_REALLOC must always allocate
@@ -294,7 +294,7 @@ void *sm_realloc(const char *fname, int lineno, void *ptr, unsigned int size)
    if ((buf = smalloc(fname, lineno, size)) != NULL) {
       memcpy(buf, ptr, (int) sm_min(size, osize));
       /* If the new buffer is larger than the old, fill the balance
-         of it with "designer garbage". */
+	 of it with "designer garbage". */
       if (size > osize) {
 	 memset(((char *) buf) + osize, 0x55, (int) (size - osize));
       }
@@ -362,14 +362,14 @@ void sm_dump(bool bufdump)
    while (ap != (struct abufhead *) &abqueue) {
 
       if ((ap == NULL) ||
-	  (ap->abq.qnext->qprev != (struct b_queue *) ap) || 
+	  (ap->abq.qnext->qprev != (struct b_queue *) ap) ||
 	  (ap->abq.qprev->qnext != (struct b_queue *) ap)) {
 	 fprintf(stderr,
-            "\nOrphaned buffers exist.  Dump terminated following\n");
+	    "\nOrphaned buffers exist.  Dump terminated following\n");
 	 fprintf(stderr,
-            "  discovery of bad links in chain of orphaned buffers.\n");
+	    "  discovery of bad links in chain of orphaned buffers.\n");
 	 fprintf(stderr,
-            "  Buffer address with bad links: %lx\n", (long) ap);
+	    "  Buffer address with bad links: %lx\n", (long) ap);
 	 break;
       }
 
@@ -378,10 +378,10 @@ void sm_dump(bool bufdump)
 	 char errmsg[500];
 
 	 bsnprintf(errmsg, sizeof(errmsg),
-           "Orphaned buffer:  %6u bytes allocated at line %d of %s %s\n",
+	   "Orphaned buffer:  %6u bytes allocated at line %d of %s %s\n",
 	    memsize, ap->ablineno, my_name, ap->abfname
 	 );
-         fprintf(stderr, "%s", errmsg);
+	 fprintf(stderr, "%s", errmsg);
 	 if (bufdump) {
 	    char buf[20];
 	    unsigned llen = 0;
@@ -390,18 +390,18 @@ void sm_dump(bool bufdump)
 	    errmsg[0] = EOS;
 	    while (memsize) {
 	       if (llen >= 16) {
-                  bstrncat(errmsg, "\n", sizeof(errmsg));
+		  bstrncat(errmsg, "\n", sizeof(errmsg));
 		  llen = 0;
-                  fprintf(stderr, "%s", errmsg);
+		  fprintf(stderr, "%s", errmsg);
 		  errmsg[0] = EOS;
 	       }
-               bsnprintf(buf, sizeof(buf), " %02X",
+	       bsnprintf(buf, sizeof(buf), " %02X",
 		  (*cp++) & 0xFF);
 	       bstrncat(errmsg, buf, sizeof(errmsg));
 	       llen++;
 	       memsize--;
 	    }
-            fprintf(stderr, "%s\n", errmsg);
+	    fprintf(stderr, "%s\n", errmsg);
 	 }
       }
       ap = (struct abufhead *) ap->abq.qnext;
@@ -414,7 +414,7 @@ void sm_dump(bool bufdump)
 void sm_check(const char *fname, int lineno, bool bufdump)
 {
 	if (!sm_check_rtn(fname, lineno, bufdump)) {
-           Emsg2(M_ABORT, 0, "Damaged buffer found. Called from %s:%d\n",
+	   Emsg2(M_ABORT, 0, "Damaged buffer found. Called from %s:%d\n",
 	      fname, lineno);
 	}
 }
@@ -434,7 +434,7 @@ int sm_check_rtn(const char *fname, int lineno, bool bufdump)
 	  (ap->abq.qnext->qprev != (struct b_queue *) ap)) {
 	 bad = 0x1;
       }
-      if (ap->abq.qprev->qnext != (struct b_queue *) ap) { 
+      if (ap->abq.qprev->qnext != (struct b_queue *) ap) {
 	 bad |= 0x2;
       }
       if (((unsigned char *) ap)[((struct abufhead *) ap)->ablen - 1] !=
@@ -444,26 +444,26 @@ int sm_check_rtn(const char *fname, int lineno, bool bufdump)
       badbuf |= bad;
       if (bad) {
 	 fprintf(stderr,
-            "\nDamaged buffers found at %s:%d\n", fname, lineno);
+	    "\nDamaged buffers found at %s:%d\n", fname, lineno);
 
 	 if (bad & 0x1) {
-            fprintf(stderr, "  discovery of bad prev link.\n");
+	    fprintf(stderr, "  discovery of bad prev link.\n");
 	 }
 	 if (bad & 0x2) {
-            fprintf(stderr, "  discovery of bad next link.\n");
+	    fprintf(stderr, "  discovery of bad next link.\n");
 	 }
 	 if (bad & 0x4) {
-            fprintf(stderr, "  discovery of data overrun.\n");
+	    fprintf(stderr, "  discovery of data overrun.\n");
 	 }
 
-         fprintf(stderr, "  Buffer address: %lx\n", (long) ap);
+	 fprintf(stderr, "  Buffer address: %lx\n", (long) ap);
 
 	 if (ap->abfname != NULL) {
 	    unsigned memsize = ap->ablen - (HEAD_SIZE + 1);
 	    char errmsg[80];
 
 	    fprintf(stderr,
-              "Damaged buffer:  %6u bytes allocated at line %d of %s %s\n",
+	      "Damaged buffer:  %6u bytes allocated at line %d of %s %s\n",
 	       memsize, ap->ablineno, my_name, ap->abfname
 	    );
 	    if (bufdump) {
@@ -473,22 +473,22 @@ int sm_check_rtn(const char *fname, int lineno, bool bufdump)
 	       errmsg[0] = EOS;
 	       while (memsize) {
 		  if (llen >= 16) {
-                     strcat(errmsg, "\n");
+		     strcat(errmsg, "\n");
 		     llen = 0;
-                     fprintf(stderr, "%s", errmsg);
+		     fprintf(stderr, "%s", errmsg);
 		     errmsg[0] = EOS;
 		  }
 		  if (*cp < 0x20) {
-                     sprintf(errmsg + strlen(errmsg), " %02X",
+		     sprintf(errmsg + strlen(errmsg), " %02X",
 			(*cp++) & 0xFF);
 		  } else {
-                     sprintf(errmsg + strlen(errmsg), " %c ",
+		     sprintf(errmsg + strlen(errmsg), " %c ",
 			(*cp++) & 0xFF);
 		  }
 		  llen++;
 		  memsize--;
 	       }
-               fprintf(stderr, "%s\n", errmsg);
+	       fprintf(stderr, "%s\n", errmsg);
 	    }
 	 }
       }
@@ -511,7 +511,7 @@ void sm_static(int mode)
    bufimode = (bool) (mode != 0);
 }
 
-/* 
+/*
  * Here we overload C++'s global new and delete operators
  *  so that the memory is allocated through smartalloc.
  */

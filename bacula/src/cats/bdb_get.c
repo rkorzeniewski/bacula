@@ -2,7 +2,7 @@
  * Bacula Catalog Database Get record interface routines
  *  Note, these routines generally get a record by id or
  *	  by name.  If more logic is involved, the routine
- *	  should be in find.c 
+ *	  should be in find.c
  *
  * Bacula Catalog Database routines written specifically
  *  for Bacula.  Note, these routines are VERY dumb and
@@ -10,8 +10,8 @@
  *  The purpose of these routines is to ensure that Bacula
  *  can limp along if no real database is loaded on the
  *  system.
- *   
- *    Kern Sibbald, January MMI 
+ *
+ *    Kern Sibbald, January MMI
  *
  *    Version $Id$
  */
@@ -59,14 +59,14 @@
  */
 
 
-/* 
+/*
  * Get Job record for given JobId
  * Returns: 0 on failure
  *	    1 on success
  */
 
 int db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
-{ 
+{
    JOB_DBR ojr;
    faddr_t rec_addr;
    int found = 0;
@@ -98,7 +98,7 @@ int db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
       /* Search by Job */
       } else if (strcmp(jr->Job, ojr.Job) == 0) {
 	 found = 1;
-         Dmsg1(200, "Found Job: %s\n", ojr.Job);
+	 Dmsg1(200, "Found Job: %s\n", ojr.Job);
       }
       if (!found) {
 	 rec_addr = ftell(mdb->jobfd); /* save start next record */
@@ -121,7 +121,7 @@ int db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 }
 
 
-/* 
+/*
  * Get the number of pool records
  *
  * Returns: -1 on failure
@@ -172,13 +172,13 @@ int db_get_pool_ids(JCR *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
 }
 
 
-/* 
- * Get Pool Record   
+/*
+ * Get Pool Record
  * If the PoolId is non-zero, we get its record,
  *  otherwise, we search on the PoolName
  *
  * Returns: 0 on failure
- *	    id on success 
+ *	    id on success
  */
 int db_get_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
 {
@@ -208,7 +208,7 @@ int db_get_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
       /* Search by Name */
       } else if (strcmp(pr->Name, opr.Name) == 0) {
 	 found = 1;
-         Dmsg1(200, "Found pool: %s\n", opr.Name);
+	 Dmsg1(200, "Found pool: %s\n", opr.Name);
       }
       if (!found) {
 	 rec_addr = ftell(mdb->poolfd); /* save start next record */
@@ -230,7 +230,7 @@ int db_get_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
    return stat;
 }
 
-/* 
+/*
  * Get the number of Media records
  *
  * Returns: -1 on failure
@@ -247,7 +247,7 @@ int db_get_num_media_records(JCR *jcr, B_DB *mdb)
 }
 
 /*
- * This function returns a list of all the Media record ids 
+ * This function returns a list of all the Media record ids
  *  for a specified PoolId
  *  The caller must free ids if non-NULL.
  *
@@ -287,13 +287,13 @@ int db_get_media_ids(JCR *jcr, B_DB *mdb, uint32_t PoolId, int *num_ids, uint32_
    return 1;
 }
 
-/* 
- * Get Media Record   
+/*
+ * Get Media Record
  * If the MediaId is non-zero, we get its record,
  *  otherwise, we search on the MediaName
  *
  * Returns: 0 on failure
- *	    id on success 
+ *	    id on success
  */
 int db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 {
@@ -320,7 +320,7 @@ int db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       Dmsg1(200, "VolName=%s\n", omr.VolumeName);
       /* If id not zero, search by Id */
       if (mr->MediaId != 0) {
-         Dmsg1(200, "MediaId=%d\n", mr->MediaId);
+	 Dmsg1(200, "MediaId=%d\n", mr->MediaId);
 	 if (mr->MediaId == omr.MediaId) {
 	   found = 1;
 	 }
@@ -381,7 +381,7 @@ int db_get_job_volume_names(JCR *jcr, B_DB *mdb, uint32_t JobId, POOLMEM **Volum
 	 while (fread(&mr, mrlen, 1, mdb->mediafd) > 0) {
 	    if (jm.MediaId == mr.MediaId) {
 	       if (*VolumeNames[0] != 0) {	/* if not first name, */
-                  pm_strcat(VolumeNames, "|");  /* add separator */
+		  pm_strcat(VolumeNames, "|");  /* add separator */
 	       }
 	       pm_strcat(VolumeNames, mr.VolumeName); /* add Volume Name */
 	       found++;
@@ -393,16 +393,16 @@ int db_get_job_volume_names(JCR *jcr, B_DB *mdb, uint32_t JobId, POOLMEM **Volum
       strcpy(mdb->errmsg, "No Volumes found.\n");
    }
    db_unlock(mdb);
-   return found; 
+   return found;
 }
 
-/* 
- * Get Client Record   
+/*
+ * Get Client Record
  * If the ClientId is non-zero, we get its record,
  *  otherwise, we search on the Name
  *
  * Returns: 0 on failure
- *	    id on success 
+ *	    id on success
  */
 int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr)
 {
@@ -432,7 +432,7 @@ int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr)
       }
       memcpy(cr, &lcr, len);
       stat = lcr.ClientId;
-      Dmsg2(200, "Found Client record: ClientId=%d Name=%s\n", 
+      Dmsg2(200, "Found Client record: ClientId=%d Name=%s\n",
 	    lcr.ClientId, lcr.Name);
       break;
    }
@@ -443,13 +443,13 @@ int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr)
    return stat;
 }
 
-/* 
+/*
  * Get FileSet Record	(We read the FILESET_DBR structure)
  * If the FileSetId is non-zero, we get its record,
  *  otherwise, we search on the FileSet (its name).
  *
  * Returns: 0 on failure
- *	    id on success 
+ *	    id on success
  */
 int db_get_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
 {
@@ -479,7 +479,7 @@ int db_get_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
       /* Found desired record, now return it */
       memcpy(fsr, &lfsr, sizeof(lfsr));
       stat = fsr->FileSetId;
-      Dmsg2(200, "Found FileSet record: FileSetId=%d FileSet=%s\n", 
+      Dmsg2(200, "Found FileSet record: FileSetId=%d FileSet=%s\n",
 	    lfsr.FileSetId, lfsr.FileSet);
       break;
    }

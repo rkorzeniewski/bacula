@@ -107,33 +107,33 @@ class wxbRestorePanel : public wxbPanel
 
       /* Sets a tree item state, and update its children, parents and list (if necessary) */
       void SetTreeItemState(wxTreeItemId item, int newstate);
-      
+
       /* Update a tree item parents' state */
       void UpdateTreeItemState(wxTreeItemId item);
 
       /* Refresh the whole tree. */
       void RefreshTree();
-      
+
       /* Refresh file list */
       void RefreshList();
-      
+
       /* Update first config, adapting settings to the job name selected */
       void UpdateFirstConfig();
-      
+
       /* Update second config */
       bool UpdateSecondConfig(wxbDataTokenizer* dt);
-      
+
 /* Status related */
       enum status_enum
       {
-         disabled,    // The panel is not activatable
-         activable,   // The panel is activable, but not activated
-         entered,     // The panel is activated
-         choosing,    // The user is choosing files to restore
-         listing,     // Dir listing is in progress
-         configuring, // The user is configuring restore process
-         restoring,   // Bacula is restoring files
-         finished     // Retore done (state will change in activable)
+	 disabled,    // The panel is not activatable
+	 activable,   // The panel is activable, but not activated
+	 entered,     // The panel is activated
+	 choosing,    // The user is choosing files to restore
+	 listing,     // Dir listing is in progress
+	 configuring, // The user is configuring restore process
+	 restoring,   // Bacula is restoring files
+	 finished     // Retore done (state will change in activable)
       };
 
       status_enum status;
@@ -166,7 +166,7 @@ class wxbRestorePanel : public wxbPanel
 
       void OnStart(wxCommandEvent& event);
       void OnCancel(wxCommandEvent& event);
-      
+
       void OnTreeChanging(wxTreeEvent& event);
       void OnTreeExpanding(wxTreeEvent& event);
       void OnTreeChanged(wxTreeEvent& event);
@@ -174,14 +174,14 @@ class wxbRestorePanel : public wxbPanel
       void OnTreeAdd(wxCommandEvent& event);
       void OnTreeRemove(wxCommandEvent& event);
       void OnTreeRefresh(wxCommandEvent& event);
-      
+
       void OnListMarked(wxbListMarkedEvent& event);
       void OnListActivated(wxListEvent& event);
       void OnListChanged(wxListEvent& event);
       void OnListAdd(wxCommandEvent& event);
       void OnListRemove(wxCommandEvent& event);
       void OnListRefresh(wxCommandEvent& event);
-      
+
       void OnConfigUpdated(wxCommandEvent& event);
       void OnConfigOk(wxCommandEvent& WXUNUSED(event));
       void OnConfigApply(wxCommandEvent& WXUNUSED(event));
@@ -197,24 +197,24 @@ class wxbRestorePanel : public wxbPanel
 
       wxButton* start;
       wxButton* cancel;
-      
+
       wxbTreeCtrl* tree;
       wxButton* treeadd;
       wxButton* treeremove;
       wxButton* treerefresh;
-      
+
       wxbListCtrl* list;
       wxButton* listadd;
       wxButton* listremove;
       wxButton* listrefresh;
-      
+
       wxGauge* gauge;
-     
+
       long cfgUpdated; //keeps which config fields have been updated
 
       friend class wxbSplitterWindow;
 
-      DECLARE_EVENT_TABLE();    
+      DECLARE_EVENT_TABLE();
 };
 
 #endif // WXBRESTOREPANEL_H

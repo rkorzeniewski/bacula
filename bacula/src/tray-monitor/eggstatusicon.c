@@ -103,7 +103,7 @@ static gboolean egg_status_icon_button_release   (EggStatusIcon  *status_icon,
 						  GdkEventButton *event);
 static void     egg_status_icon_disable_blinking (EggStatusIcon  *status_icon);
 static void     egg_status_icon_reset_image_data (EggStatusIcon  *status_icon);
-					   
+
 
 static GObjectClass *parent_class = NULL;
 static guint status_icon_signals [LAST_SIGNAL] = { 0 };
@@ -112,7 +112,7 @@ GType
 egg_status_icon_get_type (void)
 {
   static GType status_icon_type = 0;
-  
+
   if (!status_icon_type)
     {
       static const GTypeInfo status_icon_info =
@@ -127,12 +127,12 @@ egg_status_icon_get_type (void)
 	0,		/* n_preallocs */
 	(GInstanceInitFunc) egg_status_icon_init,
       };
-      
+
       status_icon_type = g_type_register_static (G_TYPE_OBJECT,
 						 "EggStatusIcon",
 						 &status_icon_info, (GTypeFlags)0);
     }
-  
+
   return status_icon_type;
 }
 
@@ -170,7 +170,7 @@ egg_status_icon_class_init (EggStatusIconClass *klass)
 							"Stock ID for a stock image to display",
 							NULL,
 							(GParamFlags)G_PARAM_READWRITE));
-  
+
   g_object_class_install_property (gobject_class,
 				   PROP_PIXBUF_ANIMATION,
 				   g_param_spec_object ("pixbuf-animation",
@@ -178,7 +178,7 @@ egg_status_icon_class_init (EggStatusIconClass *klass)
 							"GdkPixbufAnimation to display",
 							GDK_TYPE_PIXBUF_ANIMATION,
 							(GParamFlags)G_PARAM_READWRITE));
-  
+
   g_object_class_install_property (gobject_class,
 				   PROP_STORAGE_TYPE,
 				   g_param_spec_enum ("image-type",
@@ -424,7 +424,7 @@ emit_size_changed_signal (EggStatusIcon *status_icon,
 			  gint           size)
 {
   gboolean handled = FALSE;
-  
+
   g_signal_emit (status_icon,
 		 status_icon_signals [SIZE_CHANGED_SIGNAL], 0,
 		 size,
@@ -444,7 +444,7 @@ egg_status_icon_blank_icon (EggStatusIcon *status_icon)
       height = gdk_pixbuf_get_width (status_icon->priv->blank_icon);
 
       if (width  == status_icon->priv->size &&
-          height == status_icon->priv->size)
+	  height == status_icon->priv->size)
 	{
 	  return status_icon->priv->blank_icon;
 	}
@@ -643,7 +643,7 @@ egg_status_icon_set_from_animation (EggStatusIcon      *status_icon,
   g_return_if_fail (EGG_IS_STATUS_ICON (status_icon));
   g_return_if_fail (animation == NULL || GDK_IS_PIXBUF_ANIMATION (animation));
 }
-                                                                                                             
+
 GtkImageType
 egg_status_icon_get_image_type (EggStatusIcon *status_icon)
 {
@@ -651,17 +651,17 @@ egg_status_icon_get_image_type (EggStatusIcon *status_icon)
 
   return status_icon->priv->image_type;
 }
-                                                                                                             
+
 GdkPixbuf *
 egg_status_icon_get_pixbuf (EggStatusIcon *status_icon)
 {
   g_return_val_if_fail (EGG_IS_STATUS_ICON (status_icon), NULL);
   g_return_val_if_fail (status_icon->priv->image_type == GTK_IMAGE_PIXBUF ||
 			status_icon->priv->image_type == GTK_IMAGE_EMPTY, NULL);
-                                                                                                             
+
   if (status_icon->priv->image_type == GTK_IMAGE_EMPTY)
     status_icon->priv->image_data.pixbuf = NULL;
-                                                                                                             
+
   return status_icon->priv->image_data.pixbuf;
 }
 
@@ -680,7 +680,7 @@ egg_status_icon_get_animation (EggStatusIcon *status_icon)
 
   return NULL;
 }
-                                                                                                             
+
 gint
 egg_status_icon_get_size (EggStatusIcon *status_icon)
 {
@@ -688,7 +688,7 @@ egg_status_icon_get_size (EggStatusIcon *status_icon)
 
   return status_icon->priv->size;
 }
-                                                                                                             
+
 void
 egg_status_icon_set_tooltip (EggStatusIcon *status_icon,
 			     const gchar   *tooltip_text,
@@ -785,7 +785,7 @@ EggTrayIcon*
 egg_status_icon_get_tray_icon (EggStatusIcon      *status_icon)
 {
    g_return_val_if_fail (EGG_IS_STATUS_ICON (status_icon), NULL);
-   
+
    return EGG_TRAY_ICON(status_icon->priv->tray_icon);
 }
 

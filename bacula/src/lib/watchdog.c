@@ -53,7 +53,7 @@ static pthread_t wd_tid;
 static dlist *wd_queue;
 static dlist *wd_inactive;
 
-/*   
+/*
  * Start watchdog thread
  *
  *  Returns: 0 on success
@@ -72,7 +72,7 @@ int start_watchdog(void)
    watchdog_time = time(NULL);
 
    if ((errstat=rwl_init(&lock)) != 0) {
-      Emsg1(M_ABORT, 0, _("Unable to initialize watchdog lock. ERR=%s\n"), 
+      Emsg1(M_ABORT, 0, _("Unable to initialize watchdog lock. ERR=%s\n"),
 	    strerror(errstat));
    }
    wd_queue = New(dlist(dummy, &dummy->link));
@@ -105,7 +105,7 @@ static void ping_watchdog()
 int stop_watchdog(void)
 {
    int stat;
-   watchdog_t *p;    
+   watchdog_t *p;
 
    if (!wd_is_init) {
       return 0;
@@ -181,7 +181,7 @@ bool register_watchdog(watchdog_t *wd)
    wd->next_fire = watchdog_time + wd->interval;
    wd_queue->append(wd);
    Dmsg3(400, "Registered watchdog %p, interval %d%s\n",
-         wd, wd->interval, wd->one_shot ? " one shot" : "");
+	 wd, wd->interval, wd->one_shot ? " one shot" : "");
    wd_unlock();
    ping_watchdog();
 
@@ -201,7 +201,7 @@ bool unregister_watchdog(watchdog_t *wd)
    foreach_dlist(p, wd_queue) {
       if (wd == p) {
 	 wd_queue->remove(wd);
-         Dmsg1(400, "Unregistered watchdog %p\n", wd);
+	 Dmsg1(400, "Unregistered watchdog %p\n", wd);
 	 ok = true;
 	 goto get_out;
       }
@@ -210,7 +210,7 @@ bool unregister_watchdog(watchdog_t *wd)
    foreach_dlist(p, wd_inactive) {
       if (wd == p) {
 	 wd_inactive->remove(wd);
-         Dmsg1(400, "Unregistered inactive watchdog %p\n", wd);
+	 Dmsg1(400, "Unregistered inactive watchdog %p\n", wd);
 	 ok = true;
 	 goto get_out;
       }
@@ -234,9 +234,9 @@ extern "C" void *watchdog_thread(void *arg)
    Dmsg0(400, "NicB-reworked watchdog thread entered\n");
 
    while (!quit) {
-      watchdog_t *p;	
+      watchdog_t *p;
 
-      /* 
+      /*
        * We lock the jcr chain here because a good number of the
        *   callback routines lock the jcr chain. We need to lock
        *   it here *before* the watchdog lock because the SD message
@@ -256,7 +256,7 @@ walk_list:
 	    /* Run the callback */
 	    p->callback(p);
 
-            /* Reschedule (or move to inactive list if it's a one-shot timer) */
+	    /* Reschedule (or move to inactive list if it's a one-shot timer) */
 	    if (p->one_shot) {
 	       wd_queue->remove(p);
 	       wd_inactive->append(p);
@@ -264,7 +264,7 @@ walk_list:
 	    } else {
 	       p->next_fire = watchdog_time + p->interval;
 	    }
-	 } 
+	 }
 	 if (p->next_fire < next_time) {
 	    next_time = p->next_fire;
 	 }
@@ -272,8 +272,8 @@ walk_list:
       wd_unlock();
       unlock_jcr_chain();
 
-      /*		   
-       * Wait sleep time or until someone wakes us 
+      /*
+       * Wait sleep time or until someone wakes us
        */
       gettimeofday(&tv, &tz);
       timeout.tv_nsec = tv.tv_usec * 1000;
@@ -306,7 +306,7 @@ static void wd_lock()
       Emsg1(M_ABORT, 0, "rwl_writelock failure. ERR=%s\n",
 	   strerror(errstat));
    }
-}    
+}
 
 /*
  * Unlock the watchdog. This can be called multiple times by the
@@ -320,4 +320,4 @@ static void wd_unlock()
       Emsg1(M_ABORT, 0, "rwl_writeunlock failure. ERR=%s\n",
 	   strerror(errstat));
    }
-}    
+}

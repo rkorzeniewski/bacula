@@ -1,7 +1,7 @@
 /*
  * Bacula File Daemon specific configuration and defines
  *
- *     Kern Sibbald, Jan MMI 
+ *     Kern Sibbald, Jan MMI
  *
  *   Version $Id$
  */

@@ -5,8 +5,8 @@
  *  The purpose of these routines is to ensure that Bacula
  *  can limp along if no real database is loaded on the
  *  system.
- *   
- *    Kern Sibbald, January MMI 
+ *
+ *    Kern Sibbald, January MMI
  *
  *    Version $Id$
  *
@@ -79,7 +79,7 @@ static POOLMEM *make_filename(B_DB *mdb, char *name)
    if (working_directory[strlen(working_directory)-1] == '/') {
       sep = 0;
    } else {
-      sep = '/'; 
+      sep = '/';
    }
    Mmsg(dbf, "%s%c%s-%s", working_directory, sep, mdb->db_name, name);
    return dbf;
@@ -103,7 +103,7 @@ int bdb_write_control_file(B_DB *mdb)
  */
 B_DB *
 db_init_database(JCR *jcr, char const *db_name, char const *db_user, char const *db_password,
-		 char const *db_address, int db_port, char const *db_socket, 
+		 char const *db_address, int db_port, char const *db_socket,
 		 int mult_db_connections)
 {
    B_DB *mdb;
@@ -111,7 +111,7 @@ db_init_database(JCR *jcr, char const *db_name, char const *db_user, char const 
    /* Look to see if DB already open */
    for (mdb=NULL; (mdb=(B_DB *)qnext(&db_list, &mdb->bq)); ) {
       if (strcmp(mdb->db_name, db_name) == 0) {
-         Dmsg2(200, "DB REopen %d %s\n", mdb->ref_count, db_name);
+	 Dmsg2(200, "DB REopen %d %s\n", mdb->ref_count, db_name);
 	 mdb->ref_count++;
 	 V(mutex);
 	 return mdb;		      /* already open */
@@ -163,10 +163,10 @@ db_open_database(JCR *jcr, B_DB *mdb)
 
    Dmsg0(200, "make_filename\n");
    dbf = make_filename(mdb, DB_CONTROL_FILENAME);
-   mdb->cfd = open(dbf, O_CREAT|O_RDWR, 0600); 
+   mdb->cfd = open(dbf, O_CREAT|O_RDWR, 0600);
    free_memory(dbf);
    if (mdb->cfd < 0) {
-      Mmsg2(&mdb->errmsg, _("Unable to open Catalog DB control file %s: ERR=%s\n"), 
+      Mmsg2(&mdb->errmsg, _("Unable to open Catalog DB control file %s: ERR=%s\n"),
 	 dbf, strerror(errno));
       V(mutex);
       return 0;
@@ -224,9 +224,9 @@ db_open_database(JCR *jcr, B_DB *mdb)
       Mmsg1(&mdb->errmsg, _("Error reading catalog DB control file. ERR=%s\n"), strerror(errno));
       badctl = 1;
    } else if (mdb->control.bdb_version != BDB_VERSION) {
-      Mmsg2(&mdb->errmsg, _("Error, catalog DB control file wrong version. \
-Wanted %d, got %d\n\
-Please reinitialize the working directory.\n"), 
+      Mmsg2(&mdb->errmsg, _("Error, catalog DB control file wrong version. "
+"Wanted %d, got %d\n"
+"Please reinitialize the working directory.\n"),
 	 BDB_VERSION, mdb->control.bdb_version);
       badctl = 1;
    }
@@ -239,7 +239,7 @@ Please reinitialize the working directory.\n"),
    return 1;
 }
 
-void db_close_database(JCR *jcr, B_DB *mdb)	       
+void db_close_database(JCR *jcr, B_DB *mdb)
 {
    P(mutex);
    mdb->ref_count--;
@@ -268,7 +268,7 @@ void db_close_database(JCR *jcr, B_DB *mdb)
       if (mdb->filesetfd) {
 	 fclose(mdb->filesetfd);
       }
-      rwl_destroy(&mdb->lock);	     
+      rwl_destroy(&mdb->lock);
       free_pool_memory(mdb->errmsg);
       free_pool_memory(mdb->cmd);
       free_pool_memory(mdb->cached_path);
@@ -301,11 +301,11 @@ int bdb_open_jobs_file(B_DB *mdb)
 {
    char *dbf;
 
-   if (!mdb->jobfd) {  
+   if (!mdb->jobfd) {
       dbf = make_filename(mdb, DB_JOBS_FILENAME);
       mdb->jobfd = fopen(dbf, "r+");
       if (!mdb->jobfd) {
-         Mmsg2(&mdb->errmsg, "Error opening DB Jobs file %s: ERR=%s\n", 
+	 Mmsg2(&mdb->errmsg, "Error opening DB Jobs file %s: ERR=%s\n",
 	    dbf, strerror(errno));
 	 Emsg0(M_FATAL, 0, mdb->errmsg);
 	 free_memory(dbf);
@@ -323,11 +323,11 @@ int bdb_open_jobmedia_file(B_DB *mdb)
 {
    char *dbf;
 
-   if (!mdb->jobmediafd) {  
+   if (!mdb->jobmediafd) {
       dbf = make_filename(mdb, DB_JOBMEDIA_FILENAME);
       mdb->jobmediafd = fopen(dbf, "r+");
       if (!mdb->jobmediafd) {
-         Mmsg2(&mdb->errmsg, "Error opening DB JobMedia file %s: ERR=%s\n", 
+	 Mmsg2(&mdb->errmsg, "Error opening DB JobMedia file %s: ERR=%s\n",
 	    dbf, strerror(errno));
 	 Emsg0(M_FATAL, 0, mdb->errmsg);
 	 free_memory(dbf);
@@ -346,11 +346,11 @@ int bdb_open_pools_file(B_DB *mdb)
 {
    char *dbf;
 
-   if (!mdb->poolfd) {	
+   if (!mdb->poolfd) {
       dbf = make_filename(mdb, DB_POOLS_FILENAME);
       mdb->poolfd = fopen(dbf, "r+");
       if (!mdb->poolfd) {
-         Mmsg2(&mdb->errmsg, "Error opening DB Pools file %s: ERR=%s\n", 
+	 Mmsg2(&mdb->errmsg, "Error opening DB Pools file %s: ERR=%s\n",
 	    dbf, strerror(errno));
 	 Emsg0(M_FATAL, 0, mdb->errmsg);
 	 free_memory(dbf);
@@ -369,11 +369,11 @@ int bdb_open_client_file(B_DB *mdb)
 {
    char *dbf;
 
-   if (!mdb->clientfd) {  
+   if (!mdb->clientfd) {
       dbf = make_filename(mdb, DB_CLIENT_FILENAME);
       mdb->clientfd = fopen(dbf, "r+");
       if (!mdb->clientfd) {
-         Mmsg2(&mdb->errmsg, "Error opening DB Clients file %s: ERR=%s\n", 
+	 Mmsg2(&mdb->errmsg, "Error opening DB Clients file %s: ERR=%s\n",
 	    dbf, strerror(errno));
 	 Emsg0(M_FATAL, 0, mdb->errmsg);
 	 free_memory(dbf);
@@ -391,11 +391,11 @@ int bdb_open_fileset_file(B_DB *mdb)
 {
    char *dbf;
 
-   if (!mdb->filesetfd) {  
+   if (!mdb->filesetfd) {
       dbf = make_filename(mdb, DB_CLIENT_FILENAME);
       mdb->filesetfd = fopen(dbf, "r+");
       if (!mdb->filesetfd) {
-         Mmsg2(&mdb->errmsg, "Error opening DB FileSet file %s: ERR=%s\n", 
+	 Mmsg2(&mdb->errmsg, "Error opening DB FileSet file %s: ERR=%s\n",
 	    dbf, strerror(errno));
 	 Emsg0(M_FATAL, 0, mdb->errmsg);
 	 free_memory(dbf);
@@ -415,11 +415,11 @@ int bdb_open_media_file(B_DB *mdb)
 {
    char *dbf;
 
-   if (!mdb->mediafd) {  
+   if (!mdb->mediafd) {
       dbf = make_filename(mdb, DB_MEDIA_FILENAME);
       mdb->mediafd = fopen(dbf, "r+");
       if (!mdb->mediafd) {
-         Mmsg2(&mdb->errmsg, "Error opening DB Media file %s: ERR=%s\n", 
+	 Mmsg2(&mdb->errmsg, "Error opening DB Media file %s: ERR=%s\n",
 	    dbf, strerror(errno));
 	 free_memory(dbf);
 	 return 0;
@@ -437,7 +437,7 @@ void _db_lock(const char *file, int line, B_DB *mdb)
       e_msg(file, line, M_ABORT, 0, "rwl_writelock failure. ERR=%s\n",
 	   strerror(errstat));
    }
-}    
+}
 
 void _db_unlock(const char *file, int line, B_DB *mdb)
 {
@@ -446,11 +446,11 @@ void _db_unlock(const char *file, int line, B_DB *mdb)
       e_msg(file, line, M_ABORT, 0, "rwl_writeunlock failure. ERR=%s\n",
 	   strerror(errstat));
    }
-}    
+}
 
 /*
  * Start a transaction. This groups inserts and makes things
- *  much more efficient. Usually started when inserting 
+ *  much more efficient. Usually started when inserting
  *  file attributes.
  */
 void db_start_transaction(JCR *jcr, B_DB *mdb)

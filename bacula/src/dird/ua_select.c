@@ -42,17 +42,17 @@ int confirm_retention(UAContext *ua, utime_t *ret, const char *msg)
    char ed1[100];
 
    for ( ;; ) {
-       bsendmsg(ua, _("The current %s retention period is: %s\n"), 
+       bsendmsg(ua, _("The current %s retention period is: %s\n"),
 	  msg, edit_utime(*ret, ed1, sizeof(ed1)));
        if (!get_cmd(ua, _("Continue? (yes/mod/no): "))) {
 	  return 0;
        }
        if (strcasecmp(ua->cmd, _("mod")) == 0) {
-          if (!get_cmd(ua, _("Enter new retention period: "))) {
+	  if (!get_cmd(ua, _("Enter new retention period: "))) {
 	     return 0;
 	  }
 	  if (!duration_to_utime(ua->cmd, ret)) {
-             bsendmsg(ua, _("Invalid period.\n"));
+	     bsendmsg(ua, _("Invalid period.\n"));
 	     continue;
 	  }
 	  continue;
@@ -67,7 +67,7 @@ int confirm_retention(UAContext *ua, utime_t *ret, const char *msg)
     return 1;
 }
 
-/* 
+/*
  * Given a list of keywords, find the first one
  *  that is in the argument list.
  * Returns: -1 if not found
@@ -85,7 +85,7 @@ int find_arg_keyword(UAContext *ua, const char **list)
    return -1;
 }
 
-/* 
+/*
  * Given one keyword, find the first one that
  *   is in the argument list.
  * Returns: argk index (always gt 0)
@@ -101,7 +101,7 @@ int find_arg(UAContext *ua, const char *keyword)
    return -1;
 }
 
-/* 
+/*
  * Given a single keyword, find it in the argument list, but
  *   it must have a value
  * Returns: -1 if not found or no value
@@ -121,8 +121,8 @@ int find_arg_with_value(UAContext *ua, const char *keyword)
    return -1;
 }
 
-/* 
- * Given a list of keywords, prompt the user 
+/*
+ * Given a list of keywords, prompt the user
  * to choose one.
  *
  * Returns: -1 on failure
@@ -139,12 +139,12 @@ int do_keyword_prompt(UAContext *ua, const char *msg, const char **list)
 }
 
 
-/* 
+/*
  * Select a Storage resource from prompt list
  */
 STORE *select_storage_resource(UAContext *ua)
 {
-   char name[MAX_NAME_LENGTH];	  
+   char name[MAX_NAME_LENGTH];
    STORE *store;
 
    start_prompt(ua, _("The defined Storage resources are:\n"));
@@ -160,12 +160,12 @@ STORE *select_storage_resource(UAContext *ua)
    return store;
 }
 
-/* 
+/*
  * Select a FileSet resource from prompt list
  */
 FILESET *select_fileset_resource(UAContext *ua)
 {
-   char name[MAX_NAME_LENGTH];	  
+   char name[MAX_NAME_LENGTH];
    FILESET *fs;
 
    start_prompt(ua, _("The defined FileSet resources are:\n"));
@@ -182,12 +182,12 @@ FILESET *select_fileset_resource(UAContext *ua)
 }
 
 
-/* 
+/*
  * Get a catalog resource from prompt list
  */
 CAT *get_catalog_resource(UAContext *ua)
 {
-   char name[MAX_NAME_LENGTH];	  
+   char name[MAX_NAME_LENGTH];
    CAT *catalog = NULL;
    int i;
 
@@ -215,12 +215,12 @@ CAT *get_catalog_resource(UAContext *ua)
 }
 
 
-/* 
+/*
  * Select a Job resource from prompt list
  */
 JOB *select_job_resource(UAContext *ua)
 {
-   char name[MAX_NAME_LENGTH];	  
+   char name[MAX_NAME_LENGTH];
    JOB *job;
 
    start_prompt(ua, _("The defined Job resources are:\n"));
@@ -236,12 +236,12 @@ JOB *select_job_resource(UAContext *ua)
    return job;
 }
 
-/* 
+/*
  * Select a Restore Job resource from prompt list
  */
 JOB *select_restore_job_resource(UAContext *ua)
 {
-   char name[MAX_NAME_LENGTH];	  
+   char name[MAX_NAME_LENGTH];
    JOB *job;
 
    start_prompt(ua, _("The defined Restore Job resources are:\n"));
@@ -259,12 +259,12 @@ JOB *select_restore_job_resource(UAContext *ua)
 
 
 
-/* 
+/*
  * Select a client resource from prompt list
  */
 CLIENT *select_client_resource(UAContext *ua)
 {
-   char name[MAX_NAME_LENGTH];	  
+   char name[MAX_NAME_LENGTH];
    CLIENT *client;
 
    start_prompt(ua, _("The defined Client resources are:\n"));
@@ -289,10 +289,10 @@ CLIENT *get_client_resource(UAContext *ua)
 {
    CLIENT *client = NULL;
    int i;
-   
+
    for (i=1; i<ua->argc; i++) {
       if ((strcasecmp(ua->argk[i], _("client")) == 0 ||
-           strcasecmp(ua->argk[i], _("fd")) == 0) && ua->argv[i]) {
+	   strcasecmp(ua->argk[i], _("fd")) == 0) && ua->argv[i]) {
 	 if (!acl_access_ok(ua, Client_ACL, ua->argv[i])) {
 	    break;
 	 }
@@ -300,7 +300,7 @@ CLIENT *get_client_resource(UAContext *ua)
 	 if (client) {
 	    return client;
 	 }
-         bsendmsg(ua, _("Error: Client resource %s does not exist.\n"), ua->argv[i]);
+	 bsendmsg(ua, _("Error: Client resource %s does not exist.\n"), ua->argv[i]);
 	 break;
       }
    }
@@ -308,7 +308,7 @@ CLIENT *get_client_resource(UAContext *ua)
 }
 
 /* Scan what the user has entered looking for:
- * 
+ *
  *  client=<client-name>
  *
  *  if error or not found, put up a list of client DBRs
@@ -328,14 +328,14 @@ int get_client_dbr(UAContext *ua, CLIENT_DBR *cr)
       bsendmsg(ua, _("Could not find Client %s: ERR=%s"), cr->Name, db_strerror(ua->db));
    }
    for (i=1; i<ua->argc; i++) {
-      if ((strcasecmp(ua->argk[i], _("client")) == 0 ||               
-           strcasecmp(ua->argk[i], _("fd")) == 0) && ua->argv[i]) {
+      if ((strcasecmp(ua->argk[i], _("client")) == 0 ||
+	   strcasecmp(ua->argk[i], _("fd")) == 0) && ua->argv[i]) {
 	 if (!acl_access_ok(ua, Client_ACL, ua->argv[i])) {
 	    break;
 	 }
 	 bstrncpy(cr->Name, ua->argv[i], sizeof(cr->Name));
 	 if (!db_get_client_record(ua->jcr, ua->db, cr)) {
-            bsendmsg(ua, _("Could not find Client \"%s\": ERR=%s"), ua->argv[i],
+	    bsendmsg(ua, _("Could not find Client \"%s\": ERR=%s"), ua->argv[i],
 		     db_strerror(ua->db));
 	    cr->ClientId = 0;
 	    break;
@@ -359,7 +359,7 @@ int select_client_dbr(UAContext *ua, CLIENT_DBR *cr)
    CLIENT_DBR ocr;
    char name[MAX_NAME_LENGTH];
    int num_clients, i;
-   uint32_t *ids; 
+   uint32_t *ids;
 
 
    cr->ClientId = 0;
@@ -371,7 +371,7 @@ int select_client_dbr(UAContext *ua, CLIENT_DBR *cr)
       bsendmsg(ua, _("No clients defined. You must run a job before using this command.\n"));
       return 0;
    }
-     
+
    start_prompt(ua, _("Defined Clients:\n"));
    for (i=0; i < num_clients; i++) {
       ocr.ClientId = ids[i];
@@ -399,8 +399,8 @@ int select_client_dbr(UAContext *ua, CLIENT_DBR *cr)
 
 
 /* Scan what the user has entered looking for:
- * 
- *  pool=<pool-name>   
+ *
+ *  pool=<pool-name>
  *
  *  if error or not found, put up a list of pool DBRs
  *  to choose from.
@@ -412,7 +412,7 @@ bool get_pool_dbr(UAContext *ua, POOL_DBR *pr)
 {
    if (pr->Name[0]) {		      /* If name already supplied */
       if (db_get_pool_record(ua->jcr, ua->db, pr) &&
-	  acl_access_ok(ua, Pool_ACL, pr->Name)) { 
+	  acl_access_ok(ua, Pool_ACL, pr->Name)) {
 	 return true;
       }
       bsendmsg(ua, _("Could not find Pool \"%s\": ERR=%s"), pr->Name, db_strerror(ua->db));
@@ -431,14 +431,14 @@ bool select_pool_dbr(UAContext *ua, POOL_DBR *pr)
    POOL_DBR opr;
    char name[MAX_NAME_LENGTH];
    int num_pools, i;
-   uint32_t *ids; 
+   uint32_t *ids;
 
    for (i=1; i<ua->argc; i++) {
       if (strcasecmp(ua->argk[i], _("pool")) == 0 && ua->argv[i] &&
 	  acl_access_ok(ua, Pool_ACL, ua->argv[i])) {
 	 bstrncpy(pr->Name, ua->argv[i], sizeof(pr->Name));
 	 if (!db_get_pool_record(ua->jcr, ua->db, pr)) {
-            bsendmsg(ua, _("Could not find Pool \"%s\": ERR=%s"), ua->argv[i],
+	    bsendmsg(ua, _("Could not find Pool \"%s\": ERR=%s"), ua->argv[i],
 		     db_strerror(ua->db));
 	    pr->PoolId = 0;
 	    break;
@@ -456,7 +456,7 @@ bool select_pool_dbr(UAContext *ua, POOL_DBR *pr)
       bsendmsg(ua, _("No pools defined. Use the \"create\" command to create one.\n"));
       return false;
    }
-     
+
    start_prompt(ua, _("Defined Pools:\n"));
    for (i=0; i < num_pools; i++) {
       opr.PoolId = ids[i];
@@ -541,12 +541,12 @@ int select_media_dbr(UAContext *ua, MEDIA_DBR *mr)
 }
 
 
-/* 
+/*
  * Select a pool resource from prompt list
  */
 POOL *select_pool_resource(UAContext *ua)
 {
-   char name[MAX_NAME_LENGTH];	  
+   char name[MAX_NAME_LENGTH];
    POOL *pool;
 
    start_prompt(ua, _("The defined Pool resources are:\n"));
@@ -565,14 +565,14 @@ POOL *select_pool_resource(UAContext *ua)
 
 /*
  *  If you are thinking about using it, you
- *  probably want to use select_pool_dbr() 
+ *  probably want to use select_pool_dbr()
  *  or get_pool_dbr() above.
  */
 POOL *get_pool_resource(UAContext *ua)
 {
    POOL *pool = NULL;
    int i;
-   
+
    i = find_arg_with_value(ua, "pool");
    if (i >= 0 && acl_access_ok(ua, Pool_ACL, ua->argv[i])) {
       pool = (POOL *)GetResWithName(R_POOL, ua->argv[i]);
@@ -604,7 +604,7 @@ int select_job_dbr(UAContext *ua, JOB_DBR *jr)
 
 
 /* Scan what the user has entered looking for:
- * 
+ *
  *  jobid=nn
  *
  *  if error or not found, put up a list of Jobs
@@ -627,7 +627,7 @@ int get_job_dbr(UAContext *ua, JOB_DBR *jr)
 	 continue;
       }
       if (!db_get_job_record(ua->jcr, ua->db, jr)) {
-         bsendmsg(ua, _("Could not find Job \"%s\": ERR=%s"), ua->argv[i],
+	 bsendmsg(ua, _("Could not find Job \"%s\": ERR=%s"), ua->argv[i],
 		  db_strerror(ua->db));
 	 jr->JobId = 0;
 	 break;
@@ -642,7 +642,7 @@ int get_job_dbr(UAContext *ua, JOB_DBR *jr)
 }
 
 /*
- * Implement unique set of prompts 
+ * Implement unique set of prompts
  */
 void start_prompt(UAContext *ua, const char *msg)
 {
@@ -655,7 +655,7 @@ void start_prompt(UAContext *ua, const char *msg)
 }
 
 /*
- * Add to prompts -- keeping them unique 
+ * Add to prompts -- keeping them unique
  */
 void add_prompt(UAContext *ua, const char *prompt)
 {
@@ -710,30 +710,30 @@ int do_prompt(UAContext *ua, const char *automsg, const char *msg, char *prompt,
 
    for ( ;; ) {
       /* First item is the prompt string, not the items */
-      if (ua->num_prompts == 1) { 
-         bsendmsg(ua, _("Selection is empty!\n"));
+      if (ua->num_prompts == 1) {
+	 bsendmsg(ua, _("Selection is empty!\n"));
 	 item = 0;		      /* list is empty ! */
 	 break;
       }
       if (ua->num_prompts == 2) {
 	 item = 1;
-         bsendmsg(ua, _("Item 1 selected automatically.\n"));
+	 bsendmsg(ua, _("Item 1 selected automatically.\n"));
 	 if (prompt) {
 	    bstrncpy(prompt, ua->prompt[1], max_prompt);
 	 }
 	 break;
       } else {
-         sprintf(pmsg, "%s (1-%d): ", msg, ua->num_prompts-1);
+	 sprintf(pmsg, "%s (1-%d): ", msg, ua->num_prompts-1);
       }
       /* Either a . or an @ will get you out of the loop */
       if (!get_pint(ua, pmsg)) {
 	 item = -1;		      /* error */
-         bsendmsg(ua, _("Selection aborted, nothing done.\n"));
+	 bsendmsg(ua, _("Selection aborted, nothing done.\n"));
 	 break;
       }
       item = ua->pint32_val;
       if (item < 1 || item >= ua->num_prompts) {
-         bsendmsg(ua, _("Please enter a number between 1 and %d\n"), ua->num_prompts-1);
+	 bsendmsg(ua, _("Please enter a number between 1 and %d\n"), ua->num_prompts-1);
 	 continue;
       }
       if (prompt) {
@@ -741,7 +741,7 @@ int do_prompt(UAContext *ua, const char *automsg, const char *msg, char *prompt,
       }
       break;
    }
-			      
+
 done:
    for (i=0; i < ua->num_prompts; i++) {
       free(ua->prompt[i]);
@@ -769,53 +769,53 @@ STORE *get_storage_resource(UAContext *ua, int use_default)
    int jobid;
    JCR *jcr;
    int i;
-      
+
 
    for (i=1; i<ua->argc; i++) {
       if (use_default && !ua->argv[i]) {
 	 /* Ignore slots, scan and barcode(s) keywords */
-         if (strncasecmp("scan", ua->argk[i], 4) == 0 ||
-             strncasecmp("barcode", ua->argk[i], 7) == 0 ||
-             strncasecmp("slots", ua->argk[i], 5) == 0) {
+	 if (strncasecmp("scan", ua->argk[i], 4) == 0 ||
+	     strncasecmp("barcode", ua->argk[i], 7) == 0 ||
+	     strncasecmp("slots", ua->argk[i], 5) == 0) {
 	    continue;
 	 }
 	 /* Default argument is storage */
 	 if (store_name) {
-            bsendmsg(ua, _("Storage name given twice.\n"));
+	    bsendmsg(ua, _("Storage name given twice.\n"));
 	    return NULL;
 	 }
 	 store_name = ua->argk[i];
-         if (*store_name == '?') {
+	 if (*store_name == '?') {
 	    *store_name = 0;
 	    break;
 	 }
       } else {
-         if (strcasecmp(ua->argk[i], _("storage")) == 0 ||
-             strcasecmp(ua->argk[i], _("sd")) == 0) {
+	 if (strcasecmp(ua->argk[i], _("storage")) == 0 ||
+	     strcasecmp(ua->argk[i], _("sd")) == 0) {
 	    store_name = ua->argv[i];
 	    break;
 
-         } else if (strcasecmp(ua->argk[i], _("jobid")) == 0) {
+	 } else if (strcasecmp(ua->argk[i], _("jobid")) == 0) {
 	    jobid = str_to_int64(ua->argv[i]);
 	    if (jobid <= 0) {
-               bsendmsg(ua, _("Expecting jobid=nn command, got: %s\n"), ua->argk[i]);
+	       bsendmsg(ua, _("Expecting jobid=nn command, got: %s\n"), ua->argk[i]);
 	       return NULL;
 	    }
 	    if (!(jcr=get_jcr_by_id(jobid))) {
-               bsendmsg(ua, _("JobId %d is not running.\n"), jobid);
+	       bsendmsg(ua, _("JobId %d is not running.\n"), jobid);
 	       return NULL;
 	    }
 	    store = jcr->store;
 	    free_jcr(jcr);
 	    break;
 
-         } else if (strcasecmp(ua->argk[i], _("job")) == 0) {
+	 } else if (strcasecmp(ua->argk[i], _("job")) == 0) {
 	    if (!ua->argv[i]) {
-               bsendmsg(ua, _("Expecting job=xxx, got: %s.\n"), ua->argk[i]);
+	       bsendmsg(ua, _("Expecting job=xxx, got: %s.\n"), ua->argk[i]);
 	       return NULL;
 	    }
 	    if (!(jcr=get_jcr_by_partial_name(ua->argv[i]))) {
-               bsendmsg(ua, _("Job \"%s\" is not running.\n"), ua->argv[i]);
+	       bsendmsg(ua, _("Job \"%s\" is not running.\n"), ua->argv[i]);
 	       return NULL;
 	    }
 	    store = jcr->store;
@@ -827,11 +827,11 @@ STORE *get_storage_resource(UAContext *ua, int use_default)
    if (store && !acl_access_ok(ua, Storage_ACL, store->hdr.name)) {
       store = NULL;
    }
-   
+
    if (!store && store_name) {
       store = (STORE *)GetResWithName(R_STORAGE, store_name);
       if (!store) {
-         bsendmsg(ua, "Storage resource \"%s\": not found\n", store_name);
+	 bsendmsg(ua, "Storage resource \"%s\": not found\n", store_name);
       }
    }
    if (store && !acl_access_ok(ua, Storage_ACL, store->hdr.name)) {
@@ -846,7 +846,7 @@ STORE *get_storage_resource(UAContext *ua, int use_default)
 
 
 /*
- * Scan looking for mediatype= 
+ * Scan looking for mediatype=
  *
  *  if not found or error, put up selection list
  *

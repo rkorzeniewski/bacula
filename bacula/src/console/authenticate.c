@@ -25,7 +25,7 @@
 
    You should have received a copy of the GNU General Public
    License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, 
+   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
    MA 02111-1307, USA.
  */
 
@@ -35,7 +35,7 @@
 
 
 void senditf(const char *fmt, ...);
-void sendit(const char *buf); 
+void sendit(const char *buf);
 
 /* Commands sent to Director */
 static char hello[]    = "Hello %s calling\n";
@@ -55,7 +55,7 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
    char bashed_name[MAX_NAME_LENGTH];
    char *password;
 
-   /* 
+   /*
     * Send my name to the Director then do authentication
     */
    if (cons) {
@@ -70,11 +70,11 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
    btimer_t *tid = start_bsock_timer(dir, 60 * 5);
    bnet_fsend(dir, hello, bashed_name);
 
-   if (!cram_md5_get_auth(dir, password, ssl_need) || 
+   if (!cram_md5_get_auth(dir, password, ssl_need) ||
        !cram_md5_auth(dir, password, ssl_need)) {
       stop_bsock_timer(tid);
       sendit( _("Director authorization problem.\n"
-            "Most likely the passwords do not agree.\n"     
+	    "Most likely the passwords do not agree.\n"
        "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"));
       return 0;
    }

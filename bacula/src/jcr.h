@@ -28,7 +28,7 @@
    MA 02111-1307, USA.
 
  */
- 
+
 #ifndef __JCR_H_
 #define __JCR_H_ 1
 
@@ -84,7 +84,7 @@
    jcr->JobStatus == JS_FatalError)
 
 #define foreach_jcr(jcr) \
-   for ((jcr)=NULL; ((jcr)=get_next_jcr(jcr)); ) 
+   for ((jcr)=NULL; ((jcr)=get_next_jcr(jcr)); )
 
 
 
@@ -117,7 +117,7 @@ struct JCR {
    uint64_t JobBytes;                 /* Number of bytes processed this job */
    uint64_t ReadBytes;                /* Bytes read -- before compression */
    uint32_t Errors;                   /* Number of non-fatal errors */
-   volatile int JobStatus;            /* ready, running, blocked, terminated */ 
+   volatile int JobStatus;            /* ready, running, blocked, terminated */
    int JobType;                       /* backup, restore, verify ... */
    int JobLevel;                      /* Job level */
    int JobPriority;                   /* Job priority */
@@ -176,7 +176,7 @@ struct JCR {
    JOB_DBR jr;                        /* Job DB record for current job */
    JOB_DBR *verify_jr;                /* Pointer to target job */
    uint32_t RestoreJobId;             /* Id specified by UA */
-   POOLMEM *client_uname;             /* client uname */ 
+   POOLMEM *client_uname;             /* client uname */
    int replace;                       /* Replace option */
    int saveMaxConcurrentJobs;         /* save for restore jobs */
    int NumVols;                       /* Number of Volume used in pool */
@@ -238,7 +238,7 @@ struct JCR {
    bool spool_data;                   /* set to spool data */
    int CurVol;                        /* Current Volume count */
    DIRRES* director;                  /* Director resource */
-   
+
    uint32_t FileId;                   /* Last file id inserted */
 
    /* Parmaters for Open Read Session */
@@ -252,11 +252,11 @@ struct JCR {
 
 #endif /* STORAGE_DAEMON */
 
-}; 
+};
 
 
 
-/* 
+/*
  * Structure for all daemons that keeps some summary
  *  info on the last job run.
  */
@@ -276,7 +276,7 @@ struct s_last_job {
    char Job[MAX_NAME_LENGTH];
 };
 
-extern struct s_last_job last_job;               
+extern struct s_last_job last_job;
 extern dlist *last_jobs;
 
 

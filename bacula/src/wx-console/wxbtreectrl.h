@@ -47,7 +47,7 @@ class wxbTreeMarkedEvent: public wxEvent {
       ~wxbTreeMarkedEvent();
       wxbTreeMarkedEvent(const wxbTreeMarkedEvent& te);
       virtual wxEvent *Clone() const;
-      
+
       wxTreeItemId GetItem();
    private:
       wxTreeItemId item;
@@ -57,9 +57,9 @@ typedef void (wxEvtHandler::*wxTreeMarkedEventFunction)(wxbTreeMarkedEvent&);
 
 #define EVT_TREE_MARKED_EVENT(id, fn) \
     DECLARE_EVENT_TABLE_ENTRY( \
-        wxbTREE_MARKED_EVENT, id, wxID_ANY, \
-        (wxObjectEventFunction)(wxEventFunction)(wxTreeMarkedEventFunction)&fn, \
-        (wxObject *) NULL \
+	wxbTREE_MARKED_EVENT, id, wxID_ANY, \
+	(wxObjectEventFunction)(wxEventFunction)(wxTreeMarkedEventFunction)&fn, \
+	(wxObject *) NULL \
     ),
 
 /* Customized tree, which transmit double clicks on images */
@@ -67,13 +67,13 @@ class wxbTreeCtrl: public wxTreeCtrl {
    public:
       wxbTreeCtrl(wxWindow* parent, wxEvtHandler* handler, wxWindowID id, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
       ~wxbTreeCtrl();
-      
+
    private:
       void OnDoubleClicked(wxMouseEvent& event);
       void OnRightClicked(wxMouseEvent& event);
-      
+
       wxEvtHandler* handler;
-      
+
       DECLARE_EVENT_TABLE();
 };
 

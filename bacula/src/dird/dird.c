@@ -86,7 +86,7 @@ static void usage()
 "       -t          test - read configuration and exit\n"
 "       -u          userid\n"
 "       -v          verbose user messages\n"
-"       -?          print this message.\n"  
+"       -?          print this message.\n"
 "\n"));
 
    exit(1);
@@ -126,9 +126,9 @@ int main (int argc, char *argv[])
       case 'd':                    /* set debug level */
 	 debug_level = atoi(optarg);
 	 if (debug_level <= 0) {
-	    debug_level = 1; 
+	    debug_level = 1;
 	 }
-         Dmsg1(0, "Debug level = %d\n", debug_level);
+	 Dmsg1(0, "Debug level = %d\n", debug_level);
 	 break;
 
       case 'f':                    /* run in foreground */
@@ -168,7 +168,7 @@ int main (int argc, char *argv[])
       default:
 	 usage();
 
-      }  
+      }
    }
    argc -= optind;
    argv += optind;
@@ -182,7 +182,7 @@ int main (int argc, char *argv[])
 	 free(configfile);
       }
       configfile = bstrdup(*argv);
-      argc--; 
+      argc--;
       argv++;
    }
    if (argc) {
@@ -237,7 +237,7 @@ int main (int argc, char *argv[])
    init_jcr_subsystem();	      /* start JCR watchdogs etc. */
 
    init_job_server(director->MaxConcurrentJobs);
-  
+
    Dmsg0(200, "wait for next job\n");
    /* Main loop -- call scheduler to get next job to run */
    while ((jcr = wait_for_next_job(runjob))) {
@@ -272,14 +272,14 @@ static void terminate_dird(int sig)
       free(configfile);
    }
    if (debug_level > 5) {
-      print_memory_pool_stats(); 
+      print_memory_pool_stats();
    }
    free_config_resources();
    term_ua_server();
    term_msg();			      /* terminate message handler */
    stop_watchdog();
    close_memory_pool(); 	      /* release free memory in pool */
-   sm_dump(false);  
+   sm_dump(false);
    exit(sig);
 }
 
@@ -291,7 +291,7 @@ struct RELOAD_TABLE {
 static const int max_reloads = 10;
 static RELOAD_TABLE reload_table[max_reloads];
 
-static void init_reload(void) 
+static void init_reload(void)
 {
    for (int i=0; i < max_reloads; i++) {
       reload_table[i].job_count = 0;
@@ -350,10 +350,10 @@ static int find_free_reload_table_entry()
 
 /*
  * If we get here, we have received a SIGHUP, which means to
- *    reread our configuration file. 
+ *    reread our configuration file.
  *
  * The algorithm used is as follows: we count how many jobs are
- *   running and mark the running jobs to make a callback on 
+ *   running and mark the running jobs to make a callback on
  *   exiting. The old config is saved with the reload table
  *   id in a reload table. The new config file is read. Now, as
  *   each job exits, it calls back to the reload_job_end_cb(), which
@@ -371,7 +371,7 @@ extern "C"
 void reload_config(int sig)
 {
    static bool already_here = false;
-   sigset_t set;	
+   sigset_t set;
    JCR *jcr;
    int njobs = 0;		      /* number of running jobs */
    int table, rtable;
@@ -405,10 +405,10 @@ void reload_config(int sig)
    if (!check_resources()) {
       rtable = find_free_reload_table_entry();	  /* save new, bad table */
       if (rtable < 0) {
-         Jmsg(NULL, M_ERROR, 0, _("Please correct configuration file: %s\n"), configfile);
-         Jmsg(NULL, M_ERROR_TERM, 0, _("Out of reload table entries. Giving up.\n"));
+	 Jmsg(NULL, M_ERROR, 0, _("Please correct configuration file: %s\n"), configfile);
+	 Jmsg(NULL, M_ERROR_TERM, 0, _("Out of reload table entries. Giving up.\n"));
       } else {
-         Jmsg(NULL, M_ERROR, 0, _("Please correct configuration file: %s\n"), configfile);
+	 Jmsg(NULL, M_ERROR, 0, _("Please correct configuration file: %s\n"), configfile);
       }
       reload_table[rtable].res_table = save_config_resources();
       /* Now restore old resoure values */
@@ -420,7 +420,7 @@ void reload_config(int sig)
       table = rtable;		      /* release new, bad, saved table below */
    } else {
       /*
-       * Hook all active jobs so that they release this table 
+       * Hook all active jobs so that they release this table
        */
       foreach_jcr(jcr) {
 	 if (jcr->JobType != JT_SYSTEM) {
@@ -437,7 +437,7 @@ void reload_config(int sig)
    FDConnectTimeout = director->FDConnectTimeout;
    SDConnectTimeout = director->SDConnectTimeout;
    Dmsg0(0, "Director's configuration file reread.\n");
-	
+
    /* Now release saved resources, if no jobs using the resources */
    if (njobs == 0) {
       free_saved_resources(table);
@@ -468,23 +468,23 @@ static int check_resources()
    job = (JOB *)GetNextRes(R_JOB, NULL);
    director = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);
    if (!director) {
-      Jmsg(NULL, M_FATAL, 0, _("No Director resource defined in %s\n\
-Without that I don't know who I am :-(\n"), configfile);
+      Jmsg(NULL, M_FATAL, 0, _("No Director resource defined in %s\n"
+"Without that I don't know who I am :-(\n"), configfile);
       OK = false;
    } else {
       set_working_directory(director->working_directory);
       if (!director->messages) {       /* If message resource not specified */
 	 director->messages = (MSGS *)GetNextRes(R_MSGS, NULL);
 	 if (!director->messages) {
-            Jmsg(NULL, M_FATAL, 0, _("No Messages resource defined in %s\n"), configfile);
+	    Jmsg(NULL, M_FATAL, 0, _("No Messages resource defined in %s\n"), configfile);
 	    OK = false;
 	 }
       }
       if (GetNextRes(R_DIRECTOR, (RES *)director) != NULL) {
-         Jmsg(NULL, M_FATAL, 0, _("Only one Director resource permitted in %s\n"),
+	 Jmsg(NULL, M_FATAL, 0, _("Only one Director resource permitted in %s\n"),
 	    configfile);
 	 OK = false;
-      } 
+      }
    }
 
    if (!job) {
@@ -514,40 +514,40 @@ Without that I don't know who I am :-(\n"), configfile);
 	    int64_t *def_lvalue, *lvalue; /* 64 bit values */
 	    uint32_t offset;
 
-            Dmsg4(400, "Job \"%s\", field \"%s\" bit=%d def=%d\n",
-		job->hdr.name, job_items[i].name, 
-		bit_is_set(i, job->hdr.item_present),  
+	    Dmsg4(400, "Job \"%s\", field \"%s\" bit=%d def=%d\n",
+		job->hdr.name, job_items[i].name,
+		bit_is_set(i, job->hdr.item_present),
 		bit_is_set(i, job->jobdefs->hdr.item_present));
 
 	    if (!bit_is_set(i, job->hdr.item_present) &&
-		 bit_is_set(i, job->jobdefs->hdr.item_present)) { 
-               Dmsg2(400, "Job \"%s\", field \"%s\": getting default.\n",
+		 bit_is_set(i, job->jobdefs->hdr.item_present)) {
+	       Dmsg2(400, "Job \"%s\", field \"%s\": getting default.\n",
 		 job->hdr.name, job_items[i].name);
-	       offset = (char *)(job_items[i].value) - (char *)&res_all;   
+	       offset = (char *)(job_items[i].value) - (char *)&res_all;
 	       /*
 		* Handle strings and directory strings
 		*/
 	       if (job_items[i].handler == store_str ||
 		   job_items[i].handler == store_dir) {
 		  def_svalue = (char **)((char *)(job->jobdefs) + offset);
-                  Dmsg5(400, "Job \"%s\", field \"%s\" def_svalue=%s item %d offset=%u\n", 
+		  Dmsg5(400, "Job \"%s\", field \"%s\" def_svalue=%s item %d offset=%u\n",
 		       job->hdr.name, job_items[i].name, *def_svalue, i, offset);
 		  svalue = (char **)((char *)job + offset);
 		  if (*svalue) {
-                     Pmsg1(000, "Hey something is wrong. p=0x%lu\n", *svalue);
+		     Pmsg1(000, "Hey something is wrong. p=0x%lu\n", *svalue);
 		  }
 		  *svalue = bstrdup(*def_svalue);
 		  set_bit(i, job->hdr.item_present);
 	       /*
-		* Handle resources   
+		* Handle resources
 		*/
 	       } else if (job_items[i].handler == store_res) {
 		  def_svalue = (char **)((char *)(job->jobdefs) + offset);
-                  Dmsg4(400, "Job \"%s\", field \"%s\" item %d offset=%u\n", 
+		  Dmsg4(400, "Job \"%s\", field \"%s\" item %d offset=%u\n",
 		       job->hdr.name, job_items[i].name, i, offset);
 		  svalue = (char **)((char *)job + offset);
 		  if (*svalue) {
-                     Pmsg1(000, "Hey something is wrong. p=0x%lu\n", *svalue);
+		     Pmsg1(000, "Hey something is wrong. p=0x%lu\n", *svalue);
 		  }
 		  *svalue = *def_svalue;
 		  set_bit(i, job->hdr.item_present);
@@ -555,11 +555,11 @@ Without that I don't know who I am :-(\n"), configfile);
 		* Handle alist resources
 		*/
 	       } else if (job_items[i].handler == store_alist_res) {
-		  if (bit_is_set(i, job->jobdefs->hdr.item_present)) { 
+		  if (bit_is_set(i, job->jobdefs->hdr.item_present)) {
 		     set_bit(i, job->hdr.item_present);
 		  }
 	       /*
-		* Handle integer fields 
+		* Handle integer fields
 		*    Note, our store_yesno does not handle bitmaped fields
 		*/
 	       } else if (job_items[i].handler == store_yesno	||
@@ -569,19 +569,19 @@ Without that I don't know who I am :-(\n"), configfile);
 			  job_items[i].handler == store_pint	||
 			  job_items[i].handler == store_replace) {
 		  def_ivalue = (int *)((char *)(job->jobdefs) + offset);
-                  Dmsg5(400, "Job \"%s\", field \"%s\" def_ivalue=%d item %d offset=%u\n", 
+		  Dmsg5(400, "Job \"%s\", field \"%s\" def_ivalue=%d item %d offset=%u\n",
 		       job->hdr.name, job_items[i].name, *def_ivalue, i, offset);
 		  ivalue = (int *)((char *)job + offset);
 		  *ivalue = *def_ivalue;
 		  set_bit(i, job->hdr.item_present);
 	       /*
-		* Handle 64 bit integer fields 
+		* Handle 64 bit integer fields
 		*/
 	       } else if (job_items[i].handler == store_time   ||
 			  job_items[i].handler == store_size   ||
 			  job_items[i].handler == store_int64) {
 		  def_lvalue = (int64_t *)((char *)(job->jobdefs) + offset);
-                  Dmsg5(400, "Job \"%s\", field \"%s\" def_lvalue=%" lld " item %d offset=%u\n", 
+		  Dmsg5(400, "Job \"%s\", field \"%s\" def_lvalue=%" lld " item %d offset=%u\n",
 		       job->hdr.name, job_items[i].name, *def_lvalue, i, offset);
 		  lvalue = (int64_t *)((char *)job + offset);
 		  *lvalue = *def_lvalue;
@@ -590,20 +590,20 @@ Without that I don't know who I am :-(\n"), configfile);
 	    }
 	 }
       }
-      /* 
+      /*
        * Ensure that all required items are present
        */
       for (i=0; job_items[i].name; i++) {
 	 if (job_items[i].flags & ITEM_REQUIRED) {
-	       if (!bit_is_set(i, job->hdr.item_present)) {  
-                  Jmsg(NULL, M_FATAL, 0, "\"%s\" directive in Job \"%s\" resource is required, but not found.\n",
+	       if (!bit_is_set(i, job->hdr.item_present)) {
+		  Jmsg(NULL, M_FATAL, 0, "\"%s\" directive in Job \"%s\" resource is required, but not found.\n",
 		    job_items[i].name, job->hdr.name);
 		  OK = false;
 		}
 	 }
 	 /* If this triggers, take a look at lib/parse_conf.h */
 	 if (i >= MAX_RES_ITEMS) {
-            Emsg0(M_ERROR_TERM, 0, "Too many items in Job resource\n");
+	    Emsg0(M_ERROR_TERM, 0, "Too many items in Job resource\n");
 	 }
       }
    } /* End loop over Job res */
@@ -618,23 +618,23 @@ Without that I don't know who I am :-(\n"), configfile);
        */
       db = db_init_database(NULL, catalog->db_name, catalog->db_user,
 			 catalog->db_password, catalog->db_address,
-			 catalog->db_port, catalog->db_socket, 
+			 catalog->db_port, catalog->db_socket,
 			 catalog->mult_db_connections);
       if (!db || !db_open_database(NULL, db)) {
-         Jmsg(NULL, M_FATAL, 0, _("Could not open database \"%s\".\n"),
+	 Jmsg(NULL, M_FATAL, 0, _("Could not open database \"%s\".\n"),
 	      catalog->db_name);
 	 if (db) {
-            Jmsg(NULL, M_FATAL, 0, _("%s"), db_strerror(db));
+	    Jmsg(NULL, M_FATAL, 0, _("%s"), db_strerror(db));
 	 }
 	 OK = false;
 	 continue;
-      } 
+      }
 
       /* Loop over all pools, defining/updating them in each database */
       POOL *pool;
       foreach_res(pool, R_POOL) {
 	 create_pool(NULL, db, pool, POOL_OP_UPDATE);  /* update request */
-      }      
+      }
       /* Loop over all counters, defining them in each database */
 
       /* Set default value in all counters */
@@ -655,9 +655,9 @@ Without that I don't know who I am :-(\n"), configfile);
 	    if (db_create_counter_record(NULL, db, &cr)) {
 	       counter->CurrentValue = cr.CurrentValue;
 	       counter->created = true;
-               Dmsg2(100, "Create counter %s val=%d\n", counter->hdr.name, counter->CurrentValue);
+	       Dmsg2(100, "Create counter %s val=%d\n", counter->hdr.name, counter->CurrentValue);
 	    }
-	 } 
+	 }
 	 if (!counter->created) {
 	    counter->CurrentValue = counter->MinValue;	/* default value */
 	 }

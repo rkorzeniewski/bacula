@@ -54,9 +54,9 @@ typedef void (wxEvtHandler::*wxListMarkedEventFunction)(wxbListMarkedEvent&);
 
 #define EVT_LIST_MARKED_EVENT(id, fn) \
     DECLARE_EVENT_TABLE_ENTRY( \
-        wxbLIST_MARKED_EVENT, id, wxID_ANY, \
-        (wxObjectEventFunction)(wxEventFunction)(wxListMarkedEventFunction)&fn, \
-        (wxObject *) NULL \
+	wxbLIST_MARKED_EVENT, id, wxID_ANY, \
+	(wxObjectEventFunction)(wxEventFunction)(wxListMarkedEventFunction)&fn, \
+	(wxObject *) NULL \
     ),
 
 /* Customized list, which transmit double clicks on images */
@@ -64,13 +64,13 @@ class wxbListCtrl: public wxListCtrl {
    public:
       wxbListCtrl(wxWindow* parent, wxEvtHandler* handler, wxWindowID id, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
       ~wxbListCtrl();
-      
+
    private:
       void OnDoubleClicked(wxMouseEvent& event);
       void OnRightClicked(wxMouseEvent& event);
-      
+
       wxEvtHandler* handler;
-      
+
       DECLARE_EVENT_TABLE();
 };
 

@@ -2,7 +2,7 @@
  *  Hashed Message Authentication Code using MD5 (HMAC-MD5)
  *
  * hmac_md5 was based on sample code in RFC2104 (thanks guys).
- * 
+ *
  * Adapted to Bacula by Kern E. Sibbald, February MMI.
  *
  *   Version $Id$
@@ -73,7 +73,7 @@ hmac_md5(
    /* Zero pads and store key */
    memset(k_ipad, 0, PAD_LEN);
    memcpy(k_ipad, key, key_len);
-   memcpy(k_opad, k_ipad, PAD_LEN); 
+   memcpy(k_opad, k_ipad, PAD_LEN);
 
    /* XOR key with ipad and opad values */
    for (i=0; i<PAD_LEN; i++) {

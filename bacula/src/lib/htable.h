@@ -23,7 +23,7 @@
  */
 
 /* ========================================================================
- * 
+ *
  *   Hash table class -- htable
  *
  */
@@ -32,9 +32,9 @@
  * Loop var through each member of table
  */
 #define foreach_htable(var, tbl) \
-        for(((void *)(var))=(tbl)->first(); \
-            (var); \
-            ((void *)(var))=(tbl)->next())
+	for(((void *)(var))=(tbl)->first(); \
+	    (var); \
+	    ((void *)(var))=(tbl)->next())
 
 struct hlink {
    void *next;                        /* next hash item */

@@ -7,8 +7,8 @@
  *  The purpose of these routines is to ensure that Bacula
  *  can limp along if no real database is loaded on the
  *  system.
- *   
- *    Kern Sibbald, January MMI 
+ *
+ *    Kern Sibbald, January MMI
  *
  *    Version $Id$
  */
@@ -62,14 +62,14 @@ int db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 }
 
 int db_create_file_item(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
-{	     
+{
    /****FIXME***** not implemented */
    return 1;
 }
 
 
-/*  
- * Create a new record for the Job    
+/*
+ * Create a new record for the Job
  *   This record is created at the start of the Job,
  *   it is updated in bdb_update.c when the Job terminates.
  *
@@ -101,7 +101,7 @@ int db_create_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    return 1;
 }
 
-/* Create a JobMedia record for Volume used this job   
+/* Create a JobMedia record for Volume used this job
  * Returns: 0 on failure
  *	    record-id on success
  */
@@ -172,14 +172,14 @@ int db_create_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
 }
 
 
-/* 
+/*
  * Create Unique Media record.	This record
  *   contains all the data pertaining to a specific
  *   Volume.
  *
  * Returns: 0 on failure
  *	    1 on success
- */ 
+ */
 int db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 {
    int len;
@@ -254,7 +254,7 @@ int db_create_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr)
 /*
  *  Create a unique FileSet record or return existing record
  *
- *   Note, here we write the FILESET_DBR structure 
+ *   Note, here we write the FILESET_DBR structure
  *
  * Returns: 0 on failure
  *	    1 on success

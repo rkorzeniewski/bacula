@@ -1,6 +1,6 @@
-/*     
- *   Parse a Bootstrap Records (used for restores) 
- *  
+/*
+ *   Parse a Bootstrap Records (used for restores)
+ *
  *     Kern Sibbald, June MMII
  *
  *   Version $Id$
@@ -79,7 +79,7 @@ struct kw_items items[] = {
 
 };
 
-/* 
+/*
  * Create a BSR record
  */
 static BSR *new_bsr()
@@ -90,7 +90,7 @@ static BSR *new_bsr()
 }
 
 /*
- * Format a scanner error message 
+ * Format a scanner error message
  */
 static void s_err(const char *file, int line, LEX *lc, const char *msg, ...)
 {
@@ -101,14 +101,14 @@ static void s_err(const char *file, int line, LEX *lc, const char *msg, ...)
    va_start(arg_ptr, msg);
    bvsnprintf(buf, sizeof(buf), msg, arg_ptr);
    va_end(arg_ptr);
-     
+
    if (jcr) {
-      Jmsg(jcr, M_FATAL, 0, _("Bootstrap file error: %s\n\
-            : Line %d, col %d of file %s\n%s\n"),
+      Jmsg(jcr, M_FATAL, 0, _("Bootstrap file error: %s\n"
+"            : Line %d, col %d of file %s\n%s\n"),
 	 buf, lc->line_no, lc->col_no, lc->fname, lc->line);
    } else {
-      e_msg(file, line, M_FATAL, 0, _("Bootstrap file error: %s\n\
-            : Line %d, col %d of file %s\n%s\n"),
+      e_msg(file, line, M_FATAL, 0, _("Bootstrap file error: %s\n"
+"            : Line %d, col %d of file %s\n%s\n"),
 	 buf, lc->line_no, lc->col_no, lc->fname, lc->line);
    }
 }
@@ -125,7 +125,7 @@ BSR *parse_bsr(JCR *jcr, char *fname)
    int token, i;
    BSR *root_bsr = new_bsr();
    BSR *bsr = root_bsr;
-     
+
    Dmsg1(200, "Enter parse_bsf %s\n", fname);
    lc = lex_open_file(lc, fname, s_err);
    lc->caller_ctx = (void *)jcr;
@@ -137,13 +137,13 @@ BSR *parse_bsr(JCR *jcr, char *fname)
       for (i=0; items[i].name; i++) {
 	 if (strcasecmp(items[i].name, lc->str) == 0) {
 	    token = lex_get_token(lc, T_ALL);
-            Dmsg1 (200, "in T_IDENT got token=%s\n", lex_tok_to_str(token));
+	    Dmsg1 (200, "in T_IDENT got token=%s\n", lex_tok_to_str(token));
 	    if (token != T_EQUALS) {
-               scan_err1(lc, "expected an equals, got: %s", lc->str);
+	       scan_err1(lc, "expected an equals, got: %s", lc->str);
 	       bsr = NULL;
 	       break;
 	    }
-            Dmsg1(200, "calling handler for %s\n", items[i].name);
+	    Dmsg1(200, "calling handler for %s\n", items[i].name);
 	    /* Call item handler */
 	    bsr = items[i].handler(lc, bsr);
 	    i = -1;
@@ -151,8 +151,8 @@ BSR *parse_bsr(JCR *jcr, char *fname)
 	 }
       }
       if (i >= 0) {
-         Dmsg1(200, "Keyword = %s\n", lc->str);
-         scan_err1(lc, "Keyword %s not found", lc->str);
+	 Dmsg1(200, "Keyword = %s\n", lc->str);
+	 scan_err1(lc, "Keyword %s not found", lc->str);
 	 bsr = NULL;
 	 break;
       }
@@ -213,7 +213,7 @@ static BSR *store_vol(LEX *lc, BSR *bsr)
    int token;
    BSR_VOLUME *volume;
    char *p, *n;
-    
+
    token = lex_get_token(lc, T_STRING);
    if (token == T_ERROR) {
       return NULL;
@@ -222,7 +222,7 @@ static BSR *store_vol(LEX *lc, BSR *bsr)
       bsr->next = new_bsr();
       bsr = bsr->next;
    }
-   /* This may actually be more than one volume separated by a |  
+   /* This may actually be more than one volume separated by a |
     * If so, separate them.
     */
    for (p=lc->str; p && *p; ) {
@@ -238,7 +238,7 @@ static BSR *store_vol(LEX *lc, BSR *bsr)
 	 bsr->volume = volume;
       } else {
 	 BSR_VOLUME *bc = bsr->volume;
-	 for ( ;bc->next; bc=bc->next)	
+	 for ( ;bc->next; bc=bc->next)
 	    { }
 	 bc->next = volume;
       }
@@ -251,7 +251,7 @@ static BSR *store_client(LEX *lc, BSR *bsr)
 {
    int token;
    BSR_CLIENT *client;
-    
+
    for (;;) {
       token = lex_get_token(lc, T_NAME);
       if (token == T_ERROR) {
@@ -265,7 +265,7 @@ static BSR *store_client(LEX *lc, BSR *bsr)
 	 bsr->client = client;
       } else {
 	 BSR_CLIENT *bc = bsr->client;
-	 for ( ;bc->next; bc=bc->next)	
+	 for ( ;bc->next; bc=bc->next)
 	    { }
 	 bc->next = client;
       }
@@ -281,7 +281,7 @@ static BSR *store_job(LEX *lc, BSR *bsr)
 {
    int token;
    BSR_JOB *job;
-    
+
    for (;;) {
       token = lex_get_token(lc, T_NAME);
       if (token == T_ERROR) {
@@ -407,7 +407,7 @@ static BSR *store_joblevel(LEX *lc, BSR *bsr)
 
 
 /*
- * Routine to handle Volume start/end file   
+ * Routine to handle Volume start/end file
  */
 static BSR *store_volfile(LEX *lc, BSR *bsr)
 {
@@ -443,7 +443,7 @@ static BSR *store_volfile(LEX *lc, BSR *bsr)
 
 
 /*
- * Routine to handle Volume start/end Block  
+ * Routine to handle Volume start/end Block
  */
 static BSR *store_volblock(LEX *lc, BSR *bsr)
 {
@@ -619,9 +619,9 @@ void dump_findex(BSR_FINDEX *FileIndex)
 {
    if (FileIndex) {
       if (FileIndex->findex == FileIndex->findex2) {
-         Dmsg1(-1, "FileIndex   : %u\n", FileIndex->findex);
+	 Dmsg1(-1, "FileIndex   : %u\n", FileIndex->findex);
       } else {
-         Dmsg2(-1, "FileIndex   : %u-%u\n", FileIndex->findex, FileIndex->findex2);
+	 Dmsg2(-1, "FileIndex   : %u-%u\n", FileIndex->findex, FileIndex->findex2);
       }
       dump_findex(FileIndex->next);
    }
@@ -631,9 +631,9 @@ void dump_jobid(BSR_JOBID *jobid)
 {
    if (jobid) {
       if (jobid->JobId == jobid->JobId2) {
-         Dmsg1(-1, "JobId       : %u\n", jobid->JobId);
+	 Dmsg1(-1, "JobId       : %u\n", jobid->JobId);
       } else {
-         Dmsg2(-1, "JobId       : %u-%u\n", jobid->JobId, jobid->JobId2);
+	 Dmsg2(-1, "JobId       : %u-%u\n", jobid->JobId, jobid->JobId2);
       }
       dump_jobid(jobid->next);
    }
@@ -643,9 +643,9 @@ void dump_sessid(BSR_SESSID *sessid)
 {
    if (sessid) {
       if (sessid->sessid == sessid->sessid2) {
-         Dmsg1(-1, "SessId      : %u\n", sessid->sessid);
+	 Dmsg1(-1, "SessId      : %u\n", sessid->sessid);
       } else {
-         Dmsg2(-1, "SessId      : %u-%u\n", sessid->sessid, sessid->sessid2);
+	 Dmsg2(-1, "SessId      : %u-%u\n", sessid->sessid, sessid->sessid2);
       }
       dump_sessid(sessid->next);
    }
@@ -762,7 +762,7 @@ void free_bsr(BSR *bsr)
 }
 
 /*****************************************************************
- * Routines for handling volumes     
+ * Routines for handling volumes
  */
 VOL_LIST *new_vol()
 {
@@ -772,7 +772,7 @@ VOL_LIST *new_vol()
    return vol;
 }
 
-/* 
+/*
  * Add current volume to end of list, only if the Volume
  * is not already in the list.
  *
@@ -827,7 +827,7 @@ void create_vol_list(JCR *jcr)
    char *p, *n;
    VOL_LIST *vol;
 
-   /* 
+   /*
     * Build a list of volumes to be processed
     */
    jcr->NumVolumes = 0;
@@ -855,18 +855,18 @@ void create_vol_list(JCR *jcr)
 	    vol->start_file = sfile;
 	    if (add_vol(jcr, vol)) {
 	       jcr->NumVolumes++;
-               Dmsg1(400, "Added volume %s\n", vol->VolumeName);
+	       Dmsg1(400, "Added volume %s\n", vol->VolumeName);
 	    } else {
-               Dmsg1(400, "Duplicate volume %s\n", vol->VolumeName);
+	       Dmsg1(400, "Duplicate volume %s\n", vol->VolumeName);
 	       free((char *)vol);
 	    }
 	    sfile = 0;		      /* start at beginning of second volume */
 	 }
       }
    } else {
-      /* This is the old way -- deprecated */ 
+      /* This is the old way -- deprecated */
       for (p = jcr->dcr->VolumeName; p && *p; ) {
-         n = strchr(p, '|');             /* volume name separator */
+	 n = strchr(p, '|');             /* volume name separator */
 	 if (n) {
 	    *n++ = 0;			 /* Terminate name */
 	 }

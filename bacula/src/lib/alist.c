@@ -1,8 +1,8 @@
 /*
- *  Bacula array list routines	   
+ *  Bacula array list routines
  *
  *    alist is a simple malloc'ed array of pointers.  For the moment,
- *      it simply malloc's a bigger array controlled by num_grow.         
+ *      it simply malloc's a bigger array controlled by num_grow.
  *	Default is to realloc the pointer array for each new member.
  *
  *   Kern Sibbald, June MMIII
@@ -33,7 +33,7 @@
 #include "bacula.h"
 
 /*
- * Private grow list function. Used to insure that 
+ * Private grow list function. Used to insure that
  *   at least one more "slot" is available.
  */
 void alist::grow_list()
@@ -65,7 +65,7 @@ void *alist::last()
    if (num_items == 0) {
       return NULL;
    } else {
-      cur_item = num_items;    
+      cur_item = num_items;
       return items[num_items-1];
    }
 }
@@ -171,13 +171,13 @@ int main()
    fileset->mylist.init();
 
    printf("Manual allocation/destruction of list:\n");
-   
+
    for (int i=0; i<20; i++) {
       sprintf(buf, "This is item %d", i);
       fileset->mylist.append(bstrdup(buf));
-   } 
+   }
    for (int i=0; i< fileset->mylist.size(); i++) {
-      printf("Item %d = %s\n", i, (char *)fileset->mylist[i]);  
+      printf("Item %d = %s\n", i, (char *)fileset->mylist[i]);
    }
    fileset->mylist.destroy();
    free(fileset);
@@ -188,9 +188,9 @@ int main()
    for (int i=0; i<20; i++) {
       sprintf(buf, "This is item %d", i);
       mlist->append(bstrdup(buf));
-   } 
+   }
    for (int i=0; i< mlist->size(); i++) {
-      printf("Item %d = %s\n", i, (char *)mlist->get(i));  
+      printf("Item %d = %s\n", i, (char *)mlist->get(i));
    }
 
    delete mlist;

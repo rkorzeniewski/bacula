@@ -76,7 +76,7 @@
 /*
  * DEV_RECORD for reading and writing records.
  * It consists of a Record Header, and the Record Data
- * 
+ *
  *  This is the memory structure for the record header.
  */
 struct BSR;                           /* satisfy forward reference */
@@ -97,7 +97,7 @@ struct DEV_RECORD {
    BSR *bsr;                          /* pointer to bsr that matched */
    uint8_t  ser_buf[WRITE_RECHDR_LENGTH];   /* serialized record header goes here */
    POOLMEM *data;                     /* Record data. This MUST be a memory pool item */
-};           
+};
 
 
 /*
@@ -107,20 +107,20 @@ struct DEV_RECORD {
  */
 #define PRE_LABEL   -1                /* Vol label on unwritten tape */
 #define VOL_LABEL   -2                /* Volume label first file */
-#define EOM_LABEL   -3                /* Writen at end of tape */        
+#define EOM_LABEL   -3                /* Writen at end of tape */
 #define SOS_LABEL   -4                /* Start of Session */
 #define EOS_LABEL   -5                /* End of Session */
 #define EOT_LABEL   -6                /* End of physical tape (2 eofs) */
 
-/* 
+/*
  *   Volume Label Record.  This is the in-memory definition. The
  *     tape definition is defined in the serialization code itself
  *     ser_volume_label() and unser_volume_label() and is slightly different.
  */
 
- 
+
 struct Volume_Label {
-  /*  
+  /*
    * The first items in this structure are saved
    * in the DEVICE buffer, but are not actually written
    * to the tape.
@@ -128,7 +128,7 @@ struct Volume_Label {
   int32_t LabelType;                  /* This is written in header only */
   uint32_t LabelSize;                 /* length of serialized label */
   /*
-   * The items below this line are stored on 
+   * The items below this line are stored on
    * the tape
    */
   char Id[32];                        /* Bacula Immortal ... */

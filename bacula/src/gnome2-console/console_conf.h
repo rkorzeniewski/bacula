@@ -10,7 +10,7 @@
 #define __CONSOLE_CONF_H_
 
 /*
- * Resource codes -- they must be sequential for indexing   
+ * Resource codes -- they must be sequential for indexing
  */
 
 enum {

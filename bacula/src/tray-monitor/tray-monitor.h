@@ -26,7 +26,7 @@
  */
 
 #include <gtk/gtk.h>
- 
+
 #include "tray_conf.h"
 
 #include "jcr.h"

@@ -2,7 +2,7 @@
  *
  *   Bootstrap Record header file
  *
- *	BSR (bootstrap record) handling routines split from 
+ *	BSR (bootstrap record) handling routines split from
  *	  ua_restore.c July MMIII
  *
  *     Kern Sibbald, July MMII
@@ -38,8 +38,8 @@ struct RBSR_FINDEX {
    int32_t findex2;
 };
 
-/* 
- * Restore bootstrap record -- not the real one, but useful here   
+/*
+ * Restore bootstrap record -- not the real one, but useful here
  *  The restore bsr is a chain of BSR records (linked by next).
  *  Each BSR represents a single JobId, and within it, it
  *    contains a linked list of file indexes for that JobId.
@@ -49,7 +49,7 @@ struct RBSR_FINDEX {
 struct RBSR {
    RBSR *next;			      /* next JobId */
    uint32_t JobId;		      /* JobId this bsr */
-   uint32_t VolSessionId;		    
+   uint32_t VolSessionId;
    uint32_t VolSessionTime;
    int	    VolCount;		      /* Volume parameter count */
    VOL_PARAMS *VolParams;	      /* Volume, start/end file/blocks */

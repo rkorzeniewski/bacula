@@ -2,7 +2,7 @@
  *  Challenge Response Authentication Method using MD5 (CRAM-MD5)
  *
  * cram-md5 is based on RFC2104.
- * 
+ *
  * Written for Bacula by Kern E. Sibbald, May MMI.
  *
  *   Version $Id$
@@ -101,8 +101,8 @@ int cram_md5_get_auth(BSOCK *bs, char *password, int ssl_need)
    if (sscanf(bs->msg, "auth cram-md5 %s ssl=%d\n", chal, &ssl_has) != 2) {
       ssl_has = BNET_SSL_NONE;
       if (sscanf(bs->msg, "auth cram-md5 %s\n", chal) != 1) {
-         Dmsg1(50, "Cannot scan challenge: %s", bs->msg);
-         bnet_fsend(bs, "1999 Authorization failed.\n");
+	 Dmsg1(50, "Cannot scan challenge: %s", bs->msg);
+	 bnet_fsend(bs, "1999 Authorization failed.\n");
 	 bmicrosleep(5, 0);
 	 return 0;
       }

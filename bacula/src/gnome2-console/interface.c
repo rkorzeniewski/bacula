@@ -211,7 +211,7 @@ create_console (void)
   gtk_widget_show (menubar1);
   gtk_container_add (GTK_CONTAINER (handlebox1), menubar1);
   gnome_app_fill_menu (GTK_MENU_SHELL (menubar1), menubar1_uiinfo,
-                       NULL, FALSE, 0);
+		       NULL, FALSE, 0);
 
   handlebox2 = gtk_handle_box_new ();
   gtk_widget_show (handlebox2);
@@ -226,51 +226,51 @@ create_console (void)
 
   tmp_toolbar_icon = gtk_image_new_from_stock ("gtk-new", gtk_toolbar_get_icon_size (GTK_TOOLBAR (toolbar2)));
   connect_button1 = gtk_toolbar_append_element (GTK_TOOLBAR (toolbar2),
-                                GTK_TOOLBAR_CHILD_BUTTON,
-                                NULL,
-                                _("Connect"),
-                                _("Connect to Director"), NULL,
-                                tmp_toolbar_icon, NULL, NULL);
+				GTK_TOOLBAR_CHILD_BUTTON,
+				NULL,
+				_("Connect"),
+				_("Connect to Director"), NULL,
+				tmp_toolbar_icon, NULL, NULL);
   gtk_label_set_use_underline (GTK_LABEL (((GtkToolbarChild*) (g_list_last (GTK_TOOLBAR (toolbar2)->children)->data))->label), TRUE);
   gtk_widget_show (connect_button1);
 
   tmp_toolbar_icon = gtk_image_new_from_stock ("gtk-execute", gtk_toolbar_get_icon_size (GTK_TOOLBAR (toolbar2)));
   run_button1 = gtk_toolbar_append_element (GTK_TOOLBAR (toolbar2),
-                                GTK_TOOLBAR_CHILD_BUTTON,
-                                NULL,
-                                _("Run"),
-                                _("Run a Job"), NULL,
-                                tmp_toolbar_icon, NULL, NULL);
+				GTK_TOOLBAR_CHILD_BUTTON,
+				NULL,
+				_("Run"),
+				_("Run a Job"), NULL,
+				tmp_toolbar_icon, NULL, NULL);
   gtk_label_set_use_underline (GTK_LABEL (((GtkToolbarChild*) (g_list_last (GTK_TOOLBAR (toolbar2)->children)->data))->label), TRUE);
   gtk_widget_show (run_button1);
 
   tmp_toolbar_icon = gtk_image_new_from_stock ("gtk-find", gtk_toolbar_get_icon_size (GTK_TOOLBAR (toolbar2)));
   msgs_button = gtk_toolbar_append_element (GTK_TOOLBAR (toolbar2),
-                                GTK_TOOLBAR_CHILD_BUTTON,
-                                NULL,
-                                _("Msgs"),
-                                _("Display Messages"), NULL,
-                                tmp_toolbar_icon, NULL, NULL);
+				GTK_TOOLBAR_CHILD_BUTTON,
+				NULL,
+				_("Msgs"),
+				_("Display Messages"), NULL,
+				tmp_toolbar_icon, NULL, NULL);
   gtk_label_set_use_underline (GTK_LABEL (((GtkToolbarChild*) (g_list_last (GTK_TOOLBAR (toolbar2)->children)->data))->label), TRUE);
   gtk_widget_show (msgs_button);
 
   tmp_toolbar_icon = gtk_image_new_from_stock ("gtk-revert-to-saved", gtk_toolbar_get_icon_size (GTK_TOOLBAR (toolbar2)));
   restore_button = gtk_toolbar_append_element (GTK_TOOLBAR (toolbar2),
-                                GTK_TOOLBAR_CHILD_BUTTON,
-                                NULL,
-                                _("Restore"),
-                                NULL, NULL,
-                                tmp_toolbar_icon, NULL, NULL);
+				GTK_TOOLBAR_CHILD_BUTTON,
+				NULL,
+				_("Restore"),
+				NULL, NULL,
+				tmp_toolbar_icon, NULL, NULL);
   gtk_label_set_use_underline (GTK_LABEL (((GtkToolbarChild*) (g_list_last (GTK_TOOLBAR (toolbar2)->children)->data))->label), TRUE);
   gtk_widget_show (restore_button);
 
   tmp_toolbar_icon = gtk_image_new_from_stock ("gtk-save-as", gtk_toolbar_get_icon_size (GTK_TOOLBAR (toolbar2)));
   label_button = gtk_toolbar_append_element (GTK_TOOLBAR (toolbar2),
-                                GTK_TOOLBAR_CHILD_BUTTON,
-                                NULL,
-                                _("Label"),
-                                NULL, NULL,
-                                tmp_toolbar_icon, NULL, NULL);
+				GTK_TOOLBAR_CHILD_BUTTON,
+				NULL,
+				_("Label"),
+				NULL, NULL,
+				tmp_toolbar_icon, NULL, NULL);
   gtk_label_set_use_underline (GTK_LABEL (((GtkToolbarChild*) (g_list_last (GTK_TOOLBAR (toolbar2)->children)->data))->label), TRUE);
   gtk_widget_show (label_button);
 
@@ -330,29 +330,29 @@ create_console (void)
   gtk_misc_set_alignment (GTK_MISC (status1), 0, 0.5);
 
   g_signal_connect ((gpointer) console, "delete_event",
-                    G_CALLBACK (on_console_delete_event),
-                    NULL);
+		    G_CALLBACK (on_console_delete_event),
+		    NULL);
   g_signal_connect ((gpointer) connect_button1, "clicked",
-                    G_CALLBACK (on_connect_button_clicked),
-                    NULL);
+		    G_CALLBACK (on_connect_button_clicked),
+		    NULL);
   g_signal_connect ((gpointer) run_button1, "clicked",
-                    G_CALLBACK (on_run_button_clicked),
-                    NULL);
+		    G_CALLBACK (on_run_button_clicked),
+		    NULL);
   g_signal_connect ((gpointer) msgs_button, "clicked",
-                    G_CALLBACK (on_msgs_button_clicked),
-                    NULL);
+		    G_CALLBACK (on_msgs_button_clicked),
+		    NULL);
   g_signal_connect ((gpointer) restore_button, "clicked",
-                    G_CALLBACK (on_restore_button_clicked),
-                    NULL);
+		    G_CALLBACK (on_restore_button_clicked),
+		    NULL);
   g_signal_connect ((gpointer) label_button, "clicked",
-                    G_CALLBACK (on_label_button_clicked),
-                    NULL);
+		    G_CALLBACK (on_label_button_clicked),
+		    NULL);
   g_signal_connect ((gpointer) entry1, "key_press_event",
-                    G_CALLBACK (on_entry1_key_press_event),
-                    NULL);
+		    G_CALLBACK (on_entry1_key_press_event),
+		    NULL);
   g_signal_connect ((gpointer) entry1, "key_release_event",
-                    G_CALLBACK (on_entry1_key_release_event),
-                    NULL);
+		    G_CALLBACK (on_entry1_key_release_event),
+		    NULL);
 
   /* Store pointers to all widgets, for use by lookup_widget(). */
   GLADE_HOOKUP_OBJECT_NO_REF (console, console, "console");
@@ -479,8 +479,8 @@ create_about1 (void)
   GTK_WIDGET_SET_FLAGS (about_button, GTK_CAN_DEFAULT);
 
   g_signal_connect ((gpointer) about_button, "clicked",
-                    G_CALLBACK (on_about_button_clicked),
-                    NULL);
+		    G_CALLBACK (on_about_button_clicked),
+		    NULL);
 
   /* Store pointers to all widgets, for use by lookup_widget(). */
   GLADE_HOOKUP_OBJECT_NO_REF (about1, about1, "about1");
@@ -539,7 +539,7 @@ create_SelectDirectorDialog (void)
 
   combo1 = gtk_combo_new ();
   g_object_set_data (G_OBJECT (GTK_COMBO (combo1)->popwin),
-                     "GladeParentKey", combo1);
+		     "GladeParentKey", combo1);
   gtk_widget_show (combo1);
   gtk_box_pack_start (GTK_BOX (vbox10), combo1, FALSE, FALSE, 0);
   gtk_container_set_border_width (GTK_CONTAINER (combo1), 6);
@@ -572,11 +572,11 @@ create_SelectDirectorDialog (void)
   gtk_box_pack_start (GTK_BOX (hbox21), button13, FALSE, FALSE, 0);
 
   g_signal_connect ((gpointer) button11, "clicked",
-                    G_CALLBACK (on_select_director_OK_clicked),
-                    NULL);
+		    G_CALLBACK (on_select_director_OK_clicked),
+		    NULL);
   g_signal_connect ((gpointer) button13, "clicked",
-                    G_CALLBACK (on_select_director_cancel_clicked),
-                    NULL);
+		    G_CALLBACK (on_select_director_cancel_clicked),
+		    NULL);
 
   /* Store pointers to all widgets, for use by lookup_widget(). */
   GLADE_HOOKUP_OBJECT_NO_REF (SelectDirectorDialog, SelectDirectorDialog, "SelectDirectorDialog");
@@ -713,7 +713,7 @@ create_RunDialog (void)
 
   combo_job = gtk_combo_new ();
   g_object_set_data (G_OBJECT (GTK_COMBO (combo_job)->popwin),
-                     "GladeParentKey", combo_job);
+		     "GladeParentKey", combo_job);
   gtk_widget_show (combo_job);
   gtk_box_pack_start (GTK_BOX (hbox29), combo_job, TRUE, TRUE, 1);
   gtk_combo_set_value_in_list (GTK_COMBO (combo_job), TRUE, FALSE);
@@ -731,7 +731,7 @@ create_RunDialog (void)
 
   combo_type = gtk_combo_new ();
   g_object_set_data (G_OBJECT (GTK_COMBO (combo_type)->popwin),
-                     "GladeParentKey", combo_type);
+		     "GladeParentKey", combo_type);
   gtk_widget_show (combo_type);
   gtk_box_pack_start (GTK_BOX (hbox29), combo_type, FALSE, FALSE, 0);
   gtk_widget_set_size_request (combo_type, 141, 24);
@@ -762,7 +762,7 @@ create_RunDialog (void)
 
   combo_client = gtk_combo_new ();
   g_object_set_data (G_OBJECT (GTK_COMBO (combo_client)->popwin),
-                     "GladeParentKey", combo_client);
+		     "GladeParentKey", combo_client);
   gtk_widget_show (combo_client);
   gtk_box_pack_start (GTK_BOX (hbox30), combo_client, TRUE, TRUE, 1);
   gtk_combo_set_value_in_list (GTK_COMBO (combo_client), TRUE, FALSE);
@@ -792,7 +792,7 @@ create_RunDialog (void)
 
   combo_fileset = gtk_combo_new ();
   g_object_set_data (G_OBJECT (GTK_COMBO (combo_fileset)->popwin),
-                     "GladeParentKey", combo_fileset);
+		     "GladeParentKey", combo_fileset);
   gtk_widget_show (combo_fileset);
   gtk_box_pack_start (GTK_BOX (hbox31), combo_fileset, FALSE, FALSE, 0);
   gtk_combo_set_value_in_list (GTK_COMBO (combo_fileset), TRUE, FALSE);
@@ -841,7 +841,7 @@ create_RunDialog (void)
 
   combo_level = gtk_combo_new ();
   g_object_set_data (G_OBJECT (GTK_COMBO (combo_level)->popwin),
-                     "GladeParentKey", combo_level);
+		     "GladeParentKey", combo_level);
   gtk_widget_show (combo_level);
   gtk_box_pack_start (GTK_BOX (hbox32), combo_level, TRUE, TRUE, 0);
   gtk_combo_set_value_in_list (GTK_COMBO (combo_level), TRUE, FALSE);
@@ -870,7 +870,7 @@ create_RunDialog (void)
 
   combo_pool = gtk_combo_new ();
   g_object_set_data (G_OBJECT (GTK_COMBO (combo_pool)->popwin),
-                     "GladeParentKey", combo_pool);
+		     "GladeParentKey", combo_pool);
   gtk_widget_show (combo_pool);
   gtk_box_pack_start (GTK_BOX (hbox33), combo_pool, TRUE, TRUE, 0);
   gtk_combo_set_value_in_list (GTK_COMBO (combo_pool), TRUE, FALSE);
@@ -899,7 +899,7 @@ create_RunDialog (void)
 
   combo_storage = gtk_combo_new ();
   g_object_set_data (G_OBJECT (GTK_COMBO (combo_storage)->popwin),
-                     "GladeParentKey", combo_storage);
+		     "GladeParentKey", combo_storage);
   gtk_widget_show (combo_storage);
   gtk_box_pack_start (GTK_BOX (hbox39), combo_storage, TRUE, TRUE, 0);
   gtk_combo_set_value_in_list (GTK_COMBO (combo_storage), TRUE, FALSE);
@@ -928,7 +928,7 @@ create_RunDialog (void)
 
   combo_messages = gtk_combo_new ();
   g_object_set_data (G_OBJECT (GTK_COMBO (combo_messages)->popwin),
-                     "GladeParentKey", combo_messages);
+		     "GladeParentKey", combo_messages);
   gtk_widget_show (combo_messages);
   gtk_box_pack_start (GTK_BOX (hbox40), combo_messages, TRUE, TRUE, 0);
   gtk_combo_set_value_in_list (GTK_COMBO (combo_messages), TRUE, FALSE);
@@ -1024,14 +1024,14 @@ create_RunDialog (void)
   GTK_WIDGET_SET_FLAGS (run_cancel, GTK_CAN_DEFAULT);
 
   g_signal_connect ((gpointer) entry_job, "changed",
-                    G_CALLBACK (on_entry_job_changed),
-                    NULL);
+		    G_CALLBACK (on_entry_job_changed),
+		    NULL);
   g_signal_connect ((gpointer) run_ok, "clicked",
-                    G_CALLBACK (on_run_ok_clicked),
-                    NULL);
+		    G_CALLBACK (on_run_ok_clicked),
+		    NULL);
   g_signal_connect ((gpointer) run_cancel, "clicked",
-                    G_CALLBACK (on_run_cancel_clicked),
-                    NULL);
+		    G_CALLBACK (on_run_cancel_clicked),
+		    NULL);
 
   /* Store pointers to all widgets, for use by lookup_widget(). */
   GLADE_HOOKUP_OBJECT_NO_REF (RunDialog, RunDialog, "RunDialog");
@@ -1190,7 +1190,7 @@ create_restore_file_selection (void)
   gtk_widget_show (menubar2);
   gtk_container_add (GTK_CONTAINER (handlebox4), menubar2);
   gnome_app_fill_menu (GTK_MENU_SHELL (menubar2), menubar2_uiinfo,
-                       NULL, FALSE, 0);
+		       NULL, FALSE, 0);
 
   handlebox3 = gtk_handle_box_new ();
   gtk_widget_show (handlebox3);
@@ -1202,21 +1202,21 @@ create_restore_file_selection (void)
   gtk_toolbar_set_style (GTK_TOOLBAR (toolbar3), GTK_TOOLBAR_BOTH);
 
   restore_up_button = gtk_toolbar_insert_stock (GTK_TOOLBAR (toolbar3),
-                                "gtk-go-up",
-                                NULL,
-                                NULL, NULL, NULL, -1);
+				"gtk-go-up",
+				NULL,
+				NULL, NULL, NULL, -1);
   gtk_widget_show (restore_up_button);
 
   restore_add_button = gtk_toolbar_insert_stock (GTK_TOOLBAR (toolbar3),
-                                "gtk-add",
-                                NULL,
-                                NULL, NULL, NULL, -1);
+				"gtk-add",
+				NULL,
+				NULL, NULL, NULL, -1);
   gtk_widget_show (restore_add_button);
 
   restore_remove_button = gtk_toolbar_insert_stock (GTK_TOOLBAR (toolbar3),
-                                "gtk-remove",
-                                NULL,
-                                NULL, NULL, NULL, -1);
+				"gtk-remove",
+				NULL,
+				NULL, NULL, NULL, -1);
   gtk_widget_show (restore_remove_button);
 
   hbox38 = gtk_hbox_new (FALSE, 0);
@@ -1276,23 +1276,23 @@ create_restore_file_selection (void)
   gtk_label_set_justify (GTK_LABEL (label1001), GTK_JUSTIFY_LEFT);
 
   g_signal_connect ((gpointer) restore_file_selection, "delete_event",
-                    G_CALLBACK (on_restore_files_delete_event),
-                    NULL);
+		    G_CALLBACK (on_restore_files_delete_event),
+		    NULL);
   g_signal_connect ((gpointer) restore_up_button, "clicked",
-                    G_CALLBACK (on_restore_up_button_clicked),
-                    NULL);
+		    G_CALLBACK (on_restore_up_button_clicked),
+		    NULL);
   g_signal_connect ((gpointer) restore_add_button, "clicked",
-                    G_CALLBACK (on_restore_add_button_clicked),
-                    NULL);
+		    G_CALLBACK (on_restore_add_button_clicked),
+		    NULL);
   g_signal_connect ((gpointer) restore_remove_button, "clicked",
-                    G_CALLBACK (on_restore_remove_button_clicked),
-                    NULL);
+		    G_CALLBACK (on_restore_remove_button_clicked),
+		    NULL);
   g_signal_connect ((gpointer) restore_select_ok, "clicked",
-                    G_CALLBACK (on_restore_select_ok_clicked),
-                    NULL);
+		    G_CALLBACK (on_restore_select_ok_clicked),
+		    NULL);
   g_signal_connect ((gpointer) restore_select_cancel, "clicked",
-                    G_CALLBACK (on_restore_select_cancel_clicked),
-                    NULL);
+		    G_CALLBACK (on_restore_select_cancel_clicked),
+		    NULL);
 
   /* Store pointers to all widgets, for use by lookup_widget(). */
   GLADE_HOOKUP_OBJECT_NO_REF (restore_file_selection, restore_file_selection, "restore_file_selection");
@@ -1397,7 +1397,7 @@ create_label_dialog (void)
 
   label_combo_storage = gtk_combo_new ();
   g_object_set_data (G_OBJECT (GTK_COMBO (label_combo_storage)->popwin),
-                     "GladeParentKey", label_combo_storage);
+		     "GladeParentKey", label_combo_storage);
   gtk_widget_show (label_combo_storage);
   gtk_box_pack_start (GTK_BOX (hbox45), label_combo_storage, TRUE, TRUE, 15);
   gtk_combo_set_value_in_list (GTK_COMBO (label_combo_storage), TRUE, FALSE);
@@ -1423,7 +1423,7 @@ create_label_dialog (void)
 
   label_combo_pool = gtk_combo_new ();
   g_object_set_data (G_OBJECT (GTK_COMBO (label_combo_pool)->popwin),
-                     "GladeParentKey", label_combo_pool);
+		     "GladeParentKey", label_combo_pool);
   gtk_widget_show (label_combo_pool);
   gtk_box_pack_start (GTK_BOX (hbox46), label_combo_pool, TRUE, TRUE, 14);
   gtk_combo_set_value_in_list (GTK_COMBO (label_combo_pool), TRUE, FALSE);
@@ -1493,11 +1493,11 @@ create_label_dialog (void)
   GTK_WIDGET_SET_FLAGS (label_cancel, GTK_CAN_DEFAULT);
 
   g_signal_connect ((gpointer) label_ok, "clicked",
-                    G_CALLBACK (on_label_ok_clicked),
-                    NULL);
+		    G_CALLBACK (on_label_ok_clicked),
+		    NULL);
   g_signal_connect ((gpointer) label_cancel, "clicked",
-                    G_CALLBACK (on_label_cancel_clicked),
-                    NULL);
+		    G_CALLBACK (on_label_cancel_clicked),
+		    NULL);
 
   /* Store pointers to all widgets, for use by lookup_widget(). */
   GLADE_HOOKUP_OBJECT_NO_REF (label_dialog, label_dialog, "label_dialog");
@@ -1621,7 +1621,7 @@ create_RestoreDialog (void)
 
   combo_restore_job = gtk_combo_new ();
   g_object_set_data (G_OBJECT (GTK_COMBO (combo_restore_job)->popwin),
-                     "GladeParentKey", combo_restore_job);
+		     "GladeParentKey", combo_restore_job);
   gtk_widget_show (combo_restore_job);
   gtk_box_pack_start (GTK_BOX (hbox51), combo_restore_job, TRUE, TRUE, 1);
   gtk_combo_set_value_in_list (GTK_COMBO (combo_restore_job), TRUE, FALSE);
@@ -1649,7 +1649,7 @@ create_RestoreDialog (void)
 
   combo_restore_client = gtk_combo_new ();
   g_object_set_data (G_OBJECT (GTK_COMBO (combo_restore_client)->popwin),
-                     "GladeParentKey", combo_restore_client);
+		     "GladeParentKey", combo_restore_client);
   gtk_widget_show (combo_restore_client);
   gtk_box_pack_start (GTK_BOX (hbox52), combo_restore_client, TRUE, TRUE, 1);
   gtk_combo_set_value_in_list (GTK_COMBO (combo_restore_client), TRUE, FALSE);
@@ -1677,7 +1677,7 @@ create_RestoreDialog (void)
 
   combo_restore_fileset = gtk_combo_new ();
   g_object_set_data (G_OBJECT (GTK_COMBO (combo_restore_fileset)->popwin),
-                     "GladeParentKey", combo_restore_fileset);
+		     "GladeParentKey", combo_restore_fileset);
   gtk_widget_show (combo_restore_fileset);
   gtk_box_pack_start (GTK_BOX (hbox53), combo_restore_fileset, TRUE, TRUE, 0);
   gtk_combo_set_value_in_list (GTK_COMBO (combo_restore_fileset), TRUE, FALSE);
@@ -1704,7 +1704,7 @@ create_RestoreDialog (void)
 
   combo_restore_pool = gtk_combo_new ();
   g_object_set_data (G_OBJECT (GTK_COMBO (combo_restore_pool)->popwin),
-                     "GladeParentKey", combo_restore_pool);
+		     "GladeParentKey", combo_restore_pool);
   gtk_widget_show (combo_restore_pool);
   gtk_box_pack_start (GTK_BOX (hbox55), combo_restore_pool, TRUE, TRUE, 0);
   gtk_combo_set_value_in_list (GTK_COMBO (combo_restore_pool), TRUE, FALSE);
@@ -1732,7 +1732,7 @@ create_RestoreDialog (void)
 
   combo_restore_storage = gtk_combo_new ();
   g_object_set_data (G_OBJECT (GTK_COMBO (combo_restore_storage)->popwin),
-                     "GladeParentKey", combo_restore_storage);
+		     "GladeParentKey", combo_restore_storage);
   gtk_widget_show (combo_restore_storage);
   gtk_box_pack_start (GTK_BOX (hbox56), combo_restore_storage, TRUE, TRUE, 0);
   gtk_combo_set_value_in_list (GTK_COMBO (combo_restore_storage), TRUE, FALSE);
@@ -1807,14 +1807,14 @@ create_RestoreDialog (void)
   GTK_WIDGET_SET_FLAGS (restore_cancel, GTK_CAN_DEFAULT);
 
   g_signal_connect ((gpointer) restore_job_entry, "changed",
-                    G_CALLBACK (on_restore_job_entry_changed),
-                    NULL);
+		    G_CALLBACK (on_restore_job_entry_changed),
+		    NULL);
   g_signal_connect ((gpointer) select_files_button, "clicked",
-                    G_CALLBACK (on_select_files_button_clicked),
-                    NULL);
+		    G_CALLBACK (on_select_files_button_clicked),
+		    NULL);
   g_signal_connect ((gpointer) restore_cancel, "clicked",
-                    G_CALLBACK (on_restore_cancel_clicked),
-                    NULL);
+		    G_CALLBACK (on_restore_cancel_clicked),
+		    NULL);
 
   /* Store pointers to all widgets, for use by lookup_widget(). */
   GLADE_HOOKUP_OBJECT_NO_REF (RestoreDialog, RestoreDialog, "RestoreDialog");

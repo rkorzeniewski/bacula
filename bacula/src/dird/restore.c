@@ -3,8 +3,8 @@
  *
  *     Kern Sibbald, November MM
  *
- *    This routine is run as a separate thread.  
- * 
+ *    This routine is run as a separate thread.
+ *
  * Current implementation is Catalog verification only (i.e. no
  *  verification versus tape).
  *
@@ -44,7 +44,7 @@
 /* Commands sent to File daemon */
 static char restorecmd[]   = "restore replace=%c prelinks=%d where=%s\n";
 static char storaddr[]     = "storage address=%s port=%d ssl=0\n";
-static char sessioncmd[]   = "session %s %ld %ld %ld %ld %ld %ld\n";  
+static char sessioncmd[]   = "session %s %ld %ld %ld %ld %ld %ld\n";
 
 /* Responses received from File daemon */
 static char OKrestore[]   = "2000 OK restore\n";
@@ -56,13 +56,13 @@ static void restore_cleanup(JCR *jcr, int status);
 
 /* External functions */
 
-/* 
+/*
  * Do a restore of the specified files
- *    
+ *
  *  Returns:  0 on failure
  *	      1 on success
  */
-int do_restore(JCR *jcr) 
+int do_restore(JCR *jcr)
 {
    BSOCK   *fd;
    JOB_DBR rjr; 		      /* restore job record */
@@ -84,7 +84,7 @@ int do_restore(JCR *jcr)
 
    Dmsg1(20, "RestoreJobId=%d\n", jcr->job->RestoreJobId);
 
-   /* 
+   /*
     * The following code is kept temporarily for compatibility.
     * It is the predecessor to the Bootstrap file.
     *	DEPRECATED
@@ -99,7 +99,7 @@ int do_restore(JCR *jcr)
 	 rjr.JobId = jcr->job->RestoreJobId; /* specified by Job Resource */
       }
       if (!db_get_job_record(jcr, jcr->db, &rjr)) {
-         Jmsg2(jcr, M_FATAL, 0, _("Cannot get job record id=%d %s"), rjr.JobId,
+	 Jmsg2(jcr, M_FATAL, 0, _("Cannot get job record id=%d %s"), rjr.JobId,
 	    db_strerror(jcr->db));
 	 restore_cleanup(jcr, JS_ErrorTerminated);
 	 return 0;
@@ -111,14 +111,14 @@ int do_restore(JCR *jcr)
       jcr->VolumeName[0] = 0;
       if (!db_get_job_volume_names(jcr, jcr->db, rjr.JobId, &jcr->VolumeName) ||
 	   jcr->VolumeName[0] == 0) {
-         Jmsg(jcr, M_FATAL, 0, _("Cannot find Volume names for restore Job %d. %s"), 
+	 Jmsg(jcr, M_FATAL, 0, _("Cannot find Volume names for restore Job %d. %s"),
 	    rjr.JobId, db_strerror(jcr->db));
 	 restore_cleanup(jcr, JS_ErrorTerminated);
 	 return 0;
       }
       Dmsg1(20, "Got job Volume Names: %s\n", jcr->VolumeName);
    }
-      
+
 
    /* Print Job Start message */
    Jmsg(jcr, M_INFO, 0, _("Start Restore Job %s\n"), jcr->Job);
@@ -132,7 +132,7 @@ int do_restore(JCR *jcr)
    Dmsg0(10, "Open connection with storage daemon\n");
    set_jcr_job_status(jcr, JS_WaitSD);
    /*
-    * Start conversation with Storage daemon  
+    * Start conversation with Storage daemon
     */
    if (!connect_to_storage_daemon(jcr, 10, SDConnectTimeout, 1)) {
       restore_cleanup(jcr, JS_ErrorTerminated);
@@ -154,8 +154,8 @@ int do_restore(JCR *jcr)
    }
    Dmsg0(50, "Storage daemon connection OK\n");
 
-   /* 
-    * Start conversation with File daemon  
+   /*
+    * Start conversation with File daemon
     */
    set_jcr_job_status(jcr, JS_WaitFD);
    if (!connect_to_file_daemon(jcr, 10, FDConnectTimeout, 1)) {
@@ -176,7 +176,7 @@ int do_restore(JCR *jcr)
       return 0;
    }
 
-   /* 
+   /*
     * send Storage daemon address to the File daemon,
     *	then wait for File daemon to make connection
     *	with Storage daemon.
@@ -191,7 +191,7 @@ int do_restore(JCR *jcr)
       return 0;
    }
 
-   /* 
+   /*
     * Send the bootstrap file -- what Volumes/files to restore
     */
    if (!send_bootstrap_file(jcr)) {
@@ -199,18 +199,18 @@ int do_restore(JCR *jcr)
       return 0;
    }
 
-   /* 
-    * The following code is deprecated	 
+   /*
+    * The following code is deprecated
     */
    if (!jcr->RestoreBootstrap) {
       /*
        * Pass the VolSessionId, VolSessionTime, Start and
        * end File and Blocks on the session command.
        */
-      bnet_fsend(fd, sessioncmd, 
+      bnet_fsend(fd, sessioncmd,
 		jcr->VolumeName,
-		rjr.VolSessionId, rjr.VolSessionTime, 
-		rjr.StartFile, rjr.EndFile, rjr.StartBlock, 
+		rjr.VolSessionId, rjr.VolSessionTime,
+		rjr.StartFile, rjr.EndFile, rjr.StartBlock,
 		rjr.EndBlock);
       if (!response(jcr, fd, OKsession, "Session", DISPLAY_ERROR)) {
 	 restore_cleanup(jcr, JS_ErrorTerminated);
@@ -226,7 +226,7 @@ int do_restore(JCR *jcr)
    /* Send restore command */
    char replace, *where;
    char empty = '\0';
-   
+
    if (jcr->replace != 0) {
       replace = jcr->replace;
    } else if (jcr->job->replace != 0) {
@@ -281,14 +281,14 @@ static void restore_cleanup(JCR *jcr, int TermCode)
    switch (TermCode) {
    case JS_Terminated:
       if (jcr->ExpectedFiles > jcr->jr.JobFiles) {
-         term_msg = _("Restore OK -- warning file count mismatch");
+	 term_msg = _("Restore OK -- warning file count mismatch");
       } else {
-         term_msg = _("Restore OK");
+	 term_msg = _("Restore OK");
       }
       break;
    case JS_FatalError:
    case JS_ErrorTerminated:
-      term_msg = _("*** Restore Error ***"); 
+      term_msg = _("*** Restore Error ***");
       msg_type = M_ERROR;	   /* Generate error message */
       if (jcr->store_bsock) {
 	 bnet_sig(jcr->store_bsock, BNET_TERMINATE);
@@ -325,20 +325,20 @@ static void restore_cleanup(JCR *jcr, int TermCode)
    jobstatus_to_ascii(jcr->FDJobStatus, fd_term_msg, sizeof(fd_term_msg));
    jobstatus_to_ascii(jcr->SDJobStatus, sd_term_msg, sizeof(sd_term_msg));
 
-   Jmsg(jcr, msg_type, 0, _("Bacula " VERSION " (" LSMDATE "): %s\n\
-  JobId:                  %d\n\
-  Job:                    %s\n\
-  Client:                 %s\n\
-  Start time:             %s\n\
-  End time:               %s\n\
-  Files Expected:         %s\n\
-  Files Restored:         %s\n\
-  Bytes Restored:         %s\n\
-  Rate:                   %.1f KB/s\n\
-  FD Errors:              %d\n\
-  FD termination status:  %s\n\
-  SD termination status:  %s\n\
-  Termination:            %s\n\n"),
+   Jmsg(jcr, msg_type, 0, _("Bacula " VERSION " (" LSMDATE "): %s\n"
+"  JobId:                  %d\n"
+"  Job:                    %s\n"
+"  Client:                 %s\n"
+"  Start time:             %s\n"
+"  End time:               %s\n"
+"  Files Expected:         %s\n"
+"  Files Restored:         %s\n"
+"  Bytes Restored:         %s\n"
+"  Rate:                   %.1f KB/s\n"
+"  FD Errors:              %d\n"
+"  FD termination status:  %s\n"
+"  SD termination status:  %s\n"
+"  Termination:            %s\n\n"),
 	edt,
 	jcr->jr.JobId,
 	jcr->jr.Job,

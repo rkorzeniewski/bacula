@@ -69,7 +69,7 @@ extern int send_bootstrap_file(JCR *jcr);
 extern int send_level_command(JCR *jcr);
 extern int get_attributes_and_put_in_catalog(JCR *jcr);
 extern int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId);
-extern int put_file_into_catalog(JCR *jcr, long file_index, char *fname, 
+extern int put_file_into_catalog(JCR *jcr, long file_index, char *fname,
 			  char *link, char *attr, int stream);
 extern void get_level_since_time(JCR *jcr, char *since, int since_len);
 extern int send_run_before_and_after_commands(JCR *jcr);
@@ -97,7 +97,7 @@ extern void set_storage(JCR *jcr, STORE *store);
 extern void mount_request(JCR *jcr, BSOCK *bs, char *buf);
 
 /* msgchan.c */
-extern bool connect_to_storage_daemon(JCR *jcr, int retry_interval,    
+extern bool connect_to_storage_daemon(JCR *jcr, int retry_interval,
 			      int max_retry_time, int verbose);
 extern int start_storage_daemon_job(JCR *jcr);
 extern int start_storage_daemon_message_thread(JCR *jcr);
@@ -123,7 +123,7 @@ int qmessagescmd(UAContext *ua, const char *cmd);
 int open_db(UAContext *ua);
 void close_db(UAContext *ua);
 enum e_pool_op {
-   POOL_OP_UPDATE, 
+   POOL_OP_UPDATE,
    POOL_OP_CREATE
 };
 int create_pool(JCR *jcr, B_DB *db, POOL *pool, e_pool_op op);
@@ -163,7 +163,7 @@ int	select_client_dbr(UAContext *ua, CLIENT_DBR *cr);
 void	start_prompt(UAContext *ua, const char *msg);
 void	add_prompt(UAContext *ua, const char *prompt);
 int	do_prompt(UAContext *ua, const char *automsg, const char *msg, char *prompt, int max_prompt);
-CAT    *get_catalog_resource(UAContext *ua);	       
+CAT    *get_catalog_resource(UAContext *ua);
 STORE  *get_storage_resource(UAContext *ua, int use_default);
 int	get_media_type(UAContext *ua, char *MediaType, int max_media);
 bool	get_pool_dbr(UAContext *ua, POOL_DBR *pr);

@@ -36,7 +36,7 @@
 #define pthread_kill(x, y)
 /* Use shorter wait interval on Cygwin because no kill */
 #define WAIT_INTERVAL 10
- 
+
 #else	/* Unix systems */
 #define WAIT_INTERVAL 60
 #endif
@@ -45,7 +45,7 @@ extern "C" void *sd_heartbeat_thread(void *arg);
 extern "C" void *dir_heartbeat_thread(void *arg);
 extern bool no_signals;
 
-/* 
+/*
  * Listen on the SD socket for heartbeat signals.
  * Send heartbeats to the Director every HB_TIME
  *   seconds.
@@ -83,9 +83,9 @@ extern "C" void *sd_heartbeat_thread(void *arg)
       if (n == 1) {		      /* input waiting */
 	 bnet_recv(sd); 	      /* read it -- probably heartbeat from sd */
 	 if (sd->msglen <= 0) {
-            Dmsg1(100, "Got BNET_SIG %d from SD\n", sd->msglen);     
+	    Dmsg1(100, "Got BNET_SIG %d from SD\n", sd->msglen);
 	 } else {
-            Dmsg2(100, "Got %d bytes from SD. MSG=%s\n", sd->msglen, sd->msg);
+	    Dmsg2(100, "Got %d bytes from SD. MSG=%s\n", sd->msglen, sd->msg);
 	 }
       }
    }
@@ -98,7 +98,7 @@ extern "C" void *sd_heartbeat_thread(void *arg)
 /* Startup the heartbeat thread -- see above */
 void start_heartbeat_monitor(JCR *jcr)
 {
-   /* 
+   /*
     * If no signals are set, do not start the heartbeat because
     * it gives a constant stream of TIMEOUT_SIGNAL signals that
     * make debugging impossible.
@@ -110,7 +110,7 @@ void start_heartbeat_monitor(JCR *jcr)
 }
 
 /* Terminate the heartbeat thread. Used for both SD and DIR */
-void stop_heartbeat_monitor(JCR *jcr) 
+void stop_heartbeat_monitor(JCR *jcr)
 {
    int cnt = 0;
    if (no_signals) {

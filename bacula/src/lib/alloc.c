@@ -52,8 +52,8 @@ void *sm_alloc(char *fname, int lineno, unsigned int nbytes)
 	if ((buf = sm_malloc(fname, lineno, nbytes)) != NULL) {
 	   return buf;
 	}
-        V fprintf(stderr, "\nBoom!!!  Memory capacity exceeded.\n");
-        V fprintf(stderr, "  Requested %u bytes at line %d of %s.\n",
+	V fprintf(stderr, "\nBoom!!!  Memory capacity exceeded.\n");
+	V fprintf(stderr, "  Requested %u bytes at line %d of %s.\n",
 	   nbytes, lineno, fname);
 	abort();
 	/*NOTREACHED*/
@@ -69,8 +69,8 @@ void *alloc(unsigned int nbytes)
 	if ((buf = malloc(nbytes)) != NULL) {
 	   return buf;
 	}
-        V fprintf(stderr, "\nBoom!!!  Memory capacity exceeded.\n");
-        V fprintf(stderr, "  Requested %u bytes.\n", nbytes);
+	V fprintf(stderr, "\nBoom!!!  Memory capacity exceeded.\n");
+	V fprintf(stderr, "  Requested %u bytes.\n", nbytes);
 	abort();
 	/*NOTREACHED*/
 }

@@ -47,10 +47,10 @@ class wxbUtils
    public:
       /* Initialization */
       static void Init();
-      
+
       /* Reset state */
       static void Reset();
-   
+
       /* Parse a table in tableParser */
       static wxbTableParser* CreateAndWaitForParser(wxString cmd);
 
@@ -86,7 +86,7 @@ class wxbDataParser
       /*
        * Receives director information, forwarded by wxbMainFrame, and sends it
        * line by line to the virtual function Analyse.
-       * 
+       *
        * Returns true if status == CS_PROMPT and the message has been parsed
        * correctly.
        */
@@ -113,7 +113,7 @@ class wxbPanel : public wxPanel
        *   Tab title in the notebook.
        */
       virtual wxString GetTitle() = 0;
-      
+
       /*
        *   Enable or disable this panel
        */
@@ -122,7 +122,7 @@ class wxbPanel : public wxPanel
 
 /*
  *  Receives director information, and splits it by line.
- * 
+ *
  * datatokenizer[0] retrieves first line
  */
 class wxbDataTokenizer: public wxbDataParser, public wxArrayString
@@ -138,11 +138,11 @@ class wxbDataTokenizer: public wxbDataParser, public wxArrayString
        *   Receives data to analyse.
        */
       virtual bool Analyse(wxString str, int status);
-      
-      /* Returns true if the last signal received was an end signal, 
+
+      /* Returns true if the last signal received was an end signal,
        * indicating that no more data is available */
       bool hasFinished();
-      
+
    private:
       bool finished;
 };
@@ -163,11 +163,11 @@ class wxbPromptParser: public wxbDataParser
        *   Receives data to analyse.
        */
       virtual bool Analyse(wxString str, int status);
-      
-      /* Returns true if the last signal received was an prompt signal, 
+
+      /* Returns true if the last signal received was an prompt signal,
        * or an end signal */
       bool hasFinished();
-      
+
       /* Returns true if the last message received is a prompt message */
       bool isPrompt();
 
@@ -176,20 +176,20 @@ class wxbPromptParser: public wxbDataParser
 
       /* Returns question string */
       wxString getQuestionString();
-      
+
       /* Returns a wxArrayString containing the indexed choices we have
        * to answer the question, or NULL if this question is not a multiple
        * choice one. */
       wxArrayString* getChoices();
-      
+
       /* Returns true if the expected answer to the choice list is a number,
        * false if it is a string (for example yes/mod/no). */
       bool isNumericalChoice();
-      
+
    private:
       bool finished;
       bool prompt;
-      bool numerical;      
+      bool numerical;
       wxString introStr;
       wxArrayString* choices;
       wxString questionStr;

@@ -113,8 +113,8 @@ typedef struct s_db {
 } B_DB;
 
 
-/* 
- * "Generic" names for easier conversion   
+/*
+ * "Generic" names for easier conversion
  *
  *                    S Q L I T E
  */
@@ -122,7 +122,7 @@ typedef struct s_db {
 #define sql_free_result(x)    my_sqlite_free_table(x)
 #define sql_fetch_row(x)      my_sqlite_fetch_row(x)
 #define sql_query(x, y)       my_sqlite_query((x), (y))
-#define sql_close(x)          sqlite_close((x)->db)  
+#define sql_close(x)          sqlite_close((x)->db)
 #define sql_strerror(x)       (x)->sqlite_errmsg?(x)->sqlite_errmsg:"unknown"
 #define sql_num_rows(x)       (x)->nrow
 #define sql_data_seek(x, i)   (x)->row = (i)
@@ -131,7 +131,7 @@ typedef struct s_db {
 #define sql_field_seek(x, y)  my_sqlite_field_seek((x), (y))
 #define sql_fetch_field(x)    my_sqlite_fetch_field(x)
 #define sql_num_fields(x)     ((x)->ncolumn)
-#define SQL_ROW               char**   
+#define SQL_ROW               char**
 
 
 
@@ -195,7 +195,7 @@ typedef struct s_db {
 #define sql_free_result(x)    mysql_free_result((x)->result)
 #define sql_fetch_row(x)      mysql_fetch_row((x)->result)
 #define sql_query(x, y)       mysql_query((x)->db, (y))
-#define sql_close(x)          mysql_close((x)->db)  
+#define sql_close(x)          mysql_close((x)->db)
 #define sql_strerror(x)       mysql_error((x)->db)
 #define sql_num_rows(x)       mysql_num_rows((x)->result)
 #define sql_data_seek(x, i)   mysql_data_seek((x)->result, (i))
@@ -221,10 +221,10 @@ typedef struct s_db {
 
 typedef char **POSTGRESQL_ROW;
 typedef struct pg_field {
-        char         *name;
-        int           max_length;
-        unsigned int  type;
-        unsigned int  flags;       // 1 == not null
+	char         *name;
+	int           max_length;
+	unsigned int  type;
+	unsigned int  flags;       // 1 == not null
 } POSTGRESQL_FIELD;
 
 
@@ -285,7 +285,7 @@ POSTGRESQL_FIELD * my_postgresql_fetch_field(B_DB *mdb);
 #define sql_free_result(x)    my_postgresql_free_result(x)
 #define sql_fetch_row(x)      my_postgresql_fetch_row(x)
 #define sql_query(x, y)       my_postgresql_query((x), (y))
-#define sql_close(x)          PQfinish((x)->db)  
+#define sql_close(x)          PQfinish((x)->db)
 #define sql_strerror(x)       PQresultErrorMessage((x)->result)
 #define sql_num_rows(x)       ((unsigned) PQntuples((x)->result))
 #define sql_data_seek(x, i)   my_postgresql_data_seek((x), (i))
@@ -357,9 +357,9 @@ typedef struct s_db {
 
 /* This is a "dummy" definition for use outside of sql.c
  */
-typedef struct s_db {     
+typedef struct s_db {
    int dummy;                         /* for SunOS compiler */
-} B_DB;  
+} B_DB;
 
 #endif /*  __SQL_C */
 
@@ -371,7 +371,7 @@ extern uint32_t bacula_db_version;
 typedef uint32_t FileId_t;
 typedef uint32_t DBId_t;              /* general DB id type */
 typedef uint32_t JobId_t;
-      
+
 #define faddr_t long
 
 
@@ -439,7 +439,7 @@ struct JOBMEDIA_DBR {
 /* Volume Parameter structure */
 struct VOL_PARAMS {
    char VolumeName[MAX_NAME_LENGTH];  /* Volume name */
-   uint32_t VolIndex;                 /* Volume seqence no. */ 
+   uint32_t VolIndex;                 /* Volume seqence no. */
    uint32_t FirstIndex;               /* First index this Volume */
    uint32_t LastIndex;                /* Last index this Volume */
    uint32_t StartFile;                /* File for start of data */
@@ -497,7 +497,7 @@ struct POOL_DBR {
    uint32_t MaxVolJobs;               /* Max Jobs on Volume */
    uint32_t MaxVolFiles;              /* Max files on Volume */
    uint64_t MaxVolBytes;              /* Max bytes on Volume */
-   char PoolType[MAX_NAME_LENGTH];             
+   char PoolType[MAX_NAME_LENGTH];
    char LabelFormat[MAX_NAME_LENGTH];
    /* Extra stuff not in DB */
    faddr_t rec_addr;
@@ -584,7 +584,7 @@ struct FILESET_DBR {
 #include "jcr.h"
 
 /*
- * Some functions exported by sql.c for use withing the 
+ * Some functions exported by sql.c for use withing the
  *   cats directory.
  */
 void list_result(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type type);
@@ -593,5 +593,5 @@ int get_sql_record_max(JCR *jcr, B_DB *mdb);
 int check_tables_version(JCR *jcr, B_DB *mdb);
 void _db_unlock(const char *file, int line, B_DB *mdb);
 void _db_lock(const char *file, int line, B_DB *mdb);
- 
+
 #endif /* __SQL_H_ */

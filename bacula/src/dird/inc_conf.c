@@ -7,7 +7,7 @@
  *     Version $Id$
  */
 /*
-   Copyright (C) 2003-2004 Kern Sibbald and John Walker
+   Copyright (C) 2003-2004 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -60,14 +60,14 @@ extern int  res_all_size;
 /* We build the current new Include and Exclude items here */
 static INCEXE res_incexe;
 
-/* 
+/*
  * new Include/Exclude items
  *   name	      handler	  value    code flags default_value
  */
 static RES_ITEM newinc_items[] = {
    {"file",            store_fname,   NULL,     0, 0, 0},
    {"options",         options_res,   NULL,     0, 0, 0},
-   {NULL, NULL, NULL, 0, 0, 0} 
+   {NULL, NULL, NULL, 0, 0, 0}
 };
 
 /*
@@ -96,7 +96,7 @@ static RES_ITEM options_items[] = {
    {"ignorecase",      store_opts,    NULL,     0, 0, 0},
    {"fstype",          store_fstype,  NULL,     0, 0, 0},
    {"hfsplussupport",  store_opts,    NULL,     0, 0, 0},
-   {NULL, NULL, NULL, 0, 0, 0} 
+   {NULL, NULL, NULL, 0, 0, 0}
 };
 
 
@@ -157,7 +157,7 @@ struct s_fs_opt {
 };
 
 /*
- * Options permitted for each keyword and resulting value.     
+ * Options permitted for each keyword and resulting value.
  * The output goes into opts, which are then transmitted to
  * the FD for application as options to the following list of
  * included files.
@@ -209,8 +209,8 @@ static struct s_fs_opt FS_options[] = {
 
 
 
-/* 
- * Scan for right hand side of Include options (keyword=option) is 
+/*
+ * Scan for right hand side of Include options (keyword=option) is
  *    converted into one or two characters. Verifyopts=xxxx is Vxxxx:
  *    Whatever is found is concatenated to the opts string.
  * This code is also used inside an Options resource.
@@ -219,10 +219,12 @@ static void scan_include_options(LEX *lc, int keyword, char *opts, int optlen)
 {
    int token, i;
    char option[3];
+   int lcopts = lc->options;
 
    option[0] = 0;		      /* default option = none */
    option[2] = 0;		      /* terminate options */
-   token = lex_get_token(lc, T_NAME);		  /* expect at least one option */	 
+   lc->options |= LOPT_STRING;	      /* force string */
+   token = lex_get_token(lc, T_STRING); 	 /* expect at least one option */
    if (keyword == INC_KW_VERIFY) { /* special case */
       /* ***FIXME**** ensure these are in permitted set */
       bstrncat(opts, "V", optlen);         /* indicate Verify */
@@ -231,7 +233,7 @@ static void scan_include_options(LEX *lc, int keyword, char *opts, int optlen)
       Dmsg3(900, "Catopts=%s option=%s optlen=%d\n", opts, option,optlen);
 
    /*
-    * Standard keyword options for Include/Exclude 
+    * Standard keyword options for Include/Exclude
     */
    } else {
       for (i=0; FS_options[i].name; i++) {
@@ -250,6 +252,7 @@ static void scan_include_options(LEX *lc, int keyword, char *opts, int optlen)
          Dmsg3(900, "Catopts=%s option=%s optlen=%d\n", opts, option,optlen);
       }
    }
+   lc->options = lcopts;
 
    /* If option terminated by comma, eat it */
    if (lc->ch == ',') {
@@ -257,9 +260,9 @@ static void scan_include_options(LEX *lc, int keyword, char *opts, int optlen)
    }
 }
 
-/* 
- * 
- * Store FileSet Include/Exclude info	
+/*
+ *
+ * Store FileSet Include/Exclude info
  *  NEW style includes are handled in store_newinc()
  */
 void store_inc(LEX *lc, RES_ITEM *item, int index, int pass)
@@ -275,7 +278,7 @@ void store_inc(LEX *lc, RES_ITEM *item, int index, int pass)
     *  new Include is followed immediately by open brace, whereas the
     *  old include has options following the Include.
     */
-   token = lex_get_token(lc, T_SKIP_EOL);	     
+   token = lex_get_token(lc, T_SKIP_EOL);
    if (token == T_BOB) {
       store_newinc(lc, item, index, pass);
       return;
@@ -292,7 +295,7 @@ void store_inc(LEX *lc, RES_ITEM *item, int index, int pass)
    /* Get include options */
    inc_opts[0] = 0;
    while ((token=lex_get_token(lc, T_SKIP_EOL)) != T_BOB) {
-	 
+
       keyword = INC_KW_NONE;
       for (i=0; FS_option_kw[i].name; i++) {
 	 if (strcasecmp(lc->str, FS_option_kw[i].name) == 0) {
@@ -377,11 +380,11 @@ void store_inc(LEX *lc, RES_ITEM *item, int index, int pass)
 	    break;
 	 default:
             scan_err1(lc, "Expected a filename, got: %s", lc->str);
-	 }				   
+	 }
       }
       /* Note, MD5Final is done in backup.c */
    } else { /* pass 2 */
-      while (lex_get_token(lc, T_ALL) != T_EOB) 
+      while (lex_get_token(lc, T_ALL) != T_EOB)
 	 {}
    }
    scan_to_eol(lc);
@@ -391,7 +394,7 @@ void store_inc(LEX *lc, RES_ITEM *item, int index, int pass)
 
 
 /*
- * Store NEW style FileSet FInclude/FExclude info   
+ * Store NEW style FileSet FInclude/FExclude info
  *
  *  Note, when this routine is called, we are inside a FileSet
  *  resource.  We treat the Include/Execlude like a sort of
@@ -401,7 +404,7 @@ static void store_newinc(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int token, i;
    INCEXE *incexe;
-   bool options;  
+   bool options;
 
    if (!res_all.res_fs.have_MD5) {
       MD5Init(&res_all.res_fs.md5c);
@@ -471,7 +474,7 @@ static void store_regex(LEX *lc, RES_ITEM *item, int index, int pass)
    regex_t preg;
    char prbuf[500];
 
-   token = lex_get_token(lc, T_SKIP_EOL);	     
+   token = lex_get_token(lc, T_SKIP_EOL);
    if (pass == 1) {
       /* Pickup regex string
        */
@@ -488,12 +491,12 @@ static void store_regex(LEX *lc, RES_ITEM *item, int index, int pass)
 	 }
 	 regfree(&preg);
 	 res_incexe.current_opts->regex.append(bstrdup(lc->str));
-         Dmsg3(900, "set regex %p size=%d %s\n", 
+         Dmsg3(900, "set regex %p size=%d %s\n",
 	    res_incexe.current_opts, res_incexe.current_opts->regex.size(),lc->str);
 	 break;
       default:
          scan_err1(lc, _("Expected a regex string, got: %s\n"), lc->str);
-      } 				
+      }
    }
    scan_to_eol(lc);
 }
@@ -503,7 +506,7 @@ static void store_base(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int token;
 
-   token = lex_get_token(lc, T_NAME);		
+   token = lex_get_token(lc, T_NAME);
    if (pass == 1) {
       /*
        * Pickup Base Job Name
@@ -518,12 +521,12 @@ static void store_reader(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int token;
 
-   token = lex_get_token(lc, T_NAME);		
+   token = lex_get_token(lc, T_NAME);
    if (pass == 1) {
       /*
        * Pickup reader command
        */
-      res_incexe.current_opts->reader = bstrdup(lc->str); 
+      res_incexe.current_opts->reader = bstrdup(lc->str);
    }
    scan_to_eol(lc);
 }
@@ -533,7 +536,7 @@ static void store_writer(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int token;
 
-   token = lex_get_token(lc, T_NAME);		
+   token = lex_get_token(lc, T_NAME);
    if (pass == 1) {
       /*
        * Pickup writer command
@@ -550,7 +553,7 @@ static void store_wild(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int token;
 
-   token = lex_get_token(lc, T_SKIP_EOL);	     
+   token = lex_get_token(lc, T_SKIP_EOL);
    if (pass == 1) {
       /*
        * Pickup Wild-card string
@@ -560,12 +563,12 @@ static void store_wild(LEX *lc, RES_ITEM *item, int index, int pass)
       case T_UNQUOTED_STRING:
       case T_QUOTED_STRING:
 	 res_incexe.current_opts->wild.append(bstrdup(lc->str));
-         Dmsg3(900, "set wild %p size=%d %s\n", 
+         Dmsg3(900, "set wild %p size=%d %s\n",
 	    res_incexe.current_opts, res_incexe.current_opts->wild.size(),lc->str);
 	 break;
       default:
          scan_err1(lc, _("Expected a wild-card string, got: %s\n"), lc->str);
-      } 				
+      }
    }
    scan_to_eol(lc);
 }
@@ -575,7 +578,7 @@ static void store_fstype(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int token;
 
-   token = lex_get_token(lc, T_SKIP_EOL);	     
+   token = lex_get_token(lc, T_SKIP_EOL);
    if (pass == 1) {
       /* Pickup fstype string */
       switch (token) {
@@ -583,12 +586,12 @@ static void store_fstype(LEX *lc, RES_ITEM *item, int index, int pass)
       case T_UNQUOTED_STRING:
       case T_QUOTED_STRING:
 	 res_incexe.current_opts->fstype.append(bstrdup(lc->str));
-         Dmsg3(900, "set fstype %p size=%d %s\n", 
+         Dmsg3(900, "set fstype %p size=%d %s\n",
 	    res_incexe.current_opts, res_incexe.current_opts->fstype.size(), lc->str);
 	 break;
       default:
          scan_err1(lc, _("Expected an fstype string, got: %s\n"), lc->str);
-      } 				
+      }
    }
    scan_to_eol(lc);
 }
@@ -603,7 +606,7 @@ static void store_fname(LEX *lc, RES_ITEM *item, int index, int pass)
    int token;
    INCEXE *incexe;
 
-   token = lex_get_token(lc, T_SKIP_EOL);	     
+   token = lex_get_token(lc, T_SKIP_EOL);
    if (pass == 1) {
       /* Pickup Filename string
        */
@@ -623,7 +626,7 @@ static void store_fname(LEX *lc, RES_ITEM *item, int index, int pass)
 	    break;
 	 default:
             scan_err1(lc, _("Expected a filename, got: %s"), lc->str);
-      } 				
+      }
    }
    scan_to_eol(lc);
 }
@@ -636,7 +639,7 @@ static void options_res(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int token, i;
 
-   token = lex_get_token(lc, T_SKIP_EOL);	     
+   token = lex_get_token(lc, T_SKIP_EOL);
    if (token != T_BOB) {
       scan_err1(lc, "Expecting open brace. Got %s", lc->str);
    }
@@ -644,7 +647,7 @@ static void options_res(LEX *lc, RES_ITEM *item, int index, int pass)
    if (pass == 1) {
       setup_current_opts();
    }
-	 
+
    while ((token = lex_get_token(lc, T_ALL)) != T_EOF) {
       if (token == T_EOL) {
 	 continue;
