@@ -6,6 +6,8 @@
  *    routines for the new syntax Options resource.
  *
  *  Kern E. Sibbald, MM
+ *
+ *   Version $Id$
  */
 /*
    Copyright (C) 2000-2004 Kern Sibbald and John Walker
@@ -175,6 +177,7 @@ static bool accept_file(FF_PKT *ff)
       ff->GZIP_level = fo->GZIP_level;
       ff->reader = fo->reader;
       ff->writer = fo->writer;
+      ff->fstypes = &(fo->fstype);
       ic = (ff->flags & FO_IGNORECASE) ? FNM_CASEFOLD : 0;
       for (k=0; k<fo->wild.size(); k++) {
 	 if (fnmatch((char *)fo->wild.get(k), ff->fname, fnmode|ic) == 0) {
@@ -239,6 +242,7 @@ static int our_callback(FF_PKT *ff, void *hpkt)
    case FT_ISARCH:
    case FT_NORECURSE:
    case FT_NOFSCHG:
+   case FT_INVALIDFS:
    case FT_NOOPEN:
 //    return ff->callback(ff, hpkt);
 

@@ -406,6 +406,9 @@ static int send_fileset(JCR *jcr)
 	    for (k=0; k<fo->base.size(); k++) {
                bnet_fsend(fd, "B %s\n", fo->base.get(k));
 	    }
+	    for (k=0; k<fo->fstype.size(); k++) {
+               bnet_fsend(fd, "X %s\n", fo->fstype.get(k));
+	    }
 	    if (fo->reader) {
                bnet_fsend(fd, "D %s\n", fo->reader);
 	    }

@@ -208,12 +208,22 @@ static int print_file(FF_PKT *ff, void *pkt)
       break;
    case FT_DIRBEGIN:
       return 1;
+   case FT_NORECURSE:
+   case FT_NOFSCHG:
+   case FT_INVALIDFS:
    case FT_DIREND:
-      if (debug_level == 1) {
-         printf("%s\n", ff->fname);
-      } else if (debug_level > 1) {
-         printf("Dir: %s\n", ff->fname);
+      if (debug_level) {
+	 char errmsg[100] = "";
+	 if (ff->type == FT_NORECURSE) {
+	    bstrncpy(errmsg, "\t[will not descend: recursion turned off]", sizeof(errmsg));
+	 } else if (ff->type == FT_NOFSCHG) {
+	    bstrncpy(errmsg, "\t[will not descend: file system change not allowed]", sizeof(errmsg));
+	 } else if (ff->type == FT_INVALIDFS) {
+	    bstrncpy(errmsg, "\t[will not descend: disallowed file system]", sizeof(errmsg));
+	 }
+	 printf("%s%s%s\n", (debug_level > 1 ? "Dir: " : ""), ff->fname, errmsg);
       }
+      ff->type = FT_DIREND;
       count_files(ff);
       break;
    case FT_SPEC:
@@ -238,12 +248,6 @@ static int print_file(FF_PKT *ff, void *pkt)
       break;
    case FT_ISARCH:
       printf(_("Err: Attempt to backup archive. Not saved. %s\n"), ff->fname);
-      break;
-   case FT_NORECURSE:
-      printf(_("Recursion turned off. Directory not entered. %s\n"), ff->fname);
-      break;
-   case FT_NOFSCHG:
-      printf(_("Skip: File system change prohibited. Directory not entered. %s\n"), ff->fname);
       break;
    case FT_NOOPEN:
       printf(_("Err: Could not open directory %s: %s\n"), ff->fname, strerror(errno));

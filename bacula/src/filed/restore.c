@@ -34,6 +34,11 @@
 #include <acl/libacl.h>
 #endif
 
+#ifdef HAVE_DARWIN_OS
+#include <sys/attr.h>
+#include <sys/paths.h>
+#endif
+
 /* Data received from Storage Daemon */
 static char rec_header[] = "rechdr %ld %ld %ld %ld %ld";
 
@@ -43,6 +48,25 @@ static const char *zlib_strerror(int stat);
 #endif
 
 #define RETRY 10		      /* retry wait time */
+
+#ifdef HAVE_DARWIN_OS
+/* helper routine for closing resource forks */
+int bclose_chksize(JCR *jcr, BFILE *bfd, off_t osize)
+{
+   char ec1[50], ec2[50];
+   off_t fsize;
+
+   fsize = blseek(bfd, 0, SEEK_CUR);
+   bclose(bfd);                              /* first close file */
+   if (fsize > 0 && fsize != osize) {
+      Jmsg3(jcr, M_ERROR, 0, _("File size of resource fork for restored file %s not correct. Original %s, restored %s.\n"),
+            jcr->last_fname, edit_uint64(osize, ec1),
+            edit_uint64(fsize, ec2));
+      return -1;
+   }
+   return 0;
+}
+#endif
 
 /* 
  * Restore the requested files.
@@ -64,12 +88,26 @@ void do_restore(JCR *jcr)
    uint64_t fileAddr = 0;	      /* file write address */
    int non_support_data = 0;
    int non_support_attr = 0;
+   int non_support_rsrc = 0;
+   int non_support_finfo = 0;
    int non_support_acl = 0;
    int prog_name_msg = 0;
    ATTR *attr;
 #ifdef HAVE_ACL
    acl_t acl;
 #endif
+   BFILE rsrc_bfd;		      /* we often check if it is open */
+#ifdef HAVE_DARWIN_OS
+   off_t rsrcAddr = 0;
+   off_t rsrc_len;                    /* original length of resource fork */
+
+   /* TODO: initialise attrList once elsewhere? */
+   struct attrlist attrList;
+   memset(&attrList, 0, sizeof(attrList));
+   attrList.bitmapcount = ATTR_BIT_MAP_COUNT;
+   attrList.commonattr = ATTR_CMN_FNDRINFO;
+#endif
+   binit(&rsrc_bfd);
 
    binit(&bfd);
    sd = jcr->store_bsock;
@@ -104,7 +142,10 @@ void do_restore(JCR *jcr)
     *	2. Stream data
     *	     a. Attributes (Unix or Win32)
     *	 or  b. File data for the file
-    *	 or  c. Possibly MD5 or SHA1 record
+    *	 or  c. Resource fork
+    *	 or  d. Finder info
+    *	 or  e. ACLs
+    *	 or  f. Possibly MD5 or SHA1 record
     *	3. Repeat step 1
     */
    while (bget_msg(sd) >= 0 && !job_canceled(jcr)) {
@@ -140,13 +181,25 @@ void do_restore(JCR *jcr)
 	  * close the output file.
 	  */
 	 if (extract) {
-	    if (!is_bopen(&bfd)) {
+	    if (!is_bopen(&bfd)
+#ifdef HAVE_DARWIN_OS
+                  && !is_bopen(&rsrc_bfd)
+#endif
+                  ) {
                Jmsg0(jcr, M_ERROR, 0, _("Logic error output file should be open\n"));
 	    }
-	    set_attributes(jcr, attr, &bfd);
+#ifdef HAVE_DARWIN_OS
+            if (is_bopen(&rsrc_bfd)) {
+               bclose_chksize(jcr, &rsrc_bfd, rsrc_len);
+            }
+#endif
+            if (is_bopen(&bfd)) {
+               set_attributes(jcr, attr, &bfd);
+            }
 	    extract = false;
             Dmsg0(30, "Stop extracting.\n");
 	 }
+
 
 	 if (!unpack_attributes_record(jcr, stream, sd->msg, attr)) {
 	    goto bail_out;
@@ -173,6 +226,10 @@ void do_restore(JCR *jcr)
 
 	 build_attr_output_fnames(jcr, attr);
 
+#ifdef HAVE_DARWIN_OS
+         from_base64(&rsrc_len, attr->attrEx);
+#endif
+
 	 jcr->num_files_examined++;
 
          Dmsg1(30, "Outfile=%s\n", attr->ofname);
@@ -184,14 +241,7 @@ void do_restore(JCR *jcr)
 	    break;
 	 case CF_EXTRACT:
 	    extract = true;
-	    P(jcr->mutex);
-	    pm_strcpy(jcr->last_fname, attr->ofname);
-	    V(jcr->mutex);
-	    jcr->JobFiles++;
-	    fileAddr = 0;
-	    print_ls_output(jcr, attr);
-	    /* Set attributes after file extracted */
-	    break;
+	    /* FALLTHROUGH */
 	 case CF_CREATED:
 	    P(jcr->mutex);
 	    pm_strcpy(jcr->last_fname, attr->ofname);
@@ -199,8 +249,21 @@ void do_restore(JCR *jcr)
 	    jcr->JobFiles++;
 	    fileAddr = 0;
 	    print_ls_output(jcr, attr);
-	    /* set attributes now because file will not be extracted */
-	    set_attributes(jcr, attr, &bfd);
+            if (!extract) {
+               /* set attributes now because file will not be extracted */
+               set_attributes(jcr, attr, &bfd);
+            }
+#ifdef HAVE_DARWIN_OS
+            if (rsrc_len > 0) {
+	       rsrcAddr = 0;
+	       if (bopen_rsrc(&rsrc_bfd, jcr->last_fname, O_WRONLY | O_TRUNC | O_BINARY, 0) < 0) {
+		  Jmsg(jcr, M_ERROR, 0, _("     Cannot open resource fork for %s"), jcr->last_fname);
+	       } else {
+		  Dmsg0(30, "Restoring resource fork");
+		  extract = true;
+	       }
+	    }
+#endif
 	    break;
 	 }  
 	 break;
@@ -228,6 +291,9 @@ void do_restore(JCR *jcr)
 			 edit_uint64(fileAddr, ec1), attr->ofname, be.strerror());
 		     extract = false;
 		     bclose(&bfd);
+		     if (is_bopen(&rsrc_bfd)) {
+			bclose(&rsrc_bfd);
+		     }
 		     continue;
 		  }
 	       }
@@ -244,6 +310,9 @@ void do_restore(JCR *jcr)
 		     be.strerror());
 	       extract = false;
 	       bclose(&bfd);
+	       if (is_bopen(&rsrc_bfd)) {
+		  bclose(&rsrc_bfd);
+	       }
 	       continue;
 	    } 
 	    total += wsize;
@@ -279,6 +348,9 @@ void do_restore(JCR *jcr)
 			 edit_uint64(fileAddr, ec1), attr->ofname, be.strerror());
 		     extract = false;
 		     bclose(&bfd);
+		     if (is_bopen(&rsrc_bfd)) {
+			bclose(&rsrc_bfd);
+		     }
 		     continue;
 		  }
 	       }
@@ -294,6 +366,9 @@ void do_restore(JCR *jcr)
 		  attr->ofname, zlib_strerror(stat));
 	       extract = false;
 	       bclose(&bfd);
+	       if (is_bopen(&rsrc_bfd)) {
+		  bclose(&rsrc_bfd);
+	       }
 	       continue;
 	    }
 
@@ -305,6 +380,9 @@ void do_restore(JCR *jcr)
                Jmsg2(jcr, M_ERROR, 0, _("Write error on %s: %s\n"), attr->ofname, be.strerror());
 	       extract = false;
 	       bclose(&bfd);
+	       if (is_bopen(&rsrc_bfd)) {
+		  bclose(&rsrc_bfd);
+	       }
 	       continue;
 	    }
 	    total += compress_len;
@@ -317,10 +395,58 @@ void do_restore(JCR *jcr)
             Jmsg(jcr, M_ERROR, 0, _("GZIP data stream found, but GZIP not configured!\n"));
 	    extract = false;
 	    bclose(&bfd);
+	    if (is_bopen(&rsrc_bfd)) {
+	       bclose(&rsrc_bfd);
+	    }
 	    continue;
 	 }
 #endif
 	 break;
+
+      /* Resource fork stream - only recorded after a file to be restored */
+      /* Silently ignore if we cannot write - we already reported that */
+      case STREAM_MACOS_FORK_DATA:
+#ifdef HAVE_DARWIN_OS
+         if (is_bopen(&rsrc_bfd) && sd->msglen) {
+            Dmsg2(30, "Write %u bytes, total before write=%u\n", sd->msglen, total);
+            if (bwrite(&rsrc_bfd, sd->msg, sd->msglen) != sd->msglen) {
+               Dmsg0(0, "===Write error===\n");
+               berrno be;
+               be.set_errno(rsrc_bfd.berrno);
+               Jmsg2(jcr, M_ERROR, 0, _("Write error on resource fork of %s: ERR=%s\n"), jcr->last_fname,
+                     be.strerror());
+               extract = false;
+	       if (is_bopen(&bfd)) {
+		  bclose(&bfd);
+	       }
+               bclose(&rsrc_bfd);
+               continue;
+            } 
+            total += sd->msglen;
+            jcr->JobBytes += sd->msglen;
+            jcr->ReadBytes += sd->msglen;
+            rsrcAddr += sd->msglen;
+         }
+	 break;
+#else
+         non_support_rsrc++;
+#endif
+
+      case STREAM_HFSPLUS_ATTRIBUTES:
+#ifdef HAVE_DARWIN_OS
+         Dmsg0(30, "Restoring Finder Info");
+         if (sd->msglen != 32) {
+            Jmsg(jcr, M_ERROR, 0, _("     Invalid length of Finder Info (got %d, not 32)"), sd->msglen);
+            continue;
+         }
+         if (setattrlist(jcr->last_fname, &attrList, sd->msg, sd->msglen, 0) != 0) {
+            Jmsg(jcr, M_ERROR, 0, _("     Could not set Finder Info on %s"), jcr->last_fname);
+            continue;
+         }
+         break;
+#else
+         non_support_finfo++;
+#endif
 
       case STREAM_UNIX_ATTRIBUTES_ACL:	 
 #ifdef HAVE_ACL
@@ -395,6 +521,11 @@ ok_out:
       free(jcr->compress_buf);
       jcr->compress_buf = NULL;
    }
+#ifdef HAVE_DARWIN_OS
+   if (is_bopen(&rsrc_bfd)) {
+      bclose_chksize(jcr, &rsrc_bfd, rsrc_len);
+   }
+#endif
    bclose(&bfd);
    free_attr(attr);
    Dmsg2(10, "End Do Restore. Files=%d Bytes=%" lld "\n", jcr->JobFiles,
@@ -402,6 +533,12 @@ ok_out:
    if (non_support_data > 1 || non_support_attr > 1) {
       Jmsg(jcr, M_ERROR, 0, _("%d non-supported data streams and %d non-supported attrib streams ignored.\n"),
 	 non_support_data, non_support_attr);
+   }
+   if (non_support_rsrc) {
+      Jmsg(jcr, M_INFO, 0, _("%d non-supported resource fork streams ignored.\n"), non_support_rsrc);
+   }
+   if (non_support_finfo) {
+      Jmsg(jcr, M_INFO, 0, _("%d non-supported Finder Info streams ignored.\n"), non_support_rsrc);
    }
    if (non_support_acl) {
       Jmsg(jcr, M_INFO, 0, _("%d non-supported acl streams ignored.\n"), non_support_acl);

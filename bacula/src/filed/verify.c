@@ -29,6 +29,10 @@
 #include "bacula.h"
 #include "filed.h"
 
+#ifdef HAVE_DARWIN_OS
+#include <sys/paths.h>
+#endif
+
 static int verify_file(FF_PKT *ff_pkt, void *my_pkt);
 
 /* 
@@ -65,9 +69,12 @@ void do_verify(JCR *jcr)
 static int verify_file(FF_PKT *ff_pkt, void *pkt) 
 {
    char attribs[MAXSTRING];
+   char attribsEx[MAXSTRING];
    int64_t n;
    int stat;
    BFILE bfd;
+   BFILE rsrc_bfd;
+   bool hfsplus = false;
    struct MD5Context md5c;
    struct SHA1Context sha1c;
    unsigned char signature[25];       /* large enough for either */
@@ -171,97 +178,171 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
       }
    }
 
-   encode_stat(attribs, ff_pkt, 0);
-     
-   P(jcr->mutex);
-   jcr->JobFiles++;		     /* increment number of files sent */
-   pm_strcpy(jcr->last_fname, ff_pkt->fname);
-   V(jcr->mutex);
-
-   /* 
-    * Send file attributes to Director
-    *	File_index
-    *	Stream
-    *	Verify Options
-    *	Filename (full path)
-    *	Encoded attributes
-    *	Link name (if type==FT_LNK)
-    * For a directory, link is the same as fname, but with trailing
-    * slash. For a linked file, link is the link.
-    */
-   /* Send file attributes to Director (note different format than for Storage) */
-   Dmsg2(400, "send ATTR inx=%d fname=%s\n", jcr->JobFiles, ff_pkt->fname);
-   if (ff_pkt->type == FT_LNK || ff_pkt->type == FT_LNKSAVED) {
-      stat = bnet_fsend(dir, "%d %d %s %s%c%s%c%s%c", jcr->JobFiles,
-		    STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->fname, 
-		    0, attribs, 0, ff_pkt->link, 0);
-   } else if (ff_pkt->type == FT_DIREND) {
-      /* Here link is the canonical filename (i.e. with trailing slash) */
-      stat = bnet_fsend(dir,"%d %d %s %s%c%s%c%c", jcr->JobFiles,
-		    STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->link, 
-		    0, attribs, 0, 0);
-   } else {
-      stat = bnet_fsend(dir,"%d %d %s %s%c%s%c%c", jcr->JobFiles,
-		    STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->fname, 
-		    0, attribs, 0, 0);
+   binit(&rsrc_bfd);	      /* we check if this is open below */
+#ifdef HAVE_DARWIN_OS
+   /* Open resource fork if necessary */
+   if (ff_pkt->type != FT_LNKSAVED && (S_ISREG(ff_pkt->statp.st_mode) &&
+            ff_pkt->flags & FO_HFSPLUS)) {
+      /* Remember Finder Info, whether we have data or fork, or not */
+      hfsplus = true;
+      if (ff_pkt->hfsinfo.rsrclength > 0) {
+         if (bopen_rsrc(&rsrc_bfd, ff_pkt->fname, O_RDONLY | O_BINARY, 0) < 0) {
+            ff_pkt->ff_errno = errno;
+            berrno be;
+            Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open resource fork for %s: ERR=%s\n"),
+		  ff_pkt->fname, be.strerror());
+            jcr->Errors++;
+            if (is_bopen(&ff_pkt->bfd)) {
+               bclose(&ff_pkt->bfd);
+            }
+            return 1;
+         }
+      }
    }
-   Dmsg2(20, "bfiled>bdird: attribs len=%d: msg=%s\n", dir->msglen, dir->msg);
-   if (!stat) {
-      Jmsg(jcr, M_FATAL, 0, _("Network error in send to Director: ERR=%s\n"), bnet_strerror(dir));
+#endif
+
+      encode_stat(attribs, ff_pkt, 0);
+
+      /* Now possibly extend the attributes */
+      encode_attribsEx(jcr, attribsEx, ff_pkt);
+
+      P(jcr->mutex);
+      jcr->JobFiles++;		     /* increment number of files sent */
+      pm_strcpy(jcr->last_fname, ff_pkt->fname);
+      V(jcr->mutex);
+
+      /* 
+       * Send file attributes to Director
+       *	File_index
+       *	Stream
+       *	Verify Options
+       *	Filename (full path)
+       *	Encoded attributes
+       *	Link name (if type==FT_LNK)
+       * For a directory, link is the same as fname, but with trailing
+       * slash. For a linked file, link is the link.
+       */
+      /* Send file attributes to Director (note different format than for Storage) */
+      Dmsg2(400, "send ATTR inx=%d fname=%s\n", jcr->JobFiles, ff_pkt->fname);
+      if (ff_pkt->type == FT_LNK || ff_pkt->type == FT_LNKSAVED) {
+         stat = bnet_fsend(dir, "%d %d %s %s%c%s%c%s%c", jcr->JobFiles,
+               STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->fname, 
+               0, attribs, 0, ff_pkt->link, 0);
+      } else if (ff_pkt->type == FT_DIREND) {
+         /* Here link is the canonical filename (i.e. with trailing slash) */
+         stat = bnet_fsend(dir,"%d %d %s %s%c%s%c%c", jcr->JobFiles,
+               STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->link, 
+               0, attribs, 0, 0);
+      } else {
+         stat = bnet_fsend(dir,"%d %d %s %s%c%s%c%c", jcr->JobFiles,
+               STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->fname, 
+               0, attribs, 0, 0);
+      }
+      Dmsg2(20, "bfiled>bdird: attribs len=%d: msg=%s\n", dir->msglen, dir->msg);
+      if (!stat) {
+         Jmsg(jcr, M_FATAL, 0, _("Network error in send to Director: ERR=%s\n"), bnet_strerror(dir));
+         if (is_bopen(&bfd)) {
+            bclose(&bfd);
+         }
+         if (is_bopen(&rsrc_bfd)) {
+            bclose(&rsrc_bfd);
+         }
+         return 0;
+      }
+
+      /* compute MD5 or SHA1 hash */
+      if ((is_bopen(&bfd) || hfsplus) && ff_pkt->flags & FO_MD5) {
+         char MD5buf[40];		      /* 24 should do */
+         MD5Init(&md5c);
+         if (is_bopen(&bfd)) {
+            while ((n=bread(&bfd, jcr->big_buf, jcr->buf_size)) > 0) {
+               MD5Update(&md5c, ((unsigned char *)jcr->big_buf), (int)n);
+               jcr->JobBytes += n;
+               jcr->ReadBytes += n;
+            }
+            if (n < 0) {
+               berrno be;
+               be.set_errno(bfd.berrno);
+               Jmsg(jcr, M_ERROR, 1, _("Error reading file %s: ERR=%s\n"), 
+                     ff_pkt->fname, be.strerror());
+               jcr->Errors++;
+            }
+         }
+#ifdef HAVE_DARWIN_OS
+         if (is_bopen(&rsrc_bfd)) {
+            while ((n=bread(&rsrc_bfd, jcr->big_buf, jcr->buf_size)) > 0) {
+               MD5Update(&md5c, ((unsigned char *)jcr->big_buf), (int)n);
+               jcr->JobBytes += n;
+               jcr->ReadBytes += n;
+            }
+            if (n < 0) {
+               berrno be;
+               be.set_errno(rsrc_bfd.berrno);
+               Jmsg(jcr, M_ERROR, 1, _("Error reading file %s: ERR=%s\n"), 
+                     ff_pkt->fname, be.strerror());
+               jcr->Errors++;
+            }
+         }
+         if (ff_pkt->flags & FO_HFSPLUS) {
+            MD5Update(&md5c, ((unsigned char *)ff_pkt->hfsinfo.fndrinfo), 32);
+         }
+#endif
+         MD5Final(signature, &md5c);
+
+         bin_to_base64(MD5buf, (char *)signature, 16); /* encode 16 bytes */
+         Dmsg2(400, "send inx=%d MD5=%s\n", jcr->JobFiles, MD5buf);
+         bnet_fsend(dir, "%d %d %s *MD5-%d*", jcr->JobFiles, STREAM_MD5_SIGNATURE, MD5buf,
+               jcr->JobFiles);
+         Dmsg2(20, "bfiled>bdird: MD5 len=%d: msg=%s\n", dir->msglen, dir->msg);
+      } else if ((is_bopen(&bfd) || hfsplus) && ff_pkt->flags & FO_SHA1) {
+         char SHA1buf[40]; 	      /* 24 should do */
+         SHA1Init(&sha1c);
+         if (is_bopen(&bfd)) {
+            while ((n=bread(&bfd, jcr->big_buf, jcr->buf_size)) > 0) {
+               SHA1Update(&sha1c, ((unsigned char *)jcr->big_buf), (int)n);
+               jcr->JobBytes += n;
+               jcr->ReadBytes += n;
+            }
+            if (n < 0) {
+               berrno be;
+               be.set_errno(bfd.berrno);
+               Jmsg(jcr, M_ERROR, 1, _("Error reading file %s: ERR=%s\n"), 
+                     ff_pkt->fname, be.strerror());
+               jcr->Errors++;
+            }
+         }
+#ifdef HAVE_DARWIN_OS
+         if (is_bopen(&rsrc_bfd)) {
+            while ((n=bread(&rsrc_bfd, jcr->big_buf, jcr->buf_size)) > 0) {
+               SHA1Update(&sha1c, ((unsigned char *)jcr->big_buf), (int)n);
+               jcr->JobBytes += n;
+               jcr->ReadBytes += n;
+            }
+            if (n < 0) {
+               berrno be;
+               be.set_errno(rsrc_bfd.berrno);
+               Jmsg(jcr, M_ERROR, 1, _("Error reading file %s: ERR=%s\n"), 
+                     ff_pkt->fname, be.strerror());
+               jcr->Errors++;
+            }
+         }
+         if (ff_pkt->flags & FO_HFSPLUS) {
+            SHA1Update(&sha1c, ((unsigned char *)ff_pkt->hfsinfo.fndrinfo), 32);
+         }
+#endif
+         SHA1Final(&sha1c, signature);
+
+         bin_to_base64(SHA1buf, (char *)signature, 20); /* encode 20 bytes */
+         Dmsg2(400, "send inx=%d SHA1=%s\n", jcr->JobFiles, SHA1buf);
+         bnet_fsend(dir, "%d %d %s *SHA1-%d*", jcr->JobFiles, STREAM_SHA1_SIGNATURE, 
+               SHA1buf, jcr->JobFiles);
+         Dmsg2(20, "bfiled>bdird: SHA1 len=%d: msg=%s\n", dir->msglen, dir->msg);
+      }
       if (is_bopen(&bfd)) {
-	 bclose(&bfd);
+         bclose(&bfd);
       }
-      return 0;
+      if (is_bopen(&rsrc_bfd)) {
+         bclose(&rsrc_bfd);
+      }
+      return 1;
    }
-
-   /* If file opened, compute MD5 or SHA1 hash */
-   if (is_bopen(&bfd)  && ff_pkt->flags & FO_MD5) {
-      char MD5buf[40];		      /* 24 should do */
-      MD5Init(&md5c);
-      while ((n=bread(&bfd, jcr->big_buf, jcr->buf_size)) > 0) {
-	 MD5Update(&md5c, ((unsigned char *)jcr->big_buf), (int)n);
-	 jcr->JobBytes += n;
-	 jcr->ReadBytes += n;
-      }
-      if (n < 0) {
-	 berrno be;
-	 be.set_errno(bfd.berrno);
-         Jmsg(jcr, M_ERROR, 1, _("Error reading file %s: ERR=%s\n"), 
-	      ff_pkt->fname, be.strerror());
-	 jcr->Errors++;
-      }
-      MD5Final(signature, &md5c);
-
-      bin_to_base64(MD5buf, (char *)signature, 16); /* encode 16 bytes */
-      Dmsg2(400, "send inx=%d MD5=%s\n", jcr->JobFiles, MD5buf);
-      bnet_fsend(dir, "%d %d %s *MD5-%d*", jcr->JobFiles, STREAM_MD5_SIGNATURE, MD5buf,
-	 jcr->JobFiles);
-      Dmsg2(20, "bfiled>bdird: MD5 len=%d: msg=%s\n", dir->msglen, dir->msg);
-   } else if (is_bopen(&bfd) && ff_pkt->flags & FO_SHA1) {
-      char SHA1buf[40]; 	      /* 24 should do */
-      SHA1Init(&sha1c);
-      while ((n=bread(&bfd, jcr->big_buf, jcr->buf_size)) > 0) {
-	 SHA1Update(&sha1c, ((unsigned char *)jcr->big_buf), (int)n);
-	 jcr->JobBytes += n;
-	 jcr->ReadBytes += n;
-      }
-      if (n < 0) {
-	 berrno be;
-	 be.set_errno(bfd.berrno);
-         Jmsg(jcr, M_ERROR, 1, _("Error reading file %s: ERR=%s\n"), 
-	      ff_pkt->fname, be.strerror());
-	 jcr->Errors++;
-      }
-      SHA1Final(&sha1c, signature);
-
-      bin_to_base64(SHA1buf, (char *)signature, 20); /* encode 20 bytes */
-      Dmsg2(400, "send inx=%d SHA1=%s\n", jcr->JobFiles, SHA1buf);
-      bnet_fsend(dir, "%d %d %s *SHA1-%d*", jcr->JobFiles, STREAM_SHA1_SIGNATURE, 
-	 SHA1buf, jcr->JobFiles);
-      Dmsg2(20, "bfiled>bdird: SHA1 len=%d: msg=%s\n", dir->msglen, dir->msg);
-   }
-   if (is_bopen(&bfd)) {
-      bclose(&bfd);
-   }
-   return 1;
-}

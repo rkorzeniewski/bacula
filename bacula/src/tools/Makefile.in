@@ -38,7 +38,7 @@ DIRCONFOBJS = ../dird/dird_conf.o ../dird/run_conf.o ../dird/inc_conf.o
 .c.o:
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
-all: Makefile bsmtp dbcheck testfind testls 
+all: Makefile bsmtp dbcheck fstype testfind testls 
 	@echo "==== Make of tools is good ===="
 	@echo " "
 
@@ -47,6 +47,9 @@ bsmtp:	bsmtp.o ../lib/libbac.a
 
 dbcheck: dbcheck.o ../lib/libbac.a ../cats/libsql.a $(DIRCONFOBJS)
 	$(CXX) $(LDFLAGS) -L../lib -L../cats -o $@ dbcheck.o $(DIRCONFOBJS) -lsql -lbac -lm $(DB_LIBS) $(LIBS) 
+
+fstype: fstype.o ../lib/libbac.a ../findlib/libfind.a
+	$(CXX) $(LDFLAGS) -L../lib -L../findlib -o $@ fstype.o -lfind -lbac -lm $(DLIB) $(LIBS) 
 
 testfind: ../findlib/libfind.a ../lib/libbac.a $(FINDOBJS)
 	$(CXX) -g $(LDFLAGS) -L. -L../lib -L../findlib -o $@ $(FINDOBJS) \

@@ -23,10 +23,15 @@
 
    Thanks to the TAR programmers.
 
+     Version $Id$
+
  */
 
 #include "bacula.h"
 #include "find.h"
+#ifdef HAVE_DARWIN_OS
+#include <sys/attr.h>
+#endif
 
 extern int32_t name_max;	      /* filename max length */
 extern int32_t path_max;	      /* path name max length */
@@ -56,6 +61,36 @@ static void free_dir_ff_pkt(FF_PKT *dir_ff_pkt)
 }
 
 /*
+ * Check to see if we allow the file system type of a file or directory.
+ * If we do not have a list of file system types, we accept anything.
+ */
+static int accept_fstype(FF_PKT *ff, void *dummy) {
+   int i;
+   char *fs;
+   bool accept = true;
+
+   if (ff->fstypes->size()) {
+      accept = false;
+      fs = fstype(ff->fname);
+      if (fs == NULL) {
+         Dmsg1(50, "Cannot determine file system type for \"%s\"\n", ff->fname);
+      } else {
+	 for (i = 0; i <ff->fstypes->size(); ++i) {
+	    if (strcmp(fs, (char *)ff->fstypes->get(i)) == 0) {
+               Dmsg2(100, "Accepting fstype %s for \"%s\"\n", fs, ff->fname);
+	       accept = true;
+	       break;
+	    }
+            Dmsg3(200, "fstype %s for \"%s\" does not match %s\n", fs,
+		  ff->fname, ff->fstypes->get(i));
+	 }
+	 free(fs);
+      }
+   }
+   return accept;
+}
+
+/*
  * Find a single file.			      
  * handle_file is the callback for handling the file.
  * p is the filename
@@ -79,6 +114,23 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
        return handle_file(ff_pkt, pkt);
    }
 
+#ifdef HAVE_DARWIN_OS
+   if (S_ISREG(ff_pkt->statp.st_mode) && ff_pkt->flags & FO_HFSPLUS) {
+       /* TODO: initialise attrList once elsewhere? */
+       struct attrlist attrList;
+       memset(&attrList, 0, sizeof(attrList));
+       attrList.bitmapcount = ATTR_BIT_MAP_COUNT;
+       attrList.commonattr = ATTR_CMN_FNDRINFO;
+       attrList.fileattr = ATTR_FILE_RSRCLENGTH;
+       if (getattrlist(fname, &attrList, &ff_pkt->hfsinfo,
+		sizeof(ff_pkt->hfsinfo), 0) != 0) {
+	  ff_pkt->type = FT_NOSTAT;
+	  ff_pkt->ff_errno = errno;
+	  return handle_file(ff_pkt, pkt);
+       }
+   }
+#endif
+
    Dmsg1(300, "File ----: %s\n", fname);
 
    /* Save current times of this directory in case we need to
@@ -87,6 +139,27 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
    restore_times.actime = ff_pkt->statp.st_atime;
    restore_times.modtime = ff_pkt->statp.st_mtime;
 
+   if (top_level) {
+      /*
+       * Check if we start with an allowed file system.
+       *
+       * handle_file() calls accept_file() which fills in ff_pkt->fstypes
+       * Temporarily use our own handler with a fake, but probable, type.
+       */
+      int (*callback)(FF_PKT *, void *) = ff_pkt->callback;
+      ff_pkt->callback = accept_fstype;
+      ff_pkt->type = FT_DIRBEGIN;
+      rtn_stat = handle_file(ff_pkt, pkt);
+      ff_pkt->callback = callback;
+      if (!rtn_stat) {
+	 ff_pkt->type = FT_INVALIDFS;
+	 if (ff_pkt->flags & FO_KEEPATIME) {
+	    utime(fname, &restore_times);
+	 }
+         Jmsg1(jcr, M_ERROR, 0, _("Top level entry \"%s\" has an unlisted fstype\n"), fname);
+	 return rtn_stat;
+      }
+   }
 
    /* 
     * If this is an Incremental backup, see if file was modified
@@ -292,16 +365,22 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
       /* 
        * Do not descend into subdirectories (recurse) if the
        * user has turned it off for this directory.
-       * Or if we are crossing file systems, 
-       * avoid doing so if the user only wants to dump one file system.
+       *
+       * If we are crossing file systems, we are either not allowed
+       * to cross, or we may be restricted by a list of permitted
+       * file systems.
        */
       if (ff_pkt->flags & FO_NO_RECURSION) {
 	 ff_pkt->type = FT_NORECURSE;
 	 recurse = false;
-      } else if (!top_level && !(ff_pkt->flags & FO_MULTIFS) &&
-	   parent_device != ff_pkt->statp.st_dev) {
-	 ff_pkt->type = FT_NOFSCHG;
-	 recurse = false;
+      } else if (!top_level && parent_device != ff_pkt->statp.st_dev) {
+	 if(!(ff_pkt->flags & FO_MULTIFS)) {
+	    ff_pkt->type = FT_NOFSCHG;
+	    recurse = false;
+	 } else if (!accept_fstype(ff_pkt, NULL)) {
+	    ff_pkt->type = FT_INVALIDFS;
+	    recurse = false;
+	 }
       }
       if (!recurse) {
 	 rtn_stat = handle_file(ff_pkt, pkt);
@@ -310,7 +389,10 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
 	 }
 	 free(link);
 	 free_dir_ff_pkt(dir_ff_pkt);
-	 ff_pkt->link = ff_pkt->fname;     /* reset "link" */
+         ff_pkt->link = ff_pkt->fname;     /* reset "link" */
+	 if (ff_pkt->flags & FO_KEEPATIME) {
+	    utime(fname, &restore_times);
+	 }
 	 return rtn_stat;
       }
 

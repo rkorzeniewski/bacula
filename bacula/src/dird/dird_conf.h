@@ -244,7 +244,7 @@ struct JOB {
 };
 
 #undef  MAX_FOPTS
-#define MAX_FOPTS 32
+#define MAX_FOPTS 34
 
 /* File options structure */
 struct FOPTS {
@@ -252,6 +252,7 @@ struct FOPTS {
    alist regex;                       /* regex string(s) */
    alist wild;                        /* wild card strings */
    alist base;                        /* list of base names */
+   alist fstype;                      /* file system type limitation */
    char *reader;                      /* reader program */
    char *writer;                      /* writer program */
 };

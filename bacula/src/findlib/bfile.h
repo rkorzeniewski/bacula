@@ -96,6 +96,9 @@ int     is_stream_supported(int stream);
 int     is_win32_stream(int stream);
 char   *xberror(BFILE *bfd);          /* DO NOT USE  -- use berrno class */
 int     bopen(BFILE *bfd, const char *fname, int flags, mode_t mode);
+#ifdef HAVE_DARWIN_OS
+int     bopen_rsrc(BFILE *bfd, const char *fname, int flags, mode_t mode);
+#endif
 int     bclose(BFILE *bfd);
 ssize_t bread(BFILE *bfd, void *buf, size_t count);
 ssize_t bwrite(BFILE *bfd, void *buf, size_t count);

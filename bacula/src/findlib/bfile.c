@@ -31,6 +31,10 @@
 #include "bacula.h"
 #include "find.h"
 
+#ifdef HAVE_DARWIN_OS
+#include <sys/paths.h>
+#endif
+
 /* ===============================================================
  * 
  *	      U N I X	AND   W I N D O W S
@@ -77,6 +81,10 @@ const char *stream_to_ascii(int stream)
       return "Program data";
    case STREAM_SHA1_SIGNATURE:
       return "SHA1 signature";
+   case STREAM_MACOS_FORK_DATA:
+      return "HFS+ resource fork";
+   case STREAM_HFSPLUS_ATTRIBUTES:
+      return "HFS+ Finder Info";
    default:
       sprintf(buf, "%d", stream);
       return (const char *)buf;
@@ -178,6 +186,10 @@ int is_stream_supported(int stream)
    case STREAM_PROGRAM_NAMES:
    case STREAM_PROGRAM_DATA:
    case STREAM_SHA1_SIGNATURE:
+#ifdef HAVE_DARWIN_OS
+   case STREAM_MACOS_FORK_DATA:
+   case STREAM_HFSPLUS_ATTRIBUTES:
+#endif
    case 0:			      /* compatibility with old tapes */
       return 1;
    }
@@ -469,6 +481,10 @@ int is_stream_supported(int stream)
    case STREAM_PROGRAM_NAMES:
    case STREAM_PROGRAM_DATA:
    case STREAM_SHA1_SIGNATURE:
+#ifdef HAVE_DARWIN_OS
+   case STREAM_MACOS_FORK_DATA:
+   case STREAM_HFSPLUS_ATTRIBUTES:
+#endif
    case 0:			      /* compatibility with old tapes */
       return 1;
 
@@ -512,6 +528,24 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
    errno = bfd->berrno;
    return bfd->fid;
 }
+
+#ifdef HAVE_DARWIN_OS
+/* Open the resource fork of a file. */
+int bopen_rsrc(BFILE *bfd, const char *fname, int flags, mode_t mode)
+{
+   POOLMEM *rsrc_fname;
+   size_t fname_len;
+
+   fname_len = strlen(fname);
+   rsrc_fname = get_pool_memory(PM_FNAME);
+   bstrncpy(rsrc_fname, fname, fname_len + 1);
+   bstrncpy(rsrc_fname + fname_len, _PATH_RSRCFORKSPEC,
+      strlen(_PATH_RSRCFORKSPEC) + 1);
+   bopen(bfd, rsrc_fname, flags, mode);
+   free_pool_memory(rsrc_fname);
+   return bfd->fid;
+}
+#endif
 
 int bclose(BFILE *bfd)
 { 

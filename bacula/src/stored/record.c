@@ -112,6 +112,10 @@ const char *stream_to_ascii(int stream, int fi)
        return "PROG-NAMES";
     case STREAM_PROGRAM_DATA:
        return "PROG-DATA";
+    case STREAM_MACOS_FORK_DATA:
+       return "MACOS-RSRC";
+    case STREAM_HFSPLUS_ATTRIBUTES:
+       return "HFSPLUS-ATTR";
     case -STREAM_UNIX_ATTRIBUTES:
        return "contUATTR";
     case -STREAM_FILE_DATA:
@@ -136,6 +140,10 @@ const char *stream_to_ascii(int stream, int fi)
        return "contPROG-NAMES";
     case -STREAM_PROGRAM_DATA:
        return "contPROG-DATA";
+    case -STREAM_MACOS_FORK_DATA:
+       return "contMACOS-RSRC";
+    case -STREAM_HFSPLUS_ATTRIBUTES:
+       return "contHFSPLUS-ATTR";
     default:
        sprintf(buf, "%d", stream);
        return buf;     
