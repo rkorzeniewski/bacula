@@ -221,6 +221,7 @@ struct JOB {
    int PruneVolumes;                  /* Force pruning of Volumes */
    int SpoolAttributes;               /* Set to spool attributes in SD */
    int spool_data;                    /* Set to spool data in SD */
+   int rerun_failed_levels;           /* Upgrade to rerun failed levels */
    uint32_t MaxConcurrentJobs;        /* Maximume concurrent jobs */
    int RescheduleOnError;             /* Set to reschedule on error */
    int RescheduleTimes;               /* Number of times to reschedule job */

@@ -35,9 +35,7 @@ CREATE TABLE File (
    PRIMARY KEY(FileId) 
    );
 
-CREATE INDEX inx3 ON File (JobId);
-CREATE INDEX inx4 ON File (PathId);
-CREATE INDEX inx5 ON File (FileNameId);
+CREATE INDEX inx3 ON File (JobId, PathId, FileNameId);
 
 CREATE TABLE Job (
    JobId INTEGER UNSIGNED NOT NULL,

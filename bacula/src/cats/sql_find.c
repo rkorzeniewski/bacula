@@ -143,6 +143,47 @@ db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
    return 1;
 }
 
+/*
+ * Find last failed job since given start-time 
+ *   it must be either Full or Diff.
+ *
+ * Returns: false on failure
+ *	    true  on success, jr is unchanged and stime unchanged
+ *		  level returned in JobLevel
+ */
+bool
+db_find_failed_job_since(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM *stime, int &JobLevel)
+{
+   SQL_ROW row;
+
+   db_lock(mdb);
+   /* Differential is since last Full backup */
+   Mmsg(mdb->cmd, 
+"SELECT JobLevel FROM Job WHERE JobStatus!='T' AND Type='%c' AND "
+"Level IN ('%c','%c') AND Name='%s' AND ClientId=%u "
+"AND FileSetId=%u AND StartTime>'%s' "
+"ORDER BY StartTime DESC LIMIT 1",
+	 jr->JobType, L_INCREMENTAL, L_DIFFERENTIAL, jr->Name,
+	 jr->ClientId, jr->FileSetId, stime);
+
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
+      db_unlock(mdb);
+      return false;
+   }
+
+   if ((row = sql_fetch_row(mdb)) == NULL) {
+      sql_free_result(mdb);
+      db_unlock(mdb);
+      return false;
+   }
+   JobLevel = str_to_int64(row[0]);
+   sql_free_result(mdb);
+
+   db_unlock(mdb);
+   return true;
+}
+
+
 /* 
  * Find JobId of last job that ran.  E.g. for
  *   VERIFY_CATALOG we want the JobId of the last INIT.
