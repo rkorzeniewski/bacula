@@ -47,14 +47,15 @@
 static char *find_msg_start(char *msg);
 
 static char Job_status[] = "Status Job=%127s JobStatus=%d\n";
+#ifdef needed
 static char Device_update[]   = "DevUpd Job=%127s "
    "device=%127s "
    "append=%d read=%d num_writers=%d "
    "open=%d labeled=%d offline=%d "
    "reserved=%d max_writers=%d "
    "autoselect=%d autochanger=%d "
-   "poolid=%lld "
    "changer_name=%127s media_type=%127s volume_name=%127s\n";
+#endif
 
 
 static char OK_msg[] = "1000 OK\n";
@@ -226,6 +227,7 @@ int bget_dirmsg(BSOCK *bs)
 	 free_jcr(jcr);
 	 continue;
       }
+#ifdef needec
       /* No JCR for Device Updates! */
       if (bs->msg[0] = 'D') {         /* Device update */
 	 DEVICE *dev;
@@ -241,9 +243,9 @@ int bget_dirmsg(BSOCK *bs)
 	     &dev_num_writers, &dev_open,
 	     &dev_labeled, &dev_offline, &dev_reserved,
 	     &dev_max_writers, &dev_autoselect, 
-	     &dev_autochanger, &dev_PoolId,
+	     &dev_autochanger, 
 	     changer_name.c_str(), media_type.c_str(),
-	     volume_name.c_str()) != 16) {
+	     volume_name.c_str()) != 15) {
             Emsg1(M_ERROR, 0, _("Malformed message: %s\n"), bs->msg);
 	 } else {
 	    unbash_spaces(dev_name);
@@ -276,6 +278,7 @@ int bget_dirmsg(BSOCK *bs)
 	 }
 	 continue;
       }
+#endif
       return n;
    }
 }

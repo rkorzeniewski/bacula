@@ -1,10 +1,12 @@
 
-          Release Notes for Bacula 1.37.6
+          Release Notes for Bacula 1.37.10
 
   Bacula code: Total files = 414 Total lines = 123,723 (*.h *.c *.in)
 
 
 Major Changes:
+- This version has a new DIR <--> SD protocol. Both must be
+  upgraded at the same time.
 - This version has a new database format that is not compatible
   with previous databases. The upgrade scripts should work, but
   they are not yet tested.
@@ -214,4 +216,3 @@ def NewVolume(j):
     bacula.set(jcr=j, VolumeName="TestA-001")
     return 1
 ====
-

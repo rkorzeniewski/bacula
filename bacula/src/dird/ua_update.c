@@ -260,7 +260,7 @@ static void update_vol_pool(UAContext *ua, char *val, MEDIA_DBR *mr, POOL_DBR *o
 {
    POOL_DBR pr;
    POOLMEM *query;
-   char ed1[50];
+   char ed1[50], ed2[50];
 
    memset(&pr, 0, sizeof(pr));
    bstrncpy(pr.Name, val, sizeof(pr.Name));
@@ -272,8 +272,9 @@ static void update_vol_pool(UAContext *ua, char *val, MEDIA_DBR *mr, POOL_DBR *o
     */
    query = get_pool_memory(PM_MESSAGE);
    db_lock(ua->db);
-   Mmsg(query, "UPDATE Media SET PoolId=%d WHERE MediaId=%s",
-      mr->PoolId, edit_int64(mr->MediaId, ed1));
+   Mmsg(query, "UPDATE Media SET PoolId=%s WHERE MediaId=%s",
+      edit_int64(mr->PoolId, ed1),
+      edit_int64(mr->MediaId, ed2));
    if (!db_sql_query(ua->db, query, NULL, NULL)) {
       bsendmsg(ua, "%s", db_strerror(ua->db));
    } else {

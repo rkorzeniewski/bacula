@@ -63,7 +63,7 @@ extern bool use_cmd(JCR *jcr);
 extern bool run_cmd(JCR *jcr);
 extern bool status_cmd(JCR *sjcr);
 extern bool qstatus_cmd(JCR *jcr);
-extern bool query_cmd(JCR *jcr);
+//extern bool query_cmd(JCR *jcr);
 
 /* Forward referenced functions */
 static bool label_cmd(JCR *jcr);
@@ -107,9 +107,9 @@ static struct s_cmds cmds[] = {
    {"status",      status_cmd,      1},
    {".status",     qstatus_cmd,     1},
    {"unmount",     unmount_cmd,     0},
-   {"use device=", use_cmd,         0},
+   {"use storage", use_cmd,         0},
    {"run",         run_cmd,         0},
-   {"query",       query_cmd,       0},
+// {"query",       query_cmd,       0},
    {NULL,	 NULL}			    /* list terminator */
 };
 

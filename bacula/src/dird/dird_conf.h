@@ -220,7 +220,7 @@ public:
    char *address;
    char *password;
    char *media_type;
-   alist *device;                     /* Device name(s) */
+   alist *device;                     /* Alternate devices for this Storage */
    int  autochanger;                  /* set if autochanger */
    uint32_t MaxConcurrentJobs;        /* Maximume concurrent jobs */
    uint32_t NumConcurrentJobs;        /* number of concurrent jobs running */
@@ -275,6 +275,7 @@ public:
    int SpoolAttributes;               /* Set to spool attributes in SD */
    int spool_data;                    /* Set to spool data in SD */
    int rerun_failed_levels;           /* Upgrade to rerun failed levels */
+   int NewVolEachJob;                 /* Mount new volume each Job */
    uint32_t MaxConcurrentJobs;        /* Maximume concurrent jobs */
    int RescheduleOnError;             /* Set to reschedule on error */
    int RescheduleTimes;               /* Number of times to reschedule job */
@@ -286,7 +287,7 @@ public:
    SCHED     *schedule;               /* When -- Automatic schedule */
    CLIENT    *client;                 /* Who to backup */
    FILESET   *fileset;                /* What to backup -- Fileset */
-   alist     *storage;                /* Where is device -- Storage daemon */
+   alist     *storage;                /* Where is device -- list of Storage to be used */
    POOL      *pool;                   /* Where is media -- Media Pool */
    POOL      *full_pool;              /* Pool for Full backups */
    POOL      *inc_pool;               /* Pool for Incremental backups */

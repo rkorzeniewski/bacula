@@ -144,6 +144,8 @@ bool reserve_device_for_read(DCR *dcr)
 
    ASSERT(dcr);
 
+   init_device_wait_timers(dcr);
+
    dev->block(BST_DOING_ACQUIRE);
 
    Mmsg(jcr->errmsg, _("Device %s is BLOCKED due to user unmount.\n"),
@@ -373,10 +375,13 @@ bool reserve_device_for_append(DCR *dcr)
    bool first;
 
    ASSERT(dcr);
+
+   init_device_wait_timers(dcr);
+
    dev->block(BST_DOING_ACQUIRE);
 
-   Mmsg2(jcr->errmsg, _("Device %s is busy reading. Job %d canceled.\n"),
-	 dev->print_name(), jcr->JobId);
+   Mmsg1(jcr->errmsg, _("Device %s is busy reading.\n"),
+	 dev->print_name());
    for (first=true; dev->can_read(); first=false) {
       dev->unblock();
       if (!wait_for_device(dcr, jcr->errmsg, first)) {
@@ -389,7 +394,7 @@ bool reserve_device_for_append(DCR *dcr)
    Mmsg(jcr->errmsg, _("Device %s is BLOCKED due to user unmount.\n"),
 	dev->print_name());
    for (first=true; device_is_unmounted(dev); first=false) {
-      dev->unblock();
+      dev->unblock();	   
       if (!wait_for_device(dcr, jcr->errmsg, first))  {
 	 return false;
       }
@@ -401,8 +406,13 @@ bool reserve_device_for_append(DCR *dcr)
    for ( ;; ) {
       switch (can_reserve_drive(dcr)) {
       case 0:
-	 /* ****FIXME**** Make wait */
-	 goto bail_out;
+         Mmsg1(jcr->errmsg, _("Device %s is busy writing on another Volume.\n"), dev->print_name());
+	 dev->unblock();      
+	 if (!wait_for_device(dcr, jcr->errmsg, first))  {
+	    return false;
+	 }
+	 dev->block(BST_DOING_ACQUIRE);
+	 continue;
       case -1:
 	 goto bail_out; 	      /* error */
       default:
@@ -442,14 +452,12 @@ static int can_reserve_drive(DCR *dcr)
 	    /* OK, compatible device */
 	 } else {
 	    /* Drive not suitable for us */
-            Jmsg(jcr, M_WARNING, 0, _("Device %s is busy writing on another Volume.\n"), dev->print_name());
 	    return 0;		      /* wait */
 	 }
       } else {
 	 /* Device is available but not yet reserved, reserve it for us */
 	 bstrncpy(dev->pool_name, dcr->pool_name, sizeof(dev->pool_name));
 	 bstrncpy(dev->pool_type, dcr->pool_type, sizeof(dev->pool_type));
-	 dev->PoolId = dcr->PoolId;
       }
       return 1; 		      /* reserve drive */
    }
@@ -492,6 +500,8 @@ DCR *acquire_device_for_append(DCR *dcr)
    bool do_mount = false;
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
+
+   init_device_wait_timers(dcr);
 
    dev->block(BST_DOING_ACQUIRE);
    Dmsg1(190, "acquire_append device is %s\n", dev_is_tape(dev)?"tape":"disk");

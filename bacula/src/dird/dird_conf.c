@@ -236,6 +236,7 @@ RES_ITEM job_items[] = {
    {"spoolattributes",store_yesno, ITEM(res_job.SpoolAttributes), 1, ITEM_DEFAULT, 0},
    {"spooldata",   store_yesno, ITEM(res_job.spool_data), 1, ITEM_DEFAULT, 0},
    {"rerunfailedlevels",   store_yesno, ITEM(res_job.rerun_failed_levels), 1, ITEM_DEFAULT, 0},
+   {"newvolumeeachjob",   store_yesno, ITEM(res_job.NewVolEachJob), 1, ITEM_DEFAULT, 0},
    {"runbeforejob", store_str,  ITEM(res_job.RunBeforeJob), 0, 0, 0},
    {"runafterjob",  store_str,  ITEM(res_job.RunAfterJob),  0, 0, 0},
    {"runafterfailedjob",  store_str,  ITEM(res_job.RunAfterFailedJob),  0, 0, 0},

@@ -7,6 +7,6 @@ def NewVolume(j):
     print "Client=" + client
     numvol = bacula.get(j, "NumVols");
     print "NumVols=", numvol
-#   bacula.set(jcr=j, JobReport="Python New Volume set for Job.\n") 
-#   bacula.set(jcr=j, VolumeName="TestA-001")
+    bacula.set(jcr=j, JobReport="Python New Volume set for Job.\n") 
+    bacula.set(jcr=j, VolumeName="TestA-001")
     return 1
