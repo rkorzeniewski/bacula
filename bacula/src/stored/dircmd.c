@@ -468,7 +468,8 @@ static int mount_cmd(JCR *jcr)
                   bnet_fsend(dir, _("3001 Device %s is mounted with Volume %s\n"), 
 		     dev->dev_name, dev->VolHdr.VolName);
 	       } else {
-                  bnet_fsend(dir, _("3905 Device %s open but no Bacula volume is mounted.\n"), 
+                  bnet_fsend(dir, _("3905 Device %s open but no Bacula volume is mounted.\n"
+                                    "Try unmounting and remounting the Volume.\n"),
 			     dev->dev_name);
 	       }
 	       break;
@@ -488,7 +489,8 @@ static int mount_cmd(JCR *jcr)
                      bnet_fsend(dir, _("3001 Device %s is mounted with Volume %s\n"),
 			dev->dev_name, dev->VolHdr.VolName);
 		  } else {
-                     bnet_fsend(dir, _("3905 Device %s open but no Bacula volume is mounted.\n"), 
+                     bnet_fsend(dir, _("3905 Device %s open but no Bacula volume is mounted.\n"   
+                                    "Try unmounting and remounting the Volume.\n"),
 				dev->dev_name);
 		  }
 	       } else {
@@ -506,7 +508,8 @@ static int mount_cmd(JCR *jcr)
                      bnet_fsend(dir, _("3001 Device %s is mounted with Volume %s\n"), 
 			dev->dev_name, dev->VolHdr.VolName);
 		  } else {
-                     bnet_fsend(dir, _("3905 Device %s open but no Bacula volume is mounted.\n"), 
+                     bnet_fsend(dir, _("3905 Device %s open but no Bacula volume is mounted.\n"
+                                       "Try unmounting and remounting the Volume.\n"),
 				dev->dev_name);
 		  }
 	       }
