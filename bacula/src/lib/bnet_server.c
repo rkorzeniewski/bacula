@@ -46,7 +46,7 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 /* Become Threaded Network Server */
 void
 bnet_thread_server(char *bind_addr, int port, int max_clients, workq_t *client_wq, 
-		   void handle_client_request(void *bsock))
+		   void *handle_client_request(void *bsock))
 {
    int newsockfd, sockfd, stat;
    socklen_t clilen;

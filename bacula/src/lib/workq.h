@@ -53,7 +53,7 @@ typedef struct workq_tag {
    int               max_workers;     /* max threads */
    int               num_workers;     /* current threads */
    int               idle_workers;    /* idle threads */
-   void              (*engine)(void *arg); /* user engine */
+   void             *(*engine)(void *arg); /* user engine */
 } workq_t;
 
 #define WORKQ_VALID  0xdec1992
@@ -61,7 +61,7 @@ typedef struct workq_tag {
 extern int workq_init(
               workq_t *wq,
               int     threads,        /* maximum threads */
-              void    (*engine)(void *)   /* engine routine */
+              void   *(*engine)(void *)   /* engine routine */
                     );
 extern int workq_destroy(workq_t *wq);
 extern int workq_add(workq_t *wq, void *element, workq_ele_t **work_item, int priority);

@@ -44,6 +44,7 @@ int newVolume(JCR *jcr, MEDIA_DBR *mr)
 {
    POOL_DBR pr;
    char name[MAXSTRING];
+   char num[20];
 
    memset(&pr, 0, sizeof(pr));
 
@@ -55,17 +56,18 @@ int newVolume(JCR *jcr, MEDIA_DBR *mr)
       if (pr.MaxVols == 0 || pr.NumVols < pr.MaxVols) {
 	 set_pool_dbr_defaults_in_media_dbr(mr, &pr);
 	 mr->LabelDate = time(NULL);
-	 strcpy(mr->MediaType, jcr->store->media_type);
-	 strcpy(name, pr.LabelFormat);	 
+	 bstrncpy(mr->MediaType, jcr->store->media_type, sizeof(mr->MediaType));
+	 bstrncpy(name, pr.LabelFormat, sizeof(name));
          if (strchr(name, (int)'%') != NULL) {
 	    db_unlock(jcr->db);
             Jmsg(jcr, M_ERROR, 0, _("Illegal character in Label Format\n"));
 	    return 0;
 	 }
-         strcat(name, "%04d");
-	 sprintf(mr->VolumeName, name, ++pr.NumVols);
+         sprintf(num, "%04d", ++pr.NumVols);
+	 bstrncpy(mr->VolumeName, name, sizeof(mr->VolumeName));
+	 bstrncat(mr->VolumeName, num, sizeof(mr->VolumeName));
 	 if (db_create_media_record(jcr, jcr->db, mr) &&
-	    db_update_pool_record(jcr, jcr->db, &pr) == 1) {
+	    db_update_pool_record(jcr, jcr->db, &pr)) {
 	    db_unlock(jcr->db);
             Dmsg1(90, "Created new Volume=%s\n", mr->VolumeName);
 	    return 1;

@@ -65,6 +65,10 @@
 #define JS_WaitSD                'S'  /* waiting on the Storage daemon */
 #define JS_WaitMedia             'm'  /* waiting for new media */
 #define JS_WaitMount             'M'  /* waiting for Mount */
+#define JS_WaitStoreRes          's'  /* Waiting for storage resource */
+#define JS_WaitJobRes            'j'  /* Waiting for job resource */
+#define JS_WaitClientRes         'c'  /* Waiting for Client resource */
+#define JS_WaitMaxJobs           'd'  /* Waiting for maximum jobs */
 
 #define job_cancelled(jcr) \
   (jcr->JobStatus == JS_Cancelled || \

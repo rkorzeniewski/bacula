@@ -30,7 +30,7 @@
 #include "filed.h"
 
 /* Imported Functions */
-extern void handle_client_request(void *dir_sock);
+extern void *handle_client_request(void *dir_sock);
 
 /* Forward referenced functions */
 void terminate_filed(int sig);

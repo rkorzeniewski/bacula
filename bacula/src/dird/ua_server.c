@@ -50,7 +50,7 @@ int quit_cmd_thread = 0;
 /* Forward referenced functions */
 
 static void *connect_thread(void *arg);
-static void handle_UA_client_request(void *arg);
+static void *handle_UA_client_request(void *arg);
 
 
 /* Global variables */
@@ -96,7 +96,7 @@ static void *connect_thread(void *arg)
  * Handle Director User Agent commands	 
  *
  */
-static void handle_UA_client_request(void *arg)
+static void *handle_UA_client_request(void *arg)
 {
    int stat;
    UAContext ua;
@@ -173,7 +173,7 @@ getout:
    if (ua.args) {
       free_pool_memory(ua.args);
    }
-   return;
+   return NULL;
 }
 
 /*

@@ -166,7 +166,7 @@ int do_backup(JCR *jcr)
     *
     */
    Dmsg0(110, "Open connection with storage daemon\n");
-   set_jcr_job_status(jcr, JS_Blocked);
+   set_jcr_job_status(jcr, JS_WaitSD);
    /*
     * Start conversation with Storage daemon  
     */
@@ -187,7 +187,7 @@ int do_backup(JCR *jcr)
    }
    Dmsg0(150, "Storage daemon connection OK\n");
 
-   set_jcr_job_status(jcr, JS_Blocked);
+   set_jcr_job_status(jcr, JS_WaitFD);
    if (!connect_to_file_daemon(jcr, 10, FDConnectTimeout, 1)) {
       goto bail_out;
    }

@@ -1,15 +1,15 @@
 /*
- * Bacula Thread Read/Write locking code. It permits
- *  multiple readers but only one writer.  Note, however,
- *  that the writer thread is permitted to make multiple
- *  nested write lock calls.
+ * Bacula Semaphore code. This code permits setting up
+ *  a semaphore that lets through a specified number
+ *  of callers simultaneously. Once the number of callers
+ *  exceed the limit, they block.      
  *
- *  Kern Sibbald, January MMI
+ *  Kern Sibbald, March MMIII
  *
+ *   Derived from rwlock.h which was in turn derived from code in
+ *     "Programming with POSIX Threads" By David R. Butenhof
+ &
  *   Version $Id$
- *
- *  This code adapted from "Programming with POSIX Threads", by
- *    David R. Butenhof
  *
  */
 /*
@@ -35,275 +35,168 @@
 #include "bacula.h"
 
 /*   
- * Initialize a read/write lock
+ * Initialize a semaphore
  *
  *  Returns: 0 on success
  *	     errno on failure
  */
-int rwl_init(brwlock_t *rwl)
+int sem_init(semlock_t *sem, int max_active)
 {
    int stat;
 			
-   rwl->r_active = rwl->w_active = 0;
-   rwl->r_wait = rwl->w_wait = 0;
-   if ((stat = pthread_mutex_init(&rwl->mutex, NULL)) != 0) {
+   sem->active = sem->waiting = 0;
+   sem->max_active = max_active;
+   if ((stat = pthread_mutex_init(&sem->mutex, NULL)) != 0) {
       return stat;
    }
-   if ((stat = pthread_cond_init(&rwl->read, NULL)) != 0) {
-      pthread_mutex_destroy(&rwl->mutex);
+   if ((stat = pthread_cond_init(&sem->wait, NULL)) != 0) {
+      pthread_mutex_destroy(&sem->mutex);
       return stat;
    }
-   if ((stat = pthread_cond_init(&rwl->write, NULL)) != 0) {
-      pthread_cond_destroy(&rwl->read);
-      pthread_mutex_destroy(&rwl->mutex);
-      return stat;
-   }
-   rwl->valid = RWLOCK_VALID;
+   sem->valid = SEMLOCK_VALID;
    return 0;
 }
 
 /*
- * Destroy a read/write lock
+ * Destroy a semaphore
  *
  * Returns: 0 on success
  *	    errno on failure
  */
-int rwl_destroy(brwlock_t *rwl)
+int sem_destroy(semlock_t *sem)
 {
-   int stat, stat1, stat2;
+   int stat, stat1;	  
 
-  if (rwl->valid != RWLOCK_VALID) {
+  if (sem->valid != SEMLOCK_VALID) {
      return EINVAL;
   }
-  if ((stat = pthread_mutex_lock(&rwl->mutex)) != 0) {
+  if ((stat = pthread_mutex_lock(&sem->mutex)) != 0) {
      return stat;
   }
 
   /* 
    * If any threads are active, report EBUSY
    */
-  if (rwl->r_active > 0 || rwl->w_active) {
-     pthread_mutex_unlock(&rwl->mutex);
+  if (sem->active > 0) {
+     pthread_mutex_unlock(&sem->mutex);
      return EBUSY;
   }
 
   /*
    * If any threads are waiting, report EBUSY
    */
-  if (rwl->r_wait > 0 || rwl->w_wait > 0) { 
-     pthread_mutex_unlock(&rwl->mutex);
+  if (sem->waiting > 0) {
+     pthread_mutex_unlock(&sem->mutex);
      return EBUSY;
   }
 
-  rwl->valid = 0;
-  if ((stat = pthread_mutex_unlock(&rwl->mutex)) != 0) {
+  sem->valid = 0;
+  if ((stat = pthread_mutex_unlock(&sem->mutex)) != 0) {
      return stat;
   }
-  stat	= pthread_mutex_destroy(&rwl->mutex);
-  stat1 = pthread_cond_destroy(&rwl->read);
-  stat2 = pthread_cond_destroy(&rwl->write);
-  return (stat != 0 ? stat : (stat1 != 0 ? stat1 : stat2));
+  stat	= pthread_mutex_destroy(&sem->mutex);
+  stat1 = pthread_cond_destroy(&sem->wait);
+  return (stat != 0 ? stat : stat1);
 }
 
 /*
- * Handle cleanup when the read lock condition variable
- * wait is released.
+ * Handle cleanup when the wait lock condition variable
+ *    wait is released.
  */
-static void rwl_read_release(void *arg)
+static void sem_release(void *arg)
 {
-   brwlock_t *rwl = (brwlock_t *)arg;
+   semlock_t *sem = (semlock_t *)arg;
 
-   rwl->r_wait--;
-   pthread_mutex_unlock(&rwl->mutex);
+   sem->waiting--;
+   pthread_mutex_unlock(&sem->mutex);
 }
 
-/*
- * Handle cleanup when the write lock condition variable wait
- * is released.
- */
-static void rwl_write_release(void *arg)
-{
-   brwlock_t *rwl = (brwlock_t *)arg;
-
-   rwl->w_wait--;
-   pthread_mutex_unlock(&rwl->mutex);
-}
 
 /*
- * Lock for read access, wait until locked (or error).
+ * Lock semaphore, wait until locked (or error).
  */
-int rwl_readlock(brwlock_t *rwl)
+int sem_lock(semlock_t *sem)
 {
    int stat;
     
-   if (rwl->valid != RWLOCK_VALID) {
+   if (sem->valid != SEMLOCK_VALID) {
       return EINVAL;
    }
-   if ((stat = pthread_mutex_lock(&rwl->mutex)) != 0) {
+   if ((stat = pthread_mutex_lock(&sem->mutex)) != 0) {
       return stat;
    }
-   if (rwl->w_active) {
-      rwl->r_wait++;		      /* indicate that we are waiting */
-      pthread_cleanup_push(rwl_read_release, (void *)rwl);
-      while (rwl->w_active) {
-	 stat = pthread_cond_wait(&rwl->read, &rwl->mutex);
-	 if (stat != 0) {
+   if (sem->active >= sem->max_active) {
+      sem->waiting++;		      /* indicate that we are waiting */
+      pthread_cleanup_push(sem_release, (void *)sem);
+      while (sem->active >= sem->max_active) {
+	 if ((stat = pthread_cond_wait(&sem->wait, &sem->mutex)) != 0) {
 	    break;		      /* error, bail out */
 	 }
       }
       pthread_cleanup_pop(0);
-      rwl->r_wait--;		      /* we are no longer waiting */
+      sem->waiting--;		      /* we are no longer waiting */
    }
    if (stat == 0) {
-      rwl->r_active++;		      /* we are running */
+      sem->active++;		      /* we are running */
    }
-   pthread_mutex_unlock(&rwl->mutex);
+   pthread_mutex_unlock(&sem->mutex);
    return stat;
 }
 
 /* 
- * Attempt to lock for read access, don't wait
+ * Attempt to lock semaphore, don't wait
  */
-int rwl_readtrylock(brwlock_t *rwl)
+int sem_trylock(semlock_t *sem)
 {
-   int stat, stat2;
+   int stat, stat1;
     
-   if (rwl->valid != RWLOCK_VALID) {
+   if (sem->valid != SEMLOCK_VALID) {
       return EINVAL;
    }
-   if ((stat = pthread_mutex_lock(&rwl->mutex)) != 0) {
+   if ((stat = pthread_mutex_lock(&sem->mutex)) != 0) {
       return stat;
    }
-   if (rwl->w_active) {
+
+   if (sem->active >= sem->max_active) {
       stat = EBUSY;
    } else {
-      rwl->r_active++;		      /* we are running */
+      sem->active++;		     /* we are running */
    }
-   stat2 = pthread_mutex_unlock(&rwl->mutex);
-   return (stat == 0 ? stat2 : stat);
+   stat1 = pthread_mutex_unlock(&sem->mutex);
+   return (stat == 0 ? stat1 : stat);
 }
    
 /* 
- * Unlock read lock
+ * Unlock semaphore
+ *  Start any waiting callers
  */
-int rwl_readunlock(brwlock_t *rwl)
+int sem_unlock(semlock_t *sem)
 {
-   int stat, stat2;
+   int stat, stat1;
     
-   if (rwl->valid != RWLOCK_VALID) {
+   if (sem->valid != SEMLOCK_VALID) {
       return EINVAL;
    }
-   if ((stat = pthread_mutex_lock(&rwl->mutex)) != 0) {
+   if ((stat = pthread_mutex_lock(&sem->mutex)) != 0) {
       return stat;
    }
-   rwl->r_active--;
-   if (rwl->r_active == 0 && rwl->w_wait > 0) { /* if writers waiting */
-      stat = pthread_cond_signal(&rwl->write);
+   sem->active--;
+   if (sem->active < 0) {
+      Emsg0(M_ABORT, 0, "sem_unlock by non-owner.\n");
    }
-   stat2 = pthread_mutex_unlock(&rwl->mutex);
-   return (stat == 0 ? stat2 : stat);
-}
-
-
-/*
- * Lock for write access, wait until locked (or error).
- *   Multiple nested write locking is permitted.
- */
-int rwl_writelock(brwlock_t *rwl)
-{
-   int stat;
-    
-   if (rwl->valid != RWLOCK_VALID) {
-      return EINVAL;
-   }
-   if ((stat = pthread_mutex_lock(&rwl->mutex)) != 0) {
-      return stat;
-   }
-   if (rwl->w_active && pthread_equal(rwl->writer_id, pthread_self())) {
-      rwl->w_active++;
-      pthread_mutex_unlock(&rwl->mutex);
-      return 0;
-   }
-   if (rwl->w_active || rwl->r_active > 0) {
-      rwl->w_wait++;		      /* indicate that we are waiting */
-      pthread_cleanup_push(rwl_write_release, (void *)rwl);
-      while (rwl->w_active || rwl->r_active > 0) {
-	 if ((stat = pthread_cond_wait(&rwl->write, &rwl->mutex)) != 0) {
-	    break;		      /* error, bail out */
-	 }
-      }
-      pthread_cleanup_pop(0);
-      rwl->w_wait--;		      /* we are no longer waiting */
-   }
-   if (stat == 0) {
-      rwl->w_active = 1;	      /* we are running */
-      rwl->writer_id = pthread_self(); /* save writer thread's id */
-   }
-   pthread_mutex_unlock(&rwl->mutex);
-   return stat;
-}
-
-/* 
- * Attempt to lock for write access, don't wait
- */
-int rwl_writetrylock(brwlock_t *rwl)
-{
-   int stat, stat2;
-    
-   if (rwl->valid != RWLOCK_VALID) {
-      return EINVAL;
-   }
-   if ((stat = pthread_mutex_lock(&rwl->mutex)) != 0) {
-      return stat;
-   }
-   if (rwl->w_active && pthread_equal(rwl->writer_id, pthread_self())) {
-      rwl->w_active++;
-      pthread_mutex_unlock(&rwl->mutex);
-      return 0;
-   }
-   if (rwl->w_active || rwl->r_active > 0) {
-      stat = EBUSY;
+   if (sem->active >= sem->max_active) {
+      stat = 0; 		      /* caller(s) still active */
    } else {
-      rwl->w_active = 1;	      /* we are running */
-      rwl->writer_id = pthread_self(); /* save writer thread's id */
-   }
-   stat2 = pthread_mutex_unlock(&rwl->mutex);
-   return (stat == 0 ? stat2 : stat);
-}
-   
-/* 
- * Unlock write lock
- *  Start any waiting writers in preference to waiting readers
- */
-int rwl_writeunlock(brwlock_t *rwl)
-{
-   int stat, stat2;
-    
-   if (rwl->valid != RWLOCK_VALID) {
-      return EINVAL;
-   }
-   if ((stat = pthread_mutex_lock(&rwl->mutex)) != 0) {
-      return stat;
-   }
-   rwl->w_active--;
-   if (rwl->w_active < 0 || !pthread_equal(pthread_self(), rwl->writer_id)) {
-      Emsg0(M_ABORT, 0, "rwl_writeunlock by non-owner.\n");
-   }
-   if (rwl->w_active > 0) {
-      stat = 0; 		      /* writers still active */
-   } else {
-      /* No more writers, awaken someone */
-      if (rwl->r_wait > 0) {	     /* if readers waiting */
-	 stat = pthread_cond_broadcast(&rwl->read);
-      } else if (rwl->w_wait > 0) {
-	 stat = pthread_cond_signal(&rwl->write);
+      /* No more active, awaken someone */
+      if (sem->waiting > 0) {	      /* if someone waiting */
+	 stat = pthread_cond_broadcast(&sem->wait);
       }
    }
-   stat2 = pthread_mutex_unlock(&rwl->mutex);
-   return (stat == 0 ? stat2 : stat);
+   stat1 = pthread_mutex_unlock(&sem->mutex);
+   return (stat == 0 ? stat1 : stat);
 }
 
-#ifdef TEST_RWLOCK
+#ifdef TEST_SEMLOCK
 
 #define THREADS     5
 #define DATASIZE   15
@@ -321,10 +214,10 @@ typedef struct thread_tag {
 } thread_t;
 
 /* 
- * Read/write lock and shared data.
+ * Semaphore lock and shared data.
  */
 typedef struct data_tag {
-   brwlock_t lock;
+   semlock_t lock;
    int data;
    int writes;
 } data_t;
@@ -333,7 +226,7 @@ thread_t threads[THREADS];
 data_t data[DATASIZE];
 
 /* 
- * Thread start routine that uses read/write locks.
+ * Thread start routine that uses semaphores locks.
  */
 void *thread_routine(void *arg)
 {
@@ -350,14 +243,14 @@ void *thread_routine(void *arg)
        * lock).
        */
       if ((iteration % self->interval) == 0) {
-	 status = rwl_writelock(&data[element].lock);
+	 status = sem_writelock(&data[element].lock);
 	 if (status != 0) {
             Emsg1(M_ABORT, 0, "Write lock failed. ERR=%s\n", strerror(status));
 	 }
 	 data[element].data = self->thread_num;
 	 data[element].writes++;
 	 self->writes++;
-	 status = rwl_writeunlock(&data[element].lock);
+	 status = sem_writeunlock(&data[element].lock);
 	 if (status != 0) {
             Emsg1(M_ABORT, 0, "Write unlock failed. ERR=%s\n", strerror(status));
 	 }
@@ -367,14 +260,14 @@ void *thread_routine(void *arg)
 	  * the current thread last updated it. Count the
 	  * times to report later.
 	  */
-	  status = rwl_readlock(&data[element].lock);
+	  status = sem_readlock(&data[element].lock);
 	  if (status != 0) {
              Emsg1(M_ABORT, 0, "Read lock failed. ERR=%s\n", strerror(status));
 	  }
 	  self->reads++;
 	  if (data[element].data == self->thread_num)
 	     repeats++;
-	  status = rwl_readunlock(&data[element].lock);
+	  status = sem_readunlock(&data[element].lock);
 	  if (status != 0) {
              Emsg1(M_ABORT, 0, "Read unlock failed. ERR=%s\n", strerror(status));
 	  }
@@ -415,7 +308,7 @@ int main (int argc, char *argv[])
     for (data_count = 0; data_count < DATASIZE; data_count++) {
 	data[data_count].data = 0;
 	data[data_count].writes = 0;
-	status = rwl_init (&data[data_count].lock);
+	status = sem_init (&data[data_count].lock);
 	if (status != 0) {
            Emsg1(M_ABORT, 0, "Init rwlock failed. ERR=%s\n", strerror(status));
 	}
@@ -429,7 +322,7 @@ int main (int argc, char *argv[])
 	threads[count].writes = 0;
 	threads[count].reads = 0;
 	threads[count].interval = rand_r (&seed) % 71;
-	status = pthread_create (&threads[count].thread_id,
+	status = pthread_create(&threads[count].thread_id,
 	    NULL, thread_routine, (void*)&threads[count]);
 	if (status != 0) {
            Emsg1(M_ABORT, 0, "Create thread failed. ERR=%s\n", strerror(status));
@@ -458,7 +351,7 @@ int main (int argc, char *argv[])
 	data_writes += data[data_count].writes;
         printf ("data %02d: value %d, %d writes\n",
 	    data_count, data[data_count].data, data[data_count].writes);
-	rwl_destroy (&data[data_count].lock);
+	sem_destroy (&data[data_count].lock);
     }
 
     printf ("Total: %d thread writes, %d data writes\n",
@@ -468,9 +361,9 @@ int main (int argc, char *argv[])
 
 #endif
 
-#ifdef TEST_RW_TRY_LOCK
+#ifdef TEST_SEM_TRY_LOCK
 /*
- * brwlock_try_main.c
+ * semlock_try_main.c
  *
  * Demonstrate use of non-blocking read-write locks.
  *
@@ -479,7 +372,7 @@ int main (int argc, char *argv[])
  * timesliced.
  */
 #include <pthread.h>
-#include "rwlock.h"
+#include "semlock.h"
 #include "errors.h"
 
 #define THREADS 	5
@@ -502,7 +395,7 @@ typedef struct thread_tag {
  * Read-write lock and shared data
  */
 typedef struct data_tag {
-    brwlock_t	 lock;
+    semlock_t	 lock;
     int 	data;
     int 	updates;
 } data_t;
@@ -524,18 +417,18 @@ void *thread_routine (void *arg)
 
     for (iteration = 0; iteration < ITERATIONS; iteration++) {
 	if ((iteration % self->interval) == 0) {
-	    status = rwl_writetrylock (&data[element].lock);
+	    status = sem_writetrylock (&data[element].lock);
 	    if (status == EBUSY)
 		self->w_collisions++;
 	    else if (status == 0) {
 		data[element].data++;
 		data[element].updates++;
 		self->updates++;
-		rwl_writeunlock (&data[element].lock);
+		sem_writeunlock (&data[element].lock);
 	    } else
                 err_abort (status, "Try write lock");
 	} else {
-	    status = rwl_readtrylock (&data[element].lock);
+	    status = sem_readtrylock (&data[element].lock);
 	    if (status == EBUSY)
 		self->r_collisions++;
 	    else if (status != 0) {
@@ -545,7 +438,7 @@ void *thread_routine (void *arg)
                     printf ("%d: data[%d] %d != %d\n",
 			self->thread_num, element,
 			data[element].data, data[element].updates);
-		rwl_readunlock (&data[element].lock);
+		sem_readunlock (&data[element].lock);
 	    }
 	}
 
@@ -579,7 +472,7 @@ int main (int argc, char *argv[])
     for (data_count = 0; data_count < DATASIZE; data_count++) {
 	data[data_count].data = 0;
 	data[data_count].updates = 0;
-	rwl_init (&data[data_count].lock);
+	sem_init (&data[data_count].lock);
     }
 
     /*
@@ -602,9 +495,9 @@ int main (int argc, char *argv[])
      * statistics.
      */
     for (count = 0; count < THREADS; count++) {
-	status = pthread_join (threads[count].thread_id, NULL);
+	status = pthread_join(threads[count].thread_id, NULL);
 	if (status != 0)
-            err_abort (status, "Join thread");
+            err_abort(status, "Join thread");
 	thread_updates += threads[count].updates;
         printf ("%02d: interval %d, updates %d, "
                 "r_collisions %d, w_collisions %d\n",
@@ -620,7 +513,7 @@ int main (int argc, char *argv[])
 	data_updates += data[data_count].updates;
         printf ("data %02d: value %d, %d updates\n",
 	    data_count, data[data_count].data, data[data_count].updates);
-	rwl_destroy (&data[data_count].lock);
+	sem_destroy(&data[data_count].lock);
     }
 
     return 0;

@@ -117,7 +117,7 @@ int	   close_spool_file	 (void *vjcr, BSOCK *bs);
 
 /* bnet_server.c */
 void	   bnet_thread_server(char *bind_addr, int port, int max_clients, workq_t *client_wq, 
-		   void handle_client_request(void *bsock));
+		   void *handle_client_request(void *bsock));
 void		 bnet_server		 (int port, void handle_client_request(BSOCK *bsock));
 int		 net_connect		 (int port);
 BSOCK * 	 bnet_bind		 (int port);

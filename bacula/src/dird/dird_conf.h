@@ -91,7 +91,7 @@ struct s_res_dir {
    char *pid_directory;               /* PidDirectory */
    char *subsys_directory;            /* SubsysDirectory */
    struct s_res_msgs *messages;       /* Daemon message handler */
-   int   MaxConcurrentJobs;
+   uint32_t MaxConcurrentJobs;        /* Max concurrent jobs for whole director */
    utime_t FDConnectTimeout;          /* timeout for connect in seconds */
    utime_t SDConnectTimeout;          /* timeout in seconds */
 };
@@ -111,6 +111,8 @@ struct s_res_client {
    char *address;
    char *password;
    struct s_res_cat    *catalog;       /* Catalog resource */
+   uint32_t MaxConcurrentJobs;        /* Maximume concurrent jobs */
+   semlock_t sem;                      /* client semaphore */
 };
 typedef struct s_res_client CLIENT;
 
@@ -128,6 +130,8 @@ struct s_res_store {
    char *media_type;
    char *dev_name;   
    int  autochanger;                  /* set if autochanger */
+   uint32_t MaxConcurrentJobs;        /* Maximume concurrent jobs */
+   semlock_t sem;                     /* storage semaphore */
 };
 typedef struct s_res_store STORE;
 
@@ -170,13 +174,16 @@ struct s_res_job {
    int PruneFiles;                    /* Force pruning of Files */
    int PruneVolumes;                  /* Force pruning of Volumes */
    int SpoolAttributes;               /* Set to spool attributes in SD */
-
+   uint32_t MaxConcurrentJobs;        /* Maximume concurrent jobs */
+  
    struct s_res_msgs   *messages;     /* How and where to send messages */
    struct s_res_sch    *schedule;     /* When -- Automatic schedule */
    struct s_res_client *client;       /* Who to backup */
    struct s_res_fs     *fileset;      /* What to backup -- Fileset */
    struct s_res_store  *storage;      /* Where is device -- Storage daemon */
    struct s_res_pool   *pool;         /* Where is media -- Media Pool */
+
+   semlock_t sem;                     /* Job semaphore */
 };
 typedef struct s_res_job JOB;
 

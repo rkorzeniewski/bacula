@@ -106,7 +106,7 @@ static struct s_cmds cmds[] = {
  *  - We execute the command
  *  - We continue or exit depending on the return status
  */
-void connection_request(void *arg)
+void *connection_request(void *arg)
 {
    BSOCK *bs = (BSOCK *)arg;
    JCR *jcr;
@@ -116,7 +116,7 @@ void connection_request(void *arg)
 
    if (bnet_recv(bs) <= 0) {
       Emsg0(M_ERROR, 0, "Connection request failed.\n");
-      return;
+      return NULL;
    }
 
    /* 
@@ -124,7 +124,7 @@ void connection_request(void *arg)
     */
    if (sscanf(bs->msg, "Hello Start Job %127s calling\n", name) == 1) {
       handle_filed_connection(bs, name);
-      return;
+      return NULL;
    }
    
    jcr = new_jcr(sizeof(JCR), stored_free_jcr);     /* create Job Control Record */
@@ -138,7 +138,7 @@ void connection_request(void *arg)
    if (!authenticate_director(jcr)) {
       Jmsg(jcr, M_FATAL, 0, _("Unable to authenticate Director\n"));
       free_jcr(jcr);
-      return;
+      return NULL;
    }
    Dmsg0(90, "Message channel init completed.\n");
 
@@ -170,7 +170,7 @@ void connection_request(void *arg)
       bnet_sig(bs, BNET_TERMINATE);
    }
    free_jcr(jcr);
-   return;
+   return NULL;
 }
 
 /*

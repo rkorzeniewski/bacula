@@ -39,6 +39,7 @@
 #include "bshm.h"
 #include "workq.h"
 #include "rwlock.h"
+#include "semlock.h"
 #include "queue.h"
 #include "serial.h"
 #ifndef HAVE_FNMATCH

@@ -251,6 +251,19 @@ static void do_director_status(UAContext *ua, char *cmd)
             Mmsg(&msg, _("is waiting on Storage %s"), jcr->store->hdr.name);
 	    pool_mem = TRUE;
 	    break;
+	 case JS_WaitStoreRes:
+            msg = _("is waiting on max Storage jobs");
+	    break;
+	 case JS_WaitClientRes:
+            msg = _("is waiting on max Client jobs");
+	    break;
+	 case JS_WaitJobRes:
+            msg = _("is waiting on max Job jobs");
+	    break;
+	 case JS_WaitMaxJobs:
+            msg = _("is waiting on max total jobs");
+	    break;
+
 	 default:
 	    msg = (char *) get_pool_memory(PM_FNAME);
             Mmsg(&msg, _("is in unknown state %c"), jcr->JobStatus);

@@ -38,7 +38,9 @@ extern int r_first;
 extern int r_last;
 extern struct s_res resources[];
 extern char my_name[];
+#ifndef USE_SEMAPHORE 
 extern workq_t job_wq;		      /* work queue */
+#endif
 
 extern char *list_pool;
 
@@ -416,7 +418,9 @@ static int cancelcmd(UAContext *ua, char *cmd)
       set_jcr_job_status(jcr, JS_Cancelled);
       bsendmsg(ua, _("JobId %d, Job %s marked to be cancelled.\n"),
 	      jcr->JobId, jcr->Job);
+#ifndef USE_SEMAPHORE
       workq_remove(&job_wq, jcr->work_item); /* attempt to remove it from queue */
+#endif
       free_jcr(jcr);
       return 1;
 	 
@@ -1337,11 +1341,13 @@ gotVol:
    bash_spaces(pr.Name);
    bnet_fsend(sd, _("label %s VolumeName=%s PoolName=%s MediaType=%s Slot=%d"), 
       dev_name, mr.VolumeName, pr.Name, mr.MediaType, mr.Slot);
-   bsendmsg(ua, "Sending label command ...\n");
+   bsendmsg(ua, _("Sending label command ...\n"));
    while (bget_msg(sd, 0) >= 0) {
       bsendmsg(ua, "%s", sd->msg);
       if (strncmp(sd->msg, "3000 OK label.", 14) == 0) {
 	 ok = TRUE;
+      } else {
+         bsendmsg(ua, _("Label command failed.\n"));
       }
    }
    ua->jcr->store_bsock = NULL;

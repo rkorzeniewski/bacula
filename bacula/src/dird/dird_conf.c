@@ -118,6 +118,7 @@ static struct res_items cli_items[] = {
    {"fileretention", store_time,  ITEM(res_client.FileRetention), 0, ITEM_DEFAULT, 60*60*24*60},
    {"jobretention",  store_time,  ITEM(res_client.JobRetention),  0, ITEM_DEFAULT, 60*60*24*180},
    {"autoprune", store_yesno,     ITEM(res_client.AutoPrune), 1, ITEM_DEFAULT, 1},
+   {"maximumconcurrentjobs", store_pint, ITEM(res_client.MaxConcurrentJobs), 0, ITEM_DEFAULT, 1},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 
@@ -135,6 +136,7 @@ static struct res_items store_items[] = {
    {"device",    store_strname,  ITEM(res_store.dev_name),   0, ITEM_REQUIRED, 0},
    {"mediatype", store_strname,  ITEM(res_store.media_type), 0, ITEM_REQUIRED, 0},
    {"autochanger", store_yesno,  ITEM(res_store.autochanger), 1, ITEM_DEFAULT, 0},
+   {"maximumconcurrentjobs", store_pint, ITEM(res_store.MaxConcurrentJobs), 0, ITEM_DEFAULT, 1},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 
@@ -189,6 +191,7 @@ static struct res_items job_items[] = {
    {"runafterjob",  store_str,  ITEM(res_job.RunAfterJob),  0, 0, 0},
    {"spoolattributes", store_yesno, ITEM(res_job.SpoolAttributes), 1, ITEM_DEFAULT, 0},
    {"writebootstrap", store_dir, ITEM(res_job.WriteBootstrap), 0, 0, 0},
+   {"maximumconcurrentjobs", store_pint, ITEM(res_job.MaxConcurrentJobs), 0, ITEM_DEFAULT, 1},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 
@@ -383,7 +386,7 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
    switch (type) {
       case R_DIRECTOR:
 	 char ed1[30], ed2[30];
-         sendit(sock, "Director: name=%s maxjobs=%d FDtimeout=%s SDtimeout=%s\n", 
+         sendit(sock, "Director: name=%s MaxJobs=%d FDtimeout=%s SDtimeout=%s\n", 
 	    reshdr->name, res->res_dir.MaxConcurrentJobs, 
 	    edit_uint64(res->res_dir.FDConnectTimeout, ed1),
 	    edit_uint64(res->res_dir.SDConnectTimeout, ed2));
@@ -396,8 +399,9 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
 	 }
 	 break;
       case R_CLIENT:
-         sendit(sock, "Client: name=%s address=%s FDport=%d\n",
-	    res->res_client.hdr.name, res->res_client.address, res->res_client.FDport);
+         sendit(sock, "Client: name=%s address=%s FDport=%d MaxJobs=%u\n",
+	    res->res_client.hdr.name, res->res_client.address, res->res_client.FDport,
+	    res->res_client.MaxConcurrentJobs);
          sendit(sock, "      JobRetention=%" lld " FileRetention=%" lld " AutoPrune=%d\n",
 	    res->res_client.JobRetention, res->res_client.FileRetention,
 	    res->res_client.AutoPrune);
@@ -407,9 +411,10 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
 	 }
 	 break;
       case R_STORAGE:
-         sendit(sock, "Storage: name=%s address=%s SDport=%d\n\
+         sendit(sock, "Storage: name=%s address=%s SDport=%d MaxJobs=%u\n\
          DeviceName=%s MediaType=%s\n",
 	    res->res_store.hdr.name, res->res_store.address, res->res_store.SDport,
+	    res->res_store.MaxConcurrentJobs,
 	    res->res_store.dev_name, res->res_store.media_type);
 	 break;
       case R_CATALOG:
@@ -419,8 +424,9 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
 	    res->res_cat.db_port, res->res_cat.db_name, NPRT(res->res_cat.db_user));
 	 break;
       case R_JOB:
-         sendit(sock, "Job: name=%s JobType=%d level=%s\n", res->res_job.hdr.name, 
-	    res->res_job.JobType, level_to_str(res->res_job.level));
+         sendit(sock, "Job: name=%s JobType=%d level=%s MaxJobs=%u\n", 
+	    res->res_job.hdr.name, res->res_job.JobType, 
+	    level_to_str(res->res_job.level), res->res_job.MaxConcurrentJobs);
 	 if (res->res_job.client) {
             sendit(sock, "  --> ");
 	    dump_resource(-R_CLIENT, (RES *)res->res_job.client, sendit, sock);

@@ -30,12 +30,16 @@
 #include "dird.h"
 
 /* Forward referenced subroutines */
-static void job_thread(void *arg);
+static void *job_thread(void *arg);
 static char *edit_run_codes(JCR *jcr, char *omsg, char *imsg);
+static void release_resource_locks(JCR *jcr);
+static int acquire_resource_locks(JCR *jcr);
+#ifdef USE_SEMAPHORE
+static void backoff_resource_locks(JCR *jcr, int count);
+#endif
 
 /* Exported subroutines */
 void run_job(JCR *jcr);
-void init_job_server(int max_workers);
 
 
 /* Imported subroutines */
@@ -46,17 +50,34 @@ extern int do_restore(JCR *jcr);
 extern int do_verify(JCR *jcr);
 extern void backup_cleanup(void);
 
+#ifdef USE_SEMAPHORE
+static semlock_t job_lock;
+static pthread_mutex_t mutex;
+static pthread_cond_t  resource_wait;
+#else
 /* Queue of jobs to be run */
 workq_t job_wq; 		  /* our job work queue */
-
+#endif
 
 void init_job_server(int max_workers)
 {
    int stat;
+#ifdef USE_SEMAPHORE
+   if ((stat = sem_init(&job_lock, max_workers)) != 0) {
+      Emsg1(M_ABORT, 0, _("Could not init job lock: ERR=%s\n"), strerror(stat));
+   }
+   if ((stat = pthread_mutex_init(&mutex, NULL)) != 0) {
+      Emsg1(M_ABORT, 0, _("Could not init resource mutex: ERR=%s\n"), strerror(stat));
+   }
+   if ((stat = pthread_cond_init(&resource_wait, NULL)) != 0) {
+      Emsg1(M_ABORT, 0, _("Could not init resource wait: ERR=%s\n"), strerror(stat));
+   }
 
+#else
    if ((stat = workq_init(&job_wq, max_workers, job_thread)) != 0) {
       Emsg1(M_ABORT, 0, _("Could not init job work queue: ERR=%s\n"), strerror(stat));
    }
+#endif
    return;
 }
 
@@ -68,7 +89,11 @@ void init_job_server(int max_workers)
 void run_job(JCR *jcr)
 {
    int stat, errstat;
+#ifdef USE_SEMAPHORE
+   pthread_t tid;
+#else
    workq_ele_t *work_item;
+#endif
 
    sm_check(__FILE__, __LINE__, True);
    init_msg(jcr, jcr->messages);
@@ -123,12 +148,17 @@ void run_job(JCR *jcr)
        jcr->JobId, jcr->Job, jcr->jr.Type, jcr->jr.Level);
    Dmsg0(200, "Add jrc to work queue\n");
 
-
+#ifdef USE_SEMAPHORE
+  if ((stat = pthread_create(&tid, NULL, job_thread, (void *)jcr)) != 0) {
+      Emsg1(M_ABORT, 0, _("Unable to create job thread: ERR=%s\n"), strerror(stat));
+   }
+#else
    /* Queue the job to be run */
    if ((stat = workq_add(&job_wq, (void *)jcr, &work_item, 0)) != 0) {
       Emsg1(M_ABORT, 0, _("Could not add job to work queue: ERR=%s\n"), strerror(stat));
    }
    jcr->work_item = work_item;
+#endif
    Dmsg0(200, "Done run_job()\n");
 }
 
@@ -137,22 +167,28 @@ void run_job(JCR *jcr)
  *  from the work queue.
  *  At this point, we are running in our own thread 
  */
-static void job_thread(void *arg)
+static void *job_thread(void *arg)
 {
    time_t now;
    JCR *jcr = (JCR *)arg;
 
+   pthread_detach(pthread_self());
    time(&now);
    sm_check(__FILE__, __LINE__, True);
 
-   Dmsg0(100, "=====Start Job=========\n");
+   if (!acquire_resource_locks(jcr)) {
+      set_jcr_job_status(jcr, JS_Cancelled);
+   }
+
+   Dmsg0(200, "=====Start Job=========\n");
    jcr->start_time = now;	      /* set the real start time */
+   Dmsg2(200, "jcr->JobStatus=%d %c\n", jcr->JobStatus, (char)jcr->JobStatus);
    if (job_cancelled(jcr)) {
       update_job_end_record(jcr);
    } else if (jcr->job->MaxStartDelay != 0 && jcr->job->MaxStartDelay <
        (utime_t)(jcr->start_time - jcr->sched_time)) {
-      Jmsg(jcr, M_FATAL, 0, _("Job cancelled because max delay time exceeded.\n"));
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      Jmsg(jcr, M_FATAL, 0, _("Job cancelled because max start delay time exceeded.\n"));
+      set_jcr_job_status(jcr, JS_Cancelled);
       update_job_end_record(jcr);
    } else {
 
@@ -204,10 +240,107 @@ static void job_thread(void *arg)
 	 free_pool_memory(after);
       }
    }
+   release_resource_locks(jcr);
    Dmsg0(50, "Before free jcr\n");
    free_jcr(jcr);
    Dmsg0(50, "======== End Job ==========\n");
    sm_check(__FILE__, __LINE__, True);
+   return NULL;
+}
+
+static int acquire_resource_locks(JCR *jcr)
+{
+#ifdef USE_SEMAPHORE
+   int stat;
+
+   if (jcr->store->sem.valid != SEMLOCK_VALID) {
+      if ((stat = sem_init(&jcr->store->sem, jcr->store->MaxConcurrentJobs)) != 0) {
+         Emsg1(M_ABORT, 0, _("Could not init Storage semaphore: ERR=%s\n"), strerror(stat));
+      }
+   }
+   if (jcr->client->sem.valid != SEMLOCK_VALID) {
+      if ((stat = sem_init(&jcr->client->sem, jcr->client->MaxConcurrentJobs)) != 0) {
+         Emsg1(M_ABORT, 0, _("Could not init Client semaphore: ERR=%s\n"), strerror(stat));
+      }
+   }
+   if (jcr->job->sem.valid != SEMLOCK_VALID) {
+      if ((stat = sem_init(&jcr->job->sem, jcr->job->MaxConcurrentJobs)) != 0) {
+         Emsg1(M_ABORT, 0, _("Could not init Job semaphore: ERR=%s\n"), strerror(stat));
+      }
+   }
+
+   for ( ;; ) {
+      /* Acquire semaphore */
+      set_jcr_job_status(jcr, JS_WaitJobRes);
+      if ((stat = sem_lock(&jcr->job->sem)) != 0) {
+         Emsg1(M_ABORT, 0, _("Could not acquire Job max jobs lock: ERR=%s\n"), strerror(stat));
+      }
+      set_jcr_job_status(jcr, JS_WaitClientRes);
+      if ((stat = sem_trylock(&jcr->client->sem)) != 0) {
+	 if (stat == EBUSY) {
+	    backoff_resource_locks(jcr, 1);
+	    goto wait;
+	 } else {
+            Emsg1(M_ABORT, 0, _("Could not acquire Client max jobs lock: ERR=%s\n"), strerror(stat));
+	 }
+      }
+      set_jcr_job_status(jcr, JS_WaitStoreRes);
+      if ((stat = sem_trylock(&jcr->store->sem)) != 0) {
+	 if (stat == EBUSY) {
+	    backoff_resource_locks(jcr, 2);
+	    goto wait;
+	 } else {
+            Emsg1(M_ABORT, 0, _("Could not acquire Storage max jobs lock: ERR=%s\n"), strerror(stat));
+	 }
+      }
+      set_jcr_job_status(jcr, JS_WaitMaxJobs);
+      if ((stat = sem_trylock(&job_lock)) != 0) {
+	 if (stat == EBUSY) {
+	    backoff_resource_locks(jcr, 3);
+	    goto wait;
+	 } else {
+            Emsg1(M_ABORT, 0, _("Could not acquire max jobs lock: ERR=%s\n"), strerror(stat));
+	 }
+      }
+      break;
+
+wait:
+      P(mutex);
+      /* Wait for some resource to be released */
+      pthread_cond_wait(&resource_wait, &mutex);
+      V(mutex);
+      /* Try again */
+   }
+#endif
+   return 1;
+}
+
+#ifdef USE_SEMAPHORE
+static void backoff_resource_locks(JCR *jcr, int count)
+{
+   switch (count) {
+   case 3:
+      sem_unlock(&jcr->store->sem);
+   case 2:
+      sem_unlock(&jcr->client->sem);
+   case 1:
+      sem_unlock(&jcr->job->sem);
+      break;
+   }
+}
+#endif
+
+static void release_resource_locks(JCR *jcr)
+{
+#ifdef USE_SEMAPHORE
+   P(mutex);
+   sem_unlock(&jcr->store->sem);
+   sem_unlock(&jcr->client->sem);
+   sem_unlock(&jcr->job->sem);
+   sem_unlock(&job_lock);
+   pthread_cond_signal(&resource_wait);
+   V(mutex);
+#endif
 }
 
 /*

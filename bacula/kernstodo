@@ -21,19 +21,56 @@ Testing to do: (painful)
 - ***test GetFileAttributexEx, and remove MessageBox at 335 of winservice.cpp ****
 
 For 1.30 release:
-- Cancelling of a queued job does NOT work!!!!!!
+- Refine SD waiting output:
+    Device is being positioned
+    >     Device is being positioned for append
+    >     Device is being positioned to file x
+    > 
+- > Hello,
+>
+> Possibly your /etc/bacula/my_exclude is not
+> marked as executable. It MUST be executable.
+
+the script is executeabe (0777 for testing) 
+
+> Another solution is simply to include the
+> find command in the exclude:
+>   Exclude = {
+>     "|find / -iname *.avi -o -iname *.mpg -o -iname *.mp3"
+>   }
+
+it doesn't work :(
+
+i tried it on two different systems with bacula 1.29
+
+this works:
+Exclude {
+  <file.list
+  }
+
+Exclude {
+  *.avi
+  }
+
+this doesn't:
+Exclude {
+ "|find / -iname *.avi"
+ }
+
+Exclude {
+ "|/etc/bacula/my_exclude
+ } 
+
+
+i dont understand it anymore :(
+
+- Issue message to mount a new tape before the rewind.
+- Simplified client job initiation for portables.
+- If SD cannot open a drive, make it periodically retry.
+- Implement LabelTemplate (at least first cut).
 - Bevan Anderson suggests having a run queue for each device
   so that multiple simultaneous jobs can run but each writing
   to a different Volume.
-- Get two 
-rufus-dir: Volume used once. Marking Volume "File0003" as Used.
-rufus-sd: Recycled volume File0003 on device /home/kern/bacula/working, all previous data lost.
-rufus-dir: Volume used once. Marking Volume "File0003" as Used.
-- Ability to backup to a file then later transfer to a tape -- Migration.
-  Migration based on MaxJobs(MinJobs),MaxVols(MinVols),AgeJobs,MaxBytes(MinBytes)
-  (i.e. HighwaterMark, LowwaterMark).
-- Eugeny Fisher <efischer@vip-rus.com> wants to cycle through a
-  set of volumes recycling the oldest volume when it is needed.
 - Fix "access not allowed" for backup of files on WinXP.
 - Figure out some way to specify a retention period for files
   that no longer exist on the machine -- so that we maintain
@@ -153,7 +190,6 @@ rufus-dir: Volume used once. Marking Volume "File0003" as Used.
 - Complete code in Bacula Resources -- this will permit
   reading a new config file at any time.
 - Handle ctl-c in Console
-- Implement LabelTemplate (at least first cut).
 - Implement script driven addition of File daemon to config files.
 - Think about how to make Bacula work better with File (non-tape) archives.
 - Write Unix emulator for Windows.
@@ -165,8 +201,6 @@ rufus-dir: Volume used once. Marking Volume "File0003" as Used.
 - Put memory utilization in Status output of each daemon
   if full status requested or if some level of debug on.
 - Make database type selectable by .conf files i.e. at runtime
-- gethostbyname failure in bnet_connect() continues
-  generating errors -- should stop.
 - Set flag for uname -a.  Add to Volume label.
 - Implement throttled work queue.
 - Check for EOT at ENOSPC or EIO or ENXIO (unix Pc)
@@ -187,7 +221,6 @@ rufus-dir: Volume used once. Marking Volume "File0003" as Used.
 - Implement Restore FileSet=
 - Create a protocol.h and protocol.c where all protocol messages
   are concentrated.
-- If SD cannot open a drive, make it periodically retry.
 - Remove duplicate fields from jcr (e.g. jcr.level and jcr.jr.Level, ...).
 - Timout a job or terminate if link goes down, or reopen link and query.
 - Find general solution for sscanf size problems (as well
@@ -268,7 +301,7 @@ rufus-dir: Volume used once. Marking Volume "File0003" as Used.
   This could be the output of df; or perhaps some sort of /etc/mtab record.
 
 Longer term to do:
-- Design at hierarchial storage for Bacula.
+- Design at hierarchial storage for Bacula. Migration and Clone. 
 - Implement FSM (File System Modules).
 - Identify unchanged or "system" files and save them to a
   special tape thus removing them from the standard 
@@ -897,3 +930,15 @@ Done: (see kernsdone for more)
      ERR=Operation not permited loop.
 - Add code if there is no mtio.h (cannot do -- too many ioctl defines needed)
 - Produce better error messages in when error/eof writing block.
+- Cancelling of a queued job does NOT work!!!!!!
+- Get two 
+rufus-dir: Volume used once. Marking Volume "File0003" as Used.
+rufus-sd: Recycled volume File0003 on device /home/kern/bacula/working, all previous data lost.
+rufus-dir: Volume used once. Marking Volume "File0003" as Used.
+- Ability to backup to a file then later transfer to a tape -- Migration.
+  Migration based on MaxJobs(MinJobs),MaxVols(MinVols),AgeJobs,MaxBytes(MinBytes)
+  (i.e. HighwaterMark, LowwaterMark).
+- Eugeny Fisher <efischer@vip-rus.com> wants to cycle through a
+  set of volumes recycling the oldest volume when it is needed.
+- gethostbyname failure in bnet_connect() continues
+  generating errors -- should stop.

@@ -158,7 +158,7 @@ db_update_pool_record(void *jcr, B_DB *mdb, POOL_DBR *pr)
 
    db_lock(mdb);
    Mmsg(&mdb->cmd,
-"UPDATE Pool SET NumVols=%d,MaxVols=%d,UseOnce=%d,UseCatalog=%d," 
+"UPDATE Pool SET NumVols=%u,MaxVols=%u,UseOnce=%d,UseCatalog=%d," 
 "AcceptAnyVolume=%d,VolRetention='%s',VolUseDuration='%s',"
 "MaxVolJobs=%u,MaxVolFiles=%u,MaxVolBytes=%s,Recycle=%d,"
 "AutoPrune=%d,LabelFormat='%s' WHERE PoolId=%u",
