@@ -23,6 +23,10 @@ For 1.30 release:
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 After 1.30:
+- Change M_INFO to M_RESTORED for all restored files.
+- Remove subsysdir from conf files (used only in autostart scripts).
+- Implement console @echo command.
+- Implement global with DB name and add to btraceback.gdb
 - Bug: fix access problems on files restored on WinXP.
 - Implement a Slot priority (loaded/not loaded).
 - Implement "vacation" Incremental only saves.

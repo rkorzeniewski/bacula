@@ -1,5 +1,8 @@
 
-2003-xx-yy Version 1.30 released
+2003-04-28 Version 1.30 released
+- Fix command history for gnome-console (must malloc).
+- Add two cancel points in acquire_resources(). The job will not
+  be immediately terminated in all cases.
 - The new AutoMount code broke File archives -- fixed.
 - Correct watchdog mutex race introduced yesterday.
 - Add JobLevel to Admin run started by UA.
