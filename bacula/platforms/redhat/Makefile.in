@@ -70,6 +70,6 @@ uninstall-autostart-dir:
 clean:
 
 distclean: clean
-	@rm -f Makefile bacula-*.spec
+	@rm -f Makefile bacula-*.spec bacula.*.spec
 	@rm -f bacula-sd bacula-fd bacula-dir
 	@rm -rf CVS

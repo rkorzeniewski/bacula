@@ -1,4 +1,4 @@
-# autoconf/Make.common.in	 -*- Makefile -*-
+# autoconf/Make.common.in        -*- Makefile -*-
 # release date (man), LSM date, version number/name, current maintainer
 DATE="@DATE@"
 LSMDATE=@LSMDATE@
@@ -50,9 +50,9 @@ AR = @AR@
 RANLIB = @RANLIB@
 INSTALL = @INSTALL@
 # add the -s to the following in PRODUCTION mode
-INSTALL_PROGRAM = @INSTALL@ -m 755
+INSTALL_PROGRAM = @INSTALL@ -m 754
 INSTALL_DATA = @INSTALL@ -m 644
-INSTALL_SCRIPT = @INSTALL@ -m 755
+INSTALL_SCRIPT = @INSTALL@ -m 754
 INSTALL_CONFIG = @INSTALL@ -m 640
 
 # Flags & libs
