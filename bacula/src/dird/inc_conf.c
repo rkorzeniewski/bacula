@@ -79,6 +79,7 @@ static RES_ITEM options_items[] = {
    {"onefs",           store_opts,    NULL,     0, 0, 0},
    {"recurse",         store_opts,    NULL,     0, 0, 0},
    {"sparse",          store_opts,    NULL,     0, 0, 0},
+   {"hardlinks",       store_opts,    NULL,     0, 0, 0},
    {"readfifo",        store_opts,    NULL,     0, 0, 0},
    {"replace",         store_opts,    NULL,     0, 0, 0},
    {"portable",        store_opts,    NULL,     0, 0, 0},
@@ -106,6 +107,7 @@ enum {
    INC_KW_ONEFS,
    INC_KW_RECURSE,
    INC_KW_SPARSE,
+   INC_KW_HARDLINK,
    INC_KW_REPLACE,		 /* restore options */
    INC_KW_READFIFO,		 /* Causes fifo data to be read */
    INC_KW_PORTABLE,
@@ -127,6 +129,7 @@ static struct s_kw FS_option_kw[] = {
    {"onefs",       INC_KW_ONEFS},
    {"recurse",     INC_KW_RECURSE},
    {"sparse",      INC_KW_SPARSE},
+   {"hardlinks",   INC_KW_HARDLINK},
    {"replace",     INC_KW_REPLACE},
    {"readfifo",    INC_KW_READFIFO},
    {"portable",    INC_KW_PORTABLE},
@@ -172,6 +175,8 @@ static struct s_fs_opt FS_options[] = {
    {"no",       INC_KW_RECURSE,       "h"},
    {"yes",      INC_KW_SPARSE,        "s"},
    {"no",       INC_KW_SPARSE,        "0"},
+   {"yes",      INC_KW_HARDLINK,      "0"},
+   {"no",       INC_KW_HARDLINK,      "H"},
    {"always",   INC_KW_REPLACE,       "a"},
    {"ifnewer",  INC_KW_REPLACE,       "w"},
    {"never",    INC_KW_REPLACE,       "n"},

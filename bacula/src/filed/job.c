@@ -861,6 +861,9 @@ static void set_options(findFOPTS *fo, const char *opts)
       case 'h':                 /* no recursion */
 	 fo->flags |= FO_NO_RECURSION;
 	 break;
+      case 'H':                 /* no hard link handling */
+	 fo->flags |= FO_NO_HARDLINK;
+	 break;
       case 'M':                 /* MD5 */
 	 fo->flags |= FO_MD5;
 	 break;

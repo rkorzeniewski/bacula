@@ -121,7 +121,8 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
     *  allows us to ensure that the data of each file gets backed 
     *  up only once.
     */
-   if (ff_pkt->statp.st_nlink > 1
+   if (!(ff_pkt->flags & FO_NO_HARDLINK)
+       && ff_pkt->statp.st_nlink > 1
        && (S_ISREG(ff_pkt->statp.st_mode)
 	   || S_ISCHR(ff_pkt->statp.st_mode)
 	   || S_ISBLK(ff_pkt->statp.st_mode)
