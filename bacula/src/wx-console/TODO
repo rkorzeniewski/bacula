@@ -3,10 +3,6 @@ FEATURES
 
 GTK : Fix 100% CPU usage when waiting for results
 
-wxbRestorePanel : when the director is building tree, change the cursor to a 
-   wait type cursor, make changes to the status in the gauge (need to parse the
-   table).
-
 wxbMainFrame : Add some text in front of the command window such as 
    "Command: " so that the user knows he can type into the 
    command window (or command line)
@@ -15,11 +11,9 @@ wxbRestorePanel : Select the first client when clicked on start button.
 
 wxbRestorePanel : Reconsider start button's labels.
 
-console_thread : Show a nice message when config file is not found.
+general : Show nice messages when errors occurs.
 
-wxbMainFrame : Automatically scroll to the bottom of console control.
-
-wxbMainFrame : use more often the status text
+wxbMainFrame : use more often status text
 
 wxbRestorePanel : Add a Cancel Restore button
    (may need to implement BNET_BREAK to break current command)
@@ -32,6 +26,8 @@ wxbRestorePanel : However, if one double clicks on a directory X in the left
 wxbRestorePanel : abort restore if there's no client.
 
 general : Allow the user to quit however the state is (kill thread if necessary)
+
+VC++ : crashing when there's no configuration file, or server is unreachable
 
 [postponed to July:]
 

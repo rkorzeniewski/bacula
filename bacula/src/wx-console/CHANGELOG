@@ -1,3 +1,10 @@
+25-04-2003 :
+ - wxbRestorePanel : when the director is building tree, 
+     changes are made to the status in the gauge.
+ - wxbRestorePanel : Cursor set to hourglass when working
+ - wxbMainFrame : Automatically scrolling to the bottom of 
+     console text control.
+
 24-04-2003 :
  - wxbMainFrame : When starting wx-console, the initial key 
       input focus is set into the command window.

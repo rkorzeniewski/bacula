@@ -141,8 +141,6 @@ private:
 
    static wxbMainFrame *frame; /* this */
    
-   int nlines; /* number of lines in the console */
-
    // any class wishing to process wxWindows events must use this macro
    DECLARE_EVENT_TABLE()
 };

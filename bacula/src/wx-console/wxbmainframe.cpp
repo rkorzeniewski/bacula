@@ -255,8 +255,6 @@ wxbMainFrame::wxbMainFrame(const wxString& title, const wxPoint& pos, const wxSi
    sizer->SetSizeHints( this );
    this->SetSize(size);
    EnableConsole(false);
-   
-   nlines = 0;
 }
 
 /*
@@ -398,12 +396,17 @@ void wxbMainFrame::Print(wxString str, int status)
    else {
       consoleCtrl->SetDefaultStyle(wxTextAttr(*wxBLACK));
    }
-   (*consoleCtrl) << str;
+   consoleCtrl->AppendText(str);
    if (status == CS_PROMPT) {
-      (*consoleCtrl) << "<P>";
+      consoleCtrl->AppendText("<P>");
    }
+   
+   consoleCtrl->ScrollLines(3);
+   
+//   consoleCtrl->ShowPosition(consoleCtrl->GetLastPosition());
+   
    /*if (status != CS_DEBUG) {
-      (*consoleCtrl) << "@";
+      consoleCtrl->AppendText("@");
    }*/
    //consoleCtrl->SetInsertionPointEnd();
    
@@ -424,7 +427,8 @@ void wxbMainFrame::Send(wxString str)
    ct->Write((const char*)str);
    typeCtrl->SetValue("");
    consoleCtrl->SetDefaultStyle(wxTextAttr(*wxRED));
-   (*consoleCtrl) << str;
+   consoleCtrl->AppendText(str);
+   consoleCtrl->ScrollLines(3);
    
 /*   if ((consoleCtrl->GetNumberOfLines()-1) > nlines) {
       nlines = consoleCtrl->GetNumberOfLines()-1;

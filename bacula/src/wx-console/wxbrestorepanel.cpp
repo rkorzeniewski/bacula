@@ -364,6 +364,7 @@ wxbRestorePanel::wxbRestorePanel(wxWindow* parent): wxbPanel(parent) {
    }
 
    working = false;
+   SetCursor(*wxSTANDARD_CURSOR);
 }
 
 /*
@@ -440,7 +441,84 @@ void wxbRestorePanel::CmdStart() {
          return;
       }
       delete pp;
-      WaitForEnd(wxString() << client << "\n");
+      
+      wxbDataTokenizer* dt = new wxbDataTokenizer(true);
+      wxbTableParser* tableparser = CreateAndWaitForParser(wxString() << client << "\n");
+      int tot = 0;
+      long l;
+      wxString str;
+      
+      unsigned int i;
+      for (i = 0; i < tableparser->size(); i++) {
+         str = (*tableparser)[i][2];
+         str.Replace(",", "");
+         if (str.ToLong(&l)) {
+            tot += l;
+         }
+      }
+      
+      gauge->SetValue(0);
+      gauge->SetRange(tot);
+      
+      /*wxbMainFrame::GetInstance()->Print(
+               wxString("[") << tot << "]", CS_DEBUG);*/
+      
+      wxDateTime base = wxDateTime::Now();
+      wxDateTime newdate;
+      int done = 0;
+      int willdo = 0;
+      unsigned int lastindex = 0;
+      
+      int var = 0;
+      
+      while (!dt->hasFinished()) {
+         newdate = wxDateTime::Now();
+         if ( ( (1000*(newdate.GetTicks()-base.GetTicks())) +
+          (newdate.GetMillisecond()-base.GetMillisecond()) ) > 10 ) {
+            base = newdate;
+            for (; lastindex < dt->GetCount(); lastindex++) {
+               if (((*dt)[lastindex].Find("Building directory tree for JobId ") == 0) && 
+                     ((i = (*dt)[lastindex].Find(" ...")) > 0)) {
+                  str = (*dt)[lastindex].Mid(34, i-34);
+                  for (unsigned int i = 0; i < tableparser->size(); i++) {
+                     if (str == (*tableparser)[i][0]) {
+                        str = (*tableparser)[i][2];
+                        str.Replace(",", "");
+                        if (str.ToLong(&l)) {
+                           done += willdo;
+                           willdo += l;
+                           var = (willdo-done)/3;
+                        }
+                        break;
+                     }
+                  }
+               }
+            }
+            
+            if (gauge->GetValue() <= done) {
+               gauge->SetValue(done);
+               if (var < 0)
+                  var = -var;
+            }
+            else if (gauge->GetValue() >= willdo) {
+               gauge->SetValue(willdo);
+               if (var > 0)
+                  var = -var;
+            }
+            
+            gauge->SetValue(gauge->GetValue()+var);
+            
+            /*wxbMainFrame::GetInstance()->Print(
+               wxString("[") << gauge->GetValue() << "/" << done
+                  << "-" << willdo << "]", CS_DEBUG);*/
+         }
+         wxTheApp->Yield(true);
+      }
+      
+      gauge->SetValue(0);
+      
+      delete dt;
+      
       WaitForEnd("unmark *\n");
       SetStatus(choosing);
       wxTreeItemId root = tree->AddRoot(clientChoice->GetStringSelection(), -1, -1, new wxbTreeItemData("/", clientChoice->GetStringSelection(), 0));
@@ -1315,6 +1393,7 @@ void wxbRestorePanel::SetStatus(status_enum newstatus) {
       tree->Enable(true);
       list->Enable(true);
       working = false;
+      SetCursor(*wxSTANDARD_CURSOR);
       break;
    case configuring:
       start->Enable(false);
@@ -1341,6 +1420,7 @@ void wxbRestorePanel::SetStatus(status_enum newstatus) {
       jobChoice->Enable(false);
       tree->Enable(false);
       list->Enable(false);
+      SetCursor(*wxHOURGLASS_CURSOR);
       working = true;
       break;
    }
@@ -1368,6 +1448,7 @@ void wxbRestorePanel::OnClientChoiceChanged(wxCommandEvent& event) {
    if (working) {
       return;
    }
+   SetCursor(*wxHOURGLASS_CURSOR);
    working = true;
    clientChoice->Enable(false);
    jobChoice->Enable(false);
@@ -1376,15 +1457,18 @@ void wxbRestorePanel::OnClientChoiceChanged(wxCommandEvent& event) {
    jobChoice->Enable(true);
    jobChoice->Refresh();
    working = false;
+   SetCursor(*wxSTANDARD_CURSOR);
 }
 
 void wxbRestorePanel::OnStart(wxEvent& WXUNUSED(event)) {
    if (working) {
       return;
    }
+   SetCursor(*wxHOURGLASS_CURSOR);
    working = true;
    CmdStart();
    working = false;
+   SetCursor(*wxSTANDARD_CURSOR);
 }
 
 void wxbRestorePanel::OnTreeChanging(wxTreeEvent& event) {
@@ -1410,10 +1494,11 @@ void wxbRestorePanel::OnTreeChanged(wxTreeEvent& event) {
    if (working) {
       return;
    }
-
+   SetCursor(*wxHOURGLASS_CURSOR);
    working = true;
    CmdList(event.GetItem());
    working = false;
+   SetCursor(*wxSTANDARD_CURSOR);
 }
 
 void wxbRestorePanel::OnTreeMarked(wxbTreeMarkedEvent& event) {
@@ -1421,11 +1506,13 @@ void wxbRestorePanel::OnTreeMarked(wxbTreeMarkedEvent& event) {
       //event.Skip();
       return;
    }
+   SetCursor(*wxHOURGLASS_CURSOR);
    working = true;
    CmdMark(event.GetItem(), -1);
    //event.Skip();
    tree->Refresh();
    working = false;
+   SetCursor(*wxSTANDARD_CURSOR);
 }
 
 void wxbRestorePanel::OnListMarked(wxbListMarkedEvent& event) {
@@ -1433,6 +1520,7 @@ void wxbRestorePanel::OnListMarked(wxbListMarkedEvent& event) {
       //event.Skip();
       return;
    }
+   SetCursor(*wxHOURGLASS_CURSOR);
    working = true;
    //long item = event.GetId(); 
    long item = list->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_FOCUSED);
@@ -1440,6 +1528,7 @@ void wxbRestorePanel::OnListMarked(wxbListMarkedEvent& event) {
    event.Skip();
    tree->Refresh();
    working = false;
+   SetCursor(*wxSTANDARD_CURSOR);
 }
 
 void wxbRestorePanel::OnListActivated(wxListEvent& event) {
@@ -1447,6 +1536,7 @@ void wxbRestorePanel::OnListActivated(wxListEvent& event) {
       //event.Skip();
       return;
    }
+   SetCursor(*wxHOURGLASS_CURSOR);
    working = true;
    long item = list->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_FOCUSED);
    if (item > -1) {
@@ -1466,6 +1556,7 @@ void wxbRestorePanel::OnListActivated(wxListEvent& event) {
             if (name2 == name) {
                //tree->UnselectAll();
                working = false;
+               SetCursor(*wxSTANDARD_CURSOR);
                tree->Expand(currentTreeItem);
                tree->SelectItem(currentChild);
                //tree->Refresh();
@@ -1476,6 +1567,7 @@ void wxbRestorePanel::OnListActivated(wxListEvent& event) {
       }
    }
    working = false;
+   SetCursor(*wxSTANDARD_CURSOR);
 }
 
 void wxbRestorePanel::OnConfigUpdated(wxCommandEvent& event) {
@@ -1490,9 +1582,11 @@ void wxbRestorePanel::OnConfigOk(wxEvent& WXUNUSED(event)) {
    if (working) {
       return;
    }
+   SetCursor(*wxHOURGLASS_CURSOR);
    working = true;
    CmdStart();
    working = false;
+   SetCursor(*wxSTANDARD_CURSOR);
 }
 
 void wxbRestorePanel::OnConfigApply(wxEvent& WXUNUSED(event)) {
@@ -1500,6 +1594,7 @@ void wxbRestorePanel::OnConfigApply(wxEvent& WXUNUSED(event)) {
    if (working) {
       return;
    }
+   SetCursor(*wxHOURGLASS_CURSOR);
    working = true;
    CmdConfigApply();
    if (cfgUpdated == 0) {
@@ -1507,6 +1602,7 @@ void wxbRestorePanel::OnConfigApply(wxEvent& WXUNUSED(event)) {
       cfgOk->Enable(true);
    }
    working = false;  
+   SetCursor(*wxSTANDARD_CURSOR);
 }
 
 void wxbRestorePanel::OnConfigCancel(wxEvent& WXUNUSED(event)) {
@@ -1514,9 +1610,11 @@ void wxbRestorePanel::OnConfigCancel(wxEvent& WXUNUSED(event)) {
    if (working) {
       return;
    }
+   SetCursor(*wxHOURGLASS_CURSOR);
    working = true;
    CmdConfigCancel();
    working = false;
+   SetCursor(*wxSTANDARD_CURSOR);
 }
 
 /* TODO : correct that bad implementation of tree marked event forwarding */
