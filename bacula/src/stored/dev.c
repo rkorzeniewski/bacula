@@ -1185,6 +1185,7 @@ void
 clrerror_dev(DEVICE *dev, int func)
 {
    const char *msg = NULL;
+   struct mtget mt_stat;
 
    dev->dev_errno = errno;	   /* save errno */
    if (errno == EIO) {
@@ -1235,6 +1236,9 @@ clrerror_dev(DEVICE *dev, int func)
 	 Emsg0(M_ERROR, 0, dev->errmsg);
       }
    }
+   /* On some systems such as NetBSD, this clears all errors */
+   ioctl(dev->fd, MTIOCGET, (char *)&mt_stat);	    
+
 /* Found on Linux */
 #ifdef MTIOCLRERR
 {
@@ -1426,47 +1430,6 @@ term_dev(DEVICE *dev)
       free_pool_memory((POOLMEM *)dev);
    }
 }
-
-#ifdef xxxx
-/*
- * We attach a jcr to the device so that when
- *   the Volume is full during writing, a  
- *   JobMedia record will be created for this 
- *   Job.
- */
-void attach_jcr_to_device(DEVICE *dev, JCR *jcr)
-{
-   jcr->prev_dev = (JCR *)NULL;
-   jcr->next_dev = dev->attached_jcrs;
-   if (dev->attached_jcrs) {
-      dev->attached_jcrs->prev_dev = jcr;
-   }
-   dev->attached_jcrs = jcr;
-   Dmsg1(100, "Attached Job %s\n", jcr->Job);
-}
-
-void detach_jcr_from_device(DEVICE *dev, JCR *jcr)
-{
-   if (!jcr->prev_dev) {
-      dev->attached_jcrs = jcr->next_dev;
-   } else {
-      jcr->prev_dev->next_dev = jcr->next_dev;
-   }
-   if (jcr->next_dev) {
-      jcr->next_dev->prev_dev = jcr->prev_dev; 
-   }
-   jcr->next_dev = jcr->prev_dev = NULL;
-   Dmsg1(100, "Detached Job %s\n", jcr->Job);
-}
-
-JCR *next_attached_jcr(DEVICE *dev, JCR *jcr)
-{
-   if (jcr == (JCR *)NULL) {
-      return dev->attached_jcrs;
-   }
-   return jcr->next_dev;
-}
-#endif
 
 /*
  * This routine initializes the device wait timers
