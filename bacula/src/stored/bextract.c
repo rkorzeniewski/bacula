@@ -203,6 +203,7 @@ static void do_extract(char *devname, char *where)
    SESSION_LABEL sessrec;
    uint32_t num_files = 0;
 
+   VolName[0] = 0;
    if (strncmp(devname, "/dev/", 5) != 0) {
       /* Try stripping file part */
       p = devname + strlen(devname);
