@@ -9,10 +9,10 @@ Documentation to do: (a little bit at a time)
 - Document problems with Verify and pruning.
 - Document how to use multiple databases.
 - Document Maximum File Size
-
+          
 ***** Write up how to use/manage disk Volume Storage. ******
 - Add a section to the doc on Manual cycling of Volumes.
-
+- Document new MaximumConcurrentJob records (Job, Client, Storage) 
 
 Testing to do: (painful)
 - that ALL console command line options work and are always implemented
@@ -70,9 +70,6 @@ i dont understand it anymore :(
 - Simplified client job initiation for portables.
 - If SD cannot open a drive, make it periodically retry.
 - Implement LabelTemplate (at least first cut).
-- Bevan Anderson suggests having a run queue for each device
-  so that multiple simultaneous jobs can run but each writing
-  to a different Volume.
 - Fix "access not allowed" for backup of files on WinXP.
 - Figure out some way to specify a retention period for files
   that no longer exist on the machine -- so that we maintain
@@ -102,7 +99,6 @@ i dont understand it anymore :(
 - Figure out some way to estimate output size and to avoid splitting
   a backup across two Volumes -- this could be useful for writing CDROMs
   where you really prefer not to have it split -- not serious.
-- Add chflags() code for FreeBSD file flags
 - Add RunBeforeJob and RunAfterJob to the Client program.
 - Have SD compute MD5 or SHA1 and compare to what FD computes.
 - Make VolumeToCatalog calculate an MD5 or SHA1 from the 
@@ -118,9 +114,7 @@ i dont understand it anymore :(
 - CD into subdirectory when open()ing files for backup to
   speed up things.  Test with testfind().
 - Add prefixlinks to where or not where absolute links to FD.
-- Look at handling <> in smtp doesn't work with exim.
 - Priority job to go to top of list.
-- Why is catreq.c:111 Find vol called twice for a job?
 - Find out why Full saves run slower and slower (hashing?)
 - Why are save/restore of device different sizes (sparse?)   Yup! Fix it.
 - Implement some way for the Console to dynamically create a job.
@@ -141,7 +135,6 @@ i dont understand it anymore :(
   a block and a record.
 - Figure out how to do a bare metal Windows restore
 - Put system type returned by FD into catalog.
-- Need to specify MaximumConcurrentJobs in the Job resource.
 - Possibly add email to Watchdog if drive is unmounted too
   long and a job is waiting on the drive.
 - Use read_record.c in SD code.
@@ -944,3 +937,10 @@ rufus-dir: Volume used once. Marking Volume "File0003" as Used.
   set of volumes recycling the oldest volume when it is needed.
 - gethostbyname failure in bnet_connect() continues
   generating errors -- should stop.
+- Add chflags() code for FreeBSD file flags
+- Bevan Anderson suggests having a run queue for each device
+  so that multiple simultaneous jobs can run but each writing
+  to a different Volume.
+- Look at handling <> in smtp doesn't work with exim.
+- Need to specify MaximumConcurrentJobs in the Job resource.
+
