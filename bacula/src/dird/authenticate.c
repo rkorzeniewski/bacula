@@ -158,7 +158,7 @@ int authenticate_user_agent(UAContext *uac)
       return 0;
    }
 // Dmsg2(000, "Console=%s addr=%s\n", name, inet_ntoa(ua->client_addr.sin_addr));
-   name[MAXSTRING-1] = 0;	      /* terminate name */
+   name[sizeof(name)-1] = 0;		 /* terminate name */
    if (strcmp(name, "*UserAgent*") == 0) {  /* default console */
       ok = cram_md5_auth(ua, director->password, ssl_need) &&
 	   cram_md5_get_auth(ua, director->password, ssl_need);
