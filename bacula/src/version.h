@@ -1,8 +1,8 @@
 /* */
 #define VERSION "1.30"
 #define VSTRING "1"
-#define BDATE   "12 April 2003"
-#define LSMDATE "12Apr03"
+#define BDATE   "14 April 2003"
+#define LSMDATE "14Apr03"
 
 /* Debug flags */
 #define DEBUG 1
@@ -18,5 +18,5 @@
 
 /* #define NO_ATTRIBUTES_TEST 1 */
 /* #define NO_TAPE_WRITE_TEST 1 */
-/* #define NO_FD_SEND TEST 1 */
+/* #define FD_NO_SEND TEST 1 */
 /* #define DEBUG_MUTEX 1 */
