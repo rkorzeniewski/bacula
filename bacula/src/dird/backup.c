@@ -278,12 +278,14 @@ int wait_for_job_termination(JCR *jcr)
    int32_t n = 0;
    BSOCK *fd = jcr->file_bsock;
    int fd_ok = FALSE;
+   uint32_t JobFiles, Errors;
+   uint64_t ReadBytes, JobBytes;
 
    set_jcr_job_status(jcr, JS_Running);
    /* Wait for Client to terminate */
    while ((n = bget_dirmsg(fd)) >= 0) {
-      if (sscanf(fd->msg, EndJob, &jcr->FDJobStatus, &jcr->JobFiles,
-	  &jcr->ReadBytes, &jcr->JobBytes, &jcr->Errors) == 5) {
+      if (!fd_ok && sscanf(fd->msg, EndJob, &jcr->FDJobStatus, &JobFiles,
+	  &ReadBytes, &JobBytes, &Errors) == 5) {
 	 fd_ok = TRUE;
 	 set_jcr_job_status(jcr, jcr->FDJobStatus);
          Dmsg1(100, "FDStatus=%c\n", (char)jcr->JobStatus);
@@ -301,6 +303,7 @@ int wait_for_job_termination(JCR *jcr)
    }
    bnet_sig(fd, BNET_TERMINATE);   /* tell Client we are terminating */
 
+   /* Note, the SD stores in jcr->JobFiles/ReadBytes/JobBytes/Errors */
    wait_for_storage_daemon_termination(jcr);
 
    /* Return the first error status we find FD or SD */
@@ -310,6 +313,11 @@ int wait_for_job_termination(JCR *jcr)
    if (!fd_ok || is_bnet_error(fd)) {			       
       return JS_ErrorTerminated;
    }
+   /* Return values from FD */
+   jcr->JobFiles = JobFiles;
+   jcr->Errors = Errors;
+   jcr->ReadBytes = ReadBytes;
+   jcr->JobBytes = JobBytes;
    return jcr->SDJobStatus;
 }
 

@@ -293,11 +293,16 @@ void _unblock_device(char *file, int line, DEVICE *dev)
    Dmsg3(100, "unblock %d from %s:%d\n", dev->dev_blocked, file, line);
    ASSERT(dev->dev_blocked);
    dev->dev_blocked = BST_NOT_BLOCKED;
+   dev->no_wait_id = 0;
    if (dev->num_waiting > 0) {
       pthread_cond_broadcast(&dev->wait); /* wake them up */
    }
 }
 
+/*
+ * Enter with device locked and blocked
+ * Exit with device unlocked and blocked by us.
+ */
 void _steal_device_lock(char *file, int line, DEVICE *dev, bsteal_lock_t *hold, int state)
 {
    Dmsg4(100, "steal lock. old=%d new=%d from %s:%d\n", dev->dev_blocked, state,
@@ -309,6 +314,10 @@ void _steal_device_lock(char *file, int line, DEVICE *dev, bsteal_lock_t *hold, 
    V(dev->mutex);
 }
 
+/*
+ * Enter with device blocked by us but not locked
+ * Exit with device locked, and blocked by previous owner 
+ */
 void _return_device_lock(char *file, int line, DEVICE *dev, bsteal_lock_t *hold)	   
 {
    Dmsg4(100, "return lock. old=%d new=%d from %s:%d\n", 
@@ -318,69 +327,3 @@ void _return_device_lock(char *file, int line, DEVICE *dev, bsteal_lock_t *hold)
    dev->no_wait_id = hold->no_wait_id;
 }
 
-
-
-/* ==================================================================
- *  New device locking code.  It is not currently used.
- * ==================================================================
- */
-
-/*
- * New device locking scheme 
- */
-void _new_lock_device(char *file, int line, DEVICE *dev)
-{
-#ifdef NEW_LOCK
-   int errstat;
-   if ((errstat=rwl_writelock(&dev->lock)) != 0) {
-      e_msg(file, line, M_ABORT, 0, "rwl_writelock failure. ERR=%s\n",
-	   strerror(errstat));
-   }
-#endif
-}    
-
-void _new_lock_device(char *file, int line, DEVICE *dev, int state)
-{
-#ifdef NEW_LOCK
-   int errstat;
-   if ((errstat=rwl_writelock(&dev->lock)) != 0) {
-      e_msg(file, line, M_ABORT, 0, "rwl_writelock failure. ERR=%s\n",
-	   strerror(errstat));
-   }
-   dev->dev_blocked = state;
-#endif
-}    
-
-void _new_unlock_device(char *file, int line, DEVICE *dev)
-{
-#ifdef NEW_LOCK
-   int errstat;
-   if (dev->lock.w_active == 1) {
-      dev->dev_blocked = BST_NOT_BLOCKED;
-   }
-   if ((errstat=rwl_writeunlock(&dev->lock)) != 0) {
-      e_msg(file, line, M_ABORT, 0, "rwl_writeunlock failure. ERR=%s\n",
-	   strerror(errstat));
-   }
-#endif
-}    
-
-void new_steal_device_lock(DEVICE *dev, brwsteal_t *hold, int state)
-{
-#ifdef NEW_LOCK
-   hold->state = dev->dev_blocked;
-   hold->writer_id = dev->lock.writer_id;
-   dev->dev_blocked = state;
-   dev->lock.writer_id = pthread_self();
-   V(dev->lock.mutex);
-#endif
-}
-
-void new_return_device_lock(DEVICE *dev, brwsteal_t *hold)	     
-{
-#ifdef NEW_LOCK
-   P(dev->lock.mutex);
-   dev->dev_blocked = hold->state;
-   dev->lock.writer_id = hold->writer_id;
-#endif
-}

@@ -1089,7 +1089,6 @@ static void do_close(DEVICE *dev)
    dev->EndFile = dev->EndBlock = 0;
    memset(&dev->VolCatInfo, 0, sizeof(dev->VolCatInfo));
    memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
-   dev->use_count--;
    if (dev->tid) {
       stop_thread_timer(dev->tid);
       dev->tid = 0;
@@ -1109,10 +1108,8 @@ close_dev(DEVICE *dev)
    }
    if (dev->fd >= 0 && dev->use_count == 1) {
       do_close(dev);
-   } else {    
-      Dmsg0(29, "close_dev but in use so leave open.\n");
-      dev->use_count--;
    }
+   dev->use_count--;
 }
 
 /*
@@ -1127,6 +1124,7 @@ void force_close_dev(DEVICE *dev)
    }
    Dmsg0(29, "really close_dev\n");
    do_close(dev);
+   dev->use_count--;
 }
 
 int truncate_dev(DEVICE *dev)

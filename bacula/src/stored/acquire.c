@@ -79,13 +79,13 @@ int acquire_device_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
        * If it is a tape, it checks the volume name 
        */
       for ( ; !(dev->state & ST_OPENED); ) {
-          Dmsg1(120, "bstored: open vol=%s\n", jcr->VolumeName);
-	  if (open_dev(dev, jcr->VolumeName, READ_ONLY) < 0) {
-             Jmsg(jcr, M_FATAL, 0, _("Open device %s volume %s failed, ERR=%s\n"), 
-		 dev_name(dev), jcr->VolumeName, strerror_dev(dev));
-	     goto get_out;
-	  }
-          Dmsg1(129, "open_dev %s OK\n", dev_name(dev));
+         Dmsg1(120, "bstored: open vol=%s\n", jcr->VolumeName);
+	 if (open_dev(dev, jcr->VolumeName, READ_ONLY) < 0) {
+            Jmsg(jcr, M_FATAL, 0, _("Open device %s volume %s failed, ERR=%s\n"), 
+		dev_name(dev), jcr->VolumeName, strerror_dev(dev));
+	    goto get_out;
+	 }
+         Dmsg1(129, "open_dev %s OK\n", dev_name(dev));
       }
       dev->state &= ~ST_LABEL;		 /* force reread of label */
       Dmsg0(200, "calling read-vol-label\n");

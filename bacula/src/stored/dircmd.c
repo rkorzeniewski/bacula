@@ -366,16 +366,16 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
    autoload_device(jcr, dev, 0, dir);	   /* autoload if possible */
    block = new_block(dev);
 
-   /* Ensure that the device is open -- not autoload_device() closes it */
+   /* Ensure that the device is open -- autoload_device() closes it */
    for ( ; !(dev->state & ST_OPENED); ) {
-       if (open_dev(dev, jcr->VolumeName, READ_WRITE) < 0) {
-	  if (dev->dev_errno == EAGAIN || dev->dev_errno == EBUSY) {
-	     bmicrosleep(30, 0);
-	  }
-          bnet_fsend(dir, _("3910 Unable to open device %s. ERR=%s\n"), 
-	     dev_name(dev), strerror_dev(dev));
-	  goto bail_out;
-       }
+      if (open_dev(dev, jcr->VolumeName, READ_WRITE) < 0) {
+	 if (dev->dev_errno == EAGAIN || dev->dev_errno == EBUSY) {
+	    bmicrosleep(30, 0);
+	 }
+         bnet_fsend(dir, _("3910 Unable to open device %s. ERR=%s\n"), 
+	    dev_name(dev), strerror_dev(dev));
+	 goto bail_out;
+      }
    }
 
    /* See what we have for a Volume */
@@ -616,6 +616,7 @@ static int unmount_cmd(JCR *jcr)
 	 } else if (dev->dev_blocked == BST_WAITING_FOR_SYSOP) {
             Dmsg2(90, "%d waiter dev_block=%d. doing unmount\n", dev->num_waiting,
 	       dev->dev_blocked);
+	    open_dev(dev, NULL, 0);	/* fake open for close */
 	    offline_or_rewind_dev(dev);
 	    force_close_dev(dev);
 	    dev->dev_blocked = BST_UNMOUNTED_WAITING_FOR_SYSOP;
@@ -643,6 +644,7 @@ static int unmount_cmd(JCR *jcr)
 	 } else {		      /* device not being used */
             Dmsg0(90, "Device not in use, unmounting\n");
 	    block_device(dev, BST_UNMOUNTED);
+	    open_dev(dev, NULL, 0);	/* fake open for close */
 	    offline_or_rewind_dev(dev);
 	    force_close_dev(dev);
             bnet_fsend(dir, _("3002 Device %s unmounted.\n"), dev_name(dev));
