@@ -21,8 +21,8 @@
  * Author          : Christopher S. Hull
  * Created On      : Fri Jan 30 13:00:51 2004
  * Last Modified By: Christopher S. Hull
- * Last Modified On: Sun Feb 22 13:15:59 2004
- * Update Count    : 207
+ * Last Modified On: Mon Feb  9 12:08:07 2004
+ * Update Count    : 201
  * $Id$
  */
 
@@ -92,16 +92,17 @@ typedef UINT32 key_t;
 typedef UINT32 uid_t;
 typedef UINT32 gid_t;
 typedef UINT32 mode_t;
-typedef UINT32 ssize_t;
+typedef INT64  ssize_t;
 
 
 typedef void DIR;
 
+
 struct dirent {
-    uint64_t	d_ino;
-    uint32_t	d_off;
-    uint16_t	d_reclen;
-    char	d_name[256];
+    uint64_t    d_ino;
+    uint32_t    d_off;
+    uint16_t    d_reclen;
+    char        d_name[256];
 };
 
 #ifndef __cplusplus
@@ -125,19 +126,19 @@ int gettimeofday(struct timeval *, struct timezone *);
 
 struct stat
 {
-    _dev_t	st_dev;
-    uint64_t	st_ino;
-    uint16_t	st_mode;
-    int16_t	st_nlink;
-    uint32_t	st_uid;
-    uint32_t	st_gid;
-    _dev_t	st_rdev;
-    uint64_t	st_size;
-    time_t	st_atime;
-    time_t	st_mtime;
-    time_t	st_ctime;
-    uint32_t	st_blksize;
-    uint64_t	st_blocks;
+    _dev_t      st_dev;
+    uint64_t    st_ino;
+    uint16_t    st_mode;
+    int16_t     st_nlink;
+    uint32_t    st_uid;
+    uint32_t    st_gid;
+    _dev_t      st_rdev;
+    uint64_t    st_size;
+    time_t      st_atime;
+    time_t      st_mtime;
+    time_t      st_ctime;
+    uint32_t    st_blksize;
+    uint64_t    st_blocks;
 };
 
 #define S_IFMT         0170000         /* file type mask */
@@ -149,23 +150,23 @@ struct stat
 #define S_IWRITE       0000200         /* write permission, owner */
 #define S_IEXEC        0000100         /* execute/search permission, owner */
 
-#define S_IRUSR		S_IREAD
-#define S_IWUSR		S_IWRITE
-#define S_IXUSR		S_IEXEC
+#define S_IRUSR         S_IREAD
+#define S_IWUSR         S_IWRITE
+#define S_IXUSR         S_IEXEC
 
-#define S_IRGRP		000040
+#define S_IRGRP         000040
 #define S_IWGRP         000020
 #define S_IXGRP         000010
 
-#define S_IROTH		00004
+#define S_IROTH         00004
 #define S_IWOTH         00002
 #define S_IXOTH         00001
 
-#define S_IRWXO		000007
-#define S_IRWXG		000070
-#define S_ISUID		004000
-#define S_ISGID		002000
-#define S_ISVTX		001000
+#define S_IRWXO         000007
+#define S_IRWXG         000070
+#define S_ISUID         004000
+#define S_ISGID         002000
+#define S_ISVTX         001000
 
 
 #define S_ISREG(x)  (((x) & S_IFREG) == S_IFREG)
@@ -174,7 +175,7 @@ struct stat
 #define S_ISBLK(x) 0
 #define S_ISFIFO(x) 0
 #define S_ISSOCK(x) 0
-#define S_ISLNK(x)	0
+#define S_ISLNK(x)      0
 
 #define SIGUSR2 9999
 
@@ -184,9 +185,9 @@ int chown(const char *, uid_t uid, gid_t gid);
 int chmod(const char *, mode_t mode);
 int utime(const char *filename, struct utimbuf *buf);
 int open(const char *, int, int);
-int lseek(int, int, int);
-int read(int fd, void *, int32_t nbytes);
-int write(int fd, const void *, int32_t nbytes);
+off_t lseek(int, off_t, int);
+ssize_t read(int fd, void *, size_t nbytes);
+ssize_t write(int fd, const void *, size_t nbytes);
 int close(int fd);
 int inet_aton(const char *cp, struct in_addr *inp);
 int kill(int pid, int signo);
@@ -288,4 +289,3 @@ int win32_chdir(const char *buf);
 int WSA_Init(void);
 
 #endif /* __COMPAT_H_ */
-

@@ -22,8 +22,8 @@
 // Author          : Christopher S. Hull
 // Created On      : Sat Jan 31 15:55:00 2004
 // Last Modified By: Christopher S. Hull
-// Last Modified On: Sun Feb 22 16:08:54 2004
-// Update Count    : 659
+// Last Modified On: Sun Feb 22 12:55:40 2004
+// Update Count    : 634
 // $Id$
 
 #include <stdio.h>
@@ -37,7 +37,7 @@ extern DWORD   g_platform_id;
 // from CYGWIN (should be diff between Jan 1 1601 and Jan 1 1970
 #define WIN32_FILETIME_ADJUST 0x19DB1DED53E8000I64
 
-#define WIN32_FILETIME_SCALE  10000000		   // 100ns/second
+#define WIN32_FILETIME_SCALE  10000000             // 100ns/second
 
 extern "C" void
 cygwin_conv_to_win32_path(const char *name, char *win32_name)
@@ -137,8 +137,8 @@ close(int fd)
     return 0;
 }
 
-int
-write(int fd, const void *data, int32_t len)
+ssize_t
+write(int fd, const void *data, size_t len)
 {
     BOOL status;
     DWORD bwrite;
@@ -148,15 +148,14 @@ write(int fd, const void *data, int32_t len)
 }
 
 
-int
-read(int fd, void *data, int32_t len)
+ssize_t
+read(int fd, void *data, size_t len)
 {
     BOOL status;
     DWORD bread;
 
     status = ReadFile((HANDLE)fd, data, len, &bread, NULL);
     if (status) return bread;
-
     return -1;
 }
 
@@ -471,8 +470,8 @@ readlink(const char *, char *, int)
     return -1;
 }
 
-int
-lseek(int fd, int offset, int whence)
+off_t
+lseek(int fd, off_t offset, int whence)
 {
     DWORD method = 0;
     switch (whence) {
