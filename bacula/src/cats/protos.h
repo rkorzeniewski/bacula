@@ -30,7 +30,7 @@
 /* Database prototypes */
 
 /* sql.c */
-B_DB *db_init_database(char *db_name, char *db_user, char *db_password);
+B_DB *db_init_database(void *jcr, char *db_name, char *db_user, char *db_password);
 int db_open_database(B_DB *db);
 void db_close_database(B_DB *db);
 void db_escape_string(char *snew, char *old, int len);
@@ -90,7 +90,7 @@ int  db_update_job_start_record(B_DB *db, JOB_DBR *jr);
 int  db_update_job_end_record(B_DB *db, JOB_DBR *jr);
 int  db_update_pool_record(B_DB *db, POOL_DBR *pr);
 int  db_update_media_record(B_DB *db, MEDIA_DBR *mr);
-int  db_add_MD5_to_file_record(B_DB *mdb, FileId_t FileId, char *MD5);	
+int  db_add_MD5_to_file_record(B_DB *mdb, FileId_t FileId, char *MD5);  
 int  db_mark_file_record(B_DB *mdb, FileId_t FileId, JobId_t JobId);
 
 #endif /* __SQL_PROTOS_H */

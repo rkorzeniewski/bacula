@@ -166,7 +166,7 @@ int main (int argc, char *argv[])
    parse_config(configfile);
 
    if (!check_resources()) {
-      Emsg1(M_ERROR_TERM, 0, "Please correct configuration file: %s\n", configfile);
+      Jmsg(NULL, M_ERROR_TERM, 0, "Please correct configuration file: %s\n", configfile);
    }
 
    if (test_config) {
@@ -268,7 +268,7 @@ static void reload_config(int sig)
 
    Dmsg0(200, "check_resources()\n");
    if (!check_resources()) {
-      Emsg1(M_ERROR_TERM, 0, _("Please correct configuration file: %s\n"), configfile);
+      Jmsg(NULL, M_ERROR_TERM, 0, _("Please correct configuration file: %s\n"), configfile);
    }
 
    /* Reset globals */
@@ -299,48 +299,48 @@ static int check_resources()
    job	= (JOB *)GetNextRes(R_JOB, NULL);
    director = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);
    if (!director) {
-      Emsg1(M_FATAL, 0, _("No Director resource defined in %s\n\
+      Jmsg(NULL, M_FATAL, 0, _("No Director resource defined in %s\n\
 Without that I don't know who I am :-(\n"), configfile);
       OK = FALSE;
    } else {
       if (!director->working_directory) {
-         Emsg0(M_FATAL, 0, _("No working directory specified. Cannot continue.\n"));
+         Jmsg(NULL, M_FATAL, 0, _("No working directory specified. Cannot continue.\n"));
 	 OK = FALSE;
       }       
       working_directory = director->working_directory;
       if (!director->messages) {       /* If message resource not specified */
 	 director->messages = (MSGS *)GetNextRes(R_MSGS, NULL);
 	 if (!director->messages) {
-            Emsg1(M_FATAL, 0, _("No Messages resource defined in %s\n"), configfile);
+            Jmsg(NULL, M_FATAL, 0, _("No Messages resource defined in %s\n"), configfile);
 	    OK = FALSE;
 	 }
       }
       if (GetNextRes(R_DIRECTOR, (RES *)director) != NULL) {
-         Emsg1(M_FATAL, 0, _("Only one Director resource permitted in %s\n"),
+         Jmsg(NULL, M_FATAL, 0, _("Only one Director resource permitted in %s\n"),
 	    configfile);
 	 OK = FALSE;
       } 
    }
 
    if (!job) {
-      Emsg1(M_FATAL, 0, _("No Job records defined in %s\n"), configfile);
+      Jmsg(NULL, M_FATAL, 0, _("No Job records defined in %s\n"), configfile);
       OK = FALSE;
    }
    for (job=NULL; (job = (JOB *)GetNextRes(R_JOB, (RES *)job)); ) {
       if (!job->client) {
-         Emsg1(M_FATAL, 0, _("No Client record defined for job %s\n"), job->hdr.name);
+         Jmsg(NULL, M_FATAL, 0, _("No Client record defined for job %s\n"), job->hdr.name);
 	 OK = FALSE;
       }
       if (!job->fileset) {
-         Emsg1(M_FATAL, 0, _("No FileSet record defined for job %s\n"), job->hdr.name);
+         Jmsg(NULL, M_FATAL, 0, _("No FileSet record defined for job %s\n"), job->hdr.name);
 	 OK = FALSE;
       }
       if (!job->storage && job->JobType != JT_VERIFY) {
-         Emsg1(M_FATAL, 0, _("No Storage resource defined for job %s\n"), job->hdr.name);
+         Jmsg(NULL, M_FATAL, 0, _("No Storage resource defined for job %s\n"), job->hdr.name);
 	 OK = FALSE;
       }
       if (!job->pool) {
-         Emsg1(M_FATAL, 0, _("No Pool resource defined for job %s\n"), job->hdr.name);
+         Jmsg(NULL, M_FATAL, 0, _("No Pool resource defined for job %s\n"), job->hdr.name);
 	 OK = FALSE;
       }
       if (job->client && job->client->catalog) {
@@ -351,15 +351,15 @@ Without that I don't know who I am :-(\n"), configfile);
 	  * Make sure we can open catalog, otherwise print a warning
 	  * message because the server is probably not running.
 	  */
-	 db = db_init_database(catalog->db_name, catalog->db_user,
+	 db = db_init_database(NULL, catalog->db_name, catalog->db_user,
 			    catalog->db_password);
 	 if (!db_open_database(db)) {
-            Emsg1(M_FATAL,  0, "%s", db_strerror(db));
+            Jmsg(NULL, M_FATAL,  0, "%s", db_strerror(db));
 	 }
 	 db_close_database(db);
       } else {
 	 if (job->client) {
-            Emsg1(M_FATAL, 0, _("No Catalog resource defined for client %s\n"), 
+            Jmsg(NULL, M_FATAL, 0, _("No Catalog resource defined for client %s\n"), 
 	       job->client->hdr.name);
 	    OK = FALSE;
 	 }

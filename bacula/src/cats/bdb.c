@@ -100,7 +100,7 @@ int bdb_write_control_file(B_DB *mdb)
  * never have errors, or it is really fatal.
  */
 B_DB *
-db_init_database(char *db_name, char *db_user, char *db_password)
+db_init_database(void *jcr, char *db_name, char *db_user, char *db_password)
 {
    B_DB *mdb;
    P(mutex);			      /* lock DB queue */
@@ -127,6 +127,7 @@ db_init_database(char *db_name, char *db_user, char *db_password)
    qinsert(&db_list, &mdb->bq);       /* put db in list */
    Dmsg0(200, "Done db_open_database()\n");
    mdb->cfd = -1;
+   mdb->jcr = jcr;
    V(mutex);
    return mdb;
 }

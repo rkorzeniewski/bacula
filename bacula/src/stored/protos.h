@@ -27,6 +27,12 @@
 /* From stored.c */
 uint32_t new_VolSessionId();
 
+/* From acquire.c */
+int	 acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
+int	 acquire_device_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
+int	 ready_dev_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
+int	 release_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
+
 /* From askdir.c */
 int	dir_get_volume_info(JCR *jcr);
 int	dir_find_next_appendable_volume(JCR *jcr);
@@ -91,10 +97,6 @@ int	 dev_is_tape(DEVICE *dev);
 
 /* From device.c */
 int	 open_device(DEVICE *dev);
-int	 acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
-int	 acquire_device_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
-int	 ready_dev_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
-int	 release_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
 void	 block_device(DEVICE *dev, int state);
 void	 unblock_device(DEVICE *dev);
 void	 lock_device(DEVICE *dev);
@@ -131,6 +133,11 @@ int	 unser_session_label(SESSION_LABEL *label, DEV_RECORD *rec);
 int match_bsr(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, 
 	      SESSION_LABEL *sesrec);
 
+/* From mount.c */
+int	 mount_next_write_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, int release);
+int	 mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
+
+
 /* From parse_bsr.c */
 extern BSR *parse_bsr(JCR *jcr, char *lf);
 extern void dump_bsr(BSR *bsr);
@@ -144,8 +151,7 @@ extern void create_vol_list(JCR *jcr);
 char   *FI_to_ascii(int fi);
 char   *stream_to_ascii(int stream);
 int	write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec);
+int	can_write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec);
 int	read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec); 
-int new_read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec);
 DEV_RECORD *new_record();
 void	free_record(DEV_RECORD *rec);
-int	read_record(DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *record);

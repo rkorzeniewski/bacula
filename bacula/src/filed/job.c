@@ -156,6 +156,7 @@ void *handle_client_request(void *dirp)
    jcr->last_fname = get_pool_memory(PM_FNAME);
    jcr->client_name = get_memory(strlen(my_name) + 1);
    strcpy(jcr->client_name, my_name);
+   dir->jcr = (void *)jcr;
 
    /**********FIXME******* add command handler error code */
 

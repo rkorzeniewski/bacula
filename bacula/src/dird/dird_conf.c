@@ -179,6 +179,7 @@ static struct res_items job_items[] = {
    {"prunevolumes", store_yesno, ITEM(res_job.PruneVolumes), 1, ITEM_DEFAULT, 0},
    {"runbeforejob", store_str,  ITEM(res_job.RunBeforeJob), 0, 0, 0},
    {"runafterjob",  store_str,  ITEM(res_job.RunAfterJob),  0, 0, 0},
+   {"spoolattributes", store_yesno, ITEM(res_job.SpoolAttributes), 1, ITEM_DEFAULT, 0},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 

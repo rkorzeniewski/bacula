@@ -1328,7 +1328,7 @@ int open_db(UAContext *ua)
    }
 
    Dmsg0(150, "Open database\n");
-   ua->db = db_init_database(ua->catalog->db_name, ua->catalog->db_user,
+   ua->db = db_init_database(NULL, ua->catalog->db_name, ua->catalog->db_user,
 			     ua->catalog->db_password);
    if (!db_open_database(ua->db)) {
       bnet_fsend(ua->UA_sock, _("Could not open DB %s: ERR=%s"), 

@@ -99,6 +99,7 @@ typedef struct s_db {
    uint32_t cached_path_id;
    int transaction;                   /* transaction started */
    int changes;                       /* changes during transaction */
+   void *jcr;                         /* JCR or NULL */
 } B_DB;
 
 
@@ -162,6 +163,7 @@ typedef struct s_db {
    POOLMEM *cached_path;
    uint32_t cached_path_id;
    int changes;                       /* changes made to db */
+   void *jcr;                         /* JCR or NULL */
 } B_DB;
 
 
@@ -224,6 +226,7 @@ typedef struct s_db {
    POOLMEM *cmd;                      /* Command string */
    POOLMEM *cached_path;
    uint32_t cached_path_id;
+   void *jcr;                         /* JCR or NULL */
 } B_DB;
 
 #endif /* HAVE_MYSQL */

@@ -40,7 +40,7 @@
 
 /* Commands sent to Storage daemon */
 static char jobcmd[]     = "JobId=%d job=%s job_name=%s client_name=%s \
-type=%d level=%d FileSet=%s Allow=%s Session=%s\n";
+type=%d level=%d FileSet=%s NoAttr=%d SpoolAttr=%d\n";
 static char use_device[] = "use device=%s media_type=%s pool_name=%s pool_type=%s\n";
 
 /* Response from Storage daemon */
@@ -107,7 +107,8 @@ int start_storage_daemon_job(JCR *jcr)
    bash_spaces(jcr->client->hdr.name);
    bnet_fsend(sd, jobcmd, jcr->JobId, jcr->Job, jcr->job->hdr.name, 
 	      jcr->client->hdr.name, jcr->JobType, jcr->JobLevel, 
-              jcr->fileset->hdr.name, "append", "*");
+	      jcr->fileset->hdr.name, !jcr->pool->catalog_files,
+	      jcr->job->SpoolAttributes);
    unbash_spaces(jcr->job->hdr.name);
    unbash_spaces(jcr->client->hdr.name);
    unbash_spaces(jcr->fileset->hdr.name);
@@ -146,7 +147,7 @@ int start_storage_daemon_job(JCR *jcr)
    bash_spaces(media_type);
    bash_spaces(pool_type);
    bash_spaces(pool_name);
-   sd->msg = (char *) check_pool_memory_size(sd->msg, sizeof(device_name) +
+   sd->msg = check_pool_memory_size(sd->msg, sizeof(device_name) +
       device_name_len + media_type_len + pool_type_len + pool_name_len);
    bnet_fsend(sd, use_device, device_name, media_type, pool_name, pool_type);
    Dmsg1(110, ">stored: %s", sd->msg);
@@ -173,7 +174,7 @@ int start_storage_daemon_message_thread(JCR *jcr)
    jcr->use_count++;		      /* mark in use by msg thread */
    V(jcr->mutex);
    if ((status=pthread_create(&thid, NULL, msg_thread, (void *)jcr)) != 0) {
-      Emsg1(M_ABORT, 0, _("Cannot create message thread: %s\n"), strerror(status));
+      Jmsg1(jcr, M_ABORT, 0, _("Cannot create message thread: %s\n"), strerror(status));
    }	     
    jcr->SD_msg_chan = thid;
    return 1;

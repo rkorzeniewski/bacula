@@ -481,9 +481,14 @@ int write_session_label(JCR *jcr, DEV_BLOCK *block, int label)
    create_session_label(jcr, rec, label);
    rec->FileIndex = label;
 
-   while (!write_record_to_block(block, rec)) {
-      Dmsg2(190, "!write_record data_len=%d rem=%d\n", rec->data_len,
-		 rec->remainder);
+   /* 
+    * We guarantee that the session record can totally fit
+    *  into a block. If not, write the block, and put it in
+    *  the next block. Having the sesssion record totally in
+    *  one block makes reading them much easier (no need to
+    *  read the next block).
+    */
+   if (!can_write_record_to_block(block, rec)) {
       if (!write_block_to_device(jcr, dev, block)) {
          Dmsg0(90, "Got session label write_block_to_dev error.\n");
          Jmsg(jcr, M_FATAL, 0, _("Error writing Session label to %s: %s\n"), 
@@ -492,6 +497,7 @@ int write_session_label(JCR *jcr, DEV_BLOCK *block, int label)
 	 return 0;
       }
    }
+   write_record_to_block(block, rec);
 
    Dmsg6(20, "Write sesson_label record JobId=%d FI=%s SessId=%d Strm=%s len=%d\n\
 remainder=%d\n", jcr->JobId,

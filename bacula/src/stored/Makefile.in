@@ -18,16 +18,18 @@ first_rule: all
 dummy:
 
 #
-SVRSRCS = stored.c append.c askdir.c authenticate.c block.c dev.c \
+SVRSRCS = stored.c acquire.c append.c askdir.c authenticate.c \
+	  block.c dev.c \
 	  device.c dircmd.c fd_cmds.c fdmsg.c job.c \
 	  label.c match_bsr.c parse_bsr.c \
-	  read.c record.c stored_conf.c 
-SVROBJS = stored.o append.o askdir.o authenticate.o block.o dev.o \
+	  read.c record.c stored_conf.c mount.c
+SVROBJS = stored.o acquire.o append.o askdir.o authenticate.o \
+	  block.o dev.o \
 	  device.o dircmd.o fd_cmds.o fdmsg.o job.o \
-	  label.o match_bsr.o parse_bsr.o \
-	  read.o record.o stored_conf.o 
+	  label.o match_bsr.o mount.o parse_bsr.o \
+	  read.o record.o stored_conf.o
 
-# bpool is depricated
+# bpool is deprecated
 #POOLSRCS = bpool.c block.c dev.c device.c askdir.c label.c \
 #	    record.c stored_conf.c 
 #POOLOBJS = bpool.o block.o dev.o device.o askdir.o label.o \
@@ -35,17 +37,18 @@ SVROBJS = stored.o append.o askdir.o authenticate.o block.o dev.o \
 
 #
 TAPESRCS = btape.c block.c dev.c device.c askdir.c label.c \
-	   record.c stored_conf.c 
+	   acquire.c mount.c record.c stored_conf.c 
 TAPEOBJS = btape.o block.o dev.o device.o askdir.o label.o \
-	   record.o stored_conf.o 
+	   acquire.o mount.o record.o stored_conf.o 
 
 BLSOBJS = bls.o block.o device.o dev.o label.o match_bsr.o \
-	  parse_bsr.o record.o
+	  acquire.o mount.o parse_bsr.o record.o
 
 BEXTOBJS = bextract.o block.o device.o dev.o label.o record.o \
-	   match_bsr.o parse_bsr.o
+	   acquire.o mount.o match_bsr.o parse_bsr.o
 
-SCNOBJS = bscan.o block.o device.o dev.o askdir.o label.o record.o
+SCNOBJS = bscan.o block.o device.o dev.o askdir.o label.o \
+	  acquire.o mount.o record.o match_bsr.o parse_bsr.o 
 
 
 

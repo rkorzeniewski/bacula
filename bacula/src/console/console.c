@@ -245,7 +245,7 @@ Without that I don't how to speak to the Director :-(\n", configfile);
    memset(&jcr, 0, sizeof(jcr));
 
    if (ndir > 1) {
-      UA_sock = init_bsock(0, "", "", 0);
+      UA_sock = init_bsock(NULL, 0, "", "", 0);
 try_again:
       fprintf(output, "Available Directors:\n");
       LockRes();

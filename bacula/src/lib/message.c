@@ -789,11 +789,11 @@ e_msg(char *file, int line, int type, int level, char *fmt,...)
        return;			      /* no destination */
     switch (type) {
        case M_ABORT:
-          sprintf(buf, "%s ABORTING due to ERROR in %s:%d\n", 
+          sprintf(buf, "%s: ABORTING due to ERROR in %s:%d\n", 
 		  my_name, file, line);
 	  break;
        case M_ERROR_TERM:
-          sprintf(buf, "%s ERROR TERMINATION at %s:%d\n", 
+          sprintf(buf, "%s: ERROR TERMINATION at %s:%d\n", 
 		  my_name, file, line);
 	  break;
        case M_FATAL:
@@ -861,7 +861,7 @@ Jmsg(void *vjcr, int type, int level, char *fmt,...)
        msgs = daemon_msgs;
     }
     if (!job) {
-       job = "*None*";
+       job = "";
     }
 
     buf = rbuf; 		   /* we are the Director */
@@ -881,19 +881,19 @@ Jmsg(void *vjcr, int type, int level, char *fmt,...)
           sprintf(buf, "%s ERROR TERMINATION\n", my_name);
 	  break;
        case M_FATAL:
-          sprintf(buf, "%s: Job %s Fatal error: ", my_name, job);
+          sprintf(buf, "%s: %s Fatal error: ", my_name, job);
 	  if (jcr) {
 	     jcr->JobStatus = JS_FatalError;
 	  }
 	  break;
        case M_ERROR:
-          sprintf(buf, "%s: Job %s Error: ", my_name, job);
+          sprintf(buf, "%s: %s Error: ", my_name, job);
 	  if (jcr) {
 	     jcr->Errors++;
 	  }
 	  break;
        case M_WARNING:
-          sprintf(buf, "%s: Job %s Warning: ", my_name, job);
+          sprintf(buf, "%s: %s Warning: ", my_name, job);
 	  break;
        default:
           sprintf(buf, "%s: ", my_name);

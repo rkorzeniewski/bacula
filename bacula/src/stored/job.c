@@ -38,7 +38,7 @@ static int use_device_cmd(JCR *jcr);
 
 /* Requests from the Director daemon */
 static char jobcmd[]     = "JobId=%d job=%127s job_name=%127s client_name=%127s \
-type=%d level=%d FileSet=%127s Allow=";
+type=%d level=%d FileSet=%127s NoAttr=%d SpoolAttr=%d\n";
 static char use_device[] = "use device=%s media_type=%s pool_name=%s pool_type=%s\n";
 
 /* Responses sent to Director daemon */
@@ -66,7 +66,7 @@ int job_cmd(JCR *jcr)
    char auth_key[100];
    BSOCK *dir = jcr->dir_bsock;
    POOLMEM *job_name, *client_name, *job, *fileset_name;
-   int JobType, level;
+   int JobType, level, spool_attributes, no_attributes;
    struct timeval tv;
    struct timezone tz;
    struct timespec timeout;
@@ -81,7 +81,8 @@ int job_cmd(JCR *jcr)
    client_name = get_memory(dir->msglen);
    fileset_name = get_memory(dir->msglen);
    if (sscanf(dir->msg, jobcmd, &JobId, job, job_name, client_name,
-	      &JobType, &level, fileset_name) != 7) {
+	      &JobType, &level, fileset_name, &no_attributes,
+	      &spool_attributes) != 9) {
       bnet_fsend(dir, BAD_job, dir->msg);
       Emsg1(M_FATAL, 0, _("Bad Job Command from Director: %s\n"), dir->msg);
       free_memory(job);
@@ -106,6 +107,8 @@ int job_cmd(JCR *jcr)
    strcpy(jcr->fileset_name, fileset_name);
    jcr->JobType = JobType;
    jcr->JobLevel = level;
+   jcr->no_attributes = no_attributes;
+   jcr->spool_attributes = spool_attributes;
    free_memory(job);
    free_memory(job_name);
    free_memory(client_name);
@@ -192,11 +195,12 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
    JCR *jcr;
 
    if (!(jcr=get_jcr_by_full_name(job_name))) {
-      Emsg1(M_FATAL, 0, _("Job name not found: %s\n"), job_name);
+      Jmsg1(NULL, M_FATAL, 0, _("Job name not found: %s\n"), job_name);
       return;
    }
 
    jcr->file_bsock = fd;
+   jcr->file_bsock->jcr = (void *)jcr;
 
    Dmsg1(110, "Found Job %s\n", job_name);
 

@@ -224,6 +224,13 @@ static void my_free_jcr(JCR *jcr)
 static void do_setup(char *infname) 
 {
    jcr = new_jcr(sizeof(JCR), my_free_jcr);
+   jcr->VolSessionId = 1;
+   jcr->VolSessionTime = (uint32_t)time(NULL);
+   jcr->bsr = bsr;
+   strcpy(jcr->Job, "bls");
+   jcr->dev_name = get_pool_memory(PM_FNAME);
+   strcpy(jcr->dev_name, infname);
+
    VolName = Vol;
    VolName[0] = 0;
    if (strncmp(infname, "/dev/", 5) != 0) {
@@ -262,8 +269,7 @@ static void do_setup(char *infname)
       NumVolumes++;
    }
 
-   jcr->VolumeName = (char *)check_pool_memory_size(jcr->VolumeName, strlen(VolName)+1);
-   strcpy(jcr->VolumeName, VolName);
+   pm_strcpy(&jcr->VolumeName, VolName);
    if (!acquire_device_for_read(jcr, dev, block)) {
       Emsg0(M_ERROR, 0, dev->errmsg);
       exit(1);
@@ -291,9 +297,7 @@ static int mount_next_volume(char *infname)
       CurVolume++;
       Dmsg1(20, "There is another volume %s.\n", p);
       VolName = p;
-      jcr->VolumeName = check_pool_memory_size(jcr->VolumeName, 
-			  strlen(VolName)+1);
-      strcpy(jcr->VolumeName, VolName);
+      pm_strcpy(&jcr->VolumeName, VolName);
 
       close_dev(dev);
       dev->state &= ~ST_READ; 
@@ -505,7 +509,7 @@ Warning, this Volume is a continuation of Volume %s\n",
 
       record = 0;
       for (rec->state=0; !is_block_empty(rec); ) {
-	 if (!new_read_record_from_block(block, rec)) {
+	 if (!read_record_from_block(block, rec)) {
             Dmsg2(30, "!read-break. stat=%s blk=%d\n", rec_state_to_str(rec), 
 		  block->BlockNumber);
 	    break;

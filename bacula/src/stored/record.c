@@ -113,34 +113,6 @@ void free_record(DEV_RECORD *rec)
    Dmsg0(150, "Leave free_record.\n");
 } 
 
-/*
- * Read a record from a block
- *   if necessary, read the block from the device without locking
- *   if necessary, handle getting a new Volume
- *
- *  Returns: 0 on failure
- *	     1 on success
- */
-int read_record(DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *record)
-{
-   Dmsg2(90, "read_record() dev=%x state=%x\n", dev, dev->state);
-
-   while (!read_record_from_block(block, record)) {
-      Dmsg2(90, "!read_record_from_block data_len=%d rem=%d\n", record->data_len,
-		record->remainder);
-      if (!read_block_from_dev(dev, block)) {
-         Dmsg0(200, "===== Got read block I/O error ======\n");
-	 return 0;
-      }
-   }
-   Dmsg4(90, "read_record FI=%s SessId=%d Strm=%s len=%d\n",
-	      FI_to_ascii(record->FileIndex), record->VolSessionId, 
-	      stream_to_ascii(record->Stream), record->data_len);
-   record->File = dev->file;
-   record->Block = dev->block_num;
-   return 1;
-}
-
 
 /*
  * Write a Record to the block
@@ -284,128 +256,32 @@ rem=%d remainder=%d\n",
 
 
 /*
- * Read a Record from the block
- *  Returns: 0 on failure
- *	     1 on success
+ * Test if we can write whole record to the block
+ *
+ *  Returns: 0 on failure 
+ *	     1 on success (all bytes can be written)
  */
-int read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
+int can_write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec)
 {
-   ser_declare;
    uint32_t remlen;
-   uint32_t VolSessionId;
-   uint32_t VolSessionTime;
-   int32_t  FileIndex;
-   int32_t  Stream;
-   uint32_t data_bytes;
 
-   remlen = block->binbuf;
-
-   /* Clear state flags */
-   rec->state = 0;
-
-   /* 
-    * Get the header. There is always a full header,
-    * otherwise we find it in the next block.
-    */
-   if (remlen >= RECHDR_LENGTH) {
-      Dmsg3(90, "read_record_block: remlen=%d data_len=%d rem=%d\n", 
-	    remlen, rec->data_len, rec->remainder);
-
-      unser_begin(block->bufp, RECHDR_LENGTH);
-      unser_uint32(VolSessionId);
-      unser_uint32(VolSessionTime);
-      unser_int32(FileIndex);
-      unser_int32(Stream);
-      unser_uint32(data_bytes);
-
-      ASSERT(unser_length(block->bufp) == RECHDR_LENGTH);
-      block->bufp += RECHDR_LENGTH;
-      block->binbuf -= RECHDR_LENGTH;
-      remlen -= RECHDR_LENGTH;
-
-      /*    
-       * if Stream is negative, it means that this is a continuation
-       * of a previous partially written record.
-       */
-      if (Stream < 0) { 	      /* continuation record? */
-         Dmsg1(500, "Got negative Stream => continuation. remainder=%d\n", 
-	    rec->remainder);
-	 rec->state |= REC_CONTINUATION;
-         if (!rec->remainder) {       /* if we didn't read previously */
-	    rec->data_len = 0;	      /* return data as if no continuation */
-	 } else if (rec->VolSessionId != VolSessionId || 
-		    rec->VolSessionTime != VolSessionTime ||
-		    rec->Stream != -Stream) {
-	    rec->state |= REC_NO_MATCH;
-	    return 0;		      /* This is from some other Session */
-	 }
-	 rec->Stream = -Stream;       /* set correct Stream */
-      } else {			      /* Regular record */
-	 rec->Stream = Stream;
-	 rec->data_len = 0;	      /* transfer to beginning of data */
+   remlen = block->buf_len - block->binbuf;
+   if (rec->remainder == 0) {
+      if (remlen >= RECHDR_LENGTH) {
+	 remlen -= RECHDR_LENGTH;
+	 rec->remainder = rec->data_len;
+      } else {
+	 return 0;
       }
-      rec->VolSessionId = VolSessionId;
-      rec->VolSessionTime = VolSessionTime;
-      rec->FileIndex = FileIndex;
-
-      Dmsg6(90, "rd_rec_blk() got FI=%s SessId=%d Strm=%s len=%d\n\
-remlen=%d data_len=%d\n",
-	 FI_to_ascii(rec->FileIndex), rec->VolSessionId, 
-	 stream_to_ascii(rec->Stream), data_bytes, remlen, rec->data_len);
    } else {
-      /*    
-       * No more records in this block because the number   
-       * of remaining bytes are less than a record header 
-       * length, so return empty handed, but indicate that
-       * he must read again. By returning, we allow the
-       * higher level routine to fetch the next block and
-       * then reread.
-       */
-      Dmsg0(90, "read_record_block: nothing\n");
-      if (!rec->remainder) {
-	 rec->remainder = 1;	      /* set to expect continuation */
-	 rec->data_len = 0;	      /* no data transferred */
-      }
-      rec->state |= (REC_NO_HEADER | REC_BLOCK_EMPTY);
       return 0;
    }
-
-   ASSERT(data_bytes < MAX_BLOCK_LENGTH);	/* temp sanity check */
-
-   rec->data = check_pool_memory_size(rec->data, rec->data_len+data_bytes);
-   
-   /*
-    * At this point, we have read the header, now we
-    * must transfer as much of the data record as 
-    * possible taking into account: 1. A partial
-    * data record may have previously been transferred,
-    * 2. The current block may not contain the whole data
-    * record.
-    */
-   if (remlen >= data_bytes) {
-      /* Got whole record */
-      memcpy(rec->data+rec->data_len, block->bufp, data_bytes);
-      block->bufp += data_bytes;
-      block->binbuf -= data_bytes;
-      rec->data_len += data_bytes;
-   } else {
-      /* Partial record */
-      memcpy(rec->data+rec->data_len, block->bufp, remlen);
-      block->bufp += remlen;
-      block->binbuf -= remlen;
-      rec->data_len += remlen;
-      rec->remainder = 1;	      /* partial record transferred */
-      Dmsg1(90, "read_record_block: partial xfered=%d\n", rec->data_len);
-      rec->state |= (REC_PARTIAL_RECORD | REC_BLOCK_EMPTY);
-      /********FIXME********* this should return 1 */
+   if (rec->remainder > 0 && remlen < rec->remainder) {
       return 0;
    }
-   rec->remainder = 0;
-   Dmsg4(90, "Rtn full rd_rec_blk FI=%s SessId=%d Strm=%s len=%d\n",
-      FI_to_ascii(rec->FileIndex), rec->VolSessionId, 
-      stream_to_ascii(rec->Stream), rec->data_len);
-   return 1;			      /* transferred full record */
+   return 1;
 }
+
 
 /*
  * Read a Record from the block
@@ -415,7 +291,7 @@ remlen=%d data_len=%d\n",
  *	       routine may have to be called again with a new
  *	       block if the entire record was not read.
  */
-int new_read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
+int read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
 {
    ser_declare;
    uint32_t remlen;

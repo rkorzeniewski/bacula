@@ -79,7 +79,7 @@ static int32_t write_nbytes(BSOCK *bsock, char *ptr, int32_t nbytes)
    if (bsock->spool) {
       nwritten = fwrite(ptr, 1, nbytes, bsock->spool_fd);
       if (nwritten != nbytes) {
-         Emsg1(M_ERROR, 0, _("Spool write error. ERR=%s\n"), strerror(errno));
+         Jmsg1(bsock->jcr, M_ERROR, 0, _("Spool write error. ERR=%s\n"), strerror(errno));
          Dmsg2(400, "nwritten=%d nbytes=%d.\n", nwritten, nbytes);
 	 return -1;
       }
@@ -139,7 +139,7 @@ bnet_recv(BSOCK *bsock)
    if (nbytes != sizeof(int32_t)) {
       bsock->errors++;
       bsock->b_errno = EIO;
-      Emsg3(M_ERROR, 0, _("Read %d expected %d from %s\n"), nbytes, sizeof(int32_t),
+      Jmsg3(bsock->jcr, M_ERROR, 0, _("Read %d expected %d from %s\n"), nbytes, sizeof(int32_t),
 	    bsock->who);
       return -2;
    }
@@ -172,7 +172,7 @@ bnet_recv(BSOCK *bsock)
 	 bsock->b_errno = errno;
       }
       bsock->errors++;
-      Emsg4(M_ERROR, 0, _("Read error from %s:%s:%d: ERR=%s\n"), 
+      Jmsg4(bsock->jcr, M_ERROR, 0, _("Read error from %s:%s:%d: ERR=%s\n"), 
 	    bsock->who, bsock->host, bsock->port, bnet_strerror(bsock));
       return -2;
    }
@@ -182,7 +182,7 @@ bnet_recv(BSOCK *bsock)
    if (nbytes != pktsiz) {
       bsock->b_errno = EIO;
       bsock->errors++;
-      Emsg5(M_ERROR, 0, _("Read expected %d got %d from %s:%s:%d\n"), pktsiz, nbytes,
+      Jmsg5(bsock->jcr, M_ERROR, 0, _("Read expected %d got %d from %s:%s:%d\n"), pktsiz, nbytes,
 	    bsock->who, bsock->host, bsock->port);
       return -2;
    }
@@ -210,14 +210,14 @@ int bnet_despool(BSOCK *bsock)
 	 nbytes = fread(bsock->msg, 1, bsock->msglen, bsock->spool_fd);
 	 if (nbytes != (size_t)bsock->msglen) {
             Dmsg2(400, "nbytes=%d msglen=%d\n", nbytes, bsock->msglen);
-            Emsg1(M_ERROR, 0, _("fread error. ERR=%s\n"), strerror(errno));
+            Jmsg1(bsock->jcr, M_ERROR, 0, _("fread error. ERR=%s\n"), strerror(errno));
 	    return 0;
 	 }
       }
       bnet_send(bsock);
    }
    if (ferror(bsock->spool_fd)) {
-      Emsg1(M_ERROR, 0, _("fread error. ERR=%s\n"), strerror(errno));
+      Jmsg1(bsock->jcr, M_ERROR, 0, _("fread error. ERR=%s\n"), strerror(errno));
       return 0;
    }
    return 1;
@@ -254,11 +254,10 @@ bnet_send(BSOCK *bsock)
 	 bsock->b_errno = errno;
       }
       if (rc < 0) {
-	 /****FIXME***** use Mmsg */
-         Emsg4(M_ERROR, 0, _("Write error sending to %s:%s:%d: ERR=%s\n"), 
+         Jmsg4(bsock->jcr, M_ERROR, 0, _("Write error sending to %s:%s:%d: ERR=%s\n"), 
 	       bsock->who, bsock->host, bsock->port,  bnet_strerror(bsock));
       } else {
-         Emsg5(M_ERROR, 0, _("Wrote %d bytes to %s:%s:%d, but only %d accepted.\n"), 
+         Jmsg5(bsock->jcr, M_ERROR, 0, _("Wrote %d bytes to %s:%s:%d, but only %d accepted.\n"), 
 	       bsock->who, bsock->host, bsock->port, bsock->msglen, rc);
       }
       return 0;
@@ -283,10 +282,10 @@ bnet_send(BSOCK *bsock)
       }
       if (rc < 0) {
 	 /************FIXME********* use Pmsg() **/
-         Emsg4(M_ERROR, 0, _("Write error sending to %s:%s:%d: ERR=%s\n"), 
+         Jmsg4(bsock->jcr, M_ERROR, 0, _("Write error sending to %s:%s:%d: ERR=%s\n"), 
 	       bsock->who, bsock->host, bsock->port,  bnet_strerror(bsock));
       } else {
-         Emsg5(M_ERROR, 0, _("Wrote %d bytes to %s:%s:%d, but only %d accepted.\n"), 
+         Jmsg5(bsock->jcr, M_ERROR, 0, _("Wrote %d bytes to %s:%s:%d, but only %d accepted.\n"), 
 	       bsock->who, bsock->host, bsock->port, bsock->msglen, rc);
       }
       return 0;
@@ -334,7 +333,7 @@ bnet_wait_data(BSOCK *bsock, int sec)
  * Convert a hostname or dotted IP address into   
  * a s_addr.  We handle only IPv4.
  */
-static uint32_t *bget_host_ip(char *host)
+static uint32_t *bget_host_ip(void *jcr, char *host)
 {
    struct in_addr inaddr;
    uint32_t *addr_list; 	      /* this really should be struct in_addr */
@@ -353,7 +352,7 @@ static uint32_t *bget_host_ip(char *host)
 	 return NULL;
       }
       if (hp->h_length != sizeof(inaddr.s_addr) || hp->h_addrtype != AF_INET) {
-          Emsg2(M_WARNING, 0, _("gethostbyname() network address length error.\n\
+          Jmsg2(jcr, M_WARNING, 0, _("gethostbyname() network address length error.\n\
 Wanted %d got %d bytes for s_addr.\n"), sizeof(inaddr.s_addr), hp->h_length);
 	  return NULL;
       }
@@ -380,7 +379,7 @@ Wanted %d got %d bytes for s_addr.\n"), sizeof(inaddr.s_addr), hp->h_length);
  *  ***FIXME*** implement service from /etc/services
  */
 static BSOCK *
-bnet_open(char *name, char *host, char *service, int port)
+bnet_open(void *jcr, char *name, char *host, char *service, int port)
 {
    int sockfd;
    struct sockaddr_in tcp_serv_addr;	 /* socket information */
@@ -396,7 +395,7 @@ bnet_open(char *name, char *host, char *service, int port)
    tcp_serv_addr.sin_family = AF_INET;
    tcp_serv_addr.sin_port = htons(port);
 
-   if ((addr_list=bget_host_ip(host)) == NULL) {
+   if ((addr_list=bget_host_ip(jcr, host)) == NULL) {
      return NULL;
    }
 
@@ -410,7 +409,7 @@ bnet_open(char *name, char *host, char *service, int port)
     * Receive notification when connection dies.
     */
    if (setsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, &turnon, sizeof(turnon)) < 0) {
-      Emsg1(M_WARNING, 0, _("Cannot set SO_KEEPALIVE on socket: %s\n"), strerror(errno));
+      Jmsg(jcr, M_WARNING, 0, _("Cannot set SO_KEEPALIVE on socket: %s\n"), strerror(errno));
    }
    
    for (i = 0; addr_list[i] != ((uint32_t) -1); i++) {
@@ -428,7 +427,7 @@ bnet_open(char *name, char *host, char *service, int port)
       close(sockfd);
       return NULL;
    }
-   return init_bsock(sockfd, name, host, port);
+   return init_bsock(jcr, sockfd, name, host, port);
 }
 
 /*
@@ -441,7 +440,7 @@ bnet_connect(void *jcr, int retry_interval, int max_retry_time, char *name,
    int i;
    BSOCK *bsock;
 
-   for (i=0; (bsock = bnet_open(name, host, service, port)) == NULL; i -= retry_interval) {
+   for (i=0; (bsock = bnet_open(jcr, name, host, service, port)) == NULL; i -= retry_interval) {
      Dmsg4(100, "Unable to connect to %s on %s:%d. ERR=%s\n",
 	      name, host, port, strerror(errno));
       if (i <= 0) {
@@ -519,20 +518,20 @@ int bnet_set_buffer_size(BSOCK *bs, uint32_t size, int rw)
 
    dbuf_size = size;
    if ((bs->msg = realloc_pool_memory(bs->msg, dbuf_size+100)) == NULL) {
-      Emsg0(M_FATAL, 0, _("Could not malloc 32K BSOCK data buffer\n"));
+      Jmsg0(bs->jcr, M_FATAL, 0, _("Could not malloc 32K BSOCK data buffer\n"));
       return 0;
    }
    if (rw & BNET_SETBUF_READ) {
       while ((dbuf_size > TAPE_BSIZE) &&
 	 (setsockopt(bs->fd, SOL_SOCKET, SO_RCVBUF, (char *)&dbuf_size, sizeof(dbuf_size)) < 0)) {
-         Emsg1(M_ERROR, 0, _("sockopt error: %s\n"), strerror(errno));
+         Jmsg1(bs->jcr, M_ERROR, 0, _("sockopt error: %s\n"), strerror(errno));
 	 dbuf_size -= TAPE_BSIZE;
       }
       Dmsg1(200, "set network buffer size=%d\n", dbuf_size);
       if (dbuf_size != MAX_NETWORK_BUFFER_SIZE)
-         Emsg1(M_WARNING, 0, _("Warning network buffer = %d bytes not max size.\n"), dbuf_size);
+         Jmsg1(bs->jcr, M_WARNING, 0, _("Warning network buffer = %d bytes not max size.\n"), dbuf_size);
       if (dbuf_size % TAPE_BSIZE != 0) {
-         Emsg1(M_ABORT, 0, _("Network buffer size %d not multiple of tape block size.\n"),
+         Jmsg1(bs->jcr, M_ABORT, 0, _("Network buffer size %d not multiple of tape block size.\n"),
 	      dbuf_size);
       }
    }
@@ -540,14 +539,14 @@ int bnet_set_buffer_size(BSOCK *bs, uint32_t size, int rw)
    if (rw & BNET_SETBUF_WRITE) {
       while ((dbuf_size > TAPE_BSIZE) &&
 	 (setsockopt(bs->fd, SOL_SOCKET, SO_SNDBUF, (char *)&dbuf_size, sizeof(dbuf_size)) < 0)) {
-         Emsg1(M_ERROR, 0, _("sockopt error: %s\n"), strerror(errno));
+         Jmsg1(bs->jcr, M_ERROR, 0, _("sockopt error: %s\n"), strerror(errno));
 	 dbuf_size -= TAPE_BSIZE;
       }
       Dmsg1(200, "set network buffer size=%d\n", dbuf_size);
       if (dbuf_size != MAX_NETWORK_BUFFER_SIZE)
-         Emsg1(M_WARNING, 0, _("Warning network buffer = %d bytes not max size.\n"), dbuf_size);
+         Jmsg1(bs->jcr, M_WARNING, 0, _("Warning network buffer = %d bytes not max size.\n"), dbuf_size);
       if (dbuf_size % TAPE_BSIZE != 0) {
-         Emsg1(M_ABORT, 0, _("Network buffer size %d not multiple of tape block size.\n"),
+         Jmsg1(bs->jcr, M_ABORT, 0, _("Network buffer size %d not multiple of tape block size.\n"),
 	      dbuf_size);
       }
    }
@@ -605,7 +604,7 @@ char *bnet_sig_to_ascii(BSOCK *bs)
  *  This probably should be done in net_open
  */
 BSOCK *
-init_bsock(int sockfd, char *who, char *host, int port) 
+init_bsock(void *jcr, int sockfd, char *who, char *host, int port) 
 {
    BSOCK *bsock = (BSOCK *)malloc(sizeof(BSOCK));
    memset(bsock, 0, sizeof(BSOCK));
@@ -621,6 +620,7 @@ init_bsock(int sockfd, char *who, char *host, int port)
     *	heartbeats are implemented
     */
    bsock->timeout = 60 * 60 * 6 * 24; /* 6 days timeout */
+   bsock->jcr = jcr;
    return bsock;
 }
 

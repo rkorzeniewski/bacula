@@ -45,6 +45,9 @@ static FF_PKT *ff = &my_ff;
 
 static BSR *bsr = NULL;
 
+static DEV_RECORD *rec;
+static DEV_BLOCK *block;
+
 static void usage()
 {
    fprintf(stderr,
@@ -162,8 +165,6 @@ static void do_extract(char *devname, char *where)
    int type;
    long record_file_index;
    long total = 0;
-   DEV_RECORD rec;
-   DEV_BLOCK *block;
    POOLMEM *fname;		      /* original file name */
    POOLMEM *ofile;		      /* output name with prefix */
    POOLMEM *lname;		      /* link name */
@@ -217,57 +218,28 @@ static void do_extract(char *devname, char *where)
       return;
    }
 
-   memset(&rec, 0, sizeof(rec));
-   rec.data = get_memory(70000);
+   rec = new_record();
+   free_pool_memory(rec->data);
+   rec->data = get_memory(70000);
 
    uint32_t compress_buf_size = 70000;
    POOLMEM *compress_buf = get_memory(compress_buf_size);
 
    for ( ;; ) {
-      int ok;
-      DEV_RECORD *record;	      /* for reading label of multi-volumes */
-
-      if (!read_record(dev, block, &rec)) {
+      if (!read_block_from_device(dev, block)) {
 	 uint32_t status;
-         Dmsg1(500, "Main read record failed. rem=%d\n", rec.remainder);
+         Dmsg1(500, "Main read record failed. rem=%d\n", rec->remainder);
 	 if (dev->state & ST_EOT) {
-	    if (rec.remainder) {
-               Dmsg0(500, "Not end of record.\n");
+	    if (!mount_next_read_volume(jcr, dev, block)) {
+	       break;
 	    }
-            Dmsg2(90, "NumVolumes=%d CurVolume=%d\n", jcr->NumVolumes, jcr->CurVolume);
-	    /*
-	     * End Of Tape -- mount next Volume (if another specified)
-	     */
-	    if (jcr->NumVolumes > 1 && jcr->CurVolume < jcr->NumVolumes) {
-	       VOL_LIST *vol = jcr->VolList;
-	       /* Find next Volume */
-	       jcr->CurVolume++;
-	       for (int i=1; i<jcr->CurVolume; i++) {
-		  vol = vol->next;
-	       }
-	       strcpy(jcr->VolumeName, vol->VolumeName);
-               Dmsg1(400, "There is another volume %s.\n", jcr->VolumeName);
-
-	       close_dev(dev);
-	       dev->state &= ~ST_READ; 
-	       if (!acquire_device_for_read(jcr, dev, block)) {
-                  Emsg2(M_FATAL, 0, "Cannot open Dev=%s, Vol=%s\n", dev_name(dev),
-			jcr->VolumeName);
-		  ok = FALSE;
-		  break;
-	       }
-	       record = new_record();
-               Dmsg1(500, "read record after new tape. rem=%d\n", record->remainder);
-	       read_record(dev, block, record); /* read vol label */
-	       dump_label_record(dev, record, 0);
-	       free_record(record);
-	       continue;
-	    }
-            Dmsg0(90, "End of Device reached.\n");
-	    break;		      /* End of Tape */
+	    continue;
 	 }
 	 if (dev->state & ST_EOF) {
 	    continue;		      /* try again */
+	 }
+	 if (dev->state & ST_SHORT) {
+	    continue;
 	 }
          Pmsg0(0, "Read Record got a bad record\n");
 	 status_dev(dev, &status);
@@ -287,68 +259,205 @@ static void do_extract(char *devname, char *where)
 	       status, dev_name(dev), strerror(errno));
       }
 
-
-      /* This is no longer used */
-      if (rec.VolSessionId == 0 && rec.VolSessionTime == 0) {
-         Emsg0(M_ERROR, 0, "Zero header record. This shouldn't happen.\n");
-	 break; 		      /* END OF FILE */
-      }
-
-      /* 
-       * Check for Start or End of Session Record 
-       *
-       */
-      if (rec.FileIndex < 0) {
-	 char *rtype;
-	 memset(&sessrec, 0, sizeof(sessrec));
-	 switch (rec.FileIndex) {
-	    case PRE_LABEL:
-               rtype = "Fresh Volume Label";   
-	       break;
-	    case VOL_LABEL:
-               rtype = "Volume Label";
-	       unser_volume_label(dev, &rec);
-	       break;
-	    case SOS_LABEL:
-               rtype = "Begin Session";
-	       unser_session_label(&sessrec, &rec);
-	       break;
-	    case EOS_LABEL:
-               rtype = "End Session";
-	       break;
-	    case EOM_LABEL:
-               rtype = "End of Media";
-	       break;
-	    default:
-               rtype = "Unknown";
-	       break;
-	 }
-	 if (debug_level > 0) {
-            printf("%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
-	       rtype, rec.VolSessionId, rec.VolSessionTime, rec.Stream, rec.data_len);
+      for (rec->state=0; !is_block_empty(rec); ) {
+	 if (!read_record_from_block(block, rec)) {
+	    break;
 	 }
 
-         Dmsg1(40, "Got label = %d\n", rec.FileIndex);
-	 if (rec.FileIndex == EOM_LABEL) { /* end of tape? */
-            Dmsg0(40, "Get EOM LABEL\n");
-	    break;			   /* yes, get out */
+	 /* This is no longer used */		     
+	 if (rec->VolSessionId == 0 && rec->VolSessionTime == 0) {
+            Emsg0(M_ERROR, 0, "Zero header record. This shouldn't happen.\n");
+	    break;			 /* END OF FILE */
 	 }
-	 continue;			   /* ignore other labels */
-      } /* end if label record */
 
-      /* Is this the file we want? */
-      if (bsr && !match_bsr(bsr, &rec, &dev->VolHdr, &sessrec)) {
-	 continue;
-      }
-
-      /* File Attributes stream */
-      if (rec.Stream == STREAM_UNIX_ATTRIBUTES) {
-	 char *ap, *lp, *fp;
-
-	 /* If extracting, it was from previous stream, so
-	  * close the output file.
+	 /* 
+	  * Check for Start or End of Session Record 
+	  *
 	  */
-	 if (extract) {
+	 if (rec->FileIndex < 0) {
+	    char *rtype;
+	    memset(&sessrec, 0, sizeof(sessrec));
+	    switch (rec->FileIndex) {
+	       case PRE_LABEL:
+                  rtype = "Fresh Volume Label";   
+		  break;
+	       case VOL_LABEL:
+                  rtype = "Volume Label";
+		  unser_volume_label(dev, rec);
+		  break;
+	       case SOS_LABEL:
+                  rtype = "Begin Session";
+		  unser_session_label(&sessrec, rec);
+		  break;
+	       case EOS_LABEL:
+                  rtype = "End Session";
+		  break;
+	       case EOM_LABEL:
+                  rtype = "End of Media";
+		  break;
+	       default:
+                  rtype = "Unknown";
+		  break;
+	    }
+	    if (debug_level > 0) {
+               printf("%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
+		  rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
+	    }
+
+            Dmsg1(40, "Got label = %d\n", rec->FileIndex);
+	    if (rec->FileIndex == EOM_LABEL) { /* end of tape? */
+               Dmsg0(40, "Get EOM LABEL\n");
+	       break;			      /* yes, get out */
+	    }
+	    continue;			      /* ignore other labels */
+	 } /* end if label record */
+
+	 /* Is this the file we want? */
+	 if (bsr && !match_bsr(bsr, rec, &dev->VolHdr, &sessrec)) {
+	    rec->remainder = 0;
+	    continue;
+	 }
+	 if (is_partial_record(rec)) {
+	    break;
+	 }
+
+	 /* File Attributes stream */
+	 if (rec->Stream == STREAM_UNIX_ATTRIBUTES) {
+	    char *ap, *lp, *fp;
+
+	    /* If extracting, it was from previous stream, so
+	     * close the output file.
+	     */
+	    if (extract) {
+	       if (ofd < 0) {
+                  Emsg0(M_ERROR_TERM, 0, "Logic error output file should be open\n");
+	       }
+	       close(ofd);
+	       ofd = -1;
+	       extract = FALSE;
+	       set_statp(jcr, fname, ofile, lname, type, &statp);
+	    }
+
+	    if (sizeof_pool_memory(fname) < rec->data_len) {
+	       fname = realloc_pool_memory(fname, rec->data_len + 1);
+	    }
+	    if (sizeof_pool_memory(ofile) < sizeof_pool_memory(fname) + wherelen + 1) {
+	       ofile = realloc_pool_memory(ofile, sizeof_pool_memory(fname) + wherelen + 1);
+	    }
+	    if (sizeof_pool_memory(lname) < rec->data_len) {
+	       lname = realloc_pool_memory(lname, rec->data_len + 1);
+	    }
+	    *fname = 0;
+	    *lname = 0;
+
+	    /*		    
+	     * An Attributes record consists of:
+	     *	  File_index
+	     *	  Type	 (FT_types)
+	     *	  Filename
+	     *	  Attributes
+	     *	  Link name (if file linked i.e. FT_LNK)
+	     *
+	     */
+            sscanf(rec->data, "%ld %d", &record_file_index, &type);
+	    if (record_file_index != rec->FileIndex)
+               Emsg2(M_ERROR_TERM, 0, "Record header file index %ld not equal record index %ld\n",
+		  rec->FileIndex, record_file_index);
+	    ap = rec->data;
+            while (*ap++ != ' ')         /* skip record file index */
+	       ;
+            while (*ap++ != ' ')         /* skip type */
+	       ;
+	    /* Save filename and position to attributes */
+	    fp = fname;
+	    while (*ap != 0) {
+	       *fp++  = *ap++;
+	    }
+	    *fp = *ap++;		 /* terminate filename & point to attribs */
+
+	    /* Skip to Link name */
+	    if (type == FT_LNK) {
+	       lp = ap;
+	       while (*lp++ != 0) {
+		  ;
+	       }
+               strcat(lname, lp);        /* "save" link name */
+	    } else {
+	       *lname = 0;
+	    }
+
+	       
+	    if (file_is_included(ff, fname) && !file_is_excluded(ff, fname)) {
+
+	       decode_stat(ap, &statp);
+	       /*
+		* Prepend the where directory so that the
+		* files are put where the user wants.
+		*
+		* We do a little jig here to handle Win32 files with
+		* a drive letter.  
+		*   If where is null and we are running on a win32 client,
+		*      change nothing.
+		*   Otherwise, if the second character of the filename is a
+		*   colon (:), change it into a slash (/) -- this creates
+		*   a reasonable pathname on most systems.
+		*/
+	       strcpy(ofile, where);
+               if (fname[1] == ':') {
+                  fname[1] = '/';
+		  strcat(ofile, fname);
+                  fname[1] = ':';
+	       } else {
+		  strcat(ofile, fname);
+	       }
+   /*          Pmsg1(000, "Restoring: %s\n", ofile); */
+
+	       extract = create_file(jcr, fname, ofile, lname, type, &statp, &ofd);
+
+	       if (extract) {
+		   print_ls_output(ofile, lname, type, &statp);   
+	       }
+	    }
+
+	 /* Data stream and extracting */
+	 } else if (rec->Stream == STREAM_FILE_DATA) {
+	    if (extract) {
+	       total += rec->data_len;
+               Dmsg2(8, "Write %ld bytes, total=%ld\n", rec->data_len, total);
+	       if ((uint32_t)write(ofd, rec->data, rec->data_len) != rec->data_len) {
+                  Emsg1(M_ERROR_TERM, 0, "Write error: %s\n", strerror(errno));
+	       }
+	    }
+    
+	 } else if (rec->Stream == STREAM_GZIP_DATA) {
+#ifdef HAVE_LIBZ
+	    if (extract) {
+	       uLongf compress_len;
+
+	       compress_len = compress_buf_size;
+	       if (uncompress((Bytef *)compress_buf, &compress_len, 
+		     (const Bytef *)rec->data, (uLong)rec->data_len) != Z_OK) {
+                  Emsg0(M_ERROR_TERM, 0, _("Uncompression error.\n"));
+	       }
+
+               Dmsg2(100, "Write uncompressed %d bytes, total before write=%d\n", compress_len, total);
+	       if ((uLongf)write(ofd, compress_buf, (size_t)compress_len) != compress_len) {
+                  Pmsg0(0, "===Write error===\n");
+                  Emsg2(M_ERROR_TERM, 0, "Write error on %s: %s\n", ofile, strerror(errno));
+	       }
+	       total += compress_len;
+               Dmsg2(100, "Compress len=%d uncompressed=%d\n", rec->data_len,
+		  compress_len);
+	    }
+#else
+	    if (extract) {
+               Emsg0(M_ERROR_TERM, 0, "GZIP data stream found, but GZIP not configured!\n");
+	    }
+#endif
+
+
+	 /* If extracting, wierd stream (not 1 or 2), close output file anyway */
+	 } else if (extract) {
 	    if (ofd < 0) {
                Emsg0(M_ERROR_TERM, 0, "Logic error output file should be open\n");
 	    }
@@ -356,139 +465,12 @@ static void do_extract(char *devname, char *where)
 	    ofd = -1;
 	    extract = FALSE;
 	    set_statp(jcr, fname, ofile, lname, type, &statp);
+	 } else if (rec->Stream != STREAM_MD5_SIGNATURE) {
+            Pmsg2(0, "None of above!!! stream=%d data=%s\n", rec->Stream, rec->data);
 	 }
-
-	 if (sizeof_pool_memory(fname) < rec.data_len) {
-	    fname = realloc_pool_memory(fname, rec.data_len + 1);
-	 }
-	 if (sizeof_pool_memory(ofile) < sizeof_pool_memory(fname) + wherelen + 1) {
-	    ofile = realloc_pool_memory(ofile, sizeof_pool_memory(fname) + wherelen + 1);
-	 }
-	 if (sizeof_pool_memory(lname) < rec.data_len) {
-	    ofile = realloc_pool_memory(ofile, rec.data_len + 1);
-	 }
-	 *fname = 0;
-	 *lname = 0;
-
-	 /*		 
-	  * An Attributes record consists of:
-	  *    File_index
-	  *    Type   (FT_types)
-	  *    Filename
-	  *    Attributes
-	  *    Link name (if file linked i.e. FT_LNK)
-	  *
-	  */
-         sscanf(rec.data, "%ld %d", &record_file_index, &type);
-	 if (record_file_index != rec.FileIndex)
-            Emsg2(M_ERROR_TERM, 0, "Record header file index %ld not equal record index %ld\n",
-	       rec.FileIndex, record_file_index);
-	 ap = rec.data;
-         while (*ap++ != ' ')         /* skip record file index */
-	    ;
-         while (*ap++ != ' ')         /* skip type */
-	    ;
-	 /* Save filename and position to attributes */
-	 fp = fname;
-	 while (*ap != 0) {
-	    *fp++  = *ap++;
-	 }
-	 *fp = *ap++;		      /* terminate filename & point to attribs */
-
-	 /* Skip to Link name */
-	 if (type == FT_LNK) {
-	    lp = ap;
-	    while (*lp++ != 0) {
-	       ;
-	    }
-            strcat(lname, lp);        /* "save" link name */
-	 } else {
-	    *lname = 0;
-	 }
-
-	    
-	 if (file_is_included(ff, fname) && !file_is_excluded(ff, fname)) {
-
-	    decode_stat(ap, &statp);
-	    /*
-	     * Prepend the where directory so that the
-	     * files are put where the user wants.
-	     *
-	     * We do a little jig here to handle Win32 files with
-	     * a drive letter.	
-	     *	 If where is null and we are running on a win32 client,
-	     *	    change nothing.
-	     *	 Otherwise, if the second character of the filename is a
-	     *	 colon (:), change it into a slash (/) -- this creates
-	     *	 a reasonable pathname on most systems.
-	     */
-	    strcpy(ofile, where);
-            if (fname[1] == ':') {
-               fname[1] = '/';
-	       strcat(ofile, fname);
-               fname[1] = ':';
-	    } else {
-	       strcat(ofile, fname);
-	    }
-/*          Pmsg1(000, "Restoring: %s\n", ofile); */
-
-	    extract = create_file(jcr, fname, ofile, lname, type, &statp, &ofd);
-
-	    if (extract) {
-		print_ls_output(ofile, lname, type, &statp);   
-	    }
-	 }
-
-      /* Data stream and extracting */
-      } else if (rec.Stream == STREAM_FILE_DATA) {
-	 if (extract) {
-	    total += rec.data_len;
-            Dmsg2(8, "Write %ld bytes, total=%ld\n", rec.data_len, total);
-	    if ((uint32_t)write(ofd, rec.data, rec.data_len) != rec.data_len) {
-               Emsg1(M_ERROR_TERM, 0, "Write error: %s\n", strerror(errno));
-	    }
-	 }
- 
-      } else if (rec.Stream == STREAM_GZIP_DATA) {
-#ifdef HAVE_LIBZ
-	 if (extract) {
-	    uLongf compress_len;
-
-	    compress_len = compress_buf_size;
-	    if (uncompress((Bytef *)compress_buf, &compress_len, 
-		  (const Bytef *)rec.data, (uLong)rec.data_len) != Z_OK) {
-               Emsg0(M_ERROR_TERM, 0, _("Uncompression error.\n"));
-	    }
-
-            Dmsg2(100, "Write uncompressed %d bytes, total before write=%d\n", compress_len, total);
-	    if ((uLongf)write(ofd, compress_buf, (size_t)compress_len) != compress_len) {
-               Pmsg0(0, "===Write error===\n");
-               Emsg2(M_ERROR_TERM, 0, "Write error on %s: %s\n", ofile, strerror(errno));
-	    }
-	    total += compress_len;
-            Dmsg2(100, "Compress len=%d uncompressed=%d\n", rec.data_len,
-	       compress_len);
-	 }
-#else
-	 if (extract) {
-            Emsg0(M_ERROR_TERM, 0, "GZIP data stream found, but GZIP not configured!\n");
-	 }
-#endif
-
-
-      /* If extracting, wierd stream (not 1 or 2), close output file anyway */
-      } else if (extract) {
-	 if (ofd < 0) {
-            Emsg0(M_ERROR_TERM, 0, "Logic error output file should be open\n");
-	 }
-	 close(ofd);
-	 ofd = -1;
-	 extract = FALSE;
-	 set_statp(jcr, fname, ofile, lname, type, &statp);
-      } else if (rec.Stream != STREAM_MD5_SIGNATURE) {
-         Pmsg2(0, "None of above!!! stream=%d data=%s\n", rec.Stream, rec.data);
       }
    }
+
 
    /* If output file is still open, it was the last one in the
     * archive since we just hit an end of file, so close the file. 
@@ -505,6 +487,7 @@ static void do_extract(char *devname, char *where)
    free_pool_memory(compress_buf);
    term_dev(dev);
    free_block(block);
+   free_record(rec);
    return;
 }
 

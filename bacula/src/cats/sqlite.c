@@ -59,7 +59,7 @@ int QueryDB(char *file, int line, B_DB *db, char *select_cmd);
  * never have errors, or it is really fatal.
  */
 B_DB *
-db_init_database(char *db_name, char *db_user, char *db_password)
+db_init_database(void *jcr, char *db_name, char *db_user, char *db_password)
 {
    B_DB *mdb;
 
@@ -85,6 +85,7 @@ db_init_database(char *db_name, char *db_user, char *db_password)
    mdb->cached_path_id = 0;
    mdb->ref_count = 1;
    qinsert(&db_list, &mdb->bq); 	   /* put db in list */
+   mdb->jcr = jcr;
    V(mutex);
    return mdb;
 }

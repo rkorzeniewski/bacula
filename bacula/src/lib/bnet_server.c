@@ -124,7 +124,7 @@ bnet_thread_server(int port, int max_clients, workq_t *client_wq,
       fromhost(&request);
       if (!hosts_access(&request)) {
 	 V(mutex);
-         Emsg2(M_WARNING, 0, _("Connection from %s:%d refused by hosts.access"),
+         Jmsg2(NULL, M_WARNING, 0, _("Connection from %s:%d refused by hosts.access"),
 	       inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
 	 close(newsockfd);
 	 continue;
@@ -147,8 +147,8 @@ bnet_thread_server(int port, int max_clients, workq_t *client_wq,
 
       /* Queue client to be served */
       if ((stat = workq_add(client_wq, 
-            (void *)init_bsock(newsockfd, "client", caller, port))) != 0) {
-         Emsg1(M_ABORT, 0, _("Could not add job to client queue: ERR=%s\n"), strerror(stat));
+            (void *)init_bsock(NULL, newsockfd, "client", caller, port))) != 0) {
+         Jmsg1(NULL, M_ABORT, 0, _("Could not add job to client queue: ERR=%s\n"), strerror(stat));
       }
    }
 }   

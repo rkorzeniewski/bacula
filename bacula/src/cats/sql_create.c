@@ -285,11 +285,12 @@ int db_create_client_record(B_DB *mdb, CLIENT_DBR *cr)
       /* If more than one, report error, but return first row */
       if (mdb->num_rows > 1) {
          Mmsg1(&mdb->errmsg, _("More than one Client!: %d\n"), (int)(mdb->num_rows));
-	 Emsg0(M_ERROR, 0, mdb->errmsg);
+         Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
       }
       if (mdb->num_rows >= 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
             Mmsg1(&mdb->errmsg, _("error fetching Client row: %s\n"), sql_strerror(mdb));
+            Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	    sql_free_result(mdb);
 	    db_unlock(mdb);
 	    return 0;
@@ -312,6 +313,7 @@ FileRetention, JobRetention) VALUES \
    if (!INSERT_DB(mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create DB Client record %s failed. ERR=%s\n"),
 	    mdb->cmd, sql_strerror(mdb));
+      Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
       cr->ClientId = 0;
       stat = 0;
    } else {
@@ -345,11 +347,12 @@ FileSet='%s' and MD5='%s'", fsr->FileSet, fsr->MD5);
       
       if (mdb->num_rows > 1) {
          Mmsg1(&mdb->errmsg, _("More than one FileSet!: %d\n"), (int)(mdb->num_rows));
-	 Emsg0(M_ERROR, 0, mdb->errmsg);
+         Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
       }
       if (mdb->num_rows >= 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
             Mmsg1(&mdb->errmsg, _("error fetching FileSet row: ERR=%s\n"), sql_strerror(mdb));
+            Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	    sql_free_result(mdb);
 	    db_unlock(mdb);
 	    return 0;
@@ -369,6 +372,7 @@ FileSet='%s' and MD5='%s'", fsr->FileSet, fsr->MD5);
    if (!INSERT_DB(mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create DB FileSet record %s failed. ERR=%s\n"),
 	    mdb->cmd, sql_strerror(mdb));
+      Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
       fsr->FileSetId = 0;
       stat = 0;
    } else {
@@ -427,6 +431,7 @@ int db_create_file_attributes_record(B_DB *mdb, ATTR_DBR *ar)
     */
    if (ar->Stream != STREAM_UNIX_ATTRIBUTES) {
       Mmsg0(&mdb->errmsg, _("Attempt to put non-attributes into catalog\n"));
+      Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
       return 0;
    }
 
@@ -454,7 +459,7 @@ int db_create_file_attributes_record(B_DB *mdb, ATTR_DBR *ar)
     */
    fnl = p - l;
    if (fnl > 255) {
-      Emsg1(M_WARNING, 0, _("Filename truncated to 255 chars: %s\n"), l);
+      Jmsg(mdb->jcr, M_WARNING, 0, _("Filename truncated to 255 chars: %s\n"), l);
       fnl = 255;
    }
    if (fnl > 0) {
@@ -468,7 +473,7 @@ int db_create_file_attributes_record(B_DB *mdb, ATTR_DBR *ar)
 
    pnl = l - ar->fname;    
    if (pnl > 255) {
-      Emsg1(M_WARNING, 0, _("Path name truncated to 255 chars: %s\n"), ar->fname);
+      Jmsg(mdb->jcr, M_WARNING, 0, _("Path name truncated to 255 chars: %s\n"), ar->fname);
       pnl = 255;
    }
    strncpy(spath, ar->fname, pnl);
@@ -476,7 +481,7 @@ int db_create_file_attributes_record(B_DB *mdb, ATTR_DBR *ar)
 
    if (pnl == 0) {
       Mmsg1(&mdb->errmsg, _("Path length is zero. File=%s\n"), ar->fname);
-      Emsg0(M_ERROR, 0, mdb->errmsg);
+      Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
       spath[0] = ' ';
       spath[1] = 0;
       pnl = 1;
@@ -527,6 +532,7 @@ LStat, MD5) VALUES (%d, %d, %d, %d, '%s', '0')",
    if (!INSERT_DB(mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db File record %s failed. ERR=%s"),       
 	 mdb->cmd, sql_strerror(mdb));
+      Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
       ar->FileId = 0;
       stat = 0;
    } else {
@@ -545,6 +551,7 @@ static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar, char *path)
 
    if (*path == 0) {
       Mmsg0(&mdb->errmsg, _("Null path given to db_create_path_record\n"));
+      Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
       ar->PathId = 0;
       ASSERT(ar->PathId);
       return 0;
@@ -569,13 +576,13 @@ static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar, char *path)
 	 char ed1[30];
          Mmsg2(&mdb->errmsg, _("More than one Path!: %s for Path=%s\n"), 
 	    edit_uint64(mdb->num_rows, ed1), path);
-         Emsg1(M_ERROR, 0, "%s", mdb->errmsg);
-         Emsg1(M_ERROR, 0, "%s\n", mdb->cmd);
+         Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
       }
       if (mdb->num_rows >= 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
 	    db_unlock(mdb);
             Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
+            Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	    sql_free_result(mdb);
 	    ar->PathId = 0;
 	    ASSERT(ar->PathId);
@@ -603,6 +610,7 @@ static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar, char *path)
    if (!INSERT_DB(mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db Path record %s failed. ERR=%s\n"), 
 	 mdb->cmd, sql_strerror(mdb));
+      Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
       ar->PathId = 0;
       stat = 0;
    } else {
@@ -635,13 +643,13 @@ static int db_create_filename_record(B_DB *mdb, ATTR_DBR *ar, char *fname)
       if (mdb->num_rows > 1) {
          Mmsg2(&mdb->errmsg, _("More than one Filename!: %d File=%s\n"), 
 	    (int)(mdb->num_rows), fname);
-         Emsg1(M_ERROR, 0, "%s", mdb->errmsg);
-         Emsg1(M_ERROR, 0, "%s\n", mdb->cmd);
+         Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
       }
       if (mdb->num_rows >= 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
             Mmsg2(&mdb->errmsg, _("error fetching row for file=%s: ERR=%s\n"), 
 		fname, sql_strerror(mdb));
+            Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	    ar->FilenameId = 0;
 	 } else {
 	    ar->FilenameId = atoi(row[0]);
@@ -659,6 +667,7 @@ VALUES ('%s')", fname);
    if (!INSERT_DB(mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db Filename record %s failed. ERR=%s\n"), 
 	    mdb->cmd, sql_strerror(mdb));
+      Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
       ar->FilenameId = 0;
    } else {
       ar->FilenameId = sql_insert_id(mdb);
