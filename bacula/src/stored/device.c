@@ -833,7 +833,7 @@ static char *edit_device_codes(JCR *jcr, char *omsg, char *imsg, char *cmd)
    const char *str;
    char add[20];
 
-   Dmsg1(200, "edit_job_codes: %s\n", imsg);
+   Dmsg1(200, "edit_device_codes: %s\n", imsg);
    add[2] = 0;
    o = omsg;
    for (p=imsg; *p; p++) {

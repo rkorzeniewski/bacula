@@ -210,8 +210,10 @@ open_dev(DEVICE *dev, char *VolName, int mode)
 	 dev->mode = O_RDONLY | O_BINARY;
       }
       timeout = dev->max_open_wait;
+      errno = 0;
       while ((dev->fd = open(dev->dev_name, dev->mode, MODE_RW)) < 0) {
 	 if (errno == EBUSY && timeout-- > 0) {
+            Dmsg2(100, "Device %s busy. ERR=%s\n", dev->dev_name, strerror(errno));
 	    sleep(1);
 	    continue;
 	 }
@@ -219,8 +221,9 @@ open_dev(DEVICE *dev, char *VolName, int mode)
          Mmsg2(&dev->errmsg, _("stored: unable to open device %s: ERR=%s\n"), 
 	       dev->dev_name, strerror(dev->dev_errno));
 	 Emsg0(M_FATAL, 0, dev->errmsg);
+	 break;
       }
-      if (dev->fd < 0) {
+      if (dev->fd >= 0) {
 	 dev->dev_errno = 0;
 	 dev->state |= ST_OPENED;
 	 dev->use_count++;

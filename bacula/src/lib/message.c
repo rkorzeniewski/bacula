@@ -279,103 +279,6 @@ void rem_msg_dest(MSGS *msg, int dest_code, int msg_type, char *where)
 }
 
 
-/*
- * Convert Job Termination Status into a string
- */
-static char *job_status_to_str(int stat) 
-{
-   char *str;
-
-   switch (stat) {
-   case JS_Terminated:
-      str = "OK";
-      break;
-   case JS_ErrorTerminated:
-   case JS_Error:
-      str = "Error";
-      break;
-   case JS_FatalError:
-      str = "Fatal Error";
-      break;
-   case JS_Cancelled:
-      str = "Cancelled";
-      break;
-   case JS_Differences:
-      str = "Differences";
-      break;
-   default:
-      str = "Unknown term code";
-      break;
-   }
-   return str;
-}
-
-
-/*
- * Convert Job Type into a string
- */
-static char *job_type_to_str(int type) 
-{
-   char *str;
-
-   switch (type) {
-   case JT_BACKUP:
-      str = "Backup";
-      break;
-   case JT_VERIFY:
-      str = "Verify";
-      break;
-   case JT_RESTORE:
-      str = "Restore";
-      break;
-   default:
-      str = "Unknown Job Type";
-      break;
-   }
-   return str;
-}
-
-/*
- * Convert Job Level into a string
- */
-static char *job_level_to_str(int level) 
-{
-   char *str;
-
-   switch (level) {
-   case L_FULL:
-      str = "full";
-      break;
-   case L_INCREMENTAL:
-      str = "incremental";
-      break;
-   case L_DIFFERENTIAL:
-      str = "differential";
-      break;
-   case L_LEVEL:
-      str = "level";
-      break;
-   case L_SINCE:
-      str = "since";
-      break;
-   case L_VERIFY_CATALOG:
-      str = "verify catalog";
-      break;
-   case L_VERIFY_INIT:
-      str = "verify init";
-      break;
-   case L_VERIFY_VOLUME_TO_CATALOG:
-      str = "verify volume to catalog";
-      break;
-   case L_VERIFY_DATA:
-      str = "verify data";
-      break;
-   default:
-      str = "Unknown Job level";
-      break;
-   }
-   return str;
-}
 
 
 /*
@@ -384,6 +287,7 @@ static char *job_level_to_str(int level)
  *  %j = Job name
  *  %t = Job type (Backup, ...)
  *  %e = Job Exit code
+ *  %i = JobId
  *  %l = job level
  *  %c = Client's name
  *  %r = Recipients
@@ -397,7 +301,7 @@ static char *job_level_to_str(int level)
 static char *edit_job_codes(JCR *jcr, char *omsg, char *imsg, char *to)   
 {
    char *p, *o, *str;
-   char add[3];
+   char add[20];
 
    Dmsg1(200, "edit_job_codes: %s\n", imsg);
    add[2] = 0;
@@ -410,21 +314,6 @@ static char *edit_job_codes(JCR *jcr, char *omsg, char *imsg, char *to)
 	    add[1] = 0;
 	    str = add;
 	    break;
-         case 'j':                    /* Job name */
-	    str = jcr->Job;
-	    break;
-         case 'e':
-	    str = job_status_to_str(jcr->JobStatus); 
-	    break;
-         case 't':
-	    str = job_type_to_str(jcr->JobType);
-	    break;
-         case 'r':
-	    str = to;
-	    break;
-         case 'l':
-	    str = job_level_to_str(jcr->JobLevel);
-	    break;
          case 'c':
 	    str = jcr->client_name;
 	    if (!str) {
@@ -433,6 +322,25 @@ static char *edit_job_codes(JCR *jcr, char *omsg, char *imsg, char *to)
 	    break;
          case 'd':
             str = my_name;            /* Director's name */
+	    break;
+         case 'e':
+	    str = job_status_to_str(jcr->JobStatus); 
+	    break;
+         case 'i':
+            sprintf(add, "%d", jcr->JobId);
+	    str = add;
+	    break;
+         case 'j':                    /* Job name */
+	    str = jcr->Job;
+	    break;
+         case 'l':
+	    str = job_level_to_str(jcr->JobLevel);
+	    break;
+         case 'r':
+	    str = to;
+	    break;
+         case 't':
+	    str = job_type_to_str(jcr->JobType);
 	    break;
 	 default:
             add[0] = '%';

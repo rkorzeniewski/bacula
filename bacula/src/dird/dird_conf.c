@@ -177,6 +177,8 @@ static struct res_items job_items[] = {
    {"prunejobs",   store_yesno, ITEM(res_job.PruneJobs), 1, ITEM_DEFAULT, 0},
    {"prunefiles",  store_yesno, ITEM(res_job.PruneFiles), 1, ITEM_DEFAULT, 0},
    {"prunevolumes", store_yesno, ITEM(res_job.PruneVolumes), 1, ITEM_DEFAULT, 0},
+   {"runbeforejob", store_str,  ITEM(res_job.RunBeforeJob), 0, 0, 0},
+   {"runafterjob",  store_str,  ITEM(res_job.RunAfterJob),  0, 0, 0},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 
@@ -476,6 +478,12 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
 	 if (res->res_job.RestoreBootstrap) {
             sendit(sock, "  --> Bootstrap=%s\n", NPRT(res->res_job.RestoreBootstrap));
 	 }
+	 if (res->res_job.RunBeforeJob) {
+            sendit(sock, "  --> RunBefore=%s\n", NPRT(res->res_job.RunBeforeJob));
+	 }
+	 if (res->res_job.RunAfterJob) {
+            sendit(sock, "  --> RunAfter=%s\n", NPRT(res->res_job.RunAfterJob));
+	 }
 	 if (res->res_job.storage) {
             sendit(sock, "  --> ");
 	    dump_resource(-R_STORAGE, (RES *)res->res_job.storage, sendit, sock);
@@ -702,6 +710,12 @@ void free_resource(int type)
 	 }
 	 if (res->res_job.RestoreBootstrap) {
 	    free(res->res_job.RestoreBootstrap);
+	 }
+	 if (res->res_job.RunBeforeJob) {
+	    free(res->res_job.RunBeforeJob);
+	 }
+	 if (res->res_job.RunAfterJob) {
+	    free(res->res_job.RunAfterJob);
 	 }
 	 break;
       case R_MSGS:

@@ -376,6 +376,105 @@ void jobstatus_to_ascii(int JobStatus, char *msg, int maxlen)
    msg[maxlen-1] = 0;
 }
 
+/*
+ * Convert Job Termination Status into a string
+ */
+char *job_status_to_str(int stat) 
+{
+   char *str;
+
+   switch (stat) {
+   case JS_Terminated:
+      str = "OK";
+      break;
+   case JS_ErrorTerminated:
+   case JS_Error:
+      str = "Error";
+      break;
+   case JS_FatalError:
+      str = "Fatal Error";
+      break;
+   case JS_Cancelled:
+      str = "Cancelled";
+      break;
+   case JS_Differences:
+      str = "Differences";
+      break;
+   default:
+      str = "Unknown term code";
+      break;
+   }
+   return str;
+}
+
+
+/*
+ * Convert Job Type into a string
+ */
+char *job_type_to_str(int type) 
+{
+   char *str;
+
+   switch (type) {
+   case JT_BACKUP:
+      str = "Backup";
+      break;
+   case JT_VERIFY:
+      str = "Verify";
+      break;
+   case JT_RESTORE:
+      str = "Restore";
+      break;
+   default:
+      str = "Unknown Job Type";
+      break;
+   }
+   return str;
+}
+
+/*
+ * Convert Job Level into a string
+ */
+char *job_level_to_str(int level) 
+{
+   char *str;
+
+   switch (level) {
+   case L_FULL:
+      str = "full";
+      break;
+   case L_INCREMENTAL:
+      str = "incremental";
+      break;
+   case L_DIFFERENTIAL:
+      str = "differential";
+      break;
+   case L_LEVEL:
+      str = "level";
+      break;
+   case L_SINCE:
+      str = "since";
+      break;
+   case L_VERIFY_CATALOG:
+      str = "verify catalog";
+      break;
+   case L_VERIFY_INIT:
+      str = "verify init";
+      break;
+   case L_VERIFY_VOLUME_TO_CATALOG:
+      str = "verify volume to catalog";
+      break;
+   case L_VERIFY_DATA:
+      str = "verify data";
+      break;
+   default:
+      str = "Unknown Job level";
+      break;
+   }
+   return str;
+}
+
+
 /***********************************************************************
  * Encode the mode bits into a 10 character string like LS does
  ***********************************************************************/
@@ -549,20 +648,25 @@ int do_shell_expansion(char *name)
 }
 
 #define MAX_ARGV 100
-static char *bargv[MAX_ARGV];
-static int bargc;
-static void build_argc_argv(char *cmd);
+static void build_argc_argv(char *cmd, int *bargc, char *bargv[], int max_arg);
 
+/*
+ * Run an external program. Optionally wait a specified number
+ *   of seconds. Program killed if wait exceeded. Optionally
+ *   return the output from the program (normally a single line).
+ */
 int run_program(char *prog, int wait, POOLMEM *results)
 {
    int stat = ETIME;
    int chldstatus = 0;
    pid_t pid1, pid2;
    int pfd[2];
+   char *bargv[MAX_ARGV];
+   int bargc;
 
    
-   build_argc_argv(prog);
-#ifdef xxxxxxxxxxx
+   build_argc_argv(prog, &bargc, bargv, MAX_ARGV);
+#ifdef xxxxxxxxxx
    printf("argc=%d\n", bargc);
    int i;
    for (i=0; i<bargc; i++) {
@@ -589,45 +693,51 @@ int run_program(char *prog, int wait, POOLMEM *results)
 
    default:			      /* parent */
       /* start timer process */
-      switch (pid2=fork()) {
-      case -1:
-	 break;
-      case 0:			      /* child 2 */
-	 /* Time the worker process */	
-	 sleep(wait);
-	 if (kill(pid1, SIGTERM) == 0) { /* time expired kill it */
+      if (wait > 0) {
+	 switch (pid2=fork()) {
+	 case -1:
+	    break;
+	 case 0:			 /* child 2 */
+	    /* Time the worker process */  
+	    sleep(wait);
+	    if (kill(pid1, SIGTERM) == 0) { /* time expired kill it */
+	       exit(0);
+	    }
+	    sleep(3);
+	    kill(pid1, SIGKILL);
 	    exit(0);
+	 default:			 /* parent */
+	    break;
 	 }
-	 sleep(3);
-	 kill(pid1, SIGKILL);
-	 exit(0);
-      default:			      /* parent */
-	 int i;
-	 if (results) {
-	    i = read(pfd[0], results, sizeof_pool_memory(results) - 1);
-	    if (--i < 0) {
-	       i = 0;
-	    }
-	    results[i] = 0;		   /* set end of string */
-	 }
-	 /* wait for worker child to exit */
-	 for ( ;; ) {
-	    pid_t wpid;
-	    wpid = waitpid(pid1, &chldstatus, 0);	  
-	    if (wpid == pid1 || (errno != EINTR)) {
-	       break;
-	    }
-	 }
-	 if (WIFEXITED(chldstatus))
-	    stat = WEXITSTATUS(chldstatus);
+      }
 
+      /* Parent continues here */
+      int i;
+      if (results) {
+	 i = read(pfd[0], results, sizeof_pool_memory(results) - 1);
+	 if (--i < 0) {
+	    i = 0;
+	 }
+	 results[i] = 0;		/* set end of string */
+      }
+      /* wait for worker child to exit */
+      for ( ;; ) {
+	 pid_t wpid;
+	 wpid = waitpid(pid1, &chldstatus, 0);	       
+	 if (wpid == pid1 || (errno != EINTR)) {
+	    break;
+	 }
+      }
+      if (WIFEXITED(chldstatus))
+	 stat = WEXITSTATUS(chldstatus);
+
+      if (wait > 0) {
 	 kill(pid2, SIGKILL);		/* kill off timer process */
 	 waitpid(pid2, &chldstatus, 0); /* reap timer process */
-	 if (results) { 
-	    close(pfd[0]);		/* close pipe */
-	    close(pfd[1]);
-	 }
-	 break;
+      }
+      if (results) { 
+	 close(pfd[0]); 	     /* close pipe */
+	 close(pfd[1]);
       }
       break;
    }
@@ -637,13 +747,14 @@ int run_program(char *prog, int wait, POOLMEM *results)
 /*
  * Build argc and argv from a string
  */
-static void build_argc_argv(char *cmd)
+static void build_argc_argv(char *cmd, int *bargc, char *bargv[], int max_argv)
 {
    int i, quote;
    char *p, *q;
+   int argc = 0;
 
-   bargc = 0;
-   for (i=0; i<MAX_ARGV; i++)
+   argc = 0;
+   for (i=0; i<max_argv; i++)
       bargv[i] = NULL;
 
    p = cmd;
@@ -655,7 +766,7 @@ static void build_argc_argv(char *cmd)
       p++;
    }
    if (*p) {
-      while (*p && bargc < MAX_ARGV) {
+      while (*p && argc < MAX_ARGV) {
 	 q = p;
 	 if (quote) {
             while (*q && *q != '\"')
@@ -667,7 +778,7 @@ static void build_argc_argv(char *cmd)
 	 }
 	 if (*q)
             *(q++) = '\0';
-	 bargv[bargc++] = p;
+	 bargv[argc++] = p;
 	 p = q;
          while (*p && (*p == ' ' || *p == '\t'))
 	    p++;
@@ -677,4 +788,5 @@ static void build_argc_argv(char *cmd)
 	 }
       }
    }
+   *bargc = argc;
 }

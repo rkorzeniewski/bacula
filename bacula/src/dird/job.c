@@ -31,6 +31,7 @@
 
 /* Forward referenced subroutines */
 static void job_thread(void *arg);
+static char *edit_run_codes(JCR *jcr, char *omsg, char *imsg);
 
 /* Exported subroutines */
 void run_job(JCR *jcr);
@@ -151,6 +152,14 @@ static void job_thread(void *arg)
       /* Run Job */
       jcr->JobStatus = JS_Running;
 
+      if (jcr->job->RunBeforeJob) {
+	 POOLMEM *before = get_pool_memory(PM_FNAME);
+	 int status;
+	 
+	 before = edit_run_codes(jcr, before, jcr->job->RunBeforeJob);
+	 status = run_program(before, 0, NULL);
+	 free_pool_memory(before);
+      }
       switch (jcr->JobType) {
 	 case JT_BACKUP:
 	    do_backup(jcr);
@@ -178,6 +187,14 @@ static void job_thread(void *arg)
             Dmsg1(0, "Unimplemented job type: %d\n", jcr->JobType);
 	    break;
 	 }
+   }
+   if (jcr->job->RunAfterJob) {
+      POOLMEM *after = get_pool_memory(PM_FNAME);
+      int status;
+      
+      after = edit_run_codes(jcr, after, jcr->job->RunAfterJob);
+      status = run_program(after, 0, NULL);
+      free_pool_memory(after);
    }
    Dmsg0(50, "Before free jcr\n");
    free_jcr(jcr);
@@ -359,4 +376,85 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
 	 break;
       }
    }
+}
+
+/*
+ * Edit codes into Run command
+ *  %% = %
+ *  %c = Client's name
+ *  %d = Director's name
+ *  %i = JobId
+ *  %e = Job Exit
+ *  %j = Job
+ *  %l = Job Level
+ *  %n = Job name
+ *  %t = Job type
+ *
+ *  omsg = edited output message
+ *  imsg = input string containing edit codes (%x)
+ *
+ */
+static char *edit_run_codes(JCR *jcr, char *omsg, char *imsg) 
+{
+   char *p, *o;
+   const char *str;
+   char add[20];
+
+   Dmsg1(200, "edit_run_codes: %s\n", imsg);
+   add[2] = 0;
+   o = omsg;
+   for (p=imsg; *p; p++) {
+      if (*p == '%') {
+	 switch (*++p) {
+         case '%':
+            add[0] = '%';
+	    add[1] = 0;
+	    str = add;
+	    break;
+         case 'c':
+	    str = jcr->client_name;
+	    if (!str) {
+               str = "";
+	    }
+	    break;
+         case 'd':
+	    str = my_name;
+	    break;
+         case 'e':
+	    str = job_status_to_str(jcr->JobStatus);
+	    break;
+         case 'i':
+            sprintf(add, "%d", jcr->JobId);
+	    str = add;
+	    break;
+         case 'j':                    /* Job */
+	    str = jcr->Job;
+	    break;
+         case 'l':
+	    str = job_level_to_str(jcr->JobLevel);
+	    break;
+         case 'n':
+	    str = jcr->job->hdr.name;
+	    break;
+         case 't':
+	    str = job_type_to_str(jcr->JobType);
+	    break;
+	 default:
+            add[0] = '%';
+	    add[1] = *p;
+	    str = add;
+	    break;
+	 }
+      } else {
+	 add[0] = *p;
+	 add[1] = 0;
+	 str = add;
+      }
+      Dmsg1(200, "add_str %s\n", str);
+      add_str_to_pool_mem(&omsg, &o, (char *)str);
+      *o = 0;
+      Dmsg1(200, "omsg=%s\n", omsg);
+   }
+   *o = 0;
+   return omsg;
 }
