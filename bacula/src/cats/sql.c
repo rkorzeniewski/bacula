@@ -468,7 +468,7 @@ list_result(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type t
 	 field = sql_fetch_field(mdb);
 	 if (row[i] == NULL) {
             bsnprintf(buf, sizeof(buf), " %-*s |", (int)field->max_length, "NULL");
-	 } else if (IS_NUM(field->type) && !jcr->gui) {
+	 } else if (IS_NUM(field->type) && !jcr->gui && is_an_integer(row[i])) {
             bsnprintf(buf, sizeof(buf), " %*s |", (int)field->max_length,       
 		      add_commas(row[i], ewc));
 	 } else {
@@ -490,7 +490,7 @@ vertical_list:
 	 field = sql_fetch_field(mdb);
 	 if (row[i] == NULL) {
             bsnprintf(buf, sizeof(buf), " %*s: %s\n", max_len, field->name, "NULL");
-	 } else if (IS_NUM(field->type) && !jcr->gui) {
+	 } else if (IS_NUM(field->type) && !jcr->gui && is_an_integer(row[i])) {
             bsnprintf(buf, sizeof(buf), " %*s: %s\n", max_len, field->name, 
 		add_commas(row[i], ewc));
 	 } else {
