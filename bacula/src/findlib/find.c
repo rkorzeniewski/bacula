@@ -51,7 +51,6 @@ FF_PKT *init_find_files()
   ff->sys_fname = get_pool_memory(PM_FNAME);
 
   init_include_exclude_files(ff);	    /* init lists */
-  ff->mtime_only = 0;			    /* use both st_mtime and st_ctime */
 
    /* Get system path and filename maximum lengths */
    path_max = pathconf(".", _PC_PATH_MAX);
@@ -76,12 +75,11 @@ FF_PKT *init_find_files()
  * of save_time. For additional options, see above
  */
 void
-set_find_options(FF_PKT *ff, int incremental, time_t save_time, int mtime_only)
+set_find_options(FF_PKT *ff, int incremental, time_t save_time)
 {
   Dmsg0(100, "Enter set_find_options()\n");
   ff->incremental = incremental;
   ff->save_time = save_time;
-  ff->mtime_only = mtime_only;
   Dmsg0(100, "Leave set_find_options()\n");
 }
 

@@ -438,43 +438,42 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    }
 
    /* Limit maximum File size on volume to user specified value */
-   if (dev_state(dev, ST_TAPE)) {
-      if ((dev->max_file_size > 0) && 
-	  (dev->file_addr+block->binbuf) >= dev->max_file_size) {
+   if ((dev->max_file_size > 0) && 
+       (dev->file_size+block->binbuf) >= dev->max_file_size) {
 
+      if (dev_state(dev, ST_TAPE) && weof_dev(dev, 1) != 0) {		 /* write eof */
 	 /* Write EOF */
-	 if (weof_dev(dev, 1) != 0) {		 /* write eof */
-            Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
-	    block->write_failed = true;
-	    dev->VolCatInfo.VolCatErrors++;
-	    dev->state |= (ST_EOF | ST_EOT | ST_WEOT);
-            Dmsg0(100, "dir_update_volume_info\n");
-	    dev->VolCatInfo.VolCatFiles = dev->file;
-	    dir_update_volume_info(jcr, dev, 0);
-	    return 0;	
-	 }
-
-	 /* Do bookkeeping to handle EOF just written */
+         Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
+	 block->write_failed = true;
+	 dev->VolCatInfo.VolCatErrors++;
+	 dev->state |= (ST_EOF | ST_EOT | ST_WEOT);
          Dmsg0(100, "dir_update_volume_info\n");
 	 dev->VolCatInfo.VolCatFiles = dev->file;
 	 dir_update_volume_info(jcr, dev, 0);
-	 if (!dir_create_jobmedia_record(jcr)) {
-             Jmsg(jcr, M_ERROR, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
-		  jcr->VolCatInfo.VolCatName, jcr->Job);
-	     return 0;
-	 }
-	 /* 
-	  * Walk through all attached jcrs indicating the file has changed   
-	  */
-         Dmsg1(100, "Walk attached jcrs. Volume=%s\n", dev->VolCatInfo.VolCatName);
-	 for (JCR *mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
-	    if (mjcr->JobId == 0) {
-	       continue;		 /* ignore console */
-	    }
-	    mjcr->NewFile = true;     /* set reminder to do set_new_file_params */
-	 }
-	 set_new_file_parameters(jcr, dev);
+	 return 0;   
       }
+
+      /* Create a JobMedia record so restore can seek */
+      Dmsg0(100, "dir_update_volume_info\n");
+      dev->VolCatInfo.VolCatFiles = dev->file;
+      dir_update_volume_info(jcr, dev, 0);
+      if (!dir_create_jobmedia_record(jcr)) {
+          Jmsg(jcr, M_ERROR, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
+	       jcr->VolCatInfo.VolCatName, jcr->Job);
+	  return 0;
+      }
+      dev->file_size = 0;	      /* reset file size */
+      /* 
+       * Walk through all attached jcrs indicating the file has changed   
+       */
+      Dmsg1(100, "Walk attached jcrs. Volume=%s\n", dev->VolCatInfo.VolCatName);
+      for (JCR *mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
+	 if (mjcr->JobId == 0) {
+	    continue;		      /* ignore console */
+	 }
+	 mjcr->NewFile = true;	      /* set reminder to do set_new_file_params */
+      }
+      set_new_file_parameters(jcr, dev);
    }
 
    dev->VolCatInfo.VolCatWrites++;
@@ -585,7 +584,6 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 
    dev->VolCatInfo.VolCatBytes += block->binbuf;
    dev->VolCatInfo.VolCatBlocks++;   
-   dev->file_addr += wlen;
    dev->EndBlock = dev->block_num;
    dev->EndFile  = dev->file;
    dev->block_num++;
@@ -596,6 +594,7 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       jcr->EndBlock = dev->EndBlock;
       jcr->EndFile  = dev->EndFile;
    } else {
+      /* Save address of start of block just written */
       jcr->EndBlock = (uint32_t)dev->file_addr;
       jcr->EndFile = (uint32_t)(dev->file_addr >> 32);
    }
@@ -606,6 +605,8 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       jcr->VolLastIndex = block->LastIndex;
    }
    jcr->WroteVol = true;
+   dev->file_addr += wlen;	      /* update file address */
+   dev->file_size += wlen;
 
    Dmsg2(190, "write_block: wrote block %d bytes=%d\n", dev->block_num,
       wlen);
@@ -728,6 +729,7 @@ reread:
 	 off_t pos = lseek(dev->fd, (off_t)0, SEEK_CUR); /* get curr pos */
 	 pos -= block->read_len;
 	 lseek(dev->fd, pos, SEEK_SET);   
+	 dev->file_addr = pos;
       }
       Mmsg1(&dev->errmsg, _("Setting block buffer size to %u bytes.\n"), block->block_len);
       Jmsg(jcr, M_INFO, 0, "%s", dev->errmsg);
@@ -757,7 +759,6 @@ reread:
 
    dev->VolCatInfo.VolCatBytes += block->block_len;
    dev->VolCatInfo.VolCatBlocks++;   
-   dev->file_addr += block->block_len;
    dev->EndBlock = dev->block_num;
    dev->EndFile  = dev->file;
    dev->block_num++;
@@ -769,7 +770,11 @@ reread:
    } else {
       jcr->EndBlock = (uint32_t)dev->file_addr;
       jcr->EndFile = (uint32_t)(dev->file_addr >> 32);
+      dev->block_num = jcr->EndBlock;
+      dev->file = jcr->EndFile;
    }
+   dev->file_addr += block->block_len;
+   dev->file_size += block->block_len;
 
    /*
     * If we read a short block on disk,
@@ -791,6 +796,7 @@ reread:
       lseek(dev->fd, pos, SEEK_SET);   
       Dmsg2(100, "Did lseek blk_size=%d rdlen=%d\n", block->block_len,
 	    block->read_len);
+      dev->file_addr = pos;
    }
    Dmsg2(200, "Exit read_block read_len=%d block_len=%d\n",
       block->read_len, block->block_len);

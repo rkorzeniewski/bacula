@@ -1,0 +1,29 @@
+
+This code written by:
+
+   Christopher S. Hull, February 2004
+
+This directory <bacula-src>/src/win32 contains the build
+environment for building the native Win32 Bacula File daemon.
+The directory structure is:
+
+  src/win32      Makefiles and scripts
+    baculafd     Visual Studio Files
+      Release    Release objects, and bacula-fd.exe
+       Debug     Debug object, and bacula-fd.exe produced
+                    by VC++
+    console      Build of console program (not yet complete)
+    filed        Links to core filed code
+    findlib      Links to core findlib code
+    lib          Links to core lib code
+    pthreads     The POSIX pthreads library (third party)
+    zlib         The zlib library (third party)
+
+To build it, make sure that VC++ 6.0 include files are in
+the INCLUDE environment variable, the libraries are in
+the LIB environment variable and the compiler and tools
+are on the PATH.  Then enter:
+
+  make
+
+See License.txt for the License.

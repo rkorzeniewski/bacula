@@ -107,33 +107,26 @@ static bool get_modifier(char *str, char *mod, int mod_len)
     */
    strip_trailing_junk(str);
    len = strlen(str);
-   /* Strip trailing spaces */
-   for (i=len; i>0; i--) {
-      if (!B_ISSPACE(str[i-1])) {
-	 break;
-      }
-      str[i-1] = 0;
-   }
+
    /* Find beginning of the modifier */
-   for ( ; i>0; i--) {
+   for (i=len; i > 0; i--) {
       if (!B_ISALPHA(str[i-1])) {
 	 break;
       }
    }
-   /* If not found, error */
-   if (i == 0 || i == len) {
+
+   /* If nothing found, error */
+   if (i == 0) {
       Dmsg2(200, "error i=%d len=%d\n", i, len);
       return false;
    }
-   /* Move modifier to mod */
+
+   /* Move modifier to its location */
    bstrncpy(mod, &str[i], mod_len);
-   if (strlen(mod) == 0) {		 /* Make sure we have a modifier */
-      Dmsg0(200, "No modifier found\n");
-      return false;
-   }
    Dmsg2(200, "in=%s  mod=%s:\n", str, mod);
+
    /* Backup over any spaces in front of modifier */
-   for ( ; i>0; i--) {
+   for ( ; i > 0; i--) {
       if (B_ISSPACE(str[i-1])) {
 	 continue;
       }
@@ -179,8 +172,7 @@ int duration_to_utime(char *str, utime_t *value)
       }
    }
    if (mod[i] == NULL) {
-      Dmsg0(200, "Modifier not found\n");
-      return 0; 		      /* modifer not found */
+      i = 1;			      /* no modifier, assume 1 */
    }
    Dmsg2(200, "str=%s: mult=%d\n", str, mult[i]);
    errno = 0;
@@ -251,8 +243,7 @@ int size_to_uint64(char *str, int str_len, uint64_t *value)
       }
    }
    if (mod[i] == NULL) {
-      Dmsg0(200, "Modifier not found\n");
-      return 0; 		      /* modifer not found */
+      i = 0;			      /* no modifier found, assume 1 */
    }
    Dmsg2(200, "str=%s: mult=%d\n", str, mult[i]);
    errno = 0;

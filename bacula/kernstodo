@@ -71,6 +71,9 @@ For 1.33 Testing/Documentation:
      http://howtos.linux.com/guides/nag2/x-087-2-nfs.mountd.shtml
 
 For 1.33
+- Add a regression test for dbcheck.
+- Add disk seeking on restore.
+- Add atime preservation.
 - Allow for optional cancelling of SD and FD in case DIR
   gets a fatal error. Requested by Jesse Guardiani <jesse@wingnet.net>
 - Remove h_errno from bnet.c by including proper header.
@@ -1389,4 +1392,3 @@ Block Position: 0
 - Look at ASSERT() at 384 src/lib/bnet.c
 - Dates are wrong in restore list from Win32 FD.
 - Dates are wrong in catalog from Win32 FD.
-

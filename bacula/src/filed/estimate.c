@@ -41,7 +41,7 @@ int make_estimate(JCR *jcr)
 
    jcr->JobStatus = JS_Running;
 
-   set_find_options((FF_PKT *)jcr->ff, jcr->incremental, jcr->mtime, jcr->mtime_only);
+   set_find_options((FF_PKT *)jcr->ff, jcr->incremental, jcr->mtime);
    stat = find_files(jcr, (FF_PKT *)jcr->ff, tally_file, (void *)jcr);
 
    return stat;
