@@ -275,7 +275,7 @@ static int hello_cmd(JCR *jcr)
       return 0;
    }
    Dmsg0(120, "OK Authenticate\n");
-   jcr->authenticated = TRUE;
+   jcr->authenticated = true;
    return 1;
 }
 

@@ -316,18 +316,15 @@ static void free_saved_resources(int table)
  * it goes to zero, no one is using the associated
  * resource table, so free it.
  */
-static void reload_job_end_cb(JCR *jcr)
+static void reload_job_end_cb(JCR *jcr, void *ctx)
 {
-   if (jcr->reload_id == 0) {
-      return;			      /* nothing to do */
-   }
-   int i = jcr->reload_id - 1;
+   int reload_id = (int)ctx;
    Dmsg3(000, "reload job_end JobId=%d table=%d cnt=%d\n", jcr->JobId,
-      i, reload_table[i].job_count);
+      reload_id, reload_table[reload_id].job_count);
    lock_jcr_chain();
    LockRes();
-   if (--reload_table[i].job_count <= 0) {
-      free_saved_resources(i);
+   if (--reload_table[reload_id].job_count <= 0) {
+      free_saved_resources(reload_id);
    }
    UnlockRes();
    unlock_jcr_chain();
@@ -350,9 +347,8 @@ static int find_free_reload_table_entry()
  *    reread our configuration file. 
  *
  * The algorithm used is as follows: we count how many jobs are
- *   running since the last reload and set those jobs to make a
- *   callback. Also, we set each job with the current reload table
- *   id. . The old config is saved with the reload table
+ *   running and mark the running jobs to make a callback on 
+ *   exiting. The old config is saved with the reload table
  *   id in a reload table. The new config file is read. Now, as
  *   each job exits, it calls back to the reload_job_end_cb(), which
  *   decrements the count of open jobs for the given reload table.
@@ -371,7 +367,7 @@ void reload_config(int sig)
    static bool already_here = false;
    sigset_t set;	
    JCR *jcr;
-   int njobs = 0;
+   int njobs = 0;		      /* number of running jobs */
    int table, rtable;
 
    if (already_here) {
@@ -393,19 +389,6 @@ void reload_config(int sig)
       goto bail_out;
    }
 
-   /*
-    * Hook all active jobs that are not already hooked (i.e.
-    *  reload_id == 0
-    */
-   foreach_jcr(jcr) {
-      if (jcr->reload_id == 0 && jcr->JobType != JT_SYSTEM) {
-	 reload_table[table].job_count++;
-	 jcr->reload_id = table + 1;
-	 job_end_push(jcr, reload_job_end_cb);
-	 njobs++;
-      }
-      free_locked_jcr(jcr);
-   }
    Dmsg1(000, "Reload_config njobs=%d\n", njobs);
    reload_table[table].res_table = save_config_resources();
    Dmsg1(000, "Saved old config in table %d\n", table);
@@ -430,15 +413,18 @@ void reload_config(int sig)
 	 res_head[i] = res_tab[i];
       }
       table = rtable;		      /* release new, bad, saved table below */
-      if (njobs != 0) {
-	 foreach_jcr(jcr) {
-	    if (jcr->reload_id == table) {
-	       jcr->reload_id = 0;
-	    }
-	    free_locked_jcr(jcr);
+   } else {
+      /*
+       * Hook all active jobs so that they release this table 
+       */
+      foreach_jcr(jcr) {
+	 if (jcr->JobType != JT_SYSTEM) {
+	    reload_table[table].job_count++;
+	    job_end_push(jcr, reload_job_end_cb, (void *)table);
+	    njobs++;
 	 }
+	 free_locked_jcr(jcr);
       }
-      njobs = 0;		      /* force bad tabel to be released below */
    }
 
    /* Reset globals */

@@ -72,9 +72,6 @@ static void qfillcmd();
 static void statcmd();
 static void unfillcmd();
 static int flush_block(DEV_BLOCK *block, int dump);
-#ifdef xxx_needed
-static int record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
-#endif
 static int quickie_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
 static bool compare_blocks(DEV_BLOCK *last_block, DEV_BLOCK *block);
 static int my_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
@@ -1896,7 +1893,6 @@ This may take a long time -- hours! ...\n\n");
       ok = false;
    }
 
-
    Pmsg2(-1, _("\n\nDone filling tape%s. Now beginning re-read of %stape ...\n"),
       simple?"":"s", simple?"":"first ");
 
@@ -1984,8 +1980,8 @@ static void do_unfill()
 	 force_close_dev(dev);
          get_cmd(_("Mount first tape. Press enter when ready: ")); 
       }
-   
       free_vol_list(jcr);
+      jcr->dcr = new_dcr(jcr, dev);
       set_volume_name("TestVolume1", 1);
       jcr->bsr = NULL;
       create_vol_list(jcr);

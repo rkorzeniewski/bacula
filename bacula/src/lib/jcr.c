@@ -158,18 +158,21 @@ void unlock_last_jobs_list()
 /*
  * Push a subroutine address into the job end callback stack
  */
-void job_end_push(JCR *jcr, void job_end_cb(JCR *jcr))
+void job_end_push(JCR *jcr, void job_end_cb(JCR *jcr,void *), void *ctx)
 {
-   jcr->job_end_push.prepend((void *)job_end_cb);
+   jcr->job_end_push.append((void *)job_end_cb);
+   jcr->job_end_push.append(ctx);
 }
 
 /* Pop each job_end subroutine and call it */
 static void job_end_pop(JCR *jcr)
 {
-   void (*job_end_cb)(JCR *jcr);
-   for (int i=0; i<jcr->job_end_push.size(); i++) {
-      job_end_cb = (void (*)(JCR *))jcr->job_end_push.get(i);
-      job_end_cb(jcr);
+   void (*job_end_cb)(JCR *jcr, void *ctx);
+   void *ctx;
+   for (int i=jcr->job_end_push.size()-1; i > 0; ) {
+      ctx = jcr->job_end_push.get(i--);
+      job_end_cb = (void (*)(JCR *,void *))jcr->job_end_push.get(i--);
+      job_end_cb(jcr, ctx);
    }
 }
 

@@ -98,6 +98,7 @@ void run_job(JCR *jcr)
       Jmsg1(jcr, M_FATAL, 0, _("Unable to init job cond variable: ERR=%s\n"), strerror(errstat));
       goto bail_out;
    }
+   jcr->term_wait_inited = true;
 
    /*
     * Open database
@@ -654,7 +655,10 @@ void dird_free_jcr(JCR *jcr)
       free_pool_memory(jcr->client_uname);
       jcr->client_uname = NULL;
    }
-   pthread_cond_destroy(&jcr->term_wait);
+   if (jcr->term_wait_inited) {
+      pthread_cond_destroy(&jcr->term_wait);
+   }
+   jcr->job_end_push.destroy();
    Dmsg0(200, "End dird free_jcr\n");
 }
 

@@ -164,7 +164,7 @@ static void  list_terminated_jobs(void sendit(const char *msg, int len, void *sa
    sendit("\n", 1, arg);               /* send separately */
    msg =  _("Terminated Jobs:\n"); 
    sendit(msg, strlen(msg), arg);
-   msg =  _(" JobId  Level   Files          Bytes Status   Finished        Name \n");
+   msg =  _(" JobId  Level     Files         Bytes  Status   Finished        Name \n");
    sendit(msg, strlen(msg), arg);
    msg = _("======================================================================\n"); 
    sendit(msg, strlen(msg), arg);
