@@ -129,8 +129,9 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
 	    if (mr.PoolId != jcr->PoolId) {
                reason = "not in Pool";
             } else if (strcmp(mr.VolStatus, "Append") != 0 &&
-                       strcmp(mr.VolStatus, "Recycle") != 0) {
-               reason = "not Append or Recycle";
+                       strcmp(mr.VolStatus, "Recycle") != 0 &&
+                       strcmp(mr.VolStatus, "Purged") != 0) {
+               reason = "not Append, Purged or Recycle";
                /* What we're trying to do here is see if the current volume is
                 * "recycleable" - ie. if we prune all expired jobs off it, is
 		* it now possible to reuse it for the job that it is currently
@@ -157,11 +158,11 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
                               "volume \"%s\"\n", mr.VolumeName);
 			VolSuitable = true;
 		     } else {
-                        reason = "not Append or Recycle (recycling of the "
+                        reason = "not Append, Purged or Recycle (recycling of the "
                            "current volume failed)";
 		     }
 		  } else {
-                     reason = "not Append or Recycle (cannot automatically "
+                     reason = "not Append, Purged or Recycle (cannot automatically "
                         "recycle current volume, as it still contains "
                         "unpruned data)";
 		  }
@@ -170,6 +171,15 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
                reason = "not correct MediaType";
 	    } else if (!jcr->pool->accept_any_volume) {
                reason = "Volume not in sequence";
+            } else if (strcmp(mr.VolStatus, "Purged") == 0) {
+	       if (recycle_volume(jcr, &mr)) {
+                  Jmsg(jcr, M_INFO, 0, "Recycled current "
+                       "volume \"%s\"\n", mr.VolumeName);
+		  VolSuitable = true;
+	       } else {
+                  /* In principle this shouldn't happen */
+                  reason = "recycling of current volume failed";
+	       }
 	    } else {
 	       VolSuitable = true;
 	    }

@@ -265,7 +265,7 @@ void add_findex(RBSR *bsr, uint32_t JobId, int32_t findex)
       return;			      /* probably a dummy directory */
    }
    
-   if (!bsr->fi) {		      /* if no FI add one */
+   if (bsr->fi == NULL) {	      /* if no FI add one */
       /* This is the first FileIndex item in the chain */
       bsr->fi = new_findex();
       bsr->JobId = JobId;

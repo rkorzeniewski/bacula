@@ -52,7 +52,7 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int create)
     */
    db_lock(jcr->db);
    for ( ;; ) {
-      strcpy(mr->VolStatus, "Append");  /* want only appendable volumes */
+      bstrncpy(mr->VolStatus, "Append", sizeof(mr->VolStatus));  /* want only appendable volumes */
       ok = db_find_next_volume(jcr, jcr->db, 1, mr);  
       Dmsg2(100, "catreq after find_next_vol ok=%d FW=%d\n", ok, mr->FirstWritten);
       if (!ok) {

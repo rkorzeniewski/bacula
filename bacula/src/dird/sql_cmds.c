@@ -238,3 +238,15 @@ char *uar_sel_fileset =
 char *uar_mediatype =
    "SELECT MediaType FROM JobMedia,Media WHERE JobMedia.JobId=%u "
    "AND JobMedia.MediaId=Media.MediaId";
+
+/* Find JobId, FileIndex for a given path/file */
+char *uar_jobid_fileindex = 
+   "SELECT Job.JobId, File.FileIndex FROM Job,File,Path,Filename,Client "
+   "WHERE Job.JobId=File.JobId "
+   "AND Path.Path='%s' "
+   "AND Filename.Name='%s' "
+   "AND Client.Name='%s' "
+   "AND Path.PathId=File.PathId "
+   "AND Filename.FilenameId=File.FilenameId "
+   "ORDER BY Job.StartTime DESC LIMIT 1";
+     

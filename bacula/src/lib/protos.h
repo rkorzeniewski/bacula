@@ -55,6 +55,7 @@ int       delete_pid_file        (char *dir, char *progname, int port);
 void      drop                   (char *uid, char *gid);
 int       bmicrosleep            (time_t sec, long msec);
 char     *bfgets                 (char *s, int size, FILE *fd);
+void      make_unique_filename   (POOLMEM **name, int Id, char *what);
 #ifndef HAVE_STRTOLL
 long long int strtoll            (const char *ptr, char **endptr, int base);
 #endif
