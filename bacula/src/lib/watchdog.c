@@ -1,14 +1,13 @@
 /*
- * Bacula thread watchdog routine. General routine that monitors
- *  the daemon and signals a thread if it is blocked on a BSOCK
- *  too long. This prevents catastropic long waits -- generally
- *  due to Windows "hanging" the app.
+ * Bacula thread watchdog routine. General routine that 
+ *  allows setting a watchdog timer with a callback that is
+ *  called when the timer goes off.
  *
  *  Kern Sibbald, January MMII
  *
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -224,6 +223,12 @@ get_out:
    return ok;
 }
 
+/*
+ * This is the thread that walks the watchdog queue
+ *  and when a queue item fires, the callback is
+ *  invoked.  If it is a one shot, the queue item
+ *  is moved to the inactive queue.
+ */
 extern "C" void *watchdog_thread(void *arg)
 {
    struct timespec timeout;

@@ -63,9 +63,6 @@ static char OK_media[] = "1000 OK VolName=%127s VolJobs=%u VolFiles=%u"
 
 static char OK_create[] = "1000 OK CreateJobMedia\n";
 
-/* Forward referenced functions */
-static int wait_for_sysop(DCR *dcr);
-
 /* Send update information about a device to Director */
 bool dir_update_device(JCR *jcr, DEVICE *dev)
 {
@@ -441,7 +438,7 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
       if (job_canceled(jcr)) {
 	 Mmsg(dev->errmsg,
               _("Job %s canceled while waiting for mount on Storage Device \"%s\".\n"),
-	      jcr->Job, dcr->dev_name);
+	      jcr->Job, dev->print_name());
          Jmsg(jcr, M_INFO, 0, "%s", dev->errmsg);
 	 return false;
       }
@@ -464,9 +461,9 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
 	 jstat = JS_WaitMount;
 	 if (!dev->poll) {
 	    Jmsg(jcr, M_MOUNT, 0, _(
-"Please mount Volume \"%s\" on Storage Device \"%s\" for Job %s\n"
+"Please mount Volume \"%s\" on Storage Device %s for Job %s\n"
 "Use \"mount\" command to release Job.\n"),
-	      dcr->VolumeName, dcr->dev_name, jcr->Job);
+	      dcr->VolumeName, dev->print_name(), jcr->Job);
             Dmsg3(400, "Mount %s on %s for Job %s\n",
 		  dcr->VolumeName, dcr->dev_name, jcr->Job);
 	 }
@@ -480,7 +477,7 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
 "    Media type:   %s\n"
 "    Pool:         %s\n"),
 	       jcr->Job,
-	       dcr->dev_name,
+	       dev->print_name(),
 	       dcr->media_type,
 	       dcr->pool_name);
 	 }
@@ -574,15 +571,15 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
    ASSERT(dev->dev_blocked);
    for ( ;; ) {
       if (job_canceled(jcr)) {
-         Mmsg(dev->errmsg, _("Job %s canceled while waiting for mount on Storage Device \"%s\".\n"),
-	      jcr->Job, dcr->dev_name);
+         Mmsg(dev->errmsg, _("Job %s canceled while waiting for mount on Storage Device %s.\n"),
+	      jcr->Job, dev->print_name());
 	 return false;
       }
 
       if (!dev->poll) {
          msg = _("Please mount");
-         Jmsg(jcr, M_MOUNT, 0, _("%s Volume \"%s\" on Storage Device \"%s\" for Job %s\n"),
-	      msg, dcr->VolumeName, dcr->dev_name, jcr->Job);
+         Jmsg(jcr, M_MOUNT, 0, _("%s Volume \"%s\" on Storage Device %s for Job %s\n"),
+	      msg, dcr->VolumeName, dev->print_name(), jcr->Job);
          Dmsg3(400, "Mount \"%s\" on device \"%s\" for Job %s\n",
 	       dcr->VolumeName, dcr->dev_name, jcr->Job);
       }
@@ -626,126 +623,4 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
    dir_send_job_status(jcr);
    Dmsg0(400, "leave dir_ask_sysop_to_mount_volume\n");
    return true;
-}
-
-/*
- * Wait for SysOp to mount a tape on a specific device
- */
-static int wait_for_sysop(DCR *dcr)
-{
-   struct timeval tv;
-   struct timezone tz;
-   struct timespec timeout;
-   time_t last_heartbeat = 0;
-   time_t first_start = time(NULL);
-   int stat = 0;
-   int add_wait;
-   bool unmounted;
-   DEVICE *dev = dcr->dev;
-   JCR *jcr = dcr->jcr;
-
-   P(dev->mutex);
-   unmounted = (dev->dev_blocked == BST_UNMOUNTED) ||
-		(dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP);
-
-   dev->poll = false;
-   /*
-    * Wait requested time (dev->rem_wait_sec).	However, we also wake up every
-    *	 HB_TIME seconds and send a heartbeat to the FD and the Director
-    *	 to keep stateful firewalls from closing them down while waiting
-    *	 for the operator.
-    */
-   add_wait = dev->rem_wait_sec;
-   if (me->heartbeat_interval && add_wait > me->heartbeat_interval) {
-      add_wait = me->heartbeat_interval;
-   }
-   /* If the user did not unmount the tape and we are polling, ensure
-    *  that we poll at the correct interval.
-    */
-   if (!unmounted && dev->vol_poll_interval && add_wait > dev->vol_poll_interval) {
-      add_wait = dev->vol_poll_interval;
-   }
-   gettimeofday(&tv, &tz);
-   timeout.tv_nsec = tv.tv_usec * 1000;
-   timeout.tv_sec = tv.tv_sec + add_wait;
-
-   if (!unmounted) {
-      dev->dev_prev_blocked = dev->dev_blocked;
-      dev->dev_blocked = BST_WAITING_FOR_SYSOP; /* indicate waiting for mount */
-   }
-
-   for ( ; !job_canceled(jcr); ) {
-      time_t now, start;
-
-      Dmsg3(400, "I'm going to sleep on device %s. HB=%d wait=%d\n", dev->print_name(),
-	 (int)me->heartbeat_interval, dev->wait_sec);
-      start = time(NULL);
-      /* Wait required time */
-      stat = pthread_cond_timedwait(&dev->wait_next_vol, &dev->mutex, &timeout);
-      Dmsg1(400, "Wokeup from sleep on device stat=%d\n", stat);
-
-      now = time(NULL);
-      dev->rem_wait_sec -= (now - start);
-
-      /* Note, this always triggers the first time. We want that. */
-      if (me->heartbeat_interval) {
-	 if (now - last_heartbeat >= me->heartbeat_interval) {
-	    /* send heartbeats */
-	    if (jcr->file_bsock) {
-	       bnet_sig(jcr->file_bsock, BNET_HEARTBEAT);
-               Dmsg0(400, "Send heartbeat to FD.\n");
-	    }
-	    if (jcr->dir_bsock) {
-	       bnet_sig(jcr->dir_bsock, BNET_HEARTBEAT);
-	    }
-	    last_heartbeat = now;
-	 }
-      }
-
-      /*
-       * Check if user unmounted the device while we were waiting
-       */
-      unmounted = (dev->dev_blocked == BST_UNMOUNTED) ||
-		   (dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP);
-
-      if (stat != ETIMEDOUT) {	   /* we blocked the device */
-	 break; 		   /* on error return */
-      }
-      if (dev->rem_wait_sec <= 0) {  /* on exceeding wait time return */
-         Dmsg0(400, "Exceed wait time.\n");
-	 break;
-      }
-
-      if (!unmounted && dev->vol_poll_interval &&
-	  (now - first_start >= dev->vol_poll_interval)) {
-         Dmsg1(400, "In wait blocked=%s\n", edit_blocked_reason(dev));
-	 dev->poll = true;	      /* returning a poll event */
-	 break;
-      }
-      /*
-       * Check if user mounted the device while we were waiting
-       */
-      if (dev->dev_blocked == BST_MOUNT) {   /* mount request ? */
-	 stat = 0;
-	 break;
-      }
-
-      add_wait = dev->wait_sec - (now - start);
-      if (add_wait < 0) {
-	 add_wait = 0;
-      }
-      if (me->heartbeat_interval && add_wait > me->heartbeat_interval) {
-	 add_wait = me->heartbeat_interval;
-      }
-      gettimeofday(&tv, &tz);
-      timeout.tv_nsec = tv.tv_usec * 1000;
-      timeout.tv_sec = tv.tv_sec + add_wait; /* additional wait */
-      Dmsg1(400, "Additional wait %d sec.\n", add_wait);
-   }
-
-   if (!unmounted) {
-      dev->dev_blocked = dev->dev_prev_blocked;    /* restore entry state */
-   }
-   V(dev->mutex);
-   return stat;
 }

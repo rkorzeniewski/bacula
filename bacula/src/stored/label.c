@@ -161,7 +161,7 @@ int read_dev_volume_label(DCR *dcr)
 
    if (!ok) {
       if (forge_on || jcr->ignore_label_errors) {
-	 dev->state |= ST_LABEL;      /* set has Bacula label */
+	 dev->set_label();	      /* set has Bacula label */
          Jmsg(jcr, M_ERROR, 0, "%s", jcr->errmsg);
 	 return VOL_OK;
       }
@@ -201,7 +201,7 @@ int read_dev_volume_label(DCR *dcr)
       return VOL_LABEL_ERROR;
    }
 
-   dev->state |= ST_LABEL;	      /* set has Bacula label */
+   dev->set_label();		      /* set has Bacula label */
 
    /* Compare Volume Names */
    Dmsg2(30, "Compare Vol names: VolName=%s hdr=%s\n", VolName?VolName:"*", dev->VolHdr.VolName);
@@ -240,7 +240,7 @@ int read_dev_volume_label_guess(DCR *dcr, bool write)
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
    Dmsg3(100, "Enter read_dev_volume_label_guess device=%s vol=%s dev_Vol=%s\n",
-	 dev->archive_name(), dcr->VolumeName, dev->VolHdr.VolName);
+	 dev->print_name(), dcr->VolumeName, dev->VolHdr.VolName);
    
    if (!dev->is_dvd()) {
       Dmsg0(100, "Leave read_dev_volume_label_guess !CAP_REQMOUNT\n");
@@ -264,16 +264,16 @@ int read_dev_volume_label_guess(DCR *dcr, bool write)
       
       if (write && dev->free_space_errno < 0) {
          Dmsg0(100, "Leave read_dev_volume_label_guess !free_space VOL_NO_MEDIA\n");
-         Mmsg2(jcr->errmsg, _("free_space error on %s. The current medium is probably not writable. ERR=%s.\n"),
-	       dev->dev_name, dev->errmsg);
+         Mmsg2(jcr->errmsg, _("free_space error on %s. The current medium is probably not writable: ERR=%s.\n"),
+	       dev->print_name(), dev->errmsg);
 	 return VOL_NO_MEDIA;
       }
       
       /* If we can't guess the name, and we are writing, just reopen the right file with open_first_part. */
       if (open_first_part(dev) < 0) {
 	 berrno be;
-         Mmsg2(jcr->errmsg, _("open_first_part error on %s. ERR=%s.\n"),
-	       dev->dev_name, be.strerror());
+         Mmsg2(jcr->errmsg, _("open_first_part error on %s: ERR=%s.\n"),
+	       dev->print_name(), be.strerror());
          Dmsg0(100, "Leave read_dev_volume_label_guess VOL_IO_ERROR (!open_guess_name_dev && !open_first_part)\n");
 	 return VOL_IO_ERROR;
       }
@@ -283,8 +283,8 @@ int read_dev_volume_label_guess(DCR *dcr, bool write)
    } else {
       if (write && dcr->dev->free_space_errno < 0) {
          Dmsg0(100, "Leave read_dev_volume_label_guess !free_space VOL_NO_MEDIA\n");
-         Mmsg2(jcr->errmsg, _("free_space error on %s. The current medium is probably not writable. ERR=%s.\n"),
-	       dev->dev_name, dev->errmsg);
+         Mmsg2(jcr->errmsg, _("free_space error on %s. The current medium is probably not writable: ERR=%s.\n"),
+	       dev->print_name(), dev->errmsg);
 	 return VOL_NO_MEDIA;
       }
       
@@ -297,8 +297,8 @@ int read_dev_volume_label_guess(DCR *dcr, bool write)
       
       if (open_first_part(dcr->dev) < 0) {
 	 berrno be;
-         Mmsg2(jcr->errmsg, _("open_first_part error on %s. ERR=%s.\n"),
-	       dev->dev_name, be.strerror());
+         Mmsg2(jcr->errmsg, _("open_first_part error on %s: ERR=%s.\n"),
+	       dev->print_name(), be.strerror());
          Dmsg0(100, "Leave read_dev_volume_label_guess VOL_IO_ERROR (open_guess_name_dev && !open_first_part)\n");
 	 return VOL_IO_ERROR;
       }
@@ -308,7 +308,7 @@ int read_dev_volume_label_guess(DCR *dcr, bool write)
        */
       if (vol_label_status != VOL_NAME_ERROR) {
          Dmsg0(100, "Leave read_dev_volume_label_guess (open_guess_name_dev && !VOL_NAME_ERROR)\n");
-	 dev->state &= ~ST_LABEL;
+	 dev->clear_label();	 
 	 return read_dev_volume_label(dcr);
       } else {
          Dmsg0(100, "Leave read_dev_volume_label_guess (open_guess_name_dev && VOL_NAME_ERROR)\n");
@@ -373,7 +373,7 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *Po
    Dmsg1(100, "Label type=%d\n", dev->label_type);
    if (!rewind_dev(dev)) {
       memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
-      Dmsg2(30, "Bad status on %s from rewind. ERR=%s\n", dev->archive_name(), strerror_dev(dev));
+      Dmsg2(30, "Bad status on %s from rewind: ERR=%s\n", dev->print_name(), strerror_dev(dev));
       if (!forge_on) {
 	 goto bail_out;
       }
@@ -400,35 +400,35 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *Po
    dcr->rec->Stream = 0;
 
    /* Temporarily mark in append state to enable writing */
-   dev->state |= ST_APPEND;
+   dev->set_append();
    if (!write_record_to_block(dcr->block, dcr->rec)) {
-      Dmsg2(30, "Bad Label write on %s. ERR=%s\n", dev->archive_name(), strerror_dev(dev));
+      Dmsg2(30, "Bad Label write on %s: ERR=%s\n", dev->print_name(), strerror_dev(dev));
       goto bail_out;
    } else {
-      Dmsg2(30, "Wrote label of %d bytes to %s\n", dcr->rec->data_len, dev->archive_name());
+      Dmsg2(30, "Wrote label of %d bytes to %s\n", dcr->rec->data_len, dev->print_name());
    }
 
    Dmsg0(99, "Call write_block_to_dev()\n");
    if (!write_block_to_dev(dcr)) {
-      Dmsg2(30, "Bad Label write on %s. ERR=%s\n", dev->archive_name(), strerror_dev(dev));
+      Dmsg2(30, "Bad Label write on %s: ERR=%s\n", dev->print_name(), strerror_dev(dev));
       goto bail_out;
    }
    Dmsg0(99, " Wrote block to device\n");
 
    if (weof_dev(dev, 1) == 0) {
-      dev->state |= ST_LABEL;
+      dev->set_label();
       write_ansi_ibm_labels(dcr, ANSI_EOF_LABEL, dev->VolHdr.VolName);
    }
 
    if (debug_level >= 20)  {
       dump_volume_label(dev);
    }
-   dev->state &= ~ST_APPEND;	      /* remove append since this is PRE_LABEL */
+   dev->clear_append(); 	      /* remove append since this is PRE_LABEL */
    return true;
 
 bail_out:
    memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
-   dev->state &= ~ST_APPEND;	      /* remove append since this is PRE_LABEL */
+   dev->clear_append(); 	      /* remove append since this is PRE_LABEL */
    return false;
 }
 
@@ -445,7 +445,7 @@ bool rewrite_volume_label(DCR *dcr, bool recycle)
 
    Dmsg1(190, "set append found freshly labeled volume. dev=%x\n", dev);
    dev->VolHdr.LabelType = VOL_LABEL; /* set Volume label */
-   dev->state |= ST_APPEND;
+   dev->set_append();
    if (!write_volume_label_to_block(dcr)) {
       Dmsg0(200, "Error from write volume label.\n");
       return false;
@@ -621,7 +621,7 @@ void create_volume_label(DEVICE *dev, const char *VolName, const char *PoolName)
    bstrncpy(dev->VolHdr.LabelProg, my_name, sizeof(dev->VolHdr.LabelProg));
    sprintf(dev->VolHdr.ProgVersion, "Ver. %s %s", VERSION, BDATE);
    sprintf(dev->VolHdr.ProgDate, "Build %s %s", __DATE__, __TIME__);
-   dev->state |= ST_LABEL;	      /* set has Bacula label */
+   dev->set_label();		      /* set has Bacula label */
    if (debug_level >= 90) {
       dump_volume_label(dev);
    }

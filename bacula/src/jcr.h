@@ -259,6 +259,13 @@ struct JCR {
    uint32_t read_EndFile;
    uint32_t read_StartBlock;
    uint32_t read_EndBlock;
+   /* Device wait times */
+   int min_wait;
+   int max_wait;
+   int max_num_wait;
+   int wait_sec;
+   int rem_wait_sec;
+   int num_wait;
 
 #endif /* STORAGE_DAEMON */
 

@@ -31,7 +31,11 @@
  Bacula truncating tapes after a restore.
  Note that all source files will be rebuilt during the make.
    
-
 18Mar05 1.36.2-store.patch
  This patch fails a job if no Storage resource is specified and
  the job attempts to call the SD.
+
+18Mar05 1.36.2-reschedule.patch
+ This patch should fix a Segfault bug when a job is rescheduled.
+ The storage pointers were being released when they should not
+ have been.
