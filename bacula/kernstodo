@@ -62,12 +62,11 @@ For 1.33 Testing/Documentation:
 
 For 1.33
 - Complete Win32 installer
+
+For version 1.35:
 - Finish work on Gnome restore GUI.
 - Fix "llist jobid=xx" where no fileset or client exists.
-- Test work on conio.c -- particularly linking.
-
---- Maybe in 1.33
-From Chris Hull:
+- From Chris Hull:
    it seems to be complaining about 12:00pm which should be a valid 12
    hour time.  I changed the time to 11:59am and everything works fine.
    Also 12:00am works fine.  0:00pm also works (which I don't think
@@ -78,9 +77,6 @@ From Chris Hull:
 - Add all pools in Dir conf to DB also update them to catch changed
   LabelFormats and such.
 - Update volumes FromPool=xxx does all volumes.
-
-
-For version 1.35:
 - Pass Director resource name as an option to the Console.
 - Add a "batch" mode to the Console (no unsolicited queries, ...).
 - Add code to check for tape alerts -- tapeinfo.
@@ -1423,4 +1419,4 @@ Block Position: 0
 - Check time/dates printed during restore when using Win32 API.
 - Once a job is canceled, make sure the status reflects that even if the
   job is "stuck" in the run queue.
-
+- Test work on conio.c -- particularly linking.

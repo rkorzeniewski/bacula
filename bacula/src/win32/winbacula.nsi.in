@@ -94,7 +94,6 @@ Section "Bacula File Service" SecService
  newconf:
   File /oname=bacula-fd.conf.new bacula-fd.conf
        
-
   ; If /service was given jump to the service install part
  do_service:
   Push "/service"
@@ -142,6 +141,8 @@ Section "Bacula File Service" SecService
   Exec 'net start bacula'
   goto NoStart 
  do_win98:
+  File Start.bat
+  File Stop.bat
   MessageBox MB_YESNO|MB_ICONQUESTION  "Would you like to start the Bacula Client now?" IDNO NoStart
  Start:
   Exec '"$INSTDIR\bin\bacula-fd.exe" -c "$INSTDIR\bin\bacula-fd.conf"'
@@ -151,6 +152,11 @@ SectionEnd
 
 
 Section "Install Documentation" SecDoc
+  SetOutPath "$INSTDIR\doc"
+  CreateDirectory "$INSTDIR\doc"
+  File ..\..\doc\html-manual\*.html
+  File ..\..\doc\html-manual\*.gif
+  File ..\..\doc\html-manual\*.jpg
 SectionEnd
 
 ;
@@ -158,7 +164,7 @@ SectionEnd
 ;
 
   LangString DESC_SecService ${LANG_ENGLISH} "Install Bacula client on this system."
-  LangString DESC_SecDoc ${LANG_ENGLISH} "Install Documenation (not implemented)."
+  LangString DESC_SecDoc ${LANG_ENGLISH} "Install Documenation on this system."
 
   !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
     !insertmacro MUI_DESCRIPTION_TEXT ${SecService} $(DESC_SecService)
@@ -189,6 +195,7 @@ Section "Uninstall"
   ; remove files and uninstaller (preserving config for now)
   CopyFiles /SILENT "$INSTDIR\bin\bacula-fd.conf" "$INSTDIR\bacula-fd.conf"
   Delete /REBOOTOK "$INSTDIR\bin\*.*"
+  Delete /REBOOTOK "$INSTDIR\doc\*.*"
   CopyFiles /SILENT "$INSTDIR\bacula-fd.conf" "$INSTDIR\bin\bacula-fd.conf"
   Delete /REBOOTOK "$INSTDIR\bacula-fd.conf"
   Delete /REBOOTOK "$INSTDIR\Uninstall.exe"
@@ -198,18 +205,12 @@ Section "Uninstall"
   Delete /REBOOTOK "$INSTDIR\bin\bacula-fd.conf"
   ; remove directories used
   RMDir "$INSTDIR\bin"
+  RMDir "$INSTDIR\doc"
   RMDir "$INSTDIR\working"
   RMDir "$INSTDIR"
   RMDir "C:\tmp"
   LeaveConfig:
   
-  ; If we need to reboot we'll ask
-  IfRebootFlag Reboot Continue
- Reboot:
-  MessageBox MB_YESNO|MB_ICONQUESTION "Some files will only be deleted after restarting. Reboot now?" IDNO Continue
-    Reboot
- Continue:
-
 SectionEnd
 
 ; eof
