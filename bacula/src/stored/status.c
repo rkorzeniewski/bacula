@@ -100,11 +100,11 @@ bool status_cmd(JCR *jcr)
       dev = device->dev;
       if (dev && dev->is_open()) {
 	 if (dev->is_labeled()) {
-            bnet_fsend(user, _("Device \"%s\" (%s) is mounted with Volume \"%s\"\n"),
-	       dev->name(), dev->archive_name(), dev->VolHdr.VolName);
+            bnet_fsend(user, _("Device %s is mounted with Volume \"%s\"\n"),
+	       dev->print_name(), dev->VolHdr.VolName);
 	 } else {
-            bnet_fsend(user, _("Device \"%s\" (%s) open but no Bacula volume is mounted.\n"), 
-	       dev->name(), dev->archive_name());
+            bnet_fsend(user, _("Device %s open but no Bacula volume is mounted.\n"), 
+	       dev->print_name());
 	 }
 	 send_blocked_status(jcr, dev);
 	 if (dev->can_append()) {

@@ -1209,7 +1209,7 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
    }
    force_close_dev(dev);
    fprintf(stderr, "Mount Volume \"%s\" on device %s and press return when ready: ",
-	 dcr->VolumeName, dev_name(dev));
+	 dcr->VolumeName, dev->print_name());
    getchar();
    return true;
 }

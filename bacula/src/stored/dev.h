@@ -197,7 +197,8 @@ public:
    bool autoselect;                   /* Autoselect in autochanger */
    int label_type;                    /* Bacula/ANSI/IBM label types */
    uint32_t drive_index;              /* Autochanger drive index */
-   POOLMEM *dev_name;                 /* device name */
+   POOLMEM *dev_name;                 /* Physical device name */
+   POOLMEM *prt_name;                 /* Name used for display purposes */
    char *errmsg;                      /* nicely edited error message */
    uint32_t block_num;                /* current block number base 0 */
    uint32_t file;                     /* current file number base 0 */
@@ -264,6 +265,7 @@ public:
    const char *strerror() const;
    const char *archive_name() const;
    const char *name() const;
+   const char *print_name() const;    /* Name for display purposes */
    void set_eof();
    void set_eot();
    void set_append();
@@ -297,6 +299,7 @@ inline void DEVICE::clear_label() { state &= ~ST_LABEL; }
 inline void DEVICE::clear_offline() { state &= ~ST_OFFLINE; }
 inline const char *DEVICE::strerror() const { return errmsg; }
 inline const char *DEVICE::archive_name() const { return dev_name; }
+inline const char *DEVICE::print_name() const { return prt_name; }
 
 /*
  * Device Context (or Control) Record.

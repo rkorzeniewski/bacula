@@ -149,6 +149,8 @@ init_dev(JCR *jcr, DEVICE *dev, DEVRES *device)
    /* Copy user supplied device parameters from Resource */
    dev->dev_name = get_memory(strlen(device->device_name)+1);
    pm_strcpy(dev->dev_name, device->device_name);
+   dev->prt_name = get_memory(strlen(device->device_name) + strlen(device->hdr.name) + 10);
+   Mmsg(dev->prt_name, "\"%s\" (%s)", device->device_name, device->hdr.name);
    dev->capabilities = device->cap_bits;
    dev->min_block_size = device->min_block_size;
    dev->max_block_size = device->max_block_size;
@@ -1582,13 +1584,6 @@ dev_can_write(DEVICE *dev)
    } else {
       return false;
    }
-}
-
-/* This returns the physical device name */
-char *
-dev_name(DEVICE *dev)
-{
-   return dev->dev_name;
 }
 
 /* Return the resource name for the device */
