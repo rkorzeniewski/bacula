@@ -132,7 +132,9 @@ Makefiles:
 	chmod 755 src/cats/make_bdb_tables src/cats/drop_bdb_tables
 	chmod 755 src/cats/make_test_tables src/cats/drop_test_tables
 	chmod 755 src/cats/create_mysql_database
+	chmod 755 src/cats/alter_mysql_tables
 	chmod 755 src/cats/create_sqlite_database
+	chmod 755 src/cats/alter_sqlite_tables
 	chmod 755 src/cats/create_bdb_database
 	chmod 755 src/cats/grant_mysql_privileges
 

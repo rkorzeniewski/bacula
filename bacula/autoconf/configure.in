@@ -1182,14 +1182,17 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/filed/bacula-fd.conf \
 	   src/filed/win32/Makefile \
 	   src/cats/Makefile \
+	   src/cats/alter_mysql_tables \
 	   src/cats/make_mysql_tables \
 	   src/cats/drop_mysql_tables \
 	   src/cats/create_mysql_database \
 	   src/cats/grant_mysql_privileges \
+	   src/cats/alter_sqlite_tables \
 	   src/cats/make_sqlite_tables \
 	   src/cats/drop_sqlite_tables \
 	   src/cats/create_sqlite_database \
 	   src/cats/sqlite \
+	   src/cats/mysql \
 	   src/cats/create_bdb_database \
 	   src/cats/make_bdb_tables \
 	   src/cats/drop_bdb_tables \
@@ -1206,10 +1209,12 @@ cp -f startit stopit btraceback btraceback.gdb src/lib
 cp -f startit stopit btraceback btraceback.gdb src/stored
 chmod 755 src/cats/make_mysql_tables src/cats/drop_mysql_tables
 chmod 755 src/cats/make_test_tables src/cats/drop_test_tables
-chmod 755 src/cats/create_mysql_database
+chmod 755 src/cats/create_mysql_database 
+chmod 755 src/cats/alter_mysql_tables
 chmod 755 src/cats/grant_mysql_privileges
 chmod 755 src/cats/make_sqlite_tables src/cats/drop_sqlite_tables 
 chmod 755 src/cats/create_sqlite_database
+chmod 755 src/cats/alter_sqlite_tables
 chmod 755 src/cats/sqlite
 chmod 755 src/cats/make_bdb_tables src/cats/drop_bdb_tables 
 chmod 755 src/cats/create_bdb_database
