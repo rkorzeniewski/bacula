@@ -1,5 +1,7 @@
 
-2003-07-xx Version 1.31 Beta xxJul03
+2003-07-xx Version 1.31 Beta 22Jul03
+- Apply a patch from Nic Bellamy that clarifies the error messages 
+  during recycling volumes.
 - Documentation.
 - Clear VolCatInfo in askdir.c so that readbytes is zeroed.
 - Add SD statistics to backup report.
