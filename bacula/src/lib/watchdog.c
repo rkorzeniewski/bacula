@@ -30,10 +30,6 @@
 #include "bacula.h"
 #include "jcr.h"
 
-/* This breaks Kern's #include rules, but I don't want to put it into bacula.h
- * until it has been discussed with him */
-#include "bsd_queue.h"
-
 /* Exported globals */
 time_t watchdog_time;		      /* this has granularity of SLEEP_TIME */
 
@@ -52,10 +48,8 @@ static bool wd_is_init = false;
 static pthread_t wd_tid;
 
 /* Static globals */
-static TAILQ_HEAD(/* no struct */, s_watchdog_t) wd_queue =
-	TAILQ_HEAD_INITIALIZER(wd_queue);
-static TAILQ_HEAD(/* no struct */, s_watchdog_t) wd_inactive =
-	TAILQ_HEAD_INITIALIZER(wd_inactive);
+static dlist *wd_queue;
+static dlist *wd_inactive;
 
 /*   
  * Start watchdog thread
@@ -66,10 +60,18 @@ static TAILQ_HEAD(/* no struct */, s_watchdog_t) wd_inactive =
 int start_watchdog(void)
 {
    int stat;
+   watchdog_t *dummy = NULL;
 
+   if (wd_is_init) {
+      return 0;
+   }
    Dmsg0(200, "Initialising NicB-hacked watchdog thread\n");
    watchdog_time = time(NULL);
    quit = false;
+
+   wd_queue = new dlist(wd_queue, &dummy->link);
+   wd_inactive = new dlist(wd_inactive, &dummy->link);
+
    if ((stat = pthread_create(&wd_tid, NULL, watchdog_thread, NULL)) != 0) {
       return stat;
    }
@@ -86,7 +88,7 @@ int start_watchdog(void)
 int stop_watchdog(void)
 {
    int stat;
-   watchdog_t *p, *n;
+   watchdog_t *p;    
 
    if (!wd_is_init) {
       return 0;
@@ -102,21 +104,23 @@ int stop_watchdog(void)
 
    stat = pthread_join(wd_tid, NULL);
 
-   TAILQ_FOREACH_SAFE(p, &wd_queue, qe, n) {
-      TAILQ_REMOVE(&wd_queue, p, qe);
+   foreach_dlist(p, wd_queue) {
       if (p->destructor != NULL) {
 	 p->destructor(p);
       }
       free(p);
    }
+   delete wd_queue;
+   wd_queue = NULL;
 
-   TAILQ_FOREACH_SAFE(p, &wd_inactive, qe, n) {
-      TAILQ_REMOVE(&wd_inactive, p, qe);
+   foreach_dlist(p, wd_inactive) {
       if (p->destructor != NULL) {
 	 p->destructor(p);
       }
       free(p);
    }
+   delete wd_inactive;
+   wd_inactive = NULL;
 
    return stat;
 }
@@ -155,7 +159,7 @@ bool register_watchdog(watchdog_t *wd)
 
    P(mutex);
    wd->next_fire = watchdog_time + wd->interval;
-   TAILQ_INSERT_TAIL(&wd_queue, wd, qe);
+   wd_queue->append(wd);
    Dmsg3(200, "Registered watchdog %p, interval %d%s\n",
          wd, wd->interval, wd->one_shot ? " one shot" : "");
    V(mutex);
@@ -165,30 +169,29 @@ bool register_watchdog(watchdog_t *wd)
 
 bool unregister_watchdog_unlocked(watchdog_t *wd)
 {
-   watchdog_t *p, *n;
+   watchdog_t *p;
 
    if (!wd_is_init) {
       Emsg0(M_ABORT, 0, "BUG! unregister_watchdog_unlocked called before start_watchdog\n");
    }
 
-   TAILQ_FOREACH_SAFE(p, &wd_queue, qe, n) {
+   foreach_dlist(p, wd_queue) {
       if (wd == p) {
-	 TAILQ_REMOVE(&wd_queue, wd, qe);
+	 wd_queue->remove(wd);
          Dmsg1(200, "Unregistered watchdog %p\n", wd);
 	 return true;
       }
    }
 
-   TAILQ_FOREACH_SAFE(p, &wd_inactive, qe, n) {
+   foreach_dlist(p, wd_inactive) {
       if (wd == p) {
-	 TAILQ_REMOVE(&wd_inactive, wd, qe);
+	 wd_inactive->remove(wd);
          Dmsg1(200, "Unregistered inactive watchdog %p\n", wd);
 	 return true;
       }
    }
 
    Dmsg1(200, "Failed to unregister watchdog %p\n", wd);
-
    return false;
 }
 
@@ -212,7 +215,7 @@ static void *watchdog_thread(void *arg)
    Dmsg0(200, "NicB-reworked watchdog thread entered\n");
 
    while (true) {
-      watchdog_t *p, *n;
+      watchdog_t *p;
 
       P(mutex);
       if (quit) {
@@ -222,15 +225,15 @@ static void *watchdog_thread(void *arg)
 
       watchdog_time = time(NULL);
 
-      TAILQ_FOREACH_SAFE(p, &wd_queue, qe, n) {
+      foreach_dlist(p, wd_queue) {
 	 if (p->next_fire < watchdog_time) {
 	    /* Run the callback */
 	    p->callback(p);
 
             /* Reschedule (or move to inactive list if it's a one-shot timer) */
 	    if (p->one_shot) {
-	       TAILQ_REMOVE(&wd_queue, p, qe);
-	       TAILQ_INSERT_TAIL(&wd_inactive, p, qe);
+	       wd_queue->remove(p);
+	       wd_inactive->append(p);
 	    } else {
 	       p->next_fire = watchdog_time + p->interval;
 	    }
@@ -241,6 +244,5 @@ static void *watchdog_thread(void *arg)
    }
 
    Dmsg0(200, "NicB-reworked watchdog thread exited\n");
-
    return NULL;
 }
