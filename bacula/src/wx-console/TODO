@@ -11,9 +11,7 @@ wxbRestorePanel : Check more carefully which job we just have run.
 
 wxbRestorePanel : Check if commands run successfully (cd, mark, mods...).
 
-wxbRestorePanel : Lock configure items until first configuration is received
-
-wxbRestorePanel : Remove estimate, which slows the restore process
+wxbRestorePanel : Allow configure to change client and fileset
 
 GTK : Improve look
 
@@ -22,6 +20,9 @@ general : Don't concatenate lines in csprint, but in wxbDataTokenizer
          
 general : use dot commands
 
+general : Create a more complicated director config file, to check what
+	choices I should give to the user (pools, filesets, ...(?)).
+
 wxbTableParser : Replace wxHashMap by wxArray
 
 console_thread : Allow the user to choose his config file.
@@ -29,6 +30,8 @@ console_thread : Allow the user to choose his config file.
 wxblistctrl/wxbtreectrl : Find why events are not forwarded correctly 
   to parent' parent, and correct bad actual implementation.
    (remove wxbTreeListPanel)
+   
+general : make a good documentation with snapshots
 
 BUGS
 ----

@@ -1,5 +1,12 @@
+19-04-2004 :
+ - wxbRestorePanel : Locked configure items until first 
+   configuration is received
+ - wxbRestorePanel : Removed estimate, which slows the restore
+   process
+
 18-04-2004 :
- - wxbRestorePanel : wxTreeCtrl::GetParent changed in GetItemParent (thanks to Luca Berra)
+ - wxbRestorePanel : wxTreeCtrl::GetParent changed in 
+   GetItemParent (thanks to Luca Berra)
  - wxbRestorePanel : The user can now change a part of restore
     configuration
 
@@ -7,7 +14,7 @@
  - wxbRestorePanel modified to use wxbDataParsers
  - created wxbDataTokenizer, which fetches commands results
  - modified the way data is passed to panel (no Prints anymore,
-    but wxbDataParsers)
+   but wxbDataParsers)
  - win32 : Makefile.in corrected to use ressource file
  - win32 : wx-console is now compatible with MinGW.
  - wxbPanel/wxbMainFrame : Added a locking function (for example, 

@@ -429,25 +429,30 @@ void wxbRestorePanel::CmdStart() {
    }
    else if (status == choosing) {
       SetStatus(configuring);
-      wxbMainFrame::GetInstance()->SetStatusText("Restoring, please wait...");
-
+      
+      wxbMainFrame::GetInstance()->SetStatusText("Please configure your restore...");
+      
+      EnableConfig(false);
+      
       totfilemessages = 0;
       wxbDataTokenizer* dt;
       
-      dt = WaitForEnd("estimate\n", true);
+      /*dt = WaitForEnd("estimate\n", true);
       
       int j, k;
           
-      for (unsigned int i = 0; i < dt->GetCount(); i++) {
+      for (unsigned int i = 0; i < dt->GetCount(); i++) {*/
          /* 15847 total files; 1 marked to be restored; 1,034 bytes. */
-         if ((j = (*dt)[i].Find(" marked to be restored;")) > -1) {
+/*         if ((j = (*dt)[i].Find(" marked to be restored;")) > -1) {
             k = (*dt)[i].Find("; ");
             (*dt)[i].Mid(k+2, j).ToLong(&totfilemessages);
             break;
          }
       }
       
-      delete dt;
+      delete dt;*/
+      
+      int j;
       
       dt = WaitForEnd("done\n", true);
 
@@ -466,6 +471,8 @@ void wxbRestorePanel::CmdStart() {
       UpdateConfig(dt);
       
       delete dt;
+      
+      EnableConfig(true);
 
       if (totfilemessages == 0) {
          wxbMainFrame::GetInstance()->Print("Restore failed : no file selected.\n", CS_DEBUG);
@@ -475,6 +482,13 @@ void wxbRestorePanel::CmdStart() {
       }
    }
    else if (status == configuring) {
+      EnableConfig(false);
+      cfgOk->Enable(false);
+      cfgApply->Enable(false);
+      cfgCancel->Enable(false);
+    
+      wxbMainFrame::GetInstance()->SetStatusText("Restoring, please wait...");
+    
       wxbDataTokenizer* dt;
     
       SetStatus(restoring);
@@ -576,6 +590,8 @@ void wxbRestorePanel::CmdStart() {
 void wxbRestorePanel::CmdConfigApply() {
    if (cfgUpdated == 0) return;
    
+   EnableConfig(false);
+   
    wxbDataTokenizer* dt = NULL;
    while (cfgUpdated > 0) {
       wxString def; //String to send if can't use our data
@@ -625,7 +641,9 @@ void wxbRestorePanel::CmdConfigApply() {
       }
    }
    UpdateConfig(dt); /* TODO: Check result */
-      
+   
+   EnableConfig(true);
+   
    delete dt;
 }
 
@@ -1238,6 +1256,17 @@ void wxbRestorePanel::SetStatus(status_enum newstatus) {
       break;
    }
    status = newstatus;
+}
+
+/*----------------------------------------------------------------------------
+   UI related
+  ----------------------------------------------------------------------------*/
+
+void wxbRestorePanel::EnableConfig(bool enable) {
+   cfgWhere->Enable(enable);
+   cfgReplace->Enable(enable);
+   cfgWhen->Enable(enable);
+   cfgPriority->Enable(enable);
 }
 
 /*----------------------------------------------------------------------------
