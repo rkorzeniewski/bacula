@@ -36,38 +36,35 @@ SELECT Job.JobId,StartTime AS JobStartTime,VolumeName,Client.Name AS ClientName
 # 4
 :List last 20 Full Backups for a Client:
 *Enter Client name:
-SELECT Job.JobId,Client.Name AS Client,StartTime,JobFiles,JobBytes,
+SELECT DISTINCT Job.JobId,Client.Name AS Client,StartTime,JobFiles,JobBytes,
 JobMedia.StartFile as VolFile,VolumeName
  FROM Client,Job,JobMedia,Media
  WHERE Client.Name='%1'
  AND Client.ClientId=Job.ClientId
  AND Level='F' AND JobStatus='T'
  AND JobMedia.JobId=Job.JobId AND JobMedia.MediaId=Media.MediaId
- GROUP BY Job.JobId
  ORDER BY Job.StartTime DESC LIMIT 20;
 # 5
 :List all backups for a Client after a specified time
 *Enter Client Name:
 *Enter time in YYYY-MM-DD HH:MM:SS format:
-SELECT Job.JobId,Client.Name as Client,Level,StartTime,JobFiles,JobBytes,VolumeName
+SELECT DISTINCT Job.JobId,Client.Name as Client,Level,StartTime,JobFiles,JobBytes,VolumeName
   FROM Client,Job,JobMedia,Media
   WHERE Client.Name='%1'
   AND Client.ClientId=Job.ClientId
   AND JobStatus='T'
   AND JobMedia.JobId=Job.JobId AND JobMedia.MediaId=Media.MediaId
   AND Job.StartTime >= '%2'
-  GROUP BY Job.JobId
   ORDER BY Job.StartTime;
 # 6
 :List all backups for a Client
 *Enter Client Name:
-SELECT Job.JobId,Client.Name as Client,Level,StartTime,JobFiles,JobBytes,VolumeName
+SELECT DISTINCT Job.JobId,Client.Name as Client,Level,StartTime,JobFiles,JobBytes,VolumeName
   FROM Client,Job,JobMedia,Media
   WHERE Client.Name='%1'
   AND Client.ClientId=Job.ClientId
   AND JobStatus='T'
   AND JobMedia.JobId=Job.JobId AND JobMedia.MediaId=Media.MediaId
-  GROUP BY Job.JobId
   ORDER BY Job.StartTime;
 # 7
 :List Volume Attributes for a selected Volume:
@@ -79,33 +76,32 @@ SELECT Slot,MaxVolBytes,VolCapacityBytes,VolStatus,Recycle,VolRetention,
 # 8
 :List Volumes used by selected JobId:
 *Enter JobId:
-SELECT Job.JobId,VolumeName 
+SELECT DISTINCT Job.JobId,VolumeName 
  FROM Job,JobMedia,Media 
  WHERE Job.JobId=%1 
  AND Job.JobId=JobMedia.JobId 
- AND JobMedia.MediaId=Media.MediaId 
- GROUP BY VolumeName;
+ AND JobMedia.MediaId=Media.MediaId;
 # 9
 :List Volumes to Restore All Files:
 *Enter Client Name:
 !DROP TABLE temp;
 !DROP TABLE temp2;
-CREATE TABLE temp (JobId INTEGER UNSIGNED NOT NULL,
- JobTDate BIGINT UNSIGNED,
- ClientId INTEGER UNSIGNED,
+CREATE TABLE temp (JobId BIGINT NOT NULL,
+ JobTDate BIGINT,
+ ClientId BIGINT,
  Level CHAR,
  StartTime TEXT,
  VolumeName TEXT,
- StartFile INTEGER UNSIGNED, 
- VolSessionId INTEGER UNSIGNED,
- VolSessionTime INTEGER UNSIGNED);
-CREATE TABLE temp2 (JobId INTEGER UNSIGNED NOT NULL,
+ StartFile BIGINT, 
+ VolSessionId BIGINT,
+ VolSessionTime BIGINT );
+CREATE TABLE temp2 (JobId BIGINT NOT NULL,
  StartTime TEXT,
  VolumeName TEXT,
  Level CHAR,
- StartFile INTEGER UNSIGNED, 
- VolSessionId INTEGER UNSIGNED,
- VolSessionTime INTEGER UNSIGNED);
+ StartFile BIGINT, 
+ VolSessionId BIGINT,
+ VolSessionTime BIGINT);
 # Select last Full save
 INSERT INTO temp SELECT Job.JobId,JobTDate,Job.ClientId,Job.Level,
    StartTime,VolumeName,JobMedia.StartFile,VolSessionId,VolSessionTime
@@ -123,15 +119,14 @@ INSERT INTO temp2 SELECT Job.JobId,Job.StartTime,Media.VolumeName,Job.Level,
  AND JobMedia.JobId=Job.JobId
  AND JobMedia.MediaId=Media.MediaId;
 # Now add subsequent incrementals
-INSERT INTO temp2 SELECT Job.JobId,Job.StartTime,Media.VolumeName,
+INSERT INTO temp2 SELECT DISTINCT Job.JobId,Job.StartTime,Media.VolumeName,
    Job.Level,JobMedia.StartFile,Job.VolSessionId,Job.VolSessionTime
  FROM Job,temp,JobMedia,Media
  WHERE Job.JobTDate>temp.JobTDate 
  AND Job.ClientId=temp.ClientId
  AND Job.Level IN ('I','D') AND JobStatus='T'
  AND JobMedia.JobId=Job.JobId 
- AND JobMedia.MediaId=Media.MediaId
- GROUP BY Job.JobId;
+ AND JobMedia.MediaId=Media.MediaId;
 # list results
 SELECT DISTINCT VolumeName from temp2;
 !DROP TABLE temp;
@@ -166,12 +161,12 @@ SELECT Path.Path,Filename.Name FROM File,
 # 14
 :List Jobs stored in a selected MediaId:
 *Enter MediaId:
-SELECT Job.JobId,Job.Name,Job.StartTime,Job.Type,
+SELECT DISTINCT Job.JobId,Job.Name,Job.StartTime,Job.Type,
  Job.Level,Job.JobFiles,Job.JobBytes,Job.JobStatus
   FROM JobMedia,Job
   WHERE JobMedia.JobId=Job.JobId
   AND JobMedia.MediaId=%1 
-  GROUP BY Job.JobId ORDER by Job.StartTime;
+  ORDER by Job.StartTime;
 # 15  
 :List Jobs stored for a given Volume name:
 *Enter Volume name:
