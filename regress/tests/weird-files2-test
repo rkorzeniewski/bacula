@@ -22,7 +22,8 @@ echo " === Starting weird filenames2 test ===" >>working/log
 echo " "
 
 bin/testls weird-files2 >${cwd}/tmp/original
-bin/bacula start 2>&1 >/dev/null
+bin/bacula start
+# bin/bacula start 2>&1 >/dev/null
 bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
 @output /dev/null
 messages
