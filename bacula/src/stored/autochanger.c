@@ -63,7 +63,7 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
 	 slot = jcr->VolCatInfo.Slot; 
       }
    }
-   Dmsg1(100, "Want changer slot=%d\n", slot);
+   Dmsg1(400, "Want changer slot=%d\n", slot);
 
    if (slot > 0 && jcr->device->changer_name && jcr->device->changer_command) {
       uint32_t timeout = jcr->device->max_changer_wait;
@@ -85,7 +85,7 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
          Jmsg(jcr, M_INFO, 0, _("3991 Bad autochanger \"load slot\" status=%d.\n"), status);
 	 loaded = -1;		   /* force unload */
       }
-      Dmsg1(100, "loaded=%s\n", results);
+      Dmsg1(400, "loaded=%s\n", results);
 
       /* If bad status or tape we want is not loaded, load it. */
       if (status != 0 || loaded != slot) { 
@@ -93,17 +93,17 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
 	 /* We are going to load a new tape, so close the device */
 	 force_close_dev(dev);
 	 if (loaded != 0) {	   /* must unload drive */
-            Dmsg0(100, "Doing changer unload.\n");
+            Dmsg0(400, "Doing changer unload.\n");
             Jmsg(jcr, M_INFO, 0, _("3302 Issuing autochanger \"unload\" command.\n"));
 	    changer = edit_device_codes(jcr, changer, 
                         jcr->device->changer_command, "unload");
 	    status = run_program(changer, timeout, NULL);
-            Dmsg1(100, "unload status=%d\n", status);
+            Dmsg1(400, "unload status=%d\n", status);
 	 }
 	 /*
 	  * Load the desired cassette	 
 	  */
-         Dmsg1(100, "Doing changer load slot %d\n", slot);
+         Dmsg1(400, "Doing changer load slot %d\n", slot);
          Jmsg(jcr, M_INFO, 0, _("3303 Issuing autochanger \"load slot %d\" command.\n"), 
 	      slot);
 	 changer = edit_device_codes(jcr, changer, 
@@ -116,11 +116,11 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
             Jmsg(jcr, M_INFO, 0, _("3992 Bad autochanger \"load slot\" status=%d.\n"),
 		    status);
 	 }
-         Dmsg2(100, "load slot %d status=%d\n", slot, status);
+         Dmsg2(400, "load slot %d status=%d\n", slot, status);
       }
       free_pool_memory(changer);
       free_pool_memory(results);
-      Dmsg1(100, "After changer, status=%d\n", status);
+      Dmsg1(400, "After changer, status=%d\n", status);
       if (status == 0) {	   /* did we succeed? */
 	 rtn_stat = 1;		   /* tape loaded by changer */
       }
@@ -219,7 +219,7 @@ static char *edit_device_codes(JCR *jcr, char *omsg, char *imsg, char *cmd)
    char add[20];
 
    *omsg = 0;
-   Dmsg1(200, "edit_device_codes: %s\n", imsg);
+   Dmsg1(400, "edit_device_codes: %s\n", imsg);
    for (p=imsg; *p; p++) {
       if (*p == '%') {
 	 switch (*++p) {
@@ -265,9 +265,9 @@ static char *edit_device_codes(JCR *jcr, char *omsg, char *imsg, char *cmd)
 	 add[1] = 0;
 	 str = add;
       }
-      Dmsg1(200, "add_str %s\n", str);
+      Dmsg1(400, "add_str %s\n", str);
       pm_strcat(&omsg, (char *)str);
-      Dmsg1(200, "omsg=%s\n", omsg);
+      Dmsg1(400, "omsg=%s\n", omsg);
    }
    return omsg;
 }

@@ -286,7 +286,7 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 	 mr->VolJobs, mr->VolFiles, mr->VolBlocks, edit_uint64(mr->VolBytes, ed1),
 	 mr->VolMounts, mr->VolErrors, mr->VolWrites, 
 	 edit_uint64(mr->MaxVolBytes, ed2), dt, 
-	 mr->VolStatus, mr->Slot, mr->VolumeName, mr->Drive, mr->InChanger);
+	 mr->VolStatus, mr->Slot, mr->Drive, mr->InChanger, mr->VolumeName);
 
    Dmsg1(400, "%s\n", mdb->cmd);
 

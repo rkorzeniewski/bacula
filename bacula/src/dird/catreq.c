@@ -182,7 +182,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
       &sdmr.Slot, &label, &sdmr.Drive, &sdmr.InChanger) == 16) {
 
       db_lock(jcr->db);
-      Dmsg3(400, "Update media %s oldStat=%s newStat=%s\n", sdmr.VolumeName,
+      Dmsg3(100, "Update media %s oldStat=%s newStat=%s\n", sdmr.VolumeName,
 	 mr.VolStatus, sdmr.VolStatus);
       bstrncpy(mr.VolumeName, sdmr.VolumeName, sizeof(mr.VolumeName)); /* copy Volume name */
       unbash_spaces(mr.VolumeName);
@@ -198,11 +198,11 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
 	 mr.FirstWritten = jcr->start_time;   /* use Job start time as first write */
       }
       /* If we just labeled the tape set time */
-      Dmsg2(400, "label=%d labeldate=%d\n", label, mr.LabelDate);
+      Dmsg2(100, "label=%d labeldate=%d\n", label, mr.LabelDate);
       if (label || mr.LabelDate == 0) {
 	 mr.LabelDate = time(NULL);
       }
-      Dmsg2(200, "Update media: BefVolJobs=%u After=%u\n", mr.VolJobs, sdmr.VolJobs);
+      Dmsg2(100, "Update media: BefVolJobs=%u After=%u\n", mr.VolJobs, sdmr.VolJobs);
       /* Copy updated values to original media record */
       mr.VolJobs     = sdmr.VolJobs;
       mr.VolFiles    = sdmr.VolFiles;
@@ -217,7 +217,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
       mr.InChanger   = sdmr.InChanger;
       bstrncpy(mr.VolStatus, sdmr.VolStatus, sizeof(mr.VolStatus));
 
-      Dmsg2(200, "db_update_media_record. Stat=%s Vol=%s\n", mr.VolStatus, mr.VolumeName);
+      Dmsg2(100, "db_update_media_record. Stat=%s Vol=%s\n", mr.VolStatus, mr.VolumeName);
       /*
        * Check if it has expired, and if not update the DB. Note, if
        *   Volume has expired, has_volume_expired() will update the DB.

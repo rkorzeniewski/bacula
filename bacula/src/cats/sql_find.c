@@ -223,21 +223,22 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, MEDIA_DBR *mr)
    if (item == -1) {	   /* find oldest volume */
       /* Find oldest volume */
       Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
-"VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
-"VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,Recycle,Slot,"
-"FirstWritten,LastWritten,VolStatus "
-"FROM Media WHERE PoolId=%u AND MediaType='%s' AND VolStatus IN ('Full',"
-"'Recycle','Purged','Used','Append') "
-"ORDER BY LastWritten LIMIT 1", mr->PoolId, mr->MediaType); 
+          "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
+          "VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,Recycle,Slot,"
+          "FirstWritten,LastWritten,VolStatus "
+          "FROM Media WHERE PoolId=%u AND MediaType='%s' AND VolStatus IN ('Full',"
+          "'Recycle','Purged','Used','Append') "
+          "ORDER BY LastWritten LIMIT 1", mr->PoolId, mr->MediaType); 
      item = 1;
    } else {
       /* Find next available volume */
       Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
-"VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
-"VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,Recycle,Slot,"
-"FirstWritten,LastWritten,VolStatus "
-"FROM Media WHERE PoolId=%u AND MediaType='%s' AND VolStatus='%s' "
-"ORDER BY MediaId", mr->PoolId, mr->MediaType, mr->VolStatus); 
+          "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
+          "VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,Recycle,Slot,"
+          "FirstWritten,LastWritten,VolStatus "
+          "FROM Media WHERE PoolId=%u AND MediaType='%s' AND VolStatus='%s' "
+          "ORDER BY LastWritten", 
+	   mr->PoolId, mr->MediaType, mr->VolStatus); 
    }
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);

@@ -268,7 +268,7 @@ int wait_for_job_termination(JCR *jcr)
       Jmsg(jcr, M_FATAL, 0, _("No Job status returned from FD.\n"));
    }
 
-// Dmsg4(000, "fd_ok=%d FDJS=%d JS=%d SDJS=%d\n", fd_ok, jcr->FDJobStatus,
+// Dmsg4(100, "fd_ok=%d FDJS=%d JS=%d SDJS=%d\n", fd_ok, jcr->FDJobStatus,
 //   jcr->JobStatus, jcr->SDJobStatus);
 
    /* Return the first error status we find Dir, FD, or SD */

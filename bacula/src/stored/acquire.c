@@ -292,7 +292,6 @@ int release_device(JCR *jcr, DEVICE *dev)
       /******FIXME**** send read volume usage statistics to director */
 
    } else if (dev->num_writers > 0) {
-      ASSERT(dev_state(dev, ST_APPEND));
       dev->num_writers--;
       Dmsg1(100, "There are %d writers in release_device\n", dev->num_writers);
       if (dev->num_writers == 0) {

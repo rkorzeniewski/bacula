@@ -187,13 +187,14 @@ int dir_update_volume_info(JCR *jcr, DEVICE *dev, int label)
       vol->VolCatWrites, edit_uint64(vol->VolCatMaxBytes, ed2), 
       EndTime, vol->VolCatStatus, vol->Slot, label, vol->Drive, 
       vol->InChanger);
-   Dmsg1(120, "update_volume_data(): %s", dir->msg);
+   Dmsg1(120, "update_volume_info(): %s", dir->msg);
    unbash_spaces(vol->VolCatName);
 
    if (!do_get_volume_info(jcr)) {
       Jmsg(jcr, M_ERROR, 0, "%s", jcr->errmsg);
       return 0;
    }
+   Dmsg1(120, "get_volume_info(): %s", dir->msg);
    /* Update dev Volume info in case something changed (e.g. expired) */
    memcpy(&dev->VolCatInfo, &jcr->VolCatInfo, sizeof(dev->VolCatInfo));
    return 1;

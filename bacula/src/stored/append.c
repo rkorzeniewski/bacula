@@ -47,7 +47,7 @@ int do_append_data(JCR *jcr)
    int32_t file_index, stream, last_file_index;
    BSOCK *ds;
    BSOCK *fd_sock = jcr->file_bsock;
-   int ok = TRUE;
+   bool ok = true;
    DEVICE *dev = jcr->device->dev;
    DEV_RECORD rec;
    DEV_BLOCK  *block;
@@ -93,7 +93,7 @@ int do_append_data(JCR *jcr)
       Jmsg1(jcr, M_FATAL, 0, _("Write session label failed. ERR=%s\n"),
 	 strerror_dev(dev));
       set_jcr_job_status(jcr, JS_ErrorTerminated);
-      ok = FALSE;
+      ok = false;
    }
 
 
@@ -131,7 +131,7 @@ int do_append_data(JCR *jcr)
 	 }
          Jmsg1(jcr, M_FATAL, 0, _("Error reading data header from FD. ERR=%s\n"),
 	    bnet_strerror(ds));
-	 ok = FALSE;
+	 ok = false;
 	 break;
       }
 	
@@ -152,7 +152,7 @@ int do_append_data(JCR *jcr)
       }
       if (!B_ISSPACE(*p) || !B_ISDIGIT(*(p+1))) {
          Jmsg1(jcr, M_FATAL, 0, _("Malformed data header from FD: %s\n"), ds->msg);
-	 ok = FALSE;
+	 ok = false;
 	 break;
       }
       stream = (int32_t)str_to_int64(p);
@@ -162,7 +162,7 @@ int do_append_data(JCR *jcr)
       if (!(file_index > 0 && (file_index == last_file_index ||
 	  file_index == last_file_index + 1))) {
          Jmsg0(jcr, M_FATAL, 0, _("File index from FD not positive or sequential\n"));
-	 ok = FALSE;
+	 ok = false;
 	 break;
       }
       if (file_index != last_file_index) {
@@ -194,7 +194,7 @@ int do_append_data(JCR *jcr)
 		  dev_name(dev), strerror_dev(dev));
                Jmsg(jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
 		     strerror_dev(dev));
-	       ok = FALSE;
+	       ok = false;
 	       break;
 	    }
 	 }
@@ -218,7 +218,7 @@ int do_append_data(JCR *jcr)
 	       if (!dir_update_file_attributes(jcr, &rec)) {
                   Jmsg(jcr, M_FATAL, 0, _("Error updating file attributes. ERR=%s\n"),
 		     bnet_strerror(jcr->dir_bsock));
-		  ok = FALSE;
+		  ok = false;
 		  jcr->dir_bsock->spool = 0;
 		  break;
 	       }
@@ -229,15 +229,10 @@ int do_append_data(JCR *jcr)
       if (is_bnet_error(ds)) {
          Jmsg1(jcr, M_FATAL, 0, _("Network error on data channel. ERR=%s\n"),
 	    bnet_strerror(ds));
-	 ok = FALSE;
+	 ok = false;
 	 break;
       }
    }
-   /* 
-    *   We probably need a new flag that says "Do not attempt
-    *   to write because there is no tape".
-    */
-   Dmsg0(90, "Write_end_session_label()\n");
 
    /* Create Job status for end of session label */
    set_jcr_job_status(jcr, ok?JS_Terminated:JS_ErrorTerminated);
@@ -253,22 +248,23 @@ int do_append_data(JCR *jcr)
          Jmsg1(jcr, M_FATAL, 0, _("Error writting end session label. ERR=%s\n"),
 	     strerror_dev(dev));
 	 set_jcr_job_status(jcr, JS_ErrorTerminated);
-	 ok = FALSE;
+	 ok = false;
       }
+      Dmsg0(90, "back from write_end_session_label()\n");
       /* Flush out final partial block of this session */
       if (!write_block_to_device(jcr, dev, block)) {
          Dmsg0(100, _("Set ok=FALSE after write_block_to_device.\n"));
 	 set_jcr_job_status(jcr, JS_ErrorTerminated);
-	 ok = FALSE;
+	 ok = false;
       }
    }
 
-   Dmsg1(200, "release device JobStatus=%d\n", jcr->JobStatus);
+   Dmsg1(200, "calling release device JobStatus=%d\n", jcr->JobStatus);
    /* Release the device */
    if (!release_device(jcr, dev)) {
       Pmsg0(000, _("Error in release_device\n"));
       set_jcr_job_status(jcr, JS_ErrorTerminated);
-      ok = FALSE;
+      ok = false;
    }
 
    free_block(block);

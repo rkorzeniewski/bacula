@@ -204,4 +204,40 @@ static void send_blocked_status(JCR *jcr, DEVICE *dev)
    default:
       break;
    }
+   if (debug_level > 1) {
+      bnet_fsend(user, _("Configured device capabilities:\n"));
+      bnet_fsend(user, "%sEOF ", dev->capabilities & CAP_EOF ? "" : "!");
+      bnet_fsend(user, "%sBSR ", dev->capabilities & CAP_BSR ? "" : "!");
+      bnet_fsend(user, "%sBSF ", dev->capabilities & CAP_BSF ? "" : "!");
+      bnet_fsend(user, "%sFSR ", dev->capabilities & CAP_FSR ? "" : "!");
+      bnet_fsend(user, "%sFSF ", dev->capabilities & CAP_FSF ? "" : "!");
+      bnet_fsend(user, "%sEOM ", dev->capabilities & CAP_EOM ? "" : "!");
+      bnet_fsend(user, "%sREM ", dev->capabilities & CAP_REM ? "" : "!");
+      bnet_fsend(user, "%sRACCESS ", dev->capabilities & CAP_RACCESS ? "" : "!");
+      bnet_fsend(user, "%sAUTOMOUNT ", dev->capabilities & CAP_AUTOMOUNT ? "" : "!");
+      bnet_fsend(user, "%sLABEL ", dev->capabilities & CAP_LABEL ? "" : "!");
+      bnet_fsend(user, "%sANONVOLS ", dev->capabilities & CAP_ANONVOLS ? "" : "!");
+      bnet_fsend(user, "%sALWAYSOPEN ", dev->capabilities & CAP_ALWAYSOPEN ? "" : "!");
+      bnet_fsend(user, "\n");
+
+      bnet_fsend(user, _("Device status:\n"));
+      bnet_fsend(user, "%sOPENED ", dev->state & ST_OPENED ? "" : "!");
+      bnet_fsend(user, "%sTAPE ", dev->state & ST_TAPE ? "" : "!");
+      bnet_fsend(user, "%sLABEL ", dev->state & ST_LABEL ? "" : "!");
+      bnet_fsend(user, "%sMALLOC ", dev->state & ST_MALLOC ? "" : "!");
+      bnet_fsend(user, "%sAPPEND ", dev->state & ST_APPEND ? "" : "!");
+      bnet_fsend(user, "%sREAD ", dev->state & ST_READ ? "" : "!");
+      bnet_fsend(user, "%sEOT ", dev->state & ST_EOT ? "" : "!");
+      bnet_fsend(user, "%sWEOT ", dev->state & ST_WEOT ? "" : "!");
+      bnet_fsend(user, "%sEOF ", dev->state & ST_EOF ? "" : "!");
+      bnet_fsend(user, "%sNEXTVOL ", dev->state & ST_NEXTVOL ? "" : "!");
+      bnet_fsend(user, "%sSHORT ", dev->state & ST_SHORT ? "" : "!");
+      bnet_fsend(user, "\n");
+
+      bnet_fsend(user, _("Device parameters:\n"));
+      bnet_fsend(user, "Device name: %s\n", dev->dev_name);
+      bnet_fsend(user, "File=%u block=%u\n", dev->file, dev->block_num);
+      bnet_fsend(user, "Min block=%u Max block=%u\n", dev->min_block_size, dev->max_block_size);
+   }
+
 }
