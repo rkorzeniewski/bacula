@@ -81,12 +81,14 @@ static int update_volume(UAContext *ua);
 static int update_pool(UAContext *ua);
 static int delete_volume(UAContext *ua);
 static int delete_pool(UAContext *ua);
-static int delete_job(UAContext *ua);
+static void delete_job(UAContext *ua);
 static int mount_cmd(UAContext *ua, const char *cmd);
 static int release_cmd(UAContext *ua, const char *cmd);
 static int update_cmd(UAContext *ua, const char *cmd);
 static int wait_cmd(UAContext *ua, const char *cmd);
 static int setip_cmd(UAContext *ua, const char *cmd);
+static void do_job_delete(UAContext *ua, JobId_t JobId);
+static void delete_job_id_range(UAContext *ua, char *tok);
 
 int qhelp_cmd(UAContext *ua, const char *cmd);
 int quit_cmd(UAContext *ua, const char *cmd);
@@ -1613,8 +1615,6 @@ static int reload_cmd(UAContext *ua, const char *cmd)
    return 1;
 }
 
-
-
 /*
  * Delete Pool records (should purge Media with it).
  *
@@ -1675,19 +1675,91 @@ static int delete_cmd(UAContext *ua, const char *cmd)
    return 1;
 }
 
-static int delete_job(UAContext *ua)
+
+/*
+ * delete_job has been modified to parse JobID lists like the
+ * following:
+ * delete job JobID=3,4,6,7-11,14
+ * 
+ * Thanks to Phil Stracchino for the above addition.
+ */
+
+static void delete_job(UAContext *ua)
 {
-   POOLMEM *query = get_pool_memory(PM_MESSAGE);
    JobId_t JobId;
+   char *s,*sep,*tok;
 
    int i = find_arg_with_value(ua, _("jobid"));
    if (i >= 0) {
-      JobId = str_to_int64(ua->argv[i]);
+      if (strchr(ua->argv[i], ',') != NULL || strchr(ua->argv[i], '-') != NULL) {
+	s = bstrdup(ua->argv[i]);
+	tok = s;
+	/*
+         * We could use strtok() here.  But we're not going to, because:
+	 * (a) strtok() is deprecated, having been replaced by strsep();
+	 * (b) strtok() is broken in significant ways.
+         * we could use strsep() instead, but it's not universally available.
+	 * so we grow our own using strchr().
+	 */
+        sep = strchr(tok, ',');
+	while (sep != NULL) {
+           *sep = '\0';
+           if (strchr(tok, '-')) {
+	       delete_job_id_range(ua, tok);
+	   } else {
+	      JobId = str_to_int64(tok);
+	   }
+	   tok = ++sep;
+           sep = strchr(tok, ',');
+	}
+	/* pick up the last token */
+        if (strchr(tok, '-')) {
+	    delete_job_id_range(ua, tok);
+	} else {
+	    JobId = str_to_int64(tok);
+	    do_job_delete(ua, JobId);
+	}
+	
+	 free(s);
+      } else {
+	 JobId = str_to_int64(ua->argv[i]);
+	do_job_delete(ua, JobId);
+      }
    } else if (!get_pint(ua, _("Enter JobId to delete: "))) {
-      return 0;
+      return;
    } else {
-      JobId = ua->pint32_val; 
+      JobId = ua->pint32_val;
+      do_job_delete(ua, JobId);
    }
+}
+
+/*
+ * we call delete_job_id_range to parse range tokens and iterate over ranges
+ */
+static void delete_job_id_range(UAContext *ua, char *tok)
+{
+   char *tok2;
+   JobId_t j,j1,j2;
+
+   tok2 = strchr(tok, '-');
+   *tok2 = '\0';
+   tok2++;
+   j1 = str_to_int64(tok);
+   j2 = str_to_int64(tok2);
+   for (j=j1; j<=j2; j++) {
+      do_job_delete(ua, j);
+   }
+}
+
+/*
+ * do_job_delete now performs the actual delete operation atomically
+ * we always return 1 because C++ is pissy about void functions
+ */
+
+static void do_job_delete(UAContext *ua, JobId_t JobId)
+{
+   POOLMEM *query = get_pool_memory(PM_MESSAGE);
+
    Mmsg(query, "DELETE FROM Job WHERE JobId=%u", JobId);
    db_sql_query(ua->db, query, NULL, (void *)NULL);
    Mmsg(query, "DELETE FROM File WHERE JobId=%u", JobId);
@@ -1696,7 +1768,6 @@ static int delete_job(UAContext *ua)
    db_sql_query(ua->db, query, NULL, (void *)NULL);
    free_pool_memory(query);
    bsendmsg(ua, _("Job %u and associated records deleted from the catalog.\n"), JobId);
-   return 1;
 }
 
 /*
