@@ -147,9 +147,9 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
 	       mr.VolFiles, mr.VolBlocks, mr.VolBytes, mr.VolMounts, mr.VolErrors,
 	       mr.VolWrites, mr.VolMaxBytes, mr.VolCapacityBytes,
 	       mr.VolStatus, mr.Slot);
-	 } else { 
             Dmsg4(100, "get_media_record PoolId=%d wanted %d, Status=%s, \
 MediaType=%s\n", mr.PoolId, jcr->PoolId, mr.VolStatus, mr.MediaType);
+	 } else { 
 	    /* Not suitable volume */
             bnet_fsend(bs, "1998 Volume not appropriate.\n");
 	 }
@@ -175,7 +175,8 @@ MediaType=%s\n", mr.PoolId, jcr->PoolId, mr.VolStatus, mr.MediaType);
          strcpy(mr.VolStatus, "Full");
       }
 
-      Dmsg0(20, "db_update_media_record\n");
+      Dmsg2(100, "db_update_media_record. Stat=%s Vol=%s\n",
+	 mr.VolStatus, mr.VolumeName);
       if (db_update_media_record(jcr->db, &mr)) {
 	 bnet_fsend(bs, OK_update);
          Dmsg0(90, "send OK\n");
@@ -202,7 +203,7 @@ MediaType=%s\n", mr.PoolId, jcr->PoolId, mr.VolStatus, mr.MediaType);
 	    db_strerror(jcr->db));
          bnet_fsend(bs, "1991 Update JobMedia error\n");
       } else {
-         Dmsg0(20, "JobMedia record created\n");
+         Dmsg0(100, "JobMedia record created\n");
 	 bnet_fsend(bs, OK_update);
       }
 

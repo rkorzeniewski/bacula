@@ -35,7 +35,7 @@ int	dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev);
 int	dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev);
 int	dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec);
 int	dir_send_job_status(JCR *jcr);
-int	dir_create_job_media_record(JCR *jcr);
+int	dir_create_jobmedia_record(JCR *jcr);
 
 /* authenticate.c */
 int	authenticate_director(JCR *jcr);
@@ -77,8 +77,9 @@ int	 fsf_dev(DEVICE *dev, int num);
 int	 fsr_dev(DEVICE *dev, int num);
 int	 bsf_dev(DEVICE *dev, int num);
 int	 bsr_dev(DEVICE *dev, int num);
-void	 dev_attach_jcr(DEVICE *dev, JCR *jcr);
-void	 dev_remove_jcr(DEVICE *dev, JCR *jcr);
+void	 attach_jcr_to_device(DEVICE *dev, JCR *jcr);
+void	 detach_jcr_from_device(DEVICE *dev, JCR *jcr);
+JCR	*next_attached_jcr(DEVICE *dev, JCR *jcr);
 
 
 /* Get info about device */

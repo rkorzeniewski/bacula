@@ -177,7 +177,7 @@ int dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int relabel)
 /*
  * After writing a Volume, create the JobMedia record.
  */
-int dir_create_job_media_record(JCR *jcr)
+int dir_create_jobmedia_record(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
 
@@ -185,14 +185,14 @@ int dir_create_job_media_record(JCR *jcr)
       jcr->VolFirstFile, jcr->JobFiles,
       jcr->start_file, jcr->end_file,
       jcr->start_block, jcr->end_block);
-   Dmsg1(20, "create_job_media(): %s", dir->msg);
+   Dmsg1(100, "create_jobmedia(): %s", dir->msg);
    if (bnet_recv(dir) <= 0) {
       Dmsg0(90, "create_jobmedia error bnet_recv\n");
       return 0;
    }
-   Dmsg1(20, "Create_jobmedia: %s", dir->msg);
+   Dmsg1(020, "Create_jobmedia: %s", dir->msg);
    if (strcmp(dir->msg, OK_update) != 0) {
-      Dmsg1(30, "Bad response from Dir: %s\n", dir->msg);
+      Dmsg1(030, "Bad response from Dir: %s\n", dir->msg);
       Jmsg(jcr, M_ERROR, 0, _("Error creating JobMedia record: %s\n"), dir->msg);
       return 0;
    }

@@ -161,6 +161,7 @@ int acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    if (jcr->NumVolumes == 0) {
       jcr->NumVolumes = 1;
    }
+   attach_jcr_to_device(dev, jcr);    /* attach jcr to device */
    unlock_device(dev);
    return 1;			      /* got it */
 }
@@ -173,7 +174,7 @@ int acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 int release_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 {
    P(dev->mutex);
-   Dmsg1(90, "release_device device is %s\n", dev_is_tape(dev)?"tape":"disk");
+   Dmsg1(100, "release_device device is %s\n", dev_is_tape(dev)?"tape":"disk");
    if (dev->state & ST_READ) {
       dev->state &= ~ST_READ;	      /* clear read bit */
       if (!dev_is_tape(dev) || !(dev->capabilities & CAP_ALWAYSOPEN)) {
@@ -189,9 +190,11 @@ int release_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       Dmsg1(90, "There are %d writers in release_device\n", dev->num_writers);
       if (dev->num_writers == 0) {
 	 weof_dev(dev, 1);
-	 dir_create_job_media_record(jcr);
+         Dmsg0(100, "dir_create_jobmedia_record. Release\n");
+	 dir_create_jobmedia_record(jcr);
 	 dev->VolCatInfo.VolCatFiles++; 	    /* increment number of files */
 	 /* Note! do volume update before close, which zaps VolCatInfo */
+         Dmsg0(100, "dir_update_vol_info. Release\n");
 	 dir_update_volume_info(jcr, &dev->VolCatInfo, 0); /* send Volume info to Director */
 
 	 if (!dev_is_tape(dev) || !(dev->capabilities & CAP_ALWAYSOPEN)) {
@@ -201,12 +204,15 @@ int release_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	    close_dev(dev);
 	 }
       } else {
-	 dir_create_job_media_record(jcr);
+         Dmsg0(100, "dir_create_jobmedia_record. Release\n");
+	 dir_create_jobmedia_record(jcr);
+         Dmsg0(100, "dir_update_vol_info. Release\n");
 	 dir_update_volume_info(jcr, &dev->VolCatInfo, 0); /* send Volume info to Director */
       }
    } else {
       Jmsg1(jcr, M_ERROR, 0, _("BAD ERROR: release_device %s not in use.\n"), dev_name(dev));
    }
+   detach_jcr_from_device(dev, jcr);
    V(dev->mutex);
    return 1;
 }
@@ -298,7 +304,7 @@ mount_next_vol:
 
    dev->state &= ~(ST_APPEND|ST_READ|ST_EOT|ST_WEOT|ST_EOF);
 
-   jcr->VolFirstFile = 0;	      /* first update of Vol FileIndex */
+   jcr->VolFirstFile = jcr->JobFiles; /* first update of Vol FileIndex */
    for ( ;; ) {
       int slot = jcr->VolCatInfo.Slot;
 	
@@ -492,6 +498,7 @@ read_volume:
 	 dev->VolCatInfo.VolCatReads = 1;
       }
       strcpy(dev->VolCatInfo.VolCatStatus, "Append");
+      Dmsg0(100, "dir_update_vol_info. Set Append\n");
       dir_update_volume_info(jcr, &dev->VolCatInfo, 1);  /* indicate doing relabel */
       if (recycle) {
          Jmsg(jcr, M_INFO, 0, _("Recycled volume %s on device %s, all previous data lost.\n"),
@@ -516,6 +523,7 @@ read_volume:
          Jmsg(jcr, M_INFO, 0, _("Marking Volume %s in Error in Catalog.\n"),
 	    jcr->VolumeName);
          strcpy(dev->VolCatInfo.VolCatStatus, "Error");
+         Dmsg0(100, "dir_update_vol_info. Set Error.\n");
 	 dir_update_volume_info(jcr, &dev->VolCatInfo, 0);
 	 goto mount_next_vol;
       }
@@ -623,17 +631,25 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 
       block_device(dev, BST_DOING_ACQUIRE);
 
-      strcpy(dev->VolCatInfo.VolCatStatus, "Full");
-      Dmsg0(90, "Call update_vol_info\n");
-      /* Update position counters */
-      jcr->end_block = dev->block_num;
-      jcr->end_file = dev->file;
-      /*
-       * ****FIXME**** update JobMedia record of every job using
-       * this device 
+      /* 
+       * Walk through all attached jcrs creating a jobmedia_record()
        */
-      if (!dir_create_job_media_record(jcr) ||
-	  !dir_update_volume_info(jcr, &dev->VolCatInfo, 0)) {	  /* send Volume info to Director */
+      Dmsg1(100, "Walk attached jcrs. Volume=%s\n", dev->VolCatInfo.VolCatName);
+      for (JCR *mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
+         Dmsg1(100, "create JobMedia for Job %s\n", mjcr->Job);
+	 mjcr->end_block = dev->block_num;
+	 mjcr->end_file = dev->file;
+	 if (!dir_create_jobmedia_record(mjcr)) {
+            Jmsg(mjcr, M_ERROR, 0, _("Could not create JobMedia record for Volume=%s Job=%s\n"),
+	       dev->VolCatInfo.VolCatName, mjcr->Job);
+	    return 0;
+	 }
+      }
+
+      strcpy(dev->VolCatInfo.VolCatStatus, "Full");
+      Dmsg2(100, "Call update_vol_info Stat=%s Vol=%s\n", 
+	 dev->VolCatInfo.VolCatStatus, dev->VolCatInfo.VolCatName);
+      if (!dir_update_volume_info(jcr, &dev->VolCatInfo, 0)) {	  /* send Volume info to Director */
          Jmsg(jcr, M_ERROR, 0, _("Could not update Volume info Volume=%s Job=%s\n"),
 	    dev->VolCatInfo.VolCatName, jcr->Job);
 	 return 0;		      /* device locked */
@@ -691,11 +707,14 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       jcr->NumVolumes++;
       Dmsg0(90, "Wake up any waiting threads.\n");
       free_block(label_blk);
-      /* Set new start/end positions */
-      jcr->start_block = dev->block_num;
-      jcr->start_file = dev->file;
+      for (JCR *mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
+	 /* Set new start/end positions */
+	 mjcr->start_block = dev->block_num;
+	 mjcr->start_file = dev->file;
+	 mjcr->VolFirstFile = mjcr->JobFiles;
+	 mjcr->run_time += time(NULL) - wait_time; /* correct run time */
+      }
       unblock_device(dev);
-      jcr->run_time += time(NULL) - wait_time; /* correct run time */
       return 1; 			       /* device locked */
    }
    if (label_blk) {

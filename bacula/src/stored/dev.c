@@ -1076,24 +1076,24 @@ term_dev(DEVICE *dev)
    }
 }
 
+
+/* To make following two functions more readable */
+
 #define attached_jcrs ((JCR *)(dev->attached_jcrs))
 
-void dev_attach_jcr(DEVICE *dev, JCR *jcr)
+void attach_jcr_to_device(DEVICE *dev, JCR *jcr)
 {
-
-   P(dev->mutex);
    jcr->prev_dev = NULL;
    jcr->next_dev = attached_jcrs;
    if (attached_jcrs) {
       attached_jcrs->prev_dev = jcr;
    }
    attached_jcrs = jcr;
-   V(dev->mutex);
+   Dmsg1(000, "Attached Job %s\n", jcr->Job);
 }
 
-void dev_remove_jcr(DEVICE *dev, JCR *jcr)
+void detach_jcr_from_device(DEVICE *dev, JCR *jcr)
 {
-   P(dev->mutex);
    if (!jcr->prev_dev) {
       attached_jcrs = jcr->next_dev;
    } else {
@@ -1102,5 +1102,13 @@ void dev_remove_jcr(DEVICE *dev, JCR *jcr)
    if (jcr->next_dev) {
       jcr->next_dev->prev_dev = jcr->prev_dev; 
    }
-   V(dev->mutex);
+   Dmsg1(000, "Detached Job %s\n", jcr->Job);
+}
+
+JCR *next_attached_jcr(DEVICE *dev, JCR *jcr)
+{
+   if (jcr == NULL) {
+      return attached_jcrs;
+   }
+   return jcr->next_dev;
 }

@@ -187,10 +187,12 @@ db_update_media_record(B_DB *mdb, MEDIA_DBR *mr)
 
    Dmsg1(100, "update_media: FirstWritten=%d\n", mr->FirstWritten);
    db_lock(mdb);
-   if (mr->VolMounts == 1) {
+   if (mr->VolMounts == 1 && mr->VolBlocks==1 && mr->VolWrites==1) {
+      Dmsg1(400, "Set FirstWritten Vol=%s\n", mr->VolumeName);
       Mmsg(&mdb->cmd, "UPDATE Media SET FirstWritten='%s'\
  WHERE VolumeName='%s'", dt, mr->VolumeName);
-      UPDATE_DB(mdb, mdb->cmd);
+      stat = UPDATE_DB(mdb, mdb->cmd);
+      Dmsg1(400, "Firstwritten stat=%d\n", stat);
    }
 
    Mmsg(&mdb->cmd, "UPDATE Media SET VolJobs=%d,\
@@ -201,6 +203,8 @@ db_update_media_record(B_DB *mdb, MEDIA_DBR *mr)
    mr->VolMounts, mr->VolErrors, mr->VolWrites, 
    edit_uint64(mr->VolMaxBytes, ed2), dt, 
    mr->VolStatus, mr->Slot, mr->VolumeName);
+
+   Dmsg1(400, "%s\n", mdb->cmd);
 
    stat = UPDATE_DB(mdb, mdb->cmd);
    db_unlock(mdb);
