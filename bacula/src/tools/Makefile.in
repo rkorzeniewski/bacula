@@ -1,3 +1,8 @@
+#
+# Bacula Tools Makefile
+#
+# Version $Id$
+#
 @MCOMMON@
 
 srcdir =	.
@@ -55,7 +60,7 @@ clean:
 	@$(RMF) testfind dbcheck
 
 realclean: clean
-	@$(RMF) tags Makefile
+	@$(RMF) tags
 
 distclean: realclean
 	if test $(srcdir) = .; then $(MAKE) realclean; fi
