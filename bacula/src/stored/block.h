@@ -93,7 +93,7 @@ typedef struct s_dev_block {
    uint32_t block_len;                /* length of current block read */
    uint32_t buf_len;                  /* max/default block length */
    uint32_t BlockNumber;              /* sequential block number */
-   uint32_t read_len;                 /* bytes read into buffer */  
+   uint32_t read_len;                 /* bytes read into buffer, if zero, block empty */
    uint32_t VolSessionId;             /* */
    uint32_t VolSessionTime;           /* */
    int      BlockVer;                 /* block version 1 or 2 */
@@ -103,5 +103,7 @@ typedef struct s_dev_block {
                                        * Pool buffer!   
                                        */
 } DEV_BLOCK;
+
+#define block_is_empty(block) !((block)->read_len)
 
 #endif

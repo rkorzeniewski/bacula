@@ -448,6 +448,7 @@ remlen=%d data_len=%d\n",
       }
 #endif
       rec->state |= (REC_NO_HEADER | REC_BLOCK_EMPTY);
+      empty_block(block);		       /* mark block empty */
       return 0;
    }
 

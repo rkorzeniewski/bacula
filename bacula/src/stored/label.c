@@ -117,8 +117,11 @@ because:\n   %s"), dev_name(dev), strerror_dev(dev));
    }
 
    free_record(record);
-   empty_block(block);
-   rewind_dev(dev);
+   /* If we are a streaming device, we only get one chance to read */
+   if (!dev_cap(dev, CAP_STREAM)) {
+      empty_block(block);
+      rewind_dev(dev);
+   }
 
    if (dev->VolHdr.VerNum != BaculaTapeVersion && 
        dev->VolHdr.VerNum != OldCompatibleBaculaTapeVersion1 &&  

@@ -501,10 +501,12 @@ reread:
       Mmsg1(&dev->errmsg, _("Read zero bytes on device %s.\n"), dev->dev_name);
       if (dev->state & ST_EOF) { /* EOF alread read? */
 	 dev->state |= ST_EOT;	/* yes, 2 EOFs => EOT */
+	 block->read_len = 0;
 	 return 0;
       }
       dev->file++;		/* increment file */
       dev->state |= ST_EOF;	/* set EOF read */
+      block->read_len = 0;
       return 0; 		/* return eof */
    }
    /* Continue here for successful read */
@@ -518,6 +520,7 @@ reread:
    }  
 
    if (!unser_block_header(dev, block)) {
+      block->read_len = 0;
       return 0;
    }
 
@@ -536,6 +539,7 @@ reread:
          Dmsg0(100, "Backspace record for reread.\n");
 	 if (bsf_dev(dev, 1) != 0) {
 	    Emsg0(M_ERROR, 0, dev->errmsg);
+	    block->read_len = 0;
 	    return 0;
 	 }
       } else {

@@ -121,7 +121,7 @@ int do_read_data(JCR *jcr)
       /* Read Record */
       Dmsg1(500, "Main read_record. rem=%d\n", rec->remainder);
 
-      if (!read_block_from_device(dev, block)) {
+      if (block_is_empty(block) && !read_block_from_device(dev, block)) {
          Dmsg1(500, "Main read record failed. rem=%d\n", rec->remainder);
 	 if (dev->state & ST_EOT) {
 	    DEV_RECORD *record;
