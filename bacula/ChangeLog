@@ -1,4 +1,16 @@
 
+24Mar04
+- Apply corrected SQL to sql_get.c supplied by Dan Langille.
+- Implement "delete job jobid=xxx jobid=yyy ..."
+- Implemente "purge volume=xxx volume=yyy ..."
+- Fix buffer overrun in query string substitution.
+22Mar04
+- Fix bad format %s instead of %d for editing new slot in update volume.
+  Reported by Vadim Zotov.
+- Better error diagnostics in ./configure for detecting termcap library.
+20Mar04
+- Restore old sql.c split_path and file name since it seems to have
+  broken the Verify stuff.
 19Mar04
 - Hunt down missing free_locked_jcr() in SD that caused zombies.
 - Modify status outputs to be more consistent for zombie checking.

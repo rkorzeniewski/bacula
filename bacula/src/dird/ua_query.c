@@ -172,16 +172,15 @@ static POOLMEM *substitute_prompts(UAContext *ua,
    for (i=0; i<9; i++) {
       subst[i] = NULL;
    }
-   /* ****FIXME**** second and third check_pool ... below are probably broken */
-   new_query = get_memory(2000);
-   new_query = check_pool_memory_size(new_query, strlen(query) +100);
+   new_query = get_pool_memory(PM_FNAME);
    o = new_query;
-   olen = 0;
    for (q=query; (p=strchr(q, '%')); ) {
       if (p) {
+	olen = o - new_query;
+	new_query = check_pool_memory_size(new_query, olen + p - q + 10);
+	o = new_query + olen;
 	 while (q < p) {	      /* copy up to % */
 	    *o++ = *q++;
-	    olen++;
 	 }
 	 p++;
 	 switch (*p) {
@@ -206,10 +205,11 @@ static POOLMEM *substitute_prompts(UAContext *ua,
 	       p = (char *)malloc(len * 2 + 1);
 	       db_escape_string(p, ua->cmd, len);
 	       subst[n] = p;
-	       new_query = check_pool_memory_size(new_query, olen + strlen(p) + 1);
+	       olen = o - new_query;
+	       new_query = check_pool_memory_size(new_query, olen + strlen(p) + 10);
+	       o = new_query + olen;
 	       while (*p) {
 		  *o++ = *p++;
-		  olen++;
 	       }
 	    } else {
                bsendmsg(ua, _("Warning prompt %d missing.\n"), n+1);
@@ -218,18 +218,18 @@ static POOLMEM *substitute_prompts(UAContext *ua,
 	    break;
          case '%':
             *o++ = '%';
-	    olen++;
 	    q += 2;
 	    break;
 	 default:
             *o++ = '%';
-	    olen++;
 	    q++;
 	    break;
 	 }
       }
    }
-   new_query = check_pool_memory_size(new_query, olen + strlen(q) + 1);
+   olen = o - new_query;
+   new_query = check_pool_memory_size(new_query, olen + strlen(q) + 10);
+   o = new_query + olen;
    while (*q) {
       *o++ = *q++;
    }

@@ -1,161 +1,82 @@
 ; winbacula.nsi
 ;
-; written by Michel Meyers (michel@tcnnet.dyndns.org)
+; Written by Michel Meyers (michel@tcnnet.dyndns.org)
 ;
-; ChangeLog
-; v0.1 - initial release (still a lot to do)
+; Updated by Kern Sibbald for native Win32 Bacula
+;
+; Command line options:
+;
+; /cygwin     -  do cygwin install into c:\cygwin\bacula
+; /service    - 
+; /start
 
-;!define TEMP1 $R0 ;Temp variable
-!define VERSION '@VERSION@-@LSMDATE@'
+!define PRODUCT "Bacula"
+!define VERSION "@VERSION@"
 
-SetCompressor lzma
-SetCompressorDictSize 32
+;                           
+; Include the Modern UI
+;
+!include "MUI.nsh"
+!include "params.nsh"
+!include "util.nsh"
 
-; The name of the installer
-Name "Bacula Client"
+;
+; Basics
+;
+  Name "Bacula Client"
+  OutFile "winbacula-${VERSION}.exe"
+  InstallDir "c:\bacula"
 
-; The file to write
-OutFile "winbacula-${VERSION}.exe"
+;
+; Pull in pages
+;
+ !insertmacro MUI_PAGE_WELCOME
+;  !insertmacro MUI_PAGE_LICENSE "License.txt"
+ !insertmacro MUI_PAGE_COMPONENTS
+ !insertmacro MUI_PAGE_DIRECTORY
+ !insertmacro MUI_PAGE_INSTFILES
+ !insertmacro MUI_PAGE_FINISH
 
-; The default installation directory
-InstallDir "c:\bacula"
-
-DirText "Setup will install the Bacula Client v${VERSION} to the directory specified below. To install in a different folder, click Browse and select another folder.$\n$\nNote to CYGWIN users: please choose your CYGWIN root directory."
-Page directory
-Page instfiles
-UninstPage uninstConfirm
-UninstPage instfiles
-
-;Icon "${NSISDIR}\Contrib\Icons\modern-install.ico"
-;UninstallIcon "${NSISDIR}\Contrib\Icons\modern-uninstall.ico"
-;CheckBitmap "${NSISDIR}\Contrib\Icons\modern.bmp"
-
-; The text to prompt the user to enter a directory
-;ComponentText "This will extract the temporary files needed for controlling your PC remotely."
-; The stuff to install
-
-; -- written by Alexis de Valence --
-; GetONEParameter
-
-; Usage:
-;   Push 3                 ; to get the 3rd parameter of the command line
-;   Call GetONEParameter
-;   Pop $R0                ; saves the result in $R0
-; returns an empty string if not found
-
-Function GetONEParameter
-   Exch $R0
-   Push $R1
-   Push $R2
-   Push $R3
-   Push $R4
-   Push $R5
-   Push $R6
-
-; init variables
-   IntOp $R5 $R0 + 1
-   StrCpy $R2 0
-   StrCpy $R4 1
-   StrCpy $R6 0
-
-   loop3: ; looking for a char that's not a space
-     IntOp $R2 $R2 + 1
-     StrCpy $R0 $CMDLINE 1 $R2
-     StrCmp $R0 " " loop3
-     StrCpy $R3 $R2   ; found the begining of the current parameter
+ !insertmacro MUI_UNPAGE_WELCOME
+ !insertmacro MUI_UNPAGE_CONFIRM
+ !insertmacro MUI_UNPAGE_INSTFILES
+ !insertmacro MUI_UNPAGE_FINISH
 
 
-   loop:          ; scanning for the end of the current parameter
+ !define      MUI_ABORTWARNING
 
-     StrCpy $R0 $CMDLINE 1 $R2
-     StrCmp $R0 " " loop2
-     StrCmp $R0 "" last
-     IntOp $R2 $R2 + 1
-     Goto loop
+ !insertmacro MUI_LANGUAGE "English"
 
-   last: ; there will be no other parameter to extract
-   StrCpy $R6 1
 
-   loop2: ; found the end of the current parameter
 
-   IntCmp $R4 $R5 0 NextParam end
-   StrCpy $R6 1 ; to quit after this process
+DirText "Setup will install the Bacula Client ${VERSION} to the directory specified below. To install in a different folder, click Browse and select another folder.$\n$\nNote to CYGWIN users: please choose your CYGWIN root directory."
 
-   IntOp $R1 $R2 - $R3 ;number of letter of current parameter
-   StrCpy $R0 $CMDLINE $R1 $R3        ; stores the result in R0
 
-   NextParam:
-   IntCmp $R6 1 end ; leave if found or if not enough parameters
-
-   ; process the next parameter
-   IntOp $R4 $R4 + 1
-
-   Goto loop3
-
-   end:
-
-   Pop $R6  ; restore R0 - R6 to their initial value
-   Pop $R5
-   Pop $R4
-   Pop $R3
-   Pop $R2
-   Pop $R1
-
-   Exch $R0    ;Puts the result on the stack
-
- FunctionEnd
-
-; -- written by Michel Meyers --
-; ParameterGiven - checks first 9 parameters on the command line
-; Usage:
-;   Push "/parameter"                 ; to check command line for /parameter
-;   Call ParameterGiven
-;   Pop $R0                ; saves the result in $R0 (result = true or false)
-
- Function ParameterGiven
-   Exch $R0
-   Push $R1
-   Push $R2
-   Push $R3
-   
-   StrCpy $R1 0
-   StrCpy $R3 0
-   loopme:
-   StrCmp $R1 9 AllChecked
-   IntOp $R1 $R1 + 1
-   Push $R1
-   Call GetONEParameter
-   Pop $R2                ; saves the result in $R2
-   StrCmp $R0 $R2 Found
-   Goto loopme
-   
-   Found:
-   StrCpy $R3 1
-   Goto loopme
-   
-   AllChecked:
-   Exch $R3
-  
- FunctionEnd
-
-Section "Install"
-
+Section "Bacula File Service" SecService
+  ;
   ; /cygwin on command line forces install dir to c:\cygwin\bacula (useful for silent install)
+  ;
   Push "/cygwin"
   Call ParameterGiven
   Pop $6
   StrCmp $6 0 NoCygwin
   StrCpy $INSTDIR "c:\cygwin\bacula"
-  NoCygwin:
+ NoCygwin:
+; IfFileExists "c:\cygwin" Cygwin ReallyNoCygwin
+;Cygwin:
+; StrCpy $INSTDIR "c:\cygwin\bacula"
+;ReallyNoCygwin:
 
   ; Check for existing installation
   StrCpy $7 0
   IfFileExists "$INSTDIR\bin\bacula-fd.conf" Upgrade NoUpgrade
-  Upgrade:
+ Upgrade:
     StrCpy $7 1
     ; Shutdown any baculas that could be running
     ExecWait '"$INSTDIR\bin\bacula-fd.exe" /kill'
-  NoUpgrade:
+    ; give it some time to shutdown
+    Sleep 1000
+ NoUpgrade:
 
   ; Set output path to the installation directory.
   SetOutPath "$INSTDIR\bin"
@@ -166,15 +87,16 @@ Section "Install"
   ; Put files there
   File baculafd\Release\bacula-fd.exe
   File pthreads\pthreadVCE.dll
-  IfFileExists "$INSTDIR\bacula-fd.conf" newconf 
+  File License.txt
+  IfFileExists "$INSTDIR\bin\bacula-fd.conf" newconf 
   File bacula-fd.conf
   goto do_service
-  newconf:
+ newconf:
   File /oname=bacula-fd.conf.new bacula-fd.conf
        
 
   ; If /service was given jump to the service install part
-  do_service:
+ do_service:
   Push "/service"
   Call ParameterGiven
   Pop $5
@@ -189,25 +111,23 @@ Section "Install"
 
   ; Install as service?
   MessageBox MB_YESNO|MB_ICONQUESTION "Do you want to install the Bacula Client as a service (automatically starts with your PC)?" IDNO NoService
-  Service:
+ Service:
     ExecWait '"$INSTDIR\bin\bacula-fd.exe" /install'
     StrCpy $9 "1"
     WriteRegDWORD HKLM "Software\Bacula" "InstalledService" "1"
-  NoService:
+ NoService:
 
   ; Write the uninstall keys for Windows
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "DisplayName" "Bacula Client"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "UninstallString" '"$INSTDIR\uninstall.exe"'
-  SetOutPath "$INSTDIR"
-  WriteUninstaller "uninstall.exe"
+  WriteUninstaller "$INSTDIR\Uninstall.exe"
 
   ; Create bacula-fd.conf and have the user edit it (skipped if silent)
   IfSilent NoReminder
   StrCmp $7 "1" NoReminder  ; skip if it is an upgrade
   MessageBox MB_OK "Please edit $INSTDIR\bin\bacula-fd.conf according to your requirements/installation! Also remember to put a shortcut into your start menu if you didn't install the client as a service."
-  CopyFiles /SILENT "$INSTDIR\bin\bacula-fd.conf.new" "$INSTDIR\bin\bacula-fd.conf"
   Exec 'write "$INSTDIR\bin\bacula-fd.conf"'  ; spawn wordpad with the file to be edited
-  NoReminder:
+ NoReminder:
 
   ; Start the client? (default skipped if silent, use /start to force starting)
   Push "/start"
@@ -215,12 +135,36 @@ Section "Install"
   Pop $8
   StrCmp $8 "1" Start
   IfSilent NoStart
+  Call IsNt
+  Pop $R0
+  StrCmp $R0 "false" do_win98
   MessageBox MB_YESNO|MB_ICONQUESTION  "Would you like to start the Bacula Client now?" IDNO NoStart
-  Start:
-    Exec '"$INSTDIR\bin\bacula-fd.exe" -c "$INSTDIR\bin\bacula-fd.conf"'
-  NoStart:
+  Exec 'net start bacula'
+  goto NoStart 
+ do_win98:
+  MessageBox MB_YESNO|MB_ICONQUESTION  "Would you like to start the Bacula Client now?" IDNO NoStart
+ Start:
+  Exec '"$INSTDIR\bin\bacula-fd.exe" -c "$INSTDIR\bin\bacula-fd.conf"'
+ NoStart:
 
 SectionEnd
+
+
+Section "Install Documentation" SecDoc
+SectionEnd
+
+;
+; Extra Page descriptions
+;
+
+  LangString DESC_SecService ${LANG_ENGLISH} "Install Bacula client on this system."
+  LangString DESC_SecDoc ${LANG_ENGLISH} "Install Documenation (not implemented)."
+
+  !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
+    !insertmacro MUI_DESCRIPTION_TEXT ${SecService} $(DESC_SecService)
+    !insertmacro MUI_DESCRIPTION_TEXT ${SecDoc} $(DESC_SecDoc)
+  !insertmacro MUI_FUNCTION_DESCRIPTION_END
+
 
 
 ; Uninstall section
@@ -228,8 +172,8 @@ SectionEnd
 UninstallText "This will uninstall the Bacula Client. Hit next to continue."
 
 Section "Uninstall"
-  
-  ; Shutdown any baculas that could be running
+
+  ; Shutdown any baculum that could be running
   ExecWait '"$INSTDIR\bin\bacula-fd.exe" /kill'
 
   ReadRegDWORD $9 HKLM "Software\Bacula" "InstalledService"
@@ -247,7 +191,7 @@ Section "Uninstall"
   Delete /REBOOTOK "$INSTDIR\bin\*.*"
   CopyFiles /SILENT "$INSTDIR\bacula-fd.conf" "$INSTDIR\bin\bacula-fd.conf"
   Delete /REBOOTOK "$INSTDIR\bacula-fd.conf"
-  Delete /REBOOTOK "$INSTDIR\uninstall.exe"
+  Delete /REBOOTOK "$INSTDIR\Uninstall.exe"
 
   ; Check for existing installation
   MessageBox MB_YESNO|MB_ICONQUESTION "Would you like to delete the current configuration file ($INSTDIR\bin\bacula-fd.conf)?" IDNO LeaveConfig
@@ -261,10 +205,10 @@ Section "Uninstall"
   
   ; If we need to reboot we'll ask
   IfRebootFlag Reboot Continue
-  Reboot:
+ Reboot:
   MessageBox MB_YESNO|MB_ICONQUESTION "Some files will only be deleted after restarting. Reboot now?" IDNO Continue
     Reboot
-  Continue:
+ Continue:
 
 SectionEnd
 

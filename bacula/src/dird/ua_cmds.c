@@ -1503,7 +1503,8 @@ static int reload_cmd(UAContext *ua, char *cmd)
  * Delete Pool records (should purge Media with it).
  *
  *  delete pool=<pool-name>
- *  delete media pool=<pool-name> volume=<name>
+ *  delete volume pool=<pool-name> volume=<name>
+ *  delete job jobid=xxx
  */
 static int delete_cmd(UAContext *ua, char *cmd)
 {
@@ -1517,8 +1518,7 @@ static int delete_cmd(UAContext *ua, char *cmd)
       return 1;
    }
 
-     
-   switch (find_arg_keyword(ua, keywords)) {
+   switch (find_arg_keyword(ua, keywords)) {	  
    case 0:
       delete_volume(ua);     
       return 1;
@@ -1526,7 +1526,11 @@ static int delete_cmd(UAContext *ua, char *cmd)
       delete_pool(ua);
       return 1;
    case 2:
-      delete_job(ua);
+      int i;
+      while ((i=find_arg(ua, _("jobid"))) > 0) {
+	 delete_job(ua);
+	 *ua->argk[i] = 0;	   /* zap keyword already visited */
+      }
       return 1;
    default:
       break;
@@ -1558,7 +1562,7 @@ static int delete_job(UAContext *ua)
    POOLMEM *query = get_pool_memory(PM_MESSAGE);
    JobId_t JobId;
 
-   int i = find_arg_with_value(ua, "jobid");
+   int i = find_arg_with_value(ua, _("jobid"));
    if (i >= 0) {
       JobId = str_to_int64(ua->argv[i]);
    } else if (!get_pint(ua, _("Enter JobId to delete: "))) {

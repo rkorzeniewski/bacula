@@ -1606,6 +1606,9 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/cats/drop_bacula_database \
 	   src/findlib/Makefile \
 	   src/tools/Makefile \
+	   src/win32/winbacula.nsi \
+	   src/win32/bacula-fd.conf \
+	   src/win32/Makefile \
 	   $PFILES ],  
 	  [(echo "Doing make of dependencies"; make depend;) ]
 )
