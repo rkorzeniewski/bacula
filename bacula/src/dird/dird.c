@@ -52,6 +52,7 @@ void store_replace(LEX *lc, RES_ITEM *item, int index, int pass);
 static char *configfile = NULL;
 static char *runjob = NULL;
 static int background = 1;
+static void init_reload(void);
 
 /* Globals Exported */
 DIRRES *director;		      /* Director resource */
@@ -105,6 +106,7 @@ int main (int argc, char *argv[])
    my_name_is(argc, argv, "bacula-dir");
    textdomain("bacula-dir");
    init_msg(NULL, NULL);	      /* initialize message handler */
+   init_reload();
    daemon_start_time = time(NULL);
 
    while ((ch = getopt(argc, argv, "c:d:fg:r:stu:v?")) != -1) {
@@ -272,12 +274,49 @@ static void terminate_dird(int sig)
    exit(sig);
 }
 
+struct RELOAD_TABLE {
+   int job_count;
+   RES **res_table;
+};
+
+static const int max_reloads = 10;
+static RELOAD_TABLE reload_table[max_reloads];
+
+static void init_reload(void) 
+{
+   for (int i=0; i < max_reloads; i++) {
+      reload_table[i].job_count = 0;
+      reload_table[i].res_table = NULL;
+   }
+}
+
+/*
+ * Called here at the end of every job that was
+ * hooked decrementing the active job_count. When
+ * it goes to zero, no one is using the associated
+ * resource table, so free it.
+ */
+static void reload_job_end_cb(JCR *jcr)
+{
+   int i = jcr->reload_id - 1;
+   RES **res_tab;
+   Dmsg1(000, "reload job_end JobId=%d\n", jcr->JobId);
+   if (--reload_table[i].job_count <= 0) {
+      int num = r_last - r_first + 1;
+      res_tab = reload_table[i].res_table;
+      Dmsg0(000, "Freeing resources\n");
+      for (int j=0; j<num; j++) {
+	 free_resource(res_tab[j], r_first + j);
+      }
+      free(res_tab);
+      reload_table[i].job_count = 0;
+      reload_table[i].res_table = NULL;
+   }
+}
+
 /*
  * If we get here, we have received a SIGHUP, which means to
- * reread our configuration file. 
- *
- *  ***FIXME***  Check that there are no jobs running before
- *		 doing this. 
+ *    reread our configuration file. 
  */
 static void reload_config(int sig)
 {
@@ -285,31 +324,55 @@ static void reload_config(int sig)
    sigset_t set;	
    JCR *jcr;
    int njobs = 0;
+   int table = -1;
 
    if (already_here) {
       abort();			      /* Oops, recursion -> die */
    }
-   already_here = TRUE;
+   already_here = true;
    sigfillset(&set);
    sigprocmask(SIG_BLOCK, &set, NULL);
 
    lock_jcr_chain();
    LockRes();
 
+   for (int i=0; i < max_reloads; i++) {
+      if (reload_table[i].res_table == NULL) {
+	 table = i;
+	 break;
+      }
+   }
+   if (table < 0) {
+      Jmsg(NULL, M_ERROR, 0, _("Too many reload requests.\n"));
+      goto bail_out;
+   }
+
+   /*
+    * Hook all active jobs that are not already hooked (i.e.
+    *  reload_id == 0
+    */
    foreach_jcr(jcr) {
-      if (jcr->JobId != 0) {	  /* this is a console */
+      /* JobId==0 => console */
+      if (jcr->JobId != 0 && jcr->reload_id == 0) {
+	 reload_table[table].job_count++;
+	 jcr->reload_id = table + 1;
+	 job_end_push(jcr, reload_job_end_cb);
 	 njobs++;
       }
       free_locked_jcr(jcr);
    }
+   Dmsg1(000, "Reload_config njobs=%d\n", njobs);
    if (njobs > 0) {
-      goto bail_out;
+      reload_table[table].res_table = save_config_resources();
+      Dmsg1(000, "Saved old config in table %d\n", table);
+   } else {
+      free_config_resources();
    }
 
-   free_config_resources();
-
+   Dmsg0(000, "Calling parse config\n");
    parse_config(configfile);
 
+   Dmsg0(000, "Reloaded config file\n");
    if (!check_resources()) {
       Jmsg(NULL, M_ERROR_TERM, 0, _("Please correct configuration file: %s\n"), configfile);
    }
