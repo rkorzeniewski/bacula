@@ -213,14 +213,14 @@ static void begin_str(LEX *lf, int ch)
 static char *lex_state_to_str(int state)
 {
    switch (state) {
-      case lex_none:          return "none";
-      case lex_comment:       return "comment";
-      case lex_number:        return "number";
-      case lex_ip_addr:       return "ip_addr";
-      case lex_identifier:    return "identifier";
-      case lex_string:        return "string";
-      case lex_quoted_string: return "quoted_string";
-      default:                return "??????";
+   case lex_none:          return "none";
+   case lex_comment:       return "comment";
+   case lex_number:        return "number";
+   case lex_ip_addr:       return "ip_addr";
+   case lex_identifier:    return "identifier";
+   case lex_string:        return "string";
+   case lex_quoted_string: return "quoted_string";
+   default:                return "??????";
    }
 }
 #endif
@@ -232,22 +232,22 @@ static char *lex_state_to_str(int state)
 char *lex_tok_to_str(int token)
 {
    switch(token) {
-      case L_EOF:             return "L_EOF";
-      case L_EOL:             return "L_EOL";
-      case T_NONE:            return "T_NONE";
-      case T_NUMBER:          return "T_NUMBER";
-      case T_IPADDR:          return "T_IPADDR";
-      case T_IDENTIFIER:      return "T_IDENTIFIER";
-      case T_UNQUOTED_STRING: return "T_UNQUOTED_STRING";
-      case T_QUOTED_STRING:   return "T_QUOTED_STRING";
-      case T_BOB:             return "T_BOB";
-      case T_EOB:             return "T_EOB";
-      case T_EQUALS:          return "T_EQUALS";
-      case T_ERROR:           return "T_ERROR";
-      case T_EOF:             return "T_EOF";
-      case T_COMMA:           return "T_COMMA";
-      case T_EOL:             return "T_EOL";
-      default:                return "??????";
+   case L_EOF:             return "L_EOF";
+   case L_EOL:             return "L_EOL";
+   case T_NONE:            return "T_NONE";
+   case T_NUMBER:          return "T_NUMBER";
+   case T_IPADDR:          return "T_IPADDR";
+   case T_IDENTIFIER:      return "T_IDENTIFIER";
+   case T_UNQUOTED_STRING: return "T_UNQUOTED_STRING";
+   case T_QUOTED_STRING:   return "T_QUOTED_STRING";
+   case T_BOB:             return "T_BOB";
+   case T_EOB:             return "T_EOB";
+   case T_EQUALS:          return "T_EQUALS";
+   case T_ERROR:           return "T_ERROR";
+   case T_EOF:             return "T_EOF";
+   case T_COMMA:           return "T_COMMA";
+   case T_EOL:             return "T_EOL";
+   default:                return "??????";
    }
 }
 
@@ -547,7 +547,15 @@ lex_get_token(LEX *lf, int expect)
 	    lf->str_len, MAX_RES_NAME_LENGTH);
 	 token = T_ERROR;
       } else {
-	 token = T_NAME;
+	 POOLMEM *msg = get_pool_memory(PM_EMSG);
+	 if (is_name_valid(lf->str, &msg)) {
+	    token = T_NAME;
+	    free_pool_memory(msg);
+	 } else {
+            scan_err1(lf, "%s\n", msg);
+	    free_pool_memory(msg);
+	    token = T_ERROR;
+	 }
       }
       break;
 
