@@ -38,7 +38,7 @@ CONS_LDFLAGS=@CONS_LDFLAGS@
 .c.o:
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(CONS_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
-all: Makefile console @STATIC_CONS@
+all: Makefile bconsole @STATIC_CONS@
 	@echo "==== Make of console is good ===="
 	@echo " "
 
@@ -58,19 +58,19 @@ Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	  && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 clean:
-	@$(RMF) console core core.* a.out *.o *.bak *~ *.intpro *.extpro 1 2 3
-	@$(RMF) static-console gmon.out
+	@$(RMF) console bconsole core core.* a.out *.o *.bak *~ *.intpro *.extpro 1 2 3
+	@$(RMF) static-console static-bconsole gmon.out
 
 realclean: clean
-	@$(RMF) tags console.conf
+	@$(RMF) tags console.conf bconsole.conf
 
 distclean: realclean
 	if test $(srcdir) = .; then $(MAKE) realclean; fi
 	(cd $(srcdir); $(RMF) Makefile; $(RMF) -r CVS)
 
 install: all
-	$(INSTALL_SCRIPT) console $(DESTDIR)$(sbindir)/console
-	@srcconf=console.conf; \
+	$(INSTALL_SCRIPT) bconsole $(DESTDIR)$(sbindir)/bconsole
+	@srcconf=bconsole.conf; \
 	if  test -f ${DESTDIR}${sysconfdir}/$$srcconf; then \
 	   destconf=$$srcconf.new; \
 	   echo "  ==> Found existing $$srcconf, installing new conf file as $$destconf"; \
@@ -81,8 +81,8 @@ install: all
 	${INSTALL_CONFIG} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf
 
 uninstall:
-	(cd $(DESTDIR)$(sbindir); $(RMF) console)
-	(cd $(DESTDIR)$(sysconfdir); $(RMF) console.conf console.conf.new)
+	(cd $(DESTDIR)$(sbindir); $(RMF) bconsole)
+	(cd $(DESTDIR)$(sysconfdir); $(RMF) bconsole.conf bconsole.conf.new)
 
 
 

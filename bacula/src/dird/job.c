@@ -407,7 +407,15 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
 {
    jcr->job = job;
    jcr->JobType = job->JobType;
-   jcr->JobLevel = job->level;
+   switch (jcr->JobType) {
+   case JT_ADMIN:
+   case JT_RESTORE:
+      jcr->JobLevel = L_NONE;
+      break;
+   default:
+      jcr->JobLevel = job->level;
+      break;
+   }
    jcr->JobPriority = job->Priority;
    jcr->store = job->storage;
    jcr->client = job->client;
@@ -421,6 +429,7 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    jcr->messages = job->messages; 
    if (jcr->RestoreBootstrap) {
       free(jcr->RestoreBootstrap);
+      jcr->RestoreBootstrap = NULL;
    }
    /* This can be overridden by Console program */
    if (job->RestoreBootstrap) {
@@ -437,7 +446,7 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
 	 break;
       case JT_RESTORE:
       case JT_ADMIN:
-	 jcr->JobLevel = L_FULL;
+	 jcr->JobLevel = L_NONE;
 	 break;
       default:
 	 break;

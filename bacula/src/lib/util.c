@@ -315,6 +315,9 @@ char *job_level_to_str(int level)
    case L_VERIFY_DATA:
       str = _("Verify Data");
       break;
+   case L_NONE:
+      str = " ";
+      break;
    default:
       str = _("Unknown Job Level");
       break;

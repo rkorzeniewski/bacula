@@ -349,6 +349,8 @@ struct s_jl joblevels[] = {
    {"VolumeToCatalog", L_VERIFY_VOLUME_TO_CATALOG,   JT_VERIFY},
    {"DiskToCatalog", L_VERIFY_DISK_TO_CATALOG,   JT_VERIFY},
    {"Data",          L_VERIFY_DATA,     JT_VERIFY},
+   {" ",             L_NONE,            JT_ADMIN},
+   {" ",             L_NONE,            JT_RESTORE},
    {NULL,	     0}
 };
 
