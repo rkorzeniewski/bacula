@@ -7,7 +7,7 @@
  */
 
 /*
-   Copyright (C) 2000-2003 Kern Sibbald and John Walker
+   Copyright (C) 2000-2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -303,26 +303,26 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
            "VolWrites=%u,MaxVolBytes=%s,LastWritten='%s',VolStatus='%s',"
            "Slot=%d,InChanger=%d,VolReadTime=%s,VolWriteTime=%s "
            " WHERE VolumeName='%s'",
-           mr->VolJobs, mr->VolFiles, mr->VolBlocks, edit_uint64(mr->VolBytes, ed1),
-           mr->VolMounts, mr->VolErrors, mr->VolWrites, 
-           edit_uint64(mr->MaxVolBytes, ed2), dt, 
-           mr->VolStatus, mr->Slot, mr->InChanger, 
-           edit_uint64(mr->VolReadTime, ed3),
-           edit_uint64(mr->VolWriteTime, ed4),
-           mr->VolumeName);
+	   mr->VolJobs, mr->VolFiles, mr->VolBlocks, edit_uint64(mr->VolBytes, ed1),
+	   mr->VolMounts, mr->VolErrors, mr->VolWrites, 
+	   edit_uint64(mr->MaxVolBytes, ed2), dt, 
+	   mr->VolStatus, mr->Slot, mr->InChanger, 
+	   edit_uint64(mr->VolReadTime, ed3),
+	   edit_uint64(mr->VolWriteTime, ed4),
+	   mr->VolumeName);
    } else {
       Mmsg(&mdb->cmd, "UPDATE Media SET VolJobs=%u,"
            "VolFiles=%u,VolBlocks=%u,VolBytes=%s,VolMounts=%u,VolErrors=%u,"
            "VolWrites=%u,MaxVolBytes=%s,VolStatus='%s',"
            "Slot=%d,InChanger=%d,VolReadTime=%s,VolWriteTime=%s "
            " WHERE VolumeName='%s'",
-           mr->VolJobs, mr->VolFiles, mr->VolBlocks, edit_uint64(mr->VolBytes, ed1),
-           mr->VolMounts, mr->VolErrors, mr->VolWrites, 
-           edit_uint64(mr->MaxVolBytes, ed2), 
-           mr->VolStatus, mr->Slot, mr->InChanger, 
-           edit_uint64(mr->VolReadTime, ed3),
-           edit_uint64(mr->VolWriteTime, ed4),
-           mr->VolumeName);
+	   mr->VolJobs, mr->VolFiles, mr->VolBlocks, edit_uint64(mr->VolBytes, ed1),
+	   mr->VolMounts, mr->VolErrors, mr->VolWrites, 
+	   edit_uint64(mr->MaxVolBytes, ed2), 
+	   mr->VolStatus, mr->Slot, mr->InChanger, 
+	   edit_uint64(mr->VolReadTime, ed3),
+	   edit_uint64(mr->VolWriteTime, ed4),
+	   mr->VolumeName);
    }
 
    Dmsg1(400, "%s\n", mdb->cmd);

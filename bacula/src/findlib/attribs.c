@@ -9,7 +9,7 @@
  *
  */
 /*
-   Copyright (C) 2000-2003 Kern Sibbald and John Walker
+   Copyright (C) 2000-2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -218,6 +218,47 @@ int decode_stat(char *buf, struct stat *statp, int32_t *LinkFI)
       val = 0;
    }
    return (int)val;
+}
+
+/* Decode a LinkFI field of encoded stat packet */
+int32_t decode_LinkFI(char *buf) 
+{
+   char *p = buf;
+   int64_t val;
+
+   skip_nonspaces(&p);		      /* st_dev */
+   p++; 			      /* skip space */
+   skip_nonspaces(&p);		      /* st_ino */
+   p++;
+   skip_nonspaces(&p);		      /* st_mode */
+   p++;
+   skip_nonspaces(&p);		      /* st_nlink */
+   p++;
+   skip_nonspaces(&p);		      /* st_uid */
+   p++;
+   skip_nonspaces(&p);		      /* st_gid */
+   p++;
+   skip_nonspaces(&p);		      /* st_rdev */
+   p++;
+   skip_nonspaces(&p);		      /* st_size */
+   p++;
+   skip_nonspaces(&p);		      /* st_blksize */
+   p++;
+   skip_nonspaces(&p);		      /* st_blocks */
+   p++;
+   skip_nonspaces(&p);		      /* st_atime */
+   p++;
+   skip_nonspaces(&p);		      /* st_mtime */
+   p++;
+   skip_nonspaces(&p);		      /* st_ctime */
+
+   /* Optional FileIndex of hard linked file data */
+   if (*p == ' ' || (*p != 0 && *(p+1) == ' ')) {
+      p++;
+      p += from_base64(&val, p);
+      return (int32_t)val;
+   }
+   return 0;
 }
 
 /*
