@@ -49,7 +49,6 @@ int console_msg_pending = 0;
 char con_fname[500];		      /* Console filename */
 FILE *con_fd = NULL;		      /* Console file descriptor */
 brwlock_t con_lock;		      /* Console lock structure */
-FILE *trace_fd = NULL;
 
 #ifdef HAVE_POSTGRESQL
 char catalog_db[] = "PostgreSQL";
@@ -68,6 +67,12 @@ char catalog_db[] = "Internal";
 const char *host_os = HOST_OS;
 const char *distname = DISTNAME;
 const char *distver = DISTVER;
+static FILE *trace_fd = NULL;
+#ifdef HAVE_WIN32
+static bool trace = true;
+#else
+static bool trace = false;
+#endif
 
 /* Forward referenced functions */
 
@@ -746,15 +751,6 @@ d_msg(const char *file, int line, int level, const char *fmt,...)
     }
 
     if (level <= debug_level) {
-#ifdef HAVE_WIN32
-#define SEND_DMSG_TO_FILE
-#endif
-#ifdef SEND_DMSG_TO_FILE
-       if (!trace_fd) {
-          bsnprintf(buf, sizeof(buf), "%s/bacula.trace", working_directory ? working_directory : ".");
-          trace_fd = fopen(buf, "a+");
-       }
-#endif
 #ifdef FULL_LOCATION
        if (details) {
 	  /* visual studio passes the whole path to the file as well
@@ -773,17 +769,44 @@ d_msg(const char *file, int line, int level, const char *fmt,...)
        bvsnprintf(buf+len, sizeof(buf)-len, (char *)fmt, arg_ptr);
        va_end(arg_ptr);
 
-#ifdef SEND_DMSG_TO_FILE
-       if (trace_fd) {
-	   fputs(buf, trace_fd);
-	   fflush(trace_fd);
+       /* 
+        * Used the "trace on" command in the console to turn on
+        *  output to the trace file.  "trace off" will close the file.
+	*/
+       if (trace) {
+	  if (!trace_fd) {
+             bsnprintf(buf, sizeof(buf), "%s/bacula.trace", working_directory ? working_directory : ".");
+             trace_fd = fopen(buf, "a+");
+	  }
+	  if (trace_fd) {
+	     fputs(buf, trace_fd);
+	     fflush(trace_fd);
+	  }
+       } else {   /* not tracing */
+	  fputs(buf, stdout);
        }
-#else
-       fputs(buf, stdout);
-#endif
     }
 }
 
+/*
+ * Set trace flag on/off. If argument is negative, there is no change 
+ */
+void set_trace(int trace_flag)
+{
+   if (trace_flag < 0) {
+      return;
+   } else if (trace_flag > 0) {
+      trace = true;
+   } else {
+      trace = false;
+   }
+   if (!trace && trace_fd) {
+      FILE *ltrace_fd = trace_fd;
+      trace_fd = NULL;
+      bmicrosleep(0, 100000);	      /* yield to prevent seg faults */
+      fclose(ltrace_fd);
+   }
+}
 
 /*********************************************************************
  *

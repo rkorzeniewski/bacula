@@ -32,6 +32,8 @@
 #include "bacula.h"
 #include "dird.h"
 
+#define PHIL
+
 
 /* Local variables */
 struct job_item {  
@@ -99,7 +101,6 @@ JCR *wait_for_next_job(char *one_shot_job_to_run)
       bmicrosleep(NEXT_CHECK_SECS, 0); /* recheck once per minute */
    }
 
-#define list_chain
 #ifdef	list_chain
    job_item *je;
    foreach_dlist(je, jobs_to_run) {
@@ -311,13 +312,13 @@ static void add_job(JOB *job, RUN *run, time_t now, time_t runtime)
     *  do run any job scheduled less than a minute ago.
     */
    if (((runtime - run->last_run) < 61) || ((runtime+59) < now)) {
-#ifdef xxx
-      char dt[50], dt1[50];
-      bstrftime(dt, sizeof(dt), runtime);  
-      strcpy(dt+7, dt+9);		 /* cut century */
-      bstrftime(dt1, sizeof(dt1), now);  
-      strcpy(dt1+7, dt1+9);		   /* cut century */
-      Dmsg2(000, "runtime=%s now=%s\n", dt, dt1);
+#ifdef PHIL
+      char dt[50], dt1[50], dt2[50];
+      bstrftime_nc(dt, sizeof(dt), runtime);  
+      bstrftime_nc(dt1, sizeof(dt1), run->last_run);
+      bstrftime_nc(dt2, sizeof(dt2), now);
+      Dmsg4(000, "Drop: Job=%s run=%s. last_run=%s. now=%s\n", job->hdr.name, 
+	    dt, dt1, dt2);
 #endif
       return;
    }
@@ -351,12 +352,16 @@ static void add_job(JOB *job, RUN *run, time_t now, time_t runtime)
 
 static void dump_job(job_item *ji, char *msg) 
 {
+#ifdef PHIL 
    char dt[MAX_TIME_LENGTH];
+   int save_debug = debug_level;
+   debug_level = 200;
    if (debug_level < 200) {
       return;
    }
-   bstrftime(dt, sizeof(dt), ji->runtime);  
-   strcpy(dt+7, dt+9);		      /* cut century */
+   bstrftime_nc(dt, sizeof(dt), ji->runtime);  
    Dmsg4(200, "%s: Job=%s priority=%d run %s\n", msg, ji->job->hdr.name, 
       ji->Priority, dt);
+   debug_level = save_debug;
+#endif
 }

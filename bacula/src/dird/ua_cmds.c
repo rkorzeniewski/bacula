@@ -39,6 +39,7 @@ extern struct s_res resources[];
 extern char my_name[];
 extern jobq_t job_queue;	      /* job queue */
 
+
 extern char *list_pool;
 
 /* Imported functions */
@@ -65,6 +66,7 @@ static int add_cmd(UAContext *ua, char *cmd);
 static int create_cmd(UAContext *ua, char *cmd); 
 static int cancel_cmd(UAContext *ua, char *cmd); 
 static int setdebug_cmd(UAContext *ua, char *cmd);
+static int trace_cmd(UAContext *ua, char *cmd);
 static int var_cmd(UAContext *ua, char *cmd);
 static int estimate_cmd(UAContext *ua, char *cmd);
 static int help_cmd(UAContext *ua, char *cmd);
@@ -119,6 +121,7 @@ static struct cmdstruct commands[] = {
  { N_("show"),       show_cmd,      _("show (resource records) [jobs | pools | ... | all]")},
  { N_("sqlquery"),   sqlquerycmd,   _("use SQL to query catalog")}, 
  { N_("time"),       time_cmd,      _("print current time")},
+ { N_("trace"),      trace_cmd,     _("turn on/off trace to file")},
  { N_("unmount"),    unmount_cmd,   _("unmount <storage-name>")},
  { N_("update"),     update_cmd,    _("update Volume or Pool")},
  { N_("use"),        use_cmd,       _("use catalog xxx")},
@@ -1091,7 +1094,7 @@ static int update_pool(UAContext *ua)
 }
 
 
-static void do_storage_setdebug(UAContext *ua, STORE *store, int level)
+static void do_storage_setdebug(UAContext *ua, STORE *store, int level, int trace_flag)
 {
    BSOCK *sd;
 
@@ -1105,7 +1108,7 @@ static void do_storage_setdebug(UAContext *ua, STORE *store, int level)
    }
    Dmsg0(120, _("Connected to storage daemon\n"));
    sd = ua->jcr->store_bsock;
-   bnet_fsend(sd, "setdebug=%d\n", level);
+   bnet_fsend(sd, "setdebug=%d trace=%d\n", level, trace_flag);
    if (bnet_recv(sd) >= 0) {
       bsendmsg(ua, "%s", sd->msg);
    }
@@ -1115,7 +1118,7 @@ static void do_storage_setdebug(UAContext *ua, STORE *store, int level)
    return;  
 }
    
-static void do_client_setdebug(UAContext *ua, CLIENT *client, int level)
+static void do_client_setdebug(UAContext *ua, CLIENT *client, int level, int trace_flag)
 {
    BSOCK *fd;
 
@@ -1131,7 +1134,7 @@ static void do_client_setdebug(UAContext *ua, CLIENT *client, int level)
    }
    Dmsg0(120, "Connected to file daemon\n");
    fd = ua->jcr->file_bsock;
-   bnet_fsend(fd, "setdebug=%d\n", level);
+   bnet_fsend(fd, "setdebug=%d trace=%d\n", level, trace_flag);
    if (bnet_recv(fd) >= 0) {
       bsendmsg(ua, "%s", fd->msg);
    }
@@ -1142,7 +1145,7 @@ static void do_client_setdebug(UAContext *ua, CLIENT *client, int level)
 }
 
 
-static void do_all_setdebug(UAContext *ua, int level)
+static void do_all_setdebug(UAContext *ua, int level, int trace_flag)
 {
    STORE *store, **unique_store;
    CLIENT *client, **unique_client;
@@ -1179,7 +1182,7 @@ static void do_all_setdebug(UAContext *ua, int level)
 
    /* Call each unique Storage daemon */
    for (j=0; j<i; j++) {
-      do_storage_setdebug(ua, unique_store[j], level);
+      do_storage_setdebug(ua, unique_store[j], level, trace_flag);
    }
    free(unique_store);
 
@@ -1211,19 +1214,20 @@ static void do_all_setdebug(UAContext *ua, int level)
 
    /* Call each unique File daemon */
    for (j=0; j<i; j++) {
-      do_client_setdebug(ua, unique_client[j], level);
+      do_client_setdebug(ua, unique_client[j], level, trace_flag);
    }
    free(unique_client);
 }
 
 /*
- * setdebug level=nn all
+ * setdebug level=nn all trace=1/0
  */
 static int setdebug_cmd(UAContext *ua, char *cmd)
 {
    STORE *store;
    CLIENT *client;
    int level;
+   int trace_flag = -1;
    int i;
 
    if (!open_db(ua)) {
@@ -1243,15 +1247,25 @@ static int setdebug_cmd(UAContext *ua, char *cmd)
       level = ua->pint32_val;
    }
 
+   /* Look for trace flag. -1 => not change */
+   i = find_arg_with_value(ua, _("trace"));
+   if (i >= 0) {
+      trace_flag = atoi(ua->argv[i]);
+      if (trace_flag > 0) {
+	 trace_flag = 1;
+      }
+   }
+
    /* General debug? */
    for (i=1; i<ua->argc; i++) {
       if (strcasecmp(ua->argk[i], _("all")) == 0) {
-	 do_all_setdebug(ua, level);
+	 do_all_setdebug(ua, level, trace_flag);
 	 return 1;
       }
       if (strcasecmp(ua->argk[i], _("dir")) == 0 ||
           strcasecmp(ua->argk[i], _("director")) == 0) {
 	 debug_level = level;
+	 set_trace(trace_flag);
 	 return 1;
       }
       if (strcasecmp(ua->argk[i], _("client")) == 0 ||
@@ -1260,13 +1274,13 @@ static int setdebug_cmd(UAContext *ua, char *cmd)
 	 if (ua->argv[i]) {
 	    client = (CLIENT *)GetResWithName(R_CLIENT, ua->argv[i]);
 	    if (client) {
-	       do_client_setdebug(ua, client, level);
+	       do_client_setdebug(ua, client, level, trace_flag);
 	       return 1;
 	    }
 	 }
 	 client = select_client_resource(ua);	
 	 if (client) {
-	    do_client_setdebug(ua, client, level);
+	    do_client_setdebug(ua, client, level, trace_flag);
 	    return 1;
 	 }
       }
@@ -1278,13 +1292,13 @@ static int setdebug_cmd(UAContext *ua, char *cmd)
 	 if (ua->argv[i]) {
 	    store = (STORE *)GetResWithName(R_STORAGE, ua->argv[i]);
 	    if (store) {
-	       do_storage_setdebug(ua, store, level);
+	       do_storage_setdebug(ua, store, level, trace_flag);
 	       return 1;
 	    }
 	 }
 	 store = get_storage_resource(ua, 0);
 	 if (store) {
-	    do_storage_setdebug(ua, store, level);
+	    do_storage_setdebug(ua, store, level, trace_flag);
 	    return 1;
 	 }
       }
@@ -1301,26 +1315,48 @@ static int setdebug_cmd(UAContext *ua, char *cmd)
    switch(do_prompt(ua, "", _("Select daemon type to set debug level"), NULL, 0)) {
    case 0:			   /* Director */
       debug_level = level;
+      set_trace(trace_flag);
       break;
    case 1:
       store = get_storage_resource(ua, 0);
       if (store) {
-	 do_storage_setdebug(ua, store, level);
+	 do_storage_setdebug(ua, store, level, trace_flag);
       }
       break;
    case 2:
       client = select_client_resource(ua);
       if (client) {
-	 do_client_setdebug(ua, client, level);
+	 do_client_setdebug(ua, client, level, trace_flag);
       }
       break;
    case 3:
-      do_all_setdebug(ua, level);
+      do_all_setdebug(ua, level, trace_flag);
       break;
    default:
       break;
    }
    return 1;
+}
+
+/*
+ * Turn debug tracing to file on/off
+ */
+static int trace_cmd(UAContext *ua, char *cmd)
+{
+   char *onoff;
+
+   if (ua->argc != 2) {
+      if (!get_cmd(ua, _("Turn on or off? "))) {
+	    return 1;
+      }
+      onoff = ua->cmd;
+   } else {
+      onoff = ua->argk[1];
+   }
+
+   set_trace((strcasecmp(onoff, _("off")) == 0) ? false : true);
+   return 1; 
+
 }
 
 static int var_cmd(UAContext *ua, char *cmd)
