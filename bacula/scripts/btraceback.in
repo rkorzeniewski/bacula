@@ -8,32 +8,12 @@
 #  $1 = path to executable
 #  $2 = main pid of running program to be traced back.
 #
-gdb -quiet -batch -x @scriptdir@/btraceback.gdb $1 $2 2>&1 \
- | @sbindir@/bsmtp -h @smtp_host@ -s "Bacula traceback" @dump_email@
-
-#
-# Below is some old code that did the traceback from a core
-#  dump. However, for security reasons, core dumps of uid=root	 
-#  programs are not always produced.
-#i=0
-#core=
-#echo "In modified btraceback"
-#echo "$1 $2"
-#pwd
-#while [ "$i" -lt 60 ] ; do
-#  if [ -f core ] ; then
-#     break;
-#  fi
-#  if [ -f core.$2 ] ; then
-#     core=core.$2
-#     break 
-#  fi 
-#  sleep 1
-#  i=`expr $i + 1`
-#done
-
-#if test x$core != x; then
-#   gdb -quiet -batch -x @scriptdir@/btraceback.gdb $1 $core 2>&1 | mail -s "Bacula traceback" @dump_email@
-#else
-#   gdb -quiet -batch -x @scriptdir@/btraceback.gdb $1 $2 2>&1 | mail -s "Bacula traceback" @dump_email@
-#fi
+PNAME=`basname $1`
+if test `uname -s` = SunOs ; then
+  gcore -o @working_dir@/${PNAME} $2
+  dbx $1 $2 <@scriptdir@/btraceback.dbx 2>&1 \
+   | @sbindir@/bsmtp -h @smtp_host@ -s "Bacula DBX traceback of ${PNAME}" @dump_email@
+else
+  gdb -quiet -batch -x @scriptdir@/btraceback.gdb $1 $2 2>&1 \
+   | @sbindir@/bsmtp -h @smtp_host@ -s "Bacula GDB traceback of ${PNAME}" @dump_email@
+fi 

@@ -39,6 +39,7 @@ install: installdirs
 	$(INSTALL_SCRIPT) bacula $(DESTDIR)$(scriptdir)/bacula
 	$(INSTALL_SCRIPT) mtx-changer $(DESTDIR)$(scriptdir)/mtx-changer
 	$(INSTALL_DATA)   btraceback.gdb $(DESTDIR)$(scriptdir)/btraceback.gdb
+	$(INSTALL_DATA)   btraceback.dbx $(DESTDIR)$(scriptdir)/btraceback.dbx
 	$(INSTALL_SCRIPT) btraceback $(DESTDIR)$(sbindir)/btraceback
 
 uninstall:
@@ -50,7 +51,7 @@ uninstall:
 	(cd $(DESTDIR)$(scriptdir); $(RMF) fd)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) mtx-changer)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) btraceback.gdb)
-	(cd $(DESTDIR)$(sbindir); $(RMF) btraceback.gdb)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) btraceback.dbx)
 	(cd $(DESTDIR)$(sbindir); $(RMF) btraceback)
 
 Makefile: Makefile.in
