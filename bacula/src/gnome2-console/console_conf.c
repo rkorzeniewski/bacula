@@ -65,7 +65,7 @@ int  res_all_size = sizeof(res_all);
  * resource with the routine to process the record 
  * information.
  */ 
-static struct res_items dir_items[] = {
+static RES_ITEM dir_items[] = {
    {"name",        store_name,     ITEM(dir_res.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,      ITEM(dir_res.hdr.desc), 0, 0, 0},
    {"dirport",     store_int,      ITEM(dir_res.DIRport),  0, ITEM_DEFAULT, 9101},
@@ -75,7 +75,7 @@ static struct res_items dir_items[] = {
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 
-static struct res_items con_items[] = {
+static RES_ITEM con_items[] = {
    {"name",        store_name,     ITEM(con_res.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,      ITEM(con_res.hdr.desc), 0, 0, 0},
    {"password",    store_password, ITEM(con_res.password), 0, ITEM_REQUIRED, 0},
@@ -83,7 +83,7 @@ static struct res_items con_items[] = {
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 
-static struct res_items con_font_items[] = {
+static RES_ITEM con_font_items[] = {
    {"name",        store_name,     ITEM(con_font.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,      ITEM(con_font.hdr.desc), 0, 0, 0},
    {"font",        store_str,      ITEM(con_font.fontface), 0, 0, 0},
@@ -96,7 +96,7 @@ static struct res_items con_font_items[] = {
  * This is the master resource definition.  
  * It must have one item for each of the resources.
  */
-struct s_res resources[] = {
+RES_TABLE resources[] = {
    {"director",      dir_items,   R_DIRECTOR,  NULL},
    {"console",       con_items,   R_CONSOLE,   NULL},
    {"consolefont",   con_font_items, R_CONSOLE_FONT,   NULL},
@@ -145,13 +145,10 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
  * resource chain is traversed.  Mainly we worry about freeing
  * allocated strings (names).
  */
-void free_resource(int type)
+void free_resource(RES *sres, int type)
 {
-   URES *res;
    RES *nres;
-   int rindex = type - r_first;
-
-   res = (URES *)resources[rindex].res_head;
+   URES *res = (URES *)sres;
 
    if (res == NULL)
       return;
@@ -186,9 +183,8 @@ void free_resource(int type)
    }
    /* Common stuff again -- free the resource, recurse to next one */
    free(res);
-   resources[rindex].res_head = nres;
    if (nres) {
-      free_resource(type);
+      free_resource(nres, type);
    }
 }
 
@@ -196,7 +192,7 @@ void free_resource(int type)
  * the resource. If this is pass 2, we update any resource
  * pointers (currently only in the Job resource).
  */
-void save_resource(int type, struct res_items *items, int pass)
+void save_resource(int type, RES_ITEM *items, int pass)
 {
    URES *res;
    int rindex = type - r_first;

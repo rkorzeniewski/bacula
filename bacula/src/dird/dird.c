@@ -45,9 +45,9 @@ int do_backup(JCR *jcr);
 void backup_cleanup(void);
 void start_UA_server(char *addr, int port);
 void init_job_server(int max_workers);
-void store_jobtype(LEX *lc, struct res_items *item, int index, int pass);
-void store_level(LEX *lc, struct res_items *item, int index, int pass);
-void store_replace(LEX *lc, struct res_items *item, int index, int pass);
+void store_jobtype(LEX *lc, RES_ITEM *item, int index, int pass);
+void store_level(LEX *lc, RES_ITEM *item, int index, int pass);
+void store_replace(LEX *lc, RES_ITEM *item, int index, int pass);
 
 static char *configfile = NULL;
 static char *runjob = NULL;
@@ -60,7 +60,7 @@ int SDConnectTimeout;
 
 /* Globals Imported */
 extern int r_first, r_last;	      /* first and last resources */
-extern struct res_items job_items[];
+extern RES_ITEM job_items[];
 extern URES res_all;
 
 

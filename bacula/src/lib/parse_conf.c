@@ -64,7 +64,7 @@ extern int debug_level;
  */
 extern int r_first;
 extern int r_last;
-extern struct s_res resources[];
+extern RES_TABLE resources[];
 #ifdef HAVE_WIN32
 // work around visual studio name manling preventing external linkage since res_all
 // is declared as a different type when instantiated.
@@ -88,7 +88,7 @@ static void scan_types(LEX *lc, MSGS *msg, int dest, char *where, char *cmd);
 /* Message resource directives
  *  name	 handler      value	  code	 flags	default_value
  */
-struct res_items msgs_items[] = {
+RES_ITEM msgs_items[] = {
    {"name",        store_name,    ITEM(res_msgs.hdr.name),  0, 0, 0},
    {"description", store_str,     ITEM(res_msgs.hdr.desc),  0, 0, 0},
    {"mailcommand", store_str,     ITEM(res_msgs.mail_cmd),  0, 0, 0},
@@ -153,7 +153,7 @@ const char *res_to_str(int rcode)
  * Initialize the static structure to zeros, then
  *  apply all the default values.
  */
-void init_resource(int type, struct res_items *items)
+void init_resource(int type, RES_ITEM *items)
 {
    int i;
    int rindex = type - r_first;
@@ -197,7 +197,7 @@ void init_resource(int type, struct res_items *items)
 
 
 /* Store Messages Destination information */
-void store_msgs(LEX *lc, struct res_items *item, int index, int pass)
+void store_msgs(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int token;
    char *cmd;
@@ -336,7 +336,7 @@ static void scan_types(LEX *lc, MSGS *msg, int dest_code, char *where, char *cmd
  * This routine is ONLY for resource names
  *  Store a name at specified address.
  */
-void store_name(LEX *lc, struct res_items *item, int index, int pass)
+void store_name(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    POOLMEM *msg = get_pool_memory(PM_EMSG);
    lex_get_token(lc, T_NAME);
@@ -359,7 +359,7 @@ void store_name(LEX *lc, struct res_items *item, int index, int pass)
  * Store a name string at specified address
  * A name string is limited to MAX_RES_NAME_LENGTH
  */
-void store_strname(LEX *lc, struct res_items *item, int index, int pass)
+void store_strname(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    lex_get_token(lc, T_NAME);
    /* Store the name */
@@ -371,7 +371,7 @@ void store_strname(LEX *lc, struct res_items *item, int index, int pass)
 }
 
 /* Store a string at specified address */
-void store_str(LEX *lc, struct res_items *item, int index, int pass)
+void store_str(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    lex_get_token(lc, T_STRING);
    if (pass == 1) {
@@ -386,7 +386,7 @@ void store_str(LEX *lc, struct res_items *item, int index, int pass)
  *   shell expansion except if the string begins with a vertical
  *   bar (i.e. it will likely be passed to the shell later).
  */
-void store_dir(LEX *lc, struct res_items *item, int index, int pass)
+void store_dir(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    lex_get_token(lc, T_STRING);
    if (pass == 1) {
@@ -401,7 +401,7 @@ void store_dir(LEX *lc, struct res_items *item, int index, int pass)
 
 
 /* Store a password specified address in MD5 coding */
-void store_password(LEX *lc, struct res_items *item, int index, int pass)
+void store_password(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    unsigned int i, j;
    struct MD5Context md5c;
@@ -429,7 +429,7 @@ void store_password(LEX *lc, struct res_items *item, int index, int pass)
  * If we are in pass 2, do a lookup of the 
  * resource.
  */
-void store_res(LEX *lc, struct res_items *item, int index, int pass)
+void store_res(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    RES *res;
 
@@ -455,7 +455,7 @@ void store_res(LEX *lc, struct res_items *item, int index, int pass)
  * Note, here item points to the main resource (e.g. Job, not
  *  the jobdefs, which we look up).
  */
-void store_defs(LEX *lc, struct res_items *item, int index, int pass)
+void store_defs(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    RES *res;
 
@@ -485,7 +485,7 @@ void store_defs(LEX *lc, struct res_items *item, int index, int pass)
 
 
 /* Store an integer at specified address */
-void store_int(LEX *lc, struct res_items *item, int index, int pass)
+void store_int(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    lex_get_token(lc, T_INT32);
    *(int *)(item->value) = lc->int32_val;
@@ -494,7 +494,7 @@ void store_int(LEX *lc, struct res_items *item, int index, int pass)
 }
 
 /* Store a positive integer at specified address */
-void store_pint(LEX *lc, struct res_items *item, int index, int pass)
+void store_pint(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    lex_get_token(lc, T_PINT32);
    *(int *)(item->value) = lc->pint32_val;
@@ -504,7 +504,7 @@ void store_pint(LEX *lc, struct res_items *item, int index, int pass)
 
 
 /* Store an 64 bit integer at specified address */
-void store_int64(LEX *lc, struct res_items *item, int index, int pass)
+void store_int64(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    lex_get_token(lc, T_INT64);
    *(int64_t *)(item->value) = lc->int64_val;
@@ -513,7 +513,7 @@ void store_int64(LEX *lc, struct res_items *item, int index, int pass)
 }
 
 /* Store a size in bytes */
-void store_size(LEX *lc, struct res_items *item, int index, int pass)
+void store_size(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int token;
    uint64_t uvalue;
@@ -541,7 +541,7 @@ void store_size(LEX *lc, struct res_items *item, int index, int pass)
 
 
 /* Store a time period in seconds */
-void store_time(LEX *lc, struct res_items *item, int index, int pass)
+void store_time(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int token; 
    utime_t utime;
@@ -580,7 +580,7 @@ void store_time(LEX *lc, struct res_items *item, int index, int pass)
 
 
 /* Store a yes/no in a bit field */
-void store_yesno(LEX *lc, struct res_items *item, int index, int pass)
+void store_yesno(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    lex_get_token(lc, T_NAME);
    if (strcasecmp(lc->str, "yes") == 0) {
@@ -689,7 +689,7 @@ parse_config(char *cf)
    int token, i, pass;
    int res_type = 0;
    enum parse_state state = p_none;
-   struct res_items *items = NULL;
+   RES_ITEM *items = NULL;
    int level = 0;
 
    /* Make two passes. The first builds the name symbol table,
@@ -804,9 +804,10 @@ parse_config(char *cf)
 void 
 free_config_resources()
 {
-   int i;
-   for (i=r_first; i<=r_last; i++) {
-      free_resource(i);
-      resources[i-r_first].res_head = NULL;
+   RES *res;
+   for (int i=r_first; i<=r_last; i++) {
+      res = resources[i-r_first].res_head;
+      free_resource(res, i);
+      res = NULL;
    }
 }

@@ -21,15 +21,15 @@
 
  */
 
-struct res_items;                   /* Declare forward referenced structure */ 
-typedef void (MSG_RES_HANDLER)(LEX *lc, struct res_items *item, int index, int pass);
+struct RES_ITEM;                    /* Declare forward referenced structure */ 
+typedef void (MSG_RES_HANDLER)(LEX *lc, RES_ITEM *item, int index, int pass);
 
 /* This is the structure that defines
  * the record types (items) permitted within each
  * resource. It is used to define the configuration
  * tables.
  */
-struct res_items {
+struct RES_ITEM {
    const char *name;                  /* Resource name i.e. Director, ... */
    MSG_RES_HANDLER *handler;          /* Routine storing the resource item */
    void **value;                      /* Where to store the item */
@@ -62,9 +62,9 @@ struct RES {
  * This is the structure that defines the
  * resources that are available to this daemon.
  */
-struct s_res {       
+struct RES_TABLE {       
    const char *name;                  /* resource name */
-   struct res_items *items;           /* list of resource keywords */
+   RES_ITEM *items;           /* list of resource keywords */
    int rcode;                         /* code if needed */
    RES *res_head;                     /* where to store it */
 };
@@ -106,9 +106,9 @@ RES *GetNextRes(int rcode, RES *res);
 void b_LockRes(const char *file, int line);
 void b_UnlockRes(const char *file, int line);
 void dump_resource(int type, RES *res, void sendmsg(void *sock, char *fmt, ...), void *sock);
-void free_resource(int type);
-void init_resource(int type, struct res_items *item);
-void save_resource(int type, struct res_items *item, int pass);
+void free_resource(RES *res, int type);
+void init_resource(int type, RES_ITEM *item);
+void save_resource(int type, RES_ITEM *item, int pass);
 const char *res_to_str(int rcode);
 
 /* Loop through each resource of type, returning in var */
@@ -121,17 +121,17 @@ const char *res_to_str(int rcode);
 #endif
 
 
-void store_str(LEX *lc, struct res_items *item, int index, int pass);
-void store_dir(LEX *lc, struct res_items *item, int index, int pass);
-void store_password(LEX *lc, struct res_items *item, int index, int pass);
-void store_name(LEX *lc, struct res_items *item, int index, int pass);
-void store_strname(LEX *lc, struct res_items *item, int index, int pass);
-void store_res(LEX *lc, struct res_items *item, int index, int pass);
-void store_int(LEX *lc, struct res_items *item, int index, int pass);
-void store_pint(LEX *lc, struct res_items *item, int index, int pass);
-void store_msgs(LEX *lc, struct res_items *item, int index, int pass);
-void store_int64(LEX *lc, struct res_items *item, int index, int pass);
-void store_yesno(LEX *lc, struct res_items *item, int index, int pass);
-void store_time(LEX *lc, struct res_items *item, int index, int pass);
-void store_size(LEX *lc, struct res_items *item, int index, int pass);
-void store_defs(LEX *lc, struct res_items *item, int index, int pass);
+void store_str(LEX *lc, RES_ITEM *item, int index, int pass);
+void store_dir(LEX *lc, RES_ITEM *item, int index, int pass);
+void store_password(LEX *lc, RES_ITEM *item, int index, int pass);
+void store_name(LEX *lc, RES_ITEM *item, int index, int pass);
+void store_strname(LEX *lc, RES_ITEM *item, int index, int pass);
+void store_res(LEX *lc, RES_ITEM *item, int index, int pass);
+void store_int(LEX *lc, RES_ITEM *item, int index, int pass);
+void store_pint(LEX *lc, RES_ITEM *item, int index, int pass);
+void store_msgs(LEX *lc, RES_ITEM *item, int index, int pass);
+void store_int64(LEX *lc, RES_ITEM *item, int index, int pass);
+void store_yesno(LEX *lc, RES_ITEM *item, int index, int pass);
+void store_time(LEX *lc, RES_ITEM *item, int index, int pass);
+void store_size(LEX *lc, RES_ITEM *item, int index, int pass);
+void store_defs(LEX *lc, RES_ITEM *item, int index, int pass);

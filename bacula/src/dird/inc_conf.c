@@ -31,13 +31,13 @@
 
 /* Forward referenced subroutines */
 
-void store_inc(LEX *lc, struct res_items *item, int index, int pass);
+void store_inc(LEX *lc, RES_ITEM *item, int index, int pass);
 
-static void store_newinc(LEX *lc, struct res_items *item, int index, int pass);
-static void store_match(LEX *lc, struct res_items *item, int index, int pass);
-static void store_opts(LEX *lc, struct res_items *item, int index, int pass);
-static void store_fname(LEX *lc, struct res_items *item, int index, int pass);
-static void store_base(LEX *lc, struct res_items *item, int index, int pass);
+static void store_newinc(LEX *lc, RES_ITEM *item, int index, int pass);
+static void store_match(LEX *lc, RES_ITEM *item, int index, int pass);
+static void store_opts(LEX *lc, RES_ITEM *item, int index, int pass);
+static void store_fname(LEX *lc, RES_ITEM *item, int index, int pass);
+static void store_base(LEX *lc, RES_ITEM *item, int index, int pass);
 static void setup_current_opts(void);
 
 
@@ -56,7 +56,7 @@ static INCEXE res_incexe;
  * new Include/Exclude items
  *   name	      handler	  value 		       code flags default_value
  */
-static struct res_items newinc_items[] = {
+static RES_ITEM newinc_items[] = {
    {"compression",     store_opts,    NULL,     0, 0, 0},
    {"signature",       store_opts,    NULL,     0, 0, 0},
    {"verify",          store_opts,    NULL,     0, 0, 0},
@@ -206,7 +206,7 @@ static void scan_include_options(LEX *lc, int keyword, char *opts, int optlen)
 }
 
 /* Store FileSet Include/Exclude info */
-void store_inc(LEX *lc, struct res_items *item, int index, int pass)
+void store_inc(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int token, i;
    int options = lc->options;
@@ -338,7 +338,7 @@ void store_inc(LEX *lc, struct res_items *item, int index, int pass)
  *  resource.  We treat the Finclude/Fexeclude like a sort of
  *  mini-resource within the FileSet resource.
  */
-static void store_newinc(LEX *lc, struct res_items *item, int index, int pass)
+static void store_newinc(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int token, i;
    INCEXE *incexe;
@@ -405,7 +405,7 @@ static void store_newinc(LEX *lc, struct res_items *item, int index, int pass)
 
 
 /* Store Match info */
-static void store_match(LEX *lc, struct res_items *item, int index, int pass)
+static void store_match(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int token;
 
@@ -430,7 +430,7 @@ static void store_match(LEX *lc, struct res_items *item, int index, int pass)
 }
 
 /* Store Base info */
-static void store_base(LEX *lc, struct res_items *item, int index, int pass)
+static void store_base(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int token;
 
@@ -451,7 +451,7 @@ static void store_base(LEX *lc, struct res_items *item, int index, int pass)
  * always increase the name buffer by 10 items because we expect
  * to add more entries.
  */
-static void store_fname(LEX *lc, struct res_items *item, int index, int pass)
+static void store_fname(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int token;
    INCEXE *incexe;
@@ -486,7 +486,7 @@ static void store_fname(LEX *lc, struct res_items *item, int index, int pass)
 /*
  * New style options come here
  */
-static void store_opts(LEX *lc, struct res_items *item, int index, int pass)
+static void store_opts(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int i;
    int keyword;

@@ -52,17 +52,17 @@ int r_first = R_FIRST;
 int r_last  = R_LAST;
 
 /* Imported subroutines */
-extern void store_run(LEX *lc, struct res_items *item, int index, int pass);
-extern void store_finc(LEX *lc, struct res_items *item, int index, int pass);
-extern void store_inc(LEX *lc, struct res_items *item, int index, int pass);
+extern void store_run(LEX *lc, RES_ITEM *item, int index, int pass);
+extern void store_finc(LEX *lc, RES_ITEM *item, int index, int pass);
+extern void store_inc(LEX *lc, RES_ITEM *item, int index, int pass);
 
 
 /* Forward referenced subroutines */
 
-void store_jobtype(LEX *lc, struct res_items *item, int index, int pass);
-void store_level(LEX *lc, struct res_items *item, int index, int pass);
-void store_replace(LEX *lc, struct res_items *item, int index, int pass);
-void store_acl(LEX *lc, struct res_items *item, int index, int pass);
+void store_jobtype(LEX *lc, RES_ITEM *item, int index, int pass);
+void store_level(LEX *lc, RES_ITEM *item, int index, int pass);
+void store_replace(LEX *lc, RES_ITEM *item, int index, int pass);
+void store_acl(LEX *lc, RES_ITEM *item, int index, int pass);
 
 
 /* We build the current resource here as we are
@@ -83,7 +83,7 @@ int  res_all_size = sizeof(res_all);
  *
  *   name	   handler     value		     code flags    default_value
  */
-static struct res_items dir_items[] = {
+static RES_ITEM dir_items[] = {
    {"name",        store_name,     ITEM(res_dir.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,      ITEM(res_dir.hdr.desc), 0, 0, 0},
    {"messages",    store_res,      ITEM(res_dir.messages), R_MSGS, 0, 0},
@@ -107,7 +107,7 @@ static struct res_items dir_items[] = {
  *
  *   name	   handler     value		     code flags    default_value
  */
-static struct res_items con_items[] = {
+static RES_ITEM con_items[] = {
    {"name",        store_name,     ITEM(res_con.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,      ITEM(res_con.hdr.desc), 0, 0, 0},
    {"enablessl",   store_yesno,    ITEM(res_con.enable_ssl), 1, ITEM_DEFAULT, 0},
@@ -131,7 +131,7 @@ static struct res_items con_items[] = {
  *   name	   handler     value		     code flags    default_value
  */
 
-static struct res_items cli_items[] = {
+static RES_ITEM cli_items[] = {
    {"name",     store_name,       ITEM(res_client.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,     ITEM(res_client.hdr.desc), 0, 0, 0},
    {"address",  store_str,        ITEM(res_client.address),  0, ITEM_REQUIRED, 0},
@@ -152,7 +152,7 @@ static struct res_items cli_items[] = {
  *
  *   name	   handler     value		     code flags    default_value
  */
-static struct res_items store_items[] = {
+static RES_ITEM store_items[] = {
    {"name",        store_name,     ITEM(res_store.hdr.name),   0, ITEM_REQUIRED, 0},
    {"description", store_str,      ITEM(res_store.hdr.desc),   0, 0, 0},
    {"sdport",      store_pint,     ITEM(res_store.SDport),     0, ITEM_DEFAULT, 9103},
@@ -175,7 +175,7 @@ static struct res_items store_items[] = {
  *
  *   name	   handler     value		     code flags    default_value
  */
-static struct res_items cat_items[] = {
+static RES_ITEM cat_items[] = {
    {"name",     store_name,     ITEM(res_cat.hdr.name),    0, ITEM_REQUIRED, 0},
    {"description", store_str,   ITEM(res_cat.hdr.desc),    0, 0, 0},
    {"address",  store_str,      ITEM(res_cat.db_address),  0, 0, 0},
@@ -195,7 +195,7 @@ static struct res_items cat_items[] = {
  *
  *   name	   handler     value		     code flags    default_value
  */
-struct res_items job_items[] = {
+RES_ITEM job_items[] = {
    {"name",      store_name,    ITEM(res_job.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,   ITEM(res_job.hdr.desc), 0, 0, 0},
    {"type",      store_jobtype, ITEM(res_job.JobType),  0, ITEM_REQUIRED, 0},
@@ -241,7 +241,7 @@ struct res_items job_items[] = {
  *
  *   name	   handler     value		     code flags    default_value
  */
-static struct res_items fs_items[] = {
+static RES_ITEM fs_items[] = {
    {"name",        store_name, ITEM(res_fs.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,  ITEM(res_fs.hdr.desc), 0, 0, 0},
    {"include",     store_inc,  NULL,                  0, ITEM_NO_EQUALS, 0},
@@ -254,7 +254,7 @@ static struct res_items fs_items[] = {
  *
  *   name	   handler     value		     code flags    default_value
  */
-static struct res_items sch_items[] = {
+static RES_ITEM sch_items[] = {
    {"name",     store_name,  ITEM(res_sch.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str, ITEM(res_sch.hdr.desc), 0, 0, 0},
    {"run",      store_run,   ITEM(res_sch.run),      0, 0, 0},
@@ -265,7 +265,7 @@ static struct res_items sch_items[] = {
  *
  *   name	      handler	  value 		       code flags default_value
  */
-static struct res_items pool_items[] = {
+static RES_ITEM pool_items[] = {
    {"name",            store_name,    ITEM(res_pool.hdr.name),      0, ITEM_REQUIRED, 0},
    {"description",     store_str,     ITEM(res_pool.hdr.desc),      0, 0,     0},
    {"pooltype",        store_strname, ITEM(res_pool.pool_type),     0, ITEM_REQUIRED, 0},
@@ -293,7 +293,7 @@ static struct res_items pool_items[] = {
  * Counter Resource
  *   name	      handler	  value 		       code flags default_value
  */
-static struct res_items counter_items[] = {
+static RES_ITEM counter_items[] = {
    {"name",            store_name,    ITEM(res_counter.hdr.name),        0, ITEM_REQUIRED, 0},
    {"description",     store_str,     ITEM(res_counter.hdr.desc),        0, 0,     0},
    {"minimum",         store_int,     ITEM(res_counter.MinValue),        0, ITEM_DEFAULT, 0},
@@ -305,7 +305,7 @@ static struct res_items counter_items[] = {
 
 
 /* Message resource */
-extern struct res_items msgs_items[];
+extern RES_ITEM msgs_items[];
 
 /* 
  * This is the master resource definition.  
@@ -316,7 +316,7 @@ extern struct res_items msgs_items[];
  *
  *  name	     items	  rcode        res_head
  */
-struct s_res resources[] = {
+RES_TABLE resources[] = {
    {"director",      dir_items,   R_DIRECTOR,  NULL},
    {"client",        cli_items,   R_CLIENT,    NULL},
    {"job",           job_items,   R_JOB,       NULL},
@@ -720,14 +720,11 @@ static void free_incexe(INCEXE *incexe)
  * resource chain is traversed.  Mainly we worry about freeing
  * allocated strings (names).
  */
-void free_resource(int type)
+void free_resource(RES *sres, int type)
 {
    int num;
-   URES *res;
-   RES *nres;
-   int rindex = type - r_first;
-
-   res = (URES *)resources[rindex].res_head;
+   RES *nres;			      /* next resource if linked */
+   URES *res = (URES *)sres;
 
    if (res == NULL)
       return;
@@ -896,9 +893,8 @@ void free_resource(int type)
    if (res) {
       free(res);
    }
-   resources[rindex].res_head = nres;
    if (nres) {
-      free_resource(type);
+      free_resource(nres, type);
    }
 }
 
@@ -908,7 +904,7 @@ void free_resource(int type)
  * pointers because they may not have been defined until 
  * later in pass 1.
  */
-void save_resource(int type, struct res_items *items, int pass)
+void save_resource(int type, RES_ITEM *items, int pass)
 {
    URES *res;
    int rindex = type - r_first;
@@ -1097,7 +1093,7 @@ void save_resource(int type, struct res_items *items, int pass)
  * Store JobType (backup, verify, restore)
  *
  */
-void store_jobtype(LEX *lc, struct res_items *item, int index, int pass)
+void store_jobtype(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int token, i;   
 
@@ -1121,7 +1117,7 @@ void store_jobtype(LEX *lc, struct res_items *item, int index, int pass)
  * Store Job Level (Full, Incremental, ...)
  *
  */
-void store_level(LEX *lc, struct res_items *item, int index, int pass)
+void store_level(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int token, i;
 
@@ -1141,7 +1137,7 @@ void store_level(LEX *lc, struct res_items *item, int index, int pass)
    set_bit(index, res_all.hdr.item_present);
 }
 
-void store_replace(LEX *lc, struct res_items *item, int index, int pass)
+void store_replace(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int token, i;
    token = lex_get_token(lc, T_NAME);
@@ -1164,7 +1160,7 @@ void store_replace(LEX *lc, struct res_items *item, int index, int pass)
  * Store ACL (access control list)
  *
  */
-void store_acl(LEX *lc, struct res_items *item, int index, int pass)
+void store_acl(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int token;
 
@@ -1196,7 +1192,7 @@ void store_acl(LEX *lc, struct res_items *item, int index, int pass)
  *
  *    Backup = Client=<client-name> FileSet=<FileSet-name> Level=<level>
  */
-static void store_backup(LEX *lc, struct res_items *item, int index, int pass)
+static void store_backup(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int token, i;
    RES *res;
@@ -1278,7 +1274,7 @@ static void store_backup(LEX *lc, struct res_items *item, int index, int pass)
  *    Restore = JobId=<job-id> Where=<root-directory> Replace=<options> Bootstrap=<file>
  *
  */
-static void store_restore(LEX *lc, struct res_items *item, int index, int pass)
+static void store_restore(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int token, i;
    RES *res;
