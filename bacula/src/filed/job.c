@@ -161,7 +161,7 @@ void *handle_client_request(void *dirp)
    jcr->last_fname = get_pool_memory(PM_FNAME);
    jcr->last_fname[0] = 0;
    jcr->client_name = get_memory(strlen(my_name) + 1);
-   strcpy(jcr->client_name, my_name);
+   pm_strcpy(&jcr->client_name, my_name);
    dir->jcr = (void *)jcr;
 
    /**********FIXME******* add command handler error code */
@@ -357,6 +357,7 @@ static int bootstrap_cmd(JCR *jcr)
 	 jcr->RestoreBootstrap, strerror(errno));
       free_pool_memory(jcr->RestoreBootstrap);
       jcr->RestoreBootstrap = NULL;
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       return 0;
    }
 
@@ -713,16 +714,24 @@ static int restore_cmd(JCR *jcr)
    Dmsg1(110, "bfiled>dird: %s", dir->msg);
 
    jcr->JobType = JT_RESTORE;
-   set_jcr_job_status(jcr, JS_Blocked);
 
+   set_jcr_job_status(jcr, JS_Blocked);
    if (!open_sd_read_session(jcr)) {
-      return 0;
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      goto bail_out;
    }
+
+   set_jcr_job_status(jcr, JS_Running);
 
    /* 
     * Do restore of files and data
     */
    do_restore(jcr);
+
+   set_jcr_job_status(jcr, JS_Terminated);
+   if (jcr->JobStatus != JS_Terminated) {
+      bnet_suppress_error_messages(sd, 1);
+   }
 
    /* 
     * Send Close session command to Storage daemon
@@ -730,19 +739,21 @@ static int restore_cmd(JCR *jcr)
    bnet_fsend(sd, read_close, jcr->Ticket);
    Dmsg1(130, "bfiled>stored: %s", sd->msg);
 
-   /* ****FIXME**** check response */
    bnet_recv(sd);		      /* get OK */
 
    /* Inform Storage daemon that we are done */
    bnet_sig(sd, BNET_TERMINATE);
 
-   bnet_fsend(dir, EndRestore, jcr->JobStatus, jcr->num_files_examined, jcr->JobBytes);
+bail_out:
+   /* Send termination status back to Dir */
+   bnet_fsend(dir, EndRestore, jcr->JobStatus, jcr->num_files_examined, 
+	      jcr->JobBytes);
 
    /* Inform Director that we are done */
    bnet_sig(dir, BNET_TERMINATE);
 
    Dmsg0(130, "Done in job.c\n");
-   return 1;
+   return !job_cancelled(jcr);
 }
 
 static int open_sd_read_session(JCR *jcr)

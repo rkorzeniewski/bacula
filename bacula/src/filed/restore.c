@@ -68,6 +68,7 @@ void do_restore(JCR *jcr)
    set_jcr_job_status(jcr, JS_Running);
 
    if (!bnet_set_buffer_size(sd, MAX_NETWORK_BUFFER_SIZE, BNET_SETBUF_READ)) {
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       return;
    }
    jcr->buf_size = sd->msglen;
@@ -126,7 +127,7 @@ void do_restore(JCR *jcr)
 	  */
 	 if (extract) {
 	    if (ofd < 0) {
-               Emsg0(M_ERROR, 0, _("Logic error output file should be open\n"));
+               Jmsg0(jcr, M_ERROR, 0, _("Logic error output file should be open\n"));
 	    }
 	    set_attributes(jcr, fname, ofile, lname, type, stream, 
 			   &statp, attribsEx, &ofd);
@@ -359,7 +360,7 @@ void do_restore(JCR *jcr)
       } else if (extract) {
          Dmsg1(30, "Found wierd stream %d\n", stream);
 	 if (ofd < 0) {
-            Emsg0(M_ERROR, 0, _("Logic error output file should be open\n"));
+            Jmsg0(jcr, M_ERROR, 0, _("Logic error output file should be open\n"));
 	 }
 	 set_attributes(jcr, fname, ofile, lname, type, stream, 
 			&statp, attribsEx, &ofd);
@@ -417,16 +418,18 @@ static void print_ls_output(JCR *jcr, char *fname, char *lname, int type, struct
    p = encode_time(statp->st_ctime, p);
    *p++ = ' ';
    *p++ = ' ';
-   for (f=fname; *f && (p-buf) < (int)sizeof(buf); )
+   for (f=fname; *f && (p-buf) < (int)sizeof(buf)-10; ) {
       *p++ = *f++;
+   }
    if (type == FT_LNK) {
       *p++ = ' ';
       *p++ = '-';
       *p++ = '>';
       *p++ = ' ';
       /* Copy link name */
-      for (f=lname; *f && (p-buf) < (int)sizeof(buf); )
+      for (f=lname; *f && (p-buf) < (int)sizeof(buf)-10; ) {
 	 *p++ = *f++;
+      }
    }
    *p++ = '\n';
    *p = 0;

@@ -93,8 +93,7 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, char *fname)
 
    len = strlen(fname);
 
-   inc =(struct s_included_file *) bmalloc(sizeof(struct s_included_file) + len + 1);
-   inc->next = ff->included_files_list;
+   inc =(struct s_included_file *)bmalloc(sizeof(struct s_included_file) + len + 1);
    inc->options = 0;
    inc->VerifyOpts[0] = 'V'; 
    inc->VerifyOpts[1] = ':';
@@ -172,7 +171,18 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, char *fname)
 	 break;
       }
    }
-   ff->included_files_list = inc;
+   inc->next = NULL;
+   /* Chain this one on the end of the list */
+   if (!ff->included_files_list) {
+      /* First one, so set head */
+      ff->included_files_list = inc;
+   } else {
+      struct s_included_file *next;
+      /* Walk to end of list */
+      for (next=ff->included_files_list; next->next; next=next->next)
+	 { }
+      next->next = inc;
+   }  
    Dmsg1(50, "add_fname_to_include fname=%s\n", inc->fname);
 }
 

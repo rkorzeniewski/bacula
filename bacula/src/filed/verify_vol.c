@@ -217,8 +217,12 @@ void do_verify_volume(JCR *jcr)
          Pmsg2(0, "None of above!!! stream=%d data=%s\n", stream,sd->msg);
       }
    }
+   set_jcr_job_status(jcr, JS_Terminated);
+   goto ok_out;
 
 bail_out:
+   set_jcr_job_status(jcr, JS_ErrorTerminated);
+ok_out:
    if (jcr->compress_buf) {
       free(jcr->compress_buf);
       jcr->compress_buf = NULL;
@@ -253,7 +257,7 @@ static void print_ls_output(JCR *jcr, char *fname, char *lname, int type, struct
    p = encode_time(statp->st_ctime, p);
    *p++ = ' ';
    *p++ = ' ';
-   for (f=fname; *f && (p-buf) < (int)sizeof(buf); )
+   for (f=fname; *f && (p-buf) < (int)sizeof(buf)-10; )
       *p++ = *f++;
    if (type == FT_LNK) {
       *p++ = ' ';
@@ -261,7 +265,7 @@ static void print_ls_output(JCR *jcr, char *fname, char *lname, int type, struct
       *p++ = '>';
       *p++ = ' ';
       /* Copy link name */
-      for (f=lname; *f && (p-buf) < (int)sizeof(buf); )
+      for (f=lname; *f && (p-buf) < (int)sizeof(buf)-10; )
 	 *p++ = *f++;
    }
    *p++ = '\n';

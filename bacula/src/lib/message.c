@@ -8,7 +8,7 @@
  */
 
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -432,7 +432,6 @@ void close_msg(void *vjcr)
 	    if (msgs != daemon_msgs) {
 	       /* read what mail prog returned -- should be nothing */
 	       while (fgets(line, len, bpipe->rfd)) {
-//                Dmsg1(000, "Mail prog got: %s", line);
                   Jmsg1(jcr, M_INFO, 0, _("Mail prog: %s"), line);
 	       }
 	    }
@@ -688,7 +687,7 @@ void
 d_msg(char *file, int line, int level, char *fmt,...)
 {
     char      buf[5000];
-    int       i;
+    int       len;
     va_list   arg_ptr;
     int       details = TRUE;
 
@@ -700,15 +699,15 @@ d_msg(char *file, int line, int level, char *fmt,...)
     if (level <= debug_level) {
 #ifdef FULL_LOCATION
        if (details) {
-          i= sprintf(buf, "%s: %s:%d ", my_name, file, line);
+          len= sprintf(buf, "%s: %s:%d ", my_name, file, line);
        } else {
-	  i = 0;
+	  len = 0;
        }
 #else
-       i = 0;
+       len = 0;
 #endif
        va_start(arg_ptr, fmt);
-       bvsnprintf(buf+i, sizeof(buf)-i, (char *)fmt, arg_ptr);
+       bvsnprintf(buf+len, sizeof(buf)-len, (char *)fmt, arg_ptr);
        va_end(arg_ptr);
 
        fputs(buf, stdout);
@@ -730,7 +729,7 @@ void
 t_msg(char *file, int line, int level, char *fmt,...)
 {
     char      buf[5000];
-    int       i;
+    int       len;
     va_list   arg_ptr;
     int       details = TRUE;
 
@@ -752,16 +751,15 @@ t_msg(char *file, int line, int level, char *fmt,...)
     
 #ifdef FULL_LOCATION
        if (details) {
-          sprintf(buf, "%s: %s:%d ", my_name, file, line);
-	  i = strlen(buf);
+          len = sprintf(buf, "%s: %s:%d ", my_name, file, line);
        } else {
-	  i = 0;
+	  len = 0;
        }
 #else
-       i = 0;
+       len = 0;
 #endif
        va_start(arg_ptr, fmt);
-       bvsnprintf(buf+i, sizeof(buf)-i, (char *)fmt, arg_ptr);
+       bvsnprintf(buf+len, sizeof(buf)-len, (char *)fmt, arg_ptr);
        va_end(arg_ptr);
 
        fputs(buf, trace_fd);
@@ -781,7 +779,7 @@ e_msg(char *file, int line, int type, int level, char *fmt,...)
 {
     char     buf[5000];
     va_list   arg_ptr;
-    int i;
+    int len;
 
     /* 
      * Check if we have a message destination defined.	
@@ -793,36 +791,35 @@ e_msg(char *file, int line, int type, int level, char *fmt,...)
     }
     switch (type) {
        case M_ABORT:
-          sprintf(buf, "%s: ABORTING due to ERROR in %s:%d\n", 
+          len = sprintf(buf, "%s: ABORTING due to ERROR in %s:%d\n", 
 		  my_name, file, line);
 	  break;
        case M_ERROR_TERM:
-          sprintf(buf, "%s: ERROR TERMINATION at %s:%d\n", 
+          len = sprintf(buf, "%s: ERROR TERMINATION at %s:%d\n", 
 		  my_name, file, line);
 	  break;
        case M_FATAL:
 	  if (level == -1)	      /* skip details */
-             sprintf(buf, "%s: Fatal Error because: ", my_name);
+             len = sprintf(buf, "%s: Fatal Error because: ", my_name);
 	  else
-             sprintf(buf, "%s: Fatal Error at %s:%d because:\n", my_name, file, line);
+             len = sprintf(buf, "%s: Fatal Error at %s:%d because:\n", my_name, file, line);
 	  break;
        case M_ERROR:
 	  if (level == -1)	      /* skip details */
-             sprintf(buf, "%s: Error: ", my_name);
+             len = sprintf(buf, "%s: Error: ", my_name);
 	  else
-             sprintf(buf, "%s: Error in %s:%d ", my_name, file, line);
+             len = sprintf(buf, "%s: Error in %s:%d ", my_name, file, line);
 	  break;
        case M_WARNING:
-          sprintf(buf, "%s: Warning: ", my_name);
+          len = sprintf(buf, "%s: Warning: ", my_name);
 	  break;
        default:
-          sprintf(buf, "%s: ", my_name);
+          len = sprintf(buf, "%s: ", my_name);
 	  break;
     }
 
-    i = strlen(buf);
     va_start(arg_ptr, fmt);
-    bvsnprintf(buf+i, sizeof(buf)-i, (char *)fmt, arg_ptr);
+    bvsnprintf(buf+len, sizeof(buf)-len, (char *)fmt, arg_ptr);
     va_end(arg_ptr);
 
     dispatch_message(NULL, type, level, buf);
@@ -845,9 +842,8 @@ void
 Jmsg(void *vjcr, int type, int level, char *fmt,...)
 {
     char     rbuf[5000];
-    char     *buf;
     va_list   arg_ptr;
-    int i, len;
+    int len;
     JCR *jcr = (JCR *)vjcr;
     MSGS *msgs;
     char *job;
@@ -862,22 +858,17 @@ Jmsg(void *vjcr, int type, int level, char *fmt,...)
        job = jcr->Job;
     } 
     if (!msgs) {
-       msgs = daemon_msgs;
+       msgs = daemon_msgs;	      /* if no jcr, we use daemon handler */
     }
     if (!job) {
-       job = "";
+       job = "";                      /* Set null job name if none */
     }
 
-    buf = rbuf; 		   /* we are the Director */
     /* 
      * Check if we have a message destination defined.	
      * We always report M_ABORT and M_ERROR_TERM 
      */
 
-/*
- *  Tmsg5(000, "jcr=%x msgs=%x type=%d send_msg=%x *msg=%x\n",
- *	  jcr, msgs, type, msgs->send_msg, (int)msgs->send_msg[0]);
- */
     /* There is an apparent compiler bug with the following if
      *	statement, so the set_jcr... is simply a noop to reload 
      *	registers.
@@ -889,39 +880,36 @@ Jmsg(void *vjcr, int type, int level, char *fmt,...)
     }
     switch (type) {
        case M_ABORT:
-          sprintf(buf, "%s ABORTING due to ERROR\n", my_name);
+          len = sprintf(rbuf, "%s ABORTING due to ERROR\n", my_name);
 	  break;
        case M_ERROR_TERM:
-          sprintf(buf, "%s ERROR TERMINATION\n", my_name);
+          len = sprintf(rbuf, "%s ERROR TERMINATION\n", my_name);
 	  break;
        case M_FATAL:
-          sprintf(buf, "%s: %s Fatal error: ", my_name, job);
+          len = sprintf(rbuf, "%s: %s Fatal error: ", my_name, job);
 	  if (jcr) {
-	     jcr->JobStatus = JS_FatalError;
+	     set_jcr_job_status(jcr, JS_FatalError);
 	  }
 	  break;
        case M_ERROR:
-          sprintf(buf, "%s: %s Error: ", my_name, job);
+          len = sprintf(rbuf, "%s: %s Error: ", my_name, job);
 	  if (jcr) {
 	     jcr->Errors++;
 	  }
 	  break;
        case M_WARNING:
-          sprintf(buf, "%s: %s Warning: ", my_name, job);
+          len = sprintf(rbuf, "%s: %s Warning: ", my_name, job);
 	  break;
        default:
-          sprintf(buf, "%s: ", my_name);
+          len = sprintf(rbuf, "%s: ", my_name);
 	  break;
     }
 
-    i = strlen(buf);
     va_start(arg_ptr, fmt);
-    len = bvsnprintf(buf+i, sizeof(rbuf)-i, fmt, arg_ptr);
+    bvsnprintf(rbuf+len,  sizeof(rbuf)-len, fmt, arg_ptr);
     va_end(arg_ptr);
 
     dispatch_message(jcr, type, level, rbuf);
-
-    Dmsg3(500, "i=%d sizeof(rbuf)-i=%d len=%d\n", i, sizeof(rbuf)-i, len);
 
     if (type == M_ABORT){
        char *p = 0;
@@ -940,8 +928,7 @@ int m_msg(char *file, int line, POOLMEM **pool_buf, char *fmt, ...)
    va_list   arg_ptr;
    int i, len, maxlen;
 
-   sprintf(*pool_buf, "%s:%d ", file, line);
-   i = strlen(*pool_buf);
+   i = sprintf(*pool_buf, "%s:%d ", file, line);
 
 again:
    maxlen = sizeof_pool_memory(*pool_buf) - i - 1; 
@@ -1000,6 +987,6 @@ again:
       goto again;
    }
 
-   Jmsg(jcr, type, level, pool_buf);
+   Jmsg(jcr, type, level, "%s", pool_buf);
    free_memory(pool_buf);
 }
