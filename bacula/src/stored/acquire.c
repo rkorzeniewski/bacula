@@ -56,6 +56,10 @@ int acquire_device_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 
    /* Find next Volume, if any */
    vol = jcr->VolList;
+   if (!vol) {
+      Jmsg(jcr, M_FATAL, 0, _("No volumes specified. Job cancelled.\n"));
+      goto get_out;
+   }
    jcr->CurVolume++;
    for (int i=1; i<jcr->CurVolume; i++) {
       vol = vol->next;

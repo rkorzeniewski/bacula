@@ -326,7 +326,6 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
             Pmsg1(000, "VOL_LABEL: OK for Volume: %s\n", mr.VolumeName);
 	    break;
 	 case SOS_LABEL:
-
 	    mr.VolJobs++;
 	    unser_session_label(&label, rec);
 	    memset(&jr, 0, sizeof(jr));
@@ -402,11 +401,10 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	    create_fileset_record(db, &fsr);
 	    jr.FileSetId = fsr.FileSetId;
 
-
 	    mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
 	    if (!mjcr) {
                Pmsg2(000, _("Could not find SessId=%d SessTime=%d for EOS record.\n"),
-		   rec->VolSessionId, rec->VolSessionTime);
+		     rec->VolSessionId, rec->VolSessionTime);
 	       break;
 	    }
 
@@ -504,16 +502,16 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 ;
       }
       strcat(lname, lp);        /* "save" link name */
-
-
       if (verbose > 1) {
 	 decode_stat(ap, &statp);
 	 print_ls_output(fname, lname, type, &statp);	
       }
       mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
       if (!mjcr) {
-         Pmsg2(000, _("Could not find Job SessId=%d SessTime=%d for Attributes record.\n"),
-		      rec->VolSessionId, rec->VolSessionTime);
+	 if (mr.VolJobs > 0) {
+            Pmsg2(000, _("Could not find Job SessId=%d SessTime=%d for Attributes record.\n"),
+			 rec->VolSessionId, rec->VolSessionTime);
+	 }
 	 return;
       }
       fr.JobId = mjcr->JobId;
@@ -531,8 +529,10 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
    } else if (rec->Stream == STREAM_FILE_DATA) {
       mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
       if (!mjcr) {
-         Pmsg2(000, _("Could not find Job SessId=%d SessTime=%d for Attributes record.\n"),
-		      rec->VolSessionId, rec->VolSessionTime);
+	 if (mr.VolJobs > 0) {
+            Pmsg2(000, _("Could not find Job SessId=%d SessTime=%d for File Data record.\n"),
+			 rec->VolSessionId, rec->VolSessionTime);
+	 }
 	 return;
       }
       mjcr->JobBytes += rec->data_len;
@@ -541,8 +541,10 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
    } else if (rec->Stream == STREAM_SPARSE_DATA) {
       mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
       if (!mjcr) {
-         Pmsg2(000, _("Could not find Job SessId=%d SessTime=%d for Attributes record.\n"),
-		      rec->VolSessionId, rec->VolSessionTime);
+	 if (mr.VolJobs > 0) {
+            Pmsg2(000, _("Could not find Job SessId=%d SessTime=%d for Sparse Data record.\n"),
+			 rec->VolSessionId, rec->VolSessionTime);
+	 }
 	 return;
       }
       mjcr->JobBytes += rec->data_len - sizeof(uint64_t);
@@ -551,8 +553,10 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
    } else if (rec->Stream == STREAM_GZIP_DATA) {
       mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
       if (!mjcr) {
-         Pmsg2(000, _("Could not find Job SessId=%d SessTime=%d for Attributes record.\n"),
-		      rec->VolSessionId, rec->VolSessionTime);
+	 if (mr.VolJobs > 0) {
+            Pmsg2(000, _("Could not find Job SessId=%d SessTime=%d for GZIP Data record.\n"),
+			 rec->VolSessionId, rec->VolSessionTime);
+	 }
 	 return;
       }
       mjcr->JobBytes += rec->data_len; /* No correct, we should expand it */
@@ -561,8 +565,10 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
    } else if (rec->Stream == STREAM_SPARSE_GZIP_DATA) {
       mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
       if (!mjcr) {
-         Pmsg2(000, _("Could not find Job SessId=%d SessTime=%d for Attributes record.\n"),
-		      rec->VolSessionId, rec->VolSessionTime);
+	 if (mr.VolJobs > 0) {
+            Pmsg2(000, _("Could not find Job SessId=%d SessTime=%d for Sparse GZIP Data record.\n"),
+			 rec->VolSessionId, rec->VolSessionTime);
+	 }
 	 return;
       }
       mjcr->JobBytes += rec->data_len - sizeof(uint64_t); /* No correct, we should expand it */
@@ -835,10 +841,8 @@ static JCR *create_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *label,
       Pmsg1(0, _("Could not update job start record. ERR=%s\n"), db_strerror(db));
       return mjcr;
    }
-   if (verbose) {
-      Pmsg2(000, _("Created new JobId=%u record for original JobId=%u\n"), jr->JobId, 
+   Pmsg2(000, _("Created new JobId=%u record for original JobId=%u\n"), jr->JobId, 
 	 label->JobId);
-   }
    mjcr->JobId = jr->JobId;	      /* set new JobId */
    return mjcr;
 }
@@ -998,8 +1002,10 @@ static int update_MD5_record(B_DB *db, char *MD5buf, DEV_RECORD *rec)
 
    mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
    if (!mjcr) {
-      Pmsg2(000, _("Could not find SessId=%d SessTime=%d for EOS record.\n"),
-		   rec->VolSessionId, rec->VolSessionTime);
+      if (mr.VolJobs > 0) {
+         Pmsg2(000, _("Could not find SessId=%d SessTime=%d for MD5 record.\n"),
+		      rec->VolSessionId, rec->VolSessionTime);
+      }
       return 0;
    }
 

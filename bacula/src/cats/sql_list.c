@@ -93,6 +93,25 @@ db_list_pool_records(B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx)
 }
 
 void
+db_list_client_records(B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx) 
+{
+   Mmsg(&mdb->cmd, "SELECT ClientId,Name,FileRetention,JobRetention "
+"FROM Client ORDER BY ClientId");
+
+   db_lock(mdb);
+   if (!QUERY_DB(mdb, mdb->cmd)) {
+      db_unlock(mdb);
+      return;
+   }
+
+   list_result(mdb, sendit, ctx);
+   
+   sql_free_result(mdb);
+   db_unlock(mdb);
+}
+
+
+void
 db_list_media_records(B_DB *mdb, MEDIA_DBR *mdbr, DB_LIST_HANDLER *sendit, void *ctx)
 {
    Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,MediaType,VolStatus,\

@@ -186,6 +186,7 @@ int showcmd(UAContext *ua, char *cmd)
  *  list pools		- list pool records
  *  list jobtotals	- list totals for all jobs
  *  list media		- list media for given pool
+ *  list clients	- list clients
  *
  */
 int listcmd(UAContext *ua, char *cmd) 
@@ -283,6 +284,10 @@ int listcmd(UAContext *ua, char *cmd)
       /* List POOLS */
       } else if (strcasecmp(ua->argk[i], _("pools")) == 0) {
 	 db_list_pool_records(ua->db, prtit, ua);
+
+      } else if (strcasecmp(ua->argk[i], _("clients")) == 0) {
+	 db_list_client_records(ua->db, prtit, ua);
+
 
       /* List MEDIA or VOLUMES */
       } else if (strcasecmp(ua->argk[i], _("media")) == 0 ||

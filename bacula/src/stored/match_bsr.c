@@ -85,9 +85,10 @@ static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
    if (!match_volume(bsr, bsr->volume, volrec, 1)) {
       goto no_match;
    }
-   if (!match_volfile(bsr, bsr->volfile, rec, 1)) {
-      goto no_match;
-   }
+   /* Not yet working */
+// if (!match_volfile(bsr, bsr->volfile, rec, 1)) {
+//    goto no_match;
+// }
    if (!match_sesstime(bsr, bsr->sesstime, rec, 1)) {
       goto no_match;
    }

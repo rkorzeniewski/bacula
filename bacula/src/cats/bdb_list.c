@@ -267,6 +267,11 @@ void db_list_job_totals(B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, void *c
 
 
 
-void db_list_files_for_job(B_DB *mdb, uint32_t jobid, DB_LIST_HANDLER *sendit, void *ctx) {}
+void db_list_files_for_job(B_DB *mdb, uint32_t jobid, DB_LIST_HANDLER *sendit, void *ctx)
+{ }
+
+void db_list_client_records(B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx)
+{ }
+
 
 #endif /* HAVE_BACULA_DB */

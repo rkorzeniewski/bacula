@@ -74,6 +74,7 @@ int db_get_num_media_records(B_DB *mdb);
 int db_get_num_pool_records(B_DB *mdb);
 int db_get_pool_ids(B_DB *mdb, int *num_ids, uint32_t **ids);
 int db_get_media_ids(B_DB *mdb, int *num_ids, uint32_t **ids);
+int db_get_job_volume_parameters(B_DB *mdb, uint32_t JobId, VOL_PARAMS **VolParams);
 
 
 /* list.c */
@@ -84,6 +85,7 @@ void db_list_files_for_job(B_DB *db, uint32_t jobid, DB_LIST_HANDLER sendit, voi
 void db_list_media_records(B_DB *mdb, MEDIA_DBR *mdbr, DB_LIST_HANDLER *sendit, void *ctx);
 void db_list_jobmedia_records(B_DB *mdb, uint32_t JobId, DB_LIST_HANDLER *sendit, void *ctx);
 int  db_list_sql_query(B_DB *mdb, char *query, DB_LIST_HANDLER *sendit, void *ctx, int verbose);
+void db_list_client_records(B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx);
 
 /* update.c */
 int  db_update_job_start_record(B_DB *db, JOB_DBR *jr);

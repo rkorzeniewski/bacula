@@ -410,6 +410,61 @@ AND JobMedia.MediaId=Media.MediaId", JobId);
    return stat;
 }
 
+/*
+ * Find Volume parameters for a give JobId
+ *  Returns: 0 on error or no Volumes found
+ *	     number of volumes on success
+ *	     List of Volumes and start/end file/blocks (malloced structure!)
+ *
+ *  Returns: number of volumes on success
+ */
+int db_get_job_volume_parameters(B_DB *mdb, uint32_t JobId, VOL_PARAMS **VolParams)
+{
+   SQL_ROW row;
+   int stat = 0;
+   int i;
+   VOL_PARAMS *Vols = NULL;
+
+   db_lock(mdb);
+   Mmsg(&mdb->cmd, 
+"SELECT VolumeName,StartFile,EndFile,StartBlock,EndBlock"
+" FROM JobMedia,Media WHERE JobMedia.JobId=%u"
+" AND JobMedia.MediaId=Media.MediaId", JobId);
+
+   Dmsg1(130, "VolNam=%s\n", mdb->cmd);
+   if (QUERY_DB(mdb, mdb->cmd)) {
+      mdb->num_rows = sql_num_rows(mdb);
+      Dmsg1(130, "Num rows=%d\n", mdb->num_rows);
+      if (mdb->num_rows <= 0) {
+         Mmsg1(&mdb->errmsg, _("No volumes found for JobId=%d\n"), JobId);
+	 stat = 0;
+      } else {
+	 stat = mdb->num_rows;
+	 if (stat > 0) {
+	    *VolParams = Vols = (VOL_PARAMS *)malloc(stat * sizeof(VOL_PARAMS));
+	 }
+	 for (i=0; i < stat; i++) {
+	    if ((row = sql_fetch_row(mdb)) == NULL) {
+               Mmsg2(&mdb->errmsg, _("Error fetching row %d: ERR=%s\n"), i, sql_strerror(mdb));
+               Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
+	       stat = 0;
+	       break;
+	    } else {
+	       bstrncpy(Vols[i].VolumeName, row[0], MAX_NAME_LENGTH);
+	       Vols[i].StartFile = atoi(row[1]);
+	       Vols[i].EndFile = atoi(row[2]);
+	       Vols[i].StartBlock = atoi(row[3]);
+	       Vols[i].EndBlock = atoi(row[4]);
+	    }
+	 }
+      }
+      sql_free_result(mdb);
+   }
+   db_unlock(mdb);
+   return stat;
+}
+
+
 
 /* 
  * Get the number of pool records

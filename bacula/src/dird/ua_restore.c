@@ -80,6 +80,10 @@ typedef struct s_rbsr {
    uint32_t JobId;		      /* JobId this bsr */
    uint32_t VolSessionId;		    
    uint32_t VolSessionTime;
+   uint32_t StartFile;
+   uint32_t EndFile;
+   uint32_t StartBlock;
+   uint32_t EndBlock;
    char *VolumeName;		      /* Volume name */
    RBSR_FINDEX *fi;		      /* File indexes this JobId */
 } RBSR;
@@ -654,10 +658,10 @@ static void free_bsr(RBSR *bsr)
 static int complete_bsr(UAContext *ua, RBSR *bsr)
 {
    JOB_DBR jr;
-   POOLMEM *VolumeNames;
+   VOL_PARAMS *VolParams;
+   int count = 0;
 
    if (bsr) {
-      VolumeNames = get_pool_memory(PM_MESSAGE);
       memset(&jr, 0, sizeof(jr));
       jr.JobId = bsr->JobId;
       if (!db_get_job_record(ua->db, &jr)) {
@@ -666,13 +670,17 @@ static int complete_bsr(UAContext *ua, RBSR *bsr)
       }
       bsr->VolSessionId = jr.VolSessionId;
       bsr->VolSessionTime = jr.VolSessionTime;
-      if (!db_get_job_volume_names(ua->db, bsr->JobId, &VolumeNames)) {
-         bsendmsg(ua, _("Unable to get Job Volumes. ERR=%s\n"), db_strerror(ua->db));
-	 free_pool_memory(VolumeNames);
+      if ((count=db_get_job_volume_parameters(ua->db, bsr->JobId, &VolParams)) == 0) {
+         bsendmsg(ua, _("Unable to get Job Volume Parameters. ERR=%s\n"), db_strerror(ua->db));
+	 free((char *)VolParams);
 	 return 0;
       }
-      bsr->VolumeName = bstrdup(VolumeNames);
-      free_pool_memory(VolumeNames);
+      bsr->VolumeName = bstrdup(VolParams[0].VolumeName);
+      bsr->StartFile  = VolParams[0].StartFile;
+      bsr->EndFile    = VolParams[0].EndFile;
+      bsr->StartBlock = VolParams[0].StartBlock;
+      bsr->EndBlock   = VolParams[0].EndBlock;
+      free((char *)VolParams);
       return complete_bsr(ua, bsr->next);
    }
    return 1;
@@ -719,6 +727,7 @@ static void write_bsr(UAContext *ua, RBSR *bsr, FILE *fd)
       }
       fprintf(fd, "VolSessionId=%u\n", bsr->VolSessionId);
       fprintf(fd, "VolSessionTime=%u\n", bsr->VolSessionTime);
+      fprintf(fd, "VolFile=%u-%u\n", bsr->StartFile, bsr->EndFile);
       write_findex(ua, bsr->fi, fd);
       write_bsr(ua, bsr->next, fd);
    }

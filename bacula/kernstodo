@@ -14,6 +14,13 @@ Testing to do: (painful)
 
 
 For 1.28 release:
+- Add count output to restore.
+- Need a verbose mode in restore, perhaps to bsr.
+- Should we dump a SOS when starting a new tape?
+- bscan without -v is too quiet -- perhaps show jobs.
+- Get rid of bscan.c:534 error message (one time only).
+- Print some statistics when get EOF on device in bscan -- feedback
+  to let user know it is working.
 - Add code to put VolFile in bsr for restore command.
 - Add code to reject whole blocks if not wanted on restore.
 - Add watchdog timeout for child processes start_child_timer()
@@ -614,4 +621,3 @@ Done: (see kernsdone for more)
 - Make BSR accept count (total files to be restored).
 - Add code to fast seek to proper place on tape/file when doing Restore.
 - Replace popen() and pclose() -- fail safe and timeout, no SIG dep.
-

@@ -315,6 +315,15 @@ typedef struct {
    uint32_t EndBlock;                 /* last block */
 } JOBMEDIA_DBR;
 
+/* Volume Parameter structure */
+typedef struct {
+   char VolumeName[MAX_NAME_LENGTH];  /* Volume name */
+   uint32_t StartFile;                /* File for start of data */
+   uint32_t EndFile;                  /* End file on Volume */
+   uint32_t StartBlock;               /* start block on tape */
+   uint32_t EndBlock;                 /* last block */
+} VOL_PARAMS;
+
 
 /* Attributes record -- NOT same as in database because
  *  in general, this "record" creates multiple database
