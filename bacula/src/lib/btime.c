@@ -41,7 +41,7 @@
 #include "bacula.h"
 #include <math.h>
 
-/* Formatted time */
+/* Formatted time for user display: dd-Mon-yyyy hh:mm */
 void bstrftime(char *dt, int maxlen, utime_t tim)
 {
    time_t ttime = tim;

@@ -190,6 +190,7 @@ char *uar_last_full =
    "INSERT INTO temp1 SELECT Job.JobId,JobTdate "
    "FROM Client,Job,JobMedia,Media WHERE Client.ClientId=%u "
    "AND Job.ClientId=%u "
+   "AND Job.StartTime<'%s' "
    "AND Level='F' AND JobStatus='T' "
    "AND JobMedia.JobId=Job.JobId "
    "AND JobMedia.MediaId=Media.MediaId "
@@ -205,12 +206,13 @@ char *uar_full =
    "AND JobMedia.JobId=Job.JobId "
    "AND JobMedia.MediaId=Media.MediaId";
 
-char *uar_inc =
+char *uar_inc_dec =
    "INSERT INTO temp SELECT Job.JobId,Job.JobTDate,Job.ClientId,"
    "Job.Level,Job.JobFiles,Job.StartTime,Media.VolumeName,JobMedia.StartFile,"
    "Job.VolSessionId,Job.VolSessionTime "
    "FROM Job,JobMedia,Media "
-   "WHERE Job.JobTDate>%s AND Job.ClientId=%u "
+   "WHERE Job.JobTDate>%s AND Job.StartTime < '%s' "
+   "AND Job.ClientId=%u "
    "AND JobMedia.JobId=Job.JobId "
    "AND JobMedia.MediaId=Media.MediaId "
    "AND Job.Level IN ('I', 'D') AND JobStatus='T' "

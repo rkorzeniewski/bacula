@@ -54,7 +54,7 @@ int newVolume(JCR *jcr, MEDIA_DBR *mr)
    if (db_get_pool_record(jcr, jcr->db, &pr) && pr.LabelFormat[0] &&
        pr.LabelFormat[0] != '*') {
       if (pr.MaxVols == 0 || pr.NumVols < pr.MaxVols) {
-	 memset(&mr, 0, sizeof(mr));
+	 memset(mr, 0, sizeof(mr));
 	 set_pool_dbr_defaults_in_media_dbr(mr, &pr);
 	 mr->LabelDate = time(NULL);
 	 bstrncpy(mr->MediaType, jcr->store->media_type, sizeof(mr->MediaType));

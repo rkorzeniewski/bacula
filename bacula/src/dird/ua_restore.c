@@ -44,7 +44,7 @@ extern int runcmd(UAContext *ua, char *cmd);
 extern char *uar_list_jobs,	*uar_file,	  *uar_sel_files;
 extern char *uar_del_temp,	*uar_del_temp1,   *uar_create_temp;
 extern char *uar_create_temp1,	*uar_last_full,   *uar_full;
-extern char *uar_inc,		*uar_list_temp,   *uar_sel_jobid_temp;
+extern char *uar_inc_dec,	*uar_list_temp,   *uar_sel_jobid_temp;
 extern char *uar_sel_all_temp1, *uar_sel_fileset, *uar_mediatype;
 
 
@@ -78,6 +78,7 @@ static void print_name_list(UAContext *ua, NAME_LIST *name_list);
 static int unique_name_list_handler(void *ctx, int num_fields, char **row);
 static void free_name_list(NAME_LIST *name_list);
 static void get_storage_from_mediatype(UAContext *ua, NAME_LIST *name_list, JOBIDS *ji);
+static int select_backups_before_date(UAContext *ua, JOBIDS *ji, char *date);
 
 
 /*
@@ -267,10 +268,8 @@ int restorecmd(UAContext *ua, char *cmd)
  */
 static int user_select_jobids(UAContext *ua, JOBIDS *ji)
 {
-   char fileset_name[MAX_NAME_LENGTH];
-   char *p, ed1[50];
-   FILESET_DBR fsr;
-   CLIENT_DBR cr;
+   char *p;
+   char date[MAX_TIME_LENGTH];
    JobId_t JobId;
    JOB_DBR jr;
    POOLMEM *query;
@@ -281,6 +280,7 @@ static int user_select_jobids(UAContext *ua, JOBIDS *ji)
       "Enter list of JobIds to select",
       "Enter SQL list command", 
       "Select the most recent backup for a client",
+      "Select backup for a client before a specified time",
       "Cancel",
       NULL };
 
@@ -332,79 +332,29 @@ static int user_select_jobids(UAContext *ua, JOBIDS *ji)
 	 done = 0;
 	 break;
       case 4:			      /* Select the most recent backups */
-	 query = get_pool_memory(PM_MESSAGE);
-	 db_sql_query(ua->db, uar_del_temp, NULL, NULL);
-	 db_sql_query(ua->db, uar_del_temp1, NULL, NULL);
-	 if (!db_sql_query(ua->db, uar_create_temp, NULL, NULL)) {
-            bsendmsg(ua, "%s\n", db_strerror(ua->db));
-	 }
-	 if (!db_sql_query(ua->db, uar_create_temp1, NULL, NULL)) {
-            bsendmsg(ua, "%s\n", db_strerror(ua->db));
-	 }
-	 /*
-	  * Select Client from the Catalog
-	  */
-	 memset(&cr, 0, sizeof(cr));
-	 if (!get_client_dbr(ua, &cr)) {
-	    free_pool_memory(query);
-	    db_sql_query(ua->db, uar_del_temp, NULL, NULL);
-	    db_sql_query(ua->db, uar_del_temp1, NULL, NULL);
+	 bstrutime(date, sizeof(date), time(NULL));
+	 if (!select_backups_before_date(ua, ji, date)) {
 	    return 0;
 	 }
-	 bstrncpy(ji->ClientName, cr.Name, sizeof(ji->ClientName));
-
-	 /*
-	  * Select FileSet 
-	  */
-	 Mmsg(&query, uar_sel_fileset, cr.ClientId, cr.ClientId);
-         start_prompt(ua, _("The defined FileSet resources are:\n"));
-	 if (!db_sql_query(ua->db, query, fileset_handler, (void *)ua)) {
-            bsendmsg(ua, "%s\n", db_strerror(ua->db));
-	 }
-         if (do_prompt(ua, _("FileSet"), _("Select FileSet resource"), 
-		       fileset_name, sizeof(fileset_name)) < 0) {
-	    free_pool_memory(query);
-	    db_sql_query(ua->db, uar_del_temp, NULL, NULL);
-	    db_sql_query(ua->db, uar_del_temp1, NULL, NULL);
-	    return 0;
-	 }
-	 fsr.FileSetId = atoi(fileset_name);  /* Id is first part of name */
-	 if (!db_get_fileset_record(ua->jcr, ua->db, &fsr)) {
-            bsendmsg(ua, _("Error getting FileSet record: %s\n"), db_strerror(ua->db));
-            bsendmsg(ua, _("This probably means you modified the FileSet.\n"
-                           "Continuing anyway.\n"));
-	 }
-
-	 /* Find JobId of last Full backup for this client, fileset */
-	 Mmsg(&query, uar_last_full, cr.ClientId, cr.ClientId, fsr.FileSetId);
-	 if (!db_sql_query(ua->db, query, NULL, NULL)) {
-            bsendmsg(ua, "%s\n", db_strerror(ua->db));
-	 }
-	 /* Find all Volumes used by that JobId */
-	 if (!db_sql_query(ua->db, uar_full, NULL,NULL)) {
-            bsendmsg(ua, "%s\n", db_strerror(ua->db));
-	 }
-         /* Note, this is needed as I don't seem to get the callback
-	  * from the call just above.
-	  */
-	 if (!db_sql_query(ua->db, uar_sel_all_temp1, last_full_handler, (void *)ji)) {
-            bsendmsg(ua, "%s\n", db_strerror(ua->db));
-	 }
-	 /* Now find all Incremental Jobs */
-	 Mmsg(&query, uar_inc, edit_uint64(ji->JobTDate, ed1), cr.ClientId, fsr.FileSetId);
-	 if (!db_sql_query(ua->db, query, NULL, NULL)) {
-            bsendmsg(ua, "%s\n", db_strerror(ua->db));
-	 }
-	 free_pool_memory(query);
-	 db_list_sql_query(ua->jcr, ua->db, uar_list_temp, prtit, ua, 1, HORZ_LIST);
-
-	 if (!db_sql_query(ua->db, uar_sel_jobid_temp, jobid_handler, (void *)ji)) {
-            bsendmsg(ua, "%s\n", db_strerror(ua->db));
-	 }
-	 db_sql_query(ua->db, uar_del_temp, NULL, NULL);
-	 db_sql_query(ua->db, uar_del_temp1, NULL, NULL);
 	 break;
-      case 5:
+      case 5:			      /* select backup at specified time */
+         bsendmsg(ua, _("The restored files will the most current backup\n"
+                        "BEFORE the date you specify below.\n\n"));
+	 for ( ;; ) {
+            if (!get_cmd(ua, _("Enter date as YYYY-MM-DD HH:MM:SS :"))) {
+	       return 0;
+	    }
+	    if (str_to_utime(ua->cmd) != 0) {
+	       break;
+	    }
+            bsendmsg(ua, _("Improper date format.\n"));
+	 }		
+	 bstrncpy(date, ua->cmd, sizeof(date));
+	 if (!select_backups_before_date(ua, ji, date)) {
+	    return 0;
+	 }
+
+      case 6:			      /* Cancel or quit */
 	 return 0;
       }
    }
@@ -436,6 +386,113 @@ static int user_select_jobids(UAContext *ua, JOBIDS *ji)
    }
    return 1;
 }
+
+/*
+ * This routine is used to get the current backup or a backup
+ *   before the specified date.
+ */
+static int select_backups_before_date(UAContext *ua, JOBIDS *ji, char *date)
+{
+   int stat = 0;
+   POOLMEM *query;
+   FILESET_DBR fsr;
+   CLIENT_DBR cr;
+   char fileset_name[MAX_NAME_LENGTH];
+   char ed1[50];
+
+   query = get_pool_memory(PM_MESSAGE);
+
+   /* Create temp tables */
+   db_sql_query(ua->db, uar_del_temp, NULL, NULL);
+   db_sql_query(ua->db, uar_del_temp1, NULL, NULL);
+   if (!db_sql_query(ua->db, uar_create_temp, NULL, NULL)) {
+      bsendmsg(ua, "%s\n", db_strerror(ua->db));
+   }
+   if (!db_sql_query(ua->db, uar_create_temp1, NULL, NULL)) {
+      bsendmsg(ua, "%s\n", db_strerror(ua->db));
+   }
+   /*
+    * Select Client from the Catalog
+    */
+   memset(&cr, 0, sizeof(cr));
+   if (!get_client_dbr(ua, &cr)) {
+      goto bail_out;
+   }
+   bstrncpy(ji->ClientName, cr.Name, sizeof(ji->ClientName));
+
+   /*
+    * Select FileSet 
+    */
+   Mmsg(&query, uar_sel_fileset, cr.ClientId, cr.ClientId);
+   start_prompt(ua, _("The defined FileSet resources are:\n"));
+   if (!db_sql_query(ua->db, query, fileset_handler, (void *)ua)) {
+      bsendmsg(ua, "%s\n", db_strerror(ua->db));
+   }
+   if (do_prompt(ua, _("FileSet"), _("Select FileSet resource"), 
+		 fileset_name, sizeof(fileset_name)) < 0) {
+      goto bail_out;
+   }
+   fsr.FileSetId = atoi(fileset_name);	/* Id is first part of name */
+   if (!db_get_fileset_record(ua->jcr, ua->db, &fsr)) {
+      bsendmsg(ua, _("Error getting FileSet record: %s\n"), db_strerror(ua->db));
+      bsendmsg(ua, _("This probably means you modified the FileSet.\n"
+                     "Continuing anyway.\n"));
+   }
+
+
+   /* Find JobId of last Full backup for this client, fileset */
+   Mmsg(&query, uar_last_full, cr.ClientId, cr.ClientId, date, fsr.FileSetId);
+   if (!db_sql_query(ua->db, query, NULL, NULL)) {
+      bsendmsg(ua, "%s\n", db_strerror(ua->db));
+      goto bail_out;
+   }
+
+   /* Find all Volumes used by that JobId */
+   if (!db_sql_query(ua->db, uar_full, NULL, NULL)) {
+      bsendmsg(ua, "%s\n", db_strerror(ua->db));
+      goto bail_out;
+   }
+   /* Note, this is needed as I don't seem to get the callback
+    * from the call just above.
+    */
+   ji->JobTDate = 0;
+   if (!db_sql_query(ua->db, uar_sel_all_temp1, last_full_handler, (void *)ji)) {
+      bsendmsg(ua, "%s\n", db_strerror(ua->db));
+   }
+   if (ji->JobTDate == 0) {
+      bsendmsg(ua, _("No Full backup before %s found.\n"), date);
+      goto bail_out;
+   }
+
+   /* Now find all Incremental/Decremental Jobs after Full save */
+   Mmsg(&query, uar_inc_dec, edit_uint64(ji->JobTDate, ed1), date,
+	cr.ClientId, fsr.FileSetId);
+   if (!db_sql_query(ua->db, query, NULL, NULL)) {
+      bsendmsg(ua, "%s\n", db_strerror(ua->db));
+   }
+
+   /* Get the JobIds from that list */
+   ji->JobIds[0] = 0;
+   if (!db_sql_query(ua->db, uar_sel_jobid_temp, jobid_handler, (void *)ji)) {
+      bsendmsg(ua, "%s\n", db_strerror(ua->db));
+   }
+
+   if (ji->JobIds[0] != 0) {
+      /* Display a list of Jobs selected for this restore */
+      db_list_sql_query(ua->jcr, ua->db, uar_list_temp, prtit, ua, 1, HORZ_LIST);
+   } else {
+      bsendmsg(ua, _("No jobs found.\n")); 
+   }
+
+   stat = 1;
+ 
+bail_out:
+   free_pool_memory(query);
+   db_sql_query(ua->db, uar_del_temp, NULL, NULL);
+   db_sql_query(ua->db, uar_del_temp1, NULL, NULL);
+   return stat;
+}
+
 
 static int next_jobid_from_list(char **p, uint32_t *JobId)
 {
@@ -479,7 +536,7 @@ static int jobid_handler(void *ctx, int num_fields, char **row)
 
 
 /*
- * Callback handler to pickup last Full backup JobId and ClientId
+ * Callback handler to pickup last Full backup JobTDate
  */
 static int last_full_handler(void *ctx, int num_fields, char **row)
 {
