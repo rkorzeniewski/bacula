@@ -1,3 +1,112 @@
+2002-08-?? Version 1.24 (not yet released)
+  From kes11Aug02
+- Made restore actually work.
+- Made console and gconsole be configured (requested by Chuck)
+- Updated kernstodo
+- changed fs in Job record to fileset for clarity
+- The console run command was not properly picking up the command
+  line arguments.  Fixed!
+- Changed add/remove/rm to mark/unmark
+- Volume keyword VolumeName was wrong, changed to Volume (in restore bsr).
+- Pass jcr to parse_bsr, and if non-NULL, it will output error messages
+  to Job stream rather than Emsg.
+- Modified lexical scanner to include caller context so that jcr can
+  be stored in lex context allowing error messages to be properly 
+  routed.
+- Renamed the Job message chain to be jcr_msgs. This eliminated the      
+  previous confusion with the default value, now named jcr->messages.
+- Implemented multi-volume bsr records.    
+- Implemented pm_strcat() and pm_strcpy() to cat/add to memory pool
+  buffers in same way as strcat/strcpy, but expanding buffer.
+- Modified db_get_volume_names to handle arbitrarily long Volume list.
+
+  From kes07Aug02
+- If the Console program terminated during the printing of messages,
+  the message file was left locked. This was corrected by using the
+  new read-write lock code.  
+- Implemented Pw() and Vw() for obtaining and releasing a write lock
+  using the rwl_xxx routines.
+- Deleted some old pthread_mutex code from mysql.c
+- In making the Irix port, I previously corrected the base64 routine so 
+  they were not sensitive to the machine definition of char. This made
+  them incompatible with previous versions invalidating MD5 signatures
+  which are in base64 format. I have now corrected this, making the
+  routines compatible with the previous version but also insensitive
+  to the default definition of char.
+- Removed some unnecessary NPRT() usage in signal.c (pointed out by
+  the Irix compiler).
+- Add back BNET_NONO for compatibility with older File daemons.
+- Implement runing a restore Job in the restore command.
+- Make installation of query.sql unconditional. To prevent you own file
+  from being overwritten, give it a different name.
+- Made parse_command_args() in ua take command from ua->cmd, this
+  simplifies it and allows usage in other places -- e.g. building
+  arguments for created run command in restore.
+- Cleaned the naming of s_full_ctx to be s_jobids.
+- Write the bsr created in restore to "working-directory"/restore.bsr
+- Fix bugs in command line scanner in run command -- also some misplaced
+  breaks!
+- Eliminate static cmd in ua_server.c
+- Eliminate segmentation fault when using the Run command in the
+  Console -- forgot to init_msgs().
+
+  From kes06Aug02
+- Did a good amount of documentation.
+- Added sql_cmds.c to CVS, forgot, pointed out by Chuck.
+- Added new platforms/irix directory to CVS
+- Turn off transaction debug code in sql.c
+- Reworked the scheduler so that it handles the same Job starting
+  twice in the same hour. Previously it took one or the other.
+- Tightened up the "slop" in the timings that I programmed to ensure
+  that the same job isn't run twice or that no job was missed.
+- Increase the sleep time.
+- Used job_type_to_str() in status so that Admin jobs are correctly reported.
+- Add internationalization message chars to a number of routines
+  in util.c
+- Make the watchdog timer clear the mutex when it exits.
+- Some tweaks to the Restore command. It needs fixing when a Job spans
+  two or more volumes.
+
+  From kes05Aug02
+- Initial cut at adding Irix File daemon support.
+- Lots of work on the restore command.
+- Take a stab at eliminating the "broken pipe message"
+  when the console program prematurely terminates.
+- Reimplemented transactions for SQLite by keeping
+  them all in the same thread.
+- quit in the Console program now waits for Bacula to
+  quit. To immediately quit, you must enter .quit
+- Eliminated BNET_EOF -- this COULD have some negative consequences
+  on interdaemon communications.
+- Define Job termination status for Admin jobs.
+- Write new bstrncpy() function that guarantees that strcpy is
+  properly terminated.
+- Fixed command input in ua_input.c to accept quoted items as a
+  single field. 
+
+  From kes01Aug02
+- The changes that added indexes to the SQLite database were
+  lost -- thanks to Chuck for pointing this out. Redone.
+- Fixed a problem quoting strings in SQLite. This showed up
+  as database errors with files containing ' or " in the filename.
+- Implemente restore command -- still in progress.
+- Added indexes to all fields in SQLite that exist in MySQL.
+- Moved unused immortal files from src/lib to src/immortal.
+  This will permit splitting depkgs.
+- Started work on adding embedded MySQL. Cannot get the tables
+  to work for the moment. Please don't try to use this option.
+- Convert to using single quotes for enclosing all strings.
+- Implement correct quoting algorithm for SQLite strings.
+  Is dequoting needed?
+- Started centralizing SQL statments in the Director in sql_cmds.c
+- Changed a number of M_ABORTs to M_ERROR_TERM so that program terminates
+  but does not produce a dump.
+- Allow wild-card matches in bsr for Client name, and Job.
+- Change OflineOnUnmount=no as default.
+- Fixed improper printing of filenames containing a space in bls.c
+  Thanks to Carlos for reporting this.
+
+
 2002-07-26 Release 1.23a
 - Fix segmentation fault is FD status.
 - Turn off TRANSACTIONs for SQLite.                        
