@@ -33,9 +33,11 @@
 #ifdef HAVE_PYTHON
 #include <Python.h>
 
+EVENT_HANDLER *generate_event;
 
 PyObject *bacula_get(PyObject *self, PyObject *args);
 PyObject *bacula_set(PyObject *self, PyObject *args, PyObject *keyw);
+int _generate_event(JCR *jcr, const char *event);
 
 /* Pull in Bacula entry points */
 extern PyMethodDef BaculaMethods[];
@@ -53,6 +55,7 @@ void init_python_interpreter(const char *progname, const char *scripts)
             "sys.path.append('%s')\n", scripts);
    PyRun_SimpleString(buf);
    PyEval_ReleaseLock();
+   generate_event = _generate_event;
 }
 
 void term_python_interpreter()
@@ -69,7 +72,7 @@ void term_python_interpreter()
  *	    -1 on Python error
  *	     1 OK
  */
-int generate_event(JCR *jcr, const char *event)
+int _generate_event(JCR *jcr, const char *event)
 {
    PyObject *pName, *pModule, *pDict, *pFunc;
    PyObject *pArgs, *pValue;
@@ -135,8 +138,11 @@ int generate_event(JCR *jcr, const char *event)
  *  No Python configured
  */
 
-int generate_event(JCR *jcr, const char *event) { return 0; }
-void init_python_interpreter(const char *progname, const char *scripts) { }
+int _generate_event(JCR *jcr, const char *event) { return 0; }
+void init_python_interpreter(const char *progname, const char *scripts)
+{
+   generate_event = _generate_event;   
+}
 void term_python_interpreter() { }
 
 

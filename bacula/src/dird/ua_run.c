@@ -8,7 +8,7 @@
  */
 
 /*
-   Copyright (C) 2001-2004 Kern Sibbald and John Walker
+   Copyright (C) 2001-2004 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -104,7 +104,7 @@ int run_cmd(UAContext *ua, const char *cmd)
    catalog_name = NULL;
 
    for (i=1; i<ua->argc; i++) {
-      Dmsg2(200, "Doing arg %d = %s\n", i, ua->argk[i]);
+      Dmsg2(800, "Doing arg %d = %s\n", i, ua->argk[i]);
       kw_ok = false;
       /* Keep looking until we find a good keyword */
       for (j=0; !kw_ok && kw[j]; j++) {
@@ -114,7 +114,7 @@ int run_cmd(UAContext *ua, const char *cmd)
                bsendmsg(ua, _("Value missing for keyword %s\n"), ua->argk[i]);
 	       return 1;
 	    }
-            Dmsg1(200, "Got keyword=%s\n", kw[j]);
+            Dmsg1(800, "Got keyword=%s\n", kw[j]);
 	    switch (j) {
 	    case 0: /* job */
 	       if (job_name) {
@@ -263,7 +263,7 @@ int run_cmd(UAContext *ua, const char *cmd)
       }
    } /* end argc loop */
 	     
-   Dmsg0(200, "Done scan.\n");
+   Dmsg0(800, "Done scan.\n");
 
    CAT *catalog = NULL;
    if (catalog_name != NULL) {
@@ -273,6 +273,7 @@ int run_cmd(UAContext *ua, const char *cmd)
 	   return 0;
        }
    }
+   Dmsg1(200, "Using catalog=%s\n", catalog_name);
 
    if (job_name) {
       /* Find Job */
@@ -315,6 +316,7 @@ int run_cmd(UAContext *ua, const char *cmd)
 	       store->hdr.name);
       return 0;
    }
+   Dmsg1(200, "Using storage=%s\n", store->hdr.name);
 
    if (pool_name) {
       pool = (POOL *)GetResWithName(R_POOL, pool_name);
@@ -334,6 +336,7 @@ int run_cmd(UAContext *ua, const char *cmd)
 	       pool->hdr.name);
       return 0;
    }
+   Dmsg1(200, "Using pool\n", pool->hdr.name);
 
    if (client_name) {
       client = (CLIENT *)GetResWithName(R_CLIENT, client_name);
@@ -353,6 +356,7 @@ int run_cmd(UAContext *ua, const char *cmd)
 	       client->hdr.name);
       return 0;
    }
+   Dmsg1(200, "Using client=%s\n", client->hdr.name);
 
    if (fileset_name) {
       fileset = (FILESET *)GetResWithName(R_FILESET, fileset_name);
@@ -390,6 +394,12 @@ int run_cmd(UAContext *ua, const char *cmd)
 
    jcr->verify_job = verify_job;
    jcr->store = store;
+   /* If specific name given, zap all other stores */
+   if (store_name) {
+      for (i=0; i < MAX_STORE; i++) {
+	 jcr->storage[i] = NULL;
+      }
+   }
    jcr->client = client;
    jcr->fileset = fileset;
    jcr->pool = pool;

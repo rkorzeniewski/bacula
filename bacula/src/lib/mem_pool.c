@@ -15,13 +15,13 @@
  *  there is enough memory, simply call the check_pool_memory_size()
  *  with the desired size and it will adjust only if necessary.
  *
- *           Kern E. Sibbald
+ *	     Kern E. Sibbald
  *
  *   Version $Id$
  */
 
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2004 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -43,11 +43,11 @@
 #include "bacula.h"
 
 struct s_pool_ctl {
-   int32_t size;                      /* default size */
-   int32_t max_allocated;             /* max allocated */
-   int32_t max_used;                  /* max buffers used */
-   int32_t in_use;                    /* number in use */
-   struct abufhead *free_buf;         /* pointer to free buffers */
+   int32_t size;		      /* default size */
+   int32_t max_allocated;	      /* max allocated */
+   int32_t max_used;		      /* max buffers used */
+   int32_t in_use;		      /* number in use */
+   struct abufhead *free_buf;	      /* pointer to free buffers */
 };
 
 /* Bacula Name length plus extra */
@@ -59,30 +59,30 @@ struct s_pool_ctl {
  * Define default Pool buffer sizes
  */
 static struct s_pool_ctl pool_ctl[] = {
-   {  256,  256, 0, 0, NULL },        /* PM_NOPOOL no pooling */
-   {  NLEN, NLEN,0, 0, NULL },        /* PM_NAME Bacula name */
-   {  256,  256, 0, 0, NULL },        /* PM_FNAME filename buffers */
-   {  512,  512, 0, 0, NULL },        /* PM_MESSAGE message buffer */
-   { 1024, 1024, 0, 0, NULL }         /* PM_EMSG error message buffer */
+   {  256,  256, 0, 0, NULL },	      /* PM_NOPOOL no pooling */
+   {  NLEN, NLEN,0, 0, NULL },	      /* PM_NAME Bacula name */
+   {  256,  256, 0, 0, NULL },	      /* PM_FNAME filename buffers */
+   {  512,  512, 0, 0, NULL },	      /* PM_MESSAGE message buffer */
+   { 1024, 1024, 0, 0, NULL }	      /* PM_EMSG error message buffer */
 };
 #else
 
 /* This is used ONLY when stress testing the code */
 static struct s_pool_ctl pool_ctl[] = {
-   {   20,   20, 0, 0, NULL },        /* PM_NOPOOL no pooling */
-   {  NLEN, NLEN,0, 0, NULL },        /* PM_NAME Bacula name */
-   {   20,   20, 0, 0, NULL },        /* PM_FNAME filename buffers */
-   {   20,   20, 0, 0, NULL },        /* PM_MESSAGE message buffer */
-   {   20,   20, 0, 0, NULL }         /* PM_EMSG error message buffer */
+   {   20,   20, 0, 0, NULL },	      /* PM_NOPOOL no pooling */
+   {  NLEN, NLEN,0, 0, NULL },	      /* PM_NAME Bacula name */
+   {   20,   20, 0, 0, NULL },	      /* PM_FNAME filename buffers */
+   {   20,   20, 0, 0, NULL },	      /* PM_MESSAGE message buffer */
+   {   20,   20, 0, 0, NULL }	      /* PM_EMSG error message buffer */
 };
 #endif
 
 
 /*  Memory allocation control structures and storage.  */
 struct abufhead {
-   int32_t ablen;                     /* Buffer length in bytes */
-   int32_t pool;                      /* pool */
-   struct abufhead *next;             /* pointer to next free buffer */
+   int32_t ablen;		      /* Buffer length in bytes */
+   int32_t pool;		      /* pool */
+   struct abufhead *next;	      /* pointer to next free buffer */
 };
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -105,10 +105,10 @@ POOLMEM *sm_get_pool_memory(const char *fname, int lineno, int pool)
       pool_ctl[pool].free_buf = buf->next;
       pool_ctl[pool].in_use++;
       if (pool_ctl[pool].in_use > pool_ctl[pool].max_used) {
-         pool_ctl[pool].max_used = pool_ctl[pool].in_use;
+	 pool_ctl[pool].max_used = pool_ctl[pool].in_use;
       }
       V(mutex);
-      Dmsg3(300, "sm_get_pool_memory reuse %x to %s:%d\n", buf, fname, lineno);
+      Dmsg3(800, "sm_get_pool_memory reuse %x to %s:%d\n", buf, fname, lineno);
       sm_new_owner(fname, lineno, (char *)buf);
       return (POOLMEM *)((char *)buf+HEAD_SIZE);
    }
@@ -124,7 +124,7 @@ POOLMEM *sm_get_pool_memory(const char *fname, int lineno, int pool)
       pool_ctl[pool].max_used = pool_ctl[pool].in_use;
    }
    V(mutex);
-   Dmsg3(300, "sm_get_pool_memory give %x to %s:%d\n", buf, fname, lineno);
+   Dmsg3(800, "sm_get_pool_memory give %x to %s:%d\n", buf, fname, lineno);
    return (POOLMEM *)((char *)buf+HEAD_SIZE);
 }
 
@@ -202,30 +202,30 @@ void sm_free_pool_memory(const char *fname, int lineno, POOLMEM *obuf)
    pool = buf->pool;
    pool_ctl[pool].in_use--;
    if (pool == 0) {
-      free((char *)buf);              /* free nonpooled memory */
-   } else {                           /* otherwise link it to the free pool chain */
+      free((char *)buf);	      /* free nonpooled memory */
+   } else {			      /* otherwise link it to the free pool chain */
 #ifdef DEBUG
       struct abufhead *next;
       /* Don't let him free the same buffer twice */
       for (next=pool_ctl[pool].free_buf; next; next=next->next) {
-         if (next == buf) {
-            Dmsg4(300, "bad free_pool_memory %x pool=%d from %s:%d\n", buf, pool, fname, lineno);
-            V(mutex);                 /* unblock the pool */
-            ASSERT(next != buf);      /* attempt to free twice */
-         }
+	 if (next == buf) {
+            Dmsg4(800, "bad free_pool_memory %x pool=%d from %s:%d\n", buf, pool, fname, lineno);
+	    V(mutex);		      /* unblock the pool */
+	    ASSERT(next != buf);      /* attempt to free twice */
+	 }
       }
 #endif
       buf->next = pool_ctl[pool].free_buf;
       pool_ctl[pool].free_buf = buf;
    }
-   Dmsg4(300, "free_pool_memory %x pool=%d from %s:%d\n", buf, pool, fname, lineno);
+   Dmsg4(800, "free_pool_memory %x pool=%d from %s:%d\n", buf, pool, fname, lineno);
    V(mutex);
 }
 
 
 #else
 
-/* =========  NO SMARTALLOC  =========================================  */
+/* =========  NO SMARTALLOC  =========================================	*/
 
 POOLMEM *get_pool_memory(int pool)
 {
@@ -332,22 +332,22 @@ void free_pool_memory(POOLMEM *obuf)
    pool = buf->pool;
    pool_ctl[pool].in_use--;
    if (pool == 0) {
-      free((char *)buf);              /* free nonpooled memory */
-   } else {                           /* otherwise link it to the free pool chain */
+      free((char *)buf);	      /* free nonpooled memory */
+   } else {			      /* otherwise link it to the free pool chain */
 #ifdef DEBUG
       struct abufhead *next;
       /* Don't let him free the same buffer twice */
       for (next=pool_ctl[pool].free_buf; next; next=next->next) {
-         if (next == buf) {
-            V(mutex);
-            ASSERT(next != buf);  /* attempt to free twice */
-         }
+	 if (next == buf) {
+	    V(mutex);
+	    ASSERT(next != buf);  /* attempt to free twice */
+	 }
       }
 #endif
       buf->next = pool_ctl[pool].free_buf;
       pool_ctl[pool].free_buf = buf;
    }
-   Dmsg2(300, "free_pool_memory %x pool=%d\n", buf, pool);
+   Dmsg2(800, "free_pool_memory %x pool=%d\n", buf, pool);
    V(mutex);
 }
 
@@ -368,9 +368,9 @@ void close_memory_pool()
    for (int i=1; i<=PM_MAX; i++) {
       buf = pool_ctl[i].free_buf;
       while (buf) {
-         next = buf->next;
-         free((char *)buf);
-         buf = next;
+	 next = buf->next;
+	 free((char *)buf);
+	 buf = next;
       }
       pool_ctl[i].free_buf = NULL;
    }
@@ -398,7 +398,7 @@ void print_memory_pool_stats()
    Dmsg0(-1, "Pool   Maxsize  Maxused  Inuse\n");
    for (int i=0; i<=PM_MAX; i++)
       Dmsg4(-1, "%5s  %7d  %7d  %5d\n", pool_name(i), pool_ctl[i].max_allocated,
-         pool_ctl[i].max_used, pool_ctl[i].in_use);
+	 pool_ctl[i].max_used, pool_ctl[i].in_use);
 
    Dmsg0(-1, "\n");
 }
