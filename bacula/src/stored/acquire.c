@@ -595,6 +595,7 @@ bool release_device(DCR *dcr)
 	 /* If no more writers, write an EOF */
 	 if (!dev->num_writers && dev_can_write(dev)) {
 	    weof_dev(dev, 1);
+	    write_ansi_ibm_labels(dcr, ANSI_EOF_LABEL, dev->VolHdr.VolName);
 	 }
 	 dev->VolCatInfo.VolCatFiles = dev->file;   /* set number of files */
 	 dev->VolCatInfo.VolCatJobs++;		    /* increment number of jobs */
@@ -602,7 +603,6 @@ bool release_device(DCR *dcr)
          Dmsg0(100, "dir_update_vol_info. Release0\n");
 	 dir_update_volume_info(dcr, false); /* send Volume info to Director */
          Dmsg0(100, "==== write ansi eof label \n");
-	 write_ansi_ibm_labels(dcr, ANSI_EOF_LABEL, dev->VolHdr.VolName);
       }
 
       /* If no writers, close if file or !CAP_ALWAYS_OPEN */

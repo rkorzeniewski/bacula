@@ -352,16 +352,6 @@ bool write_ansi_ibm_labels(DCR *dcr, int type, const char *VolName)
          Jmsg(jcr, M_FATAL, 0, _("Error writing EOF to tape. ERR=%s"), dev->errmsg);
 	 return false;
       }
-      /* If this is an EOF label, we must reposition to before it
-	 as Bacula does not support these on read.
-       */
-      if (type == ANSI_EOF_LABEL) {  
-	 if (!bsf_dev(dev, 2) || !fsf_dev(dev, 1)) {
-            Jmsg(jcr, M_FATAL, 0, _("Error repositiong after writing ANSI/IBM EOF labels to tape. ERR=%s"), 
-		 dev->errmsg);
-	    return false;
-	 }
-      }
       return true;
    default:
       Jmsg0(jcr, M_ABORT, 0, _("write_ansi_ibm_label called for non-ANSI/IBM type\n"));

@@ -417,6 +417,7 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *Po
 
    if (weof_dev(dev, 1) == 0) {
       dev->state |= ST_LABEL;
+      write_ansi_ibm_labels(dcr, ANSI_EOF_LABEL, dev->VolHdr.VolName);
    }
 
    if (debug_level >= 20)  {

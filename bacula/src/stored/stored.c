@@ -208,6 +208,9 @@ int main (int argc, char *argv[])
       Jmsg0(NULL, M_ABORT, 0, _("Volume Session Time is ZERO!\n"));
    }
 
+   init_python_interpreter(me->hdr.name, me->scripts_directory ?
+         me->scripts_directory : ".");
+
    /* Make sure on Solaris we can run concurrent, watch dog + servers + misc */
    set_thread_concurrency(me->max_concurrent_jobs * 2 + 4);
 
