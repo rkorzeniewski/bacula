@@ -402,8 +402,8 @@ extern "C" void cygwin_conv_to_win32_path(const char *path, char *win32_path);
 
 void unix_name_to_win32(POOLMEM **win32_name, char *name)
 {
-   /* One extra byte should suffice, but we take 10 */
-   *win32_name = check_pool_memory_size(*win32_name, strlen(name)+10);
+   /* One extra byte should suffice, but we double it */
+   *win32_name = check_pool_memory_size(*win32_name, 2*strlen(name)+1);
    cygwin_conv_to_win32_path(name, *win32_name);
 }
 

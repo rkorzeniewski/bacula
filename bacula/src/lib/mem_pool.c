@@ -129,6 +129,54 @@ POOLMEM *sm_get_memory(char *fname, int lineno, size_t size)
    return (POOLMEM *)(((char *)buf)+HEAD_SIZE);
 }
 
+
+/* Return the size of a memory buffer */
+size_t sm_sizeof_pool_memory(char *fname, int lineno, POOLMEM *obuf)
+{
+   char *cp = (char *)obuf;
+
+   sm_check(fname, lineno, False);
+   ASSERT(obuf);
+   cp -= HEAD_SIZE;
+   return ((struct abufhead *)cp)->ablen;
+}
+
+/* Realloc pool memory buffer */
+POOLMEM *sm_realloc_pool_memory(char *fname, int lineno, POOLMEM *obuf, size_t size)
+{
+   char *cp = (char *)obuf;
+   void *buf;
+   int pool;
+
+   sm_check(fname, lineno, False);
+   ASSERT(obuf);
+   P(mutex);
+   cp -= HEAD_SIZE;
+   buf = realloc(cp, size+HEAD_SIZE);
+   if (buf == NULL) {
+      V(mutex);
+      Emsg1(M_ABORT, 0, "Out of memory requesting %d bytes\n", size);
+   }
+   ((struct abufhead *)buf)->ablen = size;
+   pool = ((struct abufhead *)buf)->pool;
+   if (size > pool_ctl[pool].max_size) {
+      pool_ctl[pool].max_size = size;
+   }
+   V(mutex);
+   sm_check(fname, lineno, False);
+   return (POOLMEM *)(((char *)buf)+HEAD_SIZE);
+}
+
+POOLMEM *sm_check_pool_memory_size(char *fname, int lineno, POOLMEM *obuf, size_t size)
+{
+   sm_check(fname, lineno, False);
+   ASSERT(obuf);
+   if (size <= sizeof_pool_memory(obuf)) {
+      return obuf;
+   }
+   return realloc_pool_memory(obuf, size);
+}
+
 #else
 
 POOLMEM *get_pool_memory(int pool)
@@ -176,6 +224,51 @@ POOLMEM *get_memory(size_t size)
    }
    return (POOLMEM *)(((char *)buf)+HEAD_SIZE);
 }
+
+
+/* Return the size of a memory buffer */
+size_t sizeof_pool_memory(POOLMEM *obuf)
+{
+   char *cp = (char *)obuf;
+
+   ASSERT(obuf);
+   cp -= HEAD_SIZE;
+   return ((struct abufhead *)cp)->ablen;
+}
+
+/* Realloc pool memory buffer */
+POOLMEM *realloc_pool_memory(POOLMEM *obuf, size_t size)
+{
+   char *cp = (char *)obuf;
+   void *buf;
+   int pool;
+
+   ASSERT(obuf);
+   P(mutex);
+   cp -= HEAD_SIZE;
+   buf = realloc(cp, size+HEAD_SIZE);
+   if (buf == NULL) {
+      V(mutex);
+      Emsg1(M_ABORT, 0, "Out of memory requesting %d bytes\n", size);
+   }
+   ((struct abufhead *)buf)->ablen = size;
+   pool = ((struct abufhead *)buf)->pool;
+   if (size > pool_ctl[pool].max_size) {
+      pool_ctl[pool].max_size = size;
+   }
+   V(mutex);
+   return (POOLMEM *)(((char *)buf)+HEAD_SIZE);
+}
+
+POOLMEM *check_pool_memory_size(POOLMEM *obuf, size_t size)
+{
+   ASSERT(obuf);
+   if (size <= sizeof_pool_memory(obuf)) {
+      return obuf;
+   }
+   return realloc_pool_memory(obuf, size);
+}
+
 #endif /* SMARTALLOC */
 
 
@@ -210,52 +303,6 @@ void free_pool_memory(POOLMEM *obuf)
 }
 
 
-/* Return the size of a memory buffer */
-size_t sizeof_pool_memory(POOLMEM *obuf)
-{
-   char *cp = (char *)obuf;
-
-   sm_check(__FILE__, __LINE__, False);
-   ASSERT(obuf);
-   cp -= HEAD_SIZE;
-   return ((struct abufhead *)cp)->ablen;
-}
-
-/* Realloc pool memory buffer */
-POOLMEM *realloc_pool_memory(POOLMEM *obuf, size_t size)
-{
-   char *cp = (char *)obuf;
-   void *buf;
-   int pool;
-
-   sm_check(__FILE__, __LINE__, False);
-   ASSERT(obuf);
-   P(mutex);
-   cp -= HEAD_SIZE;
-   buf = realloc(cp, size+HEAD_SIZE);
-   if (buf == NULL) {
-      V(mutex);
-      Emsg1(M_ABORT, 0, "Out of memory requesting %d bytes\n", size);
-   }
-   ((struct abufhead *)buf)->ablen = size;
-   pool = ((struct abufhead *)buf)->pool;
-   if (size > pool_ctl[pool].max_size) {
-      pool_ctl[pool].max_size = size;
-   }
-   V(mutex);
-   sm_check(__FILE__, __LINE__, False);
-   return (POOLMEM *)(((char *)buf)+HEAD_SIZE);
-}
-
-POOLMEM *check_pool_memory_size(POOLMEM *obuf, size_t size)
-{
-   sm_check(__FILE__, __LINE__, False);
-   ASSERT(obuf);
-   if (size <= sizeof_pool_memory(obuf)) {
-      return obuf;
-   }
-   return realloc_pool_memory(obuf, size);
-}
 
 /* Release all pooled memory */
 void close_memory_pool()

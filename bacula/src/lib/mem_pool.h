@@ -29,26 +29,36 @@
 
 #define get_pool_memory(pool) sm_get_pool_memory(__FILE__, __LINE__, pool)
 extern POOLMEM *sm_get_pool_memory(char *file, int line, int pool);
+
 #define get_memory(size) sm_get_memory(__FILE__, __LINE__, size)
 extern POOLMEM *sm_get_memory(char *fname, int line, size_t size);
+
+#define sizeof_pool_memory(buf) sm_sizeof_pool_memory(__FILE__, __LINE__, buf)
+extern size_t sm_sizeof_pool_memory(char *fname, int line, POOLMEM *buf);
+
+#define realloc_pool_memory(buf,size) sm_realloc_pool_memory(__FILE__, __LINE__, buf, size)
+extern POOLMEM  *sm_realloc_pool_memory(char *fname, int line, POOLMEM *buf, size_t size);
+
+#define check_pool_memory_size(buf,size) sm_check_pool_memory_size(__FILE__, __LINE__, buf, size)
+extern POOLMEM  *sm_check_pool_memory_size(char *fname, int line, POOLMEM *buf, size_t size);
 
 #else
 
 extern POOLMEM *get_pool_memory(int pool);
 extern POOLMEM *get_memory(size_t size);
+extern size_t sizeof_pool_memory(POOLMEM *buf);
+extern POOLMEM  *realloc_pool_memory(POOLMEM *buf, size_t size);
+extern POOLMEM  *check_pool_memory_size(POOLMEM *buf, size_t size);
 
 #endif
  
 #define free_memory(x) free_pool_memory(x)
 extern void   free_pool_memory(POOLMEM *buf);
-extern size_t sizeof_pool_memory(POOLMEM *buf);
-extern POOLMEM	*realloc_pool_memory(POOLMEM *buf, size_t size);
-extern POOLMEM	*check_pool_memory_size(POOLMEM *buf, size_t size);
 extern void  close_memory_pool();
 extern void  print_memory_pool_stats();
 
-#define PM_NOPOOL  0		      /* nonpooled memory */
-#define PM_FNAME   1		      /* file name buffer */
-#define PM_MESSAGE 2		      /* daemon message */
-#define PM_EMSG    3		      /* error message */
-#define PM_MAX	   PM_EMSG	      /* Number of types */
+#define PM_NOPOOL  0                  /* nonpooled memory */
+#define PM_FNAME   1                  /* file name buffer */
+#define PM_MESSAGE 2                  /* daemon message */
+#define PM_EMSG    3                  /* error message */
+#define PM_MAX     PM_EMSG            /* Number of types */
