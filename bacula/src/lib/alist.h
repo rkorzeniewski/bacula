@@ -50,7 +50,7 @@ enum {
  * Array list -- much like a simplified STL vector
  *   array of pointers to inserted items
  */
-class alist {
+class alist : public SMARTALLOC {
    void **items;
    int num_items;
    int max_items;
@@ -74,8 +74,6 @@ public:
    int size() const;
    void destroy();
    void grow(int num);
-   void * operator new(size_t);
-   void operator delete(void *);
 };
 
 inline void * alist::operator [](int index) const {
@@ -122,14 +120,4 @@ inline void alist::grow(int num)
    num_grow = num;
 }
 
-inline void * alist::operator new(size_t)
-{
-   return malloc(sizeof(alist));
-}
-
-inline void alist::operator delete(void  *item)
-{
-   ((alist *)item)->destroy();
-   free(item);
-}
 

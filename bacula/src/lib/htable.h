@@ -42,7 +42,7 @@ struct hlink {
    uint32_t hash;		      /* hash for this key */
 };
 
-class htable {
+class htable : public SMARTALLOC {
    hlink **table;		      /* hash table */
    int loffset; 		      /* link offset in item */
    uint32_t num_items;		      /* current number of items */
@@ -66,6 +66,4 @@ public:
    void destroy();
    void stats();		      /* print stats about the table */
    uint32_t size();		      /* return size of table */
-   void * operator new(size_t);
-   void operator delete(void *);
 };

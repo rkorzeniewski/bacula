@@ -220,8 +220,8 @@ Without that I don't know who I am :-(\n"), configfile);
    }
 
    /* Maximum 1 daemon at a time */
-   create_pid_file(me->pid_directory, "bacula-fd", get_first_port(me->FDaddrs));
-   read_state_file(me->working_directory, "bacula-fd", get_first_port(me->FDaddrs));
+   create_pid_file(me->pid_directory, "bacula-fd", get_first_port_host_order(me->FDaddrs));
+   read_state_file(me->working_directory, "bacula-fd", get_first_port_host_order(me->FDaddrs));
 
    drop(uid, gid);
 
@@ -243,14 +243,8 @@ Without that I don't know who I am :-(\n"), configfile);
       int port = -1;
       socklen_t client_addr_len = sizeof(client_addr);
       if (getsockname(0, &client_addr, &client_addr_len) == 0) {
-	 if (client_addr.sa_family == AF_INET) {
-	    port = ((struct sockaddr_in*)&client_addr)->sin_port;
-	 }
-#ifdef HAVE_IPV6
-	 else if (client_addr.sa_family == AF_INET6) {
-	    port = ((struct sockaddr_in6*)&client_addr)->sin6_port;
-	 }
-#endif
+		/* MA BUG 6 remove ifdefs */
+		port = sockaddr_get_port_net_order(&client_addr);
       }
       BSOCK *bs = init_bsock(NULL, 0, "client", "unknown client", port, &client_addr);
       handle_client_request((void *)bs);
@@ -258,7 +252,7 @@ Without that I don't know who I am :-(\n"), configfile);
       /* Become server, and handle requests */
       IPADDR *p;
       foreach_dlist(p, me->FDaddrs) {
-         Dmsg1(10, "filed: listening on port %d\n", ntohs(p->get_port()));
+         Dmsg1(10, "filed: listening on port %d\n", p->get_port_host_order());
       }
       bnet_thread_server(me->FDaddrs, me->MaxConcurrentJobs, &dir_workq, handle_client_request);
    }
@@ -270,8 +264,8 @@ Without that I don't know who I am :-(\n"), configfile);
 void terminate_filed(int sig)
 {
    bnet_stop_thread_server(server_tid);
-   write_state_file(me->working_directory, "bacula-fd", get_first_port(me->FDaddrs));
-   delete_pid_file(me->pid_directory, "bacula-fd", get_first_port(me->FDaddrs));
+   write_state_file(me->working_directory, "bacula-fd", get_first_port_host_order(me->FDaddrs));
+   delete_pid_file(me->pid_directory, "bacula-fd", get_first_port_host_order(me->FDaddrs));
    if (configfile != NULL) {
       free(configfile);
    }

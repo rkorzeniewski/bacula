@@ -89,7 +89,7 @@ bnet_thread_server(dlist *addrs, int max_clients, workq_t *client_wq,
    foreach_dlist(p, addrs) {
       /* Allocate on stack frame -- no need to free */
       fd_ptr = (s_sockfd *)alloca(sizeof(s_sockfd));
-      fd_ptr->port = p->get_port();
+      fd_ptr->port = p->get_port_net_order();
       /*
        * Open a TCP socket  
        */
@@ -121,11 +121,11 @@ bnet_thread_server(dlist *addrs, int max_clients, workq_t *client_wq,
 	 if (tlog <= 0) {
 	    tlog = 2 * 60;	   /* Complain every 2 minutes */
             Emsg2(M_WARNING, 0, _("Cannot bind port %d: ERR=%s. Retrying ...\n"),
-		  fd_ptr->port, be.strerror());
+		  ntohs(fd_ptr->port), be.strerror());
 	 }
 	 bmicrosleep(5, 0);
 	 if (--tmax <= 0) {
-            Emsg2(M_ABORT, 0, _("Cannot bind port %d: ERR=%s.\n"), fd_ptr->port,
+            Emsg2(M_ABORT, 0, _("Cannot bind port %d: ERR=%s.\n"), ntohs(fd_ptr->port),
 		  be.strerror());
 	 }
       }

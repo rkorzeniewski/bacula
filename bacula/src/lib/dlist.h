@@ -29,8 +29,6 @@
  */
 
 #define M_ABORT 1
-#undef  New
-#define New(type) new type
 
 /* In case you want to specifically specify the offset to the link */
 #define OFFSET(item, link) ((char *)(link) - (char *)(item))
@@ -55,7 +53,7 @@ struct dlink {
    void *prev;
 };
 
-class dlist {
+class dlist : public SMARTALLOC {
    void *head;
    void *tail;
    int16_t loffset;
@@ -79,12 +77,7 @@ public:
    void destroy();
    void *first() const;
    void *last() const;
-   void * operator new(size_t);
-   void operator delete(void *);
 };
-
-dlist *new_dlist();
-dlist *new_dlist(void *item, dlink *link);
 
 
 /*                            
@@ -131,17 +124,6 @@ inline int dlist::size() const
 }
 
    
-inline void * dlist::operator new(size_t)
-{
-   return malloc(sizeof(dlist));
-}
-
-inline void dlist::operator delete(void  *item)
-{
-   ((dlist *)item)->destroy();
-   free(item);
-}
- 
 
 inline void * dlist::first() const
 {

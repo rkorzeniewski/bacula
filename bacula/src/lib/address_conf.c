@@ -81,7 +81,7 @@ IPADDR::i_type IPADDR::get_type() const
    return type;
 }
 
-unsigned short IPADDR::get_port() const
+unsigned short IPADDR::get_port_net_order() const
 {
    unsigned short port = 0;
    if (saddr->sa_family == AF_INET) {
@@ -95,7 +95,7 @@ unsigned short IPADDR::get_port() const
     return port;
 }
 
-void IPADDR::set_port(unsigned short port)
+void IPADDR::set_port_net(unsigned short port)
 {
    if (saddr->sa_family == AF_INET) {
       saddr4->sin_port = port;
@@ -185,7 +185,7 @@ const char *IPADDR::build_address_str(char *buf, int blen)
    char tmp[1024];
    bsnprintf(buf, blen, "host[%s:%s:%hu] ",
             get_family() == AF_INET ? "ipv4" : "ipv6",
-	    get_address(tmp, sizeof(tmp) - 1), ntohs(get_port()));
+	    get_address(tmp, sizeof(tmp) - 1), get_port_host_order());
    return buf;
 }
 
@@ -213,9 +213,14 @@ const char *get_first_address(dlist * addrs, char *outputbuf, int outlen)
    return ((IPADDR *)(addrs->first()))->get_address(outputbuf, outlen);
 }
 
-int get_first_port(dlist * addrs)
+int get_first_port_net_order(dlist * addrs)
 {
-   return ntohs(((IPADDR *)(addrs->first()))->get_port());				  
+   return ((IPADDR *)(addrs->first()))->get_port_net_order();				  
+}
+
+int get_first_port_host_order(dlist * addrs)
+{
+   return ((IPADDR *)(addrs->first()))->get_port_host_order();				  
 }
 
 static int skip_to_next_not_eol(LEX * lc)
@@ -307,14 +312,14 @@ static int add_address(dlist **out, IPADDR::i_type type, unsigned short defaultp
       if (addrs->size()) {
 	 addr = (IPADDR *)addrs->first();
       } else {
-	 addr = new IPADDR(family); 
+	 addr = New(IPADDR(family)); 
 	 addr->set_type(type);
-	 addr->set_port(defaultport);
+	 addr->set_port_net(defaultport);
 	 addr->set_addr_any();
 	 addrs->append(addr);
       }
       if (intype == IPADDR::R_SINGLE_PORT) {
-	 addr->set_port(port);
+	 addr->set_port_net(port);
       }
       if (intype == IPADDR::R_SINGLE_ADDR) {
 	 addr->copy_addr((IPADDR *) (hostaddrs->first()));
@@ -331,9 +336,9 @@ static int add_address(dlist **out, IPADDR::i_type type, unsigned short defaultp
 	       goto skip;	   /* no price */
 	    }
 	 }
-	 clone = new IPADDR(*iaddr); 
+	 clone = New(IPADDR(*iaddr)); 
 	 clone->set_type(type);
-	 clone->set_port(port);
+	 clone->set_port_net(port);
 	 addrs->append(clone);
        skip:
 	 continue;
@@ -351,6 +356,8 @@ void store_addresses(LEX * lc, RES_ITEM * item, int index, int pass)
    char hostname_str[1024];
    char port_str[128];
    int family = 0;
+
+    
 
    /*
     *   =  { [[ip|ipv4|ipv6] = { [[addr|port] = [^ ]+[\n;]+] }]+ }
@@ -471,12 +478,12 @@ void store_addresses(LEX * lc, RES_ITEM * item, int index, int pass)
       }
 
       char *errstr;
-      if (!add_address((dlist **)(item->value), IPADDR::R_MULTIPLE, 
-	   htons(item->default_value), family, hostname_str, port_str, &errstr)) {
-         scan_err3(lc, _("Can't add hostname(%s) and port(%s) to addrlist (%s)"),
+      if (pass == 1 && !add_address((dlist **)(item->value), IPADDR::R_MULTIPLE, 
+	       htons(item->default_value), family, hostname_str, port_str, &errstr)) {
+           scan_err3(lc, _("Can't add hostname(%s) and port(%s) to addrlist (%s)"),
 		   hostname_str, port_str, errstr);
-	 free(errstr);
-      }
+	   free(errstr);
+        }
       token = skip_to_next_not_eol(lc);
    } while ((token == T_IDENTIFIER || token == T_UNQUOTED_STRING));
    if (token != T_EOB) {
@@ -486,12 +493,13 @@ void store_addresses(LEX * lc, RES_ITEM * item, int index, int pass)
 
 void store_addresses_address(LEX * lc, RES_ITEM * item, int index, int pass)
 {
+
    int token = lex_get_token(lc, T_ALL);
    if (!(token == T_UNQUOTED_STRING || token == T_NUMBER || token == T_IDENTIFIER)) {
       scan_err1(lc, _("Expected a hostname or ipnummer, got: %s"), lc->str);
    }
    char *errstr;
-   if (!add_address((dlist **) (item->value), IPADDR::R_SINGLE_ADDR,
+   if (pass == 1 && !add_address((dlist **) (item->value), IPADDR::R_SINGLE_ADDR,
 		    htons(item->default_value), AF_INET, lc->str, 0, &errstr)) {
       scan_err2(lc, _("can't add port (%s) to (%s)"), lc->str, errstr);
       free(errstr);
@@ -505,7 +513,7 @@ void store_addresses_port(LEX * lc, RES_ITEM * item, int index, int pass)
       scan_err1(lc, _("Expected a port nummer or string, got: %s"), lc->str);
    }
    char *errstr;
-   if (!add_address((dlist **)(item->value), IPADDR::R_SINGLE_PORT,
+   if (pass == 1 && !add_address((dlist **)(item->value), IPADDR::R_SINGLE_PORT,
 		    htons(item->default_value), AF_INET, 0, lc->str, &errstr)) {
       scan_err2(lc, _("can't add port (%s) to (%s)"), lc->str, errstr);
       free(errstr);
@@ -521,3 +529,32 @@ void free_addresses(dlist * addrs)
    }
    delete addrs;
 }
+
+int sockaddr_get_port_net_order(const struct sockaddr *client_addr)
+{
+	/* MA BUG 6 remove ifdefs */
+	if (client_addr->sa_family == AF_INET) {
+		return ((struct sockaddr_in *)client_addr)->sin_port;
+	}
+	else {
+		return ((struct sockaddr_in6 *)client_addr)->sin6_port;
+	}
+	return -1;
+}
+
+int  sockaddr_to_ascii(const struct sockaddr *sa, char *buf, int len)
+{
+#ifdef HAVE_INET_NTOP
+   /* MA Bug 5 the problem was that i mixed up sockaddr and in_addr */
+   inet_ntop(sa->sa_family,
+			 sa->sa_family == AF_INET ? 
+				(void*)&(((struct sockaddr_in*)sa)->sin_addr) :
+				(void*)&(((struct sockaddr_in6*)sa)->sin6_addr),
+			 buf,
+			 sa->sa_family == AF_INET ?  sizeof(in_addr) : sizeof(in6_addr));
+#else
+   bstrncpy(buf, inet_ntoa(((struct sockaddr_in *)sa)->sin_addr), len);
+#endif
+   return 1;
+}
+

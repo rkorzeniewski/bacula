@@ -543,7 +543,7 @@ static pthread_mutex_t ip_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static IPADDR *add_any(int family)
 {
-   IPADDR *addr = new IPADDR(family);
+   IPADDR *addr = New(IPADDR(family));
    addr->set_type(IPADDR::R_MULTIPLE);
    addr->set_addr_any();
    return addr;
@@ -567,7 +567,7 @@ static int resolv_host(int family, const char *host, dlist * addr_list,
    } else {
       char **p;
       for (p = hp->h_addr_list; *p != 0; p++) {
-	 IPADDR *addr =  new IPADDR(hp->h_addrtype);
+	 IPADDR *addr =  New(IPADDR(hp->h_addrtype));
 	 addr->set_type(IPADDR::R_MULTIPLE);
 	 if (addr->get_family() == AF_INET) {
 	     addr->set_addr4((struct in_addr*)*p);
@@ -595,7 +595,7 @@ dlist *bnet_host2ipaddrs(const char *host, int family, const char **errstr)
    struct in6_addr inaddr6;
 #endif
 
-   dlist *addr_list = new dlist(addr, &addr->link);
+   dlist *addr_list = New(dlist(addr, &addr->link));
    if (!host || host[0] == '\0') {
       if (family != 0) {
 	 addr_list->append(add_any(family));
@@ -605,15 +605,15 @@ dlist *bnet_host2ipaddrs(const char *host, int family, const char **errstr)
 	 addr_list->append(add_any(AF_INET6));
 #endif
       }
-   } else if ((inaddr.s_addr = inet_addr(host)) != INADDR_NONE) {
-      addr = new IPADDR(AF_INET);
+   } else if (inet_aton(host, &inaddr)) { /* MA Bug 4 */
+      addr = New(IPADDR(AF_INET));
       addr->set_type(IPADDR::R_MULTIPLE);
       addr->set_addr4(&inaddr);
       addr_list->append(addr);
    } else
 #ifdef HAVE_IPV6
    if (inet_pton(AF_INET6, host, &inaddr6) > 1) {
-      addr = new IPADDR(AF_INET6);
+      addr = New(IPADDR(AF_INET6));
       addr->set_type(IPADDR::R_MULTIPLE);
       addr->set_addr6(&inaddr6);
       addr_list->append(addr);
@@ -670,7 +670,7 @@ static BSOCK *bnet_open(JCR * jcr, const char *name, char *host, char *service,
    }
 
    foreach_dlist(ipaddr, addr_list) {
-      ipaddr->set_port(htons(port));
+      ipaddr->set_port_net(htons(port));
       char allbuf[256 * 10];
       char curbuf[256];
       Dmsg2(100, "Current %sAll %s\n", 
@@ -682,7 +682,7 @@ static BSOCK *bnet_open(JCR * jcr, const char *name, char *host, char *service,
 	 save_errno = errno;
 	 *fatal = 1;
          Pmsg3(000, "Socket open error. proto=%d port=%d. ERR=%s\n", 
-	    ipaddr->get_family(), ipaddr->get_port(), be.strerror());
+	    ipaddr->get_family(), ipaddr->get_port_host_order(), be.strerror());
 	 continue;
       }
       /*

@@ -56,7 +56,7 @@ bool read_records(DCR *dcr,
    dlist *recs; 			/* linked list of rec packets open */
 
    block = new_block(dev);
-   recs = new dlist(rec, &rec->link);
+   recs = New(dlist(rec, &rec->link));
    position_to_first_file(jcr, dev);
 
    for ( ; ok && !done; ) {
