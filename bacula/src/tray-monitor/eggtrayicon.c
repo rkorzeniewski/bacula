@@ -18,6 +18,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
+extern "C" {
+ 
 #include <string.h>
 #include <libintl.h>
 
@@ -477,3 +479,5 @@ egg_tray_icon_get_orientation (EggTrayIcon *icon)
 
   return icon->orientation;
 }
+
+} //extern "C"

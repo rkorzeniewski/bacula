@@ -22,6 +22,8 @@
  *  Nicolas Boichat <nicolas@boichat.ch> (add access to the underlying EggTrayIcon)
  */
 
+extern "C" {
+
 #include <string.h>
 #include <libintl.h>
 
@@ -786,3 +788,5 @@ egg_status_icon_get_tray_icon (EggStatusIcon      *status_icon)
    
    return EGG_TRAY_ICON(status_icon->priv->tray_icon);
 }
+
+} //extern "C"

@@ -30,3 +30,9 @@
 #define TRAY_MONITOR 1
 
 #include "jcr.h"
+
+struct monitoritem {
+   rescode type; /* R_CLIENT or R_STORAGE */
+   void* resource; /* CLIENT* or STORE* */
+};
+

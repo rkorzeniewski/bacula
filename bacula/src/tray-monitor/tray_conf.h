@@ -32,7 +32,7 @@
 /*
  * Resource codes -- they must be sequential for indexing   
  */
-enum {
+enum rescode {
    R_MONITOR = 1001,
    R_CLIENT,
    R_STORAGE,

@@ -179,7 +179,6 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
 */
 void free_resource(RES *sres, int type)
 {
-   int num;
    RES *nres;			      /* next resource if linked */
    URES *res = (URES *)sres;
 
