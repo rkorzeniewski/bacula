@@ -1,9 +1,20 @@
                  Kern's ToDo List
-                   22 July 2004
+                   03 August 2004
 
-1.35 Items to do:
+Major development:      
+Project                     Developer
+=======                     =========                         
+IPv6_2                      Meno Abels
+Data encryption             Meno Abels (see projects)
+Communication encryption    Meno Abels  
+Version 1.35                Kern (see below)
+========================================================
+
+1.35 Items to do for release:
 - Knoppix CDROM
 - Add bscan to four-concurrent-jobs regression.
+- Doc new IPv6 syntax
+- Add IPv6 to regression
 - Do tape alerts -- see tapealert.txt
 - Document a get out of jail procedure if everything breaks if 
   you lost/broke the Catalog -- do the same for "I know my
@@ -25,6 +36,8 @@
 - Solve the termcap.h problem on Solaris configure.
 - Fix ./configure to handle installed SQLite
 - Test Win32 errno handling.
+
+
 
 Documentation to do: (any release a little bit at a time)
 - Document query file format.
