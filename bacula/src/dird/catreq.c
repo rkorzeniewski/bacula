@@ -164,7 +164,8 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
             Dmsg2(100, "Vol Info for %s: %s", jcr->Job, bs->msg);
 	 } else { 
 	    /* Not suitable volume */
-            bnet_fsend(bs, "1998 Volume \"%s\" %s.\n", mr.VolumeName, reason);
+            bnet_fsend(bs, "1998 Volume \"%s\" status is %s, %s.\n", mr.VolumeName, 
+	       mr.VolStatus, reason);
 	 }
 
       } else {

@@ -67,9 +67,10 @@ static void free_findex(RBSR_FINDEX *fi)
  * We are called here once for each JobMedia record
  *  for each Volume.
  */
-static void write_findex(UAContext *ua, RBSR_FINDEX *fi, 
+static uint32_t write_findex(UAContext *ua, RBSR_FINDEX *fi, 
 	      int32_t FirstIndex, int32_t LastIndex, FILE *fd) 
 {
+   uint32_t count = 0;
    for ( ; fi; fi=fi->next) {
       int32_t findex, findex2;
       if ((fi->findex >= FirstIndex && fi->findex <= LastIndex) ||
@@ -79,11 +80,14 @@ static void write_findex(UAContext *ua, RBSR_FINDEX *fi,
 	 findex2 = fi->findex2 > LastIndex ? LastIndex : fi->findex2;
 	 if (findex == findex2) {
             fprintf(fd, "FileIndex=%d\n", findex);
+	    count++;
 	 } else {
             fprintf(fd, "FileIndex=%d-%d\n", findex, findex2);
+	    count += findex2 - findex + 1;
 	 }
       }
    }
+   return count;
 }
 
 /*
@@ -133,10 +137,10 @@ void free_bsr(RBSR *bsr)
 {
    if (bsr) {
       free_findex(bsr->fi);
-      free_bsr(bsr->next);
       if (bsr->VolParams) {
 	 free(bsr->VolParams);
       }
+      free_bsr(bsr->next);
       free(bsr);
    }
 }
@@ -219,6 +223,7 @@ int write_bsr_file(UAContext *ua, RBSR *bsr)
 static void write_bsr(UAContext *ua, RBSR *bsr, FILE *fd)
 {
    if (bsr) {
+      uint32_t count;
       /*
        * For a given volume, loop over all the JobMedia records.
        *   VolCount is the number of JobMedia records.
@@ -232,15 +237,26 @@ static void write_bsr(UAContext *ua, RBSR *bsr, FILE *fd)
          fprintf(fd, "Volume=\"%s\"\n", bsr->VolParams[i].VolumeName);
          fprintf(fd, "VolSessionId=%u\n", bsr->VolSessionId);
          fprintf(fd, "VolSessionTime=%u\n", bsr->VolSessionTime);
-         fprintf(fd, "VolFile=%u-%u\n", bsr->VolParams[i].StartFile, 
-		 bsr->VolParams[i].EndFile);
-         fprintf(fd, "VolBlock=%u-%u\n", bsr->VolParams[i].StartBlock,
-		 bsr->VolParams[i].EndBlock);
-
+	 if (bsr->VolParams[i].StartFile == bsr->VolParams[i].EndFile) {
+            fprintf(fd, "VolFile=%u\n", bsr->VolParams[i].StartFile);
+	 } else {
+            fprintf(fd, "VolFile=%u-%u\n", bsr->VolParams[i].StartFile, 
+		    bsr->VolParams[i].EndFile);
+	 }
+	 if (bsr->VolParams[i].StartBlock == bsr->VolParams[i].EndBlock) {
+            fprintf(fd, "VolFile=%u\n", bsr->VolParams[i].StartBlock);
+	 } else {
+            fprintf(fd, "VolBlock=%u-%u\n", bsr->VolParams[i].StartBlock,
+		    bsr->VolParams[i].EndBlock);
+	 }
 //       Dmsg2(000, "bsr VolParam FI=%u LI=%u\n",
 //	    bsr->VolParams[i].FirstIndex, bsr->VolParams[i].LastIndex);
-	 write_findex(ua, bsr->fi, bsr->VolParams[i].FirstIndex,
-	    bsr->VolParams[i].LastIndex, fd);
+
+	 count = write_findex(ua, bsr->fi, bsr->VolParams[i].FirstIndex,
+			      bsr->VolParams[i].LastIndex, fd);
+	 if (count) {
+            fprintf(fd, "Count=%u\n", count);
+	 }
       }
       write_bsr(ua, bsr->next, fd);
    }

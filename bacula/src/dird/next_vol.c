@@ -207,13 +207,13 @@ bool is_volume_valid_or_recyclable(JCR *jcr, MEDIA_DBR *mr, char **reason)
 	 return true;
       } else {
          /* In principle this shouldn't happen */
-         *reason = "recycling of current volume failed";
+         *reason = "and recycling of current volume failed";
 	 return false;
       }
    }
 											
    /* At this point, the volume is not valid for writing */
-   *reason = "not Append, Purged or Recycle";
+   *reason = "but should be Append, Purged or Recycle";
 											
    /*
     * What we're trying to do here is see if the current volume is
@@ -241,11 +241,11 @@ bool is_volume_valid_or_recyclable(JCR *jcr, MEDIA_DBR *mr, char **reason)
             Jmsg(jcr, M_INFO, 0, "Recycled current volume \"%s\"\n", mr->VolumeName);
 	    return true;	       /* Good volume */
 	 } else {
-            *reason = "not Append, Purged or Recycle (recycling of the "
+            *reason = "but should be Append, Purged or Recycle (recycling of the "
                "current volume failed)";
 	 }
       } else {
-         *reason = "not Append, Purged or Recycle (cannot automatically "
+         *reason = "but should be Append, Purged or Recycle (cannot automatically "
             "recycle current volume, as it still contains unpruned data)";
       }
    }

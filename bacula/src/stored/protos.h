@@ -155,6 +155,7 @@ int match_bsr(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
 int match_bsr_block(BSR *bsr, DEV_BLOCK *block);
 void position_bsr_block(BSR *bsr, DEV_BLOCK *block);
 BSR *find_next_bsr(BSR *root_bsr, DEVICE *dev);
+bool match_set_eof(BSR *bsr, DEV_RECORD *rec);
 
 /* From mount.c */
 int	 mount_next_write_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, int release);

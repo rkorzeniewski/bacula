@@ -77,6 +77,7 @@
  * 
  *  This is the memory structure for the record header.
  */
+struct BSR;                           /* satisfy forward reference */
 struct DEV_RECORD {
    dlink link;                        /* link for chaining in read_record.c */
    /* File and Block are always returned during reading
@@ -91,6 +92,7 @@ struct DEV_RECORD {
    uint32_t data_len;                 /* current record length */
    uint32_t remainder;                /* remaining bytes to read/write */
    uint32_t state;                    /* state bits */
+   BSR *bsr;                          /* pointer to bsr that matched */
    uint8_t  ser_buf[WRITE_RECHDR_LENGTH];   /* serialized record header goes here */
    POOLMEM *data;                     /* Record data. This MUST be a memory pool item */
 };           

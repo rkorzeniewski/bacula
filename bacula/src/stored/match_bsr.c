@@ -157,10 +157,10 @@ BSR *find_next_bsr(BSR *root_bsr, DEVICE *dev)
 
    if (!root_bsr || !root_bsr->use_positioning || 
        !root_bsr->reposition || !dev_is_tape(dev)) {
-      Dmsg2(100, "use_pos=%d repos=%d\n", root_bsr->use_positioning,
-	root_bsr->reposition);
+      Dmsg2(100, "No nxt_bsr use_pos=%d repos=%d\n", root_bsr->use_positioning, root_bsr->reposition);
       return NULL;
    }
+   Dmsg2(100, "use_pos=%d repos=%d\n", root_bsr->use_positioning, root_bsr->reposition);
    root_bsr->mount_next_volume = false;
    for (bsr=root_bsr; bsr; bsr=bsr->next) {
       if (bsr->done || !match_volume(bsr, bsr->volume, &dev->VolHdr, 1)) {
@@ -232,6 +232,34 @@ static BSR *find_smallest_volfile(BSR *found_bsr, BSR *bsr)
 }
 
 /* 
+ * Called to tell the matcher that the end of
+ *   the current file has been reached.
+ *  The bsr argument is not used, but is included
+ *    for consistency with the other match calls.
+ * 
+ * Returns: true if we should reposition
+ *	  : false otherwise.
+ */
+bool match_set_eof(BSR *bsr, DEV_RECORD *rec)
+{
+   BSR *rbsr = rec->bsr;
+   Dmsg1(100, "match_set %d\n", rbsr != NULL);
+   if (!rbsr) {
+      return false;
+   }
+   rec->bsr = NULL;
+   rbsr->found++;
+   if (rbsr->count && rbsr->found >= rbsr->count) {
+      rbsr->done = true;
+      rbsr->root->reposition = true;
+      Dmsg2(100, "match_set_eof reposition count=%d found=%d\n",
+	 rbsr->count, rbsr->found);
+      return true;
+   }
+   return false;
+}
+
+/* 
  * Match all the components of current record
  *   returns  1 on match
  *   returns  0 no match
@@ -243,33 +271,54 @@ static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
    if (bsr->done) {
       goto no_match;
    }
-   if (bsr->count && bsr->found >= bsr->count) {
-      bsr->done = true;
-      bsr->root->reposition = true;
-      Dmsg0(100, "bsr done from count\n");
-      goto no_match;
-   }
    if (!match_volume(bsr, bsr->volume, volrec, 1)) {
       goto no_match;
    }
    if (!match_volfile(bsr, bsr->volfile, rec, 1)) {
+      Dmsg2(100, "Fail on file. bsr=%d rec=%d\n", bsr->volfile->efile,
+	 rec->File);
       goto no_match;
    }
    if (!match_sesstime(bsr, bsr->sesstime, rec, 1)) {
+      Dmsg2(100, "Fail on sesstime. bsr=%d rec=%d\n",
+	 bsr->sesstime->sesstime, rec->VolSessionTime);
       goto no_match;
    }
 
    /* NOTE!! This test MUST come after the sesstime test */
    if (!match_sessid(bsr, bsr->sessid, rec)) {
+      Dmsg2(100, "Fail on sessid. bsr=%d rec=%d\n",
+	 bsr->sessid->sessid, rec->VolSessionId);
       goto no_match;
    }
 
    /* NOTE!! This test MUST come after sesstime and sessid tests */
    if (!match_findex(bsr, bsr->FileIndex, rec, 1)) {
+      Dmsg2(100, "Fail on findex. bsr=%d rec=%d\n",
+	 bsr->FileIndex->findex2, rec->FileIndex);
       goto no_match;
    }
+   /*
+    * If a count was specified and we have a FileIndex, assume
+    *	it is a Bacula created bsr (or the equivalent). We
+    *	then save the bsr where the match occurred so that
+    *	after processing the record or records, we can update
+    *	the found count. I.e. rec->bsr points to the bsr that
+    *	satisfied the match.
+    */
+   if (bsr->count && bsr->FileIndex) {
+      rec->bsr = bsr;
+      return 1; 		      /* this is a complete match */
+   }
+
+   /*
+    * The selections below are not used by Bacula's
+    *   restore command, and don't work because of
+    *	the rec->bsr = bsr optimization above.
+    */
    if (!match_jobid(bsr, bsr->JobId, sessrec, 1)) {
       goto no_match;
+       
    }
    if (!match_job(bsr, bsr->job, sessrec, 1)) {
       goto no_match;
@@ -286,7 +335,6 @@ static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
    if (!match_stream(bsr, bsr->stream, rec, 1)) {
       goto no_match;
    }
-   bsr->found++;
    return 1;
 
 no_match:
@@ -409,7 +457,8 @@ static int match_volfile(BSR *bsr, BSR_VOLFILE *volfile, DEV_RECORD *rec, bool d
    if (volfile->done && done) {
       bsr->done = true;
       bsr->root->reposition = true;
-      Dmsg0(100, "bsr done from volfile\n");
+      Dmsg2(100, "bsr done from volfile rec=%d volefile=%d\n", 
+	 rec->File, volfile->efile);
    }
    return 0;
 }

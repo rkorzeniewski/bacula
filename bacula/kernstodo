@@ -35,6 +35,11 @@ For 1.33 Testing/Documentation:
   SuSE.
                 
 For 1.33
+- I want to restore by file to some date.
+- Implement fast block rejection.
+- Is it really important to make Job name the same to find the
+  Full backup to avoid promoting an Incremental job?
+- Start label, then run job when tape labeled, it should broadcast.
 - Implement a RunAfterFailedJob
 - Zap illegal characters in job name for mail files (e.g. /).
 - From Lars Köllers:
@@ -1036,4 +1041,3 @@ Done: (see kernsdone for more)
   job. Use find_job_pool() modified in ua_output.c
 - Test connect timeouts.
 - Fix FreeBSD build with tcp_wrapper -- should not have -lnsl
-
