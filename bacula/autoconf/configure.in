@@ -1234,7 +1234,7 @@ redhat)
 	hostname=`hostname -s`
   ;;
 gentoo)
-	DISTVER=`uname -r`
+	DISTVER=`awk '/version / {print $5}' < /etc/gentoo-release`
 	TAPEDRIVE="/dev/nst0"
 	PSCMD="ps -e -o pid,command"
 	PFILES="\

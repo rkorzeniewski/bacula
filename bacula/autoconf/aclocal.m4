@@ -302,6 +302,9 @@ then
 elif test -f /etc/redhat-release
 then
         DISTNAME=redhat
+elif test -f /etc/gentoo-release
+then
+        DISTNAME=gentoo
 elif test -f /etc/debian_version
 then
         DISTNAME=debian
