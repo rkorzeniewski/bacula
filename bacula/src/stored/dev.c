@@ -1125,7 +1125,9 @@ static void do_close(DEVICE *dev)
 {
 
    Dmsg1(29, "really close_dev %s\n", dev->dev_name);
-   close(dev->fd);
+   if (dev->fd >= 0) {
+      close(dev->fd);
+   }
    /* Clean up device packet so it can be reused */
    dev->fd = -1;
    dev->state &= ~(ST_OPENED|ST_LABEL|ST_READ|ST_APPEND|ST_EOT|ST_WEOT|ST_EOF);
@@ -1164,7 +1166,7 @@ close_dev(DEVICE *dev)
 }
 
 /*
- * Used when unmounting the device
+ * Used when unmounting the device, ignore use_count
  */
 void force_close_dev(DEVICE *dev)
 {

@@ -143,7 +143,7 @@ read_volume:
        */
       if (dev_cap(dev, CAP_STREAM)) {
 	 vol_label_status = VOL_OK;
-	 create_volume_label(dev, jcr->VolumeName);
+         create_volume_label(dev, jcr->VolumeName, "Default");
 	 dev->VolHdr.LabelType = PRE_LABEL;
       } else {
 	 vol_label_status = read_dev_volume_label(jcr, dev, block);
@@ -189,13 +189,16 @@ read_volume:
 	    recycle = 1;
 	 }
 	 break; 	       /* got a Volume */
-
+      /*
+       * At this point, we assume we have a blank tape mounted.
+       */
       case VOL_NO_LABEL:
       case VOL_IO_ERROR:
          Dmsg1(500, "Vol NO_LABEL or IO_ERROR name=%s\n", jcr->VolumeName);
 	 /* If permitted, create a label */
 	 if (dev_cap(dev, CAP_LABEL)) {
             Dmsg0(100, "Create volume label\n");
+	    /* ***FIXME*** ask for label name */
 	    if (!write_volume_label_to_dev(jcr, (DEVRES *)dev->device, jcr->VolumeName,
 		   jcr->pool_name)) {
                Dmsg0(100, "!write_vol_label\n");
@@ -206,6 +209,7 @@ read_volume:
 	    goto read_volume;	   /* read label we just wrote */
 	 } 
 	 /* NOTE! Fall-through wanted. */
+      case VOL_NO_MEDIA:
       default:
 mount_error:
 	 /* Send error message */
@@ -281,7 +285,7 @@ mount_error:
 	 dev->VolCatInfo.VolCatWrites = 1;
 	 dev->VolCatInfo.VolCatReads = 1;
       }
-      strcpy(dev->VolCatInfo.VolCatStatus, "Append");
+      bstrncpy(dev->VolCatInfo.VolCatStatus, "Append", sizeof(dev->VolCatInfo.VolCatStatus));
       Dmsg0(200, "dir_update_vol_info. Set Append\n");
       dir_update_volume_info(jcr, &dev->VolCatInfo, 1);  /* indicate doing relabel */
       if (recycle) {
@@ -383,7 +387,8 @@ void release_volume(JCR *jcr, DEVICE *dev)
    dev->state &= ~ST_LABEL;	   /* label not yet read */
    jcr->VolumeName[0] = 0;
 
-   if (!dev_is_tape(dev) || !dev_cap(dev, CAP_ALWAYSOPEN)) {
+   if ((dev->state & ST_OPENED) && 
+       (!dev_is_tape(dev) || !dev_cap(dev, CAP_ALWAYSOPEN))) {
       offline_or_rewind_dev(dev);
       close_dev(dev);
    }
