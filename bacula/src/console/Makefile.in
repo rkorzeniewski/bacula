@@ -42,7 +42,7 @@ all: Makefile console
 
 console: $(CONSOBJS) ../lib/libbac.a ../cats/libsql.a
 	$(CXX) $(LDFLAGS) $(CONS_LDFLAGS) -L../lib -L../cats -o $@ $(CONSOBJS) \
-	      $(LIBS) $(DLIB) $(CONS_LIBS) -lbac -lsql -lm -ltermcap
+	      $(LIBS) $(DLIB) $(CONS_LIBS) -lbac -lsql -lm
 
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	cd $(topdir) \

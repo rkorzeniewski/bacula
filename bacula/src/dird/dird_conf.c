@@ -110,7 +110,7 @@ static struct res_items cli_items[] = {
    {"catalog",  store_res,        ITEM(res_client.catalog),  R_CATALOG, 0, 0},
    {"fileretention", store_time,  ITEM(res_client.FileRetention), 0, ITEM_DEFAULT, 60*60*24*30},
    {"jobretention",  store_time,  ITEM(res_client.JobRetention),  0, ITEM_DEFAULT, 60*60*24*365},
-   {"autoprune", store_yesno,     ITEM(res_client.AutoPrune), 1, ITEM_DEFAULT, 1},
+   {"autoprune", store_yesno,     ITEM(res_client.AutoPrune), 1, ITEM_DEFAULT, 0},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 
@@ -215,9 +215,9 @@ static struct res_items pool_items[] = {
    {"maximumvolumes",  store_pint,  ITEM(res_pool.max_volumes),     0, 0,             0},
    {"acceptanyvolume", store_yesno, ITEM(res_pool.accept_any_volume), 1, 0,     0},
    {"catalogfiles",    store_yesno, ITEM(res_pool.catalog_files),   1, ITEM_DEFAULT,  1},
-   {"volumeretention", store_time,  ITEM(res_pool.VolumeRetention), 0, ITEM_DEFAULT, 60*60*24*365},
-   {"autorecycle",     store_yesno, ITEM(res_pool.AutoRecycle), 1, ITEM_DEFAULT, 1},
-   {"recycle",         store_yesno, ITEM(res_pool.Recycle),     1, ITEM_DEFAULT, 1},
+   {"volumeretention", store_time,  ITEM(res_pool.VolRetention), 0, ITEM_DEFAULT, 60*60*24*365},
+   {"autoprune",       store_yesno, ITEM(res_pool.AutoPrune), 1, ITEM_DEFAULT, 0},
+   {"recycle",         store_yesno, ITEM(res_pool.Recycle),     1, ITEM_DEFAULT, 0},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 
@@ -451,9 +451,11 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
          sendit(sock, "      use_cat=%d use_once=%d acpt_any=%d cat_files=%d\n",
 		 res->res_pool.use_catalog, res->res_pool.use_volume_once,
 		 res->res_pool.accept_any_volume, res->res_pool.catalog_files);
-         sendit(sock, "      max_vols=%d auto_recycle=%d VolumeRetention=%" lld "\n",
-		 res->res_pool.max_volumes, res->res_pool.AutoRecycle,
-		 res->res_pool.VolumeRetention);
+         sendit(sock, "      max_vols=%d auto_prune=%d VolRetention=%" lld "\n",
+		 res->res_pool.max_volumes, res->res_pool.AutoPrune,
+		 res->res_pool.VolRetention);
+         sendit(sock, "      recycle=%d\n",  res->res_pool.Recycle);
+	 
 
          sendit(sock, "      LabelFormat=%s\n", res->res_pool.label_format?
                  res->res_pool.label_format:"NONE");

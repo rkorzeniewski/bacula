@@ -148,6 +148,7 @@ init_msg(void *vjcr)
 	 memcpy(dnew, d, sizeof(DEST));
 	 dnew->next = temp_chain;
 	 dnew->fd = NULL;
+	 dnew->mail_filename = NULL;
 	 temp_chain = dnew;
       }
 
@@ -189,7 +190,7 @@ void init_console_msg(char *wd)
  *  but in the case of MAIL is a space separated list of
  *  email addresses, ...
  */
-void add_msg_dest(int dest_code, int msg_type, char *where, char *mail_cmd)
+void add_msg_dest(MSGS *msg, int dest_code, int msg_type, char *where, char *mail_cmd)
 {
    DEST *d; 
 
@@ -230,7 +231,7 @@ void add_msg_dest(int dest_code, int msg_type, char *where, char *mail_cmd)
  *
  * Remove a message destination   
  */
-void rem_msg_dest(int dest_code, int msg_type, char *where)
+void rem_msg_dest(MSGS *msg, int dest_code, int msg_type, char *where)
 {
    DEST *d;
 
@@ -525,14 +526,14 @@ void close_msg(void *vjcr)
 rem_temp_file:
 	    /* Remove temp file */
 	    fclose(d->fd);
-	    make_unique_mail_filename(jcr, &cmd, d);
-            Dmsg1(200, "unlink: %s\n", cmd);
-	    unlink(cmd);
+	    unlink(d->mail_filename);
+	    free_pool_memory(d->mail_filename);
+	    d->mail_filename = NULL;
 	    break;
 	 default:
 	    break;
 	 }
-	 d->fd = 0;
+	 d->fd = NULL;
       }
       old = d;			      /* save pointer to release */
       d = d->next;		      /* point to next buffer */
@@ -555,8 +556,13 @@ void term_msg()
       if (d->fd) {
 	 if (d->dest_code == MD_FILE || d->dest_code == MD_APPEND) {
 	    fclose(d->fd);	      /* close open file descriptor */
+	    d->fd = NULL;
 	 } else if (d->dest_code == MD_MAIL || d->dest_code == MD_MAIL_ON_ERROR) {
-	    pclose(d->fd);	      /* close open pipe */
+	    fclose(d->fd);
+	    d->fd = NULL;
+	    unlink(d->mail_filename);
+	    free_pool_memory(d->mail_filename);
+	    d->mail_filename = NULL;
 	 }
       }
       n = d->next;
@@ -646,13 +652,14 @@ void dispatch_message(void *vjcr, int type, int level, char *buf)
 		   fputs(buf, d->fd);
 		   /* Messages to the operator go one at a time */
 		   pclose(d->fd);
+		   d->fd = NULL;
 		}
 		break;
 	     case MD_MAIL:
 	     case MD_MAIL_ON_ERROR:
                 Dmsg1(200, "MAIL for following err: %s\n", buf);
 		if (!d->fd) {
-		   char *name  = (char *) get_pool_memory(PM_MESSAGE);
+		   char *name  = (char *)get_pool_memory(PM_MESSAGE);
 		   make_unique_mail_filename(jcr, &name, d);
                    d->fd = fopen(name, "w+");
                    Dmsg2(100, "Open mail file %d: %s\n", d->fd, name);
@@ -661,7 +668,7 @@ void dispatch_message(void *vjcr, int type, int level, char *buf)
 		      free_pool_memory(name);
 		      break;
 		   }
-		   free_pool_memory(name);
+		   d->mail_filename = name;
 		}
 		len = strlen(buf);
 		if (len > d->max_len) {

@@ -38,8 +38,7 @@ LIBSRCS = alloc.c base64.c bmisc.c bnet.c bnet_server.c \
 	  makepath.c \
 	  md5.c message.c mem_pool.c parse_conf.c \
 	  queue.c rwlock.c save-cwd.c serial.c \
-	  signal.c smartall.c util.c watchdog.c workq.c
-
+	  signal.c smartall.c util.c watchdog.c workq.c  
 
 #	  immortal.c filesys.c
 

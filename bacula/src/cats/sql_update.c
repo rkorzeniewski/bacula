@@ -100,20 +100,19 @@ db_update_job_start_record(B_DB *mdb, JOB_DBR *jr)
    char dt[MAX_TIME_LENGTH];
    time_t stime;
    struct tm tm;
-   btime_t StartDay;
+   btime_t JobTDate;
    int stat;
    char ed1[30];
        
    stime = jr->StartTime;
    localtime_r(&stime, &tm);
    strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
-   StartDay = (btime_t)(date_encode(tm.tm_year+1900, tm.tm_mon+1, tm.tm_mday) -
-       date_encode(2000, 1, 1));
+   JobTDate = (btime_t)stime;
 
    P(mdb->mutex);
    Mmsg(&mdb->cmd, "UPDATE Job SET Level='%c', StartTime=\"%s\", \
-ClientId=%d, StartDay=%s WHERE JobId=%d",
-      (char)(jr->Level), dt, jr->ClientId, edit_uint64(StartDay, ed1), jr->JobId);
+ClientId=%d, JobTDate=%s WHERE JobId=%d",
+      (char)(jr->Level), dt, jr->ClientId, edit_uint64(JobTDate, ed1), jr->JobId);
    stat = UPDATE_DB(mdb, mdb->cmd);
    V(mdb->mutex);
    return stat;
@@ -135,22 +134,21 @@ db_update_job_end_record(B_DB *mdb, JOB_DBR *jr)
    struct tm tm;
    int stat;
    char ed1[30], ed2[30];
-   btime_t StartDay;
+   btime_t JobTDate;
        
    ttime = jr->EndTime;
    localtime_r(&ttime, &tm);
    strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
-   StartDay = (btime_t)(date_encode(tm.tm_year+1900, tm.tm_mon+1, tm.tm_mday) -
-       date_encode(2000, 1, 1));
+   JobTDate = ttime;
 
    P(mdb->mutex);
    Mmsg(&mdb->cmd,
       "UPDATE Job SET JobStatus='%c', EndTime='%s', \
 ClientId=%d, JobBytes=%s, JobFiles=%d, JobErrors=%d, VolSessionId=%d, \
-VolSessionTime=%d, PoolId=%d, FileSetId=%d, StartDay=%s WHERE JobId=%d",
+VolSessionTime=%d, PoolId=%d, FileSetId=%d, JobTDate=%s WHERE JobId=%d",
       (char)(jr->JobStatus), dt, jr->ClientId, edit_uint64(jr->JobBytes, ed1), 
       jr->JobFiles, jr->JobErrors, jr->VolSessionId, jr->VolSessionTime, 
-      jr->PoolId, jr->FileSetId, edit_uint64(StartDay, ed2), jr->JobId);
+      jr->PoolId, jr->FileSetId, edit_uint64(JobTDate, ed2), jr->JobId);
 
    stat = UPDATE_DB(mdb, mdb->cmd);
    V(mdb->mutex);
@@ -194,10 +192,11 @@ db_update_media_record(B_DB *mdb, MEDIA_DBR *mr)
    localtime_r(&ttime, &tm);
    strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
 
+   Dmsg1(000, "update_media: FirstWritte=%d\n", mr->FirstWritten);
    P(mdb->mutex);
    if (mr->VolMounts == 1) {
-      Mmsg(&mdb->cmd, "UPDATE Media SET FirstWritten=\"%s\" WHERE \
-         VolumeName=\"%s\"", dt, mr->VolumeName);
+      Mmsg(&mdb->cmd, "UPDATE Media SET FirstWritten=\"%s\"\
+ WHERE VolumeName=\"%s\"", dt, mr->VolumeName);
       if (do_update(mdb, mdb->cmd) == 0) {
 	 V(mdb->mutex);
 	 return 0;

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# shell script to delete Bacula tables
+# shell script to delete Bacula tables for MySQL
 
 bindir=@SQL_BINDIR@
 
@@ -18,10 +18,11 @@ DROP TABLE IF EXISTS Pool;
 DROP TABLE IF EXISTS MultiVolume;
 DROP TABLE IF EXISTS FileSave;	 
 DROP TABLE IF EXISTS FileSet;	
+DROP TABLE IF EXISTS Version;
 END-OF-DATA
 then
-   echo "Deletion of Bacula tables succeeded."
+   echo "Deletion of Bacula MySQL tables succeeded."
 else
-   echo "Deletion of Bacula tables failed."
+   echo "Deletion of Bacula MySQL tables failed."
 fi
 exit 0

@@ -68,15 +68,14 @@ db_create_job_record(B_DB *mdb, JOB_DBR *jr)
    struct tm tm;
    int stat;
    char *JobId;
-   btime_t StartDay;
+   btime_t JobTDate;
    char ed1[30];
 
    stime = jr->SchedTime;
 
    localtime_r(&stime, &tm); 
    strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
-   StartDay = (btime_t)(date_encode(tm.tm_year+1900, tm.tm_mon+1, tm.tm_mday) -
-       date_encode(2000, 1, 1));
+   JobTDate = (btime_t)stime;
 
    P(mdb->mutex);
    JobId = db_next_index(mdb, "Job");
@@ -87,10 +86,10 @@ db_create_job_record(B_DB *mdb, JOB_DBR *jr)
    }
    /* Must create it */
    Mmsg(&mdb->cmd,
-"INSERT INTO Job (JobId, Job, Name, Type, Level, SchedTime, StartDay) VALUES \
+"INSERT INTO Job (JobId, Job, Name, Type, Level, SchedTime, JobTDate) VALUES \
 (%s, \"%s\", \"%s\", \"%c\", \"%c\", \"%s\", %s)", 
 	   JobId, jr->Job, jr->Name, (char)(jr->Type), (char)(jr->Level), dt,
-	   edit_uint64(StartDay, ed1));
+	   edit_uint64(JobTDate, ed1));
 
    if (!INSERT_DB(mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create DB Job record %s failed. ERR=%s\n"), 
@@ -157,13 +156,13 @@ VALUES (%d, %d, %u, %u)",
  *	    1 on success
  */
 int
-db_create_pool_record(B_DB *mdb, POOL_DBR *pool_dbr)
+db_create_pool_record(B_DB *mdb, POOL_DBR *pr)
 {
    int stat;
    char ed1[30];
 
    P(mdb->mutex);
-   Mmsg(&mdb->cmd, "SELECT PoolId,Name FROM Pool WHERE Name=\"%s\"", pool_dbr->Name);
+   Mmsg(&mdb->cmd, "SELECT PoolId,Name FROM Pool WHERE Name=\"%s\"", pr->Name);
    Dmsg1(20, "selectpool: %s\n", mdb->cmd);
 
    if (QUERY_DB(mdb, mdb->cmd)) {
@@ -171,7 +170,7 @@ db_create_pool_record(B_DB *mdb, POOL_DBR *pool_dbr)
       mdb->num_rows = sql_num_rows(mdb);
    
       if (mdb->num_rows > 0) {
-         Mmsg1(&mdb->errmsg, _("pool record %s already exists\n"), pool_dbr->Name);
+         Mmsg1(&mdb->errmsg, _("pool record %s already exists\n"), pr->Name);
 	 sql_free_result(mdb);
 	 V(mdb->mutex);
 	 return 0;
@@ -182,23 +181,23 @@ db_create_pool_record(B_DB *mdb, POOL_DBR *pool_dbr)
    /* Must create it */
    Mmsg(&mdb->cmd, 
 "INSERT INTO Pool (Name, NumVols, MaxVols, UseOnce, UseCatalog, \
-AcceptAnyVolume, AutoRecycle, Recycle, VolumeRetention, PoolType, LabelFormat) \
-VALUES (\"%s\", %d, %d, %d, %d, %d, %d, %d, %s \"%s\", \"%s\")", 
-		  pool_dbr->Name,
-		  pool_dbr->NumVols, pool_dbr->MaxVols,
-		  pool_dbr->UseOnce, pool_dbr->UseCatalog,
-		  pool_dbr->AcceptAnyVolume,
-		  pool_dbr->AutoRecycle, pool_dbr->Recycle,
-		  edit_uint64(pool_dbr->VolumeRetention, ed1),
-		  pool_dbr->PoolType, pool_dbr->LabelFormat);
-
+AcceptAnyVolume, AutoPrune, Recycle, VolRetention, PoolType, LabelFormat) \
+VALUES (\"%s\", %d, %d, %d, %d, %d, %d, %d, %s, \"%s\", \"%s\")", 
+		  pr->Name,
+		  pr->NumVols, pr->MaxVols,
+		  pr->UseOnce, pr->UseCatalog,
+		  pr->AcceptAnyVolume,
+		  pr->AutoPrune, pr->Recycle,
+		  edit_uint64(pr->VolRetention, ed1),
+		  pr->PoolType, pr->LabelFormat);
+   Dmsg1(500, "Create Pool: %s\n", mdb->cmd);
    if (!INSERT_DB(mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db Pool record %s failed: ERR=%s\n"), 
 	    mdb->cmd, sql_strerror(mdb));
-      pool_dbr->PoolId = 0;
+      pr->PoolId = 0;
       stat = 0;
    } else {
-      pool_dbr->PoolId = sql_insert_id(mdb);
+      pr->PoolId = sql_insert_id(mdb);
       stat = 1;
    }
    V(mdb->mutex);
@@ -237,7 +236,7 @@ db_create_media_record(B_DB *mdb, MEDIA_DBR *mr)
    /* Must create it */
    Mmsg(&mdb->cmd, 
 "INSERT INTO Media (VolumeName, MediaType, PoolId, VolMaxBytes, VolCapacityBytes, \
-VolStatus, Recycle) VALUES (\"%s\", \"%s\", %d, %s, %s, %d, %s, \"%s\")", 
+Recycle, VolRetention, VolStatus) VALUES (\"%s\", \"%s\", %d, %s, %s, %d, %s, \"%s\")", 
 		  mr->VolumeName,
 		  mr->MediaType, mr->PoolId, 
 		  edit_uint64(mr->VolMaxBytes,ed1),
@@ -246,6 +245,7 @@ VolStatus, Recycle) VALUES (\"%s\", \"%s\", %d, %s, %s, %d, %s, \"%s\")",
 		  edit_uint64(mr->VolRetention, ed3),
 		  mr->VolStatus);
 
+   Dmsg1(500, "Create Volume: %s\n", mdb->cmd);
    if (!INSERT_DB(mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create DB Media record %s failed. ERR=%s\n"),
 	    mdb->cmd, sql_strerror(mdb));
@@ -303,7 +303,7 @@ int db_create_client_record(B_DB *mdb, CLIENT_DBR *cr)
    /* Must create it */
    Mmsg(&mdb->cmd, "INSERT INTO Client (Name, Uname, AutoPrune, \
 FileRetention, JobRetention) VALUES \
-(\"%s\", \"%s\")", cr->Name, cr->Uname, cr->AutoPrune,
+(\"%s\", \"%s\", %d, %s, %s)", cr->Name, cr->Uname, cr->AutoPrune,
       edit_uint64(cr->FileRetention, ed1),
       edit_uint64(cr->JobRetention, ed2));
 

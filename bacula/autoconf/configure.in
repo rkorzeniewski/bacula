@@ -212,7 +212,7 @@ if test x$support_readline = xyes; then
 	  AC_CHECK_HEADER($with_readline/readline.h, 
 	     [ AC_MSG_RESULT(yes)
 	       AC_DEFINE(HAVE_READLINE) 
-	       CONS_LIBS="-lreadline"
+	       CONS_LIBS="-lreadline -ltermcap"
 	       got_readline="yes"   
 	     ],
 	     [ AC_MSG_ERROR([*** readline library missing]) 
@@ -227,14 +227,14 @@ if test x$support_readline = xyes; then
 	 AC_DEFINE(HAVE_READLINE)
 	 got_readline="yes"
 	 CONS_INC="-I/usr/include/readline"
-	 CONS_LIBS="-lreadline"
+	 CONS_LIBS="-lreadline -ltermcap"
        ], [
 	 # Did not find starndard library, so user our own
 	 AC_MSG_RESULT(yes)
 	 AC_DEFINE(HAVE_READLINE)
 	 got_readline="yes"
 	 CONS_INC="-I${TOP_DIR}/depkgs"
-	 CONS_LIBS="-lreadline -lhistory"
+	 CONS_LIBS="-lreadline -lhistory -ltermcap"
 	 CONS_LDFLAGS="-L${TOP_DIR}/depkgs/readline"
 	 READLINE_SRC="${TOP_DIR}/depkgs/readline"
        ])
@@ -265,12 +265,7 @@ AC_CHECK_FUNC(getopt_long, AC_DEFINE(HAVE_GETOPT_LONG))
 AC_FUNC_STRCOLL
 
 AC_CHECK_HEADERS(varargs.h \
-		sys/ptem.h sys/pte.h sys/stream.h \
-		termcap.h termio.h )
-
-TERMCAP_LIB=-ltermcap
-AC_SUBST(TERMCAP_LIB)
-
+		sys/ptem.h sys/pte.h sys/stream.h) 
 
 # End of readline stuff
 # -----------------------------------------------------------------------
@@ -339,6 +334,7 @@ AC_SUBST(GMP_SRC)
 # Check for CWEB support/directory
 # ---------------------------------------------------
 CWEB_SRC=
+CWEB=/bin
 local_cweb="no"
 AC_ARG_WITH(cweb,
   [  --with-cweb[=DIR]	 Specify cweb library directory],
@@ -378,6 +374,7 @@ AC_ARG_WITH(cweb,
       AC_DEFINE(HAVE_CWEB)
       got_cweb="yes"
       local_cweb="yes"
+      CWEB=${TOP_DIR}/depkgs/cweb
       CWEB_INC="-I${TOP_DIR}/depkgs/cweb"
       CWEB_LIBS="-lcweb"
       CWEB_LDFLAGS="-L${TOP_DIR}/depkgs/cweb"
@@ -385,6 +382,7 @@ AC_ARG_WITH(cweb,
     ])
   ]   
 )
+AC_SUBST(CWEB)
 AC_SUBST(CWEB_INC)
 AC_SUBST(CWEB_LIBS)
 AC_SUBST(CWEB_LDFLAGS)
@@ -1183,6 +1181,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/cats/create_mysql_database \
 	   src/cats/grant_mysql_privileges \
 	   src/cats/make_sqlite_tables \
+	   src/cats/drop_sqlite_tables \
 	   src/cats/sqlite \
 	   src/findlib/Makefile \
 	   $PFILES ],  
@@ -1199,7 +1198,7 @@ chmod 755 src/cats/make_mysql_tables src/cats/drop_mysql_tables
 chmod 755 src/cats/make_test_tables src/cats/drop_test_tables
 chmod 755 src/cats/create_mysql_database
 chmod 755 src/cats/grant_mysql_privileges
-chmod 755 src/cats/make_sqlite_tables 
+chmod 755 src/cats/make_sqlite_tables src/cats/drop_sqlite_tables 
 chmod 755 src/cats/sqlite
 
 

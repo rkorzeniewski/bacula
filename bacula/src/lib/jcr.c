@@ -118,7 +118,9 @@ static void free_common_jcr(JCR *jcr)
 	 break;
    }
    pthread_mutex_destroy(&jcr->mutex);
+
    close_msg(jcr);		      /* close messages for this job */
+
    /* do this after closing messages */
    if (jcr->client_name) {
       free(jcr->client_name);
@@ -134,7 +136,6 @@ static void free_common_jcr(JCR *jcr)
       free_pool_memory(jcr->VolumeName);
       jcr->VolumeName = NULL;
    }
-   close_msg(jcr);		      /* close messages for this job */
 
    if (jcr->dir_bsock) {
       bnet_close(jcr->dir_bsock);

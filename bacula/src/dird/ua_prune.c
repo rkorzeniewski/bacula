@@ -44,7 +44,7 @@ static int mark_media_purged(UAContext *ua, MEDIA_DBR *mr);
  */
 static char *select_job =
    "SELECT JobId from Job "    
-   "WHERE StartDay < %s "
+   "WHERE JobTDate < %s "
    "AND ClientId=%d "
    "AND PurgedFiles=0";
 
@@ -75,7 +75,7 @@ static char *create_deltabs[] = {
 static char *insert_delcand = 
    "INSERT INTO DelCandidates "
    "SELECT JobId, PurgedFiles, FileSetId FROM Job "
-   "WHERE StartDay < %s " 
+   "WHERE JobTDate < %s " 
    "AND ClientId=%d";
 
 /*
@@ -86,7 +86,7 @@ static char *insert_delcand =
 static char *select_del =
    "SELECT DelCandidates.JobId "
    "FROM Job,DelCandidates "
-   "WHERE Job.StartDay >= %s "
+   "WHERE Job.JobTDate >= %s "
    "AND Job.ClientId=%d "
    "AND Job.Level='F' "
    "AND Job.JobStatus='T' "
@@ -197,9 +197,9 @@ int prunecmd(UAContext *ua, char *cmd)
    MEDIA_DBR mr;
 
    static char *keywords[] = {
-      N_("files"),
-      N_("jobs"),
-      N_("volume"),
+      N_("Files"),
+      N_("Jobs"),
+      N_("Volume"),
       NULL};
    if (!open_db(ua)) {
       return 1;
@@ -260,9 +260,7 @@ int prune_files(UAContext *ua, CLIENT *client)
    struct s_file_del_ctx del;
    char *query = (char *)get_pool_memory(PM_MESSAGE);
    int i;
-   struct tm tm;
-   uint64_t today, period;
-   time_t now;
+   btime_t now, period;
    CLIENT_DBR cr;
    char ed1[50];
 
@@ -274,16 +272,9 @@ int prune_files(UAContext *ua, CLIENT *client)
    }
 
    period = client->FileRetention;
-   now = time(NULL);
-   localtime_r(&now, &tm);
-   today = (uint64_t)(date_encode(tm.tm_year+1900, tm.tm_mon+1, tm.tm_mday) -
-       date_encode(2000, 1, 1));
+   now = (btime_t)time(NULL);
        
-   Dmsg3(100, "Today=%d period=%d period=%d\n", (uint32_t)today, (uint32_t)period,          
-      (uint32_t)(period/(3600*24)));
-
-   Mmsg(&query, select_job, 
-       edit_uint64(today - period/(3600*24), ed1), cr.ClientId);
+   Mmsg(&query, select_job, edit_uint64(now - period, ed1), cr.ClientId);
 
    Dmsg1(050, "select sql=%s\n", query);
  
@@ -374,9 +365,7 @@ int prune_jobs(UAContext *ua, CLIENT *client)
    struct s_count_ctx cnt;
    char *query = (char *)get_pool_memory(PM_MESSAGE);
    int i;
-   struct tm tm;
-   btime_t today, period;
-   time_t now;
+   btime_t now, period;
    CLIENT_DBR cr;
    char ed1[50];
 
@@ -388,14 +377,7 @@ int prune_jobs(UAContext *ua, CLIENT *client)
    }
 
    period = client->JobRetention;
-   now = time(NULL);
-   localtime_r(&now, &tm);
-   today = (btime_t)(date_encode(tm.tm_year+1900, tm.tm_mon+1, tm.tm_mday) -
-       date_encode(2000, 1, 1));
-       
-
-   Dmsg3(050, "Today=%d period=%d period=%d\n", (uint32_t)today, (uint32_t)period,          
-      (uint32_t)(period/(3600*24)));
+   now = (btime_t)time(NULL);
 
    /* Drop any previous temporary tables still there */
    drop_temp_tables(ua);
@@ -409,7 +391,7 @@ int prune_jobs(UAContext *ua, CLIENT *client)
     * Select all files that are older than the JobRetention period
     *  and stuff them into the "DeletionCandidates" table.
     */
-   edit_uint64(today - period/(3600*24), ed1);
+   edit_uint64(now - period, ed1);
    Mmsg(&query, insert_delcand, ed1, cr.ClientId);
 
    if (!db_sql_query(ua->db, query, NULL, (void *)NULL)) {
@@ -491,9 +473,7 @@ int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
    struct s_file_del_ctx del;
    int i;
    JOB_DBR jr;
-   struct tm tm;
-   btime_t today, period;
-   time_t now;
+   btime_t now, period;
 
    memset(&jr, 0, sizeof(jr));
    memset(&del, 0, sizeof(del));
@@ -531,21 +511,14 @@ int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
 
    /* Use Volume Retention to purge Jobs and Files */
    period = mr->VolRetention;
-   period = 30 * 3600 *24;    /* ****FIXME***** remove */
-   now = time(NULL);
-   localtime_r(&now, &tm);
-   today = (btime_t)(date_encode(tm.tm_year+1900, tm.tm_mon+1, tm.tm_mday) -
-       date_encode(2000, 1, 1));
-
-   Dmsg3(050, "Today=%d period=%d period=%d\n", (uint32_t)today, (uint32_t)period,          
-      (uint32_t)(period/(3600*24)));
+   now = (btime_t)time(NULL);
 
    for (i=0; i < del.num_ids; i++) {
       jr.JobId = del.JobId[i];
       if (!db_get_job_record(ua->db, &jr)) {
 	 continue;
       }
-      if (jr.StartDay >= (today - period/(3600*24))) {
+      if (jr.JobTDate >= (now - period)) {
 	 continue;
       }
       Dmsg1(050, "Delete JobId=%d\n", del.JobId[i]);

@@ -148,7 +148,7 @@ int main (int argc, char *argv[])
     * Ensure that every message is always printed
     */
    for (i=1; i<=M_MAX; i++) {
-      add_msg_dest(MD_STDOUT, i, NULL, NULL);
+      add_msg_dest(NULL, MD_STDOUT, i, NULL, NULL);
    }
 
    /* Try default device */

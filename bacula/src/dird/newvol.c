@@ -8,7 +8,7 @@
  *    This routine runs as a thread and must be thread reentrant.
  *
  *  Basic tasks done here:
- *	If possible create a new Media entry
+ *      If possible create a new Media entry
  *
  */
 /*
@@ -52,22 +52,22 @@ int newVolume(JCR *jcr)
    if (db_get_pool_record(jcr->db, &pr) && pr.LabelFormat[0] &&
        pr.LabelFormat[0] != '*') {
       if (pr.MaxVols == 0 || pr.NumVols < pr.MaxVols) {
-	 memset(&mr, 0, sizeof(mr));
-	 mr.PoolId = jcr->PoolId;
-	 strcpy(mr.MediaType, jcr->store->media_type);
-	 strcpy(name, pr.LabelFormat);	 
+         memset(&mr, 0, sizeof(mr));
+         mr.PoolId = jcr->PoolId;
+         strcpy(mr.MediaType, jcr->store->media_type);
+         strcpy(name, pr.LabelFormat);   
          strcat(name, "%04d");
-	 sprintf(mr.VolumeName, name, ++pr.NumVols);
+         sprintf(mr.VolumeName, name, ++pr.NumVols);
          strcpy(mr.VolStatus, "Append");
-	 mr.Recycle = pr.Recycle;
-	 mr.VolRetention = pr.VolumeRetention;
-	 if (db_create_media_record(jcr->db, &mr) &&
-	    db_update_pool_record(jcr->db, &pr) == 1) {
+         mr.Recycle = pr.Recycle;
+         mr.VolRetention = pr.VolRetention;
+         if (db_create_media_record(jcr->db, &mr) &&
+            db_update_pool_record(jcr->db, &pr) == 1) {
             Dmsg1(90, "Created new Volume=%s\n", mr.VolumeName);
-	    return 1;
-	 } else {
+            return 1;
+         } else {
             Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
-	 }
+         }
       }
    }
    return 0;   

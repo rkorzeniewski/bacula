@@ -213,8 +213,8 @@ struct s_res_pool {
    int   use_volume_once;             /* write on volume only once */
    int   accept_any_volume;           /* accept any volume */
    int   max_volumes;                 /* max number of volumes */
-   btime_t VolumeRetention;           /* volume retention period in seconds */
-   int   AutoRecycle;                 /* default for pool auto recycle */
+   btime_t VolRetention;              /* volume retention period in seconds */
+   int   AutoPrune;                   /* default for pool auto prune */
    int   Recycle;                     /* default for media recycle yes/no */
 };
 typedef struct s_res_pool POOL;

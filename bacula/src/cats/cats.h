@@ -41,6 +41,8 @@ typedef int (DB_RESULT_HANDLER)(void *, int, char **);
 
 #ifdef HAVE_SQLITE
 
+#define BDB_VERSION 1
+
 #include <sqlite.h>
 
 /* Define opaque structure for sqlite */
@@ -119,6 +121,8 @@ extern void my_sqlite_free_table(B_DB *mdb);
 #else
 
 #ifdef HAVE_MYSQL
+
+#define BDB_VERSION 1
 
 #include <mysql.h>
 
@@ -250,7 +254,7 @@ typedef struct {
    time_t SchedTime;                  /* Time job scheduled */
    time_t StartTime;                  /* Job start time */
    time_t EndTime;                    /* Job termination time */
-   btime_t StartDay;                  /* Start time/date in seconds */
+   btime_t JobTDate;                  /* Backup time/date in seconds */
    uint32_t VolSessionId;
    uint32_t VolSessionTime;
    uint32_t JobFiles;
@@ -331,9 +335,9 @@ typedef struct {
    int UseOnce;                       /* set to use once only */
    int UseCatalog;                    /* set to use catalog */
    int AcceptAnyVolume;               /* set to accept any volume sequence */
-   int AutoRecycle;                   /* set to recycle automatically */
+   int AutoPrune;                     /* set to prune automatically */
    int Recycle;                       /* default Vol recycle flag */
-   btime_t VolumeRetention;           /* retention period in seconds */
+   btime_t VolRetention;              /* retention period in seconds */
    char PoolType[MAX_NAME_LENGTH];             
    char LabelFormat[MAX_NAME_LENGTH];
    /* Extra stuff not in DB */

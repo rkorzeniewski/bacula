@@ -92,7 +92,7 @@ db_list_media_records(B_DB *mdb, MEDIA_DBR *mdbr, DB_LIST_HANDLER *sendit, void 
 {
 
    Mmsg(&mdb->cmd, "SELECT VolumeName,MediaType,VolStatus,\
-VolBytes,LastWritten \
+VolBytes,LastWritten,VolRetention,Recycle \
 FROM Media WHERE Media.PoolId=%d ORDER BY MediaId", mdbr->PoolId);
 
    P(mdb->mutex);

@@ -60,29 +60,29 @@ extern int res_all_size;
 static int res_locked = 0;	       /* set when resource chains locked */
 
 /* Forward referenced subroutines */
-static void scan_types(LEX *lc, int dest, char *where, char *cmd);
+static void scan_types(LEX *lc, MSGS *msg, int dest, char *where, char *cmd);
 
 
 /* Common Resource definitions */
 
 /* Message resource directives
- *  name	 handler    store_addr	code   flags  default_value
+ *  name	 handler      value	  code	 flags	default_value
  */
 struct res_items msgs_items[] = {
    {"name",        store_name,    ITEM(res_msgs.hdr.name),  0, 0, 0},
    {"description", store_str,     ITEM(res_msgs.hdr.desc),  0, 0, 0},
    {"mailcommand", store_str,     ITEM(res_msgs.mail_cmd),  0, 0, 0},
    {"operatorcommand", store_str, ITEM(res_msgs.operator_cmd), 0, 0, 0},
-   {"syslog",      store_msgs, NULL,           MD_SYSLOG,   0, 0}, 
-   {"mail",        store_msgs, NULL,           MD_MAIL,     0, 0},
-   {"mailonerror", store_msgs, NULL,           MD_MAIL_ON_ERROR, 0, 0},
-   {"file",        store_msgs, NULL,           MD_FILE,     0, 0},
-   {"append",      store_msgs, NULL,           MD_APPEND,   0, 0},
-   {"stdout",      store_msgs, NULL,           MD_STDOUT,   0, 0},
-   {"stderr",      store_msgs, NULL,           MD_STDERR,   0, 0},
-   {"director",    store_msgs, NULL,           MD_DIRECTOR, 0, 0},
-   {"console",     store_msgs, NULL,           MD_CONSOLE,  0, 0},   
-   {"operator",    store_msgs, NULL,           MD_OPERATOR, 0, 0},
+   {"syslog",      store_msgs, ITEM(res_msgs), MD_SYSLOG,   0, 0}, 
+   {"mail",        store_msgs, ITEM(res_msgs), MD_MAIL,     0, 0},
+   {"mailonerror", store_msgs, ITEM(res_msgs), MD_MAIL_ON_ERROR, 0, 0},
+   {"file",        store_msgs, ITEM(res_msgs), MD_FILE,     0, 0},
+   {"append",      store_msgs, ITEM(res_msgs), MD_APPEND,   0, 0},
+   {"stdout",      store_msgs, ITEM(res_msgs), MD_STDOUT,   0, 0},
+   {"stderr",      store_msgs, ITEM(res_msgs), MD_STDERR,   0, 0},
+   {"director",    store_msgs, ITEM(res_msgs), MD_DIRECTOR, 0, 0},
+   {"console",     store_msgs, ITEM(res_msgs), MD_CONSOLE,  0, 0},   
+   {"operator",    store_msgs, ITEM(res_msgs), MD_OPERATOR, 0, 0},
    {NULL, NULL,    NULL, 0}
 };
 
@@ -182,7 +182,7 @@ void store_msgs(LEX *lc, struct res_items *item, int index, int pass)
 	 case MD_STDERR:
 	 case MD_SYSLOG:	      /* syslog */
 	 case MD_CONSOLE:
-	    scan_types(lc, item->code, NULL, NULL);
+	    scan_types(lc, (MSGS *)(item->value), item->code, NULL, NULL);
 	    break;
 	 case MD_OPERATOR:	      /* send to operator */
 	 case MD_DIRECTOR:	      /* send to Director */
@@ -220,7 +220,7 @@ void store_msgs(LEX *lc, struct res_items *item, int index, int pass)
 	       break;
 	    }
             Dmsg1(200, "mail_cmd=%s\n", cmd);
-	    scan_types(lc, item->code, dest, cmd);
+	    scan_types(lc, (MSGS *)(item->value), item->code, dest, cmd);
 	    free_pool_memory(dest);
             Dmsg0(200, "done with dest codes\n");
 	    break;
@@ -240,7 +240,7 @@ void store_msgs(LEX *lc, struct res_items *item, int index, int pass)
 	    if (token != T_EQUALS) {
                scan_err1(lc, "expected an =, got: %s", lc->str); 
 	    }
-	    scan_types(lc, item->code, dest, NULL);
+	    scan_types(lc, (MSGS *)(item->value), item->code, dest, NULL);
 	    free_pool_memory(dest);
             Dmsg0(200, "done with dest codes\n");
 	    break;
@@ -261,7 +261,7 @@ void store_msgs(LEX *lc, struct res_items *item, int index, int pass)
  *  (WARNING, ERROR, FATAL, INFO, ...) with an appropriate
  *  destination (MAIL, FILE, OPERATOR, ...)
  */
-static void scan_types(LEX *lc, int dest_code, char *where, char *cmd)
+static void scan_types(LEX *lc, MSGS *msg, int dest_code, char *where, char *cmd)
 {
    int token, i, found, quit, is_not;
    int msg_type;
@@ -293,13 +293,13 @@ static void scan_types(LEX *lc, int dest_code, char *where, char *cmd)
 
       if (msg_type == M_MAX+1) {	 /* all? */
 	 for (i=1; i<=M_MAX; i++) {	 /* yes set all types */
-	    add_msg_dest(dest_code, i, where, cmd);
+	    add_msg_dest(msg, dest_code, i, where, cmd);
 	 }
       } else {
 	 if (is_not) {
-	    rem_msg_dest(dest_code, msg_type, where);
+	    rem_msg_dest(msg, dest_code, msg_type, where);
 	 } else {
-	    add_msg_dest(dest_code, msg_type, where, cmd);
+	    add_msg_dest(msg, dest_code, msg_type, where, cmd);
 	 }
       }
       if (lc->ch != ',') {
@@ -586,11 +586,8 @@ void store_size(LEX *lc, struct res_items *item, int index, int pass)
 /* Store a time period in seconds */
 void store_time(LEX *lc, struct res_items *item, int index, int pass)
 {
-   int token, i, ch;
+   int token; 
    btime_t value;
-   int  mod[]  = {'*', 's', 'm', 'h', 'd', 'w', 'o', 'q', 'y', 0};
-   int	mult[] = {1, 60, 60*60, 60*60*24, 60*60*24*7, 60*60*24*30, 
-		  60*60*24*91, 60*60*24*365};
 
    token = lex_get_token(lc);
    errno = 0;
@@ -604,29 +601,10 @@ void store_time(LEX *lc, struct res_items *item, int index, int pass)
       break;
    case T_IDENTIFIER:
    case T_STRING:
-      /* Look for modifier */
-      ch = lc->str[lc->str_len - 1];
-      i = 0;
-      if (ISALPHA(ch)) {
-	 if (ISUPPER(ch)) {
-	    ch = tolower(ch);
-	 }
-	 while (mod[++i] != 0) {
-	    if (ch == mod[i]) {
-	       lc->str_len--;
-	       lc->str[lc->str_len] = 0; /* strip modifier */
-	       break;
-	    }
-	 }
-      }
-      if (mod[i] == 0 || !is_a_number(lc->str)) {
+      if (!string_to_btime(lc->str, &value)) {
          scan_err1(lc, "expected a time period, got: %s", lc->str);
       }
-      value = (btime_t)strtod(lc->str, NULL);
-      if (errno != 0 || value < 0) {
-         scan_err1(lc, "expected a time period, got: %s", lc->str);
-      }
-      *(btime_t *)(item->value) = value * mult[i];
+      *(btime_t *)(item->value) = value;
       break;
    default:
       scan_err1(lc, "expected a time period, got: %s", lc->str);
