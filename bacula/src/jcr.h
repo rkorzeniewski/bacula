@@ -175,6 +175,7 @@ struct JCR {
    uint32_t RestoreJobId;             /* Id specified by UA */
    POOLMEM *client_uname;             /* client uname */ 
    int replace;                       /* Replace option */
+   int saveMaxConcurrentJobs;         /* save for restore jobs */
    bool acquired_resource_locks;      /* set if resource locks acquired */
    int NumVols;                       /* Number of Volume used in pool */
    int reschedule_count;              /* Number of times rescheduled */

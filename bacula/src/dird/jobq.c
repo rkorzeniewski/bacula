@@ -443,6 +443,9 @@ static void *jobq_server(void *arg)
 	  */
 	 if (jcr->acquired_resource_locks) {
 	    jcr->store->NumConcurrentJobs--;
+	    if (jcr->JobType == JT_RESTORE) {
+	       jcr->store->MaxConcurrentJobs = jcr->saveMaxConcurrentJobs;  
+	    }
 	    jcr->client->NumConcurrentJobs--;
 	    jcr->job->NumConcurrentJobs--;
 	 }
@@ -532,17 +535,33 @@ static void *jobq_server(void *arg)
 	       set_jcr_job_status(jcr, JS_WaitPriority);
 	       break;
 	    }
-	    if (jcr->store->NumConcurrentJobs < jcr->store->MaxConcurrentJobs) {
+	    if (jcr->JobType == JT_RESTORE) {
+	       /* Let only one Restore job run at a time regardless of MaxConcurrentJobs */
+	       if (jcr->store->NumConcurrentJobs == 0) {
+		  jcr->store->NumConcurrentJobs++;
+		  jcr->saveMaxConcurrentJobs = jcr->store->MaxConcurrentJobs;
+		  jcr->store->MaxConcurrentJobs = 1;
+	       } else {
+		  set_jcr_job_status(jcr, JS_WaitStoreRes);
+		  je = jn;
+		  continue;
+	       }
+	    } else if (jcr->store->NumConcurrentJobs < jcr->store->MaxConcurrentJobs) {
 	       jcr->store->NumConcurrentJobs++;
 	    } else {
 	       set_jcr_job_status(jcr, JS_WaitStoreRes);
 	       je = jn;
 	       continue;
 	    }
+
 	    if (jcr->client->NumConcurrentJobs < jcr->client->MaxConcurrentJobs) {
 	       jcr->client->NumConcurrentJobs++;
 	    } else {
+	       /* Back out previous locks */
 	       jcr->store->NumConcurrentJobs--;
+	       if (jcr->JobType == JT_RESTORE) {
+		  jcr->store->MaxConcurrentJobs = jcr->saveMaxConcurrentJobs;  
+	       }
 	       set_jcr_job_status(jcr, JS_WaitClientRes);
 	       je = jn;
 	       continue;
@@ -550,7 +569,11 @@ static void *jobq_server(void *arg)
 	    if (jcr->job->NumConcurrentJobs < jcr->job->MaxConcurrentJobs) {
 	       jcr->job->NumConcurrentJobs++;
 	    } else {
+	       /* Back out previous locks */
 	       jcr->store->NumConcurrentJobs--;
+	       if (jcr->JobType == JT_RESTORE) {
+		  jcr->store->MaxConcurrentJobs = jcr->saveMaxConcurrentJobs;  
+	       }
 	       jcr->client->NumConcurrentJobs--;
 	       set_jcr_job_status(jcr, JS_WaitJobRes);
 	       je = jn;
