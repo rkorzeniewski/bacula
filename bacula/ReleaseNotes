@@ -20,6 +20,7 @@ Items to note!!!
 - Regular expressions are not implemented in the Win32 FD.
 
 Other Items:
+- Fix logic error in resolution of names on IPv4 systems.
 - Inhibit printing of FileSet for a restore as it is misleading.
 - Cleaned up a number of minor scripting problems with the CDROM
   creation.

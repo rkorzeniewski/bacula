@@ -637,19 +637,13 @@ dlist *bnet_host2ipaddrs(const char *host, int family, const char **errstr)
 	    return 0;
 	 }
       } else {
-	 int done = 0;
 	 errmsg = resolv_host(AF_INET, host, addr_list);
 #ifdef HAVE_IPV6
 	 if (errmsg) {
 	    errmsg = resolv_host(AF_INET6, host, addr_list);
-	    if (!errmsg) {
-	       done = 1;
-	    }
-	 } else {  
-	    done = 1;
 	 }
 #endif
-	 if (!done) {
+	 if (errmsg) {
 	    *errstr = errmsg;
 	    free_addresses(addr_list);
 	    return 0;
@@ -683,6 +677,8 @@ static BSOCK *bnet_open(JCR * jcr, const char *name, char *host, char *service,
    if ((addr_list = bnet_host2ipaddrs(host, 0, &errstr)) == NULL) {
       /* Note errstr is not malloc'ed */
       Qmsg2(jcr, M_ERROR, 0, "gethostbyname() for host \"%s\" failed: ERR=%s\n",
+	    host, errstr);
+      Dmsg2(100, "bnet_host2ipaddrs() for host %s failed: ERR=%s\n",
 	    host, errstr);
       *fatal = 1;
       return NULL;
