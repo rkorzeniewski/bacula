@@ -7,7 +7,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -32,7 +32,8 @@
 /* Forward referenced functions */
 char *edit_device_codes(DCR *dcr, char *omsg, const char *cmd);
 static int get_autochanger_loaded_slot(DCR *dcr);
-
+static void lock_changer(DCR *dcr);
+static void unlock_changer(DCR *dcr);
 
 /*
  * Called here to do an autoload using the autochanger, if
@@ -87,6 +88,7 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
 	 offline_or_rewind_dev(dev);
 	 /* We are going to load a new tape, so close the device */
 	 force_close_dev(dev);
+	 lock_changer(dcr);
 	 if (loaded != 0 && loaded != -1) {	   /* must unload drive */
             Dmsg0(400, "Doing changer unload.\n");
 	    Jmsg(jcr, M_INFO, 0,
@@ -123,6 +125,7 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
             Jmsg(jcr, M_INFO, 0, _("3992 Bad autochanger \"load slot %d, drive %d\": ERR=%s.\n"),
 		    slot, drive, be.strerror());
 	 }
+	 unlock_changer(dcr);
          Dmsg2(400, "load slot %d status=%d\n", slot, status);
       } else {
 	 status = 0;		      /* we got what we want */
@@ -149,6 +152,8 @@ static int get_autochanger_loaded_slot(DCR *dcr)
    results = get_pool_memory(PM_MESSAGE);
    changer = get_pool_memory(PM_FNAME);
 
+   lock_changer(dcr);
+
    /* Find out what is loaded, zero means device is unloaded */
    Jmsg(jcr, M_INFO, 0, _("3301 Issuing autochanger \"loaded drive %d\" command.\n"),
 	drive);
@@ -171,21 +176,41 @@ static int get_autochanger_loaded_slot(DCR *dcr)
 	   drive, be.strerror());
       loaded = -1;		/* force unload */
    }
+   unlock_changer(dcr);
    free_pool_memory(changer);
    free_pool_memory(results);
    return loaded;
 }
 
+static void lock_changer(DCR *dcr)
+{
+   AUTOCHANGER *changer_res = dcr->device->changer_res;
+   if (changer_res) {
+      Dmsg1(100, "Locking changer %s\n", changer_res->hdr.name);
+      P(changer_res->changer_mutex);  /* Lock changer script */
+   }
+}
+
+static void unlock_changer(DCR *dcr)
+{
+   AUTOCHANGER *changer_res = dcr->device->changer_res;
+   if (changer_res) {
+      Dmsg1(100, "Unlocking changer %s\n", changer_res->hdr.name);
+      V(changer_res->changer_mutex);  /* Unlock changer script */
+   }
+}
+
+
 /*
  * The Volume is not in the correct slot, so mark this
  *   Volume as not being in the Changer.
  */
-void invalid_slot_in_catalog(DCR *dcr)
+void mark_volume_not_inchanger(DCR *dcr)
 {
    JCR *jcr = dcr->jcr;
    DEVICE *dev = dcr->dev;
    Jmsg(jcr, M_ERROR, 0, _("Autochanger Volume \"%s\" not found in slot %d.\n"
-"    Setting slot to zero in catalog.\n"),
+"    Setting InChanger to zero in catalog.\n"),
 	dcr->VolCatInfo.VolCatName, dcr->VolCatInfo.Slot);
    dcr->VolCatInfo.InChanger = false;
    dev->VolCatInfo.InChanger = false;

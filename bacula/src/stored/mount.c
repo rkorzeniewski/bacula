@@ -156,7 +156,8 @@ mount_next_vol:
    /* Ensure the device is open */
    /* If we have a dvd that requires mount, we first want to guess
     * which Volume is loaded, so we continue (if the wrong device is
-    * loaded, open_device would fail). */
+    * loaded, open_device just below would fail. 
+    */
    if (!dev->is_dvd()) {
       if (!open_device(dcr)) {
 	 if (dev->poll) {
@@ -292,6 +293,9 @@ read_volume:
          Jmsg(jcr, M_WARNING, 0, _("Volume \"%s\" not on device %s.\n"),
 	    dcr->VolumeName, dev_name(dev));
 	 mark_volume_in_error(dcr);
+	 if (autochanger) {
+	    mark_volume_not_inchanger(dcr);
+	 }
 	 goto mount_next_vol;
       }
       /* NOTE! Fall-through wanted. */
