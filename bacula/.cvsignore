@@ -11,6 +11,7 @@ config.cache
 config.log
 config.out
 config.status
+configure.lineno
 console
 diff
 fd
