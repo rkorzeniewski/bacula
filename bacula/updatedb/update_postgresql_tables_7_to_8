@@ -7,7 +7,7 @@ echo "This script will update a Bacula PostgreSQL database from version 7 to 8"
 echo "Depending on the size of your database,"
 echo "this script may take several minutes to run."
 echo " "
-bindir=@SQL_BINDIR@
+bindir=/home/kern/bacula/depkgs/sqlite
 
 if $bindir/psql $* -f - <<END-OF-DATA
 \c bacula

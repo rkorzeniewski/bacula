@@ -59,8 +59,8 @@ BPIPE *open_bpipe(char *prog, int wait, const char *mode)
    mode_write = (mode[0] == 'w' || mode[1] == 'w');
    /* Build arguments for running program. */
    tprog = get_pool_memory(PM_FNAME);
-   pm_strcpy(&tprog, prog);
-   build_argc_argv(mp_chr(tprog), &bargc, bargv, MAX_ARGV);
+   pm_strcpy(tprog, prog);
+   build_argc_argv(tprog, &bargc, bargv, MAX_ARGV);
 #ifdef	xxxxxx
    printf("argc=%d\n", bargc);
    for (i=0; i<bargc; i++) {
@@ -261,8 +261,8 @@ int run_program(char *prog, int wait, POOLMEM *results)
       return ENOENT;
    }
    if (results) {
-      mp_chr(results)[0] = 0;
-      fgets(mp_chr(results), sizeof_pool_memory(results), bpipe->rfd);	      
+      results[0] = 0;
+      fgets(results, sizeof_pool_memory(results), bpipe->rfd);	      
       if (feof(bpipe->rfd)) {
 	 stat1 = 0;
       } else {

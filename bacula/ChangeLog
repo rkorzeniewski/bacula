@@ -1,3 +1,78 @@
+Changes to 1.35.5:
+22Sep04
+- Incremented the release number because this version requires
+  an update to the database.
+  Use:
+    cd src/cats
+    ./update_bacula_tables  
+  to update an existing database.
+- Implemented EndFile and EndBlock in the Media record. This will
+  allow Bacula to know exactly when to stop reading a tape if the
+  stupid tape driver does not give a logical end of tape indication 
+  and Bacula writes to the end of the tape getting an I/O error.
+- Added new routines to update the database, and there are
+  new database creation routines to add the two new Media columns.
+- The Media record is updated each time a JobMedia record is created.
+  This keeps the Media record up to date.
+- Undid the code to use automatic type converions to char * in
+  POOL_MEM. This is due to the ugly consequences of essentially
+  destroying the class type nature of the class.
+- Removed all the old mp_char() #define code.
+
+Changes to 1.35.4:
+22Sep04
+- Add additional doc.
+- Implement automatic POOL_MEM type conversion to char *. Thanks
+  to Martin Simmons for the suggestion.
+- Remove some unneeded function overloading -- need removed by
+  automatic type conversion.
+21Sep04
+- Correct segfault in message.c with debug=200 (new code).
+- Fix bug 109 verify with no options prints garbage.
+- Add ioctl(MTIOCGET) call to clrerror_dev() in dev.c. As reported
+  by Frank Kardel, this should clear error conditions on NetBSD.
+20Sep04
+- Modify the rescue script to create mount_drives with
+  the order specified by Philip Nash (mkdir, mount).
+- Tweak install chapter of French manual to add new paragraph
+  from English.
+- Tweak restore tree message to be a bit clearer.
+- Modify watchdog to wakeup after 60 seconds, or wakeup if
+  there is work to do.
+- Modify watchdog stop routine to "ping" watchdog so that it
+  stops immediately rather than after sleep time.
+- Fix btape to use new dcr blocks rather than its own.
+- Fix butil.c to correctly handle Volume names for the
+  utility routines (broke when updating to dcrs).
+11-19Sep04 (vacation)
+- Implement multiple Storage specifications in the Job resource
+  (AND) each containing multiple specifications (OR). Not yet functional.
+  Note, this needs more work as most things now use
+  job->storage[0]->first() rather than looping through devices.
+- Implement "Multiple connections = yes/no" in Catalog record for
+  allowing multiple simultaneous connections to the database.
+- Add new mac.c (Migrate, Archive, Copy) to dird -- not yet implemented.
+- Implement a new POOL_MEM class that automatically allocates
+  and deallocates a pool buffer.
+- Overload a number of utility routines to permit using both
+  POOLMEM and POOL_MEM.
+- Start converting to using POOL_MEM.
+- There were a number of Bacula console ACL checks missing in
+  ua_run.c. It allowed users to run jobs they really should not.
+- Correct a number of dates on the Copyright.
+- Overload pm_strcpy() and pm_strcat() to handle new POOL_MEM
+  class.
+- Overload bash/unbash_spaces to handle new POOL_MEM class.
+- Make a *MASSIVE* pass through the Storage daemon eliminating
+  all use of jcr->VolumeName and jcr->VolCatInfo in favor of
+  dcr->...  
+- Eliminate all all redundant arguments from calling sequences
+  in SD. This poses a number of problems due to the old way blocks
+  and records were allocated and released all the time. They are
+  now contained in the dcr. The problem is that old habits die hard
+  and there are still places where everything is not right.
+- Implement "Block positioning = yes/no" in Device resource in SD.
+
 Changes to 1.35.3:
 09Sep04
 - Add "Multiple Connections = yes/no" in catalog record. Only

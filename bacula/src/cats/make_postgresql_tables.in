@@ -11,7 +11,7 @@ create table version
     versionid	      integer		    not null
 );
 
-INSERT INTO Version (VersionId) VALUES (7);
+INSERT INTO Version (VersionId) VALUES (8);
 
 create table counters
 (
@@ -150,6 +150,10 @@ create table media
 	default 0,
     volwritetime      bigint		    not null
 	default 0,
+    endfile	      integer		    not null
+	default 0,
+    endblock	      integer		    not null
+	default 0,
     primary key (mediaid)
 );
 
@@ -255,77 +259,6 @@ create table unsavedfiles
 
 -- Make sure we have appropriate permissions
 
---
--- The following alter table commands have been removed
---  because they seem to create severe performance problems
---
---alter table pool
---    add foreign key  (scratchpoolid)
---	 references pool (poolid) on update cascade on delete cascade;
-
---alter table pool
---    add foreign key  (recyclepoolid)
---	 references pool (poolid) on update cascade on delete cascade;
-
---alter table media
---    add foreign key  (poolid)
---	 references pool (poolid) on update cascade on delete cascade;
-
---alter table job
---    add foreign key  (poolid)
---	 references pool (poolid) on update cascade on delete cascade;
-
---alter table job
---    add foreign key  (filesetid)
---	 references fileset (filesetid) on update cascade on delete cascade;
-
---alter table job
---    add foreign key  (clientid)
---	 references client (clientid) on update cascade on delete cascade;
-
---alter table file
---    add foreign key  (jobid)
---	 references job (jobid) on update cascade on delete cascade;
-
---alter table file
---    add foreign key  (pathid)
---	 references path (pathid) on update cascade on delete restrict;
-
---alter table file
---    add foreign key  (filenameid)
---	 references filename (filenameid) on update cascade on delete cascade;
-
---alter table jobmedia
---    add foreign key  (jobid)
---	 references job (jobid) on update cascade on delete cascade;
-
---alter table jobmedia
---    add foreign key  (mediaid)
---	 references media (mediaid) on update cascade on delete cascade;
-
---alter table basefiles
---    add foreign key  (jobid)
---	 references job (jobid) on update cascade on delete cascade;
-
---alter table basefiles
---    add foreign key  (fileid)
---	 references file (fileid) on update cascade on delete cascade;
-
---alter table basefiles
---    add foreign key  (basejobid)
---	 references job (jobid) on update cascade on delete cascade;
-
---alter table unsavedfiles
---    add foreign key  (jobid)
---	 references job (jobid) on update restrict on delete restrict;
-
---alter table unsavedfiles
---    add foreign key  (pathid)
---	 references path (pathid) on update restrict on delete restrict;
-
---alter table unsavedfiles
---    add foreign key  (filenameid)
---	 references filename (filenameid) on update restrict on delete restrict;
 
 END-OF-DATA
 then

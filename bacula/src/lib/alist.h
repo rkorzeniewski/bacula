@@ -35,7 +35,7 @@
     for((*((void **)&(var))=(void*)((list)->first())); (var); (*((void **)&(var))=(void*)((list)->next())))
 
 #ifdef the_easy_way
-#define foreach_dlist(var, list) \
+#define foreach_alist(var, list) \
         for((void*(var))=(list)->first(); (var); (void *(var))=(list)->next(var)); )
 #endif
 

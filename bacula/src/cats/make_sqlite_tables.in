@@ -119,6 +119,8 @@ CREATE TABLE Media (
    MediaAddressing TINYINT DEFAULT 0,
    VolReadTime BIGINT UNSIGNED DEFAULT 0,
    VolWriteTime BIGINT UNSIGNED DEFAULT 0,
+   EndFile INTEGER UNSIGNED DEFAULT 0,
+   EndBlock INTEGER UNSIGNED DEFAULT 0,
    PRIMARY KEY(MediaId)
    );
 
@@ -192,7 +194,7 @@ CREATE TABLE Version (
    );
 
 -- Initialize Version		 
-INSERT INTO Version (VersionId) VALUES (7);
+INSERT INTO Version (VersionId) VALUES (8);
 
 CREATE TABLE Counters (
    Counter TEXT NOT NULL,     

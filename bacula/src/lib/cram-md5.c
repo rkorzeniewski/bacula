@@ -64,7 +64,7 @@ int cram_md5_auth(BSOCK *bs, char *password, int ssl_need)
    }
    hmac_md5((uint8_t *)chal, strlen(chal), (uint8_t *)password, strlen(password), hmac);
    bin_to_base64(host, (char *)hmac, 16);
-   ok = strcmp(mp_chr(bs->msg), host) == 0;
+   ok = strcmp(bs->msg, host) == 0;
    if (ok) {
       Dmsg0(99, "Authenticate OK\n");
    } else {
@@ -111,7 +111,7 @@ int cram_md5_get_auth(BSOCK *bs, char *password, int ssl_need)
    }
 
    hmac_md5((uint8_t *)chal, strlen(chal), (uint8_t *)password, strlen(password), hmac);
-   bs->msglen = bin_to_base64(mp_chr(bs->msg), (char *)hmac, 16) + 1;
+   bs->msglen = bin_to_base64(bs->msg, (char *)hmac, 16) + 1;
    if (!bnet_send(bs)) {
       Dmsg0(100, "Send response failed.\n");
       return 0;
@@ -121,7 +121,7 @@ int cram_md5_get_auth(BSOCK *bs, char *password, int ssl_need)
       bmicrosleep(5, 0);
       return 0;
    }
-   if (strcmp(mp_chr(bs->msg), "1000 OK auth\n") == 0) {
+   if (strcmp(bs->msg, "1000 OK auth\n") == 0) {
       return 1;
    }
    Dmsg1(100, "Bad response: %s\n", bs->msg);

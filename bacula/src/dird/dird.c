@@ -492,6 +492,18 @@ Without that I don't know who I am :-(\n"), configfile);
       int i;
 
       if (job->jobdefs) {
+	 /* Handle Storage alists specifically */
+	 JOB *jobdefs = job->jobdefs;
+	 for (i=0; i < MAX_STORE; i++) {
+	    if (jobdefs->storage[i]) {
+	       STORE *st;
+	       job->storage[i] = New(alist(10, not_owned_by_alist));
+	       foreach_alist(st, jobdefs->storage[i]) {
+		  job->storage[i]->append(st);
+	       }
+	    }
+	 }
+
 	 /* Transfer default items from JobDefs Resource */
 	 for (i=0; job_items[i].name; i++) {
 	    char **def_svalue, **svalue;  /* string value */
@@ -540,18 +552,9 @@ Without that I don't know who I am :-(\n"), configfile);
 		* Handle alist resources
 		*/
 	       } else if (job_items[i].handler == store_alist_res) {
-		  int count = job_items[i].default_value;
-		  def_svalue = (char **)((char *)(job->jobdefs) + offset);
-                  Dmsg4(400, "Job \"%s\", field \"%s\" item %d offset=%u\n", 
-		       job->hdr.name, job_items[i].name, i, offset);
-		  svalue = (char **)((char *)job + offset);
-		  if (*svalue) {
-                     Pmsg1(000, "Hey something is wrong. p=0x%lu\n", *svalue);
+		  if (bit_is_set(i, job->jobdefs->hdr.item_present)) { 
+		     set_bit(i, job->hdr.item_present);
 		  }
-		  while (count--) {
-		     *svalue++ = *def_svalue++;
-		  }
-		  set_bit(i, job->hdr.item_present);
 	       /*
 		* Handle integer fields 
 		*    Note, our store_yesno does not handle bitmaped fields

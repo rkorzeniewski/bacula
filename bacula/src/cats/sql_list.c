@@ -140,14 +140,16 @@ db_list_media_records(JCR *jcr, B_DB *mdb, MEDIA_DBR *mdbr,
             "MediaType,FirstWritten,LastWritten,LabelDate,VolJobs,"
             "VolFiles,VolBlocks,VolMounts,VolBytes,VolErrors,VolWrites,"
             "VolCapacityBytes,VolStatus,Recycle,VolRetention,"
-            "VolUseDuration,MaxVolJobs,MaxVolFiles,MaxVolBytes,InChanger "
+            "VolUseDuration,MaxVolJobs,MaxVolFiles,MaxVolBytes,InChanger,"
+            "EndFile,EndBlock "
             "FROM Media WHERE Media.VolumeName='%s'", mdbr->VolumeName);
       } else {
          Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,Slot,PoolId,"
             "MediaType,FirstWritten,LastWritten,LabelDate,VolJobs,"
             "VolFiles,VolBlocks,VolMounts,VolBytes,VolErrors,VolWrites,"
             "VolCapacityBytes,VolStatus,Recycle,VolRetention,"
-            "VolUseDuration,MaxVolJobs,MaxVolFiles,MaxVolBytes,InChanger "
+            "VolUseDuration,MaxVolJobs,MaxVolFiles,MaxVolBytes,InChanger,"
+            "EndFile,EndBlock "
             "FROM Media WHERE Media.PoolId=%u ORDER BY MediaId", mdbr->PoolId);
       }
    } else {
@@ -180,12 +182,14 @@ void db_list_jobmedia_records(JCR *jcr, B_DB *mdb, uint32_t JobId,
    if (type == VERT_LIST) {
       if (JobId > 0) {			 /* do by JobId */
          Mmsg(mdb->cmd, "SELECT JobMediaId,JobId,MediaId,Media.VolumeName,"
-            "FirstIndex,LastIndex,StartFile,EndFile,StartBlock,EndBlock "
+            "FirstIndex,LastIndex,StartFile,JobMedia.EndFile,StartBlock,"
+            "JobMedia.EndBlock "
             "FROM JobMedia,Media WHERE Media.MediaId=JobMedia.MediaId "
             "AND JobMedia.JobId=%u", JobId);
       } else {
          Mmsg(mdb->cmd, "SELECT JobMediaId,JobId,MediaId,Media.VolumeName,"
-            "FirstIndex,LastIndex,StartFile,EndFile,StartBlock,EndBlock "
+            "FirstIndex,LastIndex,StartFile,JobMedia.EndFile,StartBlock,"
+            "JobMedia.EndBlock "
             "FROM JobMedia,Media WHERE Media.MediaId=JobMedia.MediaId");
       }
 

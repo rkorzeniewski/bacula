@@ -159,7 +159,7 @@ int32_t bnet_recv(BSOCK * bsock)
    int32_t pktsiz;
 
    ASSERT(bsock != NULL);
-   mp_chr(bsock->msg)[0] = 0;
+   bsock->msg[0] = 0;
    if (bsock->errors || bsock->terminated) {
       return BNET_HARDEOF;
    }
@@ -222,7 +222,7 @@ int32_t bnet_recv(BSOCK * bsock)
    bsock->timer_start = watchdog_time;	/* set start wait time */
    bsock->timed_out = 0;
    /* now read the actual data */
-   if ((nbytes = read_nbytes(bsock, mp_chr(bsock->msg), pktsiz)) <= 0) {
+   if ((nbytes = read_nbytes(bsock, bsock->msg, pktsiz)) <= 0) {
       bsock->timer_start = 0;	   /* clear timer */
       if (errno == 0) {
 	 bsock->b_errno = ENODATA;
@@ -248,7 +248,7 @@ int32_t bnet_recv(BSOCK * bsock)
     * string that was send to us. Note, we ensured above that the
     * buffer is at least one byte longer than the message length.
     */
-   mp_chr(bsock->msg)[nbytes] = 0; /* terminate in case it is a string */
+   bsock->msg[nbytes] = 0; /* terminate in case it is a string */
    sm_check(__FILE__, __LINE__, false);
    return nbytes;		   /* return actual length of message */
 }
@@ -384,7 +384,7 @@ bool bnet_send(BSOCK * bsock)
    /* send data packet */
    bsock->timer_start = watchdog_time;	/* start timer */
    bsock->timed_out = 0;
-   rc = write_nbytes(bsock, mp_chr(bsock->msg), bsock->msglen);
+   rc = write_nbytes(bsock, bsock->msg, bsock->msglen);
    bsock->timer_start = 0;	   /* clear timer */
    if (rc != bsock->msglen) {
       bsock->errors++;
@@ -797,7 +797,7 @@ bool bnet_fsend(BSOCK * bs, const char *fmt, ...)
    for (;;) {
       maxlen = sizeof_pool_memory(bs->msg) - 1;
       va_start(arg_ptr, fmt);
-      bs->msglen = bvsnprintf(mp_chr(bs->msg), maxlen, fmt, arg_ptr);
+      bs->msglen = bvsnprintf(bs->msg, maxlen, fmt, arg_ptr);
       va_end(arg_ptr);
       if (bs->msglen > 0 && bs->msglen < (maxlen - 5)) {
 	 break;

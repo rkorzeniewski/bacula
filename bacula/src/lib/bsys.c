@@ -309,10 +309,10 @@ void create_pid_file(char *dir, const char *progname, int port)
    struct stat statp;
 
    Mmsg(&fname, "%s/%s.%d.pid", dir, progname, port);
-   if (stat(mp_chr(fname), &statp) == 0) {
+   if (stat(fname, &statp) == 0) {
       /* File exists, see what we have */
       *pidbuf = 0;
-      if ((pidfd = open(mp_chr(fname), O_RDONLY|O_BINARY, 0)) < 0 || 
+      if ((pidfd = open(fname, O_RDONLY|O_BINARY, 0)) < 0 || 
 	   read(pidfd, &pidbuf, sizeof(pidbuf)) < 0 ||
            sscanf(pidbuf, "%d", &oldpid) != 1) {
          Emsg2(M_ERROR_TERM, 0, _("Cannot open pid file. %s ERR=%s\n"), fname, strerror(errno));
@@ -323,10 +323,10 @@ void create_pid_file(char *dir, const char *progname, int port)
 	       progname, oldpid, fname);
       }
       /* He is not alive, so take over file ownership */
-      unlink(mp_chr(fname));		      /* remove stale pid file */
+      unlink(fname);		      /* remove stale pid file */
    }
    /* Create new pid file */
-   if ((pidfd = open(mp_chr(fname), O_CREAT|O_TRUNC|O_WRONLY|O_BINARY, 0640)) >= 0) {
+   if ((pidfd = open(fname, O_CREAT|O_TRUNC|O_WRONLY|O_BINARY, 0640)) >= 0) {
       len = sprintf(pidbuf, "%d\n", (int)getpid());
       write(pidfd, pidbuf, len);
       close(pidfd);
@@ -353,7 +353,7 @@ int delete_pid_file(char *dir, const char *progname, int port)
    }
    del_pid_file_ok = FALSE;
    Mmsg(&fname, "%s/%s.%d.pid", dir, progname, port);
-   unlink(mp_chr(fname));
+   unlink(fname);
    free_pool_memory(fname);
 #endif
    return 1;
@@ -386,7 +386,7 @@ void read_state_file(char *dir, const char *progname, int port)
    Mmsg(&fname, "%s/%s.%d.state", dir, progname, port);
    /* If file exists, see what we have */
 // Dmsg1(10, "O_BINARY=%d\n", O_BINARY);
-   if ((sfd = open(mp_chr(fname), O_RDONLY|O_BINARY, 0)) < 0) {
+   if ((sfd = open(fname, O_RDONLY|O_BINARY, 0)) < 0) {
       Dmsg3(010, "Could not open state file. sfd=%d size=%d: ERR=%s\n", 
 		    sfd, sizeof(hdr), strerror(errno));
 	   goto bail_out;
@@ -424,7 +424,7 @@ void write_state_file(char *dir, const char *progname, int port)
 
    Mmsg(&fname, "%s/%s.%d.state", dir, progname, port);
    /* Create new state file */
-   if ((sfd = open(mp_chr(fname), O_CREAT|O_WRONLY|O_BINARY, 0640)) < 0) {
+   if ((sfd = open(fname, O_CREAT|O_WRONLY|O_BINARY, 0640)) < 0) {
       Dmsg2(000, _("Could not create state file. %s ERR=%s\n"), fname, strerror(errno));
       Emsg2(M_ERROR, 0, _("Could not create state file. %s ERR=%s\n"), fname, strerror(errno));
       goto bail_out;
