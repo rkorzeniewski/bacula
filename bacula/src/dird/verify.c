@@ -497,7 +497,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
 	 decode_stat(attr, &statf, &LinkFIf);  /* decode file stat packet */
 	 do_SIG = NO_SIG;
 	 jcr->fn_printed = FALSE;
-	 strcpy(jcr->fname, fname);  /* move filename into JCR */
+	 pm_strcpy(&jcr->fname, fname);  /* move filename into JCR */
 
          Dmsg2(040, "dird<filed: stream=%d %s\n", stream, jcr->fname);
          Dmsg1(020, "dird<filed: attr=%s\n", attr);

@@ -272,8 +272,18 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 
       if (file_is_included(ff, attr->fname) && !file_is_excluded(ff, attr->fname)) {
 	 uint32_t LinkFI;
+	 int data_stream;
 
-	 decode_stat(attr->attr, &attr->statp, &LinkFI);
+	 data_stream = decode_stat(attr->attr, &attr->statp, &LinkFI);
+	 if (!is_stream_supported(data_stream)) {
+	    if (!non_support_data++) {
+               Jmsg(jcr, M_ERROR, 0, _("%s stream not supported on this Client.\n"),
+		  stream_to_ascii(data_stream));
+	    }
+	    return;
+	 }
+
+
 	 build_attr_output_fnames(jcr, attr);
 
 	 extract = FALSE;

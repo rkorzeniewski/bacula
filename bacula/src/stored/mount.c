@@ -63,7 +63,6 @@ mount_next_vol:
    recycle = ask = autochanger = 0;
    if (release) {
       Dmsg0(100, "mount_next_volume release=1\n");
-
       release_volume(jcr, dev);
       ask = 1;			      /* ask operator to mount tape */
    }
@@ -361,16 +360,19 @@ int mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    return 0;
 }
 
+/*
+ * Either because we are going to hang a new volume, or because
+ *  of explicit user request, we release the current volume.
+ */
 void release_volume(JCR *jcr, DEVICE *dev)
 {
-   /********FIXME******* if WroteVol, must write JobMedia record */
+
+   if (jcr->WroteVol) {
+      Jmsg0(jcr, M_ERROR, 0, "Hey!!!!! WroteVol non-zero !!!!!\n");
+   }
    /* 
     * First erase all memory of the current volume   
     */
-
-   if (jcr->WroteVol) {
-      Jmsg0(jcr, M_ERROR, 0, "Hey!!!!! WriteVol non-zero !!!!!\n");
-   }
    dev->block_num = dev->file = 0;
    dev->EndBlock = dev->EndFile = 0;
    memset(&dev->VolCatInfo, 0, sizeof(dev->VolCatInfo));

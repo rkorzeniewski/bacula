@@ -250,7 +250,7 @@ void store_inc(LEX *lc, struct res_items *item, int index, int pass)
 	    res_all.res_fs.include_items = (INCEXE **)malloc(sizeof(INCEXE *));
 	  } else {
 	    res_all.res_fs.include_items = (INCEXE **)realloc(res_all.res_fs.include_items,
-			   sizeof(INCEXE *) * res_all.res_fs.num_includes + 1);
+			   sizeof(INCEXE *) * (res_all.res_fs.num_includes + 1));
 	  }
 	  res_all.res_fs.include_items[res_all.res_fs.num_includes++] = incexe;
           Dmsg1(200, "num_includes=%d\n", res_all.res_fs.num_includes);
@@ -259,7 +259,7 @@ void store_inc(LEX *lc, struct res_items *item, int index, int pass)
 	    res_all.res_fs.exclude_items = (INCEXE **)malloc(sizeof(INCEXE *));
 	  } else {
 	    res_all.res_fs.exclude_items = (INCEXE **)realloc(res_all.res_fs.exclude_items,
-			   sizeof(INCEXE *) * res_all.res_fs.num_excludes + 1);
+			   sizeof(INCEXE *) * (res_all.res_fs.num_excludes + 1));
 	  }
 	  res_all.res_fs.exclude_items[res_all.res_fs.num_excludes++] = incexe;
           Dmsg1(200, "num_excludes=%d\n", res_all.res_fs.num_excludes);
@@ -363,7 +363,7 @@ void store_finc(LEX *lc, struct res_items *item, int index, int pass)
 	    res_all.res_fs.include_items = (INCEXE **)malloc(sizeof(INCEXE *));
 	 } else {
 	    res_all.res_fs.include_items = (INCEXE **)realloc(res_all.res_fs.include_items,
-			   sizeof(INCEXE *) * res_all.res_fs.num_includes + 1);
+			   sizeof(INCEXE *) * (res_all.res_fs.num_includes + 1));
 	 }
 	 res_all.res_fs.include_items[res_all.res_fs.num_includes++] = incexe;
          Dmsg1(200, "num_includes=%d\n", res_all.res_fs.num_includes);
@@ -372,7 +372,7 @@ void store_finc(LEX *lc, struct res_items *item, int index, int pass)
 	    res_all.res_fs.exclude_items = (INCEXE **)malloc(sizeof(INCEXE *));
 	 } else {
 	    res_all.res_fs.exclude_items = (INCEXE **)realloc(res_all.res_fs.exclude_items,
-			   sizeof(INCEXE *) * res_all.res_fs.num_excludes + 1);
+			   sizeof(INCEXE *) * (res_all.res_fs.num_excludes + 1));
 	 }
 	 res_all.res_fs.exclude_items[res_all.res_fs.num_excludes++] = incexe;
          Dmsg1(200, "num_excludes=%d\n", res_all.res_fs.num_excludes);

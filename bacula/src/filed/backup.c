@@ -109,7 +109,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 {
    char attribs[MAXSTRING];
    char attribsEx[MAXSTRING];
-   int stat, stream; 
+   int stat, attr_stream, data_stream;
    struct MD5Context md5c;
    struct SHA1Context sha1c;
    int gotMD5 = 0;
@@ -194,7 +194,11 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 
    binit(&ff_pkt->bfd);
 
-   /* Open any file with data that we intend to save */
+   /* 
+    * Open any file with data that we intend to save.  
+    * Note, if is_win32_backup, we must open the Directory so that
+    * the BackupRead will save its permissions and ownership streams.
+    */
    if (ff_pkt->type != FT_LNKSAVED && (S_ISREG(ff_pkt->statp.st_mode) && 
 	 ff_pkt->statp.st_size > 0) || 
 	 ff_pkt->type == FT_RAW || ff_pkt->type == FT_FIFO ||
@@ -217,8 +221,14 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
    }
 
    Dmsg1(130, "bfiled: sending %s to stored\n", ff_pkt->fname);
-   encode_stat(attribs, &ff_pkt->statp, ff_pkt->LinkFI);
-   stream = encode_attribsEx(jcr, attribsEx, ff_pkt);
+
+   /* Find what data stream we will use, then encode the attributes */
+   data_stream = select_data_stream(ff_pkt);
+   encode_stat(attribs, ff_pkt, data_stream);
+
+   /* Now possibly extend the attributes */
+   attr_stream = encode_attribsEx(jcr, attribsEx, ff_pkt);
+
    Dmsg3(200, "File %s\nattribs=%s\nattribsEx=%s\n", ff_pkt->fname, attribs, attribsEx);
      
    P(jcr->mutex);
@@ -231,7 +241,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
     * Send Attributes header to Storage daemon
     *	 <file-index> <stream> <info>
     */
-   if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, stream)) {
+   if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, attr_stream)) {
       if (is_bopen(&ff_pkt->bfd)) {
 	 bclose(&ff_pkt->bfd);
       }
@@ -289,31 +299,15 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       rbuf = sd->msg;		      /* read buffer */ 	    
       wbuf = sd->msg;		      /* write buffer */
 
+
       Dmsg1(100, "Saving data, type=%d\n", ff_pkt->type);
 
-      /* Note, no sparse option for win32_data */
-      if (is_win32_backup()) {
-	 stream = STREAM_WIN32_DATA;
-	 ff_pkt->flags &= ~FO_SPARSE;
-      } else if (ff_pkt->flags & FO_SPARSE) {
-	 stream = STREAM_SPARSE_DATA;
-      } else {
-	 stream = STREAM_FILE_DATA;
-      }
 
 #ifdef HAVE_LIBZ
       uLong compress_len, max_compress_len = 0;
       const Bytef *cbuf = NULL;
 
       if (ff_pkt->flags & FO_GZIP) {
-	 if (stream == STREAM_WIN32_DATA) {
-	    stream = STREAM_WIN32_GZIP_DATA;
-	 } else if (stream == STREAM_FILE_DATA) {
-	    stream = STREAM_GZIP_DATA;
-	 } else {
-	    stream = STREAM_SPARSE_GZIP_DATA;
-	 }
-
 	 if (ff_pkt->flags & FO_SPARSE) {
 	    cbuf = (Bytef *)jcr->compress_buf + SPARSE_FADDR_SIZE;
 	    max_compress_len = jcr->compress_buf_size - SPARSE_FADDR_SIZE;
@@ -329,7 +323,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
        * Send Data header to Storage daemon
        *    <file-index> <stream> <info>
        */
-      if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, stream)) {
+      if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, data_stream)) {
 	 bclose(&ff_pkt->bfd);
 	 set_jcr_job_status(jcr, JS_ErrorTerminated);
 	 return 0;

@@ -62,22 +62,24 @@ int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result);
 /* 
  * Status codes returned by create_file()
  */
-#define CF_SKIP       1               /* skip file (not newer or something) */
-#define CF_ERROR      2               /* error creating file */
-#define CF_EXTRACT    3               /* file created, data to extract */
-#define CF_CREATED    4               /* file created, no data to extract */
+enum {
+   CF_SKIP = 1,                       /* skip file (not newer or something) */
+   CF_ERROR,                          /* error creating file */
+   CF_EXTRACT,                        /* file created, data to extract */
+   CF_CREATED                         /* file created, no data to extract */
+};
 
 
 /* Options saved in "flag" of ff packet */
-#define FO_MD5          0x001         /* Do MD5 checksum */
-#define FO_GZIP         0x002         /* Do Zlib compression */
-#define FO_NO_RECURSION 0x004         /* no recursion in directories */
-#define FO_MULTIFS      0x008         /* multiple file systems */
-#define FO_SPARSE       0x010         /* do sparse file checking */
-#define FO_IF_NEWER     0x020         /* replace if newer */
-#define FO_NOREPLACE    0x040         /* never replace */
-#define FO_READFIFO     0x080         /* read data from fifo */
-#define FO_SHA1         0x100         /* Do SHA1 checksum */
+#define FO_MD5          (1<<1)        /* Do MD5 checksum */
+#define FO_GZIP         (1<<2)        /* Do Zlib compression */
+#define FO_NO_RECURSION (1<<3)        /* no recursion in directories */
+#define FO_MULTIFS      (1<<4)        /* multiple file systems */
+#define FO_SPARSE       (1<<5)        /* do sparse file checking */
+#define FO_IF_NEWER     (1<<6)        /* replace if newer */
+#define FO_NOREPLACE    (1<<7)        /* never replace */
+#define FO_READFIFO     (1<<8)        /* read data from fifo */
+#define FO_SHA1         (1<<9)        /* Do SHA1 checksum */
 
 /*
  * Options saved in "options" of include list
@@ -86,15 +88,15 @@ int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result);
  *
  * ***FIXME*** replace all OPT_xxx with FO_xxx or vise-versa 
  */
-#define OPT_compute_MD5       0x01    /* compute MD5 of file's data */
-#define OPT_GZIP_compression  0x02    /* use GZIP compression */
-#define OPT_no_recursion      0x04    /* no recursion in directories */
-#define OPT_multifs           0x08    /* multiple file systems */
-#define OPT_sparse            0x10    /* do sparse file checking */
-#define OPT_replace_if_newer  0x20    /* replace file if newer */
-#define OPT_never_replace     0x40    /* never replace */
-#define OPT_read_fifo         0x80    /* read data from fifo (named pipe) */
-#define OPT_compute_SHA1     0x100    /* compute SHA1 of file's data */
+#define OPT_compute_MD5      FO_MD5           /* compute MD5 of file's data */
+#define OPT_GZIP_compression FO_GZIP          /* use GZIP compression */
+#define OPT_no_recursion     FO_NO_RECURSION  /* no recursion in directories */
+#define OPT_multifs          FO_MULTIFS       /* multiple file systems */
+#define OPT_sparse           FO_SPARSE        /* do sparse file checking */
+#define OPT_replace_if_newer FO_IF_NEWER      /* replace file if newer */
+#define OPT_never_replace    FO_NOREPLACE     /* never replace */
+#define OPT_read_fifo        FO_READFIFO      /* read data from fifo (named pipe) */
+#define OPT_compute_SHA1     FO_SHA1          /* compute SHA1 of file's data */
 
 
 struct s_included_file {

@@ -35,7 +35,7 @@ LIBSRCS = alloc.c attr.c base64.c bsys.c bget_msg.c \
 	  bnet.c bnet_server.c \
 	  bpipe.c bshm.c btime.c \
 	  cram-md5.c crc32.c daemon.c edit.c fnmatch.c \
-	  hmac.c idcache.c jcr.c lex.c	\
+	  hmac.c idcache.c jcr.c lex.c list.c \
 	  md5.c message.c mem_pool.c parse_conf.c \
 	  queue.c rwlock.c scan.c serial.c sha1.c \
 	  semlock.c signal.c smartall.c tree.c \
@@ -46,7 +46,7 @@ LIBOBJS = alloc.o attr.o base64.o bsys.o bget_msg.o \
 	  bnet.o bnet_server.o \
 	  bpipe.o bshm.o btime.o \
 	  cram-md5.o crc32.o daemon.o edit.o fnmatch.o \
-	  hmac.o idcache.o jcr.o lex.o	\
+	  hmac.o idcache.o jcr.o lex.o list.o \
 	  md5.o message.o mem_pool.o parse_conf.o \
 	  queue.o rwlock.o scan.o serial.o sha1.o \
 	  semlock.o signal.o smartall.o tree.o \

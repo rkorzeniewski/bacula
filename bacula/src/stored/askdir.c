@@ -193,6 +193,7 @@ int dir_create_jobmedia_record(JCR *jcr)
       return 1; 		      /* nothing written to tape */
    }
 
+   jcr->WroteVol = false;
    bnet_fsend(dir, Create_job_media, jcr->Job, 
       jcr->VolFirstIndex, jcr->VolLastIndex,
       jcr->StartFile, jcr->EndFile,

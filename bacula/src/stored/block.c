@@ -287,6 +287,7 @@ int write_block_to_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       if (!dir_create_jobmedia_record(jcr)) {
          Jmsg(jcr, M_ERROR, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
 	    jcr->VolCatInfo.VolCatName, jcr->Job);
+	 set_new_volume_parameters(jcr, dev);
 	 unlock_device(dev);
 	 return 0;
       }
