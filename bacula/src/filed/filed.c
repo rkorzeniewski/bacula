@@ -201,7 +201,8 @@ Without that I don't know who I am :-(\n"), configfile);
       close_msg(NULL);		      /* close temp message handler */
       init_msg(NULL, me->messages);   /* open user specified message handler */
    }
-   working_directory = me->working_directory;
+
+   set_working_directory(me->working_directory);
 
    if (test_config) {
       terminate_filed(0);

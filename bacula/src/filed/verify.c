@@ -109,12 +109,15 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
       break;
    case FT_NOACCESS:
       Jmsg(jcr, M_NOTSAVED, -1, _("     Could not access %s: ERR=%s\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));
+      jcr->Errors++;
       return 1;
    case FT_NOFOLLOW:
       Jmsg(jcr, M_NOTSAVED, -1, _("     Could not follow link %s: ERR=%s\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));
+      jcr->Errors++;
       return 1;
    case FT_NOSTAT:
       Jmsg(jcr, M_NOTSAVED, -1, _("     Could not stat %s: ERR=%s\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));
+      jcr->Errors++;
       return 1;
    case FT_DIRNOCHG:
    case FT_NOCHG:
@@ -131,9 +134,11 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
       return 1;
    case FT_NOOPEN:
       Jmsg(jcr, M_NOTSAVED, -1, _("     Could not open directory %s: ERR=%s\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));
+      jcr->Errors++;
       return 1;
    default:
       Jmsg(jcr, M_NOTSAVED, 0, _("     Unknown file type %d: %s\n"), ff_pkt->type, ff_pkt->fname);
+      jcr->Errors++;
       return 1;
    }
 
@@ -146,6 +151,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
 	 ff_pkt->ff_errno = errno;
          Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open %s: ERR=%s.\n"),
 	      ff_pkt->fname, berror(&bfd));
+	 jcr->Errors++;
 	 return 1;
       }
    }
@@ -197,7 +203,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
 	 jcr->JobBytes += n;
       }
       if (n < 0) {
-         Jmsg(jcr, M_WARNING, -1, _("Error reading file %s: ERR=%s\n"), 
+         Jmsg(jcr, M_ERROR, -1, _("Error reading file %s: ERR=%s\n"), 
 	      ff_pkt->fname, berror(&bfd));
       }
       MD5Final(signature, &md5c);
@@ -215,7 +221,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
 	 jcr->JobBytes += n;
       }
       if (n < 0) {
-         Jmsg(jcr, M_WARNING, -1, _("Error reading file %s: ERR=%s\n"), 
+         Jmsg(jcr, M_ERROR, -1, _("Error reading file %s: ERR=%s\n"), 
 	      ff_pkt->fname, berror(&bfd));
       }
       SHA1Final(&sha1c, signature);

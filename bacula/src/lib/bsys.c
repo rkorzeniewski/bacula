@@ -1,0 +1,440 @@
+/*
+ * Miscellaneous Bacula memory and thread safe routines
+ *   Generally, these are interfaces to system or standard
+ *   library routines. 
+ * 
+ *  Bacula utility functions are in util.c
+ *
+ *   Version $Id$
+ */
+/*
+   Copyright (C) 2000-2003 Kern Sibbald and John Walker
+
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License as
+   published by the Free Software Foundation; either version 2 of
+   the License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+   General Public License for more details.
+
+   You should have received a copy of the GNU General Public
+   License along with this program; if not, write to the Free
+   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+   MA 02111-1307, USA.
+
+ */
+
+
+#include "bacula.h"
+#ifdef HAVE_PWD_H
+#include <pwd.h>
+#endif
+#ifdef HAVE_GRP_H
+#include <grp.h>
+#endif
+
+/*
+ * Guarantee that the string is properly terminated */
+char *bstrncpy(char *dest, const char *src, int maxlen)
+{
+   strncpy(dest, src, maxlen-1);
+   dest[maxlen-1] = 0;
+   return dest;
+}
+
+char *bstrncat(char *dest, const char *src, int maxlen)
+{
+   strncat(dest, src, maxlen-1);
+   dest[maxlen-1] = 0;
+   return dest;
+}
+
+
+#ifndef DEBUG
+void *bmalloc(size_t size)
+{
+  void *buf;
+
+  buf = malloc(size);
+  if (buf == NULL) {
+     Emsg1(M_ABORT, 0, _("Out of memory: ERR=%s\n"), strerror(errno));
+  }
+  return buf;
+}
+#endif
+
+void *b_malloc(char *file, int line, size_t size)
+{
+  void *buf;
+
+#ifdef SMARTALLOC
+  buf = sm_malloc(file, line, size);
+#else
+  buf = malloc(size);
+#endif
+  if (buf == NULL) {
+     e_msg(file, line, M_ABORT, 0, _("Out of memory: ERR=%s\n"), strerror(errno));
+  }
+  return buf;
+}
+
+
+void *brealloc (void *buf, size_t size)
+{
+   buf = realloc(buf, size);
+   if (buf == NULL) {
+      Emsg1(M_ABORT, 0, _("Out of memory: ERR=%s\n"), strerror(errno));
+   }
+   return buf;
+}
+
+
+void *bcalloc (size_t size1, size_t size2)
+{
+  void *buf;
+
+   buf = calloc(size1, size2);
+   if (buf == NULL) {
+      Emsg1(M_ABORT, 0, _("Out of memory: ERR=%s\n"), strerror(errno));
+   }
+   return buf;
+}
+
+
+#define BIG_BUF 5000
+/*
+ * Implement snprintf
+ */
+int bsnprintf(char *str, size_t size, const  char  *fmt,  ...) 
+{
+#ifdef HAVE_VSNPRINTF
+   va_list   arg_ptr;
+   int len;
+
+   va_start(arg_ptr, fmt);
+   len = vsnprintf(str, size, fmt, arg_ptr);
+   va_end(arg_ptr);
+   str[size-1] = 0;
+   return len;
+
+#else
+
+   va_list   arg_ptr;
+   int len;
+   char *buf;
+
+   buf = get_memory(BIG_BUF);
+   va_start(arg_ptr, fmt);
+   len = vsprintf(buf, fmt, arg_ptr);
+   va_end(arg_ptr);
+   if (len >= BIG_BUF) {
+      Emsg0(M_ABORT, 0, _("Buffer overflow.\n"));
+   }
+   memcpy(str, buf, size);
+   str[size-1] = 0;
+   free_memory(buf);
+   return len;
+#endif
+}
+
+/*
+ * Implement vsnprintf()
+ */
+int bvsnprintf(char *str, size_t size, const char  *format, va_list ap)
+{
+#ifdef HAVE_VSNPRINTF
+   int len;
+   len = vsnprintf(str, size, format, ap);
+   str[size-1] = 0;
+   return len;
+
+#else
+
+   int len;
+   char *buf;
+   buf = get_memory(BIG_BUF);
+   len = vsprintf(buf, format, ap);
+   if (len >= BIG_BUF) {
+      Emsg0(M_ABORT, 0, _("Buffer overflow.\n"));
+   }
+   memcpy(str, buf, size);
+   str[size-1] = 0;
+   free_memory(buf);
+   return len;
+#endif
+}
+
+#ifndef HAVE_LOCALTIME_R
+
+struct tm *localtime_r(const time_t *timep, struct tm *tm)
+{
+    static pthread_mutex_t mutex;
+    static int first = 1;
+    struct tm *ltm;
+
+    if (first) {
+       pthread_mutex_init(&mutex, NULL);
+       first = 0;
+    }
+    P(mutex);
+    ltm = localtime(timep);
+    if (ltm) {
+       memcpy(tm, ltm, sizeof(struct tm));
+    }
+    V(mutex);
+    return ltm ? tm : NULL;
+}
+#endif /* HAVE_LOCALTIME_R */
+
+#ifndef HAVE_READDIR_R
+
+#include <dirent.h>
+
+int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result)
+{
+    static pthread_mutex_t mutex;
+    static int first = 1;
+    struct dirent *ndir;
+    int stat;
+
+    if (first) {
+       pthread_mutex_init(&mutex, NULL);
+       first = 0;
+    }
+    P(mutex);
+    errno = 0;
+    ndir = readdir(dirp);
+    stat = errno;
+    if (ndir) {
+       memcpy(entry, ndir, sizeof(struct dirent));
+       strcpy(entry->d_name, ndir->d_name);
+       *result = entry;
+    } else {
+       *result = NULL;
+    }
+    V(mutex);
+    return stat;
+}
+
+#endif /* HAVE_READDIR_R */
+
+#ifdef xxxxxxxxxx_STRERROR_R
+int strerror_r(int errnum, char *buf, size_t bufsiz)
+{
+    static pthread_mutex_t mutex;
+    static int first = 1;
+    int stat = 0;
+    char *msg;
+
+    if (first) {
+       pthread_mutex_init(&mutex, NULL);
+       first = 0;
+    }
+    P(mutex);
+
+    msg = strerror(errnum);
+    if (!msg) {
+       msg = _("Bad errno");
+       stat = -1;
+    }
+    bstrncpy(buf, msg, bufsiz);
+    V(mutex);
+    return stat;
+}
+#endif /* HAVE_STRERROR_R */
+
+/*
+ * These are mutex routines that do error checking
+ *  for deadlock and such.  Normally not turned on.
+ */
+#ifdef DEBUG_MUTEX
+void _p(char *file, int line, pthread_mutex_t *m)
+{
+   int errstat;
+   if ((errstat = pthread_mutex_trylock(m))) {
+      e_msg(file, line, M_ERROR, 0, _("Possible mutex deadlock.\n"));
+      /* We didn't get the lock, so do it definitely now */
+      if ((errstat=pthread_mutex_lock(m))) {
+         e_msg(file, line, M_ABORT, 0, _("Mutex lock failure. ERR=%s\n"),
+	       strerror(errstat));
+      } else {
+         e_msg(file, line, M_ERROR, 0, _("Possible mutex deadlock resolved.\n"));
+      }
+	 
+   }
+}
+
+void _v(char *file, int line, pthread_mutex_t *m)
+{
+   int errstat;
+
+   if ((errstat=pthread_mutex_trylock(m)) == 0) {
+      e_msg(file, line, M_ERROR, 0, _("Mutex unlock not locked. ERR=%s\n"),
+	   strerror(errstat));
+    }
+    if ((errstat=pthread_mutex_unlock(m))) {
+       e_msg(file, line, M_ABORT, 0, _("Mutex unlock failure. ERR=%s\n"),
+	      strerror(errstat));
+    }
+}
+#endif /* DEBUG_MUTEX */
+
+#ifndef HAVE_CYGWIN
+static int del_pid_file_ok = FALSE;
+#endif
+
+/*
+ * Create a standard "Unix" pid file.
+ */
+void create_pid_file(char *dir, char *progname, int port)
+{
+#ifndef HAVE_CYGWIN
+   int pidfd, len;
+   int oldpid;
+   char  pidbuf[20];
+   POOLMEM *fname = get_pool_memory(PM_FNAME);
+   struct stat statp;
+
+   Mmsg(&fname, "%s/%s.%d.pid", dir, progname, port);
+   if (stat(fname, &statp) == 0) {
+      /* File exists, see what we have */
+      *pidbuf = 0;
+      if ((pidfd = open(fname, O_RDONLY)) < 0 || 
+	   read(pidfd, &pidbuf, sizeof(pidbuf)) < 0 ||
+           sscanf(pidbuf, "%d", &oldpid) != 1) {
+         Emsg2(M_ERROR_TERM, 0, _("Cannot open pid file. %s ERR=%s\n"), fname, strerror(errno));
+      }
+      /* See if other Bacula is still alive */
+      if (kill(oldpid, 0) != -1 || errno != ESRCH) {
+         Emsg3(M_ERROR_TERM, 0, _("%s is already running. pid=%d\nCheck file %s\n"),
+	       progname, oldpid, fname);
+      }
+      /* He is not alive, so take over file ownership */
+      unlink(fname);		      /* remove stale pid file */
+   }
+   /* Create new pid file */
+   if ((pidfd = open(fname, O_CREAT | O_TRUNC | O_WRONLY, 0644)) >= 0) {
+      len = sprintf(pidbuf, "%d\n", (int)getpid());
+      write(pidfd, pidbuf, len);
+      close(pidfd);
+      del_pid_file_ok = TRUE;	      /* we created it so we can delete it */
+   } else {
+      Emsg2(M_ERROR_TERM, 0, _("Could not open pid file. %s ERR=%s\n"), fname, strerror(errno));
+   }
+   free_pool_memory(fname);
+#endif
+}
+
+/*
+ * Delete the pid file if we created it
+ */
+int delete_pid_file(char *dir, char *progname, int port)
+{
+#ifndef HAVE_CYGWIN
+   POOLMEM *fname = get_pool_memory(PM_FNAME);
+
+   if (!del_pid_file_ok) {
+      free_pool_memory(fname);
+      return 0;
+   }
+   del_pid_file_ok = FALSE;
+   Mmsg(&fname, "%s/%s.%d.pid", dir, progname, port);
+   unlink(fname);
+   free_pool_memory(fname);
+#endif
+   return 1;
+}
+
+/*
+ * Drop to privilege new userid and new gid if non-NULL
+ */
+void drop(char *uid, char *gid)
+{
+#ifdef HAVE_GRP_H
+   if (gid) {
+      struct group *group;
+      gid_t gr_list[1];
+
+      if ((group = getgrnam(gid)) == NULL) {
+         Emsg1(M_ERROR_TERM, 0, _("Could not find specified group: %s\n"), gid);
+      }
+      if (setgid(group->gr_gid)) {
+         Emsg1(M_ERROR_TERM, 0, _("Could not set specified group: %s\n"), gid);
+      }
+      gr_list[0] = group->gr_gid;
+      if (setgroups(1, gr_list)) {
+         Emsg1(M_ERROR_TERM, 0, _("Could not set specified group: %s\n"), gid);
+      }
+   }
+#endif
+
+#ifdef HAVE_PWD_H
+   if (uid) {
+      struct passwd *passw;
+      if ((passw = getpwnam(uid)) == NULL) {
+         Emsg1(M_ERROR_TERM, 0, _("Could not find specified userid: %s\n"), uid);
+      }
+      if (setuid(passw->pw_uid)) {
+         Emsg1(M_ERROR_TERM, 0, _("Could not set specified userid: %s\n"), uid);
+      }
+   }
+#endif
+	  
+}
+
+static pthread_mutex_t timer_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t timer = PTHREAD_COND_INITIALIZER;
+
+/*
+ * This routine will sleep (sec, msec).  Note, however, that if a 
+ *   signal occurs, it will return early.  It is up to the caller
+ *   to recall this routine if he/she REALLY wants to sleep the
+ *   requested time.
+ */
+int bmicrosleep(time_t sec, long msec)
+{
+   struct timespec timeout;
+   struct timeval tv;
+   struct timezone tz;
+   int stat;
+
+   timeout.tv_sec = sec;
+   timeout.tv_nsec = msec * 1000;
+
+#ifdef HAVE_NANOSLEEP
+   stat = nanosleep(&timeout, NULL);
+   if (!(stat < 0 && errno == ENOSYS)) {
+      return stat;		     
+   }
+   /* If we reach here it is because nanosleep is not supported by the OS */
+#endif
+
+   /* Do it the old way */
+   gettimeofday(&tv, &tz);
+   timeout.tv_nsec += tv.tv_usec * 1000;
+   timeout.tv_sec += tv.tv_sec;
+   while (timeout.tv_nsec >= 1000000000) {
+      timeout.tv_nsec -= 1000000000;
+      timeout.tv_sec++;
+   }
+
+   Dmsg1(200, "pthread_cond_timedwait sec=%d\n", timeout.tv_sec);
+   /* Note, this unlocks mutex during the sleep */
+   P(timer_mutex);
+   stat = pthread_cond_timedwait(&timer, &timer_mutex, &timeout);
+   Dmsg1(200, "pthread_cond_timedwait stat=%d\n", stat);
+   V(timer_mutex);
+   return stat;
+}
+
+/* BSDI does not have this.  This is a *poor* simulation */
+#ifndef HAVE_STRTOLL
+long long int
+strtoll(const char *ptr, char **endptr, int base)
+{
+   return (long long int)strtod(ptr, endptr);	
+}
+#endif

@@ -25,6 +25,7 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
+- Use switch() in backup.c and restore.c in FD instead of giant if statement.
 - Investigate doing RAW backup of Win32 partition.
 - Add JobName= to VerifyToCatalog so that all verifies can be done at the end.
 - Add thread specific data to hold the jcr -- send error messages from
@@ -879,4 +880,3 @@ Done: (see kernsdone for more)
 - Put system type returned by FD into catalog.
 - Finish WIN32_DATA stream code (bextract, check if can handle stream)
 - Make SD keep track of Files, Bytes during restore.
-

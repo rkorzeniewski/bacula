@@ -100,7 +100,9 @@ void do_verify_volume(JCR *jcr)
       Dmsg1(30, "Got stream data, len=%d\n", sd->msglen);
 
       /* File Attributes stream */
-      if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_WIN32_ATTRIBUTES) {
+      switch (stream) {
+      case STREAM_UNIX_ATTRIBUTES:
+      case STREAM_WIN32_ATTRIBUTES:
 	 char *ap, *lp, *fp;
 
          Dmsg0(400, "Stream=Unix Attributes.\n");
@@ -192,48 +194,48 @@ void do_verify_volume(JCR *jcr)
             Jmsg(jcr, M_FATAL, 0, _("Network error in send to Director: ERR=%s\n"), bnet_strerror(dir));
 	    goto bail_out;
 	 }
+	 break;
 
-
-      /* Data stream */
-      } else if (stream == STREAM_FILE_DATA || stream == STREAM_SPARSE_DATA) {
-
-	/* Do nothing */
-	
-      /* GZIP data stream */
-      } else if (stream == STREAM_GZIP_DATA || stream == STREAM_SPARSE_GZIP_DATA) {
-
-	/* Do nothing */
-
-      } else if (stream == STREAM_WIN32_DATA || stream == STREAM_WIN32_GZIP_DATA) {
+      /* Data streams to ignore */
+      case STREAM_FILE_DATA:
+      case STREAM_SPARSE_DATA:
+      case STREAM_WIN32_DATA:
+      case STREAM_WIN32_GZIP_DATA:
+      case STREAM_GZIP_DATA:
+      case STREAM_SPARSE_GZIP_DATA:
 
 	/* Do nothing */
+	break;
 
-      /* If MD5 stream */
-      } else if (stream == STREAM_MD5_SIGNATURE) {
+      case STREAM_MD5_SIGNATURE:
 	 char MD5buf[30];
 	 bin_to_base64(MD5buf, (char *)sd->msg, 16); /* encode 16 bytes */
          Dmsg2(400, "send inx=%d MD5=%s\n", jcr->JobFiles, MD5buf);
          bnet_fsend(dir, "%d %d %s *MD5-%d*", jcr->JobFiles, STREAM_MD5_SIGNATURE, MD5buf,
 	    jcr->JobFiles);
          Dmsg2(20, "bfiled>bdird: MD5 len=%d: msg=%s\n", dir->msglen, dir->msg);
+	 break;
   
-      /* If SHA1 stream */
-      } else if (stream == STREAM_SHA1_SIGNATURE) {
+      case STREAM_SHA1_SIGNATURE:
 	 char SHA1buf[30];
 	 bin_to_base64(SHA1buf, (char *)sd->msg, 20); /* encode 20 bytes */
          Dmsg2(400, "send inx=%d SHA1=%s\n", jcr->JobFiles, SHA1buf);
          bnet_fsend(dir, "%d %d %s *SHA1-%d*", jcr->JobFiles, STREAM_SHA1_SIGNATURE, 
 	    SHA1buf, jcr->JobFiles);
          Dmsg2(20, "bfiled>bdird: SHA1 len=%d: msg=%s\n", dir->msglen, dir->msg);
-      } else {
+	 break;
+
+      default:
          Pmsg2(0, "None of above!!! stream=%d data=%s\n", stream,sd->msg);
-      }
-   }
+	 break;
+      } /* end switch */
+   } /* end while bnet_get */
    set_jcr_job_status(jcr, JS_Terminated);
    goto ok_out;
 
 bail_out:
    set_jcr_job_status(jcr, JS_ErrorTerminated);
+
 ok_out:
    if (jcr->compress_buf) {
       free(jcr->compress_buf);

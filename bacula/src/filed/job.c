@@ -531,7 +531,6 @@ static int backup_cmd(JCR *jcr)
 
    if (sd == NULL) {
       Jmsg(jcr, M_FATAL, 0, _("Cannot contact Storage daemon\n"));
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
       goto cleanup;
    }
 
@@ -550,13 +549,11 @@ static int backup_cmd(JCR *jcr)
       Dmsg1(110, "<stored: %s", sd->msg);
       if (sscanf(sd->msg, OK_open, &jcr->Ticket) != 1) {
          Jmsg(jcr, M_FATAL, 0, _("Bad response to append open: %s\n"), sd->msg);
-	 set_jcr_job_status(jcr, JS_ErrorTerminated);
 	 goto cleanup;
       }
       Dmsg1(110, "Got Ticket=%d\n", jcr->Ticket);
    } else {
       Jmsg(jcr, M_FATAL, 0, _("Bad response from stored to open command\n"));
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
       goto cleanup;
    }
 
@@ -571,7 +568,6 @@ static int backup_cmd(JCR *jcr)
     */
    Dmsg1(110, "<stored: %s", sd->msg);
    if (!response(jcr, sd, OK_data, "Append Data")) {
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
       goto cleanup;
    }
       
@@ -618,13 +614,11 @@ static int backup_cmd(JCR *jcr)
       }
       if (!ok) {
          Jmsg(jcr, M_FATAL, 0, _("Append Close with SD failed.\n"));
-	 set_jcr_job_status(jcr, JS_ErrorTerminated);
 	 goto cleanup;
       }
       if (SDJobStatus != JS_Terminated) {
          Jmsg(jcr, M_FATAL, 0, _("Bad status %d returned from Storage Daemon.\n"),
 	    SDJobStatus);
-	 set_jcr_job_status(jcr, JS_ErrorTerminated);
       }
    }
 

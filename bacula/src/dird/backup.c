@@ -47,7 +47,8 @@ static char levelcmd[]  = "level = %s%s\n";
 static char OKbackup[]  = "2000 OK backup\n";
 static char OKstore[]   = "2000 OK storage\n";
 static char OKlevel[]   = "2000 OK level\n";
-static char EndBackup[] = "2801 End Backup Job TermCode=%d JobFiles=%u ReadBytes=%" lld " JobBytes=%" lld " Errors=%u\n";
+static char EndBackup[] = "2801 End Backup Job TermCode=%d JobFiles=%u "
+                          "ReadBytes=%" lld " JobBytes=%" lld " Errors=%u\n";
 
 
 /* Forward referenced functions */
@@ -279,6 +280,9 @@ static int wait_for_job_termination(JCR *jcr)
 	 fd_ok = TRUE;
 	 set_jcr_job_status(jcr, jcr->FDJobStatus);
          Dmsg1(100, "FDStatus=%c\n", (char)jcr->JobStatus);
+      } else {
+         Jmsg(jcr, M_WARNING, 0, _("Unexpected Client Job message: %s\n"),
+	    fd->msg);
       }
       if (job_canceled(jcr)) {
 	 break;
@@ -336,7 +340,8 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
    }
 
    /* Now update the bootstrap file if any */
-   if (jcr->JobStatus == JS_Terminated && jcr->jr.JobBytes &&jcr->job->WriteBootstrap) {
+   if (jcr->JobStatus == JS_Terminated && jcr->jr.JobBytes && 
+       jcr->job->WriteBootstrap) {
       FILE *fd;
       BPIPE *bpipe = NULL;
       int got_pipe = 0;

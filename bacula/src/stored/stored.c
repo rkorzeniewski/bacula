@@ -237,8 +237,6 @@ uint32_t newVolSessionId()
 /* Check Configuration file for necessary info */
 static void check_config()
 {
-   struct stat stat_buf; 
-
    LockRes();
    me = (STORES *)GetNextRes(R_STORAGE, NULL);
    if (!me) {
@@ -280,15 +278,8 @@ static void check_config()
       Emsg1(M_ERROR_TERM, 0, _("No Working Directory defined in %s. Cannot continue.\n"),
 	 configfile);
    }
-   if (stat(me->working_directory, &stat_buf) != 0) {
-      Emsg1(M_ERROR_TERM, 0, _("Working Directory: %s not found. Cannot continue.\n"),
-	 me->working_directory);
-   }
-   if (!S_ISDIR(stat_buf.st_mode)) {
-      Emsg1(M_ERROR_TERM, 0, _("Working Directory: %s is not a directory. Cannot continue.\n"),
-	 me->working_directory);
-   }
-   working_directory = me->working_directory;
+   
+   set_working_directory(me->working_directory);
 }
 
 /*

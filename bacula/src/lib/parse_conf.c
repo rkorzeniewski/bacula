@@ -368,7 +368,7 @@ void store_dir(LEX *lc, struct res_items *item, int index, int pass)
    lex_get_token(lc, T_STRING);
    if (pass == 1) {
       if (lc->str[0] != '|') {
-	 do_shell_expansion(lc->str);
+	 do_shell_expansion(lc->str, sizeof(lc->str));
       }
       *(item->value) = bstrdup(lc->str);
    }

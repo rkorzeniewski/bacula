@@ -388,7 +388,7 @@ char *encode_mode(mode_t mode, char *buf)
 }
 
 
-int do_shell_expansion(char *name)
+int do_shell_expansion(char *name, int name_len)
 {
 /*  ****FIXME***** this should work for Win32 too */
 #define UNIX
@@ -465,7 +465,10 @@ int do_shell_expansion(char *name)
 	  /* wait for child to exit */
 	  while ((wpid = wait(&waitstatus)) != pid && wpid != -1)
 	     { ; }
-	  strcpy(name, echout);
+	  strip_trailing_junk(echout);
+	  if (strlen(echout) > 0) {
+	     bstrncpy(name, echout, name_len);
+	  }
 	  stat = 1;
 	  break;
        }
@@ -762,4 +765,22 @@ void parse_command_args(POOLMEM *cmd, POOLMEM *args, int *argc,
       Dmsg3(000, "Arg %d: kw=%s val=%s\n", i, argk[i], argv[i]?argv[i]:"NULL");
    }
 #endif
+}
+
+void set_working_directory(char *wd)
+{
+   struct stat stat_buf; 
+
+   if (wd == NULL) {
+      Emsg0(M_ERROR_TERM, 0, _("Working directory not defined. Cannot continue.\n"));
+   }
+   if (stat(wd, &stat_buf) != 0) {
+      Emsg1(M_ERROR_TERM, 0, _("Working Directory: \"%s\" not found. Cannot continue.\n"),
+	 wd);
+   }
+   if (!S_ISDIR(stat_buf.st_mode)) {
+      Emsg1(M_ERROR_TERM, 0, _("Working Directory: \"%s\" is not a directory. Cannot continue.\n"),
+	 wd);
+   }
+   working_directory = wd;	      /* set global */
 }

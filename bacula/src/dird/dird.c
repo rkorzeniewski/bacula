@@ -291,7 +291,7 @@ static void reload_config(int sig)
    }
 
    /* Reset globals */
-   working_directory = director->working_directory;
+   set_working_directory(director->working_directory);
    FDConnectTimeout = director->FDConnectTimeout;
    SDConnectTimeout = director->SDConnectTimeout;
  
@@ -322,11 +322,7 @@ static int check_resources()
 Without that I don't know who I am :-(\n"), configfile);
       OK = FALSE;
    } else {
-      if (!director->working_directory) {
-         Jmsg(NULL, M_FATAL, 0, _("No working directory specified. Cannot continue.\n"));
-	 OK = FALSE;
-      }       
-      working_directory = director->working_directory;
+      set_working_directory(director->working_directory);
       if (!director->messages) {       /* If message resource not specified */
 	 director->messages = (MSGS *)GetNextRes(R_MSGS, NULL);
 	 if (!director->messages) {
