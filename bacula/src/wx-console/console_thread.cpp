@@ -42,6 +42,12 @@ char OK_msg[]   = "2000 OK\n";
 char TERM_msg[] = "2999 Terminate\n";
 #endif
 
+#ifdef HAVE_MACOSX
+#define CONFIGFILE "/Library/Preferences/org.bacula.wxconsole/wx-console.conf"
+#else
+#define CONFIGFILE "./wx-console.conf"
+#endif
+
 /* Imported functions */
 int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons);
 
@@ -84,7 +90,7 @@ void* console_thread::Entry() {
    init_msg(NULL, NULL);
 
    /* TODO (#4#): Allow the user to choose his config file. */
-   parse_config("./wx-console.conf");
+   parse_config(CONFIGFILE);
 
    LockRes();
    DIRRES *dir = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);

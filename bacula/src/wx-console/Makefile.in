@@ -68,7 +68,8 @@ wx-console.app: wx-console
 	-mkdir wx-console.app/Contents/Resources/English.lproj
 	echo -n 'APPL????' > wx-console.app/Contents/PkgInfo
 	mv wx-console wx-console.app/Contents/MacOS/wx-console
-	cp wx-console.conf wx-console.app/Contents/MacOS/wx-console.conf
+	-mkdir /Library/Preferences/org.bacula.wxconsole
+	cp wx-console.conf /Library/Preferences/org.bacula.wxconsole/wx-console.conf
 
 wx-console: $(CONSOBJS) @WIN32@ ../lib/libbac.a
 	$(CXX) $(CONSOBJS) $(WIN32RES) -o $@ $(LIBS) -L../lib $(CONS_LDFLAGS) -lbac
