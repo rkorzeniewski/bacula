@@ -3,7 +3,7 @@
   Bacula code: Total files = 226 Total lines = 61,863 (*.h *.c *.in)
 
 Major Changes this Release:
-- Bare Metal Recovery for Linux systems.
+- Bare Metal Recovery for Linux systems and manually for Solaris
 - Optimized restore, forward spaces to correct tape file and
   stops reading the archive when all files are restored.
 - Schedule permits specification of 1st, 2nd, ... week e.g.

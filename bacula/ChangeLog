@@ -1,6 +1,7 @@
 2002-mm-dd Version 1.28 (not yet released)
 
 General:
+- Implemented Bare Metal Recovery for Linux and manual procedures for Solaris
 - Now using only a single technotes file kes-1.28 and will add to
   it as the development goes on.
 - Wrote a general purpose bi-directional pipe command. This replaces
@@ -12,6 +13,14 @@ General:
   tape drivers.
 
 Changes submitted this submission:
+31Dec02
+- Add start of Solaris bare metal recovery
+- Add Site Visit usage statistics to Web page
+- Got Bacula listed on www.backupcentral.com
+30Dec02
+- Retest bare metal recovery on Linux 2 times with verify
+- Cleanup printout of verify differences using proper casting to
+  handle shorts and long longs.
 29Dec02
 - Added --enable-client-only to ./configure
 - Modified --enable-static-sd to work better and documented it.
