@@ -52,6 +52,7 @@ Select Job.JobId,Client.Name as Client,Level,StartTime,JobFiles,JobBytes,VolumeN
   AND JobStatus='T'
   AND JobMedia.JobId=Job.JobId AND JobMedia.MediaId=Media.MediaId
   AND Job.StartTime >= '%2'
+  GROUP BY Job.JobId
   ORDER BY Job.StartTime;
 # 6
 :List all backups for a Client
@@ -62,6 +63,7 @@ Select Job.JobId,Client.Name as Client,Level,StartTime,JobFiles,JobBytes,VolumeN
   AND Client.ClientId=Job.ClientId
   AND JobStatus='T'
   AND JobMedia.JobId=Job.JobId AND JobMedia.MediaId=Media.MediaId
+  GROUP BY Job.JobId
   ORDER BY Job.StartTime;
 # 7
 :List Volume Attributes for a selected Volume:

@@ -500,7 +500,7 @@ int prune_volume(UAContext *ua, MEDIA_DBR *mr)
    }
       
    if (cnt.count == 0) {
-      if (ua->verbose) {
+      if (strcmp(mr->VolStatus, "Purged") != 0 && verbose) {
          bsendmsg(ua, "There are no Jobs associated with Volume \"%s\". Marking it purged.\n",
 	    mr->VolumeName);
       }

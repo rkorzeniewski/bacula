@@ -23,6 +23,7 @@ Documentation to do: (any release a little bit at a time)
 - Lookup HP cleaning recommendations.
 - Lookup HP tape replacement recommendations (see trouble shooting autochanger)
 - Add more obvious documentation of @ for conf files.
+- Document doing table repair
           
 Testing to do: (painful)
 - Test drive polling!
@@ -44,6 +45,8 @@ For 1.33 Testing/Documentation:
 
 
 For version 1.35:
+- Add All Local Partitions = yes to new style saves.
+- Document streams and how to implement them.
 - On Win95
    The error I when I installed 1.34.2 clients:
     The BACULA-FD file is  
@@ -96,6 +99,8 @@ For version 1.35:
    Also 12:00am works fine.  0:00pm also works (which I don't think
    should).  None of the values 12:00pm - 12:59pm work for that matter.
 - Add level to estimate command.
+- For each job type (Admin, Restore, ...) require only the really necessary
+  fields.
 - Fix option 2 of restore -- list where file is backed up -- require Client,
   then list last 20 backups.
 - Add all pools in Dir conf to DB also update them to catch changed
