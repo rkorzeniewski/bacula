@@ -132,7 +132,7 @@ STORE *select_storage_resource(UAContext *ua)
 /* 
  * Select a FileSet resource from prompt list
  */
-FILESET *select_fs_resource(UAContext *ua)
+FILESET *select_fileset_resource(UAContext *ua)
 {
    char name[MAX_NAME_LENGTH];	  
    FILESET *fs = NULL;

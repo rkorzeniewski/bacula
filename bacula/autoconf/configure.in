@@ -1178,6 +1178,8 @@ AC_OUTPUT([autoconf/Make.common \
 	   btraceback \
 	   startit \
 	   stopit \
+	   console \
+	   gconsole \
 	   bacula \
 	   fd \
 	   doc/Makefile \

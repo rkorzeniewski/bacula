@@ -47,14 +47,14 @@ extern struct s_jl joblevels[];
  */
 int runcmd(UAContext *ua, char *cmd)
 {
-   JOB *job;
    JCR *jcr;
    char *job_name, *level_name, *jid, *store_name;
    char *where, *fileset_name, *client_name, *bootstrap;
    int i, j, found;
-   STORE *store;
-   CLIENT *client;
-   FILESET *fileset;
+   JOB *job = NULL;
+   STORE *store = NULL;
+   CLIENT *client = NULL;
+   FILESET *fileset = NULL;
    static char *kw[] = {
       N_("job"),
       N_("jobid"),
@@ -79,7 +79,7 @@ int runcmd(UAContext *ua, char *cmd)
    fileset_name = NULL;
    bootstrap = NULL;
 
-   Dmsg1(20, "run: %s\n", ua->UA_sock->msg);
+   Dmsg1(000, "run: %s\n", ua->UA_sock->msg);
 
    for (i=1; i<ua->argc; i++) {
       found = False;
@@ -177,7 +177,10 @@ int runcmd(UAContext *ua, char *cmd)
       }
    } /* end argc loop */
 	     
-   Dmsg0(20, "Done scan.\n");
+   Dmsg0(200, "Done scan.\n");
+
+
+
    if (job_name) {
       /* Find Job */
       job = (JOB *)GetResWithName(R_JOB, job_name);
@@ -185,7 +188,7 @@ int runcmd(UAContext *ua, char *cmd)
          bsendmsg(ua, _("Job %s: not found\n"), job_name);
 	 job = select_job_resource(ua);
       } else {
-         Dmsg1(20, "Found job=%s\n", job_name);
+         Dmsg1(200, "Found job=%s\n", job_name);
       }
    } else {
       bsendmsg(ua, _("A job name must be specified.\n"));
@@ -208,10 +211,56 @@ int runcmd(UAContext *ua, char *cmd)
       return 1;
    }
 
+   if (client_name) {
+      client = (CLIENT *)GetResWithName(R_CLIENT, client_name);
+      if (!client) {
+         bsendmsg(ua, _("Client %s not found.\n"), client_name);
+	 client = select_client_resource(ua);
+      }
+   } else {
+      client = job->client;	      /* use default */
+   }
+   if (!client) {
+      return 1;
+   }
+
+   if (fileset_name) {
+      fileset = (FILESET *)GetResWithName(R_FILESET, fileset_name);
+      if (!fileset) {
+         bsendmsg(ua, _("FileSet %s not found.\n"), fileset_name);
+	 fileset = select_fileset_resource(ua);
+      }
+   } else {
+      fileset = job->fileset;		/* use default */
+   }
+   if (!fileset) {
+      return 1;
+   }
+
+
+   /* Create JCR to run job */
    jcr = new_jcr(sizeof(JCR), dird_free_jcr);
    set_jcr_defaults(jcr, job);
    init_msg(jcr, jcr->msgs);	      /* start message handler */
-   jcr->store = store;		      /* set possible new Storage */
+
+   jcr->store = store;
+   jcr->client = client;
+   jcr->fileset = fileset;
+   if (where) {
+      if (jcr->RestoreWhere) {
+	 free(jcr->RestoreWhere);
+      }
+      jcr->RestoreWhere = bstrdup(where);
+   }
+   if (bootstrap) {
+      if (jcr->RestoreBootstrap) {
+	 free(jcr->RestoreBootstrap);
+      }
+      jcr->RestoreBootstrap = bstrdup(bootstrap);
+   }
+
+
+
 
 try_again:
    Dmsg1(20, "JobType=%c\n", jcr->JobType);
@@ -393,7 +442,7 @@ JobId:      %s\n"),
 	 break;
       case 3:
 	 /* FileSet */
-	 fileset = select_fs_resource(ua);
+	 fileset = select_fileset_resource(ua);
 	 if (fileset) {
 	    jcr->fileset = fileset;
 	    goto try_again;

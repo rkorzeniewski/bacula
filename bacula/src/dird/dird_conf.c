@@ -169,7 +169,7 @@ static struct res_items job_items[] = {
    {"storage",  store_res,     ITEM(res_job.storage),  R_STORAGE, 0, 0},
    {"pool",     store_res,     ITEM(res_job.pool),     R_POOL, 0, 0},
    {"client",   store_res,     ITEM(res_job.client),   R_CLIENT, 0, 0},
-   {"fileset",  store_res,     ITEM(res_job.fs),       R_FILESET, 0, 0},
+   {"fileset",  store_res,     ITEM(res_job.fileset),  R_FILESET, 0, 0},
    {"where",    store_dir,     ITEM(res_job.RestoreWhere), 0, 0, 0},
    {"bootstrap",store_dir,     ITEM(res_job.RestoreBootstrap), 0, 0, 0},
    {"maxruntime", store_time,  ITEM(res_job.MaxRunTime), 0, 0, 0},
@@ -464,9 +464,9 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
             sendit(sock, "  --> ");
 	    dump_resource(-R_CLIENT, (RES *)res->res_job.client, sendit, sock);
 	 }
-	 if (res->res_job.fs) {
+	 if (res->res_job.fileset) {
             sendit(sock, "  --> ");
-	    dump_resource(-R_FILESET, (RES *)res->res_job.fs, sendit, sock);
+	    dump_resource(-R_FILESET, (RES *)res->res_job.fileset, sendit, sock);
 	 }
 	 if (res->res_job.schedule) {
             sendit(sock, "  --> ");
@@ -800,7 +800,7 @@ void save_resource(int type, struct res_items *items, int pass)
 	    res->res_job.messages = res_all.res_job.messages;
 	    res->res_job.schedule = res_all.res_job.schedule;
 	    res->res_job.client   = res_all.res_job.client;
-	    res->res_job.fs	  = res_all.res_job.fs;
+	    res->res_job.fileset  = res_all.res_job.fileset;
 	    res->res_job.storage  = res_all.res_job.storage;
 	    res->res_job.pool	  = res_all.res_job.pool;
 	    if (res->res_job.JobType == 0) {
@@ -1017,7 +1017,7 @@ static void store_backup(LEX *lc, struct res_items *item, int index, int pass)
                         scan_err1(lc, "Could not find specified FileSet Resource: %s\n",
 				    lc->str);
 		     }
-		     res_all.res_job.fs = (FILESET *)res;
+		     res_all.res_job.fileset = (FILESET *)res;
 		  }
 		  break;
                case 'L':
@@ -1108,7 +1108,7 @@ static void store_restore(LEX *lc, struct res_items *item, int index, int pass)
                         scan_err1(lc, "Could not find specified FileSet Resource: %s\n",
 				    lc->str);
 		     }
-		     res_all.res_job.fs = (FILESET *)res;
+		     res_all.res_job.fileset = (FILESET *)res;
 		  }
 		  break;
                case 'J':

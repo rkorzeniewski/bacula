@@ -71,7 +71,7 @@ STORE	*select_storage_resource(UAContext *ua);
 JOB	*select_job_resource(UAContext *ua);
 JOB	*select_restore_job_resource(UAContext *ua);
 CLIENT	*select_client_resource(UAContext *ua);
-FILESET *select_fs_resource(UAContext *ua);
+FILESET *select_fileset_resource(UAContext *ua);
 int	select_pool_and_media_dbr(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr);
 int	select_pool_dbr(UAContext *ua, POOL_DBR *pr);
 

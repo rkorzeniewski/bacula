@@ -331,7 +331,7 @@ Without that I don't know who I am :-(\n"), configfile);
          Emsg1(M_FATAL, 0, _("No Client record defined for job %s\n"), job->hdr.name);
 	 OK = FALSE;
       }
-      if (!job->fs) {
+      if (!job->fileset) {
          Emsg1(M_FATAL, 0, _("No FileSet record defined for job %s\n"), job->hdr.name);
 	 OK = FALSE;
       }

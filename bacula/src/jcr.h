@@ -105,7 +105,7 @@ struct s_jcr {
    time_t end_time;                   /* job end time */
    POOLMEM *VolumeName;               /* Volume name desired -- pool_memory */
    POOLMEM *client_name;              /* client name */
-   POOLMEM *RestoreBootstrap;         /* Bootstrap file to restore */
+   char *RestoreBootstrap;            /* Bootstrap file to restore */
    char *sd_auth_key;                 /* SD auth key */
    MSGS *msgs;                        /* Message resource */
 

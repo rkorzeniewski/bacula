@@ -222,7 +222,7 @@ int restorecmd(UAContext *ua, char *cmd)
 	 job->hdr.name, working_directory);
    }
 
-   Dmsg1(400, "Submitting: %s\n", ua->cmd);
+   Dmsg1(000, "Submitting: %s\n", ua->cmd);
    
    parse_command_args(ua);
    runcmd(ua, ua->cmd);
@@ -440,8 +440,8 @@ static int quitcmd(UAContext *ua, TREE_CTX *tree);
 
 struct cmdstruct { char *key; int (*func)(UAContext *ua, TREE_CTX *tree); char *help; }; 
 static struct cmdstruct commands[] = {
- { N_("mark"),       markcmd,      _("mark file for extraction")},
- { N_("unmark"),     unmarkcmd,    _("unmark file for extraction")},
+ { N_("mark"),       markcmd,      _("mark file for restoration")},
+ { N_("unmark"),     unmarkcmd,    _("unmark file for restoration")},
  { N_("cd"),         cdcmd,        _("change current directory")},
  { N_("pwd"),        pwdcmd,       _("print current working directory")},
  { N_("ls"),         lscmd,        _("list current directory")},    
@@ -625,7 +625,7 @@ static void write_bsr(UAContext *ua, RBSR *bsr, FILE *fd)
 {
    if (bsr) {
       if (bsr->VolumeName) {
-         fprintf(fd, "VolumeName=%s\n", bsr->VolumeName);
+         fprintf(fd, "Volume=%s\n", bsr->VolumeName);
       }
       fprintf(fd, "VolSessionId=%u\n", bsr->VolSessionId);
       fprintf(fd, "VolSessionTime=%u\n", bsr->VolSessionTime);
@@ -638,7 +638,7 @@ static void print_bsr(UAContext *ua, RBSR *bsr)
 {
    if (bsr) {
       if (bsr->VolumeName) {
-         bsendmsg(ua, "VolumeName=%s\n", bsr->VolumeName);
+         bsendmsg(ua, "Volume=%s\n", bsr->VolumeName);
       }
       bsendmsg(ua, "VolSessionId=%u\n", bsr->VolSessionId);
       bsendmsg(ua, "VolSessionTime=%u\n", bsr->VolSessionTime);
@@ -832,7 +832,7 @@ static int countcmd(UAContext *ua, TREE_CTX *tree)
 	 }
       }
    }
-   bsendmsg(ua, "%d total files. %d marked for extraction.\n", total, extract);
+   bsendmsg(ua, "%d total files. %d marked for restoration.\n", total, extract);
    return 1;
 }
 

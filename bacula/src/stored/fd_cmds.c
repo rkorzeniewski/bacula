@@ -329,12 +329,13 @@ static int bootstrap_cmd(JCR *jcr)
       goto bail_out;
    }
    while (bnet_recv(fd) > 0) {
-       Dmsg1(200, "stored<filed: bootstrap file %s\n", fd->msg);
+       Dmsg1(000, "stored<filed: bootstrap file %s\n", fd->msg);
        fputs(fd->msg, bs);
    }
    fclose(bs);
-   jcr->bsr = parse_bsr(jcr->RestoreBootstrap);
+   jcr->bsr = parse_bsr(jcr, jcr->RestoreBootstrap);
    if (!jcr->bsr) {
+      Jmsg(jcr, M_FATAL, 0, _("Error parsing bootstrap file.\n"));
       goto bail_out;
    }
    if (debug_level > 20) {

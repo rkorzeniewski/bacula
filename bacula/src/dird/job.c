@@ -356,7 +356,7 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    strcpy(jcr->client_name, jcr->client->hdr.name);
    jcr->pool = job->pool;
    jcr->catalog = job->client->catalog;
-   jcr->fileset = job->fs;
+   jcr->fileset = job->fileset;
    jcr->msgs = job->messages; 
    if (jcr->RestoreBootstrap) {
       free(jcr->RestoreBootstrap);

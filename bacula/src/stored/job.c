@@ -329,6 +329,7 @@ void stored_free_jcr(JCR *jcr)
    }
    if (jcr->bsr) {
       free_bsr(jcr->bsr);
+      jcr->bsr = NULL;
    }
    if (jcr->RestoreBootstrap) {
       unlink(jcr->RestoreBootstrap);

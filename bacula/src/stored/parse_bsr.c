@@ -82,6 +82,7 @@ static BSR *new_bsr()
  */
 static void s_err(char *file, int line, LEX *lc, char *msg, ...)
 {
+   JCR *jcr = (JCR *)(lc->caller_ctx);
    va_list arg_ptr;
    char buf[MAXSTRING];
 
@@ -89,9 +90,15 @@ static void s_err(char *file, int line, LEX *lc, char *msg, ...)
    bvsnprintf(buf, sizeof(buf), msg, arg_ptr);
    va_end(arg_ptr);
      
-   e_msg(file, line, M_FATAL, 0, "Config error: %s\n\
-            : Line %d, col %d of file %s\n%s\n",
-      buf, lc->line_no, lc->col_no, lc->fname, lc->line);
+   if (jcr) {
+      Jmsg(jcr, M_FATAL, 0, _("Bootstrap file error: %s\n\
+            : Line %d, col %d of file %s\n%s\n"),
+	 buf, lc->line_no, lc->col_no, lc->fname, lc->line);
+   } else {
+      e_msg(file, line, M_FATAL, 0, _("Bootstrap file error: %s\n\
+            : Line %d, col %d of file %s\n%s\n"),
+	 buf, lc->line_no, lc->col_no, lc->fname, lc->line);
+   }
 }
 
 
@@ -100,30 +107,31 @@ static void s_err(char *file, int line, LEX *lc, char *msg, ...)
  *	Parse Bootstrap file
  *
  */
-BSR *parse_bsr(char *cf)
+BSR *parse_bsr(JCR *jcr, char *cf)
 {
    LEX *lc = NULL;
    int token, i;
    BSR *root_bsr = new_bsr();
    BSR *bsr = root_bsr;
 
-   Dmsg0(200, "Enter parse_bsf()\n");
+   Dmsg1(200, "Enter parse_bsf %s\n", cf);
    lc = lex_open_file(lc, cf, s_err);
+   lc->caller_ctx = (void *)jcr;
    while ((token=lex_get_token(lc, T_ALL)) != T_EOF) {
-      Dmsg1(150, "parse got token=%s\n", lex_tok_to_str(token));
+      Dmsg1(200, "parse got token=%s\n", lex_tok_to_str(token));
       if (token == T_EOL) {
 	 continue;
       }
       for (i=0; items[i].name; i++) {
 	 if (strcasecmp(items[i].name, lc->str) == 0) {
 	    token = lex_get_token(lc, T_ALL);
-            Dmsg1 (150, "in T_IDENT got token=%s\n", lex_tok_to_str(token));
+            Dmsg1 (200, "in T_IDENT got token=%s\n", lex_tok_to_str(token));
 	    if (token != T_EQUALS) {
                scan_err1(lc, "expected an equals, got: %s", lc->str);
 	       bsr = NULL;
 	       break;
 	    }
-            Dmsg1(100, "calling handler for %s\n", items[i].name);
+            Dmsg1(200, "calling handler for %s\n", items[i].name);
 	    /* Call item handler */
 	    bsr = items[i].handler(lc, bsr);
 	    i = -1;
@@ -131,8 +139,9 @@ BSR *parse_bsr(char *cf)
 	 }
       }
       if (i >= 0) {
-         Dmsg1(150, "Keyword = %s\n", lc->str);
+         Dmsg1(200, "Keyword = %s\n", lc->str);
          scan_err1(lc, "Keyword %s not found", lc->str);
+	 bsr = NULL;
 	 break;
       }
       if (!bsr) {

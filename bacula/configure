@@ -9152,6 +9152,8 @@ trap 'rm -fr `echo "autoconf/Make.common \
 	   btraceback \
 	   startit \
 	   stopit \
+	   console \
+	   gconsole \
 	   bacula \
 	   fd \
 	   doc/Makefile \
@@ -9396,6 +9398,8 @@ CONFIG_FILES=\${CONFIG_FILES-"autoconf/Make.common \
 	   btraceback \
 	   startit \
 	   stopit \
+	   console \
+	   gconsole \
 	   bacula \
 	   fd \
 	   doc/Makefile \

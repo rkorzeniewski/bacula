@@ -99,6 +99,7 @@ typedef struct s_lex_context {
    int32_t int32_val;
    int64_t int64_val;
    void (*scan_error)(char *file, int line, struct s_lex_context *lc, char *msg, ...);
+   void *caller_ctx;                  /* caller private data */
 } LEX;
 
 typedef void (LEX_ERROR_HANDLER)(char *file, int line, LEX *lc, char *msg, ...);

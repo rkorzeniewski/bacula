@@ -79,7 +79,7 @@ int main (int argc, char *argv[])
    while ((ch = getopt(argc, argv, "b:d:e:i:?")) != -1) {
       switch (ch) {
          case 'b':                    /* bootstrap file */
-	    bsr = parse_bsr(optarg);
+	    bsr = parse_bsr(NULL, optarg);
 	    dump_bsr(bsr);
 	    break;
 
