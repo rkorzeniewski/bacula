@@ -527,7 +527,8 @@ bool release_device(JCR *jcr)
 
    if (dev->can_read()) {
       dev->clear_read();	      /* clear read bit */
-      if (!dev_is_tape(dev) || !dev_cap(dev, CAP_ALWAYSOPEN)) {
+      /* Close if file or !CAP_ALWAYSOPEN */
+      if (!dev->is_tape() || !dev_cap(dev, CAP_ALWAYSOPEN)) {
 	 offline_or_rewind_dev(dev);
 	 close_dev(dev);
       }
@@ -553,7 +554,8 @@ bool release_device(JCR *jcr)
 	 dir_update_volume_info(dcr, false); /* send Volume info to Director */
       }
 
-      if (dev->num_writers == 0 && dev->is_tape() && !dev_cap(dev, CAP_ALWAYSOPEN)) {
+      /* If no writers, close if file or !CAP_ALWAYS_OPEN */
+      if (dev->num_writers == 0 && (!dev->is_tape() || !dev_cap(dev, CAP_ALWAYSOPEN))) {
 	 offline_or_rewind_dev(dev);
 	 close_dev(dev);
       }
