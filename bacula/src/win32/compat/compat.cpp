@@ -167,19 +167,19 @@ cvt_ftime_to_utime(const FILETIME &time)
 static const char *
 errorString(void)
 {
-    LPVOID lpMsgBuf;
+   LPVOID lpMsgBuf;
 
-    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
-                  FORMAT_MESSAGE_FROM_SYSTEM |
-                  FORMAT_MESSAGE_IGNORE_INSERTS,
-                  NULL,
-                  GetLastError(),
-                  MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default lang
-                  (LPTSTR) &lpMsgBuf,
-                  0,
-                  NULL);
+   FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
+                 FORMAT_MESSAGE_FROM_SYSTEM |
+                 FORMAT_MESSAGE_IGNORE_INSERTS,
+                 NULL,
+                 GetLastError(),
+                 MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default lang
+                 (LPTSTR) &lpMsgBuf,
+                 0,
+                 NULL);
 
-    return (const char *) lpMsgBuf;
+   return (const char *) lpMsgBuf;
 }
 
 #ifndef HAVE_MINGW
@@ -204,7 +204,7 @@ statDir(const char *file, struct stat *sb)
         const char *err = errorString();
         d_msg(__FILE__, __LINE__, 99, "FindFirstFile(%s):%s\n", file, err);
         LocalFree((void *)err);
-        errno = GetLastError();
+        errno = b_errno_win32;
         return -1;
     }
 
@@ -247,7 +247,7 @@ stat2(const char *file, struct stat *sb)
         d_msg(__FILE__, __LINE__, 99,
               "GetFileAttrubtes(%s): %s\n", tmpbuf, err);
         LocalFree((void *)err);
-        errno = GetLastError();
+        errno = b_errno_win32;
         return -1;
     }
 
@@ -263,7 +263,7 @@ stat2(const char *file, struct stat *sb)
               "Cannot open file for stat (%s):%s\n", tmpbuf, err);
         LocalFree((void *)err);
         rval = -1;
-        errno = GetLastError();
+        errno = b_errno_win32;
         goto error;
     }
 
@@ -273,7 +273,7 @@ stat2(const char *file, struct stat *sb)
               "GetfileInformationByHandle(%s): %s\n", tmpbuf, err);
         LocalFree((void *)err);
         rval = -1;
-        errno = GetLastError();
+        errno = b_errno_win32;
         goto error;
     }
 
@@ -382,6 +382,7 @@ geteuid(void)
 
 int
 execvp(const char *, char *[]) {
+    errno = ENOSYS;
     return -1;
 }
 
@@ -389,24 +390,28 @@ execvp(const char *, char *[]) {
 int
 fork(void)
 {
+    errno = ENOSYS;
     return -1;
 }
 
 int
 pipe(int[])
 {
+    errno = ENOSYS;
     return -1;
 }
 
 int
 waitpid(int, int*, int)
 {
+    errno = ENOSYS;
     return -1;
 }
 
 int
 readlink(const char *, char *, int)
 {
+    errno = ENOSYS;
     return -1;
 }
 
@@ -455,7 +460,7 @@ strncasecmp(const char *s1, const char *s2, int len)
         if (ch1 == 0 || tolower(ch1) != tolower(ch2)) break;
     } 
 
-    return(ch1 - ch2);
+    return (ch1 - ch2);
 }
 
 int
@@ -465,8 +470,14 @@ gettimeofday(struct timeval *tv, struct timezone *)
     FILETIME tmp;
     GetSystemTime(&now);
 
-    if (tv == NULL) return -1;
-    if (!SystemTimeToFileTime(&now, &tmp)) return -1;
+    if (tv == NULL) {
+       errno = EINVAL;
+       return -1;
+    }
+    if (!SystemTimeToFileTime(&now, &tmp)) {
+       errno = b_errno_win32;
+       return -1;
+    }
 
     int64_t _100nsec = tmp.dwHighDateTime;
     _100nsec <<= 32;
@@ -515,12 +526,15 @@ opendir(const char *path)
 {
     int max_len = strlen(path) + 16;
     _dir *rval = NULL;
-    if (path == NULL) return NULL;
+    if (path == NULL) {
+       errno = ENOENT;
+       return NULL;
+    }
 
     rval = (_dir *)malloc(sizeof(_dir));
     if (rval == NULL) return NULL;
     char *tspec = (char *)malloc(max_len);
-    if (tspec == NULL) goto err1;
+    if (tspec == NULL) return NULL;
 
     if (g_platform_id != VER_PLATFORM_WIN32_WINDOWS) {
         // allow path to be 32767 bytes
@@ -549,10 +563,11 @@ opendir(const char *path)
     d_msg(__FILE__, __LINE__,
           99, "\tFirstFile=%s\n", rval->data.cFileName);
     return (DIR *)rval;
+
 err:
     free((void *)rval->spec);
-err1:
     free(rval);
+    errno = b_errno_win32;
     return NULL;
 }
 
@@ -609,6 +624,7 @@ readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result)
               dirp, entry->d_name, entry->d_reclen, entry->d_off);
     } else {
 //      d_msg(__FILE__, __LINE__, 99, "readdir_r !valid\n");
+        errno = b_errno_win32;
         return -1;
     }
     dp->valid = FindNextFile(dp->dirh, &dp->data);
@@ -671,7 +687,7 @@ pathconf(const char *path, int name)
     case _PC_NAME_MAX :
         return 255;
     }
-
+    errno = ENOSYS;                                                         
     return -1;
 }
 
@@ -684,9 +700,9 @@ WSA_Init(void)
     int err = WSAStartup(wVersionRequested, &wsaData);
 
 
-    if (err != 0)
-    {
+    if (err != 0) {
         printf("Can not start Windows Sockets\n");
+        errno = ENOSYS;
         return -1;
     }
 
@@ -697,7 +713,10 @@ WSA_Init(void)
 int
 win32_chdir(const char *dir)
 {
-    if (0 == SetCurrentDirectory(dir)) return -1;
+    if (0 == SetCurrentDirectory(dir)) {
+       errno = b_errno_win32;
+       return -1;
+    }
     return 0;
 }
 
@@ -713,7 +732,6 @@ win32_getcwd(char *buf, int maxlen)
        buf[n] = '\\';
        buf[n+1] = 0;
    }
-
    return buf;
 }
 
@@ -1108,7 +1126,7 @@ close_wpipe(BPIPE *bpipe)
         fflush(bpipe->wfd);
         if (fclose(bpipe->wfd) != 0) {
             stat = 0;
-      }
+        }
         bpipe->wfd = NULL;
     }
     return stat;
@@ -1140,13 +1158,12 @@ utime(const char *fname, struct utimbuf *times)
         d_msg(__FILE__, __LINE__, 99,
               "Cannot open file for utime(%s,...):%s\n", tmpbuf, err);
         LocalFree((void *)err);
+        errno = b_errno_win32;
         return -1;
     }
 
     int rval = SetFileTime(h, NULL, &acc, &mod) ? 0 : -1;
-
     CloseHandle(h);
-
     return rval;
 }
 
@@ -1219,16 +1236,16 @@ open(const char *file, int flags, int mode)
     if (!(flags & O_EXCL))
         shareMode = FILE_SHARE_DELETE|FILE_SHARE_READ|FILE_SHARE_WRITE;
 
-    if (flags & O_APPEND)
-    {
+    if (flags & O_APPEND) {
         printf("open...APPEND not implemented yet.");
         exit(-1);
     }
 
     foo = CreateFile(file, access, shareMode, NULL, create, msflags, NULL);
-    if (INVALID_HANDLE_VALUE == foo)
+    if (INVALID_HANDLE_VALUE == foo) {
+        errno = b_errno_win32;
         return(int) -1;
-
+    }
     return (int)foo;
 
 }
@@ -1237,8 +1254,10 @@ open(const char *file, int flags, int mode)
 int
 close(int fd)
 {
-    if (!CloseHandle((HANDLE)fd))
+    if (!CloseHandle((HANDLE)fd)) {
+        errno = b_errno_win32;
         return -1;
+    }
 
     return 0;
 }
@@ -1250,6 +1269,7 @@ write(int fd, const void *data, ssize_t len)
     DWORD bwrite;
     status = WriteFile((HANDLE)fd, data, len, &bwrite, NULL);
     if (status) return bwrite;
+    errno = b_errno_win32;
     return -1;
 }
 
@@ -1262,6 +1282,7 @@ read(int fd, void *data, ssize_t len)
 
     status = ReadFile((HANDLE)fd, data, len, &bread, NULL);
     if (status) return bread;
+    errno = b_errno_win32;
     return -1;
 }
 
@@ -1269,6 +1290,7 @@ off_t
 lseek(int fd, off_t offset, int whence)
 {
     DWORD method = 0;
+    DWORD val;
     switch (whence) {
     case SEEK_SET :
         method = FILE_BEGIN;
@@ -1280,15 +1302,22 @@ lseek(int fd, off_t offset, int whence)
         method = FILE_END;
         break;
     default:
+        errno = EINVAL;
         return -1;
     }
 
-    return SetFilePointer((HANDLE)fd, (DWORD)offset, NULL, method);
+    if ((val=SetFilePointer((HANDLE)fd, (DWORD)offset, NULL, method)) == INVALID_SET_FILE_POINTER) {
+       errno = b_errno_win32;
+       return -1;
+    }
+    /* ***FIXME*** I doubt this works right */
+    return val;
 }
 
 int
 dup2(int, int)
 {
+    errno = ENOSYS;
     return -1;
 }
 

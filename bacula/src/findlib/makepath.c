@@ -112,8 +112,10 @@ make_dir(JCR *jcr, const char *dir, const char *dirpath, mode_t mode, int *creat
 	 would fail with EEXIST.  */
 
       if (stat(dir, &stats)) {
+	  berrno be;
+	  be.set_errno(save_errno);
           Jmsg(jcr, M_ERROR, 0, _("Cannot create directory %s: ERR=%s\n"), 
-		  dirpath, strerror(save_errno));
+		  dirpath, be.strerror());
 	  fail = 1;
       } else if (!S_ISDIR(stats.st_mode)) {
           Jmsg(jcr, M_ERROR, 0, _("%s exists but is not a directory\n"), quote(dirpath));
@@ -271,8 +273,9 @@ make_path(
 #endif
 		  ) {
 		 /* Note, if we are restoring as NON-root, this may not be fatal */
+		 berrno be;
                  Jmsg(jcr, M_ERROR, 0, _("Cannot change owner and/or group of %s: ERR=%s\n"),
-		      quote(dirpath), strerror(errno));
+		      quote(dirpath), be.strerror());
 	      }
               Dmsg0(300, "Chown done.\n");
 
@@ -291,8 +294,9 @@ make_path(
 	     creating an entry in that directory.  This avoids making
 	     stat and mkdir process O(n^2) file name components.  */
 	  if (cwd.do_chdir && chdir(basename_dir) < 0) {
+	      berrno be;
               Jmsg(jcr, M_ERROR, 0, _("Cannot chdir to directory, %s: ERR=%s\n"),
-		     quote(dirpath), strerror(errno));
+		     quote(dirpath), be.strerror());
 	      umask(oldmask);
 	      cleanup(&cwd);
 	      return 1;
@@ -330,8 +334,9 @@ make_path(
 #endif
 	      )
 	    {
+	      berrno be;
               Jmsg(jcr, M_WARNING, 0, _("Cannot change owner and/or group of %s: ERR=%s\n"),
-		     quote(dirpath), strerror(errno));
+		     quote(dirpath), be.strerror());
 	    }
       }
 
@@ -344,8 +349,9 @@ make_path(
          Dmsg1(300, "Final chmod mode=%o\n", mode);
       }
       if ((mode & ~S_IRWXUGO) && chmod(basename_dir, mode)) {
+	  berrno be;
           Jmsg(jcr, M_WARNING, 0, _("Cannot change permissions of %s: ERR=%s\n"), 
-	     quote(dirpath), strerror(errno));
+	     quote(dirpath), be.strerror());
       }
 
      if (cleanup(&cwd)) {
@@ -359,8 +365,9 @@ make_path(
           *(p->dirname_end) = '\0';
           Dmsg2(300, "Reset parent mode=%o dir=%s\n", parent_mode, dirpath);
 	  if (chmod(dirpath, parent_mode)) {
+	      berrno be;
               Jmsg(jcr, M_WARNING, 0, _("Cannot change permissions of %s: ERR=%s\n"),
-		     quote(dirpath), strerror(errno));
+		     quote(dirpath), be.strerror());
 	  }
       }
   } else {
@@ -387,12 +394,14 @@ make_path(
 	      && errno != EPERM
 #endif
 	      ) {
+	      berrno be;
               Jmsg(jcr, M_WARNING, 0, _("Cannot change owner and/or group of %s: ERR=%s\n"),
-		     quote(dirpath), strerror(errno));
+		     quote(dirpath), be.strerror());
 	    }
 	  if (chmod(dirpath, mode)) {
+	      berrno be;
               Jmsg(jcr, M_WARNING, 0, _("Cannot change permissions of %s: ERR=%s\n"),
-				 quote(dirpath), strerror(errno));
+				 quote(dirpath), be.strerror());
 	  }
           Dmsg2(300, "pathexists chmod mode=%o dir=%s\n", mode, dirpath);
       }

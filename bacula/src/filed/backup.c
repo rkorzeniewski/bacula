@@ -173,21 +173,30 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
    case FT_FIFO:
       Dmsg1(130, "FT_FIFO saving: %s\n", ff_pkt->fname);
       break;
-   case FT_NOACCESS:
+   case FT_NOACCESS: {
+      berrno be;
+      be.set_errno(ff_pkt->ff_errno);
       Jmsg(jcr, M_NOTSAVED, -1, _("     Could not access %s: ERR=%s\n"), ff_pkt->fname, 
-	 strerror(ff_pkt->ff_errno));
+	 be.strerror());
       jcr->Errors++;
       return 1;
-   case FT_NOFOLLOW:
+   }
+   case FT_NOFOLLOW: {
+      berrno be;
+      be.set_errno(ff_pkt->ff_errno);
       Jmsg(jcr, M_NOTSAVED, -1, _("     Could not follow link %s: ERR=%s\n"), ff_pkt->fname, 
-	 strerror(ff_pkt->ff_errno));
+	 be.strerror());
       jcr->Errors++;
       return 1;
-   case FT_NOSTAT:
+   }
+   case FT_NOSTAT: {
+      berrno be;
+      be.set_errno(ff_pkt->ff_errno);
       Jmsg(jcr, M_NOTSAVED, -1, _("     Could not stat %s: ERR=%s\n"), ff_pkt->fname, 
-	 strerror(ff_pkt->ff_errno));
+	 be.strerror());
       jcr->Errors++;
       return 1;
+   }
    case FT_DIRNOCHG:
    case FT_NOCHG:
       Jmsg(jcr, M_SKIPPED, -1,  _("     Unchanged file skipped: %s\n"), ff_pkt->fname);
@@ -203,11 +212,14 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       Jmsg(jcr, M_SKIPPED, -1,  _("     File system change prohibited. Directory skipped. %s\n"), 
 	 ff_pkt->fname);
       return 1;
-   case FT_NOOPEN:
+   case FT_NOOPEN: {
+      berrno be;
+      be.set_errno(ff_pkt->ff_errno);
       Jmsg(jcr, M_NOTSAVED, -1, _("     Could not open directory %s: ERR=%s\n"), ff_pkt->fname, 
-	 strerror(ff_pkt->ff_errno));
+	 be.strerror());
       jcr->Errors++;
       return 1;
+   }
    default:
       Jmsg(jcr, M_NOTSAVED, 0,  _("     Unknown file type %d; not saved: %s\n"), ff_pkt->type, ff_pkt->fname);
       jcr->Errors++;
@@ -236,8 +248,9 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       }
       if (bopen(&ff_pkt->bfd, ff_pkt->fname, O_RDONLY | O_BINARY, 0) < 0) {
 	 ff_pkt->ff_errno = errno;
+	 berrno be;
          Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open %s: ERR=%s.\n"), ff_pkt->fname, 
-	      berror(&ff_pkt->bfd));
+	      be.strerror());
 	 jcr->Errors++;
 	 if (tid) {
 	    stop_thread_timer(tid);
@@ -464,8 +477,10 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 
 
       if (sd->msglen < 0) {
+	 berrno be;
+	 be.set_errno(ff_pkt->bfd.berrno);
          Jmsg(jcr, M_ERROR, 0, _("Read error on file %s. ERR=%s\n"),
-	    ff_pkt->fname, berror(&ff_pkt->bfd));
+	    ff_pkt->fname, be.strerror());
       }
 
       bclose(&ff_pkt->bfd);		 /* close file */

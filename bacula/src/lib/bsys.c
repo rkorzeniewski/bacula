@@ -201,8 +201,8 @@ int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result)
 #endif
 #endif /* HAVE_READDIR_R */
 
-#ifdef xxxxxxxxxx_STRERROR_R
-int strerror_r(int errnum, char *buf, size_t bufsiz)
+
+int bstrerror(int errnum, char *buf, size_t bufsiz)
 {
     static pthread_mutex_t mutex;
     static int first = 1;
@@ -224,7 +224,6 @@ int strerror_r(int errnum, char *buf, size_t bufsiz)
     V(mutex);
     return stat;
 }
-#endif /* HAVE_STRERROR_R */
 
 /*
  * These are mutex routines that do error checking
