@@ -19,22 +19,23 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
+- Cancel waiting for Client connect in SD if FD goes away.
+- Testing Tibs job erred and hung director on Storage resource.
+- Make restore more robust in counting error and not immediately bailing
+  out. Also print error message once, but try to continue.
+- Make SD keep track of Files, Bytes during restore.
+- Add code to check that blocks are sequential on restore.
+- File the Automatically selected: xxx
+  to say Automatically selected Pool: xxx
+- Should Bacula make an Append tape as Purged when purging?
+- Shell expansion failes for working_directory in SD from time to tim.
+- Possibly update all client records at startup.
 - Volume names with spaces get jammed into the catalog with 0x1 
   i.e. the SD bashes the Volume but they are not unbased by Dir.
 
 - ChangeServiceConfig2A does not exist on WinNT (ADVAPI32.DLL).
 
 - Implement MTIOCERRSTAT on FreeBSD to clear tape error conditions.
-
-- BSDI
-  cut: illegal option -- b
-  usage:  cut -c list [file1 ...]
-        cut -f list [-s] [-d delim] [file ...]
-  cut: illegal option -- b
-  usage:  cut -c list [file1 ...]
-        cut -f list [-s] [-d delim] [file ...]
-
-
 
 - Add Progress command that periodically reports the progress of
   a job or all jobs.
@@ -824,4 +825,7 @@ Done: (see kernsdone for more)
 - BSD does not have ioctl() MTEOM
 - BSD defines a number of MT_xxx variables which conflict
   with those defined by Bacula.
-
+- Make default duration days if no qualifier (e.g. s) is specified.
+- BSDI fix finding gcc version
+- When the FD errs (e.g. disk full) have a more graceful shutdown.
+ 

@@ -103,8 +103,9 @@ int duration_to_utime(char *str, utime_t *value)
 {
    int i, ch, len;
    double val;
-   static int  mod[] = {'*', 's', 'n', 'h', 'd', 'w', 'm', 'q', 'y', 0};
-   static int mult[] = {1,    1,  60, 60*60, 60*60*24, 60*60*24*7, 60*60*24*30, 
+   /* Default to 1 day if no modifier given */
+   static int  mod[] = {'*',       's', 'n', 'h', 'd',      'w',    'm', 'q', 'y', 0};
+   static int mult[] = {60*60*24,   1,	60, 60*60, 60*60*24, 60*60*24*7, 60*60*24*30, 
 		  60*60*24*91, 60*60*24*365};
 
    /* Look for modifier */

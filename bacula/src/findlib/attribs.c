@@ -30,7 +30,6 @@
 
 #include "bacula.h"
 #include "find.h"
-#include "jcr.h"
 
 #ifdef HAVE_CYGWIN
 

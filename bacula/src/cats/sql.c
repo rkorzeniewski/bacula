@@ -87,11 +87,12 @@ int check_tables_version(void *jcr, B_DB *mdb)
    return 1;
 }
 
-/* Utility routine for queries */
+/* Utility routine for queries. The database MUST be locked before calling here. */
 int
 QueryDB(char *file, int line, void *jcr, B_DB *mdb, char *cmd)
 {
-   if (sql_query(mdb, cmd)) {
+   int status;
+   if ((status=sql_query(mdb, cmd)) != 0) {
       m_msg(file, line, &mdb->errmsg, _("query %s failed:\n%s\n"), cmd, sql_strerror(mdb));
       j_msg(file, line, jcr, M_FATAL, 0, "%s", mdb->errmsg);
       if (verbose) {
@@ -99,8 +100,9 @@ QueryDB(char *file, int line, void *jcr, B_DB *mdb, char *cmd)
       }
       return 0;
    }
+
    mdb->result = sql_store_result(mdb);
-   
+
    return mdb->result != NULL;
 }
 

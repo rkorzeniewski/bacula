@@ -27,6 +27,7 @@
 #define __FILES_H
 
 #include "jcr.h"
+#include "bfile.h"
 
 #ifdef HAVE_DIRENT_H
 #include <dirent.h>
@@ -133,35 +134,6 @@ struct s_excluded_file {
    char fname[1];
 };
 
-#ifdef HAVE_CYGWIN
-
-#include <windows.h>
-#include "winapi.h"
-
-#define BF_CLOSED 0
-#define BF_READ   1                   /* BackupRead */
-#define BF_WRITE  2                   /* BackupWrite */
-
-/* Basic low level I/O file packet */
-typedef struct s_bfile {
-   int use_win_api;                   /* set if using WinAPI */
-   int mode;                          /* set if file is open */
-   HANDLE fh;                         /* Win32 file handle */
-   int fid;                           /* fd if doing Unix style */
-   LPVOID lpContext;                  /* BackupRead/Write context */
-   POOLMEM *errmsg;                   /* error message buffer */
-   DWORD rw_bytes;                    /* Bytes read or written */
-   DWORD lerror;                      /* Last error code */
-} BFILE;
-
-#else
-
-/* Basic low level I/O file packet */
-typedef struct s_bfile {
-   int fid;                           /* file id on Unix */
-} BFILE;
-
-#endif
 
 
 /*

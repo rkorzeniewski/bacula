@@ -387,7 +387,7 @@ Which DBMS do you want to use (please select only one):
                 fi
         fi
     SQL_INCLUDE=-I$MYSQL_INCDIR
-    SQL_LFLAGS="-L$MYSQL_LIBDIR -lmysqlclient -lz"
+    SQL_LFLAGS="-L$MYSQL_LIBDIR -lmysqlclient_r -lz"
     SQL_BINDIR=$MYSQL_BINDIR
 
     AC_DEFINE(HAVE_MYSQL)

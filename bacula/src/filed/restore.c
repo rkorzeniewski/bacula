@@ -297,7 +297,8 @@ void do_restore(JCR *jcr)
 
 
       /* Data stream */
-      } else if (stream == STREAM_FILE_DATA || stream == STREAM_SPARSE_DATA) {
+      } else if (stream == STREAM_FILE_DATA || stream == STREAM_SPARSE_DATA ||
+		 stream == STREAM_WIN32_DATA) {
 	 if (extract) {
 	    if (stream == STREAM_SPARSE_DATA) {
 	       ser_declare;
@@ -323,7 +324,7 @@ void do_restore(JCR *jcr)
             Dmsg2(30, "Write %u bytes, total before write=%u\n", wsize, total);
 	    if ((uint32_t)bwrite(&bfd, wbuf, wsize) != wsize) {
                Dmsg0(0, "===Write error===\n");
-               Jmsg2(jcr, M_ERROR, 0, _("Write error on %s: %s\n"), ofile, berror(&bfd));
+               Jmsg2(jcr, M_ERROR, 0, _("Write error on %s: ERR=%s\n"), ofile, berror(&bfd));
 	       goto bail_out;
 	    }
 	    total += wsize;
@@ -332,7 +333,8 @@ void do_restore(JCR *jcr)
 	 }
 	
       /* GZIP data stream */
-      } else if (stream == STREAM_GZIP_DATA || stream == STREAM_SPARSE_GZIP_DATA) {
+      } else if (stream == STREAM_GZIP_DATA || stream == STREAM_SPARSE_GZIP_DATA ||
+		 stream == STREAM_WIN32_GZIP_DATA) {
 #ifdef HAVE_LIBZ
 	 if (extract) {
 	    ser_declare;

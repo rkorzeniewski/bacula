@@ -72,6 +72,8 @@ db_create_job_record(void *jcr, B_DB *mdb, JOB_DBR *jr)
    utime_t JobTDate;
    char ed1[30];
 
+   db_lock(mdb);
+
    stime = jr->SchedTime;
    ASSERT(stime != 0);
 
@@ -79,7 +81,6 @@ db_create_job_record(void *jcr, B_DB *mdb, JOB_DBR *jr)
    strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
    JobTDate = (utime_t)stime;
 
-   db_lock(mdb);
    if (!db_next_index(jcr, mdb, "Job", JobId)) {
       jr->JobId = 0;
       db_unlock(mdb);

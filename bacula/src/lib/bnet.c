@@ -299,6 +299,10 @@ bnet_send(BSOCK *bsock)
    rc = write_nbytes(bsock, (char *)&pktsiz, sizeof(int32_t));
    bsock->timer_start = 0;	      /* clear timer */
    if (rc != sizeof(int32_t)) {
+      if (bsock->msglen == BNET_TERMINATE) { /* if we were terminating */
+	 bsock->terminated = 1;
+	 return 0;		      /* ignore any errors */
+      }
       bsock->errors++;
       if (errno == 0) {
 	 bsock->b_errno = EIO;

@@ -204,6 +204,10 @@ void do_verify_volume(JCR *jcr)
 
 	/* Do nothing */
 
+      } else if (stream == STREAM_WIN32_DATA || stream == STREAM_WIN32_GZIP_DATA) {
+
+	/* Do nothing */
+
       /* If MD5 stream */
       } else if (stream == STREAM_MD5_SIGNATURE) {
 	 char MD5buf[30];

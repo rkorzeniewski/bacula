@@ -429,6 +429,7 @@ static void release_resource_locks(JCR *jcr)
    if (waiting > 0) {
       pthread_cond_broadcast(&resource_wait);
    }
+   jcr->acquired_resource_locks = 0;
    V(mutex);
 #endif
 }

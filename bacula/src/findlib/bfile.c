@@ -41,10 +41,32 @@ void binit(BFILE *bfd)
 {
    bfd->fid = -1;
    bfd->mode = BF_CLOSED;
-   bfd->use_win_api = p_BackupRead && p_BackupWrite;
+   bfd->use_win_api = 1;
+   bfd->use_backup_api = p_BackupRead && p_BackupWrite;
    bfd->errmsg = NULL;
    bfd->lpContext = NULL;
    bfd->lerror = 0;
+}
+
+/*
+ * Enables/disables using the Backup API (win32_data).
+ *   Returns 1 if function worked
+ *   Returns 0 if failed (i.e. do not have Backup API on this machine)
+ */
+int set_win32_data(BFILE *bfd, int enable)
+{
+   if (!enable) {
+      bfd->use_backup_api = 0;
+      return 1;
+   }
+   /* We enable if possible here */
+   bfd->use_backup_api = p_BackupRead && p_BackupWrite;
+   return bfd->use_backup_api;
+}
+
+int is_win32_data(BFILE *bfd)
+{
+   return bfd->use_backup_api;
 }
 
 HANDLE bget_handle(BFILE *bfd)
@@ -127,7 +149,7 @@ int bclose(BFILE *bfd)
    if (bfd->mode == BF_CLOSED) {
       return 0;
    }
-   if (bfd->mode == BF_READ) {
+   if (bfd->use_backup_api && bfd->mode == BF_READ) {
       BYTE buf[10];
       if (!bfd->lpContext && !p_BackupRead(bfd->fh,   
 	      buf,		      /* buffer */
@@ -138,7 +160,7 @@ int bclose(BFILE *bfd)
 	      &bfd->lpContext)) {     /* Read context */
 	 stat = -1;
       } 
-   } else {
+   } else if (bfd->use_backup_api && bfd->mode == BF_WRITE) {
       BYTE buf[10];
       if (!bfd->lpContext && !p_BackupWrite(bfd->fh,   
 	      buf,		      /* buffer */
@@ -194,18 +216,30 @@ ssize_t bread(BFILE *bfd, void *buf, size_t count)
    if (!bfd->use_win_api) {
       return read(bfd->fid, buf, count);
    }
-
    bfd->rw_bytes = 0;
-   if (!p_BackupRead(bfd->fh, 
-	(BYTE *)buf,
-	count,
-	&bfd->rw_bytes,
-	0,			     /* no Abort */
-	1,			     /* Process Security */
-	&bfd->lpContext)) {	     /* Context */
-      bfd->lerror = GetLastError();
-      return -1;
+
+   if (bfd->use_backup_api) {
+      if (!p_BackupRead(bfd->fh,
+	   (BYTE *)buf,
+	   count,
+	   &bfd->rw_bytes,
+	   0,				/* no Abort */
+	   1,				/* Process Security */
+	   &bfd->lpContext)) {		/* Context */
+	 bfd->lerror = GetLastError();
+	 return -1;
+      }
+   } else {
+      if (!ReadFile(bfd->fh,
+	   buf,
+	   count,
+	   &bfd->rw_bytes,
+	   NULL)) {
+	 bfd->lerror = GetLastError();
+	 return -1;
+      }
    }
+
    return (ssize_t)bfd->rw_bytes;
 }
 
@@ -214,17 +248,28 @@ ssize_t bwrite(BFILE *bfd, void *buf, size_t count)
    if (!bfd->use_win_api) {
       return write(bfd->fid, buf, count);
    }
-
    bfd->rw_bytes = 0;
-   if (!p_BackupWrite(bfd->fh,
-	(BYTE *)buf,
-	count,
-	&bfd->rw_bytes,
-	0,			     /* No abort */
-	1,			     /* Process Security */
-	&bfd->lpContext)) {	     /* Context */
-      bfd->lerror = GetLastError();
-      return -1;
+
+   if (bfd->use_backup_api) {
+      if (!p_BackupWrite(bfd->fh,
+	   (BYTE *)buf,
+	   count,
+	   &bfd->rw_bytes,
+	   0,				/* No abort */
+	   1,				/* Process Security */
+	   &bfd->lpContext)) {		/* Context */
+	 bfd->lerror = GetLastError();
+	 return -1;
+      }
+   } else {
+      if (!WriteFile(bfd->fh,
+	   buf,
+	   count,
+	   &bfd->rw_bytes,
+	   NULL)) {
+	 bfd->lerror = GetLastError();
+	 return -1;
+      }
    }
    return (ssize_t)bfd->rw_bytes;
 }
@@ -255,26 +300,41 @@ void binit(BFILE *bfd)
    bfd->fid = -1;
 }
 
+int is_win32_data(BFILE *bfd)
+{
+   return 0;
+}
+
+
 int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 {
-   return bfd->fid = open(fname, flags, mode);
+   bfd->fid = open(fname, flags, mode);
+   bfd->berrno = errno;
+   return bfd->fid;
 }
 
 int bclose(BFILE *bfd)
 { 
    int stat = close(bfd->fid);
+   bfd->berrno = errno;
    bfd->fid = -1;
    return stat;
 }
 
 ssize_t bread(BFILE *bfd, void *buf, size_t count)
 {
-   return read(bfd->fid, buf, count);
+   ssize_t stat;
+   stat = read(bfd->fid, buf, count);
+   bfd->berrno = errno;
+   return stat;
 }
 
 ssize_t bwrite(BFILE *bfd, void *buf, size_t count)
 {
-   return write(bfd->fid, buf, count);
+   ssize_t stat;
+   stat = write(bfd->fid, buf, count);
+   bfd->berrno = errno;
+   return stat;
 }
 
 int is_bopen(BFILE *bfd)
@@ -284,12 +344,15 @@ int is_bopen(BFILE *bfd)
 
 off_t blseek(BFILE *bfd, off_t offset, int whence)
 {
-   return lseek(bfd->fid, offset, whence);
+    off_t pos;
+    pos = lseek(bfd->fid, offset, whence);
+    bfd->berrno = errno;
+    return pos;
 }
 
 char *berror(BFILE *bfd)
 {
-    return strerror(errno);
+    return strerror(bfd->berrno);
 }
 
 #endif

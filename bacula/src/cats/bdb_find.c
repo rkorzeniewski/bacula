@@ -75,8 +75,8 @@ int db_find_job_start_time(void *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
    int found;
    long addr;
 
-   pm_strcpy(stime, "0000-00-00 00:00:00");   /* default */
    db_lock(mdb);
+   pm_strcpy(stime, "0000-00-00 00:00:00");   /* default */
    if (!bdb_open_jobs_file(mdb)) {
       db_unlock(mdb);
       return 0;

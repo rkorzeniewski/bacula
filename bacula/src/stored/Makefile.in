@@ -126,7 +126,7 @@ install: all
 	$(INSTALL_PROGRAM) bacula-sd $(DESTDIR)$(sbindir)/bacula-sd
 	$(INSTALL_PROGRAM) bls $(DESTDIR)$(sbindir)/bls
 	$(INSTALL_PROGRAM) bextract $(DESTDIR)$(sbindir)/bextract
-#	$(INSTALL_PROGRAM) bcopy $(DESTDIR)$(sbindir)/bcopy
+	$(INSTALL_PROGRAM) bcopy $(DESTDIR)$(sbindir)/bcopy
 	$(INSTALL_PROGRAM) bscan $(DESTDIR)$(sbindir)/bscan
 	$(INSTALL_PROGRAM) btape $(DESTDIR)$(sbindir)/btape
 	@srcconf=bacula-sd.conf; \

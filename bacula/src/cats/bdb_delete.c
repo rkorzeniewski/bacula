@@ -66,12 +66,13 @@ int db_delete_pool_record(void *jcr, B_DB *mdb, POOL_DBR *pr)
    int stat;
    POOL_DBR opr;
 
+   db_lock(mdb);
    pr->PoolId = 0;		      /* Search on Pool Name */
    if (!db_get_pool_record(jcr, mdb, pr)) {
       Mmsg1(&mdb->errmsg, "No pool record %s exists\n", pr->Name);
+      db_unlock(mdb);
       return 0;
    }
-   db_lock(mdb);
    fseek(mdb->poolfd, pr->rec_addr, SEEK_SET);
    memset(&opr, 0, sizeof(opr));
    stat = fwrite(&opr, sizeof(opr), 1, mdb->poolfd);
@@ -84,11 +85,12 @@ int db_delete_media_record(void *jcr, B_DB *mdb, MEDIA_DBR *mr)
    int stat;
    MEDIA_DBR omr;
 
+   db_lock(mdb);
    if (!db_get_media_record(jcr, mdb, mr)) {
       Mmsg0(&mdb->errmsg, "Media record not found.\n");
+      db_unlock(mdb);
       return 0;
    }
-   db_lock(mdb);
    fseek(mdb->mediafd, mr->rec_addr, SEEK_SET);
    memset(&omr, 0, sizeof(omr));
    stat = fwrite(&omr, sizeof(omr), 1, mdb->mediafd);

@@ -66,15 +66,17 @@ int db_update_job_start_record(void *jcr, B_DB *mdb, JOB_DBR *jr)
    int len, stat = 1;
    JOB_DBR ojr;
 
+   db_lock(mdb);
+
    Dmsg0(200, "In db_update_job_start_record\n");
    len = sizeof(ojr);
    memcpy(&ojr, jr, len);
 
    if (!db_get_job_record(jcr, mdb, &ojr)) {
+      db_unlock(mdb);
       return 0;
    }
 
-   db_lock(mdb);
 
    fseek(mdb->jobfd, ojr.rec_addr, SEEK_SET);
    if (fwrite(jr, len, 1, mdb->jobfd) != 1) {
@@ -96,15 +98,16 @@ int db_update_job_end_record(void *jcr, B_DB *mdb, JOB_DBR *jr)
    int len, stat = 1;
    JOB_DBR ojr;
 
+   db_lock(mdb);
+
    Dmsg0(200, "In db_update_job_start_record\n");
    len = sizeof(ojr);
    memcpy(&ojr, jr, len);
 
    if (!db_get_job_record(jcr, mdb, &ojr)) {
+      db_unlock(mdb);
       return 0;
    }
-
-   db_lock(mdb);
 
    fseek(mdb->jobfd, ojr.rec_addr, SEEK_SET);
    if (fwrite(jr, len, 1, mdb->jobfd) != 1) {
@@ -124,16 +127,17 @@ int db_update_media_record(void *jcr, B_DB *mdb, MEDIA_DBR *mr)
    MEDIA_DBR omr;
    int len;
        
+   db_lock(mdb);
    Dmsg0(200, "In db_update_media_record\n");
    mr->MediaId = 0;
    len = sizeof(omr);
    memcpy(&omr, mr, len);
 
    if (!db_get_media_record(jcr, mdb, &omr)) {
+      db_unlock(mdb);
       return 0;
    }
 
-   db_lock(mdb);
 
    /* Don't allow some fields to change by copying from master record */
    strcpy(mr->VolumeName, omr.VolumeName);
@@ -161,15 +165,16 @@ int db_update_pool_record(void *jcr, B_DB *mdb, POOL_DBR *pr)
    POOL_DBR opr;
    int len;
        
+   db_lock(mdb);
    Dmsg0(200, "In db_update_pool_record\n");
    len = sizeof(opr);
    memcpy(&opr, pr, len);
 
    if (!db_get_pool_record(jcr, mdb, &opr)) {
+      db_unlock(mdb);
       return 0;
    }
 
-   db_lock(mdb);
 
    /* Update specific fields */
    opr.NumVols = pr->NumVols;

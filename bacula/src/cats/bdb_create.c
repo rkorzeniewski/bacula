@@ -185,14 +185,15 @@ int db_create_media_record(void *jcr, B_DB *mdb, MEDIA_DBR *mr)
    int len;
    MEDIA_DBR mmr;
 
+   db_lock(mdb);
    memset(&mmr, 0, sizeof(mmr));
    strcpy(mmr.VolumeName, mr->VolumeName);
    if (db_get_media_record(jcr, mdb, &mmr)) {
       Mmsg1(&mdb->errmsg, "Media record %s already exists\n", mmr.VolumeName);
+      db_unlock(mdb);
       return 0;
    }
 
-   db_lock(mdb);
 
    mdb->control.MediaId++;
    mr->MediaId = mdb->control.MediaId;
@@ -221,13 +222,14 @@ int db_create_client_record(void *jcr, B_DB *mdb, CLIENT_DBR *cr)
    int len;
    CLIENT_DBR lcr;
 
+   db_lock(mdb);
    cr->ClientId = 0;
    if (db_get_client_record(jcr, mdb, cr)) {
       Mmsg1(&mdb->errmsg, "Client record %s already exists\n", cr->Name);
+      db_unlock(mdb);
       return 1;
    }
 
-   db_lock(mdb);
    if (!bdb_open_client_file(mdb)) {
       db_unlock(mdb);
       return 0;
@@ -262,13 +264,14 @@ int db_create_fileset_record(void *jcr, B_DB *mdb, FILESET_DBR *fsr)
    int len;
    FILESET_DBR lfsr;
 
+   db_lock(mdb);
    fsr->FileSetId = 0;
    if (db_get_fileset_record(jcr, mdb, fsr)) {
       Mmsg1(&mdb->errmsg, "FileSet record %s already exists\n", fsr->FileSet);
+      db_unlock(mdb);
       return 1;
    }
 
-   db_lock(mdb);
    if (!bdb_open_fileset_file(mdb)) {
       db_unlock(mdb);
       return 0;

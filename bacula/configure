@@ -3907,7 +3907,7 @@ if test "${with_mysql+set}" = set; then
                 fi
         fi
     SQL_INCLUDE=-I$MYSQL_INCDIR
-    SQL_LFLAGS="-L$MYSQL_LIBDIR -lmysqlclient -lz"
+    SQL_LFLAGS="-L$MYSQL_LIBDIR -lmysqlclient_r -lz"
     SQL_BINDIR=$MYSQL_BINDIR
 
     cat >> confdefs.h <<\EOF
@@ -9568,7 +9568,7 @@ openbsd)
   ;;
 redhat)
 	DISTVER=`cat /etc/redhat-release | grep release |\
-				cut -f 5 -d ' '`
+	   cut -f 5 -d ' '`
 	TAPEDRIVE="/dev/nst0"
 	PSCMD="ps -e -o pid,command"
 	PFILES="${PFILES} \
@@ -9616,7 +9616,7 @@ EOF
   ;;
 suse)
 	DISTVER=`cat /etc/SuSE-release |grep VERSION|\
-				cut -f 3 -d ' '`
+	    cut -f 3 -d ' '`
 	TAPEDRIVE="/dev/nst0"
 	PSCMD="ps -e -o pid,command"
 	hostname=`hostname -s`
@@ -10300,8 +10300,18 @@ if test "x$ac_cv_sys_largefile_CFLAGS" != "xno" ; then
    largefile_support="yes"
 fi
 
-CCVERSION=`${CC} --version | cut -b-15`
-CXXVERSION=`${CXX} --version | cut -b-15`
+#
+# A whole lot of hand springs to get the compiler version.
+#  This is because gcc changed the output in version 3.0
+#
+CCVERSION=`${CC} --version | tr '\n' ' ' | cut -f 3 -d ' '`
+if test "x${CCVERSION}" = "x" ; then
+  CCVERSION=`${CC} --version | tr '\n' ' ' | cut -f 1 -d ' '`
+fi
+CXXVERSION=`${CXX} --version | tr '\n' ' ' | cut -f 3 -d ' '`
+if test x"${CXXVERSION}" = x ; then
+  CXXVERSION=`${CXX} --version | tr '\n' ' ' | cut -f 1 -d ' '`
+fi
 
 if test "x${subsysdir}" = "x${sbindir}" ; then
    echo " "

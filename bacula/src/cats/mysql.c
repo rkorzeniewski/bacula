@@ -166,8 +166,11 @@ It is probably not running or your password is incorrect.\n"),
 
    if (!check_tables_version(jcr, mdb)) {
       V(mutex);
+      db_close_database(jcr, mdb);
       return 0;
    }
+
+   my_thread_init();
 
    mdb->connected = TRUE;
    V(mutex);
@@ -179,6 +182,7 @@ db_close_database(void *jcr, B_DB *mdb)
 {
    P(mutex);
    mdb->ref_count--;
+   my_thread_end();
    if (mdb->ref_count == 0) {
       qdchain(&mdb->bq);
       if (mdb->connected && mdb->db) {
@@ -187,7 +191,6 @@ db_close_database(void *jcr, B_DB *mdb)
 	 mysql_server_end();
 #endif
       }
-/*    pthread_mutex_destroy(&mdb->mutex); */
       rwl_destroy(&mdb->lock);	     
       free_pool_memory(mdb->errmsg);
       free_pool_memory(mdb->cmd);
@@ -242,6 +245,10 @@ db_escape_string(char *snew, char *old, int len)
    mysql_escape_string(snew, old, len);
 
 #ifdef DO_IT_MYSELF
+
+/* Should use mysql_real_escape_string ! */
+unsigned long mysql_real_escape_string(MYSQL *mysql, char *to, const char *from, unsigned long length);
+
    char *n, *o;
 
    n = snew;

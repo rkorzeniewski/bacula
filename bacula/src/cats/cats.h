@@ -120,12 +120,12 @@ typedef struct s_db {
 #define sql_free_result(x)    my_sqlite_free_table(x)
 #define sql_fetch_row(x)      my_sqlite_fetch_row(x)
 #define sql_query(x, y)       my_sqlite_query(x, y)
-#define sql_close(x)          sqlite_close(x->db)  
-#define sql_strerror(x)       x->sqlite_errmsg?x->sqlite_errmsg:"unknown"
-#define sql_num_rows(x)       x->nrow
-#define sql_data_seek(x, i)   x->row = i
+#define sql_close(x)          sqlite_close((x)->db)  
+#define sql_strerror(x)       (x)->sqlite_errmsg?(x)->sqlite_errmsg:"unknown"
+#define sql_num_rows(x)       (x)->nrow
+#define sql_data_seek(x, i)   (x)->row = i
 #define sql_affected_rows(x)  1
-#define sql_insert_id(x)      sqlite_last_insert_rowid(x->db)
+#define sql_insert_id(x)      sqlite_last_insert_rowid((x)->db)
 #define sql_field_seek(x, y)  my_sqlite_field_seek(x, y)
 #define sql_fetch_field(x)    my_sqlite_fetch_field(x)
 #define sql_num_fields(x)     (unsigned)((x)->ncolumn)
@@ -184,19 +184,19 @@ typedef struct s_db {
 
 
 /* "Generic" names for easier conversion */
-#define sql_store_result(x)   mysql_store_result(x->db)
-#define sql_free_result(x)    mysql_free_result(x->result)
-#define sql_fetch_row(x)      mysql_fetch_row(x->result)
-#define sql_query(x, y)       mysql_query(x->db, y)
-#define sql_close(x)          mysql_close(x->db)  
-#define sql_strerror(x)       mysql_error(x->db)
-#define sql_num_rows(x)       mysql_num_rows(x->result)
-#define sql_data_seek(x, i)   mysql_data_seek(x->result, i)
-#define sql_affected_rows(x)  mysql_affected_rows(x->db)
-#define sql_insert_id(x)      mysql_insert_id(x->db)
-#define sql_field_seek(x, y)  mysql_field_seek(x->result, y)
-#define sql_fetch_field(x)    mysql_fetch_field(x->result)
-#define sql_num_fields(x)     mysql_num_fields(x->result)
+#define sql_store_result(x)   mysql_store_result((x)->db)
+#define sql_free_result(x)    mysql_free_result((x)->result)
+#define sql_fetch_row(x)      mysql_fetch_row((x)->result)
+#define sql_query(x, y)       mysql_query((x)->db, y)
+#define sql_close(x)          mysql_close((x)->db)  
+#define sql_strerror(x)       mysql_error((x)->db)
+#define sql_num_rows(x)       mysql_num_rows((x)->result)
+#define sql_data_seek(x, i)   mysql_data_seek((x)->result, i)
+#define sql_affected_rows(x)  mysql_affected_rows((x)->db)
+#define sql_insert_id(x)      mysql_insert_id((x)->db)
+#define sql_field_seek(x, y)  mysql_field_seek((x)->result, y)
+#define sql_fetch_field(x)    mysql_fetch_field((x)->result)
+#define sql_num_fields(x)     mysql_num_fields((x)->result)
 #define SQL_ROW               MYSQL_ROW
 #define SQL_FIELD             MYSQL_FIELD
 

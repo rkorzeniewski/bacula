@@ -286,7 +286,11 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 
       Dmsg1(100, "Saving data, type=%d\n", ff_pkt->type);
 
-      if (ff_pkt->flags & FO_SPARSE) {
+      /* Note, no sparse option for win32_data */
+      if (is_win32_data(&ff_pkt->bfd)) {
+	 stream = STREAM_WIN32_DATA;
+	 ff_pkt->flags &= ~FO_SPARSE;
+      } else if (ff_pkt->flags & FO_SPARSE) {
 	 stream = STREAM_SPARSE_DATA;
       } else {
 	 stream = STREAM_FILE_DATA;
@@ -297,7 +301,9 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       const Bytef *cbuf = NULL;
 
       if (ff_pkt->flags & FO_GZIP) {
-	 if (stream == STREAM_FILE_DATA) {
+	 if (stream == STREAM_WIN32_DATA) {
+	    stream = STREAM_WIN32_GZIP_DATA;
+	 } else if (stream == STREAM_FILE_DATA) {
 	    stream = STREAM_GZIP_DATA;
 	 } else {
 	    stream = STREAM_SPARSE_GZIP_DATA;
@@ -395,7 +401,6 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	 }
 #endif
 
-	 /*	  #ifndef FD_NO_SEND_TEST */
 	 /* Send the buffer to the Storage daemon */
 	 if (!sparseBlock) {
 	    if (ff_pkt->flags & FO_SPARSE) {
@@ -430,7 +435,6 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       }
    }
 
-
    /* Terminate any MD5 signature and send it to Storage daemon and the Director */
    if (gotMD5 && ff_pkt->flags & FO_MD5) {
       MD5Final(signature, &md5c);
@@ -441,6 +445,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       bnet_send(sd);
       bnet_sig(sd, BNET_EOD);	      /* end of MD5 */
       gotMD5 = 0;
+
    } else if (gotSHA1 && ff_pkt->flags & FO_SHA1) {
    /* Terminate any SHA1 signature and send it to Storage daemon and the Director */
       SHA1Final(&sha1c, signature);

@@ -317,7 +317,7 @@ int BaculaAppMain()
    HINSTANCE hLib = LoadLibrary("KERNEL32.DLL");
    if (hLib) {
       p_GetFileAttributesEx = (t_GetFileAttributesEx)
-          GetProcAddress(hLib, "GetFileFileAttributesExA");
+          GetProcAddress(hLib, "GetFileAttributesExA");
       p_SetProcessShutdownParameters = (t_SetProcessShutdownParameters)
           GetProcAddress(hLib, "SetProcessShutdownParameters");
       p_BackupRead = (t_BackupRead)
@@ -337,9 +337,58 @@ int BaculaAppMain()
        FreeLibrary(hLib);
     }
 
+#ifdef debug_xxx
+   char buf[1000];
+   buf[0] = 0;
+   strcat(buf, "GetFileAttributesEx ");
+   if (p_GetFileAttributesEx)
+      strcat(buf, "OK\n");          
+   else 
+      strcat(buf, "NO\n");
+
+   strcat(buf, "SetProcessShutdownParamaters ");
+   if (p_SetProcessShutdownParameters)
+      strcat(buf, "OK\n");          
+   else 
+      strcat(buf, "NO\n");
+
+   strcat(buf, "BackupRead ");
+   if (p_BackupRead)
+      strcat(buf, "OK\n");          
+   else 
+      strcat(buf, "NO\n");
+
+   strcat(buf, "BackupWrite ");
+   if (p_BackupWrite)
+      strcat(buf, "OK\n");          
+   else 
+      strcat(buf, "NO\n");
+
+   strcat(buf, "OpenProcessToken ");
+   if (p_OpenProcessToken)
+      strcat(buf, "OK\n");          
+   else 
+      strcat(buf, "NO\n");
+
+   strcat(buf, "AdjustTokenPrivileges ");
+   if (p_AdjustTokenPrivileges)
+      strcat(buf, "OK\n");          
+   else 
+      strcat(buf, "NO\n");
+
+   strcat(buf, "LookupPrivilegeValue ");
+   if (p_LookupPrivilegeValue)
+      strcat(buf, "OK\n");          
+   else 
+      strcat(buf, "NO\n");
+
+   MessageBox(NULL, buf, "APIs Available", MB_OK); 
+#endif
 
    // Set this process to be the last application to be shut down.
-   SetProcessShutdownParameters(0x100, 0);
+   if (p_SetProcessShutdownParameters) {
+      p_SetProcessShutdownParameters(0x100, 0);
+   }
 
    HWND hservwnd = FindWindow(MENU_CLASS_NAME, NULL);
    if (hservwnd != NULL) {

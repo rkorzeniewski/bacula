@@ -65,8 +65,9 @@ db_find_job_start_time(void *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
    SQL_ROW row;
    int JobId;
 
-   pm_strcpy(stime, "0000-00-00 00:00:00");   /* default */
    db_lock(mdb);
+
+   pm_strcpy(stime, "0000-00-00 00:00:00");   /* default */
    /* If no Id given, we must find corresponding job */
    if (jr->JobId == 0) {
       /* Differential is since last Full backup */

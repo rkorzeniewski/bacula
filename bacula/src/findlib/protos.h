@@ -67,13 +67,5 @@ int make_path(void *jcr, const char *argpath, int mode,
            int parent_mode, uid_t owner, gid_t group,
            int preserve_existing, char *verbose_fmt_string);
 
-/* from file_io.c */
-ssize_t  bread(BFILE *bfd, void *buf, size_t count);
-int      bopen(BFILE *bfd, const char *fname, int flags, mode_t mode);
-int      bclose(BFILE *bfd);
-ssize_t  bread(BFILE *bfd, void *buf, size_t count);
-ssize_t  bwrite(BFILE *bfd, void *buf, size_t count);
-off_t    blseek(BFILE *bfd, off_t offset, int whence);
-int      is_bopen(BFILE *bfd);
-void     binit(BFILE *bfd);
-char    *berror(BFILE *bfd);
+/* from bfile.c -- see bfile.h */
+

@@ -133,6 +133,13 @@ int restorecmd(UAContext *ua, char *cmd)
    int restore_jobs = 0;
    NAME_LIST name_list;
    uint32_t selected_files = 0;
+   char *where = NULL;
+   int i;
+
+   i = find_arg_with_value(ua, "where");
+   if (i >= 0) {
+      where = ua->argv[i];
+   }
 
    if (!open_db(ua)) {
       return 0;
@@ -263,12 +270,19 @@ int restorecmd(UAContext *ua, char *cmd)
       bstrncpy(ji.ClientName, cr.Name, sizeof(ji.ClientName));
    }
 
-    /* Build run command */
-    Mmsg(&ua->cmd, 
-       "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s/restore.bsr\"",
-       job->hdr.name, ji.ClientName, ji.store?ji.store->hdr.name:"",
-       working_directory);
-
+   /* Build run command */
+   if (where) {
+      Mmsg(&ua->cmd, 
+          "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s/restore.bsr\""
+          "where=\"%s\"",
+          job->hdr.name, ji.ClientName, ji.store?ji.store->hdr.name:"",
+	  working_directory, where);
+   } else {
+      Mmsg(&ua->cmd, 
+          "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s/restore.bsr\"",
+          job->hdr.name, ji.ClientName, ji.store?ji.store->hdr.name:"",
+	  working_directory);
+   }
    Dmsg1(400, "Submitting: %s\n", ua->cmd);
    
    parse_ua_args(ua);

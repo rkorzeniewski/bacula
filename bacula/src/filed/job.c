@@ -195,6 +195,15 @@ void *handle_client_request(void *dirp)
 	 break;
       }
    }
+
+   /* Inform Storage daemon that we are done */
+   if (jcr->store_bsock) {
+      bnet_sig(jcr->store_bsock, BNET_TERMINATE);
+   }
+
+   /* Inform Director that we are done */
+   bnet_sig(dir, BNET_TERMINATE);
+
    Dmsg0(100, "Calling term_find_files\n");
    term_find_files((FF_PKT *)jcr->ff);
    Dmsg0(100, "Done with term_find_files\n");
@@ -613,15 +622,7 @@ static int backup_cmd(JCR *jcr)
 
 cleanup:
 
-   /* Inform Storage daemon that we are done */
-   if (sd) {
-      bnet_sig(sd, BNET_TERMINATE);
-   }
-
    bnet_fsend(dir, EndBackup, jcr->JobStatus, jcr->JobFiles, jcr->ReadBytes, jcr->JobBytes);
-
-   /* Inform Director that we are done */
-   bnet_sig(dir, BNET_TERMINATE);
 
    return 0;			      /* return and stop command loop */
 }

@@ -285,7 +285,7 @@ static int wait_for_job_termination(JCR *jcr)
       }
    }
    if (is_bnet_error(fd)) {
-      Jmsg(jcr, M_FATAL, 0, _("<filed: network error during BACKUP command. ERR=%s\n"),
+      Jmsg(jcr, M_FATAL, 0, _("Network error with FD during BACKUP: ERR=%s\n"),
 	  bnet_strerror(fd));
    }
    bnet_sig(fd, BNET_TERMINATE);   /* tell Client we are terminating */
