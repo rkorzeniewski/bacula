@@ -120,14 +120,14 @@ typedef struct s_dest {
 struct MQUEUE_ITEM {
    dlink link;
    int type;
-   int level;
+   time_t mtime;
    char msg[1];
 };
 
 
 void d_msg(const char *file, int line, int level, const char *fmt,...);
 void e_msg(const char *file, int line, int type, int level, const char *fmt,...);
-void Jmsg(JCR *jcr, int type, int level, const char *fmt,...);
+void Jmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...);
 
 extern int debug_level;
 extern int verbose;

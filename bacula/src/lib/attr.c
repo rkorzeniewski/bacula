@@ -208,5 +208,5 @@ void print_ls_output(JCR *jcr, ATTR *attr)
    *p++ = '\n';
    *p = 0;
    Dmsg1(20, "%s", buf);
-   Jmsg(jcr, M_RESTORED, 0, "%s", buf);
+   Jmsg(jcr, M_RESTORED, 1, "%s", buf);
 }

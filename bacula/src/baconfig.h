@@ -417,8 +417,8 @@ struct JCR;
 void d_msg(const char *file, int line, int level, const char *fmt,...);
 void p_msg(const char *file, int line, int level, const char *fmt,...);
 void e_msg(const char *file, int line, int type, int level, const char *fmt,...);
-void j_msg(const char *file, int line, JCR *jcr, int type, int level, const char *fmt,...);
-void q_msg(const char *file, int line, JCR *jcr, int type, int level, const char *fmt,...);
+void j_msg(const char *file, int line, JCR *jcr, int type, time_t mtime, const char *fmt,...);
+void q_msg(const char *file, int line, JCR *jcr, int type, time_t mtime, const char *fmt,...);
 int  m_msg(const char *file, int line, POOLMEM **msgbuf, const char *fmt,...);
 int  m_msg(const char *file, int line, POOLMEM *&pool_buf, const char *fmt, ...);
 

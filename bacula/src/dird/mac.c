@@ -363,29 +363,29 @@ static void mac_cleanup(JCR *jcr, int TermCode, char *since, FILESET_DBR *fsr,
 // bmicrosleep(15, 0);		      /* for debugging SIGHUP */
 
    Jmsg(jcr, msg_type, 0, _("Bacula " VERSION " (" LSMDATE "): %s\n\
-JobId:                  %d\n\
-Job:                    %s\n\
-Backup Level:           %s%s\n\
-Client:                 %s\n\
-FileSet:                \"%s\" %s\n\
-Pool:                   \"%s\"\n\
-Start time:             %s\n\
-End time:               %s\n\
-FD Files Written:       %s\n\
-SD Files Written:       %s\n\
-FD Bytes Written:       %s\n\
-SD Bytes Written:       %s\n\
-Rate:                   %.1f KB/s\n\
-Software Compression:   %s\n\
-Volume name(s):         %s\n\
-Volume Session Id:      %d\n\
-Volume Session Time:    %d\n\
-Last Volume Bytes:      %s\n\
-Non-fatal FD errors:    %d\n\
-SD Errors:              %d\n\
-FD termination status:  %s\n\
-SD termination status:  %s\n\
-Termination:            %s\n\n"),
+  JobId:                  %d\n\
+  Job:                    %s\n\
+  Backup Level:           %s%s\n\
+  Client:                 %s\n\
+  FileSet:                \"%s\" %s\n\
+  Pool:                   \"%s\"\n\
+  Start time:             %s\n\
+  End time:               %s\n\
+  FD Files Written:       %s\n\
+  SD Files Written:       %s\n\
+  FD Bytes Written:       %s\n\
+  SD Bytes Written:       %s\n\
+  Rate:                   %.1f KB/s\n\
+  Software Compression:   %s\n\
+  Volume name(s):         %s\n\
+  Volume Session Id:      %d\n\
+  Volume Session Time:    %d\n\
+  Last Volume Bytes:      %s\n\
+  Non-fatal FD errors:    %d\n\
+  SD Errors:              %d\n\
+  FD termination status:  %s\n\
+  SD termination status:  %s\n\
+  Termination:            %s\n\n"),
 	edt,
 	jcr->jr.JobId,
 	jcr->jr.Job,

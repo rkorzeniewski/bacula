@@ -191,6 +191,7 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    Dmsg0(400, "Enter new_jcr\n");
    jcr = (JCR *)malloc(size);
    memset(jcr, 0, size);
+   jcr->my_thread_id = pthread_self();
    jcr->msg_queue = New(dlist(item, &item->link));
    jcr->job_end_push.init(1, false);
    jcr->sched_time = time(NULL);

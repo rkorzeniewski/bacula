@@ -419,21 +419,21 @@ static void verify_cleanup(JCR *jcr, int TermCode)
    if (jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG) {
       jobstatus_to_ascii(jcr->SDJobStatus, sd_term_msg, sizeof(sd_term_msg));
       Jmsg(jcr, msg_type, 0, _("Bacula " VERSION " (" LSMDATE "): %s\n\
-JobId:                  %d\n\
-Job:                    %s\n\
-FileSet:                %s\n\
-Verify Level:           %s\n\
-Client:                 %s\n\
-Verify JobId:           %d\n\
-Verify Job:             %s\n\
-Start time:             %s\n\
-End time:               %s\n\
-Files Expected:         %s\n\
-Files Examined:         %s\n\
-Non-fatal FD errors:    %d\n\
-FD termination status:  %s\n\
-SD termination status:  %s\n\
-Termination:            %s\n\n"),
+  JobId:                  %d\n\
+  Job:                    %s\n\
+  FileSet:                %s\n\
+  Verify Level:           %s\n\
+  Client:                 %s\n\
+  Verify JobId:           %d\n\
+  Verify Job:             %s\n\
+  Start time:             %s\n\
+  End time:               %s\n\
+  Files Expected:         %s\n\
+  Files Examined:         %s\n\
+  Non-fatal FD errors:    %d\n\
+  FD termination status:  %s\n\
+  SD termination status:  %s\n\
+  Termination:            %s\n\n"),
 	 edt,
 	 jcr->jr.JobId,
 	 jcr->jr.Job,
@@ -452,19 +452,19 @@ Termination:            %s\n\n"),
 	 term_msg);
    } else {
       Jmsg(jcr, msg_type, 0, _("Bacula " VERSION " (" LSMDATE "): %s\n\
-JobId:                  %d\n\
-Job:                    %s\n\
-FileSet:                %s\n\
-Verify Level:           %s\n\
-Client:                 %s\n\
-Verify JobId:           %d\n\
-Verify Job:             %s\n\
-Start time:             %s\n\
-End time:               %s\n\
-Files Examined:         %s\n\
-Non-fatal FD errors:    %d\n\
-FD termination status:  %s\n\
-Termination:            %s\n\n"),
+  JobId:                  %d\n\
+  Job:                    %s\n\
+  FileSet:                %s\n\
+  Verify Level:           %s\n\
+  Client:                 %s\n\
+  Verify JobId:           %d\n\
+  Verify Job:             %s\n\
+  Start time:             %s\n\
+  End time:               %s\n\
+  Files Examined:         %s\n\
+  Non-fatal FD errors:    %d\n\
+  FD termination status:  %s\n\
+  Termination:            %s\n\n"),
 	 edt,
 	 jcr->jr.JobId,
 	 jcr->jr.Job,

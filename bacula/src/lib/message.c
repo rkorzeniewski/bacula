@@ -257,8 +257,9 @@ void init_console_msg(const char *wd)
    bsnprintf(con_fname, sizeof(con_fname), "%s/%s.conmsg", wd, my_name);
    fd = open(con_fname, O_CREAT|O_RDWR|O_BINARY, 0600);
    if (fd == -1) {
+      berrno be;
       Emsg2(M_ERROR_TERM, 0, _("Could not open console message file %s: ERR=%s\n"),
-	  con_fname, strerror(errno));
+	  con_fname, be.strerror());
    }
    if (lseek(fd, 0, SEEK_END) > 0) {
       console_msg_pending = 1;
@@ -266,12 +267,14 @@ void init_console_msg(const char *wd)
    close(fd);
    con_fd = fopen(con_fname, "a+");
    if (!con_fd) {
+      berrno be;
       Emsg2(M_ERROR, 0, _("Could not open console message file %s: ERR=%s\n"),
-	  con_fname, strerror(errno));
+	  con_fname, be.strerror());
    }
    if (rwl_init(&con_lock) != 0) {
+      berrno be;
       Emsg1(M_ERROR_TERM, 0, _("Could not get con mutex: ERR=%s\n"), 
-	 strerror(errno));
+	 be.strerror());
    }
 }
 
@@ -444,7 +447,8 @@ void close_msg(JCR *jcr)
 	       fputs(line, bpipe->wfd);
 	    }
 	    if (!close_wpipe(bpipe)) {	     /* close write pipe sending mail */
-               Pmsg1(000, "close error: ERR=%s\n", strerror(errno));
+	       berrno be;
+               Pmsg1(000, "close error: ERR=%s\n", be.strerror());
 	    }
 
 	    /*
@@ -557,19 +561,39 @@ void term_msg()
 /*
  * Handle sending the message to the appropriate place
  */
-void dispatch_message(JCR *jcr, int type, int level, char *msg)
+void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
 {
     DEST *d;   
     char dt[MAX_TIME_LENGTH];
     POOLMEM *mcmd;
-    int len;
+    int len, dtlen;
     MSGS *msgs;
     BPIPE *bpipe;
 
     Dmsg2(800, "Enter dispatch_msg type=%d msg=%s\n", type, msg);
 
+    /*
+     * Most messages are prefixed by a date and time. If mtime is
+     *	zero, then we use the current time.  If mtime is 1 (special
+     *	kludge), we do not prefix the date and time. Otherwise,
+     *	we assume mtime is a time_t and use it.
+     */
+    if (mtime == 0) {
+       mtime = time(NULL);
+    } 
+    if (mtime == 1) {
+       *dt = 0;
+       dtlen = 0;
+    } else {
+       bstrftime_ny(dt, sizeof(dt), mtime);
+       dtlen = strlen(dt);
+       dt[dtlen++] = ' ';
+       dt[dtlen] = 0;
+    }
+
     if (type == M_ABORT || type == M_ERROR_TERM) {
 #ifndef HAVE_WIN32
+       fputs(dt, stdout);
        fputs(msg, stdout);	   /* print this here to INSURE that it is printed */
        fflush(stdout);
 #endif
@@ -603,10 +627,9 @@ void dispatch_message(JCR *jcr, int type, int level, char *msg)
 		if (con_fd) {
 		   Pw(con_lock);      /* get write lock on console message file */
 		   errno = 0;
-		   bstrftime(dt, sizeof(dt), time(NULL));
-		   len = strlen(dt);
-                   dt[len++] = ' ';
-		   fwrite(dt, len, 1, con_fd);
+		   if (dtlen) {
+		      fwrite(dt, dtlen, 1, con_fd);
+		   }
 		   len = strlen(msg);
 		   if (len > 0) {
 		      fwrite(msg, len, 1, con_fd);
@@ -629,10 +652,11 @@ void dispatch_message(JCR *jcr, int type, int level, char *msg)
                 syslog(LOG_DAEMON|LOG_ERR, "%s", msg);
 		break;
 	     case MD_OPERATOR:
-                Dmsg1(800, "OPERATOR for collowing msg: %s\n", msg);
+                Dmsg1(800, "OPERATOR for following msg: %s\n", msg);
 		mcmd = get_pool_memory(PM_MESSAGE);
 		if ((bpipe=open_mail_pipe(jcr, mcmd, d))) {
 		   int stat;
+		   fputs(dt, bpipe->wfd);
 		   fputs(msg, bpipe->wfd);
 		   /* Messages to the operator go one at a time */
 		   stat = close_bpipe(bpipe);
@@ -654,15 +678,18 @@ void dispatch_message(JCR *jcr, int type, int level, char *msg)
 		   make_unique_mail_filename(jcr, name, d);
                    d->fd = fopen(name, "w+");
 		   if (!d->fd) {
+		      berrno be;
 		      d->fd = stdout;
-                      Qmsg2(jcr, M_ERROR, 0, "fopen %s failed: ERR=%s\n", name, strerror(errno));
+                      Qmsg2(jcr, M_ERROR, 0, "fopen %s failed: ERR=%s\n", name, 
+			    be.strerror());
 		      d->fd = NULL;
 		      free_pool_memory(name);
 		      break;
 		   }
 		   d->mail_filename = name;
 		}
-		len = strlen(msg);
+		fputs(dt, d->fd);
+		len = strlen(msg) + dtlen;;
 		if (len > d->max_len) {
 		   d->max_len = len;	  /* keep max line length */
 		}
@@ -673,12 +700,15 @@ void dispatch_message(JCR *jcr, int type, int level, char *msg)
 		if (!d->fd) {
                    d->fd = fopen(d->where, "w+");
 		   if (!d->fd) {
+		      berrno be;
 		      d->fd = stdout;
-                      Qmsg2(jcr, M_ERROR, 0, "fopen %s failed: ERR=%s\n", d->where, strerror(errno));
+                      Qmsg2(jcr, M_ERROR, 0, "fopen %s failed: ERR=%s\n", d->where, 
+			    be.strerror());
 		      d->fd = NULL;
 		      break;
 		   }
 		}
+		fputs(dt, d->fd);
 		fputs(msg, d->fd);
 		break;
 	     case MD_APPEND:
@@ -686,29 +716,34 @@ void dispatch_message(JCR *jcr, int type, int level, char *msg)
 		if (!d->fd) {
                    d->fd = fopen(d->where, "a");
 		   if (!d->fd) {
+		      berrno be;
 		      d->fd = stdout;
-                      Qmsg2(jcr, M_ERROR, 0, "fopen %s failed: ERR=%s\n", d->where, strerror(errno));
+                      Qmsg2(jcr, M_ERROR, 0, "fopen %s failed: ERR=%s\n", d->where, 
+			    be.strerror());
 		      d->fd = NULL;
 		      break;
 		   }
 		}
+		fputs(dt, d->fd);
 		fputs(msg, d->fd);
 		break;
 	     case MD_DIRECTOR:
                 Dmsg1(800, "DIRECTOR for following msg: %s", msg);
 		if (jcr && jcr->dir_bsock && !jcr->dir_bsock->errors) {
                    bnet_fsend(jcr->dir_bsock, "Jmsg Job=%s type=%d level=%d %s", 
-		      jcr->Job, type, level, msg);
+		      jcr->Job, type, mtime, msg);
 		}
 		break;
 	     case MD_STDOUT:
                 Dmsg1(800, "STDOUT for following msg: %s", msg);
 		if (type != M_ABORT && type != M_ERROR_TERM) { /* already printed */
+		   fputs(dt, stdout);
 		   fputs(msg, stdout);
 		}
 		break;
 	     case MD_STDERR:
                 Dmsg1(800, "STDERR for following msg: %s", msg);
+		fputs(dt, stderr);
 		fputs(msg, stderr);
 		break;
 	     default:
@@ -941,7 +976,7 @@ e_msg(const char *file, int line, int type, int level, const char *fmt,...)
     bvsnprintf(buf+len, sizeof(buf)-len, (char *)fmt, arg_ptr);
     va_end(arg_ptr);
 
-    dispatch_message(NULL, type, level, buf);
+    dispatch_message(NULL, type, 0, buf);
 
     if (type == M_ABORT) {
        char *p = 0;
@@ -958,7 +993,7 @@ e_msg(const char *file, int line, int type, int level, const char *fmt,...)
  *
  */
 void 
-Jmsg(JCR *jcr, int type, int level, const char *fmt,...)
+Jmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...)
 {
     char     rbuf[5000];
     va_list   arg_ptr;
@@ -1038,7 +1073,7 @@ Jmsg(JCR *jcr, int type, int level, const char *fmt,...)
     bvsnprintf(rbuf+len,  sizeof(rbuf)-len, fmt, arg_ptr);
     va_end(arg_ptr);
 
-    dispatch_message(jcr, type, level, rbuf);
+    dispatch_message(jcr, type, mtime, rbuf);
 
     if (type == M_ABORT){
        char *p = 0;
@@ -1053,7 +1088,7 @@ Jmsg(JCR *jcr, int type, int level, const char *fmt,...)
  * If we come here, prefix the message with the file:line-number,
  *  then pass it on to the normal Jmsg routine.
  */
-void j_msg(const char *file, int line, JCR *jcr, int type, int level, const char *fmt,...)
+void j_msg(const char *file, int line, JCR *jcr, int type, time_t mtime, const char *fmt,...)
 {
    va_list   arg_ptr;
    int i, len, maxlen;
@@ -1074,7 +1109,7 @@ void j_msg(const char *file, int line, JCR *jcr, int type, int level, const char
       break;
    }
 
-   Jmsg(jcr, type, level, "%s", pool_buf);
+   Jmsg(jcr, type, mtime, "%s", pool_buf);
    free_memory(pool_buf);
 }
 
@@ -1196,7 +1231,7 @@ static pthread_mutex_t msg_queue_mutex = PTHREAD_MUTEX_INITIALIZER;
  *  sending a message, it is a bit messy to recursively call
  *  yourself when the bnet packet is not reentrant).
  */
-void Qmsg(JCR *jcr, int type, int level, const char *fmt,...)
+void Qmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...)
 {
    va_list   arg_ptr;
    int len, maxlen;
@@ -1218,13 +1253,13 @@ void Qmsg(JCR *jcr, int type, int level, const char *fmt,...)
    }
    item = (MQUEUE_ITEM *)malloc(sizeof(MQUEUE_ITEM) + strlen(pool_buf) + 1);
    item->type = type;
-   item->level = level;
+   item->mtime = time(NULL);
    strcpy(item->msg, pool_buf);  
    P(msg_queue_mutex);
    /* If no jcr or dequeuing send to daemon to avoid recursion */
    if (!jcr || jcr->dequeuing) {
       /* jcr==NULL => daemon message, safe to send now */
-      Jmsg(NULL, item->type, item->level, "%s", item->msg);
+      Jmsg(NULL, item->type, item->mtime, "%s", item->msg);
       free(item);
    } else {
       /* Queue message for later sending */
@@ -1245,7 +1280,7 @@ void dequeue_messages(JCR *jcr)
    jcr->dequeuing = true;
    foreach_dlist(item, jcr->msg_queue) {
 //    Dmsg1(000, "dequeue item=%lu\n", (long unsigned)item);
-      Jmsg(jcr, item->type, item->level, "%s", item->msg);
+      Jmsg(jcr, item->type, item->mtime, "%s", item->msg);
    }
    jcr->msg_queue->destroy();
    jcr->dequeuing = false;
@@ -1257,7 +1292,7 @@ void dequeue_messages(JCR *jcr)
  * If we come here, prefix the message with the file:line-number,
  *  then pass it on to the normal Qmsg routine.
  */
-void q_msg(const char *file, int line, JCR *jcr, int type, int level, const char *fmt,...)
+void q_msg(const char *file, int line, JCR *jcr, int type, time_t mtime, const char *fmt,...)
 {
    va_list   arg_ptr;
    int i, len, maxlen;
@@ -1278,7 +1313,7 @@ void q_msg(const char *file, int line, JCR *jcr, int type, int level, const char
       break;
    }
 
-   Qmsg(jcr, type, level, "%s", pool_buf);
+   Qmsg(jcr, type, mtime, "%s", pool_buf);
    free_memory(pool_buf);
 }
 
