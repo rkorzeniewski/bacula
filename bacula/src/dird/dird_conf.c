@@ -462,7 +462,6 @@ char *level_to_str(int level)
 /* Dump contents of resource */
 void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...), void *sock)
 {
-   int i;
    URES *res = (URES *)reshdr;
    int recurse = 1;
 
@@ -559,10 +558,18 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
 	 break;
       case R_FILESET:
          sendit(sock, "FileSet: name=%s\n", res->res_fs.hdr.name);
-	 for (i=0; i<res->res_fs.num_includes; i++)
-            sendit(sock, "      Inc: %s\n", res->res_fs.include_array[i]->name);
-	 for (i=0; i<res->res_fs.num_excludes; i++)
-            sendit(sock, "      Exc: %s\n", res->res_fs.exclude_array[i]->name);
+	 for (int i=0; i<res->res_fs.num_includes; i++) {
+	    INCEXE *incexe = res->res_fs.include_items[i];
+	    for (int j=0; j<incexe->num_names; j++) {
+               sendit(sock, "      Inc: %s\n", incexe->name_list[j]);
+	    }
+	 }
+	 for (int i=0; i<res->res_fs.num_excludes; i++) {
+	    INCEXE *incexe = res->res_fs.exclude_items[i];
+	    for (int j=0; j<incexe->num_names; j++) {
+               sendit(sock, "      Exc: %s\n", incexe->name_list[j]);
+	    }
+	 }
 	 break;
       case R_SCHEDULE:
 	 if (res->res_sch.run) {
@@ -772,16 +779,32 @@ void free_resource(int type)
       case R_FILESET:
 	 if ((num=res->res_fs.num_includes)) {
 	    while (--num >= 0) {   
-	       free(res->res_fs.include_array[num]);
+	       INCEXE *incexe = res->res_fs.include_items[num];
+	       for (int i=0; i<incexe->num_names; i++) {
+		  free(incexe->name_list[i]);
+	       }
+	       if (incexe->name_list) {
+		  free(incexe->name_list);
+	       }
+	       free(incexe);
 	    }
-	    free(res->res_fs.include_array);
+	    free(res->res_fs.include_items);
 	 }
+	 res->res_fs.num_includes = 0;
 	 if ((num=res->res_fs.num_excludes)) {
 	    while (--num >= 0) {   
-	       free(res->res_fs.exclude_array[num]);
+	       INCEXE *incexe = res->res_fs.exclude_items[num];
+	       for (int i=0; i<incexe->num_names; i++) {
+		  free(incexe->name_list[i]);
+	       }
+	       if (incexe->name_list) {
+		  free(incexe->name_list);
+	       }
+	       free(incexe);
 	    }
-	    free(res->res_fs.exclude_array);
+	    free(res->res_fs.exclude_items);
 	 }
+	 res->res_fs.num_excludes = 0;
 	 break;
       case R_POOL:
 	 if (res->res_pool.pool_type) {
@@ -889,23 +912,25 @@ void save_resource(int type, struct res_items *items, int pass)
 	 /* Resources not containing a resource */
 	 case R_CATALOG:
 	 case R_STORAGE:
-	 case R_FILESET:
+	 case R_FILEOPTIONS:
 	 case R_GROUP:
 	 case R_POOL:
 	 case R_MSGS:
 	    break;
 
-	 /* Special case for FileOptions, all allocations are done
-	  * only in pass 2, so here we must copy the whole structure
+	 /* Special case for FileSet, all allocations are done
+	  * only in pass 2, so here we must copy the whole structure.
+	  * This is done so that we can have forward references to
+	  *   FileOptions resources within the fileset
 	  */
-	 case R_FILEOPTIONS:
+	 case R_FILESET:
 	    RES res_save;
-	    if ((res = (URES *)GetResWithName(R_FILEOPTIONS, res_all.res_dir.hdr.name)) == NULL) {
-               Emsg1(M_ERROR_TERM, 0, "Cannot find FileOptions resource %s\n", res_all.res_dir.hdr.name);
+	    if ((res = (URES *)GetResWithName(R_FILESET, res_all.res_dir.hdr.name)) == NULL) {
+               Emsg1(M_ERROR_TERM, 0, "Cannot find FileSet resource %s\n", res_all.res_dir.hdr.name);
 	    }
 	    memcpy(&res_save, &res_all, sizeof(RES));
 	    memcpy(&res_all, res, sizeof(RES));
-	    memcpy(res, &res_all, sizeof(FILEOPTIONS));
+	    memcpy(res, &res_all, sizeof(FILESET));
 	    memcpy(&res_all, &res_save, sizeof(RES));
 	    break;
 
@@ -1402,17 +1427,43 @@ static void store_inc(LEX *lc, struct res_items *item, int index, int pass)
       }
    }
    if (!inc_opts[0]) {
-      strcat(inc_opts, "0 ");         /* set no options */
-   } else {
-      strcat(inc_opts, " ");          /* add field separator */
+      strcat(inc_opts, "0");          /* set no options */
    }
    inc_opts_len = strlen(inc_opts);
 
-   if (pass == 1) {
+   if (pass == 2) {
+      INCEXE *incexe;
       if (!res_all.res_fs.have_MD5) {
 	 MD5Init(&res_all.res_fs.md5c);
 	 res_all.res_fs.have_MD5 = TRUE;
       }
+      /* Create incexe structure */
+      Dmsg0(200, "Create INCEXE structure\n");
+      incexe = (INCEXE *)malloc(sizeof(INCEXE));
+      memset(incexe, 0, sizeof(INCEXE));
+      bstrncpy(incexe->opts, inc_opts, sizeof(incexe->opts));
+      incexe->fileopts = (struct s_res_fopts *)res;
+      Dmsg1(200, "incexe opts=%s\n", incexe->opts);
+      if (item->code == 0) { /* include */
+	 if (res_all.res_fs.num_includes == 0) {
+	    res_all.res_fs.include_items = (INCEXE **)malloc(sizeof(INCEXE *));
+	  } else {
+	    res_all.res_fs.include_items = (INCEXE **)realloc(res_all.res_fs.include_items,
+			   sizeof(INCEXE *) * res_all.res_fs.num_includes + 1);
+	  }
+	  res_all.res_fs.include_items[res_all.res_fs.num_includes++] = incexe;
+          Dmsg1(200, "num_includes=%d\n", res_all.res_fs.num_includes);
+      } else {	  /* exclude */
+	 if (res_all.res_fs.num_excludes == 0) {
+	    res_all.res_fs.exclude_items = (INCEXE **)malloc(sizeof(INCEXE *));
+	  } else {
+	    res_all.res_fs.exclude_items = (INCEXE **)realloc(res_all.res_fs.exclude_items,
+			   sizeof(INCEXE *) * res_all.res_fs.num_excludes + 1);
+	  }
+	  res_all.res_fs.exclude_items[res_all.res_fs.num_excludes++] = incexe;
+          Dmsg1(200, "num_excludes=%d\n", res_all.res_fs.num_excludes);
+     }
+
       /* Pickup include/exclude names.	They are stored in INCEXE
        *  structures which contains the options and the name.
        */
@@ -1425,47 +1476,27 @@ static void store_inc(LEX *lc, struct res_items *item, int index, int pass)
 	    case T_IDENTIFIER:
 	    case T_UNQUOTED_STRING:
 	    case T_QUOTED_STRING:
-	       INCEXE *incexe;
-	       incexe = (INCEXE *)malloc(lc->str_len + sizeof(INCEXE));
-	       memset(incexe, 0, sizeof(INCEXE));
-	       bstrncpy(incexe->opts, inc_opts, sizeof(incexe->opts));
-	       strcpy(incexe->name, lc->str);
-	       incexe->fileopts = (struct s_res_fopts *)res;
-	       incexe->num_fileopts = 1;
-
 	       if (res_all.res_fs.have_MD5) {
-		  MD5Update(&res_all.res_fs.md5c, (unsigned char *)incexe, 
-			    sizeof(INCEXE) + lc->str_len);
+		  MD5Update(&res_all.res_fs.md5c, (unsigned char *)lc->str, lc->str_len);
 	       }
-	       if (item->code == 0) { /* include */
-		  if (res_all.res_fs.num_includes == res_all.res_fs.include_size) {
-		     res_all.res_fs.include_size += 10;
-		     if (res_all.res_fs.include_array == NULL) {
-			res_all.res_fs.include_array = (INCEXE **)malloc(sizeof(INCEXE *) * res_all.res_fs.include_size);
-		     } else {
-			res_all.res_fs.include_array = (INCEXE **)realloc(res_all.res_fs.include_array,
-			   sizeof(INCEXE *) * res_all.res_fs.include_size);
-		     }
+	       if (incexe->num_names == incexe->max_names) {
+		  incexe->max_names += 10;
+		  if (incexe->name_list == NULL) {
+		     incexe->name_list = (char **)malloc(sizeof(char *) * incexe->max_names);
+		  } else {
+		     incexe->name_list = (char **)realloc(incexe->name_list,
+			   sizeof(char *) * incexe->max_names);
 		  }
-		  res_all.res_fs.include_array[res_all.res_fs.num_includes++] = incexe;
-	       } else { 	       /* exclude */
-		  if (res_all.res_fs.num_excludes == res_all.res_fs.exclude_size) {
-		     res_all.res_fs.exclude_size += 10;
-		     if (res_all.res_fs.exclude_array == NULL) {
-			res_all.res_fs.exclude_array = (INCEXE **)malloc(sizeof(INCEXE *) * res_all.res_fs.exclude_size);
-		     } else {
-			res_all.res_fs.exclude_array = (INCEXE **)realloc(res_all.res_fs.exclude_array,
-			   sizeof(INCEXE *) * res_all.res_fs.exclude_size);
-		     }
-		  }
-		  res_all.res_fs.exclude_array[res_all.res_fs.num_excludes++] = incexe;
 	       }
+	       incexe->name_list[incexe->num_names++] = bstrdup(lc->str);
+               Dmsg1(200, "Add to name_list %s\n", incexe->name_list[incexe->num_names -1]);
 	       break;
 	    default:
                scan_err1(lc, "Expected a filename, got: %s", lc->str);
 	 }				   
       }
-   } else { /* pass 2 */
+      /* Note, MD5Final is done in backup.c */
+   } else { /* pass 1 */
       while (lex_get_token(lc, T_ALL) != T_EOB) 
 	 {}
    }
@@ -1480,7 +1511,7 @@ static void store_match(LEX *lc, struct res_items *item, int index, int pass)
    int token;
    char *match;
 
-   if (pass == 2) {
+   if (pass == 1) {
       /* Pickup Match string
        */
       token = lex_get_token(lc, T_ALL); 	   
@@ -1502,7 +1533,7 @@ static void store_match(LEX *lc, struct res_items *item, int index, int pass)
 	 default:
             scan_err1(lc, "Expected a filename, got: %s", lc->str);
       } 				
-   } else { /* pass 1 */
+   } else { /* pass 2 */
       lex_get_token(lc, T_ALL); 	 
    }
    scan_to_eol(lc);

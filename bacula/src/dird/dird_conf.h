@@ -195,11 +195,13 @@ struct s_res_fopts {
 }; 
 typedef struct s_res_fopts FILEOPTIONS;
 
+/* This is either an include item or an exclude item */
 struct s_incexc_item {
    char opts[MAX_FO_OPTS];            /* options string */
    struct s_res_fopts *fileopts;      /* File Options resource */
-   int num_fileopts;                  /* number of above */
-   char name[1];                      /* include/exclude name */
+   char **name_list;                  /* filename list */
+   int num_names;                     /* number of names in the list */
+   int max_names;                     /* malloc'ed size of list */
 };
 typedef struct s_incexc_item INCEXE;
 
@@ -210,12 +212,10 @@ typedef struct s_incexc_item INCEXE;
 struct s_res_fs {
    RES   hdr;
 
-   INCEXE **include_array;            /* array of incexe structures */
+   INCEXE **include_items;            /* array of incexe structures */
    int num_includes;                  /* number in array */
-   int include_size;                  /* array size */
-   INCEXE **exclude_array;
+   INCEXE **exclude_items;
    int num_excludes;
-   int exclude_size;
    int have_MD5;                      /* set if MD5 initialized */
    struct MD5Context md5c;            /* MD5 of include/exclude */
    char MD5[30];                      /* base 64 representation of MD5 */
