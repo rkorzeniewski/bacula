@@ -109,10 +109,8 @@ static struct res_items cli_items[] = {
    {"fdport",   store_pint,       ITEM(res_client.FDport),   0, ITEM_REQUIRED, 0},
    {"password", store_password,   ITEM(res_client.password), 0, ITEM_REQUIRED, 0},
    {"catalog",  store_res,        ITEM(res_client.catalog),  R_CATALOG, 0, 0},
-   {"catalogretentionperiod", store_time,      
-			 ITEM(res_client.cat_ret_period), 0, ITEM_DEFAULT, 60},
-   {"mediaretentionperiod", store_time,      
-			 ITEM(res_client.media_ret_period), 0, ITEM_DEFAULT, 60},
+   {"fileretention", store_time,  ITEM(res_client.FileRetention), 0, ITEM_DEFAULT, 60*60*24*30},
+   {"jobretention",  store_time,  ITEM(res_client.JobRetention),  0, ITEM_DEFAULT, 60*60*24*365},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 
@@ -217,6 +215,8 @@ static struct res_items pool_items[] = {
    {"maximumvolumes",  store_pint,  ITEM(res_pool.max_volumes),     0, 0,             0},
    {"acceptanyvolume", store_yesno, ITEM(res_pool.accept_any_volume), 1, 0,           0},
    {"catalogfiles",    store_yesno, ITEM(res_pool.catalog_files),   1, ITEM_DEFAULT,  1},
+   {"volumeretention", store_time,  ITEM(res_pool.VolumeRetention), 0, ITEM_DEFAULT, 60*60*24*365},
+   {"autorecycle",     store_yesno, ITEM(res_pool.AutoRecycle), 0, ITEM_DEFAULT, 1},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 
@@ -249,15 +249,15 @@ struct s_res resources[] = {
  *   level_name      level		level_class
  */
 struct s_jl joblevels[] = {
-   {"full",          L_FULL,            JT_BACKUP},
-   {"incremental",   L_INCREMENTAL,     JT_BACKUP},
-   {"differential",  L_DIFFERENTIAL,    JT_BACKUP},
-   {"level",         L_LEVEL,           JT_BACKUP},
-   {"since",         L_SINCE,           JT_BACKUP},
-   {"catalog",       L_VERIFY_CATALOG,  JT_VERIFY},
-   {"initcatalog",   L_VERIFY_INIT,     JT_VERIFY},
-   {"volume",        L_VERIFY_VOLUME,   JT_VERIFY},
-   {"data",          L_VERIFY_DATA,     JT_VERIFY},
+   {"Full",          L_FULL,            JT_BACKUP},
+   {"Incremental",   L_INCREMENTAL,     JT_BACKUP},
+   {"Differential",  L_DIFFERENTIAL,    JT_BACKUP},
+   {"Level",         L_LEVEL,           JT_BACKUP},
+   {"Since",         L_SINCE,           JT_BACKUP},
+   {"Catalog",       L_VERIFY_CATALOG,  JT_VERIFY},
+   {"Initcatalog",   L_VERIFY_INIT,     JT_VERIFY},
+   {"Volume",        L_VERIFY_VOLUME,   JT_VERIFY},
+   {"Data",          L_VERIFY_DATA,     JT_VERIFY},
    {NULL,	     0}
 };
 
@@ -373,8 +373,8 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
       case R_CLIENT:
          sendit(sock, "Client: name=%s address=%s FDport=%d\n",
 	    res->res_client.hdr.name, res->res_client.address, res->res_client.FDport);
-         sendit(sock, "CatRetPeriod=%d MediaRetPeriod=%d\n",
-	    res->res_client.cat_ret_period, res->res_client.media_ret_period);
+         sendit(sock, "JobRetention=%d FileRetention=%d\n",
+	    res->res_client.JobRetention, res->res_client.FileRetention);
 	 if (res->res_client.catalog) {
             sendit(sock, "  --> ");
 	    dump_resource(-R_CATALOG, (RES *)res->res_client.catalog, sendit, sock);
@@ -749,7 +749,7 @@ static void store_backup(LEX *lc, struct res_items *item, int index, int pass)
          Dmsg1(190, "Got keyword: %s\n", lc->str);
 	 found = FALSE;
 	 for (i=0; BakVerFields[i].name; i++) {
-	    if (strcmp(lc->str, BakVerFields[i].name) == 0) {
+	    if (strcasecmp(lc->str, BakVerFields[i].name) == 0) {
 	       found = TRUE;
 	       if (lex_get_token(lc) != T_EQUALS) {
                   scan_err1(lc, "Expected an equals, got: %s", lc->str);
@@ -787,7 +787,7 @@ static void store_backup(LEX *lc, struct res_items *item, int index, int pass)
 		     lcase(lc->str);
 		     for (i=0; joblevels[i].level_name; i++) {
 			if (joblevels[i].job_class == item->code && 
-			     strcmp(lc->str, joblevels[i].level_name) == 0) {
+			     strcasecmp(lc->str, joblevels[i].level_name) == 0) {
 			   ((JOB *)(item->value))->level = joblevels[i].level;
 			   i = 0;
 			   break;

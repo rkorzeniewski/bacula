@@ -1,8 +1,8 @@
 /* */
-#define VERSION "1.18"
+#define VERSION "1.19"
 #define VSTRING "1"
-#define DATE    "22 April 2002"
-#define LSMDATE "22Apr02"
+#define DATE    "24 April 2002"
+#define LSMDATE "24Apr02"
 
 /* Debug flags */
 #define DEBUG 1

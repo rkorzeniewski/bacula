@@ -260,7 +260,7 @@ int select_pool_dbr(UAContext *ua, POOL_DBR *pr)
       return 0;
    }
    if (num_pools <= 0) {
-      bsendmsg(ua, _("No pools defined.\n"));
+      bsendmsg(ua, _("No pools defined. Use the \"create\" command to create one.\n"));
       return 0;
    }
      

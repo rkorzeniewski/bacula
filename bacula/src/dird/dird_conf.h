@@ -28,63 +28,63 @@
 /*
  * Resource codes -- they must be sequential for indexing   
  */
-#define R_FIRST 		      1001
+#define R_FIRST                       1001
 
-#define R_DIRECTOR		      1001
-#define R_CLIENT		      1002
-#define R_JOB			      1003
-#define R_STORAGE		      1004
-#define R_CATALOG		      1005
-#define R_SCHEDULE		      1006
-#define R_FILESET		      1007
-#define R_GROUP 		      1008
-#define R_POOL			      1009
-#define R_MSGS			      1010
+#define R_DIRECTOR                    1001
+#define R_CLIENT                      1002
+#define R_JOB                         1003
+#define R_STORAGE                     1004
+#define R_CATALOG                     1005
+#define R_SCHEDULE                    1006
+#define R_FILESET                     1007
+#define R_GROUP                       1008
+#define R_POOL                        1009
+#define R_MSGS                        1010
 
-#define R_LAST			      R_MSGS
+#define R_LAST                        R_MSGS
 
 /*
  * Some resource attributes
  */
-#define R_NAME			      1020
-#define R_ADDRESS		      1021
-#define R_PASSWORD		      1022
-#define R_TYPE			      1023
-#define R_BACKUP		      1024
+#define R_NAME                        1020
+#define R_ADDRESS                     1021
+#define R_PASSWORD                    1022
+#define R_TYPE                        1023
+#define R_BACKUP                      1024
 
 
 /* Used for certain KeyWord tables */
-struct s_kw {	    
+struct s_kw {       
    char *name;
-   int token;	
+   int token;   
 };
 
 /* Job Level keyword structure */
 struct s_jl {
    char *level_name;
-   int	level;
-   int	job_class;
+   int  level;
+   int  job_class;
 };
 
 
 /* Definition of the contents of each Resource */
 
 /* 
- *   Director Resource	
+ *   Director Resource  
  *
  */
 struct s_res_dir {
-   RES	 hdr;
-   int	 DIRport;		      /* where we listen -- UA port server port */
-   char *password;		      /* Password for UA access */
-   char *query_file;		      /* SQL query file */
-   char *working_directory;	      /* WorkingDirectory */
-   char *pid_directory; 	      /* PidDirectory */
-   char *subsys_directory;	      /* SubsysDirectory */
+   RES   hdr;
+   int   DIRport;                     /* where we listen -- UA port server port */
+   char *password;                    /* Password for UA access */
+   char *query_file;                  /* SQL query file */
+   char *working_directory;           /* WorkingDirectory */
+   char *pid_directory;               /* PidDirectory */
+   char *subsys_directory;            /* SubsysDirectory */
    struct s_res_msgs *messages;
-   int	 MaxConcurrentJobs;
-   int	 FDConnectTimeout;	      /* timeout for connect in seconds */
-   int	 SDConnectTimeout;	      /* timeout in seconds */
+   int   MaxConcurrentJobs;
+   int   FDConnectTimeout;            /* timeout for connect in seconds */
+   int   SDConnectTimeout;            /* timeout in seconds */
 };
 typedef struct s_res_dir DIRRES;
 
@@ -93,11 +93,11 @@ typedef struct s_res_dir DIRRES;
  *
  */
 struct s_res_client {
-   RES	 hdr;
+   RES   hdr;
 
-   int	 FDport;		      /* Where File daemon listens */
-   int32_t cat_ret_period;	      /* Catalog retention period */
-   int32_t media_ret_period;	      /* Media retention period */
+   int   FDport;                      /* Where File daemon listens */
+   uint32_t FileRetention;            /* file retention period in seconds */
+   uint32_t JobRetention;             /* job retention period in seconds */
    char *address;
    char *password;
    struct s_res_cat    *catalog;       /* Catalog resource */
@@ -109,10 +109,10 @@ typedef struct s_res_client CLIENT;
  * 
  */
 struct s_res_store {
-   RES	 hdr;
+   RES   hdr;
 
-   int	 SDport;		      /* port where Directors connect */
-   int	 SDDport;		      /* data port for File daemon */
+   int   SDport;                      /* port where Directors connect */
+   int   SDDport;                     /* data port for File daemon */
    char *address;
    char *password;
    char *media_type;
@@ -125,9 +125,9 @@ typedef struct s_res_store STORE;
  *
  */
 struct s_res_cat {
-   RES	 hdr;
+   RES   hdr;
 
-   int	 DBport;		      /* Port -- not yet implemented */
+   int   DBport;                      /* Port -- not yet implemented */
    char *address;
    char *db_password;
    char *db_user;
@@ -140,22 +140,22 @@ typedef struct s_res_cat CAT;
  *
  */
 struct s_res_job {
-   RES	 hdr;
+   RES   hdr;
 
-   int	 JobType;		      /* job type (backup, verify, restore */
-   int	 level; 		      /* default backup/verify level */
-   int	 RestoreJobId;		      /* What -- JobId to restore */
-   char *RestoreWhere;		      /* Where on disk to restore -- directory */
-   int	 RestoreOptions;	      /* How (overwrite, ..) */
-   int	 MaxRunTime;		      /* max run time in seconds */
-   int	 MaxStartDelay; 	      /* max start delay in seconds */
+   int   JobType;                     /* job type (backup, verify, restore */
+   int   level;                       /* default backup/verify level */
+   int   RestoreJobId;                /* What -- JobId to restore */
+   char *RestoreWhere;                /* Where on disk to restore -- directory */
+   int   RestoreOptions;              /* How (overwrite, ..) */
+   int   MaxRunTime;                  /* max run time in seconds */
+   int   MaxStartDelay;               /* max start delay in seconds */
 
    struct s_res_msgs   *messages;     /* How and where to send messages */
    struct s_res_sch    *schedule;     /* When -- Automatic schedule */
    struct s_res_client *client;       /* Who to backup */
-   struct s_res_fs     *fs;	      /* What to backup -- Fileset */
+   struct s_res_fs     *fs;           /* What to backup -- Fileset */
    struct s_res_store  *storage;      /* Where is device -- Storage daemon */
-   struct s_res_pool   *pool;	      /* Where is media -- Media Pool */
+   struct s_res_pool   *pool;         /* Where is media -- Media Pool */
 };
 typedef struct s_res_job JOB;
 
@@ -164,7 +164,7 @@ typedef struct s_res_job JOB;
  *
  */
 struct s_res_fs {
-   RES	 hdr;
+   RES   hdr;
 
    char **include_array;
    int num_includes;
@@ -172,8 +172,8 @@ struct s_res_fs {
    char **exclude_array;
    int num_excludes;
    int exclude_size;
-   int have_MD5;		      /* set if MD5 initialized */
-   struct MD5Context md5c;	      /* MD5 of include/exclude */
+   int have_MD5;                      /* set if MD5 initialized */
+   struct MD5Context md5c;            /* MD5 of include/exclude */
 };
 typedef struct s_res_fs FILESET;
  
@@ -183,7 +183,7 @@ typedef struct s_res_fs FILESET;
  *
  */
 struct s_res_sch {
-   RES	 hdr;
+   RES   hdr;
 
    struct s_run *run;
 };
@@ -194,7 +194,7 @@ typedef struct s_res_sch SCHED;
  *
  */
 struct s_res_group {
-   RES	 hdr;
+   RES   hdr;
 };
 typedef struct s_res_group GROUP;
 
@@ -203,15 +203,17 @@ typedef struct s_res_group GROUP;
  *
  */
 struct s_res_pool {
-   RES	 hdr;
+   RES   hdr;
 
    char *pool_type;
-   char *label_format;		      /* Label format string */
-   int	 use_catalog;		      /* maintain catalog for media */
-   int	 catalog_files; 	      /* maintain file entries in catalog */
-   int	 use_volume_once;	      /* write on volume only once */
-   int	 accept_any_volume;	      /* accept any volume */
-   int	 max_volumes;		      /* max number of volumes */
+   char *label_format;                /* Label format string */
+   int   use_catalog;                 /* maintain catalog for media */
+   int   catalog_files;               /* maintain file entries in catalog */
+   int   use_volume_once;             /* write on volume only once */
+   int   accept_any_volume;           /* accept any volume */
+   int   max_volumes;                 /* max number of volumes */
+   uint32_t VolumeRetention;          /* volume retention period in seconds */
+   int   AutoRecycle;                 /* auto recycle */
 };
 typedef struct s_res_pool POOL;
 
@@ -220,16 +222,16 @@ typedef struct s_res_pool POOL;
  * resource structure definitions.
  */
 union u_res {
-   struct s_res_dir	res_dir;
-   struct s_res_client	res_client;
-   struct s_res_store	res_store;
-   struct s_res_cat	res_cat;
-   struct s_res_job	res_job;
-   struct s_res_fs	res_fs;
-   struct s_res_sch	res_sch;
-   struct s_res_group	res_group;
-   struct s_res_pool	res_pool;
-   struct s_res_msgs	res_msgs;
+   struct s_res_dir     res_dir;
+   struct s_res_client  res_client;
+   struct s_res_store   res_store;
+   struct s_res_cat     res_cat;
+   struct s_res_job     res_job;
+   struct s_res_fs      res_fs;
+   struct s_res_sch     res_sch;
+   struct s_res_group   res_group;
+   struct s_res_pool    res_pool;
+   struct s_res_msgs    res_msgs;
    RES hdr;
 };
 
@@ -238,14 +240,14 @@ typedef union u_res URES;
 
 /* Run structure contained in Schedule Resource */
 struct s_run {
-   struct s_run *next;		      /* points to next run record */
+   struct s_run *next;                /* points to next run record */
    int level;
    int job_class;  
    char *since;
    int level_no;
-   int minute;			      /* minute to run job */
-   time_t last_run;		      /* last time run */
-   time_t next_run;		      /* next time to run */
+   int minute;                        /* minute to run job */
+   time_t last_run;                   /* last time run */
+   time_t next_run;                   /* next time to run */
    char hour[nbytes_for_bits(24)];    /* bit set for each hour */
    char mday[nbytes_for_bits(31)];    /* bit set for each day of month */
    char month[nbytes_for_bits(12)];   /* bit set for each month */

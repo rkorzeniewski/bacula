@@ -331,6 +331,8 @@ typedef struct {
    int UseOnce;                       /* set to use once only */
    int UseCatalog;                    /* set to use catalog */
    int AcceptAnyVolume;               /* set to accept any volume sequence */
+   int AutoRecycle;                   /* set to recycle automatically */
+   uint32_t VolumeRetention;          /* retention period in seconds */
    char PoolType[MAX_NAME_LENGTH];             
    char LabelFormat[MAX_NAME_LENGTH];
    /* Extra stuff not in DB */

@@ -327,16 +327,16 @@ Storage:    %s\n"),
 	    goto try_again;
 	 } else if (jcr->JobType == JT_VERIFY) {
             start_prompt(ua, _("Levels:\n"));
-            add_prompt(ua, _("Verify from Catalog"));
             add_prompt(ua, _("Initialize Catalog"));
+            add_prompt(ua, _("Verify from Catalog"));
             add_prompt(ua, _("Verify Volume"));
             add_prompt(ua, _("Verify Volume Data"));
             switch (do_prompt(ua, _("Select level"), NULL)) {
 	    case 0:
-	       jcr->level = L_VERIFY_CATALOG;
+	       jcr->level = L_VERIFY_INIT;
 	       break;
 	    case 1:
-	       jcr->level = L_VERIFY_INIT;
+	       jcr->level = L_VERIFY_CATALOG;
 	       break;
 	    case 2:
 	       jcr->level = L_VERIFY_VOLUME;

@@ -33,7 +33,6 @@
 extern void run_job(JCR *jcr);
 
 /* Imported variables */
-extern struct s_jl joblevels[];
 extern int r_first;
 extern int r_last;
 extern struct s_res resources[];

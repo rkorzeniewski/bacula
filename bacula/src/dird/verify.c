@@ -116,7 +116,9 @@ int do_verify(JCR *jcr)
       return 0;
    }
 
-   jcr->fname = (char *) get_pool_memory(PM_FNAME);
+   if (!jcr->fname) {
+      jcr->fname = (char *) get_pool_memory(PM_FNAME);
+   }
 
    jcr->jr.JobId = last_full_id;      /* save last full id */
 
@@ -336,12 +338,12 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, int last_full_id)
        long file_index, attr_file_index;
        int stream;
        char *attr, *p;
-       char Opts[MAXSTRING];	      /* Verify Opts or MD5 signature */
+       char Opts_MD5[MAXSTRING];	/* Verify Opts or MD5 signature */
        int do_MD5;
 
        Dmsg1(50, "Atts+MD5=%s\n", fd->msg);
        if ((len = sscanf(fd->msg, "%ld %d %s %s", &file_index, &stream, 
-	     Opts, jcr->fname)) != 4) {
+	     Opts_MD5, jcr->fname)) != 4) {
           Jmsg3(jcr, M_FATAL, 0, _("bird<filed: bad attributes, expected 4 fields got %d\n\
 msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
 	  jcr->JobStatus = JS_ErrorTerminated;
@@ -380,14 +382,14 @@ msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
 	     db_mark_file_record(jcr->db, fdbr.FileId, jcr->JobId);
 	  }
 
-          Dmsg2(20, "Found %s in catalog. Opts=%s\n", jcr->fname, Opts);
+          Dmsg2(20, "Found %s in catalog. Opts=%s\n", jcr->fname, Opts_MD5);
 	  decode_stat(fdbr.LStat, &statc); /* decode catalog stat */
 	  strip_trailing_junk(jcr->fname);
 	  /*
 	   * Loop over options supplied by user and verify the
 	   * fields he requests.
 	   */
-	  for (p=Opts; *p; p++) {
+	  for (p=Opts_MD5; *p; p++) {
 	     switch (*p) {
              case 'i':                /* compare INODEs */
 		if (statc.st_ino != statf.st_ino) {
@@ -477,7 +479,7 @@ msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
 	  }
        /*
 	* Got MD5 Signature from Storage daemon
-	*  It came across in the Opts field.
+	*  It came across in the Opts_MD5 field.
 	*/
        } else if (stream == STREAM_MD5_SIGNATURE) {
 	  if (attr_file_index != file_index) {
@@ -485,9 +487,8 @@ msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
 		file_index, attr_file_index);
 	     jcr->JobStatus = JS_ErrorTerminated;
 	     return 0;
-	  }
-	  if (do_MD5) {
-	     db_escape_string(buf, Opts, strlen(Opts));
+	  } else if (do_MD5) {
+	     db_escape_string(buf, Opts_MD5, strlen(Opts_MD5));
 	     if (strcmp(buf, fdbr.MD5) != 0) {
 		/***FIXME**** fname may not be valid */
 		prt_fname(jcr);
@@ -509,6 +510,7 @@ msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
       jcr->JobStatus = JS_ErrorTerminated;
       return 0;
    }
+
    /* Now find all the files that are missing -- i.e. all files in
     *  the database where the FileIndex != current JobId
     */
