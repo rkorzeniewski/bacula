@@ -39,7 +39,7 @@
 void 
 daemon_start()
 {
-#ifndef HAVE_CYGWIN
+#if !defined(HAVE_CYGWIN) && !defined(HAVE_WIN32)
    int i;
    pid_t cpid;
    mode_t oldmask;

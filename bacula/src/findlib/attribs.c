@@ -31,7 +31,7 @@
 #include "bacula.h"
 #include "find.h"
 
-#ifdef HAVE_CYGWIN
+#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
 
 /* Forward referenced subroutines */
 static int set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd);
@@ -277,7 +277,7 @@ int set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    mode_t old_mask;
    int stat = 1;
 
-#ifdef HAVE_CYGWIN
+#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
    if (attr->data_stream == STREAM_WIN32_DATA ||
        attr->data_stream == STREAM_WIN32_GZIP_DATA) {
       if (is_bopen(ofd)) {
@@ -363,7 +363,7 @@ int set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
 /*							       */
 /*=============================================================*/
 
-#ifndef HAVE_CYGWIN
+#if !defined(HAVE_CYGWIN) && !defined(HAVE_WIN32)
     
 /*
  * It is possible to piggyback additional data e.g. ACLs on
@@ -390,7 +390,7 @@ int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
 /*							       */
 /*=============================================================*/
 
-#ifdef HAVE_CYGWIN
+#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
 
 int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
 {

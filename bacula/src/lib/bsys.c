@@ -190,7 +190,7 @@ struct tm *localtime_r(const time_t *timep, struct tm *tm)
 #endif /* HAVE_LOCALTIME_R */
 
 #ifndef HAVE_READDIR_R
-
+#ifndef HAVE_WIN32
 #include <dirent.h>
 
 int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result)
@@ -217,8 +217,9 @@ int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result)
     }
     V(mutex);
     return stat;
-}
 
+}
+#endif
 #endif /* HAVE_READDIR_R */
 
 #ifdef xxxxxxxxxx_STRERROR_R
@@ -282,7 +283,7 @@ void _v(char *file, int line, pthread_mutex_t *m)
 }
 #endif /* DEBUG_MUTEX */
 
-#ifndef HAVE_CYGWIN
+#if !defined(HAVE_CYGWIN) && !defined(HAVE_WIN32)
 static int del_pid_file_ok = FALSE;
 #endif
 
@@ -291,7 +292,7 @@ static int del_pid_file_ok = FALSE;
  */
 void create_pid_file(char *dir, char *progname, int port)
 {
-#ifndef HAVE_CYGWIN
+#if !defined(HAVE_CYGWIN) && !defined(HAVE_WIN32)
    int pidfd, len;
    int oldpid;
    char  pidbuf[20];
@@ -333,7 +334,7 @@ void create_pid_file(char *dir, char *progname, int port)
  */
 int delete_pid_file(char *dir, char *progname, int port)
 {
-#ifndef HAVE_CYGWIN
+#if !defined(HAVE_CYGWIN)  && !defined(HAVE_WIN32)
    POOLMEM *fname = get_pool_memory(PM_FNAME);
 
    if (!del_pid_file_ok) {

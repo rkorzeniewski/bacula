@@ -28,7 +28,7 @@
 #ifndef __BFILE_H
 #define __BFILE_H
 
-#ifdef HAVE_CYGWIN
+#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
 
 #include <windows.h>
 #include "winapi.h"

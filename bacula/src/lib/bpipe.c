@@ -44,7 +44,7 @@ static void build_argc_argv(char *cmd, int *bargc, char *bargv[], int max_arg);
 BPIPE *open_bpipe(char *prog, int wait, char *mode)
 {
    char *bargv[MAX_ARGV];
-   int bargc;
+   int bargc, i;
    int readp[2], writep[2];
    POOLMEM *tprog;
    int mode_read, mode_write;
@@ -60,7 +60,6 @@ BPIPE *open_bpipe(char *prog, int wait, char *mode)
    build_argc_argv(mp_chr(tprog), &bargc, bargv, MAX_ARGV);
 #ifdef	xxxxxx
    printf("argc=%d\n", bargc);
-   int i;
    for (i=0; i<bargc; i++) {
       printf("argc=%d argv=%s:\n", i, bargv[i]);
    }
@@ -92,7 +91,7 @@ BPIPE *open_bpipe(char *prog, int wait, char *mode)
 	 dup2(readp[1], 1);	      /* dup our read to his stdout */
 	 dup2(readp[1], 2);	      /*   and his stderr */
       }
-      for (int i=3; i<=32; i++) {     /* close any open file descriptors */
+      for (i=3; i<=32; i++) {	  /* close any open file descriptors */
 	 close(i);
       }
       execvp(bargv[0], bargv);	      /* call the program */

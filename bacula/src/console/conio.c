@@ -987,7 +987,7 @@ void clrbrk()
 /* Interrupt caught here */
 static void sigintcatcher(int sig)
 {
-   brkflg = 1;
+   brkflg++;
    signal(SIGINT, sigintcatcher);
 }
 

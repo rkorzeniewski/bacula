@@ -30,17 +30,23 @@
 
 /* In case you want to specifically specify the offset to the link */
 #define OFFSET(item, link) ((char *)(link) - (char *)(item))
-
+#ifdef HAVE_WIN32
+/* Extra ***& workaround for VisualC Studio */
+#define foreach_dlist(var, list) \
+    for((var)=NULL; (*((void **)&(var))=(void*)((list)->next(var))); )
+#else
 /*
  * Loop var through each member of list
  */
 #define foreach_dlist(var, list) \
         for((var)=NULL; (((void *)(var))=(list)->next(var)); )
+#endif
 
 struct dlink {
    void *next;
    void *prev;
 };
+
 
 class dlist {
    void *head;

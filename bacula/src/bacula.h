@@ -27,8 +27,14 @@
 #ifndef _BACULA_H
 #define _BACULA_H 1
 
+#ifdef HAVE_WIN32
+#include "winconfig.h"
+#include "winhost.h"
+#else
 #include "config.h"
 #include "host.h"
+#endif
+
 
 #define _REENTRANT    1
 #define _THREAD_SAFE  1
@@ -84,7 +90,11 @@
 #ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
 #endif
+#ifdef HAVE_WIN32
+#include <winsock2.h>
+#else
 #include <sys/stat.h>
+#endif
 #include <sys/time.h>
 #if HAVE_SYS_WAIT_H
 #include <sys/wait.h>

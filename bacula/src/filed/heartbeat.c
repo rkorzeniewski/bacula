@@ -31,7 +31,7 @@
 #include "bacula.h"
 #include "filed.h"
 
-#ifdef HAVE_CYGWIN
+#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
 /* pthread_kill() dies on Cygwin, so disable it */
 #define pthread_kill(x, y)
 /* Use shorter wait interval on Cygwin because no kill */

@@ -114,7 +114,7 @@ static char OKverify[]    = "2000 OK verify\n";
 static char OKrestore[]   = "2000 OK restore\n";
 static char OKsession[]   = "2000 OK session\n";
 static char OKstore[]     = "2000 OK storage\n";
-static char OKjob[]       = "2000 OK Job " HOST_OS "," DISTNAME "," DISTVER;
+static char OKjob[]       = "2000 OK Job %s,%s,%s";
 static char OKsetdebug[]  = "2000 OK setdebug=%d\n";
 static char BADjob[]      = "2901 Bad Job\n";
 static char EndJob[]      = "2800 End Job TermCode=%d JobFiles=%u ReadBytes=%s JobBytes=%s Errors=%u\n";
@@ -257,7 +257,7 @@ static int cancel_cmd(JCR *jcr)
 	    P(cjcr->mutex);
 	    cjcr->store_bsock->timed_out = 1;
 	    cjcr->store_bsock->terminated = 1;
-#ifndef HAVE_CYGWIN
+#if !defined(HAVE_CYGWIN) && !defined(HAVE_WIN32)
 	    pthread_kill(cjcr->my_thread_id, TIMEOUT_SIGNAL);
 #endif
 	    V(cjcr->mutex);
@@ -333,7 +333,7 @@ static int job_cmd(JCR *jcr)
    jcr->sd_auth_key = bstrdup(sd_auth_key);
    free_pool_memory(sd_auth_key);
    Dmsg2(120, "JobId=%d Auth=%s\n", jcr->JobId, jcr->sd_auth_key);
-   return bnet_fsend(dir, OKjob);
+   return bnet_fsend(dir, OKjob, HOST_OS, DISTNAME, DISTVER);
 }
 
 static int runbefore_cmd(JCR *jcr)

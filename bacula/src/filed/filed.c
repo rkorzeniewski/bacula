@@ -41,10 +41,10 @@ char OK_msg[]   = "2000 OK\n";
 char TERM_msg[] = "2999 Terminate\n";
 
 
-#ifdef HAVE_CYGWIN
-int win32_client = 1;
+#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
+const int win32_client = 1;
 #else
-int win32_client = 0;
+const int win32_client = 0;
 #endif
 
 
@@ -81,9 +81,10 @@ static void usage()
  *  Main Bacula Unix Client Program			   
  *
  */
-#ifdef HAVE_CYGWIN
+#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
 #define main BaculaMain
 #endif
+
 int main (int argc, char *argv[])
 {
    int ch;

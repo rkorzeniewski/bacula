@@ -289,8 +289,8 @@ bacService::BaculaServiceMain()
       }
 
       // And find the RegisterServiceProcess function
-      DWORD WINAPI (*RegisterService)(DWORD, DWORD);
-      RegisterService = (DWORD (*)(DWORD, DWORD))
+      DWORD (WINAPI *RegisterService)(DWORD, DWORD);
+      RegisterService = (DWORD (WINAPI *)(DWORD, DWORD))
               GetProcAddress(kerneldll, "RegisterServiceProcess");
       if (RegisterService == NULL) {
          MessageBox(NULL, "Registry service not found: Bacula service not started",
@@ -426,7 +426,7 @@ bacService::InstallService()
 
    // Append the service-start flag to the end of the path:
    if ((int)strlen(path) + 20 + (int)strlen(BaculaRunService) < pathlength) {
-      sprintf(servicecmd, "\"%s\" %s -c %s", path, BaculaRunService, path);
+      sprintf(servicecmd, "\"%s\" %s -c \"%s\"", path, BaculaRunService, path);
       len = strlen(servicecmd) - 1;
       for ( ; len > 0; len--) {
          if (servicecmd[len] == '\\') {
@@ -781,7 +781,7 @@ void LogErrorMsg(char *message, char *fname, int lineno)
    }
    LocalFree(msg);
 }
-typedef BOOL WINAPI (*WinAPI)(SC_HANDLE, DWORD, LPVOID);
+typedef BOOL  (WINAPI * WinAPI)(SC_HANDLE, DWORD, LPVOID);
 
 void set_service_description(SC_HANDLE hSCManager, SC_HANDLE hService,
                              LPSTR lpDesc) 

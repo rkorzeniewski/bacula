@@ -28,12 +28,11 @@
 #include "stored.h"
 #include "findlib/find.h"
 
-#ifdef HAVE_CYGWIN
+#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
 int win32_client = 1;
 #else
 int win32_client = 0;
 #endif
-
 
 static void do_blocks(char *infname);
 static void do_jobs(char *infname);

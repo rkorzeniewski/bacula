@@ -55,7 +55,7 @@ static int update_SIG_record(B_DB *db, char *SIGbuf, DEV_RECORD *rec, int type);
 
 /* Global variables */
 STORES *me;
-#ifdef HAVE_CYGWIN
+#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
 int win32_client = 1;
 #else
 int win32_client = 0;

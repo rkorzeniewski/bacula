@@ -37,7 +37,7 @@
 
  */
 
-
+#ifndef HAVE_WIN32
 #include "bacula.h"
 #if defined(HAVE_PCREPOSIX)
 #  include <pcreposix.h>
@@ -2716,3 +2716,4 @@ char *var_strerror(var_t *var, var_rc_t rc)
     }
     return str;
 }
+#endif

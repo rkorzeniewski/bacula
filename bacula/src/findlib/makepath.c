@@ -130,6 +130,18 @@ make_dir(JCR *jcr, const char *dir, const char *dirpath, mode_t mode, int *creat
   return fail;
 }
 
+/* return non-zero if path is absolute or zero if relative. */
+  
+int
+isAbsolute(const char *path)
+{
+#if defined(HAVE_CYGWIN) || defined(WIN32)
+    return path[1] == ':' || *path == '/' || *path == '\\';     /* drivespec:/blah is absolute */
+#else
+    return *path == '/';
+#endif	  
+}
+    
 /* Ensure that the directory ARGPATH exists.
    Remove any trailing slashes from ARGPATH before calling this function.
 
@@ -200,7 +212,7 @@ make_path(
 	 re_protect = 0;
       }
 
-#ifdef HAVE_CYGWIN
+#if defined(HAVE_CYGWIN)
       /* Because of silly Win32 security, we allow everything */
       tmp_mode = S_IRWXUGO;
       re_protect = 0;
@@ -213,7 +225,7 @@ make_path(
       /* If we've saved the cwd and DIRPATH is an absolute pathname,
          we must chdir to `/' in order to enable the chdir optimization.
          So if chdir ("/") fails, turn off the optimization.  */
-      if (cwd.do_chdir && *dirpath == '/' && chdir ("/") < 0) {
+      if (cwd.do_chdir && isAbsolute(dirpath) && chdir ("/") < 0) {
 	 cwd.do_chdir = 0;
       }
 

@@ -65,9 +65,9 @@ char catalog_db[] = "Internal";
 #endif
 #endif
 
-char *host_os = HOST_OS;
-char *distname = DISTNAME;
-char *distver = DISTVER;
+const char *host_os = HOST_OS;
+const char *distname = DISTNAME;
+const char *distver = DISTVER;
 
 /* Forward referenced functions */
 
@@ -107,7 +107,7 @@ void my_name_is(int argc, char *argv[], char *name)
 	 l++;
       } else {
 	 l = argv[0];
-#ifdef HAVE_CYGWIN
+#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
 	 /* On Windows allow c: junk */
          if (l[1] == ':') {
 	    l += 2;
@@ -162,12 +162,13 @@ void
 init_msg(JCR *jcr, MSGS *msg)
 {
    DEST *d, *dnew, *temp_chain = NULL;
-   int i, fd;
+   int i;
 
    if (jcr == NULL && msg == NULL) {
       init_last_jobs_list();
    }
 
+#ifndef HAVE_WIN32
    /*
     * Make sure we have fd's 0, 1, 2 open
     *  If we don't do this one of our sockets may open
@@ -175,6 +176,7 @@ init_msg(JCR *jcr, MSGS *msg)
     *  send total garbage to our socket.
     *
     */
+   int fd;
    fd = open("/dev/null", O_RDONLY, 0644);
    if (fd > 2) {
       close(fd);
@@ -184,7 +186,7 @@ init_msg(JCR *jcr, MSGS *msg)
       }
    }
 
-
+#endif
    /*
     * If msg is NULL, initialize global chain for STDOUT and syslog
     */
@@ -741,18 +743,22 @@ d_msg(char *file, int line, int level, char *fmt,...)
     }
 
     if (level <= debug_level) {
+#ifdef HAVE_WIN32
+#define SEND_DMSG_TO_FILE
+#endif
 #ifdef SEND_DMSG_TO_FILE
        if (!trace_fd) {
-          bsnprintf(buf, sizeof(buf), "%s/bacula.trace", working_directory);
+          bsnprintf(buf, sizeof(buf), "%s/bacula.trace", working_directory ? working_directory : ".");
           trace_fd = fopen(buf, "a+");
-	  if (!trace_fd) {
-             Emsg2(M_ABORT, 0, _("Cannot open trace file \"%s\": ERR=%s\n"),
-		  buf, strerror(errno));
-	  }
        }
 #endif
 #ifdef FULL_LOCATION
        if (details) {
+	  /* visual studio passes the whole path to the file as well
+	   * which makes for very long lines
+	   */
+          char *f = strrchr(file, '\\');
+	  if (f) file = f + 1;
           len = bsnprintf(buf, sizeof(buf), "%s: %s:%d ", my_name, file, line);
        } else {
 	  len = 0;
@@ -765,8 +771,10 @@ d_msg(char *file, int line, int level, char *fmt,...)
        va_end(arg_ptr);
 
 #ifdef SEND_DMSG_TO_FILE
-       fputs(buf, trace_fd);
-       fflush(trace_fd);
+       if (trace_fd) {
+	   fputs(buf, trace_fd);
+	   fflush(trace_fd);
+       }
 #else
        fputs(buf, stdout);
 #endif
@@ -831,10 +839,6 @@ t_msg(char *file, int line, int level, char *fmt,...)
        if (!trace_fd) {
           bsnprintf(buf, sizeof(buf), "%s/bacula.trace", working_directory);
           trace_fd = fopen(buf, "a+");
-	  if (!trace_fd) {
-             Emsg2(M_ABORT, 0, _("Cannot open trace file \"%s\": ERR=%s\n"),
-		  buf, strerror(errno));
-	  }
        }
     
 #ifdef FULL_LOCATION
@@ -849,10 +853,11 @@ t_msg(char *file, int line, int level, char *fmt,...)
        va_start(arg_ptr, fmt);
        bvsnprintf(buf+len, sizeof(buf)-len, (char *)fmt, arg_ptr);
        va_end(arg_ptr);
-
-       fputs(buf, trace_fd);
-       fflush(trace_fd);
-    }
+       if (trace_fd != NULL) {
+	   fputs(buf, trace_fd);
+	   fflush(trace_fd);
+       }
+   }
 }
 
 

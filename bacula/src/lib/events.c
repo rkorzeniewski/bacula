@@ -138,7 +138,7 @@ bailout:
 
 #endif /* IMPLEMENTED */
 
-#ifdef HAVE_CYGWIN
+#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
 
 #include <windows.h>
 

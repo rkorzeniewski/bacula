@@ -49,7 +49,7 @@ static brwlock_t lock;		      /* lock for last jobs and JCR chain */
 void init_last_jobs_list()
 {
    int errstat;
-   struct s_last_job *job_entry;
+   struct s_last_job *job_entry = NULL;
    if (!last_jobs) {
       last_jobs = new dlist(job_entry,	&job_entry->link);
       memset(&last_job, 0, sizeof(last_job));

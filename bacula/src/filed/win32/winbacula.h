@@ -31,7 +31,7 @@
 
 // WinUPS header file
 
-#define STRICT
+#define STRICT 1
 #include <windows.h>
 #include <stdio.h>
 #include <process.h>

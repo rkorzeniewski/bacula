@@ -66,8 +66,16 @@ extern int r_first;
 extern int r_last;
 extern pthread_mutex_t res_mutex;
 extern struct s_res resources[];
-extern CURES res_all;
+#ifdef HAVE_WIN32
+// work around visual studio name manling preventing external linkage since res_all
+// is declared as a different type when instantiated.
+extern "C" CURES res_all;
+extern "C" int res_all_size;
+#else
+extern  CURES res_all;
 extern int res_all_size;
+#endif
+
 
 static bool res_locked = false;        /* set when resource chains locked */
 

@@ -498,6 +498,7 @@ POOLMEM *edit_job_codes(JCR *jcr, char *omsg, char *imsg, char *to)
    char *p, *str;
    char add[20];
    char name[MAX_NAME_LENGTH];
+   int i;
 
    *omsg = 0;
    Dmsg1(200, "edit_job_codes: %s\n", imsg);
@@ -532,7 +533,7 @@ POOLMEM *edit_job_codes(JCR *jcr, char *omsg, char *imsg, char *to)
          case 'n':
 	     bstrncpy(name, jcr->Job, sizeof(name));
 	     /* There are three periods after the Job name */
-	     for (int i=0; i<3; i++) {
+	     for (i=0; i<3; i++) {
                 if ((str=strrchr(name, '.')) != NULL) {
 		    *str = 0;
 		}

@@ -52,12 +52,17 @@ char *getuser(uid_t uid)
   pwent = getpwuid(uid);
   tail = (struct userid *)malloc(sizeof (struct userid));
   tail->id.u = uid;
+#ifndef HAVE_WIN32
   if (pwent == 0 || strcmp(pwent->pw_name, "????????") == 0) {
       sprintf(usernum_string, "%u", (uint32_t)uid);
       tail->name = bstrdup(usernum_string);
   } else {
       tail->name = bstrdup(pwent->pw_name);
   }
+#else
+      sprintf(usernum_string, "%u", (uint32_t)uid);
+      tail->name = bstrdup(usernum_string);
+#endif
 
   /* Add to the head of the list, so most recently used is first.  */
   tail->next = user_alist;
@@ -102,13 +107,17 @@ char *getgroup(gid_t gid)
   grent = getgrgid(gid);
   tail = (struct userid *)malloc(sizeof (struct userid));
   tail->id.g = gid;
+#ifndef HAVE_WIN32
   if (grent == 0 || strcmp(grent->gr_name, "????????") == 0) {
       sprintf (groupnum_string, "%u", (uint32_t)gid);
       tail->name = bstrdup(groupnum_string);
   } else {
       tail->name = bstrdup(grent->gr_name);
   }
-
+#else
+      sprintf (groupnum_string, "%u", (uint32_t)gid);
+      tail->name = bstrdup(groupnum_string);
+#endif
   /* Add to the head of the list, so most recently used is first.  */
   tail->next = group_alist;
   group_alist = tail;

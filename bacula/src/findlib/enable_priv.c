@@ -37,7 +37,7 @@
 /*							       */
 /*=============================================================*/
 
-#ifndef HAVE_CYGWIN
+#if !defined(HAVE_CYGWIN) && !defined(WIN32)
     
 int enable_backup_privileges(JCR *jcr, int ignore_errors)
  { return 0; }
@@ -53,7 +53,7 @@ int enable_backup_privileges(JCR *jcr, int ignore_errors)
 /*							       */
 /*=============================================================*/
 
-#ifdef HAVE_CYGWIN
+#if defined(HAVE_CYGWIN) || defined(WIN32)
 
 void win_error(JCR *jcr, char *prefix, DWORD lerror);
 

@@ -262,9 +262,16 @@ int size_to_uint64(char *str, int str_len, uint64_t *rtn_value)
    if (errno != 0 || value < 0) {
       return 0;
    }
+#if defined(HAVE_WIN32)
+   /* work around microsofts non handling of uint64 to double cvt*/
+   *rtn_value = (uint64_t)(value * (__int64)mult[i]);
+   Dmsg2(400, "Full value = %lf %" lld "\n", value * (__int64)mult[i],  
+	 (uint64_t)(value * (__int64)mult[i]));
+#else
    *rtn_value = (uint64_t)(value * mult[i]);
    Dmsg2(400, "Full value = %lf %" lld "\n", value * mult[i],  
       (uint64_t)(value * mult[i]));
+#endif
    return 1;
 }
 
