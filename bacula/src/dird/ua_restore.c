@@ -427,31 +427,30 @@ static int last_full_handler(void *ctx, int num_fields, char **row)
 
 /* Forward referenced commands */
 
-static int addcmd(UAContext *ua, TREE_CTX *tree);
+static int markcmd(UAContext *ua, TREE_CTX *tree);
 static int countcmd(UAContext *ua, TREE_CTX *tree);
 static int findcmd(UAContext *ua, TREE_CTX *tree);
 static int lscmd(UAContext *ua, TREE_CTX *tree);
 static int helpcmd(UAContext *ua, TREE_CTX *tree);
 static int cdcmd(UAContext *ua, TREE_CTX *tree);
 static int pwdcmd(UAContext *ua, TREE_CTX *tree);
-static int rmcmd(UAContext *ua, TREE_CTX *tree);
+static int unmarkcmd(UAContext *ua, TREE_CTX *tree);
 static int quitcmd(UAContext *ua, TREE_CTX *tree);
 
 
 struct cmdstruct { char *key; int (*func)(UAContext *ua, TREE_CTX *tree); char *help; }; 
 static struct cmdstruct commands[] = {
- { N_("add"),        addcmd,       _("add file")},
- { N_("count"),      countcmd,     _("count files")},
- { N_("find"),       findcmd,      _("find files")},
+ { N_("mark"),       markcmd,      _("mark file for extraction")},
+ { N_("unmark"),     unmarkcmd,    _("unmark file for extraction")},
+ { N_("cd"),         cdcmd,        _("change current directory")},
+ { N_("pwd"),        pwdcmd,       _("print current working directory")},
  { N_("ls"),         lscmd,        _("list current directory")},    
  { N_("dir"),        lscmd,        _("list current directory")},    
- { N_("help"),       helpcmd,      _("print help")},
- { N_("cd"),         cdcmd,        _("change directory")},
- { N_("pwd"),        pwdcmd,       _("print directory")},
- { N_("rm"),         rmcmd,        _("remove a file")},
- { N_("remove"),     rmcmd,        _("remove a file")},
+ { N_("count"),      countcmd,     _("count marked files")},
+ { N_("find"),       findcmd,      _("find files")},
  { N_("done"),       quitcmd,      _("leave file selection mode")},
  { N_("exit"),       quitcmd,      _("exit = done")},
+ { N_("help"),       helpcmd,      _("print help")},
  { N_("?"),          helpcmd,      _("print help")},    
 	     };
 #define comsize (sizeof(commands)/sizeof(struct cmdstruct))
@@ -803,7 +802,7 @@ static void set_extract(TREE_NODE *node, int value)
    }
 }
 
-static int addcmd(UAContext *ua, TREE_CTX *tree)
+static int markcmd(UAContext *ua, TREE_CTX *tree)
 {
    TREE_NODE *node;
 
@@ -916,7 +915,7 @@ static int pwdcmd(UAContext *ua, TREE_CTX *tree)
 }
 
 
-static int rmcmd(UAContext *ua, TREE_CTX *tree)
+static int unmarkcmd(UAContext *ua, TREE_CTX *tree)
 {
    TREE_NODE *node;
 
