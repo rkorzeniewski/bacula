@@ -2,6 +2,8 @@
                  27 January 2004
 
 Documentation to do: (any release a little bit at a time)
+- DB upgrade to version 5 in bacula-1.27b, DB upgrade to
+  version 6 in 1.31; DB upgrade to version 7 in 1.33/4.
 - Document running a test version.
 - Document query file format.
 - Document static linking
@@ -70,6 +72,7 @@ For 1.33 Testing/Documentation:
      http://howtos.linux.com/guides/nag2/x-087-2-nfs.mountd.shtml
 
 For 1.33
+- Fix FreeBSD mt_count problem.
 - During install, copy any console.conf to bconsole.conf.
 - Have each daemon save the last_jobs structure when exiting and
   read it back in when starting up.
