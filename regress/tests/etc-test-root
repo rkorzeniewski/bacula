@@ -3,24 +3,24 @@
 # Run a simple backup of the Bacula build directory
 #   then restore it.
 #
-echo " "
-echo " "
-echo " === /etc save/restore test ==="
-echo " "
-echo " "
-UID=`/usr/bin/id -u`
-if [ $UID != 0 ] ; then
+MUID=`/usr/bin/id -u`
+if [ $MUID != 0 ] ; then
    echo " "
    echo "You must be root to run this test."
-   echo "  ===== Test4 failed!!! ===== "
-   echo "  ===== Test4 failed!!! ===== " >>test.out
+   echo "  ===== etc-test-root failed!!! ===== "
+   echo "  ===== etc-test-root failed!!! ===== " >>test.out
    echo " "
    exit 1
 fi
+echo " "
+echo " "
+echo " === Starting /etc save/restore test ==="
+echo " "
+echo " "
 cwd=`pwd`
 scripts/copy-test-confs
+scripts/cleanup
 echo "/etc" >/tmp/file-list
-rm -rf /tmp/TestVolume001 /tmp/bacula-restores
 bin/bacula stop 2>&1 >/dev/null
 bin/drop_sqlite_tables
 bin/make_sqlite_tables
@@ -28,6 +28,7 @@ bin/bacula start 2>&1 >/dev/null
 bin/console -c bin/console.conf <<END_OF_DATA
 @output /dev/null
 messages
+@output tmp/log1.out
 label storage=File
 TestVolume001
 run job=NightlySave
@@ -37,11 +38,9 @@ messages
 @# 
 @# now do a restore
 @#
-restore
-5
-done
+@output tmp/log2.out
+restore where=${cwd}/tmp/bacula-restores current all
 yes
-@sleep 1
 wait
 messages
 @output
@@ -49,19 +48,22 @@ quit
 END_OF_DATA
 bin/bacula stop 2>&1 >/dev/null
 cd /
-${cwd}/bin/testls -e ${cwd}/scripts/exclude-etc-test etc >${cwd}/tmp/original
-cd /tmp/bacula-restores
-${cwd}/bin/testls -e ${cwd}/scripts/exclude-etc-test etc >${cwd}/tmp/restored
-diff ${cwd}/tmp/original ${cwd}/tmp/restored 2>&1 >/dev/null
+${cwd}/bin/testls -e ${cwd}/scripts/exclude-etc-test etc >${cwd}/tmp/1       
+cd ${cwd}/tmp/bacula-restores
+${cwd}/bin/testls -e ${cwd}/scripts/exclude-etc-test etc >${cwd}/tmp/2
+sort <${cwd}/tmp/1 >${cwd}/tmp/original
+sort <${cwd}/tmp/2 >${cwd}/tmp/restored
+rm -f ${cwd}/tmp/1 ${cwd}/tmp/2
+cd ${cwd}
+diff tmp/original tmp/restored 2>&1 1>/dev/null
 if [ $? != 0 ] ; then
    echo " "
    echo " "
-   echo "  ===== Test4 /etc failed!!! ===== "
-   echo "  ===== Test4 failed!!! ===== " >>test.out
+   echo "  ===== etc-test-root failed!!! ===== "
+   echo "  ===== etc-test-root failed!!! ===== " >>test.out
    echo " "
 else
-   echo "  ===== Test4 /etc OK ===== "
-   echo "  ===== Test4 OK ===== " >>test.out
-   cd ${cwd}
+   echo "  ===== etc-test-root OK ===== "
+   echo "  ===== etc-test-root OK ===== " >>test.out
    scripts/cleanup
 fi

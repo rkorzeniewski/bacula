@@ -2,6 +2,7 @@
 #
 # Run all root tests
 #
+rm -f test.out
 tests/dev-test-root
 tests/etc-test-root
 tests/lib-test-root
