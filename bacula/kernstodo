@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                 21 November 2002
+                 25 November 2002
 
 Documentation to do:
 - Document to have patience when SD first starts.
@@ -7,17 +7,15 @@ Documentation to do:
 - Document saving MySQL databases, where to find code for shutting 
   down and saving other databases.
   http://www.backupcentral.com/free-backup-software1.html
-- Document -i option on FD
+  mysqldump -f  --opt bacula >bacula
 
 Testing to do:
 - that restore options work in FD.
 - that mod of restore options works.
 - that console command line options work
 - blocksize recognition code.
-- make sure that update of volume new parameters works
 
 For 1.27 release:
-- Fix intmax_t on FreeBSD.
 
 After 1.27
 - Ensure that restore of differential jobs works (check SQL).
@@ -606,3 +604,6 @@ Done: (see kernsdone for more)
   ua_output.c (list command).
 - drive MaxVolJobs, VolUseDuration from media record
   rather than Resource.
+- Fix intmax_t on FreeBSD.
+- make sure that update of volume new parameters works
+- Document -i option on FD
