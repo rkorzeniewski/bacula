@@ -57,6 +57,18 @@ all: Makefile wx-console
 	@echo "==== Make of wx-console is good ===="
 	@echo " "
 
+# Mac OS X application bundle
+# See http://216.239.59.104/search?q=cache:a61SGKgoHSQJ:wiki.wxwidgets.org/wiki.pl%3FWxMac_Issues+wxmac+%22application+bundle%22&hl=fr
+
+wx-console.app: wx-console
+	-mkdir wx-console.app    
+	-mkdir wx-console.app/Contents
+	-mkdir wx-console.app/Contents/MacOS
+	-mkdir wx-console.app/Contents/Resources
+	-mkdir wx-console.app/Contents/Resources/English.lproj
+	echo -n 'APPL????' > wx-console.app/Contents/PkgInfo
+	mv wx-console wx-console.app/Contents/MacOS/wx-console
+	cp wx-console.conf wx-console.app/Contents/MacOS/wx-console.conf
 
 wx-console: $(CONSOBJS) @WIN32@ ../lib/libbac.a
 	$(CXX) $(CONSOBJS) $(WIN32RES) -o $@ $(LIBS) -L../lib $(CONS_LDFLAGS) -lbac
