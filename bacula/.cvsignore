@@ -43,3 +43,6 @@ console.log
 console.sum
 zapall
 zaptapes
+stoppostgre
+startpostgre
+kerns-postgresql-config
