@@ -446,6 +446,7 @@ static int wait_for_sysop(JCR *jcr, DEVICE *dev, int wait_sec)
    time_t start = time(NULL);
    time_t last_heartbeat = 0;
    int stat = 0;
+   int add_wait;
    
    /*
     * Wait requested time (wait_sec).  However, we also wake up every
@@ -453,25 +454,25 @@ static int wait_for_sysop(JCR *jcr, DEVICE *dev, int wait_sec)
     *	 to keep stateful firewalls from closing them down while waiting
     *	 for the operator.
     */
+   add_wait = wait_sec;
+   if (me->heartbeat_interval && add_wait > me->heartbeat_interval) {
+      add_wait = me->heartbeat_interval;
+   }
    gettimeofday(&tv, &tz);
    timeout.tv_nsec = tv.tv_usec * 1000;
-   if (me->heartbeat_interval) {
-      utime_t hb = me->heartbeat_interval;
-      timeout.tv_sec = tv.tv_sec + (wait_sec > hb ? hb : wait_sec);
-   } else {
-      timeout.tv_sec = tv.tv_sec + wait_sec;
-   }  
+   timeout.tv_sec = tv.tv_sec + add_wait;
 
    P(dev->mutex);
    dev_blocked = dev->dev_blocked;
    dev->dev_blocked = BST_WAITING_FOR_SYSOP; /* indicate waiting for mount */
 
    for ( ; !job_canceled(jcr); ) {
-      int add_wait;
       time_t now;
 
-      Dmsg1(190, "I'm going to sleep on device %s\n", dev->dev_name);
+      Dmsg3(100, "I'm going to sleep on device %s. HB=%d wait=%d\n", dev->dev_name,
+	 (int)me->heartbeat_interval, wait_sec);
       stat = pthread_cond_timedwait(&dev->wait_next_vol, &dev->mutex, &timeout);
+      Dmsg1(100, "Wokeup from sleep on device stat=%d\n", stat);
 
       now = time(NULL);
 
@@ -481,7 +482,7 @@ static int wait_for_sysop(JCR *jcr, DEVICE *dev, int wait_sec)
 	    /* send heartbeats */
 	    if (jcr->file_bsock) {
 	       bnet_sig(jcr->file_bsock, BNET_HEARTBEAT);
-               Dmsg0(000, "Send heartbeat to FD.\n");
+               Dmsg0(100, "Send heartbeat to FD.\n");
 	    }
 	    if (jcr->dir_bsock) {
 	       bnet_sig(jcr->dir_bsock, BNET_HEARTBEAT);
@@ -490,30 +491,26 @@ static int wait_for_sysop(JCR *jcr, DEVICE *dev, int wait_sec)
 	 }
       }
 
-      /* Check if we blocked the device */
-      if (dev->dev_blocked == BST_WAITING_FOR_SYSOP) {
-	 if (stat != ETIMEDOUT) {     /* we blocked the device */
-	    break;		      /* on error return */
-	 }
-	 if (now - start >= wait_sec) {  /* on exceeding wait time return */
-	    break;
-	 }
-	 add_wait = wait_sec - (now - start);
-	 if (me->heartbeat_interval && add_wait > me->heartbeat_interval) {
-	    add_wait = me->heartbeat_interval;
-	 }
-      } else {			      /* Oops someone else has it blocked now */
-	 add_wait = 10; 	      /* hang around until he releases it */
+      if (dev->dev_blocked == BST_MOUNT) {   /* mount request ? */
+	 stat = 0;
+	 break;
       }
-      /*	 
-       * Note, if dev_blocked is not BST_WAITING FOR_SYSOP,
-       *  someone other than us has blocked the device (probably the
-       *  user via the Console program), so we continue waiting
-       *  until he releases the device back to us.
-       */
+
+      if (stat != ETIMEDOUT) {	   /* we blocked the device */
+	 break; 		   /* on error return */
+      }
+      if (now - start >= wait_sec) {  /* on exceeding wait time return */
+         Dmsg0(100, "Exceed wait time.\n");
+	 break;
+      }
+      add_wait = wait_sec - (now - start);
+      if (me->heartbeat_interval && add_wait > me->heartbeat_interval) {
+	 add_wait = me->heartbeat_interval;
+      }
       gettimeofday(&tv, &tz);
       timeout.tv_nsec = tv.tv_usec * 1000;
       timeout.tv_sec = tv.tv_sec + add_wait; /* additional wait */
+      Dmsg1(100, "Additional wait %d sec.\n", add_wait);
    }
 
    dev->dev_blocked = dev_blocked;

@@ -1221,7 +1221,7 @@ This may take a long time. I.e. hours! ...\n\n");
 	 stream_to_ascii(rec.Stream, rec.FileIndex), rec.data_len);
    }
    if (stop > 0) {
-      Dmsg0(000, "Write_end_session_label()\n");
+      Dmsg0(100, "Write_end_session_label()\n");
       /* Create Job status for end of session label */
       if (!job_canceled(jcr) && ok) {
 	 set_jcr_job_status(jcr, JS_Terminated);

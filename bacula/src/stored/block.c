@@ -545,7 +545,7 @@ reread:
       Mmsg2(&dev->errmsg,  _("Block length %u is greater than buffer %u. Attempting recovery.\n"),
 	 block->block_len, block->buf_len);
       Emsg0(M_WARNING, 0, dev->errmsg);
-      Dmsg1(000, "%s", dev->errmsg);
+      Pmsg1(000, "%s", dev->errmsg);
       /* Attempt to reposition to re-read the block */
       if (dev->state & ST_TAPE) {
          Dmsg0(100, "Backspace record for reread.\n");
@@ -562,7 +562,7 @@ reread:
       }
       Mmsg1(&dev->errmsg, _("Resetting buffer size to %u bytes.\n"), block->block_len);
       Emsg0(M_WARNING, 0, dev->errmsg);
-      Dmsg1(000, "%s", dev->errmsg);
+      Pmsg1(000, "%s", dev->errmsg);
       /* Set new block length */
       dev->max_block_size = block->block_len;
       block->buf_len = block->block_len;

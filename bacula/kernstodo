@@ -16,6 +16,8 @@ Testing to do: (painful)
 - multiple simultaneous Volumes
 
 For 1.31 release:
+- Check for existence of all new Win32 API's.  See LoadLibrary in 
+  winservice.cpp
 - Fix Dir heartbeat in restore and verify vol.  Be sure to make
   bnet_recv() ignore BNET_HEARTBEAT.
 - Fix problem reported by Christopher McCurdy <cmccurdy@eecis.udel.edu>

@@ -166,9 +166,10 @@ void init_resource(int type, struct res_items *items)
 	    *(int *)(items[i].value) = items[i].default_value;
 	 } else if (items[i].handler == store_int64) {
 	    *(int64_t *)(items[i].value) = items[i].default_value;
-	 } else if (items[i].handler == store_size ||
-		    items[i].handler == store_time) {
-	    *(uint64_t *)(items[i].value) = items[i].default_value;
+	 } else if (items[i].handler == store_size) {
+	    *(uint64_t *)(items[i].value) = (uint64_t)items[i].default_value;
+	 } else if (items[i].handler == store_time) {
+	    *(utime_t *)(items[i].value) = (utime_t)items[i].default_value;
 	 }
       }
       /* If this triggers, take a look at lib/parse_conf.h */

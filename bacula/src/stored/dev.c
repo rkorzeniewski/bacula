@@ -485,7 +485,7 @@ int update_pos_dev(DEVICE *dev)
       dev->file_addr = 0;
       pos = lseek(dev->fd, (off_t)0, SEEK_CUR);
       if (pos < 0) {
-         Dmsg1(000, "Seek error: ERR=%s\n", strerror(dev->dev_errno));
+         Pmsg1(000, "Seek error: ERR=%s\n", strerror(dev->dev_errno));
 	 dev->dev_errno = errno;
          Mmsg2(&dev->errmsg, _("lseek error on %s. ERR=%s.\n"),
 	    dev->dev_name, strerror(dev->dev_errno));

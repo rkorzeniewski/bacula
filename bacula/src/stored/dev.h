@@ -109,6 +109,7 @@
 #define BST_DOING_ACQUIRE     3       /* Opening/validating/moving tape */
 #define BST_WRITING_LABEL     4       /* Labeling a tape */  
 #define BST_UNMOUNTED_WAITING_FOR_SYSOP 5 /* Closed by user during mount request */
+#define BST_MOUNT             6       /* Mount request */
 
 /* Volume Catalog Information structure definition */
 typedef struct s_volume_catalog_info {

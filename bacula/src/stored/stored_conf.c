@@ -149,9 +149,10 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
          sendit(sock, "Director: name=%s\n", res->res_dir.hdr.name);
 	 break;
       case R_STORAGE:
-         sendit(sock, "Storage: name=%s SDaddr=%s SDport=%d SDDport=%d\n",
-	    res->res_store.hdr.name, res->res_store.SDaddr, 
-	    res->res_store.SDport, res->res_store.SDDport);
+         sendit(sock, "Storage: name=%s SDaddr=%s SDport=%d SDDport=%d HB=%s\n",
+	    res->res_store.hdr.name, NPRT(res->res_store.SDaddr),
+	    res->res_store.SDport, res->res_store.SDDport,
+	    edit_utime(res->res_store.heartbeat_interval, buf));
 	 break;
       case R_DEVICE:
          sendit(sock, "Device: name=%s MediaType=%s Device=%s\n",

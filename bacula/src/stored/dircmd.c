@@ -491,7 +491,8 @@ static int mount_cmd(JCR *jcr)
 	    DEV_BLOCK *block;
 	    case BST_WAITING_FOR_SYSOP:
 	       /* Someone is waiting, wake him */
-               Dmsg0(90, "Waiting for mount attempt to wake thread\n");
+               Dmsg0(100, "Waiting for mount. Attempting to wake thread\n");
+	       dev->dev_blocked = BST_MOUNT;
 	       pthread_cond_signal(&dev->wait_next_vol);
                bnet_fsend(dir, "3001 OK mount. Device=%s\n", dev->dev_name);
 	       break;
@@ -508,12 +509,12 @@ static int mount_cmd(JCR *jcr)
 	       read_dev_volume_label(jcr, dev, block);
 	       free_block(block);
 	       if (dev->dev_blocked == BST_UNMOUNTED) {
-                  Dmsg0(90, "Unmounted unblocking device\n");
+                  Dmsg0(100, "Unmounted. Unblocking device\n");
 		  read_label(jcr, dev);
 		  unblock_device(dev);
 	       } else {
-                  Dmsg0(90, "Unmounted waiting for mount attempt to wake thread\n");
-		  dev->dev_blocked = BST_WAITING_FOR_SYSOP;
+                  Dmsg0(100, "Unmounted waiting for mount. Attempting to wake thread\n");
+		  dev->dev_blocked = BST_MOUNT;
 		  pthread_cond_signal(&dev->wait_next_vol);
 	       }
 	       if (dev->state & ST_LABEL) {
