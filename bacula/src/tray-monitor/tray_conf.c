@@ -101,10 +101,8 @@ static RES_ITEM cli_items[] = {
    {"name",     store_name,       ITEM(res_client.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,     ITEM(res_client.hdr.desc), 0, 0, 0},
    {"address",  store_str,        ITEM(res_client.address),  0, ITEM_REQUIRED, 0},
-   {"fdaddress",  store_str,      ITEM(res_client.address),  0, 0, 0},
    {"fdport",   store_pint,       ITEM(res_client.FDport),   0, ITEM_DEFAULT, 9102},
    {"password", store_password,   ITEM(res_client.password), 0, ITEM_REQUIRED, 0},
-   {"fdpassword", store_password,   ITEM(res_client.password), 0, 0, 0},
    {"enablessl", store_yesno,     ITEM(res_client.enable_ssl), 1, ITEM_DEFAULT, 0},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
