@@ -4,7 +4,7 @@
 #
 bindir=@SQL_BINDIR@
 
-if $bindir/psql $* bacula -f - <<END-OF-DATA
+if $bindir/psql -f - -d bacula $* <<END-OF-DATA
 
 CREATE TABLE filename
 (

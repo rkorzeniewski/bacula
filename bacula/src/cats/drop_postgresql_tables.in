@@ -4,8 +4,7 @@
 
 bindir=@SQL_BINDIR@
 
-if $bindir/psql $* -f - <<END-OF-DATA
-\c bacula
+if $bindir/psql -f - -d bacula $* <<END-OF-DATA
 drop table unsavedfiles;
 drop table basefiles;
 drop table jobmedia;
