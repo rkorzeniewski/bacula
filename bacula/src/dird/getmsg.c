@@ -112,7 +112,7 @@ int32_t bget_msg(BSOCK *bs, int rtn)
      
       /* Handle normal data */
 
-      if (ISDIGIT(bs->msg[0])) {      /* response? */
+      if (B_ISDIGIT(bs->msg[0])) {	/* response? */
 	 return n;		      /* yes, return it */
       }
 	

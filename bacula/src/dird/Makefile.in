@@ -64,9 +64,9 @@ all: Makefile bacula-dir
 	@echo "==== Make of dird is good ===="
 	@echo " "
 
-bacula-dir:  $(SVROBJS) ../lib/libbac.a ../cats/libsql.a
-	$(CXX) $(LDFLAGS) -L../lib -L../cats -o $@ $(SVROBJS) \
-	      -lsql -lbac -lm $(LIBS) $(DLIB) $(DB_LIBS)
+bacula-dir:  $(SVROBJS) ../lib/libbac.a ../cats/libsql.a ../findlib/libfind.a
+	$(CXX) $(LDFLAGS) -L../lib -L../cats -L../findlib -o $@ $(SVROBJS) \
+	      -lsql -lbac -lfind -lm $(LIBS) $(DLIB) $(DB_LIBS)
 
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	cd $(topdir) \

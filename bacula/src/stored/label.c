@@ -104,7 +104,8 @@ because:\n   %s"), dev_name(dev), strerror_dev(dev));
    } else if (!unser_volume_label(dev, record)) {
       Mmsg(&jcr->errmsg, _("Could not unserialize Volume label: %s\n"),
 	 strerror_dev(dev));
-   } else if (strcmp(dev->VolHdr.Id, BaculaId) != 0) {
+   } else if (strcmp(dev->VolHdr.Id, BaculaId) != 0 && 
+	      strcmp(dev->VolHdr.Id, OldBaculaId) != 0) {
       Mmsg(&jcr->errmsg, _("Volume Header Id bad: %s\n"), dev->VolHdr.Id);
    } else {
       ok = 1;
@@ -179,7 +180,8 @@ int unser_volume_label(DEVICE *dev, DEV_RECORD *rec)
 
    if (rec->FileIndex != VOL_LABEL && rec->FileIndex != PRE_LABEL) {
       Mmsg3(&dev->errmsg, _("Expecting Volume Label, got FI=%s Stream=%s len=%d\n"), 
-	      FI_to_ascii(rec->FileIndex), stream_to_ascii(rec->Stream), 
+	      FI_to_ascii(rec->FileIndex), 
+	      stream_to_ascii(rec->Stream, rec->FileIndex),
 	      rec->data_len);
       return 0;
    }
@@ -280,15 +282,15 @@ static void create_volume_label_record(JCR *jcr, DEVICE *dev, DEV_RECORD *rec)
       Fld(write_date) = 0;
       Fld(write_time) = 0;
    } else {
-   ser_float64(Fld(label_date));
-   ser_float64(Fld(label_time));
-   get_current_time(&dt);
-   Fld(write_date) = dt.julian_day_number;
-   Fld(write_time) = dt.julian_day_fraction;
+      /* OLD WAY DEPRECATED */
+      ser_float64(Fld(label_date));
+      ser_float64(Fld(label_time));
+      get_current_time(&dt);
+      Fld(write_date) = dt.julian_day_number;
+      Fld(write_time) = dt.julian_day_fraction;
    }
-
-   ser_float64(Fld(write_date));   /* unused if VerNum >= 11 */
-   ser_float64(Fld(write_time));   /* unused if VerNum >= 11 */
+   ser_float64(Fld(write_date));   /* 0 if VerNum >= 11 */
+   ser_float64(Fld(write_time));   /* 0  if VerNum >= 11 */
 
    ser_string(Fld(VolName));
    ser_string(Fld(PrevVolName));
@@ -347,9 +349,10 @@ static int create_volume_label(DEVICE *dev, char *VolName)
       dev->VolHdr.label_date = 0;
       dev->VolHdr.label_time = 0;
    } else {
-   get_current_time(&dt);
-   dev->VolHdr.label_date = dt.julian_day_number;
-   dev->VolHdr.label_time = dt.julian_day_fraction;
+      /* OLD WAY DEPRECATED */
+      get_current_time(&dt);
+      dev->VolHdr.label_date = dt.julian_day_number;
+      dev->VolHdr.label_time = dt.julian_day_fraction;
    }
 
    strcpy(dev->VolHdr.LabelProg, my_name);
@@ -453,6 +456,7 @@ void create_session_label(JCR *jcr, DEV_RECORD *rec, int label)
       ser_btime(get_current_btime());
       ser_float64(0);
    } else {
+      /* OLD WAY DEPRECATED */
       get_current_time(&dt);
       ser_float64(dt.julian_day_number);
       ser_float64(dt.julian_day_fraction);
@@ -468,6 +472,9 @@ void create_session_label(JCR *jcr, DEV_RECORD *rec, int label)
    ser_string(jcr->fileset_name);
    ser_uint32(jcr->JobType);
    ser_uint32(jcr->JobLevel);
+   if (BaculaTapeVersion >= 11) {
+      ser_string(jcr->fileset_md5);
+   }
 
    if (label == EOS_LABEL) {
       ser_uint32(jcr->JobFiles);
@@ -498,12 +505,22 @@ int write_session_label(JCR *jcr, DEV_BLOCK *block, int label)
    Dmsg1(90, "session_label record=%x\n", rec);
    switch (label) {
       case SOS_LABEL:
-	 jcr->StartBlock = dev->block_num;
-	 jcr->StartFile  = dev->file;
+	 if (dev->state & ST_TAPE) {
+	    jcr->StartBlock = dev->block_num;
+	    jcr->StartFile  = dev->file;
+	 } else {
+	    jcr->StartBlock = (uint32_t)dev->file_addr;
+	    jcr->StartFile = (uint32_t)(dev->file_addr >> 32);
+	 }
 	 break;
       case EOS_LABEL:
-	 jcr->EndBlock = dev->block_num;
-	 jcr->EndFile = dev->file;
+	 if (dev->state & ST_TAPE) {
+	    jcr->EndBlock = dev->block_num;
+	    jcr->EndFile  = dev->file;
+	 } else {
+	    jcr->EndBlock = (uint32_t)dev->file_addr;
+	    jcr->EndFile = (uint32_t)(dev->file_addr >> 32);
+	 }
 	 break;
       default:
          Jmsg1(jcr, M_ABORT, 0, _("Bad session label = %d\n"), label);
@@ -539,7 +556,7 @@ int write_session_label(JCR *jcr, DEV_BLOCK *block, int label)
    Dmsg6(20, "Write sesson_label record JobId=%d FI=%s SessId=%d Strm=%s len=%d\n\
 remainder=%d\n", jcr->JobId,
       FI_to_ascii(rec->FileIndex), rec->VolSessionId, 
-      stream_to_ascii(rec->Stream), rec->data_len,
+      stream_to_ascii(rec->Stream, rec->FileIndex), rec->data_len,
       rec->remainder);
 
    free_record(rec);
@@ -604,7 +621,7 @@ HostName          : %s\n\
 
    if (dev->VolHdr.VerNum >= 11) {
       char dt[50];
-      bstrftime(dt, sizeof(dt), (time_t)dev->VolHdr.label_btime);
+      bstrftime(dt, sizeof(dt), btime_to_etime(dev->VolHdr.label_btime));
       Pmsg1(-1, "Date label written: %s\n", dt);
    } else {
    dt.julian_day_number   = dev->VolHdr.label_date;
@@ -642,6 +659,9 @@ int unser_session_label(SESSION_LABEL *label, DEV_RECORD *rec)
       unser_string(label->FileSetName);
       unser_uint32(label->JobType);
       unser_uint32(label->JobLevel);
+   }
+   if (label->VerNum >= 11) {
+      unser_string(label->FileSetMD5);
    }
    if (rec->FileIndex == EOS_LABEL) {
       unser_uint32(label->JobFiles);
@@ -714,7 +734,7 @@ JobStatus         : %c\n\
    }
    if (label.VerNum >= 11) {
       char dt[50];
-      bstrftime(dt, sizeof(dt), (time_t)label.write_btime);
+      bstrftime(dt, sizeof(dt), btime_to_etime(label.write_btime));
       Pmsg1(-1, _("Date written      : %s\n"), dt);
    } else {
    dt.julian_day_number   = label.write_date;

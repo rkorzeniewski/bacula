@@ -162,9 +162,9 @@ read_volume:
 	    break;		      /* got it */
 	 case VOL_NAME_ERROR:
             Dmsg1(500, "Vol NAME Error Name=%s\n", jcr->VolumeName);
-	    /* Check if we can accept this as an anonymous volume */
+	    /* Check if this is a valid Volume in the pool */
 	    strcpy(jcr->VolumeName, dev->VolHdr.VolName);
-	    if (!dev->capabilities & CAP_ANONVOLS || !dir_get_volume_info(jcr, 1)) {
+	    if (!dir_get_volume_info(jcr, 1)) {
 	       goto mount_next_vol;
 	    }
             Dmsg1(200, "want new name=%s\n", jcr->VolumeName);

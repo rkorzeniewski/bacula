@@ -145,11 +145,7 @@ clean:
 	@$(RMF) *~ 1 2 3 core core.* config.guess console.log console.sum
 
 
-# distclean goal is for making a clean source tree, but if you have run
-# configure from a different directory, then doesn't destroy all your
-# hardly compiled and linked stuff. That's why there is always $(srcdir)/
-# In that case most of those commands do nothing, except cleaning *~
-# and cleaning source links.
+# clean for distribution
 distclean:
 	@for I in $(subdirs); do (cd $$I; $(MAKE) $@ || exit 1); done
 	@for I in $(subdirs); do (cd $$I; $(RMF) startit stopit btraceback btraceback.gdb); done

@@ -36,7 +36,6 @@ static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sess
 static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
 
 static DEVICE *dev;
-static int default_tape = FALSE;
 static int dump_label = FALSE;
 static int list_blocks = FALSE;
 static int list_jobs = FALSE;
@@ -48,6 +47,10 @@ static SESSION_LABEL sessrec;
 static uint32_t num_files = 0;
 static long record_file_index;
 
+#define CONFIG_FILE "bacula-sd.conf"
+char *configfile;
+
+
 static FF_PKT ff;
 
 static BSR *bsr = NULL;
@@ -58,6 +61,7 @@ static void usage()
 "\nVersion: " VERSION " (" DATE ")\n\n"
 "Usage: bls [-d debug_level] <physical-device-name>\n"
 "       -b <file>       specify a bootstrap file\n"
+"       -c <file>       specify a config file\n"
 "       -d <level>      specify debug level\n"
 "       -e <file>       exclude list\n"
 "       -i <file>       include list\n"
@@ -65,7 +69,6 @@ static void usage()
 "       -k              list blocks\n"
 "       -L              list tape label\n"
 "    (none of above)    list saved files\n"
-"       -t              use default tape device\n"
 "       -v              be verbose\n"
 "       -?              print this message\n\n");
    exit(1);
@@ -85,11 +88,18 @@ int main (int argc, char *argv[])
    memset(&ff, 0, sizeof(ff));
    init_include_exclude_files(&ff);
 
-   while ((ch = getopt(argc, argv, "b:d:e:i:jkLtv?")) != -1) {
+   while ((ch = getopt(argc, argv, "b:c:d:e:i:jkLtv?")) != -1) {
       switch (ch) {
          case 'b':
 	    bsr = parse_bsr(NULL, optarg);
 //	    dump_bsr(bsr);
+	    break;
+
+         case 'c':                    /* specify config file */
+	    if (configfile != NULL) {
+	       free(configfile);
+	    }
+	    configfile = bstrdup(optarg);
 	    break;
 
          case 'd':                    /* debug level */
@@ -138,10 +148,6 @@ int main (int argc, char *argv[])
 	    dump_label = TRUE;
 	    break;
 
-         case 't':
-	    default_tape = TRUE;
-	    break;
-
          case 'v':
 	    verbose++;
 	    break;
@@ -155,24 +161,25 @@ int main (int argc, char *argv[])
    argc -= optind;
    argv += optind;
 
-   if (!argc && !default_tape) {
+   if (!argc) {
       Pmsg0(0, "No archive name specified\n");
       usage();
    }
+
+   if (configfile == NULL) {
+      configfile = bstrdup(CONFIG_FILE);
+   }
+
+   parse_config(configfile);
+
 
    if (ff.included_files_list == NULL) {
       add_fname_to_include_list(&ff, 0, "/");
    }
 
-   /* Try default device */
-   if (default_tape) {
-      do_ls(DEFAULT_TAPE_DRIVE);
-      return 0;
-   }
-
    for (i=0; i < argc; i++) {
       jcr = setup_jcr("bls", argv[i], bsr);
-      dev = setup_to_read_device(jcr);
+      dev = setup_to_access_device(jcr, 1);   /* acquire for read */
       if (!dev) {
 	 exit(1);
       }
@@ -217,10 +224,8 @@ static void do_close(JCR *jcr)
 /* List just block information */
 static void do_blocks(char *infname)
 {
-
-   dump_volume_label(dev);
-
    if (verbose) {
+      dump_volume_label(dev);
       rec = new_record();
    }
    for ( ;; ) {
@@ -252,15 +257,15 @@ static void do_blocks(char *infname)
 	 display_error_status(dev);
 	 break;
       }
-      Dmsg5(100, "Blk=%u blen=%u bVer=%d SessId=%d SessTim=%d\n",
+      Dmsg5(100, "Blk=%u blen=%u bVer=%d SessId=%u SessTim=%u\n",
 	 block->BlockNumber, block->block_len, block->BlockVer,
 	 block->VolSessionId, block->VolSessionTime);
       if (verbose == 1) {
 	 read_record_from_block(block, rec);
-         Pmsg6(-1, "Block: %u blen=%u First rec FI=%s SessId=%d Strm=%s rlen=%d\n",
+         Pmsg7(-1, "Block: %u blen=%u First rec FI=%s SessId=%u SessTim=%u Strm=%s rlen=%d\n",
 	      block->BlockNumber, block->block_len,
-	      FI_to_ascii(rec->FileIndex), rec->VolSessionId, 
-	      stream_to_ascii(rec->Stream), rec->data_len);
+	      FI_to_ascii(rec->FileIndex), rec->VolSessionId, rec->VolSessionTime,
+	      stream_to_ascii(rec->Stream, rec->FileIndex), rec->data_len);
 	 rec->remainder = 0;
       } else if (verbose > 1) {
          dump_block(block, "");
@@ -298,6 +303,7 @@ static void do_ls(char *infname)
    }
 
    read_records(jcr, dev, record_cb, mount_next_read_volume);
+   printf("%u files found.\n", num_files);
 }
 
 /*
@@ -314,7 +320,7 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
       return;
    }
    /* File Attributes stream */
-   if (rec->Stream == STREAM_UNIX_ATTRIBUTES) {
+   if (rec->Stream == STREAM_UNIX_ATTRIBUTES || rec->Stream == STREAM_WIN32_ATTRIBUTES) {
       char *ap, *fp;
       sscanf(rec->data, "%ld %d", &record_file_index, &type);
       if (record_file_index != rec->FileIndex) {
@@ -342,9 +348,6 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 print_ls_output(fname, ap, type, &statp);
 	 num_files++;
       }
-   }
-   if (verbose) {
-      printf("%u files found.\n", num_files);
    }
    return;
 }

@@ -35,6 +35,31 @@
  *
  */
 
+/* Return true of buffer has all zero bytes */
+int is_buf_zero(char *buf, int len)
+{
+   uint64_t *ip = (uint64_t *)buf;
+   char *p;
+   int i, len64, done, rem;
+
+   /* Optimize by checking uint64_t for zero */
+   len64 = len >> sizeof(uint64_t);
+   for (i=0; i < len64; i++) {
+      if (ip[i] != 0) {
+	 return 0;
+      }
+   }
+   done = len64 << sizeof(uint64_t);  /* bytes already checked */
+   p = buf + done;
+   rem = len - done;
+   for (i = 0; i < rem; i++) {
+      if (p[i] != 0) {
+	 return 0;
+      }
+   }
+   return 1;
+}
+
 /*
  * Convert a string duration to btime_t (64 bit seconds)
  * Returns 0: if error
@@ -52,8 +77,8 @@ int string_to_btime(char *str, btime_t *value)
    len = strlen(str);
    ch = str[len - 1];
    i = 0;
-   if (ISALPHA(ch)) {
-      if (ISUPPER(ch)) {
+   if (B_ISALPHA(ch)) {
+      if (B_ISUPPER(ch)) {
 	 ch = tolower(ch);
       }
       while (mod[++i] != 0) {
@@ -116,18 +141,18 @@ int is_a_number(const char *n)
    if( *n == '-' || *n == '+' ) {
       n++;
    }
-   while (ISDIGIT(*n)) {
+   while (B_ISDIGIT(*n)) {
       digit_seen = 1;
       n++;
    }
    if (digit_seen && *n == '.') {
       n++;
-      while (ISDIGIT(*n)) { n++; }
+      while (B_ISDIGIT(*n)) { n++; }
    }
    if (digit_seen && (*n == 'e' || *n == 'E')
-       && (ISDIGIT(n[1]) || ((n[1]=='-' || n[1] == '+') && ISDIGIT(n[2])))) {
+       && (B_ISDIGIT(n[1]) || ((n[1]=='-' || n[1] == '+') && B_ISDIGIT(n[2])))) {
       n += 2;			      /* skip e- or e+ or e digit */
-      while (ISDIGIT(*n)) { n++; }
+      while (B_ISDIGIT(*n)) { n++; }
    }
    return digit_seen && *n==0;
 }
@@ -191,7 +216,7 @@ char *add_commas(char *val, char *buf)
 void lcase(char *str)
 {
    while (*str) {
-      if (ISUPPER(*str))
+      if (B_ISUPPER(*str))
 	 *str = tolower((int)(*str));
        str++;
    }
@@ -296,10 +321,10 @@ fstrsch(char *a, char *b)   /* folded case search */
 	 return 0;		      /* failed */
    }
    while (*a) { 		      /* do it over the correct slow way */
-      if (ISUPPER(c1 = *a)) {
+      if (B_ISUPPER(c1 = *a)) {
 	 c1 = tolower((int)c1);
       }
-      if (ISUPPER(c2 = *b)) {
+      if (B_ISUPPER(c2 = *b)) {
 	 c2 = tolower((int)c2);
       }
       if (c1 != c2) {

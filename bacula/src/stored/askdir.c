@@ -254,7 +254,6 @@ int dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev)
    int wait_sec;
    int num_wait = 0;
    int dev_blocked;
-   char *msg;
 
    Dmsg0(130, "enter dir_ask_sysop_to_mount_next_volume\n");
    ASSERT(dev->dev_blocked);
@@ -278,15 +277,10 @@ int dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev)
             Dmsg0(190, "Return 1 from mount without wait.\n");
 	    return 1;
 	 }
-	 if (dev->capabilities & CAP_ANONVOLS) {
-            msg = "Suggest mounting";
-	 } else {
-            msg = "Please mount";
-	 }
 	 Jmsg(jcr, M_MOUNT, 0, _(
-"%s Volume \"%s\" on Storage Device \"%s\" for Job %s\n"
+"Please mount Volume \"%s\" on Storage Device \"%s\" for Job %s\n"
 "Use \"mount\" command to release Job.\n"),
-	      msg, jcr->VolumeName, jcr->dev_name, jcr->Job);
+	      jcr->VolumeName, jcr->dev_name, jcr->Job);
          Dmsg3(190, "Mount %s on %s for Job %s\n",
 		jcr->VolumeName, jcr->dev_name, jcr->Job);
       } else {

@@ -38,7 +38,7 @@ static int use_device_cmd(JCR *jcr);
 
 /* Requests from the Director daemon */
 static char jobcmd[]     = "JobId=%d job=%127s job_name=%127s client_name=%127s \
-type=%d level=%d FileSet=%127s NoAttr=%d SpoolAttr=%d\n";
+type=%d level=%d FileSet=%127s NoAttr=%d SpoolAttr=%d FileSetMD5=%127s\n";
 static char use_device[] = "use device=%s media_type=%s pool_name=%s pool_type=%s\n";
 
 /* Responses sent to Director daemon */
@@ -65,7 +65,7 @@ int job_cmd(JCR *jcr)
    int JobId, errstat;
    char auth_key[100];
    BSOCK *dir = jcr->dir_bsock;
-   POOLMEM *job_name, *client_name, *job, *fileset_name;
+   POOLMEM *job_name, *client_name, *job, *fileset_name, *fileset_md5;
    int JobType, level, spool_attributes, no_attributes;
    struct timeval tv;
    struct timezone tz;
@@ -80,15 +80,17 @@ int job_cmd(JCR *jcr)
    job_name = get_memory(dir->msglen);
    client_name = get_memory(dir->msglen);
    fileset_name = get_memory(dir->msglen);
+   fileset_md5 = get_memory(dir->msglen);
    if (sscanf(dir->msg, jobcmd, &JobId, job, job_name, client_name,
 	      &JobType, &level, fileset_name, &no_attributes,
-	      &spool_attributes) != 9) {
+	      &spool_attributes, fileset_md5) != 10) {
       bnet_fsend(dir, BAD_job, dir->msg);
       Emsg1(M_FATAL, 0, _("Bad Job Command from Director: %s\n"), dir->msg);
       free_memory(job);
       free_memory(job_name);
       free_memory(client_name);
       free_memory(fileset_name);
+      free_memory(fileset_md5);
       jcr->JobStatus = JS_ErrorTerminated;
       return 0;
    }
@@ -109,10 +111,13 @@ int job_cmd(JCR *jcr)
    jcr->JobLevel = level;
    jcr->no_attributes = no_attributes;
    jcr->spool_attributes = spool_attributes;
+   jcr->fileset_md5 = get_memory(strlen(fileset_md5) + 1);
+   strcpy(jcr->fileset_md5, fileset_md5);
    free_memory(job);
    free_memory(job_name);
    free_memory(client_name);
    free_memory(fileset_name);
+   free_memory(fileset_md5);
 
    /* Initialize FD start condition variable */
    if ((errstat = pthread_cond_init(&jcr->job_start_wait, NULL)) != 0) {
@@ -338,6 +343,9 @@ void stored_free_jcr(JCR *jcr)
    }
    if (jcr->fileset_name) {
       free_memory(jcr->fileset_name);
+   }
+   if (jcr->fileset_md5) {
+      free_memory(jcr->fileset_md5);
    }
    if (jcr->bsr) {
       free_bsr(jcr->bsr);

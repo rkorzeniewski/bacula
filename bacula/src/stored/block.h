@@ -41,18 +41,19 @@
 #define BLKHDR1_LENGTH   16             /* Total length */
 #define BLKHDR2_LENGTH   24             /* Total length */
 
-#define WRITE_BLKHDR_ID     BLKHDR1_ID
-#define WRITE_BLKHDR_LENGTH BLKHDR1_LENGTH
-#define BLOCK_VER               1
+#define WRITE_BLKHDR_ID     BLKHDR2_ID
+#define WRITE_BLKHDR_LENGTH BLKHDR2_LENGTH
+#define BLOCK_VER               2
 
 /* Record header definitions */
 #define RECHDR1_LENGTH      20
 #define RECHDR2_LENGTH      12
-#define WRITE_RECHDR_LENGTH RECHDR1_LENGTH
+#define WRITE_RECHDR_LENGTH RECHDR2_LENGTH
 
 /* Tape label and version definitions */
-#define BaculaId "Bacula 0.9 mortal\n"
-#define BaculaTapeVersion 10
+#define BaculaId    "Bacula 1.0 immortal\n"
+#define OldBaculaId "Bacula 0.9 mortal\n"
+#define BaculaTapeVersion 11
 #define OldCompatibleBaculaTapeVersion1  10
 #define OldCompatibleBaculaTapeVersion2   9
 

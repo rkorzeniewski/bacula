@@ -3,6 +3,7 @@
  *   record.c -- tape record handling functions
  *
  *		Kern Sibbald, April MMI
+ *		  added BB02 format October MMII
  *
  *   Version $Id$
  *
@@ -58,6 +59,9 @@ char *FI_to_ascii(int fi)
       return "SOS_LABEL";
    case EOS_LABEL:
       return "EOS_LABEL";
+   case EOT_LABEL:
+      return "EOT_LABEL";
+      break;
    default:
      sprintf(buf, "unknown: %d", fi);
      return buf;
@@ -68,10 +72,21 @@ char *FI_to_ascii(int fi)
 /* 
  * Convert a Stream ID into a printable
  * ASCII string.  Not reentrant.
+
+ * A negative stream number represents
+ *   stream data that is continued from a
+ *   record in the previous block.
+ * If the FileIndex is negative, we are
+ *   dealing with a Label, hence the
+ *   stream is the JobId.
  */
-char *stream_to_ascii(int stream)
+char *stream_to_ascii(int stream, int fi)
 {
     static char buf[20];
+    if (fi < 0) {
+       sprintf(buf, "%d", stream);
+       return buf;     
+    }
     switch (stream) {
     case STREAM_UNIX_ATTRIBUTES:
        return "UATTR";
@@ -81,6 +96,34 @@ char *stream_to_ascii(int stream)
        return "MD5";
     case STREAM_GZIP_DATA:
        return "GZIP";
+    case STREAM_WIN32_ATTRIBUTES:
+       return "WIN32-ATTR";
+    case STREAM_SPARSE_DATA:
+       return "SPARSE-DATA";
+    case STREAM_SPARSE_GZIP_DATA:
+       return "SPARSE-GZIP";
+    case STREAM_PROGRAM_NAMES:
+       return "PROG-NAMES";
+    case STREAM_PROGRAM_DATA:
+       return "PROG-DATA";
+    case -STREAM_UNIX_ATTRIBUTES:
+       return "contUATTR";
+    case -STREAM_FILE_DATA:
+       return "contDATA";
+    case -STREAM_MD5_SIGNATURE:
+       return "contMD5";
+    case -STREAM_GZIP_DATA:
+       return "contGZIP";
+    case -STREAM_WIN32_ATTRIBUTES:
+       return "contWIN32-ATTR";
+    case -STREAM_SPARSE_DATA:
+       return "contSPARSE-DATA";
+    case -STREAM_SPARSE_GZIP_DATA:
+       return "contSPARSE-GZIP";
+    case -STREAM_PROGRAM_NAMES:
+       return "contPROG-NAMES";
+    case -STREAM_PROGRAM_DATA:
+       return "contPROG-DATA";
     default:
        sprintf(buf, "%d", stream);
        return buf;     
@@ -144,7 +187,7 @@ int write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec)
    Dmsg6(190, "write_record_to_block() FI=%s SessId=%d Strm=%s len=%d\n\
 rem=%d remainder=%d\n",
       FI_to_ascii(rec->FileIndex), rec->VolSessionId, 
-      stream_to_ascii(rec->Stream), rec->data_len,
+      stream_to_ascii(rec->Stream, rec->FileIndex), rec->data_len,
       remlen, rec->remainder);
 
    /*
@@ -182,8 +225,8 @@ rem=%d remainder=%d\n",
        * time. Presumably we have a new buffer (possibly 
        * containing a volume label), so the new header 
        * should be able to fit in the block -- otherwise we have
-       * an error.  Note, we may have to continue splitting the
-       * data record though.
+       * an error.  Note, we have to continue splitting the
+       * data record if it is longer than the block.
        * 
        * First, write the header, then write as much as 
        * possible of the data record.
@@ -237,12 +280,13 @@ rem=%d remainder=%d\n",
       } else {
 	 memcpy(block->bufp, rec->data+rec->data_len-rec->remainder, 
 		remlen);
+#ifdef SMCHECK
 	 if (!sm_check_rtn(__FILE__, __LINE__, False)) {
 	    /* We damaged a buffer */
             Dmsg6(0, "Damaged block FI=%s SessId=%d Strm=%s len=%d\n\
 rem=%d remainder=%d\n",
 	       FI_to_ascii(rec->FileIndex), rec->VolSessionId, 
-	       stream_to_ascii(rec->Stream), rec->data_len,
+	       stream_to_ascii(rec->Stream, rec->FileIndex), rec->data_len,
 	       remlen, rec->remainder);
             Dmsg5(0, "Damaged block: bufp=%x binbuf=%d buf_len=%d rem=%d moved=%d\n",
 	       block->bufp, block->binbuf, block->buf_len, block->buf_len-block->binbuf,
@@ -252,6 +296,7 @@ rem=%d remainder=%d\n",
 
                Emsg0(M_ABORT, 0, "Damaged buffer\n");
 	 }
+#endif
 
 	 block->bufp += remlen;
 	 block->binbuf += remlen;
@@ -383,7 +428,8 @@ int read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
       Dmsg6(100, "rd_rec_blk() got FI=%s SessId=%d Strm=%s len=%u\n\
 remlen=%d data_len=%d\n",
 	 FI_to_ascii(rec->FileIndex), rec->VolSessionId, 
-	 stream_to_ascii(rec->Stream), data_bytes, remlen, rec->data_len);
+	 stream_to_ascii(rec->Stream, rec->FileIndex), data_bytes, remlen, 
+	 rec->data_len);
    } else {
       /*    
        * No more records in this block because the number   
@@ -436,6 +482,6 @@ remlen=%d data_len=%d\n",
    rec->remainder = 0;
    Dmsg4(90, "Rtn full rd_rec_blk FI=%s SessId=%d Strm=%s len=%d\n",
       FI_to_ascii(rec->FileIndex), rec->VolSessionId, 
-      stream_to_ascii(rec->Stream), rec->data_len);
+      stream_to_ascii(rec->Stream, rec->FileIndex), rec->data_len);
    return 1;			      /* transferred full record */
 }

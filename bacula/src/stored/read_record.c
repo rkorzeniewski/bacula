@@ -133,7 +133,8 @@ next_record:
 	 }
 	 if (debug_level >= 30) {
             Dmsg4(30, "VolSId=%ld FI=%s Strm=%s Size=%ld\n", rec->VolSessionId,
-		  FI_to_ascii(rec->FileIndex), stream_to_ascii(rec->Stream), 
+		  FI_to_ascii(rec->FileIndex), 
+		  stream_to_ascii(rec->Stream, rec->FileIndex), 
 		  rec->data_len);
 	 }
 

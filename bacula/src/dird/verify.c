@@ -42,6 +42,7 @@
 
 #include "bacula.h"
 #include "dird.h"
+#include "findlib/find.h"
 
 /* Imported Global Variables */
 extern int debug_level;

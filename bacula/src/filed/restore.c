@@ -48,6 +48,7 @@ void do_restore(JCR *jcr)
    POOLMEM *fname;		      /* original file name */
    POOLMEM *ofile;		      /* output name with possible prefix */
    POOLMEM *lname;		      /* link name with possible prefix */
+   POOLMEM *attribsEx;		      /* Extended attributes (Win32) */
    int32_t stream;
    uint32_t size;
    uint32_t VolSessionId, VolSessionTime, file_index;
@@ -56,7 +57,10 @@ void do_restore(JCR *jcr)
    int extract = FALSE;
    int ofd = -1;
    int type;
-   uint32_t total = 0;
+   uint32_t total = 0;		      /* Job total but only 32 bits for debug */
+   char *wbuf;			      /* write buffer */
+   uint32_t wsize;		      /* write size */
+   uint64_t fileAddr = 0;	      /* file write address */
    
    wherelen = strlen(jcr->where);
 
@@ -71,6 +75,7 @@ void do_restore(JCR *jcr)
    fname = get_pool_memory(PM_FNAME);
    ofile = get_pool_memory(PM_FNAME);
    lname = get_pool_memory(PM_FNAME);
+   attribsEx = get_pool_memory(PM_FNAME);
 
 #ifdef HAVE_LIBZ
    uint32_t compress_buf_size = jcr->buf_size + 12 + ((jcr->buf_size+999) / 1000) + 100;
@@ -78,7 +83,14 @@ void do_restore(JCR *jcr)
 #endif
 
    /* 
-    * Get a record from the Storage daemon
+    * Get a record from the Storage daemon. We are guaranteed to 
+    *	receive records in the following order:
+    *	1. Stream record header
+    *	2. Stream data
+    *	     a. Attributes (Unix or Win32)
+    *	 or  b. File data for the file
+    *	 or  c. Possibly MD5 record
+    *	3. Repeat step 1
     */
    while (bnet_recv(sd) > 0 && !job_cancelled(jcr)) {
       /*
@@ -97,15 +109,15 @@ void do_restore(JCR *jcr)
       if (bnet_recv(sd) < 0 && !job_cancelled(jcr)) {
          Jmsg1(jcr, M_FATAL, 0, _("Data record error. ERR=%s\n"), bnet_strerror(sd));
       }
-      if (size != ((uint32_t) sd->msglen)) {
+      if (size != (uint32_t)sd->msglen) {
          Jmsg2(jcr, M_FATAL, 0, _("Actual data size %d not same as header %d\n"), sd->msglen, size);
 	 goto bail_out;
       }
       Dmsg1(30, "Got stream data, len=%d\n", sd->msglen);
 
       /* File Attributes stream */
-      if (stream == STREAM_UNIX_ATTRIBUTES) {
-	 char *ap, *lp, *fp;
+      if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_WIN32_ATTRIBUTES) {
+	 char *ap, *lp, *fp, *apex;
 
          Dmsg1(30, "Stream=Unix Attributes. extract=%d\n", extract);
 	 /* If extracting, it was from previous stream, so
@@ -113,12 +125,11 @@ void do_restore(JCR *jcr)
 	  */
 	 if (extract) {
 	    if (ofd < 0) {
-               Emsg0(M_ABORT, 0, _("Logic error output file should be open\n"));
+               Emsg0(M_ERROR, 0, _("Logic error output file should be open\n"));
 	    }
-	    close(ofd);
-	    ofd = -1;
+	    set_attributes(jcr, fname, ofile, lname, type, stream, 
+			   &statp, attribsEx, &ofd);
 	    extract = FALSE;
-	    set_statp(jcr, fname, ofile, lname, type, &statp);
             Dmsg0(30, "Stop extracting.\n");
 	 }
 
@@ -141,19 +152,20 @@ void do_restore(JCR *jcr)
 	  *    Filename
 	  *    Attributes
 	  *    Link name (if file linked i.e. FT_LNK)
+	  *    Extended attributes (Win32)
 	  *
 	  */
          Dmsg1(100, "Attr: %s\n", sd->msg);
          if (sscanf(sd->msg, "%d %d", &record_file_index, &type) != 2) {
             Jmsg(jcr, M_FATAL, 0, _("Error scanning attributes: %s\n"), sd->msg);
-            Dmsg1(000, "\nError scanning attributes. %s\n", sd->msg);
+            Dmsg1(100, "\nError scanning attributes. %s\n", sd->msg);
 	    goto bail_out;
 	 }
          Dmsg2(100, "Got Attr: FilInx=%d type=%d\n", record_file_index, type);
 	 if (record_file_index != file_index) {
             Jmsg(jcr, M_FATAL, 0, _("Record header file index %ld not equal record index %ld\n"),
 	       file_index, record_file_index);
-            Dmsg0(000, "File index error\n");
+            Dmsg0(100, "File index error\n");
 	    goto bail_out;
 	 }
 	 ap = sd->msg;
@@ -178,15 +190,22 @@ void do_restore(JCR *jcr)
             lp = "";
 	 }
 
+	 if (stream == STREAM_WIN32_ATTRIBUTES) {
+	    apex = ap;			 /* start at attributes */
+	    while (*apex++ != 0) {	 /* skip attributes */
+	       ;
+	    }
+	    while (*apex++ != 0) {	 /* skip link name */
+	       ;
+	    }
+	    pm_strcpy(&attribsEx, apex); /* make a copy */
+	 } else {
+	    *attribsEx = 0;		 /* no extended attributes */
+	 }
+
+         Dmsg3(200, "File %s\nattrib=%s\nattribsEx=%s\n", fname, ap, attribsEx);
+
 	 decode_stat(ap, &statp);
-	 /* 
-	  *   ***FIXME***  add REAL Win32 code to backup.c
-	  * Temp kludge so that low level routines (set_statp) know
-	  *   we are dealing with a Win32 system.
-	  */
-#ifdef HAVE_CYGWIN
-	    statp.st_mode |= S_ISWIN32;
-#endif
 	 /*
 	  * Prepend the where directory so that the
 	  * files are put where the user wants.
@@ -228,37 +247,75 @@ void do_restore(JCR *jcr)
          Dmsg1(30, "Outfile=%s\n", ofile);
 	 print_ls_output(jcr, ofile, lname, type, &statp);
 
-	 extract = create_file(jcr, fname, ofile, lname, type, &statp, &ofd);
+	 extract = create_file(jcr, fname, ofile, lname, type, 
+			       stream, &statp, attribsEx, &ofd);
          Dmsg1(40, "Extract=%d\n", extract);
 	 if (extract) {
 	    jcr->JobFiles++;
+	    fileAddr = 0;
 	 }
 	 jcr->num_files_examined++;
 
       /* Data stream */
-      } else if (stream == STREAM_FILE_DATA) {
+      } else if (stream == STREAM_FILE_DATA || stream == STREAM_SPARSE_DATA) {
 	 if (extract) {
-            Dmsg2(30, "Write %d bytes, total before write=%d\n", sd->msglen, total);
-	    if (write(ofd, sd->msg, sd->msglen) != sd->msglen) {
+	    if (stream == STREAM_SPARSE_DATA) {
+	       ser_declare;
+	       uint64_t faddr;
+	       char ec1[50];
+
+	       wbuf = sd->msg + SPARSE_FADDR_SIZE;
+	       wsize = sd->msglen - SPARSE_FADDR_SIZE;
+	       ser_begin(sd->msg, SPARSE_FADDR_SIZE);
+	       unser_uint64(faddr);
+	       if (fileAddr != faddr) {
+		  fileAddr = faddr;
+		  if (lseek(ofd, (off_t)fileAddr, SEEK_SET) < 0) {
+                     Jmsg3(jcr, M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"),
+			 edit_uint64(fileAddr, ec1), ofile, strerror(errno));
+		     goto bail_out;
+		  }
+	       }
+	    } else {
+	       wbuf = sd->msg;
+	       wsize = sd->msglen;
+	    }
+            Dmsg2(30, "Write %u bytes, total before write=%u\n", wsize, total);
+	    if ((uint32_t)write(ofd, wbuf, wsize) != wsize) {
                Dmsg0(0, "===Write error===\n");
-               Jmsg2(jcr, M_ERROR, 0, "Write error on %s: %s\n", ofile, strerror(errno));
+               Jmsg2(jcr, M_ERROR, 0, _("Write error on %s: %s\n"), ofile, strerror(errno));
 	       goto bail_out;
 	    }
-	    total += sd->msglen;
-	    jcr->JobBytes += sd->msglen;
+	    total += wsize;
+	    jcr->JobBytes += wsize;
+	    fileAddr += wsize;
 	 }
 	
       /* GZIP data stream */
-      } else if (stream == STREAM_GZIP_DATA) {
+      } else if (stream == STREAM_GZIP_DATA || stream == STREAM_SPARSE_GZIP_DATA) {
 #ifdef HAVE_LIBZ
 	 if (extract) {
 	    uLong compress_len;
 	    int stat;
 
+	    if (stream == STREAM_SPARSE_GZIP_DATA) {
+	       wbuf = sd->msg + SPARSE_FADDR_SIZE;
+	       wsize = sd->msglen - SPARSE_FADDR_SIZE;
+	       if (fileAddr != *((uint64_t *)sd->msg)) {
+		  fileAddr = *((uint64_t *)sd->msg);
+		  if (lseek(ofd, (off_t)fileAddr, SEEK_SET) < 0) {
+                     Jmsg2(jcr, M_ERROR, 0, "Seek error on %s: %s\n", ofile, strerror(errno));
+		     goto bail_out;
+		  }
+	       }
+	    } else {
+	       wbuf = sd->msg;
+	       wsize = sd->msglen;
+	    }
 	    compress_len = compress_buf_size;
-            Dmsg2(100, "Comp_len=%d msglen=%d\n", compress_len, sd->msglen);
+            Dmsg2(100, "Comp_len=%d msglen=%d\n", compress_len, wsize);
 	    if ((stat=uncompress((Byte *)jcr->compress_buf, &compress_len, 
-		  (const Byte *)sd->msg, (uLong)sd->msglen)) != Z_OK) {
+		  (const Byte *)wbuf, (uLong)wsize)) != Z_OK) {
                Jmsg(jcr, M_ERROR, 0, _("Uncompression error. ERR=%d\n"), stat);
 	       goto bail_out;
 	    }
@@ -271,6 +328,7 @@ void do_restore(JCR *jcr)
 	    }
 	    total += compress_len;
 	    jcr->JobBytes += compress_len;
+	    fileAddr += compress_len;
 	 }
 #else
 	 if (extract) {
@@ -282,12 +340,11 @@ void do_restore(JCR *jcr)
       } else if (extract) {
          Dmsg1(30, "Found wierd stream %d\n", stream);
 	 if (ofd < 0) {
-            Emsg0(M_ABORT, 0, _("Logic error output file should be open\n"));
+            Emsg0(M_ERROR, 0, _("Logic error output file should be open\n"));
 	 }
-	 close(ofd);
-	 ofd = -1;
+	 set_attributes(jcr, fname, ofile, lname, type, stream, 
+			&statp, attribsEx, &ofd);
 	 extract = FALSE;
-	 set_statp(jcr, fname, ofile, lname, type, &statp);
       } else if (stream != STREAM_MD5_SIGNATURE) {
          Dmsg2(0, "None of above!!! stream=%d data=%s\n", stream,sd->msg);
       }
@@ -297,8 +354,8 @@ void do_restore(JCR *jcr)
     * archive since we just hit an end of file, so close the file. 
     */
    if (ofd >= 0) {
-      close(ofd);
-      set_statp(jcr, fname, ofile, lname, type, &statp);
+      set_attributes(jcr, fname, ofile, lname, type, stream, 
+		     &statp, attribsEx, &ofd);
    }
    jcr->JobStatus = JS_Terminated;
    goto ok_out;
@@ -313,6 +370,7 @@ ok_out:
    free_pool_memory(fname);
    free_pool_memory(ofile);
    free_pool_memory(lname);
+   free_pool_memory(attribsEx);
    Dmsg2(10, "End Do Restore. Files=%d Bytes=%" lld "\n", jcr->JobFiles,
       jcr->JobBytes);
 }	   

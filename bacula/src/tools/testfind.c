@@ -13,6 +13,7 @@ static int max_file_len = 0;
 static int max_path_len = 0;
 static int trunc_fname = 0;
 static int trunc_path = 0;
+static int attrs = 0;
 
 
 static int print_file(FF_PKT *ff, void *pkt);
@@ -46,8 +47,12 @@ main (int argc, char *const *argv)
    char name[1000];
    int i, ch;
 
-   while ((ch = getopt(argc, argv, "d:?")) != -1) {
+   while ((ch = getopt(argc, argv, "ad:?")) != -1) {
       switch (ch) {
+         case 'a':                    /* print extended attributes *debug* */
+	    attrs = 1;
+	    break;
+
          case 'd':                    /* set debug level */
 	    debug_level = atoi(optarg);
 	    if (debug_level <= 0) {
@@ -98,6 +103,7 @@ Paths truncated: %d\n"),
 
 static int print_file(FF_PKT *ff, void *pkt)
 {
+
    switch (ff->type) {
    case FT_LNKSAVED:
       if (debug_level == 1) {
@@ -173,6 +179,14 @@ static int print_file(FF_PKT *ff, void *pkt)
    default:
       printf(_("Err: Unknown file ff->type %d: %s\n"), ff->type, ff->fname);
       break;
+   }
+   if (attrs) {
+      char attr[200];
+      encode_attribsEx(NULL, attr, ff);
+      if (*attr != 0) {
+         printf("AttrEx=%s\n", attr);
+      }
+      set_attribsEx(NULL, ff->fname, NULL, NULL, ff->type, attr);
    }
    return 1;
 }

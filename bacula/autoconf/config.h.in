@@ -277,6 +277,8 @@
 
 #undef HAVE_GETOPT_LONG
 
+#undef HAVE_INET_PTON
+
 /* The number of bytes in a char.  */
 #undef SIZEOF_CHAR
 
@@ -483,3 +485,4 @@
 
 /* Define for large files, on AIX-style hosts. */
 #undef _LARGE_FILES
+

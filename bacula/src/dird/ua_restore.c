@@ -32,6 +32,7 @@
 #include "dird.h"
 #include "ua.h"
 #include <fnmatch.h>
+#include "findlib/find.h"
 
 
 

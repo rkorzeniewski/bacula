@@ -46,10 +46,14 @@ static int authenticate(int rcode, BSOCK *bs)
       Emsg1(M_FATAL, 0, _("I only authenticate Directors, not %d\n"), rcode);
       return 0;
    }
+   if (bs->msglen > 200) {
+      bs->msglen = 200;
+   }
    dirname = get_pool_memory(PM_MESSAGE);
    dirname = check_pool_memory_size(dirname, bs->msglen);
 
    if (sscanf(bs->msg, "Hello Director %127s calling\n", dirname) != 1) {
+      bs->msg[100] = 0;
       Emsg1(M_FATAL, 0, _("Bad Hello command from Director: %s\n"), bs->msg);
       return 0;
    }

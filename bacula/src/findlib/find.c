@@ -52,6 +52,8 @@ FF_PKT *init_find_files()
   ff = (FF_PKT *) bmalloc(sizeof(FF_PKT));
   memset(ff, 0, sizeof(FF_PKT));
 
+  ff->sys_fname = get_pool_memory(PM_FNAME);
+
   init_include_exclude_files(ff);	    /* init lists */
   ff->mtime_only = 1;
   ff->one_file_system = 1;
@@ -132,6 +134,7 @@ term_find_files(FF_PKT *ff)
 {
   term_include_exclude_files(ff);
   term_find_one(ff);
+  free_pool_memory(ff->sys_fname);
   free(ff);
   return;
 }

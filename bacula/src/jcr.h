@@ -176,6 +176,7 @@ struct s_jcr {
    VOLUME_CAT_INFO VolCatInfo;        /* Catalog info for desired volume */
    POOLMEM *job_name;                 /* base Job name (not unique) */
    POOLMEM *fileset_name;             /* FileSet */
+   POOLMEM *fileset_md5;              /* MD5 for FileSet */
    POOLMEM *pool_name;                /* pool to use */
    POOLMEM *pool_type;                /* pool type to use */
    POOLMEM *media_type;               /* media type */

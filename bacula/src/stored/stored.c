@@ -56,7 +56,7 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static uint32_t VolSessionId = 0;
 uint32_t VolSessionTime;
 
-static char *configfile;
+char *configfile;
 static int foreground = 0;
 
 static workq_t dird_workq;	      /* queue for processing connections */
@@ -201,21 +201,7 @@ int main (int argc, char *argv[])
          Emsg1(M_ABORT, 0, _("Too many Device Resources. Max=%d\n"), MAX_DEVICES);
       }
       Dmsg1(90, "calling init_dev %s\n", device->device_name);
-      device->dev = init_dev(&shm->dev[i], device->device_name);
-      /* Copy some attributes from the Device Resource to the DEV structure */
-      if (device->dev) {
-	 device->dev->capabilities = device->cap_bits;
-	 device->dev->min_block_size = device->min_block_size;
-	 device->dev->max_block_size = device->max_block_size;
-	 device->dev->max_volume_jobs = device->max_volume_jobs;
-	 device->dev->max_volume_files = device->max_volume_files;
-	 device->dev->max_volume_size = device->max_volume_size;
-	 device->dev->max_file_size = device->max_file_size;
-	 device->dev->volume_capacity = device->volume_capacity;
-	 device->dev->max_rewind_wait = device->max_rewind_wait;
-	 device->dev->max_open_wait = device->max_open_wait;
-	 device->dev->device = device;
-      }
+      device->dev = init_dev(&shm->dev[i], device);
       Dmsg1(10, "SD init done %s\n", device->device_name);
       if (!device->dev) {
          Emsg1(M_ERROR, 0, _("Could not initialize %s\n"), device->device_name);

@@ -33,22 +33,20 @@ dummy:
 
 LIBSRCS = alloc.c base64.c bmisc.c bnet.c bnet_server.c \
 	  bshm.c btime.c \
-	  cram-md5.c crc32.c create_file.c daemon.c fnmatch.c \
+	  cram-md5.c crc32.c daemon.c fnmatch.c \
 	  hmac.c idcache.c jcr.c lex.c	\
-	  makepath.c \
 	  md5.c message.c mem_pool.c parse_conf.c \
-	  queue.c rwlock.c save-cwd.c serial.c \
+	  queue.c rwlock.c serial.c \
 	  signal.c smartall.c tree.c util.c watchdog.c workq.c	
 
 #	  immortal.c filesys.c
 
 LIBOBJS = alloc.o base64.o bmisc.o bnet.o bnet_server.o \
 	  bshm.o btime.o \
-	  cram-md5.o crc32.o create_file.o daemon.o fnmatch.o \
+	  cram-md5.o crc32.o daemon.o fnmatch.o \
 	  hmac.o idcache.o jcr.o lex.o	\
-	  makepath.o \
 	  md5.o message.o mem_pool.o parse_conf.o \
-	  queue.o rwlock.o save-cwd.o serial.o \
+	  queue.o rwlock.o serial.o \
 	  signal.o smartall.o tree.o util.o watchdog.o workq.o
 
 #	  immortal.o filesys.o

@@ -291,9 +291,9 @@ lex_get_token(LEX *lf, int expect)
       switch (lf->state) {
 	 case lex_none:
             Dmsg2(290, "Lex state lex_none ch=%d,%x\n", ch, ch);
-	    if (ISSPACE(ch))  
+	    if (B_ISSPACE(ch))	
 	       break;
-	    if (ISALPHA(ch)) {
+	    if (B_ISALPHA(ch)) {
 	       if (lf->options & LOPT_NO_IDENT)
 		  lf->state = lex_string;
 	       else
@@ -301,7 +301,7 @@ lex_get_token(LEX *lf, int expect)
 	       begin_str(lf, ch);
 	       break;
 	    }
-	    if (ISDIGIT(ch)) {
+	    if (B_ISDIGIT(ch)) {
 	       lf->state = lex_number;
 	       begin_str(lf, ch);
 	       break;
@@ -362,13 +362,13 @@ lex_get_token(LEX *lf, int expect)
 	 case lex_number:
             Dmsg2(290, "Lex state lex_number ch=%x %c\n", ch, ch);
 	    /* Might want to allow trailing specifications here */
-	    if (ISDIGIT(ch)) {
+	    if (B_ISDIGIT(ch)) {
 	       add_str(lf, ch);
 	       break;
 	    }
 
 	    /* A valid number can be terminated by the following */
-            if (ISSPACE(ch) || ch == L_EOL || ch == ',' || ch == ';') {
+            if (B_ISSPACE(ch) || ch == L_EOL || ch == ',' || ch == ';') {
 	       token = T_NUMBER;
 	       lf->state = lex_none;
 	    } else {
@@ -382,7 +382,7 @@ lex_get_token(LEX *lf, int expect)
 	 case lex_string:
             Dmsg1(290, "Lex state lex_string ch=%x\n", ch);
             if (ch == '\n' || ch == L_EOL || ch == '=' || ch == '}' || ch == '{' ||
-                ch == ';' || ch == ',' || ch == '#' || (ISSPACE(ch)) ) {
+                ch == ';' || ch == ',' || ch == '#' || (B_ISSPACE(ch)) ) {
 	       lex_unget_char(lf);    
 	       token = T_UNQUOTED_STRING;
 	       lf->state = lex_none;
@@ -392,10 +392,10 @@ lex_get_token(LEX *lf, int expect)
 	    break;
 	 case lex_identifier:
             Dmsg2(290, "Lex state lex_identifier ch=%x %c\n", ch, ch);
-	    if (ISALPHA(ch)) {
+	    if (B_ISALPHA(ch)) {
 	       add_str(lf, ch);
 	       break;
-	    } else if (ISSPACE(ch)) {
+	    } else if (B_ISSPACE(ch)) {
 	       break;
             } else if (ch == '\n' || ch == L_EOL || ch == '=' || ch == '}' || ch == '{' ||
                        ch == ';' || ch == ','   || ch == '"' || ch == '#') {
@@ -436,7 +436,7 @@ lex_get_token(LEX *lf, int expect)
 	    add_str(lf, ch);
 	    break;
 	 case lex_include:	      /* scanning a filename */
-            if (ISSPACE(ch) || ch == '\n' || ch == L_EOL || ch == '}' || ch == '{' ||
+            if (B_ISSPACE(ch) || ch == '\n' || ch == L_EOL || ch == '}' || ch == '{' ||
                 ch == ';' || ch == ','   || ch == '"' || ch == '#') {
 	       lf->state = lex_none;
 	       lf = lex_open_file(lf, lf->str, NULL);

@@ -27,7 +27,6 @@
 
 #include "bacula.h"
 #include "findlib/find.h"
-#include "findlib/system.h"
 	     
 #ifndef MAXPATHLEN
 #define MAXPATHLEN 1000

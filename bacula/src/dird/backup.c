@@ -92,6 +92,7 @@ int do_backup(JCR *jcr)
       memcpy(&md5c, &jcr->fileset->md5c, sizeof(md5c));
       MD5Final(signature, &md5c);
       bin_to_base64(fsr.MD5, (char *)signature, 16); /* encode 16 bytes */
+      strcpy(jcr->fileset->MD5, fsr.MD5);
    } else {
       Jmsg(jcr, M_WARNING, 0, _("FileSet MD5 signature not found.\n"));
    }
@@ -301,7 +302,7 @@ static int wait_for_job_termination(JCR *jcr)
 static void backup_cleanup(JCR *jcr, int TermCode, char *since)
 {
    char sdt[50], edt[50];
-   char ec1[30], ec2[30], ec3[30];
+   char ec1[30], ec2[30], ec3[30], compress[50];
    char term_code[100];
    char *term_msg;
    int msg_type;
@@ -356,18 +357,32 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
    bstrftime(edt, sizeof(edt), jcr->jr.EndTime);
    RunTime = jcr->jr.EndTime - jcr->jr.StartTime;
    if (RunTime <= 0) {
-      RunTime = 1;
+      kbps = 0;
+   } else {
+      kbps = (double)jcr->jr.JobBytes / (1000 * RunTime);
    }
-   kbps = (double)jcr->jr.JobBytes / (1000 * RunTime);
    if (!db_get_job_volume_names(jcr->db, jcr->jr.JobId, &jcr->VolumeName)) {
-      Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
+      /*
+       * Note, if the job has erred, most likely it did not write any
+       *  tape, so suppress this "error" message since in that case
+       *  it is normal.  Or look at it the other way, only for a
+       *  normal exit should we complain about this error.
+       */
+      if (TermCode == JS_Terminated) {				      
+         Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
+      }
       jcr->VolumeName[0] = 0;	      /* none */
    }
 
    if (jcr->ReadBytes == 0) {
-      compression = 0.0;
+      strcpy(compress, "None");
    } else {
       compression = (double)100 - 100.0 * ((double)jcr->JobBytes / (double)jcr->ReadBytes);
+      if (compression < 0.5) {
+         strcpy(compress, "None");
+      } else {
+         sprintf(compress, "%.1f %%", (float)compression);
+      }
    }
 
    Jmsg(jcr, msg_type, 0, _("%s\n\
@@ -381,7 +396,7 @@ End time:               %s\n\
 Files Written:          %s\n\
 Bytes Written:          %s\n\
 Rate:                   %.1f KB/s\n\
-Software Compression:   %.1f %%\n\
+Software Compression:   %s\n\
 Volume names(s):        %s\n\
 Volume Session Id:      %d\n\
 Volume Session Time:    %d\n\
@@ -398,7 +413,7 @@ Termination:            %s\n\n"),
 	edit_uint64_with_commas(jcr->jr.JobFiles, ec1),
 	edit_uint64_with_commas(jcr->jr.JobBytes, ec2),
 	(float)kbps,
-	(float)compression,
+	compress,
 	jcr->VolumeName,
 	jcr->VolSessionId,
 	jcr->VolSessionTime,

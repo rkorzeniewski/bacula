@@ -69,6 +69,7 @@ static int unmount_cmd(JCR *jcr);
 static int status_cmd(JCR *sjcr);
 static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *vname, char *poolname, 
 			       int Slot);
+static void send_blocked_status(JCR *jcr, DEVICE *dev);
 
 struct s_cmds {
    char *cmd;
@@ -654,29 +655,7 @@ static int status_cmd(JCR *jcr)
 	    } else {
                bnet_fsend(user, _("Device %s open but no Bacula volume is mounted.\n"), dev_name(dev));
 	    }
-	    switch (dev->dev_blocked) {
-	       case BST_UNMOUNTED:
-                  bnet_fsend(user, _("    Deviced is blocked. User unmounted.\n"));
-		  break;
-	       case BST_UNMOUNTED_WAITING_FOR_SYSOP:
-                  bnet_fsend(user, _("    Deviced is blocked. User unmounted during wait for media/mount.\n"));
-		  break;
-	       case BST_WAITING_FOR_SYSOP:
-		  if (jcr->JobStatus == JS_WaitMount) {
-                     bnet_fsend(user, _("    Device is blocked waiting for mount.\n"));
-		  } else {
-                     bnet_fsend(user, _("    Device is blocked waiting for appendable media.\n"));
-		  }
-		  break;
-	       case BST_DOING_ACQUIRE:
-                  bnet_fsend(user, _("    Device is being initialized.\n"));
-		  break;
-	       case BST_WRITING_LABEL:
-                  bnet_fsend(user, _("    Device is blocked labeling a Volume.\n"));
-		  break;
-	       default:
-		  break;
-	    }
+	    send_blocked_status(jcr, dev);
 	    bpb = dev->VolCatInfo.VolCatBlocks;
 	    if (bpb <= 0) {
 	       bpb = 1;
@@ -692,6 +671,7 @@ static int status_cmd(JCR *jcr)
 
 	 } else {
             bnet_fsend(user, _("Device %s is not open.\n"), dev_name(dev));
+	    send_blocked_status(jcr, dev);
 	 }
       }
    }
@@ -744,4 +724,33 @@ static int status_cmd(JCR *jcr)
 
    bnet_sig(user, BNET_EOD);
    return 1;
+}
+
+static void send_blocked_status(JCR *jcr, DEVICE *dev) 
+{
+   BSOCK *user = jcr->dir_bsock;
+
+   switch (dev->dev_blocked) {
+      case BST_UNMOUNTED:
+         bnet_fsend(user, _("    Device is BLOCKED. User unmounted.\n"));
+	 break;
+      case BST_UNMOUNTED_WAITING_FOR_SYSOP:
+         bnet_fsend(user, _("    Device is BLOCKED. User unmounted during wait for media/mount.\n"));
+	 break;
+      case BST_WAITING_FOR_SYSOP:
+	 if (jcr->JobStatus == JS_WaitMount) {
+            bnet_fsend(user, _("    Device is BLOCKED waiting for mount.\n"));
+	 } else {
+            bnet_fsend(user, _("    Device is BLOCKED waiting for appendable media.\n"));
+	 }
+	 break;
+      case BST_DOING_ACQUIRE:
+         bnet_fsend(user, _("    Device is being initialized.\n"));
+	 break;
+      case BST_WRITING_LABEL:
+         bnet_fsend(user, _("    Device is blocked labeling a Volume.\n"));
+	 break;
+      default:
+	 break;
+   }
 }

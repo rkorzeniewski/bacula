@@ -93,7 +93,7 @@ int acquire_device_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 default_path:
 	    tape_previously_mounted = 0;
             Dmsg0(200, "dir_get_volume_info\n");
-	    dir_get_volume_info(jcr, 0);
+	    dir_get_volume_info(jcr, 0);	 /* Get info for reading */
             Dmsg2(200, "calling autoload Vol=%s Slot=%d\n",
 	       jcr->VolumeName, jcr->VolCatInfo.Slot);			       
 	    if (autoload_device(jcr, dev, 0, NULL)) {
@@ -144,16 +144,15 @@ int acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
        * Device already in append mode	 
        *
        * Check if we have the right Volume mounted   
-       *  OK if AnonVols and volume info OK
-       *  OK if next volume matches current volume
-       *  otherwise mount desired volume obtained from
+       *   OK if current volume info OK
+       *   OK if next volume matches current volume
+       *   otherwise mount desired volume obtained from
        *    dir_find_next_appendable_volume
        */
       strcpy(jcr->VolumeName, dev->VolHdr.VolName);
-      if (((dev->capabilities & CAP_ANONVOLS) &&
-	    !dir_get_volume_info(jcr, 1)) ||
-	  (!dir_find_next_appendable_volume(jcr) || 
-	    strcmp(dev->VolHdr.VolName, jcr->VolumeName) != 0)) { /* wrong tape mounted */
+      if (!dir_get_volume_info(jcr, 1) ||
+	  !(dir_find_next_appendable_volume(jcr) &&
+	    strcmp(dev->VolHdr.VolName, jcr->VolumeName) == 0)) { /* wrong tape mounted */
 	 if (dev->num_writers != 0) {
             Jmsg(jcr, M_FATAL, 0, _("Device %s is busy writing with another Volume.\n"), dev_name(dev));
 	    goto get_out;

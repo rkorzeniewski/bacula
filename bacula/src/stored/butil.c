@@ -32,6 +32,8 @@
 #include "bacula.h"
 #include "stored.h"
 
+/* Imported variables -- eliminate some day */
+extern char *configfile;
 
 #ifdef DEBUG
 char *rec_state_to_str(DEV_RECORD *rec)
@@ -62,13 +64,16 @@ char *rec_state_to_str(DEV_RECORD *rec)
 
 
 /*
- * Setup device, jcr, and prepare to read
+ * Setup device, jcr, and prepare to access device.
+ *   If the caller wants read access, acquire the device, otherwise,
+ *     the caller will do it.
  */
-DEVICE *setup_to_read_device(JCR *jcr)
+DEVICE *setup_to_access_device(JCR *jcr, int read_access)
 {
    DEVICE *dev;
    DEV_BLOCK *block;
    char *p;
+   DEVRES *device;
 
    jcr->VolumeName[0] = 0;
    if (strncmp(jcr->dev_name, "/dev/", 5) != 0) {
@@ -82,12 +87,17 @@ DEVICE *setup_to_read_device(JCR *jcr)
       }
    }
 
-   dev = init_dev(NULL, jcr->dev_name);
+   if ((device=find_device_res(jcr->dev_name)) == NULL) {
+      Emsg2(M_FATAL, 0, "Cannot find device %s in config file %s.\n", 
+	   jcr->dev_name, configfile);
+      return NULL;
+   }
+   
+   dev = init_dev(NULL, device);
    if (!dev) {
       Emsg1(M_FATAL, 0, "Cannot open %s\n", jcr->dev_name);
       return NULL;
    }
-   /* ***FIXME**** init capabilities */
    if (!open_device(dev)) {
       Emsg1(M_FATAL, 0, "Cannot open %s\n", jcr->dev_name);
       return NULL;
@@ -99,17 +109,79 @@ DEVICE *setup_to_read_device(JCR *jcr)
    create_vol_list(jcr);
 
    Dmsg1(100, "Volume=%s\n", jcr->VolumeName);
-   if (!acquire_device_for_read(jcr, dev, block)) {
-      Emsg0(M_ERROR, 0, dev->errmsg);
-      return NULL;
+   if (read_access) {
+      if (!acquire_device_for_read(jcr, dev, block)) {
+	 Emsg0(M_ERROR, 0, dev->errmsg);
+	 return NULL;
+      }
    }
    free_block(block);
    return dev;
 }
 
 
+/*
+ * Search for device resource that corresponds to 
+ * device name on command line (or default).
+ *	 
+ * Returns: NULL on failure
+ *	    Device resource pointer on success
+ */
+DEVRES *find_device_res(char *device_name)
+{
+   int found = 0;
+   DEVRES *device;
+
+   LockRes();
+   for (device=NULL; (device=(DEVRES *)GetNextRes(R_DEVICE, (RES *)device)); ) {
+      if (strcmp(device->device_name, device_name) == 0) {
+	 found = 1;
+	 break;
+      }
+   } 
+   UnlockRes();
+   if (!found) {
+      Pmsg2(0, "Could not find device %s in config file %s.\n", device_name,
+	    configfile);
+      return NULL;
+   }
+   Pmsg1(0, "Using device: %s\n", device_name);
+   return device;
+}
+
+
+
+/*
+ * Called here when freeing JCR so that we can get rid 
+ *  of "daemon" specific memory allocated.
+ */
 static void my_free_jcr(JCR *jcr)
 {
+   if (jcr->pool_name) {
+      free_pool_memory(jcr->pool_name);
+      jcr->pool_name = NULL;
+   }
+   if (jcr->pool_type) {
+      free_pool_memory(jcr->pool_type);
+      jcr->pool_type = NULL;
+   }
+   if (jcr->job_name) {
+      free_pool_memory(jcr->job_name);
+      jcr->job_name = NULL;
+   }
+   if (jcr->client_name) {
+      free_pool_memory(jcr->client_name);
+      jcr->client_name = NULL;
+   }
+   if (jcr->fileset_name) {
+      free_pool_memory(jcr->fileset_name);
+      jcr->fileset_name = NULL;
+   }
+   if (jcr->dev_name) {
+      free_pool_memory(jcr->dev_name);
+      jcr->dev_name = NULL;
+   }
+     
    return;
 }
 
@@ -123,9 +195,24 @@ JCR *setup_jcr(char *name, char *device, BSR *bsr)
    jcr->VolSessionId = 1;
    jcr->VolSessionTime = (uint32_t)time(NULL);
    jcr->bsr = bsr;
+   jcr->NumVolumes = 1;
+   jcr->pool_name = get_pool_memory(PM_FNAME);
+   strcpy(jcr->pool_name, "Default");
+   jcr->pool_type = get_pool_memory(PM_FNAME);
+   strcpy(jcr->pool_type, "Backup");
+   jcr->job_name = get_pool_memory(PM_FNAME);
+   strcpy(jcr->job_name, "Dummy.Job.Name");
+   jcr->client_name = get_pool_memory(PM_FNAME);
+   strcpy(jcr->client_name, "Dummy.Client.Name");
    strcpy(jcr->Job, name);
+   jcr->fileset_name = get_pool_memory(PM_FNAME);
+   strcpy(jcr->fileset_name, "Dummy.fileset.name");
+   jcr->JobId = 1;
+   jcr->JobType = JT_BACKUP;
+   jcr->JobLevel = L_FULL;
+   jcr->JobStatus = JS_Terminated;
    jcr->dev_name = get_pool_memory(PM_FNAME);
-   strcpy(jcr->dev_name, device);
+   pm_strcpy(&jcr->dev_name, device);
    return jcr;
 }
 

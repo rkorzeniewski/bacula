@@ -29,3 +29,4 @@ extern void do_restore(JCR *jcr);
 extern int authenticate_director(JCR *jcr);
 extern int authenticate_storagedaemon(JCR *jcr);
 extern int make_estimate(JCR *jcr);
+

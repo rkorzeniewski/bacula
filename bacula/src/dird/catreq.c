@@ -137,12 +137,14 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
 	 } else {
 	    /* 
 	     * Make sure this volume is suitable for this job, i.e.
-	     *	it is either Append or Recycle and Media Type matches.
+	     *	it is either Append or Recycle and Media Type matches 
+	     *	and Pool allows any volume.
 	     */
 	    if (mr.PoolId == jcr->PoolId && 
                 (strcmp(mr.VolStatus, "Append") == 0 ||
-                 strcmp(mr.VolStatus, "Recycle") == 0 ||
-		 strcmp(mr.MediaType, jcr->store->media_type) == 0)) {
+                 strcmp(mr.VolStatus, "Recycle") == 0) &&
+		 strcmp(mr.MediaType, jcr->store->media_type) == 0 &&
+		 jcr->pool->accept_any_volume) {
 	       VolSuitable = 1;
 	    }
 	 }
@@ -263,7 +265,7 @@ void catalog_update(JCR *jcr, BSOCK *bs, char *msg)
    Dmsg5(99, "UpdCat VolSessId=%d VolSessT=%d FI=%d Strm=%d data_len=%d\n",
       VolSessionId, VolSessionTime, FileIndex, Stream, data_len);
 
-   if (Stream == STREAM_UNIX_ATTRIBUTES) {
+   if (Stream == STREAM_UNIX_ATTRIBUTES || Stream == STREAM_WIN32_ATTRIBUTES) {
       skip_nonspaces(&p);	      /* skip FileIndex */
       skip_spaces(&p);
       skip_nonspaces(&p);	      /* skip FileType */
@@ -284,7 +286,6 @@ void catalog_update(JCR *jcr, BSOCK *bs, char *msg)
       Dmsg2(111, "dird<filed: stream=%d %s\n", Stream, fname);
       Dmsg1(120, "dird<filed: attr=%s\n", attr);
 
-      /* ***FIXME*** fix link field */
       if (!db_create_file_attributes_record(jcr->db, &ar)) {
          Jmsg1(jcr, M_FATAL, 0, _("Attribute create error. %s"), db_strerror(jcr->db));
       }

@@ -681,6 +681,7 @@ dnl A few others
 AC_EXEEXT
 
 dnl See if we can use 64 bit file addresses
+largefile_support="no"
 AC_SYS_LARGEFILE
 
 
@@ -1094,7 +1095,7 @@ freebsd)
 	    platforms/freebsd/bacula-sd \
 	    platforms/freebsd/bacula-dir"
 	hostname=`hostname -s`
-	ac_cv_sys_largefile_CFLAGS="yes"
+	largefile_support="yes"
   ;;
 hpux)
 	DISTVER=`uname -r`
@@ -1263,7 +1264,7 @@ chmod 755 src/cats/make_bdb_tables src/cats/drop_bdb_tables
 chmod 755 src/cats/create_bdb_database
 
 if test "x$ac_cv_sys_largefile_CFLAGS" != "xno" ; then
-   ac_cv_sys_largefile_CFLAGS="yes"
+   largefile_support="yes"
 fi
 
 
@@ -1294,7 +1295,7 @@ Configuration on `date`:
   Working directory	      ${working_dir}
   SQL binaries Directory      ${SQL_BINDIR}
 
-  Large file support:	      $ac_cv_sys_largefile_CFLAGS
+  Large file support:	      $largefile_support
   readline support:	      ${got_readline} ${PRTREADLINE_SRC}
   cweb support: 	      ${got_cweb} ${CWEB_SRC}
   TCP Wrappers support:       ${TCPW_MSG}

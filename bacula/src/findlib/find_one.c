@@ -27,7 +27,7 @@
 
 #include "bacula.h"
 #include "find.h"
-#include "system.h"
+/*#include "system.h" */
 
 
 extern size_t name_max; 	      /* filename max length */
@@ -71,12 +71,12 @@ struct utimbuf
  */
 int
 find_one_file(FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), void *pkt, 
-			    char *p, dev_t parent_device, int top_level)
+	       char *fname, dev_t parent_device, int top_level)
 {
    struct utimbuf restore_times;
    int rtn_stat;
 
-   ff_pkt->fname = ff_pkt->link = p;
+   ff_pkt->fname = ff_pkt->link = fname;
    if (ff_pkt->compute_MD5) {
       ff_pkt->flags |= FO_MD5;
    }
@@ -84,17 +84,17 @@ find_one_file(FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), void *pkt
       ff_pkt->flags |= FO_GZIP;
    }
 
-   if (lstat(p, &ff_pkt->statp) != 0) {
+   if (lstat(fname, &ff_pkt->statp) != 0) {
        /* Cannot stat file */
        ff_pkt->type = FT_NOSTAT;
        ff_pkt->ff_errno = errno;
        return handle_file(ff_pkt, pkt);
    }
 
-   Dmsg1(60, "File ----: %s\n", p);
+   Dmsg1(60, "File ----: %s\n", fname);
 #ifdef DEBUG
    if (S_ISLNK(ff_pkt->statp.st_mode))
-      Dmsg1(60, "Link-------------: %s \n", p);
+      Dmsg1(60, "Link-------------: %s \n", fname);
 #endif
 
    /* Save current times of this directory in case we need to
@@ -158,10 +158,10 @@ find_one_file(FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), void *pkt
 	  }
 
        /* File not previously dumped. Chain it into our list. */
-       lp = (struct f_link *)bmalloc(sizeof (struct f_link) + strlen(p));
+       lp = (struct f_link *)bmalloc(sizeof (struct f_link) + strlen(fname));
        lp->ino = ff_pkt->statp.st_ino;
        lp->dev = ff_pkt->statp.st_dev;
-       strcpy (lp->name, p);
+       strcpy (lp->name, fname);
        lp->next = ff_pkt->linklist;
        ff_pkt->linklist = lp;
    }
@@ -175,7 +175,7 @@ find_one_file(FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), void *pkt
        /* Don't bother opening empty, world readable files.  Also do not open
 	  files when archive is meant for /dev/null.  */
        if (ff_pkt->null_output_device || (sizeleft == 0
-	       && MODE_R == (MODE_R & ff_pkt->statp.st_mode))) {
+	       && MODE_RALL == (MODE_RALL & ff_pkt->statp.st_mode))) {
 	  ff_pkt->type = FT_REGE;
        } else {
 	  ff_pkt->type = FT_REG;
@@ -186,14 +186,14 @@ find_one_file(FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), void *pkt
        int size;
        char *buffer = (char *)alloca(PATH_MAX + 1);
 
-       size = readlink(p, buffer, PATH_MAX + 1);
+       size = readlink(fname, buffer, PATH_MAX + 1);
        if (size < 0) {
 	   /* Could not follow link */				   
 	   ff_pkt->type = FT_NOFOLLOW;
 	   ff_pkt->ff_errno = errno;
 	   return handle_file(ff_pkt, pkt);
        }
-       buffer[size] = '\0';
+       buffer[size] = 0;
        ff_pkt->link = buffer;
        ff_pkt->type = FT_LNK;		/* got a real link */
        return handle_file(ff_pkt, pkt);
@@ -202,23 +202,23 @@ find_one_file(FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), void *pkt
        DIR *directory;
        struct dirent *entry, *result;
        char *namebuf;
-       size_t buflen;
+       size_t namebuf_len;
        size_t len;
        int status;
        dev_t our_device = ff_pkt->statp.st_dev;
 
-       if (access(p, R_OK) == -1 && geteuid() != 0) {
+       if (access(fname, R_OK) == -1 && geteuid() != 0) {
 	   /* Could not access() directory */
 	   ff_pkt->type = FT_NOACCESS;
 	   ff_pkt->ff_errno = errno;
 	   return handle_file(ff_pkt, pkt);
        }
 
-       /* Build new prototype name.  Ensure exactly one trailing slash.  */
-       len = strlen(p);
-       buflen = len + NAME_FIELD_SIZE;
-       namebuf = (char *)bmalloc(buflen + 2);
-       strncpy(namebuf, p, buflen);
+       /* Build a canonical directory name with a trailing slash. */
+       len = strlen(fname);
+       namebuf_len = len + DEFAULT_NAMEBUF_LEN;
+       namebuf = (char *)bmalloc(namebuf_len + 2);
+       strncpy(namebuf, fname, namebuf_len);
        while (len >= 1 && namebuf[len - 1] == '/')
 	 len--;
        namebuf[len++] = '/';
@@ -263,7 +263,7 @@ find_one_file(FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), void *pkt
 	* Now process the files in this directory.
 	*/
        errno = 0;
-       if ((directory = opendir(p)) == NULL) {
+       if ((directory = opendir(fname)) == NULL) {
 	  free(namebuf);
 	  ff_pkt->type = FT_NOOPEN;
 	  ff_pkt->ff_errno = errno;
@@ -271,7 +271,7 @@ find_one_file(FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), void *pkt
        }
 
        /*
-	* This could possibly run faster if we chdir to the directory
+	* This would possibly run faster if we chdir to the directory
 	* before traversing it.
 	*/
        rtn_stat = 1;
@@ -292,9 +292,9 @@ find_one_file(FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), void *pkt
 	      continue;
 	   }
 
-	   if ((int)NAMLEN(entry) + len >= buflen) {
-	       buflen = len + NAMLEN(entry);
-	       namebuf = (char *)brealloc(namebuf, buflen + 2);
+	   if ((int)NAMELEN(entry) + len >= namebuf_len) {
+	       namebuf_len = len + NAMELEN(entry);
+	       namebuf = (char *)brealloc(namebuf, namebuf_len + 2);
 	   }
 	   strcpy(namebuf + len, entry->d_name);
 	   if (!file_is_excluded(ff_pkt, namebuf)) {
@@ -305,7 +305,7 @@ find_one_file(FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), void *pkt
        free(namebuf);
        free(entry);
        if (ff_pkt->atime_preserve) {
-	  utime(p, &restore_times);
+	  utime(fname, &restore_times);
        }
        return rtn_stat;
    } /* end check for directory */

@@ -27,8 +27,6 @@
 void      base64_init            (void);
 int       to_base64              (intmax_t value, char *where);
 int       from_base64            (intmax_t *value, char *where);
-void      encode_stat            (char *buf, struct stat *statp);
-void      decode_stat            (char *buf, struct stat *statp);
 int       bin_to_base64          (char *buf, char *bin, int len);
 
 /* bmisc.c */
@@ -44,9 +42,6 @@ int       bvsnprintf             (char *str, size_t size, const char  *format, v
 int       pool_sprintf           (char *pool_buf, char *fmt, ...);
 void      create_pid_file        (char *dir, char *progname, int port);
 int       delete_pid_file        (char *dir, char *progname, int port);
-#ifndef HAVE_STRERROR_R
-int       strerror_r             (int errnum, char *buf, size_t bufsiz);
-#endif
 
 
 /* bnet.c */
@@ -75,13 +70,6 @@ int cram_md5_auth(BSOCK *bs, char *password);
 void hmac_md5(uint8_t* text, int text_len, uint8_t*  key,
               int key_len, uint8_t *hmac);
 
-/* create_file.c */
-int create_file(void *jcr, char *fname, char *ofile, char *lname,
-                       int type, struct stat *statp, int *ofd);
-int set_statp(void *jcr, char *fname, char *ofile, char *lname, int type, 
-                       struct stat *statp);
-
-
 /* crc32.c */
 uint32_t bcrc32(uint8_t *buf, int len);
 
@@ -95,18 +83,6 @@ int       lex_get_char           (LEX *lf);
 void      lex_unget_char         (LEX *lf);
 char *    lex_tok_to_str         (int token);
 int       lex_get_token          (LEX *lf, int expect);
-
-/* makepath.c */
-int make_path(
-           void *jcr,
-           const char *argpath,
-           int mode,
-           int parent_mode,
-           uid_t owner,
-           gid_t group,
-           int preserve_existing,
-           char *verbose_fmt_string);
-
 
 /* message.c */
 void       my_name_is            (int argc, char *argv[], char *name);
@@ -151,6 +127,7 @@ char *           add_commas              (char *val, char *buf);
 char *           edit_uint64             (uint64_t val, char *buf);
 int              do_shell_expansion      (char *name);
 int              is_a_number             (const char *num);
+int              is_buf_zero             (char *buf, int len);
 int              string_to_btime         (char *str, btime_t *value);
 char             *edit_btime             (btime_t val, char *buf);
 void             jobstatus_to_ascii      (int JobStatus, char *msg, int maxlen);

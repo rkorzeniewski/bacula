@@ -98,7 +98,21 @@ int do_append_data(JCR *jcr)
    memset(&rec, 0, sizeof(rec));
 
    /* 
-    * Get Data from File daemon, write to device   
+    * Get Data from File daemon, write to device.  To clarify what is
+    *	going on here.	We expect:	  
+    *	  - A stream header
+    *	  - Multiple records of data
+    *	  - EOD record
+    *
+    *	 The Stream header is just used to sychronize things, and
+    *	 none of the stream header is written to tape.
+    *	 The Multiple records of data, contain first the Attributes,
+    *	 then after another stream header, the file data, then
+    *	 after another stream header, the MD5 data if any.  
+    *
+    *	So we get the (stream header, data, EOD) three time for each
+    *	file. 1. for the Attributes, 2. for the file data if any, 
+    *	and 3. for the MD5 if any.
     */
    jcr->VolFirstFile = 0;
    time(&jcr->run_time);	      /* start counting time for rates */
@@ -110,6 +124,7 @@ int do_append_data(JCR *jcr)
        *    file_index (sequential Bacula file index)
        *    stream     (arbitrary Bacula number to distinguish parts of data)
        *    info       (Info for Storage daemon -- compressed, encryped, ...)
+       *       info is not currently used, so is read, but ignored!
        */
       if ((n=bget_msg(ds)) < 0) { 
          Jmsg1(jcr, M_FATAL, 0, _("Error reading data header from FD. ERR=%s\n"),
@@ -158,7 +173,7 @@ int do_append_data(JCR *jcr)
 	 rec.data = ds->msg;		/* use message buffer */
 
          Dmsg4(250, "before writ_rec FI=%d SessId=%d Strm=%s len=%d\n",
-	    rec.FileIndex, rec.VolSessionId, stream_to_ascii(rec.Stream), 
+	    rec.FileIndex, rec.VolSessionId, stream_to_ascii(rec.Stream,rec.FileIndex), 
 	    rec.data_len);
 	  
 	 while (!write_record_to_block(block, &rec)) {
@@ -179,15 +194,18 @@ int do_append_data(JCR *jcr)
 	    break;
 	 }
 	 jcr->JobBytes += rec.data_len;   /* increment bytes this job */
-         Dmsg4(190, "write_record FI=%s SessId=%d Strm=%s len=%d\n",
+         Dmsg4(200, "write_record FI=%s SessId=%d Strm=%s len=%d\n",
 	    FI_to_ascii(rec.FileIndex), rec.VolSessionId, 
-	    stream_to_ascii(rec.Stream), rec.data_len);
+	    stream_to_ascii(rec.Stream, rec.FileIndex), rec.data_len);
+
 	 /* Send attributes and MD5 to Director for Catalog */
-	 if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_MD5_SIGNATURE) {
+	 if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_MD5_SIGNATURE ||
+	     stream == STREAM_WIN32_ATTRIBUTES) { 
 	    if (!jcr->no_attributes) {
 	       if (jcr->spool_attributes && jcr->dir_bsock->spool_fd) {
 		  jcr->dir_bsock->spool = 1;
 	       }
+               Dmsg0(200, "Send attributes.\n");
 	       if (!dir_update_file_attributes(jcr, &rec)) {
                   Jmsg(jcr, M_FATAL, 0, _("Error updating file attributes. ERR=%s\n"),
 		     bnet_strerror(jcr->dir_bsock));

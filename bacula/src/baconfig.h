@@ -91,27 +91,31 @@
 #define MAX_NETWORK_BUFFER_SIZE (32 * 1024)
 
 /* Stream definitions.  Once defined these must NEVER
- * change as they go on the storage media
+ *   change as they go on the storage media.
  */
-#define STREAM_UNIX_ATTRIBUTES  1     /* Generic Unix attributes */
-#define STREAM_FILE_DATA        2     /* Standard uncompressed data */
-#define STREAM_MD5_SIGNATURE    3     /* MD5 signature for the file */
-#define STREAM_GZIP_DATA        4     /* GZip compressed file data */
+#define STREAM_UNIX_ATTRIBUTES   1    /* Generic Unix attributes */
+#define STREAM_FILE_DATA         2    /* Standard uncompressed data */
+#define STREAM_MD5_SIGNATURE     3    /* MD5 signature for the file */
+#define STREAM_GZIP_DATA         4    /* GZip compressed file data */
+#define STREAM_WIN32_ATTRIBUTES  5    /* Windows attributes (superset of Unix) */
+#define STREAM_SPARSE_DATA       6    /* Sparse data stream */
+#define STREAM_SPARSE_GZIP_DATA  7
+#define STREAM_PROGRAM_NAMES     8    /* program names for program data */
+#define STREAM_PROGRAM_DATA      9    /* Data needing program */
+
+/* Size of File Address stored in STREAM_SPARSE_DATA. Do NOT change! */
+#define SPARSE_FADDR_SIZE (sizeof(uint64_t))
 
 
-/* This is for dumb compilers like Solaris. Linux GCC
+/* This is for dumb compilers/libraries like Solaris. Linux GCC
  * does it correctly, so it might be worthwhile
  * to remove the isascii(c) with ifdefs on such
  * "smart" systems.
  */
-#undef  ISSPACE
-#undef  ISALPHA
-#undef  ISUPPER
-#undef  ISDIGIT
-#define ISSPACE(c) (isascii((int)(c)) && isspace((int)(c)))
-#define ISALPHA(c) (isascii((int)(c)) && isalpha((int)(c)))
-#define ISUPPER(c) (isascii((int)(c)) && isupper((int)(c)))
-#define ISDIGIT(c) (isascii((int)(c)) && isdigit((int)(c)))
+#define B_ISSPACE(c) (isascii((int)(c)) && isspace((int)(c)))
+#define B_ISALPHA(c) (isascii((int)(c)) && isalpha((int)(c)))
+#define B_ISUPPER(c) (isascii((int)(c)) && isupper((int)(c)))
+#define B_ISDIGIT(c) (isascii((int)(c)) && isdigit((int)(c)))
 
 
 typedef void (HANDLER)();
@@ -125,6 +129,11 @@ typedef int (INTHANDLER)();
 
 #ifndef S_ISLNK
 #define S_ISLNK(m) (((m) & S_IFM) == S_IFLNK)
+#endif
+
+/* Added by KES to deal with Win32 systems */
+#ifndef S_ISWIN32
+#define S_ISWIN32 020000
 #endif
 
 #ifndef INADDR_NONE

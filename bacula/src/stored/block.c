@@ -3,6 +3,7 @@
  *   block.c -- tape block handling functions
  *
  *		Kern Sibbald, March MMI
+ *		   added BB02 format October MMII
  *
  *   Version $Id$
  *
@@ -69,28 +70,28 @@ void dump_block(DEV_BLOCK *b, char *msg)
    }
 
    if (block_len > 100000) {
-      Dmsg3(20, "Dump block %s %s blocksize too big %d\n", msg, b, block_len);
+      Dmsg3(20, "Dump block %s 0x%x blocksize too big %u\n", msg, b, block_len);
       return;
    }
 
    BlockCheckSum = bcrc32((uint8_t *)b->buf+BLKHDR_CS_LENGTH,
 			 block_len-BLKHDR_CS_LENGTH);
-   Dmsg6(10, "Dump block %s %x: size=%d BlkNum=%d\n\
+   Pmsg6(000, "Dump block %s %x: size=%d BlkNum=%d\n\
                Hdrcksum=%x cksum=%x\n",
       msg, b, block_len, BlockNumber, CheckSum, BlockCheckSum);
    p = b->buf + bhl;
    while (p < (b->buf + block_len+WRITE_RECHDR_LENGTH)) { 
       unser_begin(p, WRITE_RECHDR_LENGTH);
       if (rhl == RECHDR1_LENGTH) {
-      unser_uint32(VolSessionId);
-      unser_uint32(VolSessionTime);
+	 unser_uint32(VolSessionId);
+	 unser_uint32(VolSessionTime);
       }
       unser_int32(FileIndex);
       unser_int32(Stream);
       unser_uint32(data_len);
-      Dmsg6(10, "   Rec: VId=%d VT=%d FI=%s Strm=%s len=%d p=%x\n",
-	   VolSessionId, VolSessionTime, FI_to_ascii(FileIndex), stream_to_ascii(Stream),
-	   data_len, p);
+      Pmsg6(000, "   Rec: VId=%u VT=%u FI=%s Strm=%s len=%d p=%x\n",
+	   VolSessionId, VolSessionTime, FI_to_ascii(FileIndex), 
+	   stream_to_ascii(Stream, FileIndex), data_len, p);
       p += data_len + rhl;
   }
 }
@@ -111,11 +112,14 @@ DEV_BLOCK *new_block(DEVICE *dev)
    } else {
       block->buf_len = dev->max_block_size;
    }
+   /* ****FIXME***** move this up to init_dev() */
    if (block->buf_len % TAPE_BSIZE != 0) {
-      Mmsg2(&dev->errmsg, _("Block size %d forced to be multiple of %d\n"), 
-	 block->buf_len, TAPE_BSIZE);
+      uint32_t old_len = block->buf_len;
+      block->buf_len = ((old_len + TAPE_BSIZE - 1) / TAPE_BSIZE) * TAPE_BSIZE;
+      Mmsg3(&dev->errmsg, _("Block size %u forced to %u to be multiple of %d\n"), 
+	 old_len, block->buf_len, TAPE_BSIZE);
       Emsg0(M_WARNING, 0, dev->errmsg);
-      block->buf_len = ((block->buf_len + TAPE_BSIZE - 1) / TAPE_BSIZE) * TAPE_BSIZE;
+      dev->max_block_size = block->buf_len;  /* force block size */
    }
    block->block_len = block->buf_len;  /* default block size */
    block->buf = get_memory(block->buf_len); 
@@ -332,8 +336,6 @@ int write_block_to_dev(DEVICE *dev, DEV_BLOCK *block)
       }
    }  
 
-   dev->block_num++;
-   block->BlockNumber = dev->block_num;
    ser_block_header(block);
 
    /* Limit maximum Volume size to value specified by user */
@@ -351,7 +353,7 @@ int write_block_to_dev(DEVICE *dev, DEV_BLOCK *block)
    }
 
    dev->VolCatInfo.VolCatWrites++;
-// Dmsg1(000, "Pos before write=%lld\n", lseek(dev->fd, (off_t)0, SEEK_CUR));
+   Dmsg1(500, "Write block of %u bytes\n", wlen);      
    if ((uint32_t) (stat=write(dev->fd, block->buf, (size_t)wlen)) != wlen) {
       /* We should check for errno == ENOSPC, BUT many 
        * devices simply report EIO when it is full.
@@ -368,11 +370,11 @@ int write_block_to_dev(DEVICE *dev, DEV_BLOCK *block)
 	 dev->dev_errno = ENOSPC;	 /* out of space */
       }
 
-      Dmsg2(0, "=== Write error errno=%d: ERR=%s\n", dev->dev_errno,
-	 strerror(dev->dev_errno));
+      Dmsg4(10, "=== Write error. size=%u rtn=%d  errno=%d: ERR=%s\n", 
+	 wlen, stat, dev->dev_errno, strerror(dev->dev_errno));
 
-      Mmsg2(&dev->errmsg, _("Write error on device %s. ERR=%s.\n"), 
-	 dev->dev_name, strerror(dev->dev_errno));
+      Mmsg4(&dev->errmsg, _("Write error on device %s. Write of %u bytes got %d. ERR=%s.\n"), 
+	 dev->dev_name, wlen, stat, strerror(dev->dev_errno));
       block->failed_write = TRUE;
       weof_dev(dev, 1); 	      /* end the tape */
       weof_dev(dev, 1); 	      /* write second eof */
@@ -381,15 +383,17 @@ int write_block_to_dev(DEVICE *dev, DEV_BLOCK *block)
 // Dmsg1(000, "Pos after write=%lld\n", lseek(dev->fd, (off_t)0, SEEK_CUR));
    dev->VolCatInfo.VolCatBytes += block->binbuf;
    dev->VolCatInfo.VolCatBlocks++;   
-   dev->file_bytes += block->binbuf;
+   dev->file_addr += wlen;
 
    /* Limit maximum File size on volume to user specified value */
    if (dev->state & ST_TAPE) {
-      if ((dev->max_file_size > 0) && dev->file_bytes >= dev->max_file_size) {
-      weof_dev(dev, 1); 	      /* write eof */
-   }
+      if ((dev->max_file_size > 0) && dev->file_addr >= dev->max_file_size) {
+	 weof_dev(dev, 1);		 /* write eof */
+      }
    }
 
+   dev->block_num++;
+   block->BlockNumber++;
    Dmsg2(190, "write_block: wrote block %d bytes=%d\n", dev->block_num,
       wlen);
    empty_block(block);

@@ -55,9 +55,25 @@ void get_current_time(struct date_time *dt)
 #endif
 }
 
+/*
+ * Bacula's time (btime_t) is an unsigned 64 bit integer that contains
+ *   the number of microseconds since Epoch Time (1 Jan 1970).
+ */
+
 btime_t get_current_btime()
 {
-   return (btime_t)time(NULL);
+   struct timeval tv;
+   if (gettimeofday(&tv, NULL) != 0) {
+      tv.tv_sec = (long)time(NULL);   /* fall back to old method */
+      tv.tv_usec = 0;
+   }
+   return ((btime_t)tv.tv_sec) * 1000000 + (btime_t)tv.tv_usec;
+}
+
+/* Convert btime to Unix time */
+time_t btime_to_etime(btime_t bt)
+{
+   return (time_t)(bt/1000000); 		   
 }
 
 

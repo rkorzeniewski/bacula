@@ -35,7 +35,7 @@
 #include "cats/cats.h"
 
 /* Forward referenced functions */
-static void do_scan(char *fname);
+static void do_scan(void);
 static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
 static int  create_file_attributes_record(B_DB *db, JCR *mjcr, 
 			       char *fname, char *lname, int type,
@@ -57,7 +57,7 @@ static int update_MD5_record(B_DB *db, char *MD5buf, DEV_RECORD *rec);
 static DEVICE *dev = NULL;
 static B_DB *db;
 static JCR *bjcr;		      /* jcr for bscan */
-static BSR *bsr;
+static BSR *bsr = NULL;
 static struct stat statp;
 static int type;
 static long record_file_index;
@@ -85,12 +85,17 @@ static int update_db = 0;
 static int update_vol_info = 0;
 static int list_records = 0;
 
+#define CONFIG_FILE "bacula-sd.conf"
+char *configfile;
+
+
 static void usage()
 {
    fprintf(stderr, _(
 "\nVersion: " VERSION " (" DATE ")\n\n"
 "Usage: bscan [-d debug_level] <bacula-archive>\n"
 "       -b bootstrap      specify a bootstrap file\n"
+"       -c <file>         specify configuration file\n"
 "       -dnn              set debug level to nn\n"
 "       -m                update media info in database\n"
 "       -n name           specify the database name (default bacula)\n"
@@ -112,11 +117,19 @@ int main (int argc, char *argv[])
    init_msg(NULL, NULL);
 
 
-   while ((ch = getopt(argc, argv, "b:d:mn:p:rsu:vw:?")) != -1) {
+   while ((ch = getopt(argc, argv, "b:c:d:mn:p:rsu:vw:?")) != -1) {
       switch (ch) {
          case 'b':
 	    bsr = parse_bsr(NULL, optarg);
 	    break;
+
+         case 'c':                    /* specify config file */
+	    if (configfile != NULL) {
+	       free(configfile);
+	    }
+	    configfile = bstrdup(optarg);
+	    break;
+
          case 'd':                    /* debug level */
 	    debug_level = atoi(optarg);
 	    if (debug_level <= 0)
@@ -171,7 +184,17 @@ int main (int argc, char *argv[])
 
    working_directory = wd;
 
+   if (configfile == NULL) {
+      configfile = bstrdup(CONFIG_FILE);
+   }
+
+   parse_config(configfile);
+
    bjcr = setup_jcr("bscan", argv[0], bsr);
+   dev = setup_to_access_device(bjcr, 0);   /* read device */
+   if (!dev) { 
+      exit(1);
+   }
 
    if ((db=db_init_database(NULL, db_name, db_user, db_password)) == NULL) {
       Emsg0(M_ERROR_TERM, 0, _("Could not init Bacula database\n"));
@@ -184,21 +207,15 @@ int main (int argc, char *argv[])
       Pmsg2(000, _("Using Database: %s, User: %s\n"), db_name, db_user);
    }
 
-   do_scan(argv[0]);
+   do_scan();
 
    free_jcr(bjcr);
    return 0;
 }
   
 
-static void do_scan(char *devname)	       
+static void do_scan()		  
 {
-
-   dev = setup_to_read_device(bjcr);
-   if (!dev) { 
-      exit(1);
-   }
-
    fname = get_pool_memory(PM_FNAME);
    ofile = get_pool_memory(PM_FNAME);
    lname = get_pool_memory(PM_FNAME);
@@ -336,10 +353,15 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	    mjcr = create_job_record(db, &jr, &label, rec);
 	    update_db = save_update_db;
 
-	       jr.PoolId = pr.PoolId;
-	       /* Set start positions into JCR */
-	    mjcr->StartBlock = dev->block_num;
-	    mjcr->StartFile = dev->file;
+	    jr.PoolId = pr.PoolId;
+	    /* Set start positions into JCR */
+	    if (dev->state & ST_TAPE) {
+	       mjcr->StartBlock = dev->block_num;
+	       mjcr->StartFile = dev->file;
+	    } else {
+	       mjcr->StartBlock = (uint32_t)dev->file_addr;
+	       mjcr->StartFile = (uint32_t)(dev->file_addr >> 32);
+	    }
 	    mjcr->start_time = jr.StartTime;
 	    mjcr->JobLevel = jr.Level;
 
@@ -438,7 +460,7 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 
 
    /* File Attributes stream */
-   if (rec->Stream == STREAM_UNIX_ATTRIBUTES) {
+   if (rec->Stream == STREAM_UNIX_ATTRIBUTES || rec->Stream == STREAM_WIN32_ATTRIBUTES) {
       char *ap, *lp, *fp;
 
       if (sizeof_pool_memory(fname) < rec->data_len) {
@@ -504,7 +526,7 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
       }
       free_jcr(mjcr);
 
-   /* Data stream and extracting */
+   /* Data stream */
    } else if (rec->Stream == STREAM_FILE_DATA) {
       mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
       if (!mjcr) {
@@ -515,6 +537,16 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
       mjcr->JobBytes += rec->data_len;
       free_jcr(mjcr);		      /* done using JCR */
 
+   } else if (rec->Stream == STREAM_SPARSE_DATA) {
+      mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
+      if (!mjcr) {
+         Pmsg2(000, _("Could not find Job SessId=%d SessTime=%d for Attributes record.\n"),
+		      rec->VolSessionId, rec->VolSessionTime);
+	 return;
+      }
+      mjcr->JobBytes += rec->data_len - sizeof(uint64_t);
+      free_jcr(mjcr);		      /* done using JCR */
+
    } else if (rec->Stream == STREAM_GZIP_DATA) {
       mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
       if (!mjcr) {
@@ -522,8 +554,19 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 		      rec->VolSessionId, rec->VolSessionTime);
 	 return;
       }
-      mjcr->JobBytes += rec->data_len;
+      mjcr->JobBytes += rec->data_len; /* No correct, we should expand it */
       free_jcr(mjcr);		      /* done using JCR */
+
+   } else if (rec->Stream == STREAM_SPARSE_GZIP_DATA) {
+      mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
+      if (!mjcr) {
+         Pmsg2(000, _("Could not find Job SessId=%d SessTime=%d for Attributes record.\n"),
+		      rec->VolSessionId, rec->VolSessionTime);
+	 return;
+      }
+      mjcr->JobBytes += rec->data_len - sizeof(uint64_t); /* No correct, we should expand it */
+      free_jcr(mjcr);		      /* done using JCR */
+
 
    } else if (rec->Stream == STREAM_MD5_SIGNATURE) {
       char MD5buf[30];
@@ -532,6 +575,15 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
          Pmsg1(000, _("Got MD5 record: %s\n"), MD5buf);
       }
       update_MD5_record(db, MD5buf, rec);
+
+   } else if (rec->Stream == STREAM_PROGRAM_NAMES) {
+      if (verbose) {
+         Pmsg1(000, _("Got Prog Names Stream: %s\n"), rec->data);
+      }
+   } else if (rec->Stream == STREAM_PROGRAM_DATA) {
+      if (verbose > 1) {
+         Pmsg0(000, _("Got Prog Data Stream record.\n"));
+      }
    } else {
       Pmsg2(0, _("Unknown stream type!!! stream=%d data=%s\n"), rec->Stream, rec->data);
    }
@@ -608,11 +660,12 @@ static int create_media_record(B_DB *db, MEDIA_DBR *mr, VOLUME_LABEL *vl)
    struct tm tm;
 
    strcpy(mr->VolStatus, "Full");
-   mr->VolRetention = 355 * 3600 * 24; /* 1 year */
+   mr->VolRetention = 365 * 3600 * 24; /* 1 year */
    if (vl->VerNum >= 11) {
-      mr->FirstWritten = (time_t)vl->write_btime;
-      mr->LabelDate    = (time_t)vl->label_btime;
+      mr->FirstWritten = btime_to_etime(vl->write_btime);
+      mr->LabelDate    = btime_to_etime(vl->label_btime);
    } else {
+      /* DEPRECATED DO NOT USE */
       dt.julian_day_number = vl->write_date;
       dt.julian_day_fraction = vl->write_time;
       tm_decode(&dt, &tm);
@@ -748,7 +801,7 @@ static JCR *create_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *label,
    strcpy(jr->Name, label->JobName);
    strcpy(jr->Job, label->Job);
    if (label->VerNum >= 11) {
-      jr->SchedTime = (time_t)label->write_btime;
+      jr->SchedTime = btime_to_etime(label->write_btime);
    } else {
       dt.julian_day_number = label->write_date;
       dt.julian_day_fraction = label->write_time;
@@ -805,7 +858,7 @@ static int update_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *elabel,
       return 0;
    }
    if (elabel->VerNum >= 11) {
-      jr->EndTime = (time_t)elabel->write_btime;
+      jr->EndTime = btime_to_etime(elabel->write_btime);
    } else {
       dt.julian_day_number = elabel->write_date;
       dt.julian_day_fraction = elabel->write_time;
@@ -899,8 +952,13 @@ static int create_jobmedia_record(B_DB *db, JCR *mjcr)
 {
    JOBMEDIA_DBR jmr;
 
-   mjcr->EndBlock = dev->block_num;
-   mjcr->EndFile = dev->file;
+   if (dev->state & ST_TAPE) {
+      mjcr->EndBlock = dev->block_num;
+      mjcr->EndFile = dev->file;
+   } else {
+      mjcr->EndBlock = (uint32_t)dev->file_addr;
+      mjcr->EndFile = (uint32_t)(dev->file_addr >> 32);
+   }
 
    memset(&jmr, 0, sizeof(jmr));
    jmr.JobId = mjcr->JobId;
@@ -1007,8 +1065,13 @@ int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
       if (verbose) {
          Pmsg1(000, "create JobMedia for Job %s\n", mjcr->Job);
       }
-      mjcr->EndBlock = dev->block_num;
-      mjcr->EndFile = dev->file;
+      if (dev->state & ST_TAPE) {
+	 mjcr->EndBlock = dev->block_num;
+	 mjcr->EndFile = dev->file;
+      } else {
+	 mjcr->EndBlock = (uint32_t)dev->file_addr;
+	 mjcr->StartBlock = (uint32_t)(dev->file_addr >> 32);
+      }
       if (!create_jobmedia_record(db, mjcr)) {
          Pmsg2(000, _("Could not create JobMedia record for Volume=%s Job=%s\n"),
 	    dev->VolCatInfo.VolCatName, mjcr->Job);

@@ -430,7 +430,7 @@ int db_create_file_attributes_record(B_DB *mdb, ATTR_DBR *ar)
    /* For the moment, we only handle Unix attributes.  Note, we are
     * also getting any MD5 signature that was computed.
     */
-   if (ar->Stream != STREAM_UNIX_ATTRIBUTES) {
+   if (!(ar->Stream == STREAM_UNIX_ATTRIBUTES || ar->Stream == STREAM_WIN32_ATTRIBUTES)) {
       Mmsg0(&mdb->errmsg, _("Attempt to put non-attributes into catalog\n"));
       Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
       return 0;

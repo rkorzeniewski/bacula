@@ -232,7 +232,7 @@ static struct res_items pool_items[] = {
    {"usecatalog",      store_yesno, ITEM(res_pool.use_catalog),     1, ITEM_DEFAULT,  1},
    {"usevolumeonce",   store_yesno, ITEM(res_pool.use_volume_once), 1, 0,       0},
    {"maximumvolumes",  store_pint,  ITEM(res_pool.max_volumes),     0, 0,             0},
-   {"acceptanyvolume", store_yesno, ITEM(res_pool.accept_any_volume), 1, 0,     0},
+   {"acceptanyvolume", store_yesno, ITEM(res_pool.accept_any_volume), 1, ITEM_DEFAULT,     1},
    {"catalogfiles",    store_yesno, ITEM(res_pool.catalog_files),   1, ITEM_DEFAULT,  1},
    {"volumeretention", store_time,  ITEM(res_pool.VolRetention), 0, ITEM_DEFAULT, 60*60*24*365},
    {"autoprune",       store_yesno, ITEM(res_pool.AutoPrune), 1, ITEM_DEFAULT, 1},
@@ -348,6 +348,7 @@ static struct s_kw ReplaceOptions[] = {
 #define FS_KW_VERIFY	   4
 #define FS_KW_ONEFS	   5
 #define FS_KW_RECURSE	   6
+#define FS_KW_SPARSE	   7
 
 /* FileSet keywords */
 static struct s_kw FS_option_kw[] = {
@@ -357,6 +358,7 @@ static struct s_kw FS_option_kw[] = {
    {"verify",      FS_KW_VERIFY},
    {"onefs",       FS_KW_ONEFS},
    {"recurse",     FS_KW_RECURSE},
+   {"sparse",      FS_KW_SPARSE},
    {NULL,	   0}
 };
 
@@ -387,6 +389,8 @@ static struct s_fs_opt FS_options[] = {
    {"no",       FS_KW_ONEFS,         "f"},
    {"yes",      FS_KW_RECURSE,       "0"},
    {"no",       FS_KW_RECURSE,       "h"},
+   {"yes",      FS_KW_SPARSE,        "s"},
+   {"no",       FS_KW_SPARSE,        "0"},
    {NULL,	0,		     0}
 };
 

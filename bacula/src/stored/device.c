@@ -92,8 +92,13 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       Dmsg1(100, "Walk attached jcrs. Volume=%s\n", dev->VolCatInfo.VolCatName);
       for (JCR *mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
          Dmsg1(100, "create JobMedia for Job %s\n", mjcr->Job);
-	 mjcr->EndBlock = dev->block_num;
-	 mjcr->EndFile = dev->file;
+	 if (dev->state & ST_TAPE) {
+	    mjcr->EndBlock = dev->block_num;
+	    mjcr->EndFile = dev->file;
+	 } else {
+	    mjcr->EndBlock = (uint32_t)dev->file_addr;
+	    mjcr->EndFile = (uint32_t)(dev->file_addr >> 32);
+	 }
 	 if (!dir_create_jobmedia_record(mjcr)) {
             Jmsg(mjcr, M_ERROR, 0, _("Could not create JobMedia record for Volume=%s Job=%s\n"),
 	       dev->VolCatInfo.VolCatName, mjcr->Job);
@@ -165,8 +170,13 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       free_block(label_blk);
       for (JCR *mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
 	 /* Set new start/end positions */
-	 mjcr->StartBlock = dev->block_num;
-	 mjcr->StartFile = dev->file;
+	 if (dev->state & ST_TAPE) {
+	    mjcr->StartBlock = dev->block_num;
+	    mjcr->StartFile = dev->file;
+	 } else {
+	    mjcr->StartBlock = (uint32_t)dev->file_addr;
+	    mjcr->StartFile  = (uint32_t)(dev->file_addr >> 32);
+	 }
 	 mjcr->VolFirstFile = mjcr->JobFiles;
 	 mjcr->run_time += time(NULL) - wait_time; /* correct run time */
       }

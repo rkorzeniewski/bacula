@@ -26,7 +26,6 @@
  */
 
 #include "findlib/find.h"
-#include "lib/save-cwd.h"
 #define FILE_DAEMON 1
 #include "jcr.h"
 #include "protos.h"                   /* file daemon prototypes */

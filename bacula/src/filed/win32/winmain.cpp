@@ -21,6 +21,7 @@
    Copyright (2000) Kern E. Sibbald
 */
 
+#include <unistd.h>
 #include <lmcons.h>
 #include <ctype.h>
 #include "winbacula.h"

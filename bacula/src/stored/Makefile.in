@@ -38,19 +38,19 @@ TAPEOBJS = btape.o block.o butil.o dev.o device.o label.o \
 	   stored_conf.o match_bsr.o parse_bsr.o
 
 # bls
-BLSOBJS = bls.o block.o device.o dev.o label.o match_bsr.o \
-	  acquire.o mount.o parse_bsr.o record.o butil.o \
-	  read_record.o 
+BLSOBJS = bls.o block.o butil.o device.o dev.o label.o match_bsr.o \
+	  acquire.o mount.o parse_bsr.o record.o  \
+	  read_record.o stored_conf.o
 
 # bextract
 BEXTOBJS = bextract.o block.o device.o dev.o label.o record.o \
 	   acquire.o mount.o match_bsr.o parse_bsr.o butil.o \
-	   read_record.o
+	   read_record.o stored_conf.o
 
 # bscan
 SCNOBJS = bscan.o block.o device.o dev.o label.o \
 	  acquire.o mount.o record.o match_bsr.o parse_bsr.o \
-	  butil.o read_record.o
+	  butil.o read_record.o stored_conf.o
 
 
 # bpool is deprecated
@@ -91,13 +91,13 @@ btape:	$(TAPEOBJS) ../lib/libbac.a ../cats/libsql.a
 	$(CXX) $(TTOOL_LDFLSGS) $(LDFLAGS) -L../lib -L../cats  -o $@ $(TAPEOBJS) -lsql $(LIBS) $(DLIB) -lbac -lm
 
 bls:	../findlib/libfind.a $(BLSOBJS) ../lib/libbac.a
-	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(BLSOBJS) $(LIBS) $(DLIB) -lbac -lfind -lm
+	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(BLSOBJS) $(LIBS) $(DLIB) -lfind -lbac -lm
 
 bextract: ../findlib/libfind.a $(BEXTOBJS) ../lib/libbac.a
-	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(BEXTOBJS) $(LIBS) $(DLIB) $(FDLIBS) -lbac -lfind -lm
+	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(BEXTOBJS) $(LIBS) $(DLIB) $(FDLIBS) -lfind -lbac -lm
 
 bscan: ../findlib/libfind.a $(SCNOBJS) ../cats/libsql.a
-	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../cats -L../findlib -o $@ $(SCNOBJS) -lsql $(LIBS) $(DB_LIBS) $(FDLIBS) -lbac -lfind -lm
+	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../cats -L../findlib -o $@ $(SCNOBJS) -lsql $(LIBS) $(DB_LIBS) $(FDLIBS) -lfind -lbac -lm
 
 
 

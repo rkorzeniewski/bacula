@@ -120,6 +120,9 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, char *fname)
             case 'f':
 	       inc->options |= OPT_multifs;
 	       break;
+            case 's':
+	       inc->options |= OPT_sparse;
+	       break;
             case 'V':                  /* verify options */
 	       /* Copy Verify Options */
                for (j=0; *p && *p != ':'; p++) {
@@ -203,6 +206,7 @@ struct s_included_file *get_next_included_file(FF_PKT *ff, struct s_included_fil
       inc = ainc->next;
    }
    if (inc) {
+      ff->flags = inc->options;
       if (inc->options & OPT_compute_MD5) {
 	 ff->compute_MD5 = 1;
       } else {

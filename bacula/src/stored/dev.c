@@ -95,24 +95,25 @@ extern int debug_level;
  * thus we neither allocate it nor free it. This allows
  * the caller to put the packet in shared memory.
  *
- *  Note, for a tape, the dev_name is the device name
+ *  Note, for a tape, the device->device_name is the device name
  *     (e.g. /dev/nst0), and for a file, the device name
  *     is the directory in which the file will be placed.
  *
  */
 DEVICE *
-init_dev(DEVICE *dev, char *dev_name)
+init_dev(DEVICE *dev, DEVRES *device)
 {
    struct stat statp;
    int tape;
    int errstat;
 
    /* Check that device is available */
-   if (stat(dev_name, &statp) < 0) {
+   if (stat(device->device_name, &statp) < 0) {
       if (dev) {
 	 dev->dev_errno = errno;
       } 
-      Emsg2(M_FATAL, 0, "Unable to stat device %s : %s\n", dev_name, strerror(errno));
+      Emsg2(M_FATAL, 0, "Unable to stat device %s : %s\n", device->device_name, 
+	    strerror(errno));
       return NULL;
    }
    tape = FALSE;
@@ -138,18 +139,25 @@ init_dev(DEVICE *dev, char *dev_name)
    if (tape) {
       dev->state |= ST_TAPE;
    }
-   dev->dev_name = get_memory(strlen(dev_name)+1);
-   strcpy(dev->dev_name, dev_name);
+
+   /* Copy user supplied device parameters from Resource */
+   dev->dev_name = get_memory(strlen(device->device_name)+1);
+   strcpy(dev->dev_name, device->device_name);
+   dev->capabilities = device->cap_bits;
+   dev->min_block_size = device->min_block_size;
+   dev->max_block_size = device->max_block_size;
+   dev->max_volume_jobs = device->max_volume_jobs;
+   dev->max_volume_files = device->max_volume_files;
+   dev->max_volume_size = device->max_volume_size;
+   dev->max_file_size = device->max_file_size;
+   dev->volume_capacity = device->volume_capacity;
+   dev->max_rewind_wait = device->max_rewind_wait;
+   dev->max_open_wait = device->max_open_wait;
+   dev->device = device;
+
 
    dev->errmsg = get_pool_memory(PM_EMSG);
    *dev->errmsg = 0;
-
-#ifdef NEW_LOCK
-   if ((errstat=rwl_init(&dev->lock)) != 0) {
-      Mmsg1(&dev->errmsg, _("Unable to initialize dev lock. ERR=%s\n"), strerror(errstat));
-      Emsg0(M_FATAL, 0, dev->errmsg);
-   }
-#endif
 
    if ((errstat = pthread_mutex_init(&dev->mutex, NULL)) != 0) {
       dev->dev_errno = errstat;
@@ -289,7 +297,7 @@ int rewind_dev(DEVICE *dev)
    }
    dev->state &= ~(ST_APPEND|ST_READ|ST_EOT | ST_EOF | ST_WEOT);  /* remove EOF/EOT flags */
    dev->block_num = dev->file = 0;
-   dev->file_bytes = 0;
+   dev->file_addr = 0;
    if (dev->state & ST_TAPE) {
       mt_com.mt_op = MTREW;
       mt_com.mt_count = 1;
@@ -344,7 +352,7 @@ eod_dev(DEVICE *dev)
    }
    dev->state &= ~(ST_EOF);  /* remove EOF flags */
    dev->block_num = dev->file = 0;
-   dev->file_bytes = 0;
+   dev->file_addr = 0;
    if (!(dev->state & ST_TAPE)) {
       pos = lseek(dev->fd, (off_t)0, SEEK_END);
 //    Dmsg1(000, "====== Seek to %lld\n", pos);
@@ -418,7 +426,7 @@ int update_pos_dev(DEVICE *dev)
    /* Find out where we are */
    if (!(dev->state & ST_TAPE)) {
       dev->file = 0;
-      dev->file_bytes = 0;
+      dev->file_addr = 0;
       pos = lseek(dev->fd, (off_t)0, SEEK_CUR);
       if (pos < 0) {
          Dmsg1(000, "Seek error: ERR=%s\n", strerror(dev->dev_errno));
@@ -427,7 +435,7 @@ int update_pos_dev(DEVICE *dev)
 	    dev->dev_name, strerror(dev->dev_errno));
       } else {
 	 stat = 1;
-	 dev->file_bytes = pos;
+	 dev->file_addr = pos;
       }
       return stat;
    }
@@ -559,7 +567,7 @@ int load_dev(DEVICE *dev)
 #else
 
    dev->block_num = dev->file = 0;
-   dev->file_bytes = 0;
+   dev->file_addr = 0;
    mt_com.mt_op = MTLOAD;
    mt_com.mt_count = 1;
    if (ioctl(dev->fd, MTIOCTOP, (char *)&mt_com) < 0) {
@@ -591,7 +599,7 @@ int offline_dev(DEVICE *dev)
    }
 
    dev->block_num = dev->file = 0;
-   dev->file_bytes = 0;
+   dev->file_addr = 0;
 #ifdef MTUNLOCK
    mt_com.mt_op = MTUNLOCK;
    mt_com.mt_count = 1;
@@ -672,7 +680,7 @@ fsf_dev(DEVICE *dev, int num)
 	    } else {
 	       dev->state |= ST_EOF;
 	       dev->file++;
-	       dev->file_bytes = 0;
+	       dev->file_addr = 0;
 	       continue;
 	    }
 	 } else {			 /* Got data */
@@ -692,7 +700,7 @@ fsf_dev(DEVICE *dev, int num)
 	 } else {
 	    dev->state |= ST_EOF;     /* just read EOF */
 	    dev->file++;
-	    dev->file_bytes = 0;
+	    dev->file_addr = 0;
 	 }   
       }
    
@@ -744,7 +752,7 @@ bsf_dev(DEVICE *dev, int num)
    Dmsg0(29, "bsf_dev\n");
    dev->state &= ~(ST_EOT|ST_EOF);
    dev->file -= num;
-   dev->file_bytes = 0;
+   dev->file_addr = 0;
    mt_com.mt_op = MTBSF;
    mt_com.mt_count = num;
    stat = ioctl(dev->fd, MTIOCTOP, (char *)&mt_com);
@@ -790,7 +798,7 @@ fsr_dev(DEVICE *dev, int num)
       } else {
 	 dev->state |= ST_EOF;		 /* assume EOF */
 	 dev->file++;
-	 dev->file_bytes = 0;
+	 dev->file_addr = 0;
       }
       clrerror_dev(dev, MTFSR);
       Mmsg2(&dev->errmsg, _("ioctl MTFSR error on %s. ERR=%s.\n"),
@@ -863,7 +871,7 @@ weof_dev(DEVICE *dev, int num)
    stat = ioctl(dev->fd, MTIOCTOP, (char *)&mt_com);
    if (stat == 0) {
       dev->file++;
-      dev->file_bytes = 0;
+      dev->file_addr = 0;
    } else {
       clrerror_dev(dev, MTWEOF);
       Mmsg2(&dev->errmsg, _("ioctl MTWEOF error on %s. ERR=%s.\n"),
@@ -972,7 +980,7 @@ static void do_close(DEVICE *dev)
    dev->state &= ~(ST_OPENED|ST_LABEL|ST_READ|ST_APPEND|ST_EOT|ST_WEOT|ST_EOF);
    dev->block_num = 0;
    dev->file = 0;
-   dev->file_bytes = 0;
+   dev->file_addr = 0;
    dev->LastBlockNumWritten = 0;
    memset(&dev->VolCatInfo, 0, sizeof(dev->VolCatInfo));
    memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));

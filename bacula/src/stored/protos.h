@@ -57,15 +57,16 @@ int	write_block_to_dev(DEVICE *dev, DEV_BLOCK *block);
 int	read_block_from_device(DEVICE *dev, DEV_BLOCK *block);
 int	read_block_from_dev(DEVICE *dev, DEV_BLOCK *block);
 
-/* From butil.c */
-void print_ls_output(char *fname, char *link, int type, struct stat *statp);
-JCR *setup_jcr(char *name, char *device, BSR *bsr); 
-DEVICE *setup_to_read_device(JCR *jcr);
-void display_error_status(DEVICE *dev);
+/* From butil.c -- utilities for SD tool programs */
+void	print_ls_output(char *fname, char *link, int type, struct stat *statp);
+JCR    *setup_jcr(char *name, char *device, BSR *bsr); 
+DEVICE *setup_to_access_device(JCR *jcr, int read_access);
+void	display_error_status(DEVICE *dev);
+DEVRES *find_device_res(char *device_name);
 
 
 /* From dev.c */
-DEVICE	*init_dev(DEVICE *dev, char *device);
+DEVICE	*init_dev(DEVICE *dev, DEVRES *device);
 int	 open_dev(DEVICE *dev, char *VolName, int mode);
 void	 close_dev(DEVICE *dev);
 void	 force_close_dev(DEVICE *dev);
@@ -164,7 +165,7 @@ extern void create_vol_list(JCR *jcr);
 
 /* From record.c */
 char   *FI_to_ascii(int fi);
-char   *stream_to_ascii(int stream);
+char   *stream_to_ascii(int stream, int fi);
 int	write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec);
 int	can_write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec);
 int	read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec); 

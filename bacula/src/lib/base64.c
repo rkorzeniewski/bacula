@@ -127,95 +127,6 @@ from_base64(intmax_t *value, char *where)
    return i;
 }
 
-/* Encode a stat structure into a base64 character string */
-void
-encode_stat(char *buf, struct stat *statp)
-{
-   char *p = buf;
-   /*
-    * NOTE: we should use rdev as major and minor device if
-    * it is a block or char device (S_ISCHR(statp->st_mode)
-    * or S_ISBLK(statp->st_mode)).  In all other cases,
-    * it is not used.	
-    *
-    */
-   p += to_base64((intmax_t)statp->st_dev, p);
-   *p++ = ' ';                        /* separate fields with a space */
-   p += to_base64((intmax_t)statp->st_ino, p);
-   *p++ = ' ';
-   p += to_base64((intmax_t)statp->st_mode, p);
-   *p++ = ' ';
-   p += to_base64((intmax_t)statp->st_nlink, p);
-   *p++ = ' ';
-   p += to_base64((intmax_t)statp->st_uid, p);
-   *p++ = ' ';
-   p += to_base64((intmax_t)statp->st_gid, p);
-   *p++ = ' ';
-   p += to_base64((intmax_t)statp->st_rdev, p);
-   *p++ = ' ';
-   p += to_base64((intmax_t)statp->st_size, p);
-   *p++ = ' ';
-   p += to_base64((intmax_t)statp->st_blksize, p);
-   *p++ = ' ';
-   p += to_base64((intmax_t)statp->st_blocks, p);
-   *p++ = ' ';
-   p += to_base64((intmax_t)statp->st_atime, p);
-   *p++ = ' ';
-   p += to_base64((intmax_t)statp->st_mtime, p);
-   *p++ = ' ';
-   p += to_base64((intmax_t)statp->st_ctime, p);
-   *p++ = 0;
-   return;
-}
-
-
-/* Decode a stat packet from base64 characters */
-void
-decode_stat(char *buf, struct stat *statp)
-{
-   char *p = buf;
-   intmax_t val;
-
-   p += from_base64(&val, p);
-   statp->st_dev = val;
-   p++; 			      /* skip space */
-   p += from_base64(&val, p);
-   statp->st_ino = val;
-   p++;
-   p += from_base64(&val, p);
-   statp->st_mode = val;
-   p++;
-   p += from_base64(&val, p);
-   statp->st_nlink = val;
-   p++;
-   p += from_base64(&val, p);
-   statp->st_uid = val;
-   p++;
-   p += from_base64(&val, p);
-   statp->st_gid = val;
-   p++;
-   p += from_base64(&val, p);
-   statp->st_rdev = val;
-   p++;
-   p += from_base64(&val, p);
-   statp->st_size = val;
-   p++;
-   p += from_base64(&val, p);
-   statp->st_blksize = val;
-   p++;
-   p += from_base64(&val, p);
-   statp->st_blocks = val;
-   p++;
-   p += from_base64(&val, p);
-   statp->st_atime = val;
-   p++;
-   p += from_base64(&val, p);
-   statp->st_mtime = val;
-   p++;
-   p += from_base64(&val, p);
-   statp->st_ctime = val;
-   p++;
-}
 
 /*
  * Encode binary data in bin of len bytes into
@@ -285,7 +196,7 @@ int main(int argc, char *argv[])
 #ifdef TEST_MODE
 static int errfunc(const char *epath, int eernoo)
 {
-  Dmsg0(-1, "in errfunc\n");
+  printf("in errfunc\n");
   return 1;
 }
 
@@ -321,13 +232,16 @@ int main(int argc, char *argv[])
 	 continue;
       }
       encode_stat(where, &statp);
+
+      printf("Encoded stat=%s\n", where);
+     
+#ifdef xxx
       p = where;
       p += to_base64((intmax_t)(statp.st_atime), p);
       *p++ = ' ';
       p += to_base64((intmax_t)t, p);
       printf("%s %s\n", fname, where);
 
-#ifdef xxxx
       printf("%s %lld\n", "st_dev", (intmax_t)statp.st_dev);
       printf("%s %lld\n", "st_ino", (intmax_t)statp.st_ino);
       printf("%s %lld\n", "st_mode", (intmax_t)statp.st_mode);
@@ -343,13 +257,11 @@ int main(int argc, char *argv[])
       printf("%s %lld\n", "st_ctime", (intmax_t)statp.st_ctime);
 #endif
 
-
       if (debug_level)
          printf("%s: len=%d val=%s\n", fname, strlen(where), where);
       
       decode_stat(where, &statn);
 
-#ifdef xxx
       if (statp.st_dev != statn.st_dev || 
 	  statp.st_ino != statn.st_ino ||
 	  statp.st_mode != statn.st_mode ||
@@ -369,12 +281,14 @@ int main(int argc, char *argv[])
          printf("%s: %s\n", fname, where);
          printf("NOT EQAL\n");
       }
-#endif
 
    }
    globfree(&my_glob);
 
    printf("%d files examined\n", i);
+
+   to_base64(UINT32_MAX, where);
+   printf("UINT32_MAX=%s\n", where);
 
    return 0;
 }   

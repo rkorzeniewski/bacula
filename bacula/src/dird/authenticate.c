@@ -131,7 +131,8 @@ int authenticate_user_agent(BSOCK *ua)
 
 
    if (sscanf(ua->msg, "Hello %127s calling\n", name) != 1) {
-      Emsg1(M_FATAL, 0, _("Authentication failure: %s"), ua->msg);
+      ua->msg[100] = 0; 	      /* terminate string */
+      Emsg1(M_ERROR, 0, _("Authentication failure: %s"), ua->msg);
       return 0;
    }
 

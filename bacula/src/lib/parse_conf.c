@@ -488,8 +488,8 @@ void store_size(LEX *lc, struct res_items *item, int index, int pass)
       /* Look for modifier */
       ch = lc->str[lc->str_len - 1];
       i = 0;
-      if (ISALPHA(ch)) {
-	 if (ISUPPER(ch)) {
+      if (B_ISALPHA(ch)) {
+	 if (B_ISUPPER(ch)) {
 	    ch = tolower(ch);
 	 }
 	 while (mod[++i] != 0) {

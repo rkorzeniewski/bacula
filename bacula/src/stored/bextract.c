@@ -53,6 +53,7 @@ static long total = 0;
 static POOLMEM *fname;			  /* original file name */
 static POOLMEM *ofile;			  /* output name with prefix */
 static POOLMEM *lname;			  /* link name */
+static POOLMEM *attribsEx;		  /* extended attributes (Win32) */
 static char *where;
 static int wherelen;			  /* prefix length */
 static uint32_t num_files = 0;
@@ -60,6 +61,16 @@ static struct stat statp;
 static uint32_t compress_buf_size = 70000;
 static POOLMEM *compress_buf;
 static int type;
+static int stream;
+static int prog_name_msg = 0;
+
+static char *wbuf;		      /* write buffer address */
+static uint32_t wsize;		      /* write size */
+static uint64_t fileAddr = 0;	      /* file write address */
+
+#define CONFIG_FILE "bacula-sd.conf"
+char *configfile;
+
 
 static void usage()
 {
@@ -67,6 +78,7 @@ static void usage()
 "\nVersion: " VERSION " (" DATE ")\n\n"
 "Usage: bextract [-d debug_level] <bacula-archive> <directory-to-store-files>\n"
 "       -b <file>       specify a bootstrap file\n"
+"       -c <file>       specify a configuration file\n"
 "       -dnn            set debug level to nn\n"
 "       -e <file>       exclude list\n"
 "       -i <file>       include list\n"
@@ -89,11 +101,18 @@ int main (int argc, char *argv[])
    memset(ff, 0, sizeof(FF_PKT));
    init_include_exclude_files(ff);
 
-   while ((ch = getopt(argc, argv, "b:d:e:i:?")) != -1) {
+   while ((ch = getopt(argc, argv, "b:c:d:e:i:?")) != -1) {
       switch (ch) {
          case 'b':                    /* bootstrap file */
 	    bsr = parse_bsr(NULL, optarg);
 //	    dump_bsr(bsr);
+	    break;
+
+         case 'c':                    /* specify config file */
+	    if (configfile != NULL) {
+	       free(configfile);
+	    }
+	    configfile = bstrdup(optarg);
 	    break;
 
          case 'd':                    /* debug level */
@@ -144,6 +163,13 @@ int main (int argc, char *argv[])
       Pmsg0(0, "Wrong number of arguments: \n");
       usage();
    }
+
+   if (configfile == NULL) {
+      configfile = bstrdup(CONFIG_FILE);
+   }
+
+   parse_config(configfile);
+
    if (!got_inc) {			      /* If no include file, */
       add_fname_to_include_list(ff, 0, "/");  /*   include everything */
    }
@@ -161,7 +187,7 @@ static void do_extract(char *devname)
 {
 
    jcr = setup_jcr("bextract", devname, bsr);
-   dev = setup_to_read_device(jcr);
+   dev = setup_to_access_device(jcr, 1);    /* acquire for read */
    if (!dev) {
       exit(1);
    }
@@ -179,9 +205,7 @@ static void do_extract(char *devname)
    fname = get_pool_memory(PM_FNAME);
    ofile = get_pool_memory(PM_FNAME);
    lname = get_pool_memory(PM_FNAME);
-
-
-
+   attribsEx = get_pool_memory(PM_FNAME);
 
    compress_buf = get_memory(compress_buf_size);
 
@@ -190,8 +214,8 @@ static void do_extract(char *devname)
     * archive since we just hit an end of file, so close the file. 
     */
    if (ofd >= 0) {
-      close(ofd);
-      set_statp(jcr, fname, ofile, lname, type, &statp);
+      set_attributes(jcr, fname, ofile, lname, type, stream, &statp,
+		     attribsEx, &ofd);
    }
    release_device(jcr, dev);
 
@@ -210,25 +234,27 @@ static void do_extract(char *devname)
  */
 static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 {
+
    if (rec->FileIndex < 0) {
       return;                         /* we don't want labels */
    }
 
    /* File Attributes stream */
-   if (rec->Stream == STREAM_UNIX_ATTRIBUTES) {
-      char *ap, *lp, *fp;
+   if (rec->Stream == STREAM_UNIX_ATTRIBUTES || rec->Stream == STREAM_WIN32_ATTRIBUTES) {
+      char *ap, *lp, *fp, *apex;
+
+      stream = rec->Stream;
 
       /* If extracting, it was from previous stream, so
        * close the output file.
        */
       if (extract) {
 	 if (ofd < 0) {
-            Emsg0(M_ERROR_TERM, 0, "Logic error output file should be open\n");
+            Emsg0(M_ERROR, 0, "Logic error output file should be open\n");
 	 }
-	 close(ofd);
-	 ofd = -1;
 	 extract = FALSE;
-	 set_statp(jcr, fname, ofile, lname, type, &statp);
+	 set_attributes(jcr, fname, ofile, lname, type, stream, &statp,
+			attribsEx, &ofd);
       }
 
       if (sizeof_pool_memory(fname) < rec->data_len) {
@@ -250,6 +276,7 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
        *    Filename
        *    Attributes
        *    Link name (if file linked i.e. FT_LNK)
+       *    Extended Attributes (Win32) 
        *
        */
       sscanf(rec->data, "%ld %d", &record_file_index, &type);
@@ -278,6 +305,19 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
          lp = "";
       }
 
+      if (rec->Stream == STREAM_WIN32_ATTRIBUTES) {
+	 apex = ap;		      /* start at attributes */
+	 while (*apex++ != 0) {       /* skip attributes */
+	    ;
+	 }
+	 while (*apex++ != 0) {      /* skip link name */
+	    ;
+	 }
+	 pm_strcpy(&attribsEx, apex);  /* make a copy of Extended attributes */
+      } else {
+	 *attribsEx = 0;	      /* no extended attributes */
+      }
+
 	 
       if (file_is_included(ff, fname) && !file_is_excluded(ff, fname)) {
 
@@ -287,84 +327,120 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	  * files are put where the user wants.
 	  *
 	  * We do a little jig here to handle Win32 files with
-	  * a drive letter.  
-	  *   If where is null and we are running on a win32 client,
-	  *	 change nothing.
-	  *   Otherwise, if the second character of the filename is a
-	  *   colon (:), change it into a slash (/) -- this creates
-	  *   a reasonable pathname on most systems.
+	  *   a drive letter -- we simply strip the drive: from
+	  *   every filename if a prefix is supplied.
 	  */
-	 if (where[0] == 0 && win32_client) {
+	 if (where[0] == 0) {
 	    strcpy(ofile, fname);
 	    strcpy(lname, lp);
 	 } else {
+	    char *fn;
 	    strcpy(ofile, where);
-            if (fname[1] == ':') {
-               fname[1] = '/';
-	       strcat(ofile, fname);
-               fname[1] = ':';
+            if (win32_client && fname[1] == ':') {
+	       fn = fname+2;	      /* skip over drive: */
 	    } else {
-	       strcat(ofile, fname);
+	       fn = fname;	      /* take whole name */
 	    }
+	    /* Ensure where is terminated with a slash */
+            if (where[wherelen-1] != '/' && fn[0] != '/') {
+               strcat(ofile, "/");
+	    }
+	    strcat(ofile, fn);	      /* copy rest of name */
 	    /* Fixup link name */
 	    if (type == FT_LNK || type == FT_LNKSAVED) {
                if (lp[0] == '/') {      /* if absolute path */
 		  strcpy(lname, where);
 	       }       
-               /* ***FIXME**** we shouldn't have links on Windoz */
-               if (lp[1] == ':') {
-                  lp[1] = '/';
-		  strcat(lname, lp);
-                  lp[1] = ':';
+               if (win32_client && lp[1] == ':') {
+		  strcat(lname, lp+2); /* copy rest of name */
 	       } else {
-		  strcat(lname, lp);
+		  strcat(lname, lp);   /* On Unix systems we take everything */
 	       }
 	    }
 	 }
 
-           /*          Pmsg1(000, "Restoring: %s\n", ofile); */
+         /*          Pmsg1(000, "Restoring: %s\n", ofile); */
 
-	 extract = create_file(jcr, fname, ofile, lname, type, &statp, &ofd);
+	 extract = create_file(jcr, fname, ofile, lname, type, stream,
+			       &statp, attribsEx, &ofd);
 	 num_files++;
 
 	 if (extract) {
 	     print_ls_output(ofile, lname, type, &statp);   
+	     fileAddr = 0;
 	 }
       }
 
    /* Data stream and extracting */
-   } else if (rec->Stream == STREAM_FILE_DATA) {
+   } else if (rec->Stream == STREAM_FILE_DATA || rec->Stream == STREAM_SPARSE_DATA) {
       if (extract) {
-	 total += rec->data_len;
-         Dmsg2(8, "Write %ld bytes, total=%ld\n", rec->data_len, total);
-	 if ((uint32_t)write(ofd, rec->data, rec->data_len) != rec->data_len) {
-            Emsg1(M_ERROR_TERM, 0, "Write error: %s\n", strerror(errno));
+	 if (rec->Stream == STREAM_SPARSE_DATA) {
+	    ser_declare;
+	    uint64_t faddr;
+	    wbuf = rec->data + SPARSE_FADDR_SIZE;
+	    wsize = rec->data_len - SPARSE_FADDR_SIZE;
+	    ser_begin(rec->data, SPARSE_FADDR_SIZE);
+	    unser_uint64(faddr);
+	    if (fileAddr != faddr) {
+	       fileAddr = faddr;
+	       if (lseek(ofd, (off_t)fileAddr, SEEK_SET) < 0) {
+                  Emsg2(M_ERROR_TERM, 0, _("Seek error on %s: %s\n"), ofile, strerror(errno));
+	       }
+	    }
+	 } else {
+	    wbuf = rec->data;
+	    wsize = rec->data_len;
 	 }
+	 total += wsize;
+         Dmsg2(8, "Write %u bytes, total=%u\n", wsize, total);
+	 if ((uint32_t)write(ofd, wbuf, wsize) != wsize) {
+            Emsg2(M_ERROR_TERM, 0, _("Write error on %s: %s\n"), ofile, strerror(errno));
+	 }
+	 fileAddr += wsize;
       }
 
    } else if (rec->Stream == STREAM_GZIP_DATA) {
 #ifdef HAVE_LIBZ
       if (extract) {
 	 uLongf compress_len;
+	 int stat;
 
+	 if (rec->Stream == STREAM_SPARSE_GZIP_DATA) {
+	    ser_declare;
+	    uint64_t faddr;
+	    wbuf = rec->data + SPARSE_FADDR_SIZE;
+	    wsize = rec->data_len - SPARSE_FADDR_SIZE;
+	    ser_begin(rec->data, SPARSE_FADDR_SIZE);
+	    unser_uint64(faddr);
+	    if (fileAddr != faddr) {
+	       fileAddr = faddr;
+	       if (lseek(ofd, (off_t)fileAddr, SEEK_SET) < 0) {
+                  Emsg2(M_ERROR, 0, _("Seek error on %s: %s\n"), ofile, strerror(errno));
+	       }
+	    }
+	 } else {
+	    wbuf = rec->data;
+	    wsize = rec->data_len;
+	 }
 	 compress_len = compress_buf_size;
-	 if (uncompress((Bytef *)compress_buf, &compress_len, 
-	       (const Bytef *)rec->data, (uLong)rec->data_len) != Z_OK) {
-            Emsg0(M_ERROR_TERM, 0, _("Uncompression error.\n"));
+	 if ((stat=uncompress((Bytef *)compress_buf, &compress_len, 
+	       (const Bytef *)wbuf, (uLong)wsize) != Z_OK)) {
+            Emsg1(M_ERROR_TERM, 0, _("Uncompression error. ERR=%d\n"), stat);
 	 }
 
          Dmsg2(100, "Write uncompressed %d bytes, total before write=%d\n", compress_len, total);
 	 if ((uLongf)write(ofd, compress_buf, (size_t)compress_len) != compress_len) {
             Pmsg0(0, "===Write error===\n");
-            Emsg2(M_ERROR_TERM, 0, "Write error on %s: %s\n", ofile, strerror(errno));
+            Emsg2(M_ERROR_TERM, 0, _("Write error on %s: %s\n"), ofile, strerror(errno));
 	 }
 	 total += compress_len;
+	 fileAddr += compress_len;
          Dmsg2(100, "Compress len=%d uncompressed=%d\n", rec->data_len,
 	    compress_len);
       }
 #else
       if (extract) {
-         Emsg0(M_ERROR_TERM, 0, "GZIP data stream found, but GZIP not configured!\n");
+         Emsg0(M_ERROR, 0, "GZIP data stream found, but GZIP not configured!\n");
       }
 #endif
 
@@ -372,12 +448,16 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
    /* If extracting, wierd stream (not 1 or 2), close output file anyway */
    } else if (extract) {
       if (ofd < 0) {
-         Emsg0(M_ERROR_TERM, 0, "Logic error output file should be open\n");
+         Emsg0(M_ERROR, 0, "Logic error output file should be open\n");
       }
-      close(ofd);
-      ofd = -1;
       extract = FALSE;
-      set_statp(jcr, fname, ofile, lname, type, &statp);
+      set_attributes(jcr, fname, ofile, lname, type, stream, &statp,
+		     attribsEx, &ofd);
+   } else if (rec->Stream == STREAM_PROGRAM_NAMES || rec->Stream == STREAM_PROGRAM_DATA) {
+      if (!prog_name_msg) {
+         Pmsg0(000, "Got Program Name or Data Stream. Ignored.\n");
+	 prog_name_msg = 1;
+      }
    } else if (rec->Stream != STREAM_MD5_SIGNATURE) {
       Pmsg2(0, "None of above!!! stream=%d data=%s\n", rec->Stream, rec->data);
    }
